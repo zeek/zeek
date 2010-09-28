@@ -1,0 +1,316 @@
+
+@menu
+* Starting Bro ::
+* Bro Scripts ::
+* Sending (E-mail) Bro Reports ::
+* Reading a Bro Report ::
+@end menu
+
+@node Starting Bro 
+@section Starting Bro 
+@cindex starting Bro
+@cindex bro.rc
+
+Bro is automatically started at boot time via the @command{bro.rc} 
+script,
+( located in /usr/local/bro/etc and /usr/local/etc/rc.d on FreeBSD or 
+/usr/init.d on Linux )
+
+To run this script by hand, type:
+@example
+bro.rc start
+@end example
+or
+@example
+bro.rc checkpoint
+@end example
+or 
+@example
+bro.rc stop
+@end example
+
+Use @code{checkpoint} to restart Bro, loading a new policy file.
+
+To get feel for what Bro logs will look like on your traffic, do the following:
+
+Generate some "offline" data to play with:
+
+@example
+ # tcpdump -s 0 -w trace.out 
+@end example
+
+Kill off the tcpdump after capturing traffic for a few minutes (use ctrl-C),
+then to run Bro against this captured trace file:
+
+@example
+ # setenv BROHOME /usr/local/bro
+ # setenv BROPATH $BROHOME/site:$BROHOME/policy
+ # bro -r trace.out hostname.bro 
+@end example
+
+
+@node Bro Scripts
+@section Bro Scripts
+@cindex bro_generate_report
+@cindex bro_log_compress
+@cindex check_disk
+@cindex managing disk space
+
+Installing Bro automatically creates the following @command{cron} jobs, 
+which are
+automatically run on a specified interval.
+
+@itemize
+@item @command{site-report.pl}: generates an email report of all alarms 
+and alerts
+@item @command{mail_reports.sh}: send email reports 
+@end itemize
+
+These scripts can also all be run by hand at any time.
+
+Bro log files can get quick large, and it is important to make sure that 
+the Bro disk
+does not fill up. Bro includes some simple scripts to help manage disk 
+space. Most
+sites will want to customize these for their own requirements, and 
+integrate them into their
+backup system to make sure files are not removed before they are 
+archived.
+
+@itemize
+@item @command{check_disk.sh}: check for low disk space, and send email 
+@item @command{bro_log_compress.sh}: removes/compresses old log files 
+@end itemize
+
+These scripts can be customized by editing their settings in 
+@code{$BROHOME/etc/bro.cfg}.
+The settings are as follows:
+@itemize
+@item @command{check_disk.sh}: 
+@itemize
+@item @command{diskspace_pct}: when disk is >= this percent full, send 
+email
+@item @command{diskspace_watcher}: list of email addresses to send mail 
+to
+@end itemize
+@end itemize
+
+@itemize
+@item @command{bro_log_compress.sh}: 
+@itemize
+@item @command{Days2deletion}: remove files more than this many days old 
+(default = 60)
+@item @command{Days2compression}: compress files more than this many days 
+old (default = 30)
+@end itemize
+@end itemize
+
+
+
+@node Sending (E-mail) Bro Reports
+@section Sending (E-mail) Bro Reports
+@cindex e-mail reports
+@cindex internal report
+@cindex external report
+
+A daily 'internal' report is created that covers three sets of 
+information:
+
+@itemize
+@item Incident information
+@item Operational status of Bro
+@item General network traffic information
+@end itemize
+
+If the local organization is asked to report incidents to another 
+incident analysis organization (i.e. CERT, CIAC, FedCIRC, etc.) an 
+auxiliary 'external' report can be created that only contains the 
+incident information.  These reports are stored in $BRODIR/reports.
+
+The two reports will be mailed to the e-mail addresses specified during 
+Bro installation.  These e-mail addresses can be changed by re-running 
+the bro_config script or by editing $BROHOME/etc/bro.cfg  directly.  Each 
+report has it's own set of e-mail addresses.  If it is desired to send 
+the auxiliary report directly to the external incident analysis 
+organization without inspection, enter their e-mail address directly.  
+Otherwise, have the external e-mail sent to someone who can inspect and 
+forward it appropriately.
+
+@node Reading a Bro Report
+@section Reading a Bro Report
+@cindex incident
+@cindex incident type
+@cindex report period
+@cindex alarm
+@cindex connection, successful
+@cindex connection, unsuccessful
+@cindex connection, history
+@cindex scans
+@cindex system statistics
+@cindex traffic statistics
+
+The report is divided into three parts, the summary, incidents, and 
+scans.  The summary includes a rollup of incident information, Bro 
+operational statistics, and network information.  The incidents section 
+has details for each Bro alarm.  The scans section gives details about 
+scans that Bro detected.
+
+@subsection Parts of a Report
+
+@subsubheading Summary
+@quotation
+@strong{Report Period:} The beginning and ending date/times that define 
+the window of network data used to produce the report.  
+@*@*
+@strong{Incident Count:} The number of each type of incident that are 
+detailed in the report period
+@*@*
+@strong{System Statistics:} Operating system statistics that give some 
+idea of the 'health' of Bro's operation.
+@*@*
+@strong{Traffic Statistics:} Statistics gathered by Bro that may or may 
+not have significant value in evaluating intrusions, but are useful in 
+understanding the network environment.
+@end quotation
+
+@subsubheading Incidents
+@quotation
+@strong{Incident:} Each incident generated by the Bro installation is 
+assigned a unique identification number.  This number is unique for all 
+incidents, not just to the daily report.
+@*@*
+@strong{Incident Type:} Bro can detect attacks, but cannot make a 
+definitive judgment if an attack is successful without further 
+investigation and/or knowledge of the unique network environment.  Bro 
+uses an expert knowledge algorithm to make a determination if an incident 
+is 'Likely Successful', 'Unknown' (not enough information to make a 
+guess), or 'Likely Unsuccessful'.
+@*@*
+@strong{Local Host:} The local computer involved in the incident; usually 
+the victim.
+@*@*
+@strong{Remote Host:} The remote computer involved in the incident; 
+usually the attacker.
+@*@*
+@strong{Alarm(s}:) The network event(s) that Bro detected and identified 
+as probable attacks.
+@*@*
+@strong{Successful Connections:} Connections where one host initiates a 
+network request and the other host participates in the subsequent 
+requested transactions.
+@*@*
+@strong{Unsuccessful Connections:} Connections where one host initiates a 
+network request and the other host refuses the request.
+@*@*
+@strong{Unknown Connections:} Connections where one host initiated a 
+network request, but it is unclear if the other host participated in a 
+successful transaction.
+@*@*
+@strong{Connections History:} A summary tabulation of successful and 
+unsuccessful connections made in specific time periods.  The tabulations 
+are accumulative.  That is, the connections counted under 3 days will 
+also be counted in each subsequent column.
+@end quotation
+
+@subsubheading Scans
+Scans are repetitive (similar) probes, searching several victim hosts for 
+vulnerabilities.  The scan section gives the attack host instigating the 
+scan, the date/time of the scan, and the ports that were probed. 
+
+@subsection Example Report:
+
+@example
+@verbatim
+Bro Report                                              Organization Name 
+=========================================================================
+Summary                        July 28, 2004 17:01 to July 29, 2004 17:00
+=========================================================================
+ Incident       Likely Successful          1	
+ Summary        Unknown                    0			
+                Likely Unsuccessful        0
+                Scans                     10
+
+ System         Bro disk space:   <% at time of report generation>
+ Statistics     Bro Process cpu:  <time>
+                Bro restarts:     <date/time>
+                System reboots:   <date/time>
+
+ Traffic        Number of packets:       <count>
+ Statistics     Number of valid packets: <count>  <% of total>
+                Protocol summary
+                Http: <count>   <% of total>
+                SSH : <count>   <% of total>
+                SMTP: <count>   <% of total>
+                Etc.
+                Average bandwidth:
+                Peak bandwidth:
+=========================================================================
+Incident Details
+                       legend for connection type
+                > connection initiated by remote host
+                < connection initiated by local host
+                # number corresponds to alarm triggered by the connection
+                * successful connection, otherwise unsuccessful
+=========================================================================
+Incident     ORGCODE-000002                             LIKELY SUCCESSFUL
+---------------------
+Remote Host: 84.136.138.21   p54877614.dip.hacker.net
+ Local Host: 124.333.183.162 pooroljoe.dhcp.org.com
+
+Alarm(s) 1 MS-SQL xp_cmdshell - program execution
+           Jul 29 12:43 84.135.118.20 -> 128.3.183.62
+         2 TFTP Get Runtime.exe
+           Jul 29 12:43 128.3.183.62 -> 84.135.118.20
+
+Connections (only first 25 after alarm are listed)
+-----------
+                 time      byte   remote       local    byte
+ date   time   duration  transfer  port  type   port  transfer  protocol
+----- -------- -------- --------- -----  ---- ------ --------- ----------
+07/29 12:43:31        ?     566 b  4634  1  >  1433      467 b  tcp/MSSQL
+07/29 12:43:31        0         ?  2318  2 <     69       20 b  udp/tftp
+07/29 12:43:32    265.7       4 b  4638  * <   2318      3.0kb  udp
+07/29 12:48:56        ?         ?  4640     >  2362          ?  tcp
+07/29 12:50:05        ?    11.4kb  4639  * <   3333      8.6kb  tcp
+07/29 12:53:00        0         ?  4684  *  >  2362          ?  tcp
+07/29 12:53:07        ?         ?  4685  *  >  2362          ?  tcp
+07/29 12:53:59        ?         ?  4689  *  >  2362          ?  tcp
+07/29 12:54:14      6.1         0  4693  * <   2380     94.2kb  tcp
+07/29 12:54:21       .5      50 b  4694     >  2381          0  tcp
+07/29 12:54:23       .7         ?  4695    <   2382          0  tcp
+07/29 12:54:25       .5      51 b  4696  *  >  2383          0  tcp
+07/29 12:54:27       .5      61 b  4697  *  >  2384          0  tcp
+07/29 12:54:28       .7      39 b  4698     >  2385          0  tcp
+07/29 12:54:31       .5      41 b  4699  *  >  2386          0  tcp
+07/29 12:54:33      1.2    4.9 kb  4700     >  2387          0  tcp
+07/29 12:54:35     12.8  195.0 kb  4701  * <   2388          0  tcp
+07/29 12:54:53       .2         ?  4703    <   2390          0  tcp
+07/29 12:54:54       .5      37 b  4704     >  2391          0  tcp
+07/29 12:54:56      3.4      23 b  4705  *  >  2392          0  tcp
+07/29 12:55:04     21.4  308.7 kb  4706     >  2393          0  tcp
+07/29 12:55:27     50.7         ?  4707     >  2394          ?  tcp
+07/29 12:59:23        ?         ?  4775     >  1433          ?  tcp
+07/29 12:59:25        ?         ?  4774  *  >  3333          ?  tcp
+
+Remote Host Connection History (all successful/unsuccessful to site)
+      24 hrs     |      3 days      |      7 days     |      30 days
+-------------------------------------------------------------------------
+       14/10     |        0/0       |        0/0      |        0/0
+-------------------------------------------------------------------------
+  Total since remote host first seen on 07/29/04: 14/10
+
+=========================================================================
+Scans
+=======================================================================
+==
+Date Dropped		Host			             Port Scanned
+-------------------------------------------------------------------------
+Jul 29 13:14 n219077002119.netvigator.com                     (3128/tcp)
+Jul 29 13:23 node1.lbnl.nodes.planet-lab.org                  (49702/tcp)
+Jul 29 13:30 213-145-189-50.dd.nextgentel.com                 (4899/tcp)
+Jul 29 13:32 211.55.52.67                                     (1034/tcp)
+Jul 29 13:52 user-69-1-11-116.knology.net                     (3128/tcp)
+
+*************************************************************************
+@end verbatim
+@end example

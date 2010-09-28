@@ -1,0 +1,295 @@
+
+@node Signatures
+@chapter Signatures
+
+@menu
+* Overview::			
+* Signature language::		
+* snort2bro::			
+@end menu
+
+@node Overview,
+@section Overview
+
+In addition to the policy language, Bro provides another language which is
+specifically designed to define @emph{signatures}. Signatures precisely describe
+how network traffic looks for certain, well-known attacks. As soon as a attack
+described by a signature is recognized, Bro may generate an event for this
+@emph{signature match} which can then be analyzed by a policy script.
+To define signatures, Bro's language provides several powerful constructs like
+regular expressions @ and dependencies between multiple
+signatures.
+
+Signatures are independent of Bro's policy scripts and, therefore, are put
+into their own file(s). There two ways to specify which files contain
+signatures: By using the @code{-s} flag when you invoke Bro, or by extending
+the Bro variable @code{signatures_files} using the @code{+=} operator.
+If a signature file is given without a path, it is searched along
+. The default extension of the file name is @code{.sig} 
+which Bro appends automatically.
+
+@node Signature language,
+@section Signature language
+
+Each individual signature has the format 
+
+@quotation
+@code{signature @emph{id} @{ @emph{attribute-set} @} }
+@end quotation
+
+@code{id} is an unique label for the signature. There are two types of
+attributes: @emph{conditions} and @emph{actions}. The conditions define
+@emph{when} the signature matches, while the actions declare @emph{what to do} in the case of a match. Conditions can be further divided into
+four types: @emph{header}, @emph{content}, @emph{dependency}, and 
+@emph{context}. We will discuss these in more detail in the following
+subsections.
+
+This is an example of a signature:
+
+@example
+signature formmail-cve-1999-0172 @{
+  ip-proto == tcp
+  dst-ip == 1.2.0.0/16
+  dst-port = 80
+  http /.*formmail.*\?.*recipient=[^&]*[;|]/
+  event "formmail shell command"
+  @}
+@end example
+
+@menu
+* Conditions::			
+* Actions::			
+@end menu
+
+@node Conditions,
+@subsection Conditions
+
+@menu
+* Header conditions::		
+* Content conditions::		
+* Dependency conditions::	
+* Context conditions::		
+@end menu
+
+@node Header conditions,
+@subsubsection Header conditions
+
+Header conditions limit the applicability of the signature to a subset of
+traffic that contains matching packet headers. For TCP, this match is
+performed only for the first packet of a connection. For other protocols, it
+is done on each individual packet. There are pre-defined header conditions for
+some of the most used header fields:
+
+@table @samp
+
+@item @emph{address-list}
+Destination address of IP packet (may include CIDR masks for specifying networks)
+
+@item @emph{integer-list} 
+Destination port of TCP or UDP packet
+
+@item @emph{protocol-list}
+IP protocol; @emph{protocol} may be @code{tcp}, @code{udp}, or @code{icmp}.
+
+@item @emph{address-list} 
+Source address of IP packet (may include CIDR masks for specifying networks)
+
+@item @emph{integer-list} 
+Source port of TCP or UDP packet
+@end table
+
+@emph{comp} is one of @code{==}, @code{!=}, @code{<},
+@code{<=}, @code{>}, @code{>=}. All lists are comma-separated values of
+the given type which are sequentially compared against the corresponding
+header field. If at least one of the comparisons evaluates to true, the whole
+header condition matches (exception: if @emph{comp} is @code{!=}, the header
+condition only matches if @emph{all} values differ). @emph{address} is an
+dotted IP address optionally followed by a CIDR/mask to define a subnet
+instead of an individual address. @emph{protocol} is either one of @code{ip},
+@code{tcp}, @code{udp} and @code{icmp}, or an integer.
+
+In addition to this pre-defined short-cuts, a general header condition can be
+defined either as
+
+@quotation
+@code{header @emph{proto}[@emph{offset}:@emph{size}] @emph{comp} @emph{value-list}}
+@end quotation
+
+or as
+
+@quotation
+@code{header @emph{proto}[@emph{offset}:@emph{size}] & @emph{integer} @emph{comp} @emph{value-list}}
+@end quotation
+
+This compares the value found at the given position of the packet header with
+a list of values. @emph{offset} defines the position of the value within
+the header of the protocol defined by @emph{proto} (which can @code{ip}, @code{tcp},
+@code{udp} or@code{icmp}. @emph{size} is either 1, 2, or 4 and specifies the
+value to have a size of this many bytes. If the optimal
+@code{& @emph{integer}} is given, the packet's value is first masked
+with the @emph{integer} before it is compared to the value-list. @emph{comp}
+is one of @code{==}, @code{!=}, @code{<},
+@code{<=}, @code{>}, @code{>=}. @emph{value-list} is a list of
+comma-separated integers similar to those described above. The integers within
+the list may be followed by an additional @code{/@emph{mask}} where
+@emph{mask} is a value from 0 to 32. This corresponds to the CIDR notation
+for netmasks and is translated into a corresponding bitmask which is applied
+to the packet's value prior to the comparison (similar to the optional
+@code{& @emph{integer}}).
+
+Putting all together, this is an example which is equivalent to
+@code{dst-ip == 1.2.3.4/16, 5.6.7.8/24}:
+
+@quotation
+@code{header ip[16:4] == 1.2.3.4/16, 5.6.7.8/24}
+@end quotation 
+
+@node Content conditions,
+@subsubsection Content conditions
+
+Content conditions are defined by regular expressions. We differentiate two
+kinds of content conditions: first, the expression may be declared with the
+@code{payload} statement, in which case it is matched against the raw
+payload of a connection (for reassembled TCP streams) or of a each packet.
+Alternatively, it may be prefixed with an analyzer-specific label, in which
+case the expression is matched against the data as extracted by the
+corresponding analyzer.
+
+A @code{payload} condition has the form
+
+@quotation
+@code{payload /@emph{regular expression}/}
+@end quotation 
+
+Currently, the following analyzer-specific content conditions are defined (note that
+the corresponding analyzer has to be activated by loading its policy script):
+
+@table @samp
+
+@item @code{http-request @emph{/regular expression/}}
+The regular expression is matched against decoded URIs of the HTTP requests.
+
+@item @code{http-request-header @emph{/regular expression/} }
+The regular expression is matched against client-side HTTP headers.
+
+@item  @code{http-reply-header @emph{/regular expression/} }
+The regular expression is matched against server-side HTTP headers.
+
+@item @code{ftp @emph{/regular expression/} }   
+The regular expression is matched against the command line input of 
+FTP sessions.
+
+@item @code{finger @emph{/regular expression/}}
+The regular expression is matched against the finger requests.
+@end table
+
+For example, @code{http /(etc/(passwd|shadow)/} matches any URI
+containing either @code{etc/passwd} or @code{etc/shadow}.
+
+@node Dependency conditions,
+@subsubsection Dependency conditions
+
+To define dependencies between different signatures, there are two conditions:
+
+@table @samp
+
+@item requires-signature [! @emph{id}]
+Defines the current signature to match only if the signature given by @emph{id}
+matches for the same connection. Using `@code{!}' negates the
+condition: The current signature only matches if @emph{id} does not
+match for the same connection (this decision is necessarily deferred until
+the connection terminates).
+
+@item  requires-reverse-signature [! @emph{id}]
+Similar to @code{requires-signature}, but @emph{id} has to match for the
+other direction of the same connections than the current signature.
+This allows to model the notion of requests and replies.
+@end table
+
+@node Context conditions,
+@subsubsection Context conditions
+
+Context conditions pass the match decision on to various other components of
+Bro. They are only evaluated if all other conditions have already matched. The
+following context conditions are defined:
+
+@table @samp
+
+@item @code{eval @emph{policy function}}
+The given policy function is called and has to return a boolean
+indicating the match result. The function has to be of the type
+@code{function cond(state: signature_state): bool}. See
+\f@{fig:signature-state@} for the definition of @code{signature_state}.
+
+@float Figure, signature-state
+@example
+type signature_state: record @{
+    id: string;          # ID of the signature
+    conn: connection;    # Current connection
+    is_orig: bool;       # True if current endpoint is originator
+    payload_size: count; # Payload size of the first pkt of curr. endpoint
+    @};
+@end example
+@caption{Definition of the @code{signature_state} record}
+@end float
+
+@item @code{ip-options}
+Not implemented currently.
+
+@item @code{payload-size @emph{comp_integer}}
+Compares the integer to the size of the payload of a packet. For
+reassembled TCP streams, the integer is compared to the size of
+the first in-order payload chunk. Note that the latter is not well defined.
+
+@item @code{same-ip }
+Evaluates to true if the source address of the IP packets equals its
+destination address.
+
+@item @code{tcp-state @emph{state-list}}
+Poses restrictions on the current TCP state of the connection.
+@emph{state-list} is a comma-separated list of @code{established}
+(the three-way handshake has already been performed),
+@code{originator} (the current data is send by the originator of the
+connection), and @code{responder} (the current data is send by the
+responder of the connection).
+
+@end table
+
+@node Actions,
+@subsection Actions
+
+Actions define what to do if a signature matches. Currently, there is only one 
+action defined: @code{event @emph{string}} raises a @code{signature_match}
+event. The event handler has the following type: 
+
+@quotation
+@code{event signature_match(state: signature_state, msg: string, data: string)}
+@end quotation
+
+See \f@{fig:signature-state@} for a description of @code{signature_state}. The given string
+is passed as @code{msg}, and data is the current part of the payload that
+has eventually lead to the signature match (this may be empty for signatures without
+content conditions).
+
+@node snort2bro,
+@section snort2bro
+
+The open-source IDS Snort provides an extensive library of signatures.
+The Python script @{snort2bro@} converts Snort's signature into Bro signatures.
+Due to different internal architectures  of Bro and Snort, it is not always
+possible to keep the exact semantics of Snort's signatures, but most of the
+time it works very well.
+
+To convert Snort signatures into Bro's format, @code{snort2bro} needs a
+workable Snort configuration file (@code{snort.cfg}) which, in particular,
+defines the variables used in the Snort signatures (usually things like
+@code{$EXTERNAL_NET} or @code{$HTTP_SERVERS}). The conversion is
+performed by calling @code{snort2bro [-I @emph{dir}] snort.cfg} where the
+directory optionally given by @code{-I} contains the files imported by
+Snort's @code{include} statement. The converted signature set is written to
+standard output and may be redirected to a file. This file can then be
+evaluated by Bro using the @code{-s} flag or the @code{signatures_files}
+variable.
+
+@emph{Deficiency:@code{snort2bro} does not know about some of the newer Snort signature options and ignores them (but it gives a warning).}
+

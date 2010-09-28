@@ -1,0 +1,74 @@
+# quick README
+
+For the purpose of this readme file it is assumed that Bro is already 
+installed and running and you are familiar with the general directory 
+structure.
+
+REQUIREMENTS:
+
+	PERL 5.6.1 or greater
+	Python
+
+
+Copy all of the files in the bro-include directory that end in .bro
+or .sig to your $BROHOME/policy directory.
+
+If you are running multiple versions of PERL or Python and the required 
+version is not running from the default place then you are going to need 
+to change the bang path (example: #!/usr/bin/perl) to whatever is appropriate.
+
+All files created by s2b.pl that are used in a running Bro instance will end 
+with either .bro or .sig.  The recommended place to put these file is under 
+the directory $BROHOME/policy/local as these files can change often and will 
+be tuned to a specific site or network traffic type.
+
+Here are example entries to be added to the Bro policy start script so that 
+the signature preqrequisites get loaded correctly.
+
+	@load software
+	@load signatures
+	@load snort
+	@load sig-functions.bro
+	@load sig-action.bro
+
+On the command line which starts the running Bro process include the 
+following.  It is assumed that the frequently updated signatures.sig and 
+sig-action.bro are put in the directories $BROHOME/site and 
+$BROHOME/policy respectively.  $BRO is the path to the bro binary in use.
+
+	$BRO -s $BROHOME/policy/sig-addendum.sig -s $BROHOME/site/signatures.sig <other command line stuff>
+
+
+# These are just some quick examples
+# Since most of the programs control resides in the --configdir these 
+ # commands point to the relative config dir of 'etc/' which is included
+ # in the tarball.
+# Change to bin/ and try the following commands
+
+# This PERL program requires PERL 5.6.1 minimum and module Config::General
+ # which is included in directory pm/ or it can be downloaded from cpan.org
+
+# Create a new s2b-augment.cfg file
+
+./s2b.pl --mainconfig ../etc/s2b.cfg --configdir ../etc --snortrulesetdir ../snort_rules2.2 --updateaugment --augmentconfig ../etc/s2b-augment.cfg
+
+
+# Create Bro s2b.sig and s2b-siagaction.bro files a remain completely silent outputting no errors if encountered
+
+./s2b.pl --mainconfig ../etc/s2b.cfg --configdir ../etc --snortrulesetdir ../snort_rules2.2 --augmentconfig ../etc/s2b-augment.cfg --debug 0
+
+
+# Create Bro s2b.sig and s2b-sigaction.bro files and print any errors to STDERR.  (default debug level is 1)
+
+./s2b.pl --mainconfig ../etc/s2b.cfg --configdir ../etc --snortrulesetdir ../snort_rules2.2 --augmentconfig ../etc/s2b-augment.cfg --debug 1
+
+
+# Show some usage info
+
+./s2b.pl --help
+
+
+TODO:
+
+   Need to update this readme after the directory structure of Bro has been 
+   finalized.

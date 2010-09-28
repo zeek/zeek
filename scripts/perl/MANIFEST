@@ -1,0 +1,13 @@
+lib/Bro/Config.pm
+lib/Bro/Log.pm
+lib/Bro/Log/Alarm.pm
+lib/Bro/Log/Conn.pm
+lib/Bro/Report.pm
+lib/Bro/Report/Alarm.pm
+lib/Bro/Report/Conn.pm
+lib/Bro/Signature.pm
+Makefile.PL
+MANIFEST			This list of files
+README
+script/edit-brorule.pl
+script/site-report.pl

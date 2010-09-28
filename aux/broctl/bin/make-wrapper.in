@@ -1,0 +1,14 @@
+#! /usr/bin/env bash
+#
+# $Id: make-wrapper.in 6811 2009-07-06 20:41:10Z robin $
+#
+# Wrapper to call the broctl script from the Makefile, settting
+# some environment variables first.
+
+export BROBASE=$PREFIX
+export BRODIST=$BRODIST
+
+export BROCTL_INSTALL=1
+export PYTHONPATH=$BRODIST/aux/broctl:$PYTHONPATH
+
+./bin/broctl $@

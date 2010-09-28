@@ -1,0 +1,11 @@
+
+The section not done!
+
+There are a number of patches needed to make Bro work well with Linux.
+
+These include:
+
+Luca Deri's patch to fix libpcap issues.
+
+
+

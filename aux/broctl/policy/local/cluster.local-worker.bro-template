@@ -1,0 +1,6 @@
+# $Id: cluster.local-worker.bro-template 6811 2009-07-06 20:41:10Z robin $
+#
+# Local site policy loaded only by the workers (and the proxy).
+
+@load local
+

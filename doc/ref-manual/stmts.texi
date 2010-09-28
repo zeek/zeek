@@ -1,0 +1,773 @@
+
+@node Statements and Expressions
+@chapter Statements and Expressions
+
+You express Bro's analysis of network traffic using @emph{event handlers},
+which, as discussed in XX,
+are essentially subroutines written in Bro's policy scripting
+language.  In this chapter we discuss the different types of statements
+and expressions available for expressing event handlers and the auxiliary
+functions they use.
+
+@menu
+* Statements::			
+* Expressions::			
+@end menu
+
+@node Statements,
+@section Statements
+
+@cindex statements
+Bro functions and event handlers are written in an imperative style, and
+the statements available for doing so are similar to those provided in C.
+@cindex statements, semi-colon termination
+@cindex semi-colon statement termination
+@cindex statements, multi-line
+@cindex whitespace, in statements
+As in C, statements are terminated with a semi-colon.  There are no
+restrictions on how many lines a statement can span.  Whitespace can appear
+between any of the syntactic components in a statement, and its presence
+always serves as a separator (that is, a single syntactic component cannot
+in general contain embedded whitespace, unless it is escaped in some form,
+such as appearing inside a string literal).
+
+Bro provides the following types of statements:
+
+@command{expression}
+@cindex expression
+@quotation
+Syntax:
+@quotation
+@emph{expr} ;
+@end quotation
+As in C, an expression by itself can also be used as a statement.
+For example, assignments, calling functions, and scheduling
+timers are all expressions; they also are often used as statements.
+@end quotation
+
+@command{print}
+@cindex print statement
+@quotation
+Syntax:
+@quotation
+print @emph{file} @emph{expr-list} ;
+@end quotation
+The expressions are converted to a list of strings, which are then
+printed as a comma-separated list.  If the first expression is of
+type , then the other expressions are printed to
+the corresponding file; otherwise they're written to
+@cindex stdout
+@emph{stdout}.
+
+For control over how the strings are formatted, see the @code{fmt}
+function.
+@end quotation
+
+@command{alarm}
+@cindex alarm statement
+@quotation
+Syntax:
+@quotation
+alarm @emph{expr-list} ;
+@end quotation
+The expressions are converted to a list of strings, which are then
+logged as a comma-separated list.  ``Logging'' means recording the
+values to @file{bro-alarm-file}.  In addition, if Bro is reading
+@cindex live traffic
+@cindex traffic, live vs. recorded
+@emph{live} network traffic (as opposed to from a trace file), then
+the messages are also reported via
+@cindex syslog
+@emph{syslog(3)} at level
+@emph{LOG_NOTICE}.  If the message does not already
+include a timestamp, one is added.
+
+See the @code{alarm}  module for a discussion of controlling logging
+behavior from your policy script.  In particular, an important feature of
+the @code{alarm} statement is that prior to logging the giving string(s),
+Bro first invokes @command{alarm-hook} to determine whether to suppress
+the logging.
+@end quotation
+
+@command{event}
+@cindex event statement
+@quotation
+Syntax:
+@quotation
+event @emph{expr} ( @emph{expr-list*} ) ;
+@end quotation
+Evaluates @emph{expr} to obtain an event handler and queues an event
+for it with the value corresponding to the optional comma-separated
+list of values given by @emph{expr-list}.
+
+@emph{Note:}  @code{event} statements look syntactically just like function calls, other than the 
+keyword ``@code{event}''.  However, @command{function-call-expr}, while queueing an event is not, since it does not return a value. 
+@end quotation
+
+@command{if}
+@cindex if statement
+@quotation
+Syntax:
+@quotation
+if ( @emph{expr} ) @emph{stmt}  @*
+if ( @emph{expr} ) @emph{stmt} else @emph{stmt2}
+@end quotation
+Evaluates @emph{expr}, which must yield a @command{bool} value.  If true,
+executes @emph{stmt}.  For the second form, if false, executes @emph{stmt2}.
+@end quotation
+
+@command{for}
+@cindex for statement
+@quotation
+Syntax:
+@quotation
+for ( @emph{var} in @emph{expr} ) @emph{stmt} 
+@end quotation
+Iterates over the indices of @emph{expr}, which must evaluate to either
+a @code{set} or a @code{table}.  For each iteration, @emph{var} is
+set to one of the indices and @emph{stmt} is executed.  @emph{var} needn't
+have been previously declared (in which case its type is implicitly inferred
+from that of the indices of @emph{expr}), and must not be a global variable.
+
+If @emph{expr} is a @code{set}, then the indices correspond to the
+members of the set.  If @emph{expr} is a @code{table}, then they correspond
+to the indices of the table.
+
+@emph{Deficiency: You can only use @code{for} statements to iterate over sets and tables with a single, non-compound index type.  You can't iterate over multi-dimensional or compound indices. }
+
+@emph{Deficiency: Bro lacks ways of controlling the order in which it iterates over the indices. }
+@end quotation
+
+@command{next}
+@cindex next statement
+@quotation
+Syntax:
+@quotation
+next ;  
+@end quotation
+Only valid within a @code{for} statement.  When executed, causes the
+loop to proceed to the next iteration value (i.e., the next index value).
+@end quotation
+
+@command{break}
+@cindex break statement
+@quotation
+Syntax:
+@quotation
+break ;  
+@end quotation
+Only valid within a @code{for} statement.  When executed, causes the
+loop to immediately exit.
+@end quotation
+
+@command{return}
+@cindex return statement
+@quotation
+Syntax:
+@quotation
+return @emph{expr} ;  
+@end quotation
+Immediately exits the current function or event handler.  For a function,
+returns the value @emph{expr} (which is omitted if the function does
+not return a value, or for event handlers).
+@end quotation
+
+@command{add}
+@cindex add statement
+@quotation
+Syntax:
+@quotation
+add @emph{expr1} @emph{expr2} ; 
+@end quotation
+Adds the element specified by @emph{expr2} to the
+set given by @emph{expr1}.  For example,
+@example
+    global active_hosts: set[addr, port];
+    ...
+    add active_hosts[1.44.33.7, 80/tcp];
+@end example
+
+adds an element corresponding to the pair
+1.44.33.7 and 80/tcp to the set active_hosts.
+@end quotation
+
+@command{delete}
+@cindex delete statement
+@quotation
+Syntax:
+@quotation
+delete @emph{expr1} [@emph{expr2}] ; 
+@end quotation
+Deletes the corresponding value, where @emph{expr1} corresponds
+to a set or table, and @emph{expr2} an element/index of the
+set/table.  If the element is not in the set/table, does nothing.
+@end quotation
+
+@command{compound}
+@cindex compound statement
+@quotation
+Compound statements are formed from a list of (zero or more)
+statements enclosed in
+@code{@{@}}'s:
+@quotation
+@{ @emph{statement*} @} 
+@end quotation
+@end quotation
+
+@command{null}
+@cindex null statement
+@quotation
+A lone:
+@quotation
+; 
+@end quotation
+denotes an empty, do-nothing statement.
+@end quotation
+
+@cindex variables, local
+@cindex local variables
+@cindex variables, constant
+@cindex constant variables
+
+@command{local,const}
+@cindex local 
+@quotation
+Syntax:
+@quotation
+local @emph{var} : @emph{type} = @emph{initialization} @emph{attributes} ; @*
+const @emph{var} : @emph{type} = @emph{initialization} @emph{attributes} ; 
+@end quotation
+Declares a local variable with the given type, initialization, and
+attributes, all of which are optional.  The syntax of these fields is the
+same as for @command{global-vars}.  The
+second form likewise declares a local variable, but one which is
+@emph{constant}: trying to assign a new value to it results in an error.
+@emph{Deficiency:Currently, this @code{const} restriction isn't detected/enforced. }
+
+@cindex variables, scope
+
+@emph{Unlike with C} the scope of a local variable is from the point of declaration to the end of the encompassing function or event handler.
+@end quotation
+
+@cindex statements
+
+@node Expressions,
+@section Expressions
+
+@cindex expressions|(
+Expressions in Bro are very similar to those in C, with similar precedence:
+
+@cindex left parenthesis operator( operator
+@cindex operator, left parenthesis( parenthesis
+@cindex right parenthesis operator) operator
+@cindex operator, right parenthesis) parenthesis
+@cindex parentheses operators()
+
+@command{parenthesized}
+@quotation
+Syntax:
+@quotation
+( @emph{expr} ) 
+@end quotation
+Parentheses are used as usual to override precedence.
+@end quotation
+
+@command{constant}
+@cindex constant 
+@quotation
+Any constant value  is an expression.
+@end quotation
+
+@command{variable}
+@cindex variable 
+@quotation
+The name of a @emph{variable} is an expression.
+@end quotation
+
+@command{clone}
+@cindex clone operator
+@quotation
+Syntax:
+@quotation
+copy( @emph{expr} )
+@end quotation
+Produces a clone, or deep copy, of the value produced by the expression
+it is applied to.
+@end quotation
+
+@command{increment,decrement}
+@cindex increment 
+@cindex decrement 
+@quotation
+Syntax:
+@quotation
+++ @emph{expr}  
+@*
+-- @emph{expr} 
+@end quotation
+Increments or decrements the given expression, which must correspond
+to an assignable value (variable, table element, or record element)
+and of a number type.
+
+Yields the value of the expression after the increment.
+
+@emph{Unlike with C, these operators only are defined for ``pre''-increment/decrement; there is no post-increment/decrement.}
+@end quotation
+
+@command{negation}
+@cindex negation 
+@quotation
+Syntax:
+@quotation
+! @emph{expr}  @*
+- @emph{expr} 
+@end quotation
+Yields the boolean 
+or arithmetic negation for values of boolean
+or @emph{numeric} (or @emph{interval}) types, respectively.
+@end quotation
+
+@command{positivation}
+@quotation
+Syntax:
+@quotation
++ @emph{expr} 
+@end quotation
+Yields the value of @emph{expr}, which must be of type @emph{numeric}
+or @emph{interval}.
+
+The point of this operator is to explicitly convert a value of type count
+to int.  For example, suppose you want to declare a local variable
+code to be of type int, but initialized to the value 2.
+If you used:
+@example
+    local code = 2;
+@end example
+
+then Bro's implicit typing would make it of type count, because
+that's the type of a
+@command{numeric-constants}.
+You could instead use:
+@example
+    local code = +2;
+@end example
+
+to direct the type inferencing to instead assign a type of int
+to code.  Or, of course, you could specify the type explicitly:
+@example
+    local code:int = 2;
+@end example
+@end quotation
+
+@command{arithmetic}
+@quotation
+Syntax:
+@quotation
+@emph{expr1} + @emph{expr2} @* 
+@emph{expr1} - @emph{expr2} @* 
+@emph{expr1} * @emph{expr2} @* 
+@emph{expr1} / @emph{expr2} @* 
+@emph{expr1} % @emph{expr2} 
+@end quotation
+The usual C arithmetic operators, 
+defined for numeric types, except
+modulus (@code{%}) is only defined for integral types.
+@end quotation
+
+@cindex & short-circuit&&@  short-circuit ``and''
+@cindex short-circuit1-circuit && ``and'' operator
+@cindex and operator&& ``and'' operator
+@cindex operator, and&& ``and''
+@cindex & or short-circuit"|"|@  short-circuit ``or''
+@cindex short-circuit2-circuit "|"| ``or'' operator
+@cindex or operator"|"| ``or'' operator
+@cindex operator, or"|"| ``or''
+
+@command{logical}
+@quotation
+Syntax:
+@quotation
+@emph{expr1} @code{&&} @emph{expr2} @*
+@emph{expr1} @code{||} @emph{expr2} 
+@end quotation
+The usual C logical operators, defined for boolean types.
+@end quotation
+
+@cindex == equality operator==@  equality operator
+@cindex == inequality operator", =@  inequality operator
+
+@command{equality}
+@quotation
+Syntax:
+@quotation
+@emph{expr1} @code{==} @emph{expr2}  \
+@emph{expr1} @code{"!=} @emph{expr2} 
+@end quotation
+@command{rel-operators},
+Compares two values for equality or inequality, yielding a @code{bool} value.  Defined for all non-compound types except pattern.
+@end quotation
+
+@cindex == less-than operator<@ @  less-than operator
+@cindex == less-than-or-equal operator<=@  less-or-equal operator
+@cindex == z operator>@ @  greater-than operator
+@cindex == zz operator>=@  greater-or-equal operator
+
+@command{relational}
+@quotation
+Syntax:
+@quotation
+@emph{expr1} @code{<} @emph{expr2}  \
+@emph{expr1} @code{<=} @emph{expr2}  \
+@emph{expr1} @code{>} @emph{expr2}  \
+@emph{expr1} @code{>=} @emph{expr2} 
+@end quotation
+Compares two values for magnitude ordering,
+yielding a bool value.  Defined for values of type @emph{numeric},
+time, interval, port, or addr.
+
+@emph{Note:} TCP port values are considered less than UDP port values.
+
+@emph{Note:} IPv4 addr values less than IPv6 addr values.
+
+@emph{Deficiency: Should also be defined at for @command{string} values. }
+@end quotation
+
+@command{conditional}
+@quotation
+Syntax:
+@quotation
+@emph{expr1} ? @emph{expr2} : @emph{expr3} 
+@end quotation
+Evaluates @emph{expr1} and, if true, evaluates and yields
+@emph{expr2}, otherwise evaluates and yields
+@emph{expr3}. 
+@emph{expr2} and @emph{expr3} must have compatible
+types.
+@end quotation
+
+@command{assignment}
+@quotation
+Syntax:
+@quotation
+@emph{expr1} = @emph{expr2} 
+@end quotation
+Assigns the value of @emph{expr2} to the storage defined
+by 
+@emph{expr1}, which must be an assignable value
+(variable, table element, or record element).  Yields the assigned value.
+@end quotation
+
+@cindex left parenthesis operator( operator
+@cindex operator, left parenthesis( parenthesis
+@cindex right parenthesis operator) operator
+@cindex operator, right parenthesis) parenthesis
+@cindex parentheses operators()
+
+@cindex invocation, function
+@cindex function invocation
+
+@command{function call}
+@quotation
+Syntax:
+@quotation
+@emph{expr1} ( @emph{expr-list2} ) 
+@end quotation
+Evaluates @emph{expr1} to obtain a value of type @code{function},
+which is then invoked with its arguments bound left-to-right to the values
+obtained from the comma-separated list of expressions
+@emph{expr-list2}.  Each element of @emph{expr-list2}
+must be assignment-compatible with the corresponding formal argument 
+in the type of @emph{expr1}.  The list may (and must) be empty if the
+function does not take any parameters.
+@end quotation
+
+@cindex functions, anonymous
+
+@command{anonymous function}
+@quotation
+Syntax:
+@quotation
+function ( @emph{parameters} ) @emph{body} 
+@end quotation
+Defines an @emph{anonymous function}, which, in abstract terms, is how
+you specify a constant of type @code{function}.  @emph{parameters} has
+the syntax of parameter declarations for
+@command{functions}, as does @emph{body},
+which is just a list of statements enclosed in braces.
+
+Anonymous functions can be used anywhere you'd usually instead use a
+function declared in the usual direct fashion.  For example, consider the
+function:
+@example
+    function demo(msg: string): bool
+        @{
+        if ( msg == "do the demo" )
+            @{
+            print "got it";  
+            return T;
+            @}
+        else
+            return F;
+        @}
+@end example
+
+You could instead declare demo as a global variable of type @code{function}:
+@example
+global demo: function(msg: string): bool;
+@end example
+
+and then later assign to it an anonymous function:
+@example
+    demo = function (msg: string): bool
+        @{
+        if ( msg == "do the demo" )
+            @{
+            print "got it";
+            return T;
+            @}
+        else
+            return F;
+        @};
+@end example
+
+You can even call the anonymous function directly:
+@example
+    (function (msg: string): bool
+        @{
+        if ( msg == "do the demo" )
+            @{
+            print "got it";
+            return T;
+            @}
+        else
+            return F;
+        @})("do the demo")
+@end example
+
+though to do so you need to enclose the function in parentheses to
+avoid confusing Bro's parser.
+
+One particularly handy form of anonymous function is that used
+for @command{&default}.
+@end quotation
+
+@cindex timers
+@cindex events, scheduling
+@cindex scheduling events
+
+@command{event scheduling}
+@quotation
+Syntax:
+@quotation
+schedule @emph{expr1} @code{@{} @emph{expr2} ( @emph{expr-list3} ) @code{@}} 
+@end quotation
+Evaluates @emph{expr1} to obtain a value of type @command{interval},
+and schedules the event given by @emph{expr2} with parameters
+@emph{expr-list3} for that time.  Note that the expressions are
+all evaluated and bound at the time of execution of the schedule
+expression; evaluation is @emph{not} deferred until the future execution
+of the event handler.
+
+For example, we could define the following event handler:
+@example
+    event once_in_a_blue_moon(moon_phase: interval)
+        @{
+        print fmt("wow, a blue moon - phase %s", moon_phase);
+        @}
+@end example
+
+and then we could schedule delivery of the event for 6 hours from
+the present, with a moon_phase of 12 days, using:
+@example
+    schedule +6 hr @{ once_in_a_blue_moon(12 days) @};
+@end example
+
+@emph{Note:  The syntax is admittedly a bit clunky.  In particular, it's easy to @emph{(i)} forget to include the braces (which are needed to avoid confusing Bro's parser), @emph{(ii)} forget the final semi-colon if the schedule expression is being used as an expression-statement, or @emph{(iii)} erroneously place a semi-colon after the event specification but before the closing brace.}
+
+@cindex timer expiration
+@cindex expiration, timer
+
+Timer invocation is inexact.  In general, Bro uses arriving packets to
+serve as its clock (when reading a trace file off-line, this is still the
+case---the timestamp of the latest packet read from the trace is used as
+the notion of ``now'').  Once this clock reaches or passes the time
+associated with a queued event, Bro will invoke the event handler,
+which is termed ``expiring'' the timer.  (However, Bro will only
+invoke @command{max-timer-expires} timers per packet, and these
+include its own internal timers for managing connection state, so this can
+also delay invocation.)
+
+It will also expire all pending timers (whose time has not yet arrived)
+when Bro terminates; if you don't want those event handlers to activate
+in this instance, you need to test @command{done-with-network}.
+
+You would think that @code{schedule} should just be a statement like
+@command{event-invocation} is,
+rather than an expression.  But it actually does return a value, of the
+undocumented type timer.  
+@cindex possible future changes,  type
+ In the future, Bro may provide mechanisms for manipulating such
+timers; for example, to cancel them if you no longer want them to expire.
+@end quotation
+
+@command{index}
+@quotation
+Syntax:
+@quotation
+@emph{expr1} [ @emph{expr-list2} ] 
+@end quotation
+Returns the sub-value of @emph{expr1} indexed by
+the value of @emph{expr-list2}, which must be compatible with the index
+type of @emph{expr1}.
+
+@emph{expr-list2} is a comma-separated list of expressions
+(with at least one expression listed) whose values
+are matched left-to-right against the index types of @emph{expr1}.
+
+The only type of value that can be indexed
+in this fashion is a table.  @emph{Note:} set's cannot be indexed because they do not yield any value.  Use @code{in} to test for set membership.
+@end quotation
+
+@command{membership}
+@quotation
+Syntax:
+@quotation
+@emph{expr1} in @emph{expr2}  @*
+@emph{expr1} !in @emph{expr2} 
+@end quotation
+Yields true (false, respectively)
+if the index @emph{expr1} is present in
+the @code{table} or @code{set} @emph{expr2}.
+
+For example, if notice_level is a table index by an address
+and yielding a count:
+@example
+    global notice_level: table[addr] of count;
+@end example
+
+then we could test whether the address 127.0.0.1 is present using:
+@example
+    127.0.0.1 in notice_level
+@end example
+
+For table's and set's indexed by multiple dimensions,
+you enclose @emph{expr1} in brackets.  For example,
+if we have:
+@example
+    global connection_seen: set[addr, addr];
+@end example
+
+then we could test for the presence of the element indexed by
+8.1.14.2 and 129.186.0.77 using:
+@example
+    [8.1.14.2, 129.186.0.77] in connection_seen
+@end example
+
+We can also instead use a corresponding record type.
+If we had
+@example
+    local t = [$x = 8.1.14.2, $y = 129.186.0.77]
+@end example
+
+then we could test:
+@example
+    t in connection_seen
+@end example
+@end quotation
+
+@cindex == equality operator==@  equality operator
+@cindex == inequality operator", =@  inequality operator
+
+@command{pattern matching}
+@quotation
+Syntax:
+@quotation
+@emph{expr1} == @emph{expr2}  @*
+@emph{expr1} "!= @emph{expr2}  @*
+@emph{expr1} in @emph{expr2}  @*
+@emph{expr1} "!in @emph{expr2} 
+@end quotation
+As discussed for @command{pattern values}. 
+the first two forms yield true (false) if 
+the @code{pattern} @emph{expr1} exactly matches the string
+@emph{expr2}.  (You can also list the @code{string} value 
+on the left-hand side of the operator and the @code{pattern} on the right.)
+
+The second two forms yield true (false) if
+the pattern @emph{expr1} is present within the string
+@emph{expr2}.  (For these, you @emph{must} list the pattern
+as the left-hand operand.)
+@end quotation
+
+@cindex $$@  record field access operator
+
+@command{record field access}
+@quotation
+Syntax:
+@quotation
+@emph{expr} $ @emph{field-name} 
+@end quotation
+Returns the given field @emph{field-name} of the record
+@emph{expr}.  If the record does not contain the
+given field, a compile-time error results.
+@end quotation
+
+@cindex $$@  record constructor operator
+
+@command{record constructor}
+@quotation
+Syntax:
+@quotation
+[ @emph{field-constructor-list} ] 
+@end quotation
+
+Constructs a @code{record} value.  The @emph{field-constructor-list} is
+a comma-separated list of individual field constructors, which have the syntax:
+@quotation
+$ @emph{field-name} = @emph{expr} 
+@end quotation
+
+For example,
+@example
+    [$foo = 3, $bar = 23/tcp]
+@end example
+
+yields a @code{record} with two fields, @code{foo} of type @code{count} and
+@code{bar} of type @code{port}.  The values used in the constructor needn't
+be constants, however; they can be any expression of an assignable type.
+@end quotation
+
+@cindex ?$?$@  record field test
+
+@command{record field test}
+@quotation
+Syntax:
+@quotation
+@emph{expr} @code{?$} @emph{field-name} 
+@end quotation
+Returns true if the given field has been set in the record yielded by
+@emph{expr}.  Note that @emph{field-name} @emph{must} correspond to
+one of the fields in the record type of @emph{expr} (otherwise, the
+expression would always be false).  The point of this operator is
+to test whether an @emph{&optional} field of a record has been
+assigned to.
+
+For example, suppose we have:
+@example
+    type rap_sheet: record @{
+        num_scans: count &optional;
+        first_activity: time;
+    @};
+    global the_goods: table[addr] of rap_sheet;
+@end example
+
+and we want to test whether the address held in the variable perp
+exists in the_goods and, if so, whether num_scans has been
+assigned to, then we could use:
+@example
+    perp in the_goods && the_goods[perp]?$num_scans
+@end example
+@end quotation
+
+@cindex expressions
+

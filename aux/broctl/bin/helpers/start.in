@@ -1,0 +1,23 @@
+#! /usr/bin/env bash
+#
+# $Id: start.in 6811 2009-07-06 20:41:10Z robin $
+#
+#  start <cwd> <Bro args>
+
+cd $1 2>/dev/null
+shift 
+
+rm -f .pid
+
+nohup ${scriptsdir}/run-bro $@ >stdout.log 2>stderr.log &
+
+while [ ! -e .pid ]; do
+   sleep 1
+done
+
+echo 0
+cat .pid
+echo ~~~
+
+
+

@@ -1,0 +1,39 @@
+#! /usr/bin/env bash
+#
+# $Id: check-config.in 6860 2009-08-14 19:01:47Z robin $
+#
+# Just check Bro's configuration for errors.
+#
+# check_config <installed_policies_flag> <dir-to-set-as-cwd> <Bro parameters>
+
+if [ "$1" == "1" ]; then
+   policies=${policydir}
+   export BROPATH=${policydirsiteinstallauto}:${policydirsiteinstall}:$policies:$policies/sigs:$policies/time-machine:$policies/broctl:$policies/xquery
+elif [ "${devmode}" == "0" ]; then
+   policies=${policydir}
+   export BROPATH=${policydirsiteinstallauto}:${sitepolicypath}:$policies:$policies/sigs:$policies/time-machine:$policies/broctl:$policies/xquery
+else
+   policies=${distdir}/policy
+   export BROPATH=${policydirsiteinstallauto}:${sitepolicypath}:$policies:$policies/sigs:$policies/time-machine:${distdir}/aux/broctl/policy:$policies/xquery
+fi
+
+shift 
+
+cd $1
+shift
+
+export PATH=${bindir}:${scriptsdir}:$PATH
+
+echo $@ >.cmdline
+
+if [ "${devmode}" == "0" ]; then
+    ${bro} $@
+else
+    ${distdir}/src/bro $@ 
+fi
+
+exit $?
+
+
+
+

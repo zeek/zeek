@@ -1,0 +1,22 @@
+# Write a finger request to trace.
+rewriter finger_request %(full: bool, username: string, hostpart: string%)
+	%{
+	const int is_orig = 1;
+	if ( full )
+		@WRITE@(is_orig, "/W ");
+	@WRITE@(is_orig, username->AsString());
+	if ( hostpart->Len() > 0 )
+		{
+		@WRITE@(is_orig, "@");
+		@WRITE@(is_orig, hostpart->AsString());
+		}
+	@WRITE@(is_orig, "\r\n");
+	%}
+
+# Write a finger reply to trace.
+rewriter finger_reply %(reply: string%)
+	%{
+	const int is_orig = 0;
+	@WRITE@(is_orig, reply->AsString());
+	@WRITE@(is_orig, "\r\n");
+	%}

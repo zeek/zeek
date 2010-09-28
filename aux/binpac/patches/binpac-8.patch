@@ -1,0 +1,190 @@
+diff -urN bro-1.2.1-orig/src/binpac/pac_analyzer.cc bro-1.2.1-ssl-binpac/src/binpac/pac_analyzer.cc
+--- bro-1.2.1-orig/src/binpac/pac_analyzer.cc	2006-07-26 15:02:40.000000000 -0700
++++ bro-1.2.1-ssl-binpac/src/binpac/pac_analyzer.cc	2007-05-22 17:00:10.091531000 -0700
+@@ -26,8 +26,9 @@
+ 	helpers_ = new AnalyzerHelperList();
+ 	functions_ = new FunctionList();
+ 
+-	constructor_helper_ = 0;
+-	destructor_helper_ = 0;
++	constructor_helpers_ = new AnalyzerHelperList();
++	destructor_helpers_ = new AnalyzerHelperList();
++	eof_helpers_ = new AnalyzerHelperList();
+ 
+ 	SetAnalyzerContext();
+ 
+@@ -41,6 +42,9 @@
+ 	delete_list(AnalyzerHelperList, helpers_);
+ 	delete_list(FunctionList, functions_);
+ 	delete_list(ParamList, params_);
++	delete_list(AnalyzerHelperList, constructor_helpers_);
++	delete_list(AnalyzerHelperList, destructor_helpers_);
++	delete_list(AnalyzerHelperList, eof_helpers_);
+ 	}
+ 
+ void AnalyzerDecl::AddElements(AnalyzerElementList *elemlist)
+@@ -75,28 +79,20 @@
+ 				AnalyzerHelper *helper_elem = 
+ 					(AnalyzerHelper *) elem;
+ 
+-				if ( helper_elem->helper_type() == 
+-				     AnalyzerHelper::INIT_CODE)
+-					{
+-					if ( constructor_helper_ )
+-						{
+-						throw Exception(elem,
+-							"Repeated definition of %init code");
+-						}
+-					constructor_helper_ = helper_elem;
++				switch ( helper_elem->helper_type() )
++				        {
++					case AnalyzerHelper::INIT_CODE:
++					        constructor_helpers_->push_back(helper_elem);
++						break;
++					case AnalyzerHelper::CLEANUP_CODE:
++ 				                destructor_helpers_->push_back(helper_elem);
++						break;
++					case AnalyzerHelper::EOF_CODE:
++					        eof_helpers_->push_back(helper_elem);
++						break;
++					default:
++					        helpers_->push_back(helper_elem);
+ 					}
+-				else if ( helper_elem->helper_type() == 
+-				          AnalyzerHelper::CLEANUP_CODE)
+-					{
+-					if ( destructor_helper_ )
+-						{
+-						throw Exception(elem,
+-							"Repeated definition of %cleanup code");
+-						}
+-					destructor_helper_ = helper_elem;
+-					}
+-				else
+-					helpers_->push_back(helper_elem);
+ 				}
+ 				break;
+ 			case AnalyzerElement::FUNCTION:
+@@ -217,15 +213,19 @@
+ void AnalyzerDecl::GenInitCode(Output *out_cc)
+ 	{
+ 	TypeDecl::GenInitCode(out_cc);
+-	if ( constructor_helper_ )
+-		constructor_helper_->GenCode(0, out_cc, this);
++	foreach(i, AnalyzerHelperList, constructor_helpers_)
++		{
++		(*i)->GenCode(0, out_cc, this);
++		}
+ 	}
+ 
+ void AnalyzerDecl::GenCleanUpCode(Output *out_cc)
+ 	{
+ 	TypeDecl::GenCleanUpCode(out_cc);
+-	if ( destructor_helper_ )
+-		destructor_helper_->GenCode(0, out_cc, this);
++	foreach(i, AnalyzerHelperList, destructor_helpers_)
++		{
++		(*i)->GenCode(0, out_cc, this);
++		}
+ 	}
+ 
+ void AnalyzerDecl::GenStateVarDecls(Output *out_h)
+@@ -295,6 +295,7 @@
+ 			break;
+ 		case INIT_CODE:
+ 		case CLEANUP_CODE:
++		case EOF_CODE:
+ 			out = out_cc;
+ 			break;
+ 		}
+diff -urN bro-1.2.1-orig/src/binpac/pac_analyzer.h bro-1.2.1-ssl-binpac/src/binpac/pac_analyzer.h
+--- bro-1.2.1-orig/src/binpac/pac_analyzer.h	2006-07-26 15:02:39.000000000 -0700
++++ bro-1.2.1-ssl-binpac/src/binpac/pac_analyzer.h	2007-05-22 16:32:08.397926000 -0700
+@@ -76,8 +76,9 @@
+ 	AnalyzerHelperList *helpers_;
+ 	FunctionList *functions_;
+ 
+-	AnalyzerHelper *constructor_helper_;
+-	AnalyzerHelper *destructor_helper_;
++	AnalyzerHelperList *constructor_helpers_;
++	AnalyzerHelperList *destructor_helpers_;
++	AnalyzerHelperList *eof_helpers_;
+ };
+ 
+ class AnalyzerElement : public Object
+@@ -117,6 +118,7 @@
+ 		MEMBER_DECLS,
+ 		INIT_CODE,
+ 		CLEANUP_CODE,
++		EOF_CODE,
+ 	};
+ 	AnalyzerHelper(Type helper_type, EmbeddedCode *code)
+ 		: AnalyzerElement(HELPER),
+diff -urN bro-1.2.1-orig/src/binpac/pac_conn.cc bro-1.2.1-ssl-binpac/src/binpac/pac_conn.cc
+--- bro-1.2.1-orig/src/binpac/pac_conn.cc	2006-07-26 15:02:40.000000000 -0700
++++ bro-1.2.1-ssl-binpac/src/binpac/pac_conn.cc	2007-05-22 16:42:35.406135000 -0700
+@@ -97,6 +97,12 @@
+ 	out_cc->println("%s->%s();",
+ 	                env_->LValue(downflow_id),
+ 	                kFlowEOF);
++
++	foreach(i, AnalyzerHelperList, eof_helpers_)
++		{
++		(*i)->GenCode(0, out_cc, this);
++		}
++
+ 	out_cc->dec_indent();
+ 	
+ 	out_cc->println("}");
+diff -urN bro-1.2.1-orig/src/binpac/pac_flow.cc bro-1.2.1-ssl-binpac/src/binpac/pac_flow.cc
+--- bro-1.2.1-orig/src/binpac/pac_flow.cc	2006-10-12 14:13:12.000000000 -0700
++++ bro-1.2.1-ssl-binpac/src/binpac/pac_flow.cc	2007-05-22 16:43:55.997562000 -0700
+@@ -151,6 +151,11 @@
+ 	out_cc->inc_indent();
+ 	out_cc->println("{");
+ 
++	foreach(i, AnalyzerHelperList, eof_helpers_)
++		{
++		(*i)->GenCode(0, out_cc, this);
++		}
++
+ 	if ( dataunit_->type() == AnalyzerDataUnit::FLOWUNIT )
+ 		{
+ 		out_cc->println("%s->set_eof();", 
+diff -urN bro-1.2.1-orig/src/binpac/pac_parse.yy bro-1.2.1-ssl-binpac/src/binpac/pac_parse.yy
+--- bro-1.2.1-orig/src/binpac/pac_parse.yy	2006-10-12 14:13:12.000000000 -0700
++++ bro-1.2.1-ssl-binpac/src/binpac/pac_parse.yy	2007-05-22 16:56:09.280526000 -0700
+@@ -22,7 +22,7 @@
+ %token TOK_STATE TOK_ACTION TOK_WHEN TOK_HELPER 
+ %token TOK_DATAUNIT TOK_FLOWDIR TOK_WITHCONTEXT
+ %token TOK_LPB_EXTERN TOK_LPB_HEADER TOK_LPB_CODE 
+-%token TOK_LPB_MEMBER TOK_LPB_INIT TOK_LPB_CLEANUP 
++%token TOK_LPB_MEMBER TOK_LPB_INIT TOK_LPB_CLEANUP TOK_LPB_EOF
+ %token TOK_LPB TOK_RPB 
+ %token TOK_EMBEDDED_ATOM TOK_EMBEDDED_STRING
+ %token TOK_PAC_VAL TOK_PAC_SET TOK_PAC_TYPE TOK_PAC_TYPEOF TOK_PAC_CONST_DEF 
+@@ -795,6 +795,10 @@
+ 				{
+ 				$$ = new AnalyzerHelper(AnalyzerHelper::CLEANUP_CODE, $2);
+ 				}
++		|	TOK_LPB_EOF embedded_code TOK_RPB
++				{
++				$$ = new AnalyzerHelper(AnalyzerHelper::EOF_CODE, $2);
++				}
+ 		|	TOK_FLOWDIR '=' tok_id optargs ';'
+ 				{
+ 				$$ = new AnalyzerFlow((AnalyzerFlow::Direction) $1, $3, $4);
+diff -urN bro-1.2.1-orig/src/binpac/pac_scan.ll bro-1.2.1-ssl-binpac/src/binpac/pac_scan.ll
+--- bro-1.2.1-orig/src/binpac/pac_scan.ll	2006-07-26 15:02:40.000000000 -0700
++++ bro-1.2.1-ssl-binpac/src/binpac/pac_scan.ll	2007-05-22 16:55:19.349644000 -0700
+@@ -96,6 +96,10 @@
+ 				BEGIN(EC);
+ 				return TOK_LPB_MEMBER;
+ 				}
++<INITIAL>"%eof{"		{
++				BEGIN(EC);
++				return TOK_LPB_EOF;
++				}
+ <INITIAL>"%{"			{
+ 				BEGIN(EC);
+ 				return TOK_LPB;

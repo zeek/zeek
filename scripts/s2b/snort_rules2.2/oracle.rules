@@ -1,0 +1,44 @@
+# (C) Copyright 2001-2004, Martin Roesch, Brian Caswell, et al.
+#    All rights reserved.
+# $Id: oracle.rules 91 2004-07-15 08:13:57Z rwinslow $
+#----------
+# ORACLE RULES
+#----------
+#
+# These signatures detect unusual and potentially malicious oracle traffic.
+# These signatures are based from signatures written by Hank Leininger
+# <hlein@progressive-comp.com> for Enterasys's Dragon IDS that he released
+# publicly.
+#
+# These signatures are not enabled by default as they may generate false
+# positive alarms on networks that do oracle development.  If you use an
+# Oracle based web application, you should set the destination port to
+# 80 to catch attackers attempting to exploit your web application.
+#
+
+alert tcp $EXTERNAL_NET any -> $SQL_SERVERS $ORACLE_PORTS (msg:"ORACLE EXECUTE_SYSTEM attempt"; flow:to_server,established; content:"EXECUTE_SYSTEM"; nocase; classtype:system-call-detect; sid:1673; rev:3;)
+alert tcp $EXTERNAL_NET any -> $SQL_SERVERS $ORACLE_PORTS (msg:"ORACLE connect_data remote version detection attempt"; flow:to_server,established; content:"connect_data|28|command=version|29|"; nocase; classtype:protocol-command-decode; sid:1674; rev:5;)
+alert tcp $EXTERNAL_NET any -> $SQL_SERVERS $ORACLE_PORTS (msg:"ORACLE misparsed login response"; flow:from_server,established; content:"description=|28|"; nocase; content:!"connect_data=|28|sid="; nocase; content:!"address=|28|protocol=tcp"; nocase; classtype:suspicious-login; sid:1675; rev:4;)
+alert tcp $EXTERNAL_NET any -> $SQL_SERVERS $ORACLE_PORTS (msg:"ORACLE select union attempt"; flow:to_server,established; content:"select "; nocase; content:" union "; nocase; classtype:protocol-command-decode; sid:1676; rev:3;)
+alert tcp $EXTERNAL_NET any -> $SQL_SERVERS $ORACLE_PORTS (msg:"ORACLE select like '%' attempt"; flow:to_server,established; content:" where "; nocase; content:" like '%'"; nocase; classtype:protocol-command-decode; sid:1677; rev:3;)
+alert tcp $EXTERNAL_NET any -> $SQL_SERVERS $ORACLE_PORTS (msg:"ORACLE select like '%' attempt backslash escaped"; flow:to_server,established; content:" where "; nocase; content:" like |22|%|22|"; nocase; classtype:protocol-command-decode; sid:1678; rev:5;)
+alert tcp $EXTERNAL_NET any -> $SQL_SERVERS $ORACLE_PORTS (msg:"ORACLE describe attempt"; flow:to_server,established; content:"describe "; nocase; classtype:protocol-command-decode; sid:1679; rev:4;)
+alert tcp $EXTERNAL_NET any -> $SQL_SERVERS $ORACLE_PORTS (msg:"ORACLE all_constraints access"; flow:to_server,established; content:"all_constraints"; nocase; classtype:protocol-command-decode; sid:1680; rev:3;)
+alert tcp $EXTERNAL_NET any -> $SQL_SERVERS $ORACLE_PORTS (msg:"ORACLE all_views access"; flow:to_server,established; content:"all_views"; nocase; classtype:protocol-command-decode; sid:1681; rev:3;)
+alert tcp $EXTERNAL_NET any -> $SQL_SERVERS $ORACLE_PORTS (msg:"ORACLE all_source access"; flow:to_server,established; content:"all_source"; nocase; classtype:protocol-command-decode; sid:1682; rev:3;)
+alert tcp $EXTERNAL_NET any -> $SQL_SERVERS $ORACLE_PORTS (msg:"ORACLE all_tables access"; flow:to_server,established; content:"all_tables"; nocase; classtype:protocol-command-decode; sid:1683; rev:3;)
+alert tcp $EXTERNAL_NET any -> $SQL_SERVERS $ORACLE_PORTS (msg:"ORACLE all_tab_columns access"; flow:to_server,established; content:"all_tab_columns"; nocase; classtype:protocol-command-decode; sid:1684; rev:3;)
+alert tcp $EXTERNAL_NET any -> $SQL_SERVERS $ORACLE_PORTS (msg:"ORACLE all_tab_privs access"; flow:to_server,established; content:"all_tab_privs"; nocase; classtype:protocol-command-decode; sid:1685; rev:4;)
+alert tcp $EXTERNAL_NET any -> $SQL_SERVERS $ORACLE_PORTS (msg:"ORACLE dba_tablespace access"; flow:to_server,established; content:"dba_tablespace"; nocase; classtype:protocol-command-decode; sid:1686; rev:3;)
+alert tcp $EXTERNAL_NET any -> $SQL_SERVERS $ORACLE_PORTS (msg:"ORACLE dba_tables access"; flow:to_server,established; content:"dba_tables"; nocase; classtype:protocol-command-decode; sid:1687; rev:3;)
+alert tcp $EXTERNAL_NET any -> $SQL_SERVERS $ORACLE_PORTS (msg:"ORACLE user_tablespace access"; flow:to_server,established; content:"user_tablespace"; nocase; classtype:protocol-command-decode; sid:1688; rev:3;)
+alert tcp $EXTERNAL_NET any -> $SQL_SERVERS $ORACLE_PORTS (msg:"ORACLE sys.all_users access"; flow:to_server,established; content:"sys.all_users"; nocase; classtype:protocol-command-decode; sid:1689; rev:3;)
+alert tcp $EXTERNAL_NET any -> $SQL_SERVERS $ORACLE_PORTS (msg:"ORACLE grant attempt"; flow:to_server,established; content:"grant "; nocase; content:" to "; nocase; classtype:protocol-command-decode; sid:1690; rev:3;)
+alert tcp $EXTERNAL_NET any -> $SQL_SERVERS $ORACLE_PORTS (msg:"ORACLE ALTER USER attempt"; flow:to_server,established; content:"alter user"; nocase; content:" identified by "; nocase; classtype:protocol-command-decode; sid:1691; rev:3;)
+alert tcp $EXTERNAL_NET any -> $SQL_SERVERS $ORACLE_PORTS (msg:"ORACLE drop table attempt"; flow:to_server,established; content:"drop table"; nocase; classtype:protocol-command-decode; sid:1692; rev:3;)
+alert tcp $EXTERNAL_NET any -> $SQL_SERVERS $ORACLE_PORTS (msg:"ORACLE create table attempt"; flow:to_server,established; content:"create table"; nocase; classtype:protocol-command-decode; sid:1693; rev:4;)
+alert tcp $EXTERNAL_NET any -> $SQL_SERVERS $ORACLE_PORTS (msg:"ORACLE alter table attempt"; flow:to_server,established; content:"alter table"; nocase; classtype:protocol-command-decode; sid:1694; rev:3;)
+alert tcp $EXTERNAL_NET any -> $SQL_SERVERS $ORACLE_PORTS (msg:"ORACLE truncate table attempt"; flow:to_server,established; content:"truncate table"; nocase; classtype:protocol-command-decode; sid:1695; rev:3;)
+alert tcp $EXTERNAL_NET any -> $SQL_SERVERS $ORACLE_PORTS (msg:"ORACLE create database attempt"; flow:to_server,established; content:"create database"; nocase; classtype:protocol-command-decode; sid:1696; rev:3;)
+alert tcp $EXTERNAL_NET any -> $SQL_SERVERS $ORACLE_PORTS (msg:"ORACLE alter database attempt"; flow:to_server,established; content:"alter database"; nocase; classtype:protocol-command-decode; sid:1697; rev:3;)
+alert tcp $EXTERNAL_NET any -> $SQL_SERVERS $ORACLE_PORTS (msg:"ORACLE generate_replication_support prefix overflow attempt"; flow:to_server,established; content:"generate_replication_support"; nocase; pcre:"/(package|procedure)_prefix[\s\r\n]*=>[\s\r\n]*('[^']{1000,}|"[^"]{1000,})/Rsmi"; classtype:attempted-user; sid:2576; rev:2;)

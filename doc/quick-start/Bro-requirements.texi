@@ -1,0 +1,79 @@
+
+
+@menu
+* Network Tap ::
+* Hardware and Software Requirements ::
+@end menu
+
+
+@node Network Tap
+@section Network Tap
+@cindex network tap
+
+A network tap must be installed to provide Bro with access to live network traffic. 
+For Bro to be most effective, access to the network must be full-bandwidth (no bandwidth limitations) and full-duplex. A passive tap is recommended to ensure minimal impact on network operations.
+
+Normally the network tap for Bro should be placed behind an external firewall and on the DMZ 
+(the portion of the network under the control of the organization but outside of the internal firewall), 
+as shown in the figure below. Some organizations might prefer to install the network tap before 
+the firewall in order to detect all scans or attacks.  Placing Bro before the firewall will allow
+the organization to better understand attacks, but will produce a much high number of alarms and alerts. Another option is to place Bro inside the internal firewall, allowing it to detect internal hosts with viruses or worms.
+In addition to the connection to the network tap, a separate network connection is required 
+for management of Bro and access to log files.
+
+For more information on taps and tap placement see the Netoptics White paper titled @emph{Deploying Network Taps with Intrusion Detection Systems} (@uref{http://www.netoptics.com/products/pdf/Taps-and-IDSs.pdf}).
+
+@float Figure, tap location
+@image{bro-deployment,6.3in}
+@caption{Typical location for network tap and Bro system}
+@end float
+
+@node Hardware and Software Requirements
+@section Hardware and Software Requirements
+
+Bro requires no custom hardware, and runs on low-cost commodity PC-style system.
+However, the Bro monitoring host must examine every packet into and out of 
+your site, so depending on your sites network traffic, you may need a fairly high-end machine.
+If you are trying to monitor a link with a large number of connections, we recommend using
+a second system for report generation, and run only Bro on the capture host.
+
+@quotation
+@multitable  @columnfractions .25 .75
+@comment only work with texiinfo 4.7 or higher: @headitem Item @tab Requirements
+@item @strong{Item} @tab @strong{Requirements}
+
+@item @strong{Processor}
+@tab 1 GHz CPU (for 100 BT Ethernet with average packet rate <= 5,000 packets/second)
+@* 2 GHz CPU (for 1000 BT Ethernet with average packet rate <= 10,000 packets/second)
+@* 3 GHz CPU (for 1000 BT Ethernet with average packet rate <= 20,000 packets/second)
+@* 4 GHz CPU (for 1000 BT Ethernet with average packet rate <= 50,000 packets/second)
+@* (Note: these are @strong{very} rough estimates, and much depends on the types of
+traffic on your network (e.g.: http, ftp, mail, etc.). See the Performance chapter of the Bro User Guide for more information)
+
+@item @strong{Operating System}
+@tab FreeBSD 4.10 (@uref{http://www.freebsd.org/})  Bro works with Linux 
+and Solaris as well, 
+but the performance is best under FreeBSD. In particular there are some performance issues with 
+packet capture under Linux. See the User Guide chapter on Bro and Linux for more information. FreeBSD 5.x should work, but may have performance issues. For sites with very high traffic loads, contact us for information on a FreeBSD 4.x patch to do @emph{bpf bonding}
+
+@item @strong{Memory}
+@tab 1 GB RAM is the minimum needed, but 2-3 GB is recommended
+
+@item @strong{Hard disk}
+@tab 10 GByte minimum, 50 GByte or more for log files recommended
+
+@item @strong{User privileges}
+@tab @emph{superuser} to install Bro, then Bro runs as user @emph{bro}
+
+@item @strong{Network Interfaces}
+@tab 3 interfaces are required: 2 for packet capture (1 for each direction), and 1 for host management. Capture interfaces should be identical.
+
+@item @strong{Other Software}
+@* - Perl version 5.6 or higher (@uref{http://www.perl.org})
+@* - libpcap version 0.8 or higher (@uref{http://www.tcpdump.org})
+@* - tcpdump version 3.8 or higher (@uref{http://www.tcpdump.org})
+@* Note: FreeBSD 4.x comes with older versions perl, libpcap, and tcpdump. Bro
+requires newer versions of these tools.
+
+@end multitable
+@end quotation

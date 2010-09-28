@@ -1,0 +1,34 @@
+#! /usr/bin/env bash
+#
+# $Id: mail-contents.in 6811 2009-07-06 20:41:10Z robin $
+#
+# mail-proto-violations 
+#
+# Gets its arguments via the environment. 
+
+tmp=${tmpdir}/`basename $0`.$$.tmp
+maxlen=8192
+
+function printData
+{
+   addr="$1"
+   name="$2"
+   file="$3"
+
+   title="$addr ($name)" 
+   echo >>$tmp
+   echo "> ---- $title ----------------------------" >>$tmp
+   echo >>$tmp
+   hexdump -e '60/ "%_c" "\n"' -n $maxlen $file >>$tmp 
+   rm -f $file
+}
+
+echo $BRO_ARG_BODY | sed 's/@@/\
+/g' >$tmp
+
+printData "$BRO_ARG_ORIG_H" "$BRO_ARG_ORIG_NAME" "$BRO_ARG_CONTENTS_ORIG"
+printData "$BRO_ARG_RESP_H" "$BRO_ARG_RESP_NAME" "$BRO_ARG_CONTENTS_RESP"
+
+${scriptsdir}/send-mail "$BRO_ARG_SUBJECT" $BRO_ARG_MAIL_DEST <$tmp 
+
+rm -f $tmp

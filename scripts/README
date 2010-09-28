@@ -1,0 +1,29 @@
+
+This directory contains scripts to help configure and run bro.
+
+
+bro.cfg.in      This is the bro configuration file
+bro.cfg         This is the bro configuration file with all runtime values set
+
+localnetMAC.pl  Program to figure out your network topology based on a 
+                tcpdump input file.
+IP4.pm          Helper perl module for localnetMac.
+
+brolite.bro     This is the default policy file
+bro.rc	        This is the start/stop script, with all runtime values set
+bro.rc-hooks.sh User level interface into the start and stop events in bro.rc
+bro.rc.in       This si the raw start stop script
+bro_config      This is the script run at 'make install' that sets the 
+                values in bro.cfg
+
+bro_config.in   Raw bro_config script, before pre-processing
+bro.cfg.example Example file of what bro.cfg should look like
+
+intern.bro.default 
+               This is an example of what intern.bro should look like.
+
+mail_reports.sh
+               Shell script to email out reports
+
+make-ftp-safe-vocabulary.awk
+

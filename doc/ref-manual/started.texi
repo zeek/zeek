@@ -1,0 +1,868 @@
+
+@node Getting Started
+@chapter Getting Started
+
+
+This chapter gives an overview of how to get started with operating Bro:
+@emph{(i)} compiling it, @emph{(ii)} running it interactively, on live
+network traffic, and on recorded traces, @emph{(iii)} how Bro locates the
+policy files it should evaluate and how to modify them, @emph{(iv)} the
+arguments you can give it to control its operation, and @emph{(v)} some
+helper utilities also distributed with Bro that you'll often find handy.
+
+@menu
+* Running Bro::			
+* Helper utilities::		
+@end menu
+
+@node Running Bro,
+@section Running Bro
+
+@cindex running Bro
+@cindex Bro, running
+
+This section discusses how to build and install Bro, running it interactively
+(mostly useful for building up familiarity with the policy language, not
+for traffic analysis), running it on live and recorded network traffic,
+modifying Bro policy scripts, and the different run-time flags.
+
+@menu
+* Building and installing Bro::	 
+* Using Bro interactively::	
+* Specifying policy scripts::	
+* Running Bro on network traffic::  
+* Modifying Bro policy::	
+* Bro flags and run-time environment::	
+@end menu
+
+@node Building and installing Bro,
+@subsection Building and installing Bro
+
+@cindex Bro, installing
+@cindex building Bro
+@cindex compiling Bro
+
+@menu
+* Supported platforms::		
+* Bro source code distribution::  
+* Installing Bro::		
+* Tuning BPF::			
+@end menu
+
+@node  Supported platforms,
+@subsubsection  Supported platforms 
+
+@cindex Unix support
+@cindex Windows, not supported
+@cindex NT, not supported
+
+Bro builds on a number of types of Unix: @emph{ FreeBSD, Solaris, Linux}, though not all versions.  It does @emph{not}
+build under non-Unix operating systems such as Windows NT.
+
+@node  Bro source code distribution,
+@subsubsection  The Bro source code distribution 
+
+@cindex source code, for Bro
+@cindex Bro, source code
+@cindex Bro, web page
+
+You can get the latest public release of Bro from the Bro web page,
+@url{http://www.bro-ids.org/}.
+Bro is distributed as a @emph{gzip}'d Unix @emph{tar} archive, which
+you can unpack using:
+@quotation
+@code{gzcat +@emph{tar-file} | tar xf -}
+@end quotation
+or, on some Unix systems:
+@quotation
+@code{+tar zxf +@emph{tar-file}}
+@end quotation
+This creates a subdirectory
+@code{+bro-+@emph{XXX}+-+@emph{version}},
+where @emph{XXX} is a tag such as pub for public releases and
+priv for private releases, and @emph{version} reflects a version
+and possibly a subversion, such as @code{0.8a20} for version
+@emph{0.8} and subversion @emph{a20}.
+
+To build Bro, change to the Bro directory and enter:
+@quotation
+@noindent ./configure @* make 
+@end quotation
+
+Bro configuration is described in the 
+@uref{http://www.bro-ids.org/User-Manual, User Manual}
+
+@node  Installing Bro,
+@subsubsection  Installing Bro 
+
+@cindex installing Bro
+
+You install Bro by issuing:
+@quotation
+@noindent @code{make install}
+@end quotation
+
+@node  Tuning BPF,
+@subsubsection  Tuning BPF 
+
+@cindex Bro, system configuration
+@cindex system configuration
+@cindex optimizing your system for Bro
+@cindex BPF (Berkeley Packet Filter), tuning
+
+Bro is written using @command{libpcap}, the portable packet-capture
+library available from
+@code{ftp://ftp.ee.lbl.gov/libpcap.tar.Z}.  While
+@emph{libpcap} knows how to use a wide range of Unix packet filters, it
+far and away performs most efficiently used in conjunction with the Berkeley
+Packet Filter (BPF) and with BPF descendants (such as the Digital Unix
+packet filter).  Although BPF is available from
+@code{ftp://ftp.ee.lbl.gov/bpf.tar.Z}, installing
+it involves modifying your kernel, and perhaps requires significant porting
+work.  However, it comes as part of several operating systems, such as
+FreeBSD, NetBSD, and OpenBSD.
+
+For BPF systems, you should be aware of the following tuning and
+configuration issues:
+@table @samp
+
+@item BPF kernel support
+You need to make sure that kernel support for BPF is enabled.  In addition,
+some systems default to configuring kernel support for only one BPF device.
+This often proves to be a headache because it means you cannot run more
+than one Bro at a time, nor can you run it at the same time as
+
+@item /dev/bpf devices
+@cindex dev/bpf
+  
+Related to the
+previous item, on BPF systems access to the packet filter is via special
+@emph{/dev/bpf} devices, such as @emph{/dev/bpf0}.  Just as you need to
+make sure that the kernel's configuration supports multiple BPF devices,
+so to must you make sure that an equal number of device files reside in
+@emph{/dev/}.
+
+@item packet filter permissions
+@cindex packet filter, permissions
+@cindex packet filter, access
+@cindex root, Bro not running as
+@cindex Bro, not running as root
+On systems for which access to the packet filter is via the file system,
+you should consider whether you want to only allow root access, or instead
+create a Unix @emph{group} for which you enable read access to
+the device file(s).  The latter allows you to run Bro as a user other
+than root, which is @emph{strongly recommended}!
+
+@item large BPF buffers
+@cindex BPF buffers, ensuring they are large
+@cindex large BPF buffers
+@cindex buffers, large for BPF
+While running with BPF is often necessary for high performance, it's not
+necessarily sufficient.  By default, BPF programs use very modest kernel
+buffers for storing packets, which leads to high context switch overhead
+as the kernel very often has to deliver packets to the user-level Bro
+process.  Minimizing the overhead requires increasing the buffer sizes.
+This can make a @emph{large} difference!
+
+Under FreeBSD, the configuration variable to increase is
+@code{debug.bpf_bufsize}, which you can set via @emph{sysctl}.  We
+recommend creating a script run at boot-up time that increases it
+from its small default value to something on the order of 100 KB--2 MB,
+depending on how fast (heavily loaded) is the link being monitored,
+and how much physical memory the monitor machine has at its disposal.
+
+@cindex libpcap buffer size patch
+@emph{libpcap buffer size patch}:
+@emph{Important note}:  some versions of  have
+internal code that limits the maximum buffer size to 32 KB.  For
+these systems, you should apply the patch included in the Bro distribution
+in the file @code{libpcap.patch}.
+
+Finally, once you have increased the buffer sizes, you should @emph{check}
+that running Bro does indeed consume the amount of kernel memory you
+expect.  You can do this under FreeBSD using @emph{vmstat -m} and
+searching in the output for the summary of BPF memory.  You should find
+that the @emph{MemUse} statistic goes up by twice the buffer size for
+every concurrent Bro or @command{tcpdump} you run.@footnote{Providing
+that these programs have been recompiled with the corrected @emph{libpcap}
+noted above.}  The reason the increase is by twice the buffer size is
+because Bro uses double-buffering to avoid dropping packets when the
+buffer fills up.
+@end table
+
+@node Using Bro interactively,
+@subsection Using Bro interactively
+
+@cindex Bro, interactive use
+
+Once you've built Bro, you can run it interactively to try out simple
+facets of the policy language.  Note that in this mode, Bro is @emph{not}
+reading network traffic, so you cannot do any traffic analysis; this mode
+is simply to try out Bro language features.
+
+You run Bro interactively by simply executing ``bro'' without
+any arguments.  It then reads from @emph{stdin} and writes to @emph{stdout}.
+
+Try typing the following to it:
+@quotation
+@noindent @code{print "hello, world";}  @*
+@noindent @code{^D} @emph{(i.e., end of file)}
+@end quotation
+(The end-of-file is critical to remember.  It's also a bit annoying for
+interactive evaluation, but reflects the fact that Bro is not actually
+meant for interactive use, it simply works as a side-effect of Bro's
+structure.)
+
+Bro will respond by printing:
+@quotation
+@noindent hello, world
+@end quotation
+to @emph{stdout} and exiting.
+
+You can further declare variables and print expressions, for example:
+@example
+    global a = telnet;
+    print a, a > ftp;
+    print www.microsoft.com;
+@end example
+
+will print
+@example
+    23/tcp, T
+    207.46.230.229, 207.46.230.219, 207.46.230.218
+@end example
+(FIXME: this example needs to be updated. Format has changed.)
+
+where 23/tcp reflects the fact that telnet is a predefined
+variable whose value is TCP port 23, which is larger than TCP port 21
+(i.e., ftp); and the DNS name @emph{www.microsoft.com} currently
+returns the above three addresses.
+
+You can also define functions:
+@example
+    function top18bits(a: addr): addr
+        @{
+        return mask_addr(a, 18);
+        @}
+
+    print top18bits(128.3.211.7);
+@end example
+
+prints
+@example
+    128.3.192.0
+@end example
+
+and even event handlers:
+@example
+    event bro_done()
+        @{
+        print "all done!";
+        @}
+@end example
+
+which prints ``all done!'' when Bro exits.
+
+@node Specifying policy scripts,
+@subsection Specifying policy scripts
+
+Usually, rather than running Bro interactively you want it to execute
+a policy script or a set of policy scripts.  You do so by specifying
+the names of the scripts as command-line arguments, such as:
+@example
+    bro ~/my-policy.bro ~/my-additional-policy.bro
+@end example
+
+Bro provides several mechanisms for simplifying how you specify which
+policies to run.
+
+First, if a policy file doesn't exist then it will
+try again using .bro as a suffix, so the above could be specified as:
+@example
+    bro ~/my-policy ~/my-additional-policy
+@end example
+
+Second, Bro consults the colon-separated search path 
+to locate policy scripts.  If your home directory was listed in $BROPATH,
+then you could have invoked it above using:
+@example
+    bro my-policy my-additional-policy
+@end example
+
+@emph{Note:}  If you define $BROPATH, you @emph{must} include @emph{bro-dir}/policy, where @emph{bro-dir} is where you have built or installed Bro, because it has to be able to locate @emph{bro-dir}/policy/bro.init to initialize itself at run-time. 
+
+Third, the @code{@@load} directive can be used in a policy script to indicate the
+Bro should at that point process another policy script (like C's include
+directive; see ).  So you could have in @emph{my-policy}:
+@example
+    @@load my-additional-policy
+@end example
+
+and then just invoke Bro using:
+@example
+    bro my-policy
+@end example
+
+providing you @emph{always} want to load @emph{my-additional-policy}
+whenever you load @emph{my-policy}.
+
+Note that the predefined Bro module @code{brolite} loads almost
+all of the other standard Bro analyzers, so you can pull them in
+with simply:
+@example
+    @@load brolite
+@end example
+
+or by invoking Bro using ``@command{bro brolite @emph{my-policy}}''.
+
+@node Running Bro on network traffic,
+@subsection Running Bro on network traffic
+
+There are two ways to run Bro on network traffic: on traffic captured
+live by the network interface(s), and on traffic previously recorded
+using the @code{-w} flag of @code{tcpdump} or Bro itself.
+
+@menu
+* Live traffic::		
+* Traffic traces::		
+@end menu
+
+@node Live traffic,
+@subsubsection Live traffic
+@cindex network interfaces
+@cindex analysis, on-line
+@cindex on-line analysis
+
+Bro reads live traffic from the local network interface whenever you
+specify the @code{-i}  flag.  As mentioned below, you can specify
+multiple instances to read from multiple interfaces simultaneously,
+however the interfaces must all be of the same link type (e.g., you
+can't mix reading from a Fast Ethernet with reading from an FDDI link,
+though you can mix a 10 Mbps Ethernet interface with a 100 Mbps Ethernet).
+
+In addition, Bro will read live traffic from the interface(s) listed in
+the @code{interfaces} variable, @emph{unless} you specify
+the @code{-r} flag (and do not specify @code{-i}).  So, for
+example, if your policy script contains:
+@example
+    const interfaces += "sk0";
+    const interfaces += "sk1";
+@end example
+
+then Bro will read from the @emph{sk0} and @emph{sk1} interfaces,
+and you don't need to specify @code{-i}.
+
+@node Traffic traces,
+@subsubsection Traffic traces
+
+@cindex analysis, off-line
+@cindex off-line analysis
+
+To run on recorded traffic, you use the @code{-r} flag to indicate
+the trace file Bro should read.  As with @code{-i}, you can use the
+flag multiple times to read from multiple files; Bro will merge the packets
+from the files into a single packet stream based on their timestamps.
+
+The Bro distribution includes an example trace that you can try out,
+@emph{example.ftp-attack.trace}.  If you invoke Bro using:
+@example
+    bro -r example.ftp-attack.trace brolite
+@end example
+
+you'll see that it generates a connection summary to @emph{stdout},
+a summary of the FTP sessions to ftp.example, a copy of what
+would have been real-time alarms had Bro been running on live traffic
+to @code{alarm.example}, and a summary of unusual traffic anomalies (none in
+this trace) to @code{weird.example}.
+
+@node Modifying Bro policy,
+@subsection Modifying Bro policy
+
+One way to alter the policy Bro executes is of course to directly
+edit the scripts.  When this can be avoided, however, that is preferred,
+and Bro provides a pair of related mechanisms to help you specify
+@emph{refinements} to existing policies in separate files.
+
+The first such mechanism is that you can define @emph{multiple}
+handlers for a given event.  So, for example, even though the standard
+@command{ftp} analyzer (@code{@emph{bro-dir}/policy/ftp.bro})
+defines a handler for @code{ftp.request}, you can define another handler
+if you wish in your own policy script, even if that policy script loads
+(perhaps indirectly, via the @code{brolite} module) the @code{ftp} analyzer.
+When the event engine generates an ftp_request event, @emph{both}
+handlers will be invoked.  
+
+@emph{Deficiency: Presently, you do not have control over the order in which they are invoked; you also cannot completely override one handler with another, preventing the first from being invoked. }
+
+Second, the standard policy scripts are often written in terms of
+@emph{redefinable} variables.  For example, @code{ftp.bro} contains
+a variable @code{ftp_guest_ids} that defines a list of usernames
+the analyzer will consider to reflect guest accounts:
+@example
+    const ftp_guest_ids = @{ "anonymous", "ftp", "guest", @} &redef;
+@end example
+
+While ``@code{const}'' marks this variables as constant at run-time,
+the attribute ``@code{&redef}'' specifies that its value can be
+redefined.
+
+For example, in your own script you could have:
+@example
+    redef ftp_guest_ids = @{ "anonymous", "guest", "visitor", "student" @};
+@end example
+
+instead.  (Note the use of ``redef'' rather than ``const'',
+to indicate that you realize you are redefining an existing variable.)
+
+In addition, for most types of variables you can specify @emph{incremental}
+changes to the variable, either new elements to add or old ones to
+subtract.  For example, you could instead express the above as:
+@example
+    redef ftp_guest_ids += @{ "visitor", "student" @};
+    redef ftp_guest_ids -= "ftp";
+@end example
+
+The potential advantage of incremental refinements such as these are that
+if any @emph{other} changes are made to ftp.bro's original definition,
+your script will automatically inherit them, rather than replacing them
+if you used the first definition above (which explicitly lists all four
+names to include in the variable).  Sometimes, however, you don't want this
+form of inheriting later changes; you need to decide on a case-by-case
+basis, though our experience is that generally the incremental approach
+works best.
+
+Finally, the use of @emph{prefixes} provides a way
+to specify a whole set of policy scripts to load in a particular context.
+For example, if you set @code{$BRO_PREFIXES} to ``dialup'',
+then a load of @code{ftp.bro} will @emph{also} load dialup.ftp.bro
+automatically (if it exists).  See @ref{Run-time environment} for further discussion.
+
+@node Bro flags and run-time environment,
+@subsection Bro flags and run-time environment
+
+@menu
+* Flags::			
+* Run-time environment::	
+@end menu
+
+@node Flags,
+@subsubsection Flags
+
+@cindex command line options
+
+When invoking Bro, you can control its behavior using a large number of
+flags and arguments. Most options can be specified using either a more
+readable long version (starting with two dashes), or a more compact but
+sometimes less intuitive short version (single dash followed by a single
+letter).  Arguments can be provided after whitespace (i.e., ``@command{-r file.pcap}''
+or ``@command{--readfile file.pcap}'') and also using an equation mark
+when the long version is used (i.e., ``@command{--readfile=file.pcap}'').
+Single-letter flags without arguments can be combined into a single option
+element (i.e., ``-dWF'' is the same as ``-d -W -F'').
+
+@table @samp
+@c
+@c Note: the @*s are to provide consistent spacing between the items in HTML
+@c       output. Better solutions welcome. --cpk
+@c
+@item @code{-d|--debug-policy}
+Activates policy file debugging. See @ref{Interactive Debugger} for details.
+@cindex debugging, policy scripts
+@*
+
+@item @code{-e|--exec <Bro statements>}
+Adds the given Bro policy statements to the loaded policy.  Use for
+manual @ref{Refinement, refinement}, or for verifying the resulting value of a
+given variable.  Note that you can omit trailing semi-colons.
+@*
+
+@item @code{-f|--filter filter}
+Use @emph{filter} as the @command{tcpdump} filter for
+capturing packets, rather than the combination of 
+and @code{restrict_filter}, or the default of ``tcp or udp'' .
+@*
+
+@item @code{-h|--help|-?}
+Generate a help message summarizing Bro's options and environment variables,
+and exit.
+@cindex help message
+@cindex Bro, usage
+@cindex usage message
+@*
+
+@item @code{-g|--dump-config}
+Writes out the current configuration into the persistent state directory
+configured through the @code{state_dir} variable, defined in
+@ref{Bro init file, bro.init} and subject to @ref{Refinement, refinement}.
+@cindex persistent state
+@cindex configuration, dumping to directory
+@*
+
+@item @code{-i|--iface <interface>}
+Add @emph{interface} to the list of interfaces from which Bro should
+read @ref{Live traffic, network traffic}.  You can use this flag
+multiple times to direct Bro to read from multiple interfaces.
+You can also, or in addition, use refinements of the 
+variable to specify interfaces.
+
+Note that if no interfaces are specified, then Bro will not read
+any network traffic.  It does @emph{not} have a notion of a ``default''
+interface from which to read.
+@cindex network interfaces
+@cindex analysis, on-line
+@cindex on-line analysis
+@*
+
+@item @code{-p|--prefix <prefix>}
+Add @emph{prefix} to the list of prefixes searched by Bro when loading
+a script.  You can also, or in addition, use @emph{prefix} to specify search
+prefixes.  See @ref{use of prefixes, prefixes} for discussion.
+@cindex prefixes
+@*
+
+@item @code{-r|--readfile <readfile>}
+Add @emph{readfile} to the list of @command{tcpdump}
+save files that Bro should read.  You can use this flag multiple times to
+direct Bro to read from multiple save files; it will merge the packets
+read from the different files based on their timestamps.  Note that if
+the save files contain only packet headers and not contents, then of
+course Bro's analysis of them will be limited.
+
+Note that use of @code{-r} is @emph{mutually exclusive} with use of @code{-i}.
+However, you can use @code{-r} when running scripts that refine
+@code{interfaces}, in which case the -r option takes precedence
+and Bro performs off-line analysis.
+@cindex trace file, reading
+@cindex save file, reading
+@cindex analysis, off-line
+@cindex off-line analysis
+@cindex reading tcpdump files 
+@*
+
+@item @code{-s|--rulefile <signaturefile>}
+Add @emph{signaturefile} to the list of files containing signatures to match
+against the network traffic. See @ref{Signatures} for more information.
+@*
+
+@item @code{-t|--tracefile <tracefile>}
+Enables tracing of Bro script execution. See @ref{Execution tracing}.
+@cindex tracing
+@cindex execution tracing
+@*
+
+@item @code{-w|--writefile <writefile>}
+Write a @command{tcpdump} save file to the file
+@emph{writefile}.  Bro will record all of the packets it captures,
+including their contents, except as controlled by calls to @command{set_record_packets}.
+@cindex trace file, writing
+@cindex save file, writing
+@cindex writing tcpdump files 
+@cindex HTTP packets, contents not being recorded
+@cindex SYN control packet
+@cindex FIN control packet
+@cindex RST control packet
+@cindex TCP control packets (SYN/FIN/RST)
+@cindex control packets (SYN/FIN/RST)
+@cindex packets, control (SYN/FIN/RST)
+@emph{Note:}  One exception is that unless you are analyzing HTTP events (for example, by loading the @ ref@code{http} analyzer), 
+Bro does @emph{not} record the @emph{contents} of HTTP SYN/FIN/RST packets to the trace file.  
+The reason for this is that HTTP FIN packets often contain a large amount of data, which is not of any interest if you are not using HTTP analysis, 
+and due to the very high volume of HTTP traffic at many sites, removing this data can significantly reduce the size of the save file. @emph{Deficiency: Clearly, this should not be hardwired into Bro but under user control. }
+
+Save files written using @code{-w} are of course readable using @code{-r}.
+Accordingly, you will generally want to use @code{-w} when running Bro on
+live network traffic so you can rerun it off-line later to understand
+any problems that arise, and also to experiment with the effects of changes
+to the policy scripts.
+
+You can also combine @code{-r} with @code{-w} to both read a save file(s) and
+write another.  This is of interest when using multiple instances of
+@code{-r}, as it provides a way to merge @command{tcpdump}
+save files.
+@*
+
+@item @code{-v|--version}
+@cindex version message
+@cindex Bro, version
+Print the version of Bro and exit.
+@*
+
+@item @code{-x|--print-state <Bro state file>}
+Reads the contents of the specified Bro state file, prints them to the
+console, and exits.
+@*
+
+@item @code{-z|--analyze <analysis>}
+Runs the specified analyzer over the configured policy. See @ref{Policy analyzers}.
+@cindex policy analysis
+@*
+
+@item @code{-A|--transfile <writefile>}
+Write transformed trace to the @command{tcpdump} file given. See @ref{Trace rewriting}.
+@*
+
+@item @code{-C|--no-checksums}
+Incorrect IP, TCP, or UDP checksums normally trigger different variants of
+@code{net_weird} and @code{conn_weird} events (see also @ref{Events handled by net_weird},
+@ref{Events handled by conn_weird}, and @ref{weird variables}). This flag causes
+Bro to ignore incorrect checksums.
+@cindex checksums, disabling checks
+@*
+
+@item @code{-D|--dfa-size <size>}
+Sets the cache size of deterministic finite automata (used extensively for
+@ref{Signatures, signatures}) to the given number of entries. The default is
+10,000.
+@*
+
+@item @code{-F|--force-dns}
+@cindex DNS!Bro's private cache, forcing access to
+@cindex forcing access to Bro's private DNS cache
+@cindex Bro, private caches
+Instructs Bro that it @emph{must} resolve all hostnames out of its
+private DNS cache.  If the script refers to a hostname
+not in the cache, then Bro @emph{exits} with a fatal error.
+
+@cindex checkpointing Bro
+@cindex Bro, checkpointing
+The point behind this option is to ensure that Bro starts quickly, rather
+than possibly stalling for an undetermined amount of time resolving a
+hostname.  Fast startup simplifies checkpointing a running Bro---you can
+start up a new Bro and then killing off the old one shortly after.
+You'd like this to occur in a manner such that there's no period during
+which neither Bro is watching the network (the older because you killed
+it off too early, the newer because it's stuck resolving hostnames).
+@*
+
+@item @code{-I|--print-id <name>}
+Looks up the variable identified by ``name'' in the global scope
+(see @ref{Scope}) and prints it to the console.
+@*
+
+@item @code{-K|--md5-hashkey <hashkey>}
+Allows you to specify a fixed seed for MD5 initialization. MD5 is used
+by default for hashing elements in the Bro core, and by default some
+randomness is gathered at Bro startup before PRNG initialization.
+@*
+
+@emph{Note:  This means that by default repeated runs of Bro on identical
+inputs do @strong{not} necessarily yield identical output. If you want
+to ensure determinism, use the @code{--save-seeds} and @code{--load-seeds}
+options.}
+@cindex determinism
+@cindex indeterminism
+@cindex hashing, keys
+@*
+
+@item @code{-L|--rule-benchmark}
+See @ref{Rule benchmarking}.
+@*
+
+@item @code{-O|--optimize}
+@cindex optimizer for policy script interpreter
+@cindex policy script interpreter, optimizer
+@cindex Bro, optimizer
+Turns on Bro's optimizer for improving its internal representation
+of the policy script.  @emph{Note:}  Currently, the amount of improvement is modest, and there's (as always) a risk of an optimizer bug introducing errors into the execution of the script, so the optimizer is not enabled by default. 
+@*
+
+@item @code{-P|--prime-dns}
+@cindex caches, Bro's private ones
+@cindex Bro, private caches
+@cindex priming Bro's private DNS cache
+Instructs Bro to @emph{prime} its private DNS cache.
+It does so by parsing the policy scripts, but not executing them.
+Bro looks up each hostname's address(es) and records them in the private
+cache.  The idea is that once @command{bro -P} finishes, you can then use
+@command{bro -F} to start up Bro quickly because it will read all the
+information it needs from the cache.
+@*
+
+@c EventPlayer's class definition in Serializer.h says it's not currently
+@c usable, so -R is left out for now. --cpk
+@c 
+@c @item @code{-R|--replay <events file>}
+
+@item @code{-S|--debug-rules}
+Prints debugging output for the rules used in signature matching. See also
+@ref{Signatures}.
+@cindex signature debugging
+@*
+
+@item @code{-T|--re-level <level>}
+Sets the level in the tree of rules at which regular expressions are
+built. Default is 4.
+@*
+
+@item @code{-W|--watchdog}
+@cindex Bro, wedging
+@cindex watchdog
+@cindex Bro, watchdog
+@cindex Bro, execution aborted
+@cindex aborted execution
+Instructs Bro to activate its internal @emph{watchdog}.  The watchdog
+provides self-monitoring to enable Bro to detect if its processing is
+wedged.
+
+Bro only activates the watchdog if it is reading live network traffic.
+The watchdog consists of a periodic timer that fires every
+@code{WATCHDOG_INTERVAL} seconds.  (@emph{Deficiency:clearly this should be a user-definable value.})  At that point, the watchdog checks
+to see whether Bro is still working on the same packet as it was the last
+time the watchdog expired.  If so, then the watchdog logs this fact along
+with some information regarding when Bro began processing the current
+packet and how many events it processed after handling the packet.  Finally,
+it prints the packet drop information for the different interfaces Bro
+was reading from, and aborts execution.
+@*
+
+@item @code{--save-seeds <file>}
+Writes the seeds used for initializing the PRNGs in Bro to the given
+file. This can be combined with @code{-K|--md5-hashkey}, and is intended
+to be used with @code{--load-seeds} in future Bro runs.
+@cindex determinism
+@cindex indeterminism
+@cindex seeding Bro
+@*
+
+@item @code{--save-seeds <file>}
+Seeds the PRNGs in Bro using a file produced by @code{--save-seeds}
+in an earlier Bro invocation.
+@cindex determinism
+@cindex indeterminism
+@cindex seeding Bro
+@*
+
+@end table
+
+@node Run-time environment,
+@subsubsection Run-time environment
+
+Bro is also sensitive to the following environment variables:
+@table @samp
+
+@item $BROPATH
+@cindex search path
+@cindex Bro, search path
+@cindex policy directories
+@cindex usr/local/lib/bro/usr/local/lib/bro/ policy directory
+@cindex policy/ policy directory
+@cindex policy/local/local/ policy directory
+A colon-separated list of directories that Bro searches whenever
+you load a policy file.  It loads the first instance it finds (though
+see $BRO_PREFIXES for how a single load can lead to Bro loading
+multiple files).
+
+Default: if you don't set this variable, then Bro uses the path
+@example
+    .:policy:policy/local:/usr/local/lib/bro
+@end example
+
+That is, the current directory, any @emph{policy/} and @emph{policy/local/}
+subdirectories, and @emph{/usr/local/lib/bro/}.
+
+@item $BRO_PREFIXES
+@cindex prefixes
+@cindex bro suffix.bro suffix
+A colon-separate lists of @emph{prefixes} that Bro should apply to
+each name in a @code{@@load} directive.  For a given prefix and load-name, Bro
+constructs the filename:
+@quotation
+@emph{prefix}.@emph{load-name}.bro
+@end quotation
+(where it doesn't add .bro if @emph{load-name} already ends in
+.bro).  It then searches for the filename using $BROPATH
+and loads it if its found.  Furthermore, it @emph{repeats} this process
+for all of the other prefixes (left-to-right), and loads @emph{each}
+file it finds for the different prefixes.  @emph{Note:}  Bro @emph{also} first attempts to load the filename without any prefix at all. If this load fails, then Bro exits with an error complaining that it can't open the given @code{@@load} file.
+
+For example, if you set $BRO_PREFIXES to:
+@example
+    mysite:mysite.wan
+@end example
+
+and then issue ``@command{@@load ftp}'', Bro will attempt to load each of the
+following scripts in the following order:
+@example
+    ftp.bro
+    mysite.ftp.bro
+    mysite.wan.ftp.bro
+@end example
+
+Default: if you don't specify a value for $BRO_PREFIXES, it defaults
+to empty, and for the example above Bro would only attempt to @command{@@load ftp.bro}.
+
+@end table
+
+@node Helper utilities,
+@section Helper utilities
+
+@menu
+* Scripts::			
+* hf utility::	
+* cf utility::	
+@end menu
+
+@node Scripts,
+@subsection Scripts
+
+Documentation missing.
+
+@node hf utility,
+@subsection The @code{hf} utility
+
+@cindex hostnames, mapping addresses to
+@cindex addresses, mapping to hostnames
+@cindex dotted quads
+The @emph{hf} utility reads text on @emph{stdin} and attempts to convert any
+``dotted quads'' it sees to hostnames.  It is very convenient for running
+on Bro log files to generate human-readable forms.  See the manual page
+included with the distribution for details.
+
+@node cf utility,
+@subsection The @code{cf} utility
+
+@cindex timestamps, mapping to readable form
+@cindex Unix timestamps
+The @emph{cf} utility reads Unix timestamps at the beginning of lines on
+@emph{stdin} and converts them to human-readable form.  For example,
+for the input line:
+@example
+972499885.784104 #26 131.243.70.68/1899 > 64.55.26.206/ftp start
+@end example
+
+it will generate:
+@example
+Oct 25 11:51:25 #26 131.243.70.68/1899 > 64.55.26.206/ftp start
+@end example
+
+It takes two flags:
+@table @samp
+
+@item -l
+specifies the @emph{long} human-readable form, which includes the year.
+For example, on the above input, the output would instead be:
+@example
+Oct 25 11:51:25 2000 #26 131.243.70.68/1899 > 64.55.26.206/ftp start
+@end example
+
+@item -s
+specifies @emph{strict} checking to ensure that the number at the beginning
+of a line is a plausible timestamp: it must have at least 9 digits, at most
+one decimal, and must have a decimal if there are 10 or more digits.
+
+Without -s, an input like:
+@example
+131.243.70.68 > 64.55.26.206
+@end example
+
+generates the output:
+@example
+Dec 31 16:02:11 > 64.55.26.206
+@end example
+
+which, needless to say, is not very helpful.  
+
+@emph{Deficiency: It seems clear that -s should be the default behavior. }
+
+@end table
+

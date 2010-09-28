@@ -1,0 +1,21 @@
+# $Id: TODO 6813 2009-07-07 18:54:12Z robin $
+
+Shell
+
+   - Unify argument handling for shell's commmands
+
+Bro config
+
+   - Make sessions IDs shorter
+
+Known bugs:
+
+   - We sometimes don't get the return events for
+   Broccoli-communication. Not sure where the problem is.
+
+   - Proxy reports wrong number of peer with "status" if multiple
+   worker sare running on the same box.
+
+   - bin/helpers/* should be more robust against unexpected output. 
+
+

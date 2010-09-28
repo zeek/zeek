@@ -1,0 +1,1945 @@
+
+@node Values
+@chapter Values, Types, and Constants
+
+@menu
+* Values Overview::			
+* Booleans::			
+* Numeric Types::		
+* Enumerations::		
+* Strings::			
+* Patterns::			
+* Temporal Types::		
+* Port Type::			
+* Address Type::		
+* Net Type::			
+* Records::			
+* Tables::			
+* Sets::			
+* Files::			
+* Functions::			
+* Event handlers::		
+* any type::			
+@end menu
+
+@node Values Overview,
+@section Values Overview
+
+@cindex values, overview
+We begin with an overview of the types of values supported by
+Bro, giving a brief description of each type and
+introducing the notions of type conversion and type inference.
+We discuss each type in detail in 
+
+@menu
+* Bro Types::			
+* Type Conversions::		
+@end menu
+
+@node Bro Types
+@subsection Bro Types
+
+There are 18 (XXX check this) types of values in the Bro type
+system:
+@cindex types, overview
+
+@itemize @bullet
+@cindex types, bool
+
+@item 
+@code{bool} for Booleans;
+
+@cindex types, numeric
+@cindex types, count
+@cindex types, int
+@cindex types, double
+@cindex numeric types, count
+@cindex numeric types, int
+@cindex numeric types, double
+
+@item 
+@code{count}, @code{int}, and @code{double} types, collectively 
+called @emph{numeric}, for arithmetic and logical operations, and comparisons;
+
+@cindex types, enumeration
+@cindex types, enum
+
+@item 
+@code{enum} for enumerated types similar to those in C;
+
+@cindex types, string
+
+@item 
+@code{string}, character strings that can be used
+for comparisons and to index tables and sets;
+
+@cindex types, pattern
+
+@item 
+@code{pattern}, regular expressions that can be used for pattern
+matching;
+
+@cindex types, temporal
+@cindex types, time
+@cindex types, interval
+
+@item 
+@code{time} and @code{interval}, for absolute and relative times,
+collectively termed @emph{temporal};
+
+@cindex types, port
+
+@item 
+@code{port}, a TCP or UDP port number;
+
+@cindex types, addr
+
+@item 
+@code{addr}, an IP address;
+
+@cindex types, net
+
+@item 
+@code{net}, a network prefix;
+
+@cindex types, record
+
+@item 
+@code{record}, a collection of values (of possibly different types),
+each of which has a name;
+
+@cindex types, table
+
+@item 
+@code{table}, an associative array, indexed by tuples of
+scalars and yielding values of a particular type;
+
+@cindex types, set
+
+@item 
+@code{set}, a collection of tuples-of-scalars, for which a
+particular tuple's membership can be tested;
+
+@cindex types, file
+
+@item 
+@code{file}, a disk file to write or append to;
+
+@cindex types, function
+
+@item 
+@code{function}, a function that when called with a list of
+values (arguments) returns a value;
+
+@cindex types, event
+
+@item 
+@code{event}, an event handler that is invoked with a list of
+values (arguments) any time an event occurs.
+
+@end itemize
+
+Every value in a Bro script has one of these types.
+For most types there are ways of specifying @emph{constants} representing
+values of the type.  For example, @code{2.71828} is a constant
+of type @code{double}, and @code{80/tcp} is a constant of type
+@code{port}.  The discussion of types below includes a description
+of how to specify constants for the types.
+
+@cindex typing, static
+@cindex static typing
+Finally, even though Bro variables have @emph{static} types,
+meaning that their type is fixed,
+often their type is @emph{inferred} from the value to which
+they are initially assigned when the variable is declared.
+For example,
+@example
+    local a = "hi there";
+@end example
+
+fixes @code{a}'s type as @code{string}, and
+@example
+    local b = 6;
+@end example
+
+sets @code{b}'s type to @code{count}.  See 
+for further discussion.
+
+@node Type Conversions,
+@subsection Type Conversions
+
+@cindex types, conversion
+Some types will be automatically converted to other types as
+needed.
+@cindex types, conversion, automatic
+For example, a @code{count} value can always be used where a @code{double}
+value is expected.  The following:
+@example
+    local a = 5;
+    local b = a * .2;
+@end example
+
+creates a local variable @code{a} of type @code{count} and
+assigns the @code{double} value @code{1.0} to @code{b}, which will
+also be of type @code{double}.
+Automatic conversions are limited to converting between @emph{numeric} types.
+The rules for how types are converted are given below.
+@cindex types, conversion
+
+@node Booleans,
+@section Booleans
+
+@cindex booleans
+The @code{bool} type reflects a value with one of two possible
+meanings: @emph{true} or @emph{false}.
+
+@menu
+* Boolean Constants::		
+* Logical Operators::		
+@end menu
+
+@node Boolean Constants,
+@subsection Boolean Constants
+
+@cindex constants, boolean
+@cindex T
+@cindex F
+There are two @code{bool} constants:
+@code{T} and @code{F}.  They
+represent the values of ``true" and ``false", respectively.
+
+@node Logical Operators,
+@subsection Logical Operators
+
+@cindex types, bool
+
+@cindex operators, logical
+Bro supports three logical operators:
+@code{&&},
+@cindex & short-circuit&&@  short-circuit ``and''
+@cindex short-circuit1-circuit && ``and'' operator
+@cindex and operator&& ``and'' operator
+@cindex operator, and&& ``and''
+@code{||},
+@cindex & or short-circuit"|"|@  short-circuit ``or''
+@cindex short-circuit2-circuit "|"| ``or'' operator
+@cindex or operator"|"| ``or'' operator
+@cindex operator, or"|"| ``or''
+and @code{!}
+@cindex & z not", @ @  ``not'' operator
+@cindex not operator",  ``not'' operator
+@cindex operator, not",  ``not''
+are Boolean ``and,'' ``or,'' and ``not,'' respectively.
+@code{&&} and @code{||} are ``short circuit'' operators, as in C:
+they evaluate their right-hand operand
+only if needed.
+
+The @code{&&} operator returns @code{F} if its
+first operand evaluates to @emph{false}, otherwise it evaluates its second
+operand and returns @code{T} if it evaluates to @emph{true}.
+The @code{||} operator evaluates its first operand and returns @code{T} if
+the operand evaluates to @emph{true}.  Otherwise it evaluates its second
+operand, and returns @code{T} if it is @emph{true}, @code{F} if @emph{false}.
+
+@cindex logical negation
+@cindex negation, logical
+The unary @code{!}
+operator returns the boolean negation of its argument.
+So, @code{!@ T} yields @code{F}, and @code{!@ F} yields @code{T}.
+
+@cindex operators, logical, associativity
+@cindex operators, logical, precedence
+The logical operators are left-associative.
+The @code{!}
+operator has very high precedence, the same as unary @code{+} and @code{-};
+see 
+The @code{||} operator has
+precedence just below @code{&&}, which in turn is just below that of
+the comparison operators (see @ref{Comparison Operators}).
+@cindex operators, logical
+@cindex booleans
+
+@node Numeric Types,
+@section Numeric Types
+
+@cindex types, count
+@cindex types, int
+@cindex types, double
+
+@cindex types, numeric
+@code{int}, @code{count}, and @code{double} types
+should be familiar to most programmers as integer, unsigned integer, and
+double-precision floating-point types.
+
+These types are referred to collectively as @emph{numeric}.  @emph{Numeric}
+types can be used in arithmetic operations (see 
+below) as well as in comparisons (@ref{Comparison Operators}).
+
+@menu
+* Numeric Constants::		
+* Mixing Numeric Types::	
+* Arithmetic Operators::	
+* Comparison Operators::	
+@end menu
+
+@node Numeric Constants,
+@subsection Numeric Constants
+
+@cindex constants, count
+@code{count} constants are just strings of digits: @code{1234} and @code{0}
+are examples.
+
+@cindex constants, integer
+@code{integer} constants are strings of digits preceded
+by a @code{+} or @code{-} sign: @code{-42} and @code{+5} for example.
+Because digit strings without a sign are of type @code{count}, occasionally
+you need to take care when defining a variable if it really needs to
+be of type @code{int} rather than @code{count}.  Because of type inferencing
+, a definition like:
+@example
+    local size_difference = 0;
+@end example
+
+will result in @code{size_difference} having type @code{count} when
+@code{int} is what's instead needed (because, say, the size difference can be
+negative).  This can be resolved either by using an @code{int} constant
+in the  initialization:
+@example
+    local size_difference = +0;
+@end example
+
+or explicitly indicating the type:
+@example
+    local size_difference: int = 0;
+@end example
+
+@cindex constants, floating-point
+You write floating-point constants in the usual ways, a string of digits
+with perhaps a decimal point and perhaps a scale-factor written in scientific
+notation.  Optional @code{+} or @code{-} signs may be given before the digits
+or before the scientific notation exponent.
+Examples are @code{-1234.}, @code{-1234e0}, @code{3.14159}, and @code{.003e-23}.
+All floating-point constants are of type @code{double}.
+
+@node Mixing Numeric Types,
+@subsection Mixing Numeric Types
+
+@cindex types, numeric, intermixing
+@cindex types, numeric, bool not numeric
+You can freely intermix @emph{numeric} types in expressions.  When intermixed,
+values are promoted to the ``highest" type in the expression.
+In general, this promotion follows a simple hierarchy: @code{double} is
+highest, @code{int} comes next, and @code{count} is lowest.  (Note that
+@code{bool} is not a numeric type.)
+
+@node Arithmetic Operators,
+@subsection Arithmetic Operators
+
+@cindex operators, arithmetic
+@cindex addition, numeric
+@cindex subtraction, numeric
+@cindex multiplication, numeric
+@cindex division, numeric
+@cindex operators, arithmetic, operand conversion
+For doing arithmetic, Bro supports
+@code{+}
+@code{-}
+@code{*}
+@code{/}
+and
+@code{%}
+@cindex percent modulus operator
+.
+In general, binary operators evaluate their operands after converting them
+to the higher type of the two and return a result of that type.
+However, subtraction of two @code{count} values yields an @code{int} value.
+Division is integral if its operands are @code{count} and/or @code{int}.
+
+@code{+}
+and @code{-}
+can also be used as unary operators.  If applied to a @code{count} type,
+they yield an @code{int} type.
+
+@code{%} computes a @emph{modulus}, defined in the same way as in
+the C language.  It can only be applied to @code{count} or @code{int}
+types, and yields @code{count} if both operands are @code{count} types,
+otherwise @code{int}.
+
+@cindex operators, arithmetic, precedence
+Binary @code{+} and @code{-}
+have the lowest precedence, @code{*}, @code{/}, and @code{%} have equal
+and next highest precedence.  The unary
+@code{+} and @code{-} operators have the same precedence as the @code{!}
+operator @ref{Logical Operators}.
+See , for a table of the precedence of all Bro
+operators.
+
+@cindex operators, arithmetic, associativity
+All arithmetic operators associate from left-to-right.
+@cindex operators, arithmetic
+
+@node Comparison Operators,
+@subsection Comparison Operators
+
+@cindex operators, comparison
+@cindex relationals, numeric
+@cindex operators, comparison, operand conversion
+Bro provides the usual comparison operators:
+@code{==}
+@cindex == equality operator==@  equality operator
+,
+@code{!=}
+@cindex == inequality operator", =@  inequality operator
+,
+@code{<}
+@cindex == less-than operator<@ @  less-than operator
+,
+@code{<=}
+@cindex == less-than-or-equal operator<=@  less-or-equal operator
+,
+@code{>}
+@cindex == z operator>@ @  greater-than operator
+,
+and
+@code{>=}
+@cindex == zz operator>=@  greater-or-equal operator
+.
+They each take two operands, which
+they convert to the higher of the two types (see @ref{Mixing Numeric Types}).
+They return a @code{bool} corresponding to the comparison of the operands.
+For example,
+@example
+    3 < 3.000001
+@end example
+
+yields true.
+
+@cindex operators, comparison, associativity
+@cindex operators, comparison, precedence
+The comparison operators are all non-associative and have equal precedence,
+just below that of the 
+just above that of the 
+See ,
+for a general discussion of precedence.
+@cindex operators, comparison
+@cindex types, numeric
+
+@node Enumerations,
+@section Enumerations
+
+@cindex enumerations
+@cindex types, enum
+Enumerations allow you to specify a set of related values that have
+no further structure, similar to @code{enum} types in C.  For example:
+@example
+    type color: enum @{ Red, White, Blue, @};
+@end example
+
+defines the values @code{Red}, @code{White}, and @code{Blue}.  A variable
+of type @code{color} holds one of these values.  Note that @code{Red} et al
+@cindex global scope, of enumerations
+have @emph{global scope}.  You @emph{cannot} define a variable or type
+with those names.  (Also note that, as usual, the comma after @code{Blue}
+is optional.)
+
+The only operations allowed on enumerations are comparisons for
+equality.  Unlike C enumerations, they do not have values or an
+ordering associated with them.
+
+You can extend the set of values in an enumeration using
+@code{redef enum @emph{identifier} += @{ @emph{name-list} @}}:
+@example
+    redef enum color += @{ Black, Yellow @};
+@end example
+
+@cindex enumerations
+
+@node Strings,
+@section Strings
+
+@cindex strings
+@cindex types, string
+The @code{string} type holds character-string values, used to represent
+and manipulate text.
+
+@menu
+* String Constants::		
+* String Operators::		
+@end menu
+
+@node String Constants,
+@subsection String Constants
+
+@cindex constants, string
+@cindex escape sequences
+@cindex possible future changes, breaking string constants across multiple lines
+You create string constants by enclosing text within double (@code{"}) quotes.
+A backslash character (@code{\}) 
+introduces an @emph{escape sequence}.  The following ANSI C escape
+sequences are recognized:
+FIXME
+the 8-bit ASCII character with code @emph{hex-digits}.
+Bro string constants currently @emph{cannot} be continued across
+multiple lines by escaping newlines in the input.  This may change
+in the future.
+Any other character following a @code{\} is passed along literally.
+
+@cindex NULs, allowed in strings
+
+@cindex evasion, inserting NULs
+
+Unlike in C, strings are represented internally as a count and a
+vector of bytes, rather than a NUL-terminated series of bytes.  This
+difference is important because NULs can easily be introduced into strings
+derived from network traffic, either by the nature of the application,
+inadvertently, or maliciously by an attacker attempting to subvert the
+monitor.  An example of the latter is sending the following to an FTP server:
+@example
+    USER nice\0USER root
+@end example
+
+where ``@code{\0}'' represents a NUL.  Depending on how it is written,
+the FTP application receiving this text might well interpret it as
+two separate commands, ``@code{USER nice}'' followed by ``@code{USER root}''.
+But if the monitoring program uses NUL-terminated strings, then it
+will effectively see only ``@code{USER nice}'' and have no opportunity
+to detect the subversive action.
+
+@cindex NULs, terminating string constants
+@cindex string constants, NUL terminated
+Note that Bro string constants are automatically NUL-terminated.
+
+Note: While Bro itself allows NULs in strings, their presence
+in arguments to many Bro functions results in a run-time error, as
+often their presence (or, conversely, lack of a NUL terminator)
+indicates some sort of problem (particularly
+for arguments that will be passed to C functions).  See 
+section @ref{Run-time errors for strings with NULs} for discussion. 
+
+@cindex constants, string
+
+@node String Operators,
+@subsection String Operators
+
+@cindex operators, string
+@cindex relationals, string
+@cindex ASCII, as usual character set
+@cindex character set, ASCII
+Currently the only string operators provided are the comparison
+operators discussed in @ref{Comparison Operators} and pattern-matching
+as discussed in @ref{Pattern Operators}.  These operators
+perform character by character comparisons based on the native
+character set, usually ASCII.
+
+Some functions for manipulating strings are also available.  See
+.
+@cindex strings
+
+@cindex strings
+
+@node Patterns,
+@section Patterns
+
+@cindex types, pattern
+@cindex searching for strings
+@cindex pattern matching
+
+@cindex patterns
+The @code{pattern} type holds regular-expression patterns, which can
+be used for fast text searching operations.
+
+@menu
+* Pattern Constants::		
+* Pattern Operators::		
+@end menu
+
+@node Pattern Constants,
+@subsection Pattern Constants
+
+@cindex constants, pattern
+@cindex flex utility
+@cindex lex utility
+@cindex utilities, flex
+@cindex utilities, lex
+You create pattern constants by enclosing text within forward slashes (@code{/}).
+The syntax is the same as for the @emph{flex} version of the @emph{lex}
+utility.
+For example,
+@example
+    /foo|bar/
+@end example
+
+specifies a pattern that matches either the text ``foo'' or the
+text ``bar'';
+@example
+    /[a-zA-Z0-9]+/
+@end example
+
+matches one or more letters or digits, as will
+@example
+    /[[:alpha:][:digit:]]+/
+@end example
+
+or
+@example
+    /[[:alnum:]]+/
+@end example
+
+and the pattern
+@example
+    /^rewt.*login/
+@end example
+
+matches any string with the text ``rewt'' at the beginning of
+a line followed somewhere later in the line by the text ``login''.
+
+You can create disjunctions (patterns the match any of a number of
+alternatives) both using the ``@{@code{|}@}'' regular expression
+operator directly, as in the first example above, or by using it
+to join multiple patterns.  So the first example above
+could instead be written:
+@example
+    /foo/ | /bar/
+@end example
+
+This form is convenient when constructing large disjunctions because
+it's easier to see what's going on.
+
+Note that the speed of the regular expression matching does @emph{not}
+depend on the complexity or size of the patterns, so you should feel
+free to make full use of the expressive power they afford.
+
+You can assign @code{pattern} values to variables, hold them in tables,
+and so on.  So for example you could have:
+@example
+    global address_filters: table[addr] of pattern = @{
+        [128.3.4.4] = /failed login/ | /access denied/,
+        [128.3.5.1] = /access timeout/
+    @};
+@end example
+
+and then could test, for example:
+@example
+    if ( address_filters[c$id$orig_h] in msg )
+        skip_the_activity();
+@end example
+
+Note though that you cannot use create patterns dynamically.
+this form (or any other) to create dynamic
+
+@cindex constants, pattern
+
+@node Pattern Operators,
+@subsection Pattern Operators
+
+@cindex operators, pattern
+
+There are two types of pattern-matching operators: @emph{exact}
+matching and @emph{embedded} matching.
+
+@menu
+* Exact Pattern Matching::	
+* Embedded Pattern Matching::	
+@end menu
+
+@node Exact Pattern Matching,
+@subsubsection Exact Pattern Matching
+
+@cindex pattern matching, exact
+Exact matching tests for a
+string entirely matching a given
+pattern.  You specify exact matching by using the
+@code{==} equality relational with one @code{pattern} operand and one
+@code{string} operand (order irrelevant).  For example,
+@example
+    "foo" == /foo|bar/
+@end example
+
+yields true, while
+@example
+    /foo|bar/ == "foobar"
+@end example
+
+yields false.  The @code{!=} operator is the negation of the @code{==}
+operator, just as when comparing strings or numerics.
+
+Note that for exact matching, the @code{^} (anchor to beginning-of-line)
+and @code{$} (anchor to end-of-line) regular expression operators are
+redundant: since the match is @emph{exact}, every pattern is implicitly
+anchored to the beginning and end of the line.
+
+@node Embedded Pattern Matching,
+@subsubsection Embedded Pattern Matching
+
+@cindex pattern matching, embedded
+
+@cindex in operator operator
+Embedded matching tests whether a given pattern appears anywhere
+within a given string.
+You specify embedded pattern matching
+using the @code{in} operator.  It takes two operands, the first
+(which must appear on the left-hand side) of type @code{pattern},
+the second of type @code{string}.
+For example,
+@example
+    /foo|bar/ in "foobar"
+@end example
+
+yields true, as does
+@example
+    /oob/ in "foobar"
+@end example
+
+but
+@example
+    /^oob/ in "foobar"
+@end example
+
+does not, since the text ``oob'' does not appear the beginning
+of the string ``foobar''.
+Note, though, that the @code{$} regular expression operator (anchor
+to end-of-line) is not currently supported, so:
+@example
+    /oob$/ in "foobar"
+@end example
+
+currently yields true.  This is likely to change in the future.
+@cindex bugs, $ pattern operator not supported
+
+@cindex in2 operator", in negation of  operator
+@cindex not in operator", in negation of  operator
+Finally, the @code{!in} operator yields the negation of the @code{in} operator.
+
+@cindex patterns
+
+@node Temporal Types,
+@section Temporal Types
+
+@cindex time
+@cindex absolute time
+@cindex relative time
+@cindex temporal, types
+@cindex types, time
+@cindex types, interval
+
+Bro supports types representing @emph{absolute} and @emph{relative}
+times with the @code{time} and @code{interval} types, respectively.
+
+@menu
+* Temporal Constants::		
+* Temporal Operators::		
+@end menu
+
+@node Temporal Constants,
+@subsection Temporal Constants
+
+@cindex constants, temporal
+@cindex temporal, constants
+@cindex constants, time
+@cindex constants, interval
+@cindex possible future changes, constants for absolute times
+There is currently no way to specify an absolute time as a constant
+(though see the @code{current_time} and @code{network_time} functions
+in @ref{Functions for manipulating time}).  You can specify @code{interval} constants,
+however, by appending a @emph{time unit} after a numeric constant.
+For example,
+@example
+    3.5 min
+@end example
+
+denotes 210 seconds.
+The different time units are @code{usec}, @code{sec},
+@code{min}, @code{hr}, and @code{day}, representing microseconds, seconds,
+minutes, hours, and days, respectively.  The whitespace between 
+the numeric constant and the unit is optional, and the letter ``s''
+may be added to pluralize the unit (this has no semantic effect).
+So the above
+example could also be written:
+@cindex usec (microseconds) interval unit
+@cindex sec (seconds) interval unit
+@cindex min (minutes) interval unit
+@cindex hr (hours) interval unit
+@cindex day interval unit
+@cindex interval units, usec
+@cindex interval units, sec
+@cindex interval units, min
+@cindex interval units, hr
+@cindex interval units, day
+@example
+    3.5mins
+@end example
+
+or
+@example
+    150 secs
+@end example
+
+@cindex constants, interval
+@cindex constants, time
+
+@node Temporal Operators,
+@subsection Temporal Operators
+
+@cindex operators, temporal
+
+You can apply arithmetic and relational operators to temporal
+values, as follows.
+
+@menu
+* Temporal Negation::		
+* Temporal Addition::		
+* Temporal Subtraction::	
+* Temporal Multiplication::	
+* Temporal Division::		
+* Temporal Relationals::	
+@end menu
+
+@node Temporal Negation,
+@subsubsection Temporal Negation
+
+@cindex temporal, negation
+@cindex negation, temporal
+
+The unary @code{-}
+operator can be applied to an @code{interval} value to yield another
+@code{interval} value.  For example,
+@example
+    - 12 hr
+@end example
+
+represents ``twelve hours in the past.''
+
+@node Temporal Addition,
+@subsubsection Temporal Addition
+
+@cindex temporal, addition
+@cindex addition, temporal
+
+Adding two @code{interval} values yields another @code{interval} value.
+For example,
+@example
+    5 sec + 2 min
+@end example
+
+yields 125 seconds.
+Adding a @code{time} value to an @code{interval} yields
+another @code{time} value.
+
+@node Temporal Subtraction,
+@subsubsection Temporal Subtraction
+
+@cindex temporal, subtraction
+@cindex subtraction, temporal
+
+Subtracting a @code{time} value from another @code{time} value
+yields an @code{interval} value, as does subtracting an @code{interval}
+value from another @code{interval}, while subtracting an @code{interval}
+from a @code{time} yields a @code{time}.
+
+@node Temporal Multiplication,
+@subsubsection Temporal Multiplication
+
+@cindex temporal, multiplication
+@cindex multiplication, temporal
+
+You can multiply an @code{interval} value by a @emph{numeric} value
+to yield another @code{interval} value.  For example,
+@example
+   5 min * 6.5
+@end example
+
+yields 1,950 seconds.  @code{time} values cannot be scaled by
+multiplication or division.
+
+@node Temporal Division,
+@subsubsection Temporal Division
+
+@cindex temporal, division
+@cindex division, temporal
+
+You can also divide an @code{interval} value by a @emph{numeric} value
+to yield another @code{interval} value.  For example,
+@example
+   5 min / 2
+@end example
+
+yields 150 seconds.  Furthermore, you can divide one @code{interval}
+value by another to yield a @code{double}. For example,
+@example
+   5 min / 30 sec
+@end example
+
+yields 10.
+
+@node Temporal Relationals,
+@subsubsection Temporal Relationals
+
+@cindex temporal, relationals
+@cindex relationals, temporal
+
+You may compare two @code{time} values or two @code{interval} values
+for equality, and also for ordering, where times or intervals
+further in the future are considered larger than times or intervals
+nearer in the future, or in the past.
+
+@cindex time
+
+@node Port Type,
+@section Port Type
+
+@cindex port type
+@cindex ports, UDP
+@cindex ports, TCP
+@cindex ports, ICMP
+@cindex ports, unknown
+
+The @code{port} type corresponds to transport-level port numbers.
+Besides TCP or UDP ports, these can also be ICMP ``ports'', where the
+source port is the ICMP message type and the destination port the ICMP
+message code.  Furthermore, the transport-level protocol of a port can
+remain unspecified.  In any case, a value of type @code{port}
+represents exactly one of those four transport protocol choices.
+
+@menu
+* Port Constants::		
+* Port Operators::		
+* Port Functions::		
+@end menu
+
+@node Port Constants,
+@subsection Port Constants
+
+@cindex constants, port
+@cindex ports, constants
+There are two forms of @code{port}
+constants.  The first consists of an unsigned integer followed by one of
+``@code{/tcp}'', ``@code{/udp}'', ``@code{/icmp}'', or ``@code{/unknown}''.
+So, for example, ``@code{80/tcp}'' corresponds to TCP port 80 (typically
+used for the HTTP protocol). The second form of constant is specified
+using a predefined identifier, such as ``@code{http}'', equivalent to
+``@code{80/tcp}.''  These predefined identifiers are simply @code{const}
+variables defined in the Bro initialization file, such as:
+@example
+    const http = 80/tcp;
+@end example
+
+@node Port Operators,
+@subsection Port Operators
+
+@cindex ports, operators
+@cindex operators, ports
+
+The only operations that can be applied to @code{port} values are
+relationals.  You may compare them for equality, and also for ordering.
+For example,
+@example
+     20/tcp < telnet
+@end example
+
+yields true because @code{telnet} is a predefined constant set to
+@code{23/tcp}.  
+
+When comparing ports across transport-level protocols, the following
+holds: unknown < TCP < UDP < ICMP. For example, ``@code{65535/tcp}'' is
+smaller than ``@code{0/udp}''.
+
+@cindex port type
+
+@node Port Functions,
+@subsection Port Functions
+
+@cindex ports, functions
+
+You can obtain the transport-level protocol type of a port as an
+@code{enum} constant of type @code{transport_proto} (defined in
+@code{bro.init}), using the built-in function (see @ref{Predefined Functions})
+@code{get_port_transport_proto(p: port): transport_proto}.
+
+@node Address Type,
+@section Address Type
+
+@cindex address type
+
+@cindex relationals, address
+Another networking type provided by Bro is @code{addr}, corresponding to an
+IP address.  The only operations that can be performed on them are
+comparisons for equality or inequality (also, a built-in function provides
+masking, as discussed below).
+
+When configuring the Bro distribution, if you specify @code{--enable-brov6}
+
+then Bro will be built to support both IPv4 and IPv6 addresses,
+and an @code{addr} can hold either.  Otherwise, addresses are
+restricted to IPv4.
+@cindex IPv6 support
+
+@menu
+* Address Constants::		
+* Address Operators::		
+@end menu
+
+@node Address Constants,
+@subsection Address Constants
+
+@cindex constants, address
+@cindex address type, constants
+@cindex IPv4/IPv6 address constants
+
+Constants of type @code{addr} have the familiar ``dotted quad'' format,
+@code{A_1.A_2.A_3.A_4}, where the A_i all lie
+between 0 and 255.  If you have configured for IPv6 support as discussed
+above, then you can also use the colon-separated hexadecimal form
+described in RFC2373.
+
+@cindex hostnames
+@cindex constants, hostname
+
+Often more useful are @emph{hostname} constants.  There is no Bro
+type corresponding to Internet hostnames. Because hostnames can correspond
+to multiple IP addresses, you quickly run into ambiguities if comparing
+one hostname with another.  Bro does, however, support hostnames as
+constants.  Any series of two or more identifiers delimited by dots
+forms a hostname constant, so, for example, ``@code{lbl.gov}'' and
+``@code{www.microsoft.com}'' are both hostname constants (the latter,
+as of this writing, corresponds to 5 distinct IP addresses).  The value of
+a hostname constant is a @code{list} of @code{addr} containing one
+or more elements.  These lists (as with the lists associated with
+certain @code{port} constants, discussed above) cannot be used in
+Bro expressions; but they play a central role in initializing Bro 
+@command{tables} and @command{sets}.
+
+@node Address Operators,
+@subsection Address Operators
+@cindex address type, operators
+@cindex operators, address
+
+The only operations that can be applied to @code{addr} values are
+comparisons for equality or inequality, using @code{==} and @code{!=}.
+However, you can also operate on @code{addr} values using
+ to mask off lower address bits, and 
+to convert an @code{addr} to a @code{net} (see below).
+
+@cindex address type
+
+@node Net Type,
+@section Net Type
+@cindex net type
+
+@cindex address masking
+@cindex CIDR
+@cindex subnets
+@cindex prefixes, network
+@cindex network prefixes
+Related to the @code{addr} type is @code{net}.  @code{net} values hold address
+prefixes.  Historically, the IP address space was divided into different
+@emph{classes} of addresses, based on the uppermost components of a given
+address: class A spanned the range 0.0.0.0 to 127.255.255.255; class B from
+128.0.0.0 to 191.255.255.255; class C from 192.0.0.0 to 223.255.255.255;
+class D from 224.0.0.0 to 239.255.255.255; and class E from 240.0.0.0 to
+255.255.255.255.  Addresses were allocated to different networks out of
+either class A, B, or C, in blocks of @math{2^{24}}, @math{2^{16}}, and @math{2^8}
+addresses, respectively.
+
+Accordingly, @code{net} values hold either an 8-bit class A prefix,
+a 16-bit class B prefix, a 24-bit class C prefix, or a 32-bit class D
+``prefix'' (an entire address).  Values for class E prefixes are not
+defined (because no such addresses are currently allocated, and so shouldn't
+appear in other than clearly-bogus packets).
+
+Today, address allocations come not from class A, B or C, but instead
+from @emph{CIDR} blocks (CIDR = Classless Inter-Domain Routing), which
+are prefixes between 1 and 32 bits long in the range 0.0.0.0 to
+223.255.255.255.  @emph{Deficiency: Bro @emph{should} deal just with CIDR prefixes, rather than old-style network prefixes.  However, these are more difficult to implement efficiently for table searching and the like; hence currently Bro only supports the easier-to-implement old-style prefixes.  Since these don't match current allocation policies, often they don't really fit an address range you'll want to describe.  But for sites with older allocations, they do, which gives them some basic utility.}
+
+@cindex IPv6 and lack of CIDR prefixes
+In addition, @emph{Deficiency: IPv6 has no notion of old-style network prefixes, only CIDR prefixes, so the lack of support of CIDR prefixes impairs use of Bro to analyze IPv6 traffic. }
+
+@menu
+* Net Constants::		
+* Net Operators::		
+@end menu
+
+@node Net Constants,
+@subsection Net Constants
+
+@cindex constants, net
+@cindex net, constants
+You express constants of type @code{net} in one of two forms, either:
+@quotation
+@code{N_1.N_2.}
+@end quotation
+or
+@quotation
+@code{N_1.N_2.N_3}
+@end quotation
+where the N_i all lie between 0 and 255.  The first of these corresponds
+to class B prefixes (note the trailing ``@code{.}'' that's required to
+distinguish the constant from a floating-point number), and the second to
+class C prefixes.  @emph{Deficiency: There's currently no way to specify a class A prefix. }
+
+@node Net Operators,
+@subsection Net Operators
+@cindex net, operators
+@cindex operators, net
+
+@cindex relationals, net
+The only operations that can be applied to @code{net} values are
+comparisons for equality or inequality, using @code{==} and @code{!=}.
+
+@cindex net type
+
+@node Records,
+@section Records
+
+@cindex records
+@cindex records, fields
+A @code{record} is a collection of values.  Each value has a name,
+referred to as one of the record's @emph{fields},
+and a type.  The values do
+not need to have the same type, and there is no restriction on the
+allowed types (i.e., each field can be @emph{any} type).
+
+@menu
+* Defining records::		
+* Record Constants::		
+* Accessing Fields Using $::	
+* Record Assignment::		
+@end menu
+
+@node Defining records,
+@subsection Defining records
+
+A definition of a record type has the following syntax:
+@example
+record @{ @math{field^+} @}
+@end example
+
+(that is, the keyword @code{record} followed by one-or-more @emph{field}'s
+enclosed in braces), where a @emph{field} has the syntax:
+@example
+identifier : type @math{field-attributes^*}  ; identifier : type @math{field-attributes^*}  ,
+@end example
+
+Each field has a name given by the identifier (which can be the same
+as the identifier of an existing variable or a field in another record).
+@cindex records, fields, legal names
+@cindex names, case-sensitive
+Field names must follow the same syntax as that for Bro variable names (see @ref{Variables Overview, 
+Variables}),
+namely they must begin with a letter or
+an underscore (``@code{_}'') followed by zero or more letters, underscores,
+or digits.  Bro reserved words such as @code{if} or @code{event} cannot
+be used for field names.  Field names are
+case-sensitive.
+
+Each field holds a value of the given type.
+We discuss the optional 
+Finally, you can use either a semicolon or a comma to terminate the
+definition of a record field.
+
+For example, the following record type:
+@example
+    type conn_id: record @{
+        orig_h: addr;  # Address of originating host.
+        orig_p: port;  # Port used by originator.
+        resp_h: addr;  # Address of responding host.
+        resp_p: port;  # Port used by responder.
+    @};
+@end example
+
+is used throughout Bro scripts to denote a connection identifier
+by specifying the connections originating and responding addresses
+and ports.  It has four fields: @code{orig_h} and @code{resp_h} of type
+@code{addr}, and @code{orig_p} of @code{resp_p} of type @code{port}.
+
+@node Record Constants,
+@subsection Record Constants
+@cindex constants, record
+
+You can initialize values of type
+@code{record} using either assignment from another, already existing
+@code{record} value; or element-by-element; or using a 
+
+In a Bro function or event handler, we could declare a local
+variable the @code{conn_id} type given above:
+@example
+    local id: conn_id;
+@end example
+
+and then explicitly assign each of its fields:
+@example
+    id$orig_h = 207.46.138.11;
+    id$orig_p = 31337/tcp;
+    id$resp_h = 207.110.0.15;
+    id$resp_p = 22/tcp;
+@end example
+
+@emph{Deficiency: One danger with this initialization method is that if you forget to initialize a field, and then later access it, you will @emph{crash} Bro. }
+
+Or we could use:
+@example
+    id = [$orig_h = 207.46.138.11, $orig_p = 31337/tcp,
+          $resp_h = 207.110.0.15, $resp_p = 22/tcp];
+@end example
+
+This second form is no different from assigning a @code{record} value 
+computed in some other fashion, such as the value of another variable,
+a table element, or the value returned by a function call.  Such assignments
+must specify @emph{all} of the fields in the target (i.e., in @code{id} in
+this example), unless the missing field has the  @code{&optional} or @code{&default} attribute.
+
+@cindex constants, record
+
+@node Accessing Fields Using $,
+@subsection Accessing Fields Using ``@code{$}''
+
+@cindex records, fields, accessing
+You access and assign record fields using the ``@code{$}'' (dollar-sign)
+operator.  As indicated in the example above, for the record @code{id} we can
+access its @code{orig_h} field using:
+@example
+    id$orig_h
+@end example
+
+which will yield the @code{addr} value @code{207.46.138.11}.
+
+@node Record Assignment,
+@subsection Record Assignment
+@cindex records, assignment
+@cindex assigning records
+You can assign one record value to another using simple assignment:
+@example
+    local a: conn_id;
+    ...
+    local b: conn_id;
+    ...
+    b = a;
+@end example
+
+@cindex copy, shallow vs. deep
+@cindex shallow copy
+@cindex deep copy
+
+Doing so produces a @emph{shallow} copy.  That is, after the assignment,
+@code{b} refers to the same record as does @code{a}, and an assignment
+to one of @code{b}'s fields will alter the field in @code{a}'s value
+(and vice versa for an assignment to one of @code{a}'s fields).
+However, assigning again to @code{b} itself, or assigning to @code{a} itself,
+will break the connection.
+
+In order to produce a @emph{deep} copy, use the clone operator ``copy()''.
+For more details, see @ref{Expressions}.
+
+You can also assign to a record another record that has fields with
+the same names and types, even if they come in a different order.
+For example, if you have:
+@example
+    local b: conn_id;
+    local c: record @{
+        resp_h: addr, orig_h: addr;
+        resp_p: port, orig_p: port;
+    @};
+@end example
+
+then you can assign either @code{b} to @code{c} or vice versa.
+
+You could @emph{not}, however, make the assignment (in either
+direction) if you had:
+@example
+    local b: conn_id;
+    local c: record @{
+        resp_h: addr, orig_h: addr;
+        resp_p: port, orig_p: port;
+        num_notices: count;
+    @};
+@end example
+
+because the field @code{num_notices} would either be missing or excess.
+
+However, when declaring a record you can associate attributes with the fields. The relevant ones are 
+@code{&optional},
+which indicates that when assigning to the record you can omit the field, and 
+@code{&default = expr}, which indicates
+that if the field is missing, then a reference to it returns the value of the expression @emph{expr}. So if instead you had:
+
+@example
+    local b: conn_id;
+    local c: record @{
+        resp_h: addr, orig_h: addr;
+        resp_p: port, orig_p: port;
+        num_notices: count &optional;
+    @};
+@end example
+
+then you could execute @code{c = b} even though @code{num_notices} is missing from b. 
+You still could not execute @code{b = c},
+though, since in that direction, @code{num_notices} is an extra field (regardless of whether it has 
+been assigned to or not --- the error is a type-checking error, not a run-time error).
+
+The same holds for:
+
+@example
+    local b: conn_id;
+    local c: record @{
+        resp_h: addr, orig_h: addr;
+        resp_p: port, orig_p: port;
+        num_notices: count &default = 0;
+    @};
+@end example
+
+I.e., you could execute @code{c = b} but not @code{b = c}. The only difference between this example and the previous one is that
+for the previous one, access to @code{c$num_notices} without having first assigned to it 
+results in a run-time error, while in the second, it yields 0.
+
+You can test for whether a record field exists using the @code{?$} operator.
+
+Finally, all of the rules for assigning records also apply when passing a record value as an argument in a function
+call or an event handler invocation.
+
+@node Tables,
+@section Tables
+
+@cindex tables
+@cindex array, associative
+@cindex associative array
+@cindex index, of a table
+@cindex yield, of a table
+@code{table}'s provide @emph{associative arrays}: mappings from one set of
+values to another.  The values being mapped are termed the @emph{index}
+(or @emph{indices}, if they come in groups of more than one)
+and the results of the mapping the @emph{yield}.
+
+Tables are quite powerful, and indexing them is very efficient,
+boiling down to a single hash table lookup.  So you should take advantage
+of them whenever appropriate.
+
+@menu
+* Declaring Tables::		
+* Initializing Tables::		
+* Table Attributes::		
+* Accessing Tables::		
+* Table Assignment::		
+* Deleting Table Elements::	
+@end menu
+
+@node Declaring Tables,
+@subsection Declaring Tables
+You declare tables using the following syntax:
+@quotation
+@code{table [} @emph{@math{type^+}} @code{] of} @emph{type}
+@end quotation
+@cindex scalars
+where @emph{@math{type^+}} is one or more types, separated by commas.
+
+The indices can be of the following @emph{scalar} types: @emph{numeric},
+@emph{temporal}, @emph{enumerations},
+@emph{string}, @emph{port}, @emph{addr}, or @emph{net}.
+The yield can be of any type.  So, for example:
+@example
+    global a: table[count] of string;
+@end example
+
+declares @code{a} to be a table indexed by a @code{count} value and
+yielding a @code{string} value, similar to a regular array in a
+language like C.  The yield type can also be more complex:
+@example
+    global a: table[count] of table[addr, port] of conn_id;
+@end example
+
+declares @code{a} to be a table indexed by @code{count} and
+yielding another table, which itself is indexed by an @code{addr}
+and a @code{port} to yield a  @code{conn_id} record.
+
+@cindex array, multi-dimensional
+@cindex multi-dimensional table
+This second example illustrates a @emph{multi-dimensional} table,
+one indexed not by a single value but by a @emph{tuple} of values.
+
+@node Initializing Tables,
+@subsection Initializing Tables
+You initialize tables by enclosing a set of initializers within braces.
+Each initializer looks like:
+@quotation
+@code{[} @emph{expr-list} @code{] =} @emph{expr}
+@end quotation
+where @emph{expr-list} is a comma-separated list of expressions
+corresponding to an index of the table (so, for a table indexed
+by @code{count}, for example, this would be a single expression
+of type @code{count}) and @emph{expr} is the yield value to 
+assign to that index.
+
+For example,
+@example
+    global a: table[count] of string = @{
+        [11] = "eleven",
+        [5] = "five",
+    @};
+@end example
+
+initializes the table @code{a} to have two elements, one indexed
+by @code{11} and yielding the string @code{"eleven"} and the other
+indexed by @code{5} and yielding the string @code{"five"}.
+(Note the comma after the last list element; it is optional,
+similar to how C allows final commas in declarations.)
+
+You can also group together a set of indices together to initialize
+them to the same value:
+@example
+    type HostType: enum @{ DeskTop, Server, Router @};
+    global a: table[addr] of HostType = @{
+        [[155.26.27.2, 155.26.27.8, 155.26.27.44]] = Server,
+    @};
+@end example
+
+is equivalent to:
+@example
+    type HostType: enum @{ DeskTop, Server, Router @};
+    global a: table[addr] of HostType = @{
+        [155.26.27.2] = Server,
+        [155.26.27.8] = Server,
+        [155.26.27.44] = Server,
+    @};
+@end example
+
+This mechanism also applies to 
+which can be used in table initializations for any indices of
+type @code{addr}.  For example, if @code{www.my-server.com} corresponded
+to the addresses 155.26.27.2 and 155.26.27.44, then the above
+could be written:
+@example
+    global a: table[addr] of HostType = @{
+        [[www.my-server.com, 155.26.27.8]] = Server,
+    @};
+@end example
+
+and if it corresponded to all there, then:
+@example
+    global a: table[addr] of HostType = @{
+        [www.my-server.com] = Server,
+    @};
+@end example
+
+You can also use multiple index groupings across different indices:
+@example
+    global access_allowed: table[addr, port] of bool = @{
+        [www.my-server.com, [21/tcp, 80/tcp]] = T,
+    @};
+@end example
+
+is equivalent to:
+@example
+    global access_allowed: table[addr, port] of bool = @{
+        [155.26.27.2, 21/tcp] = T,
+        [155.26.27.2, 80/tcp] = T,
+        [155.26.27.8, 21/tcp] = T,
+        [155.26.27.8, 80/tcp] = T,
+        [155.26.27.44, 21/tcp] = T,
+        [155.26.27.44, 80/tcp] = T,
+    @};
+@end example
+
+@emph{Fixme: add example of cross-product initialization of sets}
+
+@node Table Attributes,
+@subsection Table Attributes
+
+When declaring a table, you can specify a number of attributes
+that affect its operation:
+
+@table @samp
+
+@cindex default values
+
+@item @code{&default}
+Specifies a value to yield when an index does not appear in the table.
+Syntax:
+@quotation
+@code{&default = @emph{expr}}
+@end quotation
+@emph{expr} can have one of two forms.  If it's type is the same as
+the table's yield type, then @emph{expr} is evaluated and returned.
+@cindex dynamic defaults
+If it's type is a @code{function} with arguments whose types correspond
+left-to-right with the index types of the table, and which returns
+a type the same as the yield type, then that function is called with
+the indices that yielded the missing value to compute the default value.
+
+For example:
+@example
+    global a: table[count] of string &default = "nothing special";
+@end example
+
+will return the string @code{"nothing special"} anytime @code{a} is
+indexed with a @code{count} value that does not appear in @code{a}.
+
+A more dynamic example:
+@example
+    function nothing_special(): string
+        @{
+        if ( panic_mode )
+            return "look out!";
+        else
+            return "nothing special";
+        @}
+
+    global a: table[count] of string &default = nothing_special;
+@end example
+
+An example of using a function that computes using the index:
+@example
+    function make_pretty(c: count): string
+        @{
+        return fmt("**%d**", c);
+        @}
+
+    global a: table[count] of string &default = make_pretty;
+@end example
+
+@cindex memory management
+@cindex state management
+@cindex management, of state
+
+@item @code{&create_expire}
+Specifies that elements in the table should be @emph{automatically deleted} after a given amount of time has elapsed since they were
+first entered into the table.
+Syntax:
+@quotation
+@code{&create_expire = @emph{expr}}
+@end quotation
+where @emph{expr} is of type @code{interval}.
+
+@item @code{&read_expire}
+The same as @code{create_expire} except the element is deleted
+when the given amount of time has lapsed since the last time the
+element was accessed from the table.
+
+@item @code{&write_expire}
+The same as @code{&create_expire}  except the element is deleted
+when the given amount of time has lapsed since the last time the
+element was entered or modified in the table.
+
+@item @code{&expire_func}
+Specifies a function to call when an element is due for expression
+because of @command{&create_expire}, @command{&read_expire}, or @command{&write_expire}.
+Syntax:
+@quotation
+@code{&expire_func = @emph{expr}}
+@end quotation
+@emph{expr} must be a function that takes two arguments:
+the first one is a table with the same index and yield types as the
+associated table.  The second one is of type @code{any} and
+corresponds to the index(es) of the element being expired.
+The function must return an
+@code{interval} value.
+The @code{interval} indicates for how much longer the element should
+remain in the table; returning @code{0 secs} or a negative value instructs
+Bro to go ahead and delete the element.
+
+@emph{Deficiency: The use of an @code{any} type here is @emph{temporary} and will be changing in the future to a general @emph{tuple} notion. }
+
+@end table
+
+You specify multiple attributes by listing one after the other,
+@emph{without} commas between them:
+@example
+    global a: table[count] of string &default="foo" &write_expire=5sec;
+@end example
+
+Note that you can specify each type of attribute only once.  You can,
+however, specify more than one of 
+@command{&create_expire}, @command{&read_expire}, or @command{&write_expire}.
+In that case, whenever any of the corresponding timers expires, the element will
+be deleted.
+
+@node Accessing Tables,
+@subsection Accessing Tables
+As usual, you access the values in tables by indexing them with 
+a value (for a single index) or list of values (multiple indices)
+enclosed in @code{[]}'s.
+@cindex sub-tables, lack of
+@emph{Deficiency: Presently, when indexing a multi-dimensional table you must provide @emph{all} of the relevant indices; you can't leave one out in order to extract a sub-table. }
+
+You can also index arrays using @code{record}'s, providing the
+record is comprised of values whose types match that of the table's
+indices.  (Any record fields whose types are themselves records
+are recursively unpacked to effect this matching.)  For example,
+if we have:
+@example
+    local b: table[addr, port] of conn_id;
+    local c = 131.243.1.10;
+    local d = 80/tcp;
+@end example
+
+then we could index @code{b} using @code{b[c, d]}, but if we had:
+@example
+    local e = [$field1 = c, $field2 = d];
+@end example
+
+we could also index it using @code{a[d]}
+
+You can test whether a table holds a given index using
+the @code{in} operator:
+@example
+    [131.243.1.10, 80/tcp] in b
+@end example
+
+or
+@example
+    e in b
+@end example
+
+per the examples above.  In addition, if the table has only
+a single index (not multi-dimensional), then you can omit
+the @code{[]}'s:
+@example
+    local active_connections: table[addr] of conn_id;
+    ...
+    if ( 131.243.1.10 in active_connections )
+        ...
+@end example
+
+@node Table Assignment,
+@subsection Table Assignment
+An indexed table can be the target of an assignment:
+@example
+    b[131.243.1.10, 80/tcp] = c$id;
+@end example
+
+You can also assign to an entire table.  For example, suppose we
+have the global:
+@example
+    global active_conn_count: table[addr, port] of count;
+@end example
+
+@cindex tables, clearing entries
+then we could later clear the contents of the table using:
+@example
+    local empty_table: table[addr, port] of count;
+    active_conn_count = empty_table;
+@end example
+
+Here the first statement declares a local variable @code{empty_table}
+with the same type as @code{active_conn_count}.  Since we don't
+initialize the table, it starts out empty.  Assigning it to
+@code{active_conn_count} then replaces the value of @code{active_conn_count}
+with an empty table.
+@cindex copy, shallow vs. deep
+@cindex shallow copy
+@cindex deep copy
+Note: As with @code{record}'s, assigning @code{table} values results
+in a @emph{shallow copy}. For @emph{deep copies}, use the clone operator ``copy()''
+explained in @ref{Expressions}.
+
+In addition to directly accessing an element of a table by specifying
+its index, you can also loop over all of the indices in a table
+using the  statement.
+
+@node Deleting Table Elements,
+@subsection Deleting Table Elements
+You can remove an individual element from a table using the
+ statement:
+@example
+    delete active_host[c$id];
+@end example
+
+will remove the element in @code{active_host} corresponding to
+the connection identifier @code{c$id} (which is a @command{&conn_id} record).
+If the element isn't present, nothing happens.
+
+@cindex tables
+
+@node Sets,
+@section Sets
+
+@cindex set type
+Sets are very similar to tables.  The principle difference is that they are
+simply a collection of indices; they don't yield any values.
+You declare tables using the following syntax:
+@quotation
+@code{set [} @emph{@math{type^+}} @code{]}
+@end quotation
+where, as with @code{table}s,
+@emph{@math{type^+}} is one or more scalar types (or records), separated by commas.
+
+You initialize sets listing their elements in braces:
+@example
+    global a = @{ 21/tcp, 23/tcp, 80/tcp, 443/tcp @};
+@end example
+
+which implicitly types @code{a} as a @code{set[port]} and then
+initializes it to contain the given 4 @code{port} values.
+
+For multiple indices, you enclose each set of indices in brackets:
+@example
+    global b = @{ [21/tcp, "ftp"], [23/tcp, "telnet"], @};
+@end example
+
+which implicitly @code{b} as @code{set[port, string]} and then
+initializes it to contain the given two elements.  (As with tables,
+the comma after the last element is optional.)
+
+As with tables, you can group together sets of indices:
+@example
+    global c = @{ [21/tcp, "ftp"], [[80/tcp, 8000/tcp, 8080/tcp], "http"], @};
+@end example
+
+initializes @code{c} to contain 4 elements.
+
+Also as with tables, you can use the
+@command{&create_expire}, @command{&read_expire}, and @command{&write_expire}
+attributes to control the automatic expiration of elements in a set.
+@emph{Deficiency: However, the  attribute is not currently supported. }
+
+You can test for whether a particular member is in a set using
+the add elements using the @code{add} statement:
+@example
+    add c[443/tcp, "https"];
+@end example
+
+and can remove them using the @code{delete} statement:
+@example
+    delete c[21/tcp, "ftp"];
+@end example
+
+Also, as with tables, you can assign to the entire set, which assigns
+a 
+
+Finally, as with tables, you can loop over all of the indices in a set
+using the  statement.
+
+@cindex set type
+
+@node Files,
+@section Files
+
+@cindex file type
+@emph{Deficiency: Bro currently supports only a very simple notion of files. You can only write to files, you can't read from them: and files are essentially untyped---the only values you can write to them are @code{string}'s or values that can be converted to @code{string}.}
+
+You declare @code{file} variables simply as type @code{file}:
+@example
+    global f: file;
+@end example
+
+You can create values of type @code{file} by using the 
+function:
+@example
+    f = open("suspicious_info.log");
+@end example
+
+will create (or recreate, if it already exists) the file
+@emph{suspicious_info.log} and open it for writing.  You can also use
+ to append to an existing file (or create
+a new one, if it doesn't exist).
+
+You write to files using the @code{print} statement:
+@example
+    print f, 5 * 6;
+@end example
+
+will print the text @code{30} to the file corresponding to the value of @code{f}.
+
+There is no restriction regarding how many files you can have open at a
+given time.  In particular, even if your system has a limit imposed by
+RLIMIT_NOFILE as set by the system call  @code{setrlimit}.
+If, however, you want to to close a file, you can do so using @code{close},
+and you can test whether a file is open using @code{active-file}.
+
+Finally, you can control whether a file is buffered using @code{set-buf},
+and can flush the buffers of all open files using @code{flush-all}.
+
+@cindex file type
+
+@node Functions,
+@section Functions
+
+@cindex functions
+@cindex function type
+You declare a Bro @code{function} type using:
+@quotation
+@code{function(} @emph{argument*} @code{)} @code{:} @emph{type}
+@end quotation
+where @emph{argument} is a (possibly empty)
+comma-separated list of arguments, and the final
+``@code{:} @emph{type}'' declares the return type of the function.
+It is optional; if missing, then the function does not return a value.
+
+Each argument is declared using:
+@quotation
+@emph{param-name} @code{:} @emph{type}
+@end quotation
+
+So, for example:
+@example
+    function(a: addr, p: port): string
+@end example
+
+corresponds to a function that takes two parameters, @code{a} of type
+@code{addr} and @code{p} of type @code{port}, and returns a value of
+type @code{string}.
+
+You could furthermore declare:
+@example
+    global generate_id: function(a: addr, p: port): string;
+@end example
+
+to define @code{generate_id} as a variable of this type.  Note that
+the declaration does @emph{not} define the body of the function,
+and, indeed, @code{generate_id} could have different function bodies
+at different times, by assigning different function values to it.
+
+When defining a function including its body, the syntax is slightly different:
+
+@example
+function @emph{func-name} ( @emph{argument*} ) [ : type ] @{ @emph{statement*} @}
+@end example
+
+That is, you introduce @emph{func-name}, the name of the function, between
+the keyword @code{function} and the opening parenthesis of the argument
+list, and you list the statements of the function within braces at the end.
+
+For the previous example, we could define its body using:
+@example
+    function generate_id(a: addr, p: port): string
+        @{
+        if ( a in local_servers )
+            # Ignore port, they're always the same.
+            return fmt("server %s", a);
+
+        if ( p < 1024/tcp )
+            # Privileged port, flag it.
+            return fmt("%s/priv-%s", a, p);
+
+        # Nothing special - default formatting.
+        return fmt("%s/%s", a, p);
+        @}
+@end example
+
+We also could have omitted the first definition; a function definition
+like the one immediately above automatically defines @code{generate_id}
+as a function of type @code{function(a: addr, p: port): string}.  Note
+@cindex redefining functions
+@cindex functions, redefining
+though that if @emph{func-name} was indeed already declared, then the
+argument list much match @emph{exactly} that of the previous definition.
+This includes the names of the arguments; @emph{Unlike in C}, you cannot change
+the argument names between their first (forward) definition and the
+full definition of the function.
+
+You can also define functions without using any name.  These are
+referred to as are a type of expression.
+
+You can only do two things with functions: 
+or assign them.  As an example of the latter, suppose we have:
+@example
+    local id_funcs: table[conn_id] of function(p: port, a: addr): string;
+@end example
+
+would declare a local variable indexed by a
+
+same type as in the previous example.  You could then execute:
+@example
+    id_funcs[c$id] = generate_id
+@end example
+
+or call whatever function is associated with a given @code{conn_id}:
+@example
+    print fmt("id is: %s", id_funcs[c$id](80/tcp, 1.2.3.4));
+@end example
+
+@cindex function type
+@cindex functions
+
+@node Event handlers,
+@section Event handlers
+
+@cindex event type
+
+Event handlers are nearly identical in both syntax and semantics
+to functions, with the two differences being that event handlers
+have no return type since they never return a value, and you cannot
+call an event handler.  You declare an event handler using:
+@quotation
+@code{event (} @emph{argument*} @code{)}
+@end quotation
+So, for example,
+@example
+    local eh: event(attack_source: addr, severity: count)
+@end example
+
+declares the local variable @code{eh} to have a type corresponding
+to an event handler that takes two arguments, @code{attack_source} of
+type @code{addr}, and @code{severity} of type @code{count}.
+
+To declare an event handler along with its body, the syntax is:
+@quotation
+@code{event} @emph{handler} @code{(} @emph{argument} @code{)} @code{@{} @emph{statement} @code{@}}
+@end quotation
+
+As with functions, you can assign event handlers to variables of the
+same type.  Instead of calling event handlers like functions, though,
+@cindex event handler, invocation
+@cindex invoking event handlers
+instead they are @emph{invoked}.  This can happen in one of three ways:
+@table @samp
+@cindex event engine
+
+@item From the event engine
+When the event engine detects an event for which you have defined a
+corresponding event handler, it queues an event for that handler.  The
+handler is invoked as soon as the event engine finishes processing the
+current packet (and invoking any other event handlers that were queued
+first).  The various event handlers known to the event engine are discussed
+in Chapter N .
+
+@item Via the @code{event} statement
+The @code{event} statement queues an event for the given event handler
+for immediate processing.  For example:
+@example
+    event password_exposed(c, user, password);
+@end example
+
+queues an invocation of the event handler @code{password_exposed} with
+the arguments @code{c}, @code{user}, and @code{password}.  Note that
+@code{password_exposed} must have been previously declared as an event
+handler with a compatible set of arguments.
+
+Or, if we had a local variable @code{eh} as defined above, we could execute:
+@example
+    event eh(src, how_severe);
+@end example
+
+if @code{src} is of type @code{addr} and @code{how_severe} of type @code{count}.
+
+@item Via the @code{schedule} expression
+The  expression queues an event for future invocation.
+For example:
+@example
+    schedule 5 secs @{ password_exposed(c, user, password) @};
+@end example
+
+would cause @code{password_exposed} to be invoked 5 seconds in the future.
+
+@end table
+
+@cindex event type
+@cindex event handlers
+
+@node any type,
+@section The @code{any} type
+
+@cindex any type``any'' type
+The @code{any} type is a type used internally by Bro to bypass strong
+typing.  For example, the  function takes arguments
+of type @code{any}, because its arguments can be of different types,
+and of variable length.  However, the @code{any} type is not supported
+@cindex casting, not provided in Bro
+@cindex type casting, not provided in Bro
+for use by the user; while Bro lets you declare variables of type @code{any},
+it does not allow assignment to them.
+@cindex possible future changes, use of any type for bypassing strong typing
+This may change in the future.  Note, though, that you can achieve
+some of the same effect using @code{record} values with @code{&optional}
+fields.
+
+@cindex any type``any'' type
+

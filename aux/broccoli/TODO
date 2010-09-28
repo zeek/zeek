@@ -1,0 +1,27 @@
+- Separate method pointers (i.e., the vtable) in the various classes into
+  separate "class" structs (think klass in Gtk). Right now these waste
+  space because they're allocated with every instance, but since they're
+  not used extensively it hasn't really been worth it so far.
+
+- The init methods must be allowed to fail. Currently allocations in that
+  method can fail but this failure can not be signaled to the caller.
+
+- Add an error variable so the user has a way to figure out what happened
+  when things go wrong.
+
+- Add support for at least a small number of expressions -- needed in
+  bro_attr.[ch].
+
+- Add support for tables/sets.
+
+- Add a server-suitable API, i.e., how can one write an application that
+  listens on a given port, using Broccoli.
+
+- When configure determined that lex+yacc exist, make clean doesn't clean
+  up the generated lexer/parser C files. I presume this is because I keep
+  them all in EXTRA_DIST. Ensure make clean removes the generated files
+  when we know we can regenerate them.
+
+- There's a segfault lurking in __bro_record_get_nth_val() with records
+  that don't have all members assigned to. Investigate whether dummy
+  val approach really works or whether it's a design flaw.

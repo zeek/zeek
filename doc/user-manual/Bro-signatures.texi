@@ -1,0 +1,143 @@
+
+@emph{NOTE: Bro Signatures mechanism is still under development}
+
+Signatures in Bro are quite different than standard packet matching signatures such as those used in
+@uref{http://www.snort.org', Snort}. A Bro signature, or @emph{Rule}, is a @emph{contextual signature}
+that can include connection-level information. Hence Bro signatures generate @strong{far} fewer
+false positives.
+
+However, Bro's contextual signatures are fairly CPU and memory intensive,
+and still generate more false positives than we'd like,
+so for now they are turned off by default. See the next section for information on how to turn them on.
+
+For example, an packet-level signature of a HTTP attack only looks at the attack packet, where
+the Bro contextual signature also looks for the HTTP reply, and only generates an alarm if the attack was 
+successful.
+
+In this section we explain how to customize signatures for your site,
+and how to import new signatures from Snort and bro-ids.org. More
+information on the details of Bro signatures are in
+@uref{http://www.bro-ids.org/Bro-reference-manual/Signature-language.html, the
+signature section of the reference manual}.
+
+The following files are used to control and customize Bro signatures.
+
+@itemize
+@item @code{$BROHOME/site/signatures.sig}: Bro version of snort signatures
+@item @code{$BROHOME/policy/sig-addendum.sig}: Bro supplied signatures
+@item @code{$BROHOME/policy/sig-action.bro}: policy file to control signature notification type
+@end itemize
+
+Files in @code{$BROHOME/policy} contain the default Bro signatures, and should not be edited.
+Files in @code{$BROHOME/site} contain files you will use to customize signatures for your site.
+New signatures that you write go here too. All files ending in @code{.sig} in this directory
+will be loaded into the signature engine. In fact, all .sig files in any
+directory in @code{$BROPATH} (set in @code{$BROHOME/etc/bro.cfg}) will be loaded.
+
+@menu
+* Turning Signatures ON/OFF ::
+* Add a New Signature ::
+* Editing Existing Signatures ::
+* Importing Snort Signatures ::
+* Checking for new Signatures from bro-ids.org ::
+@end menu
+
+
+@node Turning Signatures ON/OFF 
+@subsection Turning Signatures ON/OFF
+@cindex Turning Signatures ON/OFF
+
+Signature matching is off by default. To use a small set of
+known, high quality signatures, add the following to your site policy file:
+@smallexample
+@@load brolite-sigs
+@end smallexample
+
+To use the full set of converted snort signatures,
+add both of these lines:
+@smallexample
+@@load brolite-sigs
+redef signature_files += "signatures";
+@end smallexample
+
+If signatures are turned on, then you can control the 
+signature "action" levels through the file 
+@code{$BROHOME/site/sigaction.bro}.
+You can set the signature action to the one of the following:
+
+@verbatim
+    SIG_IGNORE          # ignore this sig. completely 
+    SIG_FILE            # write to signatures and notice files
+    SIG_ALARM           # alarm and write to notice and alarm files
+    SIG_ALARM_PER_ORIG  # alarm once per originator
+    SIG_ALARM_ONCE      # alarm once and then never again
+@end verbatim
+
+All signatures default to action = @code{SIG_ALARM}. To lower the alarm level of the signature,
+add an entry to the file @code{$BROHOME/site/sigaction.bro}.  The Bro distribution
+contains a default sigaction.bro file that lowers the level of a number of signatures from ALARM
+to FILE (notice) .
+
+To permanently remove a signature you can delete it from the @code{.sig} file.
+
+
+@node  Add a New Signature
+@subsection  Add a New Signature
+@cindex  Add a New Signature
+
+To add a new signature to a running Bro, add the signature to the file
+@code{$BROHOME/site/site.sig} (or create a new @code{.sig} file in @code{$BROHOME/site}), 
+and then restart Bro using "@code{$BROHOME/etc/bro.rc checkpoint}".
+
+A sample signature looks like this:
+
+@verbatim
+signature formmail-cve-1999-0172 {
+       ip-proto == tcp
+       dst-ip == 1.2.0.0/16
+       dst-port = 80
+       http /.*formmail.*\?.*recipient=[^&]*[;|]/
+       event "formmail shell command"
+       }
+@end verbatim
+
+For more details, see the
+@uref{http://www.bro-ids.org/Bro-reference-manual/Signature-language.html, 
+reference manual}.
+
+@node   Editing Existing Signatures
+@subsection   Editing Existing Signatures
+@cindex   Editing Existing Signatures
+
+Bro supplied signatures are in $BROHOME/sigs. You should not edit these, as they will
+get overwritten when you update Bro. Instead, make your modifications in $BROHOME/site.
+If you use the same signature ID as an existing signature, the site sig will take precedence.
+
+@node Importing Snort Signatures
+@subsection Importing Snort Signatures
+@cindex Importing Snort Signatures
+
+New snort signatures come out almost every week. To add these to Bro, do the following:
+
+(XXX section not done!)
+
+Add instructions for incorporating new sigs from Snort.
+
+@node Checking for new Signatures from bro-ids.org
+@subsection Checking for new Signatures from bro-ids.org
+@cindex download new Signatures 
+
+note: this functionality is currently under development, and does
+not yet exist
+
+The Bro team will be constantly updating our set of default signatures and posting
+them on the Bro web site. To download the latest signatures and incorporate
+them into your Bro setup, run the script:
+@example
+$BROHOME/scripts/update-sigs
+@end example
+This script uses the @code{wget} command to download the latest signatures 
+and puts them into
+the required Bro files, and then restarts Bro to load the new signatures..
+
+

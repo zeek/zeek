@@ -1,0 +1,28 @@
+diff -urN bro-1.2.1-orig/src/binpac/lib/binpac_buffer.h bro-1.2.1-ssl-binpac/src/binpac/lib/binpac_buffer.h
+--- bro-1.2.1-orig/src/binpac/lib/binpac_buffer.h	2006-07-26 15:02:38.000000000 -0700
++++ bro-1.2.1-ssl-binpac/src/binpac/lib/binpac_buffer.h	2007-05-09 16:14:54.501656000 -0700
+@@ -59,6 +59,11 @@
+ 			return frame_length_;
+ 		}
+ 
++	inline bool data_available() const
++	        {
++		return buffer_n_ > 0 || orig_data_end_ > orig_data_begin_;
++		}
++
+ 	void NewLine();
+ 	// A negative frame_length represents a frame till EOF
+ 	void NewFrame(int frame_length, bool chunked_);
+diff -urN bro-1.2.1-orig/src/binpac/pac_flow.cc bro-1.2.1-ssl-binpac/src/binpac/pac_flow.cc
+--- bro-1.2.1-orig/src/binpac/pac_flow.cc	2006-10-12 14:13:12.000000000 -0700
++++ bro-1.2.1-ssl-binpac/src/binpac/pac_flow.cc	2007-05-22 16:43:55.997562000 -0700
+@@ -272,7 +272,8 @@
+ 		env_->RValue(begin_of_data), 
+ 		env_->RValue(end_of_data)); 
+ 
+-	out_cc->println("while ( true )");
++	out_cc->println("while ( %s->data_available() )",
++		env_->LValue(flow_buffer_id));
+ 	out_cc->inc_indent();
+ 	out_cc->println("{");
+ 

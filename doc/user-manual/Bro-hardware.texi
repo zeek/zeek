@@ -1,0 +1,94 @@
+
+@menu
+* Number and Type of Machines Needed::
+* Hard Drive and Controller Considerations::
+* NICs::
+* Taps::
+* ACL Mechanisms::
+@end menu
+@comment ********************************************
+
+@node Number and Type of Machines Needed
+@section Number and Type of Machines Needed
+@cindex Host issues
+
+
+Bro won't run well unless you use suitable hardware.  This section of the Bro User Manual
+describes the many hardware-related issues with which you'll need to deal if Bro is to run
+optimally.
+
+
+The better the equipment, the better Bro will run, so getting the best equipment you can afford is
+a good idea. In particular the speed of the CPU and motherboard will affect Bro's performance in
+filtering, analyzing, reacting and storing the network data that it encounters. Ideally the CPU
+should have a processing speed of around 1GHz or higher and the motherboard should be at least
+500MHz. The CPU and motherboard should be reliable and durable, and if possible obtain
+machines that support dual CPUs. RAM is also extremely important in dealing with the large
+amounts of network throughput without packet drops; a minimum of 1 GB of RAM is thus
+recommended, other than for small networks, with 2 GB approaching the optimal. The amount of motherboard BIOS memory
+can also make a big difference for Bro performance, and having more than one network port is
+also a very good idea, as explained shortly.
+
+The number of machines you will need depends on the scope of your Bro deployment (e.g., how
+many protocols you want to analyze, how much traffic Bro will need to process, whether you
+want to store packet capture data, and so on). No matter how small a deployment you have, you
+will probably at a minimum want two machines, one for bulk recording/data capture and one for
+analyzing live Bro data.  With large deployments Bro is likely to work best with a number of
+machines (perhaps up to five), each dedicated to a specific task. In this latter case it may be best
+to have one machine can perform data capture, another to process and store connection
+summaries, still another to run policy scripts, and a few redundant machines for the sake of
+operational continuity.
+
+
+@comment ********************************************
+
+@node Hard Drive and Controller Considerations
+@section Hard Drive and Controller Considerations
+@cindex Disk Issues
+@cindex Controller Issues
+
+Every Bro machine needs to have at least one large capacity hard drive, a minimum of 60 to 80
+GB of storage (and more in the case of the bulb trace host), and possible a second hard drive, too.
+Bro output files can fill a small capacity hard drive quickly, and the packet capture output can be
+voluminous if Bro is engaging in a considerable amount of analysis because the network
+throughput rate is high or a large amount of anomalous packets are traversing the network where
+Bro is placed.
+
+What type of hard drive is best? Although SCSI (Small Computer System Interface), SATA
+(Serial ATA) or IDE (Integrated Drive Electronics) disks may all potentially prove satisfactory
+from a performance standpoint, many people who run Bro choose IDE if they run Bro on
+FreeBSD. Why -- IDE has been tested in connection with FreeBSD more extensively than the
+other types of disk hardware. Obtaining a high-end disk controller card is also advantageous to
+performance.
+
+
+
+@comment ********************************************
+
+@node  NICs
+@section   NICs
+@cindex  NICs
+
+Bro deployments require at least two NICs, one for capturing network data and the other for
+interfacing with the network so that Bro can be remotely administered. Three NICs can also be
+used, with two of them for acquiring network data (to minimize data loss resulting from packet or
+frame errors) and one for remote administration. High-end NICs are recommended in that they
+generally result in far fewer packet drops or losses than do inexpensive ones. A NIC speed of
+about 1 Gb per second is usually more than sufficient. No more than two NICs for capturing
+network data is necessary.
+
+If two network data acquisition NICs are used, each needs to be suited for the type of network to
+which it will be attached. 
+SysKonnect SK-9844 Gigabit Ethernet cards are recommended because they have been tested extensively with Bro. 
+Having identical NICs is desirable from a management standpoint.
+
+@comment ********************************************
+@node Taps
+@section  Taps
+@cindex Taps
+
+@comment ********************************************
+@node ACL Mechanisms 
+@section  ACL Mechanisms 
+@cindex ACL Mechanisms 
+

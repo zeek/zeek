@@ -1,0 +1,21 @@
+xxxxxxxxxx.xxxxxx [info]  [parent] pipe's socket buffer size is 8192, setting to 1048576
+xxxxxxxxxx.xxxxxx [info]  [parent] communication started, parent 
+xxxxxxxxxx.xxxxxx [info]  [parent] [#1/127.0.0.1:47757] added peer
+xxxxxxxxxx.xxxxxx [info]  [child]  [#1/127.0.0.1:47757] connected
+xxxxxxxxxx.xxxxxx [info]  [parent] [#1/127.0.0.1:47757] peer connected
+xxxxxxxxxx.xxxxxx [info]  [parent] [#1/127.0.0.1:47757] phase: version
+xxxxxxxxxx.xxxxxx [info]  [script] [#1/127.0.0.1:47757] connection established
+xxxxxxxxxx.xxxxxx [info]  [script] [#1/127.0.0.1:47757] requesting events matching /^?(.*)$?/
+xxxxxxxxxx.xxxxxx [info]  [script] [#1/127.0.0.1:47757] accepting state
+xxxxxxxxxx.xxxxxx [info]  [script] [#1/127.0.0.1:47757] requesting synchronized state
+xxxxxxxxxx.xxxxxx [info]  [parent] [#1/127.0.0.1:47757] phase: handshake
+xxxxxxxxxx.xxxxxx [info]  [parent] [#1/127.0.0.1:47757] peer_description is not set
+xxxxxxxxxx.xxxxxx [info]  [parent] [#1/127.0.0.1:47757] peer supports keep-in-cache; using that
+xxxxxxxxxx.xxxxxx [info]  [parent] [#1/127.0.0.1:47757] phase: sync (sender)
+xxxxxxxxxx.xxxxxx [info]  [parent] [#1/127.0.0.1:47757] starting to send full state
+xxxxxxxxxx.xxxxxx [info]  [parent] [#1/127.0.0.1:47757] done sending full state
+xxxxxxxxxx.xxxxxx [info]  [parent] [#1/127.0.0.1:47757] phase: running
+xxxxxxxxxx.xxxxxx [info]  [script] [#1/127.0.0.1:47757] connection closed
+xxxxxxxxxx.xxxxxx [info]  [parent] [#1/127.0.0.1:47757] peer disconnected
+xxxxxxxxxx.xxxxxx [info]  [child]  [#1/127.0.0.1:47757] connection closed
+xxxxxxxxxx.xxxxxx [info]  [parent] [#1/127.0.0.1:47757] closing connection

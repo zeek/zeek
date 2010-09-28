@@ -1,0 +1,128 @@
+#! /usr/bin/env python
+#
+# $Id: reformat-stats 6813 2009-07-07 18:54:12Z robin $
+#
+# Turns spool/stats.log into a format more something suitable for R.
+#
+# reformat-stats <stats.log> <dst-dir>
+#
+# Existing data in dst-dir will be deleted.
+
+import sys
+import math
+import os
+
+def filterOutput(tag, host):
+    os.system("cat %s/%s.dat | egrep '%s|^ *time' >%s/%s.%s.dat" % (Dest, tag, host, Dest, tag, host))
+
+def makeOutput(file, tag):
+
+    out = open("%s/%s.dat" % (Dest, tag), "w")
+
+    hosts = {}
+    data = {}
+    keys = {}
+
+    for line in open(file):
+
+        f = line.split()
+        if f[3] == "error": 
+            continue
+
+        try:
+            (time, host, t, key, val)  = f
+        except ValueError:
+            try:
+                (time, host, t, key)  = f
+                val = "-"
+            except ValueError:
+                print >>sys.stderr, "cannot parse '%s'" % line
+                continue
+
+        if t != tag:
+            continue
+
+        hosts[host] = 1
+
+        time = math.floor(float(time))
+        val = val
+
+        if not time in data:
+            data[time] = {}
+
+        interval = data[time]
+
+        if not host in interval:
+            interval[host] = {}
+
+        vals = interval[host]
+        vals[key] = val
+        keys[key] = 1
+
+    intervals = data.keys()
+    intervals.sort()
+
+    keys = keys.keys()
+
+    print >>out, "%10s %10s" % ("time", "node"),
+    for k in keys:
+        print >>out, "%10s" % k,
+    print >>out
+
+    for t in intervals:
+
+        itv = data[t]
+
+        idxs = itv.keys()
+        idxs.sort()
+
+        for idx in idxs:
+
+            vals = itv[idx]
+
+            print >>out, "%10.0f %10s" % (t, idx),
+
+            for k in keys:
+                if k in vals:
+                    print >>out, "%10s" % vals[k],
+                else:
+                    print >>out, "%10s" % "-",
+
+            print >>out
+
+    out.close()
+
+    hosts = hosts.keys()
+    hosts.sort()
+    for host in hosts:
+        filterOutput(tag, host)
+
+    hostlist = open("%s/%s.hosts.dat" % (Dest, tag), "w")
+    print >>hostlist, "name";
+    for host in hosts:
+        print >>hostlist, host;
+
+
+if len(sys.argv) != 3:
+    print "Usage: reformat-stats <stats.log> <dst-dir>"
+    print "Existing data in <dst-dir> will be deleted!"
+    sys.exit(1)
+
+Dest = sys.argv[2]
+
+os.system("rm -rf %s" % Dest)
+os.mkdir(Dest)
+
+for tag in ["parent", "child", "interface"]:
+    makeOutput(sys.argv[1], tag)
+
+
+
+
+
+
+
+
+
+
+

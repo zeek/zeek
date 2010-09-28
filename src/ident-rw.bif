@@ -1,0 +1,23 @@
+rewriter ident_request %(lport: port, rport: port%)
+	%{
+	const int is_orig = 1;
+	@WRITE@(is_orig, fmt("%u, %u\r\n", rport->Port(), lport->Port()));
+	%}
+
+rewriter ident_reply %(lport: port, rport: port, sys_str: string, id_str: string%)
+	%{
+	const int is_orig = 0;
+	@WRITE@(is_orig, fmt("%u, %u : USERID : ", rport->Port(), lport->Port()));
+	@WRITE@(is_orig, sys_str->AsString());
+	@WRITE@(is_orig, " : ");
+	@WRITE@(is_orig, id_str->AsString());
+	@WRITE@(is_orig, "\r\n");
+	%}
+
+rewriter ident_error %(lport: port, rport: port, msg_str: string%)
+	%{ 
+	const int is_orig = 0;
+	@WRITE@(is_orig, fmt("%u, %u : ERROR : ", rport->Port(), lport->Port()));
+	@WRITE@(is_orig, msg_str->AsString());
+	@WRITE@(is_orig, "\r\n");
+	%}

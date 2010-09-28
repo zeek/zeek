@@ -1,0 +1,1008 @@
+#!/bin/sh
+# $Id: bro_config.in 6059 2008-08-14 16:54:16Z robin $
+#
+# default install location for bro 
+# We probably need to sync this with what was used for --prefix
+# on the "configure" command line
+# some machines (i.e. OSX) don't put sbin in the path by default
+PATH=$PATH:/usr/sbin:/sbin
+BROHOME=@prefix@
+# Usage
+Usage="bro_config: [-p prefix] [-d]"
+# Debug mode? 
+Debug=0
+# Am I running as a regular user?
+nonroot=0
+# prompt for everyth
+full=0
+# is there a pw available to us?
+no_pw=0
+# is BRO_USER_ID valid?
+valid_id=0
+# automode: ask any question or use all defaults?
+# used with make distcheck to generate files with
+# out all the questions
+automode=0
+######################################################################
+# figure out what kind of echo to use
+bro_config_echo_settings()
+{
+if [ "`echo -n`" = "-n" ]; then
+    n="";  c="\c"
+else
+    n="-n";     c=""
+fi
+}
+
+######################################################################
+# Got root? Are we root? if not print warning, and limp along
+bro_config_got_root()
+{ 
+    # make a backup of local.site.bro if it exists
+    if [ -f local.site.bro ]; then 
+        echo "Detected an old local.site.bro, saving it to local.site.bro.save"
+        cp local.site.bro local.site.bro.save
+    fi
+
+    if [ `id -ur` -ne 0 ]; then 
+        nonroot=1
+        echo "You need to be root when you run this script for it to"
+        echo "be fully effective. Please login as root and rerun this"
+        echo "script (or the make install that called this script)."
+        echo ""
+        echo "This script will run as a non-root user,  but it will not"
+        echo "be able to tune the system or install system files. "
+        echo "It will only be able to create a bro.cfg file."
+        bro_config_create_local_site_bro
+        #cp local.site.bro.default local.site.bro
+    fi
+}
+######################################################################
+# This creates the default local.site.net 
+######################################################################
+bro_config_create_local_site_bro()
+{
+cat - > local.site.bro << _EOF
+# This file should describe your network configuration.
+# If your local network is a class C, and its network
+# address was 192.168.1.0 and a class B network 
+# with address space 10.1.0.0.
+# Then you would put 192.168.1.0/24 and 10.1.0.0/16 into 
+# this file, telling bro what your local networks are.
+
+@load site
+
+redef local_nets: set[subnet] = {
+    # example of a class C network
+    192.168.1.0/24,
+    # example of a class B network
+    10.1.0.0/16
+};
+
+_EOF
+
+}
+
+######################################################################
+bro_config_nonroot_message()
+{
+    echo "*** You need to hand edit your local networks in the file"
+    echo "*** $BROHOME/site/local.site.bro. Please read the file for an"
+    echo "*** example of what it should look like"
+    echo ""
+}
+######################################################################
+bro_config_get_desc()
+{
+    desc=`grep --before-context=1  "^$1" ${cfgused:-bro.cfg.example} | head -1| sed 's/#//'`
+}
+######################################################################
+bro_config_print_desc()
+{
+    desc=`grep --before-context=1  "^$1" ${cfgused:-bro.cfg.example} | head -1| sed 's/#//'|sed 's/\n//'`
+    echo $desc
+}
+######################################################################
+# what kind of system are we running on.
+bro_config_sys_type()
+{
+    sys=`uname -s`
+    case $sys in
+        Linux*) BRO_SYS_TYPE="LINUX";;
+        Darwin*) BRO_SYS_TYPE="DARWIN";;
+        FreeBSD*) rtype=`uname -r` 
+            case $rtype in 
+                4*) BRO_SYS_TYPE="FREEBSD4";;
+                5*) BRO_SYS_TYPE="FREEBSD5";;
+                6*) BRO_SYS_TYPE="FREEBSD6";;
+            esac;;
+        *) BRO_SYS_TYPE="UNKNOWN";;
+    esac
+}
+######################################################################
+# ok. This should pick the interface with the most traffic on it.
+# not always correct, but a start at least -- 
+bro_config_get_busy_iface()
+{
+    echo -n "Checking interfaces ...."
+
+    # tmp file to hold stuff in
+    touch /tmp/bro_config.tmp.$$
+
+    # grab all the interfaces
+    ifs=`ifconfig -a | grep '^[A-Za-z].*'|cut -d' ' -f1|sed 's/\://' `
+
+    # FreeBSD and Darwin are alike
+    #if [ $BRO_SYS_TYPE = "FREEBSD" -o $BRO_SYS_TYPE = "DARWIN" ]; then
+    if ! [ x$BRO_SYS_TYPE = 'xLINUX' ]; then
+        for iface in $ifs; do
+            stats=`netstat -I $iface|grep -v '^Name'| awk '{print $1, $5}'|sort -k2 -r | head -1`
+            echo "$stats" >> /tmp/bro_config.tmp.$$
+        done
+    fi
+    # its linux
+    if [ "x$BRO_SYS_TYPE" = 'xLINUX' ]; then
+        for iface in $ifs; do
+            stats=`ifconfig $iface|grep 'RX packets'|awk '{print $2}'|sed 's/.*\://'`
+            echo "$ifs $stats" >> /tmp/bro_config.tmp.$$
+        done
+    fi
+
+    if [ -f /tmp/bro_config.tmp.$$ ]; then
+        busy_iface=`cat /tmp/bro_config.tmp.$$ | sort -r -n -k 2 |head -1|awk '{print $1}'`
+        busy_iface2=`cat /tmp/bro_config.tmp.$$ | sort -r -n -k 2 |head -2|tail -1|awk '{print $1}'`
+        rm /tmp/bro_config.tmp.$$
+    else
+        busy_iface=""
+        busy_iface2=""
+    fi
+    echo "Done."
+}
+
+######################################################################
+# prompt for input for a variable
+# $1 name of var
+# $2 defualt value
+# $3 prompt string (if empty get from config file )
+bro_config_input()
+{
+    if [ -z "$1" ] ; then
+        name=""
+    else
+        name=$1
+    fi
+    
+    if [ -z "$2" ] ; then
+        default=""
+    else
+        default=$2
+    fi
+
+    if [ -z "$3" ] ; then 
+        prompt=""
+    else
+        prompt=$3
+    fi
+
+    #empty it out
+    RESP=
+    desc=
+    # if we weren't passed a prompt, get one
+    if [ -z "$prompt" ] ; then 
+        bro_config_get_desc $name
+    else
+        desc=$prompt
+    fi
+    
+    while [ -z "$RESP" ]; do
+        echo $n "$desc [$default] " >&0
+        read RESP
+
+        case "$RESP" in 
+            [Yy]|[Yy][Ee][Ss]) ret="YES"; RESP="YES";;
+            [Nn]|[Nn][Oo] ) ret="NO"; RESP="NO" ;;
+            "") ret=$default ; RESP="$default" ;;
+            *) ret=$RESP;;
+        esac
+    done
+
+    # set back the value
+    eval $1=\$ret
+    eval $name=\$ret
+    return 1
+}
+######################################################################
+# creates the bro.cfg file
+# add in anything you want in the bro.cfg file below
+bro_config_export_vars()
+{
+    # CREATE_TRACE_FILE needs to be YES or NO
+    if [ x$BRO_CREATE_TRACE_FILE != "xYES" ]; then
+        BRO_CREATE_TRACE_FILE="NO"
+    fi
+
+    # BRO_ENCRYPT_EMAIL needs to be YES or NO
+    if [ x$BRO_ENCRYPT_EMAIL != "xYES" ]; then
+        BRO_ENCRYPT_EMAIL="NO"
+    fi
+
+    # don't overwite existing bro.cfg
+    if [ -w bro.cfg ]; then
+        mv bro.cfg bro.cfg.bak
+    fi
+
+    # This is from Roger Winslow --
+cat - > bro.cfg << EOF
+# Source file config for running bro
+
+# Values in this file are shell style variables but make sure that the
+# values are literal strings and not shell expressions.  Other programs
+# read this file as well to determine where the different resources are
+# so if the value is not a literal string then other programming languages
+# won't be able to make sense of it.
+
+# Comments start with "#" characters and will be effective until the 
+# end of the line.  A literal "#" character can be used by escaping it
+# like this -> \#
+
+# Multiline values can be continued with the traditional backslash \
+
+# This file will normally reside in ${BROHOME}/etc
+
+# The following variables are exported and needed by Bro at runtime
+# BROLOGS
+# BROHOME
+# BROPATH
+
+BROHOME=$BROHOME
+export BROHOME
+
+# Hostname to add into log filenames and reports
+BRO_HOSTNAME=`(hostname || uname -n) 2>/dev/null |awk -F.  '{print $1}'`
+# FQDN format
+# BRO_HOSTNAME=`hostname`
+
+# Directory containing Bro binaries
+BRO_BIN_DIR="${BRO_BIN_DIR:-${BROHOME}/bin}"
+
+# Directory containing Bro logs
+BROLOGS="${BROLOGS:-${BROHOME}/logs}"
+export BROLOGS
+
+# Log archive directory
+BRO_LOG_ARCHIVE="${BRO_LOG_ARCHIVE:-${BROHOME}/archive}"
+
+# Bro policy paths
+BROPATH="${BROHOME}/share/bro/site:${BROHOME}/share/bro:${BROHOME}/share/bro/sigs:${BROHOME}/share/bro/time-machine"
+export BROPATH
+
+# Filename of the Bro start policy.  Must be located in one of the directories in \$BROPATH
+BRO_START_POLICY="@BROHOST@.bro"
+
+# Location of site specific policy and configurations
+BROSITE="${BROSITE:-$BROHOME/site}"
+export BROSITE
+
+# A prefix to use when looking for local policy files to load.
+# BRO_PREFIX="local"
+
+# Location of the Bro executable
+BRO="${BRO:-$BRO_BIN_DIR/bro}"
+
+# Base command line options.
+BRO_ADD_OPTS=" -W"
+# Turn on Bro's Watchdog feature
+BRO_OPTS="${BRO_ADD_OPTS}"
+
+# Interface name to listen on.  The default is to use the busiest one found.
+BRO_CAPTURE_INTERFACE="${BRO_CAPTURE_INTERFACE}"
+# Multiple interface should be specified as a space delimited list.
+# Examples: 
+#   CAPTURE_INTERFACE="sk0 sk1 sk5"
+#   CAPTURE_INTERFACE="eth0 eth3"
+#   CAPTURE_INTERFACE="eth0"
+
+# Shoud a trace (tcpdump) file be created in the log directory (YES/NO)
+BRO_CREATE_TRACE_FILE=$BRO_CREATE_TRACE_FILE
+
+# How long to wait during checkpointing after startin a new Bro process and stopping the old one (in seconds).
+BRO_CHECKPOINT_OVERLAP_TIME=20
+
+# Base directory where reports will be stored
+BRO_REPORT_DIR="${BRO_REPORT_DIR:-$BROHOME/reports}"
+export BRO_REPORT_DIR
+
+# Starting time for a report run (0001 is 12:01 am and 1201 is 12:01pm)
+BRO_REPORT_START_TIME=${BRO_REPORT_START_TIME:-0020}
+
+# How often (in hours) to generate an activity report
+BRO_REPORT_INTERVAL=${BRO_REPORT_INTERVAL:-24}
+
+# This is the how often to rotate the logs (in hours)
+BRO_LOG_ROTATE_INTERVAL=24
+
+# This is the how often to checkpoint bro (in hours)
+BRO_CHECKPOINT_INTERVAL=24
+
+# The maximum time allowed for a Bro process to cleanup and exit (in seconds).
+BRO_MAX_SHUTDOWN_TIME=7200    # 2 hours
+
+# Use this to enable the init script to autorestart Bro in the event of an unexpected shutdown (YES/NO)
+BRO_ENABLE_AUTORESTART="YES"
+
+# A value less than 1 means there will be no limit to the number of restarts
+# Maximum times to try to auto-restart Bro before giving up.
+BRO_MAX_RESTART_ATTEMPTS="-1"
+
+# This is normally /var/run/bro and contains the pidfile and other temporal data.
+# Location of the run-time directory.  
+BRO_RUNTIME_DIR="${BRO_RUNTIME_DIR:-${BROHOME}/var}"
+
+# Email address for local reports to be mailed to
+BRO_EMAIL_LOCAL="${BRO_EMAIL_LOCAL:-NO}"
+
+# Email address to send from
+BRO_EMAIL_FROM="${BRO_EMAIL_FROM:-$BRO_EMAIL_LOCAL}"
+
+# Do you want to send external reports to a incident reporting org (e.g.: CERT, CIAC, etc)
+BRO_EMAIL_EXTERNAL="${BRO_EMAIL_EXTERNAL:-NO}"
+export BRO_EMAIL_EXTERNAL
+
+# Email address for remote reports to be mailed to
+BRO_EMAIL_REMOTE="${BRO_EMAIL_REMOTE}"
+
+# User id to install and run Bro under
+BRO_USER_ID="${BRO_USER_ID:-brother}"
+
+# Site name for reports (i.e. LBNL, FOO.COM, BAZ.ORG)
+BRO_SITE_NAME="${BRO_SITE_NAME}"
+export BRO_SITE_NAME
+
+# Do you want to encrypt email reports (YES/NO)
+BRO_ENCRYPT_EMAIL="${BRO_ENCRYPT_EMAIL}"
+
+# Location of GPG binary for encrypting email
+BRO_GPG_BIN="${BRO_GPG_BIN}"
+
+# Default BPF buffer
+BRO_BPF_BUFSIZE=${BRO_BPF_BUFSIZE:-4194304}
+
+# Do BPF bonding
+BRO_BPFBOND_ENABLE="${BRO_BPFBOND_ENABLE:-NO}"
+
+# Interfaces to bond
+BRO_BPFBOND_FLAGS="${BRO_BPFBOND_FLAGS}"
+
+# diskspace management settings
+# Should I manage diskspace
+BRO_DISKSPACE_ENABLE="${BRO_DISKSPACE_ENABLE:-YES}"
+
+# percent full to worry about
+BRO_DISKSPACE_PCT=${BRO_DISKSPACE_PCT:-90}
+
+# account watching disk space
+BRO_DISKSPACE_WATCHER="${BRO_DISKSPACE_WATCHER:-root}"
+
+# days before deleting old logs
+BRO_DAYS_2_DELETION=${BRO_DAYS_2_DELETION:-45}
+
+# days before compressing logs
+BRO_DAYS_2_COMPRESSION=${BRO_DAYS_2_COMPRESSION:-20}
+
+# Bulk data capture settings
+# Buld data directory
+BRO_BULK_DIR="${BRO_BULK_DIR:-${BROHOME}/bulk-trace}"
+
+# Capture filter for bulk data
+BRO_BULK_CAPTURE_FILTER="${BRO_BULK_CAPTURE_FILTER}"
+
+# days before deleting bulk data
+BRO_BULK_DAYS_2_DELETION=${BRO_BULK_DAYS_2_DELETION:-4}
+
+# days before compressing bulk data
+BRO_BULK_DAYS_2_COMPRESSION=${BRO_BULK_DAYS_2_COMPRESSION:-2}
+
+# location of sorted log files, needed by Brooery
+BROOERY_LOGS="${BROOERY_LOGS:-${BROHOME}/sorted-logs}"
+
+EOF
+}
+
+
+######################################################################
+# run the localnets program
+bro_config_run_localnets()
+{
+    # how long to run tcpdump for ..
+    BRO_DUMP_TIME=20
+
+    bro_check_network="YES"
+    bro_config_input "bro_check_network" $bro_check_network " May I guess your network configuration for you? "
+
+    if [ "$bro_check_network" = "YES" ] ; then 
+        # make sure tcpdump is working ...
+	    echo "Checking network"
+        tcpdump -V > /dev/null  2>&1 
+        state=$?
+        # A little debug info just in case ...
+        if [ $Debug = 1 ]; then
+            echo "State $state Test $test"
+        fi
+        # if we can't run tcpdump, return to configuring 
+        if [ $state -eq 127 ]; then 
+            echo "Can't run tcpdump, please make sure its in your path"
+            return 2
+        fi
+        test=`tcpdump -V 2>&1 | grep version| awk '{print $3}'`
+        # do a one packet capture to check we can use the interface
+        tcpdump -i $BRO_CAPTURE_INTERFACE -n -w /tmp/bro_config.tcpdump.file.$$ -c 1 > /dev/null 2>&1
+        permis=$?
+        if [ $permis -eq 1 ]; then
+            rm /tmp/bro_config.tcpdump.file.$$ 2>&1 > /dev/null
+            echo "Can't run tcpdump, please check your permissions or run as root "
+            return 2
+        fi
+        # lets figure out what we are on
+        echo "Running localnets script to determine the local network range ... " 
+        echo "This will take about $BRO_DUMP_TIME seconds"
+        echo -n "Capturing packets ...."
+
+        # do it quietly in the background
+        tcpdump -n -i $BRO_CAPTURE_INTERFACE -w /tmp/bro_config.tcpdump.file.$$ > /dev/null 2>&1 &
+        pid=$!
+        sleep $BRO_DUMP_TIME
+        echo " done."
+        kill -INT $pid 2>&1 > /dev/null
+        echo -n "Analyzing dump file....."
+        ./localnetMAC.pl -a 16 -r /tmp/bro_config.tcpdump.file.$$  -b local.site.bro 2>&1 > /dev/null
+        rm /tmp/bro_config.tcpdump.file.$$
+        #Yes there is a spelling error in the output
+        echo " done."
+        num=`grep "MAC adresses" local.site.bro | awk '{print $3}'`
+        if [ "$num" -gt 2 ] ; then 
+            echo "You don't appear to be running on a DMZ (found more then two (2) hardware "
+            echo "address. Please edit local.site.bro to reflect your correct network parameters"
+            cp local.site.bro.default local.site.bro
+        else
+            echo "Your network appears to contain the following networks:"
+            for net in ` grep ",$" local.site.bro|sed 's/,//g'`; 
+            do 
+               echo $net; 
+            done
+            echo "Edit local.site.bro by hand if this is not correct" 
+        fi
+    else
+        if [ -f local.site.bro ]; then
+            echo "No previous local.site.bro found. Creating default"
+            bro_config_create_local_site_bro
+            #cp local.site.bro.default local.site.bro
+            echo "Please edit local.site.bro so that it describes your network configuration"
+        fi
+    fi
+}
+
+######################################################################
+# Use pw to create the account adding a group name that is the same
+# as the user id to use. Also create the account in the BROHOME area
+#
+bro_config_add_user()
+{
+
+    # see if user exists already
+    xx=`id $BRO_USER_ID > /dev/null 2>&1`
+    stat=$?
+    if [ $stat -eq 0 ]; then 
+        valid_id=1
+        return 
+    fi
+
+    # Silently check for existance of pw
+    /usr/sbin/pw > /dev/null 2>&1
+    stat=$?
+    if [ $stat -eq 127 ] ; then 
+        echo "/usr/sbin/pw not found, can't add user $BRO_USER to your system"
+        echo "please add $BRO_USER manually to your system."
+        no_pw=1
+        return 1
+    fi
+    echo -n "Should I add the user $BRO_USER_ID to your system? [YES] "
+    read ans
+    if [ -z "$ans" -o x$ans = "xy" -o x$ans = "xyes" -o x$ans = "xY" -o x$ans = "xYES" ] ; then 
+        # add user to group wheel at the same time
+        /usr/sbin/pw useradd $BRO_USER_ID -d $BROHOME -q -n $BRO_USER_ID 
+        result=$?
+        if [ $result -ne 0 ]; then 
+            echo "Error adding user $BRO_USER"
+            echo "Failed command: \"/usr/sbin/pw useradd $BRO_USER_ID -d $BROHOME -q -m -n $BRO_USER_ID \""
+        else
+            echo "Added user $BRO_USER_ID to the system."
+            valid_id=1
+       fi
+   else
+       echo "Not adding user $BRO_USER_ID"
+   fi
+}
+
+
+######################################################################
+bro_config_run_bpf()
+{
+    echo $n "Running bpf script to check if you have enough devices ... "
+    num=`ls -1 /dev/bpf[0-9]*|wc -l`
+    echo "done."
+    echo You have $num bpf devices
+    if [ $num -gt 10 ] ; then 
+        echo "You should have enough devices"
+    else
+        bro_config_get_more_bpf
+    fi
+}
+######################################################################
+
+bro_config_get_more_bpf()
+{
+    RESP=
+    while [ -z "$RESP" ]; do
+        echo $n "Bro recommends more devices, may I create more for you [Y/n] "
+        read RESP
+        case "$RESP" in 
+            [Yy]|[Yy][Ee][Ss]) 
+                echo $n "Creating 32 bpf devices" ; 
+                cd /dev; ./MAKEDEV bpf31 ;;
+            [Nn]|[Nn][Oo]) return 1;;
+            *) echo "Please answer Y or N" ;;
+        esac
+    done
+    echo " Done."
+}
+
+######################################################################
+# If I'm root, I'll be able to read bpf no matter what!
+# so a test of head -1 /dev/bpf0 is meaningless.....
+# So all I can really do is check the that group is 
+# the same as the $BRO_USER_ID and go with that.
+bro_config_chown_bpf()
+{
+    if [ $valid_id -eq 0 ] ; then 
+        echo "$BRO_USER_ID needs to be added to the system and enabled"
+        echo "to read the /dev/bpf devices for bro to work."
+        return 1
+    fi
+    readable=0
+    # grab the group
+    bpf_grp=`ls -al /dev/bpf*|head -1|awk '{print $4}'`
+    # bro user groups
+    user_grp=`id $BRO_USER_ID`
+    #echo "Checking $BRO_USER_ID against $grp"
+    # is it in the same as bro?
+    if echo $user_grp | grep $bpf_grp  2>&1 > /dev/null; then
+        # if so, better make sure its group readable
+        perm=`ls -al /dev/bpf*|head -1| cut -c5`
+        if [ "x$perm" = "xr" ] ; then
+            echo "$BRO_USER_ID can read /dev/bpf devices.... Good"
+            readable=1
+        else
+            readable=0
+        fi
+    else
+        bpf_own=`ls -al /dev/bpf*|head -1|awk '{print $3}'` 
+        if [ "$BRO_USER_ID" = "$bpf_own" ] ; then
+            echo "$BRO_USER_ID can read /dev/bpf devices.... Good"
+            readable=1
+        fi
+    fi
+    if [ $readable -eq 0 ]; then 
+        echo "$BRO_USER_ID can NOT read /dev/bpf devices!"
+        RESP=
+        while [ -z "$RESP" ]; do
+            echo $n "May I make the bfp devices owned by user $BRO_USER_ID ? [Y/n]"
+            read RESP
+            case "$RESP" in 
+                [Yy]|[Yy][Ee][Ss]) 
+                    chown $BRO_USER_ID /dev/bpf* ;
+                    chmod u=rw /dev/bpf* ;;
+                [Nn]|[Nn][Oo]) 
+                    echo "You will need to enable the user $BRO_USER_ID" ;
+                    echo "read access to the /dev/bpf devices." ;
+                    return 1;;
+                *) echo "Please answer Y or N" ;;
+            esac
+        done
+    fi
+}
+
+######################################################################
+bro_config_source()
+{
+    #  source a bro.cfg if it exists, so we know the past default values from the
+    #  last run
+
+    dirs="$BROHOME/etc/bro.cfg $BROHOME/etc/bro.cfg.example `pwd`/bro.cfg"
+    cfgused=
+
+    for cfgfile in $dirs ; do 
+        #echo "checking $cfgfile"
+        if [ -r $cfgfile ] ; then
+            if [ $automode -eq 1 ] ; then
+                break
+            fi
+            RESP=
+            while [ -z "$RESP" ]; do
+                echo "**** Detected previous bro.cfg file *****"
+                echo $n "May I use $cfgfile for defaults? [Y/n]"
+                read RESP
+                case "$RESP" in
+                    [Yy]|[Yy][Ee][Ss])
+                        echo "Sourcing $cfgfile for defaults.";
+                        . $cfgfile;
+                        cfgused=${cfgfile};;
+                    [Nn]|[Nn][Oo])
+                        break;;
+                    *) echo "Please answer Y or N" ;;
+                esac
+            done
+            break
+        fi
+    done
+
+    if [ -z $cfgused ] ; then
+        echo "Using defaults from bro.cfg.example"
+        cfgfile=`pwd`/bro.cfg.example
+        if [ -r $cfgfile ] ; then
+            . `pwd`/bro.cfg.example
+        else
+            echo "No bro.cfg.example found. Using built-in defaults"
+            # generate some defaults
+            if [ -r ./bro.cfg ] ; then 
+                # back up their cfg if exists
+                mv bro.cfg bro.cfg.bak.$$
+            fi
+            bro_config_export_vars
+            mv bro.cfg bro.cfg.example
+            . ./bro.cfg.example
+            if [ -r ./bro.cfg ] ; then 
+                # replace the cfg if exists
+                mv bro.cfg.$$ bro.cfg
+            fi
+
+        fi
+    fi
+}
+
+######################################################################
+# See if we are going to use gpg 
+
+bro_config_gpg_vals()
+{
+    gpg_vals="BRO_GPG_BIN"
+
+    bro_config_input "BRO_ENCRYPT_EMAIL" $BRO_ENCRYPT_EMAIL
+
+    if [ x$BRO_ENCRYPT_EMAIL = "xYES" ]; then 
+        for val in $gpg_vals; do  
+            varname="$`echo $val`"
+            varval=`eval echo $varname` 
+            bro_config_input $val $varval
+        done
+	echo "Make sure to read the manual on how to install GPG keys!"
+    fi
+}
+
+######################################################################
+# snarf some system values and make sure that they are set
+# correctly
+# values that I might need to know: debug.sk_interrupt_mod, 
+# debug.sk_do_packet_timestamps, debug.bpf_bufsize, debug.bpf_maxbufsize
+bro_config_system_parms()
+{
+    
+    if [ "x$BRO_SYS_TYPE" = 'xLINUX' ]; then
+        sysctl -w net.core.rmem_max = 16777216
+        if grep net.core.rmem_max /etc/sysctl.conf 2>&1 > /dev/null ; then
+            echo "ERROR: Can't change value, entry exists in /etc/sysctl.conf!"
+        else
+            echo "net.core.rmem_max = 16777216" >> /etc/sysctl.conf
+        fi
+        return 
+    fi
+
+    # FreeBSD 6 uses differnt var names
+    if [ "x$BRO_SYS_TYPE" = 'xFREEBSD6' ]; then
+        MAXBUF='net.bpf.maxbufsize'
+        BUFSZ='net.bpf.bufsize'
+    else
+        MAXBUF='debug.bpf_maxbufsize'
+        BUFSZ='debug.bpf_bufsize'
+    fi
+
+
+    if [ `sysctl -n $MAXBUF` -lt 8388608 ] ; then
+        bpf_maxbufsize=`sysctl -n $MAXBUF`
+        echo "Current max buffer size for your BPF filter is $bpf_maxbufsize bytes. Bro recommends a max bpf buffer size of 8388608."
+        bro_config_input "bpf_maxbufsize" $bpf_maxbufsize "Please input a new value (or return to keep the current value)"
+        sysctl -w $MAXBUF=$bpf_maxbufsize
+        makepermanent="NO"
+        bro_config_input "makepermanent" $makepermanent "May I make this permanent?  [y/N] "
+        if [ x$makepermanent = "xYES" ] ; then 
+            if grep $MAXBUF /etc/sysctl.conf 2>&1 > /dev/null ; then 
+                echo "ERROR: Can't change value, entry exists in /etc/sysctl.conf!"
+            else
+                echo "$MAXBUF=$bpf_maxbufsize" >> /etc/sysctl.conf
+            fi
+        fi
+    fi
+
+    if [ `sysctl -n $BUFSZ` -lt 4194304 ] ; then
+        bpf_bufsize=`sysctl -n $BUFSZ`
+        echo "Current buffer size of your BPF filter is $bpf_bufsize bytes. Bro recommends a BPF buffer size of 4194304."
+        bro_config_input "bpf_bufsize" $bpf_bufsize "Please input a new value (or return to keep the current value)"
+        sysctl -w $BUFSZ=$bpf_bufsize
+        makepermanent="NO"
+        bro_config_input "makepermanent" $makepermanent "May I make this permanent? [y/N]"
+        if [ x$makepermanent = "xYES" ] ; then 
+            if grep $BUFSZ /etc/sysctl.conf 2>&1 > /dev/null ; then 
+                echo "ERROR: Can't change value, entry exists in /etc/sysctl.conf!"
+            else
+                echo "debug.bpf_bufsize=$bpf_bufsize" >> /etc/sysctl.conf
+            fi
+        fi
+    fi
+}
+
+
+######################################################################
+# Ask if we want to send local/external email reports
+# if so set the local/external email address(es)
+bro_config_email()
+{
+    bro_do_email_local="NO"
+    if [ "$BRO_EMAIL_LOCAL" ] ; then
+       bro_do_email_local="YES"
+    else
+       bro_do_email_local="NO"
+    fi
+    bro_config_input "bro_do_email_local" $bro_do_email_local " Email reports? (YES/no) "
+    if [ x$bro_do_email_local = "xYES" ] ; then
+        bro_config_input "BRO_EMAIL_LOCAL" "$BRO_EMAIL_LOCAL"
+    else
+        BRO_EMAIL_LOCAL=""
+    fi
+
+    # don't ask about emailing remote reports (for now)
+#    bro_config_input "BRO_EMAIL_EXTERNAL" $BRO_EMAIL_EXTERNAL
+#    if [ x$BRO_EMAIL_EXTERNAL = "xYES" ]; then 
+#            bro_config_input "BRO_EMAIL_REMOTE" $BRO_EMAIL_REMOTE
+#    fi
+
+}
+
+######################################################################
+# Try to figure out the site name. host1.fooobar.com becomes
+# foobarcom, and host1 becomes host1. If the hostname isn't set
+# it should default to SOMESITE.
+bro_config_site_name()
+{
+    if [ -z $BRO_SITE_NAME ]; then
+        BRO_SITE_NAME=`hostname|awk -F. '{print $2 $3}'`
+        if [ -z $BRO_SITE_NAME ] ; then 
+            BRO_SITE_NAME="SOMESITE"
+        fi
+    fi
+}
+######################################################################
+# if qutomode is set, just source the example setttings (or guess)
+# and output the files. Then exit! 
+bro_check_automode()
+{
+    if [ ! -z $BRO_AUTOMODE ] ; then
+        echo "Doing automode"
+        automode=1
+        # shouldn't run this as root!
+        nonroot=1
+        bro_config_source
+        bro_config_sys_type
+        if [ -z $BRO_CAPTURE_INTERFACE ]; then
+            bro_config_get_busy_iface
+            BRO_CAPTURE_INTERFACE=$busy_iface
+        fi
+        bro_config_got_root
+        bro_config_site_name
+        # export everything
+        bro_config_export_vars
+        bro_config_export_user
+        echo "Automode finished"
+        exit 0
+    else
+        echo "Automode not enabled"
+    fi
+
+}
+
+######################################################################
+# FREEBSD5 isms (dang devfs bpf)
+#
+bro_config_freebsd_devfs()
+{
+    # see if we've mucked with it before *dang* octothorp!
+    if [ -e /etc/rc.local ] ; then 
+        foo=`grep "BRO BPF PERMISSIONS CHANGES" /etc/rc.local |sed s/#//g`
+        if ! [ -z "$foo" ]; then
+            echo "Looks like /etc/rc.local has already been setup"
+            echo "Not changing /etc/rc.local"
+            return 
+        fi
+        # see if they already have a policy
+        bar=`grep "bpf" /etc/devfs.conf|sed s/#//g`
+        if ! [ -z "$bar" ]; then
+            echo "/etc/devfs.conf has policy for bpf devices already!"
+            echo "Not adding one to /etc/rc.local"
+            return 
+        fi
+
+    fi
+    # make sure brouser has its own group
+    brogroup=`grep ^$BRO_USER_ID /etc/group | awk -F: '{print $3}'`
+    if [ -z $brogroup ] ; then
+        echo "Can't find group for $BRO_USER_ID"
+        echo "Not changing /etc/rc.local"
+        return 
+    fi
+
+    # always make a backup
+    cp /etc/rc.local /etc/rc.local.$$.bak > /dev/null 2>&1 
+
+    # do it 
+cat - >> /etc/rc.local << BAZ
+
+# BRO BPF PERMISSIONS CHANGES
+devfs ruleset 15
+devfs rule add 15 path 'bpf*' mode 660 user $brogroup
+
+BAZ
+
+    echo "Added devfs line to /etc/rc.local"
+}
+######################################################################
+# Give a name for the user id to install everything under
+#
+bro_config_export_user()
+{
+    if [ -w bro_user_id ] ; then
+        mv bro_user_id bro_user_id.bak
+    fi
+
+    if [ -z "$BRO_USER_ID" ]; then
+        BRO_USER_ID=`id -un`
+    fi
+    echo "$BRO_USER_ID" > bro_user_id
+
+}
+######################################################################
+# main program 
+
+
+# check for automode
+# XXX: this may exit the program at this point
+bro_check_automode
+
+while [ $# -ge 1 ]; do
+    case $1 in
+    -p)     shift; BROHOME=$1 ;;
+    -p*)    BROHOME=`echo $1 | cut -c3-`;;
+    -d)     Debug=1;;
+    -f)     full=1;;
+    -*)     echo $Usage; exit 1 ;;
+    esac
+    shift
+done
+
+echo ""
+echo "Running Bro Configuration Utility"
+echo ""
+
+bro_config_echo_settings
+
+do_config="YES"
+bro_config_input "do_config" $do_config "Configure settings in bro.cfg? (YES/no) "
+if [ x$do_config = "xYES" ] ; then
+    echo "Values enclosed in '[ ]'s are the default value set if you hit return."
+else
+    exit
+fi
+
+echo ""
+
+
+# get the old vars first
+bro_config_source
+
+# what system are we running on second
+bro_config_sys_type
+
+# if we aren't root, better not ask the wrong questions ...
+bro_config_got_root
+
+#List of all variables we can set
+#vars="BROHOME BRO_BIN_DIR BRO_LOG_ARCHIVE BROPATH BRO_POLICY_PREFIX BRO BRO_OPTS BRO_USER_ID BRO_CHECKPOINT_INTERVAL BRO_REPORT_INTERVAL BRO_CAPTURE_INTERFACE BRO_EMAIL_LOCAL BRO_EMAIL_REMOTE BRO_CREATE_TRACE_FILE BRO_SITE_NAME BRO_GPG_BIN"
+
+if [ $nonroot -eq 1 ] ; then 
+    BRO_USER_ID=`id -un`
+    vars="BRO_LOG_ARCHIVE BRO_USER_ID BRO_CAPTURE_INTERFACE BRO_SITE_NAME BRO_REPORT_START_TIME BRO_REPORT_INTERVAL"
+else
+    # if this is linux then preset the username to root as it is unlikely that
+    # any patches have been applied to allow non-root users to open devices
+    # for packet capture.
+    if [ "x$BRO_SYS_TYPE" = 'xLINUX' ]; then
+        BRO_USER_ID='root'
+    fi
+    
+    vars="BRO_LOG_ARCHIVE BRO_USER_ID BRO_CAPTURE_INTERFACE BRO_SITE_NAME BRO_REPORT_START_TIME BRO_REPORT_INTERVAL"
+fi
+
+# set the iface to what I think is correct
+# if there is no default
+if [ -z "$BRO_CAPTURE_INTERFACE" ]; then
+    bro_config_get_busy_iface
+    BRO_CAPTURE_INTERFACE=$busy_iface
+fi
+
+# setup the SITE name
+bro_config_site_name
+
+# prompt for all the values
+# NOTE: ${!variable} only works in bash
+for val in $vars;
+do
+    # Grrr, why can't bsd ship with a *real* shell like bash!
+    # can't use bro_config_input $val ${!val}
+    varname="$`echo $val`"
+    varval=`eval echo $varname` 
+    bro_config_input $val $varval
+done
+
+bro_config_email 
+if [ "x$bro_do_email_local" = "xYES" ]; then
+    bro_config_gpg_vals 
+fi
+
+#output all the values (if debug)
+if [ $Debug -eq 1 ]; then
+    for val in $vars;
+    do
+        varname="$`echo $val`"
+        varval=`eval echo $varname` 
+        echo Setting $val to $varval
+    done
+fi
+
+# we can only do the following if we are root
+if [ $nonroot -ne 1 ] ; then 
+    bro_config_add_user
+    # check various system parameters
+    bro_config_system_parms
+    # Linux does not do bpf devices, skip these tests.
+    if [ "x$BRO_SYS_TYPE" = 'xFREEBSD4' ]; then
+        # configure the bpfs before doing the dump :-)
+        bro_config_run_bpf
+        # configure the bpfs to be group readable
+        bro_config_chown_bpf
+    fi
+    if [ "x$BRO_SYS_TYPE" = 'xFREEBSD5' -o "x$BRO_SYS_TYPE" = 'xFREEBSD6' ]; then
+        bro_config_freebsd_devfs
+    fi
+    # if perl doesn't exist, don't bother...
+    if [ "@PERL@" != "" ]; then
+        # run the localnets program
+        bro_config_run_localnets
+    fi
+else
+    bro_config_nonroot_message
+fi
+# create the output file
+bro_config_export_vars
+bro_config_export_user
+echo "Bro Configuration Finished. "
+echo $n "Press any key to now to continue. "
+read RESP
+exit 0
+

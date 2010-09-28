@@ -1,0 +1,45 @@
+rewriter smtp_request%(is_orig: bool, command: string, arg: string%)
+	%{
+	if ( command->Len() > 0 )
+		{
+		u_char ch = command->Bytes()[0];
+
+		if ( isalpha(ch) )
+			{ // Do not dump artificial commands: ">", ".", "***"
+			@WRITE@(is_orig, command->AsString());
+			@WRITE@(is_orig, 1, " ");
+			}
+		}
+
+	@WRITE@(is_orig, arg->AsString());
+	@WRITE@(is_orig, 2, "\r\n");
+	%}
+
+rewriter smtp_reply%(is_orig: bool, code: count, msg: string, cont_resp: bool%)
+	%{
+	const char* str = fmt("%lu", (unsigned long) code);
+	int len = strlen(str);
+
+	@WRITE@(is_orig, len, str);
+
+	if ( cont_resp )
+		@WRITE@(is_orig, "-");
+	else
+		@WRITE@(is_orig, " ");
+
+	@WRITE@(is_orig, msg->AsString());
+	@WRITE@(is_orig, "\r\n");
+	%}
+
+# Since SMTP data is delivered by lines ending with CRLF, this
+# function takes a line without the trailing CRLF and dumps the string
+# followed by CRLF. If you want to dump multiple lines, please dump
+# them one at a time (without trailing CRLF's).
+rewriter smtp_data%(is_orig: bool, data: string%)
+	%{
+	if ( data->Len() > 0 && data->Bytes()[0] == '.')
+		@WRITE@(is_orig, ".");
+
+	@WRITE@(is_orig, data->AsString());
+	@WRITE@(is_orig, "\r\n");
+	%}

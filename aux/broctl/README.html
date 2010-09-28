@@ -1,0 +1,1986 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.2.7" />
+<style type="text/css">
+/* Debug borders */
+p, li, dt, dd, div, pre, h1, h2, h3, h4, h5, h6 {
+/*
+  border: 1px solid red;
+
+  margin: 1.8em 10% 1.8em 10%;
+
+*/
+}
+
+body {
+  background:#ffffff;
+  padding: 20px 10px;
+  font-size: 90%;
+  font-family: sans-serif;
+  color: #505050;
+  margin: 2em 10% 2em 10%;
+  line-height: 1.4em;
+}
+
+a {
+  color: #005000;
+}
+
+a:visited {
+  color: #005000;
+}
+
+a:hover {
+  color: #002000;
+}
+
+em {
+  font-style: italic;
+}
+
+strong {
+  font-weight: bold;
+}
+
+tt {
+  color: #000000;
+}
+
+h1, h2, h3, h4, h5, h6, div#toctitle {
+  color: #227022;
+  font-family: sans-serif;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+  font-weight: normal;
+}
+
+h1, h2, h3, div#toctitle {
+  border-bottom: 1px solid;
+  border-color: #000000;
+}
+
+h1 {
+  font-size: 150%;
+  }
+
+h2, div#toctitle {
+  padding-top: 0.5em;
+  font-size: 120%;
+}
+h3 {
+  float: left;
+  font-size: 100%;
+}
+h3 + * {
+  clear: left;
+}
+
+div.sectionbody {
+  font-family: sans-serif;
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+pre {
+  padding: 0;
+  margin: 0;
+}
+
+span#author {
+  color: #338033;
+  font-family: sans-serif;
+  font-size: 100%;
+}
+span#email {
+}
+span#revision {
+  font-family: sans-serif;
+}
+
+div#footer {
+  font-family: sans-serif;
+  font-size: 70%;
+  border-top: 1px solid;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+div#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+div#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+div#preamble,
+div.tableblock, div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.1em;
+  margin-left: 1em;
+  margin-bottom: 1.1em;
+/*  background: #eeffcc; */
+}
+div.admonitionblock {
+  margin-top: 2.5em;
+  margin-bottom: 2.5em;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  font-family: sans-serif;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid;
+  padding: 0.5em;
+}
+
+div.listingblock {
+  margin-right: 0%;
+}
+div.listingblock > div.content {
+  border: 1px solid;
+  background: #f4f4f4;
+  padding: 0.5em;
+}
+
+div.quoteblock > div.content {
+  padding-left: 2.0em;
+}
+
+div.attribution {
+  text-align: right;
+}
+
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 100%;
+  color: #338033;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 2px solid;
+}
+
+div.exampleblock > div.content {
+  border-left: 2px solid;
+  padding: 0.5em;
+}
+
+div.verseblock div.content {
+  white-space: pre;
+}
+
+div.imageblock div.content { padding-left: 0; }
+div.imageblock img { border: 1px solid ; }
+span.image img { border-style: none; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: italic;
+}
+dd > *:first-child {
+  margin-top: 0;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.olist2 {
+  list-style-type: lower-alpha;
+}
+
+div.tableblock > table {
+  border: 1px solid #527bbd;
+}
+
+div.addrblock > table {
+  border: 0px 0px 0px 0px;
+  border-style: none none none none;
+  padding: 0px;
+  margin: 10px;
+  color: #000000;
+}
+
+table.addrblockbg {
+  /*
+  border-top: 1px solid;
+  border-bottom: 1px solid;
+  */
+  background: #e0ffe0 ;
+  border-style: none;
+  outline-style: none;
+}
+
+thead {
+  font-family: sans-serif;
+  color: #000000;
+}
+tfoot {
+  font-weight: bold;
+  color: #000000;
+}
+
+div.hlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hlist td {
+  padding-bottom: 5px;
+}
+td.hlist1 {
+  vertical-align: top;
+  font-style: italic;
+  padding-right: 0.8em;
+}
+td.hlist2 {
+  vertical-align: top;
+}
+
+@media print {
+  div#footer-badges { display: none; }
+}
+
+div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: .5ex;
+  margin-bottom: 0;
+  margin-left: 2em;
+  line-height: 1.3;
+}
+div.toclevel1 {
+  margin-top: 1ex;
+}
+div.toclevel2 {
+  margin-left: 4em;
+}
+
+div.toclevel3 {
+  margin-left: 6em;
+}
+div.toclevel4 {
+  margin-left: 8em;
+}
+/* Workarounds for IE6's broken and incomplete CSS2. */
+
+div.sidebar-content {
+  background: #ffffee;
+  border-top: 1px solid silver;
+  border-bottom: 1px solid silver;
+  padding: 0.5em;
+}
+div.sidebar-title, div.image-title {
+  font-family: sans-serif;
+  font-weight: bold;
+  margin-top: 0.0em;
+  margin-bottom: 0.5em;
+}
+
+div.listingblock div.content {
+  border: 1px solid silver;
+  background: #f4f4f4;
+  padding: 0.5em;
+}
+
+div.quoteblock-content {
+  padding-left: 2.0em;
+}
+
+div.exampleblock-content {
+  border-left: 2px solid silver;
+  padding-left: 0.5em;
+}
+
+/* IE6 sets dynamically generated links as visited. */
+div#toc a:visited { color: blue; }
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+window.onload = function(){generateToc(2)}
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, October 2006. License: GPL */
+
+function getText(el) {
+  var text = "";
+  for (var i = el.firstChild; i != null; i = i.nextSibling) {
+    if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+      text += i.data;
+    else if (i.firstChild != null)
+      text += getText(i);
+  }
+  return text;
+}
+
+function TocEntry(el, text, toclevel) {
+  this.element = el;
+  this.text = text;
+  this.toclevel = toclevel;
+}
+
+function tocEntries(el, toclevels) {
+  var result = new Array;
+  var re = new RegExp('[hH]([2-'+(toclevels+1)+'])');
+  // Function that scans the DOM tree for header elements (the DOM2
+  // nodeIterator API would be a better technique but not supported by all
+  // browsers).
+  var iterate = function (el) {
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+        var mo = re.exec(i.tagName)
+        if (mo)
+          result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+        iterate(i);
+      }
+    }
+  }
+  iterate(el);
+  return result;
+}
+
+// This function does the work. toclevels = 1..4.
+function generateToc(toclevels) {
+  var toc = document.getElementById("toc");
+  var entries = tocEntries(document.getElementsByTagName("body")[0], toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "toc" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    document.getElementById("header").removeChild(toc);
+}
+/*]]>*/
+</script>
+<title>BroControl</title>
+</head>
+<body>
+<div id="header">
+<h1>BroControl</h1>
+<span id="author">Robin Sommer</span><br />
+<span id="email"><tt>&lt;<a href="mailto:robin@icir.org">robin@icir.org</a>&gt;</tt></span><br />
+<div id="toc">
+  <div id="toctitle">Table of Contents</div>
+  <noscript><p><b>JavaScript must be enabled in your browser to display the table of contents.</b></p></noscript>
+</div>
+</div>
+<div id="preamble">
+<div class="sectionbody">
+<p>This document summarizes installation and use of <em>BroControl</em>,
+Bro's interactive shell for operating Bro installations. <em>Bro
+Control</em> has two modes of operation: a <em>stand-alone</em> mode for
+managing a traditional, single-system Bro setup; and a <em>cluster</em>
+mode for maintaining a multi-system setup of coordinated Bro
+instances load-balancing the work across a set of independent
+machines. Below, we describe the installation process separately for
+the two modes. Once installed, the operation is pretty similar for
+both types; just keep in mind that if this documents refers to
+"nodes" and you're in a stand-alone setup, there's is only a single
+one and no worker/proxies.)</p>
+</div>
+</div>
+<h2><a id="_prerequisites"></a>Prerequisites</h2><p/>
+<div class="sectionbody">
+<p>Running <em>BroControl</em> requires the following prerequisites:</p>
+<ul>
+<li>
+<p>
+A Unix system. FreeBSD, Linux, and MacOS are supported and
+  should work out of the box. Note however that FreeBSD usually sees
+  more testing as it is Bro's primary development platform.  Other
+  Unix systems will quite likely require some tweaking. Note that in
+  a cluster setup, all systems must be running exactly the <em>same</em>
+  operating system.
+</p>
+</li>
+<li>
+<p>
+A version of <em>Python</em> &gt;= 2.4.
+</p>
+</li>
+<li>
+<p>
+A <em>bash</em> (note in particular, that on FreeBSD, <em>bash</em> is not
+  installed by default).
+</p>
+</li>
+</ul>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">If you're using a development version, you might need to apply
+a patch to Bro. Please <a href="#devversion">see below</a>.</td>
+</tr></table>
+</div>
+</div>
+<h2><a id="_installing_a_stand_alone_bro"></a>Installing a Stand-alone Bro</h2><p/>
+<div class="sectionbody">
+<p>This is the default installation. Configure and compile Bro as
+usual, specifying the target installation path as <tt>`prefix</tt>` (we use
+<tt>/usr/local/bro</tt> as an example):</p>
+<div class="literalblock">
+<div class="content">
+<pre><tt>&gt; cd /path/to/bro/source/distribution
+&gt; ./configure --prefix=/usr/local/bro
+&gt; make</tt></pre>
+</div></div>
+<ul>
+<li>
+<p>
+Install <em>BroControl</em>:
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><tt>&gt; make install-broctl</tt></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>(This includes the standard "make install".)</tt></pre>
+</div></div>
+</li>
+<li>
+<p>
+Add <tt>&lt;prefix&gt;/bin</tt> to your <tt>PATH</tt>.
+</p>
+</li>
+<li>
+<p>
+The installation installs three configuration files which you
+  should edit:
+</p>
+<ul>
+<li>
+<p>
+<tt>etc/broctl.cfg</tt> is the overall <em>BroControl</em> configuration.
+  Initially, you probably only need to edit the email address for
+  mails sent by the framework; that's the <tt>MailTo</tt> line.
+</p>
+</li>
+<li>
+<p>
+In <tt>etc/nodes.cfg</tt>, you need to specify the network interface
+  Bro is to monitor; that's the <tt>interface</tt> line.
+</p>
+</li>
+<li>
+<p>
+In <tt>etc/networks.cfg</tt>, list all the networks which Bro should
+  consider as local to the monitored enviroment.
+</p>
+</li>
+</ul>
+</li>
+<li>
+<p>
+Once you have updated these files, install the modified
+  configuration:
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><tt>&gt; broctl install</tt></pre>
+</div></div>
+</li>
+<li>
+<p>
+Some tasks need to be run on a regular basis. Insert a line like
+this into your crontab:
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><tt>0-59/5 * * * * /usr/local/bro/bin/broctl cron</tt></pre>
+</div></div>
+</li>
+<li>
+<p>
+Finally, you can start Bro:
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><tt>&gt; broctl start</tt></pre>
+</div></div>
+</li>
+</ul>
+</div>
+<h2><a id="_installing_a_bro_cluster"></a>Installing a Bro Cluster</h2><p/>
+<div class="sectionbody">
+<p>A <em>Bro Cluster</em> is a set of systems jointly analyzing the traffic of
+a network link in a coordinated fashion. <em>BroControl</em> is able to
+operate such a setup from a central manager system pretty much
+transparently, hiding much of the complexity of the multi-machine
+installation.</p>
+<p>A cluster consists of four types of components:</p>
+<ol>
+<li>
+<p>
+One or more frontends.
+       Frontends load-balance the traffic across a set of worker
+       machines.
+</p>
+</li>
+<li>
+<p>
+Worker nodes.
+       Workers are doing the actual analysis, with each seeing a
+       slice of the overall traffic as splitted up by the frontends.
+</p>
+</li>
+<li>
+<p>
+One or more proxies.
+       Proxies relay the communication between worker nodes.
+</p>
+</li>
+<li>
+<p>
+One manager.
+       The manager provides the cluster's user-interface for
+       controlling and logging. During operation, the user only
+       interacts with the manager; this is where <em>BroControl</em> is
+       running.
+</p>
+</li>
+</ol>
+<p>See <a href="http:///www.icir.org/robin/papers/raid07.pdf">this RAID Paper</a>
+for more information about the general cluster architecture. This
+document focusses on the installation of manager, workers, and the
+proxies. See &lt;somewhere different&gt; for a discussion of how to setup
+a frontend. If not otherwise stated, in the following we use the
+terms "manager", "worker", and "proxy" to refer to Bro instances,
+not to physical machines; rather, we use the term "node" to refer to
+physical machines. There may be multiple Bro instances running on
+the same node. For example, it's possible to run a proxy on the same
+node as the manager is operating on.</p>
+<p>In the following, as an example setup, we will assume that our
+cluster consists of four nodes (not counting the frontend). The host
+names of the systems will be <tt>host1</tt>, <tt>host2</tt>, <tt>host3</tt>, and <tt>host4</tt>.
+We will configure the cluster so that <tt>host1</tt> runs the manager and
+the (only) proxy, and <tt>host{2,3,4}</tt> are each running one worker.
+This is a typical setup, which will work well for many sites.</p>
+<p>When installing a cluster, in addition to the prerequisites
+mentioned above, you need to</p>
+<ul>
+<li>
+<p>
+have the same user account set up on all nodes. On the worker
+  nodes, this user must have access to target network interface in
+  promiscious mode. <tt>ssh</tt> access from the manager node to this user
+  account must be setup on all machines, and must work without
+  asking for a password/passphrase.
+</p>
+</li>
+<li>
+<p>
+have some storage available on all nodes under the same path,
+  which we will call the cluster's <em>prefix</em> path. In the following,
+  we will use <tt>/usr/local/bro</tt> as an example. The Bro user must
+  be able to either create this directory or, where it already
+  exists, must have write permission inside this directory on all
+  nodes.
+</p>
+</li>
+<li>
+<p>
+have <tt>ssh</tt> and <tt>rdist</tt> installed.
+</p>
+</li>
+</ul>
+<p>With all prerequisites in place, as the Bro user, perform the
+following steps to install a Bro cluster:</p>
+<ul>
+<li>
+<p>
+Configure and compile the Bro distribution using the cluster's
+  prefix path as <tt>&#8212;prefix</tt> <tt>&#8212;prefix</tt>, and selecting cluster
+  operation with the <tt>&#8212;enable-cluster</tt> option:
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><tt>&gt; cd /path/to/bro/source/distribution
+&gt; ./configure --prefix=/usr/local/bro --enable-cluster
+&gt; make</tt></pre>
+</div></div>
+</li>
+<li>
+<p>
+Install <em>BroControl</em>:
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><tt>&gt; make install-broctl</tt></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>(This includes the standard +make install+.)</tt></pre>
+</div></div>
+</li>
+<li>
+<p>
+Add <tt>&lt;prefix&gt;/bin</tt> to your <tt>PATH</tt>.
+</p>
+</li>
+<li>
+<p>
+Create a cluster configuration file. There is an example provided,
+which you can edit according to the instructions in the file:
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><tt>&gt; cd /usr/local/bro
+&gt; cp etc/broctl.cfg.example etc/broctl.cfg
+&gt; vi etc/broctl.cfg</tt></pre>
+</div></div>
+</li>
+<li>
+<p>
+Create a node configuration file to define where manager, workers,
+  and proxies are to run. There is again an example, which defines
+  the example scenario described above and can be edited as needed:
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><tt>&gt; cd /usr/local/bro
+&gt; cp etc/node.cfg.example etc/node.cfg
+&gt; vi etc/node.cfg</tt></pre>
+</div></div>
+</li>
+<li>
+<p>
+Create a network configuration file that lists all of the networks
+  which the cluster should consider as local to the monitored
+  enviroment. Once, again the installation installs a template for
+  editing:
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><tt>&gt; cd /usr/local/bro
+&gt; cp etc/networks.cfg.example etc/networks.cfg
+&gt; vi etc/networks.cfg</tt></pre>
+</div></div>
+</li>
+<li>
+<p>
+Install workers and proxies using <em>BroControl</em>:
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><tt>&gt; broctl install</tt></pre>
+</div></div>
+<p>This installation process uses <tt>ssh</tt> and <tt>rdist</tt> to copy the
+configuration over to the remote machines so, as described above,
+you need to ensure that logging in via SSH works before the install will
+succeed.</p>
+</li>
+<li>
+<p>
+Some tasks need to be run on a regular basis. On the manager node,
+insert a line like this into the crontab of the user running the
+cluster.
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><tt>0-59/5 * * * * &lt;prefix&gt;/bin/broctl cron</tt></pre>
+</div></div>
+</li>
+<li>
+<p>
+Finally, you can start the cluster:
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><tt>&gt; broctl start</tt></pre>
+</div></div>
+</li>
+</ul>
+</div>
+<h2><a id="_getting_started"></a>Getting Started</h2><p/>
+<div class="sectionbody">
+<p><em>BroControl</em> is an interactive interface to the cluster which
+allows you to, e.g., start/stop the monitoring or update its
+configuration. It is started with the <tt>broctl</tt> script and then
+expects commands on its command-line (alternatively, <tt>broctl</tt> can
+also be started with a single command directly on the shell's
+command line):</p>
+<div class="literalblock">
+<div class="content">
+<pre><tt>&gt; cluster
+Welcome to BroControl 0.2</tt></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>Type "help" for help.</tt></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>[BroControl] &gt;</tt></pre>
+</div></div>
+<p>As the message says, type <a href="#cmd_help"><tt>help</tt></a> to see a list of all
+commands. We will now briefly summarize the most important commands.
+A full reference follows <a href="cmd_reference">below</a>.</p>
+<p>Once <tt>broctl.cfg</tt> and <tt>node.cfg</tt> are set up as described above, the
+monitoring can be started with the <a href="#cmd_start"><tt>start</tt></a> command.
+In the cluster setup, this will successively start manager, proxies,
+and workers. The <a href="#cmd_status"><tt>status</tt></a> command should then show
+all nodes as operating. To stop the monitoring, issue the
+<a href="#cmd_stop"><tt>stop</tt></a> command. <a href="#cmd_exit"><tt>exit</tt></a> leaves the
+shell.</p>
+<p>On the manager system (and on the standalone system), you find the
+current set of (aggregated) logs in <tt>logs/current</tt> (which is a
+symlink to the corresponding spool directory.) The workers and
+proxies log into <tt>spool/proxy/</tt> and <tt>spool/&lt;worker-name&gt;/</tt>,
+respectively. The manager/stand-alone logs are archived in <tt>logs/</tt>,
+by default once a day. Logs files of workers and proxies are
+discarded at the same rotation interval.</p>
+<p>Whenenver the <em>BroControl</em> configuration is modified in any way
+(including changes to configuration files and site-specific policy
+scripts), <a href="#cmd_install"><tt>install</tt></a> installs the new version. <em>No
+changes will take effect until <a href="#cmd_install"><tt>install</tt></a> is run</em>.
+Before you run <a href="#cmd_install"><tt>install</tt></a>, <a href="#cmd_check"><tt>check</tt></a>
+can be used to check for any potential erros in the new
+configuration, e.g., typos in scripts. If <a href="#cmd_check"><tt>check</tt></a>
+does not report any problems, doing <a href="#cmd_install"><tt>install</tt></a> will
+pretty likely not break anything.</p>
+<p>Note that generally configuration changes only take effect after a
+restart of the affected nodes. The <a href="#cmd_restart"><tt>restart</tt></a>
+command triggers this. Some changes however can be put into effect
+on-the-fly without restarting any of the nodes by using the
+<a href="#cmd_update"><tt>update</tt></a> command (again only after doing
+<a href="#cmd_install"><tt>install</tt></a> first). Such dynamic updates work with
+all changes done via the <a href="#cmd_analysis"><tt>analysis</tt></a> command (see
+below) as well as generally with all policy which only modify global
+variables declared as <em>redefinable</em> (i.e., with Bro's <em>&amp;redef</em>
+attribute).</p>
+<p>Generally, site-specific tuning needs to be done with local policy
+scripts, as in any Bro setup. This is described
+<a href="site_tuning">below</a>. Some general types of analysis can however
+be enabled/disabled via the <a href="#cmd_analysis"><tt>analysis</tt></a> command.</p>
+<p><em>BroControl</em> provides various options to control the behaviour of the
+setup. These options can be set by editing <tt>etc/broctl.cfg</tt>. The
+<a href="#cmd_config"><tt>config</tt></a> command gives list of all options with
+their current values. A list of the most important options also
+follows <a href="cmd_reference">below</a>.</p>
+</div>
+<h2><a id="_site_specific_customization"></a>Site-specific Customization</h2><p/>
+<div class="sectionbody">
+<p><a id="site_tuning"></a>You'll most likely want to adapt the Bro policy to the local
+environment. While some types of analysis can be customized via the
+<a href="#cmd_analysis"><tt>analysis</tt></a> command, much of the more specific
+tuning requires writing local policy files.</p>
+<p>By default, it is assumed that you put site-specific policy scripts
+into the <tt>share/bro/site</tt> directory. To change the location of site
+policies, set the option <a href="#opt_SitePolicyPath"><tt>SitePolicyPath</tt></a>
+in <tt>broctl.cfg</tt> to a different path.</p>
+<p>During the initial install, sample policy scripts are installed in
+<tt>share/bro/site</tt>, which you can edit as appropiate. In the stand-alone
+setup, this is just a single file called <tt>local.bro</tt>. In the cluster
+setup, there are three: <tt>local-manager.bro</tt> and <tt>local-worker.bro</tt>
+are loaded by the manager and the workers (plus proxies),
+respectively. In turn, both of these load <tt>local.bro</tt>, which
+contains all configuration code shared by all nodes. If in doubt,
+put your customizations into <tt>local.bro</tt> so that all nodes see it.
+If you want to change which local scripts are loaded by the nodes,
+you can set <a href="#opt_SitePolicyManager"><tt>SitePolicyManager</tt></a> for the
+manager and <a href="#opt_SitePolicyWorker"><tt>SitePolicyWorker</tt></a> for the
+workers.</p>
+<p>In the cluster setup, the main exception to putting everything into
+<tt>local.bro</tt> is notice filtering, which should be done only on the
+manager. The example <tt>local-manager.bro</tt> comes with an example setup
+to configure notice policy and notice actions. You should to adapt
+thiese to the local environment.</p>
+<p>In general, all of <em>BroControl</em>'s policy scripts are loaded before any
+site-specific policy so that you can redefine any of the defaults
+locally. The <a href="#cmd_scripts"><tt>scripts</tt></a> shows precisely which
+policy scripts get loaded by a node; that can be very helpful for
+debugging.</p>
+<p>Please note that enabling a particular kind of analysis via the
+<a href="#cmd_analysis"><tt>analysis</tt></a> command only has an effect if the
+corresponding Bro scripts are loaded by the local site policy in
+<tt>local.bro</tt>.</p>
+<p>It is also possible to add additional scripts to individual nodes
+only. This works by setting the option <tt>aux_scripts</tt> for the
+corresponding node(s) in <tt>etc/nodes.cfg</tt>. For example, one could add
+a script <tt>experimental.bro</tt> to a single worker for trying out new
+experimental code.</p>
+</div>
+<h2><a id="_command_reference"></a>Command Reference</h2><p/>
+<div class="sectionbody">
+<p><a id="cmd_reference"></a>The following summary lists all commands supported by <em>BroControl</em>. All
+commands may be either entered interactively or specificed on the
+shell's command line. If not specified otherwise, commands taking
+<em>[&lt;nodes&gt;]</em> as arguments apply their action either to the given set
+of nodes, or to all nodes if none is given.</p>
+<dl>
+<dt>
+<a id="cmd_analysis"></a> <strong>analysis <em>enable|disable &lt;type&gt;</em></strong>
+</dt>
+<dd>
+<p>
+This command enables or disables certain kinds of analysis without the
+need for doing any changes to Bro scripts. Currently, the analyses
+shown in the table below can be controlled (in parentheses the
+corresponding Bro scripts; the effect of enabling/disabling is similar
+to loading or not loading these scripts, respectively). The list might
+be extended in the future. Any changes performed via this command are
+applied by <a href="#cmd_update"><tt>update</tt></a> and therefore do not require a
+restart of the nodes.
+</p>
+<div class="tableblock">
+<table rules="all"
+frame="void"
+cellspacing="0" cellpadding="4">
+<col width="266" />
+<col width="533" />
+<thead>
+  <tr>
+    <th align="center">
+    Type
+    </th>
+    <th align="left">
+    Description
+    </th>
+  </tr>
+</thead>
+<tbody valign="top">
+  <tr>
+    <td align="center">
+    dns
+    </td>
+    <td align="left">
+    DNS analysis (<tt>dns.bro</tt>)
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+    ftp
+    </td>
+    <td align="left">
+    FTP analysis (<tt>ftp.bro</tt>)
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+    http-body
+    </td>
+    <td align="left">
+    HTTP body analysis (<tt>http-body.bro</tt>).
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+    http-request
+    </td>
+    <td align="left">
+    Client-side HTTP analysis only (<tt>http-request.bro</tt>)
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+    http-reply
+    </td>
+    <td align="left">
+    Client- and server-side HTTP analysis (<tt>http-request.bro</tt>/<tt>http-reply.bro</tt>)
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+    http-header
+    </td>
+    <td align="left">
+    HTTP header analysis (<tt>http-headers.bro</tt>)
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+    scan
+    </td>
+    <td align="left">
+    Scan detection (<tt>scan.bro</tt>)
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+    smtp
+    </td>
+    <td align="left">
+    SMTP analysis (<tt>smtp.bro</tt>)
+    </td>
+  </tr>
+</tbody>
+</table>
+</div>
+</dd>
+<dt>
+<a id="cmd_attachgdb"></a> <strong>attachgdb <em>[&lt;nodes&gt;]</em></strong>
+</dt>
+<dd>
+<p>
+Primarily for debugging, the command attaches a <em>gdb</em> to the main Bro
+process on the given nodes.
+</p>
+</dd>
+<dt>
+<a id="cmd_capstats"></a> <strong>capstats <em>[&lt;interval&gt;] [&lt;nodes&gt;]</em></strong>
+</dt>
+<dd>
+<p>
+Determines the current load on the network interfaces monitored by
+each of the given worker nodes. The load is measured over the
+specified interval (in seconds), or by default over 10 seconds. This
+command uses the <a href="http://www.icir.org/robin/capstats">capstats</a> tool,
+which is installed along with <tt>broctl</tt>.
+</p>
+</dd>
+</dl>
+<p>(Note: When using a CFlow and the CFlow command line utility is
+installed as well, the <tt>capstats</tt> command can also query the device
+for port statistics. <em>TODO</em>: document how to set this up.)</p>
+<dl>
+<dt>
+<a id="cmd_check"></a> <strong>check <em>[&lt;nodes&gt;]</em></strong>
+</dt>
+<dd>
+<p>
+Verifies a modified configuration in terms of syntactical correctness
+(most importantly correct syntax in policy scripts). This command
+should be executed for each configuration change <em>before</em>
+<a href="#cmd_install"><tt>install</tt></a> is used to put the change into place. Note
+that <tt>check</tt> is the only command which operates correctly without a
+former <a href="#cmd_install"><tt>install</tt></a> command; <tt>check</tt> uses the policy
+files as found in <a href="#opt_SitePolicyPath"><tt>SitePolicyPath</tt></a> to make
+sure they compile correctly. If they do, <a href="#cmd_install"><tt>install</tt></a>
+will then copy them over to an internal place from where the nodes
+will read them at the next <a href="#cmd_start"><tt>start</tt></a>. This approach
+ensures that new errors in a policy scripts will not affect currently
+running nodes, even when one or more of them needs to be restarted.
+</p>
+</dd>
+<dt>
+<a id="cmd_cleanup"></a> <strong>cleanup <em>[&#8212;all] [&lt;nodes&gt;]</em></strong>
+</dt>
+<dd>
+<p>
+Clears the nodes' spool directories (if they are not running
+currently). This implies that their persistent state is flushed. Nodes
+that were crashed are reset into <em>stopped</em> state. If <tt>&#8212;all</tt> is
+specified, this command also removes the content of the node's
+<a href="#opt_TmpDir"><tt>TmpDir</tt></a>, in particular deleteing any data
+potentially saved there for reference from previous crashes.
+Generally, if you want to reset the installation back into a clean
+state, you can first <a href="#cmd_stop"><tt>stop</tt></a> all nodes, then execute
+<tt>cleanup &#8212;all</tt>, and finally <a href="#cmd_start"><tt>start</tt></a> all nodes
+again.
+</p>
+</dd>
+<dt>
+<a id="cmd_config"></a> <strong>config </strong>
+</dt>
+<dd>
+<p>
+Prints all configuration options with their current values.
+</p>
+</dd>
+<dt>
+<a id="cmd_cron"></a> <strong>cron <em>[&lt;nodes&gt;]</em></strong>
+</dt>
+<dd>
+<p>
+As the name implies, this command should be executed regularly via
+<em>cron</em>, as described <a href="#Installation">above</a>. It performs a set of
+maintainance tasks, including the logging of various statistical
+information, expiring old log files, checking for dead hosts, and
+restarting nodes which terminated unexpectedly.  While not intended
+for interactive use, no harm will be caused by executing the command
+manually: all the maintainance tasks will then just be performed one
+more time.
+</p>
+</dd>
+<dt>
+<a id="cmd_df"></a> <strong>df <em>[&lt;nodes&gt;]</em></strong>
+</dt>
+<dd>
+<p>
+Reports the amount of disk space available on the nodes. Shows only
+paths relevant to the broctl installation.
+</p>
+</dd>
+<dt>
+<a id="cmd_diag"></a> <strong>diag <em>[&lt;nodes&gt;]</em></strong>
+</dt>
+<dd>
+<p>
+If a node has terminated unexpectedly, this command prints a (somewhat
+cryptic) summary of its final state including excerpts of any
+stdout/stderr output, resource usage, and also a stack backtrace if a
+core dump is found. The same information is sent out via mail when a
+node is found to have crashed (the "crash report"). While the
+information is mainly intended for debugging, it can also help to find
+misconfigurations (which are usually, but not always, caught by the
+<a href="#cmd_check"><tt>check</tt></a> command).
+</p>
+</dd>
+<dt>
+<a id="cmd_exec"></a> <strong>exec <em>&lt;command line&gt;</em></strong>
+</dt>
+<dd>
+<p>
+Executes the given Unix shell command line on all nodes configured to
+run at least one Bro instance. This is handy to quickly perform an
+action across all systems.
+</p>
+</dd>
+<dt>
+<a id="cmd_exit"></a> <strong>exit </strong>
+</dt>
+<dd>
+<p>
+Terminates the shell.
+</p>
+</dd>
+<dt>
+<a id="cmd_help"></a> <strong>help </strong>
+</dt>
+<dd>
+<p>
+Prints a brief summary of all commands understood by the shell.
+</p>
+</dd>
+<dt>
+<a id="cmd_install"></a> <strong>install </strong>
+</dt>
+<dd>
+<p>
+Reinstalls the given nodes, including all configuration files and
+local policy scripts.  This command must be executed after <em>all</em>
+changes to any part of the broctl configuration, otherwise the
+modifications will not take effect. Usually all nodes should be
+reinstalled at the same time, as any inconsistencies between them will
+lead to strange effects. Before executing <tt>install</tt>, it is recommended
+to verify the configuration with <a href="#cmd_check"><tt>check</tt></a>.
+</p>
+</dd>
+<dt>
+<a id="cmd_netstats"></a> <strong>netstats <em>[&lt;nodes&gt;]</em></strong>
+</dt>
+<dd>
+<p>
+Queries each of the nodes for their current counts of captured and
+dropped packets.
+</p>
+</dd>
+<dt>
+<a id="cmd_nodes"></a> <strong>nodes </strong>
+</dt>
+<dd>
+<p>
+Prints a list of all configured nodes.
+</p>
+</dd>
+<dt>
+<a id="cmd_peerstatus"></a> <strong>peerstatus <em>[&lt;nodes&gt;]</em></strong>
+</dt>
+<dd>
+<p>
+Primarily for debugging, <tt>peerstatus</tt> reports statistics about the
+network connections cluster nodes are using to communicate with other
+nodes.
+</p>
+</dd>
+<dt>
+<a id="cmd_print"></a> <strong>print <em>&lt;id&gt; [&lt;nodes&gt;]</em></strong>
+</dt>
+<dd>
+<p>
+Reports the <em>current</em> live value of the given Bro script ID on all of
+the specified nodes (which obviously must be running). This can for
+example be useful to (1) check that policy scripts are working as
+expected, or (2) confirm that configuration changes have in fact been
+applied.  Note that IDs defined inside a Bro namespace must be
+prefixed with <tt>&lt;namespace&gt;::</tt> (e.g., <tt>print SSH::did_ssh_version</tt> to
+print the corresponding table from <tt>ssh.bro</tt>.)
+</p>
+</dd>
+<dt>
+<a id="cmd_quit"></a> <strong>quit </strong>
+</dt>
+<dd>
+<p>
+Terminates the shell.
+</p>
+</dd>
+<dt>
+<a id="cmd_restart"></a> <strong>restart <em>[&#8212;clean] [&lt;nodes&gt;]</em></strong>
+</dt>
+<dd>
+<p>
+Restarts the given nodes, or all nodes if none are specified. The
+effect is the same as first executing <a href="#cmd_stop"><tt>stop</tt></a> followed
+by a <a href="#cmd_start"><tt>start</tt></a>, giving the same nodes in both cases.
+This command is most useful to activate any changes made to Bro policy
+scripts (after running <a href="#cmd_install"><tt>install</tt></a> first). Note that a
+subset of policy changes can also be installed on the fly via the
+<a href="#cmd_updatel"><tt>update</tt></a>, without requiring a restart.
+</p>
+</dd>
+</dl>
+<p>If <tt>&#8212;clean</tt> is given, the installation is reset into a clean state
+before restarting. More precisely, a <tt>restart &#8212;clean</tt> turns into the
+command sequence <a href="#cmd_stop"><tt>stop</tt></a>, <a href="#cmd_cleanup"><tt>cleanup
+&#8212;all</tt></a>, <a href="#cmd_check"><tt>check</tt></a>, <a href="#cmd_install"><tt>install</tt></a>, and
+<a href="#cmd_start"><tt>start</tt></a>.</p>
+<dl>
+<dt>
+<a id="cmd_scripts"></a> <strong>scripts <em>[-p|-c] [&lt;nodes&gt;]</em></strong>
+</dt>
+<dd>
+<p>
+Primarily for debugging Bro configurations, the <tt>script</tt> command lists
+all the Bro scripts loaded by each of the nodes in the order as they
+will be parsed by the node at startup. If <tt>-p</tt> is given, all scripts
+are listed with their full paths. If <tt>-c</tt> is given, the command
+operates as <a href="#cmd_check::"><tt>check</tt></a> does: it reads the policy files
+from their <em>original</em> location, not the copies installed by
+<a href="#cmd_install"><tt>install</tt></a>. The latter option is useful to check a
+not yet installed configuration.
+</p>
+</dd>
+<dt>
+<a id="cmd_start"></a> <strong>start <em>[&lt;nodes&gt;]</em></strong>
+</dt>
+<dd>
+<p>
+Starts the given nodes, or all nodes if none are specified. Nodes
+already running are left untouched.
+</p>
+</dd>
+<dt>
+<a id="cmd_status"></a> <strong>status <em>[&lt;nodes&gt;]</em></strong>
+</dt>
+<dd>
+<p>
+Prints the current status of the given nodes.
+</p>
+</dd>
+<dt>
+<a id="cmd_stop"></a> <strong>stop <em>[&lt;nodes&gt;]</em></strong>
+</dt>
+<dd>
+<p>
+Stops the given nodes, or all nodes if none are specified. Nodes not
+running are left untouched.
+</p>
+</dd>
+<dt>
+<a id="cmd_top"></a> <strong>top <em>[&lt;nodes&gt;]</em></strong>
+</dt>
+<dd>
+<p>
+For each of the nodes, prints the status of the two Bro
+processes (parent process and child process) in a <em>top</em>-like
+format, including CPU usage and memory consumption. If
+executed interactively, the display is updated frequently
+until key <tt>q</tt> is pressed. If invoked non-interactively, the
+status is printed only once.
+</p>
+</dd>
+<dt>
+<a id="cmd_update"></a> <strong>update <em>[&lt;nodes&gt;]</em></strong>
+</dt>
+<dd>
+<p>
+After a change to Bro policy scripts, this command updates the Bro
+processes on the given nodes <em>while they are running</em> (i.e., without
+requiring a <a href="#cmd_restart"><tt>restart</tt></a>). However, such dynamic
+updates work only for a <em>subset</em> of Bro's full configuration. The
+following changes can be applied on the fly: (1) The value of all
+script variables defined as <tt>&amp;redef</tt> can be changed; and (2) all
+configuration changes performed via the <a href="#cmd_analysis"><tt>analysis</tt></a>
+command can be put into effect. More extensive script changes are not
+possible during runtime and always require a restart; if you change
+more than just the values of <tt>&amp;redef</tt> variables and still issue
+<tt>update</tt>, the results are undefined and can lead to crashes. Also note
+that before running <tt>update</tt>, you still need to do an
+<a href="#cmd_install"><tt>install</tt></a> (preferably after
+<a href="#cmd_install"><tt>check</tt></a>), as otherwise <tt>update</tt> will not see the
+changes and resend the old configuration.
+</p>
+</dd>
+</dl>
+</div>
+<h2><a id="_option_reference"></a>Option Reference</h2><p/>
+<div class="sectionbody">
+<p>This section summarizes the options that can be set in
+<tt>etc/broctl.cfg</tt> for customizing the behaviour of <em>BroControl</em>. Usually,
+one only needs to change the "user options", which are listed first.
+The "internal options" are, as the name suggests, primarily used
+internally and set automatically. They are documented here only for
+reference.</p>
+<h3><a id="_user_options"></a>User Options</h3><p/>
+<dl>
+<dt>
+<a id="opt_AuxPostProcessors"></a> <strong>AuxPostProcessors</strong> (string, default <em>empty</em>)
+</dt>
+<dd>
+<p>
+Additional log postprocessors, with paths separated by spaces.
+</p>
+</dd>
+<dt>
+<a id="opt_AuxScriptsManager"></a> <strong>AuxScriptsManager</strong> (string, default <em>empty</em>)
+</dt>
+<dd>
+<p>
+Additional Bro scripts loaded on the manager, separated by spaces.
+</p>
+</dd>
+<dt>
+<a id="opt_AuxScriptsStandalone"></a> <strong>AuxScriptsStandalone</strong> (string, default <em>empty</em>)
+</dt>
+<dd>
+<p>
+Additional Bro scripts loaded on a standalone Brothe manage, separated by spaces.
+</p>
+</dd>
+<dt>
+<a id="opt_AuxScriptsWorker"></a> <strong>AuxScriptsWorker</strong> (string, default <em>empty</em>)
+</dt>
+<dd>
+<p>
+Additional Bro scripts loaded on the workers, separated by spaces.
+</p>
+</dd>
+<dt>
+<a id="opt_BroArgs"></a> <strong>BroArgs</strong> (string, default <em>empty</em>)
+</dt>
+<dd>
+<p>
+Additional arguments to pass to Bro on the command-line.
+</p>
+</dd>
+<dt>
+<a id="opt_CFlowAddr"></a> <strong>CFlowAddr</strong> (string, default <em>empty</em>)
+</dt>
+<dd>
+<p>
+If a cFlow load-balander is used, the address of the device (format: &lt;ip&gt;:&lt;port&gt;).
+</p>
+</dd>
+<dt>
+<a id="opt_CFlowPassword"></a> <strong>CFlowPassword</strong> (string, default <em>empty</em>)
+</dt>
+<dd>
+<p>
+If a cFlow load-balander is used, the password for accessing its configuration interface.
+</p>
+</dd>
+<dt>
+<a id="opt_CFlowUser"></a> <strong>CFlowUser</strong> (string, default <em>empty</em>)
+</dt>
+<dd>
+<p>
+If a cFlow load-balander is used, the user name for accessing its configuration interface.
+</p>
+</dd>
+<dt>
+<a id="opt_CronCmd"></a> <strong>CronCmd</strong> (string, default <em>empty</em>)
+</dt>
+<dd>
+<p>
+A custom command to run everytime the cron command has finished.
+</p>
+</dd>
+<dt>
+<a id="opt_CustomInstallBin"></a> <strong>CustomInstallBin</strong> (string, default <em>empty</em>)
+</dt>
+<dd>
+<p>
+Additional executables to be installed into ${BinDir}, including full path and separated by spaces.
+</p>
+</dd>
+<dt>
+<a id="opt_Debug"></a> <strong>Debug</strong> (bool, default 0)
+</dt>
+<dd>
+<p>
+Enable extensive debugging output in spool/debug.log.
+</p>
+</dd>
+<dt>
+<a id="opt_DevMode"></a> <strong>DevMode</strong> (bool, default 0)
+</dt>
+<dd>
+<p>
+Enable development mode, which changes how things are installed by the <em>install</em> command.
+</p>
+</dd>
+<dt>
+<a id="opt_HaveNFS"></a> <strong>HaveNFS</strong> (bool, default 0)
+</dt>
+<dd>
+<p>
+True if shared files are mounted across all nodes via NFS (see FAQ).
+</p>
+</dd>
+<dt>
+<a id="opt_LogDir"></a> <strong>LogDir</strong> (string, default "${BroBase}/logs")
+</dt>
+<dd>
+<p>
+Directory for archived log files.
+</p>
+</dd>
+<dt>
+<a id="opt_LogExpireInterval"></a> <strong>LogExpireInterval</strong> (int, default 30)
+</dt>
+<dd>
+<p>
+Number of days log files are kept.
+</p>
+</dd>
+<dt>
+<a id="opt_MailAlarmPrefix"></a> <strong>MailAlarmPrefix</strong> (string, default "ALERT:")
+</dt>
+<dd>
+<p>
+Subject prefix for individual alerts triggered by NOTICE_EMAIL.
+</p>
+</dd>
+<dt>
+<a id="opt_MailAlarms"></a> <strong>MailAlarms</strong> (bool, default 1)
+</dt>
+<dd>
+<p>
+True if Bro should send mails for NOTICE_EMAIL alerts.
+</p>
+</dd>
+<dt>
+<a id="opt_MailAlarmsTo"></a> <strong>MailAlarmsTo</strong> (string, default "${MailTo}")
+</dt>
+<dd>
+<p>
+Destination address for broctl-generated alarm mails.
+</p>
+</dd>
+<dt>
+<a id="opt_MailFrom"></a> <strong>MailFrom</strong> (string, default "Big Brother &lt;&gt;")
+</dt>
+<dd>
+<p>
+Originator address for broctl-generated mails.
+</p>
+</dd>
+<dt>
+<a id="opt_MailReplyTo"></a> <strong>MailReplyTo</strong> (string, default <em>empty</em>)
+</dt>
+<dd>
+<p>
+Reply-to address for broctl-generated mails.
+</p>
+</dd>
+<dt>
+<a id="opt_MailSubjectPrefix"></a> <strong>MailSubjectPrefix</strong> (string, default "[Bro]")
+</dt>
+<dd>
+<p>
+General Subject prefix for broctl-generated mails.
+</p>
+</dd>
+<dt>
+<a id="opt_MailTo"></a> <strong>MailTo</strong> (string, default "&lt;user&gt;")
+</dt>
+<dd>
+<p>
+Destination address for broctl-generated non-alarm mails. Default is to use the same address as <tt>MailTo</tt>.
+</p>
+</dd>
+<dt>
+<a id="opt_MemLimit"></a> <strong>MemLimit</strong> (string, default "unlimited")
+</dt>
+<dd>
+<p>
+Maximum amount of memory for Bro processes to use (in KB, or the string <em>unlimited</em>).
+</p>
+</dd>
+<dt>
+<a id="opt_MinDiskSpace"></a> <strong>MinDiskSpace</strong> (int, default 5)
+</dt>
+<dd>
+<p>
+Percentage of minimum disk space available before warning is mailed.
+</p>
+</dd>
+<dt>
+<a id="opt_Prefixes"></a> <strong>Prefixes</strong> (string, default "local")
+</dt>
+<dd>
+<p>
+Additional script prefixes for Bro, separated by colons. Use this instead of @prefix.
+</p>
+</dd>
+<dt>
+<a id="opt_SaveTraces"></a> <strong>SaveTraces</strong> (bool, default 0)
+</dt>
+<dd>
+<p>
+True to let backends capture short-term traces via <em>-w</em>. These are not archived but might be helpful for debugging.
+</p>
+</dd>
+<dt>
+<a id="opt_SendMail"></a> <strong>SendMail</strong> (bool, default 1)
+</dt>
+<dd>
+<p>
+True if shell may send mails.
+</p>
+</dd>
+<dt>
+<a id="opt_SitePolicyManager"></a> <strong>SitePolicyManager</strong> (string, default "local-manager.bro")
+</dt>
+<dd>
+<p>
+Local policy file for manager.
+</p>
+</dd>
+<dt>
+<a id="opt_SitePolicyPath"></a> <strong>SitePolicyPath</strong> (string, default "${PolicyDir}/site")
+</dt>
+<dd>
+<p>
+Directories to search for local policy files, separated by colons.
+</p>
+</dd>
+<dt>
+<a id="opt_SitePolicyStandalone"></a> <strong>SitePolicyStandalone</strong> (string, default "local.bro")
+</dt>
+<dd>
+<p>
+Local policy file for standalone Bro.
+</p>
+</dd>
+<dt>
+<a id="opt_SitePolicyWorker"></a> <strong>SitePolicyWorker</strong> (string, default "local-worker.bro")
+</dt>
+<dd>
+<p>
+Local policy file for workers.
+</p>
+</dd>
+<dt>
+<a id="opt_TimeFmt"></a> <strong>TimeFmt</strong> (string, default "%d %b %H:%M:%S")
+</dt>
+<dd>
+<p>
+Format string to print data/time specifications (see <em>man strftime</em>).
+</p>
+</dd>
+<dt>
+<a id="opt_TimeMachineHost"></a> <strong>TimeMachineHost</strong> (string, default <em>empty</em>)
+</dt>
+<dd>
+<p>
+If the manager should connect to a Time Machine, the address of the host it is running on.
+</p>
+</dd>
+<dt>
+<a id="opt_TimeMachinePort"></a> <strong>TimeMachinePort</strong> (string, default "47757/tcp")
+</dt>
+<dd>
+<p>
+If the manager should connect to a Time Machine, the port it is running on (in Bro syntax, e.g., <tt>47757/tcp</tt>.
+</p>
+</dd>
+</dl>
+<h3><a id="_internal_options"></a>Internal Options</h3><p/>
+<dl>
+<dt>
+<a id="opt_AnalysisCfg"></a> <strong>AnalysisCfg</strong> (string, default "${CfgDir}/analysis.dat")
+</dt>
+<dd>
+<p>
+Configuration file defining types of analysis which can be toggled on-the-fly.
+</p>
+</dd>
+<dt>
+<a id="opt_BinDir"></a> <strong>BinDir</strong> (string, default "${BroBase}/bin")
+</dt>
+<dd>
+<p>
+Directory for executable files.
+</p>
+</dd>
+<dt>
+<a id="opt_BroBase"></a> <strong>BroBase</strong> (string, default <em>empty</em>)
+</dt>
+<dd>
+<p>
+Base path of broctl installation on all nodes.
+</p>
+</dd>
+<dt>
+<a id="opt_Capstats"></a> <strong>Capstats</strong> (string, default "${bindir}/capstats")
+</dt>
+<dd>
+<p>
+Path to capstats binary; empty if not available.
+</p>
+</dd>
+<dt>
+<a id="opt_CfgDir"></a> <strong>CfgDir</strong> (string, default "${BroBase}/etc")
+</dt>
+<dd>
+<p>
+Directory for configuration files.
+</p>
+</dd>
+<dt>
+<a id="opt_DebugLog"></a> <strong>DebugLog</strong> (string, default "${SpoolDir}/debug.log")
+</dt>
+<dd>
+<p>
+Log file for debugging information.
+</p>
+</dd>
+<dt>
+<a id="opt_DistDir"></a> <strong>DistDir</strong> (string, default <em>empty</em>)
+</dt>
+<dd>
+<p>
+Path to Bro distribution directory.
+</p>
+</dd>
+<dt>
+<a id="opt_HaveBroccoli"></a> <strong>HaveBroccoli</strong> (bool)
+</dt>
+<dd>
+<p>
+True if Broccoli interface is available.
+</p>
+</dd>
+<dt>
+<a id="opt_HelperDir"></a> <strong>HelperDir</strong> (string, default "${BroBase}/share/broctl/scripts/helpers")
+</dt>
+<dd>
+<p>
+Directory for broctl helper scripts.
+</p>
+</dd>
+<dt>
+<a id="opt_LibDir"></a> <strong>LibDir</strong> (string, default "${BroBase}/lib")
+</dt>
+<dd>
+<p>
+Directory for library files.
+</p>
+</dd>
+<dt>
+<a id="opt_LibDirInternal"></a> <strong>LibDirInternal</strong> (string, default "${BroBase}/lib/broctl")
+</dt>
+<dd>
+<p>
+Directory for broctl-specific library files.
+</p>
+</dd>
+<dt>
+<a id="opt_LocalNetsCfg"></a> <strong>LocalNetsCfg</strong> (string, default "${CfgDir}/networks.cfg")
+</dt>
+<dd>
+<p>
+File definining the local networks.
+</p>
+</dd>
+<dt>
+<a id="opt_LockFile"></a> <strong>LockFile</strong> (string, default "${SpoolDir}/lock")
+</dt>
+<dd>
+<p>
+Lock file preventing concurrent shell operations.
+</p>
+</dd>
+<dt>
+<a id="opt_NodeCfg"></a> <strong>NodeCfg</strong> (string, default "${CfgDir}/node.cfg")
+</dt>
+<dd>
+<p>
+Node configuration file.
+</p>
+</dd>
+<dt>
+<a id="opt_OS"></a> <strong>OS</strong> (string, default <em>empty</em>)
+</dt>
+<dd>
+<p>
+Name of operation systems as reported by uname.
+</p>
+</dd>
+<dt>
+<a id="opt_PolicyDir"></a> <strong>PolicyDir</strong> (string, default "${BroBase}/share/bro")
+</dt>
+<dd>
+<p>
+Directory for standard policy files.
+</p>
+</dd>
+<dt>
+<a id="opt_PolicyDirBroCtl"></a> <strong>PolicyDirBroCtl</strong> (string, default "${PolicyDir}/broctl")
+</dt>
+<dd>
+<p>
+Directory where the shell copies the additional broctl policy scripts when installing.
+</p>
+</dd>
+<dt>
+<a id="opt_PolicyDirSiteInstall"></a> <strong>PolicyDirSiteInstall</strong> (string, default "${PolicyDir}/.site")
+</dt>
+<dd>
+<p>
+Directory where the shell copies local policy scripts when installing.
+</p>
+</dd>
+<dt>
+<a id="opt_PolicyDirSiteInstallAuto"></a> <strong>PolicyDirSiteInstallAuto</strong> (string, default "${PolicyDir}/.site/auto")
+</dt>
+<dd>
+<p>
+Directory where the shell copies auto-generated local policy scripts when installing.
+</p>
+</dd>
+<dt>
+<a id="opt_PostProcDir"></a> <strong>PostProcDir</strong> (string, default "${BroBase}/share/broctl/scripts/postprocessors")
+</dt>
+<dd>
+<p>
+Directory for log postprocessors.
+</p>
+</dd>
+<dt>
+<a id="opt_Scripts-Manager"></a> <strong>Scripts-Manager</strong> (string, default "cluster-manager")
+</dt>
+<dd>
+<p>
+Bro scripts loaded on the manager, separated by spaces.
+</p>
+</dd>
+<dt>
+<a id="opt_Scripts-Proxy"></a> <strong>Scripts-Proxy</strong> (string, default "cluster-proxy")
+</dt>
+<dd>
+<p>
+Bro scripts loaded on the proxies, separated by spaces.
+</p>
+</dd>
+<dt>
+<a id="opt_Scripts-Standalone"></a> <strong>Scripts-Standalone</strong> (string, default "standalone")
+</dt>
+<dd>
+<p>
+Bro scripts loaded on a standalone Bro, separated by spaces.
+</p>
+</dd>
+<dt>
+<a id="opt_Scripts-Worker"></a> <strong>Scripts-Worker</strong> (string, default "cluster-worker")
+</dt>
+<dd>
+<p>
+Bro scripts loaded on the workers, separated by spaces.
+</p>
+</dd>
+<dt>
+<a id="opt_ScriptsDir"></a> <strong>ScriptsDir</strong> (string, default "${BroBase}/share/broctl/scripts")
+</dt>
+<dd>
+<p>
+Directory for executable scripts shipping as part of broctl.
+</p>
+</dd>
+<dt>
+<a id="opt_SpoolDir"></a> <strong>SpoolDir</strong> (string, default "${BroBase}/spool")
+</dt>
+<dd>
+<p>
+Directory for run-time data.
+</p>
+</dd>
+<dt>
+<a id="opt_StandAlone"></a> <strong>StandAlone</strong> (bool, default 0)
+</dt>
+<dd>
+<p>
+True if running in stand-alone mode (see elsewhere).
+</p>
+</dd>
+<dt>
+<a id="opt_StateFile"></a> <strong>StateFile</strong> (string, default "${SpoolDir}/broctl.dat")
+</dt>
+<dd>
+<p>
+File storing the current broctl state.
+</p>
+</dd>
+<dt>
+<a id="opt_StaticDir"></a> <strong>StaticDir</strong> (string, default "${BroBase}/share/broctl")
+</dt>
+<dd>
+<p>
+Directory for static, arch-independent files.
+</p>
+</dd>
+<dt>
+<a id="opt_StatsDir"></a> <strong>StatsDir</strong> (string, default "${LogDir}/stats")
+</dt>
+<dd>
+<p>
+Directory where statistics are kepts.
+</p>
+</dd>
+<dt>
+<a id="opt_StatsLog"></a> <strong>StatsLog</strong> (string, default "${SpoolDir}/stats.log")
+</dt>
+<dd>
+<p>
+Log file for statistics.
+</p>
+</dd>
+<dt>
+<a id="opt_TemplateDir"></a> <strong>TemplateDir</strong> (string, default "${BroBase}/share/broctl/templates")
+</dt>
+<dd>
+<p>
+Directory where the *.in templates are copied into.
+</p>
+</dd>
+<dt>
+<a id="opt_Time"></a> <strong>Time</strong> (string, default <em>empty</em>)
+</dt>
+<dd>
+<p>
+Path to time binary.
+</p>
+</dd>
+<dt>
+<a id="opt_TmpDir"></a> <strong>TmpDir</strong> (string, default "${SpoolDir}/tmp")
+</dt>
+<dd>
+<p>
+Directory for temporary data.
+</p>
+</dd>
+<dt>
+<a id="opt_TmpExecDir"></a> <strong>TmpExecDir</strong> (string, default "${SpoolDir}/tmp")
+</dt>
+<dd>
+<p>
+Directory where binaries are copied before execution.
+</p>
+</dd>
+<dt>
+<a id="opt_TraceSummary"></a> <strong>TraceSummary</strong> (string, default "${bindir}/trace-summary")
+</dt>
+<dd>
+<p>
+Path to trace-summary script; empty if not available.
+</p>
+</dd>
+<dt>
+<a id="opt_Version"></a> <strong>Version</strong> (string, default <em>empty</em>)
+</dt>
+<dd>
+<p>
+Version of the broctl.
+</p>
+</dd>
+</dl>
+</div>
+<h2><a id="_miscellanous"></a>Miscellanous</h2><p/>
+<div class="sectionbody">
+<h3><a id="_mails"></a>Mails</h3><p/>
+<p><em>BroControl</em> sents four types of mails to the address given in <tt>MailTo</tt>:</p>
+<ol>
+<li>
+<p>
+When logs are rotated (per default once a day), a list of all
+   alerts during the last rotation interval is sent. This can be
+   disabled by setting <tt>MailAlarms=0</tt>.
+</p>
+</li>
+<li>
+<p>
+When the <tt>cron</tt> command noticies that a node has crashed, it
+   restarts it and sends a notification. It may also send a more
+   detailed crash report containing information about the crash.
+</p>
+</li>
+<li>
+<p>
+NOTICES with a notice action of <tt>NOTICE_EMAIL</tt>; see the Bro
+   documentation for how to configure NOTICE priorities.
+</p>
+</li>
+<li>
+<p>
+If <a href="trace_summary"><tt>trace-summary</tt></a> is installed, a
+   traffic summary is sent each rotation interval.
+</p>
+</li>
+</ol>
+<h3><a id="_performance_analysis"></a>Performance Analysis</h3><p/>
+<p><em>TODO</em>: <tt>broctl cron</tt> logs a number of statistics, which can be
+analyzed/plotted for understanding the cluster's run-time behaviour.</p>
+</div>
+<h2><a id="_questions_and_answers"></a>Questions and Answers</h2><p/>
+<div class="sectionbody">
+<ol>
+<li>
+<p><em>
+Can I use an NFS-mounted partition as the cluster's base directory to avoid the <tt>rsync</tt>'ing?
+</em></p>
+<p>
+    Yes. <a href="#opt_BroBase"><tt>BroBase</tt></a> can be on an NFS partition.
+    Configure and install the shell as usual with
+    <tt>&#8212;prefix=&lt;BroBase&gt;</tt>. Then add <a href="#opt_HaveNFS">HaveNFS</a>=1+ and
+    <tt>SpoolDir=&lt;spath&gt;</tt> to <tt>etc/broctl.cfg</tt>, where <tt>&lt;spath&gt;</tt> is a
+    path on the local disks of the nodes; <tt>&lt;spath&gt;</tt> will be used for
+    all non-shared data (make sure that the parent directory exists
+    and is writable on all nodes!). Then run <a href="#cmd_install"><tt>make
+    install-broctl</tt></a> again. Finally, you can remove
+    <tt>&lt;BroBase&gt;/spool</tt> (or link it to &lt;spath&gt;). In addition, you
+    might want to keep the log files locally on the nodes as well by
+    setting <a href="#opt_LogDir"><tt>LogDir</tt></a>+ to a non-NFS directory. (Only
+    the manager's logs will be kept permanently, the logs of
+    workers/proxies are discarded upon rotation.)
+</p>
+</li>
+<li>
+<p><em>
+When I'm using the <a href="#Standalone">standalone mode</a>, do I still need to have <tt>ssh</tt> and <tt>rsync</tt> installed and configured?
+</em></p>
+<p>
+    No. The standalone performs all operations directly on the local
+    file system.
+</p>
+</li>
+<li>
+<p><em>
+What do I need to do when the something in the Bro distribution changes?
+</em></p>
+<p>
+    Just re-run <tt>make broctl-install</tt>. It will reinstall
+    all the files from the distribution, except for any of the
+    template files, as they might have been edited.
+</p>
+<p>In addition, <em>BroControl</em> has a "development mode", which makes
+installation easier if distribution files change frequently
+(e.g., becayse you're working from SVN). Development mode
+activated by adding <tt>DevMode=1</tt> to <tt>etc/broctl.cfg</tt>. Once done,
+<em>BroControl</em>'s <tt>install</tt> command will also install all the files
+from the distribution, just as <tt>make broctl-install</tt> does. Note
+that you obviously need to keep the distribution around to have
+this work.</p>
+<p>Note for folks who have used the old "cluster shell": the
+development mode corresponds to the old default behaviour, which
+worked with any <tt>make install-broctl</tt>.</p>
+</li>
+<li>
+<p><em>
+After a Bro crash, the timestamps of the archived log files sometimes seem to be wrong?
+</em></p>
+<p>
+   When Bro crashes, broctl archives the log files produced so far
+   at the normal location. However, for some files it can't (easily)
+   determine the right timestamps to put into the filename. This
+   affects in particular those log files that are not rotated on
+   regular basis (e.g., <tt>stdout.log</tt>, <tt>prof.log</tt>); their filenames
+   will indicate as their start time the point when all the other
+   files were <em>rotated</em> most recently. In addition, for all log
+   files, after a crash the start/end times indicated by the file
+   names might be off a few seconds.
+</p>
+</li>
+<li>
+<p><em>
+<a id="devversion"></a>Anything special to consider when using development versions?
+</em></p>
+<p>
+   If you are using a <em>development version</em>, <em>BroControl</em> might
+   require patching Bro itself to work correctly. A "development
+   version" is defined as anything you have downloaded from Bro's
+   Subversion repository (as opposed to downloading a release
+   tar-ball). If so, see if there's a file called
+   <tt>aux/broctl/patch-bro.diff</tt>. If there is, apply it as follows
+   before you proceed with any of the steps below:
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><tt>&gt; cd /path/to/bro/source/distribution
+&gt; patch -p0 &lt;aux/broctl/patch-bro.diff
+&gt; ./autogen.sh</tt></pre>
+</div></div>
+</li>
+</ol>
+</div>
+<div id="footer">
+<div id="footer-text">
+Last modified at 2009-12-03 12:58:36 PDT - Robin Sommer
+</div>
+</div>
+</body>
+</html>

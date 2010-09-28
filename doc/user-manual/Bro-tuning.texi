@@ -1,0 +1,144 @@
+
+@strong{NOTE: This chapter still a rough draft and incomplete}
+
+If the link you are monitoring with Bro has
+too many connections per second, or if you have too many policy
+modules loaded, it is possible that Bro will not be able to keep
+up, and that the Bro host will drop too many packets to be able to
+perform accurate analysis.
+
+A "rule of thumb" for Bro is that if CPU usage is < 50% and memory
+use is < 70% of physical memory, than you should not have any worries.
+
+Otherwise you might want to explore the tuning options below.
+
+For sites with an extremely high load you might consider using multiple
+Bro boxes, each configured to capture and analyze different types of traffic.
+
+Note that the amount of CPU required by Bro is a function of both the number
+of connections/second and the number of packets/second. So it's possible
+that a large site (e.g., 2,000 hosts) on a slow link (e.g., 100 Mbps) would
+still have performance issues because it has a very large 
+number of connections / second. 
+
+@menu
+* Hardware and OS Tuning ::
+* Bro Policy Tuning ::
+@end menu
+
+@node Hardware  and OS Tuning
+@section Hardware  and OS Tuning
+@cindex Hardware Tuning
+@cindex OS Tuning
+
+If your CPU load > 50% or your memory footprint is > 70% of physical 
+memory, an obvious solution is to buy a faster CPU or more memory.
+
+If this is not possible, here are some other things to try.
+
+@strong{FreeBSD}
+
+First, check that your BPF buffer size is big enough. The Bro installation
+script should set this correctly for you, but to test this, do:
+@smallexample
+sysctl debug.bpf_bufsize
+sysctl debug.bpf_maxbufsize
+@end smallexample
+
+They should both be at least 4 MB.
+
+Next, if your Bro host is capturing packets on 2 interfaces and you are
+running FreeBSD, we provide a patched kernel that bonds both interfaces
+into a single interface at the BPF level. This reduces CPU load considerably.
+This patched kernel also increases the default per-process memory limits.
+
+This kernel source is available for download at:
+@smallexample
+@uref{http://www.bro-ids.org/download/FreeBSD.4.10.bro.tgz}.
+@end smallexample
+
+To install this kernel and the BPF bonding utilites, type:
+
+@smallexample
+tar xfz fbsd.4.10.bond.tgz
+cd FreeBSD-4-10-RELEASE/sys/i386/conf
+/usr/sbin/config BRO
+cd ../../compile/BRO
+make depend
+make
+make install
+
+cd FreeBSD-4-10-RELEASE/local/sbin/bpfbond/
+make
+make install
+
+reboot
+@end smallexample
+
+For more instructions on rebuilding the kernel, see:
+@uref{http://www.freebsd.org/doc/en_US.ISO8859-1/books/handbook/kernelconfig.html}.
+
+
+@strong{Linux}
+
+Check that the net.core.rmem_max buffer is big enough. The Bro installation
+script should set this correctly for you, but to test this, do:
+@smallexample
+sysctl net.core.rmem_max 
+@end smallexample
+
+It should be at least 4 MB.
+
+For heavy traffic load, the Linux version of libpcap has a hard time keeping up.
+There are a couple a options available to improve Linux pcap performance.
+These include:
+
+Phil Wood's libpcap replacement: (see http://public.lanl.gov/cpw/)
+Luca Deri's patch to fix libpcap issues. (see http://luca.ntop.org/Ring.pdf)
+
+(Note that Phil Wood's version of libpcap seems to be buggy in non-blocking 
+mode. Build Bro using the --disable-selectloop option to disable non-blocking
+mode if using this version of libpcap.)
+
+
+@node  Bro Policy Tuning
+@section  Bro Policy Tuning
+@cindex  Bro Policy Tuning
+
+If the hardware and OS tuning solutions fail to bring your 
+CPU load or memory consumption under control, next you will
+have to start turning off analyzers. Signatures are particularly CPU 
+and memory intensive,
+so try turning it off or greatly reduce the number of signatures it
+is processing. The HTTP analyzers are also CPU intensive. For example,
+to turn off the HTTP reply analyzer, add the following lines at the beginning
+of the file @code{$BROHOME/site/brohost.bro}, before any @@load commands.
+
+@smallexample
+@@unload http-reply        
+@end smallexample
+
+Another solution is to modify libpcap filter for Bro. This is done
+by adding @code{restrict_filters}. For example, to only capture SYN/FIN
+packets from a large web proxy, you can do this:
+
+@verbatim
+redef restrict_filters += { ["not proxy outbound Web replies"] = 
+     "not (host bigproxy.mysite.net and
+           src port 80 and (tcp[13] & 7 == 0))" };
+@end verbatim
+
+This filter will allow you to record the number and size of the HTTP replies,
+but will not do further HTTP analysis.
+ 
+Another way to reduce the CPU load of Bro analysis is to split the work
+across two Bro hosts. An easy way to do this is to take the sum of the
+source and destination IPs, and monitor even combinations
+on one host and odd combinations on a second host.
+
+For example:
+
+@verbatim
+redef restrict_filters += { ["capture even src/dest pairs only"] = "(ip[12:4] + ip[16:4]) & 1 == 0" };
+@end verbatim
+

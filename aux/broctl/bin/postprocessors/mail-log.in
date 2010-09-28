@@ -1,0 +1,35 @@
+#! /usr/bin/env bash
+#
+# $Id: mail-log.in 6811 2009-07-06 20:41:10Z robin $
+#
+# Formats Bro's mail.log, archives, encrypts and mails it (if requested).
+#
+# It's called as a Bro postprocessor so its arguments are:
+# 	   mail-log <logfile> <basename> <timestamp-when-opened> <timestamp-when-closed> [<tag>]
+
+if [ "$2" != "mail.log" ]; then
+   exit 0
+fi
+
+log=$1
+base=$2
+open=$3
+close=$4
+tag=$5
+
+# Do nothing if log is empty
+if [ ! -s $log ]; then
+    rm -f $log
+    exit 0;
+fi
+
+# Build subject 
+start=`echo $open | sed 's/^..-..-.._//' | sed 's/\./:/g'`
+end=`echo $close | sed 's/^..-..-.._//' | sed 's/\./:/g'`
+subject="Log from $start-$end"
+
+# Mail it.
+if [ "${mailalarms}" == "1" ]; then
+   ${scriptsdir}/send-mail "$subject" "${mailalarmsto}" <$log
+fi
+

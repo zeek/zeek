@@ -1,0 +1,27 @@
+# $Id: node.cfg.cluster.in 6811 2009-07-06 20:41:10Z robin $
+#
+# Node configuration
+#
+
+[manager]
+type=manager
+host=host1
+
+[proxy-1]
+type=proxy
+host=host1
+
+[worker-1]
+type=worker
+host=host2
+interface=em0
+
+[worker-2]
+type=worker
+host=host3
+interface=em0
+
+[worker-3]
+type=worker
+host=host4
+interface=em0

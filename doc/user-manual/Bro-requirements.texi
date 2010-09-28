@@ -1,0 +1,93 @@
+
+
+@menu
+* Network Tap ::
+* Hardware and Software Requirements ::
+@end menu
+
+
+@node Network Tap
+@section Network Tap
+@cindex network tap
+
+Bro requires
+a network tap to give it access to live network traffic. 
+The tap needs to be full-speed for the link being monitored and must provide
+copies of both directions of the link, or you need to two taps, one in
+each direction.
+
+Normally the network tap for Bro should be placed behind an external firewall and on the DMZ 
+(the portion of the network under the control of the organization but outside of the internal firewall), 
+as shown in the figure below. Some organizations might prefer to install the network tap outside 
+the firewall in order to detect all scans or attacks.  Placing Bro outside the firewall will allow
+the organization to better understand attacks, but will produce a more notifications and alarms. Another option is to place Bro inside the internal firewall, allowing it to detect internal hosts with viruses or worms.
+In addition to the connection to the network tap, a separate network connection is recommended 
+for management of Bro and access to log files.
+
+For more information on taps and tap placement see the Netoptics White paper titled @emph{Deploying Network Taps with Intrusion Detection Systems} (@uref{http://www.netoptics.com/products/pdf/Taps-and-IDSs.pdf}).
+
+@float Figure, tap location
+@image{bro-deployment,6.3in}
+@caption{Typical location for network tap and Bro system}
+@end float
+
+@node Hardware and Software Requirements
+@section Hardware and Software Requirements
+
+Bro requires no custom hardware, and runs on low-cost commodity PC-style systems.
+However, the Bro monitoring host must examine every packet into and out of 
+your site, so depending on your site's network traffic, you may need a fairly high-end machine.
+If you are trying to monitor a link with a large number of connections, we recommend using
+a second system for report generation, and run only Bro on the packet-capture host.
+
+@quotation
+@multitable  @columnfractions .25 .75
+@comment only work with texiinfo 4.7 or higher: @headitem Item @tab Requirements
+@item @strong{Item} @tab @strong{Requirements}
+
+@item @strong{Processor}
+@tab Note: these are @strong{rough} estimates. Much depends on the
+number of connections/second, the types of
+traffic on your network (e.g., HTTP, FTP, email, etc.), and you can trade
+off depth of analysis (especially, which protocols are analyzed) for processing
+load.  (See the Performance chapter of the Bro User Guide for more information.)
+@* 1 GHz CPU for 100 Mbps monitoring with average packet rate <= 5,000 packets/second
+@* 2 GHz CPU for 1 Gbps monitoring with <= 10,000 packets/second
+@* 3 GHz CPU for 1 Gbps monitoring with <= 20,000 packets/second
+@* 4 GHz CPU for 1 Gbps monitoring with <= 50,000 packets/second
+
+@item @strong{Operating System}
+@tab Recommended: FreeBSD (@uref{http://www.freebsd.org/}).  Bro works with
+many Unix systems, including Linux and Solaris, but has been primarily tuned
+for FreeBSD. We currently recommend using FreeBSD version 4.10 for Bro.
+If your site has a large number of packets or connections per second you should
+look at the section on @ref{Hardware and OS Tuning}.
+FreeBSD 5.x should work, but is not quite as fast as 4.10. 
+For sites with very high traffic loads and capturing traffic on 
+ two interfaces, contact us for a FreeBSD 4.x kernel patch 
+to do @emph{BPF bonding}, which allows merging the two directions of a
+network link into a single interface as seen by Bro.  While Bro can instead
+merge the two interfaces at user-level, this costs some performance.
+
+@item @strong{Memory}
+@tab 512 MB suffices for small networks (say 200 hosts connected via a
+100 Mbps link).  For larger networks, 1 GB RAM will be required, with
+2-3 GB is recommended.
+
+@item @strong{Hard disk}
+@tab 10 GB minimum, 50 GB or more for log files recommended.
+
+@item @strong{User privileges}
+@tab @emph{superuser} to install Bro, with Bro then running as user @emph{bro}.
+
+@item @strong{Network Interfaces}
+@tab 3 interfaces are recommended: 2 for packet capture (1 for each direction), and 1 for host management. Capture interfaces should be identical.  For some network taps, both directions of the link are captured using the same interface, and the separate host management interface, while prudent, is not required.
+
+@item @strong{Other Software}
+@tab - Perl version 5.6 or higher (@uref{http://www.perl.org}) (for report generation)
+@* - libpcap version 0.7.2 or higher (@uref{http://www.tcpdump.org}) 
+@*      Note: Some version of FreeBSD come with older versions of libpcap. Bro
+recommends newer versions of these tools for performance reasons.
+
+@end multitable
+@end quotation

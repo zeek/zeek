@@ -1,0 +1,20 @@
+# (C) Copyright 2001-2004, Martin Roesch, Brian Caswell, et al.
+#    All rights reserved.
+# $Id: multimedia.rules 91 2004-07-15 08:13:57Z rwinslow $
+#-------------
+# MULTIMEDIA RULES
+#-------------
+# These signatures look for people using streaming multimedia technologies.
+# Using streaming media may be a violation of corporate policies.
+
+alert tcp $HOME_NET any -> $EXTERNAL_NET 80 (msg:"MULTIMEDIA Quicktime User Agent access"; flow:to_server,established; content:"User-Agent|3A| Quicktime"; classtype:policy-violation; sid:1436; rev:4;)
+alert tcp $EXTERNAL_NET 80 -> $HOME_NET any (msg:"MULTIMEDIA Windows Media audio download"; flow:from_server,established; content:"Content-type|3A| audio/x-ms-wma"; nocase; content:"|0A|"; within:2; classtype:policy-violation; sid:1437; rev:5;)
+alert tcp $EXTERNAL_NET 80 -> $HOME_NET any (msg:"MULTIMEDIA Windows Media Video download"; flow:from_server,established; content:"Content-type|3A| video/x-ms-asf"; nocase; content:"|0A|"; within:2; classtype:policy-violation; sid:1438; rev:6;)
+alert tcp $EXTERNAL_NET 80 -> $HOME_NET any (msg:"MULTIMEDIA Shoutcast playlist redirection"; flow:from_server,established; content:"Content-type|3A| audio/x-scpls"; nocase; content:"|0A|"; within:2; classtype:policy-violation; sid:1439; rev:5;)
+alert tcp $EXTERNAL_NET 80 -> $HOME_NET any (msg:"MULTIMEDIA Icecast playlist redirection"; flow:from_server,established; content:"Content-type|3A| audio/x-mpegurl"; nocase; content:"|0A|"; within:2; classtype:policy-violation; sid:1440; rev:5;)
+alert tcp $HOME_NET any -> 64.245.58.0/23 any (msg:"MULTIMEDIA audio galaxy keepalive"; flow:established; content:"E_|00 03 05|"; depth:5; classtype:misc-activity; sid:1428; rev:5;)
+alert tcp $HOME_NET any -> $EXTERNAL_NET $HTTP_PORTS (msg:"MULTIMEDIA realplayer .ram playlist download attempt"; flow:to_server,established; uricontent:".ram"; flowbits:set,realplayer.playlist; flowbits:noalert; classtype:misc-activity; sid:2419; rev:2;)
+alert tcp $HOME_NET any -> $EXTERNAL_NET $HTTP_PORTS (msg:"MULTIMEDIA realplayer .rmp playlist download attempt"; flow:to_server,established; uricontent:".rmp"; flowbits:set,realplayer.playlist; flowbits:noalert; classtype:misc-activity; sid:2420; rev:2;)
+alert tcp $HOME_NET any -> $EXTERNAL_NET $HTTP_PORTS (msg:"MULTIMEDIA realplayer .smi playlist download attempt"; flow:to_server,established; uricontent:".smi"; flowbits:set,realplayer.playlist; flowbits:noalert; classtype:misc-activity; sid:2421; rev:2;)
+alert tcp $HOME_NET any -> $EXTERNAL_NET $HTTP_PORTS (msg:"MULTIMEDIA realplayer .rt playlist download attempt"; flow:to_server,established; uricontent:".rt"; flowbits:set,realplayer.playlist; flowbits:noalert; classtype:misc-activity; sid:2422; rev:2;)
+alert tcp $HOME_NET any -> $EXTERNAL_NET $HTTP_PORTS (msg:"MULTIMEDIA realplayer .rp playlist download attempt"; flow:to_server,established; uricontent:".rp"; flowbits:set,realplayer.playlist; flowbits:noalert; classtype:misc-activity; sid:2423; rev:2;)

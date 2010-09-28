@@ -1,0 +1,18 @@
+# (C) Copyright 2001-2004, Martin Roesch, Brian Caswell, et al.
+#    All rights reserved.
+# $Id: nntp.rules 91 2004-07-15 08:13:57Z rwinslow $
+#----------
+# NNTP RULES
+#----------
+
+alert tcp $EXTERNAL_NET 119 -> $HOME_NET any (msg:"NNTP return code buffer overflow attempt"; flow:to_server,established,no_stream; content:"200"; isdataat:64,relative; pcre:"/^200\s[^\n]{64}/smi"; reference:bugtraq,4900; reference:cve,2002-0909; classtype:protocol-command-decode; sid:1792; rev:8;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 119 (msg:"NNTP AUTHINFO USER overflow attempt"; flow:to_server,established; content:"AUTHINFO"; nocase; content:"USER"; distance:0; nocase; isdataat:200,relative; pcre:"/^AUTHINFO\s+USER\s[^\n]{200}/smi"; reference:arachnids,274; reference:bugtraq,1156; reference:cve,2000-0341; classtype:attempted-admin; sid:1538; rev:13;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 119 (msg:"NNTP sendsys overflow attempt"; flow:to_server,established; content:"sendsys"; nocase; pcre:"/^sendsys\x3a[^\n]{21}/smi"; reference:bugtraq,9382; reference:cve,2004-00045; classtype:attempted-admin; sid:2424; rev:3;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 119 (msg:"NNTP senduuname overflow attempt"; flow:to_server,established; content:"senduuname"; nocase; pcre:"/^senduuname\x3a[^\n]{21}/smi"; reference:bugtraq,9382; reference:cve,2004-00045; classtype:attempted-admin; sid:2425; rev:3;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 119 (msg:"NNTP version overflow attempt"; flow:to_server,established; content:"version"; nocase; pcre:"/^version\x3a[^\n]{21}/smi"; reference:bugtraq,9382; reference:cve,2004-00045; classtype:attempted-admin; sid:2426; rev:3;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 119 (msg:"NNTP checkgroups overflow attempt"; flow:to_server,established; content:"checkgroups"; nocase; pcre:"/^checkgroups\x3a[^\n]{21}/smi"; reference:bugtraq,9382; reference:cve,2004-00045; classtype:attempted-admin; sid:2427; rev:3;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 119 (msg:"NNTP ihave overflow attempt"; flow:to_server,established; content:"ihave"; nocase; pcre:"/^ihave\x3a[^\n]{21}/smi"; reference:bugtraq,9382; reference:cve,2004-00045; classtype:attempted-admin; sid:2428; rev:3;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 119 (msg:"NNTP sendme overflow attempt"; flow:to_server,established; content:"sendme"; nocase; pcre:"/^sendme\x3a[^\n]{21}/smi"; reference:bugtraq,9382; reference:cve,2004-00045; classtype:attempted-admin; sid:2429; rev:3;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 119 (msg:"NNTP newgroup overflow attempt"; flow:to_server,established; content:"newgroup"; nocase; pcre:"/^newgroup\x3a[^\n]{21}/smi"; reference:bugtraq,9382; reference:cve,2004-00045; classtype:attempted-admin; sid:2430; rev:3;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 119 (msg:"NNTP rmgroup overflow attempt"; flow:to_server,established; content:"rmgroup"; nocase; pcre:"/^rmgroup\x3a[^\n]{21}/smi"; reference:bugtraq,9382; reference:cve,2004-00045; classtype:attempted-admin; sid:2431; rev:3;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 119 (msg:"NNTP article post without path attempt"; flow:to_server,established; content:"takethis"; nocase; pcre:!"/^takethis.*?Path\x3a.*?[\r]{0,1}?\n[\r]{0,1}\n/si"; classtype:attempted-admin; sid:2432; rev:2;)

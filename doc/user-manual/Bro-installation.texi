@@ -1,0 +1,432 @@
+
+@menu
+* Download ::
+* Install ::
+* Bro Configuration ::
+* OS Configuration ::
+* Encrypted Reports ::
+* Generating Reports on a Separate Host ::
+@end menu
+
+@node Download
+@section Download
+@cindex download
+
+Download Bro from: @uref{http://www.bro-ids.org/}
+
+You can unpack the distribution anywhere except into the directory
+you plan to install into. To untar the file, type:
+
+@example
+tar xzf bro-pub-0.9-current.tar.gz
+@end example
+
+@node Install
+@section Install
+@cindex BROHOME
+
+You'll need to collect the following information before beginning the installation.
+
+@itemize
+@item localnets: a list of local subnets for your network. Bro needs to know which networks are "internal" and which are "external".
+
+@item interface names: the names of the capture interfaces in your host (e.g. sk0 or en1). Use @code{ifconfig -a} to get the list of all network interfaces on your Bro host.
+@end itemize
+
+If you want to use Bro's periodic email report feature, you'll also need:
+@itemize
+@item email list: a list of email addresses to send the reports to.
+
+@item PGP keys: if you want to encrypt all email reports, the location of the 
+@uref{http://www.gnupg.org/,GPG keyring} of all recipients.
+@end itemize
+
+Bro is easy to install. Log in as @code{root}, and type:
+@example
+./configure
+@end example
+By default Bro is installed in @code{/usr/local/bro}. 
+This location
+is referred to in the rest of the manual as @code{$BROHOME}.
+To install Bro in a location other than @file{/usr/local/bro}, use:
+@example
+./configure --prefix=/path/to/bro
+@end example
+By default Bro uses the version of libpcap that is installed on
+the system. If your system version older than version 0.7.2, you can run configure
+Bro with --enable-shippedpcap to use the version of libpcap that comes packaged
+with Bro. For example:
+@example
+./configure --enable-shippedpcap
+@end example
+
+Then type:
+@example
+make
+make install
+@end example
+or
+@example
+make install-brolite
+@end example
+
+Use @emph{make install} to install all the Bro binaries and policy script files. Use
+@emph{make install-brolite} to also run the configuration script (described in the next section) and install all the configuration files and @code{cron} jobs. @emph{make install} can be run as any user, but @emph{make install-brolite} requires
+you to be root.
+
+To update an existing Bro installation with new binaries and standard policy files, instead
+of @code{"make install"} do a @code{"make update"}. This will preserve all your local customizations.
+
+Then add @code{$BROHOME/bin} and @code{$BROHOME/scripts} to your $PATH to use
+Bro's utilities and scripts.
+
+Also note that this documentation is installed in @code{$BROHOME/docs} as both HTML and PDF versions.
+
+@node Bro Configuration
+@section Bro Configuration
+@cindex bro_config
+@cindex bro.cfg
+
+The @emph{Bro-Lite} configuration script can be used to automatically configure (or reconfigure) Bro for you. It
+checks your system's BPF settings, creates a "bro" user account, installs
+a script to start Bro at boot time, installs the report generation package,
+and installs a number of @code{cron} jobs 
+to checkpoint Bro every night, run periodic reports, and manage log files.
+
+To run this configuration script type:
+@example
+bro_config
+@end example
+
+
+This script creates the file @file{$BROHOME/etc/bro.cfg}.
+@code{bro_config} will ask a number of simple questions. Note
+that the full functionality of this script is only supported
+under FreeBSD. Some additional configuration may need to be
+done by hand under Linux.
+
+Sample output of @code{bro_config}, along with explanation, is shown below:
+
+@quotation
+
+@verbatim
+Running Bro Configuration Utility
+Checking interfaces ....  Done.
+Reading /usr/local/bro/etc/bro.cfg.example for defaults.
+@end verbatim
+@quotation 
+@quotation 
+The @code{bro_config} script looks first at ./bro.cfg, then /usr/local/bro/etc,  
+for default values to use below.
+@end quotation
+@end quotation
+
+@verbatim
+Bro Log archive location [/usr/local/bro/archive] 
+@end verbatim
+@quotation
+@quotation
+This is the directory where log file archives are kept. 
+If you expect the log files to be very large, it is recommended to put these in a separate disk partition.
+@end quotation
+@end quotation
+
+@verbatim
+User id to install and run Bro under [bro] 
+@end verbatim
+@quotation
+@quotation
+@code{bro_config} will create a new user account with this username if the user does not exist. 
+@end quotation
+@end quotation
+
+@verbatim
+Interface names to listen on. [en1,en2] 
+@end verbatim
+@quotation
+@quotation
+@code{bro_config} looks for all network interfaces and does a short test to determine which interfaces see the most traffic, and selects these interfaces as the default. 
+@end quotation
+@end quotation
+
+@verbatim
+Site name for reports (i.e. LBNL, FOO.COM, BAZ.ORG) [] 
+Starting Report Time [0600]
+Report interval (in hours) [24]
+Email addresses for reports [bro@localhost] 
+@end verbatim
+
+@quotation
+@quotation
+Daily reports will be created.  
+Enter the site name you want to appear at the top and in the subject of all email reports.
+The "start time" and "interval" define the window of 
+network activity that the daily report will cover, starting at "Starting Report Time" and 
+lasting through "Report interval". The start time should be entered using 24hr clock notation. 
+For example: 12:30AM = 0030,  2PM = 1400
+@end quotation
+@end quotation
+
+
+@verbatim
+Do you want to encrypt the email reports (Y/N) [N]
+Y
+@end verbatim
+@quotation
+@quotation 
+If you want the email reports encrypted, you will need to set up GPG (@uref{http://www.gnupg.org})
+and create a GPG keyring containing the public keys of all email recipients. Instructions 
+for this are in @ref{Encrypted Reports}.
+@emph{Note: PGP keys are compatible with GPG, but the Bro supplied scripts 
+require GPG, not PGP}.
+
+@end quotation
+@end quotation
+
+@verbatim
+Running script to determine your local subnets ... 
+Your Local subnets [198.129.224.1/32] 
+@end verbatim
+
+@quotation
+Bro needs to know a list of your local subnets. @code{bro_config} runs a tool 
+that attempts to discover this automatically. 
+You should always verify the results of this tool. The format is a list of subnet/significant 
+bits of address. 
+For example: 131.243.0.0/16, 198.128.0.0/18, 198.129.224.1/32
+This information will be stored in the file @code{$BROHOME/site/local.site.bro}
+@end quotation
+
+@verbatim
+Saving settings to file: /usr/local/bro/etc/bro.cfg
+Bro configuration finished. 
+To change these values, you can rerun bro_config at any time.
+@end verbatim
+@quotation
+Indicates that the script finished successfully.
+@end quotation
+
+@end quotation
+
+For site monitoring very high traffic rates on Gigabit Ethernet, there is some
+additional system tuning that should be done. See the @ref{Performance Tuning} 
+section for more details.
+
+To reconfigure Bro, run:
+@example
+BRHOME/scripts/bro_config
+@end example
+
+This will update your @file{/usr/local/bro/etc/bro.cfg} file. You can also edit this file using your favorite editor if you prefer.
+
+For other site customizations, you can edit the file $BROHOME/site/brohost.bro.
+For example, to tell bro to not look at traffic for host 198.162.44.66, add:
+@verbatim
+     redef restrict_filters += {
+       ["ignore host 198.162.44.66 "] =
+	 "not host 198.162.44.66"
+     };
+@end verbatim
+
+More details are available in the section on @ref{Customizing Bro}.
+
+@node OS Configuration
+@section OS Configuration
+
+This section contains information on critical OS tuning items. More detailed
+tuning information can be found in the section on @ref{Performance Tuning}.
+
+@strong{FreeBSD Configuration}
+
+The standard FreeBSD kernel imposes a per-process limit of 512 MB of memory.
+This is not enough for most Bro installations. 
+
+To check your current limit type:
+
+@smallexample
+limits -H
+@end smallexample
+
+Unfortunately the only way to increase this limit in FreeBSD 4.x
+is to reconfigure and rebuild the kernel.
+In FreeBSD 5.x it is much easier. Just increase
+@code{kern.maxdsiz} in @file{/boot/defaults/loader.conf} and reboot.
+For example:
+@smallexample
+kern.maxdsiz="2G"
+@end smallexample
+
+
+and look at the @code{datasize} setting, which should be the same
+as your amount of RAM. If this is not true, see section @ref{Hardware and OS Tuning}
+for information on fixing this.
+
+For FreeBSD 5.3+, BPF devices are no longer created using MAKEDEV, but rather are
+created on demand. This is configured automatically by running '@code{make install-brolite}',
+or you can figure it by hand by adding the following to @code{/etc/rc.local}
+
+@verbatim
+devfs ruleset 15
+devfs rule add 15 path 'bpf*' mode 660 user bro
+@end verbatim
+ 
+
+@strong{Linux Configuration}
+
+You may want increase these for a high traffic environment.
+
+@emph{not done: need to get recommended values for these}:
+
+@verbatim
+/proc/sys/net/core/rmem_default (IP-Stack socket receive queue)
+/proc/sys/net/core/rmem_max     (similar to rmem_default)
+/proc/sys/net/core/netdev_max_backlog (queue between driver and socket)
+@end verbatim
+
+
+@node Encrypted Reports 
+@section Encrypted Reports 
+@cindex GPG
+
+Bro can use GPG (@uref{http://www.gnupg.org/}) to encrypt
+the reports that it sends. To have Bro encrypt your
+reports you must have said "yes" to the bro_config question to
+encrypt your reports. 
+Then each email recipient much generate a public/private key pair, and their public key 
+must be installed on the Bro machine in the home directory of the user running
+the Bro process.
+
+To create a key-pair:
+
+@example
+gpg --gen-key
+@end example
+
+To export the public key:
+
+@example
+gpg --armor --output mykey.gpg --export myemail@@address.com
+@end example
+
+Then login to the machine running Bro and import the list of public keys:
+
+@example
+gpg --import mykey.gpg
+@end example
+
+
+Then you must to make the list of keys "trusted" so that they can be used
+to encrypt the email reports. To do this, you must 
+edit the key to add "ultimate" trust to the key.
+
+@example
+gpg --edit-key myemail@@address.com
+
+pub  1024D/4A872E40  created: 2001-02-05 expires: never      trust: -/f
+sub  3072g/B72DD7FE  created: 2001-02-05 expires: never     
+(1). Some R. User <myemaill@@address.com>
+
+Command> trust
+pub  1024D/4A872E40  created: 2001-02-05 expires: never      trust: -/f
+sub  3072g/B72DD7FE  created: 2001-02-05 expires: never     
+(1). Some R. User <myemail@@address.com>
+
+Please decide how far you trust this user to correctly
+verify other users' keys (by looking at passports,
+checking fingerprints from different sources...)?
+
+ 1 = Don't know
+ 2 = I do NOT trust
+ 3 = I trust marginally
+ 4 = I trust fully
+ 5 = I trust ultimately
+ m = back to the main menu
+
+Your decision? 5
+Do you really want to set this key to ultimate trust? yes
+
+pub  1024D/4A872E40  created: 2001-02-05 expires: never      trust: u/u
+sub  3072g/B72DD7FE  created: 2001-02-05 expires: never     
+(1). Some R. User <myemail@@address.com>
+
+Command> quit
+
+@end example
+
+For more information on GPG see @uref{http://www.gnupg.org/}
+
+@node Generating Reports on a Separate Host 
+@section Generating Reports on a Separate Host 
+@cindex report generate, separate host
+@cindex GPG
+
+@emph{Warning: this section assumes a reasonably high level of Unix system administration skills!}
+
+If your site has lots of traffic, lots of connections, or if Bro is using on average more than around 40% of your CPU,
+you'll want to use a second host for generating reports.
+
+To do this, on the Bro host, run bro_config, and say "N" to all report generation questions.
+Then install Bro on the second host using the following:
+
+@example
+./configure
+make
+make install-reports
+@end example
+
+Then follow the instructions in @ref{Bro Configuration} for setting up report generation.
+
+You'll also need to set up a method to copy files from the Bro host to the report generation
+host. One way to do this is using @code{rsync}, and the Bro script @code{push_logs.sh} 
+does this for you. For example, you can set up a cron job
+like this on the Bro host:
+
+@example
+1 1 * * * (push_logs.sh /usr/local/bro/etc/bro.cfg host:/home/bro) >> /tmp/bro-push.log
+@end example
+
+To make sure your @code{rsync} command has time to transfer
+all log files before your report generation
+script is run, the @code{push_logs.sh} script is designed to be used with the scripts
+@code{frontend-site-report.sh} and @code{frontend-mail-report.sh} on the frontend host. 
+These @code{frontend} scripts wait for a file with a particular name to exist before running.
+It is also important to use the @code{nice} 
+command to help ensure the network copy does not unduly divert processing away from Bro.
+
+You may want to @code{rsync} the log files over a secure ssh connection. To do this,
+you need to first generate a ssh key pair on the Bro capture host with no passphrase:
+@example
+ssh-keygen -t rsa -C "batch key" -f ./batch.key
+@end example
+
+Put this in user @code{bro}'s .ssh/config file, also on the Bro capture host
+@example
+Host recvhost brohost.foo.com
+IdentityFile ~/.ssh/batch.key
+@end example
+
+On the frontend host where the log files will be processed, add batch.pub 
+to the authorized_keys file
+@example
+cat batch.key.pub >> authorized_keys
+@end example
+
+Then create a cron entry on the Bro capture host 
+@example
+1 1 * * * nice -n 20 rsync -e 'ssh' -azv \
+  /usr/local/bro/logs host:/home/bro
+@end example
+
+@comment @node Web GUI Installation / Configuration 
+@comment @section Web GUI Installation / Configuration 
+
+@comment The Bro Web Logfile viewing GUI is not yet packaged in an easy to install format.
+@comment However if you want to give try installing it, there are
+@comment instructions at:
+@comment @uref{http://www.icir.org/twiki/bin/view/Bro/BrooeryGUI/}
+@comment 
+@comment This web GUI can run on a lightly loaded Bro host, but it is recommended to run this on a separate host. Use the @code{rsync} method described in 
+@comment @ref{Generating Reports on a Separate Host} to
+@comment copy files to the web host. Note: this web server should NOT be publicly accessible
+@comment to the Internet. Information in the log files is generally very sensitive.
+@comment 

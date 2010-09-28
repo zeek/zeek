@@ -1,0 +1,28 @@
+# $Id: analysis.dat 6811 2009-07-06 20:41:10Z robin $
+#
+# Types of analysis which we can enable/disable via the cluster shell. 
+#
+# Format: <tag>  <mechanism>   <descr>
+#
+#   tag: 	   The name used to reference the type within the shell.
+#   mechanism: How we can enable/disable the analysis. Currently defined:
+#
+#                  bool:<global>         <global> is a Bro script-level boolean
+#                                        which enables the analysis if true.
+#                 
+#                  bool-inv:<global>     <global> is a Bro script-level boolean
+#                                        which enables the analysis if *false*.
+#                  events:<tag>          <tag> is the name of a Bro event group 
+#                                        which corresponds to the analysis.
+#                  disable:<tag>		 If disabled, also disable analysis <tag>
+
+dns                events:dns            DNS analysis
+ftp                events:ftp            FTP analysis
+smtp               events:smtp           SMTP analysis
+
+http-request       events:http-request,disable:http-reply,disable:http-header,disable:http-body   Client-side HTTP analysis
+http-reply         events:http-reply,bool:HTTP::process_HTTP_replies                              Server-side HTTP analysis 
+http-body          events:http-body,bool:HTTP::process_HTTP_data                                  Analysis of HTTP bodies
+http-header        events:http-header                                                             Analysis of HTTP headers         
+
+scan               bool-inv:Scan::suppress_scan_checks                                            Scan detection

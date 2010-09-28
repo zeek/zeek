@@ -1,0 +1,9 @@
+#! /usr/bin/env bash
+#
+# $Id: run-cmd 6811 2009-07-06 20:41:10Z robin $
+#
+#  run-cmd <cmd> 
+
+echo 0     # Fix me. Should be real return code.
+eval $@ 2>&1
+echo ~~~

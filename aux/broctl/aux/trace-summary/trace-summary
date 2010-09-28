@@ -1,0 +1,884 @@
+#! /usr/bin/env python
+
+import os
+import time
+import sys
+import socket
+import signal
+import posix
+import errno
+import resource
+import optparse
+import random
+
+Version = 0.6
+
+random.seed()
+
+import SubnetTree
+
+class IntervalUpdate:
+    pass
+
+class IntervalList:
+    def __init__(self):
+        self.ints = []
+        self.start = -1
+
+    def finish(self):
+        for i in self.ints:
+            if i:
+                i.start += self.start
+                i.end += self.start
+                i.applySampleFactor()
+            
+    def writeR(self, file, top_ports):
+        file = open(file, "w")
+        Interval.makeRHeader(file, top_ports)
+        next_start = self.start
+        
+        for i in self.ints:
+            if i:
+                i.formatForR(file, top_ports)
+                next_start = i.end
+            else:
+                empty = Interval()
+                empty.start = next_start
+                empty.end = next_start + Options.ilen
+                empty.formatForR(file, top_ports)
+                next_start = empty.end
+            
+class Interval:
+    def __init__(self):
+        self.start = 1e20
+        self.end = 0
+        self.bytes = 0
+        self.payload = 0
+        self.pkts = 0
+        self.frags = 0
+        self.updates = 0
+        self.ports = {}
+        self.prots = {}
+        self.servs = {}
+        self.srcs = {}
+        self.dsts = {}
+        self.states = {}
+
+    def update(self, iupdate, adjusttime=True):
+
+        self.updates += 1
+        self.pkts += iupdate.pkts
+        self.bytes += iupdate.bytes
+        self.payload += iupdate.payload
+        self.frags += iupdate.frags
+
+        if Options.bytes:
+            incr = iupdate.bytes
+        else:
+            incr = 1
+
+        # For packets, we need to look at the source port, too.
+        if not Options.conns:
+            if ( iupdate.src_port < 1024 ) or \
+                ( not Ports and not Options.save_mem ) or \
+                ( Ports and iupdate.src_port in Ports ) or \
+                Options.storeports:
+                try:
+                    self.ports[iupdate.src_port] += incr
+                except KeyError:
+                    self.ports[iupdate.src_port] = incr
+
+        if ( iupdate.dst_port < 1024 ) or \
+            ( not Ports and not Options.save_mem ) or \
+            ( Ports and iupdate.dst_port in Ports ) or \
+            Options.storeports:
+            try:
+                self.ports[iupdate.dst_port] += incr
+            except KeyError:
+                self.ports[iupdate.dst_port] = incr
+            
+        try:
+            self.prots[iupdate.prot] += incr
+        except KeyError:
+            self.prots[iupdate.prot] = incr
+
+        try:
+            self.servs[iupdate.service] += incr
+        except KeyError:
+            self.servs[iupdate.service] = incr
+            
+        try:
+            self.states[iupdate.state] += incr
+        except KeyError:
+            self.states[iupdate.state] = incr
+
+        if adjusttime:
+            if iupdate.start < self.start:
+                self.start = iupdate.start
+
+            if iupdate.end > self.end:
+                self.end = iupdate.end
+            
+        if not Options.save_mem and not Options.R:
+            try:
+                self.srcs[iupdate.src_ip] += incr
+            except KeyError:
+                self.srcs[iupdate.src_ip] = incr
+            
+            try:
+                self.dsts[iupdate.dst_ip] += incr
+            except KeyError:
+                self.dsts[iupdate.dst_ip] = incr
+
+    def applySampleFactor(self):
+        if Options.factor == 1:
+            return
+
+        self.bytes *= Options.factor
+        self.payload *= Options.factor
+        self.pkts *= Options.factor
+        self.frags *= Options.factor
+        self.updates *= Options.factor
+        
+        for i in self.ports.keys():
+             self.ports[i] *= Options.factor
+        for i in self.prots.keys():
+             self.prots[i] *= Options.factor
+        for i in self.servs.keys():
+             self.servs[i] *= Options.factor
+        for i in self.srcs.keys():
+             self.srcs[i] *= Options.factor
+        for i in self.dsts.keys():
+             self.dsts[i] *= Options.factor
+        for i in self.states.keys():
+             self.states[i] *= Options.factor
+                
+    def format(self, conns=False, title=""):
+        def fmt(tag, count, total=-1, sep=" - "):
+            if total >= 0:
+                try:
+                    return "%s %5.1f%%%s" % (tag, (float(count) / total) * 100, sep)
+                except ZeroDivisionError:
+                    return "%s (??%%)%s" % (tag, sep)
+                        
+            return "%s %s%s" % (tag, formatVal(count), sep)
+
+        s = "\n>== %s === %s - %s\n   - " % (title, isoTime(self.start), isoTime(self.end))
+
+        if not conns:
+            # Information for packet traces.
+            s += fmt("Bytes", self.bytes) + \
+                 fmt("Payload", self.payload) + \
+                 fmt("Pkts", self.pkts) + \
+                 fmt("Frags", self.frags, self.pkts)
+                 
+            try:
+                mbit = self.bytes * 8 / 1024.0 / 1024.0 / (self.end - self.start)
+            except ZeroDivisionError:
+                mbit = 0
+            
+            s += "MBit/s %8.1f - " % mbit
+                 
+        else:
+            # Information for connection summaries.
+            s += fmt("Connections", self.pkts) + \
+                 fmt("Payload", self.payload)
+        
+        if Options.verbose:    
+            ports = topx(self.ports)
+            srcs = topx(self.srcs)
+            dsts = topx(self.dsts)
+            prots = topx(self.prots)
+            servs = topx(self.servs)
+
+            servs = map(lambda (count, svc): (count, svc.replace("icmp-", "i-").replace("netbios", "nb")), servs)
+            
+            s += "\n     %-5s        | %-18s        | %-18s        | %-18s | %1s |" \
+                % ("Ports", "Sources", "Destinations", "Services", "Protocols") 
+
+            if conns:
+                s += " States        |"
+                states = (topx(self.states),6)
+            else:
+                states = ({},0)
+
+            s += "\n"
+                
+            addrs = []
+            
+            for i in range(Options.topx):
+                
+                s += "     "
+                
+                for (dict, length) in ((ports, 5), (srcs, 18), (dsts, 18), (servs,11), (prots,2), states): 
+                    try:
+                        item = None
+                        if dict == srcs or dict == dsts:
+                            item = socket.inet_ntoa(dict[i][1])
+                            if Options.resolve:
+                                addrs += [dict[i][1]]
+                                item += "#%d" % len(addrs)
+                        else:
+                            item = str(dict[i][1])
+                        
+                        s += fmt("%-*s" % (length, item), dict[i][0], (Options.bytes and self.bytes or self.pkts), sep=" | ") 
+                    except:
+                        s += " " * length + "        | "
+
+                s += "\n"
+                
+            if Options.resolve:
+                s += "\n        "
+                for i in range(1, len(addrs)+1):
+                    s +=  "#%d=%s  " % (i, gethostbyaddr(socket.inet_ntoa(addrs[i-1])))
+                    if i % 3 == 0:
+                        s += "\n        "
+                        
+            s += "\n"
+
+                
+        return s
+
+    def makeRHeader(f, top_ports):
+        print >>f, "start end count bytes payload frags srcs dsts prot.tcp prot.udp prot.icmp",
+        print >>f, " ".join(["state.%s" % s.lower() for s in States]),
+        print >>f, " ".join(["top.port.%d" % (i+1) for i in range(0,Options.topx)]),
+        print >>f, " ".join(["port.%d" % i for i in range(0,1024)]),
+        if not Options.save_mem:
+            print >>f, " ".join(["port.%d" % p[1] for p in top_ports if p[1] >= 1024]),
+        print >>f
+        
+    makeRHeader = staticmethod(makeRHeader)     
+    
+    def formatForR(self, f, top_ports):
+        print >>f, self.start, self.end, self.pkts, self.bytes, self.payload, self.frags,
+        print >>f, len(self.srcs), len(self.dsts),
+        print >>f, self.prots.get(6, 0), self.prots.get(17, 0), self.prots.get(1, 0),
+        print >>f, " ".join([str(self.states.get(i, 0)) for i in States]),
+        print >>f, " ".join([str(p[1]) for p in topx(self.ports, True)]),
+        print >>f, " ".join([str(self.ports.get(i, 0)) for i in range(0,1024)]),
+        if not Options.save_mem:
+            print >>f, " ".join([str(self.ports.get(p[1], 0)) for p in top_ports if p[1] >= 1024]),
+        print >>f
+            
+        
+    def __str__(self):
+        return self.format(True)
+
+def topx(dict, fill_if_empty=False):
+    top = map(lambda (val, count): (count, val), dict.items())
+    top.sort()
+    top.reverse()
+
+     # Filter out zero vals.
+    top = [(val, count) for (val, count) in top if count != 0]
+    
+    if fill_if_empty and len(top) < Options.topx:
+        top += [(0,0)] * Options.topx
+
+    return top[:Options.topx]
+    
+def findInterval(time, intervals):
+    
+    if intervals.start < 0:
+        intervals.start = int(time / Options.ilen) * Options.ilen
+   
+    i = (time - intervals.start) / Options.ilen
+    idx = int(i)
+
+    # Interval may be earlier than current start
+    if i < 0:
+        
+        if float(idx) != i:
+            # minus 1 since we will multiply by -1
+            idx = idx - 1
+            
+        idx *= -1
+        
+        for j in intervals.ints:
+            if j:
+                j.start += Options.ilen * idx
+                j.end += Options.ilen * idx
+        
+        intervals.ints = ([None] * idx) + intervals.ints
+        intervals.start = int(time / Options.ilen) * Options.ilen
+        first = time
+        idx = 0
+            
+    # Interval may be later than current end
+    while idx >= len(intervals.ints):
+        intervals.ints += [None]
+        
+    if not intervals.ints[idx]:
+        interv = Interval()
+        interv.start = float(idx * Options.ilen)
+        interv.end =  float((idx+1) * Options.ilen)
+        intervals.ints[idx] = interv
+        return interv
+
+    return intervals.ints[idx]
+
+def isoTime(t):
+    if t == 1e20 or t == 0:
+        return "N/A"
+    return time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime(t))    
+
+def readPcap(file):
+    global Total
+    global Incoming
+    global Outgoing
+    
+    for line in os.popen("ipsumdump -r %s --timestamp --src --dst --sport --dport --length --protocol --fragment --payload-length -Q" % file):
+
+        if line.startswith("!"):
+            continue
+
+        if Options.sample > 0 and random.random() > Options.sample:
+            return
+        
+        f = line.split()
+        time = float(f[0])
+
+        if time < Options.mintime or time > Options.maxtime:
+            continue
+        
+        if Options.chema:
+            if f[6] != "T" or f[9] == "0":
+                continue
+        
+        if Options.tcp and f[6] != "T":
+            continue
+
+        if Options.udp and f[6] != "U":
+            continue
+        
+        iupdate = IntervalUpdate()
+        iupdate.pkts = 1
+        iupdate.bytes = int(f[5])
+        iupdate.payload = int(f[8])       
+        iupdate.service = ""
+        
+        try:
+            iupdate.src_ip = socket.inet_aton(f[1])
+        except socket.error:
+            iupdate.src_ip = socket.inet_aton("0.0.0.0")
+            
+        if iupdate.src_ip in ExcludeNets:
+            continue
+        
+        try:
+            iupdate.src_port = int(f[3])
+        except:
+            iupdate.src_port = 0
+            
+        try:
+            iupdate.dst_ip = socket.inet_aton(f[2])
+        except socket.error:
+            iupdate.dst_ip = socket.inet_aton("0.0.0.0")
+            
+        if iupdate.dst_ip in ExcludeNets:
+            continue
+        
+        try:
+            iupdate.dst_port = int(f[4])
+        except:
+            iupdate.dst_port = 0
+            
+        try:
+            iupdate.prot = Protocols[f[6]]
+        except KeyError:
+            iupdate.prot = 0
+        iupdate.state = 0
+        iupdate.start = time
+        iupdate.end = time
+
+        if f[7] != ".":
+            iupdate.frags = 1
+        else:
+            iupdate.frags = 0
+
+        if Options.external:
+            if iupdate.src_ip in LocalNetsIntervals and iupdate.dst_ip in LocalNetsIntervals:
+                continue
+            
+        Total.update(iupdate)
+
+        if Options.ilen > 0:
+            interval = findInterval(time, TotalIntervals)
+            interval.update(iupdate, adjusttime=False)
+        
+        if Options.localnets:
+            try:
+                LocalNetsIntervals[iupdate.src_ip].update(iupdate)
+                Outgoing.update(iupdate)
+                if Options.ilen > 0:
+                    interval = findInterval(time, OutgoingIntervals)
+                    interval.update(iupdate, adjusttime=False)
+            except KeyError:
+                try:
+                    LocalNetsIntervals[iupdate.dst_ip].update(iupdate)
+                    Incoming.update(iupdate)
+                    if Options.ilen > 0:
+                        interval = findInterval(time, IncomingIntervals)
+                        interval.update(iupdate, adjusttime=False)
+                except KeyError:
+                    global NonLocalCount
+                    NonLocalCount += 1
+                    if NonLocalCount < Options.topx:
+                        NonLocalConns[(iupdate.src_ip, iupdate.dst_ip)] = 1
+        
+Protocols = { "T": 6, "tcp": 6, "U": 17, "udp": 17, "I": 1, "icmp": 1 }
+States = ["OTH", "REJ", "RSTO", "RSTOS0", "RSTR", "RSTRH", "S0", "S1", "S2", "S3", "SF", "SH", "SHR"]    
+
+def readConnSummaries(file):
+    while True:
+        try:
+            for line in open(file):
+                parseConnLine(line)
+        except IOError, e:
+            if e.errno == errno.EINTR or e.errno == errno.EAGAIN:
+                continue
+            
+            print >>sys.stderr, e 
+            
+        return
+    
+    
+def parseConnLine(line):
+    global Total
+    global Incoming
+    global Outgoing
+    
+    global LastOutputTime, BaseTime
+    
+    if Options.sample > 0 and random.random() > Options.sample:
+        return
+    
+    f = line.split()
+
+    if len(f) < 11: # 11 is ok for icmp
+        print >>sys.stderr, "Ignoring corrupt line: '%s'" % line.strip()
+        return
+    
+    try:
+        time = float(f[0])
+    except ValueError:
+        print >>sys.stderr, "Invalid starting time %s" % f[0]
+        return
+
+    if f[1] != "?":
+        try:
+            duration = float(f[1])
+        except:
+            print >>sys.stderr, "Invalid starting time %s" % f[0]
+            return
+    else:
+        duration = 0;
+        
+    if time < Options.mintime or (time + duration) > Options.maxtime:
+        return
+    
+    if Options.tcp and f[7] != "tcp":
+        return
+
+    if Options.udp and f[7] != "udp":
+        return
+    
+    if not BaseTime:
+        BaseTime = time
+        LastOutputTime = time
+    
+    if time - LastOutputTime > 3600:
+        # print >>sys.stderr, "%d hours processed" % int((time - BaseTime) / 3600)
+        LastOutputTime = time
+    
+    try:
+        iupdate = IntervalUpdate()
+        iupdate.pkts = 1 # no. connections
+        
+        try:
+            bytes_orig = int(f[8])
+        except:
+            bytes_orig = 0
+            
+        try:
+            bytes_resp = int(f[9])
+        except:
+            bytes_resp = 0
+            
+        iupdate.bytes = bytes_orig + bytes_resp;
+        iupdate.src_ip = socket.inet_aton(f[2])
+        if iupdate.src_ip in ExcludeNets:
+            return
+        iupdate.src_port = int(f[5])
+        iupdate.dst_ip = socket.inet_aton(f[3])
+        if iupdate.dst_ip in ExcludeNets:
+            return
+        iupdate.dst_port = int(f[6])
+        iupdate.prot = Protocols[f[7]]
+
+        iupdate.service = f[4]
+        if iupdate.service[-1] == "?":
+            iupdate.service = iupdate.service[:-1]
+        iupdate.frags = 0
+        iupdate.state = f[10]
+        iupdate.start = time
+        
+    except LookupError:
+        print >>sys.stderr, "Ignoring corrupt line: '%s'" % line.strip()
+        return
+        
+    try:
+        iupdate.end = time + float(f[1])
+    except ValueError:
+        iupdate.end = time
+
+    try:
+        payload_orig = int(f[8])
+        
+        if duration and payload_orig * 8 / (1024 * 1024 * duration) > 700:
+            # Bandwith exceed due to Bro bug.
+            print >>sys.stderr, "%.6f originator exceeds bandwith" % time
+            payload_orig = 0
+            
+    except ValueError:
+        payload_orig = 0
+
+    try:
+        payload_resp = int(f[9])
+        
+        if duration and  payload_resp * 8 / (1024 * 1024 * duration) > 700:
+            # Bandwith exceed due to Bro bug.
+            print >>sys.stderr, "%.6f responder exceeds bandwith" % time
+            payload_resp = 0
+            
+    except ValueError:
+        payload_resp = 0
+        
+    iupdate.payload = payload_orig + payload_resp
+    
+    if Options.external:
+        if iupdate.src_ip in LocalNetsIntervals and iupdate.dst_ip in LocalNetsIntervals:
+            return
+    
+    Total.update(iupdate)
+
+    if Options.ilen > 0:
+        interval = findInterval(time, TotalIntervals)
+        interval.update(iupdate, adjusttime=False)
+    
+    if Options.localnets:
+        
+        try:
+            LocalNetsIntervals[iupdate.src_ip].update(iupdate)
+            Outgoing.update(iupdate)
+            if Options.ilen > 0:
+                interval = findInterval(time, OutgoingIntervals)
+                interval.update(iupdate, adjusttime=False)
+        except KeyError:
+            try:
+                LocalNetsIntervals[iupdate.dst_ip].update(iupdate)
+                Incoming.update(iupdate)
+                if Options.ilen > 0:
+                    interval = findInterval(time, IncomingIntervals)
+                    interval.update(iupdate, adjusttime=False)
+            except KeyError:
+                global NonLocalCount
+                NonLocalCount += 1
+                if NonLocalCount < Options.topx:
+                    NonLocalConns[(iupdate.src_ip, iupdate.dst_ip)] = 1
+
+Cache = {}
+
+def gethostbyaddr( ip, timeout = 5, default = "<???>" ):
+
+    try:
+        return Cache[ip]
+    except LookupError:
+        pass
+    
+    host = default
+    ( pin, pout ) = os.pipe()
+
+    pid = os.fork()
+    
+    if not pid:
+        # Child
+        os.close( pin )
+        try:
+            host = socket.gethostbyaddr( ip )[0]
+        except socket.herror:
+            pass
+        os.write( pout, host )
+        posix._exit(127)
+        
+    #Parent 
+    os.close( pout )
+    
+    signal.signal( signal.SIGALRM, lambda sig, frame: os.kill( pid, signal.SIGKILL ) )
+    signal.alarm( timeout )
+
+    try:
+        os.waitpid( pid, 0 )
+        host = os.read( pin, 8192 )
+    except OSError:
+        pass
+
+    signal.alarm( 0 )
+    
+    os.close( pin )
+    
+    Cache[ip] = host;
+    
+    return host
+
+def formatVal(val):
+    for (prefix, unit, factor) in (("", "g", 1e9), ("", "m", 1e6), ("", "k", 1e3), (" ", "", 1e0)):
+        if val >= factor:
+            return "%s%3.1f%s" % (prefix, val / factor, unit)
+    return val # Should not happen
+
+def readNetworks(file):
+    
+    nets = []
+    
+    for line in open(file):
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        
+        fields = line.split()
+        nets += [(fields[0], " ".join(fields[1:]))]
+
+    return nets
+
+####### Main
+
+Total = Interval()
+Incoming = Interval()
+Outgoing = Interval()
+
+TotalIntervals = IntervalList()
+IncomingIntervals = IntervalList()
+OutgoingIntervals = IntervalList()
+
+BaseTime = None
+LastOutputTime = None
+
+LocalNets = {}
+LocalNetsIntervals = SubnetTree.SubnetTree()
+NonLocalConns = {}
+NonLocalCount = 0
+
+Ports = None
+
+ExcludeNets = SubnetTree.SubnetTree()
+
+optparser = optparse.OptionParser(usage="%prog [options] <pcap-file>|<conn-summaries>", version=Version)
+optparser.add_option("-b", "--bytes", action="store_true", dest="bytes", default=False,
+                     help="count fractions in terms of bytes rather than packets/connections")
+optparser.add_option("-c", "--conn-summaries", action="store_true", dest="conns", default=False, 
+                     help="input file contains Bro connection summaries")
+optparser.add_option("-C", "--chema", action="store_true", dest="chema", default=False,
+                     help="for packets: include only TCP, ignore when seq==0")
+optparser.add_option("-e", "--external", action="store_true", dest="external", default=False, 
+                     help="ignore strictly internal traffic")
+optparser.add_option("-E", "--exclude-nets", action="store", type="string", dest="excludenets", default=None, 
+                     help="excludes CIDRs in file from analysis")
+optparser.add_option("-i", "--intervals", action="store", type="string", dest="ilen", default="0", 
+                     help="create summaries for time intervals of given length")
+optparser.add_option("-l", "--local-nets", action="store", type="string", dest="localnets", default=None, 
+                     help="differentiate in/out based on CIDRs in file")
+optparser.add_option("-n", "--topn", action="store", type="int", dest="topx", default=10, 
+                     help="show top <n>")
+optparser.add_option("-p", "--ports", action="store", type="string", dest="ports", default=None, 
+                     help="include only ports listed in file")
+optparser.add_option("-P", "--write-ports", action="store", type="string", dest="storeports", default=None, 
+                     help="write top total/incoming/outgoing ports into files ")
+optparser.add_option("-r", "--resolve-host-names", action="store_true", dest="resolve", default=False, 
+                     help="resolve host names")
+optparser.add_option("-R", "--R", action="store", type="string", dest="R", default=None, metavar="tag",
+                     help="write output suitable for R into files <tag.*>")
+optparser.add_option("-s", "--sample-factor", action="store", type="int", dest="factor", default=1,
+                     help="sample factor of input")
+optparser.add_option("-S", "--do-sample", action="store", type="float", dest="sample", default=-1.0,
+                     help="sample input with probability (0.0 < prob < 1.0)")
+optparser.add_option("-m", "--save-mem", action="store_true", dest="save_mem", default=False, 
+                     help="do not make memory-expensive statistics")
+optparser.add_option("-t", "--tcp", action="store_true", dest="tcp", default=False, 
+                     help="include only TCP")
+optparser.add_option("-u", "--udp", action="store_true", dest="udp", default=False, 
+                     help="include only UDP")
+optparser.add_option("-U", "--min-time", action="store", type="string", dest="mintime", default=None,
+                     help="minimum time in ISO format (e.g. 2005-12-31-23-59-00)")
+optparser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False, 
+                     help="show top-n for every interval")
+optparser.add_option("-V", "--max-time", action="store", type="string", dest="maxtime", default=None,
+                     help="maximum time in ISO format")
+                     
+(Options, args) = optparser.parse_args()
+
+if len(args) > 2:
+    optparser.error("Wrong number of arguments")
+
+file = "-"
+    
+if len(args) > 0:
+    file = args[0]
+
+if Options.external and not Options.localnets:
+    print >>sys.stderr, "Need -l for -e."
+    sys.exit(1)
+    
+# Make per-interval summaries.    
+if Options.ilen:
+    if Options.ilen.endswith("m"):
+        Options.ilen = int(Options.ilen[:-1]) * 60
+    elif Options.ilen.endswith("h"):
+        Options.ilen = int(Options.ilen[:-1]) * 60 * 60
+    else:
+        Options.ilen = int(Options.ilen)
+
+# Read local networks.
+if Options.localnets:
+    
+    for (net, txt) in readNetworks(Options.localnets): 
+        try:
+            i = Interval()
+            LocalNetsIntervals[net] = i
+            LocalNets[net] = (txt, i)
+        except KeyError:
+            print >>sys.stderr, "Can't parse local network '%s'" % net
+
+# Read networks to exclude.
+if Options.excludenets:
+    for (net, txt) in readNetworks(Options.excludenets): 
+        try:
+            ExcludeNets[net] = txt
+        except KeyError:
+            print >>sys.stderr, "Can't parse exclude network '%s'" % net
+
+# Read ports file.
+if Options.ports:
+    Ports = {}
+    for line in open(Options.ports):
+        Ports[int(line.strip())] = 1
+            
+# Parse time-range if given.
+if Options.mintime:
+    Options.mintime = time.mktime(time.strptime(Options.mintime, "%Y-%m-%d-%H-%M-%S"))
+else:
+    Options.mintime = 0
+
+if Options.maxtime:
+    Options.maxtime = time.mktime(time.strptime(Options.maxtime, "%Y-%m-%d-%H-%M-%S"))
+else:
+    Options.maxtime = 1e20
+
+if Options.sample > 0:
+    Options.factor = 1.0 / Options.sample
+    
+if file == "-":
+    file = "/dev/stdin"
+    
+try:    
+    if Options.conns:
+        readConnSummaries(file)
+    else:
+        readPcap(file)
+except KeyboardInterrupt:
+    pass
+
+TotalIntervals.finish()
+IncomingIntervals.finish()
+OutgoingIntervals.finish()
+
+Total.applySampleFactor()
+Incoming.applySampleFactor()
+Outgoing.applySampleFactor()
+
+unique = {}
+for (count, port) in topx(Total.ports) + topx(Incoming.ports) + topx(Outgoing.ports):
+    unique[port] = (count, port)
+    
+top_ports = unique.values()
+
+if Options.storeports:
+    f = open(Options.storeports, "w")
+    for p in top_ports:
+        print >>f, p[1]
+
+if Options.R:
+    file = open(Options.R + ".dat", "w")
+
+    print >>file, "tag", 
+    Interval.makeRHeader(file, top_ports)
+    print >>file, "total",
+    Total.formatForR(file, top_ports)
+
+    print >>file, "incoming",
+    Incoming.formatForR(file, top_ports)
+    print >>file, "outgoing",
+    Outgoing.formatForR(file, top_ports)
+
+    for (net, data) in LocalNets.items():    
+        
+        (txt, i) = data
+        
+        if i.updates:
+            print >>file, net.replace(" ", "_"),
+            i.start += TotalIntervals.start
+            i.end += TotalIntervals.start
+            i.applySampleFactor()
+            i.formatForR(file, top_ports)
+    
+    TotalIntervals.writeR(Options.R + ".total.dat", top_ports)
+    IncomingIntervals.writeR(Options.R + ".incoming.dat", top_ports)
+    OutgoingIntervals.writeR(Options.R + ".outgoing.dat", top_ports)
+                
+    sys.exit(0)
+
+for i in TotalIntervals.ints:
+    if i:
+        print i.format(conns=Options.conns)
+    
+Options.verbose = True
+        
+print Total.format(conns=Options.conns, title="Total")
+
+locals = LocalNets.keys()    
+
+if locals:
+
+    type = "packets"
+    if Options.conns:
+        type = "connections"
+
+    locals.sort(lambda x,y: LocalNets[y][1].pkts - LocalNets[x][1].pkts)    
+
+    print "\n>== Top %d local networks by number of %s\n" % (Options.topx, type)
+        
+    for i in range(min(len(locals), Options.topx)):
+        print "    %2d %5s  %-16s %s " % (i+1, formatVal(LocalNets[locals[i]][1].pkts), locals[i], LocalNets[locals[i]][0])
+    print 
+
+    if len(NonLocalConns):
+        print "\n>== %d %s did not have any local address. Here are the first %d:\n" % (NonLocalCount, type, Options.topx)
+    
+        for (src,dst) in NonLocalConns.keys():
+            print "    %s <-> %s" % (socket.inet_ntoa(src), socket.inet_ntoa(dst))
+    
+if Options.localnets:
+    print Incoming.format(conns=Options.conns, title="Incoming")
+    print Outgoing.format(conns=Options.conns, title="Outgoing")
+        
+for net in locals:        
+    (txt, i) = LocalNets[net]
+
+    if i.updates:
+#        i.start += TotalIntervals.start
+#        i.end += TotalIntervals.start
+        i.applySampleFactor()
+        print i.format(conns=Options.conns, title=net + " " + txt)
+
+print "First: %16s (%.6f) Last: %s %.6f" % (isoTime(Total.start), Total.start, isoTime(Total.end), Total.end)

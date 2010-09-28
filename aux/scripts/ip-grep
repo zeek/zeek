@@ -1,0 +1,9 @@
+#! /bin/sh
+#
+# Returns a grep pattern for matching the IP addresses of the given hosts.
+# Note that generally when using the pattern you should surround it with
+# some form of anchoring, such as blanks, to avoid false hits.
+
+sheesh=`(for i do host-to-addrs $i; done)`
+if [ "$sheesh" = "" ]; then exit 1; fi;
+echo "$sheesh" | xargs | sed 's/\./\\./g;s/ /|/g;s/.*/(&)/'

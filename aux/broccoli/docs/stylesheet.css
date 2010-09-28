@@ -1,0 +1,30 @@
+body          { margin-left:10px;
+		margin-right:10px;
+		margin-top:10px;
+		margin-bottom:10px;
+		color:#101010;
+                background-repeat:no-repeat;
+              }
+
+h1.title      { text-align:center; }
+.abstract     { text-align:center;
+		margin-left:100px;
+		margin-right:100px; }
+
+.caption      { margin-left:100px;
+		margin-right:100px;
+		font-style:italic; }
+
+.programlisting { font-size:12px;
+		  font-family:courier;
+		}
+
+.type 		{ font-size:12px;
+		  font-family:courier;
+		}
+
+.mediaobject  { text-align:center; }
+
+span, h1, h2, h3, h4, p, div, table { font-family:arial,helvetica; }
+
+li            { margin-bottom:10px }

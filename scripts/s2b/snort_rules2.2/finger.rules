@@ -1,0 +1,21 @@
+# (C) Copyright 2001-2004, Martin Roesch, Brian Caswell, et al.
+#    All rights reserved.
+# $Id: finger.rules 91 2004-07-15 08:13:57Z rwinslow $
+#-------------
+# FINGER RULES
+#-------------
+#
+
+alert tcp $EXTERNAL_NET any -> $HOME_NET 79 (msg:"FINGER cmd_rootsh backdoor attempt"; flow:to_server,established; content:"cmd_rootsh"; reference:cve,1999-0660; reference:nessus,10070; reference:url,www.sans.org/y2k/TFN_toolkit.htm; reference:url,www.sans.org/y2k/fingerd.htm; classtype:attempted-admin; sid:320; rev:9;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 79 (msg:"FINGER account enumeration attempt"; flow:to_server,established; content:"a b c d e f"; nocase; reference:nessus,10788; classtype:attempted-recon; sid:321; rev:5;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 79 (msg:"FINGER search query"; flow:to_server,established; content:"search"; reference:arachnids,375; reference:cve,1999-0259; classtype:attempted-recon; sid:322; rev:10;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 79 (msg:"FINGER root query"; flow:to_server,established; content:"root"; reference:arachnids,376; classtype:attempted-recon; sid:323; rev:5;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 79 (msg:"FINGER null request"; flow:to_server,established; content:"|00|"; reference:arachnids,377; classtype:attempted-recon; sid:324; rev:5;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 79 (msg:"FINGER remote command execution attempt"; flow:to_server,established; content:"|3B|"; reference:arachnids,379; reference:bugtraq,974; reference:cve,1999-0150; classtype:attempted-user; sid:326; rev:9;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 79 (msg:"FINGER remote command pipe execution attempt"; flow:to_server,established; content:"|7C|"; reference:arachnids,380; reference:bugtraq,2220; reference:cve,1999-0152; classtype:attempted-user; sid:327; rev:8;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 79 (msg:"FINGER bomb attempt"; flow:to_server,established; content:"@@"; reference:arachnids,381; reference:cve,1999-0106; classtype:attempted-dos; sid:328; rev:8;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 79 (msg:"FINGER redirection attempt"; flow:to_server,established; content:"@"; reference:arachnids,251; reference:cve,1999-0105; reference:nessus,10073; classtype:attempted-recon; sid:330; rev:9;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 79 (msg:"FINGER cybercop query"; flow:to_server,established; content:"|0A|     "; depth:10; reference:arachnids,132; reference:cve,1999-0612; classtype:attempted-recon; sid:331; rev:10;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 79 (msg:"FINGER 0 query"; flow:to_server,established; content:"0"; reference:arachnids,131; reference:arachnids,378; reference:cve,1999-0197; reference:nessus,10069; classtype:attempted-recon; sid:332; rev:8;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 79 (msg:"FINGER . query"; flow:to_server,established; content:"."; reference:arachnids,130; reference:cve,1999-0198; reference:nessus,10072; classtype:attempted-recon; sid:333; rev:8;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 79 (msg:"FINGER version query"; flow:to_server,established; content:"version"; classtype:attempted-recon; sid:1541; rev:4;)

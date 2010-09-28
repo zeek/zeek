@@ -1,0 +1,91 @@
+
+Bro includes two important @emph{active response} capabilities that allow sites to use Bro
+for intrusion prevention, and not just intrusion detection. These include the ability to
+terminate a connection known to be an intrusion, and the ability to update a
+blocking router's access control list (ACL) to block attacking hosts.
+
+@menu
+* Terminating a Connection ::
+* Updating Router ACL ::
+@end menu
+
+@node Terminating a Connection
+@section Terminating a Connection
+@cindex Terminating a Connection
+
+The Bro distribution includes a program called @code{rst} that will terminate
+a active connection by sending a TCP "reset" packet to the sender. 
+The @code{ftp} and @code{login} analyzers look for connections that should be terminated.
+All connections from a @uref{http://www.bro-ids.org/Bro-reference-manual/hot_002dids-Module.html, 
+@code{forbidden_id}} get flagged for termination, as well as any service
+defined in @code{terminate_successful_inbound_service}. 
+
+Connection termination is off by default. To enable it, redefine the following
+flag in your @file{site/site.local.bro} file:
+
+@example
+  redef activate_terminate_connection = T ;
+@end example
+
+Connections are terminated using the @code{rst} program, which is installed
+in $BROHOME/bin. To use this program change the file permission to be setuid root.
+Whenever a connection is terminated you will see a @code{TerminatingConnection} alarm.
+If Bro detects a connection that Bro thinks is a candidate for termination, but
+@code{activate_terminate_connection = F}, then you will see the alarm: 
+@code{IgnoreTerminatingConnection}.
+
+You may want to add a number of services to the list of forbidden services. 
+For example, to terminate all successful attempts
+to access the RPC portmapper via TCP from an external network, you would add this:
+
+@verbatim
+    redef terminate_successful_inbound_service += {
+        [111/tcp] = "disallow external portmapper"
+    }; 
+@end verbatim
+
+This will prevent NFS connections from external hosts. P2P services such as KaZaa can 
+also be terminated in this manner. You can make exceptions to 
+@code{terminate_successful_inbound_service}
+by redefing @code{allow_services_to}. See @code{hot.bro} for details.
+
+@comment {Note: This functionality may no longer work. should include a more complex example here.}
+
+@comment : XXX For example, show a config for:
+@comment :   deny all NFS except to subnet XXX
+@comment :   deny all netbios except to subnet XXX
+@comment :   deny all Kazaa
+@comment :   deny all FTP except to host Y, Z
+@comment :     further restrict anonymous FTP to only host P
+@comment :   deny all DHCP servers except  a,b,c
+@comment :   deny all DNS except a,b,c
+@comment :   deny all SMTP except a,b,c
+@comment :   deny all pop, imap  to hosts a.b.c
+@comment :      only allow encrypted imap
+
+@node  Updating Router ACL
+@section  Updating Router ACL
+@cindex  Updating Router ACL
+
+Bro can be used to send the IPs of scanning or attacking hosts to your router, so
+that the router can drop these hosts.
+
+Since every router does this differently, you will need to write a script that works for your
+router. 
+
+To active your custom drop script, add this to your hostname.bro file:
+
+@verbatim
+ @load scan
+ redef can_drop_connectivity  = T;
+ redef drop_connectivity_script = "my_drop_script";
+@end verbatim
+
+
+At LBL we use a program called @uref{http://www-nrg.ee.lbl.gov/leres/acl2.html, acld}
+to update the ACLs in our boarder routers on the fly.
+This code is available at:  ftp://ftp.ee.lbl.gov/acld.tar.gz
+
+
+
+

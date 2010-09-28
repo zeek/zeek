@@ -1,0 +1,34 @@
+Big features
+* Variable context (xid, call in RPC)? -- no variable context
+* Helpers
+* Connection states and actions
+* Case and analyzer redef
+* &also withinput
+* Explicit analyzer context (interface + instantiation) "withcontext"
++ Interface with C++ and Bro (events, extern, weird)
++ Incremental input
++ ASCII protocols
++ Reassembly
+- Dealing with exceptions
+- Dependency analysis to save parsing time on unused fields
+- Performance measurement
+
+Small features
+* Restructure the code: break up pac.{h,cc}
+* ref counting (to keep certain structures)
+* analyzer context as a parameter of class
+* &autolength
+* find a better name for "analyzer_context" ("analcxt", "context", "analyzer") $context
+* &if
+* &autolength (now &restofdata)
+* Use vector<> instead of array<>?
+* set end_of_data when &length = ...
+- make the `default' case mandatory?
+- &inline
+- &warn and &check? (follow &if)
+- typedef?
+
+Binpac 1
+- create a namespace for each .pac file
+- type equivalence
+- byteorder() for every type?

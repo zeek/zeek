@@ -1,0 +1,102 @@
+
+@strong{NOTE: This chapter still a very rough draft and incomplete}
+
+Bro is most effective when used in conjunction with bulk traces
+from your site. Capturing bulk traces just involves using @code{tcpdump}
+to capture all traffic entering and leaving your site.
+
+Bulk traces can be very valuable for forensic analysis of all traffic
+in and out of a compromised host. It is also needed to run some
+particularly CPU intensive policy analyzers that can not be done
+in real time (as described in the Off-line Analysis section below).
+
+Depending on your traffic load, you might be able to bulk capture on
+the Bro host directly, but in general we recommend using a separate
+packet capture host for this. Unless you want to buy a huge amount
+of disk, you'll probably only be able to save a few days worth
+of traffic.
+
+@menu
+* Bulk Traces ::
+* Off-line Analysis ::
+@end menu
+
+@node Bulk Traces
+@section Bulk Traces 
+@cindex Bulk Traces
+
+The Bro distribution includes a couple scripts to make bulk capture
+easier. These are:
+
+@code{spot-trace}: called by @code{start-capture-all} script
+
+@code{start-capture-all}: captures all packets. This script looks
+for an existing instance of the @code{spot-trace} program, and if it finds one
+creates a new capture file name with an incremented filename, 
+and continues capturing data. Bulk
+capture files can get very large, so typically you run this as
+a cron job every 1-2 hours.
+
+@code{bro_bulk_compress.sh}: compress and/or delete old bulk trace files. Run as a cron job. 
+
+@comment XXX: need more details here: eg: edit bro.cfg settings, etc.
+
+Since the bulk trace files can be huge, you often will want 
+to run tcpdump on the raw trace with a filter to extract the packets 
+of interest. For example:
+
+@smallexample
+tcpdump -r bulkXXX.trace -w goodstuff.trace 'host w.x.y.z'
+@end smallexample
+
+If you know that that packets you want are bounded by a time interval, say
+it occurred 1:17PM-1:18PM, then you can speed this up a great deal
+using @uref{ftp://ftp.ee.lbl.gov/tcpslice.tar.Z, tcpslice}.
+For example:
+
+@smallexample
+tcpslice 13h15m +5m bulkXXX.trace | tcpdump -r - -w goodstuff.trace 'host w.x.y.z'
+@end smallexample
+
+It is recommend to use a somewhat broader time interval for tcpslice
+(such as in the above example) than when
+Bro reported the activity occurred, so you can catch additional related
+packets cheaply.
+
+
+@node Off-line Analysis
+@section Off-line Analysis
+@cindex Off-line Analysis
+
+There are some policy modules that are meant to be run as off-line
+analysis on bulk trace files. These include:
+
+@code{backdoor.bro}:  looks for standard services running on non-standard ports.
+These services include ssh, http, ftp, telnet, and rlogin.
+
+To run Bro on a tcpdump file, do something like this:
+
+@comment ### XXX we really need a version of this that works with tcsh, grrrr ...
+@smallexample
+# set up the Bro environment (sh or bash)
+. /usr/local/bro/etc/bro.cfg
+/usr/local/bro/bin/bro -r dumpfile backdoor.bro 
+@end smallexample
+
+To use Bro to extract the contents of a trace file, do:
+@smallexample
+    bro -r tracefile contents
+@end smallexample
+
+which will load policy/contents.bro.  It stores the contents of each
+connection in two files, contents.H1.P1.H2.P2 and contents.H2.P2.H1.P1,
+where H1/P1 is the host/port of the originator and H2/P2 the same for the
+responder. 
+
+You can extract just the connections of interest using, for example:
+@smallexample
+    bro -f "host 1.2.3.4" -r tracefile contents
+@end smallexample
+
+
+

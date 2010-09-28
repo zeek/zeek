@@ -1,0 +1,16 @@
+#! /usr/bin/env bash
+#
+# $Id: is-alive.in 6811 2009-07-06 20:41:10Z robin $
+#
+# is-alive <host>
+
+cmd_linux='ping -c 1 -W 1'
+cmd_bsd='ping -q -t 1 -o'
+
+if [ "${os}" == "linux" ]; then
+   cmd=$cmd_linux
+else
+   cmd=$cmd_bsd
+fi
+
+$cmd $1 >/dev/null 2>&1

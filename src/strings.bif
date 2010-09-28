@@ -1,0 +1,828 @@
+# $Id: strings.bif 6920 2009-10-03 20:47:25Z vern $
+#
+# Definitions of Bro built-in functions related to strings.
+
+
+%%{ // C segment
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+#include "SmithWaterman.h"
+%%}
+
+
+function string_cat%(...%): string
+	%{
+	int n = 0;
+	loop_over_list(@ARG@, i)
+		n += @ARG@[i]->AsString()->Len();
+
+	u_char* b = new u_char[n+1];
+	BroString* s = new BroString(1, b, n);
+
+	loop_over_list(@ARG@, j)
+		{
+		const BroString* s = @ARG@[j]->AsString();
+		memcpy(b, s->Bytes(), s->Len());
+		b += s->Len();
+		}
+	*b = 0;
+
+	return new StringVal(s);
+	%}
+
+%%{
+int string_array_to_vs(TableVal* tbl, int start, int end,
+			vector<const BroString*>& vs)
+	{
+	vs.clear();
+	for ( int i = start; i <= end; ++i )
+		{
+		Val* ind = new Val(i, TYPE_COUNT);
+		Val* v = tbl->Lookup(ind);
+		if ( ! v )
+			return 0;
+		vs.push_back(v->AsString());
+#if 0
+		char* str = v->AsString()->Render();
+		DEBUG_MSG("string_array[%d] = \"%s\"\n", i, str);
+		delete [] str;
+#endif
+		delete ind;
+		}
+	return 1;
+	}
+
+int vs_to_string_array(vector<const BroString*>& vs, TableVal* tbl,
+			int start, int end)
+	{
+	for ( int i = start, j = 0; i <= end; ++i, ++j )
+		{
+		Val* ind = new Val(i, TYPE_COUNT);
+		tbl->Assign(ind, new StringVal(vs[j]->Len(),
+						(const char *)vs[j]->Bytes()));
+		Unref(ind);
+		}
+	return 1;
+	}
+
+BroString* cat_string_array_n(TableVal* tbl, int start, int end)
+	{
+	vector<const BroString*> vs;
+	string_array_to_vs(tbl, start, end, vs);
+	return concatenate(vs);
+	}
+%%}
+
+function cat_string_array%(a: string_array%): string
+	%{
+	TableVal* tbl = a->AsTableVal();
+	return new StringVal(cat_string_array_n(tbl, 1, a->AsTable()->Length()));
+	%}
+
+function cat_string_array_n%(a: string_array, start: count, end: count%): string
+	%{
+	TableVal* tbl = a->AsTableVal();
+	return new StringVal(cat_string_array_n(tbl, start, end));
+	%}
+
+function join_string_array%(sep: string, a: string_array%): string
+	%{
+	vector<const BroString*> vs;
+	TableVal* tbl = a->AsTableVal();
+	int n = a->AsTable()->Length();
+
+	for ( int i = 1; i <= n; ++i )
+		{
+		Val* ind = new Val(i, TYPE_COUNT);
+		Val* v = tbl->Lookup(ind);
+		if ( ! v )
+			return 0;
+
+		vs.push_back(v->AsString());
+		Unref(ind);
+
+		if ( i < n )
+			vs.push_back(sep->AsString());
+		}
+
+	return new StringVal(concatenate(vs));
+	%}
+
+function sort_string_array%(a: string_array%): string_array
+	%{
+	TableVal* tbl = a->AsTableVal();
+	int n = a->AsTable()->Length();
+
+	vector<const BroString*> vs;
+	string_array_to_vs(tbl, 1, n, vs);
+
+	unsigned int i, j;
+	for ( i = 0; i < vs.size(); ++i )
+		{
+		const BroString* x = vs[i];
+		for ( j = i; j > 0; --j )
+			if ( Bstr_cmp(vs[j-1], x) <= 0 )
+				break;
+			else
+				vs[j] = vs[j-1];
+		vs[j] = x;
+		}
+	// sort(vs.begin(), vs.end(), Bstr_cmp);
+
+	TableVal* b = new TableVal(internal_type("string_array")->AsTableType());
+	vs_to_string_array(vs, b, 1, n);
+	return b;
+	%}
+
+function edit%(arg_s: string, arg_edit_char: string%): string
+	%{
+	const char* s = arg_s->AsString()->CheckString();
+	const char* edit_s = arg_edit_char->AsString()->CheckString();
+
+	if ( strlen(edit_s) != 1 )
+		builtin_run_time("not exactly one edit character", @ARG@[1]);
+
+	char edit_c = *edit_s;
+
+	int n = strlen(s) + 1;
+	char* new_s = new char[n];
+	int ind = 0;
+
+	for ( ; *s; ++s )
+		{
+		if ( *s == edit_c )
+			{ // Delete last character
+			if ( --ind < 0 )
+				ind = 0;
+			}
+		else
+			new_s[ind++] = *s;
+		}
+
+	new_s[ind] = '\0';
+
+	return new StringVal(new BroString(1, byte_vec(new_s), ind));
+	%}
+
+function byte_len%(s: string%): count
+	%{
+	return new Val(s->Len(), TYPE_COUNT);
+	%}
+
+function sub_bytes%(s: string, start: count, n: int%): string
+	%{
+	if ( start > 0 )
+		--start;	// make it 0-based
+
+	BroString* ss = s->AsString()->GetSubstring(start, n);
+
+	if ( ! ss )
+		ss = new BroString("");
+
+	return new StringVal(ss);
+	%}
+
+%%{
+static int match_prefix(int s_len, const char* s, int t_len, const char* t)
+	{
+	for ( int i = 0; i < t_len; ++i )
+		{
+		if ( i >= s_len || s[i] != t[i] )
+			return 0;
+		}
+	return 1;
+	}
+
+Val* do_split(StringVal* str_val, RE_Matcher* re, TableVal* other_sep,
+		int incl_sep, int max_num_sep)
+	{
+	const BroString* str = str_val->AsString();
+	TableVal* a = new TableVal(internal_type("string_array")->AsTableType());
+	ListVal* other_strings = 0;
+
+	if ( other_sep && other_sep->Size() > 0 )
+		other_strings = other_sep->ConvertToPureList();
+
+	// Currently let us assume that str is NUL-terminated. In
+	// the future we expect to change this by giving RE_Matcher a
+	// const char* segment.
+
+	const char* s = str->CheckString();
+	int len = strlen(s);
+	const char* end_of_s = s + len;
+	int num = 0;
+	int num_sep = 0;
+
+	while ( 1 )
+		{
+		int offset = 0;
+		const char* t;
+
+		if ( max_num_sep > 0 && num_sep >= max_num_sep )
+			t = end_of_s;
+		else
+			{
+			for ( t = s; t < end_of_s; ++t )
+				{
+				offset = re->MatchPrefix(t);
+
+				if ( other_strings )
+					{
+					val_list* vl = other_strings->Vals();
+					loop_over_list(*vl, i)
+						{
+						const BroString* sub =
+							(*vl)[i]->AsString();
+						if ( sub->Len() > offset &&
+						     match_prefix(end_of_s - t,
+								t, sub->Len(),
+								(const char*) (sub->Bytes())) )
+							{
+							offset = sub->Len();
+							}
+						}
+					}
+
+				if ( offset > 0 )
+					break;
+				}
+			}
+
+		Val* ind = new Val(++num, TYPE_COUNT);
+		a->Assign(ind, new StringVal(t - s, s));
+		Unref(ind);
+
+		if ( t >= end_of_s )
+			break;
+
+		++num_sep;
+
+		if ( incl_sep )
+			{ // including the part that matches the pattern
+			ind = new Val(++num, TYPE_COUNT);
+			a->Assign(ind, new StringVal(offset, t));
+			Unref(ind);
+			}
+
+		s = t + offset;
+		if ( s > end_of_s )
+			internal_error("RegMatch in split goes beyond the string");
+		}
+
+	if ( other_strings )
+		delete other_strings;
+
+	return a;
+	}
+
+Val* do_sub(StringVal* str_val, RE_Matcher* re, StringVal* repl, int do_all)
+	{
+	const u_char* s = str_val->Bytes();
+	int offset = 0;
+	int n = str_val->Len();
+
+	// cut_points is a set of pairs of indices in str that should
+	// be removed/replaced.  A pair <x,y> means "delete starting
+	// at offset x, up to but not including offset y".
+	List(ptr_compat_int) cut_points;	// where RE matches pieces of str
+
+	int size = 0;	// size of result
+
+	while ( n > 0 )
+		{
+		// Find next match offset.
+		int end_of_match;
+		while ( n > 0 &&
+			(end_of_match = re->MatchPrefix(&s[offset], n)) <= 0 )
+			{
+			// This character is going to be copied to the result.
+			++size;
+
+			// Move on to next character.
+			++offset;
+			--n;
+			}
+
+		if ( n <= 0 )
+			break;
+
+		// s[offset .. offset+end_of_match-1] matches re.
+		cut_points.append(offset);
+		cut_points.append(offset + end_of_match);
+
+		offset += end_of_match;
+		n -= end_of_match;
+
+		if ( ! do_all )
+			{
+			// We've now done the first substitution - finished.
+			// Include the remainder of the string in the result.
+			size += n;
+			break;
+			}
+		}
+
+	// size now reflects amount of space copied.  Factor in amount
+	// of space for replacement text.
+	int num_cut_points = cut_points.length() / 2;
+	size += num_cut_points * repl->Len();
+
+	// And a final NUL for good health.
+	++size;
+
+	byte_vec result = new u_char[size];
+	byte_vec r = result;
+
+	// Copy it all over.
+	int start_offset = 0;
+	for ( int i = 0; i < cut_points.length(); i += 2 /* loop over pairs */ )
+		{
+		int num_to_copy = cut_points[i] - start_offset;
+		memcpy(r, s + start_offset, num_to_copy);
+
+		r += num_to_copy;
+		start_offset = cut_points[i+1];
+
+		// Now add in replacement text.
+		memcpy(r, repl->Bytes(), repl->Len());
+		r += repl->Len();
+		}
+
+	// Copy final trailing characters.
+	int num_to_copy = str_val->Len() - start_offset;
+	memcpy(r, s + start_offset, num_to_copy);
+	r += num_to_copy;
+
+	// Final NUL.  No need to increment r, since the length
+	// computed from it in the next statement does not include
+	// the NUL.
+	r[0] = '\0';
+
+	return new StringVal(new BroString(1, result, r - result));
+	}
+%%}
+
+# Similar to split in awk.
+
+function split%(str: string, re: pattern%): string_array
+	%{
+	return do_split(str, re, 0, 0, 0);
+	%}
+
+# split1(str, pattern, include_separator): table[count] of string
+#
+# Same as split, except that str is only split (if possible) at the
+# earliest position and an array of two strings is returned.
+# An array of one string is returned when str cannot be splitted.
+
+function split1%(str: string, re: pattern%): string_array
+	%{
+	return do_split(str, re, 0, 0, 1);
+	%}
+
+# Same as split, except that the array returned by split_all also
+# includes parts of string that match the pattern in the array.
+
+# For example, split_all("a-b--cd", /(\-)+/) returns {"a", "-", "b",
+# "--", "cd"}: odd-indexed elements do not match the pattern
+# and even-indexed ones do.
+
+function split_all%(str: string, re: pattern%): string_array
+	%{
+	return do_split(str, re, 0, 1, 0);
+	%}
+
+function split_n%(str: string, re: pattern,
+		incl_sep: bool, max_num_sep: count%): string_array
+	%{
+	return do_split(str, re, 0, incl_sep, max_num_sep);
+	%}
+
+function split_complete%(str: string,
+		re: pattern, other: string_set,
+		incl_sep: bool, max_num_sep: count%): string_array
+	%{
+	return do_split(str, re, other->AsTableVal(), incl_sep, max_num_sep);
+	%}
+
+function sub%(str: string, re: pattern, repl: string%): string
+	%{
+	return do_sub(str, re, repl, 0);
+	%}
+
+function gsub%(str: string, re: pattern, repl: string%): string
+	%{
+	return do_sub(str, re, repl, 1);
+	%}
+
+function strcmp%(s1: string, s2: string%): int
+	%{
+	return new Val(Bstr_cmp(s1->AsString(), s2->AsString()), TYPE_INT);
+	%}
+
+# Returns 0 if $little is not found in $big.
+function strstr%(big: string, little: string%): count
+	%{
+	return new Val(
+		1 + big->AsString()->FindSubstring(little->AsString()),
+		TYPE_COUNT);
+	%}
+
+# Substitute each (non-overlapping) appearance of $from in $s to $to,
+# and return the resulting string.
+function subst_string%(s: string, from: string, to: string%): string
+	%{
+	const int little_len = from->Len();
+	if ( little_len == 0 )
+		return s->Ref();
+
+	int big_len = s->Len();
+	const u_char* big = s->Bytes();
+	data_chunk_t dc;
+	vector<data_chunk_t> vs;
+
+	while ( big_len >= little_len )
+		{
+		int j = strstr_n(big_len, big, little_len, from->Bytes());
+
+		if ( j < 0 )
+			break;
+
+		if ( j > 0 )
+			{
+			dc.length = j; dc.data = (const char*) big;
+			vs.push_back(dc);
+			}
+
+		dc.length = to->Len();
+		dc.data = (const char*) (to->Bytes());
+		vs.push_back(dc);
+
+		j += little_len;
+		big += j;
+		big_len -= j;
+		}
+
+	if ( big_len > 0 )
+		{
+		dc.length = big_len; dc.data = (const char*) big;
+		vs.push_back(dc);
+		}
+
+	return new StringVal(concatenate(vs));
+	%}
+
+function to_lower%(str: string%): string
+	%{
+	const char* s = str->CheckString();
+	int n = strlen(s) + 1;
+	char* lower_s = new char[n];
+
+	char* ls;
+	for ( ls = lower_s; *s; ++s )
+		{
+		if ( isascii(*s) && isupper(*s) )
+			*ls++ = tolower(*s);
+		else
+			*ls++ = *s;
+		}
+
+	*ls = '\0';
+
+	return new StringVal(new BroString(1, byte_vec(lower_s), n-1));
+	%}
+
+function to_upper%(str: string%): string
+	%{
+	const char* s = str->CheckString();
+	int n = strlen(s) + 1;
+	char* upper_s = new char[n];
+
+	char* us;
+	for ( us = upper_s; *s; ++s )
+		{
+		if ( isascii(*s) && islower(*s) )
+			*us++ = toupper(*s);
+		else
+			*us++ = *s;
+		}
+
+	*us = '\0';
+
+	return new StringVal(new BroString(1, byte_vec(upper_s), n-1));
+	%}
+
+function clean%(str: string%): string
+	%{
+	char* s = str->AsString()->Render();
+	return new StringVal(new BroString(1, byte_vec(s), strlen(s)));
+	%}
+
+function to_string_literal%(str: string%): string
+	%{
+	char* s = str->AsString()->Render(BroString::BRO_STRING_LITERAL);
+	return new StringVal(new BroString(1, byte_vec(s), strlen(s)));
+	%}
+
+function is_ascii%(str: string%): bool
+	%{
+	int n = str->Len();
+	const u_char* s = str->Bytes();
+
+	for ( int i = 0; i < n; ++i )
+		if ( s[i] > 127 )
+			return new Val(0, TYPE_BOOL);
+
+	return new Val(1, TYPE_BOOL);
+	%}
+
+# Make printable version of string.
+function escape_string%(s: string%): string
+	%{
+	char* escstr = s->AsString()->Render();
+	Val* val = new StringVal(escstr);
+	delete [] escstr;
+	return val;
+	%}
+
+# Returns an ASCII hexadecimal representation of a string.
+function string_to_ascii_hex%(s: string%): string
+	%{
+	char* x = new char[s->Len() * 2 + 1];
+	const u_char* sp = s->Bytes();
+
+	for ( int i = 0; i < s->Len(); ++i )
+		sprintf(x + i * 2, "%02x", sp[i]);
+
+	return new StringVal(new BroString(1, (u_char*) x, s->Len() * 2));
+	%}
+
+function str_smith_waterman%(s1: string, s2: string, params: sw_params%)
+: sw_substring_vec
+	%{
+	SWParams sw_params(params->AsRecordVal()->Lookup(0)->AsCount(),
+			   SWVariant(params->AsRecordVal()->Lookup(1)->AsCount()));
+
+	BroSubstring::Vec* subseq =
+		smith_waterman(s1->AsString(), s2->AsString(), sw_params);
+	VectorVal* result = BroSubstring::VecToPolicy(subseq);
+	delete_each(subseq);
+	delete subseq;
+
+	return result;
+	%}
+
+function str_split%(s: string, idx: index_vec%): string_vec
+	%{
+	vector<Val*>* idx_v = idx->AsVector();
+	BroString::IdxVec indices(idx_v->size());
+	unsigned int i;
+
+	for ( i = 0; i < idx_v->size(); i++ )
+		indices[i] = (*idx_v)[i]->AsCount();
+
+	BroString::Vec* result = s->AsString()->Split(indices);
+	VectorVal* result_v =
+		new VectorVal(new VectorType(base_type(TYPE_STRING)));
+
+	if ( result )
+		{
+		i = 1;
+
+		for ( BroString::VecIt it = result->begin();
+		      it != result->end(); ++it, ++i )
+			result_v->Assign(i, new StringVal(*it), 0);
+			// StringVal now possesses string.
+
+		delete result;
+		}
+
+	return result_v;
+	%}
+
+function strip%(str: string%): string
+	%{
+	const char* s = str->CheckString();
+
+	int n = strlen(s) + 1;
+	char* strip_s = new char[n];
+
+	if ( n == 1 )
+		// Empty string.
+		return new StringVal(new BroString(1, byte_vec(strip_s), 0));
+
+	while ( isspace(*s) )
+		++s;
+
+	strncpy(strip_s, s, n);
+
+	char* s2 = strip_s;
+	char* e = &s2[strlen(s2) - 1];
+
+	while ( e > s2 && isspace(*e) )
+		--e;
+
+	e[1] = '\0';	// safe even if e hasn't changed, due to n = strlen + 1
+
+	return new StringVal(new BroString(1, byte_vec(s2), (e-s2)+1));
+	%}
+
+function string_fill%(len: int, source: string%): string
+	%{
+	const char* src = source->CheckString();
+
+	int sn = strlen(src);
+	char* dst = new char[len];
+
+	for ( int i = 0; i < len; i += sn )
+		::memcpy((dst + i), src, min(sn, len - i));
+
+	dst[len - 1] = 0;
+
+	return new StringVal(new BroString(1, byte_vec(dst), len));
+	%}
+
+# Takes a string and escapes characters that would allow execution of commands
+# at the shell level.  Must be used before including strings in system() or
+# similar calls.
+#
+function str_shell_escape%(source: string%): string
+	%{
+	unsigned j = 0;
+	const char* src = source->CheckString();
+	char* dst = new char[strlen(src) * 2 + 1];
+
+	for ( unsigned i = 0; i < strlen(src); ++i )
+		{
+		switch ( src[i] ) {
+		case '`': case '"': case '\\': case '$':
+
+		// case '|': case '&': case ';': case '(': case ')': case '<':
+		// case '>': case '\'': case '*': case '?': case '[': case ']':
+		// case '!': case '#': case '{': case '}':
+			dst[j++] = '\\';
+			break;
+		default:
+			break;
+		}
+
+		dst[j++] = src[i];
+		}
+
+	dst[j] = '\0';
+	return new StringVal(new BroString(1, byte_vec(dst), j));
+	%}
+
+# Returns all occurrences of the given pattern in the given string (an empty
+# empty set if none).
+function find_all%(str: string, re: pattern%) : string_set
+	%{
+	TableVal* a = new TableVal(internal_type("string_set")->AsTableType());
+
+	const u_char* s = str->Bytes();
+	const u_char* e = s + str->Len();
+
+	for ( const u_char* t = s; t < e; ++t )
+		{
+		int n = re->MatchPrefix(t, e - t);
+		if ( n >= 0 )
+			{
+			a->Assign(new StringVal(n, (const char*) t), 0);
+			t += n - 1;
+			}
+		}
+
+	return a;
+	%}
+
+# Returns the last occurrence of the given pattern in the given string.
+# If not found, returns an empty string.  Note that this function returns
+# the match that starts at the largest index in the string, which is
+# not necessarily the longest match.  For example, a pattern of /.*/
+# will return the final character in the string.
+function find_last%(str: string, re: pattern%) : string
+	%{
+	const u_char* s = str->Bytes();
+	const u_char* e = s + str->Len();
+
+	for ( const u_char* t = e - 1; t >= s; --t )
+		{
+		int n = re->MatchPrefix(t, e - t);
+		if ( n >= 0 )
+			return new StringVal(n, (const char*) t);
+		}
+
+	return new StringVal("");
+	%}
+
+# Returns a hex dump for given input data.  The hex dump renders
+# 16 bytes per line, with hex on the left and ASCII (where printable)
+# on the right.  Based on Netdude's hex editor code.
+#
+function hexdump%(data_str: string%) : string
+	%{
+
+// The width of a line of text in the hex-mode view, consisting
+// of offset, hex view and ASCII view:
+//
+// 32 +     16 characters per 8 bytes, twice
+// (2*7) +  Single space between bytes, twice
+// 4 +      Two spaces between 8-byte sets and ASCII
+// 1 +      For newline
+// 17 +     For ASCII display, with spacer column
+// 6        For 5-digit offset counter, including spacer
+//
+#define HEX_LINE_WIDTH               74
+
+#define HEX_LINE_START                6
+#define HEX_LINE_END                 53
+#define HEX_LINE_START_ASCII         56
+#define HEX_LINE_START_RIGHT_ASCII   65
+#define HEX_LINE_LEFT_MIDDLE         28
+#define HEX_LINE_RIGHT_MIDDLE        31
+#define HEX_BLOCK_LEN                23
+#define HEX_LINE_BYTES               16
+#define NULL_CHAR                    '.'
+#define NONPRINT_CHAR                '.'
+
+	const u_char* data = data_str->Bytes();
+	unsigned data_size = data_str->Len();
+
+	if ( ! data )
+		return new StringVal("");
+
+	int num_lines = (data_size / 16) + 1;
+	int len = num_lines * HEX_LINE_WIDTH;
+	u_char* hex_data = new u_char[len + 1];
+	if ( ! hex_data )
+		return new StringVal("");
+
+	memset(hex_data, ' ', len);
+
+	u_char* hex_data_ptr = hex_data;
+	u_char* ascii_ptr = hex_data_ptr + 50;
+	int x = 0, y = 0;
+
+	for ( const u_char* data_ptr = data; data_ptr < data + data_size;
+	      ++data_ptr )
+		{
+		if ( x == 0 )
+			{
+			char offset[5];
+			safe_snprintf(offset, sizeof(offset),
+					"%.4x", data_ptr - data);
+			memcpy(hex_data_ptr, offset, 4);
+			hex_data_ptr += 6;
+			ascii_ptr = hex_data_ptr + 50;
+			}
+
+		char hex_byte[3];
+		safe_snprintf(hex_byte, sizeof(hex_byte),
+				"%.2x", (u_char) *data_ptr);
+
+		int val = (u_char) *data_ptr;
+
+		u_char ascii_byte = val;
+
+		// If unprintable, use special characters:
+		if ( val < 0x20 || val >= 0x7f )
+			{
+			if ( val == 0 )
+				ascii_byte = NULL_CHAR;
+			else
+				ascii_byte = NONPRINT_CHAR;
+			}
+
+		*hex_data_ptr++ = hex_byte[0];
+		*hex_data_ptr++ = hex_byte[1];
+		*hex_data_ptr++ = ' ';
+		*ascii_ptr++ = ascii_byte;
+
+		if ( x == 7 )
+			{
+			*hex_data_ptr++ = ' ';
+			*ascii_ptr++ = ' ';
+			}
+
+		++x;
+
+		if ( x == 16 )
+			{
+			x = 0;
+			*ascii_ptr++ = '\n';
+			hex_data_ptr = ascii_ptr;
+			}
+		}
+
+	// Terminate the string, but ensure it ends with a newline.
+	if ( ascii_ptr[-1] != '\n' )
+		*ascii_ptr++ = '\n';
+	*ascii_ptr = 0;
+
+	StringVal* result = new StringVal((const char*) hex_data);
+	delete [] hex_data;
+
+	return result;
+	%}

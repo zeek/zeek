@@ -1,0 +1,14 @@
+#! /usr/bin/env bash
+#
+# $Id: cat-file 6811 2009-07-06 20:41:10Z robin $
+#
+# cat-file <file>
+
+if [ -f $1 ]; then
+   echo 0
+   cat $1
+else
+   echo 1
+fi   
+
+echo ~~~

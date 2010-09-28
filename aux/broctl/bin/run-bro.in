@@ -1,0 +1,75 @@
+#! /usr/bin/env bash
+#
+# $Id: run-bro.in 6860 2009-08-14 19:01:47Z robin $
+#
+# Wrapper script around the actual Bro invocation. 
+#
+# run-bro is automatically generated from run-bro.in. Edit only the latter!
+
+export PATH=${bindir}:${scriptsdir}:$PATH
+
+policies=${policydir}
+export BROPATH=${policydirsiteinstallauto}:${policydirsiteinstall}:$policies:$policies/sigs:$policies/time-machine:$policies/broctl:$policies/xquery
+
+if test `uname` == "FreeBSD" && uname -r | grep -q "^[456]"; then
+   export MALLOC_OPTIONS="HR" # Helps performance on FreeBSD < 7
+fi
+
+child=""
+
+trap sig_handler 0
+
+function sig_handler
+{
+    if [ "$child" != "" ]; then
+        kill -15 $child 2>/dev/null
+        echo KILLED 1>&2
+    fi;
+
+    if [ ! -e .pid ]; then
+       echo -1 >.pid
+    fi
+}
+
+LIMIT=${memlimit:1572864}
+ulimit -m $LIMIT
+ulimit -d $LIMIT
+ulimit -v $LIMIT
+ulimit -c unlimited
+
+echo $@ >.cmdline
+
+date +%s >.startup
+date >>.startup
+date +%y-%m-%d_%H.%M.%S >>.startup # Bro default format when rotating files. 
+
+if [ "$BRO_WORKER" != "" ]; then
+   touch .worker
+elif [ "$BRO_PROXY" != "" ]; then
+   touch .proxy
+elif [ "$BRO_MANAGER" != "" ]; then
+   touch .manager
+elif [ "$BRO_STANDALONE" != "" ]; then
+   touch .standalone
+else
+   echo "None of the environment variables BRO_{MANAGER,PROXY,WORKER,STANDALONE} set." 1>&2
+   echo -1 >.pid
+   exit 1
+fi
+
+# ulimit -a
+# echo 
+
+tmpbro=${tmpexecdir}/`basename ${bro}`
+
+rm -f $tmpbro
+cp -p ${bro} $tmpbro
+sleep 1
+nohup $tmpbro $@ &
+
+child=$!
+
+echo $child >.pid
+wait $child
+child=""
+

@@ -1,0 +1,59 @@
+#! /usr/bin/env bash
+#
+# $Id: archive-log.in 6860 2009-08-14 19:01:47Z robin $
+#
+# Bro postprocessor script to archive log files. 
+# 
+# archive-log <rotated-file-name> <base-name> <timestamp-when-opened> <timestamp-when-closed> [<tag>]
+
+base=${logdir}
+
+delete=1
+if [ "$1" == "-c" ]; then
+    delete=0
+    shift
+fi
+
+# Record time of last rotation.
+date +%y-%m-%d_%H.%M.%S >.rotate # Bro default format when rotating files.
+
+# We do not keep the logs for workers/proxies.
+if [ -e .worker -o -e .proxy ]; then
+    test $delete = 0 || rm -rf $1
+    exit 0
+fi
+
+# Build archive name
+day=`echo $3 | sed 's/_.*$//'`
+from=`echo $3 | sed 's/^.*_//' | sed 's/\./:/g'`
+to=`echo $4 | sed 's/^.*._//' | sed 's/\./:/g'`
+century=`date +%Y | sed 's/..$//g'`
+day="$century$day"
+
+if [ ! -d "$base/$day" ]; then
+    mkdir "$base/$day" 2>/dev/null
+fi    
+
+#if [ $# == 5 ]; then
+#    dest="$base/$day/$5.$2.$from-$to.gz"
+#else
+    dest="$base/$day/$2.$from-$to.gz"
+#fi
+
+# Run other postprocessors. 
+for pp in ${postprocdir}/*; do
+    nice $pp $@ 
+done
+
+if [ -e $1 ]; then
+   nice gzip -9 <$1 >$dest 2>/dev/null 
+fi   
+
+if [ "$?" == "0" ]; then
+    if [ "$delete" == "1" ]; then 
+        rm -rf $1
+    else
+        # Only delete if too large (>100MB).
+        find $1 -size +104857600c -delete
+    fi
+fi

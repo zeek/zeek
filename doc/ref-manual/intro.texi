@@ -1,0 +1,170 @@
+
+@node Introduction
+@chapter Introduction
+
+Bro is an intrusion detection system that works by passively watching
+traffic seen on a network link.  It is built around an @emph{event engine}
+that pieces network packets into events that reflect different types of
+activity.  Some events are quite low-level, such as the monitor seeing
+a connection attempt; some are specific to a particular network protocol,
+such as an FTP request or reply; and some reflect fairly high-level notions,
+such as a user having successfully authenticated during a login session.
+
+Bro runs the events produced by the event engine through a @emph{policy script}, which you (the Bro administrator) supply, though in general you will
+do so by using large portions of the scripts
+(``@emph{analyzers}''; see below) that come with the Bro distribution.
+
+You write policy scripts in ``Bro'', a specialized language geared towards
+network analysis in general and security analysis in particular.  Bro scripts
+are made up of @emph{event handlers} that specify what to do whenever a
+given event occurs.  Event handlers can maintain and update global state
+information, write arbitrary information to disk files, generate new
+events, call functions (either user-defined or predefined), generate
+@emph{alarms} that produce @emph{syslog} messages, and invoke arbitrary
+shell commands.  These latter might terminate a running connection or talk
+to your border router to install an ACL prohibiting traffic from a particular
+host, for example.
+
+The Bro language is strongly typed and includes a bunch of types designed
+to aid analyzing network traffic.  It also supports @emph{implicit typing},
+meaning that often you don't need to explicitly indicate a variable's type
+because Bro can figure it out from context.  This feature makes the strong typing
+a bit less of a pain, while retaining its bug-finding benefits.
+
+For high performance, Bro relies on use of an efficient @emph{packet filter}
+to capture only a (hopefully small) subset of the traffic that transits
+the link it monitors.  Related to this, Bro comes with a set of
+@emph{analyzers}, that is, scripts for analyzing different protocols and
+different types of activity.  In general you can pick and choose among
+these for which types of analysis you want to enable, and Bro will only
+capture traffic relating to the analyzers you choose.  Thus, you can
+control how much work Bro has to do by the analyzers you designate, a
+potentially major consideration if the monitored link has a high volume
+of traffic.
+
+Experience has shown that the policy scripts often require tailoring
+to each environment in which they're used; but if the tailoring is done
+by editing the analyzers supplied with the Bro distribution, you wind
+up with multiple copies of the analyzers, all slightly different, such
+that when you want to make a general change to all of them, it takes
+careful (and tedious) editing to correctly apply the change to all of
+the copies.
+
+Consequently, Bro emphasizes the use of tables and sets of values as ways
+to codify policy particulars such as which hosts should generate alarms
+if seen engaged in various types of connections, which usernames are sensitive
+and should trigger alarms when used, and so on.  The various analyzers
+are written such that you can (often) customize them by simply changing
+variables associated with the analyzer.  Furthermore, Bro
+supports a notion of @emph{refining} the initialization of a variable, so
+that, in a @emph{separate} file from the one defining an analyzer, you
+can either @emph{(i)} @emph{redefine} the variable's initial value,
+@emph{(ii)} @emph{add} new elements to a given table, set or pattern, or
+@emph{(iii)} @emph{remove} elements from a given table or set.
+In a nutshell, refinement allows you to specify particular policies
+in terms of their @emph{differences} from existing policies, rather
+than in their entirety.
+
+@cindex Bro!references
+You can find an overview of Bro in the paper
+``Bro: A System for Detecting Network Intruders in Real-Time,''
+Proceedings of the 1998 USENIX Security Symposium
+@uref{insert URL,Pa98}
+and a revised version
+in @emph{Computer Networks} 
+@uref{insert URL,Pa99}
+A copy of the latter is included in the Bro distribution.
+
+@strong{Using this manual:}
+
+This manual is intended to provide full documentation for users
+of Bro, both those who wish to write Bro scripts to use Bro's existing
+analyzers, and those who wish to implement event engine support for new Bro
+analyzers.  The current version of the manual is @emph{incomplete};
+in particular, it does not discuss the internals of the event engines,
+and a number of other topics have only placeholders.
+
+The manual is organized @emph{not} as a tutorial, but rather closer to a
+reference manual.  In particular, the intent is for the @emph{index} to
+be highly comprehensive, and to serve as one of the main tools to help
+you navigate through Bro's numerous features and capabilities.  Accordingly,
+the index contains many ``redundant'' entries, that is, the same
+information indexed in multiple ways, to try to make it particularly easy
+to look up information.  For example, you'll find a list of all of
+the predefined functions under ``predefined functions'', and also
+under ``functions''.  There are similar entries for ``events'' and
+``variables''.
+
+The manual also includes @emph{Note:}'s and @emph{Deficiency:}'s that
+emphasize points that may be subtle or counter-intuitive, or that
+reflect bugs of some form.  The general delineation between the two
+is that @emph{Note:}'s discuss facets of Bro not likely to change,
+while @emph{Deficiency:}'s will (should) eventually get fixed.
+
+I'm very interested in feedback on whether the manual in general and the
+index in particular is effective, what should be added or removed from it
+to improve it, any errors found in the index or (of course) elsewhere in
+the manual, and what topics you would give the highest priority for the
+next revision of the manual.  In addition, @emph{any contributions to the manual} will be highly welcome!  You'll find the source for the manual
+in @emph{doc/manual-src/}.
+
+The current version of the manual is organized as follows.
+We begin with an overview of how to get started using Bro: building
+and installing it, running it interactively and on live and prerecorded
+network traffic, and the helper utilities (scripts and programs) included
+in the distribution (Chapter N).
+
+Chapter N then discusses the different
+types, values, and constants that Bro supports.  The intent is to provide
+you with some of the flavor of the language.  In addition, later chapters
+use these concepts to explain things like the types associated with the
+arguments passed to different event handlers.
+
+Chapter N lists the different variables and functions
+that Bro predefines.  The variables generally reflect particular values
+that control the behavior of the event engine or reflect its status,
+and the functions are for the most part utilities to aid in the writing
+of Bro scripts.
+
+Chapter N discusses the different analyzers that
+Bro provides.  It is far and away the longest chapter, since there
+are a good number of analyzers, and some of them are quite rich
+in their analysis.
+
+Chapter N describes how to use Bro's @emph{signature engine}.
+The signature engine provides a general mechanism for searching for 
+regular expressions in packet payloads or reassembled TCP byte streams.
+Successful matches can then be fed as events into your policy script
+for further analysis, including the opportunity to assess the match
+in terms of surrounding context, which can greatly reduce the problem
+of ``false positives'' from which signature-matching can suffer.
+The chapter also discusses how to incorporate signatures from the popular
+@emph{Snort} intrusion detection system.
+
+Chapter N gives an overview of Bro's @emph{interactive debugger}.
+The debugger allows you to breakpoint your policy script and inspect and
+change the values of script variables.  The chapter also describes the
+generation of @emph{traces} of all of the events generated during execution.
+
+Finally, Chapter N briefly lists different aspects of Bro
+that have not yet been documented (in addition to the event engine
+and the Bro language itself).
+
+@noindent @emph{Acknowledgments:}
+
+Major components of Bro's functionality were contributed by Ruoming Pang,
+Umesh Shankar, Robin Sommer, and Chema Gonzalez.  Robin also wrote
+Chapter N of this manual; Umesh wrote Chapter N;
+and Michael Kuhn and Benedikt Ostermaier contributed the SSL analyzer
+(with additional development by Scott Campbell) and the associated
+documentation.
+
+Many thanks, too, to Craig Leres, Craig Lant, Jim Mellander, Anne Hutton,
+David Johnston, Mark Handley, and Partha Banerjee for their contributions
+and operational feedback.
+
+Finally, a number of people were instrumental to supporting Bro's development:
+Jim Rothfuss, Mark Rosenberg, Stu Loken, Van Jacobson, Dave Stevens, and
+Jeff Mogul.  Again, many thanks!
+
+

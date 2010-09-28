@@ -1,0 +1,45 @@
+// Definitions of POP3 commands (RFC 1939)
+
+// Server-side Status Indicators.
+POP3_CMD_DEF(OK)
+POP3_CMD_DEF(ERR)
+
+// ===========================================
+// AUTHORIZATION - State
+
+POP3_CMD_DEF(USER)
+POP3_CMD_DEF(PASS)
+
+// Additional commands (not required to be implemented).
+
+POP3_CMD_DEF(APOP)
+POP3_CMD_DEF(AUTH)
+
+// POP3_CMD_DEF(QUIT) - also possible here, but without entering UPDATE-state.
+
+// ===========================================
+// TRANSACTION - State
+
+POP3_CMD_DEF(STAT)
+POP3_CMD_DEF(LIST)
+POP3_CMD_DEF(RETR)
+POP3_CMD_DEF(DELE)
+POP3_CMD_DEF(RSET)
+POP3_CMD_DEF(NOOP)
+POP3_CMD_DEF(LAST)
+POP3_CMD_DEF(QUIT)
+
+// Additional commands (not required to be implemented).
+
+POP3_CMD_DEF(TOP)
+POP3_CMD_DEF(CAPA)
+POP3_CMD_DEF(UIDL)
+POP3_CMD_DEF(STLS)
+POP3_CMD_DEF(XSENDER)
+
+POP3_CMD_DEF(END)
+
+// ===========================================
+// UPDATE - State
+// no commands here
+

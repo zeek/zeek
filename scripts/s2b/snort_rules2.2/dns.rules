@@ -1,0 +1,35 @@
+# (C) Copyright 2001-2004, Martin Roesch, Brian Caswell, et al.
+#    All rights reserved.
+# $Id: dns.rules 91 2004-07-15 08:13:57Z rwinslow $
+#----------
+# DNS RULES
+#----------
+
+alert tcp $EXTERNAL_NET any -> $HOME_NET 53 (msg:"DNS zone transfer TCP"; flow:to_server,established; content:"|00 00 FC|"; offset:15; reference:arachnids,212; reference:cve,1999-0532; classtype:attempted-recon; sid:255; rev:11;)
+alert udp $EXTERNAL_NET any -> $HOME_NET 53 (msg:"DNS zone transfer UDP"; content:"|00 00 FC|"; offset:14; reference:arachnids,212; reference:cve,1999-0532; classtype:attempted-recon; sid:1948; rev:4;)
+
+
+alert tcp $EXTERNAL_NET any -> $HOME_NET 53 (msg:"DNS named authors attempt"; flow:to_server,established; content:"|07|authors"; offset:12; nocase; content:"|04|bind"; offset:12; nocase; reference:arachnids,480; reference:nessus,10728; classtype:attempted-recon; sid:1435; rev:6;)
+alert udp $EXTERNAL_NET any -> $HOME_NET 53 (msg:"DNS named authors attempt"; content:"|07|authors"; offset:12; nocase; content:"|04|bind"; offset:12; nocase; reference:arachnids,480; reference:nessus,10728; classtype:attempted-recon; sid:256; rev:5;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 53 (msg:"DNS named version attempt"; flow:to_server,established; content:"|07|version"; offset:12; nocase; content:"|04|bind"; offset:12; nocase; reference:arachnids,278; reference:nessus,10028; classtype:attempted-recon; sid:257; rev:8;)
+alert udp $EXTERNAL_NET any -> $HOME_NET 53 (msg:"DNS named version attempt"; content:"|07|version"; offset:12; nocase; content:"|04|bind"; offset:12; nocase; reference:arachnids,278; reference:nessus,10028; classtype:attempted-recon; sid:1616; rev:6;)
+
+
+
+alert udp $EXTERNAL_NET 53 -> $HOME_NET any (msg:"DNS SPOOF query response PTR with TTL of 1 min. and no authority"; content:"|85 80 00 01 00 01 00 00 00 00|"; content:"|C0 0C 00 0C 00 01 00 00 00|<|00 0F|"; classtype:bad-unknown; sid:253; rev:4;)
+alert udp $EXTERNAL_NET 53 -> $HOME_NET any (msg:"DNS SPOOF query response with TTL of 1 min. and no authority"; content:"|81 80 00 01 00 01 00 00 00 00|"; content:"|C0 0C 00 01 00 01 00 00 00|<|00 04|"; classtype:bad-unknown; sid:254; rev:4;)
+
+alert tcp $EXTERNAL_NET any -> $HOME_NET 53 (msg:"DNS EXPLOIT named 8.2->8.2.1"; flow:to_server,established; content:"../../../"; reference:bugtraq,788; reference:cve,1999-0833; classtype:attempted-admin; sid:258; rev:6;)
+
+
+
+alert tcp $EXTERNAL_NET any -> $HOME_NET 53 (msg:"DNS EXPLOIT named tsig overflow attempt"; flow:to_server,established; content:"|AB CD 09 80 00 00 00 01 00 00 00 00 00 00 01 00 01|    |02|a"; reference:arachnids,482; reference:bugtraq,2302; reference:cve,2001-0010; classtype:attempted-admin; sid:303; rev:11;)
+alert udp $EXTERNAL_NET any -> $HOME_NET 53 (msg:"DNS EXPLOIT named tsig overflow attempt"; content:"|80 00 07 00 00 00 00 00 01|?|00 01 02|"; reference:bugtraq,2303; reference:cve,2001-0010; classtype:attempted-admin; sid:314; rev:9;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 53 (msg:"DNS EXPLOIT named overflow ADM"; flow:to_server,established; content:"thisissometempspaceforthesockinaddrinyeahyeahiknowthisislamebutanywaywhocareshorizongotitworkingsoalliscool"; reference:bugtraq,788; reference:cve,1999-0833; classtype:attempted-admin; sid:259; rev:7;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 53 (msg:"DNS EXPLOIT named overflow ADMROCKS"; flow:to_server,established; content:"ADMROCKS"; reference:bugtraq,788; reference:cve,1999-0833; reference:url,www.cert.org/advisories/CA-1999-14.html; classtype:attempted-admin; sid:260; rev:9;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 53 (msg:"DNS EXPLOIT named overflow attempt"; flow:to_server,established; content:"|CD 80 E8 D7 FF FF FF|/bin/sh"; reference:url,www.cert.org/advisories/CA-1998-05.html; classtype:attempted-admin; sid:261; rev:6;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 53 (msg:"DNS EXPLOIT x86 Linux overflow attempt"; flow:to_server,established; content:"1|C0 B0|?1|DB B3 FF|1|C9 CD 80|1|C0|"; classtype:attempted-admin; sid:262; rev:6;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 53 (msg:"DNS EXPLOIT x86 Linux overflow attempt"; flow:to_server,established; content:"1|C0 B0 02 CD 80 85 C0|uL|EB|L^|B0|"; classtype:attempted-admin; sid:264; rev:6;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 53 (msg:"DNS EXPLOIT x86 Linux overflow attempt ADMv2"; flow:to_server,established; content:"|89 F7 29 C7 89 F3 89 F9 89 F2 AC|<|FE|"; classtype:attempted-admin; sid:265; rev:7;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 53 (msg:"DNS EXPLOIT x86 FreeBSD overflow attempt"; flow:to_server,established; content:"|EB|n^|C6 06 9A|1|C9 89|N|01 C6|F|05|"; classtype:attempted-admin; sid:266; rev:6;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 53 (msg:"DNS EXPLOIT sparc overflow attempt"; flow:to_server,established; content:"|90 1A C0 0F 90 02| |08 92 02| |0F D0 23 BF F8|"; classtype:attempted-admin; sid:267; rev:5;)

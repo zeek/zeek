@@ -1,0 +1,7 @@
+# $Id: networks.cfg.in 6811 2009-07-06 20:41:10Z robin $
+#
+# List of local networks in CIDR notation, optionally followed by a descriptive tag.
+# 
+
+10.0.0.0/8          Private IP space 
+192.168.0.0/16      Private IP space

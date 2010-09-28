@@ -1,0 +1,131 @@
+# $Id: gen-msg.map 91 2004-07-15 08:13:57Z rwinslow $
+# GENERATORS -> msg map
+# Format: generatorid || alertid || MSG
+
+1 || 1 || snort general alert
+2 || 1 || tag: Tagged Packet
+100 || 1 || spp_portscan: Portscan Detected
+100 || 2 || spp_portscan: Portscan Status
+100 || 3 || spp_portscan: Portscan Ended
+101 || 1 || spp_minfrag: minfrag alert
+102 || 1 || http_decode: Unicode Attack
+102 || 2 || http_decode: CGI NULL Byte Attack
+102 || 3 || http_decode: large method attempted
+102 || 4 || http_decode: missing uri
+102 || 5 || http_decode: double encoding detected
+102 || 6 || http_decode: illegal hex values detected
+102 || 7 || http_decode: overlong character detected
+103 || 1 || spp_defrag: Fragmentation Overflow Detected
+103 || 2 || spp_defrag: Stale Fragments Discarded
+104 || 1 || spp_anomsensor: SPADE Anomaly Threshold Exceeded
+104 || 2 || spp_anomsensor: SPADE Anomaly Threshold Adjusted
+105 || 1 || spp_bo: Back Orifice Traffic Detected
+106 || 1 || spp_rpc_decode: Fragmented RPC Records
+106 || 2 || spp_rpc_decode: Multiple Records in one packet
+106 || 3 || spp_rpc_decode: Large RPC Record Fragment
+106 || 4 || spp_rpc_decode: Incomplete RPC segment
+110 || 1 || spp_unidecode: CGI NULL Attack
+110 || 2 || spp_unidecode: Directory Traversal
+110 || 3 || spp_unidecode: Unknown Mapping
+110 || 4 || spp_unidecode: Invalid Mapping
+111 || 1 || spp_stream4: Stealth Activity Detected
+111 || 2 || spp_stream4: Evasive Reset Packet
+111 || 3 || spp_stream4: Retransmission
+111 || 4 || spp_stream4: Window Violation
+111 || 5 || spp_stream4: Data on SYN Packet
+111 || 6 || spp_stream4: Full XMAS Stealth Scan
+111 || 7 || spp_stream4: SAPU Stealth Scan
+111 || 8 || spp_stream4: FIN Stealth Scan 
+111 || 9 || spp_stream4: NULL Stealth Scan
+111 || 10 || spp_stream4: NMAP XMAS Stealth Scan
+111 || 11 || spp_stream4: VECNA Stealth Scan
+111 || 12 || spp_stream4: NMAP Fingerprint Stateful Detection
+111 || 13 || spp_stream4: SYN FIN Stealth Scan
+111 || 14 || spp_stream4: TCP forward overlap detected
+111 || 15 || spp_stream4: TTL Evasion attempt
+111 || 16 || spp_stream4: Evasive retransmitited data attempt
+111 || 17 || spp_stream4: Evasive retransmitited data with the data split attempt
+111 || 18 || spp_stream4: Multiple acked
+111 || 19 || spp_stream4: Shifting to Emegency Session Mode
+111 || 20 || spp_stream4: Shifting to Suspend Mode
+112 || 1 || spp_arpspoof: Directed ARP Request
+112 || 2 || spp_arpspoof: Etherframe ARP Mismatch SRC
+112 || 3 || spp_arpspoof: Etherframe ARP Mismatch DST
+112 || 4 || spp_arpspoof: ARP Cache Overwrite Attack
+113 || 1 || spp_frag2: Oversized Frag
+113 || 2 || spp_frag2: Teardrop/Fragmentation Overlap Attack
+113 || 3 || spp_frag2: TTL evasion detected
+113 || 4 || spp_frag2: overlap detected
+113 || 5 || spp_frag2: Duplicate first fragments
+113 || 6 || spp_frag2: memcap exceeded
+113 || 7 || spp_frag2: Out of order fragments
+113 || 8 || spp_frag2: IP Options on Fragmented Packet
+113 || 9 || spp_frag2: Shifting to Emegency Session Mode
+113 || 10 || spp_frag2: Shifting to Suspend Mode
+114 || 1 || spp_fnord: Possible Mutated GENERIC NOP Sled detected
+114 || 2 || spp_fnord: Possible Mutated IA32 NOP Sled detected
+114 || 3 || spp_fnord: Possible Mutated HPPA NOP Sled detected
+114 || 4 || spp_fnord: Possible Mutated SPARC NOP Sled detected
+115 || 1 || spp_asn1: Indefinite ASN.1 length encoding
+115 || 2 || spp_asn1: Invalid ASN.1 length encoding
+115 || 3 || spp_asn1: ASN.1 oversized item, possible overflow
+115 || 4 || spp_asn1: ASN.1 spec violation, possible overflow
+115 || 5 || spp_asn1: ASN.1 Attack: Datum length > packet length
+116 || 1 || snort_decoder: Not IPv4 datagram!
+116 || 2 || snort_decoder: WARNING: Not IPv4 datagram!
+116 || 3 || snort_decoder: WARNING: hlen < IP_HEADER_LEN!
+116 || 4 || snort_decoder: Bad IPv4 Options
+116 || 5 || snort_decoder: Truncated IPv4 Options
+116 || 45 || snort_decoder: TCP packet len is smaller than 20 bytes!
+116 || 46 || snort_decoder: TCP Data Offset is less than 5!
+116 || 47 || snort_decoder: TCP Data Offset is longer than payload!
+116 || 54 || snort_decoder: Tcp Options found with bad lengths
+116 || 55 || snort_decoder: Truncated Tcp Options
+116 || 56 || snort_decoder: T/TCP Detected
+116 || 57 || snort_decoder: Obsolete TCP options
+116 || 58 || snort_decoder: Experimental TCP options
+116 || 95 || snort_decoder: Truncated UDP Header!
+116 || 96 || snort_decoder: Invalid UDP header, length field < 8
+116 || 97 || snort_decoder: Short UDP packet, length field > payload length
+116 || 105 || snort_decoder: ICMP Header Truncated!
+116 || 106 || snort_decoder: ICMP Timestamp Header Truncated!
+116 || 107 || snort_decoder: ICMP Address Header Truncated!
+116 || 108 || snort_decoder: Unknown Datagram decoding problem!
+116 || 109 || snort_decoder: Unknown Datagram decoding problem!
+116 || 110 || snort_decoder: Truncated EAP Header!
+116 || 111 || snort_decoder: EAP Key Truncated!
+116 || 112 || snort_decoder: EAP Header Truncated!
+116 || 120 || snort_decoder: WARNING: Bad PPPOE frame detected!
+116 || 130 || snort_decoder: WARNING: Bad VLAN Frame!
+116 || 131 || snort_decoder: WARNING: Bad LLC header!
+116 || 132 || snort_decoder: WARNING: Bad Extra LLC Info!
+116 || 133 || snort_decoder: WARNING: Bad 802.11 LLC header!
+116 || 134 || snort_decoder: WARNING: Bad 802.11 Extra LLC Info!
+116 || 140 || snort_decoder: WARNING: Bad Token Ring Header!
+116 || 141 || snort_decoder: WARNING: Bad Token Ring ETHLLC Header!
+116 || 142 || snort_decoder: WARNING: Bad Token Ring MRLEN Header!
+116 || 143 || snort_decoder: WARNING: Bad Token Ring MR Header!
+117 || 1 || spp_portscan2: Portscan detected!
+118 || 1 || spp_conversation: Bad IP protocol!
+119 || 1 || http_inspect: ASCII ENCODING
+119 || 2 || http_inspect: DOUBLE DECODING ATTACK
+119 || 3 || http_inspect: U ENCODING
+119 || 4 || http_inspect: BARE BYTE UNICODE ENCODING
+119 || 5 || http_inspect: BASE36 ENCODING
+119 || 6 || http_inspect: UTF-8 ENCODING
+119 || 7 || http_inspect: IIS UNICODE CODEPOINT ENCODING
+119 || 8 || http_inspect: MULTI_SLASH ENCODING
+119 || 9 || http_inspect: IIS BACKSLASH EVASION
+119 || 10 || http_inspect: SELF DIRECTORY TRAVERSAL
+119 || 11 || http_inspect: DIRECTORY TRAVERSAL
+119 || 12 || http_inspect: APACHE WHITESPACE (TAB)
+119 || 13 || http_inspect: NON-RFC HTTP DELIMITER
+119 || 14 || http_inspect: NON-RFC DEFINED CHAR
+119 || 15 || http_inspect: OVERSIZE REQUEST-URI DIRECTORY
+119 || 16 || http_inspect: OVERSIZE CHUNK ENCODING
+119 || 17 || http_inspect: UNAUTHORIZED PROXY USE DETECTED
+120 || 1 || http_inspect: ANOMALOUS HTTP SERVER ON UNDEFINED HTTP PORT
+121 || 1 || flow-portscan: Fixed Scale Scanner Limit Exceeded
+121 || 2 || flow-portscan: Sliding Scale Scanner Limit Exceeded
+121 || 3 || flow-portscan: Fixed Scale Talker Limit Exceeded
+121 || 4 || flow-portscan: Sliding Scale Talker Limit Exceeded

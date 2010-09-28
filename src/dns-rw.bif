@@ -1,0 +1,99 @@
+# $Id: dns-rw.bif,v 1.1.2.6 2006/01/11 21:20:09 jason Exp $
+
+# This is called for every message - snake out the header.
+rewriter dns_message%(is_orig: bool, msg: dns_msg, len: count%)
+	%{
+	DNS_Rewriter* dnsrewriter = ((DNS_Rewriter*) @TRACE@);
+	dnsrewriter->SetOrig(is_orig);
+	dnsrewriter->DnsCopyHeader(msg);
+	%}
+
+# Rewrite an DNS request.
+rewriter dns_request%(query: string, msg: dns_msg, qtype: count, qclass: count%)
+	%{
+	DNS_Rewriter* dnsrewriter = ((DNS_Rewriter*) @TRACE@);
+	dnsrewriter->DnsCopyQuery(query->AsString(), qtype, qclass);
+	%}
+
+# Called for every reply, contains the query part.
+rewriter dns_reply_question%(msg: dns_msg,
+				qname: string, qtype: count, qclass: count%)
+	%{
+	DNS_Rewriter* dnsrewriter = ((DNS_Rewriter*) @TRACE@);
+	dnsrewriter->DnsCopyQuery(qname->AsString(), qtype, qclass);
+	%}
+
+
+# Rewrite an DNS NS reply.
+rewriter dns_NS_reply%(msg: dns_msg, dns_ans: dns_answer, name: string%)
+	%{
+	DNS_Rewriter* dnsrewriter = ((DNS_Rewriter*) @TRACE@);
+	dnsrewriter->DnsCopyNS(dns_ans, name->AsString());
+	%}
+
+
+rewriter dns_A_reply%(msg: dns_msg, ans: dns_answer, a: addr%)
+	%{
+	DNS_Rewriter* dnsrewriter = ((DNS_Rewriter*) @TRACE@);
+#ifdef BROv6
+	dnsrewriter->DnsCopyA(ans, to_v4_addr(a));
+#else
+	dnsrewriter->DnsCopyA(ans, a);
+#endif
+	%}
+
+rewriter dns_AAAA_reply%(msg: dns_msg, ans: dns_answer, a: addr, astr: string%)
+	%{
+	DNS_Rewriter* dnsrewriter = ((DNS_Rewriter*) @TRACE@);
+	dnsrewriter->DnsCopyAAAA(ans, a, astr->AsString());
+	%}
+
+rewriter dns_CNAME_reply%(msg: dns_msg, ans: dns_answer, name: string%)
+	%{
+	DNS_Rewriter* dnsrewriter = ((DNS_Rewriter*) @TRACE@);
+	dnsrewriter->DnsCopyCNAME(ans, name->AsString());
+	%}
+
+rewriter dns_TXT_reply%(msg: dns_msg, ans: dns_answer, content: string%)
+	%{
+	DNS_Rewriter* dnsrewriter = ((DNS_Rewriter*) @TRACE@);
+	dnsrewriter->DnsCopyTXT(ans, content->AsString());
+	%}
+
+rewriter dns_PTR_reply%(msg: dns_msg, ans: dns_answer, name: string%)
+	%{
+	DNS_Rewriter* dnsrewriter = ((DNS_Rewriter*) @TRACE@);
+	dnsrewriter->DnsCopyPTR(ans, name->AsString());
+	%}
+
+rewriter dns_MX_reply%(msg: dns_msg, ans: dns_answer,
+			name: string, preference: count%)
+	%{
+	DNS_Rewriter* dnsrewriter = ((DNS_Rewriter*) @TRACE@);
+	dnsrewriter->DnsCopyMX(ans, name->AsString(), preference);
+	%}
+
+rewriter dns_SOA_reply%(msg: dns_msg, ans: dns_answer, soa: dns_soa%)
+	%{
+	DNS_Rewriter* dnsrewriter = ((DNS_Rewriter*) @TRACE@);
+	dnsrewriter->DnsCopySOA(ans, soa);
+	%}
+
+rewriter dns_EDNS_addl%(msg: dns_msg, ans: dns_edns_additional%)
+	%{
+	DNS_Rewriter* dnsrewriter = ((DNS_Rewriter*) @TRACE@);
+	dnsrewriter->DnsCopyEDNSaddl(ans);
+	%}
+
+
+# Call this at end of processing a DNS packet.
+rewriter dns_end%(commit: bool%)
+	%{
+	DNS_Rewriter* dnsrewriter = ((DNS_Rewriter*) @TRACE@);
+
+	// We have been building the packet in the DNS rewriter, now
+	// write the whole packet here at once, then commit it.
+	@WRITE@(dnsrewriter->IsOrig(), dnsrewriter->PacketSize(),
+		(const u_char*) dnsrewriter->Packet());
+	@TRACE@->CommitPackets(commit);
+	%}

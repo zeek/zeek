@@ -1,0 +1,468 @@
+# $Id: event.bif 6942 2009-11-16 03:54:08Z vern $
+
+# Declare to bifcl the following types as enum types.
+declare enum dce_rpc_ptype;
+declare enum dce_rpc_if_id;
+declare enum rpc_status;
+
+event bro_init%(%);
+event bro_done%(%);
+
+# bro_signal is initiated in main.cc
+# event bro_signal%(signal: count%);
+
+event dns_mapping_valid%(dm: dns_mapping%);
+event dns_mapping_unverified%(dm: dns_mapping%);
+event dns_mapping_new_name%(dm: dns_mapping%);
+event dns_mapping_lost_name%(dm: dns_mapping%);
+event dns_mapping_name_changed%(old_dm: dns_mapping, new_dm: dns_mapping%);
+event dns_mapping_altered%(dm: dns_mapping, old_addrs: addr_set, new_addrs: addr_set%);
+
+event new_connection%(c: connection%);
+event new_connection_contents%(c: connection%);
+event new_packet%(c: connection, p: pkt_hdr%);
+event connection_attempt%(c: connection%);
+event connection_established%(c: connection%);
+event partial_connection%(c: connection%);
+event connection_partial_close%(c: connection%);
+event connection_finished%(c: connection%);
+event connection_half_finished%(c: connection%);
+event connection_rejected%(c: connection%);
+event connection_reset%(c: connection%);
+event connection_pending%(c: connection%);
+event connection_state_remove%(c: connection%);
+event connection_SYN_packet%(c: connection, pkt: SYN_packet%);
+event connection_first_ACK%(c: connection%);
+event connection_timeout%(c: connection%);
+event connection_reused%(c: connection%);
+event connection_status_update%(c: connection%);
+event connection_EOF%(c: connection, is_orig: bool%);
+event connection_external%(c: connection, tag: string%);
+event expected_connection_seen%(c: connection, a: count%);
+
+event protocol_confirmation%(c: connection, atype: count, aid: count%);
+event protocol_violation%(c: connection, atype: count, aid: count, reason: string%);
+
+event packet_contents%(c: connection, contents: string%);
+event tcp_packet%(c: connection, is_orig: bool, flags: string, seq: count, ack: count, len: count, payload: string%);
+event tcp_option%(c: connection, is_orig: bool, opt: count, optlen: count%);
+event tcp_contents%(c: connection, is_orig: bool, seq: count, contents: string%);
+event tcp_rexmit%(c: connection, is_orig: bool, seq: count, len: count, data_in_flight: count, window: count%);
+event udp_request%(u: connection%);
+event udp_reply%(u: connection%);
+event udp_contents%(u: connection, is_orig: bool, contents: string%);
+event udp_session_done%(u: connection%);
+event icmp_sent%(c: connection, icmp: icmp_conn%);
+event icmp_echo_request%(c: connection, icmp: icmp_conn, id: count, seq: count, payload: string%);
+event icmp_echo_reply%(c: connection, icmp: icmp_conn, id: count, seq: count, payload: string%);
+event icmp_unreachable%(c: connection, icmp: icmp_conn, code: count, context: icmp_context%);
+event icmp_time_exceeded%(c: connection, icmp: icmp_conn, code: count, context: icmp_context%);
+event net_stats_update%(t: time, ns: net_stats%);
+event conn_stats%(c: connection, os: endpoint_stats, rs: endpoint_stats%);
+event conn_weird%(name: string, c: connection%);
+event conn_weird_addl%(name: string, c: connection, addl: string%);
+event flow_weird%(name: string, src: addr, dst: addr%);
+event net_weird%(name: string%);
+event load_sample%(samples: load_sample_info, CPU: interval, dmem: int%);
+event rexmit_inconsistency%(c: connection, t1: string, t2: string%);
+event ack_above_hole%(c: connection%);
+event content_gap%(c: connection, is_orig: bool, seq: count, length: count%);
+event gap_report%(dt: interval, info: gap_info%);
+event inconsistent_option%(c: connection%);
+event bad_option%(c: connection%);
+event bad_option_termination%(c: connection%);
+
+event arp_request%(mac_src: string, mac_dst: string, SPA: addr, SHA: string,
+			TPA: addr, THA: string%);
+event arp_reply%(mac_src: string, mac_dst: string, SPA: addr, SHA: string,
+			TPA: addr, THA: string%);
+event bad_arp%(SPA: addr, SHA: string, TPA: addr, THA: string, explanation: string%);
+
+event bittorrent_peer_handshake%(c: connection, is_orig: bool,
+			reserved: string, info_hash: string, peer_id: string%);
+event bittorrent_peer_keep_alive%(c: connection, is_orig: bool%);
+event bittorrent_peer_choke%(c: connection, is_orig: bool%);
+event bittorrent_peer_unchoke%(c: connection, is_orig: bool%);
+event bittorrent_peer_interested%(c: connection, is_orig: bool%);
+event bittorrent_peer_not_interested%(c: connection, is_orig: bool%);
+event bittorrent_peer_have%(c: connection, is_orig: bool, piece_index: count%);
+event bittorrent_peer_bitfield%(c: connection, is_orig: bool, bitfield: string%);
+event bittorrent_peer_request%(c: connection, is_orig: bool, index: count,
+				begin: count, length: count%);
+event bittorrent_peer_piece%(c: connection, is_orig: bool, index: count,
+				begin: count, piece_length: count%);
+event bittorrent_peer_cancel%(c: connection, is_orig: bool, index: count,
+				begin: count, length: count%);
+event bittorrent_peer_port%(c: connection, is_orig: bool, listen_port: port%);
+event bittorrent_peer_unknown%(c: connection, is_orig: bool, message_id: count,
+				data: string%);
+event bittorrent_peer_weird%(c: connection, is_orig: bool, msg: string%);
+event bt_tracker_request%(c: connection, uri: string,
+				headers: bt_tracker_headers%);
+event bt_tracker_response%(c: connection, status: count,
+					headers: bt_tracker_headers,
+					peers: bittorrent_peer_set,
+					benc: bittorrent_benc_dir%);
+event bt_tracker_response_not_ok%(c: connection, status: count,
+					headers: bt_tracker_headers%);
+event bt_tracker_weird%(c: connection, is_orig: bool, msg: string%);
+
+event finger_request%(c: connection, full: bool, username: string, hostname: string%);
+event finger_reply%(c: connection, reply_line: string%);
+
+event gnutella_text_msg%(c: connection, orig: bool, headers: string%);
+event gnutella_binary_msg%(c: connection, orig: bool, msg_type: count,
+				ttl: count, hops: count, msg_len: count,
+				payload: string, payload_len: count,
+				trunc: bool, complete: bool%);
+event gnutella_partial_binary_msg%(c: connection, orig: bool,
+					msg: string, len: count%);
+event gnutella_establish%(c: connection%);
+event gnutella_not_establish%(c: connection%);
+event gnutella_http_notify%(c: connection%);
+
+event ident_request%(c: connection, lport: port, rport: port%);
+event ident_reply%(c: connection, lport: port, rport: port, user_id: string, system: string%);
+event ident_error%(c: connection, lport: port, rport: port, line: string%);
+
+event login_failure%(c: connection, user: string, client_user: string, password: string, line: string%);
+event login_success%(c: connection, user: string, client_user: string, password: string, line: string%);
+event login_input_line%(c: connection, line: string%);
+event login_output_line%(c: connection, line: string%);
+event login_confused%(c: connection, msg: string, line: string%);
+event login_confused_text%(c: connection, line: string%);
+event login_terminal%(c: connection, terminal: string%);
+event login_display%(c: connection, display: string%);
+event login_prompt%(c: connection, prompt: string%);
+event rsh_request%(c: connection, client_user: string, server_user: string, line: string, new_session: bool%);
+event rsh_reply%(c: connection, client_user: string, server_user: string, line: string%);
+event excessive_line%(c: connection%);
+event authentication_accepted%(name: string, c: connection%);
+event authentication_rejected%(name: string, c: connection%);
+event authentication_skipped%(c: connection%);
+event activating_encryption%(c: connection%);
+
+event ftp_request%(c: connection, command: string, arg: string%) &group="ftp";
+event ftp_reply%(c: connection, code: count, msg: string, cont_resp: bool%) &group="ftp";
+
+event smtp_request%(c: connection, is_orig: bool, command: string, arg: string%) &group="smtp";
+event smtp_reply%(c: connection, is_orig: bool, code: count, cmd: string, msg: string, cont_resp: bool%) &group="smtp";
+event smtp_data%(c: connection, is_orig: bool, data: string%) &group="smtp";
+event smtp_unexpected%(c: connection, is_orig: bool, msg: string, detail: string%) &group="smtp";
+
+event mime_begin_entity%(c: connection%);
+event mime_next_entity%(c: connection%);
+event mime_end_entity%(c: connection%);
+event mime_one_header%(c: connection, h: mime_header_rec%);
+event mime_all_headers%(c: connection, hlist: mime_header_list%);
+event mime_segment_data%(c: connection, length: count, data: string%);
+event mime_entity_data%(c: connection, length: count, data: string%);
+event mime_all_data%(c: connection, length: count, data: string%);
+event mime_event%(c: connection, event_type: string, detail: string%);
+event mime_content_hash%(c: connection, content_len: count, hash_value: string%);
+
+event rpc_call%(c: connection, prog: count, ver: count, proc: count, status: count, start_time: time, call_len: count, reply_len: count%);
+
+event pm_request_null%(r: connection%);
+event pm_request_set%(r: connection, m: pm_mapping, success: bool%);
+event pm_request_unset%(r: connection, m: pm_mapping, success: bool%);
+event pm_request_getport%(r: connection, pr: pm_port_request, p: port%);
+event pm_request_dump%(r: connection, m: pm_mappings%);
+event pm_request_callit%(r: connection, call: pm_callit_request, p: port%);
+event pm_attempt_null%(r: connection, status: rpc_status%);
+event pm_attempt_set%(r: connection, status: rpc_status, m: pm_mapping%);
+event pm_attempt_unset%(r: connection, status: rpc_status, m: pm_mapping%);
+event pm_attempt_getport%(r: connection, status: rpc_status, pr: pm_port_request%);
+event pm_attempt_dump%(r: connection, status: rpc_status%);
+event pm_attempt_callit%(r: connection, status: rpc_status, call: pm_callit_request%);
+event pm_bad_port%(r: connection, bad_p: count%);
+
+event nfs_request_null%(n: connection%);
+event nfs_request_getattr%(n: connection, fh: string, attrs: nfs3_attrs%);
+event nfs_request_lookup%(n: connection, req: nfs3_lookup_args, rep: nfs3_lookup_reply%);
+event nfs_request_fsstat%(n: connection, root_fh: string, stat: nfs3_fsstat%);
+event nfs_attempt_null%(n: connection, status: count%);
+event nfs_attempt_getattr%(n: connection, status: count, fh: string%);
+event nfs_attempt_lookup%(n: connection, status: count, req: nfs3_lookup_args%);
+event nfs_attempt_fsstat%(n: connection, status: count, root_fh: string%);
+event nfs_reply_status%(n: connection, status: count%);
+
+event ntp_message%(u: connection, msg: ntp_msg, excess: string%);
+
+event netbios_session_message%(c: connection, is_orig: bool, msg_type: count, data_len: count%);
+event netbios_session_request%(c: connection, msg: string%);
+event netbios_session_accepted%(c: connection, msg: string%);
+event netbios_session_rejected%(c: connection, msg: string%);
+event netbios_session_raw_message%(c: connection, is_orig: bool, msg: string%);
+event netbios_session_ret_arg_resp%(c: connection, msg: string%);
+event netbios_session_keepalive%(c: connection, msg: string%);
+
+event smb_message%(c: connection, hdr: smb_hdr, is_orig: bool, cmd: string, body_length: count, body: string%);
+event smb_com_tree_connect_andx%(c: connection, hdr: smb_hdr, path: string, service: string%);
+event smb_com_tree_disconnect%(c: connection, hdr: smb_hdr%);
+event smb_com_nt_create_andx%(c: connection, hdr: smb_hdr, name: string%);
+event smb_com_transaction%(c: connection, hdr: smb_hdr, trans: smb_trans, data: smb_trans_data, is_orig: bool%);
+event smb_com_transaction2%(c: connection, hdr: smb_hdr, trans: smb_trans, data: smb_trans_data, is_orig: bool%);
+event smb_com_trans_mailslot%(c: connection, hdr: smb_hdr, trans: smb_trans, data: smb_trans_data, is_orig: bool%);
+event smb_com_trans_rap%(c: connection, hdr: smb_hdr, trans: smb_trans, data: smb_trans_data, is_orig: bool%);
+event smb_com_trans_pipe%(c: connection, hdr: smb_hdr, trans: smb_trans, data: smb_trans_data, is_orig: bool%);
+event smb_com_read_andx%(c: connection, hdr: smb_hdr, data: string%);
+event smb_com_write_andx%(c: connection, hdr: smb_hdr, data: string%);
+event smb_get_dfs_referral%(c: connection, hdr: smb_hdr, max_referral_level: count, file_name: string%);
+event smb_com_negotiate%(c: connection, hdr: smb_hdr%);
+event smb_com_negotiate_response%(c: connection, hdr: smb_hdr, dialect_index: count%);
+event smb_com_setup_andx%(c: connection, hdr: smb_hdr%);
+event smb_com_generic_andx%(c: connection, hdr: smb_hdr%);
+event smb_com_close%(c: connection, hdr: smb_hdr%);
+event smb_com_logoff_andx%(c: connection, hdr: smb_hdr%);
+event smb_error%(c: connection, hdr: smb_hdr, cmd: count, cmd_str: string, data: string%);
+
+event dns_message%(c: connection, is_orig: bool, msg: dns_msg, len: count%) &group="dns";
+event dns_request%(c: connection, msg: dns_msg, query: string, qtype: count, qclass: count%) &group="dns";
+event dns_full_request%(%) &group="dns";
+event dns_rejected%(c: connection, msg: dns_msg, query: string, qtype: count, qclass: count%) &group="dns";
+event dns_A_reply%(c: connection, msg: dns_msg, ans: dns_answer, a: addr%) &group="dns";
+event dns_AAAA_reply%(c: connection, msg: dns_msg, ans: dns_answer, a: addr, astr: string%) &group="dns";
+event dns_NS_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: string%) &group="dns";
+event dns_CNAME_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: string%) &group="dns";
+event dns_PTR_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: string%) &group="dns";
+event dns_SOA_reply%(c: connection, msg: dns_msg, ans: dns_answer, soa: dns_soa%) &group="dns";
+event dns_WKS_reply%(c: connection, msg: dns_msg, ans: dns_answer%) &group="dns";
+event dns_HINFO_reply%(c: connection, msg: dns_msg, ans: dns_answer%) &group="dns";
+event dns_MX_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: string, preference: count%) &group="dns";
+event dns_TXT_reply%(c: connection, msg: dns_msg, ans: dns_answer, str: string%) &group="dns";
+event dns_SRV_reply%(c: connection, msg: dns_msg, ans: dns_answer%) &group="dns";
+event dns_EDNS%(c: connection, msg: dns_msg, ans: dns_answer%) &group="dns";
+event dns_EDNS_addl%(c: connection, msg: dns_msg, ans: dns_edns_additional%) &group="dns";
+event dns_TSIG_addl%(c: connection, msg: dns_msg, ans: dns_tsig_additional%) &group="dns";
+
+# Generated at the end of processing a DNS packet.
+event dns_end%(c: connection, msg: dns_msg%) &group="dns";
+
+event dns_query_reply%(c: connection, msg: dns_msg, query: string,
+			qtype: count, qclass: count%) &group="dns";
+
+# Generated when a port 53 UDP message cannot be parsed as a DNS request.
+event non_dns_request%(c: connection, msg: string%) &group="dns";
+
+event dhcp_discover%(c: connection, msg: dhcp_msg, req_addr: addr%);
+event dhcp_offer%(c: connection, msg: dhcp_msg, mask: addr, router: dhcp_router_list, lease: interval, serv_addr: addr%);
+event dhcp_request%(c: connection, msg: dhcp_msg, req_addr: addr, serv_addr: addr%);
+event dhcp_decline%(c: connection, msg: dhcp_msg%);
+event dhcp_ack%(c: connection, msg: dhcp_msg, mask: addr, router: dhcp_router_list, lease: interval, serv_addr: addr%);
+event dhcp_nak%(c: connection, msg: dhcp_msg%);
+event dhcp_release%(c: connection, msg: dhcp_msg%);
+event dhcp_inform%(c: connection, msg: dhcp_msg%);
+
+event http_request%(c: connection, method: string, original_URI: string, unescaped_URI: string, version: string%) &group="http-request";
+event http_reply%(c: connection, version: string, code: count, reason: string%) &group="http-reply";
+event http_header%(c: connection, is_orig: bool, name: string, value: string%) &group="http-header";
+event http_all_headers%(c: connection, is_orig: bool, hlist: mime_header_list%) &group="http-header";
+event http_begin_entity%(c: connection, is_orig: bool%) &group="http-body";
+event http_end_entity%(c: connection, is_orig: bool%) &group="http-body";
+event http_content_type%(c: connection, is_orig: bool, ty: string, subty: string%) &group="http-body";
+event http_entity_data%(c: connection, is_orig: bool, length: count, data: string%) &group="http-body";
+event http_message_done%(c: connection, is_orig: bool, stat: http_message_stat%) &group="http-body";
+event http_event%(c: connection, event_type: string, detail: string%);
+event http_stats%(c: connection, stats: http_stats_rec%);
+
+event ssh_client_version%(c: connection, version: string%);
+event ssh_server_version%(c: connection, version: string%);
+
+event ssl_certificate_seen%(c: connection, is_server: bool%);
+event ssl_certificate%(c: connection, cert: X509, is_server: bool%);
+event ssl_conn_attempt%(c: connection, version: count, ciphers: cipher_suites_list%);
+event ssl_conn_server_reply%(c: connection, version: count, ciphers: cipher_suites_list%);
+event ssl_conn_established%(c: connection, version: count, cipher_suite: count%);
+event ssl_conn_reused%(c: connection, session_id: SSL_sessionID%);
+event ssl_conn_alert%(c: connection, version: count, level: count,
+			description: count%);
+event ssl_conn_weak%(name: string, c: connection%);
+
+event ssl_session_insertion%(c: connection, id: SSL_sessionID%);
+event process_X509_extensions%(c: connection, ex: X509_extension%);
+event ssl_X509_error%(c: connection, err: int, err_string: string%);
+
+event stp_create_endp%(c: connection, e: int, is_orig: bool%);
+event stp_resume_endp%(e: int%);
+event stp_correlate_pair%(e1: int, e2: int%);
+event stp_remove_pair%(e1: int, e2: int%);
+event stp_remove_endp%(e: int%);
+
+event dce_rpc_message%(c: connection, is_orig: bool, ptype: dce_rpc_ptype, msg: string%);
+event dce_rpc_bind%(c: connection, uuid: string%);
+event dce_rpc_request%(c: connection, opnum: count, stub: string%);
+event dce_rpc_response%(c: connection, opnum: count, stub: string%);
+
+# DCE/RPC endpoint mapper events.
+event epm_map_response%(c: connection, uuid: string, p: port, h: addr%);
+
+# "length" is the length of body (not including the frame header)
+event ncp_request%(c: connection, frame_type: count, length: count, func: count%);
+event ncp_reply%(c: connection, frame_type: count, length: count, req_frame: count, req_func: count, completion_code: count%);
+
+event interconn_stats%(c: connection, os: interconn_endp_stats, rs: interconn_endp_stats%);
+event interconn_remove_conn%(c: connection%);
+
+event backdoor_stats%(c: connection, os: backdoor_endp_stats, rs: backdoor_endp_stats%);
+event backdoor_remove_conn%(c: connection%);
+event ssh_signature_found%(c: connection, is_orig: bool%);
+event telnet_signature_found%(c: connection, is_orig: bool, len: count%);
+event rlogin_signature_found%(c: connection, is_orig: bool, num_null: count, len: count%);
+event root_backdoor_signature_found%(c: connection%);
+event ftp_signature_found%(c: connection%);
+event napster_signature_found%(c: connection%);
+event gnutella_signature_found%(c: connection%);
+event kazaa_signature_found%(c: connection%);
+event http_signature_found%(c: connection%);
+event http_proxy_signature_found%(c: connection%);
+event smtp_signature_found%(c: connection%);
+event irc_signature_found%(c: connection%);
+event gaobot_signature_found%(c: connection%);
+
+event pop3_request%(c: connection, is_orig: bool,
+			command: string, arg: string%);
+event pop3_reply%(c: connection, is_orig: bool, cmd: string, msg: string%);
+event pop3_data%(c: connection, is_orig: bool, data: string%);
+event pop3_unexpected%(c: connection, is_orig: bool,
+			msg: string, detail: string%);
+event pop3_terminate%(c: connection, is_orig: bool, msg: string%);
+event pop3_login_success%(c: connection, is_orig: bool,
+				user: string, password: string%);
+event pop3_login_failure%(c: connection, is_orig: bool,
+				user: string, password: string%);
+
+event irc_client%(c: connection, prefix: string, data: string%);
+event irc_server%(c: connection, prefix: string, data: string%);
+event irc_request%(c: connection, prefix: string,
+			command: string, arguments: string%);
+event irc_reply%(c: connection, prefix: string,
+			code: count, params: string%);
+event irc_message%(c: connection, prefix: string,
+			command: string, message: string%);
+event irc_enter_message%(c: connection, nick: string, real_name: string%);
+event irc_quit_message%(c: connection, nick: string, message: string%);
+event irc_privmsg_message%(c: connection, source: string,
+				target: string, message: string%);
+event irc_notice_message%(c: connection, source: string,
+				target: string, message: string%);
+event irc_squery_message%(c: connection, source: string,
+				target: string, message: string%);
+event irc_join_message%(c: connection, info_list: irc_join_list%);
+event irc_part_message%(c: connection, nick: string,
+				chans: string_set, message: string%);
+event irc_nick_message%(c: connection, who: string, newnick: string%);
+event irc_invalid_nick%(c: connection%);
+event irc_network_info%(c: connection, users: count,
+				services: count, servers: count%);
+event irc_server_info%(c: connection, users: count,
+				services: count, servers: count%);
+event irc_channel_info%(c: connection, chans: count%);
+event irc_who_line%(c: connection, target_nick: string,
+				channel: string, user: string, host: string,
+				server: string, nick: string, params: string,
+				hops: count, real_name: string%);
+event irc_who_message%(c: connection, mask: string, oper: bool%);
+event irc_whois_message%(c: connection, server: string, users: string%);
+event irc_whois_user_line%(c: connection, nick: string,
+				user: string, host: string, real_name: string%);
+event irc_whois_operator_line%(c: connection, nick: string%);
+event irc_whois_channel_line%(c: connection, nick: string,
+				chans: string_set%);
+event irc_oper_message%(c: connection, user: string, password: string%);
+event irc_oper_response%(c: connection, got_oper: bool%);
+event irc_kick_message%(c: connection, prefix: string,
+			chans: string, users: string, comment: string%);
+event irc_error_message%(c: connection, prefix: string, message: string%);
+event irc_invite_message%(c: connection, prefix: string,
+				nickname: string, channel: string%);
+event irc_mode_message%(c: connection, prefix: string, params: string%);
+event irc_squit_message%(c: connection, prefix: string,
+				server: string, message: string%);
+event irc_names_info%(c: connection, c_type: string,
+				channel: string, users: string_set%);
+event irc_dcc_message%(c: connection, prefix: string, target: string,
+				dcc_type: string, argument: string,
+				address: addr, dest_port: count, size: count%);
+event irc_global_users%(c: connection, prefix: string, msg: string%);
+event irc_user_message%(c: connection, user: string, host: string, server: string, real_name: string%);
+event irc_channel_topic%(c: connection, channel: string, topic: string%);
+event irc_password_message%(c: connection, password: string%);
+
+event file_transferred%(c: connection, prefix: string, descr: string, mime_type: string%);
+event file_virus%(c: connection, virname: string%);
+
+event signature_match%(state: signature_state, msg: string, data: string%);
+
+# Generated if a handler finds an identification of the software
+# used on a system.
+event software_version_found%(c: connection, host: addr,
+				s: software, descr: string%);
+
+# Generated if a handler finds a version but cannot parse it.
+event software_parse_error%(c: connection, host: addr, descr: string%);
+
+# Generated once for each raw (unparsed) software identification.
+event software_unparsed_version_found%(c: connection, host: addr, str: string%);
+
+# Generated when an operating system has been fingerprinted.
+event OS_version_found%(c: connection, host: addr, OS: OS_version%);
+
+# Generated when an IP address gets mapped for the first time.
+event anonymization_mapping%(orig: addr, mapped: addr%);
+
+# Generated when a connection to a remote Bro has been established.
+event remote_connection_established%(p: event_peer%);
+
+# Generated when a connection to a remote Bro has been closed.
+event remote_connection_closed%(p: event_peer%);
+
+# Generated when a remote connection's handshake has been completed.
+event remote_connection_handshake_done%(p: event_peer%);
+
+# Generated for each event registered by a remote peer.
+event remote_event_registered%(p: event_peer, name: string%);
+
+# Generated when a connection to a remote Bro causes some error.
+event remote_connection_error%(p: event_peer, reason: string%);
+
+# Generated when a remote peer sends us some capture filter.
+event remote_capture_filter%(p: event_peer, filter: string%);
+
+# Generated after a call to send_state() when all data has been successfully
+# sent to the remote side.
+event finished_send_state%(p: event_peer%);
+
+# Generated if state synchronization detects an inconsistency.
+event remote_state_inconsistency%(operation: string, id: string,
+				  expected_old: string, real_old: string%);
+
+# Generated for communication log message.
+event remote_log%(level: count, src: count, msg: string%);
+
+# Generated when a remote peer has answered to our ping.
+event remote_pong%(p: event_peer, seq: count,
+			d1: interval, d2: interval, d3: interval%);
+
+# Generated each time a remote state access has been replayed locally
+# (primarily for debugging).
+event remote_state_access_performed%(id: string, v: any%);
+
+# Generated each time profiling_file is updated.  "expensive" means that
+# this event corresponds to heavier-weight profiling as indicated by the
+# expensive_profiling_multiple variable.
+event profiling_update%(f: file, expensive: bool%);
+
+event file_opened%(f: file%);
+
+# Each print statement generates an event.
+event print_hook%(f:file, s: string%);
+
+# Generated for &rotate_interval.
+event rotate_interval%(f: file%);
+
+# Generated for &rotate_size.
+event rotate_size%(f: file%);
+
+event netflow_v5_header%(h: nf_v5_header%);
+event netflow_v5_record%(r: nf_v5_record%);

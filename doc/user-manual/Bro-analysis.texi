@@ -1,0 +1,322 @@
+
+@subheading Rule one: There are no rules @enddots{}
+
+This section describes a specific procedure that can be followed with each "incident" that  Bro uncovers, but one must keep in mind that intrusion detection is not a static problem.  The perpetrators of intrusions and malicious network activity are constantly changing their techniques with the express purpose of evading detection.  Unexpected activities are often found by investigation of seemingly innocuous network oddities or serendipitous inspection of logs.  While Bro is an exceptionally useful tool for collecting, sorting, analyzing and flagging suspect network data, it cannot be expected to flag all new, cleverly disguised attacks.  Nor can it be expected to differentiate with 100% accuracy between aberrant, but legitimate, user behavior and a malicious attack.  Sometimes a strong curiosity is an analyst's best friend and Bro is the vehicle for allowing him or her to follow that curiosity.
+
+@menu
+* Two Types of Triggers ::
+* General Process Steps ::
+* Understand What Triggered the Alarm(s) ::
+* Understand the Intent of the Alarm(s) ::
+* Examine HTTP FTP or SMTP Sessions ::
+* Examine the Connection and Weird Logs ::
+* Examine the Bulk Trace if Available  ::
+* Contact and Question Appropriate People ::
+@end menu
+
+@node Two Types of Triggers
+@section Two Types of Triggers
+
+There are two ways that alarms can be triggered.  One is when network traffic matches a @emph{signatures} that has been converted to work with Bro.  The other way is by matching Bro @emph{rules} that are embedded in the Bro analyzers.
+
+@subsection Converted Signatures
+In the Bro report, converted signatures are identified by the alarm type: @code{SensitiveSignature} and the existence of a @code{bro} identification number.  Each signature is distinct, targeting one specific set of network events for each alarm.  Currently the majority of converted @emph{signatures} are developed from Snort@copyright{} signatures using the @file{snort2bro} utility.  In addition, enhancing have been made by utilizing features in the Bro policy language that are absent in Snort@copyright{}.  Most Bro signatures are found in the @file{$BROHOME/site/signatures.sig}, however, they can exist in other @file{.sig} files.
+
+@subsection Embedded Bro Rule
+Bro rules are typically embedded in the Bro @emph{analyzers} or other @file{.bro} policy files.
+@comment ***** XXX: Need ref to analyzer section of ref manual
+Several trigger conditions are usually lumped into a grouping of Bro rules within a @file{.bro} file, making it difficult to separate the exact condition that triggered the alarm.  Hence, alarms triggered by an embedded Bro rule will not have a specific @code{bro} identification number, nor will the @emph{signature code} block appear in the report.
+
+@quotation Possible types of embedded bro rule alarms
+@multitable {SensitiveUsernameInPassword} {ICMPConnectionPair} {FTP_ExcessiveFilename}
+@item AddressDropped
+@tab AddressScan
+@tab BackscatterSeen
+@item ClearToEncrypted_SS
+@tab CountSignature
+@tab DNS::DNS_MappingChanged
+@item DNS::DNS_PTR_Scan
+@tab FTP::FTP_BadPort
+@tab FTP::FTP_ExcessiveFilename
+@item FTP::FTP_PrivPort
+@tab FTP::FTP_Sensitive
+@tab FTP::FTP_UnexpectedConn
+@item HTTP::HTTP_SensitiveURI
+@tab HotEmailRecipient
+@tab ICMP::ICMPAsymPayload
+@item ICMP::ICMPUnpairedEchoReply
+@tab ICMP::ICMPConnectionPair
+@tab IdentSensitiveID
+@item LoginForbiddenButConfused
+@tab LocalWorm
+@tab MultipleSigResponders
+@item MultipleSignatures
+@tab OutboundTFTP
+@tab PasswordGuessing
+@item PortScan
+@tab RemoteWorm
+@tab ResolverInconsistency
+@item SSH_Overflow
+@tab SSL_SessConIncon
+@tab SSL_X509Violation
+@item ScanSummary
+@tab SensitiveConnection
+@tab SensitiveDNS_Lookup
+@item SensitivePortmapperAccess
+@tab SensitiveLogin
+@tab SensitiveSignature
+@item SensitiveUsernameInPassword
+@tab SignatureSummary
+@tab SynFloodEnd
+@item SynFloodStart
+@tab SynFloodStatus
+@tab TRW::TRWAddressScan
+@item TerminatingConnection
+@tab W32B_SourceLocal
+@tab W32B_SourceRemote
+@item ZoneTransfer
+@end multitable
+@end quotation
+
+@node General Process Steps
+@section General Process Steps
+
+The following steps will both aid the Bro user with uncovering network 
+activity of interest, and also help acquaint the user with the anomalies that Bro detects, together building up an understanding of what constitutes "normal" network traffic for the local site.  The analyst might follow each successive step with each incident until a firm determination is made if the incident is malicious or a "false positive".
+
+@itemize
+@item Understand What Triggered the Alarm(s)
+@item Understand the Intent of the Alarm(s)
+@item Examine the Session(s) from the HTTP, FTP, or SMTP Logs
+@item Examine the Connection Logs for Breakin Indicators
+@item Examine for Connections to Other Computers
+@item Examine Other Bro Logs for Odd Activity
+@item Examine the Bulk Trace if Available 
+@item Contact and Question Appropriate People
+@end itemize 
+
+@node Understand What Triggered the Alarm(s)
+@section Understand What Triggered the Alarm(s)
+
+To understand what triggered the alarm, compare the signature or rule code with @emph{payload}.  The network traffic that matches the signature, rule, or policy is known as the payload.  The payload that triggers the alarm is usually included in the Bro's incident report.
+Often it is obvious that the payload is not malicious.
+
+@quotation Example
+The signature may trigger on the word @emph{shadow}, notifying that someone may be attempting to download the shadow password file.  However, the payload may reveal that the actual download is something like @emph{theshadow.jpg}, which is obliviously innocuous.
+@end quotation
+
+The two kinds of alarms, converted signatures and embedded rules trigger alarms differently, so they must be treated separately.  The following sections describe how to investigate the signature or rule code and payload of each.
+
+@subsection Converted Snort Signatures
+These signatures are recognizable by the inclusion of a @code{bro} number and the identification @code{SensitiveSignature}.  A @emph{signature code} and @emph{payload} block should be present in the incident report.  To understand what triggered the alarm, compare the payload to the signature code and find the defined signature within the payload.  Since some payload lines can get extremely long, the payload lines in the report and notice and alarm logs has been truncated to 250 characters.  Sometimes the actual trigger payload is beyond the 250 character cut off.  In this case, the protocol sessions log file must be examined.  @xref{Examine HTTP FTP or SMTP Sessions}.
+
+@subsection Embedded Bro Rule
+For alarms triggered by an embedded Bro rule the @emph{signature code} block will not appear, and in many cases, neither will the payload.  There is currently no direct way to find the specific Bro rule that triggered the alarm other than to search the Bro policy files.  Following is a process for conducting that search.  The example of the @code{HTTP_SensitiveURL} is used.  In actual practice, this rule appears quite often in the reports.
+
+@quotation Read about the specific analyzer
+In the Bro Technical Reference Manual there are sections for each type of analyzer.  In the case of our example the HTTP analyzer is the obvious choice.  In the section on the HTTP analyzer, it is noted that the variables @var{sensitive_URIs} and @var{sensitive_post_URIs} are responsible for flagging sensitive URIs.
+@end quotation
+
+@quotation Find the policy file that defines these variables
+Using egrep to search for @var{sensitive_URIs} and/or @var{sensitive_post_URIs} yields the following:
+
+@example
+> egrep "sensitive_URIs | sensitive_post_URIs" http*
+http-request.bro:   const sensitive_URIs =
+http-request.bro:  # URIs that match sensitive_URIs but can be generated by worms
+http-request.bro:   const skip_remote_sensitive_URIs = /\/cgi-bin\/(phf|php\.cgi|test-cgi)/ &redef;
+http-request.bro:   const sensitive_post_URIs = /wwwroot|WWWROOT/ &redef;
+http-request.bro:   if ( (sensitive_URIs in URI && URI != worm_URIs) ||
+http-request.bro:   (method == "POST" && sensitive_post_URIs in URI) )
+http-request.bro:   skip_remote_sensitive_URIs in URI )
+@end example
+
+Clearly @file{http-request.bro} is the file of interest.  If, in the case of other types of analyzers, more than one file appears, look for the place where the @code{const} statement is used to declare the variable(s).
+@end quotation
+
+@quotation Look into the policy file
+Search in the section of Bro policy code that describes the rule(s) for the specific notification.  In the file @file{http-request.bro}, is found:
+
+@verbatim
+export{
+   const sensitive_URIs =
+      /etc.*\/.*(passwd|shadow|netconfig)/
+      | /IFS[ \t]*=/
+      | /nph-test-cgi\?/
+      | /(%0a|\.\.)\/(bin|etc|usr|tmp)/
+      | /\/Admin_files\/order\.log/
+      | /\/carbo\.dll/
+      | /\/cgi-bin\/(phf|php\.cgi|test-cgi)/
+      | /\/cgi-dos\/args\.bat/
+      | /\/cgi-win\/uploader\.exe/
+      | /\/search97\.vts/
+      | /tk\.tgz/
+      | /ownz/        # somewhat prone to false positives
+     &redef;
+
+     # URIs that match sensitive_URIs but can be generated by worms,
+     # and hence should not be flagged (because they're so common).
+     const worm_URIs =
+          /.*\/c\+dir/
+          | /.*cool.dll.*/
+          | /.*Admin.dll.*Admin.dll.*/
+     &redef;
+}
+
+redef capture_filters +=  {
+        ["http-request"] = "tcp dst port 80 or tcp dst port 8080
+                            or tcp dst port 8000"
+};
+
+# URIs that should not be considered sensitive if accessed remotely,
+# i.e. by a local client.
+const skip_remote_sensitive_URIs = /\/cgi-bin\/(phf|php\.cgi|test-cgi)/
+ &redef;
+
+const sensitive_post_URIs = /wwwroot|WWWROOT/ &redef;
+@end verbatim
+
+Unfortunately, there isn't any way of knowing exactly which one of these rules triggered the @code{HTTP_SensitiveURL} alarm.  As will be seen in the next section, the triggering payload must be compared against this entire section.
+@end quotation
+
+@node Understand the Intent of the Alarm(s)
+@section Understand the Intent of the Alarm(s)
+
+While understanding the technical signature or policy "code" that "triggered" the alarm, it is also useful to understand the reason the trigger was built.
+@itemize
+@item What attack or malicious behavior is the alarm trying to illuminate?
+@item What is the normal method of attack ... manual? automated?  expert? novice?
+@item How long has the particular attack existed?
+@item How often is it seen?  How often is it actually used by attackers?
+@end itemize
+All of these things, and any other information that can be gathered, will 
+help in differentiating attacks from legitimate behavior.  Although this process may seem tedious and time consuming in the beginning, the Bro analyst will quickly build up a substantial knowledge of known attacks.  Even if the incident in question turns out to be benign, the effort to learn about the attack almost always proves useful in future investigations.
+
+@subsection Converted Snort@copyright{} Signatures
+Since Snort@copyright{} signatures are usually fairly well documented, one way to discover the intent of the signature is to search the web for the title of the signature using any of the common search engines (Yahoo, Google, Teoma, AltaVista, or one of the may others).  For instance, a search on the @emph{MS SQL xp_cmdshell} vulnerability yields ~7000 hits.  One of those hits is:
+
+@example
+Zone-H.org * Advisories
+... Successful exploitation of this vulnerability can enable an attacker to 
+execute commands in the system (via MS SQL xp_cmdshell function). ...
+www.zone-h.org/advisories/read/id=4243 - 17k - Cached - Similar pages
+@end example
+
+This web site give a fairly detailed description of the exploit and verifies that it can be used to root compromise a computer and hence,  is a vulnerability of significant interest.  Several other sites also give details about the signature, the attack, and other useful information.
+
+@subsection Embedded Bro Rule
+Unfortunately, most of the embedded Bro rules have not been documented.  
+The analyst must rely on his/her own understand of network attacks to 
+guess what the intent of the rule is.  Sometimes useful comments are 
+written into the Bro policy source.
+
+@node Examine HTTP FTP or SMTP Sessions
+@section Examine HTTP FTP or SMTP Sessions
+
+These three files record session activity on ports 80(http), 21(ftp), and 25(smtp) respectively.  If the alarm involves any of these ports, these files may reveal the details of the sessions.  The general format of all three files is:
+date/time@key{SP}%sessionnumber@key{SP}Message
+
+where:
+@quotation date/time
+is the time in UNIX epoch time.  The @code{cf} utility can be used to convert this time to @cite{readable} time. Reference Tech Manual
+@comment ####################### need reference to Tech Manaual.
+@end quotation
+@quotation sessionnumber
+is the number assigned to session.  All subsequent records in the file that are part of the session will retain this same session number.  Session numbers are prefixed with the @samp{%} sign.
+@end quotation
+@quotation message
+is the message that Bro policy has formed to describe the session event.  Typically the message will be:
+@itemize
+@item the start of the session, including the two ip addresses involved
+@item an anomolous event
+@item the full protocol command line that was sent
+@item short statistics concerning the transaction (e.g. bytes sent)
+@end itemize
+@end quotation
+
+In an alarm where the session number is given (typically in a SensitiveSignature alarm), a search on the session number in the appropriate file(s) will show the full sessons.  @xref{The bro/logs Directory}.
+@*@*
+@strong{Example:}
+@*Consider the following alarm:
+
+@verbatim
+Alarm: HTTP_SensitiveURI
+       11/22_12.52.42                128.333.48.179 -> 80.143.378.186
+                                           3091/tcp -> 80/tcp
+       session: %73280
+       payload: GET\/NR/rdonlyres/eirownz4tqwlseoggqm2ahj5cqsdbedlaxyye
+                7kvdz7rnh6u4o2v2gpvmoggqjlekzdtulryyatiinj3xwimmiavgfb/
+                smallshoulders.gif\ (200\ "OK"\ [1134])
+@end verbatim
+
+From the payload shown, it is unclear what triggered the alarm.  To investigate further, the entire session can be viewed:
+
+Example:
+@verbatim
+> grep %73280 http.hostname.04-11-22_12.52.42 | cf
+Nov 22 15:18:30 %73280 start 128.333.48.179 > 80.143.378.186
+Nov 22 15:18:30 %73280 GET /fitness/default.htm (200 "OK" [10473])
+Nov 22 15:18:30 %73280 GET /javascripts/cms_common.js (304 "Not Modified"[0])
+Nov 22 15:19:47 %73280 GET /food_nutrition/default.htm (200 "OK"[13177])
+Nov 22 15:19:47 %73280 GET/NR/rdonlyres/eirwwu3xtlr22dkat5cim4ziupouzxb6kz4xb
+zbr4zs255ca57cvv5mhcjcrmrfg6kpcrevyndo2za3yoi5esheiolf/News111904Dairy NotFor
+Diet.jpg (200 "OK" [6572])
+Nov 22 15:19:51 %73280 GET /NR/rdonlyres/0D25692F-D59A-4B90-AB53-8BBC9E75A286.
+gif (200 "OK" [189])
+Nov 22 15:19:51 %73280 GET /NR/rdonlyres/eqpbdbex34wpqpagp2fcbxh35omcjtq45feyf7
+zgtjff6fhrybfbsvtszeu4rc2clayghhslfimaafkoocae6cv6wof/doctor.jpg (200 "OK" [161
+5])/NR/rdonlyres/enhskrfoodzuquvmbli2hasjspusrgsvyhbd3nlue5msoli2ueagrwdxw56gqa
+aa7sosee3yn2hwywcg6kgv4wcv6jc/bigback.gif (200 "OK" [8192 (interrupted)])/NR/rd
+onlyres/ej2cpd275ghrefp23ezou43haqe6fmj3oyeqxkvopf4bv4zhwbqimfrrbndqpotx55pogc7
+xiqvdcovaxo66afyqfof/smallleg.jpg (200 "OK" [1010])
+Nov 22 15:22:12 %73280 GET /NR/rdonlyres/eirownz4tqwlseoggqm2ahj5cqsdbedlaxyye7
+kvdz7rnh6u4o2v2gpvmoggqjlekzdtulryyatiinj3xwimmiavgfb/smallshoulders.gif (200 "
+OK" [1134])
+Nov 22 15:22:13 %73280 GET /NR/rdonlyres/49D86A33-AF6C-4873-AD11-F26DDBF222B1.g
+if (200 "OK" [167])
+@end verbatim
+By examining this session it can clearly be seen that the session is simply a web visit to a fitness website.  There is no need to investigate further.
+
+@node Examine the Connection and Weird Logs
+@section Examine the Connection and Weird Logs
+
+The connection logs are a record of every connection Bro detects.  Although they don't contain content, being able to track the network @emph{movement} of an attacking host is often very useful.
+
+@subsection Breakin Indicators
+
+If it is still not clear if a suspect host is an attacker, the connection surrounding the suspicious connection can be examined.  Here are some questions that might be answered by the @file{conn} logs.
+itemize
+item How many more successful connection the attacker make to the target host?
+item How much data was transfered? A lot of data means something more than an unsuccessful probe.
+item Did the target host connect back to the attacker?  This is a fairly sure sign of a successful attack.  The attacker has gained control of the target and is connecting back to his own host.
+item What was the time duration?  If several attacks occur in a very short time and then slow down to @emph{human} speed, it could indicate the attacker used an automated attack to gain control and then switched to a manual mode to "work on" the compromised target host.
+
+@subsection Connections to Other Computers
+If a host has been successfully identified as an attacker, it is useful to know what and how many other hosts the attacker has touched.  This can be found by grepping through the @file{conn} logs for instances of connections by the suspect host.
+@example
+example here
+@end example
+If the attack used a specific, little used, port; another investigation would be to search for other similar connection using that port.  Often the attacker might change attack hosts, but will continue to use the same attack method.
+@example
+example here
+@end example
+@quotation NOTES
+@i{You may want to go back several days, weeks, months, or even years to see if the attacker has visited (and perhaps compromised) you site earlier without being detected.
+@*However, be forwarned that the @file{conn} logs tend to get very large and doing extensive searches can take a very long time.}
+@end quotation
+
+@subsection Odd Activity
+Despite attempts to have the network community adhere to network standards, non-compliant traffic occurs all the time.  The @file{weird} logs are a record of instances of network traffic that simply should not happen.
+@*@*
+While these logs are usually of interest to the most hard-core of network engineers, if a unique attack is detected, it is sometimes valuable to search the weird logs for other unusual activities by the attacking host.  Hackers are not bound by standard protocol and sometimes find ways to circumvent security via @emph{weird} methods.
+
+@node Examine the Bulk Trace if Available 
+@section Examine the Bulk Trace if Available 
+
+For information on using the Bulk trace files for analysis, see 
+@ref{Bulk Traces and Off-line Analysis}.
+
+@node Contact and Question Appropriate People
+@section Contact and Question Appropriate People
+The final and usually the most definitive investigation is to call the owners of the hosts involved.  Often a call to the owner of the local host can reveal that the activity was not normal, but appropriate or a mistake.
+

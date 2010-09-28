@@ -1,0 +1,33 @@
+#! /usr/bin/env bash
+#
+# $Id: mail-alarm.in 6811 2009-07-06 20:41:10Z robin $
+#
+# Mails out individual Bro alerts. 
+# Intended to be used as a Bro mail_script (see notice.bro), which
+# means that we will be called as /bin/mail would, i.e., 
+#
+# 		-s "[Bro Alarm] <notice_type>" <mail_dest>
+#
+
+subject="<No subject>"
+
+while getopts s: opt; do
+    case "$opt" in
+	    s) subject="$OPTARG";;
+	esac
+done
+
+shift $(($OPTIND - 1))
+
+# Remove Bro's subject prefix and insert our own.
+subject=`echo $subject | sed 's/\[Bro Alarm\] */${mailalarmprefix} /g'`
+
+# If the the destination given by Bro is "_broctl_default_", we use our 
+# configured address.
+if [ "$1" = "_broctl_default_" ]; then 
+    ${scriptsdir}/send-mail "$subject" "${mailalarmsto}"
+else
+    ${scriptsdir}/send-mail "$subject" "$1"
+fi 
+
+

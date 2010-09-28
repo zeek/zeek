@@ -1,0 +1,229 @@
+
+@menu
+* Download ::
+* Install ::
+* Configuration ::
+* Encrypted Reports ::
+@end menu
+
+@node Download
+@section Download
+@cindex download
+
+Download Bro from: @uref{http://www.bro-ids.org/}
+
+You can unpack the distribution anywhere except into the directory
+you plan to install into. To untar the file, type:
+
+@example
+tar xvzf bro-0.9a6.6.tar.gz
+@end example
+
+@node Install
+@section Install
+
+You'll need to collect the following information before beginning the installation.
+
+@itemize
+@item localnets: a list of local subnets for your network. Bro needs to know which networks are "internal" and which are "external".
+
+@item interface names: the names of the capture interfaces in your host (e.g. sk0 or en1). Use @code{ifconfig -a} to get the list of all network interfaces on your Bro host.
+@end itemize
+
+If you want to use Bro's periodic email report feature, you'll also need:
+@itemize
+@item email list: a list of email addresses to send the reports to.
+
+@item pgp keys: if you want to encrypt all email reports, the location of the 
+@uref{http://www.gnupg.org/,GPG keyring} of all recipients.
+@end itemize
+
+Bro is very easy to install. Just log in as @code{root}, and type:
+@example
+./configure
+@end example
+or to install Bro in a location other than @file{/usr/local/bro}, use:
+@example
+./configure --prefix=/path/to/bro
+@end example
+and then type:
+@example
+make
+make install
+@end example
+
+To update an existing Bro installation with new binaries and standard policy file, instead
+of @code{'make install'} do a @code{'make update'}. This will preserve all your local customizations.
+
+@node Configuration
+@section Configuration
+@cindex bro_config
+@cindex bro.cfg
+
+The @emph{Bro-Lite} configuration script can be used to automatically configure Bro for you. It
+checks your system's BPF settings, creates a 'bro' user account, installs
+a script to start bro at boot time, and installs a number of @code{cron} jobs 
+to checkpoint bro every night, run perioidic reports, and manage log files.
+
+To run this configuration script type:
+@example
+make install-brolite 
+@end example
+
+
+This will run the script @code{bro_config}, which creates the file @file{$BROHOME/etc/bro.cfg}.
+@code{bro_config} will ask a number of simple questions.
+
+Sample output of @code{bro_config}, along with explanation, is shown below:
+
+@quotation
+
+@verbatim
+Running Bro Configuration Utility
+Checking interfaces ....  Done.
+Reading /usr/local/bro/etc/bro.cfg.example for defaults.
+@end verbatim
+@quotation 
+@quotation 
+The @code{bro_config} script looks first at ./bro.cfg, then /usr/local/bro/etc,  
+for default values to use below.
+@end quotation
+@end quotation
+
+@verbatim
+Bro Log archive location [/usr/local/bro/archive] 
+@end verbatim
+@quotation
+@quotation
+This is the directory where log file archives are kept. 
+If you expect the log files to be very large, it is recommended to put these in a separate disk partition.
+@end quotation
+@end quotation
+
+@verbatim
+User id to install and run Bro under [bro] 
+@end verbatim
+@quotation
+@quotation
+@code{bro_config} will create a new user account with this username if the user does not exist. 
+@end quotation
+@end quotation
+
+@verbatim
+Interface names to listen on. [en1,en2] 
+@end verbatim
+@quotation
+@quotation
+@code{bro_config} looks for all network interfaces and does a short test to determine which interfaces see the most traffic, and selects these interfaces as the default. 
+@end quotation
+@end quotation
+
+@verbatim
+Site name for reports (i.e. LBNL, FOO.COM, BAZ.ORG) [] 
+Starting Report Time [0600]
+Report interval (in hours) [24]
+Email addresses for internal reports [bro@localhost] 
+Do you want to send external reports to a incident 
+		reporting org (e.g.: CERT, CIAC, etc) (Y/N)
+Y
+Email addresses for external reports [] 
+@end verbatim
+
+@quotation
+@quotation
+Daily reports will be created.  
+Enter the site name you want to appear at the top and in the subject of all email reports.
+The 'start time' and 'interval' define the window of 
+network activity that the daily report will cover, starting at 'Starting Report Time' and 
+lasting through 'Report interval'. The start time should be entered using 24hr clock notation. 
+For example: 12:30am = 0030,  2pm = 1400
+
+Two types of reports will be generated,
+"internal" and "external". Internal reports contain the same basic information as
+the external reports, along with traffic statistics and more detailed information on 
+incidents. Both internal and external reports will be sent to the "internal" email address list.
+External reports are only sent if you answer "Y" and enter an external email address. 
+(Note: currently only internal reports are generated)
+@end quotation
+@end quotation
+
+
+@verbatim
+Do you want to encrypt the email reports (Y/N) [N]
+Y
+@end verbatim
+@quotation
+@quotation 
+If you want the email reports encrypted, you will need to set up GPG (@uref{http://www.gnupg.org})
+and create a GPG keyring containing the public keys of all email recipients. Instructions 
+for this are in @ref{Encrypted Reports}.
+
+@end quotation
+@end quotation
+
+@verbatim
+Running script to determine your local subnets ... 
+Your Local subnets [198.129.224.1/32] 
+@end verbatim
+@quotation
+@quotation
+Bro needs to know a list of your local subnets. @code{bro_config} runs a tool 
+that attempts to discover this automatically. 
+You should always verify the results of this tool. The format is a list of subnet/significant 
+bits of address. 
+For example: 131.243.0.0/16, 198.128.0.0/18, 198.129.224.1/32
+@end quotation
+This information will be stored in the file @code{$BROHOME/site/local.site.bro}
+@end quotation
+
+@verbatim
+Saving settings to file: /usr/local/bro/etc/bro.cfg
+Bro configuration finished. 
+To change these values, you can rerun bro_config at any time.
+@end verbatim
+@quotation
+@quotation
+Indicates that the script finished successfully.
+@end quotation
+@end quotation
+
+@end quotation
+
+For site monitoring very high traffic rates on Gigabit ethernet, there is some
+additional system tuning that should be done. See the @uref{http://www.bro-ids.org/, Bro User Guide} for more details.
+
+
+To reconfigure Bro, just type:
+@example
+bro_config
+@end example
+
+This will update your @file{/usr/local/bro/etc/bro.cfg} file. You can also edit this file using your favorite editor if you prefer.
+
+For other site customizations, you can edit the file $BROHOME/site/local.site.bro.
+For example, to tell bro to not look at traffic for host 198.162.44.66, add:
+@verbatim
+     redef restrict_filters += { ["ignore host 198.162.44.66 "] = "not (host 198.162.44.66)" };
+@end verbatim
+
+Or to disable alarms for "WeirdActivity", you can add this:
+@verbatim
+     redef notice_action_filters += { [[WeirdActivity]] = ignore_notice, };
+@end verbatim
+
+Any changes you make in $BROHOME/site will not be touched during an upgrade
+or reinstall of Bro. You should avoid editing files in $BROHOME/policy,
+as these will be overwritten.
+
+More details are available in the Bro user guide. 
+
+@node Encrypted Reports 
+@section Encrypted Reports 
+@cindex GPG
+
+Bro can use GPG (@uref{http://www.gnupg.org/}) to encrypt
+the reports that it sends. To have Bro encrypt your
+reports you must have said 'yes' to the bro_config question to
+encrypt your reports. For information on configuring
+GPG for Bro reports, see the @uref{http://www.bro-ids.org/, Bro User Manual}.
+

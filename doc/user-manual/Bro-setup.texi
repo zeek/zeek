@@ -1,0 +1,40 @@
+@menu
+* Bro Environment Variables::
+* Required files/directories::
+* System Configuration and Security of Bro Boxes::
+* Configuring syslog::
+* Placing Bro Boxes on the Network::
+* Filtering Traffic::
+* Selecting Analyzers::
+* Tuning Bro Policy Scripts/event Handlers::
+* Setting up Reports and Special Notifications::
+@end menu
+
+@node Bro Environment Variables
+@section Bro Environment Variables
+
+@node Required files/directories
+@section Required files/directories
+
+@node System Configuration and Security of Bro Boxes
+@section System Configuration and Security of Bro Boxes
+
+@node Configuring syslog
+@section Configuring @emph{syslog}
+
+@node Placing Bro Boxes on the Network
+@section Placing Bro Boxes on the Network
+
+@node Filtering Traffic
+@section Filtering Traffic
+
+@node Selecting Analyzers
+@section Selecting Analyzers
+
+@node Tuning Bro Policy Scripts/event Handlers
+@section Tuning Bro Policy Scripts/event Handlers
+
+@node Setting up Reports and Special Notifications
+@section Setting up Reports and Special Notifications
+
+

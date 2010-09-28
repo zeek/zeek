@@ -1,0 +1,37 @@
+# Master Registry of Snort Generator Ids
+#
+#
+# This file is used to maintain unique generator ids for files even if
+# the default snort configuration doesn't include some patch that is
+# required for a specific preprocessor to work
+#
+# 
+#
+# Maintainer: Chris Green <cmg@sourcefire.com>
+# 
+# Contact cmg@sourcefire.com for an assignment
+
+rules_subsystem		   1   # Snort Rules Engine
+tag_subsystem		   2   # Tagging Subsystem
+portscan                   100 # Portscan1
+minfrag                    101 # Minfrag [ removed ]
+http_decode                102 # HTTP decode 1/2
+defrag                     103 # First defragmenter [ removed ]
+spade                      104 # SPADE [ not included anymore ]
+bo                         105 # Back Orifice 
+rpc_decode                 106 # RPC Preprocessor
+stream2                    107 # 2nd stream preprocessor [removed] 
+stream3                    108 # 3rd stream preprocessor (AVL nightmare) [ removed ] 
+telnet_neg                 109 # telnet option decoder
+unidecode                  110 # unicode decoder
+stream4                    111 # Stream4 preprocessor
+arpspoof                   112 # Arp Spoof detector
+frag2                      113 # 2nd fragment preprocessor
+fnord                      114 # NOP detector [ removed ]
+asn1                       115 # ASN.1 Validator [ removed ]
+decode                     116 # Snort Internal Decoder
+scan2                      117 # portscan2
+conversation               118 # conversation
+reserved                   119 # TBA
+reserved                   120 # TBA
+snmp                       121 # Andrew Baker's newer SNMP decoder

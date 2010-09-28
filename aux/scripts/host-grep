@@ -1,0 +1,29 @@
+#! /bin/csh -f
+#
+# Greps a Bro connection summary file on stdin for the given hosts.  Usage:
+#
+#	host-grep [-a] host ...
+#
+# If -a is specified then we only want lines with *all* of the listed hosts.
+
+if ( "$1" == "-a" ) then
+	shift
+	if ( "$2" != "" ) then
+		# More than one host, recurse.
+		set h1 = $1
+		shift
+		host-grep $h1 | host-grep -a $*
+		exit
+	else
+		# Just one host, fall through.
+	endif
+endif
+
+# Thank you csh, for your totally busted sense of command composition
+# and error propagation.
+set sheesh=`ip-grep $*`
+if ( $status != 0 ) then
+	exit 1
+endif
+
+grep -E " $sheesh "

@@ -1,0 +1,41 @@
+# (C) Copyright 2001-2004, Martin Roesch, Brian Caswell, et al.
+#    All rights reserved.
+# $Id: imap.rules 91 2004-07-15 08:13:57Z rwinslow $
+#--------------
+# IMAP RULES
+#--------------
+
+alert tcp $EXTERNAL_NET any -> $HOME_NET 143 (msg:"IMAP login literal buffer overflow attempt"; flow:established,to_server; content:"LOGIN"; nocase; pcre:"/\sLOGIN\s[^\n]*?\s\{/smi"; byte_test:5,>,256,0,string,dec,relative; reference:bugtraq,6298; classtype:misc-attack; sid:1993; rev:4;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 143 (msg:"IMAP login buffer overflow attempt"; flow:established,to_server; content:"LOGIN"; isdataat:100,relative; pcre:"/\sLOGIN\s[^\n]{100}/smi"; reference:cve,1999-0005; reference:nessus,10125; classtype:attempted-user; sid:1842; rev:9;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 143 (msg:"IMAP authenticate literal overflow attempt"; flow:established,to_server; content:"AUTHENTICATE"; nocase; pcre:"/\sAUTHENTICATE\s[^\n]*?\s\{/smi"; byte_test:5,>,256,0,string,dec,relative; reference:cve,1999-0042; reference:nessus,10292; classtype:misc-attack; sid:2105; rev:4;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 143 (msg:"IMAP authenticate overflow attempt"; flow:established,to_server; content:"AUTHENTICATE"; nocase; isdataat:100,relative; pcre:"/\sAUTHENTICATE\s[^\n]{100}/smi"; reference:cve,1999-0042; reference:nessus,10292; classtype:misc-attack; sid:1844; rev:9;)
+
+# auth is an imap2 function and only accepts literal usage
+alert tcp $EXTERNAL_NET any -> $HOME_NET 143 (msg:"IMAP auth literal overflow attempt"; flow:established,to_server; content:" AUTH"; nocase; content:"{"; byte_test:5,>,256,0,string,dec,relative; reference:cve,1999-0005; classtype:misc-attack; sid:1930; rev:3;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 143 (msg:"IMAP auth overflow attempt"; flow:established,to_server; content:"AUTH"; nocase; pcre:"/AUTH\s[^\n]{100}/smi"; reference:bugtraq,8861; classtype:misc-attack; sid:2330; rev:1;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 143 (msg:"IMAP lsub literal overflow attempt"; flow:to_server,established; content:"LSUB"; nocase; pcre:"/\sLSUB\s[^\n]*?\s\{/smi"; byte_test:5,>,256,0,string,dec,relative; reference:bugtraq,1110; reference:cve,2000-0284; reference:nessus,10374; classtype:misc-attack; sid:1902; rev:9;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 143 (msg:"IMAP lsub overflow attempt"; flow:to_server,established; content:"LSUB"; isdataat:100,relative; pcre:"/\sLSUB\s[^\n]{100}/smi"; reference:bugtraq,1110; reference:cve,2000-0284; reference:nessus,10374; classtype:misc-attack; sid:2106; rev:7;)
+
+alert tcp $EXTERNAL_NET any -> $HOME_NET 143 (msg:"IMAP list literal overflow attempt"; flow:established,to_server; content:"LIST"; nocase; pcre:"/\sLIST\s[^\n]*?\s\{/smi"; byte_test:5,>,256,0,string,dec,relative; reference:bugtraq,1110; reference:cve,2000-0284; reference:nessus,10374; classtype:misc-attack; sid:1845; rev:15;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 143 (msg:"IMAP list overflow attempt"; flow:established,to_server; content:"LIST"; nocase; isdataat:100,relative; pcre:"/\sLIST\s[^\n]{100}/smi"; reference:bugtraq,1110; reference:cve,2000-0284; reference:nessus,10374; classtype:misc-attack; sid:2118; rev:6;)
+
+alert tcp $EXTERNAL_NET any -> $HOME_NET 143 (msg:"IMAP rename literal overflow attempt"; flow:established,to_server; content:"RENAME"; nocase; pcre:"/\sRENAME\s[^\n]*?\s\{/smi"; byte_test:5,>,256,0,string,dec,relative; reference:bugtraq,1110; reference:cve,2000-0284; reference:nessus,10374; classtype:misc-attack; sid:2119; rev:5;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 143 (msg:"IMAP rename overflow attempt"; flow:established,to_server; content:"RENAME"; nocase; isdataat:100,relative; pcre:"/\sRENAME\s[^\n]{100}/smi"; reference:bugtraq,1110; reference:cve,2000-0284; reference:nessus,10374; classtype:misc-attack; sid:1903; rev:8;)
+
+# FIND does not accept a literal command
+alert tcp $EXTERNAL_NET any -> $HOME_NET 143 (msg:"IMAP find overflow attempt"; flow:established,to_server; content:"FIND"; nocase; isdataat:100,relative; pcre:"/\sFIND\s[^\n]{100}/smi"; reference:bugtraq,1110; reference:cve,2000-0284; reference:nessus,10374; classtype:misc-attack; sid:1904; rev:7;)
+
+alert tcp $EXTERNAL_NET any -> $HOME_NET 143 (msg:"IMAP partial body buffer overflow attempt"; flow:to_server,established; content:"PARTIAL"; nocase; content:"BODY["; distance:0; nocase; pcre:"/\sPARTIAL.*BODY\[[^\]]{1024}/smi"; reference:bugtraq,4713; reference:cve,2002-0379; classtype:misc-attack; sid:1755; rev:14;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 143 (msg:"IMAP partial body.peek buffer overflow attempt"; flow:to_server,established; content:"PARTIAL"; nocase; content:"BODY.PEEK["; distance:0; nocase; pcre:"/\sPARTIAL.*BODY\.PEEK\[[^\]]{1024}/smi"; reference:bugtraq,4713; reference:cve,2002-0379; classtype:misc-attack; sid:2046; rev:6;)
+
+alert tcp $EXTERNAL_NET any -> $HOME_NET 143 (msg:"IMAP create buffer overflow attempt"; flow:to_server,established; content:"CREATE"; isdataat:1024,relative; pcre:"/\sCREATE\s[^\n]{1024}/smi"; reference:bugtraq,7446; classtype:misc-attack; sid:2107; rev:3;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 143 (msg:"IMAP create literal buffer overflow attempt"; flow:to_server,established; content:"CREATE"; nocase; pcre:"/\sCREATE\s*\{/smi"; byte_test:5,>,256,0,string,dec,relative; reference:bugtraq,7446; classtype:misc-attack; sid:2120; rev:3;)
+# alert tcp $EXTERNAL_NET any -> $HOME_NET 143 (msg:"IMAP login brute force attempt"; flow:to_server,established; content:"LOGIN"; nocase; threshold:type threshold, track by_dst, count 30, seconds 30; classtype:suspicious-login; sid:2273; rev:2;)
+
+alert tcp $EXTERNAL_NET any -> $HOME_NET 993 (msg:"IMAP SSLv3 invalid data version attempt"; flow:to_server,established; content:"|16 03|"; depth:2; content:"|01|"; depth:1; offset:5; content:!"|03|"; depth:1; offset:9; reference:bugtraq,10115; reference:cve,2004-0120; reference:url,www.microsoft.com/technet/security/bulletin/MS04-011.mspx; classtype:attempted-dos; sid:2497; rev:6;)
+
+alert tcp $EXTERNAL_NET any -> $HOME_NET 993 (msg:"IMAP PCT Client_Hello overflow attempt"; flow:to_server,established; content:"|01|"; depth:1; offset:2; byte_test:2,>,0,6; byte_test:2,!,0,8; byte_test:2,!,16,8; byte_test:2,>,20,10; content:"|8F|"; depth:1; offset:11; byte_test:2,>,32768,0,relative; reference:bugtraq,10116; reference:cve,2003-0719; reference:url,www.microsoft.com/technet/security/bulletin/MS04-011.mspx; classtype:attempted-admin; sid:2517; rev:10;)
+
+alert tcp $EXTERNAL_NET any -> $HOME_NET 993 (msg:"IMAP SSLv3 Client_Hello request"; flow:to_server,established; flowbits:isnotset,sslv3.client_hello.request; content:"|16 03|"; depth:2; content:"|01|"; depth:1; offset:5; flowbits:set,sslv3.client_hello.request; flowbits:noalert; reference:cve,2004-0120; reference:url,www.microsoft.com/technet/security/bulletin/MS04-011.mspx; classtype:protocol-command-decode; sid:2529; rev:3;)
+alert tcp $HOME_NET 993 -> $EXTERNAL_NET any (msg:"IMAP SSLv3 Server_Hello request"; flow:to_client,established; flowbits:isset,sslv3.client_hello.request; content:"|16 03|"; depth:2; content:"|02|"; depth:1; offset:5; flowbits:set,sslv3.server_hello.request; flowbits:noalert; reference:cve,2004-0120; reference:url,www.microsoft.com/technet/security/bulletin/MS04-011.mspx; classtype:protocol-command-decode; sid:2530; rev:3;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 993 (msg:"IMAP SSLv3 invalid Client_Hello attempt"; flow:to_server,established; flowbits:isset,sslv3.server_hello.request; content:"|16 03|"; depth:2; content:"|01|"; depth:1; offset:5; reference:cve,2004-0120; reference:url,www.microsoft.com/technet/security/bulletin/MS04-011.mspx; classtype:attempted-dos; sid:2531; rev:3;)

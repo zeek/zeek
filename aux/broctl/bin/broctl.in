@@ -1,0 +1,731 @@
+#! /usr/bin/env python
+#
+# $Id: broctl.in 6948 2009-12-03 20:59:41Z robin $
+#
+# The Bro Control interactive shell.
+
+import os
+import sys
+import cmd
+import readline
+import time
+import signal
+import platform
+
+# Base directory of broctl installation.
+# $PREFIX is replaced by 'configure'.
+try:
+    BroBase = os.path.abspath(os.getenv("BROBASE"))
+except AttributeError:
+    BroBase = "$PREFIX"
+
+# Base directory of Bro distribution.              
+# $BRODIST is replaced by 'configure'.
+try:
+    BroDist = os.path.abspath(os.getenv("BRODIST"))
+except AttributeError:
+    BroDist = "$BRODIST"
+
+# Version of the broctl distribution.
+# $VERSION is replaced by 'configure'.
+Version = "$VERSION"
+
+# True if we do a stand-alone install. 
+# $STANDALONE is replaced by 'configure'.
+StandAlone = $STANDALONE
+
+# Adjust the PYTHONPATH. (If we're installing the make-wrapper will have already
+# set it correctly.)
+if not "BROCTL_INSTALL" in os.environ:
+    sys.path = [os.path.join(BroBase, "lib/broctl")] + sys.path
+
+# We need to add the directory of the Broccoli library files
+# to the linker's runtime search path. This is hack which 
+# restarts the script with the new environment. 
+ldpath = "LD_LIBRARY_PATH"
+if platform.system() == "Darwin":
+    ldpath = "DYLD_LIBRARY_PATH"
+
+old = os.environ.get(ldpath)
+dir = os.path.join(BroBase, "lib")
+if not old or not dir in old:
+    if old:
+        path = "%s:%s" % (dir, old)
+    else:
+        path = dir
+    os.environ[ldpath] = path
+    os.execv(sys.argv[0], sys.argv)
+
+## End of library hack.
+
+# Turns nodes arguments into a list of node names. 
+def nodeArgs(args, expand_all=True):
+    if not args:
+        args = "all"
+
+    nodes = []
+
+    for arg in args.split():
+        h = Config.nodes(arg, expand_all)
+        if not h and arg != "all":
+            util.output("unknown node '%s'" % arg)
+            return (False, [])
+
+        nodes += h
+
+    return (True, nodes)
+
+# Main command loop.
+class BroCtlCmdLoop(cmd.Cmd):
+
+    def __init__(self):
+        cmd.Cmd.__init__(self)
+        self.prompt = "[BroControl] > "
+
+    def output(self, text):
+        self.stdout.write(text)
+        self.stdout.write("\n")
+
+    def error(self, str):
+        self.output("Error: %s" % str)
+
+    def syntax(self, args):
+        self.output("Syntax error: %s" % args)
+
+    def lock(self):
+        if not util.lock():
+            sys.exit(1)
+
+        self._locked = True
+        Config.readState()
+        config.Config.config["sigint"] = "0" 
+
+    def precmd(self, line):
+        util.debug(1, "%-10s %s" % ("[command]", line))
+        self._locked = False
+        return line
+
+    def postcmd(self, stop, line):  
+        Config.writeState()
+        if self._locked:
+            util.unlock()
+            self._locked = False
+
+        util.debug(1, "%-10s %s" % ("[command]", "done"))
+        return stop
+
+    def do_EOF(self, args):
+        return True
+
+    def do_exit(self, args):
+        """Terminates the shell."""
+        return True
+
+    def do_quit(self, args):
+        """Terminates the shell."""
+        return True
+
+    def do_nodes(self, args):
+        """Prints a list of all configured nodes."""
+        if args:
+            self.syntax(args)
+            return
+
+        self.lock()
+        for n in Config.nodes():
+            print n
+
+    def do_config(self, args):
+        """Prints all configuration options with their current values."""
+        if args:
+            self.syntax(args)
+            return
+
+        for (key, val) in sorted(Config.options()):
+            print "%s = %s" % (key, val)
+
+    def do_install(self, args): 
+        """
+
+        Reinstalls the given nodes, including all configuration files and
+        local policy scripts.  This command must be executed after _all_
+        changes to any part of the broctl configuration, otherwise the
+        modifications will not take effect. Usually all nodes should be
+        reinstalled at the same time, as any inconsistencies between them will
+        lead to strange effects. Before executing +install+, it is recommended
+        to verify the configuration with xref:cmd_check[+check+]."""
+
+        local = False
+        make = False
+
+        for arg in args.split():
+            if arg == "--local":
+                local = True
+            elif arg == "--make":
+                make = True
+            else:
+                self.syntax(args)
+                return
+
+        self.lock()
+        install.install(local, make)
+
+    def do_start(self, args):
+        """- [<nodes>]
+
+        Starts the given nodes, or all nodes if none are specified. Nodes
+        already running are left untouched.
+        """ 
+
+        self.lock()
+        (success, nodes) = nodeArgs(args, expand_all=False) 
+        if success: 
+            control.start(nodes)
+
+    def do_stop(self, args):
+        """- [<nodes>]
+
+        Stops the given nodes, or all nodes if none are specified. Nodes not
+        running are left untouched.
+        """ 
+        self.lock()
+        (success, nodes) = nodeArgs(args, expand_all=False)
+        if success:
+            control.stop(nodes)
+
+    def do_restart(self, args):
+        """- [--clean] [<nodes>]
+
+        Restarts the given nodes, or all nodes if none are specified. The
+        effect is the same as first executing xref:cmd_stop[+stop+] followed
+        by a xref:cmd_start[+start+], giving the same nodes in both cases.
+        This command is most useful to activate any changes made to Bro policy
+        scripts (after running xref:cmd_install[+install+] first). Note that a
+        subset of policy changes can also be installed on the fly via the
+        xref:cmd_updatel[+update+], without requiring a restart.
+
+        If +--clean+ is given, the installation is reset into a clean state
+        before restarting. More precisely, a +restart --clean+ turns into the
+        command sequence xref:cmd_stop[+stop+], xref:cmd_cleanup[+cleanup
+        --all+], xref:cmd_check[+check+], xref:cmd_install[+install+], and
+        xref:cmd_start[+start+].
+        """
+
+        clean = False
+        try:
+            if args.startswith("--clean"):
+                args = args[7:]
+                clean = True
+        except IndexError:
+            pass
+
+        self.lock()
+        (success, nodes) = nodeArgs(args, expand_all=False)
+        if success:
+            control.restart(nodes, clean)
+
+    def do_status(self, args):
+        """- [<nodes>]
+
+        Prints the current status of the given nodes."""
+
+        self.lock()
+        (success, nodes) = nodeArgs(args)
+        if success:
+            control.status(nodes)
+
+    def _do_top_once(self, args):
+        if util.lock():
+            Config.readState() # May have changed by cron in the meantime.
+            (success, nodes) = nodeArgs(args)
+            if success:
+                control.top(nodes)
+            util.unlock()
+
+    def do_top(self, args):
+        """- [<nodes>]
+
+        For each of the nodes, prints the status of the two Bro
+        processes (parent process and child process) in a _top_-like
+        format, including CPU usage and memory consumption. If
+        executed interactively, the display is updated frequently
+        until key +q+ is pressed. If invoked non-interactively, the
+        status is printed only once.""" 
+
+        self.lock()
+
+        if not Interactive:
+            self._do_top_once(args)
+            return
+
+        util.unlock()
+
+        util.enterCurses()
+        util.clearScreen()
+
+        count = 0
+
+        while config.Config.sigint != "1" and util.getCh() != "q":
+            if count % 10 == 0:
+                util.bufferOutput()
+                self._do_top_once(args)
+                lines = util.getBufferedOutput()
+                util.clearScreen()
+                util.printLines(lines)
+            time.sleep(.1)
+            count += 1
+
+        util.leaveCurses()
+
+        if not util.lock():
+            sys.exit(1)
+
+    def do_diag(self, args):
+        """- [<nodes>]
+
+        If a node has terminated unexpectedly, this command prints a (somewhat
+        cryptic) summary of its final state including excerpts of any
+        stdout/stderr output, resource usage, and also a stack backtrace if a
+        core dump is found. The same information is sent out via mail when a
+        node is found to have crashed (the "crash report"). While the
+        information is mainly intended for debugging, it can also help to find
+        misconfigurations (which are usually, but not always, caught by the
+        xref:cmd_check[+check+] command).""" 
+
+        self.lock()
+        (success, nodes) = nodeArgs(args)
+        if not success:
+            return 
+
+        for h in nodes:
+            control.crashDiag(h)
+
+    def do_attachgdb(self, args):
+        """- [<nodes>]
+
+        Primarily for debugging, the command attaches a _gdb_ to the main Bro
+        process on the given nodes. """ 
+
+        self.lock()
+        (success, nodes) = nodeArgs(args)
+        if success:
+            control.attachGdb(nodes)
+
+    def do_cron(self, args):
+        """- [<nodes>]
+
+        As the name implies, this command should be executed regularly via
+        _cron_, as described xref:Installation[above]. It performs a set of
+        maintainance tasks, including the logging of various statistical
+        information, expiring old log files, checking for dead hosts, and
+        restarting nodes which terminated unexpectedly.  While not intended
+        for interactive use, no harm will be caused by executing the command 
+        manually: all the maintainance tasks will then just be performed one
+        more time."""
+
+        self.lock()
+
+        if len(args) > 0:
+            if args == "enable":
+                config.Config._setState("cronenabled", "1")
+                util.output("cron enabled")
+            elif args == "disable":
+                config.Config._setState("cronenabled", "0")
+                util.output("cron disabled")
+            elif args == "?":
+                util.output("cron " + (config.Config.cronenabled == "1"  and "enabled" or "disabled"))
+            else:
+                util.output("wrong cron argument")
+            return
+
+        cron.doCron()
+
+    def do_check(self, args):
+        """- [<nodes>]
+
+        Verifies a modified configuration in terms of syntactical correctness
+        (most importantly correct syntax in policy scripts). This command
+        should be executed for each configuration change _before_
+        xref:cmd_install[+install+] is used to put the change into place. Note
+        that +check+ is the only command which operates correctly without a
+        former xref:cmd_install[+install+] command; +check+ uses the policy
+        files as found in xref:opt_SitePolicyPath[+SitePolicyPath+] to make
+        sure they compile correctly. If they do, xref:cmd_install[+install+]
+        will then copy them over to an internal place from where the nodes
+        will read them at the next xref:cmd_start[+start+]. This approach
+        ensures that new errors in a policy scripts will not affect currently
+        running nodes, even when one or more of them needs to be restarted."""
+
+        self.lock()
+        (success, nodes) = nodeArgs(args)
+        if success:
+            control.checkConfigs(nodes)
+
+    def do_cleanup(self, args):
+        """- [--all] [<nodes>]
+
+        Clears the nodes' spool directories (if they are not running
+        currently). This implies that their persistent state is flushed. Nodes
+        that were crashed are reset into _stopped_ state. If +--all+ is
+        specified, this command also removes the content of the node's
+        xref:opt_TmpDir[+TmpDir+], in particular deleteing any data
+        potentially saved there for reference from previous crashes.
+        Generally, if you want to reset the installation back into a clean
+        state, you can first xref:cmd_stop[+stop+] all nodes, then execute
+        +cleanup --all+, and finally xref:cmd_start[+start+] all nodes
+        again.""" 
+
+        cleantmp = False
+        try:
+            if args.startswith("--all"):
+                args = args[5:]
+                cleantmp = True
+        except IndexError:
+            pass
+
+        self.lock()
+        (success, nodes) = nodeArgs(args)
+        if not success:
+            return 
+
+        control.cleanup(nodes, cleantmp)
+
+    def do_capstats(self, args):
+        """- [<interval>] [<nodes>]
+
+        Determines the current load on the network interfaces monitored by
+        each of the given worker nodes. The load is measured over the
+        specified interval (in seconds), or by default over 10 seconds. This
+        command uses the http://www.icir.org/robin/capstats[capstats] tool,
+        which is installed along with +broctl+.
+
+        (Note: When using a CFlow and the CFlow command line utility is
+        installed as well, the +capstats+ command can also query the device
+        for port statistics. _TODO_: document how to set this up.)"""
+
+        interval = 10
+        args = args.split()
+
+        try:
+            interval = max(1, int(args[-1]))
+            args = args[0:-1]
+        except ValueError:
+            pass
+        except IndexError:
+            pass
+
+        args = " ".join(args)
+
+        self.lock()
+        (success, nodes) = nodeArgs(args)
+        if success:
+            control.capstats(nodes, interval)
+
+    def do_update(self, args):
+        """- [<nodes>]
+
+        After a change to Bro policy scripts, this command updates the Bro
+        processes on the given nodes _while they are running_ (i.e., without
+        requiring a xref:cmd_restart[+restart+]). However, such dynamic
+        updates work only for a _subset_ of Bro's full configuration. The
+        following changes can be applied on the fly: (1) The value of all
+        script variables defined as +&redef+ can be changed; and (2) all
+        configuration changes performed via the xref:cmd_analysis[+analysis+]
+        command can be put into effect. More extensive script changes are not
+        possible during runtime and always require a restart; if you change
+        more than just the values of +&redef+ variables and still issue
+        +update+, the results are undefined and can lead to crashes. Also note
+        that before running +update+, you still need to do an
+        xref:cmd_install[+install+] (preferably after
+        xref:cmd_install[+check+]), as otherwise +update+ will not see the
+        changes and resend the old configuration.  """
+
+        self.lock()
+        (success, nodes) = nodeArgs(args)
+        if success:
+            control.update(nodes)
+
+    def do_analysis(self, args):
+        """- enable|disable <type>
+
+        This command enables or disables certain kinds of analysis without the
+        need for doing any changes to Bro scripts. Currently, the analyses
+        shown in the table below can be controlled (in parentheses the
+        corresponding Bro scripts; the effect of enabling/disabling is similar
+        to loading or not loading these scripts, respectively). The list might
+        be extended in the future. Any changes performed via this command are
+        applied by xref:cmd_update[+update+] and therefore do not require a
+        restart of the nodes. 
+        +
+        [format="dsv",frame="none",grid="all",border="0",separator="|"]
+        .10`20~
+        Type          | Description
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        dns           | DNS analysis (+dns.bro+)
+        ftp           | FTP analysis (+ftp.bro+)
+        http-body     | HTTP body analysis (+http-body.bro+). 
+        http-request  | Client-side HTTP analysis only (+http-request.bro+)
+        http-reply    | Client- and server-side HTTP analysis (+http-request.bro+/+http-reply.bro+)
+        http-header   | HTTP header analysis (+http-headers.bro+)
+        scan          | Scan detection (+scan.bro+)
+        smtp          | SMTP analysis (+smtp.bro+)
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        """
+
+        self.lock()
+        args = args.split()
+
+        if len(args) > 1:
+            if args[0].lower() == "enable":
+                control.toggleAnalysis(args[1:], True)
+
+            elif args[0].lower() == "disable":
+                control.toggleAnalysis(args[1:], False)
+
+            else:
+                self.syntax("'enable' or 'disable' expected")
+                return
+
+        control.showAnalysis()
+
+    def do_df(self, args):
+        """- [<nodes>]
+
+        Reports the amount of disk space available on the nodes. Shows only
+        paths relevant to the broctl installation."""
+
+        self.lock()
+        (success, nodes) = nodeArgs(args)
+        if success:
+            control.df(nodes)
+
+    def do_print(self, args):
+        """- <id> [<nodes>]
+
+        Reports the _current_ live value of the given Bro script ID on all of
+        the specified nodes (which obviously must be running). This can for
+        example be useful to (1) check that policy scripts are working as
+        expected, or (2) confirm that configuration changes have in fact been
+        applied.  Note that IDs defined inside a Bro namespace must be
+        prefixed with +<namespace>::+ (e.g., +print SSH::did_ssh_version+ to
+        print the corresponding table from +ssh.bro+.)"""
+
+        self.lock()
+        args = args.split()
+        try:
+            id = args[0]
+
+            (success, nodes) = nodeArgs(" ".join(args[1:]))
+            if success:
+                control.printID(nodes, id)
+        except IndexError:
+            self.syntax("no id to print given")
+
+    def do_peerstatus(self, args):
+        """- [<nodes>]
+		
+		Primarily for debugging, +peerstatus+ reports statistics about the
+        network connections cluster nodes are using to communicate with other
+        nodes."""
+
+        self.lock()
+        (success, nodes) = nodeArgs(args)
+        if success:
+            control.peerStatus(nodes)
+
+    def do_netstats(self, args):
+        """- [<nodes>]
+		
+		Queries each of the nodes for their current counts of captured and
+        dropped packets."""
+		
+        if not args:
+            if config.Config.standalone:
+                args = "standalone"
+            else:
+                args = "workers"
+
+        self.lock()
+        (success, nodes) = nodeArgs(args)
+        if success:
+            control.netStats(nodes)
+
+    def do_exec(self, args):
+        """- <command line>
+		
+		Executes the given Unix shell command line on all nodes configured to
+        run at least one Bro instance. This is handy to quickly perform an
+        action across all systems."""
+		
+        self.lock()
+        control.executeCmd(Config.nodes(), args)
+
+    def do_scripts(self, args):
+        """- [-p|-c] [<nodes>]
+		
+		Primarily for debugging Bro configurations, the +script+ command lists
+        all the Bro scripts loaded by each of the nodes in the order as they
+        will be parsed by the node at startup. If +-p+ is given, all scripts
+        are listed with their full paths. If +-c+ is given, the command
+        operates as xref:cmd_check::[+check+] does: it reads the policy files
+        from their _original_ location, not the copies installed by
+        xref:cmd_install[+install+]. The latter option is useful to check a
+        not yet installed configuration."""
+		
+        paths = False
+        check = False
+
+        args = args.split()
+
+        try:
+            while args[0].startswith("-"):
+
+                opt = args[0]
+
+                if opt == "-p":
+                    # Show full paths.
+                    paths = True
+                elif opt == "-c":
+                    # Check non-installed policies.
+                    check = True
+                else:
+                    self.syntax("unknown option %s" % args[0])
+                    return
+
+                args = args[1:]
+
+        except IndexError:
+            pass
+
+        args = " ".join(args)
+
+        self.lock()
+        (success, nodes) = nodeArgs(args)
+        if success:
+            control.listScripts(nodes, paths, check)
+
+    def completedefault(self, text, line, begidx, endidx):
+        # Commands taken a "<nodes>" argument.
+        nodes_cmds = ["check", "cleanup", "df", "diag", "restart", "start", "status", "stop", "top", "update", "attachgdb", "peerstatus", "list-scripts"], 
+
+        args = line.split()
+
+        if not args or not args[0] in nodes_cmds:
+            return []
+
+        nodes = ["manager", "workers", "proxies", "all"] + [n.tag for n in Config.nodes()]
+
+        return [n for n in nodes if n.startswith(text)]
+
+    # Prints the command's docstring in a form suitable for direct inclusion
+    # into the documentation.
+    def printReference(self):
+        print "// Automatically generated. Do not edit."
+        print 
+
+        cmds = []
+
+        for i in self.__class__.__dict__:
+            doc = self.__class__.__dict__[i].__doc__
+            if i.startswith("do_") and doc:
+                cmds += [(i[3:], doc)]
+
+        cmds.sort()
+
+        for (cmd, doc) in cmds:
+            if doc.startswith("- "):
+                # First line are arguments.
+                doc = doc.split("\n")
+                args = doc[0][2:]
+                doc = "\n".join(doc[1:])
+            else:
+                args = ""
+
+            if args:
+                args = ("_%s_" % args)
+            else:
+                args = ""
+
+            output = ""
+            for line in doc.split("\n"):
+                line = line.strip()
+                output += line + "\n"
+
+            print 
+            print "[[cmd_%s]] *%s %s*::" % (cmd, cmd, args)
+            print output
+
+    def do_help(self, args):
+        """Prints a brief summary of all commands understood by the shell."""
+        self.output(
+"""
+BroControl Version %s
+
+   analysis [enable/disable ...] - print or enable/disable types of analysis 
+   capstats <nodes> [secs]       - report interface statistics (needs capstats)
+   check <nodes>                 - check configuration before installing it
+   cleanup [--all] <nodes>       - delete working dirs on nodes (flushes state)
+   config                        - print broctl configuration
+   cron                          - perform jobs intended to run from cron
+   cron enable|disable|?         - enable/disable \"cron\" jobs
+   df                            - print nodes' current disk usage 
+   diag <nodes>                  - output diagnostics for nodes
+   exec <shell cmd>              - execute shell command on all nodes
+   exit                          - exit shell
+   install                       - update broctl installation/configuration
+   netstats                      - print nodes' current packet counters
+   nodes                         - print node configuration
+   print <id> <nodes>            - print current values of script variable at nodes
+   peerstatus <nodes>            - print current status of nodes' remote connections
+   quit                          - exit shell
+   restart [--clean] <nodes>     - stop and then restart processing
+   scripts [-p|-c] <nodes>       - Lists the Bro scripts the nodes will be loading
+   start <nodes>                 - start processing 
+   status <nodes>                - summarize node status              
+   stop <nodes>                  - stop processing 
+   update <nodes>                - update configuration of nodes on the fly
+   top <nodes>                   - show Bro processes ala top
+
+See Bro Control's Wiki page for more information:
+
+    http://www.bro-ids.org/wiki/index.php/BroControl
+
+Send questions to the Bro mailing list at bro@bro-ids.org.
+   """ % Version)
+
+# Hidden command to print the command documentation.   
+if len(sys.argv) == 2 and sys.argv[1] == "--print-doc":
+    loop = BroCtlCmdLoop()
+    loop.printReference()
+    sys.exit(0)
+
+# Here so that we don't need the PYTHONPATH to be setup for --print-doc.    
+from BroControl import util
+from BroControl import config
+from BroControl import execute
+from BroControl import install
+from BroControl import control
+from BroControl import cron
+from BroControl.config import Config
+
+Config = config.Configuration("etc/broctl.cfg", BroBase, BroDist, Version, StandAlone)
+
+util.enableSignals()
+
+loop = BroCtlCmdLoop()
+
+try:
+    os.chdir(Config.brobase)
+except:
+    pass
+
+if len(sys.argv) > 1:
+    Interactive = False
+    line = " ".join(sys.argv[1:])
+    loop.precmd(line)
+    loop.onecmd(line)
+    loop.postcmd(False, line)
+else:
+    Interactive = True
+    loop.cmdloop("\nWelcome to BroControl %s\n\nType \"help\" for help.\n" % Version)
+

@@ -1,0 +1,121 @@
+// This invalid entry should always be first
+cmd: dcInvalid
+names: 
+resume: false
+help: This function should not be called
+repeatable: false
+
+cmd: dcHelp
+names: help
+resume: false
+help: Get help with debugger commands
+
+cmd: dcQuit
+names: quit
+resume: false
+help: Exit Bro
+
+cmd: dcNext
+names: next
+resume: true
+repeatable: true
+help: Step to the following statement, skipping function calls
+
+cmd: dcStep
+names: step s
+resume: true
+repeatable: true
+help: Step to following statements, stepping in to function calls
+
+cmd: dcContinue
+names: continue c
+resume: true
+repeatable: true
+help: Resume execution of the policy script
+
+cmd: dcFinish
+names: finish
+resume: true
+repeatable: true
+help: Run until the currently-executing function completes
+
+cmd: dcBreak
+names: break b
+resume: false
+help: Set a breakpoint
+
+cmd: dcBreakCondition
+names: cond
+resume: false
+help: 
+
+cmd: dcDeleteBreak
+names: delete d
+resume: false
+help: Delete the specified breakpoints; delete all if no arguments
+
+cmd: dcClearBreak
+names: clear
+resume: false
+
+cmd: dcDisableBreak
+names: disable dis
+resume: false
+
+cmd: dcEnableBreak
+names: enable
+resume: false
+
+cmd: dcIgnoreBreak
+names: ignore
+resume: false
+
+cmd: dcPrint
+names: print p set
+resume: false
+repeatable: true
+help: Evaluate an expression and print the result (also aliased as 'set')
+
+cmd: dcBacktrace
+names: backtrace bt where
+resume: false
+help: Print a stack trace (with +- N argument, inner/outer N frames only)
+
+cmd: dcFrame
+names: frame
+resume: false
+help: Select frame number N
+
+cmd: dcUp
+names: up
+resume: false
+help: Select the stack frame one level up
+
+cmd: dcDown
+names: down
+resume: false
+help: Select the stack frame one level down
+
+cmd: dcInfo
+names: info
+resume: false
+help: Get information about the debugging environment
+
+cmd: dcList
+names: list l
+resume: false
+repeatable: true
+help: Print source lines surrounding specified context
+
+cmd: dcDisplay
+names: display
+resume: false
+
+cmd: dcUndisplay
+names: undisplay
+resume: false
+
+cmd: dcTrace
+names: trace
+resume: false
+help: Turn on or off execution tracing (with no arguments, prints current state.)

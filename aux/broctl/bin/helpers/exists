@@ -1,0 +1,13 @@
+#! /usr/bin/env bash
+#
+# $Id: exists 6811 2009-07-06 20:41:10Z robin $
+#
+# exists <path>
+
+if [ -e $1 ]; then
+   echo 0
+else
+   echo 1
+fi   
+
+echo ~~~

@@ -1,0 +1,29 @@
+#! /usr/bin/env bash
+#
+# $Id: update.in 6860 2009-08-14 19:01:47Z robin $
+#
+# update <destination> <Bro args>
+
+dst=$1
+shift
+args=$@
+
+# Creating temporary working directory.
+dir=${tmpdir}/update-$1-$$
+rm -rf $dir
+mkdir $dir
+cd $dir
+
+export PATH=${bindir}:${scriptsdir}:$PATH
+
+policies=${policydir}
+export BROPATH=${policydirsiteinstallauto}:${policydirsiteinstall}:$policies:$policies/sigs:$policies/time-machine:$policies/broctl:$policies/xquery
+
+${bro} "SendConfig::dst=$dst-update" $args send-config >out.log 2>&1
+rc=$?
+
+cat out.log | egrep -v "warning: no such host|received termination signal"
+rm -rf $dir
+
+exit $rc
+

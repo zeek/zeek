@@ -1,0 +1,12 @@
+#! /usr/bin/env bash
+#
+# $Id: get-childs 6811 2009-07-06 20:41:10Z robin $
+#
+#  get-childs <pid> 
+
+echo 0
+ps ax -o pid,ppid | awk -v pid=$1 '$2==pid {print $1}'
+echo ~~~
+
+
+

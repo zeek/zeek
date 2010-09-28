@@ -1,0 +1,148 @@
+#! /bin/sh
+
+######################################################################
+# prompt for input for a variable
+# $1 name of var
+# $2 defualt value
+# $3 prompt string (if empty get from config file )
+bro_config_input()
+{
+    if [ -z $1 ] ; then
+        name=""
+    else
+        name=$1
+    fi
+    
+    if [ -z $2 ] ; then
+        default=""
+    else
+        default=$2
+    fi
+
+    if [ -z "$3" ] ; then 
+        prompt=""
+    else
+        prompt=$3
+    fi
+
+    #empty it out
+    RESP=
+    desc=$prompt
+    
+    while [ -z "$RESP" ]; do
+        echo -n "$desc [$default]: " >&0
+        read RESP
+
+        case "$RESP" in 
+            [Yy]|[Yy][Ee][Ss]) ret="YES"; RESP="YES";;
+            [Nn]|[Nn][Oo] ) ret="NO"; RESP="NO" ;;
+            "") ret=$default ; RESP="$default" ;;
+            *) ret=$RESP;;
+        esac
+    done
+
+    # set back the value
+    eval $1=\$ret
+    eval $name=\$ret
+    return 1
+}
+
+
+echo "Creating SSL certificate authority"
+echo "----------------------------------"
+echo
+
+dir=$HOME
+
+if [ "x$BRO_CA_DIR" != "x" ]; then
+    dir=$BRO_CA_DIR
+fi
+
+bro_config_input "dir" $dir "Directory for CA setup"
+
+mkdir -p $dir
+if [ $? -ne 0 ]; then
+	echo "Couldn't create directory $dir."
+	exit 1
+fi
+
+mkdir -p $dir/certs $dir/private
+chmod g-rwx,o-rwx $dir/private
+echo '01' > $dir/serial
+touch $dir/issued.txt
+
+echo "- Directory structure created in directory $dir"
+
+cat - > $dir/openssl.cfg << _EOF
+# OpenSSL config file for Root CA
+#
+
+# Global variable so it can be used everywhere:
+dir                = $dir
+
+[ ca ]
+default_ca = bro_ca
+
+[ bro_ca ]
+certificate        = \$dir/ca_cert.pem
+database           = \$dir/issued.txt
+new_certs_dir      = \$dir/certs
+private_key        = \$dir/private/ca_key.pem
+serial             = \$dir/serial
+
+# Number of days before CRLs are published
+default_crl_days   = 7
+
+# Number of days a certificate will be valud
+default_days       = 365
+
+# Digest used to sign issued certificates
+default_md         = sha1
+
+# Policy for distinguished name in certificate requests
+policy             = bro_policy
+x509_extensions    = cert_exts
+
+
+[ bro_policy ]
+commonName         = supplied
+emailAddress       = optional
+
+[ cert_exts ]
+# Certificates we hand out must not be used as CA certificates
+basicConstraints     = CA:false
+
+[ req ]
+default_bits       = 2048 # Private key length
+
+default_keyfile    = \$dir/private/ca_key.pem
+default_md         = sha1
+
+# Don't ask for distinguished name, use what's given below:
+prompt             = no
+distinguished_name = root_ca_dist_name
+
+x509_extensions    = root_ca_exts
+
+[ root_ca_dist_name ]
+commonName         = Bro Root Certification Authority
+
+[ root_ca_exts ]
+basicConstraints   = CA:true
+
+_EOF
+
+echo "- OpenSSL config file created at $dir/openssl.cfg"
+echo
+echo "I will now generate the CA's certificate. You will be asked to"
+echo "enter the password for the CA's private key."
+echo
+openssl req -config $dir/openssl.cfg -x509 -new -out $dir/ca_cert.pem -outform PEM
+
+if [ $? -ne 0 ]; then
+	echo "Couldn't create root certificate."
+	exit 1
+fi
+
+echo "- Root certificate created successfully"
+echo "- Done."

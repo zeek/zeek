@@ -1,0 +1,143 @@
+
+@menu
+* What is Bro? ::
+* Bro features and benefits ::
+* Getting more Information ::
+@end menu
+
+@node What is Bro?
+@section What is Bro?
+@cindex Network Intrusion Detection System
+
+Bro is a Unix-based Network Intrusion Detection System (IDS).  Bro monitors network traffic and detects intrusion attempts based on the traffic 
+characteristics and content.  Bro detects intrusions by comparing network traffic against rules describing events that are deemed troublesome.  These rules 
+might describe activities (e.g., certain hosts connecting to certain services), what activities are worth alerting (e.g., attempts to a given number of different hosts constitutes 
+a "scan"), or signatures describing known attacks or access to known vulnerabilities.  If Bro detects something of interest, it can be instructed to either issue a log entry or initiate the execution of an operating system command.
+
+Bro targets high-speed (Gbit/second), high-volume intrusion detection. By judiciously leveraging packet filtering techniques, 
+Bro is able to achieve the performance necessary to do so while running on commercially 
+available PC hardware, and thus can serve as a cost effective means of monitoring a site's Internet connection.
+
+
+@node Bro features and benefits
+@section Bro features and benefits
+
+@itemize
+@item @strong{Network Based}
+@quotation
+Bro is a network-based IDS.  It collects, filters, and analyzes traffic that passes through a specific
+network location.  A single Bro monitor, strategically placed at a key network junction, can be
+used to monitor all incoming and outgoing traffic for the entire site.  Bro does not use or
+require installation of client software on each individual, networked computer.
+@end quotation
+
+@item @strong{Custom Scripting Language}
+@quotation
+Bro policy scripts are programs written in the Bro language.  They contain the "rules" that
+describe what sorts of activities are deemed troublesome.  They analyze the network activity and
+initiate actions based on the analysis.  Although the Bro language takes some time and effort to
+learn, once mastered, the Bro user can write or modify Bro policies to detect and alert on virtually
+any type of network activity.
+@end quotation
+
+@item @strong{Pre-written Policy Scripts}
+@quotation
+Bro comes with a rich set of policy scripts designed to detect the most common Internet attacks
+while limiting the number of false positives, i.e., alerts that confuse uninteresting activity with the
+important attack activity.  These supplied policy scripts will run "out of the box" and do not
+require knowledge of the Bro language or policy script mechanics.
+@end quotation
+
+@item @strong{Powerful Signature Matching Facility}
+@quotation
+Bro policies incorporate a signature matching facility that looks for specific traffic content.  For
+Bro, these signatures are expressed as regular expressions, rather than fixed strings.  Bro adds a
+great deal of power to its signature-matching capability because of its rich language.  This allows
+Bro to not only examine the network content, but to understand the context of the signature,
+greatly reducing the number of false positives.  Bro comes with a set of high value signatures
+policies, selected for their high detection and low false positive characteristics.
+@end quotation
+
+@item @strong{Network Traffic Analysis}
+@quotation
+Bro not only looks for signatures, but can also analyze network protocols, connections,
+transactions, data amounts, and many other network characteristics.  It has powerful facilities for
+storing information about past activity and incorporating it into analyses of new activity.
+@end quotation
+
+@item @strong{Detection Followed by Action}
+@quotation
+Bro policy scripts can generate output files recording the activity seen on the network (including
+normal, non-attack activity).  They can also send alarms to event logs, including the
+operating system syslog facility.  In addition, scripts can execute programs, which can, in turn,
+send e-mail messages, page the on-call staff, automatically terminate existing connections, or, with
+appropriate additional software, insert access control blocks into a router's access control list.
+With Bro's ability to execute programs at the operating system level, the actions that Bro can
+initiate are only limited by the computer and network capabilities that support Bro.
+@end quotation
+
+@item @strong{@uref{http://www.snort.org/,Snort} Compatibility Support}
+@cindex Snort
+@quotation
+The Bro distribution includes a tool, snort2bro, which converts Snort signatures into Bro
+signatures.  Along with translating the format of the signatures, snort2bro also incorporates a large
+number of enhancements to the standard set of Snort signatures to take advantage of Bro's
+additional contextual power and reduce false positives.
+@end quotation
+
+
+@end itemize
+
+@node Getting more Information 
+@section Getting more Information 
+
+@itemize
+@item @strong{Reference manual}
+@quotation
+An extensive @uref{http://www.bro-ids.org/manuals.html,reference manual} is provided detailing the Bro Policy Language
+@end quotation
+
+@item @strong{FAQ}
+@cindex FAQ
+@quotation
+Several Frequently Asked Questions are outlined in the @uref{http://www.bro-ids.org/FAQ.html,Bro FAQ}.  
+Do you have a question that's not
+in the FAQ, send it to us and we'll add it.
+@end quotation
+
+@item @strong{E-mail list}
+@cindex Email list
+@quotation
+Send questions on any Bro subject to Bro@@bro-ids.org
+The list is frequented by all of the Bro developers, including the primary author of Bro, Dr. Vern
+Paxson.
+
+You can subscribe by going to the website: 
+@* @uref{http://mailman.icsi.berkeley.edu/mailman/listinfo/bro},
+@*
+or by placing the following command in either the subject or the body of a message addressed to
+Bro-request@@ICSI.Berkeley.EDU.
+
+@example
+subscribe [password] [digest-option] [address=<address>]
+@end example
+
+A password must be given to
+unsubscribe or change your options.  Once subscribed to the
+list, you'll be reminded of your password periodically.
+The 'digest-option' may be either: 'nodigest' or 'digest' (no
+quotes!)  If you wish to subscribe an address other than the
+address you use to send this request from, you may specify
+"address=<email address>" (no brackets around the email
+address, no quotes!)
+
+@end quotation
+
+@item @strong{Website}
+@quotation
+The official Bro website is located at:
+@uref{http://www.bro-ids.org}.
+It contains all of the above documentation and more.
+@end quotation
+
+@end itemize

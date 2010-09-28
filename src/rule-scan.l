@@ -1,0 +1,190 @@
+/* $Id: rule-scan.l 6914 2009-09-22 00:35:24Z vern $ */
+
+%{
+typedef unsigned int uint32;
+
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include "RuleMatcher.h"
+#include "rule-parse.h"
+
+int rules_line_number = 0;
+%}
+
+%x PS
+
+WS	[ \t]+
+D	[0-9]+
+H	[0-9a-fA-F]+
+STRING	\"([^\n\"]|\\\")*\"
+ID	[0-9a-zA-Z_-]+
+RE	\/(\\\/)?([^/]|[^\\]\\\/)*\/
+META	\.[^ \t]+{WS}[^\n]+
+PID	([0-9a-zA-Z_-]|"::")+
+
+%option nounput nodefault
+
+%%
+
+<*>{
+	#.*	/* eat comments */
+	{WS}	/* eat white space */
+	{META}	/* eat any meta-data/comments */
+	\n	++rules_line_number;
+}
+
+[!\]\[{}&:,]	return rules_text[0];
+
+"<="	{ rules_lval.val = RuleHdrTest::LE; return TOK_COMP; }
+">="	{ rules_lval.val = RuleHdrTest::GE; return TOK_COMP; }
+"<"	{ rules_lval.val = RuleHdrTest::LT; return TOK_COMP; }
+">"	{ rules_lval.val = RuleHdrTest::GT; return TOK_COMP; }
+"="	{ rules_lval.val = RuleHdrTest::EQ; return TOK_COMP; }
+"=="	{ rules_lval.val = RuleHdrTest::EQ; return TOK_COMP; }
+"!="	{ rules_lval.val = RuleHdrTest::NE; return TOK_COMP; }
+
+ip	{ rules_lval.val = RuleHdrTest::IP; return TOK_PROT; }
+icmp	{ rules_lval.val = RuleHdrTest::ICMP; return TOK_PROT; }
+tcp	{ rules_lval.val = RuleHdrTest::TCP; return TOK_PROT; }
+udp	{ rules_lval.val = RuleHdrTest::UDP; return TOK_PROT; }
+
+true	{ rules_lval.val = true; return TOK_BOOL; }
+false	{ rules_lval.val = false; return TOK_BOOL; }
+
+established	{
+		rules_lval.val = RuleConditionTCPState::STATE_ESTABLISHED;
+		return TOK_TCP_STATE_SYM;
+		}
+
+originator	{
+		rules_lval.val = RuleConditionTCPState::STATE_ORIG;
+		return TOK_TCP_STATE_SYM;
+		}
+
+responder	{
+		rules_lval.val = RuleConditionTCPState::STATE_RESP;
+		return TOK_TCP_STATE_SYM;
+		}
+
+stateless	{
+		rules_lval.val = RuleConditionTCPState::STATE_STATELESS;
+		return TOK_TCP_STATE_SYM;
+		}
+
+lsrr		{
+		rules_lval.val = RuleConditionIPOptions::OPT_LSRR;
+		return TOK_IP_OPTION_SYM;
+		}
+
+lsrre		{
+		rules_lval.val = RuleConditionIPOptions::OPT_LSRRE;
+		return TOK_IP_OPTION_SYM;
+		}
+
+rr		{
+		rules_lval.val = RuleConditionIPOptions::OPT_RR;
+		return TOK_IP_OPTION_SYM;
+		}
+
+ssrr		{
+		rules_lval.val = RuleConditionIPOptions::OPT_SSRR;
+		return TOK_IP_OPTION_SYM;
+		}
+
+disable	return TOK_DISABLE;
+dst-ip		return TOK_DST_IP;
+dst-port	return TOK_DST_PORT;
+enable		return TOK_ENABLE;
+eval		return TOK_EVAL;
+event		return TOK_EVENT;
+header		return TOK_HEADER;
+ip-options	return TOK_IP_OPTIONS;
+ip-proto	return TOK_IP_PROTO;
+payload-size	return TOK_PAYLOAD_SIZE;
+requires-signature	return TOK_REQUIRES_SIGNATURE;
+requires-reverse-signature	return TOK_REQUIRES_REVERSE_SIGNATURE;
+signature	return TOK_SIGNATURE;
+same-ip		return TOK_SAME_IP;
+src-ip		return TOK_SRC_IP;
+src-port	return TOK_SRC_PORT;
+tcp-state	return TOK_TCP_STATE;
+active		return TOK_ACTIVE;
+
+payload	{ rules_lval.val = Rule::PAYLOAD; return TOK_PATTERN_TYPE; }
+http-request	{ rules_lval.val = Rule::HTTP_REQUEST; return TOK_PATTERN_TYPE; }
+http-request-body	{ rules_lval.val = Rule::HTTP_REQUEST_BODY; return TOK_PATTERN_TYPE; }
+http-reply-body	{ rules_lval.val = Rule::HTTP_REPLY_BODY; return TOK_PATTERN_TYPE; }
+http-body	{ rules_lval.val = Rule::HTTP_REPLY_BODY; return TOK_PATTERN_TYPE; }
+http-request-header	{ rules_lval.val = Rule::HTTP_REQUEST_HEADER; return TOK_PATTERN_TYPE; }
+http-reply-header	{ rules_lval.val = Rule::HTTP_REPLY_HEADER; return TOK_PATTERN_TYPE; }
+http	{ rules_lval.val = Rule::HTTP_REQUEST; return TOK_PATTERN_TYPE; }
+
+ftp	{ rules_lval.val = Rule::FTP; return TOK_PATTERN_TYPE; }
+finger	{ rules_lval.val = Rule::FINGER; return TOK_PATTERN_TYPE; }
+
+{D}("."{D}){3}"/"{D}	{
+	char* s = strchr(yytext, '/');
+	*s++ = '\0';
+
+	rules_lval.mval.mask = ~((1 << (32 - atoi(s))) - 1);
+	rules_lval.mval.val = ntohl(inet_addr(yytext)) & rules_lval.mval.mask;
+
+	return TOK_IP;
+	}
+
+{D}("."{D}){3}	{
+	rules_lval.mval.val = ntohl(inet_addr(yytext));
+	rules_lval.mval.mask = 0xffffffff;
+	return TOK_IP;
+	}
+
+{D}	{
+	rules_lval.val = (uint32) atoi(yytext);
+	return TOK_INT;
+	}
+
+0x{H}	{
+	rules_lval.val = (uint32) strtol(yytext, 0, 16);
+	return TOK_INT;
+	}
+
+
+{STRING}	{
+	*(yytext + strlen(yytext) - 1) = '\0';
+	rules_lval.str = yytext + 1;
+	return TOK_STRING;
+	}
+
+{ID}	{
+	rules_lval.str = yytext;
+	return TOK_IDENT;
+	}
+
+<PS>{PID}	{
+	rules_lval.str = yytext;
+	return TOK_POLICY_SYMBOL;
+	}
+
+{RE}	{
+	*(yytext + strlen(yytext) - 1) = '\0';
+	rules_lval.str = yytext + 1;
+	return TOK_PATTERN;
+	}
+
+<*>.	rules_error("unrecognized character in input", yytext);
+
+%%
+
+// We're about to parse a Bro policy-layer symbol.
+void begin_PS()
+	{
+	BEGIN(PS);
+	}
+
+void end_PS()
+	{
+	BEGIN(INITIAL);
+	}

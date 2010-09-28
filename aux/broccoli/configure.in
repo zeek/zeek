@@ -1,0 +1,297 @@
+dnl Process this file with autoconf to produce a configure script.
+
+AC_INIT
+AC_CONFIG_SRCDIR([src/broccoli.h.in])
+
+AC_CANONICAL_TARGET
+AC_CANONICAL_HOST
+
+AC_CONFIG_AUX_DIR(.)
+AM_CONFIG_HEADER(config.h)
+AM_INIT_AUTOMAKE(broccoli, 1.5.0)
+
+dnl Commands for funkier shell output:
+BLD_ON=`./shtool echo -n -e %B`
+BLD_OFF=`./shtool echo -n -e %b`
+
+AC_PROG_CC
+AM_PROG_CC_STDC
+AC_HEADER_STDC
+AC_PROG_INSTALL
+AM_PROG_LEX
+AC_PROG_YACC
+
+dnl According to the autobook, we need to add this extra directive
+dnl before AM_PROG_LIBTOOL to make libtool work on Windows:
+AC_LIBTOOL_WIN32_DLL
+AC_PROG_LIBTOOL
+
+
+dnl Okay, the lex and yacc checks suck big time because they
+dnl just fall back to assgning "yacc" to YACC and "lex" to LEX
+dnl (in the best case -- I even just get ":" sometimes) as a
+dnl fallback, without checking if those actually exist.
+dnl (Someone correct me if this is wrong, though I doubt it)
+dnl So in those cases, run an extra AC_PROG_CHECK to see if we
+dnl actually have them. Argh.
+have_lex=true
+have_yacc=true
+
+if test "x$YACC" = "xyacc"; then 
+   AC_PATH_PROG(have_yacc, yacc, no)
+fi
+
+if test ! "x$LEX" = "xflex"; then 
+   AC_PATH_PROG(have_lex, lex, no)
+fi
+
+AM_CONDITIONAL(HAVE_LEX_AND_YACC, test "x$have_yacc" != "xno" && test "x$have_lex" != "xno")
+
+AC_C_BIGENDIAN       
+
+AM_CONDITIONAL(SOLARIS_HOST, false)
+AM_CONDITIONAL(LINUX_HOST, false)
+AM_CONDITIONAL(BSD_HOST, false)
+AM_CONDITIONAL(APPLE_HOST, false)
+AM_CONDITIONAL(WINDOWS_HOST, false)
+
+bro_libcrypto=crypto
+bro_libssl=ssl
+
+case "$host" in
+  *-solaris*)
+    AC_DEFINE(SOLARIS_HOST, 1, [Whether this is a Solaris host])
+    AM_CONDITIONAL(SOLARIS_HOST, true)
+    BRO_LIBADD="-lsocket -lnsl"
+    ;;
+  *-linux*)
+    AC_DEFINE(LINUX_HOST, 1, [Whether this is a Linux host])
+    AM_CONDITIONAL(LINUX_HOST, true)
+    ;;
+  *bsd*)
+    AC_DEFINE(BSD_HOST, 1, [Whether this is a BSD host])
+    AM_CONDITIONAL(BSD_HOST, true)
+    ;;
+  *apple*)
+    AC_DEFINE(APPLE_HOST, 1, [Whether this is a APPLE host])
+    AM_CONDITIONAL(APPLE_HOST, true)
+    ;;
+  *-mingw32*)
+    AC_DEFINE(WINDOWS_HOST, 1, [Whether this run on Windows in a MinGW environment])
+    AM_CONDITIONAL(WINDOWS_HOST, true)
+    bro_libcrypto=eay32
+    bro_libssl=ssleay32
+    BRO_LIBADD="-lwsock32"
+    ;;
+esac
+
+AC_SUBST(BRO_LIBADD)
+AC_SUBST(BRO_CFLAGSADD)
+
+dnl ##################################################
+dnl # Check for getuid() and getpwuid().
+dnl ##################################################
+AC_CHECK_FUNCS([geteuid getpwuid])
+
+dnl ##################################################
+dnl # Check for type uint in sys/types.h
+dnl ##################################################
+AC_CHECK_TYPE([uint],,
+	      [TYPEDEF_UINT="typedef unsigned int uint;"
+	       AC_SUBST(TYPEDEF_UINT)])
+
+dnl ##################################################
+dnl # Config directory and config file:
+dnl # Define BRO_SYSCONF_DIR and BRO_SYSCONF_FILE.
+dnl ##################################################
+
+dnl Unless --disable-etc-tweak is given, we check if
+dnl the prefix is /usr, and in that case tweak sysconfdir
+dnl to /etc (nobody cares about /usr/etc really). 
+dnl Otherwise we use what's given.
+dnl
+AC_ARG_ENABLE(etc-tweak,
+	      AC_HELP_STRING([--disable-etc-tweak], [Do not tweak config file location to /etc if prefix is /usr]),
+	      etc_tweak="no",
+	      etc_tweak="yes")
+
+BRO_SYSCONF_DIR=`eval eval eval eval "echo $sysconfdir"`
+
+if test x$etc_tweak = xyes; then
+  if test "x${sysconfdir}" = 'x${prefix}/etc'; then
+    if test "x${prefix}" = "x/usr"; then
+      sysconfdir="/etc"
+      BRO_SYSCONF_DIR="$sysconfdir"
+    elif test "x${prefix}" = "xNONE"; then
+      BRO_SYSCONF_DIR="${ac_default_prefix}/etc"
+    fi
+  fi
+fi
+
+AC_DEFINE_UNQUOTED(BRO_SYSCONF_DIR, "$BRO_SYSCONF_DIR", [Configuration directory])
+AC_SUBST(BRO_SYSCONF_DIR)
+
+dnl Now derive config file name from that, or use the
+dnl requested one if provided.
+
+AC_ARG_WITH(configfile,
+	    AC_HELP_STRING([--with-configfile=FILE], [Use config file at location <FILE>]),
+	    [BRO_SYSCONF_FILE="$withval"],
+	    [BRO_SYSCONF_FILE="$BRO_SYSCONF_DIR/broccoli.conf"])
+
+AC_DEFINE_UNQUOTED(BRO_SYSCONF_FILE, "$BRO_SYSCONF_FILE", [Location of config file])
+AC_SUBST(BRO_SYSCONF_FILE)
+
+dnl ##################################################
+dnl # Packet support enable/disable switch
+dnl ##################################################
+AC_ARG_WITH(pcap-headers,
+            [  --with-pcap-headers=PATH      Add PATH to include path searched for pcap.h],
+	    CPPFLAGS="$CPPFLAGS -I$withval")
+
+AC_ARG_ENABLE(packets,
+	      AC_HELP_STRING([--disable-packets], [Do not support tx/rx of pcap packets]),
+	      packet_support="no",
+	      packet_support="yes")
+
+if test "$packet_support" = "yes"; then
+   AC_CHECK_HEADERS(pcap.h, , packet_support="no")
+   if test "$packet_support" = "yes"; then
+      BRO_PCAP_SUPPORT="#define BRO_PCAP_SUPPORT"
+   fi
+fi
+
+AM_CONDITIONAL(BRO_PCAP_SUPPORT, test "$packet_support" = "yes")
+AC_SUBST(BRO_PCAP_SUPPORT)
+
+dnl ##################################################
+dnl # Debugging enable/disable switch
+dnl ##################################################
+AC_ARG_ENABLE(debug,
+	      AC_HELP_STRING([--enable-debug], [Use debugging macros to produce helpful output (disabled by default)]),
+	      debug="yes",
+	      debug="no")
+
+if test x$debug = xyes; then
+   
+
+  AC_DEFINE_UNQUOTED(BRO_DEBUG, 1, [Enable debugging output])
+fi
+
+
+dnl ##################################################
+dnl # Check for OpenSSL.
+dnl ##################################################
+dnl
+dnl This is mostly easy, with one exception: in the MinGW
+dnl environment, instead of libcrypto we need to look for
+dnl libeay32.a, and instead of libssl we need to look for
+dnl ssleay32.a. This is with the OpenSSL for Windows package
+dnl from http://www.slproweb.com/products/Win32OpenSSL.html.
+dnl
+AC_ARG_WITH(openssl,
+            [  --with-openssl=DIR       Use OpenSSL installation in DIR],
+	    [CPPFLAGS="-I$withval/include $CPPFLAGS"
+	     LIBS="-L$withval/lib $LIBS"])
+AC_ARG_WITH(kerberos,
+            [  --with-kerberos=DIR      Use Kerberos installation in DIR],
+	    [CPPFLAGS="$CPPFLAGS -I$withval/include" ],
+	    [if test -d "/usr/kerberos"; then CPPFLAGS="$CPPFLAGS -I/usr/kerberos/include"; fi])
+
+AC_CHECK_HEADERS([openssl/ssl.h],,
+		 [AC_MSG_ERROR([cannot find openssl/ssl.h, sorry])])
+AC_CHECK_LIB($bro_libcrypto, OPENSSL_add_all_algorithms_conf,,
+	     [AC_MSG_ERROR([cannot find libcrypto, sorry])], $BRO_LIBADD)
+AC_CHECK_LIB($bro_libssl, SSL_new,,
+	     [AC_MSG_ERROR([cannot find libssl, sorry])], $BRO_LIBADD)
+
+
+dnl ##################################################
+dnl # Check for gtk-doc.
+dnl ##################################################
+
+AC_ARG_WITH(html-dir, [  --with-html-dir=PATH path to installed docs ])
+
+if test "x$with_html_dir" = "x" ; then
+  HTML_DIR='${datadir}/gtk-doc/html'
+else
+  HTML_DIR=$with_html_dir
+fi
+
+AC_SUBST(HTML_DIR)
+
+AC_CHECK_PROG(GTKDOC, gtkdoc-mkdb, true, false)
+AC_PATH_PROG(OPENJADE, openjade, no)
+
+gtk_doc_min_version_maj=0
+gtk_doc_min_version_min=6
+
+if test x$GTKDOC = xtrue -a x$OPENJADE != xno; then
+    gtk_doc_version=`gtkdoc-mkdb --version`
+    AC_MSG_CHECKING([gtk-doc version ($gtk_doc_version) >= $gtk_doc_min_version_maj.$gtk_doc_min_version_min])
+    if perl <<EOF ; then
+      exit (("$gtk_doc_version" =~ /^(\d+)\.(\d+)$/ &&
+            (("\$1" > "$gtk_doc_min_version_maj") ||
+             (("\$1" == "$gtk_doc_min_version_maj") &&
+              ("\$2" >= "$gtk_doc_min_version_min")))) ? 0 : 1);
+EOF
+      AC_MSG_RESULT(yes)
+   else
+      AC_MSG_RESULT(no)
+      GTKDOC=false
+   fi
+fi
+
+dnl Let people disable the gtk-doc stuff.
+AC_ARG_ENABLE(gtk-doc, [  --enable-gtk-doc  Use gtk-doc to build documentation [default=auto]], enable_gtk_doc="$enableval", enable_gtk_doc=auto)
+if test x$enable_gtk_doc = xauto ; then
+  if test x$GTKDOC = xtrue ; then
+    enable_gtk_doc=yes
+  else
+    enable_gtk_doc=no
+  fi
+fi
+
+AM_CONDITIONAL(ENABLE_GTK_DOC, test x$enable_gtk_doc = xyes)
+
+dnl ##################################################
+dnl # Fix build info output string for broccoli-config
+dnl ##################################################
+broc_buildinfo=`uname -n`
+broc_builddate=`date`
+broc_builddebug="Debugging support: $debug"
+BUILDINFO="\"$broc_buildinfo, $broc_builddate, $broc_builddebug\""
+AC_SUBST(BUILDINFO)
+
+AC_CONFIG_FILES([
+Makefile
+broccoli-config
+src/Makefile
+src/broccoli.h
+test/Makefile
+docs/Makefile
+docs/mkhtml
+bindings/Makefile
+])
+AC_CONFIG_COMMANDS([default],[[
+chmod +x broccoli-config
+chmod +x docs/mkhtml
+]],[[]])
+AC_OUTPUT
+
+echo  
+echo "               "${BLD_ON}"Broccoli Configuration Summary"${BLD_OFF}
+echo "=========================================================="
+echo
+echo "   - Debugging enabled:     "${BLD_ON}$debug${BLD_OFF}
+echo "   - Pcap packet support:   "${BLD_ON}$packet_support${BLD_OFF}
+echo
+if test "x$bro_build" = xno; then
+echo "  Now run:"
+echo
+echo "  $ "${BLD_ON}"make"${BLD_OFF}
+echo "  # "${BLD_ON}"make install"${BLD_OFF}
+echo
+echo "  (or use "${BLD_ON}"gmake"${BLD_OFF}" when make on your platform isn't GNU make)"
+echo
+fi

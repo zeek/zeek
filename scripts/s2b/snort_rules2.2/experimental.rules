@@ -1,0 +1,12 @@
+# (C) Copyright 2001-2004, Martin Roesch, Brian Caswell, et al.
+#    All rights reserved.
+# $Id: experimental.rules 91 2004-07-15 08:13:57Z rwinslow $
+# ---------------
+# EXPERIMENTAL RULES
+# ---------------
+# These signatures are experimental, new and may trigger way too often.
+#
+# Be forwarned, this is our testing ground.  We put new signatures here for
+# testing before incorporating them into the default signature set.  This is
+# for bleeding edge stuff only.
+#

@@ -1,0 +1,249 @@
+// Automatically generated. Do not edit.
+
+
+[[cmd_analysis]] *analysis _enable|disable <type>_*::
+
+This command enables or disables certain kinds of analysis without the
+need for doing any changes to Bro scripts. Currently, the analyses
+shown in the table below can be controlled (in parentheses the
+corresponding Bro scripts; the effect of enabling/disabling is similar
+to loading or not loading these scripts, respectively). The list might
+be extended in the future. Any changes performed via this command are
+applied by xref:cmd_update[+update+] and therefore do not require a
+restart of the nodes.
++
+[format="dsv",frame="none",grid="all",border="0",separator="|"]
+.10`20~
+Type          | Description
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+dns           | DNS analysis (+dns.bro+)
+ftp           | FTP analysis (+ftp.bro+)
+http-body     | HTTP body analysis (+http-body.bro+).
+http-request  | Client-side HTTP analysis only (+http-request.bro+)
+http-reply    | Client- and server-side HTTP analysis (+http-request.bro+/+http-reply.bro+)
+http-header   | HTTP header analysis (+http-headers.bro+)
+scan          | Scan detection (+scan.bro+)
+smtp          | SMTP analysis (+smtp.bro+)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
+[[cmd_attachgdb]] *attachgdb _[<nodes>]_*::
+
+Primarily for debugging, the command attaches a _gdb_ to the main Bro
+process on the given nodes.
+
+
+[[cmd_capstats]] *capstats _[<interval>] [<nodes>]_*::
+
+Determines the current load on the network interfaces monitored by
+each of the given worker nodes. The load is measured over the
+specified interval (in seconds), or by default over 10 seconds. This
+command uses the http://www.icir.org/robin/capstats[capstats] tool,
+which is installed along with +broctl+.
+
+(Note: When using a CFlow and the CFlow command line utility is
+installed as well, the +capstats+ command can also query the device
+for port statistics. _TODO_: document how to set this up.)
+
+
+[[cmd_check]] *check _[<nodes>]_*::
+
+Verifies a modified configuration in terms of syntactical correctness
+(most importantly correct syntax in policy scripts). This command
+should be executed for each configuration change _before_
+xref:cmd_install[+install+] is used to put the change into place. Note
+that +check+ is the only command which operates correctly without a
+former xref:cmd_install[+install+] command; +check+ uses the policy
+files as found in xref:opt_SitePolicyPath[+SitePolicyPath+] to make
+sure they compile correctly. If they do, xref:cmd_install[+install+]
+will then copy them over to an internal place from where the nodes
+will read them at the next xref:cmd_start[+start+]. This approach
+ensures that new errors in a policy scripts will not affect currently
+running nodes, even when one or more of them needs to be restarted.
+
+
+[[cmd_cleanup]] *cleanup _[--all] [<nodes>]_*::
+
+Clears the nodes' spool directories (if they are not running
+currently). This implies that their persistent state is flushed. Nodes
+that were crashed are reset into _stopped_ state. If +--all+ is
+specified, this command also removes the content of the node's
+xref:opt_TmpDir[+TmpDir+], in particular deleteing any data
+potentially saved there for reference from previous crashes.
+Generally, if you want to reset the installation back into a clean
+state, you can first xref:cmd_stop[+stop+] all nodes, then execute
++cleanup --all+, and finally xref:cmd_start[+start+] all nodes
+again.
+
+
+[[cmd_config]] *config *::
+Prints all configuration options with their current values.
+
+
+[[cmd_cron]] *cron _[<nodes>]_*::
+
+As the name implies, this command should be executed regularly via
+_cron_, as described xref:Installation[above]. It performs a set of
+maintainance tasks, including the logging of various statistical
+information, expiring old log files, checking for dead hosts, and
+restarting nodes which terminated unexpectedly.  While not intended
+for interactive use, no harm will be caused by executing the command
+manually: all the maintainance tasks will then just be performed one
+more time.
+
+
+[[cmd_df]] *df _[<nodes>]_*::
+
+Reports the amount of disk space available on the nodes. Shows only
+paths relevant to the broctl installation.
+
+
+[[cmd_diag]] *diag _[<nodes>]_*::
+
+If a node has terminated unexpectedly, this command prints a (somewhat
+cryptic) summary of its final state including excerpts of any
+stdout/stderr output, resource usage, and also a stack backtrace if a
+core dump is found. The same information is sent out via mail when a
+node is found to have crashed (the "crash report"). While the
+information is mainly intended for debugging, it can also help to find
+misconfigurations (which are usually, but not always, caught by the
+xref:cmd_check[+check+] command).
+
+
+[[cmd_exec]] *exec _<command line>_*::
+
+Executes the given Unix shell command line on all nodes configured to
+run at least one Bro instance. This is handy to quickly perform an
+action across all systems.
+
+
+[[cmd_exit]] *exit *::
+Terminates the shell.
+
+
+[[cmd_help]] *help *::
+Prints a brief summary of all commands understood by the shell.
+
+
+[[cmd_install]] *install *::
+
+
+Reinstalls the given nodes, including all configuration files and
+local policy scripts.  This command must be executed after _all_
+changes to any part of the broctl configuration, otherwise the
+modifications will not take effect. Usually all nodes should be
+reinstalled at the same time, as any inconsistencies between them will
+lead to strange effects. Before executing +install+, it is recommended
+to verify the configuration with xref:cmd_check[+check+].
+
+
+[[cmd_netstats]] *netstats _[<nodes>]_*::
+
+Queries each of the nodes for their current counts of captured and
+dropped packets.
+
+
+[[cmd_nodes]] *nodes *::
+Prints a list of all configured nodes.
+
+
+[[cmd_peerstatus]] *peerstatus _[<nodes>]_*::
+
+Primarily for debugging, +peerstatus+ reports statistics about the
+network connections cluster nodes are using to communicate with other
+nodes.
+
+
+[[cmd_print]] *print _<id> [<nodes>]_*::
+
+Reports the _current_ live value of the given Bro script ID on all of
+the specified nodes (which obviously must be running). This can for
+example be useful to (1) check that policy scripts are working as
+expected, or (2) confirm that configuration changes have in fact been
+applied.  Note that IDs defined inside a Bro namespace must be
+prefixed with +<namespace>::+ (e.g., +print SSH::did_ssh_version+ to
+print the corresponding table from +ssh.bro+.)
+
+
+[[cmd_quit]] *quit *::
+Terminates the shell.
+
+
+[[cmd_restart]] *restart _[--clean] [<nodes>]_*::
+
+Restarts the given nodes, or all nodes if none are specified. The
+effect is the same as first executing xref:cmd_stop[+stop+] followed
+by a xref:cmd_start[+start+], giving the same nodes in both cases.
+This command is most useful to activate any changes made to Bro policy
+scripts (after running xref:cmd_install[+install+] first). Note that a
+subset of policy changes can also be installed on the fly via the
+xref:cmd_updatel[+update+], without requiring a restart.
+
+If +--clean+ is given, the installation is reset into a clean state
+before restarting. More precisely, a +restart --clean+ turns into the
+command sequence xref:cmd_stop[+stop+], xref:cmd_cleanup[+cleanup
+--all+], xref:cmd_check[+check+], xref:cmd_install[+install+], and
+xref:cmd_start[+start+].
+
+
+
+[[cmd_scripts]] *scripts _[-p|-c] [<nodes>]_*::
+
+Primarily for debugging Bro configurations, the +script+ command lists
+all the Bro scripts loaded by each of the nodes in the order as they
+will be parsed by the node at startup. If +-p+ is given, all scripts
+are listed with their full paths. If +-c+ is given, the command
+operates as xref:cmd_check::[+check+] does: it reads the policy files
+from their _original_ location, not the copies installed by
+xref:cmd_install[+install+]. The latter option is useful to check a
+not yet installed configuration.
+
+
+[[cmd_start]] *start _[<nodes>]_*::
+
+Starts the given nodes, or all nodes if none are specified. Nodes
+already running are left untouched.
+
+
+
+[[cmd_status]] *status _[<nodes>]_*::
+
+Prints the current status of the given nodes.
+
+
+[[cmd_stop]] *stop _[<nodes>]_*::
+
+Stops the given nodes, or all nodes if none are specified. Nodes not
+running are left untouched.
+
+
+
+[[cmd_top]] *top _[<nodes>]_*::
+
+For each of the nodes, prints the status of the two Bro
+processes (parent process and child process) in a _top_-like
+format, including CPU usage and memory consumption. If
+executed interactively, the display is updated frequently
+until key +q+ is pressed. If invoked non-interactively, the
+status is printed only once.
+
+
+[[cmd_update]] *update _[<nodes>]_*::
+
+After a change to Bro policy scripts, this command updates the Bro
+processes on the given nodes _while they are running_ (i.e., without
+requiring a xref:cmd_restart[+restart+]). However, such dynamic
+updates work only for a _subset_ of Bro's full configuration. The
+following changes can be applied on the fly: (1) The value of all
+script variables defined as +&redef+ can be changed; and (2) all
+configuration changes performed via the xref:cmd_analysis[+analysis+]
+command can be put into effect. More extensive script changes are not
+possible during runtime and always require a restart; if you change
+more than just the values of +&redef+ variables and still issue
++update+, the results are undefined and can lead to crashes. Also note
+that before running +update+, you still need to do an
+xref:cmd_install[+install+] (preferably after
+xref:cmd_install[+check+]), as otherwise +update+ will not see the
+changes and resend the old configuration.
+

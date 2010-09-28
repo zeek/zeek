@@ -1,0 +1,12 @@
+This directory contains code contributed by others, until it's clear
+where's the best place to put it.
+
+Note: given broccoli-config, the generic build command for a Broccoli
+application is
+
+  $ <compiler> -o output <source files> `broccoli-config --cflags` \
+  `broccoli-config --libs`
+
+					        --Christian.
+________________________________________________________________________
+$Id: README 2035 2005-12-20 04:16:11Z vern $

@@ -1,0 +1,37 @@
+diff -urN bro-1.2.1-orig/src/binpac/pac_let.cc bro-1.2.1-ssl-binpac/src/binpac/pac_let.cc
+--- bro-1.2.1-orig/src/binpac/pac_let.cc	2006-07-26 15:02:39.000000000 -0700
++++ bro-1.2.1-ssl-binpac/src/binpac/pac_let.cc	2007-05-04 15:32:09.695568000 -0700
+@@ -108,11 +108,6 @@
+ void LetField::GenEval(Output* out_cc, Env* env)
+ 	{
+ 	GenParseCode(out_cc, env);
+-	if ( type_->attr_if_expr() )
+-		{
+-		out_cc->println("BINPAC_ASSERT(%s);", 
+-			env->RValue(type_->has_value_var()));
+-		}
+ 	}
+ 
+ LetDecl::LetDecl(ID *id, Type *type, Expr *expr)
+diff -urN bro-1.2.1-orig/src/binpac/pac_type.cc bro-1.2.1-ssl-binpac/src/binpac/pac_type.cc
+--- bro-1.2.1-orig/src/binpac/pac_type.cc	2006-07-26 15:02:40.000000000 -0700
++++ bro-1.2.1-ssl-binpac/src/binpac/pac_type.cc	2007-05-24 10:56:42.140658000 -0700
+@@ -316,9 +316,15 @@
+ 	{
+ 	if ( DefineValueVar() )
+ 		{
+-		out_h->println("%s %s const	{ return %s; }", 
+-			DataTypeConstRefStr().c_str(), 
+-			env->RValue(value_var()), lvalue());
++		if ( attr_if_expr_ )
++		        out_h->println("%s %s const { BINPAC_ASSERT(%s); return %s; }",
++			        DataTypeConstRefStr().c_str(), 
++			        env->RValue(value_var()),
++			        env->RValue(has_value_var()), lvalue());
++		else
++		        out_h->println("%s %s const { return %s; }",
++			        DataTypeConstRefStr().c_str(), 
++			        env->RValue(value_var()), lvalue());
+ 		}
+ 
+ 	foreach (i, FieldList, fields_)

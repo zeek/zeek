@@ -1,0 +1,35 @@
+#! /usr/bin/env bash
+#
+# $Id: run-cmd.in 6811 2009-07-06 20:41:10Z robin $
+#
+#  run-cmd [options] <cmd> 
+#
+#  -t 	time command
+#  -b   run in background
+
+time=""
+background=0
+
+while [ "$#" -gt "0" ]; do
+      case $1 in
+            -t) 
+                time=${time}
+                ;;
+            -b) background=1
+                ;;
+            *)
+              	break
+                ;;
+      esac
+      shift
+done                                                                                                                                                                              esac
+
+echo time, $time
+echo bg, $background
+echo rest, $@
+
+exit
+
+echo 0     # Fix me. Should be real return code.
+eval $@ 2>&1
+echo ~~~

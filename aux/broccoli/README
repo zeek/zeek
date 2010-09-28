@@ -1,0 +1,66 @@
+
+			B  R  O  C  C  O  L  I
+
+		 The Bro Client Communications Library
+
+                        http://www.bro-ids.org
+
+________________________________________________________________________
+
+This package contains Broccoli, the Bro client communications library.
+It allows you to create client sensors for the Bro intrusion detection
+system. Broccoli can speak a good subset of the Bro communication
+protocol, in particular, it can receive Bro IDs, send and receive Bro
+events, and send and receive event requests to/from peering Bros. You
+can currently create and receive values of pure types like integers,
+counters, timestamps, IP addresses, port numbers, booleans, and strings.
+
+The library uses OpenSSL for encrypted communication. Other than that,
+the library has no other dependencies and has been tested on Linux, the
+BSDs, and Solaris. A Windows build has not currently been tried but
+is part of our future plans. If you succeed in building Broccoli on
+other platforms, let us know!
+
+To build, do the usual ./configure; make; make install routine. Here's
+a list of the current configure options:
+	
+  --enable-debug
+ 
+  This one enables lots of debugging output. Be sure to disable this
+  when using the library in a production environment! The output could
+  easily end up in undersired places when the stdout of the program
+  you've instrumented is used in other ways.
+
+  --with-configfile=FILE
+  
+  Broccoli can read key/value pairs from a config file. By default it
+  is located in the etc directory of the installation root (exception:
+  when using --prefix=/usr, /etc is used instead of /usr/etc). The
+  default config file name is broccoli.conf. Using --with-configfile,
+  you can override the location and name of the config file.
+
+To use the library in other programs & configure scripts, use the
+broccoli-config script. It gives you the necessary configuration flags
+and linker flags for your system, see --cflags and --libs.
+
+The API is contained in broccoli.h and pretty well documented. A few
+usage examples can be found in the test directory, in particular, the
+broping tool can be used to test event transmission and reception. Have
+a look at the policy file broping.bro for the events that need to be
+defined at the peering Bro. Try broping -h for a look at the available
+options.
+
+Broccoli knows two kinds of version numbers: the release version number
+(as in "broccoli-x.y.tar.gz", or as shipped with Bro) and the shared
+library API version number. The former relates to changes in the tree,
+the latter to compatibility changes in the API. You can see their
+correspondence in VERSION.
+
+Comments, feedback and patches are appreciated, please send them to
+the Bro mailing list at bro(at)bro-ids.org or directly to the author at
+christian (at) icir.org.
+
+						Enjoy!
+					        --Christian.
+________________________________________________________________________
+$Id: README 4043 2007-03-01 23:15:14Z kreibich $

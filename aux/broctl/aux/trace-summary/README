@@ -1,0 +1,129 @@
+//	-*- AsciiDoc -*-
+trace-summary - Generating network traffic summaries.
+=====================================================
+
+Overview
+--------
+
++trace-summary+ is a Python script which generates break-downs of
+network traffic, including lists of the top hosts, protocols, ports,
+etc. Optionally, it can generate output separately for incoming vs.
+outgoing traffic, per subnet, and per time-interval.
+
+The script reads both packet traces in
+http://www.tcpdump.org[+libpcap+] format and connection logs 
+produced by the http://www.bro-ids.org[Bro] network intrusion
+detection system. 
+
+Here are two example outputs in the most basic form (note that IP
+addresses are 'anonymized'). The first is from a packet trace and
+the second from a Bro connection log:
+
+
+ >== Total === 2005-01-06-14-23-33 - 2005-01-06-15-23-43
+   - Bytes 918.3m - Payload 846.3m - Pkts 1.8m - Frags   0.9% - MBit/s      1.9 - 
+     Ports        | Sources                   | Destinations              | Protocols |
+     80     33.8% | 131.243.89.214       8.5% | 131.243.89.214       7.7% | 6   76.0% | 
+     22     16.7% | 128.3.2.102          6.2% | 128.3.2.102          5.4% | 17  23.3% | 
+     11001  12.4% | 204.116.120.26       4.8% | 131.243.89.4         4.8% | 1    0.5% | 
+     2049   10.7% | 128.3.161.32         3.6% | 131.243.88.227       3.6% |           | 
+     1023   10.6% | 131.243.89.4         3.5% | 204.116.120.26       3.4% |           | 
+     993     8.2% | 128.3.164.194        2.7% | 131.243.89.64        3.1% |           | 
+     1049    8.1% | 128.3.164.15         2.4% | 128.3.164.229        2.9% |           | 
+     524     6.6% | 128.55.82.146        2.4% | 131.243.89.155       2.5% |           | 
+     33305   4.5% | 131.243.88.227       2.3% | 128.3.161.32         2.3% |           | 
+     1085    3.7% | 131.243.89.155       2.3% | 128.55.82.146        2.1% |           | 
+
+
+ >== Total === 2005-01-06-14-23-33 - 2005-01-06-15-23-42
+   - Connections 43.4k - Payload 398.4m - 
+     Ports        | Sources                   | Destinations              | Services           | Protocols | States        |
+     80     21.7% | 207.240.215.71       3.0% | 239.255.255.253      8.0% | other        51.0% | 17  55.8% | S0      46.2% | 
+     427    13.0% | 131.243.91.71        2.2% | 131.243.91.255       4.0% | http         21.7% | 6   36.4% | SF      30.1% | 
+     443     3.8% | 128.3.161.76         1.7% | 131.243.89.138       2.1% | i-echo        7.3% | 1    7.7% | OTH      7.8% | 
+     138     3.7% | 131.243.90.138       1.6% | 255.255.255.255      1.7% | https         3.8% |           | RSTO     5.8% | 
+     515     2.4% | 131.243.88.159       1.6% | 128.3.97.204         1.5% | nb-dgm        3.7% |           | SHR      4.4% | 
+     11001   2.3% | 131.243.88.202       1.4% | 131.243.88.107       1.1% | printer       2.4% |           | REJ      3.0% | 
+     53      1.9% | 131.243.89.250       1.4% | 117.72.94.10         1.1% | dns           1.9% |           | S1       1.0% | 
+     161     1.6% | 131.243.89.80        1.3% | 131.243.88.64        1.1% | snmp          1.6% |           | RSTR     0.9% | 
+     137     1.4% | 131.243.90.52        1.3% | 131.243.88.159       1.1% | nb-ns         1.4% |           | SH       0.3% | 
+     2222    1.1% | 128.3.161.252        1.2% | 131.243.91.92        1.1% | ntp           1.0% |           | RSTRH    0.2% | 
+
+
+Download
+--------
+
+Download http://www.icir.org/robin/trace-summary-0.5.tar.gz[+trace-summary-0.5.tar.gz+]
+
+Prerequisites
+-------------
+
+* This script requires Python 2.4 or newer.
+
+* It also requires the installation of
+  - the http://www.icir.org/robin/pysubnettree[+pysubnettree+] Python module, and
+  - Eddie Kohler's http://www.cs.ucla.edu/~kohler/ipsumdump[+ipsumdump+] 
+
+Installation
+------------
+
+Simply copy the script into some directory which is in your +PATH+.
+
+Usage
+-----
+
+The general usage is 
+
+   trace-summary [options] [input-file]
+
+Per default, it assumes the +input-file+ to be a +libpcap+ trace
+file. If it is a Bro connection log, use +-c+. If +input-file+ is
+not given, the script reads from stdin. It writes its output to
+stdout. 
+
+Options
+~~~~~~~
+
+There are a bunch of options. The most important ones summmarized
+below. Run +trace-summary \--help+ to see the full list including
+some more estoric ones. 
+
+*-c*::         Input is a Bro connection log instead of a +libpcap+ trace
+               file.
+
+*-b*::         Counts all percentages in bytes rather than number of
+               packets/connections.
+       
+*-E <file>*::  Gives a file which contains a list of networks to
+               ignore for the analysis. The file must contain one
+               network per line, where each network is of the CIDR
+               form +a.b.c.d/mask+. Empty lines and lines starting
+               with a "#" are ignored. 
+
+*-i <duration>*:: Creates totals for each time interval of the given
+                  length (default is seconds; add "+m+" for minutes
+                  and "+h+" for hours). Use +-v+ if you also want to
+                  see the breakdowns for each interval.
+
+*-l <file>*::  Generates separate summaries for incoming and outgoing
+               traffic. +<file>+ is a file which contains a list of
+               networks to be considered local. Format as for +-E+.
+               
+*-n <n>*:: Show top n entries in each break-down.
+               Default is 10.
+              
+*-r*::         Resolves hostnames in the output.       
+
+*-s <n>*::     Gives the sample factor if the input has been sampled.
+
+*-S <n>*::     Sample input with the given factor; less accurate but
+               faster and saves memory.
+
+*-m*::         Does skip memory-expensive statistics.
+
+*-v*::         Generates full break-downs for each time interval. 
+               Requires +-i+.
+    
+
+
+

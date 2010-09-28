@@ -1,0 +1,23 @@
+#! /usr/bin/env bash
+#
+# $Id: cflow-stats.in 6811 2009-07-06 20:41:10Z robin $
+#
+# Print cpacket stats in format:
+#
+# port pkts/sec bits/sec cum-pkts cum-bytes (-1 where not available)
+
+cflowcmd=`which cFlowCmd`
+
+if [ "$cflowcmd" == "" ]; then
+   exit 1
+fi   
+
+host=${cflowaddress}
+user=${cflowuser}
+pw=${cflowpassword}
+
+cFlowCmd $host $user:$pw list -m -p --format="rb rp cb cp" \
+         | awk '/^mac_/   {print substr($1, 0, length($1) - 1), $3, -1, $4, -1} 
+                /defmac/  {print "Fall-back", $3, -1, $4, -1;} 
+                /Receive/ {print "In", $4, $3, $6, $5}
+                /Transmit/{print "Out", $4, $3, $6, $5}'

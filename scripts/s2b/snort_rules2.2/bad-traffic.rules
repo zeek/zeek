@@ -1,0 +1,26 @@
+# (C) Copyright 2001-2004, Martin Roesch, Brian Caswell, et al.
+#    All rights reserved.
+# $Id: bad-traffic.rules 91 2004-07-15 08:13:57Z rwinslow $
+#------------------
+# BAD TRAFFIC RULES
+#------------------
+# These signatures are representitive of traffic that should never be seen on
+# any network.  None of these signatures include datagram content checking
+# and are extremely quick signatures
+#
+
+alert tcp $EXTERNAL_NET any <> $HOME_NET 0 (msg:"BAD-TRAFFIC tcp port 0 traffic"; flow:stateless; classtype:misc-activity; sid:524; rev:8;)
+alert udp $EXTERNAL_NET any <> $HOME_NET 0 (msg:"BAD-TRAFFIC udp port 0 traffic"; reference:bugtraq,576; reference:cve,1999-0675; reference:nessus,10074; classtype:misc-activity; sid:525; rev:9;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET any (msg:"BAD-TRAFFIC data in TCP SYN packet"; dsize:>6; flags:S,12; flow:stateless; reference:url,www.cert.org/incident_notes/IN-99-07.html; classtype:misc-activity; sid:526; rev:9;)
+alert ip any any <> 127.0.0.0/8 any (msg:"BAD-TRAFFIC loopback traffic"; reference:url,rr.sans.org/firewall/egress.php; classtype:bad-unknown; sid:528; rev:5;)
+alert ip any any -> any any (msg:"BAD-TRAFFIC same SRC/DST"; sameip; reference:bugtraq,2666; reference:cve,1999-0016; reference:url,www.cert.org/advisories/CA-1997-28.html; classtype:bad-unknown; sid:527; rev:8;)
+alert ip $EXTERNAL_NET any -> $HOME_NET any (msg:"BAD-TRAFFIC ip reserved bit set"; fragbits:R; classtype:misc-activity; sid:523; rev:5;)
+alert ip $EXTERNAL_NET any -> $HOME_NET any (msg:"BAD-TRAFFIC 0 ttl"; ttl:0; reference:url,support.microsoft.com/default.aspx?scid=kb\;EN-US\;q138268; reference:url,www.isi.edu/in-notes/rfc1122.txt; classtype:misc-activity; sid:1321; rev:8;)
+# linux happens.  Blah
+# alert ip $EXTERNAL_NET any -> $HOME_NET any (msg:"BAD-TRAFFIC bad frag bits"; fragbits:MD; classtype:misc-activity; sid:1322; rev:7;)
+alert ip $EXTERNAL_NET any -> $HOME_NET any (msg:"BAD-TRAFFIC Unassigned/Reserved IP protocol"; ip_proto:>134; reference:url,www.iana.org/assignments/protocol-numbers; classtype:non-standard-protocol; sid:1627; rev:3;)
+alert tcp any any -> [232.0.0.0/8,233.0.0.0/8,239.0.0.0/8] any (msg:"BAD-TRAFFIC syn to multicast address"; flags:S+; flow:stateless; classtype:bad-unknown; sid:1431; rev:8;)
+alert ip any any -> any any (msg:"BAD-TRAFFIC IP Proto 53 SWIPE"; ip_proto:53; reference:bugtraq,8211; reference:cve,2003-0567; classtype:non-standard-protocol; sid:2186; rev:3;)
+alert ip any any -> any any (msg:"BAD-TRAFFIC IP Proto 55 IP Mobility"; ip_proto:55; reference:bugtraq,8211; reference:cve,2003-0567; classtype:non-standard-protocol; sid:2187; rev:3;)
+alert ip any any -> any any (msg:"BAD-TRAFFIC IP Proto 77 Sun ND"; ip_proto:77; reference:bugtraq,8211; reference:cve,2003-0567; classtype:non-standard-protocol; sid:2188; rev:3;)
+alert ip any any -> any any (msg:"BAD-TRAFFIC IP Proto 103 PIM"; ip_proto:103; reference:bugtraq,8211; reference:cve,2003-0567; classtype:non-standard-protocol; sid:2189; rev:3;)

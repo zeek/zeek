@@ -1,0 +1,150 @@
+// Automatically generated. Do not edit.
+
+User Options
+~~~~~~~~~~~~
+[[opt_AuxPostProcessors]] *AuxPostProcessors* (string, default _empty_)::
+Additional log postprocessors, with paths separated by spaces.
+[[opt_AuxScriptsManager]] *AuxScriptsManager* (string, default _empty_)::
+Additional Bro scripts loaded on the manager, separated by spaces.
+[[opt_AuxScriptsStandalone]] *AuxScriptsStandalone* (string, default _empty_)::
+Additional Bro scripts loaded on a standalone Brothe manage, separated by spaces.
+[[opt_AuxScriptsWorker]] *AuxScriptsWorker* (string, default _empty_)::
+Additional Bro scripts loaded on the workers, separated by spaces.
+[[opt_BroArgs]] *BroArgs* (string, default _empty_)::
+Additional arguments to pass to Bro on the command-line.
+[[opt_CFlowAddr]] *CFlowAddr* (string, default _empty_)::
+If a cFlow load-balander is used, the address of the device (format: <ip>:<port>).
+[[opt_CFlowPassword]] *CFlowPassword* (string, default _empty_)::
+If a cFlow load-balander is used, the password for accessing its configuration interface.
+[[opt_CFlowUser]] *CFlowUser* (string, default _empty_)::
+If a cFlow load-balander is used, the user name for accessing its configuration interface.
+[[opt_CronCmd]] *CronCmd* (string, default _empty_)::
+A custom command to run everytime the cron command has finished.
+[[opt_CustomInstallBin]] *CustomInstallBin* (string, default _empty_)::
+Additional executables to be installed into $\{BinDir}, including full path and separated by spaces.
+[[opt_Debug]] *Debug* (bool, default 0)::
+Enable extensive debugging output in spool/debug.log.
+[[opt_DevMode]] *DevMode* (bool, default 0)::
+Enable development mode, which changes how things are installed by the _install_ command.
+[[opt_HaveNFS]] *HaveNFS* (bool, default 0)::
+True if shared files are mounted across all nodes via NFS (see FAQ).
+[[opt_LogDir]] *LogDir* (string, default "$\{BroBase}/logs")::
+Directory for archived log files.
+[[opt_LogExpireInterval]] *LogExpireInterval* (int, default 30)::
+Number of days log files are kept.
+[[opt_MailAlarmPrefix]] *MailAlarmPrefix* (string, default "ALERT:")::
+Subject prefix for individual alerts triggered by NOTICE_EMAIL.
+[[opt_MailAlarms]] *MailAlarms* (bool, default 1)::
+True if Bro should send mails for NOTICE_EMAIL alerts.
+[[opt_MailAlarmsTo]] *MailAlarmsTo* (string, default "$\{MailTo}")::
+Destination address for broctl-generated alarm mails.
+[[opt_MailFrom]] *MailFrom* (string, default "Big Brother <bro@localhost>")::
+Originator address for broctl-generated mails.
+[[opt_MailReplyTo]] *MailReplyTo* (string, default _empty_)::
+Reply-to address for broctl-generated mails.
+[[opt_MailSubjectPrefix]] *MailSubjectPrefix* (string, default "[Bro]")::
+General Subject prefix for broctl-generated mails.
+[[opt_MailTo]] *MailTo* (string, default "<user>")::
+Destination address for broctl-generated non-alarm mails. Default is to use the same address as +MailTo+.
+[[opt_MemLimit]] *MemLimit* (string, default "unlimited")::
+Maximum amount of memory for Bro processes to use (in KB, or the string 'unlimited').
+[[opt_MinDiskSpace]] *MinDiskSpace* (int, default 5)::
+Percentage of minimum disk space available before warning is mailed.
+[[opt_Prefixes]] *Prefixes* (string, default "local")::
+Additional script prefixes for Bro, separated by colons. Use this instead of @prefix.
+[[opt_SaveTraces]] *SaveTraces* (bool, default 0)::
+True to let backends capture short-term traces via '-w'. These are not archived but might be helpful for debugging.
+[[opt_SendMail]] *SendMail* (bool, default 1)::
+True if shell may send mails.
+[[opt_SitePolicyManager]] *SitePolicyManager* (string, default "local-manager.bro")::
+Local policy file for manager.
+[[opt_SitePolicyPath]] *SitePolicyPath* (string, default "$\{PolicyDir}/site")::
+Directories to search for local policy files, separated by colons.
+[[opt_SitePolicyStandalone]] *SitePolicyStandalone* (string, default "local.bro")::
+Local policy file for standalone Bro.
+[[opt_SitePolicyWorker]] *SitePolicyWorker* (string, default "local-worker.bro")::
+Local policy file for workers.
+[[opt_TimeFmt]] *TimeFmt* (string, default "%d %b %H:%M:%S")::
+Format string to print data/time specifications (see 'man strftime').
+[[opt_TimeMachineHost]] *TimeMachineHost* (string, default _empty_)::
+If the manager should connect to a Time Machine, the address of the host it is running on.
+[[opt_TimeMachinePort]] *TimeMachinePort* (string, default "47757/tcp")::
+If the manager should connect to a Time Machine, the port it is running on (in Bro syntax, e.g., +47757/tcp+.
+
+Internal Options
+~~~~~~~~~~~~~~~~
+
+[[opt_AnalysisCfg]] *AnalysisCfg* (string, default "$\{CfgDir}/analysis.dat")::
+Configuration file defining types of analysis which can be toggled on-the-fly.
+[[opt_BinDir]] *BinDir* (string, default "$\{BroBase}/bin")::
+Directory for executable files.
+[[opt_BroBase]] *BroBase* (string, default _empty_)::
+Base path of broctl installation on all nodes.
+[[opt_Capstats]] *Capstats* (string, default "$\{bindir}/capstats")::
+Path to capstats binary; empty if not available.
+[[opt_CfgDir]] *CfgDir* (string, default "$\{BroBase}/etc")::
+Directory for configuration files.
+[[opt_DebugLog]] *DebugLog* (string, default "$\{SpoolDir}/debug.log")::
+Log file for debugging information.
+[[opt_DistDir]] *DistDir* (string, default _empty_)::
+Path to Bro distribution directory.
+[[opt_HaveBroccoli]] *HaveBroccoli* (bool)::
+True if Broccoli interface is available.
+[[opt_HelperDir]] *HelperDir* (string, default "$\{BroBase}/share/broctl/scripts/helpers")::
+Directory for broctl helper scripts.
+[[opt_LibDir]] *LibDir* (string, default "$\{BroBase}/lib")::
+Directory for library files.
+[[opt_LibDirInternal]] *LibDirInternal* (string, default "$\{BroBase}/lib/broctl")::
+Directory for broctl-specific library files.
+[[opt_LocalNetsCfg]] *LocalNetsCfg* (string, default "$\{CfgDir}/networks.cfg")::
+File definining the local networks.
+[[opt_LockFile]] *LockFile* (string, default "$\{SpoolDir}/lock")::
+Lock file preventing concurrent shell operations.
+[[opt_NodeCfg]] *NodeCfg* (string, default "$\{CfgDir}/node.cfg")::
+Node configuration file.
+[[opt_OS]] *OS* (string, default _empty_)::
+Name of operation systems as reported by uname.
+[[opt_PolicyDir]] *PolicyDir* (string, default "$\{BroBase}/share/bro")::
+Directory for standard policy files.
+[[opt_PolicyDirBroCtl]] *PolicyDirBroCtl* (string, default "$\{PolicyDir}/broctl")::
+Directory where the shell copies the additional broctl policy scripts when installing.
+[[opt_PolicyDirSiteInstall]] *PolicyDirSiteInstall* (string, default "$\{PolicyDir}/.site")::
+Directory where the shell copies local policy scripts when installing.
+[[opt_PolicyDirSiteInstallAuto]] *PolicyDirSiteInstallAuto* (string, default "$\{PolicyDir}/.site/auto")::
+Directory where the shell copies auto-generated local policy scripts when installing.
+[[opt_PostProcDir]] *PostProcDir* (string, default "$\{BroBase}/share/broctl/scripts/postprocessors")::
+Directory for log postprocessors.
+[[opt_Scripts-Manager]] *Scripts-Manager* (string, default "cluster-manager")::
+Bro scripts loaded on the manager, separated by spaces.
+[[opt_Scripts-Proxy]] *Scripts-Proxy* (string, default "cluster-proxy")::
+Bro scripts loaded on the proxies, separated by spaces.
+[[opt_Scripts-Standalone]] *Scripts-Standalone* (string, default "standalone")::
+Bro scripts loaded on a standalone Bro, separated by spaces.
+[[opt_Scripts-Worker]] *Scripts-Worker* (string, default "cluster-worker")::
+Bro scripts loaded on the workers, separated by spaces.
+[[opt_ScriptsDir]] *ScriptsDir* (string, default "$\{BroBase}/share/broctl/scripts")::
+Directory for executable scripts shipping as part of broctl.
+[[opt_SpoolDir]] *SpoolDir* (string, default "$\{BroBase}/spool")::
+Directory for run-time data.
+[[opt_StandAlone]] *StandAlone* (bool, default 0)::
+True if running in stand-alone mode (see elsewhere).
+[[opt_StateFile]] *StateFile* (string, default "$\{SpoolDir}/broctl.dat")::
+File storing the current broctl state.
+[[opt_StaticDir]] *StaticDir* (string, default "$\{BroBase}/share/broctl")::
+Directory for static, arch-independent files.
+[[opt_StatsDir]] *StatsDir* (string, default "$\{LogDir}/stats")::
+Directory where statistics are kepts.
+[[opt_StatsLog]] *StatsLog* (string, default "$\{SpoolDir}/stats.log")::
+Log file for statistics.
+[[opt_TemplateDir]] *TemplateDir* (string, default "$\{BroBase}/share/broctl/templates")::
+Directory where the *.in templates are copied into.
+[[opt_Time]] *Time* (string, default _empty_)::
+Path to time binary.
+[[opt_TmpDir]] *TmpDir* (string, default "$\{SpoolDir}/tmp")::
+Directory for temporary data.
+[[opt_TmpExecDir]] *TmpExecDir* (string, default "$\{SpoolDir}/tmp")::
+Directory where binaries are copied before execution.
+[[opt_TraceSummary]] *TraceSummary* (string, default "$\{bindir}/trace-summary")::
+Path to trace-summary script; empty if not available.
+[[opt_Version]] *Version* (string, default _empty_)::
+Version of the broctl.

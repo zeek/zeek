@@ -1,0 +1,97 @@
+# $Id: const.bif 3929 2007-01-14 00:37:59Z vern $
+
+# Some connections (e.g., SSH) retransmit the acknowledged last
+# byte to keep the connection alive. If ignore_keep_alive_rexmit
+# is set to T, such retransmissions will be excluded in the rexmit
+# counter in conn_stats.
+const ignore_keep_alive_rexmit = F &redef;
+
+# Skip HTTP data portions for performance considerations (the skipped
+# portion will not go through TCP reassembly).
+const skip_http_data = F &redef;
+
+# Whether the analysis engine parses IP packets encapsulated in
+# UDP tunnels. See also: udp_tunnel_port, policy/udp-tunnel.bro.
+const parse_udp_tunnels = F &redef;
+
+# Whether a commitment is required before writing the transformed
+# trace for a connection into the dump file.
+const requires_trace_commitment = F &redef;
+
+# Whether IP address anonymization is enabled.
+const anonymize_ip_addr = F &redef;
+
+# Whether to omit place holder packets when rewriting.
+const omit_rewrite_place_holder = T &redef;
+
+# Whether trace of various protocols is being rewritten.
+const rewriting_http_trace = F &redef;
+const rewriting_smtp_trace = F &redef;
+const rewriting_ftp_trace = F &redef;
+const rewriting_ident_trace = F &redef;
+const rewriting_finger_trace = F &redef;
+const rewriting_dns_trace = F &redef;
+const rewriting_smb_trace = F &redef;
+
+# Whether we dump selected original packets to the output trace.
+const dump_selected_source_packets = F &redef;
+
+# If true, we dump original packets to the output trace *if and only if*
+# the connection is not rewritten; if false, the policy script can decide
+# whether to dump a particular connection by calling dump_packets_of_connection.
+#
+# NOTE: DO NOT SET THIS TO TRUE WHEN ANONYMIZING A TRACE! 
+# (TODO: this variable should be disabled when using '-A' option)
+const dump_original_packets_if_not_rewriting = F &redef;
+
+enum dce_rpc_ptype %{
+	DCE_RPC_REQUEST,
+	DCE_RPC_PING,
+	DCE_RPC_RESPONSE,
+	DCE_RPC_FAULT,
+	DCE_RPC_WORKING,
+	DCE_RPC_NOCALL,
+	DCE_RPC_REJECT,
+	DCE_RPC_ACK,
+	DCE_RPC_CL_CANCEL,
+	DCE_RPC_FACK,
+	DCE_RPC_CANCEL_ACK,
+	DCE_RPC_BIND,
+	DCE_RPC_BIND_ACK,
+	DCE_RPC_BIND_NAK,
+	DCE_RPC_ALTER_CONTEXT,
+	DCE_RPC_ALTER_CONTEXT_RESP,
+	DCE_RPC_SHUTDOWN,
+	DCE_RPC_CO_CANCEL,
+	DCE_RPC_ORPHANED,
+%}
+
+enum dce_rpc_if_id %{
+	DCE_RPC_unknown_if,
+	DCE_RPC_epmapper,
+	DCE_RPC_lsarpc,
+	DCE_RPC_lsa_ds,
+	DCE_RPC_mgmt,
+	DCE_RPC_netlogon,
+	DCE_RPC_samr,
+	DCE_RPC_srvsvc,
+	DCE_RPC_spoolss,
+	DCE_RPC_drs,
+	DCE_RPC_winspipe,
+	DCE_RPC_wkssvc,
+	DCE_RPC_oxid,
+	DCE_RPC_ISCMActivator,
+%}
+
+enum rpc_status %{
+	RPC_SUCCESS,
+	RPC_PROG_UNAVAIL,
+	RPC_PROG_MISMATCH,
+	RPC_PROC_UNAVAIL,
+	RPC_GARBAGE_ARGS,
+	RPC_SYSTEM_ERR,
+	RPC_TIMEOUT,
+	RPC_VERS_MISMATCH,
+	RPC_AUTH_ERROR,
+	RPC_UNKNOWN_ERROR,
+%}

@@ -1,0 +1,15 @@
+# This file should describe your network configuration.
+# If your local network is a class C, and its network
+# address was 192.168.1.0 and a class B network 
+# with address space 10.1.0.0.
+# Then you would put 192.168.1.0/24 and 10.1.0.0/16 into 
+# this file, telling bro what your local networks are.
+
+@load site
+
+redef local_nets: set[subnet] = {
+    # example of a class C network
+    192.168.1.0/24,
+    # example of a class B network
+    10.1.0.0/16
+};

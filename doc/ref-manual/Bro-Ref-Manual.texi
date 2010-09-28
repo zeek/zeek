@@ -1,0 +1,96 @@
+\input texinfo   @c -*-texinfo-*-
+@comment $Id: Bro-Ref-Manual.texi 958 2004-12-21 16:51:44Z tierney $
+@comment %**start of header
+@setfilename Bro-reference-manual.info
+@settitle Bro Reference Guide 
+@setcontentsaftertitlepage 
+@comment %**end of header
+
+
+@set VERSION 0.8-alpha
+@set UPDATED 6-1-2004
+
+@copying
+This the Installation and User Manual is for Bro-Lite
+(version @value{VERSION}, @value{UPDATED}).
+
+This software is copyright @copyright{} 
+1995-2004, The Regents of the University of California
+and the International Computer Science Institute.  All rights reserved.
+
+For further information about this notice, contact:
+
+Vern Paxson
+email: @email{vern@@icir.org}
+
+@end copying
+
+@dircategory Bro
+@direntry
+* Bro: Network Intrution Detection System
+@end direntry
+
+@ifnottex
+@node Top
+@top Bro Reference Manual
+@copyright{} Lawrence Berkeley National Laboratory
+@end ifnottex
+
+@titlepage
+@title Bro Reference Manual
+@subtitle for version @value{VERSION}, @value{UPDATED}
+@author Vern Paxson, Brian Tierney
+@author Contact: @email{vern@@icir.org})
+@author @uref{http://www.bro-ids.org/}
+@page
+@insertcopying
+@vskip 0pt plus 1filll
+@end titlepage
+
+@contents
+
+@ifnothtml
+@unnumbered Figures and Tables
+@listoffloats Figure
+@*
+@listoffloats Table
+@end ifnothtml
+
+@menu
+* Introduction::
+* Getting Started::
+* Values::
+* Statements and Expressions::  
+* Global and Local Variables::  
+* Predefined Variables and Functions::
+* Analyzers and Events::        
+* Signatures::        
+* Interactive Debugger::        
+* Missing Documentation::
+* References::
+* Index::
+@end menu
+
+@include intro.texi
+@include started.texi
+@include values.texi
+@include stmts.texi
+@include vars.texi
+@include predefined.texi
+@include analysis.texi
+@include signatures.texi
+@include debugger.texi
+@include todo.texi
+@include references.texi
+
+@node Index
+@unnumbered Index
+@printindex cp
+Variable Index
+@printindex vr
+Function Index
+@printindex fn
+
+@contents
+@bye
+

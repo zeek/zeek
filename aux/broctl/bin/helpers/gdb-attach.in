@@ -1,0 +1,17 @@
+#! /usr/bin/env bash
+#
+# $Id: gdb-attach.in 6811 2009-07-06 20:41:10Z robin $
+#
+# gdb-attach <screen-session-name> <binary> <pid>
+
+session=$1
+binary=$2
+pid=$3
+
+cmds=${tmpdir}/gdb.cmd
+echo "continue" >$cmds
+
+echo 0
+screen -s $session -X quit >/dev/null 2>&1 
+screen -dmS $session gdb -x $cmds $binary $pid
+echo ~~~

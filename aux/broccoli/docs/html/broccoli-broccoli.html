@@ -1,0 +1,6645 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<HTML
+><HEAD
+><TITLE
+>broccoli</TITLE
+><META
+NAME="GENERATOR"
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
+REL="HOME"
+TITLE="Broccoli: The Bro Client Communications Library"
+HREF="index.html"><LINK
+REL="UP"
+TITLE="Broccoli API Reference"
+HREF="api.html"><LINK
+REL="PREVIOUS"
+TITLE="Broccoli API Reference"
+HREF="api.html"><LINK
+REL="NEXT"
+TITLE="Appendix"
+HREF="a3637.html"><LINK
+REL="STYLESHEET"
+TYPE="text/css"
+HREF="stylesheet.css"></HEAD
+><BODY
+CLASS="REFENTRY"
+BGCOLOR="#FFFFFF"
+TEXT="#000000"
+LINK="#0000FF"
+VLINK="#840084"
+ALINK="#0000FF"
+><DIV
+CLASS="NAVHEADER"
+><TABLE
+SUMMARY="Header navigation table"
+WIDTH="100%"
+BORDER="0"
+CELLPADDING="0"
+CELLSPACING="0"
+><TR
+><TH
+COLSPAN="3"
+ALIGN="center"
+>Broccoli: The Bro Client Communications Library</TH
+></TR
+><TR
+><TD
+WIDTH="10%"
+ALIGN="left"
+VALIGN="bottom"
+><A
+HREF="api.html"
+ACCESSKEY="P"
+>Prev</A
+></TD
+><TD
+WIDTH="80%"
+ALIGN="center"
+VALIGN="bottom"
+></TD
+><TD
+WIDTH="10%"
+ALIGN="right"
+VALIGN="bottom"
+><A
+HREF="a3637.html"
+ACCESSKEY="N"
+>Next</A
+></TD
+></TR
+></TABLE
+><HR
+ALIGN="LEFT"
+WIDTH="100%"></DIV
+><H1
+><A
+NAME="BROCCOLI-BROCCOLI"
+></A
+>broccoli</H1
+><DIV
+CLASS="REFNAMEDIV"
+><A
+NAME="AEN868"
+></A
+><H2
+>Name</H2
+>broccoli&nbsp;--&nbsp;</DIV
+><DIV
+CLASS="REFSYNOPSISDIV"
+><A
+NAME="BROCCOLI-BROCCOLI.SYNOPSIS"
+></A
+><H2
+>Synopsis</H2
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="SYNOPSIS"
+>extern              int <A
+HREF="broccoli-broccoli.html#BRO-DEBUG-CALLTRACE"
+>bro_debug_calltrace</A
+>;
+extern              int <A
+HREF="broccoli-broccoli.html#BRO-DEBUG-MESSAGES"
+>bro_debug_messages</A
+>;
+void                (<A
+HREF="broccoli-broccoli.html#BROEVENTFUNC"
+>*BroEventFunc</A
+>)                     (BroConn *bc,
+                                                         void *user_data,
+                                                         ...);
+void                (<A
+HREF="broccoli-broccoli.html#BROCOMPACTEVENTFUNC"
+>*BroCompactEventFunc</A
+>)              (BroConn *bc,
+                                                         void *user_data,
+                                                         BroEvMeta *meta);
+BroConn*            <A
+HREF="broccoli-broccoli.html#BRO-CONN-NEW"
+>bro_conn_new</A
+>                        (struct in_addr *ip_addr,
+                                                         uint16 port,
+                                                         int flags);
+BroConn*            <A
+HREF="broccoli-broccoli.html#BRO-CONN-NEW-STR"
+>bro_conn_new_str</A
+>                    (const char *hostname,
+                                                         int flags);
+BroConn*            <A
+HREF="broccoli-broccoli.html#BRO-CONN-NEW-SOCKET"
+>bro_conn_new_socket</A
+>                 (int socket,
+                                                         int flags);
+void                <A
+HREF="broccoli-broccoli.html#BRO-CONN-SET-CLASS"
+>bro_conn_set_class</A
+>                  (BroConn *bc,
+                                                         const char *classname);
+const char*         <A
+HREF="broccoli-broccoli.html#BRO-CONN-GET-PEER-CLASS"
+>bro_conn_get_peer_class</A
+>             (const BroConn *bc);
+int                 <A
+HREF="broccoli-broccoli.html#BRO-CONN-CONNECT"
+>bro_conn_connect</A
+>                    (BroConn *bc);
+int                 <A
+HREF="broccoli-broccoli.html#BRO-CONN-ALIVE"
+>bro_conn_alive</A
+>                      (const BroConn *bc);
+int                 <A
+HREF="broccoli-broccoli.html#BRO-CONN-DELETE"
+>bro_conn_delete</A
+>                     (BroConn *bc);
+void                <A
+HREF="broccoli-broccoli.html#BRO-CONN-ADOPT-EVENTS"
+>bro_conn_adopt_events</A
+>               (BroConn *src,
+                                                         BroConn *dst);
+int                 <A
+HREF="broccoli-broccoli.html#BRO-CONN-GET-FD"
+>bro_conn_get_fd</A
+>                     (BroConn *bc);
+int                 <A
+HREF="broccoli-broccoli.html#BRO-CONN-PROCESS-INPUT"
+>bro_conn_process_input</A
+>              (BroConn *bc);
+void                <A
+HREF="broccoli-broccoli.html#BRO-CONN-DATA-SET"
+>bro_conn_data_set</A
+>                   (BroConn *bc,
+                                                         const char *key,
+                                                         void *val);
+void*               <A
+HREF="broccoli-broccoli.html#BRO-CONN-DATA-GET"
+>bro_conn_data_get</A
+>                   (BroConn *bc,
+                                                         const char *key);
+void*               <A
+HREF="broccoli-broccoli.html#BRO-CONN-DATA-DEL"
+>bro_conn_data_del</A
+>                   (BroConn *bc,
+                                                         const char *key);
+BroEvent*           <A
+HREF="broccoli-broccoli.html#BRO-EVENT-NEW"
+>bro_event_new</A
+>                       (const char *event_name);
+void                <A
+HREF="broccoli-broccoli.html#BRO-EVENT-FREE"
+>bro_event_free</A
+>                      (BroEvent *be);
+int                 <A
+HREF="broccoli-broccoli.html#BRO-EVENT-ADD-VAL"
+>bro_event_add_val</A
+>                   (BroEvent *be,
+                                                         int type,
+                                                         const char *type_name,
+                                                         const void *val);
+int                 <A
+HREF="broccoli-broccoli.html#BRO-EVENT-SET-VAL"
+>bro_event_set_val</A
+>                   (BroEvent *be,
+                                                         int val_num,
+                                                         int type,
+                                                         const char *type_name,
+                                                         const void *val);
+int                 <A
+HREF="broccoli-broccoli.html#BRO-EVENT-SEND"
+>bro_event_send</A
+>                      (BroConn *bc,
+                                                         BroEvent *be);
+int                 <A
+HREF="broccoli-broccoli.html#BRO-EVENT-QUEUE-LENGTH"
+>bro_event_queue_length</A
+>              (BroConn *bc);
+int                 <A
+HREF="broccoli-broccoli.html#BRO-EVENT-QUEUE-FLUSH"
+>bro_event_queue_flush</A
+>               (BroConn *bc);
+void                <A
+HREF="broccoli-broccoli.html#BRO-EVENT-REGISTRY-ADD"
+>bro_event_registry_add</A
+>              (BroConn *bc,
+                                                         const char *event_name,
+                                                         <A
+HREF="broccoli-broccoli.html#BROEVENTFUNC"
+>BroEventFunc</A
+> func,
+                                                         void *user_data);
+void                <A
+HREF="broccoli-broccoli.html#BRO-EVENT-REGISTRY-ADD-COMPACT"
+>bro_event_registry_add_compact</A
+>      (BroConn *bc,
+                                                         const char *event_name,
+                                                         <A
+HREF="broccoli-broccoli.html#BROCOMPACTEVENTFUNC"
+>BroCompactEventFunc</A
+> func,
+                                                         void *user_data);
+void                <A
+HREF="broccoli-broccoli.html#BRO-EVENT-REGISTRY-REMOVE"
+>bro_event_registry_remove</A
+>           (BroConn *bc,
+                                                         const char *event_name);
+void                <A
+HREF="broccoli-broccoli.html#BRO-EVENT-REGISTRY-REQUEST"
+>bro_event_registry_request</A
+>          (BroConn *bc);
+BroBuf*             <A
+HREF="broccoli-broccoli.html#BRO-BUF-NEW"
+>bro_buf_new</A
+>                         (void);
+void                <A
+HREF="broccoli-broccoli.html#BRO-BUF-FREE"
+>bro_buf_free</A
+>                        (BroBuf *buf);
+int                 <A
+HREF="broccoli-broccoli.html#BRO-BUF-APPEND"
+>bro_buf_append</A
+>                      (BroBuf *buf,
+                                                         void *data,
+                                                         int data_len);
+void                <A
+HREF="broccoli-broccoli.html#BRO-BUF-CONSUME"
+>bro_buf_consume</A
+>                     (BroBuf *buf);
+void                <A
+HREF="broccoli-broccoli.html#BRO-BUF-RESET"
+>bro_buf_reset</A
+>                       (BroBuf *buf);
+uchar*              <A
+HREF="broccoli-broccoli.html#BRO-BUF-GET"
+>bro_buf_get</A
+>                         (BroBuf *buf);
+uchar*              <A
+HREF="broccoli-broccoli.html#BRO-BUF-GET-END"
+>bro_buf_get_end</A
+>                     (BroBuf *buf);
+uint                <A
+HREF="broccoli-broccoli.html#BRO-BUF-GET-SIZE"
+>bro_buf_get_size</A
+>                    (BroBuf *buf);
+uint                <A
+HREF="broccoli-broccoli.html#BRO-BUF-GET-USED-SIZE"
+>bro_buf_get_used_size</A
+>               (BroBuf *buf);
+uchar*              <A
+HREF="broccoli-broccoli.html#BRO-BUF-PTR-GET"
+>bro_buf_ptr_get</A
+>                     (BroBuf *buf);
+uint32              <A
+HREF="broccoli-broccoli.html#BRO-BUF-PTR-TELL"
+>bro_buf_ptr_tell</A
+>                    (BroBuf *buf);
+int                 <A
+HREF="broccoli-broccoli.html#BRO-BUF-PTR-SEEK"
+>bro_buf_ptr_seek</A
+>                    (BroBuf *buf,
+                                                         int offset,
+                                                         int whence);
+int                 <A
+HREF="broccoli-broccoli.html#BRO-BUF-PTR-CHECK"
+>bro_buf_ptr_check</A
+>                   (BroBuf *buf,
+                                                         int size);
+int                 <A
+HREF="broccoli-broccoli.html#BRO-BUF-PTR-READ"
+>bro_buf_ptr_read</A
+>                    (BroBuf *buf,
+                                                         void *data,
+                                                         int size);
+int                 <A
+HREF="broccoli-broccoli.html#BRO-BUF-PTR-WRITE"
+>bro_buf_ptr_write</A
+>                   (BroBuf *buf,
+                                                         void *data,
+                                                         int size);
+int                 <A
+HREF="broccoli-broccoli.html#BRO-CONF-GET-INT"
+>bro_conf_get_int</A
+>                    (const char *val_name,
+                                                         int *val);
+int                 <A
+HREF="broccoli-broccoli.html#BRO-CONF-GET-DBL"
+>bro_conf_get_dbl</A
+>                    (const char *val_name,
+                                                         double *val);
+const char*         <A
+HREF="broccoli-broccoli.html#BRO-CONF-GET-STR"
+>bro_conf_get_str</A
+>                    (const char *val_name);
+void                <A
+HREF="broccoli-broccoli.html#BRO-CONF-SET-DOMAIN"
+>bro_conf_set_domain</A
+>                 (const char *domain);
+void                <A
+HREF="broccoli-broccoli.html#BRO-STRING-INIT"
+>bro_string_init</A
+>                     (BroString *bs);
+int                 <A
+HREF="broccoli-broccoli.html#BRO-STRING-SET"
+>bro_string_set</A
+>                      (BroString *bs,
+                                                         const char *s);
+int                 <A
+HREF="broccoli-broccoli.html#BRO-STRING-SET-DATA"
+>bro_string_set_data</A
+>                 (BroString *bs,
+                                                         const uchar *data,
+                                                         int data_len);
+const uchar*        <A
+HREF="broccoli-broccoli.html#BRO-STRING-GET-DATA"
+>bro_string_get_data</A
+>                 (const BroString *bs);
+uint32              <A
+HREF="broccoli-broccoli.html#BRO-STRING-GET-LENGTH"
+>bro_string_get_length</A
+>               (const BroString *bs);
+BroString*          <A
+HREF="broccoli-broccoli.html#BRO-STRING-COPY"
+>bro_string_copy</A
+>                     (BroString *bs);
+void                <A
+HREF="broccoli-broccoli.html#BRO-STRING-CLEANUP"
+>bro_string_cleanup</A
+>                  (BroString *bs);
+void                <A
+HREF="broccoli-broccoli.html#BRO-STRING-FREE"
+>bro_string_free</A
+>                     (BroString *bs);
+BroRecord*          <A
+HREF="broccoli-broccoli.html#BRO-RECORD-NEW"
+>bro_record_new</A
+>                      (void);
+void                <A
+HREF="broccoli-broccoli.html#BRO-RECORD-FREE"
+>bro_record_free</A
+>                     (BroRecord *rec);
+int                 <A
+HREF="broccoli-broccoli.html#BRO-RECORD-ADD-VAL"
+>bro_record_add_val</A
+>                  (BroRecord *rec,
+                                                         const char *name,
+                                                         int type,
+                                                         const char *type_name,
+                                                         const void *val);
+void*               <A
+HREF="broccoli-broccoli.html#BRO-RECORD-GET-NTH-VAL"
+>bro_record_get_nth_val</A
+>              (BroRecord *rec,
+                                                         int num,
+                                                         int *type);
+const char*         <A
+HREF="broccoli-broccoli.html#BRO-RECORD-GET-NTH-NAME"
+>bro_record_get_nth_name</A
+>             (BroRecord *rec,
+                                                         int num);
+void*               <A
+HREF="broccoli-broccoli.html#BRO-RECORD-GET-NAMED-VAL"
+>bro_record_get_named_val</A
+>            (BroRecord *rec,
+                                                         const char *name,
+                                                         int *type);
+int                 <A
+HREF="broccoli-broccoli.html#BRO-RECORD-SET-NTH-VAL"
+>bro_record_set_nth_val</A
+>              (BroRecord *rec,
+                                                         int num,
+                                                         int type,
+                                                         const char *type_name,
+                                                         const void *val);
+int                 <A
+HREF="broccoli-broccoli.html#BRO-RECORD-SET-NAMED-VAL"
+>bro_record_set_named_val</A
+>            (BroRecord *rec,
+                                                         const char *name,
+                                                         int type,
+                                                         const char *type_name,
+                                                         const void *val);
+int                 (<A
+HREF="broccoli-broccoli.html#BROTABLECALLBACK"
+>*BroTableCallback</A
+>)                 (void *key,
+                                                         void *val,
+                                                         void *user_data);
+BroTable*           <A
+HREF="broccoli-broccoli.html#BRO-TABLE-NEW"
+>bro_table_new</A
+>                       (void);
+void                <A
+HREF="broccoli-broccoli.html#BRO-TABLE-FREE"
+>bro_table_free</A
+>                      (BroTable *tbl);
+int                 <A
+HREF="broccoli-broccoli.html#BRO-TABLE-INSERT"
+>bro_table_insert</A
+>                    (BroTable *tbl,
+                                                         int key_type,
+                                                         const void *key,
+                                                         int val_type,
+                                                         const void *val);
+void*               <A
+HREF="broccoli-broccoli.html#BRO-TABLE-FIND"
+>bro_table_find</A
+>                      (BroTable *tbl,
+                                                         const void *key);
+int                 <A
+HREF="broccoli-broccoli.html#BRO-TABLE-GET-SIZE"
+>bro_table_get_size</A
+>                  (BroTable *tbl);
+void                <A
+HREF="broccoli-broccoli.html#BRO-TABLE-GET-TYPES"
+>bro_table_get_types</A
+>                 (BroTable *tbl,
+                                                         int *key_type,
+                                                         int *val_type);
+void                <A
+HREF="broccoli-broccoli.html#BRO-TABLE-FOREACH"
+>bro_table_foreach</A
+>                   (BroTable *tbl,
+                                                         <A
+HREF="broccoli-broccoli.html#BROTABLECALLBACK"
+>BroTableCallback</A
+> cb,
+                                                         void *user_data);
+int                 (<A
+HREF="broccoli-broccoli.html#BROSETCALLBACK"
+>*BroSetCallback</A
+>)                   (void *val,
+                                                         void *user_data);
+BroSet*             <A
+HREF="broccoli-broccoli.html#BRO-SET-NEW"
+>bro_set_new</A
+>                         (void);
+void                <A
+HREF="broccoli-broccoli.html#BRO-SET-FREE"
+>bro_set_free</A
+>                        (BroSet *set);
+int                 <A
+HREF="broccoli-broccoli.html#BRO-SET-INSERT"
+>bro_set_insert</A
+>                      (BroSet *set,
+                                                         int type,
+                                                         const void *val);
+int                 <A
+HREF="broccoli-broccoli.html#BRO-SET-FIND"
+>bro_set_find</A
+>                        (BroSet *set,
+                                                         const void *key);
+int                 <A
+HREF="broccoli-broccoli.html#BRO-SET-GET-SIZE"
+>bro_set_get_size</A
+>                    (BroSet *set);
+void                <A
+HREF="broccoli-broccoli.html#BRO-SET-GET-TYPE"
+>bro_set_get_type</A
+>                    (BroSet *set,
+                                                         int *type);
+void                <A
+HREF="broccoli-broccoli.html#BRO-SET-FOREACH"
+>bro_set_foreach</A
+>                     (BroSet *set,
+                                                         <A
+HREF="broccoli-broccoli.html#BROSETCALLBACK"
+>BroSetCallback</A
+> cb,
+                                                         void *user_data);
+void                <A
+HREF="broccoli-broccoli.html#BRO-CONN-SET-PACKET-CTXT"
+>bro_conn_set_packet_ctxt</A
+>            (BroConn *bc,
+                                                         int link_type);
+void                <A
+HREF="broccoli-broccoli.html#BRO-CONN-GET-PACKET-CTXT"
+>bro_conn_get_packet_ctxt</A
+>            (BroConn *bc,
+                                                         int *link_type);
+BroPacket*          <A
+HREF="broccoli-broccoli.html#BRO-PACKET-NEW"
+>bro_packet_new</A
+>                      (const struct pcap_pkthdr *hdr,
+                                                         const u_char *data,
+                                                         const char *tag);
+BroPacket*          <A
+HREF="broccoli-broccoli.html#BRO-PACKET-CLONE"
+>bro_packet_clone</A
+>                    (const BroPacket *packet);
+void                <A
+HREF="broccoli-broccoli.html#BRO-PACKET-FREE"
+>bro_packet_free</A
+>                     (BroPacket *packet);
+int                 <A
+HREF="broccoli-broccoli.html#BRO-PACKET-SEND"
+>bro_packet_send</A
+>                     (BroConn *bc,
+                                                         BroPacket *packet);
+double              <A
+HREF="broccoli-broccoli.html#BRO-UTIL-CURRENT-TIME"
+>bro_util_current_time</A
+>               (void);
+double              <A
+HREF="broccoli-broccoli.html#BRO-UTIL-TIMEVAL-TO-DOUBLE"
+>bro_util_timeval_to_double</A
+>          (const struct timeval *tv);</PRE
+></TD
+></TR
+></TABLE
+></DIV
+><DIV
+CLASS="REFSECT1"
+><A
+NAME="BROCCOLI-BROCCOLI.DESCRIPTION"
+></A
+><H2
+>Description</H2
+><P
+></P
+></DIV
+><DIV
+CLASS="REFSECT1"
+><A
+NAME="BROCCOLI-BROCCOLI.DETAILS"
+></A
+><H2
+>Details</H2
+><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-DEBUG-CALLTRACE"
+></A
+><H3
+>bro_debug_calltrace</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>extern int bro_debug_calltrace;</PRE
+></TD
+></TR
+></TABLE
+><P
+>If you have debugging support built in (i.e., your package was configured
+with --enable-debugging), you can enable/disable debugging output for
+call tracing by setting this to 0 (off) or 1 (on). Default is off.</P
+><P
+></P
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-DEBUG-MESSAGES"
+></A
+><H3
+>bro_debug_messages</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>extern int bro_debug_messages;</PRE
+></TD
+></TR
+></TABLE
+><P
+>If you have debugging support built in (i.e., your package was configured
+with --enable-debugging), you can enable/disable debugging messages
+by setting this to 0 (off) or 1 (on). Default is off.</P
+><P
+></P
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BROEVENTFUNC"
+></A
+><H3
+>BroEventFunc ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>void                (*BroEventFunc)                     (BroConn *bc,
+                                                         void *user_data,
+                                                         ...);</PRE
+></TD
+></TR
+></TABLE
+><P
+>This is the signature of callbacks for handling received
+Bro events, called in the argument-expanded style.  For details
+see <A
+HREF="broccoli-broccoli.html#BRO-EVENT-REGISTRY-ADD"
+><CODE
+CLASS="FUNCTION"
+>bro_event_registry_add()</CODE
+></A
+>.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>bc</TT
+>&nbsp;:</DT
+><DD
+><P
+> Bro connection handle.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>user_data</TT
+>&nbsp;:</DT
+><DD
+><P
+> user data provided to <A
+HREF="broccoli-broccoli.html#BRO-EVENT-REGISTRY-ADD"
+><CODE
+CLASS="FUNCTION"
+>bro_event_registry_add()</CODE
+></A
+>.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>...</TT
+>&nbsp;:</DT
+><DD
+><P
+> varargs.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BROCOMPACTEVENTFUNC"
+></A
+><H3
+>BroCompactEventFunc ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>void                (*BroCompactEventFunc)              (BroConn *bc,
+                                                         void *user_data,
+                                                         BroEvMeta *meta);</PRE
+></TD
+></TR
+></TABLE
+><P
+>This is the signature of callbacks for handling received
+Bro events, called in the compact-argument style. For details
+see <A
+HREF="broccoli-broccoli.html#BRO-EVENT-REGISTRY-ADD-COMPACT"
+><CODE
+CLASS="FUNCTION"
+>bro_event_registry_add_compact()</CODE
+></A
+>.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>bc</TT
+>&nbsp;:</DT
+><DD
+><P
+> Bro connection handle.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>user_data</TT
+>&nbsp;:</DT
+><DD
+><P
+> user data provided to <A
+HREF="broccoli-broccoli.html#BRO-EVENT-REGISTRY-ADD-COMPACT"
+><CODE
+CLASS="FUNCTION"
+>bro_event_registry_add_compact()</CODE
+></A
+>.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>meta</TT
+>&nbsp;:</DT
+><DD
+><P
+> metadata for the event</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-CONN-NEW"
+></A
+><H3
+>bro_conn_new ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>BroConn*            bro_conn_new                        (struct in_addr *ip_addr,
+                                                         uint16 port,
+                                                         int flags);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function creates a new Bro connection handle for communication with
+Bro through a network. Depending on the flags passed in, the connection
+and its setup process can be adjusted. If you don't want to pass any
+flags, use <TT
+CLASS="LITERAL"
+>BRO_CFLAG_NONE</TT
+>.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>ip_addr</TT
+>&nbsp;:</DT
+><DD
+><P
+> 4-byte IP address of Bro to contact, in network byte order.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>port</TT
+>&nbsp;:</DT
+><DD
+><P
+> port of machine at <TT
+CLASS="PARAMETER"
+>ip_addr</TT
+> to contact, in network byte order.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>flags</TT
+>&nbsp;:</DT
+><DD
+><P
+> an or-combination of the <TT
+CLASS="LITERAL"
+>BRO_CONN_xxx</TT
+> flags.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> pointer to a newly allocated and initialized
+Bro connection structure. You need this structure for all
+other calls in order to identify the connection to Bro.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-CONN-NEW-STR"
+></A
+><H3
+>bro_conn_new_str ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>BroConn*            bro_conn_new_str                    (const char *hostname,
+                                                         int flags);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function is identical to <A
+HREF="broccoli-broccoli.html#BRO-CONN-NEW"
+><CODE
+CLASS="FUNCTION"
+>bro_conn_new()</CODE
+></A
+>, but allows you to specify the
+host and port to connect to in a string as "&lt;hostname&gt;:&lt;port&gt;". <TT
+CLASS="PARAMETER"
+>flags</TT
+> can
+be used to adjust the connection features and the setup process. If you don't
+want to pass any flags, use <TT
+CLASS="LITERAL"
+>BRO_CFLAG_NONE</TT
+>.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>hostname</TT
+>&nbsp;:</DT
+><DD
+><P
+> string describing the host and port to connect to.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>flags</TT
+>&nbsp;:</DT
+><DD
+><P
+> an or-combination of the <TT
+CLASS="LITERAL"
+>BRO_CONN_xxx</TT
+> flags.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> pointer to a newly allocated and initialized
+Bro connection structure. You need this structure for all
+other calls in order to identify the connection to Bro.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-CONN-NEW-SOCKET"
+></A
+><H3
+>bro_conn_new_socket ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>BroConn*            bro_conn_new_socket                 (int socket,
+                                                         int flags);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function is identical to <A
+HREF="broccoli-broccoli.html#BRO-CONN-NEW"
+><CODE
+CLASS="FUNCTION"
+>bro_conn_new()</CODE
+></A
+>, but allows you to pass in an
+open socket to use for the communication. <TT
+CLASS="PARAMETER"
+>flags</TT
+> can be used to
+adjust the connection features and the setup process. If you don't want to
+pass any flags, use <TT
+CLASS="LITERAL"
+>BRO_CFLAG_NONE</TT
+>.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>socket</TT
+>&nbsp;:</DT
+><DD
+><P
+> open socket.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>flags</TT
+>&nbsp;:</DT
+><DD
+><P
+> an or-combination of the <TT
+CLASS="LITERAL"
+>BRO_CONN_xxx</TT
+> flags.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> pointer to a newly allocated and initialized
+Bro connection structure. You need this structure for all
+other calls in order to identify the connection to Bro.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-CONN-SET-CLASS"
+></A
+><H3
+>bro_conn_set_class ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>void                bro_conn_set_class                  (BroConn *bc,
+                                                         const char *classname);</PRE
+></TD
+></TR
+></TABLE
+><P
+>Broccoli connections can indicate that they belong to a certain class
+of connections, which is needed primarily if multiple Bro/Broccoli
+instances are running on the same node and connect to a single remote
+peer. You can set this class with this function, and you have to do so
+before calling <CODE
+CLASS="FUNCTION"
+>bro_connect()</CODE
+> since the connection class is determined
+upon connection establishment. You remain responsible for the memory
+pointed to by <TT
+CLASS="PARAMETER"
+>classname</TT
+>.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>bc</TT
+>&nbsp;:</DT
+><DD
+><P
+> connection handle.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>classname</TT
+>&nbsp;:</DT
+><DD
+><P
+> class identifier.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-CONN-GET-PEER-CLASS"
+></A
+><H3
+>bro_conn_get_peer_class ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>const char*         bro_conn_get_peer_class             (const BroConn *bc);</PRE
+></TD
+></TR
+></TABLE
+><P
+></P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>bc</TT
+>&nbsp;:</DT
+><DD
+><P
+> connection handle.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> a string containing the connection class indicated by the peer,
+if any, otherwise <TT
+CLASS="LITERAL"
+>NULL</TT
+>.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-CONN-CONNECT"
+></A
+><H3
+>bro_conn_connect ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>int                 bro_conn_connect                    (BroConn *bc);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function attempts to set up and configure a connection to
+the peer configured when the connection handle was obtained.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>bc</TT
+>&nbsp;:</DT
+><DD
+><P
+> connection handle.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> <TT
+CLASS="LITERAL"
+>TRUE</TT
+> on success, <TT
+CLASS="LITERAL"
+>FALSE</TT
+> on failure.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-CONN-ALIVE"
+></A
+><H3
+>bro_conn_alive ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>int                 bro_conn_alive                      (const BroConn *bc);</PRE
+></TD
+></TR
+></TABLE
+><P
+>This predicate reports whether the connection handle is currently
+usable for sending/receiving data or not, e.g. because the peer
+died. The function does not actively check and update the
+connection's state, it only reports the value of flags indicating
+its status. In particular, this means that when calling
+<A
+HREF="broccoli-broccoli.html#BRO-CONN-ALIVE"
+><CODE
+CLASS="FUNCTION"
+>bro_conn_alive()</CODE
+></A
+> directly after a <CODE
+CLASS="FUNCTION"
+>select()</CODE
+> on the connection's
+descriptor, <A
+HREF="broccoli-broccoli.html#BRO-CONN-ALIVE"
+><CODE
+CLASS="FUNCTION"
+>bro_conn_alive()</CODE
+></A
+> may return an incorrent value. It will
+however return the correct value after a subsequent call to
+<A
+HREF="broccoli-broccoli.html#BRO-CONN-PROCESS-INPUT"
+><CODE
+CLASS="FUNCTION"
+>bro_conn_process_input()</CODE
+></A
+>. Also note that the connection is also
+dead after the connection handle is obtained and before
+<A
+HREF="broccoli-broccoli.html#BRO-CONN-CONNECT"
+><CODE
+CLASS="FUNCTION"
+>bro_conn_connect()</CODE
+></A
+> is called.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>bc</TT
+>&nbsp;:</DT
+><DD
+><P
+> Bro connection handle.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> <TT
+CLASS="LITERAL"
+>TRUE</TT
+> if the connection is alive, <TT
+CLASS="LITERAL"
+>FALSE</TT
+> otherwise.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-CONN-DELETE"
+></A
+><H3
+>bro_conn_delete ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>int                 bro_conn_delete                     (BroConn *bc);</PRE
+></TD
+></TR
+></TABLE
+><P
+>This function will terminate the given connection if necessary
+and release all resources associated with the connection handle.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>bc</TT
+>&nbsp;:</DT
+><DD
+><P
+> Bro connection handle</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> <TT
+CLASS="LITERAL"
+>FALSE</TT
+> on error, <TT
+CLASS="LITERAL"
+>TRUE</TT
+> otherwise.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-CONN-ADOPT-EVENTS"
+></A
+><H3
+>bro_conn_adopt_events ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>void                bro_conn_adopt_events               (BroConn *src,
+                                                         BroConn *dst);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function makes the connection identified by <TT
+CLASS="PARAMETER"
+>dst</TT
+> use the same event
+mask as the one identified by <TT
+CLASS="PARAMETER"
+>src</TT
+>.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>src</TT
+>&nbsp;:</DT
+><DD
+><P
+> Bro connection handle for connection whose event list to adopt.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>dst</TT
+>&nbsp;:</DT
+><DD
+><P
+> Bro connection handle for connection whose event list to change.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-CONN-GET-FD"
+></A
+><H3
+>bro_conn_get_fd ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>int                 bro_conn_get_fd                     (BroConn *bc);</PRE
+></TD
+></TR
+></TABLE
+><P
+>If you need to know the file descriptor of the connection
+(such as when <CODE
+CLASS="FUNCTION"
+>select()</CODE
+>ing it etc), use this accessor function.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>bc</TT
+>&nbsp;:</DT
+><DD
+><P
+> Bro connection handle.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> file descriptor for connection <TT
+CLASS="PARAMETER"
+>bc</TT
+>, or negative value
+on error.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-CONN-PROCESS-INPUT"
+></A
+><H3
+>bro_conn_process_input ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>int                 bro_conn_process_input              (BroConn *bc);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function reads all input sent to the local sensor by the
+Bro peering at the connection identified by <TT
+CLASS="PARAMETER"
+>bc</TT
+>. It is up
+to you to find a spot in the application you're instrumenting
+to make sure this is called. This function cannot block.
+<A
+HREF="broccoli-broccoli.html#BRO-CONN-ALIVE"
+><CODE
+CLASS="FUNCTION"
+>bro_conn_alive()</CODE
+></A
+> will report the actual state of the connection
+after a call to <A
+HREF="broccoli-broccoli.html#BRO-CONN-PROCESS-INPUT"
+><CODE
+CLASS="FUNCTION"
+>bro_conn_process_input()</CODE
+></A
+>.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>bc</TT
+>&nbsp;:</DT
+><DD
+><P
+> Bro connection handle</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> <TT
+CLASS="LITERAL"
+>TRUE</TT
+> if any input was processed, <TT
+CLASS="LITERAL"
+>FALSE</TT
+> otherwise.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-CONN-DATA-SET"
+></A
+><H3
+>bro_conn_data_set ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>void                bro_conn_data_set                   (BroConn *bc,
+                                                         const char *key,
+                                                         void *val);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function stores <TT
+CLASS="PARAMETER"
+>val</TT
+> under name <TT
+CLASS="PARAMETER"
+>key</TT
+> in the connection handle <TT
+CLASS="PARAMETER"
+>bc</TT
+>.
+<TT
+CLASS="PARAMETER"
+>key</TT
+> is copied internally so you do not need to duplicate it before
+passing.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>bc</TT
+>&nbsp;:</DT
+><DD
+><P
+> Bro connection handle.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>key</TT
+>&nbsp;:</DT
+><DD
+><P
+> name of the data item.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>val</TT
+>&nbsp;:</DT
+><DD
+><P
+> data item.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-CONN-DATA-GET"
+></A
+><H3
+>bro_conn_data_get ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>void*               bro_conn_data_get                   (BroConn *bc,
+                                                         const char *key);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function tries to look up the data item with name <TT
+CLASS="PARAMETER"
+>key</TT
+> and
+if found, returns it.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>bc</TT
+>&nbsp;:</DT
+><DD
+><P
+> Bro connection handle.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>key</TT
+>&nbsp;:</DT
+><DD
+><P
+> name of the data item.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> data item if lookup was successful, <TT
+CLASS="LITERAL"
+>NULL</TT
+> otherwise.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-CONN-DATA-DEL"
+></A
+><H3
+>bro_conn_data_del ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>void*               bro_conn_data_del                   (BroConn *bc,
+                                                         const char *key);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function tries to remove the data item with name <TT
+CLASS="PARAMETER"
+>key</TT
+>.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>bc</TT
+>&nbsp;:</DT
+><DD
+><P
+> Bro connection handle.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>key</TT
+>&nbsp;:</DT
+><DD
+><P
+> name of the data item.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> the removed data item if it exists, <TT
+CLASS="LITERAL"
+>NULL</TT
+> otherwise.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-EVENT-NEW"
+></A
+><H3
+>bro_event_new ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>BroEvent*           bro_event_new                       (const char *event_name);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function creates a new empty event with the given
+name and returns it.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>event_name</TT
+>&nbsp;:</DT
+><DD
+><P
+> name of the Bro event.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> new event, or <TT
+CLASS="LITERAL"
+>NULL</TT
+> if allocation failed.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-EVENT-FREE"
+></A
+><H3
+>bro_event_free ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>void                bro_event_free                      (BroEvent *be);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function releases all memory associated with <TT
+CLASS="PARAMETER"
+>be</TT
+>. Note 
+that you do NOT have to call this after sending an event.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>be</TT
+>&nbsp;:</DT
+><DD
+><P
+> event to release.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-EVENT-ADD-VAL"
+></A
+><H3
+>bro_event_add_val ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>int                 bro_event_add_val                   (BroEvent *be,
+                                                         int type,
+                                                         const char *type_name,
+                                                         const void *val);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function adds the given <TT
+CLASS="PARAMETER"
+>val</TT
+> to the argument list of
+event <TT
+CLASS="PARAMETER"
+>be</TT
+>. The type of <TT
+CLASS="PARAMETER"
+>val</TT
+> is derived from <TT
+CLASS="PARAMETER"
+>type</TT
+>, and may be
+specialized to the type named <TT
+CLASS="PARAMETER"
+>type_name</TT
+>. If <TT
+CLASS="PARAMETER"
+>type_name</TT
+> is not
+desired, use <TT
+CLASS="LITERAL"
+>NULL</TT
+>.</P
+><P
+><TT
+CLASS="PARAMETER"
+>val</TT
+> remains the caller's responsibility and is copied internally.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>be</TT
+>&nbsp;:</DT
+><DD
+><P
+> event to add to.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>type</TT
+>&nbsp;:</DT
+><DD
+><P
+> numerical type identifier (a <TT
+CLASS="LITERAL"
+>BRO_TYPE_xxx</TT
+> constant).</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>type_name</TT
+>&nbsp;:</DT
+><DD
+><P
+> optional name of specialized type.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>val</TT
+>&nbsp;:</DT
+><DD
+><P
+> value to add to event.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> <TT
+CLASS="LITERAL"
+>TRUE</TT
+> if the operation was successful, <TT
+CLASS="LITERAL"
+>FALSE</TT
+> otherwise.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-EVENT-SET-VAL"
+></A
+><H3
+>bro_event_set_val ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>int                 bro_event_set_val                   (BroEvent *be,
+                                                         int val_num,
+                                                         int type,
+                                                         const char *type_name,
+                                                         const void *val);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function replaces whatever value is currently stored in the
+event pointed to by <TT
+CLASS="PARAMETER"
+>be</TT
+> with the val specified through the <TT
+CLASS="PARAMETER"
+>type</TT
+> and
+<TT
+CLASS="PARAMETER"
+>val</TT
+> arguments. If the event does not currently hold enough
+values to replace one in position <TT
+CLASS="PARAMETER"
+>val_num</TT
+>, the function does
+nothing. If you want to indicate a type specialized from <TT
+CLASS="PARAMETER"
+>type</TT
+>,
+use <TT
+CLASS="PARAMETER"
+>type_name</TT
+> to give its name, otherwise pass <TT
+CLASS="LITERAL"
+>NULL</TT
+> for <TT
+CLASS="PARAMETER"
+>type_name</TT
+>.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>be</TT
+>&nbsp;:</DT
+><DD
+><P
+> event handle.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>val_num</TT
+>&nbsp;:</DT
+><DD
+><P
+> number of the value to replace, starting at 0.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>type</TT
+>&nbsp;:</DT
+><DD
+><P
+> numerical type identifier (a <TT
+CLASS="LITERAL"
+>BRO_TYPE_xxx</TT
+> constant).</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>type_name</TT
+>&nbsp;:</DT
+><DD
+><P
+> optional name of specialized type.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>val</TT
+>&nbsp;:</DT
+><DD
+><P
+> value to put in.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> <TT
+CLASS="LITERAL"
+>TRUE</TT
+> if successful, <TT
+CLASS="LITERAL"
+>FALSE</TT
+> on error.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-EVENT-SEND"
+></A
+><H3
+>bro_event_send ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>int                 bro_event_send                      (BroConn *bc,
+                                                         BroEvent *be);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function tries to send <TT
+CLASS="PARAMETER"
+>be</TT
+> to the Bro agent connected
+through <TT
+CLASS="PARAMETER"
+>bc</TT
+>. Regardless of the outcome, you do NOT have
+to release the event afterwards using <A
+HREF="broccoli-broccoli.html#BRO-EVENT-FREE"
+><CODE
+CLASS="FUNCTION"
+>bro_event_free()</CODE
+></A
+>.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>bc</TT
+>&nbsp;:</DT
+><DD
+><P
+> Bro connection handle</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>be</TT
+>&nbsp;:</DT
+><DD
+><P
+> event to send.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> <TT
+CLASS="LITERAL"
+>TRUE</TT
+> if the event got sent or queued for later transmission,
+<TT
+CLASS="LITERAL"
+>FALSE</TT
+> on error. There are no automatic repeated send attempts
+(to minimize the effect on the code that Broccoli is linked to).
+If you have to make sure that everything got sent, you have
+to try to empty the queue using <A
+HREF="broccoli-broccoli.html#BRO-EVENT-QUEUE-FLUSH"
+><CODE
+CLASS="FUNCTION"
+>bro_event_queue_flush()</CODE
+></A
+>, and
+also look at <CODE
+CLASS="FUNCTION"
+>bro_event_queue_empty()</CODE
+>.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-EVENT-QUEUE-LENGTH"
+></A
+><H3
+>bro_event_queue_length ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>int                 bro_event_queue_length              (BroConn *bc);</PRE
+></TD
+></TR
+></TABLE
+><P
+>Use this function to find out how many events are currently queued
+on the client side.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>bc</TT
+>&nbsp;:</DT
+><DD
+><P
+> Bro connection handle</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> number of items currently queued.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-EVENT-QUEUE-FLUSH"
+></A
+><H3
+>bro_event_queue_flush ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>int                 bro_event_queue_flush               (BroConn *bc);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function tries to send as many queued events to the Bro
+agent as possible.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>bc</TT
+>&nbsp;:</DT
+><DD
+><P
+> Bro connection handle</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> remaining queue length after flush.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-EVENT-REGISTRY-ADD"
+></A
+><H3
+>bro_event_registry_add ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>void                bro_event_registry_add              (BroConn *bc,
+                                                         const char *event_name,
+                                                         <A
+HREF="broccoli-broccoli.html#BROEVENTFUNC"
+>BroEventFunc</A
+> func,
+                                                         void *user_data);</PRE
+></TD
+></TR
+></TABLE
+><P
+>This function registers the callback <TT
+CLASS="PARAMETER"
+>func</TT
+> to be invoked when events
+of name <TT
+CLASS="PARAMETER"
+>event_name</TT
+> arrive on connection <TT
+CLASS="PARAMETER"
+>bc</TT
+>. <TT
+CLASS="PARAMETER"
+>user_data</TT
+> is passed along
+to the callback, which will receive it as the second parameter. You
+need to ensure that the memory <TT
+CLASS="PARAMETER"
+>user_data</TT
+> points to is valid during the
+time the callback might be invoked.</P
+><P
+>Note that this function only registers the callback in the state
+associated with <TT
+CLASS="PARAMETER"
+>bc</TT
+>. If you use <A
+HREF="broccoli-broccoli.html#BRO-EVENT-REGISTRY-ADD"
+><CODE
+CLASS="FUNCTION"
+>bro_event_registry_add()</CODE
+></A
+> and <TT
+CLASS="PARAMETER"
+>bc</TT
+>
+has not yet been connected via <A
+HREF="broccoli-broccoli.html#BRO-CONN-CONNECT"
+><CODE
+CLASS="FUNCTION"
+>bro_conn_connect()</CODE
+></A
+>, then no further
+action is required. <A
+HREF="broccoli-broccoli.html#BRO-CONN-CONNECT"
+><CODE
+CLASS="FUNCTION"
+>bro_conn_connect()</CODE
+></A
+> request ant registered event types.
+If however you are requesting additional event types after the connection has
+been established, then you also need to call <A
+HREF="broccoli-broccoli.html#BRO-EVENT-REGISTRY-REQUEST"
+><CODE
+CLASS="FUNCTION"
+>bro_event_registry_request()</CODE
+></A
+>
+in order to signal to the peering Bro that you want to receive those events.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>bc</TT
+>&nbsp;:</DT
+><DD
+><P
+> Bro connection handle</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>event_name</TT
+>&nbsp;:</DT
+><DD
+><P
+> Name of events that trigger callback</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>func</TT
+>&nbsp;:</DT
+><DD
+><P
+> callback to invoke.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>user_data</TT
+>&nbsp;:</DT
+><DD
+><P
+> user data passed through to the callback.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-EVENT-REGISTRY-ADD-COMPACT"
+></A
+><H3
+>bro_event_registry_add_compact ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>void                bro_event_registry_add_compact      (BroConn *bc,
+                                                         const char *event_name,
+                                                         <A
+HREF="broccoli-broccoli.html#BROCOMPACTEVENTFUNC"
+>BroCompactEventFunc</A
+> func,
+                                                         void *user_data);</PRE
+></TD
+></TR
+></TABLE
+><P
+>This function registers the callback <TT
+CLASS="PARAMETER"
+>func</TT
+> to be invoked when events
+of name <TT
+CLASS="PARAMETER"
+>event_name</TT
+> arrive on connection <TT
+CLASS="PARAMETER"
+>bc</TT
+>. <TT
+CLASS="PARAMETER"
+>user_data</TT
+> is passed along
+to the callback, which will receive it as the second parameter. You
+need to ensure that the memory <TT
+CLASS="PARAMETER"
+>user_data</TT
+> points to is valid during the
+time the callback might be invoked. See <A
+HREF="broccoli-broccoli.html#BRO-EVENT-REGISTRY-ADD"
+><CODE
+CLASS="FUNCTION"
+>bro_event_registry_add()</CODE
+></A
+> for
+details.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>bc</TT
+>&nbsp;:</DT
+><DD
+><P
+> Bro connection handle</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>event_name</TT
+>&nbsp;:</DT
+><DD
+><P
+> Name of events that trigger callback</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>func</TT
+>&nbsp;:</DT
+><DD
+><P
+> callback to invoke.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>user_data</TT
+>&nbsp;:</DT
+><DD
+><P
+> user data passed through to the callback.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-EVENT-REGISTRY-REMOVE"
+></A
+><H3
+>bro_event_registry_remove ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>void                bro_event_registry_remove           (BroConn *bc,
+                                                         const char *event_name);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function removes all callbacks for event <TT
+CLASS="PARAMETER"
+>event_name</TT
+> from the
+event registry for connection <TT
+CLASS="PARAMETER"
+>bc</TT
+>.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>bc</TT
+>&nbsp;:</DT
+><DD
+><P
+> Bro connection handle</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>event_name</TT
+>&nbsp;:</DT
+><DD
+><P
+> event to ignore from now on.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-EVENT-REGISTRY-REQUEST"
+></A
+><H3
+>bro_event_registry_request ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>void                bro_event_registry_request          (BroConn *bc);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function requests the events you have previously requested using
+<A
+HREF="broccoli-broccoli.html#BRO-EVENT-REGISTRY-ADD"
+><CODE
+CLASS="FUNCTION"
+>bro_event_registry_add()</CODE
+></A
+> from the Bro listening on <TT
+CLASS="PARAMETER"
+>bc</TT
+>.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>bc</TT
+>&nbsp;:</DT
+><DD
+><P
+> Bro connection handle</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-BUF-NEW"
+></A
+><H3
+>bro_buf_new ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>BroBuf*             bro_buf_new                         (void);</PRE
+></TD
+></TR
+></TABLE
+><P
+></P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+>a new buffer object, or <TT
+CLASS="LITERAL"
+>NULL</TT
+> on error. Use paired with
+<A
+HREF="broccoli-broccoli.html#BRO-BUF-FREE"
+><CODE
+CLASS="FUNCTION"
+>bro_buf_free()</CODE
+></A
+>.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-BUF-FREE"
+></A
+><H3
+>bro_buf_free ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>void                bro_buf_free                        (BroBuf *buf);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function releases all memory held by the buffer pointed
+to by <TT
+CLASS="PARAMETER"
+>buf</TT
+>. Use paired with <A
+HREF="broccoli-broccoli.html#BRO-BUF-NEW"
+><CODE
+CLASS="FUNCTION"
+>bro_buf_new()</CODE
+></A
+>.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>buf</TT
+>&nbsp;:</DT
+><DD
+><P
+> buffer pointer.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-BUF-APPEND"
+></A
+><H3
+>bro_buf_append ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>int                 bro_buf_append                      (BroBuf *buf,
+                                                         void *data,
+                                                         int data_len);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function appends data to the end of the buffer,
+enlarging it if necessary to hold the <TT
+CLASS="PARAMETER"
+>len</TT
+> new bytes.
+NOTE: it does not modify the buffer pointer. It only
+appends new data where buf_off is currently pointing
+and updates it accordingly. If you DO want the buffer
+pointer to be updated, have a look at <A
+HREF="broccoli-broccoli.html#BRO-BUF-PTR-WRITE"
+><CODE
+CLASS="FUNCTION"
+>bro_buf_ptr_write()</CODE
+></A
+>
+instead.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>buf</TT
+>&nbsp;:</DT
+><DD
+><P
+> buffer pointer.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>data</TT
+>&nbsp;:</DT
+><DD
+><P
+> new data to append to buffer.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>data_len</TT
+>&nbsp;:</DT
+><DD
+><P
+> size of <TT
+CLASS="PARAMETER"
+>data</TT
+>.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> <TT
+CLASS="LITERAL"
+>TRUE</TT
+> if successful, <TT
+CLASS="LITERAL"
+>FALSE</TT
+> otherwise.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-BUF-CONSUME"
+></A
+><H3
+>bro_buf_consume ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>void                bro_buf_consume                     (BroBuf *buf);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function removes the buffer contents between the start
+of the buffer and the point where the buffer pointer
+currently points to. The idea is that you call <A
+HREF="broccoli-broccoli.html#BRO-BUF-PTR-READ"
+><CODE
+CLASS="FUNCTION"
+>bro_buf_ptr_read()</CODE
+></A
+>
+a few times to extract data from the buffer, and then
+call <A
+HREF="broccoli-broccoli.html#BRO-BUF-CONSUME"
+><CODE
+CLASS="FUNCTION"
+>bro_buf_consume()</CODE
+></A
+> to signal to the buffer that the
+extracted data are no longer needed inside the buffer.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>buf</TT
+>&nbsp;:</DT
+><DD
+><P
+> buffer pointer.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-BUF-RESET"
+></A
+><H3
+>bro_buf_reset ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>void                bro_buf_reset                       (BroBuf *buf);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function resets the buffer pointers to the beginning of the
+currently allocated buffer, i.e., it marks the buffer as empty.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>buf</TT
+>&nbsp;:</DT
+><DD
+><P
+> buffer pointer.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-BUF-GET"
+></A
+><H3
+>bro_buf_get ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>uchar*              bro_buf_get                         (BroBuf *buf);</PRE
+></TD
+></TR
+></TABLE
+><P
+></P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>buf</TT
+>&nbsp;:</DT
+><DD
+><P
+> buffer pointer.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+>the entire buffer's contents.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-BUF-GET-END"
+></A
+><H3
+>bro_buf_get_end ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>uchar*              bro_buf_get_end                     (BroBuf *buf);</PRE
+></TD
+></TR
+></TABLE
+><P
+></P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>buf</TT
+>&nbsp;:</DT
+><DD
+><P
+> buffer pointer.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> a pointer to the first byte in the
+buffer that is not currently used.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-BUF-GET-SIZE"
+></A
+><H3
+>bro_buf_get_size ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>uint                bro_buf_get_size                    (BroBuf *buf);</PRE
+></TD
+></TR
+></TABLE
+><P
+></P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>buf</TT
+>&nbsp;:</DT
+><DD
+><P
+> buffer pointer.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> the number of actual bytes allocated for the
+buffer.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-BUF-GET-USED-SIZE"
+></A
+><H3
+>bro_buf_get_used_size ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>uint                bro_buf_get_used_size               (BroBuf *buf);</PRE
+></TD
+></TR
+></TABLE
+><P
+></P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>buf</TT
+>&nbsp;:</DT
+><DD
+><P
+> buffer pointer.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> number of bytes currently used.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-BUF-PTR-GET"
+></A
+><H3
+>bro_buf_ptr_get ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>uchar*              bro_buf_ptr_get                     (BroBuf *buf);</PRE
+></TD
+></TR
+></TABLE
+><P
+></P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>buf</TT
+>&nbsp;:</DT
+><DD
+><P
+> buffer pointer.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> current buffer content pointer.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-BUF-PTR-TELL"
+></A
+><H3
+>bro_buf_ptr_tell ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>uint32              bro_buf_ptr_tell                    (BroBuf *buf);</PRE
+></TD
+></TR
+></TABLE
+><P
+></P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>buf</TT
+>&nbsp;:</DT
+><DD
+><P
+> buffer pointer.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> current offset of buffer content pointer.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-BUF-PTR-SEEK"
+></A
+><H3
+>bro_buf_ptr_seek ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>int                 bro_buf_ptr_seek                    (BroBuf *buf,
+                                                         int offset,
+                                                         int whence);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function adjusts the position of <TT
+CLASS="PARAMETER"
+>buf</TT
+>'s content
+pointer. Call semantics are identical to <CODE
+CLASS="FUNCTION"
+>fseek()</CODE
+>, thus
+use <TT
+CLASS="PARAMETER"
+>offset</TT
+> to indicate the offset by which to jump and
+use <TT
+CLASS="LITERAL"
+>SEEK_SET</TT
+>, <TT
+CLASS="LITERAL"
+>SEEK_CUR</TT
+>, or <TT
+CLASS="LITERAL"
+>SEEK_END</TT
+> to specify the
+position relative to which to adjust.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>buf</TT
+>&nbsp;:</DT
+><DD
+><P
+> buffer pointer.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>offset</TT
+>&nbsp;:</DT
+><DD
+><P
+> number of bytes by which to adjust pointer, positive or negative.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>whence</TT
+>&nbsp;:</DT
+><DD
+><P
+> location relative to which to adjust.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> <TT
+CLASS="LITERAL"
+>TRUE</TT
+> if adjustment could be made, <TT
+CLASS="LITERAL"
+>FALSE</TT
+>
+if not (e.g. because the offset requested is not within
+legal bounds).</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-BUF-PTR-CHECK"
+></A
+><H3
+>bro_buf_ptr_check ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>int                 bro_buf_ptr_check                   (BroBuf *buf,
+                                                         int size);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function checks whether <TT
+CLASS="PARAMETER"
+>size</TT
+> bytes could be read from the
+buffer using <A
+HREF="broccoli-broccoli.html#BRO-BUF-PTR-READ"
+><CODE
+CLASS="FUNCTION"
+>bro_buf_ptr_read()</CODE
+></A
+>.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>buf</TT
+>&nbsp;:</DT
+><DD
+><P
+> buffer pointer.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>size</TT
+>&nbsp;:</DT
+><DD
+><P
+> number of bytes to check for availability.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> <TT
+CLASS="LITERAL"
+>TRUE</TT
+> if <TT
+CLASS="PARAMETER"
+>size</TT
+> bytes can be read, <TT
+CLASS="LITERAL"
+>FALSE</TT
+> if not.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-BUF-PTR-READ"
+></A
+><H3
+>bro_buf_ptr_read ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>int                 bro_buf_ptr_read                    (BroBuf *buf,
+                                                         void *data,
+                                                         int size);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function copies <TT
+CLASS="PARAMETER"
+>size</TT
+> bytes into <TT
+CLASS="PARAMETER"
+>data</TT
+> if the buffer
+has <TT
+CLASS="PARAMETER"
+>size</TT
+> bytes available from the current location of
+the buffer content pointer onward, incrementing the content
+pointer accordingly. If not, the function doesn't do anything.
+It behaves thus different from the normal <CODE
+CLASS="FUNCTION"
+>read()</CODE
+> in that
+it either copies the amount requested or nothing.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>buf</TT
+>&nbsp;:</DT
+><DD
+><P
+> buffer pointer.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>data</TT
+>&nbsp;:</DT
+><DD
+><P
+> destination area.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>size</TT
+>&nbsp;:</DT
+><DD
+><P
+> number of bytes to copy into <TT
+CLASS="PARAMETER"
+>data</TT
+>.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> <TT
+CLASS="LITERAL"
+>TRUE</TT
+> if <TT
+CLASS="PARAMETER"
+>size</TT
+> bytes were copied, <TT
+CLASS="LITERAL"
+>FALSE</TT
+> if not.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-BUF-PTR-WRITE"
+></A
+><H3
+>bro_buf_ptr_write ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>int                 bro_buf_ptr_write                   (BroBuf *buf,
+                                                         void *data,
+                                                         int size);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function writes <TT
+CLASS="PARAMETER"
+>size</TT
+> bytes of the area pointed to by <TT
+CLASS="PARAMETER"
+>data</TT
+>
+into the buffer <TT
+CLASS="PARAMETER"
+>buf</TT
+> at the current location of its content pointer,
+adjusting the content pointer accordingly. If the buffer doesn't have
+enough space to receive <TT
+CLASS="PARAMETER"
+>size</TT
+> bytes, more space is allocated.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>buf</TT
+>&nbsp;:</DT
+><DD
+><P
+> buffer pointer.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>data</TT
+>&nbsp;:</DT
+><DD
+><P
+> data to write.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>size</TT
+>&nbsp;:</DT
+><DD
+><P
+> number of bytes to copy into <TT
+CLASS="PARAMETER"
+>data</TT
+>.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> <TT
+CLASS="LITERAL"
+>TRUE</TT
+> if <TT
+CLASS="PARAMETER"
+>size</TT
+> bytes were copied, <TT
+CLASS="LITERAL"
+>FALSE</TT
+> if an error
+occurred and the bytes could not be copied.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-CONF-GET-INT"
+></A
+><H3
+>bro_conf_get_int ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>int                 bro_conf_get_int                    (const char *val_name,
+                                                         int *val);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function tries to find an integer item named <TT
+CLASS="PARAMETER"
+>val_name</TT
+> in the
+configuration. If it is found, its value is placed into the
+int pointed to by <TT
+CLASS="PARAMETER"
+>val</TT
+>.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>val_name</TT
+>&nbsp;:</DT
+><DD
+><P
+> key name for the value.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>val</TT
+>&nbsp;:</DT
+><DD
+><P
+> result pointer for the value.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> <TT
+CLASS="LITERAL"
+>TRUE</TT
+> if <TT
+CLASS="PARAMETER"
+>val_name</TT
+> was found, <TT
+CLASS="LITERAL"
+>FALSE</TT
+> otherwise.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-CONF-GET-DBL"
+></A
+><H3
+>bro_conf_get_dbl ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>int                 bro_conf_get_dbl                    (const char *val_name,
+                                                         double *val);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function tries to find a double float item named <TT
+CLASS="PARAMETER"
+>val_name</TT
+> 
+in the configuration. If it is found, its value is placed into the
+double pointed to by <TT
+CLASS="PARAMETER"
+>val</TT
+>.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>val_name</TT
+>&nbsp;:</DT
+><DD
+><P
+> key name for the value.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>val</TT
+>&nbsp;:</DT
+><DD
+><P
+> result pointer for the value.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> <TT
+CLASS="LITERAL"
+>TRUE</TT
+> if <TT
+CLASS="PARAMETER"
+>val_name</TT
+> was found, <TT
+CLASS="LITERAL"
+>FALSE</TT
+> otherwise.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-CONF-GET-STR"
+></A
+><H3
+>bro_conf_get_str ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>const char*         bro_conf_get_str                    (const char *val_name);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function tries to find a string item named <TT
+CLASS="PARAMETER"
+>val_name</TT
+> in the
+configuration.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>val_name</TT
+>&nbsp;:</DT
+><DD
+><P
+> key name for the value.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> the config item if <TT
+CLASS="PARAMETER"
+>val_name</TT
+> was found, <TT
+CLASS="LITERAL"
+>NULL</TT
+> otherwise.
+A returned string is stored internally and not to be modified. If
+you need to keep it around, <CODE
+CLASS="FUNCTION"
+>strdup()</CODE
+> it.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-CONF-SET-DOMAIN"
+></A
+><H3
+>bro_conf_set_domain ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>void                bro_conf_set_domain                 (const char *domain);</PRE
+></TD
+></TR
+></TABLE
+><P
+>Broccoli's config files are divided into sections. At the beginning of
+each config file you can have an unnamed section that will be used by
+default. Case is irrelevant. By passing <TT
+CLASS="LITERAL"
+>NULL</TT
+> for <TT
+CLASS="PARAMETER"
+>domain</TT
+>, you select
+the default domain, otherwise the one that matches <TT
+CLASS="PARAMETER"
+>domain</TT
+>. <TT
+CLASS="PARAMETER"
+>domain</TT
+> is
+copied internally.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>domain</TT
+>&nbsp;:</DT
+><DD
+><P
+> name of the domain, or <TT
+CLASS="LITERAL"
+>NULL</TT
+>.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-STRING-INIT"
+></A
+><H3
+>bro_string_init ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>void                bro_string_init                     (BroString *bs);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function initializes the BroString pointed to by <TT
+CLASS="PARAMETER"
+>bs</TT
+>. Use this
+function before using the members of a BroString you're using on the
+stack.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>bs</TT
+>&nbsp;:</DT
+><DD
+><P
+> string pointer.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-STRING-SET"
+></A
+><H3
+>bro_string_set ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>int                 bro_string_set                      (BroString *bs,
+                                                         const char *s);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function initializes the BroString pointed to by <TT
+CLASS="PARAMETER"
+>bs</TT
+> to the string
+given in <TT
+CLASS="PARAMETER"
+>s</TT
+>. <TT
+CLASS="PARAMETER"
+>s</TT
+>'s content is copied, so you can modify or free <TT
+CLASS="PARAMETER"
+>s</TT
+>
+after calling this, and you need to call <A
+HREF="broccoli-broccoli.html#BRO-STRING-CLEANUP"
+><CODE
+CLASS="FUNCTION"
+>bro_string_cleanup()</CODE
+></A
+> on the
+BroString pointed to by <TT
+CLASS="PARAMETER"
+>bs</TT
+>.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>bs</TT
+>&nbsp;:</DT
+><DD
+><P
+> string pointer.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>s</TT
+>&nbsp;:</DT
+><DD
+><P
+> C ASCII string.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> <TT
+CLASS="LITERAL"
+>TRUE</TT
+> is successful, <TT
+CLASS="LITERAL"
+>FALSE</TT
+> otherwise.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-STRING-SET-DATA"
+></A
+><H3
+>bro_string_set_data ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>int                 bro_string_set_data                 (BroString *bs,
+                                                         const uchar *data,
+                                                         int data_len);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function initializes the BroString pointed to by <TT
+CLASS="PARAMETER"
+>bs</TT
+> to <TT
+CLASS="PARAMETER"
+>data_len</TT
+>
+bytes starting at <TT
+CLASS="PARAMETER"
+>data</TT
+>. <TT
+CLASS="PARAMETER"
+>data</TT
+>'s content is copied, so you can modify
+or free <TT
+CLASS="PARAMETER"
+>data</TT
+> after calling this.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>bs</TT
+>&nbsp;:</DT
+><DD
+><P
+> string pointer.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>data</TT
+>&nbsp;:</DT
+><DD
+><P
+> arbitrary data.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>data_len</TT
+>&nbsp;:</DT
+><DD
+><P
+> length of <TT
+CLASS="PARAMETER"
+>data</TT
+>.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> <TT
+CLASS="LITERAL"
+>TRUE</TT
+> is successful, <TT
+CLASS="LITERAL"
+>FALSE</TT
+> otherwise.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-STRING-GET-DATA"
+></A
+><H3
+>bro_string_get_data ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>const uchar*        bro_string_get_data                 (const BroString *bs);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function returns a pointer to the string's internal data. You
+can copy out the string using this function in combination with
+<A
+HREF="broccoli-broccoli.html#BRO-STRING-GET-LENGTH"
+><CODE
+CLASS="FUNCTION"
+>bro_string_get_length()</CODE
+></A
+>, for obtaining the string's length.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>bs</TT
+>&nbsp;:</DT
+><DD
+><P
+> string pointer.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> pointer to string, or <TT
+CLASS="LITERAL"
+>NULL</TT
+> on error.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-STRING-GET-LENGTH"
+></A
+><H3
+>bro_string_get_length ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>uint32              bro_string_get_length               (const BroString *bs);</PRE
+></TD
+></TR
+></TABLE
+><P
+></P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>bs</TT
+>&nbsp;:</DT
+><DD
+><P
+> string pointer.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> the string's length.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-STRING-COPY"
+></A
+><H3
+>bro_string_copy ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>BroString*          bro_string_copy                     (BroString *bs);</PRE
+></TD
+></TR
+></TABLE
+><P
+></P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>bs</TT
+>&nbsp;:</DT
+><DD
+><P
+> string pointer.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> a deep copy of the BroString pointed to by <TT
+CLASS="PARAMETER"
+>bs</TT
+>, or <TT
+CLASS="LITERAL"
+>NULL</TT
+> on
+error.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-STRING-CLEANUP"
+></A
+><H3
+>bro_string_cleanup ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>void                bro_string_cleanup                  (BroString *bs);</PRE
+></TD
+></TR
+></TABLE
+><P
+>This function releases all contents claimed by the BroString pointed
+to by <TT
+CLASS="PARAMETER"
+>bs</TT
+>, without releasing that BroString structure itself. Use
+this when manipulating a BroString on the stack, paired with
+<A
+HREF="broccoli-broccoli.html#BRO-STRING-INIT"
+><CODE
+CLASS="FUNCTION"
+>bro_string_init()</CODE
+></A
+>.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>bs</TT
+>&nbsp;:</DT
+><DD
+><P
+> string pointer.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-STRING-FREE"
+></A
+><H3
+>bro_string_free ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>void                bro_string_free                     (BroString *bs);</PRE
+></TD
+></TR
+></TABLE
+><P
+>This function releases the entire BroString pointed to by <TT
+CLASS="PARAMETER"
+>bs</TT
+>, including
+the BroString structure itself.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>bs</TT
+>&nbsp;:</DT
+><DD
+><P
+> string pointer.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-RECORD-NEW"
+></A
+><H3
+>bro_record_new ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>BroRecord*          bro_record_new                      (void);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function allocates and initializes a new empty record. BroRecords
+are used for adding and retrieving records vals to/from events. You
+do not have to specify a record type separately when you create a
+record. The type is defined implicitly by the sequence of types formed
+by the sequence of vals added to the record, along with the names for
+each val. See the manual for details.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> a new record, or <TT
+CLASS="LITERAL"
+>NULL</TT
+> on error.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-RECORD-FREE"
+></A
+><H3
+>bro_record_free ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>void                bro_record_free                     (BroRecord *rec);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function releases all memory consumed by the record pointed to
+by <TT
+CLASS="PARAMETER"
+>rec</TT
+>.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>rec</TT
+>&nbsp;:</DT
+><DD
+><P
+> record handle.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-RECORD-ADD-VAL"
+></A
+><H3
+>bro_record_add_val ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>int                 bro_record_add_val                  (BroRecord *rec,
+                                                         const char *name,
+                                                         int type,
+                                                         const char *type_name,
+                                                         const void *val);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function adds a new field to the record pointed to by <TT
+CLASS="PARAMETER"
+>rec</TT
+> and
+assigns the value passed in to that field. The field name is given
+in <TT
+CLASS="PARAMETER"
+>name</TT
+>, the type of the val is given in <TT
+CLASS="PARAMETER"
+>type</TT
+> and must be one of
+the <TT
+CLASS="LITERAL"
+>BRO_TYPE_xxx</TT
+> constants defined in broccoli.h. The type you give
+implies what data type <TT
+CLASS="PARAMETER"
+>val</TT
+> must be pointing to; see the manual for
+details. If you want to indicate a type specialized from <TT
+CLASS="PARAMETER"
+>type</TT
+>,
+use <TT
+CLASS="PARAMETER"
+>type_name</TT
+> to give its name, otherwise pass <TT
+CLASS="LITERAL"
+>NULL</TT
+> for <TT
+CLASS="PARAMETER"
+>type_name</TT
+>.
+It is possible to leave fields unassigned, in that case, pass in
+<TT
+CLASS="LITERAL"
+>NULL</TT
+> for <TT
+CLASS="PARAMETER"
+>val</TT
+>.</P
+><P
+><TT
+CLASS="PARAMETER"
+>val</TT
+> remains the caller's responsibility and is copied internally.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>rec</TT
+>&nbsp;:</DT
+><DD
+><P
+> record handle.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>name</TT
+>&nbsp;:</DT
+><DD
+><P
+> field name of the added val.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>type</TT
+>&nbsp;:</DT
+><DD
+><P
+> numerical type tag of the new val.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>type_name</TT
+>&nbsp;:</DT
+><DD
+><P
+> optional name of specialized type.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>val</TT
+>&nbsp;:</DT
+><DD
+><P
+> pointer to the new val*.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> <TT
+CLASS="LITERAL"
+>TRUE</TT
+> on success, <TT
+CLASS="LITERAL"
+>FALSE</TT
+> on error.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-RECORD-GET-NTH-VAL"
+></A
+><H3
+>bro_record_get_nth_val ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>void*               bro_record_get_nth_val              (BroRecord *rec,
+                                                         int num,
+                                                         int *type);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function returns the <TT
+CLASS="PARAMETER"
+>num</TT
+>'th value of the record pointed to
+by <TT
+CLASS="PARAMETER"
+>rec</TT
+>, expected to be of <TT
+CLASS="PARAMETER"
+>type</TT
+>. The returned value is internal
+and needs to be duplicated if you want to keep it around. Upon
+return, the int pointed to by <TT
+CLASS="PARAMETER"
+>type</TT
+> tells you the type of the returned
+val, as a BRO_TYPE_xxx type tag. If the int pointed to upon calling
+the function has the value BRO_TYPE_UNKNOWN, no type checking is
+performed and the value is returned. If it is any other type tag,
+its value is compared to that of the value, and if they match, the
+value is returned. Otherwise, the return value is <TT
+CLASS="LITERAL"
+>NULL</TT
+>. If you don't
+care about type enforcement and don't want to know the value's type,
+you may pass <TT
+CLASS="LITERAL"
+>NULL</TT
+> for <TT
+CLASS="PARAMETER"
+>type</TT
+>.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>rec</TT
+>&nbsp;:</DT
+><DD
+><P
+> record handle.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>num</TT
+>&nbsp;:</DT
+><DD
+><P
+> field index, starting from 0.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>type</TT
+>&nbsp;:</DT
+><DD
+><P
+> value-result argument for the expected/actual type of the value.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> pointer to queried value on success, <TT
+CLASS="LITERAL"
+>NULL</TT
+> on error.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-RECORD-GET-NTH-NAME"
+></A
+><H3
+>bro_record_get_nth_name ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>const char*         bro_record_get_nth_name             (BroRecord *rec,
+                                                         int num);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function returns the <TT
+CLASS="PARAMETER"
+>num</TT
+>'th name of the record pointed to by <TT
+CLASS="PARAMETER"
+>rec</TT
+>.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>rec</TT
+>&nbsp;:</DT
+><DD
+><P
+> record handle.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>num</TT
+>&nbsp;:</DT
+><DD
+><P
+> field index, starting from 0.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> field name on success, <TT
+CLASS="LITERAL"
+>NULL</TT
+> on error.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-RECORD-GET-NAMED-VAL"
+></A
+><H3
+>bro_record_get_named_val ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>void*               bro_record_get_named_val            (BroRecord *rec,
+                                                         const char *name,
+                                                         int *type);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function returns the value of the field named <TT
+CLASS="PARAMETER"
+>name</TT
+> in the
+record pointed to by <TT
+CLASS="PARAMETER"
+>rec</TT
+>. The returned value is internal and needs
+to be duplicated if you want to keep it around. <TT
+CLASS="PARAMETER"
+>type</TT
+> works as with
+<A
+HREF="broccoli-broccoli.html#BRO-RECORD-GET-NTH-VAL"
+><CODE
+CLASS="FUNCTION"
+>bro_record_get_nth_val()</CODE
+></A
+>, see there for more details.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>rec</TT
+>&nbsp;:</DT
+><DD
+><P
+> record handle.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>name</TT
+>&nbsp;:</DT
+><DD
+><P
+> field name.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>type</TT
+>&nbsp;:</DT
+><DD
+><P
+> value-result argument for the expected/actual type of the value.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> pointer to queried value on success, <TT
+CLASS="LITERAL"
+>NULL</TT
+> on error.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-RECORD-SET-NTH-VAL"
+></A
+><H3
+>bro_record_set_nth_val ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>int                 bro_record_set_nth_val              (BroRecord *rec,
+                                                         int num,
+                                                         int type,
+                                                         const char *type_name,
+                                                         const void *val);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function replaces the <TT
+CLASS="PARAMETER"
+>num</TT
+>'th value of the record pointed to
+by <TT
+CLASS="PARAMETER"
+>rec</TT
+>, expected to be of <TT
+CLASS="PARAMETER"
+>type</TT
+>. All values are copied internally
+so what <TT
+CLASS="PARAMETER"
+>val</TT
+> points to stays unmodified. The value of <TT
+CLASS="PARAMETER"
+>type</TT
+> implies
+what <TT
+CLASS="PARAMETER"
+>result</TT
+> must be pointing to. See the manual for details.
+If you want to indicate a type specialized from <TT
+CLASS="PARAMETER"
+>type</TT
+>, use
+<TT
+CLASS="PARAMETER"
+>type_name</TT
+> to give its name, otherwise pass <TT
+CLASS="LITERAL"
+>NULL</TT
+> for <TT
+CLASS="PARAMETER"
+>type_name</TT
+>.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>rec</TT
+>&nbsp;:</DT
+><DD
+><P
+> record handle.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>num</TT
+>&nbsp;:</DT
+><DD
+><P
+> field index, starting from 0.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>type</TT
+>&nbsp;:</DT
+><DD
+><P
+> expected type of the value.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>type_name</TT
+>&nbsp;:</DT
+><DD
+><P
+> optional name of specialized type.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>val</TT
+>&nbsp;:</DT
+><DD
+><P
+> pointer to new val.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> <TT
+CLASS="LITERAL"
+>TRUE</TT
+> on success, <TT
+CLASS="LITERAL"
+>FALSE</TT
+> on error.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-RECORD-SET-NAMED-VAL"
+></A
+><H3
+>bro_record_set_named_val ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>int                 bro_record_set_named_val            (BroRecord *rec,
+                                                         const char *name,
+                                                         int type,
+                                                         const char *type_name,
+                                                         const void *val);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function replaces the value named <TT
+CLASS="PARAMETER"
+>name</TT
+> in the record pointed to
+by <TT
+CLASS="PARAMETER"
+>rec</TT
+>, expected to be of <TT
+CLASS="PARAMETER"
+>type</TT
+>. All values are copied internally
+so what <TT
+CLASS="PARAMETER"
+>val</TT
+> points to stays unmodified. The value of <TT
+CLASS="PARAMETER"
+>type</TT
+> implies
+what <TT
+CLASS="PARAMETER"
+>result</TT
+> must be pointing to. See the manual for details.
+If you want to indicate a type specialized from <TT
+CLASS="PARAMETER"
+>type</TT
+>,
+use <TT
+CLASS="PARAMETER"
+>type_name</TT
+> to give its name, otherwise pass <TT
+CLASS="LITERAL"
+>NULL</TT
+> for <TT
+CLASS="PARAMETER"
+>type_name</TT
+>.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>rec</TT
+>&nbsp;:</DT
+><DD
+><P
+> record handle.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>name</TT
+>&nbsp;:</DT
+><DD
+><P
+> field name.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>type</TT
+>&nbsp;:</DT
+><DD
+><P
+> expected type of the value.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>type_name</TT
+>&nbsp;:</DT
+><DD
+><P
+> optional name of specialized type.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>val</TT
+>&nbsp;:</DT
+><DD
+><P
+> pointer to new val.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> <TT
+CLASS="LITERAL"
+>TRUE</TT
+> on success, <TT
+CLASS="LITERAL"
+>FALSE</TT
+> on error.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BROTABLECALLBACK"
+></A
+><H3
+>BroTableCallback ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>int                 (*BroTableCallback)                 (void *key,
+                                                         void *val,
+                                                         void *user_data);</PRE
+></TD
+></TR
+></TABLE
+><P
+>This is the signature of callbacks used when iterating over all
+elements stored in a BroSet.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>key</TT
+>&nbsp;:</DT
+><DD
+><P
+></P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>val</TT
+>&nbsp;:</DT
+><DD
+><P
+> a pointer to an element in the set.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>user_data</TT
+>&nbsp;:</DT
+><DD
+><P
+> user data passed through.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> TRUE if iteration should continue, FALSE if done.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-TABLE-NEW"
+></A
+><H3
+>bro_table_new ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>BroTable*           bro_table_new                       (void);</PRE
+></TD
+></TR
+></TABLE
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+>&#13;</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-TABLE-FREE"
+></A
+><H3
+>bro_table_free ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>void                bro_table_free                      (BroTable *tbl);</PRE
+></TD
+></TR
+></TABLE
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>tbl</TT
+>&nbsp;:</DT
+><DD
+><P
+>&#13;</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-TABLE-INSERT"
+></A
+><H3
+>bro_table_insert ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>int                 bro_table_insert                    (BroTable *tbl,
+                                                         int key_type,
+                                                         const void *key,
+                                                         int val_type,
+                                                         const void *val);</PRE
+></TD
+></TR
+></TABLE
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>tbl</TT
+>&nbsp;:</DT
+><DD
+><P
+></P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>key_type</TT
+>&nbsp;:</DT
+><DD
+><P
+></P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>key</TT
+>&nbsp;:</DT
+><DD
+><P
+></P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>val_type</TT
+>&nbsp;:</DT
+><DD
+><P
+></P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>val</TT
+>&nbsp;:</DT
+><DD
+><P
+></P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+>&#13;</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-TABLE-FIND"
+></A
+><H3
+>bro_table_find ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>void*               bro_table_find                      (BroTable *tbl,
+                                                         const void *key);</PRE
+></TD
+></TR
+></TABLE
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>tbl</TT
+>&nbsp;:</DT
+><DD
+><P
+></P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>key</TT
+>&nbsp;:</DT
+><DD
+><P
+></P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+>&#13;</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-TABLE-GET-SIZE"
+></A
+><H3
+>bro_table_get_size ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>int                 bro_table_get_size                  (BroTable *tbl);</PRE
+></TD
+></TR
+></TABLE
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>tbl</TT
+>&nbsp;:</DT
+><DD
+><P
+></P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+>&#13;</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-TABLE-GET-TYPES"
+></A
+><H3
+>bro_table_get_types ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>void                bro_table_get_types                 (BroTable *tbl,
+                                                         int *key_type,
+                                                         int *val_type);</PRE
+></TD
+></TR
+></TABLE
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>tbl</TT
+>&nbsp;:</DT
+><DD
+><P
+></P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>key_type</TT
+>&nbsp;:</DT
+><DD
+><P
+></P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>val_type</TT
+>&nbsp;:</DT
+><DD
+><P
+>&#13;</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-TABLE-FOREACH"
+></A
+><H3
+>bro_table_foreach ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>void                bro_table_foreach                   (BroTable *tbl,
+                                                         <A
+HREF="broccoli-broccoli.html#BROTABLECALLBACK"
+>BroTableCallback</A
+> cb,
+                                                         void *user_data);</PRE
+></TD
+></TR
+></TABLE
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>tbl</TT
+>&nbsp;:</DT
+><DD
+><P
+></P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>cb</TT
+>&nbsp;:</DT
+><DD
+><P
+></P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>user_data</TT
+>&nbsp;:</DT
+><DD
+><P
+>&#13;</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BROSETCALLBACK"
+></A
+><H3
+>BroSetCallback ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>int                 (*BroSetCallback)                   (void *val,
+                                                         void *user_data);</PRE
+></TD
+></TR
+></TABLE
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>val</TT
+>&nbsp;:</DT
+><DD
+><P
+></P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>user_data</TT
+>&nbsp;:</DT
+><DD
+><P
+></P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+>&#13;</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-SET-NEW"
+></A
+><H3
+>bro_set_new ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>BroSet*             bro_set_new                         (void);</PRE
+></TD
+></TR
+></TABLE
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+>&#13;</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-SET-FREE"
+></A
+><H3
+>bro_set_free ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>void                bro_set_free                        (BroSet *set);</PRE
+></TD
+></TR
+></TABLE
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>set</TT
+>&nbsp;:</DT
+><DD
+><P
+>&#13;</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-SET-INSERT"
+></A
+><H3
+>bro_set_insert ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>int                 bro_set_insert                      (BroSet *set,
+                                                         int type,
+                                                         const void *val);</PRE
+></TD
+></TR
+></TABLE
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>set</TT
+>&nbsp;:</DT
+><DD
+><P
+></P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>type</TT
+>&nbsp;:</DT
+><DD
+><P
+></P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>val</TT
+>&nbsp;:</DT
+><DD
+><P
+></P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+>&#13;</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-SET-FIND"
+></A
+><H3
+>bro_set_find ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>int                 bro_set_find                        (BroSet *set,
+                                                         const void *key);</PRE
+></TD
+></TR
+></TABLE
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>set</TT
+>&nbsp;:</DT
+><DD
+><P
+></P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>key</TT
+>&nbsp;:</DT
+><DD
+><P
+></P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+>&#13;</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-SET-GET-SIZE"
+></A
+><H3
+>bro_set_get_size ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>int                 bro_set_get_size                    (BroSet *set);</PRE
+></TD
+></TR
+></TABLE
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>set</TT
+>&nbsp;:</DT
+><DD
+><P
+></P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+>&#13;</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-SET-GET-TYPE"
+></A
+><H3
+>bro_set_get_type ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>void                bro_set_get_type                    (BroSet *set,
+                                                         int *type);</PRE
+></TD
+></TR
+></TABLE
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>set</TT
+>&nbsp;:</DT
+><DD
+><P
+></P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>type</TT
+>&nbsp;:</DT
+><DD
+><P
+>&#13;</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-SET-FOREACH"
+></A
+><H3
+>bro_set_foreach ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>void                bro_set_foreach                     (BroSet *set,
+                                                         <A
+HREF="broccoli-broccoli.html#BROSETCALLBACK"
+>BroSetCallback</A
+> cb,
+                                                         void *user_data);</PRE
+></TD
+></TR
+></TABLE
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>set</TT
+>&nbsp;:</DT
+><DD
+><P
+></P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>cb</TT
+>&nbsp;:</DT
+><DD
+><P
+></P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>user_data</TT
+>&nbsp;:</DT
+><DD
+><P
+>&#13;</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-CONN-SET-PACKET-CTXT"
+></A
+><H3
+>bro_conn_set_packet_ctxt ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>void                bro_conn_set_packet_ctxt            (BroConn *bc,
+                                                         int link_type);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function sets the packet context for <TT
+CLASS="PARAMETER"
+>bc</TT
+> for future BroPackets
+handled by this connection.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>bc</TT
+>&nbsp;:</DT
+><DD
+><P
+> connection handle.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>link_type</TT
+>&nbsp;:</DT
+><DD
+><P
+> libpcap DLT linklayer type.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-CONN-GET-PACKET-CTXT"
+></A
+><H3
+>bro_conn_get_packet_ctxt ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>void                bro_conn_get_packet_ctxt            (BroConn *bc,
+                                                         int *link_type);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function returns <TT
+CLASS="PARAMETER"
+>bc</TT
+>'s current packet context through <TT
+CLASS="PARAMETER"
+>link_type</TT
+>.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>bc</TT
+>&nbsp;:</DT
+><DD
+><P
+> connection handle.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>link_type</TT
+>&nbsp;:</DT
+><DD
+><P
+> result pointer for libpcap DLT linklayer type.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-PACKET-NEW"
+></A
+><H3
+>bro_packet_new ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>BroPacket*          bro_packet_new                      (const struct pcap_pkthdr *hdr,
+                                                         const u_char *data,
+                                                         const char *tag);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function creates a new BroPacket by copying <TT
+CLASS="PARAMETER"
+>hdr</TT
+> and <TT
+CLASS="PARAMETER"
+>data</TT
+> internally.
+Release the resulting packet using <A
+HREF="broccoli-broccoli.html#BRO-PACKET-FREE"
+><CODE
+CLASS="FUNCTION"
+>bro_packet_free()</CODE
+></A
+>.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>hdr</TT
+>&nbsp;:</DT
+><DD
+><P
+> pointer to libpcap packet header.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>data</TT
+>&nbsp;:</DT
+><DD
+><P
+> pointer to libpcap packet data.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>tag</TT
+>&nbsp;:</DT
+><DD
+><P
+> pointer to ASCII tag (0 for no tag).</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+>&#13;</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-PACKET-CLONE"
+></A
+><H3
+>bro_packet_clone ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>BroPacket*          bro_packet_clone                    (const BroPacket *packet);</PRE
+></TD
+></TR
+></TABLE
+><P
+></P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>packet</TT
+>&nbsp;:</DT
+><DD
+><P
+> packet to clone.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> a copy of <TT
+CLASS="PARAMETER"
+>packet</TT
+>, or <TT
+CLASS="LITERAL"
+>NULL</TT
+> on error.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-PACKET-FREE"
+></A
+><H3
+>bro_packet_free ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>void                bro_packet_free                     (BroPacket *packet);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function releases all memory occupied by a packet previously allocated
+using <A
+HREF="broccoli-broccoli.html#BRO-PACKET-NEW"
+><CODE
+CLASS="FUNCTION"
+>bro_packet_new()</CODE
+></A
+>.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>packet</TT
+>&nbsp;:</DT
+><DD
+><P
+> packet to release.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-PACKET-SEND"
+></A
+><H3
+>bro_packet_send ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>int                 bro_packet_send                     (BroConn *bc,
+                                                         BroPacket *packet);</PRE
+></TD
+></TR
+></TABLE
+><P
+>The function sends <TT
+CLASS="PARAMETER"
+>packet</TT
+> to the Bro peer connected via <TT
+CLASS="PARAMETER"
+>bc</TT
+>.</P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>bc</TT
+>&nbsp;:</DT
+><DD
+><P
+> connection on which to send packet.</P
+></DD
+><DT
+><TT
+CLASS="PARAMETER"
+>packet</TT
+>&nbsp;:</DT
+><DD
+><P
+> packet to send.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> <TT
+CLASS="LITERAL"
+>TRUE</TT
+> if successful, <TT
+CLASS="LITERAL"
+>FALSE</TT
+> otherwise.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-UTIL-CURRENT-TIME"
+></A
+><H3
+>bro_util_current_time ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>double              bro_util_current_time               (void);</PRE
+></TD
+></TR
+></TABLE
+><P
+></P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> the current system time as a double, in seconds, suitable
+for passing to <CODE
+CLASS="FUNCTION"
+>bro_event_add_time()</CODE
+>.</P
+></DD
+></DL
+></DIV
+></DIV
+><HR><DIV
+CLASS="REFSECT2"
+><A
+NAME="BRO-UTIL-TIMEVAL-TO-DOUBLE"
+></A
+><H3
+>bro_util_timeval_to_double ()</H3
+><TABLE
+WIDTH="100%"
+BORDER="0"
+BGCOLOR="#eaeaf0"
+><TR
+><TD
+><PRE
+CLASS="PROGRAMLISTING"
+>double              bro_util_timeval_to_double          (const struct timeval *tv);</PRE
+></TD
+></TR
+></TABLE
+><P
+></P
+><P
+></P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="PARAMETER"
+>tv</TT
+>&nbsp;:</DT
+><DD
+><P
+> pointer to timeval structure.</P
+></DD
+><DT
+><SPAN
+CLASS="emphasis"
+><B
+CLASS="EMPHASIS"
+>Returns</B
+></SPAN
+>&nbsp;:</DT
+><DD
+><P
+> a double encoding the timestamp given in <TT
+CLASS="PARAMETER"
+>tv</TT
+> in a floating
+point double, with the fraction of a second between 0.0 and 1.0.</P
+></DD
+></DL
+></DIV
+></DIV
+></DIV
+><DIV
+CLASS="NAVFOOTER"
+><HR
+ALIGN="LEFT"
+WIDTH="100%"><TABLE
+SUMMARY="Footer navigation table"
+WIDTH="100%"
+BORDER="0"
+CELLPADDING="0"
+CELLSPACING="0"
+><TR
+><TD
+WIDTH="33%"
+ALIGN="left"
+VALIGN="top"
+><A
+HREF="api.html"
+ACCESSKEY="P"
+>Prev</A
+></TD
+><TD
+WIDTH="34%"
+ALIGN="center"
+VALIGN="top"
+><A
+HREF="index.html"
+ACCESSKEY="H"
+>Home</A
+></TD
+><TD
+WIDTH="33%"
+ALIGN="right"
+VALIGN="top"
+><A
+HREF="a3637.html"
+ACCESSKEY="N"
+>Next</A
+></TD
+></TR
+><TR
+><TD
+WIDTH="33%"
+ALIGN="left"
+VALIGN="top"
+>Broccoli API Reference</TD
+><TD
+WIDTH="34%"
+ALIGN="center"
+VALIGN="top"
+><A
+HREF="api.html"
+ACCESSKEY="U"
+>Up</A
+></TD
+><TD
+WIDTH="33%"
+ALIGN="right"
+VALIGN="top"
+>Appendix</TD
+></TR
+></TABLE
+></DIV
+></BODY
+></HTML
+>

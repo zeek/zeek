@@ -1,0 +1,31 @@
+diff -urN bro-1.2.1-orig/src/binpac/pac_expr.cc bro-1.2.1-ssl-binpac/src/binpac/pac_expr.cc
+--- bro-1.2.1-orig/src/binpac/pac_expr.cc	2006-07-26 15:02:40.000000000 -0700
++++ bro-1.2.1-ssl-binpac/src/binpac/pac_expr.cc	2007-05-04 14:31:11.728494000 -0700
+@@ -776,6 +776,27 @@
+ 			}
+ 			break;
+ 
++		case EXPR_CALLARGS:
++		        {
++		        mhs = 0;
++			if ( args_ )
++			        for ( uint i = 0; i < args_->size(); ++i )
++				        mhs = mhs_max(mhs, args_->at(i)->MinimalHeaderSize(env));
++			}
++		        break;
++		case EXPR_CASE:
++		        {
++		        mhs = operand_[0]->MinimalHeaderSize(env);
++			for ( uint i = 0; i < cases_->size(); ++i )
++			        {
++				CaseExpr * ce = cases_->at(i);
++				if ( ce->index() )
++				        for ( uint j = 0; j < ce->index()->size(); ++j )
++						mhs = mhs_max(mhs, ce->index()->at(j)->MinimalHeaderSize(env));
++				mhs = mhs_max(mhs, ce->value()->MinimalHeaderSize(env));
++				}
++			}
++			break;
+ 		default:
+ 			// Evaluate every operand by default
+ 			mhs = 0;

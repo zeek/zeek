@@ -1,0 +1,71 @@
+
+@menu
+* OS platform(s) to use::
+* Required software::
+* Optional software::
+@end menu
+
+@node OS platform(s) to use
+@section OS platform(s) to use
+@cindex OS issues
+
+Bro will run on a variety of UNIX flavors such as FreeBSD, NetBSD, and Solaris, and will also
+run on Linux. Although Bro has been ported or can readily be ported to many flavors of Unix,
+Bro currently runs best on FreeBSD for the following reasons:
+
+@itemize
+@item Most current development and system integration efforts are taking place on FreeBSD.
+@item Compiling Bro on FreeBSD is more straightforward than on any other OS.
+@item Bro performance on this platform has been extensively tested.
+@item Policy scripts have been tested more on Free BSD than on any other OS.
+@item Bro documentation (such as this User Manual) is oriented more towards FreeBSD than
+any other flavor of Unix. Discussion of startup scripts, for example, focuses on files and
+directories found in FreeBSD systems.
+@end itemize
+
+An important consideration in your choice of operating system on which Bro will run is whether
+@command{BPF}  runs in the kernel. Bro uses @command{BPF} to ignore packets that Bro does not need to inspect, thereby
+greatly increasing Bro's efficiency. The fact that @command{BPF} is not available in Solaris is a problem,
+although Solaris at least has a @command{BPF} compatibility mode that to some degree solves the problem.
+@command{BPF} is also not available in most flavors of Linux, although certain flavors of Linux such as
+RedHat run libpcap, making it possible to filter packets that are captured in a manner that will
+make Bro run efficiently.
+
+
+@node Required software
+@section Required software
+
+Additional software is necessary to support certain Bro functions. Each package or tool must be
+in the Bro user's PATH (as explained more fully in Section 4):
+
+@itemize
+@item tcpdump: This enables you to use certain rules ("filters") to determine the packets that are
+and are not captured on a network. You can obtain tcpdump from ftp://ftp.ee.lbl.gov
+
+@item libpcap: Available from ftp.ee.lbl.gov. This is the packet capture library, developed at
+LBNL.
+
+@item tcpslice: Available from ftp.ee.lbl.gov. This allows for the editing and extraction of
+heuristic-based TCP/IP traffic captured via tcpdump.
+
+@item Perl: Available from ftp.perl.org.  Perl version XX or higher is necessary for some of the scripts to run.
+
+@item BIND 8 or 9: Available from ftp.isc.org.
+It is necessary to run a caching DNS server on the Bro machine so that when Bro is
+run to prep the entries in the policies that a more consistent resolver is used. (not clear??) This can cause
+policies to not be interpreted correctly, so this is an important factor in setting up a Bro box. 
+The local DNS server is really present further for the DNS entries to persist throughout Bro's
+operation and rotation of its logs (which requires that Bro's process be checkpointed).
+
+@end itemize
+
+@node Optional software
+@section Optional software
+
+The utility called @command{ipw} is also very useful. There is a package available for FreeBSD
+from ftp.freebsd.org. This allows one to simply specify an IP address and it will
+determine who is responsible for that IP range and provide contact information for that
+person or persons. 
+
+
+

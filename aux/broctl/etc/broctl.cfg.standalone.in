@@ -1,0 +1,22 @@
+# $Id: broctl.cfg.standalone.in 6811 2009-07-06 20:41:10Z robin $
+#
+# Global configuration file for a non-cluster, single-instance setup.
+#
+
+# Directories with local policies which are to be installed in addition
+# to the distribution's scripts. ':' separates multiple directories.
+#
+SitePolicyPath = ${policydir}/site
+
+# Top-level script file for local policy.
+SitePolicyStandalone = local
+
+# Local script prefixes (use this instead of the @prefix statement.)
+# Multiple prefixes are separated by a colon.
+Prefixes = local
+
+# Sends all mails to this address.
+MailTo = root@localhost
+
+# Logs debug information into spool/debug.log
+Debug = 1

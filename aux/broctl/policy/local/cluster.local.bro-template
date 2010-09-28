@@ -1,0 +1,52 @@
+# $Id: cluster.local.bro-template 6813 2009-07-07 18:54:12Z robin $
+#
+# Template for local site policy loaded manager and workers.
+# Customize as appropiate. 
+#
+# This file contains the main site policy. If in doubt, put any customizations
+# here or into a file loaded by this script. (The main exception to this rule
+# is all notice-filtering; see site-manager.bro). 
+#
+# Also note that enabling a particular kind of analysis via the cluster's 
+# "analysis command" only has an effect if the corresponding scripts are
+# loaded by this site policy. 
+
+@load alarm
+@load notice
+@load weird
+
+@load dpd
+@load detect-protocols
+@load detect-protocols-http
+@load dyn-disable
+@load inactivity        
+
+@load dns
+@load dns-lookup
+@load finger
+@load frag
+@load ftp
+@load icmp
+@load hot
+@load http-request
+@load http-reply
+@load ident
+@load irc   
+@load irc-bot
+@load login
+@load ntp
+@load pop3
+@load portmapper  
+@load scan
+@load smtp
+@load ssh
+@load ssl  
+@load synflood
+@load tcp
+@load tftp
+@load udp
+@load worm
+
+# Uncomment for profiling resource usage.
+# @load profiling 
+# redef expensive_profiling_multiple = 20;

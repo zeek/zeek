@@ -1,0 +1,112 @@
+#! /bin/sh
+
+######################################################################
+# prompt for input for a variable
+# $1 name of var
+# $2 defualt value
+# $3 prompt string (if empty get from config file )
+bro_config_input()
+{
+    if [ -z $1 ] ; then
+        name=""
+    else
+        name=$1
+    fi
+    
+    if [ -z $2 ] ; then
+        default=""
+    else
+        default=$2
+    fi
+
+    if [ -z "$3" ] ; then 
+        prompt=""
+    else
+        prompt=$3
+    fi
+
+    #empty it out
+    RESP=
+    desc=$prompt
+    
+    while [ -z "$RESP" ]; do
+        echo -n "$desc [$default]: " >&0
+        read RESP
+
+        case "$RESP" in 
+            [Yy]|[Yy][Ee][Ss]) ret="YES"; RESP="YES";;
+            [Nn]|[Nn][Oo] ) ret="NO"; RESP="NO" ;;
+            "") ret=$default ; RESP="$default" ;;
+            *) ret=$RESP;;
+        esac
+    done
+
+    # set back the value
+    eval $1=\$ret
+    eval $name=\$ret
+    return 1
+}
+
+
+echo "Issuing SSL certificate"
+echo "-----------------------"
+echo
+
+dir=$HOME
+
+if [ "x$BRO_CA_DIR" != "x" ]; then
+    dir=$BRO_CA_DIR
+fi
+
+bro_config_input "dir" $dir "CA installation directory"
+
+
+if [ ! -r $dir/openssl.cfg ]; then
+    echo "Could not find config file for root CA in $BRO_CA_DIR/openssl.cfg"
+    exit 1
+fi
+
+prefix=bro
+bro_config_input "prefix" $prefix "Prefix for the generated certificate request and private key"
+
+if [ "x$OPENSSL_CONF" = "x$BRO_CA_DIR/openssl.cfg" ]; then
+    OPENSSL_CONF=
+    echo "*Not* using $BRO_CA_DIR/openssl.cfg as configuration file"
+fi
+
+echo
+echo "I will now generate a certificate request. You will be asked"
+echo "for a passphrase with which the private key will be encrypted."
+echo "You will also be asked for a challenge phrase stored in the"
+echo "certificate request, which is ignored by OpenSSL."
+echo
+openssl req -newkey rsa:1024 -days 730 -nodes -keyout ${prefix}_key.pem -keyform PEM -out ${prefix}_req.pem
+
+if [ $? -ne 0 ]; then
+	echo "Couldn't create certificate request."
+	exit 1
+fi
+
+echo "- Certificate request created in ${prefix}_req.pem, with private key in ${prefix}_key.pem"
+echo
+echo "Issuing certificate using ${prefix}_req.pem"
+openssl ca -config $BRO_CA_DIR/openssl.cfg -days 730 -in ${prefix}_req.pem -notext -out ${prefix}_cert.pem
+
+if [ $? -ne 0 ]; then
+	echo "Couldn't create certificate. Make sure the parameters"
+	echo "of the certificate request are unique."
+	exit 1
+fi
+
+echo
+echo "- Certificate created in ${prefix}_cert.pem"
+
+cat ${prefix}_key.pem ${prefix}_cert.pem > ${prefix}.pem
+rm ${prefix}_key.pem ${prefix}_cert.pem ${prefix}_req.pem
+echo "- Created host certificate and key configuration in $prefix.pem"
+echo
+echo "Now configure your Bro agent to use"
+echo " * CA certificate $dir/ca_cert.pem"
+echo " * Host certificate $prefix.pem"
+echo
+echo "- Done."

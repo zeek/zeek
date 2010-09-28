@@ -1,0 +1,508 @@
+
+Bro is very customizable, and there are several ways to modify Bro to suit
+your environment. You can write your own policy analyzers using the Bro language.  
+Most sites will likely just want to do minor customizations, such as changing the level
+of an alert from "notice" to "alarm", or turning on or off particular analyzers.
+The chapter describes how to do these types of customizations.
+Information on how to write your own analyzers can be found in
+the @uref{http://www.bro-ids.org/Bro-reference-manual/, Bro Reference Manual}.
+
+The default policy scripts for Bro are all in $BROHOME/policy. These files should @strong{never} be 
+edited, as your edits will be lost when you upgrade Bro. To customize Bro for your site, you
+should make all your changes in $BROHOME/site. Many simple changes just require you
+to @emph{redefine} (using the @uref{
+http://www.bro-ids.org/Bro-reference-manual/Variables-Overview.html,
+@code{redef}} operator, 
+a Bro constant from a standard policy script with your own custom value. You can
+also write your own custom script to do whatever you want.
+
+For example, to add "guest" to the list of 
+@uref{http://www.bro-ids.org/Bro-reference-manual/hot_002dids-Module.html, forbidden_ids}
+(user names that generate a login alarm), you
+do this:
+
+@verbatim
+    redef forbidden_ids += { "guest", };
+@end verbatim
+
+In this chapter we give an overview of all the standard Bro policy scripts, what notices
+they generate, and how to customize the most commonly changed items, and how to write new policy 
+modules.
+
+@menu
+* Builtin Policy Files ::
+* Notices ::
+* Notice Actions ::
+* Customizing Builtin Policy::
+* Writing New Policy::
+* Signatures ::
+* Tuning Scan Detection ::
+* Other Customizations ::
+@end menu
+
+@node Builtin Policy Files
+@section Builtin Policy Files
+@cindex Policy Files
+
+
+Bro @emph{policy} script is the basic analyzer used by Bro to determine what network events are alarm worthy. 
+A policy can also specify what actions to take and how to report activities, as well as determine what activities to scrutinize.  
+Bro uses policies to determine what activities to classify as @emph{hot}, or questionable in intent. 
+These hot network sessions can then be flagged, watched, or responded to via other policies or applications determined to be necessary, such as calling @code{rst} to reset a connection on the local side, or to add an IP address block to a main router's ACL (Access Control List). 
+The policy files use the Bro scripting language, which is discussed in great detail in @uref{http://www.bro-ids.org/Bro-reference-manual/index.html, The Bro Reference Manual}.
+
+Policy files are loaded using an @code{@@load} command. The semantics of @code{@@load} are "load in this script if it hasn't already been loaded", so there is no harm in loading something in multiple policy scripts.
+The following policy scripts are included with Bro. The first set are all on by default, and the second group can be added by adding them to your @file{site/brohost.bro} policy file.
+
+Bro Analyzers are described in detail in the 
+@uref{http://www.bro-ids.org/Bro-reference-manual/Analyzers-and-Events.html, 
+Reference Manual}.
+These policy files are loaded by default:
+
+@quotation
+@multitable  @columnfractions .2 .7
+@item @code{site} @tab  defines local and neighbor networks from static config
+@item @code{alarm} @tab    open logging file for alarm events
+@item @code{tcp} @tab   initialize BPF filter for SYN/FIN/RST TCP packets
+@item @code{login} @tab  rlogin/telnet analyzer (or to ensure they are disabled)
+@item @code{weird} @tab  initialize generic mechanism for detecting unusual events
+@item @code{conn} @tab  access and record connection events
+@item @code{hot} @tab  defines certain forms of sensitive access
+@item @code{frag} @tab  process TCP fragments
+@item @code{print-resources} @tab  on exit, print resource usage information, useful for tuning
+@item @code{signatures} @tab   the signature policy engine
+@item @code{scan} @tab  generic scan detection mechanism
+@item @code{trw} @tab  additional, more sensitive scan detection  
+@item @code{http} @tab general http analyzer, low level of detail
+@item @code{http-request} @tab  detailed analysis of http requests
+@item @code{http-reply} @tab    detailed analysis of http replys 
+@item @code{ftp} @tab   FTP analysis
+@item @code{portmapper} @tab  record and analyze RPC portmapper requests
+@item @code{smtp} @tab  record and analyze email traffic
+@item @code{tftp} @tab  identify and log TFTP sessions
+@item @code{worm} @tab flag HTTP-based worm sources such as Code Red
+@item @code{software} @tab  track software versions; required for some signature matching
+@item @code{blaster} @tab looks for blaster worm 
+@item @code{synflood} @tab looks for synflood attacks
+@item @code{stepping} @tab used to detect when someone logs into 
+your site from an external net, and then soon logs into another site
+@item @code{reduce-memory} @tab sets shorter timeouts for saving state, 
+thus saving memory. If your Bro is using < 50% of you RAM, try not loading this
+@end multitable
+@end quotation
+
+These are @strong{not} loaded by default:
+
+@quotation
+@multitable  @columnfractions .14 .4 .03 .4
+@item @strong{Policy} @tab @strong{Description} @tab @tab @strong{Why off by default} 
+@item @code{drop} @tab    Include if site has ability to drop hostile remotes @tab @tab Turn on if needed
+@item @code{icmp} @tab    icmp analysis @tab @tab CPU intensive and low payoff 
+@item @code{dns} @tab   DNS analysis @tab @tab CPU intensive and low payoff
+@item @code{ident} @tab ident program analyzer @tab @tab historical, no longer interesting
+@item @code{gnutella} @tab looks for hosts running Gnutella @tab @tab Turn this on if you want
+to know about this 
+@item @code{ssl} @tab  ssl analyzer @tab @tab still experimental
+@item @code{ssh-stepping} @tab Detects stepping stones where both incoming and outgoing connections are ssh
+@tab @tab Possibly too CPU intensive (needs more testing)
+@item @code{analy} @tab Performs statistical analysis @tab @tab only used in off-line alalysis
+@item @code{backdoor} @tab Looks for backdoors @tab @tab only effective when also capturing bulk traffic
+@item @code{passwords} @tab Looks for clear text passwords @tab @tab may want to turn on if your site does not allow clear text passwords 
+@item @code{file-flush} @tab Causes all log files to be flushed every N seconds @tab @tab may want to turn on if you are doing "real time" analysis
+@end multitable
+@end quotation
+
+To modify which analyzers are loaded, edit or create a file in @file{$BROHOME/site}. 
+If you write your own new custom analyzer, it goes in this directory too. To disable an analyzer,
+add "@code{@@unload policy.bro}" to the beginning of the file 
+@file{$BROHOME/site/brohost.bro}, before
+the line "@code{@@load brolite.bro}". To add additional analyzers, add them @@load them 
+in @file{$BROHOME/site/brohost.bro}.
+
+
+@node Notices
+@section Notices
+@cindex Predefined Bro Notices
+
+The primary output facility in Bro is called a @emph{Notice}. 
+The Bro distribution includes a number of standard of Notices, listed below. The table 
+contains the name of the Notice, what Bro policy file generates it, and a short description
+of what the Notice is about.
+
+@quotation
+@multitable  @columnfractions .24 .15 .5 
+@item @strong{Notice} @tab @strong{Policy} @tab @strong{Description} 
+
+@item @code{AckAboveHole} @tab weird @tab Could mean packet drop; could also be a faulty TCP implementation 
+@item @code{AddressDropIgnored} @tab scan @tab A request to drop connectivity has been ignored ; (scan detected, but one of these flags is true:  !can_drop_connectivity, or never_shut_down, or never_drop_nets )
+@item @code{AddressDropped } @tab scan @tab Connectivity w/ given address has been dropped
+@item @code{AddressScan} @tab scan @tab The source has scanned a number of addrs
+@item @code{BackscatterSeen} @tab scan @tab Apparent flooding backscatter seen from source
+@item @code{ClearToEncrypted_SS} @tab stepping @tab  A stepping stone was seen in which the first part of the chain is a clear-text connection but the second part is encrypted. This often means that a password or passphrase has been exposed in the clear, and may also mean that the user has an incomplete notion that their connection is protected from eavesdropping.
+@item @code{ContentGap} @tab weird @tab Data has sequence hole; perhaps due to filtering
+@item @code{CountSignature}  @tab signatures @tab Signature has triggered multiple times for a destination
+@item @code{DNS::DNS_MappingChanged} @tab DNS @tab Some sort of change WRT previous Bro lookup
+@item @code{DNS::DNS_PTR_Scan} @tab dns @tab Summary of a set of PTR lookups (automatically generated once/day when dns policy is loaded)
+@item @code{DroppedPackets} @tab netstats @tab Number of packets dropped as reported by the packet filter
+@item @code{FTP::FTP_BadPort} @tab ftp @tab Bad format in PORT/PASV;
+@item @code{FTP::FTP_ExcessiveFilename} @tab ftp @tab  Very long filename seen
+@item @code{FTP::FTP_PrivPort} @tab ftp @tab Privileged port used in PORT/PASV
+@item @code{FTP::FTP_Sensitive} @tab ftp @tab Sensitive connection (as defined in @emph{hot})
+@item @code{FTP::FTP_UnexpectedConn} @tab ftp @tab FTP data transfer from unexpected src
+@item @code{HTTP::HTTP_SensitiveURI} @tab http @tab Sensitive URI in GET/POST/HEAD (default sensitive URIs defined http-request.bro; e.g.:  /etc.*\/.*(passwd|shadow|netconfig)
+@item @code{HotEmailRecipient} @tab smtp @tab XXX Need Example, default = NULL
+@item @code{ICMP::ICMPAsymPayload} @tab icmp @tab  Payload in echo req-resp not the same
+@item @code{ICMP::ICMPConnectionPair} @tab icmp @tab Too many ICMPs between hosts (default = 200)
+@item @code{IdentSensitiveID} @tab ident @tab Sensitive username in Ident lookup
+@item @code{LocalWorm} @tab worm @tab Worm seen in local host (searches for code red 1, code red 2, nimda, slammer) 
+@comment for PDF, need to break up long names 
+@ifnothtml
+@item @code{LoginForbidden ButConfused} @tab login  @tab Interactive login seen using forbidden username, but the analyzer was confused in following the login dialog, so may be in error.
+@end ifnothtml
+@ifnottex
+@item @code{LoginForbiddenButConfused} @tab login  @tab Interactive login seen using forbidden username, but the analyzer was confused in following the login dialog, so may be in error.
+@end ifnottex
+@ifnothtml
+@item @code{Multiple SigResponders} @tab signatures @tab  host has triggered the same signature on multiple responders
+@end ifnothtml
+@ifnottex
+@item @code{MultipleSigResponders} @tab signatures @tab  host has triggered the same signature on multiple responders
+@end ifnottex
+@item @code{MultipleSignatures} @tab signatures @tab host has triggered many signatures
+@item @code{Multiple SigResponders} @tab signatures @tab  host has triggered the same signature on multiple responders
+@item @code{OutboundTFTP} @tab tftp  @tab outbound TFTP seen
+@item @code{PasswordGuessing} @tab scan @tab source tried too many user/password combinations (default = 25)
+@item @code{PortScan} @tab scan  @tab the source has scanned a number of ports
+@item @code{RemoteWorm} @tab worm @tab worm seen in remote host
+@ifnothtml
+@item @code{Resolver Inconsistency} @tab  dns @tab  the answer returned by a DNS server differs from one previously returned
+@end ifnothtml
+@ifnottex
+@item @code{ResolverInconsistency} @tab  dns @tab  the answer returned by a DNS server differs from one previously returned
+@end ifnottex
+@item @code{ResourceSummary} @tab print-resources @tab prints Bro resource usage
+@ifnothtml
+@item @code{Retransmission Inconsistency} @tab weird @tab possible evasion; usually just bad TCP implementation
+@end ifnothtml
+@ifnottex
+@item @code{RetransmissionInconsistency} @tab weird @tab possible evasion; usually just bad TCP implementation
+@end ifnottex
+@item @code{SSL_SessConIncon} @tab ssl @tab session data not consistent with connection
+@item @code{SSL_X509Violation} @tab ssl @tab blanket X509 error
+@item @code{ScanSummary} @tab scan @tab a summary of scanning activity, output once / day
+@item @code{SensitiveConnection} @tab conn @tab connection marked "hot", See: @uref{http://www.bro-ids.org/Bro-reference-manual/hot_002dids-Module.html, Reference Manual section on hot ids} for more information. 
+@item @code{SensitiveDNS_Lookup} @tab dns @tab DNS lookup of sensitive hostname/addr; default list of sensitive hosts = NULL 
+@item @code{SensitiveLogin} @tab login @tab interactive login using sensitive username (defined in 'hot')
+@ifnothtml
+@item @code{Sensitive PortmapperAccess} @tab portmapper @tab the given combination of the service looked up via the pormapper, the host requesting the lookup, and the host from which it's requiesting it is deemed sensitive
+@end ifnothtml
+@ifnottex
+@item @code{SensitivePortmapperAccess} @tab portmapper @tab the given combination of the service looked up via the pormapper, the host requesting the lookup, and the host from which it's requiesting it is deemed sensitive
+@end ifnottex
+@item @code{SensitiveSignature} @tab signatures @tab  generic for alarm-worthy
+@ifnothtml
+@item @code{SensitiveUsername InPassword} @tab login @tab During a login dialog, a sensitive username (e.g., "rewt") was seen in the user's password.  This is reported as a notice because it could be that the login analyzer didn't track the authentication dialog correctly, and in fact what it thinks is the user's password is instead the user's username.
+@end ifnothtml
+@ifnottex
+@item @code{SensitiveUsernameInPassword} @tab login @tab During a login dialog, a sensitive username (e.g., "rewt") was seen in the user's password.  This is reported as a notice because it could be that the login analyzer didn't track the authentication dialog correctly, and in fact what it thinks is the user's password is instead the user's username.
+@end ifnottex
+@item @code{SignatureSummary} @tab signatures @tab summarize number of times a host triggered a signature (default = 1/day)
+@item @code{SynFloodEnd} @tab synflood @tab end of syn-flood against a certain victim. 
+A syn-flood is defined to be more than SYNFLOOD_THRESHOLD (default = 15000) new connections
+have been reported within the last SYNFLOOD_INTERVAL (default = 60 seconds) for a certain IP.
+@item @code{SynFloodStart} @tab synflood @tab start of syn-flood against a certain victim
+@item @code{SynFloodStatus} @tab synflood @tab report of ongoing syn-flood
+@item @code{TRWAddressScan} @tab trw @tab source flagged as scanner by TRW algorithm
+@item @code{TRWScanSummary} @tab trw @tab summary of scanning activities reported by TRW
+@ifnothtml
+@item @code{Terminating Connection} @tab conn @tab "rst" command sent to connection origin, connection terminated, triggered in the following policies: ftp and login: forbidden user id, hot (connection from host with spoofed IP address)
+@end ifnothtml
+@ifnottex
+@item @code{TerminatingConnection} @tab conn @tab "rst" command sent to connection origin, connection terminated, triggered in the following policies: ftp and login: forbidden user id, hot (connection from host with spoofed IP address?)
+@end ifnottex
+@item @code{W32B_SourceLocal} @tab blaster @tab report a local W32.Blaster-infected host
+@item @code{W32B_SourceRemote} @tab blaster @tab report a remote W32.Blaster-infected host
+@item @code{WeirdActivity} @tab Weird @tab generic unusual, alarm-worthy activity
+@end multitable
+@end quotation
+
+Note that some of the Notice names start with "ModuleName::" (e.g.: FTP::FTP_BadPort)
+and some do not. This is becuase not all of the Bro Analyzers
+have been converted to use the @uref{http://www.bro-ids.org/Bro-reference-manual/Module-Facility.html,
+Modules facility} yet.  Eventually all notices will start with "ModuleName::".
+
+To get a list of all Notices that your particular Bro configuration might generate,
+you can type:
+@example
+  sh . $BROHOME/etc/bro.cfg; bro -z notice $BRO_HOSTNAME.bro
+@end example
+
+@node Notice Actions
+@section Notice Actions
+@cindex Customizing Notice Actions
+
+Notices that are deemed particularly important
+are called @emph{Alarms}. Alarms are sent to the alarm log file, and to 
+optionally to @emph{syslog}. 
+
+The standard Bro distribution supports a number of types of @emph{notice actions}, these are:
+
+@quotation
+@multitable  @columnfractions .3 .5
+@item @code{NOTICE_IGNORE} @tab   do nothing
+@item @code{NOTICE_FILE} @tab  send to 'notice' file
+@item @code{NOTICE_ALARM_ALWAYS} @tab   send to alarm file and @emph{syslog}
+@item @code{NOTICE_ALARM_PER_CONN} @tab  send to alarm file once per connection
+@item @code{NOTICE_EMAIL} @tab  send to alarm file and send email
+@item @code{NOTICE_PAGE} @tab  send to alarm file and send to pager
+@end multitable
+@end quotation
+
+It is also possible to define your own custom notice actions.
+
+By default, all notices are set to NOTICE_ALARM_ALWAYS except for the following:
+@example
+ContentGap, AckAboveHole, AddressDropIgnored, PacketsDropped, 
+RetransmissionInconsistency
+@end example
+
+By default all Alarms are also sent to @emph{syslog}. To disable this, add:
+
+@verbatim
+   redef enable_syslog = F;
+@end verbatim
+
+To change the default notice action for a given notice, add something like this to your @file{site/brohost.bro} file:
+
+@verbatim
+   redef notice_action_filters += {
+        [[WeirdActivity, ContentGap]] = ignore_notice,
+   };
+@end verbatim
+
+This will cause the Notices @code{WeirdActivity} and @code{ContentGap} to no longer get logged anywhere.
+To send these Notices to the Notice log file only, and not to the Alarm log, add this:
+
+@verbatim
+   redef notice_action_filters += {
+        [[WeirdActivity, ContentGap]] = file_notice,
+   };
+@end verbatim
+
+For NOTICE_EMAIL and NOTICE_PAGE, 
+email is sent using the script specified by the mail_script variable
+(default: "mail_notice.sh"), which must be in $PATH. 
+To activate this, $mail_dest must be set. 
+Email is only sent if Bro is reading live traffic.
+
+For example, to send email on TerminatingConnection and FTP_Sensitive notices, add
+something like this:
+
+@verbatim
+redef mail_dest = "youremail@yoursite.edu";
+
+redef notice_action_filters += {
+    [[TerminatingConnection, FTP::FTP_Sensitive]] = send_email_notice,
+};
+
+@end verbatim
+
+
+@comment  XXX what if someone wanted to define their own new notice action. What would they do?
+
+@node Customizing Builtin Policy 
+@section Customizing Builtin Policy 
+@cindex Customizing Builtin Policy 
+
+The default policy scripts for Bro are all in $BROHOME/policy. Remember that 
+these files should @strong{never} be 
+edited, as your edits will be lost when you upgrade Bro. To customize Bro for your site, you
+should make all your changes in $BROHOME/site. Many simple changes just require you
+to @emph{redefine} (using the @uref{
+http://www.bro-ids.org/Bro-reference-manual/Variables-Overview.html,
+@code{redef}} operator, 
+a Bro constant from a standard policy script with your own custom value. You can
+also write your own custom script to do whatever you want.
+
+Here are some example of the types of things you may want to customize.
+
+To add "guest" to the list of 
+@uref{http://www.bro-ids.org/Bro-reference-manual/hot_002dids-Module.html, forbidden_ids}
+(user names that generate a login alarm), you
+do this:
+
+@verbatim
+    redef forbidden_ids += { "guest", };
+@end verbatim
+
+To add a new rootkit string to HTTP
+@uref{http://www.bro-ids.org/Bro-reference-manual/http_002drequestbro.html, sensitive_URIs}:
+@verbatim
+   redef HTTP::sensitive_URIs += /^.*rootdown.pl.*$/;
+@end verbatim
+
+
+@node Writing New Policy
+@section Writing New Policy 
+@cindex  Writing New Policy
+
+For example, if your site only allows external http and mail to a small, 
+controlled lists of hosts, you could write a new .bro file containing this:
+
+@verbatim
+const web_servers = { www.lbl.gov, www.bro-ids.org, };
+const mail_servers = { smtp.lbl.gov, smtp2.lbl.gov, };
+
+const allow_my_services: set[addr, port] = {
+        [mail_servers, smtp],
+        [web_servers, http],
+};
+@end verbatim
+
+Bro can then generate an Alarm or even terminate the connection for policy violations.
+For example:
+
+@verbatim
+
+event connection_established(c: connection)
+{
+   local id = c$id;
+   local service = id$resp_p;
+   local inbound = is_local_addr(id$resp_h);
+
+   if ( inbound && [id$resp_h, service] !in allow_my_services )
+      NOTICE ([$note=SensitiveConnection, $conn=c,
+		$msg=fmt("hot: %s", full_id_string(c)) ]);
+    if ( inbound && service in terminate_successful_inbound_service )
+            terminate_connection(c);
+}
+@end verbatim
+
+To test this you might do the following. First,
+generate some "offline" data to play with:
+
+@example
+ # tcpdump -s 0 -w trace.out port smtp or port http 
+@end example
+
+Kill off the tcpdump after capturing traffic for a few minutes (use ctrl-C).
+Then add the above Bro code to your hostname.bro file, and 
+run Bro against this captured trace file: 
+ 
+@example
+ # setenv BROHOME /usr/local/bro
+ # setenv BROPATH $BROHOME/site:$BROHOME/policy
+ # bro -r trace.out hostname.bro       
+@end example
+
+
+
+
+@node Signatures
+@section Signatures
+@cindex Signatures
+
+@include Bro-signatures.texi
+
+@node Tuning Scan Detection
+@section Tuning Scan Detection 
+@cindex Tuning Scan Detection
+
+There are a large number of tunable parameters in the scan analyzer, all of which
+are described in @uref{http://www.bro-ids.org/Bro-reference-manual/scan-Analyzer.html,
+the reference manual}. Most of these parameters should be fine for all sites. The only settings
+that you may want to tune are:
+
+@itemize
+@item report_peer_scan: Generate a log message whenever a remote host has attempted to connect to the given number of distinct hosts. Default = @{ 100, 1000, 10000, @}.
+@item report_outbound_peer_scan: Generate a log message whenever a local host has attempted to connect to the given number of remost hosts. Default = @{ 100, 1000, @}.
+
+@item skip_services: list of ports to ignore scans on, because they often gets scanned
+by legitimate (or at least common) services. The default list can be found
+in the brolite.bro file.
+@end itemize
+
+If you want enable ICMP scan detection, set these:
+
+@example
+redef ICMP::detect_scans = T;
+redef ICMP::scan_threshold = 100;
+@end example
+
+@node Other Customizations
+@section Other Customizations
+@cindex Scan Thresholds
+
+There are a number of things you may wish to customize.
+
+@strong{hot_ids}
+
+The policy file @uref{http://www.bro-ids.org/Bro-reference-manual/hot_002dids-Module.html,
+@file{hot-ids.bro}} contains a number of constants that you
+might want to customize by "redef"ing them in your brohost.bro policy file.
+These are all used to generate FTP and login alarms (SensitiveConnection Notice) 
+for suspicious users.
+The user ID's that are in @code{hot_ids} and not in @code{always_hot_ids}
+are only hot upon successful login. For details see the
+@uref{http://www.bro-ids.org/Bro-reference-manual/hot_002dids-Module.html,
+Bro Reference Manual}.
+
+@quotation
+@multitable  @columnfractions .25  .6
+@item @strong{constant} @tab @strong{Defaults} 
+@item forbidden_ids @tab "uucp", "daemon", "rewt", "nuucp",
+        "EZsetup", "OutOfBox", "4Dgifts",
+        "ezsetup", "outofbox", "4dgifts", "sgiweb"
+	"r00t", "ruut", "bomb", "backdoor",
+	"bionic", "warhead", "check_mate", "checkmate", "check_made",
+	"themage", "darkmage", "y0uar3ownd", "netfrack", "netphrack"
+@item always_hot_ids @tab "lp", "demos", 
+ 	"retro", "milk", "moof", "own", "gdm", "anacnd",
+	+ forbidden_ids 
+@item hot_ids @tab "root", "system", "smtp", "sysadm", "diag", "sysdiag", "sundiag",
+	"sync", "tutor", "tour",
+ 	"operator", "sys", "toor", "issadmin", "msql", "sysop", "sysoper",
+         + always_hot_ids
+
+@end multitable
+@end quotation
+
+@strong{Input/Output Strings}
+
+The policy files login.bro and ftp.bro both contain a list of input and output strings
+that indicate suspicious activity. In you wish to add anything to this list, you
+may want to @code{redef} one of these. 
+@example
+login.bro: see @uref{http://www.bro-ids.org/Bro-reference-manual/login-variables.html,
+input_trouble and output_trouble}
+ftp.bro: see @uref{http://www.bro-ids.org/Bro-reference-manual/ftp-variables.html,
+ftp_hot_files}
+@end example
+
+@strong{Sensitive URIs}
+
+The policy file http-request.bro contain a list of http URI's 
+that indicate suspicious activity. In you wish to add anything to this list, you
+may want to @code{redef} one of these. 
+
+@comment XXX need to explain how this relates to signatures, and when to use each.
+
+@example
+sensitive_URIs 
+sensitive_post_URIs 
+@end example
+
+@strong{Log Files}
+
+@code{redef} this to rotate the log files every N seconds
+@example
+log_rotate_interval (default = 0 sec, don't rotate) 
+@end example
+
+@code{redef} this to rotate the log files when they get this big
+@example
+log_max_size (default = 250e6, rotate when any file exceeds 250 MB)
+@end example
+
+@comment XXX: what else should we document here?
+

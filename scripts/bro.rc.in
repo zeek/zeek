@@ -1,0 +1,1098 @@
+#!/bin/sh
+
+# $Id: bro.rc.in 4620 2007-07-09 21:23:52Z vern $
+#
+# Start script for running Bro.
+#
+# This will run one instance of Bro.  If there is a need to run more than one
+# instance at a time then copy this script to a new file and change the name
+# to something else.
+#
+# chkconfig: - 57 30
+#
+# description: Bro is a highly customizable intrusion detection system \
+#	developed at Lawrence Berkeley National Labs.
+# processname: bro
+# pidfile: /var/run/bro-lite/pid
+# config: /etc/sysconfig/bro-lite
+#
+# Written by Roger Winslow rwinslow@lbl.gov
+
+# Variables which are exported on a startup and needed by Bro
+# This variable used to be called BRO_ID
+# BRO_LOG_SUFFIX
+
+# For tasks to complete before and after Bro starts please edit the following
+# scripts to suit your needs.  For those of you familiar with dhclient this
+# uses the same idea.
+#  Before Bro starts $BROHOME/etc/bro.rc-hooks.sh
+
+# See the bottom of this script for an explanation of how this all works.
+# I'll try my best to be clear....
+
+prog="bro.rc"
+
+RETVAL=0
+
+# picked up from configure at install time
+BROHOME="@prefix@"
+export BROHOME
+
+# Set the environment.
+source_config="${BROHOME}/etc/bro.cfg"
+
+# Location of bro-hooks.sh script
+bro_hooks="${BROHOME}/etc/bro.rc-hooks.sh"
+
+# Set the full path to this script as called
+if [ `echo ${0} | grep -E "^/"` ]; then
+	this_script="${0}"
+else
+	this_script="`pwd`/${0}"
+fi
+
+# Set the args as passed to this script
+cur_args="$*"
+
+# Load the source config
+if ! [ -f ${source_config} ] || ! . "${source_config}"; then
+	echo "${prog}: Unable to load the source config file at ${source_config}" >&2
+	exit 1
+fi
+
+# Source the bro_hooks script if exists and readable
+if ! [ -f "${bro_hooks}" ] || ! . "${bro_hooks}"; then
+	echo "${prog}: Unable to source the bro.rc-hooks.sh script at ${bro_hooks}" >&2
+fi
+
+syslog_cmd="logger"
+run_dir="${BRO_RUNTIME_DIR}"
+pidfile="${run_dir}/pid"
+start_time_file="${run_dir}/start_time"
+active_log_file="${BROLOGS}/active_log"
+autorestart_file="${run_dir}/autorestart"
+alternate_user_id=${BRO_USER_ID}
+renice_checkpoint_level=15
+time_between_restarts=2
+minimum_mortality_time=60
+
+# Setting DEBUG to 1 will prevent the following
+ # forking of the Bro process into the background
+ # any autorestart features
+ # any bro.rc-hooks.sh functions
+ # writing of data to $BRO_RUNTIME_DIR
+ # redirection of STDERR and STDOUT to the info file
+DEBUG=0
+
+# Export a few items that Bro needs to run
+export BROLOGS
+export BROPATH
+export BROHOME
+export PATH="${BROHOME}/bro/bin:${BROHOME}/bro/scripts:/usr/local/bin:/usr/local/sbin:${PATH}" 
+
+# Make sure that the $BRO_RUNTIME_DIR exists and is writtable
+if [ ! -d "${BRO_RUNTIME_DIR}" ]; then
+	mkdir "${BRO_RUNTIME_DIR}"
+	if [ "$?" != "0" ]; then
+		echo "${prog}: Failed to create the runtime directory at ${BRO_RUNTIME_DIR}" >&2
+		echo "${prog}: Unable to continue" >&2
+		exit 1
+	fi
+
+	if [ "${alternate_user_id}x" != "x" ] && [ "${alternate_user_id}" != "${USER}" ]; then
+		chown ${alternate_user_id} "${BRO_RUNTIME_DIR}"
+		if [ "$?" != "0" ]; then
+			echo "${prog}: Failed to change owner on runtime directory ${BRO_RUNTIME_DIR}" >&2
+			echo "${prog}: Unable to continue" >&2
+			exit 1
+		fi
+	fi
+fi
+
+start() {
+	# Make a few sanity checks
+	# Make sure the BROLOGS directory is writeable
+	if [ ! -d ${BROLOGS} ] || [ ! -w ${BROLOGS} ]; then
+		echo "${prog}: BROLOGS directory at ${BROLOGS} is not writable." >&2
+		echo "${prog}: Unable to continue" >&2
+		exit 1
+	fi
+
+	# Check to make sure that the Bro executable is at least --x
+	if [ ! -x "${BRO}" ]; then
+		echo "${prog}: Unable to execute the bro binary at ${BRO}" >&2
+		echo "${prog}: Unable to continue" >&2
+		exit 1
+	fi
+
+	# Check to make sure that bro is not already running
+	local pid
+	if [ -f "${pidfile}" ]; then
+		pid=`cat "${pidfile}"`
+
+		if [ "${pid}x" = "x" ]; then
+			cleanup
+		else
+			local _is_running
+			pidisrunning ${pid} "${BRO}"
+			_is_running=$?
+			if [ "${_is_running}" != "0" ]; then
+				cleanup
+			else
+				echo "${prog}: already running with a pid of ${pid}"
+				# errno code for EEXIST = 17
+				return 17
+			fi
+		fi
+	fi
+
+	# Check to make sure that a start policy has been specified
+	if [ "${BRO_START_POLICY}x" = "x" ]; then
+		echo "${prog}: No start policy file specified." >&2
+		echo "${prog}: Unable to continue" >&2
+		return 1
+	fi
+
+	# Change to the BROLOGS directory
+	local _did_cd
+	cd "${BROLOGS}"
+	_did_cd=$?
+
+	if [ "${_did_cd}" != "0" ]; then
+		echo "${prog}: Failed to change to BROLOGS directory at ${BROLOGS}" >&2
+		echo "${prog}: Unable to continue" >&2
+		return 1
+	fi
+
+	# Start Bro
+	local _start_result
+	echo -n "${prog}: Starting "
+
+	# What type of start should be performed
+	if [ "${DEBUG}" = '1' ]; then
+		startbro
+		return
+	elif [ "${AUTO_RESTART}" = 't' ]; then
+		autorestart &
+	else
+		startbro &
+	fi
+
+	sleep 1
+	_start_result=$?
+
+	# Check the return code to see if it started
+	local _failed_check_count
+	_failed_check_count=0
+	if [ "${_start_result}" = '0' ] || [ "${_start_result}x" = 'x' ]; then
+	local _loop_count
+	_loop_count=0
+		while [ ${_loop_count} -lt 12 ]
+		do
+			_loop_count=$(( ${_loop_count} + 1 ))
+			echo -n '.'
+
+			# Sometimes the result from the fork takes a few seconds
+			# Check if was not set yet
+			if [ "${_start_result}x" = 'x' ]; then
+				_start_result=$?
+
+				if [ "${_start_result}x" != 'x' ] && [ "${_start_result}" != '0' ]; then
+					break
+				fi
+			else
+				# Use the status function to see if Bro is still up
+				local _status_result
+				status 2>/dev/null >/dev/null
+				_status_result=$?
+
+				if [ "${_status_result}" != '0' ] || [ "${_start_result}" != '0' ]; then
+					_failed_check_count=$(( ${_failed_check_count} + 1 ))
+					if [ ${_failed_check_count} -gt 11 ]; then
+						_start_result=1
+						break
+					fi
+				fi
+			fi
+			sleep 1
+		done
+	fi
+
+	if [ "${_start_result}" = '0' ]; then
+		echo ". SUCCESS"
+	else
+		echo ". FAILED"
+	fi
+
+	return ${_start_result}
+}
+
+startbro() {
+
+	local cur_date
+	local _already_running
+	local trace_file
+	local cmd_opts
+	local basic_cmd_opts
+	cur_date=`date +%y-%m-%d_%H.%M.%S`
+	BRO_LOG_SUFFIX="${BRO_HOSTNAME}.${cur_date}"
+	export BRO_LOG_SUFFIX
+	trace_file="${BROLOGS}/trace.${BRO_LOG_SUFFIX}"
+	info_log="${BROLOGS}/info.${BRO_LOG_SUFFIX}"
+	cmd_opts="${BRO_OPTS}"
+
+	# Check if Bro is already running
+	status 2>/dev/null >/dev/null
+	_already_running=$?
+	if [ "${_already_running}" = '0' ]; then
+		return 17
+	fi
+
+	# Build the command line.
+	# Should a trace file be created
+	if [ "${BRO_CREATE_TRACE_FILE}" = 'YES' ] || [ "${BRO_CREATE_TRACE_FILE}" = 'yes' ]; then
+		cmd_opts="${cmd_opts} -w ${trace_file}"
+	fi
+
+	# If a specific interface to capture on is specified then add it in
+	# This is a space delimited list
+	if [ "${BRO_CAPTURE_INTERFACE}x" != 'x' ]; then
+		for _intf in ${BRO_CAPTURE_INTERFACE}
+		do
+			cmd_opts="${cmd_opts} -i ${_intf}"
+		done
+	fi
+
+	# Append the Bro policy which to start
+	if [ "${BRO_START_POLICY}x" != 'x' ]; then
+		cmd_opts="${cmd_opts} ${BRO_START_POLICY}"
+	else
+		echo "${prog}: No start policy file specified." >&2
+	fi
+
+	local new_pid
+	local bro_result
+	cd "${BROLOGS}"
+
+	# Check whether DEBUG is set.  If so then keep Bro attached to the shell
+	# and don't fork.
+	if [ "${DEBUG}" != '0' ]; then
+		"${BRO}" ${cmd_opts}
+		return
+	# Run bro.  Redirect STDERR and STDOUT to $info_log
+	else
+		"${BRO}" ${cmd_opts} 2>>"${info_log}" >>"${info_log}" &
+	fi
+
+	bro_result=$?
+	new_pid=$!
+
+	# Check the exit code returned by Bro
+	if [ "${bro_result}" = '0' ] || [ -z "${bro_result}" ]; then
+		local _loop_count
+		_loop_count=0
+		while [ ${_loop_count} -lt 10 ]
+		do
+			_loop_count=$(( ${_loop_count} + 1 ))
+			if [ -f "${info_log}" ]; then
+				if [ "`grep -E '^listening on' ${info_log}`x" != 'x' ]; then
+					break
+				fi
+			fi
+
+			# break now if the process returned a non-zero value
+			if [ "${bro_result}x" != 'x' ] && [ "${bro_result}" != '0' ]; then
+				break
+			fi
+			sleep 1
+		done
+	fi
+
+	# check to make sure that Bro actually started
+	if [ "${new_pid}x" = 'x' ] || [ "${bro_result}" != '0' ]; then
+		false
+	else
+		pidisrunning ${new_pid} "${BRO}"
+		_is_running=$?
+		if [ "${_is_running}" != '0' ]; then
+			bro_result=1
+		fi
+	fi
+
+	if [ "${bro_result}" != '0' ]; then
+		echo "${prog}: Failed to start Bro"
+		if [ -f "${info_log}" ] && [ -s "${info_log}" ]; then
+			cat "${info_log}"
+			ERROR_MESSAGE=`cat "${info_log}"`
+		else
+			ERROR_MESSAGE='Unknown error, no messages recieved on STDERR or STDOUT'
+		fi
+
+		# Call the post_start_hook function
+		LOG_SUFFIX="${BRO_LOG_SUFFIX}"
+		EXIT_CODE=${bro_result}
+
+		"${syslog_cmd}" -t "${prog}" "Bro has failed to start. ${ERROR_MESSAGE}"
+
+		post_start_hook
+
+		return ${bro_result}
+	else
+		"${syslog_cmd}" -t "${prog}" "Bro process (${new_pid}) has started"
+	fi
+
+	# Write the pid out to file
+	echo ${new_pid} > "${pidfile}"
+
+	# Write the active log suffix out to file
+	echo "${BRO_LOG_SUFFIX}" > "${active_log_file}"
+
+	# Write the start date out to file
+	local _start_time
+	_start_time=`date`
+	echo "${_start_time}" > "${start_time_file}"
+
+	# Write the auto-restart status out to file
+	if [ "${AUTO_RESTART}" = 't' ]; then
+		echo "ON" > "${autorestart_file}"
+	else
+		echo "OFF" > "${autorestart_file}"
+	fi
+
+	echo "Bro Version: `\"${BRO}\" -v 2>&1 | awk ' { print $3 } '`" >> "${info_log}"
+	echo "Started with the following command line options: ${cmd_opts}" >> "${info_log}"
+
+	# Get the BPF capture filter
+	local _print_filter
+	local _print_filter_result
+	# Strip out the trace file parameter if it exists
+	basic_cmd_opts=`removetraceopt "${cmd_opts}"`
+	_print_filter=`capturefilter "${basic_cmd_opts}"`
+	_print_filter_result=$?
+	if [ "${_print_filter_result}" = '0' ]; then
+		echo "Capture filter: ${_print_filter}" >> "${info_log}"
+	else
+		echo 'Capture filter: <not available>' >> "${info_log}"
+	fi
+
+	# Call the post_start_hook function
+	LOG_SUFFIX="${BRO_LOG_SUFFIX}"
+	PID=${new_pid}
+	EXIT_CODE=""
+	ERROR_MESSAGE=""
+	START_TIME="${_start_time}"
+	END_TIME=""
+
+	post_start_hook
+
+	local _exitwatch_result
+	exitwatch ${new_pid}
+	_exitwatch_result=$?
+
+	return ${_exitwatch_result}
+}
+
+autorestart() {
+
+	local _cur_restart_count
+	local _max_restart_count
+	local _called_from		# name of function that called autorestart if any
+	local _failed_first_start
+	local _start_res
+	local _minimum_life
+	_minimum_life=$(( `epochtime` + ${minimum_mortality_time} ))
+
+	_called_from="${1}"
+	_cur_restart_count=0
+	_max_restart_count=${BRO_MAX_RESTART_ATTEMPTS}
+
+	# If _max_restart_count is not defined or is less than 1 then
+	# this equats to no restart limit.
+	if [ "${_max_restart_count}x" = 'x' ] || [ ${_max_restart_count} -lt '1' ]; then
+		_cur_restart_count=-2
+		_max_restart_count=-1
+	fi
+
+	# loop and restart bro until told to exit
+	while [ ${_cur_restart_count} -lt ${_max_restart_count} ]
+	do
+		local _cur_epoch_time
+		# startbro will block until Bro exits
+		startbro
+		_start_res=$?
+
+		_cur_epoch_time="`epochtime`"
+
+		if [ "${_start_res}" = '0' ]; then
+			# Bro exited normally due to a planned stop
+			break
+		elif [ "${_start_res}" = '17' ]; then
+			echo "${prog}: Unable to begin autorestart.  Stop the running instance of Bro first." >&2
+			echo "${prog}: Unable to continue" >&2
+			break
+		elif [ ${_cur_epoch_time} -lt ${_minimum_life} ]; then
+			_failed_first_start=1
+			break
+		fi
+
+		# If _max_restart_count is greater than 0 increment _cur_restart_count
+		# otherwise don't because no restart limit has been set.
+		if [ ${_max_restart_count} -gt '0' ]; then
+			_cur_restart_count=$(( ${_cur_restart_count} + 1 ))
+		fi
+
+		sleep ${time_between_restarts}
+		"${syslog_cmd}" -t "${prog}" "Autorestarting Bro due to unexpected exit"
+	done
+
+	# Check why the loop exited
+	if ! [ ${_cur_restart_count} -lt ${_max_restart_count} ]; then
+		# Stop Bro, this will force a cleanup of the run-time directory
+		stopbro 2> /dev/null 1> /dev/null
+		EXIT_CODE=${_start_res}
+		ERROR_MESSAGE="Exceeded maximum autorestart count of ${BRO_MAX_RESTART_ATTEMPTS}. No further attempts will be made to restart Bro"
+		END_TIME=`date`
+
+		# Call the post_exit_hook to report the error
+		post_exit_hook
+
+		return 1
+	elif [ "${_failed_first_start}" = '1' ]; then
+		# Bro failed on the very first start and this was not during a checkpoint.
+		# No further restarts will be attempted.
+		"${syslog_cmd}" -t "${prog}" "Bro process failed on first start attempt.  No further restart attempts will be made."
+		EXIT_CODE=""
+		ERROR_MESSAGE="Failed on first start attempt.  No further restart attempts will be made."
+
+		# Call the post_exit_hook to report the error
+		post_exit_hook
+
+		return ${_start_res}
+	fi
+
+	return 0
+}
+
+
+stopbro() {
+	# Check to see if bro is running
+	local _pid
+	local _bro_is_running
+	local _status_result
+
+	status 2>/dev/null >/dev/null
+	_status_result=$?
+
+	if [ "${_status_result}" = '0' ]; then
+		# try and stop it
+		local _kill_result
+		echo -n "${prog}: Stopping "
+		_pid=`cat "${pidfile}"`
+		_bro_is_running="t"
+
+		cleanup
+		for _i in 1 2; do
+			echo -n '.'
+			sleep 1
+		done
+
+		kill -TERM ${_pid}
+		_kill_result=$?
+		if [ "${_kill_result}" = "0" ]; then
+			true
+		else
+			echo "${prog}: Failed to stop process with pid ${_pid}"
+			return 1
+		fi
+	else
+		_bro_is_running="f"
+		if [ -f "${pidfile}" ]; then
+			cleanup
+		fi
+	fi
+
+	if [ "${_bro_is_running}" = "f" ]; then
+		echo "${prog}: No running process to stop"
+		return 0
+	fi
+
+	# Now see if the process is still hanging around.
+	# Bro can stick around a long time as it writes out logs and writes it's
+	# state info to disk
+	local _is_dead
+	for _i in 1 2 3 4 5 6 7 8 9 10; do
+		_is_dead=""
+		pidisrunning ${_pid} "${BRO}"
+		_is_dead=$?
+		echo -n "."
+		if [ "${_is_dead}" != "0" ]; then
+			break
+		fi
+		sleep 1
+	done
+
+	if [ "${_is_dead}" != "0" ]; then
+		echo " SUCCESS !"
+
+	else
+		echo "${prog}: Process (${_pid}) has still not exited."
+		echo "${prog}: If it has not exited after ${BRO_MAX_SHUTDOWN_TIME} seconds from now it will be forced to exit."
+		# Create a backgound process to watch the terminated Bro
+		# If the process still exists after the BRO_MAX_SHUTDOWN_TIME
+		# then send it a SIG_KILL
+		stopwatch ${_pid} "${BRO}" &
+	fi
+
+	return 0
+}
+
+
+checkpoint() {
+	# Check to make sure bro is already running
+	local _old_pid=""
+	local _old_bro_running
+	local _status_result
+
+	echo "${prog}: Beginning the checkpoint process"
+	status 2>/dev/null >/dev/null
+	_status_result=$?
+
+	if [ "${_status_result}" = '0' ]; then
+		_old_pid=`cat "${pidfile}"`
+		_old_bro_running="t"
+	else
+		_old_bro_running="f"
+	fi
+
+	if [ "${_old_bro_running}" = "f" ]; then
+		cleanup
+		echo "${prog}: No current instance of Bro is running."
+		return 1
+	fi
+
+	echo "${prog}: Starting a new Bro instance."
+	if [ "${_old_bro_running}" = "t" ]; then
+		echo "${prog}: Will wait for ${BRO_CHECKPOINT_OVERLAP_TIME} seconds before stopping the old Bro instance."
+	fi
+
+	# start a new Bro
+	"${syslog_cmd}" -t "${prog}" "Starting the checkpoint process (${_old_pid})"
+	cleanup
+	${this_script} start > /dev/null &
+
+	# Create a background process to stop the old Bro process if
+	# it is still running
+	if [ "${_old_bro_running}" = "t" ]; then
+		{
+			# Renice the old process so it doesn't compete with the new active Bro
+			renice ${renice_checkpoint_level} ${_old_pid} 2> /dev/null 1> /dev/null
+
+			# Sleep for BRO_CHECKPOINT_OVERLAP_TIME
+			sleep ${BRO_CHECKPOINT_OVERLAP_TIME}
+
+			# kill the old bro process
+			kill -TERM ${_old_pid}
+
+			# call the stopwatch function to make sure the old bro process exits
+			# before BRO_MAX_SHUTDOWN_TIME
+			stopwatch ${_old_pid} "${BRO}"
+			"${syslog_cmd}" -t "${prog}" "Checkpoint process complete. Bro process (${_old_pid}) is done"
+		} &
+	fi
+
+	return 0
+}
+
+
+status() {
+	local _pid
+	local _ret_val
+	if [ -f "${pidfile}" ] && [ -f "${start_time_file}" ] && [ "${active_log_file}" ]; then
+		_pid=`cat "${pidfile}" | awk '{ print $1 }'`
+		pidisrunning ${_pid}
+		_ret_val=$?
+		if [ "${_ret_val}" = "0" ]; then
+			true
+		else
+			echo "${prog}: Bro is not running"
+			return 1
+		fi
+	else
+		echo "${prog}: Bro is not running"
+		return 1
+	fi
+
+	local _start_time
+	local _log_suffix
+	local _bro_ver
+	local _autorestart_status
+
+	_start_time=`cat "${start_time_file}"`
+	_log_suffix=`activelogsuffix`
+	_bro_ver=`"${BRO}" -v 2>&1 | awk ' { print $3 } '`
+	_autorestart_status=`cat "${autorestart_file}"`
+	echo "Bro is running (pid: ${_pid})"
+	echo "Autorestart: ${_autorestart_status}"
+	echo "Running since: ${_start_time}"
+	echo "Bro Version: ${_bro_ver}"
+	echo "Active log suffix: ${_log_suffix}"
+
+	return 0
+}
+
+activelogsuffix() {
+	local _log_suffix
+
+	if [ -f "${active_log_file}" ] && [ -r "${active_log_file}" ]; then
+		# ok file exists
+		_log_suffix=`cat "${active_log_file}"`
+		echo -n "${_log_suffix}"
+	else
+		return 1
+	fi
+
+	return 0
+}
+
+
+exitwatch() {
+	# pid number to wait for
+	PID=${1}
+
+	if [ -z ${PID} ]; then
+		echo "${prog}: No pid number passed to function exitwatch" > 2
+		echo "${prog}: Unable to continue" > 2
+		exit 1
+	fi
+
+	# trap some signals
+	# Ignore HUP, QUIT, INT signals
+	trap '' SIGHUP SIGINT SIGQUIT
+	# Call stop if a TERM signal is sent to this ($$) process
+	trap 'stopbro 2>/dev/null >/dev/null; true' SIGTERM
+
+	wait ${PID} 2> /dev/null
+
+	EXIT_CODE=$?
+	END_TIME=`date`
+
+	# Currently Bro does not always exit with the right exit codes
+	# Need to figure out if something besides 0 really happened
+	if [ "${EXIT_CODE}x" = 'x' ]; then
+		# Something evil happened!
+		EXIT_CODE=1
+		false
+	# The following exit codes are expected for a successful exit:
+	# 0, 130, 145
+	# 143 (SIGTERM) and 130 (SIGINT) are returned when wait is interrupted by
+	# a trapped signal.
+	elif [ "${EXIT_CODE}" = '0' ] || \
+		[ "${EXIT_CODE}" = '143' ] || \
+		[ "${EXIT_CODE}" = '130' ]; then
+		if ! [ -f "${pidfile}" ]; then
+			# A normal exit occurred as the pid file has been cleaned up
+			EXIT_CODE=0
+			true
+		else
+			check_pid=`cat "${pidfile}"`
+			if [ "${check_pid}" != "${PID}" ]; then
+				# The PID has changed which means either a restart was forced
+				# or a checkpoint has occurred.  In either case it is
+				# likely that Bro exited correctly
+				true
+			else
+				# Something went wrong with Bro because it exited before the
+				# temporal files were cleaned up
+				EXIT_CODE=1
+				cleanup
+				false
+			fi
+		fi
+	elif [ ! -f "${pidfile}" ] && [ ! -f "${start_time_file}" ]; then
+		# Bro exited with a non-zero value but the exit was planned.
+		# Log the an error message but return a zero exit status as this
+		# was a planned exit.
+		"${syslog_cmd}" -t "${prog}" "Bro process (${PID}) returned a non-zero exit status but the exit was planned."
+		EXIT_CODE=0
+	else
+		# An unexpected exit code was returned by Bro
+		false
+	fi
+
+	# Set the ERROR_MESSAGE to something useful if there was an error
+	if [ "${EXIT_CODE}" != '0' ]; then
+		if [ -f "${info_log}" ] && [ -s "${info_log}" ]; then
+			ERROR_MESSAGE=`tail -2 "${info_log}"`
+		else
+			ERROR_MESSAGE="Unknown error occurred"
+		fi
+
+		"${syslog_cmd}" -t "${prog}" "Bro process (${PID}) exited with a code of ${EXIT_CODE}"
+	else
+		"${syslog_cmd}" -t "${prog}" "Bro process (${PID}) stopped"
+	fi
+
+	# Call the post_exit_hook function
+	post_exit_hook
+
+	# renamed logfiles now that file writing is done.
+	# turned off till sc04 is over
+	# rename_logfiles "${BRO_LOG_SUFFIX}"
+
+	return ${EXIT_CODE}
+}
+
+stopwatch() {
+	# This function is used to run in the background and watch the pid
+	# and command line as returned by ps.  This function should be
+	# forked off as a background process to monitor a terminating Bro
+	# process to make sure that it ends by BRO_MAX_SHUTDOWN_TIME
+
+	local _pid
+	local _cmd_line
+	_pid=${1}
+	_cmd_line="${2}"
+
+	# Make sure that _pid has a value
+	if [ -z ${_pid} ]; then
+		_pid=`cat "${pidfile}"`
+		if [ -z ${_pid} ]; then
+			echo "${prog}: Unable to find a process number to monitor for stopwatch" >&2
+		fi
+		echo "First argument passed to function stopwatch must be a PID greater than zero." >&2
+		return 1
+	fi
+
+	# Make sure that _pid has a value larger than 0
+	if [ "${_pid}" -lt 1 ]; then
+		echo "First argument passed to function stopwatch must be a PID greater than zero." >&2
+		return 1
+	fi
+
+	# Make sure that _cmd_line has a value
+	if [ -z ${_cmd_line} ]; then
+		echo "Second option passed to function stopwatch must be the program name as" >&2
+		echo "specified on the command line when first started." >&2
+	fi
+
+	local _cur_wait
+	local _max_wait
+	local _sleep_time
+	_cur_wait=0
+	_max_wait=${BRO_MAX_SHUTDOWN_TIME}
+	_sleep_time=10
+	while [ "${_cur_wait}" -lt "${_max_wait}" ]
+	do
+		local _res
+		pidisrunning ${_pid} "${_cmd_line}"
+		local _ret_val=$?
+		if [ "${_ret_val}" != "0" ]; then
+			break
+		fi
+		_cur_wait=$(( ${_cur_wait} + ${_sleep_time} ))
+		sleep ${_sleep_time}
+	done
+
+	# Check if the process died on it's own
+	if [ "${_cur_wait}" -ge "${_max_wait}" ]; then
+		# Nope, didn't exit on it's own
+		kill -KILL ${_pid}
+		"${syslog_cmd}" -t "${prog}" "Bro process (${_pid}) exceeded the maximum shutdown time and was forcibly terminated"
+	fi
+
+	return 0
+}
+
+
+runasnonroot() {
+
+	# Check on whether to start as the current user or a different user
+	#
+	# Check if the alternate user has been specified
+	if [ "${alternate_user_id}x" != "x" ]; then
+		# Check if the current username is the same as that in $alternate_user_id
+		if [ "${USER}" = "${alternate_user_id}" ]; then
+			# The alternate is the same as the current, no need to su
+			alternate_user_id=''
+			return 254
+		else
+			# Allow only users with root privelages to use su -
+			if [ -w /etc/passwd ]; then
+				echo "${prog}: Running as non-root user ${alternate_user_id}" >&2
+				su - ${alternate_user_id} -c "${this_script} ${cur_args} < /dev/null"
+			else
+				# Nope, no root privelage
+				alternate_user_id=''
+				echo "$prog: Must have root privileges in order to run as a non-root user" >&2
+				echo "FAILED!" >&2
+				return 1
+			fi
+		fi
+	else
+		# No alternate user specified
+		return 254
+	fi
+
+	return 0
+}
+
+pidisrunning() {
+
+	local _pid
+	local _cmd_line
+	local _running_pid
+
+	_pid=${1}
+	_cmd_line="${2}"	# optional
+
+	if [ `uname | grep "CYGWIN"` ]; then
+		# cygwin ps command
+		if [ -z ${_cmd_line} ]; then
+			_running_pid=`ps -as | awk ' { print $1 } ' | grep ${_pid}`
+		else
+			_running_pid=`ps -as | grep "${_pid}.*${_cmd_line}"`
+		fi
+	else
+		# the rest of *NIX
+		_running_pid=`ps ax -o "pid,command" | grep "${_pid}.*${_cmd_line}" | grep -v "grep ${_pid}.*${_cmd_line}"`
+	fi
+
+	if [ "${_running_pid}x" = 'x' ]; then
+		return 1
+	else
+		return 0
+	fi
+
+}
+
+removetraceopt() {
+	local _cmd_opts
+	local _ret_string
+	local _sed_patt
+
+	_cmd_opts="${1}"
+
+	_sed_patt='/-w/ {
+/-w *\"/ {
+s/ -w *\"[^"]\{1,\}\" */ /
+t
+s/^-w *[^" ]\{1,\} */ /
+}
+t
+/-w *[^ ]\{1,\}/ {
+s/ -w *[^ ]\{1,\} */ /
+t
+s/^-w *[^ ]\{1,\} */ /
+}
+}'
+
+	_ret_string=`echo -n "${cmd_opts}" | sed "${_sed_patt}"`
+
+	echo -n "${_ret_string}"
+	return 0
+}
+
+capturefilter() {
+	local _cmd_opts
+	local _ret_string
+	local _dummy_dir
+	local _cur_log_suffix
+
+	_cmd_opts="${1}"
+	_cmd_opts="${_cmd_opts} print-filter.bro"
+	_dummy_dir="${BROLOGS}/.print-filter"
+
+	mkdir "${_dummy_dir}" 1>/dev/null 2>/dev/null
+	cd "${_dummy_dir}"
+
+	_ret_string=`"${BRO}" ${_cmd_opts} 2>/dev/null`
+
+	cd "${BROLOGS}"
+	rm -rf "${_dummy_dir}"
+
+	if [ "${_ret_string}x" = 'x' ]; then
+		return 1
+	else
+		echo "${_ret_string}"
+		return 0
+	fi
+}
+
+cleanup() {
+
+	rm -f "${pidfile}"
+	rm -f "${active_log_file}"
+	rm -f "${start_time_file}"
+	rm -f "${autorestart_file}"
+	return 0
+}
+
+epochtime() {
+    echo -n "`date +'%s'`"
+}
+
+# Need something more comprehensive but this does fine for now.
+rename_logfiles() {
+    # rename the closed log file passed in as arg ${1} and add
+    # the stop time. The format of the files will now be:
+    # file.host.YY-MM-DD_HH.MM.SS-YY-MM-DD_HH.MM.SS, where the first date
+    # is the start time, and the end date is the time bro was shutdown
+    local _end_time
+    local _cur_log_suffix
+
+	# The start time log suffix is passed in as an argument
+	_cur_log_suffix="${1}"
+
+    # change directory to where we need to do our work
+    cd "${BROLOGS}"
+
+    # If _cur_log_suffix has no value then don't do anything
+    if [ "${_cur_log_suffix}x" = 'x' ]; then
+        #echo "No logs to rename"
+        return 1
+    fi
+    # format the end time once, and use for all the logs
+    _end_time=`date "+%y-%m-%d_%H.%M.%S"`
+
+    # grok out the logs to change, and change them, hope we have lots of disk space
+    filelist=`ls *.${_cur_log_suffix}`
+    for name in ${filelist}; do
+        #echo "Moving ${name} to ${name}-${_end_time}"
+        mv "${name}" "${name}-${_end_time}"
+    done
+
+    return 0
+}
+
+
+# See how we were called.
+case "$1" in
+	status|--status)
+		status
+		;;
+	start|--start|autorestart|--autorestart|stop|--stop|stopwatch|--stopwatch|checkpoint|--checkpoint)
+		# Check on whether to run as non-root
+		runasnonroot
+		_run_non_root_res=$?
+		if [ "${_run_non_root_res}" = "0" ]; then
+			true
+		elif [ "${_run_non_root_res}" = "1" ]; then
+			false
+		else
+			# If it gets here then the script is either running as root or it has
+			# already done an su - to the non-root user.
+			case "$1" in
+				start|--start)
+					# One more command line option is available
+					second_opt="${2}"
+
+					# enable autorestart?
+					AUTO_RESTART="f"
+					if [ "${BRO_ENABLE_AUTORESTART}" = "YES" ] || \
+						[ "${BRO_ENABLE_AUTORESTART}" = "yes" ] || \
+						[ "${second_opt}" = "autorestart" ]; then
+						AUTO_RESTART="t"
+					fi
+
+					# An explicit noautorestart will always disable it
+					if [ "${second_opt}" = "noautorestart" ]; then
+						AUTO_RESTART="f"
+					fi
+
+					start
+					;;
+				startbro|--startbro)
+					startbro
+					;;
+				stop|--stop)
+					stopbro
+					;;
+#				stopwatch|--stopwatch)
+#					stopwatch ${2}
+#					;;
+				checkpoint|--checkpoint)
+					checkpoint
+			esac
+		fi
+		;;
+	*)
+		echo "Usage: ${prog} {start|stop|checkpoint|status}"
+		echo "start has the additional option which can be used to disable/enable "
+		echo "autorestart: "
+		echo "   start [no]autorestart"
+		echo ""
+		exit 1
+esac
+
+exit $?
+
+
+# So how does this thing work and why is it always running when Bro is running?
+
+# bro.rc is the init script which starts, stops, checkpoints, and monitors a
+# running instance of Bro.
+# bro.rc logs it's actions to syslog via the logger command.
+# bro.rc offers users an interface into the starting and stopping of a Bro
+# process via the file $BROHOME/etc/bro.rc-hooks.rc.  This allows for
+# actions to be sent to any custom monitoring or alerting programs the
+# user may wish to use.
+
+
+# There are four command line options available
+# to the user.  Each is covered below with an explanation.
+# 1) start
+#   Start has two additional commands of autorestart and noautorestart which
+#   can be used to enable and disable the autorestart feature.  This feature
+#   is also controlled by setting the variable BRO_ENABLE_AUTORESTART in
+#   to 'YES' or 'NO' bro.cfg.  Any autorestart option given to start on the
+#   command line will override the bro.cfg setting in BRO_ENABLE_AUTORESTART.
+#
+#   'start' does just as it's name implies, it starts a new Bro process.
+#   When autorestart is enabled bro.rc will monitor the Bro process and
+#   restart it if it fails unexpectedly for any reason.  Bro will be restarted
+#   a maximum count as set by BRO_MAX_RESTART_ATTEMPTS in bro.cfg.  If the
+#   BRO_MAX_RESTART_ATTEMPTS count is exceeded then no further restart
+#   attempts will be made and the error will be sent to syslog.
+#
+#   After Bro has started either successfully or unsuccessfully the function
+#   post_start_hook will be called.  (see bro.rc-hooks.sh for more info).
+#
+#   If start is called and Bro is already running this is an error and
+#   the script will return 1.
+#
+#   If Bro starts successfully bro.rc will return 0.
+#
+# 2) stop
+#   Self explantory, stops a running Bro process.  Stop will cleanup the
+#   temporal files such as pid, start_time, etc, send a SIGTERM to the
+#   running instance of Bro, and then if needed call another process to
+#   to watch the exiting process.  If the process has not terminated by
+#   BRO_MAX_SHUTDOWN_TIME seconds then a SIGKILL will be sent to the process
+#   and a message will be sent to syslog.
+#
+# 3) checkpoint
+#   A checkpoint is where a new instance of Bro is started and then the old
+#   one is terminated. (see documentation on when and why this is done).
+#   Essentially what happens is that temporal files are cleaned up, a
+#   new instance of Bro is started, bro.rc thens waits
+#   BRO_CHECKPOINT_OVERLAP_TIME seconds before sending the old Bro process
+#   a SIGTERM.  An exit code of 1 will be returned in the event checkpoint
+#   is called and there is no running Bro process.
+#
+# 4) status
+#   Used to check if Bro is running.  Also outputs the Bro version, the start
+#   time, the current log suffix, and whether autorestart is enabled or not.
+#   If Bro is running the command will return 0 and if Bro is not running the
+#   command will return 1.
+#
+# The detection of when Bro exits is done through the use of the shell
+# builtin 'wait'.  The function exitwatch will wait on the Bro child
+# pif until it exits.  A few tests are run after Bro returns to determine
+# If the exit was expected or unexpected.  An unexpected exit is anytime
+# Bro exits or terminates outside the control of bro.rc.  After the Bro
+# process returns and before bro.rc exits the post_exit_hook will be called.
+#
+# bro.rc traps SIGTERM and ignores SIGHUP.  If SIGTERM is sent to the
+# bro.rc process this will also cause bro.rc to stop the running Bro process
+# it monitors as well.  This is to provide proper behavior in the event of
+# a system reboot or halt.

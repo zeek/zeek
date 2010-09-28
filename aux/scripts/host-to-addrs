@@ -1,0 +1,47 @@
+#! /bin/sh -e
+#
+# Returns a list of IP addresses associated with hostname $1.
+
+sheesh=`dig +noauthor +noaddit $1 a |
+
+awk '
+BEGIN	{
+	name = "'$1'"
+
+	if ( name ~ /^[0-9][0-9]*\.[0-9][0-9]*/ )
+		# An address, not a name.
+		print name
+
+	name = name "."
+	}
+
+/^;; ANSWER/	{
+	getline
+
+	# First reduce CNAMEs.
+	while ( $4 == "CNAME" )
+		{
+		name = $5
+		getline
+		}
+
+	# Now pick off the addresses.
+	while ( $1 == name )
+		{
+		print $5
+		getline
+		}
+
+	++num_answers
+	}
+
+END	{
+	if ( num_answers == 0 )
+		{
+		print "no DNS answers to query for", name	>"/dev/stderr"
+		exit 1;
+		}
+	}
+'`
+
+echo "$sheesh" | sort -u

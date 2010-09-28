@@ -1,0 +1,25 @@
+# (C) Copyright 2001-2004, Martin Roesch, Brian Caswell, et al.
+#    All rights reserved.
+# $Id: p2p.rules 91 2004-07-15 08:13:57Z rwinslow $
+#-------------
+# P2P RULES
+#-------------
+# These signatures look for usage of P2P protocols, which are usually
+# against corporate policy
+
+alert tcp $HOME_NET any -> $EXTERNAL_NET 8888 (msg:"P2P napster login"; flow:to_server,established; content:"|00 02 00|"; depth:3; offset:1; classtype:policy-violation; sid:549; rev:8;)
+alert tcp $HOME_NET any -> $EXTERNAL_NET 8888 (msg:"P2P napster new user login"; flow:to_server,established; content:"|00 06 00|"; depth:3; offset:1; classtype:policy-violation; sid:550; rev:8;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 8888 (msg:"P2P napster download attempt"; flow:to_server,established; content:"|00 CB 00|"; depth:3; offset:1; classtype:policy-violation; sid:551; rev:7;)
+alert tcp $EXTERNAL_NET 8888 -> $HOME_NET any (msg:"P2P napster upload request"; flow:from_server,established; content:"|00|_|02|"; depth:3; offset:1; classtype:policy-violation; sid:552; rev:7;)
+alert tcp $HOME_NET any -> $EXTERNAL_NET any (msg:"P2P GNUTella client request"; flow:to_server,established; content:"GNUTELLA"; depth:8; classtype:policy-violation; sid:1432; rev:6;)
+alert tcp $HOME_NET any -> $EXTERNAL_NET any (msg:"P2P Outbound GNUTella client request"; flow:to_server,established; content:"GNUTELLA CONNECT"; depth:40; classtype:policy-violation; sid:556; rev:5;)
+alert tcp $HOME_NET any -> $EXTERNAL_NET any (msg:"P2P GNUTella client request"; flow:to_server,established; content:"GNUTELLA OK"; depth:40; classtype:policy-violation; sid:557; rev:6;)
+alert tcp $HOME_NET any <> $EXTERNAL_NET 6699 (msg:"P2P Napster Client Data"; flow:established; content:".mp3"; nocase; classtype:policy-violation; sid:561; rev:6;)
+alert tcp $HOME_NET any <> $EXTERNAL_NET 7777 (msg:"P2P Napster Client Data"; flow:to_server,established; content:".mp3"; nocase; classtype:policy-violation; sid:562; rev:5;)
+alert tcp $HOME_NET any <> $EXTERNAL_NET 6666 (msg:"P2P Napster Client Data"; flow:established; content:".mp3"; nocase; classtype:policy-violation; sid:563; rev:6;)
+alert tcp $HOME_NET any <> $EXTERNAL_NET 5555 (msg:"P2P Napster Client Data"; flow:established; content:".mp3"; nocase; classtype:policy-violation; sid:564; rev:7;)
+alert tcp $HOME_NET any <> $EXTERNAL_NET 8875 (msg:"P2P Napster Server Login"; flow:established; content:"anon@napster.com"; classtype:policy-violation; sid:565; rev:6;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 1214 (msg:"P2P Fastrack kazaa/morpheus GET request"; flow:to_server,established; content:"GET "; depth:4; reference:url,www.kazaa.com; reference:url,www.musiccity.com/technology.htm; classtype:policy-violation; sid:1383; rev:6;)
+alert tcp $HOME_NET any -> $EXTERNAL_NET any (msg:"P2P Fastrack kazaa/morpheus traffic"; flow:to_server,established; content:"GET"; depth:3; content:"UserAgent|3A| KazaaClient"; reference:url,www.kazaa.com; classtype:policy-violation; sid:1699; rev:7;)
+alert tcp $HOME_NET any -> $EXTERNAL_NET any (msg:"P2P BitTorrent announce request"; flow:to_server,established; content:"GET"; depth:4; content:"/announce"; distance:1; content:"info_hash="; offset:4; content:"event=started"; offset:4; classtype:policy-violation; sid:2180; rev:2;)
+alert tcp $HOME_NET any -> $EXTERNAL_NET 6881:6889 (msg:"P2P BitTorrent transfer"; flow:to_server,established; content:"|13|BitTorrent protocol"; depth:20; classtype:policy-violation; sid:2181; rev:2;)

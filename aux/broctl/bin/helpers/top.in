@@ -1,0 +1,29 @@
+#! /usr/bin/env bash
+#
+# $Id: top.in 6811 2009-07-06 20:41:10Z robin $
+#
+#  top 
+#
+#  Outputs one line per active process as follows:
+# 
+#           <pid> <vsize bytes> <rss in bytes> <%cpu> <cmdline>
+
+cmd_linux='top -b -n 1 | awk "/^ *[0-9]+ /{printf(\"%d %dK %dK %d %s\\n\", \$1, \$5, \$6, \$9, \$12)}"'
+cmd_freebsd='top -u -b all | awk "/^ *[0-9]+ /{printf(\"%d %s %s %d %s\\n\", \$1, \$6, \$7, \$11, \$12)}"'
+cmd_freebsd_nonsmp='top -u -b all | awk "/^ *[0-9]+ /{printf(\"%d %s %s %d %s\\n\", \$1, \$6, \$7, \$10, \$11)}"'
+cmd_darwin='top -l 1 | awk "/^ *[0-9]+ /{printf(\"%d %dK %dK %d %s\\n\", \$1, \$11, \$10, \$3, \$2)}"'
+cmd_netbsd='top -b -u  | awk "/^ *[0-9]+ /{printf(\"%d %s %s %d %s\\n\", \$1, \$5, \$6, \$10, \$11)}"'
+
+cmd="$cmd_${os}"
+
+if [ "${os}" == "freebsd" ]; then
+   # Top's output looks different on non-SMP FreeBSD machines.
+   top -u -b all | grep -q "STATE  C   TIME" || cmd="$cmd_freebsd_nonsmp"
+fi
+
+unset LINES
+unset COLUMNS
+
+echo 0
+eval $cmd | awk -f ${helperdir}/to-bytes.awk
+echo ~~~

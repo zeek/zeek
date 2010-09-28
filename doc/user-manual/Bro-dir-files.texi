@@ -1,0 +1,647 @@
+@float Figure, The Bro Directory Structure
+@image{BroDir}
+@caption{The Bro Directory Structure}
+@end float
+
+@menu
+* The bro/bin Directory ::
+* The bro/etc Directory ::
+* The bro/var Directory ::
+* The bro/scripts Directory ::
+* The bro/policy Directory ::
+@c * The bro/sigs Directory ::
+* The bro/site Directory ::
+* The bro/logs Directory ::
+* The bro/archive Directory ::
+* Other Files ::
+@end menu
+@cindex directory structure
+
+@node The bro/bin Directory
+@appendixsec The bro/bin Directory
+@cindex bro/bin Directory
+@cindex adtrace executible
+@c @cindex bdcat executible
+@c @cindex bifcl executible
+@cindex bro executible
+@cindex cf executible
+@cindex rst executible
+
+The bin directory is the storage area for executable binary 
+files used by Bro.
+
+@subsubheading adtrace
+adtrace retrieves MAC and IP address information from 
+tcpdump trace files
+@quotation
+   usage:
+@example
+         adtrace <trace-file>
+@end example
+@end quotation
+
+@ignore
+>>>>>>>>>>>>>>>>>>>>>>>>
+@subsubheading bdcat
+In the Bro policy language, the files Bro access can be encrypted (see 
+the &encrypt attribute in the technical manual). bdcat is used to 
+decrypt the files.
+@comment add URL link to &encrypt attribute in the technical manual
+
+@subsubheading bifcl
+Built-in functions (.bif files) are implemented in C++ and 
+can be called by Bro policy scripts. The bif compiler, 
+bifcl, takes a .bif file and generates the corresponding 
+C++ segments and Bro language declarations, so that each 
+function only needs be written once in a .bif file and the 
+actual C++/Bro code will be automatically generated.
+<<<<<<<<<<<<<<<<<<<<<<<<
+@end ignore
+
+@subsubheading bro
+This program is the primary Bro executable.  
+Full use of the bro command is documented in the technical 
+manual.
+@comment add URL link to Bro command in technical manual
+
+@subsubheading cf
+A program that converts UNIX epoch time into a conventional 
+date.  Most of the raw Bro logs record UNIX epoch time as 
+the timestamp for their records.  Piping the file through 
+cf will convert the time.  Full use of cf is documented in 
+the technical manual.
+@comment add URL link to cf in technical manual
+
+@subsubheading rst
+A program that Bro calls to form and send a reset packet 
+which will tear down a tcp connection.  The use of rst is 
+documented in the Technical Manual and in chapter ### of 
+the User Manual.
+@comment add URL link to rst in Technical Manual
+@comment fix ### with correct chapter
+
+@node The bro/etc Directory
+@appendixsec The bro/etc Directory
+@cindex alert_scores
+@cindex bro/etc Directory
+@cindex bro.cfg file
+@cindex bro.cfg.example file
+@cindex bro.rc file
+@cindex bro.rc-hooks.sh file
+@cindex signature_scores
+@cindex VERSION file
+
+Configuration and other ancillary files are stored in the 
+etc directory.  These files are usually changed by 
+supplimentary configuration tools supplied with the Bro 
+distribution. Direct editing of these files is discouraged.  
+If direct edits are made, the changes may be reversed or 
+deleted during subsequent Bro updates.
+
+@subsubheading alert_scores
+This file contains ranking numbers for alarms (the use of the term "alert" is
+vestigial and will be changed in the future).  The ranking numbers are used as part of the ranking system for determining the success likelihood of an incident triggering a specific alarm.
+
+@subsubheading bro.cfg
+This file contains configuration criteria for operational 
+parameters.  Most of the parameters are set during the 
+installation process and can be changed using the bro-
+config script.
+@comment add URL link to bro-config script
+
+@subsubheading bro.cfg.example
+A annotated, generic bro.cfg file.  This file is not used 
+by Bro.  It is supplied for documentation purposes.
+
+@subsubheading bro.rc
+This is the script for controlled starting and stopping of 
+Bro.  See section ### for its use.
+@comment fix ### with correct chapter
+@comment add URL link to start/stop section
+
+@subsubheading bro.rc-hooks.sh
+This script is called by bro.rc at various points during 
+the starting and stopping of Bro.  It is presented as an 
+interface for customizations into the start and stop 
+process. 
+@comment need instruction on how to add hooks
+
+@subsubheading signature_scores
+This file contains ranking numbers for signatures.  The ranking numbers are used as part of the ranking system for determining the success likelyhood of an incident triggering a specific signature.
+
+@subsubheading VERSION
+A file containing the Bro version number for the installed 
+distribution.
+
+@node The bro/var Directory
+@section The bro/var Directory
+@cindex bro/var Directory
+@cindex autorestart file
+@cindex pid file
+@cindex start_time file
+
+Temporary information about the current Bro instance is 
+stored in the var directory.
+
+@subsubheading autorestart
+Contains the word "ON" if Bro is configured to autorestart.
+
+@subsubheading pid
+Contains the process ID number for the current instance of 
+Bro.
+
+@subsubheading start_time
+Contains the date and time when the current instance of Bro 
+was started.
+
+@node The bro/scripts Directory
+@appendixsec The bro/scripts Directory
+@cindex bro-config script
+@cindex bro/scripts Directory
+@cindex bro-logchk.pl script
+@cindex bro_log_compress.sh script
+@cindex host-grep script
+@cindex host-to-addrs script
+@c @cindex hot-report script
+@cindex ip-grep script
+@c @cindex mon-report script
+@c @cindex mvlog script
+@cindex site-report.pl script
+@cindex bro/scripts/pm Directory
+@cindex bro/pm Directory
+
+This directory contains a number of auxiliary scripts used 
+to suppliment Bro's operation.
+
+@subsubheading bro-config
+A utility script for changing the Bro operational 
+parameters in the bro.cfg file.
+@comment add URL link to installation instructions
+
+@subsubheading bro-logchk.pl
+@comment needs to be fixed or removed
+@emph{Currently, this file does not work}@*
+A utility program for searching ftp and http log files for 
+activity by specific ip addresses.
+@quotation
+Usage:
+@verbatim
+   bro-logchk.pl -[hrDFHds] -f filename -a ipaddr -x ipaddr
+       -h          print this usage information
+       -F          using ftp log
+       -H          using http log
+       -r          try to resolve IP addresses to hostnames
+       -f file     log file to parse
+       -a ipaddr   only output connections from this address
+       -s          only want matching source address (used with -a )
+       -d          only want matching dest address (used with -a )
+       -D          debug option
+       -x ipaddr   exclude connections from this address
+@end verbatim
+@end quotation
+ 
+@subsubheading bro_log_compress.sh
+A very simple script written to manage log and coredump files.  By 
+default it compresses log files older than 30 days and sends them to 
+the archive directory; it deletes log files older than 60 days; and it 
+deletes coredump files older than 4 days.
+@quotation
+Restrictions:
+@itemize
+   @item Must be run from a user account that has read/write/execute access to files in the $BROHOME directory.
+@end itemize
+@end quotation
+
+@subsubheading host-grep
+Greps a Bro connection summary log on stdin for two given hostnames.
+@quotation
+Usage:
+@example
+      host-grep [-a] hostname hostname < connection_log
+      If -a is specified then we only want lines with *all* of the listed hosts.
+@end example
+Restrictions:
+@itemize
+   @item Must have $BROHOME/scripts included in the PATH environment variable.
+   @item Will only work with hostnames.  ip addresses are not accepted
+   @item Uses host-to-addrs and ip-grep scripts
+@end itemize
+@end quotation
+
+@subsubheading host-to-addrs
+Finds all ip addresses associated with a given hostname.
+@quotation
+Usage:
+@example
+      host-to-addrs hostname
+@end example
+Restrictions:
+@itemize
+   @item Must have $BROHOME/scripts included in the PATH environment variable.
+   @item Will only work with hostnames.  IP addresses are not accepted
+@end itemize
+@end quotation
+
+@ignore
+>>>>>>>>>>>>>>>>>>>>>>>>>>
+@subsubheading hot-report
+@comment needs to be fixed or removed
+@emph{Currently, this file does not work}@*
+Obsolete report generator
+<<<<<<<<<<<<<<<<<<<<<<<<<<
+@end ignore
+
+@subsubheading ip-grep
+Returns an exact grep pattern for matching the IP addresses of the 
+given hosts
+@quotation
+Usage:
+@example
+ip-grep hostname hostname ...
+@end example
+Restrictions:
+@itemize
+   @item Must have $BROHOME/scripts included in the PATH environment variable.
+   @item Will only work with hostnames.  ip addresses are not accepted
+   @item Uses host-to-addrs script
+@end itemize
+@end quotation
+
+@ignore
+>>>>>>>>>>>>>>>>>>>>>>>>>>
+subsubheading mon-report
+@comment needs to be fixed or removed
+@emph{Currently, this file does not work}@*
+Obsolete report generator
+
+@subsubheading mvlog
+@comment needs to be fixed or removed
+@emph{Currently, this file does not work}@*
+Rotates log files every six hours by gzipping them and moving them into directories $BROHOME/logs/<date>/.  The six hour interval is adjustable.  See the file header for more info.
+<<<<<<<<<<<<<<<<<<<<<<<<<<
+@end ignore
+
+@subsubheading site-report.pl
+This script produces the daily consolidated site report.  By default, it is run daily via the cron job submitted by the bro user via files in /var/cron/tabs.
+
+@subsubheading The bro/scripts/pm Directory
+This directory contains perl modules to support the perl scripts in the scripts directory.
+
+@node The bro/policy Directory
+@appendixsec The bro/policy Directory
+@cindex bro/policy Directory
+This directory contains all standard Bro policy files.  For more information about the policy files see section ###, Policy
+@comment need section number and name of section
+@comment add URL link to Policy section 
+
+Signature support files:
+
+@subsubheading sig-addendum.sig
+This file contains small support utilities that are used in the implementation of Bro signatures.
+
+@subsubheading sig-functions.bro
+@emph{To be completed}
+@comment need to add definition
+
+@subsubheading sig-action.bro
+@emph{To be completed}
+@comment need to add definition
+
+
+Policy files:
+@itemize
+@item active.bro
+@item alarm.bro
+@item analy.bro
+@item anon.bro
+@item backdoor.bro
+@item blaster.bro
+@item bro.bif.bro
+@item bro.init
+@item brolite.bro
+@item capture-events.bro
+@item checkpoint.bro
+@item common-rw.bif.bro
+@item conn-id.bro
+@item conn.bro
+@item const.bif.bro
+@item contents.bro
+@item cpu-adapt.bro
+@item demux.bro
+@item dns-info.bro
+@item dns-lookup.bro
+@item dns.bro
+@item drop-adapt.bro
+@item event.bif.bro
+@item finger-rw.bif.bro
+@item finger.bro
+@item flag-irc.bro
+@item flag-warez.bro
+@item frag.bro
+@item ftp-anonymizer.bro
+@item ftp-cmd-arg.bro
+@item ftp-reply-pattern.bro
+@item ftp-rw.bif.bro
+@item ftp-safe-words.bro
+@item ftp.bro
+@item gnutella.bro
+@item hand-over.bro
+@item hot-ids.bro
+@item hot.bro
+@item http-abstract.bro
+@item http-body.bro
+@item http-entity.bro
+@item http-event.bro
+@item http-header.bro
+@item http-reply.bro
+@item http-request.bro
+@item http-rewriter.bro
+@item http-rw.bif.bro
+@item http.bro
+@item icmp.bro
+@item ident-rewriter.bro
+@item ident-rw.bif.bro
+@item ident.bro
+@item inactivity.bro
+@item interconn.bro
+@item listen-clear.bro
+@item listen-ssl.bro
+@item load-level.bro
+@item login.bro
+@item mime.bro
+@item mt.bro
+@item netstats.bro
+@item notice.bro
+@item notice.bro.old
+@item ntp.bro
+@item pcap.bro
+@item pkt-profile.bro
+@item port-name.bro
+@item portmapper.bro
+@item print-filter.bro
+@item print-globals.bro
+@item print-resources.bro
+@item print-sig-states.bro
+@item profiling.bro
+@item reduce-memory.bro
+@item remote-pcap.bro
+@item remote-print.bro
+@item remote.bro
+@item scan.bro
+@item secondary-filter.bro
+@item signatures.bro
+@item signatures.bro.old
+@item site.bro
+@item smtp-relay.bro
+@item smtp-rewriter.bro
+@item smtp-rw.bif.bro
+@item smtp.bro
+@item snort.bro
+@item software.bro
+@item ssh-stepping.bro
+@item ssh.bro
+@item ssl-alerts.bro
+@item ssl-ciphers.bro
+@item ssl-errors.bro
+@item ssl-worm.bro
+@item ssl.bro
+@item stats.bro
+@item stepping.bro
+@item synflood.bro
+@item tcp.bro
+@item tftp.bro
+@item trw.bro
+@item udp.bro
+@item vlan.bro
+@item weird.bro
+@item worm.bro
+@end itemize
+
+@ignore
+>>>>>>>>>>>>>>>>>>>>>>>>
+@node The bro/sigs Directory
+@appendixsec The bro/sigs Directory
+@cindex bro/sigs Directory
+@cindex ex.web-rules.sig
+@cindex snort-default.sig
+@cindex ssl-worm.sig
+@cindex worm.sig
+
+@subsubheading ex.web-rules.sig
+@*This file contains a subset of Snort's signatures pertaining to http activity that have been converted into Bro signature language.
+
+@subsubheading snort-default.sig
+@*This file contains a subset of Snort's signatures that have been converted into Bro signature language.
+
+@subsubheading ssl-worm.sig
+@*This file contains Bro signatures to detect the Apache/SSL worm.
+
+@subsubheading worm.sig
+@*This file contains Bro signatures to detect several different worms.
+<<<<<<<<<<<<<<<<<<<<<<<<<
+@end ignore
+
+@node The bro/site Directory
+@appendixsec The bro/site Directory
+@cindex bro/site Directory
+@cindex s2b-addendum-sigs.sig
+@cindex s2b-functions.bro
+@cindex s2b-sigaction.bro
+@cindex s2b.sig
+
+@subsubheading signatures.sig
+@emph{To be completed}
+@comment need to add definition
+
+@node The bro/logs Directory
+@appendixsec The bro/logs Directory
+@cindex bro/logs Directory
+@cindex alarm log
+@cindex conn log
+@cindex ftp log
+@cindex http log
+@cindex info log
+@cindex notice log
+@cindex signatures log
+@cindex smtp log
+@cindex software log
+@cindex weird log
+@cindex worm log
+@cindex .state
+@cindex active_log
+
+
+All logs take the form@*
+@example
+@emph{type.hostname.start_date/time-end_date/time}
+@end example
+The date/time stamps for 
+each record in the files are always in UNIX (ticks since 
+epoch) format.
+@*@*
+@emph{type} is one of the following:
+
+@subsubheading alarm
+Network occurrences that are determined to be of high 
+importance will be written into the alarm file.  The 
+determination is made by the Bro policy scripts.  Local 
+site modifications can override default Bro alarms or 
+create new ones that are site specific.
+Each entry contains the date/time, the alarm type, and a 
+description of the alarm.
+This file is usually the "starting point" for 
+investigation.  Each alarm should be evaluated for further 
+follow-up action.
+
+@subsubheading conn
+All network connections detected by Bro are recorded in 
+this file.  A connection is defined by an initial packet 
+that attempts to set up a session and all subsequent 
+packets that take part in the session.  Initial packets 
+that fail to set up a session are also recorded as 
+connections and are tagged with a failure state that 
+designates the reason for failure.
+Each entry contains the following data describing the 
+connection: date/time, the duration of the connection, the 
+local and remote ip addresses and ports, bytes transferred 
+in each direction, the transport protocol (udp, tcp), the 
+final state of the connection, and other information 
+describing the connection.
+This file is often used in forensic analysis to determine 
+network activity by a suspect host beyond the immediate 
+alarm.
+@comment add URL link to conn file description in tech manual
+
+@subsubheading ftp
+All transactions involving the well known ftp control port 
+(21) are recorded into this file.  Each entry is marked by 
+an arbitrary session number, allowing full ftp control 
+sessions to be reconstructed.
+Each entry contains the date/time, a session number, and 
+ftp connection information or the specific ftp commands 
+transferred.
+This file is often used to examine details of  suspect ftp 
+sessions.
+
+@subsubheading http
+All transaction involving the well known http ports (80, 
+8000, 8080) are recorded into this file.  Each entry is 
+marked by an arbitrary session number, allowing the full 
+http session to reconstructed
+Each entry contains the date/time, a session number, and 
+http connection information or the specific http commands 
+transferred.
+This file is often used to examine details of  suspect web 
+sessions.
+
+@subsubheading info
+This file contains information concerning the operation of 
+Bro during the time interval covered by the file.  The 
+entries will consist of the Bro version number, startup 
+information, and Bro runtime warnings and errors.
+This file is helpful in troubleshooting Bro operational 
+difficulties. 
+
+@subsubheading notice
+Network occurrences that are determined to be of nominal 
+importance will be written into the notice file.  The 
+determination is made by the Bro policy scripts.  Local 
+site modifications can override default Bro alarms or 
+create new ones that are site specific.  The notice files 
+are similar to the alarm files, but of lesser importance.
+Each entry contains the date/time, a notice type, a notice 
+action, the local and remote ip addresses and ports.  
+Optionally, depending on the type of notice, an entry might 
+contain information about user, filename, method, URL, and 
+other messages.
+This file alerts to occurrences that are worth noting, but 
+do not warrant an alarm.
+
+@subsubheading signatures
+This file contains information associated with specific 
+signature matches.  These matches do not necessarily 
+correspond to all alarms or notices, only to those that are 
+triggered by a signature.
+Each entry contains the date/time, a description of the 
+signature,  the local and remote ip addresses and ports,  
+the signature id number (if available),  a description of 
+the signature trigger, a portion of the offending payload 
+data, a count of that particular signature, and a count of 
+the number of involved hosts.
+This file gives details that are helpful in evaluating if 
+an event triggered by a signature match is a false-
+positive.
+
+@subsubheading smtp
+All transactions involving the well known smtp port (25) 
+are recorded into this file.  Each entry is marked by an 
+arbitrary session number, allowing full smtp sessions to be 
+reconstructed.
+Each entry contains the date/time, a session number, and 
+smtp connection information or the specific smtp commands 
+transferred.
+This file is often used to examine details of suspect mail 
+sessions.
+
+@subsubheading software
+This file is a record of all unique host/software pairs 
+detected by Bro during the time interval covered by the 
+file.
+Each entry in the file contains the date/time, the ip 
+address of the host, and information about the software 
+detected.
+This file can be useful for cataloging network software.  
+However, population of this file on a busy network often 
+results in a huge number of entries.  Since the relative 
+daily usefulness of the file usually does not warrant the 
+disk space it consumes, the software file is turned off by 
+default.  It can be turned on by <<<instructions>>>
+@comment needs instructions on how to turn on software file
+
+@subsubheading weird
+Network events that are unusual or exceptional are recorded 
+in this file.  A number of these events "shouldn't" or even 
+"can't" happen according to accepted protocol definitions, 
+yet they do.
+Each entry in the file contains the date/time, the local 
+and remote ip addresses and ports, and a short description 
+of the weird activity.
+This file is useful for detecting odd behavior that might 
+normally "fly under the radar" and also for getting a 
+general sense of the amount of "garbage" that is on the 
+network.
+
+@subsubheading worm
+Bro's worm.bro policy detects patterns generated by 
+specific worms and records the instance in this file.  
+Currently, the worms detected are code red1, code red2, 
+nimda, and slammer. 
+Each entry in the file contains the date/time, the worm 
+detected, and the source ip address of the worm.
+This file is useful for spotting hosts that have been 
+infected with worms.
+
+@*@*Other files in the /logs directory are:
+
+@subsubheading .state
+@emph{To be completed}
+@comment need to add definition
+
+@subsubheading active_log
+@emph{To be completed}
+@comment need to add definition
+
+@node The bro/archive Directory
+@appendixsec The bro/archive Directory
+@cindex bro/archive Directory
+
+The archive directory is initially empty.  The script 
+bro/script/bro_log_compress.sh populates the archive directory 
+with compressed log files.
+@comment add URL link to bro_log_compress.sh
+
+@node Other Files
+@appendixsec Other Files
+@comment need to add other files outside of the Bro directory tree
+
+

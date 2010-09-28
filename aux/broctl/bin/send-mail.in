@@ -1,0 +1,53 @@
+#! /usr/bin/env bash
+#
+# $Id: send-mail.in 6811 2009-07-06 20:41:10Z robin $
+#
+# Usage: send-mail subject [destination] <txt
+#
+# Sends stdin per mail to recipients, adding some common headers/footers
+
+if [ "${sendmail}" != "1" ]; then
+   exit 0
+fi
+
+if [ $# -lt 1 -o $# -gt 2 ]; then
+   echo Wrong usage.
+   exit 1
+fi
+
+from="${mailfrom}"
+replyto="${replyto}"
+subject="${mailsubjectprefix} $1"
+
+if [ $# = 2 ]; then
+   to=$2
+else
+   to="${mailto}"
+fi
+
+tmp=${tmpdir}/mail.$$.tmp
+
+rm -f $tmp
+touch $tmp
+
+echo From: $from >>$tmp
+echo Subject: $subject >>$tmp
+echo To: $to >>$tmp
+echo User-Agent: Bro Control ${version} >>$tmp
+
+if [ "$replyto" != "" ]; then
+   echo Reply-To: $replyto >>$tmp
+fi
+
+echo >>$tmp
+
+cat >>$tmp
+
+cat >>$tmp <<EOF
+
+-- 
+[Automatically generated.]
+
+EOF
+
+sendmail -t -oi <$tmp && rm -f $tmp

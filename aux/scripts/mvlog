@@ -1,0 +1,58 @@
+#! /usr/bin/env bash
+#
+# This script may be used as a postprocessor for Bro's log files to
+# automatically compress and archive them.
+# 
+# Example use: 
+#
+#     1. Add two lines to your Bro configuration:
+#
+#              redef log_rotate_interval = 6 hrs &redef;
+#              redef log_postprocessor = "mvlog";
+#
+#     2. Put the script into your PATH.
+#
+#     3. Define an environment variable BROBASE giving 
+#        a base directory to store the archived logs in.
+#
+#     Now Bro rotates log files every six hours, gzips them
+#     and moves them into directories $BROBASE/logs/<date>/
+#
+# General usage (this is how Bro calls all postprocessors):
+#
+#     mvlog <rotated-file-name> <base-name> <timestamp-when-opened> <timestamp-when-closed>
+#
+# Example of how Bro may call the script: 
+#
+#     mvlog alert.log.28799.1069381104 alert.log 03-11-21_03.18.18 03-11-21_04.0.24
+
+if [ "$BROBASE" == "" ]; then
+   echo BROBASE not set.
+   exit 1
+fi   
+
+# Base of archive.
+BASE="$BROBASE/logs"
+
+# Build archive name
+DAY=`echo $3 | sed 's/_.*$//'`
+FROM=`echo $3 | sed 's/^.*_//' | sed 's/\./:/g'`
+TO=`echo $4 | sed 's/^.*._//' | sed 's/\./:/g'`
+
+CENTURY=`date +%Y | sed 's/..$//g'`
+DAY="$CENTURY$DAY"
+
+DEST="$BASE/$DAY/$2.$FROM-$TO"
+
+# Create archive sub-dir if not existent.
+
+if [ ! -d "$BASE" ]; then
+    mkdir "$BASE"
+fi    
+
+if [ ! -d "$BASE/$DAY" ]; then
+    mkdir "$BASE/$DAY"
+fi    
+
+# Zip it and move into archive.
+nice gzip -6 <$1 >$DEST.gz && rm $1

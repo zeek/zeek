@@ -1,0 +1,22 @@
+# (C) Copyright 2001-2004, Martin Roesch, Brian Caswell, et al.
+#    All rights reserved.
+# $Id: other-ids.rules 91 2004-07-15 08:13:57Z rwinslow $
+# ---------------
+# OTHER-IDS RULES
+# ---------------
+# These signatures look for uses of other IDSs.
+#
+# These signatures serve two purposes.
+#  1) If you are "IDS GUY" for a company, and someone else sets up an IDS
+#     without letting you know, thats bad.
+#  2) If you are "pen-tester", this is a good way to find out what IDS
+#     systems your target is using after you have gained access to their
+#     network.
+#
+
+
+alert tcp $HOME_NET 902 -> $EXTERNAL_NET any (msg:"OTHER-IDS ISS RealSecure 6 event collector connection attempt"; flow:from_server,established; content:"6ISS ECNRA Built-In Provider, Strong Encryption"; depth:70; offset:30; nocase; classtype:successful-recon-limited; sid:1760; rev:3;)
+alert tcp $HOME_NET 2998 -> $EXTERNAL_NET any (msg:"OTHER-IDS ISS RealSecure 6 daemon connection attempt"; flow:from_server,established; content:"6ISS ECNRA Built-In Provider, Strong Encryption"; depth:70; offset:30; nocase; classtype:successful-recon-limited; sid:1761; rev:3;)
+
+# To limit false positives, limit to the default port of 975
+alert tcp $EXTERNAL_NET any -> $HOME_NET any (msg:"OTHER-IDS SecureNetPro traffic"; flow:established; content:"|00|g|00 01 00 03|"; depth:6; classtype:bad-unknown; sid:1629; rev:6;)

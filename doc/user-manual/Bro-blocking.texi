@@ -1,0 +1,37 @@
+
+
+@menu
+* To block or not to block -- That is the question::
+* Adjusting criteria for automatic blocking::
+* Manually blocking/unblocking hosts::
+* Sample Blocking Code::
+@end menu
+
+@comment ********************************************
+@node To block or not to block -- That is the question
+@section To block or not to block -- That is the question
+
+insert text here 
+
+@comment ********************************************
+@node Adjusting criteria for automatic blocking
+@section Adjusting criteria for automatic blocking
+
+insert text here 
+
+@comment ********************************************
+@node Manually blocking/unblocking hosts
+@section Manually blocking/unblocking hosts
+
+insert text here 
+
+@comment ********************************************
+@node Sample Blocking Code
+@section Sample Blocking Code
+
+At LBL we use a program called @uref{http://www-nrg.ee.lbl.gov/leres/acl2.html, acld}
+to update the ACLs in our boarder routers on the fly.
+This code is available at:  ftp://ftp.ee.lbl.gov/acld.tar.gz
+
+
+

@@ -1,0 +1,9 @@
+#! /usr/bin/env bash
+#
+# $Id: local-interfaces 6811 2009-07-06 20:41:10Z robin $
+#
+# Returns a list of the IP addresses associated with local interfaces.
+
+# Tested with Linux, FreeBSD and MacOS.
+# TODO: Not sure if this is sufficient for IPv6 addresses.
+ifconfig -a | sed -n 's/.*inet6\{0,1\} \(addr: *\)\{0,1\}\([^ ]*\).*/\2/gp'

@@ -1,0 +1,64 @@
+This follows the same mantra as all other perl installers.
+
+
+PURPOSE:
+
+  This will install perl modules, libraries, and scripts that are used
+  for reports, editing signatures, and other useful utilities.
+
+
+DEFINITIONS:
+
+  $(PERL) is the path to the perl binary which you wish to use.
+  $(INSTALL_ROOT) is this directory which contains the Makefile.PL file.
+  BROHOME is the variable found in bro.cfg and defines the start of all
+    things Bro. (default: /usr/local/bro)
+  BROCONFIG is the location of the bro.cfg file.  (default: 
+    /usr/local/bro/etc/bro/cfg)
+
+
+REQUIREMENTS:
+
+  The minimum version of perl required by this installer and it's libraries
+  is 5.6.1 (5.006_001)
+  
+  The following perl modules are required:
+    Socket
+    Time::Local
+    Config::General (included and will install if neccessary)
+    Cwd
+    Getopt::Long
+
+
+INSTALL:
+
+  $(PERL) Makefile.PL (optional args)
+  make
+  make install
+
+
+INSTALLER NOTES:
+
+  For those of you maintaining this installer and/or want to include
+  additional packages to be installed here's how things are setup.
+  
+  $(INSTALL_ROOT)/lib contains perl modules (ending in .pm) and will be
+  installed in the perl site directory.
+  
+  $(INSTALL_ROOT)/script contains executable perl scripts which will be
+  installed in the directory defined by INSTALLSCRIPT.  The bang paths
+  will be automatically changed to the path of the perl binary that was
+  used to run Makefile.PL.  Files placed in here will also be scanned
+  for the variable $DEFAULT_BRO_CONFIG_FILE.  The value will automatically
+  be changed to one of the following in the order listed:
+    arguments passed to Makfile.PL:
+      BROCONFIG  (this is the path to bro.cfg)
+      BROHOME    (this is the path to BROHOME.  etc/bro.cfg will be appended)
+    Environment variable:
+      $BROHOME   (this is the path to BROHOME.  etc/bro.cfg will be appended)
+  
+  $(INSTALL_ROOT)/ext contains gzipped perl modules which are included
+  as a convenience.  These are packages created by other developers and
+  are usually found on cpan.org.  It will be necessary to change Makefile.PL
+  if additional packages are placed in here and they need to be installed.
+  

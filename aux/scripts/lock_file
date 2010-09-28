@@ -1,0 +1,70 @@
+#! /bin/sh
+# Inspired by http://members.toast.net/art.ross/rute/node24.html
+
+TAG=default
+CMD=
+
+help() {
+    echo "USAGE: lock_file (lock|unlock) [<tag>]"
+    echo
+    echo "lock_file locks or unlocks a lock file, for synchronization"
+    echo "across multiple processes. The lock command will block until"
+    echo "the lock can be obtained, upon which it exits with code 0."
+    echo "The exit code will be 1 on failures, and 2 on input error."
+    echo "You can use different tags for different locks."
+}
+
+while test "x$1" != "x"; do
+    case "$1" in 
+	"-h"|"--help"|"-help"|"-?"|"help")
+	    help
+	    exit 0
+	    ;;
+	"lock")
+	    CMD=lock
+	    shift 1
+	    ;;
+	"unlock")
+	    CMD=unlock
+	    shift 1
+	    ;;
+	*)
+	    TAG="$1"
+	    shift 1
+	    ;;
+    esac
+done
+
+TEMPFILE="/tmp/lock_${TAG}.$$"
+LOCKFILE="/tmp/lock_${TAG}.lock"
+
+if test "${CMD}" = "lock"; then
+
+    { echo $$ > $TEMPFILE; } >/dev/null 2>&1 || {
+	echo "You don't have permission to access `dirname $TEMPFILE`"
+	exit 1
+    }
+
+    while true; do
+	ln $TEMPFILE $LOCKFILE >/dev/null 2>&1 && {
+	    rm -f $TEMPFILE
+	    exit 0;
+	}
+
+	if test -e "$LOCKFILE"; then
+	    kill -0 `cat $LOCKFILE` >/dev/null 2>&1 || {
+		echo "Removing stale lock file"
+		rm -f $LOCKFILE
+	    }
+	fi
+	
+	sleep 1
+    done
+fi
+
+if test "${CMD}" = "unlock"; then
+    rm -f $LOCKFILE && exit 0
+    exit 1
+fi
+
+exit 2

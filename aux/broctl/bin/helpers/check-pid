@@ -1,0 +1,19 @@
+#! /usr/bin/env bash
+#
+# $Id: check-pid 6811 2009-07-06 20:41:10Z robin $
+#
+#  check-pid <pid> 
+
+( ps aux | awk '{print $2}' | grep -v check-pid | grep -v grep | grep -q "^$1$" )  2>/dev/null
+
+if [ $? = 0 ]; then
+   echo 0
+else
+   echo 1
+fi
+
+echo ~~~
+
+
+
+

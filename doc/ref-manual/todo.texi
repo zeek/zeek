@@ -1,0 +1,174 @@
+
+@node Missing Documentation
+@chapter Missing Documentation
+
+This chapter holds stubs for subjects that have yet to be documented.
+Some of these are actually already somewhat covered elsewhere in the
+manual.  In addition, a major missing piece for the manual is the
+Bro language itself; below we mention some Bro language topics that
+come up elsewhere in the current version of the manual.
+
+@menu
+* use of prefixes::		
+* tcpdump save file that Bro writes::  
+* init initialization file::	
+* Assignment operators such as +=::  
+* notion of redefinition/refinement::  
+* Notice/Alarm model::		
+* Timer management::		
+* SYN-FIN filtering::		
+* Split routing::		
+* Scan dropping::		
+* Operator precedence::		
+* Partial connections::		
+* Packet drops::		
+* load directive::		
+* Global statements::		
+* Inserting tables into tables::  
+* Demultiplexing::		
+* Bro init file::		
+* Hostnames vs addresses::	
+* hot-report script::		
+* Use of libpcap/BPF::		
+* problem of evasion::		
+* Backscatter::			
+* Playing back traces::		
+* Discarders::			
+* Differences between this release and the previous one::  
+* Notice cascade::		
+* need for subtyping::		
+* need for CIDR masks::		
+* wish list::			
+* Known bugs::			
+* Execution tracing::
+* Policy analyzers::
+* Trace rewriting::
+* Rule benchmarking::
+* Connection state history recording::
+@end menu
+
+@node use of prefixes,
+@section The use of @emph{prefixes}
+
+
+@node  tcpdump save file that Bro writes,
+@section  The tcpdump save file that Bro writes 
+
+
+@node  init initialization file,
+@section  The bro.init initialization file 
+
+@node  Assignment operators such as +=,
+@section  Assignment operators such as += 
+
+@node  notion of redefinition/refinement,
+@section  The notion of redefinition/refinement 
+
+ 
+@node  Notice/Alarm model,
+@section  The notice/alarm model 
+
+@node  Timer management,
+@section  Timer management 
+
+@node  SYN-FIN filtering,
+@section  SYN-FIN filtering 
+
+@node  Split routing,
+@section  Split routing 
+
+@node  Scan dropping,
+@section  Scan dropping 
+
+@node  Operator precedence,
+@section  Operator precedence 
+
+@node  Partial connections,
+@section  Partial connections 
+
+@node  Packet drops,
+@section  Packet drops 
+
+@node  load directive,
+@section  The load directive 
+
+@node  Global statements,
+@section  Global statements 
+
+@node  Inserting tables into tables,
+@section  Inserting tables into tables 
+
+@node  Demultiplexing,
+@section  Demultiplexing 
+
+@node  Bro init file,
+@section  Bro init file 
+
+
+@node  Hostnames vs addresses,
+@section  Hostnames vs. addresses 
+
+
+@node  hot-report script,
+@section  The hot-report script 
+
+
+@node  Use of libpcap/BPF,
+@section  Use of libpcap/BPF 
+
+See: bpf,pcap refs XXX
+
+@node  problem of evasion,
+@section  The problem of evasion 
+
+See: ptacek98 paper XXX
+
+@node  Backscatter,
+@section  Backscatter 
+
+
+@node Playing back traces,
+@section Playing back traces 
+
+
+@node  Discarders,
+@section  Discarders 
+
+@node  Differences between this release and the previous one,
+@section  Differences between this release and the previous one 
+
+
+@node  Notice cascade,
+@section  Notice cascade 
+
+
+@node  need for subtyping,
+@section  The need for subtyping 
+
+E.g., src addr vs. dst addr, perhaps
+using attributes.
+
+@node  need for CIDR masks,
+@section  The need for CIDR masks 
+
+
+@node  wish list,
+@section  The wish list 
+
+@node  Known bugs,
+@section  Known bugs 
+
+@node  Execution tracing,
+@section  Execution tracing
+
+@node  Policy analyzers,
+@section  Policy analyzers
+
+@node  Trace rewriting,
+@section  Trace rewriting
+
+@node  Rule benchmarking,
+@section  Rule benchmarking
+
+@node  Connection state history recording,
+@section  Connection state history recording

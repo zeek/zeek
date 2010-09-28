@@ -1,0 +1,6 @@
+# $Id: local.rules 91 2004-07-15 08:13:57Z rwinslow $
+# ----------------
+# LOCAL RULES
+# ----------------
+# This file intentionally does not come with signatures.  Put your local
+# additions here.

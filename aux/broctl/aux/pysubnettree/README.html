@@ -1,0 +1,514 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.2.3" />
+<style type="text/css">
+/* Debug borders */
+p, li, dt, dd, div, pre, h1, h2, h3, h4, h5, h6 {
+/*
+  border: 1px solid red;
+*/
+}
+
+body {
+  background:#ffffff;
+  margin:0;
+  padding:20px 10px;
+  font-size: small;
+  font-family: sans-serif;
+  color: #505050;
+  margin: 1em 10% 1em 10%;
+}
+
+a {
+  color: #005000;
+}
+
+a:visited {
+  color: #005000;
+}
+
+a:hover {
+  color: #002000;
+}
+
+em {
+  font-style: italic;
+}
+
+strong {
+  font-weight: bold;
+}
+
+tt {
+  color: #000000;
+}
+
+h1, h2, h3, h4, h5, h6, div#toctitle {
+  color: #227022;
+  font-family: sans-serif;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+  font-weight: normal;
+}
+
+h1, h2, h3, div#toctitle {
+  border-bottom: 1px solid;
+  border-color: #000000;
+}
+
+h1 {
+  font-size: x-large;
+  }
+
+h2, div#toctitle {
+  padding-top: 0.5em;
+  font-size: medium;
+}
+h3 {
+  float: left;
+  font-size: small;
+}
+h3 + * {
+  clear: left;
+}
+
+div.sectionbody {
+  font-family: sans-serif;
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+pre {
+  padding: 0;
+  margin: 0;
+}
+
+span#author {
+  color: #338033;
+  font-family: sans-serif;
+  font-size: 1.1em;
+}
+span#email {
+}
+span#revision {
+  font-family: sans-serif;
+}
+
+div#footer {
+  font-family: sans-serif;
+  font-size: x-small;
+  border-top: 1px solid;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+div#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+div#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+div#preamble,
+div.tableblock, div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.5em;
+  margin-left: 1em;
+  margin-bottom: 1.5em;
+/*  background: #eeffcc; */
+}
+div.admonitionblock {
+  margin-top: 2.5em;
+  margin-bottom: 2.5em;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  font-family: sans-serif;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid;
+  padding: 0.5em;
+}
+
+div.listingblock {
+  margin-right: 0%;
+}
+div.listingblock > div.content {
+  border: 1px solid;
+  background: #f4f4f4;
+  padding: 0.5em;
+}
+
+div.quoteblock > div.content {
+  padding-left: 2.0em;
+}
+
+div.attribution {
+  text-align: right;
+}
+
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  color: #338033;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 2px solid;
+}
+
+div.exampleblock > div.content {
+  border-left: 2px solid;
+  padding: 0.5em;
+}
+
+div.verseblock div.content {
+  white-space: pre;
+}
+
+div.imageblock div.content { padding-left: 0; }
+div.imageblock img { border: 1px solid ; }
+span.image img { border-style: none; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: italic;
+}
+dd > *:first-child {
+  margin-top: 0;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+div.olist2 ol {
+  list-style-type: lower-alpha;
+}
+
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+
+div.addrblock > table {
+  border: 0px 0px 0px 0px;
+  border-style: none none none none;
+  padding: 0px;
+  margin: 10px;
+  color: #000000;
+}
+
+table.addrblockbg {
+  /*
+  border-top: 1px solid;
+  border-bottom: 1px solid;
+  */
+  background: #e0ffe0 ;
+  border-style: none;
+  outline-style: none;
+}
+
+thead {
+  font-family: sans-serif;
+  color: #000000;
+}
+tfoot {
+  font-weight: bold;
+  color: #000000;
+}
+
+div.hlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hlist td {
+  padding-bottom: 5px;
+}
+td.hlist1 {
+  vertical-align: top;
+  font-style: italic;
+  padding-right: 0.8em;
+}
+td.hlist2 {
+  vertical-align: top;
+}
+
+@media print {
+  div#footer-badges { display: none; }
+}
+
+div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: .5ex;
+  margin-bottom: 0;
+  margin-left: 2em;
+  line-height: 1.3;
+}
+div.toclevel1 {
+  margin-top: 1ex;
+}
+div.toclevel2 {
+  margin-left: 4em;
+}
+
+div.toclevel3 {
+  margin-left: 6em;
+}
+div.toclevel4 {
+  margin-left: 8em;
+}
+/* Workarounds for IE6's broken and incomplete CSS2. */
+
+div.sidebar-content {
+  background: #ffffee;
+  border: 1px solid silver;
+  padding: 0.5em;
+}
+div.sidebar-title, div.image-title {
+  font-family: sans-serif;
+  font-weight: bold;
+  margin-top: 0.0em;
+  margin-bottom: 0.5em;
+}
+
+div.listingblock div.content {
+  border: 1px solid silver;
+  background: #f4f4f4;
+  padding: 0.5em;
+}
+
+div.quoteblock-content {
+  padding-left: 2.0em;
+}
+
+div.exampleblock-content {
+  border-left: 2px solid silver;
+  padding-left: 0.5em;
+}
+
+/* IE6 sets dynamically generated links as visited. */
+div#toc a:visited { color: blue; }
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+window.onload = function(){generateToc(2)}
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, October 2006. License: GPL */
+
+function getText(el) {
+  var text = "";
+  for (var i = el.firstChild; i != null; i = i.nextSibling) {
+    if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+      text += i.data;
+    else if (i.firstChild != null)
+      text += getText(i);
+  }
+  return text;
+}
+
+function TocEntry(el, text, toclevel) {
+  this.element = el;
+  this.text = text;
+  this.toclevel = toclevel;
+}
+
+function tocEntries(el, toclevels) {
+  var result = new Array;
+  var re = new RegExp('[hH]([2-'+(toclevels+1)+'])');
+  // Function that scans the DOM tree for header elements (the DOM2
+  // nodeIterator API would be a better technique but not supported by all
+  // browsers).
+  var iterate = function (el) {
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+        var mo = re.exec(i.tagName)
+        if (mo)
+          result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+        iterate(i);
+      }
+    }
+  }
+  iterate(el);
+  return result;
+}
+
+// This function does the work. toclevels = 1..4.
+function generateToc(toclevels) {
+  var toc = document.getElementById("toc");
+  var entries = tocEntries(document.getElementsByTagName("body")[0], toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "toc" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+}
+/*]]>*/
+</script>
+<title>PySubnetTree - A Python Module for CIDR Lookups.</title>
+</head>
+<body>
+<div id="header">
+<h1>PySubnetTree - A Python Module for CIDR Lookups.</h1>
+<div id="toc">
+  <div id="toctitle">Table of Contents</div>
+  <noscript><p><b>JavaScript must be enabled in your browser to display the table of contents.</b></p></noscript>
+</div>
+</div>
+<h2>Overview</h2><p/>
+<div class="sectionbody">
+<p>The PySubnetTree package provides a Python data structure
+<tt>SubnetTree</tt> which maps subnets given in
+<a href="http://tools.ietf.org/html/rfc4632">CIDR</a> notation to Python
+objects. Lookups are performed by longest-prefix matching.</p>
+<p>Simple example which associates CIDR prefixes with strings:</p>
+<div class="literalblock">
+<div class="content">
+<pre><tt>&gt;&gt;&gt; import SubnetTree
+&gt;&gt;&gt; t = SubnetTree.SubnetTree()
+&gt;&gt;&gt; t["10.1.0.0/16"] = "Network 1"
+&gt;&gt;&gt; t["10.1.42.0/24"] = "Network 1, Subnet 42"
+&gt;&gt;&gt; t["10.2.0.0/16"] = "Network 2"
+&gt;&gt;&gt; print t["10.1.42.1"]
+Network 1, Subnet 42
+&gt;&gt;&gt; print t["10.1.43.1"]
+Network 1
+&gt;&gt;&gt; print "10.1.42.1" in t
+True
+&gt;&gt;&gt; print "10.1.43.1" in t
+True
+&gt;&gt;&gt; print "10.20.1.1" in t
+False
+&gt;&gt;&gt; print t["10.20.1.1"]
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+  File "SubnetTree.py", line 67, in __getitem__
+    def __getitem__(*args): return _SubnetTree.SubnetTree___getitem__(*args)
+KeyError: '10.20.1.1'</tt></pre>
+</div></div>
+<p>CIDR prefixes are given as strings. Single addresses can
+alternatively also be passed in as integers as, e.g., returned by
+<a href="http://docs.python.org/lib/module-socket.html#l2h-3657"><tt>socket.inet_aton</tt></a>.</p>
+<p>A SubnetTree also provides methods <tt>insert(prefix,object=None)</tt> for insertion
+of prefixes (<tt>object</tt> can be skipped to use the tree like a set), and
+<tt>remove(prefix)</tt> for removing entries (<tt>remove</tt> performs an <em>exact</em> match
+rather than longest-prefix).</p>
+<p>Internally, the CIDR prefixes of a <tt>SubnetTree</tt> are managed by a
+Patricia tree data structure and lookups are therefore efficient
+even for large number of prefixes.</p>
+<p>PySubnetTree comes with BSD license.</p>
+</div>
+<h2>Version History</h2><p/>
+<div class="sectionbody">
+<div class="hlist"><table>
+<tr>
+<td class="hlist1">
+<strong>Version 0.12</strong>
+</td>
+<td class="hlist2">
+Better error handling. In particular, using None as
+an index now raises an IndexError.
+</td>
+</tr>
+<tr>
+<td class="hlist1">
+<strong>Version 0.11</strong>
+</td>
+<td class="hlist2">
+License changed from GPL to BSD-style.
+</td>
+</tr>
+<tr>
+<td class="hlist1">
+<strong>Version 0.1</strong>
+</td>
+<td class="hlist2">
+Initial release.
+</td>
+</tr>
+</table></div>
+</div>
+<h2>Download</h2><p/>
+<div class="sectionbody">
+<p>Download <a href="http://www.icir.org/robin/pysubnettree/pysubnettree-0.12.tar.gz"><tt>pysubnettree-0.12.tar.gz</tt></a>.</p>
+</div>
+<h2>Prerequisites</h2><p/>
+<div class="sectionbody">
+<p>This packages requires Python 2.4 or newer.</p>
+</div>
+<h2>Installation</h2><p/>
+<div class="sectionbody">
+<p>Installation is pretty simple:</p>
+<div class="literalblock">
+<div class="content">
+<pre><tt>&gt; python setup.py install</tt></pre>
+</div></div>
+</div>
+<div id="footer">
+<div id="footer-text">
+<a href="http://www.icir.org/robin">Back to Homepage</a><br />
+</div>
+</div>
+</body>
+</html>

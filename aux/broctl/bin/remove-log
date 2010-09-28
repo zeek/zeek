@@ -1,0 +1,9 @@
+#! /usr/bin/env bash
+#
+# $Id: remove-log 6811 2009-07-06 20:41:10Z robin $
+#
+# This script can be used as a Bro log postprocessor to simply *delete* 
+# the files after rotation.
+
+rm $1
+

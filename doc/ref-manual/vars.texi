@@ -1,0 +1,294 @@
+
+@node Global and Local Variables
+@chapter Global and Local Variables
+
+@menu
+* Variables Overview::			
+@end menu
+
+@node Variables Overview,
+@section Variables Overview
+
+@cindex variables, overview
+
+Bro variables can be complicated to understand because they have
+a number of possibilities and features.  They can be
+global or local in scope;
+modifiable or constant (unchangeable);
+explicitly or implicitly typed;
+optionally initialized;
+defined to have additional 
+@emph{attributes};
+and, for global variables,
+@emph{redefined} to have a different
+initialization or different attributes from their first declaration.
+
+Rather than giving the full syntax for variable declarations, which
+is messy, in the following sections we discuss each of these facets
+of variables in turn, illustrating them with the minimal necessary
+syntax.  However, keep in mind that the features can be combined
+as needed in a variable declaration.
+
+@menu
+* Scope::			
+* Assignment & call semantics::
+* Modifiability::		
+* Typing::			
+* Initialization::		
+* Attributes::			
+* Refinement::			
+@end menu
+
+@node Scope,
+@subsection Scope
+
+@cindex variables, scoping
+@cindex scoping of variables
+@cindex global variables
+@cindex local variables
+@emph{Global} variables are available throughout your policy script (once
+declared), while the scope of @emph{local} variables is confined to the
+function or event handler in which they're declared.  You indicate the
+variable's type using a corresponding keyword:
+@quotation
+@code{global} @emph{name} @code{:} @emph{type} @code{;}
+@end quotation
+or
+@quotation
+@code{local} @emph{name} @code{:} @emph{type} @code{;}
+@end quotation
+which declares @emph{name} to have the given type and the corresponding
+scope.
+
+You can intermix function/event handler definitions with declarations
+of global variables, and, indeed, they're in fact the same thing (that
+is, a function or event handler definition is equivalent to defining
+a global variable of type @code{function} or @code{event} and associating
+its initial value with that of the function or event handler).  So
+the following is fine:
+@example
+    global a: count;
+
+    function b(p: port): string
+        @{
+        if ( p < 1024/tcp )
+            return "privileged";
+        else
+            return "ephemeral";
+        @}
+
+    global c: addr;
+@end example
+
+However, you cannot mix declarations of global variables with
+global statements; the following is not allowed:
+@example
+    print "hello, world";
+    global a: count;
+@end example
+
+Local variables, on the other hand, can @emph{only} be declared within a
+function or event handler.  (Unlike for global statements, these declarations
+@emph{can} come after statements.)  Their scope persists to the end of
+the function.  For example:
+@example
+    function b(p: port): string
+        @{
+        if ( p < 1024/tcp )
+            local port_type = "privileged";
+        else
+            port_type = "ephemeral";
+
+        return port_type;
+        @}
+@end example
+
+@node Assignment & call semantics,
+@subsection Assignment & call semantics
+
+@cindex call semantics
+@cindex call by reference
+@cindex call by value
+@cindex assignment semantics
+@cindex aggregated types
+
+Assignments of aggregate types (such as records, tables, or vectors) are
+always @emph{shallow}, that is, they are performed @emph{by reference}.
+So when you assign a record or table value to another variable, any modifications
+you make to members become visible in both variables (see also
+@ref{Record Assignment}, @ref{Table Assignment}).
+
+The same holds for function calls: an aggregate value passed into a function
+is passed by reference, thus any modifications made to the value inside the
+function remain effective after the function returns.
+ 
+@cindex reference counting
+@cindex shallow copy
+@cindex deep copy
+It is important to be aware of the fact that events triggered using the
+@code{event} statement remain on the event queue until they are processed,
+and that any aggregate values passed as arguments to @code{event} can be modified
+at any time before the event handlers are executed. If this is not desirable,
+you have to copy the values before passing them to @code{event}. The model that applies
+here is one of @emph{reference counting}, not local scope or deep copying.
+If deep copies are desirable, use the clone operator ``copy()'' explained in
+@ref{Expressions}.
+
+Therefore, if an event handler triggering a new event modifies the arguments
+after the @code{event} statement, these changes will be visible inside the event
+handlers running later. This also affects the lifetime of a value. If an aggregate
+is for example stored in a table and referenced nowhere else, then retrieved and
+passed to an @code{event} statement, and removed from the table before the
+event handlers execute, it does remain in existence until the event handlers
+are executed.
+
+Furthermore, if multiple event handlers exist for a single event type, any changes
+to the arguments made by an event handler will be visible in other
+event handlers still to follow.
+
+@node Modifiability,
+@subsection Modifiability
+
+@cindex variables, modifiability
+@cindex modifiability of variables
+For both global and local variables, you can declare that the
+variable @emph{cannot be modified} by declaring it using the const
+keyword rather than global or local:
+@example
+    const response_script = "./scripts/nuke-em";
+@end example
+
+Note that @code{const} variables @emph{must} be initialized (otherwise,
+of course, there's no way for them to ever hold a useful value).
+
+The utility of marking a variable as unmodifiable is for clarity
+in expressing your script---making it explicit that a particular value
+will never change---and also allows Bro to possibly optimize accesses
+to the variable (though it does little of this currently).
+
+Note that const variables @emph{can} be redefined via
+redef.
+
+@node Typing,
+@subsection Typing
+
+@cindex variables, typing
+@cindex typing of variables
+@cindex implicit typing
+@cindex explicit typing
+When you define a variable, you can @emph{explicitly} type it by
+specifying its type after a colon.  For example,
+@example
+    global a: count;
+@end example
+
+directly indicates that a's type is @code{count}.
+
+However, Bro can also @emph{implicitly} type the variable by looking
+at the type of the expression you use to initialize the variable:
+@example
+    global a = 5;
+@end example
+
+also declares a's type to be @code{count}, since that's
+the type of the initialization expression (the constant 5).
+There is no difference between this declaration and:
+@example
+    global a: count = 5;
+@end example
+
+except that it is more concise both to write and to read.  In particular,
+Bro remains @emph{strongly} typed, even though it also supports @emph{implicit}
+typing; the key is that once the type is implicitly inferred, it is thereafter
+strongly enforced.
+
+@cindex type inference
+@cindex inferring types
+Bro's @emph{type inference} is fairly powerful: it can generally figure
+out the type whatever initialization expression you use.  For example,
+it correctly infers that:
+@example
+    global c = @{ [21/tcp, "ftp"], [[80/tcp, 8000/tcp, 8080/tcp], "http"], @};
+@end example
+
+specifies that c's type is set[port, string].  But for still
+more complicated expressions, it is not always able to infer the correct
+type.  When this occurs, you need to explicitly specify the type.
+
+@node Initialization,
+@subsection Initialization
+
+@cindex variables, initialization
+@cindex initialization of variables
+When defining a variable, you can optionally specify an initial
+value for the variable:
+@example
+    global a = 5;
+@end example
+
+indicates that the initial value of @code{a} is the value @code{5}
+(and also implicitly types a as type count, per @ref{Typing}).
+
+The syntax of an initialization is ``= @emph{expression}'', where
+the given expression must be assignment-compatible with the variable's
+type (if explicitly given).  Tables and sets also have special initializer
+forms, which are discussed in @ref{Initializing Tables} and @ref{Sets}.
+
+@node Attributes,
+@subsection Attributes
+
+@cindex variables, attributes
+@cindex attributes
+
+When defining a variable, you can optionally specify a set of
+@emph{attributes} associated with the variable, which specify
+additional properties associated with it.  Attributes have two forms:
+@quotation
+@code{&} @emph{attr}
+@end quotation
+for attributes that are specified simply using their name, and
+@quotation
+@code{&} @emph{attr} @code{=} @emph{expr}
+@end quotation
+for attributes that have a value associated with them.
+
+The attributes
+@code{&redef}
+@code{&add_func}
+and
+@code{&delete_func},
+pertain to redefining variables; they are discussed in @ref{Refinement}.
+
+The attributes
+@code{&default},
+@code{&create_expire},
+@code{&read_expire},
+@code{&write_expire}, and
+@code{&expire_func}
+are for use with table's and set's.
+See @ref{Table Attributes} for discussion.
+
+The attribute
+@code{&optional}
+specifies that a @code{record} field is optional.  See 
+for discussion.
+
+Finally, to specify multiple attributes, you do @emph{not} separate them
+with commas (doing so would actually make Bro's grammar ambiguous), but
+just list them one after another.  For example:
+@example
+    global a: table[port] of string &redef &default="missing";
+@end example
+
+@node Refinement,
+@subsection Refinement
+
+@cindex variables, redefining
+@cindex variables, refinement
+@cindex refinement
+@cindex redefining variables
+
+To do:
+&redef @*
+&add func @*
+&delete func 

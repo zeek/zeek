@@ -1,0 +1,11 @@
+#! /usr/bin/env bash
+#
+# $Id: df.in 6811 2009-07-06 20:41:10Z robin $
+#
+# df <path>
+#
+# Returns:  <fs> <fs-size> <fs-used> <fs-avail>
+
+echo 0
+df -h $1 | awk '{print $1, $2, $3, $4}' | tail -1 | awk -f ${helperdir}/to-bytes.awk
+echo ~~~

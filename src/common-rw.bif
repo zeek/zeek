@@ -1,0 +1,107 @@
+%%{
+#include "TCP_Rewriter.h"
+%%}
+
+rewriter commit_trace%(commit: bool, future: bool%)
+	%{
+	if ( commit )
+		@TRACE@->CommitPackets(future);
+	else
+		@TRACE@->AbortPackets(future);
+	%}
+
+rewriter push_packet%(is_orig: bool%)
+	%{
+	@PUSH@(is_orig);
+	%}
+
+rewriter leave_addr_in_the_clear%(is_orig: bool%)
+	%{
+	if ( ! @TRACE@->LeaveAddrInTheClear(is_orig) )
+		builtin_run_time("cannot leave IP address in the clear"
+			" (probably because some packets have already been rewritten before this call)");
+	%}
+
+function current_packet%(c: connection%): packet
+	%{
+	Rewriter* rewriter = get_trace_rewriter(c);
+	if ( ! rewriter )
+		{
+		builtin_run_time("current_packet is not supported without specifying an output file");
+		return 0;
+		}
+
+	return rewriter->CurrentPacket()->PacketVal();	
+	%}
+
+function current_rewrite_packet%(c: connection%): packet
+	%{
+	Rewriter* rewriter = get_trace_rewriter(c);
+	if ( ! rewriter )
+		{
+		builtin_run_time("current_rewrite_packet is not supported without specifying an output file");
+		return 0;
+		}
+
+	return rewriter->RewritePacket()->PacketVal();
+	%}
+
+# Reserve a slot in the current packet of the trace so that the
+# slot can be filled later by seeking to it.
+function reserve_rewrite_slot%(c: connection%): count
+	%{
+	Rewriter* rewriter = get_trace_rewriter(c);
+	if ( ! rewriter )
+		return new Val(0, TYPE_COUNT);
+
+	unsigned int slot = rewriter->ReserveSlot();
+	if ( slot == 0 )
+		builtin_run_time("reserve_rewrite_slot returning 0");
+
+	return new Val(slot, TYPE_COUNT);
+	%}
+
+# Seek to a previously reserved slot so that rewrites afterwards
+# will go into the slot instead of the current packet.
+function seek_rewrite_slot%(c: connection, slot: count%): any
+	%{
+	Rewriter* rewriter = get_trace_rewriter(c);
+	if ( ! rewriter->SeekSlot(slot) )
+		builtin_run_time("cannot seek the rewrite slot");
+
+	return 0;
+	%}
+
+# Return from any reserved slot to bring the rewrite pointer back to
+# the current packet.
+function return_from_rewrite_slot%(c: connection%): any
+	%{
+	Rewriter* rewriter = get_trace_rewriter(c);
+	rewriter->ReturnFromSlot();
+	return 0;
+	%}
+
+# Release a rewrite slot and dump the slot to the trace (it cannot be
+# seek'd again). If the rewrite pointer is currently at the slot, it
+# will return to the current packet.
+function release_rewrite_slot%(c: connection, slot: count%): any
+	%{
+	Rewriter* rewriter = get_trace_rewriter(c);
+	rewriter->ReleaseSlot(slot);
+	return 0;
+	%}
+
+# Dump original packets on the connection up to this point to the
+# output trace, if any.
+function dump_packets_of_connection%(c: connection%): any
+	%{
+	Analyzer* tc = c->FindAnalyzer(AnalyzerTag::TCP);
+	if ( ! tc )
+		run_time("connection does not have TCP analyzer");
+
+	TCP_SourcePacketWriter* pkt_writer = get_src_pkt_writer((TCP_Analyzer*) tc);
+	if ( pkt_writer )
+		pkt_writer->Dump();
+
+	return 0;
+	%}

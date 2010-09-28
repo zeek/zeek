@@ -1,0 +1,40 @@
+#! /usr/bin/env python
+#
+# $Id: extract-strictly-local-conns 6813 2009-07-07 18:54:12Z robin $
+#
+
+import sys
+
+import SubnetTree
+
+def readNetworks(file):
+
+    nets = SubnetTree.SubnetTree()
+
+    for line in open(file):
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+
+        fields = line.split()
+        cidr = fields[0]
+        descr = " ".join(fields[1:])
+
+        try:
+            nets[cidr] = descr
+        except KeyError:
+            print >>sys.stderr, "cannot parse network specification '%s'" % cidr
+
+
+    return nets
+
+if len(sys.argv) != 2:
+    print >>sys.stderr, "usage: %s networks.cfg <conn.log" % sys.argv[0]
+    sys.exit(1)
+
+nets = readNetworks(sys.argv[1])
+
+for line in sys.stdin:
+    m = line.split()
+    if m[2] in nets and m[3] in nets:
+        print line,

@@ -1,0 +1,14 @@
+# (C) Copyright 2001-2004, Martin Roesch, Brian Caswell, et al.
+#    All rights reserved.
+# $Id: info.rules 91 2004-07-15 08:13:57Z rwinslow $
+#-----------
+# INFO RULES
+#-----------
+
+alert tcp $EXTERNAL_NET 80 -> $HOME_NET any (msg:"INFO Connection Closed MSG from Port 80"; flow:from_server,established; content:"Connection closed by foreign host"; nocase; classtype:unknown; sid:488; rev:4;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET 21 (msg:"INFO FTP no password"; flow:from_client,established; content:"PASS"; nocase; pcre:"/^PASS\s*\n/smi"; reference:arachnids,322; classtype:unknown; sid:489; rev:7;)
+alert tcp $EXTERNAL_NET any -> $SMTP_SERVERS 25 (msg:"INFO battle-mail traffic"; flow:to_server,established; content:"BattleMail"; classtype:unknown; sid:490; rev:6;)
+alert tcp $HOME_NET 21 -> $EXTERNAL_NET any (msg:"INFO FTP Bad login"; flow:from_server,established; content:"530 "; pcre:"/^530\s+(Login|User)/smi"; classtype:bad-unknown; sid:491; rev:8;)
+alert tcp $HOME_NET 23 -> $EXTERNAL_NET any (msg:"INFO TELNET Bad Login"; flow:from_server,established; content:"Login failed"; nocase; classtype:bad-unknown; sid:492; rev:8;)
+alert tcp $HOME_NET 23 -> $EXTERNAL_NET any (msg:"INFO TELNET Bad Login"; flow:from_server,established; content:"Login incorrect"; nocase; classtype:bad-unknown; sid:1251; rev:6;)
+alert tcp $HOME_NET any -> $EXTERNAL_NET any (msg:"INFO psyBNC access"; flow:from_server,established; content:"Welcome!psyBNC@lam3rz.de"; classtype:bad-unknown; sid:493; rev:5;)

@@ -1,0 +1,104 @@
+Prerequisites
+=============
+
+Bro relies on the following libraries and tools, which need to be installed
+before you begin with the installation:
+
+    * Libpcap
+	   If libpcap is already installed on the system, by default Bro
+	   will use that one.  Otherwise, it falls back to a version shipped
+	   with the Bro distribution.
+
+    * Flex
+	   Flex is already installed on most systems, so with luck you can
+	   skip having to install it yourself.
+
+    * Bison or byacc
+	   These come with many systems, but if you get errors compiling
+	   parse.y, you will need to install them.  bison is available
+	   from GNU sites such as ftp.gnu.org.
+
+    * BIND8 headers and libraries
+           These are usually already installed as well.
+
+    * Autotools
+	   If you have checked the source out from Bro's Subversion
+	   repository, you need the autotools suite installed.  In this
+	   case, run "./autogen.sh" first right after the check out.
+	   Otherwise the installation steps below will fail.
+
+Bro can also make uses of some optional libraries if they are found at
+installation time:
+
+    * OpenSSL
+           For analysis of SSL certificates by the HTTP analyzer, and 
+           for encrypted Bro-to-Bro communication.
+
+    * Libmagic
+           For identifying file types (e.g., in FTP transfers).
+           
+    * LibGeoIP
+           For geo-locating IP addresses.
+           
+    * Libz
+	   For decompressing HTTP bodies by the HTTP analyzer, and for
+	   compressed Bro-to-Bro communication.
+
+    * Endace's DAG tools:
+           For native support of Endace DAG cards.
+
+
+Installation
+============
+
+To build and install into /usr/local:
+
+	> ./configure
+	> make
+	> make install
+
+This will install the Bro binary into /usr/local/bin/bro and the policy
+files into /usr/local/share/bro.
+
+As usual you can specify a different installation directory with
+
+   > ./configure --prefix=<dir>".
+
+Run "./configure --help" for more options. 
+
+
+Running Bro
+===========
+
+Bro is a complex program and it takes a bit of time to get familiar
+with it.  In the following we give a few simple examples.  See
+http://www.bro-ids.org/wiki for more information.
+
+To run a policy file from /usr/local/share/bro, such as mt.bro, on a
+previously captured tcpdump save file named foo:
+
+	bro -r foo mt.bro
+
+To run from interface le0:
+
+	bro -i le0 mt
+
+You can alternatively specify interface and scripts to load in your own
+policy file:
+
+	@load mt
+	redef interfaces = "le0";
+
+and then run
+
+    bro ./my-policy.bro
+
+You can see the BPF filter Bro will use (if not overridden) by executing
+
+	bro mt print-filter
+
+To run interactively (e.g., for playing with expression evaluation):
+
+	bro
+
+"bro -h" lists the various options.

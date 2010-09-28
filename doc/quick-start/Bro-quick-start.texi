@@ -1,0 +1,99 @@
+\input texinfo   @c -*-texinfo-*-
+@comment $Id: Bro-quick-start.texi 958 2004-12-21 16:51:44Z tierney $
+@comment %**start of header
+@setfilename Bro-quick-start.info
+@settitle Bro Quick Start Guide 
+@setcontentsaftertitlepage 
+@comment %**end of header
+
+
+@set VERSION 0.9
+@set UPDATED 11-15-2004
+
+@copying
+This the Quick Start Guide for Bro
+version @value{VERSION}.
+
+This software is copyright @copyright{} 
+1995-2004, The Regents of the University of California
+and the International Computer Science Institute.  All rights reserved.
+
+For further information about this notice, contact:
+
+Vern Paxson
+email: @email{vern@@icir.org}
+
+@end copying
+
+@dircategory Bro
+@direntry
+* Bro: Network Intrusion Detection System
+@end direntry
+
+@ifnottex
+@node Top
+@top Bro Quick Start Guide
+@copyright{} Lawrence Berkeley National Laboratory
+@end ifnottex
+
+@titlepage
+@title Bro Quick Start Guide 
+@subtitle version @value{VERSION}, @value{UPDATED}, @strong{DRAFT}
+@author Vern Paxson, Jim Rothfuss, Brian Tierney
+@author Contact: @email{vern@@icir.org}
+@author @uref{http://www.bro-ids.org/}
+@page
+@insertcopying
+@vskip 0pt plus 1filll
+@end titlepage
+
+@contents
+
+@ifnottex
+@strong{Bro Quick Start Guide}: 
+This manual contains info on installing, configuring, and running
+Bro. For more details, see the @uref{http://www.bro-ids.org/Bro-user-manual/,
+Bro User Manual}
+@end ifnottex
+
+@menu
+* Overview of Bro::
+* Requirements ::
+* Installation and Configuration::
+* Running Bro ::
+* Index::  
+@end menu
+
+@comment ********************************************
+
+@node Overview of Bro
+@chapter Overview of Bro
+@include Bro-overview.texi
+
+@comment ********************************************
+@node Requirements 
+@chapter Requirements 
+@cindex Software requirements
+@cindex Hardware requirements
+
+@include Bro-requirements.texi
+
+@comment ********************************************
+@node Installation and Configuration 
+@chapter Installation and Configuration 
+@cindex Installation instructions 
+@include Bro-installation.texi
+@cindex Configuration instructions 
+
+@comment ********************************************
+@node Running Bro
+@chapter Running Bro
+@include Bro-running.texi
+
+@comment ********************************************
+@node Index
+@unnumbered Index 
+
+@printindex cp
+
+@bye

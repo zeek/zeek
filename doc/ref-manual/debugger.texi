@@ -1,0 +1,389 @@
+
+@node Interactive Debugger
+@chapter Interactive Debugger
+
+@menu
+* Debugger Overview::			
+* A Sample Session::		
+* Usage::			
+* Notes and Limitations::	
+* Reference::			
+@end menu
+
+@node Debugger Overview,
+@section Debugger Overview
+
+Bro's interactive debugger is intended to aid in the development,
+testing, and maintenance of policy scripts. The debugger's interface
+has been modeled after the popular @code{gdb} debugger; the
+command syntax is virtually identical. While at present the Bro
+debugger supports only a small subset of @code{gdb}'s features,
+these were chosen to be the most commonly used commands. Additional
+features beyond those of @code{gdb}, such as wildcarding, have
+been added to specifically address needs created by Bro policy scripts.
+
+@node A Sample Session,
+@section A Sample Session
+
+The transcript below should look very familiar to those familiar with
+@code{gdb}. The debugger's command prompt accepts debugger commands;
+before each prompt, the line of policy code that is next to be
+executed is displayed.
+
+First we activate the debugger with the @code{-d} command-line switch.
+@example
+bobcat:~/bro/bro$ ./bro -d -r slice.trace brolite
+Policy file debugging ON.
+In bro_init() at policy/ftp.bro:437
+437             have_FTP = T;
+@end example
+ Next, we set a breakpoint in the @code{connection_finished}
+event handler [reference this somehow]. A breakpoint causes the
+script's execution to stop when it reaches the specified function. In
+this case, there are many event handlers for the
+@code{connection_finished} event, so we are given a choice.
+@example
+(Bro [0]) break connection_finished
+Setting breakpoint on connection_finished:
+
+There are multiple definitions of that event handler.
+Please choose one of the following options:
+[1] policy/conn.bro:268
+[2] policy/active.bro:14
+[3] policy/ftp.bro:413
+[4] policy/demux.bro:40
+[5] policy/login.bro:496
+[a] All of the above
+[n] None of the above
+Enter your choice: 1
+Breakpoint 1 set at connection_finished at policy/conn.bro:268
+@end example
+ Now we resume execution; when the breakpoint is reached, execution
+stops and the debugger prompt returns.
+@example
+(Bro [1]) continue
+Continuing.
+Breakpoint 1, connection_finished(c = '[id=[orig_h=1.0.0.163,
+orig_p=2048/tcp, resp_h=1.0.0.6, resp_p=23/tcp], orig=[size=0,
+state=5], resp=[size=46, state=5], start_time=929729696.316166,
+duration=0.0773319005966187, service=, addl=, hot=0]') at
+policy/conn.bro:268
+In connection_finished(c = '[id=[orig_h=1.0.0.163, orig_p=2048/tcp,
+resp_h=1.0.0.6, resp_p=23/tcp], orig=[size=0, state=5], resp=[size=46,
+state=5], start_time=929729696.316166, duration=0.0773319005966187,
+service=, addl=, hot=0]') at policy/conn.bro:268
+268             if ( c$orig$size == 0 || c$resp$size == 0 )
+@end example
+ We now step through a few lines of code and into the
+@code{record_connection} call.
+@example
+(Bro [2]) step
+274             record_connection(c, "finished");
+(Bro [3]) step
+In record_connection(c = '[id=[orig_h=1.0.0.163, orig_p=2048/tcp,
+resp_h=1.0.0.6, resp_p=23/tcp], orig=[size=0, state=5], resp=[size=46,
+state=5], start_time=929729696.316166, duration=0.0773319005966187,
+service=, addl=, hot=0]', disposition = 'finished') at
+policy/conn.bro:162
+162             local id = c$id;
+(Bro [4]) step
+163             local local_init = to_net(id$orig_h) in local_nets;
+@end example
+
+We now print the value of the @code{id} variable, which was set in
+the previously executed statement @code{local id = c$id;}. We follow
+that with a backtrace (@code{bt}) call, which prints a trace of the
+currently-executing functions and event handlers (along with their
+actual arguments). We then remove the breakpoint and continue
+execution to its end (the remaining output has been trimmed off). 
+@example
+(Bro [5]) print id
+[orig_h=1.0.0.163, orig_p=2048/tcp, resp_h=1.0.0.6, resp_p=23/tcp]
+(Bro [6]) bt
+#0 In record_connection(c = '[id=[orig_h=1.0.0.163, orig_p=2048/tcp,
+ resp_h=1.0.0.6, resp_p=23/tcp], orig=[size=0, state=5],
+ resp=[size=46, state=5], start_time=929729696.316166,
+ duration=0.0773319005966187, service=, addl=, hot=0]', disposition =
+ 'finished') at policy/conn.bro:163
+#1 In connection_finished(c = '[id=[orig_h=1.0.0.163, orig_p=2048/tcp,
+ resp_h=1.0.0.6, resp_p=23/tcp], orig=[size=0, state=5],
+ resp=[size=46, state=5], start_time=929729696.316166,
+ duration=0.0773319005966187, service=, addl=, hot=0]') at
+ policy/conn.bro:274
+(Bro [7]) delete
+Breakpoint 1 deleted
+(Bro [8]) continue
+Continuing.
+...
+@end example
+ 
+
+@node Usage,
+@section Usage
+
+The Bro debugger is invoked with the @code{-d} command-line
+switch. It is strongly recommended that the debugger be used with a
+tcpdump capture file as input (the @code{-r} switch) rather than in
+``live'' mode, so that results are repeatable.
+
+Execution tracing is a feature which generates a complete record of
+which code statements are executed during a given run. It is enabled
+with the @code{-t} switch, whose argument specifies a file which
+will contain the trace. 
+
+Debugger commands all are a single word, though many of them take
+additional arguments. Commands may be abbreviated with a prefix
+(e.g., @code{fin} for @code{finish}); if the same prefix matches
+multiple commands, the debugger will list all that match. Certain
+very frequently-used commands, such as @code{next}, have been
+given specific one-character shortcuts (in this case,
+@code{n}). For more details on all the debugger commands, see the
+Reference in section @ref{Reference}, below.
+
+The debugger's prompt can be activated in three ways. First, when
+the @code{-d} switch is supplied, Bro stops in the
+@code{bro_init} initialization function (more precisely, after
+global-scope code has been executed; see section @ref{Notes and Limitations}). It is
+also activated when a breakpoint is hit. Breakpoints are set with
+the @code{break} command (see the Reference). The final way to
+invoke the debugger's prompt is to interrupt execution by pressing
+Ctrl-C (sending an Interrupt signal to the process). Execution will
+be suspended after the currently-executing line is completed.
+
+@node Notes and Limitations,
+@section Notes and Limitations
+
+@itemize @bullet
+@item 
+Statements at global scope, i.e., those executed before the
+@code{bro_init} function, may not be debugged at present. This is
+because those statements load declarations for other functions
+needed for the debugger to function properly.
+@end itemize
+
+@node Reference,
+@section Reference
+
+@strong{large Summary of Commands}
+Note: all commands may be abbreviated with a unique prefix. Shortcuts
+below are special exceptions to this rule.
+
+@float Table, Debugger commands
+@multitable  @columnfractions .15  .15  .6
+@item @strong{Command} @tab @strong{Shortcut} @tab @strong{Description} 
+@item help @tab @tab Get help with debugger commands 
+@item quit @tab @tab Exit Bro 
+@item next @tab n @tab Step to the following statement, skipping function calls 
+@item step @tab s @tab Step to following statements, stepping in to function calls 
+@item continue @tab c @tab Resume execution of the policy script 
+@item finish @tab @tab Run until the currently-executing function completes 
+@item break @tab b @tab Set a breakpoint 
+@item condition @tab @tab Set a condition on an existing breakpoint 
+@item delete @tab d @tab Delete the specified breakpoints; delete all if no arguments 
+@item disable @tab @tab Turn off the specified breakpoint; do not delete
+permanently 
+@item enable @tab @tab Undo a prior `disable' command 
+@item info @tab @tab Get information about the debugging environment  
+@item print @tab p @tab Evaluate an expression and print the result 
+@item set @tab @tab Alias for `print' 
+@item backtrace @tab bt @tab Print a stack trace  
+@item frame @tab @tab Select frame number N 
+@item up @tab @tab Select the stack frame one level up from the current one 
+@item down @tab @tab Select the stack frame one level down from the current one 
+@item list @tab l @tab Print source lines surrounding specified context 
+@item trace @tab @tab Turn on or off execution tracing 
+@end multitable
+@caption{Debugger Commands}
+@end float
+
+@*
+
+@strong{Getting Help}
+@table @samp
+
+@item help
+Help for each command may be invoked with the @code{help}
+command. Calling the command with no arguments displays a one-line
+summary of each command. 
+@end table
+
+@strong{Command-Line Options}
+@table @samp
+
+@item @code{-d} switch
+The @code{-d} switch enables the Bro
+script debugger.
+
+@item @code{-t} switch
+The @code{-t} enables execution
+tracing. There is an argument to the switch, which indicates a file
+that will contain the result of the trace. Trace output consists of
+the source code lines executed, indented for each nested function invocation.
+
+@strong{Example.} The following command invokes Bro, using @code{tcpdump_file} for
+the input packets and outputting the result of the trace to
+@code{execution_trace}.
+@example
+  ./bro -t execution_trace -r tcpdump_file policy_script.bro
+  @end example
+
+@strong{Example.} If the argument to @code{-t} is a single dash
+character (``@code{-}''), then the trace output is sent to
+@code{stderr}.
+@example
+  ./bro -t - -r tcpdump_file policy_script.bro
+  @end example
+
+@strong{Example.} Lastly, execution tracing may be combined with the
+debugger. Here we send output to @code{stderr}, so it will be
+intermingled with the debugger's output. Tracing may be turned off
+and on in the debugger using the @code{trace} command.
+@example
+  ./bro -d -t - -r tcpdump_file policy_script.bro
+  @end example
+
+@end table
+
+@strong{Running the Script}
+@table @samp
+
+@item quit
+Exit Bro, aborting execution of the currently executing script.
+
+@item restart (r)
+@emph{(Currently Unimplemented)} Restart the execution
+of the script, rewinding to the beginning of the input file(s), if
+appropriate. Breakpoints and other debugger state are preserved.
+
+@item continue (c)
+Resume execution of the script file. The script will
+continue running until interrupted by a breakpoint or a signal.
+
+@item next (n)
+Execute one statement, without entering any subroutines
+called in that statement. 
+
+@item step (s)
+Execute one statement, but stop on entry to any called subroutine.
+
+@item finish
+Run until the currently executing function returns.
+@end table
+
+@strong{Breakpoints}
+@table @samp
+
+@item break (b)
+Set a breakpoint. A breakpoint suspend execution when
+execution reaches a particular location and returns control to the
+debugger. Breakpoint locations may be specified in a number of ways:
+
+@multitable  @columnfractions .3  .6
+@item @code{break} @tab With no argument, the current line is used. 
+@item @code{break} @emph{[FILE:]LINE} @tab The specified line in the specified file; if
+no policy file is specified, the current file is implied. 
+@item @code{break} @emph{FUNCTION} @tab The first line of the specified function or
+event handler. If more than one event handler matches the name, a choice
+will be presented. 
+@item @code{break} @emph{WILDCARD} @tab Similar to @emph{FUNCTION}, but a
+POSIX-compliant regular expression (see the @code{regex(3)} man
+page )is supplied, which is matched against all functions and event
+handlers. One exception to the the POSIX syntax is that, as in the
+shell, the @code{*} character may be used to match zero or more
+of any character without a preceding period character (@code{.}).
+@end multitable
+
+@item condition @emph{N expression}
+The numeric argument
+$N$ indicates which breakpoint to add a condition to, and the
+expression is the conditional expression. A breakpoint with a
+condition will only stop execution when the supplied condition is
+true. The condition will be evaluated in the context of the
+breakpoint's location when it is reached.
+
+@item enable
+With no arguments, enable all breakpoints
+previously disabled with the @code{disable} command. If numeric
+arguments separated by spaces are provided, the breakpoints with those
+numbers will be enabled.
+
+@item disable
+With no arguments, disable all breakpoints. Disabled
+breakpoints will not stop execution, but will be retained to be
+enabled later. If numeric arguments separated by spaces are provided,
+the breakpoints with those numbers will be disabled.
+
+@item delete (d)
+With no arguments, permanently delete all
+breakpoints. If numeric arguments separated by spaces are provided,
+the breakpoints with those numbers will be deleted.
+@end table
+
+@strong{Debugger State}
+@table @samp
+
+@item @strong{info}
+Give information about the
+current script and debugging environment. A subcommand should follow
+the @code{info} command to indicate which information is
+desired. At present, the following subcommands are available: 
+
+@multitable  @columnfractions .2  .6
+@item @code{info break} @tab List all breakpoints and their status
+@end multitable
+
+@end table
+
+@strong{Inspecting Program State}
+@table @samp
+
+@item print (p) / set
+The @code{print} command and its alias,
+@code{set}, are used to evaluate any expression in the policy
+script language. The result of the evaluation is printed
+out. Results of the evaluation affect the current execution
+environment; expressions may include things like assignment. The
+expression is evaluated in the context of the currently selected
+stack frame. The @code{frame}, @code{up}, and @code{down}
+commands (below) are used to change the currently selected frame,
+which defaults to the innermost one.
+
+@item backtrace (bt)
+Print a description of all the stack frames (function
+invocations) of the currently executing script.\ With no arguments,
+prints out the currently selected stack frame.\ With a numeric
+argument @emph{+/- N}, prints the innermost @emph{N} frames if the argument is
+positive, or the outermost $N$ frames if the argument is negative.
+
+@item frame
+With no arguments, prints the currently selected
+frame. \ With a numeric argument $N$, selects frame $N$. Frame
+numbers are numbered inside-out from 0; the 
+
+@item up
+Select the stack frame that called the currently selected
+one. If a numeric argument $N$ is supplied, go up that many frames.
+
+@item down
+Select the stack frame called by the currently selected
+one. If a numeric argument $N$ is supplied, go down that many frames.
+
+@item list (l)
+With no argument, print the ten lines of script source
+code following the previous listing. If there was no previous
+listing, print ten lines surrounding the next statement to be
+executed. If an argument is supplied, ten lines are printed around
+the location it describes. The argument may take one of the
+following forms:
+
+@emph{[FILE:]LINE} 
+The specified line in the specified file; if
+no policy file is specified, the current file is implied. \
+@emph{FUNCTION} The first line of the specified function or
+event handler. If more than one event handler matches the name, a choice
+will be presented. \
+$\pm N$ With a numeric argument preceded by a plus or minus
+sign, the line at the supplied offset from the previously selected line.
+
+@end table
+

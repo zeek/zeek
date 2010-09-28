@@ -1,0 +1,227 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<HTML
+><HEAD
+><TITLE
+>Installing Broccoli</TITLE
+><META
+NAME="GENERATOR"
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
+REL="HOME"
+TITLE="Broccoli: The Bro Client Communications Library"
+HREF="index.html"><LINK
+REL="PREVIOUS"
+TITLE="Introduction"
+HREF="c20.html"><LINK
+REL="NEXT"
+TITLE="Using Broccoli"
+HREF="c84.html"><LINK
+REL="STYLESHEET"
+TYPE="text/css"
+HREF="stylesheet.css"></HEAD
+><BODY
+CLASS="CHAPTER"
+BGCOLOR="#FFFFFF"
+TEXT="#000000"
+LINK="#0000FF"
+VLINK="#840084"
+ALINK="#0000FF"
+><DIV
+CLASS="NAVHEADER"
+><TABLE
+SUMMARY="Header navigation table"
+WIDTH="100%"
+BORDER="0"
+CELLPADDING="0"
+CELLSPACING="0"
+><TR
+><TH
+COLSPAN="3"
+ALIGN="center"
+>Broccoli: The Bro Client Communications Library</TH
+></TR
+><TR
+><TD
+WIDTH="10%"
+ALIGN="left"
+VALIGN="bottom"
+><A
+HREF="c20.html"
+ACCESSKEY="P"
+>Prev</A
+></TD
+><TD
+WIDTH="80%"
+ALIGN="center"
+VALIGN="bottom"
+></TD
+><TD
+WIDTH="10%"
+ALIGN="right"
+VALIGN="bottom"
+><A
+HREF="c84.html"
+ACCESSKEY="N"
+>Next</A
+></TD
+></TR
+></TABLE
+><HR
+ALIGN="LEFT"
+WIDTH="100%"></DIV
+><DIV
+CLASS="CHAPTER"
+><H1
+><A
+NAME="AEN54"
+></A
+>Chapter 2. Installing Broccoli</H1
+><P
+>      The installation process will hopefully be painless: Broccoli is installed from source
+      using the usual <B
+CLASS="COMMAND"
+>./configure &lt;options&gt; &#38;&#38; make &#38;&#38; make install</B
+>
+      routine after extraction of the tarball. Or if you're on a Linux systems supporting
+      RPMs, we provide those as well.
+    </P
+><P
+>      The relevant configuration options to pass to configure are:
+      <P
+></P
+><UL
+><LI
+><P
+><B
+CLASS="COMMAND"
+>--prefix=&lt;DIR&gt;</B
+>: sets the installation root to DIR.
+	  The default is to install below <TT
+CLASS="FILENAME"
+>/usr/local</TT
+>.</P
+></LI
+><LI
+><P
+><B
+CLASS="COMMAND"
+>--enable-debug</B
+>: enables debugging output.
+          Please refer to the <A
+HREF="c84.html#AEN818"
+>Broccoli debugging</A
+>
+	  section for details on configuring and using debugging output.
+          </P
+></LI
+><LI
+><P
+><B
+CLASS="COMMAND"
+>--with-configfile=&lt;FILE&gt;</B
+>: use FILE as location of configuration file.
+	  See the section on <A
+HREF="c84.html#AEN665"
+>configuration files</A
+>
+	  below for more on this.
+	  </P
+></LI
+><LI
+><P
+><B
+CLASS="COMMAND"
+>--with-openssl=&lt;DIR&gt;</B
+>: use the OpenSSL installation below DIR.</P
+></LI
+><LI
+><P
+><B
+CLASS="COMMAND"
+>--with-kerberos=&lt;DIR&gt;</B
+>: use the Kerberos installation below DIR.</P
+></LI
+></UL
+>
+    </P
+><P
+>      After installation, you'll find the library in shared and static versions in <TT
+CLASS="FILENAME"
+>&lt;prefix&gt;/lib</TT
+>
+      the header file for compilation in <TT
+CLASS="FILENAME"
+>&lt;prefix&gt;/include</TT
+>, and the
+      manual in HTML below <TT
+CLASS="FILENAME"
+>&lt;prefix&gt;/share/gtk-doc/html/broccoli</TT
+>.      
+    </P
+><P
+>      When installing from source, you can get rid of the installation using <B
+CLASS="COMMAND"
+>make uninstall</B
+>.
+    </P
+></DIV
+><DIV
+CLASS="NAVFOOTER"
+><HR
+ALIGN="LEFT"
+WIDTH="100%"><TABLE
+SUMMARY="Footer navigation table"
+WIDTH="100%"
+BORDER="0"
+CELLPADDING="0"
+CELLSPACING="0"
+><TR
+><TD
+WIDTH="33%"
+ALIGN="left"
+VALIGN="top"
+><A
+HREF="c20.html"
+ACCESSKEY="P"
+>Prev</A
+></TD
+><TD
+WIDTH="34%"
+ALIGN="center"
+VALIGN="top"
+><A
+HREF="index.html"
+ACCESSKEY="H"
+>Home</A
+></TD
+><TD
+WIDTH="33%"
+ALIGN="right"
+VALIGN="top"
+><A
+HREF="c84.html"
+ACCESSKEY="N"
+>Next</A
+></TD
+></TR
+><TR
+><TD
+WIDTH="33%"
+ALIGN="left"
+VALIGN="top"
+>Introduction</TD
+><TD
+WIDTH="34%"
+ALIGN="center"
+VALIGN="top"
+>&nbsp;</TD
+><TD
+WIDTH="33%"
+ALIGN="right"
+VALIGN="top"
+>Using Broccoli</TD
+></TR
+></TABLE
+></DIV
+></BODY
+></HTML
+>

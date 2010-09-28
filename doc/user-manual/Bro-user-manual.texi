@@ -1,0 +1,135 @@
+\input texinfo   @c -*-texinfo-*-
+@comment $Id: Bro-user-manual.texi 1224 2005-07-23 03:58:34Z tierney $
+@comment %**start of header
+@setfilename Bro-user-manual.info
+@settitle Bro User Manual
+@setcontentsaftertitlepage 
+@comment %**end of header
+
+
+@set VERSION 0.9
+@set UPDATED 12-1-2004
+
+@copying
+This the User Manual for Bro
+version @value{VERSION}.
+
+This software is copyright @copyright{} 
+1995-2004, The Regents of the University of California
+and the International Computer Science Institute.  All rights reserved.
+
+For further information about this notice, contact:
+
+Vern Paxson
+email: @email{vern@@icir.org}
+
+@end copying
+
+@dircategory Bro
+@direntry
+* Bro: Network Intrusion Detection System
+@end direntry
+
+@ifnottex
+@node Top
+@top Bro User Manual 
+@copyright{} Lawrence Berkeley National Laboratory
+@end ifnottex
+
+@titlepage
+@title Bro User Manual
+@subtitle version @value{VERSION}, @value{UPDATED}, @strong{DRAFT}
+@author Vern Paxson, Jim Rothfuss, Brian Tierney
+@author Contact: @email{vern@@icir.org}
+@author @uref{http://www.bro-ids.org/}
+@page
+@insertcopying
+@vskip 0pt plus 1filll
+@end titlepage
+
+@contents
+
+@strong{Bro User Manual}
+@menu
+* Overview of Bro::
+* Requirements ::
+* Installation and Configuration::
+* Running Bro ::
+* Bro Output::
+* Analysis of Incidents and Alarms ::
+* Customizing Bro ::
+* Intrusion Prevention Using Bro ::
+* Performance Tuning ::
+* Bulk Traces and Off-line Analysis ::
+* Bro Directory and Files ::
+* Index::   Index
+@end menu
+
+@comment ********************************************
+
+@node Overview of Bro
+@chapter Overview of Bro
+@include Bro-overview.texi
+
+@comment ********************************************
+@node Requirements 
+@chapter Requirements 
+@cindex Software requirements
+@cindex Hardware requirements
+
+@include Bro-requirements.texi
+
+@comment ********************************************
+@node Installation and Configuration 
+@chapter Installation and Configuration 
+@cindex Installation instructions 
+@include Bro-installation.texi
+@cindex Configuration instructions 
+
+@comment ********************************************
+@node Running Bro
+@chapter Running Bro
+@include Bro-running.texi
+
+@comment ********************************************
+@node Bro Output
+@chapter Bro Output
+@include Bro-output.texi
+
+@comment ********************************************
+@node Analysis of Incidents and Alarms
+@chapter Analysis of Incidents and Alarms
+@include Bro-analysis.texi
+
+@comment ********************************************
+@node Customizing Bro
+@chapter Customizing Bro
+@include Bro-customizing.texi
+
+@comment ********************************************
+@node Intrusion Prevention Using Bro
+@chapter Intrusion Prevention Using Bro
+@include Bro-intrusion-prevention.texi
+
+@comment ********************************************
+@node Performance Tuning
+@chapter Performance Tuning
+@include Bro-tuning.texi
+
+@comment ********************************************
+@node Bulk Traces and Off-line Analysis 
+@chapter Bulk Traces and Off-line Analysis 
+@include Bro-offline-analysis.texi
+
+@comment ********************************************
+@node Bro Directory and Files
+@appendix Bro Directory and Files
+@include Bro-dir-files.texi
+
+@comment ********************************************
+@node Index
+@unnumbered Index 
+
+@printindex cp
+
+@bye

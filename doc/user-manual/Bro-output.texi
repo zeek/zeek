@@ -1,0 +1,806 @@
+
+This section explains the contents of the various output files and reports
+that Bro creates.
+
+@menu
+* Alarm File::
+* Connection Summary File::
+* Analyzer-specific Files::
+* Tracefiles::
+* Bro Summary Reports::
+@comment add someday? * Creating your own Custom Output::
+@end menu
+
+@section Rotating Log Files
+
+There are a number of ways to control the rotation of Bro's log files.
+Here are some examples:
+
+@verbatim
+
+# if using one log, must open append (default = truncate )
+@load log-append
+
+@load rotate-logs
+
+# rotate at midnight
+redef log_rotate_base_time = "0:00";
+
+# do not rotate on shutdown  (default = T)
+redef RotateLogs::rotate_on_shutdown = F;
+
+# rotate frequency
+redef log_rotate_interval = 24 hr;
+
+@end verbatim
+
+
+@comment ********************************************
+
+@node Alarm File
+@section Alarm File
+
+@subsection Alarm File Format
+
+The alarm.log is 
+a 'tagged' format that is fairly self descriptive. This is
+an example from the alarm.log file:
+
+@verbatim
+   t=1000057981.940712 no=AddressScan na=NOTICE_ALARM_ALWAYS sa=10.1.1.1 sp=2222/tcp da=10.2.2.2 dp=3333/tcp msg=10.1.1.1\ has\ scanned\ 2000\ hosts\ (3333/tcp
+) tag=@42
+@end verbatim
+
+Where the tags indicate the following:
+@itemize
+@item t: time
+@item no: notice
+@item na: notice action
+@item sa: source address
+@item sp: source port
+@item da: destination address
+@item dp: destination port
+@item msg: message (in this case a host has scanned 20 hosts)
+@item tag: identifier to match this to lines in notice.log and conn.log:
+@end itemize
+
+The alarm file format is designed to be easy to parse and interpret by programs, not humans.
+
+@subsection Sample Alarm File Contents
+
+@emph{NOTE: the examples in this section still use the old log format. This needs to be updated}
+
+@c XXX fix these
+
+Bro generates a number of types of alarms, such as suspicious connection attempts directed 
+at your systems (address scanning), port scans, and attempts to gain access to user accounts. 
+We describe some of these in more detail here.
+
+@strong{Vulnerability scans directed against systems}
+
+The first category of suspicious connection attempts that Bro identifies and reports is vulnerability scans directed against systems. 
+Instead of burdening you with every vulnerability scan (no matter how tiny) against systems that occurs, 
+it reports only scans that occur at or above its threshold in terms of a specified size, such as the number of vulnerability scan attempts per second. 
+The following entry indicates that IP address 66.243.211.244 has scanned 10000 of your systems on tcp port 445, the port used by newer Windows systems such as Windows 2000, XP and Server 2003 for share access: 
+
+@smallexample
+Nov 16 06:30:49 AddressScan 66.243.211.244 has scanned 10000 hosts (445/tcp)
+@end smallexample
+
+Important note: If the source of a scan is an IP address within your own network, the probability that this system is infected or has been taken over by an attacker is very high.  
+
+At the bottom portion of each Bro report summaries of scan activity also will appear for your convenience (see the bottom part of Figure 1). Scan summaries look like the following:  
+
+@smallexample
+Nov 16  8 01:30:11 ScanSummary 194.201.88.100 scanned a total of 145 hosts
+@end smallexample
+
+@strong{Port scanning }
+
+Port scanning means that a system has targeted one system, connecting to one port, then another, until it has scanned a whole range of ports.  In the following example a system with an IP address of 218.204.91.85 has scanned 50 ports of a system named diblys.dhcp within an internal network:  
+
+@smallexample
+Nov 16 06:30:50 PortScan 218.204.91.85 has scanned 50 ports of siblys.dhcp
+@end smallexample
+
+An address dropped entry is likely to appear shortly after a port scan is reported. In the following entry, the system with an IP address of 218.204.91.85 was systematically probing low ports, that is, ports in the range from 0 to 1023, on sibyls.dhcp:
+
+@smallexample
+Nov 16 06:30:52 AddressDropped low port trolling 218.204.91.85 403/tcp
+@end smallexample
+
+
+@strong{Connection attempts}
+
+Bro finds attacks against user accounts, such as password guessing attempts. When it does, it reports them as follows:   
+
+(Need example here)
+
+@strong{Weird events}
+
+Bro labels unusual or exceptional events as @emph{weird} Weird events include a wide range of events, including malformed connections, 
+attacker's attempts to confuse or evade being detected, malfunctioning hardware, or misconfigured systems or network devices such as routers. 
+Some weird events could be the result of an attack; others are just anomalies. 
+The better you know your own systems and networks, the more likely you will be to correctly determine whether or not weird events compromise an attack. 
+Weird events are divided into three categories: 
+
+@enumerate
+1. Weird connections that are not formed in accordance with protocol conventions such as the way the tcp protocol should work
+
+1. Weird flows in which data is being sent between two systems, but no specific connection between them can be identified, and 
+
+1. Weird network behavior that cannot be associated with any particular system. 
+@end enumerate
+
+The following entry shows a weird connection in which packets are being sent between systems in what 
+appears to be an ongoing ftp session, but Bro has not identified any initial connection attempt (i.e., there is an @emph{ack above a hole}): 
+
+@smallexample
+Nov 16 06:30:58 WeirdActivity window/50406 > klecker.debian.org/ftp ack above a hole
+@end smallexample
+
+The next entry (below) shows another weird traffic pattern in which eqvaadvip1.doubleclick.net has sent a flood of FIN packets, packets that tell the other system in a connection to terminate the connection, to bcig-8 within the network that Bro protects.  
+
+@smallexample
+Nov 16 06:32:09 WeirdActivity bcig-8/2044 > eqvaadvip1.doubleclick.net/http: FIN_storm
+@end smallexample
+
+Here's another one --- in this case a system with an IP address of 222.64.93.208 has sent a flood of packets that have both the SYN and the ACK flags set, something that should normally happen only once in a TCP session. @command{nsx} is the destination system.  
+
+@smallexample
+Nov 16 06:30:58 WeirdActivity 222.64.93.208/1115 > nsx/dns: repeated_SYN_with_ack
+@end smallexample
+
+Packets sent over networks are often broken up (or @emph{fragmented}) for various reasons. 
+Fragmented packets are not necessarily a sign of an attack, but large fragments can 
+indicate suspicious activity such as attempts to cause denial of service. 
+In the following example Bro has identified a very large packet fragment sent by p508c7fc5.dip.t-dialin.net to an internal system with an IP  address of 131.243.3.162:  
+
+@smallexample
+Nov 16 06:30:50 WeirdActivity p508c7fc5.dip.t-dialin.net -> 131.243.3.162: excessively_large_fragment
+@end smallexample
+
+Sometimes attackers attempt to evade being detected by sending malformed packets to the system they are attacking. 
+The receiving system cannot process them, so it informs the sending (attacking system) accordingly, asking it to resend them. 
+The sending system may now send packets that constitute an attack. Some intrusion detection systems (but not Bro) ignore what is resent because in theory it is unnecessary to reanalyze what has already been sent. 
+Bro detects this kind of retransmission inconsistency (@emph{rexmit inconsistency}) and reports it. 
+The following example shows that there has been retransmission inconsistency in packets 
+sent by a system at IP address 131.243.223.212 to origin2.microsoft.com:  
+
+@smallexample
+Nov 16 06:30:59 RetransmissionInconsistency 131.243.223.212/2270 > origin2.microsoft.com/http @/ rexmit inconsistency (HTTP/1.1 200 OK^M^JDate: Tue, 16 Nov 2004
+@end smallexample
+
+
+@comment ********************************************
+@node Connection Summary File
+@section Connection Summary File
+
+See the 
+@uref{http://www.bro-ids.org/Bro-reference-manual/Connection-summaries.html, Connection Summary} 
+section in the reference manual for a description of the @code{conn.log} files.
+
+@comment ********************************************
+
+@node Analyzer-specific Files
+@section Analyzer-specific Files
+
+A number of analyzers such as HTTP and FTP generate their own log files. These files are
+fairly self explanatory.
+
+coming soon: sample http.log, ftp.log, etc
+
+@comment ********************************************
+
+@node Tracefiles
+@section Tracefiles
+
+Bro can be configured to output captured packets that look to be part of suspicious sessions.
+These files are in @code{tcpdump} format.
+
+@comment ********************************************
+
+
+@node Bro Summary Reports
+@section Bro Summary Reports
+
+@cindex e-mail reports
+
+@emph{NOTE: The Bro report facility is still under development. This section
+may be out of date. }
+
+Bro reports are generated using the @command{site-report.pl} script, which is
+typically run as a nightly @command{cron} job.
+
+A daily report is created that covers three sets of
+information:
+
+@itemize
+@item Incident information
+@item Operational status of Bro
+@item General network traffic information
+@end itemize
+
+The reports will be mailed to the email addresses specified during
+Bro installation.  These email addresses can be changed by re-running
+the @code{bro_config} script or by editing @code{$BROHOME/etc/bro.cfg} directly.
+
+@cindex incident
+@cindex incident type
+@cindex report period
+@cindex alarm
+@cindex connection, successful
+@cindex connection, unsuccessful
+@cindex connection, history
+@cindex scans
+@cindex scan, definition
+@cindex scans, successful
+@cindex system statistics
+@cindex traffic statistics
+
+The report is divided into three parts, the summary, incidents, and
+scans.  The summary includes a rollup of incident information, Bro
+operational statistics, and network information.  The incidents section
+has details for each Bro alarm.  The scans section gives details about
+scans that Bro detected.
+
+@subsection Parts of a Report
+
+@subsubheading Header
+The header gives some basic information about the report.
+@quotation
+@strong{Site name} is determined by the "Site name for reports" that was
+given during the installation and configuration process.
+@*@*
+@strong{Start time and interval} of the report are also entered during
+the configuration process.
+@end quotation
+@xref{Bro Configuration}.
+
+@subsubheading Summary
+This section give a numeric summary of the events that have happened in
+the reporting period.
+@quotation
+@strong{Incidents} shows the number of incidents that are recorded in
+the report period.  An incident is any occurrence that is deemed worth
+investigating.  An incident is formed by the triggering of one or more
+alarms.
+@*@*
+@strong{Scanning Hosts} are the number of specific IP addresses that
+have been detected scanning either into or out from the site.@*
+@quotation
+ @strong{A scan can be a:}
+ @itemize
+ @item @strong{port scan:} scanning several ports of a single host.
+ @item @strong{network scan:} scanning several hosts for open
+       ports.
+ @item @strong{signature scan:} attacking multiple hosts with a
+       specific vulnerability attack (signature).
+ @item @strong{targeted attack:} launching multiple signatures against
+       a single host.
+ @item @strong{password scan:} attempts to guess passwords on telnet
+terminals.
+ @end itemize
+
+@*
+ @strong{A successful scan is when:}
+ @itemize
+ @item the bytes sent by a single probe of a scan against a host or
+several hosts are more than three deviations away from the standard
+deviation of the rest of scan.  In essence, where the bytes transferred
+on one connection is different than the rest of the scan other
+connections involved in the scan.
+ @item a separate connection back to the attacker host is detected from
+the local network.
+ @item the number of bytes sent back from the targeted victim host to
+the offender during a scan connection exceeds 20480.
+ @end itemize
+@end quotation
+
+@comment ### it occurs to me that summarizing signatures here, but not alarms in general, probably overemphasizes the importance of signatures vs. other types of analysis.
+@strong{Signature Summary} shows the total number of alarms triggered by
+signatures during the report period and the number of those that are
+unique. These numbers do not include alarms triggered by embedded Bro
+rules. @xref{Understand What Triggered the Alarm(s)}.
+@end quotation
+
+@subsubheading Signature Distributions
+This is a list of all signatures that were triggered during the report
+period.
+@*
+NOTE:  This section does not include alarms triggered by embedded Bro
+rules. @xref{Understand What Triggered the Alarm(s)}.
+
+@quotation
+@strong{Count} is the number of times the signature was seen.
+@*@*
+@strong{Unique Sources} is the number of unique ip addresses that used
+the specific signature as an attack.
+@*@*
+@strong{Unique Dests} is the number of unique ip addresses that were
+attacked by the particular signature.
+@*@*
+@strong{Unique Pairs} are the number of unique source/dest ip address
+pairs where the source used the signature to attack the destination.
+@end quotation
+
+@subsubheading Incidents
+@quotation Legend
+This is the legend for reading the @i{connections} portions of the each
+incident.  It is shown once on each report at the top of the
+@i{Incidents} section.
+@end quotation
+@quotation Incident number
+Each incident listed in the Bro report is assigned a unique, sequential,
+identification number prefixed with the organization identifier.  This
+number is unique for all incidents, not just to the daily reports.
+@end quotation
+@quotation Remote and Local hosts
+The Remote and Local hosts are identified by both ip address and
+hostname.  The local hosts are those that are in local subnets as
+determined during Bro configuration.  It is important to note that
+@i{remote host} does not infer @i{attack host}.  Attacks can come from
+local hosts (indicating an inside hacker or a compromised host).
+@end quotation
+@quotation Alarms
+The network event(s) that Bro detects and identifies as possible
+attacks.  There are two general types of alarms, those triggered by
+signatures and those triggered by Bro rules.
+@xref{Understand What Triggered the Alarm(s)}, for more information about the differences.
+All alarms will include the date/time of the attack, the direction of
+the attack, and the ports involved.  A @code{SensitiveSignature} will
+include the signature code and payload to help evaluate what triggered
+the alarm.  Embedded Bro rules will include the payload and a session
+number which can be used for further investigation in the logs.
+@xref{Examine HTTP FTP or SMTP Sessions}.
+@end quotation
+@quotation Connections
+A list of the first 25 connections after the first alarm is triggered
+that are attempted between the attacking and victim host.  This
+tabulation of connections can be used to see if connections were
+accepted by the victim host, the amount of bytes transferred in both
+directions, the timing between the connections, and the ports involved.
+@end quotation
+
+@subsubheading Scans 
+This is a summary of the ip addresses involved in successful scans, the
+type of scans, and the attacks used by the scanners.
+
+@subsubheading Connection Log Summary
+This section gives a overview of the most prominent connections that 
+have occurred during the report period, as shown by way of five tables.
+
+@quotation Site-wide connection statistics
+The number of successful and unsuccessful connections and the ratio
+between the two.
+@end quotation 
+@quotation Top 20 Sources 
+Hosts that have initiated the most connections.
+@end quotation 
+@quotation Top 20 Destinations
+Hosts that have accepted connections.
+@end quotation 
+@quotation Top 20 Local E-mail Servers
+The most active E-mail servers.
+@end quotation 
+@quotation Top 20 Services
+The services, as determined by port number, that have been involved in
+connections.
+@end quotation
+
+@subsubheading Byte Transfer Pairs
+This section gives a summary of the ip address address pairs that have
+transferred the most bytes during the report period.
+
+@subsection Annotated Example Report:
+
+@verbatim
+Site Report for ORG_NAME 
+from 2004/11/03 00:00:00 to 2004/11/04 00:00:00
+generated on Sat Nov 13 12:02:48 2004
+@end verbatim
+
+@quotation annotation
+@i{ORG_NAME will normally be replaced with "Site name for reports" that
+was given during the installation and configuration process.}
+@end quotation
+
+@verbatim
+========================================================================
+Summary
+========================================================================
+@end verbatim
+
+@quotation annotation
+@i{Since this report is simple and only includes two incidents, the
+summary is rather uninteresting.  A glance at this summary would reveal
+a rather "slow" day (for which you should be thankful).}
+@end quotation
+
+@verbatim
+  Incidents               2
+  Scanning Hosts
+    Successful            8
+    Unsuccessful          15
+  Signature Summary
+    Total signatures          2
+    Unique signatures         2
+    Unique sources            2
+    Unique destinations       2
+    Unique source/dest pairs  1
+@end verbatim
+
+@quotation annotation
+@i{Since the same to ip addresses were involved in both signature
+attacks, there is only one unique source/dest pair.}
+@end quotation
+
+@verbatim
+========================================================================
+Signature Distributions
+========================================================================
+                                       Unique      Unique    Unique
+  Signature ID               Count     Sources     Dests      Pairs
+  ------------------------  --------  ---------  ---------  --------
+  bro-687-5                 1          1          1          1
+  bro-144-3                 1          1          1          1
+========================================================================
+Incident Details
+========================================================================
+@end verbatim
+
+@quotation annotation
+@i{The following legend appears once in every report at the top of the
+"Incidents" section}
+@end quotation
+
+@verbatim
+     # legend for connection type #
+                  ------------------------------
+         C Connection Status
+           # number corresponds to alarm triggered by the connection
+           * successful connection, otherwise unsuccessful.
+         I Initiatator of Connection
+           > connection initiated by remote host
+           < connection initiated by local host
+------------------------------------------------------------------------
+Incident      ORG_NAME-000004524
+--------------------------------
+@end verbatim
+
+@quotation annotation
+@i{The host domain name "org_name.org" will normally be replaced by the
+local domain name.  The IP addresses in this example have been
+synthesized from an imaginary range outside of the octal range.  (We
+realize these ip addresses cannot exist).  In this example the ip ranges
+124.333.0.0/24 and 132.257.0.0/24 are considered the local subnets.}
+@end quotation
+
+@verbatim
+Remote Host: 84.136.338.21   p54877614.dip.hacker.net
+ Local Host: 124.333.183.162 pooroljoe.dhcp.org_name.org
+@end verbatim
+
+@quotation annotation
+@i{This attacker was successful in using an SQL attack and then
+downloaded a "tool" using TFTP.  Both of these were detected and created
+the following alarms.}
+@end quotation
+
+@verbatim
+Alarm: SensitiveSignature
+  1    bro-687-5: MS-SQL xp_cmdshell - program execution
+       7/29 12:43:31                  84.136.338.21 -> 124.333.183.62
+                                            566/tcp -> 1433/tcp
+       signature code:
+       signature bro-687-5 {
+         ip-proto == tcp
+         dst-port == 1433
+         event "MS-SQL xp_cmdshell - program execution"
+         tcp-state established,originator
+         payload /.*[xX]\x00[pP]\x00_\x00[cC]\x00[mM]\x00[dD]\x00[sS]
+         \x00[hH]\x00[eE]\x00[lL]\x00[lL]\x00/
+       }
+       payload: xp_cmdshell 'echo.> c:\\temp\\bcp.cmd'
+
+Alarm: SensitiveSignature
+  2    bro-1444-3: TFTP Get
+       7/29 12:43:31                  84.136.338.21 -> 124.333.183.62
+                                           2318/upd -> 69/udp
+       signature code:
+       signature bro-1444-3 {
+           ip-proto == udp
+           dst-port == 69
+           event "TFTP Get"
+           payload /\x00\x01/
+           }
+       payload: Runtime.exe
+@end verbatim
+
+@quotation annotation
+@i{Looking at the "C" column below, the alarms are signified by "1" and
+"2", both occuring at 12:43:31.  Since the attacks take place within one
+second, this is probably an automated attack.  The remote host continues
+to connect to the victim host, using a different port each time to avoid
+detection.  The large transfers from the local host to the remote host,
+subsequent to the alarmed attacks, signifies that the attack is probably
+successful.}
+@end quotation
+
+@verbatim
+Connections (only first 25 after first alarm are listed)
+-----------
+                 time     byte   remote        local   byte
+ date   time   duration transfer  port  C   I   port transfer  protocol
+----- -------- -------- -------- ------ ------ ----- -------- ----------
+07/29 12:43:31        ?     566 b  4634 1   >  1433      467 b tcp/MSSQL
+07/29 12:43:31        0         ?  2318 2  <     69       20 b udp/tftp
+07/29 12:43:32    265.7       4 b  4638 *  <   2318      3.0kb udp
+07/29 12:48:56        ?         ?  4640     >  2362          ? tcp
+07/29 12:50:05        ?    11.4kb  4639 *  <   3333      8.6kb tcp
+07/29 12:53:00        0         ?  4684 *   >  2362          ? tcp
+07/29 12:53:07        ?         ?  4685 *   >  2362          ? tcp
+07/29 12:53:59        ?         ?  4689 *   >  2362          ? tcp
+07/29 12:54:14      6.1         0  4693 *  <   2380     94.2kb tcp
+07/29 12:54:21       .5      50 b  4694     >  2381          0 tcp
+07/29 12:54:23       .7         ?  4695    <   2382          0 tcp
+07/29 12:54:25       .5      51 b  4696 *   >  2383          0 tcp
+07/29 12:54:27       .5      61 b  4697 *   >  2384          0 tcp
+07/29 12:54:28       .7      39 b  4698     >  2385          0 tcp
+07/29 12:54:31       .5      41 b  4699 *   >  2386          0 tcp
+07/29 12:54:33      1.2    4.9 kb  4700     >  2387          0 tcp
+07/29 12:54:35     12.8  195.0 kb  4701 *  <   2388          0 tcp
+07/29 12:54:53       .2         ?  4703    <   2390          0 tcp
+07/29 12:54:54       .5      37 b  4704     >  2391          0 tcp
+07/29 12:54:56      3.4      23 b  4705 *   >  2392          0 tcp
+07/29 12:55:04     21.4  308.7 kb  4706     >  2393          0 tcp
+07/29 12:55:27     50.7         ?  4707     >  2394          ? tcp
+07/29 12:59:23        ?         ?  4775     >  1433          ? tcp
+07/29 12:59:25        ?         ?  4774 *   >  3333          ? tcp
+@end verbatim
+
+@quotation annotation
+@i{The next Incident demonstrates alarms triggered by embedded rules,
+rather than signatures.}
+@end quotation
+
+@verbatim
+------------------------------------------------------------------------
+Incident      ORG_NAME-000004525
+--------------------------------
+Remote Host:  80.143.378.186     p508FB2BA.dip.t-dialin.net
+ Local Host:  128.333.181.191      lemonade.lbl.gov
+@end verbatim
+
+@quotation annotation
+@i{Since these alarms are triggered in the HTTP protocol, the actual
+trigger rules are found in the file} @file{bro/policy/http.bro}.
+@end quotation
+
+@verbatim
+Alarm: HTTP_SensitiveURI
+       11/13 11:36:05                80.143.378.186 -> 128.333.181.191
+                                           1560/tcp -> 80/tcp
+       session: %4672
+       payload: GET http://cn.edit.vip.cnb.yahoo.com/config/login?.redir
+                _from=PROFILES
+
+Alarm: HTTP_SensitiveURI
+       11/13 11:53:54                80.143.378.186 -> 128.333.181.191
+                                           2434/tcp -> 80/tcp
+       session:%7386
+       payload: GET http://l10.login.scd.yahoo.com/config/login?.redir_f
+                rom=PROFILES?&
+@end verbatim
+
+@quotation annotation
+@i{In the connections shown below, all connections are from the remote
+host to the local host, with no successful connections back.  Also the
+payload above is seeking yahoo.com.  Hence the likelihood is that this
+is not an attack.}
+@end quotation
+
+@verbatim
+Connections (only first 25 after alarm are listed)
+-----------
+                 time     byte   remote        local   byte
+ date   time   duration transfer  port  C   I   port transfer  protocol
+----- -------- -------- -------- ------ ------ ----- -------- ----------
+11/13 11:36:05 1.109227      297   1560 *    >    80     1531       http
+11/13 11:36:06        ?        ?   1560      >    80        ?       http
+11/13 11:41:51 0.843209      301   3175 *    >    80     1533       http
+11/13 11:41:52        ?        ?   3175      >    80        ?       http
+11/13 11:47:37 2.562365      281   4701 *    >    80     1382       http
+11/13 11:47:39        ?        ?   4701      >    80        ?       http
+11/13 11:53:53 0.694131      293   2434 *    >    80     1529       http
+11/13 11:53:54        ?        ?   2434      >    80        ?       http
+11/13 11:59:23 0.685181      301   3975 *    >    80     1529       http
+11/13 11:59:23        ?        ?   3975      >    80        ?       http
+11/13 12:04:53 1.054925      289   1700 *    >    80     1527       http
+11/13 12:04:54        ?        ?   1700      >    80        ?       http
+11/13 12:11:56 2.579652      283   3442 *    >    80     1523       http
+11/13 12:11:59        ?        ?   3442      >    80        ?       http
+11/13 12:18:08 1.046188      289   1083 *    >    80     1531       http
+11/13 13:14:42        ?        ?   3282      >    80        ?       http
+11/13 13:16:46        ?        ?   4802      >    80        ?       http
+11/13 13:19:04 1.731771        0   2764 *    >    80        0       http
+11/13 13:19:07        ?        ?   2764      >    80        ?       http
+11/13 13:20:42 0.994114      289   4142 *    >    80     1527       http
+11/13 13:20:43        ?        ?   4142      >    80        ?       http
+11/13 13:22:37 1.122448      292   1732 *    >    80     1523       http
+11/13 13:22:38        ?        ?   1732      >    80        ?       http
+11/13 13:24:40 1.042112      289   3179 *    >    80     1531       http
+11/13 13:24:41        ?        ?   3179      >    80        ?       http
+
+
+========================================================================
+Scans (only first 100 shown)
+========================================================================
+@end verbatim
+
+@quotation annotation
+@i{The scans show below are considered "successful".  Four interesting
+scans shown below are the ones originating from the 124.333 and 132.257
+domains, since they are local domains.  These should be investigated.
+The attack against 132.257.85.96 might also be investigated further.
+With each report, a review of the attacks will give an understanding of
+what types of scans are becoming "popular".}
+@end quotation
+
+@verbatim
+Scanning IP      Victim IP       Attack
+132.257.70.234   multiple        bro-1344-5
+132.257.52.64    multiple        bro-1367-5
+63.251.3.51      multiple        bro-2570-6
+124.333.181.191  multiple        bro-1599-7
+210.313.36.53    132.257.85.96   >1000 port scan
+211.300.24.151   132.257.85.96   >1000 port scan
+124.333.95.0     62.214.34.30    >250 port scan
+172.278.206.135  multiple       (3128/tcp)
+
+========================================================================
+Connection Log Summary
+========================================================================
+@end verbatim
+
+@quotation annotation
+@i{The connection log summary gives a general idea of what hosts are
+most active.  The analyst may want to become familiar with any new hosts
+that appear on the next three lists and services that appear or
+radically change position on the fourth list}
+@end quotation
+
+@verbatim
+Site-wide connection statistics
+    Successful:   4498748
+    Unsuccessful: 35941140
+    Ratio: 1:7.989
+
+Top 20 Sources
+                Host                      IP         Bytes   Conn. Count
+  --------------------------------  ---------------  ------  -----------
+                  ns1.org_name.org  124.333.34.186    3.7 G       683948
+                  ns2.org_name.org  132.257.64.2      165 M       231245
+             lemonade.org_name.org  124.333.181.191    88 M       217781
+                  nsx.org_name.org  132.257.64.3      371 M       200935
+               cinnamon.mining.com  207.5.380.138     4.5 M       103011
+       node2.lbnl.nodes.planet.org  198.328.56.12     106 M        75725
+       node1.lbnl.nodes.planet.org  198.328.56.11      85 M        73719
+      microscope.dhcp.org_name.org  132.257.19.79      61 M        54024
+                                    169.299.224.1     2.3 M        40348
+                uhuru.org_name.org  132.257.10.97     423 M        39847
+                                    132.257.77.246     13 M        29496
+            googledev.org_name.org  124.333.41.57      13 M        24930
+                                    64.46.248.43       60 M        19785
+  ...16-141.sfo4.dsl.contactor.net  66.292.16.141     6.2 M        19048
+                      rock.es.net  198.128.2.83      2.8 G        18459
+             perry.Geo.college.EDU  124.32.349.11     1.7 M        17326
+               google.org_name.org  124.333.41.70     8.5 M        15508
+             egspd42212.search.com  65.264.38.212     3.1 M        15138
+       hmb-330-042.MSE.college.EDU  124.32.349.20     222 M        14865
+          1rodan.dhcp.org_name.org  132.257.19.170    7.7 M        11873
+
+Top 20 Destinations
+                Host                      IP         Bytes   Conn. Count
+  --------------------------------  ---------------  ------  -----------
+                  nsx.org_name.org  132.257.64.3       14 G      1571638
+                  ns1.org_name.org  124.333.34.186    1.6 G       264976
+                  ns2.org_name.org  132.257.64.2       80 M       218740
+             lemonade.org_name.org  124.333.181.191   2.6 G       176788
+                 CS.university.EDU  128.312.136.10     10 M        81622
+                 g.old-servers.net  192.42.293.30      11 G        71407
+          engram.CS.university.EDU  128.312.136.12    7.5 M        61309
+               aulvs.realthing.com  207.288.24.156    792 M        50493
+                   ns1.college.EDU  124.32.349.9      995 M        39977
+                  rohan.superc.gov  128.550.6.34      4.7 G        32883
+            sportsmed.starship.com  199.281.132.79     17 M        32152
+                      ns2.yoho.com  66.263.169.170    2.1 G        24361
+                uhuru.org_name.org  132.257.10.97      58 M        19785
+                      g3.NSDDD.COM  192.342.93.32     488 M        19734
+                   w4.org_name.org  124.333.7.51      447 M        19334
+                 E.TOP-SERVERS.NET  192.303.230.10    195 M        19066
+               mantis.org_name.org  124.333.7.39      395 M        18811
+              postala.org_name.org  124.333.41.61     8.0 M        17283
+                vista.org_name.org  132.257.48.146    488 M        15961
+               calmail.college.EDU  128.32.349.103     73 M        15154
+
+Top 20 Local Email Senders
+                  Hostname                        IP          Conn.
+Count
+  ----------------------------------------  ---------------  -----------
+                         mta1.org_name.org  124.333.41.24           3869
+                      postala.org_name.org  124.333.41.61           2850
+                           ci.org_name.org  132.257.192.220          868
+                      postal2.org_name.org  132.257.248.26           376
+                           ee.org_name.org  132.257.1.10             173
+                         math.org_name.org  124.333.7.22             131
+                         rod2.org_name.org  132.257.112.183          121
+                         gigo.org_name.org  124.333.2.54             110
+                          mh1.org_name.org  124.333.7.48              82
+                          stm.org_name.org  132.257.16.51             81
+
+Top 20 Services
+  Service        Conn. Count  % of Total   Bytes In  Bytes Out
+  ------------  ------------  ----------  ---------  ---------
+  dns                3378522       75.10       30 G       11 G
+  http                902573       20.06       18 G       11 G
+  other                92913        2.07       14 G      249 G
+  smtp                 35942        0.80      458 M      196 M
+  https                33848        0.75      2.3 G      179 M
+  ssh                  25515        0.57      977 M      1.0 G
+  netbios-ssn          11004        0.24       65 M      9.5 M
+  pop-3                 5494        0.12       58 M      3.6 M
+  ftp-data              4495        0.10       37 G       34 G
+  ldap                  3549        0.08      740 K      2.0 M
+  ftp                   1061        0.02      1.3 M      873 K
+  ident                  970        0.02      29602       9039
+  printer                834        0.02        837       9176
+  time                   645        0.01       2416        166
+  imap4                  636        0.01       28 M       47 M
+  nntp                   308        0.01      355 M      1.5 M
+  pm_getport             238        0.01      13328       6664
+  telnet                 164        0.00      469 K       7850
+  ntp                     26        0.00       1344       1392
+  X11                      6        0.00      652 K      64280
+========================================================================
+Byte Transfer Pairs
+========================================================================
+@end verbatim
+
+@quotation annotation
+@i{Once again, this summary gives a general idea of what hosts are most
+active.  Radical changes to this list may indicate malicious activity.}
+@end quotation
+
+@verbatim
+Hot Report - Top 20
+                                    Local      Remote     Conn.
+  Local Host       Remote Host      Bytes      Bytes      Count
+---------------  ---------------  ---------  ---------  ---------
+124.333.28.60    128.265.128.131      123 G     5327 K  3930
+124.333.28.60    128.265.128.132      123 G     5159 K  3927
+132.257.64.3     198.328.2.83        2855 M     11.9 G  15097
+124.333.34.186   192.342.93.30       2958 M     10.7 G  40033
+132.257.64.3     61.283.32.172       7469 M      10393  11
+124.333.41.57    128.256.6.34        12.0 M     4490 M  22360
+124.333.181.191  81.257.197.163      1350 M     4430 M  3341
+132.257.64.3     130.262.101.6        276 M     2200 M  13064
+124.333.34.186   66.263.169.170       389 M     2095 M  17919
+132.257.195.68   140.267.28.48       91.3 M     2029 M  6275
+132.257.212.232  151.293.199.65       39155     1994 M  24
+124.333.41.61    206.290.82.18         3401     1853 M  22
+132.257.64.3     61.278.72.30        1798 M          7  1
+124.333.181.191  61.263.209.246      16.8 M     1676 M  113
+132.257.64.3     261.232.163.3       1544 M      24069  9
+132.257.64.3     61.273.210.110      1517 M       4140  7
+124.333.34.186   128.342.121.70      1351 M      222 M  14861
+132.257.64.3     258.14.200.58       1350 M      24075  14
+132.257.64.3     222.330.100.28      1219 M       4077  7
+132.257.64.3     210.261.41.131      1162 M         25  3
+@end verbatim
+
+
+@comment ********************************************
+@comment node Creating your own Custom Output
+@comment section Creating your own Custom Output
+

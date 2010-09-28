@@ -1,0 +1,592 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.2.2" />
+<style type="text/css">
+/* Debug borders */
+p, li, dt, dd, div, pre, h1, h2, h3, h4, h5, h6 {
+/*
+  border: 1px solid red;
+*/
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+}
+
+strong {
+  font-weight: bold;
+}
+
+tt {
+  color: navy;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  font-family: sans-serif;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  border-bottom: 2px solid silver;
+  padding-top: 0.5em;
+}
+
+div.sectionbody {
+  font-family: serif;
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+pre {
+  padding: 0;
+  margin: 0;
+}
+
+span#author {
+  color: #527bbd;
+  font-family: sans-serif;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+span#email {
+}
+span#revision {
+  font-family: sans-serif;
+}
+
+div#footer {
+  font-family: sans-serif;
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+div#footer-text {
+  line-height: 1.3;
+  float: left;
+  padding-bottom: 0.5em;
+}
+div#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+div#preamble,
+div.tableblock, div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-right: 10%;
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.5em;
+  margin-bottom: 2.5em;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  font-family: sans-serif;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid silver;
+  padding: 0.5em;
+}
+
+div.listingblock {
+  margin-right: 0%;
+}
+div.listingblock > div.content {
+  border: 1px solid silver;
+  background: #f4f4f4;
+  padding: 0.5em;
+}
+
+div.quoteblock > div.content {
+  padding-left: 2.0em;
+}
+
+div.attribution {
+  text-align: right;
+}
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 2px solid silver;
+}
+
+div.exampleblock > div.content {
+  border-left: 2px solid silver;
+  padding: 0.5em;
+}
+
+div.verseblock div.content {
+  white-space: pre;
+}
+
+div.imageblock div.content { padding-left: 0; }
+div.imageblock img { border: 1px solid silver; }
+span.image img { border-style: none; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: italic;
+}
+dd > *:first-child {
+  margin-top: 0;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.olist2 {
+  list-style-type: lower-alpha;
+}
+
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead {
+  font-family: sans-serif;
+  font-weight: bold;
+}
+tfoot {
+  font-weight: bold;
+}
+
+div.hlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hlist td {
+  padding-bottom: 5px;
+}
+td.hlist1 {
+  vertical-align: top;
+  font-style: italic;
+  padding-right: 0.8em;
+}
+td.hlist2 {
+  vertical-align: top;
+}
+
+@media print {
+  div#footer-badges { display: none; }
+}
+
+div#toctitle {
+  color: #527bbd;
+  font-family: sans-serif;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+/* Workarounds for IE6's broken and incomplete CSS2. */
+
+div.sidebar-content {
+  background: #ffffee;
+  border: 1px solid silver;
+  padding: 0.5em;
+}
+div.sidebar-title, div.image-title {
+  font-family: sans-serif;
+  font-weight: bold;
+  margin-top: 0.0em;
+  margin-bottom: 0.5em;
+}
+
+div.listingblock div.content {
+  border: 1px solid silver;
+  background: #f4f4f4;
+  padding: 0.5em;
+}
+
+div.quoteblock-content {
+  padding-left: 2.0em;
+}
+
+div.exampleblock-content {
+  border-left: 2px solid silver;
+  padding-left: 0.5em;
+}
+
+/* IE6 sets dynamically generated links as visited. */
+div#toc a:visited { color: blue; }
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+window.onload = function(){generateToc(2)}
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, October 2006. License: GPL */
+
+function getText(el) {
+  var text = "";
+  for (var i = el.firstChild; i != null; i = i.nextSibling) {
+    if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+      text += i.data;
+    else if (i.firstChild != null)
+      text += getText(i);
+  }
+  return text;
+}
+
+function TocEntry(el, text, toclevel) {
+  this.element = el;
+  this.text = text;
+  this.toclevel = toclevel;
+}
+
+function tocEntries(el, toclevels) {
+  var result = new Array;
+  var re = new RegExp('[hH]([2-'+(toclevels+1)+'])');
+  // Function that scans the DOM tree for header elements (the DOM2
+  // nodeIterator API would be a better technique but not supported by all
+  // browsers).
+  var iterate = function (el) {
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+        var mo = re.exec(i.tagName)
+        if (mo)
+          result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+        iterate(i);
+      }
+    }
+  }
+  iterate(el);
+  return result;
+}
+
+// This function does the work. toclevels = 1..4.
+function generateToc(toclevels) {
+  var toc = document.getElementById("toc");
+  var entries = tocEntries(document.getElementsByTagName("body")[0], toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "toc" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+}
+/*]]>*/
+</script>
+<title>trace-summary - Generating network traffic summaries.</title>
+</head>
+<body>
+<div id="header">
+<h1>trace-summary - Generating network traffic summaries.</h1>
+<div id="toc">
+  <div id="toctitle">Table of Contents</div>
+  <noscript><p><b>JavaScript must be enabled in your browser to display the table of contents.</b></p></noscript>
+</div>
+</div>
+<h2>Overview</h2>
+<div class="sectionbody">
+<p><tt>trace-summary</tt> is a Python script which generates break-downs of
+network traffic, including lists of the top hosts, protocols, ports,
+etc. Optionally, it can generate output separately for incoming vs.
+outgoing traffic, per subnet, and per time-interval.</p>
+<p>The script reads both packet traces in
+<a href="http://www.tcpdump.org"><tt>libpcap</tt></a> format and connection logs
+produced by the <a href="http://www.bro-ids.org">Bro</a> network intrusion
+detection system.</p>
+<p>Here are two example outputs in the most basic form (note that IP
+addresses are <em>anonymized</em>). The first is from a packet trace and
+the second from a Bro connection log:</p>
+<div class="literalblock">
+<div class="content">
+<pre><tt>&gt;== Total === 2005-01-06-14-23-33 - 2005-01-06-15-23-43
+  - Bytes 918.3m - Payload 846.3m - Pkts 1.8m - Frags   0.9% - MBit/s      1.9 -
+    Ports        | Sources                   | Destinations              | Protocols |
+    80     33.8% | 131.243.89.214       8.5% | 131.243.89.214       7.7% | 6   76.0% |
+    22     16.7% | 128.3.2.102          6.2% | 128.3.2.102          5.4% | 17  23.3% |
+    11001  12.4% | 204.116.120.26       4.8% | 131.243.89.4         4.8% | 1    0.5% |
+    2049   10.7% | 128.3.161.32         3.6% | 131.243.88.227       3.6% |           |
+    1023   10.6% | 131.243.89.4         3.5% | 204.116.120.26       3.4% |           |
+    993     8.2% | 128.3.164.194        2.7% | 131.243.89.64        3.1% |           |
+    1049    8.1% | 128.3.164.15         2.4% | 128.3.164.229        2.9% |           |
+    524     6.6% | 128.55.82.146        2.4% | 131.243.89.155       2.5% |           |
+    33305   4.5% | 131.243.88.227       2.3% | 128.3.161.32         2.3% |           |
+    1085    3.7% | 131.243.89.155       2.3% | 128.55.82.146        2.1% |           |</tt></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>&gt;== Total === 2005-01-06-14-23-33 - 2005-01-06-15-23-42
+  - Connections 43.4k - Payload 398.4m -
+    Ports        | Sources                   | Destinations              | Services           | Protocols | States        |
+    80     21.7% | 207.240.215.71       3.0% | 239.255.255.253      8.0% | other        51.0% | 17  55.8% | S0      46.2% |
+    427    13.0% | 131.243.91.71        2.2% | 131.243.91.255       4.0% | http         21.7% | 6   36.4% | SF      30.1% |
+    443     3.8% | 128.3.161.76         1.7% | 131.243.89.138       2.1% | i-echo        7.3% | 1    7.7% | OTH      7.8% |
+    138     3.7% | 131.243.90.138       1.6% | 255.255.255.255      1.7% | https         3.8% |           | RSTO     5.8% |
+    515     2.4% | 131.243.88.159       1.6% | 128.3.97.204         1.5% | nb-dgm        3.7% |           | SHR      4.4% |
+    11001   2.3% | 131.243.88.202       1.4% | 131.243.88.107       1.1% | printer       2.4% |           | REJ      3.0% |
+    53      1.9% | 131.243.89.250       1.4% | 117.72.94.10         1.1% | dns           1.9% |           | S1       1.0% |
+    161     1.6% | 131.243.89.80        1.3% | 131.243.88.64        1.1% | snmp          1.6% |           | RSTR     0.9% |
+    137     1.4% | 131.243.90.52        1.3% | 131.243.88.159       1.1% | nb-ns         1.4% |           | SH       0.3% |
+    2222    1.1% | 128.3.161.252        1.2% | 131.243.91.92        1.1% | ntp           1.0% |           | RSTRH    0.2% |</tt></pre>
+</div></div>
+</div>
+<h2>Download</h2>
+<div class="sectionbody">
+<p>Download <a href="http://www.icir.org/robin/trace-summary-0.5.tar.gz"><tt>trace-summary-0.5.tar.gz</tt></a></p>
+</div>
+<h2>Prerequisites</h2>
+<div class="sectionbody">
+<ul>
+<li>
+<p>
+This script requires Python 2.4 or newer.
+</p>
+</li>
+<li>
+<p>
+It also requires the installation of
+</p>
+<ul>
+<li>
+<p>
+the <a href="http://www.icir.org/robin/pysubnettree"><tt>pysubnettree</tt></a> Python module, and
+</p>
+</li>
+<li>
+<p>
+Eddie Kohler's <a href="http://www.cs.ucla.edu/~kohler/ipsumdump"><tt>ipsumdump</tt></a>
+</p>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+<h2>Installation</h2>
+<div class="sectionbody">
+<p>Simply copy the script into some directory which is in your <tt>PATH</tt>.</p>
+</div>
+<h2>Usage</h2>
+<div class="sectionbody">
+<p>The general usage is</p>
+<div class="literalblock">
+<div class="content">
+<pre><tt>trace-summary [options] [input-file]</tt></pre>
+</div></div>
+<p>Per default, it assumes the <tt>input-file</tt> to be a <tt>libpcap</tt> trace
+file. If it is a Bro connection log, use <tt>-c</tt>. If <tt>input-file</tt> is
+not given, the script reads from stdin. It writes its output to
+stdout.</p>
+<h3>Options</h3>
+<p>There are a bunch of options. The most important ones summmarized
+below. Run <tt>trace-summary --help</tt> to see the full list including
+some more estoric ones.</p>
+<div class="hlist"><table>
+<tr>
+<td class="hlist1">
+<strong>-c</strong>
+</td>
+<td class="hlist2">
+Input is a Bro connection log instead of a <tt>libpcap</tt> trace
+               file.
+</td>
+</tr>
+<tr>
+<td class="hlist1">
+<strong>-b</strong>
+</td>
+<td class="hlist2">
+Counts all percentages in bytes rather than number of
+               packets/connections.
+</td>
+</tr>
+<tr>
+<td class="hlist1">
+<strong>-E &lt;file&gt;</strong>
+</td>
+<td class="hlist2">
+Gives a file which contains a list of networks to
+               ignore for the analysis. The file must contain one
+               network per line, where each network is of the CIDR
+               form <tt>a.b.c.d/mask</tt>. Empty lines and lines starting
+               with a "#" are ignored.
+</td>
+</tr>
+<tr>
+<td class="hlist1">
+<strong>-i &lt;duration&gt;</strong>
+</td>
+<td class="hlist2">
+Creates totals for each time interval of the given
+                  length (default is seconds; add "<tt>m</tt>" for minutes
+                  and "<tt>h</tt>" for hours). Use <tt>-v</tt> if you also want to
+                  see the breakdowns for each interval.
+</td>
+</tr>
+<tr>
+<td class="hlist1">
+<strong>-l &lt;file&gt;</strong>
+</td>
+<td class="hlist2">
+Generates separate summaries for incoming and outgoing
+               traffic. <tt>&lt;file&gt;</tt> is a file which contains a list of
+               networks to be considered local. Format as for <tt>-E</tt>.
+</td>
+</tr>
+<tr>
+<td class="hlist1">
+<strong>-n &lt;n&gt;</strong>
+</td>
+<td class="hlist2">
+Show top n entries in each break-down.
+               Default is 10.
+</td>
+</tr>
+<tr>
+<td class="hlist1">
+<strong>-r</strong>
+</td>
+<td class="hlist2">
+Resolves hostnames in the output.
+</td>
+</tr>
+<tr>
+<td class="hlist1">
+<strong>-s &lt;n&gt;</strong>
+</td>
+<td class="hlist2">
+Gives the sample factor if the input has been sampled.
+</td>
+</tr>
+<tr>
+<td class="hlist1">
+<strong>-S &lt;n&gt;</strong>
+</td>
+<td class="hlist2">
+Sample input with the given factor; less accurate but
+               faster and saves memory.
+</td>
+</tr>
+<tr>
+<td class="hlist1">
+<strong>-m</strong>
+</td>
+<td class="hlist2">
+Does skip memory-expensive statistics.
+</td>
+</tr>
+<tr>
+<td class="hlist1">
+<strong>-v</strong>
+</td>
+<td class="hlist2">
+Generates full break-downs for each time interval.
+               Requires <tt>-i</tt>.
+</td>
+</tr>
+</table></div>
+</div>
+<div id="footer">
+<div id="footer-text">
+<a href="http://www.icir.org/robin">Back to Homepage</a><br />
+12-Nov-2007 15:23:04 PDT - Robin Sommer
+</div>
+</div>
+</body>
+</html>

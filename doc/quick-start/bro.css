@@ -1,0 +1,43 @@
+/* 
+ * Custom nllite stylesheet
+ */
+body {  
+  font-family: Verdana, Arial, serif;
+}
+H1 {  
+  color: #339933;
+}
+A:link, A:active, A:visited, A:hover { 
+  color: #3333ff;
+  text-decoration: none; 
+}
+A:hover {
+  border-bottom: 1px dotted red;
+  color: red;
+  text-decoration: none;
+}
+ul.menu { 
+  list-style-type: circle;
+  list-style-position: inside;
+  padding: 5px;
+  background-color: #ccffcc;
+  border: 1px dashed #333333;
+}
+hr { 
+  display: none;
+}
+div.node { 
+  font-size: 12px;
+  font-weight: bold;
+  background-color: #ccffcc;
+/*
+  line-height: 0;
+*/
+  padding: 0.5em;
+}
+table.cartouche { 
+  background-color: white;
+}
+table { 
+  border: none;
+}

@@ -1,0 +1,161 @@
+# Source file config for running bro
+
+# On a linux system this file will normally exist in /etc/sysconfig
+# and will have the same filename as the RC start script which calls it.
+
+# On a FreeBSD machine this file will normally reside in /usr/local/etc
+# and will have the same filename as the RC start script which calls it.
+
+# The following variables are exported and needed by Bro at runtime
+# These are mostly undocumented. arrrrrr!!!!!!
+# BROLOGS
+# BROHOME
+# BROPATH
+
+# host only format
+BRO_HOSTNAME=`hostname | awk -F. ' { print  } '`
+# FQDN format
+# HOSTNAME=`hostname`
+
+# Directory containing Bro binaries
+BRO_BIN_DIR="${BROHOME}/bin"
+
+# Filename of the Bro start policy
+# START_POLICY="default.bro"
+BRO_START_POLICY="localhost.bro"
+
+# Directory containing Bro logs
+BROLOGS="${BROHOME}/logs"
+export BROLOGS
+
+# Log archive directory
+BRO_LOG_ARCHIVE="${BROHOME}/archive"
+
+# Directory containing Bro signature files
+BRO_SIG_DIR="${BROHOME}/site"
+
+# Bro policy paths
+BROPATH="${BROHOME}/share/bro/site:${BROHOME}/share/bro:${BROHOME}/share/bro/sigs:${BROHOME}/share/bro/time-machine"
+export BROPATH
+
+# Location of site specific policy and configurations
+BROSITE="${BROHOME}/site"
+
+# Location of host specific policy and configurations
+BROHOST="${BROHOME}/host"
+
+# A prefix to use when looking for local policy files to load.
+# BRO_PREFIX="local"
+
+# Location of the Bro executable
+BRO="${BRO_BIN_DIR}/bro"
+
+# Base command line options.
+BRO_ADD_OPTS=" -W"
+# Turn on Bro's Watchdog feature
+BRO_OPTS="${BRO_ADD_OPTS}"
+
+# Interface name to listen on.  The default is to use the busiest one found.
+BRO_CAPTURE_INTERFACE=""
+# Multiple interface should be specified as a space delimited list.
+# Examples: 
+#   CAPTURE_INTERFACE="sk0 sk1 sk5"
+#   CAPTURE_INTERFACE="eth0 eth3"
+#   CAPTURE_INTERFACE="eth0"
+
+# If set to YES and there are any signature files ending with .bro in $SIG_DIR
+# then they will be started with bro.  Set to NO to disable signatures
+# Set to YES to enable bro to run with 'signature matching' on (YES/NO)
+BRO_USE_SIGNATURES=YES
+
+# Shoud a trace (tcpdump) file be created in the log directory (YES/NO)
+BRO_CREATE_TRACE_FILE=NO
+
+# How long to wait during checkpointing after startin a new Bro process and
+# stopping the old one.  This value is in seconds
+BRO_CHECKPOINT_OVERLAP_TIME=20
+
+# Starting time for a report run (0001 is 12:01 am and 1201 is 12:01pm)
+BRO_REPORT_START_TIME=0010
+
+# How often (in hours) to generate an activity report
+BRO_REPORT_INTERVAL=24
+
+# This is the how often to rotate the logs (in hours)
+BRO_LOG_ROTATE_INTERVAL=24
+
+# This is the how often to restart bro (in hours)
+BRO_CHECKPOINT_INTERVAL=24
+
+# The maximum time allowed for a Bro process to cleanup and exit
+# This value is in seconds
+BRO_MAX_SHUTDOWN_TIME=$(( 60 * 60 * 2 ))    # 2 hours
+
+# Use this to enable the init script to autorestart Bro in the event of an
+# unexpected shutdown.  The value should be YES or NO
+BRO_ENABLE_AUTORESTART="YES"
+
+# A value less than 1 means there will be no limit to the number of restarts
+# Maximum times to try to auto-restart Bro before giving up.
+BRO_MAX_RESTART_ATTEMPTS=-1
+
+# Location of the run-time variable directory.  This is normally /var/run/bro
+# and contains the pidfile and other temporal data. 
+BRO_RUNTIME_DIR=""
+
+# Email address for local reports to be mailed to
+BRO_EMAIL_LOCAL="bro@localhost"
+
+# Email address to send from
+BRO_EMAIL_FROM="bro@localhost"
+
+# Do you want to send external reports to a incident reporting org (e.g.: CERT, CIAC, etc)
+BRO_EMAIL_EXTERNAL="NO"
+
+# Email address for remote reports to be mailed to
+BRO_EMAIL_REMOTE="BRO-IDS@bro-ids.org"
+
+# User id to install and run Bro under
+BRO_USER_ID="bro"
+
+# Site name for reports (i.e. LBNL, FOO.COM, BAZ.ORG)
+BRO_SITE_NAME=""
+
+# Do you want to encrypt email reports (YES/NO)
+BRO_ENCRYPT_EMAIL="NO"
+
+# Location of GPG binary or encrypting email
+BRO_GPG_BIN="/usr/local/bin/gpg"
+
+# Default BPF buffer
+BRO_BPF_BUFSIZE=4194304
+
+# Do BPF bonding
+BRO_BPFBOND_ENABLE="NO"
+# Interfaces to bond
+BRO_BPFBOND_FLAGS="em0 em1"
+
+# diskspace management settings
+# Should I manage diskspace
+BRO_DISKSPACE_ENABLE="YES"
+# percent full to worry about
+BRO_DISKSPACE_PCT=90
+# account watching disk space
+BRO_DISKSPACE_WATCHER="root"
+# days before deleting old logs
+BRO_DAYS_2_DELETION=45
+# days before compressing logs
+BRO_DAYS_2_COMPRESSION=20
+
+# Bulk data capture settings
+# Buld data directory
+BRO_BULK_DIR="${BROHOME}/bulk-trace"
+# Capture filter for bulk data
+BRO_BULK_CAPTURE_FILTER=""
+# days before deleting bulk data
+BRO_BULK_DAYS_2_DELETION=4
+# days before compressing bulk data
+BRO_BULK_DAYS_2_COMPRESSION=2
+# location of sorted log files, needed by Brooery
+BROOERY_LOGS="${BROHOME}/sorted-logs"
+

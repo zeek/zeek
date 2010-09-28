@@ -1,0 +1,10 @@
+This directory contains some of the suites for testing for Bro's
+correct operation:
+
+istate/
+	Tests Bro's independent state facilities.  These include persistent
+	values and inter-process event/value communication.
+
+(Note that the Bro developers maintain a separate test suite for
+ Bro's trace analysis capabilities.  This is kept private as it uses
+ sensitive raw traces for input.)

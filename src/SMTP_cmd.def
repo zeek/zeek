@@ -1,0 +1,40 @@
+// $Id: SMTP_cmd.def 80 2004-07-14 20:15:50Z jason $
+//
+// Definitions of SMTP commands.
+
+SMTP_CMD_DEF(EHLO)
+SMTP_CMD_DEF(HELO)		// EHLO is preferred over HELO
+SMTP_CMD_DEF(MAIL)
+SMTP_CMD_DEF(RCPT)
+SMTP_CMD_DEF(DATA)
+SMTP_CMD_DEF(QUIT)
+SMTP_CMD_DEF(RSET)
+SMTP_CMD_DEF(VRFY)
+SMTP_CMD_DEF(EXPN)
+SMTP_CMD_DEF(HELP)
+SMTP_CMD_DEF(NOOP)
+
+// The following two commands never explicitly appear in user input.
+SMTP_CMD_DEF(CONN_ESTABLISHMENT)	// not an explicit SMTP command
+SMTP_CMD_DEF(END_OF_DATA)	// not an explicit SMTP command
+
+// Following commands are specified in RFC 821, but will
+// become deprecated (RFC 2821).
+// Client SHOULD NOT use SEND/SOML/SAML
+
+SMTP_CMD_DEF(SEND)		
+SMTP_CMD_DEF(SOML)
+SMTP_CMD_DEF(SAML)
+
+// System SHOULD NOT support TURN in absence of authentication.
+SMTP_CMD_DEF(TURN)		
+
+// SMTP extensions not supported yet.
+SMTP_CMD_DEF(STARTTLS)	// RFC 2487
+SMTP_CMD_DEF(BDAT)		// RFC 3030
+SMTP_CMD_DEF(ETRN)		// RFC 1985
+SMTP_CMD_DEF(AUTH)		// RFC 2554
+SMTP_CMD_DEF(AUTH_ANSWER)	// not an explicit SMTP command
+
+// LAST is not an SMTP command.
+SMTP_CMD_DEF(LAST)

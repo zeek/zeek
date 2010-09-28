@@ -1,0 +1,13 @@
+#! /usr/bin/env bash
+#
+# $Id: stop 6811 2009-07-06 20:41:10Z robin $
+#
+#  stop <pid> <signal>
+
+kill -$2 $1 >/dev/null 2>&1 
+echo 0
+echo ~~~
+
+
+
+

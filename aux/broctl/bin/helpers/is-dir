@@ -1,0 +1,13 @@
+#! /usr/bin/env bash
+#
+# $Id: is-dir 6811 2009-07-06 20:41:10Z robin $
+#
+# is-dir <path>
+
+if [ -d $1 ]; then
+   echo 0
+else
+   echo 1
+fi   
+
+echo ~~~

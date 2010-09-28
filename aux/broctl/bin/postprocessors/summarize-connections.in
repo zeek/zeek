@@ -1,0 +1,54 @@
+#! /usr/bin/env bash
+#
+# $Id: summarize-connections.in 6813 2009-07-07 18:54:12Z robin $
+#
+# Bro postprocessor script to summarize connection summaries. 
+#
+# Needs trace-summary script.
+#
+# summarize-conns <rotated-file-name> <base-name> <timestamp-when-opened> <timestamp-when-closed> [<tag>]
+
+if [ "$2" != "conn.log" ]; then
+   exit 0
+fi
+
+summary_options="-c -r"
+
+# If we're a cluster installation, we assume we have lots of traffic and activate sampling.
+if [ "${standalone}" != "0" ]; then
+   summary_options="$summary_options -S 0.01" 
+fi    
+
+if [ -e ${localnetscfg} ]; then
+   summary_options="$summary_options -l ${localnetscfg}"
+fi
+
+input=$1
+open=$3
+close=$4
+
+output=conn-summary.log
+
+# GNU's time can do memory as well.
+export TIME="%E real, %U user, %S sys, %KK total memory"
+
+if [ "${tracesummary}" != "" ]; then
+   # Build subject 
+   start=`echo $open | sed 's/^..-..-.._//' | sed 's/\./:/g'`
+   end=`echo $close | sed 's/^..-..-.._//' | sed 's/\./:/g'`
+   subject="Connection summary from $start-$end"
+
+   LIMIT=${memlimit:1572864}
+   ulimit -m $LIMIT
+   ulimit -v $LIMIT
+
+   export PYTHONPATH=${libdirinternal}:$PYTHONPATH
+   nice ${time} ${tracesummary} $summary_options $input 2>&1 | grep -v "exceeds bandwith" >$output
+
+   ${scriptsdir}/send-mail "$subject" <$output
+   ${scriptsdir}/archive-log $output $output $3 $4 $5
+fi   
+
+
+
+

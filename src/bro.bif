@@ -1,0 +1,3218 @@
+# $Id: bro.bif 7075 2010-09-13 02:39:38Z vern $
+#
+# Definitions of Bro built-in functions.
+
+%%{ // C segment
+#include <math.h>
+
+#include <vector>
+#include <algorithm>
+#include <cmath>
+#include <sys/stat.h>
+
+
+using namespace std;
+
+RecordType* ftp_port;
+RecordType* bro_resources;
+RecordType* matcher_stats;
+TableType* var_sizes;
+
+// This one is extern, since it's used beyond just built-ins,
+// and hence it's declared in NetVar.{h,cc}.
+extern RecordType* gap_info;
+
+static PktDumper* addl_pkt_dumper = 0;
+
+bro_int_t parse_int(const char*& fmt)
+	{
+	bro_int_t k = 0;
+	while ( isdigit(*fmt) )
+		{
+		k = k * 10 + (*fmt - '0');
+		++fmt;
+		}
+
+	return k;
+	}
+
+static TypeTag ok_d_fmt[] = {
+	TYPE_BOOL, TYPE_ENUM, TYPE_INT, TYPE_COUNT, TYPE_COUNTER, TYPE_PORT,
+	TYPE_SUBNET,
+	TYPE_ERROR
+};
+static TypeTag ok_f_fmt[] = {
+	TYPE_DOUBLE, TYPE_TIME, TYPE_INTERVAL,
+	TYPE_ERROR
+};
+
+static int check_fmt_type(TypeTag t, TypeTag ok[])
+	{
+	for ( int i = 0; ok[i] != TYPE_ERROR; ++i )
+		if ( ok[i] == t )
+			return 1;
+
+	return 0;
+	}
+
+static void do_fmt(const char*& fmt, Val* v, ODesc* d)
+	{
+	TypeTag t = v->Type()->Tag();
+	InternalTypeTag it = v->Type()->InternalType();
+
+	bool zero_pad = false;
+	bool left_just = false;
+	int field_width = -1;
+
+	// Left-align, if requested.
+	if ( *fmt == '-' )
+		{
+		left_just = true;
+		++fmt;
+		}
+
+	// Parse field width, if given.
+	if ( isdigit(*fmt) )
+		{
+		// If field width starts with zero, do zero-padding.
+		if ( *fmt == '0' )
+			{
+			zero_pad = true;
+			++fmt;
+			}
+
+		field_width = parse_int(fmt);
+		}
+
+	int precision = -1;
+	if ( *fmt == '.' )
+		{
+		++fmt;
+		precision = parse_int(fmt);
+		}
+
+	if ( field_width > 128 || precision > 128 )
+		{
+		builtin_run_time("excessive field width or precision");
+		return;
+		}
+
+	// Create the numerical format string.
+	char num_fmt[64];
+	num_fmt[0] = '\0';
+
+	if ( field_width >= 0 )
+		{
+		// Like sprintf(), ignore '0' if '-' is given.
+		const char* align = left_just ? "-" : (zero_pad ? "0" : "");
+		snprintf(num_fmt, sizeof(num_fmt), "%s%d", align, field_width);
+		}
+
+	if ( precision >= 0 )
+		snprintf(num_fmt + strlen(num_fmt),
+			sizeof(num_fmt) - strlen(num_fmt), ".%d", precision);
+
+	char fmt_buf[512];
+	char out_buf[512];
+
+	ODesc s;
+
+	if ( *fmt == 'A' )
+		{
+		s.SetStyle(ALTERNATIVE_STYLE);
+		++fmt;
+		}
+
+	if ( precision >= 0 && *fmt != 'e' && *fmt != 'f' && *fmt != 'g' )
+		builtin_run_time("precision specified for non-floating point");
+
+	switch ( *fmt ) {
+	case 'D':
+	case 'T':	// ISO Timestamp with microsecond precision.
+		{
+		if ( t != TYPE_TIME )
+			{
+			builtin_run_time("bad type for Date/Time format", v);
+			break;
+			}
+
+		time_t time = time_t(v->InternalDouble());
+		int is_time_fmt = *fmt == 'T';
+
+		if ( ! strftime(out_buf, sizeof(out_buf),
+				is_time_fmt ?
+					"%Y-%m-%d-%H:%M" : "%Y-%m-%d-%H:%M:%S",
+				localtime(&time)) )
+			s.AddSP("<bad time>");
+
+		else
+			{
+			s.Add(out_buf);
+
+			if ( is_time_fmt )
+				{
+				double secs = v->CoerceToUnsigned() % 60;
+
+				secs += v->InternalDouble();
+				secs -= v->CoerceToUnsigned();
+
+				snprintf(out_buf, sizeof(out_buf),
+					":%012.9f", secs);
+				s.Add(out_buf);
+				}
+			}
+		}
+		break;
+
+	case 'd':
+	case 'x':
+		{
+		if ( *fmt == 'x' && it == TYPE_INTERNAL_ADDR )
+			{
+			// Deficiency: we don't support num_fmt in this case.
+			// This makes only a very slight difference, so not
+			// clear it would e worth the hassle.
+
+			addr_type u = v->AsAddr();
+#ifdef BROv6
+			// We explicitly convert the address to host order
+			// in a copy, because if we just call ntohl() for
+			// our invocation on snprintf() below, on some systems
+			// it turns a 32-bit value (Linux), whereas on
+			// others it returns a long (FreeBSD); the latter
+			// gets us in trouble if we have longs > 32 bits,
+			// because then the format specifier needs to be %lx
+			// rather than %x ....... what a pain!
+			//
+			// Also note that we don't change u in-place because
+			// that would alter the byte order of the underlying
+			// value.  (Speaking of which, I'm not clear on why
+			// we're allowed to assign a const addr_type to an
+			// addr_type above, both g++ allows it.)
+			uint32 host_order_u[4];
+			host_order_u[0] = ntohl(u[0]);
+			host_order_u[1] = ntohl(u[1]);
+			host_order_u[2] = ntohl(u[2]);
+			host_order_u[3] = ntohl(u[3]);
+
+			snprintf(out_buf, sizeof(out_buf), "%08x%08x%08x%08x",
+					host_order_u[0], host_order_u[1],
+					host_order_u[2], host_order_u[3]);
+#else
+			u = ntohl(u);
+			snprintf(out_buf, sizeof(out_buf), "%08x", u);
+#endif
+			}
+
+		else if ( ! check_fmt_type(t, ok_d_fmt) )
+			{
+			builtin_run_time("bad type for %d/%x format", v);
+			break;
+			}
+
+		else if ( it == TYPE_INTERNAL_UNSIGNED )
+			{
+			bro_uint_t u = v->CoerceToUnsigned();
+
+			if ( v->Type()->IsNetworkOrder() )
+				{
+				if ( v->Type()->Tag() == TYPE_PORT )
+					u = v->AsPortVal()->Port();
+				else
+					u = ntohl(uint32(u));
+				}
+
+#ifdef USE_INT64
+			snprintf(fmt_buf, sizeof(fmt_buf), "%%%s%s", num_fmt,
+					*fmt == 'd' ? "llu" : "llx");
+#else
+			snprintf(fmt_buf, sizeof(fmt_buf), "%%%s%c", num_fmt,
+					*fmt == 'd' ? 'u' : 'x');
+#endif
+			snprintf(out_buf, sizeof(out_buf), fmt_buf, u);
+			}
+
+		else
+			{
+#ifdef USE_INT64
+			snprintf(fmt_buf, sizeof(fmt_buf), "%%%s%s", num_fmt,
+					*fmt == 'd' ? "lld" : "llx");
+#else
+			snprintf(fmt_buf, sizeof(fmt_buf), "%%%s%c", num_fmt,
+					*fmt == 'd' ? 'd' : 'x');
+#endif
+			snprintf(out_buf, sizeof(out_buf), fmt_buf,
+					v->CoerceToInt());
+			}
+
+		s.Add(out_buf);
+		}
+		break;
+
+	case 's':
+		v->Describe(&s);
+		break;
+
+	case 'e':
+	case 'f':
+	case 'g':
+		{
+		if ( ! check_fmt_type(t, ok_f_fmt) )
+			{
+			builtin_run_time("bad type for floating-point format", v);
+			break;
+			}
+
+		snprintf(fmt_buf, sizeof(fmt_buf), "%%%s%c", num_fmt, *fmt);
+		snprintf(out_buf, sizeof(out_buf), fmt_buf, v->CoerceToDouble());
+		s.Add(out_buf);
+		}
+		break;
+
+	default:
+		builtin_run_time("bad format");
+	}
+
+	// Left-padding with whitespace, if any.
+	if ( field_width > 0 && ! left_just )
+		{
+		int sl = strlen(s.Description());
+		while ( ++sl <= field_width )
+			d->Add(" ");
+		}
+
+	d->Add(s.Description());
+
+	// Right-padding with whitespace, if any.
+	if ( field_width > 0 && left_just )
+		{
+		int sl = strlen(s.Description());
+		while ( ++sl <= field_width )
+			d->Add(" ");
+		}
+
+	++fmt;
+	}
+
+static int next_fmt(const char*& fmt, val_list* args, ODesc* d, int& n)
+	{
+	const char* fp = fmt;
+
+	// Skip up to next format indicator.
+	while ( *fp && *fp != '%' )
+		++fp;
+
+	d->AddN(fmt, fp - fmt);
+
+	if ( *fp == '\0' )
+		// No more to do.
+		return 0;
+
+	fmt = fp + 1;
+	if ( *fmt == '%' )
+		{
+		// "%%" -> '%'
+		d->Add("%");
+		++fmt;
+		return next_fmt(fmt, args, d, n);
+		}
+
+	if ( ++n >= args->length() )
+		return 0;
+
+	do_fmt(fmt, (*args)[n], d);
+
+	return *fmt != '\0';
+	}
+%%}
+
+function length%(v: any%): count
+	%{
+	TableVal* tv = v->Type()->Tag() == TYPE_TABLE ? v->AsTableVal() : 0;
+
+	if ( tv )
+		return new Val(tv->Size(), TYPE_COUNT);
+
+	else if ( v->Type()->Tag() == TYPE_VECTOR )
+		return new Val(v->AsVectorVal()->Size(), TYPE_COUNT);
+
+	else
+		{
+		builtin_run_time("length() requires a table/set/vector argument");
+		return new Val(0, TYPE_COUNT);
+		}
+	%}
+
+function same_object%(o1: any, o2: any%): bool
+	%{
+	return new Val(o1 == o2, TYPE_BOOL);
+	%}
+
+function clear_table%(v: any%): any
+	%{
+	if ( v->Type()->Tag() == TYPE_TABLE )
+		v->AsTableVal()->RemoveAll();
+	else
+		builtin_run_time("clear_table() requires a table/set argument");
+
+	return 0;
+	%}
+
+function cat%(...%): string
+	%{
+	ODesc d;
+	loop_over_list(@ARG@, i)
+		@ARG@[i]->Describe(&d);
+
+	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
+	s->SetUseFreeToDelete(true);
+
+	return new StringVal(s);
+	%}
+
+function cat_sep%(sep: string, def: string, ...%): string
+	%{
+	ODesc d;
+	int pre_size = 0;
+
+	loop_over_list(@ARG@, i)
+		{
+		// Skip named parameters.
+		if ( i < 2 )
+			continue;
+
+		if ( i > 2 )
+			d.Add(sep->CheckString(), 0);
+
+		Val* v = @ARG@[i];
+		if ( v->Type()->Tag() == TYPE_STRING && ! v->AsString()->Len() )
+			v = def;
+
+		v->Describe(&d);
+		}
+
+	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
+	s->SetUseFreeToDelete(true);
+
+	return new StringVal(s);
+	%}
+
+function fmt%(...%): string
+	%{
+	if ( @ARGC@ == 0 )
+		return new StringVal("");
+
+	Val* fmt_v = @ARG@[0];
+	if ( fmt_v->Type()->Tag() != TYPE_STRING )
+		return bro_cat(frame, @ARGS@);
+
+	const char* fmt = fmt_v->AsString()->CheckString();
+	ODesc d;
+	int n = 0;
+
+	while ( next_fmt(fmt, @ARGS@, &d, n) )
+		;
+
+	if ( n < @ARGC@ - 1 )
+		builtin_run_time("too many arguments for format", fmt_v);
+
+	else if ( n >= @ARGC@ )
+		builtin_run_time("too few arguments for format", fmt_v);
+
+	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
+	s->SetUseFreeToDelete(true);
+
+	return new StringVal(s);
+	%}
+
+function type_name%(t: any%): string
+	%{
+	ODesc d;
+	t->Type()->Describe(&d);
+
+	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
+	s->SetUseFreeToDelete(true);
+
+	return new StringVal(s);
+	%}
+
+function to_int%(str: string%): int
+	%{
+	const char* s = str->CheckString();
+	char* end_s;
+
+	long l = strtol(s, &end_s, 10);
+	int i = int(l);
+
+#if 0
+	// Not clear we should complain.  For example, is " 205 "
+	// a legal conversion?
+	if ( s[0] == '\0' || end_s[0] != '\0' )
+		builtin_run_time("bad conversion to integer", @ARG@[0]);
+#endif
+
+	return new Val(i, TYPE_INT);
+	%}
+
+function int_to_count%(n: int%): count
+	%{
+	if ( n < 0 )
+		{
+		builtin_run_time("bad conversion to count", @ARG@[0]);
+		n = 0;
+		}
+	return new Val(n, TYPE_COUNT);
+	%}
+
+function double_to_count%(d: double%): count
+	%{
+	if ( d < 0.0 )
+		builtin_run_time("bad conversion to count", @ARG@[0]);
+
+	return new Val(bro_uint_t(rint(d)), TYPE_COUNT);
+	%}
+
+function to_count%(str: string%): count
+	%{
+	const char* s = str->CheckString();
+	char* end_s;
+
+	long l = strtol(s, &end_s, 10);
+	uint32 u = uint32(l);
+
+#if 0
+	if ( s[0] == '\0' || end_s[0] != '\0' )
+		builtin_run_time("bad conversion to count", @ARGS@[0]);
+#endif
+
+	return new Val(u, TYPE_COUNT);
+	%}
+
+function interval_to_double%(i: interval%): double
+	%{
+	return new Val(i, TYPE_DOUBLE);
+	%}
+
+function time_to_double%(t: time%): double
+	%{
+	return new Val(t, TYPE_DOUBLE);
+	%}
+
+function double_to_time%(d: double%): time
+	%{
+	return new Val(d, TYPE_TIME);
+	%}
+
+function double_to_interval%(d: double%): interval
+	%{
+	return new Val(d, TYPE_INTERVAL);
+	%}
+
+function addr_to_count%(a: addr%): count
+	%{
+#ifdef BROv6
+	if ( ! is_v4_addr(a) )
+		{
+		builtin_run_time("conversion of non-IPv4 address to count", @ARG@[0]);
+		return new Val(0, TYPE_COUNT);
+		}
+
+	uint32 addr = to_v4_addr(a);
+#else
+	uint32 addr = a;
+#endif
+	return new Val(ntohl(addr), TYPE_COUNT);
+	%}
+
+function port_to_count%(p: port%): count
+	%{
+	return new Val(p->Port(), TYPE_COUNT);
+	%}
+
+function count_to_port%(c: count, t: transport_proto%): port
+	%{
+	return new PortVal(c, (TransportProto)(t->InternalInt()));
+	%}
+
+function floor%(d: double%): double
+	%{
+	return new Val(floor(d), TYPE_DOUBLE);
+	%}
+
+function to_addr%(ip: string%): addr
+	%{
+	char* s = ip->AsString()->Render();
+	Val* ret = new AddrVal(s);
+	delete [] s;
+	return ret;
+	%}
+
+# Interprets the first 4 bytes of 'b' as an IPv4 address in network order.
+function raw_bytes_to_v4_addr%(b: string%): addr
+	%{
+	uint32 a = 0;
+
+	if ( b->Len() < 4 )
+		builtin_run_time("too short a string as input to raw_bytes_to_v4_addr()");
+
+	else
+		{
+		const u_char* bp = b->Bytes();
+		a = (bp[0] << 24) | (bp[1] << 16) | (bp[2] << 8) | bp[3];
+		}
+
+	return new AddrVal(htonl(a));
+	%}
+
+function to_net%(a: addr%): net
+	%{
+#ifdef BROv6
+	if ( ! is_v4_addr(a) )
+		{
+		builtin_run_time("conversion of non-IPv4 address to net", @ARG@[0]);
+		return new NetVal(uint32(0));
+		}
+
+	uint32 addr = to_v4_addr(a);
+#else
+	uint32 addr = a;
+#endif
+
+	addr = htonl(addr_to_net(ntohl(addr)));
+
+	return new NetVal(addr);
+	%}
+
+function net_to_subnet%(a: net%): subnet
+	%{
+#ifdef BROv6
+	if ( ! is_v4_addr(a) )
+		{
+		builtin_run_time("conversion of non-IPv4 address to subnet", @ARG@[0]);
+		return new SubNetVal(uint32(0), 0);
+		}
+
+	uint32 addr = to_v4_addr(a);
+#else
+	uint32 addr = a;
+#endif
+
+	switch ( addr_to_class(ntohl(addr)) ) {
+	case 'A':
+		return new SubNetVal(addr, 8);
+	case 'B':
+		return new SubNetVal(addr, 16);
+	case 'C':
+	case 'D':
+		return new SubNetVal(addr, 24);
+
+	default:
+		return new SubNetVal(addr, 0);
+	}
+	%}
+
+function to_port%(num: count, proto: transport_proto%): port
+	%{
+	return new PortVal(num, (TransportProto)proto->AsEnum());
+	%}
+
+function mask_addr%(a: addr, top_bits_to_keep: count%): addr
+	%{
+	return new AddrVal(mask_addr(a, top_bits_to_keep));
+	%}
+
+# Take some top bits (e.g. subnet address) from a1 and the other
+# bits (intra-subnet part) from a2 and merge them to get a new address.
+# This is useful for anonymizing at subnet level while preserving
+# serial scans.
+function remask_addr%(a1: addr, a2: addr, top_bits_from_a1: count%): addr
+	%{
+#ifdef BROv6
+	if ( ! is_v4_addr(a1) || ! is_v4_addr(a2) )
+		{
+		builtin_run_time("cannot use remask_addr on IPv6 addresses");
+		return new AddrVal(a1);
+		}
+
+	uint32 x1 = to_v4_addr(a1);
+	uint32 x2 = to_v4_addr(a2);
+#else
+	uint32 x1 = a1;
+	uint32 x2 = a2;
+#endif
+	return new AddrVal(
+		mask_addr(x1, top_bits_from_a1) |
+		(x2 ^ mask_addr(x2, top_bits_from_a1)) );
+	%}
+
+function is_tcp_port%(p: port%): bool
+	%{
+	return new Val(p->IsTCP(), TYPE_BOOL);
+	%}
+
+function is_udp_port%(p: port%): bool
+	%{
+	return new Val(p->IsUDP(), TYPE_BOOL);
+	%}
+
+function is_icmp_port%(p: port%): bool
+	%{
+	return new Val(p->IsICMP(), TYPE_BOOL);
+	%}
+
+function reading_live_traffic%(%): bool
+	%{
+	return new Val(reading_live, TYPE_BOOL);
+	%}
+
+function reading_traces%(%): bool
+	%{
+	return new Val(reading_traces, TYPE_BOOL);
+	%}
+
+function open%(f: string%): file
+	%{
+	const char* file = f->CheckString();
+
+	if ( streq(file, "-") )
+		return new Val(new BroFile(stdout, "-", "w"));
+	else
+		return new Val(new BroFile(file, "w"));
+	%}
+
+function open_for_append%(f: string%): file
+	%{
+	return new Val(new BroFile(f->CheckString(), "a"));
+	%}
+
+function close%(f: file%): bool
+	%{
+	return new Val(f->Close(), TYPE_BOOL);
+	%}
+
+function write_file%(f: file, data: string%): bool
+	%{
+	if ( ! f )
+		return new Val(0, TYPE_BOOL);
+
+	return new Val(f->Write((const char*) data->Bytes(), data->Len()),
+			TYPE_BOOL);
+	%}
+
+function set_buf%(f: file, buffered: bool%): any
+	%{
+	f->SetBuf(buffered);
+	return new Val(0, TYPE_VOID);
+	%}
+
+function flush_all%(%): bool
+	%{
+	return new Val(fflush(0) == 0, TYPE_BOOL);
+	%}
+
+function mkdir%(f: string%): bool
+	%{
+	const char* filename = f->CheckString();
+	if ( mkdir(filename, 0777) < 0 && errno != EEXIST )
+		{
+		builtin_run_time("cannot create directory", @ARG@[0]);
+		return new Val(0, TYPE_BOOL);
+		}
+	else
+		return new Val(1, TYPE_BOOL);
+	%}
+
+function active_file%(f: file%): bool
+	%{
+	return new Val(f->IsOpen(), TYPE_BOOL);
+	%}
+
+function active_connection%(id: conn_id%): bool
+	%{
+	Connection* c = sessions->FindConnection(id);
+	return new Val(c ? 1 : 0, TYPE_BOOL);
+	%}
+
+# Note, you *must* first make sure that the connection is active
+# (e.g., by calling active_connection()) before invoking this.
+function connection_record%(cid: conn_id%): connection
+	%{
+	Connection* c = sessions->FindConnection(cid);
+	if ( c )
+		return c->BuildConnVal();
+	else
+		{
+		// Hard to recover from this until we have union types ...
+		builtin_run_time("connection ID not a known connection (fatal)", cid);
+		exit(0);
+		return 0;
+		}
+	%}
+
+%%{
+EnumVal* map_conn_type(TransportProto tp)
+	{
+	switch ( tp ) {
+	case TRANSPORT_UNKNOWN:
+		return new EnumVal(0, transport_proto);
+		break;
+
+	case TRANSPORT_TCP:
+		return new EnumVal(1, transport_proto);
+		break;
+
+	case TRANSPORT_UDP:
+		return new EnumVal(2, transport_proto);
+		break;
+
+	case TRANSPORT_ICMP:
+		return new EnumVal(3, transport_proto);
+		break;
+
+	default:
+		internal_error("bad connection type in map_conn_type()");
+	}
+	}
+%%}
+
+function get_conn_transport_proto%(cid: conn_id%): transport_proto
+	%{
+	Connection* c = sessions->FindConnection(cid);
+	if ( ! c )
+		{
+		builtin_run_time("unknown connection id in get_conn_transport_proto()", cid);
+		return new EnumVal(0, transport_proto);
+		}
+
+	return map_conn_type(c->ConnTransport());
+	%}
+
+function get_port_transport_proto%(p: port%): transport_proto
+	%{
+	return map_conn_type(p->PortType());
+	%}
+
+function current_time%(%): time
+	%{
+	return new Val(current_time(), TYPE_TIME);
+	%}
+
+function network_time%(%): time
+	%{
+	return new Val(network_time, TYPE_TIME);
+	%}
+
+function getenv%(var: string%): string
+	%{
+	const char* env_val = getenv(var->CheckString());
+	if ( ! env_val )
+		env_val = "";	// ###
+	return new StringVal(env_val);
+	%}
+
+function sqrt%(x: double%): double
+	%{
+	if ( x < 0 )
+		{
+		run_time("negative sqrt argument");
+		return new Val(-1.0, TYPE_DOUBLE);
+		}
+
+	return new Val(sqrt(x), TYPE_DOUBLE);
+	%}
+
+function exp%(d: double%): double
+	%{
+	return new Val(exp(d), TYPE_DOUBLE);
+	%}
+
+# Natural log.
+function ln%(d: double%): double
+	%{
+	return new Val(log(d), TYPE_DOUBLE);
+	%}
+
+# Common log.
+function log10%(d: double%): double
+	%{
+	return new Val(log10(d), TYPE_DOUBLE);
+	%}
+
+function exit%(%): int
+	%{
+	exit(0);
+	return 0;
+	%}
+
+function terminate%(%): bool
+	%{
+	if ( terminating )
+		return new Val(0, TYPE_BOOL);
+
+	terminate_processing();
+	return new Val(1, TYPE_BOOL);
+	%}
+
+%%{
+// Turns the table into environment variables (if 'set' is true) or removes
+// all environment variables previously generated from this table (if 'set'
+// is false).
+static bool prepare_environment(TableVal* tbl, bool set)
+	{
+	ListVal* idxs = tbl->ConvertToPureList();
+
+	for ( int i = 0; i < idxs->Length(); ++i )
+		{
+		Val* key = idxs->Index(i);
+		Val* val = tbl->Lookup(key, false);
+
+		if ( key->Type()->Tag() != TYPE_STRING ||
+		     val->Type()->Tag() != TYPE_STRING )
+			{
+			builtin_run_time("system_env() needs a table[string] of string");
+			return false;
+			}
+
+		char* tmp = copy_string(key->AsString()->CheckString());
+		to_upper(tmp);
+		const char* var = fmt("BRO_ARG_%s", tmp);
+		delete [] tmp;
+
+		if ( set )
+			setenv(var, val->AsString()->CheckString(), 1);
+		else
+			unsetenv(var);
+		}
+
+	return true;
+	}
+
+static int do_system(const char* s)
+	{
+	const char* system_fmt = "(%s) 1>&2 &";	// output to stderr
+	char* cmd = new char[strlen(system_fmt) + strlen(s) + 1];
+
+	sprintf(cmd, system_fmt, s);
+	int status = system(cmd);
+	delete [] cmd;
+
+	return status;
+	}
+%%}
+
+function system%(str: string%): int
+	%{
+	int result = do_system(str->CheckString());
+	return new Val(result, TYPE_INT);
+	%}
+
+function system_env%(str: string, env: any%): int
+	%{
+	if ( env->Type()->Tag() != TYPE_TABLE )
+		{
+		builtin_run_time("system_env() requires a table/set argument");
+		return new Val(-1, TYPE_INT);
+		}
+
+	if ( ! prepare_environment(env->AsTableVal(), true) )
+		return new Val(-1, TYPE_INT);
+
+	int result = do_system(str->CheckString());
+
+	prepare_environment(env->AsTableVal(), false);
+
+	return new Val(result, TYPE_INT);
+	%}
+
+
+%%{
+static Val* parse_eftp(const char* line)
+	{
+	RecordVal* r = new RecordVal(ftp_port);
+
+	int net_proto = 0;	// currently not used
+	uint32 addr = 0;
+	int port = 0;
+	int good = 0;
+
+	if ( line )
+		{
+		while ( isspace(*line) )	// skip whitespace
+			++line;
+
+		char delimiter = *line;
+		good = 1;
+		char* next_delim;
+
+		++line;	// cut off delimiter
+		net_proto = strtol(line, &next_delim, 10);	// currently ignored
+		if ( *next_delim != delimiter )
+			good = 0;
+
+		line = next_delim + 1;
+		if ( *line != delimiter )	// default of 0 is ok
+			{
+			addr = dotted_to_addr(line);
+			if ( addr == 0 )
+				good = 0;
+			}
+
+		// FIXME: check for garbage between IP and delimiter.
+		line = strchr(line, delimiter);
+
+		++line;	// now the port
+		port = strtol(line, &next_delim, 10);
+		if ( *next_delim != delimiter )
+			good = 0;
+		}
+
+	r->Assign(0, new AddrVal(addr));
+	r->Assign(1, new PortVal(port, TRANSPORT_TCP));
+	r->Assign(2, new Val(good, TYPE_BOOL));
+
+	return r;
+	}
+%%}
+
+%%{
+static Val* parse_port(const char* line)
+	{
+	RecordVal* r = new RecordVal(ftp_port);
+
+	int bytes[6];
+	if ( line && sscanf(line, "%d,%d,%d,%d,%d,%d",
+			&bytes[0], &bytes[1], &bytes[2],
+			&bytes[3], &bytes[4], &bytes[5]) == 6 )
+		{
+		int good = 1;
+
+		for ( int i = 0; i < 6; ++i )
+			if ( bytes[i] < 0 || bytes[i] > 255 )
+				{
+				good = 0;
+				break;
+				}
+
+		uint32 addr = (bytes[0] << 24) | (bytes[1] << 16) |
+				(bytes[2] << 8) | bytes[3];
+		uint32 port = (bytes[4] << 8) | bytes[5];
+
+		// Since port is unsigned, no need to check for < 0.
+		if ( port > 65535 )
+			{
+			port = 0;
+			good = 0;
+			}
+
+		r->Assign(0, new AddrVal(htonl(addr)));
+		r->Assign(1, new PortVal(port, TRANSPORT_TCP));
+		r->Assign(2, new Val(good, TYPE_BOOL));
+		}
+	else
+		{
+		r->Assign(0, new AddrVal(uint32(0)));
+		r->Assign(1, new PortVal(0, TRANSPORT_TCP));
+		r->Assign(2, new Val(0, TYPE_BOOL));
+		}
+
+	return r;
+	}
+%%}
+
+# Returns true if the given connection exists, false otherwise.
+function connection_exists%(c: conn_id%): bool
+	%{
+	if ( sessions->FindConnection(c) )
+		return new Val(1, TYPE_BOOL);
+	else
+		return new Val(0, TYPE_BOOL);
+	%}
+
+# For a given connection ID, returns the corresponding "connection" record.
+# Generates a run-time error and returns a dummy value if the connection
+# doesn't exist.
+function lookup_connection%(cid: conn_id%): connection
+	%{
+	Connection* conn = sessions->FindConnection(cid);
+	if ( conn )
+		return conn->BuildConnVal();
+
+	builtin_run_time("connection ID not a known connection", cid);
+
+	// Return a dummy connection record.
+	RecordVal* c = new RecordVal(connection_type);
+
+	RecordVal* id_val = new RecordVal(conn_id);
+	id_val->Assign(0, new AddrVal((unsigned int) 0));
+	id_val->Assign(1, new PortVal(ntohs(0), TRANSPORT_UDP));
+	id_val->Assign(2, new AddrVal((unsigned int) 0));
+	id_val->Assign(3, new PortVal(ntohs(0), TRANSPORT_UDP));
+	c->Assign(0, id_val);
+
+	RecordVal* orig_endp = new RecordVal(endpoint);
+	orig_endp->Assign(0, new Val(0, TYPE_COUNT));
+	orig_endp->Assign(1, new Val(int(0), TYPE_COUNT));
+
+	RecordVal* resp_endp = new RecordVal(endpoint);
+	resp_endp->Assign(0, new Val(0, TYPE_COUNT));
+	resp_endp->Assign(1, new Val(int(0), TYPE_COUNT));
+
+	c->Assign(1, orig_endp);
+	c->Assign(2, resp_endp);
+
+	c->Assign(3, new Val(network_time, TYPE_TIME));
+	c->Assign(4, new Val(0.0, TYPE_INTERVAL));
+	c->Assign(5, new TableVal(string_set));	// service
+	c->Assign(6, new StringVal(""));	// addl
+	c->Assign(7, new Val(0, TYPE_COUNT));	// hot
+	c->Assign(8, new StringVal(""));	// history
+
+	return c;
+	%}
+
+function skip_further_processing%(cid: conn_id%): bool
+	%{
+	Connection* c = sessions->FindConnection(cid);
+	if ( ! c )
+		return new Val(0, TYPE_BOOL);
+
+	c->SetSkip(1);
+	return new Val(1, TYPE_BOOL);
+	%}
+
+function set_record_packets%(cid: conn_id, do_record: bool%): bool
+	%{
+	Connection* c = sessions->FindConnection(cid);
+	if ( ! c )
+		return new Val(0, TYPE_BOOL);
+
+	c->SetRecordPackets(do_record);
+	return new Val(1, TYPE_BOOL);
+	%}
+
+function set_contents_file%(cid: conn_id, direction: count, f: file%): bool
+	%{
+	Connection* c = sessions->FindConnection(cid);
+	if ( ! c )
+		return new Val(0, TYPE_BOOL);
+
+	c->GetRootAnalyzer()->SetContentsFile(direction, f);
+	return new Val(1, TYPE_BOOL);
+	%}
+
+function get_contents_file%(cid: conn_id, direction: count%): file
+	%{
+	Connection* c = sessions->FindConnection(cid);
+	BroFile* f = c ? c->GetRootAnalyzer()->GetContentsFile(direction) : 0;
+
+	if ( f )
+		{
+		Ref(f);
+		return new Val(f);
+		}
+
+	// Return some sort of error value.
+	if ( ! c )
+		builtin_run_time("unknown connection id in get_contents_file()", cid);
+	else
+		builtin_run_time("no contents file for given direction");
+
+	return new Val(new BroFile(stderr, "-", "w"));
+	%}
+
+function get_file_name%(f: file%): string
+	%{
+	if ( ! f )
+		return new StringVal("");
+
+	return new StringVal(f->Name());
+	%}
+
+# Set an individual inactivity timeout for this connection
+# (overrides the global inactivity_timeout).  Returns previous
+# timeout interval.
+function set_inactivity_timeout%(cid: conn_id, t: interval%): interval
+	%{
+	Connection* c = sessions->FindConnection(cid);
+	if ( ! c )
+		return new Val(0, TYPE_INTERVAL);
+
+	double old_timeout = c->InactivityTimeout();
+	c->SetInactivityTimeout(t);
+
+	return new Val(old_timeout, TYPE_INTERVAL);
+	%}
+
+function get_login_state%(cid: conn_id%): count
+	%{
+	Connection* c = sessions->FindConnection(cid);
+	if ( ! c )
+		return new Val(0, TYPE_BOOL);
+
+	Analyzer* la = c->FindAnalyzer(AnalyzerTag::Login);
+	if ( ! la )
+		return new Val(0, TYPE_BOOL);
+
+	return new Val(int(static_cast<Login_Analyzer*>(la)->LoginState()),
+			TYPE_COUNT);
+	%}
+
+function set_login_state%(cid: conn_id, new_state: count%): bool
+	%{
+	Connection* c = sessions->FindConnection(cid);
+	if ( ! c )
+		return new Val(0, TYPE_BOOL);
+
+	Analyzer* la = c->FindAnalyzer(AnalyzerTag::Login);
+	if ( ! la )
+		return new Val(0, TYPE_BOOL);
+
+	static_cast<Login_Analyzer*>(la)->SetLoginState(login_state(new_state));
+	return new Val(1, TYPE_BOOL);
+	%}
+
+%%{
+#include "TCP.h"
+%%}
+
+function get_orig_seq%(cid: conn_id%): count
+	%{
+	Connection* c = sessions->FindConnection(cid);
+	if ( ! c )
+		return new Val(0, TYPE_COUNT);
+
+	if ( c->ConnTransport() != TRANSPORT_TCP )
+		return new Val(0, TYPE_COUNT);
+
+	Analyzer* tc = c->FindAnalyzer(AnalyzerTag::TCP);
+	if ( tc )
+		return new Val(static_cast<TCP_Analyzer*>(tc)->OrigSeq(),
+				TYPE_COUNT);
+	else
+		{
+		run_time("connection does not have TCP analyzer");
+		return new Val(0, TYPE_COUNT);
+		}
+	%}
+
+function get_resp_seq%(cid: conn_id%): count
+	%{
+	Connection* c = sessions->FindConnection(cid);
+	if ( ! c )
+		return new Val(0, TYPE_COUNT);
+
+	if ( c->ConnTransport() != TRANSPORT_TCP )
+		return new Val(0, TYPE_COUNT);
+
+	Analyzer* tc = c->FindAnalyzer(AnalyzerTag::TCP);
+	if ( tc )
+		return new Val(static_cast<TCP_Analyzer*>(tc)->RespSeq(),
+				TYPE_COUNT);
+	else
+		{
+		run_time("connection does not have TCP analyzer");
+		return new Val(0, TYPE_COUNT);
+		}
+	%}
+
+# These convert addresses <-> n3.n2.n1.n0.in-addr.arpa
+function ptr_name_to_addr%(s: string%): addr
+	%{
+	int a[4];
+	uint32 addr;
+
+	if ( sscanf(s->CheckString(),
+			"%d.%d.%d.%d.in-addr.arpa",
+			a, a+1, a+2, a+3) != 4 )
+		{
+		builtin_run_time("bad PTR name", @ARG@[0]);
+		addr = 0;
+		}
+	else
+		addr = (a[3] << 24) | (a[2] << 16) | (a[1] << 8) | a[0];
+
+	return new AddrVal(htonl(addr));
+	%}
+
+function addr_to_ptr_name%(a: addr%): string
+	%{
+	// ## Question:
+	// uint32 addr = ntohl((*args)[0]->InternalUnsigned());
+	uint32 addr;
+#ifdef BROv6
+	if ( is_v4_addr(a) )
+		addr = a[3];
+	else
+		{
+		builtin_run_time("conversion of non-IPv4 address to net", @ARG@[0]);
+		addr = 0;
+		}
+#else
+	addr = a;
+#endif
+
+	addr = ntohl(addr);
+	uint32 a3 = (addr >> 24) & 0xff;
+	uint32 a2 = (addr >> 16) & 0xff;
+	uint32 a1 = (addr >> 8) & 0xff;
+	uint32 a0 = addr & 0xff;
+
+	char buf[256];
+	sprintf(buf, "%u.%u.%u.%u.in-addr.arpa", a0, a1, a2, a3);
+
+	return new StringVal(buf);
+	%}
+
+# Transforms n0.n1.n2.n3 -> addr.
+function parse_dotted_addr%(s: string%): addr
+	%{
+	return new AddrVal(dotted_to_addr(s->CheckString()));
+	%}
+
+function parse_ftp_port%(s: string%): ftp_port
+	%{
+	return parse_port(s->CheckString());
+	%}
+
+function parse_eftp_port%(s: string%): ftp_port
+	%{
+	return parse_eftp(s->CheckString());
+	%}
+
+function parse_ftp_pasv%(str: string%): ftp_port
+	%{
+	const char* s = str->CheckString();
+	const char* line = strchr(s, '(');
+	if ( line )
+		++line;	// move past '('
+	else if ( (line = strstr(s, "PORT")) )
+		line += 5;	// Skip over
+	else if ( (line = strchr(s, ',')) )
+		{ // Look for comma-separated list.
+		while ( --line >= s && isdigit(*line) )
+			;	// Back up over preceding digits.
+		++line;	// now points to first digit, or beginning of s
+		}
+
+	return parse_port(line);
+	%}
+
+function parse_ftp_epsv%(str: string%): ftp_port
+	%{
+	const char* s = str->CheckString();
+	const char* line = strchr(s, '(');
+	if ( line )
+		++line; // move past '('
+	return parse_eftp(line);
+	%}
+
+function fmt_ftp_port%(a: addr, p: port%): string
+	%{
+#ifdef BROv6
+	if ( ! is_v4_addr(a) )
+		builtin_run_time("conversion of non-IPv4 address to net", @ARG@[0]);
+
+	uint32 addr = to_v4_addr(a);
+#else
+	uint32 addr = a;
+#endif
+	addr = ntohl(addr);
+	uint32 pn = p->Port();
+	return new StringVal(fmt("%d,%d,%d,%d,%d,%d",
+					addr >> 24, (addr >> 16) & 0xff,
+					(addr >> 8) & 0xff, addr & 0xff,
+					pn >> 8, pn & 0xff));
+	%}
+
+function decode_netbios_name%(name: string%): string
+	%{
+	char buf[16];
+	char result[32];
+	const u_char* s = name->Bytes();
+	int i, j;
+
+	for ( i = 0, j = 0; i < 16; ++i )
+		{
+		char c0 = (j < name->Len()) ? toupper(s[j++]) : 'A';
+		char c1 = (j < name->Len()) ? toupper(s[j++]) : 'A';
+		buf[i] = ((c0 - 'A') << 4) + (c1 - 'A');
+		}
+
+	for ( i = 0; i < 15; ++i )
+		if ( isalnum(buf[i]) || ispunct(buf[i]) )
+			result[i] = buf[i];
+		else
+			break;
+
+	// The last byte denotes the name type.
+	snprintf(result + i, sizeof(result) - i, "<%02x>", buf[15]);
+
+	return new StringVal(result);
+	%}
+
+%%{
+#include "HTTP.h"
+
+const char* conn_id_string(Val* c)
+	{
+	Val* id = (*(c->AsRecord()))[0];
+	const val_list* vl = id->AsRecord();
+
+	addr_type orig_h = (*vl)[0]->AsAddr();
+	uint32 orig_p = (*vl)[1]->AsPortVal()->Port();
+	addr_type resp_h = (*vl)[2]->AsAddr();
+	uint32 resp_p = (*vl)[3]->AsPortVal()->Port();
+
+	return fmt("%s/%u -> %s/%u\n", dotted_addr(orig_h), orig_p, dotted_addr(resp_h), resp_p);
+	}
+%%}
+
+# Skip data of the HTTP entity on the connection
+function skip_http_entity_data%(c: connection, is_orig: bool%): any
+	%{
+	AnalyzerID id = mgr.CurrentAnalyzer();
+	if ( id )
+		{
+		Analyzer* ha = c->FindAnalyzer(id);
+
+		if ( ha->GetTag() == AnalyzerTag::HTTP )
+			static_cast<HTTP_Analyzer*>(ha)->SkipEntityData(is_orig);
+		else
+			run_time("non-HTTP analyzer associated with connection record");
+		}
+
+	else
+		run_time("no analyzer associated with connection record");
+
+	return 0;
+	%}
+
+# Unescape all characters in the URI, i.e. decode every %xx group.
+#
+# Note that unescaping reserved characters may cause loss of
+# information (see below).
+#
+# RFC 2396: A URI is always in an "escaped" form, since escaping or
+# unescaping a completed URI might change its semantics.  Normally,
+# the only time escape encodings can safely be made is when the URI
+# is being created from its component parts.
+
+function unescape_URI%(URI: string%): string
+	%{
+	const u_char* line = URI->Bytes();
+	const u_char* const line_end = line + URI->Len();
+
+	return new StringVal(unescape_URI(line, line_end, 0));
+	%}
+
+%%{
+#include "SMTP.h"
+%%}
+
+# Skip smtp_data till next mail
+function skip_smtp_data%(c: connection%): any
+	%{
+	Analyzer* sa = c->FindAnalyzer(AnalyzerTag::SMTP);
+	if ( sa )
+		static_cast<SMTP_Analyzer*>(sa)->SkipData();
+	return 0;
+	%}
+
+
+function bytestring_to_hexstr%(bytestring: string%): string
+	%{
+	bro_uint_t len = bytestring->AsString()->Len();
+	const u_char* bytes = bytestring->AsString()->Bytes();
+	char hexstr[(2 * len) + 1];
+
+	hexstr[0] = 0;
+	for ( bro_uint_t i = 0; i < len; ++i )
+		snprintf(hexstr + (2 * i), 3, "%.2hhx", bytes[i]);
+
+	return new StringVal(hexstr);
+	%}
+
+%%{
+extern const char* bro_version();
+%%}
+
+function resource_usage%(%): bro_resources
+	%{
+	struct rusage r;
+
+	if ( getrusage(RUSAGE_SELF, &r) < 0 )
+		internal_error("getrusage() failed in bro_resource_usage()");
+
+	double elapsed_time = current_time() - bro_start_time;
+
+	double user_time =
+		double(r.ru_utime.tv_sec) + double(r.ru_utime.tv_usec) / 1e6;
+	double system_time =
+		double(r.ru_stime.tv_sec) + double(r.ru_stime.tv_usec) / 1e6;
+
+	RecordVal* res = new RecordVal(bro_resources);
+	int n = 0;
+
+	res->Assign(n++, new StringVal(bro_version()));
+
+#ifdef DEBUG
+	res->Assign(n++, new Val(1, TYPE_COUNT));
+#else
+	res->Assign(n++, new Val(0, TYPE_COUNT));
+#endif
+
+	res->Assign(n++, new Val(bro_start_time, TYPE_TIME));
+
+	res->Assign(n++, new IntervalVal(elapsed_time, Seconds));
+	res->Assign(n++, new IntervalVal(user_time, Seconds));
+	res->Assign(n++, new IntervalVal(system_time, Seconds));
+
+	unsigned int total_mem;
+	get_memory_usage(&total_mem, 0);
+	res->Assign(n++, new Val(unsigned(total_mem), TYPE_COUNT));
+
+	res->Assign(n++, new Val(unsigned(r.ru_minflt), TYPE_COUNT));
+	res->Assign(n++, new Val(unsigned(r.ru_majflt), TYPE_COUNT));
+	res->Assign(n++, new Val(unsigned(r.ru_nswap), TYPE_COUNT));
+	res->Assign(n++, new Val(unsigned(r.ru_inblock), TYPE_COUNT));
+	res->Assign(n++, new Val(unsigned(r.ru_oublock), TYPE_COUNT));
+	res->Assign(n++, new Val(unsigned(r.ru_nivcsw), TYPE_COUNT));
+
+	SessionStats s;
+	if ( sessions )
+		sessions->GetStats(s);
+
+#define ADD_STAT(x) \
+	res->Assign(n++, new Val(unsigned(sessions ? x : 0), TYPE_COUNT));
+
+	ADD_STAT(s.num_TCP_conns);
+	ADD_STAT(s.num_UDP_conns);
+	ADD_STAT(s.num_ICMP_conns);
+	ADD_STAT(s.num_fragments);
+	ADD_STAT(s.num_packets);
+	ADD_STAT(s.num_timers);
+	ADD_STAT(s.num_events_queued);
+	ADD_STAT(s.num_events_dispatched);
+	ADD_STAT(s.max_TCP_conns);
+	ADD_STAT(s.max_UDP_conns);
+	ADD_STAT(s.max_ICMP_conns);
+	ADD_STAT(s.max_fragments);
+	ADD_STAT(s.max_timers);
+
+	return res;
+	%}
+
+function get_matcher_stats%(%): matcher_stats
+	%{
+	RuleMatcher::Stats s;
+	memset(&s, 0, sizeof(s));
+
+	if ( rule_matcher )
+		rule_matcher->GetStats(&s);
+
+	RecordVal* r = new RecordVal(matcher_stats);
+	r->Assign(0, new Val(s.matchers, TYPE_COUNT));
+	r->Assign(1, new Val(s.dfa_states, TYPE_COUNT));
+	r->Assign(2, new Val(s.computed, TYPE_COUNT));
+	r->Assign(3, new Val(s.mem, TYPE_COUNT));
+	r->Assign(4, new Val(s.hits, TYPE_COUNT));
+	r->Assign(5, new Val(s.misses, TYPE_COUNT));
+	r->Assign(6, new Val(s.avg_nfa_states, TYPE_COUNT));
+
+	return r;
+	%}
+
+function get_gap_summary%(%): gap_info
+	%{
+	RecordVal* r = new RecordVal(gap_info);
+	r->Assign(0, new Val(tot_ack_events, TYPE_COUNT));
+	r->Assign(1, new Val(tot_ack_bytes, TYPE_COUNT));
+	r->Assign(2, new Val(tot_gap_events, TYPE_COUNT));
+	r->Assign(3, new Val(tot_gap_bytes, TYPE_COUNT));
+
+	return r;
+	%}
+
+function val_size%(v: any%): count
+	%{
+	return new Val(v->MemoryAllocation(), TYPE_COUNT);
+	%}
+
+function global_sizes%(%): var_sizes
+	%{
+	TableVal* sizes = new TableVal(var_sizes);
+	PDict(ID)* globals = global_scope()->Vars();
+	IterCookie* c = globals->InitForIteration();
+
+	ID* id;
+	while ( (id = globals->NextEntry(c)) )
+		if ( id->HasVal() && ! id->IsInternalGlobal() )
+			{
+			Val* id_name = new StringVal(id->Name());
+			Val* id_size = new Val(id->ID_Val()->MemoryAllocation(),
+						TYPE_COUNT);
+			sizes->Assign(id_name, id_size);
+			Unref(id_name);
+			}
+
+	return sizes;
+	%}
+
+function global_ids%(%): id_table
+	%{
+	TableVal* ids = new TableVal(id_table);
+	PDict(ID)* globals = global_scope()->Vars();
+	IterCookie* c = globals->InitForIteration();
+
+	ID* id;
+	while ( (id = globals->NextEntry(c)) )
+		{
+		if ( id->IsInternalGlobal() )
+			continue;
+
+		RecordVal* rec = new RecordVal(script_id);
+		rec->Assign(0, new StringVal(type_name(id->Type()->Tag())));
+		rec->Assign(1, new Val(id->IsExport(), TYPE_BOOL));
+		rec->Assign(2, new Val(id->IsConst(), TYPE_BOOL));
+		rec->Assign(3, new Val(id->IsEnumConst(), TYPE_BOOL));
+		rec->Assign(4, new Val(id->IsRedefinable(), TYPE_BOOL));
+
+		if ( id->HasVal() )
+			{
+			Val* val = id->ID_Val();
+			Ref(val);
+			rec->Assign(5, val);
+			}
+
+		Val* id_name = new StringVal(id->Name());
+		ids->Assign(id_name, rec);
+		Unref(id_name);
+		}
+
+	return ids;
+	%}
+
+%%{
+#include "TCP_Rewriter.h"
+
+// Trace rewriting functions.
+class PacketDumper;
+extern PacketDumper* transformed_pkt_dump;
+extern void commit_trace(Val* conn_val, int commit, int future);
+%%}
+
+# True if we're rewriting (anonymizing), false otherwise.
+function rewriting_trace%(%): bool
+	%{
+	return new Val(transformed_pkt_dump != 0, TYPE_BOOL);
+	%}
+
+%%{
+#include "Anon.h"
+%%}
+
+# Preserve prefix as original one in anonymization.
+function preserve_prefix%(a: addr, width: count%): any
+	%{
+	AnonymizeIPAddr* ip_anon = ip_anonymizer[PREFIX_PRESERVING_A50];
+	if ( ip_anon )
+		{
+#ifdef BROv6
+		if ( ! is_v4_addr(a) )
+			builtin_run_time("preserve_prefix() not supported for IPv6 addresses");
+		else
+			ip_anon->PreservePrefix(a[3], width);
+#else
+		ip_anon->PreservePrefix(a, width);
+#endif
+		}
+
+
+	return 0;
+	%}
+
+function preserve_subnet%(a: subnet%): any
+	%{
+	DEBUG_MSG("%s/%d\n", dotted_addr(a->AsAddr()), a->Width());
+	AnonymizeIPAddr* ip_anon = ip_anonymizer[PREFIX_PRESERVING_A50];
+	if ( ip_anon )
+		{
+#ifdef BROv6
+		if ( ! is_v4_addr(a->AsAddr()) )
+			builtin_run_time("preserve_subnet() not supported for IPv6 addresses");
+		else
+			ip_anon->PreservePrefix(a->AsAddr()[3], a->Width());
+#else
+		ip_anon->PreservePrefix(a->AsAddr(), a->Width());
+#endif
+		}
+
+	return 0;
+	%}
+
+function preserve_net%(a: net%): any
+	%{
+#ifdef BROv6
+	builtin_run_time("preserve_net() not supported with --enable-BROv6");
+#else
+	AnonymizeIPAddr* ip_anon = ip_anonymizer[PREFIX_PRESERVING_A50];
+	if ( ip_anon )
+		ip_anon->PreserveNet(a);
+#endif
+
+	return 0;
+	%}
+
+# Anonymize given IP address.
+function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
+	%{
+	int anon_class = cl->InternalInt();
+	if ( anon_class < 0 || anon_class >= NUM_ADDR_ANONYMIZATION_CLASSES )
+		builtin_run_time("anonymize_addr(): invalid ip addr anonymization class");
+
+#ifdef BROv6
+	if ( ! is_v4_addr(a) )
+		{
+		builtin_run_time("anonymize_addr() not supported for IPv6 addresses");
+		return 0;
+		}
+	else
+		return new AddrVal(anonymize_ip(a[3],
+			(enum ip_addr_anonymization_class_t) anon_class));
+#else
+	return new AddrVal(anonymize_ip(a,
+		(enum ip_addr_anonymization_class_t) anon_class));
+#endif
+	%}
+
+%%{
+static void hash_md5_val(val_list& vlist, unsigned char digest[16])
+	{
+	md5_state_s h;
+
+	md5_init(&h);
+	loop_over_list(vlist, i)
+		{
+		Val* v = vlist[i];
+		if ( v->Type()->Tag() == TYPE_STRING )
+			{
+			const BroString* str = v->AsString();
+			md5_append(&h, str->Bytes(), str->Len());
+			}
+		else
+			{
+			ODesc d(DESC_BINARY);
+			v->Describe(&d);
+			md5_append(&h, (const md5_byte_t *) d.Bytes(), d.Len());
+			}
+		}
+	md5_finish(&h, digest);
+	}
+
+static void hmac_md5_val(val_list& vlist, unsigned char digest[16])
+	{
+	hash_md5_val(vlist, digest);
+	for ( int i = 0; i < 16; ++i )
+		digest[i] = digest[i] ^ shared_hmac_md5_key[i];
+	hash_md5(16, digest, digest);
+	}
+%%}
+
+function md5_hash%(...%): string
+	%{
+	unsigned char digest[16];
+	hash_md5_val(@ARG@, digest);
+	return new StringVal(md5_digest_print(digest));
+	%}
+
+function md5_hmac%(...%): string
+	%{
+	unsigned char digest[16];
+	hmac_md5_val(@ARG@, digest);
+	return new StringVal(md5_digest_print(digest));
+	%}
+
+%%{
+static map<BroString, md5_state_s> md5_states;
+
+BroString* convert_md5_index_to_string(Val* index)
+	{
+	ODesc d;
+	index->Describe(&d);
+	return new BroString(1, d.TakeBytes(), d.Len());
+	}
+%%}
+
+function md5_hash_init%(index: any%): bool
+	%{
+	BroString* s = convert_md5_index_to_string(index);
+	int status = 0;
+
+	if ( md5_states.count(*s) < 1 )
+		{
+		md5_state_s h;
+		md5_init(&h);
+		md5_states[*s] = h;
+		status = 1;
+		}
+
+	delete s;
+	return new Val(status, TYPE_BOOL);
+	%}
+
+function md5_hash_update%(index: any, data: string%): bool
+	%{
+	BroString* s = convert_md5_index_to_string(index);
+	int status = 0;
+
+	if ( md5_states.count(*s) > 0 )
+		{
+		md5_append(&md5_states[*s], data->Bytes(), data->Len());
+		status = 1;
+		}
+
+	delete s;
+	return new Val(status, TYPE_BOOL);
+	%}
+
+function md5_hash_finish%(index: any%): string
+	%{
+	BroString* s = convert_md5_index_to_string(index);
+	StringVal* printable_digest;
+
+	if ( md5_states.count(*s) > 0 )
+		{
+		unsigned char digest[16];
+		md5_finish(&md5_states[*s], digest);
+		md5_states.erase(*s);
+		printable_digest = new StringVal(md5_digest_print(digest));
+		}
+	else
+		printable_digest = new StringVal("");
+
+	delete s;
+	return printable_digest;
+	%}
+
+# Wrappings for rand() and srand()
+function rand%(max: count%): count
+	%{
+	int result;
+	result = bro_uint_t(double(max) * double(rand()) / (RAND_MAX + 1.0));
+	return new Val(result, TYPE_COUNT);
+	%}
+
+function srand%(seed: count%): any
+	%{
+	srand(seed);
+	return 0;
+	%}
+
+function decode_base64%(s: string%): string
+	%{
+	BroString* t = decode_base64(s->AsString());
+	if ( t )
+		return new StringVal(t);
+	else
+		{
+		run_time("error in decoding string %s", @ARG@[0]);
+		return new StringVal("");
+		}
+	%}
+
+%%{
+#include "DCE_RPC.h"
+
+typedef struct {
+	uint32 time_low;
+	uint16 time_mid;
+	uint16 time_hi_and_version;
+	uint8 clock_seq_hi_and_reserved;
+	uint8 clock_seq_low;
+	uint8 node[6];
+} bro_uuid_t;
+%%}
+
+function uuid_to_string%(uuid: string%): string
+	%{
+	if ( uuid->Len() != 16 )
+		return new StringVal("<Invalid UUID>");
+
+	bro_uuid_t* id = (bro_uuid_t*) uuid->Bytes();
+
+	static char s[1024];
+	char* sp = s;
+
+	sp += snprintf(sp, s + sizeof(s) - sp,
+		"%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
+		id->time_low, id->time_mid, id->time_hi_and_version,
+		id->clock_seq_hi_and_reserved, id->clock_seq_low,
+		id->node[0],
+		id->node[1],
+		id->node[2],
+		id->node[3],
+		id->node[4],
+		id->node[5]);
+
+	return new StringVal(s);
+	%}
+
+
+# The following functions are attempts to convert strings into
+# patterns at run-time. These attempts were later *abandoned* because
+# NFA and DFA cannot be cleanly deallocated.
+
+function merge_pattern%(p1: pattern, p2: pattern%): pattern
+	%{
+	if ( reading_live )
+		{
+		builtin_run_time("should not call merge_pattern while reading live traffic");
+		return 0;
+		}
+
+	RE_Matcher* re = new RE_Matcher();
+	re->AddPat(p1->PatternText());
+	re->AddPat(p2->PatternText());
+	re->Compile();
+	return new PatternVal(re);
+	%}
+
+%%{
+char* to_pat_str(int sn, const char* ss)
+	{
+	const char special_re_char[] = "^$-:\"\\/|*+?.(){}[]";
+
+	char* pat = new char[sn * 4 + 1];
+	int pat_len = 0;
+
+	for ( int i = 0; i < sn; ++i )
+		{
+		if ( ! strchr(special_re_char, ss[i]) )
+			pat[pat_len++] = ss[i];
+		else
+			{
+			pat[pat_len++] = '\\';
+			pat[pat_len++] = ss[i];
+			}
+		}
+	pat[pat_len] = '\0';
+	return pat;
+	}
+%%}
+
+function convert_for_pattern%(s: string%): string
+	%{
+	char* t = to_pat_str(s->Len(), (const char*)(s->Bytes()));
+	StringVal* ret = new StringVal(t);
+	delete [] t;
+	return ret;
+	%}
+
+function string_to_pattern%(s: string, convert: bool%): pattern
+	%{
+	if ( reading_live )
+		{
+		builtin_run_time("should not call merge_pattern while reading live traffic");
+		return 0;
+		}
+
+	const char* ss = (const char*) (s->Bytes());
+	int sn = s->Len();
+	char* pat;
+
+	if ( convert )
+		pat = to_pat_str(sn, ss);
+	else
+		{
+		pat = new char[sn+1];
+		memcpy(pat, ss, sn);
+		pat[sn] = '\0';
+		}
+
+	RE_Matcher* re = new RE_Matcher(pat);
+	delete [] pat;
+	re->Compile();
+	return new PatternVal(re);
+	%}
+
+# Precompile a pcap filter.
+function precompile_pcap_filter%(id: PcapFilterID, s: string%): bool
+	%{
+	bool success = true;
+
+	loop_over_list(pkt_srcs, i)
+		{
+		pkt_srcs[i]->ClearErrorMsg();
+
+		if ( ! pkt_srcs[i]->PrecompileFilter(id->ForceAsInt(),
+							s->CheckString()) )
+			{
+			run_time( "precompile_pcap_filter: %s",
+				pkt_srcs[i]->ErrorMsg() );
+			success = false;
+			}
+		}
+
+	return new Val(success, TYPE_BOOL);
+	%}
+
+# Install precompiled pcap filter.
+function install_pcap_filter%(id: PcapFilterID%): bool
+	%{
+	// Don't allow the script-level to change the filter when
+	// the user has specified one on the command line.
+	if ( user_pcap_filter )
+		return new Val(0, TYPE_BOOL);
+
+	bool success = true;
+
+	loop_over_list(pkt_srcs, i)
+		{
+		pkt_srcs[i]->ClearErrorMsg();
+
+		if ( ! pkt_srcs[i]->SetFilter(id->ForceAsInt()) )
+			success = false;
+		}
+
+	return new Val(success, TYPE_BOOL);
+	%}
+
+# If last pcap function failed, returns a descriptive error message
+function pcap_error%(%): string
+	%{
+	loop_over_list(pkt_srcs, i)
+		{
+		const char* err = pkt_srcs[i]->ErrorMsg();
+		if ( *err )
+			return new StringVal(err);
+		}
+
+	return new StringVal("no error");
+	%}
+
+# Install filter to drop packets from a source (addr/subnet) with a given
+# probability (0.0-1.0) if none of the given TCP flags is set.
+function install_src_addr_filter%(ip: addr, tcp_flags: count, prob: double%) : bool
+	%{
+	sessions->GetPacketFilter()->AddSrc(ip, tcp_flags, prob);
+	return new Val(1, TYPE_BOOL);
+	%}
+
+function install_src_net_filter%(snet: subnet, tcp_flags: count, prob: double%) : bool
+	%{
+	sessions->GetPacketFilter()->AddSrc(snet, tcp_flags, prob);
+	return new Val(1, TYPE_BOOL);
+	%}
+
+# Remove the filter for the source.
+function uninstall_src_addr_filter%(ip: addr%) : bool
+	%{
+	return new Val(sessions->GetPacketFilter()->RemoveSrc(ip), TYPE_BOOL);
+	%}
+
+function uninstall_src_net_filter%(snet: subnet%) : bool
+	%{
+	return new Val(sessions->GetPacketFilter()->RemoveSrc(snet), TYPE_BOOL);
+	%}
+
+# Same for destination.
+function install_dst_addr_filter%(ip: addr, tcp_flags: count, prob: double%) : bool
+	%{
+	sessions->GetPacketFilter()->AddDst(ip, tcp_flags, prob);
+	return new Val(1, TYPE_BOOL);
+	%}
+
+function install_dst_net_filter%(snet: subnet, tcp_flags: count, prob: double%) : bool
+	%{
+	sessions->GetPacketFilter()->AddDst(snet, tcp_flags, prob);
+	return new Val(1, TYPE_BOOL);
+	%}
+
+function uninstall_dst_addr_filter%(ip: addr%) : bool
+	%{
+	return new Val(sessions->GetPacketFilter()->RemoveDst(ip), TYPE_BOOL);
+	%}
+
+function uninstall_dst_net_filter%(snet: subnet%) : bool
+	%{
+	return new Val(sessions->GetPacketFilter()->RemoveDst(snet), TYPE_BOOL);
+	%}
+
+function checkpoint_state%(%) : bool
+	%{
+	return new Val(persistence_serializer->WriteState(true), TYPE_BOOL);
+	%}
+
+function dump_config%(%) : bool
+	%{
+	return new Val(persistence_serializer->WriteConfig(true), TYPE_BOOL);
+	%}
+
+function rescan_state%(%) : bool
+	%{
+	return new Val(persistence_serializer->ReadAll(false, true), TYPE_BOOL);
+	%}
+
+function capture_events%(filename: string%) : bool
+	%{
+	if ( ! event_serializer )
+		event_serializer = new FileSerializer();
+	else
+		event_serializer->Close();
+
+	return new Val(event_serializer->Open(
+		(const char*) filename->CheckString()), TYPE_BOOL);
+	%}
+
+function capture_state_updates%(filename: string%) : bool
+	%{
+	if ( ! state_serializer )
+		state_serializer = new FileSerializer();
+	else
+		state_serializer->Close();
+
+	return new Val(state_serializer->Open(
+		(const char*) filename->CheckString()), TYPE_BOOL);
+	%}
+
+function connect%(ip: addr, p: port, our_class: string, retry: interval, ssl: bool%) : count
+	%{
+	return new Val(uint32(remote_serializer->Connect(ip, p->Port(),
+				our_class->CheckString(), retry, ssl)),
+			TYPE_COUNT);
+	%}
+
+function request_remote_events%(p: event_peer, handlers: pattern%) : bool
+	%{
+	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
+	return new Val(remote_serializer->RequestEvents(id, handlers),
+			TYPE_BOOL);
+	%}
+
+function request_remote_sync%(p: event_peer, auth: bool%) : bool
+	%{
+	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
+	return new Val(remote_serializer->RequestSync(id, auth), TYPE_BOOL);
+	%}
+
+function set_accept_state%(p: event_peer, accept: bool%) : bool
+	%{
+	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
+	return new Val(remote_serializer->SetAcceptState(id, accept),
+			TYPE_BOOL);
+	%}
+
+function set_compression_level%(p: event_peer, level: count%) : bool
+	%{
+	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
+	return new Val(remote_serializer->SetCompressionLevel(id, level),
+			TYPE_BOOL);
+	%}
+
+function listen%(ip: addr, p: port, ssl: bool %) : bool
+	%{
+	return new Val(remote_serializer->Listen(ip, p->Port(), ssl), TYPE_BOOL);
+	%}
+
+function is_remote_event%(%) : bool
+	%{
+	return new Val(mgr.CurrentSource() != SOURCE_LOCAL, TYPE_BOOL);
+	%}
+
+function send_state%(p: event_peer%) : bool
+	%{
+	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
+	return new Val(persistence_serializer->SendState(id, true), TYPE_BOOL);
+	%}
+
+# Send the value of the given global ID to the peer (which might
+# then install it locally).
+function send_id%(p: event_peer, id: string%) : bool
+	%{
+	RemoteSerializer::PeerID pid = p->AsRecordVal()->Lookup(0)->AsCount();
+
+	ID* i = global_scope()->Lookup(id->CheckString());
+	if ( ! i )
+		{
+		run_time(fmt("send_id: no global id %s", id->CheckString()));
+		return new Val(0, TYPE_BOOL);
+		}
+
+	SerialInfo info(remote_serializer);
+	return new Val(remote_serializer->SendID(&info, pid, *i), TYPE_BOOL);
+	%}
+
+# Gracely shut down communication.
+function terminate_communication%(%) : bool
+	%{
+	return new Val(remote_serializer->Terminate(), TYPE_BOOL);
+	%}
+
+function complete_handshake%(p: event_peer%) : bool
+	%{
+	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
+	return new Val(remote_serializer->CompleteHandshake(id), TYPE_BOOL);
+	%}
+
+function send_ping%(p: event_peer, seq: count%) : bool
+	%{
+	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
+	return new Val(remote_serializer->SendPing(id, seq), TYPE_BOOL);
+	%}
+
+function send_current_packet%(p: event_peer%) : bool
+	%{
+	Packet pkt("");
+
+	if ( ! current_pktsrc ||
+	     ! current_pktsrc->GetCurrentPacket(&pkt.hdr, &pkt.pkt) )
+		return new Val(0, TYPE_BOOL);
+
+	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
+
+	pkt.time = pkt.hdr->ts.tv_sec + double(pkt.hdr->ts.tv_usec) / 1e6;
+	pkt.hdr_size = current_pktsrc->HdrSize();
+	pkt.link_type = current_pktsrc->LinkType();
+
+	SerialInfo info(remote_serializer);
+	return new Val(remote_serializer->SendPacket(&info, id, pkt), TYPE_BOOL);
+	%}
+
+function do_profiling%(%) : bool
+	%{
+	if ( profiling_logger )
+		profiling_logger->Log();
+
+	return new Val(1, TYPE_BOOL);
+	%}
+
+function get_event_peer%(%) : event_peer
+	%{
+	SourceID src = mgr.CurrentSource();
+
+	if ( src == SOURCE_LOCAL )
+		{
+		RecordVal* p = mgr.GetLocalPeerVal();
+		Ref(p);
+		return p;
+		}
+
+	if ( ! remote_serializer )
+		internal_error("remote_serializer not initialized");
+
+	Val* v = remote_serializer->GetPeerVal(src);
+	if ( ! v )
+		{
+		run_time(fmt("peer %d does not exist anymore", int(src)));
+		RecordVal* p = mgr.GetLocalPeerVal();
+		Ref(p);
+		return p;
+		}
+
+	return v;
+	%}
+
+function get_local_event_peer%(%) : event_peer
+	%{
+	RecordVal* p = mgr.GetLocalPeerVal();
+	Ref(p);
+	return p;
+	%}
+
+
+function send_capture_filter%(p: event_peer, s: string%) : bool
+	%{
+	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
+	return new Val(remote_serializer->SendCaptureFilter(id, s->CheckString()), TYPE_BOOL);
+	%}
+
+function make_connection_persistent%(c: connection%) : bool
+	%{
+	c->MakePersistent();
+	return new Val(1, TYPE_BOOL);
+	%}
+
+function is_local_interface%(ip: addr%) : bool
+	%{
+	static uint32* addrs;
+	static int len = -1;
+
+	if ( len < 0 )
+		{
+		char host[MAXHOSTNAMELEN];
+
+		strcpy(host, "localhost");
+		gethostname(host, MAXHOSTNAMELEN);
+		host[MAXHOSTNAMELEN-1] = '\0';
+
+		struct hostent* ent = gethostbyname(host);
+
+		for ( len = 0; ent->h_addr_list[len]; ++len )
+			;
+
+		addrs = new uint32[len + 1];
+		for ( int i = 0; i < len; i++ )
+			addrs[i] = *(uint32*) ent->h_addr_list[i];
+
+		addrs[len++] = 0x0100007f; // 127.0.0.1
+		}
+
+#ifdef BROv6
+	if ( ! is_v4_addr(ip) )
+		{
+		builtin_run_time("is_local_interface() only supports IPv4 addresses");
+		return new Val(0, TYPE_BOOL);
+		}
+
+	uint32 ip4 = to_v4_addr(ip);
+#else
+	uint32 ip4 = ip;
+#endif
+
+	for ( int i = 0; i < len; i++ )
+		if ( addrs[i] == ip4 )
+			return new Val(1, TYPE_BOOL);
+
+	return new Val(0, TYPE_BOOL);
+	%}
+
+function dump_current_packet%(file_name: string%) : bool
+	%{
+	const struct pcap_pkthdr* hdr;
+	const u_char* pkt;
+
+	if ( ! current_pktsrc ||
+	     ! current_pktsrc->GetCurrentPacket(&hdr, &pkt) )
+		return new Val(0, TYPE_BOOL);
+
+	if ( ! addl_pkt_dumper )
+		addl_pkt_dumper = new PktDumper(0, true);
+
+	addl_pkt_dumper->Open(file_name->CheckString());
+	addl_pkt_dumper->Dump(hdr, pkt);
+
+	return new Val(! addl_pkt_dumper->IsError(), TYPE_BOOL);
+	%}
+
+function get_current_packet%(%) : pcap_packet
+	%{
+	const struct pcap_pkthdr* hdr;
+	const u_char* data;
+	RecordVal* pkt = new RecordVal(pcap_packet);
+
+	if ( ! current_pktsrc ||
+	     ! current_pktsrc->GetCurrentPacket(&hdr, &data) )
+		{
+		pkt->Assign(0, new Val(0, TYPE_COUNT));
+		pkt->Assign(1, new Val(0, TYPE_COUNT));
+		pkt->Assign(2, new Val(0, TYPE_COUNT));
+		pkt->Assign(3, new Val(0, TYPE_COUNT));
+		pkt->Assign(4, new StringVal(""));
+		return pkt;
+		}
+
+	pkt->Assign(0, new Val(uint32(hdr->ts.tv_sec), TYPE_COUNT));
+	pkt->Assign(1, new Val(uint32(hdr->ts.tv_usec), TYPE_COUNT));
+	pkt->Assign(2, new Val(hdr->caplen, TYPE_COUNT));
+	pkt->Assign(3, new Val(hdr->len, TYPE_COUNT));
+	pkt->Assign(4, new StringVal(hdr->caplen, (const char*) data));
+
+	return pkt;
+	%}
+
+function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
+	%{
+	struct pcap_pkthdr hdr;
+	const val_list* pkt_vl = pkt->AsRecord();
+
+	hdr.ts.tv_sec = (*pkt_vl)[0]->AsCount();
+	hdr.ts.tv_usec = (*pkt_vl)[1]->AsCount();
+	hdr.caplen = (*pkt_vl)[2]->AsCount();
+	hdr.len = (*pkt_vl)[3]->AsCount();
+
+	if ( ! addl_pkt_dumper )
+		addl_pkt_dumper = new PktDumper(0, true);
+
+	addl_pkt_dumper->Open(file_name->CheckString());
+	addl_pkt_dumper->Dump(&hdr, (*pkt_vl)[4]->AsString()->Bytes());
+
+	return new Val(addl_pkt_dumper->IsError(), TYPE_BOOL);
+	%}
+
+# The return value is the old size of the vector.
+# ### Need better type checking on the argument here and in subsequent
+# vector builtins -- probably need to update "bif" code generator.
+function resize%(aggr: any, newsize: count%) : count
+	%{
+	if ( aggr->Type()->Tag() != TYPE_VECTOR )
+		{
+		builtin_run_time("resize() operates on vectors");
+		return 0;
+		}
+
+	return new Val(aggr->AsVectorVal()->Resize(newsize), TYPE_COUNT);
+	%}
+
+# Returns true if any element is T.
+function any_set%(v: any%) : bool
+	%{
+	if ( v->Type()->Tag() != TYPE_VECTOR ||
+	     v->Type()->YieldType()->Tag() != TYPE_BOOL )
+		{
+		builtin_run_time("any_set() requires vector of bool");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	VectorVal* vv = v->AsVectorVal();
+	for ( unsigned int i = VECTOR_MIN; i < vv->Size() + VECTOR_MIN; ++i )
+		if ( vv->Lookup(i) && vv->Lookup(i)->AsBool() )
+			return new Val(true, TYPE_BOOL);
+
+	return new Val(false, TYPE_BOOL);
+	%}
+
+# Returns true if all elements are T (missing counts as F).
+function all_set%(v: any%) : bool
+	%{
+	if ( v->Type()->Tag() != TYPE_VECTOR ||
+	     v->Type()->YieldType()->Tag() != TYPE_BOOL )
+		{
+		builtin_run_time("all_set() requires vector of bool");
+		return new Val(false, TYPE_BOOL);
+		}
+
+	VectorVal* vv = v->AsVectorVal();
+	for ( unsigned int i = VECTOR_MIN; i < vv->Size() + VECTOR_MIN; ++i )
+		if ( ! vv->Lookup(i) || ! vv->Lookup(i)->AsBool() )
+			return new Val(false, TYPE_BOOL);
+
+	return new Val(true, TYPE_BOOL);
+	%}
+
+# sort() takes a vector and comparison function on the elements and
+# sorts the vector in place.  It returns the original vector.
+
+%%{
+static Func* sort_function_comp = 0;
+static Val** index_map = 0;	// used for indirect sorting to support order()
+
+bool sort_function(Val* a, Val* b)
+	{
+	// Sort missing values as "high".
+	if ( ! a )
+		return 0;
+	if ( ! b )
+		return 1;
+
+	val_list sort_func_args;
+	sort_func_args.append(a->Ref());
+	sort_func_args.append(b->Ref());
+
+	Val* result = sort_function_comp->Call(&sort_func_args);
+	int int_result = result->CoerceToInt();
+	Unref(result);
+
+	sort_func_args.remove_nth(1);
+	sort_func_args.remove_nth(0);
+
+	return int_result < 0;
+	}
+
+bool indirect_sort_function(int a, int b)
+	{
+	return sort_function(index_map[a], index_map[b]);
+	}
+
+bool int_sort_function (Val* a, Val* b)
+	{
+	if ( ! a )
+		return 0;
+	if ( ! b )
+		return 1;
+
+	int ia = a->CoerceToInt();
+	int ib = b->CoerceToInt();
+
+	return ia < ib;
+	}
+
+bool indirect_int_sort_function(int a, int b)
+	{
+	return int_sort_function(index_map[a], index_map[b]);
+	}
+%%}
+
+function sort%(v: any, ...%) : any
+	%{
+	v->Ref();	// we always return v
+
+	if ( v->Type()->Tag() != TYPE_VECTOR )
+		{
+		builtin_run_time("sort() requires vector");
+		return v;
+		}
+
+	BroType* elt_type = v->Type()->YieldType();
+	Func* comp = 0;
+
+	if ( @ARG@.length() > 2 )
+		builtin_run_time("sort() called with extraneous argument");
+
+	if ( @ARG@.length() == 2 )
+		{
+		Val* comp_val = @ARG@[1];
+		if ( ! IsFunc(comp_val->Type()->Tag()) )
+			{
+			builtin_run_time("second argument to sort() needs to be comparison function");
+			return v;
+			}
+
+		comp = comp_val->AsFunc();
+		}
+
+	if ( ! comp && ! IsIntegral(elt_type->Tag()) )
+		builtin_run_time("comparison function required for sort() with non-integral types");
+
+	vector<Val*>& vv = *v->AsVector();
+
+	if ( comp )
+		{
+		FuncType* comp_type = comp->FType()->AsFuncType();
+		if ( comp_type->YieldType()->Tag() != TYPE_INT ||
+		     ! comp_type->ArgTypes()->AllMatch(elt_type, 0) )
+			{
+			builtin_run_time("invalid comparison function in call to sort()");
+			return v;
+			}
+
+		sort_function_comp = comp;
+
+		sort(vv.begin(), vv.end(), sort_function);
+		}
+	else
+		sort(vv.begin(), vv.end(), int_sort_function);
+
+	return v;
+	%}
+
+function order%(v: any, ...%) : index_vec
+	%{
+	VectorVal* result_v =
+		new VectorVal(new VectorType(base_type(TYPE_COUNT)));
+
+	if ( v->Type()->Tag() != TYPE_VECTOR )
+		{
+		builtin_run_time("order() requires vector");
+		return result_v;
+		}
+
+	BroType* elt_type = v->Type()->YieldType();
+	Func* comp = 0;
+
+	if ( @ARG@.length() > 2 )
+		builtin_run_time("order() called with extraneous argument");
+
+	if ( @ARG@.length() == 2 )
+		{
+		Val* comp_val = @ARG@[1];
+		if ( ! IsFunc(comp_val->Type()->Tag()) )
+			{
+			builtin_run_time("second argument to order() needs to be comparison function");
+			return v;
+			}
+
+		comp = comp_val->AsFunc();
+		}
+
+	if ( ! comp && ! IsIntegral(elt_type->Tag()) )
+		builtin_run_time("comparison function required for sort() with non-integral types");
+
+	vector<Val*>& vv = *v->AsVector();
+	int n = vv.size();
+
+	// Set up initial mapping of indices directly to corresponding
+	// elements.  We stay zero-based until after the sorting.
+	vector<int> ind_vv(n);
+	index_map = new Val*[n];
+	int i;
+	for ( i = 0; i < n; ++i )
+		{
+		ind_vv[i] = i;
+		index_map[i] = vv[i];
+		}
+
+	if ( comp )
+		{
+		FuncType* comp_type = comp->FType()->AsFuncType();
+		if ( comp_type->YieldType()->Tag() != TYPE_INT ||
+		     ! comp_type->ArgTypes()->AllMatch(elt_type, 0) )
+			{
+			builtin_run_time("invalid comparison function in call to sort()");
+			return v;
+			}
+
+		sort_function_comp = comp;
+
+		sort(ind_vv.begin(), ind_vv.end(), indirect_sort_function);
+		}
+	else
+		sort(ind_vv.begin(), ind_vv.end(), indirect_int_sort_function);
+
+	delete [] index_map;
+	index_map = 0;
+
+	// Now spin through ind_vv to read out the rearrangement,
+	// adjusting indices as we do so.
+	for ( i = 0; i < n; ++i )
+		{
+		int ind = ind_vv[i] + VECTOR_MIN;
+		result_v->Assign(i + VECTOR_MIN, new Val(ind, TYPE_COUNT), 0);
+		}
+
+	return result_v;
+	%}
+
+%%{
+// Experimental code to add support for IDMEF XML output based on
+// notices.  For now, we're implementing it as a builtin you can call on an
+// notices record.
+
+#ifdef USE_IDMEF
+extern "C" {
+#include <libidmef/idmefxml.h>
+}
+#endif
+
+#include <sys/socket.h>
+
+char* port_to_string(PortVal* port)
+	{
+	char buf[256];	// to hold sprintf results on port numbers
+	snprintf(buf, sizeof(buf), "%u", port->Port());
+	return copy_string(buf);
+	}
+
+%%}
+
+function generate_idmef%(src_ip: addr, src_port: port,
+				dst_ip: addr, dst_port: port%) : bool
+	%{
+#ifdef USE_IDMEF
+	xmlNodePtr message =
+		newIDMEF_Message(newAttribute("version","1.0"),
+			newAlert(newCreateTime(NULL),
+			newSource(
+				newNode(newAddress(
+					newAttribute("category","ipv4-addr"),
+					newSimpleElement("address",
+					copy_string(dotted_addr(src_ip))),
+					NULL), NULL),
+				newService(
+					newSimpleElement("port",
+						port_to_string(src_port)),
+					NULL), NULL),
+			newTarget(
+				newNode(newAddress(
+					newAttribute("category","ipv4-addr"),
+					newSimpleElement("address",
+					copy_string(dotted_addr(dst_ip))),
+					NULL), NULL),
+				newService(
+					newSimpleElement("port",
+						port_to_string(dst_port)),
+					NULL), NULL), NULL), NULL);
+
+	// if ( validateCurrentDoc() )
+	printCurrentMessage(stderr);
+	return new Val(1, TYPE_BOOL);
+#else
+	builtin_run_time("Bro was not configured for IDMEF support");
+	return new Val(0, TYPE_BOOL);
+#endif
+	%}
+
+function dump_rule_stats%(f: file%): bool
+	%{
+	if ( rule_matcher )
+		rule_matcher->DumpStats(f);
+
+	return new Val(1, TYPE_BOOL);
+	%}
+
+function bro_is_terminating%(%): bool
+	%{
+	return new Val(terminating, TYPE_BOOL);
+	%}
+
+function rotate_file%(f: file%): rotate_info
+	%{
+	RecordVal* info = f->Rotate();
+	if ( info )
+		return info;
+
+	// Record indicating error.
+	info = new RecordVal(rotate_info);
+	info->Assign(0, new StringVal(""));
+	info->Assign(1, new StringVal(""));
+	info->Assign(2, new Val(0, TYPE_TIME));
+	info->Assign(3, new Val(0, TYPE_TIME));
+
+	return info;
+	%}
+
+function rotate_file_by_name%(f: string%): rotate_info
+	%{
+	RecordVal* info = new RecordVal(rotate_info);
+
+	bool is_pkt_dumper = false;
+	bool is_addl_pkt_dumper = false;
+
+	// Special case: one of current dump files.
+	if ( pkt_dumper && streq(pkt_dumper->FileName(), f->CheckString()) )
+		{
+		is_pkt_dumper = true;
+		pkt_dumper->Close();
+		}
+
+	if ( addl_pkt_dumper &&
+	     streq(addl_pkt_dumper->FileName(), f->CheckString()) )
+		{
+		is_addl_pkt_dumper = true;
+		addl_pkt_dumper->Close();
+		}
+
+	FILE* file = rotate_file(f->CheckString(), info);
+	if ( ! file )
+		{
+		// Record indicating error.
+		info->Assign(0, new StringVal(""));
+		info->Assign(1, new StringVal(""));
+		info->Assign(2, new Val(0, TYPE_TIME));
+		info->Assign(3, new Val(0, TYPE_TIME));
+		return info;
+		}
+
+	fclose(file);
+
+	if ( is_pkt_dumper )
+		{
+		info->Assign(2, new Val(pkt_dumper->OpenTime(), TYPE_TIME));
+		pkt_dumper->Open();
+		}
+
+	if ( is_addl_pkt_dumper )
+		info->Assign(2, new Val(addl_pkt_dumper->OpenTime(), TYPE_TIME));
+
+	return info;
+	%}
+
+function calc_next_rotate%(i: interval%) : interval
+	%{
+	const char* base_time = log_rotate_base_time ?
+		log_rotate_base_time->AsString()->CheckString() : 0;
+	return new Val(calc_next_rotate(i, base_time), TYPE_INTERVAL);
+	%}
+
+function file_size%(f: string%) : double
+	%{
+	struct stat s;
+
+	if ( stat(f->CheckString(), &s) < 0 )
+		return new Val(-1.0, TYPE_DOUBLE);
+
+	return new Val(double(s.st_size), TYPE_DOUBLE);
+	%}
+
+function strftime%(fmt: string, d: time%) : string
+	%{
+	static char buffer[128];
+
+	time_t t = time_t(d);
+
+	if ( strftime(buffer, 128, fmt->CheckString(), localtime(&t)) == 0 )
+		return new StringVal("<strftime error>");
+
+	return new StringVal(buffer);
+	%}
+
+function match_signatures%(c: connection, pattern_type: int, s: string,
+				bol: bool, eol: bool,
+				from_orig: bool, clear: bool%) : bool
+	%{
+	if ( ! rule_matcher )
+		return new Val(0, TYPE_BOOL);
+
+	c->Match((Rule::PatternType) pattern_type, s->Bytes(), s->Len(),
+			from_orig, bol, eol, clear);
+
+	return new Val(1, TYPE_BOOL);
+	%}
+
+function gethostname%(%) : string
+	%{
+	char buffer[MAXHOSTNAMELEN];
+	if ( gethostname(buffer, MAXHOSTNAMELEN) < 0 )
+		strcpy(buffer, "<unknown>");
+
+	buffer[MAXHOSTNAMELEN-1] = '\0';
+	return new StringVal(buffer);
+	%}
+
+%%{
+#include "DNS_Mgr.h"
+#include "Trigger.h"
+
+class LookupHostCallback : public DNS_Mgr::LookupCallback {
+public:
+	LookupHostCallback(Trigger* arg_trigger, const CallExpr* arg_call,
+				bool arg_lookup_name)
+		{
+		Ref(arg_trigger);
+		trigger = arg_trigger;
+		call = arg_call;
+		lookup_name = arg_lookup_name;
+		}
+
+	~LookupHostCallback()
+		{
+		Unref(trigger);
+		}
+
+	// Overridden from DNS_Mgr:Lookup:Callback.
+	virtual void Resolved(const char* name)
+		{
+		trigger->Cache(call, new StringVal(name));
+		trigger->Release();
+		}
+
+	virtual void Resolved(TableVal* addrs)
+		{
+		Ref(addrs);
+		trigger->Cache(call, addrs);
+		trigger->Release();
+		}
+
+	virtual void Timeout()
+		{
+		if ( lookup_name )
+			trigger->Cache(call, new StringVal("<\?\?\?>"));
+		else
+			{
+			ListVal* lv = new ListVal(TYPE_ADDR);
+			lv->Append(new AddrVal("0.0.0.0"));
+			trigger->Cache(call, lv->ConvertToSet());
+			Unref(lv);
+			}
+
+		trigger->Release();
+		}
+
+private:
+	Trigger* trigger;
+	const CallExpr* call;
+	bool lookup_name;
+};
+%%}
+
+# These two functions issue DNS lookups asynchronously and delay the
+# function result.  Therefore, they can only be called inside a when-condition.
+function lookup_addr%(host: addr%) : string
+	%{
+#ifndef HAVE_NB_DNS
+	run_time("lookup_addr(): not configured for asynchronous DNS lookups");
+	return new StringVal("<error>");
+#else
+	// FIXME: Is should be easy to adapt the function to synchronous
+	// lookups if we're reading a trace.
+	Trigger* trigger = frame->GetTrigger();
+
+	if ( ! trigger)
+		{
+		builtin_run_time("lookup_addr() can only be called inside a when-condition");
+		return new StringVal("<error>");
+		}
+
+	frame->SetDelayed();
+	trigger->Hold();
+
+#ifdef BROv6
+	if ( ! is_v4_addr(host) )
+		{
+		builtin_run_time("lookup_addr() only supports IPv4 addresses");
+		return new StringVal("<ipv6-address>");
+		}
+
+	dns_mgr->AsyncLookupAddr(to_v4_addr(host),
+			new LookupHostCallback(trigger, frame->GetCall(), true));
+#else
+	dns_mgr->AsyncLookupAddr(host,
+			new LookupHostCallback(trigger, frame->GetCall(), true));
+#endif
+	return 0;
+#endif
+	%}
+
+function lookup_hostname%(host: string%) : addr_set
+	%{
+#ifndef HAVE_NB_DNS
+	run_time("lookup_hostname(): not configured for asynchronous DNS lookups");
+	return new StringVal("<error>");
+#else
+	// FIXME: Is should be easy to adapt the function to synchronous
+	// lookups if we're reading a trace.
+	Trigger* trigger = frame->GetTrigger();
+
+	if ( ! trigger)
+		{
+		builtin_run_time("lookup_hostname() can only be called inside a when-condition");
+		return new StringVal("<error>");
+		}
+
+	frame->SetDelayed();
+	trigger->Hold();
+
+	dns_mgr->AsyncLookupName(host->CheckString(),
+			new LookupHostCallback(trigger, frame->GetCall(), false));
+	return 0;
+#endif
+	%}
+
+# Stop Bro's packet processing.
+function suspend_processing%(%) : any
+	%{
+	net_suspend_processing();
+	return 0;
+	%}
+
+# Resume Bro's packet processing.
+function continue_processing%(%) : any
+	%{
+	net_continue_processing();
+	return 0;
+	%}
+
+%%{
+#include "DPM.h"
+%%}
+
+# Schedule analyzer for a future connection.
+function expect_connection%(orig: addr, resp: addr, resp_p: port,
+				analyzer: count, tout: interval%) : bool
+	%{
+	dpm->ExpectConnection(orig, resp, resp_p->Port(), resp_p->PortType(),
+				(AnalyzerTag::Tag) analyzer, tout, 0);
+	return new Val(1, TYPE_BOOL);
+	%}
+
+# Disables the analyzer which raised the current event (if the analyzer
+# belongs to the given connection).
+function disable_analyzer%(cid: conn_id, aid: count%) : bool
+	%{
+	Connection* c = sessions->FindConnection(cid);
+	if ( ! c )
+		{
+		run_time("cannot find connection");
+		return new Val(0, TYPE_BOOL);
+		}
+
+	Analyzer* a = c->FindAnalyzer(aid);
+	if ( ! a )
+		{
+		run_time("connection does not have analyzer specified to disable");
+		return new Val(0, TYPE_BOOL);
+		}
+
+	a->Remove();
+	return new Val(1, TYPE_BOOL);
+	%}
+
+# Translate analyzer type into an ASCII string.
+function analyzer_name%(aid: count%) : string
+	%{
+	return new StringVal(Analyzer::GetTagName((AnalyzerTag::Tag) aid));
+	%}
+
+function lookup_ID%(id: string%) : any
+	%{
+	ID* i = global_scope()->Lookup(id->CheckString());
+	if ( ! i )
+		return new StringVal("<unknown id>");
+
+	if ( ! i->ID_Val() )
+		return new StringVal("<no ID value>");
+
+	return i->ID_Val()->Ref();
+	%}
+
+# Stop propagating &synchronized accesses.
+function suspend_state_updates%(%) : any
+	%{
+	if ( remote_serializer )
+		remote_serializer->SuspendStateUpdates();
+	return 0;
+	%}
+
+# Resume propagating &synchronized accesses.
+function resume_state_updates%(%) : any
+	%{
+	if ( remote_serializer )
+		remote_serializer->ResumeStateUpdates();
+	return 0;
+	%}
+
+# Return ID of analyzer which raised current event, or 0 if none.
+function current_analyzer%(%) : count
+	%{
+	return new Val(mgr.CurrentAnalyzer(), TYPE_COUNT);
+	%}
+
+# Returns Bro's process id.
+function getpid%(%) : count
+	%{
+	return new Val(getpid(), TYPE_COUNT);
+	%}
+%%{
+#include <syslog.h>
+%%}
+
+function syslog%(s: string%): any
+	%{
+	syslog(LOG_NOTICE, "%s", s->CheckString());
+	return 0;
+	%}
+
+%%{
+#ifdef USE_GEOIP
+extern "C" {
+#include <GeoIPCity.h>
+}
+#endif
+%%}
+
+# Return a record with the city, region, and country of an IPv4 address.
+function lookup_location%(a: addr%) : geo_location
+	%{
+	RecordVal* location = new RecordVal(geo_location);
+
+#ifdef USE_GEOIP
+	static GeoIP* geoip = 0;
+	static GeoIP* geoip_v6 = 0;
+	static bool geoip_initialized = false;
+	GeoIPRecord* gir = 0;
+
+	if ( ! geoip_initialized )
+		{
+		geoip_initialized = true;
+		geoip = GeoIP_open_type(GEOIP_CITY_EDITION_REV0,
+					GEOIP_MEMORY_CACHE);
+		if ( ! geoip )
+			{
+			builtin_run_time("can't initialize GeoIP City database.. trying Country version");
+			geoip = GeoIP_open_type(GEOIP_COUNTRY_EDITION,
+						GEOIP_MEMORY_CACHE);
+			if ( ! geoip )
+				builtin_run_time("can't initialize GeoIP Country database");
+			}
+
+#ifdef BROv6
+#ifdef GEOIP_COUNTRY_EDITION_V6
+		geoip_v6 = GeoIP_open_type(GEOIP_COUNTRY_EDITION_V6,
+						GEOIP_MEMORY_CACHE);
+		if ( ! geoip_v6 )
+			builtin_run_time("can't initialize the GeoIPv6 Country database");
+#endif
+#endif
+		}
+
+#ifdef BROv6
+#ifdef GEOIP_COUNTRY_EDITION_V6
+	if ( geoip_v6 && ! is_v4_addr(a) )
+		gir = GeoIP_record_by_ipnum_v6(geoip_v6, geoipv6_t(a));
+	else 
+#endif
+	if ( geoip && is_v4_addr(a) )
+		{
+		uint32 addr = to_v4_addr(a);
+		gir = GeoIP_record_by_ipnum(geoip, ntohl(addr));
+		}
+#else
+	if ( geoip )
+		gir = GeoIP_record_by_ipnum(geoip, ntohl(a));
+#endif
+
+	if ( gir )
+		{
+		if ( gir->country_code )
+			location->Assign(0, new StringVal(gir->country_code));
+		else
+			location->Assign(0, new StringVal(""));
+
+		if ( gir->region )
+			location->Assign(1, new StringVal(gir->region));
+		else
+			location->Assign(1, new StringVal(""));
+
+		if ( gir->city )
+			location->Assign(2, new StringVal(gir->city));
+		else
+			location->Assign(2, new StringVal(""));
+
+		if ( gir->latitude )
+			location->Assign(3, new Val(gir->latitude,
+							TYPE_DOUBLE));
+		else
+			location->Assign(3, new Val(0.0, TYPE_DOUBLE));
+
+		if ( gir->longitude )
+			location->Assign(4, new Val(gir->longitude,
+						TYPE_DOUBLE));
+		else
+			location->Assign(4, new Val(0.0, TYPE_DOUBLE));
+
+		GeoIPRecord_delete(gir);
+
+		return location;
+		}
+
+#else
+	builtin_run_time("Bro was not configured for GeoIP support");
+#endif
+
+	// We can get here even if we have GeoIP support if we weren't
+	// able to initialize it or it didn't return any information for
+	// the address.
+	location->Assign(0, new StringVal(""));
+	location->Assign(1, new StringVal(""));
+	location->Assign(2, new StringVal(""));
+	location->Assign(3, new Val(0.0, TYPE_DOUBLE));
+	location->Assign(4, new Val(0.0, TYPE_DOUBLE));
+
+	return location;
+	%}
+
+function lookup_asn%(a: addr%) : count
+	%{
+#ifdef USE_GEOIP
+	static GeoIP* geoip_asn = 0;
+	static bool geoip_asn_initialized = false;
+	char* gir = 0;
+
+	if ( ! geoip_asn_initialized )
+		{
+		geoip_asn_initialized = true;
+		geoip_asn = GeoIP_open_type(GEOIP_ASNUM_EDITION,
+						GEOIP_MEMORY_CACHE);
+		if ( ! geoip_asn )
+			builtin_run_time("can't initialize GeoIP ASNUM database");
+		}
+
+	if ( geoip_asn )
+		{
+#ifdef BROv6
+
+// IPv6 support showed up in 1.4.5.
+#ifdef GEOIP_COUNTRY_EDITION_V6
+		if ( ! is_v4_addr(a) )
+			gir = GeoIP_name_by_ipnum_v6(geoip_asn, geoipv6_t(a));
+		else
+#endif
+		if ( is_v4_addr(a) ) 
+			{
+			uint32 addr = to_v4_addr(a);
+			gir = GeoIP_name_by_ipnum(geoip_asn, ntohl(addr));
+			}
+#else
+		gir = GeoIP_name_by_ipnum(geoip_asn, ntohl(a));
+#endif
+		}
+
+	if ( gir )
+		{
+		// Move the pointer +2 so we don't return 
+		// the first two characters: "AS".
+		return new Val(atoi(gir+2), TYPE_COUNT);
+		}
+#else
+	builtin_run_time("Bro was not configured for GeoIP ASN support");
+#endif
+
+	// We can get here even if we have GeoIP support, if we weren't
+	// able to initialize it or it didn't return any information for
+	// the address.
+	return new Val(0, TYPE_COUNT);
+	%}
+
+# Returns true if connection has been received externally.
+function is_external_connection%(c: connection%) : bool
+	%{
+	return new Val(c && c->IsExternal(), TYPE_BOOL);
+	%}
+
+# Function equivalent of the &disable_print_hook attribute.
+function disable_print_hook%(f: file%): any
+	%{
+	f->DisablePrintHook();
+	return 0;
+	%}
+
+# Function equivalent of the &raw_output attribute.
+function enable_raw_output%(f: file%): any
+	%{
+	f->EnableRawOutput();
+	return 0;
+	%}
+
+%%{
+#ifdef HAVE_LIBMAGIC
+extern "C" {
+#include <magic.h>
+}
+#endif
+%%}
+
+function identify_data%(data: string, return_mime: bool%): string
+	%{
+	const char* descr = "";
+
+#ifdef HAVE_LIBMAGIC
+	static magic_t magic_mime = 0;
+	static magic_t magic_descr = 0;
+
+	magic_t* magic = return_mime ? &magic_mime : &magic_descr;
+
+	if( ! *magic )
+		{
+		*magic = magic_open(return_mime ? MAGIC_MIME : MAGIC_NONE);
+
+		if ( ! *magic )
+			{
+			error(fmt("can't init libmagic: %s", magic_error(*magic)));
+			return new StringVal("");
+			}
+
+		if ( magic_load(*magic, 0) < 0 )
+			{
+			error(fmt("can't load magic file: %s", magic_error(*magic)));
+			magic_close(*magic);
+			*magic = 0;
+			return new StringVal("");
+			}
+		}
+
+	descr = magic_buffer(*magic, data->Bytes(), data->Len());
+#endif
+
+	return new StringVal(descr);
+	%}
+
+function enable_event_group%(group: string%) : any
+	%{
+	event_registry->EnableGroup(group->CheckString(), true);
+	return 0;
+	%}
+
+function disable_event_group%(group: string%) : any
+	%{
+	event_registry->EnableGroup(group->CheckString(), false);
+	return 0;
+	%}

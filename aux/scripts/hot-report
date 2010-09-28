@@ -1,0 +1,160 @@
+#! /bin/sh
+#
+# Generate readable output from a Bro connection summary file.  If the
+# -n flag is given, then the input is not run through hf to convert addresses
+# to hostnames, otherwise it is.  If -x is given, then exact sizes and times
+# are reported, otherwise approximate.
+#
+# Requires the hf and cf utilities.  See doc/conn-logs for a summary of
+# the mnemonics used to indicate different connection states.
+
+if [ "$1" = "-n" ]
+then
+	shift
+	HF="cat" export HF
+	exec $0 "$@"
+fi
+
+if [ "$1" = "-x" ]
+then
+	shift
+	EXACT=1 export EXACT
+	exec $0 "$@"
+fi
+
+usage="usage: hot-report [-n -x] [file ...]"
+
+if [ ! "$HF" ]
+then
+	HF="hf -cl -t 15"
+fi
+
+if [ ! "$EXACT" ]
+then
+	EXACT=0
+fi
+
+$HF $* | cf |
+mawk '
+BEGIN	{
+	interactive["telnet"] = interactive["login"] = interative["klogin"] = 1
+	version_probe["smtp"] = 1
+
+	no_flag["www"] = no_flag["gopher"] = no_flag["smtp"] = 1
+	no_flag["www?"] = no_flag["www??"] = no_flag["gopher?"] = 1
+	no_flag["http"] = no_flag["http?"] = no_flag["http??"] = 1
+	no_flag["https"] = 1
+
+	no_rej["finger"] = no_rej["time"] = no_rej["daytime"] = 1
+	no_rej["nntp"] = no_rej["auth"] = 1
+	}
+
+	{
+	state = $10
+	if ( state == "REJ" )
+		marker = "["
+	else if ( state ~ /S0/ )
+		marker = "}"
+	else if ( state ~ /RSTR/ )
+		marker = state ~ /H/ ? "<[" : ">["
+	else if ( state ~ /RSTO/ )
+		marker = ">]"
+	else if ( state ~ /SHR/ )
+		marker = "<h"
+	else
+		marker = ">"
+
+	osize = size($6, state)
+	rsize = size($7, state)
+	dur = duration($4, state)
+
+	proto = $5
+
+	time = $1 " " ($2 "") " " $3
+
+	if ( $11 ~ /L/ )
+		{
+		ohost = $8
+		rhost = $9
+		}
+	else
+		{
+		ohost = $9
+		rhost = $8
+		}
+
+	status = ""
+	if ( NF > 11 )
+		{ # Collect additional status
+		for ( i = 12; i <= NF; ++i )
+			status = status " " $i
+		}
+
+	flag_it = flag(proto, $4+0, $6+0, $7+0, state)
+
+	printf("%-15s %s%s%s %s %s/%s%s%s%s\n", time, flag_it ? "*" : " ",
+		ohost, osize, marker, rhost, proto, rsize, dur, status)
+	}
+
+# Returns true if a connection should be flagged (represents successful
+# and sensitive activity), false otherwise
+function flag(proto, dur, osize, rsize, state)
+	{
+	if ( proto in interactive )
+		return osize > 200 || rsize > 1000 || dur > 300
+
+	if ( proto in version_probe && (osize == 0 || osize == 6) )
+		return 1
+
+	if ( proto in no_rej && (state == "REJ" || state == "S0") )
+		return 0
+
+	if ( proto ~ /^ftpdata-/ || proto ~ /^ftp-data/ )
+		return 0
+
+	return ! (proto in no_flag)
+	}
+
+function size(bytes, state)
+	{
+	if ( state == "S0" )
+		return ""
+
+	if ( state == "REJ" )
+		return ""
+
+	if ( bytes == "?" )
+		s = "?"
+
+	else if ( '$EXACT' )
+		s = sprintf("%db", bytes)
+
+	else if ( bytes < 1000 )
+		s = sprintf("%.1fkb", bytes / 1000)
+
+	else
+		s = sprintf("%.0fkb", bytes / 1000)
+
+	return " " s
+	}
+
+function duration(t, state)
+	{
+	if ( t == "?" )
+		return " " t
+
+	if ( state == "S0" || state == "S1" || state == "REJ" )
+		return ""
+
+	if ( '$EXACT' )
+		s = sprintf("%.1fs", t)
+
+	else if ( t < 60 )
+		s = sprintf("%.1fm", t / 60)
+
+	else
+		s = sprintf("%.0fm", t / 60)
+
+	return " " s
+	}
+'

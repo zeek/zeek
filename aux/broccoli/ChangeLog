@@ -1,0 +1,1547 @@
+Broccoli Changelog
+========================================================================
+
+Tue Jan 12 12:32:12 PST 2010             Christian <christian@whoop.org>
+
+- Build warning fixes (Kevin Lo).
+
+------------------------------------------------------------------------
+
+Fri Oct  9 18:42:05 PDT 2009             Christian <christian@whoop.org>
+
+- Version bump to 1.5.
+
+------------------------------------------------------------------------
+
+Fri Sep 25 10:09:03 PDT 2009             Christian <christian@whoop.org>
+
+- Bropipe fixes: set a connection class for robustness reasons;
+  removes some C/C++ confusion (Seth Hall).
+
+------------------------------------------------------------------------
+
+Mon Jun 29 17:56:00 PDT 2009             Christian <christian@whoop.org>
+
+- SWIG bindings update.
+
+------------------------------------------------------------------------
+
+Mon Jun 29 15:29:35 PDT 2009             Christian <christian@whoop.org>
+
+- Support for sending raw serialized events via the new API function
+  bro_event_send_raw(), with much help from Matthias Vallentin.
+
+------------------------------------------------------------------------
+
+Mon Jun 29 15:20:58 PDT 2009             Christian <christian@whoop.org>
+
+- Fix for buffered data remaining in transmit buffer when calling
+  for_event_queue_flush().
+
+- Added bro_conn_get_connstats() which reports statistical information 
+  about a connection in a new dedicated structure BroConnStats. For now 
+  this is only the amount of data buffered in the rx/tx buffers.
+
+------------------------------------------------------------------------
+
+Mon Jun 29 15:18:10 PDT 2009             Christian <christian@whoop.org>
+
+- All multiprocess/-threading synchronization code has been removed.
+
+------------------------------------------------------------------------
+
+Mon Jun 29 15:10:59 PDT 2009             Christian <christian@whoop.org>
+
+- Broccoli now requires initialization before any connections may be
+  created. The reason is twofold: (i) it provides a clean method for
+  initializing relevant parts of Broccoli in multithreaded environments,
+  and (ii) it allows configuration of parts of Broccoli where the
+  normal approach via configuration files is insufficient.
+
+  For details on the initialization process, refer to the manual, but
+  generally speaking, a call to
+
+    bro_init(NULL);
+
+  at the beginning of your application is all that is required. For the
+  time being, a number of high-level API calls double-check whether you
+  have called bro_init() previously.
+
+- Broccoli now supports the callback functions OpenSSL requires for
+  thread-safe operation.  Implement those callbacks as required by your 
+  threading library, hook them into a BroCtx structure previously
+  initialized using bro_ctx_init(), and pass the structure to  
+  bro_init().  This will hook the callbacks into OpenSSL for you. 
+
+  O'Reilly's book "Network Security with OpenSSL" provides an example
+  of how to implement the callbacks.
+
+------------------------------------------------------------------------
+
+Thu Jun 25 16:46:37 PDT 2009             Christian <christian@whoop.org>
+
+- Fix to Python bindings: added required bro_init() call (Matthias
+  Vallentin).
+
+------------------------------------------------------------------------
+
+Thu May 28 10:27:30 PDT 2009             Christian <christian@whoop.org>
+
+- The BroEvMeta structure used in compact event callbacks now allows
+  access to the timestamp of event creation.
+
+------------------------------------------------------------------------
+
+Fri Mar 27 23:39:10 CET 2009             Christian <christian@whoop.org>
+
+- Fixed a memory leak triggered by bro_event_send() but actually caused
+  by lack of cleanup after an underlying string duplication. Thanks to
+  Steve Chan and Matthias Vallentin for helpful feedback.
+
+------------------------------------------------------------------------
+
+Wed Mar 25 11:26:16 CET 2009             Christian <christian@whoop.org>
+
+Formatting robustness fixes to bropipe (Steve Chan).
+
+------------------------------------------------------------------------
+
+Thu Feb 12 19:28:24 PST 2009             Christian <christian@whoop.org>
+
+- Updates to contributed bropipe command (Steve Chan):
+  - Proper parsing of default host/port.
+  - Support for "urlstring" type, which urlencodes spaces in strings
+    and other special characters.
+
+------------------------------------------------------------------------
+
+Thu Dec 11 09:37:12 PST 2008             Christian <christian@whoop.org>
+
+- Optimization: the internal slots vector of hashtables is now lazily
+  allocated when the first actual insertion happens. Since hashtables
+  are used in various places in the BroVal structures but frequently
+  remain empty, the savings are substantial. Thanks to Matthias
+  Vallentin for pointing this out.
+
+------------------------------------------------------------------------
+
+Mon Nov  3 11:07:49 PST 2008             Christian <christian@whoop.org>
+
+- Fixes for I/O deadlocking problems:
+
+  - A bug in the implementation of BRO_CFLAG_YIELD has been
+    fixed. Input processing now only yields after the
+    handshake is complete on *both* endpoints.
+
+  - When events arrive during bro_conn_connect(), it could happen
+    that deadlock ensues if no additional data are sent and
+    __bro_io_process_input() can not read new input data. It no
+    longer returns immediately in that case, and instead attempts
+    to process any available input data.
+
+------------------------------------------------------------------------
+
+Sat Oct  4 15:05:07 CEST 2008            Christian <christian@whoop.org>
+
+- Added bro_record_get_nth_name() to the API (Seth Hall).
+- make install no longer worked for documentation, apparently as part
+  of Bro's make install cleanup. This isn't quite right since gtk-doc
+  documentation is normally installed in a well-known place and 
+  Broccoli will normally need to be installed via "make install", but 
+  for now I'm leaving it uninstalled and instead provide a specific 
+  "install-docs" target for people who want documentation installed.
+- Documentation updated where missing, and rebuilt.
+- Copyright years updated.
+
+------------------------------------------------------------------------
+
+Mon Sep 22 21:34:13 CEST 2008            Christian <christian@whoop.org>
+
+- Updated broping.bro (and broping-record.bro, slightly) to explicitly 
+  declare the used event types ahead of their use.
+
+------------------------------------------------------------------------
+
+Mon Sep  8 11:30:35 CEST 2008            Christian <christian@whoop.org>
+
+- Use of caching on received objects is now disabled by default, but can
+  be enabled using the new connection flag BRO_CFLAG_CACHE.  The old
+  BRO_CFLAG_DONTCACHE is kept for backward compatibility but no longer
+  does anything. Keeping the caches between Bro instances and Broccoli
+  synchronized still needs to be implemented completely, and in the
+  meantime no caching is the safer default.  Thanks to Stephen Chan for
+  helping track this down.
+
+------------------------------------------------------------------------
+
+Wed Jul 16 01:47:16 PDT 2008             Christian <christian@whoop.org>
+
+- Python bindings for Broccoli are now provided in the bindings/python
+  subdirectory (Robin Sommer).  They are not built automatically. See 
+  the instructions in bindings/python/README for details.
+- Minor documentation setup tweaks.
+
+------------------------------------------------------------------------
+
+Thu May 15 14:05:10 PDT 2008             Christian <christian@whoop.org>
+
+Event callbacks of the "compact" type are now able to obtain start- and
+end pointers of the currently processed event in serialized form, from
+the receive buffer stored with the connection handle.
+
+------------------------------------------------------------------------
+
+Wed Feb 20 13:53:51 PST 2008             Christian <christian@whoop.org>
+
+- Fix to __bro_openssl_read(), which handled some error cases
+  reported by BIO_read() incorrectly. (Robin Sommer)
+- Clarifications to documentation of bro_conn_active() and
+  bro_conn_process_input().
+- Version bump to 1.4.0.
+
+------------------------------------------------------------------------
+
+Thu Sep 13 13:56:58 PDT 2007             Christian <christian@whoop.org>
+
+- autogen.sh now uses --force when running libtoolize, which at least
+  in some setups seems to be necessary to avoid bizarre build issues.
+  (In the particular case encountered, these looked like run-together 
+  ar and runlib invocations). Thanks to Po-Ching Lin for helping nail
+  this down.
+
+------------------------------------------------------------------------
+
+Mon Sep 10 18:17:29 PDT 2007             Christian <christian@whoop.org>
+
+- Broccoli now supports table and set container types. Have a look at
+  the bro_table_...() and bro_set_...() families of functions in
+  broccoli.h, the updated manual, and the updated broconn and brotable
+  examples in the test/ directory.
+
+------------------------------------------------------------------------
+
+Tue Sep  4 15:53:27 PDT 2007             Christian <christian@whoop.org>
+
+- Major bugfix for capabilities exchange during handshake: Broccoli did
+  not convert into NBO, causing successful event exchange to fail. :(
+  Amazingly, this means disabling cache usage per Broccoli's request
+  never worked...
+
+------------------------------------------------------------------------
+
+Tue Sep  4 12:36:53 PDT 2007             Christian <christian@whoop.org>
+
+- Changed the way compact argument passing to event callbacks works.
+  All event metadata is now represented by a single argument, a pointer
+  to a BroEvMeta structure. It contains the name of the event, the
+  number of arguments, and the arguments along with their types.
+
+  Updated documentation and broping demo accordingly.
+
+  NOTE: This introduces an API incompatibility. If you were previously
+        using the compact callback API, you will need to update your
+        code! I bumped up the library version info to 2:0:0 to signal
+        this.  
+
+- Fixed a bug in the implementation of BRO_CFLAG_YIELD and some SGML-
+  violating documentation of same.
+
+------------------------------------------------------------------------
+
+Thu Aug 16 15:24:51 CEST 2007            Christian <christian@whoop.org>
+
+- Include autogen.sh in the distribution.
+
+------------------------------------------------------------------------
+
+Sat Aug 11 04:59:35 PDT 2007                      Robin <robin@icir.org>
+	
+- New flag for Broccoli's connections: with BRO_CFLAG_YIELD,
+  bro_conn_process_input() processes at most one event at a time and then
+  returns (Robin Sommer).
+
+- The new Broccoli function bro_conn_new_socket() creates a connection
+  from an existing socket, which can then be used with listen()/accept()
+  to have Broccoli listen for incoming connections (Robin Sommer).
+	
+------------------------------------------------------------------------
+
+Fri Jul  6 18:18:05 PDT 2007             Christian <christian@whoop.org>
+
+- Bumped up the version number to 1.3. Now that Broccoli is bundled
+  with Bro, it makes sense to keep Broccoli's release version number
+  in synch with Bro's.
+- Added the automake-provided ylwrap wrapper script to the distribution.
+  This is for compatibility reasons: some automakes believe that
+  Broccoli requires ylwrap, others don't. The distcheck target however
+  needs ylwrap when it *is* required, so it's easiest to just provide
+  one. It can always be overwritten locally, should the need arise.
+
+------------------------------------------------------------------------
+
+Wed Mar  7 10:49:25 PST 2007             Christian <christian@whoop.org>
+
+- Data format version number bumped up, in sync with Bro again.
+
+------------------------------------------------------------------------
+
+Mon Dec  4 12:07:12 PST 2006             Christian <christian@whoop.org>
+
+- Updated broconn.c to new bro_record_get_named_val().
+
+------------------------------------------------------------------------
+
+Tue Nov 28 11:16:04 PST 2006             Christian <christian@whoop.org>
+
+- Run-time type information is now also available for the values stored
+  in records (previously there was only type-checking, but no way to
+  obtain the type of the vals). See the manual and API documentation of
+  the functions bro_record_get_nth_val() and bro_record_get_named_val()
+  for details.
+
+------------------------------------------------------------------------
+
+Mon Nov 27 18:38:06 PST 2006             Christian <christian@whoop.org>
+
+- Compact argument passing for event callbacks: as an alternative to the
+  argument passing style used so far for event callbacks (dubbed "expan-
+  ded"), one can now request "compressed" passing by using the
+  bro_event_registry_add_compact() variant. Instead of passing every
+  event argument as a separate pointer, compact passing provides only
+  the number of arguments, and a pointer to an array of BroEvArgs.
+  The elements of this array then provide pointers to the actual argu-
+  ments as well as pointers to the new BroValMeta metadata structure,
+  which currently contains type information about the argument.
+
+  This style is better suited for applications that don't know the type
+  of events they will have to handle at compile time, for example when
+  writing language bindings.
+
+  broping.c features example code, also see the manual for detailed
+  explanation.
+
+------------------------------------------------------------------------
+
+Mon Nov 27 16:32:52 PST 2006             Christian <christian@whoop.org>
+
+- Bumped up version to 0.9
+- I'm starting to use shared library version numbers to indicate API
+  changes. Their correspondence to the release version number will be
+  listed in VERSION.
+- Fixed a warning in bro_packet.c
+
+------------------------------------------------------------------------
+
+Mon Nov 27 16:23:46 PST 2006             Christian <christian@whoop.org>
+
+- Renamed cvs.pl to svn.pl
+- Bumped up BRO_DATA_FORMAT_VERSION to 13, to match that of Bro trunk.
+
+------------------------------------------------------------------------
+
+Mon Nov 27 16:21:28 PST 2006             Christian <christian@whoop.org>
+
+- Updating my commit script to SVN -- let's see if this works...
+
+------------------------------------------------------------------------
+
+Mon May 15 19:21:30 BST 2006             Christian <christian@whoop.org>
+
+- Correction to the explanation of bro_event_registry_add(), pointed
+  out by Robin Sommer.
+
+------------------------------------------------------------------------
+
+Mon May  8 08:14:31 PDT 2006             Christian <christian@whoop.org>
+
+- Added config.sub and config.guess versions that seem to work well with
+  MacOS X to the tree, to remove the dependency on the libtool/automake
+  versions installed on the machine where tarballs are built.
+
+- Removed -f from libtoolize invocation in autogen.sh, so we don't
+  overwrite the above.
+
+- Fixed COPYING, which wasn't actually referring to Broccoli. :)
+
+------------------------------------------------------------------------
+
+Sat May  6 20:17:32 BST 2006             Christian <christian@whoop.org>
+
+- Last-minute tweaks bring last-minute brokenness, especially when
+  configuring without --enable-debug... :(
+
+------------------------------------------------------------------------
+
+Tue May  2 13:25:31 BST 2006             Christian <christian@whoop.org>
+
+- Added generated HTML documentation to CVS, so it is guaranteed to be
+  included in tarballs generated via dist/distcheck, regardless of
+  whether GtkDoc support exists on the build system or not. 
+
+------------------------------------------------------------------------
+
+Tue May  2 02:31:39 BST 2006             Christian <christian@whoop.org>
+
+- Changed connection setup debugging output to state more clearly
+  whether an SSL or cleartext connection is attempted, as suggested
+  by Brian Tierney.
+- New configuration item /broccoli/use_ssl to enable/disable SSL
+  connections, as suggested by Jason Lee. Documentation and sample
+  configuration in broccoli.conf updated accordingly, look at the latter
+  for a quick explanation.
+- A bunch of small tweaks to get distcheck to work properly when invoked
+  from the Bro tree.
+- Other doc/Makefile.am cleanups.
+
+------------------------------------------------------------------------
+
+Sat Apr 29 19:12:07 PDT 2006             Christian <christian@whoop.org>
+
+- Fixed bogusness in docs/Makefile.am's dist-hook target. Should now
+  work much better in general, and in particular not bomb out with
+  non-GNU make.
+
+------------------------------------------------------------------------
+
+Fri Apr  7 23:52:20 BST 2006             Christian <christian@whoop.org>
+
+- Bumped up BRO_DATA_FORMAT_VERSION to 12, to match the one in Bro's
+  CVS HEAD again.
+
+------------------------------------------------------------------------
+
+Mon Mar 27 22:59:04 BST 2006             Christian <christian@whoop.org>
+
+- This should fix a memleak detected by Jim Mellander and reported with
+  a test case by Mark Dedlow.
+
+------------------------------------------------------------------------
+
+Fri Mar  3 16:40:56 GMT 2006             Christian <christian@whoop.org>
+
+- Warning for invalid permissions on ~/.broccoli.conf has been upgraded
+  from debugging output to stderr, per request from Mark Dedlow.
+- Only check validity of config file name assembled via getenv("HOME")
+  if it yields a filename different from the one assembled via the
+  passwd entry.
+
+------------------------------------------------------------------------
+
+Thu Mar  2 17:57:49 GMT 2006             Christian <christian@whoop.org>
+
+- Reintroducing file needed for distcheck.
+
+------------------------------------------------------------------------
+
+Thu Mar  2 16:27:55 GMT 2006             Christian <christian@whoop.org>
+
+- Debugging fixlet.
+
+------------------------------------------------------------------------
+
+Fri Feb  3 20:31:08 GMT 2006             Christian <christian@whoop.org>
+
+- Embarrassing debugging output fixes.
+
+------------------------------------------------------------------------
+
+Fri Jan 27 23:40:23 GMT 2006             Christian <christian@whoop.org>
+
+- Only do lock operations when there's any need for them.
+
+------------------------------------------------------------------------
+
+Fri Jan 27 18:30:06 GMT 2006             Christian <christian@whoop.org>
+
+I am *so* fired. Overlooked a very clear warning that bro_io.c:lock()
+wasn't returning a value.
+
+------------------------------------------------------------------------
+
+Wed Jan 18 10:45:33 GMT 2006             Christian <christian@whoop.org>
+
+- Fixed call trace debugging inconsistencies, this will hopefully fix a
+  case of runaway call trace indentation depth that Robin + Stefan have
+  bumped into.
+
+------------------------------------------------------------------------
+
+Wed Jan  4 16:21:07 GMT 2006             Christian <christian@whoop.org>
+
+- Documentation fixlet, pointed out by Stefan Kornexl.
+
+------------------------------------------------------------------------
+
+Thu Dec 22 00:48:20 GMT 2005             Christian <christian@whoop.org>
+
+- Attempt at a more portable detecting of [g]libtoolize. Let me know if
+  this works any better.
+
+------------------------------------------------------------------------
+
+Mon Dec 19 17:48:19 PST 2005             Christian <christian@whoop.org>
+
+- Moved brosendpkts.c and rcvpackets.bro from test/ to contrib/, i.e.,
+  out of the default build process. brosendpkts.c defines variables in
+  the middle of main(), which some compilers tolerate while others
+  don't. This should fix build issues reported by Brian Tierney.
+
+------------------------------------------------------------------------
+
+Thu Dec 15 18:38:18 GMT 2005             Christian <christian@whoop.org>
+
+Configuration tweaks to run smoothly when invoked from a Bro build.
+
+- Added AC_CONFIG_AUX_DIR(.) to make sure things are exclusively run
+  out of our tree.
+- Added flags to autogen.sh and configure.in to indicate that we're
+  part of a Bro build.
+
+------------------------------------------------------------------------
+
+Fri Dec  2 14:04:05 GMT 2005             Christian <christian@whoop.org>
+
+- Removed EXTRA_DIST for the test app policies, since they are included
+  in the tarball and installed anyway via pkgdata_DATA.
+
+------------------------------------------------------------------------
+
+Fri Dec  2 13:59:27 GMT 2005             Christian <christian@whoop.org>
+
+- Added "brosendpkts", a test program for sending pcap packets to a Bro,
+  plus the accompanying Bro policy. Contributed by Stefan Kornexl and
+  Robin Sommer, with a tiny tweak to build only when pcap support is
+  available.
+
+------------------------------------------------------------------------
+
+Wed Nov 23 11:59:03 PST 2005             Christian <christian@whoop.org>
+
+- Avoided the keyword "class" to prevent problems with using broccoli.h
+  in a C++ context. Pointed out by Stefan Kornexl.
+
+------------------------------------------------------------------------
+
+Tue Nov  8 14:10:23 PST 2005             Christian <christian@whoop.org>
+
+- Added support for connection classes, updated documentation.
+
+------------------------------------------------------------------------
+
+Mon Oct 31 19:37:55 PST 2005             Christian <christian@whoop.org>
+
+- Support for specifying type names along with values. This is done
+through a new and optional argument to bro_event_add_val(), bro_
+record_add_val(), and friends. See manual for details.
+
+- Added a test program "broenum" for demonstrating this. When running
+Bro with the provided broenum.bro policy, it sends a single event with
+an enum val to the remote Bro, which will print both numerical and
+string representations of the value. For example, broenum.bro defines
+an enum type
+
+  type enumtype: enum { ENUM1, ENUM2, ENUM3, ENUM4 };
+
+Given this,
+
+  $ broenum -n 0              yields	 Received enum val 0/ENUM1
+  $ broenum -n 1              yields	 Received enum val 1/ENUM2
+  $ broenum -n 4              yields	 Received enum val 4/<undefined>
+
+You can also test predefined enums:
+
+  $ broenum -t transport_proto -n 1
+
+yields
+
+  Received enum val 1/tcp
+
+------------------------------------------------------------------------
+
+Mon Oct 31 17:07:15 PST 2005             Christian <christian@whoop.org>
+
+Changed commit script to pass the commit message through the generated
+file via -F, instead of via -m and the command line. D'oh.
+
+------------------------------------------------------------------------
+
+Mon Oct 31 17:03:47 PST 2005             Christian <christian@whoop.org>
+
+- Support for the new abbreviated serialization format for types. Need
+to come up with a decent API for actually using this feature now.
+
+------------------------------------------------------------------------
+
+Mon Oct 31 11:25:22 PST 2005             Christian <christian@whoop.org>
+
+Several changes to handshake implementation and API(!).
+
+- Refactored the handshake code to make the multiple phases of the
+connection's initialization phase more explicit. Our own and the peer's
+handshake state are now tracked separately. conn_init_configure() takes
+care of our state machine with a separate function per phase, and
+__bro_io_process_input() handles the peer's state.
+
+- Added support for capabilities. The only capability Broccoli currently
+supports is a non-capability: it can ask the remote Bro not to use the
+serialization cache. In order to do so, pass BRO_CONN_DONTCACHE as
+a connection flag when obtaining the connection handle. Needs more
+testing.
+
+- Several API changes. Given the more complex handshake procedure that
+is in place now, the old approach of only completing the handshake half-
+way in bro_connect() so the user can requests before calling
+bro_conn_await_handshake() (or alternatively, passing
+BRO_CONN_COMPLETE_HANDSHAKE as a connection flag) is just too messy now.
+The two steps of obtaining a connection handle and establishing a
+connection have been split into separate functions, so the user can
+register event handlers in between.
+
+What was
+
+ BroConn *bc = bro_connect(..., BRO_CFLAGS_NONE);
+
+ bro_event_registry_add(bc,...);
+ bro_event_registry_add(bc,...);
+ bro_event_registry_request(bc);
+
+ bro_conn_await_handshake(bc);
+ /* ... */
+ bro_disconnect(bc);
+
+is now
+
+ BroConn *bc = bro_conn_new(..., BRO_CFLAGS_NONE);
+
+ bro_event_registry_add(bc,...);
+ bro_event_registry_add(bc,...);
+
+ bro_conn_connect(bc);
+ /* ... */
+ bro_conn_delete(bc);
+
+Note that the explicit call to bro_event_registry_request() is gone as
+bro_conn_connect() will automatically request event types for which
+handlers have been installed via bro_event_registry_add(). What was
+
+ BroConn *bc = bro_connect(..., BRO_CFLAGS_COMPLETE_HANDSHAKE);
+ bro_disconnect(bc);
+
+is now
+
+ BroConn *bc = bro_conn_new(..., BRO_CFLAGS_NONE);
+ bro_conn_connect(bc);
+ /* ... */
+ bro_conn_delete(bc);
+
+I might add bro_conn_disconnect() in the near future. It'd allow us
+to keep a completely configured connection handle around and use it
+repeatedly for establishing connections.
+
+Sorry for the inconvenience but I really think this is a lot nicer than
+the old API. The examples and documentation have been updated accor-
+dingly.	
+
+------------------------------------------------------------------------
+
+Sat Oct 29 15:43:18 PDT 2005             Christian <christian@whoop.org>
+
+Added an optional age list to the hash table implementation. We'll
+need this to duplicate Bro's object serialization caching strategy.
+
+------------------------------------------------------------------------
+
+Fri Oct 28 15:26:55 PDT 2005             Christian <christian@whoop.org>
+
+Brothers and sisters, hallelujah! On the 27th day Christian looked at
+record vals in the Broccoli, and he saw that it was leaking like a
+sieve. So Christian ran the valgrind. On the 28th day Christian still
+looked at Broccoli, with tired eyes, ground the vals[1] a bit more,
+and he saw that it was plugged[2].
+
+Amen. :)
+
+[1] Really really bad pun. Sorry.
+[2] I get zero memleaks on broping -r -c 100 now. :)
+
+------------------------------------------------------------------------
+
+Thu Oct 27 20:02:39 PDT 2005             Christian <christian@whoop.org>
+
+First crack at reference-counted sobjects. I need reference counting
+in order to get rid of objects in the serialization cache (since they
+can contain nested objects etc -- it's nasty), which I had ignored so
+far. There are still leaks in the event transmission code, dammit. :(
+
+------------------------------------------------------------------------
+
+Thu Oct 27 15:06:10 PDT 2005             Christian <christian@whoop.org>
+
+Added my own list implementation due to suckiness of the TAILQ_xxx
+macro stuff which I never liked anyway. The problem is that elements
+of lists built using these macros can only have each member exactly
+once as the prev/next pointers are part of the structs.
+
+A few uses of TAILQ_xxx remain, these will go in the near future.
+
+------------------------------------------------------------------------
+
+Tue Oct 25 19:57:42 PDT 2005             Christian <christian@whoop.org>
+
+Partial support for enum vals, per request from Weidong. Sending enum
+vals should work, though the underlying enum types aren't fully handled
+yet.
+
+------------------------------------------------------------------------
+
+Mon Oct 24 16:31:56 PDT 2005             Christian <christian@whoop.org>
+
+TODO item: clean up generated parser/lexer files when we know we can
+regenerate them. make clean currently does not erase them, which caused
+Weidong some trouble.
+
+------------------------------------------------------------------------
+
+Fri Oct 21 17:48:51 PDT 2005             Christian <christian@whoop.org>
+
+Clarification to the manual, after a question from Weidong.
+
+------------------------------------------------------------------------
+
+Fri Oct 14 18:05:39 PDT 2005             Christian <christian@whoop.org>
+
+Transparent reconnects should work again (took all *day*, argh -- I
+totally broke it with the connection sharing stuff). Try broping while
+occasionally stopping and restarting the Bro side.
+
+Fixed a number of memleaks -- broping is now leak-free according to
+valgrind.
+
+Clarifications in the debugging output.
+
+------------------------------------------------------------------------
+
+Fri Oct 14 12:07:10 PDT 2005             Christian <christian@whoop.org>
+
+Added documentation for the new user data argument to
+bro_event_registry_add().
+
+------------------------------------------------------------------------
+
+Fri Oct 14 11:48:00 PDT 2005             Christian <christian@whoop.org>
+
+Added user data to event handler callbacks. This is necessary for
+example when using class members in C++ as callbacks since the object
+needs to be provided at the time of dereferencing. It's also easier to
+use than the existing bro_conn_{set,get}_data() mechanism.
+
+Updated documentation with more details on the broccoli-config script.
+
+------------------------------------------------------------------------
+
+Thu Oct 13 15:08:56 PDT 2005             Christian <christian@whoop.org>
+
+When supporting packets (the default), check whether pcap.h actually
+exists. This has thus far just been assumed. We don't actually use
+the library, so there's no need to test for it.
+
+------------------------------------------------------------------------
+
+Mon Oct 10 20:37:15 PDT 2005             Christian <christian@whoop.org>
+
+Changed bro_record_get_named_val() and bro_record_get_nth_val() to
+return a pointer to the queried value directly, instead of through
+a pointer argument. These arguments' type used to be void* though it
+should really be void**, but switching to void** causes lots of warnings
+with current GCCs ('dereferencing type-punned pointer will break
+strict-aliasing rules'). NULL is perfectly usable as an error indicator
+here, and thus used from now on. Updated manual, broping, and broconn
+accordingly.
+
+------------------------------------------------------------------------
+
+Tue Sep 20 17:19:58 PDT 2005             Christian <christian@whoop.org>
+
+Fixed a varargs buglet that is tolerated on Linux but not BSD. Pointed
+out by Scott Campbell.
+
+------------------------------------------------------------------------
+
+Fri Sep  9 18:48:54 PDT 2005             Christian <christian@whoop.org>
+
+Support for textual tags on packets, also an upgrade to more complex
+handshake procedure that allows for synchronization of state (Robin
+Sommer).
+
+Note: as of this change, at least Bro 1.0a2 is required.
+
+------------------------------------------------------------------------
+
+Wed Aug 10 01:36:47 BST 2005             Christian <christian@whoop.org>
+
+Fixed my insecure usage of snprintf.
+
+------------------------------------------------------------------------
+
+Tue Jul 19 10:11:49 PDT 2005             Christian <christian@whoop.org>
+
+Forgot to include broconn's policy file in the distribution.
+
+------------------------------------------------------------------------
+
+Mon Jul 18 16:34:22 PDT 2005             Christian <christian@whoop.org>
+
+Fixed a bug that caused the lookup of record fields by name to fail.
+
+------------------------------------------------------------------------
+
+Fri Jul  1 00:44:49 BST 2005             Christian <christian@whoop.org>
+
+The sequence of tests determining which config file to read from
+failed to fall back properly to the global config file in case of
+incorrect user permissions. Fixed.
+
+------------------------------------------------------------------------
+
+Mon Jun 27 19:34:56 PDT 2005             Christian <christian@whoop.org>
+
+Added bro_buf_reset() to the user-visible API.
+
+------------------------------------------------------------------------
+
+Mon Jun 27 17:58:53 PDT 2005             Christian <christian@whoop.org>
+
+When a configuration item cannot be found in the current config file
+section, a lookup is also attempted in the default section (the one
+at the top of the file, before any sections are defined). This allows
+the sections to override the default section, which is what one would
+expect.
+
+------------------------------------------------------------------------
+
+Mon Jun 27 14:43:56 PDT 2005             Christian <christian@whoop.org>
+
+Debugging output tweak. When providing the SSL cert passphrase via
+the config file, do no longer report it in the debugging output.
+
+------------------------------------------------------------------------
+
+Mon Jun 27 12:33:52 PDT 2005             Christian <christian@whoop.org>
+
+Cosmetics in the debugging output of __bro_openssl_write().
+
+------------------------------------------------------------------------
+
+Fri Jun 24 18:13:49 PDT 2005             Christian <christian@whoop.org>
+
+Added --build flag to broccoli-config. It reports various details
+about the build, for example whether debugging support was compiled in.
+
+------------------------------------------------------------------------
+
+Fri Jun 24 10:37:23 PDT 2005             Christian <christian@whoop.org>
+
+I'm adding a little test app that subscribes to a few connection
+events and prints out the fields of the received connection records,
+both for testing and code demonstration purposes. So far it has
+highlighted a bug in Bro that occurs when a remote app is a pure
+requester of events and not sending anything. Fix pending.
+
+------------------------------------------------------------------------
+
+Mon Jun 20 18:21:24 PDT 2005             Christian <christian@whoop.org>
+
+Show the names of requested events in the debugging output -- it
+had to be deciphered from the hex string which isn't that much fun.
+
+------------------------------------------------------------------------
+
+Thu Jun 16 14:02:59 PDT 2005             Christian <christian@whoop.org>
+
+Better documentation of how to extract record fields.
+
+------------------------------------------------------------------------
+
+Thu Jun 16 11:51:02 PDT 2005             Christian <christian@whoop.org>
+
+- Added bro_string_get_data() and bro_string_get_length() to avoid
+making people access BroString's internal fields directly.
+
+- Moved BroString's internal storage format to uchar*.
+
+------------------------------------------------------------------------
+
+Sun Jun 12 19:17:31 PDT 2005             Christian <christian@whoop.org>
+
+Debugging output now shows the correct function and line numbers again.
+I had accidentially moved __FUNCTION__ and __LINE__ into bro_debug.c :(
+
+------------------------------------------------------------------------
+
+Fri Jun  3 15:00:48 PDT 2005             Christian <christian@whoop.org>
+
+I broke the sanity checks for semaphore initialization when I moved
+the semaphore structures to shared memory. Fixed.
+
+------------------------------------------------------------------------
+
+Mon May 16 22:25:41 PDT 2005             Christian <christian@whoop.org>
+
+- Debugging output now goes to stderr instead of stdout. That keeps it
+out of the way if an instrumented app dups() stdout to another file
+descriptor.
+- Debugging output is now disabled by default (even when compiled in),
+so it needs to be enabled explicitly in the code or in the config file.
+
+------------------------------------------------------------------------
+
+Fri May 13 18:24:23 PDT 2005             Christian <christian@whoop.org>
+
+Synchronization fixes and minor cleanups.
+
+- Unsuccessful connection attempts to remote Bros in combination with
+connection sharing caused the caller to hang indefinitely. This should
+now be fixed, but required some fairly intricate tweaks to the locking
+constructs. Still needs more testing.
+
+- Bumped version to 0.8.
+
+------------------------------------------------------------------------
+
+Fri May  6 23:09:29 BST 2005             Christian <christian@whoop.org>
+
+This is the 0.7.1 release.
+
+------------------------------------------------------------------------
+
+Fri May  6 14:44:53 PDT 2005             Christian <christian@whoop.org>
+
+Documentation for shareable connection handles.
+
+------------------------------------------------------------------------
+
+Fri May  6 12:11:17 PDT 2005             Christian <christian@whoop.org>
+
+Build fixlets.
+
+- Don't only test for the first of the documentation extraction tools,
+but also for those used later on.
+
+- Few more signedness warnings fixed.
+
+------------------------------------------------------------------------
+
+Wed May  4 18:33:40 PDT 2005             Christian <christian@whoop.org>
+
+Fixed a whole bunch of signedness warnings reported by gcc 4 on MacOS
+10.4. Thanks to Roger for the quick reply.
+
+------------------------------------------------------------------------
+
+Wed May  4 17:41:40 PDT 2005             Christian <christian@whoop.org>
+
+Fix for a little-endian bug that I managed to introduce when testing on
+Solaris ... *sigh* :(
+
+------------------------------------------------------------------------
+
+Wed May  4 17:30:07 PDT 2005             Christian <christian@whoop.org>
+
+A number of portability fixes after testing the build on Linux, FreeBSD
+and Solaris.
+
+------------------------------------------------------------------------
+
+Mon May  2 20:17:04 PDT 2005             Christian <christian@whoop.org>
+
+Fixed an obvious bug the config file parser. I'm baffled as to how it
+could go unnoticed for so long.
+
+------------------------------------------------------------------------
+
+Mon May  2 20:11:25 PDT 2005             Christian <christian@whoop.org>
+
+Portability fixes.
+
+- Use -pthread (not -lpthread) in both the --cflags and --libs options
+to broccoli-config, if required. -lpthread does not work on BSDs, where
+-pthread has different effects on the linker.
+
+- s/System V/SYSV/ in configure script output for consistency.
+
+- Bumped version to 0.7.1.
+
+It should build correctly on BSDs and Linux now. Still need to check
+whether synchronization actually works on the BSDs.
+
+------------------------------------------------------------------------
+
+Fri Apr 29 23:12:01 BST 2005             Christian <christian@whoop.org>
+
+If the configure script determines we need -lpthread, it's a good idea
+to actually reflect that in broccoli-config.
+
+------------------------------------------------------------------------
+
+Fri Apr 29 22:36:26 BST 2005             Christian <christian@whoop.org>
+
+Fix for SYSV semaphores pointed out by Craig Leres -- I completely
+forgot to test the SYSV stuff before the release. *sigh*.
+
+------------------------------------------------------------------------
+
+Thu Apr 28 13:46:57 BST 2005             Christian <christian@whoop.org>
+
+- This is the 0.7 release.
+
+------------------------------------------------------------------------
+
+Thu Apr 28 13:43:44 BST 2005             Christian <christian@whoop.org>
+
+RPM spec file fixlet.
+
+------------------------------------------------------------------------
+
+Wed Apr 27 18:04:57 BST 2005             Christian <christian@whoop.org>
+
+Preparations for the 0.7 release.
+
+------------------------------------------------------------------------
+
+Wed Mar 16 18:34:27 GMT 2005             Christian <christian@whoop.org>
+
+I think shared connections w/ SSL work. :) They key aspects are
+
+- We want to be able to use a single connection handle in arbitrary
+process/thread scenarios: in sshd, a single handle created in the
+listening process should work in all forked children (right now I'm
+created separate ones in each child, yuck), in Apache it should work
+in all servicing threads (creating a separate connection in each
+servicing thread would be far too costly), etc.
+
+- However, all SSL I/O on a single BIO must happen in the same *thread*
+according to openssl-users -- same process seems intuitive because of
+cipher streams etc; why it's per thread I don't know.
+
+The approach is now as follows: when a connection handle is marked as
+shareable, an I/O handler process is forked off during handle setup
+that processes all I/O for a single connection handle exclusively.
+Data are processed through separate tx/rx buffers that live in shared
+memory and are protected by semaphores. Additionally, a number of
+fields in the connection handle also live in shared memory so can be
+used to send back and forth messages etc. By using global semaphores as
+condition variables, rx/tx requests are dispatched to the I/O handler
+process. Therefore this should work for all multi-process/thread
+scenarios in which processes/threads are created after the connection
+handle is set up.
+
+This all is transparent when a connection is not marked shareable. The
+main optimization left to do now is to make the locking more fine-
+grained -- a throughput comparison is going to be interesting...
+
+I haven't tried transparent reconnects again; I'd presume I managed
+to break them in the process.
+
+------------------------------------------------------------------------
+
+Mon Mar 14 17:31:17 GMT 2005             Christian <christian@whoop.org>
+
+- Lots of work on shared connection handles. This is going to take a
+while to work robustly. For now steer clear of BRO_CFLAG_SHAREABLE.
+
+- Fixed wrong ordering of semaphore locks in __bro_io_msg_queue_flush().
+
+- The connection hack to work around OpenSSL's 'temporary unavailable'
+beliefs is now only used when the problem occurs, namely during
+reconnects.
+
+- Fixed a bug in the Posix version of __bro_sem_new() that prevented
+processes from creating more than one different semaphores. Doh.
+
+- Bumped BRO_DATA_FORMAT_VERSION to 9, to sync up with Bro tree.
+
+- Added __bro_sem_get(), returning the current value of a sempahore,
+with implementations for Posix + SYSV.
+
+- Lots of calltracing added.
+
+------------------------------------------------------------------------
+
+Mon Mar 14 10:24:54 GMT 2005             Christian <christian@whoop.org>
+
+Code for shared connection handles with SSL enabled. Pretty much done,
+but needs a lot of testing now.
+
+------------------------------------------------------------------------
+
+Sat Mar 12 18:13:58 GMT 2005             Christian <christian@whoop.org>
+
+Beginning of support for sharing connection handles for SSL-enabled
+connections. Since supporting this is complex, it will be optional,
+and enabled by using the new BRO_CFLAG_SHAREABLE connection flag.
+
+------------------------------------------------------------------------
+
+Fri Mar 11 14:50:23 GMT 2005             Christian <christian@whoop.org>
+
+Move to AC_PROG_LIBTOOL.
+
+------------------------------------------------------------------------
+
+Fri Mar 11 14:33:57 GMT 2005             Christian <christian@whoop.org>
+
+Portability and robustness fixes.
+
+- auto* calls in autgen.sh are now checked for success and cause the
+script to abort on error.
+- Instead of trying to figure out what libraries the various OSs need
+in order to be able to use Posix semaphors, I'm now attempting to use
+the -pthread flag directly. If that fails, we just fall back to SYSV
+semaphores.
+- All semaphore + shmem implementations are now included in the tarball,
+the point is to include them selectively in the *build*.
+- Stevens' ifdef magic for union semun doesn't work on at least OpenBSD
+so I'm using the BSD_HOST macro from config.h now.
+- Apparently AM_PROG_LIBTOOL causes some people trouble so we need to
+check how to get that working realiably :(
+
+------------------------------------------------------------------------
+
+Mon Feb 21 14:45:51 GMT 2005             Christian <christian@whoop.org>
+
+- Partial-write bugfix. When we succeed only partially in writing out
+a message, report success, not failure. Failure is handled by queuing
+the message for later transmission, but we have already sent it
+partially and the rest is still stuck in the output buffer, so if we
+queue it again, it'll get sent at least twice.
+
+I had noticed that out of 100000 events sent by 100 processes in
+parallel, typically around 100020 arrived :)
+
+------------------------------------------------------------------------
+
+Sat Feb 19 21:04:46 GMT 2005             Christian <christian@whoop.org>
+
+- Lots of synchronization work. This generally seems to work now! :) It
+required one major addition: support for shared memory. The problem is
+that if multiple threads/processes attempt to write at the same time
+and one write succeeds only partially, then *whichever* thread/process
+gets to write next needs to write out the rest before writing any new
+messages. The only alternative is to have write operations block until
+entire messages are sent, which seems dangerous from an instrumentation
+point of view. To share the remaining message data, shared memory is
+required: both the tx and rx buffers now operate in shared memory and
+are protected by semaphores. The current implementation uses SYSV shared
+memory.
+
+I think shared memory is a good idea in general; for example it could be
+used during instrumentation to get information from one corner of an app
+to another without changing the application's structure. I don't think
+we'll need  this right away, but it's nice to have a possible technique
+for it.
+
+- bro_disconnect() is now more tricky to use than before: if you use
+it in a parallel setting, you *must* call it from the same process that
+called bro_connect() and you must do so *after* all the other processes
+have finished using the connection (typically this is not hard to do, so
+I think we can live with that).
+
+The reason is that semaphores + shared memory need to be uninstalled
+specifically and I haven't yet figured out a way to automate reference
+counting so that the last thread/process using a connection could do
+this automatically. It would be very cool if the functions that are
+used for deinstallation could be asked to fail while the IPC objects are
+still in use, but that's not the case.
+
+- You can still build the whole thing without semaphores or shared mem
+and it'll work for single-threaded apps. The configure script now issues
+a warning if not all tools required for stable parallel operation can be
+found.
+
+- Added bro_event_queue_length_max() to allow applications to find out
+the maximum queue length before messages will get dropped. brohose uses
+this to wait until the queue gets half full before insisting on a flush.
+
+------------------------------------------------------------------------
+
+Fri Feb 18 17:14:40 GMT 2005             Christian <christian@whoop.org>
+
+- SYSV semaphore implementation. Configure checks are included
+and work as follows: if both Posix + SYSV semaphores are found,
+Posix are preferred, however the user can override this by passing
+--disable-posix-semaphores. Semaphores are still not actually used.
+
+
+------------------------------------------------------------------------
+
+Thu Feb 17 22:24:12 GMT 2005             Christian <christian@whoop.org>
+
+- First shot at semaphore support. Checking for Posix named semaphores
+and making sure they actually work at configure time was the hardest
+part; actual semaphore code untested and still unused. No ifdefs
+anywhere :)
+
+------------------------------------------------------------------------
+
+Thu Feb 17 20:06:00 GMT 2005             Christian <christian@whoop.org>
+
+- Incompletely sent chunks are now recognized and remaining parts are
+shipped as soon as possible: repeated brohose -n 1 -e 1000 runs do not
+take out Bro any more. :)
+
+------------------------------------------------------------------------
+
+Thu Feb 17 19:21:15 GMT 2005             Christian <christian@whoop.org>
+
+- Added "brohose", which lets you hose a Bro with events by forking a
+configurable number of processes, and having each process pump out an
+event a configurable number of times as fast as possible. This is meant
+as both a stress-testing tool for the protocol as well as obviously for
+the synchronization stuff that'll go into Broccoli soon.
+
+------------------------------------------------------------------------
+
+Wed Feb 16 17:40:47 GMT 2005             Christian <christian@whoop.org>
+
+- Documentation for the configuration options for debugging output.
+
+------------------------------------------------------------------------
+
+Thu Feb 10 11:39:57 GMT 2005             Christian <christian@whoop.org>
+
+- Changed bro_event_queue_empty() to bro_event_queue_length(),
+which is more useful in general and can be used to find out
+whether the queue is empty, too.
+
+------------------------------------------------------------------------
+
+Tue Feb  8 14:45:58 GMT 2005             Christian <christian@whoop.org>
+
+- This is release 0.6.
+
+------------------------------------------------------------------------
+
+Mon Feb  7 14:54:15 GMT 2005             Christian <christian@whoop.org>
+
+- Additional byte swaps for IP addresses + subnets for compatibility
+with Bro.
+
+------------------------------------------------------------------------
+
+Sun Feb  6 23:55:07 GMT 2005             Christian <christian@whoop.org>
+
+- Debugging output can now be configured from the config file,
+using the /broccoli/debug_messages and /broccoli/debug_calltrace
+config items.
+
+------------------------------------------------------------------------
+
+Tue Feb  1 21:34:17 GMT 2005             Christian <christian@whoop.org>
+
+- During handshake, data format compatibility is now confirmed as well
+as matching protocol version.
+
+------------------------------------------------------------------------
+
+Tue Feb  1 21:04:43 GMT 2005             Christian <christian@whoop.org>
+
+- Initial commit of support for sending/receiving libpcap packets.
+Totally untested, and not documented yet. More on this once support
+for packets is committed into the Bro tree.
+
+------------------------------------------------------------------------
+
+Tue Feb  1 18:39:02 GMT 2005             Christian <christian@whoop.org>
+
+- Transparent reconnects now also work for non-SSL connections. I was
+just lucky that the SSL handshake prevented the same problem from
+occurring in the SSL-enabled case. Two fixes were necessary:
+
+ 1) a separate attempt to connect to the peer that I have full control
+    over, and
+ 2) a fixlet in queue management that caused the event that
+    triggers the reconnect to be sent before any handshake information
+    for the new connection, thus causing a connection teardown by the
+    Bro end because the version number was not seen at the right time.
+
+
+------------------------------------------------------------------------
+
+Mon Jan 31 19:38:36 GMT 2005             Christian <christian@whoop.org>
+
+- Fixed a few spots where D_ENTER was not balanced with D_RETURN
+- Added an int-to-string table for message types, for debugging
+- Added a flag to the connection structure that prevents reconnect
+attempts while one is already in progress
+- Made io_msg_queue() private to bro_io.c because it was only called
+from there.
+
+------------------------------------------------------------------------
+
+Fri Jan 28 12:35:03 GMT 2005             Christian <christian@whoop.org>
+
+- Changed the error semantics of in __bro_io_msg_queue() so that queuing
+a message after failure to send is not a failure. This fixes an issue
+with handshake completion that I have observed with broping across
+different machines, where events could still get lost despite explicit
+request to complete the handshake.
+
+------------------------------------------------------------------------
+
+Sun Jan 16 20:45:42 GMT 2005             Christian <christian@whoop.org>
+
+- Serialization/Unserialization for ports fixed, support for ICMP ports.
+
+------------------------------------------------------------------------
+
+Sat Jan 15 13:58:16 GMT 2005             Christian <christian@whoop.org>
+
+- Sending and receiving IP addresses and subnets was broken, fixed now.
+- Fixed a small memleak when first-time connection setup fails.
+
+------------------------------------------------------------------------
+
+Thu Jan 13 21:03:45 GMT 2005             Christian <christian@whoop.org>
+
+- When using reconnects, Broccoli will now not attempt to reconnect
+more than once every 5s.
+
+------------------------------------------------------------------------
+
+Thu Jan 13 20:43:13 GMT 2005             Christian <christian@whoop.org>
+
+- Added connection flag BRO_CFLAG_ALWAYS_QUEUE that causes events
+always to be queued in the connection's event queue regardless of
+whether the peer is currently dead or not.
+
+- Moved the test of whether the peer requested an event that is
+about to be sent or not to the point where the event actually is
+about to be sent, from the point where it is requested to be sent.
+The difference is that now an event will get silently dropped on
+the floor if after a connection outage and a reconnect, a change
+in the events requested from the peer will prevent the old queued
+events to be sent anyway, even if they are no longer requested.
+
+------------------------------------------------------------------------
+
+Wed Jan 12 20:46:10 GMT 2005             Christian <christian@whoop.org>
+
+- Added support for transparent reconnects for broken connections.
+When using BRO_CFLAG_RECONNECT, Broccoli now attempts to reconnect
+whenever a peer died and the user tries to read from or write to
+the peer. This can aways be triggered manually using
+bro_reconnect().
+
+- Added bro_conn_alive() to determine if a connection is currently
+alive or not.
+
+------------------------------------------------------------------------
+
+Tue Jan 11 17:33:51 GMT 2005             Christian <christian@whoop.org>
+
+- Added connection flags parameter to bro_connect() and
+bro_connect_str(): BRO_CFLAG_COMPLETE_HANDSHAKE completes
+the handshake right away before returning from bro_connect()/
+bro_connect_str(), and BRO_CFLAG_RECONNECT still needs to be
+implemented. Documentation updated accordingly.
+
+------------------------------------------------------------------------
+
+Sat Jan  8 21:07:30 CET 2005             Christian <christian@whoop.org>
+
+- Allow empty (or comments-only) configuration files.
+
+------------------------------------------------------------------------
+
+Sat Jan  8 20:52:56 CET 2005             Christian <christian@whoop.org>
+
+- Fixed the home directory lookup via getpwent() -- now correctly looks
+up the entry of the current effective user. Doh.
+
+- Beginning of code for connection flags to use when creating a
+connection, for example for handshake behaviour, automatic reconnection
+attempts, etc.
+
+------------------------------------------------------------------------
+
+Tue Jan  4 23:28:59 CET 2005             Christian <christian@whoop.org>
+
+- constness fixes for functions that accept values for events and
+record fields.
+
+------------------------------------------------------------------------
+
+Tue Jan  4 22:07:35 CET 2005             Christian <christian@whoop.org>
+
+- Encrpyted connections now extract as much data as possible from
+the underlying buffer by calling BIO_read() optimistically.
+
+- For encrypted connections, the passphrase for the certificate's
+private key can now be specified in the configuration file using key
+"/broccoli/host_pass".
+
+- Added support for the handshake message in the Bro protocol.
+
+- If the ca_cert or host_cert keys are found in the config file, but
+there is a problem loading the crypto files, don't attempt to connect.
+
+- Completed documentation on encrypted communication, explaining the
+use of ca-create and ca-issue.
+
+- Fixed several bugs in the handling of sections in config files.
+Matching of domain names is now case-insensitive.
+
+- The ~/.broccoli.conf file is now only used when it is readable only
+by the user owning it.
+
+- More robustness for corner cases of buffer sizes.
+
+- Fixed a bug in sending messages that consist of only a single chunk
+(like the handshake message).
+
+- The library now attempts to initialize the random number generator
+in OpenSSL from /dev/random if possible.
+
+------------------------------------------------------------------------
+
+Fri Dec 24 11:58:08 CET 2004             Christian <christian@whoop.org>
+
+- If the ca_cert or host_cert keys are found in the config file, but
+there is a problem loading the crypto files, don't attempt to connect.
+
+- Completed documentation on encrypted communication, explaining the
+use of ca-create and ca-issue.
+
+- Fixed several bugs in the handling of sections in config files.
+
+------------------------------------------------------------------------
+
+Thu Dec 23 14:33:56 GMT 2004             Christian <christian@whoop.org>
+
+- Added sections support for configuration files. Sections can be 
+declared at arbitrary points in the config file, using the same syntax
+as in OpenSSL config files. There can be a global section at the
+beginning of the file, before the first declared sections. Sections are
+selected using bro_conf_set_domain().
+
+- Support for a per-user config file in ~/.broccoli.conf. This does
+not override settings in the global config file but completely replaces
+it, i.e., when the user-specific file is found, the global one is
+ignored.
+
+- Added bro_conn_await_handshake() that blocks for limitable amount of
+time, waiting for the handshake of a new Bro connection to complete.
+This still needs some fixing, but is definitely necessary to prevent
+weird races from occurring when a client tries to use a new connection
+that has not yet been established completely.
+
+- Test applications are now linked to static libraries. This will
+hopefully keep the build more portable.
+
+- Use of LFLAGS and YFLAGS moved to AM_LFLAGS and AM_YFLAGS, given the
+warnings issued when using automake 1.9.
+
+- First shot at fixing the buffer flushing issues I see when using 
+encrypted connections.
+
+------------------------------------------------------------------------
+
+Fri Dec 10 16:31:26 GMT 2004             Christian <christian@whoop.org>
+
+- Added + fixed OpenSSL code to support encrypted communication.
+- Added OpenSSL as requirement to spec file.
+- Changed broping policies to always use the same port
+- Updated broccoli.conf: added keys for the CA's and the host's cert.
+	
+------------------------------------------------------------------------
+
+Thu Dec  9 14:59:24 GMT 2004             Christian <christian@whoop.org>
+
+- Build fixes in case documentation tools are not found
+- Documentation polishing -- only SSL setup section todo still.
+
+------------------------------------------------------------------------
+
+Thu Dec  9 00:48:05 GMT 2004             Christian <christian@whoop.org>
+
+- Final documentation passes for the 0.6 release.
+
+------------------------------------------------------------------------
+
+Mon Dec  6 17:18:55 GMT 2004             Christian <christian@whoop.org>
+
+- More documentation, explaining the data types, records, Bro policy
+configuration, started section on SSL setup (copied from Robin right
+now), and minor fixes.
+
+------------------------------------------------------------------------
+
+Mon Dec  6 15:17:05 GMT 2004             Christian <christian@whoop.org>
+
+- Added spec file for building RPMs -- seems to work
+- Aest policies are now installed in $prefix/share/broccoli
+
+------------------------------------------------------------------------
+
+Mon Dec  6 00:22:02 GMT 2004             Christian <christian@whoop.org>
+
+- Dropped the ..._raw() functions for records. These won't be used
+internally ever. Their implementation moved to bro.c, and only the high-
+level code remained in bro_record.c.
+
+- Added bro_event_set_val() to replace a val in an existing event.
+There's not much use in resending an existing event unless it is
+identical, which is not that useful. High-level code is in
+__bro_event_set_val().
+
+- Made it more clear in the comments explaining the
+bro_record_get_..._val() functions that the "result" argument must
+actually be the address of a pointer. (void * as argument type means
+that the compiler does not issue a warning when passing in, say, a
+double * -- but it would do so if we would use void **.)
+
+------------------------------------------------------------------------
+
+Sun Dec  5 22:05:53 GMT 2004             Christian <christian@whoop.org>
+
+- Updates to the cvs wrapper script: surround with date and name
+only in the ChangeLog, not in the commit message itself.
+
+------------------------------------------------------------------------
+
+Sun Dec  5 02:15:29 GMT 2004             Christian <christian@whoop.org>
+
+- Fixed a bug in __bro_val_clone(): forgot to handle BRO_INTTYPE_OTHER.
+
+- Changed --enable-debugging flag to --enable-debug, for consistency
+with the Bro tree.
+
+- Fixed bugs in several cloning implementations that didn't call the
+parent's implementation.
+
+------------------------------------------------------------------------
+
+Sun Dec  5 01:40:52 GMT 2004             Christian <christian@whoop.org>
+
+- Added __bro_event_copy() to clone events internally.
+
+- Events are now duplicated in __bro_io_event_queue() before they're
+sent so the user's event remains unaffected (and thus could be sent
+repeatedly etc).
+
+- Extensive pass over the documentation; still a good deal to do.
+
+------------------------------------------------------------------------
+
+Sat Dec  4 03:09:05 GMT 2004             Christian <christian@whoop.org>
+
+More work on documentation, much is outdated now.
+
+------------------------------------------------------------------------
+
+Sat Dec  4 02:05:30 GMT 2004             Christian <christian@whoop.org>
+ 
+- Started a ChangeLog. No detailed ChangeLog information was kept
+previous to this commit.
+ 
+------------------------------------------------------------------------

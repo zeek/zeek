@@ -1,0 +1,79 @@
+#! /bin/csh -f
+#
+# Given Bro connection summary files, reports on the activities of
+# particular host(s) or net(s).
+#
+# mon-report [-n] [-t] [-x] h1 [-a h2] file ...
+#
+# reports on all connections involving host "h1", or "h1" and "h2" if -a
+# specified.  -n means that h1 and h2 should be interpreted as IP addresses
+# (either host or network) instead of hostnames.  -t means to write to stdout
+# the raw trace file instead of the hot report.  -x is passed along to
+# hot-report to specify exact byte counts and durations (unless -t is given).
+
+set usage = "mon-report [-n] [-t] [-x] h1 [-a h2] file ..."
+set GREP = "grep -E"
+
+if ( "$1" == "-n" ) then
+	setenv REPORT_NET
+	shift
+	mon-report $*
+	exit
+endif
+
+if ( "$1" == "-t" ) then
+	setenv REPORT_TO_STDOUT
+	shift
+	mon-report $*
+	exit
+endif
+
+if ( "$1" == "-x" ) then
+	setenv EXACT
+	shift
+	mon-report $*
+	exit
+endif
+
+if ( "$1" == "" ) then
+	echo "$usage"
+	exit
+endif
+
+set h1=$1
+shift
+
+set h2
+if ( "$1" == "-a" ) then
+	shift
+	if ( "$1" == "" ) then
+		echo "$usage"
+		exit
+	endif
+	setenv H2
+	set h2=$1
+	shift
+endif
+
+if ( $?REPORT_TO_STDOUT ) then
+	set out="cat"
+else
+	if ( $?EXACT ) then
+		set out="hot-report -x"
+	else
+		set out="hot-report"
+	endif
+endif
+
+if ( $?REPORT_NET ) then
+	if ( $?H2 ) then
+		cat $* | $GREP " `echo $h1 | sed 's/\./\\./g;s/ /|/g'`[. ]" | \
+			 $GREP " `echo $h2 | sed 's/\./\\./g;s/ /|/g'`[. ]" | \
+			 sort -n | $out
+	else
+		cat $* | $GREP " `echo $h1 | sed 's/\./\\./g;s/ /|/g'`[. ]" | \
+			 sort -n | $out
+	endif
+else
+	cat $* | host-grep -a $h1 $h2 | sort -n | $out
+endif

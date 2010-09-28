@@ -1,0 +1,3108 @@
+
+@node Predefined Variables and Functions
+@chapter Predefined Variables and Functions
+
+@menu
+* Predefined Variables::	
+* Predefined Functions::	
+@end menu
+
+@node Predefined Variables,
+@section Predefined Variables
+
+@cindex predefined variables
+
+Bro predefines and responds to the following variables, organized by
+the policy file in which they are contained. Note that you will only
+be able to access the variables in a policy file if you @code{load} it or
+a policy file which loads it.
+
+@menu
+* activebro::			
+* anonbro::			
+* backdoorbro::			
+* broinit::			
+* code-redbro::			
+* connbro::			
+* demuxbro::			
+* dnsbro::			
+* dns-mappingbro::		
+* fingerbro::			
+* ftpbro::			
+* hotbro::			
+* hot-idsbro::			
+* httpbro::			
+* http-abstractbro::		
+* http-requestbro::		
+* icmpbro::			
+* identbro::			
+* interconnbro::		
+* ircbro::
+* loginbro::			
+* mimebro::			
+* noticebro::			
+* ntpbro::			
+* pop3bro::			
+* port-namesbro::		
+* portmapperbro::		
+* scanbro::			
+* signaturesbro::			
+* sitebro::			
+* smtpbro::			
+* smtp-relaybro::		
+* softwarebro::			
+* sshbro::			
+* steppingbro::			
+* tftpbro::			
+* udpbro::			
+* weirdbro::			
+* wormbro::			
+* Uncategorized::		
+@end menu
+
+@node activebro,
+@subsection active.bro
+
+@table @samp
+
+@code{active_conn : table[conn_id] of connection}
+@vindex active_conn 
+@quotation
+A table of @code{connection} records corresponding to all active
+connections.
+@end quotation
+
+@end table
+
+@node anonbro,
+@subsection anon.bro
+
+@table @samp
+@code{anon_log : file}
+@vindex anon_log 
+@quotation
+The file into which anonymization @emph{Fixme: Add a reference to doc on anonymization when it is available.} IP address mappings are written.
+@end quotation
+
+@code{preserved_subnet : set[subnet]}
+@vindex preserved_subnet
+@quotation
+Addresses in these subnet are preserved when anonymization is being
+performed. See also @code{preserved_net}.  NOTE: The variable @code{const}. so may only be changed via @code{redef}
+@end quotation
+
+@code{preserved_net : set[net]}
+@vindex preserved_net 
+@quotation
+These Class A/B/C nets are preserved when anonymization is being
+performed. See also @code{preserved_subnet}.
+@end quotation
+
+@end table
+
+@node backdoorbro,
+@subsection backdoor.bro
+
+@table @samp
+@code{backdoor_log : file}
+@vindex backdoor_log 
+@quotation
+The file into which logs for backdoor servers
+() are written.
+@end quotation
+
+@code{backdoor_min_num_lines : count}
+@vindex backdoor_min_num_lines 
+@quotation
+The number of lines of @emph{Fixme: must be telnet?} input and output must be more than this amount to
+trigger backdoor checking.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{backdoor_min_normal_line_ratio : double}
+@vindex backdoor_min_normal_line_ratio 
+@quotation
+If the fraction of ``normal'' (less than a certain length) lines is
+below this value, then backdoor checking is not performed.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{backdoor_min_bytes : count}
+@vindex backdoor_min_bytes 
+@quotation
+The total number of bytes transferred on the connection must be at
+least this large in order for backdoor checking to be performed.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{backdoor_min_7bit_ascii_ratio : double}
+@vindex backdoor_min_7bit_ascii_ratio 
+@quotation
+The fraction of 7-bit ASCII characters out of all bytes transferred
+must be at least this large in order for backdoor checking to be performed.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{backdoor_demux_disabled : bool}
+@vindex backdoor_demux_disabled 
+@quotation
+If T (the default), then suspected backdoor connections are not
+demuxed into sender and receiver streams.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{backdoor_demux_skip_tags : set[string]}
+@vindex backdoor_demux_skip_tags 
+@quotation
+If the type of backdoor (the tag) is in this set, the connection will
+not be demuxed.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{backdoor_ignore_src_addrs : table[string, addr] of bool}
+@vindex backdoor_ignore_src_addrs 
+@quotation
+If the suspected backdoor name (``*'' for any) and source address (or
+its /16 or /24) subnet are in this table as a pair, then the backdoor
+will not be logged.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{backdoor_ignore_dst_addrs : table[string, addr] of bool}
+@vindex backdoor_ignore_dst_addrs 
+@quotation
+If the suspected backdoor name (``*'' for any) and destination address (or
+its /16 or /24) subnet are in this table as a pair, then the backdoor
+will not be logged.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{backdoor_ignore_ports : table[string, port] of bool}
+@quotation
+The following (signature, well-known port) pairs should not generated
+a backdoor notice.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{backdoor_standard_ports : set[port]}
+@quotation
+See @code{backdoor_annotate_standard_ports}.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{backdoor_stat_period : interval}
+@quotation
+A report on backdoor stats is generated at this interval.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{backdoor_stat_backoff : interval}
+@quotation
+@emph{Fixme: Not sure about the exact definition here} The backdoor report
+interval (@code{backdoor_stat_period}) is increased by this factor each time it is generated,
+except if the timers are artificially expired.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{backdoor_annotate_standard_ports : bool}
+@quotation
+If T (the default), backdoor notices for those on @code{backdoor_standard_ports}
+should be annotated with the backdoor tag name.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{ssh_sig_disabled : bool}
+@quotation
+If T (default = F), then matches against the SSH signature are ignored.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{telnet_sig_disabled : bool}
+@quotation
+If T (default = F), then matches against the telnet signature are ignored.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{telnet_sig_3byte_disabled : bool}
+@quotation
+If T (default = F), then matches against the 3-byte telnet signature are ignored.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{rlogin_sig_disabled : bool}
+@quotation
+If T (default = F), then matches against the rlogin signature are ignored.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{rlogin_sig_1byte_disabled : bool}
+@quotation
+If T (default = F), then matches against the 1-byte rlogin signature are ignored.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{root_backdoor_sig_disabled : bool}
+@quotation
+If T (default = F), then matches against the root backdoor signature are ignored.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{ftp_sig_disabled : bool}
+@quotation
+If T (default = F), then matches against the FTP signature are ignored.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{napster_sig_disabled : bool}
+@quotation
+If T (default = F), then matches against the Napster signature are ignored.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{gnutella_sig_disabled : bool}
+@quotation
+If T (default = F), then matches against the Gnutella signature are ignored.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{kazaa_sig_disabled : bool}
+@quotation
+If T (default = F), then matches against the KaZaA signature are ignored.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{http_sig_disabled : bool}
+@quotation
+If T (default = F), then matches against the HTTP signature are ignored.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{http_proxy_sig_disabled : bool}
+@quotation
+If T (default = F), then matches against the HTTP proxy signature are ignored.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{did_sigconns : table[conn_id] of set[string]}
+@quotation
+A table which indicates, for each connection, which backdoor server
+signatures were found in the connection's traffic, e.g., ``ftp-sig''
+or ``napster-sig''.
+@end quotation
+
+@code{rlogin_conns : table[conn_id] of rlogin_conn_info}
+@quotation
+A table that holds relevant state variables (an @code{rlogin_conn_info}
+ record) for @code{rsh} connections.
+@end quotation
+
+@code{root_backdoor_sig_conns : set[conn_id]}
+@quotation
+The set of connections for which a root backdoor signature
+(``root-bd-sig'') has been detected.
+@end quotation
+
+@code{ssh_len_conns : set[conn_id]}
+@quotation
+The set of connections that are predicted to contain SSH traffic,
+based on the proportion of packets that meet the expected packet size
+distribution. Relevant parameters are @code{ssh_min_num_pkts} and 
+@code{ssh_min_ssh_pkts_ratio}, which are local to @code{backdoor}.
+@end quotation
+
+@code{ssh_min_num_pkts : count}
+@quotation
+The minimum number of packets that look like SSH packets that allow a
+stream to be classified as such.
+@end quotation
+
+@code{ssh_min_ssh_pkts_ratio : double}
+@quotation
+The minimum fraction of packets in a stream that look like SSH packets that allow a
+stream to be classified as such.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{telnet_sig_conns : table[conn_id] of count}
+@quotation
+The set of connections that are predicted to be Telnet connections,
+based on observation of the Telnet signature, the IAC byte (0xff).
+@end quotation
+
+@code{telnet_sig_3byte_conns : table[conn_id] of count}
+@quotation
+Similar to @code{telnet_sig_conns}, but the signature matched is a
+whole 3-byte Telnet command sequence.
+@end quotation
+
+@end table
+
+@node broinit,
+@subsection bro.init
+
+@table @samp
+
+@code{ignore_checksums : bool}
+@quotation
+If T (default = F), packet checksums are not verified.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{partial_connection_ok : bool}
+@quotation
+If T (the default), instantiate connection state when a partial connection
+(one missing its initial establishment negotiation) is seen.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{tcp_SYN_ack_ok : bool}
+@quotation
+If T (the default), instantiate connection state when a SYN ack is seen
+but not the initial SYN (even if partial_connection_ok is false).
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{tcp_match_undelivered : bool}
+@quotation
+If a connection state is removed there may still be some undelivered
+data waiting in the reassembler. If T (the default), pass this to the signature
+engine before flushing the state.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{tcp_SYN_timeout : interval}
+@quotation
+Check up on the result of an initial SYN after this much
+time. @emph{Fixme: What exactly does this mean? Check that the connection is active?}
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{tcp_session_timer : interval}
+@quotation
+After a connection has closed, wait this long for further activity
+before checking whether to time out its state.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{tcp_connection_linger : interval}
+@quotation
+When checking a closed connection for further activity, consider it
+inactive if there hasn't been any for this long.  Complain if the
+connection is reused before this much time has elapsed.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{tcp_attempt_delayv : interval}
+@quotation
+Wait this long upon seeing an initial SYN before timing out the
+connection attempt.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{tcp_close_delay : interval}
+@quotation
+Upon seeing a normal connection close, flush state after this much time.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{tcp_reset_delay : interval}
+@quotation
+Upon seeing a RST, flush state after this much time.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{tcp_partial_close_delay : interval}
+@quotation
+Generate a connection_partial_close event this much time after one half
+of a partial connection closes, assuming there has been no subsequent
+activity.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{non_analyzed_lifetime : interval}
+@quotation
+If a connection belongs to an application that we don't analyze,
+time it out after this interval.  If 0 secs, then don't time it out.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{inactivity_timeout : interval}
+@quotation
+If a connection is inactive, time it out after this interval.
+If 0 secs, then don't time it out.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{tcp_storm_thresh : count}
+@quotation
+This many FINs/RSTs in a row constitutes a "storm". See also @code{tcp_storm_interarrival_thresh}.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{tcp_storm_interarrival_thresh : interval}
+@quotation
+The FINs/RSTs must come with this much time or less between them to be
+considered a storm. See also @code{tcp_storm_thresh}.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{tcp_reassembler_ports_orig : set[port]}
+@quotation
+For services without a handler, these sets define which
+side of a connection is to be reassembled. @emph{Fixme: What is the point of this exactly? What are you analyzing?}
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{tcp_reassembler_ports_resp : set[port]}
+@quotation
+For services without a handler, these sets define which
+side of a connection is to be reassembled. @emph{Fixme: What is the point of this exactly? What are you analyzing?}
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{table_expire_interval : interval}
+@quotation
+Check for expired table entries after this amount of time @emph{Fixme: Which tables?}
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{dns_session_timeout : interval}
+@quotation
+Time to wait before timing out a DNS request.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{ntp_session_timeout : interval}
+@quotation
+Time to wait before timing out an NTP request.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{rpc_timeout : interval}
+@quotation
+Time to wait before timing out an RPC request.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{watchdog_interval : interval}
+@quotation
+A SIGALRM is set for this interval to make sure that Bro does not get
+caught up doing something for too long. @emph{Fixme: True?} If this happens,
+Bro is termination after doing a dump of all remaining packets.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{heartbeat_interval : interval}
+@quotation
+After each interval of this length, update the 
+variable.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{anonymize_ip_addr : bool}
+@quotation
+If true (default = false), then IP addresses are anonymized in notice
+and log generation.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{omit_rewrite_place_holder : bool}
+@quotation
+If true, omit place holder packets when rewriting. @emph{Fixme: Should this go somewhere else?}
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{rewriting_http_trace : bool}
+@quotation
+If true (default = F), HTTP traces are rewritten.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{rewriting_smtp_trace : bool}
+@quotation
+If true (default = F), SMTP traces are rewritten.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@end table
+
+@node code-redbro,
+@subsection code-red.bro
+
+@table @samp
+
+@code{code_red_log file}
+@quotation
+The file into which Code Red-related logs are written.
+@end quotation
+
+@code{code_red_list1 : table[addr] of count}
+@quotation
+A table which contains, for each IP address, how many Code Red I attacks
+were observed (based on a signature) by the machine at that address.
+@end quotation
+
+@code{code_red_list2 : table[addr] of count}
+@quotation
+A table which contains, for each IP address, how many Code Red II attacks
+were observed (based on a signature) by the machine at that address.
+@end quotation
+
+@code{local_code_red_response_pgm : string}
+@quotation
+By default, an empty string; if @code{&redef}ed, the specified program
+will be invoked with the attack source IP as the argument the first
+time an attack from that IP is observed.
+@end quotation
+
+@code{remote_code_red_response_pgm : string}
+@quotation
+By default, an empty string; if @code{&redef}ed, the specified program
+will be invoked with the attack destination IP as the argument the first
+time an attack on that IP is observed.
+@end quotation
+
+@end table
+
+@node connbro,
+@subsection conn.bro
+
+@table @samp
+
+@code{have_FTP : bool}
+@quotation
+If true, @code{ftp.bro} has been loaded.
+@end quotation
+
+@code{have_SMTP : bool}
+@quotation
+If true, @code{smtp.bro} has been loaded.
+@end quotation
+
+@code{have_stats : bool}
+@quotation
+True if  was ever updated with packet capture statistics.
+@end quotation
+
+@code{hot_conns_reported : set[string]}
+@quotation
+The set of connections (indexed by the entire 'hot' message) that have
+previously been flagged as @code{hot}.
+@end quotation
+
+@code{last_stat : net_stats}
+@quotation
+The last recorded snapshot of packet capture statistics, in a  record.
+@end quotation
+
+@code{last_stat_time : time}
+@quotation
+The last time that network statistics were read into .
+@end quotation
+
+@code{RPC_server_map : table[addr, port] of string}
+@quotation
+Maps a given port on a given server's address to an RPC service.
+If we haven't loaded @code{portmapper.bro}, then it will be empty; see
+@code{portmapper.bro} and the @code{portmapper} module documentation 
+for more information.
+@end quotation
+
+@end table
+
+@node demuxbro,
+@subsection demux.bro
+
+For more information on demultiplexing of connections, see the
+@ref{demux Analysis Script,demux Analysis Script}.
+
+@table @samp
+
+@code{demux_dir : string}
+@quotation
+The name of the directory which will contain the files with
+demultiplexed connection data.
+@end quotation
+
+@code{demuxed_conn : set[conn_id]}
+@quotation
+The set of connections that are currently being demultiplexed.
+@end quotation
+
+@end table
+
+@node dnsbro,
+@subsection dns.bro
+
+@table @samp
+
+@code{actually_rejected_PTR_anno : set[string]}
+@quotation
+Annotations that if returned for a PTR lookup actually indicate
+a rejected query; for example, "illegal-address.lbl.gov".
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{sensitive_lookup_hosts : set[addr]}
+@quotation
+Hosts in this set generate a notice when they are
+returned in PTR queries, unless the originating host is in @code{sensitive_lookup_hosts}. 
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{okay_to_lookup_sensitive_hosts : set[addr]}
+@quotation
+If the DNS request originator is in this set, then it is allowed to
+look up ``sensitive'' hosts (see also @code{sensitive_lookup_hosts})
+without causing a notice.
+@end quotation
+
+@code{dns_log : file}
+@quotation
+The file into which DNS-related logs are written.
+@end quotation
+
+@code{dns_sessions : table[addr, addr] of dns_session_info}
+@quotation
+A table of outstanding DNS sessions indexed by [client IP, server IP].
+@emph{Fixme:  Need to illustrate dns_sessions_info. }
+@end quotation
+
+@code{num_dns_sessions : count}
+@quotation
+The total number of entries that have ever been in the  table.
+@end quotation
+
+@code{distinct_PTR_requests : table[addr, string] of count}
+@quotation
+The number of DNS PTR requests observed with the given source address
+and request string.
+@end quotation
+
+@code{distinct_rejected_PTR_requests : table[addr] of count}
+@quotation
+How many DNS PTR requests from the given source address were
+rejected.  A report is generated if this number crosses a threshold,
+namely, @code{report_rejected_PTR_thresh}.
+@end quotation
+
+@code{distinct_answered_PTR_requests : table[addr] of count}
+@quotation
+How many DNS PTR requests from the given source address were rejected.
+@end quotation
+
+@code{report_rejected_PTR_thresh : count}
+@quotation
+If this many DNS requests from a host are rejected, generate a
+possible PTR scan event.
+@end quotation
+
+@code{report_rejected_PTR_factor : double}
+@quotation
+If DNS requests from a host are rejected more than accepted by this
+factor, generate a  event.
+@end quotation
+
+@code{allow_PTR_scans set[addr]}
+@quotation
+The set of hosts for which a @code{PTR_scan} event does not generate a report
+(that is, the scan is allowed).
+@end quotation
+
+@code{did_PTR_scan_event table[addr] of count}
+@quotation
+A table of hosts for which a  event has been generated.
+@end quotation
+
+@end table
+
+@node dns-mappingbro,
+@subsection dns-mapping.bro
+
+@table @samp
+
+@code{dns_interesting_changes}
+@quotation
+The set of DNS mapping changes (according to lookups by Bro itself)
+that is interesting enough to notice.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@end table
+
+@node fingerbro,
+@subsection finger.bro
+
+@table @samp
+
+@code{hot_names : set[string]}
+@quotation
+If a finger request for any of the names in this set is observed, the
+associated connection is marked ``hot''.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{max_finger_request_len : count}
+@quotation
+If a finger request is longer than this length, then it is marked as ``hot''.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{rewrite_finger_trace : bool}
+@quotation
+Indicates whether or not finger requests are rewritten for anonymity.
+@end quotation
+
+@end table
+
+@node ftpbro,
+@subsection ftp.bro
+
+@table @samp
+
+@code{ftp_log : file}
+@quotation
+The file into which FTP-related logs are written.
+@end quotation
+
+@code{ftp_sessions : table[conn_id] of ftp_session_info}
+
+@code{ftp_guest_ids : set[string]}
+@quotation
+The set of login IDs which are guest logins, e.g., ``anonymous'' and
+``ftp''.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{ftp_skip_hot : set[addr, addr, string]}
+@quotation
+Indexed by source and destination addresses and the id, these
+connections are not marked as ``hot'' even if its data would to cause
+it to be otherwise.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{ftp_hot_files : pattern}
+@quotation
+If a filename matching this pattern is requested, the @code{ftp_sensitive_files}
+ event is generated. The default behavior is to alarm the connection.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{ftp_hot_guest_files : pattern}
+@quotation
+If a user is logged in under a guest ID and attempts to retrieve a
+file matching this pattern,  the
+@code{ftp_sensitive} event is generated. The default
+behavior is to alarm the connection.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{ftp_hot_cmds : table[string] of pattern}
+@quotation
+If an FTP command matches an index into the table and its argument
+matches the associated pattern, the connection is alarmed.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{skip_unexpected : set[addr]}
+@quotation
+Pairs of IP addresses for which we shouldn't bother logging if one
+of them is used in lieu of the other in a PORT or PASV directive.
+@end quotation
+
+@code{skip_unexpected_net : set[addr]}
+@quotation
+Similar to @code{skip_unexpected}, but matches a /24 subnet.
+@end quotation
+
+@code{ftp_data_expected : table[addr, port] of addr}
+@quotation
+Indexed by the server's responder pair, yields the address expected to make an
+FTP data connection to it.
+@end quotation
+
+@code{ftp_data_expected_session : table[addr, port] of ftp_session_info}
+@quotation
+Indexed by the server's responder pair, yields the associated
+@code{ftp_session_info} record for the expected incoming FTP data
+connection.
+@end quotation
+
+@code{ftp_excessive_filename_len : count}
+@quotation
+If an FTP request filename meets or exceeds this length, an
+@code{FTP_ExcessiveFilename} notice is generated.
+@end quotation
+
+@code{ftp_excessive_filename_trunc_len : count}
+@quotation
+How much of the excessively long filename is printed in the notice message.
+@end quotation
+
+@code{ftp_ignore_invalid_PORT : pattern} 
+@quotation
+Invalid PORT/PASV directives that exactly match this pattern don't
+generate notices.
+@end quotation
+
+@code{ftp_ignore_privileged_PASVs : set[port]}
+@quotation
+If an FTP PASV port is specified to be a privileged port (< 1024/tcp)
+then an @code{FTP_PrivPort} event is generated, EXCEPT if the port is
+in this set.
+@end quotation
+
+@end table
+
+@node hotbro,
+@subsection hot.bro
+
+@table @samp
+
+@code{same_local_net_is_spoof : bool}
+@quotation
+If true (default = F), it should be considered a spoofing attack if a connection has
+the same local net for source and destination.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{allow_spoof_services : set[port]}
+@quotation
+The services in this set are not counted as spoofed even if they pass
+the test from @code{same_local_net_is_spoof}.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{allow_pairs : set[addr, addr]}
+@quotation
+Connections between these (source address, destination address) pairs
+are never marked as ``hot''.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{allow_16_net_pairs : set[addr, addr]}
+@quotation
+Connections between these (/16 network, /32 destination host) pairs
+are never marked as ``hot''.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{hot_srcs : table[addr] of string}
+@quotation
+Connections from any of these sources are automatically marked ``hot''
+with the associated message in the table.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{hot_dsts : table[addr] of string}
+@quotation
+Connections to any of these destinations are automatically marked ``hot''
+with the associated message in the table.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{hot_src_24nets : table[addr] of string}
+@quotation
+Connections from any of these source /24 nets are automatically marked ``hot''
+with the associated message in the table.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{hot_dst_24nets : table[addr] of string}
+@quotation
+Connections to any of these destination /24 nets are automatically marked ``hot''
+with the associated message in the table.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{allow_services : set[port]}
+@quotation
+Connections to this set of services are never marked ``hot'' (based on port
+number).
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{allow_services_to : set[addr, port]}
+@quotation
+Connections to the specified host and port are never marked ``hot''.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{allow_service_pairs : set[addr, addr, port]}
+@quotation
+Connections from the first address to the second on the specified
+destination port are never marked ``hot''.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{flag_successful_service : table[port] of string}
+@quotation
+Successful connections to any of the specified ports are flagged with
+the accompanying message. Examples are popular backdoor ports.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{flag_successful_inbound_service : table[port] of string}
+@quotation
+Incoming connections to the specified ports are flagged with the
+accompanying message. This is similar to
+, but may be used when the port gives
+to many false positives for outgoing connections.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{terminate_successful_inbound_service : table[port] of string}
+@quotation
+Connections to this port, if previously flagged by @code{flag_successful_service}
+ or @code{flag_incoming_service} are terminated.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{flag_rejected_service : table[port] of string}
+@quotation
+Failed connection attempts to the specified ports are marked as ``hot''.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@end table
+
+@node hot-idsbro,
+@subsection hot-ids.bro
+
+@table @samp
+
+@code{forbidden_ids : set[string]}
+@quotation
+If any of these usernames/login IDs are used, the corresponding
+connection is terminated.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{forbidden_ids_if_no_password : set[string]}
+@quotation
+If any of these usernames/login IDs are used with no password, the corresponding
+connection is terminated.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{forbidden_id_patterns : pattern}
+@quotation
+If a username/login ID matches this pattern, the corresponding
+connection is terminated.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{always_hot_ids : set[string]}
+@quotation
+Connections that attempt to login with these IDs are always marked
+``hot'', whether or not they succeed. See also @code{hot_ids}.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{hot_ids : set[string]}
+@quotation
+Similar to , except that only successful connections are marked ``hot''.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@end table
+
+@node httpbro,
+@subsection http.bro
+
+@table @samp
+
+@code{http_log : file}
+@quotation
+The file into which HTTP-related logs are written.
+@end quotation
+
+@code{http_sessions : table[addr, addr] of http_session_info}
+@quotation
+A [source, destination] indexed table of @code{http_session_info} records.
+@end quotation
+
+@code{include_HTTP_abstract : bool}
+@quotation
+Currently used to indicate whether or not an abstract of the HTTP
+request data will be included in a rewritten connection.
+@end quotation
+
+@code{log_HTTP_data : bool}
+@quotation
+If true, an abstract of the HTTP request data is included in a log message.
+@end quotation
+
+@code{maintain_http_sessions : bool}
+@quotation
+If true, HTTP sessions are maintained across multiple connections,
+otherwise we not (which saves some memory).
+@end quotation
+
+@code{process_HTTP_replies : bool}
+@quotation
+If true, HTTP replies (not just requests) are processed.
+@end quotation
+
+@code{process_HTTP_data : bool}
+@quotation
+If true, HTTP data is examined as needed (e.g., for making HTTP abstracts,
+as discussed below).
+@end quotation
+
+@end table
+
+@node http-abstractbro,
+@subsection http-abstract.bro
+
+@table @samp
+
+@code{http_abstract_max_length : count}
+@quotation
+The maximum number of bytes used to store an abstract for an HTTP connection.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@end table
+
+@node http-requestbro,
+@subsection http-request.bro
+
+@table @samp
+
+@code{skip_remote_sensitive_URIs : pattern}
+@quotation
+URIs matching this pattern should not be considered sensitive if accessed 
+remotely, i.e., by a local client.
+@end quotation
+
+@code{have_skip_remote_sensitive_URIs : bool}
+@quotation
+Due to a quirk in Bro, this must be redef'ed to T if you want to use
+@code{skip_remote_sensitive_URIs}.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{sensitive_URIs : pattern}
+@quotation
+URIs matching this pattern, but not matching @code{worm_URIs}, are
+noticed. See also @code{skip_remote_sensitive_URIs} and @code{sensitive_post_URIs}.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{worm_URIs : pattern}
+@quotation
+URIs matching this pattern are not noticed even if they match
+@code{sensitive_URIs}, since worms are so common they would clutter
+the logs.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{sensitive_post_URIs : pattern}
+@quotation
+URIs matching this pattern are noticed if they are used with the HTTP
+``POST'' method (rather than ``GET''). 
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@end table
+
+@node icmpbro,
+@subsection icmp.bro
+
+@table @samp
+
+@code{icmp_flows : table[icmp_flow_id] of icmp_flow_info}
+@quotation
+A table tracking all ICMP ``flows'' by @code{icmp_flow_info}.
+``Flows'', which are simply inferred related
+sequences of packets between two machines, based on ICMP ID, are timed
+out after (currently) 30 seconds of inactivity.
+@end quotation
+
+@end table
+
+@node identbro,
+@subsection ident.bro
+
+@table @samp
+
+@code{hot_ident_ids : set[string]}
+@quotation
+If any of the User IDs in this set are returned in an @code{ident}
+response, an @emph{IdentSensitiveID} notice is generated.
+@end quotation
+
+@code{hot_ident_exceptions : set[string]}
+@quotation
+Exceptions to the @code{hot_ident_ids} set.
+@end quotation
+
+@code{public_ident_user_ids : set[string]}
+@quotation
+User IDs in this set are described as ``public'' in a rewritten  @code{ident}
+trace.
+@end quotation
+
+@code{public_ident_systems : set[string]}
+@quotation
+Operating system names in this set (e.g., ``UNIX'') are reported
+directly in a rewritten @code{ident} trace; other OSes will be reported
+as ``OTHER''.
+@end quotation
+
+@code{rewrite_ident_trace : bool}
+@quotation
+If true, traces will be rewritten (partially anonymized).
+@end quotation
+
+@end table
+
+@node interconnbro,
+@subsection interconn.bro
+
+@table @samp
+
+@code{interconn_conns : table [conn_id] of conn_info}
+@quotation
+A @code{conn_id}-indexed table of all currently-tracked interactive
+connections. The table entries are  records
+containing some very basic information about the connection.
+@end quotation
+
+@code{interconn_log : file}
+@quotation
+The file into which generic interactive-connection-related logs are written.
+@end quotation
+
+@code{interconn_min_interarrival : interval}
+@quotation
+Used in computing the ``alpha'' parameter, which is used to determine
+which connections are interactive, based on the distribution of
+interarrival times. See also @code{interconn_max_interarrival}.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{interconn_max_interarrival : interval}
+@quotation
+Used in computing the ``alpha'' parameter, which is used to determine
+which connections are interactive, based on the distribution of
+interarrival times. See also @code{interconn_max_interarrival}.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{interconn_max_keystroke_pkt_size : count}
+@quotation
+The maximum packet size used to classify keystroke-containing packets.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{interconn_default_pkt_size : count}
+@quotation
+The estimated packet size used to calculate the number of packets
+missed when we see an ack above a hole. @emph{Fixme: Please verify.}
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{interconn_stat_period : interval}
+@quotation
+How often to generate a report of interconn stats.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{interconn_stat_backoff : double}
+@quotation
+@emph{Fixme: I don't fully understand is_expire in timers.} The stat report
+generation interval (@code{interconn_stat_period}) is increased by this factor each time the report
+is generated [unless the report is generated because all timers are
+artificially expired].
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{interconn_min_num_pkts : count}
+@quotation
+A connection must have this number of packets transferred before it
+may be classified as interactive.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{interconn_min_duration : interval}
+@quotation
+A connection must last least this long before it may be classified as interactive.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{interconn_ssh_len_disabled : bool} 
+@quotation
+If false (default = T), and at least one side of the connection has
+partial state (the initial negotiation was missed), then packets are
+examined to see if they fit the size distribution associated with
+interactive SSH connections.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{interconn_min_ssh_pkts_ratio : double}
+@quotation
+Analogous to @code{ssh_min_ssh_pkts_ratio}, except used in the
+context described in @code{interconn_ssh_len_disabled}.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{interconn_min_bytes : count}
+@quotation
+The number of bytes transferred on a connection must be at least this high before the
+connection may be classified as interactive.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{interconn_min_7bit_ascii_ratio : double}
+@quotation
+The ratio of 7-bit ASCII characters to total bytes must be at least
+this high before the connection may be classified as interactive.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{interconn_min_num_lines : count}
+@quotation
+The number of lines transferred on a connection must be at least
+this high before the connection may be classified as interactive.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{interconn_min_normal_line_ratio : double}
+@quotation
+The ratio of ``normal'' lines to total lines must be at least
+this high before the connection may be classified as interactive. A
+normal line, roughly speaking, is one whose length is within a certain
+bound. @emph{Fixme: Please verify this.}
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{interconn_min_alpha : double}
+@quotation
+The ``alpha'' parameter computed on connection must be at least
+this high before the connection may be classified as interactive. This
+parameter measures certain properties of packet interarrival
+times. See @code{interconn}.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{interconn_min_gamma : double}
+@quotation
+The ``gamma'' parameter computed on connection must be at least
+this high before the connection may be classified as interactive. 
+@end quotation
+
+@code{interconn_standard_ports : set[port]}
+@quotation
+Connections to or from these ports are marked as interactive
+automatically, unless @code{interconn_standard_ports} is set
+to true.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{interconn_ignore_standard_ports : bool}
+@quotation
+If true (default = F), then all connections are analyzed for
+interactive patterns, regardless of port. See @code{interconn_standard_ports}.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{interconn_demux_disabled : bool}
+@quotation
+If false (default = T), then interactive connections are demuxed
+when being logged.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@end table
+
+@node ircbro,
+@subsection irc.bro
+
+@table @samp
+
+@code{IRC::log_file: file}
+@quotation
+Where to log IRC sessions.
+@end quotation
+
+@code{hot_words}
+@quotation
+List of regular expressions that generate notices if found in session dialog.
+@end quotation
+
+@code{ignore_in_other_msgs: set[string]}
+@quotation
+Commands to ignore in generating events for unknown commands.
+@end quotation
+
+@code{ignore_in_other_responses: set[string]}
+@quotation
+Return codes to ignore in generating events for unknown return codes.
+@end quotation
+
+@end table
+
+These variables contain information about the users and channels
+identified by Bro:
+
+@table @samp
+
+@code{irc_users: table[string] of irc_user}
+@quotation
+All identified IRC users, indexed by IRC nick.
+@end quotation
+
+@code{irc_channels: table[string] of irc_channel}
+@quotation
+All identified IRC channels, indexed by IRC channel name.
+@end quotation
+
+@end table
+
+@node loginbro,
+@subsection login.bro
+
+@table @samp
+
+@code{input_trouble : pattern}
+@quotation
+If a user's keystroke input matches this pattern, then a notice is generated.
+@end quotation
+
+@code{edited_input_trouble : pattern}
+@quotation
+If a user's keystroke input matches this pattern, taking into account
+backspace and delete characters, then a notice is generated.
+@end quotation
+
+@code{full_input_trouble : pattern}
+@quotation
+If this pattern is matched in a full line of input, a notice is generated.
+@end quotation
+
+@code{input_wait_for_output : pattern}
+@quotation
+The same as @code{edited_input_trouble}, except that the notice is
+delayed until the corresponding output is seen, so that both may be
+logged together.
+@end quotation
+
+@code{output_trouble : pattern}
+@quotation
+If the login output matches this pattern, a notice is generated.
+@end quotation
+
+@code{full_output_trouble : pattern}
+@quotation
+Similar to @code{output_trouble}, but the pattern must match the
+entire output.
+@end quotation
+
+@code{backdoor_prompts : pattern} 
+@quotation
+If the login output matches this text, but not
+@code{non_backdoor_prompts}, generate a possible-backdoor notice.
+@end quotation
+
+@code{non_backdoor_prompts : pattern}
+@quotation
+See @code{backdoor_prompts}.
+@end quotation
+
+@code{hot_terminal_types : pattern} 
+@quotation
+If the terminal type used matches this pattern, generate a notice.
+@end quotation
+
+@code{hot_telnet_orig_ports : set[port]}
+@quotation
+If the source port of a telnet connection is in this set, generate a notice.
+@end quotation
+
+@code{skip_authentication : set[string] }
+@quotation
+If a string in this set appears where an authentication prompt would
+normally, skip processing of authentication (typically for an
+unauthenticated system). @emph{Fixme: Please verify.}
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{login_prompts : set[string]}
+@quotation
+The set of strings that are recognized as login prompts anywhere on a line, e.g.,
+``Login:''.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{login_failure_msgs : set[string]}
+@quotation
+If any of these strings appear on a line following an authentication
+attempt, the attempt is considered to have failed, unless a string
+from @code{login_non_failure_msgs} also appears on the line. This
+set has higher precedence than @code{login_success_msgs}, and the
+same precedence as @code{login_timeouts}.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{login_non_failure_msgs : set[string]}
+@quotation
+If any of these strings appear on a line following an authentication
+attempt, the connection is not considered to have failed even if
+@code{login_failure_msgs} indicates otherwise.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{login_success_msgs : set[string]}
+@quotation
+If any of these messages is seen, the connection attempt is assumed to
+have succeeded. This set has lower precedence than @code{login_failure_msgs}
+and @code{login_timeouts} .
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{login_timeouts : set[string]}
+@quotation
+If any of these messages is seen during the login phase, the
+connection attempt is assumed to have timed out. This
+set has higher precedence than @code{login_success_msgs}, and the
+same precedence as @code{login_failure_msgs}.
+@end quotation
+
+@code{router_prompts : pattern}
+@quotation
+@emph{Fixme: Don't know what this is}
+@end quotation
+
+@code{non_ASCII_hosts : set[addr]} 
+@quotation
+The set of hosts that do not use ASCII (and to whom logins are thus
+not processed).
+@end quotation
+
+@code{skip_logins_to : set[addr]}
+@quotation
+Do not process logins to this set of hosts.
+@end quotation
+
+@code{always_hot_login_ids : pattern}
+@quotation
+Login names which generate a notice even if the login is not successful.
+@end quotation
+
+@code{hot_login_ids : pattern}
+@quotation
+Login names which generate a notice, if the login is successful.
+@end quotation
+
+@code{rlogin_id_okay_if_no_password_exposed : set[string]}
+@quotation
+Login names in this set are those which are normally considered
+sensitive, but are allowed if the associated password is not exposed.
+@end quotation
+
+@code{login_sessions : table[conn_id] of login_session_info}
+@quotation
+A table, indexed by connection ID, of @code{login_session_info}
+records, characterizing each login session.
+@end quotation
+
+@end table
+
+@node mimebro,
+@subsection mime.bro
+
+@table @samp
+
+@code{mime_log : file}
+@quotation
+MIME message-related logs are written to this file.
+@end quotation
+
+@code{mime_sessions : table[conn_id] of mime_session_info}
+@quotation
+A table, indexed by connection ID, of @code{mime_session_info}
+records, characterizing each MIME session.
+@end quotation
+
+@code{check_relay_3 function(session: mime_session_info, msg_id: string): bool}
+@quotation
+@emph{Fixme: Don't know about this}
+@end quotation
+
+@code{check_relay_4 function(session: mime_session_info, content_hash: string): bool}
+@quotation
+@emph{Fixme: Don't know about this}
+@end quotation
+
+@end table
+
+@node noticebro,
+@subsection notice.bro
+
+@table @samp
+@code{notice_action_filters : table[Notice] of function(n: notice_info: NoticeAction}
+@vindex notice_action_filters
+@quotation
+A table that maps each @code{notice} into a function that should be
+called to determine the action.
+@end quotation
+
+@code{notice_file : file}
+@vindex notice_file 
+@quotation
+The file into which notices are written.
+@end quotation
+
+@end table
+
+@node ntpbro,
+@subsection ntp.bro
+
+@table @samp
+
+@code{excessive_ntp_request : count}
+@quotation
+NTP requests over this length are considered ``excessive'' and will be
+flagged (marked ``hot'').
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{allow_excessive_ntp_requests : set[addr]}
+@quotation
+NTP requests from an address in this set are never considered
+excessively long (see @code{excessive_ntp_request}).
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@end table
+
+@node pop3bro,
+@subsection pop3.bro
+@table @samp
+@item @code{pop_connections: table[conn_id] of pop3_session_info}
+This table contains all active POP3-sessions indexed by their Connection IDs.
+Deleted as soon as the TCP Connection terminates or expires.
+@item @code{pop_connection_weirds: table[addr] of count &default=0 &create_expire = 5 mins}
+This table contains all the POP3-session originators for which unexpected
+behavior was recorded.
+@item @code{error_threshold: count = 3}
+A threshold for the maximum of negative status indicators per originator
+received by a server.
+@item @code{ignore_commands: set[string] }
+Set of commands that will be ignored while generating the log file. 
+@end table
+
+@node port-namesbro,
+@subsection port-names.bro
+
+@table @samp
+
+@code{port_names : table[port] of string}
+@quotation
+A mapping of well-known port numbers to the associated service names.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@end table
+
+@node portmapperbro,
+@subsection portmapper.bro
+
+@table @samp
+
+@code{rpc_programs : table[count] of string}
+@quotation
+A table correlating numeric RPC service IDs to string names of
+the services, e.g., @code{[1000000] = ``portmapper''}.
+@end quotation
+
+@code{NFS_services : set[string]}
+@quotation
+A set of string names of NFS-related RPC services.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{RPC_okay : set[addr, addr, string]}
+@quotation
+Indexed by the host providing the service, the host requesting it,
+and the service; do not notice Sun portmapper requests from the specified
+requester to the specified provider for the specified service.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{RPC_okay_nets : set[net]}
+@quotation
+Hosts in any of the networks in this set may make portmapper requests without
+being flagged.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{RPC_okay_services : set[string]}
+@quotation
+Requests for services in this set will not be flagged.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{NFS_world_servers : set[addr]}
+@quotation
+Any host may request NFS services from any of the machines in this set
+without being flagged..
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{any_RPC_okay : set[addr, string]}
+@quotation
+Indexed by the service provider and the service (in string form); any
+host may access these services without being flagged.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{RPC_dump_okay : set[addr, addr]}
+@quotation
+Indexed by requesting host and providing host, respectively; dumps of
+RPC portmaps are allowed between these pairs.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{RPC_do_not_complain : set[string, bool]} 
+@quotation
+Indexed by the portmapper request and a boolean that's T if the
+request was answered, F it was attempted but not answered.  If there's
+an entry in the set matching the current request/attempt, then the
+access won't be noticed (unless the connection is hot for some other
+reason).
+@end quotation
+
+@code{suppress_pm_log : set[addr, string]}
+@quotation
+Indexed by source and portmapper service.  If set, we already noticed
+and shouldn't do so again. @emph{Fixme: Presumably this can be preloaded 
+with stuff, or we wouldn't need to document it.}
+@end quotation
+
+@end table
+
+@node scanbro,
+@subsection scan.bro
+
+@table @samp
+
+@code{suppress_scan_checks : bool}
+@quotation
+If true, we suppress scan checking (we still do account-tried accounting).
+This is provided because scan checking can consume a lot of memory.
+@end quotation
+
+@code{report_peer_scan : set[count]}
+@quotation
+When the number of distinct machines connected to by a given external host reaches
+each of the levels in the set, a notice is generated.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{report_outbound_peer_scan : set[count]}
+@quotation
+When the number of distinct machines connected to by a given internal host reaches
+each of the levels in the set, a notice is generated.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{num_distinct_peers : table[addr] of count}
+@quotation
+A table indexed by a host's address which indicates how many distinct
+machines that host has connected to.
+@end quotation
+
+@code{distinct_peers : set[addr,addr]}
+@quotation
+A table indexed by source host and target machine that tracks which
+machines have been scanned by each host.
+@end quotation
+
+@code{num_distinct_ports : table[addr] of count}
+@quotation
+A table indexed by a host's address which indicates how many distinct
+ports that host has connected to.
+@end quotation
+
+@code{distinct_ports : set[addr, port]}
+@quotation
+A table indexed by source host and target port that tracks which
+ports have been scanned by each host.
+@end quotation
+
+@code{report_port_scan : set[count]}
+@quotation
+When the number of distinct ports connected to by a given external host reaches
+each of the levels in the set, a notice is generated.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{possible_port_scan_thresh : count}
+@quotation
+If a host tries to connect to more than this number of ports, it is
+considered a possible scanner.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{possible_scan_sources : set[addr]}
+@quotation
+Hosts are put in this set once they have scanned more than ports.
+@end quotation
+
+@code{num_scan_triples : table[addr, addr] of count}
+@quotation
+Indexed by source address and destination address, the number of
+services scanned for on the latter by the former. This is only tracked
+for @code{possible_scan_sources}.
+@end quotation
+
+@code{scan_triples : set[addr, addr, port]}
+@quotation
+For @code{possible_scan_sources} as a source address, the triples
+of (source address, destination address, and service/port) scanned.
+@end quotation
+
+@code{accounts_tried : set[addr, string, string]}
+@quotation
+Which account names were tried, indexed by source address, user name
+tried, password tried.
+@end quotation
+
+@code{num_accounts_tried : table[addr] of count}
+@quotation
+How many accounts, as defined by a (user name, password) pair, were
+tried by the host with the given address.
+@end quotation
+
+@code{report_accounts_tried : set[count]}
+@quotation
+When the number of distinct accounts (username, password) tried by a
+given external host reaches each of the levels in the set, a notice is
+generated.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{report_remote_accounts_tried : set[count]}
+@quotation
+When the number of distinct remote accounts (username, password) tried by a
+given internal host reaches each of the levels in the set, a notice is
+generated.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{skip_accounts_tried : set[addr]}
+@quotation
+Hosts in this set are not subject to notices based on
+@code{report_accounts_tried} and @code{report_remote_accounts_tried}.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{addl_web : set[port]}
+@quotation
+Ports in this set are treated as HTTP services.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{skip_services : set[port]}
+@quotation
+Connections to ports in this set are ignored for the purposes of scan detection.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{skip_outbound_services : set[port]}
+@quotation
+Connections to external machines on ports in this set are ignored for
+the purposes of scan detection.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{skip_scan_sources : set[addr]}
+@quotation
+Hosts in this set are ignored as possible sources of scans.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{skip_scan_nets_16 : set[addr,port]}
+@quotation
+Connections matching the specified (source host /16 subnet, port) pairs
+are ignored for the purpose of scan detection.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{skip_scan_nets_24 : set[addr,port]}
+@quotation
+Connections matching the specified (source host /24 subnet, port) pairs
+are ignored for the purpose of scan detection.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{backscatter_ports : set[port]}
+@quotation
+Reverse (SYN-ack) scans seen from these ports are considered to reflect
+possible SYN flooding backscatter and not true (stealth) scans.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{num_backscatter_peers : table[addr] of count}
+@quotation
+Indexed by a host, how many other hosts it connected to with a possible backscatter
+signature.
+@end quotation
+
+@code{distinct_backscatter_peers :  table[addr, addr] of count}
+@quotation
+A table of [source, destination] observed backscatter activity; the
+table entry is a count of backscatter packets from the source to the destination.
+@end quotation
+
+@code{report_backscatter : set[count]}
+@quotation
+When the number of machines that a host has sent backscatter packets
+to reaches each of the levels in the set, a notice is generated.
+
+@emph{Fixme: Need to document connection-dropping related variables.}
+@example
+global can_drop_connectivity = F &redef;
+global drop_connectivity_script = "drop-connectivity" &redef;
+global connectivity_dropped set[addr];
+const shut_down_scans: set[port] &redef;
+const shut_down_all_scans = F &redef;
+const shut_down_thresh = 100 &redef;
+never_shut_down set[addr]
+never_drop_nets set[net]
+never_drop_16_nets set[net]
+did_drop_address table[addr] of count
+@end example
+@end quotation
+
+@code{root_servers : set[host]}
+@findex root_servers 
+@quotation
+The set of root DNS servers.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{gtld_servers : set[host]}
+@quotation
+The set of Generic Top-Level Domain servers (.com, .net, .org, etc.).
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@end table
+
+@node signaturesbro,
+@subsection signatures.bro
+
+@table @samp
+
+@code{horiz_scan_thresholds : set[count]}
+@quotation
+Notice if for a pair (orig, signature) the number of different responders has
+reached one of the thresholds in this set.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{vert_scan_thresholds : set[count]}
+@quotation
+Notice if for a pair (orig, resp) the number of different signature matches has
+reached one of the thresholds in this set.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@end table
+
+@node sitebro,
+@subsection site.bro
+
+@table @samp
+
+@code{local_nets : set[net]}
+@quotation
+Class A/B/C networks that are considered ``local''.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{local_16_nets : set[addr]}
+@quotation
+/16 address blocks that are considered ``local''. These are derived
+directly from @code{local_nets} . @emph{Fixme: Please verify this}.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{local_24_nets : set[addr]}
+@quotation
+/24 address blocks that are considered ``local''. These are derived
+directly from  @code{local_nets}. @emph{Fixme: Please verify this}.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{neighbor_nets : set[net]}
+@quotation
+Class A/B/C networks that are considered ``neighbors''. Note that
+unlike for local_nets, @code{local_16_nets} is @emph{not}
+merely a /16 addr version of neighbor_nets, but instead is consulted
+@emph{in addition} to neighbor_nets.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{neighbor_16_nets : set[addr]}
+@quotation
+/16 address blocks that are considered ``neighbors''. Note that
+unlike for local_nets, neighbor_16_nets is @emph{not}
+merely a /16 addr version of @code{neighbor_nets}, but instead is consulted
+@emph{in addition} to @code{neighbor_nets}.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@end table
+
+@node smtpbro,
+@subsection smtp.bro
+
+@table @samp
+
+@code{local_mail_addr : pattern}
+@quotation
+Email addresses matching this pattern are considered to be local. This
+is used to detect relaying.
+@end quotation
+
+@code{smtp_log : file}
+@quotation
+The file into which SMTP-related notices are written.
+@end quotation
+
+@code{smtp_sessions : table[conn_id] of smtp_session_info}
+@quotation
+A table of @code{smtp_session_info} records tracking SMTP-related
+state for a given connection.
+@end quotation
+
+@code{process_smtp_relay : bool}
+@quotation
+If true (default = F), processing is done to check for mail relaying.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+
+@example
+type smtp_session_info: record @{
+	id: count;
+	connection_id: conn_id;
+	external_orig: bool;
+	in_data: bool;
+	num_cmds: count;
+	num_replies: count;
+	cmds: smtp_cmd_info_list;
+	in_header: bool;
+	keep_current_header: bool;	# a hack till MIME rewriter is ready
+	recipients: string;
+	subject: string;
+	content_hash: string;
+	num_lines_in_body: count;	# lines in RFC 822 body before MIME decoding
+	num_bytes_in_body: count;	# bytes in entity bodies after MIME decoding
+	content_gap: bool;		# whether there is content gap in conversation
+
+	relay_1_rcpt: string;	# external recipients
+	relay_2_from: count; 	# session id of same recipient
+	relay_2_to: count;
+	relay_3_from: count; 	# session id of same msg id
+	relay_3_to: count;
+	relay_4_from: count; 	# session id of same content hash
+	relay_4_to: count;
+@};
+@end example
+@end quotation
+
+@code{smtp_legal_cmds : set[string]}
+@quotation
+The set of allowed SMTP commands (not currently used). @emph{Fixme: Is it used somewhere?}
+@end quotation
+
+@code{smtp_hot_cmds : table[string] of pattern}
+@quotation
+If an SMTP command matching an index into the table has an argument
+matching the associated pattern, then the request and its reply are logged.
+@end quotation
+
+@code{smtp_sensitive_cmds : set[string]}
+@quotation
+If an SMTP command is in this set, the request and its reply are logged.
+@end quotation
+
+@end table
+
+@node smtp-relaybro,
+@subsection smtp-relay.bro
+
+@table @samp
+
+@code{relay_log : file}
+@quotation
+Logs related to email relaying go in this file.
+@end quotation
+
+@code{smtp_relay_table : table[count] of smtp_session_info}
+@quotation
+A table indexed by SMTP session ID (session$id) that keeps track of
+each session in an  record.
+@end quotation
+
+@code{smtp_session_by_recipient : table[string] of smtp_session_info}
+@quotation
+A table indexed by the recipient that holds the corresponding
+@code{smtp_session_info} record.
+@end quotation
+
+@code{smtp_session_by_message_id : table[string] of smtp_session_info}
+@quotation
+A table indexed by the email message ID that holds the corresponding
+@code{smtp_session_info} record.
+@end quotation
+
+@code{smtp_session_by_content_hash : table[string] of smtp_session_info}
+@quotation
+A table indexed by the MD5 hash of the message that holds the corresponding
+ record. @emph{Fixme: Currently unimplemented?}
+@end quotation
+
+@end table
+
+@node softwarebro,
+@subsection software.bro
+
+@table @samp
+
+@code{software_file : file}
+@quotation
+Logs related to host software detection go in this file.
+@end quotation
+
+@code{software_table : table[addr] of software_set}
+@quotation
+A table of the software running on each host. A
+@code{software_set} is itself a table, indexed by the name of the
+software, of @code{software} records.
+@end quotation
+
+@code{software_ident_by_major : set[string]}
+@quotation
+Software names in this set could be installed twice on the same
+machine with different major version numbers. Such software is
+identified as ``Software-N'' where N is the major version number, to
+disambiguate the two.
+@end quotation
+
+@end table
+
+@node sshbro,
+@subsection ssh.bro
+
+@table @samp
+
+@code{ssh_log : file}
+@quotation
+Logs related to ssh connections go in this file.
+@end quotation
+
+@code{did_ssh_version : table[addr, bool] of count}
+@quotation
+Indexed by host IP and (T for client, F for server), the table tracks
+if we have recorded the SSH version. Values of one and greater are
+essentially equivalent.
+@end quotation
+
+@end table
+
+@node steppingbro,
+@subsection stepping.bro
+
+@table @samp
+
+@code{step_log : file}
+@quotation
+Logs related to stepping-stone detection go in this file.
+@end quotation
+
+@code{display_pairs : table[addr, string] of connection}
+@quotation
+If <conn> was a login to <dst> propagating a $DISPLAY of <display>,
+then we make an entry of [<dst>, <display>] = <conn>.
+@end quotation
+
+@code{tag_to_conn_map : table[string] of connection}
+@quotation
+Maps login tags like "Last login ..." to connections.
+@end quotation
+
+@code{conn_tag_info : table[conn_id] of tag_info}
+@quotation
+A table, indexed by connection ID, of the @code{tag_info} related
+to it. Roughly, ``tag info'' consists of login strings like ``Last
+login'' and @code{$DISPLAY} variables. Since this information can stay
+constant across stepping stones, it is used to detect them.
+@end quotation
+
+@code{detected_stones : table[addr, port, addr, port, addr, port, addr, port] of count}
+@quotation
+Indexed by two pairs of connections: (addr,port)->(addr,port) and
+(addr,port)->(addr,port) that have been detected to be multiple links
+in a stepping stone chain. The table value is the ``score'' of the
+pair of connections; the higher the score, the more likely it is to be
+a real stepping stone pair. More points are assigned for a
+timing-based correlation than, say, a @code{$DISPLAY}-based correlation.
+@end quotation
+
+@code{did_stone_summary : table[addr, port, addr, port, addr, port, addr, port] of count}
+@quotation
+Basically tracks which suspected stepping stone connection pairs have had notices
+generated for them. See @code{detected_stones}  for the indexing scheme.
+@end quotation
+
+@code{stp_delta : interval}
+@quotation
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{stp_idle_min : interval}
+@quotation
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{stp_ratio_thresh : double}
+@quotation
+For timing correlations, the proportion of idle times that must match
+up for the correlation to be considered significant.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{stp_scale : double}
+@quotation
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{stp_common_host_thresh : count}
+@quotation
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{stp_random_pair_thresh : count}
+@quotation
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{stp_demux_disabled : count}
+@quotation
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{skip_clear_ssh_reports : set[addr, string]}
+@quotation
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@end table
+
+@node tftpbro,
+@subsection tftp.bro
+
+@table @samp
+
+@code{tftp_notice_count : table[addr] of count}
+@quotation
+Keeps track of the number of observed outbound TFTP connections from
+each host.
+@end quotation
+
+@end table
+
+@node udpbro,
+@subsection udp.bro
+
+@table @samp
+
+@code{udp_req_count : table[conn_id] of count}
+@quotation
+Keeps track of the number of UDP requests sent over each connection.
+@end quotation
+
+@code{udp_rep_count : table[conn_id] of count}
+@quotation
+@emph{Fixme: not really sure}
+@end quotation
+
+@code{udp_did_summary : table[conn_id] of count}
+@quotation
+Keeps track of which connections have been summarized/recorded
+@emph{Fixme: what is it really? do people use this?}
+@end quotation
+
+@end table
+
+@node weirdbro,
+@subsection weird.bro
+
+@table @samp
+
+@code{weird_log : file}
+@quotation
+Logs related to @code{weird}  (unexpected or inconsistent)
+traffic go in this file.
+@end quotation
+
+@code{weird_action : table[string] of WeirdAction}
+@quotation
+A table of what to do (a @code{WeirdAction} ) when faced with a
+particular ``weird'' scenario (the index). Example include logging to
+the special ``weird'' file or ignoring the condition.
+@end quotation
+
+@code{weird_action_filters : table[string] of function(c: connection): WeirdAction}
+@quotation
+If an entry exists in this table for a given weird situation, then the
+corresponding entry is used to determine what action to
+take; the default is to look in @code{weird_action}.
+@end quotation
+
+@code{weird_ignore_host : set[addr, string]}
+@quotation
+(host, weird condition) pairs in this set are ignored for the purposes
+of reporting.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@code{weird_do_not_ignore_repeats : set[string]}
+@quotation
+The included conditions are reported even if they are repeated.
+@* Note: This variable is @code{const}, so may only be changed via @code{redef}.
+@end quotation
+
+@end table
+
+@node wormbro,
+@subsection worm.bro
+
+@table @samp
+
+@code{worm_log : file}
+@quotation
+The file into which worm-detection-related logs are written.
+@end quotation
+
+@code{worm_list : table[addr] of count}
+@quotation
+A table of infected hosts, indexed by the infected hosts'
+addresses. The value is how many times the instance has been seen
+sending packets.
+@end quotation
+
+@code{worm_type_list : table[addr, string] of count}
+@quotation
+A table of infected hosts, indexed by host address and type of
+worm. The value is how many times that particular worm has been seen
+on the host.
+@end quotation
+
+@end table
+
+@node Uncategorized,
+@subsection Uncategorized
+
+@emph{Fixme:  These need categorization. }
+
+@table @samp
+
+@code{bro_alarm_file : file}
+@quotation
+Used to record the messages logged by @code{alarm} statements.
+
+@cindex stderr
+@cindex alarm file
+Default: @emph{stderr}, unless you @code{@@load} the @code{alarm} analyzer;
+see @code{bro_alarm_file}  for further discussion.
+@end quotation
+
+@code{capture_filters : table[string] of string}
+@quotation
+Specifies what packets Bro's filter should record.
+@end quotation
+
+@code{direct_login_prompts : set[string]}
+@quotation
+Strings that when seen in a login dialog indicate that
+the user will be directly logged in after entering their username,
+without requiring a password. 
+@end quotation
+
+@code{discarder_maxlen : int}
+@quotation
+The maximum amount of data that Bro should pass to a TCP or UDP
+@emph{discarder}.
+@*Default: 128 bytes.
+@end quotation
+
+@code{done_with_network : bool}
+@quotation
+Set to true when Bro is done reading from the network (or from
+the save files being played back, per @ref{Playing back traces,play-back}).  The variable is set by a
+handler for @code{net_done}.
+@*Default: initially set to false.
+@end quotation
+
+@cindex network interfaces
+@cindex analysis, on-line
+@cindex on-line analysis
+
+@code{interfaces : string}
+@quotation
+A blank-separated list of network interfaces from which Bro should
+read network traffic.  Bro merges packets from the interfaces according
+to their timestamps.  @emph{Deficiency: All interfaces @emph{must} have the same link layer type. }
+
+If empty, then Bro does not read any network traffic, unless one
+or more interfaces are specified using the -i flag.
+
+@emph{Note:}  @code{interfaces} has an @code{&add_func} that allows you to add interfaces 
+to the list simply using a @code{+=} initialization refinement.
+
+@*Default: empty.
+@end quotation
+
+@cindex timer expiration
+@cindex expiration, timer
+
+@code{max_timer_expires : count}
+@quotation
+Sets an upper limit on how many pending timers Bro will expire per newly arriving packet.  If set to 0, then Bro expires all
+pending timers whose time has come or past.  This variable trades off
+timer accuracy and memory requirements (because a number of Bro's internal
+timers relate to expiring state) with potentially bursty load spikes due
+to a lot of timers expiring at the same time, which can trigger the
+watchdog, if active.
+@end quotation
+
+@code{restrict_filter : string}
+@quotation
+Restricts what packets Bro's filter should record.
+@end quotation
+
+@end table
+
+@cindex predefined variables
+
+@node Predefined Functions,
+@section Predefined Functions
+
+Bro provides a number of built-in functions:
+
+@cindex predefined functions
+
+@table @samp
+@cindex connection: testing for existence
+
+@code{active_connection (id: conn_id) : bool}
+@findex active_connection 
+@quotation
+Returns true if the given connection identifier (originator/responder
+addresses and ports) corresponds to a currently-active connection.
+@end quotation
+
+@code{active_file (f: file): bool}
+@quotation
+Returns true if the given @code{file} is open.
+@end quotation
+
+@code{add_interface (iold: string, inew: string): string}
+@quotation
+Used to refine the initialization of @code{interfaces}.  Meant
+for internal use, and as an example of refinement.
+@end quotation
+
+@code{add_tcpdump_filter (fold: string, fnew: string): string}
+@quotation
+Used to refine the initializations of  @code{capture_filters}
+and  @code{restrict_filters}.  Meant for internal use, and as an
+example of refinement.
+@end quotation
+
+@cindex alarms, control of
+@cindex logging, control of
+@code{alarm_hook (msg: string): bool}
+@quotation
+If you define this function, then Bro will call it with each string
+it is about to log in an alarm.  The function should return true if Bro should
+go ahead with the alarm, false otherwise.  See 
+for further discussion and an example.
+@end quotation
+
+@cindex strings, length
+@cindex length, of strings
+@code{byte_len (s: string): count}
+@quotation
+Returns the number of bytes in the given string.  This includes
+any embedded NULs, and also a trailing NUL, if any (which is why the
+function isn't called @emph{strlen}; to remind the user that Bro strings
+can include NULs).
+@end quotation
+
+@cindex strings, concatenation
+@cindex concatenation of strings
+@code{cat (args: any): string}
+@quotation
+Returns the concatenation of the string representation of its arguments,
+which can be of any type.  For example, @code{cat("foo", 3, T)} returns
+@code{"foo3T"}.
+@end quotation
+
+@cindex strings, cleaned up
+
+@code{clean (s: string): string}
+@quotation
+Returns a cleaned up version of @code{s}, meaning that:
+@cindex NUL
+@cindex DEL
+@cindex delete character
+@quotation
+@itemize @bullet
+@item 
+embedded NULs become the text ``@code{\0}''
+
+@item 
+embedded DELs (delete characters) become the text ``@code{^?}''
+
+@item 
+ASCII ``control'' characters with code <= 26 become the
+text ``@code{^}@emph{Letter}'', where @emph{Letter} is
+the corresponding (upper case) control character; for example,
+ASCII 2 becomes ``@code{^B}''
+
+@item 
+ASCII ``control'' characters with codes between 26 and 32 (non-inclusive)
+become the text ``@code{\x}@emph{hex-code}''; for example,
+ASCII 31 becomes ``@code{\x1f}''
+
+@item 
+if the string does not yet have a trailing NUL, one is added.
+@end itemize
+@end quotation
+@end quotation
+
+@code{close (f: file): bool}
+@quotation
+Flushes any buffered output for the given file and closes it.
+Returns true if the file was open, false if already closed or
+never opened.
+@end quotation
+
+@code{connection_record (id: conn_id): connection}
+@quotation
+Returns the @code{connection} record corresponding to the non-existing connection id if not a known connection.
+@emph{Note: If the connection does not exist, then exits with a fatal run-time error. }
+
+@emph{Deficiency: If Bro had an exception mechanism, then we could avoid the fatal run-time error, and likewise could get rid of @code{active_connection} . }
+@end quotation
+
+@code{contains_string (big: string, little: string): bool}
+@quotation
+Returns true if the string @code{little} occurs somewhere within
+@code{big}, false otherwise.
+@end quotation
+
+@cindex time, clock
+@cindex clock time
+@code{current_time (): time}
+@quotation
+Returns the current clock time.  You will usually instead want to
+use @code{network_time}.
+@end quotation
+
+@code{discarder_check_icmp (i: ip_hdr, ih: icmp_hdr): bool}
+@quotation
+Not documented.
+@end quotation
+
+@code{discarder_check_ip (i: ip_hdr): bool}
+@quotation
+Not documented.
+@end quotation
+
+@code{discarder_check_tcp (i: ip_hdr, t: tcp_hdr, d: string): bool}
+@quotation
+Not documented.
+@end quotation
+
+@code{discarder_check_udp (i: ip_hdr, u: udp_hdr, d: string): bool}
+@quotation
+Not documented.
+@end quotation
+
+@cindex line editing
+@cindex editing
+@cindex backspace character
+@cindex DEL
+@cindex BS
+@code{edit (s: string, edit_char: string): string}
+@quotation
+Returns a version of @code{s} assuming that @code{edit_char} is the ``backspace''
+character (usually @code{"\x08"} for backspace or @code{"\x7f"} for DEL).
+For example, @code{edit("hello there", "e")} returns @code{"llo t"}.
+
+@code{edit_char} must be a string of exactly one character, or Bro generates
+a run-time error and uses the first character in the string.
+
+@emph{Deficiency: To do a proper job, edit should also know about delete-word and delete-line editing; and it would be very convenient if it could do multiple types of edits all in one shot, rather than requiring separate invocations. }
+@end quotation
+
+@code{exit (): int}
+@quotation
+Exits Bro with a status of 0.
+
+@emph{Deficiency: This function should probably allow you to specify the exit status. }
+
+@emph{Note: If you invoke this function, then the usual cleanup functions  
+@code{net_done} and @code{bro_done} are NOT invoked. 
+There probably should be an additional ``@code{shutdown}'' function that provides for cleaner termination.  }
+@end quotation
+
+@code{flush_all (): bool}
+@quotation
+Flushes all open files to disk.
+@end quotation
+
+@cindex formatting text
+@cindex text, formatting
+@cindex string, formatting
+@cindex width, of formatted strings
+@cindex precision, of formatted strings
+@cindex format, width
+@cindex format, precision
+
+@code{fmt (args: any): string}
+@quotation
+Performs @emph{sprintf}-style formatting.  The first argument gives
+the format specifier to which the remaining arguments are formatted,
+left-to-right.  As with @emph{sprintf}, the format for each argument
+is introduced using ``%'', and
+formats beginning with a positive integer @emph{m} specify
+that the given field should have a width of @emph{m} characters.  Fields
+with fewer characters are right-padded with blanks up to this width.
+
+A format specifier of ``@code{.$n}'' (coming after @code{m}, if present)
+instructs @code{fmt} to use a precision of @emph{n} digits.  You can
+only specify a precision for the @code{e}, @code{f} or @code{g}
+formats.
+(@code{fmt} generates a run-time error if either @emph{m} or @emph{n} exceeds 127.)
+
+The different format specifiers are:
+
+@table @samp
+
+@item %
+A literal percent-sign character.
+
+@item @code{D} 
+Format as a date.  Valid only for values of type @code{time}.
+
+The exact format is
+@emph{yy}--@emph{mm}--@emph{dd}--@emph{hh}:@emph{mm}:@emph{ss}
+for the local time zone, per @emph{strftime}.
+
+@cindex little endian
+@cindex big endian
+@cindex endian issues
+@cindex host order (vs. network order)
+@cindex network order (vs. host order)
+@cindex integers, network vs. host order
+
+@item @code{d} 
+Format as an integer.  Valid for types @code{bool},
+@code{count}, @code{int}, @code{ port}, @code{addr}, and @code{net},
+with the latter three being converted from network order to
+host order prior to formatting.  @code{bool} values of true format
+as the number 1, and false as 0.
+
+@item @code{e, f, g}
+Format as a floating point value.
+Valid for types @code{double}, @code{time}, and @code{interval}.
+The formatting is the same as for @emph{printf}, including
+the field width @emph{m} and precision @emph{n}.
+
+@end table
+
+Given no arguments, @code{fmt} returns an empty string.
+
+Given a non-string first argument, @code{fmt} returns the concatenation of
+all its arguments, per @code{cat}.
+
+Finally, given the wrong number of additional arguments for the given
+format specifier, @code{fmt} generates a run-time error.
+@end quotation
+
+@cindex authentication dialog
+@cindex state, of a Telnet/Rlogin session
+@cindex Telnet, session state
+@cindex Rlogin, session state
+@cindex login session, state
+
+@code{get_login_state (c: conn_id): count}
+@quotation
+Returns the state of the given login (Telnet or Rlogin) connection,
+one of:
+
+@table @samp
+
+@item @code{LOGIN_STATE_AUTHENTICATE}
+The connection is in its initial authentication dialog.
+
+@item @code{LOGIN_STATE_LOGGED_IN}
+The analyzer believes the user has successfully authenticated.
+
+@item @code{LOGIN_STATE_SKIP}
+The analyzer has skipped any further processing of the connection.
+
+@item @code{LOGIN_STATE_CONFUSED}
+The analyzer has concluded that it does not correctly know the
+state of the connection, and/or the username associated with it.
+
+@end table
+@end quotation
+
+@code{connection_id} is not a known login connection
+or a run-time error and a value of @code{LOGIN_STATE_AUTHENTICATE}
+if the connection is not a login connection.
+
+@cindex sequence numbers, connection originator
+@cindex connection, sequence numbers
+@code{get_orig_seq (c: conn_id): count}
+@quotation
+Returns the highest sequence number sent by a connection's originator,
+or 0 if there's no such TCP connection.  Sequence numbers are absolute
+(i.e., they reflect the values seen directly in packet headers; they are
+not relative to the beginning of the connection).
+@end quotation
+
+@cindex sequence numbers, connection responder
+@cindex connection, sequence numbers
+@code{get_resp_seq (c: conn_id): count}
+@quotation
+Returns the highest sequence number sent by a connection's responder,
+or 0 if there's no such TCP connection.
+@end quotation
+
+@cindex environment, accessing
+@code{getenv (var: string): string}
+@quotation
+Looks up the given environment variable and returns its value,
+or an empty string if it is not defined.
+@end quotation
+
+@cindex ports, TCP vs. UDP
+@cindex TCP vs. UDP ports
+@code{is_tcp_port (p: port): bool}
+@quotation
+Returns true if the given @code{port} value corresponds to a TCP port,
+false otherwise (i.e., it belongs to a UDP port).
+@end quotation
+
+@cindex length, of table or set
+@cindex size, of table or set
+@cindex number of elements, in table or set
+@cindex table size
+@cindex set size
+@code{length (args: any): count}
+@quotation
+Returns the number of elements in its argument, which must be of
+type @code{table} or @code{set}.  If not exactly one argument is
+specified, or if the argument is not a table or a set, then generates
+a run-time message and returns 0.
+
+@cindex union type, need for
+@cindex any type, replacing with union type
+
+@emph{Deficiency: If Bro had a union type, then we could get rid of the magic ``@code{args: any}'' specification and catch parameter 
+mismatches at compile-time instead of run-time. }
+@end quotation
+
+@cindex log file
+@cindex name, of log file
+@code{log_file_name (tag: string): string}
+@quotation
+Returns a name for a log file (such as @code{weird} or @code{conn} )
+in a standard form.  The form depends on whether $BRO_LOG_SUFFIX is set.
+If so, then the format is ``@code{<}@emph{tag}@code{>.<\$BRO_LOG_SUFFIX>}''.  Otherwise,
+it is simply @code{tag}.
+@end quotation
+
+@cindex masking
+@cindex address masking
+@cindex CIDR
+@cindex subnets
+@code{mask_addr (a: addr, top_bits_to_keep: count): addr}
+@quotation
+Returns the address @code{a} masked down to the number of upper bits
+indicated by @code{top_bits_to_keep}, which must be greater than 0 and
+less than 33.  For example, @code{mask_addr(1.2.3.4, 18)} returns
+@code{1.2.0.0}, and @code{mask_addr(1.2.255.4, 18)} returns
+@code{1.2.192.0}.
+
+Compare with @code{to_net}.
+@end quotation
+
+@cindex maximum
+@code{max_count (a: count, b: count): count}
+@quotation
+Returns the larger of @code{a} or @code{b}.
+@end quotation
+
+@code{max_double (a: double, b: double): double}
+@quotation
+Returns the larger of @code{a} or @code{b}.
+@end quotation
+
+@code{max_interval (a: interval, b: interval): interval}
+@quotation
+Returns the larger of @code{a} or @code{b}.
+
+@cindex polymorphic functions, need for
+@emph{Deficiency: If Bro supported polymorphic functions, then this function could be merged with its predecessors, gaining simplicity and clarity. }
+@end quotation
+
+@cindex minimum
+@code{min_count (a: count, b: count): count}
+@quotation
+Returns the smaller of @code{a} or @code{b}.
+@end quotation
+
+@code{min_double (a: double, b: double): double}
+@quotation
+Returns the smaller of @code{a} or @code{b}.
+@end quotation
+
+
+@code{min_interval (a: interval, b: interval): interval}
+@quotation
+Returns the smaller of @code{a} or @code{b}.
+
+@cindex polymorphic functions, need for
+@emph{Deficiency: If Bro supported polymorphic functions, then this function could be merged with its predecessors, gaining simplicity and clarity. }
+@end quotation
+
+@cindex directories, creating
+@cindex creating directories
+@code{mkdir (f: string): bool}
+@quotation
+Creates a directory with the given name, if it does not already exist.
+Returns true upon success, false (with a run-time message) if
+unsuccessful.
+@end quotation
+
+@cindex time, clock
+@cindex time, packet
+@cindex clock time
+@cindex packets, time
+@cindex scripting, general
+@cindex general scripting
+@code{network_time (): time}
+@quotation
+Returns the timestamp of the most recently read packet, whether read
+from a live network interface or from a save file.
+Compare against @code{current_time}.  In general, you should use
+@code{network_time} unless you're using Bro for non-networking uses
+(such as general scripting;
+not particularly recommended), because otherwise your script may
+behave very differently on live traffic versus played-back traffic
+from a save file.
+@end quotation
+
+@cindex files, opening
+@cindex opening a file
+@code{open (f: string): file}
+@quotation
+Opens the given filename for write access.  Creates the file if it
+does not already exist.  Generates a run-time error if the file
+cannot be opened/created.
+@end quotation
+
+@cindex files, appending
+@cindex files, opening
+@cindex appending to a file
+@cindex opening a file
+@code{open_for_append (f: string): file}
+@quotation
+Opens the given filename for append access.  Creates the file if it
+does not already exist.  Generates a run-time error if the file
+cannot be opened/created.
+@end quotation
+
+@code{open_log_file (tag: string): file}
+@quotation
+Opens a log file associated with the given tag, using a filename
+format as returned by .
+@end quotation
+
+@cindex record, ftp_port
+@code{parse_ftp_pasv (s: string): ftp_port}
+@quotation
+Parses the server's reply to an FTP @code{PASV} command to extract the
+IP address and port number indicated by the server.  The values
+are returned in an @code{ftp_port} record, which has three
+fields: @code{h}, the address (@emph{h} is mnemonic for @emph{host});
+@code{p}, the (TCP) port; and @code{valid}, a boolean that is true
+if the server's reply was in the required format, false if not,
+or if any of the individual values (or the indicated port number)
+are out of range.
+@end quotation
+
+@cindex record, ftp_port
+@code{parse_ftp_port (s: string): ftp_port}
+@quotation
+Parses the argument included in a client's FTP @code{PORT} request to
+extract the IP address and port number indicated by the server.  The values
+are returned in an @code{ftp_port}, which has three fields, as
+indicated in the discussion of @code{parse_ftp_pasv}.
+@end quotation
+
+
+@cindex live traffic
+@cindex recorded traffic
+@cindex traffic, live vs. recorded
+@cindex analysis, on-line
+@cindex on-line analysis
+@cindex analysis, off-line
+@cindex off-line analysis
+
+@code{reading_live_traffic (): bool}
+@quotation
+Returns true if Bro was invoked to read live network traffic (from
+one or more network interfaces, per ), false
+if it's reading from save files being played back .
+
+@emph{Note: This function returns true even after Bro has stopped reading network traffic, for example due to receiving a termination signal. }
+
+@end quotation
+
+@code{set_buf (f: file, buffered: bool)}
+@quotation
+Specifies that writing to the given file should either be fully
+buffered (if @code{buffered} is true), or line-buffered (if false).
+Does not return a value.
+@end quotation
+
+@code{set_contents_file (c: conn_id, direction: count, f: file): bool}
+@quotation
+Specifies that the traffic stream of the given connection in the given
+direction should be recorded to the given file.  @code{direction} is one of
+the values given in the table below.
+
+@float Table, Directions
+@multitable  @columnfractions .25 .6 
+@item @strong{Direction} @tab @strong{Meaning}
+@item @code{CONTENTS_NONE}
+@tab Stop recording the connection's content
+@item @code{CONTENTS_ORIG}
+@tab Record the data sent by the connection originator (often the client).
+@item @code{CONTENTS_RESP}
+@tab Record the data sent by the connection responder (often the server).
+@item @code{CONTENTS_BOTH}
+@tab Record the data sent in both directions.
+@end multitable
+@caption{Different types of directions for @code{set_contents} file}
+@end float
+@*
+
+
+@emph{Note: CONTENTS_BOTH results in the two directions being intermixed in the file, in the order the data was seen by Bro. }
+
+@emph{Note: The data recorded to the file reflects the byte stream, not the contents of individual packets.  Reordering and duplicates are removed.  If any data is missing, the recording stops at the missing data; see @code{ack_above_hole} for how this can happen. }
+
+@emph{Deficiency: Bro begins recording the traffic stream starting with new traffic it sees.  Experience has shown it would be highly handy if Bro could record the entire connection to the file, including previously seen traffic.  In principle, this is possible if Bro is recording the traffic to a 
+save file , which a separate utility program could then read to extract the stream. }
+
+Returns true upon success, false upon an error.
+@end quotation
+
+@cindex authentication dialog
+@cindex state, of a Telnet/Rlogin session
+@cindex Telnet, session state
+@cindex Rlogin, session state
+@cindex login session, state
+
+@code{set_login_state (c: conn_id, new_state: count): bool}
+@quotation
+Manually sets the state of the given login (Telnet or Rlogin) connection
+to @code{new_state}, which should be one of the values described
+in .
+
+Generates a run-time error and returns false
+if the connection is not a login connection.  Otherwise, returns true.
+@end quotation
+
+@cindex packets, recording
+@cindex recording packets
+@cindex save file, control over what's recorded
+@cindex write file, control over what's recorded
+@cindex trace file, control over what's recorded
+
+@code{set_record_packets (c: conn_id, do_record: bool): bool}
+@quotation
+Controls whether Bro should or should not record the packets corresponding
+to the given connection to the save file , if any.
+
+Returns true upon success, false upon an error.
+@end quotation
+
+@cindex avoiding processing
+@cindex processing, avoiding
+@cindex shedding load
+@cindex load, shedding
+
+@code{skip_further_processing (c: conn_id): bool}
+@quotation
+Informs bro that it should skip any further processing of the contents
+of the given connection.  In particular, Bro will refrain from reassembling
+the TCP byte stream and from generating events relating to any analyzers
+that have been processing the connection.  Bro will still generate
+connection-oriented events such as @code{connection_finished} .
+
+This function provides a way to shed some load in order to reduce
+the computational burden placed on the monitor.
+
+Returns true upon success, false upon an error.
+@end quotation
+
+@cindex string, extraction
+@cindex substrings
+
+@code{sub_bytes (s: string, start: count, n: count): string}
+@quotation
+Returns a copy of @code{n} bytes from the given string, starting at position
+@code{start}.  The beginning of a string corresponds to position 1.
+
+If @code{start} is 0 or exceeds the length of the string, returns
+an empty string.
+
+If the string does not have @code{n} characters from @code{start} to
+its end, then returns the characters from @code{start} to the end.
+@end quotation
+
+@cindex command shell
+@cindex Bourne shell
+@cindex shell escape
+@cindex scripts, running
+@cindex executables, running
+@cindex running outside scripts or executables
+
+@code{system (s: string): int}
+@quotation
+Runs the given string as a @emph{sh} command (via C's @emph{system} call).
+
+@emph{Note: The command is run in the background with stdout redirected to stderr. }
+
+Returns the return value from the @emph{system} call.  @emph{Note: This corresponds to the status of backgrounding the given command, NOT to the exit status of the command itself. }  
+A value of 127 corresponds
+to a failure to execute @emph{sh}, and -1 to an internal system failure.
+@end quotation
+
+@code{to_lower (s: string): string}
+@quotation
+Returns a copy of the given string with the uppercase letters
+(as indicated by @emph{isascii} and @emph{isupper})
+folded to lowercase (via @emph{tolower}).
+@end quotation
+
+@cindex masking
+@cindex address masking
+@cindex CIDR
+@cindex subnets
+@cindex prefixes, network
+@cindex network prefixes
+
+@code{to_net (a: addr): net}
+@quotation
+Returns the network prefix historically associated with the given
+address.  That is, if @code{a}'s leading octet is less than 128,
+then returns
+@code{<}@emph{a}@code{>}@emph{/8};
+if between 128 and 191, inclusive, then
+@code{<}@emph{a}@code{>}@emph{/16};
+if between 192 and 223, then
+@code{<}@emph{a}@code{>}@emph{/24};
+and, otherwise,
+@code{<}@emph{a}@code{>}@emph{/32}.
+See the discussion of the  type for more about network prefixes.
+
+Generates a run-time error and returns @code{0.0.0.0} 
+if the address is IPv6.
+
+@emph{Note: Such network prefixes have become obsolete with the advent of CIDR; still, for some sites they prove useful because they correspond to existing address allocations. }
+
+Compare with @code{mask_addr}.
+@end quotation
+
+@code{to_upper s: string): string}
+@quotation
+Returns a copy of the given string with the lowercase letters
+(as indicated by @emph{isascii} and @emph{islower})
+folded to uppercase (via @emph{toupper}).
+@end quotation
+
+@end table
+
+@menu
+* Run-time errors for non-existing connections::  
+* Run-time errors for strings with NULs::  
+* Functions for manipulating strings::	
+* Functions for manipulating time::  
+@end menu
+
+@node Run-time errors for non-existing connections,
+@subsection Run-time errors for non-existing connections
+
+@cindex connection, non-existing
+
+Note that for all functions that take a @code{conn_id} argument
+except @code{active-connection}, Bro generates a run-time
+error and returns false if the given connection does not exist.
+
+@cindex NULs, disallowed in certain function calls
+@cindex NULs, termination
+@cindex strings, termination with NULs
+@cindex NULs, allowed in strings
+
+@node Run-time errors for strings with NULs,
+@subsection Run-time errors for strings with NULs
+
+While Bro allows NULs embedded within strings,
+for many of the predefined functions, their presence spells trouble,
+particularly when the string is being passed to a C run-time function.
+The same holds for strings that are @emph{not} NUL-terminated.  Because
+Bro string constants and values returned by Bro functions that construct
+strings such as @code{fmt} and @code{cat} are all NUL-terminated, such strings
+will not ordinarily arise; but their presence could indicate an attacker
+attempting to manipulate either a TCP endpoint, or the monitor itself,
+into misinterpreting a string they're sending.
+
+In general, any of the functions above that are passed a string argument
+will check for the presence of an embedded NUL or the lack of a terminating
+NUL.  If either occurs, they generate a run-time message, and the
+string is transformed into the value
+@code{"<string-with-NUL>"}.
+
+There are three exceptions: @code{clean}, @code{byte_len}, and
+@code{sub_bytes}.  These functions do not complain about embedded
+NULs or lack of trailing NULs.
+
+@node Functions for manipulating strings,
+@subsection Functions for manipulating strings
+
+@emph{Fixme: Missing}
+
+@node Functions for manipulating time,
+@subsection Functions for manipulating time
+
+@emph{Fixme: Missing}
+
+@cindex predefined functions
+

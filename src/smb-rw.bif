@@ -1,0 +1,16 @@
+rewriter smb_header%(is_orig: bool, hdr: smb_hdr%)
+	%{
+	const int is_orig = 0;
+
+	@WRITE@(is_orig, 1, "\xff");
+	@WRITE@(is_orig, 3, "SMB");
+	@WRITE@(is_orig, 1, hdr->command);
+	@WRITE@(is_orig, 4, hdr->error);
+	@WRITE@(is_orig, 1, hdr->flags);
+	@WRITE@(is_orig, 2, hdr->flags2);
+	@WRITE@(is_orig, 6, "\x0\x0\x0\x0\x0\x0");
+	@WRITE@(is_orig, 6, "\x0\x0\x0\x0\x0\x0");
+	@WRITE@(is_orig, 2, hdr->tid);
+	@WRITE@(is_orig, 2, hdr->pid);
+	@WRITE@(is_orig, 2, hdr->mid);
+	%}

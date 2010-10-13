@@ -1,0 +1,172 @@
+Index: pac_type.h
+===================================================================
+--- pac_type.h	(revision 4130)
++++ pac_type.h	(working copy)
+@@ -78,12 +78,6 @@
+ 	string EvalByteOrder(Output *out_cc, Env *env) const;
+ 
+ 	virtual string EvalMember(const ID *member_id) const;
+-#if 0
+-	// member_env() is used for finding a member of the type.
+-	// Thus member_env() of a ParameterizedType should return 
+-	// ReferredDataType()->env()
+-	// virtual Env *member_env() const;
+-#endif
+ 
+ 	// The variable defined by the type
+ 	const ID *value_var() const		{ return value_var_; }
+@@ -223,6 +217,8 @@
+ 
+ 	virtual bool ByteOrderSensitive() const = 0;
+ 
++	bool NeedsBufferingStateVar() const;
++
+ 	void GenBufferingLoop(Output* out_cc, Env* env, int flags);
+ 	void GenParseBuffer(Output* out_cc, Env* env, int flags);
+ 	void GenParseCode2(Output* out_cc, Env* env, const DataPtr& data, int flags);
+Index: lib/binpac_buffer.h
+===================================================================
+--- lib/binpac_buffer.h	(revision 4130)
++++ lib/binpac_buffer.h	(working copy)
+@@ -24,18 +24,18 @@
+ 	void DiscardData();
+ 
+ 	// Whether there is enough data for the frame
+-	bool ready() const{ return message_complete_; }
++	bool ready() const{ return message_complete_ || mode_ == UNKNOWN_MODE; }
+ 
+ 	inline const_byteptr begin() const
+ 		{
+-		BINPAC_ASSERT(message_complete_);
++		BINPAC_ASSERT(ready());
+ 		return ( buffer_n_ == 0 ) ? 
+ 			orig_data_begin_ : buffer_;
+ 		}
+ 
+ 	inline const_byteptr end() const
+ 		{
+-		BINPAC_ASSERT(message_complete_);
++		BINPAC_ASSERT(ready());
+ 		if ( buffer_n_ == 0 )
+ 			{
+ 			BINPAC_ASSERT(frame_length_ >= 0);
+Index: pac_type.cc
+===================================================================
+--- pac_type.cc	(revision 4130)
++++ pac_type.cc	(working copy)
+@@ -285,9 +285,8 @@
+ 			parsing_complete_var, extern_type_bool->Clone());
+ 		parsing_complete_var_field_->Prepare(env);
+ 
+-		if ( ( buffer_mode() == BUFFER_BY_LENGTH ||
+-		       buffer_mode() == BUFFER_BY_LINE ) &&
+-		       ! env->GetDataType(buffering_state_id) )
++		if ( NeedsBufferingStateVar() && 
++		     !env->GetDataType(buffering_state_id) )
+ 			{
+ 			buffering_state_var_field_ = new PrivVarField(
+ 				buffering_state_id->clone(), 
+@@ -387,17 +386,17 @@
+ 			break;
+ 
+ 		case BUFFER_BY_LENGTH:
+-			if ( buffering_state_var_field_ )
+-				{
+-				out_cc->println("if ( %s == 0 )",
+-					env->RValue(buffering_state_id));
+-				out_cc->inc_indent();
+-				out_cc->println("{");
+-				}
++			if ( !NeedsBufferingStateVar() )
++				break;
+ 
++			ASSERT(env->GetDataType(buffering_state_id));
++			out_cc->println("if ( %s == 0 )",
++				env->RValue(buffering_state_id));
++			out_cc->inc_indent();
++			out_cc->println("{");
++
+ 			if ( attr_length_expr_ )
+ 				{
+-				// frame_buffer_arg = attr_length_expr_->EvalExpr(out_cc, env);
+ 				frame_buffer_arg = strfmt("%d", InitialBufferLength());
+ 				}
+ 			else if ( attr_restofflow_ )
+@@ -407,7 +406,7 @@
+ 				}
+ 			else
+ 				{
+-				frame_buffer_arg = strfmt("%d", InitialBufferLength());
++				ASSERT(0);
+ 				}
+ 
+ 			out_cc->println("%s->NewFrame(%s, %s);",
+@@ -415,16 +414,14 @@
+ 				frame_buffer_arg.c_str(),
+ 				attr_chunked() ? "true" : "false");
+ 
+-			if ( buffering_state_var_field_ )
+-				{
+-				out_cc->println("%s = 1;",
+-					env->LValue(buffering_state_id));
+-				out_cc->println("}");
+-				out_cc->dec_indent();
+-				}
++			out_cc->println("%s = 1;",
++				env->LValue(buffering_state_id));
++			out_cc->println("}");
++			out_cc->dec_indent();
+ 			break;
+ 
+ 		case BUFFER_BY_LINE:
++			ASSERT(env->GetDataType(buffering_state_id));
+ 			out_cc->println("if ( %s == 0 )",
+ 				env->RValue(buffering_state_id));
+ 			out_cc->inc_indent();
+@@ -890,6 +887,25 @@
+ 	return ! attr_byteorder_expr() && ByteOrderSensitive(); 
+ 	}
+ 
++bool Type::NeedsBufferingStateVar() const
++	{
++	if ( !incremental_input() )
++		return false;
++	switch ( buffer_mode() )
++		{
++		case BUFFER_NOTHING:
++		case NOT_BUFFERABLE:
++			return false;
++		case BUFFER_BY_LINE:
++			return true;
++		case BUFFER_BY_LENGTH:
++			return ( attr_length_expr_ || attr_restofflow_ );
++		default:
++			ASSERT(0);
++			return false;
++		}
++	}
++
+ bool Type::DoTraverse(DataDepVisitor *visitor)
+ 	{
+ 	foreach (i, FieldList, fields_)
+Index: pac_flow.cc
+===================================================================
+--- pac_flow.cc	(revision 4130)
++++ pac_flow.cc	(working copy)
+@@ -224,15 +224,13 @@
+ 	out_cc->println("catch ( Exception const &e )");
+ 	out_cc->inc_indent();
+ 	out_cc->println("{");
+-	out_cc->println("DEBUG_MSG(\"%%.6f binpac exception: %%s\\n\", network_time(), e.c_msg());");
+ 	GenCleanUpCode(out_cc);
+ 	if ( dataunit_->type() == AnalyzerDataUnit::FLOWUNIT )
+ 		{
+ 		out_cc->println("%s->DiscardData();",
+ 			env_->LValue(flow_buffer_id));
+-		out_cc->println("BINPAC_ASSERT(!%s->ready());",
+-			env_->RValue(flow_buffer_id));
+ 		}
++	out_cc->println("throw e;");
+ 	out_cc->println("}");
+ 	out_cc->dec_indent();
+ 

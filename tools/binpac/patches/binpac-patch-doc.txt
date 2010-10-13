@@ -1,0 +1,87 @@
+binpac fixes
+----------------
+
+numbers of issues below correspond to the patch numbers
+
+(1) correct calculation of minimal header size in pac_expr.cc
+- problem: EXPR_CALLARGS and EXPR_CASE not considered for the calculation
+  of minimal header size
+- solution: added two cases in switch stmt of Expr::MinimalHeaderSize
+  for EXPR_CALLARGS and EXPR_CASE
+
+
+(2) ensure parsing of fields first referenced in a case expression or
+    let field with an &if attribute
+- problem: in cases where the if expression evaluates to false or the
+  proper case does not occur, fields get not parsed at all
+- solution: force evaluation of all IDs referenced in a let field with
+  if attribute or a case expression before the body of the corresponding
+  switch stmt or the if stmt
+- added public method Expr::ForceIDEval, properly called before
+  generating the code of a field with if attribute or the case expression
+
+
+(3) properly assert the use of fields with an if attribute
+- problem: the use of fields with an if attribute was not asserted in all
+  cases and asserted in the wrong way in some others due to the
+  corresponding BINPAC_ASSERT only called upon parsing the field
+- solution: perform BINPAC_ASSERT upon calling the fields accessor
+  function
+- moved BINPAC_ASSERT statement from LetField::GenEval to
+  Type::GenPubDecls
+
+
+(4) incremental input with records with a non-negative StaticSize
+- problem: incremental input with records with a StaticSize >= 0
+  cannot be performed due to necessary length attribute, leading to
+  an invalid call of GenBoundaryCheck in RecordType::DoGenParseCode
+- solution: added a check for incremental input in
+  RecordType::DoGenParseCode before calling GenBoundaryCheck
+
+
+(5) empty type with incremental input
+- problem: with an empty type and incremental input, although the
+  Parse function is created, it is never called, leading to problems,
+  if additional actions are to be performed when encountering that
+  empty type
+- solution: generate call to Parse of empty type in Type::GenParseBuffer
+
+
+(6) parsing loop in flow ParseBuffer (while(true))
+- problem: while(true) leads to problems after parsing of a type is
+  complete; at this time, it is unexpected that parsing continues, even
+  if no data is available in the flow buffer
+- solution: check if data is available before starting a new parsing
+  cycle
+- added a method data_available to FlowBuffer
+- changed while(true) in FlowDecl::GenCodeFlowUnit to
+  while(flow_buffer_->data_available())
+
+
+(7) initialization of flow buffer in CaseType with bufferable fields
+    in cases
+- problem: initialization of buffer occurs in every Parse call,
+  regardless if it was initialized before or not; initialization
+  is correct only on first such occurence
+- solution: check to buffer_state is to be created always when
+  buffering_state_id is in environment in Type::GenBufferConfig
+- changed condition from buffering_state_var_field_ to
+  env->GetDataType(buffering_state_id)
+
+
+(8) allowing init and cleanup code to be redefined, as well as addition
+    of code to FlowEOF calls in analyzer and flow
+- problem 1: when refining an analyzer or flow definition, additional
+  init and cleanup code was not allowed, if these were already defined
+  before; this leads to problems when adding new members, as these
+  cannot be initialized and destroyed properly
+- solution: allow init and cleanup code to be specified more than once
+- changed deifnitions and usage of constructor_helper and
+  destructor_helper to allow for lists of constructor and destructor
+  helpers (similar to member declarations) in pac_analyzer.h and
+  pac_analyzer.cc
+- problem 2: in some cases, it is desirable to execute code when
+  encountering the end of the input stream, which is not possible in
+  binpac
+- solution: added a %eof binpac primitive similar to %init, which adds
+  code to the FlowEOF function of an analyzer or a flow

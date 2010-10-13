@@ -1,0 +1,12 @@
+diff -urN bro-1.2.1-orig/src/binpac/pac_record.cc bro-1.2.1-ssl-binpac/src/binpac/pac_record.cc
+--- bro-1.2.1-orig/src/binpac/pac_record.cc	2006-07-26 15:02:40.000000000 -0700
++++ bro-1.2.1-ssl-binpac/src/binpac/pac_record.cc	2007-05-08 16:13:33.373850000 -0700
+@@ -123,7 +123,7 @@
+ void RecordType::DoGenParseCode(Output* out_cc, Env* env, 
+ 		const DataPtr& data, int flags)
+ 	{
+-	if ( StaticSize(env) >= 0 )
++	if ( !incremental_input() && StaticSize(env) >= 0 )
+ 		GenBoundaryCheck(out_cc, env, data);
+ 
+ 	if ( incremental_parsing() )

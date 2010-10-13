@@ -1,0 +1,97 @@
+diff -urN bro-1.2.1-orig/src/binpac/pac_expr.cc bro-1.2.1-ssl-binpac/src/binpac/pac_expr.cc
+--- bro-1.2.1-orig/src/binpac/pac_expr.cc	2006-07-26 15:02:40.000000000 -0700
++++ bro-1.2.1-ssl-binpac/src/binpac/pac_expr.cc	2007-05-04 14:31:11.728494000 -0700
+@@ -245,6 +245,12 @@
+ 	out_cc->println("%s %s;", 
+ 	                val_type->DataTypeStr().c_str(), 
+ 	                env->LValue(val_var));
++
++	// force evaluation of IDs appearing in case stmt
++       operand_[0]->ForceIDEval(out_cc, env);
++	foreach(i, CaseExprList, cases_)
++		(*i)->value()->ForceIDEval(out_cc, env);
++
+ 	out_cc->println("switch ( %s )", operand_[0]->EvalExpr(out_cc, env));
+ 
+ 	out_cc->inc_indent();
+@@ -386,6 +392,49 @@
+ 		}
+ 	}
+ 
++void Expr::ForceIDEval(Output* out_cc, Env* env)
++        {
++	switch ( expr_type_ )
++		{
++		case EXPR_NUM:
++		case EXPR_SIZEOF:
++		case EXPR_OFFSETOF:
++			break;
++
++		case EXPR_ID:
++			if ( ! env->Evaluated(id_) )
++				env->Evaluate(out_cc, id_);
++			break;
++
++		case EXPR_MEMBER:
++			operand_[0]->ForceIDEval(out_cc, env);
++			break;
++
++		case EXPR_CALLARGS:
++		        {
++		        foreach(i, ExprList, args_)
++			        (*i)->ForceIDEval(out_cc, env);
++			}
++			break;
++
++		case EXPR_CASE:
++		        {
++		        operand_[0]->ForceIDEval(out_cc, env);
++			foreach(i, CaseExprList, cases_)
++				(*i)->value()->ForceIDEval(out_cc, env);
++		        }
++			break;
++
++		default:
++			// Evaluate every operand by default
++			for ( int i = 0; i < 3; ++i )
++				if ( operand_[i] )
++					operand_[i]->ForceIDEval(out_cc, env);
++			break;
++		}
++	}
++
++
+ const char* Expr::EvalExpr(Output* out_cc, Env* env)
+ 	{
+ 	GenEval(out_cc, env);
+diff -urN bro-1.2.1-orig/src/binpac/pac_expr.h bro-1.2.1-ssl-binpac/src/binpac/pac_expr.h
+--- bro-1.2.1-orig/src/binpac/pac_expr.h	2006-07-26 15:02:39.000000000 -0700
++++ bro-1.2.1-ssl-binpac/src/binpac/pac_expr.h	2007-05-04 14:16:31.624287000 -0700
+@@ -56,6 +56,11 @@
+ 	//
+ 	const char *EvalExpr(Output *out, Env *env);
+ 
++	// force evaulation of IDs contained in this expression;
++	// necessary with case expr and conditional let fields (&if)
++	// for correct parsing of fields
++	void ForceIDEval(Output *out_cc, Env *env);
++
+ 	// Returns the set_* function of the expression. 
+ 	// The expression must be of form ID or x.ID.
+ 	string SetFunc(Output *out, Env *env);
+diff -urN bro-1.2.1-orig/src/binpac/pac_let.cc bro-1.2.1-ssl-binpac/src/binpac/pac_let.cc
+--- bro-1.2.1-orig/src/binpac/pac_let.cc	2006-07-26 15:02:39.000000000 -0700
++++ bro-1.2.1-ssl-binpac/src/binpac/pac_let.cc	2007-05-04 15:32:09.695568000 -0700
+@@ -80,7 +80,12 @@
+ 	if ( type_->attr_if_expr() )
+ 		{
+ 		// A conditional field
++
+ 		env->Evaluate(out_cc, type_->has_value_var());
++
++		// force evaluation of IDs contained in this expr
++		expr()->ForceIDEval(out_cc, env);
++
+ 		out_cc->println("if ( %s )", 
+ 			env->RValue(type_->has_value_var()));
+ 		out_cc->inc_indent();

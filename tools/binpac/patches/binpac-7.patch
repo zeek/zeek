@@ -1,0 +1,21 @@
+diff -urN bro-1.2.1-orig/src/binpac/pac_type.cc bro-1.2.1-ssl-binpac/src/binpac/pac_type.cc
+--- bro-1.2.1-orig/src/binpac/pac_type.cc	2006-07-26 15:02:40.000000000 -0700
++++ bro-1.2.1-ssl-binpac/src/binpac/pac_type.cc	2007-05-24 10:56:42.140658000 -0700
+@@ -393,7 +393,7 @@
+ 			break;
+ 
+ 		case BUFFER_BY_LENGTH:
+-			if ( buffering_state_var_field_ )
++		        if ( env->GetDataType(buffering_state_id) )
+ 				{
+ 				out_cc->println("if ( %s == 0 )",
+ 					env->RValue(buffering_state_id));
+@@ -421,7 +421,7 @@
+ 				frame_buffer_arg.c_str(),
+ 				attr_chunked() ? "true" : "false");
+ 
+-			if ( buffering_state_var_field_ )
++			if ( env->GetDataType(buffering_state_id) )
+ 				{
+ 				out_cc->println("%s = 1;",
+ 					env->LValue(buffering_state_id));

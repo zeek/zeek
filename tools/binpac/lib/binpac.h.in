@@ -6,7 +6,7 @@
 
 #include <sys/param.h>
 
-@HOST_BIGENDIAN@
+#cmakedefine HOST_BIGENDIAN
 #ifdef HOST_BIGENDIAN
 #  define HOST_BYTEORDER	bigendian
 #else

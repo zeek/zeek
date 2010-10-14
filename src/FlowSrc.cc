@@ -12,6 +12,7 @@
 #include "FlowSrc.h"
 #include "Net.h"
 #include "netflow_pac.h"
+#include <errno.h>
 
 FlowSrc::FlowSrc()
 	{ // TODO: v9.

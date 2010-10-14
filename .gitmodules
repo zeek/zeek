@@ -1,0 +1,6 @@
+[submodule "aux"]
+	path = aux
+	url = ssh://bro@git.icir.org/bro-aux
+[submodule "binpac"]
+	path = binpac
+	url = ssh://bro@git.icir.org/binpac

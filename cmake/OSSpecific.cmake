@@ -9,15 +9,15 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     if (USE_NB_DNS)
         include(CheckCSourceCompiles)
         check_c_source_compiles("
-#include <arpa/nameser.h>
+        #include <arpa/nameser.h>
         int main() {
             HEADER *hdr; int d = NS_IN6ADDRSZ; return 0;
         }
         " ns_header_defined)
         if (NOT ns_header_defined)
             check_c_source_compiles("
-#include <arpa/nameser.h>
-#include <arpa/nameser_compat.h>
+            #include <arpa/nameser.h>
+            #include <arpa/nameser_compat.h>
             int main() {
                 HEADER *hdr; int d = NS_IN6ADDRSZ; return 0;
             }
@@ -51,7 +51,7 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "ultrix")
     list(APPEND CMAKE_CXX_FLAGS -std1 -g3)
     include(CheckCSourceCompiles)
     check_c_source_compiles("
-#include <sys/types.h>
+        #include <sys/types.h>
         int main() {
             void c(const struct a *);
             return 0;
@@ -67,7 +67,7 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "hpux" OR
     set(CMAKE_REQUIRED_FLAGS -Aa)
     set(CMAKE_REQUIRED_DEFINITIONS -D_HPUX_SOURCE)
     check_c_source_compiles("
-#include <sys/types.h>
+        #include <sys/types.h>
         int main() {
             int frob(int, char *);
             return 0;

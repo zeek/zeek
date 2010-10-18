@@ -13,9 +13,7 @@
 #include "pac_utils.h"
 #include "pac_exception.h"
 
-#ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif
 
 extern int yydebug;
 extern int yyparse();
@@ -187,8 +185,8 @@ int compile(const char* filename)
 
 void usage()
 	{
-#ifdef VERSION
-	fprintf(stderr, "binpac version %s\n", VERSION);
+#ifdef BINPAC_VERSION
+	fprintf(stderr, "binpac version %s\n", BINPAC_VERSION);
 #endif
 	fprintf(stderr, "usage: binpac [options] <pac files>\n");
 	fprintf(stderr, "     <pac files>           | pac-language input files\n");

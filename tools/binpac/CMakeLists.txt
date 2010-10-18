@@ -29,7 +29,7 @@ mark_as_advanced(build_config_file)
 
 include(${CMAKE_BINARY_DIR}/${build_config})
 
-set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules/)
+set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
 ##
 ## Project Configuration

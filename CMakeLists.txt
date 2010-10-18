@@ -45,19 +45,14 @@ find_package(BISON REQUIRED)
 find_package(PCAP REQUIRED)
 include_directories(BEFORE ${PCAP_INCLUDE_DIR})
 
-# TODO: find libpcap from system or use shipped version
 # TODO: find bind8 lib?
-# TODO: optional OpenSSL
+# TODO: require OpenSSL
 # TODO: optional libmagic
 # TODO: optional libGeoIP
 # TODO: optional libz
 # TODO: optional Endace's DAG tools
 # TODO: optional Google perftools
-# TODO: what's the equivalent of these configure settings:
 # TODO: compiler warning flags
-#  --disable-dependency-tracking  speeds up one-time build
-#  --enable-dependency-tracking   do not reject slow dependency extractors
-#  --disable-largefile     omit support for large files
 
 include(TestBigEndian)
 test_big_endian(WORDS_BIGENDIAN)

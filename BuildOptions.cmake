@@ -4,37 +4,51 @@
 #                                                                    #
 #--------------------------------------------------------------------#
 
+##
+## Installation Settings
+##
+
 # The installation directory
+# TODO: add to configure wrapper as '--prefix'
 set(CMAKE_INSTALL_PREFIX /usr/local
     CACHE STRING "Installation directory" FORCE)
 
 # The installation subdirectory for Bro policy files
+# TODO: add to configure wrapper as '--datadir'
 set(DATADIR share/bro
      CACHE STRING "Installation subdirectory for Bro policy files" FORCE)
 
-# Enable active mapping processing
-set(ACTIVE_MAPPING false
-    CACHE STRING "enable active mapping processing" FORCE)
+##
+## Optional Features
+##
 
-# Enable IPv6 processing
+# TODO: add to configure wrapper as '--bro-v6'
+# Eventually, this should be always on and won't be needed as an option
 set(BROv6 false
     CACHE STRING "enable IPv6 processing" FORCE)
 
-# Enable DFA state expiration
-set(EXPIRE_DFA_STATES false
-    CACHE STRING "enable DFA state expiration" FORCE)
+set(USE_INT64 true
+    CACHE STRING "enable use of int64 (long long) for integers" FORCE)
 
-# Enable select-based mainloop
-set(USE_SELECT_LOOP false
+# TODO: add to configure wrapper as '--enable-debug'
+# TODO: make this option do stuff
+set(ENABLE_DEBUG false
+    CACHE STRING "No compiler optimizations" FORCE)
+
+set(USE_SELECT_LOOP true
     CACHE STRING "enable select-based main loop" FORCE)
 
-# Enable non-blocking DNS support
-set(USE_NB_DNS false
-    CACHE STRING "enable non-blocking DNS support" FORCE)
+# TODO: add to configure wrapper as '--enable-perftools'
+# TODO: make this option do stuff
+set(ENABLE_PERFTOOLS false
+    CACHE STRING "use Google's perftools" FORCE)
 
-# Enable use of int64 (long long) for integers
-set(USE_INT64 false
-    CACHE STRING "enable use of int64 (long long) for integers" FORCE)
+set(USE_NB_DNS true
+    CACHE BOOL "Use non-blocking DNS support" FORCE)
+
+##
+## Configure Dependencies for Non-Standard Paths
+##
 
 # Uncomment to specify a custom prefix that contains the libpcap installation.
 #set(PCAP_ROOT path/to/your/pcap)
@@ -45,6 +59,15 @@ set(USE_INT64 false
 # Uncomment to specify a custom directory that contains the libpcap library.
 #set(PCAP_LIBRARYDIR path/to/your/pcap/lib)
 
-# Attempt to use non-blocking DNS support by default
-set(USE_NB_DNS true
-    CACHE BOOL "Use non-blocking DNS support" FORCE)
+# TODO: more dependencies:
+# Flex
+# Bison
+# BIND8
+# Perl?
+# BinPAC
+#
+# OpenSSL
+# Libmagic
+# LibGeoIP
+# Libz
+# Endace's DAG tools

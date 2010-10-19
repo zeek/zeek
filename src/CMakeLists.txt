@@ -54,7 +54,7 @@ flex_target(REScanner re-scan.l ${CMAKE_CURRENT_BINARY_DIR}/re-scan.cc
             COMPILE_FLAGS "-Pre_")
 add_flex_bison_dependency(REScanner REParser)
 
-bison_target(Parser parse.bison.y
+bison_target(Parser parse.y
              ${CMAKE_CURRENT_BINARY_DIR}/p.cc
              HEADER ${CMAKE_CURRENT_BINARY_DIR}/broparse.h
              COMPILE_FLAGS "-t")

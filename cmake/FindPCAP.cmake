@@ -23,7 +23,7 @@ find_path(PCAP_ROOT_DIR
 
 find_path(PCAP_INCLUDE_DIR
     NAMES pcap.h
-    HINTES ${PCAP_ROOT_DIR}/include
+    HINTS ${PCAP_ROOT_DIR}/include
 )
 
 find_library(PCAP_LIBRARY

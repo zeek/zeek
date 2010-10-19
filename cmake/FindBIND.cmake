@@ -22,11 +22,11 @@
 find_path(BIND_ROOT_DIR
     NAMES include/resolv.h
 )
-mark_as_advanced(BIND_ROOT_DIR)
 
-if (BIND_ROOT_DIR)
-    set(BIND_INCLUDE_DIR ${BIND_ROOT_DIR}/include)
-endif ()
+find_path(BIND_INCLUDE_DIR
+    NAMES resolv.h
+    HINTS ${BIND_ROOT_DIR}/include
+)
 
 find_library(BIND_LIBRARIES
     NAMES resolv bind
@@ -74,4 +74,9 @@ find_package_handle_standard_args(BIND DEFAULT_MSG
     BIND_INCLUDE_DIR
 )
 
-mark_as_advanced(BIND_LIBRARIES BIND_LIBRARY BIND_INCLUDE_DIR)
+mark_as_advanced(
+    BIND_ROOT_DIR
+    BIND_LIBRARIES
+    BIND_LIBRARY
+    BIND_INCLUDE_DIR
+)

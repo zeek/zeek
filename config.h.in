@@ -183,9 +183,6 @@
 /* GeoIP geographic lookup functionality */
 #undef USE_GEOIP
 
-/* enable use of 64-bit integers */
-#cmakedefine USE_INT64
-
 /* Use libclamav */
 #undef USE_LIBCLAMAV
 

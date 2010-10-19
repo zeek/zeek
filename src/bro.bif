@@ -222,25 +222,15 @@ static void do_fmt(const char*& fmt, Val* v, ODesc* d)
 					u = ntohl(uint32(u));
 				}
 
-#ifdef USE_INT64
 			snprintf(fmt_buf, sizeof(fmt_buf), "%%%s%s", num_fmt,
 					*fmt == 'd' ? "llu" : "llx");
-#else
-			snprintf(fmt_buf, sizeof(fmt_buf), "%%%s%c", num_fmt,
-					*fmt == 'd' ? 'u' : 'x');
-#endif
 			snprintf(out_buf, sizeof(out_buf), fmt_buf, u);
 			}
 
 		else
 			{
-#ifdef USE_INT64
 			snprintf(fmt_buf, sizeof(fmt_buf), "%%%s%s", num_fmt,
 					*fmt == 'd' ? "lld" : "llx");
-#else
-			snprintf(fmt_buf, sizeof(fmt_buf), "%%%s%c", num_fmt,
-					*fmt == 'd' ? 'd' : 'x');
-#endif
 			snprintf(out_buf, sizeof(out_buf), fmt_buf,
 					v->CoerceToInt());
 			}

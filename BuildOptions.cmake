@@ -27,9 +27,6 @@ set(DATADIR share/bro
 set(BROv6 false
     CACHE STRING "enable IPv6 processing" FORCE)
 
-set(USE_INT64 true
-    CACHE STRING "enable use of int64 (long long) for integers" FORCE)
-
 # TODO: add to configure wrapper as '--enable-debug'
 # TODO: make this option do stuff
 set(ENABLE_DEBUG false

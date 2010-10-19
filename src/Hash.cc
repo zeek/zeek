@@ -237,8 +237,6 @@ HashKey::HashKey(bro_uint_t u)
 	is_our_dynamic = 0;
 	}
 
-#ifdef USE_INT64
-
 HashKey::HashKey(uint32 u)
 	{
 	key_u.u32 = u;
@@ -247,8 +245,6 @@ HashKey::HashKey(uint32 u)
 	hash = HashBytes(key, size);
 	is_our_dynamic = 0;
 	}
-
-#endif // USE_INT64
 
 HashKey::HashKey(const uint32 u[], int n)
 	{

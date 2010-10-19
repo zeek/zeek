@@ -201,9 +201,6 @@
 /* Use Google's perftools */
 #undef USE_PERFTOOLS
 
-/* Use select-based main loop */
-#cmakedefine USE_SELECT_LOOP
-
 /* Version number of package */
 #define VERSION "@VERSION@"
 

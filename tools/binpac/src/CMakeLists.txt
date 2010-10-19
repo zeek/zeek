@@ -1,6 +1,3 @@
-find_package(FLEX REQUIRED)
-find_package(BISON REQUIRED)
-
 bison_target(PACParser pac_parse.yy ${CMAKE_CURRENT_BINARY_DIR}/pac_parse.cc
              COMPILE_FLAGS "-t" HEADER ${CMAKE_CURRENT_BINARY_DIR}/pac_parse.h)
 flex_target(PACScanner pac_scan.ll ${CMAKE_CURRENT_BINARY_DIR}/pac_scan.cc)

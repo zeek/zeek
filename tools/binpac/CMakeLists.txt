@@ -37,19 +37,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
 project(BinPAC)
 
-include(CheckIncludeFiles)
-check_include_files(inttypes.h HAVE_INTTYPES_H)
-check_include_files(memory.h HAVE_MEMORY_H)
-check_include_files(stdint.h HAVE_STDINT_H)
-check_include_files(stdlib.h HAVE_STDLIB_H)
-check_include_files(strings.h HAVE_STRINGS_H)
-check_include_files(string.h HAVE_STRING_H)
-check_include_files(sys/stat.h HAVE_SYS_STAT_H)
-check_include_files(sys/types.h HAVE_SYS_TYPES_H)
-check_include_files(unistd.h HAVE_UNISTD_H)
-
-include(TestBigEndian)
-test_big_endian(WORDS_BIGENDIAN)
+find_package(FLEX REQUIRED)
+find_package(BISON REQUIRED)
 
 file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" BINPAC_VERSION LIMIT_COUNT 1)
 

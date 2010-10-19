@@ -35,9 +35,6 @@ set(USE_INT64 true
 set(ENABLE_DEBUG false
     CACHE STRING "No compiler optimizations" FORCE)
 
-set(USE_SELECT_LOOP true
-    CACHE STRING "enable select-based main loop" FORCE)
-
 # TODO: add to configure wrapper as '--enable-perftools'
 # TODO: make this option do stuff
 set(ENABLE_PERFTOOLS false

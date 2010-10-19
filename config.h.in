@@ -1,6 +1,3 @@
-/* Enable active mapping processing */
-#cmakedefine ACTIVE_MAPPING
-
 /* enable IPV6 processing */
 #cmakedefine BROv6
 
@@ -10,9 +7,6 @@
 
 /* should explicitly declare socket() and friends */
 #cmakedefine DO_SOCK_DECL
-
-/* Enable DFA state expiration */
-#cmakedefine EXPIRE_DFA_STATES
 
 /* Define if you have the <GeoIPCity.h> header file. */
 #cmakedefine HAVE_GEOIPCITY_H

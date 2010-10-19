@@ -48,13 +48,7 @@ set(ENABLE_PERFTOOLS false
 #set(BIND_ROOT_DIR path/to/your/bind)
 
 # Uncomment to specify a custom prefix that contains the libpcap installation.
-#set(PCAP_ROOT path/to/your/pcap)
-
-# Uncomment to specify a custom directory that contains libpcap headers.
-#set(PCAP_INCLUDEDIR path/to/your/pcap/include)
-
-# Uncomment to specify a custom directory that contains the libpcap library.
-#set(PCAP_LIBRARYDIR path/to/your/pcap/lib)
+#set(PCAP_ROOT_DIR path/to/your/pcap)
 
 # TODO: more dependencies:
 # Flex

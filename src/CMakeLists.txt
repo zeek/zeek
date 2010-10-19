@@ -193,10 +193,8 @@ if (HAVE_NB_DNS)
     set(dns_SRCS nb_dns.c nb_dns.h)
 endif ()
 
-if (USE_OPENSSL)
-    set(openssl_SRCS X509.cc SSLCiphers.cc SSLInterpreter.cc SSLProxy.cc
-                     SSLv2.cc SSLv3.cc SSLv3Automaton.cc)
-endif ()
+set(openssl_SRCS X509.cc SSLCiphers.cc SSLInterpreter.cc SSLProxy.cc
+                 SSLv2.cc SSLv3.cc SSLv3Automaton.cc)
 
 if (USE_NMALLOC)
     set(malloc_SRCS malloc.c)
@@ -382,6 +380,12 @@ add_executable(bro ${bro_SRCS})
 
 add_dependencies(bro make_dbg_constants)
 
-target_link_libraries(bro m binpac_lib ${PCAP_LIBRARY} resolv)
+target_link_libraries(bro
+                      m
+                      resolv
+                      binpac_lib
+                      ${PCAP_LIBRARY}
+                      ${OPENSSL_LIBRARIES}
+)
 
 install(TARGETS bro DESTINATION bin)

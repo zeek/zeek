@@ -44,9 +44,10 @@ find_package(FLEX REQUIRED)
 find_package(BISON REQUIRED)
 find_package(PCAP REQUIRED)
 include_directories(BEFORE ${PCAP_INCLUDE_DIR})
+find_package(OpenSSL REQUIRED)
+include_directories(BEFORE ${OPENSSL_INCLUDE_DIR})
 
 # TODO: find bind8 lib?
-# TODO: require OpenSSL
 # TODO: optional libmagic
 # TODO: optional libGeoIP
 # TODO: optional libz

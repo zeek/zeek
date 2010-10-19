@@ -50,6 +50,9 @@ set(USE_NB_DNS true
 ## Configure Dependencies for Non-Standard Paths
 ##
 
+# Uncomment to specific a custom prefix containing the OpenSSL installation.
+#set(OPENSSL_ROOT_DIR path/to/your/openssl)
+
 # Uncomment to specify a custom prefix that contains the libpcap installation.
 #set(PCAP_ROOT path/to/your/pcap)
 
@@ -66,7 +69,6 @@ set(USE_NB_DNS true
 # Perl?
 # BinPAC
 #
-# OpenSSL
 # Libmagic
 # LibGeoIP
 # Libz

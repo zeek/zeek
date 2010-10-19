@@ -1170,14 +1170,6 @@ bool RemoteSerializer::Listen(addr_type ip, uint16 port, bool expect_ssl)
 	if ( ! using_communication )
 		return true;
 
-#ifndef USE_OPENSSL
-	if ( expect_ssl )
-		{
-		Error("listening for SSL connections requested, but SSL support is not compiled in");
-		return false;
-		}
-#endif
-
 	if ( ! initialized )
 		internal_error("remote serializer not initialized");
 
@@ -3481,13 +3473,7 @@ bool SocketComm::Connect(Peer* peer)
 		{
 		if ( peer->ssl )
 			{
-#ifdef USE_OPENSSL
 			peer->io = new ChunkedIOSSL(sockfd, false);
-#else
-			run_time("SSL connection requested, but SSL support not compiled in");
-			CloseConnection(peer, false);
-			return 0;
-#endif
 			}
 		else
 			peer->io = new ChunkedIOFd(sockfd, "child->peer");
@@ -3621,15 +3607,10 @@ bool SocketComm::AcceptConnection(int fd)
 	peer->ssl = (fd == listen_fd_ssl);
 	peer->compressor = false;
 
-#ifdef USE_OPENSSL
 	if ( peer->ssl )
 		peer->io = new ChunkedIOSSL(clientfd, true);
 	else
 		peer->io = new ChunkedIOFd(clientfd, "child->peer");
-#else
-	assert(! peer->ssl);
-	peer->io = new ChunkedIOFd(clientfd, "child->peer");
-#endif
 
 	if ( ! peer->io->Init() )
 		{

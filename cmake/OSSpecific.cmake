@@ -6,29 +6,6 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "OpenBSD")
     set(USE_NMALLOC true)
 
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    if (USE_NB_DNS)
-        include(CheckCSourceCompiles)
-        check_c_source_compiles("
-        #include <arpa/nameser.h>
-        int main() {
-            HEADER *hdr; int d = NS_IN6ADDRSZ; return 0;
-        }
-        " ns_header_defined)
-        if (NOT ns_header_defined)
-            check_c_source_compiles("
-            #include <arpa/nameser.h>
-            #include <arpa/nameser_compat.h>
-            int main() {
-                HEADER *hdr; int d = NS_IN6ADDRSZ; return 0;
-            }
-            " NEED_NAMESER_COMPAT_H)
-            if (NOT NEED_NAMESER_COMPAT_H)
-                message(WARNING "Darwin nameser compatibility check failed."
-                        "Non-blocking DNS support disabled.")
-                set(USE_NB_DNS false)
-            endif ()
-        endif ()
-    endif ()
 
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     set(HAVE_LINUX true)

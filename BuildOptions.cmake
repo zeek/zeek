@@ -37,15 +37,15 @@ set(ENABLE_DEBUG false
 set(ENABLE_PERFTOOLS false
     CACHE STRING "use Google's perftools" FORCE)
 
-set(USE_NB_DNS true
-    CACHE BOOL "Use non-blocking DNS support" FORCE)
-
 ##
 ## Configure Dependencies for Non-Standard Paths
 ##
 
-# Uncomment to specific a custom prefix containing the OpenSSL installation.
+# Uncomment to specify a custom prefix containing the OpenSSL installation.
 #set(OPENSSL_ROOT_DIR path/to/your/openssl)
+
+# Uncomment to specify a custom prefix containing the BIND installation.
+#set(BIND_ROOT_DIR path/to/your/bind)
 
 # Uncomment to specify a custom prefix that contains the libpcap installation.
 #set(PCAP_ROOT path/to/your/pcap)
@@ -59,7 +59,6 @@ set(USE_NB_DNS true
 # TODO: more dependencies:
 # Flex
 # Bison
-# BIND8
 # Perl?
 # BinPAC
 #

@@ -406,11 +406,7 @@ int main(int argc, char** argv)
 
 	enum DNS_MgrMode dns_type = DNS_DEFAULT;
 
-#ifdef HAVE_NB_DNS
 	dns_type = getenv("BRO_DNS_FAKE") ? DNS_FAKE : DNS_DEFAULT;
-#else
-	dns_type = DNS_FAKE;
-#endif
 
 	RETSIGTYPE (*oldhandler)(int);
 

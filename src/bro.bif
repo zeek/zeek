@@ -2808,10 +2808,6 @@ private:
 # function result.  Therefore, they can only be called inside a when-condition.
 function lookup_addr%(host: addr%) : string
 	%{
-#ifndef HAVE_NB_DNS
-	run_time("lookup_addr(): not configured for asynchronous DNS lookups");
-	return new StringVal("<error>");
-#else
 	// FIXME: Is should be easy to adapt the function to synchronous
 	// lookups if we're reading a trace.
 	Trigger* trigger = frame->GetTrigger();
@@ -2839,15 +2835,10 @@ function lookup_addr%(host: addr%) : string
 			new LookupHostCallback(trigger, frame->GetCall(), true));
 #endif
 	return 0;
-#endif
 	%}
 
 function lookup_hostname%(host: string%) : addr_set
 	%{
-#ifndef HAVE_NB_DNS
-	run_time("lookup_hostname(): not configured for asynchronous DNS lookups");
-	return new StringVal("<error>");
-#else
 	// FIXME: Is should be easy to adapt the function to synchronous
 	// lookups if we're reading a trace.
 	Trigger* trigger = frame->GetTrigger();
@@ -2864,7 +2855,6 @@ function lookup_hostname%(host: string%) : addr_set
 	dns_mgr->AsyncLookupName(host->CheckString(),
 			new LookupHostCallback(trigger, frame->GetCall(), false));
 	return 0;
-#endif
 	%}
 
 # Stop Bro's packet processing.

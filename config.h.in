@@ -38,9 +38,6 @@
 /* Define if you have the <memory.h> header file. */
 #cmakedefine HAVE_MEMORY_H
 
-/* async dns support */
-#cmakedefine HAVE_NB_DNS
-
 /* Define if you have the <netinet/ether.h> header file. */
 #cmakedefine HAVE_NETINET_ETHER_H
 

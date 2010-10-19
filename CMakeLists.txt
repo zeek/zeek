@@ -43,11 +43,13 @@ file(STRINGS "${CMAKE_SOURCE_DIR}/VERSION" VERSION LIMIT_COUNT 1)
 find_package(FLEX REQUIRED)
 find_package(BISON REQUIRED)
 find_package(PCAP REQUIRED)
-include_directories(BEFORE ${PCAP_INCLUDE_DIR})
 find_package(OpenSSL REQUIRED)
-include_directories(BEFORE ${OPENSSL_INCLUDE_DIR})
+find_package(BIND REQUIRED)
+include_directories(BEFORE
+                    ${PCAP_INCLUDE_DIR}
+                    ${OPENSSL_INCLUDE_DIR}
+                    ${BIND_INCLUDE_DIR})
 
-# TODO: find bind8 lib?
 # TODO: optional libmagic
 # TODO: optional libGeoIP
 # TODO: optional libz
@@ -64,12 +66,8 @@ include(CheckHeaders)
 include(CheckFunctions)
 include(MiscTests)
 include(PCAPTests)
-#TODO: use/integrate find_package(OpenSSL)
 include(OpenSSLTests)
-
-#TODO: NB_DNS tests
-set(HAVE_NB_DNS ${USE_NB_DNS})
-set(HAVE_ASYNC_DNS ${USE_NB_DNS}) #TODO: should make consistent w/ HAVE_NB_DNS
+include(CheckNameserCompat)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in
                ${CMAKE_CURRENT_BINARY_DIR}/config.h)

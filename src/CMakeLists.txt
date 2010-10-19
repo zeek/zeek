@@ -1,17 +1,8 @@
-find_package(FLEX REQUIRED) 
-find_package(BISON REQUIRED)
-find_package(PCAP REQUIRED)
-
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}
                     ${CMAKE_CURRENT_BINARY_DIR}
                     ${CMAKE_SOURCE_DIR}/binpac/lib
                     ${CMAKE_BINARY_DIR}/binpac/lib
                     )
-
-find_program(SED_EXE sed)
-if (NOT SED_EXE)
-    message(FATAL_ERROR "sed required")
-endif ()
 
 macro(REPLACE_YY_PREFIX_TARGET inFile outFile yylexPrefix yyPrefix)
     set(args "'/extern char.*getenv/d\;s/yylex/${yylexPrefix}lex/\;s/yy/${yyPrefix}/g'" < ${inFile} > ${outFile})
@@ -198,14 +189,9 @@ if (USE_NMALLOC)
     set(malloc_SRCS malloc.c)
 endif ()
 
-find_program(PERL_EXE perl)
-if (NOT PERL_EXE)
-    message(FATAL_ERROR "perl required")
-endif ()
-
 add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
                           ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdInfoConstants.h
-                   COMMAND ${PERL_EXE}
+                   COMMAND ${PERL_EXECUTABLE}
                    ARGS ${CMAKE_CURRENT_SOURCE_DIR}/make_dbg_constants.pl
                         ${CMAKE_CURRENT_SOURCE_DIR}/DebugCmdInfoConstants.in
                    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/DebugCmdInfoConstants.in

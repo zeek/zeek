@@ -15,6 +15,12 @@ before you begin with the installation:
        This comes with many systems, but if you get errors compiling
        parse.y, you will need to install it.
 
+    * Perl
+       Used only during the Bro build process
+
+    * sed
+       Used only during the Bro build process
+
     * BIND8 headers and libraries
        These are usually already installed as well.
 

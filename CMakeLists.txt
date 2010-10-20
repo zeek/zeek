@@ -37,17 +37,17 @@ set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
 project(Bro)
 
-set(PACKAGE "Bro")
-file(STRINGS "${CMAKE_SOURCE_DIR}/VERSION" VERSION LIMIT_COUNT 1)
-
-add_definitions(-W -Wall -Wno-unused)
+set(CMAKE_C_FLAGS "-W -Wall -Wno-unused")
+set(CMAKE_CXX_FLAGS "-W -Wall -Wno-unused")
 
 if (ENABLE_DEBUG)
-    add_definitions(-DDEBUG -g)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DDEBUG -g")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DDEBUG -g")
 endif ()
 
 if (ENABLE_RELEASE)
-    add_definitions(-O3)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
 endif ()
 
 ##
@@ -81,6 +81,9 @@ include_directories(BEFORE
 ##
 ## Configuration Checks/Tests
 ##
+
+set(PACKAGE "Bro")
+file(STRINGS "${CMAKE_SOURCE_DIR}/VERSION" VERSION LIMIT_COUNT 1)
 
 include(TestBigEndian)
 test_big_endian(WORDS_BIGENDIAN)
@@ -121,6 +124,9 @@ message(
     "\nDatadir:           ${CMAKE_INSTALL_PREFIX}/${DATADIR}"
     "\nDebug mode:        ${ENABLE_DEBUG}"
     "\nRelease mode:      ${ENABLE_RELEASE}"
+    "\n"
+    "\nCFLAGS:            ${CMAKE_C_FLAGS}"
+    "\nCXXFLAGS:          ${CMAKE_CXX_FLAGS}"
     "\n"
     "\nBroccoli:          ${use_broccoli}"
     "\nBroctl:            ${use_broctl}"

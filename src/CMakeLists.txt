@@ -123,8 +123,6 @@ endforeach(bift)
 
 ########## targets that need binpac ##########
 
-#TODO: need logic to find binpac when it's a separate component?
-
 macro(BINPAC_TARGET pacFile)
     get_filename_component(basename ${pacFile} NAME_WE)
     add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${basename}_pac.h
@@ -196,18 +194,15 @@ if (USE_NMALLOC)
 endif ()
 
 add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdInfoConstants.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdInfoConstants.cc
                    COMMAND ${PERL_EXECUTABLE}
                    ARGS ${CMAKE_CURRENT_SOURCE_DIR}/make_dbg_constants.pl
                         ${CMAKE_CURRENT_SOURCE_DIR}/DebugCmdInfoConstants.in
-                   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/DebugCmdInfoConstants.in
+                   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/make_dbg_constants.pl
+                           ${CMAKE_CURRENT_SOURCE_DIR}/DebugCmdInfoConstants.in
                    COMMENT "[Perl] Processing debug commands"
                    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
-
-add_custom_target(make_dbg_constants DEPENDS
-                    ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
-                    ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdInfoConstants.h)
 
 set(bro_SRCS
     ${BINPAC_AUXSRC}
@@ -222,6 +217,7 @@ set(bro_SRCS
     ${FLEX_REScanner_OUTPUTS}
     parse.cc
     ${FLEX_Scanner_OUTPUTS}
+    ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
     main.cc
     net_util.cc
     util.cc
@@ -367,8 +363,6 @@ set(bro_SRCS
 add_definitions(-DPOLICYDEST="${CMAKE_INSTALL_PREFIX}/${DATADIR}")
 
 add_executable(bro ${bro_SRCS})
-
-add_dependencies(bro make_dbg_constants)
 
 target_link_libraries(bro
                       m

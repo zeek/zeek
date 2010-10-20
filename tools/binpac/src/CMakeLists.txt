@@ -1,5 +1,7 @@
 bison_target(PACParser pac_parse.yy ${CMAKE_CURRENT_BINARY_DIR}/pac_parse.cc
-             COMPILE_FLAGS "-t" HEADER ${CMAKE_CURRENT_BINARY_DIR}/pac_parse.h)
+             HEADER ${CMAKE_CURRENT_BINARY_DIR}/pac_parse.h
+             VERBOSE ${CMAKE_CURRENT_BINARY_DIR}/pac_parse.output
+             COMPILE_FLAGS "--debug")
 flex_target(PACScanner pac_scan.ll ${CMAKE_CURRENT_BINARY_DIR}/pac_scan.cc)
 add_flex_bison_dependency(PACScanner PACParser)
 

@@ -124,7 +124,8 @@ IF(BISON_EXECUTABLE)
   #
   MACRO(BISON_TARGET Name BisonInput BisonOutput)
     SET(BISON_TARGET_output_header "")
-    SET(BISON_TARGET_command_opt "")
+    #SET(BISON_TARGET_command_opt "")
+    SET(BISON_TARGET_cmdopt "")
     SET(BISON_TARGET_outputs "${BisonOutput}")
     IF(NOT ${ARGC} EQUAL 3 AND
        NOT ${ARGC} EQUAL 5 AND

@@ -14,11 +14,12 @@ macro(REPLACE_YY_PREFIX_TARGET inFile outFile yylexPrefix yyPrefix)
     )
 endmacro(REPLACE_YY_PREFIX_TARGET)
 
-set(BISON_FLAGS "-y -t -v")
+set(BISON_FLAGS "--debug")
 
 bison_target(BIFParser builtin-func.y
              ${CMAKE_CURRENT_BINARY_DIR}/bif_parse.cc
              HEADER ${CMAKE_CURRENT_BINARY_DIR}/bif_parse.h
+             VERBOSE ${CMAKE_CURRENT_BINARY_DIR}/bif_parse.output
              COMPILE_FLAGS "${BISON_FLAGS}")
 flex_target(BIFScanner builtin-func.l ${CMAKE_CURRENT_BINARY_DIR}/bif_lex.cc)
 add_flex_bison_dependency(BIFScanner BIFParser)
@@ -26,6 +27,7 @@ add_flex_bison_dependency(BIFScanner BIFParser)
 bison_target(RuleParser rule-parse.y
              ${CMAKE_CURRENT_BINARY_DIR}/rup.cc
              HEADER ${CMAKE_CURRENT_BINARY_DIR}/rup.h
+             VERBOSE ${CMAKE_CURRENT_BINARY_DIR}/rule_parse.output
              COMPILE_FLAGS "${BISON_FLAGS}")
 replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/rup.cc
                          ${CMAKE_CURRENT_BINARY_DIR}/rule-parse.cc
@@ -39,6 +41,7 @@ flex_target(RuleScanner rule-scan.l ${CMAKE_CURRENT_BINARY_DIR}/rule-scan.cc
 bison_target(REParser re-parse.y
              ${CMAKE_CURRENT_BINARY_DIR}/rep.cc
              HEADER ${CMAKE_CURRENT_BINARY_DIR}/re-parse.h
+             VERBOSE ${CMAKE_CURRENT_BINARY_DIR}/re_parse.output
              COMPILE_FLAGS "${BISON_FLAGS}")
 replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/rep.cc
                          ${CMAKE_CURRENT_BINARY_DIR}/re-parse.cc
@@ -50,6 +53,7 @@ add_flex_bison_dependency(REScanner REParser)
 bison_target(Parser parse.y
              ${CMAKE_CURRENT_BINARY_DIR}/p.cc
              HEADER ${CMAKE_CURRENT_BINARY_DIR}/broparse.h
+             VERBOSE ${CMAKE_CURRENT_BINARY_DIR}/parse.output
              COMPILE_FLAGS "${BISON_FLAGS}")
 replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/p.cc
                          ${CMAKE_CURRENT_BINARY_DIR}/parse.cc

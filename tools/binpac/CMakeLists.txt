@@ -37,8 +37,29 @@ set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
 project(BinPAC)
 
+set(CMAKE_C_FLAGS "-W -Wall -Wno-unused")
+set(CMAKE_CXX_FLAGS "-W -Wall -Wno-unused")
+
+if (ENABLE_DEBUG)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+endif ()
+
+if (ENABLE_RELEASE)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+endif ()
+
+##
+## Dependency Configuration
+##
+
 find_package(FLEX REQUIRED)
 find_package(BISON REQUIRED)
+
+##
+## Configuration Checks/Tests
+##
 
 file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" BINPAC_VERSION LIMIT_COUNT 1)
 
@@ -47,5 +68,26 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
+##
+## Recuse on sub-directories
+##
+
 add_subdirectory(lib)
 add_subdirectory(src)
+
+##
+## Build Summary
+##
+
+message(
+    "\n==================|  BinPAC Build Summary  |===================="
+    "\n"
+    "\nInstall prefix:    ${CMAKE_INSTALL_PREFIX}"
+    "\nDebug mode:        ${ENABLE_DEBUG}"
+    "\nRelease mode:      ${ENABLE_RELEASE}"
+    "\n"
+    "\nCFLAGS:            ${CMAKE_C_FLAGS}"
+    "\nCXXFLAGS:          ${CMAKE_CXX_FLAGS}"
+    "\n"
+    "\n================================================================\n"
+)

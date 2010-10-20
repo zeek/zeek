@@ -14,17 +14,19 @@ macro(REPLACE_YY_PREFIX_TARGET inFile outFile yylexPrefix yyPrefix)
     )
 endmacro(REPLACE_YY_PREFIX_TARGET)
 
+set(BISON_FLAGS "-y -t -v")
+
 bison_target(BIFParser builtin-func.y
              ${CMAKE_CURRENT_BINARY_DIR}/bif_parse.cc
              HEADER ${CMAKE_CURRENT_BINARY_DIR}/bif_parse.h
-             COMPILE_FLAGS "-t")
+             COMPILE_FLAGS "${BISON_FLAGS}")
 flex_target(BIFScanner builtin-func.l ${CMAKE_CURRENT_BINARY_DIR}/bif_lex.cc)
 add_flex_bison_dependency(BIFScanner BIFParser)
 
 bison_target(RuleParser rule-parse.y
              ${CMAKE_CURRENT_BINARY_DIR}/rup.cc
              HEADER ${CMAKE_CURRENT_BINARY_DIR}/rup.h
-             COMPILE_FLAGS "-t")
+             COMPILE_FLAGS "${BISON_FLAGS}")
 replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/rup.cc
                          ${CMAKE_CURRENT_BINARY_DIR}/rule-parse.cc
                          rules_ rules_)
@@ -37,7 +39,7 @@ flex_target(RuleScanner rule-scan.l ${CMAKE_CURRENT_BINARY_DIR}/rule-scan.cc
 bison_target(REParser re-parse.y
              ${CMAKE_CURRENT_BINARY_DIR}/rep.cc
              HEADER ${CMAKE_CURRENT_BINARY_DIR}/re-parse.h
-             COMPILE_FLAGS "-t")
+             COMPILE_FLAGS "${BISON_FLAGS}")
 replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/rep.cc
                          ${CMAKE_CURRENT_BINARY_DIR}/re-parse.cc
                          re_ RE_)
@@ -48,7 +50,7 @@ add_flex_bison_dependency(REScanner REParser)
 bison_target(Parser parse.y
              ${CMAKE_CURRENT_BINARY_DIR}/p.cc
              HEADER ${CMAKE_CURRENT_BINARY_DIR}/broparse.h
-             COMPILE_FLAGS "-t")
+             COMPILE_FLAGS "${BISON_FLAGS}")
 replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/p.cc
                          ${CMAKE_CURRENT_BINARY_DIR}/parse.cc
                          bro yy)
@@ -358,7 +360,7 @@ set(bro_SRCS
     ${openssl_SRCS}
 )
 
-add_definitions(-DPOLICYDEST="${DATADIR}/bro/")
+add_definitions(-DPOLICYDEST="${CMAKE_INSTALL_PREFIX}/${DATADIR}")
 
 add_executable(bro ${bro_SRCS})
 

@@ -10,7 +10,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/binpac.h.in
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}
                     ${CMAKE_CURRENT_BINARY_DIR})
 
-set(binpac_LIB_SRCS
+set(binpac_lib_SRCS
     binpac_buffer.cc
     binpac_bytestring.cc
     binpac.h
@@ -21,4 +21,8 @@ set(binpac_LIB_SRCS
     binpac_regex.h
 )
 
-add_library(binpac_lib STATIC ${binpac_LIB_SRCS})
+add_library(binpac_lib STATIC ${binpac_lib_SRCS})
+
+set_target_properties(binpac_lib PROPERTIES OUTPUT_NAME binpac)
+
+install(TARGETS binpac_lib DESTINATION lib)

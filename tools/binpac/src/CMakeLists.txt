@@ -97,4 +97,4 @@ set(binpac_SRCS
 
 add_executable(binpac ${binpac_SRCS})
 
-target_link_libraries(binpac)
+install(TARGETS binpac DESTINATION bin)

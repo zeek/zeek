@@ -54,11 +54,14 @@ endif ()
 ## Dependency Configuration
 ##
 
-find_program(SED_EXE sed)
+# Check cache value first to avoid displaying "Found sed" messages everytime
 if (NOT SED_EXE)
-    message(FATAL_ERROR "Could not find required dependency: sed")
-else ()
-    message(STATUS "Found sed: ${SED_EXE}")
+    find_program(SED_EXE sed)
+    if (NOT SED_EXE)
+        message(FATAL_ERROR "Could not find required dependency: sed")
+    else ()
+        message(STATUS "Found sed: ${SED_EXE}")
+    endif ()
 endif ()
 
 find_package(Perl REQUIRED)

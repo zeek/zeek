@@ -34,10 +34,6 @@
 #include "Serializer.h"
 #include "PacketDumper.h"
 
-#ifdef USE_DAG
-#include "PktDagSrc.h"
-#endif
-
 extern "C" {
 #include "setsignal.h"
 };
@@ -243,12 +239,7 @@ void net_init(name_list& interfaces, name_list& readfiles,
 		for ( int i = 0; i < interfaces.length(); ++i )
 			{
 			PktSrc* ps;
-#ifdef USE_DAG
-			if ( strncmp(interfaces[i], "dag", 3) == 0 )
-				ps = new PktDagSrc(interfaces[i], filter);
-			else
-#endif
-				ps = new PktInterfaceSrc(interfaces[i], filter);
+			ps = new PktInterfaceSrc(interfaces[i], filter);
 
 			if ( ! ps->IsOpen() )
 				{
@@ -265,14 +256,8 @@ void net_init(name_list& interfaces, name_list& readfiles,
 			if ( secondary_filter )
 				{
 				PktSrc* ps;
-#ifdef USE_DAG
-				if ( strncmp(interfaces[i], "dag", 3) == 0 )
-					ps = new PktDagSrc(interfaces[i],
-						filter, TYPE_FILTER_SECONDARY);
-				else
-#endif
-					ps = new PktInterfaceSrc(interfaces[i],
-						filter, TYPE_FILTER_SECONDARY);
+				ps = new PktInterfaceSrc(interfaces[i],
+					filter, TYPE_FILTER_SECONDARY);
 
 				if ( ! ps->IsOpen() )
 					{

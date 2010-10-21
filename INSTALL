@@ -49,9 +49,6 @@ installation time:
        For decompressing HTTP bodies by the HTTP analyzer, and for
        compressed Bro-to-Bro communication.
 
-    * Endace's DAG tools:
-       For native support of Endace DAG cards.
-
 Installation
 ============
 

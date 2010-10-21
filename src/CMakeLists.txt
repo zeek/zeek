@@ -295,7 +295,6 @@ set(bro_SRCS
     PacketFilter.cc
     PacketSort.cc
     PersistenceSerializer.cc
-    PktDagSrc.cc
     PktSrc.cc
     PIA.cc
     PolicyFile.cc

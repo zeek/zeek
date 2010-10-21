@@ -68,5 +68,4 @@ set(BinPAC_SKIP_INSTALL true)
 # Libmagic
 # LibGeoIP
 # Libz
-# Endace's DAG tools
 # Google perftools

@@ -368,6 +368,7 @@ target_link_libraries(bro
                       ${PCAP_LIBRARY}
                       ${OPENSSL_LIBRARIES}
                       ${BIND_LIBRARY}
+                      ${LibMagic_LIBRARY}
 )
 
 install(TARGETS bro DESTINATION bin)

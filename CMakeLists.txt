@@ -94,10 +94,13 @@ if (NOT BINPAC_FOUND)
     endif ()
 endif ()
 
-# TODO: optional libmagic
+find_package(LibMagic)
+if (LIBMAGIC_FOUND)
+    set(HAVE_LIBMAGIC true)
+endif ()
+
 # TODO: optional libGeoIP
 # TODO: optional libz
-# TODO: optional Endace's DAG tools
 # TODO: optional Google perftools
 
 ##
@@ -153,8 +156,7 @@ message(
     "\nBroctl:            ${use_broctl}"
     "\nGeoIP:             ${use_geoip}"
     "\nlibz:              ${use_libz}"
-    "\nlibmagic:          ${use_libmagic}"
-    "\nEndace:            ${use_endace}"
+    "\nlibmagic:          ${HAVE_LIBMAGIC}"
     "\nGoogle perftools:  ${use_perftools}"
     "\n"
     "\n================================================================\n"

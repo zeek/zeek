@@ -21,7 +21,7 @@
 #cmakedefine HAVE_INTTYPES_H
 
 /* Define if you have the `magic' library (-lmagic). */
-#undef HAVE_LIBMAGIC
+#cmakedefine HAVE_LIBMAGIC
 
 /* Define to 1 if you have the `z' library (-lz). */
 #undef HAVE_LIBZ

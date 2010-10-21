@@ -64,8 +64,10 @@ set(ENABLE_PERFTOOLS false
 # Comment this if local build of BinPAC should be scheduled for installation
 set(BinPAC_SKIP_INSTALL true)
 
+# Uncomment to specify a custom prefix containing the libmagic installation.
+#set(LibMagic_ROOT_DIR path/to/your/libmagic)
+
 # TODO: more dependencies:
-# Libmagic
 # LibGeoIP
 # Libz
 # Google perftools

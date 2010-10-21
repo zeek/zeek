@@ -369,6 +369,7 @@ target_link_libraries(bro
                       ${OPENSSL_LIBRARIES}
                       ${BIND_LIBRARY}
                       ${LibMagic_LIBRARY}
+                      ${ZLIB_LIBRARIES}
 )
 
 install(TARGETS bro DESTINATION bin)

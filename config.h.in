@@ -23,8 +23,8 @@
 /* Define if you have the `magic' library (-lmagic). */
 #cmakedefine HAVE_LIBMAGIC
 
-/* Define to 1 if you have the `z' library (-lz). */
-#undef HAVE_LIBZ
+/* Define if you have the `z' library (-lz). */
+#cmakedefine HAVE_LIBZ
 
 /* We are on a Linux system */
 #cmakedefine HAVE_LINUX

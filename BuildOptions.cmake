@@ -69,5 +69,4 @@ set(BinPAC_SKIP_INSTALL true)
 
 # TODO: more dependencies:
 # LibGeoIP
-# Libz
 # Google perftools

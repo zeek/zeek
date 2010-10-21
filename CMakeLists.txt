@@ -99,8 +99,12 @@ if (LIBMAGIC_FOUND)
     set(HAVE_LIBMAGIC true)
 endif ()
 
+find_package(ZLIB)
+if (ZLIB_FOUND)
+    set(HAVE_LIBZ true)
+endif ()
+
 # TODO: optional libGeoIP
-# TODO: optional libz
 # TODO: optional Google perftools
 
 ##
@@ -155,7 +159,7 @@ message(
     "\nBroccoli:          ${use_broccoli}"
     "\nBroctl:            ${use_broctl}"
     "\nGeoIP:             ${use_geoip}"
-    "\nlibz:              ${use_libz}"
+    "\nlibz:              ${HAVE_LIBZ}"
     "\nlibmagic:          ${HAVE_LIBMAGIC}"
     "\nGoogle perftools:  ${use_perftools}"
     "\n"

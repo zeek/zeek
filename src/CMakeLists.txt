@@ -1,6 +1,5 @@
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}
                     ${CMAKE_CURRENT_BINARY_DIR}
-                    ${BinPAC_INCLUDE_DIR}
                     )
 
 macro(REPLACE_YY_PREFIX_TARGET inFile outFile yylexPrefix yyPrefix)

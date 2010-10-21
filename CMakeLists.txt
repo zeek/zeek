@@ -70,10 +70,6 @@ find_package(BISON REQUIRED)
 find_package(PCAP REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(BIND REQUIRED)
-include_directories(BEFORE
-                    ${PCAP_INCLUDE_DIR}
-                    ${OPENSSL_INCLUDE_DIR}
-                    ${BIND_INCLUDE_DIR})
 
 # This test is for when the user would like to use rebuild BinPAC
 # rather than use an existing installation
@@ -106,6 +102,15 @@ endif ()
 
 # TODO: optional libGeoIP
 # TODO: optional Google perftools
+
+include_directories(BEFORE
+                    ${PCAP_INCLUDE_DIR}
+                    ${OPENSSL_INCLUDE_DIR}
+                    ${BIND_INCLUDE_DIR}
+                    ${BinPAC_INCLUDE_DIR}
+                    ${LibMagic_INCLUDE_DIR}
+                    ${ZLIB_INCLUDE_DIR}
+)
 
 ##
 ## Configuration Checks/Tests

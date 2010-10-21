@@ -53,9 +53,18 @@ set(ENABLE_PERFTOOLS false
 # Uncomment to specify a custom prefix that contains the libpcap installation.
 #set(PCAP_ROOT_DIR path/to/your/pcap)
 
+# Uncomment to specify a custom prefix containing the BinPAC installation.
+#set(BinPAC_ROOT_DIR path/to/your/binpac)
+
+# Uncomment to prefer building BinPAC from existing sources rather than
+# use an existing installation (i.e. you have initialized Bro's BinPAC
+# git submodule and updated sources local to the Bro source tree)
+#set(BinPAC_PREFER_LOCAL_BUILD true)
+
+# Comment this if local build of BinPAC should be scheduled for installation
+set(BinPAC_SKIP_INSTALL true)
+
 # TODO: more dependencies:
-# BinPAC
-#
 # Libmagic
 # LibGeoIP
 # Libz

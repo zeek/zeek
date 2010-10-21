@@ -72,6 +72,25 @@ include_directories(BEFORE
                     ${OPENSSL_INCLUDE_DIR}
                     ${BIND_INCLUDE_DIR})
 
+# This test is for when the user would like to use rebuild BinPAC
+# rather than use an existing installation
+if (NOT BinPAC_PREFER_LOCAL_BUILD)
+    find_package(BinPAC)
+endif ()
+
+if (NOT BINPAC_FOUND)
+    # check if we can build BinPAC locally
+    if (EXISTS ${CMAKE_SOURCE_DIR}/binpac/CMakeLists.txt)
+        add_subdirectory(binpac)
+        # find_package called just to set the _FOUND variable
+        find_package(BinPAC)
+        message(STATUS "Building local version of BinPAC")
+    else ()
+        message(FATAL_ERROR "BinPAC required but it is not installed and"
+                            " the sources to build it are also not found.")
+    endif ()
+endif ()
+
 # TODO: optional libmagic
 # TODO: optional libGeoIP
 # TODO: optional libz
@@ -106,7 +125,6 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 ## Recurse on sub-directories
 ##
 
-add_subdirectory(binpac)
 add_subdirectory(src)
 #add_subdirectory(aux)
 #add_subdirectory(scripts)
@@ -134,7 +152,7 @@ message(
     "\nlibz:              ${use_libz}"
     "\nlibmagic:          ${use_libmagic}"
     "\nEndace:            ${use_endace}"
-    "\nGoogle perftools:  ${summary_perftools}"
+    "\nGoogle perftools:  ${use_perftools}"
     "\n"
     "\n================================================================\n"
 )

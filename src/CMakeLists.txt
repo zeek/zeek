@@ -1,7 +1,6 @@
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}
                     ${CMAKE_CURRENT_BINARY_DIR}
-                    ${CMAKE_SOURCE_DIR}/binpac/lib
-                    ${CMAKE_BINARY_DIR}/binpac/lib
+                    ${BinPAC_INCLUDE_DIR}
                     )
 
 macro(REPLACE_YY_PREFIX_TARGET inFile outFile yylexPrefix yyPrefix)
@@ -62,9 +61,9 @@ replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/p.cc
 flex_target(Scanner scan.l ${CMAKE_CURRENT_BINARY_DIR}/scan.cc
             COMPILE_FLAGS "-Pbro")
 
-configure_file (version.c.in ${CMAKE_CURRENT_BINARY_DIR}/version.c)
+configure_file(version.c.in ${CMAKE_CURRENT_BINARY_DIR}/version.c)
 
-########### next target ###############
+########### bifcl target###############
 
 set(bifcl_SRCS
    ${BISON_BIFParser_OUTPUTS}
@@ -116,9 +115,9 @@ set(BIF_SRCS
     smb-rw.bif
     )
 
-foreach(bift ${BIF_SRCS})
+foreach (bift ${BIF_SRCS})
     bif_target(${bift})
-endforeach(bift)
+endforeach ()
 
 
 ########## targets that need binpac ##########
@@ -127,11 +126,11 @@ macro(BINPAC_TARGET pacFile)
     get_filename_component(basename ${pacFile} NAME_WE)
     add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${basename}_pac.h
                               ${CMAKE_CURRENT_BINARY_DIR}/${basename}_pac.cc
-                       COMMAND binpac
+                       COMMAND ${BinPAC_EXE}
                        ARGS -d ${CMAKE_CURRENT_BINARY_DIR}
                             -I ${CMAKE_CURRENT_SOURCE_DIR}
                             ${pacFile}
-                       DEPENDS binpac ${pacFile}
+                       DEPENDS ${BinPAC_EXE} ${pacFile}
                        COMMENT "[BINPAC] Processing ${pacFile}"
     )
     list(APPEND ALL_BINPAC_OUTPUTS
@@ -178,11 +177,11 @@ set(BINPAC_RPC_AUXSRC
     ssl-protocol.pac ssl-record-layer.pac
 )
 
-foreach(binpact ${BINPAC_SRCS})
+foreach (binpact ${BINPAC_SRCS})
     binpac_target(${CMAKE_CURRENT_SOURCE_DIR}/${binpact})
-endforeach(binpact)
+endforeach ()
 
-########### next target ###############
+########### bro target ###############
 
 set(dns_SRCS nb_dns.c nb_dns.h)
 
@@ -366,7 +365,7 @@ add_executable(bro ${bro_SRCS})
 
 target_link_libraries(bro
                       m
-                      binpac_lib
+                      ${BinPAC_LIBRARY}
                       ${PCAP_LIBRARY}
                       ${OPENSSL_LIBRARIES}
                       ${BIND_LIBRARY}

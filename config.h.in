@@ -8,9 +8,6 @@
 /* should explicitly declare socket() and friends */
 #cmakedefine DO_SOCK_DECL
 
-/* Define if you have the <GeoIPCity.h> header file. */
-#cmakedefine HAVE_GEOIPCITY_H
-
 /* Define if you have the <getopt.h> header file. */
 #cmakedefine HAVE_GETOPT_H
 
@@ -175,7 +172,7 @@
 #cmakedefine TIME_WITH_SYS_TIME
 
 /* GeoIP geographic lookup functionality */
-#undef USE_GEOIP
+#cmakedefine USE_GEOIP
 
 /* Use libclamav */
 #undef USE_LIBCLAMAV

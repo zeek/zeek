@@ -1,7 +1,6 @@
 include(CheckIncludeFiles)
 include(CheckStructHasMember)
 
-check_include_files(GeoIPCity.h HAVE_GEOIPCITY_H)
 check_include_files(getopt.h HAVE_GETOPT_H)
 check_include_files(inttypes.h HAVE_INTTYPES_H)
 check_include_files(magic.h HAVE_MAGIC_H)

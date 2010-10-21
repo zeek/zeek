@@ -67,6 +67,8 @@ set(BinPAC_SKIP_INSTALL true)
 # Uncomment to specify a custom prefix containing the libmagic installation.
 #set(LibMagic_ROOT_DIR path/to/your/libmagic)
 
+# Uncomment to specify a custom prefix containing the libGeoIP installation.
+#set(LibGeoIP_ROOT_DIR path/to/your/libGeoIP)
+
 # TODO: more dependencies:
-# LibGeoIP
 # Google perftools

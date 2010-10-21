@@ -100,7 +100,11 @@ if (ZLIB_FOUND)
     set(HAVE_LIBZ true)
 endif ()
 
-# TODO: optional libGeoIP
+find_package(LibGeoIP)
+if (LIBGEOIP_FOUND)
+    set(USE_GEOIP true)
+endif ()
+
 # TODO: optional Google perftools
 
 include_directories(BEFORE
@@ -110,6 +114,7 @@ include_directories(BEFORE
                     ${BinPAC_INCLUDE_DIR}
                     ${LibMagic_INCLUDE_DIR}
                     ${ZLIB_INCLUDE_DIR}
+                    ${LibGeoIP_INCLUDE_DIR}
 )
 
 ##
@@ -163,7 +168,7 @@ message(
     "\n"
     "\nBroccoli:          ${use_broccoli}"
     "\nBroctl:            ${use_broctl}"
-    "\nGeoIP:             ${use_geoip}"
+    "\nGeoIP:             ${USE_GEOIP}"
     "\nlibz:              ${HAVE_LIBZ}"
     "\nlibmagic:          ${HAVE_LIBMAGIC}"
     "\nGoogle perftools:  ${use_perftools}"

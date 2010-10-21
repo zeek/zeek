@@ -369,6 +369,7 @@ target_link_libraries(bro
                       ${BIND_LIBRARY}
                       ${LibMagic_LIBRARY}
                       ${ZLIB_LIBRARIES}
+                      ${LibGeoIP_LIBRARY}
 )
 
 install(TARGETS bro DESTINATION bin)

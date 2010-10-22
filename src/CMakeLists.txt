@@ -118,8 +118,13 @@ foreach (bift ${BIF_SRCS})
     bif_target(${bift})
 endforeach ()
 
-
 ########## targets that need binpac ##########
+
+set(BINPAC_AUXSRC
+    binpac.pac
+    bro.pac
+    binpac_bro.h
+)
 
 macro(BINPAC_TARGET pacFile)
     get_filename_component(basename ${pacFile} NAME_WE)
@@ -128,8 +133,9 @@ macro(BINPAC_TARGET pacFile)
                        COMMAND ${BinPAC_EXE}
                        ARGS -d ${CMAKE_CURRENT_BINARY_DIR}
                             -I ${CMAKE_CURRENT_SOURCE_DIR}
-                            ${pacFile}
+                            ${CMAKE_CURRENT_SOURCE_DIR}/${pacFile}
                        DEPENDS ${BinPAC_EXE} ${pacFile}
+                               ${BINPAC_AUXSRC} ${ARGN}
                        COMMENT "[BINPAC] Processing ${pacFile}"
     )
     list(APPEND ALL_BINPAC_OUTPUTS
@@ -137,48 +143,33 @@ macro(BINPAC_TARGET pacFile)
          ${CMAKE_CURRENT_BINARY_DIR}/${basename}_pac.cc) 
 endmacro(BINPAC_TARGET)
 
-set(BINPAC_SRCS
-    binpac-lib.pac
-    binpac_bro-lib.pac
-    bittorrent.pac
-    dce_rpc.pac
-    dce_rpc_simple.pac
-    dhcp.pac
-    dns.pac
-    dns_tcp.pac
-    http.pac
-    ncp.pac
-    netflow.pac
-    rpc.pac
-    smb.pac
-    ssl.pac
-    ssl-record-layer.pac
-)
-
-set(BINPAC_AUXSRC
-    binpac.pac
-    bro.pac
-    binpac_bro.h
-)
-
-set(BINPAC_RPC_AUXSRC
-    bittorrent-protocol.pac bittorrent-analyzer.pac
-    dce_rpc-analyzer.pac dce_rpc-protocol.pac
-    dhcp-analyzer.pac dhcp-protocol.pac
-    dns-analyzer.pac dns-protocol.pac
-    epmapper.pac
-    http-analyzer.pac http-protocol.pac http.pac
-    netflow-protocol.pac netflow-analyzer.pac
-    portmap-protocol.pac portmap-analyzer.pac
-    rpc-protocol.pac rpc-analyzer.pac
-    smb-protocol.pac smb-mailslot.pac smb-pipe.pac
-    ssl.pac ssl-analyzer.pac ssl-defs.pac
-    ssl-protocol.pac ssl-record-layer.pac
-)
-
-foreach (binpact ${BINPAC_SRCS})
-    binpac_target(${CMAKE_CURRENT_SOURCE_DIR}/${binpact})
-endforeach ()
+binpac_target(binpac-lib.pac)
+binpac_target(binpac_bro-lib.pac)
+binpac_target(bittorrent.pac
+    bittorrent-protocol.pac bittorrent-analyzer.pac)
+binpac_target(dce_rpc.pac
+    dce_rpc-protocol.pac dce_rpc-analyzer.pac)
+binpac_target(dce_rpc_simple.pac
+    dce_rpc-protocol.pac)
+binpac_target(dhcp.pac
+    dhcp-protocol.pac dhcp-analyzer.pac)
+binpac_target(dns.pac
+    dns-protocol.pac dns-analyzer.pac)
+binpac_target(dns_tcp.pac
+    dns.pac)
+binpac_target(http.pac
+    http-protocol.pac http-analyzer.pac)
+binpac_target(ncp.pac)
+binpac_target(netflow.pac
+    netflow-protocol.pac netflow-analyzer.pac)
+binpac_target(rpc.pac
+    rpc-analyzer.pac portmap-analyzer.pac)
+binpac_target(smb.pac
+    smb-protocol.pac smb-pipe.pac smb-mailslot.pac)
+binpac_target(ssl.pac
+    ssl-defs.pac ssl-protocol.pac ssl-analyzer.pac)
+binpac_target(ssl-record-layer.pac
+    ssl-defs.pac ssl.pac)
 
 ########### bro target ###############
 
@@ -203,8 +194,6 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
 )
 
 set(bro_SRCS
-    ${BINPAC_AUXSRC}
-    ${BINPAC_RPC_AUXSRC}
     ${ALL_BIF_OUTPUTS}
     ${ALL_BINPAC_OUTPUTS}
     ${CMAKE_CURRENT_BINARY_DIR}/version.c

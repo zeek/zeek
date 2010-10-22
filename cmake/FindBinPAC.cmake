@@ -10,6 +10,10 @@
 #  BinPAC_ROOT_DIR           Set this variable to the root installation of
 #                            BinPAC if the module has problems finding the
 #                            proper installation path.
+#  BinPAC_PREFER_BUILD       Set this to true if BinPAC should be built
+#                            from sources located in the root source
+#                            directory in subidrectory 'binpac'.  The
+#                            module will not look for BinPAC elsewhere.
 #
 # Variables defined by this module:
 #
@@ -18,24 +22,41 @@
 #  BinPAC_LIBRARY            The libbinpac.a library
 #  BinPAC_INCLUDE_DIR        The binpac headers
 
-find_path(BinPAC_ROOT_DIR
-    NAMES include/binpac.h
-)
+if (BinPAC_PREFER_BUILD)
+    # check if we can build BinPAC locally
+    if (EXISTS ${CMAKE_SOURCE_DIR}/binpac/CMakeLists.txt)
+        if (NOT BinPAC_EXE)
+            # Display only first time
+            message(STATUS "Building local version of BinPAC")
+        endif ()
+        # BinPAC's CMake project must declare:
+        # BinPAC_EXE, BinPAC_LIBRARY, BinPAC_INCLUDE_DIR
+        add_subdirectory(${CMAKE_SOURCE_DIR}/binpac)
+    else ()
+        message(WARNING "Option to build BinPAC from source selected, "
+                        "but no sources found in ${CMAKE_SOURCE_DIR}/binpac")
+    endif ()
+else ()
+    # look for BinPAC in standard locations or user-provided root
+    find_path(BinPAC_ROOT_DIR
+        NAMES include/binpac.h
+    )
 
-find_file(BinPAC_EXE
-    NAMES binpac
-    HINTS ${BinPAC_ROOT_DIR}/bin
-)
+    find_file(BinPAC_EXE
+        NAMES binpac
+        HINTS ${BinPAC_ROOT_DIR}/bin
+    )
 
-find_library(BinPAC_LIBRARY
-    NAMES libbinpac.a
-    HINTS ${BinPAC_ROOT_DIR}/lib
-)
+    find_library(BinPAC_LIBRARY
+        NAMES libbinpac.a
+        HINTS ${BinPAC_ROOT_DIR}/lib
+    )
 
-find_path(BinPAC_INCLUDE_DIR
-    NAMES binpac.h
-    HINTS ${BinPAC_ROOT_DIR}/include
-)
+    find_path(BinPAC_INCLUDE_DIR
+        NAMES binpac.h
+        HINTS ${BinPAC_ROOT_DIR}/include
+    )
+endif ()
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(BinPAC DEFAULT_MSG

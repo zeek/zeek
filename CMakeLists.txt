@@ -70,25 +70,7 @@ find_package(BISON REQUIRED)
 find_package(PCAP REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(BIND REQUIRED)
-
-# This test is for when the user would like to use rebuild BinPAC
-# rather than use an existing installation
-if (NOT BinPAC_PREFER_LOCAL_BUILD)
-    find_package(BinPAC)
-endif ()
-
-if (NOT BINPAC_FOUND)
-    # check if we can build BinPAC locally
-    if (EXISTS ${CMAKE_SOURCE_DIR}/binpac/CMakeLists.txt)
-        add_subdirectory(binpac)
-        # find_package called just to set the _FOUND variable
-        find_package(BinPAC)
-        message(STATUS "Building local version of BinPAC")
-    else ()
-        message(FATAL_ERROR "BinPAC required but it is not installed and"
-                            " the sources to build it are also not found.")
-    endif ()
-endif ()
+find_package(BinPAC REQUIRED)
 
 set(HAVE_LIBMAGIC false)
 find_package(LibMagic)

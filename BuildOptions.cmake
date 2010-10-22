@@ -58,7 +58,7 @@ set(ENABLE_PERFTOOLS false
 # Uncomment to prefer building BinPAC from existing sources rather than
 # use an existing installation (i.e. you have initialized Bro's BinPAC
 # git submodule and updated sources local to the Bro source tree)
-#set(BinPAC_PREFER_LOCAL_BUILD true)
+#set(BinPAC_PREFER_BUILD true)
 
 # Comment this if local build of BinPAC should be scheduled for installation
 set(BinPAC_SKIP_INSTALL true)

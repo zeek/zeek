@@ -83,17 +83,19 @@ macro(BIF_TARGET bifInput)
                        COMMENT "[BIFCL] Processing ${bifInput}"
     )
     list(APPEND ALL_BIF_OUTPUTS ${bifOutputs})
+    list(APPEND INSTALL_BIF_OUTPUTS
+         ${CMAKE_CURRENT_BINARY_DIR}/${bifInput}.bro)
 endmacro(BIF_TARGET)
 
 macro(GET_BIF_OUTPUT_FILES inputFile outputFileVar)
     set(${outputFileVar}
-        ${CMAKE_CURRENT_BINARY_DIR}/${inputFile}.bro 
-        ${CMAKE_CURRENT_BINARY_DIR}/${inputFile}.func_def
-        ${CMAKE_CURRENT_BINARY_DIR}/${inputFile}.func_h 
-        ${CMAKE_CURRENT_BINARY_DIR}/${inputFile}.func_init 
-        ${CMAKE_CURRENT_BINARY_DIR}/${inputFile}.netvar_def 
-        ${CMAKE_CURRENT_BINARY_DIR}/${inputFile}.netvar_h 
-        ${CMAKE_CURRENT_BINARY_DIR}/${inputFile}.netvar_init
+        ${inputFile}.bro
+        ${inputFile}.func_def
+        ${inputFile}.func_h
+        ${inputFile}.func_init
+        ${inputFile}.netvar_def
+        ${inputFile}.netvar_h
+        ${inputFile}.netvar_init
     )
 endmacro(GET_BIF_OUTPUT_FILES)
 
@@ -363,3 +365,4 @@ target_link_libraries(bro
 )
 
 install(TARGETS bro DESTINATION bin)
+install(FILES ${INSTALL_BIF_OUTPUTS} DESTINATION ${DATADIR})

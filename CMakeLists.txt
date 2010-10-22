@@ -137,10 +137,10 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 ##
 
 add_subdirectory(src)
-#add_subdirectory(aux)
+add_subdirectory(policy)
 #add_subdirectory(scripts)
-#add_subdirectory(policy)
 #add_subdirectory(doc)
+#add_subdirectory(aux)
 
 ##
 ## Build Summary

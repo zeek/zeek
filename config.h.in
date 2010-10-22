@@ -174,9 +174,6 @@
 /* GeoIP geographic lookup functionality */
 #cmakedefine USE_GEOIP
 
-/* Use libclamav */
-#undef USE_LIBCLAMAV
-
 /* Use Google's perftools */
 #cmakedefine USE_PERFTOOLS
 

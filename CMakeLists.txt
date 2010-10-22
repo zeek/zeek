@@ -105,7 +105,12 @@ if (LIBGEOIP_FOUND)
     set(USE_GEOIP true)
 endif ()
 
-# TODO: optional Google perftools
+if (ENABLE_PERFTOOLS)
+    find_package(GooglePerftools)
+    if (GOOGLEPERFTOOLS_FOUND)
+        set(USE_PERFTOOLS true)
+    endif ()
+endif ()
 
 include_directories(BEFORE
                     ${PCAP_INCLUDE_DIR}
@@ -115,6 +120,7 @@ include_directories(BEFORE
                     ${LibMagic_INCLUDE_DIR}
                     ${ZLIB_INCLUDE_DIR}
                     ${LibGeoIP_INCLUDE_DIR}
+                    ${GooglePerftools_INCLUDE_DIR}
 )
 
 ##
@@ -171,7 +177,7 @@ message(
     "\nGeoIP:             ${USE_GEOIP}"
     "\nlibz:              ${HAVE_LIBZ}"
     "\nlibmagic:          ${HAVE_LIBMAGIC}"
-    "\nGoogle perftools:  ${use_perftools}"
+    "\nGoogle perftools:  ${USE_PERFTOOLS}"
     "\n"
     "\n================================================================\n"
 )

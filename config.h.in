@@ -178,7 +178,7 @@
 #undef USE_LIBCLAMAV
 
 /* Use Google's perftools */
-#undef USE_PERFTOOLS
+#cmakedefine USE_PERFTOOLS
 
 /* Version number of package */
 #define VERSION "@VERSION@"

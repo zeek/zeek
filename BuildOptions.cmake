@@ -36,7 +36,6 @@ set(BROv6 false
     CACHE STRING "enable IPv6 processing" FORCE)
 
 # TODO: add to configure wrapper as '--enable-perftools'
-# TODO: make this option do stuff
 set(ENABLE_PERFTOOLS false
     CACHE STRING "use Google's perftools" FORCE)
 
@@ -70,5 +69,5 @@ set(BinPAC_SKIP_INSTALL true)
 # Uncomment to specify a custom prefix containing the libGeoIP installation.
 #set(LibGeoIP_ROOT_DIR path/to/your/libGeoIP)
 
-# TODO: more dependencies:
-# Google perftools
+# Uncomment to specify a custom prefix containing Google Perftools installation.
+#set(GooglePerftools_ROOT_DIR path/to/your/google-perftools)

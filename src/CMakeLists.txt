@@ -370,6 +370,7 @@ target_link_libraries(bro
                       ${LibMagic_LIBRARY}
                       ${ZLIB_LIBRARIES}
                       ${LibGeoIP_LIBRARY}
+                      ${GooglePerftools_LIBRARIES}
 )
 
 install(TARGETS bro DESTINATION bin)

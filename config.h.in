@@ -14,9 +14,6 @@
 /* Define if you have the `getopt_long' function. */
 #cmakedefine HAVE_GETOPT_LONG
 
-/* Define if you have the <inttypes.h> header file. */
-#cmakedefine HAVE_INTTYPES_H
-
 /* Define if you have the `magic' library (-lmagic). */
 #cmakedefine HAVE_LIBMAGIC
 
@@ -35,14 +32,8 @@
 /* Define if you have the <memory.h> header file. */
 #cmakedefine HAVE_MEMORY_H
 
-/* Define if you have the <netinet/ether.h> header file. */
-#cmakedefine HAVE_NETINET_ETHER_H
-
 /* Define if you have the <netinet/if_ether.h> header file. */
 #cmakedefine HAVE_NETINET_IF_ETHER_H
-
-/* Define if you have the <netinet/in.h> header file. */
-#cmakedefine HAVE_NETINET_IN_H
 
 /* Define if you have the <netinet/ip6.h> header file. */
 #cmakedefine HAVE_NETINET_IP6_H
@@ -59,9 +50,6 @@
 /* Define if you have the <pcap-int.h> header file. */
 #cmakedefine HAVE_PCAP_INT_H
 
-/* Define if you have the `pfopen' function. */
-#cmakedefine HAVE_PFOPEN
-
 /* line editing & history powers */
 #cmakedefine HAVE_READLINE
 
@@ -71,56 +59,17 @@
 /* Define if you have the `sigset' function. */
 #cmakedefine HAVE_SIGSET
 
-/* Define if you have the <socket.h> header file. */
-#cmakedefine HAVE_SOCKET_H
-
-/* Define if you have the <stdint.h> header file. */
-#cmakedefine HAVE_STDINT_H
-
-/* Define if you have the <stdlib.h> header file. */
-#cmakedefine HAVE_STDLIB_H
-
 /* Define if you have the `strcasestr' function. */
 #cmakedefine HAVE_STRCASESTR
 
 /* Define if you have the `strerror' function. */
 #cmakedefine HAVE_STRERROR
 
-/* Define if you have the `strftime' function. */
-#cmakedefine HAVE_STRFTIME
-
-/* Define if you have the <strings.h> header file. */
-#cmakedefine HAVE_STRINGS_H
-
-/* Define if you have the <string.h> header file. */
-#cmakedefine HAVE_STRING_H
-
 /* Define if you have the `strsep' function. */
 #cmakedefine HAVE_STRSEP
 
-/* Define if the system has the type `struct sembuf'. */
-#cmakedefine HAVE_STRUCT_SEMBUF
-
 /* Define if you have the <sys/ethernet.h> header file. */
 #cmakedefine HAVE_SYS_ETHERNET_H
-
-/* Define if you have the <sys/stat.h> header file. */
-#cmakedefine HAVE_SYS_STAT_H
-
-/* Define if you have the <sys/types.h> header file. */
-#cmakedefine HAVE_SYS_TYPES_H
-
-/* Define if you have the <termcap.h> header file. */
-#cmakedefine HAVE_TERMCAP_H
-
-/* Define if you have the <term.h> header file. */
-#cmakedefine HAVE_TERM_H
-
-/* Define if the system has the type `union semun'. */
-#cmakedefine HAVE_UNION_SEMUN
-
-/* Define if you have the <unistd.h> header file. */
-#cmakedefine HAVE_UNISTD_H
 
 /* Some libpcap versions use an extra parameter (error) in pcap_compile_nopcap
    */
@@ -134,12 +83,6 @@
 
 /* d2i_x509 uses const char** */
 #cmakedefine OPENSSL_D2I_X509_USES_CONST_CHAR
-
-/* Name of package */
-#define PACKAGE "@PACKAGE@"
-
-/* Have a version string in libpcap */
-#cmakedefine PCAP_VERSION_STRING
 
 /* Define as the return type of signal handlers (`int' or `void'). */
 #define RETSIGTYPE @RETSIGTYPE@
@@ -162,13 +105,10 @@
 /* should we declare syslog() and openlog() */
 #cmakedefine SYSLOG_INT
 
-/* Define to 1 if you have <sys/time.h> */
+/* Define if you have <sys/time.h> */
 #cmakedefine HAVE_SYS_TIME_H
 
-/* Define to 1 if you have <time.h> */
-#cmakedefine HAVE_TIME_H
-
-/* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
+/* Define if you can safely include both <sys/time.h> and <time.h>. */
 #cmakedefine TIME_WITH_SYS_TIME
 
 /* GeoIP geographic lookup functionality */

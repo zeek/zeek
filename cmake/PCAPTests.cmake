@@ -59,14 +59,5 @@ int main () {
     endif ()
 endif ()
 
-check_c_source_compiles("
-#include <pcap.h>
-extern char pcap_version[];
-int main() {
-    puts(pcap_version);
-    return 0;
-}
-" PCAP_VERSION_STRING)
-
 unset(CMAKE_REQUIRED_INCLUDES)
 unset(CMAKE_REQUIRED_LIBRARIES)

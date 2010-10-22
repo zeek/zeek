@@ -113,7 +113,6 @@ include_directories(BEFORE
 ## Configuration Checks/Tests
 ##
 
-set(PACKAGE "Bro")
 file(STRINGS "${CMAKE_SOURCE_DIR}/VERSION" VERSION LIMIT_COUNT 1)
 
 include(TestBigEndian)

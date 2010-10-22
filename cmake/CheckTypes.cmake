@@ -44,8 +44,3 @@ else ()
     set(SOCKLEN_T int)
 endif ()
 unset(CMAKE_EXTRA_INCLUDE_FILES)
-
-set(CMAKE_EXTRA_INCLUDE_FILES sys/sem.h)
-check_type_size("struct sembuf" STRUCT_SEMBUF)
-check_type_size("union semun" UNION_SEMUN)
-unset(CMAKE_EXTRA_INCLUDE_FILES)

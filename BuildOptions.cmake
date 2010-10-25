@@ -13,10 +13,10 @@
 set(CMAKE_INSTALL_PREFIX /usr/local/bro
     CACHE STRING "Installation directory" FORCE)
 
-# The installation subdirectory for Bro policy files
+# The installation directory for Bro policy files
 # TODO: add to configure wrapper as '--datadir'
-set(DATADIR share/bro
-     CACHE STRING "Installation subdirectory for Bro policy files" FORCE)
+set(DATADIR /usr/local/bro/share/bro
+     CACHE STRING "Installation directory for Bro policy files" FORCE)
 
 ##
 ## Optional Features

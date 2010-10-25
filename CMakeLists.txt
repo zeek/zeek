@@ -150,7 +150,7 @@ message(
     "\n====================|  Bro Build Summary  |====================="
     "\n"
     "\nInstall prefix:    ${CMAKE_INSTALL_PREFIX}"
-    "\nDatadir:           ${CMAKE_INSTALL_PREFIX}/${DATADIR}"
+    "\nDatadir:           ${DATADIR}"
     "\nDebug mode:        ${ENABLE_DEBUG}"
     "\nRelease mode:      ${ENABLE_RELEASE}"
     "\n"

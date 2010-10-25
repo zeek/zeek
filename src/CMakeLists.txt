@@ -348,7 +348,7 @@ set(bro_SRCS
     ${openssl_SRCS}
 )
 
-add_definitions(-DPOLICYDEST="${CMAKE_INSTALL_PREFIX}/${DATADIR}")
+add_definitions(-DPOLICYDEST="${DATADIR}")
 
 add_executable(bro ${bro_SRCS})
 

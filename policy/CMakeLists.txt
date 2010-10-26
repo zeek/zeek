@@ -6,3 +6,5 @@ install(DIRECTORY . DESTINATION ${DATADIR} FILES_MATCHING
         PATTERN "*.sig"
         PATTERN "*.osf"
 )
+
+install(DIRECTORY DESTINATION ${DATADIR}/site)

@@ -941,9 +941,9 @@ TableVal* SSLv3_Interpreter::analyzeCiphers(const SSLv3_Endpoint* s, int length,
 	if ( length > ssl_max_cipherspec_size )
 		{
 		if ( is_orig )
-			Weird("SSLv2: Client has CipherSpecs > ssl_max_cipherspec_size");
+			Weird("SSLv3: Client has CipherSpecs > ssl_max_cipherspec_size");
 		else
-			Weird("SSLv2: Server has CipherSpecs > ssl_max_cipherspec_size");
+			Weird("SSLv3: Server has CipherSpecs > ssl_max_cipherspec_size");
 		}
 
 	const u_char* pCipher = data;
@@ -1357,8 +1357,16 @@ int SSLv3_HandshakeRecord::checkClientHello()
 	if ( sessionIDLength + cipherSuiteLength +
 	     compressionMethodLength + 38 != length )
 		{
-		endp->Interpreter()->Weird("SSLv3x: Corrupt length fields in Client hello!");
-		return 0;
+		uint16 sslExtensionsLength =
+			uint16(data[41 + sessionIDLength + cipherSuiteLength + compressionMethodLength + 1 ] << 8 ) | data[41 + sessionIDLength + cipherSuiteLength + compressionMethodLength + 2 ];
+		if ( sslExtensionsLength < 4 )
+			endp->Interpreter()->Weird("SSLv3x: Extensions length too small!");
+		if ( sessionIDLength + cipherSuiteLength +
+	     		compressionMethodLength + 2 + sslExtensionsLength + 38 != length )
+			{
+			endp->Interpreter()->Weird("SSLv3x: Corrupt length fields in Client hello!");
+			return 0;
+			}
 		}
 
 	return 1;
@@ -1384,7 +1392,7 @@ int SSLv3_HandshakeRecord::checkServerHello()
 		return 0;
 		}
 
-	if ( (sessionIDLength + 38) != length )
+	if ( (sessionIDLength + 45) != length )
 		{
 		endp->Interpreter()->Weird("SSLv3x: Corrupt length fields in Server hello!");
 		return 0;

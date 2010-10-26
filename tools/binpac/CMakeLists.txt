@@ -26,7 +26,7 @@ mark_as_advanced(build_config_file)
 
 include(${build_options_file})
 
-set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 ##
 ## Project Configuration

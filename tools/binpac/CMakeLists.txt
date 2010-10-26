@@ -7,27 +7,24 @@ cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 # Prohibit in-source builds.
 string(COMPARE EQUAL "${CMAKE_SOURCE_DIR}" "${CMAKE_BINARY_DIR}" source_build)
 if (source_build)
-    message(FATAL_ERROR "In-source builds are not allowed\n."
-        "Please create a separate build directory and invoke cmake from there.")
+    message(FATAL_ERROR "In-source builds are not allowed. Please use "
+                        "./configure to choose a build directory and "
+                        "initialize the build configuration.")
 endif ()
 
-# If the build configuration file does not exist, copy it over.
-set(build_config BuildOptions.cmake)
-find_file(build_config_file
+find_file(build_options_file
     NAMES BuildOptions.cmake
     PATHS ${CMAKE_BINARY_DIR}
-    DOC "Build configuration"
+    DOC "Build Options"
     NO_DEFAULT_PATH
     )
-if (NOT build_config_file)
-    message("No build configuration found, using default.")
-    configure_file(${CMAKE_SOURCE_DIR}/${build_config}
-                   ${CMAKE_BINARY_DIR}/${build_config}
-                   )
+if (NOT build_options_file)
+    message(FATAL_ERROR "Build options file not found, please use "
+                        "${CMAKE_SOURCE_DIR}/configure to generate one.")
 endif ()
 mark_as_advanced(build_config_file)
 
-include(${CMAKE_BINARY_DIR}/${build_config})
+include(${build_options_file})
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
@@ -37,17 +34,27 @@ set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
 project(BinPAC)
 
-set(CMAKE_C_FLAGS "-W -Wall -Wno-unused")
-set(CMAKE_CXX_FLAGS "-W -Wall -Wno-unused")
-
-if (ENABLE_DEBUG)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+if (ENABLE_DEBUG AND ENABLE_RELEASE)
+    set(CMAKE_BUILD_TYPE RelWithDebInfo)
+elseif (ENABLE_DEBUG AND NOT ENABLE_RELEASE)
+    set(CMAKE_BUILD_TYPE Debug)
+elseif (NOT ENABLE_DEBUG AND ENABLE_RELEASE)
+    set(CMAKE_BUILD_TYPE Release)
 endif ()
 
-if (ENABLE_RELEASE)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+# don't set extra compile flags again if already declared in this scope
+# (i.e. this project is included from Bro)
+if (NOT EXTRA_COMPILE_FLAGS)
+    set(EXTRA_COMPILE_FLAGS "-Wall -Wno-unused")
+
+    if (ENABLE_DEBUG)
+        set(EXTRA_COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS} -DDEBUG")
+    endif ()
+
+    # Compiler flags may already exist in CMake cache (e.g. when specifying
+    # CFLAGS environment variable before running cmake for the the first time)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EXTRA_COMPILE_FLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EXTRA_COMPILE_FLAGS}")
 endif ()
 
 ##
@@ -85,6 +92,10 @@ else ()
     set(binpac_install_summary "${CMAKE_INSTALL_PREFIX}")
 endif ()
 
+if (CMAKE_BUILD_TYPE)
+    string(TOUPPER ${CMAKE_BUILD_TYPE} BuildType)
+endif ()
+
 message(
     "\n==================|  BinPAC Build Summary  |===================="
     "\n"
@@ -92,8 +103,11 @@ message(
     "\nDebug mode:        ${ENABLE_DEBUG}"
     "\nRelease mode:      ${ENABLE_RELEASE}"
     "\n"
-    "\nCFLAGS:            ${CMAKE_C_FLAGS}"
-    "\nCXXFLAGS:          ${CMAKE_CXX_FLAGS}"
+    "\nCC:                ${CMAKE_C_COMPILER}"
+    "\nCFLAGS:            ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${BuildType}}"
+    "\nCXX:               ${CMAKE_CXX_COMPILER}"
+    "\nCXXFLAGS:          ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BuildType}}"
+    "\nCPP:               ${CMAKE_CXX_COMPILER}"
     "\n"
     "\n================================================================\n"
 )

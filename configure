@@ -31,6 +31,8 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
                            'binpac' subdirectory
     --install-binpac       if --build-binpac, this option adds
                            BinPAC build files to the install target
+    --install-auxtools     build and install auxilliary tools located
+                           in 'aux' subdirectory
 
   Required Packages in Non-Standard Locations:
     --with-openssl=PATH    path to OpenSSL install root
@@ -66,6 +68,7 @@ use_IPv6=false
 enable_perftools=false
 build_binpac=false
 skip_binpac_install=true
+install_auxtools=false
 
 # parse arguments
 while [ $# -ne 0 ]; do
@@ -115,6 +118,14 @@ while [ $# -ne 0 ]; do
             ;;
         --install-binpac)
             skip_binpac_install=false
+            ;;
+        --install-auxtools)
+            if [ -f $sourcedir/aux/CMakeLists.txt ]; then
+                install_auxtools=true
+            else
+                echo "Error: Bro-Aux source not found in $sourcedir/aux" >&2
+                exit 1
+            fi
             ;;
         --with-openssl=*)
             openssl_root=$optarg
@@ -185,13 +196,19 @@ set(ENABLE_PERFTOOLS $enable_perftools
     CACHE STRING "use Google's perftools" FORCE)
 
 # If the following option is set to true, then instead of searching for
-# an installation of BinPac, it will be downloaded into the 'binpac'
-# subdirectory if necessary and then built
+# an installation of BinPac, it will be built from source already
+# available in the 'binpac' subdirectory
 set(BinPAC_PREFER_BUILD $build_binpac
     CACHE STRING "retrieve and build BinPAC dependency from source" FORCE)
 
 set(BinPAC_SKIP_INSTALL $skip_binpac_install
     CACHE STRING "don't install BinPAC if built from source" FORCE)
+
+# If the following option is set to true, then auxilliary tools will
+# be installed alongside Bro if their source is located in the 'aux'
+# subdirectory
+set(INSTALL_AUXTOOLS $install_auxtools
+    CACHE STRING "install Bro auxilliary tools" FORCE)
 
 #######################################################################
 # Packages in Non-Standard Locations

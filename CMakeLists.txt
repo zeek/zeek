@@ -143,7 +143,10 @@ add_subdirectory(src)
 add_subdirectory(policy)
 #add_subdirectory(scripts)
 #add_subdirectory(doc)
-#add_subdirectory(aux)
+
+if (INSTALL_AUXTOOLS)
+    add_subdirectory(aux)
+endif ()
 
 ##
 ## Build Summary

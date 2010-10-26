@@ -52,21 +52,21 @@ installation time:
 Installation
 ============
 
-To build and install into /usr/local:
+To build and install into /usr/local/bro:
 
     > ./configure
+    > cd build
     > make
     > make install
 
-This will install the Bro binary into /usr/local/bin/bro and the policy
-files into /usr/local/share/bro.
+This will perform an out-of-source build into the build directory using the
+default build options and then install binaries into /usr/local/bro/bin
 
-As usual you can specify a different installation directory with
+You can specify a different installation directory with
 
-   > ./configure --prefix=<dir>".
+   > ./configure --prefix=<dir>.
 
 Run "./configure --help" for more options. 
-
 
 Running Bro
 ===========

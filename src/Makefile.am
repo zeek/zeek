@@ -31,7 +31,7 @@ bifcl_SOURCES = bif_lex.cc bif_parse.cc bif_arg.cc
 BINPAC_SRC = binpac-lib.pac binpac_bro-lib.pac bittorrent.pac \
 	dce_rpc.pac dce_rpc_simple.pac dhcp.pac dns.pac \
 	dns_tcp.pac http.pac ncp.pac netflow.pac rpc.pac smb.pac \
-	ssl.pac ssl-record-layer.pac
+	ssl.pac ssl-record-layer.pac syslog.pac
 
 BINPAC_H = $(BINPAC_SRC:.pac=_pac.h)
 BINPAC_CC = $(BINPAC_SRC:.pac=_pac.cc)
@@ -49,7 +49,8 @@ BINPAC_RPC_AUXSRC = \
 	rpc-protocol.pac rpc-analyzer.pac \
 	smb-protocol.pac smb-mailslot.pac smb-pipe.pac \
 	ssl.pac ssl-analyzer.pac ssl-defs.pac \
-	ssl-protocol.pac ssl-record-layer.pac
+	ssl-protocol.pac ssl-record-layer.pac \
+	syslog.pac syslog-protocol.pac syslog-analyzer.pac
 
 BINPAC = @BINPAC@
 BINPAC_FLAGS = -d $(top_builddir)/src -I $(srcdir)
@@ -129,7 +130,7 @@ bro_SOURCES = \
 	Queue.cc RE.cc RPC.cc Reassem.cc RemoteSerializer.cc Rlogin.cc RSH.cc \
 	Rule.cc RuleAction.cc RuleCondition.cc RuleMatcher.cc \
 	ScriptAnaly.cc SmithWaterman.cc SMB.cc SMTP.cc \
-	SSH.cc SSL-binpac.cc \
+	SSH.cc SSL-binpac.cc Syslog-binpac.cc \
 	Scope.cc SerializationFormat.cc SerialObj.cc Serializer.cc \
 	Sessions.cc StateAccess.cc Stats.cc SteppingStone.cc Stmt.cc \
 	TCP.cc TCP_Endpoint.cc TCP_Reassembler.cc TCP_Rewriter.cc \
@@ -165,7 +166,7 @@ noinst_HEADERS = Active.h Analyzer.h AnalyzerTags.h Anon.h ARP.h Attr.h \
 	SSLInterpreter.h SSLProxy.h SSLv2.h SSLv3.h SSLv3Automaton.h Scope.h \
 	SerialInfo.h SerialObj.h SerialTypes.h \
 	SerializationFormat.h Serializer.h Sessions.h StateAccess.h \
-	Stats.h SteppingStone.h Stmt.h StmtEnums.h \
+	Stats.h SteppingStone.h Stmt.h StmtEnums.h Syslog-binpac.h \
 	TCP.h TCP_Endpoint.h TCP_Reassembler.h TCP_Rewriter.h Telnet.h Timer.h \
 	Traverse.h TraverseTypes.h Trigger.h TwoWise.h Type.h UDP.h \
 	Val.h Var.h X509.h XDR.h ZIP.h \
@@ -330,6 +331,10 @@ ssl_pac.h ssl_pac.cc: ssl.pac $(BINPAC) $(BINPAC_AUXSRC) $(BINPAC_AUXHDR) ssl-pr
 
 ssl-record-layer_pac.h ssl-record-layer_pac.cc: ssl-record-layer.pac $(BINPAC) $(BINPAC_AUXSRC) $(BINPAC_AUXHDR)
 	$(BINPAC) $(BINPAC_FLAGS) $(srcdir)/ssl-record-layer.pac
+
+syslog_pac.h syslog_pac.cc: syslog.pac $(BINPAC) $(BINPAC_AUXSRC) $(BINPAC_AUXHDR) syslog-protocol.pac syslog-analyzer.pac
+	$(BINPAC) $(BINPAC_FLAGS) $(srcdir)/syslog.pac
+
 
 patricia.o: patricia.c patricia.h
 	$(CC) $(CFLAGS) -c $(srcdir)/patricia.c

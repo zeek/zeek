@@ -36,6 +36,7 @@
 #include "SSH.h"
 #include "SSLProxy.h"
 #include "SSL-binpac.h"
+#include "Syslog-binpac.h"
 
 // Keep same order here as in AnalyzerTag definition!
 const Analyzer::Config Analyzer::analyzer_configs[] = {
@@ -138,6 +139,9 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 	{ AnalyzerTag::SSL_BINPAC, "SSL_BINPAC",
 		SSL_Analyzer_binpac::InstantiateAnalyzer,
 		SSL_Analyzer_binpac::Available, 0, false },
+	{ AnalyzerTag::SYSLOG_BINPAC, "SYSLOG_BINPAC",
+		Syslog_Analyzer_binpac::InstantiateAnalyzer,
+		Syslog_Analyzer_binpac::Available, 0, false },
 
 	{ AnalyzerTag::File, "FILE", File_Analyzer::InstantiateAnalyzer,
 		File_Analyzer::Available, 0, false },

@@ -3,7 +3,7 @@
 # the project's CMake scripts will recognize
 
 # check for `cmake` command
-type -P cmake &>/dev/null || {
+type cmake > /dev/null 2>&1 || {
     echo "\
 This package requires CMake, please install it first, then you may
 use this configure script to access CMake equivalent functionality.\
@@ -19,7 +19,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
 
   Installation Directories:
     --prefix=PREFIX        installation directory [/usr/local/bro]
-    --datadir=PATH         policy file installation directory
+    --datadir=DIR          policy file installation subdirectory
                            [PREFIX/share/bro]
 
   Optional Features:
@@ -54,14 +54,14 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
 "
 
 sourcedir=`dirname $0`
-if [ "$sourcedir" == "." ]; then
+if [ "$sourcedir" = "." ]; then
     sourcedir=`pwd`
 fi
 
 # set defaults
 builddir=build
 prefix=/usr/local/bro
-datadir=$prefix/share/bro
+datadir=share/bro
 debug=false
 release=false
 use_IPv6=false
@@ -86,11 +86,6 @@ while [ $# -ne 0 ]; do
             builddir=$optarg
             ;;
         --prefix=*)
-            if [ "$datadir" == "${prefix}/share/bro" ]; then
-                # User has not explicitly set datadir, so re-root
-                # it to the chosen prefix
-                datadir=$optarg/share/bro
-            fi
             prefix=$optarg
             ;;
         --datadir=*)
@@ -177,7 +172,9 @@ set(CMAKE_INSTALL_PREFIX $prefix
     CACHE STRING "installation directory" FORCE)
 
 set(DATADIR $datadir
-    CACHE STRING "installation directory for Bro policy files" FORCE)
+    CACHE STRING
+    "installation subdirectory (under PREFIX) for Bro policy files"
+    FORCE)
 
 #######################################################################
 # Optional Features
@@ -240,7 +237,7 @@ ${comment}    CACHE STRING "Non-Standard install root" FORCE)
 EOF
 }
 
-add_search_path_hint OPENSSL_ROOT_DIR ${openssl_root}
+add_search_path_hint OpenSSL_ROOT_DIR ${openssl_root}
 add_search_path_hint BIND_ROOT_DIR ${bind_root}
 add_search_path_hint PCAP_ROOT_DIR ${pcap_root}
 add_search_path_hint BinPAC_ROOT_DIR ${binpac_root}

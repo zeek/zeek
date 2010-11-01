@@ -348,21 +348,22 @@ set(bro_SRCS
     ${openssl_SRCS}
 )
 
-add_definitions(-DPOLICYDEST="${DATADIR}")
+add_definitions(-DPOLICYDEST="${CMAKE_INSTALL_PREFIX}/${DATADIR}")
 
 add_executable(bro ${bro_SRCS})
 
-target_link_libraries(bro
-                      m
-                      ${BinPAC_LIBRARY}
-                      ${PCAP_LIBRARY}
-                      ${OPENSSL_LIBRARIES}
-                      ${BIND_LIBRARY}
-                      ${LibMagic_LIBRARY}
-                      ${ZLIB_LIBRARIES}
-                      ${LibGeoIP_LIBRARY}
-                      ${GooglePerftools_LIBRARIES}
+set(brolibs
+    ${BinPAC_LIBRARY}
+    ${PCAP_LIBRARY}
+    ${OpenSSL_LIBRARIES}
+    ${BIND_LIBRARY}
+    ${OPTLIBS}
 )
+
+include(ChangeMacInstallNames)
+ChangeMacInstallNames(brolibs)
+
+target_link_libraries(bro ${brolibs})
 
 install(TARGETS bro DESTINATION bin)
 install(FILES ${INSTALL_BIF_OUTPUTS} DESTINATION ${DATADIR})

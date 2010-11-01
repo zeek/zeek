@@ -1,6 +1,9 @@
 include(CheckCSourceCompiles)
 include(CheckCXXSourceCompiles)
 
+set(CMAKE_REQUIRED_LIBRARIES ${OpenSSL_LIBRARIES})
+set(CMAKE_REQUIRED_INCLUDES ${OpenSSL_INCLUDE_DIR})
+
 check_c_source_compiles("
     #include <openssl/ssl.h>
     int main() { return 0; }
@@ -8,13 +11,13 @@ check_c_source_compiles("
 
 if (NOT including_ssl_h_works)
     # On Red Hat we may need to include Kerberos header.
-    set(CMAKE_REQUIRED_INCLUDES "/usr/kerberos/include")
+    set(CMAKE_REQUIRED_INCLUDES ${OpenSSL_INCLUDE_DIR} /usr/kerberos/include)
     check_c_source_compiles("
         #include <krb5.h>
         #include <openssl/ssl.h>
         int main() { return 0; }
     " NEED_KRB5_H)
-    unset(CMAKE_REQUIRED_INCLUDES)
+    set(CMAKE_REQUIRED_INCLUDES ${OpenSSL_INCLUDE_DIR})
     if (NOT NEED_KRB5_H)
         message(FATAL_ERROR
             "OpenSSL test failure.  See CmakeError.log for details.")
@@ -26,7 +29,6 @@ endif ()
 
 # check for OPENSSL_add_all_algorithms_conf function
 # and thus OpenSSL >= v0.9.7
-set(CMAKE_REQUIRED_LIBRARIES ${OPENSSL_LIBRARIES})
 check_c_source_compiles("
     #include <openssl/evp.h>
     int main() {
@@ -34,12 +36,11 @@ check_c_source_compiles("
         return 0;
     }
 " openssl_greater_than_0_9_7)
-unset(CMAKE_REQUIRED_LIBRARIES)
+
 if (NOT openssl_greater_than_0_9_7)
     message(FATAL_ERROR "OpenSSL >= v0.9.7 required")
 endif ()
 
-set(CMAKE_REQUIRED_LIBRARIES ${OPENSSL_LIBRARIES})
 check_cxx_source_compiles("
 #include <openssl/x509.h>
     int main() {
@@ -66,4 +67,6 @@ if (NOT OPENSSL_D2I_X509_USES_CONST_CHAR)
             "Can't determine if openssl_d2i_x509() takes const char parameter")
     endif ()
 endif ()
+
+unset(CMAKE_REQUIRED_INCLUDES)
 unset(CMAKE_REQUIRED_LIBRARIES)

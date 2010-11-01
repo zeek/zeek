@@ -1,16 +1,16 @@
 if (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
+    # alternate malloc is faster for FreeBSD, but needs more testing
+    # need to add way to set this from the command line
     set(USE_NMALLOC true)
 
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "OpenBSD")
-    set(HAVE_OPENBSD true)
     set(USE_NMALLOC true)
 
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     set(HAVE_LINUX true)
-    # TODO: configure.in sets -I/${top_srcdir}/linux-include; necessary?
-    #include_directories(${CMAKE_SOURCE_DIR}/linux-include)
+    include_directories(BEFORE ${CMAKE_SOURCE_DIR}/linux-include)
 
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Solaris")
     set(SOCKET_LIBS nsl socket)

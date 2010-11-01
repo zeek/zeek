@@ -75,22 +75,37 @@ find_package(OpenSSL REQUIRED)
 find_package(BIND REQUIRED)
 find_package(BinPAC REQUIRED)
 
+include_directories(BEFORE
+                    ${PCAP_INCLUDE_DIR}
+                    ${OpenSSL_INCLUDE_DIR}
+                    ${BIND_INCLUDE_DIR}
+                    ${BinPAC_INCLUDE_DIR}
+)
+
+# Optional Dependencies
+
 set(HAVE_LIBMAGIC false)
 find_package(LibMagic)
 if (LIBMAGIC_FOUND)
     set(HAVE_LIBMAGIC true)
+    include_directories(BEFORE ${LibMagic_INCLUDE_DIR})
+    list(APPEND OPTLIBS ${LibMagic_LIBRARY})
 endif ()
 
 set(HAVE_LIBZ false)
 find_package(ZLIB)
 if (ZLIB_FOUND)
     set(HAVE_LIBZ true)
+    include_directories(BEFORE ${ZLIB_INCLUDE_DIR})
+    list(APPEND OPTLIBS ${ZLIB_LIBRARY})
 endif ()
 
 set(USE_GEOIP false)
 find_package(LibGeoIP)
 if (LIBGEOIP_FOUND)
     set(USE_GEOIP true)
+    include_directories(BEFORE ${LibGeoIP_INCLUDE_DIR})
+    list(APPEND OPTLIBS ${LibGeoIP_LIBRARY})
 endif ()
 
 set(USE_PERFTOOLS false)
@@ -98,19 +113,10 @@ if (ENABLE_PERFTOOLS)
     find_package(GooglePerftools)
     if (GOOGLEPERFTOOLS_FOUND)
         set(USE_PERFTOOLS true)
+        include_directories(BEFORE ${GooglePerftools_INCLUDE_DIR})
+        list(APPEND OPTLIBS ${GooglePerftools_LIBRARIES})
     endif ()
 endif ()
-
-include_directories(BEFORE
-                    ${PCAP_INCLUDE_DIR}
-                    ${OPENSSL_INCLUDE_DIR}
-                    ${BIND_INCLUDE_DIR}
-                    ${BinPAC_INCLUDE_DIR}
-                    ${LibMagic_INCLUDE_DIR}
-                    ${ZLIB_INCLUDE_DIR}
-                    ${LibGeoIP_INCLUDE_DIR}
-                    ${GooglePerftools_INCLUDE_DIR}
-)
 
 ##
 ## Configuration Checks/Tests
@@ -147,6 +153,50 @@ add_subdirectory(policy)
 if (INSTALL_AUXTOOLS)
     add_subdirectory(aux)
 endif ()
+
+##
+## Packaging Setup
+##
+
+include(SetPackageVersion)
+SetPackageVersion(${VERSION})
+include(SetPackageGenerators)
+include(SetPackageFileName)
+
+set(CPACK_PACKAGE_VENDOR "Lawrence Berkeley National Laboratory")
+set(CPACK_PACKAGE_CONTACT "info@bro-ids.org")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY
+    "The Bro Network Intrusion Detection System")
+
+# CPack may enforce file name extensions for certain package generators
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/README
+               ${CMAKE_CURRENT_BINARY_DIR}/README.txt
+                COPYONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/COPYING
+               ${CMAKE_CURRENT_BINARY_DIR}/COPYING.txt
+                COPYONLY)
+
+set(CPACK_PACKAGE_DESCRIPTION_FILE ${CMAKE_CURRENT_BINARY_DIR}/README.txt)
+set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_BINARY_DIR}/COPYING.txt)
+set(CPACK_RESOURCE_FILE_README ${CMAKE_CURRENT_BINARY_DIR}/README.txt)
+set(CPACK_RESOURCE_FILE_WELCOME ${CMAKE_CURRENT_BINARY_DIR}/README.txt)
+
+if (APPLE)
+    # /usr prefix is hardcoded for PackageMaker generator, but that
+    # directory may not be ideal for OS X (it's tricky to remove
+    # packages installed there).  So instead we rely on CMAKE_INSTALL_PREFIX
+    # and set the following variable to workaround the hardcoded /usr prefix
+    set(CPACK_PACKAGING_INSTALL_PREFIX "/")
+    set(CPACK_PACKAGE_DEFAULT_LOCATION ${CMAKE_INSTALL_PREFIX})
+elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    # A prefix of /usr would follow Filesystem Hierarchy Standard.
+    # For RPM packaging by CPack, /usr should be a default, but
+    # CMAKE_INSTALL_PREFIX also needs to be set to /usr so that
+    # the default BROPATH is set right at build time
+    set(CPACK_RPM_PACKAGE_LICENSE "BSD")
+endif ()
+
+include(CPack)
 
 ##
 ## Build Summary

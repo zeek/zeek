@@ -1,4 +1,4 @@
-include(CheckCSourcecompiles)
+include(CheckCSourceCompiles)
 
 # Check whether the namser compatibility header is required
 # This can be the case on the Darwin platform

@@ -524,7 +524,7 @@ Val* Val::SizeVal() const
 	{
 	switch ( type->InternalType() ) {
 	case TYPE_INTERNAL_INT:
-		return new Val(abs(val.int_val), TYPE_COUNT);
+		return new Val(llabs(val.int_val), TYPE_COUNT);
 
 	case TYPE_INTERNAL_UNSIGNED:
 		return new Val(val.uint_val, TYPE_COUNT);

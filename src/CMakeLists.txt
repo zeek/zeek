@@ -1,19 +1,34 @@
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}
                     ${CMAKE_CURRENT_BINARY_DIR}
-                    )
+)
 
+configure_file(version.c.in ${CMAKE_CURRENT_BINARY_DIR}/version.c)
+
+# This creates a custom command to transform a bison output file (inFile)
+# into outFile in order to avoid symbol conflicts:
+# - replaces instances of 'yylex' in inFile with yylexPrefix
+# - replaces instances of 'yy' in inFile with yyPrefix
+# - deletes instances of 'extern char.*getenv' in inFile
+# - writes results to outFile and adds it to list TRANSFORMED_BISON_OUTPUTS
 macro(REPLACE_YY_PREFIX_TARGET inFile outFile yylexPrefix yyPrefix)
-    set(args "'/extern char.*getenv/d\;s/yylex/${yylexPrefix}lex/\;s/yy/${yyPrefix}/g'" < ${inFile} > ${outFile})
+    set(args "'/extern char.*getenv/d")
+    set(args "${args}\;s/yylex/${yylexPrefix}lex/")
+    set(args "${args}\;s/yy/${yyPrefix}/g'" < ${inFile} > ${outFile})
     add_custom_command(OUTPUT ${outFile}
                        COMMAND ${SED_EXE}
                        ARGS ${args}
                        DEPENDS ${inFile}
                        COMMENT "[sed] replacing stuff in ${inFile}"
     )
+    list(APPEND TRANSFORMED_BISON_OUTPUTS ${outFile})
 endmacro(REPLACE_YY_PREFIX_TARGET)
+
+########################################################################
+## Create targets to generate parser and scanner code
 
 set(BISON_FLAGS "--debug")
 
+# BIF parser/scanner
 bison_target(BIFParser builtin-func.y
              ${CMAKE_CURRENT_BINARY_DIR}/bif_parse.cc
              HEADER ${CMAKE_CURRENT_BINARY_DIR}/bif_parse.h
@@ -22,6 +37,7 @@ bison_target(BIFParser builtin-func.y
 flex_target(BIFScanner builtin-func.l ${CMAKE_CURRENT_BINARY_DIR}/bif_lex.cc)
 add_flex_bison_dependency(BIFScanner BIFParser)
 
+# Rule parser/scanner
 bison_target(RuleParser rule-parse.y
              ${CMAKE_CURRENT_BINARY_DIR}/rup.cc
              HEADER ${CMAKE_CURRENT_BINARY_DIR}/rup.h
@@ -36,6 +52,7 @@ replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/rup.h
 flex_target(RuleScanner rule-scan.l ${CMAKE_CURRENT_BINARY_DIR}/rule-scan.cc
             COMPILE_FLAGS "-Prules_")
 
+# RE parser/scanner
 bison_target(REParser re-parse.y
              ${CMAKE_CURRENT_BINARY_DIR}/rep.cc
              HEADER ${CMAKE_CURRENT_BINARY_DIR}/re-parse.h
@@ -48,6 +65,7 @@ flex_target(REScanner re-scan.l ${CMAKE_CURRENT_BINARY_DIR}/re-scan.cc
             COMPILE_FLAGS "-Pre_")
 add_flex_bison_dependency(REScanner REParser)
 
+# Parser/Scanner
 bison_target(Parser parse.y
              ${CMAKE_CURRENT_BINARY_DIR}/p.cc
              HEADER ${CMAKE_CURRENT_BINARY_DIR}/broparse.h
@@ -56,13 +74,11 @@ bison_target(Parser parse.y
 replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/p.cc
                          ${CMAKE_CURRENT_BINARY_DIR}/parse.cc
                          bro yy)
-
 flex_target(Scanner scan.l ${CMAKE_CURRENT_BINARY_DIR}/scan.cc
             COMPILE_FLAGS "-Pbro")
 
-configure_file(version.c.in ${CMAKE_CURRENT_BINARY_DIR}/version.c)
-
-########### bifcl target###############
+########################################################################
+## bifcl (BIF compiler) target
 
 set(bifcl_SRCS
    ${BISON_BIFParser_OUTPUTS}
@@ -74,6 +90,13 @@ add_executable(bifcl ${bifcl_SRCS})
 
 target_link_libraries(bifcl)
 
+########################################################################
+## bifcl-dependent targets
+
+# A macro to define a command that uses the BIF compiler to produce
+# C++ segments and Bro language declarations from .bif file
+# The outputs are appended to list ALL_BIF_OUTPUTS
+# Outputs that should be installed are appended to INSTALL_BIF_OUTPUTS
 macro(BIF_TARGET bifInput)
     get_bif_output_files(${bifInput} bifOutputs)
     add_custom_command(OUTPUT ${bifOutputs}
@@ -87,6 +110,8 @@ macro(BIF_TARGET bifInput)
          ${CMAKE_CURRENT_BINARY_DIR}/${bifInput}.bro)
 endmacro(BIF_TARGET)
 
+# returns a list of output files that bifcl will produce
+# for given input file in ${outputFileVar}
 macro(GET_BIF_OUTPUT_FILES inputFile outputFileVar)
     set(${outputFileVar}
         ${inputFile}.bro
@@ -98,8 +123,6 @@ macro(GET_BIF_OUTPUT_FILES inputFile outputFileVar)
         ${inputFile}.netvar_init
     )
 endmacro(GET_BIF_OUTPUT_FILES)
-
-########## targets that needed bifcl ##########
 
 set(BIF_SRCS
     bro.bif
@@ -114,13 +137,14 @@ set(BIF_SRCS
     http-rw.bif
     strings.bif
     smb-rw.bif
-    )
+)
 
 foreach (bift ${BIF_SRCS})
     bif_target(${bift})
 endforeach ()
 
-########## targets that need binpac ##########
+########################################################################
+## BinPAC-dependent targets
 
 set(BINPAC_AUXSRC
     binpac.pac
@@ -128,6 +152,9 @@ set(BINPAC_AUXSRC
     binpac_bro.h
 )
 
+# A macro to define a command that uses the BinPac compiler to
+# produce C++ code that implements a protocol parser/analyzer
+# The outputs of the command are appended to list ALL_BINPAC_OUTPUTS
 macro(BINPAC_TARGET pacFile)
     get_filename_component(basename ${pacFile} NAME_WE)
     add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${basename}_pac.h
@@ -173,17 +200,11 @@ binpac_target(ssl.pac
 binpac_target(ssl-record-layer.pac
     ssl-defs.pac ssl.pac)
 
-########### bro target ###############
+########################################################################
+## bro target
 
-set(dns_SRCS nb_dns.c nb_dns.h)
-
-set(openssl_SRCS X509.cc SSLCiphers.cc SSLInterpreter.cc SSLProxy.cc
-                 SSLv2.cc SSLv3.cc SSLv3Automaton.cc)
-
-if (USE_NMALLOC)
-    set(malloc_SRCS malloc.c)
-endif ()
-
+# define a command that's used to run the make_dbg_constants.pl script
+# building the bro binary depends on the outputs of this script
 add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
                           ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdInfoConstants.cc
                    COMMAND ${PERL_EXECUTABLE}
@@ -195,16 +216,22 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
                    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
 
+set(dns_SRCS nb_dns.c nb_dns.h)
+
+set(openssl_SRCS X509.cc SSLCiphers.cc SSLInterpreter.cc SSLProxy.cc
+                 SSLv2.cc SSLv3.cc SSLv3Automaton.cc)
+
+if (USE_NMALLOC)
+    set(malloc_SRCS malloc.c)
+endif ()
+
 set(bro_SRCS
+    ${CMAKE_CURRENT_BINARY_DIR}/version.c
     ${ALL_BIF_OUTPUTS}
     ${ALL_BINPAC_OUTPUTS}
-    ${CMAKE_CURRENT_BINARY_DIR}/version.c
-    rule-parse.cc
-    rule-parse.h
+    ${TRANSFORMED_BISON_OUTPUTS}
     ${FLEX_RuleScanner_OUTPUTS}
-    re-parse.cc
     ${FLEX_REScanner_OUTPUTS}
-    parse.cc
     ${FLEX_Scanner_OUTPUTS}
     ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
     main.cc

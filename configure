@@ -58,17 +58,29 @@ if [ "$sourcedir" = "." ]; then
     sourcedir=`pwd`
 fi
 
+# Function to append a CMake cache entry definition to the
+# CMakeCacheEntries variable
+#   $1 is the cache entry variable name
+#   $2 is the cache entry variable type
+#   $3 is the cache entry variable value
+append_cache_entry () {
+    CMakeCacheEntries="$CMakeCacheEntries -D $1:$2=$3"
+}
+
 # set defaults
 builddir=build
-prefix=/usr/local/bro
-datadir=share/bro
-debug=false
-release=false
-use_IPv6=false
-enable_perftools=false
-build_binpac=false
-skip_binpac_install=true
-install_auxtools=false
+CMakeCacheEntries=""
+append_cache_entry CMAKE_INSTALL_PREFIX PATH   /usr/local/bro
+append_cache_entry DATADIR              STRING share/bro
+append_cache_entry ENABLE_DEBUG         BOOL   false
+append_cache_entry ENABLE_RELEASE       BOOL   false
+append_cache_entry BROv6                BOOL   false
+append_cache_entry ENABLE_PERFTOOLS     BOOL   false
+
+# these settings should be set depending on whether the submodule exists
+append_cache_entry BinPAC_PREFER_BUILD BOOL    false
+append_cache_entry BinPAC_SKIP_INSTALL BOOL    true
+append_cache_entry INSTALL_AUX_TOOLS   BOOL    false
 
 # parse arguments
 while [ $# -ne 0 ]; do
@@ -86,62 +98,62 @@ while [ $# -ne 0 ]; do
             builddir=$optarg
             ;;
         --prefix=*)
-            prefix=$optarg
+            append_cache_entry CMAKE_INSTALL_PREFIX PATH   $optarg
             ;;
         --datadir=*)
-            datadir=$optarg
+            append_cache_entry DATADIR              STRING $optarg
             ;;
         --enable-debug)
-            debug=true
+            append_cache_entry ENABLE_DEBUG         BOOL   true
             ;;
         --enable-release)
-            release=true
+            append_cache_entry ENABLE_RELEASE       BOOL   true
             ;;
         --enable-brov6)
-            use_IPv6=true
+            append_cache_entry BROv6                BOOL   true
             ;;
         --enable-perftools)
-            enable_perftools=true
+            append_cache_entry ENABLE_PERFTOOLS     BOOL   true
             ;;
         --build-binpac)
             if [ -f $sourcedir/binpac/CMakeLists.txt ]; then
-                build_binpac=true
+                append_cache_entry BinPAC_PREFER_BUILD BOOL true
             else
                 echo "Error: BinPAC source not found in $sourcedir/binpac" >&2
                 exit 1
             fi
             ;;
         --install-binpac)
-            skip_binpac_install=false
+            append_cache_entry BinPAC_SKIP_INSTALL BOOL false
             ;;
         --install-auxtools)
             if [ -f $sourcedir/aux/CMakeLists.txt ]; then
-                install_auxtools=true
+                append_cache_entry INSTALL_AUX_TOOLS BOOL false
             else
                 echo "Error: Bro-Aux source not found in $sourcedir/aux" >&2
                 exit 1
             fi
             ;;
         --with-openssl=*)
-            openssl_root=$optarg
+            append_cache_entry OpenSSL_ROOT_DIR PATH $optarg
             ;;
         --with-bind=*)
-            bind_root=$optarg
+            append_cache_entry BIND_ROOT_DIR PATH $optarg
             ;;
         --with-pcap=*)
-            pcap_root=$optarg
+            append_cache_entry PCAP_ROOT_DIR PATH $optarg
             ;;
         --with-binpac=*)
-            binpac_root=$optarg
+            append_cache_entry BinPAC_ROOT_DIR PATH $optarg
             ;;
         --with-libmagic=*)
-            libmagic_root=$optarg
+            append_cache_entry LibMagic_ROOT_DIR PATH $optarg
             ;;
         --with-geoip=*)
-            geoip_root=$optarg
+            append_cache_entry LibGeoIP_ROOT_DIR PATH $optarg
             ;;
         --with-perftools=*)
-            perftools_root=$optarg
+            append_cache_entry GooglePerftools_ROOT_DIR PATH $optarg
             ;;
         *)
             echo "Invalid option '$1'.  Try $0 --help to see available options."
@@ -154,99 +166,7 @@ done
 # Create build directory
 mkdir -p $builddir
 
-# Create a build options file in the build directory w/ selected options
-BuildOptionsFile=$builddir/BuildOptions.cmake
-
-cat > $BuildOptionsFile << EOF
-#######################################################################
-#
-#                         Bro - Build Setup
-#
-#######################################################################
-
-#######################################################################
-# Installation Directories
-#######################################################################
-
-set(CMAKE_INSTALL_PREFIX $prefix
-    CACHE STRING "installation directory" FORCE)
-
-set(DATADIR $datadir
-    CACHE STRING
-    "installation subdirectory (under PREFIX) for Bro policy files"
-    FORCE)
-
-#######################################################################
-# Optional Features
-#######################################################################
-
-set(ENABLE_DEBUG $debug
-    CACHE STRING "compile with debugging symbols" FORCE)
-
-set(ENABLE_RELEASE $release
-    CACHE STRING "use compiler optimizations" FORCE)
-
-set(BROv6 $use_IPv6
-    CACHE STRING "enable IPv6 processing" FORCE)
-
-set(ENABLE_PERFTOOLS $enable_perftools
-    CACHE STRING "use Google's perftools" FORCE)
-
-# If the following option is set to true, then instead of searching for
-# an installation of BinPac, it will be built from source already
-# available in the 'binpac' subdirectory
-set(BinPAC_PREFER_BUILD $build_binpac
-    CACHE STRING "retrieve and build BinPAC dependency from source" FORCE)
-
-set(BinPAC_SKIP_INSTALL $skip_binpac_install
-    CACHE STRING "don't install BinPAC if built from source" FORCE)
-
-# If the following option is set to true, then auxilliary tools will
-# be installed alongside Bro if their source is located in the 'aux'
-# subdirectory
-set(INSTALL_AUXTOOLS $install_auxtools
-    CACHE STRING "install Bro auxilliary tools" FORCE)
-
-#######################################################################
-# Packages in Non-Standard Locations
-#   Uncomment/edit options below in order to aid the CMake
-#   configuration scripts in finding dependencies that are installed
-#   in atypical locations.
-#######################################################################
-
-EOF
-
-# Function to set a CMake cache variable that act as a hint for
-# finding packages in non-standard locations.
-#   $1 argument is the name of the CMake hint variable
-#   $2 argument is path to use as the hint variable's value
-#      if empty, then a dummy value is used and the option
-#      is commented out of the build options file
-add_search_path_hint () {
-if [ -z "$2" ]; then 
-    comment="#"
-    path=/insert/your/path/here
-else
-    comment=""
-    path=$2
-fi
-cat >> $BuildOptionsFile << EOF
-${comment}set($1 $path
-${comment}    CACHE STRING "Non-Standard install root" FORCE)
-
-EOF
-}
-
-add_search_path_hint OpenSSL_ROOT_DIR ${openssl_root}
-add_search_path_hint BIND_ROOT_DIR ${bind_root}
-add_search_path_hint PCAP_ROOT_DIR ${pcap_root}
-add_search_path_hint BinPAC_ROOT_DIR ${binpac_root}
-add_search_path_hint LibMagic_ROOT_DIR ${libmagic_root}
-add_search_path_hint LibGeoIP_ROOT_DIR ${geoip_root}
-add_search_path_hint GooglePerftools_ROOT_DIR ${perftools_root}
-
 echo "Build Directory : $builddir"
-echo "Build Options   : $BuildOptionsFile"
 echo "Source Directory: $sourcedir"
 cd $builddir
-cmake $sourcedir
+cmake $CMakeCacheEntries $sourcedir

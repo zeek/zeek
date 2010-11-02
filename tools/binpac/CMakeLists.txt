@@ -10,20 +10,6 @@ if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
                         "initialize the build configuration.")
 endif ()
 
-find_file(build_options_file
-    NAMES BuildOptions.cmake
-    PATHS ${CMAKE_BINARY_DIR}
-    DOC "Build Options"
-    NO_DEFAULT_PATH
-    )
-if (NOT build_options_file)
-    message(FATAL_ERROR "Build options file not found, please use "
-                        "${CMAKE_SOURCE_DIR}/configure to generate one.")
-endif ()
-mark_as_advanced(build_config_file)
-
-include(${build_options_file})
-
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 ########################################################################

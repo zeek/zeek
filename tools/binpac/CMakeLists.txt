@@ -1,12 +1,10 @@
-##
+########################################################################
 ## CMake Configuration
-##
 
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
 # Prohibit in-source builds.
-string(COMPARE EQUAL "${CMAKE_SOURCE_DIR}" "${CMAKE_BINARY_DIR}" source_build)
-if (source_build)
+if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
     message(FATAL_ERROR "In-source builds are not allowed. Please use "
                         "./configure to choose a build directory and "
                         "initialize the build configuration.")
@@ -28,11 +26,12 @@ include(${build_options_file})
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
-##
-## Project Configuration
-##
+########################################################################
+## Project/Build Configuration
 
 project(BinPAC)
+
+file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" BINPAC_VERSION LIMIT_COUNT 1)
 
 if (ENABLE_DEBUG AND ENABLE_RELEASE)
     set(CMAKE_BUILD_TYPE RelWithDebInfo)
@@ -57,34 +56,28 @@ if (NOT EXTRA_COMPILE_FLAGS)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EXTRA_COMPILE_FLAGS}")
 endif ()
 
-##
+########################################################################
 ## Dependency Configuration
-##
 
 find_package(FLEX REQUIRED)
 find_package(BISON REQUIRED)
 
-##
-## Configuration Checks/Tests
-##
-
-file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" BINPAC_VERSION LIMIT_COUNT 1)
+########################################################################
+## System Introspection
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in
                ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-##
-## Recuse on sub-directories
-##
+########################################################################
+## Recurse on sub-directories
 
 add_subdirectory(lib)
 add_subdirectory(src)
 
-##
+########################################################################
 ## Build Summary
-##
 
 if (BinPAC_SKIP_INSTALL)
     set(binpac_install_summary "Install skipped")

@@ -17,6 +17,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
 project(Bro)
 
+set(BRO_ROOT_DIR ${CMAKE_INSTALL_PREFIX})
+
 file(STRINGS "${CMAKE_SOURCE_DIR}/VERSION" VERSION LIMIT_COUNT 1)
 
 if (ENABLE_DEBUG AND ENABLE_RELEASE)
@@ -57,6 +59,10 @@ find_package(BISON REQUIRED)
 find_package(PCAP REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(BIND REQUIRED)
+
+if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/aux/binpac/CMakeLists.txt)
+    add_subdirectory(aux/binpac)
+endif ()
 find_package(BinPAC REQUIRED)
 
 include_directories(BEFORE
@@ -130,8 +136,34 @@ add_subdirectory(policy)
 #add_subdirectory(scripts)
 #add_subdirectory(doc)
 
-if (INSTALL_AUXTOOLS)
-    add_subdirectory(aux)
+if (INSTALL_BROCCOLI)
+    if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/aux/broccoli/CMakeLists.txt)
+        add_subdirectory(aux/broccoli)
+    else ()
+        message(FATAL_ERROR "Broccoli selected for installation, "
+                            "but the source code does not exist in "
+                            "${CMAKE_CURRENT_SOURCE_DIR}/aux/broccoli")
+    endif ()
+endif ()
+
+if (INSTALL_BROCTL)
+    if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/aux/broctl/CMakeLists.txt)
+        add_subdirectory(aux/broctl)
+    else ()
+        message(FATAL_ERROR "Broctl selected for installation, "
+                            "but the source code does not exist in "
+                            "${CMAKE_CURRENT_SOURCE_DIR}/aux/broctl")
+    endif ()
+endif ()
+
+if (INSTALL_AUX_TOOLS)
+    if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/aux/bro-aux/CMakeLists.txt)
+        add_subdirectory(aux/bro-aux)
+    else ()
+        message(FATAL_ERROR "Bro auxilliary tools selected for installation, "
+                            "but the source code does not exist in "
+                            "${CMAKE_CURRENT_SOURCE_DIR}/aux/bro-aux")
+    endif ()
 endif ()
 
 ########################################################################
@@ -198,8 +230,8 @@ message(
     "\nCXXFLAGS:          ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BuildType}}"
     "\nCPP:               ${CMAKE_CXX_COMPILER}"
     "\n"
-    "\nBroccoli:          ${use_broccoli}"
-    "\nBroctl:            ${use_broctl}"
+    "\nBroccoli:          ${INSTALL_BROCCOLI}"
+    "\nBroctl:            ${INSTALL_BROCTL}"
     "\nGeoIP:             ${USE_GEOIP}"
     "\nlibz:              ${HAVE_LIBZ}"
     "\nlibmagic:          ${HAVE_LIBMAGIC}"

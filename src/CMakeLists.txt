@@ -394,3 +394,6 @@ target_link_libraries(bro ${brolibs})
 
 install(TARGETS bro DESTINATION bin)
 install(FILES ${INSTALL_BIF_OUTPUTS} DESTINATION ${DATADIR})
+
+set(BRO_EXE bro
+    CACHE STRING "Bro executable binary" FORCE)

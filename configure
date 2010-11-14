@@ -27,12 +27,11 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --enable-release       compile with optimizations
     --enable-brov6         enable IPv6 processing
     --enable-perftools     use Google's perftools
-    --build-binpac         build BinPAC from source located in
-                           'binpac' subdirectory
-    --install-binpac       if --build-binpac, this option adds
-                           BinPAC build files to the install target
-    --install-auxtools     build and install auxilliary tools located
-                           in 'aux' subdirectory
+    --enable-broccoli      build/install the Broccoli library
+    --enable-broctl        install Broctl configured in standalone mode 
+    --enable-cluster       install Broctl configured for cluster operation
+    --enable-auxtools      build and install auxilliary tools located
+                           in 'aux/bro-aux' subdirectory
 
   Required Packages in Non-Standard Locations:
     --with-openssl=PATH    path to OpenSSL install root
@@ -71,16 +70,15 @@ append_cache_entry () {
 builddir=build
 CMakeCacheEntries=""
 append_cache_entry CMAKE_INSTALL_PREFIX PATH   /usr/local/bro
+append_cache_entry BRO_ROOT_DIR         PATH   /usr/local/bro
+append_cache_entry PY_MOD_INSTALL_DIR   PATH   /usr/local/bro/lib/broctl
 append_cache_entry DATADIR              STRING share/bro
 append_cache_entry ENABLE_DEBUG         BOOL   false
 append_cache_entry ENABLE_RELEASE       BOOL   false
 append_cache_entry BROv6                BOOL   false
 append_cache_entry ENABLE_PERFTOOLS     BOOL   false
-
-# these settings should be set depending on whether the submodule exists
-append_cache_entry BinPAC_PREFER_BUILD BOOL    false
-append_cache_entry BinPAC_SKIP_INSTALL BOOL    true
-append_cache_entry INSTALL_AUX_TOOLS   BOOL    false
+append_cache_entry BinPAC_SKIP_INSTALL  BOOL   true
+append_cache_entry BUILD_SHARED_LIBS    BOOL   true
 
 # parse arguments
 while [ $# -ne 0 ]; do
@@ -99,6 +97,8 @@ while [ $# -ne 0 ]; do
             ;;
         --prefix=*)
             append_cache_entry CMAKE_INSTALL_PREFIX PATH   $optarg
+            append_cache_entry BRO_ROOT_DIR         PATH   $optarg
+            append_cache_entry PY_MOD_INSTALL_DIR   PATH   $optarg/lib/broctl
             ;;
         --datadir=*)
             append_cache_entry DATADIR              STRING $optarg
@@ -115,24 +115,19 @@ while [ $# -ne 0 ]; do
         --enable-perftools)
             append_cache_entry ENABLE_PERFTOOLS     BOOL   true
             ;;
-        --build-binpac)
-            if [ -f $sourcedir/binpac/CMakeLists.txt ]; then
-                append_cache_entry BinPAC_PREFER_BUILD BOOL true
-            else
-                echo "Error: BinPAC source not found in $sourcedir/binpac" >&2
-                exit 1
-            fi
+        --enable-broccoli)
+            append_cache_entry INSTALL_BROCCOLI BOOL true
             ;;
-        --install-binpac)
-            append_cache_entry BinPAC_SKIP_INSTALL BOOL false
+        --enable-broctl)
+            append_cache_entry INSTALL_BROCTL BOOL true
+            append_cache_entry STANDALONE     BOOL true
             ;;
-        --install-auxtools)
-            if [ -f $sourcedir/aux/CMakeLists.txt ]; then
-                append_cache_entry INSTALL_AUX_TOOLS BOOL false
-            else
-                echo "Error: Bro-Aux source not found in $sourcedir/aux" >&2
-                exit 1
-            fi
+        --enable-cluster)
+            append_cache_entry INSTALL_BROCTL BOOL true
+            append_cache_entry STANDALONE     BOOL false
+            ;;
+        --enable-auxtools)
+            append_cache_entry INSTALL_AUX_TOOLS BOOL true
             ;;
         --with-openssl=*)
             append_cache_entry OpenSSL_ROOT_DIR PATH $optarg

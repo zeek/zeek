@@ -18,6 +18,9 @@ set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 project(Bro)
 
 set(BRO_ROOT_DIR ${CMAKE_INSTALL_PREFIX})
+if (NOT POLICYDIR)
+    set(POLICYDIR ${BRO_ROOT_DIR}/share/bro)
+endif ()
 
 file(STRINGS "${CMAKE_SOURCE_DIR}/VERSION" VERSION LIMIT_COUNT 1)
 
@@ -220,7 +223,7 @@ message(
     "\n====================|  Bro Build Summary  |====================="
     "\n"
     "\nInstall prefix:    ${CMAKE_INSTALL_PREFIX}"
-    "\nDatadir:           ${DATADIR}"
+    "\nPolicy dir:        ${POLICYDIR}"
     "\nDebug mode:        ${ENABLE_DEBUG}"
     "\nRelease mode:      ${ENABLE_RELEASE}"
     "\n"

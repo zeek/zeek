@@ -375,7 +375,7 @@ set(bro_SRCS
     ${openssl_SRCS}
 )
 
-add_definitions(-DPOLICYDEST="${CMAKE_INSTALL_PREFIX}/${DATADIR}")
+add_definitions(-DPOLICYDEST="${POLICYDIR}")
 
 add_executable(bro ${bro_SRCS})
 
@@ -393,7 +393,7 @@ ChangeMacInstallNames(brolibs)
 target_link_libraries(bro ${brolibs})
 
 install(TARGETS bro DESTINATION bin)
-install(FILES ${INSTALL_BIF_OUTPUTS} DESTINATION ${DATADIR})
+install(FILES ${INSTALL_BIF_OUTPUTS} DESTINATION ${POLICYDIR})
 
 set(BRO_EXE bro
     CACHE STRING "Bro executable binary" FORCE)

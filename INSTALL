@@ -1,17 +1,17 @@
 Prerequisites
 =============
 
-Bro-aux relies on the following libraries and tools, which need to be installed
-before you begin with the installation:
+Bro relies on the following libraries and tools, which need to be installed
+before you begin:
 
     * Libpcap headers and libraries
        Network traffic capture library
 
-    * Flex
+    * Flex (Fast Lexical Analyzer)
        Flex is already installed on most systems, so with luck you can
        skip having to install it yourself.
 
-    * Bison
+    * Bison (GNU Parser Generator)
        This comes with many systems, but if you get errors compiling
        parse.y, you will need to install it.
 
@@ -34,7 +34,8 @@ before you begin with the installation:
        CMake is a cross-platform, open-source build system, typically
        not installed by default.  See http://www.cmake.org for more
        information regarding CMake and the installation steps below for
-       how to use it to build this distribution.
+       how to use it to build this distribution.  CMake generates native
+       Makefiles that depend on GNU Make by default.
 
 Bro can also make uses of some optional libraries if they are found at
 installation time:
@@ -60,11 +61,11 @@ To build and install into /usr/local/bro:
     > make install
 
 This will perform an out-of-source build into the build directory using the
-default build options and then install binaries into /usr/local/bro/bin
+default build options and then install binaries into /usr/local/bro/bin.
 
 You can specify a different installation directory with
 
-   > ./configure --prefix=<dir>.
+    > ./configure --prefix=<dir>
 
 Run "./configure --help" for more options. 
 

@@ -30,6 +30,8 @@ AC_CANONICAL_SYSTEM
 #AM_INIT_AUTOMAKE(bro, 0.1.0)
 AM_INIT_AUTOMAKE(bro,  esyscmd([tr -d '\n' < VERSION]))
 AM_CONFIG_HEADER(config.h)
+AC_LBL_C_INIT_BEFORE_CC(V_CCOPT, V_INCLS)
+AC_PROG_CC
 AC_LBL_C_INIT(V_CCOPT, V_INCLS)
 AM_PROG_LEX
 
@@ -137,6 +139,20 @@ AC_LBL_ENABLE_CHECK([activemapping binpac broccoli brov6 debug \
 	select-loop shippedpcap broctl cluster nbdns])
 
 dnl ################################################
+dnl # Writing around broken autoconf 
+dnl ################################################
+dnl  It seems that AC_CHECK_HEADER defines a bash function called 
+dnl  ac_fn_c_check_header_compile in the output when it is first
+dnl  encountered. While in general a neat idea, this fails, if the
+dnl  first use of AC_CHECK_HEADER is in an if/else clause. In this
+dnl  case the function's scope is limited to the enclosing if/els
+dnl  block and later calls to the function fail (more or less silently)
+dnl  Solution: we just place a phony AC_CHECK_HEADER call here. 
+AC_CHECK_HEADER([stdio.h])
+AC_CHECK_HEADERS([stdio.h stdio.h])
+
+
+dnl ################################################
 dnl # OpenSSL
 dnl ################################################
 
@@ -168,9 +184,9 @@ if test "$use_openssl" = "yes"; then
    # (CHECK_HEADER doesn't work here)
    saved_cflags="${CFLAGS}"
    CFLAGS="${CFLAGS} -I${OPENSSL}/include"
-   AC_COMPILE_IFELSE([#include <openssl/ssl.h>],,
+   AC_COMPILE_IFELSE([AC_LANG_SOURCE([[#include <openssl/ssl.h>]])],,
       CFLAGS="${CFLAGS} -I/usr/kerberos/include"
-      AC_CHECK_HEADER(krb5.h, 
+      AC_CHECK_HEADER([krb5.h], 
          V_INCLS="${V_INCLS} -I/usr/kerberos/include"
          AC_DEFINE(NEED_KRB5_H,,[Include krb5.h]),
          use_openssl=no
@@ -188,7 +204,7 @@ if test "$use_openssl" = "yes"; then
    saved_libs="${LIBS}"
    LIBS="${LIBS} -lssl -lcrypto"
    AC_MSG_CHECKING([for OpenSSL >= 0.9.7])
-   AC_LINK_IFELSE(AC_LANG_PROGRAM([[#include <openssl/evp.h>]], [[OPENSSL_add_all_algorithms_conf();]]),
+   AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <openssl/evp.h>]], [[OPENSSL_add_all_algorithms_conf();]])],
       AC_MSG_RESULT(yes)
       use_openssl=yes,
       AC_MSG_RESULT(no)
@@ -212,9 +228,9 @@ if test "$use_openssl" = "yes"; then
   AC_MSG_CHECKING([whether d2i_X509() uses a const unsigned char**])
   AC_LANG_PUSH([C++])
   AC_COMPILE_IFELSE(
-    AC_LANG_PROGRAM([[#include <openssl/x509.h>]],
+    [AC_LANG_PROGRAM([[#include <openssl/x509.h>]],
                     [[const unsigned char** cpp = 0;
-		      X509** x = 0; d2i_X509(x, cpp, 0);]]),
+		      X509** x = 0; d2i_X509(x, cpp, 0);]])],
     AC_DEFINE(OPENSSL_D2I_X509_USES_CONST_CHAR,,[d2i_x509 uses const char**])
     AC_MSG_RESULT(yes),
     AC_MSG_RESULT(no))
@@ -288,7 +304,7 @@ freebsd*)
 
 darwin*)
 	AC_MSG_CHECKING([if we need to include arpa/nameser_compat.h])
-	AC_COMPILE_IFELSE(AC_LANG_PROGRAM([[#include <arpa/nameser.h>]], [[HEADER *hdr; int d = NS_IN6ADDRSZ;]]), bro_ns_header_defined=yes, bro_ns_header_defined=no)
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <arpa/nameser.h>]], [[HEADER *hdr; int d = NS_IN6ADDRSZ;]])], bro_ns_header_defined=yes, bro_ns_header_defined=no)
 	# if the header is found, we don't need compatibility
 	if test "x$bro_ns_header_defined" = xyes; then
 	   AC_MSG_RESULT(no)
@@ -353,14 +369,14 @@ AC_LBL_CHECK_TYPE(u_int16_t, u_short)
 AC_LBL_CHECK_TYPE(u_int8_t, u_char)
 AC_HEADER_TIME
 
-AC_CHECK_HEADERS(memory.h netinet/in.h socket.h getopt.h)
-AC_CHECK_HEADERS(net/ethernet.h netinet/ether.h netinet/if_ether.h sys/ethernet.h,,,
+AC_CHECK_HEADERS([memory.h netinet/in.h socket.h getopt.h])
+AC_CHECK_HEADERS([net/ethernet.h netinet/ether.h netinet/if_ether.h sys/ethernet.h],,,
     [#include <sys/types.h>
     #include <sys/socket.h>
     #include <netinet/in.h>
     #include <net/if.h>])
 
-AC_CHECK_HEADERS(netinet/ip6.h,,,
+AC_CHECK_HEADERS([netinet/ip6.h],,,
     [#include <sys/types.h>
     #include <sys/socket.h>
     #include <netinet/in.h>
@@ -416,7 +432,7 @@ if test "$pcap_local" = "NO"; then
     dnl ################################################
     AC_MSG_CHECKING([for pcap_version in libpcap])
     AC_LINK_IFELSE(
-     AC_LANG_PROGRAM([extern char pcap_version[];], [puts(pcap_version);]),
+     [AC_LANG_PROGRAM([extern char pcap_version[];], [puts(pcap_version);])],
       AC_MSG_RESULT(yes)
       AC_DEFINE(PCAP_VERSION_STRING,,[Have a version string in libpcap]),
       AC_MSG_RESULT(no))
@@ -448,7 +464,7 @@ dnl #
 AC_MSG_CHECKING([if char_traits defines all methods])
 AC_LANG_PUSH([C++])
 AC_LINK_IFELSE(
-  AC_LANG_PROGRAM([[
+  [AC_LANG_PROGRAM([[
 #include <string>
 using namespace std;
 class Foo { };
@@ -456,7 +472,7 @@ class Foo { };
 char_traits<Foo*> foo;
 Foo f;
 Foo *fp;
-foo.assign(&fp, 10, &f);]]),
+foo.assign(&fp, 10, &f);]])],
   AC_MSG_RESULT([yes])
   basic_string_works=yes,
   AC_MSG_RESULT([no])
@@ -575,17 +591,17 @@ else
       bro_ns_initparse_works=no
       bro_res_mkquery_works=no
 
-      AC_LINK_IFELSE(AC_LANG_PROGRAM([[#include <arpa/nameser.h>]],
-				      [[ns_initparse(0,0,0);]]),
+      AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <arpa/nameser.h>]],
+				      [[ns_initparse(0,0,0);]])],
 		     bro_ns_initparse_works=yes)
 
-      AC_LINK_IFELSE(AC_LANG_PROGRAM([[
+      AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/nameser.h>
 #include <resolv.h>]],
-[[int (*p)() = res_mkquery]]), bro_res_mkquery_works=yes)
+[[int (*p)() = res_mkquery]])], bro_res_mkquery_works=yes)
 
       if test $bro_ns_initparse_works = yes && test $bro_res_mkquery_works = yes && test $nbdns = yes; then
          AC_MSG_RESULT(yes)

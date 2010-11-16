@@ -101,9 +101,13 @@ while [ $# -ne 0 ]; do
             append_cache_entry CMAKE_INSTALL_PREFIX PATH   $optarg
             append_cache_entry BRO_ROOT_DIR         PATH   $optarg
             append_cache_entry PY_MOD_INSTALL_DIR   PATH   $optarg/lib/broctl
+            if [ "$user_set_policydir" != "true" ]; then
+                append_cache_entry POLICYDIR        STRING $optarg/share/bro
+            fi
             ;;
         --policydir=*)
             append_cache_entry POLICYDIR            STRING $optarg
+            user_set_policydir="true"
             ;;
         --enable-debug)
             append_cache_entry ENABLE_DEBUG         BOOL   true

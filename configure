@@ -79,6 +79,8 @@ append_cache_entry BROv6                BOOL   false
 append_cache_entry ENABLE_PERFTOOLS     BOOL   false
 append_cache_entry BinPAC_SKIP_INSTALL  BOOL   true
 append_cache_entry BUILD_SHARED_LIBS    BOOL   true
+append_cache_entry INSTALL_BROCCOLI     BOOL   false
+append_cache_entry INSTALL_BROCTL       BOOL   false
 
 # parse arguments
 while [ $# -ne 0 ]; do

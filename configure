@@ -164,8 +164,29 @@ while [ $# -ne 0 ]; do
     shift
 done
 
-# Create build directory
-mkdir -p $builddir
+if [ -d $builddir ]; then
+    # If build directory exists, check if it has a CMake cache
+    if [ -f $builddir/CMakeCache.txt ]; then
+        # If the Cmake cache exists, then check that it thinks
+        # the source tree exists where it's currently located
+        cmakehomedir=`grep CMAKE_HOME_DIRECTORY $builddir/CMakeCache.txt | \
+                      sed 's/CMAKE_HOME_DIRECTORY:INTERNAL=//g'`
+        if [ "$cmakehomedir" != "$sourcedir" ]; then
+            # The source tree moved since the build was last configured
+            echo "\
+The source tree has been moved from:
+    $cmakehomedir
+to:
+    $sourcedir
+To reconfigure in the new source directory, please delete:
+    $builddir/CMakeCache.txt" >&2
+            exit 1
+        fi
+    fi
+else
+    # Create build directory
+    mkdir -p $builddir
+fi
 
 echo "Build Directory : $builddir"
 echo "Source Directory: $sourcedir"

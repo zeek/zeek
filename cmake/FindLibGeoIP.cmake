@@ -13,7 +13,7 @@
 #
 # Variables defined by this module:
 #
-#  LIBGeoIP_FOUND              System has GeoIP libraries and headers
+#  LIBGEOIP_FOUND              System has GeoIP libraries and headers
 #  LibGeoIP_LIBRARY            The GeoIP library
 #  LibGeoIP_INCLUDE_DIR        The location of GeoIP headers
 

@@ -13,7 +13,7 @@
 #
 # Variables defined by this module:
 #
-#  OpenSSL_FOUND             System has openssl, include and library dirs found
+#  OPENSSL_FOUND             System has openssl, include and library dirs found
 #  OpenSSL_INCLUDE_DIR       The openssl include directories. 
 #  OpenSSL_LIBRARIES         The openssl libraries.
 #  OpenSSL_CYRPTO_LIBRARY    The openssl crypto library.

@@ -1,6 +1,4 @@
-########################################################################
-## CMake Configuration
-
+######################################################################## ## CMake Configuration 
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
 # Prohibit in-source builds.
@@ -46,6 +44,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EXTRA_COMPILE_FLAGS}")
 ########################################################################
 ## Dependency Configuration
 
+include(FindRequiredPackage)
+
 # Check cache value first to avoid displaying "Found sed" messages everytime
 if (NOT SED_EXE)
     find_program(SED_EXE sed)
@@ -56,17 +56,24 @@ if (NOT SED_EXE)
     endif ()
 endif ()
 
-find_package(Perl REQUIRED)
-find_package(FLEX REQUIRED)
-find_package(BISON REQUIRED)
-find_package(PCAP REQUIRED)
-find_package(OpenSSL REQUIRED)
-find_package(BIND REQUIRED)
+FindRequiredPackage(Perl)
+FindRequiredPackage(FLEX)
+FindRequiredPackage(BISON)
+FindRequiredPackage(PCAP)
+FindRequiredPackage(OpenSSL)
+FindRequiredPackage(BIND)
 
 if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/aux/binpac/CMakeLists.txt)
     add_subdirectory(aux/binpac)
 endif ()
-find_package(BinPAC REQUIRED)
+FindRequiredPackage(BinPAC)
+
+if (MISSING_PREREQS)
+    foreach (prereq ${MISSING_PREREQ_DESCS})
+        message(SEND_ERROR ${prereq})
+    endforeach ()
+    message(FATAL_ERROR "Configuration aborted due to missing prerequisites")
+endif ()
 
 include_directories(BEFORE
                     ${PCAP_INCLUDE_DIR}

@@ -23,8 +23,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
                            [PREFIX/share/bro]
 
   Optional Features:
-    --enable-debug         compile with debugging symbols
-    --enable-release       compile with optimizations
+    --enable-debug         compile in debugging mode
     --enable-brov6         enable IPv6 processing
     --enable-perftools     use Google's perftools
     --enable-broccoli      build/install the Broccoli library
@@ -74,7 +73,6 @@ append_cache_entry BRO_ROOT_DIR         PATH   /usr/local/bro
 append_cache_entry PY_MOD_INSTALL_DIR   PATH   /usr/local/bro/lib/broctl
 append_cache_entry POLICYDIR            STRING /usr/local/bro/share/bro
 append_cache_entry ENABLE_DEBUG         BOOL   false
-append_cache_entry ENABLE_RELEASE       BOOL   false
 append_cache_entry BROv6                BOOL   false
 append_cache_entry ENABLE_PERFTOOLS     BOOL   false
 append_cache_entry BinPAC_SKIP_INSTALL  BOOL   true
@@ -111,9 +109,6 @@ while [ $# -ne 0 ]; do
             ;;
         --enable-debug)
             append_cache_entry ENABLE_DEBUG         BOOL   true
-            ;;
-        --enable-release)
-            append_cache_entry ENABLE_RELEASE       BOOL   true
             ;;
         --enable-brov6)
             append_cache_entry BROv6                BOOL   true

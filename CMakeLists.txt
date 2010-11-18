@@ -22,18 +22,13 @@ endif ()
 
 file(STRINGS "${CMAKE_SOURCE_DIR}/VERSION" VERSION LIMIT_COUNT 1)
 
-if (ENABLE_DEBUG AND ENABLE_RELEASE)
-    set(CMAKE_BUILD_TYPE RelWithDebInfo)
-elseif (ENABLE_DEBUG AND NOT ENABLE_RELEASE)
-    set(CMAKE_BUILD_TYPE Debug)
-elseif (NOT ENABLE_DEBUG AND ENABLE_RELEASE)
-    set(CMAKE_BUILD_TYPE Release)
-endif ()
-
 set(EXTRA_COMPILE_FLAGS "-Wall -Wno-unused")
 
 if (ENABLE_DEBUG)
+    set(CMAKE_BUILD_TYPE Debug)
     set(EXTRA_COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS} -DDEBUG")
+else ()
+    set(CMAKE_BUILD_TYPE RelWithDebInfo)
 endif ()
 
 # Compiler flags may already exist in CMake cache (e.g. when specifying
@@ -232,7 +227,6 @@ message(
     "\nInstall prefix:    ${CMAKE_INSTALL_PREFIX}"
     "\nPolicy dir:        ${POLICYDIR}"
     "\nDebug mode:        ${ENABLE_DEBUG}"
-    "\nRelease mode:      ${ENABLE_RELEASE}"
     "\n"
     "\nCC:                ${CMAKE_C_COMPILER}"
     "\nCFLAGS:            ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${BuildType}}"

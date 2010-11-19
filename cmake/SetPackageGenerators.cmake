@@ -12,6 +12,7 @@
 # CPACK_GENERATOR is set by this module
 
 set(CPACK_GENERATOR TGZ)
+set(CPACK_SOURCE_GENERATOR TGZ)
 if (APPLE)
     list(APPEND CPACK_GENERATOR PackageMaker)
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")

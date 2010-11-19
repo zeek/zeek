@@ -213,7 +213,7 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 endif ()
 
 # Ignore the build directory
-set(CPACK_SOURCE_IGNORE_FILES ${CMAKE_BINARY_DIR})
+set(CPACK_SOURCE_IGNORE_FILES ${CMAKE_BINARY_DIR} ".git")
 
 include(CPack)
 

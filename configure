@@ -120,12 +120,15 @@ while [ $# -ne 0 ]; do
             append_cache_entry INSTALL_BROCCOLI BOOL true
             ;;
         --enable-broctl)
-            append_cache_entry INSTALL_BROCTL BOOL true
-            append_cache_entry STANDALONE     BOOL true
+            if [ "$user_set_broctl_cluster" != "true" ]; then
+                append_cache_entry INSTALL_BROCTL BOOL true
+                append_cache_entry STANDALONE     BOOL true
+            fi
             ;;
         --enable-cluster)
             append_cache_entry INSTALL_BROCTL BOOL true
             append_cache_entry STANDALONE     BOOL false
+            user_set_broctl_cluster="true"
             ;;
         --enable-auxtools)
             append_cache_entry INSTALL_AUX_TOOLS BOOL true

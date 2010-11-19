@@ -212,6 +212,9 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     set(CPACK_RPM_PACKAGE_LICENSE "BSD")
 endif ()
 
+# Ignore the build directory
+set(CPACK_SOURCE_IGNORE_FILES ${CMAKE_BINARY_DIR})
+
 include(CPack)
 
 ########################################################################

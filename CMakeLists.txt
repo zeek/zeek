@@ -28,8 +28,13 @@ endif ()
 
 set(BRO_ROOT_DIR ${CMAKE_INSTALL_PREFIX})
 if (NOT POLICYDIR)
+    # set the default policy installation path (user did not specify one)
     set(POLICYDIR ${BRO_ROOT_DIR}/share/bro)
 endif ()
+
+# sanitize the policy install directory into an absolute path
+# (CMake is confused by ~ as a representation of home directory)
+get_filename_component(POLICYDIR ${POLICYDIR} ABSOLUTE)
 
 file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" VERSION LIMIT_COUNT 1)
 

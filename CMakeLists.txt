@@ -265,6 +265,8 @@ message(
     "\n"
     "\nBroccoli:          ${INSTALL_BROCCOLI}"
     "\nBroctl:            ${BROCTL_INSTALL_MODE}"
+    "\nAux. Tools:        ${INSTALL_AUX_TOOLS}"
+    "\n"
     "\nGeoIP:             ${USE_GEOIP}"
     "\nlibz:              ${HAVE_LIBZ}"
     "\nlibmagic:          ${HAVE_LIBMAGIC}"

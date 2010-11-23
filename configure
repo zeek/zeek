@@ -26,11 +26,11 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --enable-debug         compile in debugging mode
     --enable-brov6         enable IPv6 processing
     --enable-perftools     use Google's perftools
-    --enable-broccoli      build/install the Broccoli library
-    --enable-broctl        install Broctl configured in standalone mode 
     --enable-cluster       install Broctl configured for cluster operation
-    --enable-auxtools      build and install auxilliary tools located
-                           in 'aux/bro-aux' subdirectory
+                           (overridden by --disable-broctl)
+    --disable-broccoli     don't build or install the Broccoli library
+    --disable-broctl       don't install Broctl
+    --disable-auxtools     don't build or install auxilliary tools
 
   Required Packages in Non-Standard Locations:
     --with-openssl=PATH    path to OpenSSL install root
@@ -77,8 +77,10 @@ append_cache_entry BROv6                BOOL   false
 append_cache_entry ENABLE_PERFTOOLS     BOOL   false
 append_cache_entry BinPAC_SKIP_INSTALL  BOOL   true
 append_cache_entry BUILD_SHARED_LIBS    BOOL   true
-append_cache_entry INSTALL_BROCCOLI     BOOL   false
-append_cache_entry INSTALL_BROCTL       BOOL   false
+append_cache_entry INSTALL_AUX_TOOLS    BOOL   true
+append_cache_entry INSTALL_BROCCOLI     BOOL   true
+append_cache_entry INSTALL_BROCTL       BOOL   true
+append_cache_entry STANDALONE           BOOL   true
 
 # parse arguments
 while [ $# -ne 0 ]; do
@@ -116,22 +118,20 @@ while [ $# -ne 0 ]; do
         --enable-perftools)
             append_cache_entry ENABLE_PERFTOOLS     BOOL   true
             ;;
-        --enable-broccoli)
-            append_cache_entry INSTALL_BROCCOLI BOOL true
+        --disable-broccoli)
+            append_cache_entry INSTALL_BROCCOLI     BOOL   false
             ;;
-        --enable-broctl)
-            if [ "$user_set_broctl_cluster" != "true" ]; then
-                append_cache_entry INSTALL_BROCTL BOOL true
-                append_cache_entry STANDALONE     BOOL true
-            fi
+        --disable-broctl)
+            append_cache_entry INSTALL_BROCTL       BOOL   false
+            user_disabled_broctl="true"
             ;;
         --enable-cluster)
-            append_cache_entry INSTALL_BROCTL BOOL true
-            append_cache_entry STANDALONE     BOOL false
-            user_set_broctl_cluster="true"
+            if [ "$user_disabled_broctl" != "true" ]; then
+                append_cache_entry STANDALONE       BOOL   false
+            fi
             ;;
-        --enable-auxtools)
-            append_cache_entry INSTALL_AUX_TOOLS BOOL true
+        --disable-auxtools)
+            append_cache_entry INSTALL_AUX_TOOLS    BOOL   false
             ;;
         --with-openssl=*)
             append_cache_entry OpenSSL_ROOT_DIR PATH $optarg

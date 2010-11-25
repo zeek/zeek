@@ -29,9 +29,7 @@ namespace AnalyzerTag {
 		DCE_RPC, DNS, Finger, FTP, Gnutella, HTTP, Ident, IRC,
 		Login, NCP, NetbiosSSN, NFS, NTP, POP3, Portmapper, Rlogin,
 		RPC, Rsh, SMB, SMTP, SSH,
-#ifdef USE_OPENSSL
 		SSL,
-#endif
 		Telnet,
 
 		// Application-layer analyzers, binpac-generated.
@@ -45,9 +43,7 @@ namespace AnalyzerTag {
 		Contents, ContentLine, NVT, Zip, Contents_DNS, Contents_NCP,
 		Contents_NetbiosSSN, Contents_Rlogin, Contents_Rsh,
 		Contents_DCE_RPC, Contents_SMB, Contents_RPC, Contents_NFS,
-#ifdef USE_OPENSSL
 		Contents_SSL,
-#endif
 		// End-marker.
 		LastAnalyzer
 	};

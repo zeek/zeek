@@ -1,8 +1,0 @@
-This directory contains unsupported contributions to Bro.  If you have
-something to contribute to this directory please send it to us.
-
-policy/
-	miscellaneous .bro policy file you might find useful
-
-scripts/
-	miscellaneous support scripts, alternate report formats, etc.

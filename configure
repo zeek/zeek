@@ -1,0 +1,189 @@
+#!/bin/sh
+# Convenience wrapper for easily viewing/setting options that
+# the project's CMake scripts will recognize
+
+# check for `cmake` command
+type cmake > /dev/null 2>&1 || {
+    echo "\
+This package requires CMake, please install it first, then you may
+use this configure script to access CMake equivalent functionality.\
+" >&2;
+    exit 1;
+}
+
+usage="\
+Usage: $0 [OPTION]... [VAR=VALUE]...
+
+  Build Directory:
+    --builddir=DIR         place build files in directory [build]
+
+  Installation Directories:
+    --prefix=PREFIX        installation directory [/usr/local/bro]
+    --policydir=PATH       policy file installation directory
+                           [PREFIX/share/bro]
+
+  Optional Features:
+    --enable-debug         compile in debugging mode
+    --enable-brov6         enable IPv6 processing
+    --enable-perftools     use Google's perftools
+    --enable-cluster       install Broctl configured for cluster operation
+                           (overridden by --disable-broctl)
+    --disable-broccoli     don't build or install the Broccoli library
+    --disable-broctl       don't install Broctl
+    --disable-auxtools     don't build or install auxilliary tools
+
+  Required Packages in Non-Standard Locations:
+    --with-openssl=PATH    path to OpenSSL install root
+    --with-bind=PATH       path to BIND install root
+    --with-pcap=PATH       path to libpcap install root
+    --with-binpac=PATH     path to BinPAC install root
+
+  Optional Packages in Non-Standard Locations:
+    --with-libmagic=PATH   path to libmagic install root
+    --with-geoip=PATH      path to the libGeoIP install root
+    --with-perftools=PATH  path to Google Perftools install root
+
+  Influential Environment Variables (only on first invocation
+  per build directory):
+    CC                     C compiler command
+    CFLAGS                 C compiler flags
+    CXX                    C++ compiler command
+    CXXFLAGS               C++ compiler flags
+"
+
+sourcedir="$( cd "$( dirname "$0" )" && pwd )"
+
+# Function to append a CMake cache entry definition to the
+# CMakeCacheEntries variable
+#   $1 is the cache entry variable name
+#   $2 is the cache entry variable type
+#   $3 is the cache entry variable value
+append_cache_entry () {
+    CMakeCacheEntries="$CMakeCacheEntries -D $1:$2=$3"
+}
+
+# set defaults
+builddir=build
+CMakeCacheEntries=""
+append_cache_entry CMAKE_INSTALL_PREFIX PATH   /usr/local/bro
+append_cache_entry BRO_ROOT_DIR         PATH   /usr/local/bro
+append_cache_entry PY_MOD_INSTALL_DIR   PATH   /usr/local/bro/lib/broctl
+append_cache_entry POLICYDIR            STRING /usr/local/bro/share/bro
+append_cache_entry ENABLE_DEBUG         BOOL   false
+append_cache_entry BROv6                BOOL   false
+append_cache_entry ENABLE_PERFTOOLS     BOOL   false
+append_cache_entry BinPAC_SKIP_INSTALL  BOOL   true
+append_cache_entry BUILD_SHARED_LIBS    BOOL   true
+append_cache_entry INSTALL_AUX_TOOLS    BOOL   true
+append_cache_entry INSTALL_BROCCOLI     BOOL   true
+append_cache_entry INSTALL_BROCTL       BOOL   true
+append_cache_entry STANDALONE           BOOL   true
+
+# parse arguments
+while [ $# -ne 0 ]; do
+    case "$1" in
+        -*=*) optarg=`echo "$1" | sed 's/[-_a-zA-Z0-9]*=//'` ;;
+        *) optarg= ;;
+    esac
+
+    case "$1" in
+        --help|-h)
+            echo "${usage}" 1>&2
+            exit 1
+            ;;
+        --builddir=*)
+            builddir=$optarg
+            ;;
+        --prefix=*)
+            append_cache_entry CMAKE_INSTALL_PREFIX PATH   $optarg
+            append_cache_entry BRO_ROOT_DIR         PATH   $optarg
+            append_cache_entry PY_MOD_INSTALL_DIR   PATH   $optarg/lib/broctl
+            if [ "$user_set_policydir" != "true" ]; then
+                append_cache_entry POLICYDIR        STRING $optarg/share/bro
+            fi
+            ;;
+        --policydir=*)
+            append_cache_entry POLICYDIR            STRING $optarg
+            user_set_policydir="true"
+            ;;
+        --enable-debug)
+            append_cache_entry ENABLE_DEBUG         BOOL   true
+            ;;
+        --enable-brov6)
+            append_cache_entry BROv6                BOOL   true
+            ;;
+        --enable-perftools)
+            append_cache_entry ENABLE_PERFTOOLS     BOOL   true
+            ;;
+        --disable-broccoli)
+            append_cache_entry INSTALL_BROCCOLI     BOOL   false
+            ;;
+        --disable-broctl)
+            append_cache_entry INSTALL_BROCTL       BOOL   false
+            user_disabled_broctl="true"
+            ;;
+        --enable-cluster)
+            if [ "$user_disabled_broctl" != "true" ]; then
+                append_cache_entry STANDALONE       BOOL   false
+            fi
+            ;;
+        --disable-auxtools)
+            append_cache_entry INSTALL_AUX_TOOLS    BOOL   false
+            ;;
+        --with-openssl=*)
+            append_cache_entry OpenSSL_ROOT_DIR PATH $optarg
+            ;;
+        --with-bind=*)
+            append_cache_entry BIND_ROOT_DIR PATH $optarg
+            ;;
+        --with-pcap=*)
+            append_cache_entry PCAP_ROOT_DIR PATH $optarg
+            ;;
+        --with-binpac=*)
+            append_cache_entry BinPAC_ROOT_DIR PATH $optarg
+            ;;
+        --with-libmagic=*)
+            append_cache_entry LibMagic_ROOT_DIR PATH $optarg
+            ;;
+        --with-geoip=*)
+            append_cache_entry LibGeoIP_ROOT_DIR PATH $optarg
+            ;;
+        --with-perftools=*)
+            append_cache_entry GooglePerftools_ROOT_DIR PATH $optarg
+            ;;
+        *)
+            echo "Invalid option '$1'.  Try $0 --help to see available options."
+            exit 1
+            ;;
+    esac
+    shift
+done
+
+if [ -d $builddir ]; then
+    # If build directory exists, check if it has a CMake cache
+    if [ -f $builddir/CMakeCache.txt ]; then
+        # If the Cmake cache exists, then check that it thinks
+        # the source tree exists where it's currently located
+        cmakehomedir=`grep CMAKE_HOME_DIRECTORY $builddir/CMakeCache.txt | \
+                      sed 's/CMAKE_HOME_DIRECTORY:INTERNAL=//g'`
+        if [ "$cmakehomedir" != "$sourcedir" ]; then
+            # The source tree moved since the build was last configured
+            echo "\
+The source tree has been moved from:
+    $cmakehomedir
+to:
+    $sourcedir
+To reconfigure in the new source directory, please delete:
+    $builddir/CMakeCache.txt" >&2
+            exit 1
+        fi
+    fi
+else
+    # Create build directory
+    mkdir -p $builddir
+fi
+
+echo "Build Directory : $builddir"
+echo "Source Directory: $sourcedir"
+cd $builddir
+cmake $CMakeCacheEntries $sourcedir

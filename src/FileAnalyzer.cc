@@ -7,10 +7,6 @@ magic_t File_Analyzer::magic = 0;
 magic_t File_Analyzer::magic_mime = 0;
 #endif
 
-#ifdef HAVE_LIBCLAMAV
-struct cl_node* File_Analyzer::clam_root = 0;
-#endif
-
 File_Analyzer::File_Analyzer(Connection* conn)
 : TCP_ApplicationAnalyzer(AnalyzerTag::File, conn)
 	{
@@ -22,11 +18,6 @@ File_Analyzer::File_Analyzer(Connection* conn)
 		InitMagic(&magic, MAGIC_NONE);
 		InitMagic(&magic_mime, MAGIC_MIME);
 		}
-#endif
-
-#ifdef HAVE_LIBCLAMAV
-	if ( ! clam_root )
-		InitClamAV();
 #endif
 	}
 
@@ -74,19 +65,6 @@ void File_Analyzer::Identify()
 	vl->append(new StringVal(descr ? descr : "<unknown>"));
 	vl->append(new StringVal(mime ? mime : "<unknown>"));
 	ConnectionEvent(file_transferred, vl);
-
-#ifdef HAVE_LIBCLAMAV
-	const char* virname;
-	int ret = cl_scanbuff(buffer, buffer_len, &virname, clam_root);
-
-	if ( ret == CL_VIRUS )
-		{
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(new StringVal(virname));
-		ConnectionEvent(file_virus, vl);
-		}
-#endif
 	}
 
 #ifdef HAVE_LIBMAGIC
@@ -102,30 +80,6 @@ void File_Analyzer::InitMagic(magic_t* magic, int flags)
 		error(fmt("can't load magic file: %s", magic_error(*magic)));
 		magic_close(*magic);
 		*magic = 0;
-		}
-	}
-#endif
-
-#ifdef HAVE_LIBCLAMAV
-void File_Analyzer::InitClamAV()
-	{
-	unsigned int sigs;
-	int ret = cl_loaddbdir(cl_retdbdir(), &clam_root, &sigs);
-
-	if ( ret )
-		{
-		error(fmt("can't load ClamAV database: %s", cl_perror(ret)));
-		clam_root = 0;
-		return;
-		}
-
-	ret = cl_build(clam_root);
-	if ( ret )
-		{
-		error(fmt("can't init ClamAV database: %s", cl_perror(ret)));
-		cl_free(clam_root);
-		clam_root = 0;
-		return;
 		}
 	}
 #endif

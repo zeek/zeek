@@ -6,11 +6,11 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
-#if TIME_WITH_SYS_TIME
+#ifdef TIME_WITH_SYS_TIME
 # include <sys/time.h>
 # include <time.h>
 #else
-# if HAVE_SYS_TIME_H
+# ifdef HAVE_SYS_TIME_H
 #  include <sys/time.h>
 # else
 #  include <time.h>
@@ -53,9 +53,7 @@ public:
 	const char* ReqHost() const	{ return host; }
 	uint32 ReqAddr() const		{ return addr; }
 
-#ifdef HAVE_NB_DNS
 	int MakeRequest(nb_dns_info* nb_dns);
-#endif
 	int RequestPending() const	{ return request_pending; }
 	void RequestDone()	{ request_pending = 0; }
 
@@ -66,7 +64,6 @@ protected:
 	int request_pending;
 };
 
-#ifdef HAVE_NB_DNS
 int DNS_Mgr_Request::MakeRequest(nb_dns_info* nb_dns)
 	{
 	if ( ! nb_dns )
@@ -80,7 +77,6 @@ int DNS_Mgr_Request::MakeRequest(nb_dns_info* nb_dns)
 	else
 		return nb_dns_addr_request(nb_dns, addr, (void*) this, err) >= 0;
 	}
-#endif
 
 class DNS_Mapping {
 public:
@@ -350,13 +346,11 @@ DNS_Mgr::DNS_Mgr(DNS_MgrMode arg_mode)
 	host_mappings.SetDeleteFunc(DNS_Mgr_mapping_delete_func);
 	addr_mappings.SetDeleteFunc(DNS_Mgr_mapping_delete_func);
 
-#ifdef HAVE_NB_DNS
 	char err[NB_DNS_ERRSIZE];
 	nb_dns = nb_dns_init(err);
 
 	if ( ! nb_dns )
 		warn(fmt("problem initializing NB-DNS: %s", err));
-#endif
 
 	dns_mapping_valid = dns_mapping_unverified = dns_mapping_new_name =
 		dns_mapping_lost_name = dns_mapping_name_changed =
@@ -372,10 +366,8 @@ DNS_Mgr::DNS_Mgr(DNS_MgrMode arg_mode)
 
 DNS_Mgr::~DNS_Mgr()
 	{
-#ifdef HAVE_NB_DNS
 	if ( nb_dns )
 		nb_dns_finish(nb_dns);
-#endif
 
 	delete [] cache_name;
 	delete [] dir;
@@ -410,14 +402,12 @@ bool DNS_Mgr::Init()
 
 	did_init = 1;
 
-#ifdef HAVE_NB_DNS
 	io_sources.Register(this, true);
 
 	// We never set idle to false, having the main loop only calling us from
 	// time to time. If we're issuing more DNS requests than we can handle
 	// in this way, we are having problems anyway ...
 	idle = true;
-#endif
 
 	return true;
 	}
@@ -531,7 +521,6 @@ void DNS_Mgr::Resolve()
 
 	int i;
 
-#ifdef HAVE_NB_DNS
 	int first_req = 0;
 	int num_pending = min(requests.length(), MAX_PENDING_REQUESTS);
 	int last_req = num_pending - 1;
@@ -597,7 +586,6 @@ void DNS_Mgr::Resolve()
 				--num_pending;
 			}
 		}
-#endif
 
 	// All done with the list of requests.
 	for ( i = requests.length() - 1; i >= 0; --i )
@@ -860,7 +848,6 @@ TableVal* DNS_Mgr::LookupNameInCache(string name)
 	return d->AddrsSet();
 	}
 
-#ifdef HAVE_NB_DNS
 void DNS_Mgr::AsyncLookupAddr(dns_mgr_addr_type host, LookupCallback* callback)
 	{
 	if ( ! did_init )
@@ -956,13 +943,10 @@ void DNS_Mgr::IssueAsyncRequests()
 		++asyncs_pending;
 		}
 	}
-#endif
 
 void  DNS_Mgr::GetFds(int* read, int* write, int* except)
 	{
-#ifdef HAVE_NB_DNS
 	*read = nb_dns_fd(nb_dns);
-#endif
 	}
 
 double DNS_Mgr::NextTimestamp(double* network_time)
@@ -971,7 +955,6 @@ double DNS_Mgr::NextTimestamp(double* network_time)
 	return asyncs_timeouts.size() ? timer_mgr->Time() : -1.0;
 	}
 
-#ifdef HAVE_NB_DNS
 void DNS_Mgr::CheckAsyncAddrRequest(dns_mgr_addr_type addr, bool timeout)
 	{
 	// Note that this code is a mirror of that for CheckAsyncHostRequest.
@@ -1030,13 +1013,9 @@ void DNS_Mgr::CheckAsyncHostRequest(const char* host, bool timeout)
 		// eventually times out.
 		}
 	}
-#endif
 
 void  DNS_Mgr::Process()
 	{
-#ifndef HAVE_NB_DNS
-	internal_error("DNS_Mgr::Process(): should never be reached");
-#else
 
 	while ( asyncs_timeouts.size() > 0 )
 		{
@@ -1084,9 +1063,8 @@ void  DNS_Mgr::Process()
 
 		IssueAsyncRequests();
 		}
-#endif
 	}
-#ifdef HAVE_NB_DNS
+
 int DNS_Mgr::AnswerAvailable(int timeout)
 	{
 	int fd = nb_dns_fd(nb_dns);
@@ -1116,4 +1094,3 @@ int DNS_Mgr::AnswerAvailable(int timeout)
 
 	return status;
 	}
-#endif

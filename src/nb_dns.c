@@ -103,7 +103,7 @@ static int _nb_dns_cmpsockaddr(struct sockaddr *, struct sockaddr *, char *);
 static char *
 my_strerror(int errnum)
 {
-#if HAVE_STRERROR
+#ifdef HAVE_STRERROR
 	extern char *strerror(int);
 	return strerror(errnum);
 #else

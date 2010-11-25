@@ -105,7 +105,6 @@ void ODesc::Add(uint32 u)
 		}
 	}
 
-#ifdef USE_INT64
 void ODesc::Add(int64 i)
 	{
 	if ( IsBinary() )
@@ -129,7 +128,6 @@ void ODesc::Add(uint64 u)
 		Add(tmp);
 		}
 	}
-#endif
 
 void ODesc::Add(double d)
 	{

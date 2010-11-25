@@ -1,8 +1,0 @@
-Contents of this directory:
-
-syslog.bro: Bro analyzer for broccoli-based syslog data
-
-user-check.bro: Bro analyzer for syslog-based user data (bad usernames, etc.)
-
-client-heartbeat.bro: Generate heartbeat events and send to other Bro's
-server-heartbeat.bro: Generate alarm if don't receive a heartbeat event

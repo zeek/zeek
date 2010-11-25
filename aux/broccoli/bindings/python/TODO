@@ -1,7 +1,0 @@
-
-- nested records are not support. 
-- type net does not work because I'm too lazy to implement the parsing ...
-- type enum disabled because there seems to be some Broccoli problem with them.
-- would be nice to have some more standard operations (+,-, etc.)
-  defined for the wrapper classes.
-- listen() not available in Python

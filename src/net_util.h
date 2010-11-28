@@ -14,15 +14,10 @@
 #include <netinet/in_systm.h>
 #include <arpa/inet.h>
 
-#ifdef LINUX
-	/* sigh */
-#define source uh_sport 
-#define dest uh_dport 
-#define len uh_ulen   
-#define check uh_sum
-#endif
-
 #include <netinet/ip.h>
+#ifdef HAVE_LINUX
+#define __FAVOR_BSD
+#endif
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
 #include <netinet/ip_icmp.h>

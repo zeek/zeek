@@ -2,6 +2,36 @@
 
 -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
+
+1.6-dev.0 Fri Nov 26 13:48:11 PST 2010
+
+- The Bro source code is now developed in the new git repositories.
+  See the developer pages at http://www.bro-ids.org for more
+  information on the new development process. 
+
+- Bro's build and installation setup has been moved from GNU
+  autotools to CMake. As a result of that, layout and specifics of
+  the distribution has changed significantly.
+
+- Lots of pieces have been removed from the distribution that are
+  either now unnecessary or are no longer maintained.
+
+- As part of the cleanup, a numbef of Bro configure options and
+  their corresponding functionality have been removed, including:
+
+    * --disable-select-loop
+    * --with-dag
+    * --disable-nbdns
+    * --enable-activemapping
+    * --enable-activemapping
+    * --enable-shippedpcap
+
+- The previous configure option --enable-int64 is now enabled by default,
+  and can no longer be disabled.
+
+- ClamAV support has been removed, which has been non-functional for
+  a while already. 
+
 1.5.2.7 Sun Sep 12 19:39:49 PDT 2010
 
 - Addressed a number of lint nits (Vern Paxson).

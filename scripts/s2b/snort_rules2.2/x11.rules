@@ -1,9 +1,0 @@
-# (C) Copyright 2001-2004, Martin Roesch, Brian Caswell, et al.
-#    All rights reserved.
-# $Id: x11.rules 91 2004-07-15 08:13:57Z rwinslow $
-#----------
-# X11 RULES
-#----------
-
-alert tcp $EXTERNAL_NET any -> $HOME_NET 6000 (msg:"X11 MIT Magic Cookie detected"; flow:established; content:"MIT-MAGIC-COOKIE-1"; reference:arachnids,396; classtype:attempted-user; sid:1225; rev:4;)
-alert tcp $EXTERNAL_NET any -> $HOME_NET 6000 (msg:"X11 xopen"; flow:established; content:"l|00 0B 00 00 00 00 00 00 00 00 00|"; reference:arachnids,395; classtype:unknown; sid:1226; rev:4;)

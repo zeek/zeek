@@ -113,10 +113,8 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 		SMTP_Analyzer::Available, 0, false },
 	{ AnalyzerTag::SSH, "SSH", SSH_Analyzer::InstantiateAnalyzer,
 		SSH_Analyzer::Available, 0, false },
-#ifdef USE_OPENSSL
 	{ AnalyzerTag::SSL, "SSL", SSLProxy_Analyzer::InstantiateAnalyzer,
 		SSLProxy_Analyzer::Available, 0, false },
-#endif
 	{ AnalyzerTag::Telnet, "TELNET", Telnet_Analyzer::InstantiateAnalyzer,
 		Telnet_Analyzer::Available, 0, false },
 
@@ -167,9 +165,7 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 	{ AnalyzerTag::Contents_SMB, "CONTENTS_SMB", 0, 0, 0, false },
 	{ AnalyzerTag::Contents_RPC, "CONTENTS_RPC", 0, 0, 0, false },
 	{ AnalyzerTag::Contents_NFS, "CONTENTS_NFS", 0, 0, 0, false },
-#ifdef USE_OPENSSL
 	{ AnalyzerTag::Contents_SSL, "CONTENTS_SSL", 0, 0, 0, false },
-#endif
 };
 
 AnalyzerTimer::~AnalyzerTimer()

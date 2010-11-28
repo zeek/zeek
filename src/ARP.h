@@ -13,9 +13,9 @@
 #include <net/if_arp.h>
 #ifdef HAVE_NET_ETHERNET_H
 #include <net/ethernet.h>
-#elif HAVE_SYS_ETHERNET_H
+#elif defined(HAVE_SYS_ETHERNET_H)
 #include <sys/ethernet.h>
-#elif HAVE_NETINET_IF_ETHER_H
+#elif defined(HAVE_NETINET_IF_ETHER_H)
 #include <netinet/if_ether.h>
 #endif
 

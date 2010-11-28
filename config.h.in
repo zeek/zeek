@@ -1,0 +1,148 @@
+/* enable IPV6 processing */
+#cmakedefine BROv6
+
+/* Old libpcap versions (< 0.6.1) need defining pcap_freecode and
+   pcap_compile_nopcap */
+#cmakedefine DONT_HAVE_LIBPCAP_PCAP_FREECODE
+
+/* should explicitly declare socket() and friends */
+#cmakedefine DO_SOCK_DECL
+
+/* Define if you have the <getopt.h> header file. */
+#cmakedefine HAVE_GETOPT_H
+
+/* Define if you have the `getopt_long' function. */
+#cmakedefine HAVE_GETOPT_LONG
+
+/* Define if you have the `magic' library (-lmagic). */
+#cmakedefine HAVE_LIBMAGIC
+
+/* Define if you have the `z' library (-lz). */
+#cmakedefine HAVE_LIBZ
+
+/* We are on a Linux system */
+#cmakedefine HAVE_LINUX
+
+/* Define if you have the <magic.h> header file. */
+#cmakedefine HAVE_MAGIC_H
+
+/* Define if you have the `mallinfo' function. */
+#cmakedefine HAVE_MALLINFO
+
+/* Define if you have the <memory.h> header file. */
+#cmakedefine HAVE_MEMORY_H
+
+/* Define if you have the <netinet/if_ether.h> header file. */
+#cmakedefine HAVE_NETINET_IF_ETHER_H
+
+/* Define if you have the <netinet/ip6.h> header file. */
+#cmakedefine HAVE_NETINET_IP6_H
+
+/* Define if you have the <net/ethernet.h> header file. */
+#cmakedefine HAVE_NET_ETHERNET_H
+
+/* We are on a OpenBSD system */
+#cmakedefine HAVE_OPENBSD
+
+/* have os-proto.h */
+#cmakedefine HAVE_OS_PROTO_H
+
+/* Define if you have the <pcap-int.h> header file. */
+#cmakedefine HAVE_PCAP_INT_H
+
+/* line editing & history powers */
+#cmakedefine HAVE_READLINE
+
+/* Define if you have the `sigaction' function, but not `sigset'. */
+#cmakedefine HAVE_SIGACTION
+
+/* Define if you have the `sigset' function. */
+#cmakedefine HAVE_SIGSET
+
+/* Define if you have the `strcasestr' function. */
+#cmakedefine HAVE_STRCASESTR
+
+/* Define if you have the `strerror' function. */
+#cmakedefine HAVE_STRERROR
+
+/* Define if you have the `strsep' function. */
+#cmakedefine HAVE_STRSEP
+
+/* Define if you have the <sys/ethernet.h> header file. */
+#cmakedefine HAVE_SYS_ETHERNET_H
+
+/* Some libpcap versions use an extra parameter (error) in pcap_compile_nopcap
+   */
+#cmakedefine LIBPCAP_PCAP_COMPILE_NOPCAP_HAS_ERROR_PARAMETER
+
+/* Include krb5.h */
+#cmakedefine NEED_KRB5_H
+
+/* Compatibility for Darwin */
+#cmakedefine NEED_NAMESER_COMPAT_H
+
+/* d2i_x509 uses const char** */
+#cmakedefine OPENSSL_D2I_X509_USES_CONST_CHAR
+
+/* Define as the return type of signal handlers (`int' or `void'). */
+#define RETSIGTYPE @RETSIGTYPE@
+
+/* signal function return value */
+#define RETSIGVAL @RETSIGVAL@
+
+/* have sin_len field in sockaddr_in */
+#cmakedefine SIN_LEN
+
+/* The size of `long int', as computed by sizeof. */
+#define SIZEOF_LONG_INT @SIZEOF_LONG_INT@
+
+/* The size of `long long', as computed by sizeof. */
+#define SIZEOF_LONG_LONG @SIZEOF_LONG_LONG@
+
+/* The size of `void *', as computed by sizeof. */
+#define SIZEOF_VOID_P @SIZEOF_VOID_P@
+
+/* should we declare syslog() and openlog() */
+#cmakedefine SYSLOG_INT
+
+/* Define if you have <sys/time.h> */
+#cmakedefine HAVE_SYS_TIME_H
+
+/* Define if you can safely include both <sys/time.h> and <time.h>. */
+#cmakedefine TIME_WITH_SYS_TIME
+
+/* GeoIP geographic lookup functionality */
+#cmakedefine USE_GEOIP
+
+/* Use Google's perftools */
+#cmakedefine USE_PERFTOOLS
+
+/* Version number of package */
+#define VERSION "@VERSION@"
+
+/* whether words are stored with the most significant byte first */
+#cmakedefine WORDS_BIGENDIAN
+
+/* ultrix can't hack const */
+#cmakedefine NEED_ULTRIX_CONST_HACK
+#ifdef NEED_ULTRIX_CONST_HACK
+#define const
+#endif
+
+/* Define int32_t */
+#define int32_t @INT32_T@
+
+/* use sigset() instead of signal() */
+#define signal @SIG_FUNC@
+
+/* define to int if socklen_t not available */
+#define socklen_t @SOCKLEN_T@
+
+/* Define u_int16_t */
+#define u_int16_t @U_INT16_T@
+
+/* Define u_int32_t */
+#define u_int32_t @U_INT32_T@
+
+/* Define u_int8_t */
+#define u_int8_t @U_INT8_T@

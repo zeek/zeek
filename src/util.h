@@ -44,15 +44,8 @@ typedef unsigned int uint32;
 typedef unsigned short uint16;
 typedef unsigned char uint8;
 typedef long long int int64;
-
-#ifdef USE_INT64
-	typedef int64 bro_int_t;
-	typedef uint64 bro_uint_t;
-#else
-	typedef int bro_int_t;
-	typedef uint32 bro_uint_t;
-// #	error "USE_INT64 not defined!"
-#endif
+typedef int64 bro_int_t;
+typedef uint64 bro_uint_t;
 
 #if SIZEOF_LONG_LONG == 8
 typedef unsigned long long uint64;

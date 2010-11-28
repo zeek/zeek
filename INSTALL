@@ -2,70 +2,72 @@ Prerequisites
 =============
 
 Bro relies on the following libraries and tools, which need to be installed
-before you begin with the installation:
+before you begin:
 
-    * Libpcap
-	   If libpcap is already installed on the system, by default Bro
-	   will use that one.  Otherwise, it falls back to a version shipped
-	   with the Bro distribution.
+    * Libpcap headers and libraries
+       Network traffic capture library
 
-    * Flex
-	   Flex is already installed on most systems, so with luck you can
-	   skip having to install it yourself.
+    * Flex (Fast Lexical Analyzer)
+       Flex is already installed on most systems, so with luck you can
+       skip having to install it yourself.
 
-    * Bison or byacc
-	   These come with many systems, but if you get errors compiling
-	   parse.y, you will need to install them.  bison is available
-	   from GNU sites such as ftp.gnu.org.
+    * Bison (GNU Parser Generator)
+       This comes with many systems, but if you get errors compiling
+       parse.y, you will need to install it.
+
+    * Perl
+       Used only during the Bro build process
+
+    * sed
+       Used only during the Bro build process
 
     * BIND8 headers and libraries
-           These are usually already installed as well.
+       These are usually already installed as well.
 
-    * Autotools
-	   If you have checked the source out from Bro's Subversion
-	   repository, you need the autotools suite installed.  In this
-	   case, run "./autogen.sh" first right after the check out.
-	   Otherwise the installation steps below will fail.
+    * OpenSSL headers and libraries
+        For analysis of SSL certificates by the HTTP analyzer, and 
+        for encrypted Bro-to-Bro communication. These are likely installed,
+        though some platforms may require installation of a 'devel' package
+         for the headers.
+
+    * CMake 2.8 or greater
+       CMake is a cross-platform, open-source build system, typically
+       not installed by default.  See http://www.cmake.org for more
+       information regarding CMake and the installation steps below for
+       how to use it to build this distribution.  CMake generates native
+       Makefiles that depend on GNU Make by default.
 
 Bro can also make uses of some optional libraries if they are found at
 installation time:
 
-    * OpenSSL
-           For analysis of SSL certificates by the HTTP analyzer, and 
-           for encrypted Bro-to-Bro communication.
-
     * Libmagic
-           For identifying file types (e.g., in FTP transfers).
+      For identifying file types (e.g., in FTP transfers).
            
     * LibGeoIP
-           For geo-locating IP addresses.
+       For geo-locating IP addresses.
            
     * Libz
-	   For decompressing HTTP bodies by the HTTP analyzer, and for
-	   compressed Bro-to-Bro communication.
-
-    * Endace's DAG tools:
-           For native support of Endace DAG cards.
-
+       For decompressing HTTP bodies by the HTTP analyzer, and for
+       compressed Bro-to-Bro communication.
 
 Installation
 ============
 
-To build and install into /usr/local:
+To build and install into /usr/local/bro:
 
-	> ./configure
-	> make
-	> make install
+    > ./configure
+    > cd build
+    > make
+    > make install
 
-This will install the Bro binary into /usr/local/bin/bro and the policy
-files into /usr/local/share/bro.
+This will perform an out-of-source build into the build directory using the
+default build options and then install binaries into /usr/local/bro/bin.
 
-As usual you can specify a different installation directory with
+You can specify a different installation directory with
 
-   > ./configure --prefix=<dir>".
+    > ./configure --prefix=<dir>
 
 Run "./configure --help" for more options. 
-
 
 Running Bro
 ===========
@@ -77,17 +79,17 @@ http://www.bro-ids.org/wiki for more information.
 To run a policy file from /usr/local/share/bro, such as mt.bro, on a
 previously captured tcpdump save file named foo:
 
-	bro -r foo mt.bro
+    bro -r foo mt.bro
 
 To run from interface le0:
 
-	bro -i le0 mt
+    bro -i le0 mt
 
 You can alternatively specify interface and scripts to load in your own
 policy file:
 
-	@load mt
-	redef interfaces = "le0";
+    @load mt
+    redef interfaces = "le0";
 
 and then run
 
@@ -95,10 +97,10 @@ and then run
 
 You can see the BPF filter Bro will use (if not overridden) by executing
 
-	bro mt print-filter
+    bro mt print-filter
 
 To run interactively (e.g., for playing with expression evaluation):
 
-	bro
+    bro
 
 "bro -h" lists the various options.

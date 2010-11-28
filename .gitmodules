@@ -1,0 +1,12 @@
+[submodule "aux/bro-aux"]
+	path = aux/bro-aux
+	url = git://git.icir.org/bro-aux
+[submodule "aux/binpac"]
+	path = aux/binpac
+	url = git://git.icir.org/binpac
+[submodule "aux/broccoli"]
+	path = aux/broccoli
+	url = git://git.icir.org/broccoli
+[submodule "aux/broctl"]
+	path = aux/broctl
+	url = git://git.icir.org/broctl

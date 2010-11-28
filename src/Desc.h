@@ -57,10 +57,8 @@ public:
 	void AddN(const char* s, int len)	{ AddBytes(s, len); }
 	void Add(int i);
 	void Add(uint32 u);
-#ifdef USE_INT64
 	void Add(int64 i);
 	void Add(uint64 u);
-#endif
 	void Add(double d);
 
 	// Add s as a counted string.

@@ -65,10 +65,8 @@ void PktSrc::GetFds(int* read, int* write, int* except)
 		return;
 		}
 
-#ifdef USE_SELECT_LOOP
 	if ( selectable_fd >= 0 )
 		*read = selectable_fd;
-#endif
 	}
 
 int PktSrc::ExtractNextPacket()
@@ -90,11 +88,7 @@ int PktSrc::ExtractNextPacket()
 	if ( ! first_timestamp )
 		first_timestamp = next_timestamp;
 
-#ifdef USE_SELECT_LOOP
 	idle = (data == 0);
-#else
-	idle = false;
-#endif
 
 	if ( data )
 		++stats.received;
@@ -370,16 +364,12 @@ PktInterfaceSrc::PktInterfaceSrc(const char* arg_interface, const char* filter,
 		netmask = 0xffffff00;
 		}
 
-#ifdef USE_SELECT_LOOP
 	// We use the smallest time-out possible to return almost immediately if
 	// no packets are available. (We can't use set_nonblocking() as it's
 	// broken on FreeBSD: even when select() indicates that we can read
 	// something, we may get nothing if the store buffer hasn't filled up
 	// yet.)
 	pd = pcap_open_live(interface, snaplen, 1, 1, tmp_errbuf);
-#else
-	pd = pcap_open_live(interface, snaplen, 1, PCAP_TIMEOUT, tmp_errbuf);
-#endif
 
 	if ( ! pd )
 		{
@@ -394,8 +384,6 @@ PktInterfaceSrc::PktInterfaceSrc(const char* arg_interface, const char* filter,
 	fprintf(stderr, "pcap bufsize = %d\n", ((struct pcap *) pd)->bufsize);
 #endif
 
-#ifdef USE_SELECT_LOOP
-
 #ifdef HAVE_LINUX
 	if ( pcap_setnonblock(pd, 1, tmp_errbuf) < 0 )
 		{
@@ -407,7 +395,6 @@ PktInterfaceSrc::PktInterfaceSrc(const char* arg_interface, const char* filter,
 		}
 #endif
 	selectable_fd = pcap_fileno(pd);
-#endif
 
 	if ( PrecompileFilter(0, filter) && SetFilter(0) )
 		{
@@ -437,7 +424,6 @@ PktFileSrc::PktFileSrc(const char* arg_readfile, const char* filter,
 			// Unknown link layer type.
 			return;
 
-#ifdef USE_SELECT_LOOP
 		// We don't put file sources into non-blocking mode as
 		// otherwise we would not be able to identify the EOF
 		// via next_packet().
@@ -446,7 +432,6 @@ PktFileSrc::PktFileSrc(const char* arg_readfile, const char* filter,
 
 		if ( selectable_fd < 0 )
 			internal_error("OS does not support selectable pcap fd");
-#endif
 		}
 	else
 		closed = true;

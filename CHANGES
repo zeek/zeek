@@ -2,6 +2,18 @@
 
 -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
+1.6-dev.1 Sat Nov 27 12:19:47 PST 2010
+
+- Merge with Subversion repository as of r7098. Incorporated changes:
+
+    * Rotation post-processors are now passed an additional argument
+      indicating whether Bro is terminating (Robin Sommer).
+
+    * Bro now consistently generates a file_opened event for all
+      fopen() calls. (Robin Sommer).
+
+    * You can now redefine the email_notice_to function (Robin
+      Sommer).
 
 1.6-dev.0 Fri Nov 26 13:48:11 PST 2010
 

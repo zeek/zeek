@@ -272,6 +272,8 @@ function build_notice_info_string_tagged(n: notice_info) : string
 	return cur_info;
 	}
 
+global email_notice_to: function(n: notice_info, dest: string) &redef;
+
 function email_notice_to(n: notice_info, dest: string)
 	{
 	if ( reading_traces() || dest == "" )

@@ -56,10 +56,11 @@ function run_pp(info: rotate_info)
 	if ( pp != "" )
 		# The date format is hard-coded here to provide a standardized
 		# script interface.
-		system(fmt("%s %s %s %s %s %s",
+		system(fmt("%s %s %s %s %s %s %s",
 				pp, info$new_name, info$old_name,
 				strftime("%y-%m-%d_%H.%M.%S", info$open),
 				strftime("%y-%m-%d_%H.%M.%S", info$close),
+				bro_is_terminating() ? "1" : "0",
 				tag));
 	else
 		system(fmt("/bin/mv %s %s %s",

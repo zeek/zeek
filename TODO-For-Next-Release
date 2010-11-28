@@ -1,9 +1,0 @@
-Plan for 1.6:
-	Originally, with 1.5 we were going to start working with --use-binpac
-	as the default.  However, this has been deferred pending development
-	of BinPAC++.  We might however turn on BinPAC for the SSL analyzer,
-	for which the BinPAC version is more robust.  It, though, doesn't
-	support storing certs to disk, which some folks use operationally.
-
-	Given DPD means we might not filter traffic anyway, we no longer
-	have such a good excuse for not dealing with IPv6 options.

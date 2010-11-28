@@ -1,3 +1,8 @@
+==============
+Installing Bro
+==============
+
+
 Prerequisites
 =============
 
@@ -25,7 +30,7 @@ before you begin:
        These are usually already installed as well.
 
     * OpenSSL headers and libraries
-        For analysis of SSL certificates by the HTTP analyzer, and 
+        For analysis of SSL certificates by the HTTP analyzer, and
         for encrypted Bro-to-Bro communication. These are likely installed,
         though some platforms may require installation of a 'devel' package
          for the headers.
@@ -42,13 +47,14 @@ installation time:
 
     * Libmagic
       For identifying file types (e.g., in FTP transfers).
-           
+
     * LibGeoIP
        For geo-locating IP addresses.
-           
+
     * Libz
        For decompressing HTTP bodies by the HTTP analyzer, and for
        compressed Bro-to-Bro communication.
+
 
 Installation
 ============
@@ -60,47 +66,23 @@ To build and install into /usr/local/bro:
     > make
     > make install
 
-This will perform an out-of-source build into the build directory using the
-default build options and then install binaries into /usr/local/bro/bin.
+This will perform an out-of-source build into a directory called
+build/, using default build options. It then installs the Bro binary
+into /usr/local/bro/bin. Depending on the Bro package you
+downloaded, there may be auxiliary tools and libraries available in
+the aux/ directory. If so, they will be installed by default as well
+if not explicitly disabled via configure options.
 
 You can specify a different installation directory with
 
     > ./configure --prefix=<dir>
 
-Run "./configure --help" for more options. 
+Run "./configure --help" for more options.
 
 Running Bro
 ===========
 
 Bro is a complex program and it takes a bit of time to get familiar
-with it.  In the following we give a few simple examples.  See
-http://www.bro-ids.org/wiki for more information.
-
-To run a policy file from /usr/local/share/bro, such as mt.bro, on a
-previously captured tcpdump save file named foo:
-
-    bro -r foo mt.bro
-
-To run from interface le0:
-
-    bro -i le0 mt
-
-You can alternatively specify interface and scripts to load in your own
-policy file:
-
-    @load mt
-    redef interfaces = "le0";
-
-and then run
-
-    bro ./my-policy.bro
-
-You can see the BPF filter Bro will use (if not overridden) by executing
-
-    bro mt print-filter
-
-To run interactively (e.g., for playing with expression evaluation):
-
-    bro
-
-"bro -h" lists the various options.
+with it. In the following we give a few simple examples.  See the
+quickstart guide at http://www.bro-ids.org for more information; you
+can the source that in doc/quick-start.

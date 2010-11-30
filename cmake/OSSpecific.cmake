@@ -49,8 +49,8 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "hpux" OR
             return 0;
         }
     " have_ansi_prototypes)
-    unset(CMAKE_REQUIRED_FLAGS)
-    unset(CMAKE_REQUIRED_DEFINITIONS)
+    set(CMAKE_REQUIRED_FLAGS)
+    set(CMAKE_REQUIRED_DEFINITIONS)
 
     if (have_ansi_prototypes)
         add_definitions(-D_HPUX_SOURCE)

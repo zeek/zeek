@@ -10,7 +10,6 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     set(HAVE_LINUX true)
-    include_directories(BEFORE ${CMAKE_SOURCE_DIR}/linux-include)
 
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Solaris")
     set(SOCKET_LIBS nsl socket)

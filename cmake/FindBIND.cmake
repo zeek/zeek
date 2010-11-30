@@ -70,7 +70,7 @@ foreach (bindlib ${bind_libs})
         }
 " res_mkquery_works_${bindlib})
 
-    unset(CMAKE_REQUIRED_LIBRARIES)
+    set(CMAKE_REQUIRED_LIBRARIES)
 
     if (ns_initparse_works_${bindlib} AND res_mkquery_works_${bindlib})
         break ()
@@ -78,7 +78,7 @@ foreach (bindlib ${bind_libs})
         set(BIND_LIBRARY BIND_LIBRARY-NOTFOUND)
     endif ()
 endforeach ()
-unset(CMAKE_REQUIRED_INCLUDES)
+set(CMAKE_REQUIRED_INCLUDES)
 
 include(FindPackageHandleStandardArgs)
 

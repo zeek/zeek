@@ -387,9 +387,6 @@ set(brolibs
     ${OPTLIBS}
 )
 
-include(ChangeMacInstallNames)
-ChangeMacInstallNames(brolibs)
-
 target_link_libraries(bro ${brolibs})
 
 install(TARGETS bro DESTINATION bin)

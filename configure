@@ -14,8 +14,9 @@ use this configure script to access CMake equivalent functionality.\
 usage="\
 Usage: $0 [OPTION]... [VAR=VALUE]...
 
-  Build Directory:
+  Build Options:
     --builddir=DIR         place build files in directory [build]
+    --generator=GENERATOR  CMake generator to use (see cmake --help)
 
   Installation Directories:
     --prefix=PREFIX        installation directory [/usr/local/bro]
@@ -93,6 +94,9 @@ while [ $# -ne 0 ]; do
             ;;
         --builddir=*)
             builddir=$optarg
+            ;;
+        --generator=*)
+            CMakeGenerator="$optarg"
             ;;
         --prefix=*)
             append_cache_entry CMAKE_INSTALL_PREFIX PATH   $optarg
@@ -186,4 +190,9 @@ fi
 echo "Build Directory : $builddir"
 echo "Source Directory: $sourcedir"
 cd $builddir
-cmake $CMakeCacheEntries $sourcedir
+
+if [ -n "$CMakeGenerator" ]; then
+    cmake -G "$CMakeGenerator" $CMakeCacheEntries $sourcedir
+else
+    cmake $CMakeCacheEntries $sourcedir
+fi

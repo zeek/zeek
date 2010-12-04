@@ -55,13 +55,13 @@ installation time:
        For decompressing HTTP bodies by the HTTP analyzer, and for
        compressed Bro-to-Bro communication.
 
-
 Installation
 ============
 
 To build and install into /usr/local/bro:
 
     > ./configure
+    > cd build
     > make
     > make install
 

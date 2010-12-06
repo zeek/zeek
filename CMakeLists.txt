@@ -36,6 +36,8 @@ endif ()
 # (CMake is confused by ~ as a representation of home directory)
 get_filename_component(POLICYDIR ${POLICYDIR} ABSOLUTE)
 
+configure_file(bro-path-dev.in ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev)
+
 file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" VERSION LIMIT_COUNT 1)
 
 set(EXTRA_COMPILE_FLAGS "-Wall -Wno-unused")

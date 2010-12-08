@@ -85,3 +85,7 @@ Bro is a complex program and it takes a bit of time to get familiar
 with it. In the following we give a few simple examples.  See the
 quickstart guide at http://www.bro-ids.org for more information; you
 can the source that in doc/quick-start.
+
+For developers that wish to run Bro after performing "make", but
+without performing "make install", see build/bro-path-dev for
+an example.

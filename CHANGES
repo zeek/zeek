@@ -2,6 +2,18 @@
 
 -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
+1.6-dev.3 Wed Dec  8 04:09:38 PST 2010
+
+- Merge with Subversion repository as of r7137. Incorporated change:
+
+    * Fix for packet processing resumption when a remote Bro dies
+      during state synchronization (Robin Sommer).
+
+1.6-dev.2 Wed Dec  8 03:57:03 PST 2010
+
+- Compatibility fix for OpenSSL 1.0.0 (Christian Kreibich, Gregor
+  Maier).
+
 1.6-dev.1 Sat Nov 27 12:19:47 PST 2010
 
 - Merge with Subversion repository as of r7098. Incorporated changes:

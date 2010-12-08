@@ -776,7 +776,7 @@ const char* bro_path()
 	{
 	const char* path = getenv("BROPATH");
 	if ( ! path )
-		path = ".:policy:policy/sigs:policy/time-machine:"
+		path = ".:"
 			POLICYDEST ":"
 			POLICYDEST "/sigs:" 
 			POLICYDEST "/time-machine:"

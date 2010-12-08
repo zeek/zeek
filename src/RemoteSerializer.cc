@@ -681,7 +681,7 @@ bool RemoteSerializer::CloseConnection(Peer* peer)
 	if ( peer->suspended_processing )
 		{
 		net_continue_processing();
-		current_peer->suspended_processing = false;
+		peer->suspended_processing = false;
 		}
 
 	if ( peer->state == Peer::CLOSING )
@@ -1606,6 +1606,12 @@ void RemoteSerializer::PeerDisconnected(Peer* peer)
 	{
 	assert(peer);
 
+	if ( peer->suspended_processing )
+		{
+		net_continue_processing();
+		peer->suspended_processing = false;
+		}
+
 	if ( peer->state == Peer::CLOSED || peer->state == Peer::INIT )
 		return;
 
@@ -1736,6 +1742,12 @@ void RemoteSerializer::UnregisterHandlers(Peer* peer)
 
 void RemoteSerializer::RemovePeer(Peer* peer)
 	{
+	if ( peer->suspended_processing )
+		{
+		net_continue_processing();
+		peer->suspended_processing = false;
+		}
+
 	peers.remove(peer);
 	UnregisterHandlers(peer);
 
@@ -2933,7 +2945,7 @@ void SocketComm::Run()
 		struct timeval small_timeout;
 		small_timeout.tv_sec = 0;
 		small_timeout.tv_usec =
-			io->CanWrite() || io->CanRead() ? 10 : 10000;
+			io->CanWrite() || io->CanRead() ? 1 : 10;
 
 		int a = select(max_fd + 1, &fd_read, &fd_write, &fd_except,
 				&small_timeout);

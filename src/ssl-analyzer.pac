@@ -370,7 +370,7 @@ refine analyzer SSLAnalyzer += {
 			STACK_OF(X509)* untrusted_certs = 0;
 			if ( certificates->size() > 1 )
 				{
-				untrusted_certs = sk_new_null();
+				untrusted_certs = sk_X509_new_null();
 				if ( ! untrusted_certs )
 					{
 					// X509_V_ERR_OUT_OF_MEM;
@@ -393,7 +393,7 @@ refine analyzer SSLAnalyzer += {
 						return false;
 						}
 
-					sk_push(untrusted_certs, (char*) pTemp);
+					sk_X509_push(untrusted_certs, pTemp);
 					}
 				}
 
@@ -405,7 +405,7 @@ refine analyzer SSLAnalyzer += {
 				certificate_error(csc.error);
 			X509_STORE_CTX_cleanup(&csc);
 
-			sk_pop_free(untrusted_certs, free_X509);
+			sk_X509_pop_free(untrusted_certs, X509_free);
 			}
 
 		X509_free(pCert);

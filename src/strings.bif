@@ -224,7 +224,6 @@ Val* do_split(StringVal* str_val, RE_Matcher* re, TableVal* other_sep,
 		while ( n > 0 &&
 		        (end_of_match = re->MatchPrefix(&s[offset], n)) <= 0 )
 			{
-				printf("character %d\n", offset);
 			// Move on to next character.
 			++offset;
 			--n;

@@ -138,27 +138,27 @@ function sort_string_array%(a: string_array%): string_array
 
 function edit%(arg_s: string, arg_edit_char: string%): string
 	%{
-	const char* s = arg_s->AsString()->CheckString();
-	const char* edit_s = arg_edit_char->AsString()->CheckString();
-
-	if ( strlen(edit_s) != 1 )
+	if ( arg_edit_char->Len() != 1 )
 		builtin_run_time("not exactly one edit character", @ARG@[1]);
+	
+	const u_char* s = arg_s->Bytes();
+	const u_char* edit_s = arg_edit_char->Bytes();
 
-	char edit_c = *edit_s;
+	u_char edit_c = *edit_s;
 
-	int n = strlen(s) + 1;
-	char* new_s = new char[n];
+	int n = arg_s->Len();
+	u_char* new_s = new u_char[n+1];
 	int ind = 0;
 
-	for ( ; *s; ++s )
+	for ( int i=0; i<n; ++i )
 		{
-		if ( *s == edit_c )
+		if ( s[i] == edit_c )
 			{ // Delete last character
 			if ( --ind < 0 )
 				ind = 0;
 			}
 		else
-			new_s[ind++] = *s;
+			new_s[ind++] = s[i];
 		}
 
 	new_s[ind] = '\0';
@@ -465,42 +465,38 @@ function subst_string%(s: string, from: string, to: string%): string
 
 function to_lower%(str: string%): string
 	%{
-	const char* s = str->CheckString();
-	int n = strlen(s) + 1;
+	const u_char* s = str->Bytes();
+	int n = str->Len();
 	char* lower_s = new char[n];
+	char* ls = lower_s;
 
-	char* ls;
-	for ( ls = lower_s; *s; ++s )
+	for (int i=0; i<n; ++i)
 		{
-		if ( isascii(*s) && isupper(*s) )
-			*ls++ = tolower(*s);
+		if ( isascii(s[i]) && isupper(s[i]) )
+			*ls++ = tolower(s[i]);
 		else
-			*ls++ = *s;
+			*ls++ = s[i];
 		}
 
-	*ls = '\0';
-
-	return new StringVal(new BroString(1, byte_vec(lower_s), n-1));
+	return new StringVal(new BroString(1, byte_vec(lower_s), n));
 	%}
 
 function to_upper%(str: string%): string
 	%{
-	const char* s = str->CheckString();
-	int n = strlen(s) + 1;
+	const u_char* s = str->Bytes();
+	int n = str->Len();
 	char* upper_s = new char[n];
-
-	char* us;
-	for ( us = upper_s; *s; ++s )
+	char* us = upper_s;
+	
+	for (int i=0; i<n; ++i)
 		{
-		if ( isascii(*s) && islower(*s) )
-			*us++ = toupper(*s);
+		if ( isascii(s[i]) && islower(s[i]) )
+			*us++ = toupper(s[i]);
 		else
-			*us++ = *s;
+			*us++ = s[i];
 		}
 
-	*us = '\0';
-
-	return new StringVal(new BroString(1, byte_vec(upper_s), n-1));
+	return new StringVal(new BroString(1, byte_vec(upper_s), n));
 	%}
 
 function clean%(str: string%): string
@@ -593,40 +589,34 @@ function str_split%(s: string, idx: index_vec%): string_vec
 
 function strip%(str: string%): string
 	%{
-	const char* s = str->CheckString();
+	const u_char* s = str->Bytes();
+	int n = str->Len();
 
-	int n = strlen(s) + 1;
-	char* strip_s = new char[n];
-
-	if ( n == 1 )
+	if ( n == 0 )
 		// Empty string.
-		return new StringVal(new BroString(1, byte_vec(strip_s), 0));
+		return new StringVal(new BroString(s, n, 1));
 
-	while ( isspace(*s) )
-		++s;
-
-	strncpy(strip_s, s, n);
-
-	char* s2 = strip_s;
-	char* e = &s2[strlen(s2) - 1];
-
-	while ( e > s2 && isspace(*e) )
+	const u_char* sp = s;
+	// Move a pointer to the end of the string
+	const u_char* e = &sp[n-1];
+	while ( e > sp && isspace(*e) )
 		--e;
 
-	e[1] = '\0';	// safe even if e hasn't changed, due to n = strlen + 1
+	// Move the pointer for the beginning of the string
+	while ( isspace(*sp) )
+		++sp;
 
-	return new StringVal(new BroString(1, byte_vec(s2), (e-s2)+1));
+	return new StringVal(new BroString(sp, e-sp+1, 1));
 	%}
 
 function string_fill%(len: int, source: string%): string
 	%{
-	const char* src = source->CheckString();
-
-	int sn = strlen(src);
+	const u_char* src = source->Bytes();
+	int n = source->Len();
 	char* dst = new char[len];
 
-	for ( int i = 0; i < len; i += sn )
-		::memcpy((dst + i), src, min(sn, len - i));
+	for ( int i = 0; i < len; i += n )
+		::memcpy((dst + i), src, min(n, len - i));
 
 	dst[len - 1] = 0;
 
@@ -639,11 +629,12 @@ function string_fill%(len: int, source: string%): string
 #
 function str_shell_escape%(source: string%): string
 	%{
-	unsigned j = 0;
-	const char* src = source->CheckString();
-	char* dst = new char[strlen(src) * 2 + 1];
+	uint j = 0;
+	const u_char* src = source->Bytes();
+	uint n = source->Len();
+	byte_vec dst = new u_char[n * 2 + 1];
 
-	for ( unsigned i = 0; i < strlen(src); ++i )
+	for ( uint i = 0; i < n; ++i )
 		{
 		switch ( src[i] ) {
 		case '`': case '"': case '\\': case '$':
@@ -661,7 +652,7 @@ function str_shell_escape%(source: string%): string
 		}
 
 	dst[j] = '\0';
-	return new StringVal(new BroString(1, byte_vec(dst), j));
+	return new StringVal(new BroString(1, dst, j));
 	%}
 
 # Returns all occurrences of the given pattern in the given string (an empty

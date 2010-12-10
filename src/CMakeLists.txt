@@ -101,7 +101,7 @@ macro(BIF_TARGET bifInput)
     get_bif_output_files(${bifInput} bifOutputs)
     add_custom_command(OUTPUT ${bifOutputs}
                        COMMAND bifcl
-                       ARGS ${CMAKE_CURRENT_SOURCE_DIR}/${bifInput} 
+                       ARGS ${CMAKE_CURRENT_SOURCE_DIR}/${bifInput} || (rm -f ${bifOutputs} && exit 1)
                        DEPENDS ${bifInput}
                        COMMENT "[BIFCL] Processing ${bifInput}"
     )

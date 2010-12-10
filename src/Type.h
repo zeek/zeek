@@ -468,31 +468,30 @@ protected:
 
 class EnumType : public BroType {
 public:
-	EnumType(bool arg_is_export);
+	EnumType();
 	~EnumType();
 
 	// The value of this name is next counter value, which is returned.
-	// A return value of -1 means that the identifier already existed
-	// (and thus could not be used).
-	int AddName(const string& module_name, const char* name);
+	// A return value of -1 means that the identifier or the counter values
+	// already existed (and thus could not be used).
+	bro_int_t AddName(const string& module_name, const char* name, bool is_export);
 
-	// Add in names from the suppled EnumType; the return value is
-	// the value of the last enum added.
-	int AddNamesFrom(const string& module_name, EnumType* et);
+	// The value of this name is set to val, which is return. The counter will
+	// be updated, so the next name (without val) will have val+1
+	// A return value of -1 means that the identifier or val
+	// already existed (and thus could not be used).
+	bro_int_t AddName(const string& module_name, const char* name, bro_int_t val, bool is_export);
 
 	// -1 indicates not found.
-	int Lookup(const string& module_name, const char* name);
-	const char* Lookup(int value); // Returns 0 if not found
+	bro_int_t Lookup(const string& module_name, const char* name);
+	const char* Lookup(bro_int_t value); // Returns 0 if not found
 
 protected:
-	EnumType()	{}
-
 	DECLARE_SERIAL(EnumType)
 
-	typedef std::map< const char*, int, ltstr > NameMap;
+	typedef std::map< const char*, bro_int_t, ltstr > NameMap;
 	NameMap names;
-	int counter;
-	bool is_export;
+	bro_int_t counter;
 };
 
 class VectorType : public BroType {

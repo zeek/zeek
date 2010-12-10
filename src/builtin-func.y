@@ -158,11 +158,11 @@ void print_event_c_body(FILE *fp)
 %token TOK_WRITE TOK_PUSH TOK_EOF TOK_TRACE
 %token TOK_ARGS TOK_ARG TOK_ARGC
 %token TOK_ID TOK_ATTR TOK_CSTR TOK_LF TOK_WS TOK_COMMENT
-%token TOK_ATOM TOK_C_TOKEN
+%token TOK_ATOM TOK_INT TOK_C_TOKEN
 
 %left ',' ':'
 
-%type <str> TOK_C_TOKEN TOK_ID TOK_CSTR TOK_WS TOK_COMMENT TOK_ATTR opt_ws
+%type <str> TOK_C_TOKEN TOK_ID TOK_CSTR TOK_WS TOK_COMMENT TOK_ATTR TOK_INT opt_ws
 %type <val> TOK_ATOM TOK_BOOL
 
 %union	{
@@ -256,6 +256,11 @@ enum_list:	enum_list TOK_ID opt_ws ',' opt_ws
 			{
 			fprintf(fp_bro_init, "%s%s,%s", $2, $3, $5);
 			fprintf(fp_netvar_h, "\t%s,\n", $2);
+			}
+	| 		enum_list TOK_ID opt_ws '=' opt_ws TOK_INT opt_ws ',' opt_ws
+			{
+			fprintf(fp_bro_init, "%s = %s%s,%s", $2, $6, $7, $9);
+			fprintf(fp_netvar_h, "\t%s = %s,\n", $2, $6);
 			}
 	|	/* nothing */
 	;
@@ -543,6 +548,9 @@ c_atom:		TOK_ID
 			{ fprintf(fp_func_def, "%s", $1); }
 	|	TOK_ATOM
 			{ fprintf(fp_func_def, "%c", $1); }
+	|	TOK_INT
+			{ fprintf(fp_func_def, "%s", $1); }
+			
 	;
 
 opt_ws:		opt_ws TOK_WS
@@ -566,6 +574,7 @@ extern char* yytext;
 extern char* input_filename;
 extern int line_number;
 const char* decl_name;
+void err_exit(void);
 
 void print_msg(const char msg[])
 	{
@@ -605,7 +614,6 @@ int yyerror(const char msg[])
 	{
 	print_msg(msg);
 
-	abort();
-	exit(1);
+	err_exit();
 	return 0;
 	}

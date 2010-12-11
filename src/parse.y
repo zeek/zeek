@@ -594,8 +594,8 @@ enum_body_elem:
 			assert(cur_enum_type);
 			if ($3->Type()->Tag() != TYPE_COUNT)
 				error("enumerator is not a count constant");
-			if ( cur_enum_type->AddName(current_module, $1, $3->InternalUnsigned(), is_export) < 0 )
-				error("identifier or enumerator value in enumerated type definition already exists");
+			else 
+				cur_enum_type->AddName(current_module, $1, $3->InternalUnsigned(), is_export);
 			}
 	|	TOK_ID '=' '-' TOK_CONSTANT
 			{
@@ -609,8 +609,7 @@ enum_body_elem:
 			{
 			set_location(@1);
 			assert(cur_enum_type);
-			if ( cur_enum_type->AddName(current_module, $1, is_export) < 0 )
-				error("identifier  or enumerator value in enumerated type definition already exists");
+			cur_enum_type->AddName(current_module, $1, is_export);
 			}
 	;
 		
@@ -716,9 +715,10 @@ type:
 				$$ = 0;
 				}
 
-	|	TOK_ENUM '{' { parser_new_enum(); } enum_body '}'
+	|	TOK_ENUM '{' { set_location(@1); parser_new_enum(); } enum_body '}'
 				{
 				set_location(@1, @5);
+				$4->UpdateLocationEndInfo(@5);
 				$$ = $4;
 				}
 

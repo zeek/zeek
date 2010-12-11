@@ -471,16 +471,12 @@ public:
 	EnumType();
 	~EnumType();
 
-	// The value of this name is next counter value, which is returned.
-	// A return value of -1 means that the identifier or the counter values
-	// already existed (and thus could not be used).
-	bro_int_t AddName(const string& module_name, const char* name, bool is_export);
+	// The value of this name is next counter value. The counter is incremented
+	void AddName(const string& module_name, const char* name, bool is_export);
 
-	// The value of this name is set to val, which is return. The counter will
-	// be updated, so the next name (without val) will have val+1
-	// A return value of -1 means that the identifier or val
-	// already existed (and thus could not be used).
-	bro_int_t AddName(const string& module_name, const char* name, bro_int_t val, bool is_export);
+	// The value of this name is set to val. The counter will
+	// be set to -1 to indicate that we are assigning explicit values 
+	void AddName(const string& module_name, const char* name, bro_int_t val, bool is_export);
 
 	// -1 indicates not found.
 	bro_int_t Lookup(const string& module_name, const char* name);
@@ -489,8 +485,16 @@ public:
 protected:
 	DECLARE_SERIAL(EnumType)
 
+	void AddNameInternal(const string& module_name, const char* name, bro_int_t val, bool is_export);
+
 	typedef std::map< const char*, bro_int_t, ltstr > NameMap;
 	NameMap names;
+	// counter is initialized to 0 and incremented on every implicit
+	// auto-increment name that gets added (thus its > 0 if auto-increment 
+	// is used). 
+	// If an explicit value is specified, the counter is set to -1
+	// This way counter can be used to prevent mixing of auto-increment 
+	// and explicit enumerator specification
 	bro_int_t counter;
 };
 

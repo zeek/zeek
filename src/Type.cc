@@ -1133,16 +1133,42 @@ EnumType::~EnumType()
 		delete [] iter->first;
 	}
 
-bro_int_t EnumType::AddName(const string& module_name, const char* name, bool is_export) 
+// Note, we don't use Error() and SetError(( for EnumType because EnumTypes can 
+// be redefined, the location associated with it is ill-defined and might result
+// in error messaging with confusing line numbers. 
+void EnumType::AddName(const string& module_name, const char* name, bool is_export) 
+	{ 
+	/* implicit, auto-increment */
+	if ( counter < 0) 
+		{
+		error("cannot mix explicit enumerator assignment and implicit auto-increment");
+		return;
+		}
+	AddNameInternal(module_name, name, counter, is_export);
+	counter++;
+	}
+
+void EnumType::AddName(const string& module_name, const char* name, bro_int_t val, bool is_export) 
 	{
-	return AddName(module_name, name, counter, is_export);
+	/* explicit value specified */
+	error_t rv;
+	if ( counter > 0 )
+		{
+		error("cannot mix explicit enumerator assignment and implicit auto-increment");
+		return;
+		}
+	counter = -1; 
+	AddNameInternal(module_name, name, val, is_export);
 	}
 	
-bro_int_t EnumType::AddName(const string& module_name, const char* name, bro_int_t val, bool is_export)
+void EnumType::AddNameInternal(const string& module_name, const char* name, bro_int_t val, bool is_export)
 	{
 	ID *id;
 	if ( Lookup(val) )
-		return -1;
+		{
+		error("enumerator value in enumerated type definition already exists");
+		return;
+		}
 
 	id = lookup_ID(name, module_name.c_str());
 	if ( ! id )
@@ -1152,12 +1178,13 @@ bro_int_t EnumType::AddName(const string& module_name, const char* name, bro_int
 		id->SetEnumConst();
 		}
 	else
-		return -1; 
+		{
+		error("identifier or enumerator value in enumerated type definition already exists");
+		return;
+		}
 
 	string fullname = make_full_var_name(module_name.c_str(), name);
 	names[copy_string(fullname.c_str())] = val;
-	counter = val + 1;
-	return val;
 	}
 
 bro_int_t EnumType::Lookup(const string& module_name, const char* name)

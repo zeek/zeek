@@ -16,16 +16,21 @@
 
 const bool DEBUG_http = false;
 
+/* The EXPECT_*_NOTHING states are used to prevent further parsing. Used
+ * if a message was interrupted. 
+ */
 enum {
 	EXPECT_REQUEST_LINE,
 	EXPECT_REQUEST_MESSAGE,
 	EXPECT_REQUEST_TRAILER,
+	EXPECT_REQUEST_NOTHING,
 };
 
 enum {
 	EXPECT_REPLY_LINE,
 	EXPECT_REPLY_MESSAGE,
 	EXPECT_REPLY_TRAILER,
+	EXPECT_REPLY_NOTHING,
 };
 
 HTTP_Entity::HTTP_Entity(HTTP_Message *arg_message, MIME_Entity* parent_entity, int arg_expect_body)
@@ -851,7 +856,20 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 					HTTP_Event("crud_trailing_HTTP_request",
 						   new_string_val(line, end_of_line));
 				else
-					ProtocolViolation("not a http request line");
+					{
+					// We do see HTTP requests with a trailing EOL that's not 
+					// not accounted for by the content-length. This will lead
+					// to a call to this method with len==0 while we are 
+					// expecting a new request. Since HTTP servers handle
+					// such request gracefully, we should do so as well. 
+					if (len==0)
+						Weird("empty_http_request");
+					else 
+						{
+						ProtocolViolation("not a http request line");
+						request_state = EXPECT_REQUEST_NOTHING;
+						}
+					}
 				}
 			break;
 
@@ -860,6 +878,9 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 			break;
 
 		case EXPECT_REQUEST_TRAILER:
+			break;
+
+		case EXPECT_REQUEST_NOTHING:
 			break;
 		}
 		}
@@ -873,6 +894,8 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 
 				if ( unanswered_requests.empty() )
 					Weird("unmatched_HTTP_reply");
+				else
+					ProtocolConfirmation();
 
 				reply_state = EXPECT_REPLY_MESSAGE;
 				reply_ongoing = 1;
@@ -885,7 +908,10 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 						len);
 				}
 		    else
+				{
 				ProtocolViolation("not a http reply line");
+				reply_state = EXPECT_REPLY_NOTHING;
+				}
 
 			break;
 
@@ -894,6 +920,9 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 			break;
 
 		case EXPECT_REPLY_TRAILER:
+			break;
+
+		case EXPECT_REPLY_NOTHING:
 			break;
 		}
 		}
@@ -1042,6 +1071,8 @@ int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 		// HTTP methods for distributed authoring.
 		"PROPFIND", "PROPPATCH", "MKCOL", "DELETE", "PUT",
 		"COPY", "MOVE", "LOCK", "UNLOCK",
+		// More stuff
+		"POLL", "REPORT", "SUBSCRIBE", "BMOVE",
 
 		"SEARCH",
 
@@ -1055,7 +1086,7 @@ int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 
 	if ( ! http_methods[i] )
 		{
-		// Weird("HTTP_unknown_method");
+		//Weird("HTTP_unknown_method");
 		if ( RequestExpected() )
 			HTTP_Event("unknown_HTTP_method", new_string_val(line, end_of_line));
 		return 0;
@@ -1256,7 +1287,10 @@ void HTTP_Analyzer::RequestMade(const int interrupted, const char* msg)
 
 	num_request_lines = 0;
 
-	request_state = EXPECT_REQUEST_LINE;
+	if (interrupted)
+		request_state = EXPECT_REQUEST_NOTHING;
+	else 
+		request_state = EXPECT_REQUEST_LINE;
 	}
 
 void HTTP_Analyzer::ReplyMade(const int interrupted, const char* msg)
@@ -1285,7 +1319,10 @@ void HTTP_Analyzer::ReplyMade(const int interrupted, const char* msg)
 		reply_reason_phrase = 0;
 		}
 
-	reply_state = EXPECT_REPLY_LINE;
+	if (interrupted)
+		reply_state = EXPECT_REPLY_NOTHING;
+	else
+		reply_state = EXPECT_REPLY_LINE;
 	}
 
 void HTTP_Analyzer::RequestClash(Val* /* clash_val */)

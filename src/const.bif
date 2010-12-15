@@ -36,6 +36,12 @@ const rewriting_smb_trace = F &redef;
 # Whether we dump selected original packets to the output trace.
 const dump_selected_source_packets = F &redef;
 
+# Whether to use the ConnSize analyzer to count the number of 
+# packets and IP-level bytes transfered by each endpoint. If 
+# true these values are returned in the connection's endpoint
+# record val. 
+const use_conn_size_analyzer = F &redef;
+
 # If true, we dump original packets to the output trace *if and only if*
 # the connection is not rewritten; if false, the policy script can decide
 # whether to dump a particular connection by calling dump_packets_of_connection.

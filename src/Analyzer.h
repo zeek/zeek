@@ -231,6 +231,13 @@ public:
 
 	virtual unsigned int MemoryAllocation() const;
 
+	// Called whenever conns need to update its conn val. Per default, this
+	// method will be called for each analyzer in the tree. Analyzers can
+	// use this method to attach additional data to the connections.
+	// A call to BuildConnVal will in turn trigger a call to 
+	// UpdateConnVal. 
+	virtual void UpdateConnVal(RecordVal *conn_val);
+
 	// The following methods are proxies: calls are directly forwarded
 	// to the connection instance.  These are for convenience only,
 	// allowing us to reuse more of the old analyzer code unchanged.
@@ -372,7 +379,6 @@ public:
 	virtual ~TransportLayerAnalyzer();
 
 	virtual void Done();
-	virtual void UpdateEndpointVal(RecordVal* endp, int is_orig) = 0;
 	virtual bool IsReuse(double t, const u_char* pkt) = 0;
 
 	virtual void SetContentsFile(unsigned int direction, BroFile* f);

@@ -38,6 +38,8 @@ namespace AnalyzerTag {
 
 		// Other
 		File, Backdoor, InterConn, SteppingStone, TCPStats,
+		ConnSize,
+
 
 		// Support-analyzers
 		Contents, ContentLine, NVT, Zip, Contents_DNS, Contents_NCP,

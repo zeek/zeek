@@ -152,7 +152,6 @@ Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id)
 	proto = TRANSPORT_UNKNOWN;
 
 	conn_val = 0;
-	orig_endp = resp_endp = 0;
 	login_conn = 0;
 
 	is_active = 1;
@@ -348,12 +347,12 @@ RecordVal* Connection::BuildConnVal()
 		id_val->Assign(3, new PortVal(ntohs(resp_port), prot_type));
 		conn_val->Assign(0, id_val);
 
-		orig_endp = new RecordVal(endpoint);
+		RecordVal *orig_endp = new RecordVal(endpoint);
 		orig_endp->Assign(0, new Val(0, TYPE_COUNT));
 		orig_endp->Assign(1, new Val(0, TYPE_COUNT));
 		conn_val->Assign(1, orig_endp);
 
-		resp_endp = new RecordVal(endpoint);
+		RecordVal *resp_endp = new RecordVal(endpoint);
 		resp_endp->Assign(0, new Val(0, TYPE_COUNT));
 		resp_endp->Assign(1, new Val(0, TYPE_COUNT));
 		conn_val->Assign(2, resp_endp);
@@ -362,14 +361,12 @@ RecordVal* Connection::BuildConnVal()
 		conn_val->Assign(5, new TableVal(string_set));	// service
 		conn_val->Assign(6, new StringVal(""));	// addl
 		conn_val->Assign(7, new Val(0, TYPE_COUNT));	// hot
-		conn_val->Assign(8, new StringVal(""));	// history
+		conn_val->Assign(8, new StringVal(""));	// history.
+
 		}
 
 	if ( root_analyzer )
-		{
-		root_analyzer->UpdateEndpointVal(orig_endp, 1);
-		root_analyzer->UpdateEndpointVal(resp_endp, 0);
-		}
+		root_analyzer->UpdateConnVal(conn_val);
 
 	conn_val->Assign(3, new Val(start_time, TYPE_TIME));	// ###
 	conn_val->Assign(4, new Val(last_time - start_time, TYPE_INTERVAL));
@@ -744,10 +741,8 @@ void Connection::FlipRoles()
 	resp_port = orig_port;
 	orig_port = tmp_port;
 
-	RecordVal* tmp_rc = resp_endp;
-	resp_endp = orig_endp;
-	orig_endp = tmp_rc;
-
+	// Delete conn_val, will build a new one next time we need one
+	// XXX: breaks the assumption that conn_val never changes!!
 	Unref(conn_val);
 	conn_val = 0;
 
@@ -853,8 +848,6 @@ bool Connection::DoSerialize(SerialInfo* info) const
 			return false;
 
 	SERIALIZE_OPTIONAL(conn_val);
-	SERIALIZE_OPTIONAL(orig_endp);
-	SERIALIZE_OPTIONAL(resp_endp);
 
 	// FIXME: RuleEndpointState not yet serializable.
 	// FIXME: Analyzers not yet serializable.
@@ -918,10 +911,6 @@ bool Connection::DoUnserialize(UnserialInfo* info)
 
 	UNSERIALIZE_OPTIONAL(conn_val,
 			(RecordVal*) Val::Unserialize(info, connection_type));
-	UNSERIALIZE_OPTIONAL(orig_endp,
-			(RecordVal*) Val::Unserialize(info, endpoint));
-	UNSERIALIZE_OPTIONAL(resp_endp,
-			(RecordVal*) Val::Unserialize(info, endpoint));
 
 	int iproto;
 

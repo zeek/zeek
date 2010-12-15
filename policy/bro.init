@@ -65,8 +65,10 @@ type ftp_port: record {
 };
 
 type endpoint: record {
-	size: count;
-	state: count;
+	size: count;              # logical size (for TCP: from seq numbers)
+	state: count; 
+	packets: count &optional;  # number of packets on the wire
+	ipbytes: count &optional;  # actual number of IP-level bytes on the wire
 };
 
 type endpoint_stats: record {

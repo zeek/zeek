@@ -8,7 +8,7 @@ function(uninstall_manifest manifestPath)
             message(STATUS "Uninstalling: ${fileName}")
 
             execute_process(
-                COMMAND @CMAKE_COMMAND@ -E remove "${fileName}"
+                COMMAND "@CMAKE_COMMAND@" -E remove "${fileName}"
                 OUTPUT_VARIABLE rm_out
                 RESULT_VARIABLE rm_retval
             )

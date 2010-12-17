@@ -155,6 +155,7 @@ void print_event_c_body(FILE *fp)
 %token TOK_LPP TOK_RPP TOK_LPB TOK_RPB TOK_LPPB TOK_RPPB TOK_VAR_ARG
 %token TOK_BOOL
 %token TOK_FUNCTION TOK_REWRITER TOK_EVENT TOK_CONST TOK_ENUM TOK_DECLARE
+%token TOK_TYPE TOK_RECORD
 %token TOK_WRITE TOK_PUSH TOK_EOF TOK_TRACE
 %token TOK_ARGS TOK_ARG TOK_ARGC
 %token TOK_ID TOK_ATTR TOK_CSTR TOK_LF TOK_WS TOK_COMMENT
@@ -202,11 +203,32 @@ definition:	event_def
 	|	enum_def
 	|	const_def
 	|	declare_def
+	|	type_def
 	;
 
 declare_def:	TOK_DECLARE opt_ws TOK_ENUM opt_ws TOK_ID opt_ws ';'
 			{
 			enum_types.insert($5);
+			}
+	;
+
+	 // XXX: Add the netvar glue so that the event engine knows about
+	 // the type. One still has to define the type in bro.init. 
+	 // Would be nice, if we could just define the record type here
+	 // and then copy to the .bif.bro file, but type delcarations in
+	 // bro can be quite powerful. Don't know whether it's worth it
+	 // extend the bif-language to be able to handle that all....
+	 // Or we just support a simple form of record type definitions
+	 // TODO: add other types (tables, sets)
+type_def:	TOK_TYPE opt_ws TOK_ID opt_ws ':' opt_ws TOK_RECORD opt_ws ';'
+			{
+			fprintf(fp_netvar_h,
+				"extern RecordType* rectype_%s;\n", $3);
+			fprintf(fp_netvar_def,
+				"RecordType* rectype_%s;\n", $3);
+			fprintf(fp_netvar_init,
+				"\trectype_%s = internal_type(\"%s\")->AsRecordType();\n",
+				$3, $3);
 			}
 	;
 

@@ -47,6 +47,13 @@ enum {
 	RPC_AUTH_DES = 3,
 };
 
+class RPC_CallInfo_Cookie {
+	public:
+	virtual ~RPC_CallInfo_Cookie() 
+		{
+		}
+};
+
 class RPC_CallInfo {
 public:
 	RPC_CallInfo(uint32 xid, const u_char*& buf, int& n);
@@ -55,6 +62,13 @@ public:
 	void AddVal(Val* arg_v)		{ Unref(v); v = arg_v; }
 	Val* RequestVal() const		{ return v; }
 	Val* TakeRequestVal()		{ Val* rv = v; v = 0; return rv; }
+
+	void SetCookie(RPC_CallInfo_Cookie *arg_cookie) { 
+		if (cookie) 
+			delete cookie;
+		cookie = arg_cookie;
+	}
+	RPC_CallInfo_Cookie *GetCookie() { return cookie; }
 
 	int CompareRexmit(const u_char* buf, int n) const;
 
@@ -81,6 +95,9 @@ protected:
 	bool valid_call;	// whether call was well-formed
 
 	Val* v;		// single (perhaps compound) value corresponding to call
+	RPC_CallInfo_Cookie *cookie; // an opaque pointer to pass Program and 
+	                            // Procedure specific information from 
+								// call to reply.
 };
 
 declare(PDict,RPC_CallInfo);
@@ -99,13 +116,12 @@ public:
 
 protected:
 	virtual int RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n) = 0;
-	virtual int RPC_BuildReply(const RPC_CallInfo* c, int success,
-					const u_char*& buf, int& n,
-					EventHandlerPtr& event, Val*& reply) = 0;
+	virtual int RPC_BuildReply(RPC_CallInfo* c, BroEnum::rpc_status success,
+					const u_char*& buf, int& n) = 0;
 
-	virtual void Event(EventHandlerPtr f, Val* request, int status, Val* reply) = 0;
+	//virtual void Event(EventHandlerPtr f, Val* request, int status, Val* reply) = 0;
 
-	void RPC_Event(RPC_CallInfo* c, int status, int reply_len);
+	void RPC_Event(RPC_CallInfo* c, BroEnum::rpc_status status, int reply_len);
 
 	void Weird(const char* name);
 

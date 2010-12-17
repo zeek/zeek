@@ -178,13 +178,14 @@ event pm_attempt_callit%(r: connection, status: rpc_status, call: pm_callit_requ
 event pm_bad_port%(r: connection, bad_p: count%);
 
 event nfs_request_null%(n: connection%);
-event nfs_request_getattr%(n: connection, fh: string, attrs: nfs3_attrs%);
-event nfs_request_lookup%(n: connection, req: nfs3_lookup_args, rep: nfs3_lookup_reply%);
-event nfs_request_fsstat%(n: connection, root_fh: string, stat: nfs3_fsstat%);
+#event nfs_request_getattr%(n: connection, fh: string, attrs: nfs3_attrs%);
+#event nfs_request_lookup%(n: connection, req: nfs3_lookup_args, rep: nfs3_lookup_reply%);
+#event nfs_request_fsstat%(n: connection, root_fh: string, stat: nfs3_fsstat%);
 event nfs_attempt_null%(n: connection, status: count%);
-event nfs_attempt_getattr%(n: connection, status: count, fh: string%);
-event nfs_attempt_lookup%(n: connection, status: count, req: nfs3_lookup_args%);
-event nfs_attempt_fsstat%(n: connection, status: count, root_fh: string%);
+#event nfs_attempt_getattr%(n: connection, status: count, fh: string%);
+#event nfs_attempt_lookup%(n: connection, status: count, req: nfs3_lookup_args%);
+#event nfs_attempt_fsstat%(n: connection, status: count, root_fh: string%);
+
 event nfs_reply_status%(n: connection, status: count%);
 
 event ntp_message%(u: connection, msg: ntp_msg, excess: string%);

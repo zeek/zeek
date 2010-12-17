@@ -44,12 +44,15 @@ RPC_CallInfo::RPC_CallInfo(uint32 arg_xid, const u_char*& buf, int& n)
 	valid_call = false;
 
 	v = 0;
+	cookie = 0;
 	}
 
 RPC_CallInfo::~RPC_CallInfo()
 	{
 	delete [] call_buf;
 	Unref(v);
+	if (cookie)
+		delete cookie;
 	}
 
 int RPC_CallInfo::CompareRexmit(const u_char* buf, int n) const
@@ -137,7 +140,7 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int is_orig)
 		if ( ! buf )
 			return 0;
 
-		uint32 status = BroEnum::RPC_UNKNOWN_ERROR;
+		BroEnum::rpc_status status = BroEnum::RPC_UNKNOWN_ERROR;
 
 		if ( reply_stat == RPC_MSG_ACCEPTED )
 			{
@@ -147,7 +150,7 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int is_orig)
 			// The first members of BroEnum::RPC_* correspond
 			// to accept_stat.
 			if ( accept_stat <= RPC_SYSTEM_ERR )
-				status = accept_stat;
+				status = (BroEnum::rpc_status)accept_stat;
 
 			if ( ! buf )
 				return 0;
@@ -201,11 +204,9 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int is_orig)
 
 		if ( call )
 			{
-			int success = status == RPC_SUCCESS;
-
 			if ( ! call->IsValidCall() )
 				{
-				if ( success )
+				if ( status == BroEnum::RPC_SUCCESS )
 					Weird("successful_RPC_reply_to_invalid_request");
 				// We can't process this further, even if
 				// it was successful, because the call
@@ -214,16 +215,8 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int is_orig)
 
 			else
 				{
-				EventHandlerPtr event;
-				Val* reply;
-				if ( ! RPC_BuildReply(call, success, buf,
-							n, event, reply) )
+				if ( ! RPC_BuildReply(call, (BroEnum::rpc_status)status, buf, n) )
 					Weird("bad_RPC");
-				else
-					{
-					Event(event, call->TakeRequestVal(),
-						status, reply);
-					}
 				}
 
 			RPC_Event(call, status, n);
@@ -271,18 +264,13 @@ void RPC_Interpreter::Timeout()
 			int n = 0;
 			EventHandlerPtr event;
 			Val* reply;
-			if ( ! RPC_BuildReply(c, 0, buf, n, event, reply) )
+			if ( ! RPC_BuildReply(c, BroEnum::RPC_TIMEOUT, buf, n) )
 				Weird("bad_RPC");
-			else
-				{
-				Event(event, c->TakeRequestVal(),
-					BroEnum::RPC_TIMEOUT, reply);
-				}
 			}
 		}
 	}
 
-void RPC_Interpreter::RPC_Event(RPC_CallInfo* c, int status, int reply_len)
+void RPC_Interpreter::RPC_Event(RPC_CallInfo* c, BroEnum::rpc_status status, int reply_len)
 	{
 	if ( rpc_call )
 		{

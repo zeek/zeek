@@ -13,12 +13,11 @@ public:
 
 protected:
 	int RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n);
-	int RPC_BuildReply(const RPC_CallInfo* c, int success,
-				const u_char*& buf, int& n,
-				EventHandlerPtr& event, Val*& reply);
+	int RPC_BuildReply(RPC_CallInfo* c, BroEnum::rpc_status success,
+				const u_char*& buf, int& n);
 	uint32 CheckPort(uint32 port);
 
-	void Event(EventHandlerPtr f, Val* request, int status, Val* reply);
+	void Event(EventHandlerPtr f, Val* request, BroEnum::rpc_status status, Val* reply);
 
 	Val* ExtractMapping(const u_char*& buf, int& len);
 	Val* ExtractPortRequest(const u_char*& buf, int& len);

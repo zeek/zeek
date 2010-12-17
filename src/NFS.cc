@@ -9,13 +9,6 @@
 #include "NFS.h"
 #include "Event.h"
 
-#define NFS_PROC_NULL 		0
-#define NFS_PROC_GETATTR 	1
-#define NFS_PROC_SETATTR 	2
-#define NFS_PROC_LOOKUP 	3
-#define NFS_PROC_READ 		6
-#define NFS_PROC_WRITE 		7
-#define NFS_PROC_FSSTAT 	18
 
 int NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 	{
@@ -23,20 +16,18 @@ int NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 		Weird("bad_RPC_program");
 
 	uint32 proc = c->Proc();
+	// the call arguments, depends on the call type obviously...
+	nfs3_types::nfs3_type *arg = 0;
+
 	switch ( proc ) {
-	case NFS_PROC_NULL:
+	case BroEnum::NFS3_PROC_NULL:
 		break;
 
-	case NFS_PROC_GETATTR:
-		{
-		Val* v = ExtractFH(buf, n);
-		if ( ! v )
-			return 0;
-		c->AddVal(v);
-		}
+	case BroEnum::NFS3_PROC_GETATTR:
+		arg = new nfs3_types::nfs3_fh( buf, n );
 		break;
 
-	case NFS_PROC_LOOKUP:
+	case BroEnum::NFS3_PROC_LOOKUP:
 		{
 		StringVal* fh = ExtractFH(buf, n);
 
@@ -53,7 +44,7 @@ int NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 		}
 		break;
 
-	case NFS_PROC_FSSTAT:
+	case BroEnum::NFS3_PROC_FSSTAT:
 		{
 		Val* v = ExtractFH(buf, n);
 		if ( ! v )
@@ -62,7 +53,7 @@ int NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 		}
 		break;
 
-	case NFS_PROC_READ:
+	case BroEnum::NFS3_PROC_READ:
 		break;
 
 	default:
@@ -73,42 +64,59 @@ int NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 		return 1;
 	}
 
+	if ( arg && ! arg->IsValid() ) 
+		{
+		delete arg;
+		return 0;
+		}
+	if ( arg ) 
+		c->SetCookie(arg);
+
 	return 1;
 	}
 
-int NFS_Interp::RPC_BuildReply(const RPC_CallInfo* c, int success,
-					const u_char*& buf, int& n,
-					EventHandlerPtr& event, Val*& reply)
+int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BroEnum::rpc_status rpc_status,
+					const u_char*& buf, int& n)
 	{
-	reply = 0;
-	uint32 status = 0;
-	if ( success )
+	EventHandlerPtr event;
+	Val *reply = 0;
+	uint32 nfs_status = 0;
+
+	// extract the opaque cookie containing the call arguments from
+	// the RPC_CallInfo
+	nfs3_types::nfs3_type *call_arg = (nfs3_types::nfs3_type *)(c->GetCookie());
+
+	int success = rpc_status == BroEnum::RPC_SUCCESS;
+
+	// reply always starts with the NFS status 
+	if ( rpc_status == BroEnum::RPC_SUCCESS )
 		{
 		if ( n >= 4 )
-			status = extract_XDR_uint32(buf, n);
+			nfs_status = (BroEnum::nfs3_status)extract_XDR_uint32(buf, n);
 		else
-			status = 0xffffffff;
+			nfs_status = BroEnum::NFS3ERR_UNKNOWN;
 		}
 
 	if ( nfs_reply_status )
 		{
 		val_list* vl = new val_list;
 		vl->append(analyzer->BuildConnVal());
-		vl->append(new Val(status, TYPE_COUNT));
+		vl->append(new Val(nfs_status, TYPE_COUNT));
 		analyzer->ConnectionEvent(nfs_reply_status, vl);
 		}
 
 	switch ( c->Proc() ) {
-	case NFS_PROC_NULL:
+	case BroEnum::NFS3_PROC_NULL:
 		event = success ? nfs_request_null : nfs_attempt_null;
 		break;
-
-	case NFS_PROC_GETATTR:
+#if 0
+	case BroEnum::NFS3_PROC_GETATTR:
 		if ( success )
 			{
 			if ( ! buf || status != 0 )
 				return 0;
 
+			c->AddVal(call_arg->GetVal());
 			reply = ExtractAttrs(buf, n);
 			event = nfs_request_getattr;
 			}
@@ -117,7 +125,7 @@ int NFS_Interp::RPC_BuildReply(const RPC_CallInfo* c, int success,
 
 		break;
 
-	case NFS_PROC_LOOKUP:
+	case BroEnum::NFS3_PROC_LOOKUP:
 		if ( success )
 			{
 			if ( ! buf || status != 0 )
@@ -139,7 +147,7 @@ int NFS_Interp::RPC_BuildReply(const RPC_CallInfo* c, int success,
 
 		break;
 
-	case NFS_PROC_FSSTAT:
+	case BroEnum::NFS3_PROC_FSSTAT:
 		if ( success )
 			{
 			if ( ! buf || status != 0 )
@@ -165,11 +173,13 @@ int NFS_Interp::RPC_BuildReply(const RPC_CallInfo* c, int success,
 			}
 
 		break;
+#endif 
 
 	default:
 		return 0;
 	}
 
+	Event(event, c->TakeRequestVal(), rpc_status, reply);
 	return 1;
 	}
 
@@ -238,7 +248,7 @@ Val* NFS_Interp::ExtractInterval(const u_char*& buf, int& n)
 	return new IntervalVal(double(extract_XDR_uint32(buf, n)), 1.0);
 	}
 
-void NFS_Interp::Event(EventHandlerPtr f, Val* request, int status, Val* reply)
+void NFS_Interp::Event(EventHandlerPtr f, Val* request, BroEnum::rpc_status status, Val* reply)
 	{
 	if ( ! f )
 		{
@@ -250,7 +260,7 @@ void NFS_Interp::Event(EventHandlerPtr f, Val* request, int status, Val* reply)
 	val_list* vl = new val_list;
 
 	vl->append(analyzer->BuildConnVal());
-	if ( status == RPC_SUCCESS )
+	if ( status == BroEnum::RPC_SUCCESS )
 		{
 		if ( request )
 			vl->append(request);

@@ -103,6 +103,7 @@ macro(BIF_TARGET bifInput)
                        COMMAND bifcl
                        ARGS ${CMAKE_CURRENT_SOURCE_DIR}/${bifInput} || (rm -f ${bifOutputs} && exit 1)
                        DEPENDS ${bifInput}
+                       DEPENDS bifcl
                        COMMENT "[BIFCL] Processing ${bifInput}"
     )
     list(APPEND ALL_BIF_OUTPUTS ${bifOutputs})

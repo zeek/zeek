@@ -30,7 +30,8 @@ int check_c_mode(int t)
 WS	[ \t]+
 ID	[A-Za-z_][A-Za-z_0-9]*
 ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
-INT [[:digit:]]+
+D   [[:digit:]]+
+HEX	[0-9a-fA-F]+
 
 %option nodefault
 
@@ -80,10 +81,16 @@ INT [[:digit:]]+
 "T"	yylval.val = 1; return TOK_BOOL;
 "F"	yylval.val = 0; return TOK_BOOL;
 
-{INT}	{
+{D}	{
 	yylval.str = copy_string(yytext);
 	return TOK_INT;
 	}
+
+"0x"{HEX} {
+	yylval.str = copy_string(yytext);
+	return TOK_INT;
+	}
+	
 
 {ID}	{
 	yylval.str = copy_string(yytext);

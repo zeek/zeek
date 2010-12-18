@@ -7,6 +7,7 @@
 
 #include "RPC.h"
 #include "XDR.h"
+#include "Event.h"
 
 class NFS_Interp : public RPC_Interpreter {
 public:
@@ -14,18 +15,40 @@ public:
 
 protected:
 	int RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n);
-	int RPC_BuildReply(RPC_CallInfo* c, BroEnum::rpc_status success,
+	int RPC_BuildReply(RPC_CallInfo* c, BroEnum::rpc_status rpc_status,
 				const u_char*& buf, int& n);
 
-	StringVal* ExtractFH(const u_char*& buf, int& n);
-	RecordVal* ExtractAttrs(const u_char*& buf, int& n);
+	val_list *helper_get_vl(BroEnum::rpc_status rpc_status, BroEnum::nfs3_status nfs_status) {
+		// returns a new val_list that already has a conn_val, rpc_status and nfs_status.
+		// These are the first parameters for each nfs_* event... 
+		val_list *vl = new val_list;
+		vl->append(analyzer->BuildConnVal());
+		vl->append(new EnumVal(rpc_status, enum_rpc_status)) ;
+		vl->append(new EnumVal(nfs_status, enum_nfs3_status));
+		return vl;
+	}
+
+	// These methods parse the appropriate NFSv3 "type" out of buf. If 
+	// there are any errors (i.e., buffer to short, etc), buf will be
+	// set to 0. However, the methods might still return an allocated
+	// Val * !
+	// So, you might want to Unref() the Val if buf is 0. 
+	// Method names are based on the type names of RFC 1813
+	StringVal* nfs3_fh(const u_char*& buf, int& n);
+	RecordVal* nfs3_fattr(const u_char*& buf, int& n);
+	RecordVal* nfs3_diropargs(const u_char*&buf, int &n);
+	StringVal* nfs3_filename(const u_char*& buf, int& n);
+	RecordVal* nfs3_post_op_attr(const u_char*&buf, int &n); // Return 0 or an fattr
+	RecordVal* nfs3_lookup_reply(const u_char*& buf, int& n, BroEnum::nfs3_status status);
+
 	RecordVal* ExtractOptAttrs(const u_char*& buf, int& n);
 	Val* ExtractCount(const u_char*& buf, int& n);
 	Val* ExtractLongAsDouble(const u_char*& buf, int& n);
 	Val* ExtractTime(const u_char*& buf, int& n);
 	Val* ExtractInterval(const u_char*& buf, int& n);
 
-	void Event(EventHandlerPtr f, Val* request, BroEnum::rpc_status status, Val* reply);
+	void Event(EventHandlerPtr f, Val* request, BroEnum::rpc_status status, 
+			BroEnum::nfs3_status, Val* reply);
 };
 
 class NFS_Analyzer : public RPC_Analyzer {
@@ -37,12 +60,13 @@ public:
 		{ return new NFS_Analyzer(conn); }
 
 	//static bool Available()	{ return nfs_request_getattr || rpc_call; }
-	static bool Available()	{ return nfs_request_null || rpc_call; }
+	static bool Available()	{ return true; }
 };
 
+#if 0
 namespace nfs3_types {
 #define NFS3_MAX_FHSIZE      64
-	class nfs3_type : public RPC_CallInfo_Cookie {
+	class nfs3_type {
 	public:
 		//nfs3_type(const u_char*&buf, int& len) = 0;
 		virtual ~nfs3_type()
@@ -63,7 +87,7 @@ namespace nfs3_types {
 			valid = false;
 			fh_tmp = extract_XDR_opaque(buf,len,fh_len,NFS3_MAX_FHSIZE);
 			if (fh_tmp) {
-				fh.Set(fh_tmp, fh_len, 0);
+				fh = new StringVal(new BroString(fh, fh_len, 0));
 				valid = true;
 			}
 			else
@@ -72,12 +96,13 @@ namespace nfs3_types {
 
 		~nfs3_fh() { printf("~nfs3_fh\n"); }
 
-		Val *GetVal() { return new StringVal(new BroString(fh)); }
+		Val *GetVal() { return fh; }
 
 		// Data
-		BroString fh;
+		StringVal *fh;
 	}; // nfs3_fh
 
 };
+#endif
 
 #endif

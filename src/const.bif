@@ -97,10 +97,10 @@ enum rpc_status %{
 %}
 
 enum nfs3_proc %{   # NFSv3 procedures
-	NFS3_PROC_NULL     = 0,
-	NFS3_PROC_GETATTR  = 1,
+	NFS3_PROC_NULL     = 0,  # done
+	NFS3_PROC_GETATTR  = 1,  # done
 	NFS3_PROC_SETATTR  = 2,
-	NFS3_PROC_LOOKUP   = 3, 
+	NFS3_PROC_LOOKUP   = 3,  # done  
 	NFS3_PROC_ACCESS   = 4,
 	NFS3_PROC_READLINK = 5,
 	NFS3_PROC_READ     = 6,
@@ -119,10 +119,11 @@ enum nfs3_proc %{   # NFSv3 procedures
 	NFS3_PROC_FSINFO   = 19,
 	NFS3_PROC_PATHCONF = 20,
 	NFS3_PROC_COMMIT   = 21,
+	NFS3_PROC_END_OF_PROCS = 22,
 %}
 
 enum nfs3_status %{  #NFSv3 return status
-	NFS3STAT_OK         = 0,
+	NFS3ERR_OK          = 0,
 	NFS3ERR_PERM        = 1,
 	NFS3ERR_NOENT       = 2,
 	NFS3ERR_IO          = 5,
@@ -151,5 +152,25 @@ enum nfs3_status %{  #NFSv3 return status
 	NFS3ERR_SERVERFAULT = 10006,
 	NFS3ERR_BADTYPE     = 10007,
 	NFS3ERR_JUKEBOX     = 10008,
-	NFS3ERR_UNKNOWN     = 99999,
+	NFS3ERR_UNKNOWN     = 0xffffffff,
 %}
+
+
+enum nfs3_file_type %{
+	NFS3_FTYPE_REG   = 1, 
+	NFS3_FTYPE_DIR   = 2, 
+	NFS3_FTYPE_BLK   = 3, 
+	NFS3_FTYPE_CHR   = 4, 
+	NFS3_FTYPE_LNK   = 5, 
+	NFS3_FTYPE_SOCK  = 6, 
+	NFS3_FTYPE_FIFO  = 7,
+%}
+
+
+type nfs3_fattr: record;
+type nfs3_diropargs: record;
+type nfs3_lookup_reply: record;
+
+
+type nfs3_fsstat: record;
+

@@ -44,15 +44,17 @@ RPC_CallInfo::RPC_CallInfo(uint32 arg_xid, const u_char*& buf, int& n)
 	valid_call = false;
 
 	v = 0;
-	cookie = 0;
+	/*GM cookie = 0; */
 	}
 
 RPC_CallInfo::~RPC_CallInfo()
 	{
 	delete [] call_buf;
 	Unref(v);
+	/*GM
 	if (cookie)
 		delete cookie;
+	*/
 	}
 
 int RPC_CallInfo::CompareRexmit(const u_char* buf, int n) const
@@ -401,6 +403,8 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
 		resync = false;
 		}
 
+	// Should be in sync now
+
 	int n;
 	for ( n = 0; buf_n < buf_len && n < len; ++n )
 		msg_buf[buf_n++] = data[n];
@@ -434,7 +438,7 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
 		// Fragment length is now given by marker.  Sanity-check.
 		if ( marker > MAX_RPC_LEN )
 			{
-			Conn()->Weird("excessive_RPC_len");
+			Conn()->Weird(fmt("excessive_RPC_len(%u:%d)", marker, last_frag));
 			marker = MAX_RPC_LEN;
 			}
 

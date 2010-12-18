@@ -47,12 +47,15 @@ enum {
 	RPC_AUTH_DES = 3,
 };
 
+/*GM not sure whether we actually need this. 
+ * will probably remove it 
 class RPC_CallInfo_Cookie {
 	public:
 	virtual ~RPC_CallInfo_Cookie() 
 		{
 		}
 };
+*/
 
 class RPC_CallInfo {
 public:
@@ -63,12 +66,14 @@ public:
 	Val* RequestVal() const		{ return v; }
 	Val* TakeRequestVal()		{ Val* rv = v; v = 0; return rv; }
 
+	/*GM 
 	void SetCookie(RPC_CallInfo_Cookie *arg_cookie) { 
 		if (cookie) 
 			delete cookie;
 		cookie = arg_cookie;
 	}
 	RPC_CallInfo_Cookie *GetCookie() { return cookie; }
+	*/
 
 	int CompareRexmit(const u_char* buf, int n) const;
 
@@ -95,9 +100,11 @@ protected:
 	bool valid_call;	// whether call was well-formed
 
 	Val* v;		// single (perhaps compound) value corresponding to call
+	/*GM
 	RPC_CallInfo_Cookie *cookie; // an opaque pointer to pass Program and 
 	                            // Procedure specific information from 
 								// call to reply.
+	*/
 };
 
 declare(PDict,RPC_CallInfo);

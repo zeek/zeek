@@ -116,12 +116,6 @@ extern TableType* pm_mappings;
 extern RecordType* pm_port_request;
 extern RecordType* pm_callit_request;
 
-extern RecordType* nfs3_attrs;
-extern RecordType* nfs3_opt_attrs;
-extern RecordType* nfs3_lookup_args;
-extern RecordType* nfs3_lookup_reply;
-extern RecordType* nfs3_fsstat;
-
 extern RecordType* ntp_msg;
 
 extern TableVal* samba_cmds;

@@ -109,12 +109,6 @@ TableType* pm_mappings;
 RecordType* pm_port_request;
 RecordType* pm_callit_request;
 
-RecordType* nfs3_attrs;
-RecordType* nfs3_opt_attrs;
-RecordType* nfs3_lookup_args;
-RecordType* nfs3_lookup_reply;
-RecordType* nfs3_fsstat;
-
 RecordType* ntp_msg;
 
 TableVal* samba_cmds;
@@ -442,12 +436,6 @@ void init_net_var()
 	pm_mappings = internal_type("pm_mappings")->AsTableType();
 	pm_port_request = internal_type("pm_port_request")->AsRecordType();
 	pm_callit_request = internal_type("pm_callit_request")->AsRecordType();
-
-	nfs3_attrs = internal_type("nfs3_attrs")->AsRecordType();
-	nfs3_opt_attrs = internal_type("nfs3_opt_attrs")->AsRecordType();
-	nfs3_lookup_args = internal_type("nfs3_lookup_args")->AsRecordType();
-	nfs3_lookup_reply = internal_type("nfs3_lookup_reply")->AsRecordType();
-	nfs3_fsstat = internal_type("nfs3_fsstat")->AsRecordType();
 
 	ntp_msg = internal_type("ntp_msg")->AsRecordType();
 

@@ -695,11 +695,10 @@ const RPC_status = {
 };
 
 
-type nfs3_file_type: enum {
-	NFS3_REG, NFS3_DIR, NFS3_BLK, NFS3_CHR, NFS3_LNK, NFS3_SOCK, NFS3_FIFO,
-};
 
-type nfs3_attrs: record {
+# NFSv3 types
+# type names are based on RFC 1813
+type nfs3_fattr: record {
 	ftype: nfs3_file_type;
 	mode: count;
 	nlink: count;
@@ -716,23 +715,24 @@ type nfs3_attrs: record {
 	ctime: time;
 };
 
-type nfs3_opt_attrs: record {
-	attrs: nfs3_attrs &optional;
+type nfs3_diropargs : record {
+	dirfh: string;  # the file handle of the directory
+	fname: string;  # the name of the file we are interested in 
 };
 
-type nfs3_lookup_args: record {
-	fh: string;	# file handle of directory in which to search
-	name: string;	# name of file to look for in directory
-};
+# Note, we don't need a  post_op_attr type. We can always use
+# an nfs3_fattr &optional
 
 type nfs3_lookup_reply: record {
-	fh: string;	# file handle of object looked up
-	file_attr: nfs3_opt_attrs;	# optional attributes associated w/ file
-	dir_attr: nfs3_opt_attrs;	# optional attributes associated w/ dir.
+	# If the lookup failed, dir_attr may be set. 
+	# If the lookup succeeded, fh is always set and file_attr and dir_attr may be set.
+	fh: string &optional;	# file handle of object looked up
+	file_attr: nfs3_fattr &optional;	# optional attributes associated w/ file
+	dir_attr: nfs3_fattr &optional;	# optional attributes associated w/ dir.
 };
 
 type nfs3_fsstat: record {
-	attrs: nfs3_opt_attrs;
+	attrs: nfs3_fattr &optional;
 	tbytes: double;
 	fbytes: double;
 	abytes: double;

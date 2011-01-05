@@ -44,6 +44,12 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-geoip=PATH      path to the libGeoIP install root
     --with-perftools=PATH  path to Google Perftools install root
 
+  Packaging Options (for developers):
+    --ignore-dirs=PATHS    paths to ignore when creating source package
+                           (semicolon delimited and quoted when multiple)
+    --pkg-name-prefix=NAME use the given name as the package prefix instead
+                           of the default CMake project name
+
   Influential Environment Variables (only on first invocation
   per build directory):
     CC                     C compiler command
@@ -79,6 +85,7 @@ append_cache_entry INSTALL_AUX_TOOLS    BOOL   true
 append_cache_entry INSTALL_BROCCOLI     BOOL   true
 append_cache_entry INSTALL_BROCTL       BOOL   true
 append_cache_entry STANDALONE           BOOL   true
+append_cache_entry CPACK_SOURCE_IGNORE_FILES STRING
 
 # parse arguments
 while [ $# -ne 0 ]; do
@@ -154,6 +161,12 @@ while [ $# -ne 0 ]; do
             ;;
         --with-perftools=*)
             append_cache_entry GooglePerftools_ROOT_DIR PATH $optarg
+            ;;
+        --ignore-dirs=*)
+            append_cache_entry CPACK_SOURCE_IGNORE_FILES STRING $optarg
+            ;;
+        --pkg-name-prefix=*)
+            append_cache_entry PACKAGE_NAME_PREFIX STRING $optarg
             ;;
         *)
             echo "Invalid option '$1'.  Try $0 --help to see available options."

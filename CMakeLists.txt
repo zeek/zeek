@@ -159,81 +159,17 @@ add_subdirectory(policy)
 #add_subdirectory(scripts)
 #add_subdirectory(doc)
 
-if (INSTALL_BROCCOLI)
-    if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/aux/broccoli/CMakeLists.txt)
-        add_subdirectory(aux/broccoli)
-    else ()
-        message(FATAL_ERROR "Broccoli selected for installation, "
-                            "but the source code does not exist in "
-                            "${CMAKE_CURRENT_SOURCE_DIR}/aux/broccoli")
-    endif ()
-endif ()
+include(CheckOptionalBuildSources)
 
-if (INSTALL_BROCTL)
-    if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/aux/broctl/CMakeLists.txt)
-        add_subdirectory(aux/broctl)
-    else ()
-        message(FATAL_ERROR "Broctl selected for installation, "
-                            "but the source code does not exist in "
-                            "${CMAKE_CURRENT_SOURCE_DIR}/aux/broctl")
-    endif ()
-endif ()
-
-if (INSTALL_AUX_TOOLS)
-    if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/aux/bro-aux/CMakeLists.txt)
-        add_subdirectory(aux/bro-aux)
-    else ()
-        message(FATAL_ERROR "Bro auxilliary tools selected for installation, "
-                            "but the source code does not exist in "
-                            "${CMAKE_CURRENT_SOURCE_DIR}/aux/bro-aux")
-    endif ()
-endif ()
+CheckOptionalBuildSources(aux/broctl   Broctl   INSTALL_BROCTL)
+CheckOptionalBuildSources(aux/bro-aux  Bro-Aux  INSTALL_AUX_TOOLS)
+CheckOptionalBuildSources(aux/broccoli Broccoli INSTALL_BROCCOLI)
 
 ########################################################################
 ## Packaging Setup
 
-include(SetPackageVersion)
-SetPackageVersion(${VERSION})
-include(SetPackageGenerators)
-include(SetPackageFileName)
-
-set(CPACK_PACKAGE_VENDOR "Lawrence Berkeley National Laboratory")
-set(CPACK_PACKAGE_CONTACT "info@bro-ids.org")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY
-    "The Bro Network Intrusion Detection System")
-
-# CPack may enforce file name extensions for certain package generators
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/README
-               ${CMAKE_CURRENT_BINARY_DIR}/README.txt
-                COPYONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/COPYING
-               ${CMAKE_CURRENT_BINARY_DIR}/COPYING.txt
-                COPYONLY)
-
-set(CPACK_PACKAGE_DESCRIPTION_FILE ${CMAKE_CURRENT_BINARY_DIR}/README.txt)
-set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_BINARY_DIR}/COPYING.txt)
-set(CPACK_RESOURCE_FILE_README ${CMAKE_CURRENT_BINARY_DIR}/README.txt)
-set(CPACK_RESOURCE_FILE_WELCOME ${CMAKE_CURRENT_BINARY_DIR}/README.txt)
-
-if (APPLE)
-    # /usr prefix is hardcoded for PackageMaker generator, but that
-    # directory may not be ideal for OS X (it's tricky to remove
-    # packages installed there).  So instead we rely on CMAKE_INSTALL_PREFIX
-    # and set the following variable to workaround the hardcoded /usr prefix
-    set(CPACK_PACKAGING_INSTALL_PREFIX "/")
-    set(CPACK_PACKAGE_DEFAULT_LOCATION ${CMAKE_INSTALL_PREFIX})
-elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    # A prefix of /usr would follow Filesystem Hierarchy Standard.
-    # For RPM packaging by CPack, /usr should be a default, but
-    # CMAKE_INSTALL_PREFIX also needs to be set to /usr so that
-    # the default BROPATH is set right at build time
-    set(CPACK_RPM_PACKAGE_LICENSE "BSD")
-endif ()
-
-# Ignore the build directory
-set(CPACK_SOURCE_IGNORE_FILES ${CMAKE_BINARY_DIR} ".git")
-
-include(CPack)
+include(ConfigurePackaging)
+ConfigurePackaging(${VERSION})
 
 ########################################################################
 ## Build Summary

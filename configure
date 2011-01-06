@@ -49,6 +49,8 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
                            (semicolon delimited and quoted when multiple)
     --pkg-name-prefix=NAME use the given name as the package prefix instead
                            of the default CMake project name
+    --osx-sysroot=PATH     path to the OS X SDK to compile against
+    --osx-min-version=VER  minimum OS X version (the deployment target)
 
   Influential Environment Variables (only on first invocation
   per build directory):
@@ -167,6 +169,12 @@ while [ $# -ne 0 ]; do
             ;;
         --pkg-name-prefix=*)
             append_cache_entry PACKAGE_NAME_PREFIX STRING $optarg
+            ;;
+        --osx-sysroot=*)
+            append_cache_entry CMAKE_OSX_SYSROOT PATH $optarg
+            ;;
+        --osx-min-version=*)
+            append_cache_entry CMAKE_OSX_DEPLOYMENT_TARGET STRING $optarg
             ;;
         *)
             echo "Invalid option '$1'.  Try $0 --help to see available options."

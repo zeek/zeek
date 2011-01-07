@@ -709,7 +709,7 @@ protected:
 // "rec?$$attrname" is true if the attribute attrname is not nil.
 class HasFieldExpr : public UnaryExpr {
 public:
-	HasFieldExpr(Expr* op, const char* field_name, bool is_attr);
+	HasFieldExpr(Expr* op, const char* field_name);
 	~HasFieldExpr();
 
 protected:

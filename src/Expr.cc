@@ -2611,7 +2611,6 @@ Val* AssignExpr::Eval(Frame* f) const
 	if ( v )
 		{
 		op1->Assign(f, v);
-		//### op1->SetAttribs();
 		return val ? val->Ref() : v->Ref();
 		}
 	else
@@ -3062,13 +3061,6 @@ FieldExpr::FieldExpr(Expr* arg_op, const char* arg_field_name)
 	if ( IsError() )
 		return;
 
-	if ( streq(arg_field_name, "attr") )
-		{
-		field = -1;
-		SetType(op->Type()->AttributesType()->Ref());
-		return;
-		}
-
 	if ( ! IsRecord(op->Type()->Tag()) )
 		ExprError("not a record");
 	else
@@ -3106,12 +3098,7 @@ void FieldExpr::Assign(Frame* f, Val* v, Opcode opcode)
 		return;
 
 	if ( field < 0 )
-		{
-		Val* lhs = op->Eval(f);
-		lhs->SetAttribs(v->AsRecordVal());
-		Unref(lhs);
-		return;
-		}
+		ExprError("no such field in record");
 
 	Val* op_v = op->Eval(f);
 	if ( op_v )
@@ -3124,9 +3111,6 @@ void FieldExpr::Assign(Frame* f, Val* v, Opcode opcode)
 
 Val* FieldExpr::Fold(Val* v) const
 	{
-	if ( field < 0 )
-		return v->GetAttribs(true)->Ref();
-
 	Val* result = v->AsRecordVal()->Lookup(field);
 	if ( result )
 		return result->Ref();
@@ -3179,24 +3163,20 @@ bool FieldExpr::DoUnserialize(UnserialInfo* info)
 	return td != 0;
 	}
 
-HasFieldExpr::HasFieldExpr(Expr* arg_op, const char* arg_field_name,
-			   bool arg_is_attr)
+HasFieldExpr::HasFieldExpr(Expr* arg_op, const char* arg_field_name)
 : UnaryExpr(EXPR_HAS_FIELD, arg_op)
 	{
 	field_name = arg_field_name;
-	is_attr = arg_is_attr;
 	field = 0;
 
 	if ( IsError() )
 		return;
 
-	if ( ! is_attr && ! IsRecord(op->Type()->Tag()) )
+	if ( ! IsRecord(op->Type()->Tag()) )
 		ExprError("not a record");
 	else
 		{
-		RecordType* rt = is_attr ?
-					op->Type()->AttributesType() :
-					op->Type()->AsRecordType();
+		RecordType* rt = op->Type()->AsRecordType();
 		field = rt->FieldOffset(field_name);
 
 		if ( field < 0 )
@@ -3215,10 +3195,7 @@ Val* HasFieldExpr::Fold(Val* v) const
 	{
 	RecordVal* rec_to_look_at;
 
-	if ( is_attr )
-		rec_to_look_at = v->GetAttribs(false);
-	else
-		rec_to_look_at = v->AsRecordVal();
+	rec_to_look_at = v->AsRecordVal();
 
 	if ( ! rec_to_look_at )
 		return new Val(0, TYPE_BOOL);
@@ -3235,12 +3212,7 @@ void HasFieldExpr::ExprDescribe(ODesc* d) const
 	op->Describe(d);
 
 	if ( d->IsReadable() )
-		{
-		if ( is_attr )
-			d->Add("?$$");
-		else
-			d->Add("?$");
-		}
+		d->Add("?$");
 
 	if ( IsError() )
 		d->Add("<error>");
@@ -3255,13 +3227,17 @@ IMPLEMENT_SERIAL(HasFieldExpr, SER_HAS_FIELD_EXPR);
 bool HasFieldExpr::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_HAS_FIELD_EXPR, UnaryExpr);
-	return SERIALIZE(is_attr) && SERIALIZE(field_name) && SERIALIZE(field);
+
+	// Serialize the former "bool is_attr" first for backwards compatibility.
+	return SERIALIZE(false) && SERIALIZE(field_name) && SERIALIZE(field);
 	}
 
 bool HasFieldExpr::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(UnaryExpr);
-	return UNSERIALIZE(&is_attr) && UNSERIALIZE_STR(&field_name, 0) && UNSERIALIZE(&field);
+	// Unserialize the former "bool is_attr" first for backwards compatibility.
+	bool not_used;
+	return UNSERIALIZE(&not_used) && UNSERIALIZE_STR(&field_name, 0) && UNSERIALIZE(&field);
 	}
 
 RecordConstructorExpr::RecordConstructorExpr(ListExpr* constructor_list)
@@ -3506,8 +3482,6 @@ Val* SetConstructorExpr::Eval(Frame* f) const
 		Val* element = exprs[i]->Eval(f);
 		aggr->Assign(element, 0);
 		}
-
-	aggr->AsTableVal()->SetAttrs(attrs);
 
 	return aggr;
 	}

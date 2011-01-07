@@ -3201,7 +3201,7 @@ function disable_event_group%(group: string%) : any
 %%{
 #include <RandTest.h>
 static map<BroString, RandTest*> entropy_states;
-%%}	
+%%}
 
 function find_entropy%(data: string%): entropy_test_result
 	%{
@@ -3241,13 +3241,13 @@ function entropy_test_add%(index: any, data: string%): bool
 	%{
 	BroString* s = convert_index_to_string(index);
 	int status = 0;
-	
+
 	if ( entropy_states.count(*s) > 0 )
 		{
 		entropy_states[*s]->add((char*) data->Bytes(), data->Len());
 		status = 1;
 		}
-	
+
 	delete s;
 	return new Val(status, TYPE_BOOL);
 	%}
@@ -3258,11 +3258,10 @@ function entropy_test_finish%(index: any%): entropy_test_result
 	double montepi, scc, ent, mean, chisq;
 	montepi = scc = ent = mean = chisq = 0.0;
 	RecordVal* ent_result = new RecordVal(entropy_test_result);
-	
+
 	if ( entropy_states.count(*s) > 0 )
 		{
-		RandTest *rt;
-		rt = entropy_states[*s];
+		RandTest *rt = entropy_states[*s];
 		rt->end(&ent, &chisq, &mean, &montepi, &scc);
 		entropy_states.erase(*s);
 		delete rt;

@@ -79,6 +79,10 @@ function PortmapBuildDumpVal(params: PortmapDumpResults): BroVal
 
 	for ( int i = 0; i < params->size(); ++i )
 		{
+		// The last element has cont()!=1 and this element doesn't contain a
+		// mapping.
+		if ((*params)[i]->cont() != 1)
+			continue;
 		Val* m = PortmapBuildMappingVal((*params)[i]->mapping());
 		Val* index = new Val(i + 1, TYPE_COUNT);
 		mappings->Assign(index, m);

@@ -26,6 +26,16 @@ macro(SetPackageVersion _version)
         list(REMOVE_AT version_numbers 0)
         list(LENGTH version_numbers version_length)
     endwhile ()
+
+    if (APPLE)
+        # Mac PackageMaker package requires only numbers in the versioning
+        string(REGEX REPLACE "[_a-zA-Z-]" "" CPACK_PACKAGE_VERSION_MAJOR
+               ${CPACK_PACKAGE_VERSION_MAJOR})
+        string(REGEX REPLACE "[_a-zA-Z-]" "" CPACK_PACKAGE_VERSION_MINOR
+               ${CPACK_PACKAGE_VERSION_MINOR})
+        string(REGEX REPLACE "[_a-zA-Z-]" "" CPACK_PACKAGE_VERSION_PATCH
+               ${CPACK_PACKAGE_VERSION_PATCH})
+    endif ()
 endmacro(SetPackageVersion)
 
 # Sets the list of desired package types to be created by the make
@@ -43,6 +53,7 @@ endmacro(SetPackageVersion)
 # CPACK_SOURCE_GENERATOR is set by this macro
 macro(SetPackageGenerators)
     set(CPACK_SOURCE_GENERATOR TGZ)
+    set(CPACK_GENERATOR TGZ)
     if (APPLE)
         list(APPEND CPACK_GENERATOR PackageMaker)
     elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")

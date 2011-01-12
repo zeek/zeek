@@ -136,13 +136,6 @@ endmacro(SetPackageInstallLocation)
 
 # Main macro to configure all the packaging options
 macro(ConfigurePackaging _version)
-    # If this CMake project is a sub-project of another, we will not
-    # configure the packaging because CPack will fail in the case that
-    # the parent project has already configured packaging
-    if (NOT "${PROJECT_SOURCE_DIR}" STREQUAL "${CMAKE_SOURCE_DIR}")
-        return()
-    endif ()
-
     SetPackageVersion(${_version})
     SetPackageGenerators()
     SetPackageFileName(${_version})

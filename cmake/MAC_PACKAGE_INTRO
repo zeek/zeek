@@ -1,0 +1,20 @@
+This package will install @CMAKE_PROJECT_NAME@ into the following location:
+
+    @CMAKE_INSTALL_PREFIX@
+
+You may choose to update your PATH environment variable:
+
+    # For Bash
+    export PATH=@CMAKE_INSTALL_PREFIX@/bin:$PATH
+
+    # For CSH
+    setenv PATH @CMAKE_INSTALL_PREFIX@/bin:$PATH
+ 
+If you have more than one volume, please choose the install
+destination as the one that contains the root filesystem.
+
+If you have an existing broccoli.conf file that is modified or
+otherwise different from the version included in the package, it
+will be overwritten and a backup of the existing file placed in:
+
+    @CMAKE_INSTALL_PREFIX@/etc/broccoli.conf.<nextAvailableNumber>

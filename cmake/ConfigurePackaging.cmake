@@ -36,6 +36,19 @@ macro(SetPackageVersion _version)
         string(REGEX REPLACE "[_a-zA-Z-]" "" CPACK_PACKAGE_VERSION_PATCH
                ${CPACK_PACKAGE_VERSION_PATCH})
     endif ()
+
+    if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+        # RPM version accepts letters, but not dashes.
+        string(REGEX REPLACE "[-]" "" CPACK_PACKAGE_VERSION_MAJOR
+               ${CPACK_PACKAGE_VERSION_MAJOR})
+        string(REGEX REPLACE "[-]" "" CPACK_PACKAGE_VERSION_MINOR
+               ${CPACK_PACKAGE_VERSION_MINOR})
+        string(REGEX REPLACE "[-]" "" CPACK_PACKAGE_VERSION_PATCH
+               ${CPACK_PACKAGE_VERSION_PATCH})
+    endif ()
+
+    # Minimum supported OS X version
+    set(CPACK_OSX_PACKAGE_VERSION 10.5)
 endmacro(SetPackageVersion)
 
 # Sets the list of desired package types to be created by the make
@@ -53,7 +66,7 @@ endmacro(SetPackageVersion)
 # CPACK_SOURCE_GENERATOR is set by this macro
 macro(SetPackageGenerators)
     set(CPACK_SOURCE_GENERATOR TGZ)
-    set(CPACK_GENERATOR TGZ)
+    #set(CPACK_GENERATOR TGZ)
     if (APPLE)
         list(APPEND CPACK_GENERATOR PackageMaker)
     elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -109,30 +122,17 @@ macro(SetPackageMetadata)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/COPYING
                    ${CMAKE_CURRENT_BINARY_DIR}/COPYING.txt
                     COPYONLY)
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/MAC_PACKAGE_INTRO
+                   ${CMAKE_CURRENT_BINARY_DIR}/MAC_PACKAGE_INTRO.txt)
 
     set(CPACK_PACKAGE_DESCRIPTION_FILE ${CMAKE_CURRENT_BINARY_DIR}/README.txt)
     set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_BINARY_DIR}/COPYING.txt)
     set(CPACK_RESOURCE_FILE_README ${CMAKE_CURRENT_BINARY_DIR}/README.txt)
-    set(CPACK_RESOURCE_FILE_WELCOME ${CMAKE_CURRENT_BINARY_DIR}/README.txt)
-endmacro(SetPackageMetadata)
+    set(CPACK_RESOURCE_FILE_WELCOME
+        ${CMAKE_CURRENT_BINARY_DIR}/MAC_PACKAGE_INTRO.txt)
 
-# Determines the right install location/prefix for binary packages
-macro(SetPackageInstallLocation)
-    if (APPLE)
-        # /usr prefix is hardcoded for PackageMaker generator, but that
-        # directory may not be ideal for OS X (it's tricky to remove
-        # packages installed there).  So instead we rely on CMAKE_INSTALL_PREFIX
-        # and set the following variable to workaround the hardcoded /usr prefix
-        set(CPACK_PACKAGING_INSTALL_PREFIX "/")
-        set(CPACK_PACKAGE_DEFAULT_LOCATION ${CMAKE_INSTALL_PREFIX})
-    elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-        # A prefix of /usr would follow Filesystem Hierarchy Standard.
-        # For RPM packaging by CPack, /usr should be a default, but
-        # CMAKE_INSTALL_PREFIX also needs to be set to /usr so that
-        # the default BROPATH is set right at build time
-        set(CPACK_RPM_PACKAGE_LICENSE "BSD")
-    endif ()
-endmacro(SetPackageInstallLocation)
+    set(CPACK_RPM_PACKAGE_LICENSE "BSD")
+endmacro(SetPackageMetadata)
 
 # Main macro to configure all the packaging options
 macro(ConfigurePackaging _version)
@@ -140,7 +140,9 @@ macro(ConfigurePackaging _version)
     SetPackageGenerators()
     SetPackageFileName(${_version})
     SetPackageMetadata()
-    SetPackageInstallLocation()
+
+    set(CPACK_SET_DESTDIR true)
+    set(CPACK_PACKAGING_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
 
     # add default files/directories to ignore for source package
     # user may specify others via configure script

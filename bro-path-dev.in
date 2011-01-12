@@ -17,4 +17,4 @@ broctlPolicies=${PROJECT_SOURCE_DIR}/aux/broctl/policy:${CMAKE_BINARY_DIR}/aux/b
 
 installedPolicies=${POLICYDIR}:${POLICYDIR}/sigs:${POLICYDIR}/time-machine:${POLICYDIR}/site
 
-echo .:$distPolicies:$genPolicies:$broctlPolicies
+echo .:$broPolicies:$broGenPolicies:$broctlPolicies

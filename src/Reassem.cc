@@ -195,8 +195,10 @@ void Reassembler::Describe(ODesc* d) const
 	d->Add("reassembler");
 	}
 
-void Reassembler::Undelivered(int /* up_to_seq */)
+void Reassembler::Undelivered(int up_to_seq)
 	{
+	// TrimToSeq() expects this.
+	last_reassem_seq = up_to_seq;
 	}
 
 DataBlock* Reassembler::AddAndCheck(DataBlock* b, int seq, int upper,

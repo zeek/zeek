@@ -117,7 +117,7 @@ public:
 	// Delivers the given RPC.  Returns true if "len" bytes were
 	// enough, false otherwise.  "is_orig" is true if the data is
 	// from the originator of the connection.
-	int DeliverRPC(const u_char* data, int len, int is_orig);
+	int DeliverRPC(const u_char* data, int len, int caplen, int is_orig);
 
 	void Timeout();
 
@@ -134,37 +134,94 @@ protected:
 
 	PDict(RPC_CallInfo) calls;
 	Analyzer* analyzer;
+	uint32 xx;
+	int nunpair;
 };
 
-typedef enum {
-	RPC_RECORD_MARKER,	// building up the stream record marker
-	RPC_MESSAGE_BUFFER,	// building up the message in the buffer
-	RPC_COMPLETE		// message fully built
-} TCP_RPC_state;
 
+/* A simple buffer for reassembling the fragments that RPC-over-TCP
+ * uses. Only needed by RPC_Contents
+ * However, RPC messages can be quite large. As a first step, we only
+ * extract and analyzer the first part of an RPC message and skip 
+ * over the rest.
+ *
+ * We specify:
+ *    maxsize ... the number of bytes we want to copy into the buffer
+ *       to analyze. 
+ *    expected .. the total number of bytes in the RPC message. Can be
+ *       quite large. We will be "skipping over" expected-maxsize bytes.
+ *
+ * We can extend "expected" (by calling AddToExpected()), but maxsize is
+ * fixed. 
+ *
+ * TODO: grow buffer dynamically
+ */ 
+class RPC_Reasm_Buffer {
+public:
+	RPC_Reasm_Buffer() {
+		maxsize = expected = 0;
+		fill = processed = 0;
+		buf = 0;
+	};
+
+	~RPC_Reasm_Buffer() { if (buf) delete [] buf; }
+
+	void Init(int64_t arg_maxsize, int64_t arg_expected);
+
+	const u_char *GetBuf() { return buf; }  // Pointer to the buffer
+	int64_t GetFill() { return fill; }      // Number of bytes in buf
+	int64_t GetSkipped() { return processed-fill; } // How many bytes did we skipped?
+	int64_t GetExpected() { return expected; }  // How many bytes are we expecting? 
+	int64_t GetProcessed() { return processed; }  // How many bytes are we expecting? 
+
+	// Expand expected by delta bytes. 
+	void AddToExpected(int64_t delta) { expected += delta; }
+
+	// Consume a chunk of data. data and len will be adjustes accordingly.
+	// Returns true if we "exptected" bytes have been processed, i.e., returns
+	// true when we don't expect any more data.
+	bool ConsumeChunk(const u_char*& data, int& len);
+
+protected:
+	int64_t fill;        // how many bytes we currently have in the buffer 
+	int64_t maxsize;     // maximum buffer size we want to allocate
+	int64_t processed;   // number of bytes we have processed so far
+	int64_t expected;    // number of input bytes we expect
+	u_char *buf;
+
+};
+
+/* Support Analyzer for reassembling RPC-over-TCP messages */ 
 class Contents_RPC : public TCP_SupportAnalyzer {
 public:
 	Contents_RPC(Connection* conn, bool orig, RPC_Interpreter* interp);
 	virtual ~Contents_RPC();
 
-	TCP_RPC_state State() const		{ return state; }
-
 protected:
+	typedef enum {
+		WAIT_FOR_MESSAGE,
+		WAIT_FOR_MARKER,
+		WAIT_FOR_DATA,
+		WAIT_FOR_LAST_DATA,
+	} state_t;
 	virtual void Init();
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
 	virtual void Undelivered(int seq, int len, bool orig);
 
-	virtual void InitBuffer();
+	virtual void NeedResync() {
+		printf("%.6f Need Resync\n", network_time);
+		resync = true;
+		state = WAIT_FOR_MESSAGE;
+	}
 
 	RPC_Interpreter* interp;
 
-	u_char* msg_buf;
-	int buf_n;	// number of bytes in msg_buf
-	int buf_len;	// size off msg_buf
-	int last_frag;	// if this buffer corresponds to the last "fragment"
+	RPC_Reasm_Buffer marker_buf; // Reassembles the 32bit RPC-over-TCP marker 
+	RPC_Reasm_Buffer msg_buf;    // Reassembles RPC messages 
+	state_t state;
+
 	bool resync;
 
-	TCP_RPC_state state;
 };
 
 class RPC_Analyzer : public TCP_ApplicationAnalyzer {

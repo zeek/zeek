@@ -30,6 +30,10 @@ int NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 	case BroEnum::NFS3_PROC_LOOKUP:
 		callarg = nfs3_diropargs(buf, n);
 		break;
+
+	case BroEnum::NFS3_PROC_READ:
+		callarg = nfs3_readargs(buf, n);
+		break;
 #if 0
 	case BroEnum::NFS3_PROC_LOOKUP:
 		{
@@ -61,6 +65,7 @@ int NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 		break;
 #endif
 	default:
+		callarg = 0;
 		if ( proc < BroEnum::NFS3_PROC_END_OF_PROCS )
 			{ // We know the procedure but haven't implemented it
 			n = 0; // otherwise DeliverRPC complains about excess_RPC
@@ -128,6 +133,13 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BroEnum::rpc_status rpc_status,
 			reply = nfs3_lookup_reply(buf, n, nfs_status);
 		event = nfs_proc_lookup;
 		break;
+
+	case BroEnum::NFS3_PROC_READ:
+		if (rpc_success)
+			reply = nfs3_read_reply(buf, n, nfs_status);
+		event = nfs_proc_read;
+		break;
+
 		//if ( nfs_status == BroEnum::NFS3ERR_OK )
 #if 0
 	case BroEnum::NFS3_PROC_LOOKUP:
@@ -260,6 +272,7 @@ RecordVal *NFS_Interp::nfs3_diropargs(const u_char*& buf, int& n)
 	return diropargs;
 	}
 
+
 RecordVal* NFS_Interp::nfs3_post_op_attr(const u_char*& buf, int& n)
 	{
 	int have_attrs = extract_XDR_uint32(buf, n);
@@ -287,6 +300,32 @@ RecordVal* NFS_Interp::nfs3_lookup_reply(const u_char*& buf, int& n, BroEnum::nf
 	return rep;
 	}
 
+RecordVal *NFS_Interp::nfs3_readargs(const u_char*& buf, int& n)
+	{
+	RecordVal *readargs = new RecordVal(rectype_nfs3_readargs);
+	readargs->Assign(0, nfs3_fh(buf, n));
+	readargs->Assign(1, ExtractLongAsDouble(buf, n));
+	readargs->Assign(2, ExtractCount(buf,n));
+	return readargs;
+	}
+
+RecordVal* NFS_Interp::nfs3_read_reply(const u_char*& buf, int& n, BroEnum::nfs3_status status)
+	{
+	RecordVal *rep = new RecordVal(rectype_nfs3_read_reply);
+	if (status == BroEnum::NFS3ERR_OK)
+		{
+		rep->Assign(0, nfs3_post_op_attr(buf, n));
+		rep->Assign(1, ExtractCount(buf, n));
+		rep->Assign(2, ExtractBool(buf, n));
+		n = 0; // Skip data. TODO: return data to policy layer
+		}
+	else
+		{
+		rep->Assign(0, nfs3_post_op_attr(buf, n));
+		}
+	return rep;
+	}
+
 Val* NFS_Interp::ExtractCount(const u_char*& buf, int& n)
 	{
 	return new Val(extract_XDR_uint32(buf, n), TYPE_COUNT);
@@ -306,6 +345,12 @@ Val* NFS_Interp::ExtractInterval(const u_char*& buf, int& n)
 	{
 	return new IntervalVal(double(extract_XDR_uint32(buf, n)), 1.0);
 	}
+
+Val* NFS_Interp::ExtractBool(const u_char*& buf, int& n)
+	{
+	return new Val(extract_XDR_uint32(buf, n), TYPE_BOOL);
+	}
+
 
 void NFS_Interp::Event(EventHandlerPtr f, Val* request, BroEnum::rpc_status rpc_status, 
 		BroEnum::nfs3_status nfs_status, Val* reply)

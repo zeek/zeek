@@ -1,4 +1,4 @@
-# $Id: nfs.bro 4017 2007-02-28 07:11:54Z vern $
+# $Id$
 
 @load udp
 
@@ -7,6 +7,7 @@ module NFS;
 export {
 	global log_file = open_log_file("nfs") &redef;
 }
+
 
 redef capture_filters += { 
 	["nfs"] = "port 2049",
@@ -42,59 +43,58 @@ function NFS_attempt(n: connection, req: string, status: count, addl: string)
 			network_time(), id_string(n$id), req, status, addl);
 	}
 
-
-event nfs_request_null(n: connection)
+function nfs_get_log_prefix(c: connection, rpc_stat: rpc_status, nfs_stat: nfs3_status, proc: string): string
 	{
-	NFS_request(n, "null", "");
+	local nfs_stat_str = (rpc_stat == RPC_SUCCESS) ? fmt("%s", nfs_stat) : "X";
+	return fmt("%.06f %s %s %s %s", network_time(), id_string(c$id),
+			proc, rpc_stat, nfs_stat_str);
 	}
 
-event nfs_attempt_null(n: connection, status: count)
+event nfs_proc_not_implemented(c: connection, rpc_stat: rpc_status, nfs_stat: nfs3_status, proc: nfs3_proc) 
 	{
-	NFS_attempt(n, "null", status, "");
+	local prefix = nfs_get_log_prefix(c, rpc_stat, nfs_stat, fmt("%s", proc));
+
+	print log_file, fmt("%s Not_implemented", prefix);
 	}
 
-
-event nfs_request_getattr(n: connection, fh: string, attrs: nfs3_attrs)
+event nfs_proc_null(c: connection, rpc_stat: rpc_status, nfs_stat: nfs3_status)
 	{
-	NFS_request(n, "getattr", fmt("%s -> %s", map_fh(fh), attrs));
+	local prefix = nfs_get_log_prefix(c, rpc_stat, nfs_stat, "null");
+
+	print log_file, prefix;
 	}
 
-event nfs_attempt_getattr(n: connection, status: count, fh: string)
+event nfs_proc_getattr (c: connection, rpc_stat: rpc_status, nfs_stat: nfs3_status, fh: string, attrs: nfs3_fattr) 
 	{
-	NFS_attempt(n, "getattr", status, map_fh(fh));
+	local prefix = nfs_get_log_prefix(c, rpc_stat, nfs_stat, "getattr");
+
+	# TODO: check for success and print attrs, if successful 
+	 
+	print log_file, fmt("%s %s", prefix, map_fh(fh));
 	}
 
-
-function opt_attr_fmt(a: nfs3_opt_attrs): string
+event nfs_proc_lookup(c: connection, rpc_stat: rpc_status, nfs_stat: nfs3_status, req: nfs3_diropargs, rep: nfs3_lookup_reply)
 	{
-	return a?$attrs ? fmt("%s", a$attrs) : "<missing>";
+	local prefix = nfs_get_log_prefix(c, rpc_stat, nfs_stat, "lookup");
+
+	if (! (rpc_stat == RPC_SUCCESS && nfs_stat == NFS3ERR_OK) )
+		{
+		print log_file, fmt("%s %s + %s", prefix, map_fh(req$dirfh), req$fname);
+		# could print dir_attr, if they are set ....
+		return;
+		}
+	print log_file, fmt("%s %s + %s => %s", prefix, map_fh(req$dirfh), req$fname, map_fh(rep$fh));
+	
 	}
 
-event nfs_request_lookup(n: connection, req: nfs3_lookup_args, rep: nfs3_lookup_reply)
+event nfs_proc_read(c: connection, rpc_stat: rpc_status, nfs_stat: nfs3_status, req: nfs3_readargs, rep: nfs3_read_reply)
 	{
-	NFS_request(n, "lookup", fmt("%s -> %s (file-attr: %s, dir-attr: %s)",
-			req, rep$fh,
-			opt_attr_fmt(rep$file_attr),
-			opt_attr_fmt(rep$dir_attr)));
+	local msg = nfs_get_log_prefix(c, rpc_stat, nfs_stat, "read");
+
+	msg = fmt("%s %s @%.0f: %d", msg, map_fh(req$fh), req$offset, req$size);
+	if (rpc_stat == RPC_SUCCESS && nfs_stat == NFS3ERR_OK)
+		msg = fmt("%s, got %d bytes %s", msg, rep$size, (rep$eof) ? "<eof>" : "x");
+
+	print log_file, msg;
 	}
 
-event nfs_attempt_lookup(n: connection, status: count, req: nfs3_lookup_args)
-	{
-	NFS_attempt(n, "lookup", status, fmt("%s", req));
-	}
-
-
-event nfs_request_fsstat(n: connection, root_fh: string, stat: nfs3_fsstat)
-	{
-	NFS_request(n, "fsstat", fmt("%s -> attr: %s, tbytes: %s, fbytes: %s, abytes: %s, tfiles: %s, ffiles: %s, afiles: %s, invarsec: %s",
-		map_fh(root_fh),
-		opt_attr_fmt(stat$attrs),
-		stat$tbytes, stat$fbytes, stat$abytes,
-		stat$tfiles, stat$ffiles, stat$afiles,
-		stat$invarsec));
-	}
-
-event nfs_attempt_fsstat(n: connection, status: count, root_fh: string)
-	{
-	NFS_attempt(n, "fsstat", status, map_fh(root_fh));
-	}

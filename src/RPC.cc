@@ -15,13 +15,9 @@ namespace { // local namespace
 	const bool DEBUG_rpc_resync = false;
 }
 
+// TODO: make this configurable
 #define MAX_RPC_LEN 65536
 
-// The following correspond to the different RPC status values defined
-// in bro.init.
-// #define BRO_RPC_TIMEOUT 6
-// #define BRO_RPC_AUTH_ERROR 7
-// #define BRO_RPC_UNKNOWN_ERROR 8
 
 RPC_CallInfo::RPC_CallInfo(uint32 arg_xid, const u_char*& buf, int& n)
 	{
@@ -75,22 +71,28 @@ RPC_Interpreter::RPC_Interpreter(Analyzer* arg_analyzer)
 	{
 	analyzer = arg_analyzer;
 	calls.SetDeleteFunc(rpc_callinfo_delete_func);
+	xx = 0;
+	nunpair = 0;
 	}
 
 RPC_Interpreter::~RPC_Interpreter()
 	{
 	}
 
-int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int is_orig)
+int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen, int is_orig)
 	{
 	uint32 xid = extract_XDR_uint32(buf, n);
 	uint32 msg_type = extract_XDR_uint32(buf, n);
 
 	if ( ! buf )
 		return 0;
-
+	if (xx==0)
+		xx=ntohl(xid);
 	HashKey h(&xid, 1);
 	RPC_CallInfo* call = calls.Lookup(&h);
+	if (msg_type == RPC_REPLY && !call)
+		nunpair++;
+	printf("%.6f orig= %d xid= %u type= %d ncall= %d havecall= %d nunpair= %d\n", network_time, is_orig, ntohl(xid)-xx, msg_type, calls.Length(), (call!=0), nunpair);
 
 	if ( msg_type == RPC_CALL )
 		{
@@ -295,14 +297,45 @@ void RPC_Interpreter::Weird(const char* msg)
 	}
 
 
+void RPC_Reasm_Buffer::Init(int64_t arg_maxsize, int64_t arg_expected) {
+	if (buf)
+		delete [] buf;
+	expected = arg_expected;
+	maxsize = arg_maxsize;
+	fill = processed = 0;
+	buf = new u_char[maxsize];
+};
+
+bool RPC_Reasm_Buffer::ConsumeChunk(const u_char*& data, int& len) 
+	{
+	// How many bytes to we want to process with this call? 
+	// Either the all of the bytes available or the number of bytes
+	// that we are still missing
+	int64_t to_process = min( len, (expected-processed) );
+
+	if (fill < maxsize) 
+		{
+		// We haven't yet filled the buffer.
+		// How many bytes to copy into the buff. Either all of the bytes
+		// we want to process or the number of bytes until we reach maxsize
+		int64_t to_copy = min( to_process, (maxsize-fill) ); 
+		if (to_copy)
+			memcpy(buf+fill, data, to_copy);
+		fill += to_copy;
+		}
+	processed += to_process;
+	len -= to_process;
+	data += to_process;
+	return (expected == processed);
+	}
+
 Contents_RPC::Contents_RPC(Connection* conn, bool orig,
 				RPC_Interpreter* arg_interp)
 : TCP_SupportAnalyzer(AnalyzerTag::Contents_RPC, conn, orig)
 	{
 	interp = arg_interp;
+	state = WAIT_FOR_MESSAGE;
 	resync = false;
-	msg_buf = 0;
-	InitBuffer();
 	}
 
 void Contents_RPC::Init()
@@ -317,39 +350,26 @@ void Contents_RPC::Init()
 						TCP_ENDPOINT_ESTABLISHED;
 	}
 
-void Contents_RPC::InitBuffer()
-	{
-	buf_len = 4;
-
-	// For record marker:
-	delete [] msg_buf;
-	msg_buf = new u_char[buf_len];
-
-	buf_n = 0;
-	last_frag = 0;
-	state = RPC_RECORD_MARKER;
-	}
 
 Contents_RPC::~Contents_RPC()
 	{
-	delete [] msg_buf;
 	}
 
 void Contents_RPC::Undelivered(int seq, int len, bool orig)
 	{
 	TCP_SupportAnalyzer::Undelivered(seq, len, orig);
+	printf("%.6f Undelivered: orig=%d. len=%d\n", network_time, orig, len);
 
-	// Re-sync after content gaps.
-	InitBuffer();
-	resync = true;
+	NeedResync();
 	}
 
 void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
 	{
 	TCP_SupportAnalyzer::DeliverStream(len, data, orig);
+	bool last_frag;
+	uint32 marker;
 
-	if ( state == RPC_COMPLETE )
-		InitBuffer();
+	printf("%.6f DeliverStream, orig=%d isOrig=%d len= %d\n", network_time, orig, IsOrig(), len);
 
 	// This is an attempt to re-synchronize the stream with RPC
 	// frames after a content gap.  We try to look for the beginning
@@ -361,7 +381,8 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
 	// skips that piece.)  It then checks if the frame type and length
 	// make any sense, and if so, it assumes that is beginning of
 	// a frame.
-	if ( resync && state == RPC_RECORD_MARKER && buf_n == 0 )
+	// TODO: tweak heuristic for resync...
+	if ( resync )
 		{
 		// Assuming RPC frames align with packet boundaries ...
 		if ( len < 12 )
@@ -405,91 +426,75 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
 
 	// Should be in sync now
 
-	int n;
-	for ( n = 0; buf_n < buf_len && n < len; ++n )
-		msg_buf[buf_n++] = data[n];
+	while (len > 0) 
+		{
+		switch (state) {
+		case WAIT_FOR_MESSAGE: 
+			// A new RPC message is starting. Initialize state
 
-	if ( buf_n < buf_len )
-		// Haven't filled up the message buffer yet, no more to do.
-		return;
-
-	switch ( state ) {
-	case RPC_RECORD_MARKER:
-		{ // Have the whole record marker.
-		int prev_frag_len = buf_len - 4;
-		const u_char* buf = &msg_buf[prev_frag_len];
-		int n = 4;
-
-		uint32 marker = extract_XDR_uint32(buf, n);
-		if ( ! buf )
-			internal_error("inconsistent RPC record marker extraction");
-
-		if ( prev_frag_len > 0 && last_frag )
-			internal_error("last_frag set but more fragments");
-
-		last_frag = (marker & 0x80000000) != 0;
-
-		marker &= 0x7fffffff;
-
-		if ( prev_frag_len > 0 )
-			// We're adding another fragment.
-			marker += prev_frag_len;
-
-		// Fragment length is now given by marker.  Sanity-check.
-		if ( marker > MAX_RPC_LEN )
+			// We expect and want 4 bytes of the frame markers
+			marker_buf.Init(4,4);
+			// We want at most 64KB of message data and we don't know
+			// yet how much we expect, so we set expected to 0
+			msg_buf.Init(MAX_RPC_LEN, 0);
+			last_frag = 0;
+			state = WAIT_FOR_MARKER;
+			// no break. fall through
+			
+		case WAIT_FOR_MARKER:
 			{
-			Conn()->Weird(fmt("excessive_RPC_len(%u:%d)", marker, last_frag));
-			marker = MAX_RPC_LEN;
+			bool got_marker = marker_buf.ConsumeChunk(data,len);
+			if (got_marker)
+				{
+				const u_char *dummy_p = marker_buf.GetBuf();
+				int dummy_len = (int) marker_buf.GetFill();
+				// have full marker
+				marker = extract_XDR_uint32(dummy_p, dummy_len);
+				marker_buf.Init(4,4);
+				if ( ! dummy_p ) 
+					{
+					internal_error("inconsistent RPC record marker extraction");
+					}
+
+				last_frag = (marker & 0x80000000) != 0;
+				marker &= 0x7fffffff;
+					//printf("%.6f %d marker= %u <> last_frag= %d <> expected=%llu <> processed= %llu <> len = %d\n",
+					//		network_time, IsOrig(), marker, last_frag, msg_buf.GetExpected(), msg_buf.GetProcessed(), len);
+				msg_buf.AddToExpected(marker);
+				if (last_frag)
+					state = WAIT_FOR_LAST_DATA;
+				else
+					state = WAIT_FOR_DATA;
+				}
 			}
-
-		// The new size is either the full record size (if this
-		// is the last fragment), or that plus 4 more bytes for
-		// the next fragment header.
-		int new_size = last_frag ? marker : marker + 4;
-
-		u_char* tmp = new u_char[new_size];
-		int msg_len = (unsigned int) buf_len < marker ? buf_len : marker;
-		for ( int i = 0; i < msg_len; ++i )
-			tmp[i] = msg_buf[i];
-
-		delete [] msg_buf;
-		msg_buf = tmp;
-
-		buf_len = marker;	// we only want to fill to here
-		buf_n = prev_frag_len;	// overwrite this fragment's header
-
-		state = RPC_MESSAGE_BUFFER;
-		}
-		break;
-
-	case RPC_MESSAGE_BUFFER:
-		{ // Have the whole fragment.
-		if ( ! last_frag )
-			{
-			// We earlier made sure to leave an extra 4 bytes
-			// at the end of the buffer - use them now for
-			// the new fragment header.
-			buf_len += 4;
-			state = RPC_RECORD_MARKER;
+			// else remain in state. Haven't got the full 4 bytes for the marker yet
 			break;
+
+		case WAIT_FOR_DATA:
+		case WAIT_FOR_LAST_DATA:
+			{
+			bool got_all_data = msg_buf.ConsumeChunk(data, len);
+			if (got_all_data) 
+				{
+				// got all the data we expected. Now let's see whether there is 
+				// another fragment coming or whether we just finished the last
+				// fragment. 
+				if (state == WAIT_FOR_LAST_DATA) 
+					{
+					const u_char *dummy_p = msg_buf.GetBuf();
+					int dummy_len = (int) msg_buf.GetFill();
+					if ( ! interp->DeliverRPC(dummy_p, dummy_len, (int)msg_buf.GetExpected(), IsOrig()) )
+						Conn()->Weird("partial_RPC");
+					state = WAIT_FOR_MESSAGE;
+					}
+				else
+					state = WAIT_FOR_MARKER;
+				}
+			// else remain in state. Haven't read all the data yet.
 			}
-
-		if ( ! interp->DeliverRPC(msg_buf, buf_n, IsOrig()) )
-			Conn()->Weird("partial_RPC");
-
-		state = RPC_COMPLETE;
-		delete [] msg_buf;
-		msg_buf = 0;
-		}
-		break;
-
-	case RPC_COMPLETE:
-		internal_error("RPC state inconsistency");
-	}
-
-	if ( n < len )
-		// More data to munch on.
-		DeliverStream(len - n, data + n, orig);
+			break;
+		} // end switch 
+		} // end while
 	}
 
 RPC_Analyzer::RPC_Analyzer(AnalyzerTag::Tag tag, Connection* conn,
@@ -512,15 +517,16 @@ void RPC_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 					int seq, const IP_Hdr* ip, int caplen)
 	{
 	TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
+	len = min(len, caplen);
 
 	if ( orig )
 		{
-		if ( ! interp->DeliverRPC(data, len, 1) )
+		if ( ! interp->DeliverRPC(data, len, len, 1) )
 			Weird("bad_RPC");
 		}
 	else
 		{
-		if ( ! interp->DeliverRPC(data, len, 0) )
+		if ( ! interp->DeliverRPC(data, len, len, 0) )
 			Weird("bad_RPC");
 		}
 	}
@@ -529,6 +535,10 @@ void RPC_Analyzer::Done()
 	{
 	TCP_ApplicationAnalyzer::Done();
 
+	interp->Timeout();
+#if 0
+TODO: maybe put this check back in. But there are so many other 
+things the RPC analyzer might miss....
 	// This code was replicated in NFS.cc and Portmap.cc, so we factor
 	// it into here.  The semantics have slightly changed - it used
 	// to be we'd always execute interp->Timeout(), but now we only
@@ -536,6 +546,7 @@ void RPC_Analyzer::Done()
 
 	if ( Conn()->ConnTransport() == TRANSPORT_TCP && TCP() )
 		{
+		
 		if ( orig_rpc->State() != RPC_COMPLETE &&
 		     (TCP()->OrigState() == TCP_ENDPOINT_CLOSED ||
 		      TCP()->OrigPrevState() == TCP_ENDPOINT_CLOSED) &&
@@ -547,6 +558,7 @@ void RPC_Analyzer::Done()
 		}
 	else
 		interp->Timeout();
+#endif
 	}
 
 void RPC_Analyzer::ExpireTimer(double /* t */)

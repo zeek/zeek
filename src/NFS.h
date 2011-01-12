@@ -40,12 +40,15 @@ protected:
 	StringVal* nfs3_filename(const u_char*& buf, int& n);
 	RecordVal* nfs3_post_op_attr(const u_char*&buf, int &n); // Return 0 or an fattr
 	RecordVal* nfs3_lookup_reply(const u_char*& buf, int& n, BroEnum::nfs3_status status);
+	RecordVal* nfs3_readargs(const u_char*& buf, int& n);
+	RecordVal* nfs3_read_reply(const u_char*& buf, int& n, BroEnum::nfs3_status status);
 
 	RecordVal* ExtractOptAttrs(const u_char*& buf, int& n);
 	Val* ExtractCount(const u_char*& buf, int& n);
 	Val* ExtractLongAsDouble(const u_char*& buf, int& n);
 	Val* ExtractTime(const u_char*& buf, int& n);
 	Val* ExtractInterval(const u_char*& buf, int& n);
+	Val* ExtractBool(const u_char*& buf, int& n);
 
 	void Event(EventHandlerPtr f, Val* request, BroEnum::rpc_status status, 
 			BroEnum::nfs3_status, Val* reply);

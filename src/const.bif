@@ -170,6 +170,8 @@ enum nfs3_file_type %{
 type nfs3_fattr: record;
 type nfs3_diropargs: record;
 type nfs3_lookup_reply: record;
+type nfs3_readargs: record;
+type nfs3_read_reply: record;
 
 
 type nfs3_fsstat: record;

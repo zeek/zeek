@@ -182,6 +182,7 @@ event nfs_proc_not_implemented%(c: connection, rpc_stat: rpc_status, nfs_stat: n
 
 event nfs_proc_getattr%(c: connection, rpc_stat: rpc_status, nfs_stat: nfs3_status, fh: string, attrs: nfs3_fattr%);
 event nfs_proc_lookup%(c: connection, rpc_stat: rpc_status, nfs_stat: nfs3_status, req: nfs3_diropargs, rep: nfs3_lookup_reply%);
+event nfs_proc_read%(c: connection, rpc_stat: rpc_status, nfs_stat: nfs3_status, req: nfs3_readargs, rep: nfs3_read_reply%);
 #event nfs_request_lookup%(n: connection, req: nfs3_lookup_args, rep: nfs3_lookup_reply%);
 #event nfs_request_fsstat%(n: connection, root_fh: string, stat: nfs3_fsstat%);
 #event nfs_attempt_null%(n: connection, status: count%);

@@ -731,6 +731,21 @@ type nfs3_lookup_reply: record {
 	dir_attr: nfs3_fattr &optional;	# optional attributes associated w/ dir.
 };
 
+type nfs3_readargs: record {
+	fh: string;      # file handle to read from 
+	offset: double;  # Offset in file. Should really go to 64 bit int here
+	size: count;     # number of bytes to read
+};
+
+type nfs3_read_reply: record {
+	# if the lookup fails attr may be set. 
+	# if the lookup succeeds, attr may be set and all other fields are set
+	attr: nfs3_fattr &optional; # attributes 	
+	size: count &optional;      # number of bytes read
+	eof: bool &optional;        # did the read end at EOF
+	data: string &optional;     # the actual data. NOT IMPLEMENTED YET.
+};
+
 type nfs3_fsstat: record {
 	attrs: nfs3_fattr &optional;
 	tbytes: double;

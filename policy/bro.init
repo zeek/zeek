@@ -38,11 +38,12 @@ type icmp_context: record {
 	id: conn_id;
 	len: count;
 	proto: count;
-	frag_offset: count;
-	bad_hdr_len: bool;
-	bad_checksum: bool;
-	MF: bool;
-	DF: bool;
+	frag_offset: count &optional; #no frag offset for IPv6 
+	bad_hdr_len: bool &optional; 
+	bad_checksum: bool &optional; #no checksum in IPv6 header 
+	MF: bool &optional; #no MF for IPv6
+	DF: bool &optional; #no DF for IPv6
+	ICMP6Flag: bool;
 };
 
 type addr_set: set[addr];
@@ -534,6 +535,7 @@ const IPPROTO_IGMP = 2;			# group mgmt protocol
 const IPPROTO_IPIP = 4;			# IP encapsulation in IP
 const IPPROTO_TCP = 6;			# TCP
 const IPPROTO_UDP = 17;			# user datagram protocol
+const IPPROTO_ICMPV6 = 58;		# ICMP for IPv6
 const IPPROTO_RAW = 255;		# raw IP packet
 
 type ip_hdr: record {

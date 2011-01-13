@@ -22,7 +22,7 @@ namespace AnalyzerTag {
 		PIA_TCP, PIA_UDP,
 
 		// Transport-layer analyzers.
-		ICMP, ICMP_TimeExceeded, ICMP_Unreachable, ICMP_Echo, TCP, UDP,
+		ICMP,/* ICMP_TimeExceeded, ICMP_Unreachable, ICMP_Echo*/ TCP, UDP,
 
 		// Application-layer analyzers (hand-written).
 		BitTorrent, BitTorrentTracker,

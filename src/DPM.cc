@@ -215,7 +215,10 @@ bool DPM::BuildInitialAnalyzerTree(TransportProto proto, Connection* conn,
 
 	case TRANSPORT_ICMP: {
 		const struct icmp* icmpp = (const struct icmp *) data;
-		switch ( icmpp->icmp_type ) {
+
+
+		//Old code, moving to having only one ICMP analyzer
+		/*switch ( icmpp->icmp_type ) {
 
 		case ICMP_ECHO:
 		case ICMP_ECHOREPLY:
@@ -241,10 +244,11 @@ bool DPM::BuildInitialAnalyzerTree(TransportProto proto, Connection* conn,
 				DBG_DPD(conn, "activated ICMP Time Exceeded analyzer");
 				}
 			break;
-		}
+		}*/
+		//if ( ! root )
 
-		if ( ! root )
-			root = new ICMP_Analyzer(conn);
+		root = new ICMP_Analyzer(conn);
+		DBG_DPD(conn, "activated ICMP analyzer");
 
 		analyzed = true;
 		break;

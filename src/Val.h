@@ -513,9 +513,10 @@ protected:
 #define NUM_PORT_SPACES 4
 #define PORT_SPACE_MASK 0x30000
 
-#define TCP_PORT_MASK  0x10000
-#define UDP_PORT_MASK  0x20000
-#define ICMP_PORT_MASK 0x30000
+#define TCP_PORT_MASK  		0x10000
+#define UDP_PORT_MASK 		0x20000
+#define ICMP_PORT_MASK 		0x30000
+
 
 typedef enum {
 	TRANSPORT_UNKNOWN, TRANSPORT_TCP, TRANSPORT_UDP, TRANSPORT_ICMP,
@@ -536,6 +537,7 @@ public:
 	int IsTCP() const;
 	int IsUDP() const;
 	int IsICMP() const;
+
 
 	TransportProto PortType() const
 		{

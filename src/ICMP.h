@@ -34,15 +34,27 @@ protected:
 	virtual bool IsReuse(double t, const u_char* pkt);
 	virtual unsigned int MemoryAllocation() const;
 
-	void ICMPEvent(EventHandlerPtr f);
+	void ICMPEvent(EventHandlerPtr f, int ICMP6Flag);
+
+	void Echo(double t, const struct icmp* icmpp, int len,
+			 int caplen, const u_char*& data, const IP_Hdr* ip_hdr);
+	void Context(double t, const struct icmp* icmpp, int len,
+			 int caplen, const u_char*& data, const IP_Hdr* ip_hdr);
+	void Router(double t, const struct icmp* icmpp, int len,
+			 int caplen, const u_char*& data, const IP_Hdr* ip_hdr);
+
+
+
 	void Describe(ODesc* d) const;
 
-	RecordVal* BuildICMPVal();
+	RecordVal* BuildICMPVal(int ICMP6Flag);
 
 	virtual void NextICMP(double t, const struct icmp* icmpp,
-				int len, int caplen, const u_char*& data);
+				int len, int caplen, const u_char*& data, const IP_Hdr* ip_hdr);
 
-	RecordVal* ExtractICMPContext(int len, const u_char*& data);
+	RecordVal* ExtractICMP4Context(int len, const u_char*& data);
+	RecordVal* ExtractICMP6Context(int len, const u_char*& data);
+
 
 	RecordVal* icmp_conn_val;
 	int type;
@@ -54,65 +66,24 @@ protected:
 	RuleMatcherState matcher_state;
 };
 
-class ICMP_Echo_Analyzer : public ICMP_Analyzer {
-public:
-	ICMP_Echo_Analyzer(Connection* conn);
+/*class ICMP4_Analyzer : public ICMP_Analyzer {
 
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
-		{ return new ICMP_Echo_Analyzer(conn); }
 
-	static bool Available()	{ return icmp_echo_request || icmp_echo_reply; }
 
-protected:
-	ICMP_Echo_Analyzer()	{ }
-
-	virtual void NextICMP(double t, const struct icmp* icmpp,
-	                      int len, int caplen, const u_char*& data);
 };
 
-class ICMP_Context_Analyzer : public ICMP_Analyzer {
-public:
-	ICMP_Context_Analyzer(AnalyzerTag::Tag tag, Connection* conn)
-		: ICMP_Analyzer(tag, conn)	{ }
+class ICMP6_Analyzer : public ICMP_Analyzer {
 
-protected:
-	ICMP_Context_Analyzer()	{ }
 
-	virtual void NextICMP(double t, const struct icmp* icmpp,
-	                      int len, int caplen, const u_char*& data);
-};
 
-class ICMP_TimeExceeded_Analyzer : public ICMP_Context_Analyzer {
-public:
-	ICMP_TimeExceeded_Analyzer(Connection* conn)
-		: ICMP_Context_Analyzer(AnalyzerTag::ICMP_TimeExceeded, conn)	{ }
-
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
-		{ return new ICMP_TimeExceeded_Analyzer(conn); }
-
-	static bool Available() { return icmp_time_exceeded; }
-
-protected:
-	ICMP_TimeExceeded_Analyzer()	{ }
-};
-
-class ICMP_Unreachable_Analyzer : public ICMP_Context_Analyzer {
-public:
-	ICMP_Unreachable_Analyzer(Connection* conn)
-		: ICMP_Context_Analyzer(AnalyzerTag::ICMP_Unreachable, conn)	{ }
-
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
-		{ return new ICMP_Unreachable_Analyzer(conn); }
-
-	static bool Available() { return icmp_unreachable; }
-
-protected:
-	ICMP_Unreachable_Analyzer()	{ }
-};
-
+};*/
 
 // Returns the counterpart type to the given type (e.g., the counterpart
 // to ICMP_ECHOREPLY is ICMP_ECHO).
-extern int ICMP_counterpart(int icmp_type, int icmp_code, bool& is_one_way);
+//extern int ICMP_counterpart(int icmp_type, int icmp_code, bool& is_one_way);
+extern int ICMP4_counterpart(int icmp_type, int icmp_code, bool& is_one_way);
+extern int ICMP6_counterpart(int icmp_type, int icmp_code, bool& is_one_way);
+extern int Type6to4(int icmp_type);
+extern int Code6to4(int icmp_code);
 
 #endif

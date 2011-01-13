@@ -872,7 +872,6 @@ PortVal::PortVal(uint32 p, TransportProto port_type) : Val(TYPE_PORT)
 	case TRANSPORT_ICMP:
 		p |= ICMP_PORT_MASK;
 		break;
-
 	default:
 		break;	// "other"
 	}

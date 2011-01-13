@@ -52,11 +52,21 @@ event udp_request%(u: connection%);
 event udp_reply%(u: connection%);
 event udp_contents%(u: connection, is_orig: bool, contents: string%);
 event udp_session_done%(u: connection%);
-event icmp_sent%(c: connection, icmp: icmp_conn%);
-event icmp_echo_request%(c: connection, icmp: icmp_conn, id: count, seq: count, payload: string%);
-event icmp_echo_reply%(c: connection, icmp: icmp_conn, id: count, seq: count, payload: string%);
+
+event icmp_sent%(c: connection, icmp: icmp_conn, ICMP6: bool%);
+event icmp_echo_request%(c: connection, icmp: icmp_conn, id: count, seq: count, payload: string, ICMP6: bool%);
+event icmp_echo_reply%(c: connection, icmp: icmp_conn, id: count, seq: count, payload: string, ICMP6: bool%);
 event icmp_unreachable%(c: connection, icmp: icmp_conn, code: count, context: icmp_context%);
-event icmp_time_exceeded%(c: connection, icmp: icmp_conn, code: count, context: icmp_context%);
+event icmp_error_message%(c: connection, icmp: icmp_conn, code: count, context: icmp_context%);
+event icmp_router_advertisement%(c: connection, icmp: icmp_conn, ICMP6: bool%);
+
+
+
+event icmp6_placeholder%(c: connection, icmp: icmp_conn, ICMP6: bool%);
+
+
+
+
 event net_stats_update%(t: time, ns: net_stats%);
 event conn_stats%(c: connection, os: endpoint_stats, rs: endpoint_stats%);
 event conn_weird%(name: string, c: connection%);

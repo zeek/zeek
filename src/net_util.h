@@ -91,6 +91,7 @@ extern int udp_checksum(const struct ip* ip, const struct udphdr* up, int len);
 #ifdef BROv6
 extern int udp6_checksum(const struct ip6_hdr* ip, const struct udphdr* up,
 				int len);
+extern int icmp6_checksum(const struct icmp* icmpp, const struct ip6_hdr* ip6, int len);
 #endif
 extern int icmp_checksum(const struct icmp* icmpp, int len);
 

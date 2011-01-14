@@ -168,6 +168,11 @@ CheckOptionalBuildSources(aux/broccoli Broccoli INSTALL_BROCCOLI)
 ########################################################################
 ## Packaging Setup
 
+if (INSTALL_BROCTL)
+    # CPack RPM Generator may not automatically detect this
+    set(CPACK_RPM_PACKAGE_REQUIRES "python >= 2.4.0")
+endif ()
+
 # If this CMake project is a sub-project of another, we will not
 # configure the generic packaging because CPack will fail in the case
 # that the parent project has already configured packaging

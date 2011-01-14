@@ -45,7 +45,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-perftools=PATH  path to Google Perftools install root
 
   Packaging Options (for developers):
-    --enable-package       toggles special build logic for binary packaging
+    --package              toggles special build logic for binary packaging
     --ignore-dirs=PATHS    paths to ignore when creating source package
                            (semicolon delimited and quoted when multiple)
     --pkg-name-prefix=NAME use the given name as the package prefix instead
@@ -165,7 +165,7 @@ while [ $# -ne 0 ]; do
         --with-perftools=*)
             append_cache_entry GooglePerftools_ROOT_DIR PATH $optarg
             ;;
-        --enable-package)
+        --package)
             append_cache_entry PACKAGING_MODE BOOL true
             ;;
         --ignore-dirs=*)

@@ -13,8 +13,12 @@ You may choose to update your PATH environment variable:
 If you have more than one volume, please choose the install
 destination as the one that contains the root filesystem.
 
-If you have an existing broccoli.conf file that is modified or
-otherwise different from the version included in the package, it
-will be overwritten and a backup of the existing file placed in:
+If you have existing configuration files that are modified or
+otherwise different from the version included in the package,
+this installer will attempt to prevent clobbering them by
+backing them up like:
 
-    @CMAKE_INSTALL_PREFIX@/etc/broccoli.conf.<nextAvailableNumber>
+    @CMAKE_INSTALL_PREFIX@/etc/<file>.<nextAvailableNumber>
+
+but its also advisable to make your own backups of important
+files before proceeding.

@@ -1,0 +1,56 @@
+#!/bin/sh
+
+# This script is meant to be used by binary packages post-installation.
+# Variables between @ symbols are replaced by CMake at configure time.
+
+backupDesc="# Backup made by install of @CMAKE_PROJECT_NAME@ version @VERSION@"
+backupNamesFile=/tmp/bro_install_backups
+
+# check whether it's safe to remove backup configuration files that
+# the most recent package install created
+
+if [ -e ${backupNamesFile} ]; then
+    backupFileList=`cat ${backupNamesFile}`
+
+    for backupFile in ${backupFileList}; do
+        origFile=`echo ${backupFile} | sed 's/\(.*\)\..*/\1/'`
+
+        diff ${origFile} ${backupFile} > /dev/null 2>&1
+
+        if [ $? -eq 0 ]; then
+            # if the installed version and the backup version don't differ
+            # then we can remove the backup version
+            rm ${backupFile}
+        else
+            # keep the backup, prepend text explaining what created it
+            tmpfile=/tmp/bro_install_tmp$$
+            echo ${backupDesc} > ${tmpfile}
+            echo "" >> ${tmpfile}
+            cat ${backupFile} >> ${tmpfile}
+            cp ${tmpfile} ${backupFile}
+            rm ${tmpfile}
+        fi
+
+    done
+
+    rm ${backupNamesFile}
+fi
+
+# make sure that world-writeable dirs have the sticky bit set
+# so that unprivileged can't rename/remove files within
+
+if [ -d /var/opt/bro/spool ]; then
+    chmod +t /var/opt/bro/spool
+fi
+
+if [ -d /var/opt/bro/spool/tmp ]; then
+    chmod +t /var/opt/bro/spool/tmp
+fi
+
+if [ -d /var/opt/bro/spool/policy ]; then
+    chmod +t /var/opt/bro/spool/policy
+fi
+
+if [ -d /var/opt/bro/logs ]; then
+    chmod +t /var/opt/bro/logs
+fi

@@ -2,6 +2,29 @@
 
 -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
+1.6-dev.4 Sat Jan 15 14:14:21 PST 2011
+
+- Updates to the build system (Jonathan Siwek)
+
+    * ``make dist`` is now available to be used with the top-level
+      Makefile for creating source packages according to #344.
+
+    * ``make-rpm-packages`` and ``make-mac-packages`` scripts can
+      now generate binary packages according to #295.
+
+    * Additional configure options to change packaging behavior.
+      
+    * OS X builds will now prefer to link static libraries of
+      optional dependencies that don't come with the vanilla
+      operating system.
+
+    * Fix for OS X 10.5 compile error dealing with the llabs()
+      function from stdlib.
+
+    * Installing as a different user than the one that
+      configured/built now works (although, a harmless error message
+      about not being able to write the install manifest may occur).
+
 1.6-dev.3 Wed Dec  8 04:09:38 PST 2010
 
 - Merge with Subversion repository as of r7137. Incorporated change:

@@ -21,8 +21,16 @@ find_path(LibMagic_ROOT_DIR
     NAMES include/magic.h
 )
 
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    # the static version of the library is preferred on OS X for the
+    # purposes of making packages (libmagic doesn't ship w/ OS X)
+    set(libmagic_names libmagic.a magic)
+else ()
+    set(libmagic_names magic)
+endif ()
+
 find_library(LibMagic_LIBRARY
-    NAMES magic
+    NAMES ${libmagic_names}
     HINTS ${LibMagic_ROOT_DIR}/lib
 )
 

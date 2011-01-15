@@ -4,7 +4,9 @@
 # Sets CPack version variables by splitting the first macro argument
 # using "." as a delimiter.  If the length of the split list is
 # greater than 2, all remaining elements are tacked on to the patch
-# level version.
+# level version.  Not that the version set by the macro is internal
+# to binary packaging, the file name of our package will reflect the
+# exact version number.
 macro(SetPackageVersion _version)
     string(REPLACE "." " " version_numbers ${_version})
     separate_arguments(version_numbers)
@@ -33,8 +35,10 @@ macro(SetPackageVersion _version)
                ${CPACK_PACKAGE_VERSION_MAJOR})
         string(REGEX REPLACE "[_a-zA-Z-]" "" CPACK_PACKAGE_VERSION_MINOR
                ${CPACK_PACKAGE_VERSION_MINOR})
-        string(REGEX REPLACE "[_a-zA-Z-]" "" CPACK_PACKAGE_VERSION_PATCH
-               ${CPACK_PACKAGE_VERSION_PATCH})
+        if (CPACK_PACKAGE_VERSION_PATCH)
+            string(REGEX REPLACE "[_a-zA-Z-]" "" CPACK_PACKAGE_VERSION_PATCH
+                   ${CPACK_PACKAGE_VERSION_PATCH})
+        endif ()
     endif ()
 
     if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -43,8 +47,10 @@ macro(SetPackageVersion _version)
                ${CPACK_PACKAGE_VERSION_MAJOR})
         string(REGEX REPLACE "[-]" "" CPACK_PACKAGE_VERSION_MINOR
                ${CPACK_PACKAGE_VERSION_MINOR})
-        string(REGEX REPLACE "[-]" "" CPACK_PACKAGE_VERSION_PATCH
-               ${CPACK_PACKAGE_VERSION_PATCH})
+        if (CPACK_PACKAGE_VERSION_PATCH)
+            string(REGEX REPLACE "[-]" "" CPACK_PACKAGE_VERSION_PATCH
+                   ${CPACK_PACKAGE_VERSION_PATCH})
+        endif ()
     endif ()
 
     # Minimum supported OS X version
@@ -143,14 +149,16 @@ endmacro(SetPackageMetadata)
 # See also: http://public.kitware.com/Bug/view.php?id=10294
 macro(SetPackageInstallScripts)
 
-    # Remove duplicates from the list of installed config files
-    separate_arguments(INSTALLED_CONFIG_FILES)
-    list(REMOVE_DUPLICATES INSTALLED_CONFIG_FILES)
-    # Space delimit the list again
-    foreach (_file ${INSTALLED_CONFIG_FILES})
-        set(_tmp "${_tmp} ${_file}")
-    endforeach ()
-    set(INSTALLED_CONFIG_FILES "${_tmp}" CACHE STRING "" FORCE)
+    if (INSTALLED_CONFIG_FILES)
+        # Remove duplicates from the list of installed config files
+        separate_arguments(INSTALLED_CONFIG_FILES)
+        list(REMOVE_DUPLICATES INSTALLED_CONFIG_FILES)
+        # Space delimit the list again
+        foreach (_file ${INSTALLED_CONFIG_FILES})
+            set(_tmp "${_tmp} ${_file}")
+        endforeach ()
+        set(INSTALLED_CONFIG_FILES "${_tmp}" CACHE STRING "" FORCE)
+    endif ()
 
     if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/cmake/package_preinstall.sh.in)
         configure_file(

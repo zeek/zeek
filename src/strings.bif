@@ -204,10 +204,6 @@ Val* do_split(StringVal* str_val, RE_Matcher* re, TableVal* other_sep,
 	if ( other_sep && other_sep->Size() > 0 )
 		other_strings = other_sep->ConvertToPureList();
 
-	// Currently let us assume that str is NUL-terminated. In
-	// the future we expect to change this by giving RE_Matcher a
-	// const char* segment.
-
 	const u_char* s = str_val->Bytes();
 	int n = str_val->Len();
 	const u_char* end_of_s = s + n;
@@ -215,7 +211,6 @@ Val* do_split(StringVal* str_val, RE_Matcher* re, TableVal* other_sep,
 	int num_sep = 0;
 	
 	int offset = 0;
-
 	while ( n > 0 )
 		{
 		offset = 0;
@@ -224,7 +219,7 @@ Val* do_split(StringVal* str_val, RE_Matcher* re, TableVal* other_sep,
 		while ( n > 0 &&
 		        (end_of_match = re->MatchPrefix(&s[offset], n)) <= 0 )
 			{
-			// Move on to next character.
+			// Move on to next byte.
 			++offset;
 			--n;
 			}
@@ -249,7 +244,6 @@ Val* do_split(StringVal* str_val, RE_Matcher* re, TableVal* other_sep,
 		
 		++num_sep;
 		
-		offset += end_of_match;
 		n -= end_of_match;
 		s += offset;
 		

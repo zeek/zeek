@@ -804,6 +804,15 @@ const char* bro_prefixes()
 
 	return p;
 	}
+	
+const char* bro_dns_fake()
+	{
+	char* dns_fake = getenv("BRO_DNS_FAKE");
+	if ( !dns_fake )
+		return "";
+	else 
+		return dns_fake;
+	}
 
 FILE* open_file(const char* filename, const char** full_filename)
 	{

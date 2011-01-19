@@ -184,6 +184,7 @@ void usage()
 
 	fprintf(stderr, "    $BROPATH                       | file search path (%s)\n", bro_path());
 	fprintf(stderr, "    $BRO_PREFIXES                  | prefix list (%s)\n", bro_prefixes());
+	fprintf(stderr, "    $BRO_DNS_FAKE                  | enable faked DNS query responses (%s)\n", bro_dns_fake());
 
 	exit(1);
 	}

@@ -2813,7 +2813,7 @@ private:
 # function result.  Therefore, they can only be called inside a when-condition.
 function lookup_addr%(host: addr%) : string
 	%{
-	// FIXME: Is should be easy to adapt the function to synchronous
+	// FIXME: It should be easy to adapt the function to synchronous
 	// lookups if we're reading a trace.
 	Trigger* trigger = frame->GetTrigger();
 
@@ -2829,8 +2829,18 @@ function lookup_addr%(host: addr%) : string
 #ifdef BROv6
 	if ( ! is_v4_addr(host) )
 		{
-		builtin_run_time("lookup_addr() only supports IPv4 addresses");
-		return new StringVal("<ipv6-address>");
+		// FIXME: This is a temporary work-around until we get this
+		// fixed. We warn the user once, and always trigger a timeout.
+		// Ticket #355 records the problem.
+		static bool warned = false;
+		if ( ! warned )
+			{
+			warn("lookup_addr() only supports IPv4 addresses currently");
+			warned = true;
+			}
+
+		trigger->Timeout();
+		return 0;
 		}
 
 	dns_mgr->AsyncLookupAddr(to_v4_addr(host),

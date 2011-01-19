@@ -140,14 +140,12 @@ macro(SetPackageMetadata)
     set(CPACK_RPM_PACKAGE_LICENSE "BSD")
 endmacro(SetPackageMetadata)
 
-# Sets pre and post install scripts for PackageMaker and RPM packages.
+# Sets pre and post install scripts for PackageMaker packages.
 # The main functionality that such scripts offer is a way to make backups
 # of "configuration" files that a user may have modified.
-# A better way to prevent an RPM from not overwriting config files is
-# with the %config(noreplace) .spec attribute, but CPack does not have any
-# good hooks into using that yet, so we re-use the pre/post install scripts
-# See also: http://public.kitware.com/Bug/view.php?id=10294
-macro(SetPackageInstallScripts)
+# Note that RPMs already have a robust mechanism for dealing with
+# user-modified files, so we do not need this additional functionality
+macro(SetPackageInstallScripts VERSION)
 
     if (INSTALLED_CONFIG_FILES)
         # Remove duplicates from the list of installed config files
@@ -158,6 +156,14 @@ macro(SetPackageInstallScripts)
             set(_tmp "${_tmp} ${_file}")
         endforeach ()
         set(INSTALLED_CONFIG_FILES "${_tmp}" CACHE STRING "" FORCE)
+    endif ()
+
+    if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+        # Leaving the set of installed config files empty will just
+        # bypass the logic in the pre/post install scripts and let
+        # the RPM do their own thing (regarding backups, etc.)
+        # when upgrading packages.
+        set (INSTALLED_CONFIG_FILES "")
     endif ()
 
     if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/cmake/package_preinstall.sh.in)
@@ -189,7 +195,7 @@ macro(ConfigurePackaging _version)
     SetPackageGenerators()
     SetPackageFileName(${_version})
     SetPackageMetadata()
-    SetPackageInstallScripts()
+    SetPackageInstallScripts(${_version})
 
     set(CPACK_SET_DESTDIR true)
     set(CPACK_PACKAGING_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})

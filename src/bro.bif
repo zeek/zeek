@@ -359,6 +359,18 @@ function cat%(...%): string
 
 	return new StringVal(s);
 	%}
+	
+function logging_log%(id: Logging_ID, rec: any%): bool
+	%{
+	// Generate the log line event
+	// Lookup the log file
+	TableVal *f = opt_internal_table("Logging::filters");
+	TableVal *s = f->Lookup(id, 0)->AsTableVal();
+	
+	// For each filter on 'id'
+	// 		Format the output
+	// 		Print the line
+	%}
 
 function cat_sep%(sep: string, def: string, ...%): string
 	%{

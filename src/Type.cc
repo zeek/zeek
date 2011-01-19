@@ -1336,7 +1336,9 @@ static int is_init_compat(const BroType* t1, const BroType* t2)
 
 int same_type(const BroType* t1, const BroType* t2, int is_init)
 	{
-	if ( t1 == t2 )
+	if ( t1 == t2 ||
+	     t1->Tag() == TYPE_ANY ||
+	     t2->Tag() == TYPE_ANY )
 		return 1;
 
 	t1 = flatten_type(t1);

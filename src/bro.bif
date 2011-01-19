@@ -1848,15 +1848,15 @@ function uuid_to_string%(uuid: string%): string
 	%}
 
 
-# The following functions are attempts to convert strings into
-# patterns at run-time. These attempts were later *abandoned* because
-# NFA and DFA cannot be cleanly deallocated.
+# The following functions convert strings into patterns at run-time. As the
+# computed NFAs and DFAs cannot be cleanly deallocated (at least for now),
+# they can only be used at initialization time.
 
 function merge_pattern%(p1: pattern, p2: pattern%): pattern
 	%{
-	if ( reading_live )
+	if ( bro_start_network_time != 0.0 )
 		{
-		builtin_run_time("should not call merge_pattern while reading live traffic");
+		builtin_run_time("merge_pattern can only be called at init time");
 		return 0;
 		}
 
@@ -1900,9 +1900,9 @@ function convert_for_pattern%(s: string%): string
 
 function string_to_pattern%(s: string, convert: bool%): pattern
 	%{
-	if ( reading_live )
+	if ( bro_start_network_time != 0.0 )
 		{
-		builtin_run_time("should not call merge_pattern while reading live traffic");
+		builtin_run_time("string_to_pattern can only be called at init time");
 		return 0;
 		}
 

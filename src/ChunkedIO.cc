@@ -7,6 +7,7 @@
 #include <sys/time.h>
 #include <netinet/in.h>
 #include <assert.h>
+#include <openssl/ssl.h>
 
 #include "config.h"
 #include "ChunkedIO.h"
@@ -650,11 +651,6 @@ void ChunkedIOFd::Stats(char* buffer, int length)
 	ChunkedIO::Stats(buffer + i, length - i);
 	}
 
-
-#ifdef USE_OPENSSL
-
-#include <openssl/ssl.h>
-
 SSL_CTX* ChunkedIOSSL::ctx;
 
 ChunkedIOSSL::ChunkedIOSSL(int arg_socket, bool arg_server)
@@ -1173,8 +1169,6 @@ void ChunkedIOSSL::Stats(char* buffer, int length)
 	int i = safe_snprintf(buffer, length, "pending=%ld ", stats.pending);
 	ChunkedIO::Stats(buffer + i, length - i);
 	}
-
-#endif	/* USE_OPENSSL */
 
 #ifdef HAVE_LIBZ
 

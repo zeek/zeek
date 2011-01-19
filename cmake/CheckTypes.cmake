@@ -1,0 +1,46 @@
+include(CheckTypeSize)
+
+check_type_size("long int" SIZEOF_LONG_INT)
+check_type_size("long long" SIZEOF_LONG_LONG)
+check_type_size("void *" SIZEOF_VOID_P)
+
+set(CMAKE_EXTRA_INCLUDE_FILES sys/types.h)
+
+check_type_size(int32_t INT32_T)
+if (INT32_T)
+    set(INT32_T int32_t)
+else()
+    set(INT32_T int)
+endif()
+
+check_type_size(u_int32_t U_INT32_T)
+if (U_INT32_T)
+    set(U_INT32_T u_int32_t)
+else ()
+    set(INT32_T u_int)
+endif ()
+
+check_type_size(u_int16_t U_INT16_T)
+if (U_INT16_T)
+    set(U_INT16_T u_int16_t)
+else ()
+    set(INT16_T u_short)
+endif ()
+
+check_type_size(u_int8_t U_INT8_T)
+if (U_INT8_T)
+    set(U_INT8_T u_int8_t)
+else ()
+    set(INT8_T u_char)
+endif ()
+
+set(CMAKE_EXTRA_INCLUDE_FILES)
+
+set(CMAKE_EXTRA_INCLUDE_FILES sys/socket.h)
+check_type_size(socklen_t SOCKLEN_T)
+if (SOCKLEN_T)
+    set(SOCKLEN_T socklen_t)
+else ()
+    set(SOCKLEN_T int)
+endif ()
+set(CMAKE_EXTRA_INCLUDE_FILES)

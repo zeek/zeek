@@ -12,6 +12,7 @@
 #include "FlowSrc.h"
 #include "Net.h"
 #include "netflow_pac.h"
+#include <errno.h>
 
 FlowSrc::FlowSrc()
 	{ // TODO: v9.
@@ -28,10 +29,8 @@ FlowSrc::~FlowSrc()
 
 void FlowSrc::GetFds(int* read, int* write, int* except)
 	{
-#ifdef USE_SELECT_LOOP
 	if ( selectable_fd >= 0 )
 		*read = selectable_fd;
-#endif
 	}
 
 double FlowSrc::NextTimestamp(double* network_time)

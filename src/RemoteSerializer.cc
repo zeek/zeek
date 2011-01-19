@@ -161,11 +161,11 @@
 #include <stdarg.h>
 
 #include "config.h"
-#if TIME_WITH_SYS_TIME
+#ifdef TIME_WITH_SYS_TIME
 # include <sys/time.h>
 # include <time.h>
 #else
-# if HAVE_SYS_TIME_H
+# ifdef HAVE_SYS_TIME_H
 #  include <sys/time.h>
 # else
 #  include <time.h>
@@ -681,7 +681,7 @@ bool RemoteSerializer::CloseConnection(Peer* peer)
 	if ( peer->suspended_processing )
 		{
 		net_continue_processing();
-		current_peer->suspended_processing = false;
+		peer->suspended_processing = false;
 		}
 
 	if ( peer->state == Peer::CLOSING )
@@ -1170,14 +1170,6 @@ bool RemoteSerializer::Listen(addr_type ip, uint16 port, bool expect_ssl)
 	if ( ! using_communication )
 		return true;
 
-#ifndef USE_OPENSSL
-	if ( expect_ssl )
-		{
-		Error("listening for SSL connections requested, but SSL support is not compiled in");
-		return false;
-		}
-#endif
-
 	if ( ! initialized )
 		internal_error("remote serializer not initialized");
 
@@ -1614,6 +1606,12 @@ void RemoteSerializer::PeerDisconnected(Peer* peer)
 	{
 	assert(peer);
 
+	if ( peer->suspended_processing )
+		{
+		net_continue_processing();
+		peer->suspended_processing = false;
+		}
+
 	if ( peer->state == Peer::CLOSED || peer->state == Peer::INIT )
 		return;
 
@@ -1744,6 +1742,12 @@ void RemoteSerializer::UnregisterHandlers(Peer* peer)
 
 void RemoteSerializer::RemovePeer(Peer* peer)
 	{
+	if ( peer->suspended_processing )
+		{
+		net_continue_processing();
+		peer->suspended_processing = false;
+		}
+
 	peers.remove(peer);
 	UnregisterHandlers(peer);
 
@@ -2941,7 +2945,7 @@ void SocketComm::Run()
 		struct timeval small_timeout;
 		small_timeout.tv_sec = 0;
 		small_timeout.tv_usec =
-			io->CanWrite() || io->CanRead() ? 10 : 10000;
+			io->CanWrite() || io->CanRead() ? 1 : 10;
 
 		int a = select(max_fd + 1, &fd_read, &fd_write, &fd_except,
 				&small_timeout);
@@ -3481,13 +3485,7 @@ bool SocketComm::Connect(Peer* peer)
 		{
 		if ( peer->ssl )
 			{
-#ifdef USE_OPENSSL
 			peer->io = new ChunkedIOSSL(sockfd, false);
-#else
-			run_time("SSL connection requested, but SSL support not compiled in");
-			CloseConnection(peer, false);
-			return 0;
-#endif
 			}
 		else
 			peer->io = new ChunkedIOFd(sockfd, "child->peer");
@@ -3621,15 +3619,10 @@ bool SocketComm::AcceptConnection(int fd)
 	peer->ssl = (fd == listen_fd_ssl);
 	peer->compressor = false;
 
-#ifdef USE_OPENSSL
 	if ( peer->ssl )
 		peer->io = new ChunkedIOSSL(clientfd, true);
 	else
 		peer->io = new ChunkedIOFd(clientfd, "child->peer");
-#else
-	assert(! peer->ssl);
-	peer->io = new ChunkedIOFd(clientfd, "child->peer");
-#endif
 
 	if ( ! peer->io->Init() )
 		{

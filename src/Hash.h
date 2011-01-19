@@ -24,9 +24,7 @@ class HashKey {
 public:
 	HashKey(bro_int_t i);
 	HashKey(bro_uint_t u);
-#ifdef USE_INT64
 	HashKey(uint32 u);
-#endif
 	HashKey(const uint32 u[], int n);
 	HashKey(double d);
 	HashKey(const void* p);
@@ -78,9 +76,7 @@ protected:
 
 	union {
 		bro_int_t i;
-#ifdef USE_INT64
 		uint32 u32;
-#endif
 		double d;
 		const void* p;
 	} key_u;

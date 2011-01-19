@@ -10,11 +10,9 @@
 
 #include "util.h"
 
-#ifdef USE_OPENSSL
 #include <openssl/x509.h>
 #include <openssl/x509_vfy.h>
 #include "X509.h"
-#endif
 %}
 
 
@@ -27,14 +25,11 @@
 			}
 	};
 
-#ifdef USE_OPENSSL
 	void free_X509(void *);
 	X509* d2i_X509_binpac(X509** px, const uint8** in, int len);
-#endif
 	%}
 
 %code{
-#ifdef USE_OPENSSL
 	void free_X509(void* cert)
 		{
 		X509_free((X509*) cert);
@@ -48,8 +43,6 @@
 		return d2i_X509(px, (u_char**) in, len);
 #endif
 		}
-
-#endif
 %}
 
 
@@ -123,10 +116,8 @@ refine analyzer SSLAnalyzer += {
 		version_ = -1;
 		cipher_ = -1;
 
-#ifdef USE_OPENSSL
 		if ( ! X509_Cert::bInited )
 			X509_Cert::init();
-#endif
 	%}
 
 	%eof{
@@ -172,12 +163,10 @@ refine analyzer SSLAnalyzer += {
 
 	function certificate_error(err_num : int) : void
 		%{
-#ifdef USE_OPENSSL
 		StringVal* err_str =
 			new StringVal(X509_verify_cert_error_string(err_num));
 		bro_event_ssl_X509_error(bro_analyzer_, bro_analyzer_->Conn(),
 						err_num, err_str);
-#endif
 		%}
 
 	function proc_change_cipher_spec(msg : ChangeCipherSpec) : bool
@@ -331,7 +320,6 @@ refine analyzer SSLAnalyzer += {
 						bro_analyzer_->Conn(),
 						! current_record_is_orig_);
 
-#ifdef USE_OPENSSL
 		const bytestring& cert = (*certificates)[0];
 		const uint8* data = cert.data();
 
@@ -382,7 +370,7 @@ refine analyzer SSLAnalyzer += {
 			STACK_OF(X509)* untrusted_certs = 0;
 			if ( certificates->size() > 1 )
 				{
-				untrusted_certs = sk_new_null();
+				untrusted_certs = sk_X509_new_null();
 				if ( ! untrusted_certs )
 					{
 					// X509_V_ERR_OUT_OF_MEM;
@@ -405,7 +393,7 @@ refine analyzer SSLAnalyzer += {
 						return false;
 						}
 
-					sk_push(untrusted_certs, (char*) pTemp);
+					sk_X509_push(untrusted_certs, pTemp);
 					}
 				}
 
@@ -417,11 +405,10 @@ refine analyzer SSLAnalyzer += {
 				certificate_error(csc.error);
 			X509_STORE_CTX_cleanup(&csc);
 
-			sk_pop_free(untrusted_certs, free_X509);
+			sk_X509_pop_free(untrusted_certs, X509_free);
 			}
 
 		X509_free(pCert);
-#endif
 	return true;
 		%}
 

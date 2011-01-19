@@ -5,11 +5,11 @@
 #include "config.h"
 
 #include <sys/types.h>
-#if TIME_WITH_SYS_TIME
+#ifdef TIME_WITH_SYS_TIME
 # include <sys/time.h>
 # include <time.h>
 #else
-# if HAVE_SYS_TIME_H
+# ifdef HAVE_SYS_TIME_H
 #  include <sys/time.h>
 # else
 #  include <time.h>
@@ -217,11 +217,8 @@ bool BroFile::Open(FILE* file)
 		return false;
 		}
 
-	val_list* vl = new val_list;
-	Ref(this);
-	vl->append(new Val(this));
-	Event* event = new ::Event(::file_opened, vl);
-	mgr.Dispatch(event, true);
+	RaiseOpenEvent();
+
 	return true;
 	}
 
@@ -233,10 +230,7 @@ BroFile::~BroFile()
 
 	delete [] name;
 	delete [] access;
-
-#ifdef USE_OPENSSL
 	delete [] cipher_buffer;
-#endif
 
 #ifdef USE_PERFTOOLS
 	heap_checker->UnIgnoreObject(this);
@@ -257,12 +251,9 @@ void BroFile::Init()
 	print_hook = true;
 	raw_output = false;
 	t = 0;
-
-#ifdef USE_OPENSSL
 	pub_key = 0;
 	cipher_ctx = 0;
 	cipher_buffer = 0;
-#endif
 
 #ifdef USE_PERFTOOLS
 	heap_checker->IgnoreObject(this);
@@ -305,6 +296,7 @@ FILE* BroFile::BringIntoCache()
 		return f;
 		}
 
+	RaiseOpenEvent();
 	UpdateFileSize();
 
 	if ( fseek(f, position, SEEK_SET) < 0 )
@@ -348,9 +340,7 @@ int BroFile::Close()
 	if ( ! is_open )
 		return 1;
 
-#ifdef USE_OPENSSL
 	FinishEncrypt();
-#endif
 
 	// Do not close stdout/stderr.
 	if ( f == stdout || f == stderr )
@@ -640,19 +630,6 @@ void BroFile::CloseCachedFiles()
 		}
 	}
 
-#ifndef USE_OPENSSL
-
-void BroFile::InitEncrypt(const char* keyfile)
-	{
-	if ( keyfile )
-		{
-		error("file encryption requested, but OpenSSL support not compiled in.");
-		Close();
-		}
-	}
-
-#else
-
 void BroFile::InitEncrypt(const char* keyfile)
 	{
 	if ( ! (pub_key || keyfile) )
@@ -716,14 +693,12 @@ void BroFile::InitEncrypt(const char* keyfile)
 	int buf_size = MIN_BUFFER_SIZE + EVP_CIPHER_block_size(cipher_type);
 	cipher_buffer = new unsigned char[buf_size];
 	}
-#endif
 
 void BroFile::FinishEncrypt()
 	{
 	if ( ! is_open )
 		return;
 
-#ifdef USE_OPENSSL
 	if ( ! pub_key )
 		return;
 
@@ -742,7 +717,6 @@ void BroFile::FinishEncrypt()
 		delete cipher_ctx;
 		cipher_ctx = 0;
 		}
-#endif
 	}
 
 
@@ -757,7 +731,6 @@ int BroFile::Write(const char* data, int len)
 	if ( ! len )
 		len = strlen(data);
 
-#ifdef USE_OPENSSL
 	if ( cipher_ctx )
 		{
 		while ( len )
@@ -789,7 +762,6 @@ int BroFile::Write(const char* data, int len)
 
 		return 1;
 		}
-#endif
 
 	len = fwrite(data, 1, len, f);
 	if ( len <= 0 )
@@ -807,6 +779,18 @@ int BroFile::Write(const char* data, int len)
 	current_size += len;
 
 	return true;
+	}
+
+void BroFile::RaiseOpenEvent()
+	{
+	if ( ! ::file_opened )
+		return;
+
+	val_list* vl = new val_list;
+	Ref(this);
+	vl->append(new Val(this));
+	Event* event = new ::Event(::file_opened, vl);
+	mgr.Dispatch(event, true);
 	}
 
 void BroFile::UpdateFileSize()

@@ -161,34 +161,12 @@ bro_int_t TCP_Endpoint::Size() const
 	{
 	bro_int_t size;
 
-#ifdef USE_INT64
-
 	uint64 last_seq_64 = (uint64(last_seq_high) << 32) | last_seq;
 	uint64 ack_seq_64 = (uint64(ack_seq_high) << 32) | ack_seq;
 	if ( last_seq_64 > ack_seq_64 )
 		size = last_seq_64 - start_seq;
 	else
 		size = ack_seq_64 - start_seq;
-
-#else
-
-	if ( seq_delta(last_seq, ack_seq) > 0 || ack_seq == start_seq + 1 )
-		// Either last_seq corresponds to more data sent than we've
-		// seen ack'd, or we haven't seen any data ack'd (in which
-		// case we should trust last_seq anyway).  This last test
-		// matters for the case in which the connection has
-		// transferred > 2 GB of data, in which case we will find
-		// seq_delta(last_seq, ack_seq) < 0 even if ack_seq
-		// corresponds to no data transferred.
-		size = last_seq - start_seq;
-
-	else
-		// It could be that ack_seq > last_seq, if we've seen an
-		// ack for the connection (say in a FIN) without seeing
-		// the corresponding data.
-		size = ack_seq - start_seq;
-
-#endif
 
 	// Don't include SYN octet in sequence space.  For partial connections
 	// (no SYN seen), we're still careful to adjust start_seq as though

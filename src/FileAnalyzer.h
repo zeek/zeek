@@ -11,10 +11,6 @@
 #include <magic.h>
 #endif
 
-#ifdef HAVE_LIBCLAMAV
-#include <clamav.h>
-#endif
-
 class File_Analyzer : public TCP_ApplicationAnalyzer {
 public:
 	File_Analyzer(Connection* conn);
@@ -42,11 +38,6 @@ protected:
 
 	static magic_t magic;
 	static magic_t magic_mime;
-#endif
-
-#ifdef HAVE_LIBCLAMAV
-	static void InitClamAV();
-	static struct cl_node *clam_root;
 #endif
 };
 

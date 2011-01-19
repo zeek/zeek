@@ -11,6 +11,13 @@
 
 #include <list>
 
+#ifdef NEED_KRB5_H
+# include <krb5.h>
+#endif 
+
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+
 class CompressedChunkedIO;
 
 // #define DEBUG_COMMUNICATION 10
@@ -214,17 +221,7 @@ private:
 	pid_t pid;
 };
 
-#ifdef USE_OPENSSL
-
-#ifdef NEED_KRB5_H
-# include <krb5.h>
-#endif 
-
-#include <openssl/ssl.h>
-#include <openssl/err.h>
-
 // Chunked I/O using an SSL connection.
-
 class ChunkedIOSSL : public ChunkedIO {
 public:
 	// Argument is an open socket and a flag indicating whether we are the
@@ -286,8 +283,6 @@ private:
 	// One SSL for all connections.
 	static SSL_CTX* ctx;
 };
-
-#endif	/* USE_OPENSSL */
 
 #ifdef HAVE_LIBZ
 

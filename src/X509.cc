@@ -192,7 +192,7 @@ int X509_Cert::verifyChain(Contents_SSL* e, const u_char* data, uint32 len)
 	// but in chain format).
 
 	// Init the stack.
-	STACK_OF(X509)* untrustedCerts = sk_new_null();
+	STACK_OF(X509)* untrustedCerts = sk_X509_new_null();
 	if ( ! untrustedCerts )
 		{
 		// Internal error allocating stack of untrusted certs.
@@ -233,7 +233,7 @@ int X509_Cert::verifyChain(Contents_SSL* e, const u_char* data, uint32 len)
 		else
 			// The remaining certificates (if any) are put into
 			// the list of untrusted certificates
-			sk_push(untrustedCerts, (char*) pTemp);
+			sk_X509_push(untrustedCerts, pTemp);
 
 		tempLength += certLength + 3;
 		}
@@ -259,7 +259,7 @@ int X509_Cert::verifyChain(Contents_SSL* e, const u_char* data, uint32 len)
 	// Free the stack, incuding. contents.
 
 	// FIXME: could this break Bro's memory tracking?
-	sk_pop_free(untrustedCerts, free);
+	sk_X509_pop_free(untrustedCerts, X509_free);
 
 	return ret;
 	}

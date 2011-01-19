@@ -71,10 +71,5 @@ void SSL_Analyzer_binpac::generate_warnings()
 	if ( ssl_store_key_material )
 		warn_("storage of key material (ssl_store_key_material) not supported");
 
-#ifndef USE_OPENSSL
-	if ( ssl_verify_certificates )
-		warn_("verification of certificates (ssl_verify_certificates) not supported due to non-existing OpenSSL support");
-#endif
-
 	warnings_generated = true;
 	}

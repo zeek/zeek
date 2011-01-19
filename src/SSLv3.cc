@@ -195,7 +195,7 @@ void SSLv3_Interpreter::printStats()
 	printf( "SSLv3x:\n" );
 	printf( "Note: Because handshake messages may be coalesced into a \n");
 	printf( "      single SSLv3x record, the number of total messages for SSLv3x plus \n");
-	printf( "      the number of total records seen for SSLv2 won't match \n");
+	printf( "      the number of total records seen for SSLv3 won't match \n");
 	printf( "      SSLProxy_Analyzer::totalRecords! \n");
 	printf( "total connections			= %u\n", totalConnections );
 	printf( "opened connections (complete handshake)	= %u\n", openedConnections );
@@ -554,7 +554,7 @@ void SSLv3_Interpreter::DeliverSSLv3_Record(SSLv3_HandshakeRecord* rec)
 					}
 				else
 					{
-					if ( keyXAlgorithm == SSL_KEY_EXCHANGE_DH || keyXAlgorithm == SSL_KEY_EXCHANGE_DH_DSS || keyXAlgorithm == SSL_KEY_EXCHANGE_DH_DSS_EXPORT || keyXAlgorithm == SSL_KEY_EXCHANGE_DH_RSA || keyXAlgorithm == SSL_KEY_EXCHANGE_DH_RSA_EXPORT || keyXAlgorithm == SSL_KEY_EXCHANGE_DHE_DSS || keyXAlgorithm == SSL_KEY_EXCHANGE_DHE_DSS_EXPORT || keyXAlgorithm == SSL_KEY_EXCHANGE_DHE_RSA || keyXAlgorithm == SSL_KEY_EXCHANGE_DHE_RSA_EXPORT || keyXAlgorithm == SSL_KEY_EXCHANGE_DH_ANON || keyXAlgorithm == SSL_KEY_EXCHANGE_DH_ANON_EXPORT || keyXAlgorithm == SSL_KEY_EXCHANGE_DHE_DSS_EXPORT1024 )
+					if ( keyXAlgorithm == SSL_KEY_EXCHANGE_DH || keyXAlgorithm == SSL_KEY_EXCHANGE_DH_DSS || keyXAlgorithm == SSL_KEY_EXCHANGE_DH_DSS_EXPORT || keyXAlgorithm == SSL_KEY_EXCHANGE_DH_RSA || keyXAlgorithm == SSL_KEY_EXCHANGE_DH_RSA_EXPORT || keyXAlgorithm == SSL_KEY_EXCHANGE_DHE_DSS || keyXAlgorithm == SSL_KEY_EXCHANGE_DHE_DSS_EXPORT || keyXAlgorithm == SSL_KEY_EXCHANGE_DHE_RSA || keyXAlgorithm == SSL_KEY_EXCHANGE_DHE_RSA_EXPORT || keyXAlgorithm == SSL_KEY_EXCHANGE_DH_anon || keyXAlgorithm == SSL_KEY_EXCHANGE_DH_anon_EXPORT || keyXAlgorithm == SSL_KEY_EXCHANGE_DHE_DSS_EXPORT1024 )
 						{
 						if ( rec->length < 2 )
 							{
@@ -595,11 +595,11 @@ void SSLv3_Interpreter::DeliverSSLv3_Record(SSLv3_HandshakeRecord* rec)
 			switch (cipherSuite)
 				{
 				case TLS_NULL_WITH_NULL_NULL:
-				case TLS_DH_ANON_EXPORT_WITH_RC4_40_MD5:
-				case TLS_DH_ANON_WITH_RC4_128_MD5:
-				case TLS_DH_ANON_EXPORT_WITH_DES40_CBC_SHA:
-				case TLS_DH_ANON_WITH_DES_CBC_SHA:
-				case TLS_DH_ANON_WITH_3DES_EDE_CBC_SHA:
+				case TLS_DH_anon_EXPORT_WITH_RC4_40_MD5:
+				case TLS_DH_anon_WITH_RC4_128_MD5:
+				case TLS_DH_anon_EXPORT_WITH_DES40_CBC_SHA:
+				case TLS_DH_anon_WITH_DES_CBC_SHA:
+				case TLS_DH_anon_WITH_3DES_EDE_CBC_SHA:
 					{
 					Weird("SSLv3x: Sending certificate-request not allowed for anonymous servers!");
 					break;
@@ -618,7 +618,7 @@ void SSLv3_Interpreter::DeliverSSLv3_Record(SSLv3_HandshakeRecord* rec)
 				break;
 				}
 
-			if ( pCipherSuite->keyExchangeAlgorithm == SSL_KEY_EXCHANGE_DH_ANON || pCipherSuite->keyExchangeAlgorithm == SSL_KEY_EXCHANGE_DH_ANON_EXPORT )
+			if ( pCipherSuite->keyExchangeAlgorithm == SSL_KEY_EXCHANGE_DH_anon || pCipherSuite->keyExchangeAlgorithm == SSL_KEY_EXCHANGE_DH_anon_EXPORT )
 				Weird("SSLv3x: Sending certificate-request not allowed for anonymous servers!");
 
 			// FIXME: Insert weird checks!
@@ -654,7 +654,7 @@ void SSLv3_Interpreter::DeliverSSLv3_Record(SSLv3_HandshakeRecord* rec)
 					}
 				else
 					{
-					if ( keyXAlgorithm == SSL_KEY_EXCHANGE_DH || keyXAlgorithm == SSL_KEY_EXCHANGE_DH_DSS || keyXAlgorithm == SSL_KEY_EXCHANGE_DH_DSS_EXPORT || keyXAlgorithm == SSL_KEY_EXCHANGE_DH_RSA || keyXAlgorithm == SSL_KEY_EXCHANGE_DH_RSA_EXPORT || keyXAlgorithm == SSL_KEY_EXCHANGE_DHE_DSS || keyXAlgorithm == SSL_KEY_EXCHANGE_DHE_DSS_EXPORT || keyXAlgorithm == SSL_KEY_EXCHANGE_DHE_RSA || keyXAlgorithm == SSL_KEY_EXCHANGE_DHE_RSA_EXPORT || keyXAlgorithm == SSL_KEY_EXCHANGE_DH_ANON || keyXAlgorithm == SSL_KEY_EXCHANGE_DH_ANON_EXPORT || keyXAlgorithm == SSL_KEY_EXCHANGE_DHE_DSS_EXPORT1024 )
+					if ( keyXAlgorithm == SSL_KEY_EXCHANGE_DH || keyXAlgorithm == SSL_KEY_EXCHANGE_DH_DSS || keyXAlgorithm == SSL_KEY_EXCHANGE_DH_DSS_EXPORT || keyXAlgorithm == SSL_KEY_EXCHANGE_DH_RSA || keyXAlgorithm == SSL_KEY_EXCHANGE_DH_RSA_EXPORT || keyXAlgorithm == SSL_KEY_EXCHANGE_DHE_DSS || keyXAlgorithm == SSL_KEY_EXCHANGE_DHE_DSS_EXPORT || keyXAlgorithm == SSL_KEY_EXCHANGE_DHE_RSA || keyXAlgorithm == SSL_KEY_EXCHANGE_DHE_RSA_EXPORT || keyXAlgorithm == SSL_KEY_EXCHANGE_DH_anon || keyXAlgorithm == SSL_KEY_EXCHANGE_DH_anon_EXPORT || keyXAlgorithm == SSL_KEY_EXCHANGE_DHE_DSS_EXPORT1024 )
 						{
 						if ( rec->length < 2 )
 							{
@@ -1328,7 +1328,9 @@ int SSLv3_HandshakeRecord::checkClientHello()
 	     version != SSLProxy_Analyzer::SSLv31 )
 		endp->Interpreter()->Weird("SSLv3x: Corrupt version information in Client hello!");
 
-	uint8 sessionIDLength = uint8(data[38]);
+	uint16 offset = 38;
+	uint8 sessionIDLength = uint8(data[offset]);
+	offset += (1 + sessionIDLength);
 	if ( sessionIDLength > 32 )
 		{
 		endp->Interpreter()->Weird("SSLv3x: SessionID too long in Client hello!");
@@ -1336,33 +1338,37 @@ int SSLv3_HandshakeRecord::checkClientHello()
 		}
 
 	uint16 cipherSuiteLength =
-		uint16(data[39 + sessionIDLength] << 8 ) |
-		data[40 + sessionIDLength];
+		uint16(data[offset] << 8) | data[offset+1];
+	offset += (2 + cipherSuiteLength);
 
 	if ( cipherSuiteLength < 2 )
 		endp->Interpreter()->Weird("SSLv3x: CipherSuite length too small!");
 
-	if ( cipherSuiteLength + sessionIDLength + 41 > recordLength )
+	if ( offset > recordLength )
 		{
 		endp->Interpreter()->Weird("SSLv3x: Client hello too small, corrupt length fields!");
 		return 0;
 		}
 
-	uint8 compressionMethodLength =
-		uint8(data[41 + sessionIDLength + cipherSuiteLength]);
+	uint8 compressionMethodLength = uint8(data[offset]);
+	offset += (1 + compressionMethodLength);
 
 	if ( compressionMethodLength < 1 )
 		endp->Interpreter()->Weird("SSLv3x: CompressionMethod length too small!");
 
-	if ( sessionIDLength + cipherSuiteLength +
-	     compressionMethodLength + 38 != length )
+	if ( offset != length )
 		{
 		uint16 sslExtensionsLength =
-			uint16(data[41 + sessionIDLength + cipherSuiteLength + compressionMethodLength + 1 ] << 8 ) | data[41 + sessionIDLength + cipherSuiteLength + compressionMethodLength + 2 ];
+			uint16(data[offset] << 8 ) | data[offset+1];
+		offset += 2;
+		
 		if ( sslExtensionsLength < 4 )
 			endp->Interpreter()->Weird("SSLv3x: Extensions length too small!");
-		if ( sessionIDLength + cipherSuiteLength +
-	     		compressionMethodLength + 2 + sslExtensionsLength + 38 != length )
+		
+		// TODO: extract SSL extensions here
+		
+		offset += sslExtensionsLength;
+		if ( offset != length+4 )
 			{
 			endp->Interpreter()->Weird("SSLv3x: Corrupt length fields in Client hello!");
 			return 0;

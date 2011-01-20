@@ -264,6 +264,14 @@ type geo_location: record {
 	longitude: double;
 };
 
+type entropy_test_result: record {
+	entropy: double;
+	chi_square: double;
+	mean: double;
+	monte_carlo_pi: double;
+	serial_correlation: double;
+};
+
 # Prototypes of Bro built-in functions.
 @load strings.bif.bro
 @load bro.bif.bro

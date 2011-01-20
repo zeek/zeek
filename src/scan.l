@@ -151,9 +151,7 @@ file	return TOK_FILE;
 for	return TOK_FOR;
 function	return TOK_FUNCTION;
 global	return TOK_GLOBAL;
-global_attr	return TOK_GLOBAL_ATTR;
 "?$"	return TOK_HAS_FIELD;
-"?$$"	return TOK_HAS_ATTR;
 if	return TOK_IF;
 in	return TOK_IN;
 "!"{OWS}in/[^A-Za-z0-9]	return TOK_NOT_IN;	/* don't confuse w "! infoo"! */

@@ -15,10 +15,6 @@ destination as the one that contains the root filesystem.
 
 If you have existing configuration files that are modified or
 otherwise different from the version included in the package,
-this installer will attempt to prevent clobbering them by
-backing them up like:
-
-    @CMAKE_INSTALL_PREFIX@/etc/<file>.<nextAvailableNumber>
-
+this installer will attempt to prevent overwirting them,
 but its also advisable to make your own backups of important
 files before proceeding.

@@ -1,3 +1,8 @@
+1.6-dev.27 Thu Jan 20 13:52:25 PST 2011
+
+  * Fine-tuning of the HTTP analyzer in terms of raising protocol
+    violations and  interrupted transfers. (Gregor Maier)
+
 1.6-dev.21 Wed Jan 19 17:36:02 PST 2011
 
     * Added 4 new BiFs and a new record type for testing the entropy

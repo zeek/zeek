@@ -195,10 +195,9 @@ bool BroFile::Open(FILE* file)
 	InstallRotateTimer();
 
 	if ( ! f )
-		{
 		f = fopen(name, access);
-		SetBuf(buffered);
-		}
+
+	SetBuf(buffered);
 
 	if ( f )
 		{

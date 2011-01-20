@@ -348,9 +348,6 @@ bool PersistenceSerializer::RunSerialization(SerialStatus* status)
 			status->conn_cookie = status->conns->InitForIteration();
 			status->conns->MakeRobustCookie(status->conn_cookie);
 			}
-
-		if ( status->info.may_suspend )
-			bro_logger->Log("Starting incremental serialization...");
 		}
 
 	else if ( cont->ChildSuspended() )
@@ -479,9 +476,6 @@ bool PersistenceSerializer::RunSerialization(SerialStatus* status)
 			break;
 			}
 		}
-
-	if ( status->info.may_suspend )
-		bro_logger->Log("Finished incremental serialization.");
 
 	delete status;
 	return ret;

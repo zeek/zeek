@@ -1365,17 +1365,12 @@ function skip_http_entity_data%(c: connection, is_orig: bool%): any
 		{
 		Analyzer* ha = c->FindAnalyzer(id);
 
-		if (ha)
-			{
-			if ( ha->GetTag() == AnalyzerTag::HTTP )
-				static_cast<HTTP_Analyzer*>(ha)->SkipEntityData(is_orig);
-			else
-				run_time("non-HTTP analyzer associated with connection record");
-			}
+		if ( ha->GetTag() == AnalyzerTag::HTTP )
+			static_cast<HTTP_Analyzer*>(ha)->SkipEntityData(is_orig);
 		else
-			run_time("could not find analyzer for skip_http_entity_data");
-
+			run_time("non-HTTP analyzer associated with connection record");
 		}
+
 	else
 		run_time("no analyzer associated with connection record");
 

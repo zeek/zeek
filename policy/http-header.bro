@@ -2,8 +2,6 @@
 
 # Prints out detailed HTTP headers.
 
-@load http
-
 module HTTP;
 
 export {

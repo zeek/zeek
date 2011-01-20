@@ -1,11 +1,48 @@
+1.6-dev.21 Wed Jan 19 17:36:02 PST 2011
+
+    * Added 4 new BiFs and a new record type for testing the entropy
+      of strings. (Seth Hall)
+
+        find_entropy(data: string): entropy_test_result
+                This is a one shot function that accepts a string
+                and returns the result of the entropy calculations.
+
+        entropy_test_init(index: any): bool
+                This and the next two functions are for calculating
+                entropy piece-wise. It only needs an index which can
+                be any type of variable. It needs to be something
+                that uniquely identifies the data stream that is
+                currently having it's entropy calculated.
+
+        entropy_test_add(index: any, data: string): bool
+                This function is used to add data into the entropy
+                calculation. It takes the index used in the function
+                above and the data that you are adding and returns
+                true if everything seemed to work, false otherwise.
+
+        entropy_test_finish(index: any): entropy_test_result
+                Calling this function indicates that all of the
+                desired data has been inserted into the
+                entropy_test_add function and the entropy should be
+                calculated. This function *must* be called in order
+                to clean up an internal state tracking variable.  If
+                this is never called on an index, it will result in
+                a memory leak.
+
+    The entropy_test_result values have several measures of the
+    entropy, but a good one to work with is the "entropy" attribute.
+    It's a double and as the value approaches 8.0 it can be
+    considered more and more random.  For example, a value of 7.832
+    would be quite random but a value of 4.671 is not very random.
+
 1.6-dev.20 Wed Jan 19 17:30:11 PST 2011
 
-  * BRO_DNS_FAKE is now listed in the --help output. (Seth Hall)
+    * BRO_DNS_FAKE is now listed in the --help output. (Seth Hall)
 
 1.6-dev.18 Wed Jan 19 16:37:13 PST 2011
 
-  * Removing unnecessary expire timer from http_sessions. (Gregor
-    Maier)
+    * Removing unnecessary expire timer from http_sessions. (Gregor
+      Maier)
 
 1.6-dev.16 Sat Jan 15 14:14:21 PST 2011
 

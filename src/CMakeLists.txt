@@ -320,6 +320,7 @@ set(bro_SRCS
     PrefixTable.cc
     PriorityQueue.cc
     Queue.cc
+    RandTest.cc
     RE.cc
     RPC.cc
     Reassem.cc

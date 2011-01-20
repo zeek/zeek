@@ -414,15 +414,6 @@ bool Val::DoUnserialize(UnserialInfo* info)
 	return false;
 	}
 
-RecordVal* Val::GetAttribs(bool instantiate)
-	{
-	if ( ! instantiate || attribs )
-		return attribs;
-
-	attribs = new RecordVal(type->AttributesType());
-	return attribs;
-	}
-
 int Val::IsZero() const
 	{
 	switch ( type->InternalType() ) {

@@ -57,6 +57,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EXTRA_COMPILE_FLAGS}")
 ########################################################################
 ## Dependency Configuration
 
+include(MacDependencyPaths)
 include(FindRequiredPackage)
 
 # Check cache value first to avoid displaying "Found sed" messages everytime

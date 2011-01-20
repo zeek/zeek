@@ -178,13 +178,6 @@ public:
 	Val* Ref()			{ ::Ref(this); return this; }
 	virtual Val* Clone() const;
 
-	RecordVal* GetAttribs(bool instantiate);
-	void SetAttribs(RecordVal* arg_attribs)
-		{
-		Unref((Val*) attribs);
-		attribs = arg_attribs;
-		}
-
 	int IsZero() const;
 	int IsOne() const;
 

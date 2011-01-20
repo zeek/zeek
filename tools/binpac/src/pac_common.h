@@ -12,6 +12,7 @@
 using namespace std;
 
 extern bool FLAGS_pac_debug;
+extern bool FLAGS_quiet;
 extern vector<string> FLAGS_include_directories;
 extern string input_filename;
 extern int line_number;

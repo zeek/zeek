@@ -21,6 +21,7 @@ extern void switch_to_file(FILE* fp_input);
 string input_filename;
 
 bool FLAGS_pac_debug = false;
+bool FLAGS_quiet = false;
 string FLAGS_output_directory;
 vector<string> FLAGS_include_directories;
 
@@ -192,6 +193,7 @@ void usage()
 	fprintf(stderr, "     <pac files>           | pac-language input files\n");
 	fprintf(stderr, "     -d <dir>              | use given directory for compiler output\n");
 	fprintf(stderr, "     -D                    | enable debugging output\n");
+	fprintf(stderr, "     -q                    | stay quiet\n");
 	fprintf(stderr, "     -h                    | show command line help\n");
 	fprintf(stderr, "     -I <dir>              | include <dir> in input file search path\n");
 	exit(1);
@@ -203,7 +205,7 @@ int main(int argc, char* argv[])
 	extern char *malloc_options;
 #endif
 	int o;
-	while ( (o = getopt(argc, argv, "DI:d:h")) != -1 )
+	while ( (o = getopt(argc, argv, "DqI:d:h")) != -1 )
 		{
 		switch(o)
 			{
@@ -213,6 +215,10 @@ int main(int argc, char* argv[])
 #ifdef HAVE_MALLOC_OPTIONS
 				malloc_options = "A";
 #endif
+				break;
+				
+			case 'q':
+				FLAGS_quiet = true;
 				break;
 
 			case 'I':

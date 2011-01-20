@@ -94,7 +94,8 @@ void TypeDecl::GenCode(Output* out_h, Output* out_cc)
 	if ( type_->tot() == Type::EXTERN || type_->tot() == Type::STRING )
 		return;
 
-	fprintf(stderr, "Generating code for %s\n", class_name().c_str());
+	if ( !FLAGS_quiet )
+		fprintf(stderr, "Generating code for %s\n", class_name().c_str());
 
 	if ( RequiresAnalyzerContext::compute(type_) )
 		{
@@ -125,7 +126,8 @@ void TypeDecl::GenCode(Output* out_h, Output* out_cc)
 	out_h->println("");
 	out_h->print("class %s", class_name().c_str());
 	bool first = true;
-	foreach(i, vector<string>, &base_classes)
+	vector<string>::iterator i;
+	for ( i = (&base_classes)->begin(); i != (&base_classes)->end(); ++i )
 		{
 		if ( first )
 			{

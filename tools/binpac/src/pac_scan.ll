@@ -313,7 +313,8 @@ void switch_to_file(const char *filename)
 	input_filename = string(filename);
 	line_number = 1;
 	switch_to_file(yyin);
-	fprintf(stderr, "switching to file %s\n", input_filename.c_str());
+	if ( !FLAGS_quiet )
+		fprintf(stderr, "switching to file %s\n", input_filename.c_str());
 	}
 
 void include_file(const char *filename)

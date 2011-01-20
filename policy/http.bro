@@ -79,17 +79,8 @@ type http_session_info: record {
 
 const http_log = open_log_file("http") &redef;
 
-# Called when an HTTP session times out.
-global expire_http_session:
-	function(t: table[conn_id] of http_session_info, id: conn_id)
-		: interval;
-
 export {
-	# Indexed by conn_id.
-	# (Exported so that we can define a timeout on it.)
-	global http_sessions: table[conn_id] of http_session_info
-			&expire_func = expire_http_session
-			&read_expire = 15 min;
+	global http_sessions: table[conn_id] of http_session_info;
 }
 
 global http_session_id = 0;
@@ -202,30 +193,6 @@ event connection_state_remove(c: connection)
 	delete http_sessions[c$id];
 	}
 
-function expire_http_session(t: table[conn_id] of http_session_info,
-				id: conn_id): interval
-	{
-	### FIXME: not really clear that we need this function at all ...
-	#
-	# One would think that connection_state_remove() already takes care
-	# of everything.  However, without this expire-handler, some requests
-	# don't show up with the test-suite (but haven't reproduced with
-	# smaller traces) - Robin.
-
-	local s = http_sessions[id];
-	finish_stream(id, s$id, s$request_stream);
-	return 0 sec;
-	}
-
-# event connection_timeout(c: connection)
-# 	{
-# 	if ( ! maintain_http_sessions )
-# 		{
-# 		local id = c$id;
-# 		if ( [id$orig_h, id$resp_h] in http_sessions )
-# 			delete http_sessions[id$orig_h, id$resp_h];
-# 		}
-# 	}
 
 # event http_stats(c: connection, stats: http_stats_rec)
 # 	{

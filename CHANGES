@@ -1,3 +1,7 @@
+1.6-dev.20 Wed Jan 19 17:30:11 PST 2011
+
+  * BRO_DNS_FAKE is now listed in the --help output. (Seth Hall)
+
 1.6-dev.18 Wed Jan 19 16:37:13 PST 2011
 
   * Removing unnecessary expire timer from http_sessions. (Gregor

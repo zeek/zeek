@@ -122,6 +122,14 @@ const char* bro_version()
 #endif
 	}
 
+const char* bro_dns_fake()
+	{
+	if ( ! getenv("BRO_DNS_FAKE") )
+		return "off";
+	else 
+		return "on";
+	}
+
 void usage()
 	{
 	fprintf(stderr, "bro version %s\n", bro_version());
@@ -184,6 +192,7 @@ void usage()
 
 	fprintf(stderr, "    $BROPATH                       | file search path (%s)\n", bro_path());
 	fprintf(stderr, "    $BRO_PREFIXES                  | prefix list (%s)\n", bro_prefixes());
+	fprintf(stderr, "    $BRO_DNS_FAKE                  | disable DNS lookups (%s)\n", bro_dns_fake());
 
 	exit(1);
 	}

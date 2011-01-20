@@ -570,7 +570,7 @@ cq_debugbucket(register struct cq_handle *hp,
 			bp2 = hp->buckets + PRI2BUCKET(hp, bp->pri);
 			if (bp2 != buckets) {
 				fprintf(stderr,
-				    "%f in wrong bucket! (off by %d)\n",
+				    "%f in wrong bucket! (off by %ld)\n",
 				    bp->pri, bp2 - buckets);
 				cq_dump(hp);
 				abort();

@@ -160,7 +160,7 @@ macro(BINPAC_TARGET pacFile)
     add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${basename}_pac.h
                               ${CMAKE_CURRENT_BINARY_DIR}/${basename}_pac.cc
                        COMMAND ${BinPAC_EXE}
-                       ARGS -d ${CMAKE_CURRENT_BINARY_DIR}
+                       ARGS -q -d ${CMAKE_CURRENT_BINARY_DIR}
                             -I ${CMAKE_CURRENT_SOURCE_DIR}
                             ${CMAKE_CURRENT_SOURCE_DIR}/${pacFile}
                        DEPENDS ${BinPAC_EXE} ${pacFile}
@@ -177,9 +177,9 @@ binpac_target(binpac_bro-lib.pac)
 binpac_target(bittorrent.pac
     bittorrent-protocol.pac bittorrent-analyzer.pac)
 binpac_target(dce_rpc.pac
-    dce_rpc-protocol.pac dce_rpc-analyzer.pac)
+    dce_rpc-protocol.pac dce_rpc-analyzer.pac epmapper.pac)
 binpac_target(dce_rpc_simple.pac
-    dce_rpc-protocol.pac)
+    dce_rpc-protocol.pac epmapper.pac)
 binpac_target(dhcp.pac
     dhcp-protocol.pac dhcp-analyzer.pac)
 binpac_target(dns.pac

@@ -1,3 +1,7 @@
+1.6-dev.30 Thu Jan 20 16:32:43 PST 2011
+
+- Changed configure wrapper to create config.status. (Jon Siwek)
+
 1.6-dev.29 Thu Jan 20 16:29:56 PST 2011
 
 - Fixing little problem with initialization of Bro-to-Bro event

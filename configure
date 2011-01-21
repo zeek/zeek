@@ -2,6 +2,8 @@
 # Convenience wrapper for easily viewing/setting options that
 # the project's CMake scripts will recognize
 
+command="$0 $*"
+
 # check for `cmake` command
 type cmake > /dev/null 2>&1 || {
     echo "\
@@ -217,3 +219,7 @@ if [ -n "$CMakeGenerator" ]; then
 else
     cmake $CMakeCacheEntries $sourcedir
 fi
+
+echo "# This is the command used to configure this build" > config.status
+echo $command >> config.status
+chmod u+x config.status

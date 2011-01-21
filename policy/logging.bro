@@ -20,10 +20,10 @@ export {
 	const default_writer = WRITER_CSV &redef;
 	
 	# Type defining a stream.
-	type Stream: record {
-	    id      : ID;  # The ID of the stream.
-	    columns : any; # A record type defining the stream's output columns.
-	};
+	#type Stream: record {
+	#    id      : string; # The ID of the stream.
+	#    columns : string_vec;    # A record type defining the stream's output columns.
+	#};
 	
 	# A filter defining what to record.
 	type Filter: record {
@@ -61,33 +61,58 @@ export {
 	    writer: Writer &default=default_writer;
 	    };
 	
-	global filters: table[ID] of set[Filter];
+	global filters: table[string] of set[Filter];
+	global streams: table[string] of string_vec;
 	
 	# Logs the record "rec" to the stream "id". The type of
 	# "rec" must match the stream's "columns" field.
-	global log: function(id: ID, rec: any);
+	global log: function(id: string, rec: any);
+	global log_ev: event(id: string, rec: any);
 	
 	# Returns an existing filter previously installed for stream
 	# "id" under the given "name". If no such filter exists,
 	# the record "NoSuchFilter" is returned.
-	global get_filter: function(id: ID, name: string) : Filter;
+	global get_filter: function(id: string, name: string) : Filter;
 	
-	global create: function(stream: Stream);
-	global add_filter: function(id: ID, filter: Filter);
+	global create_stream: function(id: string, columns: string);
+	global add_filter: function(id: string, filter: Filter);
+	
+	global open_log_files: function(id: string);
+	
 }
 
 # Sentinel representing an unknown filter.
 const NoSuchFilter: Filter = [$name="<unknown filter>"];
 
-function add_filter(id: ID, filter: Filter)
+function create_stream(id: string, columns: string)
 	{
-	if ( id !in filters )
-		filters[id] = set();
+	if ( id in streams )
+		print fmt("Stream %s already exists!", id);
 	
-	add filters[id][filter];
+	streams[id] = record_type_to_vector(columns);
 	}
-
-function log(id: ID, rec: any)
+	
+function add_filter(id: string, filter: Filter)
+	{
+	#if ( id !in filters )
+	#	filters[id] = set();
+	#
+	#add filters[id][filter];
+	}
+	
+function log(id: string, rec: any)
 	{
 	logging_log(id, rec);
+	}
+
+
+# THIS IS ONLY FOR THE PROTOTYPE.
+# It will be implemented in the core later
+function open_log_files(id: string)
+	{
+	# Open default log
+	#open_log_file(id);
+	
+	# Find all second names from filters
+	# Open log for each secondary name
 	}

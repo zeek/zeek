@@ -360,18 +360,89 @@ function cat%(...%): string
 	return new StringVal(s);
 	%}
 	
-function logging_log%(id: Logging_ID, rec: any%): bool
+function logging_log%(index: string, rec: any%): bool
 	%{
-	// Generate the log line event
-	// Lookup the log file
-	TableVal *f = opt_internal_table("Logging::filters");
-	TableVal *s = f->Lookup(id, 0)->AsTableVal();
+	// Verify that rec is a record
+	// Lookup the stream
+	TableVal *streams = opt_internal_table("Logging::streams");
+	VectorVal *columns;
+	if ( streams )
+		{
+		Val *lookup_v = streams->Lookup(index);
+		if ( lookup_v )
+			columns = lookup_v->AsVectorVal();
+		}
+	else
+		{
+		printf("Logging framework is dead (Logging::streams not found).\n");
+		return false;
+		}
 	
+	// Generate the event for the log stream
+	// TODO: make it actually figure out the right handler name.
+	EventHandlerPtr ev_ptr = internal_handler("SSH::ssh_log");
+	if ( ev_ptr )
+		{
+		val_list* vl = new val_list;
+		vl->append(rec->Ref());
+		mgr.QueueEvent(, vl, SOURCE_LOCAL);
+		}
+		
+	// Lookup all filters for stream
+	TableVal *filters = opt_internal_table("Logging::filters");
+	RecordVal *stream_filters;
+	if ( filters )
+		{
+		Val *lookup_v = filters->Lookup(index);
+		if ( lookup_v )
+			stream_filters = lookup_v->AsRecordVal();
+		}
+	else
+		{
+		printf("Logging framework is dead (Logging::filters not found).\n");
+		return false;
+		}
+	
+	ODesc d;
+	const char *field_name;
+	int field = 0;
+	RecordType *rt = rec->Type()->AsRecordType();
+	for ( unsigned i = 1; i <= columns->Size(); ++i )
+		{
+		field_name = columns->Lookup(i)->AsStringVal()->CheckString();
+		field = rec->Type()->AsRecordType()->FieldOffset(field_name);
+		if ( field >= 0 ) // or if there is a default value
+			{
+			rec->AsRecordVal()->Lookup(field)->Describe(&d);
+			d.Add("\t",0);
+			}
+		//printf("Test: %s\n", field_name);
+		}
+	printf("Full line: %s\n", d.TakeBytes());
 	// For each filter on 'id'
-	// 		Format the output
-	// 		Print the line
+	//		Format the output (iterate through columns and grab fields from rec as found)
+	//		Print the line (send line onward to WRITER)
+	return false;
 	%}
-
+	
+function record_type_to_vector%(rt: string%): string_vec
+	%{
+	VectorVal* result =
+		new VectorVal(internal_type("string_vec")->AsVectorType());
+	
+	RecordType *type = internal_type(rt->CheckString())->AsRecordType();
+	if ( type )
+		{
+		for ( int i = 0; i < type->NumFields(); ++i )
+			{
+			StringVal* val = new StringVal(type->FieldName(i));
+			result->Assign(i+1, val, 0);
+			}
+		}
+	return result;
+	%}
+	
+	
 function cat_sep%(sep: string, def: string, ...%): string
 	%{
 	ODesc d;

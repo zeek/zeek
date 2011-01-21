@@ -823,13 +823,8 @@ bool RemoteSerializer::SendCall(SerialInfo* info, PeerID id,
 	if ( ! peer )
 		return false;
 
-	// Do not send events back to originating peer.
-	if ( current_peer == peer )
-		return true;
-
 	return SendCall(info, peer, name, vl);
 	}
-
 
 bool RemoteSerializer::SendCall(SerialInfo* info, Peer* peer,
 					const char* name, val_list* vl)
@@ -1841,10 +1836,9 @@ bool RemoteSerializer::EnterPhaseRunning(Peer* peer)
 	if ( in_sync == peer )
 		in_sync = 0;
 
-	current_peer->phase = Peer::RUNNING;
+	peer->phase = Peer::RUNNING;
 	Log(LogInfo, "phase: running", peer);
-
-	RaiseEvent(remote_connection_handshake_done, current_peer);
+	RaiseEvent(remote_connection_handshake_done, peer);
 
 	if ( remote_trace_sync_interval )
 		{
@@ -2008,12 +2002,11 @@ bool RemoteSerializer::HandshakeDone(Peer* peer)
 			return false;
 #endif
 
-	if ( ! (current_peer->caps & Peer::PID_64BIT) )
-		Log(LogInfo, "peer does not support 64bit PIDs; using compatibility mode", current_peer);
+	if ( ! (peer->caps & Peer::PID_64BIT) )
+		Log(LogInfo, "peer does not support 64bit PIDs; using compatibility mode", peer);
 
-	if ( (current_peer->caps & Peer::NEW_CACHE_STRATEGY) )
-		Log(LogInfo, "peer supports keep-in-cache; using that",
-			current_peer);
+	if ( (peer->caps & Peer::NEW_CACHE_STRATEGY) )
+		Log(LogInfo, "peer supports keep-in-cache; using that", peer);
 
 	if ( peer->sync_requested != Peer::NONE )
 		{
@@ -2030,7 +2023,7 @@ bool RemoteSerializer::HandshakeDone(Peer* peer)
 			{
 			Log(LogError, "misconfiguration: authoritative state on both sides",
 				current_peer);
-			CloseConnection(current_peer);
+			CloseConnection(peer);
 			return false;
 			}
 

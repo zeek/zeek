@@ -598,10 +598,7 @@ function strip%(str: string%): string
 	while ( isspace(*sp) && sp <= e )
 		++sp;
 
-    if ( sp > e )
-		return new StringVal(new BroString());
-	else
-		return new StringVal(new BroString(sp, (e - sp + 1), 1));
+	return new StringVal(new BroString(sp, (e - sp + 1), 1));
 	%}
 
 function string_fill%(len: int, source: string%): string

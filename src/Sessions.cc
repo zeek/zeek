@@ -1354,7 +1354,7 @@ void NetSessions::Internal(const char* msg, const struct pcap_pkthdr* hdr,
 				const u_char* pkt)
 	{
 	DumpPacket(hdr, pkt);
-	internal_error(msg);
+	internal_error("%s", msg);
 	}
 
 void NetSessions::Weird(const char* name,

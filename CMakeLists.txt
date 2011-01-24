@@ -77,7 +77,8 @@ FindRequiredPackage(PCAP)
 FindRequiredPackage(OpenSSL)
 FindRequiredPackage(BIND)
 
-if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/aux/binpac/CMakeLists.txt)
+if (NOT BinPAC_ROOT_DIR AND
+    EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/aux/binpac/CMakeLists.txt)
     add_subdirectory(aux/binpac)
 endif ()
 FindRequiredPackage(BinPAC)

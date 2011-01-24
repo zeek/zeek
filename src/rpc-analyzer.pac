@@ -157,12 +157,12 @@ flow RPC_Flow (is_orig: bool) {
 			return false;
 			}
 
-		bro_event_rpc_call(connection()->bro_analyzer(),
+		bro_event_rpc_dialogue(connection()->bro_analyzer(),
 		                   connection()->bro_analyzer()->Conn(),
 		                   call->prog(),
 		                   call->vers(),
 		                   call->proc(),
-		                   reply->status(),
+		                   (BroEnum::rpc_status)reply->status(),
 		                   call->start_time(),
 		                   call->msg()->length(),
 		                   reply->msg()->length());

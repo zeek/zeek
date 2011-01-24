@@ -46,7 +46,8 @@ function NFS_attempt(n: connection, req: string, status: count, addl: string)
 function nfs_get_log_prefix(c: connection, rpc_stat: rpc_status, nfs_stat: nfs3_status, proc: string): string
 	{
 	local nfs_stat_str = (rpc_stat == RPC_SUCCESS) ? fmt("%s", nfs_stat) : "X";
-	return fmt("%.06f %s %s %s %s", network_time(), id_string(c$id),
+	return fmt("%.06f %s %s %s %s %s", network_time(), id_string(c$id), 
+			get_port_transport_proto(c$id$orig_p),
 			proc, rpc_stat, nfs_stat_str);
 	}
 

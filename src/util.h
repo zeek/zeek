@@ -11,6 +11,9 @@
 #include <stdarg.h>
 #include "config.h"
 
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
+
 #if __STDC__
 #define myattribute __attribute__
 #else

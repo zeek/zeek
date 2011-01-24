@@ -1238,6 +1238,12 @@ global load_sample_freq = 20 &redef;
 # degree the measurement process appears to exhibit loss.
 const gap_report_freq = 1.0 sec &redef;
 
+# Defined in const.bif 
+# Whether we want content_gap and drop reports for partial connections
+# (a connection is partial if it is missing a full handshake). Note that
+# gap reports for partial connections might not be reliable. 
+redef report_gaps_for_partial = T;
+
 # Globals associated with entire-run statistics on gaps (useful
 # for final summaries).
 

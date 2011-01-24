@@ -44,6 +44,12 @@ const dump_selected_source_packets = F &redef;
 # (TODO: this variable should be disabled when using '-A' option)
 const dump_original_packets_if_not_rewriting = F &redef;
 
+
+# Whether we want content_gap and drop reports for partial connections
+# (a connection is partial if it is missing a full handshake). Note that
+# gap reports for partial connections might not be reliable. 
+const report_gaps_for_partial = F &redef;
+
 enum dce_rpc_ptype %{
 	DCE_RPC_REQUEST,
 	DCE_RPC_PING,

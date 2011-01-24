@@ -128,14 +128,14 @@ protected:
 
 	//virtual void Event(EventHandlerPtr f, Val* request, int status, Val* reply) = 0;
 
-	void RPC_Event(RPC_CallInfo* c, BroEnum::rpc_status status, int reply_len);
+	void Event_RPC_Dialogue(RPC_CallInfo* c, BroEnum::rpc_status status, int reply_len);
+	void Event_RPC_Call(RPC_CallInfo* c);
+	void Event_RPC_Reply(uint32_t xid, BroEnum::rpc_status status, int reply_len);
 
 	void Weird(const char* name);
 
 	PDict(RPC_CallInfo) calls;
 	Analyzer* analyzer;
-	uint32 xx;
-	int nunpair;
 };
 
 
@@ -175,7 +175,9 @@ public:
 	int64_t GetProcessed() { return processed; }  // How many bytes are we expecting? 
 
 	// Expand expected by delta bytes. 
-	void AddToExpected(int64_t delta) { expected += delta; }
+	// Returns false if the number of expected bytes exceeds maxsize
+	// (which means that we will truncate the message). 
+	bool AddToExpected(int64_t delta) { expected += delta; return !(expected>maxsize); }
 
 	// Consume a chunk of data. data and len will be adjustes accordingly.
 	// Returns true if we "exptected" bytes have been processed, i.e., returns
@@ -209,7 +211,6 @@ protected:
 	virtual void Undelivered(int seq, int len, bool orig);
 
 	virtual void NeedResync() {
-		printf("%.6f Need Resync\n", network_time);
 		resync = true;
 		state = WAIT_FOR_MESSAGE;
 	}

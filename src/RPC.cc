@@ -71,8 +71,6 @@ RPC_Interpreter::RPC_Interpreter(Analyzer* arg_analyzer)
 	{
 	analyzer = arg_analyzer;
 	calls.SetDeleteFunc(rpc_callinfo_delete_func);
-	xx = 0;
-	nunpair = 0;
 	}
 
 RPC_Interpreter::~RPC_Interpreter()
@@ -86,13 +84,8 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen, int is_ori
 
 	if ( ! buf )
 		return 0;
-	if (xx==0)
-		xx=ntohl(xid);
 	HashKey h(&xid, 1);
 	RPC_CallInfo* call = calls.Lookup(&h);
-	if (msg_type == RPC_REPLY && !call)
-		nunpair++;
-	printf("%.6f orig= %d xid= %u type= %d ncall= %d havecall= %d nunpair= %d\n", network_time, is_orig, ntohl(xid)-xx, msg_type, calls.Length(), (call!=0), nunpair);
 
 	if ( msg_type == RPC_CALL )
 		{
@@ -104,6 +97,9 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen, int is_ori
 			if ( ! call->CompareRexmit(buf, n) )
 				Weird("RPC_rexmit_inconsistency");
 
+			// TODO: Not sure whether the handling if rexmit
+			// inconsistencies are correct. Maybe we should use the info in the new 
+			// call for further processing.
 			if ( call->HeaderLen() > n )
 				{
 				Weird("RPC_underflow");
@@ -119,12 +115,17 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen, int is_ori
 			call = new RPC_CallInfo(xid, buf, n);
 			if ( ! buf )
 				{
+				Weird("bad_RPC");
 				delete call;
 				return 0;
 				}
 
 			calls.Insert(&h, call);
 			}
+		// We now have a valid RPC_CallInfo (either the previous one in case 
+		// of a rexmit or the current one). 
+		// TODO: What to do in case of a rexmit_inconistency?? 
+		Event_RPC_Call(call);
 
 		if ( RPC_BuildCall(call, buf, n) )
 			call->SetValidCall();
@@ -206,6 +207,10 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen, int is_ori
 		else
 			Weird("bad_RPC");
 
+		// We now have extracted the status we want to use. 
+		Event_RPC_Reply(xid, status, n);
+
+
 		if ( call )
 			{
 			if ( ! call->IsValidCall() )
@@ -223,7 +228,7 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen, int is_ori
 					Weird("bad_RPC");
 				}
 
-			RPC_Event(call, status, n);
+			Event_RPC_Dialogue(call, status, n);
 
 			delete calls.RemoveEntry(&h);
 			}
@@ -261,33 +266,59 @@ void RPC_Interpreter::Timeout()
 
 	while ( (c = calls.NextEntry(cookie)) )
 		{
-		RPC_Event(c, BroEnum::RPC_TIMEOUT, 0);
+		Event_RPC_Dialogue(c, BroEnum::RPC_TIMEOUT, 0);
 		if ( c->IsValidCall() )
 			{
 			const u_char* buf;
 			int n = 0;
-			EventHandlerPtr event;
-			Val* reply;
 			if ( ! RPC_BuildReply(c, BroEnum::RPC_TIMEOUT, buf, n) )
 				Weird("bad_RPC");
 			}
 		}
 	}
 
-void RPC_Interpreter::RPC_Event(RPC_CallInfo* c, BroEnum::rpc_status status, int reply_len)
+void RPC_Interpreter::Event_RPC_Dialogue(RPC_CallInfo* c, BroEnum::rpc_status status, int reply_len)
 	{
-	if ( rpc_call )
+	if ( rpc_dialogue )
 		{
 		val_list* vl = new val_list;
 		vl->append(analyzer->BuildConnVal());
 		vl->append(new Val(c->Program(), TYPE_COUNT));
 		vl->append(new Val(c->Version(), TYPE_COUNT));
 		vl->append(new Val(c->Proc(), TYPE_COUNT));
-		vl->append(new Val(status, TYPE_COUNT));
+		vl->append(new EnumVal(status, enum_rpc_status));
 		vl->append(new Val(c->StartTime(), TYPE_TIME));
 		vl->append(new Val(c->CallLen(), TYPE_COUNT));
 		vl->append(new Val(reply_len, TYPE_COUNT));
+		analyzer->ConnectionEvent(rpc_dialogue, vl);
+		}
+	}
+
+void RPC_Interpreter::Event_RPC_Call(RPC_CallInfo* c)
+	{
+	if ( rpc_call )
+		{
+		val_list* vl = new val_list;
+		vl->append(analyzer->BuildConnVal());
+		vl->append(new Val(c->XID(), TYPE_COUNT));
+		vl->append(new Val(c->Program(), TYPE_COUNT));
+		vl->append(new Val(c->Version(), TYPE_COUNT));
+		vl->append(new Val(c->Proc(), TYPE_COUNT));
+		vl->append(new Val(c->CallLen(), TYPE_COUNT));
 		analyzer->ConnectionEvent(rpc_call, vl);
+		}
+	}
+
+void RPC_Interpreter::Event_RPC_Reply(uint32_t xid, BroEnum::rpc_status status, int reply_len)
+	{
+	if ( rpc_reply )
+		{
+		val_list* vl = new val_list;
+		vl->append(analyzer->BuildConnVal());
+		vl->append(new Val(xid, TYPE_COUNT));
+		vl->append(new EnumVal(status, enum_rpc_status));
+		vl->append(new Val(reply_len, TYPE_COUNT));
+		analyzer->ConnectionEvent(rpc_reply, vl);
 		}
 	}
 
@@ -358,8 +389,6 @@ Contents_RPC::~Contents_RPC()
 void Contents_RPC::Undelivered(int seq, int len, bool orig)
 	{
 	TCP_SupportAnalyzer::Undelivered(seq, len, orig);
-	printf("%.6f Undelivered: orig=%d. len=%d\n", network_time, orig, len);
-
 	NeedResync();
 	}
 
@@ -368,8 +397,6 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
 	TCP_SupportAnalyzer::DeliverStream(len, data, orig);
 	bool last_frag;
 	uint32 marker;
-
-	printf("%.6f DeliverStream, orig=%d isOrig=%d len= %d\n", network_time, orig, IsOrig(), len);
 
 	// This is an attempt to re-synchronize the stream with RPC
 	// frames after a content gap.  We try to look for the beginning
@@ -460,7 +487,8 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
 				marker &= 0x7fffffff;
 					//printf("%.6f %d marker= %u <> last_frag= %d <> expected=%llu <> processed= %llu <> len = %d\n",
 					//		network_time, IsOrig(), marker, last_frag, msg_buf.GetExpected(), msg_buf.GetProcessed(), len);
-				msg_buf.AddToExpected(marker);
+				if (!msg_buf.AddToExpected(marker))
+					Conn()->Weird(fmt("RPC_message_too_long (%" PRId64 ")" , msg_buf.GetExpected()));
 				if (last_frag)
 					state = WAIT_FOR_LAST_DATA;
 				else

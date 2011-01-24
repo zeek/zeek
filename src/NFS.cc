@@ -13,7 +13,7 @@
 int NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 	{
 	if ( c->Program() != 100003 )
-		Weird("bad_RPC_program");
+		Weird(fmt("bad_RPC_program (%d)", c->Program()));
 
 	uint32 proc = c->Proc();
 	// the call arguments, depends on the call type obviously...
@@ -213,7 +213,7 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BroEnum::rpc_status rpc_status,
 		}
 	// Note: if reply == 0, it won't be added to the val_list for the event.
 	// While we can check for that on the policy layer it's kinda ugly, because
-	// it's contrary to the event prototype. But an optional argument to
+	// it's contrary to the event prototype. But having this optional argument to
 	// the event is really helpful.... Otherwise I have to let reply
 	// point to a RecordVal where all fields are optional and all are set
 	// to 0...

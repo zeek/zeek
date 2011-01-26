@@ -213,12 +213,21 @@ protected:
 		WAIT_FOR_DATA,
 		WAIT_FOR_LAST_DATA,
 	} state_t;
+	typedef enum {
+		NEED_RESYNC,
+		RESYNC_WAIT_FOR_MSG_START,
+		RESYNC_WAIT_FOR_FULL_MSG,
+		RESYNC_HAD_FULL_MSG,
+		INSYNC,
+	} resync_state_t;
 	virtual void Init();
+	virtual bool CheckResync(int& len, const u_char*& data, bool orig);
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
 	virtual void Undelivered(int seq, int len, bool orig);
 
 	virtual void NeedResync() {
-		resync = true;
+		resync_state = NEED_RESYNC;
+		resync_toskip = 0;
 		state = WAIT_FOR_MESSAGE;
 	}
 
@@ -231,8 +240,8 @@ protected:
 	double start_time;
 	double last_time;
 
-	bool resync;
-
+	resync_state_t resync_state;
+	int resync_toskip;
 };
 
 class RPC_Analyzer : public TCP_ApplicationAnalyzer {

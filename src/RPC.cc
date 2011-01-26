@@ -374,7 +374,8 @@ Contents_RPC::Contents_RPC(Connection* conn, bool orig,
 	{
 	interp = arg_interp;
 	state = WAIT_FOR_MESSAGE;
-	resync = false;
+	resync_state = INSYNC;
+	resync_toskip = 0;
 	start_time = 0;
 	last_time = 0;
 	}
@@ -387,8 +388,11 @@ void Contents_RPC::Init()
 		static_cast<TCP_ApplicationAnalyzer*>(Parent())->TCP();
 	assert(tcp);
 
-	resync = (IsOrig() ? tcp->OrigState() : tcp->RespState()) !=
-						TCP_ENDPOINT_ESTABLISHED;
+	if ((IsOrig() ? tcp->OrigState() : tcp->RespState()) !=
+						TCP_ENDPOINT_ESTABLISHED)
+		{
+		NeedResync();
+		}
 	}
 
 
@@ -402,64 +406,174 @@ void Contents_RPC::Undelivered(int seq, int len, bool orig)
 	NeedResync();
 	}
 
-void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
+bool Contents_RPC::CheckResync(int& len, const u_char*& data, bool orig)
 	{
-	TCP_SupportAnalyzer::DeliverStream(len, data, orig);
+	uint32 frame_len;
 	bool last_frag;
-	uint32 marker;
+	uint32 xid;
+	uint32 frame_type;
+
+	bool discard_this_chunk = false;
+
+	if (resync_state == INSYNC)
+		return true;
 
 	// This is an attempt to re-synchronize the stream with RPC
-	// frames after a content gap.  We try to look for the beginning
-	// of an RPC frame, assuming (1) RPC frames begin at packet
-	// boundaries (though they may span over multiple packets) and
-	// (2) the first piece is longer than 12 bytes. (If we see a
-	// piece shorter than 12 bytes, it is likely that it's the
-	// remaining piece of a previous RPC frame, so the code here
-	// skips that piece.)  It then checks if the frame type and length
-	// make any sense, and if so, it assumes that is beginning of
-	// a frame.
-	// TODO: tweak heuristic for resync...
-	if ( resync )
+	// frames after a content gap.  
+	// Returns true if we are in sync. 
+	// Returns false otherwise (we are in resync mode)
+	//
+	// We try to look for the beginning of a RPC frame, assuming 
+	// RPC frames begin at packet boundaries (though they may span 
+	// over multiple packets) (note that the data* of DeliverStream()
+	// usually starts at a packet boundrary). 
+	//
+	// If we see a frame start that makes sense (direction and
+	// frame lenght seem ok), we try to read (skip over) the next RPC
+	// message. If this is successfull and we the place we are seems 
+	// like a valid start of a RPC msg (direction and frame length
+	// seem ok). We assume that we have successfully resync'ed.
+	
+	// Assuming RPC frames align with packet boundaries ...
+
+	while (len > 0)
 		{
-		// Assuming RPC frames align with packet boundaries ...
+		if (resync_toskip) 
+			{
+			if ( DEBUG_rpc_resync )
+				DEBUG_MSG("RPC resync: skipping %d bytes.\n", len);
+			// We have some bytes to skip over. 
+			if (resync_toskip < len)
+				{
+				len -= resync_toskip;
+				data += resync_toskip;
+				resync_toskip = 0;
+				}
+			else 
+				{
+				resync_toskip -= len;
+				data += len;
+				len = 0;
+				return false;
+				}
+			}
+
+		if (resync_toskip != 0)
+			{
+			// Should never happen
+			internal_error("RPC resync: skipping over data failed");
+			NeedResync();
+			return false;
+			}
+
+		// Now lets see whether data points to the beginning of a
+		// RPC frame. If the resync processs is successful, we should
+		// be at the beginning of a frame.
+
+		
 		if ( len < 12 )
 			{
-			// Ignore small fragmeents.
+			// Ignore small chunks. 
 			if ( len != 1 && DEBUG_rpc_resync )
 				{
 				// One-byte fragments are likely caused by
 				// TCP keep-alive retransmissions.
 				DEBUG_MSG("%.6f RPC resync: "
-				          "discard small pieces: %d\n",
-			                  network_time, len);
+						  "discard small pieces: %d\n",
+							  network_time, len);
 				Conn()->Weird(
 					fmt("RPC resync: discard %d bytes\n",
 						len));
 				}
-			return;
+			NeedResync();
+			return false;
 			}
 
-		const u_char* xdata = data;
+
+		const u_char *xdata = data;
 		int xlen = len;
-		uint32 frame_len = extract_XDR_uint32(xdata, xlen);
-		uint32 xid = extract_XDR_uint32(xdata, xlen);
-		uint32 frame_type = extract_XDR_uint32(xdata, xlen);
+		frame_len = extract_XDR_uint32(xdata, xlen);
+		last_frag = (frame_len & 0x80000000) != 0;
+		frame_len &= 0x7fffffff;
+		xid = extract_XDR_uint32(xdata, xlen);
+		frame_type = extract_XDR_uint32(xdata, xlen);
 
+		// Check if the direction makes sense and the length of the
+		// frame to expect.
 		if ( (IsOrig() && frame_type != 0) ||
-		     (! IsOrig() && frame_type != 1) ||
-		     frame_len < 16 )
+			 (! IsOrig() && frame_type != 1) ||
+			 frame_len < 16 )
+
+			discard_this_chunk = true;
+
+		// Make sure the frame isn't too long. 
+		// TODO: Could possible even reduce this number even further. 
+		if (frame_len > MAX_RPC_LEN)
+			discard_this_chunk = true;
+
+		if (discard_this_chunk)
 			{
-			// Skip this packet.
+			// Skip this chunk
 			if ( DEBUG_rpc_resync )
-				{
-				DEBUG_MSG("RPC resync: skipping %d bytes\n",
-				          len);
-				}
-			return;
+				DEBUG_MSG("RPC resync: Need to resync. dicarding %d bytes.\n", len);
+			NeedResync();  // let's try the resync again from the beginning
+			return false;
 			}
 
-		resync = false;
-		}
+		// Looks like we are at the start of a frame and have successfully 
+		// extracted the frame length (marker). 
+
+		switch (resync_state) {
+		case NEED_RESYNC:
+		case RESYNC_WAIT_FOR_MSG_START:
+			// Initial phase of resyncing. Skip frames until we get a frame
+			// with the last_fragment bit set.
+			resync_toskip = frame_len + 4;
+			if (last_frag)
+				resync_state = RESYNC_WAIT_FOR_FULL_MSG;
+			else 
+				resync_state = RESYNC_WAIT_FOR_MSG_START;
+			break;
+
+		case RESYNC_WAIT_FOR_FULL_MSG:
+			// If the resync was successful so far, we should now be the start 
+			// of a new RPC message. Try to skip over it.
+			resync_toskip = frame_len + 4;
+			if (last_frag)
+				resync_state = RESYNC_HAD_FULL_MSG;
+			break;
+			
+		case RESYNC_HAD_FULL_MSG:
+			// We have now successfully skipped over a full RPC message. 
+			// If we got that far, we are in sync. 
+			resync_state = INSYNC;
+			if ( DEBUG_rpc_resync )
+				DEBUG_MSG("RPC resync: success.\n");
+			return true;
+
+		default:
+			// Shoult never happen
+			NeedResync();
+			return false;
+		} // end switch
+		} // end while (len>0)
+
+	return false;
+	}
+	
+
+
+
+void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
+	{
+	TCP_SupportAnalyzer::DeliverStream(len, data, orig);
+	uint32 marker;
+	bool last_frag;
+
+	if (!CheckResync(len, data, orig))
+		return;   // Not in sync yet. Still resyncing
+
+
 
 	// Should be in sync now
 

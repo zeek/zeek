@@ -694,6 +694,28 @@ const RPC_status = {
 	[RPC_UNKNOWN_ERROR] = "unknown"
 };
 
+# This record summarizes the general results and status
+# of NFSv3 request/reply pairs. It's part of every NFSv3
+# event
+type nfs3_info: record {
+	rpc_stat: rpc_status;
+	nfs_stat: nfs3_status;
+
+	# the start time, duration, and length in bytes of the 
+	# request (call). 
+	# NOTE that the start and end time might not be accurate. For TCP we 
+	# record the time when a chunk of data is delivered to the analyzer. Depending
+	# on the Reassembler, this might be well after the first packet of the request
+	# was received.
+	req_start: time;
+	req_dur: interval;
+	req_len: count;
+
+	# Same for the reply
+	rep_start: time;
+	rep_dur: interval;
+	rep_len: count;
+};
 
 
 # NFSv3 types

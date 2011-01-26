@@ -44,8 +44,9 @@ function rpc_expire_xid(t: table[count] of rpc_call_info, xid: count): interval
 	{
 	local ci = t[xid];
 	if (ci$state != HAVE_REPLY)
-		print log_file, fmt("%.6f %s note XID %d never recevied a reply", 
-				  ci$calltime, id_string(ci$cid), xid);
+		print log_file, fmt("%.6f %s %s note XID %d never recevied a reply", 
+				  ci$calltime, id_string(ci$cid),
+				   get_port_transport_proto(ci$cid$orig_p), xid);
 	return 0 sec;
 	}
 

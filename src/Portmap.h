@@ -14,7 +14,8 @@ public:
 protected:
 	int RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n);
 	int RPC_BuildReply(RPC_CallInfo* c, BroEnum::rpc_status success,
-				const u_char*& buf, int& n);
+				const u_char*& buf, int& n, double start_time, double last_time,
+				int reply_len);
 	uint32 CheckPort(uint32 port);
 
 	void Event(EventHandlerPtr f, Val* request, BroEnum::rpc_status status, Val* reply);

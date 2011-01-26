@@ -186,16 +186,16 @@ event pm_bad_port%(r: connection, bad_p: count%);
 
 # Event for the NFS analyzer. An event is generated if we have received a 
 # Call (request) / Response pair (or in case of a time out). 
-# rpc_stat and nfs_stat show whether the request was successful. 
-# The request record is always filled out, however, the might not be set or 
+# info$rpc_stat and info$nfs_stat show whether the request was successful. 
+# The request record is always filled out, however, the reply record(s) might not be set or 
 # might only be partially set. See the comments for the record types in 
 # bro.init to see which reply fields are set when.
-event nfs_proc_null%(c: connection, rpc_stat: rpc_status, nfs_stat: nfs3_status%);
-event nfs_proc_not_implemented%(c: connection, rpc_stat: rpc_status, nfs_stat: nfs3_status, proc: nfs3_proc%);
+event nfs_proc_null%(c: connection, info: nfs3_info%);
+event nfs_proc_not_implemented%(c: connection, info: nfs3_info, proc: nfs3_proc%);
 
-event nfs_proc_getattr%(c: connection, rpc_stat: rpc_status, nfs_stat: nfs3_status, fh: string, attrs: nfs3_fattr%);
-event nfs_proc_lookup%(c: connection, rpc_stat: rpc_status, nfs_stat: nfs3_status, req: nfs3_diropargs, rep: nfs3_lookup_reply%);
-event nfs_proc_read%(c: connection, rpc_stat: rpc_status, nfs_stat: nfs3_status, req: nfs3_readargs, rep: nfs3_read_reply%);
+event nfs_proc_getattr%(c: connection, info: nfs3_info, fh: string, attrs: nfs3_fattr%);
+event nfs_proc_lookup%(c: connection, info: nfs3_info, req: nfs3_diropargs, rep: nfs3_lookup_reply%);
+event nfs_proc_read%(c: connection, info: nfs3_info, req: nfs3_readargs, rep: nfs3_read_reply%);
 #event nfs_request_lookup%(n: connection, req: nfs3_lookup_args, rep: nfs3_lookup_reply%);
 #event nfs_request_fsstat%(n: connection, root_fh: string, stat: nfs3_fsstat%);
 #event nfs_attempt_null%(n: connection, status: count%);
@@ -204,7 +204,7 @@ event nfs_proc_read%(c: connection, rpc_stat: rpc_status, nfs_stat: nfs3_status,
 #event nfs_attempt_fsstat%(n: connection, status: count, root_fh: string%);
 
 # Generated for each NFS reply message we receive. Just gives the status.
-event nfs_reply_status%(n: connection, rpc_stat: rpc_status, nfs_stat: nfs3_status%);
+event nfs_reply_status%(n: connection, info: nfs3_info%);
 
 event ntp_message%(u: connection, msg: ntp_msg, excess: string%);
 

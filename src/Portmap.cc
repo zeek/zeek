@@ -72,7 +72,8 @@ int PortmapperInterp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 	}
 
 int PortmapperInterp::RPC_BuildReply(RPC_CallInfo* c, BroEnum::rpc_status status,
-					const u_char*& buf, int& n)
+					const u_char*& buf, int& n, double start_time, double last_time,
+					int reply_len)
 	{
 	EventHandlerPtr event;
 	Val *reply = 0;

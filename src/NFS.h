@@ -16,17 +16,14 @@ public:
 protected:
 	int RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n);
 	int RPC_BuildReply(RPC_CallInfo* c, BroEnum::rpc_status rpc_status,
-				const u_char*& buf, int& n);
+				const u_char*& buf, int& n, double start_time, double last_time,
+				int reply_len);
 
-	val_list *helper_get_vl(BroEnum::rpc_status rpc_status, BroEnum::nfs3_status nfs_status) {
-		// returns a new val_list that already has a conn_val, rpc_status and nfs_status.
-		// These are the first parameters for each nfs_* event... 
-		val_list *vl = new val_list;
-		vl->append(analyzer->BuildConnVal());
-		vl->append(new EnumVal(rpc_status, enum_rpc_status)) ;
-		vl->append(new EnumVal(nfs_status, enum_nfs3_status));
-		return vl;
-	}
+	// returns a new val_list that already has a conn_val, rpc_status and nfs_status.
+	// These are the first parameters for each nfs_* event... 
+	val_list* event_common_vl(RPC_CallInfo *c, BroEnum::rpc_status rpc_status, 
+				BroEnum::nfs3_status nfs_status, double rep_start_time, double rep_last_time,
+				int reply_len);
 
 	// These methods parse the appropriate NFSv3 "type" out of buf. If 
 	// there are any errors (i.e., buffer to short, etc), buf will be
@@ -49,9 +46,6 @@ protected:
 	Val* ExtractTime(const u_char*& buf, int& n);
 	Val* ExtractInterval(const u_char*& buf, int& n);
 	Val* ExtractBool(const u_char*& buf, int& n);
-
-	void Event(EventHandlerPtr f, Val* request, BroEnum::rpc_status status, 
-			BroEnum::nfs3_status, Val* reply);
 };
 
 class NFS_Analyzer : public RPC_Analyzer {

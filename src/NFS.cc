@@ -95,7 +95,8 @@ int NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 	}
 
 int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BroEnum::rpc_status rpc_status,
-					const u_char*& buf, int& n)
+					const u_char*& buf, int& n, double start_time, double last_time,
+					int reply_len)
 	{
 	EventHandlerPtr event = 0;
 	Val *reply = 0;
@@ -113,7 +114,8 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BroEnum::rpc_status rpc_status,
 
 	if ( nfs_reply_status )
 		{
-		val_list* vl = helper_get_vl(rpc_status, nfs_status);
+		val_list* vl = event_common_vl(c, rpc_status, nfs_status,
+						start_time, last_time, reply_len);
 		analyzer->ConnectionEvent(nfs_reply_status, vl);
 		}
 
@@ -218,8 +220,40 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BroEnum::rpc_status rpc_status,
 	// point to a RecordVal where all fields are optional and all are set
 	// to 0...
 	if (event) 
-		Event(event, c->TakeRequestVal(), rpc_status, nfs_status, reply);
+		{
+		val_list* vl = event_common_vl(c, rpc_status, nfs_status,
+					start_time, last_time, reply_len);
+		Val *request = c->TakeRequestVal();
+		if ( request )
+			vl->append(request);
+		if ( reply )
+			vl->append(reply);
+		analyzer->ConnectionEvent(event, vl);
+		}
 	return 1;
+	}
+
+val_list* NFS_Interp::event_common_vl(RPC_CallInfo *c, BroEnum::rpc_status rpc_status, 
+				BroEnum::nfs3_status nfs_status, double rep_start_time, double rep_last_time,
+				int reply_len) 
+	{
+	// returns a new val_list that already has a conn_val, and nfs3_info
+	// These are the first parameters for each nfs_* event... 
+	val_list *vl = new val_list;
+	vl->append(analyzer->BuildConnVal());
+
+	RecordVal *info = new RecordVal(rectype_nfs3_info);
+	info->Assign(0, new EnumVal(rpc_status, enum_rpc_status));  
+	info->Assign(1, new EnumVal(nfs_status, enum_nfs3_status));  
+	info->Assign(2, new Val(c->StartTime(), TYPE_TIME));
+	info->Assign(3, new Val(c->LastTime()-c->StartTime(), TYPE_INTERVAL));
+	info->Assign(4, new Val(c->RPCLen(), TYPE_COUNT));
+	info->Assign(5, new Val(rep_start_time, TYPE_TIME));
+	info->Assign(6, new Val(rep_last_time-rep_start_time, TYPE_INTERVAL));
+	info->Assign(7, new Val(reply_len, TYPE_COUNT));
+
+	vl->append(info);
+	return vl;
 	}
 
 StringVal* NFS_Interp::nfs3_fh(const u_char*& buf, int& n)
@@ -351,19 +385,6 @@ Val* NFS_Interp::ExtractBool(const u_char*& buf, int& n)
 	return new Val(extract_XDR_uint32(buf, n), TYPE_BOOL);
 	}
 
-
-void NFS_Interp::Event(EventHandlerPtr f, Val* request, BroEnum::rpc_status rpc_status, 
-		BroEnum::nfs3_status nfs_status, Val* reply)
-	{
-	val_list* vl = helper_get_vl(rpc_status, nfs_status);;
-
-	if ( request )
-		vl->append(request);
-	if ( reply )
-		vl->append(reply);
-
-	analyzer->ConnectionEvent(f, vl);
-	}
 
 NFS_Analyzer::NFS_Analyzer(Connection* conn)
 : RPC_Analyzer(AnalyzerTag::NFS, conn, new NFS_Interp(this))

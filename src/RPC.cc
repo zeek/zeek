@@ -15,15 +15,19 @@ namespace { // local namespace
 	const bool DEBUG_rpc_resync = false;
 }
 
+// TODO: Should we add start_time and last_time to the rpc_* events??
+
 // TODO: make this configurable
 #define MAX_RPC_LEN 65536
 
 
-RPC_CallInfo::RPC_CallInfo(uint32 arg_xid, const u_char*& buf, int& n)
+RPC_CallInfo::RPC_CallInfo(uint32 arg_xid, const u_char*& buf, int& n, double arg_start_time, double arg_last_time, int arg_rpc_len)
 	{
 	xid = arg_xid;
 
-	start_time = network_time;
+	start_time = arg_start_time;
+	last_time = arg_last_time;
+	rpc_len = arg_rpc_len;
 	call_n = n;
 	call_buf = new u_char[call_n];
 	memcpy((void*) call_buf, (const void*) buf, call_n);
@@ -77,10 +81,11 @@ RPC_Interpreter::~RPC_Interpreter()
 	{
 	}
 
-int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen, int is_orig)
+int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen, int is_orig, double start_time, double last_time)
 	{
 	uint32 xid = extract_XDR_uint32(buf, n);
 	uint32 msg_type = extract_XDR_uint32(buf, n);
+	int rpc_len = n; 
 
 	if ( ! buf )
 		return 0;
@@ -96,6 +101,9 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen, int is_ori
 			{
 			if ( ! call->CompareRexmit(buf, n) )
 				Weird("RPC_rexmit_inconsistency");
+			// XXX: Should we update start_time and last_time or not??
+			call->SetStartTime(start_time);
+			call->SetLastTime(last_time);
 
 			// TODO: Not sure whether the handling if rexmit
 			// inconsistencies are correct. Maybe we should use the info in the new 
@@ -112,7 +120,7 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen, int is_ori
 
 		else
 			{
-			call = new RPC_CallInfo(xid, buf, n);
+			call = new RPC_CallInfo(xid, buf, n, start_time, last_time, rpc_len);
 			if ( ! buf )
 				{
 				Weird("bad_RPC");
@@ -224,7 +232,7 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen, int is_ori
 
 			else
 				{
-				if ( ! RPC_BuildReply(call, (BroEnum::rpc_status)status, buf, n) )
+				if ( ! RPC_BuildReply(call, (BroEnum::rpc_status)status, buf, n, start_time, last_time, rpc_len) )
 					Weird("bad_RPC");
 				}
 
@@ -271,7 +279,7 @@ void RPC_Interpreter::Timeout()
 			{
 			const u_char* buf;
 			int n = 0;
-			if ( ! RPC_BuildReply(c, BroEnum::RPC_TIMEOUT, buf, n) )
+			if ( ! RPC_BuildReply(c, BroEnum::RPC_TIMEOUT, buf, n, network_time, network_time, 0) )
 				Weird("bad_RPC");
 			}
 		}
@@ -367,6 +375,8 @@ Contents_RPC::Contents_RPC(Connection* conn, bool orig,
 	interp = arg_interp;
 	state = WAIT_FOR_MESSAGE;
 	resync = false;
+	start_time = 0;
+	last_time = 0;
 	}
 
 void Contents_RPC::Init()
@@ -455,6 +465,7 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
 
 	while (len > 0) 
 		{
+		last_time = network_time;
 		switch (state) {
 		case WAIT_FOR_MESSAGE: 
 			// A new RPC message is starting. Initialize state
@@ -466,6 +477,7 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
 			msg_buf.Init(MAX_RPC_LEN, 0);
 			last_frag = 0;
 			state = WAIT_FOR_MARKER;
+			start_time = network_time;
 			// no break. fall through
 			
 		case WAIT_FOR_MARKER:
@@ -511,7 +523,7 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
 					{
 					const u_char *dummy_p = msg_buf.GetBuf();
 					int dummy_len = (int) msg_buf.GetFill();
-					if ( ! interp->DeliverRPC(dummy_p, dummy_len, (int)msg_buf.GetExpected(), IsOrig()) )
+					if ( ! interp->DeliverRPC(dummy_p, dummy_len, (int)msg_buf.GetExpected(), IsOrig(), start_time, last_time) )
 						Conn()->Weird("partial_RPC");
 					state = WAIT_FOR_MESSAGE;
 					}
@@ -549,12 +561,12 @@ void RPC_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 
 	if ( orig )
 		{
-		if ( ! interp->DeliverRPC(data, len, len, 1) )
+		if ( ! interp->DeliverRPC(data, len, len, 1, network_time, network_time) )
 			Weird("bad_RPC");
 		}
 	else
 		{
-		if ( ! interp->DeliverRPC(data, len, len, 0) )
+		if ( ! interp->DeliverRPC(data, len, len, 0, network_time, network_time) )
 			Weird("bad_RPC");
 		}
 	}

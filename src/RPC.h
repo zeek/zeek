@@ -59,7 +59,7 @@ class RPC_CallInfo_Cookie {
 
 class RPC_CallInfo {
 public:
-	RPC_CallInfo(uint32 xid, const u_char*& buf, int& n);
+	RPC_CallInfo(uint32 xid, const u_char*& buf, int& n, double start_time, double last_time, int rpc_len);
 	~RPC_CallInfo();
 
 	void AddVal(Val* arg_v)		{ Unref(v); v = arg_v; }
@@ -82,8 +82,12 @@ public:
 	uint32 Proc() const		{ return proc; }
 
 	double StartTime() const	{ return start_time; }
+	void SetStartTime(double t) { start_time = t; }
+	double LastTime() const	{ return last_time; }
+	void SetLastTime(double t) { last_time = t; }
 	int CallLen() const		{ return call_n; }
-	int HeaderLen() const		{ return header_len; }
+	int RPCLen() const      { return rpc_len; }
+	int HeaderLen() const	{ return header_len; }
 
 	uint32 XID() const		{ return xid; }
 
@@ -95,6 +99,8 @@ protected:
 	uint32 cred_flavor, verf_flavor;
 	u_char* call_buf;	// copy of original call buffer
 	double start_time;
+	double last_time;
+	int rpc_len;    // size of the full RPC call, incl. xid and msg_type
 	int call_n;		// size of call buf
 	int header_len;		// size of data before the arguments
 	bool valid_call;	// whether call was well-formed
@@ -117,14 +123,15 @@ public:
 	// Delivers the given RPC.  Returns true if "len" bytes were
 	// enough, false otherwise.  "is_orig" is true if the data is
 	// from the originator of the connection.
-	int DeliverRPC(const u_char* data, int len, int caplen, int is_orig);
+	int DeliverRPC(const u_char* data, int len, int caplen, int is_orig, double start_time, double last_time);
 
 	void Timeout();
 
 protected:
 	virtual int RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n) = 0;
 	virtual int RPC_BuildReply(RPC_CallInfo* c, BroEnum::rpc_status success,
-					const u_char*& buf, int& n) = 0;
+					const u_char*& buf, int& n, double start_time, double last_time,
+					int reply_len) = 0;
 
 	//virtual void Event(EventHandlerPtr f, Val* request, int status, Val* reply) = 0;
 
@@ -220,6 +227,9 @@ protected:
 	RPC_Reasm_Buffer marker_buf; // Reassembles the 32bit RPC-over-TCP marker 
 	RPC_Reasm_Buffer msg_buf;    // Reassembles RPC messages 
 	state_t state;
+
+	double start_time;
+	double last_time;
 
 	bool resync;
 

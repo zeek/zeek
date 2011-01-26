@@ -172,7 +172,9 @@ enum nfs3_file_type %{
 	NFS3_FTYPE_FIFO  = 7,
 %}
 
-
+# Decleare record types that we want to access from the C++
+# These are defined in bro.init
+type nfs3_info: record;
 type nfs3_fattr: record;
 type nfs3_diropargs: record;
 type nfs3_lookup_reply: record;

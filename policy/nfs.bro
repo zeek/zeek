@@ -20,14 +20,25 @@ redef dpd_config += { [ANALYZER_NFS] = [$ports = nfs_ports] };
 
 # Maps opaque file handles to numbers for easier tracking.
 global num_fhs = 0;
-global fh_map: table[string] of count;
+global fh_map: table[addr,string] of count;
 
-function map_fh(fh: string): string
+# Maps connids to number for easier post processing
+global num_nfs_conns = 0;
+global nfs_conns: table[conn_id] of count;
+
+function map_fh(c:connection, fh: string): string
 	{
-	if ( fh !in fh_map )
-		fh_map[fh] = ++num_fhs;
+	if ( [c$id$resp_h, fh] !in fh_map )
+		fh_map[c$id$resp_h, fh] = ++num_fhs;
 
-	return cat("FH", fh_map[fh]);
+	return cat("FH", fh_map[c$id$resp_h, fh]);
+	}
+
+function map_conn(cid: conn_id): count 
+	{
+	if (cid !in nfs_conns)
+		nfs_conns[cid] = ++num_nfs_conns;
+	return nfs_conns[cid];
 	}
 
 
@@ -51,10 +62,11 @@ function is_success(info: nfs3_info): bool
 function nfs_get_log_prefix(c: connection, info: nfs3_info, proc: string): string
 	{
 	local nfs_stat_str = (info$rpc_stat == RPC_SUCCESS) ? fmt("%s", info$nfs_stat) : "X";
-	return fmt("%.06f %.06f %d %.06f %.06f %d %s %s %s %s %s", 
+	return fmt("%.06f %.06f %d %.06f %.06f %d %s %s %d %s %s %s", 
 			info$req_start, info$req_dur, info$req_len,
 			info$rep_start, info$rep_dur, info$rep_len,
 			id_string(c$id), get_port_transport_proto(c$id$orig_p),
+			map_conn(c$id), 
 			proc, info$rpc_stat, nfs_stat_str);
 	}
 
@@ -78,7 +90,7 @@ event nfs_proc_getattr (c: connection, info: nfs3_info, fh: string, attrs: nfs3_
 
 	# TODO: check for success and print attrs, if successful 
 	 
-	print log_file, fmt("%s %s", prefix, map_fh(fh));
+	print log_file, fmt("%s %s", prefix, map_fh(c,fh));
 	}
 
 event nfs_proc_lookup(c: connection, info: nfs3_info, req: nfs3_diropargs, rep: nfs3_lookup_reply)
@@ -87,11 +99,11 @@ event nfs_proc_lookup(c: connection, info: nfs3_info, req: nfs3_diropargs, rep: 
 
 	if (! is_success(info) )
 		{
-		print log_file, fmt("%s %s + %s", prefix, map_fh(req$dirfh), req$fname);
+		print log_file, fmt("%s %s + %s", prefix, map_fh(c, req$dirfh), req$fname);
 		# could print dir_attr, if they are set ....
 		return;
 		}
-	print log_file, fmt("%s %s + %s => %s", prefix, map_fh(req$dirfh), req$fname, map_fh(rep$fh));
+	print log_file, fmt("%s %s + %s => %s", prefix, map_fh(c, req$dirfh), req$fname, map_fh(c, rep$fh));
 	
 	}
 
@@ -99,10 +111,38 @@ event nfs_proc_read(c: connection, info: nfs3_info, req: nfs3_readargs, rep: nfs
 	{
 	local msg = nfs_get_log_prefix(c, info, "read");
 
-	msg = fmt("%s %s @%.0f: %d", msg, map_fh(req$fh), req$offset, req$size);
+	msg = fmt("%s %s @%.0f: %d", msg, map_fh(c, req$fh), req$offset, req$size);
 	if (is_success(info))
-		msg = fmt("%s, got %d bytes %s", msg, rep$size, (rep$eof) ? "<eof>" : "x");
+		msg = fmt("%s got %d bytes %s", msg, rep$size, (rep$eof) ? "<eof>" : "x");
 
 	print log_file, msg;
 	}
 
+event nfs_proc_readlink(c: connection, info: nfs3_info, fh: string, rep: nfs3_readlink_reply) 
+	{
+	local msg = nfs_get_log_prefix(c, info, "readlink");
+
+	msg = fmt("%s %s", msg, map_fh(c, fh));
+	if (is_success(info))
+		msg = fmt("%s : %s", msg, rep$nfspath);
+
+	print log_file, msg;
+	}
+
+event nfs_proc_write(c: connection, info: nfs3_info, req: nfs3_writeargs, rep: nfs3_write_reply)
+	{
+	local msg = nfs_get_log_prefix(c, info, "write");
+
+	msg = fmt("%s %s @%.0f: %d %s", msg, map_fh(c, req$fh), req$offset, req$size, req$stable);
+	if (is_success(info))
+		msg = fmt("%s wrote %d bytes %s", msg, rep$size, rep$commited);
+
+	print log_file, msg;
+	}
+
+event connection_state_remove(c: connection)
+	{
+	if ( c$id !in nfs_conns )
+		return;
+	delete nfs_conns[c$id];
+	}

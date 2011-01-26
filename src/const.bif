@@ -108,9 +108,9 @@ enum nfs3_proc %{   # NFSv3 procedures
 	NFS3_PROC_SETATTR  = 2,
 	NFS3_PROC_LOOKUP   = 3,  # done  
 	NFS3_PROC_ACCESS   = 4,
-	NFS3_PROC_READLINK = 5,
-	NFS3_PROC_READ     = 6,
-	NFS3_PROC_WRITE    = 7,
+	NFS3_PROC_READLINK = 5,  # done
+	NFS3_PROC_READ     = 6,  # done
+	NFS3_PROC_WRITE    = 7,  # done 
 	NFS3_PROC_CREATE   = 8,
 	NFS3_PROC_MKDIR    = 9,
 	NFS3_PROC_SYMLINK  = 10,
@@ -172,6 +172,12 @@ enum nfs3_file_type %{
 	NFS3_FTYPE_FIFO  = 7,
 %}
 
+enum nfs3_stable_how %{
+	NFS3_UNSTABLE = 0,
+	NFS3_DATA_SYNC = 1,
+	NFS3_FILE_SYNC = 2,
+%}
+
 # Decleare record types that we want to access from the C++
 # These are defined in bro.init
 type nfs3_info: record;
@@ -180,6 +186,10 @@ type nfs3_diropargs: record;
 type nfs3_lookup_reply: record;
 type nfs3_readargs: record;
 type nfs3_read_reply: record;
+type nfs3_readlink_reply: record;
+type nfs3_writeargs: record;
+type nfs3_wcc_attr: record;
+type nfs3_write_reply: record;
 
 
 type nfs3_fsstat: record;

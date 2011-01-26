@@ -33,12 +33,20 @@ protected:
 	// Method names are based on the type names of RFC 1813
 	StringVal* nfs3_fh(const u_char*& buf, int& n);
 	RecordVal* nfs3_fattr(const u_char*& buf, int& n);
+	RecordVal* nfs3_wcc_attr(const u_char*& buf, int& n);
 	RecordVal* nfs3_diropargs(const u_char*&buf, int &n);
 	StringVal* nfs3_filename(const u_char*& buf, int& n);
+	StringVal* nfs3_nfspath(const u_char*& buf, int& n) { return nfs3_filename(buf,n); }
 	RecordVal* nfs3_post_op_attr(const u_char*&buf, int &n); // Return 0 or an fattr
+	RecordVal* nfs3_pre_op_attr(const u_char*&buf, int &n); // Return 0 or an wcc_attr
 	RecordVal* nfs3_lookup_reply(const u_char*& buf, int& n, BroEnum::nfs3_status status);
 	RecordVal* nfs3_readargs(const u_char*& buf, int& n);
 	RecordVal* nfs3_read_reply(const u_char*& buf, int& n, BroEnum::nfs3_status status);
+	RecordVal* nfs3_readlink_reply(const u_char*& buf, int& n, BroEnum::nfs3_status status);
+	RecordVal* nfs3_writeargs(const u_char*& buf, int& n);
+	EnumVal* nfs3_stable_how(const u_char*& buf, int& n);
+	RecordVal* nfs3_write_reply(const u_char*& buf, int& n, BroEnum::nfs3_status status);
+	StringVal* nfs3_writeverf(const u_char*& buf, int& n);
 
 	RecordVal* ExtractOptAttrs(const u_char*& buf, int& n);
 	Val* ExtractCount(const u_char*& buf, int& n);

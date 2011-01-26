@@ -768,6 +768,37 @@ type nfs3_read_reply: record {
 	data: string &optional;     # the actual data. NOT IMPLEMENTED YET.
 };
 
+type nfs3_readlink_reply: record {
+	# if the request fails attr may be set. 
+	# if the request succeeds, attr may be set and all other fields are set
+	attr: nfs3_fattr &optional; # attributes 	
+	nfspath: string &optional;  # the contents of the symlink. In general a pathname as text
+};
+
+type nfs3_writeargs: record {
+	fh: string;      # file handle to write to 
+	offset: double;  # Offset in file. Should really go to 64 bit int here
+	size: count;     # number of bytes to write
+	stable: nfs3_stable_how; # how and when data is commited 
+	data: string &optional;  # the actual data. NOT IMPLEMENTED YET.
+};
+
+type nfs3_wcc_attr: record {
+	size: double;
+	atime: time;
+	mtime: time;
+};
+
+type nfs3_write_reply: record {
+	# if the request fails pre|post attr may be set. 
+	# if the request succeeds, pre|post attr may be set and all other fields are set
+	preattr: nfs3_wcc_attr &optional;  # pre operation attributes
+	postattr: nfs3_fattr &optional;    # post operation attributes 
+	size: count &optional;
+	commited: nfs3_stable_how &optional; 
+	verf: string &optional;     # write verifier cookue
+};
+
 type nfs3_fsstat: record {
 	attrs: nfs3_fattr &optional;
 	tbytes: double;

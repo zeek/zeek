@@ -75,6 +75,26 @@ const u_char* extract_XDR_opaque(const u_char*& buf, int& len, int& n, int max_l
 	return opaque;
 	}
 
+
+const u_char* extract_XDR_opaque_fixed(const u_char*& buf, int& len, int n)
+	{
+	if ( ! buf )
+		return 0;
+	if ( n < 0 || n > len)
+		{
+		buf = 0;
+		return 0;
+		}
+	int n4 = ((n + 3) >> 2) << 2;	// n rounded up to next multiple of 4
+
+	len -= n4;
+	const u_char* opaque = buf;
+	buf += n4;
+
+	return opaque;
+	}
+
+
 uint32 skip_XDR_opaque_auth(const u_char*& buf, int& len)
 	{
 	uint32 auth_flavor = extract_XDR_uint32(buf, len);

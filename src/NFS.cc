@@ -34,6 +34,14 @@ int NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 	case BroEnum::NFS3_PROC_READ:
 		callarg = nfs3_readargs(buf, n);
 		break;
+
+	case BroEnum::NFS3_PROC_READLINK:
+		callarg = nfs3_fh(buf, n);
+		break;
+
+	case BroEnum::NFS3_PROC_WRITE:
+		callarg = nfs3_writeargs(buf, n);
+		break;
 #if 0
 	case BroEnum::NFS3_PROC_LOOKUP:
 		{
@@ -140,6 +148,18 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BroEnum::rpc_status rpc_status,
 		if (rpc_success)
 			reply = nfs3_read_reply(buf, n, nfs_status);
 		event = nfs_proc_read;
+		break;
+
+	case BroEnum::NFS3_PROC_READLINK:
+		if (rpc_success)
+			reply = nfs3_readlink_reply(buf, n, nfs_status);
+		event = nfs_proc_readlink;
+		break;
+
+	case BroEnum::NFS3_PROC_WRITE:
+		if (rpc_success)
+			reply = nfs3_write_reply(buf, n, nfs_status);
+		event = nfs_proc_write;
 		break;
 
 		//if ( nfs_status == BroEnum::NFS3ERR_OK )
@@ -288,6 +308,16 @@ RecordVal* NFS_Interp::nfs3_fattr(const u_char*& buf, int& n)
 	return attrs;
 	}
 
+RecordVal* NFS_Interp::nfs3_wcc_attr(const u_char*& buf, int& n)
+	{
+	RecordVal* attrs = new RecordVal(rectype_nfs3_wcc_attr);
+	attrs->Assign(0, ExtractLongAsDouble(buf, n));	// size
+	attrs->Assign(1, ExtractTime(buf, n));	// mtime
+	attrs->Assign(2, ExtractTime(buf, n));	// ctime
+
+	return attrs;
+	}
+
 StringVal *NFS_Interp::nfs3_filename(const u_char*& buf, int& n) 
 	{
 	int name_len;
@@ -314,6 +344,21 @@ RecordVal* NFS_Interp::nfs3_post_op_attr(const u_char*& buf, int& n)
 	if ( have_attrs )
 		return nfs3_fattr(buf, n);
 	return 0;
+	}
+
+RecordVal* NFS_Interp::nfs3_pre_op_attr(const u_char*& buf, int& n)
+	{
+	int have_attrs = extract_XDR_uint32(buf, n);
+
+	if ( have_attrs )
+		return nfs3_wcc_attr(buf, n);
+	return 0;
+	}
+
+EnumVal *NFS_Interp::nfs3_stable_how(const u_char*& buf, int& n) 
+	{
+	BroEnum::nfs3_stable_how stable = (BroEnum::nfs3_stable_how)extract_XDR_uint32(buf, n);
+	return new EnumVal(stable, enum_nfs3_stable_how);
 	}
 
 RecordVal* NFS_Interp::nfs3_lookup_reply(const u_char*& buf, int& n, BroEnum::nfs3_status status)
@@ -356,6 +401,61 @@ RecordVal* NFS_Interp::nfs3_read_reply(const u_char*& buf, int& n, BroEnum::nfs3
 	else
 		{
 		rep->Assign(0, nfs3_post_op_attr(buf, n));
+		}
+	return rep;
+	}
+
+RecordVal* NFS_Interp::nfs3_readlink_reply(const u_char*& buf, int& n, BroEnum::nfs3_status status)
+	{
+	RecordVal *rep = new RecordVal(rectype_nfs3_readlink_reply);
+	if (status == BroEnum::NFS3ERR_OK)
+		{
+		rep->Assign(0, nfs3_post_op_attr(buf, n));
+		rep->Assign(1, nfs3_nfspath(buf,n));
+		}
+	else
+		{
+		rep->Assign(0, nfs3_post_op_attr(buf, n));
+		}
+	return rep;
+	}
+
+RecordVal *NFS_Interp::nfs3_writeargs(const u_char*& buf, int& n)
+	{
+	RecordVal *writeargs = new RecordVal(rectype_nfs3_writeargs);
+	writeargs->Assign(0, nfs3_fh(buf, n));
+	writeargs->Assign(1, ExtractLongAsDouble(buf, n));
+	writeargs->Assign(2, ExtractCount(buf,n));
+	writeargs->Assign(3, nfs3_stable_how(buf, n));
+	n = 0; // Skip data, which is element 4. TODO: pass data to policy layer
+	return writeargs;
+	}
+
+StringVal* NFS_Interp::nfs3_writeverf(const u_char*& buf, int& n)
+	{
+	const u_char* verf = extract_XDR_opaque_fixed(buf, n, 8);
+
+	if ( ! verf )
+		return 0;
+
+	return new StringVal(new BroString(verf, 8, 0));
+	}
+
+RecordVal *NFS_Interp::nfs3_write_reply(const u_char*& buf, int& n, BroEnum::nfs3_status status)
+	{
+	RecordVal *rep = new RecordVal(rectype_nfs3_write_reply);
+	if (status == BroEnum::NFS3ERR_OK)
+		{
+		rep->Assign(0, nfs3_pre_op_attr(buf, n));
+		rep->Assign(1, nfs3_post_op_attr(buf, n));
+		rep->Assign(2, ExtractCount(buf, n));
+		rep->Assign(3, nfs3_stable_how(buf, n));
+		rep->Assign(4, nfs3_writeverf(buf, n));
+		}
+	else
+		{
+		rep->Assign(0, nfs3_post_op_attr(buf, n));
+		rep->Assign(1, nfs3_pre_op_attr(buf, n));
 		}
 	return rep;
 	}

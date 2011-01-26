@@ -88,12 +88,14 @@ extern int ones_complement_checksum(const void* p, int b, uint32 sum);
 
 extern int tcp_checksum(const struct ip* ip, const struct tcphdr* tp, int len);
 extern int udp_checksum(const struct ip* ip, const struct udphdr* up, int len);
+extern int icmp_checksum(const struct icmp* icmpp, int len);
+
 #ifdef BROv6
 extern int udp6_checksum(const struct ip6_hdr* ip, const struct udphdr* up,
 				int len);
-extern int icmp6_checksum(const struct icmp* icmpp, const struct ip6_hdr* ip6, int len);
+extern int icmp6_checksum(const struct icmp* icmpp, const struct ip6_hdr* ip6,
+				int len);
 #endif
-extern int icmp_checksum(const struct icmp* icmpp, int len);
 
 // Given an address in host order, returns its "classical network prefix",
 // also in host order.

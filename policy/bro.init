@@ -28,6 +28,8 @@ type icmp_conn: record {
 	itype: count;
 	icode: count;
 	len: count;
+
+	v6: bool;	# true if it's an ICMPv6 packet.
 };
 
 type icmp_hdr: record {
@@ -38,12 +40,11 @@ type icmp_context: record {
 	id: conn_id;
 	len: count;
 	proto: count;
-	frag_offset: count &optional; #no frag offset for IPv6 
-	bad_hdr_len: bool &optional; 
-	bad_checksum: bool &optional; #no checksum in IPv6 header 
-	MF: bool &optional; #no MF for IPv6
-	DF: bool &optional; #no DF for IPv6
-	ICMP6Flag: bool;
+	bad_hdr_len: bool;
+	bad_checksum: bool;	# always true for ICMPv6.
+	frag_offset: count;	# always 0 for IMCPv6.
+	MF: bool;		# always false for IMCPv6.
+	DF: bool;		# always true for ICMPv6.
 };
 
 type addr_set: set[addr];

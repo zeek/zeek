@@ -48,20 +48,6 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 
 	{ AnalyzerTag::ICMP, "ICMP", ICMP_Analyzer::InstantiateAnalyzer,
 		ICMP_Analyzer::Available, 0, false },
-	/*{ AnalyzerTag::ICMP_TimeExceeded, "ICMP_TIMEEXCEEDED",
-		ICMP_TimeExceeded_Analyzer::InstantiateAnalyzer,
-		ICMP_TimeExceeded_Analyzer::Available, 0, false },
-	{ AnalyzerTag::ICMP_Unreachable, "ICMP_UNREACHABLE",
-		ICMP_Unreachable_Analyzer::InstantiateAnalyzer,
-		ICMP_Unreachable_Analyzer::Available, 0, false },
-	{ AnalyzerTag::ICMP_Echo, "ICMP_ECHO",
-		ICMP_Echo_Analyzer::InstantiateAnalyzer,
-		ICMP_Echo_Analyzer::Available, 0, false },*/
-
-
-
-
-
 	{ AnalyzerTag::TCP, "TCP", TCP_Analyzer::InstantiateAnalyzer,
 		TCP_Analyzer::Available, 0, false },
 	{ AnalyzerTag::UDP, "UDP", UDP_Analyzer::InstantiateAnalyzer,

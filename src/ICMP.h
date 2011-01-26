@@ -34,7 +34,7 @@ protected:
 	virtual bool IsReuse(double t, const u_char* pkt);
 	virtual unsigned int MemoryAllocation() const;
 
-	void ICMPEvent(EventHandlerPtr f, int ICMP6Flag);
+	void ICMPEvent(EventHandlerPtr f, const struct icmp* icmpp, int len, int icmpv6);
 
 	void Echo(double t, const struct icmp* icmpp, int len,
 			 int caplen, const u_char*& data, const IP_Hdr* ip_hdr);
@@ -43,47 +43,40 @@ protected:
 	void Router(double t, const struct icmp* icmpp, int len,
 			 int caplen, const u_char*& data, const IP_Hdr* ip_hdr);
 
-
-
 	void Describe(ODesc* d) const;
 
-	RecordVal* BuildICMPVal(int ICMP6Flag);
+	RecordVal* BuildICMPVal(const struct icmp* icmpp, int len, int icmpv6);
 
-	virtual void NextICMP(double t, const struct icmp* icmpp,
-				int len, int caplen, const u_char*& data, const IP_Hdr* ip_hdr);
+	void NextICMP4(double t, const struct icmp* icmpp, int len, int caplen,
+			const u_char*& data, const IP_Hdr* ip_hdr );
 
 	RecordVal* ExtractICMP4Context(int len, const u_char*& data);
+
+	void Context4(double t, const struct icmp* icmpp, int len, int caplen,
+			const u_char*& data, const IP_Hdr* ip_hdr);
+
+	TransportProto GetContextProtocol(const IP_Hdr* ip_hdr, uint32* src_port,
+			uint32* dst_port);
+
+#ifdef BROv6
+	void NextICMP6(double t, const struct icmp* icmpp, int len, int caplen,
+			const u_char*& data, const IP_Hdr* ip_hdr );
+
 	RecordVal* ExtractICMP6Context(int len, const u_char*& data);
 
+	void Context6(double t, const struct icmp* icmpp, int len, int caplen,
+			const u_char*& data, const IP_Hdr* ip_hdr);
+#endif
 
 	RecordVal* icmp_conn_val;
-	int type;
-	int code;
-	int len;
-
 	int request_len, reply_len;
 
 	RuleMatcherState matcher_state;
 };
 
-/*class ICMP4_Analyzer : public ICMP_Analyzer {
-
-
-
-};
-
-class ICMP6_Analyzer : public ICMP_Analyzer {
-
-
-
-};*/
-
 // Returns the counterpart type to the given type (e.g., the counterpart
 // to ICMP_ECHOREPLY is ICMP_ECHO).
-//extern int ICMP_counterpart(int icmp_type, int icmp_code, bool& is_one_way);
 extern int ICMP4_counterpart(int icmp_type, int icmp_code, bool& is_one_way);
 extern int ICMP6_counterpart(int icmp_type, int icmp_code, bool& is_one_way);
-extern int Type6to4(int icmp_type);
-extern int Code6to4(int icmp_code);
 
 #endif

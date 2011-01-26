@@ -1,5 +1,4 @@
 # $Id: icmp.bro 6883 2009-08-19 21:08:09Z vern $
-# While using this script, please notice that the last F/T value is the IPv6 Flag
 
 @load hot
 @load weird
@@ -18,6 +17,7 @@ export {
 		ICMPAsymPayload,	# payload in echo req-resp not the same
 		ICMPConnectionPair,	# too many ICMPs between hosts
 		ICMPAddressScan,
+	        ICMPRogueRouter,	# v6 advertisement from unknown router
 
 		# The following isn't presently sufficiently useful due
 		# to cold start and packet drops.
@@ -35,6 +35,12 @@ export {
 	const detect_conn_pairs = F &redef;	# switch for connection pair
 	const detect_payload_asym = F &redef;	# switch for echo payload
 	const conn_pair_threshold = 200 &redef;
+
+	# If the IPv6 routers in a network are all known, they can be
+	# whitelisted here. If so, any other router seen sending an
+	# announcement will be reported. If this set remains empty, no such
+	# detection will be done.
+	const router_whitelist: set[addr] &redef;
 }
 
 global conn_pair:table[addr] of set[addr] &create_expire = 1 day;
@@ -56,16 +62,10 @@ type flow_info: record {
 	payload: string;
 };
 
-#Insert whitelisted routers here, Router advertisements from other 
-#routers will be logged as possible rogue router attacks
-const routers_whitelist: table[string] of bool = {
-	#["fe80::260:97ff:fe07:69ea"] = T, #an example
-	}  &redef &default = F;
-
 const names: table[count] of string = {
 	[0] = "echo_reply",
-	[1] = "unreach",				#icmpv6
-	[2] = "too_big",				#icmpv6
+	[1] = "unreach",		# icmpv6
+	[2] = "too_big",		# icmpv6
 	[3] = "unreach",
 	[4] = "quench",
 	[5] = "redirect",
@@ -80,33 +80,33 @@ const names: table[count] of string = {
 	[16] = "info_reply",
 	[17] = "mask_req",
 	[18] = "mask_reply",
-	[128] = "echo_req",				#icmpv6
-	[129] = "echo_reply",			#icmpv6
-	[130] = "group_memb_query",		#icmpv6
-	[131] = "group_memb_report",	#icmpv6
-	[132] = "group_memb_reduct",	#icmpv6
-	[133] = "router_sol",			#icmpv6
-	[134] = "router_ad",			#icmpv6
-	[135] = "neighbor_sol", 		#icmpv6
-	[136] = "neighbor_ad", 			#icmpv6
-	[137] = "redirect",				#icmpv6
-	[138] = "router_renum",			#icmpv6
-	[139] = "node_info_query",		#icmpv6
-	[140] = "node_info_resp",		#icmpv6
-	[141] = "inv_neigh_disc_sol",	#icmpv6
-	[142] = "inv_neigh_disc_ad",	#icmpv6
-	[143] = "mul_lis_report",		#icmpv6
-	[144] = "home_agent_addr_req",	#icmpv6
-	[145] = "home_agent_addr_reply",#icmpv6
-	[146] = "mobible_prefx_sol",	#icmpv6
-	[147] = "mobible_prefx_ad",		#icmpv6
-	[148] = "cert_path_sol",		#icmpv6
-	[149] = "cert_path_ad",			#icmpv6
-	[150] = "experimental",			#icmpv6	
-	[151] = "mcast_router_ad", 		#icmpv6
-	[152] = "mcast_router_sol",		#icmpv6
-	[153] = "mcast_router_term",	#icmpv6
-	[154] = "fmip",					#icmpv6
+	[128] = "echo_req",		# icmpv6
+	[129] = "echo_reply",		# icmpv6
+	[130] = "group_memb_query",	# icmpv6
+	[131] = "group_memb_report",	# icmpv6
+	[132] = "group_memb_reduct",	# icmpv6
+	[133] = "router_sol",		# icmpv6
+	[134] = "router_ad",		# icmpv6
+	[135] = "neighbor_sol", 	# icmpv6
+	[136] = "neighbor_ad", 		# icmpv6
+	[137] = "redirect",		# icmpv6
+	[138] = "router_renum",		# icmpv6
+	[139] = "node_info_query",	# icmpv6
+	[140] = "node_info_resp",	# icmpv6
+	[141] = "inv_neigh_disc_sol",	# icmpv6
+	[142] = "inv_neigh_disc_ad",	# icmpv6
+	[143] = "mul_lis_report",	# icmpv6
+	[144] = "home_agent_addr_req",	# icmpv6
+	[145] = "home_agent_addr_reply",# icmpv6
+	[146] = "mobible_prefx_sol",	# icmpv6
+	[147] = "mobible_prefx_ad",	# icmpv6
+	[148] = "cert_path_sol",	# icmpv6
+	[149] = "cert_path_ad",		# icmpv6
+	[150] = "experimental",		# icmpv6
+	[151] = "mcast_router_ad", 	# icmpv6
+	[152] = "mcast_router_sol",	# icmpv6
+	[153] = "mcast_router_term",	# icmpv6
+	[154] = "fmip",			# icmpv6
 } &default = function(n: count): string { return fmt("icmp-%d", n); };
 
 
@@ -116,8 +116,8 @@ const IP_proto_name: table[count] of string = {
 	[2]  = "IGMP",
 	[6]  = "TCP",
 	[17] = "UDP",
-	[41] = "IP6",
-	[58] = "ICMP6",
+	[41] = "IPV6",
+	[58] = "ICMPV6",
 } &default = function(n: count): string { return fmt("%s", n); }
   &redef;
 
@@ -160,13 +160,38 @@ global flows: table[flow_id] of flow_info
 		&read_expire = 45 sec
 		&expire_func = flush_flow;
 
-event icmp_sent(c: connection, icmp: icmp_conn, ICMP6: bool)
+function print_log(c: connection, icmp: icmp_conn, addl: string)
 	{
+	if ( ! log_details )
+	    return;
 
-	print icmp_file, fmt("%.6f %.6f %s %s %s %s %s %s %s %s %s %s",
+	print icmp_file, fmt("%.6f %.6f %s %s %s %s %s %s %s %s",
 		network_time(), 0.0, icmp$orig_h, icmp$resp_h,
-		names[icmp$itype], icmp$itype, icmp$icode, "icmp",
-		icmp$len, "0", "SH", ICMP6);
+		names[icmp$itype], icmp$itype, icmp$icode,
+		icmp$v6 ? "icmp6" : "icmp", icmp$len, addl);
+	}
+
+function print_log_with_context(c: connection, icmp: icmp_conn, context: icmp_context, addl: string)
+	{
+	# Due to the connection data contained *within*
+	# them, each log line will contain two connections' worth
+	# of data.  The initial ICMP connection info is the same
+	# as logged for connections.
+
+	local ctx = fmt("0 EncapPkt: %s %s %s %s %s %s %s %s %s",
+		context$id$orig_h, context$id$orig_p,
+		context$id$resp_h, context$id$resp_p,
+		context$len, IP_proto_name[context$proto],
+		context$len, context$bad_hdr_len,
+		context$bad_checksum);
+
+	print_log(c, icmp, ctx);
+	}
+
+
+event icmp_sent(c: connection, icmp: icmp_conn)
+	{
+	print_log(c, icmp, "0 SH");
 	}
 
 event flow_summary(flow: flow_id, last_time: time)
@@ -212,62 +237,17 @@ function update_flow(icmp: icmp_conn, id: count, is_orig: bool, payload: string)
 	}
 
 
-event icmp_error_message(c: connection, icmp: icmp_conn, code: count, context: icmp_context) #for other but the unreach types, which is preserved
+event icmp_error_message(c: connection, icmp: icmp_conn, code: count, context: icmp_context)
 	{
-	
-		if ( active_connection(context$id) )
-		{
-		# This section allows Bro to act on ICMP error message packets
-		# that happen in the context of an active connection.  It is
-		# not currently used.
-		local c2 = connection_record(context$id);
-		local os = c2$orig$state;
-		local rs = c2$resp$state;
-		local is_attempt =
-			is_tcp_port(c2$id$orig_p) ?
-				(os == TCP_SYN_SENT && rs == TCP_INACTIVE) :
-				(os == UDP_ACTIVE && rs == UDP_INACTIVE);
-
-		# Insert action here.
-		}
-	
-		if ( log_details )
-		{
-		# ICMP error message packets are logged here.  
-		# Due to the connection data contained *within*
-		# them, each log line will contain two connections' worth
-		# of data.  The initial ICMP connection info is the same
-		# as logged for connections.
-		print icmp_file, fmt("%.6f %.6f %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s",
-			network_time(), 0.0, icmp$orig_h, icmp$resp_h,
-			names[icmp$itype], icmp$itype, icmp$icode, "icmp",
-			icmp$len, "0", "EncapPkt:",
-				# This is the encapsulated packet:
-				context$id$orig_h, context$id$orig_p,
-				context$id$resp_h, context$id$resp_p,
-				context$len, IP_proto_name[context$proto],
-				context$len, context$bad_hdr_len,
-				context$bad_checksum, context$ICMP6Flag);
-		}
-	
+	print_log_with_context(c, icmp, context, "");
 	}
 
-
-
-event icmp6_placeholder(c: connection, icmp: icmp_conn, ICMP6: bool) #just for testing
-	{
-	print "icmp6_placeholder triggered";
-	}
-
-
-event icmp_echo_request(c: connection, icmp: icmp_conn, id: count, seq: count, payload: string, ICMP6: bool)
+event icmp_echo_request(c: connection, icmp: icmp_conn, id: count, seq: count, payload: string)
 	{
 	update_flow(icmp, id, T, payload);
 
-
 	local orig = icmp$orig_h;
 	local resp = icmp$resp_h;
-
 
 	# Simple ping scan detector.
 	if ( detect_scans &&
@@ -320,7 +300,7 @@ event icmp_echo_request(c: connection, icmp: icmp_conn, id: count, seq: count, p
 	}
 
 event icmp_echo_reply(c: connection, icmp: icmp_conn, id: count,
-			seq: count, payload: string, ICMP6: bool)
+			seq: count, payload: string)
 	{
 	# Check payload with the associated flow.
 
@@ -328,8 +308,6 @@ event icmp_echo_reply(c: connection, icmp: icmp_conn, id: count,
 	fid$orig_h = icmp$resp_h;	# We know the expected results since
 	fid$resp_h = icmp$orig_h;	# it's an echo reply.
 	fid$id = id;
-
-
 
 	if ( fid !in flows )
 		{
@@ -357,78 +335,19 @@ event icmp_echo_reply(c: connection, icmp: icmp_conn, id: count,
 	update_flow(icmp, id, F, payload);
 	}
 
-
-
 event icmp_unreachable(c: connection, icmp: icmp_conn, code: count,
 			context: icmp_context)
 	{
-	
-	if ( active_connection(context$id) )
-		{
-		# This section allows Bro to act on ICMP-unreachable packets
-		# that happen in the context of an active connection.  It is
-		# not currently used.
-		local c2 = connection_record(context$id);
-		local os = c2$orig$state;
-		local rs = c2$resp$state;
-		local is_attempt =
-			is_tcp_port(c2$id$orig_p) ?
-				(os == TCP_SYN_SENT && rs == TCP_INACTIVE) :
-				(os == UDP_ACTIVE && rs == UDP_INACTIVE);
-
-		# Insert action here.
-		}
-
-	if ( log_details )
-		{
-		# ICMP unreachable packets are the only ones currently
-		# logged.  Due to the connection data contained *within*
-		# them, each log line will contain two connections' worth
-		# of data.  The initial ICMP connection info is the same
-		# as logged for connections.
-		print icmp_file, fmt("%.6f %.6f %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s",
-			network_time(), 0.0, icmp$orig_h, icmp$resp_h,
-			names[icmp$itype], icmp$itype, icmp$icode, "icmp",
-			icmp$len, "0", "EncapPkt:",
-				# This is the encapsulated packet:
-				context$id$orig_h, context$id$orig_p,
-				context$id$resp_h, context$id$resp_p,
-				context$len, IP_proto_name[context$proto],
-				context$len, context$bad_hdr_len,
-				context$bad_checksum, context$ICMP6Flag);
-		}
+	print_log_with_context(c, icmp, context, "");
 	}
-	
-	
-	event icmp_router_advertisement(c: connection, icmp: icmp_conn, ICMP6: bool)
+
+event icmp_router_advertisement(c: connection, icmp: icmp_conn)
 	{
-	if ( routers_whitelist[ fmt("%s",icmp$orig_h) ] )
-		{ 
-		print icmp_file, fmt("%.6f %.6f %s %s %s %s %s %s %s %s %s %s",
-		network_time(), 0.0, icmp$orig_h, icmp$resp_h,
-		names[icmp$itype], icmp$itype, icmp$icode, "icmp",
-		icmp$len, "0", "SH", ICMP6);
-		}
-	else
-		{
-		print icmp_file, fmt("%.6f %.6f %s %s %s %s %s %s %s %s",
-		network_time(), 0.0, icmp$orig_h, icmp$resp_h,
-		names[icmp$itype], "Possible Rogue Router Detected", icmp$itype, icmp$icode,
-		icmp$len, ICMP6);
-		}
-	
-	}
-	
+	print_log(c, icmp, "");
 
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+	if ( |router_whitelist| == 0 || icmp$orig_h in router_whitelist )
+	    return;
+
+	NOTICE([$note=ICMPRogueRouter,
+		$msg=fmt("rouge router advertisement from %s", icmp$orig_h)]);
+	}

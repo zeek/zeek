@@ -86,14 +86,8 @@ int udp_checksum(const struct ip* ip, const struct udphdr* up, int len)
 #ifdef BROv6
 int udp6_checksum(const struct ip6_hdr* ip6, const struct udphdr* up, int len)
 	{
-	/**From RFC for udp4 (same for udp6, except for different pseudoheader which is same as for icmp6)
-	Computed as the 16-bit one's complement of the one's complement sum of a
-	pseudo header of information from the IP header, the UDP header, and the
-	data, padded as needed with zero bytes at the end to make a multiple of
-	two bytes. If the checksum is cleared to zero, then checksuming is
-	disabled. If the computed checksum is zero, then this field must be set
-	to 0xFFFF.
-	**/
+	// UDP over IPv6 uses the same checksum function as over IPv4 but a
+	// different pseuod-header over which it is computed.
 	uint32 sum;
 
 	if ( len % 2 == 1 )
@@ -108,10 +102,9 @@ int udp6_checksum(const struct ip6_hdr* ip6, const struct udphdr* up, int len)
 	uint32 l = htonl(len);
 	sum = ones_complement_checksum((void*) &l, 4, sum);
 	uint32 addl_pseudo = htons(IPPROTO_UDP);
+
 	sum = ones_complement_checksum((void*) &addl_pseudo, 4, sum);
 	sum = ones_complement_checksum((void*) up, len, sum);
-
-	//printf("checksum, calculated for UDP6: %d\n",sum);
 
 	return sum;
 	}
@@ -119,12 +112,8 @@ int udp6_checksum(const struct ip6_hdr* ip6, const struct udphdr* up, int len)
 
 int icmp6_checksum(const struct icmp* icmpp, const struct ip6_hdr* ip6, int len)
 	{
-	 /**From RFC
-	 Checksum that covers the ICMPv6 message. This field contains the 16-bit one's
-	 complement of the one's complement sum of the entire ICMPv6 message starting
-	 with the ICMPv6 message type field, prepended with a pseudo-header of IPv6
-	 header fields.
-	 **/
+	// ICMP6 uses the same checksum function as over ICMP4 but a different
+	// pseuod-header over which it is computed.
 	uint32 sum;
 
 	if ( len % 2 == 1 )
@@ -133,18 +122,16 @@ int icmp6_checksum(const struct icmp* icmpp, const struct ip6_hdr* ip6, int len)
 	else
 		sum = 0;
 
-	//pseudoheader as in udp6 above
+	// Pseudo-header as for UDP over IPv6 above.
 	sum = ones_complement_checksum((void*) ip6->ip6_src.s6_addr, 16, sum);
 	sum = ones_complement_checksum((void*) ip6->ip6_dst.s6_addr, 16, sum);
 	uint32 l = htonl(len);
 	sum = ones_complement_checksum((void*) &l, 4, sum);
+
 	uint32 addl_pseudo = htons(IPPROTO_ICMPV6);
 	sum = ones_complement_checksum((void*) &addl_pseudo, 4, sum);
-	//pseudoheader complete
 
 	sum = ones_complement_checksum((void*) icmpp, len, sum);
-
-	//printf("checksum, calculated for ICMP6: %d\n",sum);
 
 	return sum;
 	}
@@ -153,12 +140,6 @@ int icmp6_checksum(const struct icmp* icmpp, const struct ip6_hdr* ip6, int len)
 
 int icmp_checksum(const struct icmp* icmpp, int len)
 	{
-	/**From RFC
-	Checksum that covers the ICMP message. This is the 16-bit one's
-	complement of the one's complement sum of the ICMP message starting
-	with the Type field. The checksum field should be cleared to zero
-	before generating the checksum.
-	**/
 	uint32 sum;
 	if ( len % 2 == 1 )
 		// Add in pad byte.
@@ -168,14 +149,8 @@ int icmp_checksum(const struct icmp* icmpp, int len)
 
 	sum = ones_complement_checksum((void*) icmpp, len, sum);
 
-	//printf("checksum, calculated for ICMP4: %d\n",sum);
-
 	return sum;
 	}
-
-
-
-
 
 #define CLASS_A 0x00000000
 #define CLASS_B 0x80000000

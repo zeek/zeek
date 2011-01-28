@@ -174,7 +174,6 @@ bool SSL_RecordBuilder::addSegment(const u_char* data, int length)
 			if ( ! computeExpectedSize(data, length) )
 				return false;
 
-			// Insert weird here replacing assert.
 			if ( neededSize > expectedSize )
 				{
 				sslEndpoint->Weird("SSL_RecordBuilder::addSegment neededSize > expectedSize");
@@ -278,7 +277,6 @@ bool SSL_RecordBuilder::addSegment(const u_char* data, int length)
 			{ // another (middle) segment
 			if ( length <= MIN_FRAGMENT_SIZE )
 				sslEndpoint->Parent()->Weird( "SSLProxy: Excessive small TCP Segment!" );
-
 			addData(data, length);
 			break;
 			}

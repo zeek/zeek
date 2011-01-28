@@ -253,11 +253,20 @@ enum SSL3_1_CipherSpec {
 	TLS_ECDHE_PSK_WITH_NULL_SHA              = 0xC039,
 	TLS_ECDHE_PSK_WITH_NULL_SHA256           = 0xC03A,
 	TLS_ECDHE_PSK_WITH_NULL_SHA384           = 0xC03B,
+	
 	// --- special SSLv3 FIPS ciphers
 	SSL_RSA_FIPS_WITH_DES_CBC_SHA            = 0xFEFE,
 	SSL_RSA_FIPS_WITH_3DES_EDE_CBC_SHA       = 0xFEFF,
 	SSL_RSA_FIPS_WITH_DES_CBC_SHA_2          = 0xFFE1,
-	SSL_RSA_FIPS_WITH_3DES_EDE_CBC_SHA_2     = 0xFFe0,
+	SSL_RSA_FIPS_WITH_3DES_EDE_CBC_SHA_2     = 0xFFE0,
+
+	// Tags for SSL 2 cipher kinds which are not specified for SSL 3. 
+	SSL_RSA_WITH_RC2_CBC_MD5                 = 0xFF80,
+	SSL_RSA_WITH_IDEA_CBC_MD5                = 0xFF81,
+	SSL_RSA_WITH_DES_CBC_MD5                 = 0xFF82,
+	SSL_RSA_WITH_3DES_EDE_CBC_MD5            = 0xFF83,
+	
+	TLS_EMPTY_RENEGOTIATION_INFO_SCSV        = 0x00FF,
 };
 
 enum SSL_CipherType {

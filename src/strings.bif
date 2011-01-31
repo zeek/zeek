@@ -211,7 +211,7 @@ Val* do_split(StringVal* str_val, RE_Matcher* re, TableVal* other_sep,
 	int num_sep = 0;
 
 	int offset = 0;
-	while ( n > 0 )
+	while ( n >= 0 )
 		{
 		offset = 0;
 		// Find next match offset.
@@ -227,25 +227,25 @@ Val* do_split(StringVal* str_val, RE_Matcher* re, TableVal* other_sep,
 		Val* ind = new Val(++num, TYPE_COUNT);
 		a->Assign(ind, new StringVal(offset, (const char*) s));
 		Unref(ind);
-
+		
 		// No more separators will be needed if this is the end of string.
 		if ( n <= 0 )
 			break;
-
+		
 		if ( incl_sep )
 			{ // including the part that matches the pattern
 			ind = new Val(++num, TYPE_COUNT);
 			a->Assign(ind, new StringVal(end_of_match, (const char*) s+offset));
 			Unref(ind);
 			}
-
+			
 		if ( max_num_sep && num_sep >= max_num_sep )
 			break;
 
 		++num_sep;
 
 		n -= end_of_match;
-		s += offset;
+		s += offset + end_of_match;;
 
 		if ( s > end_of_s )
 			internal_error("RegMatch in split goes beyond the string");

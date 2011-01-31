@@ -1,3 +1,18 @@
+1.6-dev.36 Mon Jan 31 08:45:35 PST 2011
+
+- Adding more configure options for finding dependencies, (Jon Siwek)
+
+    --with-flex=PATH       path to flex executable
+    --with-bison=PATH      path to bison executable
+    --with-perl=PATH       path to perl executable
+    --with-python=PATH     path to Python interpreter
+    --with-python-lib=PATH path to libpython
+    --with-python-inc=PATH path to Python headers
+    --with-swig=PATH       path to SWIG executable
+
+- Fixing typo in PCAPTests.cmake  (Jon Siwek)
+
+
 1.6-dev.33 Mon Jan 24 15:29:04 PST 2011
 
 - Fixing bug in SMB analyzer. (Robin Sommer)

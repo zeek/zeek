@@ -1,3 +1,7 @@
+1.6-dev.39 Mon Jan 31 16:42:23 PST 2011
+
+- Login's confused messages now go through weird.bro. (Robin Sommer)
+
 1.6-dev.36 Mon Jan 31 08:45:35 PST 2011
 
 - Adding more configure options for finding dependencies, (Jon Siwek)

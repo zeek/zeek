@@ -52,6 +52,20 @@ public:
 
 	void Describe(ODesc* d) const;
 
+	bool operator==(const Attr& other) const
+		{
+		if ( tag != other.tag )
+			return false;
+
+		if ( expr || other.expr )
+			// If any has an expression and they aren't the same object, we
+			// declare them unequal, as we can't really find out if the two
+			// expressions are equivalent.
+			return (expr == other.expr);
+
+		return true;
+		}
+
 protected:
 	void AddTag(ODesc* d) const;
 
@@ -78,6 +92,8 @@ public:
 
 	bool Serialize(SerialInfo* info) const;
 	static Attributes* Unserialize(UnserialInfo* info);
+
+	bool operator==(const Attributes& other) const;
 
 protected:
 	Attributes()	{ type = 0; attrs = 0; }

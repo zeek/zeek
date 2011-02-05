@@ -39,13 +39,9 @@
 extern HeapLeakChecker* heap_checker;
 #endif
 
-typedef unsigned long long int uint64;
 typedef unsigned int uint32;
 typedef unsigned short uint16;
 typedef unsigned char uint8;
-typedef long long int int64;
-typedef int64 bro_int_t;
-typedef uint64 bro_uint_t;
 
 #if SIZEOF_LONG_LONG == 8
 typedef unsigned long long uint64;
@@ -56,6 +52,9 @@ typedef long int int64;
 #else
 # error "Couldn't reliably identify 64-bit type. Please report to bro@bro-ids.org."
 #endif
+
+typedef int64 bro_int_t;
+typedef uint64 bro_uint_t;
 
 // "ptr_compat_uint" and "ptr_compat_int" are (un)signed integers of
 // pointer size. They can be cast safely to a pointer, e.g. in Lists,

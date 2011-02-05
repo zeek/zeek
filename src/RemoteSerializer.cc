@@ -544,6 +544,36 @@ void RemoteSerializer::Init()
 	initialized = 1;
 	}
 
+void RemoteSerializer::SetSocketBufferSize(int fd, int opt, const char *what, int size, int verbose)
+	{
+	int defsize = 0;
+	socklen_t len = sizeof(defsize);
+
+	if ( getsockopt(fd, SOL_SOCKET, opt, (void *)&defsize, &len) < 0 )
+		{
+		if ( verbose )
+			Log(LogInfo, fmt("warning: cannot get socket buffer size (%s): %s", what, strerror(errno)));
+		return;
+		}
+
+	for ( int trysize = size; trysize > defsize; trysize -= 1024 )
+		{
+		if ( setsockopt(fd, SOL_SOCKET, opt, &trysize, sizeof(trysize)) >= 0 )
+			{
+			if ( verbose )
+			    {
+			    if ( trysize == size )
+				    Log(LogInfo, fmt("raised pipe's socket buffer size from %dK to %dK", defsize / 1024, trysize / 1024));
+			    else
+				    Log(LogInfo, fmt("raised pipe's socket buffer size from %dK to %dK (%dK was requested)", defsize / 1024, trysize / 1024, size / 1024));
+			    }
+			return;
+			}
+		}
+
+	Log(LogInfo, fmt("warning: cannot increase %s socket buffer size from %dK (%dK was requested)", what, defsize / 1024, size / 1024));
+	}
+
 void RemoteSerializer::Fork()
 	{
 	if ( child_pid )
@@ -562,25 +592,11 @@ void RemoteSerializer::Fork()
 		return;
 		}
 
-	int bufsize;
-	socklen_t len = sizeof(bufsize);
-
-	if ( getsockopt(pipe[0], SOL_SOCKET, SO_SNDBUF, &bufsize, &len ) < 0 )
-		Log(LogInfo, fmt("warning: cannot get socket buffer size: %s", strerror(errno)));
-	else
-		Log(LogInfo, fmt("pipe's socket buffer size is %d, setting to %d", bufsize, SOCKBUF_SIZE));
-
-	bufsize = SOCKBUF_SIZE;
-
-	if ( setsockopt(pipe[0], SOL_SOCKET, SO_SNDBUF,
-			&bufsize, sizeof(bufsize) ) < 0 ||
-	     setsockopt(pipe[0], SOL_SOCKET, SO_RCVBUF,
-			&bufsize, sizeof(bufsize) ) < 0 ||
-	     setsockopt(pipe[1], SOL_SOCKET, SO_SNDBUF,
-			&bufsize, sizeof(bufsize) ) < 0 ||
-	     setsockopt(pipe[1], SOL_SOCKET, SO_RCVBUF,
-			&bufsize, sizeof(bufsize) ) < 0 )
-		Log(LogInfo, fmt("warning: cannot set socket buffer size to %dK: %s", bufsize / 1024, strerror(errno)));
+	// Try to increase the size of the socket send and receive buffers.
+	SetSocketBufferSize(pipe[0], SO_SNDBUF, "SO_SNDBUF", SOCKBUF_SIZE, 1);
+	SetSocketBufferSize(pipe[0], SO_RCVBUF, "SO_RCVBUF", SOCKBUF_SIZE, 0);
+	SetSocketBufferSize(pipe[1], SO_SNDBUF, "SO_SNDBUF", SOCKBUF_SIZE, 0);
+	SetSocketBufferSize(pipe[1], SO_RCVBUF, "SO_RCVBUF", SOCKBUF_SIZE, 0);
 
 	child_pid = 0;
 

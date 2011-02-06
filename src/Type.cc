@@ -1432,6 +1432,17 @@ int same_type(const BroType* t1, const BroType* t2, int is_init)
 	return 0;
 	}
 
+int same_attrs(const Attributes* a1, const Attributes* a2)
+	{
+	if ( ! a1 )
+		return (a2 != 0);
+
+	if ( ! a2 )
+		return 0;
+
+	return (*a1 == *a2);
+	}
+
 int record_promotion_compatible(const RecordType* /* super_rec */,
 				const RecordType* /* sub_rec */)
 	{

@@ -65,10 +65,21 @@ CompositeHash::~CompositeHash()
 
 // Computes the piece of the hash for Val*, returning the new kp.
 char* CompositeHash::SingleValHash(int type_check, char* kp0,
-					BroType* bt, Val* v) const
+					BroType* bt, Val* v, bool optional) const
 	{
 	char* kp1 = 0;
 	InternalTypeTag t = bt->InternalType();
+
+	if ( optional )
+		{
+		// Add a marker saying whether the optional field is set.
+		char* kp = AlignAndPadType<char>(kp0);
+		*kp = ( v ? 1 : 0);
+		kp0 = reinterpret_cast<char*>(kp+1);
+
+		if ( ! v ) 
+			return kp0;
+		}
 
 	if ( type_check )
 		{
@@ -163,12 +174,16 @@ char* CompositeHash::SingleValHash(int type_check, char* kp0,
 			for ( int i = 0; i < num_fields; ++i )
 				{
 				Val* rv_i = rv->Lookup(i);
-				if ( ! rv_i )
+
+				Attributes* a = rt->FieldDecl(i)->attrs;
+				bool optional = (a && a->FindAttr(ATTR_OPTIONAL));
+
+				if ( ! (rv_i || optional) )
 					return 0;
 
 				if ( ! (kp = SingleValHash(type_check, kp,
 							   rt->FieldType(i),
-							   rv_i)) )
+							   rv_i, optional)) )
 					return 0;
 				}
 
@@ -248,7 +263,7 @@ HashKey* CompositeHash::ComputeHash(const Val* v, int type_check) const
 	char* kp = k;
 	loop_over_list(*tl, i)
 		{
-		kp = SingleValHash(type_check, kp, (*tl)[i], (*vl)[i]);
+		kp = SingleValHash(type_check, kp, (*tl)[i], (*vl)[i], false);
 		if ( ! kp )
 			return 0;
 		}
@@ -315,9 +330,12 @@ HashKey* CompositeHash::ComputeSingletonHash(const Val* v, int type_check) const
 	}
 
 int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
-					int type_check, int sz) const
+					int type_check, int sz, bool optional) const
 	{
 	InternalTypeTag t = bt->InternalType();
+
+	if ( optional )
+		sz = SizeAlign(sz, sizeof(char));
 
 	if ( type_check && v )
 		{
@@ -369,9 +387,12 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 
 			for ( int i = 0; i < num_fields; ++i )
 				{
+				Attributes* a = rt->FieldDecl(i)->attrs;
+				bool optional = (a && a->FindAttr(ATTR_OPTIONAL));
+
 				sz = SingleTypeKeySize(rt->FieldType(i),
 							rv ? rv->Lookup(i) : 0,
-							type_check, sz);
+							type_check, sz, optional);
 				if ( ! sz )
 					return 0;
 				}
@@ -418,7 +439,7 @@ int CompositeHash::ComputeKeySize(const Val* v, int type_check) const
 	loop_over_list(*tl, i)
 		{
 		sz = SingleTypeKeySize((*tl)[i], v ? v->AsListVal()->Index(i) : 0,
-				       type_check, sz);
+				       type_check, sz, false);
 		if ( ! sz )
 			return 0;
 		}
@@ -495,20 +516,20 @@ ListVal* CompositeHash::RecoverVals(const HashKey* k) const
 	loop_over_list(*tl, i)
 		{
 		Val* v;
-		kp = RecoverOneVal(k, kp, k_end, (*tl)[i], v);
+		kp = RecoverOneVal(k, kp, k_end, (*tl)[i], v, false);
 		ASSERT(v);
 		l->Append(v);
 		}
 
 	if ( kp != k_end )
-		internal_error("under-ran key in CompositeHash::DescribeKey");
+		internal_error("under-ran key in CompositeHash::DescribeKey %ld", k_end - kp);
 
 	return l;
 	}
 
 const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 					 const char* const k_end, BroType* t,
-					 Val*& pval) const
+					 Val*& pval, bool optional) const
 	{
 	// k->Size() == 0 for a single empty string.
 	if ( kp0 >= k_end && k->Size() > 0 )
@@ -516,8 +537,19 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 
 	TypeTag tag = t->Tag();
 	InternalTypeTag it = t->InternalType();
-
 	const char* kp1 = 0;
+
+	if ( optional )
+		{
+		const char* kp = AlignType<char>(kp0);
+		kp0 = kp1 = reinterpret_cast<const char*>(kp+1);
+
+		if ( ! *kp )
+			{
+			pval = 0;
+			return kp0;
+			}
+		}
 
 	switch ( it ) {
 	case TYPE_INTERNAL_INT:
@@ -647,9 +679,13 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 			for ( i = 0; i < num_fields; ++i )
 				{
 				Val* v;
+
+				Attributes* a = rt->FieldDecl(i)->attrs;
+				bool optional = (a && a->FindAttr(ATTR_OPTIONAL));
+
 				kp = RecoverOneVal(k, kp, k_end,
-				                   rt->FieldType(i), v);
-				if ( ! v )
+				                   rt->FieldType(i), v, optional);
+				if ( ! (v || optional) )
 					{
 					internal_error("didn't recover expected number of fields from HashKey");
 					pval = 0;

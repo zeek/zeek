@@ -1,52 +1,96 @@
+1.6-dev.39 Mon Jan 31 16:42:23 PST 2011
+
+- Login's confused messages now go through weird.bro. (Robin Sommer)
+
+1.6-dev.36 Mon Jan 31 08:45:35 PST 2011
+
+- Adding more configure options for finding dependencies, (Jon Siwek)
+
+    --with-flex=PATH       path to flex executable
+    --with-bison=PATH      path to bison executable
+    --with-perl=PATH       path to perl executable
+    --with-python=PATH     path to Python interpreter
+    --with-python-lib=PATH path to libpython
+    --with-python-inc=PATH path to Python headers
+    --with-swig=PATH       path to SWIG executable
+
+- Fixing typo in PCAPTests.cmake  (Jon Siwek)
+
+
+1.6-dev.33 Mon Jan 24 15:29:04 PST 2011
+
+- Fixing bug in SMB analyzer. (Robin Sommer)
+
+- Configure wrapper now deletes previous CMake cache (Jon Siwek)
+
+- Fix for the --with-binpac configure option. (Jon Siwek)
+
+1.6-dev.30 Thu Jan 20 16:32:43 PST 2011
+
+- Changed configure wrapper to create config.status. (Jon Siwek)
+
+1.6-dev.29 Thu Jan 20 16:29:56 PST 2011
+
+- Fixing little problem with initialization of Bro-to-Bro event
+  communication. (Christian Kreibich)
+
+
+1.6-dev.27 Thu Jan 20 13:52:25 PST 2011
+
+- Fine-tuning of the HTTP analyzer in terms of raising protocol
+  violations and interrupted transfers. (Gregor Maier)
+
+
 1.6-dev.21 Wed Jan 19 17:36:02 PST 2011
 
-    * Added 4 new BiFs and a new record type for testing the entropy
-      of strings. (Seth Hall)
+- Added 4 new BiFs and a new record type for testing the entropy of
+  strings. (Seth Hall)
 
-        find_entropy(data: string): entropy_test_result
-                This is a one shot function that accepts a string
-                and returns the result of the entropy calculations.
+    find_entropy(data: string): entropy_test_result
+        This is a one shot function that accepts a string and
+        returns the result of the entropy calculations.
 
-        entropy_test_init(index: any): bool
-                This and the next two functions are for calculating
-                entropy piece-wise. It only needs an index which can
-                be any type of variable. It needs to be something
-                that uniquely identifies the data stream that is
-                currently having it's entropy calculated.
+    entropy_test_init(index: any): bool
+        This and the next two functions are for calculating entropy
+        piece-wise. It only needs an index which can be any type of
+        variable. It needs to be something that uniquely identifies
+        the data stream that is currently having it's entropy
+        calculated.
 
-        entropy_test_add(index: any, data: string): bool
-                This function is used to add data into the entropy
-                calculation. It takes the index used in the function
-                above and the data that you are adding and returns
-                true if everything seemed to work, false otherwise.
+    entropy_test_add(index: any, data: string): bool
+        This function is used to add data into the entropy
+        calculation. It takes the index used in the function above
+        and the data that you are adding and returns true if
+        everything seemed to work, false otherwise.
 
-        entropy_test_finish(index: any): entropy_test_result
-                Calling this function indicates that all of the
-                desired data has been inserted into the
-                entropy_test_add function and the entropy should be
-                calculated. This function *must* be called in order
-                to clean up an internal state tracking variable.  If
-                this is never called on an index, it will result in
-                a memory leak.
+     entropy_test_finish(index: any): entropy_test_result
+        Calling this function indicates that all of the desired data
+        has been inserted into the entropy_test_add function and the
+        entropy should be calculated. This function *must* be called
+        in order to clean up an internal state tracking variable.
+        If this is never called on an index, it will result in a
+        memory leak.
 
-    The entropy_test_result values have several measures of the
-    entropy, but a good one to work with is the "entropy" attribute.
-    It's a double and as the value approaches 8.0 it can be
-    considered more and more random.  For example, a value of 7.832
-    would be quite random but a value of 4.671 is not very random.
+  The entropy_test_result values have several measures of the
+  entropy, but a good one to work with is the "entropy" attribute.
+  It's a double and as the value approaches 8.0 it can be considered
+  more and more random.  For example, a value of 7.832 would be
+  quite random but a value of 4.671 is not very random.
 
 1.6-dev.20 Wed Jan 19 17:30:11 PST 2011
 
-    * BRO_DNS_FAKE is now listed in the --help output. (Seth Hall)
+- BRO_DNS_FAKE is now listed in the --help output. (Seth Hall)
+
 
 1.6-dev.18 Wed Jan 19 16:37:13 PST 2011
 
-    * Removing unnecessary expire timer from http_sessions. (Gregor
-      Maier)
+- Removing unnecessary expire timer from http_sessions. (Gregor
+  Maier)
+
 
 1.6-dev.16 Sat Jan 15 14:14:21 PST 2011
 
-- Updates to the build system (Jonathan Siwek)
+- Updates to the build system. (Jonathan Siwek)
 
     * ``make dist`` is now available to be used with the top-level
       Makefile for creating source packages according to #344.
@@ -66,6 +110,7 @@
     * Installing as a different user than the one that
       configured/built now works (although, a harmless error message
       about not being able to write the install manifest may occur).
+
 
 1.6-dev.3 Wed Dec  8 04:09:38 PST 2010
 

@@ -2531,16 +2531,35 @@ bool AssignExpr::TypeCheck()
 		return true;
 		}
 
+	if ( op1->Type()->Tag() == TYPE_RECORD &&
+		 op2->Type()->Tag() == TYPE_RECORD )
+		{
+		if ( same_type(op1->Type(), op2->Type()) )
+			{
+			RecordType* rt1 = op1->Type()->AsRecordType();
+			RecordType* rt2 = op2->Type()->AsRecordType();
+
+			// Make sure the attributes match as well.
+			for ( int i = 0; i < rt1->NumFields(); ++i )
+				{
+				const TypeDecl* td1 = rt1->FieldDecl(i);
+				const TypeDecl* td2 = rt2->FieldDecl(i);
+
+				if ( same_attrs(td1->attrs, td2->attrs) )
+					// Everything matches.
+					return true;
+				}
+			}
+
+		// Need to coerce.
+		op2 = new RecordCoerceExpr(op2, op1->Type()->AsRecordType());
+		return true;
+		}
+
 	if ( ! same_type(op1->Type(), op2->Type()) )
 		{
-		if ( op1->Type()->Tag() == TYPE_RECORD &&
-		     op2->Type()->Tag() == TYPE_RECORD )
-			op2 = new RecordCoerceExpr(op2, op1->Type()->AsRecordType());
-		else
-			{
-			ExprError("type clash in assignment");
-			return false;
-			}
+		ExprError("type clash in assignment");
+		return false;
 		}
 
 	return true;
@@ -5308,21 +5327,39 @@ int check_and_promote_expr(Expr*& e, BroType* t)
 		return 1;
 		}
 
-	else if ( ! same_type(t, et) )
+	if ( t->Tag() == TYPE_RECORD && et->Tag() == TYPE_RECORD )
 		{
-		if ( t->Tag() == TYPE_RECORD && et->Tag() == TYPE_RECORD )
-			{
-			RecordType* t_r = t->AsRecordType();
-			RecordType* et_r = et->AsRecordType();
+		RecordType* t_r = t->AsRecordType();
+		RecordType* et_r = et->AsRecordType();
 
-			if ( record_promotion_compatible(t_r, et_r) )
+		if ( same_type(t, et) )
+			{
+			// Make sure the attributes match as well.
+			for ( int i = 0; i < t_r->NumFields(); ++i )
 				{
-				e = new RecordCoerceExpr(e, t_r);
-				return 1;
+				const TypeDecl* td1 = t_r->FieldDecl(i);
+				const TypeDecl* td2 = et_r->FieldDecl(i);
+
+				if ( same_attrs(td1->attrs, td2->attrs) )
+					// Everything matches perfectly.
+					return 1;
 				}
 			}
 
-		else if ( t->Tag() == TYPE_TABLE && et->Tag() == TYPE_TABLE &&
+		if ( record_promotion_compatible(t_r, et_r) ) // Note: This is always true currently.
+			{
+			e = new RecordCoerceExpr(e, t_r);
+			return 1;
+			}
+
+		t->Error("incompatible record types", e);
+		return 0;
+		}
+
+
+	if ( ! same_type(t, et) )
+		{
+		if ( t->Tag() == TYPE_TABLE && et->Tag() == TYPE_TABLE &&
 			  et->AsTableType()->IsUnspecifiedTable() )
 			{
 			e = new TableCoerceExpr(e, t->AsTableType());

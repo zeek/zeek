@@ -480,8 +480,8 @@ int SMB_Session::ParseTreeConnectAndx(binpac::SMB::SMB_header const& hdr,
 	r->Assign(0, new Val(req.flags(), TYPE_COUNT));
 	r->Assign(1, new StringVal(req.password_length(),
 					(const char*) req.password()));
-	r->Assign(3, new StringVal(path));
-	r->Assign(4, new StringVal(service));
+	r->Assign(2, new StringVal(path));
+	r->Assign(3, new StringVal(service));
 
 	if ( strstr_n(norm_path->Len(), norm_path->Bytes(), 5,
 		      (const u_char*) "\\IPC$") != -1 )

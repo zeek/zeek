@@ -297,6 +297,8 @@ protected:
 	bool SendToChild(char type, Peer* peer, int nargs, ...); // can send uints32 only
 	bool SendToChild(ChunkedIO::Chunk* c);
 
+	void SetSocketBufferSize(int fd, int opt, const char *what, int size, int verbose);
+
 private:
 	enum { TYPE, ARGS } msgstate;	// current state of reading comm.
 	Peer* current_peer;

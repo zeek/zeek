@@ -1,3 +1,11 @@
+1.6-dev.41 Mon Feb  7 13:43:56 PST 2011
+
+- Smarter way to increase the parent/child pipe's socket buffer.
+  (Craig Leres).
+    
+- Fixing bug with defining bro_int_t and bro_uint_t to be 64 bits wide
+  on some platforms. (Robin Sommer)
+
 1.6-dev.39 Mon Jan 31 16:42:23 PST 2011
 
 - Login's confused messages now go through weird.bro. (Robin Sommer)

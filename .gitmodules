@@ -10,3 +10,6 @@
 [submodule "aux/broctl"]
 	path = aux/broctl
 	url = git://git.icir.org/broctl
+[submodule "aux/btest"]
+	path = aux/btest
+	url = git://git.icir.org/btest

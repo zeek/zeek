@@ -81,6 +81,34 @@ if tests.testSet("events"):
 
     tests.compareFiles("events-send", "events-rcv", ["http.log"], ignoreTime=True, ignoreSessionID=True)
 
+##########################################
+# Exchange events (SSL).
+#
+# Same test as before, but now using SSL.
+##########################################    
+
+if tests.testSet("events-ssl"):
+
+    tests.spawnBro("events-send-ssl", 
+               ["-r", os.path.join(tests.Scripts, os.path.join(tests.Traces, "web.trace")), 
+                "--pseudo-realtime", 
+                "-C",
+               os.path.join(tests.Scripts, "events-send-ssl.bro")])
+    time.sleep(2)
+    tests.spawnBro("events-rcv-ssl", 
+               [os.path.join(tests.Scripts, "events-rcv-ssl.bro")])
+    tests.waitProc("events-send-ssl")
+    tests.killProc("events-rcv-ssl")
+    tests.finishTest("events-send-ssl", ["stdout.log", "stderr.log", "http.log", "conn.log"], ignoreTime=True)
+    tests.finishTest("events-rcv-ssl", ["stdout.log", "stderr.log", "http.log", "conn.log"], ignoreTime=True)
+
+    tests.spawnBro("events-display-ssl", 
+               ["-x", os.path.join(tests.workDir("events-rcv-ssl"), "events.bst")])
+    tests.waitProc("events-display-ssl")
+    tests.finishTest("events-display-ssl", ["stdout.log"], ignoreTime=True, sort=True, delete=['127.0.0.1:[0-9]*',"Event.*remote_.*"])
+
+    tests.compareFiles("events-send-ssl", "events-rcv-ssl", ["http.log"], ignoreTime=True, ignoreSessionID=True)
+
 ##########################################    
 # Exchange synchronized state
 ##########################################    

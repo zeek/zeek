@@ -27,7 +27,7 @@ int check_c_mode(int t)
 %}
 
 WS	[ \t]+
-ID	[A-Za-z_][A-Za-z_0-9]*
+ID	[A-Za-z_](([A-Za-z_0-9]|::)*[A-Za-z_0-9])?
 ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 
 %option nodefault

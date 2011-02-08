@@ -407,7 +407,7 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 
 	case TYPE_INTERNAL_STRING:
 		if ( ! v )
-			return 0;
+			return optional ? sz : 0;
 
 		// Factor in length field.
 		sz = SizeAlign(sz, sizeof(int));

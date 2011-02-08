@@ -24,7 +24,7 @@ class HashKey {
 public:
 	HashKey(bro_int_t i);
 	HashKey(bro_uint_t u);
-	HashKey(uint32 u);
+//	HashKey(uint32 u);
 	HashKey(const uint32 u[], int n);
 	HashKey(double d);
 	HashKey(const void* p);

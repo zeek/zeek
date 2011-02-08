@@ -53,8 +53,10 @@ typedef long int int64;
 # error "Couldn't reliably identify 64-bit type. Please report to bro@bro-ids.org."
 #endif
 
-typedef int64 bro_int_t;
-typedef uint64 bro_uint_t;
+#include <stdint.h>
+
+typedef int32_t bro_int_t;
+typedef uint32_t bro_uint_t;
 
 // "ptr_compat_uint" and "ptr_compat_int" are (un)signed integers of
 // pointer size. They can be cast safely to a pointer, e.g. in Lists,

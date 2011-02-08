@@ -23,6 +23,9 @@ export {
 	type Stream: record {
 		name:     string;
 		columns:  string_vec;
+		
+		# This is for tracking files internally if the output is a file.
+		_file:    file &optional;
 		};
 	
 	# A filter defining what to record.
@@ -35,7 +38,7 @@ export {
 		# for all entries. The predicate receives one parameter:
 		# an instance of the log's record type with the fields to be
 		# logged.
-		pred: function(log: any) &optional;
+		pred: function(rec: any): bool &optional;
     	
 		# A path for outputting everything matching this
 		# filter. The path is either a string, or a function
@@ -55,15 +58,11 @@ export {
 		# to an entry. The event receives the same parameter
 		# as the predicate. It will always be generated,
 		# independent of what the predicate returns.
-		ev: event(l: any) &optional;
-    	
+		#ev: event(rec: any) &optional;
+		
 		# The writer to use.
 		writer: Writer &default=default_writer;
 		};
-	
-	
-	global filters: table[string] of set[Filter];
-	global streams: table[string] of Stream;
 	
 	# Logs the record "rec" to the stream "id". The type of
 	# "rec" must match the stream's "columns" field.
@@ -80,9 +79,16 @@ export {
 	
 	global open_log_files: function(id: string);
 	
+	# This is the internal filter store.  The outer table is indexed with a string
+	# representing the stream name that the set of Logging::Filters is applied to.
+	global filters: table[string] of set[Filter];
+
+	# This is the internal stream store.  The table is indexed by the stream name.
+	global streams: table[string] of Stream;
+
 }
 
-# Sentinel representing an unknown filter.
+# Sentinel representing an unknown filter.d
 const NoSuchFilter: Filter = [$name="<unknown filter>"];
 
 function create_stream(id: string, log_record_type: string)
@@ -91,6 +97,9 @@ function create_stream(id: string, log_record_type: string)
 		print fmt("Stream %s already exists!", id);
 	
 	streams[id] = [$name=log_record_type, $columns=record_type_to_vector(log_record_type)];
+	# Insert this as a separate step because the file_opened event needs
+	# the stream id to already exist.
+	streams[id]$_file = open_log_file(id);
 	}
 	
 function add_filter(id: string, filter: Filter)
@@ -98,13 +107,55 @@ function add_filter(id: string, filter: Filter)
 	if ( id !in filters )
 		filters[id] = set();
 	
-	# TODO: This is broken and waiting on a bug fix for &optional fields
-	#       in records being used as indexes.
-	#add filt[filter];
+	#add filters[id][filter];
+	}
+	
+
+event file_opened(f: file) &priority=10
+	{
+	# Only do any of this for files opened locally.
+	if ( is_remote_event() ) return;
+
+	local filename = gsub(get_file_name(f), /\.log$/, "");
+	if ( filename in streams )
+		{
+		enable_raw_output(f);
+		
+		if (peer_description == "" ||
+		    peer_description == "manager" ||
+		    peer_description == "standalone")
+			{
+			print f, join_string_vec(streams[filename]$columns, "\t");
+			}
+		}
+	else 
+		{
+		print "no raw output", filename;
+		}
 	}
 	
 function log(id: string, rec: any)
 	{
+	#if ( id !in streams )
+	#	{
+	#	print fmt("Unable to log id: %s.  Unknown logging stream.", id);
+	#	return;
+	#	}
+	#local stream = streams[id];
+	#
+	#if ( id !in filters )
+	#	{
+	#	print fmt("No filters for %s?", id);
+	#	return;
+	#	}
+	#
+	#local filter = match rec using filters[id];
+
 	logging_log(id, rec);
 	}
 
+
+event bro_init() &priority=-10
+	{
+	# Check for logging streams without filters.
+	}

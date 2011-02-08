@@ -362,7 +362,8 @@ function cat%(...%): string
 	
 function logging_log%(index: string, rec: any%): any
 	%{
-	// Verify that rec is a record
+	// TODO: Verify that rec is a record
+	// TODO: Coerce to the correct record type to fill in defaults.
 	
 	// Lookup the stream
 	TableVal *streams = opt_internal_table("Logging::streams");
@@ -382,7 +383,22 @@ function logging_log%(index: string, rec: any%): any
 		printf("Logging framework is dead (Logging::streams not found).\n");
 		return false;
 		}
-	
+		
+	// Lookup all filters for stream
+	TableVal *filters = opt_internal_table("Logging::filters");
+	RecordVal *stream_filters;
+	if ( filters )
+		{
+		Val *lookup_v = filters->Lookup(index);
+		if ( lookup_v )
+			stream_filters = lookup_v->AsRecordVal();
+		}
+	else
+		{
+		printf("Logging framework is dead (Logging::filters not found).\n");
+		return false;
+		}
+		
 	// Generate the event for the log stream 
 	//   This happens regardless of all filters.
 	int name_field = stream_record->Type()->AsRecordType()->FieldOffset("name");
@@ -397,42 +413,29 @@ function logging_log%(index: string, rec: any%): any
 		vl->append(rec->Ref());
 		mgr.QueueEvent(ev_ptr, vl, SOURCE_LOCAL);
 		}
-		
-	// Lookup all filters for stream
-	// (ignore this code, it will probably be done in the logging.bro script
-	//  with the "match" statement)
-	//TableVal *filters = opt_internal_table("Logging::filters");
-	//RecordVal *stream_filters;
-	//if ( filters )
-	//	{
-	//	Val *lookup_v = filters->Lookup(index);
-	//	if ( lookup_v )
-	//		stream_filters = lookup_v->AsRecordVal();
-	//	}
-	//else
-	//	{
-	//	printf("Logging framework is dead (Logging::filters not found).\n");
-	//	return false;
-	//	}
 	
-	// Print the line 
+	// Format and print the line 
 	//  (send line onward to the filter's WRITER in the future)
-	ODesc d;
-	const char *field_name;
-	int field = 0;
+	int file_field = stream_record->Type()->AsRecordType()->FieldOffset("_file");
+	BroFile *f = stream_record->AsRecordVal()->Lookup(file_field)->AsFile();
+	if ( ! f->IsOpen() )
+		return 0;
+		
+	ODesc d;	
 	RecordType *rt = rec->Type()->AsRecordType();
 	for ( unsigned i = 1; i <= columns->Size(); ++i )
 		{
-		field_name = columns->Lookup(i)->AsStringVal()->CheckString();
-		field = rec->Type()->AsRecordType()->FieldOffset(field_name);
+		const char *field_name = columns->Lookup(i)->AsStringVal()->CheckString();
+		int field = rec->Type()->AsRecordType()->FieldOffset(field_name);
 		if ( field >= 0 ) // or if there is a default value
 			{
 			rec->AsRecordVal()->Lookup(field)->Describe(&d);
-			d.Add("\t",0);
+			d.Add("\t");
 			}
 		}
-		
-	printf("%s: %s\n", ID_module.c_str(), d.TakeBytes());
+	f->Write(d.Description(), 0);
+	f->Write("\n",0);
+	
 	return 0;
 	%}
 	

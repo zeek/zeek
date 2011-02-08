@@ -799,8 +799,8 @@ decl:
 	|	TOK_REDEF global_id opt_type init_class opt_init opt_attr ';'
 			{ add_global($2, $3, $4, $5, $6, VAR_REDEF); }
 
-	|       TOK_REDEF TOK_ENUM global_id TOK_ADD_TO
-		'{' enum_id_list opt_comma '}' ';'
+	|	TOK_REDEF TOK_ENUM global_id TOK_ADD_TO
+			'{' enum_id_list opt_comma '}' ';'
 			{
 			if ( ! $3->Type() )
 				$3->Error("unknown identifier");
@@ -814,6 +814,24 @@ decl:
 							     $6->AsEnumType());
 				}
 			}
+
+	|	TOK_REDEF TOK_RECORD global_id TOK_ADD_TO
+			'{' type_decl_list '}' ';'
+			{
+			if ( ! $3->Type() )
+				$3->Error("unknown identifier");
+			else
+				{
+				RecordType* add_to = $3->Type()->AsRecordType();
+				if ( ! add_to )
+					$3->Error("not a record type");
+				else {
+					const char* error = add_to->AddFields($6);
+					if ( error )
+    					$3->Error(error);
+				}
+			}
+    	}
 
 	|	TOK_TYPE global_id ':' refined_type opt_attr ';'
 			{

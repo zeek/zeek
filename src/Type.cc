@@ -898,6 +898,26 @@ void RecordType::Describe(ODesc* d) const
 		}
 	}
 
+const char* RecordType::AddFields(type_decl_list* others)
+	{
+	assert(types);
+
+	loop_over_list(*others, i)
+		{
+		TypeDecl* td = (*others)[i];
+
+		if ( ! td->FindAttr(ATTR_DEFAULT) && ! td->FindAttr(ATTR_OPTIONAL) )
+			return "extension field must be &optional or have &default";
+
+		types->append(td);
+		}
+
+	delete others;
+
+	num_fields = types->length();
+	return 0;
+	}
+
 void RecordType::DescribeFields(ODesc* d) const
 	{
 	if ( d->IsReadable() )

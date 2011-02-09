@@ -11,6 +11,12 @@
 #include <stdarg.h>
 #include "config.h"
 
+#define _ISOC99_SOURCE
+#define __STDC_LIMIT_MACROS
+#define __STDC_CONSTANT_MACROS
+#define __STDC_FORMAT_MACROS
+#include "inttypes.h"
+
 #if __STDC__
 #define myattribute __attribute__
 #else

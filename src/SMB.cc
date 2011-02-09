@@ -6,7 +6,6 @@
 #include "SMB.h"
 #include "smb_pac.h"
 #include "Val.h"
-#include "inttypes.h"
 
 namespace {
 	const bool DEBUG_smb_ipc = true;
@@ -167,8 +166,7 @@ void SMB_Session::Deliver(int is_orig, int len, const u_char* data)
 			const u_char* tmp = data_start + next;
 			if ( data_start + next < data + body.length() )
 				{
-				//Weird(fmt("ANDX buffer overlapping: next = %d, buffer_end = %" PRId32, next, data + body.length() - data_start));
-				printf("ANDX buffer overlapping: next = %" PRId64 ", buffer_end = %" PRId32 " ", next, data + body.length() - data_start);
+				Weird(fmt("ANDX buffer overlapping: next = %d, buffer_end = %" PRIdPTR, next, data + body.length() - data_start));
 				break;
 				}
 

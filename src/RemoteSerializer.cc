@@ -159,7 +159,6 @@
 #include <signal.h>
 #include <strings.h>
 #include <stdarg.h>
-#include <inttypes.h>
 
 #include "config.h"
 #ifdef TIME_WITH_SYS_TIME

@@ -913,7 +913,7 @@ global dns_max_queries = 5;
 
 # The maxiumum size in bytes for an SSL cipherspec.  If we see a packet that
 # has bigger cipherspecs, we warn and won't do a comparisons of cipherspecs.
-const ssl_max_cipherspec_size = 45 &redef;
+const ssl_max_cipherspec_size = 68 &redef;
 
 # SSL and X.509 types.
 type cipher_suites_list: set[count];

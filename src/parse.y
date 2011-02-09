@@ -3,6 +3,8 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 %}
 
+%expect 71
+
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ALARM TOK_ANY
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
 %token TOK_BOOL TOK_BREAK TOK_CASE TOK_CONST

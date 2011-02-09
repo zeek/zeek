@@ -1516,13 +1516,13 @@ bool RemoteSerializer::DoMessage()
 		{
 		// We shut the connection to this peer down,
 		// so we ignore all further messages.
-		DEBUG_COMM(fmt("parent: ignoring %s due to shutdown of peer #%d",
+		DEBUG_COMM(fmt("parent: ignoring %s due to shutdown of peer #%" PRI_SOURCE_ID,
 					msgToStr(current_msgtype),
 					current_peer ? current_peer->id : 0));
 		return true;
 		}
 
-	DEBUG_COMM(fmt("parent: %s from child; peer is #%d",
+	DEBUG_COMM(fmt("parent: %s from child; peer is #%" PRI_SOURCE_ID,
 			msgToStr(current_msgtype),
 			current_peer ? current_peer->id : 0));
 
@@ -2619,7 +2619,7 @@ bool RemoteSerializer::SendCMsgToChild(char msg_type, Peer* peer)
 
 bool RemoteSerializer::SendToChild(char type, Peer* peer, char* str, int len)
 	{
-	DEBUG_COMM(fmt("parent: (->child) %s (#%d, %s)", msgToStr(type), peer ? peer->id : PEER_NONE, str));
+	DEBUG_COMM(fmt("parent: (->child) %s (#%" PRI_SOURCE_ID ", %s)", msgToStr(type), peer ? peer->id : PEER_NONE, str));
 
 	if ( ! child_pid )
 		return false;
@@ -2643,7 +2643,7 @@ bool RemoteSerializer::SendToChild(char type, Peer* peer, int nargs, ...)
 
 #ifdef DEBUG
 	va_start(ap, nargs);
-	DEBUG_COMM(fmt("parent: (->child) %s (#%d,%s)",
+	DEBUG_COMM(fmt("parent: (->child) %s (#%" PRI_SOURCE_ID ",%s)",
 			msgToStr(type), peer ? peer->id : PEER_NONE, fmt_uint32s(nargs, ap)));
 	va_end(ap);
 #endif
@@ -3074,7 +3074,7 @@ bool SocketComm::ProcessParentMessage()
 			}
 
 		default:
-			internal_error(fmt("unknown msg type %d", parent_msgtype));
+			internal_error("unknown msg type %d", parent_msgtype);
 			return true;
 		}
 
@@ -3244,7 +3244,7 @@ bool SocketComm::ForwardChunkToPeer()
 		{
 #ifdef DEBUG
 		if ( parent_peer )
-			DEBUG_COMM(fmt("child: not connected to #%d", parent_id));
+			DEBUG_COMM(fmt("child: not connected to #%" PRI_SOURCE_ID, parent_id));
 #endif
 		}
 
@@ -3327,7 +3327,7 @@ bool SocketComm::ProcessRemoteMessage(SocketComm::Peer* peer)
 
 		CMsg* msg = (CMsg*) c->data;
 
-		DEBUG_COMM(fmt("child: %s from peer #%d",
+		DEBUG_COMM(fmt("child: %s from peer #%" PRI_SOURCE_ID,
 				msgToStr(msg->Type()), peer->id));
 
 		switch ( msg->Type() ) {
@@ -3804,7 +3804,7 @@ bool SocketComm::SendToParent(char type, Peer* peer, const char* str, int len)
 #ifdef DEBUG
 	// str  may already by constructed with fmt()
 	const char* tmp = copy_string(str);
-	DEBUG_COMM(fmt("child: (->parent) %s (#%d, %s)", msgToStr(type), peer ? peer->id : RemoteSerializer::PEER_NONE, tmp));
+	DEBUG_COMM(fmt("child: (->parent) %s (#%" PRI_SOURCE_ID ", %s)", msgToStr(type), peer ? peer->id : RemoteSerializer::PEER_NONE, tmp));
 	delete [] tmp;
 #endif
 	if ( sendToIO(io, type, peer ? peer->id : RemoteSerializer::PEER_NONE,
@@ -3823,7 +3823,7 @@ bool SocketComm::SendToParent(char type, Peer* peer, int nargs, ...)
 
 #ifdef DEBUG
 	va_start(ap,nargs);
-	DEBUG_COMM(fmt("child: (->parent) %s (#%d,%s)", msgToStr(type), peer ? peer->id : RemoteSerializer::PEER_NONE, fmt_uint32s(nargs, ap)));
+	DEBUG_COMM(fmt("child: (->parent) %s (#%" PRI_SOURCE_ID ",%s)", msgToStr(type), peer ? peer->id : RemoteSerializer::PEER_NONE, fmt_uint32s(nargs, ap)));
 	va_end(ap);
 #endif
 
@@ -3859,7 +3859,7 @@ bool SocketComm::SendToPeer(Peer* peer, char type, const char* str, int len)
 #ifdef DEBUG
 	// str  may already by constructed with fmt()
 	const char* tmp = copy_string(str);
-	DEBUG_COMM(fmt("child: (->peer) %s to #%d (%s)", msgToStr(type), peer->id, tmp));
+	DEBUG_COMM(fmt("child: (->peer) %s to #%" PRI_SOURCE_ID " (%s)", msgToStr(type), peer->id, tmp));
 	delete [] tmp;
 #endif
 
@@ -3878,7 +3878,7 @@ bool SocketComm::SendToPeer(Peer* peer, char type, int nargs, ...)
 
 #ifdef DEBUG
 	va_start(ap,nargs);
-	DEBUG_COMM(fmt("child: (->peer) %s to #%d (%s)",
+	DEBUG_COMM(fmt("child: (->peer) %s to #%" PRI_SOURCE_ID " (%s)",
 			msgToStr(type), peer->id, fmt_uint32s(nargs, ap)));
 	va_end(ap);
 #endif
@@ -3899,7 +3899,7 @@ bool SocketComm::SendToPeer(Peer* peer, char type, int nargs, ...)
 
 bool SocketComm::SendToPeer(Peer* peer, ChunkedIO::Chunk* c)
 	{
-	DEBUG_COMM(fmt("child: (->peer) chunk of size %d to #%d", c->len, peer->id));
+	DEBUG_COMM(fmt("child: (->peer) chunk of size %d to #%" PRI_SOURCE_ID, c->len, peer->id));
 	if ( ! sendToIO(peer->io, c) )
 		{
 		Error(fmt("child: write error %s", io->Error()), peer);

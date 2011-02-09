@@ -364,7 +364,8 @@ function logging_log%(index: string, rec: any%): any
 	%{
 	// TODO: Verify that rec is a record
 	// TODO: Coerce to the correct record type to fill in defaults.
-	
+	RecordVal *recval = rec->AsRecordVal();
+
 	// Lookup the stream
 	TableVal *streams = opt_internal_table("Logging::streams");
 	VectorVal *columns;
@@ -386,12 +387,12 @@ function logging_log%(index: string, rec: any%): any
 		
 	// Lookup all filters for stream
 	TableVal *filters = opt_internal_table("Logging::filters");
-	RecordVal *stream_filters;
+	TableVal *stream_filters;
 	if ( filters )
 		{
 		Val *lookup_v = filters->Lookup(index);
 		if ( lookup_v )
-			stream_filters = lookup_v->AsRecordVal();
+			stream_filters = lookup_v->AsTableVal();
 		}
 	else
 		{
@@ -410,31 +411,74 @@ function logging_log%(index: string, rec: any%): any
 	if ( ev_ptr )
 		{
 		val_list* vl = new val_list;
-		vl->append(rec->Ref());
+		vl->append(recval->Ref());
 		mgr.QueueEvent(ev_ptr, vl, SOURCE_LOCAL);
 		}
 	
-	// Format and print the line 
-	//  (send line onward to the filter's WRITER in the future)
-	int file_field = stream_record->Type()->AsRecordType()->FieldOffset("_file");
-	BroFile *f = stream_record->AsRecordVal()->Lookup(file_field)->AsFile();
-	if ( ! f->IsOpen() )
-		return 0;
-		
-	ODesc d;	
-	RecordType *rt = rec->Type()->AsRecordType();
-	for ( unsigned i = 1; i <= columns->Size(); ++i )
+	// Iterate over the stream_filters
+	ListVal* filter_recs = stream_filters->ConvertToList(TYPE_ANY);
+	for ( int i = 0; i < filter_recs->Length(); ++i )
 		{
-		const char *field_name = columns->Lookup(i)->AsStringVal()->CheckString();
-		int field = rec->Type()->AsRecordType()->FieldOffset(field_name);
-		if ( field >= 0 ) // or if there is a default value
+		RecordVal* rv = filter_recs->Index(i)->AsListVal()->Index(0)->AsRecordVal();
+		int pred_field_index = rv->Type()->AsRecordType()->FieldOffset("pred");
+		Val *pred_func = rv->Lookup(pred_field_index);
+		if ( pred_func )
 			{
-			rec->AsRecordVal()->Lookup(field)->Describe(&d);
-			d.Add("\t");
+			val_list args(1);
+			args.append(recval->Ref());
+			int pred_val = pred_func->AsFunc()->Call(&args)->AsBool();
+			//printf("predicate val: %d\n", pred_val);
+			// If the predicate returns false, don't send this record on to a writer.
+			if ( !pred_val )
+				continue;
 			}
+		
+		// Format and print the line 
+		//  (send line onward to the filter's WRITER in the future)
+		
+		// Get a path name for this filter
+		int path_field = rv->Type()->AsRecordType()->FieldOffset("path");
+		Val *path_val = rv->Lookup(path_field);
+		StringVal *path;
+		// If no path is given, use the Stream ID as the path
+		if ( path_val )
+			path = path_val->AsStringVal();
+		else
+			path = index;
+		
+		// Get the file with the "path" name found above for this filter.
+		// Open a new file is one does not exist yet.
+		TableVal *logging_files = opt_internal_table("Logging::files");
+		Val *ff = logging_files->Lookup(path);
+		if ( !ff )
+			{
+			logging_files->Assign(path, new Val(new BroFile(path->CheckString(), "w")));
+			ff = logging_files->Lookup(path);
+			}
+		BroFile *f = ff->AsFile();
+		if ( ! f->IsOpen() )
+			continue;
+
+		// Actually format the log line and print it to the file found above.
+		ODesc d;
+		RecordType *rt = rec->Type()->AsRecordType();
+		for ( unsigned i = 1; i <= columns->Size(); ++i )
+			{
+			const char *field_name = columns->Lookup(i)->AsStringVal()->CheckString();
+			int field = rt->FieldOffset(field_name);
+			if ( field >= 0 ) // or if there is a default value
+				{
+				rec->AsRecordVal()->Lookup(field)->Describe(&d);
+				d.Add("\t");
+				}
+			}
+		f->Write(d.Description(), 0);
+		f->Write("\n",0);
+		
+		
 		}
-	f->Write(d.Description(), 0);
-	f->Write("\n",0);
+
+	Unref(filter_recs);
 	
 	return 0;
 	%}

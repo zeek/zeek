@@ -87,7 +87,7 @@ public:
 #endif
 		}
 
-	Val(int i, TypeTag t)
+	Val(int32 i, TypeTag t)
 		{
 		val.int_val = bro_int_t(i);
 		type = base_type(t);
@@ -97,27 +97,7 @@ public:
 #endif
 		}
 
-	Val(long i, TypeTag t)
-		{
-		val.int_val = bro_int_t(i);
-		type = base_type(t);
-		attribs = 0;
-#ifdef DEBUG
-		bound_id = 0;
-#endif
-		}
-
-	Val(unsigned int u, TypeTag t)
-		{
-		val.uint_val = bro_uint_t(u);
-		type = base_type(t);
-		attribs = 0;
-#ifdef DEBUG
-		bound_id = 0;
-#endif
-		}
-
-	Val(unsigned long u, TypeTag t)
+	Val(uint32 u, TypeTag t)
 		{
 		val.uint_val = bro_uint_t(u);
 		type = base_type(t);

@@ -515,7 +515,11 @@ Val* Val::SizeVal() const
 	{
 	switch ( type->InternalType() ) {
 	case TYPE_INTERNAL_INT:
+#ifdef DARWIN_NO_LLABS
+		return new Val(abs(val.int_val), TYPE_COUNT);
+#else
 		return new Val(llabs(val.int_val), TYPE_COUNT);
+#endif
 
 	case TYPE_INTERNAL_UNSIGNED:
 		return new Val(val.uint_val, TYPE_COUNT);

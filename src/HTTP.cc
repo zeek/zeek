@@ -16,9 +16,8 @@
 
 const bool DEBUG_http = false;
 
-/* The EXPECT_*_NOTHING states are used to prevent further parsing. Used
- * if a message was interrupted. 
- */
+// The EXPECT_*_NOTHING states are used to prevent further parsing. Used if a
+// message was interrupted. 
 enum {
 	EXPECT_REQUEST_LINE,
 	EXPECT_REQUEST_MESSAGE,
@@ -857,13 +856,16 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 						   new_string_val(line, end_of_line));
 				else
 					{
-					// We do see HTTP requests with a trailing EOL that's not 
-					// not accounted for by the content-length. This will lead
-					// to a call to this method with len==0 while we are 
-					// expecting a new request. Since HTTP servers handle
-					// such request gracefully, we should do so as well. 
-					if (len==0)
-						Weird("empty_http_request");
+					// We do see HTTP requests with a
+					// trailing EOL that's not accounted
+					// for by the content-length. This
+					// will lead to a call to this method
+					// with len==0 while we are expecting
+					// a new request. Since HTTP servers
+					// handle such requests gracefully,
+					// we should do so as well. 
+					if ( len == 0 )
+					    Weird("empty_http_request");
 					else 
 						{
 						ProtocolViolation("not a http request line");
@@ -907,7 +909,7 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 						ExpectReplyMessageBody(),
 						len);
 				}
-		    else
+			else
 				{
 				ProtocolViolation("not a http reply line");
 				reply_state = EXPECT_REPLY_NOTHING;
@@ -1071,7 +1073,6 @@ int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 		// HTTP methods for distributed authoring.
 		"PROPFIND", "PROPPATCH", "MKCOL", "DELETE", "PUT",
 		"COPY", "MOVE", "LOCK", "UNLOCK",
-		// More stuff
 		"POLL", "REPORT", "SUBSCRIBE", "BMOVE",
 
 		"SEARCH",
@@ -1086,7 +1087,7 @@ int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 
 	if ( ! http_methods[i] )
 		{
-		//Weird("HTTP_unknown_method");
+		// Weird("HTTP_unknown_method");
 		if ( RequestExpected() )
 			HTTP_Event("unknown_HTTP_method", new_string_val(line, end_of_line));
 		return 0;
@@ -1287,7 +1288,7 @@ void HTTP_Analyzer::RequestMade(const int interrupted, const char* msg)
 
 	num_request_lines = 0;
 
-	if (interrupted)
+	if ( interrupted )
 		request_state = EXPECT_REQUEST_NOTHING;
 	else 
 		request_state = EXPECT_REQUEST_LINE;
@@ -1319,7 +1320,7 @@ void HTTP_Analyzer::ReplyMade(const int interrupted, const char* msg)
 		reply_reason_phrase = 0;
 		}
 
-	if (interrupted)
+	if ( interrupted )
 		reply_state = EXPECT_REPLY_NOTHING;
 	else
 		reply_state = EXPECT_REPLY_LINE;

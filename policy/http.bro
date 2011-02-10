@@ -79,8 +79,9 @@ type http_session_info: record {
 
 const http_log = open_log_file("http") &redef;
 
-# Indexed by conn_id.
-global http_sessions: table[conn_id] of http_session_info;
+export {
+	global http_sessions: table[conn_id] of http_session_info;
+}
 
 global http_session_id = 0;
 

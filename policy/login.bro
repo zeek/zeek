@@ -544,10 +544,7 @@ event login_confused(c: connection, msg: string, line: string)
 
 	append_addl(c, "<confused>");
 
-	if ( line == "" )
-		print Weird::weird_file, fmt("%.6f %s %s", network_time(), id_string(c$id), msg);
-	else
-		print Weird::weird_file, fmt("%.6f %s %s (%s)", network_time(), id_string(c$id), msg, line);
+	event conn_weird_addl(msg, c, line);
 
 	set_record_packets(c$id, T);
 	}

@@ -59,7 +59,7 @@ protected:
 	id_list* inits;
 };
 
-extern const char* GLOBAL_MODULE_NAME;
+static const char* GLOBAL_MODULE_NAME = "GLOBAL";
 
 extern string extract_module_name(const char* name);
 extern string normalized_module_name(const char* module_name); // w/o ::

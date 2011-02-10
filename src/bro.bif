@@ -1365,7 +1365,7 @@ function skip_http_entity_data%(c: connection, is_orig: bool%): any
 		{
 		Analyzer* ha = c->FindAnalyzer(id);
 
-		if (ha)
+		if ( ha )
 			{
 			if ( ha->GetTag() == AnalyzerTag::HTTP )
 				static_cast<HTTP_Analyzer*>(ha)->SkipEntityData(is_orig);
@@ -1730,7 +1730,7 @@ function md5_hmac%(...%): string
 %%{
 static map<BroString, md5_state_s> md5_states;
 
-BroString* convert_md5_index_to_string(Val* index)
+BroString* convert_index_to_string(Val* index)
 	{
 	ODesc d;
 	index->Describe(&d);
@@ -1740,7 +1740,7 @@ BroString* convert_md5_index_to_string(Val* index)
 
 function md5_hash_init%(index: any%): bool
 	%{
-	BroString* s = convert_md5_index_to_string(index);
+	BroString* s = convert_index_to_string(index);
 	int status = 0;
 
 	if ( md5_states.count(*s) < 1 )
@@ -1757,7 +1757,7 @@ function md5_hash_init%(index: any%): bool
 
 function md5_hash_update%(index: any, data: string%): bool
 	%{
-	BroString* s = convert_md5_index_to_string(index);
+	BroString* s = convert_index_to_string(index);
 	int status = 0;
 
 	if ( md5_states.count(*s) > 0 )
@@ -1772,7 +1772,7 @@ function md5_hash_update%(index: any, data: string%): bool
 
 function md5_hash_finish%(index: any%): string
 	%{
-	BroString* s = convert_md5_index_to_string(index);
+	BroString* s = convert_index_to_string(index);
 	StringVal* printable_digest;
 
 	if ( md5_states.count(*s) > 0 )
@@ -1853,15 +1853,15 @@ function uuid_to_string%(uuid: string%): string
 	%}
 
 
-# The following functions are attempts to convert strings into
-# patterns at run-time. These attempts were later *abandoned* because
-# NFA and DFA cannot be cleanly deallocated.
+# The following functions convert strings into patterns at run-time. As the
+# computed NFAs and DFAs cannot be cleanly deallocated (at least for now),
+# they can only be used at initialization time.
 
 function merge_pattern%(p1: pattern, p2: pattern%): pattern
 	%{
-	if ( reading_live )
+	if ( bro_start_network_time != 0.0 )
 		{
-		builtin_run_time("should not call merge_pattern while reading live traffic");
+		builtin_run_time("merge_pattern can only be called at init time");
 		return 0;
 		}
 
@@ -1905,9 +1905,9 @@ function convert_for_pattern%(s: string%): string
 
 function string_to_pattern%(s: string, convert: bool%): pattern
 	%{
-	if ( reading_live )
+	if ( bro_start_network_time != 0.0 )
 		{
-		builtin_run_time("should not call merge_pattern while reading live traffic");
+		builtin_run_time("string_to_pattern can only be called at init time");
 		return 0;
 		}
 
@@ -2813,7 +2813,7 @@ private:
 # function result.  Therefore, they can only be called inside a when-condition.
 function lookup_addr%(host: addr%) : string
 	%{
-	// FIXME: Is should be easy to adapt the function to synchronous
+	// FIXME: It should be easy to adapt the function to synchronous
 	// lookups if we're reading a trace.
 	Trigger* trigger = frame->GetTrigger();
 
@@ -2829,8 +2829,18 @@ function lookup_addr%(host: addr%) : string
 #ifdef BROv6
 	if ( ! is_v4_addr(host) )
 		{
-		builtin_run_time("lookup_addr() only supports IPv4 addresses");
-		return new StringVal("<ipv6-address>");
+		// FIXME: This is a temporary work-around until we get this
+		// fixed. We warn the user once, and always trigger a timeout.
+		// Ticket #355 records the problem.
+		static bool warned = false;
+		if ( ! warned )
+			{
+			warn("lookup_addr() only supports IPv4 addresses currently");
+			warned = true;
+			}
+
+		trigger->Timeout();
+		return 0;
 		}
 
 	dns_mgr->AsyncLookupAddr(to_v4_addr(host),
@@ -3200,4 +3210,84 @@ function disable_event_group%(group: string%) : any
 	%{
 	event_registry->EnableGroup(group->CheckString(), false);
 	return 0;
+	%}
+
+
+%%{
+#include <RandTest.h>
+static map<BroString, RandTest*> entropy_states;
+%%}
+
+function find_entropy%(data: string%): entropy_test_result
+	%{
+	double montepi, scc, ent, mean, chisq;
+	montepi = scc = ent = mean = chisq = 0.0;
+	RecordVal* ent_result = new RecordVal(entropy_test_result);
+	RandTest *rt = new RandTest();
+
+	rt->add((char*) data->Bytes(), data->Len());
+	rt->end(&ent, &chisq, &mean, &montepi, &scc);
+	delete rt;
+
+	ent_result->Assign(0, new Val(ent,     TYPE_DOUBLE));
+	ent_result->Assign(1, new Val(chisq,   TYPE_DOUBLE));
+	ent_result->Assign(2, new Val(mean,    TYPE_DOUBLE));
+	ent_result->Assign(3, new Val(montepi, TYPE_DOUBLE));
+	ent_result->Assign(4, new Val(scc,     TYPE_DOUBLE));
+	return ent_result;
+	%}
+
+function entropy_test_init%(index: any%): bool
+	%{
+	BroString* s = convert_index_to_string(index);
+	int status = 0;
+
+	if ( entropy_states.count(*s) < 1 )
+		{
+		entropy_states[*s] = new RandTest();
+		status = 1;
+		}
+
+	delete s;
+	return new Val(status, TYPE_BOOL);
+	%}
+
+function entropy_test_add%(index: any, data: string%): bool
+	%{
+	BroString* s = convert_index_to_string(index);
+	int status = 0;
+
+	if ( entropy_states.count(*s) > 0 )
+		{
+		entropy_states[*s]->add((char*) data->Bytes(), data->Len());
+		status = 1;
+		}
+
+	delete s;
+	return new Val(status, TYPE_BOOL);
+	%}
+
+function entropy_test_finish%(index: any%): entropy_test_result
+	%{
+	BroString* s = convert_index_to_string(index);
+	double montepi, scc, ent, mean, chisq;
+	montepi = scc = ent = mean = chisq = 0.0;
+	RecordVal* ent_result = new RecordVal(entropy_test_result);
+
+	if ( entropy_states.count(*s) > 0 )
+		{
+		RandTest *rt = entropy_states[*s];
+		rt->end(&ent, &chisq, &mean, &montepi, &scc);
+		entropy_states.erase(*s);
+		delete rt;
+		}
+
+	ent_result->Assign(0, new Val(ent,     TYPE_DOUBLE));
+	ent_result->Assign(1, new Val(chisq,   TYPE_DOUBLE));
+	ent_result->Assign(2, new Val(mean,    TYPE_DOUBLE));
+	ent_result->Assign(3, new Val(montepi, TYPE_DOUBLE));
+	ent_result->Assign(4, new Val(scc,     TYPE_DOUBLE));
+
+	delete s;
+	return ent_result;
 	%}

@@ -50,6 +50,12 @@ const dump_original_packets_if_not_rewriting = F &redef;
 # gap reports for partial connections might not be reliable. 
 const report_gaps_for_partial = F &redef;
 
+
+# NFS analyzer settings. See nfs.bro for documentation
+const nfs_return_data = F &redef;
+const nfs_return_data_max = 512 &redef;
+const nfs_return_first_data_only = T &redef;
+
 enum dce_rpc_ptype %{
 	DCE_RPC_REQUEST,
 	DCE_RPC_PING,

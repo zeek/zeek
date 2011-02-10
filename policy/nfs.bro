@@ -2,6 +2,18 @@
 
 @load udp
 
+# Should the read and write events return the file data that
+# has been read/written?
+redef nfs_return_data = F;
+
+# If nfs_return_data==T: how much data should be returned at most
+redef nfs_return_data_max = 512;
+
+# If nfs_return_data==T: whether to *only* return data if the read or
+# write offset is 0, i.e., only return data for the beginning of the 
+# file
+redef nfs_return_data_first_only = T;
+
 module NFS;
 
 export {

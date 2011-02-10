@@ -67,9 +67,6 @@ extern const char* decl_name;
 int var_arg; // whether the number of arguments is variable
 std::vector<BuiltinFuncArg*> args;
 
-// enum types declared by "declare enum <id>"
-set<string> enum_types;
-
 extern int yyerror(const char[]);
 extern int yywarn(const char msg[]);
 extern int yylex();
@@ -154,7 +151,7 @@ void print_event_c_body(FILE *fp)
 
 %token TOK_LPP TOK_RPP TOK_LPB TOK_RPB TOK_LPPB TOK_RPPB TOK_VAR_ARG
 %token TOK_BOOL
-%token TOK_FUNCTION TOK_REWRITER TOK_EVENT TOK_CONST TOK_ENUM TOK_DECLARE
+%token TOK_FUNCTION TOK_REWRITER TOK_EVENT TOK_CONST TOK_ENUM 
 %token TOK_TYPE TOK_RECORD
 %token TOK_WRITE TOK_PUSH TOK_EOF TOK_TRACE
 %token TOK_ARGS TOK_ARG TOK_ARGC
@@ -202,15 +199,9 @@ definition:	event_def
 	|	c_code_segment
 	|	enum_def
 	|	const_def
-	|	declare_def
 	|	type_def
 	;
 
-declare_def:	TOK_DECLARE opt_ws TOK_ENUM opt_ws TOK_ID opt_ws ';'
-			{
-			enum_types.insert($5);
-			}
-	;
 
 	 // XXX: Add the netvar glue so that the event engine knows about
 	 // the type. One still has to define the type in bro.init. 

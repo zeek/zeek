@@ -67,7 +67,6 @@ HEX	[0-9a-fA-F]+
 "event"		return check_c_mode(TOK_EVENT);
 "const"		return check_c_mode(TOK_CONST);
 "enum"		return check_c_mode(TOK_ENUM);
-"declare"	return check_c_mode(TOK_DECLARE);
 "type"		return check_c_mode(TOK_TYPE);
 "record"	return check_c_mode(TOK_RECORD);
 

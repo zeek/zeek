@@ -24,7 +24,6 @@ static struct {
 };
 
 extern const char* arg_list_name;
-extern set<string> enum_types;
 
 BuiltinFuncArg::BuiltinFuncArg(const char* arg_name, int arg_type)
 	{
@@ -45,9 +44,6 @@ BuiltinFuncArg::BuiltinFuncArg(const char* arg_name, const char* arg_type_str)
 			type = i;
 			type_str = "";
 			}
-
-	if ( enum_types.find(type_str) != enum_types.end() )
-		type = TYPE_ENUM;
 	}
 
 void BuiltinFuncArg::PrintBro(FILE* fp)

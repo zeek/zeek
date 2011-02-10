@@ -71,21 +71,11 @@ void BuiltinFuncArg::PrintCArg(FILE* fp, int n)
 	{
 	const char* ctype = builtin_func_arg_type[type].c_type;
 	char buf[1024];
-	if ( type == TYPE_ENUM )
-		{
-		snprintf(buf, sizeof(buf),
-			builtin_func_arg_type[type].c_type, type_str);
-		ctype = buf;
-		}
 
 	fprintf(fp, "%s %s", ctype, name);
 	}
 
 void BuiltinFuncArg::PrintBroValConstructor(FILE* fp)
 	{
-	if ( type == TYPE_ENUM )
-		fprintf(fp, builtin_func_arg_type[type].constructor,
-			name, type_str);
-	else
-		fprintf(fp, builtin_func_arg_type[type].constructor, name);
+	fprintf(fp, builtin_func_arg_type[type].constructor, name);
 	}

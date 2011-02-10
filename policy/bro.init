@@ -726,12 +726,12 @@ type nfs3_fattr: record {
 	nlink: count;
 	uid: count;
 	gid: count;
-	size: double;
-	used: double;
+	size: count;
+	used: count;
 	rdev1: count;
 	rdev2: count;
-	fsid: double;
-	fileid: double;
+	fsid: count;
+	fileid: count;
 	atime: time;
 	mtime: time;
 	ctime: time;
@@ -755,7 +755,7 @@ type nfs3_lookup_reply: record {
 
 type nfs3_readargs: record {
 	fh: string;      # file handle to read from 
-	offset: double;  # Offset in file. Should really go to 64 bit int here
+	offset: count;   # Offset in file. Should really go to 64 bit int here
 	size: count;     # number of bytes to read
 };
 
@@ -777,14 +777,14 @@ type nfs3_readlink_reply: record {
 
 type nfs3_writeargs: record {
 	fh: string;      # file handle to write to 
-	offset: double;  # Offset in file. Should really go to 64 bit int here
+	offset: count;   # Offset in file. Should really go to 64 bit int here
 	size: count;     # number of bytes to write
 	stable: nfs3_stable_how; # how and when data is commited 
 	data: string &optional;  # the actual data. NOT IMPLEMENTED YET.
 };
 
 type nfs3_wcc_attr: record {
-	size: double;
+	size: count;
 	atime: time;
 	mtime: time;
 };

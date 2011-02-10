@@ -49,8 +49,8 @@ protected:
 	StringVal* nfs3_writeverf(const u_char*& buf, int& n);
 
 	RecordVal* ExtractOptAttrs(const u_char*& buf, int& n);
-	Val* ExtractCount(const u_char*& buf, int& n);
-	Val* ExtractLongAsDouble(const u_char*& buf, int& n);
+	Val* ExtractUint32(const u_char*& buf, int& n);
+	Val* ExtractUint64(const u_char*& buf, int& n);
 	Val* ExtractTime(const u_char*& buf, int& n);
 	Val* ExtractInterval(const u_char*& buf, int& n);
 	Val* ExtractBool(const u_char*& buf, int& n);

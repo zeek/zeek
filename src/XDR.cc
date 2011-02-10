@@ -26,7 +26,7 @@ uint32 extract_XDR_uint32(const u_char*& buf, int& len)
 	return bits32;
 	}
 
-double extract_XDR_uint64_as_double(const u_char*& buf, int& len)
+uint64 extract_XDR_uint64(const u_char*& buf, int& len)
 	{
 	if ( ! buf || len < 8 )
 		{
@@ -34,10 +34,10 @@ double extract_XDR_uint64_as_double(const u_char*& buf, int& len)
 		return 0.0;
 		}
 
-	uint32 uhi = extract_XDR_uint32(buf, len);
-	uint32 ulo = extract_XDR_uint32(buf, len);
+	uint64 uhi = extract_XDR_uint32(buf, len);
+	uint64 ulo = extract_XDR_uint32(buf, len);
 
-	return double(uhi) * 4294967296.0 + double(ulo);
+	return (uhi << 32) + ulo;
 	}
 
 double extract_XDR_time(const u_char*& buf, int& len)

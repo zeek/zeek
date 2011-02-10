@@ -290,17 +290,17 @@ StringVal* NFS_Interp::nfs3_fh(const u_char*& buf, int& n)
 RecordVal* NFS_Interp::nfs3_fattr(const u_char*& buf, int& n)
 	{
 	RecordVal* attrs = new RecordVal(rectype_nfs3_fattr);
-	attrs->Assign(0, ExtractCount(buf, n));	// file type
-	attrs->Assign(1, ExtractCount(buf, n));	// mode
-	attrs->Assign(2, ExtractCount(buf, n));	// nlink
-	attrs->Assign(3, ExtractCount(buf, n));	// uid
-	attrs->Assign(4, ExtractCount(buf, n));	// gid
-	attrs->Assign(5, ExtractLongAsDouble(buf, n));	// size
-	attrs->Assign(6, ExtractLongAsDouble(buf, n));	// used
-	attrs->Assign(7, ExtractCount(buf, n));	// rdev1
-	attrs->Assign(8, ExtractCount(buf, n));	// rdev2
-	attrs->Assign(9, ExtractLongAsDouble(buf, n));	// fsid
-	attrs->Assign(10, ExtractLongAsDouble(buf, n));	// fileid
+	attrs->Assign(0, ExtractUint32(buf, n));	// file type
+	attrs->Assign(1, ExtractUint32(buf, n));	// mode
+	attrs->Assign(2, ExtractUint32(buf, n));	// nlink
+	attrs->Assign(3, ExtractUint32(buf, n));	// uid
+	attrs->Assign(4, ExtractUint32(buf, n));	// gid
+	attrs->Assign(5, ExtractUint64(buf, n));	// size
+	attrs->Assign(6, ExtractUint64(buf, n));	// used
+	attrs->Assign(7, ExtractUint32(buf, n));	// rdev1
+	attrs->Assign(8, ExtractUint32(buf, n));	// rdev2
+	attrs->Assign(9, ExtractUint64(buf, n));	// fsid
+	attrs->Assign(10, ExtractUint64(buf, n));	// fileid
 	attrs->Assign(11, ExtractTime(buf, n));	// atime
 	attrs->Assign(12, ExtractTime(buf, n));	// mtime
 	attrs->Assign(13, ExtractTime(buf, n));	// ctime
@@ -311,7 +311,7 @@ RecordVal* NFS_Interp::nfs3_fattr(const u_char*& buf, int& n)
 RecordVal* NFS_Interp::nfs3_wcc_attr(const u_char*& buf, int& n)
 	{
 	RecordVal* attrs = new RecordVal(rectype_nfs3_wcc_attr);
-	attrs->Assign(0, ExtractLongAsDouble(buf, n));	// size
+	attrs->Assign(0, ExtractUint64(buf, n));	// size
 	attrs->Assign(1, ExtractTime(buf, n));	// mtime
 	attrs->Assign(2, ExtractTime(buf, n));	// ctime
 
@@ -383,8 +383,8 @@ RecordVal *NFS_Interp::nfs3_readargs(const u_char*& buf, int& n)
 	{
 	RecordVal *readargs = new RecordVal(rectype_nfs3_readargs);
 	readargs->Assign(0, nfs3_fh(buf, n));
-	readargs->Assign(1, ExtractLongAsDouble(buf, n));
-	readargs->Assign(2, ExtractCount(buf,n));
+	readargs->Assign(1, ExtractUint64(buf, n));  // offset
+	readargs->Assign(2, ExtractUint32(buf,n));   // size 
 	return readargs;
 	}
 
@@ -394,7 +394,7 @@ RecordVal* NFS_Interp::nfs3_read_reply(const u_char*& buf, int& n, BroEnum::nfs3
 	if (status == BroEnum::NFS3ERR_OK)
 		{
 		rep->Assign(0, nfs3_post_op_attr(buf, n));
-		rep->Assign(1, ExtractCount(buf, n));
+		rep->Assign(1, ExtractUint32(buf, n));
 		rep->Assign(2, ExtractBool(buf, n));
 		n = 0; // Skip data. TODO: return data to policy layer
 		}
@@ -424,8 +424,8 @@ RecordVal *NFS_Interp::nfs3_writeargs(const u_char*& buf, int& n)
 	{
 	RecordVal *writeargs = new RecordVal(rectype_nfs3_writeargs);
 	writeargs->Assign(0, nfs3_fh(buf, n));
-	writeargs->Assign(1, ExtractLongAsDouble(buf, n));
-	writeargs->Assign(2, ExtractCount(buf,n));
+	writeargs->Assign(1, ExtractUint64(buf, n));
+	writeargs->Assign(2, ExtractUint32(buf,n));
 	writeargs->Assign(3, nfs3_stable_how(buf, n));
 	n = 0; // Skip data, which is element 4. TODO: pass data to policy layer
 	return writeargs;
@@ -448,7 +448,7 @@ RecordVal *NFS_Interp::nfs3_write_reply(const u_char*& buf, int& n, BroEnum::nfs
 		{
 		rep->Assign(0, nfs3_pre_op_attr(buf, n));
 		rep->Assign(1, nfs3_post_op_attr(buf, n));
-		rep->Assign(2, ExtractCount(buf, n));
+		rep->Assign(2, ExtractUint32(buf, n));
 		rep->Assign(3, nfs3_stable_how(buf, n));
 		rep->Assign(4, nfs3_writeverf(buf, n));
 		}
@@ -460,14 +460,14 @@ RecordVal *NFS_Interp::nfs3_write_reply(const u_char*& buf, int& n, BroEnum::nfs
 	return rep;
 	}
 
-Val* NFS_Interp::ExtractCount(const u_char*& buf, int& n)
+Val* NFS_Interp::ExtractUint32(const u_char*& buf, int& n)
 	{
 	return new Val(extract_XDR_uint32(buf, n), TYPE_COUNT);
 	}
 
-Val* NFS_Interp::ExtractLongAsDouble(const u_char*& buf, int& n)
+Val* NFS_Interp::ExtractUint64(const u_char*& buf, int& n)
 	{
-	return new Val(extract_XDR_uint64_as_double(buf, n), TYPE_DOUBLE);
+	return new Val(extract_XDR_uint64(buf, n), TYPE_COUNT);
 	}
 
 Val* NFS_Interp::ExtractTime(const u_char*& buf, int& n)

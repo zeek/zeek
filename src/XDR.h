@@ -11,7 +11,7 @@
 #include "util.h"
 
 extern uint32 extract_XDR_uint32(const u_char*& buf, int& len);
-extern double extract_XDR_uint64_as_double(const u_char*& buf, int& len);
+extern uint64 extract_XDR_uint64(const u_char*& buf, int& len);
 extern double extract_XDR_time(const u_char*& buf, int& len);
 extern const u_char* extract_XDR_opaque(const u_char*& buf, int& len,
 					int& n, int max_len=8192);

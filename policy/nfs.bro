@@ -111,7 +111,7 @@ event nfs_proc_read(c: connection, info: nfs3_info, req: nfs3_readargs, rep: nfs
 	{
 	local msg = nfs_get_log_prefix(c, info, "read");
 
-	msg = fmt("%s %s @%.0f: %d", msg, map_fh(c, req$fh), req$offset, req$size);
+	msg = fmt("%s %s @%d: %d", msg, map_fh(c, req$fh), req$offset, req$size);
 	if (is_success(info))
 		msg = fmt("%s got %d bytes %s", msg, rep$size, (rep$eof) ? "<eof>" : "x");
 
@@ -133,7 +133,7 @@ event nfs_proc_write(c: connection, info: nfs3_info, req: nfs3_writeargs, rep: n
 	{
 	local msg = nfs_get_log_prefix(c, info, "write");
 
-	msg = fmt("%s %s @%.0f: %d %s", msg, map_fh(c, req$fh), req$offset, req$size, req$stable);
+	msg = fmt("%s %s @%d: %d %s", msg, map_fh(c, req$fh), req$offset, req$size, req$stable);
 	if (is_success(info))
 		msg = fmt("%s wrote %d bytes %s", msg, rep$size, rep$commited);
 

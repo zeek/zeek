@@ -146,6 +146,3 @@
 
 /* Define u_int8_t */
 #define u_int8_t @U_INT8_T@
-
-/* Whether llabs will be ambiguous in stdlib.h and cstdlib headers */
-#cmakedefine DARWIN_NO_LLABS

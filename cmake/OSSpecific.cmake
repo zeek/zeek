@@ -1,6 +1,3 @@
-include(CheckCSourceCompiles)
-include(CheckCXXSourceCompiles)
-
 if (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     # alternate malloc is faster for FreeBSD, but needs more testing
     # need to add way to set this from the command line
@@ -10,28 +7,6 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "OpenBSD")
     set(USE_NMALLOC true)
 
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    # The following may have a greater scope than just Darwin
-    # (i.e. any platform w/ GCC < 4.1.0), but I've only seen
-    # it on OS X 10.5, which has GCC 4.0.1, so the workaround
-    # will be stuck here for now.
-    #
-    # See also http://gcc.gnu.org/bugzilla/show_bug.cgi?id=13943
-
-    check_cxx_source_compiles("
-        #include <math.h>
-        #include <cstdlib>
-        using namespace std;
-        int main() {
-            llabs(1);
-            return 0;
-        }
-    " darwin_llabs_works)
-
-    if (NOT darwin_llabs_works)
-        # abs() should be used in this case, the long long version should
-        # exist in the __gnu_cxx namespace
-        set(DARWIN_NO_LLABS true)
-    endif ()
 
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     set(HAVE_LINUX true)
@@ -50,7 +25,7 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "irix")
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "ultrix")
     list(APPEND CMAKE_C_FLAGS -std1 -g3)
     list(APPEND CMAKE_CXX_FLAGS -std1 -g3)
-
+    include(CheckCSourceCompiles)
     check_c_source_compiles("
         #include <sys/types.h>
         int main() {

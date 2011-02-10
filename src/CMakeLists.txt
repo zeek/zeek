@@ -160,7 +160,7 @@ macro(BINPAC_TARGET pacFile)
     add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${basename}_pac.h
                               ${CMAKE_CURRENT_BINARY_DIR}/${basename}_pac.cc
                        COMMAND ${BinPAC_EXE}
-                       ARGS -d ${CMAKE_CURRENT_BINARY_DIR}
+                       ARGS -q -d ${CMAKE_CURRENT_BINARY_DIR}
                             -I ${CMAKE_CURRENT_SOURCE_DIR}
                             ${CMAKE_CURRENT_SOURCE_DIR}/${pacFile}
                        DEPENDS ${BinPAC_EXE} ${pacFile}
@@ -177,9 +177,9 @@ binpac_target(binpac_bro-lib.pac)
 binpac_target(bittorrent.pac
     bittorrent-protocol.pac bittorrent-analyzer.pac)
 binpac_target(dce_rpc.pac
-    dce_rpc-protocol.pac dce_rpc-analyzer.pac)
+    dce_rpc-protocol.pac dce_rpc-analyzer.pac epmapper.pac)
 binpac_target(dce_rpc_simple.pac
-    dce_rpc-protocol.pac)
+    dce_rpc-protocol.pac epmapper.pac)
 binpac_target(dhcp.pac
     dhcp-protocol.pac dhcp-analyzer.pac)
 binpac_target(dns.pac
@@ -217,6 +217,8 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
 )
 
 set(dns_SRCS nb_dns.c nb_dns.h)
+set_source_files_properties(nb_dns.c PROPERTIES COMPILE_FLAGS
+                            -fno-strict-aliasing)
 
 set(openssl_SRCS X509.cc SSLCiphers.cc SSLInterpreter.cc SSLProxy.cc
                  SSLv2.cc SSLv3.cc SSLv3Automaton.cc)
@@ -321,6 +323,7 @@ set(bro_SRCS
     PrefixTable.cc
     PriorityQueue.cc
     Queue.cc
+    RandTest.cc
     RE.cc
     RPC.cc
     Reassem.cc

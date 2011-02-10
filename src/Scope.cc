@@ -11,9 +11,6 @@
 static scope_list scopes;
 static Scope* top_scope;
 
-extern const char* GLOBAL_MODULE_NAME = "GLOBAL";
-
-
 // Returns it without trailing "::".
 string extract_module_name(const char* name)
 	{

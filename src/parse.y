@@ -3,12 +3,14 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 %}
 
+%expect 71
+
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ALARM TOK_ANY
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
 %token TOK_BOOL TOK_BREAK TOK_CASE TOK_CONST
 %token TOK_CONSTANT TOK_COPY TOK_COUNT TOK_COUNTER TOK_DEFAULT TOK_DELETE
 %token TOK_DOUBLE TOK_ELSE TOK_ENUM TOK_EVENT TOK_EXPORT TOK_FILE TOK_FOR
-%token TOK_FUNCTION TOK_GLOBAL TOK_GLOBAL_ATTR TOK_ID TOK_IF TOK_INT
+%token TOK_FUNCTION TOK_GLOBAL TOK_ID TOK_IF TOK_INT
 %token TOK_INTERVAL TOK_LIST TOK_LOCAL TOK_MODULE TOK_MATCH TOK_NET
 %token TOK_NEXT TOK_OF TOK_PATTERN TOK_PATTERN_TEXT
 %token TOK_PORT TOK_PRINT TOK_RECORD TOK_REDEF
@@ -53,7 +55,7 @@
 %type <func_type> func_hdr func_params
 %type <type_l> type_list
 %type <type_decl> type_decl formal_args_decl
-%type <type_decl_l> type_decl_list formal_args_decl_list opt_attr_attr
+%type <type_decl_l> type_decl_list formal_args_decl_list
 %type <record> formal_args
 %type <list> expr_list opt_expr_list
 %type <c_case> case
@@ -417,13 +419,7 @@ expr:
 	|	expr TOK_HAS_FIELD TOK_ID
 			{
 			set_location(@1, @3);
-			$$ = new HasFieldExpr($1, $3, false);
-			}
-
-	|	expr TOK_HAS_ATTR TOK_ID
-			{
-			set_location(@1, @3);
-			$$ = new HasFieldExpr($1, $3, true);
+			$$ = new HasFieldExpr($1, $3);
 			}
 
 	|	anonymous_function
@@ -821,17 +817,9 @@ decl:
 				}
 			}
 
-	|	TOK_TYPE global_id ':' refined_type opt_attr opt_attr_attr ';'
+	|	TOK_TYPE global_id ':' refined_type opt_attr ';'
 			{
 			add_type($2, $4, $5, 0);
-			if ( $6 )
-				$2->AsType()->SetAttributesType($6);
-			}
-
-	|	TOK_GLOBAL_ATTR ':' { in_global_attr_decl = true; }
-		'{' type_decl_list '}' ';' { in_global_attr_decl = false; }
-			{
-			global_attributes_type = new RecordType($5);
 			}
 
 	|	TOK_EVENT event_id ':' refined_type opt_attr ';'
@@ -854,13 +842,6 @@ conditional:
 			{ do_atendif(); }
 	|	TOK_ATELSE
 			{ do_atelse(); }
-	;
-
-opt_attr_attr:
-		TOK_ATTR_ATTR '=' '{' type_decl_list '}'
-			{ $$ = $4; }
-	|
-			{ $$ = 0; }
 	;
 
 func_hdr:

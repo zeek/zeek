@@ -70,11 +70,17 @@ build/, using default build options. It then installs the Bro binary
 into /usr/local/bro/bin. Depending on the Bro package you
 downloaded, there may be auxiliary tools and libraries available in
 the aux/ directory. If so, they will be installed by default as well
-if not explicitly disabled via configure options.
+if not explicitly disabled via configure options and may also have
+additional installation/configuration instructions that you can
+find in their source directories.
 
 You can specify a different installation directory with
 
     > ./configure --prefix=<dir>
+
+Note that "/usr" and "/opt/bro" are standard prefixes for binary
+packages to be installed, so those are typically not good choices
+unless you are creating such a package.
 
 Run "./configure --help" for more options.
 

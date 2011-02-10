@@ -97,7 +97,9 @@ int udp6_checksum(const struct ip6_hdr* ip6, const struct udphdr* up, int len)
 	sum = ones_complement_checksum((void*) ip6->ip6_src.s6_addr, 16, sum);
 	sum = ones_complement_checksum((void*) ip6->ip6_dst.s6_addr, 16, sum);
 
-	sum = ones_complement_checksum((void*) &len, 4, sum);
+	uint32 l = htonl(len);
+	sum = ones_complement_checksum((void*) &l, 4, sum);
+
 	uint32 addl_pseudo = htons(IPPROTO_UDP);
 	sum = ones_complement_checksum((void*) &addl_pseudo, 4, sum);
 	sum = ones_complement_checksum((void*) up, len, sum);

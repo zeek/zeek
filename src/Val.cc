@@ -414,15 +414,6 @@ bool Val::DoUnserialize(UnserialInfo* info)
 	return false;
 	}
 
-RecordVal* Val::GetAttribs(bool instantiate)
-	{
-	if ( ! instantiate || attribs )
-		return attribs;
-
-	attribs = new RecordVal(type->AttributesType());
-	return attribs;
-	}
-
 int Val::IsZero() const
 	{
 	switch ( type->InternalType() ) {
@@ -524,7 +515,12 @@ Val* Val::SizeVal() const
 	{
 	switch ( type->InternalType() ) {
 	case TYPE_INTERNAL_INT:
-		return new Val(llabs(val.int_val), TYPE_COUNT);
+		// Return abs value. However abs() only works on ints and llabs
+		// doesn't work on Mac OS X 10.5. So we do it by hand
+		if (val.int_val < 0)
+			return new Val(-val.int_val, TYPE_COUNT);
+		else
+			return new Val(val.int_val, TYPE_COUNT);
 
 	case TYPE_INTERNAL_UNSIGNED:
 		return new Val(val.uint_val, TYPE_COUNT);

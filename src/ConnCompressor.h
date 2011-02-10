@@ -138,10 +138,6 @@ private:
 	// Fakes a TCP packet based on the available information.
 	const IP_Hdr* PendingConnToPacket(const PendingConn* c);
 
-	// For changing the timestamp of PendingConn - allocates a new one,
-	// sets the given time, and copies all other data from old.
-	PendingConn* MoveState(double time, PendingConn* old);
-
 	// Construct a TCP-flags byte.
 	uint8 MakeFlags(const PendingConn* c) const;
 

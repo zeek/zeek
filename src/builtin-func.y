@@ -214,11 +214,11 @@ definition:	event_def
 type_def:	TOK_TYPE opt_ws TOK_ID opt_ws ':' opt_ws TOK_RECORD opt_ws ';'
 			{
 			fprintf(fp_netvar_h,
-				"extern RecordType* rectype_%s;\n", $3);
+				"namespace BroTypePtr { namespace Record { extern RecordType* %s; } }\n", $3);
 			fprintf(fp_netvar_def,
-				"RecordType* rectype_%s;\n", $3);
+				"namespace BroTypePtr { namespace Record { RecordType* %s; } }\n", $3);
 			fprintf(fp_netvar_init,
-				"\trectype_%s = internal_type(\"%s\")->AsRecordType();\n",
+				"\tBroTypePtr::Record::%s = internal_type(\"%s\")->AsRecordType();\n",
 				$3, $3);
 			}
 	;
@@ -247,11 +247,11 @@ enum_def:	enum_def_1 enum_list TOK_RPB
 
 			// Now generate the netvar's.
 			fprintf(fp_netvar_h,
-				"extern EnumType* enum_%s;\n", decl_name);
+				"namespace BroTypePtr { namespace Enum { extern EnumType* %s;\n } }", decl_name);
 			fprintf(fp_netvar_def,
-				"EnumType* enum_%s;\n", decl_name);
+				"namespace BroTypePtr { namespace Enum { EnumType* %s; } }\n", decl_name);
 			fprintf(fp_netvar_init,
-				"\tenum_%s = internal_type(\"%s\")->AsEnumType();\n",
+				"\tBroTypePtr::Enum::%s = internal_type(\"%s\")->AsEnumType();\n",
 				decl_name, decl_name);
 			}
 	;

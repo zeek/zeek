@@ -150,7 +150,7 @@ function PortmapCallFailed(connection: RPC_Conn,
 			status: EnumRPCStatus): bool
 	%{
 	// BroEnum::rpc_status st = static_cast<BroEnum::rpc_status>(status);
-	Val *st = new EnumVal((BroEnum::rpc_status) status, enum_rpc_status);
+	Val *st = new EnumVal(status, BroTypePtr::Enum::rpc_status);
 
 	switch ( call->proc() ) {
 	case PMAPPROC_NULL:

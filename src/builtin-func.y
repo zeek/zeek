@@ -29,6 +29,7 @@ extern FILE* fp_netvar_init;
 int in_c_code = 0;
 string current_module = GLOBAL_MODULE_NAME;
 int definition_type;
+string type_name;
 
 
 enum {
@@ -36,9 +37,8 @@ enum {
 	FUNC_DEF,
 	REWRITER_DEF,
 	EVENT_DEF,
-	ENUM_DEF,
+	TYPE_DEF,
 	CONST_DEF,
-	RECORD_DEF,
 };
 
 // Holds the name of a declared object (function, enum, record type, event, 
@@ -60,9 +60,13 @@ struct decl_struct {
 	string generate_c_namespace_end;
 } decl;
 
-void set_definition_type(int type)
+void set_definition_type(int type, const char *arg_type_name)
 	{
 	definition_type = type;
+	if (type == TYPE_DEF && arg_type_name)
+		type_name = string(arg_type_name);
+	else
+		type_name = "";
 	}
 
 void set_decl_name(const char *name)
@@ -82,15 +86,10 @@ void set_decl_name(const char *name)
 	decl.generate_c_namespace_end = "";
 
 	switch ( definition_type ) {
-	case ENUM_DEF:
-		decl.c_namespace_start = "namespace BifTypePtr { namespace Enum { ";
+	case TYPE_DEF:
+		decl.c_namespace_start = "namespace BifTypePtr { namespace " + type_name + "{ ";
 		decl.c_namespace_end = " } }";
-		decl.c_fullname = "BifTypePtr::Enum::";
-		break;
-	case RECORD_DEF:
-		decl.c_namespace_start = "namespace BifTypePtr { namespace Record { ";
-		decl.c_namespace_end = " } }";
-		decl.c_fullname = "BifTypePtr::Record::";
+		decl.c_fullname = "BifTypePtr::" + type_name + "::";
 		break;
 
 	case CONST_DEF:
@@ -255,7 +254,7 @@ void print_event_c_body(FILE *fp)
 %token TOK_LPP TOK_RPP TOK_LPB TOK_RPB TOK_LPPB TOK_RPPB TOK_VAR_ARG
 %token TOK_BOOL
 %token TOK_FUNCTION TOK_REWRITER TOK_EVENT TOK_CONST TOK_ENUM 
-%token TOK_TYPE TOK_RECORD TOK_MODULE
+%token TOK_TYPE TOK_RECORD TOK_SET TOK_VECTOR TOK_TABLE TOK_MODULE
 %token TOK_WRITE TOK_PUSH TOK_EOF TOK_TRACE
 %token TOK_ARGS TOK_ARG TOK_ARGC
 %token TOK_ID TOK_ATTR TOK_CSTR TOK_LF TOK_WS TOK_COMMENT
@@ -330,19 +329,31 @@ module_def:	TOK_MODULE opt_ws TOK_ID opt_ws ';'
 	 // extend the bif-language to be able to handle that all....
 	 // Or we just support a simple form of record type definitions
 	 // TODO: add other types (tables, sets)
-type_def:	TOK_TYPE opt_ws TOK_ID opt_ws ':' opt_ws TOK_RECORD opt_ws ';'
+type_def:	TOK_TYPE opt_ws TOK_ID opt_ws ':' opt_ws type_def_types opt_ws ';'
 			{
-			set_definition_type(RECORD_DEF);
 			set_decl_name($3);
 
-			fprintf(fp_netvar_h, "%s extern RecordType * %s; %s\n",
-				decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
-			fprintf(fp_netvar_def, "%s RecordType * %s; %s\n",
-				decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
+			fprintf(fp_netvar_h, "%s extern %sType * %s; %s\n",
+				decl.c_namespace_start.c_str(), type_name.c_str(),
+				decl.bare_name.c_str(), decl.c_namespace_end.c_str());
+			fprintf(fp_netvar_def, "%s %sType * %s; %s\n",
+				decl.c_namespace_start.c_str(), type_name.c_str(),
+				decl.bare_name.c_str(), decl.c_namespace_end.c_str());
 			fprintf(fp_netvar_init,
-				"\t%s = internal_type(\"%s\")->AsRecordType();\n",
-				decl.c_fullname.c_str(), decl.bro_fullname.c_str());
+				"\t%s = internal_type(\"%s\")->As%sType();\n",
+				decl.c_fullname.c_str(), decl.bro_fullname.c_str(), 
+				type_name.c_str());
 			}
+	;
+
+type_def_types: TOK_RECORD 
+			{ set_definition_type(TYPE_DEF, "Record"); }
+	| TOK_SET
+			{ set_definition_type(TYPE_DEF, "Set"); }
+	| TOK_VECTOR
+			{ set_definition_type(TYPE_DEF, "Vector"); }
+	| TOK_TABLE
+			{ set_definition_type(TYPE_DEF, "Table"); }
 	;
 
 event_def:	event_prefix opt_ws plain_head opt_attr end_of_head ';'
@@ -380,7 +391,7 @@ enum_def:	enum_def_1 enum_list TOK_RPB
 
 enum_def_1:	TOK_ENUM opt_ws TOK_ID opt_ws TOK_LPB opt_ws
 			{
-			set_definition_type(ENUM_DEF);
+			set_definition_type(TYPE_DEF, "Enum");
 			set_decl_name($3);
 			fprintf(fp_bro_init, "type %s: enum %s{%s", decl.bro_name.c_str(), $4, $6);
 
@@ -421,7 +432,7 @@ const_def:	const_def_1 const_init opt_attr ';'
 
 const_def_1:	TOK_CONST opt_ws TOK_ID opt_ws
 			{
-			set_definition_type(CONST_DEF);
+			set_definition_type(CONST_DEF, 0);
 			set_decl_name($3);
 			fprintf(fp_bro_init, "const%s", $2);
 			fprintf(fp_bro_init, "%s: bool%s", decl.bro_name.c_str(), $4);
@@ -447,15 +458,15 @@ opt_attr:	/* nothing */
 	;
 
 func_prefix:	TOK_FUNCTION
-			{ set_definition_type(FUNC_DEF); }
+			{ set_definition_type(FUNC_DEF, 0); }
 	;
 
 rewriter_prefix: TOK_REWRITER
-			{ set_definition_type(REWRITER_DEF); }
+			{ set_definition_type(REWRITER_DEF, 0); }
 	;
 
 event_prefix:	TOK_EVENT
-			{ set_definition_type(EVENT_DEF); }
+			{ set_definition_type(EVENT_DEF, 0); }
 	;
 
 end_of_head:	/* nothing */

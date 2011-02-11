@@ -73,6 +73,9 @@ HEX	[0-9a-fA-F]+
 "enum"		return check_c_mode(TOK_ENUM);
 "type"		return check_c_mode(TOK_TYPE);
 "record"	return check_c_mode(TOK_RECORD);
+"set"		return check_c_mode(TOK_SET);
+"table"		return check_c_mode(TOK_TABLE);
+"vector"	return check_c_mode(TOK_VECTOR);
 "module"    return check_c_mode(TOK_MODULE);
 
 "@ARG@"		return TOK_ARG;

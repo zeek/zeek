@@ -71,8 +71,12 @@ void set_definition_type(int type, const char *arg_type_name)
 
 void set_decl_name(const char *name)
 	{
-	decl.module_name = extract_module_name(name);
 	decl.bare_name = extract_var_name(name);
+
+	// make_full_var_name prepends the correct module, if any
+	// then we can extract the module name again. 
+	string varname = make_full_var_name(current_module.c_str(), name);
+	decl.module_name = extract_module_name(varname.c_str());
 	
 	decl.c_namespace_start = "";
 	decl.c_namespace_end = "";
@@ -317,8 +321,8 @@ definition:	event_def
 
 module_def:	TOK_MODULE opt_ws TOK_ID opt_ws ';'
 			{
-			current_module = $2;
-			fprintf(fp_bro_init, "module %s;\n", $2);
+			current_module = string($3);
+			fprintf(fp_bro_init, "module %s;\n", $3);
 			}
 
 	 // XXX: Add the netvar glue so that the event engine knows about

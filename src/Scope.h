@@ -1,5 +1,6 @@
 // $Id: Scope.h 6219 2008-10-01 05:39:07Z vern $
 //
+//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef scope_h
@@ -11,6 +12,7 @@
 #include "Obj.h"
 #include "BroList.h"
 #include "TraverseTypes.h"
+#include "module_util.h"
 
 class ID;
 class BroType;
@@ -59,14 +61,6 @@ protected:
 	id_list* inits;
 };
 
-static const char* GLOBAL_MODULE_NAME = "GLOBAL";
-
-extern string extract_module_name(const char* name);
-extern string normalized_module_name(const char* module_name); // w/o ::
-
-// Concatenates module_name::var_name unless var_name is already fully
-// qualified, in which case it is returned unmodified.
-extern string make_full_var_name(const char* module_name, const char* var_name);
 
 extern bool in_debug;
 

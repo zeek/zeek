@@ -9,6 +9,10 @@ using namespace std;
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "module_util.h"
+
+using namespace std;
+
 extern int line_number;
 extern char* input_filename;
 
@@ -23,39 +27,128 @@ extern FILE* fp_netvar_def;
 extern FILE* fp_netvar_init;
 
 int in_c_code = 0;
+string current_module = GLOBAL_MODULE_NAME;
 int definition_type;
-const char* bro_prefix;
-const char* c_prefix;
+
 
 enum {
 	C_SEGMENT_DEF,
 	FUNC_DEF,
 	REWRITER_DEF,
 	EVENT_DEF,
+	ENUM_DEF,
+	CONST_DEF,
+	RECORD_DEF,
 };
+
+// Holds the name of a declared object (function, enum, record type, event, 
+// etc. and information about namespaces, etc.
+struct decl_struct {
+	string module_name;
+	string bare_name; // name without module or namespace
+	string c_namespace_start; // "opening" namespace for use in netvar_*
+	string c_namespace_end;   // closing "}" for all the above namespaces
+	string c_fullname; // fully qualified name (namespace::....) for use in netvar_init
+	string bro_fullname; // fully qualified bro name, for netvar (and lookup_ID())
+	string bro_name;  // the name as we read it from input. What we write into the .bro file
+	
+	// special cases for events. Events have an EventHandlerPtr
+	// and a generate_* function. This name is for the generate_* function
+	string generate_bare_name;
+	string generate_c_fullname;
+	string generate_c_namespace_start;
+	string generate_c_namespace_end;
+} decl;
 
 void set_definition_type(int type)
 	{
 	definition_type = type;
-	switch ( type ) {
-	case FUNC_DEF:
-		bro_prefix = "";
-		c_prefix = "bro_";
+	}
+
+void set_decl_name(const char *name)
+	{
+	decl.module_name = extract_module_name(name);
+	decl.bare_name = extract_var_name(name);
+	
+	decl.c_namespace_start = "";
+	decl.c_namespace_end = "";
+	decl.c_fullname = "";
+	decl.bro_fullname = "";
+	decl.bro_name = "";
+
+	decl.generate_c_fullname = "";
+	decl.generate_bare_name = string("generate_") + decl.bare_name;
+	decl.generate_c_namespace_start = "";
+	decl.generate_c_namespace_end = "";
+
+	switch ( definition_type ) {
+	case ENUM_DEF:
+		decl.c_namespace_start = "namespace BifTypePtr { namespace Enum { ";
+		decl.c_namespace_end = " } }";
+		decl.c_fullname = "BifTypePtr::Enum::";
+		break;
+	case RECORD_DEF:
+		decl.c_namespace_start = "namespace BifTypePtr { namespace Record { ";
+		decl.c_namespace_end = " } }";
+		decl.c_fullname = "BifTypePtr::Record::";
 		break;
 
+	case CONST_DEF:
+		decl.c_namespace_start = "namespace BifConst { ";
+		decl.c_namespace_end = " } ";
+		decl.c_fullname = "BifConst::";
+		break;
+	
 	case REWRITER_DEF:
-		bro_prefix = "rewrite_";
-		c_prefix = "bro_rewrite_";
+		// XXX: Legacy. No module names / namespaces supported
+		// If support for namespaces is desired: add a namespace 
+		// to c_namespace_* and bro_fullname and get rid of 
+		// the hack to bro_name.
+		decl.c_namespace_start = "";
+		decl.c_namespace_end = "";
+		decl.bare_name = "rewrite_" + decl.bare_name;
+		decl.bro_name = "rewrite_";
+		break;
+
+	case FUNC_DEF:
+		decl.c_namespace_start = "namespace BifFunc { ";
+		decl.c_namespace_end = " } ";
+		decl.c_fullname = "BifFunc::";
 		break;
 
 	case EVENT_DEF:
-		bro_prefix = "";
-		c_prefix = "bro_event_";
+		decl.c_namespace_start = "";
+		decl.c_namespace_end = "";
+		decl.c_fullname = "";
+		decl.generate_c_namespace_start = "namespace BifEvent { ";
+		decl.generate_c_namespace_end = " } ";
+		decl.generate_c_fullname = "BifEvent::";
 		break;
 
-	case C_SEGMENT_DEF:
+	default:
 		break;
 	}
+
+	if (decl.module_name != GLOBAL_MODULE_NAME)
+		{
+		decl.c_namespace_start += "namespace " + decl.module_name + " { "; 
+		decl.c_namespace_end += string(" }");
+		decl.c_fullname += decl.module_name + "::";
+		decl.bro_fullname += decl.module_name + "::";
+
+		decl.generate_c_namespace_start  += "namespace " + decl.module_name + " { ";
+		decl.generate_c_namespace_end += " } ";
+		decl.generate_c_fullname += decl.module_name + "::";
+		}
+
+	decl.bro_fullname += decl.bare_name;
+	if (definition_type == FUNC_DEF)
+		decl.bare_name = string("bro_") + decl.bare_name;
+
+	decl.c_fullname += decl.bare_name;
+	decl.bro_name += name;
+	decl.generate_c_fullname += decl.generate_bare_name;
+
 	}
 
 const char* arg_list_name = "BiF_ARGS";
@@ -63,7 +156,6 @@ const char* trace_rewriter_name = "trace_rewriter";
 
 #include "bif_arg.h"
 
-extern const char* decl_name;
 int var_arg; // whether the number of arguments is variable
 std::vector<BuiltinFuncArg*> args;
 
@@ -87,9 +179,15 @@ char* concat(const char* str1, const char* str2)
 	}
 
 // Print the bro_event_* function prototype in C++, without the ending ';'
-void print_event_c_prototype(FILE *fp)
+void print_event_c_prototype(FILE *fp, bool is_header)
 	{
-	fprintf(fp, "void %s%s(Analyzer* analyzer%s", c_prefix, decl_name,
+	if (is_header)
+		fprintf(fp, "%s void %s(Analyzer* analyzer%s", 
+			decl.generate_c_namespace_start.c_str(), decl.generate_bare_name.c_str(),
+			args.size() ? ", " : "" );
+	else
+		fprintf(fp, "void %s(Analyzer* analyzer%s", 
+			decl.generate_c_fullname.c_str(), 
 			args.size() ? ", " : "" );
 	for ( int i = 0; i < (int) args.size(); ++i )
 		{
@@ -98,6 +196,10 @@ void print_event_c_prototype(FILE *fp)
 		args[i]->PrintCArg(fp, i);
 		}
 	fprintf(fp, ")");
+	if (is_header)
+		fprintf(fp, "; %s\n", decl.generate_c_namespace_end.c_str());
+	else 
+		fprintf(fp, "\n");
 	}
 
 // Print the bro_event_* function body in C++.
@@ -106,9 +208,9 @@ void print_event_c_body(FILE *fp)
 	fprintf(fp, "\t{\n");
 	fprintf(fp, "\t// Note that it is intentional that here we do not\n");
 	fprintf(fp, "\t// check if %s is NULL, which should happen *before*\n",
-		decl_name);
-	fprintf(fp, "\t// bro_event_%s is called to avoid unnecessary Val\n",
-		decl_name);
+		decl.c_fullname.c_str());
+	fprintf(fp, "\t// %s is called to avoid unnecessary Val\n",
+		decl.generate_c_fullname.c_str());
 	fprintf(fp, "\t// allocation.\n");
 	fprintf(fp, "\n");
 
@@ -138,7 +240,7 @@ void print_event_c_body(FILE *fp)
 
 	fprintf(fp, "\n");
 	fprintf(fp, "\tmgr.QueueEvent(%s, vl, SOURCE_LOCAL, analyzer->GetID(), timer_mgr",
-		decl_name);
+		decl.c_fullname.c_str());
 
 	if ( connection_arg )
 		// Pass the connection to the EventMgr as the "cookie"
@@ -146,13 +248,14 @@ void print_event_c_body(FILE *fp)
 
 	fprintf(fp, ");\n");
 	fprintf(fp, "\t} // event generation\n");
+	//fprintf(fp, "%s // end namespace\n", decl.generate_c_namespace_end.c_str());
 	}
 %}
 
 %token TOK_LPP TOK_RPP TOK_LPB TOK_RPB TOK_LPPB TOK_RPPB TOK_VAR_ARG
 %token TOK_BOOL
 %token TOK_FUNCTION TOK_REWRITER TOK_EVENT TOK_CONST TOK_ENUM 
-%token TOK_TYPE TOK_RECORD
+%token TOK_TYPE TOK_RECORD TOK_MODULE
 %token TOK_WRITE TOK_PUSH TOK_EOF TOK_TRACE
 %token TOK_ARGS TOK_ARG TOK_ARGC
 %token TOK_ID TOK_ATTR TOK_CSTR TOK_LF TOK_WS TOK_COMMENT
@@ -170,7 +273,15 @@ void print_event_c_body(FILE *fp)
 
 %%
 
-definitions:	definitions definition opt_ws
+builtin_lang:	definitions
+			{
+			fprintf(fp_bro_init, "} # end of export section\n");
+			fprintf(fp_bro_init, "module %s;\n", GLOBAL_MODULE_NAME);
+			}
+
+			
+
+definitions:	definitions definition opt_ws 
 			{ fprintf(fp_func_def, "%s", $3); }
 	|	opt_ws
 			{
@@ -189,6 +300,7 @@ definitions:	definitions definition opt_ws
 			fprintf(fp_netvar_h, "// %s\n\n", auto_gen_comment);
 			fprintf(fp_netvar_init, "// %s\n\n", auto_gen_comment);
 
+			fprintf(fp_bro_init, "export {\n");
 			fprintf(fp_func_def, "%s", $1);
 			}
 	;
@@ -200,8 +312,15 @@ definition:	event_def
 	|	enum_def
 	|	const_def
 	|	type_def
+	|   module_def
 	;
 
+
+module_def:	TOK_MODULE opt_ws TOK_ID opt_ws ';'
+			{
+			current_module = $2;
+			fprintf(fp_bro_init, "module %s;\n", $2);
+			}
 
 	 // XXX: Add the netvar glue so that the event engine knows about
 	 // the type. One still has to define the type in bro.init. 
@@ -213,26 +332,26 @@ definition:	event_def
 	 // TODO: add other types (tables, sets)
 type_def:	TOK_TYPE opt_ws TOK_ID opt_ws ':' opt_ws TOK_RECORD opt_ws ';'
 			{
-			fprintf(fp_netvar_h,
-				"namespace BroTypePtr { namespace Record { extern RecordType* %s; } }\n", $3);
-			fprintf(fp_netvar_def,
-				"namespace BroTypePtr { namespace Record { RecordType* %s; } }\n", $3);
+			set_definition_type(RECORD_DEF);
+			set_decl_name($3);
+
+			fprintf(fp_netvar_h, "%s extern RecordType * %s; %s\n",
+				decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
+			fprintf(fp_netvar_def, "%s RecordType * %s; %s\n",
+				decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
 			fprintf(fp_netvar_init,
-				"\tBroTypePtr::Record::%s = internal_type(\"%s\")->AsRecordType();\n",
-				$3, $3);
+				"\t%s = internal_type(\"%s\")->AsRecordType();\n",
+				decl.c_fullname.c_str(), decl.bro_fullname.c_str());
 			}
 	;
 
 event_def:	event_prefix opt_ws plain_head opt_attr end_of_head ';'
 			{
-			print_event_c_prototype(fp_func_h);
-			fprintf(fp_func_h, ";\n");
-			print_event_c_prototype(fp_func_def);
-			fprintf(fp_func_def, "\n");
+			print_event_c_prototype(fp_func_h, true);
+			print_event_c_prototype(fp_func_def, false);
 			print_event_c_body(fp_func_def);
 			}
-	;
-
+	
 func_def:	func_prefix opt_ws typed_head end_of_head body
 	;
 
@@ -243,24 +362,34 @@ enum_def:	enum_def_1 enum_list TOK_RPB
 			{
 			// First, put an end to the enum type decl.
 			fprintf(fp_bro_init, "};\n");
-			fprintf(fp_netvar_h, "}; }\n");
+			if (decl.module_name != GLOBAL_MODULE_NAME)
+				fprintf(fp_netvar_h, "}; } }\n");
+			else
+				fprintf(fp_netvar_h, "}; }\n");
 
 			// Now generate the netvar's.
-			fprintf(fp_netvar_h,
-				"namespace BroTypePtr { namespace Enum { extern EnumType* %s;\n } }", decl_name);
-			fprintf(fp_netvar_def,
-				"namespace BroTypePtr { namespace Enum { EnumType* %s; } }\n", decl_name);
+			fprintf(fp_netvar_h, "%s extern EnumType * %s; %s\n",
+				decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
+			fprintf(fp_netvar_def, "%s EnumType * %s; %s\n",
+				decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
 			fprintf(fp_netvar_init,
-				"\tBroTypePtr::Enum::%s = internal_type(\"%s\")->AsEnumType();\n",
-				decl_name, decl_name);
+				"\t%s = internal_type(\"%s\")->AsEnumType();\n",
+				decl.c_fullname.c_str(), decl.bro_fullname.c_str());
 			}
 	;
 
 enum_def_1:	TOK_ENUM opt_ws TOK_ID opt_ws TOK_LPB opt_ws
 			{
-			decl_name = $3;
-			fprintf(fp_bro_init, "type %s: enum %s{%s", $3, $4, $6);
-			fprintf(fp_netvar_h, "namespace BroEnum { ");
+			set_definition_type(ENUM_DEF);
+			set_decl_name($3);
+			fprintf(fp_bro_init, "type %s: enum %s{%s", decl.bro_name.c_str(), $4, $6);
+
+			// this is the namespace were the enumerators are defined, not where
+			// the type is defined.
+			// We don't support fully qualified names as enumerators. Use a module name
+			fprintf(fp_netvar_h, "namespace BifEnum { "); 
+			if (decl.module_name != GLOBAL_MODULE_NAME)
+				fprintf(fp_netvar_h, "namespace %s { ", decl.module_name.c_str());
 			fprintf(fp_netvar_h, "enum %s {\n", $3);
 			}
 	;
@@ -281,18 +410,21 @@ enum_list:	enum_list TOK_ID opt_ws ',' opt_ws
 const_def:	const_def_1 const_init opt_attr ';'
 			{
 			fprintf(fp_bro_init, ";\n");
-			fprintf(fp_netvar_h, "extern int %s;\n", decl_name);
-			fprintf(fp_netvar_def, "int %s;\n", decl_name);
+			fprintf(fp_netvar_h, "%s extern int %s; %s\n", 
+					decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
+			fprintf(fp_netvar_def, "%s int %s; %s\n", 
+					decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
 			fprintf(fp_netvar_init, "\t%s = internal_val(\"%s\")->AsBool();\n",
-				decl_name, decl_name);
+				decl.c_fullname.c_str(), decl.bro_fullname.c_str());
 			}
 	;
 
 const_def_1:	TOK_CONST opt_ws TOK_ID opt_ws
 			{
-			decl_name = $3;
+			set_definition_type(CONST_DEF);
+			set_decl_name($3);
 			fprintf(fp_bro_init, "const%s", $2);
-			fprintf(fp_bro_init, "%s: bool%s", $3, $4);
+			fprintf(fp_bro_init, "%s: bool%s", decl.bro_name.c_str(), $4);
 			}
 	;
 
@@ -364,7 +496,7 @@ plain_head:	head_1 args arg_end opt_ws
 head_1:		TOK_ID opt_ws arg_begin
 			{
 			const char* method_type = 0;
-			decl_name = $1;
+			set_decl_name($1);
 
 			if ( definition_type == FUNC_DEF || definition_type == REWRITER_DEF )
 				{
@@ -376,40 +508,37 @@ head_1:		TOK_ID opt_ws arg_begin
 
 			if ( method_type )
 				fprintf(fp_bro_init,
-					"global %s%s: %s%s(",
-					bro_prefix, decl_name, method_type, $2);
+					"global %s: %s%s(",
+					decl.bro_name.c_str(), method_type, $2);
 
 			if ( definition_type == FUNC_DEF || definition_type == REWRITER_DEF )
 				{
 				fprintf(fp_func_init,
-					"\textern Val* %s%s(Frame* frame, val_list*);\n",
-					c_prefix, decl_name);
-
-				fprintf(fp_func_init,
-					"\t(void) new BuiltinFunc(%s%s, \"%s%s\", 0);\n",
-					c_prefix, decl_name, bro_prefix, decl_name);
+					"\t(void) new BuiltinFunc(%s, \"%s\", 0);\n",
+					decl.c_fullname.c_str(), decl.bro_fullname.c_str());
 
 				fprintf(fp_func_h,
-					"extern Val* %s%s(Frame* frame, val_list*);\n",
-					c_prefix, decl_name);
+					"%sextern Val* %s(Frame* frame, val_list*);\n %s",
+					decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
 
 				fprintf(fp_func_def,
-					"Val* %s%s(Frame* frame, val_list* %s)",
-					c_prefix, decl_name, arg_list_name);
+					"Val* %s(Frame* frame, val_list* %s)",
+					decl.c_fullname.c_str(), arg_list_name);
 				}
 			else if ( definition_type == EVENT_DEF )
 				{
+				// TODO: add namespace for events here
 				fprintf(fp_netvar_h,
-					"extern EventHandlerPtr %s;\n",
-					decl_name);
+					"%sextern EventHandlerPtr %s; %s\n",
+					decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
 
 				fprintf(fp_netvar_def,
-					"EventHandlerPtr %s;\n",
-					decl_name);
+					"%sEventHandlerPtr %s; %s\n",
+					decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
 
 				fprintf(fp_netvar_init,
 					"\t%s = internal_handler(\"%s\");\n",
-					decl_name, decl_name);
+					decl.c_fullname.c_str(), decl.bro_fullname.c_str());
 
 				// C++ prototypes of bro_event_* functions will
 				// be generated later.
@@ -455,7 +584,7 @@ return_type:	':' opt_ws TOK_ID opt_ws
 
 body:		body_start c_body body_end
 			{
-			fprintf(fp_func_def, " // end of %s\n", decl_name);
+			fprintf(fp_func_def, " // end of %s\n", decl.c_fullname.c_str());
 			print_line_directive(fp_func_def);
 			}
 	;
@@ -492,7 +621,7 @@ body_start:	TOK_LPB c_code_begin
 				fprintf(fp_func_def, "\t\t{\n");
 				fprintf(fp_func_def,
 					"\t\trun_time(\"%s() takes exactly %d argument(s)\");\n",
-					decl_name, argc);
+					decl.bro_fullname.c_str(), argc);
 				fprintf(fp_func_def, "\t\treturn 0;\n");
 				fprintf(fp_func_def, "\t\t}\n");
 				}
@@ -502,7 +631,7 @@ body_start:	TOK_LPB c_code_begin
 				fprintf(fp_func_def, "\t\t{\n");
 				fprintf(fp_func_def,
 					"\t\trun_time(\"%s() takes at least %d argument(s)\");\n",
-					decl_name, argc);
+					decl.bro_fullname.c_str(), argc);
 				fprintf(fp_func_def, "\t\treturn 0;\n");
 				fprintf(fp_func_def, "\t\t}\n");
 				}
@@ -586,7 +715,6 @@ opt_ws:		opt_ws TOK_WS
 extern char* yytext;
 extern char* input_filename;
 extern int line_number;
-const char* decl_name;
 void err_exit(void);
 
 void print_msg(const char msg[])

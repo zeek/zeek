@@ -267,7 +267,7 @@ public:
 					TCP_Endpoint* peer, int gen_event);
 	virtual int RewritingTrace()
 		{
-		return rewriting_dns_trace ||
+		return BifConst::rewriting_dns_trace ||
 			TCP_ApplicationAnalyzer::RewritingTrace();
 		}
 

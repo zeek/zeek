@@ -1,6 +1,7 @@
 # $Id: bro.init 6887 2009-08-20 05:17:33Z vern $
 
 @load const.bif.bro
+@load types.bif.bro
 
 global bro_signal: event(signal: count);
 

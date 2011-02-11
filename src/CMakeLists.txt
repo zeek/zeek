@@ -129,6 +129,7 @@ set(BIF_SRCS
     bro.bif
     event.bif
     const.bif
+    types.bif
     common-rw.bif
     finger-rw.bif
     ident-rw.bif

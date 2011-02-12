@@ -122,7 +122,7 @@ void set_decl_name(const char *name)
 	case EVENT_DEF:
 		decl.c_namespace_start = "";
 		decl.c_namespace_end = "";
-		decl.c_fullname = "";
+		decl.c_fullname = "::";  // need this for namespace qualified events due do event_c_body
 		decl.generate_c_namespace_start = "namespace BifEvent { ";
 		decl.generate_c_namespace_end = " } ";
 		decl.generate_c_fullname = "BifEvent::";

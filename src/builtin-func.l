@@ -37,6 +37,7 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 D   [[:digit:]]+
 HEX	[0-9a-fA-F]+
 
+
 %option nodefault
 
 %%

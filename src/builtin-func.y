@@ -159,6 +159,31 @@ const char* trace_rewriter_name = "trace_rewriter";
 
 #include "bif_arg.h"
 
+/* Map bif/bro type names to C types for use in const declaration */
+static struct {
+	const char* bif_type;
+	const char* bro_type;
+	const char* c_type;
+	const char* accessor;
+	const char* constructor;
+} builtin_types[] = {
+#define DEFINE_BIF_TYPE(id, bif_type, bro_type, c_type, accessor, constructor) \
+	{bif_type, bro_type, c_type, accessor, constructor},
+#include "bif_type.def"
+#undef DEFINE_BIF_TYPE
+};
+
+int get_type_index(const char *type_name)
+	{
+	for ( int i = 0; builtin_types[i].bif_type[0] != '\0'; ++i ) 
+		{
+		if (strcmp(builtin_types[i].bif_type, type_name) == 0)
+			return i;
+		}
+		return TYPE_OTHER;
+	}
+
+
 int var_arg; // whether the number of arguments is variable
 std::vector<BuiltinFuncArg*> args;
 
@@ -422,33 +447,33 @@ enum_list:	enum_list TOK_ID opt_ws ',' opt_ws
 	|	/* nothing */
 	;
 
-const_def:	const_def_1 const_init opt_attr ';'
-			{
-			fprintf(fp_bro_init, ";\n");
-			fprintf(fp_netvar_h, "%s extern int %s; %s\n", 
-					decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
-			fprintf(fp_netvar_def, "%s int %s; %s\n", 
-					decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
-			fprintf(fp_netvar_init, "\t%s = internal_val(\"%s\")->AsBool();\n",
-				decl.c_fullname.c_str(), decl.bro_fullname.c_str());
-			}
-	;
 
-const_def_1:	TOK_CONST opt_ws TOK_ID opt_ws
+const_def:	TOK_CONST opt_ws TOK_ID opt_ws ':' opt_ws TOK_ID opt_ws ';'
 			{
 			set_definition_type(CONST_DEF, 0);
 			set_decl_name($3);
-			fprintf(fp_bro_init, "const%s", $2);
-			fprintf(fp_bro_init, "%s: bool%s", decl.bro_name.c_str(), $4);
+			int typeidx = get_type_index($7);
+			char accessor[1024];
+
+			snprintf(accessor, sizeof(accessor), builtin_types[typeidx].accessor, "");
+
+
+			fprintf(fp_netvar_h, "%s extern %s %s; %s\n", 
+					decl.c_namespace_start.c_str(), 
+					builtin_types[typeidx].c_type, decl.bare_name.c_str(), 
+					decl.c_namespace_end.c_str());
+			fprintf(fp_netvar_def, "%s %s %s; %s\n", 
+					decl.c_namespace_start.c_str(), 
+					builtin_types[typeidx].c_type, decl.bare_name.c_str(), 
+					decl.c_namespace_end.c_str());
+			fprintf(fp_netvar_init, "\t%s = internal_val(\"%s\")%s;\n",
+				decl.c_fullname.c_str(), decl.bro_fullname.c_str(),
+				accessor);
 			}
-	;
-
-opt_const_init:	/* nothing */
-	|	const_init
-	;
-
+				
+			
 /* Currently support only boolean and string values */
-const_init:	'=' opt_ws TOK_BOOL opt_ws
+opt_attr_init:	'=' opt_ws TOK_BOOL opt_ws
 			{
 			fprintf(fp_bro_init, "=%s%c%s", $2, ($3) ? 'T' : 'F', $4);
 			}
@@ -458,7 +483,7 @@ const_init:	'=' opt_ws TOK_BOOL opt_ws
 
 opt_attr:	/* nothing */
 	|	opt_attr TOK_ATTR { fprintf(fp_bro_init, "%s", $2); }
-		opt_ws opt_const_init
+		opt_ws opt_attr_init
 	;
 
 func_prefix:	TOK_FUNCTION
@@ -533,7 +558,7 @@ head_1:		TOK_ID opt_ws arg_begin
 					decl.c_fullname.c_str(), decl.bro_fullname.c_str());
 
 				fprintf(fp_func_h,
-					"%sextern Val* %s(Frame* frame, val_list*);\n %s",
+					"%sextern Val* %s(Frame* frame, val_list*);%s\n",
 					decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
 
 				fprintf(fp_func_def,

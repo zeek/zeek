@@ -153,17 +153,17 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen, int is_ori
 		if ( ! buf )
 			return 0;
 
-		BroEnum::rpc_status status = BroEnum::RPC_UNKNOWN_ERROR;
+		BifEnum::rpc_status status = BifEnum::RPC_UNKNOWN_ERROR;
 
 		if ( reply_stat == RPC_MSG_ACCEPTED )
 			{
 			(void) skip_XDR_opaque_auth(buf, n);
 			uint32 accept_stat = extract_XDR_uint32(buf, n);
 
-			// The first members of BroEnum::RPC_* correspond
+			// The first members of BifEnum::RPC_* correspond
 			// to accept_stat.
 			if ( accept_stat <= RPC_SYSTEM_ERR )
-				status = (BroEnum::rpc_status)accept_stat;
+				status = (BifEnum::rpc_status)accept_stat;
 
 			if ( ! buf )
 				return 0;
@@ -187,7 +187,7 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen, int is_ori
 			if ( reject_stat == RPC_MISMATCH )
 				{
 				// Note that RPC_MISMATCH == 0 == RPC_SUCCESS.
-				status = BroEnum::RPC_VERS_MISMATCH;
+				status = BifEnum::RPC_VERS_MISMATCH;
 
 				(void) extract_XDR_uint32(buf, n);
 				(void) extract_XDR_uint32(buf, n);
@@ -198,7 +198,7 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen, int is_ori
 
 			else if ( reject_stat == RPC_AUTH_ERROR )
 				{
-				status = BroEnum::RPC_AUTH_ERROR;
+				status = BifEnum::RPC_AUTH_ERROR;
 
 				(void) extract_XDR_uint32(buf, n);
 				if ( ! buf )
@@ -207,7 +207,7 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen, int is_ori
 
 			else
 				{
-				status = BroEnum::RPC_UNKNOWN_ERROR;
+				status = BifEnum::RPC_UNKNOWN_ERROR;
 				Weird("bad_RPC");
 				}
 			}
@@ -223,7 +223,7 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen, int is_ori
 			{
 			if ( ! call->IsValidCall() )
 				{
-				if ( status == BroEnum::RPC_SUCCESS )
+				if ( status == BifEnum::RPC_SUCCESS )
 					Weird("successful_RPC_reply_to_invalid_request");
 				// We can't process this further, even if
 				// it was successful, because the call
@@ -232,7 +232,7 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen, int is_ori
 
 			else
 				{
-				if ( ! RPC_BuildReply(call, (BroEnum::rpc_status)status, buf, n, start_time, last_time, rpc_len) )
+				if ( ! RPC_BuildReply(call, (BifEnum::rpc_status)status, buf, n, start_time, last_time, rpc_len) )
 					Weird("bad_RPC");
 				}
 
@@ -274,18 +274,18 @@ void RPC_Interpreter::Timeout()
 
 	while ( (c = calls.NextEntry(cookie)) )
 		{
-		Event_RPC_Dialogue(c, BroEnum::RPC_TIMEOUT, 0);
+		Event_RPC_Dialogue(c, BifEnum::RPC_TIMEOUT, 0);
 		if ( c->IsValidCall() )
 			{
 			const u_char* buf;
 			int n = 0;
-			if ( ! RPC_BuildReply(c, BroEnum::RPC_TIMEOUT, buf, n, network_time, network_time, 0) )
+			if ( ! RPC_BuildReply(c, BifEnum::RPC_TIMEOUT, buf, n, network_time, network_time, 0) )
 				Weird("bad_RPC");
 			}
 		}
 	}
 
-void RPC_Interpreter::Event_RPC_Dialogue(RPC_CallInfo* c, BroEnum::rpc_status status, int reply_len)
+void RPC_Interpreter::Event_RPC_Dialogue(RPC_CallInfo* c, BifEnum::rpc_status status, int reply_len)
 	{
 	if ( rpc_dialogue )
 		{
@@ -317,7 +317,7 @@ void RPC_Interpreter::Event_RPC_Call(RPC_CallInfo* c)
 		}
 	}
 
-void RPC_Interpreter::Event_RPC_Reply(uint32_t xid, BroEnum::rpc_status status, int reply_len)
+void RPC_Interpreter::Event_RPC_Reply(uint32_t xid, BifEnum::rpc_status status, int reply_len)
 	{
 	if ( rpc_reply )
 		{

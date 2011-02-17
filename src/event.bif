@@ -1,10 +1,5 @@
 # $Id: event.bif 6942 2009-11-16 03:54:08Z vern $
 
-# Declare to bifcl the following types as enum types.
-declare enum dce_rpc_ptype;
-declare enum dce_rpc_if_id;
-declare enum rpc_status;
-
 event bro_init%(%);
 event bro_done%(%);
 

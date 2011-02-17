@@ -4,37 +4,37 @@
 # byte to keep the connection alive. If ignore_keep_alive_rexmit
 # is set to T, such retransmissions will be excluded in the rexmit
 # counter in conn_stats.
-const ignore_keep_alive_rexmit = F &redef;
+const ignore_keep_alive_rexmit: bool;
 
 # Skip HTTP data portions for performance considerations (the skipped
 # portion will not go through TCP reassembly).
-const skip_http_data = F &redef;
+const skip_http_data: bool;
 
 # Whether the analysis engine parses IP packets encapsulated in
 # UDP tunnels. See also: udp_tunnel_port, policy/udp-tunnel.bro.
-const parse_udp_tunnels = F &redef;
+const parse_udp_tunnels: bool;
 
 # Whether a commitment is required before writing the transformed
 # trace for a connection into the dump file.
-const requires_trace_commitment = F &redef;
+const requires_trace_commitment: bool;
 
 # Whether IP address anonymization is enabled.
-const anonymize_ip_addr = F &redef;
+const anonymize_ip_addr: bool;
 
 # Whether to omit place holder packets when rewriting.
-const omit_rewrite_place_holder = T &redef;
+const omit_rewrite_place_holder : bool ;
 
 # Whether trace of various protocols is being rewritten.
-const rewriting_http_trace = F &redef;
-const rewriting_smtp_trace = F &redef;
-const rewriting_ftp_trace = F &redef;
-const rewriting_ident_trace = F &redef;
-const rewriting_finger_trace = F &redef;
-const rewriting_dns_trace = F &redef;
-const rewriting_smb_trace = F &redef;
+const rewriting_http_trace :bool;
+const rewriting_smtp_trace: bool;
+const rewriting_ftp_trace: bool;
+const rewriting_ident_trace: bool;
+const rewriting_finger_trace: bool;
+const rewriting_dns_trace: bool;
+const rewriting_smb_trace: bool;
 
 # Whether we dump selected original packets to the output trace.
-const dump_selected_source_packets = F &redef;
+const dump_selected_source_packets: bool;
 
 # If true, we dump original packets to the output trace *if and only if*
 # the connection is not rewritten; if false, the policy script can decide
@@ -42,161 +42,13 @@ const dump_selected_source_packets = F &redef;
 #
 # NOTE: DO NOT SET THIS TO TRUE WHEN ANONYMIZING A TRACE! 
 # (TODO: this variable should be disabled when using '-A' option)
-const dump_original_packets_if_not_rewriting = F &redef;
+const dump_original_packets_if_not_rewriting: bool;
 
-
-# Whether we want content_gap and drop reports for partial connections
-# (a connection is partial if it is missing a full handshake). Note that
-# gap reports for partial connections might not be reliable. 
-const report_gaps_for_partial = F &redef;
+const report_gaps_for_partial: bool;
 
 
 # NFS analyzer settings. See nfs.bro for documentation
-const nfs_return_data = F &redef;
-const nfs_return_data_max = 512 &redef;
-const nfs_return_first_data_only = T &redef;
-
-enum dce_rpc_ptype %{
-	DCE_RPC_REQUEST,
-	DCE_RPC_PING,
-	DCE_RPC_RESPONSE,
-	DCE_RPC_FAULT,
-	DCE_RPC_WORKING,
-	DCE_RPC_NOCALL,
-	DCE_RPC_REJECT,
-	DCE_RPC_ACK,
-	DCE_RPC_CL_CANCEL,
-	DCE_RPC_FACK,
-	DCE_RPC_CANCEL_ACK,
-	DCE_RPC_BIND,
-	DCE_RPC_BIND_ACK,
-	DCE_RPC_BIND_NAK,
-	DCE_RPC_ALTER_CONTEXT,
-	DCE_RPC_ALTER_CONTEXT_RESP,
-	DCE_RPC_SHUTDOWN,
-	DCE_RPC_CO_CANCEL,
-	DCE_RPC_ORPHANED,
-%}
-
-enum dce_rpc_if_id %{
-	DCE_RPC_unknown_if,
-	DCE_RPC_epmapper,
-	DCE_RPC_lsarpc,
-	DCE_RPC_lsa_ds,
-	DCE_RPC_mgmt,
-	DCE_RPC_netlogon,
-	DCE_RPC_samr,
-	DCE_RPC_srvsvc,
-	DCE_RPC_spoolss,
-	DCE_RPC_drs,
-	DCE_RPC_winspipe,
-	DCE_RPC_wkssvc,
-	DCE_RPC_oxid,
-	DCE_RPC_ISCMActivator,
-%}
-
-enum rpc_status %{
-	RPC_SUCCESS       = 0,
-	RPC_PROG_UNAVAIL  = 1,
-	RPC_PROG_MISMATCH = 2,
-	RPC_PROC_UNAVAIL  = 3,
-	RPC_GARBAGE_ARGS  = 4,
-	RPC_SYSTEM_ERR    = 5,
-	RPC_TIMEOUT       = 6, # added for Bro
-	RPC_VERS_MISMATCH = 7, # added for Bro
-	RPC_AUTH_ERROR    = 8, # added for Bro
-	RPC_UNKNOWN_ERROR = 9, # added for Bro
-%}
-
-enum nfs3_proc %{   # NFSv3 procedures
-	NFS3_PROC_NULL     = 0,  # done
-	NFS3_PROC_GETATTR  = 1,  # done
-	NFS3_PROC_SETATTR  = 2,
-	NFS3_PROC_LOOKUP   = 3,  # done  
-	NFS3_PROC_ACCESS   = 4,
-	NFS3_PROC_READLINK = 5,  # done
-	NFS3_PROC_READ     = 6,  # done
-	NFS3_PROC_WRITE    = 7,  # done 
-	NFS3_PROC_CREATE   = 8,
-	NFS3_PROC_MKDIR    = 9,
-	NFS3_PROC_SYMLINK  = 10,
-	NFS3_PROC_MKNOD    = 11,
-	NFS3_PROC_REMOVE   = 12,
-	NFS3_PROC_RMDIR    = 13,
-	NFS3_PROC_RENAME   = 14,
-	NFS3_PROC_LINK     = 15,
-	NFS3_PROC_READDIR  = 16,
-	NFS3_PROC_READDIRPLUS  = 17,
-	NFS3_PROC_FSSTAT   = 18,
-	NFS3_PROC_FSINFO   = 19,
-	NFS3_PROC_PATHCONF = 20,
-	NFS3_PROC_COMMIT   = 21,
-	NFS3_PROC_END_OF_PROCS = 22,
-%}
-
-enum nfs3_status %{  #NFSv3 return status
-	NFS3ERR_OK          = 0,
-	NFS3ERR_PERM        = 1,
-	NFS3ERR_NOENT       = 2,
-	NFS3ERR_IO          = 5,
-	NFS3ERR_NXIO        = 6,
-	NFS3ERR_ACCES       = 13,
-	NFS3ERR_EXIST       = 17,
-	NFS3ERR_XDEV        = 18,
-	NFS3ERR_NODEV       = 19,
-	NFS3ERR_NOTDIR      = 20,
-	NFS3ERR_ISDIR       = 21,
-	NFS3ERR_INVAL       = 22,
-	NFS3ERR_FBIG        = 27,
-	NFS3ERR_NOSPC       = 28,
-	NFS3ERR_ROFS        = 30,
-	NFS3ERR_MLINK       = 31,
-	NFS3ERR_NAMETOOLONG = 63,
-	NFS3ERR_NOTEMPTY    = 66,
-	NFS3ERR_DQUOT       = 69,
-	NFS3ERR_STALE       = 70,
-	NFS3ERR_REMOTE      = 71,
-	NFS3ERR_BADHANDLE   = 10001,
-	NFS3ERR_NOT_SYNC    = 10002,
-	NFS3ERR_BAD_COOKIE  = 10003,
-	NFS3ERR_NOTSUPP     = 10004,
-	NFS3ERR_TOOSMALL    = 10005,
-	NFS3ERR_SERVERFAULT = 10006,
-	NFS3ERR_BADTYPE     = 10007,
-	NFS3ERR_JUKEBOX     = 10008,
-	NFS3ERR_UNKNOWN     = 0xffffffff,
-%}
-
-
-enum nfs3_file_type %{
-	NFS3_FTYPE_REG   = 1, 
-	NFS3_FTYPE_DIR   = 2, 
-	NFS3_FTYPE_BLK   = 3, 
-	NFS3_FTYPE_CHR   = 4, 
-	NFS3_FTYPE_LNK   = 5, 
-	NFS3_FTYPE_SOCK  = 6, 
-	NFS3_FTYPE_FIFO  = 7,
-%}
-
-enum nfs3_stable_how %{
-	NFS3_UNSTABLE = 0,
-	NFS3_DATA_SYNC = 1,
-	NFS3_FILE_SYNC = 2,
-%}
-
-# Decleare record types that we want to access from the C++
-# These are defined in bro.init
-type nfs3_info: record;
-type nfs3_fattr: record;
-type nfs3_diropargs: record;
-type nfs3_lookup_reply: record;
-type nfs3_readargs: record;
-type nfs3_read_reply: record;
-type nfs3_readlink_reply: record;
-type nfs3_writeargs: record;
-type nfs3_wcc_attr: record;
-type nfs3_write_reply: record;
-
-
-type nfs3_fsstat: record;
+#const nfs_return_data = F &redef;
+#const nfs_return_data_max = 512 &redef;
+#const nfs_return_first_data_only = T &redef;
 

@@ -100,23 +100,23 @@ refine connection RPC_Conn += {
 
 		switch ( call->proc() ) {
 		case PMAPPROC_NULL:
-			bro_event_pm_request_null(bro_analyzer(), bro_analyzer()->Conn());
+			BifEvent::generate_pm_request_null(bro_analyzer(), bro_analyzer()->Conn());
 			break;
 
 		case PMAPPROC_SET:
-			bro_event_pm_request_set(bro_analyzer(),
+			BifEvent::generate_pm_request_set(bro_analyzer(),
 				bro_analyzer()->Conn(),
 				call->call_val(), results->set());
 			break;
 
 		case PMAPPROC_UNSET:
-			bro_event_pm_request_unset(bro_analyzer(),
+			BifEvent::generate_pm_request_unset(bro_analyzer(),
 				bro_analyzer()->Conn(),
 				call->call_val(), results->unset());
 			break;
 
 		case PMAPPROC_GETPORT:
-			bro_event_pm_request_getport(bro_analyzer(),
+			BifEvent::generate_pm_request_getport(bro_analyzer(),
 				bro_analyzer()->Conn(),
 				call->call_val(),
 				PortmapBuildPortVal(results->getport(),
@@ -124,13 +124,13 @@ refine connection RPC_Conn += {
 			break;
 
 		case PMAPPROC_DUMP:
-			bro_event_pm_request_dump(bro_analyzer(),
+			BifEvent::generate_pm_request_dump(bro_analyzer(),
 				bro_analyzer()->Conn(),
 				PortmapBuildDumpVal(results->dump()));
 			break;
 
 		case PMAPPROC_CALLIT:
-			bro_event_pm_request_callit(bro_analyzer(),
+			BifEvent::generate_pm_request_callit(bro_analyzer(),
 				bro_analyzer()->Conn(),
 				call->call_val(),
 				new PortVal(results->callit()->port(),
@@ -149,37 +149,37 @@ function PortmapCallFailed(connection: RPC_Conn,
 			call: RPC_Call,
 			status: EnumRPCStatus): bool
 	%{
-	// BroEnum::rpc_status st = static_cast<BroEnum::rpc_status>(status);
-	BroEnum::rpc_status st = (BroEnum::rpc_status) status;
+	// BifEnum::rpc_status st = static_cast<BifEnum::rpc_status>(status);
+	Val *st = new EnumVal(status, BifTypePtr::Enum::rpc_status);
 
 	switch ( call->proc() ) {
 	case PMAPPROC_NULL:
-		bro_event_pm_attempt_null(connection->bro_analyzer(),
+		BifEvent::generate_pm_attempt_null(connection->bro_analyzer(),
 			connection->bro_analyzer()->Conn(), st);
 		break;
 
 	case PMAPPROC_SET:
-		bro_event_pm_attempt_set(connection->bro_analyzer(),
+		BifEvent::generate_pm_attempt_set(connection->bro_analyzer(),
 			connection->bro_analyzer()->Conn(), st, call->call_val());
 		break;
 
 	case PMAPPROC_UNSET:
-		bro_event_pm_attempt_unset(connection->bro_analyzer(),
+		BifEvent::generate_pm_attempt_unset(connection->bro_analyzer(),
 			connection->bro_analyzer()->Conn(), st, call->call_val());
 		break;
 
 	case PMAPPROC_GETPORT:
-		bro_event_pm_attempt_getport(connection->bro_analyzer(),
+		BifEvent::generate_pm_attempt_getport(connection->bro_analyzer(),
 			connection->bro_analyzer()->Conn(), st, call->call_val());
 		break;
 
 	case PMAPPROC_DUMP:
-		bro_event_pm_attempt_dump(connection->bro_analyzer(),
+		BifEvent::generate_pm_attempt_dump(connection->bro_analyzer(),
 			connection->bro_analyzer()->Conn(), st);
 		break;
 
 	case PMAPPROC_CALLIT:
-		bro_event_pm_attempt_callit(connection->bro_analyzer(),
+		BifEvent::generate_pm_attempt_callit(connection->bro_analyzer(),
 			connection->bro_analyzer()->Conn(), st, call->call_val());
 		break;
 

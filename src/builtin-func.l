@@ -28,10 +28,15 @@ int check_c_mode(int t)
 %}
 
 WS	[ \t]+
-ID	[A-Za-z_][A-Za-z_0-9]*
+ /* Note, bifcl only accepts a single :: in IDs while the policy
+    layer acceptes multiple. (But the policy layer doesn't have 
+	a hierachy */
+IDCOMPONENT [A-Za-z_][A-Za-z_0-9]*
+ID	{IDCOMPONENT}(::{IDCOMPONENT})?
 ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 D   [[:digit:]]+
 HEX	[0-9a-fA-F]+
+
 
 %option nodefault
 
@@ -67,9 +72,12 @@ HEX	[0-9a-fA-F]+
 "event"		return check_c_mode(TOK_EVENT);
 "const"		return check_c_mode(TOK_CONST);
 "enum"		return check_c_mode(TOK_ENUM);
-"declare"	return check_c_mode(TOK_DECLARE);
 "type"		return check_c_mode(TOK_TYPE);
 "record"	return check_c_mode(TOK_RECORD);
+"set"		return check_c_mode(TOK_SET);
+"table"		return check_c_mode(TOK_TABLE);
+"vector"	return check_c_mode(TOK_VECTOR);
+"module"    return check_c_mode(TOK_MODULE);
 
 "@ARG@"		return TOK_ARG;
 "@ARGS@"	return TOK_ARGS;

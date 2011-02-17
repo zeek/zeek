@@ -369,25 +369,25 @@ bool XMLSerializationFormat::Write(char v, const char* tag)
 
 bool XMLSerializationFormat::Write(uint16 v, const char* tag)
 	{
-	const char* tmp = fmt("%u", v);
+	const char* tmp = fmt("%"PRIu16, v);
 	return WriteElem(tag, "uint16", tmp, strlen(tmp));
 	}
 
 bool XMLSerializationFormat::Write(uint32 v, const char* tag)
 	{
-	const char* tmp = fmt("%u", v);
+	const char* tmp = fmt("%"PRIu32, v);
 	return WriteElem(tag, "uint32", tmp, strlen(tmp));
 	}
 
 bool XMLSerializationFormat::Write(uint64 v, const char* tag)
 	{
-	const char* tmp = fmt("%llu", v);
+	const char* tmp = fmt("%"PRIu64, v);
 	return WriteElem(tag, "uint64", tmp, strlen(tmp));
 	}
 
 bool XMLSerializationFormat::Write(int64 v, const char* tag)
 	{
-	const char* tmp = fmt("%lld", v);
+	const char* tmp = fmt("%"PRId64, v);
 	return WriteElem(tag, "int64", tmp, strlen(tmp));
 	}
 

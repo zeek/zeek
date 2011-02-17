@@ -157,7 +157,7 @@ flow RPC_Flow (is_orig: bool) {
 			return false;
 			}
 
-		bro_event_rpc_dialogue(connection()->bro_analyzer(),
+		BifEvent::generate_rpc_dialogue(connection()->bro_analyzer(),
 		                   connection()->bro_analyzer()->Conn(),
 		                   call->prog(),
 		                   call->vers(),

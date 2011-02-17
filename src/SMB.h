@@ -206,7 +206,7 @@ public:
 			DCE_RPC_Session::any_dce_rpc_event();
 		}
 
-	int RewritingTrace()	{ return rewriting_smb_trace; }
+	int RewritingTrace()	{ return BifConst::rewriting_smb_trace; }
 
 protected:
 	SMB_Session* smb_session;

@@ -288,7 +288,7 @@ int TCP_TracePacket::Finish(struct pcap_pkthdr*& hdr,
 	// tp->th_urp = 0;		// clear urgent pointer
 
 	// Fix IP addresses before computing the TCP checksum
-	if ( anonymize_ip_addr )
+	if ( BifConst::anonymize_ip_addr )
 		{
 		ip->ip_src.s_addr = anon_src;
 		ip->ip_dst.s_addr = anon_dst;
@@ -726,7 +726,7 @@ void TCP_RewriterEndpoint::PushPacket()
 #endif
 
 	if ( ! IsPlaceHolderPacket(next_packet) ||
-	     ! omit_rewrite_place_holder )
+	     ! BifConst::omit_rewrite_place_holder )
 		{
 		if ( next_packet->PredictedAsEmptyPlaceHolder() )
 			{
@@ -798,7 +798,7 @@ TCP_Rewriter::TCP_Rewriter(TCP_Analyzer* arg_analyzer, PacketDumper* arg_dumper,
 
 	anon_addr[0] = anon_addr[1] = 0;
 
-	if ( anonymize_ip_addr )
+	if ( BifConst::anonymize_ip_addr )
 		{
 		anon_addr[0] = anonymize_ip(to_v4_addr(analyzer->Conn()->OrigAddr()),
 						ORIG_ADDR);
@@ -909,7 +909,7 @@ void TCP_Rewriter::NextPacket(int is_orig, double t,
 
 	// Before setting current_packet to p, first clean up empty
 	// place holders to save memory space.
-	if ( omit_rewrite_place_holder && holding_packets )
+	if ( BifConst::omit_rewrite_place_holder && holding_packets )
 		CleanUpEmptyPlaceHolders();
 
 	current_packet = p;
@@ -1562,7 +1562,7 @@ TCP_SourcePacketWriter* get_src_pkt_writer(TCP_Analyzer* analyzer)
 		{
 		if ( ! pkt_dumper )
 			return 0;	// don't complain if no output file
-		else if ( ! dump_selected_source_packets )
+		else if ( ! BifConst::dump_selected_source_packets )
 			builtin_run_time("flag dump_source_packets is not set");
 		else
 			internal_error("source packet writer not initialized");
@@ -1571,5 +1571,5 @@ TCP_SourcePacketWriter* get_src_pkt_writer(TCP_Analyzer* analyzer)
 	return writer;
 	}
 
-
+#include "common-rw.bif.func_h"
 #include "common-rw.bif.func_def"

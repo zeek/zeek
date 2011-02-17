@@ -292,7 +292,7 @@ void PortmapperInterp::Event(EventHandlerPtr f, Val* request, BroEnum::rpc_statu
 		}
 	else
 		{
-		vl->append(new EnumVal(status, enum_rpc_status));
+		vl->append(new EnumVal(status, BifTypePtr::Enum::rpc_status));
 		if ( request )
 			vl->append(request);
 		}

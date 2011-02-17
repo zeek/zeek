@@ -83,7 +83,7 @@ flex_target(Scanner scan.l ${CMAKE_CURRENT_BINARY_DIR}/scan.cc
 set(bifcl_SRCS
    ${BISON_BIFParser_OUTPUTS}
    ${FLEX_BIFScanner_OUTPUTS}
-   bif_arg.cc
+   bif_arg.cc module_util.cc
 )
 
 add_executable(bifcl ${bifcl_SRCS})
@@ -129,6 +129,7 @@ set(BIF_SRCS
     bro.bif
     event.bif
     const.bif
+    types.bif
     common-rw.bif
     finger-rw.bif
     ident-rw.bif
@@ -240,6 +241,7 @@ set(bro_SRCS
     main.cc
     net_util.cc
     util.cc
+    module_util.cc
     Active.cc
     Analyzer.cc
     Anon.cc

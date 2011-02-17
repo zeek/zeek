@@ -20,30 +20,30 @@ int NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 	Val *callarg = 0;
 
 	switch ( proc ) {
-	case BroEnum::NFS3_PROC_NULL:
+	case BifEnum::NFS3::PROC_NULL:
 		break;
 
-	case BroEnum::NFS3_PROC_GETATTR:
+	case BifEnum::NFS3::PROC_GETATTR:
 		callarg = nfs3_fh(buf, n);
 		break;
 
-	case BroEnum::NFS3_PROC_LOOKUP:
+	case BifEnum::NFS3::PROC_LOOKUP:
 		callarg = nfs3_diropargs(buf, n);
 		break;
 
-	case BroEnum::NFS3_PROC_READ:
+	case BifEnum::NFS3::PROC_READ:
 		callarg = nfs3_readargs(buf, n);
 		break;
 
-	case BroEnum::NFS3_PROC_READLINK:
+	case BifEnum::NFS3::PROC_READLINK:
 		callarg = nfs3_fh(buf, n);
 		break;
 
-	case BroEnum::NFS3_PROC_WRITE:
+	case BifEnum::NFS3::PROC_WRITE:
 		callarg = nfs3_writeargs(buf, n);
 		break;
 #if 0
-	case BroEnum::NFS3_PROC_LOOKUP:
+	case BifEnum::NFS3::PROC_LOOKUP:
 		{
 		StringVal* fh = nfs3_fh(buf, n);
 
@@ -60,7 +60,7 @@ int NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 		}
 		break;
 
-	case BroEnum::NFS3_PROC_FSSTAT:
+	case BifEnum::NFS3::PROC_FSSTAT:
 		{
 		Val* v = nfs3_fh(buf, n);
 		if ( ! v )
@@ -69,12 +69,12 @@ int NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 		}
 		break;
 
-	case BroEnum::NFS3_PROC_READ:
+	case BifEnum::NFS3::PROC_READ:
 		break;
 #endif
 	default:
 		callarg = 0;
-		if ( proc < BroEnum::NFS3_PROC_END_OF_PROCS )
+		if ( proc < BifEnum::NFS3::PROC_END_OF_PROCS )
 			{ // We know the procedure but haven't implemented it
 			n = 0; // otherwise DeliverRPC complains about excess_RPC
 			}
@@ -102,22 +102,22 @@ int NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 	return 1;
 	}
 
-int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BroEnum::rpc_status rpc_status,
+int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 					const u_char*& buf, int& n, double start_time, double last_time,
 					int reply_len)
 	{
 	EventHandlerPtr event = 0;
 	Val *reply = 0;
-	BroEnum::nfs3_status nfs_status = BroEnum::NFS3ERR_OK;
-	bool rpc_success = ( rpc_status == BroEnum::RPC_SUCCESS );
+	BifEnum::NFS3::status_t nfs_status = BifEnum::NFS3::NFS3ERR_OK;
+	bool rpc_success = ( rpc_status == BifEnum::RPC_SUCCESS );
 
 	// reply always starts with the NFS status 
 	if ( rpc_success )
 		{
 		if ( n >= 4 )
-			nfs_status = (BroEnum::nfs3_status)extract_XDR_uint32(buf, n);
+			nfs_status = (BifEnum::NFS3::status_t)extract_XDR_uint32(buf, n);
 		else
-			nfs_status = BroEnum::NFS3ERR_UNKNOWN;
+			nfs_status = BifEnum::NFS3::NFS3ERR_UNKNOWN;
 		}
 
 	if ( nfs_reply_status )
@@ -128,43 +128,43 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BroEnum::rpc_status rpc_status,
 		}
 
 	switch ( c->Proc() ) {
-	case BroEnum::NFS3_PROC_NULL:
+	case BifEnum::NFS3::PROC_NULL:
 		event = nfs_proc_null;
 		break;
 
-	case BroEnum::NFS3_PROC_GETATTR:
-		if ( rpc_success && nfs_status == BroEnum::NFS3ERR_OK )
+	case BifEnum::NFS3::PROC_GETATTR:
+		if ( rpc_success && nfs_status == BifEnum::NFS3::NFS3ERR_OK )
 			reply = nfs3_fattr(buf, n);
 		event = nfs_proc_getattr;
 		break;
 
-	case BroEnum::NFS3_PROC_LOOKUP:
+	case BifEnum::NFS3::PROC_LOOKUP:
 		if (rpc_success)
 			reply = nfs3_lookup_reply(buf, n, nfs_status);
 		event = nfs_proc_lookup;
 		break;
 
-	case BroEnum::NFS3_PROC_READ:
+	case BifEnum::NFS3::PROC_READ:
 		if (rpc_success)
 			reply = nfs3_read_reply(buf, n, nfs_status);
 		event = nfs_proc_read;
 		break;
 
-	case BroEnum::NFS3_PROC_READLINK:
+	case BifEnum::NFS3::PROC_READLINK:
 		if (rpc_success)
 			reply = nfs3_readlink_reply(buf, n, nfs_status);
 		event = nfs_proc_readlink;
 		break;
 
-	case BroEnum::NFS3_PROC_WRITE:
+	case BifEnum::NFS3::PROC_WRITE:
 		if (rpc_success)
 			reply = nfs3_write_reply(buf, n, nfs_status);
 		event = nfs_proc_write;
 		break;
 
-		//if ( nfs_status == BroEnum::NFS3ERR_OK )
+		//if ( nfs_status == BifEnum::NFS3::NFS3ERR_OK )
 #if 0
-	case BroEnum::NFS3_PROC_LOOKUP:
+	case BifEnum::NFS3::PROC_LOOKUP:
 		if ( success )
 			{
 			if ( ! buf || status != 0 )
@@ -186,7 +186,7 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BroEnum::rpc_status rpc_status,
 
 		break;
 
-	case BroEnum::NFS3_PROC_FSSTAT:
+	case BifEnum::NFS3::PROC_FSSTAT:
 		if ( success )
 			{
 			if ( ! buf || status != 0 )
@@ -215,10 +215,10 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BroEnum::rpc_status rpc_status,
 #endif 
 
 	default:
-		if ( c->Proc() < BroEnum::NFS3_PROC_END_OF_PROCS )
+		if ( c->Proc() < BifEnum::NFS3::PROC_END_OF_PROCS )
 			{ // We know the procedure but haven't implemented it
 			n = 0; // otherwise DeliverRPC complains about excess_RPC
-			reply = new EnumVal(c->Proc(), enum_nfs3_proc);
+			reply = new EnumVal(c->Proc(), BifTypePtr::Enum::NFS3::proc_t);
 			event = nfs_proc_not_implemented;
 			}
 		else
@@ -253,8 +253,8 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BroEnum::rpc_status rpc_status,
 	return 1;
 	}
 
-val_list* NFS_Interp::event_common_vl(RPC_CallInfo *c, BroEnum::rpc_status rpc_status, 
-				BroEnum::nfs3_status nfs_status, double rep_start_time, double rep_last_time,
+val_list* NFS_Interp::event_common_vl(RPC_CallInfo *c, BifEnum::rpc_status rpc_status, 
+				BifEnum::NFS3::status_t nfs_status, double rep_start_time, double rep_last_time,
 				int reply_len) 
 	{
 	// returns a new val_list that already has a conn_val, and nfs3_info
@@ -262,9 +262,9 @@ val_list* NFS_Interp::event_common_vl(RPC_CallInfo *c, BroEnum::rpc_status rpc_s
 	val_list *vl = new val_list;
 	vl->append(analyzer->BuildConnVal());
 
-	RecordVal *info = new RecordVal(rectype_nfs3_info);
-	info->Assign(0, new EnumVal(rpc_status, enum_rpc_status));  
-	info->Assign(1, new EnumVal(nfs_status, enum_nfs3_status));  
+	RecordVal *info = new RecordVal(BifTypePtr::Record::NFS3::info_t);
+	info->Assign(0, new EnumVal(rpc_status, BifTypePtr::Enum::rpc_status));  
+	info->Assign(1, new EnumVal(nfs_status, BifTypePtr::Enum::NFS3::status_t));  
 	info->Assign(2, new Val(c->StartTime(), TYPE_TIME));
 	info->Assign(3, new Val(c->LastTime()-c->StartTime(), TYPE_INTERVAL));
 	info->Assign(4, new Val(c->RPCLen(), TYPE_COUNT));
@@ -289,7 +289,7 @@ StringVal* NFS_Interp::nfs3_fh(const u_char*& buf, int& n)
 
 RecordVal* NFS_Interp::nfs3_fattr(const u_char*& buf, int& n)
 	{
-	RecordVal* attrs = new RecordVal(rectype_nfs3_fattr);
+	RecordVal* attrs = new RecordVal(BifTypePtr::Record::NFS3::fattr_t);
 	attrs->Assign(0, ExtractUint32(buf, n));	// file type
 	attrs->Assign(1, ExtractUint32(buf, n));	// mode
 	attrs->Assign(2, ExtractUint32(buf, n));	// nlink
@@ -310,7 +310,7 @@ RecordVal* NFS_Interp::nfs3_fattr(const u_char*& buf, int& n)
 
 RecordVal* NFS_Interp::nfs3_wcc_attr(const u_char*& buf, int& n)
 	{
-	RecordVal* attrs = new RecordVal(rectype_nfs3_wcc_attr);
+	RecordVal* attrs = new RecordVal(BifTypePtr::Record::NFS3::wcc_attr_t);
 	attrs->Assign(0, ExtractUint64(buf, n));	// size
 	attrs->Assign(1, ExtractTime(buf, n));	// mtime
 	attrs->Assign(2, ExtractTime(buf, n));	// ctime
@@ -329,7 +329,7 @@ StringVal *NFS_Interp::nfs3_filename(const u_char*& buf, int& n)
 
 RecordVal *NFS_Interp::nfs3_diropargs(const u_char*& buf, int& n)
 	{
-	RecordVal *diropargs = new RecordVal(rectype_nfs3_diropargs);
+	RecordVal *diropargs = new RecordVal(BifTypePtr::Record::NFS3::diropargs_t);
 	diropargs->Assign(0, nfs3_fh(buf, n));
 	diropargs->Assign(1, nfs3_filename(buf, n));
 
@@ -357,14 +357,14 @@ RecordVal* NFS_Interp::nfs3_pre_op_attr(const u_char*& buf, int& n)
 
 EnumVal *NFS_Interp::nfs3_stable_how(const u_char*& buf, int& n) 
 	{
-	BroEnum::nfs3_stable_how stable = (BroEnum::nfs3_stable_how)extract_XDR_uint32(buf, n);
-	return new EnumVal(stable, enum_nfs3_stable_how);
+	BifEnum::NFS3::stable_how_t stable = (BifEnum::NFS3::stable_how_t)extract_XDR_uint32(buf, n);
+	return new EnumVal(stable, BifTypePtr::Enum::NFS3::stable_how_t);
 	}
 
-RecordVal* NFS_Interp::nfs3_lookup_reply(const u_char*& buf, int& n, BroEnum::nfs3_status status)
+RecordVal* NFS_Interp::nfs3_lookup_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status)
 	{
-	RecordVal *rep = new RecordVal(rectype_nfs3_lookup_reply);
-	if (status == BroEnum::NFS3ERR_OK)
+	RecordVal *rep = new RecordVal(BifTypePtr::Record::NFS3::lookup_reply_t);
+	if (status == BifEnum::NFS3::NFS3ERR_OK)
 		{
 		rep->Assign(0, nfs3_fh(buf,n));
 		rep->Assign(1, nfs3_post_op_attr(buf, n));
@@ -381,17 +381,17 @@ RecordVal* NFS_Interp::nfs3_lookup_reply(const u_char*& buf, int& n, BroEnum::nf
 
 RecordVal *NFS_Interp::nfs3_readargs(const u_char*& buf, int& n)
 	{
-	RecordVal *readargs = new RecordVal(rectype_nfs3_readargs);
+	RecordVal *readargs = new RecordVal(BifTypePtr::Record::NFS3::readargs_t);
 	readargs->Assign(0, nfs3_fh(buf, n));
 	readargs->Assign(1, ExtractUint64(buf, n));  // offset
 	readargs->Assign(2, ExtractUint32(buf,n));   // size 
 	return readargs;
 	}
 
-RecordVal* NFS_Interp::nfs3_read_reply(const u_char*& buf, int& n, BroEnum::nfs3_status status)
+RecordVal* NFS_Interp::nfs3_read_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status)
 	{
-	RecordVal *rep = new RecordVal(rectype_nfs3_read_reply);
-	if (status == BroEnum::NFS3ERR_OK)
+	RecordVal *rep = new RecordVal(BifTypePtr::Record::NFS3::read_reply_t);
+	if (status == BifEnum::NFS3::NFS3ERR_OK)
 		{
 		rep->Assign(0, nfs3_post_op_attr(buf, n));
 		rep->Assign(1, ExtractUint32(buf, n));
@@ -405,10 +405,10 @@ RecordVal* NFS_Interp::nfs3_read_reply(const u_char*& buf, int& n, BroEnum::nfs3
 	return rep;
 	}
 
-RecordVal* NFS_Interp::nfs3_readlink_reply(const u_char*& buf, int& n, BroEnum::nfs3_status status)
+RecordVal* NFS_Interp::nfs3_readlink_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status)
 	{
-	RecordVal *rep = new RecordVal(rectype_nfs3_readlink_reply);
-	if (status == BroEnum::NFS3ERR_OK)
+	RecordVal *rep = new RecordVal(BifTypePtr::Record::NFS3::readlink_reply_t);
+	if (status == BifEnum::NFS3::NFS3ERR_OK)
 		{
 		rep->Assign(0, nfs3_post_op_attr(buf, n));
 		rep->Assign(1, nfs3_nfspath(buf,n));
@@ -422,7 +422,7 @@ RecordVal* NFS_Interp::nfs3_readlink_reply(const u_char*& buf, int& n, BroEnum::
 
 RecordVal *NFS_Interp::nfs3_writeargs(const u_char*& buf, int& n)
 	{
-	RecordVal *writeargs = new RecordVal(rectype_nfs3_writeargs);
+	RecordVal *writeargs = new RecordVal(BifTypePtr::Record::NFS3::writeargs_t);
 	writeargs->Assign(0, nfs3_fh(buf, n));
 	writeargs->Assign(1, ExtractUint64(buf, n));
 	writeargs->Assign(2, ExtractUint32(buf,n));
@@ -441,10 +441,10 @@ StringVal* NFS_Interp::nfs3_writeverf(const u_char*& buf, int& n)
 	return new StringVal(new BroString(verf, 8, 0));
 	}
 
-RecordVal *NFS_Interp::nfs3_write_reply(const u_char*& buf, int& n, BroEnum::nfs3_status status)
+RecordVal *NFS_Interp::nfs3_write_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status)
 	{
-	RecordVal *rep = new RecordVal(rectype_nfs3_write_reply);
-	if (status == BroEnum::NFS3ERR_OK)
+	RecordVal *rep = new RecordVal(BifTypePtr::Record::NFS3::write_reply_t);
+	if (status == BifEnum::NFS3::NFS3ERR_OK)
 		{
 		rep->Assign(0, nfs3_pre_op_attr(buf, n));
 		rep->Assign(1, nfs3_post_op_attr(buf, n));

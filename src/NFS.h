@@ -15,14 +15,14 @@ public:
 
 protected:
 	int RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n);
-	int RPC_BuildReply(RPC_CallInfo* c, BroEnum::rpc_status rpc_status,
+	int RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 				const u_char*& buf, int& n, double start_time, double last_time,
 				int reply_len);
 
 	// returns a new val_list that already has a conn_val, rpc_status and nfs_status.
 	// These are the first parameters for each nfs_* event... 
-	val_list* event_common_vl(RPC_CallInfo *c, BroEnum::rpc_status rpc_status, 
-				BroEnum::nfs3_status nfs_status, double rep_start_time, double rep_last_time,
+	val_list* event_common_vl(RPC_CallInfo *c, BifEnum::rpc_status rpc_status, 
+				BifEnum::NFS3::status_t nfs_status, double rep_start_time, double rep_last_time,
 				int reply_len);
 
 	// These methods parse the appropriate NFSv3 "type" out of buf. If 
@@ -39,13 +39,13 @@ protected:
 	StringVal* nfs3_nfspath(const u_char*& buf, int& n) { return nfs3_filename(buf,n); }
 	RecordVal* nfs3_post_op_attr(const u_char*&buf, int &n); // Return 0 or an fattr
 	RecordVal* nfs3_pre_op_attr(const u_char*&buf, int &n); // Return 0 or an wcc_attr
-	RecordVal* nfs3_lookup_reply(const u_char*& buf, int& n, BroEnum::nfs3_status status);
+	RecordVal* nfs3_lookup_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status);
 	RecordVal* nfs3_readargs(const u_char*& buf, int& n);
-	RecordVal* nfs3_read_reply(const u_char*& buf, int& n, BroEnum::nfs3_status status);
-	RecordVal* nfs3_readlink_reply(const u_char*& buf, int& n, BroEnum::nfs3_status status);
+	RecordVal* nfs3_read_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status);
+	RecordVal* nfs3_readlink_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status);
 	RecordVal* nfs3_writeargs(const u_char*& buf, int& n);
 	EnumVal* nfs3_stable_how(const u_char*& buf, int& n);
-	RecordVal* nfs3_write_reply(const u_char*& buf, int& n, BroEnum::nfs3_status status);
+	RecordVal* nfs3_write_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status);
 	StringVal* nfs3_writeverf(const u_char*& buf, int& n);
 
 	RecordVal* ExtractOptAttrs(const u_char*& buf, int& n);

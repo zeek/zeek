@@ -185,23 +185,23 @@ event pm_bad_port%(r: connection, bad_p: count%);
 # The request record is always filled out, however, the reply record(s) might not be set or 
 # might only be partially set. See the comments for the record types in 
 # bro.init to see which reply fields are set when.
-event nfs_proc_null%(c: connection, info: nfs3_info%);
-event nfs_proc_not_implemented%(c: connection, info: nfs3_info, proc: nfs3_proc%);
+event nfs_proc_null%(c: connection, info: NFS3::info_t%);
+event nfs_proc_not_implemented%(c: connection, info: NFS3::info_t, proc: NFS3::proc_t%);
 
-event nfs_proc_getattr%(c: connection, info: nfs3_info, fh: string, attrs: nfs3_fattr%);
-event nfs_proc_lookup%(c: connection, info: nfs3_info, req: nfs3_diropargs, rep: nfs3_lookup_reply%);
-event nfs_proc_read%(c: connection, info: nfs3_info, req: nfs3_readargs, rep: nfs3_read_reply%);
-event nfs_proc_readlink%(c: connection, info: nfs3_info, fh: string, rep: nfs3_readlink_reply%);
-event nfs_proc_write%(c: connection, info: nfs3_info, req: nfs3_writeargs, rep: nfs3_write_reply%);
-#event nfs_request_lookup%(n: connection, req: nfs3_lookup_args, rep: nfs3_lookup_reply%);
-#event nfs_request_fsstat%(n: connection, root_fh: string, stat: nfs3_fsstat%);
+event nfs_proc_getattr%(c: connection, info: NFS3::info_t, fh: string, attrs: NFS3::fattr_t%);
+event nfs_proc_lookup%(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t, rep: NFS3::lookup_reply_t%);
+event nfs_proc_read%(c: connection, info: NFS3::info_t, req: NFS3::readargs_t, rep: NFS3::read_reply_t%);
+event nfs_proc_readlink%(c: connection, info: NFS3::info_t, fh: string, rep: NFS3::readlink_reply_t%);
+event nfs_proc_write%(c: connection, info: NFS3::info_t, req: NFS3::writeargs_t, rep: NFS3::write_reply_t%);
+#event nfs_request_lookup%(n: connection, req: NFS3::lookup_args_t, rep: NFS3::lookup_reply_t%);
+#event nfs_request_fsstat%(n: connection, root_fh: string, stat: NFS3::fsstat_t%);
 #event nfs_attempt_null%(n: connection, status: count%);
 #event nfs_attempt_getattr%(n: connection, status: count, fh: string%);
-#event nfs_attempt_lookup%(n: connection, status: count, req: nfs3_lookup_args%);
+#event nfs_attempt_lookup%(n: connection, status: count, req: NFS3::lookup_args_t%);
 #event nfs_attempt_fsstat%(n: connection, status: count, root_fh: string%);
 
 # Generated for each NFS reply message we receive. Just gives the status.
-event nfs_reply_status%(n: connection, info: nfs3_info%);
+event nfs_reply_status%(n: connection, info: NFS3::info_t%);
 
 event ntp_message%(u: connection, msg: ntp_msg, excess: string%);
 

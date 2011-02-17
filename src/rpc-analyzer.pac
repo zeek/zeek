@@ -162,7 +162,7 @@ flow RPC_Flow (is_orig: bool) {
 		                   call->prog(),
 		                   call->vers(),
 		                   call->proc(),
-		                   (BroEnum::rpc_status)reply->status(),
+		                   new EnumVal((BifEnum::rpc_status)reply->status(), BifTypePtr::Enum::rpc_status),
 		                   call->start_time(),
 		                   call->msg()->length(),
 		                   reply->msg()->length());

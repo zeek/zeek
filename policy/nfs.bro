@@ -2,19 +2,8 @@
 
 @load udp
 
-# Should the read and write events return the file data that
-# has been read/written?
-redef nfs_return_data = F;
 
-# If nfs_return_data==T: how much data should be returned at most
-redef nfs_return_data_max = 512;
-
-# If nfs_return_data==T: whether to *only* return data if the read or
-# write offset is 0, i.e., only return data for the beginning of the 
-# file
-redef nfs_return_data_first_only = T;
-
-module NFS;
+module NFS3;
 
 export {
 	global log_file = open_log_file("nfs") &redef;
@@ -66,12 +55,12 @@ function NFS_attempt(n: connection, req: string, status: count, addl: string)
 			network_time(), id_string(n$id), req, status, addl);
 	}
 
-function is_success(info: nfs3_info): bool
+function is_success(info: info_t): bool
 	{
 	return (info$rpc_stat == RPC_SUCCESS && info$nfs_stat == NFS3ERR_OK);
 	}
 
-function nfs_get_log_prefix(c: connection, info: nfs3_info, proc: string): string
+function nfs_get_log_prefix(c: connection, info: info_t, proc: string): string
 	{
 	local nfs_stat_str = (info$rpc_stat == RPC_SUCCESS) ? fmt("%s", info$nfs_stat) : "X";
 	return fmt("%.06f %.06f %d %.06f %.06f %d %s %s %d %s %s %s", 
@@ -82,21 +71,21 @@ function nfs_get_log_prefix(c: connection, info: nfs3_info, proc: string): strin
 			proc, info$rpc_stat, nfs_stat_str);
 	}
 
-event nfs_proc_not_implemented(c: connection, info: nfs3_info, proc: nfs3_proc) 
+event nfs_proc_not_implemented(c: connection, info: info_t, proc: NFS3::proc_t) 
 	{
 	local prefix = nfs_get_log_prefix(c, info, fmt("%s", proc));
 
 	print log_file, fmt("%s Not_implemented", prefix);
 	}
 
-event nfs_proc_null(c: connection, info: nfs3_info)
+event nfs_proc_null(c: connection, info: info_t)
 	{
 	local prefix = nfs_get_log_prefix(c, info, "null");
 
 	print log_file, prefix;
 	}
 
-event nfs_proc_getattr (c: connection, info: nfs3_info, fh: string, attrs: nfs3_fattr) 
+event nfs_proc_getattr (c: connection, info: info_t, fh: string, attrs: NFS3::fattr_t) 
 	{
 	local prefix = nfs_get_log_prefix(c, info, "getattr");
 
@@ -105,7 +94,7 @@ event nfs_proc_getattr (c: connection, info: nfs3_info, fh: string, attrs: nfs3_
 	print log_file, fmt("%s %s", prefix, map_fh(c,fh));
 	}
 
-event nfs_proc_lookup(c: connection, info: nfs3_info, req: nfs3_diropargs, rep: nfs3_lookup_reply)
+event nfs_proc_lookup(c: connection, info: info_t, req: NFS3::diropargs_t, rep: NFS3::lookup_reply_t)
 	{
 	local prefix = nfs_get_log_prefix(c, info, "lookup");
 
@@ -119,7 +108,7 @@ event nfs_proc_lookup(c: connection, info: nfs3_info, req: nfs3_diropargs, rep: 
 	
 	}
 
-event nfs_proc_read(c: connection, info: nfs3_info, req: nfs3_readargs, rep: nfs3_read_reply)
+event nfs_proc_read(c: connection, info: info_t, req: NFS3::readargs_t, rep: NFS3::read_reply_t)
 	{
 	local msg = nfs_get_log_prefix(c, info, "read");
 
@@ -130,7 +119,7 @@ event nfs_proc_read(c: connection, info: nfs3_info, req: nfs3_readargs, rep: nfs
 	print log_file, msg;
 	}
 
-event nfs_proc_readlink(c: connection, info: nfs3_info, fh: string, rep: nfs3_readlink_reply) 
+event nfs_proc_readlink(c: connection, info: info_t, fh: string, rep: NFS3::readlink_reply_t) 
 	{
 	local msg = nfs_get_log_prefix(c, info, "readlink");
 
@@ -141,7 +130,7 @@ event nfs_proc_readlink(c: connection, info: nfs3_info, fh: string, rep: nfs3_re
 	print log_file, msg;
 	}
 
-event nfs_proc_write(c: connection, info: nfs3_info, req: nfs3_writeargs, rep: nfs3_write_reply)
+event nfs_proc_write(c: connection, info: info_t, req: NFS3::writeargs_t, rep: NFS3::write_reply_t)
 	{
 	local msg = nfs_get_log_prefix(c, info, "write");
 

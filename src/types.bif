@@ -52,33 +52,34 @@ enum rpc_status %{
 %}
 
 
-enum nfs3_proc %{   # NFSv3 procedures
-	NFS3_PROC_NULL     = 0,  # done
-	NFS3_PROC_GETATTR  = 1,  # done
-	NFS3_PROC_SETATTR  = 2,
-	NFS3_PROC_LOOKUP   = 3,  # done  
-	NFS3_PROC_ACCESS   = 4,
-	NFS3_PROC_READLINK = 5,  # done
-	NFS3_PROC_READ     = 6,  # done
-	NFS3_PROC_WRITE    = 7,  # done 
-	NFS3_PROC_CREATE   = 8,
-	NFS3_PROC_MKDIR    = 9,
-	NFS3_PROC_SYMLINK  = 10,
-	NFS3_PROC_MKNOD    = 11,
-	NFS3_PROC_REMOVE   = 12,
-	NFS3_PROC_RMDIR    = 13,
-	NFS3_PROC_RENAME   = 14,
-	NFS3_PROC_LINK     = 15,
-	NFS3_PROC_READDIR  = 16,
-	NFS3_PROC_READDIRPLUS  = 17,
-	NFS3_PROC_FSSTAT   = 18,
-	NFS3_PROC_FSINFO   = 19,
-	NFS3_PROC_PATHCONF = 20,
-	NFS3_PROC_COMMIT   = 21,
-	NFS3_PROC_END_OF_PROCS = 22,
+module NFS3;
+enum proc_t %{   # NFSv3 procedures
+	PROC_NULL     = 0,  # done
+	PROC_GETATTR  = 1,  # done
+	PROC_SETATTR  = 2,
+	PROC_LOOKUP   = 3,  # done  
+	PROC_ACCESS   = 4,
+	PROC_READLINK = 5,  # done
+	PROC_READ     = 6,  # done
+	PROC_WRITE    = 7,  # done 
+	PROC_CREATE   = 8,
+	PROC_MKDIR    = 9,
+	PROC_SYMLINK  = 10,
+	PROC_MKNOD    = 11,
+	PROC_REMOVE   = 12,
+	PROC_RMDIR    = 13,
+	PROC_RENAME   = 14,
+	PROC_LINK     = 15,
+	PROC_READDIR  = 16,
+	PROC_READDIRPLUS  = 17,
+	PROC_FSSTAT   = 18,
+	PROC_FSINFO   = 19,
+	PROC_PATHCONF = 20,
+	PROC_COMMIT   = 21,
+	PROC_END_OF_PROCS = 22,
 %}
 
-enum nfs3_status %{  #NFSv3 return status
+enum status_t %{  #NFSv3 return status
 	NFS3ERR_OK          = 0,
 	NFS3ERR_PERM        = 1,
 	NFS3ERR_NOENT       = 2,
@@ -112,34 +113,36 @@ enum nfs3_status %{  #NFSv3 return status
 %}
 
 
-enum nfs3_file_type %{
-	NFS3_FTYPE_REG   = 1, 
-	NFS3_FTYPE_DIR   = 2, 
-	NFS3_FTYPE_BLK   = 3, 
-	NFS3_FTYPE_CHR   = 4, 
-	NFS3_FTYPE_LNK   = 5, 
-	NFS3_FTYPE_SOCK  = 6, 
-	NFS3_FTYPE_FIFO  = 7,
+enum file_type_t %{
+	FTYPE_REG   = 1, 
+	FTYPE_DIR   = 2, 
+	FTYPE_BLK   = 3, 
+	FTYPE_CHR   = 4, 
+	FTYPE_LNK   = 5, 
+	FTYPE_SOCK  = 6, 
+	FTYPE_FIFO  = 7,
 %}
 
-enum nfs3_stable_how %{
-	NFS3_UNSTABLE = 0,
-	NFS3_DATA_SYNC = 1,
-	NFS3_FILE_SYNC = 2,
+enum stable_how_t %{
+	UNSTABLE = 0,
+	DATA_SYNC = 1,
+	FILE_SYNC = 2,
 %}
 
 # Decleare record types that we want to access from the C++
 # These are defined in bro.init
-type nfs3_info: record;
-type nfs3_fattr: record;
-type nfs3_diropargs: record;
-type nfs3_lookup_reply: record;
-type nfs3_readargs: record;
-type nfs3_read_reply: record;
-type nfs3_readlink_reply: record;
-type nfs3_writeargs: record;
-type nfs3_wcc_attr: record;
-type nfs3_write_reply: record;
+type info_t: record;
+type fattr_t: record;
+type diropargs_t: record;
+type lookup_reply_t: record;
+type readargs_t: record;
+type read_reply_t: record;
+type readlink_reply_t: record;
+type writeargs_t: record;
+type wcc_attr_t: record;
+type write_reply_t: record;
 
 
-type nfs3_fsstat: record;
+type fsstat_t: record;
+
+module GLOBAL;

@@ -294,7 +294,7 @@ void RPC_Interpreter::Event_RPC_Dialogue(RPC_CallInfo* c, BifEnum::rpc_status st
 		vl->append(new Val(c->Program(), TYPE_COUNT));
 		vl->append(new Val(c->Version(), TYPE_COUNT));
 		vl->append(new Val(c->Proc(), TYPE_COUNT));
-		vl->append(new EnumVal(status, enum_rpc_status));
+		vl->append(new EnumVal(status, BifTypePtr::Enum::rpc_status));
 		vl->append(new Val(c->StartTime(), TYPE_TIME));
 		vl->append(new Val(c->CallLen(), TYPE_COUNT));
 		vl->append(new Val(reply_len, TYPE_COUNT));
@@ -324,7 +324,7 @@ void RPC_Interpreter::Event_RPC_Reply(uint32_t xid, BifEnum::rpc_status status, 
 		val_list* vl = new val_list;
 		vl->append(analyzer->BuildConnVal());
 		vl->append(new Val(xid, TYPE_COUNT));
-		vl->append(new EnumVal(status, enum_rpc_status));
+		vl->append(new EnumVal(status, BifTypePtr::Enum::rpc_status));
 		vl->append(new Val(reply_len, TYPE_COUNT));
 		analyzer->ConnectionEvent(rpc_reply, vl);
 		}

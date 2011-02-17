@@ -129,15 +129,15 @@ public:
 
 protected:
 	virtual int RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n) = 0;
-	virtual int RPC_BuildReply(RPC_CallInfo* c, BroEnum::rpc_status success,
+	virtual int RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status success,
 					const u_char*& buf, int& n, double start_time, double last_time,
 					int reply_len) = 0;
 
 	//virtual void Event(EventHandlerPtr f, Val* request, int status, Val* reply) = 0;
 
-	void Event_RPC_Dialogue(RPC_CallInfo* c, BroEnum::rpc_status status, int reply_len);
+	void Event_RPC_Dialogue(RPC_CallInfo* c, BifEnum::rpc_status status, int reply_len);
 	void Event_RPC_Call(RPC_CallInfo* c);
-	void Event_RPC_Reply(uint32_t xid, BroEnum::rpc_status status, int reply_len);
+	void Event_RPC_Reply(uint32_t xid, BifEnum::rpc_status status, int reply_len);
 
 	void Weird(const char* name);
 

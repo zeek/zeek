@@ -13,7 +13,9 @@
 
 // Expose C99 functionality from inttypes.h, which would otherwise not be
 // available in C++.
-#define _ISOC99_SOURCE
+#ifndef _ISOC99_SOURCE
+#  define _ISOC99_SOURCE
+#endif
 #define __STDC_LIMIT_MACROS
 #define __STDC_CONSTANT_MACROS
 #define __STDC_FORMAT_MACROS

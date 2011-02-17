@@ -244,7 +244,7 @@ void TCP_Reassembler::Undelivered(int up_to_seq)
 			// handshakes, but Oh Well.
 
 			if ( content_gap &&
-			       (report_gaps_for_partial ||
+			       (BifConst::report_gaps_for_partial ||
 			           (endpoint->state == TCP_ENDPOINT_ESTABLISHED &&
 			            peer->state == TCP_ENDPOINT_ESTABLISHED )
 			       )
@@ -521,7 +521,7 @@ void TCP_Reassembler::AckReceived(int seq)
 		return;
 
 	bool test_active = ! skip_deliveries && ! tcp_analyzer->Skipping() &&
-		 ( report_gaps_for_partial ||
+		 ( BifConst::report_gaps_for_partial ||
 	       (endp->state == TCP_ENDPOINT_ESTABLISHED &&
 	        endp->peer->state == TCP_ENDPOINT_ESTABLISHED
 		   )

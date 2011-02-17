@@ -703,123 +703,138 @@ const RPC_status = {
 	[RPC_UNKNOWN_ERROR] = "unknown"
 };
 
-# This record summarizes the general results and status
-# of NFSv3 request/reply pairs. It's part of every NFSv3
-# event
-type nfs3_info: record {
-	rpc_stat: rpc_status;
-	nfs_stat: nfs3_status;
+module NFS3;
+export {
+	# Should the read and write events return the file data that
+	# has been read/written?
+	const return_data = F &redef;
 
-	# the start time, duration, and length in bytes of the 
-	# request (call). 
-	# NOTE that the start and end time might not be accurate. For TCP we 
-	# record the time when a chunk of data is delivered to the analyzer. Depending
-	# on the Reassembler, this might be well after the first packet of the request
-	# was received.
-	req_start: time;
-	req_dur: interval;
-	req_len: count;
+	# If nfs_return_data==T: how much data should be returned at most
+	const return_data_max = 512 &redef;
 
-	# Same for the reply
-	rep_start: time;
-	rep_dur: interval;
-	rep_len: count;
-};
+	# If nfs_return_data==T: whether to *only* return data if the read or
+	# write offset is 0, i.e., only return data for the beginning of the 
+	# file
+	const return_data_first_only = T &redef; 
+	# This record summarizes the general results and status
+	# of NFSv3 request/reply pairs. It's part of every NFSv3
+	# event
+	 
+	type info_t: record {
+		rpc_stat: rpc_status;
+		nfs_stat: status_t;
 
+		# the start time, duration, and length in bytes of the 
+		# request (call). 
+		# NOTE that the start and end time might not be accurate. For TCP we 
+		# record the time when a chunk of data is delivered to the analyzer. Depending
+		# on the Reassembler, this might be well after the first packet of the request
+		# was received.
+		req_start: time;
+		req_dur: interval;
+		req_len: count;
 
-# NFSv3 types
-# type names are based on RFC 1813
-type nfs3_fattr: record {
-	ftype: nfs3_file_type;
-	mode: count;
-	nlink: count;
-	uid: count;
-	gid: count;
-	size: count;
-	used: count;
-	rdev1: count;
-	rdev2: count;
-	fsid: count;
-	fileid: count;
-	atime: time;
-	mtime: time;
-	ctime: time;
-};
-
-type nfs3_diropargs : record {
-	dirfh: string;  # the file handle of the directory
-	fname: string;  # the name of the file we are interested in 
-};
-
-# Note, we don't need a  post_op_attr type. We can always use
-# an nfs3_fattr &optional
-
-type nfs3_lookup_reply: record {
-	# If the lookup failed, dir_attr may be set. 
-	# If the lookup succeeded, fh is always set and file_attr and dir_attr may be set.
-	fh: string &optional;	# file handle of object looked up
-	file_attr: nfs3_fattr &optional;	# optional attributes associated w/ file
-	dir_attr: nfs3_fattr &optional;	# optional attributes associated w/ dir.
-};
-
-type nfs3_readargs: record {
-	fh: string;      # file handle to read from 
-	offset: count;   # Offset in file. Should really go to 64 bit int here
-	size: count;     # number of bytes to read
-};
-
-type nfs3_read_reply: record {
-	# if the lookup fails attr may be set. 
-	# if the lookup succeeds, attr may be set and all other fields are set
-	attr: nfs3_fattr &optional; # attributes 	
-	size: count &optional;      # number of bytes read
-	eof: bool &optional;        # did the read end at EOF
-	data: string &optional;     # the actual data. NOT IMPLEMENTED YET.
-};
-
-type nfs3_readlink_reply: record {
-	# if the request fails attr may be set. 
-	# if the request succeeds, attr may be set and all other fields are set
-	attr: nfs3_fattr &optional; # attributes 	
-	nfspath: string &optional;  # the contents of the symlink. In general a pathname as text
-};
-
-type nfs3_writeargs: record {
-	fh: string;      # file handle to write to 
-	offset: count;   # Offset in file. Should really go to 64 bit int here
-	size: count;     # number of bytes to write
-	stable: nfs3_stable_how; # how and when data is commited 
-	data: string &optional;  # the actual data. NOT IMPLEMENTED YET.
-};
-
-type nfs3_wcc_attr: record {
-	size: count;
-	atime: time;
-	mtime: time;
-};
-
-type nfs3_write_reply: record {
-	# if the request fails pre|post attr may be set. 
-	# if the request succeeds, pre|post attr may be set and all other fields are set
-	preattr: nfs3_wcc_attr &optional;  # pre operation attributes
-	postattr: nfs3_fattr &optional;    # post operation attributes 
-	size: count &optional;
-	commited: nfs3_stable_how &optional; 
-	verf: string &optional;     # write verifier cookue
-};
-
-type nfs3_fsstat: record {
-	attrs: nfs3_fattr &optional;
-	tbytes: double;
-	fbytes: double;
-	abytes: double;
-	tfiles: double;
-	ffiles: double;
-	afiles: double;
-	invarsec: interval;
-};
+		# Same for the reply
+		rep_start: time;
+		rep_dur: interval;
+		rep_len: count;
+	};
 
 
+	# NFSv3 types
+	# type names are based on RFC 1813
+	type fattr_t: record {
+		ftype: file_type_t;
+		mode: count;
+		nlink: count;
+		uid: count;
+		gid: count;
+		size: count;
+		used: count;
+		rdev1: count;
+		rdev2: count;
+		fsid: count;
+		fileid: count;
+		atime: time;
+		mtime: time;
+		ctime: time;
+	};
+
+	type diropargs_t : record {
+		dirfh: string;  # the file handle of the directory
+		fname: string;  # the name of the file we are interested in 
+	};
+
+	# Note, we don't need a  post_op_attr type. We can always use
+	# an fattr_t &optional
+
+	type lookup_reply_t: record {
+		# If the lookup failed, dir_attr may be set. 
+		# If the lookup succeeded, fh is always set and file_attr and dir_attr may be set.
+		fh: string &optional;	# file handle of object looked up
+		file_attr: fattr_t &optional;	# optional attributes associated w/ file
+		dir_attr: fattr_t &optional;	# optional attributes associated w/ dir.
+	};
+
+	type readargs_t: record {
+		fh: string;      # file handle to read from 
+		offset: count;   # Offset in file. Should really go to 64 bit int here
+		size: count;     # number of bytes to read
+	};
+
+	type read_reply_t: record {
+		# if the lookup fails attr may be set. 
+		# if the lookup succeeds, attr may be set and all other fields are set
+		attr: fattr_t &optional; # attributes 	
+		size: count &optional;      # number of bytes read
+		eof: bool &optional;        # did the read end at EOF
+		data: string &optional;     # the actual data. NOT IMPLEMENTED YET.
+	};
+
+	type readlink_reply_t: record {
+		# if the request fails attr may be set. 
+		# if the request succeeds, attr may be set and all other fields are set
+		attr: fattr_t &optional; # attributes 	
+		nfspath: string &optional;  # the contents of the symlink. In general a pathname as text
+	};
+
+	type writeargs_t: record {
+		fh: string;      # file handle to write to 
+		offset: count;   # Offset in file. Should really go to 64 bit int here
+		size: count;     # number of bytes to write
+		stable: stable_how_t; # how and when data is commited 
+		data: string &optional;  # the actual data. NOT IMPLEMENTED YET.
+	};
+
+	type wcc_attr_t: record {
+		size: count;
+		atime: time;
+		mtime: time;
+	};
+
+	type write_reply_t: record {
+		# if the request fails pre|post attr may be set. 
+		# if the request succeeds, pre|post attr may be set and all other fields are set
+		preattr: wcc_attr_t &optional;  # pre operation attributes
+		postattr: fattr_t &optional;    # post operation attributes 
+		size: count &optional;
+		commited: stable_how_t &optional; 
+		verf: string &optional;     # write verifier cookue
+	};
+
+	type fsstat_t: record {
+		attrs: fattr_t &optional;
+		tbytes: double;
+		fbytes: double;
+		abytes: double;
+		tfiles: double;
+		ffiles: double;
+		afiles: double;
+		invarsec: interval;
+	};
+} # end export
+
+module GLOBAL;
 type ntp_msg: record {
 	id: count;
 	code: count;
@@ -1300,11 +1315,10 @@ global load_sample_freq = 20 &redef;
 # degree the measurement process appears to exhibit loss.
 const gap_report_freq = 1.0 sec &redef;
 
-# Defined in const.bif 
 # Whether we want content_gap and drop reports for partial connections
 # (a connection is partial if it is missing a full handshake). Note that
 # gap reports for partial connections might not be reliable. 
-redef report_gaps_for_partial = T;
+const report_gaps_for_partial = F &redef;
 
 # Globals associated with entire-run statistics on gaps (useful
 # for final summaries).
@@ -1511,8 +1525,4 @@ const dump_selected_source_packets = F &redef;
 const dump_original_packets_if_not_rewriting = F &redef;
 
 
-# Whether we want content_gap and drop reports for partial connections
-# (a connection is partial if it is missing a full handshake). Note that
-# gap reports for partial connections might not be reliable. 
-const report_gaps_for_partial = F &redef;
 

@@ -127,6 +127,8 @@ extern TableType* smb_negotiate;
 
 extern RecordType* geo_location;
 
+extern RecordType* entropy_test_result;
+
 extern TableType* dhcp_router_list;
 extern RecordType* dhcp_msg;
 

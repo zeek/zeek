@@ -21,8 +21,16 @@ find_path(LibGeoIP_ROOT_DIR
     NAMES include/GeoIPCity.h
 )
 
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    # the static version of the library is preferred on OS X for the
+    # purposes of making packages (libGeoIP doesn't ship w/ OS X)
+    set(libgeoip_names libGeoIp.a GeoIP)
+else ()
+    set(libgeoip_names GeoIP)
+endif ()
+
 find_library(LibGeoIP_LIBRARY
-    NAMES GeoIP
+    NAMES ${libgeoip_names}
     HINTS ${LibGeoIP_ROOT_DIR}/lib
 )
 

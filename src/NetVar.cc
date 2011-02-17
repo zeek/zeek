@@ -120,6 +120,8 @@ TableType* smb_negotiate;
 
 RecordType* geo_location;
 
+RecordType* entropy_test_result;
+
 TableType* dhcp_router_list;
 RecordType* dhcp_msg;
 
@@ -447,6 +449,8 @@ void init_net_var()
 	smb_negotiate = internal_type("smb_negotiate")->AsTableType();
 
 	geo_location = internal_type("geo_location")->AsRecordType();
+
+	entropy_test_result = internal_type("entropy_test_result")->AsRecordType();
 
 	dhcp_router_list = internal_type("dhcp_router_list")->AsTableType();
 	dhcp_msg = internal_type("dhcp_msg")->AsRecordType();

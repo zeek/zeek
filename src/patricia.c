@@ -1027,7 +1027,7 @@ lookup_then_remove (patricia_tree_t *tree, char *string)
 {
     patricia_node_t *node;
 
-    if (node = try_search_exact (tree, string))
+    if ( (node = try_search_exact(tree, string)) )
         patricia_remove (tree, node);
 }
 

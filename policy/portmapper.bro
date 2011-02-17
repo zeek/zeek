@@ -4,6 +4,7 @@
 @load hot
 @load conn
 @load weird
+@load scan
 
 module Portmapper;
 

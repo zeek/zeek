@@ -60,9 +60,6 @@ class EnumType;
 class Serializer;
 class VectorType;
 
-extern bool in_global_attr_decl;
-extern RecordType* global_attributes_type;
-
 const int DOES_NOT_MATCH_INDEX = 0;
 const int MATCHES_INDEX_SCALAR = 1;
 const int MATCHES_INDEX_VECTOR = 2;
@@ -73,15 +70,6 @@ public:
 
 	TypeTag Tag() const		{ return tag; }
 	InternalTypeTag InternalType() const	{ return internal_tag; }
-
-	// Type for the attributes (metadata) on this type.
-	RecordType* AttributesType()
-		{
-		if ( ! attributes_type )
-			attributes_type = global_attributes_type;
-		return attributes_type;
-		}
-	bool SetAttributesType(type_decl_list* attr_types);
 
 	// Whether it's stored in network order.
 	int IsNetworkOrder() const	{ return is_network_order; }
@@ -211,8 +199,6 @@ public:
 
 	BroType* Ref()		{ ::Ref(this); return this; }
 
-	void MakeGlobalAttributeType()	{ is_global_attributes_type = true; }
-
 	virtual void Describe(ODesc* d) const;
 
 	virtual unsigned MemoryAllocation() const;
@@ -221,7 +207,7 @@ public:
 	static BroType* Unserialize(UnserialInfo* info, TypeTag want = TYPE_ANY);
 
 protected:
-	BroType()	{ attributes_type = 0; }
+	BroType()	{ }
 
 	void SetError();
 
@@ -232,8 +218,6 @@ private:
 	InternalTypeTag internal_tag;
 	bool is_network_order;
 	bool base_type;
-	bool is_global_attributes_type;
-	RecordType* attributes_type;
 };
 
 class TypeList : public BroType {

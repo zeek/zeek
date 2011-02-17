@@ -130,11 +130,17 @@ Trigger::Trigger(Expr* arg_cond, Stmt* arg_body, Stmt* arg_timeout_stmts,
 
 	Val* timeout = arg_timeout ? arg_timeout->ExprVal() : 0;
 
+	// Make sure we don't get deleted if somebody calls a method like
+	// Timeout() while evaluating the trigger. 
+	Ref(this);
+
 	if ( ! Eval() && timeout )
 		{
 		timer = new TriggerTimer(timeout->AsInterval(), this);
 		timer_mgr->Add(timer);
 		}
+
+	Unref(this);
 	}
 
 Trigger::~Trigger()

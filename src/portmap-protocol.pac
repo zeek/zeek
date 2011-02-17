@@ -68,7 +68,7 @@ type PortmapDumpEntry = record {
 	};
 };
 
-# the element that has cont!=0 will be included in the array 
+# The final element that has cont!=1 will be included in the array.
 type PortmapDumpResults = PortmapDumpEntry[] &until($element.cont != 1);
 
 type PortmapCallItResults = record {

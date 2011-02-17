@@ -414,15 +414,6 @@ bool Val::DoUnserialize(UnserialInfo* info)
 	return false;
 	}
 
-RecordVal* Val::GetAttribs(bool instantiate)
-	{
-	if ( ! instantiate || attribs )
-		return attribs;
-
-	attribs = new RecordVal(type->AttributesType());
-	return attribs;
-	}
-
 int Val::IsZero() const
 	{
 	switch ( type->InternalType() ) {
@@ -524,7 +515,11 @@ Val* Val::SizeVal() const
 	{
 	switch ( type->InternalType() ) {
 	case TYPE_INTERNAL_INT:
+#ifdef DARWIN_NO_LLABS
+		return new Val(abs(val.int_val), TYPE_COUNT);
+#else
 		return new Val(llabs(val.int_val), TYPE_COUNT);
+#endif
 
 	case TYPE_INTERNAL_UNSIGNED:
 		return new Val(val.uint_val, TYPE_COUNT);

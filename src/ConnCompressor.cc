@@ -391,26 +391,6 @@ Connection* ConnCompressor::NextFromOrig(PendingConn* pending, double t,
 			{
 			if ( (tp->th_flags & TH_ACK) && ! pending->ACK )
 				Weird(pending, t, "repeated_SYN_with_ack");
-			else
-				{
-				// We adjust the start-time. Unfortunately
-				// this means that we have to create a new
-				// PendingConn as all of them need to be
-				// monotonically increasing in time. This
-				// leads to some inconsistencies with TCP.cc,
-				// as by doing this we basically restart our
-				// attempt_timer.
-
-				pending = MoveState(t, pending);
-
-				// Removing is necessary because the key
-				// will be destroyed at some point.
-				conns.Remove(&pending->key, sizeof(pending->key),
-						pending->hash, true);
-				conns.Dictionary::Insert(&pending->key,
-					sizeof(pending->key), pending->hash,
-					MakeMapPtr(pending), 0);
-				}
 			}
 
 		else
@@ -713,17 +693,6 @@ uint8 ConnCompressor::MakeFlags(const PendingConn* c) const
 		tcp_flags |= TH_ACK;
 
 	return tcp_flags;
-	}
-
-ConnCompressor::PendingConn* ConnCompressor::MoveState(double time,
-							PendingConn* c)
-	{
-	PendingConn* nc = MakeNewState(time);
-	memcpy(nc, c, sizeof(PendingConn));
-	c->invalid = 1;
-	nc->time = time;
-	++sizes.pending_in_mem;
-	return nc;
 	}
 
 ConnCompressor::PendingConn* ConnCompressor::MakeNewState(double t)

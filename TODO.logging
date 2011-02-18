@@ -1,0 +1,13 @@
+List of the things not implemented yet:
+
+    - Removing filters
+    - Filter predicates
+    - Filter events
+    - Dynamic path function.
+    - Cluster-style remote_print
+    - Rotation support
+    - Spawning writers in separate threads (not clear if we want that initially).
+    - Not sure if the logging does the right thing with &optional and
+      &default values. Needs testing.
+
+There's probably more missing.

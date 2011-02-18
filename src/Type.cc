@@ -95,6 +95,7 @@ BroType::BroType(TypeTag t, bool arg_base_type)
 	case TYPE_FUNC:
 	case TYPE_FILE:
 	case TYPE_VECTOR:
+	case TYPE_TYPE:
 		internal_tag = TYPE_INTERNAL_OTHER;
 		break;
 
@@ -1426,6 +1427,9 @@ int same_type(const BroType* t1, const BroType* t2, int is_init)
 	case TYPE_FILE:
 		return same_type(t1->YieldType(), t2->YieldType(), is_init);
 
+	case TYPE_TYPE:
+		return same_type(t1, t2, is_init);
+
 	case TYPE_UNION:
 		error("union type in same_type()");
 	}
@@ -1514,6 +1518,7 @@ int is_assignable(BroType* t)
 	case TYPE_VECTOR:
 	case TYPE_FILE:
 	case TYPE_TABLE:
+	case TYPE_TYPE:
 		return 1;
 
 	case TYPE_VOID:

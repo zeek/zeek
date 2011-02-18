@@ -2892,6 +2892,62 @@ Val* RecordVal::Lookup(int field) const
 	return (*AsRecord())[field];
 	}
 
+RecordVal* RecordVal::CoerceTo(const RecordType* t, Val* aggr) const
+	{
+	if ( ! record_promotion_compatible(t->AsRecordType(), Type()->AsRecordType()) )
+		return 0;
+
+	if ( ! aggr )
+		aggr = new RecordVal(const_cast<RecordType*>(t->AsRecordType()));
+
+	RecordVal* ar = aggr->AsRecordVal();
+	RecordType* ar_t = aggr->Type()->AsRecordType();
+
+	const RecordType* rv_t = Type()->AsRecordType();
+
+	int i;
+	for ( i = 0; i < rv_t->NumFields(); ++i )
+		{
+		int t_i = ar_t->FieldOffset(rv_t->FieldName(i));
+
+		if ( t_i < 0 )
+			{
+			char buf[512];
+			safe_snprintf(buf, sizeof(buf),
+					"orphan field \"%s\" in initialization",
+					rv_t->FieldName(i));
+			Error(buf);
+			break;
+			}
+
+		else
+			ar->Assign(t_i, Lookup(i)->Ref());
+		}
+
+	for ( i = 0; i < ar_t->NumFields(); ++i )
+		if ( ! ar->Lookup(i) &&
+			 ! ar_t->FieldDecl(i)->FindAttr(ATTR_OPTIONAL) )
+			{
+			char buf[512];
+			safe_snprintf(buf, sizeof(buf),
+					"non-optional field \"%s\" missing in initialization", ar_t->FieldName(i));
+			Error(buf);
+			}
+
+	return ar;
+	}
+
+RecordVal* RecordVal::CoerceTo(RecordType* t)
+	{
+	if ( same_type(Type(), t) )
+		{
+		this->Ref();
+		return this;
+		}
+
+	return CoerceTo(t, 0);
+	}
+
 void RecordVal::Describe(ODesc* d) const
 	{
 	const val_list* vl = AsRecord();

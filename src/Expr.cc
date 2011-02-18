@@ -284,7 +284,7 @@ Val* NameExpr::Eval(Frame* f) const
 	Val* v;
 
 	if ( id->AsType() )
-		RunTime("cannot evaluate type name");
+		return new Val(id->AsType(), true);
 
 	if ( id->IsGlobal() )
 		v = id->ID_Val();
@@ -3309,48 +3309,12 @@ RecordConstructorExpr::RecordConstructorExpr(ListExpr* constructor_list)
 
 Val* RecordConstructorExpr::InitVal(const BroType* t, Val* aggr) const
 	{
-	if ( ! aggr )
-		aggr = new RecordVal(const_cast<RecordType*>(t->AsRecordType()));
+	RecordVal* rv = Eval(0)->AsRecordVal();
+	RecordVal* ar = rv->CoerceTo(t->AsRecordType(), aggr);
 
-	if ( record_promotion_compatible(t->AsRecordType(), Type()->AsRecordType()) )
+	if ( ar )
 		{
-		RecordVal* ar = aggr->AsRecordVal();
-		RecordType* ar_t = aggr->Type()->AsRecordType();
-
-		RecordVal* rv = Eval(0)->AsRecordVal();
-		RecordType* rv_t = rv->Type()->AsRecordType();
-
-		int i;
-		for ( i = 0; i < rv_t->NumFields(); ++i )
-			{
-			int t_i = ar_t->FieldOffset(rv_t->FieldName(i));
-
-			if ( t_i < 0 )
-				{
-				char buf[512];
-				safe_snprintf(buf, sizeof(buf),
-					      "orphan field \"%s\" in initialization",
-					      rv_t->FieldName(i));
-				Error(buf);
-				break;
-				}
-
-			else
-				ar->Assign(t_i, rv->Lookup(i)->Ref());
-			}
-
-		for ( i = 0; i < ar_t->NumFields(); ++i )
-			if ( ! ar->Lookup(i) &&
-			     ! ar_t->FieldDecl(i)->FindAttr(ATTR_OPTIONAL) )
-				{
-				char buf[512];
-				safe_snprintf(buf, sizeof(buf),
-					      "non-optional field \"%s\" missing in initialization", ar_t->FieldName(i));
-				Error(buf);
-				}
-
 		Unref(rv);
-
 		return ar;
 		}
 

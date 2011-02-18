@@ -31,6 +31,7 @@ typedef enum {
 	TYPE_FUNC,
 	TYPE_FILE,
 	TYPE_VECTOR,
+	TYPE_TYPE,
 	TYPE_ERROR
 #define NUM_TYPES (int(TYPE_ERROR) + 1)
 } TypeTag;
@@ -59,6 +60,7 @@ class ListExpr;
 class EnumType;
 class Serializer;
 class VectorType;
+class TypeType;
 
 const int DOES_NOT_MATCH_INDEX = 0;
 const int MATCHES_INDEX_SCALAR = 1;
@@ -151,6 +153,7 @@ public:
 		CHECK_TYPE_TAG(TYPE_SUBNET, "BroType::AsSubNetType");
 		return (const SubNetType*) this;
 		}
+
 	SubNetType* AsSubNetType()
 		{
 		CHECK_TYPE_TAG(TYPE_SUBNET, "BroType::AsSubNetType");
@@ -190,6 +193,18 @@ public:
 	        {
 		CHECK_TYPE_TAG(TYPE_VECTOR, "BroType::AsVectorType");
 		return (VectorType*) this;
+		}
+
+	const TypeType* AsTypeType() const
+	        {
+		CHECK_TYPE_TAG(TYPE_TYPE, "BroType::AsTypeType");
+		return (TypeType*) this;
+		}
+
+	TypeType* AsTypeType()
+	        {
+		CHECK_TYPE_TAG(TYPE_TYPE, "BroType::AsTypeType");
+		return (TypeType*) this;
 		}
 
 	int IsSet() const
@@ -357,6 +372,19 @@ protected:
 	BroType* yield;
 	int is_event;
 	ID* return_value;
+};
+
+class TypeType : public BroType {
+public:
+	TypeType(BroType* t) : BroType(TYPE_TYPE)	{ type = t->Ref(); }
+	~TypeType()	{ Unref(type); }
+
+	BroType* Type()	{ return type; }
+
+protected:
+	TypeType()	{}
+
+	BroType* type;
 };
 
 class TypeDecl {

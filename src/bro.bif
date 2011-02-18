@@ -359,7 +359,7 @@ function cat%(...%): string
 
 	return new StringVal(s);
 	%}
-	
+
 function logging_log%(index: string, rec: any%): any
 	%{
 	// TODO: Verify that rec is a record
@@ -384,7 +384,7 @@ function logging_log%(index: string, rec: any%): any
 		printf("Logging framework is dead (Logging::streams not found).\n");
 		return false;
 		}
-		
+
 	// Lookup all filters for stream
 	TableVal *filters = opt_internal_table("Logging::filters");
 	TableVal *stream_filters;
@@ -399,8 +399,8 @@ function logging_log%(index: string, rec: any%): any
 		printf("Logging framework is dead (Logging::filters not found).\n");
 		return false;
 		}
-		
-	// Generate the event for the log stream 
+
+	// Generate the event for the log stream
 	//   This happens regardless of all filters.
 	int name_field = stream_record->Type()->AsRecordType()->FieldOffset("name");
 	StringVal *log_type = stream_record->AsRecordVal()->Lookup(name_field)->AsStringVal();
@@ -414,7 +414,7 @@ function logging_log%(index: string, rec: any%): any
 		vl->append(recval->Ref());
 		mgr.QueueEvent(ev_ptr, vl, SOURCE_LOCAL);
 		}
-	
+
 	// Iterate over the stream_filters
 	ListVal* filter_recs = stream_filters->ConvertToList(TYPE_ANY);
 	for ( int i = 0; i < filter_recs->Length(); ++i )
@@ -432,10 +432,10 @@ function logging_log%(index: string, rec: any%): any
 			if ( !pred_val )
 				continue;
 			}
-		
-		// Format and print the line 
+
+		// Format and print the line
 		//  (send line onward to the filter's WRITER in the future)
-		
+
 		// Get a path name for this filter
 		int path_field = rv->Type()->AsRecordType()->FieldOffset("path");
 		Val *path_val = rv->Lookup(path_field);
@@ -445,7 +445,7 @@ function logging_log%(index: string, rec: any%): any
 			path = path_val->AsStringVal();
 		else
 			path = index;
-		
+
 		// Get the file with the "path" name found above for this filter.
 		// Open a new file is one does not exist yet.
 		TableVal *logging_files = opt_internal_table("Logging::files");
@@ -474,20 +474,61 @@ function logging_log%(index: string, rec: any%): any
 			}
 		f->Write(d.Description(), 0);
 		f->Write("\n",0);
-		
-		
+
+
 		}
 
 	Unref(filter_recs);
-	
+
 	return 0;
 	%}
-	
+
+
+%%{
+#include "LogMgr.h"
+%%}
+
+function log_create_stream%(id: Log_ID, columns: any%) : bool
+    %{
+    if ( columns->Type()->Tag() != TYPE_TYPE )
+	    {
+		run_time("log columns must be a type");
+    	return new Val(0, TYPE_BOOL);
+		}
+
+    if ( columns->Type()->AsTypeType()->Type()->Tag() != TYPE_RECORD )
+	    {
+		run_time("log columns must be a record type");
+    	return new Val(0, TYPE_BOOL);
+		}
+
+	bool result = log_mgr->CreateStream(id->AsEnumVal(), columns->Type()->AsTypeType()->Type()->AsRecordType());
+	return new Val(result, TYPE_BOOL);
+    %}
+
+function log_add_filter%(id: Log_ID, filter: log_filter%) : bool
+    %{
+	bool result = log_mgr->AddFilter(id->AsEnumVal(), filter->AsRecordVal());
+	return new Val(result, TYPE_BOOL);
+    %}
+
+function log_remove_filter%(id: Log_ID, name: string%) : bool
+    %{
+	bool result = log_mgr->RemoveFilter(id->AsEnumVal(), name);
+	return new Val(result, TYPE_BOOL);
+    %}
+
+function log_write%(id: Log_ID, columns: any%) : bool
+    %{
+	bool result = log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal());
+	return new Val(result, TYPE_BOOL);
+    %}
+
 function record_type_to_vector%(rt: string%): string_vec
 	%{
 	VectorVal* result =
 		new VectorVal(internal_type("string_vec")->AsVectorType());
-	
+
 	RecordType *type = internal_type(rt->CheckString())->AsRecordType();
 	if ( type )
 		{
@@ -499,8 +540,8 @@ function record_type_to_vector%(rt: string%): string_vec
 		}
 	return result;
 	%}
-	
-	
+
+
 function cat_sep%(sep: string, def: string, ...%): string
 	%{
 	ODesc d;
@@ -3164,7 +3205,7 @@ function lookup_location%(a: addr%) : geo_location
 #ifdef GEOIP_COUNTRY_EDITION_V6
 	if ( geoip_v6 && ! is_v4_addr(a) )
 		gir = GeoIP_record_by_ipnum_v6(geoip_v6, geoipv6_t(a));
-	else 
+	else
 #endif
 	if ( geoip && is_v4_addr(a) )
 		{
@@ -3252,7 +3293,7 @@ function lookup_asn%(a: addr%) : count
 			gir = GeoIP_name_by_ipnum_v6(geoip_asn, geoipv6_t(a));
 		else
 #endif
-		if ( is_v4_addr(a) ) 
+		if ( is_v4_addr(a) )
 			{
 			uint32 addr = to_v4_addr(a);
 			gir = GeoIP_name_by_ipnum(geoip_asn, ntohl(addr));
@@ -3264,7 +3305,7 @@ function lookup_asn%(a: addr%) : count
 
 	if ( gir )
 		{
-		// Move the pointer +2 so we don't return 
+		// Move the pointer +2 so we don't return
 		// the first two characters: "AS".
 		return new Val(atoi(gir+2), TYPE_COUNT);
 		}

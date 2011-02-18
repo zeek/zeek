@@ -1,0 +1,23 @@
+
+enum log_writer %{
+    WRITER_DEFAULT,
+    WRITER_TSV,
+    WRITER_SYSLOG,
+}%
+
+void log_create%(id: Logging::Stream, columns: any%)
+    %{
+    %}
+
+void log_add_filter%(id: Logging::Stream, filter: any%)
+    %{
+    %}
+
+void log_remove_filter%(id: Logging::Stream, name: string%)
+    %{
+    %}
+
+void log_write%(id: Logging::Stream, columns: any%)
+    %{
+    %}
+

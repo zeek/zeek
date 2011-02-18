@@ -297,6 +297,9 @@ set(bro_SRCS
     IRC.cc
     List.cc
     Logger.cc
+    LogMgr.cc
+    LogWriter.cc
+    LogWriterAscii.cc
     Login.cc
     MIME.cc
     NCP.cc

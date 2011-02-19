@@ -33,6 +33,7 @@ protected:
 	// Method names are based on the type names of RFC 1813
 	StringVal* nfs3_fh(const u_char*& buf, int& n);
 	RecordVal* nfs3_fattr(const u_char*& buf, int& n);
+	EnumVal* nfs3_ftype(const u_char*& buf, int& n);
 	RecordVal* nfs3_wcc_attr(const u_char*& buf, int& n);
 	RecordVal* nfs3_diropargs(const u_char*&buf, int &n);
 	StringVal* nfs3_filename(const u_char*& buf, int& n);

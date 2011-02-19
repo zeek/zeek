@@ -290,7 +290,7 @@ StringVal* NFS_Interp::nfs3_fh(const u_char*& buf, int& n)
 RecordVal* NFS_Interp::nfs3_fattr(const u_char*& buf, int& n)
 	{
 	RecordVal* attrs = new RecordVal(BifTypePtr::Record::NFS3::fattr_t);
-	attrs->Assign(0, ExtractUint32(buf, n));	// file type
+	attrs->Assign(0, nfs3_ftype(buf, n));	// file type
 	attrs->Assign(1, ExtractUint32(buf, n));	// mode
 	attrs->Assign(2, ExtractUint32(buf, n));	// nlink
 	attrs->Assign(3, ExtractUint32(buf, n));	// uid
@@ -306,6 +306,12 @@ RecordVal* NFS_Interp::nfs3_fattr(const u_char*& buf, int& n)
 	attrs->Assign(13, ExtractTime(buf, n));	// ctime
 
 	return attrs;
+	}
+
+EnumVal* NFS_Interp::nfs3_ftype(const u_char*& buf, int& n) 
+	{
+	BifEnum::NFS3::file_type_t t = (BifEnum::NFS3::file_type_t)extract_XDR_uint32(buf, n);
+	return new EnumVal(t, BifTypePtr::Enum::NFS3::file_type_t);
 	}
 
 RecordVal* NFS_Interp::nfs3_wcc_attr(const u_char*& buf, int& n)

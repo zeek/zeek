@@ -1,3 +1,28 @@
+1.6-dev.45 Tue Feb  8 21:28:01 PST 2011
+
+- Fixing a number of compiler warnings. (Seth Hall and Robin Sommer)
+
+1.6-dev.44 Tue Feb  8 20:11:44 PST 2011
+
+- A number of updates to the SSL analyzer, including support for new
+  ciphers; SSL extensions; and bug fixes. The analyzer does not longer
+  throw weird for exceeding a predefined cipherspec_size anymore.
+  (Seth Hall and Rmkml).
+
+- The various split*() BiFs now handle strings containing null bytes
+  correctly. (Seth Hall)
+
+- Adding new aux/btest submodule. This is a framework we will use in
+  the future for doing unit tests. (Robin Sommer)
+
+1.6-dev.41 Mon Feb  7 13:43:56 PST 2011
+
+- Smarter way to increase the parent/child pipe's socket buffer.
+  (Craig Leres).
+    
+- Fixing bug with defining bro_int_t and bro_uint_t to be 64 bits wide
+  on some platforms. (Robin Sommer)
+
 1.6-dev.39 Mon Jan 31 16:42:23 PST 2011
 
 - Login's confused messages now go through weird.bro. (Robin Sommer)

@@ -82,7 +82,7 @@ UUID::UUID(const char* str)
 		}
 
 	if ( i != 16 )
-		internal_error(fmt("invalid UUID string: %s", str));
+		internal_error("invalid UUID string: %s", str);
 	}
 
 typedef map<UUID, BroEnum::dce_rpc_if_id> uuid_map_t;

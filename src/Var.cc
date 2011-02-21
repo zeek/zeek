@@ -170,6 +170,16 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 		}
 
 	id->UpdateValAttrs();
+
+	if ( t && t->Tag() == TYPE_FUNC && t->AsFuncType()->IsEvent() )
+		{
+		// For events, add a function value (without any body) here so that
+		// we can later access the ID even if no implementations have been
+		// defined.
+		Func* f = new BroFunc(id, 0, 0, 0);
+		id->SetVal(new Val(f));
+		id->SetConst();
+		}
 	}
 
 

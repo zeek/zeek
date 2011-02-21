@@ -239,11 +239,15 @@ BroFunc::BroFunc(ID* arg_id, Stmt* arg_body, id_list* aggr_inits,
 : Func(BRO_FUNC)
 	{
 	id = arg_id;
-	Body b;
-	b.stmts = AddInits(arg_body, aggr_inits);
-	b.priority = 0;
-	bodies.push_back(b);
 	frame_size = arg_frame_size;
+
+	if ( arg_body )
+		{
+		Body b;
+		b.stmts = AddInits(arg_body, aggr_inits);
+		b.priority = 0;
+		bodies.push_back(b);
+		}
 	}
 
 BroFunc::~BroFunc()

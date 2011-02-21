@@ -127,3 +127,14 @@ bool LogWriterAscii::DoWrite(int num_fields, LogField** fields, LogVal** vals)
 
 	return true;
 	}
+
+bool LogWriterAscii::DoRotate(string rotated_path)
+	{
+	return true;
+	}
+
+void LogWriterAscii::DoSetFlushing(bool enabled)
+	{
+	}
+
+

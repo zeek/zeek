@@ -271,6 +271,13 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 #ifdef PROFILE_BRO_FUNCTIONS
 	DEBUG_MSG("Function: %s\n", id->Name());
 #endif
+	if ( ! bodies.size() ) 
+		{
+		// Can only happen for events.
+		assert(IsEvent());
+		return 0 ;
+		}
+
 	SegmentProfiler(segment_logger, location);
 	Frame* f = new Frame(frame_size, this, args);
 

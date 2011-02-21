@@ -241,8 +241,10 @@ bool LogMgr::AddFilter(EnumVal* stream_id, RecordVal* fval)
 	Filter* filter = new Filter;
 	filter->name = fval->Lookup(rtype->FieldOffset("name"))->AsString()->CheckString();
 	filter->pred = pred ? pred->AsFunc() : 0;
-	filter->pred = path_func ? path_func->AsFunc() : 0;
+	filter->path_func = path_func ? path_func->AsFunc() : 0;
 	filter->writer = ld;
+
+	// TODO: Check that the predciate is of the right type.
 
 	// Build the list of fields that the filter wants included, including
 	// potentially rolling out fields.
@@ -342,7 +344,7 @@ bool LogMgr::Write(EnumVal* stream_id, RecordVal* columns)
 	// Raise the log event.
 	if ( stream->event )
 		{
-		val_list* vl = new val_list;
+		val_list* vl = new val_list(1);
 		vl->append(columns->Ref());
 		mgr.QueueEvent(stream->event, vl, SOURCE_LOCAL);
 		}
@@ -356,7 +358,15 @@ bool LogMgr::Write(EnumVal* stream_id, RecordVal* columns)
 
 		if ( filter->pred )
 			{
-			// XXX Check predicate here.
+			// See whether the predicates indicates that we want to log this record.
+			val_list vl(1);
+			vl.append(columns->Ref());
+			Val* v = filter->pred->Call(&vl);
+			int result = v->AsBool();
+			Unref(v);
+
+			if ( ! result )
+				continue;
 			}
 
 		if ( filter->path_func )

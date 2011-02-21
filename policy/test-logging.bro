@@ -18,6 +18,11 @@ export {
 
 global ssh_log: event(rec: Log);
 
+function fail(rec: Log): bool
+	{
+	return rec$status != "success";
+	}
+
 event bro_init()
 {
 	# Create the stream.
@@ -28,6 +33,9 @@ event bro_init()
 
 	# Add a default filter that simply logs everything to "ssh.log" using the default writer.
 	Log_add_default_filter(LOG_SSH);
+
+	log_add_filter(LOG_SSH, [$name="f1", $path="ssh.success", $pred=function(rec: Log): bool { return rec$status == "success"; }]);
+	log_add_filter(LOG_SSH, [$name="f2", $path="ssh.failure", $pred=fail]);
 
 	# Printing headers for the filters doesn't work yet either and needs to 
 	# be considered in the final design. (based on the "select" set).

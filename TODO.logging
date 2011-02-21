@@ -1,7 +1,6 @@
 List of the things not implemented yet:
 
     - Removing filters
-    - Filter predicates
     - Dynamic path function.
     - Cluster-style remote_print
     - Rotation support

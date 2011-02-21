@@ -27,6 +27,7 @@ const char* type_name(TypeTag t)
 		"func",
 		"file",
 		"vector",
+		"type",
 		"error",
 	};
 

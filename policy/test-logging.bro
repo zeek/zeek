@@ -16,12 +16,15 @@ export {
 	};
 }
 
+global ssh_log: event(rec: Log);
+
 event bro_init()
 {
 	# Create the stream.
 	# First argument is the ID for the stream.
 	# Second argument is the log record type.
-	log_create_stream(LOG_SSH, SSH::Log);
+	# Third argument is the log event, which must receive a single argument of type arg2.
+	log_create_stream(LOG_SSH, SSH::Log, ssh_log);
 
 	# Add a default filter that simply logs everything to "ssh.log" using the default writer.
 	Log_add_default_filter(LOG_SSH);
@@ -36,8 +39,10 @@ event bro_init()
 
     local cid = [$orig_h=1.2.3.4, $orig_p=1234/tcp, $resp_h=2.3.4.5, $resp_p=80/tcp];
 
+	local r: Log = [$t=network_time(), $id=cid, $status="success"];
+
 	# Log something.
-	log_write(LOG_SSH, [$t=network_time(), $id=cid, $status="success"]);
+	log_write(LOG_SSH, r);
 	log_write(LOG_SSH, [$t=network_time(), $id=cid, $status="failure", $country="US"]);
 	log_write(LOG_SSH, [$t=network_time(), $id=cid, $status="failure", $country="UK"]);
 	log_write(LOG_SSH, [$t=network_time(), $id=cid, $status="success", $country="BR"]);
@@ -45,10 +50,11 @@ event bro_init()
 	
 }
 
-#event log(rec: Log)
-#	{
-#	print fmt("Ran the log handler from the same module.  Extracting time: %0.6f", rec$t);
-#	}
+event ssh_log(rec: Log)
+	{
+	print fmt("Ran the log handler from the same module.  Extracting time: %0.6f", rec$t);
+	print rec;
+	}
 #
 #
 #module WHATEVER;

@@ -488,21 +488,45 @@ function logging_log%(index: string, rec: any%): any
 #include "LogMgr.h"
 %%}
 
-function log_create_stream%(id: Log_ID, columns: any%) : bool
+function log_create_stream%(id: Log_ID, columns: any, ev: any%) : bool
     %{
     if ( columns->Type()->Tag() != TYPE_TYPE )
 	    {
 		run_time("log columns must be a type");
-    	return new Val(0, TYPE_BOOL);
+		return new Val(0, TYPE_BOOL);
 		}
 
     if ( columns->Type()->AsTypeType()->Type()->Tag() != TYPE_RECORD )
 	    {
 		run_time("log columns must be a record type");
-    	return new Val(0, TYPE_BOOL);
+		return new Val(0, TYPE_BOOL);
 		}
 
-	bool result = log_mgr->CreateStream(id->AsEnumVal(), columns->Type()->AsTypeType()->Type()->AsRecordType());
+    if ( ev->Type()->Tag() != TYPE_FUNC || ! ev->Type()->AsFuncType()->IsEvent() )
+		{
+		run_time("event argument is not of event type");
+		return new Val(0, TYPE_BOOL);
+		}
+
+	FuncType* et = ev->Type()->AsFuncType();
+	type_list* args = et->ArgTypes()->Types();
+
+    if ( args->length() != 1 )
+		{
+		run_time("event must take a single argument");
+		return new Val(0, TYPE_BOOL);
+		}
+
+	if ( ! same_type((*args)[0], columns->Type()->AsTypeType()->Type()) )
+		{
+		run_time("event argument type does not match log record type");
+		return new Val(0, TYPE_BOOL);
+		}
+
+	EventHandler* handler = event_registry->Lookup(ev->AsFunc()->GetID()->Name());
+	assert(handler);
+
+	bool result = log_mgr->CreateStream(id->AsEnumVal(), columns->Type()->AsTypeType()->Type()->AsRecordType(), handler);
 	return new Val(result, TYPE_BOOL);
     %}
 

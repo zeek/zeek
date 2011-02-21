@@ -2,12 +2,22 @@ List of the things not implemented yet:
 
     - Removing filters
     - Filter predicates
-    - Filter events
     - Dynamic path function.
     - Cluster-style remote_print
     - Rotation support
+    - Flushing support
     - Spawning writers in separate threads (not clear if we want that initially).
     - Not sure if the logging does the right thing with &optional and
       &default values. Needs testing.
+    - Seems we could do some of the filter-related type checks
+      currently done dynamically at startup via a TraversalCallback.
 
 There's probably more missing.
+
+Question:
+
+    * Is giving the record column twice to create_stream too
+	  redundant? (once directly, and once via the event)::
+
+        global ssh_log: event(rec: Log);
+        log_create_stream(LOG_SSH, SSH::Log, ssh_log);

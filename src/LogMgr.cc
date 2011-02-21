@@ -1,5 +1,6 @@
 
 #include "LogMgr.h"
+#include "Event.h"
 #include "EventHandler.h"
 #include "NetVar.h"
 
@@ -23,7 +24,6 @@ struct LogMgr::Filter {
 	string name;
 	Func* pred;
 	Func* path_func;
-	EventHandlerPtr* event;
 	string path;
 	LogWriterDefinition* writer;
 
@@ -40,6 +40,7 @@ struct LogMgr::Filter {
 struct LogMgr::Stream {
 	string name;
 	RecordType* columns;
+	EventHandlerPtr event;
 	list<Filter*> filters;
 
 	~Stream();
@@ -72,7 +73,7 @@ LogMgr::~LogMgr()
 		delete *s;
 	}
 
-bool LogMgr::CreateStream(EnumVal* stream_id, RecordType* columns)
+bool LogMgr::CreateStream(EnumVal* stream_id, RecordType* columns, EventHandlerPtr handler)
 	{
 	// TODO: Should check that the record has only supported types.
 
@@ -91,9 +92,10 @@ bool LogMgr::CreateStream(EnumVal* stream_id, RecordType* columns)
 	streams[idx] = new Stream;
 	streams[idx]->name = stream_id->Type()->AsEnumType()->Lookup(idx);
 	streams[idx]->columns = columns;
+	streams[idx]->event = handler;
 	columns->Ref();
 
-	DBG_LOG(DBG_LOGGING, "Created new logging stream '%s'", streams[idx]->name.c_str());
+	DBG_LOG(DBG_LOGGING, "Created new logging stream '%s', raising event %s", streams[idx]->name.c_str(), streams[idx]->event->Name());
 
 	return true;
 	}
@@ -242,12 +244,6 @@ bool LogMgr::AddFilter(EnumVal* stream_id, RecordVal* fval)
 	filter->pred = path_func ? path_func->AsFunc() : 0;
 	filter->writer = ld;
 
-	if ( event )
-		{
-		// TODO: Implement
-		filter->event = 0;
-		}
-
 	// Build the list of fields that the filter wants included, including
 	// potentially rolling out fields.
 	Val* include = fval->Lookup(rtype->FieldOffset("include"));
@@ -295,7 +291,6 @@ bool LogMgr::AddFilter(EnumVal* stream_id, RecordVal* fval)
 	DBG_LOG(DBG_LOGGING, "   writer    : %s", ld->name);
 	DBG_LOG(DBG_LOGGING, "   path      : %s", filter->path.c_str());
 	DBG_LOG(DBG_LOGGING, "   path_func : %s", (filter->path_func ? "set" : "not set"));
-	DBG_LOG(DBG_LOGGING, "   event     : %s", (filter->event ? "set" : "not set"));
 	DBG_LOG(DBG_LOGGING, "   pred      : %s", (filter->pred ? "set" : "not set"));
 
 	for ( int i = 0; i < filter->num_fields; i++ )
@@ -344,18 +339,20 @@ bool LogMgr::Write(EnumVal* stream_id, RecordVal* columns)
 		return false;
 		}
 
+	// Raise the log event.
+	if ( stream->event )
+		{
+		val_list* vl = new val_list;
+		vl->append(columns->Ref());
+		mgr.QueueEvent(stream->event, vl, SOURCE_LOCAL);
+		}
+
 	// Send to each of our filters.
 	for ( list<Filter*>::iterator i = stream->filters.begin(); i != stream->filters.end(); ++i )
 		{
 		Filter* filter = *i;
 
 		string path = filter->path;
-
-		if ( filter->event )
-			{
-			// XXX Raise event here.
-			// TODO: Actually, the filter should be an attribute of the stream, right?
-			}
 
 		if ( filter->pred )
 			{

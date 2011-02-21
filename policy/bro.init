@@ -308,18 +308,12 @@ type log_filter: record {
 	# extension is given; the writer will add whatever is
 	# appropiate.
 	path: string &optional;
-	path_func: function(id: string): string &optional;
+	path_func: function(id: Log_ID): string &optional;
 
 	# A subset of column names to record. If not given, all
 	# columns are recorded.
 	include: set[string] &optional;
 	exclude: set[string] &optional;
-
-	# An event that is raised whenever the filter is applied
-	# to an entry. The event receives the same parameter
-	# as the predicate. It will always be generated,
-	# independent of what the predicate returns.
-	ev: event(rec: any) &optional;
 
 	# The writer to use.
 	writer: Log_Writer &default=Log_default_writer;

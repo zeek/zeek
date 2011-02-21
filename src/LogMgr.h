@@ -5,6 +5,7 @@
 #define LOGMGR_H
 
 #include "Val.h"
+#include "EventHandler.h"
 
 // One value per writer type we have.
 namespace LogWriterType {
@@ -54,7 +55,7 @@ public:
 
     // These correspond to the BiFs visible on the scripting layer. The
     // actual BiFs just forward here.
-    bool CreateStream(EnumVal* stream_id, RecordType* columns);
+    bool CreateStream(EnumVal* stream_id, RecordType* columns, EventHandlerPtr handler);
     bool AddFilter(EnumVal* stream_id, RecordVal* filter);
     bool RemoveFilter(EnumVal* stream_id, StringVal* filter);
     bool Write(EnumVal* stream_id, RecordVal* columns);

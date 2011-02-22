@@ -6,6 +6,7 @@ LogWriter::LogWriter()
 	{
 	buf = 0;
 	buf_len = 1024;
+	buffering = true;
 	}
 
 LogWriter::~LogWriter()
@@ -35,6 +36,16 @@ bool LogWriter::Write(LogVal** vals)
 void LogWriter::Finish()
 	{
 	DoFinish();
+	}
+
+bool LogWriter::SetBuf(bool enabled)
+	{
+	if ( enabled == buffering )
+		// No change.
+		return true;
+
+	buffering = enabled;
+	return DoSetBuf(enabled);
 	}
 
 const char* LogWriter::Fmt(const char* format, ...)

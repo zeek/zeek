@@ -76,6 +76,19 @@ LogMgr::~LogMgr()
 		delete *s;
 	}
 
+LogMgr::Stream* LogMgr::FindStream(EnumVal* stream_id)
+	{
+	unsigned int idx = stream_id->AsEnum();
+
+	if ( idx >= streams.size() || ! streams[idx] )
+		{
+		run_time("unknown log stream");
+		return 0;
+		}
+
+	return streams[idx];
+	}
+
 bool LogMgr::CreateStream(EnumVal* stream_id, RecordType* columns, EventHandlerPtr handler)
 	{
 	// TODO: Should check that the record has only supported types.
@@ -182,15 +195,9 @@ bool LogMgr::AddFilter(EnumVal* stream_id, RecordVal* fval)
 		return false;
 		}
 
-	unsigned int i = stream_id->AsEnum();
-
-	if ( i >= streams.size() || ! streams[i] )
-		{
-		run_time("unknown log stream");
+	Stream* stream = FindStream(stream_id);
+	if ( ! stream )
 		return false;
-		}
-
-	Stream* stream = streams[i];
 
 	// Find the right writer type.
 	int writer = 0;
@@ -317,15 +324,9 @@ bool LogMgr::AddFilter(EnumVal* stream_id, RecordVal* fval)
 
 bool LogMgr::RemoveFilter(EnumVal* stream_id, StringVal* filter)
 	{
-	unsigned int idx = stream_id->AsEnum();
-
-	if ( idx >= streams.size() || ! streams[idx] )
-		{
-		run_time("unknown log stream");
+	Stream* stream = FindStream(stream_id);
+	if ( ! stream )
 		return false;
-		}
-
-	Stream* stream = streams[idx];
 
 	string name = filter->AsString()->CheckString();
 
@@ -348,15 +349,9 @@ bool LogMgr::RemoveFilter(EnumVal* stream_id, StringVal* filter)
 
 bool LogMgr::Write(EnumVal* stream_id, RecordVal* columns)
 	{
-	unsigned int idx = stream_id->AsEnum();
-
-	if ( idx >= streams.size() || ! streams[idx] )
-		{
-		run_time("unknown log stream");
+	Stream* stream = FindStream(stream_id);
+	if ( ! stream )
 		return false;
-		}
-
-	Stream* stream = streams[idx];
 
 	columns = columns->CoerceTo(stream->columns);
 
@@ -538,9 +533,21 @@ LogVal** LogMgr::RecordToFilterVals(Filter* filter, RecordVal* columns)
 	return vals;
 	}
 
+bool LogMgr::SetBuf(EnumVal* stream_id, bool enabled)
+	{
+	Stream* stream = FindStream(stream_id);
+	if ( ! stream )
+		return false;
+
+	for ( list<Filter*>::iterator i = stream->filters.begin(); i != stream->filters.end(); ++i )
+		{
+		for ( Filter::WriterMap::iterator j = (*i)->writers.begin(); j != (*i)->writers.end(); j++ )
+			j->second->SetBuf(enabled);
+		}
+
+	return true;
+	}
 
 void LogMgr::Error(LogWriter* writer, const char* msg)
 	{
-#if 0
-#endif
 	}

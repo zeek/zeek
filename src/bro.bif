@@ -548,6 +548,12 @@ function log_write%(id: Log_ID, columns: any%) : bool
 	return new Val(result, TYPE_BOOL);
     %}
 
+function log_set_buf%(id: Log_ID, buffered: bool%): bool
+	%{
+	bool result = log_mgr->SetBuf(id->AsEnumVal(), buffered);
+	return new Val(result, TYPE_BOOL);
+	%}
+
 function record_type_to_vector%(rt: string%): string_vec
 	%{
 	VectorVal* result =

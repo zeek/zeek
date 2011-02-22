@@ -36,6 +36,9 @@ public:
 	// performed.
 	void Finish();
 
+	// Sets the buffering status for the writer, if the writer supports 
+	bool SetBuf(bool enabled);
+
 protected:
 
     //// Methods for Writers to override.
@@ -50,15 +53,17 @@ protected:
     // should be reported via Error().
     virtual bool DoWrite(int num_fields, LogField** fields, LogVal** vals) = 0;
 
-	// Called when the flushing status for this writer is changed. If
-	// flushing is enabled, the writer should attempt to write out
+	// Called when the buffering status for this writer is changed. If
+	// buffering is disabled, the writer should attempt to write out
 	// information as quickly as possible even if that may have an
-	// performance impact. If disabled (which the writer should assume to be
+	// performance impact. If enabled (which the writer should assume to be
 	// the default), then it can buffer things up as necessary and write out
-	// in a way optimized for performance.
+	// in a way optimized for performance. The current buffering state can
+	// alse be queried via IsBuf().
 	//
-	// A writer may ignore flushing if it doesn't fit with its semantics.
-	virtual void DoSetFlushing(bool enabled) = 0;
+	// A writer may ignore buffering if it doesn't fit with its semantics.
+	// Still return true in that case.
+	virtual bool DoSetBuf(bool enabled) = 0;
 
 	// Called when a log output is to be rotated. Most directly, this only
 	// applies to writers outputting files, thoug a writer may also trigger
@@ -91,6 +96,9 @@ protected:
 	// A thread-safe version of fmt().
 	const char* Fmt(const char* format, ...);
 
+	// Returns the current buffering state.
+	bool IsBuf()	{ return buffering; }
+
     // Reports an error.
     void Error(const char *msg);
 
@@ -104,6 +112,7 @@ private:
     string path;
     int num_fields;
     LogField** fields;
+	bool buffering;
 
 	// For Fmt().
 	char* buf;

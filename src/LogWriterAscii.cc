@@ -125,6 +125,9 @@ bool LogWriterAscii::DoWrite(int num_fields, LogField** fields, LogVal** vals)
 		return false;
 		}
 
+	if ( IsBuf() )
+		fflush(file);
+
 	return true;
 	}
 
@@ -133,8 +136,10 @@ bool LogWriterAscii::DoRotate(string rotated_path)
 	return true;
 	}
 
-void LogWriterAscii::DoSetFlushing(bool enabled)
+bool LogWriterAscii::DoSetBuf(bool enabled)
 	{
+	// Nothing to do.
+	return true;
 	}
 
 

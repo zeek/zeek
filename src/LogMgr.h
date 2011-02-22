@@ -59,6 +59,7 @@ public:
     bool AddFilter(EnumVal* stream_id, RecordVal* filter);
     bool RemoveFilter(EnumVal* stream_id, StringVal* filter);
     bool Write(EnumVal* stream_id, RecordVal* columns);
+	bool SetBuf(EnumVal* stream_id, bool enabled); // Changes the state for all writers for that stream.
 
 protected:
     friend class LogWriter;
@@ -74,6 +75,7 @@ private:
 
 	bool TraverseRecord(Filter* filter, RecordType* rt, TableVal* include, TableVal* exclude, string path, list<int> indices);
 	LogVal** RecordToFilterVals(Filter* filter, RecordVal* columns);
+	Stream* FindStream(EnumVal* stream_id);
 
 	vector<Stream *> streams; // Indexed by stream enum.
 };

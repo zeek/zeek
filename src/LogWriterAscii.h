@@ -17,7 +17,7 @@ public:
 protected:
     virtual bool DoInit(string path, int num_fields, LogField** fields);
     virtual bool DoWrite(int num_fields, LogField** fields, LogVal** vals);
-	virtual void DoSetFlushing(bool enabled);
+	virtual bool DoSetBuf(bool enabled);
 	virtual bool DoRotate(string rotated_path);
     virtual void DoFinish();
 

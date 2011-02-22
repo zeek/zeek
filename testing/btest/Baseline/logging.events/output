@@ -1,0 +1,2 @@
+[t=1298326194.80574, id=[orig_h=1.2.3.4, orig_p=1234/tcp, resp_h=2.3.4.5, resp_p=80/tcp], status=success, country=<uninitialized>]
+[t=1298326194.80574, id=[orig_h=1.2.3.4, orig_p=1234/tcp, resp_h=2.3.4.5, resp_p=80/tcp], status=failure, country=US]

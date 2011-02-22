@@ -8,6 +8,14 @@ module NFS3;
 export {
 	global log_file = open_log_file("nfs") &redef;
 	global names_log_file = open_log_file("nfs-files") &redef;
+
+	# we want to estiamte how long it takes to lookup a chain of FH 
+	# (directories) until we reach a FH that is used in a read or write 
+	# operation. Whenever we get a new FH, we check how long ago we 
+	# got the FH's parent. If this is less than fh_chain_maxtime, we 
+	# assume that they belong to a lookup chain and set the dt value for
+	# the FH accordingly. 
+	global fh_chain_maxtime = 100 msec;
 }
 
 
@@ -25,6 +33,11 @@ type fh_info : record {
 	id: count;   # A unique ID (counter) for more readable representation of the FH
 	pathname: string &default="@"; # the path leading to this FH
 	basename: string &default="";  # the name of this FHs file or directory
+	t0: time &default=double_to_time(0); # time when we first saw this FH
+	dt: interval &default=0 sec;   # time it took to get this FH (assuming a chain of 
+	                               # procedures that ultimately yield the FH for the file
+								   # a client is interested in
+	chainlen: count &default=0;
 	attr: fattr_t &optional;
 };
 
@@ -45,6 +58,7 @@ function get_fh_info(c: connection, fh: string): fh_info
 		# Don't have a mapping for this FH yet. E.g., a root FH
 		local newfhinfo: fh_info = [ $id=++num_fhs ];
 		newfhinfo$pathname = fmt("@%d", newfhinfo$id);
+		newfhinfo$t0 = network_time();
 		fh_map[c$id$resp_h, fh] = newfhinfo;
 		}
 	return fh_map[c$id$resp_h, fh];
@@ -104,8 +118,31 @@ function add_update_fh(c: connection, parentfh: string, name: string, fh: string
 		{
 		local parentinfo = get_fh_info(c, parentfh);
 		info$pathname = cat(parentinfo$pathname, "/", parentinfo$basename);
+		if ( (network_time() - parentinfo$t0) < fh_chain_maxtime 
+				&& info$dt < 0 sec )
+			{
+			# The FH is part of lookup chain and it doesn't yet have a dt value
+			# TODO: this should probably be moved to get_fh_info(). But then get_fh_info()
+			# would need information about a FH's parent....
+			# TODO: We are using network_time(), but we really should use request
+			# and reply time!!!
+			info$dt = parentinfo$dt + (network_time() - parentinfo$t0);
+			info$chainlen = parentinfo$chainlen + 1;
+			}
 		}
 	log_filename(info);
+	}
+
+# Get the total time of the lookup chain for this FH to the 
+# current network time. Returns a negative interal if no 
+# lookup chain was found
+function get_fh_chaintime_str(c:connection, fh:string): string
+	{
+	local info = get_fh_info(c, fh);
+	if ((network_time() - info$t0) < fh_chain_maxtime)
+		return fmt("%d %.6f", info$chainlen, info$dt + (network_time() - info$t0));
+	else 
+		return fmt("%d %.6f", 0, 0.0);
 	}
 
 # Get a FH ID
@@ -206,7 +243,8 @@ event nfs_proc_read(c: connection, info: info_t, req: NFS3::readargs_t, rep: NFS
 	msg = fmt("%s %s @%d: %d", msg, get_fh_id(c, req$fh), req$offset, req$size);
 	if (is_success(info))
 		{
-		msg = fmt("%s got %d bytes %s", msg, rep$size, (rep$eof) ? "<eof>" : "x");
+		msg = fmt("%s got %d bytes %s %s", msg, rep$size, (rep$eof) ? "<eof>" : "x", 
+					get_fh_chaintime_str(c, req$fh));
 		if (rep?$attr)
 			log_attributes(c, req$fh, rep$attr);
 		}
@@ -236,7 +274,8 @@ event nfs_proc_write(c: connection, info: info_t, req: NFS3::writeargs_t, rep: N
 	msg = fmt("%s %s @%d: %d %s", msg, get_fh_id(c, req$fh), req$offset, req$size, req$stable);
 	if (is_success(info))
 		{
-		msg = fmt("%s wrote %d bytes %s", msg, rep$size, rep$commited);
+		msg = fmt("%s wrote %d bytes %s %s", msg, rep$size, rep$commited, 
+					get_fh_chaintime_str(c, req$fh));
 		if (rep?$postattr)
 			log_attributes(c, req$fh, rep$postattr);
 		}

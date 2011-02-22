@@ -76,6 +76,7 @@ private:
 	bool TraverseRecord(Filter* filter, RecordType* rt, TableVal* include, TableVal* exclude, string path, list<int> indices);
 	LogVal** RecordToFilterVals(Filter* filter, RecordVal* columns);
 	Stream* FindStream(EnumVal* stream_id);
+	void RemoveDisabledWriters(Stream* stream);
 
 	vector<Stream *> streams; // Indexed by stream enum.
 };

@@ -31,38 +31,38 @@ public:
     // occured, in which case the writer must not be used further. 
     bool Write(LogVal** vals);
 
+	// Sets the buffering status for the writer, if the writer supports 
+	bool SetBuf(bool enabled);
+
 	// Finished writing to this logger. Will not be called if an error has
 	// been indicated earlier. After calling this, no more writing must be
 	// performed.
 	void Finish();
 
-	// Sets the buffering status for the writer, if the writer supports 
-	bool SetBuf(bool enabled);
-
 protected:
 
-    //// Methods for Writers to override.
+ 	// Methods for Writers to override. If any of these returs false, it will
+ 	// be assumed that a fatal error has occured that prevents the writer
+ 	// from further operation. It will then be disabled and deleted. In that
+ 	// case, the writer should also report the error via Error(). If a writer
+ 	// does not specifically implement one of the methods, it must still
+ 	// always return true.
 
-    // Called once for initialization of the Writer. Must return false if an
-    // error occured, in which case the writer will be disabled. The error
-    // reason should be reported via Error().
+    // Called once for initialization of the Writer.
     virtual bool DoInit(string path, int num_fields, LogField** fields) = 0;
 
-    // Called once per entry to record. Must return false if an error
-    // occured, in which case the writer will be disabled. The error reason
-    // should be reported via Error().
+    // Called once per entry to record.
     virtual bool DoWrite(int num_fields, LogField** fields, LogVal** vals) = 0;
 
 	// Called when the buffering status for this writer is changed. If
 	// buffering is disabled, the writer should attempt to write out
-	// information as quickly as possible even if that may have an
-	// performance impact. If enabled (which the writer should assume to be
-	// the default), then it can buffer things up as necessary and write out
-	// in a way optimized for performance. The current buffering state can
-	// alse be queried via IsBuf().
+	// information as quickly as possible even if doing so may have an
+	// performance impact. If enabled (which is the default), it can buffer
+	// things up as necessary and write out in a way optimized for
+	// performance. The current buffering state can be queried via IsBuf().
 	//
-	// A writer may ignore buffering if it doesn't fit with its semantics.
-	// Still return true in that case.
+	// A writer may ignore buffering changes if it doesn't fit with its
+	// semantics.
 	virtual bool DoSetBuf(bool enabled) = 0;
 
 	// Called when a log output is to be rotated. Most directly, this only
@@ -83,7 +83,7 @@ protected:
 	// still call Error(), but return true.
 	//
 	// A writer may ignore rotation requests if it doesn't fit with its
-	// semantics. In that case, still return true.
+	// semantics.
 	virtual bool DoRotate(string rotated_path) = 0;
 
 	// Called once on termination. Not called when any of the other methods
@@ -106,13 +106,20 @@ protected:
 	const string Path() const	{ return path; }
 
 private:
-    // Delete values as passed into Write().
+	friend class LogMgr;
+
+	// When an error occurs, we set this flag. The LogMgr will check it an
+	// remove any disabled writers. 
+	bool Disabled()	{ return disabled; }
+
+    // Deletes the values passed into Write().
     void DeleteVals(LogVal** vals);
 
     string path;
     int num_fields;
     LogField** fields;
 	bool buffering;
+	bool disabled;
 
 	// For Fmt().
 	char* buf;

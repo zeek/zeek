@@ -89,6 +89,28 @@ LogMgr::Stream* LogMgr::FindStream(EnumVal* stream_id)
 	return streams[idx];
 	}
 
+void LogMgr::RemoveDisabledWriters(Stream* stream)
+	{
+	for ( list<Filter*>::iterator i = stream->filters.begin(); i != stream->filters.end(); ++i )
+		{
+		Filter* filter = (*i);
+
+		list<string> disabled;
+
+		for ( Filter::WriterMap::iterator j = filter->writers.begin(); j != filter->writers.end(); j++ )
+			{
+			if ( j->second->Disabled() )
+				{
+				delete j->second;
+				disabled.push_back(j->first);
+				}
+			}
+
+		for ( list<string>::iterator j = disabled.begin(); j != disabled.end(); j++ )
+			filter->writers.erase(*j);
+		}
+	}
+
 bool LogMgr::CreateStream(EnumVal* stream_id, RecordType* columns, EventHandlerPtr handler)
 	{
 	// TODO: Should check that the record has only supported types.
@@ -272,7 +294,7 @@ bool LogMgr::AddFilter(EnumVal* stream_id, RecordVal* fval)
 	// Get the path for the filter.
 	Val* path_val = fval->Lookup(rtype->FieldOffset("path"));
 
-	if ( path_val ) 
+	if ( path_val )
 		{
 		filter->path = path_val->AsString()->CheckString();
 		filter->path_val = path_val->Ref();
@@ -349,6 +371,8 @@ bool LogMgr::RemoveFilter(EnumVal* stream_id, StringVal* filter)
 
 bool LogMgr::Write(EnumVal* stream_id, RecordVal* columns)
 	{
+	bool error = false;
+
 	Stream* stream = FindStream(stream_id);
 	if ( ! stream )
 		return false;
@@ -387,7 +411,7 @@ bool LogMgr::Write(EnumVal* stream_id, RecordVal* columns)
 			if ( ! result )
 				continue;
 			}
-		
+
 		if ( filter->path_func )
 			{
 			val_list vl(2);
@@ -440,7 +464,8 @@ bool LogMgr::Write(EnumVal* stream_id, RecordVal* columns)
 
 		// Alright, can do the write now.
 		LogVal** vals = RecordToFilterVals(filter, columns);
-		writer->Write(vals);
+		if ( ! writer->Write(vals) )
+			error = true;
 
 #ifdef DEBUG
 		DBG_LOG(DBG_LOGGING, "Wrote record to filter '%s' on stream '%s'", filter->name.c_str(), stream->name.c_str());
@@ -448,6 +473,10 @@ bool LogMgr::Write(EnumVal* stream_id, RecordVal* columns)
 		}
 
 	Unref(columns);
+
+	if ( error )
+		RemoveDisabledWriters(stream);
+
 	return true;
 	}
 
@@ -545,9 +574,12 @@ bool LogMgr::SetBuf(EnumVal* stream_id, bool enabled)
 			j->second->SetBuf(enabled);
 		}
 
+	RemoveDisabledWriters(stream);
+
 	return true;
 	}
 
 void LogMgr::Error(LogWriter* writer, const char* msg)
 	{
+	run_time(fmt("error with writer for %s: %s", writer->Path().c_str(), msg));
 	}

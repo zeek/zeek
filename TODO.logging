@@ -1,21 +1,17 @@
 List of the things not implemented yet:
 
-    - Cluster-style remote_print
-    - Rotation support
-    - Spawning writers in separate threads (not clear if we want that initially).
+    - Cluster-style remote_print.
+    - Rotation support.
     - Not sure if the logging does the right thing with &optional and
       &default values. Needs testing.
-    - Seems we could do some of the filter-related type checks
-      currently done dynamically at startup via a TraversalCallback.
-	- LogMgs' error handling
 	- Put script function/constants into namespace.
+    - Some typchecks are still missing.
 	- Cleanup code.
-
-There's probably more missing.
+    - Spawning writers in separate threads (not clear if we want that initially).
 
 Questions:
 
-    * Is giving the record column twice to create_stream too
+    * Is giving the record column twice to create_stream() too
 	  redundant? (once directly, and once via the event)::
 
         global ssh_log: event(rec: Log);

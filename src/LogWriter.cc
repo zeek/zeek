@@ -7,6 +7,7 @@ LogWriter::LogWriter()
 	buf = 0;
 	buf_len = 1024;
 	buffering = true;
+	disabled = false;
 	}
 
 LogWriter::~LogWriter()
@@ -22,7 +23,13 @@ bool LogWriter::Init(string arg_path, int arg_num_fields, LogField** arg_fields)
 	path = arg_path;
 	num_fields = arg_num_fields;
 	fields = arg_fields;
-	DoInit(arg_path, arg_num_fields, arg_fields);
+
+	if ( ! DoInit(arg_path, arg_num_fields, arg_fields) )
+		{
+		disabled = true;
+		return false;
+		}
+
 	return true;
 	}
 
@@ -30,12 +37,11 @@ bool LogWriter::Write(LogVal** vals)
 	{
 	bool result = DoWrite(num_fields, fields, vals);
 	DeleteVals(vals);
-	return result;
-	}
 
-void LogWriter::Finish()
-	{
-	DoFinish();
+	if ( ! result )
+		disabled = true;
+
+	return result;
 	}
 
 bool LogWriter::SetBuf(bool enabled)
@@ -45,7 +51,18 @@ bool LogWriter::SetBuf(bool enabled)
 		return true;
 
 	buffering = enabled;
-	return DoSetBuf(enabled);
+	if ( ! DoSetBuf(enabled) )
+		{
+		disabled = true;
+		return false;
+		}
+
+	return true;
+	}
+
+void LogWriter::Finish()
+	{
+	DoFinish();
 	}
 
 const char* LogWriter::Fmt(const char* format, ...)
@@ -72,10 +89,9 @@ const char* LogWriter::Fmt(const char* format, ...)
 	return buf;
 	}
 
-
 void LogWriter::Error(const char *msg)
 	{
-	run_time(msg);
+	log_mgr->Error(this, msg);
 	}
 
 void LogWriter::DeleteVals(LogVal** vals)

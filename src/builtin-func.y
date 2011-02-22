@@ -91,9 +91,9 @@ void set_decl_name(const char *name)
 
 	switch ( definition_type ) {
 	case TYPE_DEF:
-		decl.c_namespace_start = "namespace BifTypePtr { namespace " + type_name + "{ ";
+		decl.c_namespace_start = "namespace BifType { namespace " + type_name + "{ ";
 		decl.c_namespace_end = " } }";
-		decl.c_fullname = "BifTypePtr::" + type_name + "::";
+		decl.c_fullname = "BifType::" + type_name + "::";
 		break;
 
 	case CONST_DEF:

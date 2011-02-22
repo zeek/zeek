@@ -150,7 +150,7 @@ function PortmapCallFailed(connection: RPC_Conn,
 			status: EnumRPCStatus): bool
 	%{
 	// BifEnum::rpc_status st = static_cast<BifEnum::rpc_status>(status);
-	Val *st = new EnumVal(status, BifTypePtr::Enum::rpc_status);
+	Val *st = new EnumVal(status, BifType::Enum::rpc_status);
 
 	switch ( call->proc() ) {
 	case PMAPPROC_NULL:

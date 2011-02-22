@@ -308,7 +308,7 @@ type log_filter: record {
 	# extension is given; the writer will add whatever is
 	# appropiate.
 	path: string &optional;
-	path_func: function(id: Log_ID): string &optional;
+	path_func: function(id: Log_ID, path: string): string &optional;
 
 	# A subset of column names to record. If not given, all
 	# columns are recorded.

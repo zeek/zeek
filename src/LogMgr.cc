@@ -25,6 +25,7 @@ struct LogMgr::Filter {
 	Func* pred;
 	Func* path_func;
 	string path;
+	Val* path_val;
 	LogWriterDefinition* writer;
 
 	int num_fields;
@@ -54,6 +55,8 @@ LogMgr::Filter::~Filter()
 
 	for ( WriterMap::iterator i = writers.begin(); i != writers.end(); i++ )
 		delete i->second;
+
+	Unref(path_val);
 	}
 
 LogMgr::Stream::~Stream()
@@ -262,8 +265,11 @@ bool LogMgr::AddFilter(EnumVal* stream_id, RecordVal* fval)
 	// Get the path for the filter.
 	Val* path_val = fval->Lookup(rtype->FieldOffset("path"));
 
-	if ( path_val )
+	if ( path_val ) 
+		{
 		filter->path = path_val->AsString()->CheckString();
+		filter->path_val = path_val->Ref();
+		}
 
 	else
 		{
@@ -286,6 +292,7 @@ bool LogMgr::AddFilter(EnumVal* stream_id, RecordVal* fval)
 			}
 
 		filter->path = string(lower);
+		filter->path_val = new StringVal(lower);
 		free(lower);
 		}
 
@@ -371,7 +378,6 @@ bool LogMgr::Write(EnumVal* stream_id, RecordVal* columns)
 	for ( list<Filter*>::iterator i = stream->filters.begin(); i != stream->filters.end(); ++i )
 		{
 		Filter* filter = *i;
-
 		string path = filter->path;
 
 		if ( filter->pred )
@@ -386,10 +392,26 @@ bool LogMgr::Write(EnumVal* stream_id, RecordVal* columns)
 			if ( ! result )
 				continue;
 			}
-
+		
 		if ( filter->path_func )
 			{
-			// XXX Do dynamic path here.
+			val_list vl(2);
+			vl.append(stream_id->Ref());
+			vl.append(filter->path_val->Ref());
+			Val* v = filter->path_func->Call(&vl);
+
+			if ( ! v->Type()->Tag() == TYPE_STRING )
+				{
+				run_time("path_func did not return string");
+				Unref(v);
+				return false;
+				}
+
+			path = v->AsString()->CheckString();
+
+#ifdef DEBUG
+			DBG_LOG(DBG_LOGGING, "Path function for filter '%s' on stream '%s' return '%s'", filter->name.c_str(), stream->name.c_str(), path.c_str());
+#endif
 			}
 
 		// See if we already have a writer for this path.

@@ -1,6 +1,5 @@
 List of the things not implemented yet:
 
-    - Removing filters
     - Dynamic path function.
     - Cluster-style remote_print
     - Rotation support

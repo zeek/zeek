@@ -179,12 +179,15 @@ bool LogMgr::AddFilter(EnumVal* stream_id, RecordVal* fval)
 		return false;
 		}
 
-	Stream* stream = streams[stream_id->AsEnum()];
-	if ( ! stream )
+	unsigned int i = stream_id->AsEnum();
+
+	if ( i >= streams.size() || ! streams[i] )
 		{
-		run_time("undefined log stream");
+		run_time("unknown log stream");
 		return false;
 		}
+
+	Stream* stream = streams[i];
 
 	// Find the right writer type.
 	int writer = 0;
@@ -307,8 +310,7 @@ bool LogMgr::AddFilter(EnumVal* stream_id, RecordVal* fval)
 
 bool LogMgr::RemoveFilter(EnumVal* stream_id, StringVal* filter)
 	{
-#if 0
-	int idx = stream_id->AsEnum();
+	unsigned int idx = stream_id->AsEnum();
 
 	if ( idx >= streams.size() || ! streams[idx] )
 		{
@@ -316,8 +318,24 @@ bool LogMgr::RemoveFilter(EnumVal* stream_id, StringVal* filter)
 		return false;
 		}
 
+	Stream* stream = streams[idx];
 
-#endif
+	string name = filter->AsString()->CheckString();
+
+	for ( list<Filter*>::iterator i = stream->filters.begin(); i != stream->filters.end(); ++i )
+		{
+		if ( (*i)->name == name )
+			{
+			Filter* filter = *i;
+			stream->filters.erase(i);
+			DBG_LOG(DBG_LOGGING, "Removed filter '%s' from stream '%s'", filter->name.c_str(), stream->name.c_str());
+			delete filter;
+			return true;
+			}
+		}
+
+	// If we don't find the filter, we don't treat that as an error.
+	DBG_LOG(DBG_LOGGING, "Did not find filter '%s' for removing from stream '%s'", name.c_str(), stream->name.c_str());
 	return true;
 	}
 

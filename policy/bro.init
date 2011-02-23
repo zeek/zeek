@@ -494,6 +494,18 @@ const encap_hdr_size = 0 &redef;
 # ... or just for the following UDP port.
 const tunnel_port = 0/udp &redef;
 
+# Whether to use the ConnSize analyzer to count the number of 
+# packets and IP-level bytes transfered by each endpoint. If 
+# true these values are returned in the connection's endpoint
+# record val. 
+# Defined in const.bif
+redef use_conn_size_analyzer = F;
+
+# Whether to include connection state history in the logs generated
+# by record_connection.
+# Defined in const.bif
+redef record_state_history = F;
+
 const UDP_INACTIVE = 0;
 const UDP_ACTIVE = 1;	# means we've seen something from this endpoint
 

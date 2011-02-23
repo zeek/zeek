@@ -361,7 +361,10 @@ RecordVal* Connection::BuildConnVal()
 		conn_val->Assign(5, new TableVal(string_set));	// service
 		conn_val->Assign(6, new StringVal(""));	// addl
 		conn_val->Assign(7, new Val(0, TYPE_COUNT));	// hot
-		conn_val->Assign(8, new StringVal(""));	// history.
+		if (record_state_history)
+			conn_val->Assign(8, new StringVal(""));	// history.
+		else
+			conn_val->Assign(8, NULL);
 
 		}
 
@@ -370,7 +373,8 @@ RecordVal* Connection::BuildConnVal()
 
 	conn_val->Assign(3, new Val(start_time, TYPE_TIME));	// ###
 	conn_val->Assign(4, new Val(last_time - start_time, TYPE_INTERVAL));
-	conn_val->Assign(8, new StringVal(history.c_str()));
+	if (record_state_history)
+		conn_val->Assign(8, new StringVal(history.c_str()));
 
 	conn_val->SetOrigin(this);
 

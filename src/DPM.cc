@@ -191,6 +191,7 @@ bool DPM::BuildInitialAnalyzerTree(TransportProto proto, Connection* conn,
 	{
 	TCP_Analyzer* tcp = 0;
 	UDP_Analyzer* udp = 0;
+	ICMP_Analyzer *icmp = 0;
 	TransportLayerAnalyzer* root = 0;
 	AnalyzerTag::Tag expected = AnalyzerTag::Error;
 	analyzer_map* ports = 0;
@@ -376,6 +377,13 @@ bool DPM::BuildInitialAnalyzerTree(TransportProto proto, Connection* conn,
 		// Add ConnSize analyzer. Needs to see packets not stream
 		if ( ConnSize_Analyzer::Available() )
 			udp->AddChildAnalyzer(new ConnSize_Analyzer(conn), false);
+		}
+
+	if ( icmp )
+		{
+		// Add ConnSize analyzer. Needs to see packets not stream
+		if ( ConnSize_Analyzer::Available() )
+			icmp->AddChildAnalyzer(new ConnSize_Analyzer(conn), false);
 		}
 
 	if ( pia )

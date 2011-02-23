@@ -42,6 +42,10 @@ const dump_selected_source_packets = F &redef;
 # record val. 
 const use_conn_size_analyzer = F &redef;
 
+# Whether to include connection state history in the logs generated
+# by record_connection.
+const record_state_history = F &redef;
+
 # If true, we dump original packets to the output trace *if and only if*
 # the connection is not rewritten; if false, the policy script can decide
 # whether to dump a particular connection by calling dump_packets_of_connection.

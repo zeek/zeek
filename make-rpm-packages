@@ -1,0 +1,42 @@
+#!/bin/sh
+
+# This script generates binary RPM packages.
+# They can be found in build/ after running.
+
+# CMake/CPack versions before 2.8.2 have bugs that can create bad packages
+CMAKE_PACK_REQ=2.8.2
+CMAKE_VER=`cmake -version`
+
+if [ "${CMAKE_VER}" \< "${CMAKE_PACK_REQ}" ]; then
+    echo "Package creation requires CMake > 2.8.2" >&2
+    exit 1
+fi
+
+# Minimum Bro
+./configure --prefix=/opt/bro --disable-broccoli --disable-broctl \
+            --pkg-name-prefix=Bro
+cd build
+make package
+cd ..
+
+# Full Bro package
+./configure --prefix=/opt/bro --pkg-name-prefix=Bro-all
+cd build
+make package
+cd ..
+
+# Broccoli
+cd aux/broccoli
+./configure --prefix=/opt/bro
+cd build
+make package
+mv Broccoli*.rpm ../../../build/
+cd ../../..
+
+# Broctl
+cd aux/broctl
+./configure --prefix=/opt/bro
+cd build
+make package
+mv Broctl*.rpm ../../../build/
+cd ../../..

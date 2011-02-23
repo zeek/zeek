@@ -1,0 +1,70 @@
+#!/bin/sh
+
+# This script is meant to be used by binary packages post-installation.
+# Variables between @ symbols are replaced by CMake at configure time.
+
+backupNamesFile=/tmp/bro_install_backups
+version=@VERSION@
+newFiles=""
+
+# check whether it's safe to remove backup configuration files that
+# the most recent package install created
+
+if [ -e ${backupNamesFile} ]; then
+    backupFileList=`cat ${backupNamesFile}`
+
+    for backupFile in ${backupFileList}; do
+        origFileName=`echo ${backupFile} | sed 's/\(.*\)\..*/\1/'`
+
+        diff ${origFileName} ${backupFile} > /dev/null 2>&1
+
+        if [ $? -eq 0 ]; then
+            # if the installed version and the backup version don't differ
+            # then we can remove the backup version
+            rm ${backupFile}
+        else
+            # The backup file differs from the newly installed version,
+            # since we can't tell if the backup version has been modified
+            # by the user, we should restore it to its original location
+            # and rename the new version appropriately.
+
+            newFileName=${origFileName}.${version}
+            newFiles="${newFiles}\n${newFileName}"
+
+            mv ${origFileName} ${newFileName}
+            mv ${backupFile} ${origFileName}
+        fi
+
+    done
+
+    rm ${backupNamesFile}
+fi
+
+if [ -n "${newFiles}" ]; then
+# Use some apple script to display a message to user
+/usr/bin/osascript << EOF
+    tell application "System Events"
+        activate
+        display alert "Existing configuration files differ from the ones that would be installed by this package.  To avoid overwriting configuration which you may have modified, the following new config files have been installed:\n${newFiles}\n\nIf you have previously modified configuration files, please make sure that they are still compatible, else you should update your config files to the new versions."
+    end tell
+EOF
+fi
+
+# make sure that world-writeable dirs have the sticky bit set
+# so that unprivileged can't rename/remove files within
+
+if [ -d /var/opt/bro/spool ]; then
+    chmod +t /var/opt/bro/spool
+fi
+
+if [ -d /var/opt/bro/spool/tmp ]; then
+    chmod +t /var/opt/bro/spool/tmp
+fi
+
+if [ -d /var/opt/bro/spool/policy ]; then
+    chmod +t /var/opt/bro/spool/policy
+fi
+
+if [ -d /var/opt/bro/logs ]; then
+    chmod +t /var/opt/bro/logs
+fi

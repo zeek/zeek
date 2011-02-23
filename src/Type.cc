@@ -10,20 +10,6 @@
 #include "Scope.h"
 #include "Serializer.h"
 
-RecordType* init_global_attrs();
-
-bool in_global_attr_decl = false;
-RecordType* global_attributes_type = init_global_attrs();
-
-RecordType* init_global_attrs()
-	{
-	in_global_attr_decl = true;
-	RecordType* rt = new RecordType(new type_decl_list);
-	in_global_attr_decl = false;
-	rt->MakeGlobalAttributeType();
-	return rt;
-	}
-
 const char* type_name(TypeTag t)
 	{
 	static char errbuf[512];
@@ -58,7 +44,6 @@ BroType::BroType(TypeTag t, bool arg_base_type)
 	tag = t;
 	is_network_order = 0;
 	base_type = arg_base_type;
-	is_global_attributes_type = false;
 
 	switch ( tag ) {
 	case TYPE_VOID:
@@ -118,28 +103,6 @@ BroType::BroType(TypeTag t, bool arg_base_type)
 		break;
 	}
 
-	// Kind of hacky; we don't want an error while we're defining
-	// the global attrs!
-	if ( in_global_attr_decl )
-		{
-		attributes_type = 0;
-		return;
-		}
-
-	if ( ! global_attributes_type )
-		SetError();
-	else
-		attributes_type = global_attributes_type;
-	}
-
-bool BroType::SetAttributesType(type_decl_list* attr_types)
-	{
-	TypeList* global = new TypeList();
-	global->Append(global_attributes_type);
-
-	attributes_type = refine_type(global, attr_types)->AsRecordType();
-
-	return (attributes_type != 0);
 	}
 
 int BroType::MatchesIndex(ListExpr*& /* index */) const
@@ -241,16 +204,6 @@ BroType* BroType::Unserialize(UnserialInfo* info, TypeTag want)
 		return t2;
 		}
 
-	// For the global_attribute_type, we also return our current instance.
-	if ( t->is_global_attributes_type )
-		{
-		BroType* t2 = global_attributes_type;
-		Unref(t);
-		t2->Ref();
-		assert(t2);
-		return t2;
-		}
-
 	assert(t);
 	return t;
 	}
@@ -267,10 +220,15 @@ bool BroType::DoSerialize(SerialInfo* info) const
 		return false;
 
 	if ( ! (SERIALIZE(is_network_order) && SERIALIZE(base_type) &&
-		SERIALIZE(is_global_attributes_type)) )
+		// Serialize the former "bool is_global_attributes_type" for
+		// backwards compatibility.
+		SERIALIZE(false)) )
 		return false;
 
-	SERIALIZE_OPTIONAL(attributes_type);
+	// Likewise, serialize the former optional "RecordType* attributes_type"
+	// for backwards compatibility.
+	void* null = NULL;
+	SERIALIZE(null);
 
 	info->s->WriteCloseTag("Type");
 
@@ -288,13 +246,19 @@ bool BroType::DoUnserialize(UnserialInfo* info)
 	tag = (TypeTag) c1;
 	internal_tag = (InternalTypeTag) c2;
 
+	bool not_used;
+
 	if ( ! (UNSERIALIZE(&is_network_order) && UNSERIALIZE(&base_type)
-			&& UNSERIALIZE(&is_global_attributes_type)) )
+			// Unerialize the former "bool is_global_attributes_type" for
+			// backwards compatibility.
+			&& UNSERIALIZE(&not_used)) )
 		return 0;
 
-	BroType* type;
-	UNSERIALIZE_OPTIONAL(type, BroType::Unserialize(info, TYPE_RECORD));
-	attributes_type = (RecordType*) type;
+	BroType* not_used_either;
+
+	// Likewise, unserialize the former optional "RecordType*
+	// attributes_type" for backwards compatibility.
+	UNSERIALIZE_OPTIONAL(not_used_either, BroType::Unserialize(info, TYPE_RECORD));
 
 	return true;
 	}
@@ -721,9 +685,6 @@ TypeDecl::TypeDecl(BroType* t, const char* i, attr_list* arg_attrs)
 	type = t;
 	attrs = arg_attrs ? new Attributes(arg_attrs, t) : 0;
 	id = i;
-
-	if ( in_global_attr_decl && ! attrs->FindAttr(ATTR_DEFAULT) )
-		error("global attribute types must have default values");
 	}
 
 TypeDecl::~TypeDecl()

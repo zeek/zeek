@@ -2,7 +2,7 @@ include(CheckFunctionExists)
 include(CheckCSourceCompiles)
 include(CheckIncludeFiles)
 
-set(CMAKE_REQUIRED_INCLUDES ${LIBPCAP_INCLUDE_DIR})
+set(CMAKE_REQUIRED_INCLUDES ${PCAP_INCLUDE_DIR})
 set(CMAKE_REQUIRED_LIBRARIES ${PCAP_LIBRARY})
 
 check_include_files(pcap-int.h HAVE_PCAP_INT_H)

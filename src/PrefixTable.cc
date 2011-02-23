@@ -99,8 +99,8 @@ void* PrefixTable::Lookup(const Val* value, bool exact) const
 		break;
 
 	default:
-		internal_error(fmt("Wrong index type %d for PrefixTable",
-					value->Type()->Tag()));
+		internal_error("Wrong index type %d for PrefixTable",
+		               value->Type()->Tag());
 		return 0;
 	}
 	}

@@ -62,11 +62,11 @@ enum proc_t %{   # NFSv3 procedures
 	PROC_READLINK = 5,  # done
 	PROC_READ     = 6,  # done
 	PROC_WRITE    = 7,  # done 
-	PROC_CREATE   = 8,
-	PROC_MKDIR    = 9,
+	PROC_CREATE   = 8,  # partial
+	PROC_MKDIR    = 9,  # partial
 	PROC_SYMLINK  = 10,
 	PROC_MKNOD    = 11,
-	PROC_REMOVE   = 12,
+	PROC_REMOVE   = 12, # done
 	PROC_RMDIR    = 13,
 	PROC_RENAME   = 14,
 	PROC_LINK     = 15,
@@ -129,6 +129,12 @@ enum stable_how_t %{
 	FILE_SYNC = 2,
 %}
 
+enum createmode_t %{
+	UNCHECKED = 0,
+	GUARDED = 1,
+	EXCLUSIVE = 2,
+%}
+
 # Decleare record types that we want to access from the C++
 # These are defined in bro.init
 type info_t: record;
@@ -141,6 +147,8 @@ type readlink_reply_t: record;
 type writeargs_t: record;
 type wcc_attr_t: record;
 type write_reply_t: record;
+type newobj_reply_t: record;
+type delobj_reply_t: record;
 
 
 type fsstat_t: record;

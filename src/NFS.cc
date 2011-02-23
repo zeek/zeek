@@ -42,36 +42,29 @@ int NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 	case BifEnum::NFS3::PROC_WRITE:
 		callarg = nfs3_writeargs(buf, n);
 		break;
-#if 0
-	case BifEnum::NFS3::PROC_LOOKUP:
-		{
-		StringVal* fh = nfs3_fh(buf, n);
 
-		int name_len;
-		const u_char* name = extract_XDR_opaque(buf, n, name_len);
-
-		if ( ! fh || ! name )
-			return 0;
-
-		RecordVal* args = new RecordVal(nfs3_lookup_args);
-		args->Assign(0, fh);
-		args->Assign(1, new StringVal(new BroString(name, name_len, 0)));
-		c->AddVal(args);
-		}
+	case BifEnum::NFS3::PROC_CREATE:
+		callarg = nfs3_diropargs(buf, n);
+		// TODO: implement create attributes. 
+		// For now we just skip over them 
+		n = 0;
 		break;
 
-	case BifEnum::NFS3::PROC_FSSTAT:
-		{
-		Val* v = nfs3_fh(buf, n);
-		if ( ! v )
-			return 0;
-		c->AddVal(v);
-		}
+	case BifEnum::NFS3::PROC_MKDIR:
+		callarg = nfs3_diropargs(buf, n);
+		// TODO: implement mkdir attributes. 
+		// For now we just skip over them 
+		n = 0;
 		break;
 
-	case BifEnum::NFS3::PROC_READ:
+	case BifEnum::NFS3::PROC_REMOVE:
+		callarg = nfs3_diropargs(buf, n);
 		break;
-#endif
+
+	case BifEnum::NFS3::PROC_RMDIR:
+		callarg = nfs3_diropargs(buf, n);
+		break;
+
 	default:
 		callarg = 0;
 		if ( proc < BifEnum::NFS3::PROC_END_OF_PROCS )
@@ -162,57 +155,28 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 		event = nfs_proc_write;
 		break;
 
-		//if ( nfs_status == BifEnum::NFS3::NFS3ERR_OK )
-#if 0
-	case BifEnum::NFS3::PROC_LOOKUP:
-		if ( success )
-			{
-			if ( ! buf || status != 0 )
-				return 0;
-
-			RecordVal* r = new RecordVal(nfs3_lookup_reply);
-			r->Assign(0, nfs3_fh(buf, n));
-			r->Assign(1, ExtractOptAttrs(buf, n));
-			r->Assign(2, ExtractOptAttrs(buf, n));
-
-			reply = r;
-			event = nfs_request_lookup;
-			}
-		else
-			{
-			reply = ExtractOptAttrs(buf, n);
-			event = nfs_attempt_lookup;
-			}
-
+	case BifEnum::NFS3::PROC_CREATE:
+		if (rpc_success)
+			reply = nfs3_newobj_reply(buf, n, nfs_status);
+		event = nfs_proc_create;
 		break;
 
-	case BifEnum::NFS3::PROC_FSSTAT:
-		if ( success )
-			{
-			if ( ! buf || status != 0 )
-				return 0;
-
-			RecordVal* r = new RecordVal(nfs3_fsstat);
-			r->Assign(0, ExtractOptAttrs(buf, n));
-			r->Assign(1, ExtractLongAsDouble(buf, n)); // tbytes
-			r->Assign(2, ExtractLongAsDouble(buf, n)); // fbytes
-			r->Assign(3, ExtractLongAsDouble(buf, n)); // abytes
-			r->Assign(4, ExtractLongAsDouble(buf, n)); // tfiles
-			r->Assign(5, ExtractLongAsDouble(buf, n)); // ffiles
-			r->Assign(6, ExtractLongAsDouble(buf, n)); // afiles
-			r->Assign(7, ExtractInterval(buf, n)); // invarsec
-
-			reply = r;
-			event = nfs_request_fsstat;
-			}
-		else
-			{
-			reply = ExtractOptAttrs(buf, n);
-			event = nfs_attempt_fsstat;
-			}
-
+	case BifEnum::NFS3::PROC_MKDIR:
+		if (rpc_success)
+			reply = nfs3_newobj_reply(buf, n, nfs_status);
+		event = nfs_proc_mkdir;
 		break;
-#endif 
+
+	case BifEnum::NFS3::PROC_REMOVE:
+		reply = nfs3_delobj_reply(buf, n);
+		event = nfs_proc_remove;
+		break;
+
+	case BifEnum::NFS3::PROC_RMDIR:
+		reply = nfs3_delobj_reply(buf, n);
+		event = nfs_proc_rmdir;
+		break;
+
 
 	default:
 		if ( c->Proc() < BifEnum::NFS3::PROC_END_OF_PROCS )
@@ -352,6 +316,15 @@ RecordVal* NFS_Interp::nfs3_post_op_attr(const u_char*& buf, int& n)
 	return 0;
 	}
 
+StringVal* NFS_Interp::nfs3_post_op_fh(const u_char*& buf, int& n)
+	{
+	int have_fh = extract_XDR_uint32(buf, n);
+
+	if ( have_fh )
+		return nfs3_fh(buf, n);
+	return 0;
+	}
+
 RecordVal* NFS_Interp::nfs3_pre_op_attr(const u_char*& buf, int& n)
 	{
 	int have_attrs = extract_XDR_uint32(buf, n);
@@ -463,6 +436,37 @@ RecordVal *NFS_Interp::nfs3_write_reply(const u_char*& buf, int& n, BifEnum::NFS
 		rep->Assign(0, nfs3_post_op_attr(buf, n));
 		rep->Assign(1, nfs3_pre_op_attr(buf, n));
 		}
+	return rep;
+	}
+
+RecordVal* NFS_Interp::nfs3_newobj_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status)
+	{
+	RecordVal *rep = new RecordVal(BifTypePtr::Record::NFS3::newobj_reply_t);
+	if (status == BifEnum::NFS3::NFS3ERR_OK)
+		{
+		int i = 0;
+		rep->Assign(0, nfs3_post_op_fh(buf,n));
+		rep->Assign(1, nfs3_post_op_attr(buf, n));
+		// wcc_data
+		rep->Assign(2, nfs3_pre_op_attr(buf, n));
+		rep->Assign(3, nfs3_post_op_attr(buf, n));
+		}
+	else
+		{
+		rep->Assign(0, 0);
+		rep->Assign(1, 0);
+		rep->Assign(2, nfs3_pre_op_attr(buf, n));
+		rep->Assign(3, nfs3_post_op_attr(buf, n));
+		}
+	return rep;
+	}
+
+RecordVal* NFS_Interp::nfs3_delobj_reply(const u_char*& buf, int& n)
+	{
+	RecordVal *rep = new RecordVal(BifTypePtr::Record::NFS3::delobj_reply_t);
+	// wcc_data
+	rep->Assign(0, nfs3_pre_op_attr(buf, n));
+	rep->Assign(1, nfs3_post_op_attr(buf, n));
 	return rep;
 	}
 

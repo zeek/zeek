@@ -770,9 +770,9 @@ export {
 
 	type lookup_reply_t: record {
 		# If the lookup failed, dir_attr may be set. 
-		# If the lookup succeeded, fh is always set and file_attr and dir_attr may be set.
+		# If the lookup succeeded, fh is always set and obj_attr and dir_attr may be set.
 		fh: string &optional;	# file handle of object looked up
-		file_attr: fattr_t &optional;	# optional attributes associated w/ file
+		obj_attr: fattr_t &optional;	# optional attributes associated w/ file
 		dir_attr: fattr_t &optional;	# optional attributes associated w/ dir.
 	};
 
@@ -820,6 +820,24 @@ export {
 		size: count &optional;
 		commited: stable_how_t &optional; 
 		verf: string &optional;     # write verifier cookue
+	};
+
+	# reply for create, mkdir, symlink
+	type newobj_reply_t: record {
+		# If the proc failed, dir_*_attr may be set. 
+		# If the proc succeeded, fh and the attr's may be set.
+		# Note no guarantee that fh is set after success
+		fh: string &optional;	# file handle of object created. 
+		obj_attr: fattr_t &optional;	    # optional attributes associated w/ new object
+		dir_pre_attr: wcc_attr_t &optional;	# optional attributes associated w/ dir.
+		dir_post_attr: fattr_t &optional;	# optional attributes associated w/ dir.
+	};
+
+	# reply for remove, rmdir
+	# == wcc_data
+	type delobj_reply_t: record {
+		dir_pre_attr: wcc_attr_t &optional;	# optional attributes associated w/ dir.
+		dir_post_attr: fattr_t &optional;	# optional attributes associated w/ dir.
 	};
 
 	type fsstat_t: record {

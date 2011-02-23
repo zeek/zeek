@@ -193,6 +193,7 @@ function nfs_get_log_prefix(c: connection, info: info_t, proc: string): string
 			proc, info$rpc_stat, nfs_stat_str);
 	}
 
+
 event nfs_proc_not_implemented(c: connection, info: info_t, proc: NFS3::proc_t) 
 	{
 	local prefix = nfs_get_log_prefix(c, info, fmt("%s", proc));
@@ -229,8 +230,8 @@ event nfs_proc_lookup(c: connection, info: info_t, req: NFS3::diropargs_t, rep: 
 		}
 	if (rep?$dir_attr)
 		log_attributes(c, req$dirfh, rep$dir_attr);
-	if (rep?$file_attr)
-		log_attributes(c, rep$fh, rep$file_attr);
+	if (rep?$obj_attr)
+		log_attributes(c, rep$fh, rep$obj_attr);
 	add_update_fh(c, req$dirfh, req$fname, rep$fh);
 	print log_file, fmt("%s %s + %s => %s", prefix, get_fh_id(c, req$dirfh), req$fname, get_fh_id(c, rep$fh));
 	
@@ -281,6 +282,58 @@ event nfs_proc_write(c: connection, info: info_t, req: NFS3::writeargs_t, rep: N
 		}
 
 	print log_file, msg;
+	}
+
+function nfs_newobj(c: connection, info: info_t, proc: string, req: NFS3::diropargs_t, rep: NFS3::newobj_reply_t)
+	{
+	local prefix = nfs_get_log_prefix(c, info, proc);
+	local newfh_str: string;
+	if (! is_success(info) )
+		{
+		print log_file, fmt("%s %s + %s", prefix, get_fh_id(c, req$dirfh), req$fname);
+		# could print dir_attr, if they are set ....
+		return;
+		}
+	if (rep?$dir_post_attr)
+		log_attributes(c, req$dirfh, rep$dir_post_attr);
+	# TODO: could print dir_pre_attr
+	if (rep?$obj_attr)
+		log_attributes(c, rep$fh, rep$obj_attr);
+	add_update_fh(c, req$dirfh, req$fname, rep$fh);
+
+	newfh_str = (rep?$fh) ? get_fh_id(c, rep$fh) : "FH??";
+	print log_file, fmt("%s %s + %s => %s", prefix, get_fh_id(c, req$dirfh), req$fname, get_fh_id(c, rep$fh));
+	}
+
+event nfs_proc_create(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t, rep: NFS3::newobj_reply_t)
+	{
+	# TODO: create request attributes not implemented in core
+	nfs_newobj(c, info, "create", req, rep);
+	}
+
+event nfs_proc_mkdir(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t, rep: NFS3::newobj_reply_t)
+	{
+	# TODO: mkidir request attributes not implemented in core
+	nfs_newobj(c, info, "mkdir", req, rep);
+	}
+
+function nfs_delobj(c: connection, info: info_t, proc: string, req: NFS3::diropargs_t, rep: NFS3::delobj_reply_t)
+	{
+	local prefix = nfs_get_log_prefix(c, info, proc);
+	print log_file, fmt("%s %s - %s", prefix, get_fh_id(c, req$dirfh), req$fname);
+	if (rep?$dir_post_attr)
+		log_attributes(c, req$dirfh, rep$dir_post_attr);
+	# TODO: could print dir_pre_attr
+	}
+
+event nfs_proc_remove(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t, rep: NFS3::delobj_reply_t)
+	{
+	nfs_delobj(c, info, "remove", req, rep);
+	}
+
+event nfs_proc_rmdir(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t, rep: NFS3::delobj_reply_t)
+	{
+	nfs_delobj(c, info, "rmdir", req, rep);
 	}
 
 event connection_state_remove(c: connection)

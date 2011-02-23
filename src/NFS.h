@@ -48,6 +48,9 @@ protected:
 	EnumVal* nfs3_stable_how(const u_char*& buf, int& n);
 	RecordVal* nfs3_write_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status);
 	StringVal* nfs3_writeverf(const u_char*& buf, int& n);
+	RecordVal* nfs3_newobj_reply(const u_char*& buf, int&n, BifEnum::NFS3::status_t status);
+	RecordVal* nfs3_delobj_reply(const u_char*& buf, int& n);
+	StringVal* nfs3_post_op_fh(const u_char*& buf, int& n);
 
 	RecordVal* ExtractOptAttrs(const u_char*& buf, int& n);
 	Val* ExtractUint32(const u_char*& buf, int& n);

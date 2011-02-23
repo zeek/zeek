@@ -193,6 +193,11 @@ event nfs_proc_lookup%(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t
 event nfs_proc_read%(c: connection, info: NFS3::info_t, req: NFS3::readargs_t, rep: NFS3::read_reply_t%);
 event nfs_proc_readlink%(c: connection, info: NFS3::info_t, fh: string, rep: NFS3::readlink_reply_t%);
 event nfs_proc_write%(c: connection, info: NFS3::info_t, req: NFS3::writeargs_t, rep: NFS3::write_reply_t%);
+event nfs_proc_create%(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t, rep: NFS3::newobj_reply_t%);
+event nfs_proc_mkdir%(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t, rep: NFS3::newobj_reply_t%);
+event nfs_proc_remove%(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t, rep: NFS3::delobj_reply_t%);
+event nfs_proc_rmdir%(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t, rep: NFS3::delobj_reply_t%);
+#event nfs_request_lookup%(n: connection, req: NFS3::lookup_args_t, rep: NFS3::lookup_reply_t%);
 #event nfs_request_lookup%(n: connection, req: NFS3::lookup_args_t, rep: NFS3::lookup_reply_t%);
 #event nfs_request_fsstat%(n: connection, root_fh: string, stat: NFS3::fsstat_t%);
 #event nfs_attempt_null%(n: connection, status: count%);

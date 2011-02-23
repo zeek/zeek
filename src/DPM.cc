@@ -10,6 +10,7 @@
 #include "BackDoor.h"
 #include "InterConn.h"
 #include "SteppingStone.h"
+#include "ConnSizeAnalyzer.h"
 
 
 ExpectedConn::ExpectedConn(const uint32* _orig, const uint32* _resp,
@@ -189,6 +190,8 @@ bool DPM::BuildInitialAnalyzerTree(TransportProto proto, Connection* conn,
 					const u_char* data)
 	{
 	TCP_Analyzer* tcp = 0;
+	UDP_Analyzer* udp = 0;
+	ICMP_Analyzer *icmp = 0;
 	TransportLayerAnalyzer* root = 0;
 	AnalyzerTag::Tag expected = AnalyzerTag::Error;
 	analyzer_map* ports = 0;
@@ -206,7 +209,7 @@ bool DPM::BuildInitialAnalyzerTree(TransportProto proto, Connection* conn,
 		break;
 
 	case TRANSPORT_UDP:
-		root = new UDP_Analyzer(conn);
+		root = udp = new UDP_Analyzer(conn);
 		pia = new PIA_UDP(conn);
 		expected = GetExpected(proto, conn);
 		ports = &udp_ports;
@@ -363,6 +366,24 @@ bool DPM::BuildInitialAnalyzerTree(TransportProto proto, Connection* conn,
 		// we cannot add it as a normal child.
 		if ( TCPStats_Analyzer::Available() )
 			tcp->AddChildPacketAnalyzer(new TCPStats_Analyzer(conn));
+
+		// Add ConnSize analyzer. Needs to see packets not stream
+		if ( ConnSize_Analyzer::Available() )
+			tcp->AddChildPacketAnalyzer(new ConnSize_Analyzer(conn));
+		}
+
+	if ( udp )
+		{
+		// Add ConnSize analyzer. Needs to see packets not stream
+		if ( ConnSize_Analyzer::Available() )
+			udp->AddChildAnalyzer(new ConnSize_Analyzer(conn), false);
+		}
+
+	if ( icmp )
+		{
+		// Add ConnSize analyzer. Needs to see packets not stream
+		if ( ConnSize_Analyzer::Available() )
+			icmp->AddChildAnalyzer(new ConnSize_Analyzer(conn), false);
 		}
 
 	if ( pia )

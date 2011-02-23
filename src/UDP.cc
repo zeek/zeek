@@ -177,6 +177,23 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 #endif
 	}
 
+void UDP_Analyzer::UpdateConnVal(RecordVal *conn_val)
+	{
+	// RecordType *connection_type  is decleared in NetVar.h
+	int orig_endp_idx = connection_type->FieldOffset("orig");
+	int resp_endp_idx = connection_type->FieldOffset("resp");
+	RecordVal *orig_endp = conn_val->Lookup(orig_endp_idx)->AsRecordVal();
+	RecordVal *resp_endp = conn_val->Lookup(resp_endp_idx)->AsRecordVal();
+
+	orig_endp = conn_val->Lookup(orig_endp_idx)->AsRecordVal();
+	resp_endp = conn_val->Lookup(resp_endp_idx)->AsRecordVal();
+	UpdateEndpointVal(orig_endp, 1);
+	UpdateEndpointVal(resp_endp, 0);
+
+	// Call children's UpdateConnVal
+	Analyzer::UpdateConnVal(conn_val);
+	}
+
 void UDP_Analyzer::UpdateEndpointVal(RecordVal* endp, int is_orig)
 	{
 	bro_int_t size = is_orig ? request_len : reply_len;

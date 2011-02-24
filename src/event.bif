@@ -197,13 +197,7 @@ event nfs_proc_create%(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t
 event nfs_proc_mkdir%(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t, rep: NFS3::newobj_reply_t%);
 event nfs_proc_remove%(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t, rep: NFS3::delobj_reply_t%);
 event nfs_proc_rmdir%(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t, rep: NFS3::delobj_reply_t%);
-#event nfs_request_lookup%(n: connection, req: NFS3::lookup_args_t, rep: NFS3::lookup_reply_t%);
-#event nfs_request_lookup%(n: connection, req: NFS3::lookup_args_t, rep: NFS3::lookup_reply_t%);
-#event nfs_request_fsstat%(n: connection, root_fh: string, stat: NFS3::fsstat_t%);
-#event nfs_attempt_null%(n: connection, status: count%);
-#event nfs_attempt_getattr%(n: connection, status: count, fh: string%);
-#event nfs_attempt_lookup%(n: connection, status: count, req: NFS3::lookup_args_t%);
-#event nfs_attempt_fsstat%(n: connection, status: count, root_fh: string%);
+event nfs_proc_readdir%(c: connection, info: NFS3::info_t, req: NFS3::readdirargs_t, rep: NFS3::readdir_reply_t%);
 
 # Generated for each NFS reply message we receive. Just gives the status.
 event nfs_reply_status%(n: connection, info: NFS3::info_t%);

@@ -149,6 +149,10 @@ type wcc_attr_t: record;
 type write_reply_t: record;
 type newobj_reply_t: record;
 type delobj_reply_t: record;
+type readdirargs_t: record;
+type direntry_t: record;
+type direntry_vec_t: vector;
+type readdir_reply_t: record;
 
 
 type fsstat_t: record;

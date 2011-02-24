@@ -65,6 +65,14 @@ int NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 		callarg = nfs3_diropargs(buf, n);
 		break;
 
+	case BifEnum::NFS3::PROC_READDIR:
+		callarg = nfs3_readdirargs(false, buf, n);
+		break;
+
+	case BifEnum::NFS3::PROC_READDIRPLUS:
+		callarg = nfs3_readdirargs(true, buf, n);
+		break;
+
 	default:
 		callarg = 0;
 		if ( proc < BifEnum::NFS3::PROC_END_OF_PROCS )
@@ -168,14 +176,29 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 		break;
 
 	case BifEnum::NFS3::PROC_REMOVE:
-		reply = nfs3_delobj_reply(buf, n);
+		if (rpc_success)
+			reply = nfs3_delobj_reply(buf, n);
 		event = nfs_proc_remove;
 		break;
 
 	case BifEnum::NFS3::PROC_RMDIR:
-		reply = nfs3_delobj_reply(buf, n);
+		if (rpc_success)
+			reply = nfs3_delobj_reply(buf, n);
 		event = nfs_proc_rmdir;
 		break;
+
+	case BifEnum::NFS3::PROC_READDIR:
+		if (rpc_success)
+			reply = nfs3_readdir_reply(false, buf, n, nfs_status);
+		event = nfs_proc_readdir;
+		break;
+
+	case BifEnum::NFS3::PROC_READDIRPLUS:
+		if (rpc_success)
+			reply = nfs3_readdir_reply(true, buf, n, nfs_status);
+		event = nfs_proc_readdir;
+		break;
+
 
 
 	default:
@@ -410,16 +433,6 @@ RecordVal *NFS_Interp::nfs3_writeargs(const u_char*& buf, int& n)
 	return writeargs;
 	}
 
-StringVal* NFS_Interp::nfs3_writeverf(const u_char*& buf, int& n)
-	{
-	const u_char* verf = extract_XDR_opaque_fixed(buf, n, 8);
-
-	if ( ! verf )
-		return 0;
-
-	return new StringVal(new BroString(verf, 8, 0));
-	}
-
 RecordVal *NFS_Interp::nfs3_write_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status)
 	{
 	RecordVal *rep = new RecordVal(BifTypePtr::Record::NFS3::write_reply_t);
@@ -429,7 +442,9 @@ RecordVal *NFS_Interp::nfs3_write_reply(const u_char*& buf, int& n, BifEnum::NFS
 		rep->Assign(1, nfs3_post_op_attr(buf, n));
 		rep->Assign(2, ExtractUint32(buf, n));
 		rep->Assign(3, nfs3_stable_how(buf, n));
-		rep->Assign(4, nfs3_writeverf(buf, n));
+		rep->Assign(4, ExtractUint64(buf, n));  // Writeverf. While the RFC says that this
+		   // should be a fixed length opaque, it specifies the lenght as 8 bytes, so we can
+		   // also just as easily extract a uint64
 		}
 	else
 		{
@@ -467,6 +482,56 @@ RecordVal* NFS_Interp::nfs3_delobj_reply(const u_char*& buf, int& n)
 	// wcc_data
 	rep->Assign(0, nfs3_pre_op_attr(buf, n));
 	rep->Assign(1, nfs3_post_op_attr(buf, n));
+	return rep;
+	}
+
+RecordVal* NFS_Interp::nfs3_readdirargs(bool isplus, const u_char*& buf, int&n) 
+	{
+	RecordVal *args = new RecordVal(BifTypePtr::Record::NFS3::readdirargs_t);
+	args->Assign(0, new Val(isplus, TYPE_BOOL));
+	args->Assign(1, nfs3_fh(buf, n));
+	args->Assign(2, ExtractUint64(buf,n));  // cookie
+	args->Assign(3, ExtractUint64(buf,n));  // cookieverf
+	args->Assign(4, ExtractUint32(buf,n));  // dircount
+	if (isplus)
+		args->Assign(5, ExtractUint32(buf,n));
+	return args;
+	}
+
+RecordVal* NFS_Interp::nfs3_readdir_reply(bool isplus, const u_char*& buf,
+		int&n, BifEnum::NFS3::status_t status)
+	{
+	RecordVal *rep = new RecordVal(BifTypePtr::Record::NFS3::readdir_reply_t);
+
+	rep->Assign(0, new Val(isplus, TYPE_BOOL));
+	if (status == BifEnum::NFS3::NFS3ERR_OK)
+		{
+		VectorVal *entries = new VectorVal(BifTypePtr::Vector::NFS3::direntry_vec_t);
+		unsigned pos;
+		rep->Assign(1, nfs3_post_op_attr(buf,n));   // dir_attr
+		rep->Assign(2, ExtractUint64(buf,n));  // cookieverf
+		pos = 1;
+		while ( extract_XDR_uint32(buf,n) )  
+			{
+			RecordVal *entry = new RecordVal(BifTypePtr::Record::NFS3::direntry_t);
+			entry->Assign(0, ExtractUint64(buf,n)); // fileid 
+			entry->Assign(1, nfs3_filename(buf,n)); // fname
+			entry->Assign(2, ExtractUint64(buf,n)); // cookie 
+			if (isplus)
+				{
+				entry->Assign(3, nfs3_post_op_attr(buf,n));
+				entry->Assign(4, nfs3_post_op_fh(buf,n));
+				}
+			entries->Assign(pos, entry, 0);
+			pos++;
+			}
+		rep->Assign(3, entries);
+		rep->Assign(4, ExtractBool(buf,n));  // eof
+		}
+	else
+		{
+		rep->Assign(1, nfs3_post_op_attr(buf,n));
+		}
 	return rep;
 	}
 

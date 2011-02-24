@@ -721,7 +721,8 @@ export {
 	# event
 	 
 	type info_t: record {
-		rpc_stat: rpc_status;
+		rpc_stat: rpc_status; # if this indicates not successful, the reply record in the 
+		                      # events will be a null pointer, so don't use it
 		nfs_stat: status_t;
 
 		# the start time, duration, and length in bytes of the 
@@ -819,7 +820,7 @@ export {
 		postattr: fattr_t &optional;    # post operation attributes 
 		size: count &optional;
 		commited: stable_how_t &optional; 
-		verf: string &optional;     # write verifier cookue
+		verf: count &optional;     # write verifier cookue
 	};
 
 	# reply for create, mkdir, symlink
@@ -838,6 +839,40 @@ export {
 	type delobj_reply_t: record {
 		dir_pre_attr: wcc_attr_t &optional;	# optional attributes associated w/ dir.
 		dir_post_attr: fattr_t &optional;	# optional attributes associated w/ dir.
+	};
+
+	# This record is used for both readdir and readdirplus
+	type readdirargs_t: record {
+		isplus: bool;         # is this a readdirplus request?
+		dirfh: string;      # the directory filehandle
+		cookie: count;      # cookie / pos in dir. 0 for first call
+		cookieverf: count;  # the cookie verifier 
+		dircount: count;    # "count" field for readdir, maxcount otherwise. in bytes
+		maxcount: count &optional; # only used for readdirplus. in bytes
+	};
+
+	type direntry_t: record {
+		# fh and attr are used for readdirplus. However, even for readdirplus they need not
+		# be filled out. 
+		fileid: count;    # e.g., inode number
+		fname:  string;   # filename
+		cookie: count;    
+		attr: fattr_t &optional;  # readdirplus: the FH attributes for the entry
+		fh: string &optional;     # readdirplus: the FH for the entry
+	};
+
+	type direntry_vec_t: vector of direntry_t;
+
+	# used for readdir and readdirplus
+	type readdir_reply_t: record {
+		isplus: bool;  # is the reply for a readdirplus request
+		# if error: dir_attr might be set
+		# if success: dir_attr may be set, all others must be set
+		dir_attr: fattr_t &optional; 
+		cookieverf: count &optional;
+		entries: direntry_vec_t &optional;
+		eof: bool;     # if T: no more entries in dir.
+
 	};
 
 	type fsstat_t: record {

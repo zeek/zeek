@@ -67,11 +67,11 @@ enum proc_t %{   # NFSv3 procedures
 	PROC_SYMLINK  = 10,
 	PROC_MKNOD    = 11,
 	PROC_REMOVE   = 12, # done
-	PROC_RMDIR    = 13,
+	PROC_RMDIR    = 13, # done
 	PROC_RENAME   = 14,
 	PROC_LINK     = 15,
-	PROC_READDIR  = 16,
-	PROC_READDIRPLUS  = 17,
+	PROC_READDIR  = 16, # done
+	PROC_READDIRPLUS  = 17, # done
 	PROC_FSSTAT   = 18,
 	PROC_FSINFO   = 19,
 	PROC_PATHCONF = 20,

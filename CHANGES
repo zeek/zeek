@@ -1,3 +1,14 @@
+1.6-dev.47 Fri Feb 25 10:40:22 PST 2011
+
+- Fixing endianess error in XDR when data is not 4-byte aligned.
+  (Gregor Maier)
+
+- Fix for Val constructor with new int64 typedefs. (Gregor Maier)
+
+- Updated fix for OS X 10.5 compile error wrt llabs(). (Gregor Maier)
+
+- Fix more compiler warning wrt printf format strings.  (Gregor Maier)
+
 1.6-dev.45 Tue Feb  8 21:28:01 PST 2011
 
 - Fixing a number of compiler warnings. (Seth Hall and Robin Sommer)

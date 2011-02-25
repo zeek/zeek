@@ -73,6 +73,15 @@
 #include "DNS.h"
 #include "RE.h"
 #include "Scope.h"
+#include "BroDoc.h"
+#include "BroDocObj.h"
+
+#include <list>
+#include <string>
+
+extern BroDoc* current_reST_doc;
+extern int generate_documentation;
+extern std::list<std::string>* reST_doc_comments;
 
 YYLTYPE GetCurrentLocation();
 extern int yyerror(const char[]);
@@ -785,7 +794,13 @@ formal_args_decl:
 
 decl:
 		TOK_MODULE TOK_ID ';'
-			{ current_module = $2; }
+			{
+			current_module = $2;
+			if ( generate_documentation )
+				{
+				current_reST_doc->AddModule(current_module);
+				}
+			}
 
 	|	TOK_EXPORT '{' { is_export = true; } decl_list '}'
 			{ is_export = false; }

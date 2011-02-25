@@ -247,6 +247,9 @@ set(bro_SRCS
     BitTorrent.cc
     BitTorrentTracker.cc
     BPF_Program.cc
+    BroBifDoc.cc
+    BroDoc.cc
+    BroDocObj.cc
     BroString.cc
     CCL.cc
     ChunkedIO.cc

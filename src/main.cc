@@ -91,6 +91,7 @@ int optimize = 0;
 int do_notice_analysis = 0;
 int rule_bench = 0;
 int print_loaded_scripts = 0;
+int generate_documentation = 0;
 SecondaryPath* secondary_path = 0;
 ConnCompressor* conn_compressor = 0;
 extern char version[];
@@ -145,6 +146,7 @@ void usage()
 	fprintf(stderr, "    -h|--help|-?                   | command line help\n");
 	fprintf(stderr, "    -i|--iface <interface>         | read from given interface\n");
 	fprintf(stderr, "    -l|--print-scripts             | print all loaded scripts\n");
+	fprintf(stderr, "    -Z|--doc-scripts               | generate documentation for all loaded scripts\n");
 	fprintf(stderr, "    -p|--prefix <prefix>           | add given prefix to policy file resolution\n");
 	fprintf(stderr, "    -r|--readfile <readfile>       | read from given tcpdump file\n");
 	fprintf(stderr, "    -y|--flowfile <file>[=<ident>] | read from given flow file\n");
@@ -364,6 +366,7 @@ int main(int argc, char** argv)
 		{"help",		no_argument,		0,	'h'},
 		{"iface",		required_argument,	0,	'i'},
 		{"print-scripts",	no_argument,		0,	'l'},
+		{"doc-scripts",	no_argument,		0,	'Z'},
 		{"prefix",		required_argument,	0,	'p'},
 		{"readfile",		required_argument,	0,	'r'},
 		{"flowfile",		required_argument,	0,	'y'},
@@ -440,7 +443,7 @@ int main(int argc, char** argv)
 	opterr = 0;
 
 	char opts[256];
-	safe_strncpy(opts, "A:a:B:D:e:f:I:i:K:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGHLOPSWdghlv",
+	safe_strncpy(opts, "A:a:B:D:e:f:I:i:K:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGHLOPSWdghlvZ",
 		     sizeof(opts));
 
 #ifdef USE_PERFTOOLS
@@ -632,6 +635,10 @@ int main(int argc, char** argv)
 			to_xml = 1;
 			break;
 #endif
+
+        case 'Z':
+            generate_documentation = 1;
+            break;
 
 #ifdef USE_IDMEF
 		case 'n':

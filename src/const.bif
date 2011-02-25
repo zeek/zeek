@@ -47,8 +47,8 @@ const dump_original_packets_if_not_rewriting: bool;
 const report_gaps_for_partial: bool;
 
 
-# NFS analyzer settings. See nfs.bro for documentation
-#const nfs_return_data = F &redef;
-#const nfs_return_data_max = 512 &redef;
-#const nfs_return_first_data_only = T &redef;
+# NFS analyzer settings. See bro.init for documentation
+const NFS3::return_data: bool;
+const NFS3::return_data_max: count;
+const NFS3::return_data_first_only: bool;
 

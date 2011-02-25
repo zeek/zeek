@@ -147,7 +147,11 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 
 	case BifEnum::NFS3::PROC_READ:
 		if (rpc_success)
-			reply = nfs3_read_reply(buf, n, nfs_status);
+			{
+			bro_uint_t offset;
+			offset = c->RequestVal()->AsRecordVal()->Lookup(1)->AsCount();
+			reply = nfs3_read_reply(buf, n, nfs_status, offset);
+			}
 		event = nfs_proc_read;
 		break;
 
@@ -238,6 +242,25 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 		analyzer->ConnectionEvent(event, vl);
 		}
 	return 1;
+	}
+
+StringVal* NFS_Interp::nfs3_file_data(const u_char*& buf, int& n, uint64_t offset, int size)
+	{
+	int data_n;
+	// extract the data, move buf and n
+	const u_char *data = extract_XDR_opaque(buf, n, data_n, 1<<30);
+
+	// check whether we have to deliver data to the event 
+	if (!BifConst::NFS3::return_data)
+		return 0;
+	if (BifConst::NFS3::return_data_first_only && offset!=0)
+		return 0;
+	// Ok, so we want to return some data
+	data_n = min(data_n, size);
+	data_n = min(data_n, BifConst::NFS3::return_data_max);
+	if (data_n>0)
+		return new StringVal(new BroString(data, data_n, 0));
+	return 0;
 	}
 
 val_list* NFS_Interp::event_common_vl(RPC_CallInfo *c, BifEnum::rpc_status rpc_status, 
@@ -390,15 +413,19 @@ RecordVal *NFS_Interp::nfs3_readargs(const u_char*& buf, int& n)
 	return readargs;
 	}
 
-RecordVal* NFS_Interp::nfs3_read_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status)
+RecordVal* NFS_Interp::nfs3_read_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status, 
+		bro_uint_t offset)
 	{
 	RecordVal *rep = new RecordVal(BifTypePtr::Record::NFS3::read_reply_t);
 	if (status == BifEnum::NFS3::NFS3ERR_OK)
 		{
+		uint32_t bytes_read;
+
 		rep->Assign(0, nfs3_post_op_attr(buf, n));
-		rep->Assign(1, ExtractUint32(buf, n));
+		bytes_read = extract_XDR_uint32(buf, n);
+		rep->Assign(1, new Val(bytes_read, TYPE_COUNT));
 		rep->Assign(2, ExtractBool(buf, n));
-		n = 0; // Skip data. TODO: return data to policy layer
+		rep->Assign(3, nfs3_file_data(buf, n, offset, bytes_read));
 		}
 	else
 		{
@@ -424,12 +451,16 @@ RecordVal* NFS_Interp::nfs3_readlink_reply(const u_char*& buf, int& n, BifEnum::
 
 RecordVal *NFS_Interp::nfs3_writeargs(const u_char*& buf, int& n)
 	{
+	uint32_t bytes;
+	uint64_t offset;
 	RecordVal *writeargs = new RecordVal(BifTypePtr::Record::NFS3::writeargs_t);
 	writeargs->Assign(0, nfs3_fh(buf, n));
-	writeargs->Assign(1, ExtractUint64(buf, n));
-	writeargs->Assign(2, ExtractUint32(buf,n));
+	offset = extract_XDR_uint64(buf, n);
+	bytes = extract_XDR_uint32(buf, n);
+	writeargs->Assign(1, new Val(offset, TYPE_COUNT));
+	writeargs->Assign(2, new Val(bytes, TYPE_COUNT));
 	writeargs->Assign(3, nfs3_stable_how(buf, n));
-	n = 0; // Skip data, which is element 4. TODO: pass data to policy layer
+	writeargs->Assign(4, nfs3_file_data(buf, n, offset, bytes));
 	return writeargs;
 	}
 

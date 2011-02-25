@@ -25,6 +25,7 @@ protected:
 				BifEnum::NFS3::status_t nfs_status, double rep_start_time, double rep_last_time,
 				int reply_len);
 
+
 	// These methods parse the appropriate NFSv3 "type" out of buf. If 
 	// there are any errors (i.e., buffer to short, etc), buf will be
 	// set to 0. However, the methods might still return an allocated
@@ -42,7 +43,7 @@ protected:
 	RecordVal* nfs3_pre_op_attr(const u_char*&buf, int &n); // Return 0 or an wcc_attr
 	RecordVal* nfs3_lookup_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status);
 	RecordVal* nfs3_readargs(const u_char*& buf, int& n);
-	RecordVal* nfs3_read_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status);
+	RecordVal* nfs3_read_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status, bro_uint_t offset);
 	RecordVal* nfs3_readlink_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status);
 	RecordVal* nfs3_writeargs(const u_char*& buf, int& n);
 	EnumVal* nfs3_stable_how(const u_char*& buf, int& n);
@@ -52,6 +53,11 @@ protected:
 	StringVal* nfs3_post_op_fh(const u_char*& buf, int& n);
 	RecordVal* nfs3_readdirargs(bool isplus, const u_char*& buf, int&n);
 	RecordVal* nfs3_readdir_reply(bool isplus, const u_char*& buf, int&n, BifEnum::NFS3::status_t status);
+	// consumes the file data in the RPC message. Depending on NFS::return_data* consts 
+	// in bro.init returns NULL or the data as string val
+	//   * offset is the offset of the read/write call
+	//   * size is the amount of bytes read (or requested to be written),
+	StringVal* nfs3_file_data(const u_char*& buf, int& n, uint64_t offset, int size);
 
 
 

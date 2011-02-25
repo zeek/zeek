@@ -34,6 +34,7 @@ type fh_info : record {
 	id: count;   # A unique ID (counter) for more readable representation of the FH
 	pathname: string &default="@"; # the path leading to this FH
 	basename: string &default="";  # the name of this FHs file or directory
+	mimetype: string &default="";
 	t0: time &default=double_to_time(0); # time when we first saw this FH
 	dt: interval &default=0 sec;   # time it took to get this FH (assuming a chain of 
 	                               # procedures that ultimately yield the FH for the file
@@ -136,6 +137,18 @@ function add_update_fh(c: connection, proc: string, parentfh: string, name: stri
 			}
 		}
 	log_filename(proc, info);
+	}
+
+function set_fh_mimetype(c: connection, fh: string, proc:string, data: string)
+	{
+	local info = get_fh_info(c,fh);
+	local mimetype = identify_data(data, T);
+	if (info$mimetype != mimetype)
+		{
+		info$mimetype = mimetype;
+		print names_log_file, fmt("%.6f %s type FH%d %s/%s %s", network_time(), proc,
+				info$id, info$pathname, info$basename, (mimetype!="") ? mimetype : "X/X");
+		}
 	}
 
 # Get the total time of the lookup chain for this FH to the 
@@ -256,6 +269,8 @@ event nfs_proc_read(c: connection, info: info_t, req: readargs_t, rep: read_repl
 		{
 		msg = fmt("%s got %d bytes %s %s", msg, rep$size, (rep$eof) ? "<eof>" : "x", 
 					get_fh_chaintime_str(c, req$fh));
+		if (rep?$data && req$offset==0 && rep$size>0)
+			set_fh_mimetype(c, req$fh, "read", rep$data);
 		if (is_rpc_success(info) && rep?$attr)
 			log_attributes(c, "read", req$fh, rep$attr);
 		}
@@ -287,6 +302,8 @@ event nfs_proc_write(c: connection, info: info_t, req: writeargs_t, rep: write_r
 		{
 		msg = fmt("%s wrote %d bytes %s %s", msg, rep$size, rep$commited, 
 					get_fh_chaintime_str(c, req$fh));
+		if (req?$data && req$offset==0 && rep$size>0)
+			set_fh_mimetype(c, req$fh, "write", req$data);
 		if (rep?$postattr)
 			log_attributes(c, "write", req$fh, rep$postattr);
 		}

@@ -1,3 +1,16 @@
+1.6-dev.49 Fri Feb 25 15:37:28 PST 2011
+
+- Enum IDs can have explicitly defined values. (Gregor Maier)
+
+- Extensions for the built-in function compiler, bifcl. (Gregor Maier)
+
+    * Support for policy-layer namespaces.
+    * Support for type declarations in bif files (with access them
+      from C++)
+    * Extended const declarations in bif files.
+
+  See http://bro.icir.org/devel/bif-doc for more information.
+
 1.6-dev.48 Fri Feb 25 10:53:04 PST 2011
 
 - Preliminary TCP Reassembler fix: deliver data after 2GB by disabling

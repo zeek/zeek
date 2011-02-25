@@ -51,7 +51,7 @@
 %type <expr> expr init anonymous_function
 %type <event_expr> event
 %type <stmt> stmt stmt_list func_body for_head
-%type <type> type opt_type refined_type enum_id_list
+%type <type> type opt_type refined_type enum_body
 %type <func_type> func_hdr func_params
 %type <type_l> type_list
 %type <type_decl> type_decl formal_args_decl
@@ -104,6 +104,30 @@ bool in_debug = false;
 bool resolving_global_ID = false;
 
 ID* func_id = 0;
+EnumType *cur_enum_type = 0;
+
+static void parser_new_enum (void)
+	{
+	/* Starting a new enum definition. */
+	assert(cur_enum_type == NULL);
+	cur_enum_type = new EnumType();
+	}
+
+static void parser_redef_enum (ID *id)
+	{
+	/* Redef an enum. id points to the enum to be redefined.
+	   Let cur_enum_type point to it. */
+	assert(cur_enum_type == NULL);
+	if ( ! id->Type() )
+		id->Error("unknown identifier");
+	else
+		{
+		cur_enum_type = id->Type()->AsEnumType();
+		if ( ! cur_enum_type )
+			id->Error("not an enum");
+		}
+	}
+
 %}
 
 %union {
@@ -546,24 +570,49 @@ single_pattern:
 			{ $$ = $3; }
 	;
 
-enum_id_list:
-		TOK_ID
+enum_body:
+		enum_body_list opt_comma
 			{
-			set_location(@1);
-
-			EnumType* et = new EnumType(is_export);
-			if ( et->AddName(current_module, $1) < 0 )
-				error("identifier in enumerated type definition already exists");
-			$$ = et;
+			$$ = cur_enum_type;
+			cur_enum_type = NULL;
 			}
+	;
 
-	|	enum_id_list ',' TOK_ID
+enum_body_list:
+			enum_body_elem	 /* No action */
+		|	enum_body_list ',' enum_body_elem  /* no action */
+	;
+
+enum_body_elem:
+		/* TODO: We could also define this as TOK_ID '=' expr, (or
+		   TOK_ID '=' = TOK_ID) so that we can return more descriptive
+		   error messages if someboy tries to use constant variables as
+		   enumerator.
+		*/
+		TOK_ID '=' TOK_CONSTANT
 			{
 			set_location(@1, @3);
+			assert(cur_enum_type);
+			if ( $3->Type()->Tag() != TYPE_COUNT )
+				error("enumerator is not a count constant");
+			else
+				cur_enum_type->AddName(current_module, $1, $3->InternalUnsigned(), is_export);
+			}
 
-			if ( $1->AsEnumType()->AddName(current_module, $3) < 1 )
-				error("identifier in enumerated type definition already exists");
-			$$ = $1;
+	|	TOK_ID '=' '-' TOK_CONSTANT
+			{
+			/* We only accept counts as enumerator, but we want to return a nice
+			   error message if users triy to use a negative integer (will also
+			   catch other cases, but that's fine.)
+			*/
+			error("enumerator is not a count constant");
+			}
+
+	|	TOK_ID
+			{
+			set_location(@1);
+			assert(cur_enum_type);
+			cur_enum_type->AddName(current_module, $1, is_export);
 			}
 	;
 
@@ -668,10 +717,11 @@ type:
 				$$ = 0;
 				}
 
-	|	TOK_ENUM '{' enum_id_list opt_comma '}'
+	|	TOK_ENUM '{' { set_location(@1); parser_new_enum(); } enum_body '}'
 				{
-				set_location(@1, @4);
-				$$ = $3;
+				set_location(@1, @5);
+				$4->UpdateLocationEndInfo(@5);
+				$$ = $4;
 				}
 
 	|	TOK_LIST
@@ -801,21 +851,9 @@ decl:
 	|	TOK_REDEF global_id opt_type init_class opt_init opt_attr ';'
 			{ add_global($2, $3, $4, $5, $6, VAR_REDEF); }
 
-	|       TOK_REDEF TOK_ENUM global_id TOK_ADD_TO
-		'{' enum_id_list opt_comma '}' ';'
-			{
-			if ( ! $3->Type() )
-				$3->Error("unknown identifier");
-			else
-				{
-				EnumType* add_to = $3->Type()->AsEnumType();
-				if ( ! add_to )
-					$3->Error("not an enum");
-				else
-					add_to->AddNamesFrom(current_module,
-							     $6->AsEnumType());
-				}
-			}
+	|	TOK_REDEF TOK_ENUM global_id TOK_ADD_TO
+		'{' { parser_redef_enum($3); } enum_body '}' ';'
+			{ /* no action */ }
 
 	|	TOK_TYPE global_id ':' refined_type opt_attr ';'
 			{
@@ -1251,7 +1289,7 @@ global_or_event_id:
 				const char* module_name =
 					resolving_global_ID ?
 						current_module.c_str() : 0;
-					
+
 				$$ = install_ID($1, module_name,
 						true, is_export);
 				}

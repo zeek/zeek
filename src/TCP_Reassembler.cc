@@ -9,6 +9,13 @@
 // Only needed for gap_report events.
 #include "Event.h"
 
+// Note, sequence numbers are relative. I.e., they start with 1.
+
+// TODO: The Reassembler should start using 64 bit ints for keeping track of
+// sequence numbers; currently they become negative once 2GB are exceeded.
+//
+// See #348 for more information.
+
 const bool DEBUG_tcp_contents = false;
 const bool DEBUG_tcp_connection_close = false;
 const bool DEBUG_tcp_match_undelivered = false;
@@ -35,7 +42,9 @@ TCP_Reassembler::TCP_Reassembler(Analyzer* arg_dst_analyzer,
 	deliver_tcp_contents = 0;
 	skip_deliveries = 0;
 	did_EOF = 0;
+#ifdef ENABLE_SEQ_TO_SKIP
 	seq_to_skip = 0;
+#endif
 	in_delivery = false;
 
 	if ( tcp_contents )
@@ -120,7 +129,7 @@ void TCP_Reassembler::Undelivered(int up_to_seq)
 	TCP_Endpoint* endpoint = endp;
 	TCP_Endpoint* peer = endpoint->peer;
 
-	if ( up_to_seq <= 2 && tcp_analyzer->IsPartial() )
+	if ( up_to_seq <= 2 && tcp_analyzer->IsPartial() ) {
 		// Since it was a partial connection, we faked up its
 		// initial sequence numbers as though we'd seen a SYN.
 		// We've now received the first ack and are getting a
@@ -129,7 +138,16 @@ void TCP_Reassembler::Undelivered(int up_to_seq)
 		// (if up_to_seq is 2).  The latter can occur when the
 		// first packet we saw instantiating the partial connection
 		// was a keep-alive.  So, in either case, just ignore it.
-		return;
+
+		// TODO: Don't we need to update last_reassm_seq ????
+		if ( up_to_seq >=0 )
+			// Since seq are currently only 32 bit signed
+			// integers, they will become negative if a
+			// connection has more than 2GB of data. Remove the
+			// above if and always return here, once we're using
+			// 64 bit ints
+			return;
+	}
 
 #if 0
 	if ( endpoint->FIN_cnt > 0 )
@@ -144,16 +162,17 @@ void TCP_Reassembler::Undelivered(int up_to_seq)
 
 	if ( DEBUG_tcp_contents )
 		{
-		DEBUG_MSG("%.6f Undelivered: up_to_seq=%d, last_reassm=%d, "
+		DEBUG_MSG("%.6f Undelivered: is_orig=%d up_to_seq=%d, last_reassm=%d, "
 		          "endp: FIN_cnt=%d, RST_cnt=%d, "
 		          "peer: FIN_cnt=%d, RST_cnt=%d\n",
-		          network_time, up_to_seq, last_reassem_seq,
+		          network_time, is_orig, up_to_seq, last_reassem_seq,
 		          endpoint->FIN_cnt, endpoint->RST_cnt,
 		          peer->FIN_cnt, peer->RST_cnt);
 		}
 
 	if ( seq_delta(up_to_seq, last_reassem_seq) <= 0 )
-		return;
+		// This should never happen.
+		internal_error("Calling Undelivered for data that has already been delivered (or has already been marked as undelivered");
 
 	if ( last_reassem_seq == 1 &&
 	     (endpoint->FIN_cnt > 0 || endpoint->RST_cnt > 0 ||
@@ -177,9 +196,9 @@ void TCP_Reassembler::Undelivered(int up_to_seq)
 		{
 		if ( DEBUG_tcp_contents )
 			{
-			DEBUG_MSG("%.6f Undelivered: seq=%d, len=%d, "
+			DEBUG_MSG("%.6f Undelivered: is_orig=%d, seq=%d, len=%d, "
 					  "skip_deliveries=%d\n",
-					  network_time, last_reassem_seq,
+					  network_time, is_orig, last_reassem_seq,
 					  seq_delta(up_to_seq, last_reassem_seq),
 					  skip_deliveries);
 			}
@@ -376,7 +395,7 @@ void TCP_Reassembler::BlockInserted(DataBlock* start_block)
 void TCP_Reassembler::Overlap(const u_char* b1, const u_char* b2, int n)
 	{
 	if ( DEBUG_tcp_contents )
-		DEBUG_MSG("%.6f TCP contents overlap: %d\n", network_time,  n);
+		DEBUG_MSG("%.6f TCP contents overlap: %d is_orig=%d\n", network_time,  n, is_orig);
 
 	if ( rexmit_inconsistency &&
 	     memcmp((const void*) b1, (const void*) b2, n) &&
@@ -419,8 +438,8 @@ int TCP_Reassembler::DataSent(double t, int seq, int len,
 
 	if ( DEBUG_tcp_contents )
 		{
-		DEBUG_MSG("%.6f DataSent: seq=%d upper=%d ack=%d\n",
-		          network_time, seq, upper_seq, ack);
+		DEBUG_MSG("%.6f DataSent: is_orig=%d seq=%d upper=%d ack=%d\n",
+		          network_time, is_orig, seq, upper_seq, ack);
 		}
 
 	if ( skip_deliveries )
@@ -477,8 +496,7 @@ void TCP_Reassembler::AckReceived(int seq)
 		// Zero, or negative in sequence-space terms.  Nothing to do.
 		return;
 
-	bool test_active =
-	     ! skip_deliveries && ! tcp_analyzer->Skipping() &&
+	bool test_active = ! skip_deliveries && ! tcp_analyzer->Skipping() &&
 	     endp->state == TCP_ENDPOINT_ESTABLISHED &&
 	     endp->peer->state == TCP_ENDPOINT_ESTABLISHED;
 
@@ -569,6 +587,7 @@ void TCP_Reassembler::CheckEOF()
 
 void TCP_Reassembler::DeliverBlock(int seq, int len, const u_char* data)
 	{
+#ifdef ENABLE_SEQ_TO_SKIP
 	if ( seq_delta(seq + len, seq_to_skip) <= 0 )
 		return;
 
@@ -579,6 +598,7 @@ void TCP_Reassembler::DeliverBlock(int seq, int len, const u_char* data)
 		data += to_skip;
 		seq = seq_to_skip;
 		}
+#endif
 
 	if ( deliver_tcp_contents )
 		{
@@ -603,11 +623,13 @@ void TCP_Reassembler::DeliverBlock(int seq, int len, const u_char* data)
 	in_delivery = true;
 	Deliver(seq, len, data);
 	in_delivery = false;
-
+#ifdef ENABLE_SEQ_TO_SKIP
 	if ( seq_delta(seq + len, seq_to_skip) < 0 )
 		SkipToSeq(seq_to_skip);
+#endif
 	}
 
+#ifdef ENABLE_SEQ_TO_SKIP
 void TCP_Reassembler::SkipToSeq(int seq)
 	{
 	if ( seq_delta(seq, seq_to_skip) > 0 )
@@ -617,6 +639,7 @@ void TCP_Reassembler::SkipToSeq(int seq)
 			TrimToSeq(seq);
 		}
 	}
+#endif
 
 int TCP_Reassembler::DataPending() const
 	{

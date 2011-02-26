@@ -17,7 +17,7 @@ uint32 extract_XDR_uint32(const u_char*& buf, int& len)
 		return 0;
 		}
 
-	// takes care of alignment and endianess differences. 
+	// Takes care of alignment and endianess differences. 
 	uint32 bits32 = (buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8) | buf[3];
 
 	buf += 4;

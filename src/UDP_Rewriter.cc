@@ -26,7 +26,7 @@ UDP_Rewriter::UDP_Rewriter(Analyzer* arg_analyzer, int arg_MTU,
 	packets_rewritten = 0;
 	current_packet = next_packet = 0;
 
-	if ( anonymize_ip_addr )
+	if ( BifConst::anonymize_ip_addr )
 		{
 		anon_addr[0] = anonymize_ip(to_v4_addr(analyzer->Conn()->OrigAddr()),
 						ORIG_ADDR);
@@ -73,7 +73,7 @@ int UDP_TracePacket::BuildPacket(struct pcap_pkthdr*& hdr,
 	uint32 sum = 0;
 
 	// Fix IP addresses before computing the UDP checksum
-	if ( anonymize_ip_addr )
+	if ( BifConst::anonymize_ip_addr )
 		{
 		ip->ip_src.s_addr = anon_src;
 		ip->ip_dst.s_addr = anon_dst;

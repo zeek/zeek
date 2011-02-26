@@ -16,7 +16,7 @@ public:
 	virtual void DeliverStream(int length, const u_char* data, bool is_orig);
 	virtual int RewritingTrace()
 		{
-		return rewriting_ident_trace ||
+		return BifConst::rewriting_ident_trace ||
 			TCP_ApplicationAnalyzer::RewritingTrace();
 		}
 

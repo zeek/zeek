@@ -3582,6 +3582,7 @@ bool SocketComm::Listen(uint32 ip, uint16 port, bool expect_ssl)
 	if ( bind(*listen_fd, (sockaddr*) &server, sizeof(server)) < 0 )
 		{
 		Error(fmt("can't bind to port %d, %s", port, strerror(errno)));
+		close(*listen_fd);
 		*listen_fd = -1;
 
 		if ( errno == EADDRINUSE )

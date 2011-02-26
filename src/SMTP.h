@@ -47,7 +47,7 @@ public:
 	virtual void ConnectionFinished(int half_finished);
 	virtual void Undelivered(int seq, int len, bool orig);
 	virtual int RewritingTrace()
-		{ return rewriting_smtp_trace || TCP_ApplicationAnalyzer::RewritingTrace(); }
+		{ return BifConst::rewriting_smtp_trace || TCP_ApplicationAnalyzer::RewritingTrace(); }
 
 	void SkipData()	{ skip_data = 1; }	// skip delivery of data lines
 

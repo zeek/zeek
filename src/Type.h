@@ -480,31 +480,37 @@ protected:
 
 class EnumType : public BroType {
 public:
-	EnumType(bool arg_is_export);
+	EnumType();
 	~EnumType();
 
-	// The value of this name is next counter value, which is returned.
-	// A return value of -1 means that the identifier already existed
-	// (and thus could not be used).
-	int AddName(const string& module_name, const char* name);
+	// The value of this name is next internal counter value, starting
+	// with zero. The internal counter is incremented.
+	void AddName(const string& module_name, const char* name, bool is_export);
 
-	// Add in names from the suppled EnumType; the return value is
-	// the value of the last enum added.
-	int AddNamesFrom(const string& module_name, EnumType* et);
+	// The value of this name is set to val. Once a value has been
+	// explicitly assigned using this method, no further names can be
+	// added that aren't likewise explicitly initalized.
+	void AddName(const string& module_name, const char* name, bro_int_t val, bool is_export);
 
 	// -1 indicates not found.
-	int Lookup(const string& module_name, const char* name);
-	const char* Lookup(int value); // Returns 0 if not found
+	bro_int_t Lookup(const string& module_name, const char* name);
+	const char* Lookup(bro_int_t value); // Returns 0 if not found
 
 protected:
-	EnumType()	{}
-
 	DECLARE_SERIAL(EnumType)
 
-	typedef std::map< const char*, int, ltstr > NameMap;
+	void AddNameInternal(const string& module_name, const char* name, bro_int_t val, bool is_export);
+
+	typedef std::map< const char*, bro_int_t, ltstr > NameMap;
 	NameMap names;
-	int counter;
-	bool is_export;
+
+	// The counter is initialized to 0 and incremented on every implicit
+	// auto-increment name that gets added (thus its > 0 if
+	// auto-increment is used).  Once an explicit value has been
+	// specified, the counter is set to -1. This way counter can be used
+	// as a flag to prevent mixing of auto-increment and explicit
+	// enumerator specifications.
+	bro_int_t counter;
 };
 
 class VectorType : public BroType {

@@ -137,14 +137,14 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int is_orig)
 		if ( ! buf )
 			return 0;
 
-		uint32 status = BroEnum::RPC_UNKNOWN_ERROR;
+		uint32 status = BifEnum::RPC_UNKNOWN_ERROR;
 
 		if ( reply_stat == RPC_MSG_ACCEPTED )
 			{
 			(void) skip_XDR_opaque_auth(buf, n);
 			uint32 accept_stat = extract_XDR_uint32(buf, n);
 
-			// The first members of BroEnum::RPC_* correspond
+			// The first members of BifEnum::RPC_* correspond
 			// to accept_stat.
 			if ( accept_stat <= RPC_SYSTEM_ERR )
 				status = accept_stat;
@@ -171,7 +171,7 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int is_orig)
 			if ( reject_stat == RPC_MISMATCH )
 				{
 				// Note that RPC_MISMATCH == 0 == RPC_SUCCESS.
-				status = BroEnum::RPC_VERS_MISMATCH;
+				status = BifEnum::RPC_VERS_MISMATCH;
 
 				(void) extract_XDR_uint32(buf, n);
 				(void) extract_XDR_uint32(buf, n);
@@ -182,7 +182,7 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int is_orig)
 
 			else if ( reject_stat == RPC_AUTH_ERROR )
 				{
-				status = BroEnum::RPC_AUTH_ERROR;
+				status = BifEnum::RPC_AUTH_ERROR;
 
 				(void) extract_XDR_uint32(buf, n);
 				if ( ! buf )
@@ -191,7 +191,7 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int is_orig)
 
 			else
 				{
-				status = BroEnum::RPC_UNKNOWN_ERROR;
+				status = BifEnum::RPC_UNKNOWN_ERROR;
 				Weird("bad_RPC");
 				}
 			}
@@ -264,7 +264,7 @@ void RPC_Interpreter::Timeout()
 
 	while ( (c = calls.NextEntry(cookie)) )
 		{
-		RPC_Event(c, BroEnum::RPC_TIMEOUT, 0);
+		RPC_Event(c, BifEnum::RPC_TIMEOUT, 0);
 		if ( c->IsValidCall() )
 			{
 			const u_char* buf;
@@ -276,7 +276,7 @@ void RPC_Interpreter::Timeout()
 			else
 				{
 				Event(event, c->TakeRequestVal(),
-					BroEnum::RPC_TIMEOUT, reply);
+					BifEnum::RPC_TIMEOUT, reply);
 				}
 			}
 		}

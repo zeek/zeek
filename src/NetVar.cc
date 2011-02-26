@@ -263,6 +263,7 @@ TableType* id_table;
 RecordType* log_filter;
 
 #include "const.bif.netvar_def"
+#include "types.bif.netvar_def"
 #include "event.bif.netvar_def"
 
 void init_event_handlers()
@@ -299,7 +300,7 @@ void init_general_global_var()
 	ssl_passphrase = internal_val("ssl_passphrase")->AsStringVal();
 
 	packet_filter_default = opt_internal_int("packet_filter_default");
-	
+
 	sig_max_group_size = opt_internal_int("sig_max_group_size");
 	enable_syslog = opt_internal_int("enable_syslog");
 
@@ -318,6 +319,7 @@ void init_general_global_var()
 void init_net_var()
 	{
 #include "const.bif.netvar_init"
+#include "types.bif.netvar_init"
 
 	conn_id = internal_type("conn_id")->AsRecordType();
 	endpoint = internal_type("endpoint")->AsRecordType();

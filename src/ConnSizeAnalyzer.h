@@ -24,7 +24,7 @@ public:
 	static Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new ConnSize_Analyzer(conn); }
 
-	static bool Available()	{ return use_conn_size_analyzer ; }
+	static bool Available()	{ return BifConst::use_conn_size_analyzer ; }
 
 protected:
 	virtual void DeliverPacket(int len, const u_char* data, bool is_orig,

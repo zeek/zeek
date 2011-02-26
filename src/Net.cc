@@ -346,7 +346,7 @@ void net_init(name_list& interfaces, name_list& readfiles,
 		transformed_pkt_dump =
 			new PacketDumper(pkt_dumper->PcapDumper());
 
-	if ( anonymize_ip_addr )
+	if ( BifConst::anonymize_ip_addr )
 		init_ip_addr_anonymizers();
 	else
 		for ( int i = 0; i < NUM_ADDR_ANONYMIZATION_METHODS; ++i )

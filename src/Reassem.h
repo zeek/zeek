@@ -11,7 +11,7 @@
 class DataBlock {
 public:
 	DataBlock(const u_char* data, int size, int seq,
-			DataBlock* next, DataBlock* prev);
+			DataBlock* prev, DataBlock* next);
 
 	~DataBlock();
 

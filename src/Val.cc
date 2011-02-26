@@ -517,7 +517,7 @@ Val* Val::SizeVal() const
 	case TYPE_INTERNAL_INT:
 		// Return abs value. However abs() only works on ints and llabs
 		// doesn't work on Mac OS X 10.5. So we do it by hand
-		if (val.int_val < 0)
+		if ( val.int_val < 0 )
 			return new Val(-val.int_val, TYPE_COUNT);
 		else
 			return new Val(val.int_val, TYPE_COUNT);

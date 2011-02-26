@@ -27,6 +27,7 @@ extern void begin_func(ID* id, const char* module_name, function_flavor flavor,
 extern void end_func(Stmt* body, attr_list* attrs = 0);
 
 extern Val* internal_val(const char* name);
+extern Val* internal_const_val(const char* name); // internal error if not const
 extern Val* opt_internal_val(const char* name);	// returns nil if not defined
 extern double opt_internal_double(const char* name);
 extern bro_int_t opt_internal_int(const char* name);

@@ -1082,10 +1082,9 @@ bool FileType::DoUnserialize(UnserialInfo* info)
 	return yield != 0;
 	}
 
-EnumType::EnumType(bool arg_is_export)
+EnumType::EnumType()
 : BroType(TYPE_ENUM)
 	{
-	is_export = arg_is_export;
 	counter = 0;
 	}
 
@@ -1095,9 +1094,47 @@ EnumType::~EnumType()
 		delete [] iter->first;
 	}
 
-int EnumType::AddName(const string& module_name, const char* name)
+// Note, we use error() here (not Error()) to include the current script
+// location in the error message, rather than the one where the type was
+// originally defined.
+void EnumType::AddName(const string& module_name, const char* name, bool is_export)
 	{
-	ID* id = lookup_ID(name, module_name.c_str());
+	/* implicit, auto-increment */
+	if ( counter < 0)
+		{
+		error("cannot mix explicit enumerator assignment and implicit auto-increment");
+		SetError();
+		return;
+		}
+	AddNameInternal(module_name, name, counter, is_export);
+	counter++;
+	}
+
+void EnumType::AddName(const string& module_name, const char* name, bro_int_t val, bool is_export)
+	{
+	/* explicit value specified */
+	error_t rv;
+	if ( counter > 0 )
+		{
+		error("cannot mix explicit enumerator assignment and implicit auto-increment");
+		SetError();
+		return;
+		}
+	counter = -1;
+	AddNameInternal(module_name, name, val, is_export);
+	}
+
+void EnumType::AddNameInternal(const string& module_name, const char* name, bro_int_t val, bool is_export)
+	{
+	ID *id;
+	if ( Lookup(val) )
+		{
+		error("enumerator value in enumerated type definition already exists");
+		SetError();
+		return;
+		}
+
+	id = lookup_ID(name, module_name.c_str());
 	if ( ! id )
 		{
 		id = install_ID(name, module_name.c_str(), true, is_export);
@@ -1106,31 +1143,16 @@ int EnumType::AddName(const string& module_name, const char* name)
 		}
 	else
 		{
-		debug_msg("identifier already exists: %s\n", name);
-		return -1;
+		error("identifier or enumerator value in enumerated type definition already exists");
+		SetError();
+		return;
 		}
 
 	string fullname = make_full_var_name(module_name.c_str(), name);
-	names[copy_string(fullname.c_str())] = counter;
-	return counter++;
+	names[copy_string(fullname.c_str())] = val;
 	}
 
-int EnumType::AddNamesFrom(const string& module_name, EnumType* et)
-	{
-	int last_added = counter;
-	for ( NameMap::iterator iter = et->names.begin();
-	      iter != et->names.end(); ++iter )
-		{
-		ID* id = lookup_ID(iter->first, module_name.c_str());
-		id->SetType(this->Ref());
-		names[copy_string(id->Name())] = counter;
-		last_added = counter++;
-		}
-
-	return last_added;
-	}
-
-int EnumType::Lookup(const string& module_name, const char* name)
+bro_int_t EnumType::Lookup(const string& module_name, const char* name)
 	{
 	NameMap::iterator pos =
 		names.find(make_full_var_name(module_name.c_str(), name).c_str());
@@ -1141,7 +1163,7 @@ int EnumType::Lookup(const string& module_name, const char* name)
 		return pos->second;
 	}
 
-const char* EnumType::Lookup(int value)
+const char* EnumType::Lookup(bro_int_t value)
 	{
 	for ( NameMap::iterator iter = names.begin();
 	      iter != names.end(); ++iter )
@@ -1157,9 +1179,9 @@ bool EnumType::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_ENUM_TYPE, BroType);
 
-	// I guess we don't really need both ...
 	if ( ! (SERIALIZE(counter) && SERIALIZE((unsigned int) names.size()) &&
-		SERIALIZE(is_export)) )
+		// Dummy boolean for backwards compatibility.
+		SERIALIZE(false)) )
 		return false;
 
 	for ( NameMap::const_iterator iter = names.begin();
@@ -1177,15 +1199,17 @@ bool EnumType::DoUnserialize(UnserialInfo* info)
 	DO_UNSERIALIZE(BroType);
 
 	unsigned int len;
+	bool dummy;
 	if ( ! UNSERIALIZE(&counter) ||
 	     ! UNSERIALIZE(&len) ||
-	     ! UNSERIALIZE(&is_export) )
+	     // Dummy boolean for backwards compatibility.
+	     ! UNSERIALIZE(&dummy) )
 		return false;
 
 	while ( len-- )
 		{
 		const char* name;
-		int val;
+		bro_int_t val;
 		if ( ! (UNSERIALIZE_STR(&name, 0) && UNSERIALIZE(&val)) )
 			return false;
 

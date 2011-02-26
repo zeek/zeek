@@ -22,5 +22,4 @@ DEFINE_BIF_TYPE(TYPE_STRING, 	"string", "string", "StringVal*", 	"%s->AsStringVa
 // DEFINE_BIF_TYPE(TYPE_STRING, 	"string", "string", "BroString*", 	"%s->AsString()",	"new StringVal(%s)")
 DEFINE_BIF_TYPE(TYPE_SUBNET, 	"subnet", "subnet", "SubNetVal*", 	"%s->AsSubNetVal()",	"%s")
 DEFINE_BIF_TYPE(TYPE_TIME, 	"time", "time", "double", 		"%s->AsTime()", 	"new Val(%s, TYPE_TIME)")
-DEFINE_BIF_TYPE(TYPE_ENUM, 	"", "", "BroEnum::%s", 			"%s->InternalInt()",	"new EnumVal(%s, enum_%s)")
 DEFINE_BIF_TYPE(TYPE_OTHER, 	"", "", "Val*", 			"%s", 			"%s")

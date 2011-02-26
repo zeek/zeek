@@ -1113,7 +1113,6 @@ void EnumType::AddName(const string& module_name, const char* name, bool is_expo
 void EnumType::AddName(const string& module_name, const char* name, bro_int_t val, bool is_export)
 	{
 	/* explicit value specified */
-	error_t rv;
 	if ( counter > 0 )
 		{
 		error("cannot mix explicit enumerator assignment and implicit auto-increment");

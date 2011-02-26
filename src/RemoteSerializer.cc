@@ -2724,7 +2724,7 @@ void RemoteSerializer::InternalCommError(const char* msg)
 #ifdef DEBUG_COMMUNICATION
 	DumpDebugData();
 #else
-	internal_error(msg);
+	internal_error("%s", msg);
 #endif
 	}
 

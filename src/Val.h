@@ -235,7 +235,7 @@ public:
 		return &val.subnet_val;
 		}
 
-	const BroType* AsType() const
+	BroType* AsType() const
 		{
 		CHECK_TAG(type->Tag(), TYPE_TYPE, "Val::Type", type_name)
 		return type;

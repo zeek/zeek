@@ -31,8 +31,11 @@ public:
     // occured, in which case the writer must not be used further. 
     bool Write(LogVal** vals);
 
-	// Sets the buffering status for the writer, if the writer supports 
+	// Sets the buffering status for the writer, if the writer supports it.
 	bool SetBuf(bool enabled);
+
+	// Flushes any currently buffered output, if the writer support it.
+	bool Flush();
 
 	// Finished writing to this logger. Will not be called if an error has
 	// been indicated earlier. After calling this, no more writing must be
@@ -64,6 +67,12 @@ protected:
 	// A writer may ignore buffering changes if it doesn't fit with its
 	// semantics.
 	virtual bool DoSetBuf(bool enabled) = 0;
+
+	// Called to flush any currently buffered output.
+	//
+	// A writer may ignore flush requests if it doesn't fit with its
+	// semantics.
+    virtual bool DoFlush() = 0;
 
 	// Called when a log output is to be rotated. Most directly, this only
 	// applies to writers outputting files, thoug a writer may also trigger

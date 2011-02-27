@@ -9,7 +9,7 @@ module SSH;
 
 export {
 	# Create a new ID for our log stream
-	redef enum Log_ID += { LOG_SSH };
+	redef enum Log::ID += { SSH };
 
 	# Define a record with all the columns the log file can have.
 	# (I'm using a subset of fields from ssh-ext for demonstration.)
@@ -21,11 +21,9 @@ export {
 	};
 }
 
-global ssh_log: event(rec: Log);
-
 global c = -1;
 
-function path_func(id: Log_ID, path: string) : string
+function path_func(id: Log::ID, path: string) : string
 	{
 	c = (c + 1) % 3;
 
@@ -34,18 +32,19 @@ function path_func(id: Log_ID, path: string) : string
 
 event bro_init()
 {
-	log_create_stream(LOG_SSH, SSH::Log, ssh_log);
+	Log::create_stream(SSH, [$columns=Log]);
+	Log::remove_default_filter(SSH);
 
-	log_add_filter(LOG_SSH, [$name="dyn", $path="static-prefix", $path_func=path_func]);
+	Log::add_filter(SSH, [$name="dyn", $path="static-prefix", $path_func=path_func]);
 
-	log_set_buf(LOG_SSH, F);
+	Log::set_buf(SSH, F);
 
     local cid = [$orig_h=1.2.3.4, $orig_p=1234/tcp, $resp_h=2.3.4.5, $resp_p=80/tcp];
-	log_write(LOG_SSH, [$t=network_time(), $id=cid, $status="success"]);
-	log_write(LOG_SSH, [$t=network_time(), $id=cid, $status="failure", $country="US"]);
-	log_write(LOG_SSH, [$t=network_time(), $id=cid, $status="failure", $country="UK"]);
-	log_write(LOG_SSH, [$t=network_time(), $id=cid, $status="success", $country="BR"]);
-	log_write(LOG_SSH, [$t=network_time(), $id=cid, $status="failure", $country="MX"]);
-	log_write(LOG_SSH, [$t=network_time(), $id=cid, $status="failure", $country="MX2"]);
-	log_write(LOG_SSH, [$t=network_time(), $id=cid, $status="failure", $country="MX3"]);
+	Log::write(SSH, [$t=network_time(), $id=cid, $status="success"]);
+	Log::write(SSH, [$t=network_time(), $id=cid, $status="failure", $country="US"]);
+	Log::write(SSH, [$t=network_time(), $id=cid, $status="failure", $country="UK"]);
+	Log::write(SSH, [$t=network_time(), $id=cid, $status="success", $country="BR"]);
+	Log::write(SSH, [$t=network_time(), $id=cid, $status="failure", $country="MX"]);
+	Log::write(SSH, [$t=network_time(), $id=cid, $status="failure", $country="MX2"]);
+	Log::write(SSH, [$t=network_time(), $id=cid, $status="failure", $country="MX3"]);
 }

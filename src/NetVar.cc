@@ -260,11 +260,10 @@ int record_all_packets;
 RecordType* script_id;
 TableType* id_table;
 
-RecordType* log_filter;
-
 #include "const.bif.netvar_def"
 #include "types.bif.netvar_def"
 #include "event.bif.netvar_def"
+#include "logging.bif.netvar_def"
 
 void init_event_handlers()
 	{
@@ -320,6 +319,7 @@ void init_net_var()
 	{
 #include "const.bif.netvar_init"
 #include "types.bif.netvar_init"
+#include "logging.bif.netvar_init"
 
 	conn_id = internal_type("conn_id")->AsRecordType();
 	endpoint = internal_type("endpoint")->AsRecordType();
@@ -568,6 +568,4 @@ void init_net_var()
 
 	script_id = internal_type("script_id")->AsRecordType();
 	id_table = internal_type("id_table")->AsTableType();
-
-	log_filter = internal_type("log_filter")->AsRecordType();
 	}

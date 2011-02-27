@@ -8,7 +8,7 @@ module SSH;
 
 export {
 	# Create a new ID for our log stream
-	redef enum Log_ID += { LOG_SSH };
+	redef enum Log::ID += { SSH };
 
 	# Define a record with all the columns the log file can have.
 	# (I'm using a subset of fields from ssh-ext for demonstration.)
@@ -24,13 +24,12 @@ global ssh_log: event(rec: Log);
 
 event bro_init()
 {
-	log_create_stream(LOG_SSH, SSH::Log, ssh_log);
-	Log_add_default_filter(LOG_SSH);
+	Log::create_stream(SSH, [$columns=Log, $ev=ssh_log]);
 
     local cid = [$orig_h=1.2.3.4, $orig_p=1234/tcp, $resp_h=2.3.4.5, $resp_p=80/tcp];
 	local r: Log = [$t=network_time(), $id=cid, $status="success"];
-	log_write(LOG_SSH, r);
-	log_write(LOG_SSH, [$t=network_time(), $id=cid, $status="failure", $country="US"]);
+	Log::write(SSH, r);
+	Log::write(SSH, [$t=network_time(), $id=cid, $status="failure", $country="US"]);
 	
 }
 

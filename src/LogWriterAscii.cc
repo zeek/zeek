@@ -52,6 +52,12 @@ write_error:
 	return false;
 	}
 
+bool LogWriterAscii::DoFlush()
+	{
+	fflush(file);
+	return true;
+	}
+
 void LogWriterAscii::DoFinish()
 	{
 	}

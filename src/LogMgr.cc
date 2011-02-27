@@ -76,9 +76,9 @@ LogMgr::~LogMgr()
 		delete *s;
 	}
 
-LogMgr::Stream* LogMgr::FindStream(EnumVal* stream_id)
+LogMgr::Stream* LogMgr::FindStream(EnumVal* id)
 	{
-	unsigned int idx = stream_id->AsEnum();
+	unsigned int idx = id->AsEnum();
 
 	if ( idx >= streams.size() || ! streams[idx] )
 		{
@@ -111,14 +111,52 @@ void LogMgr::RemoveDisabledWriters(Stream* stream)
 		}
 	}
 
-bool LogMgr::CreateStream(EnumVal* stream_id, RecordType* columns, EventHandlerPtr handler)
+bool LogMgr::CreateStream(EnumVal* id, RecordVal* sval)
 	{
-	// TODO: Should check that the record has only supported types.
+	RecordType* rtype = sval->Type()->AsRecordType();
 
-	unsigned int idx = stream_id->AsEnum();
+	if ( ! same_type(rtype, BifType::Record::Log::Stream, 0) )
+		{
+		run_time("sval argument not of right type");
+		return false;
+		}
+
+	RecordType* columns = sval->Lookup(rtype->FieldOffset("columns"))->AsType()->AsTypeType()->Type()->AsRecordType();
+
+	Val* event_val = sval->Lookup(rtype->FieldOffset("ev"));
+	Func* event = event_val ? event_val->AsFunc() : 0;
+
+	if ( event )
+		{
+		// Make sure the event prototyped as expected.
+		FuncType* etype = event->FType()->AsFuncType();
+
+		if ( ! etype->IsEvent() )
+			{
+			run_time("stream event is a function, not an event");
+			return false;
+			}
+
+		const type_list* args = etype->ArgTypes()->Types();
+
+		if ( args->length() != 1 )
+			{
+			run_time("stream event must take a single argument");
+			return false;
+			}
+
+		if ( ! same_type((*args)[0], columns) )
+			{
+			run_time("stream event's argument type does not match column record type");
+			return new Val(0, TYPE_BOOL);
+			}
+		}
 
 	// Make sure the vector has an entries for all streams up to the one
 	// given.
+
+	unsigned int idx = id->AsEnum();
+
 	while ( idx >= streams.size() )
 		streams.push_back(0);
 
@@ -126,14 +164,14 @@ bool LogMgr::CreateStream(EnumVal* stream_id, RecordType* columns, EventHandlerP
 		// We already know this one, delete the previous definition.
 		delete streams[idx];
 
-	// Create new stream and record the type for the columns.
+	// Create new stream.
 	streams[idx] = new Stream;
-	streams[idx]->name = stream_id->Type()->AsEnumType()->Lookup(idx);
+	streams[idx]->name = id->Type()->AsEnumType()->Lookup(idx);
+	streams[idx]->event = event ? event_registry->Lookup(event->GetID()->Name()) : 0;
 	streams[idx]->columns = columns;
-	streams[idx]->event = handler;
 	columns->Ref();
 
-	DBG_LOG(DBG_LOGGING, "Created new logging stream '%s', raising event %s", streams[idx]->name.c_str(), streams[idx]->event->Name());
+	DBG_LOG(DBG_LOGGING, "Created new logging stream '%s', raising event %s", streams[idx]->name.c_str(), event ? streams[idx]->event->Name() : "<none>");
 
 	return true;
 	}
@@ -207,17 +245,17 @@ bool LogMgr::TraverseRecord(Filter* filter, RecordType* rt, TableVal* include, T
 	return true;
 	}
 
-bool LogMgr::AddFilter(EnumVal* stream_id, RecordVal* fval)
+bool LogMgr::AddFilter(EnumVal* id, RecordVal* fval)
 	{
 	RecordType* rtype = fval->Type()->AsRecordType();
 
-	if ( ! same_type(rtype, log_filter, 0) )
+	if ( ! same_type(rtype, BifType::Record::Log::Filter, 0) )
 		{
 		run_time("filter argument not of right type");
 		return false;
 		}
 
-	Stream* stream = FindStream(stream_id);
+	Stream* stream = FindStream(id);
 	if ( ! stream )
 		return false;
 
@@ -227,17 +265,9 @@ bool LogMgr::AddFilter(EnumVal* stream_id, RecordVal* fval)
 	Val* writer_val = fval->Lookup(idx);
 
 	if ( ! writer_val )
-		{
 		// Use default.
-		// FIXME: Shouldn't Lookup() already take care if this?
-		const Attr* def_attr = log_filter->FieldDecl(idx)->FindAttr(ATTR_DEFAULT);
-		if ( ! def_attr )
-			internal_error("log_filter missing &default for writer attribute");
+		writer = BifConst::Log::default_writer->AsEnum();
 
-		writer_val = def_attr->AttrExpr()->Eval(0);
-		writer = writer_val->AsEnum();
-		Unref(writer_val);
-		}
 	else
 		writer = writer_val->AsEnum();
 
@@ -269,7 +299,6 @@ bool LogMgr::AddFilter(EnumVal* stream_id, RecordVal* fval)
 
 	// Create a new Filter instance.
 
-	Val* event = fval->Lookup(rtype->FieldOffset("ev"));
 	Val* pred = fval->Lookup(rtype->FieldOffset("pred"));
 	Val* path_func = fval->Lookup(rtype->FieldOffset("path_func"));
 
@@ -302,27 +331,19 @@ bool LogMgr::AddFilter(EnumVal* stream_id, RecordVal* fval)
 
 	else
 		{
-		// If no path is given, use the Stream ID as the default.
-		const char* n = stream->name.c_str();
-		char* lower = new char[strlen(n) + 1];
-		for ( char* s = lower; *n; ++n, ++s )
-			{
-			if ( strncmp(n, "::", 2) == 0 )
-				{
-				// Remove the scope operator. TODO: We need ab better way to
-				// generate the default here, but let's wait until we have
-				// everything in the right namespace.
-				*s = '_';
-				++n;
-				}
+		// If no path is given, use the Stream ID's namespace as the default
+		// if it has one, and it ID itself otherwise.
+		const char* s = stream->name.c_str();
+		const char* e = strstr(s, "::");
 
-			else
-				*s = tolower(*n);
-			}
+		if ( ! e )
+			e = s + strlen(s);
 
-		filter->path = string(lower);
-		filter->path_val = new StringVal(lower);
-		free(lower);
+		string path(s, e);
+		std::transform(path.begin(), path.end(), path.begin(), ::tolower);
+
+		filter->path = path;
+		filter->path_val = new StringVal(path.c_str());
 		}
 
 	stream->filters.push_back(filter);
@@ -344,9 +365,9 @@ bool LogMgr::AddFilter(EnumVal* stream_id, RecordVal* fval)
 	return true;
 	}
 
-bool LogMgr::RemoveFilter(EnumVal* stream_id, StringVal* filter)
+bool LogMgr::RemoveFilter(EnumVal* id, StringVal* filter)
 	{
-	Stream* stream = FindStream(stream_id);
+	Stream* stream = FindStream(id);
 	if ( ! stream )
 		return false;
 
@@ -369,11 +390,11 @@ bool LogMgr::RemoveFilter(EnumVal* stream_id, StringVal* filter)
 	return true;
 	}
 
-bool LogMgr::Write(EnumVal* stream_id, RecordVal* columns)
+bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 	{
 	bool error = false;
 
-	Stream* stream = FindStream(stream_id);
+	Stream* stream = FindStream(id);
 	if ( ! stream )
 		return false;
 
@@ -415,7 +436,7 @@ bool LogMgr::Write(EnumVal* stream_id, RecordVal* columns)
 		if ( filter->path_func )
 			{
 			val_list vl(2);
-			vl.append(stream_id->Ref());
+			vl.append(id->Ref());
 			vl.append(filter->path_val->Ref());
 			Val* v = filter->path_func->Call(&vl);
 
@@ -562,9 +583,9 @@ LogVal** LogMgr::RecordToFilterVals(Filter* filter, RecordVal* columns)
 	return vals;
 	}
 
-bool LogMgr::SetBuf(EnumVal* stream_id, bool enabled)
+bool LogMgr::SetBuf(EnumVal* id, bool enabled)
 	{
-	Stream* stream = FindStream(stream_id);
+	Stream* stream = FindStream(id);
 	if ( ! stream )
 		return false;
 
@@ -572,6 +593,23 @@ bool LogMgr::SetBuf(EnumVal* stream_id, bool enabled)
 		{
 		for ( Filter::WriterMap::iterator j = (*i)->writers.begin(); j != (*i)->writers.end(); j++ )
 			j->second->SetBuf(enabled);
+		}
+
+	RemoveDisabledWriters(stream);
+
+	return true;
+	}
+
+bool LogMgr::Flush(EnumVal* id)
+	{
+	Stream* stream = FindStream(id);
+	if ( ! stream )
+		return false;
+
+	for ( list<Filter*>::iterator i = stream->filters.begin(); i != stream->filters.end(); ++i )
+		{
+		for ( Filter::WriterMap::iterator j = (*i)->writers.begin(); j != (*i)->writers.end(); j++ )
+			j->second->Flush();
 		}
 
 	RemoveDisabledWriters(stream);

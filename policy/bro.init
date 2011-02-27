@@ -273,53 +273,7 @@ type entropy_test_result: record {
 	serial_correlation: double;
 };
 
-type Log_Writer: enum { # TODO: Move these into bif and use from C++ as well.
-	WRITER_DEFAULT, # See default_writer below.
-	WRITER_ASCII,
-};
-	
-# Each stream gets a unique ID. This type will be extended by
-# other scripts.
-type Log_ID: enum {
-	Unknown
-};
-	
-# The default writer to use if a filter does not specify
-# anything else.
-const Log_default_writer = WRITER_ASCII &redef;
-
-# A filter defining what to log.
-type log_filter: record {
-	# A name to reference this filter.
-	name: string;
-
-	# A predicate returning True if the filter wants a log entry
-	# to be recorded. If not given, an implicit True is assumed
-	# for all entries. The predicate receives one parameter:
-	# an instance of the log's record type with the fields to be
-	# logged.
-	pred: function(rec: any): bool &optional;
-
-	# A path for outputting everything matching this
-	# filter. The path is either a string, or a function
-	# called with a single ``ID`` argument and returning a string.
-	#
-	# The specific interpretation of the string is left to the
-	# Writer, but if it's refering to a file, it's assumed that no
-	# extension is given; the writer will add whatever is
-	# appropiate.
-	path: string &optional;
-	path_func: function(id: Log_ID, path: string): string &optional;
-
-	# A subset of column names to record. If not given, all
-	# columns are recorded.
-	include: set[string] &optional;
-	exclude: set[string] &optional;
-
-	# The writer to use.
-	writer: Log_Writer &default=Log_default_writer;
-};
-
+@load logging  # sic! Not logging.bif.
 
 # Prototypes of Bro built-in functions.
 @load strings.bif.bro
@@ -1479,7 +1433,6 @@ const dump_selected_source_packets = F &redef;
 # the connection is not rewritten; if false, the policy script can decide
 # whether to dump a particular connection by calling dump_packets_of_connection.
 #
-# NOTE: DO NOT SET THIS TO TRUE WHEN ANONYMIZING A TRACE! 
+# NOTE: DO NOT SET THIS TO TRUE WHEN ANONYMIZING A TRACE!
 # (TODO: this variable should be disabled when using '-A' option)
 const dump_original_packets_if_not_rewriting = F &redef;
-

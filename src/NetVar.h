@@ -264,8 +264,6 @@ extern int record_all_packets;
 extern RecordType* script_id;
 extern TableType* id_table;
 
-extern RecordType* log_filter;
-
 // Initializes globals that don't pertain to network/event analysis.
 extern void init_general_global_var();
 
@@ -275,5 +273,6 @@ extern void init_net_var();
 #include "const.bif.netvar_h"
 #include "types.bif.netvar_h"
 #include "event.bif.netvar_h"
+#include "logging.bif.netvar_h"
 
 #endif

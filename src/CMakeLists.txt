@@ -127,6 +127,7 @@ endmacro(GET_BIF_OUTPUT_FILES)
 
 set(BIF_SRCS
     bro.bif
+	logging.bif
     event.bif
     const.bif
     types.bif

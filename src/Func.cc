@@ -508,6 +508,7 @@ void builtin_run_time(const char* msg, BroObj* arg)
 	}
 
 #include "bro.bif.func_h"
+#include "logging.bif.func_h"
 
 #include "common-rw.bif.func_h"
 #include "finger-rw.bif.func_h"
@@ -519,6 +520,7 @@ void builtin_run_time(const char* msg, BroObj* arg)
 #include "dns-rw.bif.func_h"
 
 #include "bro.bif.func_def"
+#include "logging.bif.func_def"
 #include "strings.bif.func_def"
 
 void init_builtin_funcs()
@@ -530,6 +532,7 @@ void init_builtin_funcs()
 	gap_info = internal_type("gap_info")->AsRecordType();
 
 #include "bro.bif.func_init"
+#include "logging.bif.func_init"
 
 #include "common-rw.bif.func_init"
 #include "finger-rw.bif.func_init"

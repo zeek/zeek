@@ -55,11 +55,12 @@ public:
 
     // These correspond to the BiFs visible on the scripting layer. The
     // actual BiFs just forward here.
-    bool CreateStream(EnumVal* stream_id, RecordType* columns, EventHandlerPtr handler);
-    bool AddFilter(EnumVal* stream_id, RecordVal* filter);
-    bool RemoveFilter(EnumVal* stream_id, StringVal* filter);
-    bool Write(EnumVal* stream_id, RecordVal* columns);
-	bool SetBuf(EnumVal* stream_id, bool enabled); // Changes the state for all writers for that stream.
+    bool CreateStream(EnumVal* id, RecordVal* stream);
+    bool AddFilter(EnumVal* id, RecordVal* filter);
+    bool RemoveFilter(EnumVal* id, StringVal* filter);
+    bool Write(EnumVal* id, RecordVal* columns);
+	bool SetBuf(EnumVal* id, bool enabled); // Changes the state for all writers for that stream.
+	bool Flush(EnumVal* id); // Flushes all writers for the stream.
 
 protected:
     friend class LogWriter;
@@ -75,7 +76,7 @@ private:
 
 	bool TraverseRecord(Filter* filter, RecordType* rt, TableVal* include, TableVal* exclude, string path, list<int> indices);
 	LogVal** RecordToFilterVals(Filter* filter, RecordVal* columns);
-	Stream* FindStream(EnumVal* stream_id);
+	Stream* FindStream(EnumVal* id);
 	void RemoveDisabledWriters(Stream* stream);
 
 	vector<Stream *> streams; // Indexed by stream enum.

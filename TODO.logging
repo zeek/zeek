@@ -4,15 +4,6 @@ List of the things not implemented yet:
     - Rotation support.
     - Not sure if the logging does the right thing with &optional and
       &default values. Needs testing.
-	- Put script function/constants into namespace.
-    - Some typchecks are still missing.
-	- Cleanup code.
     - Spawning writers in separate threads (not clear if we want that initially).
+	- Check the new event-value code.
 
-Questions:
-
-    * Is giving the record column twice to create_stream() too
-	  redundant? (once directly, and once via the event)::
-
-        global ssh_log: event(rec: Log);
-        log_create_stream(LOG_SSH, SSH::Log, ssh_log);

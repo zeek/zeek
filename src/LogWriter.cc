@@ -60,6 +60,17 @@ bool LogWriter::SetBuf(bool enabled)
 	return true;
 	}
 
+bool LogWriter::Flush()
+	{
+	if ( ! DoFlush() )
+		{
+		disabled = true;
+		return false;
+		}
+
+	return true;
+	}
+
 void LogWriter::Finish()
 	{
 	DoFinish();

@@ -1,10 +1,10 @@
 @load functions
-@load logging
 
 module KnownHosts;
 
 export {
-	redef enum Log::ID += { KNOWN_HOSTS};
+	redef enum Log::ID += { KNOWN_HOSTS };
+	
 	type Log: record {
 		ts:      time;
 		address: addr;

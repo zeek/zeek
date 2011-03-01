@@ -1,3 +1,5 @@
+@load site
+
 # Some enums for deciding what and when to log.
 type Directions_and_Hosts: enum {
 	Inbound, Outbound,

@@ -367,7 +367,7 @@ function logging_log%(index: string, rec: any%): any
 	RecordVal *recval = rec->AsRecordVal();
 
 	// Lookup the stream
-	TableVal *streams = opt_internal_table("Logging::streams");
+	TableVal *streams = opt_internal_table("Log::streams");
 	VectorVal *columns;
 	RecordVal *stream_record;
 	if ( streams )
@@ -381,12 +381,12 @@ function logging_log%(index: string, rec: any%): any
 		}
 	else
 		{
-		printf("Logging framework is dead (Logging::streams not found).\n");
+		printf("Logging framework is dead (Log::streams not found).\n");
 		return false;
 		}
 		
 	// Lookup all filters for stream
-	TableVal *filters = opt_internal_table("Logging::filters");
+	TableVal *filters = opt_internal_table("Log::filters");
 	TableVal *stream_filters;
 	if ( filters )
 		{
@@ -396,7 +396,7 @@ function logging_log%(index: string, rec: any%): any
 		}
 	else
 		{
-		printf("Logging framework is dead (Logging::filters not found).\n");
+		printf("Logging framework is dead (Log::filters not found).\n");
 		return false;
 		}
 		
@@ -448,7 +448,7 @@ function logging_log%(index: string, rec: any%): any
 		
 		// Get the file with the "path" name found above for this filter.
 		// Open a new file is one does not exist yet.
-		TableVal *logging_files = opt_internal_table("Logging::files");
+		TableVal *logging_files = opt_internal_table("Log::files");
 		Val *ff = logging_files->Lookup(path);
 		if ( !ff )
 			{

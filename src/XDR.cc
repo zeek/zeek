@@ -54,11 +54,13 @@ double extract_XDR_time(const u_char*& buf, int& len)
 	return double(uhi) + double(ulo) / 1e9;
 	}
 
-const u_char* extract_XDR_opaque(const u_char*& buf, int& len, int& n, int max_len)
+const u_char* extract_XDR_opaque(const u_char*& buf, int& len, int& n, int max_len, bool short_buf_ok)
 	{
 	n = int(extract_XDR_uint32(buf, len));
 	if ( ! buf )
 		return 0;
+	if (short_buf_ok)
+		n = min(n, len);
 
 	if ( n < 0 || n > len || n > max_len )
 		{ // ### Should really flag this as a different sort of error.

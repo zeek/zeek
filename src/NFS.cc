@@ -247,8 +247,9 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 StringVal* NFS_Interp::nfs3_file_data(const u_char*& buf, int& n, uint64_t offset, int size)
 	{
 	int data_n;
+
 	// extract the data, move buf and n
-	const u_char *data = extract_XDR_opaque(buf, n, data_n, 1<<30);
+	const u_char *data = extract_XDR_opaque(buf, n, data_n, 1<<30, true);
 
 	// check whether we have to deliver data to the event 
 	if (!BifConst::NFS3::return_data)

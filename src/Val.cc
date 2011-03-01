@@ -3292,6 +3292,10 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init)
 
 	TypeTag t_tag = t->Tag();
 	TypeTag v_tag = vt->Tag();
+	
+	// More thought definitely needs to go into this.
+	if ( t_tag == TYPE_ANY || v_tag == TYPE_ANY )
+		return v;
 
 	if ( ! EitherArithmetic(t_tag, v_tag) ||
 	     /* allow sets as initializers */

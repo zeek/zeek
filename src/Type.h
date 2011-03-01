@@ -515,6 +515,9 @@ inline BroType* error_type()	{ return base_type(TYPE_ERROR); }
 // test is done in the context of an initialization.
 extern int same_type(const BroType* t1, const BroType* t2, int is_init=0);
 
+// True if the two attribute lists are equivalent.
+extern int same_attrs(const Attributes* a1, const Attributes* a2);
+
 // Returns true if the record sub_rec can be promoted to the record
 // super_rec.
 extern int record_promotion_compatible(const RecordType* super_rec,

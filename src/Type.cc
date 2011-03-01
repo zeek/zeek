@@ -1320,7 +1320,9 @@ static int is_init_compat(const BroType* t1, const BroType* t2)
 
 int same_type(const BroType* t1, const BroType* t2, int is_init)
 	{
-	if ( t1 == t2 )
+	if ( t1 == t2 ||
+	     t1->Tag() == TYPE_ANY ||
+	     t2->Tag() == TYPE_ANY )
 		return 1;
 
 	t1 = flatten_type(t1);
@@ -1451,6 +1453,17 @@ int same_type(const BroType* t1, const BroType* t2, int is_init)
 		error("union type in same_type()");
 	}
 	return 0;
+	}
+
+int same_attrs(const Attributes* a1, const Attributes* a2)
+	{
+	if ( ! a1 )
+		return (a2 != 0);
+
+	if ( ! a2 )
+		return 0;
+
+	return (*a1 == *a2);
 	}
 
 int record_promotion_compatible(const RecordType* /* super_rec */,

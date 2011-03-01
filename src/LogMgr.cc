@@ -32,17 +32,19 @@ struct LogMgr::Filter {
 	LogField** fields;
 	vector<list<int> > indices; // List of record indices per field.
 
-	typedef map<string, LogWriter *> WriterMap;
-	WriterMap writers; // Writers indexed by path.
-
 	~Filter();
 };
 
 struct LogMgr::Stream {
+ 	int id;
 	string name;
 	RecordType* columns;
 	EventHandlerPtr event;
 	list<Filter*> filters;
+
+	typedef pair<int, string> IdPathPair;
+	typedef map<IdPathPair, LogWriter *> WriterMap;
+	WriterMap writers; // Writers indexed by id/path pair.
 
 	~Stream();
 	};
@@ -53,15 +55,16 @@ LogMgr::Filter::~Filter()
 	for ( int i = 0; i < num_fields; ++i )
 		delete fields[i];
 
-	for ( WriterMap::iterator i = writers.begin(); i != writers.end(); i++ )
-		delete i->second;
-
 	Unref(path_val);
 	}
 
 LogMgr::Stream::~Stream()
 	{
 	Unref(columns);
+
+	for ( WriterMap::iterator i = writers.begin(); i != writers.end(); i++ )
+		delete i->second;
+
 	for ( list<Filter*>::iterator f = filters.begin(); f != filters.end(); ++f )
 		delete *f;
 	}
@@ -91,24 +94,19 @@ LogMgr::Stream* LogMgr::FindStream(EnumVal* id)
 
 void LogMgr::RemoveDisabledWriters(Stream* stream)
 	{
-	for ( list<Filter*>::iterator i = stream->filters.begin(); i != stream->filters.end(); ++i )
+	list<Stream::IdPathPair> disabled;
+
+	for ( Stream::WriterMap::iterator j = stream->writers.begin(); j != stream->writers.end(); j++ )
 		{
-		Filter* filter = (*i);
-
-		list<string> disabled;
-
-		for ( Filter::WriterMap::iterator j = filter->writers.begin(); j != filter->writers.end(); j++ )
+		if ( j->second->Disabled() )
 			{
-			if ( j->second->Disabled() )
-				{
-				delete j->second;
-				disabled.push_back(j->first);
-				}
+			delete j->second;
+			disabled.push_back(j->first);
 			}
-
-		for ( list<string>::iterator j = disabled.begin(); j != disabled.end(); j++ )
-			filter->writers.erase(*j);
 		}
+	
+	for ( list<Stream::IdPathPair>::iterator j = disabled.begin(); j != disabled.end(); j++ )
+		stream->writers.erase(*j);
 	}
 
 bool LogMgr::CreateStream(EnumVal* id, RecordVal* sval)
@@ -166,6 +164,7 @@ bool LogMgr::CreateStream(EnumVal* id, RecordVal* sval)
 
 	// Create new stream.
 	streams[idx] = new Stream;
+	streams[idx]->id = id->AsEnum();
 	streams[idx]->name = id->Type()->AsEnumType()->Lookup(idx);
 	streams[idx]->event = event ? event_registry->Lookup(event->GetID()->Name()) : 0;
 	streams[idx]->columns = columns;
@@ -455,10 +454,10 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 			}
 
 		// See if we already have a writer for this path.
-		Filter::WriterMap::iterator w = filter->writers.find(path);
+		Stream::WriterMap::iterator w = stream->writers.find(Stream::IdPathPair(stream->id, path));
 
 		LogWriter* writer = 0;
-		if ( w == filter->writers.end() )
+		if ( w == stream->writers.end() )
 			{
 			// No, need to create one.
 			assert(filter->writer->factory);
@@ -476,7 +475,7 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 				return false;
 				}
 
-			filter->writers.insert(Filter::WriterMap::value_type(path, writer));
+			stream->writers.insert(Stream::WriterMap::value_type(Stream::IdPathPair(stream->id, path), writer));
 			}
 
 		else
@@ -589,11 +588,8 @@ bool LogMgr::SetBuf(EnumVal* id, bool enabled)
 	if ( ! stream )
 		return false;
 
-	for ( list<Filter*>::iterator i = stream->filters.begin(); i != stream->filters.end(); ++i )
-		{
-		for ( Filter::WriterMap::iterator j = (*i)->writers.begin(); j != (*i)->writers.end(); j++ )
-			j->second->SetBuf(enabled);
-		}
+	for ( Stream::WriterMap::iterator i = stream->writers.begin(); i != stream->writers.end(); i++ )
+		i->second->SetBuf(enabled);
 
 	RemoveDisabledWriters(stream);
 
@@ -606,11 +602,8 @@ bool LogMgr::Flush(EnumVal* id)
 	if ( ! stream )
 		return false;
 
-	for ( list<Filter*>::iterator i = stream->filters.begin(); i != stream->filters.end(); ++i )
-		{
-		for ( Filter::WriterMap::iterator j = (*i)->writers.begin(); j != (*i)->writers.end(); j++ )
-			j->second->Flush();
-		}
+	for ( Stream::WriterMap::iterator i = stream->writers.begin(); i != stream->writers.end(); i++ )
+		i->second->Flush();
 
 	RemoveDisabledWriters(stream);
 

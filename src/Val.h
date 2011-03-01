@@ -909,7 +909,8 @@ public:
 		{ return new Val(record_type->NumFields(), TYPE_COUNT); }
 
 	void Assign(int field, Val* new_val, Opcode op = OP_ASSIGN);
-	Val* Lookup(int field) const;
+	Val* Lookup(int field) const;	// does not Ref() value.
+	Val* LookupWithDefault(int field) const;	// does Ref() value.
 
 	void Describe(ODesc* d) const;
 

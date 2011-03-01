@@ -1734,7 +1734,7 @@ void TableVal::CheckExpireAttr(attr_tag at)
 			a->AttrExpr()->Error("value of timeout not fixed");
 			return;
 			}
-		
+
 		expire_time = timeout->AsInterval();
 
 		if ( timer )
@@ -2893,6 +2893,19 @@ Val* RecordVal::Lookup(int field) const
 	return (*AsRecord())[field];
 	}
 
+Val* RecordVal::LookupWithDefault(int field) const
+	{
+	Val* val = (*AsRecord())[field];
+
+	if ( val )
+		return val->Ref();
+
+	// Check for &default.
+	const Attr* def_attr = record_type->FieldDecl(field)->attrs->FindAttr(ATTR_DEFAULT);
+
+	return def_attr ? def_attr->AttrExpr()->Eval(0) : 0;
+	}
+
 RecordVal* RecordVal::CoerceTo(const RecordType* t, Val* aggr) const
 	{
 	if ( ! record_promotion_compatible(t->AsRecordType(), Type()->AsRecordType()) )
@@ -3348,7 +3361,7 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init)
 
 	TypeTag t_tag = t->Tag();
 	TypeTag v_tag = vt->Tag();
-	
+
 	// More thought definitely needs to go into this.
 	if ( t_tag == TYPE_ANY || v_tag == TYPE_ANY )
 		return v;

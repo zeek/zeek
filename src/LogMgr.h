@@ -7,14 +7,6 @@
 #include "Val.h"
 #include "EventHandler.h"
 
-// One value per writer type we have.
-namespace LogWriterType {
-	enum Type {
-		None,
-		Ascii
-	};
-};
-
 struct LogField {
 	LogField()	{ }
 	LogField(const LogField& other) : name(other.name), type(other.type)	{ }
@@ -30,8 +22,9 @@ struct log_string_type {
 
 // All values that can be directly logged by a Writer.
 struct LogVal {
-	LogVal(bool arg_present = true) : present(arg_present)	{}
+	LogVal(TypeTag arg_type, bool arg_present = true) : type(arg_type), present(arg_present)	{}
 
+	TypeTag type;
 	bool present; // If false, the field is unset (i.e., &optional and not initialzed).
 
 	// The following union is a subset of BroValUnion, including only the
@@ -47,6 +40,7 @@ struct LogVal {
 };
 
 class LogWriter;
+class RemoteSerializer;
 
 class LogMgr {
 public:
@@ -64,6 +58,12 @@ public:
 
 protected:
     friend class LogWriter;
+	friend class RemoteSerializer;
+
+	// These function are also used by the RemoteSerializer to inject
+	// received logs.
+	LogWriter* CreateWriter(EnumVal* id, EnumVal* writer, string path, int num_fields, LogField** fields);
+	bool Write(EnumVal* id, EnumVal* writer, string path, int num_fields, LogVal** vals);
 
 	/// Functions also used by the writers.
 

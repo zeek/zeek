@@ -25,11 +25,12 @@ public:
     // when done.
     bool Init(string path, int num_fields, LogField** fields);
 
-    // Writes one log entry. The method takes ownership of "vals" and will
-    // return immediately after queueing the write request, potentially
-    // before the output has actually taken place. Returns false if an error
-    // occured, in which case the writer must not be used further. 
-    bool Write(LogVal** vals);
+	// Writes one log entry. The method takes ownership of "vals" and will
+	// return immediately after queueing the write request, potentially
+	// before the output has actually taken place. Returns false if an error
+	// occured, in which case the writer must not be used further. num_fields
+	// and types must match what was passed to Init().
+    bool Write(int num_fields, LogVal** vals);
 
 	// Sets the buffering status for the writer, if the writer supports it.
 	bool SetBuf(bool enabled);

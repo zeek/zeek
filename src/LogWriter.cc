@@ -33,8 +33,17 @@ bool LogWriter::Init(string arg_path, int arg_num_fields, LogField** arg_fields)
 	return true;
 	}
 
-bool LogWriter::Write(LogVal** vals)
+bool LogWriter::Write(int arg_num_fields, LogVal** vals)
 	{
+	// Double-check that the arguments match. If we get this from remote,
+	// something might be mixed up.
+	if ( num_fields != arg_num_fields )
+		return false;
+
+	for ( int i = 0; i < num_fields; ++i )
+		if ( vals[i]->type != fields[i]->type )
+			return false;
+
 	bool result = DoWrite(num_fields, fields, vals);
 	DeleteVals(vals);
 

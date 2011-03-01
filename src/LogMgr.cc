@@ -7,17 +7,17 @@
 #include "LogWriterAscii.h"
 
 struct LogWriterDefinition {
-    LogWriterType::Type type;	// The type.
+    bro_int_t type;	// The type.
 	const char *name;	// Descriptive name for error messages.
 	bool (*init)();	// An optional one-time initialization function.
 	LogWriter* (*factory)();	// A factory function creating instances.
 };
 
 LogWriterDefinition log_writers[] = {
-	{ LogWriterType::Ascii, "Ascii", 0, LogWriterAscii::Instantiate },
+	{ BifEnum::Log::WRITER_ASCII, "Ascii", 0, LogWriterAscii::Instantiate },
 
 	// End marker.
-	{ LogWriterType::None, "None", 0, (LogWriter* (*)())0 }
+	{ BifEnum::Log::WRITER_DEFAULT, "None", 0, (LogWriter* (*)())0 }
 };
 
 struct LogMgr::Filter {
@@ -26,7 +26,7 @@ struct LogMgr::Filter {
 	Func* path_func;
 	string path;
 	Val* path_val;
-	LogWriterDefinition* writer;
+	EnumVal* writer;
 
 	int num_fields;
 	LogField** fields;
@@ -36,14 +36,14 @@ struct LogMgr::Filter {
 };
 
 struct LogMgr::Stream {
- 	int id;
+ 	EnumVal* id;
 	string name;
 	RecordType* columns;
 	EventHandlerPtr event;
 	list<Filter*> filters;
 
-	typedef pair<int, string> IdPathPair;
-	typedef map<IdPathPair, LogWriter *> WriterMap;
+	typedef pair<int, string> WriterPathPair;
+	typedef map<WriterPathPair, LogWriter *> WriterMap;
 	WriterMap writers; // Writers indexed by id/path pair.
 
 	~Stream();
@@ -94,7 +94,7 @@ LogMgr::Stream* LogMgr::FindStream(EnumVal* id)
 
 void LogMgr::RemoveDisabledWriters(Stream* stream)
 	{
-	list<Stream::IdPathPair> disabled;
+	list<Stream::WriterPathPair> disabled;
 
 	for ( Stream::WriterMap::iterator j = stream->writers.begin(); j != stream->writers.end(); j++ )
 		{
@@ -104,8 +104,8 @@ void LogMgr::RemoveDisabledWriters(Stream* stream)
 			disabled.push_back(j->first);
 			}
 		}
-	
-	for ( list<Stream::IdPathPair>::iterator j = disabled.begin(); j != disabled.end(); j++ )
+
+	for ( list<Stream::WriterPathPair>::iterator j = disabled.begin(); j != disabled.end(); j++ )
 		stream->writers.erase(*j);
 	}
 
@@ -164,11 +164,10 @@ bool LogMgr::CreateStream(EnumVal* id, RecordVal* sval)
 
 	// Create new stream.
 	streams[idx] = new Stream;
-	streams[idx]->id = id->AsEnum();
+	streams[idx]->id = id->Ref()->AsEnumVal();
 	streams[idx]->name = id->Type()->AsEnumType()->Lookup(idx);
 	streams[idx]->event = event ? event_registry->Lookup(event->GetID()->Name()) : 0;
-	streams[idx]->columns = columns;
-	columns->Ref();
+	streams[idx]->columns = columns->Ref()->AsRecordType();
 
 	DBG_LOG(DBG_LOGGING, "Created new logging stream '%s', raising event %s", streams[idx]->name.c_str(), event ? streams[idx]->event->Name() : "<none>");
 
@@ -270,32 +269,6 @@ bool LogMgr::AddFilter(EnumVal* id, RecordVal* fval)
 	else
 		writer = writer_val->AsEnum();
 
-	LogWriterDefinition* ld;
-	for ( ld = log_writers; ld->type != LogWriterType::None; ++ld )
-		{
-		if ( ld->type == writer )
-			break;
-		}
-
-	if ( ld->type == LogWriterType::None )
-		internal_error("unknow writer in add_filter");
-
-	if ( ! ld->factory )
-		// Oops, we can't instantuate this guy.
-		return true; // Count as success, as we will have reported it earlier already.
-
-	// If the writer has an init function, call it.
-	if ( ld->init )
-		{
-		if ( (*ld->init)() )
-			// Clear the init function so that we won't call it again later.
-			ld->init = 0;
-		else
-			// Init failed, disable by deleting factory function.
-			ld->factory = 0;
-			return false;
-		}
-
 	// Create a new Filter instance.
 
 	Val* pred = fval->Lookup(rtype->FieldOffset("pred"));
@@ -305,7 +278,7 @@ bool LogMgr::AddFilter(EnumVal* id, RecordVal* fval)
 	filter->name = fval->Lookup(rtype->FieldOffset("name"))->AsString()->CheckString();
 	filter->pred = pred ? pred->AsFunc() : 0;
 	filter->path_func = path_func ? path_func->AsFunc() : 0;
-	filter->writer = ld;
+	filter->writer = id->Ref()->AsEnumVal();
 
 	// TODO: Check that the predciate is of the right type.
 
@@ -349,7 +322,7 @@ bool LogMgr::AddFilter(EnumVal* id, RecordVal* fval)
 
 #ifdef DEBUG
 	DBG_LOG(DBG_LOGGING, "Created new filter '%s' for stream '%s'", filter->name.c_str(), stream->name.c_str());
-	DBG_LOG(DBG_LOGGING, "   writer    : %s", ld->name);
+	DBG_LOG(DBG_LOGGING, "   writer    : %d", filter->writer);
 	DBG_LOG(DBG_LOGGING, "   path      : %s", filter->path.c_str());
 	DBG_LOG(DBG_LOGGING, "   path_func : %s", (filter->path_func ? "set" : "not set"));
 	DBG_LOG(DBG_LOGGING, "   pred      : %s", (filter->pred ? "set" : "not set"));
@@ -454,14 +427,16 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 			}
 
 		// See if we already have a writer for this path.
-		Stream::WriterMap::iterator w = stream->writers.find(Stream::IdPathPair(stream->id, path));
+		Stream::WriterMap::iterator w = stream->writers.find(Stream::WriterPathPair(filter->writer->AsEnum(), path));
 
 		LogWriter* writer = 0;
-		if ( w == stream->writers.end() )
+
+		if ( w != stream->writers.end() )
+			// We have a writer already.
+			writer = w->second;
+		else
 			{
 			// No, need to create one.
-			assert(filter->writer->factory);
-			writer = (*filter->writer->factory)();
 
 			// Copy the fields for LogWriter::Init() as it will take
 			// ownership.
@@ -469,22 +444,18 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 			for ( int j = 0; j < filter->num_fields; ++j )
 				arg_fields[j] = new LogField(*filter->fields[j]);
 
-			if ( ! writer->Init(path, filter->num_fields, arg_fields) )
+			writer = CreateWriter(stream->id, filter->writer, path, filter->num_fields, arg_fields);
+
+			if ( ! writer )
 				{
 				Unref(columns);
 				return false;
 				}
-
-			stream->writers.insert(Stream::WriterMap::value_type(Stream::IdPathPair(stream->id, path), writer));
 			}
-
-		else
-			// We have a writer already.
-			writer = w->second;
 
 		// Alright, can do the write now.
 		LogVal** vals = RecordToFilterVals(filter, columns);
-		if ( ! writer->Write(vals) )
+		if ( ! writer->Write(filter->num_fields, vals) )
 			error = true;
 
 #ifdef DEBUG
@@ -506,6 +477,7 @@ LogVal** LogMgr::RecordToFilterVals(Filter* filter, RecordVal* columns)
 
 	for ( int i = 0; i < filter->num_fields; ++i )
 		{
+		TypeTag type = TYPE_ERROR;
 		Val* val = columns;
 
 		// For each field, first find the right value, which can potentially
@@ -514,12 +486,13 @@ LogVal** LogMgr::RecordToFilterVals(Filter* filter, RecordVal* columns)
 
 		for ( list<int>::iterator j = indices.begin(); j != indices.end(); ++j )
 			{
+			type = val->Type()->AsRecordType()->FieldType(*j)->Tag();
 			val = val->AsRecordVal()->Lookup(*j);
 
 			if ( ! val )
 				{
 				// Value, or any of its parents, is not set.
-				vals[i] = new LogVal(false);
+				vals[i] = new LogVal(type, false);
 				break;
 				}
 			}
@@ -531,26 +504,26 @@ LogVal** LogMgr::RecordToFilterVals(Filter* filter, RecordVal* columns)
 		case TYPE_BOOL:
 		case TYPE_INT:
 		case TYPE_ENUM:
-			vals[i] = new LogVal();
+			vals[i] = new LogVal(type);
 			vals[i]->val.int_val = val->InternalInt();
 			break;
 
 		case TYPE_COUNT:
 		case TYPE_COUNTER:
 		case TYPE_PORT:
-			vals[i] = new LogVal();
+			vals[i] = new LogVal(type);
 			vals[i]->val.uint_val = val->InternalUnsigned();
 			break;
 
 		case TYPE_SUBNET:
-			vals[i] = new LogVal();
+			vals[i] = new LogVal(type);
 			vals[i]->val.subnet_val = *val->AsSubNet();
 			break;
 
 		case TYPE_NET:
 		case TYPE_ADDR:
 			{
-			vals[i] = new LogVal();
+			vals[i] = new LogVal(type);
 			addr_type t = val->AsAddr();
 			copy_addr(&t, &vals[i]->val.addr_val);
 			break;
@@ -559,7 +532,7 @@ LogVal** LogMgr::RecordToFilterVals(Filter* filter, RecordVal* columns)
 		case TYPE_DOUBLE:
 		case TYPE_TIME:
 		case TYPE_INTERVAL:
-			vals[i] = new LogVal();
+			vals[i] = new LogVal(type);
 			vals[i]->val.double_val = val->InternalDouble();
 			break;
 
@@ -567,7 +540,7 @@ LogVal** LogMgr::RecordToFilterVals(Filter* filter, RecordVal* columns)
 			{
 			const BroString* s = val->AsString();
 			LogVal* lval = (LogVal*) new char[sizeof(LogVal) + sizeof(log_string_type) + s->Len()];
-			new (lval) LogVal(); // Run ctor.
+			new (lval) LogVal(type); // Run ctor.
 			lval->val.string_val.len = s->Len();
 			memcpy(&lval->val.string_val.string, s->Bytes(), s->Len());
 			vals[i] = lval;
@@ -580,6 +553,90 @@ LogVal** LogMgr::RecordToFilterVals(Filter* filter, RecordVal* columns)
 		}
 
 	return vals;
+	}
+
+LogWriter* LogMgr::CreateWriter(EnumVal* id, EnumVal* writer, string path, int num_fields, LogField** fields)
+	{
+	Stream* stream = FindStream(id);
+
+	if ( ! stream )
+		// Don't know this stream.
+		return false;
+
+	Stream::WriterMap::iterator w = stream->writers.find(Stream::WriterPathPair(writer->AsEnum(), path));
+
+	if ( w != stream->writers.end() )
+		// If we already have a writer for this. That's fine, we just return
+		// it.
+		return w->second;
+
+	// Need to instantiate a new writer.
+
+    LogWriterDefinition* ld = log_writers;
+
+	while ( true )
+		{
+		if ( ld->type == BifEnum::Log::WRITER_DEFAULT )
+			{
+			run_time("unknow writer when creating writer");
+			return 0;
+			}
+
+		if ( ld->type == writer->AsEnum() )
+			break;
+
+		if ( ! ld->factory )
+			// Oops, we can't instantuate this guy.
+			return 0;
+
+		// If the writer has an init function, call it.
+		if ( ld->init )
+			{
+			if ( (*ld->init)() )
+				// Clear the init function so that we won't call it again later.
+				ld->init = 0;
+			else
+				// Init failed, disable by deleting factory function.
+				ld->factory = 0;
+
+			return false;
+			}
+
+		++ld;
+		}
+
+	assert(ld->factory);
+	LogWriter* writer_obj = (*ld->factory)();
+
+	if ( ! writer_obj->Init(path, num_fields, fields) )
+		return 0;
+
+	stream->writers.insert(Stream::WriterMap::value_type(Stream::WriterPathPair(writer->AsEnum(), path), writer_obj));
+
+	return writer_obj;
+	}
+
+bool LogMgr::Write(EnumVal* id, EnumVal* writer, string path, int num_fields, LogVal** vals)
+	{
+	Stream* stream = FindStream(id);
+
+	if ( ! stream )
+		// Don't know this stream.
+		return false;
+
+	Stream::WriterMap::iterator w = stream->writers.find(Stream::WriterPathPair(writer->AsEnum(), path));
+
+	if ( w == stream->writers.end() )
+		// Don't know this writer.
+		return false;
+
+	bool success = w->second->Write(num_fields, vals);
+
+#ifdef DEBUG
+	DBG_LOG(DBG_LOGGING, "Wrote pre-filtered record to '%s' on stream '%s'", path.c_str(), stream->name.c_str());
+#endif
+
+	return success;
 	}
 
 bool LogMgr::SetBuf(EnumVal* id, bool enabled)

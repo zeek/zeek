@@ -6,8 +6,6 @@ module Log;
 #include "NetVar.h"
 %%}
 
-const Log::default_writer: Writer;
-
 type Filter: record;
 type Stream: record;
 

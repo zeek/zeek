@@ -3,6 +3,15 @@ module Log;
 # Log::ID and Log::Writer are defined in bro.init due to circular dependencies.
 
 export {
+	# The default writer to use.
+	const default_writer = Log::WRITER_ASCII &redef;
+
+	# If true, local logging is by default enabled for all filters.
+	const enable_local_logging = T &redef;
+
+	# If true, remote logging is by default enabled for all filters.
+	const enable_remote_logging = T &redef;
+
     # A stream defining the logging.
 	type Stream: record {
 	    # A record type defining the log's columns.
@@ -41,8 +50,14 @@ export {
 		include: set[string] &optional;
 		exclude: set[string] &optional;
 
+		# If true, record all log records locally.
+		log_local: bool &default=Log::enable_local_logging;
+
+		# If true, pass all log records on to remote peers if they request it.
+		log_remote: bool &default=Log::enable_remote_logging;
+
 		# The writer to use.
-		writer: Writer &optional;
+		writer: Writer &default=Log::default_writer;
     };
 
 	global create_stream: function(id: Log::ID, stream: Log::Stream) : bool;
@@ -58,12 +73,6 @@ export {
 @load logging.bif # Needs Log::Filter and Log::Stream defined.
 
 module Log;
-
-export {
-	# The default writer to use if a filter does not specify
-	# anything else.
-	const default_writer = Log::WRITER_ASCII &redef;
-}
 
 function create_stream(id: Log::ID, stream: Log::Stream) : bool
 	{

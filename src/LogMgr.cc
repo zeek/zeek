@@ -27,6 +27,8 @@ struct LogMgr::Filter {
 	string path;
 	Val* path_val;
 	EnumVal* writer;
+	bool local;
+	bool remote;
 
 	int num_fields;
 	LogField** fields;
@@ -260,14 +262,7 @@ bool LogMgr::AddFilter(EnumVal* id, RecordVal* fval)
 	// Find the right writer type.
 	int writer = 0;
 	int idx = rtype->FieldOffset("writer");
-	Val* writer_val = fval->Lookup(idx);
-
-	if ( ! writer_val )
-		// Use default.
-		writer = BifConst::Log::default_writer->AsEnum();
-
-	else
-		writer = writer_val->AsEnum();
+	writer = fval->LookupWithDefault(idx)->AsEnum();
 
 	// Create a new Filter instance.
 
@@ -279,6 +274,8 @@ bool LogMgr::AddFilter(EnumVal* id, RecordVal* fval)
 	filter->pred = pred ? pred->AsFunc() : 0;
 	filter->path_func = path_func ? path_func->AsFunc() : 0;
 	filter->writer = id->Ref()->AsEnumVal();
+	filter->local = fval->LookupWithDefault(rtype->FieldOffset("log_local"))->AsBool();
+	filter->remote = fval->LookupWithDefault(rtype->FieldOffset("log_remote"))->AsBool();
 
 	// TODO: Check that the predciate is of the right type.
 
@@ -425,6 +422,10 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 			DBG_LOG(DBG_LOGGING, "Path function for filter '%s' on stream '%s' return '%s'", filter->name.c_str(), stream->name.c_str(), path.c_str());
 #endif
 			}
+
+		if ( ! filter->local )
+			// Skip the subsequent local logging code.
+			continue;
 
 		// See if we already have a writer for this path.
 		Stream::WriterMap::iterator w = stream->writers.find(Stream::WriterPathPair(filter->writer->AsEnum(), path));

@@ -11,6 +11,11 @@
 #include <stdarg.h>
 #include "config.h"
 
+// Expose C99 functionality from inttypes.h, which would otherwise not be
+// available in C++.
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
+
 #if __STDC__
 #define myattribute __attribute__
 #else
@@ -39,23 +44,20 @@
 extern HeapLeakChecker* heap_checker;
 #endif
 
-typedef unsigned long long int uint64;
-typedef unsigned int uint32;
-typedef unsigned short uint16;
-typedef unsigned char uint8;
-typedef long long int int64;
+#include <stdint.h>
+
+typedef uint64_t uint64;
+typedef uint32_t uint32;
+typedef uint16_t uint16;
+typedef uint8_t uint8;
+
+typedef int64_t int64;
+typedef int32_t int32;
+typedef int16_t int16;
+typedef int8_t int8;
+
 typedef int64 bro_int_t;
 typedef uint64 bro_uint_t;
-
-#if SIZEOF_LONG_LONG == 8
-typedef unsigned long long uint64;
-typedef long long int64;
-#elif SIZEOF_LONG_INT == 8
-typedef unsigned long int uint64;
-typedef long int int64;
-#else
-# error "Couldn't reliably identify 64-bit type. Please report to bro@bro-ids.org."
-#endif
 
 // "ptr_compat_uint" and "ptr_compat_int" are (un)signed integers of
 // pointer size. They can be cast safely to a pointer, e.g. in Lists,
@@ -64,9 +66,13 @@ typedef long int int64;
 #if SIZEOF_VOID_P == 8
 typedef uint64 ptr_compat_uint;
 typedef int64 ptr_compat_int;
+#define PRI_PTR_COMPAT_INT PRId64 // Format to use with printf.
+#define PRI_PTR_COMPAT_UINT PRIu64
 #elif SIZEOF_VOID_P == 4
 typedef uint32 ptr_compat_uint;
-typedef int ptr_compat_int;
+typedef int32 ptr_compat_int;
+#define PRI_PTR_COMPAT_INT PRId32
+#define PRI_PTR_COMPAT_UINT PRIu32
 #else
 # error "Unusual pointer size. Please report to bro@bro-ids.org."
 #endif
@@ -157,6 +163,7 @@ extern uint8 uhash_key[UHASH_KEY_SIZE];
 // the obvious places (like Event.h or RemoteSerializer.h)
 
 typedef ptr_compat_uint SourceID;
+#define PRI_SOURCE_ID PRI_PTR_COMPAT_UINT
 static const SourceID SOURCE_LOCAL = 0;
 
 class BroObj;

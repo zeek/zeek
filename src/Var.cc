@@ -343,6 +343,18 @@ Val* internal_val(const char* name)
 	return id->ID_Val();
 	}
 
+Val* internal_const_val(const char* name)
+	{
+	ID* id = lookup_ID(name, GLOBAL_MODULE_NAME);
+	if ( ! id )
+		internal_error("internal variable %s missing", name);
+
+	if ( ! id->IsConst() )
+		internal_error("internal variable %s is not constant", name);
+
+	return id->ID_Val();
+	}
+
 Val* opt_internal_val(const char* name)
 	{
 	ID* id = lookup_ID(name, GLOBAL_MODULE_NAME);

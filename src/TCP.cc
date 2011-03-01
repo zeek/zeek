@@ -56,7 +56,7 @@ TCP_Analyzer::TCP_Analyzer(Connection* conn)
 	orig->SetPeer(resp);
 	resp->SetPeer(orig);
 
-	if ( dump_selected_source_packets )
+	if ( BifConst::dump_selected_source_packets )
 		{
 		if ( source_pkt_dump )
 			src_pkt_writer =
@@ -87,7 +87,7 @@ void TCP_Analyzer::Init()
 	if ( transformed_pkt_dump && Conn()->RewritingTrace() )
 		SetTraceRewriter(new TCP_Rewriter(this, transformed_pkt_dump,
 						transformed_pkt_dump_MTU,
-						requires_trace_commitment));
+						BifConst::requires_trace_commitment));
 	}
 
 void TCP_Analyzer::Done()
@@ -2090,7 +2090,7 @@ int TCPStats_Endpoint::DataSent(double /* t */, int seq, int len, int caplen,
 	int seq_delta = top_seq - max_top_seq;
 	if ( seq_delta <= 0 )
 		{
-		if ( ! ignore_keep_alive_rexmit || len > 1 || data_in_flight > 0 )
+		if ( ! BifConst::ignore_keep_alive_rexmit || len > 1 || data_in_flight > 0 )
 			{
 			++num_rxmit;
 			num_rxmit_bytes += len;

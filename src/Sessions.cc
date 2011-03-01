@@ -201,7 +201,7 @@ void NetSessions::DispatchPacket(double t, const struct pcap_pkthdr* hdr,
 		//
 		// Should we discourage the use of encap_hdr_size for UDP
 		// tunnneling?  It is probably better handled by enabling
-		// parse_udp_tunnels instead of specifying a fixed
+		// BifConst::parse_udp_tunnels instead of specifying a fixed
 		// encap_hdr_size.
 		if ( udp_tunnel_port > 0 )
 			{
@@ -228,7 +228,7 @@ void NetSessions::DispatchPacket(double t, const struct pcap_pkthdr* hdr,
 	// Check IP packets encapsulated through UDP tunnels.
 	// Specifying a udp_tunnel_port is optional but recommended (to avoid
 	// the cost of checking every UDP packet).
-	else if ( parse_udp_tunnels && ip_data && ip_hdr->ip_p == IPPROTO_UDP )
+	else if ( BifConst::parse_udp_tunnels && ip_data && ip_hdr->ip_p == IPPROTO_UDP )
 		{
 		const struct udphdr* udp_hdr =
 			reinterpret_cast<const struct udphdr*>(ip_data);
@@ -663,9 +663,9 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 
 	// Override content record setting according to
 	// flags set by the policy script.
-	if ( dump_original_packets_if_not_rewriting )
+	if ( BifConst::dump_original_packets_if_not_rewriting )
 		record_packet = record_content = 1;
-	if ( dump_selected_source_packets )
+	if ( BifConst::dump_selected_source_packets )
 		record_packet = record_content = 0;
 
 	if ( f )
@@ -1354,7 +1354,7 @@ void NetSessions::Internal(const char* msg, const struct pcap_pkthdr* hdr,
 				const u_char* pkt)
 	{
 	DumpPacket(hdr, pkt);
-	internal_error(msg);
+	internal_error("%s", msg);
 	}
 
 void NetSessions::Weird(const char* name,

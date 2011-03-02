@@ -308,25 +308,6 @@ function record_connection(f: file, c: connection)
 	print f, log_msg;
 	}
 
-event protocol_confirmation(c: connection, atype: count, aid: count)
-	{
-	if ( ! dpd_conn_logs )
-		return;
-
-	delete c$service[fmt("-%s",analyzer_name(atype))];
-	add c$service[analyzer_name(atype)];
-	}
-
-event protocol_violation(c: connection, atype: count, aid: count,
-				reason: string) &priority = 10
-	{
-	if ( ! dpd_conn_logs )
-		return;
-
-	delete c$service[analyzer_name(atype)];
-	add c$service[fmt("-%s",analyzer_name(atype))];
-	}
-
 event connection_established(c: connection)
 	{
 	Hot::check_hot(c, Hot::CONN_ESTABLISHED);

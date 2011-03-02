@@ -11,45 +11,6 @@
 static scope_list scopes;
 static Scope* top_scope;
 
-extern const char* GLOBAL_MODULE_NAME = "GLOBAL";
-
-
-// Returns it without trailing "::".
-string extract_module_name(const char* name)
-	{
-	string module_name = name;
-	string::size_type pos = module_name.rfind("::");
-
-	if ( pos == string::npos )
-		return string(GLOBAL_MODULE_NAME);
-
-	module_name.erase(pos);
-
-	return module_name;
-	}
-
-string normalized_module_name(const char* module_name)
-	{
-	int mod_len;
-	if ( (mod_len = strlen(module_name)) >= 2 &&
-	     ! strcmp(module_name + mod_len - 2, "::") )
-		mod_len -= 2;
-
-	return string(module_name, mod_len);
-	}
-
-string make_full_var_name(const char* module_name, const char* var_name)
-	{
-	if ( ! module_name || streq(module_name, GLOBAL_MODULE_NAME) ||
-	     strstr(var_name, "::") )
-		return string(var_name);
-
-	string full_name = normalized_module_name(module_name);
-	full_name += "::";
-	full_name += var_name;
-
-	return full_name;
-	}
 
 Scope::Scope(ID* id)
 	{

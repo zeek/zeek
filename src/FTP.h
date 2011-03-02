@@ -16,7 +16,7 @@ public:
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
 	virtual int RewritingTrace()
 		{
-		return rewriting_ftp_trace ||
+		return BifConst::rewriting_ftp_trace ||
 			TCP_ApplicationAnalyzer::RewritingTrace();
 		}
 

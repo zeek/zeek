@@ -91,31 +91,31 @@ flow DHCP_Flow(is_orig: bool) {
 		switch ( type )
 		{
 		case DHCPDISCOVER:
-			bro_event_dhcp_discover(connection()->bro_analyzer(),
+			BifEvent::generate_dhcp_discover(connection()->bro_analyzer(),
 					connection()->bro_analyzer()->Conn(),
 					dhcp_msg_val_->Ref(), req_addr);
 			break;
 
 		case DHCPREQUEST:
-			bro_event_dhcp_request(connection()->bro_analyzer(),
+			BifEvent::generate_dhcp_request(connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				dhcp_msg_val_->Ref(), req_addr, serv_addr);
 			break;
 
 		case DHCPDECLINE:
-			bro_event_dhcp_decline(connection()->bro_analyzer(),
+			BifEvent::generate_dhcp_decline(connection()->bro_analyzer(),
 					connection()->bro_analyzer()->Conn(),
 					dhcp_msg_val_->Ref());
 			break;
 
 		case DHCPRELEASE:
-			bro_event_dhcp_release(connection()->bro_analyzer(),
+			BifEvent::generate_dhcp_release(connection()->bro_analyzer(),
 					connection()->bro_analyzer()->Conn(),
 					dhcp_msg_val_->Ref());
 			break;
 
 		case DHCPINFORM:
-			bro_event_dhcp_inform(connection()->bro_analyzer(),
+			BifEvent::generate_dhcp_inform(connection()->bro_analyzer(),
 					connection()->bro_analyzer()->Conn(),
 					dhcp_msg_val_->Ref());
 			break;
@@ -204,21 +204,21 @@ flow DHCP_Flow(is_orig: bool) {
 
 		switch ( type ) {
 		case DHCPOFFER:
-			bro_event_dhcp_offer(connection()->bro_analyzer(),
+			BifEvent::generate_dhcp_offer(connection()->bro_analyzer(),
 					connection()->bro_analyzer()->Conn(),
 					dhcp_msg_val_->Ref(), subnet_mask,
 					router_list, lease, serv_addr);
 			break;
 
 		case DHCPACK:
-			bro_event_dhcp_ack(connection()->bro_analyzer(),
+			BifEvent::generate_dhcp_ack(connection()->bro_analyzer(),
 					connection()->bro_analyzer()->Conn(),
 					dhcp_msg_val_->Ref(), subnet_mask,
 					router_list, lease, serv_addr);
 			break;
 
 		case DHCPNAK:
-			bro_event_dhcp_nak(connection()->bro_analyzer(),
+			BifEvent::generate_dhcp_nak(connection()->bro_analyzer(),
 					connection()->bro_analyzer()->Conn(),
 					dhcp_msg_val_->Ref());
 			break;

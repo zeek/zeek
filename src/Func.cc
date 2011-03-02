@@ -496,6 +496,17 @@ void builtin_run_time(const char* msg, BroObj* arg)
 		run_time(msg, arg);
 	}
 
+#include "bro.bif.func_h"
+
+#include "common-rw.bif.func_h"
+#include "finger-rw.bif.func_h"
+#include "ftp-rw.bif.func_h"
+#include "http-rw.bif.func_h"
+#include "ident-rw.bif.func_h"
+#include "smtp-rw.bif.func_h"
+#include "strings.bif.func_h"
+#include "dns-rw.bif.func_h"
+
 #include "bro.bif.func_def"
 #include "strings.bif.func_def"
 
@@ -523,7 +534,7 @@ void init_builtin_funcs()
 
 bool check_built_in_call(BuiltinFunc* f, CallExpr* call)
 	{
-	if ( f->TheFunc() != bro_fmt )
+	if ( f->TheFunc() != BifFunc::bro_fmt )
 		return true;
 
 	const expr_list& args = call->Args()->Exprs();

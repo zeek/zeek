@@ -10,11 +10,6 @@
 
 #include "util.h"
 
-inline int XDR_aligned(const u_char* buf)
-	{
-	return (((unsigned long) buf) & 0x3) == 0;
-	}
-
 extern uint32 extract_XDR_uint32(const u_char*& buf, int& len);
 extern double extract_XDR_uint64_as_double(const u_char*& buf, int& len);
 extern double extract_XDR_time(const u_char*& buf, int& len);

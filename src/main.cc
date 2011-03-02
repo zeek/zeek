@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
+#include <string.h>
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
@@ -424,7 +425,7 @@ int main(int argc, char** argv)
 
 	prog = argv[0];
 
-	prefixes.append("");	// "" = "no prefix"
+	prefixes.append(strdup(""));	// "" = "no prefix"
 
 	char* p = getenv("BRO_PREFIXES");
 	if ( p )

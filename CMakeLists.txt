@@ -37,6 +37,10 @@ endif ()
 get_filename_component(POLICYDIR ${POLICYDIR} ABSOLUTE)
 
 configure_file(bro-path-dev.in ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev)
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev.sh
+     "export BROPATH=`${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev`\n")
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev.csh
+     "setenv BROPATH `${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev`\n")
 
 file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" VERSION LIMIT_COUNT 1)
 

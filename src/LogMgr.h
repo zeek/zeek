@@ -6,24 +6,31 @@
 
 #include "Val.h"
 #include "EventHandler.h"
+#include "RemoteSerializer.h"
+
+class SerializationFormat;
 
 struct LogField {
-	LogField()	{ }
-	LogField(const LogField& other) : name(other.name), type(other.type)	{ }
 	string name;
 	TypeTag type;
-};
 
-// A string that we can directly include as part of the value union below.
-struct log_string_type {
-	int len;
-	char string[]; // The string starts right here.
+	LogField()	{ }
+	LogField(const LogField& other) : name(other.name), type(other.type)	{ }
+
+	bool Read(SerializationFormat* fmt)
+		{
+		int t;
+		bool success = fmt->Read(&name, "name") && fmt->Read(&t, "type");
+		type = (TypeTag) t;
+		return success;
+		}
+
+	bool Write(SerializationFormat* fmt) const
+		{ return fmt->Write(name, "name") && fmt->Write((int)type, "type"); }
 };
 
 // All values that can be directly logged by a Writer.
 struct LogVal {
-	LogVal(TypeTag arg_type, bool arg_present = true) : type(arg_type), present(arg_present)	{}
-
 	TypeTag type;
 	bool present; // If false, the field is unset (i.e., &optional and not initialzed).
 
@@ -35,8 +42,17 @@ struct LogVal {
 		addr_type addr_val;
 		subnet_type subnet_val;
     	double double_val;
-		log_string_type string_val;
+		string* string_val;
 	} val;
+
+	LogVal(TypeTag arg_type = TYPE_ERROR, bool arg_present = true) : type(arg_type), present(arg_present)	{}
+	~LogVal()	{ if ( type == TYPE_STRING && present ) delete val.string_val; }
+
+	bool Read(SerializationFormat* fmt);
+	bool Write(SerializationFormat* fmt) const;
+
+private:
+	LogVal(const LogVal& other)	{ }
 };
 
 class LogWriter;
@@ -60,10 +76,10 @@ protected:
     friend class LogWriter;
 	friend class RemoteSerializer;
 
-	// These function are also used by the RemoteSerializer to inject
-	// received logs.
-	LogWriter* CreateWriter(EnumVal* id, EnumVal* writer, string path, int num_fields, LogField** fields);
-	bool Write(EnumVal* id, EnumVal* writer, string path, int num_fields, LogVal** vals);
+	// These function are also used by the RemoteSerializer.
+	LogWriter* CreateWriter(EnumVal* id, EnumVal* writer, string path, int num_fields, LogField** fields); // takes ownership of fields.
+	bool Write(EnumVal* id, EnumVal* writer, string path, int num_fields, LogVal** vals); // takes ownership of vals.
+	void SendAllWritersTo(RemoteSerializer::PeerID peer);
 
 	/// Functions also used by the writers.
 

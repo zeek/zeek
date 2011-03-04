@@ -51,6 +51,154 @@ struct LogMgr::Stream {
 	~Stream();
 	};
 
+bool LogVal::Read(SerializationFormat* fmt)
+	{
+	int ty;
+
+	if ( ! (fmt->Read(&ty, "type") && fmt->Read(&present, "present")) )
+		return false;
+
+	type = (TypeTag)(ty);
+
+	if ( ! present )
+		return true;
+
+	switch ( type ) {
+	case TYPE_BOOL:
+	case TYPE_INT:
+	case TYPE_ENUM:
+		return fmt->Read(&val.int_val, "int");
+
+	case TYPE_COUNT:
+	case TYPE_COUNTER:
+	case TYPE_PORT:
+		return fmt->Read(&val.uint_val, "uint");
+
+	case TYPE_SUBNET:
+		{
+		uint32 net[4];
+		if ( ! (fmt->Read(&net[0], "net0")
+			&& fmt->Read(&net[1], "net1")
+			&& fmt->Read(&net[2], "net2")
+			&& fmt->Read(&net[3], "net3")
+			&& fmt->Read(&val.subnet_val.width, "width")) )
+			return false;
+
+#ifdef BROv6
+		val.subnet_val.net[0] = net[0];
+		val.subnet_val.net[1] = net[1];
+		val.subnet_val.net[2] = net[2];
+		val.subnet_val.net[3] = net[3];
+#else
+		val.subnet_val.net = net[0];
+#endif
+		return true;
+		}
+
+	case TYPE_NET:
+	case TYPE_ADDR:
+		{
+		uint32 addr[4];
+		if ( ! (fmt->Read(&addr[0], "addr0")
+			&& fmt->Read(&addr[1], "addr1")
+			&& fmt->Read(&addr[2], "addr2")
+			&& fmt->Read(&addr[3], "addr3")) )
+			return false;
+
+#ifdef BROv6
+		val.addr_val[0] = addr[0];
+		val.addr_val[1] = addr[1];
+		val.addr_val[2] = addr[2];
+		val.addr_val[3] = addr[3];
+#else
+		val.addr_val = addr[0];
+#endif
+		return true;
+		}
+
+	case TYPE_DOUBLE:
+	case TYPE_TIME:
+	case TYPE_INTERVAL:
+		return fmt->Read(&val.double_val, "double");
+
+	case TYPE_STRING:
+		{
+		val.string_val = new string;
+		return fmt->Read(val.string_val, "string");
+		}
+
+	default:
+		internal_error(::fmt("unsupported type %s in LogVal::Write", type_name(type)));
+	}
+
+	return false;
+	}
+
+bool LogVal::Write(SerializationFormat* fmt) const
+	{
+	if ( ! (fmt->Write((int)type, "type") && fmt->Write(present, "present")) )
+		return false;
+
+	if ( ! present )
+		return true;
+
+	switch ( type ) {
+	case TYPE_BOOL:
+	case TYPE_INT:
+	case TYPE_ENUM:
+		return fmt->Write(val.int_val, "int");
+
+	case TYPE_COUNT:
+	case TYPE_COUNTER:
+	case TYPE_PORT:
+		return fmt->Write(val.uint_val, "uint");
+
+	case TYPE_SUBNET:
+		{
+#ifdef BROv6
+		uint32* net = val.subnet_val;
+#else
+		uint32 net[4];
+		net[0] = val.subnet_val.net;
+		net[1] = net[2] = net[3] = 0;
+#endif
+		return fmt->Write(net[0], "net0")
+			&& fmt->Write(net[1], "net1")
+			&& fmt->Write(net[2], "net2")
+			&& fmt->Write(net[3], "net3")
+			&& fmt->Write(val.subnet_val.width, "width");
+		}
+
+	case TYPE_NET:
+	case TYPE_ADDR:
+		{
+#ifdef BROv6
+		uint32* addr = val.addr_val;
+#else
+		uint32 addr[4];
+		addr[0] = val.addr_val;
+		addr[1] = addr[2] = addr[3] = 0;
+#endif
+		return fmt->Write(addr[0], "addr0")
+			&& fmt->Write(addr[1], "addr1")
+			&& fmt->Write(addr[2], "addr2")
+			&& fmt->Write(addr[3], "addr3");
+		}
+
+	case TYPE_DOUBLE:
+	case TYPE_TIME:
+	case TYPE_INTERVAL:
+		return fmt->Write(val.double_val, "double");
+
+	case TYPE_STRING:
+		return fmt->Write(*val.string_val, "string");
+
+	default:
+		internal_error(::fmt("unsupported type %s in LogVal::REad", type_name(type)));
+	}
+
+	return false;
+	}
 
 LogMgr::Filter::~Filter()
 	{
@@ -87,7 +235,7 @@ LogMgr::Stream* LogMgr::FindStream(EnumVal* id)
 
 	if ( idx >= streams.size() || ! streams[idx] )
 		{
-		run_time("unknown log stream");
+		run_time(fmt("unknown log stream (%d)", id->AsEnum()));
 		return 0;
 		}
 
@@ -260,9 +408,8 @@ bool LogMgr::AddFilter(EnumVal* id, RecordVal* fval)
 		return false;
 
 	// Find the right writer type.
-	int writer = 0;
 	int idx = rtype->FieldOffset("writer");
-	writer = fval->LookupWithDefault(idx)->AsEnum();
+	EnumVal* writer = fval->LookupWithDefault(idx)->AsEnumVal();
 
 	// Create a new Filter instance.
 
@@ -273,7 +420,7 @@ bool LogMgr::AddFilter(EnumVal* id, RecordVal* fval)
 	filter->name = fval->Lookup(rtype->FieldOffset("name"))->AsString()->CheckString();
 	filter->pred = pred ? pred->AsFunc() : 0;
 	filter->path_func = path_func ? path_func->AsFunc() : 0;
-	filter->writer = id->Ref()->AsEnumVal();
+	filter->writer = writer->Ref()->AsEnumVal();
 	filter->local = fval->LookupWithDefault(rtype->FieldOffset("log_local"))->AsBool();
 	filter->remote = fval->LookupWithDefault(rtype->FieldOffset("log_remote"))->AsBool();
 
@@ -318,8 +465,11 @@ bool LogMgr::AddFilter(EnumVal* id, RecordVal* fval)
 	stream->filters.push_back(filter);
 
 #ifdef DEBUG
+	ODesc desc;
+	writer->Describe(&desc);
+
 	DBG_LOG(DBG_LOGGING, "Created new filter '%s' for stream '%s'", filter->name.c_str(), stream->name.c_str());
-	DBG_LOG(DBG_LOGGING, "   writer    : %d", filter->writer);
+	DBG_LOG(DBG_LOGGING, "   writer    : %s", desc.Description());
 	DBG_LOG(DBG_LOGGING, "   path      : %s", filter->path.c_str());
 	DBG_LOG(DBG_LOGGING, "   path_func : %s", (filter->path_func ? "set" : "not set"));
 	DBG_LOG(DBG_LOGGING, "   pred      : %s", (filter->pred ? "set" : "not set"));
@@ -371,7 +521,7 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 
 	if ( ! columns )
 		{
-		run_time("imcompatible log record type");
+		run_time("incompatible log record type");
 		return false;
 		}
 
@@ -423,10 +573,6 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 #endif
 			}
 
-		if ( ! filter->local )
-			// Skip the subsequent local logging code.
-			continue;
-
 		// See if we already have a writer for this path.
 		Stream::WriterMap::iterator w = stream->writers.find(Stream::WriterPathPair(filter->writer->AsEnum(), path));
 
@@ -445,18 +591,29 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 			for ( int j = 0; j < filter->num_fields; ++j )
 				arg_fields[j] = new LogField(*filter->fields[j]);
 
-			writer = CreateWriter(stream->id, filter->writer, path, filter->num_fields, arg_fields);
-
-			if ( ! writer )
+			if ( filter->local )
 				{
-				Unref(columns);
-				return false;
+				writer = CreateWriter(stream->id, filter->writer, path, filter->num_fields, arg_fields);
+
+				if ( ! writer )
+					{
+					Unref(columns);
+					return false;
+					}
 				}
+
+			if ( filter->remote )
+				remote_serializer->SendLogCreateWriter(stream->id, filter->writer, path, filter->num_fields, arg_fields);
 			}
 
 		// Alright, can do the write now.
+
 		LogVal** vals = RecordToFilterVals(filter, columns);
-		if ( ! writer->Write(filter->num_fields, vals) )
+
+		if ( filter->remote )
+			remote_serializer->SendLogWrite(stream->id, filter->writer, path, filter->num_fields, vals);
+
+		if ( filter->local && ! writer->Write(filter->num_fields, vals) )
 			error = true;
 
 #ifdef DEBUG
@@ -501,30 +658,28 @@ LogVal** LogMgr::RecordToFilterVals(Filter* filter, RecordVal* columns)
 		if ( ! val )
 			continue;
 
+		vals[i] = new LogVal(type);
+
 		switch ( val->Type()->Tag() ) {
 		case TYPE_BOOL:
 		case TYPE_INT:
 		case TYPE_ENUM:
-			vals[i] = new LogVal(type);
 			vals[i]->val.int_val = val->InternalInt();
 			break;
 
 		case TYPE_COUNT:
 		case TYPE_COUNTER:
 		case TYPE_PORT:
-			vals[i] = new LogVal(type);
 			vals[i]->val.uint_val = val->InternalUnsigned();
 			break;
 
 		case TYPE_SUBNET:
-			vals[i] = new LogVal(type);
 			vals[i]->val.subnet_val = *val->AsSubNet();
 			break;
 
 		case TYPE_NET:
 		case TYPE_ADDR:
 			{
-			vals[i] = new LogVal(type);
 			addr_type t = val->AsAddr();
 			copy_addr(&t, &vals[i]->val.addr_val);
 			break;
@@ -533,18 +688,13 @@ LogVal** LogMgr::RecordToFilterVals(Filter* filter, RecordVal* columns)
 		case TYPE_DOUBLE:
 		case TYPE_TIME:
 		case TYPE_INTERVAL:
-			vals[i] = new LogVal(type);
 			vals[i]->val.double_val = val->InternalDouble();
 			break;
 
 		case TYPE_STRING:
 			{
 			const BroString* s = val->AsString();
-			LogVal* lval = (LogVal*) new char[sizeof(LogVal) + sizeof(log_string_type) + s->Len()];
-			new (lval) LogVal(type); // Run ctor.
-			lval->val.string_val.len = s->Len();
-			memcpy(&lval->val.string_val.string, s->Bytes(), s->Len());
-			vals[i] = lval;
+			vals[i]->val.string_val = new string((const char*) s->Bytes(), s->Len());
 			break;
 			}
 
@@ -600,6 +750,7 @@ LogWriter* LogMgr::CreateWriter(EnumVal* id, EnumVal* writer, string path, int n
 				// Init failed, disable by deleting factory function.
 				ld->factory = 0;
 
+			DBG_LOG(DBG_LOGGING, "failed to init writer class %s", ld->name);
 			return false;
 			}
 
@@ -610,7 +761,10 @@ LogWriter* LogMgr::CreateWriter(EnumVal* id, EnumVal* writer, string path, int n
 	LogWriter* writer_obj = (*ld->factory)();
 
 	if ( ! writer_obj->Init(path, num_fields, fields) )
+		{
+		DBG_LOG(DBG_LOGGING, "failed to init instance of writer %s", ld->name);
 		return 0;
+		}
 
 	stream->writers.insert(Stream::WriterMap::value_type(Stream::WriterPathPair(writer->AsEnum(), path), writer_obj));
 
@@ -622,22 +776,52 @@ bool LogMgr::Write(EnumVal* id, EnumVal* writer, string path, int num_fields, Lo
 	Stream* stream = FindStream(id);
 
 	if ( ! stream )
+		{
 		// Don't know this stream.
+#ifdef DEBUG
+		ODesc desc;
+		id->Describe(&desc);
+		DBG_LOG(DBG_LOGGING, "unknown stream %s in LogMgr::Write()", desc.Description());
+#endif
 		return false;
+		}
 
 	Stream::WriterMap::iterator w = stream->writers.find(Stream::WriterPathPair(writer->AsEnum(), path));
 
 	if ( w == stream->writers.end() )
+		{
 		// Don't know this writer.
+#ifdef DEBUG
+		ODesc desc;
+		id->Describe(&desc);
+		DBG_LOG(DBG_LOGGING, "unknown writer %s in LogMgr::Write()", desc.Description());
+#endif
 		return false;
+		}
 
 	bool success = w->second->Write(num_fields, vals);
 
-#ifdef DEBUG
-	DBG_LOG(DBG_LOGGING, "Wrote pre-filtered record to '%s' on stream '%s'", path.c_str(), stream->name.c_str());
-#endif
+	DBG_LOG(DBG_LOGGING, "Wrote pre-filtered record to path '%s' on stream '%s' [%s]", path.c_str(), stream->name.c_str(), (success ? "ok" : "error"));
 
 	return success;
+	}
+
+void LogMgr::SendAllWritersTo(RemoteSerializer::PeerID peer)
+	{
+	for ( vector<Stream *>::iterator s = streams.begin(); s != streams.end(); ++s )
+		{
+		Stream* stream = (*s);
+
+		if ( ! stream )
+			continue;
+
+		for ( Stream::WriterMap::iterator i = stream->writers.begin(); i != stream->writers.end(); i++ )
+			{
+			LogWriter* writer = i->second;
+			EnumVal writer_val(i->first.first, BifType::Enum::Log::Writer);
+			remote_serializer->SendLogCreateWriter(peer, (*s)->id, &writer_val, i->first.second, writer->NumFields(), writer->Fields());
+			}
+		}
 	}
 
 bool LogMgr::SetBuf(EnumVal* id, bool enabled)
@@ -672,3 +856,4 @@ void LogMgr::Error(LogWriter* writer, const char* msg)
 	{
 	run_time(fmt("error with writer for %s: %s", writer->Path().c_str(), msg));
 	}
+

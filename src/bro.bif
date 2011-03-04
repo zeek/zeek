@@ -2108,6 +2108,12 @@ function request_remote_sync%(p: event_peer, auth: bool%) : bool
 	return new Val(remote_serializer->RequestSync(id, auth), TYPE_BOOL);
 	%}
 
+function request_remote_logs%(p: event_peer%) : bool
+	%{
+	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
+	return new Val(remote_serializer->RequestLogs(id), TYPE_BOOL);
+	%}
+
 function set_accept_state%(p: event_peer, accept: bool%) : bool
 	%{
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();

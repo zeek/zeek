@@ -114,7 +114,7 @@ bool LogWriterAscii::DoWrite(int num_fields, LogField** fields, LogVal** vals)
 			break;
 
 		case TYPE_STRING:
-			desc.AddN((const char*)&val->val.string_val.string, val->val.string_val.len);
+			desc.AddN(val->val.string_val->data(), val->val.string_val->size());
 			break;
 
 		default:

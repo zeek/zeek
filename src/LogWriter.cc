@@ -38,11 +38,17 @@ bool LogWriter::Write(int arg_num_fields, LogVal** vals)
 	// Double-check that the arguments match. If we get this from remote,
 	// something might be mixed up.
 	if ( num_fields != arg_num_fields )
+		{
+		DBG_LOG(DBG_LOGGING, "Number of fields don't match in LogWriter::Write() (%d vs. %d)", arg_num_fields, num_fields);
 		return false;
+		}
 
 	for ( int i = 0; i < num_fields; ++i )
 		if ( vals[i]->type != fields[i]->type )
+			{
+			DBG_LOG(DBG_LOGGING, "Field type doesn't match in LogWriter::Write() (%d vs. %d)", vals[i]->type, fields[i]->type);
 			return false;
+			}
 
 	bool result = DoWrite(num_fields, fields, vals);
 	DeleteVals(vals);

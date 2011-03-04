@@ -43,6 +43,10 @@ public:
 	// performed.
 	void Finish();
 
+
+	int NumFields() const	{ return num_fields; }
+	const LogField* const * Fields() const	{ return fields; }
+
 protected:
 
  	// Methods for Writers to override. If any of these returs false, it will

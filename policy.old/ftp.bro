@@ -287,7 +287,7 @@ function is_ftp_data_conn(c: connection): bool
 
 	else if ( id$orig_p == 20/tcp &&
 	          [$orig_h = id$resp_h, $orig_p = id$resp_p,
-		   $resp_h = id$orig_h, $resp_p = 21/tcp] in ftp_sessions )
+	           $resp_h = id$orig_h, $resp_p = 21/tcp] in ftp_sessions )
 		return T;
 	else
 		return F;

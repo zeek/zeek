@@ -124,6 +124,7 @@ protected:
 
     /**
      * Writes out a list of strings to the reST document.
+	 * If the list is empty, prints a newline character.
      * @param format A printf style format string for elements of the list
      *        except for the last one in the list
      * @param last_format A printf style format string to use for the last

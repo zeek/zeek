@@ -8,8 +8,9 @@
 
 BroDoc::BroDoc(const std::string& sourcename)
     {
+#ifdef DEBUG
     fprintf(stdout, "Documenting source: %s\n", sourcename.c_str());
-
+#endif
     source_filename = sourcename.substr(sourcename.find_last_of('/') + 1);
 
     size_t ext_pos = source_filename.find_last_of('.');
@@ -35,8 +36,10 @@ BroDoc::BroDoc(const std::string& sourcename)
 
     if ( ! reST_file )
         fprintf(stderr, "Failed to open %s", reST_filename.c_str());
+#ifdef DEBUG
     else
         fprintf(stdout, "Created reST document: %s\n", reST_filename.c_str());
+#endif
     }
 
 BroDoc::~BroDoc()
@@ -104,7 +107,11 @@ void BroDoc::WriteStringList(const char* format,
                              const char* last_format,
                              const std::list<std::string>& l) const
     {
-    if ( l.empty() ) return;
+    if ( l.empty() )
+        {
+        WriteToDoc("\n");
+        return;
+        }
     std::list<std::string>::const_iterator it;
     std::list<std::string>::const_iterator last = l.end();
     last--;

@@ -64,6 +64,13 @@ void BroDoc::SetPacketFilter(const std::string& s)
         packet_filter = s.substr(pos1 + 2, pos2 - 2);
     }
 
+void BroDoc::AddPortAnalysis(const std::string& analyzer,
+                             const std::string& ports)
+    {
+    std::string reST_string = analyzer + "::\n" + ports + "\n";
+    port_analysis.push_back(reST_string);
+    }
+
 void BroDoc::WriteDocFile() const
     {
     WriteToDoc("%s\n", source_filename.c_str());
@@ -83,6 +90,12 @@ void BroDoc::WriteDocFile() const
     WriteStringList("    :bro:script: `%s`\n",
                     "    :bro:script: `%s`\n\n", imports);
 
+    WriteSectionHeading("Port Analysis", '-');
+    WriteStringList("%s", port_analysis);
+
+    WriteSectionHeading("Packet Filter", '-');
+    WriteToDoc("%s\n", packet_filter.c_str());
+
     WriteSectionHeading("Public Interface", '-');
     WriteBroDocObjList(options, true, "Options", '~');
     WriteBroDocObjList(state_vars, true, "State Variables", '~');
@@ -91,14 +104,9 @@ void BroDoc::WriteDocFile() const
     WriteBroDocObjList(events, true, "Events", '~');
     WriteBroDocObjList(functions, true, "Functions", '~');
 
-    WriteSectionHeading("Packet Filter", '-');
-    WriteToDoc("%s\n", packet_filter.c_str());
-
     WriteSectionHeading("Private Interface", '-');
-    WriteBroDocObjList(options, false, "Options", '~');
     WriteBroDocObjList(state_vars, false, "State Variables", '~');
     WriteBroDocObjList(types, false, "Types", '~');
-    WriteBroDocObjList(notices, false, "Notices", '~');
     WriteBroDocObjList(events, false, "Events", '~');
     WriteBroDocObjList(functions, false, "Functions", '~');
     }

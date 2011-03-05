@@ -74,6 +74,15 @@ public:
     void SetPacketFilter(const std::string& s);
 
     /**
+     * Schedules documentation of a given set of ports being associated
+     * with a particular analyzer as a result of the current script
+     * being loaded -- the way the "dpd_config" table is changed.
+     * @param analyzer An analyzer that changed the "dpd_config" table.
+     * @param ports The set of ports assigned to the analyzer in table.
+     */
+    void AddPortAnalysis(const std::string& analyzer, const std::string& ports);
+
+    /**
      * Sets the author of the script.
      * The scanner should call this when it sees "## Author: ..."
      * @param s The name, email, etc. of the script author(s).  Must be
@@ -114,6 +123,7 @@ protected:
     std::list<std::string> modules;
     std::list<std::string> summary;
     std::list<std::string> imports;
+    std::list<std::string> port_analysis;
 
     std::list<const BroDocObj*> options;    // identifiers with &redef attr
     std::list<const BroDocObj*> state_vars; // identifiers without &redef?

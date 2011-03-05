@@ -17,6 +17,8 @@
 #include "broparse.h"
 #include "BroDoc.h"
 #include "BroBifDoc.h"
+#include "Analyzer.h"
+#include "AnalyzerTags.h"
 
 #include <stack>
 #include <list>
@@ -33,8 +35,6 @@ int nruntime = 0;
 // Track the @if... depth.
 ptr_compat_int current_depth = 0;
 
-declare(List,ptr_compat_int);
-typedef List(ptr_compat_int) int_list;
 int_list if_stack;
 
 int line_number = 1;
@@ -71,6 +71,9 @@ void clear_reST_doc_comments();
 
 // adds changes to capture_filter to the current script's reST documentation
 static void check_capture_filter_changes();
+
+// adds changes to dpd_config to the current script's reST documentation
+static void check_dpd_config_changes();
 
 class FileInfo {
 public:
@@ -728,6 +731,7 @@ int yywrap()
 	while ( input_files.length() > 0 )
 		{
 		check_capture_filter_changes();
+		check_dpd_config_changes();
 		if ( load_files_with_prefix(input_files[0]) )
 			{
 			// Don't delete the filename - it's pointed to by
@@ -741,6 +745,7 @@ int yywrap()
 		(void) input_files.remove_nth(0);
 		}
 	check_capture_filter_changes();
+	check_dpd_config_changes();
 
 	// Add redef statements for any X=Y command line parameters.
 	if ( params.size() > 0 )
@@ -883,8 +888,46 @@ static void check_capture_filter_changes()
 				ODesc desc;
 				capture_filters->ID_Val()->Describe(&desc);
 				last_reST_doc->SetPacketFilter(desc.Description());
-				( (TableVal*) capture_filters->ID_Val() )->RemoveAll();
+				capture_filters->ID_Val()->AsTableVal()->RemoveAll();
 			}
+		}
+	}
+
+static void check_dpd_config_changes()
+	{
+	if ( generate_documentation )
+		{
+		// Lookup the "dpd_config" identifier, if it has any
+		// defined value, add it to the script's documentation,
+		// and clear the table so that it doesn't taint the
+		// documentation for subsequent scripts.
+		ID* dpd_config = global_scope()->Lookup("dpd_config");
+		if ( ! dpd_config ) return;
+
+		TableVal* dpd_table = dpd_config->ID_Val()->AsTableVal();
+		ListVal* dpd_list = dpd_table->ConvertToList();
+		for ( int i = 0; i < dpd_list->Length(); ++i )
+			{
+			Val* key = dpd_list->Index(i);
+			if ( ! key ) continue;
+			Val* v = dpd_table->Lookup(key);
+			if ( ! v ) continue;
+
+			int tag = key->AsListVal()->Index(0)->AsCount();
+			ODesc valdesc;
+			valdesc.PushIndent();
+			v->Describe(&valdesc);
+
+			if ( tag < AnalyzerTag::Error || tag > AnalyzerTag::LastAnalyzer )
+				{
+				fprintf(stderr, "Warning: skipped bad analyzer tag: %i\n", tag);
+				continue;
+				}
+			last_reST_doc->AddPortAnalysis(
+			    Analyzer::GetTagName((AnalyzerTag::Tag)tag),
+			    valdesc.Description());
+			}
+		dpd_table->RemoveAll();
 		}
 	}
 

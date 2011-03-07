@@ -19,7 +19,7 @@ export {
 		id:              conn_id;
 		status:          string &default="";
 		direction:       string &default="";
-		remote_location: geo_location;
+		remote_location: geo_location &optional;
 		client:          string &default="";
 		server:          string &default="";
 		resp_size:       count &default=0;
@@ -194,8 +194,6 @@ event check_ssh_connection(c: connection, done: bool)
 		        $sub=fmt("%d",c$resp$size)]);
 		}
 
-	ssh_log$ts = c$start_time;
-	ssh_log$id = c$id;
 	ssh_log$remote_location = location;
 	ssh_log$status = status;
 	ssh_log$direction = direction;
@@ -236,6 +234,11 @@ event ssh_client_version(c: connection, version: string)
 	{
 	if ( c$id in active_conns )
 		active_conns[c$id]$client = version;
+	else
+		{
+		active_conns[c$id] = [$ts=c$start_time, $id=c$id];
+		schedule +15secs { ssh_watcher(c) };
+		}
 	}
 
 event ssh_server_version(c: connection, version: string)
@@ -248,8 +251,7 @@ event protocol_confirmation(c: connection, atype: count, aid: count)
 	{
 	if ( atype == ANALYZER_SSH )
 		{
-		local tmp: Log;
-		active_conns[c$id]=tmp;
+		active_conns[c$id] = [$ts=c$start_time, $id=c$id];
 		schedule +15secs { ssh_watcher(c) };
 		}
 	}

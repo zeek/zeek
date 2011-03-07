@@ -11,14 +11,14 @@ export {
 		resp_h:       addr;
 		resp_p:       count;
 		proto:        transport_proto;
-		service:      string &default="other";
-		duration:     interval &default=0secs;
-		orig_bytes:   count &default=0;
-		resp_bytes:   count &default=0;
-		conn_state:   string &default="";
-		local_orig:   bool &default=F;
-		addl:         string &default="";
-		history:      string &default="";
+		service:      string   &optional;
+		duration:     interval &optional;
+		orig_bytes:   count    &optional;
+		resp_bytes:   count    &optional;
+		conn_state:   string   &default="";
+		local_orig:   bool     &optional;
+		addl:         string   &optional;
+		history:      string   &optional;
 	};
 	
 	# Only log connections appear successful.
@@ -140,7 +140,7 @@ event connection_established(c: connection) &priority = 10
 	active_conns[c$id] = get_conn_log(c);
 	}
 
-event connection_state_remove(c: connection) &priority = 10
+event connection_state_remove(c: connection) &priority = -10
 	{
 	local conn_log = get_conn_log(c);
 	Log::write("CONN", conn_log);

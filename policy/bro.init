@@ -258,11 +258,11 @@ type pcap_packet: record {
 
 # GeoIP support.
 type geo_location: record {
-	country_code: string;
-	region: string;
-	city: string;
-	latitude: double;
-	longitude: double;
+	country_code: string &default="";
+	region: string &default="";
+	city: string &default="";
+	latitude: double &default=0.0;
+	longitude: double &default=0.0;
 };
 
 type entropy_test_result: record {

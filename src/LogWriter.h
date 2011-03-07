@@ -23,7 +23,7 @@ public:
 	//
     // The new instance takes ownership of "fields", and will delete them
     // when done.
-    bool Init(string path, int num_fields, LogField** fields);
+    bool Init(string path, int num_fields, const LogField* const * fields);
 
 	// Writes one log entry. The method takes ownership of "vals" and will
 	// return immediately after queueing the write request, potentially
@@ -35,14 +35,19 @@ public:
 	// Sets the buffering status for the writer, if the writer supports it.
 	bool SetBuf(bool enabled);
 
-	// Flushes any currently buffered output, if the writer support it.
+	// Flushes any currently buffered output, if the writer supports it.
 	bool Flush();
+
+	// Triggers rotation, if the writer supports it.
+	bool Rotate(string rotated_path, string postprocessor, double open, double close, bool terminating);
 
 	// Finished writing to this logger. Will not be called if an error has
 	// been indicated earlier. After calling this, no more writing must be
 	// performed.
 	void Finish();
 
+	// Returns the path as passed to Init().
+	const string Path() const	{ return path; }
 
 	int NumFields() const	{ return num_fields; }
 	const LogField* const * Fields() const	{ return fields; }
@@ -57,10 +62,10 @@ protected:
  	// always return true.
 
     // Called once for initialization of the Writer.
-    virtual bool DoInit(string path, int num_fields, LogField** fields) = 0;
+    virtual bool DoInit(string path, int num_fields, const LogField* const * fields) = 0;
 
     // Called once per entry to record.
-    virtual bool DoWrite(int num_fields, LogField** fields, LogVal** vals) = 0;
+    virtual bool DoWrite(int num_fields, const LogField* const * fields, LogVal** vals) = 0;
 
 	// Called when the buffering status for this writer is changed. If
 	// buffering is disabled, the writer should attempt to write out
@@ -80,25 +85,24 @@ protected:
     virtual bool DoFlush() = 0;
 
 	// Called when a log output is to be rotated. Most directly, this only
-	// applies to writers outputting files, thoug a writer may also trigger
-	// other regular actions if that fits a similar model
+	// applies to writers outputting files, though a writer may also trigger
+	// other regular actions if semantics are similar.
 	//
 	// The string "rotate_path" is interpreted in writer-specific way, yet
-	// should generally should have similar semantics that the "path" passed
+	// should generally should have similar semantics as the "path" passed
 	// into DoInit(), except that now it reflects the name to where the
 	// rotated output is to be moved. After rotation, output should continue
 	// normally with the standard "path". As an example, for file-based
 	// output, the rotate_path may be the original filename with an embedded
-	// timestamp.
-	//
-	// The writer must return false if an error occured that prevent the
-	// writer for continuing operation; it will then be disabled. The error
-	// reason should be reported via Error(). If a recoverable error occurs,
-	// still call Error(), but return true.
+	// timestamp. "postprocessor" is the name of a command to execute on the
+	// rotated file. If empty, no such processing should take place; if given
+	// but the writer doesn't support postprocessing, it can be ignored.
+	// "open" and "close" are the network time's at opening and closeing the
+	// current file, respetively.
 	//
 	// A writer may ignore rotation requests if it doesn't fit with its
 	// semantics.
-	virtual bool DoRotate(string rotated_path) = 0;
+	virtual bool DoRotate(string rotated_path, string postprocessor, double open, double close, bool terminating) = 0;
 
 	// Called once on termination. Not called when any of the other methods
 	// has previously signaled an error, i.e., executing this method signals
@@ -116,8 +120,8 @@ protected:
     // Reports an error.
     void Error(const char *msg);
 
-	// Returns the path as passed to Init().
-	const string Path() const	{ return path; }
+	// Runs a post-processor on the given file.
+	bool RunPostProcessor(string fname, string postprocessor, string old_name, double open, double close, bool terminating);
 
 private:
 	friend class LogMgr;
@@ -131,7 +135,7 @@ private:
 
     string path;
     int num_fields;
-    LogField** fields;
+    const LogField* const * fields;
 	bool buffering;
 	bool disabled;
 

@@ -3,14 +3,35 @@ module Log;
 # Log::ID and Log::Writer are defined in bro.init due to circular dependencies.
 
 export {
-	# The default writer to use.
-	const default_writer = Log::WRITER_ASCII &redef;
+	# Information passed to a rotation callback function.
+	type RotationInfo: record {
+		path: string;	# Original path value.
+		open: time;	# Time when opened.
+		close: time;	# Time when closed.
+	};
 
 	# If true, local logging is by default enabled for all filters.
 	const enable_local_logging = T &redef;
 
 	# If true, remote logging is by default enabled for all filters.
 	const enable_remote_logging = T &redef;
+
+	# The default writer to use.
+	const default_writer = Log::WRITER_ASCII &redef;
+
+	# Default rotation interval; zero disables rotation.
+	const default_rotation_interval = 0secs &redef;
+
+	# Default naming suffix format.
+	const default_rotation_date_format = "%y-%m-%d_%H.%M.%S" &redef;
+
+	# Default postprocessor for writers outputting into files.
+	const default_rotation_postprocessor = "" &redef;
+
+    # Default function to construct the name of the rotated file.
+    # The default implementation includes
+    # default_rotation_date_format into the file name.   
+	global default_rotation_path_func: function(info: RotationInfo) : string &redef;
 
     # A stream defining the logging.
 	type Stream: record {
@@ -51,10 +72,10 @@ export {
 		exclude: set[string] &optional;
 
 		# If true, record all log records locally.
-		log_local: bool &default=Log::enable_local_logging;
+		log_local: bool &default=enable_local_logging;
 
 		# If true, pass all log records on to remote peers if they request it.
-		log_remote: bool &default=Log::enable_remote_logging;
+		log_remote: bool &default=enable_remote_logging;
 
 		# The writer to use.
 		writer: Writer &default=Log::default_writer;
@@ -73,6 +94,11 @@ export {
 @load logging.bif # Needs Log::Filter and Log::Stream defined.
 
 module Log;
+
+function default_rotation_path_func(info: RotationInfo) : string
+	{
+	return fmt("%s-%s", info$path, strftime(default_rotation_date_format, info$open));
+	}
 
 function create_stream(id: Log::ID, stream: Log::Stream) : bool
 	{

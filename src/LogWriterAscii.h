@@ -15,16 +15,16 @@ public:
 	static LogWriter* Instantiate()	{ return new LogWriterAscii; }
 
 protected:
-    virtual bool DoInit(string path, int num_fields, LogField** fields);
-    virtual bool DoWrite(int num_fields, LogField** fields, LogVal** vals);
+    virtual bool DoInit(string path, int num_fields, const LogField* const * fields);
+    virtual bool DoWrite(int num_fields, const LogField* const * fields, LogVal** vals);
 	virtual bool DoSetBuf(bool enabled);
-	virtual bool DoRotate(string rotated_path);
+	virtual bool DoRotate(string rotated_path, string postprocessr, double open, double close, bool terminating);
 	virtual bool DoFlush();
     virtual void DoFinish();
 
 private:
 	FILE* file;
-	char* fname;
+	string fname;
 };
 
 #endif

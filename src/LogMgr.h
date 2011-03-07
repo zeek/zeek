@@ -57,6 +57,7 @@ private:
 
 class LogWriter;
 class RemoteSerializer;
+class RotationTimer;
 
 class LogMgr {
 public:
@@ -75,6 +76,7 @@ public:
 protected:
     friend class LogWriter;
 	friend class RemoteSerializer;
+	friend class RotationTimer;
 
 	// These function are also used by the RemoteSerializer.
 	LogWriter* CreateWriter(EnumVal* id, EnumVal* writer, string path, int num_fields, LogField** fields); // takes ownership of fields.
@@ -89,11 +91,14 @@ protected:
 private:
 	struct Filter;
 	struct Stream;
+	struct WriterInfo;
 
 	bool TraverseRecord(Filter* filter, RecordType* rt, TableVal* include, TableVal* exclude, string path, list<int> indices);
 	LogVal** RecordToFilterVals(Filter* filter, RecordVal* columns);
 	Stream* FindStream(EnumVal* id);
 	void RemoveDisabledWriters(Stream* stream);
+	void InstallRotationTimer(WriterInfo* winfo);
+	void Rotate(WriterInfo* info);
 
 	vector<Stream *> streams; // Indexed by stream enum.
 };

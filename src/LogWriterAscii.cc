@@ -6,26 +6,22 @@
 
 LogWriterAscii::LogWriterAscii()
 	{
-	fname = 0;
 	file = 0;
 	}
 
 LogWriterAscii::~LogWriterAscii()
 	{
-	if ( fname )
-		free(fname);
-
 	if ( file )
 		fclose(file);
 	}
 
-bool LogWriterAscii::DoInit(string path, int num_fields, LogField** fields)
+bool LogWriterAscii::DoInit(string path, int num_fields, const LogField* const * fields)
 	{
-	fname = strdup(Fmt("%s.log", path.c_str()));
+	fname = path + ".log";
 
-	if ( ! (file = fopen(fname, "w")) )
+	if ( ! (file = fopen(fname.c_str(), "w")) )
 		{
-		Error(Fmt("cannot open %s: %s", fname, strerror(errno)));
+		Error(Fmt("cannot open %s: %s", fname.c_str(), strerror(errno)));
 		return false;
 		}
 
@@ -34,7 +30,7 @@ bool LogWriterAscii::DoInit(string path, int num_fields, LogField** fields)
 
 	for ( int i = 0; i < num_fields; i++ )
 		{
-		LogField* field = fields[i];
+		const LogField* field = fields[i];
 		if ( fputs(field->name.c_str(), file) == EOF )
 			goto write_error;
 
@@ -48,7 +44,7 @@ bool LogWriterAscii::DoInit(string path, int num_fields, LogField** fields)
 	return true;
 
 write_error:
-	Error(Fmt("error writing to %s: %s", fname, strerror(errno)));
+	Error(Fmt("error writing to %s: %s", fname.c_str(), strerror(errno)));
 	return false;
 	}
 
@@ -62,7 +58,7 @@ void LogWriterAscii::DoFinish()
 	{
 	}
 
-bool LogWriterAscii::DoWrite(int num_fields, LogField** fields, LogVal** vals)
+bool LogWriterAscii::DoWrite(int num_fields, const LogField* const * fields, LogVal** vals)
 	{
 	ODesc desc(DESC_READABLE);
 
@@ -72,7 +68,7 @@ bool LogWriterAscii::DoWrite(int num_fields, LogField** fields, LogVal** vals)
 			desc.Add("\t");
 
 		LogVal* val = vals[i];
-		LogField* field = fields[i];
+		const LogField* field = fields[i];
 
 		if ( ! val->present )
 			{
@@ -127,7 +123,7 @@ bool LogWriterAscii::DoWrite(int num_fields, LogField** fields, LogVal** vals)
 
 	if ( fwrite(desc.Bytes(), desc.Len(), 1, file) != 1 )
 		{
-		Error(Fmt("error writing to %s: %s", fname, strerror(errno)));
+		Error(Fmt("error writing to %s: %s", fname.c_str(), strerror(errno)));
 		return false;
 		}
 
@@ -137,9 +133,17 @@ bool LogWriterAscii::DoWrite(int num_fields, LogField** fields, LogVal** vals)
 	return true;
 	}
 
-bool LogWriterAscii::DoRotate(string rotated_path)
+bool LogWriterAscii::DoRotate(string rotated_path, string postprocessor, double open, double close, bool terminating)
 	{
-	return true;
+	fclose(file);
+
+	string nname = rotated_path + ".log";
+	rename(fname.c_str(), nname.c_str());
+
+	if ( postprocessor.size() && ! RunPostProcessor(nname, postprocessor, fname.c_str(), open, close, terminating) )
+		return false;
+
+	return DoInit(Path(), NumFields(), Fields());
 	}
 
 bool LogWriterAscii::DoSetBuf(bool enabled)

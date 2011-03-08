@@ -1,6 +1,14 @@
 @load site
 @load logging
 
+# Returns true if the given string is at least 25% composed of 8-bit
+# characters.
+function is_string_binary(s: string): bool
+	{
+	return byte_len(gsub(s, /[\x00-\x7f]/, "")) * 100 / |s| >= 25;
+	}
+
+
 # Simple functions for generating ASCII connection identifiers.
 ############# BEGIN ID FORMATTING #############
 function id_string(id: conn_id): string

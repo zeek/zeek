@@ -323,9 +323,9 @@ class BroCtlCmdLoop(cmd.Cmd):
         manually: all the maintainance tasks will then just be performed one
         more time."""
 
-        self.lock()
-
         if len(args) > 0:
+            self.lock()
+            
             if args == "enable":
                 config.Config._setState("cronenabled", "1")
                 util.output("cron enabled")
@@ -336,6 +336,7 @@ class BroCtlCmdLoop(cmd.Cmd):
                 util.output("cron " + (config.Config.cronenabled == "1"  and "enabled" or "disabled"))
             else:
                 util.output("wrong cron argument")
+                
             return
 
         cron.doCron()

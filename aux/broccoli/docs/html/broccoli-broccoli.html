@@ -17,7 +17,7 @@ TITLE="Broccoli API Reference"
 HREF="api.html"><LINK
 REL="NEXT"
 TITLE="Appendix"
-HREF="a3637.html"><LINK
+HREF="a3638.html"><LINK
 REL="STYLESHEET"
 TYPE="text/css"
 HREF="stylesheet.css"></HEAD
@@ -62,7 +62,7 @@ WIDTH="10%"
 ALIGN="right"
 VALIGN="bottom"
 ><A
-HREF="a3637.html"
+HREF="a3638.html"
 ACCESSKEY="N"
 >Next</A
 ></TD
@@ -79,7 +79,7 @@ NAME="BROCCOLI-BROCCOLI"
 ><DIV
 CLASS="REFNAMEDIV"
 ><A
-NAME="AEN868"
+NAME="AEN869"
 ></A
 ><H2
 >Name</H2
@@ -119,18 +119,18 @@ HREF="broccoli-broccoli.html#BROCOMPACTEVENTFUNC"
 >)              (BroConn *bc,
                                                          void *user_data,
                                                          BroEvMeta *meta);
-BroConn*            <A
+BroConn *           <A
 HREF="broccoli-broccoli.html#BRO-CONN-NEW"
 >bro_conn_new</A
 >                        (struct in_addr *ip_addr,
                                                          uint16 port,
                                                          int flags);
-BroConn*            <A
+BroConn *           <A
 HREF="broccoli-broccoli.html#BRO-CONN-NEW-STR"
 >bro_conn_new_str</A
 >                    (const char *hostname,
                                                          int flags);
-BroConn*            <A
+BroConn *           <A
 HREF="broccoli-broccoli.html#BRO-CONN-NEW-SOCKET"
 >bro_conn_new_socket</A
 >                 (int socket,
@@ -140,7 +140,7 @@ HREF="broccoli-broccoli.html#BRO-CONN-SET-CLASS"
 >bro_conn_set_class</A
 >                  (BroConn *bc,
                                                          const char *classname);
-const char*         <A
+const char *        <A
 HREF="broccoli-broccoli.html#BRO-CONN-GET-PEER-CLASS"
 >bro_conn_get_peer_class</A
 >             (const BroConn *bc);
@@ -175,17 +175,17 @@ HREF="broccoli-broccoli.html#BRO-CONN-DATA-SET"
 >                   (BroConn *bc,
                                                          const char *key,
                                                          void *val);
-void*               <A
+void *              <A
 HREF="broccoli-broccoli.html#BRO-CONN-DATA-GET"
 >bro_conn_data_get</A
 >                   (BroConn *bc,
                                                          const char *key);
-void*               <A
+void *              <A
 HREF="broccoli-broccoli.html#BRO-CONN-DATA-DEL"
 >bro_conn_data_del</A
 >                   (BroConn *bc,
                                                          const char *key);
-BroEvent*           <A
+BroEvent *          <A
 HREF="broccoli-broccoli.html#BRO-EVENT-NEW"
 >bro_event_new</A
 >                       (const char *event_name);
@@ -250,7 +250,7 @@ void                <A
 HREF="broccoli-broccoli.html#BRO-EVENT-REGISTRY-REQUEST"
 >bro_event_registry_request</A
 >          (BroConn *bc);
-BroBuf*             <A
+BroBuf *            <A
 HREF="broccoli-broccoli.html#BRO-BUF-NEW"
 >bro_buf_new</A
 >                         (void);
@@ -272,11 +272,11 @@ void                <A
 HREF="broccoli-broccoli.html#BRO-BUF-RESET"
 >bro_buf_reset</A
 >                       (BroBuf *buf);
-uchar*              <A
+uchar *             <A
 HREF="broccoli-broccoli.html#BRO-BUF-GET"
 >bro_buf_get</A
 >                         (BroBuf *buf);
-uchar*              <A
+uchar *             <A
 HREF="broccoli-broccoli.html#BRO-BUF-GET-END"
 >bro_buf_get_end</A
 >                     (BroBuf *buf);
@@ -288,7 +288,7 @@ uint                <A
 HREF="broccoli-broccoli.html#BRO-BUF-GET-USED-SIZE"
 >bro_buf_get_used_size</A
 >               (BroBuf *buf);
-uchar*              <A
+uchar *             <A
 HREF="broccoli-broccoli.html#BRO-BUF-PTR-GET"
 >bro_buf_ptr_get</A
 >                     (BroBuf *buf);
@@ -329,7 +329,7 @@ HREF="broccoli-broccoli.html#BRO-CONF-GET-DBL"
 >bro_conf_get_dbl</A
 >                    (const char *val_name,
                                                          double *val);
-const char*         <A
+const char *        <A
 HREF="broccoli-broccoli.html#BRO-CONF-GET-STR"
 >bro_conf_get_str</A
 >                    (const char *val_name);
@@ -352,7 +352,7 @@ HREF="broccoli-broccoli.html#BRO-STRING-SET-DATA"
 >                 (BroString *bs,
                                                          const uchar *data,
                                                          int data_len);
-const uchar*        <A
+const uchar *       <A
 HREF="broccoli-broccoli.html#BRO-STRING-GET-DATA"
 >bro_string_get_data</A
 >                 (const BroString *bs);
@@ -360,7 +360,7 @@ uint32              <A
 HREF="broccoli-broccoli.html#BRO-STRING-GET-LENGTH"
 >bro_string_get_length</A
 >               (const BroString *bs);
-BroString*          <A
+BroString *         <A
 HREF="broccoli-broccoli.html#BRO-STRING-COPY"
 >bro_string_copy</A
 >                     (BroString *bs);
@@ -372,7 +372,7 @@ void                <A
 HREF="broccoli-broccoli.html#BRO-STRING-FREE"
 >bro_string_free</A
 >                     (BroString *bs);
-BroRecord*          <A
+BroRecord *         <A
 HREF="broccoli-broccoli.html#BRO-RECORD-NEW"
 >bro_record_new</A
 >                      (void);
@@ -427,7 +427,7 @@ HREF="broccoli-broccoli.html#BROTABLECALLBACK"
 >)                 (void *key,
                                                          void *val,
                                                          void *user_data);
-BroTable*           <A
+BroTable *          <A
 HREF="broccoli-broccoli.html#BRO-TABLE-NEW"
 >bro_table_new</A
 >                       (void);
@@ -443,7 +443,7 @@ HREF="broccoli-broccoli.html#BRO-TABLE-INSERT"
                                                          const void *key,
                                                          int val_type,
                                                          const void *val);
-void*               <A
+void *              <A
 HREF="broccoli-broccoli.html#BRO-TABLE-FIND"
 >bro_table_find</A
 >                      (BroTable *tbl,
@@ -472,7 +472,7 @@ HREF="broccoli-broccoli.html#BROSETCALLBACK"
 >*BroSetCallback</A
 >)                   (void *val,
                                                          void *user_data);
-BroSet*             <A
+BroSet *            <A
 HREF="broccoli-broccoli.html#BRO-SET-NEW"
 >bro_set_new</A
 >                         (void);
@@ -519,13 +519,13 @@ HREF="broccoli-broccoli.html#BRO-CONN-GET-PACKET-CTXT"
 >bro_conn_get_packet_ctxt</A
 >            (BroConn *bc,
                                                          int *link_type);
-BroPacket*          <A
+BroPacket *         <A
 HREF="broccoli-broccoli.html#BRO-PACKET-NEW"
 >bro_packet_new</A
 >                      (const struct pcap_pkthdr *hdr,
                                                          const u_char *data,
                                                          const char *tag);
-BroPacket*          <A
+BroPacket *         <A
 HREF="broccoli-broccoli.html#BRO-PACKET-CLONE"
 >bro_packet_clone</A
 >                    (const BroPacket *packet);
@@ -661,7 +661,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >bc</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > Bro connection handle.</P
@@ -670,7 +670,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >user_data</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > user data provided to <A
@@ -685,7 +685,7 @@ CLASS="FUNCTION"
 ><TT
 CLASS="PARAMETER"
 >...</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > varargs.</P
@@ -735,7 +735,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >bc</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > Bro connection handle.</P
@@ -744,7 +744,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >user_data</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > user data provided to <A
@@ -759,7 +759,7 @@ CLASS="FUNCTION"
 ><TT
 CLASS="PARAMETER"
 >meta</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > metadata for the event</P
@@ -782,7 +782,7 @@ BGCOLOR="#eaeaf0"
 ><TD
 ><PRE
 CLASS="PROGRAMLISTING"
->BroConn*            bro_conn_new                        (struct in_addr *ip_addr,
+>BroConn *           bro_conn_new                        (struct in_addr *ip_addr,
                                                          uint16 port,
                                                          int flags);</PRE
 ></TD
@@ -807,7 +807,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >ip_addr</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > 4-byte IP address of Bro to contact, in network byte order.</P
@@ -816,7 +816,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >port</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > port of machine at <TT
@@ -828,7 +828,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >flags</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > an or-combination of the <TT
@@ -843,7 +843,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > pointer to a newly allocated and initialized
@@ -868,7 +868,7 @@ BGCOLOR="#eaeaf0"
 ><TD
 ><PRE
 CLASS="PROGRAMLISTING"
->BroConn*            bro_conn_new_str                    (const char *hostname,
+>BroConn *           bro_conn_new_str                    (const char *hostname,
                                                          int flags);</PRE
 ></TD
 ></TR
@@ -901,7 +901,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >hostname</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > string describing the host and port to connect to.</P
@@ -910,7 +910,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >flags</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > an or-combination of the <TT
@@ -925,7 +925,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > pointer to a newly allocated and initialized
@@ -950,7 +950,7 @@ BGCOLOR="#eaeaf0"
 ><TD
 ><PRE
 CLASS="PROGRAMLISTING"
->BroConn*            bro_conn_new_socket                 (int socket,
+>BroConn *           bro_conn_new_socket                 (int socket,
                                                          int flags);</PRE
 ></TD
 ></TR
@@ -983,7 +983,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >socket</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > open socket.</P
@@ -992,7 +992,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >flags</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > an or-combination of the <TT
@@ -1007,7 +1007,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > pointer to a newly allocated and initialized
@@ -1062,7 +1062,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >bc</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > connection handle.</P
@@ -1071,7 +1071,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >classname</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > class identifier.</P
@@ -1094,7 +1094,7 @@ BGCOLOR="#eaeaf0"
 ><TD
 ><PRE
 CLASS="PROGRAMLISTING"
->const char*         bro_conn_get_peer_class             (const BroConn *bc);</PRE
+>const char *        bro_conn_get_peer_class             (const BroConn *bc);</PRE
 ></TD
 ></TR
 ></TABLE
@@ -1111,7 +1111,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >bc</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > connection handle.</P
@@ -1123,7 +1123,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > a string containing the connection class indicated by the peer,
@@ -1168,7 +1168,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >bc</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > connection handle.</P
@@ -1180,7 +1180,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > <TT
@@ -1263,7 +1263,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >bc</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > Bro connection handle.</P
@@ -1275,7 +1275,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > <TT
@@ -1322,7 +1322,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >bc</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > Bro connection handle</P
@@ -1334,7 +1334,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > <TT
@@ -1388,7 +1388,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >src</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > Bro connection handle for connection whose event list to adopt.</P
@@ -1397,7 +1397,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >dst</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > Bro connection handle for connection whose event list to change.</P
@@ -1441,7 +1441,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >bc</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > Bro connection handle.</P
@@ -1453,7 +1453,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > file descriptor for connection <TT
@@ -1517,7 +1517,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >bc</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > Bro connection handle</P
@@ -1529,7 +1529,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > <TT
@@ -1591,7 +1591,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >bc</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > Bro connection handle.</P
@@ -1600,7 +1600,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >key</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > name of the data item.</P
@@ -1609,7 +1609,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >val</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > data item.</P
@@ -1632,7 +1632,7 @@ BGCOLOR="#eaeaf0"
 ><TD
 ><PRE
 CLASS="PROGRAMLISTING"
->void*               bro_conn_data_get                   (BroConn *bc,
+>void *              bro_conn_data_get                   (BroConn *bc,
                                                          const char *key);</PRE
 ></TD
 ></TR
@@ -1654,7 +1654,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >bc</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > Bro connection handle.</P
@@ -1663,7 +1663,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >key</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > name of the data item.</P
@@ -1675,7 +1675,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > data item if lookup was successful, <TT
@@ -1701,7 +1701,7 @@ BGCOLOR="#eaeaf0"
 ><TD
 ><PRE
 CLASS="PROGRAMLISTING"
->void*               bro_conn_data_del                   (BroConn *bc,
+>void *              bro_conn_data_del                   (BroConn *bc,
                                                          const char *key);</PRE
 ></TD
 ></TR
@@ -1722,7 +1722,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >bc</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > Bro connection handle.</P
@@ -1731,7 +1731,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >key</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > name of the data item.</P
@@ -1743,7 +1743,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > the removed data item if it exists, <TT
@@ -1769,7 +1769,7 @@ BGCOLOR="#eaeaf0"
 ><TD
 ><PRE
 CLASS="PROGRAMLISTING"
->BroEvent*           bro_event_new                       (const char *event_name);</PRE
+>BroEvent *          bro_event_new                       (const char *event_name);</PRE
 ></TD
 ></TR
 ></TABLE
@@ -1787,7 +1787,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >event_name</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > name of the Bro event.</P
@@ -1799,7 +1799,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > new event, or <TT
@@ -1846,7 +1846,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >be</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > event to release.</P
@@ -1918,7 +1918,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >be</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > event to add to.</P
@@ -1927,7 +1927,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >type</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > numerical type identifier (a <TT
@@ -1939,7 +1939,7 @@ CLASS="LITERAL"
 ><TT
 CLASS="PARAMETER"
 >type_name</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > optional name of specialized type.</P
@@ -1948,7 +1948,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >val</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > value to add to event.</P
@@ -1960,7 +1960,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > <TT
@@ -2039,7 +2039,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >be</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > event handle.</P
@@ -2048,7 +2048,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >val_num</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > number of the value to replace, starting at 0.</P
@@ -2057,7 +2057,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >type</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > numerical type identifier (a <TT
@@ -2069,7 +2069,7 @@ CLASS="LITERAL"
 ><TT
 CLASS="PARAMETER"
 >type_name</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > optional name of specialized type.</P
@@ -2078,7 +2078,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >val</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > value to put in.</P
@@ -2090,7 +2090,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > <TT
@@ -2151,7 +2151,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >bc</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > Bro connection handle</P
@@ -2160,7 +2160,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >be</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > event to send.</P
@@ -2172,7 +2172,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > <TT
@@ -2233,7 +2233,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >bc</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > Bro connection handle</P
@@ -2245,7 +2245,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > number of items currently queued.</P
@@ -2286,7 +2286,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >bc</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > Bro connection handle</P
@@ -2298,7 +2298,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > remaining queue length after flush.</P
@@ -2401,7 +2401,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >bc</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > Bro connection handle</P
@@ -2410,7 +2410,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >event_name</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > Name of events that trigger callback</P
@@ -2419,7 +2419,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >func</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > callback to invoke.</P
@@ -2428,7 +2428,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >user_data</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > user data passed through to the callback.</P
@@ -2500,7 +2500,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >bc</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > Bro connection handle</P
@@ -2509,7 +2509,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >event_name</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > Name of events that trigger callback</P
@@ -2518,7 +2518,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >func</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > callback to invoke.</P
@@ -2527,7 +2527,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >user_data</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > user data passed through to the callback.</P
@@ -2575,7 +2575,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >bc</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > Bro connection handle</P
@@ -2584,7 +2584,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >event_name</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > event to ignore from now on.</P
@@ -2634,7 +2634,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >bc</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > Bro connection handle</P
@@ -2657,7 +2657,7 @@ BGCOLOR="#eaeaf0"
 ><TD
 ><PRE
 CLASS="PROGRAMLISTING"
->BroBuf*             bro_buf_new                         (void);</PRE
+>BroBuf *            bro_buf_new                         (void);</PRE
 ></TD
 ></TR
 ></TABLE
@@ -2677,7 +2677,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 >a new buffer object, or <TT
@@ -2737,7 +2737,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >buf</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > buffer pointer.</P
@@ -2794,7 +2794,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >buf</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > buffer pointer.</P
@@ -2803,7 +2803,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >data</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > new data to append to buffer.</P
@@ -2812,7 +2812,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >data_len</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > size of <TT
@@ -2827,7 +2827,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > <TT
@@ -2890,7 +2890,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >buf</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > buffer pointer.</P
@@ -2931,7 +2931,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >buf</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > buffer pointer.</P
@@ -2954,7 +2954,7 @@ BGCOLOR="#eaeaf0"
 ><TD
 ><PRE
 CLASS="PROGRAMLISTING"
->uchar*              bro_buf_get                         (BroBuf *buf);</PRE
+>uchar *             bro_buf_get                         (BroBuf *buf);</PRE
 ></TD
 ></TR
 ></TABLE
@@ -2971,7 +2971,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >buf</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > buffer pointer.</P
@@ -2983,7 +2983,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 >the entire buffer's contents.</P
@@ -3006,7 +3006,7 @@ BGCOLOR="#eaeaf0"
 ><TD
 ><PRE
 CLASS="PROGRAMLISTING"
->uchar*              bro_buf_get_end                     (BroBuf *buf);</PRE
+>uchar *             bro_buf_get_end                     (BroBuf *buf);</PRE
 ></TD
 ></TR
 ></TABLE
@@ -3023,7 +3023,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >buf</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > buffer pointer.</P
@@ -3035,7 +3035,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > a pointer to the first byte in the
@@ -3076,7 +3076,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >buf</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > buffer pointer.</P
@@ -3088,7 +3088,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > the number of actual bytes allocated for the
@@ -3129,7 +3129,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >buf</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > buffer pointer.</P
@@ -3141,7 +3141,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > number of bytes currently used.</P
@@ -3164,7 +3164,7 @@ BGCOLOR="#eaeaf0"
 ><TD
 ><PRE
 CLASS="PROGRAMLISTING"
->uchar*              bro_buf_ptr_get                     (BroBuf *buf);</PRE
+>uchar *             bro_buf_ptr_get                     (BroBuf *buf);</PRE
 ></TD
 ></TR
 ></TABLE
@@ -3181,7 +3181,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >buf</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > buffer pointer.</P
@@ -3193,7 +3193,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > current buffer content pointer.</P
@@ -3233,7 +3233,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >buf</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > buffer pointer.</P
@@ -3245,7 +3245,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > current offset of buffer content pointer.</P
@@ -3309,7 +3309,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >buf</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > buffer pointer.</P
@@ -3318,7 +3318,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >offset</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > number of bytes by which to adjust pointer, positive or negative.</P
@@ -3327,7 +3327,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >whence</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > location relative to which to adjust.</P
@@ -3339,7 +3339,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > <TT
@@ -3398,7 +3398,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >buf</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > buffer pointer.</P
@@ -3407,7 +3407,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >size</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > number of bytes to check for availability.</P
@@ -3419,7 +3419,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > <TT
@@ -3487,7 +3487,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >buf</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > buffer pointer.</P
@@ -3496,7 +3496,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >data</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > destination area.</P
@@ -3505,7 +3505,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >size</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > number of bytes to copy into <TT
@@ -3520,7 +3520,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > <TT
@@ -3586,7 +3586,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >buf</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > buffer pointer.</P
@@ -3595,7 +3595,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >data</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > data to write.</P
@@ -3604,7 +3604,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >size</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > number of bytes to copy into <TT
@@ -3619,7 +3619,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > <TT
@@ -3678,7 +3678,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >val_name</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > key name for the value.</P
@@ -3687,7 +3687,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >val</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > result pointer for the value.</P
@@ -3699,7 +3699,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > <TT
@@ -3757,7 +3757,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >val_name</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > key name for the value.</P
@@ -3766,7 +3766,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >val</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > result pointer for the value.</P
@@ -3778,7 +3778,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > <TT
@@ -3810,7 +3810,7 @@ BGCOLOR="#eaeaf0"
 ><TD
 ><PRE
 CLASS="PROGRAMLISTING"
->const char*         bro_conf_get_str                    (const char *val_name);</PRE
+>const char *        bro_conf_get_str                    (const char *val_name);</PRE
 ></TD
 ></TR
 ></TABLE
@@ -3831,7 +3831,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >val_name</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > key name for the value.</P
@@ -3843,7 +3843,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > the config item if <TT
@@ -3910,7 +3910,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >domain</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > name of the domain, or <TT
@@ -3958,7 +3958,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >bs</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > string pointer.</P
@@ -4023,7 +4023,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >bs</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > string pointer.</P
@@ -4032,7 +4032,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >s</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > C ASCII string.</P
@@ -4044,7 +4044,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > <TT
@@ -4109,7 +4109,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >bs</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > string pointer.</P
@@ -4118,7 +4118,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >data</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > arbitrary data.</P
@@ -4127,7 +4127,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >data_len</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > length of <TT
@@ -4142,7 +4142,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > <TT
@@ -4171,7 +4171,7 @@ BGCOLOR="#eaeaf0"
 ><TD
 ><PRE
 CLASS="PROGRAMLISTING"
->const uchar*        bro_string_get_data                 (const BroString *bs);</PRE
+>const uchar *       bro_string_get_data                 (const BroString *bs);</PRE
 ></TD
 ></TR
 ></TABLE
@@ -4196,7 +4196,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >bs</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > string pointer.</P
@@ -4208,7 +4208,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > pointer to string, or <TT
@@ -4251,7 +4251,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >bs</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > string pointer.</P
@@ -4263,7 +4263,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > the string's length.</P
@@ -4286,7 +4286,7 @@ BGCOLOR="#eaeaf0"
 ><TD
 ><PRE
 CLASS="PROGRAMLISTING"
->BroString*          bro_string_copy                     (BroString *bs);</PRE
+>BroString *         bro_string_copy                     (BroString *bs);</PRE
 ></TD
 ></TR
 ></TABLE
@@ -4303,7 +4303,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >bs</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > string pointer.</P
@@ -4315,7 +4315,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > a deep copy of the BroString pointed to by <TT
@@ -4374,7 +4374,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >bs</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > string pointer.</P
@@ -4418,7 +4418,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >bs</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > string pointer.</P
@@ -4441,7 +4441,7 @@ BGCOLOR="#eaeaf0"
 ><TD
 ><PRE
 CLASS="PROGRAMLISTING"
->BroRecord*          bro_record_new                      (void);</PRE
+>BroRecord *         bro_record_new                      (void);</PRE
 ></TD
 ></TR
 ></TABLE
@@ -4466,7 +4466,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > a new record, or <TT
@@ -4513,7 +4513,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >rec</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > record handle.</P
@@ -4603,7 +4603,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >rec</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > record handle.</P
@@ -4612,7 +4612,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >name</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > field name of the added val.</P
@@ -4621,7 +4621,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >type</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > numerical type tag of the new val.</P
@@ -4630,7 +4630,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >type_name</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > optional name of specialized type.</P
@@ -4639,7 +4639,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >val</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > pointer to the new val*.</P
@@ -4651,7 +4651,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > <TT
@@ -4730,7 +4730,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >rec</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > record handle.</P
@@ -4739,7 +4739,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >num</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > field index, starting from 0.</P
@@ -4748,7 +4748,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >type</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > value-result argument for the expected/actual type of the value.</P
@@ -4760,7 +4760,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > pointer to queried value on success, <TT
@@ -4810,7 +4810,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >rec</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > record handle.</P
@@ -4819,7 +4819,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >num</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > field index, starting from 0.</P
@@ -4831,7 +4831,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > field name on success, <TT
@@ -4894,7 +4894,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >rec</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > record handle.</P
@@ -4903,7 +4903,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >name</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > field name.</P
@@ -4912,7 +4912,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >type</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > value-result argument for the expected/actual type of the value.</P
@@ -4924,7 +4924,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > pointer to queried value on success, <TT
@@ -5006,7 +5006,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >rec</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > record handle.</P
@@ -5015,7 +5015,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >num</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > field index, starting from 0.</P
@@ -5024,7 +5024,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >type</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > expected type of the value.</P
@@ -5033,7 +5033,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >type_name</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > optional name of specialized type.</P
@@ -5042,7 +5042,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >val</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > pointer to new val.</P
@@ -5054,7 +5054,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > <TT
@@ -5139,7 +5139,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >rec</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > record handle.</P
@@ -5148,7 +5148,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >name</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > field name.</P
@@ -5157,7 +5157,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >type</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > expected type of the value.</P
@@ -5166,7 +5166,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >type_name</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > optional name of specialized type.</P
@@ -5175,7 +5175,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >val</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > pointer to new val.</P
@@ -5187,7 +5187,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > <TT
@@ -5236,7 +5236,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >key</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 ></P
@@ -5245,7 +5245,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >val</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > a pointer to an element in the set.</P
@@ -5254,7 +5254,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >user_data</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > user data passed through.</P
@@ -5266,7 +5266,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > TRUE if iteration should continue, FALSE if done.</P
@@ -5289,7 +5289,7 @@ BGCOLOR="#eaeaf0"
 ><TD
 ><PRE
 CLASS="PROGRAMLISTING"
->BroTable*           bro_table_new                       (void);</PRE
+>BroTable *          bro_table_new                       (void);</PRE
 ></TD
 ></TR
 ></TABLE
@@ -5307,10 +5307,10 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
->&#13;</P
+></P
 ></DD
 ></DL
 ></DIV
@@ -5345,10 +5345,10 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >tbl</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
->&#13;</P
+></P
 ></DD
 ></DL
 ></DIV
@@ -5387,7 +5387,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >tbl</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 ></P
@@ -5396,7 +5396,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >key_type</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 ></P
@@ -5405,7 +5405,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >key</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 ></P
@@ -5414,7 +5414,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >val_type</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 ></P
@@ -5423,7 +5423,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >val</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 ></P
@@ -5435,10 +5435,10 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
->&#13;</P
+></P
 ></DD
 ></DL
 ></DIV
@@ -5458,7 +5458,7 @@ BGCOLOR="#eaeaf0"
 ><TD
 ><PRE
 CLASS="PROGRAMLISTING"
->void*               bro_table_find                      (BroTable *tbl,
+>void *              bro_table_find                      (BroTable *tbl,
                                                          const void *key);</PRE
 ></TD
 ></TR
@@ -5474,7 +5474,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >tbl</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 ></P
@@ -5483,7 +5483,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >key</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 ></P
@@ -5495,10 +5495,10 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
->&#13;</P
+></P
 ></DD
 ></DL
 ></DIV
@@ -5533,7 +5533,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >tbl</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 ></P
@@ -5545,10 +5545,10 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
->&#13;</P
+></P
 ></DD
 ></DL
 ></DIV
@@ -5585,7 +5585,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >tbl</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 ></P
@@ -5594,7 +5594,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >key_type</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 ></P
@@ -5603,10 +5603,10 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >val_type</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
->&#13;</P
+></P
 ></DD
 ></DL
 ></DIV
@@ -5646,7 +5646,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >tbl</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 ></P
@@ -5655,7 +5655,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >cb</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 ></P
@@ -5664,10 +5664,10 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >user_data</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
->&#13;</P
+></P
 ></DD
 ></DL
 ></DIV
@@ -5703,7 +5703,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >val</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 ></P
@@ -5712,7 +5712,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >user_data</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 ></P
@@ -5724,10 +5724,10 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
->&#13;</P
+></P
 ></DD
 ></DL
 ></DIV
@@ -5747,7 +5747,7 @@ BGCOLOR="#eaeaf0"
 ><TD
 ><PRE
 CLASS="PROGRAMLISTING"
->BroSet*             bro_set_new                         (void);</PRE
+>BroSet *            bro_set_new                         (void);</PRE
 ></TD
 ></TR
 ></TABLE
@@ -5765,10 +5765,10 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
->&#13;</P
+></P
 ></DD
 ></DL
 ></DIV
@@ -5803,10 +5803,10 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >set</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
->&#13;</P
+></P
 ></DD
 ></DL
 ></DIV
@@ -5843,7 +5843,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >set</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 ></P
@@ -5852,7 +5852,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >type</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 ></P
@@ -5861,7 +5861,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >val</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 ></P
@@ -5873,10 +5873,10 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
->&#13;</P
+></P
 ></DD
 ></DL
 ></DIV
@@ -5912,7 +5912,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >set</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 ></P
@@ -5921,7 +5921,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >key</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 ></P
@@ -5933,10 +5933,10 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
->&#13;</P
+></P
 ></DD
 ></DL
 ></DIV
@@ -5971,7 +5971,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >set</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 ></P
@@ -5983,10 +5983,10 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
->&#13;</P
+></P
 ></DD
 ></DL
 ></DIV
@@ -6022,7 +6022,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >set</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 ></P
@@ -6031,10 +6031,10 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >type</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
->&#13;</P
+></P
 ></DD
 ></DL
 ></DIV
@@ -6074,7 +6074,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >set</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 ></P
@@ -6083,7 +6083,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >cb</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 ></P
@@ -6092,10 +6092,10 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >user_data</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
->&#13;</P
+></P
 ></DD
 ></DL
 ></DIV
@@ -6137,7 +6137,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >bc</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > connection handle.</P
@@ -6146,7 +6146,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >link_type</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > libpcap DLT linklayer type.</P
@@ -6193,7 +6193,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >bc</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > connection handle.</P
@@ -6202,7 +6202,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >link_type</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > result pointer for libpcap DLT linklayer type.</P
@@ -6225,7 +6225,7 @@ BGCOLOR="#eaeaf0"
 ><TD
 ><PRE
 CLASS="PROGRAMLISTING"
->BroPacket*          bro_packet_new                      (const struct pcap_pkthdr *hdr,
+>BroPacket *         bro_packet_new                      (const struct pcap_pkthdr *hdr,
                                                          const u_char *data,
                                                          const char *tag);</PRE
 ></TD
@@ -6257,7 +6257,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >hdr</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > pointer to libpcap packet header.</P
@@ -6266,7 +6266,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >data</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > pointer to libpcap packet data.</P
@@ -6275,7 +6275,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >tag</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > pointer to ASCII tag (0 for no tag).</P
@@ -6287,10 +6287,10 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
->&#13;</P
+></P
 ></DD
 ></DL
 ></DIV
@@ -6310,7 +6310,7 @@ BGCOLOR="#eaeaf0"
 ><TD
 ><PRE
 CLASS="PROGRAMLISTING"
->BroPacket*          bro_packet_clone                    (const BroPacket *packet);</PRE
+>BroPacket *         bro_packet_clone                    (const BroPacket *packet);</PRE
 ></TD
 ></TR
 ></TABLE
@@ -6327,7 +6327,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >packet</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > packet to clone.</P
@@ -6339,7 +6339,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > a copy of <TT
@@ -6392,7 +6392,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >packet</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > packet to release.</P
@@ -6439,7 +6439,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >bc</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > connection on which to send packet.</P
@@ -6448,7 +6448,7 @@ CLASS="PARAMETER"
 ><TT
 CLASS="PARAMETER"
 >packet</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > packet to send.</P
@@ -6460,7 +6460,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > <TT
@@ -6509,7 +6509,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > the current system time as a double, in seconds, suitable
@@ -6553,7 +6553,7 @@ CLASS="VARIABLELIST"
 ><TT
 CLASS="PARAMETER"
 >tv</TT
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > pointer to timeval structure.</P
@@ -6565,7 +6565,7 @@ CLASS="emphasis"
 CLASS="EMPHASIS"
 >Returns</B
 ></SPAN
->&nbsp;:</DT
+> :</DT
 ><DD
 ><P
 > a double encoding the timestamp given in <TT
@@ -6612,7 +6612,7 @@ WIDTH="33%"
 ALIGN="right"
 VALIGN="top"
 ><A
-HREF="a3637.html"
+HREF="a3638.html"
 ACCESSKEY="N"
 >Next</A
 ></TD

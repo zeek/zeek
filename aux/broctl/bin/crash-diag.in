@@ -44,12 +44,16 @@ echo
 
 core=`ls -t *core* 2>&1`
 
-for c in $core; do 
-   if [ -e $c ]; then
-      echo $c
-      echo "bt" | gdb --batch -x /dev/stdin ${bro} $c
-   fi
-done
+if which gdb >/dev/null 2>&1; then
+    for c in $core; do 
+        if [ -e $c ]; then
+            echo $c
+            echo "bt" | gdb --batch -x /dev/stdin ${bro} $c
+        fi
+    done
+else
+    echo "No gdb installed."
+fi
 
 ) >.crash-diag.log
 

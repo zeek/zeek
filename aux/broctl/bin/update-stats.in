@@ -1,0 +1,15 @@
+#! /usr/bin/env bash
+#
+# $Id: archive-log.in 6847 2009-07-30 16:54:58Z robin $
+#
+# Saves the current stats.log from spool to ${statsdir}, and 
+# updates the WWW data. 
+
+dst=${statsdir}/`basename ${statslog}`
+cat ${statslog} >>$dst
+
+cp ${statsdir}/meta.dat ${statsdir}/www
+
+${scriptsdir}/stats-to-csv ${statslog} ${statsdir}/meta.dat ${statsdir}/www
+
+rm -f ${statslog}

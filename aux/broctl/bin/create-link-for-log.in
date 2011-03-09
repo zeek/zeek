@@ -1,0 +1,65 @@
+#! /usr/bin/env bash
+#
+# create-link-for <file-name>
+#
+# Creates a link from `pwd`/$1 into the current archive directory.
+
+if [ ! -e .manager -a ! -e .standalone ]; then
+   # We only create links on the manager/standalone.
+   exit 0
+fi   
+
+if [ -e .checking ]; then
+   # Just checking configuration, don't create links.
+   exit 0
+fi   
+
+if [ ! -f $1 ]; then
+   # Doesn't exist. 
+   exit 0
+fi   
+
+echo $1 | grep -q '^\.' 
+
+if [ $? == 0 ]; then
+   # Don't link internal files.
+   exit 0
+fi
+
+date=`date +%Y-%m-%d-%H-%M-%S`
+link=`${makearchivename} $1 $date`
+
+echo $link | grep -q '^/' 
+
+if [ $? != 0 ]; then
+    link="${logdir}/$link"
+fi
+
+dest_dir=`dirname $link`
+mkdir -p $dest_dir # Makes sure all parent directories exist. 
+
+if [ -e $link ]; then
+   if [ ! -L $link ]; then
+       # Exists, but isn't a link. Don't touch.
+       exit 0
+   fi
+   
+   # Link exists already for some reason, remove it. 
+   rm -f $link
+fi
+
+# Remove last link we did for this file.
+if [ -e .link.$1 ]; then
+    rm -f `cat .link.$1 | tail -1`
+fi    
+
+# Do the link.
+ln -s `pwd`/$1 $link
+
+# Record the link.
+echo $link >.link.$1
+
+
+
+
+

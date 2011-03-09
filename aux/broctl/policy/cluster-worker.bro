@@ -7,7 +7,6 @@
 
 @load broctl
 @load remote
-@load rotate-logs
 
 @load trim-trace-file	
 

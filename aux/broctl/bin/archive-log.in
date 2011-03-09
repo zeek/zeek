@@ -4,9 +4,7 @@
 #
 # Bro postprocessor script to archive log files. 
 # 
-# archive-log <rotated-file-name> <base-name> <timestamp-when-opened> <timestamp-when-closed> [<tag>]
-
-base=${logdir}
+# archive-log <rotated-file-name> <base-name> <timestamp-when-opened> <timestamp-when-closed> <terminating> [<tag>]
 
 delete=1
 if [ "$1" == "-c" ]; then
@@ -14,31 +12,36 @@ if [ "$1" == "-c" ]; then
     shift
 fi
 
-# Record time of last rotation.
-date +%y-%m-%d_%H.%M.%S >.rotate # Bro default format when rotating files.
-
 # We do not keep the logs for workers/proxies.
 if [ -e .worker -o -e .proxy ]; then
     test $delete = 0 || rm -rf $1
     exit 0
 fi
 
-# Build archive name
-day=`echo $3 | sed 's/_.*$//'`
-from=`echo $3 | sed 's/^.*_//' | sed 's/\./:/g'`
-to=`echo $4 | sed 's/^.*._//' | sed 's/\./:/g'`
+terminating=$5
+
 century=`date +%Y | sed 's/..$//g'`
-day="$century$day"
 
-if [ ! -d "$base/$day" ]; then
-    mkdir "$base/$day" 2>/dev/null
-fi    
+from=`echo $3 | sed 's/[_.]/-/g'`
+from="$century$from"
 
-#if [ $# == 5 ]; then
-#    dest="$base/$day/$5.$2.$from-$to.gz"
-#else
-    dest="$base/$day/$2.$from-$to.gz"
-#fi
+to=`echo $4 | sed 's/[_.]/-/g'`
+to="$century$to"
+
+dest=`${makearchivename} $2 $from $to`
+
+echo $dest | grep -q '^/' 
+
+if [ $? != 0 ]; then
+    dest="${logdir}/$dest"
+fi
+
+dest_dir=`dirname $dest`
+
+mkdir -p $dest_dir # Makes sure all parent directories exist. 
+
+# Record time of last rotation.
+date +%y-%m-%d_%H.%M.%S >.rotated.$2 # Bro default format when rotating files.
 
 # Run other postprocessors. 
 for pp in ${postprocdir}/*; do
@@ -46,8 +49,10 @@ for pp in ${postprocdir}/*; do
 done
 
 if [ -e $1 ]; then
-   nice gzip -9 <$1 >$dest 2>/dev/null 
+   nice gzip -9 <$1 >$dest.gz 2>/dev/null &
 fi   
+
+wait
 
 if [ "$?" == "0" ]; then
     if [ "$delete" == "1" ]; then 
@@ -57,3 +62,8 @@ if [ "$?" == "0" ]; then
         find $1 -size +104857600c -delete
     fi
 fi
+
+if [ "$terminating" == "1" ]; then
+    ${scriptsdir}/remove-link-for-log $2
+fi
+

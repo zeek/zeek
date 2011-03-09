@@ -107,17 +107,17 @@ HREF="c84.html#AEN738"
 ></DT
 ><DT
 >3.5. <A
-HREF="c84.html#AEN784"
+HREF="c84.html#AEN785"
 >Configuring event reception in Bro policies</A
 ></DT
 ><DT
 >3.6. <A
-HREF="c84.html#AEN818"
+HREF="c84.html#AEN819"
 >Configuring debugging output</A
 ></DT
 ><DT
 >3.7. <A
-HREF="c84.html#AEN842"
+HREF="c84.html#AEN843"
 >Test programs</A
 ></DT
 ></DL
@@ -1169,7 +1169,7 @@ CLASS="FUNCTION"
 >Remote::destinations</CODE
 > configuration.
 	    See <A
-HREF="c84.html#AEN784"
+HREF="c84.html#AEN785"
 >below</A
 > for how to do this.
 	    Finally, in order to obtain the class of a connection as indicated by the remote side, use
@@ -1230,7 +1230,7 @@ CLASS="EMPHASIS"
 >	    You need to make sure that the remote Bro agent is interested in receiving
 	    the events you send. This interest is expressed in policy configuration.
 	    We'll explain this in more detail <A
-HREF="c84.html#AEN784"
+HREF="c84.html#AEN785"
 >below</A
 >
 	    and for now assume that our remote peer is configured to receive the
@@ -3351,6 +3351,11 @@ CLASS="VARNAME"
 CLASS="VARNAME"
 >/broccoli/host_cert</CODE
 > keys, respectively, in the configuration file.
+	Optionally, you can store the private key in a separate file specified by
+	<CODE
+CLASS="VARNAME"
+>/broccoli/host_key</CODE
+>. 
 	To quickly enable/disable a certificate configuration, the
 	<CODE
 CLASS="VARNAME"
@@ -3429,6 +3434,7 @@ CLASS="PROGRAMLISTING"
 >/broccoli/use_ssl	   yes
 /broccoli/ca_cert          &#60;path&#62;/ca_cert.pem
 /broccoli/host_cert        &#60;path&#62;/bro_cert.pem
+/broccoli/host_key         &#60;path&#62;/bro_cert.key
       </PRE
 ></TD
 ></TR
@@ -3533,7 +3539,7 @@ CLASS="SECT1"
 ><H1
 CLASS="SECT1"
 ><A
-NAME="AEN784"
+NAME="AEN785"
 >3.5. Configuring event reception in Bro policies</A
 ></H1
 ><P
@@ -3690,7 +3696,7 @@ CLASS="COMMAND"
 >broping</B
 > tool
 	      explained in the <A
-HREF="c84.html#AEN842"
+HREF="c84.html#AEN843"
 >section on testing</A
 > below.
 	      It will allow an agent on the local host to connect and send "ping" events.
@@ -3708,7 +3714,7 @@ CLASS="SECT1"
 ><H1
 CLASS="SECT1"
 ><A
-NAME="AEN818"
+NAME="AEN819"
 >3.6. Configuring debugging output</A
 ></H1
 ><P
@@ -3804,7 +3810,7 @@ CLASS="SECT1"
 ><H1
 CLASS="SECT1"
 ><A
-NAME="AEN842"
+NAME="AEN843"
 >3.7. Test programs</A
 ></H1
 ><P
@@ -3818,8 +3824,8 @@ CLASS="FUNCTION"
 >broping</CODE
 >
 	  <A
-NAME="AEN847"
-HREF="#FTN.AEN847"
+NAME="AEN848"
+HREF="#FTN.AEN848"
 ><SPAN
 CLASS="footnote"
 >[2]</SPAN
@@ -3958,8 +3964,8 @@ ALIGN="LEFT"
 VALIGN="TOP"
 WIDTH="5%"
 ><A
-NAME="FTN.AEN847"
-HREF="c84.html#AEN847"
+NAME="FTN.AEN848"
+HREF="c84.html#AEN848"
 ><SPAN
 CLASS="footnote"
 >[2]</SPAN

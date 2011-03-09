@@ -8,7 +8,9 @@ tag=$1
 host=$2
 path=$3
 
-dstbase=${statsdir}/prof.$tag
+mkdir -p ${statsdir}/profiling
+
+dstbase=${statsdir}/profiling/prof.$tag
 tmp=$dstbase.$$.log.tmp
 
 # Ignore errors.

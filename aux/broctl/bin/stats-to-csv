@@ -1,0 +1,137 @@
+#! /usr/bin/env python
+#
+# stats-to-csv <stats.log> <meta.dat> <wwwdir>
+#
+# Reads information from stats directory and outputs csv files <wwwdir>/<node>.<type>.csv. 
+# If any of these files already exists, we append (without writing the header line again).
+
+import os.path
+import os
+import sys
+
+Workers = set()
+Proxies = set()
+
+def readNodes(meta):
+    for line in open(meta):
+        m = line.split()
+        
+        if m[0] == "node":
+            if m[2] == "worker":
+                Workers.add(m[1])
+                
+            if m[2] == "proxy":
+                Workers.add(m[1])
+
+def processNode(stats, wwwdir, node, iface):
+    
+    print node, "..."
+    
+    def openFile(tag, columns):
+        
+        name = os.path.join(wwwdir, "%s.%s.csv" % (node, tag))
+        
+        if os.path.exists(name):
+            return open(name, "a")
+        else:
+            f = open(name, "w")
+            print >>f, "time," + ",".join(columns)
+            
+        return f
+    
+    iface_mbps = openFile("mbps", ["MBits/sec"])
+    iface_pkts = openFile("pkts", ["TCP", "UDP", "ICMP", "Other"])
+    cpu = openFile("cpu", ["CPU"])
+    mem = openFile("mem", ["Memory"])
+    cflow = openFile("in", ["MBits/sec"])
+    
+    def printEntry(t, entry):
+
+        try:
+            val = int(entry["parent-cpu"]) + int(entry["child-cpu"])
+            print >>cpu, "%s,%s" % (t, val)
+        except KeyError:
+            pass
+            
+        try:
+            val = int(entry["parent-vsize"]) + int(entry["child-vsize"])
+            print >>mem, "%s,%s" % (t, val)
+        except KeyError:
+            pass
+            
+        if iface:
+            try:
+                print >>iface_mbps, "%s,%s" % (t, entry["interface-mbps"])
+            except KeyError:
+                    pass
+                
+            try:
+                tc = float(entry["interface-t"])
+                ud = float(entry["interface-u"])
+                ic = float(entry["interface-i"])
+                ot = float(entry["interface-o"])
+                print >>iface_pkts, "%s,%s,%s,%s,%s" % (t, tc, ud, ic, ot)
+                
+            except KeyError:
+                    pass
+                
+        if "in-mbps" in entry:
+            print >>cflow, "%s,%s" % (t, entry["in-mbps"])
+    
+    entry = {}
+    first = -1
+    
+    for line in open(stats):
+        m = line.split()
+        
+        if m[1] != node:
+            continue
+
+        t = m[0]
+        
+        if t != first and first >= 0:
+            printEntry(t, entry)
+            entry = {}
+            
+        first = t
+            
+        try:
+            entry["%s-%s" % (m[2], m[3])] = m[4]
+        except IndexError:
+            pass
+        
+    if first >= 0:
+        printEntry(t, entry)
+                
+    iface_mbps.close()
+    iface_pkts.close()
+    cpu.close()
+    mem.close()
+    cflow.close()
+
+if len(sys.argv) != 4:
+    print "usage: %s <stats.log> <meta.dat> <www-dir>" % sys.argv[0]
+    sys.exit(1)
+
+stats = sys.argv[1]
+meta = sys.argv[2]
+wwwdir = sys.argv[3]
+    
+try:
+    os.mkdir(wwwdir)
+except OSError:
+    pass
+
+readNodes(meta)
+
+for w in Workers:
+    processNode(stats, wwwdir, w, True)
+
+for p in Proxies:
+    processNode(stats, wwwdir, p, False)
+
+processNode(stats, wwwdir, "manager", False)
+processNode(stats, wwwdir, "cflow", False)
+    
+    
+    

@@ -79,7 +79,7 @@ def mkdirs(dirs):
         else:
             cmds += [(node, [], [])]
                 # Need to be careful here as our helper scripts may not be installed yet. 
-            fullcmds += [("test -d %s || mkdir %s 2>/dev/null; echo $?; echo ~~~" % (dir, dir))]
+            fullcmds += [("test -d %s || mkdir -p %s 2>/dev/null; echo $?; echo ~~~" % (dir, dir))]
 
     for (node, success, output) in runHelperParallel(cmds, fullcmds=fullcmds):
         results += [(node, success)]
@@ -147,7 +147,14 @@ def install(host, src, dst):
             os.remove(dst)
 
         util.debug(1, "cp %s %s" % (src, dst))
-        shutil.copy2(src, dst)
+        
+        try:
+            shutil.copy2(src, dst)
+        except OSError:
+            # Python 2.6 has a bug where this may fail on NFS. So we just
+            # ignore errors.
+            pass
+            
         return True
     else:
         util.error("install() not yet supported for remote hosts")

@@ -1,0 +1,41 @@
+#! /usr/bin/env bash
+#
+# $Id: archive-log.in 6847 2009-07-30 16:54:58Z robin $
+#
+# Returns a path for archived log files. This script is called
+# once for each log file being archived. Usage is:
+#
+# make-archive-name <basename> <timestamp-when-opened> [<timestamp-when-closed>]
+#
+#   basename: The base file name of the log file being archived (e.g., conn.log).
+#   timestamp-when-opened: The timestamp when the log file being archived was created. 
+#   timestamp-when-closed: The timestamp when the log file being archived was finished. 
+#                          Optional. If not given, the name is used to create a link to 
+#                          the current live version of the file.
+#
+# Times are given in the form "year-month-day-hour-minute-second",
+# e.g., "2010-03-30-13-12-04"
+#
+# The script must return the path under which the file should be
+# archived. If it's a relative path, it will be interpreted as
+# relative to BroControl's standard log directory. 
+#
+# Note that even though the logs will later be compressed, this
+# script should return the filename without any .gz extension; that
+# extension will be appended later.
+
+name=$1
+opened=$2
+closed=$3
+
+day=`echo $opened  | awk -F - '{printf "%s-%s-%s", $1, $2, $3}'`
+from=`echo $opened | awk -F - '{printf "%s:%s:%s", $4, $5, $6}'`
+to=`echo $closed | awk -F - '{printf "%s:%s:%s", $4, $5, $6}'`
+
+if [ "$closed" != "" ]; then
+   echo $day/$name.$from-$to
+else
+   echo $day/$name.$from-current
+fi   
+
+

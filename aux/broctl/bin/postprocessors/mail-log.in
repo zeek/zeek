@@ -5,7 +5,7 @@
 # Formats Bro's mail.log, archives, encrypts and mails it (if requested).
 #
 # It's called as a Bro postprocessor so its arguments are:
-# 	   mail-log <logfile> <basename> <timestamp-when-opened> <timestamp-when-closed> [<tag>]
+# 	   mail-log <logfile> <basename> <timestamp-when-opened> <timestamp-when-closed> <terminating> [<tag>]
 
 if [ "$2" != "mail.log" ]; then
    exit 0
@@ -15,7 +15,8 @@ log=$1
 base=$2
 open=$3
 close=$4
-tag=$5
+terminating=$5
+tag=$6
 
 # Do nothing if log is empty
 if [ ! -s $log ]; then

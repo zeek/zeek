@@ -158,7 +158,7 @@ def _makeBroParams(node, live):
         args += ["-p %s" % p]
 
     args += ["-p %s" % node.tag]         
-        
+
     args += node.scripts
 
     if live:
@@ -585,7 +585,7 @@ def getTopOutput(nodes):
             d = {}
             d["pid"] = int(p[0])
             d["proc"] = (p[0] == parents[node.tag] and "parent" or "child") 
-            d["vsize"] = int(p[1])
+            d["vsize"] = int(float(p[1]))
             d["rss"] = int(p[2])
             d["cpu"] = p[3]
             d["cmd"] = " ".join(p[4:])
@@ -761,6 +761,9 @@ def attachGdb(nodes):
 #
 # Tags are those as returned by capstats on the command-line
 #
+# There is one "pseudo-node" of the name "$total" with the sum of all
+# individual values. 
+#
 # We do all the stuff in parallel across all nodes which is why this looks 
 # a bit confusing ...
 
@@ -798,6 +801,8 @@ def getCapstatsOutput(nodes, interval):
 
     outputs = execute.runHelperParallel(cmds) 
 
+    totals = {}
+    
     for (node, success, output) in outputs:
 
         if not success:
@@ -810,12 +815,21 @@ def getCapstatsOutput(nodes, interval):
         try:
             for field in fields[1:]:
                 (key, val) = field.split("=")
-                vals[key] = float(val)
+                val = float(val)
+                vals[key] = val
+                
+                try:
+                    totals[key] += val
+                except KeyError:
+                    totals[key] = val
 
             results += [(node, None, vals)]
 
         except ValueError:
             results += [(node, "%s: unexpected capstats output: %s" % (node.tag, output[0]), {})]
+            
+    # Add pseudo-node for totals
+    results += [(config.Node("$total"), None, totals)]
 
     return results
 
@@ -861,16 +875,9 @@ def calculateCFlowRate(start, stop, interval):
 def capstats(nodes, interval):
 
     def output(tag, data):
-        util.output("\n%-12s %-10s %-10s (%ds average)" % (tag, "kpps", "mbps", interval))
-        util.output("-" * 30)
-
-        for (port, error, vals) in data:
-
-            if error:
-                util.output(error)
-                continue
-
-            util.output("%-12s " % port, nl=False)
+        
+        def outputOne(tag, vals):
+            util.output("%-12s " % tag, nl=False)
 
             if not error:
                 util.output("%-10s " % vals["kpps"], nl=False)
@@ -879,6 +886,27 @@ def capstats(nodes, interval):
                 util.output()
             else:
                 util.output("<%s> " % error)
+        
+        util.output("\n%-12s %-10s %-10s (%ds average)" % (tag, "kpps", "mbps", interval))
+        util.output("-" * 30)
+
+        totals = None
+        
+        for (port, error, vals) in data:
+
+            if error:
+                util.output(error)
+                continue
+
+            if str(port) != "$total":
+                outputOne(port, vals)
+            else:
+                totals = vals
+                
+        if totals:
+            util.output("")
+            outputOne("Total", totals)
+            util.output("")
 
     have_cflow = config.Config.cflowaddress and config.Config.cflowuser and config.Config.cflowpassword
     have_capstats = config.Config.capstats
@@ -960,6 +988,11 @@ def getDf(nodes):
 
         cmds = []
         for node in nodes:
+            
+            if dir == "logdir" and node.type != "manager":
+                # Don't need this on the workers/proxies.
+                continue
+            
             cmds += [(node, "df", [path])]
 
         results = execute.runHelperParallel(cmds)

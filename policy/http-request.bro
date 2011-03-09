@@ -51,6 +51,9 @@ export {
 	&redef;
 
 	const sensitive_post_URIs = /wwwroot|WWWROOT/ &redef;
+
+	# Include the referrer header in the log.
+	const log_referrer = F &redef;
 }
 
 redef capture_filters +=  {

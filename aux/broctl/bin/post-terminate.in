@@ -57,20 +57,33 @@ if [ ! -f .startup ]; then
    exit
 fi
 
+brostart=`cat .startup | tail -1`
 end=`date +%y-%m-%d_%H.%M.%S`
-start=`cat .startup | tail -1`
-if [ "$crash" = "1" -a -e .rotate ]; then
-   start=`cat .rotate | tail -1`
-fi   
 
+# Old. Remove later. 
+#
+#if [ "$crash" = "1" -a -e .rotate ]; then
+#   start=`cat .rotate | tail -1`
+#fi   
+
+# Likewise old.
 #if [ -e .peer_description ]; then
 #   tag=`cat .peer_description | tail -1`
 #fi   
 
 ( for i in *.log; do
     if [ -s $i ]; then
-       ${scriptsdir}/archive-log $archive_flags $i $i $start $end $tag >/dev/null &
+       if [ -e .rotated.$i ]; then
+          start=`cat .rotated.$i`
+       else
+          start=$brostart
+       fi
+       
+       ${scriptsdir}/archive-log $archive_flags "$i" "$i" "$start" "$end" 1 "$tag" >/dev/null &
     fi
+    
+    ${scriptsdir}/remove-link-for-log $i
+
   done && wait && if [ "$crash" = "0" ]; then rm -rf $tmp; fi ) &
 
 

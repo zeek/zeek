@@ -60,26 +60,24 @@ AC_DEFUN([AC_LBL_TYPE_SIGNAL],
     esac]])
 
 dnl
-dnl Determine which compiler we're using (cc or gcc)
-dnl If using gcc, determine the version number
-dnl If using cc, require that it support ansi prototypes
-dnl If using gcc, use -O2 (otherwise use -O)
-dnl If using cc, explicitly specify /usr/local/include
+dnl Do whatever AC_LBL_C_INIT work is necessary before using AC_PROG_CC.
 dnl
-dnl usage:
+dnl It appears that newer versions of autoconf (2.64 and later) will,
+dnl if you use AC_TRY_COMPILE in a macro, stick AC_PROG_CC at the
+dnl beginning of the macro, even if the macro itself calls AC_PROG_CC.
+dnl See the "Prerequisite Macros" and "Expanded Before Required" sections
+dnl in the Autoconf documentation.
 dnl
-dnl	AC_LBL_C_INIT(copt, incls)
+dnl This causes a steaming heap of fail in our case, as we were, in
+dnl AC_LBL_C_INIT, doing the tests we now do in AC_LBL_C_INIT_BEFORE_CC,
+dnl calling AC_PROG_CC, and then doing the tests we now do in
+dnl AC_LBL_C_INIT.  Now, we run AC_LBL_C_INIT_BEFORE_CC, AC_PROG_CC,
+dnl and AC_LBL_C_INIT at the top level.
 dnl
-dnl results:
-dnl
-dnl	$1 (copt set)
-dnl	$2 (incls set)
-dnl	CC
-dnl	LDFLAGS
-dnl	LBL_CFLAGS
-dnl
-AC_DEFUN([AC_LBL_C_INIT],
+dnl Borrowed from libpcap-1.1.1 by Gregor 
+AC_DEFUN([AC_LBL_C_INIT_BEFORE_CC],
     [AC_PREREQ(2.12)
+    AC_BEFORE([$0], [AC_LBL_C_INIT])
     AC_BEFORE([$0], [AC_PROG_CC])
     AC_BEFORE([$0], [AC_LBL_FIXINCLUDES])
     AC_BEFORE([$0], [AC_LBL_DEVEL])
@@ -108,7 +106,31 @@ AC_DEFUN([AC_LBL_C_INIT],
 	    CC=cc
 	    export CC
     fi
-    AC_PROG_CC
+])
+
+dnl
+dnl Determine which compiler we're using (cc or gcc)
+dnl If using gcc, determine the version number
+dnl If using cc, require that it support ansi prototypes
+dnl If using gcc, use -O2 (otherwise use -O)
+dnl If using cc, explicitly specify /usr/local/include
+dnl
+dnl usage:
+dnl
+dnl	AC_LBL_C_INIT(copt, incls)
+dnl
+dnl results:
+dnl
+dnl	$1 (copt set)
+dnl	$2 (incls set)
+dnl	CC
+dnl	LDFLAGS
+dnl	LBL_CFLAGS
+dnl
+AC_DEFUN([AC_LBL_C_INIT],
+    [AC_PREREQ(2.12)
+    AC_BEFORE([$0], [AC_LBL_FIXINCLUDES])
+    AC_BEFORE([$0], [AC_LBL_DEVEL])
     if test "$GCC" != yes ; then
 	    AC_MSG_CHECKING(that $CC handles ansi prototypes)
 	    AC_CACHE_VAL(ac_cv_lbl_cc_ansi_prototypes,

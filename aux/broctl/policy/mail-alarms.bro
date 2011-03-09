@@ -22,18 +22,38 @@ export 	{
 	global output = open_log_file( "mail" );
 	}
 
-function do_msg(line1: string, line2: string, line3: string, host: addr, name: string)
+function do_msg(n: notice_info, line1: string, line2: string, line3: string, host: addr, name: string, dest: string)
 	{
 	if ( host != 0.0.0.0 )
 		name = fmt("%s = %s", host, name);
 	
-	print output, cat(line1, name);
-	print output, line2;
-	if ( line3 != "" )
-		print output, line3;
+	line1 = cat(line1, name);
+	
+	if ( dest == "" ) 
+		{
+		# Append to mail.log.
+		print output, line1;
+		print output, line2;
+		if ( line3 != "" )
+			print output, line3;
+		}
+	
+	else 
+		{
+		line1 = str_shell_escape(line1);
+		line2 = str_shell_escape(line2);
+		line3 = str_shell_escape(line3);
+		
+		# Mail out an individual alarm. 
+		local mail_cmd =
+			fmt("( echo \"%s\"; echo \"%s\"; echo \"%s\" ) | %s -s \"[Bro Alarm] %s: %s\" %s",
+				line1, line2, line3, mail_script, n$note, str_shell_escape(n$msg), dest);
+		
+		system(mail_cmd);
+		}
 	}
 
-function message(msg: string, flag: bool, host: addr, n: notice_info)
+function message(msg: string, flag: bool, host: addr, n: notice_info, dest: string)
 	{
 	if ( length(include_only) > 0 && n$note !in include_only )
 		return;
@@ -52,30 +72,22 @@ function message(msg: string, flag: bool, host: addr, n: notice_info)
 
 	if ( host == 0.0.0.0 )
 		{
-		do_msg(line1, line2, line3, 0.0.0.0, "");
+		do_msg(n, line1, line2, line3, 0.0.0.0, "", dest);
 		return;
 		}
 	
 	when ( local name = lookup_addr(host) )
 		{
-		do_msg(line1, line2, line3, host, name);
+		do_msg(n, line1, line2, line3, host, name, dest);
 		}
 	timeout 5secs
 		{
-		do_msg(line1, line2, line3, host, "(dns timeout)");
+		do_msg(n, line1, line2, line3, host, "(dns timeout)", dest);
 		}
 	}
 
-event bro_init()
-    {
-    set_buf( output, F );
-    }
-
-event notice_alarm(n: notice_info, action: NoticeAction) &priority = -10
+function make_alarm(n: notice_info, dest: string)
 	{
-	if ( is_remote_event() )
-		return;
-
 	if ( n$note in ignore )
 		return;
 	
@@ -112,6 +124,33 @@ event notice_alarm(n: notice_info, action: NoticeAction) &priority = -10
 	if ( orig in flag_nets || resp in flag_nets )
 		flag = T;
 
-	message(msg, flag, host, n);
+	message(msg, flag, host, n, dest);
 	}
 
+
+event bro_init()
+    {
+    set_buf( output, F );
+    }
+
+event notice_alarm(n: notice_info, action: NoticeAction) &priority = -10
+	{
+	if ( is_remote_event() )
+		return;
+
+	make_alarm(n, "");
+	}
+
+function broctl_email_notice_to(n: notice_info, dest: string)
+	{
+	if ( reading_traces() || dest == "" )
+		return;
+
+	if ( dest == "" )
+		return;
+	
+	make_alarm(n, dest);
+	}
+
+# Make the alarm mails nicer. 
+redef email_notice_to = broctl_email_notice_to;

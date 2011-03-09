@@ -6,7 +6,7 @@
 #
 # Needs trace-summary script.
 #
-# summarize-conns <rotated-file-name> <base-name> <timestamp-when-opened> <timestamp-when-closed> [<tag>]
+# summarize-conns <rotated-file-name> <base-name> <timestamp-when-opened> <timestamp-when-closed> <terminating> [<tag>]
 
 if [ "$2" != "conn.log" ]; then
    exit 0
@@ -15,7 +15,7 @@ fi
 summary_options="-c -r"
 
 # If we're a cluster installation, we assume we have lots of traffic and activate sampling.
-if [ "${standalone}" != "0" ]; then
+if [ "${standalone}" = "0" ]; then
    summary_options="$summary_options -S 0.01" 
 fi    
 

@@ -72,6 +72,7 @@ Targets = [
     ("${distdir}/aux/broctl/bin/delete-log", "${scriptsdir}", True),
     ("${distdir}/aux/broctl/bin/expire-logs.in", "${scriptsdir}", True),
     ("${distdir}/aux/broctl/bin/post-terminate.in", "${scriptsdir}", True),
+    ("${distdir}/aux/broctl/bin/stat-ctime", "${scriptsdir}", True),
     ("${distdir}/aux/broctl/bin/crash-diag.in", "${scriptsdir}", True),
     ("${distdir}/aux/broctl/bin/send-mail.in", "${scriptsdir}", True),
     ("${distdir}/aux/broctl/bin/mail-alarm.in", "${scriptsdir}", True),
@@ -82,6 +83,12 @@ Targets = [
     ("${distdir}/aux/broctl/bin/cflow-stats.in", "${scriptsdir}", True),
     ("${distdir}/aux/broctl/bin/get-prof-log.in", "${scriptsdir}", True),
     ("${distdir}/aux/broctl/bin/mail-contents.in", "${scriptsdir}", True),
+    ("${distdir}/aux/broctl/bin/make-archive-name", "${scriptsdir}", True),
+    ("${distdir}/aux/broctl/bin/create-link-for-log.in", "${scriptsdir}", True),
+    ("${distdir}/aux/broctl/bin/remove-link-for-log.in", "${scriptsdir}", True),
+    ("${distdir}/aux/broctl/bin/update-stats.in", "${scriptsdir}", True),
+    ("${distdir}/aux/broctl/bin/stats-to-csv", "${scriptsdir}", True),
+    ("${distdir}/aux/broctl/bin/fmt-time", "${scriptsdir}", True),
     ("${distdir}/aux/broctl/bin/helpers/start.in", "${helperdir}", True),
     ("${distdir}/aux/broctl/bin/helpers/stop", "${helperdir}", True),
     ("${distdir}/aux/broctl/bin/helpers/check-pid", "${helperdir}", True),
@@ -318,7 +325,7 @@ def install(local_only, make_install):
         try:
             os.symlink(manager.cwd(), current)
         except (IOError, OSError), e:
-            util.warn("cannot link %s to %s: %s" % (manager.cwd(), current, e))
+            pass
 
     if local_only:
         return
@@ -362,17 +369,21 @@ def install(local_only, make_install):
         # already take care of that.
 
     else:
-        # NFS. We only need to take care of the spool/log directoryies.
+        # NFS. We only need to take care of the spool/log directories.
         paths = [config.Config.spooldir]
-        paths += [config.Config.logdir]
+        paths += [config.Config.tmpdir]
 
         dirs = []
         for dir in paths:
             dirs += [(n, dir) for n in nodes]
 
+        # We need this only on the manager.
+        dirs += [(manager, config.Config.logdir)]
+            
         for (node, success) in execute.mkdirs(dirs):
             if not success:
-                util.warn("cannot create directory on %s" % (dir, node.tag))
+                util.warn("cannot create (some of the) directories %s on %s" % (",".join(paths), node.tag))
+            
         util.output("done.")
 
 # Create Bro-side broctl configuration broctl-layout.bro.        

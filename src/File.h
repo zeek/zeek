@@ -114,6 +114,9 @@ protected:
 	// Stats the file to get its current size.
 	void UpdateFileSize();
 
+	// Raises a file_opened event.
+	void RaiseOpenEvent();
+
 	// Initialize encryption with the given public key.
 	void InitEncrypt(const char* keyfile);
 	// Finalize encryption.

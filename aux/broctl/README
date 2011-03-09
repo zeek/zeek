@@ -2,7 +2,11 @@
 //
 // $Id: README 6948 2009-12-03 20:59:41Z robin $
 //
-// FIXME: This needs asciidoc 8.2.x plus some custom config files.
+// NOTE: This README contains only parts of the BroControl documentation.
+// Please see README.html for the complete document.
+
+// (To generate the HTML version, one needs asciidoc 8.2.x plus some custom
+// config files.)
 
 BroControl
 ===========
@@ -223,7 +227,7 @@ expects commands on its command-line (alternatively, +broctl+ can
 also be started with a single command directly on the shell's
 command line):
 
-  > cluster
+  > broctl
   Welcome to BroControl 0.2
 
   Type "help" for help.
@@ -425,17 +429,6 @@ Note for folks who have used the old "cluster shell": the
 development mode corresponds to the old default behaviour, which
 worked with any +make install-broctl+.
 
-After a Bro crash, the timestamps of the archived log files sometimes seem to be wrong???
-   When Bro crashes, broctl archives the log files produced so far
-   at the normal location. However, for some files it can't (easily)
-   determine the right timestamps to put into the filename. This
-   affects in particular those log files that are not rotated on
-   regular basis (e.g., +stdout.log+, +prof.log+); their filenames
-   will indicate as their start time the point when all the other
-   files were _rotated_ most recently. In addition, for all log
-   files, after a crash the start/end times indicated by the file
-   names might be off a few seconds. 
-
 [[devversion]]Anything special to consider when using development versions???
    If you are using a _development version_, _BroControl_ might
    require patching Bro itself to work correctly. A "development
@@ -448,3 +441,11 @@ After a Bro crash, the timestamps of the archived log files sometimes seem to be
    > cd /path/to/bro/source/distribution
    > patch -p0 <aux/broctl/patch-bro.diff
    > ./autogen.sh
+
+Can I change the naming scheme that BroControl uses for archived log files?  
+    Yes, set xref:opt_MakeArchiveName[+MakeArchiveName+]+ to a
+    script that outputs the desired destination file name for an
+    archived log file. The default script for that task is
+    +<BroBase>/share/broctl/scripts/make-archive-name+, which you
+    can use that as a template for creating your own version. See
+    the beginning of that script for instructions. 

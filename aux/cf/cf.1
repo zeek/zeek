@@ -40,7 +40,7 @@ with a formated time and date time and date. For example:
 .RS
 .na
 .nh
-\% echo '1074558944 default format' | cf
+% echo '1074558944 default format' | cf
 .br  
 Jan 19 16:35:44 default format
 .ad
@@ -66,6 +66,12 @@ and
 flags override the
 .B CFTIMEFMT
 environment variable.
+
+Note that filter skips over an instance of "t=" at the beginning of
+a line, to provide compatibility with Bro's
+.I
+tagged
+logging format.
 .SH OPTIONS
 .LP
 .TP

@@ -764,7 +764,7 @@ also be started with a single command directly on the shell's
 command line):</p>
 <div class="literalblock">
 <div class="content">
-<pre><tt>&gt; cluster
+<pre><tt>&gt; broctl
 Welcome to BroControl 0.2</tt></pre>
 </div></div>
 <div class="literalblock">
@@ -1454,6 +1454,14 @@ Destination address for broctl-generated non-alarm mails. Default is to use the 
 </p>
 </dd>
 <dt>
+<a id="opt_MakeArchiveName"></a> <strong>MakeArchiveName</strong> (string, default "${BroBase}/share/broctl/scripts/make-archive-name")
+</dt>
+<dd>
+<p>
+Script to generate filenames for archived log files.
+</p>
+</dd>
+<dt>
 <a id="opt_MemLimit"></a> <strong>MemLimit</strong> (string, default "unlimited")
 </dt>
 <dd>
@@ -1941,22 +1949,6 @@ worked with any <tt>make install-broctl</tt>.</p>
 </li>
 <li>
 <p><em>
-After a Bro crash, the timestamps of the archived log files sometimes seem to be wrong?
-</em></p>
-<p>
-   When Bro crashes, broctl archives the log files produced so far
-   at the normal location. However, for some files it can't (easily)
-   determine the right timestamps to put into the filename. This
-   affects in particular those log files that are not rotated on
-   regular basis (e.g., <tt>stdout.log</tt>, <tt>prof.log</tt>); their filenames
-   will indicate as their start time the point when all the other
-   files were <em>rotated</em> most recently. In addition, for all log
-   files, after a crash the start/end times indicated by the file
-   names might be off a few seconds.
-</p>
-</li>
-<li>
-<p><em>
 <a id="devversion"></a>Anything special to consider when using development versions?
 </em></p>
 <p>
@@ -1976,10 +1968,17 @@ After a Bro crash, the timestamps of the archived log files sometimes seem to be
 </div></div>
 </li>
 </ol>
+<p>Can I change the naming scheme that BroControl uses for archived log files?
+    Yes, set <a href="#opt_MakeArchiveName"><tt>MakeArchiveName</tt></a><tt> to a
+    script that outputs the desired destination file name for an
+    archived log file. The default script for that task is
+    </tt>&lt;BroBase&gt;/share/broctl/scripts/make-archive-name+, which you
+    can use that as a template for creating your own version. See
+    the beginning of that script for instructions.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last modified at 2009-12-03 12:58:36 PDT - Robin Sommer
+Last modified at 2010-10-18 16:49:08 PDT - Robin Sommer
 </div>
 </div>
 </body>

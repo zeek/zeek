@@ -244,7 +244,7 @@ __bro_openssl_init(void)
 {
   static int deja_vu = FALSE;
   int use_ssl = FALSE;
-  const char *our_cert, *our_pass, *ca_cert;
+  const char *our_cert, *our_key, *our_pass, *ca_cert;
   
   D_ENTER;
 
@@ -284,7 +284,15 @@ __bro_openssl_init(void)
       D_RETURN_(TRUE);
     }
 
-  if (! (our_cert = __bro_conf_get_str("/broccoli/host_cert")))
+  our_cert = __bro_conf_get_str("/broccoli/host_cert");
+  our_key = __bro_conf_get_str("/broccoli/host_key");
+  if (our_key == NULL)
+    {
+    /* No private key configured; get it from the certificate file */
+    our_key = our_cert;
+    }
+
+  if (our_cert == NULL)
     {
       if (use_ssl)
 	{
@@ -297,6 +305,21 @@ __bro_openssl_init(void)
 	  D_RETURN_(TRUE);
 	}
     }
+
+  if (our_key == NULL)
+    {
+      if (use_ssl)
+       {
+         D(("SSL requested but host key not given -- aborting.\n"));
+         D_RETURN_(FALSE);
+       }
+      else
+       {
+         D(("use_ssl not used and host key not given -- not using SSL.\n"));
+         D_RETURN_(TRUE);
+       }
+    }
+
 
   /* At this point we either haven't seen use_ssl but a host_cert, or
    * we have seen use_ssl and it is set to true. Either way, we attempt
@@ -326,9 +349,9 @@ __bro_openssl_init(void)
       SSL_CTX_set_default_passwd_cb_userdata(ctx, (void *) our_pass);
     }
   
-  if (SSL_CTX_use_PrivateKey_file(ctx, our_cert, SSL_FILETYPE_PEM) != 1)
+  if (SSL_CTX_use_PrivateKey_file(ctx, our_key, SSL_FILETYPE_PEM) != 1)
     {
-      D(("SSL used but error loading private key from '%s' -- aborting.\n", our_cert));
+      D(("SSL used but error loading private key from '%s' -- aborting.\n", our_key));
       goto error_return;
     }
   
@@ -353,6 +376,13 @@ __bro_openssl_init(void)
   if (! SSL_CTX_load_verify_locations(ctx, ca_cert, 0))
     {
       D(("SSL used but CA certificate could not be loaded -- aborting\n"));
+      goto error_return;
+    }
+  
+  /* Check the consistency of the certificate vs. the private key */
+  if (SSL_CTX_check_private_key(ctx) != 1)
+    {
+      D(("SSL used but private key does not match the certificate -- aborting\n"));
       goto error_return;
     }
   

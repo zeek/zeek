@@ -14,11 +14,11 @@ cmd_freebsd_nonsmp='top -u -b all | awk "/^ *[0-9]+ /{printf(\"%d %s %s %d %s\\n
 cmd_darwin='top -l 1 | awk "/^ *[0-9]+ /{printf(\"%d %dK %dK %d %s\\n\", \$1, \$11, \$10, \$3, \$2)}"'
 cmd_netbsd='top -b -u  | awk "/^ *[0-9]+ /{printf(\"%d %s %s %d %s\\n\", \$1, \$5, \$6, \$10, \$11)}"'
 
-cmd="$cmd_${os}"
+eval cmd="\$cmd_${os}"
 
 if [ "${os}" == "freebsd" ]; then
    # Top's output looks different on non-SMP FreeBSD machines.
-   top -u -b all | grep -q "STATE  C   TIME" || cmd="$cmd_freebsd_nonsmp"
+   top -u -b all | grep -q "STATE  *C  *TIME" || cmd="$cmd_freebsd_nonsmp"
 fi
 
 unset LINES

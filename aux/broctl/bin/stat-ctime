@@ -1,0 +1,25 @@
+#! /usr/bin/env python
+#
+# Prints a given paths ctime in the format Bro uses for its rotation
+# timestamps.
+
+fmt="%y-%m-%d_%H.%M.%S" # From rotate-logs.bro
+
+import sys
+import os
+import stat
+import time
+
+if len(sys.argv) != 2:
+    print >>sys.stderr, "usage: stat-ctime <path>"
+
+try:	
+	ctime = os.stat(sys.argv[1])[stat.ST_CTIME]
+except OSError, e:
+	print e
+	sys.exit(1)
+	
+print time.strftime(fmt, time.localtime(ctime))
+	
+	
+	

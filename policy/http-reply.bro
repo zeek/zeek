@@ -54,7 +54,13 @@ function http_reply_done(c: connection, stat: http_message_stat)
 		--s$num_pending_requests;
 		++s$first_pending_request;
 
-		req = fmt("%s %s", r$method, r$URI);
+		if ( log_referrer )
+			req = fmt("%s %s [ref %s]", r$method, r$URI,
+					  req_msg$referrer == "" ?
+					  "<NONE>" : req_msg$referrer);
+		else
+			req = fmt("%s %s", r$method, r$URI);
+
 		log_it = r$log_it;
 		}
 
@@ -113,5 +119,7 @@ event http_header(c: connection, is_orig: bool, name: string, value: string)
 			else
 				msg$host = value;
 			}
+		else if ( is_orig && name == "REFERER" )
+			msg$referrer = value;
 		}
 	}

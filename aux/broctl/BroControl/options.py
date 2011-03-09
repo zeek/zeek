@@ -33,7 +33,9 @@ options = [
 
     Option("LogDir", "${BroBase}/logs", "string", Option.USER, False,
            "Directory for archived log files."),
-
+    Option("MakeArchiveName", "${BroBase}/share/broctl/scripts/make-archive-name", "string", Option.USER, False,
+           "Script to generate filenames for archived log files."),
+           
     Option("SendMail", "1", "bool", Option.USER, False,
            "True if shell may send mails."),
     Option("MailSubjectPrefix", "[Bro]", "string", Option.USER, False,
@@ -100,7 +102,7 @@ options = [
            "If the manager should connect to a Time Machine, the address of the host it is running on."),
     Option("TimeMachinePort", "47757/tcp", "string", Option.USER, False,
            "If the manager should connect to a Time Machine, the port it is running on (in Bro syntax, e.g., +47757/tcp+."),
-		
+
     # Automatically set.
     Option("BroBase", "", "string", Option.AUTOMATIC, True, 
            "Base path of broctl installation on all nodes."),

@@ -25,6 +25,7 @@ shift
 export PATH=${bindir}:${scriptsdir}:$PATH
 
 echo $@ >.cmdline
+touch .checking
 
 if [ "${devmode}" == "0" ]; then
     ${bro} $@

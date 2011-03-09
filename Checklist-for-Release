@@ -30,6 +30,10 @@
 	bro-1.X-current.tar.gz
 	bro-1.<n>-release.tar.gz
 
+- Create symlink for HTTP:
+
+	/ftp/BROIDS/bro-XXX.tar.gz -> /www/BROIDS/download/bro-XXX.tar.gz
+
 - Update crd:/www/BROIDS/download.html to reflect new version.  This page
   is generated from trunk/bro-web/download.xml.  Edit this file, and also
   update the (web page) version in build.xml, the copyright year in

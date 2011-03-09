@@ -143,6 +143,12 @@ doone(fin, fout)
 	while (fgets(buf, sizeof(buf), fin)) {
 		bp = buf;
 		dotbp = NULL;
+
+		if (*bp == 't' && *(bp+1) == '=') {
+			fputs("t=", fout);
+			bp += 2;
+		}
+
 		if (isdigit(*bp)) {
 			ts = atol(bp);
 			++bp;

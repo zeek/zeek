@@ -2,9 +2,5 @@
 #
 # Only loaded when checking configuration, not when running live.
 
-@load rotate-logs
-
-redef RotateLogs::rotate_on_shutdown=F;
-
-	
+redef RotateLogs::rotate_on_shutdown = F;
 		

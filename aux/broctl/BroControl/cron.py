@@ -20,11 +20,12 @@ def doCron():
     if config.Config.cronenabled == "0":
         return
 
+    config.Config.config["cron"] = "1"  # Flag to indicate that we're running from cron.
+    
     if not util.lock():
         return
 
     util.bufferOutput()
-    config.Config.config["cron"] = "1"  # Flag to indicate that we're running from cron.
 
     # Check whether nodes are still running an restart if neccessary.
     for (node, isrunning) in control.isRunning(config.Config.nodes()):
@@ -55,10 +56,10 @@ def doCron():
     if output:
         util.sendMail("cron: " + output.split("\n")[0], output)
 
-    config.Config.config["cron"] = "0"
-
     util.unlock()
 
+    config.Config.config["cron"] = "0"
+    
 def logAction(node, action):
     t = time.time()
     out = open(config.Config.statslog, "a")
@@ -191,15 +192,6 @@ def _checkHosts():
         config.Config._setState(tag, alive)
 
 def _getProfLogs():        
-
-    dir = config.Config.statsdir
-    if not os.path.exists(dir):
-        os.mkdir(dir)
-
-    if not os.path.exists(dir) or not os.path.isdir(dir):
-        util.output("cannot create directory %s" % dir)
-        return
-
     cmds = []
 
     for node in config.Config.hosts():
@@ -211,14 +203,10 @@ def _getProfLogs():
             util.output("cannot get prof.log from %s" % node.tag)
 
 def _updateHTTPStats():
-
     # Get the prof.logs.
     _getProfLogs()
 
-    # Copy stats.dat.
-    shutil.copy(config.Config.statslog, config.Config.statsdir)
-
-    # Creat meta file. 
+    # Create meta file. 
     meta = open(os.path.join(config.Config.statsdir, "meta.dat"), "w")
     for node in config.Config.hosts():
         print >>meta, "node", node.tag, node.type, node.host
@@ -238,5 +226,12 @@ def _updateHTTPStats():
 
     meta.close()
 
+    # Run the update-stats script.
+    (success, output) = execute.runLocalCmd(os.path.join(config.Config.scriptsdir, "update-stats"))
+    
+    if not success:
+        util.output("error running update-stats\n\n")
+        util.output(output)
+    
 
 

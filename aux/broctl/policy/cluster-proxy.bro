@@ -6,7 +6,6 @@
 
 @load broctl
 @load remote
-@load rotate-logs
 	
 # Since we don't capture, don't bother with this.
 @unload print-filter

@@ -7,5 +7,5 @@
 # Returns:  <fs> <fs-size> <fs-used> <fs-avail>
 
 echo 0
-df -h $1 | awk '{print $1, $2, $3, $4}' | tail -1 | awk -f ${helperdir}/to-bytes.awk
+df -kP $1 | awk '{print $1, $2, $3, $4}' | tail -1 | awk -v def_factor=1024 -f ${helperdir}/to-bytes.awk
 echo ~~~

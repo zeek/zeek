@@ -2,30 +2,65 @@
 
 -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-1.5.2.7 Sun Sep 12 19:39:49 PDT 2010
+1.5.3 Thu Mar  3 08:55:11 PST 2011
 
-- Addressed a number of lint nits (Vern Paxson).
+- Removing aux/broctl/policy/cluster-addrs.hot.bro from the
+  distribution. The script is no longer needed and could in fact break
+  an installation because it redefines an old variable that has went
+  away. (Robin Sommer)
 
+- Smarter way to increase the communication module's pipe's socket
+  buffer size, resulting in a value closer to the allowed maximum. 
+  (Craig Leres)
 
-1.5.2.6 Sun Sep 12 17:00:13 PDT 2010
+- BroControl now also maintains links from the log archive to the
+  current set of logs when running in standalone mode. (Robin Sommer)
+
+- Bug fix for a file descriptor leak in the remote communication
+  module. (Scott Campbell)
+
+- Bug fix for BroControl to now activate trace-summary's sampling in
+  cluster mode, but not anymore in standalone mode. (Robin Sommer)
+
+- Broccoli updates:
+
+    * Accept empty strings ("") as values in the configuration file.
+      (Craig Leres)
+
+    * Support for specifying a separate host key for SSL-enabled
+      operation, with documentation update. (Craig Leres)
+
+1.5.2 Wed Jan 12 17:34:55 PST 2011
+
+- Portability fixes for --enable-int64 (Vern Paxson).
+
+- Bug fix for Active Mapping support (Kevin Lo).
+
+- Broccoli compiler warning fixes (Kevin Lo).
+
+- Bug fixes for --enable-int64 and for avoiding bogus statistics /
+  bad memory references when generating profiling information upon
+  exit (Vern Paxson).
+
+- Bug fixes for terminating connections (Tyler Schoenke and Vern Paxson).
+
+- Removed now-quite-stale SSHv1 overflow detection, as it's more prone
+  to false positives than useful detection (Vern Paxson).
 
 - The SWIG file now explicitly lists those pieces from broccoli.h which it
   wants to wrap, rather than just including all of broccoli.h (Robin Sommer).
-  This fixes the problem that the SWIG bindings depend on what configure
-  finds out about the availability of libpcap even though the corresponding
-  functions don't need to be wrapped anyway.
 
-- http-header.bro now includes a global include_header: set[string]
-  (Robin Sommer).  If it contains any strings, then only those headers
-  will be processed.  If left empty, then you continue to get the current
-  behavior of processing all headers.
+- http-header.bro now includes a global "include_header: set[string]" If it
+  contains any strings, then only those headers will be processed.  If left
+  empty, then you continue to get the current behavior of processing all
+  headers. (Robin Sommer).  
 
 - Several changes to drop.bro (Robin Sommer):
 
-	* If true, the new flag Drop::dont_drop_locals indicates that
+	* If True, the new flag Drop::dont_drop_locals indicates that
 	  local hosts should never be dropped.  On by default.
 
-	* If true, the new flag Drop::debugging activates extensive debugging
+	* If True, the new flag Drop::debugging activates extensive debugging
 	  output for the catch-and-release logic.  Off by default.
 
 	* The timeout for tracking dropping information is now 1 day
@@ -39,13 +74,13 @@
   Sommer).
 
 - The HTTP analyzer no longer attempts to track Server/User-Agent
-  versions, as these are hugely voluminous (Seth Hall).  Ideally this
-  would still be available as an option for someone who truly wants
-  the full set.
+  versions, as these are hugely voluminous (Seth Hall).
 
 - HTTP and SMTP no longer have extra-short inactivity timeouts, as
   these were too often leading to premature expiration of a connection
   (Robin Sommer).
+
+- Tracking of HTTP refer[r]er's by setting log_referrer. (Vern Paxson).
 
 - The "rst" tool (aux/rst/) now takes an optional "-I <text>" argument
   that instructs it to inject <text> as payload rather than sending a RST
@@ -55,39 +90,113 @@
 - Bug fix for crashes in the DNS analyzer when processing replies for
   which no request was seen (Robin Sommer).
 
+- Addressed a number of lint nits (Vern Paxson).
 
-1.5.2.5 Mon Jul 19 16:20:58 PDT 2010
+- Rotation post-processors are now passed an additional argument
+  indicating whether Bro is terminating (Robin Sommer).
 
-- Removed now-quite-stale SSHv1 overflow detection, as it's more prone
-  to false positives than useful detection (Vern Paxson).
+- Bro now consistently generates a file_opened event for all fopen() calls.
+  (Robin Sommer).
 
+- The "cf" utility now ignores a leading "t=" prefix, for compatibility
+  with Bro's "tagged" logging format (Robin Sommer).
 
-1.5.2.4 Fri Jun  4 16:02:11 PDT 2010
+- You can now redefine the email_notice_to function (Robin Sommer).
 
-- Bug fixes for terminating connections (Tyler Schoenke and Vern Paxson).
+- Fix for packet processing resumption when a remote Bro dies during
+  state synchronization (Robin Sommer).
 
+- OpenSSL/X509 portability fix, at long last (Gregor Maier & Christian
+  Kreibich).
 
-1.5.2.3 Wed Mar 24 18:23:57 PDT 2010
+- Fix for compatibility with newer versions of autoconf (Gregor Maier).
 
-- Bug fixes for --enable-int64 and for avoiding bogus statistics /
-  bad memory references when generating profiling information upon
-  exit (Vern Paxson).
+- A larger BroControl update (Robin Sommer, if not marked otherwise):
 
+  o Increasing default timeouts for scan detector significantly.
 
-1.5.2.2 Tue Jan 12 12:33:42 PST 2010
+  o Increasing the manager's max_remote_events_processed to
+    something large, as it would slow down the process too much
+    otherwise and there's no other work to be interleaved with it
+    anyway.
 
-- Broccoli compiler warning fixes (Kevin Lo).
+  o Adding debug output to cluster's part of catch-and-release
+    (extends the debugging already present in policy/debug.bro)
 
+  o Fixing typo in util.py. Closes #223.
 
-1.5.2.1 Sun Jan 10 16:59:01 PST 2010
+  o Added note to README pointing to HTML version.
 
-- Bug fix for Active Mapping support (Kevin Lo).
+  o Disabling print_hook for proxies' remote.log.
 
+  o broctl's capstats now reports a total as well, and stats.log
+    tracks these totals. Closes #160.
 
-1.5.2 Sat Dec 26 18:38:37 PST 2009
+  o Avoiding spurious "waiting for lock" messages in cron mode.
+    Closes #206.
 
-- Portability fixes for --enable-int64 (Vern Paxson).
+  o Bug fixes for installation on NFS.
 
+  o Bug fix for top command on FreeBSD 8.
+
+  o crash-diag now checks whether gdb is available.
+
+  o trace-summary reports the sample factor in use in its output,
+    and now also applies it to the top-local-networks output (not
+    doing the latter was a bug).
+
+  o Removed the default twice-a-day rotation for conn.log. The
+    default rotation for conn.log now is now once every 24h, just
+    like for all other logs with the exception of mail.log (which is
+    still rotated twice a day, and thus the alarms are still mailed
+    out twice a day).
+
+  o Fixed the problem of logs sometimes being filed into the wrong
+    directory (see the (now gone) FAQ entry in the README).
+
+  o One can now customize the archive naming scheme. See the
+    corresponding FAQ entry in the README.
+
+  o Cleaned up, and extended, collection of cluster statistics.
+
+    ${logdir}/stats now looks like this:
+
+      drwxr-xr-x   4 bro  wheel      59392 Apr  5 17:55 .
+      drwxr-xr-x  96 bro  wheel       2560 Apr  6 12:00 ..
+      -rw-r--r--   1 bro  wheel        576 Apr  6 16:40 meta.dat
+      drwxr-xr-x   2 bro  wheel       2048 Apr  6 16:40 profiling
+      -rw-r--r--   1 bro  wheel  771834825 Apr  6 16:40 stats.log
+      drwxr-xr-x   2 bro  wheel       2048 Apr  6 16:25 www
+
+    stats.log accumulates cluster statistics collected every time
+    "cron" is called.
+
+    - profiling/ keeps the nodes' prof.logs.
+
+    - www/ keeps a subset of stats.log in CSV format for easy plotting.
+
+    - meta.dat contains meta information about the current cluster
+    state (in particular which nodes we have, and when the last
+    stats update was done).
+
+    Note that there is no Web setup yet to actually visualize the data in
+	www/.
+
+  o BroControl now automatically maintains links inside today's log
+    archive directory pointing to the current live version of the
+    corresponding log file (if Bro is running). For example:
+
+        smtp.log.11:52:18-current -> /usr/local/cluster/spool/manager/smtp.log
+
+  o Alarms mailed out by BroControl now (1) have the notice msg in the
+    subject; and (2) come with the full mail.log entry in the body.
+
+  o Fixing broctl's top output. (Seth Hall).
+
+  o Fixing broctl's df output in certain situations.
+
+  o BroControl fix for dealing with large vsize values reported by
+    "top" (Craig Leres).
 
 1.5.1 Fri Dec 18 15:17:12 PST 2009
 
@@ -378,7 +487,7 @@
  (1) Remote communication now no longer includes location information for
  serialized objects; that removes quite a bit of redundacy from the network
  traffic.
- 
+
  (2) The new option 'remote_check_sync_consistency" disables the cross-check
  on the receiving side of &synchronized state of whether the current value
  of a variable has the value expected by the sender. Transmitting the
@@ -395,7 +504,7 @@
  we maintain *two* caches independently for these types of objects; one
  with a low turn-over one and another with a high one.  This should reduce
  CPU load on both sender and receiver sides.
- 
+
  The new scheme is only used if both communicating Bros support it; with
  older Bros, as well as with Broccoli, we continue using the old scheme.
 
@@ -589,12 +698,12 @@
 		      bro -Y 0.0.0.0:5555 netflow
 		      bro -i eth0 -Y 10.0.0.1:1234=src1 brolite netflow
 
-	  -y|--flowfile <file>[=<ident>] 
+	  -y|--flowfile <file>[=<ident>]
 
 	    Used to read from a file. You can optionally include an
 	    identifier for the source.
 
-	    Examples: 
+	    Examples:
 		      bro -y myflowfile netflow
 		      bro -y myflowfile=src1 otherflowfile=src2 netflow
 
@@ -763,7 +872,7 @@
 
   So, to drop all sources triggering a specific notice, one can now, e.g.,
   write:
-  
+
 	redef notice_action_filters += { [Hot::SSH_Overflow] = drop_source };
 
   Related to this change, notice_info has a new field $dropped, set to
@@ -794,8 +903,8 @@
 	   before starting the main packet loop and another one when
 	   finished. These snapshots can then be analyzed with pprof.
 
-  For more information about the perftools see 
-  
+  For more information about the perftools see
+
 	http://code.google.com/p/google-perftools
 
 - Notice tags are now generated in a pseudo-unique fashion that, with high
@@ -869,7 +978,7 @@
 	detector tables.
 
 - When Bro serializes functions, it now does so by default using only
-  their name, rather than their full value (Robin Sommer).  This prevents 
+  their name, rather than their full value (Robin Sommer).  This prevents
   propagation of expiration functions associated with tables and sets.
   Note, currently there is no mechanism provided to switch from the
   default behavior, but the internal hooks are in place to do so.
@@ -1134,7 +1243,7 @@
 - An arbitrary tag can now be past to post-processors for log rotation
   (Robin Sommer).
 
-- Default inactivity timeouts for interactive services shortened to 
+- Default inactivity timeouts for interactive services shortened to
   1 hour (Robin Sommer).
 
 - The scanning variables distinct_{peers,ports,low_ports} are now
@@ -1447,7 +1556,7 @@
   This fixes a long-standing problem of sometimes $addl fields not showing
   up in connection summaries.
 
-- The new expressions record(...), table(...), set(...) and vector(...) 
+- The new expressions record(...), table(...), set(...) and vector(...)
   are constructors for the corresponding aggregate types (Vern Paxson).
   For example,
 
@@ -1601,7 +1710,7 @@
 - A new notice_action_filter, tally_notice_type_and_ignore, works the same
   as tally_notice_type but returns IGNORE (Robin Sommer)
 
-- Setting summary_interval == 0 disables the creation of irc-bots.summary.log 
+- Setting summary_interval == 0 disables the creation of irc-bots.summary.log
   (Robin Sommer).
 
 - If you @load foo and a directory "foo" is in your path, Bro no longer
@@ -1718,9 +1827,9 @@
 
 - Fixed using "time" values as table indices.
 
-- Added ssh to default brolite DPD configuration. 
+- Added ssh to default brolite DPD configuration.
 
-- Fixed catching up to real-time in case of lull. 
+- Fixed catching up to real-time in case of lull.
 
 - Fixed Broccoli "BRO_DATA_FORMAT_VERSION" to match version in Bro.
 
@@ -1730,11 +1839,11 @@
 
 - Added Linux tuning to brolite install script.
 
-- Modified Makefile to include broccoli/contrib. 
+- Modified Makefile to include broccoli/contrib.
 
-- Adding missing initialization to remote serializer. 
+- Adding missing initialization to remote serializer.
 
-- Minor documentation updates for reference manual and Broccoli. 
+- Minor documentation updates for reference manual and Broccoli.
 
 
 1.2 Tue Oct 17 12:09:49 PDT 2006
@@ -1953,7 +2062,7 @@
 
 	- notice_action_filters now reside in the new script
 	  notice-action-filter.bro (automatically loaded by notice.bro).
-        
+
 	- The notice actions NOTICE_ALARM_PER_CONN, NOTICE_ALARM_PER_ORIG,
 	  and NOTICE_ALARM_ONCE have been removed, as they were never
 	  actually implemented.
@@ -1973,7 +2082,7 @@
 
 - TRW analysis now skips UDP traffic because it currently treats
   all UDP connections as failures (Robin Sommer).
-     
+
 - trw.bro has been split into trw-impl.bro (the algorithm) and
   trw.bro (which simply activates the analysis), to facilitate writing
   scripts that have hooks into TRW analysis but don't presume it's
@@ -2106,7 +2215,7 @@
   (Robin Sommer).  This appears to still need some work, as now
   it generates redundant events.
 
-- Fix for initial exchange of &sync state which could lead to 
+- Fix for initial exchange of &sync state which could lead to
   referencing unknown IDs (Robin Sommer).
 
 - Fix to scan detection for differing semantics of connection compressor
@@ -2415,7 +2524,7 @@
 
 	- the new variable dump_backdoor_packets (default F) if set causes
 	  the packet that triggered the backdoor detection to be written to
-	  backdoor-packets/<tag>:<time> 
+	  backdoor-packets/<tag>:<time>
 
 	- the new variable backdoor_ignore_host_port_pairs is a set[addr, port]
 	  specify host/port combinations to ignore
@@ -2569,7 +2678,7 @@
 	- Now can ignore specific connections dynamically.
 
 	- TCP content gaps are now recognized and ADU delivery is for now
-	  stopped for such flows, unless explicitly requested. 
+	  stopped for such flows, unless explicitly requested.
 
 	- No longer logs to file in test mode.
 
@@ -2580,7 +2689,7 @@
 - Bro now performs serialization (such as when checkpointing &persistent
   tables or communicating them between Bro's) in an incremental fashion,
   intermingling transfers of large tables with ongoing packet processing
-  (Robin Sommer).  Doing so helps avoid packet drops for large items. 
+  (Robin Sommer).  Doing so helps avoid packet drops for large items.
   This has not yet been implemented for the initial handshake done
   for &synchronized items.
 
@@ -2643,7 +2752,7 @@
 
 - Notices now report current time for remotely-received notices rather
   than network time (Brian Tierney).
-  
+
 - Notices now include a tag es=<peer_description> any time a peer
   description is defined, not just for remote notices (Robin Sommer).
 
@@ -2847,9 +2956,9 @@
 
 - Bug fix for exchanging peer descriptions (Robin Sommer).
 
-- Bug fix for processing multipart-MIME HTTP messages with content-length 
+- Bug fix for processing multipart-MIME HTTP messages with content-length
   headers (Ruoming Pang).
-  
+
 - Bug fix for failing to escape "'s in HTTP server replies (Robin Sommer).
 
 - Bug fix for propagating increment operations on tables (Robin Sommer).
@@ -2863,7 +2972,7 @@
 - Bug fix for printing enum's (Christian Kreibich).
 
 - When not configured with --enable debug, Bro now still accepts (yet ignores)
-  option -B (Robin Sommer). 
+  option -B (Robin Sommer).
 
 - Serialization enhancements and fixes, including a change of the
   protocol version number (Robin Sommer).
@@ -2904,7 +3013,7 @@
 
 - Fix for connection compressor bug in tracking connection history
   (Robin Sommer).
-  
+
 - Bug fix for potential floating point exception in signature engine's
   resource-profiling code (Robin Sommer).
 
@@ -3030,7 +3139,7 @@
 	smb_get_dfs_referral(c: connection, max_referral_level: count,
 				file_name: string)
 		generated for SMB DFS referal requests
- 
+
 	dns_message(c: connection, is_orig: bool, msg: dns_msg, len: count)
 		low-level event generated for each DNS request/reponse
 
@@ -3104,7 +3213,7 @@
 - The "bif" compiler for compiling Bro built-in functions now supports
   an "enum" type (Ruoming Pang).  The syntax is:
 
-	enum dce_rpc_ptype 
+	enum dce_rpc_ptype
 	%{
 		DCE_RPC_REQUEST,
 		DCE_RPC_PING,
@@ -3113,7 +3222,7 @@
 
   which is translated to an enum declaration of "dce_rpc_ptype" in
   Bro, an EnumType* enum_dce_rpc_ptype in NetVar.{h,cc} and a C++ enum
-  BroEnum::dce_rpc_ptype {...}. 
+  BroEnum::dce_rpc_ptype {...}.
 
   One limitation is that redef's on enum types cannot be taken into
   account because the bif is parsed at compile time.
@@ -3257,7 +3366,7 @@
   specify whether to broadcast events/state received from one peer to other
   peers (Robin Sommer).  Both default to F.  Note, these options are temporary;
   they will disappear when we add a more sophisticated script-level
-  communication framework. 
+  communication framework.
 
 - Vectors can now be initialized using the syntax such as
 
@@ -3299,11 +3408,11 @@
     //      VERSION messages must be exchanged.
     //      Ends when both peers have sent VERSION.
     //  Handshake:
-    //      REQUEST_EVENTS/REQUEST_SYNC/CAPTURE_FILTER/CAPS/selected SERIALs 
+    //      REQUEST_EVENTS/REQUEST_SYNC/CAPTURE_FILTER/CAPS/selected SERIALs
     //        may be exchanged.
     //      Phase ends when both peers have sent PHASE_DONE.
     //  State synchronization:
-    //      Entered iff at least one of the peers has sent REQUEST_SYNC.    
+    //      Entered iff at least one of the peers has sent REQUEST_SYNC.
     //      The peer with the smallest runtime (incl. in VERSION msg) sends
     //        SERIAL messages comprising all of its state.
     //      Phase ends when peer sends another PHASE_DONE.
@@ -4191,7 +4300,7 @@
 - A new flag, -e, lets you specify Bro code to execute via the command
   line (Christian Kreibich).  So, for example,
 
-	bro -r mytrace.tcpdump -e 'redef traditional_conn_format = T' tcp 
+	bro -r mytrace.tcpdump -e 'redef traditional_conn_format = T' tcp
 
   will run tcp.bro on the trace "mytrace.tcpdump", but with
   traditional_conn_format redefined to be true.  Note that statements
@@ -4288,7 +4397,7 @@
 - The new "weird" type "base64_illegal_encoding" takes the place of
   some previously unstructured Base64 "weird" errors.
 
-- A tweak to ftp.bro will give it slightly more consistent results 
+- A tweak to ftp.bro will give it slightly more consistent results
   for some forms of unusual traffic.
 
 
@@ -4365,7 +4474,7 @@
 
 - The new built-ins any_set() and all_set() return true if for a given
   boolean vector any element is true or all of the elements is true
-  (Umesh Shankar).  So, for example, "any_set(x < 0)" returns T if 
+  (Umesh Shankar).  So, for example, "any_set(x < 0)" returns T if
   an element of x is less than zero.
 
 - The new built-in sort() takes a vector as an argument and sorts it
@@ -4736,7 +4845,7 @@
   current CPU load. If the load is below cpu_lower_limit (default 40%),
   the load-level is decreased.  If it's above cpu_upper_limit (default
   90%), it's increased.  (Robin Sommer)
- 
+
 - The new policy script hand-over.bro can be used for a new running
   instance of Bro to smoothly take over operation from an old instance,
   i.e., it implements hand-over of state between two Bro instances when
@@ -4922,7 +5031,7 @@
 	$priority - type must be arithmetic (count, int, double).  This
 		  is the priority associated with the match of EXPR1
 		  if $pred returns true.
-  
+
   The way the expression works is that EXPR1 is evaluated yielding a
   value V.  EXPR2 is then evaluated yielding a set of records whose
   type includes the above fields.  Bro then spins through each of the
@@ -5257,8 +5366,8 @@
   Sommer).  The format is simple, just "include" or "ignore" followed
   by the SID number:
 
-	# sid-526 BAD TRAFFIC data in TCP SYN packet 
-	ignore	526 
+	# sid-526 BAD TRAFFIC data in TCP SYN packet
+	ignore	526
 
 	# sid-623 matches a null-flags stealth scan.  Include it even
 	# if we build with -p, since it doesn't tend to generate any
@@ -5411,7 +5520,7 @@
   A new function, get_event_source(), returns a record event_source
   describing the source that raised the last event.
 
-  See doc/ssl.txt for an explanation of how to create the keys/certificates.   
+  See doc/ssl.txt for an explanation of how to create the keys/certificates.
 
 - A fledgling Gnutella analyzer has been contributed (Mark Allman).
   It generates the following events:
@@ -5439,7 +5548,7 @@
 	  redef secondary_filters += {
 		  ["tcp[13] & 7 != 0"] = rst_syn_fin_flag,
 	  }
-  
+
   will invoke rst_syn_fin_flag() anytime a TCP packet is seen for
   which the SYN/FIN/RST bits are non-zero.  The event handler will
   be passed the string "tcp[13] & 7 != 0" (so it can tell which
@@ -5497,7 +5606,7 @@
   public key; it's used to then embed a Blowfish session key.  (Robin Sommer)
 
   A new utility, aux/bdcat/bdcat ("Bro decrypt cat") can be used to decrypt
-  the files. 
+  the files.
 
 - The internal structure of TCP analysis has been significantly altered.
   Previously, TCP_Endpoint tracked endpoint state and TCP_EndpointContents
@@ -5574,7 +5683,7 @@
     const remote_peers_ssl : table[addr, port] of Peer &redef;
     [...]
     for ( [ip, p] in remote_peers_ssl )
-        connect_ssl(ip, p, remote_peers_ssl[ip, p]$retry); 
+        connect_ssl(ip, p, remote_peers_ssl[ip, p]$retry);
 
 - Checkpointing of persistent state on SIGHUP now happens via bro.init
   (Robin Sommer).  Not tested.

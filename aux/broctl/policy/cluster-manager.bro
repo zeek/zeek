@@ -8,7 +8,6 @@
 @load filter-duplicates
 @load notice
 @load remote
-@load rotate-logs
 @load mail-alarms
 	
 # Since we don't capture, don't bother with this.
@@ -31,6 +30,9 @@ redef interfaces = "";
 
 # Give us a name. 
 redef peer_description = BroCtl::manager$tag;
+
+# We're processing essentially *only* remote events.
+redef max_remote_events_processed = 10000;
 
 # Reraise remote notices locally.
 event notice_action(n: notice_info, action: NoticeAction)

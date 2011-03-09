@@ -217,11 +217,8 @@ bool BroFile::Open(FILE* file)
 		return false;
 		}
 
-	val_list* vl = new val_list;
-	Ref(this);
-	vl->append(new Val(this));
-	Event* event = new ::Event(::file_opened, vl);
-	mgr.Dispatch(event, true);
+	RaiseOpenEvent();
+
 	return true;
 	}
 
@@ -305,6 +302,7 @@ FILE* BroFile::BringIntoCache()
 		return f;
 		}
 
+	RaiseOpenEvent();
 	UpdateFileSize();
 
 	if ( fseek(f, position, SEEK_SET) < 0 )
@@ -807,6 +805,18 @@ int BroFile::Write(const char* data, int len)
 	current_size += len;
 
 	return true;
+	}
+
+void BroFile::RaiseOpenEvent()
+	{
+	if ( ! ::file_opened )
+		return;
+
+	val_list* vl = new val_list;
+	Ref(this);
+	vl->append(new Val(this));
+	Event* event = new ::Event(::file_opened, vl);
+	mgr.Dispatch(event, true);
 	}
 
 void BroFile::UpdateFileSize()

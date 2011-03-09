@@ -1,5 +1,8 @@
 # $Id: cluster-proxy.remote.bro 6811 2009-07-06 20:41:10Z robin $
 
+# Do not copy the proxies's remote.log to the manager
+redef Remote::rm_log &disable_print_hook;
+
 event bro_init() 
 	{
 	# Set up worker connections.

@@ -4,7 +4,7 @@
 #
 # Bro postprocessor script to archive log files. 
 # 
-# archive-log <rotated-file-name> <base-name> <timestamp-when-opened> <timestamp-when-closed> [<tag>]
+# archive-log <rotated-file-name> <base-name> <timestamp-when-opened> <timestamp-when-closed> <terminating> [<tag>]
 
 rm -rf $1
 

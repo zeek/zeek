@@ -20,6 +20,7 @@ redef MANAGER = MANAGER > 0 ? MANAGER : 1;
 @load cluster-by-addrs
 @load remote-update
 @load checkpoint 
+@load rotate-logs
 
 # FIXME: Load them here to work around a namespace bug.
 @load conn

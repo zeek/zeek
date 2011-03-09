@@ -184,6 +184,9 @@ class Interval:
             s += fmt("Connections", self.pkts) + \
                  fmt("Payload", self.payload)
         
+        if Options.factor != 1:
+            s += "Sampling %.2f%% -" % ( 100.0 / Options.factor )
+                 
         if Options.verbose:    
             ports = topx(self.ports)
             srcs = topx(self.srcs)
@@ -848,13 +851,18 @@ print Total.format(conns=Options.conns, title="Total")
 
 locals = LocalNets.keys()    
 
+for net in locals:        
+    (txt, i) = LocalNets[net]
+    if i.updates:
+        i.applySampleFactor()
+
 if locals:
 
     type = "packets"
     if Options.conns:
         type = "connections"
 
-    locals.sort(lambda x,y: LocalNets[y][1].pkts - LocalNets[x][1].pkts)    
+    locals.sort(lambda x,y: int(LocalNets[y][1].pkts - LocalNets[x][1].pkts))    
 
     print "\n>== Top %d local networks by number of %s\n" % (Options.topx, type)
         
@@ -876,9 +884,6 @@ for net in locals:
     (txt, i) = LocalNets[net]
 
     if i.updates:
-#        i.start += TotalIntervals.start
-#        i.end += TotalIntervals.start
-        i.applySampleFactor()
         print i.format(conns=Options.conns, title=net + " " + txt)
 
 print "First: %16s (%.6f) Last: %s %.6f" % (isoTime(Total.start), Total.start, isoTime(Total.end), Total.end)

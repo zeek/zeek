@@ -46,6 +46,8 @@ Reply-to address for broctl-generated mails.
 General Subject prefix for broctl-generated mails.
 [[opt_MailTo]] *MailTo* (string, default "<user>")::
 Destination address for broctl-generated non-alarm mails. Default is to use the same address as +MailTo+.
+[[opt_MakeArchiveName]] *MakeArchiveName* (string, default "$\{BroBase}/share/broctl/scripts/make-archive-name")::
+Script to generate filenames for archived log files.
 [[opt_MemLimit]] *MemLimit* (string, default "unlimited")::
 Maximum amount of memory for Bro processes to use (in KB, or the string 'unlimited').
 [[opt_MinDiskSpace]] *MinDiskSpace* (int, default 5)::

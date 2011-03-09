@@ -50,6 +50,7 @@ type http_message: record {
 	abstract: string;	# data abstract
 	skip_abstract: bool;	# to skip abstract for certain content types
 	host: string;		# host indicated in Host header
+	referrer: string;	# "Referer" [sic] field
 };
 
 type http_pending_request_stream: record {
@@ -105,7 +106,7 @@ function init_http_message(msg: http_message)
 	msg$header_slot = 0;
 	msg$abstract = "";
 	msg$skip_abstract = F;
-	msg$host = "";
+	msg$referrer = msg$host = "";
 	}
 
 function new_http_message(): http_message

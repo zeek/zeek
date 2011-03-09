@@ -1,7 +1,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook V4.2//EN" [
 <!ENTITY bc "<function>broccoli</function>">
 <!ENTITY bcc "<filename>broccoli-config</filename>">
-<!ENTITY bc-latest-rel "1.5">
+<!ENTITY bc-latest-rel "1.5.3">
 <!ENTITY bc-header SYSTEM "sgml/broccoli.sgml">
 <!ENTITY bp "<function>broping</function>">
 ]>
@@ -19,7 +19,7 @@
     <abstract>
       <para>
 	This is documentation for release <emphasis>&bc-latest-rel;</emphasis>
-	of Broccoli, compatible with Bro IDS releases of <emphasis>1.4</emphasis>
+	of Broccoli, compatible with Bro IDS releases of <emphasis>1.5</emphasis>
 	or newer. Broccoli is free software under terms of the BSD license as given
 	in the <link linkend="license" endterm="license.title">License</link>
 	section. This documentation is always available on the web for download
@@ -1531,6 +1531,8 @@ Bar/SomeLongStr       "Hello World"
 	need to put the CA certificate and the peer certificate in the
 	<varname>/broccoli/ca_cert</varname> and 
 	<varname>/broccoli/host_cert</varname> keys, respectively, in the configuration file.
+	Optionally, you can store the private key in a separate file specified by
+	<varname>/broccoli/host_key</varname>. 
 	To quickly enable/disable a certificate configuration, the
 	<varname>/broccoli/use_ssl</varname> key can be used.
 	<caution>
@@ -1555,6 +1557,7 @@ Bar/SomeLongStr       "Hello World"
 /broccoli/use_ssl	   yes
 /broccoli/ca_cert          <path>/ca_cert.pem
 /broccoli/host_cert        <path>/bro_cert.pem
+/broccoli/host_key         <path>/bro_cert.key
 ]]>
       </programlisting>
       <para>

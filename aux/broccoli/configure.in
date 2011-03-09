@@ -8,7 +8,7 @@ AC_CANONICAL_HOST
 
 AC_CONFIG_AUX_DIR(.)
 AM_CONFIG_HEADER(config.h)
-AM_INIT_AUTOMAKE(broccoli, 1.5.0)
+AM_INIT_AUTOMAKE(broccoli, 1.5.3)
 
 dnl Commands for funkier shell output:
 BLD_ON=`./shtool echo -n -e %B`

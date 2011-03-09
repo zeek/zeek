@@ -10,7 +10,6 @@
 @load broctl
 @load notice
 @load remote
-@load rotate-logs
 @load mail-alarms
 	
 @load trim-trace-file	

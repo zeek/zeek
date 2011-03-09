@@ -177,7 +177,7 @@ def lock():
         else:
             do_output = 2
             
-        if do_ouput:
+        if do_output:
             output("waiting for lock ...", nl=False)
 
         count = 0

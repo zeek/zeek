@@ -1,9 +1,13 @@
 Broccoli Changelog
 ========================================================================
 
-Tue Jan 12 12:32:12 PST 2010             Christian <christian@whoop.org>
+Wed Mar  2 15:38:02 PST 2011             Christian <christian@whoop.org>
 
-- Build warning fixes (Kevin Lo).
+- Accept empty strings ("") as values in the configuration file
+  (Craig Leres).
+- Support for specifying a separate host key for SSL-enabled operation,
+  with documentation update (Craig Leres).
+- Version bump to 1.5.3.
 
 ------------------------------------------------------------------------
 

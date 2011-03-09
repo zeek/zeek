@@ -1,0 +1,8 @@
+#! /usr/bin/env bash
+#
+# remove-link-for-log <filename>
+
+if [ -e .link.$1 ]; then
+    rm -f `cat .link.$1 | tail -1`
+    rm -f .link.$1
+fi    

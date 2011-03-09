@@ -849,34 +849,71 @@ decl:
 			{
 			current_module = $2;
 			if ( generate_documentation )
-				{
 				current_reST_doc->AddModule(current_module);
-				}
 			}
 
 	|	TOK_EXPORT '{' { is_export = true; } decl_list '}'
 			{ is_export = false; }
 
 	|	TOK_GLOBAL global_id opt_type init_class opt_init opt_attr ';'
-			{ add_global($2, $3, $4, $5, $6, VAR_REGULAR); }
+			{
+			add_global($2, $3, $4, $5, $6, VAR_REGULAR);
+			if ( generate_documentation )
+				{
+				ID* id = $2;
+				if ( id->Type()->Tag() == TYPE_FUNC )
+					if ( id->Type()->AsFuncType()->IsEvent() )
+						current_reST_doc->AddEvent(
+							new BroDocObj(id, reST_doc_comments));
+					else
+						current_reST_doc->AddFunction(
+							new BroDocObj(id, reST_doc_comments));
+				else
+					current_reST_doc->AddStateVar(
+						new BroDocObj(id, reST_doc_comments));
+				}
+			}
 
 	|	TOK_CONST global_id opt_type init_class opt_init opt_attr ';'
-			{ add_global($2, $3, $4, $5, $6, VAR_CONST); }
+			{
+			add_global($2, $3, $4, $5, $6, VAR_CONST);
+			if ( generate_documentation )
+				if ( $2->FindAttr(ATTR_REDEF) )
+					current_reST_doc->AddOption(
+						new BroDocObj($2, reST_doc_comments));
+			}
 
 	|	TOK_REDEF global_id opt_type init_class opt_init opt_attr ';'
-			{ add_global($2, $3, $4, $5, $6, VAR_REDEF); }
+			{
+			add_global($2, $3, $4, $5, $6, VAR_REDEF);
+			if ( generate_documentation )
+				{
+				// TODO: eventually handle type redefs that add record fields
+				}
+			}
 
 	|	TOK_REDEF TOK_ENUM global_id TOK_ADD_TO
 		'{' { parser_redef_enum($3); } enum_body '}' ';'
-			{ /* no action */ }
+			{
+			/* no action */
+			// TODO: handle "Notice" redefinitions for doc framework
+			}
 
 	|	TOK_TYPE global_id ':' refined_type opt_attr ';'
 			{
 			add_type($2, $4, $5, 0);
+			if ( generate_documentation )
+				current_reST_doc->AddType(
+					new BroDocObj($2, reST_doc_comments));
 			}
 
 	|	TOK_EVENT event_id ':' refined_type opt_attr ';'
-			{ add_type($2, $4, $5, 1); }
+			{
+			add_type($2, $4, $5, 1);
+			if ( generate_documentation )
+				current_reST_doc->AddEvent(
+					new BroDocObj($2, reST_doc_comments));
+			}
 
 	|	func_hdr func_body
 			{ }
@@ -903,12 +940,18 @@ func_hdr:
 			begin_func($2, current_module.c_str(),
 				   FUNC_FLAVOR_FUNCTION, 0, $3);
 			$$ = $3;
+			if ( generate_documentation )
+				current_reST_doc->AddFunction(
+					new BroDocObj($2, reST_doc_comments));
 			}
 	|	TOK_EVENT event_id func_params
 			{
 			begin_func($2, current_module.c_str(),
 				   FUNC_FLAVOR_EVENT, 0, $3);
 			$$ = $3;
+			if ( generate_documentation )
+				current_reST_doc->AddEvent(
+					new BroDocObj($2, reST_doc_comments));
 			}
 	|	TOK_REDEF TOK_EVENT event_id func_params
 			{

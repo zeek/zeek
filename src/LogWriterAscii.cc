@@ -17,7 +17,7 @@ LogWriterAscii::~LogWriterAscii()
 
 bool LogWriterAscii::DoInit(string path, int num_fields, const LogField* const * fields)
 	{
-	fname = path + ".log";
+	fname = IsSpecial(path) ? path : path + ".log";
 
 	if ( ! (file = fopen(fname.c_str(), "w")) )
 		{
@@ -135,6 +135,10 @@ bool LogWriterAscii::DoWrite(int num_fields, const LogField* const * fields, Log
 
 bool LogWriterAscii::DoRotate(string rotated_path, string postprocessor, double open, double close, bool terminating)
 	{
+	if ( ! IsSpecial(Path()) )
+		// Don't rotate special files.
+		return true;
+
 	fclose(file);
 
 	string nname = rotated_path + ".log";

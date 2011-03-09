@@ -23,6 +23,8 @@ protected:
     virtual void DoFinish();
 
 private:
+	bool IsSpecial(string path) 	{ return path.find("/dev/") == 0; }
+
 	FILE* file;
 	string fname;
 };

@@ -3,13 +3,6 @@ module Log;
 # Log::ID and Log::Writer are defined in bro.init due to circular dependencies.
 
 export {
-	# Information passed to a rotation callback function.
-	type RotationInfo: record {
-		path: string;	# Original path value.
-		open: time;	# Time when opened.
-		close: time;	# Time when closed.
-	};
-
 	# If true, local logging is by default enabled for all filters.
 	const enable_local_logging = T &redef;
 
@@ -18,20 +11,6 @@ export {
 
 	# The default writer to use.
 	const default_writer = Log::WRITER_ASCII &redef;
-
-	# Default rotation interval; zero disables rotation.
-	const default_rotation_interval = 0secs &redef;
-
-	# Default naming suffix format.
-	const default_rotation_date_format = "%y-%m-%d_%H.%M.%S" &redef;
-
-	# Default postprocessor for writers outputting into files.
-	const default_rotation_postprocessor = "" &redef;
-
-    # Default function to construct the name of the rotated file.
-    # The default implementation includes
-    # default_rotation_date_format into the file name.   
-	global default_rotation_path_func: function(info: RotationInfo) : string &redef;
 
     # A stream defining the logging.
 	type Stream: record {
@@ -81,6 +60,39 @@ export {
 		writer: Writer &default=Log::default_writer;
     };
 
+	### Log rotation support.
+
+	# Information passed to a rotation callback function.
+	type RotationInfo: record {
+		writer: Writer;	# The writer.
+		path: string;	# Original path value.
+		open: time;	# Time when opened.
+		close: time;	# Time when closed.
+	};
+
+	# Default rotation interval; zero disables rotation.
+	const default_rotation_interval = 0secs &redef;
+
+	# Default naming suffix format.
+	const default_rotation_date_format = "%y-%m-%d_%H.%M.%S" &redef;
+
+	# Default postprocessor for writers outputting into files.
+	const default_rotation_postprocessor = "" &redef;
+
+	# Default function to construct the name of the rotated file.
+	# The default implementation includes
+	# default_rotation_date_format into the file name.   
+	global default_rotation_path_func: function(info: RotationInfo) : string &redef;
+
+	type RotationControl: record  {
+		interv: interval &default=default_rotation_interval;
+		date_fmt: string &default=default_rotation_date_format;
+		postprocessor: string &default=default_rotation_postprocessor;
+	};
+
+	# Defines rotation parameters per (id, path) tuple.
+	const rotation_control: table[Writer, string] of Log::RotationControl &default=[] &redef;
+
 	global create_stream: function(id: Log::ID, stream: Log::Stream) : bool;
 	global add_filter: function(id: Log::ID, filter: Log::Filter) : bool;
 	global remove_filter: function(id: Log::ID, name: string) : bool;
@@ -97,7 +109,8 @@ module Log;
 
 function default_rotation_path_func(info: RotationInfo) : string
 	{
-	return fmt("%s-%s", info$path, strftime(default_rotation_date_format, info$open));
+	local date_fmt = rotation_control[info$writer, info$path]$date_fmt;
+	return fmt("%s-%s", info$path, strftime(date_fmt, info$open));
 	}
 
 function create_stream(id: Log::ID, stream: Log::Stream) : bool

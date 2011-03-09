@@ -40,9 +40,10 @@ struct LogMgr::Filter {
 };
 
 struct LogMgr::WriterInfo {
-		double open_time;
-		Timer* rotation_timer;
-		LogWriter *writer;
+	EnumVal* type;
+	double open_time;
+	Timer* rotation_timer;
+	LogWriter *writer;
 	};
 
 struct LogMgr::Stream {
@@ -229,6 +230,7 @@ LogMgr::Stream::~Stream()
 		if ( winfo->rotation_timer )
 			timer_mgr->Cancel(winfo->rotation_timer);
 
+		Unref(winfo->type);
 		delete winfo->writer;
 		delete i->second;
 		}
@@ -798,6 +800,7 @@ LogWriter* LogMgr::CreateWriter(EnumVal* id, EnumVal* writer, string path, int n
 		}
 
 	WriterInfo* winfo = new WriterInfo;
+	winfo->type = writer->Ref()->AsEnumVal();
 	winfo->writer = writer_obj;
 	winfo->open_time = network_time;
 	winfo->rotation_timer = 0;
@@ -928,6 +931,22 @@ void RotationTimer::Dispatch(double t, int is_expire)
 		}
 	}
 
+RecordVal* LogMgr::LookupRotationControl(EnumVal* writer, string path)
+	{
+	TableVal* rc = BifConst::Log::rotation_control->AsTableVal();
+
+	ListVal* index = new ListVal(TYPE_ANY);
+	index->Append(writer->Ref());
+	index->Append(new StringVal(path.c_str()));
+
+	Val* r = rc->Lookup(index);
+	assert(r);
+
+	Unref(index);
+
+	return r->AsRecordVal();
+	}
+
 void LogMgr::InstallRotationTimer(WriterInfo* winfo)
 	{
 	if ( terminating )
@@ -939,7 +958,10 @@ void LogMgr::InstallRotationTimer(WriterInfo* winfo)
 		winfo->rotation_timer = 0;
 		}
 
-	double rotation_interval = BifConst::Log::default_rotation_interval;
+	RecordVal* rc = LookupRotationControl(winfo->type, winfo->writer->Path());
+
+	int idx = rc->Type()->AsRecordType()->FieldOffset("interv");
+	double rotation_interval = rc->LookupWithDefault(idx)->AsInterval();
 
 	if ( rotation_interval )
 		{
@@ -974,14 +996,19 @@ void LogMgr::Rotate(WriterInfo* winfo)
 
 	// Create the RotationInfo record.
 	RecordVal* info = new RecordVal(BifType::Record::Log::RotationInfo);
-	info->Assign(0, new StringVal(winfo->writer->Path().c_str()));
-	info->Assign(1, new Val(winfo->open_time, TYPE_TIME));
-	info->Assign(2, new Val(network_time, TYPE_TIME));
+	info->Assign(0, winfo->type->Ref());
+	info->Assign(1, new StringVal(winfo->writer->Path().c_str()));
+	info->Assign(2, new Val(winfo->open_time, TYPE_TIME));
+	info->Assign(3, new Val(network_time, TYPE_TIME));
 
 	// Call the function building us the new path.
 
 	Func* rotation_path_func = internal_func("Log::default_rotation_path_func");
-	string rotation_postprocessor = BifConst::Log::default_rotation_postprocessor->AsString()->CheckString();
+
+	RecordVal* rc = LookupRotationControl(winfo->type, winfo->writer->Path());
+
+	int idx = rc->Type()->AsRecordType()->FieldOffset("postprocessor");
+	string rotation_postprocessor = rc->LookupWithDefault(idx)->AsString()->CheckString();
 
 	val_list vl(1);
 	vl.append(info);

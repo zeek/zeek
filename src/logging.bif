@@ -9,9 +9,9 @@ module Log;
 type Filter: record;
 type Stream: record;
 type RotationInfo: record;
+type RotationControl: record;
 
-const Log::default_rotation_interval: interval;
-const Log::default_rotation_postprocessor: string;
+const Log::rotation_control : RotationControl;
 
 function Log::__create_stream%(id: Log::ID, stream: Log::Stream%) : bool
     %{

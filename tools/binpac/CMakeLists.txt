@@ -1,4 +1,12 @@
-project(BinPAC)
+project(BinPAC C CXX)
+
+if (NOT CMAKE_C_COMPILER)
+    message(FATAL_ERROR "Could not find prerequisite C compiler")
+endif ()
+
+if (NOT CMAKE_CXX_COMPILER)
+    message(FATAL_ERROR "Could not find prerequisite C++ compiler")
+endif ()
 
 ########################################################################
 ## CMake Configuration

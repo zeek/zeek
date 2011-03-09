@@ -2,12 +2,12 @@ static-prefix-0.log
 static-prefix-1.log
 static-prefix-2.log
 # t	id.orig_h	id.orig_p	id.resp_h	id.resp_p	status	country	
-1298337158.29096	1.2.3.4	66770	2.3.4.5	65616	success	unknown
-1298337158.29096	1.2.3.4	66770	2.3.4.5	65616	success	BR
-1298337158.29096	1.2.3.4	66770	2.3.4.5	65616	failure	MX3
+1299630368.36038	1.2.3.4	1234	2.3.4.5	80	success	unknown
+1299630368.36038	1.2.3.4	1234	2.3.4.5	80	success	BR
+1299630368.36038	1.2.3.4	1234	2.3.4.5	80	failure	MX3
 # t	id.orig_h	id.orig_p	id.resp_h	id.resp_p	status	country	
-1298337158.29096	1.2.3.4	66770	2.3.4.5	65616	failure	US
-1298337158.29096	1.2.3.4	66770	2.3.4.5	65616	failure	MX
+1299630368.36038	1.2.3.4	1234	2.3.4.5	80	failure	US
+1299630368.36038	1.2.3.4	1234	2.3.4.5	80	failure	MX
 # t	id.orig_h	id.orig_p	id.resp_h	id.resp_p	status	country	
-1298337158.29096	1.2.3.4	66770	2.3.4.5	65616	failure	UK
-1298337158.29096	1.2.3.4	66770	2.3.4.5	65616	failure	MX2
+1299630368.36038	1.2.3.4	1234	2.3.4.5	80	failure	UK
+1299630368.36038	1.2.3.4	1234	2.3.4.5	80	failure	MX2

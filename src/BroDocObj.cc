@@ -1,15 +1,12 @@
 #include <cstdio>
 #include <string>
 #include <list>
-#include "Obj.h"
+#include "ID.h"
 #include "BroDocObj.h"
 
-BroDocObj::BroDocObj(const BroObj* obj,
-                     std::list<std::string>*& reST,
-                     bool exported)
+BroDocObj::BroDocObj(const ID* id, std::list<std::string>*& reST)
     {
-    broObj = obj;
-    isExported = exported;
+    broID = id;
     reST_doc_strings = reST;
     reST = 0;
     }
@@ -30,6 +27,6 @@ void BroDocObj::WriteReST(FILE* file) const
         }
 
     ODesc desc;
-    broObj->Describe(&desc);
+    broID->DescribeExtended(&desc);
     fprintf(file, "%s\n", desc.Description());
     }

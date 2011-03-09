@@ -403,6 +403,12 @@ expr:
 				$$ = $2;
 			}
 
+	|	'[' ']'
+			{
+			// We take this as an empty record constructor.
+			$$ = new RecordConstructorExpr(new ListExpr);
+			}
+
 
 	|	TOK_RECORD '(' expr_list ')'
 			{

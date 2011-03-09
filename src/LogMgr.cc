@@ -492,6 +492,10 @@ bool LogMgr::AddFilter(EnumVal* id, RecordVal* fval)
 		filter->path_val = new StringVal(path.c_str());
 		}
 
+	// Remove any filter with the same name we might already have.
+	RemoveFilter(id, filter->name);
+
+	// Add the new one.
 	stream->filters.push_back(filter);
 
 #ifdef DEBUG
@@ -514,13 +518,16 @@ bool LogMgr::AddFilter(EnumVal* id, RecordVal* fval)
 	return true;
 	}
 
-bool LogMgr::RemoveFilter(EnumVal* id, StringVal* filter)
+bool LogMgr::RemoveFilter(EnumVal* id, StringVal* name)
+	{
+	return RemoveFilter(id, name->AsString()->CheckString());
+	}
+
+bool LogMgr::RemoveFilter(EnumVal* id, string name)
 	{
 	Stream* stream = FindStream(id);
 	if ( ! stream )
 		return false;
-
-	string name = filter->AsString()->CheckString();
 
 	for ( list<Filter*>::iterator i = stream->filters.begin(); i != stream->filters.end(); ++i )
 		{

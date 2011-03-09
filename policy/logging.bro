@@ -93,15 +93,23 @@ export {
 	# Defines rotation parameters per (id, path) tuple.
 	const rotation_control: table[Writer, string] of Log::RotationControl &default=[] &redef;
 
+	### Function.
+
+	const no_filter: Filter = [$name="<not found>"]; # Sentinel.
+
 	global create_stream: function(id: Log::ID, stream: Log::Stream) : bool;
 	global add_filter: function(id: Log::ID, filter: Log::Filter) : bool;
 	global remove_filter: function(id: Log::ID, name: string) : bool;
+	global get_filter: function(id: Log::ID, name: string) : Filter; # Returns no_filter if not found.
 	global write: function(id: Log::ID, columns: any) : bool;
 	global set_buf: function(id: Log::ID, buffered: bool): bool;
 	global flush: function(id: Log::ID): bool;
 	global add_default_filter: function(id: ID) : bool;
 	global remove_default_filter: function(id: ID) : bool;
 }
+
+# We keep a script-level copy of all filters so that we can directly manipulate them.
+global filters: table[ID, string] of Filter;
 
 @load logging.bif # Needs Log::Filter and Log::Stream defined.
 
@@ -123,12 +131,22 @@ function create_stream(id: Log::ID, stream: Log::Stream) : bool
 						   
 function add_filter(id: Log::ID, filter: Log::Filter) : bool
 	{
+	filters[id, filter$name] = filter;
 	return Log::__add_filter(id, filter);
 	}
 
 function remove_filter(id: Log::ID, name: string) : bool
 	{
+	delete filters[id, name];
 	return Log::__remove_filter(id, name);
+	}
+
+function get_filter(id: Log::ID, name: string) : Filter
+	{
+	if ( [id, name] in filters )
+		return filters[id, name];
+
+	return no_filter;
 	}
 
 function write(id: Log::ID, columns: any) : bool

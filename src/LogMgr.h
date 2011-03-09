@@ -68,7 +68,8 @@ public:
     // actual BiFs just forward here.
     bool CreateStream(EnumVal* id, RecordVal* stream);
     bool AddFilter(EnumVal* id, RecordVal* filter);
-    bool RemoveFilter(EnumVal* id, StringVal* filter);
+	bool RemoveFilter(EnumVal* id, StringVal* name);
+    bool RemoveFilter(EnumVal* id, string name);
     bool Write(EnumVal* id, RecordVal* columns);
 	bool SetBuf(EnumVal* id, bool enabled); // Changes the state for all writers for that stream.
 	bool Flush(EnumVal* id); // Flushes all writers for the stream.
@@ -100,6 +101,7 @@ private:
 	void InstallRotationTimer(WriterInfo* winfo);
 	void Rotate(WriterInfo* info);
 	RecordVal* LookupRotationControl(EnumVal* writer, string path);
+	Filter* FindFilter(EnumVal* id, StringVal* filter);
 
 	vector<Stream *> streams; // Indexed by stream enum.
 };

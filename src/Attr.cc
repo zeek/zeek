@@ -219,7 +219,17 @@ void Attributes::CheckAttr(Attr* a)
 					Error("&default function type clash");
 				}
 			else
+				{
+				BroType* ytype = tt->YieldType();
+
+				// Table defaults may be promotable.
+				if ( atype->Tag() == TYPE_RECORD && ytype->Tag() == TYPE_RECORD &&
+					 record_promotion_compatible(atype->AsRecordType(), ytype->AsRecordType()) )
+					 // Ok.
+					 break;
+
 				Error("&default value has inconsistent type");
+				}
 			}
 		}
 		break;

@@ -2023,7 +2023,22 @@ Val* TableVal::Default(Val* index)
 		return 0;
 
 	if ( ! def_val )
-		def_val = def_attr->AttrExpr()->Eval(0);
+		{
+		BroType* ytype = Type()->YieldType();
+		BroType* dtype = def_attr->AttrExpr()->Type();
+
+		if ( dtype->Tag() == TYPE_RECORD && ytype->Tag() == TYPE_RECORD &&
+			! same_type(dtype, ytype) &&
+			record_promotion_compatible(dtype->AsRecordType(), ytype->AsRecordType()) )
+			{
+			Expr* coerce = new RecordCoerceExpr(def_attr->AttrExpr(), ytype->AsRecordType());
+			def_val = coerce->Eval(0);
+			Unref(coerce);
+			}
+
+		else
+			def_val = def_attr->AttrExpr()->Eval(0);
+		}
 
 	if ( ! def_val )
 		{

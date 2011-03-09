@@ -10,7 +10,7 @@ export {
 	const enable_remote_logging = T &redef;
 
 	# The default writer to use.
-	const default_writer = Log::WRITER_ASCII &redef;
+	const default_writer = WRITER_ASCII &redef;
 
     # A stream defining the logging.
 	type Stream: record {
@@ -57,7 +57,7 @@ export {
 		log_remote: bool &default=enable_remote_logging;
 
 		# The writer to use.
-		writer: Writer &default=Log::default_writer;
+		writer: Writer &default=default_writer;
     };
 
 	### Log rotation support.
@@ -91,19 +91,19 @@ export {
 	};
 
 	# Defines rotation parameters per (id, path) tuple.
-	const rotation_control: table[Writer, string] of Log::RotationControl &default=[] &redef;
+	const rotation_control: table[Writer, string] of RotationControl &default=[] &redef;
 
 	### Function.
 
 	const no_filter: Filter = [$name="<not found>"]; # Sentinel.
 
-	global create_stream: function(id: Log::ID, stream: Log::Stream) : bool;
-	global add_filter: function(id: Log::ID, filter: Log::Filter) : bool;
-	global remove_filter: function(id: Log::ID, name: string) : bool;
-	global get_filter: function(id: Log::ID, name: string) : Filter; # Returns no_filter if not found.
-	global write: function(id: Log::ID, columns: any) : bool;
-	global set_buf: function(id: Log::ID, buffered: bool): bool;
-	global flush: function(id: Log::ID): bool;
+	global create_stream: function(id: ID, stream: Stream) : bool;
+	global add_filter: function(id: ID, filter: Filter) : bool;
+	global remove_filter: function(id: ID, name: string) : bool;
+	global get_filter: function(id: ID, name: string) : Filter; # Returns no_filter if not found.
+	global write: function(id: ID, columns: any) : bool;
+	global set_buf: function(id: ID, buffered: bool): bool;
+	global flush: function(id: ID): bool;
 	global add_default_filter: function(id: ID) : bool;
 	global remove_default_filter: function(id: ID) : bool;
 }
@@ -111,7 +111,7 @@ export {
 # We keep a script-level copy of all filters so that we can directly manipulate them.
 global filters: table[ID, string] of Filter;
 
-@load logging.bif # Needs Log::Filter and Log::Stream defined.
+@load logging.bif # Needs Filter and Stream defined.
 
 module Log;
 
@@ -121,27 +121,27 @@ function default_rotation_path_func(info: RotationInfo) : string
 	return fmt("%s-%s", info$path, strftime(date_fmt, info$open));
 	}
 
-function create_stream(id: Log::ID, stream: Log::Stream) : bool
+function create_stream(id: ID, stream: Stream) : bool
 	{
-	if ( ! Log::__create_stream(id, stream) )
+	if ( ! __create_stream(id, stream) )
 		return F;
 
 	return add_default_filter(id);
 	}
 						   
-function add_filter(id: Log::ID, filter: Log::Filter) : bool
+function add_filter(id: ID, filter: Filter) : bool
 	{
 	filters[id, filter$name] = filter;
-	return Log::__add_filter(id, filter);
+	return __add_filter(id, filter);
 	}
 
-function remove_filter(id: Log::ID, name: string) : bool
+function remove_filter(id: ID, name: string) : bool
 	{
 	delete filters[id, name];
-	return Log::__remove_filter(id, name);
+	return __remove_filter(id, name);
 	}
 
-function get_filter(id: Log::ID, name: string) : Filter
+function get_filter(id: ID, name: string) : Filter
 	{
 	if ( [id, name] in filters )
 		return filters[id, name];
@@ -149,19 +149,19 @@ function get_filter(id: Log::ID, name: string) : Filter
 	return no_filter;
 	}
 
-function write(id: Log::ID, columns: any) : bool
+function write(id: ID, columns: any) : bool
 	{
-	return Log::__write(id, columns);
+	return __write(id, columns);
 	}
 
-function set_buf(id: Log::ID, buffered: bool): bool
+function set_buf(id: ID, buffered: bool): bool
 	{
-	return Log::__set_buf(id, buffered);
+	return __set_buf(id, buffered);
 	}
 
-function flush(id: Log::ID): bool
+function flush(id: ID): bool
 	{
-	return Log::__flush(id);
+	return __flush(id);
 	}
 
 function add_default_filter(id: ID) : bool

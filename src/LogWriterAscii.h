@@ -27,6 +27,11 @@ private:
 
 	FILE* file;
 	string fname;
+
+	// Options from the script-level
+	bool output_to_stdout;
+	bool include_header;
+	char* separator;
 };
 
 #endif

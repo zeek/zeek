@@ -278,6 +278,7 @@ type entropy_test_result: record {
 @load bro.bif.bro
 
 @load logging  # sic! Not logging.bif.
+@load logging-ascii
 
 global bro_alarm_file: file &redef;
 global alarm_hook: function(msg: string): bool &redef;

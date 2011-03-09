@@ -3,7 +3,9 @@
 //
 // Note than classes derived from LogWriter must be fully thread-safe and not
 // use any non-safe Bro functionality (which is almost all ...). In
-// particular, do not use fmt() but LogWriter::Fmt()!.
+// particular, do not use fmt() but LogWriter::Fmt()!. The one exception is
+// the constructor: that is guaranteed to be executed inside the main thread
+// and it can thus access in particular global script variables.
 
 #ifndef LOGWRITER_H
 #define LOGWRITER_H

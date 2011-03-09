@@ -11,7 +11,7 @@ type Stream: record;
 type RotationInfo: record;
 type RotationControl: record;
 
-const Log::rotation_control : RotationControl;
+const Log::rotation_control: RotationControl;
 
 function Log::__create_stream%(id: Log::ID, stream: Log::Stream%) : bool
     %{
@@ -60,3 +60,12 @@ function Log::__flush%(id: Log::ID%): bool
 	bool result = log_mgr->Flush(id->AsEnumVal());
 	return new Val(result, TYPE_BOOL);
 	%}
+
+# Options for the ASCII writer.
+
+module LogAscii;
+
+const output_to_stdout: bool;
+const separator: string;
+const include_header: bool;
+

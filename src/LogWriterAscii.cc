@@ -3,20 +3,30 @@
 #include <errno.h>
 
 #include "LogWriterAscii.h"
+#include "NetVar.h"
 
 LogWriterAscii::LogWriterAscii()
 	{
 	file = 0;
+
+	output_to_stdout = BifConst::LogAscii::output_to_stdout;
+	include_header = BifConst::LogAscii::include_header;
+	separator = strdup(BifConst::LogAscii::separator->CheckString());
 	}
 
 LogWriterAscii::~LogWriterAscii()
 	{
 	if ( file )
 		fclose(file);
+
+	free(separator);
 	}
 
 bool LogWriterAscii::DoInit(string path, int num_fields, const LogField* const * fields)
 	{
+	if ( output_to_stdout )
+		path = "/dev/stdout";
+
 	fname = IsSpecial(path) ? path : path + ".log";
 
 	if ( ! (file = fopen(fname.c_str(), "w")) )
@@ -25,21 +35,24 @@ bool LogWriterAscii::DoInit(string path, int num_fields, const LogField* const *
 		return false;
 		}
 
-	if ( fputs("# ", file) == EOF )
-		goto write_error;
-
-	for ( int i = 0; i < num_fields; i++ )
+	if ( include_header )
 		{
-		const LogField* field = fields[i];
-		if ( fputs(field->name.c_str(), file) == EOF )
+		if ( fputs("# ", file) == EOF )
 			goto write_error;
 
-		if ( fputc('\t', file) == EOF )
+		for ( int i = 0; i < num_fields; i++ )
+			{
+			const LogField* field = fields[i];
+			if ( fputs(field->name.c_str(), file) == EOF )
+				goto write_error;
+
+			if ( fputs(separator, file) == EOF )
+				goto write_error;
+			}
+
+		if ( fputc('\n', file) == EOF )
 			goto write_error;
 		}
-
-	if ( fputc('\n', file) == EOF )
-		goto write_error;
 
 	return true;
 
@@ -65,7 +78,7 @@ bool LogWriterAscii::DoWrite(int num_fields, const LogField* const * fields, Log
 	for ( int i = 0; i < num_fields; i++ )
 		{
 		if ( i > 0 )
-			desc.Add("\t");
+			desc.Add(separator);
 
 		LogVal* val = vals[i];
 		const LogField* field = fields[i];
@@ -135,7 +148,7 @@ bool LogWriterAscii::DoWrite(int num_fields, const LogField* const * fields, Log
 
 bool LogWriterAscii::DoRotate(string rotated_path, string postprocessor, double open, double close, bool terminating)
 	{
-	if ( ! IsSpecial(Path()) )
+	if ( IsSpecial(Path()) )
 		// Don't rotate special files.
 		return true;
 

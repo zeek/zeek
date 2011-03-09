@@ -10,10 +10,6 @@ List of the things not implemented yet:
         - "redef LogAscii::separator = '\t'"
         - "redef LogAscii::headers = T"
 
-    - Extended filter manipualtion interface on the script level:
-        - Disalbe stream altogether.
-        - Change individual options of an existing filter.
-
 Notes about remote logging:
 
     - The receiver must create the stream locally via

@@ -67,6 +67,8 @@ public:
     // These correspond to the BiFs visible on the scripting layer. The
     // actual BiFs just forward here.
     bool CreateStream(EnumVal* id, RecordVal* stream);
+    bool EnableStream(EnumVal* id);
+    bool DisableStream(EnumVal* id);
     bool AddFilter(EnumVal* id, RecordVal* filter);
 	bool RemoveFilter(EnumVal* id, StringVal* name);
     bool RemoveFilter(EnumVal* id, string name);

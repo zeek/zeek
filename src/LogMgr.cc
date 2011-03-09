@@ -48,6 +48,7 @@ struct LogMgr::WriterInfo {
 
 struct LogMgr::Stream {
  	EnumVal* id;
+	bool enabled;
 	string name;
 	RecordType* columns;
 	EventHandlerPtr event;
@@ -335,12 +336,43 @@ bool LogMgr::CreateStream(EnumVal* id, RecordVal* sval)
 	// Create new stream.
 	streams[idx] = new Stream;
 	streams[idx]->id = id->Ref()->AsEnumVal();
+	streams[idx]->enabled = true;
 	streams[idx]->name = id->Type()->AsEnumType()->Lookup(idx);
 	streams[idx]->event = event ? event_registry->Lookup(event->GetID()->Name()) : 0;
 	streams[idx]->columns = columns->Ref()->AsRecordType();
 
 	DBG_LOG(DBG_LOGGING, "Created new logging stream '%s', raising event %s", streams[idx]->name.c_str(), event ? streams[idx]->event->Name() : "<none>");
 
+	return true;
+	}
+
+bool LogMgr::EnableStream(EnumVal* id)
+	{
+	Stream* stream = FindStream(id);
+	if ( ! stream )
+		return false;
+
+	if ( stream->enabled )
+		return true;
+
+	stream->enabled = true;
+
+	DBG_LOG(DBG_LOGGING, "Reenabled logging stream '%s'", stream->name.c_str());
+	return true;
+	}
+
+bool LogMgr::DisableStream(EnumVal* id)
+	{
+	Stream* stream = FindStream(id);
+	if ( ! stream )
+		return false;
+
+	if ( ! stream->enabled )
+		return true;
+
+	stream->enabled = false;
+
+	DBG_LOG(DBG_LOGGING, "Disabled logging stream '%s'", stream->name.c_str());
 	return true;
 	}
 
@@ -553,6 +585,9 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 	Stream* stream = FindStream(id);
 	if ( ! stream )
 		return false;
+
+	if ( ! stream->enabled )
+		return true;
 
 	columns = columns->CoerceTo(stream->columns);
 
@@ -833,6 +868,9 @@ bool LogMgr::Write(EnumVal* id, EnumVal* writer, string path, int num_fields, Lo
 		return false;
 		}
 
+	if ( ! stream->enabled )
+		return true;
+
 	Stream::WriterMap::iterator w = stream->writers.find(Stream::WriterPathPair(writer->AsEnum(), path));
 
 	if ( w == stream->writers.end() )
@@ -890,6 +928,9 @@ bool LogMgr::Flush(EnumVal* id)
 	Stream* stream = FindStream(id);
 	if ( ! stream )
 		return false;
+
+	if ( ! stream->enabled )
+		return true;
 
 	for ( Stream::WriterMap::iterator i = stream->writers.begin(); i != stream->writers.end(); i++ )
 		i->second->writer->Flush();

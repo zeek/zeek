@@ -98,6 +98,8 @@ export {
 	const no_filter: Filter = [$name="<not found>"]; # Sentinel.
 
 	global create_stream: function(id: ID, stream: Stream) : bool;
+	global enable_stream: function(id: ID) : bool;
+	global disable_stream: function(id: ID) : bool;
 	global add_filter: function(id: ID, filter: Filter) : bool;
 	global remove_filter: function(id: ID, name: string) : bool;
 	global get_filter: function(id: ID, name: string) : Filter; # Returns no_filter if not found.
@@ -127,6 +129,12 @@ function create_stream(id: ID, stream: Stream) : bool
 		return F;
 
 	return add_default_filter(id);
+	}
+
+function disable_stream(id: ID) : bool
+	{
+	if ( ! __disable_stream(id) )
+		return F;
 	}
 						   
 function add_filter(id: ID, filter: Filter) : bool

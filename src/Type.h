@@ -206,8 +206,11 @@ public:
 	bool Serialize(SerialInfo* info) const;
 	static BroType* Unserialize(UnserialInfo* info, TypeTag want = TYPE_ANY);
 
+	void SetTypeID(const ID* id) { type_id = id; }
+	const ID* GetTypeID() const { return type_id; }
+
 protected:
-	BroType()	{ }
+	BroType()	{ type_id = 0; }
 
 	void SetError();
 
@@ -218,6 +221,10 @@ private:
 	InternalTypeTag internal_tag;
 	bool is_network_order;
 	bool base_type;
+
+	// This type_id field is only used by the documentation framework to
+	// track the names of declared types.
+	const ID* type_id;
 };
 
 class TypeList : public BroType {

@@ -10,6 +10,8 @@
 #include "Scope.h"
 #include "Serializer.h"
 
+extern int generate_documentation;
+
 const char* type_name(TypeTag t)
 	{
 	static char errbuf[512];
@@ -44,6 +46,7 @@ BroType::BroType(TypeTag t, bool arg_base_type)
 	tag = t;
 	is_network_order = 0;
 	base_type = arg_base_type;
+	type_id = 0;
 
 	switch ( tag ) {
 	case TYPE_VOID:
@@ -195,8 +198,9 @@ BroType* BroType::Unserialize(UnserialInfo* info, TypeTag want)
 	if ( ! t )
 		return 0;
 
-	// For base types, we return our current instance.
-	if ( t->base_type )
+	// For base types, we return our current instance
+	// if not in "documentation mode".
+	if ( t->base_type && ! generate_documentation )
 		{
 		BroType* t2 = ::base_type(TypeTag(t->tag));
 		Unref(t);

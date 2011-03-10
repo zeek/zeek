@@ -2,7 +2,7 @@
 ## parsing, but doesn't actually do any detection on it's own.  It relys on
 ## other protocol specific scripts to parse out software from the protocol(s)
 ## that they analyze.  The entry point for providing new software detections
-## to this framework is through the Software::found event.
+## to this framework is through the Software::found function.
 
 @load functions
 @load notice

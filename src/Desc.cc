@@ -41,6 +41,8 @@ ODesc::ODesc(desc_type t, BroFile* arg_f)
 	want_quotes = 0;
 	do_flush = 1;
 	include_stats = 0;
+	escape = 0;
+	escape_len = 0;
 	}
 
 ODesc::~ODesc()
@@ -52,6 +54,12 @@ ODesc::~ODesc()
 		}
 	else if ( base )
 		free(base);
+	}
+
+void ODesc::SetEscape(const char* arg_escape, int len)
+	{
+	escape = arg_escape;
+	escape_len = len;
 	}
 
 void ODesc::PushIndent()
@@ -183,8 +191,44 @@ void ODesc::Indent()
 		Add("\t", 0);
 	}
 
+static const char hex_chars[] = "0123456789ABCDEF";
 
 void ODesc::AddBytes(const void* bytes, unsigned int n)
+	{
+	if ( ! escape )
+		return AddBytesRaw(bytes, n);
+
+	const char* s = (const char*) bytes;
+	const char* e = (const char*) bytes + n;
+
+	while ( s < e )
+		{
+		const char* t = (const char*) memchr(s, escape[0], e - s);
+
+		if ( ! t )
+			break;
+
+		if ( memcmp(t, escape, escape_len) != 0 )
+			break;
+
+		AddBytesRaw(s, t - s);
+
+		for ( int i = 0; i < escape_len; ++i )
+			{
+			char hex[5] = "\\x00";
+			hex[2] = hex_chars[(*t) >> 4];
+			hex[3] = hex_chars[(*t) & 0x0f];
+			AddBytesRaw(hex, sizeof(hex));
+			++t;
+			}
+
+		s = t;
+		}
+
+	AddBytesRaw(s, e - s);
+	}
+
+void ODesc::AddBytesRaw(const void* bytes, unsigned int n)
 	{
 	if ( n == 0 )
 		return;

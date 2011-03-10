@@ -32,6 +32,7 @@ private:
 	bool output_to_stdout;
 	bool include_header;
 	char* separator;
+	int separator_len;
 };
 
 #endif

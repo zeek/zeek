@@ -11,7 +11,10 @@ LogWriterAscii::LogWriterAscii()
 
 	output_to_stdout = BifConst::LogAscii::output_to_stdout;
 	include_header = BifConst::LogAscii::include_header;
-	separator = strdup(BifConst::LogAscii::separator->CheckString());
+
+	separator_len = BifConst::LogAscii::separator->Len();
+	separator = new char[separator_len];
+	memcpy(separator, BifConst::LogAscii::separator->Bytes(), separator_len);
 	}
 
 LogWriterAscii::~LogWriterAscii()
@@ -19,7 +22,7 @@ LogWriterAscii::~LogWriterAscii()
 	if ( file )
 		fclose(file);
 
-	free(separator);
+	delete [] separator;
 	}
 
 bool LogWriterAscii::DoInit(string path, int num_fields, const LogField* const * fields)
@@ -46,7 +49,7 @@ bool LogWriterAscii::DoInit(string path, int num_fields, const LogField* const *
 			if ( fputs(field->name.c_str(), file) == EOF )
 				goto write_error;
 
-			if ( fputs(separator, file) == EOF )
+			if ( fwrite(separator, separator_len, 1, file) != 1 )
 				goto write_error;
 			}
 
@@ -74,11 +77,12 @@ void LogWriterAscii::DoFinish()
 bool LogWriterAscii::DoWrite(int num_fields, const LogField* const * fields, LogVal** vals)
 	{
 	ODesc desc(DESC_READABLE);
+	desc.SetEscape(separator, separator_len);
 
 	for ( int i = 0; i < num_fields; i++ )
 		{
 		if ( i > 0 )
-			desc.Add(separator);
+			desc.AddRaw(separator, separator_len);
 
 		LogVal* val = vals[i];
 		const LogField* field = fields[i];

@@ -15,7 +15,10 @@ export {
 	# The separator between fields.
 	const separator = "\t" &redef;
 
-	# The string to use for empty string fields.
+	# The separator between set elements.
+	const set_separator = "," &redef;
+
+	# The string to use for empty fields.
 	const empty_field = "" &redef;
 
 	# The string to use for an unset optional field.

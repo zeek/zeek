@@ -110,7 +110,6 @@ bool LogWriterAscii::DoWriteOne(ODesc* desc, LogVal* val, const LogField* field)
 	break;
 
 	case TYPE_INT:
-	case TYPE_ENUM:
 		desc->Add(val->val.int_val);
 	break;
 
@@ -137,6 +136,7 @@ bool LogWriterAscii::DoWriteOne(ODesc* desc, LogVal* val, const LogField* field)
 		desc->Add(val->val.double_val);
 	break;
 
+	case TYPE_ENUM:
 	case TYPE_STRING:
 		{
 		int size = val->val.string_val->size();

@@ -65,7 +65,7 @@ struct LogMgr::Stream {
 
 LogVal::~LogVal()
 	{
-	if ( type == TYPE_STRING && present )
+	if ( (type == TYPE_ENUM || type == TYPE_STRING) && present )
 		delete val.string_val;
 
 	if ( type == TYPE_TABLE && present )
@@ -93,7 +93,6 @@ bool LogVal::Read(SerializationFormat* fmt)
 	switch ( type ) {
 	case TYPE_BOOL:
 	case TYPE_INT:
-	case TYPE_ENUM:
 		return fmt->Read(&val.int_val, "int");
 
 	case TYPE_COUNT:
@@ -148,6 +147,7 @@ bool LogVal::Read(SerializationFormat* fmt)
 	case TYPE_INTERVAL:
 		return fmt->Read(&val.double_val, "double");
 
+	case TYPE_ENUM:
 	case TYPE_STRING:
 		{
 		val.string_val = new string;
@@ -189,7 +189,6 @@ bool LogVal::Write(SerializationFormat* fmt) const
 	switch ( type ) {
 	case TYPE_BOOL:
 	case TYPE_INT:
-	case TYPE_ENUM:
 		return fmt->Write(val.int_val, "int");
 
 	case TYPE_COUNT:
@@ -234,6 +233,7 @@ bool LogVal::Write(SerializationFormat* fmt) const
 	case TYPE_INTERVAL:
 		return fmt->Write(val.double_val, "double");
 
+	case TYPE_ENUM:
 	case TYPE_STRING:
 		return fmt->Write(*val.string_val, "string");
 
@@ -758,9 +758,15 @@ LogVal* LogMgr::ValToLogVal(Val* val)
 	switch ( lval->type ) {
 	case TYPE_BOOL:
 	case TYPE_INT:
-	case TYPE_ENUM:
 		lval->val.int_val = val->InternalInt();
 	break;
+
+	case TYPE_ENUM:
+		{
+		const char* s = val->Type()->AsEnumType()->Lookup(val->InternalInt());
+		lval->val.string_val = new string(s);
+		break;
+		}
 
 	case TYPE_COUNT:
 	case TYPE_COUNTER:

@@ -53,7 +53,7 @@ export {
 		## Version of the software
 		version:          Version;
 		## The full unparsed version string found because the version parsing 
-		## work 100% reliably and this acts as a fall back in the logs.
+		## doesn't work 100% reliably and this acts as a fall back in the logs.
 		unparsed_version: string;
 	};
 	

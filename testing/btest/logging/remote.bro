@@ -28,11 +28,9 @@ export {
 	};
 }
 
-global log_ssh: event(rec: Log);
-
 event bro_init()
 {
-	Log::create_stream(SSH, [$columns=Log, $ev=log_ssh]);
+	Log::create_stream(SSH, [$columns=Log]);
 	Log::add_filter(SSH, [$name="f1", $path="ssh.success", $pred=function(rec: Log): bool { return rec$status == "success"; }]);
 }
 

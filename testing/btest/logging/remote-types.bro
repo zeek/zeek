@@ -38,11 +38,9 @@ export {
 	};
 }
 
-global log_ssh: event(rec: Log);
-
 event bro_init()
 {
-	Log::create_stream(SSH, [$columns=Log, $ev=log_ssh]);
+	Log::create_stream(SSH, [$columns=Log]);
 }
 
 #####

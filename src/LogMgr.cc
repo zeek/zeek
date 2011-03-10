@@ -63,6 +63,21 @@ struct LogMgr::Stream {
 	~Stream();
 	};
 
+LogVal::~LogVal()
+	{
+	if ( type == TYPE_STRING && present )
+		delete val.string_val;
+
+	if ( type == TYPE_TABLE && present )
+		{
+		for ( int i = 0; i < val.set_val.size; i++ )
+			delete val.set_val.vals[i];
+
+		delete [] val.set_val.vals;
+		}
+	}
+
+
 bool LogVal::Read(SerializationFormat* fmt)
 	{
 	int ty;
@@ -139,6 +154,23 @@ bool LogVal::Read(SerializationFormat* fmt)
 		return fmt->Read(val.string_val, "string");
 		}
 
+	case TYPE_TABLE:
+		{
+		if ( ! fmt->Read(&val.set_val.size, "set_size") )
+			return false;
+
+		val.set_val.vals = new LogVal* [val.set_val.size];
+
+		for ( int i = 0; i < val.set_val.size; ++i )
+			{
+			val.set_val.vals[i] = new LogVal;
+			if ( ! val.set_val.vals[i]->Read(fmt) )
+				return false;
+			}
+
+		return true;
+		}
+
 	default:
 		internal_error(::fmt("unsupported type %s in LogVal::Write", type_name(type)));
 	}
@@ -204,6 +236,20 @@ bool LogVal::Write(SerializationFormat* fmt) const
 
 	case TYPE_STRING:
 		return fmt->Write(*val.string_val, "string");
+
+	case TYPE_TABLE:
+		{
+		if ( ! fmt->Write(val.set_val.size, "set_size") )
+			return false;
+
+		for ( int i = 0; i < val.set_val.size; ++i )
+			{
+			if ( ! val.set_val.vals[i]->Write(fmt) )
+				return false;
+			}
+
+		return true;
+		}
 
 	default:
 		internal_error(::fmt("unsupported type %s in LogVal::REad", type_name(type)));
@@ -402,14 +448,18 @@ bool LogMgr::TraverseRecord(Filter* filter, RecordType* rt, TableVal* include, T
 				// Recurse.
 				if ( ! TraverseRecord(filter, t->AsRecordType(), include, exclude, new_path, new_indices) )
 					return false;
+
+				continue;
 				}
-			else
+			else if ( t->Tag() == TYPE_TABLE && t->AsTableType()->IsSet() )
 				{
+				// That's ok, handle it with all the other types below.
+				}
+
+			else {
 				run_time("unsupported field type for log column");
 				return false;
 				}
-
-			continue;
 			}
 
 		// If include fields are specified, only include if explicitly listed.
@@ -701,6 +751,70 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 	return true;
 	}
 
+LogVal* LogMgr::ValToLogVal(Val* val)
+	{
+	LogVal* lval = new LogVal(val->Type()->Tag());
+
+	switch ( lval->type ) {
+	case TYPE_BOOL:
+	case TYPE_INT:
+	case TYPE_ENUM:
+		lval->val.int_val = val->InternalInt();
+	break;
+
+	case TYPE_COUNT:
+	case TYPE_COUNTER:
+		lval->val.uint_val = val->InternalUnsigned();
+		break;
+
+	case TYPE_PORT:
+		lval->val.uint_val = val->AsPortVal()->Port();
+		break;
+
+	case TYPE_SUBNET:
+		lval->val.subnet_val = *val->AsSubNet();
+		break;
+
+	case TYPE_NET:
+	case TYPE_ADDR:
+		{
+		addr_type t = val->AsAddr();
+		copy_addr(&t, &lval->val.addr_val);
+		break;
+		}
+
+	case TYPE_DOUBLE:
+	case TYPE_TIME:
+	case TYPE_INTERVAL:
+		lval->val.double_val = val->InternalDouble();
+		break;
+
+	case TYPE_STRING:
+		{
+		const BroString* s = val->AsString();
+		lval->val.string_val = new string((const char*) s->Bytes(), s->Len());
+		break;
+		}
+
+	case TYPE_TABLE:
+		{
+		ListVal* set = val->AsTableVal()->ConvertToPureList();
+		lval->val.set_val.size = set->Length();
+		lval->val.set_val.vals = new LogVal* [lval->val.set_val.size];
+
+		for ( int i = 0; i < lval->val.set_val.size; i++ )
+			lval->val.set_val.vals[i] = ValToLogVal(set->Index(i));
+
+		break;
+		}
+
+		default:
+			internal_error("unsupported type for log_write");
+		}
+
+	return lval;
+	}
+
 LogVal** LogMgr::RecordToFilterVals(Filter* filter, RecordVal* columns)
 	{
 	LogVal** vals = new LogVal*[filter->num_fields];
@@ -727,55 +841,8 @@ LogVal** LogMgr::RecordToFilterVals(Filter* filter, RecordVal* columns)
 				}
 			}
 
-		if ( ! val )
-			continue;
-
-		vals[i] = new LogVal(type);
-
-		switch ( val->Type()->Tag() ) {
-		case TYPE_BOOL:
-		case TYPE_INT:
-		case TYPE_ENUM:
-			vals[i]->val.int_val = val->InternalInt();
-			break;
-
-		case TYPE_COUNT:
-		case TYPE_COUNTER:
-			vals[i]->val.uint_val = val->InternalUnsigned();
-			break;
-
-		case TYPE_PORT:
-			vals[i]->val.uint_val = val->AsPortVal()->Port();
-			break;
-
-		case TYPE_SUBNET:
-			vals[i]->val.subnet_val = *val->AsSubNet();
-			break;
-
-		case TYPE_NET:
-		case TYPE_ADDR:
-			{
-			addr_type t = val->AsAddr();
-			copy_addr(&t, &vals[i]->val.addr_val);
-			break;
-			}
-
-		case TYPE_DOUBLE:
-		case TYPE_TIME:
-		case TYPE_INTERVAL:
-			vals[i]->val.double_val = val->InternalDouble();
-			break;
-
-		case TYPE_STRING:
-			{
-			const BroString* s = val->AsString();
-			vals[i]->val.string_val = new string((const char*) s->Bytes(), s->Len());
-			break;
-			}
-
-		default:
-			internal_error("unsupported type for log_write");
-		}
+		if ( val )
+			vals[i] = ValToLogVal(val);
 		}
 
 	return vals;

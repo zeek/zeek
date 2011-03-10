@@ -16,6 +16,10 @@ LogWriterAscii::LogWriterAscii()
 	separator = new char[separator_len];
 	memcpy(separator, BifConst::LogAscii::separator->Bytes(), separator_len);
 
+	set_separator_len = BifConst::LogAscii::set_separator->Len();
+	set_separator = new char[set_separator_len];
+	memcpy(set_separator, BifConst::LogAscii::set_separator->Bytes(), set_separator_len);
+
 	empty_field_len = BifConst::LogAscii::empty_field->Len();
 	empty_field = new char[empty_field_len];
 	memcpy(empty_field, BifConst::LogAscii::empty_field->Bytes(), empty_field_len);
@@ -27,6 +31,7 @@ LogWriterAscii::LogWriterAscii()
 	header_prefix_len = BifConst::LogAscii::header_prefix->Len();
 	header_prefix = new char[header_prefix_len];
 	memcpy(header_prefix, BifConst::LogAscii::header_prefix->Bytes(), header_prefix_len);
+
 	}
 
 LogWriterAscii::~LogWriterAscii()
@@ -35,6 +40,7 @@ LogWriterAscii::~LogWriterAscii()
 		fclose(file);
 
 	delete [] separator;
+	delete [] set_separator;
 	delete [] empty_field;
 	delete [] unset_field;
 	delete [] header_prefix;
@@ -89,6 +95,86 @@ void LogWriterAscii::DoFinish()
 	{
 	}
 
+bool LogWriterAscii::DoWriteOne(ODesc* desc, LogVal* val, const LogField* field)
+	{
+	if ( ! val->present )
+		{
+		desc->AddN(unset_field, unset_field_len);
+		return true;
+		}
+
+	switch ( val->type ) {
+
+	case TYPE_BOOL:
+		desc->Add(val->val.int_val ? "T" : "F");
+	break;
+
+	case TYPE_INT:
+	case TYPE_ENUM:
+		desc->Add(val->val.int_val);
+	break;
+
+	case TYPE_COUNT:
+	case TYPE_COUNTER:
+	case TYPE_PORT:
+		desc->Add(val->val.uint_val);
+		break;
+
+	case TYPE_SUBNET:
+		desc->Add(dotted_addr(val->val.subnet_val.net));
+		desc->Add("/");
+		desc->Add(val->val.subnet_val.width);
+		break;
+
+	case TYPE_NET:
+	case TYPE_ADDR:
+		desc->Add(dotted_addr(val->val.addr_val));
+		break;
+
+	case TYPE_DOUBLE:
+	case TYPE_TIME:
+	case TYPE_INTERVAL:
+		desc->Add(val->val.double_val);
+	break;
+
+	case TYPE_STRING:
+		{
+		int size = val->val.string_val->size();
+		if ( size )
+			desc->AddN(val->val.string_val->data(), val->val.string_val->size());
+		else
+			desc->AddN(empty_field, empty_field_len);
+		break;
+		}
+
+	case TYPE_TABLE:
+		{
+		if ( ! val->val.set_val.size )
+			{
+			desc->AddN(empty_field, empty_field_len);
+			break;
+			}
+
+		for ( int j = 0; j < val->val.set_val.size; j++ )
+			{
+			if ( j > 0 )
+				desc->AddN(set_separator, set_separator_len);
+
+			if ( ! DoWriteOne(desc, val->val.set_val.vals[j], field) )
+				return false;
+			}
+
+		break;
+		}
+
+	default:
+		Error(Fmt("unsupported field format %d for %s", val->type, field->name.c_str()));
+		return false;
+	}
+
+	return true;
+	}
+
 bool LogWriterAscii::DoWrite(int num_fields, const LogField* const * fields, LogVal** vals)
 	{
 	ODesc desc(DESC_READABLE);
@@ -99,62 +185,8 @@ bool LogWriterAscii::DoWrite(int num_fields, const LogField* const * fields, Log
 		if ( i > 0 )
 			desc.AddRaw(separator, separator_len);
 
-		LogVal* val = vals[i];
-		const LogField* field = fields[i];
-
-		if ( ! val->present )
-			{
-			desc.AddN(unset_field, unset_field_len);
-			continue;
-			}
-
-		switch ( field->type ) {
-		case TYPE_BOOL:
-			desc.Add(val->val.int_val ? "T" : "F");
-			break;
-
-		case TYPE_INT:
-		case TYPE_ENUM:
-			desc.Add(val->val.int_val);
-			break;
-
-		case TYPE_COUNT:
-		case TYPE_COUNTER:
-		case TYPE_PORT:
-			desc.Add(val->val.uint_val);
-			break;
-
-		case TYPE_SUBNET:
-			desc.Add(dotted_addr(val->val.subnet_val.net));
-			desc.Add("/");
-			desc.Add(val->val.subnet_val.width);
-			break;
-
-		case TYPE_NET:
-		case TYPE_ADDR:
-			desc.Add(dotted_addr(val->val.addr_val));
-			break;
-
-		case TYPE_DOUBLE:
-		case TYPE_TIME:
-		case TYPE_INTERVAL:
-			desc.Add(val->val.double_val);
-			break;
-
-		case TYPE_STRING:
-			{
-			int size = val->val.string_val->size();
-			if ( size )
-				desc.AddN(val->val.string_val->data(), val->val.string_val->size());
-			else
-				desc.AddN(empty_field, empty_field_len);
-			break;
-			}
-
-		default:
-			Error(Fmt("unsupported field format %d for %s", field->type, field->name.c_str()));
+		if ( ! DoWriteOne(&desc, vals[i], fields[i]) )
 			return false;
-		}
 		}
 
 	desc.Add("\n");

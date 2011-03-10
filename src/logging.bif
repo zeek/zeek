@@ -69,6 +69,7 @@ const output_to_stdout: bool;
 const include_header: bool;
 const header_prefix: string;
 const separator: string;
+const set_separator: string;
 const empty_field: string;
 const unset_field: string;
 

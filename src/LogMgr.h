@@ -36,17 +36,20 @@ struct LogVal {
 
 	// The following union is a subset of BroValUnion, including only the
 	// atomic types.
- 	union {
+	struct set_t { bro_int_t size; LogVal** vals; };
+
+ 	union _val {
 		bro_int_t int_val;
 		bro_uint_t uint_val;
 		addr_type addr_val;
 		subnet_type subnet_val;
     	double double_val;
 		string* string_val;
+		set_t set_val;
 	} val;
 
 	LogVal(TypeTag arg_type = TYPE_ERROR, bool arg_present = true) : type(arg_type), present(arg_present)	{}
-	~LogVal()	{ if ( type == TYPE_STRING && present ) delete val.string_val; }
+	~LogVal();
 
 	bool Read(SerializationFormat* fmt);
 	bool Write(SerializationFormat* fmt) const;
@@ -97,6 +100,7 @@ private:
 	struct WriterInfo;
 
 	bool TraverseRecord(Filter* filter, RecordType* rt, TableVal* include, TableVal* exclude, string path, list<int> indices);
+	LogVal* ValToLogVal(Val* val);
 	LogVal** RecordToFilterVals(Filter* filter, RecordVal* columns);
 	Stream* FindStream(EnumVal* id);
 	void RemoveDisabledWriters(Stream* stream);

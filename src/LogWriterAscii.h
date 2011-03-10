@@ -24,6 +24,7 @@ protected:
 
 private:
 	bool IsSpecial(string path) 	{ return path.find("/dev/") == 0; }
+	bool DoWriteOne(ODesc* desc, LogVal* val, const LogField* field);
 
 	FILE* file;
 	string fname;
@@ -34,6 +35,9 @@ private:
 
 	char* separator;
 	int separator_len;
+
+	char* set_separator;
+	int set_separator_len;
 
 	char* empty_field;
 	int empty_field_len;

@@ -27,7 +27,6 @@ event bro_init()
 	Log::write(SSH, [$t=network_time(), $id=cid, $status="failure", $country="US"]);
 	Log::write(SSH, [$t=network_time(), $id=cid, $status="fa||ure", $country="UK"]);
 	Log::write(SSH, [$t=network_time(), $id=cid, $status="su||ess", $country="BR"]);
-	Log::write(SSH, [$t=network_time(), $id=cid, $status="failure", $country="MX"]);
-	
+	Log::write(SSH, [$t=network_time(), $id=cid, $status="failure", $country="MX"]);	
 }
 

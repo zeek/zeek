@@ -15,6 +15,18 @@ LogWriterAscii::LogWriterAscii()
 	separator_len = BifConst::LogAscii::separator->Len();
 	separator = new char[separator_len];
 	memcpy(separator, BifConst::LogAscii::separator->Bytes(), separator_len);
+
+	empty_field_len = BifConst::LogAscii::empty_field->Len();
+	empty_field = new char[empty_field_len];
+	memcpy(empty_field, BifConst::LogAscii::empty_field->Bytes(), empty_field_len);
+
+	unset_field_len = BifConst::LogAscii::unset_field->Len();
+	unset_field = new char[unset_field_len];
+	memcpy(unset_field, BifConst::LogAscii::unset_field->Bytes(), unset_field_len);
+
+	header_prefix_len = BifConst::LogAscii::header_prefix->Len();
+	header_prefix = new char[header_prefix_len];
+	memcpy(header_prefix, BifConst::LogAscii::header_prefix->Bytes(), header_prefix_len);
 	}
 
 LogWriterAscii::~LogWriterAscii()
@@ -23,6 +35,9 @@ LogWriterAscii::~LogWriterAscii()
 		fclose(file);
 
 	delete [] separator;
+	delete [] empty_field;
+	delete [] unset_field;
+	delete [] header_prefix;
 	}
 
 bool LogWriterAscii::DoInit(string path, int num_fields, const LogField* const * fields)
@@ -40,7 +55,7 @@ bool LogWriterAscii::DoInit(string path, int num_fields, const LogField* const *
 
 	if ( include_header )
 		{
-		if ( fputs("# ", file) == EOF )
+		if ( fwrite(header_prefix, header_prefix_len, 1, file) != 1 )
 			goto write_error;
 
 		for ( int i = 0; i < num_fields; i++ )
@@ -89,7 +104,7 @@ bool LogWriterAscii::DoWrite(int num_fields, const LogField* const * fields, Log
 
 		if ( ! val->present )
 			{
-			desc.Add("-"); // TODO: Probably want to get rid of the "-".
+			desc.AddN(unset_field, unset_field_len);
 			continue;
 			}
 
@@ -127,8 +142,14 @@ bool LogWriterAscii::DoWrite(int num_fields, const LogField* const * fields, Log
 			break;
 
 		case TYPE_STRING:
-			desc.AddN(val->val.string_val->data(), val->val.string_val->size());
+			{
+			int size = val->val.string_val->size();
+			if ( size )
+				desc.AddN(val->val.string_val->data(), val->val.string_val->size());
+			else
+				desc.AddN(empty_field, empty_field_len);
 			break;
+			}
 
 		default:
 			Error(Fmt("unsupported field format %d for %s", field->type, field->name.c_str()));

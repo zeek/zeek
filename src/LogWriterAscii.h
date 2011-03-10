@@ -31,8 +31,18 @@ private:
 	// Options from the script-level
 	bool output_to_stdout;
 	bool include_header;
+
 	char* separator;
 	int separator_len;
+
+	char* empty_field;
+	int empty_field_len;
+
+	char* unset_field;
+	int unset_field_len;
+
+	char* header_prefix;
+	int header_prefix_len;
 };
 
 #endif

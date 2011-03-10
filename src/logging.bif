@@ -66,6 +66,9 @@ function Log::__flush%(id: Log::ID%): bool
 module LogAscii;
 
 const output_to_stdout: bool;
-const separator: string;
 const include_header: bool;
+const header_prefix: string;
+const separator: string;
+const empty_field: string;
+const unset_field: string;
 

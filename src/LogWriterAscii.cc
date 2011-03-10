@@ -60,11 +60,11 @@ bool LogWriterAscii::DoInit(string path, int num_fields, const LogField* const *
 
 		for ( int i = 0; i < num_fields; i++ )
 			{
-			const LogField* field = fields[i];
-			if ( fputs(field->name.c_str(), file) == EOF )
+			if ( i > 0 && fwrite(separator, separator_len, 1, file) != 1 )
 				goto write_error;
 
-			if ( fwrite(separator, separator_len, 1, file) != 1 )
+			const LogField* field = fields[i];
+			if ( fputs(field->name.c_str(), file) == EOF )
 				goto write_error;
 			}
 

@@ -97,7 +97,7 @@ export {
 
 	# These are implemented below
 	global email_notice_to: function(n: Notice::Info, dest: string) &redef;
-	global NOTICE: function(n: Notice::Info);
+	global notice: function(n: Notice::Info);
 	
 }
 
@@ -280,3 +280,11 @@ function NOTICE(n: Notice::Info)
 
 
 @load notice-action-filters
+
+module GLOBAL;
+
+## This is the wrapper in the global namespace for the Notice::notice function.
+function NOTICE(n: Notice::Info)
+	{
+	Notice::notice(n);
+	}	

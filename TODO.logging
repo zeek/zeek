@@ -1,10 +1,6 @@
 List of the things not implemented yet:
 
-    - Not sure if the logging does the right thing with &optional and
-      &default values. Needs testing.
     - Check the new event-value code.
-    - The Ascii writer doesn't escape the delimiter if it appears
-      within a field's value. Seems we need to do that.
 
 Notes about remote logging:
 

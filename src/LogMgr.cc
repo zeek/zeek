@@ -77,7 +77,48 @@ LogVal::~LogVal()
 		}
 	}
 
+bool LogVal::IsCompatibleType(BroType* t, bool atomic_only)
+	{
+	if ( ! t )
+		return false;
 
+	switch ( t->Tag() )	{
+	case TYPE_BOOL:
+	case TYPE_INT:
+	case TYPE_COUNT:
+	case TYPE_COUNTER:
+	case TYPE_PORT:
+	case TYPE_SUBNET:
+	case TYPE_NET:
+	case TYPE_ADDR:
+	case TYPE_DOUBLE:
+	case TYPE_TIME:
+	case TYPE_INTERVAL:
+	case TYPE_ENUM:
+	case TYPE_STRING:
+		return true;
+
+	case TYPE_RECORD:
+		return ! atomic_only;
+
+	case TYPE_TABLE:
+		{
+		if ( atomic_only )
+			return false;
+
+		if ( ! t->IsSet() )
+			return false;
+
+		return IsCompatibleType(t->AsSetType()->Indices()->PureType());
+		}
+
+	default:
+		return false;
+	}
+
+	return false;
+	}
+   
 bool LogVal::Read(SerializationFormat* fmt)
 	{
 	int ty;
@@ -302,7 +343,7 @@ LogMgr::Stream* LogMgr::FindStream(EnumVal* id)
 
 	if ( idx >= streams.size() || ! streams[idx] )
 		{
-		run_time(fmt("unknown log stream (%d)", id->AsEnum()));
+		// run_time(fmt("unknown log stream (%d)", id->AsEnum()));
 		return 0;
 		}
 
@@ -337,6 +378,15 @@ bool LogMgr::CreateStream(EnumVal* id, RecordVal* sval)
 		}
 
 	RecordType* columns = sval->Lookup(rtype->FieldOffset("columns"))->AsType()->AsTypeType()->Type()->AsRecordType();
+
+	for ( int i = 0; i < columns->NumFields(); i++ )
+		{
+		if ( ! LogVal::IsCompatibleType(columns->FieldType(i)) )
+			{
+			run_time("type of field '%s' is not support for logging output", columns->FieldName(i));
+			return false;
+			}
+		}
 
 	Val* event_val = sval->Lookup(rtype->FieldOffset("ev"));
 	Func* event = event_val ? event_val->AsFunc() : 0;

@@ -54,6 +54,8 @@ struct LogVal {
 	bool Read(SerializationFormat* fmt);
 	bool Write(SerializationFormat* fmt) const;
 
+	static bool IsCompatibleType(BroType* t, bool atomic_only=false);
+
 private:
 	LogVal(const LogVal& other)	{ }
 };

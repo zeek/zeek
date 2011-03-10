@@ -607,6 +607,41 @@ void ID::DescribeExtended(ODesc* d) const
 		}
 	}
 
+void ID::DescribeReST(ODesc* d) const
+	{
+	d->Add(".. bro:id:: ");
+	d->Add(name);
+	d->PushIndent();
+
+	if ( type )
+		{
+		d->Add(".. bro:type:: ");
+		if ( ! is_type && type->GetTypeID() )
+			{
+			d->Add("`");
+			d->Add(type->GetTypeID());
+			d->Add("`");
+			}
+		else
+			type->DescribeReST(d);
+		}
+
+	if ( attrs )
+		{
+		attrs->DescribeReST(d);
+		}
+
+	if ( val && type &&
+		 type->InternalType() != TYPE_INTERNAL_OTHER &&
+		 type->InternalType() != TYPE_INTERNAL_VOID )
+		{
+		d->NL();
+		d->Add(".. bro:val:: ");
+		val->DescribeReST(d);
+		}
+
+	}
+
 #ifdef DEBUG
 void ID::UpdateValID()
 	{

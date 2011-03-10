@@ -313,6 +313,7 @@ public:
 		}
 
 	void Describe(ODesc* d) const;
+	void DescribeReST(ODesc* d) const;
 
 	bool Serialize(SerialInfo* info) const;
 	static Val* Unserialize(UnserialInfo* info, TypeTag type = TYPE_ANY)
@@ -347,6 +348,7 @@ protected:
 		}
 
 	virtual void ValDescribe(ODesc* d) const;
+	virtual void ValDescribeReST(ODesc* d) const;
 
 	Val(TypeTag t)
 		{

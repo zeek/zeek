@@ -108,6 +108,11 @@ BroType::BroType(TypeTag t, bool arg_base_type)
 
 	}
 
+BroType::~BroType()
+	{
+	if ( type_id ) delete [] type_id;
+	}
+
 int BroType::MatchesIndex(ListExpr*& /* index */) const
 	{
 	return DOES_NOT_MATCH_INDEX;
@@ -140,6 +145,11 @@ void BroType::Describe(ODesc* d) const
 		else
 			d->Add(type_name(t));
 		}
+	}
+
+void BroType::DescribeReST(ODesc* d) const
+	{
+	Describe(d);
 	}
 
 void BroType::SetError()
@@ -234,6 +244,11 @@ bool BroType::DoSerialize(SerialInfo* info) const
 	void* null = NULL;
 	SERIALIZE(null);
 
+	if ( generate_documentation )
+		{
+		SERIALIZE_OPTIONAL_STR(type_id);
+		}
+
 	info->s->WriteCloseTag("Type");
 
 	return true;
@@ -263,6 +278,11 @@ bool BroType::DoUnserialize(UnserialInfo* info)
 	// Likewise, unserialize the former optional "RecordType*
 	// attributes_type" for backwards compatibility.
 	UNSERIALIZE_OPTIONAL(not_used_either, BroType::Unserialize(info, TYPE_RECORD));
+
+	if ( generate_documentation )
+		{
+		UNSERIALIZE_OPTIONAL_STR(type_id);
+		}
 
 	return true;
 	}
@@ -414,6 +434,44 @@ void IndexType::Describe(ODesc* d) const
 		if ( ! d->IsBinary() )
 			d->Add(" of ");
 		yield_type->Describe(d);
+		}
+	}
+
+void IndexType::DescribeReST(ODesc* d) const
+	{
+	if ( IsSet() )
+		d->Add("set");
+	else
+		d->Add(type_name(Tag()));
+
+	d->Add("[");
+	loop_over_list(*IndexTypes(), i)
+		{
+		if ( i > 0 )
+			d->Add(",");
+		const BroType* t = (*IndexTypes())[i];
+		if ( t->GetTypeID() )
+			{
+			d->Add("`");
+			d->Add(t->GetTypeID());
+			d->Add("`");
+			}
+		else
+			t->DescribeReST(d);
+		}
+	d->Add("]");
+
+	if ( yield_type )
+		{
+		d->Add(" of ");
+		if ( yield_type->GetTypeID() )
+			{
+			d->Add("`");
+			d->Add(yield_type->GetTypeID());
+			d->Add("`");
+			}
+		else
+			yield_type->DescribeReST(d);
 		}
 	}
 
@@ -648,6 +706,26 @@ void FuncType::Describe(ODesc* d) const
 		args->DescribeFields(d);
 		if ( yield )
 			yield->Describe(d);
+		}
+	}
+
+void FuncType::DescribeReST(ODesc* d) const
+	{
+	d->Add(is_event ? "event" : "function");
+	d->Add("(");
+	args->DescribeFieldsReST(d, true);
+	d->Add(")");
+	if ( yield )
+		{
+		d->AddSP(" :");
+		if ( yield->GetTypeID() )
+			{
+			d->Add("`");
+			d->Add(yield->GetTypeID());
+			d->Add("`");
+			}
+		else
+			yield->DescribeReST(d);
 		}
 	}
 
@@ -902,6 +980,12 @@ void RecordType::Describe(ODesc* d) const
 		}
 	}
 
+void RecordType::DescribeReST(ODesc* d) const
+	{
+	d->Add("record");
+	DescribeFieldsReST(d, false);
+	}
+
 void RecordType::DescribeFields(ODesc* d) const
 	{
 	if ( d->IsReadable() )
@@ -938,6 +1022,37 @@ void RecordType::DescribeFields(ODesc* d) const
 			d->AddCount(1);
 			base->Describe(d);
 			}
+		}
+	}
+
+void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
+	{
+	if ( ! func_args )
+		d->PushIndent();
+
+	for ( int i = 0; i < num_fields; ++i )
+		{
+		const TypeDecl* td = FieldDecl(i);
+		if ( ! func_args )
+			d->Add(":bro:field: ");
+
+		d->Add(td->id);
+		d->Add(": ");
+		d->Add(":bro:type: ");
+		if ( td->type->GetTypeID() )
+			{
+			d->Add("`");
+			d->Add(td->type->GetTypeID());
+			d->Add("`");
+			}
+		else
+			td->type->DescribeReST(d);
+
+		if ( i + 1 != num_fields )
+			if ( func_args )
+				d->Add(", ");
+			else
+				d->NL();
 		}
 	}
 
@@ -1174,6 +1289,19 @@ const char* EnumType::Lookup(bro_int_t value)
 			return iter->first;
 
 	return 0;
+	}
+
+void EnumType::DescribeReST(ODesc* d) const
+	{
+	d->Add(type_name(Tag()));
+	d->PushIndent();
+	for ( NameMap::const_iterator it = names.begin(); it != names.end(); )
+		{
+		d->Add(".. bro:enum:: ");
+		d->Add(it->first);
+		if ( ++it != names.end() )
+			d->NL();
+		}
 	}
 
 IMPLEMENT_SERIAL(EnumType, SER_ENUM_TYPE);

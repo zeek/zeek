@@ -27,6 +27,7 @@ void BroDocObj::WriteReST(FILE* file) const
         }
 
     ODesc desc;
-    broID->DescribeExtended(&desc);
-    fprintf(file, "%s\n", desc.Description());
+    desc.SetQuotes(1);
+    broID->DescribeReST(&desc);
+    fprintf(file, "%s\n\n", desc.Description());
     }

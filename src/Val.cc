@@ -574,6 +574,11 @@ void Val::Describe(ODesc* d) const
 		Val::ValDescribe(d);
 	}
 
+void Val::DescribeReST(ODesc* d) const
+	{
+	ValDescribeReST(d);
+	}
+
 void Val::ValDescribe(ODesc* d) const
 	{
 	if ( d->IsReadable() && type->Tag() == TYPE_BOOL )
@@ -613,6 +618,11 @@ void Val::ValDescribe(ODesc* d) const
 		// Don't call Internal(), that'll loop!
 		internal_error("Val description unavailable");
 	}
+	}
+
+void Val::ValDescribeReST(ODesc* d) const
+	{
+	ValDescribe(d);
 	}
 
 MutableVal::~MutableVal()

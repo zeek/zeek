@@ -49,6 +49,17 @@ void Attr::Describe(ODesc* d) const
 		}
 	}
 
+void Attr::DescribeReST(ODesc* d) const
+	{
+	d->Add(".. bro:attr:: ");
+	AddTag(d);
+	if ( expr )
+		{
+		d->Add("=");
+		expr->Describe(d);
+		}
+	}
+
 void Attr::AddTag(ODesc* d) const
 	{
 	if ( d->IsBinary() )
@@ -158,6 +169,15 @@ void Attributes::Describe(ODesc* d) const
 			d->Add(", ");
 
 		(*attrs)[i]->Describe(d);
+		}
+	}
+
+void Attributes::DescribeReST(ODesc* d) const
+	{
+	loop_over_list(*attrs, i)
+		{
+		d->NL();
+		(*attrs)[i]->DescribeReST(d);
 		}
 	}
 

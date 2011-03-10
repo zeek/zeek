@@ -67,6 +67,7 @@ const int MATCHES_INDEX_VECTOR = 2;
 class BroType : public BroObj {
 public:
 	BroType(TypeTag tag, bool base_type = false);
+	~BroType();
 
 	TypeTag Tag() const		{ return tag; }
 	InternalTypeTag InternalType() const	{ return internal_tag; }
@@ -200,14 +201,15 @@ public:
 	BroType* Ref()		{ ::Ref(this); return this; }
 
 	virtual void Describe(ODesc* d) const;
+	virtual void DescribeReST(ODesc* d) const;
 
 	virtual unsigned MemoryAllocation() const;
 
 	bool Serialize(SerialInfo* info) const;
 	static BroType* Unserialize(UnserialInfo* info, TypeTag want = TYPE_ANY);
 
-	void SetTypeID(const ID* id) { type_id = id; }
-	const ID* GetTypeID() const { return type_id; }
+	void SetTypeID(const char* id) { type_id = id; }
+	const char* GetTypeID() const { return type_id; }
 
 protected:
 	BroType()	{ type_id = 0; }
@@ -224,7 +226,7 @@ private:
 
 	// This type_id field is only used by the documentation framework to
 	// track the names of declared types.
-	const ID* type_id;
+	const char* type_id;
 };
 
 class TypeList : public BroType {
@@ -280,6 +282,7 @@ public:
 	BroType* YieldType();
 
 	void Describe(ODesc* d) const;
+	void DescribeReST(ODesc* d) const;
 
 	// Returns true if this table is solely indexed by subnet.
 	bool IsSubNetIndex() const;
@@ -354,6 +357,7 @@ public:
 	ID* GetReturnValueID() const;
 
 	void Describe(ODesc* d) const;
+	void DescribeReST(ODesc* d) const;
 
 protected:
 	FuncType()	{ args = 0; arg_types = 0; yield = 0; return_value = 0; }
@@ -417,7 +421,9 @@ public:
 	int NumFields() const			{ return num_fields; }
 
 	void Describe(ODesc* d) const;
+	void DescribeReST(ODesc* d) const;
 	void DescribeFields(ODesc* d) const;
+	void DescribeFieldsReST(ODesc* d, bool func_args) const;
 
 protected:
 	RecordType() { fields = 0; base = 0; types = 0; }
@@ -474,6 +480,8 @@ public:
 	// -1 indicates not found.
 	bro_int_t Lookup(const string& module_name, const char* name);
 	const char* Lookup(bro_int_t value); // Returns 0 if not found
+
+	void DescribeReST(ODesc* d) const;
 
 protected:
 	DECLARE_SERIAL(EnumType)

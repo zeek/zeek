@@ -4030,7 +4030,10 @@ Val* RecordCoerceExpr::Fold(Val* v) const
 	for ( int i = 0; i < map_size; ++i )
 		{
 		if ( map[i] >= 0 )
-			val->Assign(i, rv->Lookup(map[i])->Ref());
+			{
+			Val* v = rv->Lookup(map[i]);
+			val->Assign(i, v ? v->Ref() : 0);
+			}
 		else
 			val->Assign(i, 0);
 		}

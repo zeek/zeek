@@ -1,5 +1,6 @@
 @load functions
 @load notice
+@load software
 
 module SSH;
 
@@ -10,6 +11,15 @@ redef enum Notice::Type += {
 	SSH_Login_From_Interesting_Hostname,
 	SSH_Bytecount_Inconsistency,
 };
+
+redef enum Software::Type += {
+	SSH_SERVER,
+	SSH_CLIENT,
+};
+
+# Configure DPD and the packet filter
+redef capture_filters += { ["ssh"] = "tcp port 22" };
+redef dpd_config += { [ANALYZER_SSH] = [$ports = set(22/tcp)] };
 
 export {
 	# Create a new ID for our log stream
@@ -65,7 +75,7 @@ export {
 	const skip_processing_after_detection = F &redef;
 	
 	# Keeps count of how many rejections a host has had
-	global password_rejections: table[addr] of track_count 
+	global password_rejections: table[addr] of TrackCount 
 		&default=default_track_count
 		&write_expire=guessing_timeout;
 
@@ -76,10 +86,6 @@ export {
 
 	# The list of active SSH connections and the associated session info.
 	global active_conns: table[conn_id] of Log &read_expire=2mins;
-	
-	# Configure DPD and the packet filter
-	redef capture_filters += { ["ssh"] = "tcp port 22" };
-	redef dpd_config += { [ANALYZER_SSH] = [$ports = set(22/tcp)] };
 }
 
 function local_filter(rec: record { id: conn_id; } ): bool
@@ -97,7 +103,6 @@ event bro_init()
 	Log::add_default_filter("SSH");
 }
 
-
 event check_ssh_connection(c: connection, done: bool)
 	{
 	# If this is no longer a known SSH connection, just return.
@@ -112,7 +117,7 @@ event check_ssh_connection(c: connection, done: bool)
 	# Make sure the server has sent back more than 50 bytes to filter out
 	# hosts that are just port scanning.  Nothing is ever logged if the server
 	# doesn't send back at least 50 bytes.
-	if (c$resp$size < 50)
+	if ( c$resp$size < 50 )
 		return;
 
 	local ssh_log = active_conns[c$id];
@@ -137,7 +142,7 @@ event check_ssh_connection(c: connection, done: bool)
 		if ( default_check_threshold(password_rejections[c$id$orig_h]) )
 			{
 			add password_guessers[c$id$orig_h];
-			Notice::NOTICE([$note=SSH_PasswordGuessing,
+			NOTICE([$note=SSH_PasswordGuessing,
 			        $conn=c,
 			        $msg=fmt("SSH password guessing by %s", c$id$orig_h),
 			        $sub=fmt("%d failed logins", password_rejections[c$id$orig_h]$n),
@@ -147,7 +152,7 @@ event check_ssh_connection(c: connection, done: bool)
 	# TODO: This is to work around a quasi-bug in Bro which occasionally 
 	#       causes the byte count to be oversized.
 	#   Watch for Gregors work that adds an actual counter of bytes transferred.
-	else if (c$resp$size < 20000000) 
+	else if ( c$resp$size < 20000000 ) 
 		{ 
 		# presumed successful login
 		status = "success";
@@ -157,7 +162,7 @@ event check_ssh_connection(c: connection, done: bool)
 		     c$id$orig_h !in password_guessers)
 			{
 			add password_guessers[c$id$orig_h];
-			Notice::NOTICE([$note=SSH_LoginByPasswordGuesser,
+			NOTICE([$note=SSH_LoginByPasswordGuesser,
 			        $conn=c,
 			        $n=password_rejections[c$id$orig_h]$n,
 			        $msg=fmt("Successful SSH login by password guesser %s", c$id$orig_h),
@@ -169,7 +174,7 @@ event check_ssh_connection(c: connection, done: bool)
 		              location$latitude, location$longitude,
 		              id_string(c$id), c$resp$size);
 		# TODO: rewrite the message once a location variable can be put in notices
-		Notice::NOTICE([$note=SSH_Login,
+		NOTICE([$note=SSH_Login,
 		        $conn=c,
 		        $msg=message,
 		        $sub=location$country_code]);
@@ -179,16 +184,16 @@ event check_ssh_connection(c: connection, done: bool)
 			{
 			if ( interesting_hostnames in hostname )
 				{
-				Notice::NOTICE([$note=SSH_Login_From_Interesting_Hostname,
+				NOTICE([$note=SSH_Login_From_Interesting_Hostname,
 				        $conn=c,
 				        $msg=fmt("Strange login from %s", hostname),
 				        $sub=hostname]);
 				}
 			}
 		}
-	else if (c$resp$size >= 200000000) 
+	else if ( c$resp$size >= 200000000 ) 
 		{
-		Notice::NOTICE([$note=SSH_Bytecount_Inconsistency,
+		NOTICE([$note=SSH_Bytecount_Inconsistency,
 		        $conn=c,
 		        $msg="During byte counting in SSH analysis, an overly large value was seen.",
 		        $sub=fmt("%d",c$resp$size)]);
@@ -239,12 +244,22 @@ event ssh_client_version(c: connection, version: string)
 		active_conns[c$id] = [$ts=c$start_time, $id=c$id];
 		schedule +15secs { ssh_watcher(c) };
 		}
+	
+	# Get rid of the protocol information when passing to the software framework.
+	local cleaned_version = sub(version, /^SSH[0-9\.\-]+/, "");
+	local si = Software::default_parse(cleaned_version, c$id$orig_h, SSH_CLIENT);
+	Software::found(c, si);
 	}
 
 event ssh_server_version(c: connection, version: string)
 	{
 	if ( c$id in active_conns )
 		active_conns[c$id]$server = version;
+	
+	# Get rid of the protocol information when passing to the software framework.
+	local cleaned_version = sub(version, /SSH[0-9\.\-]{2,}/, "");
+	local si = Software::default_parse(cleaned_version, c$id$resp_h, SSH_SERVER);
+	Software::found(c, si);
 	}
 
 event protocol_confirmation(c: connection, atype: count, aid: count)

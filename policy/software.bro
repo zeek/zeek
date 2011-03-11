@@ -26,15 +26,16 @@ export {
 	};
 
 	type Type: enum {
-		UNKNOWN_SOFTWARE,
-		WEB_SERVER, 
+		UNKNOWN,
+		OPERATING_SYSTEM,
+		WEB_SERVER,
 		WEB_BROWSER,
-		MAIL_SERVER, 
+		WEB_BROWSER_PLUGIN,
+		WEB_APPLICATION,
+		MAIL_SERVER,
 		MAIL_CLIENT,
-		FTP_SERVER, 
+		FTP_SERVER,
 		FTP_CLIENT,
-		BROWSER_PLUGIN,
-		WEBAPP,
 		DATABASE_SERVER,
 		## There are a number of ways to detect printers on the network.
 		PRINTER,
@@ -47,14 +48,14 @@ export {
 		## The IP address detected running the software.
 		host:             addr &default=0.0.0.0;
 		## The type of software detected (e.g. WEB_SERVER)
-		software_type:    Type &default=UNKNOWN_SOFTWARE;
+		software_type:    Type &default=UNKNOWN;
 		## Name of the software (e.g. Apache)
-		name:             string;
+		name:             string &default="";
 		## Version of the software
 		version:          Version;
 		## The full unparsed version string found because the version parsing 
 		## doesn't work 100% reliably and this acts as a fall back in the logs.
-		unparsed_version: string;
+		unparsed_version: string &default="";
 	};
 	
 	## The hosts whose software should be logged.
@@ -81,7 +82,15 @@ export {
 	## This function can take many software version strings and parse them into 
 	## a sensible Software::Version record.  There are still many cases where
 	## scripts may have to have their own specific version parsing though.
-	global default_software_parsing: function(unparsed_version: string): Info;
+	global default_parse: function(unparsed_version: string,
+	                               host: addr,
+	                               software_type: Type): Info;
+	
+	## Compare two versions.
+	## @return:  Returns -1 for v1 < v2, 0 for v1 == v2, 1 for v1 > v2.
+	##           If the numerical version numbers match, the addl string
+	##           is compared lexicographically.
+	global cmp_versions: function(v1: Version, v2: Version): int;
 	
 	## Index is the name of the software.
 	type SoftwareSet: table[string] of Info;
@@ -95,20 +104,24 @@ event bro_init()
 	Log::add_default_filter("SOFTWARE");
 	}
 
-function default_software_parsing(unparsed_version: string): Info
+function default_parse(unparsed_version: string,
+	                   host: addr,
+	                   software_type: Type): Info
 	{
-	local software_name = "";
+	local software_name = "<parse error>";
 	local v: Version;
 
 	# The regular expression should match the complete version number
-	# TODO: this needs tests written!
-	local version_parts = split_all(unparsed_version, /[0-9\-\._]{2,}/);
+	# and software name.
+	local version_parts = split_all(unparsed_version, /[0-9\/\-\._ ]{2,}/);
 	if ( |version_parts| >= 2 )
 		{
-		# Remove the name/version separator
-		software_name = sub(version_parts[1], /.$/, "");
-		local version_numbers = split_n(version_parts[2], /[\-\._[:blank:]]/, F, 4);
-		if ( |version_numbers| >= 4 )
+		software_name = version_parts[1];
+		# Remove the name/version separator because it's left at the begging
+		# of the version number from the previous split_all.
+		local sv = sub(version_parts[2], /^./, "");
+		local version_numbers = split_n(sv, /[\-\._, \[\(]/, F, 4);
+		if ( |version_numbers| > 3 )
 			v$addl = version_numbers[4];
 		if ( |version_numbers| >= 3 )
 			v$minor2 = to_count(version_numbers[3]);
@@ -117,16 +130,13 @@ function default_software_parsing(unparsed_version: string): Info
 		if ( |version_numbers| >= 1 )
 			v$major = to_count(version_numbers[1]);
 		}
-	return [$ts=network_time(), $host=0.0.0.0, $name=software_name,
-	        $version=v, $unparsed_version=unparsed_version];
+	return [$ts=network_time(), $host=host, $name=software_name,
+	        $version=v, $unparsed_version=unparsed_version,
+	        $software_type=software_type];
 	}
 
 
-# Compare two versions.
-#   Returns -1 for v1 < v2, 0 for v1 == v2, 1 for v1 > v2.
-#   If the numerical version numbers match, the addl string
-#   is compared lexicographically.
-function software_cmp_version(v1: Version, v2: Version): int
+function cmp_versions(v1: Version, v2: Version): int
 	{
 	if ( v1$major < v2$major )
 		return -1;
@@ -182,7 +192,7 @@ event software_register(c: connection, info: Info)
 		# Is it a potentially interesting version change 
 		# and is it a different version?
 		if ( info$name in interesting_version_changes &&
-		     software_cmp_version(old$version, info$version) != 0 )
+		     cmp_versions(old$version, info$version) != 0 )
 			{
 			local msg = fmt("%.6f %s switched from %s to %s (%s)",
 					network_time(), software_endpoint_name(c, info$host),

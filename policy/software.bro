@@ -28,9 +28,6 @@ export {
 	type Type: enum {
 		UNKNOWN,
 		OPERATING_SYSTEM,
-		WEB_SERVER,
-		WEB_BROWSER,
-		WEB_BROWSER_PLUGIN,
 		WEB_APPLICATION,
 		MAIL_SERVER,
 		MAIL_CLIENT,
@@ -104,6 +101,8 @@ event bro_init()
 	Log::add_default_filter("SOFTWARE");
 	}
 
+# Don't even try to understand this now, just make sure the tests are 
+# working.
 function default_parse(unparsed_version: string,
 	                   host: addr,
 	                   software_type: Type): Info
@@ -113,16 +112,32 @@ function default_parse(unparsed_version: string,
 
 	# The regular expression should match the complete version number
 	# and software name.
-	local version_parts = split_all(unparsed_version, /[0-9\/\-\._ ]{2,}/);
+	local version_parts = split_n(unparsed_version, /[0-9\/\-\._ ]{2,}/, T, 1);
 	if ( |version_parts| >= 2 )
 		{
 		software_name = version_parts[1];
-		# Remove the name/version separator because it's left at the begging
+		# Remove the name/version separator because it's left at the begining
 		# of the version number from the previous split_all.
-		local sv = sub(version_parts[2], /^./, "");
-		local version_numbers = split_n(sv, /[\-\._, \[\(]/, F, 4);
-		if ( |version_numbers| > 3 )
-			v$addl = version_numbers[4];
+		local sv = version_parts[2];
+		if ( /^[\/\-\._ ]/ in sv )
+		 	sv = sub(version_parts[2], /^[\/\-\._ ]/, "");
+		local version_numbers = split_n(sv, /[\-\._,\[\(\{ ]/, F, 4);
+		local addl = "";
+		if ( 4 in version_numbers && version_numbers[4] != "" )
+			addl = version_numbers[4];
+		else if ( 3 in version_parts && version_parts[3] != "" )
+			{
+			# TODO: there's a bug with do_split!
+			local vp = split_n(version_parts[3], /[\-\._,\[\]\(\)\{\} ]/, F, 2);
+			if ( |vp| >= 1 && vp[1] != "" )
+				addl = vp[1];
+			else if ( |vp| >= 2 )
+				addl = vp[2];
+			else
+				addl = version_parts[3];
+			}
+		v$addl = addl;
+		
 		if ( |version_numbers| >= 3 )
 			v$minor2 = to_count(version_numbers[3]);
 		if ( |version_numbers| >= 2 )

@@ -1067,6 +1067,7 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 			if ( td->comment )
 				{
 				d->PushIndent();
+				d->Add(".. bro:comment:: ");
 				d->Add(td->comment);
 				d->PopIndent();
 				}
@@ -1345,20 +1346,29 @@ const char* EnumType::Lookup(bro_int_t value)
 
 void EnumType::DescribeReST(ODesc* d) const
 	{
+	// create temporary, reverse name map so that enums can be documented
+	// in ascending order of their actual integral value instead of by name
+	typedef std::map< bro_int_t, const char* > RevNameMap;
+	RevNameMap rev;
+	for ( NameMap::const_iterator it = names.begin(); it != names.end(); ++it )
+		rev[it->second] = it->first;
+
 	d->Add(type_name(Tag()));
 	d->PushIndent();
-	for ( NameMap::const_iterator it = names.begin(); it != names.end(); )
+
+	for ( RevNameMap::const_iterator it = rev.begin(); it != rev.end(); )
 		{
 		d->Add(".. bro:enum:: ");
-		d->Add(it->first);
-		CommentMap::const_iterator cmnt_it = comments.find(it->first);
+		d->Add(it->second);
+		CommentMap::const_iterator cmnt_it = comments.find(it->second);
 		if ( cmnt_it != comments.end() )
 			{
 			d->PushIndent();
+			d->Add(".. bro:comment:: ");
 			d->Add(cmnt_it->second);
 			d->PopIndent();
 			}
-		if ( ++it != names.end() )
+		if ( ++it != rev.end() )
 			d->NL();
 		}
 	}

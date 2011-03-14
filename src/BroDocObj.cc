@@ -18,16 +18,19 @@ BroDocObj::~BroDocObj()
 
 void BroDocObj::WriteReST(FILE* file) const
     {
-    if ( reST_doc_strings )
-        {
-        std::list<std::string>::const_iterator it;
-        for ( it = reST_doc_strings->begin();
-              it != reST_doc_strings->end(); ++it)
-            fprintf(file, "%s\n", it->c_str());
-        }
-
     ODesc desc;
     desc.SetQuotes(1);
     broID->DescribeReST(&desc);
-    fprintf(file, "%s\n\n", desc.Description());
-    }
+    fprintf(file, "%s\n", desc.Description());
+
+    if ( HasDocumentation() )
+        {
+        fprintf(file, "\t.. bro:comment::\n");
+        std::list<std::string>::const_iterator it;
+        for ( it = reST_doc_strings->begin();
+              it != reST_doc_strings->end(); ++it)
+            fprintf(file, "\t\t%s\n", it->c_str());
+        }
+
+   fprintf(file, "\n");
+   }

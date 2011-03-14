@@ -3,7 +3,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 %}
 
-%expect 71
+%expect 74
 
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ALARM TOK_ANY
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
@@ -28,6 +28,8 @@
 
 %token TOK_DEBUG
 
+%token TOK_DOC TOK_POST_DOC
+
 %left ',' '|'
 %right '=' TOK_ADD_TO TOK_REMOVE_FROM
 %right '?' ':' TOK_USING
@@ -41,7 +43,7 @@
 %right '!'
 %left '$' '[' ']' '(' ')' TOK_HAS_FIELD TOK_HAS_ATTR
 
-%type <str> TOK_ID TOK_PATTERN_TEXT single_pattern
+%type <str> TOK_ID TOK_PATTERN_TEXT single_pattern TOK_DOC TOK_POST_DOC opt_doc_list opt_post_doc_list
 %type <id> local_id global_id event_id global_or_event_id resolve_id begin_func
 %type <id_l> local_id_list
 %type <ic> init_class
@@ -135,6 +137,31 @@ static void parser_redef_enum (ID *id)
 		if ( ! cur_enum_type )
 			id->Error("not an enum");
 		}
+	}
+
+static char* concat_opt_docs (const char* pre, const char* post)
+	{
+	if ( ! pre && ! post )
+		return 0;
+
+	size_t len = 0;
+	if ( pre )
+		len += strlen(pre);
+	if ( post )
+		len += strlen(post);
+	char* s = new char[len + 1];
+	s[0] = '\0';
+	if ( pre )
+		{
+		strcat(s, pre);
+		delete [] pre;
+		}
+	if ( post )
+		{
+		strcat(s, post);
+		delete [] post;
+		}
+	return s;
 	}
 
 %}
@@ -713,10 +740,11 @@ type:
 				$$ = new SetType($3, 0);
 				}
 
-	|	TOK_RECORD '{' type_decl_list '}'
+	|	TOK_RECORD '{' { do_doc_token_start(); } type_decl_list '}'
 				{
-				set_location(@1, @4);
-				$$ = new RecordType($3);
+				do_doc_token_stop();
+				set_location(@1, @5);
+				$$ = new RecordType($4);
 				}
 
 	|	TOK_UNION '{' type_list '}'
@@ -811,10 +839,12 @@ type_decl_list:
 	;
 
 type_decl:
-		TOK_ID ':' type opt_attr ';'
+		opt_doc_list TOK_ID ':' type opt_attr ';' opt_post_doc_list
 			{
-			set_location(@1, @5);
-			$$ = new TypeDecl($3, $1, $4);
+			set_location(@2, @6);
+			$$ = new TypeDecl($4, $2, $5);
+			if ( generate_documentation )
+				$$->comment = concat_opt_docs($1, $7);
 			}
 	;
 
@@ -1364,6 +1394,30 @@ resolve_id:
 				error("identifier not defined:", $1);
 			delete [] $1;
 			}
+	;
+
+opt_post_doc_list:
+		opt_post_doc_list TOK_POST_DOC
+			{
+			$$ = concat_opt_docs($1, $2);
+			}
+	|
+		TOK_POST_DOC
+			{ $$ = $1; }
+	|
+			{ $$ = 0; }
+	;
+
+opt_doc_list:
+		opt_doc_list TOK_DOC
+			{
+			$$ = concat_opt_docs($1, $2);
+			}
+	|
+		TOK_DOC
+			{ $$ = $1; }
+	|
+			{ $$ = 0; }
 	;
 
 %%

@@ -113,6 +113,7 @@ static void report_file();
 
 %x RE
 %x IGNORE
+%s DOC
 
 OWS	[ \t]*
 WS	[ \t]+
@@ -143,6 +144,17 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 		);
 	}
 
+<DOC>##<.* {
+   yylval.str = copy_string(yytext + 3);
+   return TOK_POST_DOC;
+}
+
+<DOC>##[^#\n].* {
+   yylval.str = copy_string(yytext + 2);
+   return TOK_DOC;
+}
+
+
 ##[^#\n].* {
 	if ( generate_documentation )
 		{
@@ -156,7 +168,7 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 
 {WS}	/* eat whitespace */
 
-<INITIAL,IGNORE>\n	{
+<INITIAL,IGNORE,DOC>\n	{
 			report_file();
 			++line_number;
 			++yylloc.first_line;
@@ -663,6 +675,16 @@ void do_atendif()
 
 	--current_depth;
 	}
+
+void do_doc_token_start()
+   {
+   if ( generate_documentation ) BEGIN(DOC);
+   }
+
+void do_doc_token_stop()
+   {
+   if ( generate_documentation ) BEGIN(INITIAL);
+   }
 
 // Be careful to never delete things from this list, as the strings
 // are referred to (in order to save the locations of tokens and statements,

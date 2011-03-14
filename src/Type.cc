@@ -767,6 +767,7 @@ TypeDecl::TypeDecl(BroType* t, const char* i, attr_list* arg_attrs)
 	type = t;
 	attrs = arg_attrs ? new Attributes(arg_attrs, t) : 0;
 	id = i;
+	comment = 0;
 	}
 
 TypeDecl::~TypeDecl()
@@ -774,6 +775,7 @@ TypeDecl::~TypeDecl()
 	Unref(type);
 	Unref(attrs);
 	delete [] id;
+	if ( comment ) delete [] comment;
 	}
 
 bool TypeDecl::Serialize(SerialInfo* info) const
@@ -783,7 +785,15 @@ bool TypeDecl::Serialize(SerialInfo* info) const
 
 	SERIALIZE_OPTIONAL(attrs);
 
-	return type->Serialize(info) && SERIALIZE(id);
+	if ( ! (type->Serialize(info) && SERIALIZE(id)) )
+		return false;
+
+	if ( generate_documentation )
+		{
+		SERIALIZE_OPTIONAL_STR(comment);
+		}
+
+	return true;
 	}
 
 TypeDecl* TypeDecl::Unserialize(UnserialInfo* info)
@@ -797,6 +807,11 @@ TypeDecl* TypeDecl::Unserialize(UnserialInfo* info)
 		{
 		delete t;
 		return 0;
+		}
+
+	if ( generate_documentation )
+		{
+		UNSERIALIZE_OPTIONAL_STR_DEL(t->comment, t);
 		}
 
 	return t;
@@ -1048,6 +1063,14 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 		else
 			td->type->DescribeReST(d);
 
+		if ( ! func_args )
+			if ( td->comment )
+				{
+				d->PushIndent();
+				d->Add(td->comment);
+				d->PopIndent();
+				}
+
 		if ( i + 1 != num_fields )
 			if ( func_args )
 				d->Add(", ");
@@ -1211,6 +1234,12 @@ EnumType::~EnumType()
 	{
 	for ( NameMap::iterator iter = names.begin(); iter != names.end(); ++iter )
 		delete [] iter->first;
+
+	for ( CommentMap::iterator iter = comments.begin(); iter != comments.end(); ++iter )
+		{
+		delete [] iter->first;
+		delete [] iter->second;
+		}
 	}
 
 // Note, we use error() here (not Error()) to include the current script
@@ -1240,6 +1269,12 @@ void EnumType::AddName(const string& module_name, const char* name, bro_int_t va
 		}
 	counter = -1;
 	AddNameInternal(module_name, name, val, is_export);
+	}
+
+void EnumType::AddComment(const string& module_name, const char* name, const char* comment)
+	{
+	string fullname = make_full_var_name(module_name.c_str(), name);
+	comments[copy_string(fullname.c_str())] = copy_string(comment);
 	}
 
 void EnumType::AddNameInternal(const string& module_name, const char* name, bro_int_t val, bool is_export)
@@ -1299,6 +1334,13 @@ void EnumType::DescribeReST(ODesc* d) const
 		{
 		d->Add(".. bro:enum:: ");
 		d->Add(it->first);
+		CommentMap::const_iterator cmnt_it = comments.find(it->first);
+		if ( cmnt_it != comments.end() )
+			{
+			d->PushIndent();
+			d->Add(cmnt_it->second);
+			d->PopIndent();
+			}
 		if ( ++it != names.end() )
 			d->NL();
 		}
@@ -1315,12 +1357,24 @@ bool EnumType::DoSerialize(SerialInfo* info) const
 		SERIALIZE(false)) )
 		return false;
 
+	if ( generate_documentation )
+		if ( ! (SERIALIZE((unsigned int) comments.size())) )
+			return false;
+
 	for ( NameMap::const_iterator iter = names.begin();
 	      iter != names.end(); ++iter )
 		{
 		if ( ! SERIALIZE(iter->first) || ! SERIALIZE(iter->second) )
 			return false;
 		}
+
+	if ( generate_documentation )
+		for ( CommentMap::const_iterator it = comments.begin();
+			  it != comments.end(); ++ it )
+			{
+			if ( ! SERIALIZE(it->first) || ! SERIALIZE(it->second) )
+				return false;
+			}
 
 	return true;
 	}
@@ -1330,12 +1384,17 @@ bool EnumType::DoUnserialize(UnserialInfo* info)
 	DO_UNSERIALIZE(BroType);
 
 	unsigned int len;
+	unsigned int cmnt_len;
 	bool dummy;
 	if ( ! UNSERIALIZE(&counter) ||
 	     ! UNSERIALIZE(&len) ||
 	     // Dummy boolean for backwards compatibility.
 	     ! UNSERIALIZE(&dummy) )
 		return false;
+
+	if ( generate_documentation )
+		if ( ! UNSERIALIZE(&cmnt_len) )
+			return false;
 
 	while ( len-- )
 		{
@@ -1346,6 +1405,16 @@ bool EnumType::DoUnserialize(UnserialInfo* info)
 
 		names[name] = val;
 		}
+
+	if ( generate_documentation )
+		while ( cmnt_len-- )
+			{
+			const char* cmnt;
+			const char* name;
+			if ( ! (UNSERIALIZE_STR(&name, 0) && UNSERIALIZE_STR(&cmnt, 0)) )
+				return false;
+			comments[name] = cmnt;
+			}
 
 	return true;
 	}

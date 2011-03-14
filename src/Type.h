@@ -384,6 +384,9 @@ public:
 	BroType* type;
 	Attributes* attrs;
 	const char* id;
+
+	// comments are only filled when in "documentation mode"
+	const char* comment;
 };
 
 class RecordField {
@@ -477,6 +480,8 @@ public:
 	// added that aren't likewise explicitly initalized.
 	void AddName(const string& module_name, const char* name, bro_int_t val, bool is_export);
 
+	void AddComment(const string& module_name, const char* name, const char* comment);
+
 	// -1 indicates not found.
 	bro_int_t Lookup(const string& module_name, const char* name);
 	const char* Lookup(bro_int_t value); // Returns 0 if not found
@@ -490,6 +495,10 @@ protected:
 
 	typedef std::map< const char*, bro_int_t, ltstr > NameMap;
 	NameMap names;
+
+	// comments are only filled when in "documentation mode"
+	typedef std::map< const char*, const char*, ltstr > CommentMap;
+	CommentMap comments;
 
 	// The counter is initialized to 0 and incremented on every implicit
 	// auto-increment name that gets added (thus its > 0 if

@@ -1273,8 +1273,25 @@ void EnumType::AddName(const string& module_name, const char* name, bro_int_t va
 
 void EnumType::AddComment(const string& module_name, const char* name, const char* comment)
 	{
+	if ( ! comment ) return;
+
 	string fullname = make_full_var_name(module_name.c_str(), name);
-	comments[copy_string(fullname.c_str())] = copy_string(comment);
+
+	CommentMap::iterator it = comments.find(fullname.c_str());
+
+	if ( it == comments.end() )
+		comments[copy_string(fullname.c_str())] = comment;
+	else
+		{
+		// append to current comments
+		size_t len = strlen(it->second) + strlen(comment) + 1;
+		char* s = new char[len];
+		sprintf(s, "%s%s", it->second, comment);
+		s[len - 1] = '\0';
+		delete [] it->second;
+		delete [] comment;
+		comments[fullname.c_str()] = s;
+		}
 	}
 
 void EnumType::AddNameInternal(const string& module_name, const char* name, bro_int_t val, bool is_export)

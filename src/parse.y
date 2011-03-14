@@ -3,7 +3,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 %}
 
-%expect 74
+%expect 81
 
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ALARM TOK_ANY
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
@@ -116,6 +116,7 @@ bool resolving_global_ID = false;
 
 ID* func_id = 0;
 EnumType *cur_enum_type = 0;
+const char* cur_enum_elem_id = 0;
 
 static void parser_new_enum (void)
 	{
@@ -582,10 +583,12 @@ opt_expr_list:
 		{ $$ = new ListExpr(); }
 	;
 
+/*
 opt_comma:
 		','
 	|
 	;
+*/
 
 pattern:
 		pattern '|' single_pattern
@@ -607,17 +610,40 @@ single_pattern:
 	;
 
 enum_body:
-		enum_body_list opt_comma
+		enum_body_list opt_post_doc_list
 			{
 			$$ = cur_enum_type;
+			if ( generate_documentation )
+				{
+				cur_enum_type->AddComment(current_module, cur_enum_elem_id, $2);
+				cur_enum_elem_id = 0;
+				}
+			cur_enum_type = NULL;
+			}
+	|	enum_body_list ',' opt_post_doc_list
+			{
+			$$ = cur_enum_type;
+			if ( generate_documentation )
+				{
+				cur_enum_type->AddComment(current_module, cur_enum_elem_id, $3);
+				cur_enum_elem_id = 0;
+				}
 			cur_enum_type = NULL;
 			}
 	;
 
 enum_body_list:
-			enum_body_elem	 /* No action */
-		|	enum_body_list ',' enum_body_elem  /* no action */
-	;
+		enum_body_elem opt_post_doc_list
+			{
+			if ( generate_documentation )
+				cur_enum_type->AddComment(current_module, cur_enum_elem_id, $2);
+			}
+	|	enum_body_list ',' opt_post_doc_list
+			{
+			if ( generate_documentation )
+				cur_enum_type->AddComment(current_module, cur_enum_elem_id, $3);
+			} enum_body_elem
+;
 
 enum_body_elem:
 		/* TODO: We could also define this as TOK_ID '=' expr, (or
@@ -625,17 +651,23 @@ enum_body_elem:
 		   error messages if someboy tries to use constant variables as
 		   enumerator.
 		*/
-		TOK_ID '=' TOK_CONSTANT
+		opt_doc_list TOK_ID '=' TOK_CONSTANT
 			{
-			set_location(@1, @3);
+			set_location(@2, @4);
 			assert(cur_enum_type);
-			if ( $3->Type()->Tag() != TYPE_COUNT )
+			if ( $4->Type()->Tag() != TYPE_COUNT )
 				error("enumerator is not a count constant");
 			else
-				cur_enum_type->AddName(current_module, $1, $3->InternalUnsigned(), is_export);
+				cur_enum_type->AddName(current_module, $2, $4->InternalUnsigned(), is_export);
+
+			if ( generate_documentation )
+				{
+				cur_enum_elem_id = $2;
+				cur_enum_type->AddComment(current_module, cur_enum_elem_id, $1);
+				}
 			}
 
-	|	TOK_ID '=' '-' TOK_CONSTANT
+	|	opt_doc_list TOK_ID '=' '-' TOK_CONSTANT
 			{
 			/* We only accept counts as enumerator, but we want to return a nice
 			   error message if users triy to use a negative integer (will also
@@ -644,11 +676,17 @@ enum_body_elem:
 			error("enumerator is not a count constant");
 			}
 
-	|	TOK_ID
+	|	opt_doc_list TOK_ID
 			{
-			set_location(@1);
+			set_location(@2);
 			assert(cur_enum_type);
-			cur_enum_type->AddName(current_module, $1, is_export);
+			cur_enum_type->AddName(current_module, $2, is_export);
+
+			if ( generate_documentation )
+				{
+				cur_enum_elem_id = $2;
+				cur_enum_type->AddComment(current_module, cur_enum_elem_id, $1);
+				}
 			}
 	;
 
@@ -754,8 +792,9 @@ type:
 				$$ = 0;
 				}
 
-	|	TOK_ENUM '{' { set_location(@1); parser_new_enum(); } enum_body '}'
+	|	TOK_ENUM '{' { set_location(@1); parser_new_enum(); do_doc_token_start(); } enum_body '}'
 				{
+				do_doc_token_stop();
 				set_location(@1, @5);
 				$4->UpdateLocationEndInfo(@5);
 				$$ = $4;

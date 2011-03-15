@@ -27,20 +27,11 @@ public:
     ~BroDocObj();
 
     /**
-     * writes the reST representation of this object which includes
-     * 1) any of the "##" comments (stored internally in reST_doc_string)
-     *    To make things easy, I think we should assume that the documenter
-     *    writes their comments such that anything after ## is valid reST
-     *    so that at parse time the ## is just stripped and the remainder
-     *    is scheduled to be inserted as-is into the reST.
-     *    TODO: prepare for some kind of filtering mechanism that transforms
-     *    the reST as written into new reST before being written out.
-     *    This allows for additional custom markup or macros when writing
-     *    pure reST might be inconvenient.
+     * Writes the reST representation of this object which includes
+     * 1) Any "##" or "##<" stylized comments.
+     *    Anything after these style of comments is inserted as-is into
+     *    the reST document.
      * 2) a reST friendly description of the ID
-     *    Could be implemented similar to the ID::DescribeExtended(ODesc)
-     *    expect with new directives/roles that we'll later teach to Sphinx
-     *    via a "bro domain".
      * @param The (already opened) file to write the reST to.
      */
     void WriteReST(FILE* file) const;

@@ -90,14 +90,63 @@ public:
      */
     void SetAuthor(const std::string& s) { author_name = s; }
 
-    //TODO: document these better
-    // the rest of these need to be called from the parser
+    /**
+     * Schedules documentation of a script option.  An option is
+     * defined as any variable in the script that is declared 'const'
+     * and has the '&redef' attribute.
+     * @param o A pointer to a BroDocObj which contains the internal
+     *        Bro language representation of the script option and
+     *        also any associated comments about it.
+     */
     void AddOption(const BroDocObj* o) { options.push_back(o); }
+
+    /**
+     * Schedules documentation of a script state variable.  A state variable
+     * is defined as any variable in the script that is declared 'global'
+     * @param o A pointer to a BroDocObj which contains the internal
+     *        Bro language representation of the script state variable
+     *        and also any associated comments about it.
+     */
     void AddStateVar(const BroDocObj* o) { state_vars.push_back(o); }
+
+    /**
+     * Schedules documentation of a type declared by the script.
+     * @param o A pointer to a BroDocObj which contains the internal
+     *        Bro language representation of the script option and
+     *        also any associated comments about it.
+     */
     void AddType(const BroDocObj* o) { types.push_back(o); }
+
+    /**
+     * Schedules documentation of a Notice (enum redef) declared by script
+     * @param o A pointer to a BroDocObj which contains the internal
+     *        Bro language representation of the Notice and also
+     *        any associated comments about it.
+     */
     void AddNotice(const BroDocObj* o) { notices = o; }
+
+    /**
+     * Schedules documentation of an event declared by the script.
+     * @param o A pointer to a BroDocObj which contains the internal
+     *        Bro language representation of the script event and
+     *        also any associated comments about it.
+     */
     void AddEvent(const BroDocObj* o) { events.push_back(o); }
+
+   /**
+     * Schedules documentation of a function declared by the script.
+     * @param o A pointer to a BroDocObj which contains the internal
+     *        Bro language representation of the script function and
+     *        also any associated comments about it.
+     */
     void AddFunction(const BroDocObj* o) { functions.push_back(o); }
+
+   /**
+     * Schedules documentation of a redef done by the script
+     * @param o A pointer to a BroDocObj which contains the internal
+     *        Bro language representation of the script identifier
+     *        that was redefined and also any associated comments.
+     */
     void AddRedef(const BroDocObj* o) { redefs.push_back(o); }
 
     /**
@@ -126,8 +175,8 @@ protected:
     std::list<std::string> imports;
     std::list<std::string> port_analysis;
 
-    std::list<const BroDocObj*> options;    // identifiers with &redef attr
-    std::list<const BroDocObj*> state_vars; // identifiers without &redef?
+    std::list<const BroDocObj*> options;
+    std::list<const BroDocObj*> state_vars;
     std::list<const BroDocObj*> types;
     const BroDocObj* notices;
     std::list<const BroDocObj*> events;

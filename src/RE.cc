@@ -211,7 +211,7 @@ int Specific_RE_Matcher::MatchAll(const u_char* bv, int n)
 		// matched is empty.
 		return n == 0;
 
-	DFA_State_Handle* d = dfa->StartState();
+	DFA_State* d = dfa->StartState();
 	d = (*d)->Xtion(ecs[SYM_BOL], dfa);
 
 	while ( d )
@@ -236,7 +236,7 @@ int Specific_RE_Matcher::Match(const u_char* bv, int n)
 		// An empty pattern matches anything.
 		return 1;
 
-	DFA_State_Handle* d = dfa->StartState();
+	DFA_State* d = dfa->StartState();
 
 	d = (*d)->Xtion(ecs[SYM_BOL], dfa);
 	if ( ! d ) return 0;
@@ -268,12 +268,6 @@ void Specific_RE_Matcher::Dump(FILE* f)
 	dfa->Dump(f);
 	}
 
-RE_Match_State::~RE_Match_State()
-	{
-	if ( current_state )
-		StateUnref(current_state);
-	}
-
 bool RE_Match_State::Match(const u_char* bv, int n,
 				bool bol, bool eol, bool clear)
 	{
@@ -289,7 +283,6 @@ bool RE_Match_State::Match(const u_char* bv, int n,
 		// Initialize state and copy the accepting states of the start
 		// state into the acceptance set.
 		current_state = dfa->StartState();
-		StateRef(current_state);
 
 		const AcceptingSet* ac = (*current_state)->Accept();
 		if ( ac )
@@ -303,19 +296,10 @@ bool RE_Match_State::Match(const u_char* bv, int n,
 		}
 
 	else if ( clear )
-		{
-		if ( current_state )
-			StateUnref(current_state);
-
 		current_state = dfa->StartState();
-		StateRef(current_state);
-		}
 
 	if ( ! current_state )
 		return false;
-
-	else
-		(*current_state)->Unlock();
 
 	current_pos = 0;
 
@@ -334,7 +318,7 @@ bool RE_Match_State::Match(const u_char* bv, int n,
 		else
 			ec = ecs[*(bv++)];
 
-		DFA_State_Handle* next_state = (*current_state)->Xtion(ec,dfa);
+		DFA_State* next_state = (*current_state)->Xtion(ec,dfa);
 
 		if ( ! next_state )
 			{
@@ -357,14 +341,8 @@ bool RE_Match_State::Match(const u_char* bv, int n,
 
 		++current_pos;
 
-		StateRef(next_state);
-		StateUnref(current_state);
 		current_state = next_state;
 		}
-
-	// Make sure our state doesn't expire until we return.
-	if ( current_state )
-		(*current_state)->Lock();
 
 	return accepted.length() != old_matches;
 	}
@@ -377,7 +355,7 @@ int Specific_RE_Matcher::LongestMatch(const u_char* bv, int n)
 
 	// Use -1 to indicate no match.
 	int last_accept = -1;
-	DFA_State_Handle* d = dfa->StartState();
+	DFA_State* d = dfa->StartState();
 
 	d = (*d)->Xtion(ecs[SYM_BOL], dfa);
 	if ( ! d )

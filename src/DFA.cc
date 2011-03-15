@@ -21,11 +21,10 @@ DFA_State::DFA_State(int arg_state_num, const EquivClass* ec,
 	nfa_states = arg_nfa_states;
 	accept = arg_accept;
 	mark = 0;
-	lock = 0;
 
 	SymPartition(ec);
 
-	xtions = new DFA_State_Handle*[num_sym];
+	xtions = new DFA_State*[num_sym];
 
 	for ( int i = 0; i < num_sym; ++i )
 		xtions[i] = DFA_UNCOMPUTED_STATE_PTR;
@@ -34,11 +33,7 @@ DFA_State::DFA_State(int arg_state_num, const EquivClass* ec,
 DFA_State::~DFA_State()
 	{
 	for ( int i = 0; i < num_sym; ++i )
-		{
-		DFA_State_Handle* s = xtions[i];
-		if ( s && s != DFA_UNCOMPUTED_STATE_PTR )
-			StateUnref(s);
-		}
+	    DFA_State* s = xtions[i];
 
 	delete [] xtions;
 	delete nfa_states;
@@ -46,18 +41,8 @@ DFA_State::~DFA_State()
 	delete meta_ec;
 	}
 
-void DFA_State::AddXtion(int sym, DFA_State_Handle* next_state)
+void DFA_State::AddXtion(int sym, DFA_State* next_state)
 	{
-	// The order is important here: first StateRef() the new,
-	// then StateUnref() the old.  Otherwise, we may get a problem
-	// if both are equal.
-
-	if ( next_state )
-		StateRef(next_state);
-
-	if ( xtions[sym] && xtions[sym] != DFA_UNCOMPUTED_STATE_PTR )
-		StateUnref(xtions[sym]);
-
 	xtions[sym] = next_state;
 	}
 
@@ -94,14 +79,10 @@ void DFA_State::SymPartition(const EquivClass* ec)
 	meta_ec->BuildECs();
 	}
 
-DFA_State_Handle* DFA_State::ComputeXtion(int sym, DFA_Machine* machine)
+DFA_State* DFA_State::ComputeXtion(int sym, DFA_Machine* machine)
 	{
-	// Make sure we will not expire...
-	assert(IsLocked());
-
 	int equiv_sym = meta_ec->EquivRep(sym);
-	if ( xtions[equiv_sym] != DFA_UNCOMPUTED_STATE_PTR &&
-	     StateIsValid(xtions[equiv_sym]) )
+	if ( xtions[equiv_sym] != DFA_UNCOMPUTED_STATE_PTR )
 		{
 		AddXtion(sym, xtions[equiv_sym]);
 		return xtions[sym];
@@ -109,7 +90,7 @@ DFA_State_Handle* DFA_State::ComputeXtion(int sym, DFA_Machine* machine)
 
 	const EquivClass* ec = machine->EC();
 
-	DFA_State_Handle* next_d;
+	DFA_State* next_d;
 
 	NFA_state_list* ns = SymFollowSet(equiv_sym, ec);
 	if ( ns->length() > 0 )
@@ -211,7 +192,7 @@ void DFA_State::ClearMarks()
 
 		for ( int i = 0; i < num_sym; ++i )
 			{
-			DFA_State_Handle* s = xtions[i];
+			DFA_State* s = xtions[i];
 
 			if ( s && s != DFA_UNCOMPUTED_STATE_PTR )
 				(*xtions[i])->ClearMarks();
@@ -243,7 +224,7 @@ void DFA_State::Dump(FILE* f, DFA_Machine* m)
 	int num_trans = 0;
 	for ( int sym = 0; sym < num_sym; ++sym )
 		{
-		DFA_State_Handle* s = xtions[sym];
+		DFA_State* s = xtions[sym];
 
 		if ( ! s )
 			continue;
@@ -283,7 +264,7 @@ void DFA_State::Dump(FILE* f, DFA_Machine* m)
 
 	for ( int sym = 0; sym < num_sym; ++sym )
 		{
-		DFA_State_Handle* s = xtions[sym];
+		DFA_State* s = xtions[sym];
 
 		if ( s && s != DFA_UNCOMPUTED_STATE_PTR )
 			(*s)->Dump(f, m);
@@ -294,7 +275,7 @@ void DFA_State::Stats(unsigned int* computed, unsigned int* uncomputed)
 	{
 	for ( int sym = 0; sym < num_sym; ++sym )
 		{
-		DFA_State_Handle* s = xtions[sym];
+		DFA_State* s = xtions[sym];
 
 		if ( s == DFA_UNCOMPUTED_STATE_PTR )
 			(*uncomputed)++;
@@ -313,11 +294,9 @@ unsigned int DFA_State::Size()
 		+ (centry ? padded_sizeof(CacheEntry) : 0);
 	}
 
-
 DFA_State_Cache::DFA_State_Cache(int arg_maxsize)
 	{
 	maxsize = arg_maxsize;
-	head = tail = 0;
 	hits = misses = 0;
 	}
 
@@ -328,13 +307,12 @@ DFA_State_Cache::~DFA_State_Cache()
 	while ( (e = (CacheEntry*) states.NextEntry(i)) )
 		{
 		assert(e->state);
-		StateInvalidate(e->state);
 		delete e->hash;
 		delete e;
 		}
 	}
 
-DFA_State_Handle* DFA_State_Cache::Lookup(const NFA_state_list& nfas,
+DFA_State* DFA_State_Cache::Lookup(const NFA_state_list& nfas,
 						HashKey** hash)
 	{
 	// We assume that state ID's don't exceed 10 digits, plus
@@ -380,98 +358,22 @@ DFA_State_Handle* DFA_State_Cache::Lookup(const NFA_state_list& nfas,
 	delete *hash;
 	*hash = 0;
 
-	MoveToFront(e);
-
 	return e->state;
 	}
 
-DFA_State_Handle* DFA_State_Cache::Insert(DFA_State* state, HashKey* hash)
+DFA_State* DFA_State_Cache::Insert(DFA_State* state, HashKey* hash)
 	{
 	CacheEntry* e;
 
-#ifdef EXPIRE_DFA_STATES
-	if ( states.Length() == maxsize )
-		{
-		// Remove oldest unlocked entry.
-		for ( e = tail; e; e = e->prev )
-			if ( ! (*e->state)->lock )
-				break;
-		if ( e )
-			Remove(e);
-		}
-#endif
-
 	e = new CacheEntry;
 
-#ifdef EXPIRE_DFA_STATES
-	// Insert as head.
-	e->state = new DFA_State_Handle(state);
-	e->state->state->centry = e;
-#else
 	e->state = state;
 	e->state->centry = e;
-#endif
 	e->hash = hash;
-	e->prev = 0;
-	e->next = head;
-	if ( head )
-		head->prev = e;
-	head = e;
-	if ( ! tail )
-		tail = e;
 
 	states.Insert(hash, e);
 
 	return e->state;
-	}
-
-void DFA_State_Cache::Remove(CacheEntry* e)
-	{
-	if ( e == head )
-		{
-		head = e->next;
-		if ( head )
-			head->prev = 0;
-		}
-	else
-		e->prev->next = e->next;
-
-	if ( e == tail )
-		{
-		tail = e->prev;
-		if ( tail )
-			tail->next = 0;
-		}
-	else
-		e->next->prev = e->prev;
-
-	states.Remove(e->hash);
-
-	assert(e->state);
-	StateInvalidate(e->state);
-	delete e->hash;
-	delete e;
-	}
-
-void DFA_State_Cache::MoveToFront(CacheEntry* e)
-	{
-	++hits;
-
-	if ( e->prev )
-		{
-		e->prev->next = e->next;
-
-		if ( e->next )
-			e->next->prev = e->prev;
-		else
-			tail = e->prev;
-
-		e->prev = 0;
-		e->next = head;
-
-		head->prev = e;
-		head = e;
-		}
 	}
 
 void DFA_State_Cache::GetStats(Stats* s)
@@ -514,9 +416,6 @@ DFA_Machine::DFA_Machine(NFA_Machine* n, EquivClass* arg_ec)
 		{
 		NFA_state_list* state_set = epsilon_closure(ns);
 		(void) StateSetToDFA_State(state_set, start_state, ec);
-
-		StateRef(start_state);
-		StateLock(start_state);
 		}
 	else
 		start_state = 0; // Jam
@@ -524,12 +423,6 @@ DFA_Machine::DFA_Machine(NFA_Machine* n, EquivClass* arg_ec)
 
 DFA_Machine::~DFA_Machine()
 	{
-	if ( start_state )
-		{
-		StateUnlock(start_state);
-		StateUnref(start_state);
-		}
-
 	delete dfa_state_cache;
 	Unref(nfa);
 	}
@@ -571,12 +464,11 @@ unsigned int DFA_Machine::MemoryAllocation() const
 	}
 
 int DFA_Machine::StateSetToDFA_State(NFA_state_list* state_set,
-				DFA_State_Handle*& d, const EquivClass* ec)
+				DFA_State*& d, const EquivClass* ec)
 	{
 	HashKey* hash;
 	d = dfa_state_cache->Lookup(*state_set, &hash);
 
-	assert((! d) || StateIsValid(d));
 	if ( d )
 		return 0;
 

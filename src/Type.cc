@@ -1235,7 +1235,10 @@ EnumType::~EnumType()
 	{
 	for ( NameMap::iterator iter = names.begin(); iter != names.end(); ++iter )
 		delete [] iter->first;
+	}
 
+CommentedEnumType::~CommentedEnumType()
+	{
 	for ( CommentMap::iterator iter = comments.begin(); iter != comments.end(); ++iter )
 		{
 		delete [] iter->first;
@@ -1272,7 +1275,7 @@ void EnumType::AddName(const string& module_name, const char* name, bro_int_t va
 	AddNameInternal(module_name, name, val, is_export);
 	}
 
-void EnumType::AddComment(const string& module_name, const char* name, const char* comment)
+void CommentedEnumType::AddComment(const string& module_name, const char* name, const char* comment)
 	{
 	if ( ! comment ) return;
 
@@ -1323,6 +1326,12 @@ void EnumType::AddNameInternal(const string& module_name, const char* name, bro_
 	names[copy_string(fullname.c_str())] = val;
 	}
 
+void CommentedEnumType::AddNameInternal(const string& module_name, const char* name, bro_int_t val, bool is_export)
+	{
+	string fullname = make_full_var_name(module_name.c_str(), name);
+	names[copy_string(fullname.c_str())] = val;
+	}
+
 bro_int_t EnumType::Lookup(const string& module_name, const char* name)
 	{
 	NameMap::iterator pos =
@@ -1344,7 +1353,7 @@ const char* EnumType::Lookup(bro_int_t value)
 	return 0;
 	}
 
-void EnumType::DescribeReST(ODesc* d) const
+void CommentedEnumType::DescribeReST(ODesc* d) const
 	{
 	// create temporary, reverse name map so that enums can be documented
 	// in ascending order of their actual integral value instead of by name
@@ -1384,24 +1393,12 @@ bool EnumType::DoSerialize(SerialInfo* info) const
 		SERIALIZE(false)) )
 		return false;
 
-	if ( generate_documentation )
-		if ( ! (SERIALIZE((unsigned int) comments.size())) )
-			return false;
-
 	for ( NameMap::const_iterator iter = names.begin();
 	      iter != names.end(); ++iter )
 		{
 		if ( ! SERIALIZE(iter->first) || ! SERIALIZE(iter->second) )
 			return false;
 		}
-
-	if ( generate_documentation )
-		for ( CommentMap::const_iterator it = comments.begin();
-			  it != comments.end(); ++ it )
-			{
-			if ( ! SERIALIZE(it->first) || ! SERIALIZE(it->second) )
-				return false;
-			}
 
 	return true;
 	}
@@ -1411,17 +1408,12 @@ bool EnumType::DoUnserialize(UnserialInfo* info)
 	DO_UNSERIALIZE(BroType);
 
 	unsigned int len;
-	unsigned int cmnt_len;
 	bool dummy;
 	if ( ! UNSERIALIZE(&counter) ||
 	     ! UNSERIALIZE(&len) ||
 	     // Dummy boolean for backwards compatibility.
 	     ! UNSERIALIZE(&dummy) )
 		return false;
-
-	if ( generate_documentation )
-		if ( ! UNSERIALIZE(&cmnt_len) )
-			return false;
 
 	while ( len-- )
 		{
@@ -1432,16 +1424,6 @@ bool EnumType::DoUnserialize(UnserialInfo* info)
 
 		names[name] = val;
 		}
-
-	if ( generate_documentation )
-		while ( cmnt_len-- )
-			{
-			const char* cmnt;
-			const char* name;
-			if ( ! (UNSERIALIZE_STR(&name, 0) && UNSERIALIZE_STR(&cmnt, 0)) )
-				return false;
-			comments[name] = cmnt;
-			}
 
 	return true;
 	}

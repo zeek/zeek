@@ -480,25 +480,17 @@ public:
 	// added that aren't likewise explicitly initalized.
 	void AddName(const string& module_name, const char* name, bro_int_t val, bool is_export);
 
-	void AddComment(const string& module_name, const char* name, const char* comment);
-
 	// -1 indicates not found.
 	bro_int_t Lookup(const string& module_name, const char* name);
 	const char* Lookup(bro_int_t value); // Returns 0 if not found
 
-	void DescribeReST(ODesc* d) const;
-
 protected:
 	DECLARE_SERIAL(EnumType)
 
-	void AddNameInternal(const string& module_name, const char* name, bro_int_t val, bool is_export);
+	virtual void AddNameInternal(const string& module_name, const char* name, bro_int_t val, bool is_export);
 
 	typedef std::map< const char*, bro_int_t, ltstr > NameMap;
 	NameMap names;
-
-	// comments are only filled when in "documentation mode"
-	typedef std::map< const char*, const char*, ltstr > CommentMap;
-	CommentMap comments;
 
 	// The counter is initialized to 0 and incremented on every implicit
 	// auto-increment name that gets added (thus its > 0 if
@@ -507,6 +499,24 @@ protected:
 	// as a flag to prevent mixing of auto-increment and explicit
 	// enumerator specifications.
 	bro_int_t counter;
+};
+
+class CommentedEnumType: public EnumType {
+public:
+	CommentedEnumType() {}
+	~CommentedEnumType();
+	void DescribeReST(ODesc* d) const;
+	void AddComment(const string& module_name, const char* name, const char* comment);
+
+protected:
+	// This overriden method does not install the given ID name into a
+	// scope and it also does not do any kind of checking that the provided
+	// name already exists.
+	void AddNameInternal(const string& module_name, const char* name, bro_int_t val, bool is_export);
+
+	// comments are only filled when in "documentation mode"
+	typedef std::map< const char*, const char*, ltstr > CommentMap;
+	CommentMap comments;
 };
 
 class VectorType : public BroType {

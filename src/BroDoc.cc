@@ -40,6 +40,7 @@ BroDoc::BroDoc(const std::string& sourcename)
     else
         fprintf(stdout, "Created reST document: %s\n", reST_filename.c_str());
 #endif
+    notices = 0;
     }
 
 BroDoc::~BroDoc()
@@ -50,9 +51,10 @@ BroDoc::~BroDoc()
     FreeBroDocObjPtrList(options);
     FreeBroDocObjPtrList(state_vars);
     FreeBroDocObjPtrList(types);
-    FreeBroDocObjPtrList(notices);
     FreeBroDocObjPtrList(events);
     FreeBroDocObjPtrList(functions);
+    FreeBroDocObjPtrList(redefs);
+    if ( notices ) delete notices;
     }
 
 void BroDoc::SetPacketFilter(const std::string& s)
@@ -90,6 +92,10 @@ void BroDoc::WriteDocFile() const
     WriteStringList("    :bro:script: `%s`\n",
                     "    :bro:script: `%s`\n\n", imports);
 
+    WriteSectionHeading("Notices", '-');
+    if ( notices )
+        notices->WriteReST(reST_file);
+
     WriteSectionHeading("Port Analysis", '-');
     WriteStringList("%s", port_analysis);
 
@@ -100,15 +106,16 @@ void BroDoc::WriteDocFile() const
     WriteBroDocObjList(options, true, "Options", '~');
     WriteBroDocObjList(state_vars, true, "State Variables", '~');
     WriteBroDocObjList(types, true, "Types", '~');
-    WriteBroDocObjList(notices, true, "Notices", '~');
     WriteBroDocObjList(events, true, "Events", '~');
     WriteBroDocObjList(functions, true, "Functions", '~');
+    WriteBroDocObjList(redefs, true, "Redefinitions", '~');
 
     WriteSectionHeading("Private Interface", '-');
     WriteBroDocObjList(state_vars, false, "State Variables", '~');
     WriteBroDocObjList(types, false, "Types", '~');
     WriteBroDocObjList(events, false, "Events", '~');
     WriteBroDocObjList(functions, false, "Functions", '~');
+    WriteBroDocObjList(redefs, false, "Redefinitions", '~');
     }
 
 void BroDoc::WriteStringList(const char* format,

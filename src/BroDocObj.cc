@@ -4,16 +4,19 @@
 #include "ID.h"
 #include "BroDocObj.h"
 
-BroDocObj::BroDocObj(const ID* id, std::list<std::string>*& reST)
+BroDocObj::BroDocObj(const ID* id, std::list<std::string>*& reST,
+                     bool is_fake)
     {
     broID = id;
     reST_doc_strings = reST;
     reST = 0;
+    is_fake_id = is_fake;
     }
 
 BroDocObj::~BroDocObj()
     {
     delete reST_doc_strings;
+    if ( is_fake_id ) delete broID;
     }
 
 void BroDocObj::WriteReST(FILE* file) const

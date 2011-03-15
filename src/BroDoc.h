@@ -95,9 +95,10 @@ public:
     void AddOption(const BroDocObj* o) { options.push_back(o); }
     void AddStateVar(const BroDocObj* o) { state_vars.push_back(o); }
     void AddType(const BroDocObj* o) { types.push_back(o); }
-    void AddNotice(const BroDocObj* o) { notices.push_back(o); }
+    void AddNotice(const BroDocObj* o) { notices = o; }
     void AddEvent(const BroDocObj* o) { events.push_back(o); }
     void AddFunction(const BroDocObj* o) { functions.push_back(o); }
+    void AddRedef(const BroDocObj* o) { redefs.push_back(o); }
 
     /**
      * Gets the name of the Bro script source file for which reST
@@ -128,9 +129,10 @@ protected:
     std::list<const BroDocObj*> options;    // identifiers with &redef attr
     std::list<const BroDocObj*> state_vars; // identifiers without &redef?
     std::list<const BroDocObj*> types;
-    std::list<const BroDocObj*> notices;
+    const BroDocObj* notices;
     std::list<const BroDocObj*> events;
     std::list<const BroDocObj*> functions;
+    std::list<const BroDocObj*> redefs;
 
     /**
      * Writes out a list of strings to the reST document.

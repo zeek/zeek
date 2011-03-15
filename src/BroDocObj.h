@@ -15,8 +15,10 @@ public:
      * @param reST a reference to a pointer of a list of strings that
               represent the reST documentation for the ID.  The pointer
               will be set to 0 after this constructor finishes.
+     * @param is_fake whether the ID* is a dummy just for doc purposes
      */
-    BroDocObj(const ID* id, std::list<std::string>*& reST);
+    BroDocObj(const ID* id, std::list<std::string>*& reST,
+              bool is_fake = false);
 
     /**
      * BroDocObj destructor
@@ -60,6 +62,7 @@ public:
 protected:
     std::list<std::string>* reST_doc_strings;
     const ID* broID;
+    bool is_fake_id; /**< Whether the ID* is a dummy just for doc purposes */
 
 private:
 };

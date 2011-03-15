@@ -116,6 +116,7 @@ bool resolving_global_ID = false;
 
 ID* func_id = 0;
 EnumType *cur_enum_type = 0;
+CommentedEnumType *cur_enum_type_doc = 0;
 const char* cur_enum_elem_id = 0;
 
 static void parser_new_enum (void)
@@ -123,6 +124,10 @@ static void parser_new_enum (void)
 	/* Starting a new enum definition. */
 	assert(cur_enum_type == NULL);
 	cur_enum_type = new EnumType();
+	// for documentation purpose, a separate type object is created
+	// in order to avoid overlap that can be caused by redefs
+	if ( generate_documentation )
+		cur_enum_type_doc = new CommentedEnumType();
 	}
 
 static void parser_redef_enum (ID *id)
@@ -138,6 +143,24 @@ static void parser_redef_enum (ID *id)
 		if ( ! cur_enum_type )
 			id->Error("not an enum");
 		}
+
+	if ( generate_documentation )
+		cur_enum_type_doc = new CommentedEnumType();
+	}
+
+static void add_enum_comment (const char* comment)
+	{
+	cur_enum_type_doc->AddComment(current_module, cur_enum_elem_id, comment);
+	}
+
+static ID* create_dummy_id (const char* name, const BroType* type)
+	{
+	// normally, install_ID() figures out the right IDScope
+	// but it doesn't matter for the dummy ID so use SCOPE_GLOBAL
+	ID* fake_id = new ID(copy_string(name), SCOPE_GLOBAL, is_export);
+	fake_id->SetType(cur_enum_type_doc);
+	fake_id->MakeType();
+	return fake_id;
 	}
 
 static char* concat_opt_docs (const char* pre, const char* post)
@@ -615,7 +638,7 @@ enum_body:
 			$$ = cur_enum_type;
 			if ( generate_documentation )
 				{
-				cur_enum_type->AddComment(current_module, cur_enum_elem_id, $2);
+				add_enum_comment($2);
 				cur_enum_elem_id = 0;
 				}
 			cur_enum_type = NULL;
@@ -625,7 +648,7 @@ enum_body:
 			$$ = cur_enum_type;
 			if ( generate_documentation )
 				{
-				cur_enum_type->AddComment(current_module, cur_enum_elem_id, $3);
+				add_enum_comment($3);
 				cur_enum_elem_id = 0;
 				}
 			cur_enum_type = NULL;
@@ -636,12 +659,12 @@ enum_body_list:
 		enum_body_elem opt_post_doc_list
 			{
 			if ( generate_documentation )
-				cur_enum_type->AddComment(current_module, cur_enum_elem_id, $2);
+				add_enum_comment($2);
 			}
 	|	enum_body_list ',' opt_post_doc_list
 			{
 			if ( generate_documentation )
-				cur_enum_type->AddComment(current_module, cur_enum_elem_id, $3);
+				add_enum_comment($3);
 			} enum_body_elem
 ;
 
@@ -662,8 +685,9 @@ enum_body_elem:
 
 			if ( generate_documentation )
 				{
+				cur_enum_type_doc->AddName(current_module, $2, $4->InternalUnsigned(), is_export);
 				cur_enum_elem_id = $2;
-				cur_enum_type->AddComment(current_module, cur_enum_elem_id, $1);
+				add_enum_comment($1);
 				}
 			}
 
@@ -684,8 +708,9 @@ enum_body_elem:
 
 			if ( generate_documentation )
 				{
+				cur_enum_type_doc->AddName(current_module, $2, is_export);
 				cur_enum_elem_id = $2;
-				cur_enum_type->AddComment(current_module, cur_enum_elem_id, $1);
+				add_enum_comment($1);
 				}
 			}
 	;
@@ -957,23 +982,42 @@ decl:
 			add_global($2, $3, $4, $5, $6, VAR_REDEF);
 			if ( generate_documentation )
 				{
-				// TODO: eventually handle type redefs that add record fields
+				// TODO: handle more types of redefs, e.g. adding record fields
 				}
 			}
 
 	|	TOK_REDEF TOK_ENUM global_id TOK_ADD_TO
-		'{' { parser_redef_enum($3); } enum_body '}' ';'
+		'{' { parser_redef_enum($3); do_doc_token_start(); } enum_body '}' ';'
 			{
-			/* no action */
-			// TODO: handle "Notice" redefinitions for doc framework
+			do_doc_token_stop();
+			if ( generate_documentation )
+				{
+				ID* fake_id = create_dummy_id($3->Name(), cur_enum_type_doc);
+				cur_enum_type_doc = 0;
+				BroDocObj* o = new BroDocObj(fake_id, reST_doc_comments, true);
+				if ( streq(fake_id->Name(), "Notice" ) )
+					current_reST_doc->AddNotice(o);
+				else
+					current_reST_doc->AddRedef(o);
+				}
 			}
 
 	|	TOK_TYPE global_id ':' refined_type opt_attr ';'
 			{
 			add_type($2, $4, $5, 0);
 			if ( generate_documentation )
-				current_reST_doc->AddType(
-					new BroDocObj($2, reST_doc_comments));
+				{
+				if ( $2->AsType()->Tag() == TYPE_ENUM && cur_enum_type_doc )
+					{
+					ID* fake = create_dummy_id($2->Name(), cur_enum_type_doc);
+					cur_enum_type_doc = 0;
+					current_reST_doc->AddType(
+						new BroDocObj(fake, reST_doc_comments, true));
+					}
+				else
+					current_reST_doc->AddType(
+						new BroDocObj($2, reST_doc_comments));
+				}
 			}
 
 	|	TOK_EVENT event_id ':' refined_type opt_attr ';'

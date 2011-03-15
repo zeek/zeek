@@ -15,7 +15,6 @@
 #include "Timer.h"
 #include "NetVar.h"
 #include "Sessions.h"
-#include "Active.h"
 #include "OSFinger.h"
 
 #include "ICMP.h"
@@ -465,36 +464,8 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		return;
 		}
 
-	// Check for TTL/MTU problems from Active Mapping
-#ifdef ACTIVE_MAPPING
-	const NumericData* numeric = 0;
-	if ( ip4 )
-		{
-		get_map_result(ip4->ip_dst.s_addr, numeric);
-
-		if ( numeric->hops && ip4->ip_ttl < numeric->hops )
-			{
-			debug_msg("Packet destined for %s had ttl %d but there are %d hops to host.\n",
-			inet_ntoa(ip4->ip_dst), ip4->ip_ttl, numeric->hops);
-			return;
-			}
-		}
-#endif
-
 	FragReassembler* f = 0;
 	uint32 frag_field = ip_hdr->FragField();
-
-#ifdef ACTIVE_MAPPING
-	if ( ip4 && numeric && numeric->path_MTU && (frag_field & IP_DF) )
-		{
-		if ( htons(ip4->ip_len) > numeric->path_MTU )
-			{
-			debug_msg("Packet destined for %s has DF flag but its size %d is greater than pmtu of %d\n",
-			inet_ntoa(ip4->ip_dst), htons(ip4->ip_len), numeric->path_MTU);
-			return;
-			}
-		}
-#endif
 
 	if ( (frag_field & 0x3fff) != 0 )
 		{

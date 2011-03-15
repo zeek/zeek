@@ -3,7 +3,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 
-#include "Active.h"
 #include "PIA.h"
 #include "File.h"
 #include "TCP.h"
@@ -412,49 +411,6 @@ bool TCP_Analyzer::ProcessRST(double t, TCP_Endpoint* endpoint,
 	else if ( endpoint->RST_cnt == 0 )
 		++endpoint->RST_cnt;	// Remember we've seen a RST
 
-#ifdef ACTIVE_MAPPING
-//		if ( peer->state == TCP_ENDPOINT_INACTIVE )
-//		    debug_msg("rst while inactive\n"); // ### Cold-start: what to do?
-//		else
-
-	const NumericData* AM_policy;
-	get_map_result(ip->DstAddr4(), AM_policy);
-
-	if ( base_seq == endpoint->AckSeq() )
-		;	 // everyone should accept a RST in sequence
-
-	else if ( endpoint->window == 0 )
-		; // ### Cold Start: we don't know the window,
-		  // so just go along for now
-
-	else
-		{
-		uint32 right_edge = endpoint->AckSeq() +
-			(endpoint->window << endpoint->window_scale);
-
-		if ( base_seq < right_edge  )
-			{
-			if ( ! AM_policy->accepts_rst_in_window )
-				{
-#if 0
-				debug_msg("Machine does not accept RST merely in window; ignoring. t=%.6f,base=%u, ackseq=%u, window=%hd \n",
-					network_time, base_seq, endpoint->AckSeq(), window);
-#endif
-				return false;
-				}
-			}
-
-		else if ( ! AM_policy->accepts_rst_outside_window )
-			{
-#if 0
-			debug_msg("Machine does not accept RST outside window; ignoring. t=%.6f,base=%u, ackseq=%u, window=%hd \n",
-				network_time, base_seq, endpoint->AckSeq(), window);
-#endif
-			return false;
-			}
-		}
-#endif
-
 	if ( len > 0 )
 		{
 		// This now happens often enough that it's
@@ -737,7 +693,7 @@ void TCP_Analyzer::UpdateInactiveState(double t,
 			{
 			endpoint->SetState(TCP_ENDPOINT_PARTIAL);
 			Conn()->EnableStatusUpdateTimer();
-			
+
 			if ( peer->state == TCP_ENDPOINT_PARTIAL )
 				// We've seen both sides of a partial
 				// connection, report it.

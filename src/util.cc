@@ -340,6 +340,26 @@ int atoi_n(int len, const char* s, const char** end, int base, int& result)
 	return 1;
 	}
 
+char* uitoa_n(uint64 value, char* str, int n, int base)
+	{
+	static char dig[] = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    int i = 0;
+    uint64 v;
+    char* p, *q;
+    char c;
+
+    v = value;
+
+    do {
+		str[i++] = dig[v % base];
+        v /= base;
+	} while ( v && i < n );
+
+    str[i] = '\0';
+
+	return str;
+	}
+
 int strstr_n(const int big_len, const u_char* big,
 		const int little_len, const u_char* little)
 	{

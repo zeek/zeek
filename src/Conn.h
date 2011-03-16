@@ -279,6 +279,8 @@ public:
 
 	void AddHistory(char code)	{ history += code; }
 
+	uint64 CalculateUID();
+
 	void DeleteTimer(double t);
 
 	// Sets the root of the analyzer tree as well as the primary PIA.
@@ -367,6 +369,11 @@ protected:
 
 	string history;
 	uint32 hist_seen;
+
+	uint64 uid;	// Globally unique connection ID.
+
+	static uint64 uid_counter;	// Counter for uids.
+	static uint64 uid_instance;	// Once computed instance ID.
 
 	TransportLayerAnalyzer* root_analyzer;
 	PIA* primary_PIA;

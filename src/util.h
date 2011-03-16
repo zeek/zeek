@@ -112,6 +112,7 @@ extern char* strcasestr(const char* s, const char* find);
 extern const char* strpbrk_n(size_t len, const char* s, const char* charset);
 extern int atoi_n(int len, const char* s, const char** end,
 			int base, int& result);
+extern char* uitoa_n(uint64 value, char* str, int n, int base);
 int strstr_n(const int big_len, const unsigned char* big,
 		const int little_len, const unsigned char* little);
 extern int fputs(int len, const char* s, FILE* fp);
@@ -150,9 +151,6 @@ extern void init_random_seed(uint32 seed, const char* load_file,
 				const char* write_file);
 
 extern uint64 rand64bit();
-
-#define UHASH_KEY_SIZE	32
-extern uint8 uhash_key[UHASH_KEY_SIZE];
 
 // Each event source that may generate events gets an internally unique ID.
 // This is always LOCAL for a local Bro. For remote event sources, it gets

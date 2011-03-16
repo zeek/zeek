@@ -179,6 +179,8 @@ Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id)
 	++current_connections;
 	++total_connections;
 
+	uid = CalculateUID();
+
 	TimerMgr::Tag* tag = current_iosrc->GetCurrentTag();
 	conn_timer_mgr = tag ? new TimerMgr::Tag(*tag) : 0;
 
@@ -213,6 +215,43 @@ Connection::~Connection()
 	--current_connections;
 	if ( conn_timer_mgr )
 		--external_connections;
+	}
+
+uint64 Connection::uid_counter = 0;
+uint64 Connection::uid_instance = 0;
+
+uint64 Connection::CalculateUID()
+	{
+	if ( uid_instance == 0 ) 
+		{
+		// This is the first time we need a UID. Calculate the instance ID by
+		// hashing something likely to be unique.
+		struct {
+			char hostname[128];
+			struct timeval time;
+			pid_t pid;
+		} unique;
+
+		gethostname(unique.hostname, 128);
+		unique.hostname[sizeof(unique.hostname)-1] = '\0';
+		gettimeofday(&unique.time, 0);
+		unique.pid = getpid();
+
+		uid_instance = HashKey::HashBytes(&unique, sizeof(unique));
+		++uid_instance; // Now it's larger than zero.
+		}
+
+	// Now calculate the unique ID for this connection.
+	struct {
+		uint64 counter;
+		hash_t instance;
+	} key;
+
+	key.counter = ++uid_counter;
+	key.instance = uid_instance;
+
+	uint64_t h = HashKey::HashBytes(&key, sizeof(key));
+	return h;
 	}
 
 void Connection::Done()
@@ -346,6 +385,10 @@ RecordVal* Connection::BuildConnVal()
 		id_val->Assign(1, new PortVal(ntohs(orig_port), prot_type));
 		id_val->Assign(2, new AddrVal(resp_addr));
 		id_val->Assign(3, new PortVal(ntohs(resp_port), prot_type));
+
+		char tmp[16];
+		id_val->Assign(4, new StringVal(uitoa_n(uid, tmp, sizeof(tmp), 62)));
+
 		conn_val->Assign(0, id_val);
 
 		orig_endp = new RecordVal(endpoint);

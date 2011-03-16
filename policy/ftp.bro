@@ -1,18 +1,25 @@
+##! The logging this script does is primarily focused on logging FTP commands
+##! along with metadata.  For example, if files are transferred, the argument
+##! will take on the full path that the client is at along with the requested 
+##! file name.  
+##! 
+##! TODO:
+##!  * Handle encrypted sessions correctly (get an example?)
+##!  * Detect client software with CLNT command
+##!  * Detect server software with initial 220 message
+##!  * Detect client software with password given for anonymous users 
+##!    (e.g. cyberduck@example.net)
+
 @load functions
 @load notice.bro
 @load ftp-lib
 
-# TODO:
-#  * Handle encrypted sessions correctly (get an example?)
-#  * Detect client software with CLNT command
-#  * Detect server software with initial 220 message
-#  * Detect client software with password given for anonymous users (e.g. cyberduck@example.net)
-
 module FTP;
 
 redef enum Notice::Type += {
-	## This indicates that a "SITE EXEC" command/arg pair was seen.
-	FTP_SiteExec,
+	## This indicates that a successful response to a "SITE EXEC" 
+	## command/arg pair was seen.
+	FTP_Site_Exec_Success,
 };
 
 export {
@@ -36,7 +43,10 @@ export {
 		id:                 conn_id;
 		user:               string &default="<unknown>";
 		password:           string &optional;
-		cwd:                string &default="<before_login>/";
+		## By setting the CWD to '/.', we can indicate that unless something
+		## more concrete is discovered that the exiting but unknown 
+		## directory is ok to use.
+		cwd:                string &default="/.";
 		command:            CmdArg &optional;
 		reply_code:         count &default=0;
 		reply_msg:          string &default="";
@@ -69,14 +79,22 @@ export {
 	
 	## The list of commands that should have their command/response pairs logged.
 	const logged_commands = {
-		"APPE", "DELE", "RETR", "STOR", "STOU", "CLNT", "ACCT", "SITE"
+		"APPE", "DELE", "RETR", "STOR", "STOU", "CLNT", "ACCT"
 	} &redef;
 	
+	## These are the ports used as the default FTP ports for DPD.
+	const ports = { 21/tcp } &redef;
+	
 	## This tracks all of the currently established FTP control sessions.
-	global active_conns: table[conn_id] of SessionInfo &read_expire=15mins;
+	global active_conns: table[conn_id] of SessionInfo &read_expire=5mins;
+	
 }
 
 global ftp_data_expected: table[addr, port] of ExpectedConn &create_expire=5mins;
+
+# Configure DPD
+redef capture_filters += { ["ftp"] = "port 21" };
+redef dpd_config += { [ANALYZER_FTP] = [$ports = ports] };
 
 event bro_init()
 	{
@@ -140,12 +158,9 @@ function ftp_message(s: SessionInfo)
 	
 		local arg = s$command$arg;
 		if ( s$command$cmd in file_cmds )
-			{
-			local pathfile = sub(absolute_path(s$cwd, arg), /<unknown>/, "/.");
-			arg = fmt("ftp://%s%s", s$id$resp_h, pathfile);
-			}
+			arg = fmt("ftp://%s%s", s$id$resp_h, absolute_path(s$cwd, arg));
 		
-		Log::write("FTP", [$ts=network_time(), $id=s$id,
+		Log::write("FTP", [$ts=s$command$ts, $id=s$id,
 		                   $user=s$user, $password=pass,
 		                   $command=s$command$cmd, $arg=arg,
 		                   $mime_type=s$mime_type, $mime_desc=s$mime_desc,
@@ -178,9 +193,9 @@ event ftp_request(c: connection, command: string, arg: string)
 	local session = active_conns[id];
 
 	# Log the previous command when a new command is seen.
-	# The downside here is that commands definitely aren't logged until the 
+	# The downside here is that commands definitely aren't logged until the
 	# next command is issued or the control session ends.  In practicality
-	# this isn't an issue, but I suppose it could be a delay tactic for 
+	# this isn't an issue, but I suppose it could be a delay tactic for
 	# attackers.
 	if ( session?$command && session$has_response )
 		{
@@ -215,18 +230,12 @@ event ftp_request(c: connection, command: string, arg: string)
 			# TODO: raise a notice?  does anyone care?
 			}
 		}
-		
-	if ( command == "SITE" && /[Ee][Xx][Ee][Cc]/ in arg )
-		{
-		Notice::NOTICE([$note=FTP_SiteExec, $conn=c,
-		                $msg=fmt("%s %s", command, arg)]);
-		}
 	}
 
 
 event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool)
 	{
-	# TODO: figure out what to do with continued FTP response
+	# TODO: figure out what to do with continued FTP response (not used much)
 	if ( cont_resp ) return;
 	
 	local id = c$id;
@@ -241,7 +250,7 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool)
 	session$has_response = T;
 	
 	# TODO: do some sort of generic clear text login processing here.
-	#local response_xyz = parse_ftp_reply_code(code);
+	local response_xyz = parse_ftp_reply_code(code);
 	#if ( response_xyz$x == 2 &&  # successful
 	#     session$command$cmd == "PASS" )
 	#	do_ftp_login(c, session);
@@ -260,9 +269,18 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool)
 		#       if that's given as well which would be more correct.
 		session$file_size = to_count(msg);
 		}
+		
+	# If a successful SITE EXEC command is executed, raise a notice.
+	else if ( response_xyz$x == 2 &&
+	          session$command$cmd == "SITE" && 
+	          /[Ee][Xx][Ee][Cc]/ in session$command$arg )
+		{
+		NOTICE([$note=FTP_Site_Exec_Success, $conn=c,
+		        $msg=fmt("%s %s", session$command$cmd, session$command$arg)]);
+		}       
 
 	# PASV and EPSV processing
-	if ( (code == 227 || code == 229) &&
+	else if ( (code == 227 || code == 229) &&
 	     (session$command$cmd == "PASV" || session$command$cmd == "EPSV") )
 		{
 		local data = (code == 227) ? parse_ftp_pasv(msg) : parse_ftp_epsv(msg);

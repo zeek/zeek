@@ -2,6 +2,7 @@ module FTP;
 
 export {
 	type CmdArg: record {
+		ts:   time;
 		cmd:  string &default="<unknown>";
 		arg:  string &default="";
 		seq:  count &default=0;
@@ -68,7 +69,7 @@ export {
 
 function add_pending_cmd(pc: PendingCmds, cmd: string, arg: string): CmdArg
 	{
-	local ca = [$cmd = cmd, $arg = arg, $seq=|pc|+1];
+	local ca = [$cmd = cmd, $arg = arg, $seq=|pc|+1, $ts=network_time()];
 	pc[ca$seq] = ca;
 	
 	return ca;

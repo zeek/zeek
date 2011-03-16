@@ -1,4 +1,5 @@
 @load site
+@load logging
 
 # Some enums for deciding what and when to log.
 type Directions_and_Hosts: enum {

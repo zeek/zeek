@@ -7,6 +7,18 @@
 # it because it in turn loads us.
 global full_id_string: function(c: connection): string;
 
+# TODO: this is a notice action filter but it shouldn't cause this 
+#       script to be come a dependency on notice-action-filters.bro
+#  Figure out where to put this!
+function drop_source_and_terminate(n: Notice::Info, a: Notice::Action): Notice::Action
+	{
+	if ( n?$conn )
+		TerminateConnection::terminate_connection(n$conn);
+
+	return NOTICE_DROP;
+	}
+
+
 module TerminateConnection;
 
 export {

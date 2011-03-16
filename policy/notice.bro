@@ -1,146 +1,141 @@
-# $Id: notice.bro 6756 2009-06-14 21:31:19Z vern $
-
-const use_tagging = F &redef;
-
-type Notice: enum {
-	NoticeNone,	# placeholder
-	NoticeTally,	# notice reporting count of how often a notice occurred
-};
-
-type NoticeAction: enum {
-	# Similar to WeirdAction in weird.bro.
-	NOTICE_UNKNOWN,	# placeholder
-	NOTICE_IGNORE, NOTICE_FILE, NOTICE_ALARM_ALWAYS,
-	NOTICE_EMAIL, NOTICE_PAGE,
-	NOTICE_DROP,	# drops the address via Drop::drop_address, and alarms
-};
 
 
-type notice_info: record {
-	note: Notice;
-	msg: string &default="";
-	sub: string &optional;	# sub-message
+module Notice;
 
-	conn: connection &optional;	# connection associated with notice
-	iconn: icmp_conn &optional;	# associated ICMP "connection"
-	id: conn_id &optional;	# connection-ID, if we don't have a connection handy
-	src: addr &optional;	# source address, if we don't have a connection
-	dst: addr &optional;	# destination address
+export {
+	type Type: enum {
+		NoticeNone,   # placeholder
+		NoticeTally,  # notice reporting count of how often a notice occurred
+	};
 
-	p: port &optional;	# associated port, if we don't have a conn.
+	type Action: enum {
+		# Similar to WeirdAction in weird.bro.
+		NOTICE_UNKNOWN,  # placeholder
+		NOTICE_IGNORE, NOTICE_ALARM_ALWAYS,
+		NOTICE_EMAIL, NOTICE_FILE, NOTICE_PAGE,
+		NOTICE_DROP,     # drops the address via Drop::drop_address, and alarms
+	};
+	
+	type Info: record {
+		note: Notice::Type;
+		msg: string &default="";
+		sub: string &optional;	# sub-message
 
-	# The following are detailed attributes that are associated with some
-	# notices, but not all.
+		conn: connection &optional;	# connection associated with notice
+		iconn: icmp_conn &optional;	# associated ICMP "connection"
+		id: conn_id &optional;	# connection-ID, if we don't have a connection handy
+		src: addr &optional;	# source address, if we don't have a connection
+		dst: addr &optional;	# destination address
+		p: port &optional;	# associated port, if we don't have a conn.
 
-	user: string &optional;
+		n: count &optional;  # associated count, or perhaps status code
 
-	filename: string &optional;
+		# Automatically set attributes.
+		action: Notice::Action &default=NOTICE_UNKNOWN; # once action determined
+		#src_peer: event_peer &optional;	# source that raised this notice
+		#tag: string &optional;	# tag associated with this notice
+		#dropped: bool &optional &default=F; # true if src successfully dropped
 
-	method: string &optional;
-	URL: string &optional;
+		# If we asked the Time Machine to capture, the filename prefix.
+		#captured: string &optional;
 
-	n: count &optional;	# associated count, or perhaps status code
+		# If false, don't alarm independent of the determined notice action.
+		# If true, alarm dependening on notice action.
+		do_alarm: bool &default=T;
+	};
 
-	aux: table[string] of string &optional;	# further NOTICE-specific data
+	type PolicyItem: record {
+		result: Notice::Action &default=NOTICE_FILE;
+		pred: function(n: Notice::Info): bool;
+		priority: count &default=1;
+	};
+	
+	
+	# Variables the control email notification.
+	const mail_script = "/bin/mail" &redef;	# local system mail program
+	const mail_dest = "" &redef;	# email address to send mail to
+	const mail_page_dest = "bro-page" &redef;	# email address of pager
+	
+	# Do not generate notice_action events for these NOTICE types.
+	const suppress_notice_actions: set[Notice::Type] &redef; 
+	
+	# Hack to suppress duplicate notice_actions for remote notices.
+	global suppress_notice_action = F;
+	
+	
+	# This is the Notice::policy where the local notice conversion policy
+	# is set.
+	const policy: set[Notice::PolicyItem] = {
+		[$pred(n: Notice::Info) = { return T; },
+		 $result = NOTICE_ALARM_ALWAYS,
+		 $priority = 0],
+	} &redef;
+	
+	# Table that maps notices into a function that should be called
+	# to determine the action.
+	const action_filters:
+		table[Notice::Type] of
+			function(n: Notice::Info, a: Notice::Action): Notice::Action &redef;
+	
+	# This should have a high probability of being unique without
+	# generating overly long tags.  This is redef'able in case you need
+	# determinism in tags (such as for regression testing).
+	const notice_tag_prefix =
+		fmt("%x-%x-",
+		    double_to_count(time_to_double(current_time())) % 255,
+		    getpid()) &redef;
 
-	# Automatically set attributes.
-	action: NoticeAction &default=NOTICE_UNKNOWN; # once action determined
-	src_peer: event_peer &optional;	# source that raised this notice
-	tag: string &optional;	# tag associated with this notice
-	dropped: bool &optional &default=F; # true if src successfully dropped
+	# Likewise redef'able for regression testing.
+	const new_notice_tag = function(): string { return ""; } &redef;
 
-	# If we asked the Time Machine to capture, the filename prefix.
-	captured: string &optional;
+	# Function to add a unique NOTICE tag to a connection.  This is done
+	# automatically whenever a NOTICE is raised, but sometimes one might need
+	# to call this function in advance of that to ensure that the tag appears
+	# in the connection summaries (i.e., when connection_state_remove() can be
+	# raised before the NOTICE is generated.)
+	global tags: table[conn_id] of string;
 
-	# If false, don't alarm independent of the determined notice action.
-	# If true, alarm dependening on notice action.
-	do_alarm: bool &default=T;
-
-};
-
-type notice_policy_item: record {
-	result: NoticeAction &default=NOTICE_FILE;
-	pred: function(n: notice_info): bool;
-	priority: count &default=1;
-};
-
-global notice_policy: set[notice_policy_item] = {
-	[$pred(n: notice_info) = { return T; },
-	 $result = NOTICE_ALARM_ALWAYS,
-	 $priority = 0],
-} &redef;
-
-global NOTICE: function(n: notice_info);
-
-# Variables the control email notification.
-const mail_script = "/bin/mail" &redef;	# local system mail program
-const mail_dest = "" &redef;	# email address to send mail to
-const mail_page_dest = "bro-page" &redef;	# email address of pager
-
-
-# Table that maps notices into a function that should be called
-# to determine the action.
-global notice_action_filters:
-	table[Notice] of
-		function(n: notice_info, a: NoticeAction): NoticeAction &redef;
-
+	# These are implemented below
+	global email_notice_to: function(n: Notice::Info, dest: string) &redef;
+	global NOTICE: function(n: Notice::Info);
+	
+}
 
 # Each notice has a unique ID associated with it.
 global notice_id = 0;
+redef new_notice_tag = function(): string
+		{ return fmt("%s%x", notice_tag_prefix, ++notice_id); };
 
-# This should have a high probability of being unique without
-# generating overly long tags.  This is redef'able in case you need
-# determinism in tags (such as for regression testing).
-global notice_tag_prefix =
-		fmt("%x-%x-",
-			double_to_count(time_to_double(current_time())) % 255,
-			getpid())
-		&redef;
-
-# Likewise redef'able for regression testing.
-global new_notice_tag =
-	function(): string
-		{
-		return fmt("%s%x", notice_tag_prefix, ++notice_id);
-		}
-	&redef;
-
-# Function to add a unique NOTICE tag to a connection.  This is done
-# automatically whenever a NOTICE is raised, but sometimes one might need
-# to call this function in advance of that to ensure that the tag appears
-# in the connection summaries (i.e., when connection_state_remove() can be
-# raised before the NOTICE is generated.)
-global notice_tags: table[conn_id] of string;
+event bro_init()
+	{
+	Log::create_stream("NOTICE", "Notice::Info");
+	Log::add_default_filter("NOTICE");
+	}
 
 function add_notice_tag(c: connection): string
 	{
-	if ( c$id in notice_tags )
-		return notice_tags[c$id];
+	if ( c$id in tags )
+		return tags[c$id];
 
 	local tag_id = new_notice_tag();
 	append_addl(c, fmt("@%s", tag_id));
-	notice_tags[c$id] = tag_id;
+	tags[c$id] = tag_id;
 
 	return tag_id;
 	}
 
 event delete_notice_tags(c: connection)
 	{
-	delete notice_tags[c$id];
+	delete tags[c$id];
 	}
 
-event connection_state_remove(c: connection)
+event connection_state_remove(c: connection) &priority = -10
 	{
-	# We do not delete the tag right here because there may be other
-	# connection_state_remove handlers invoked after us which
-	# want to generate a notice.
-	schedule 1 secs { delete_notice_tags(c) };
+	event delete_notice_tags(c);
 	}
-
-const notice_file = open_log_file("notice") &redef;
 
 # This handler is useful for processing notices after the notice filters
-# have been applied and yielded an NoticeAction.
+# have been applied and yielded an Notice::Action.
 #
 # It's tempting to make the default handler do the logging and
 # printing to notice_file, rather than NOTICE.  I hesitate to do that,
@@ -148,133 +143,38 @@ const notice_file = open_log_file("notice") &redef;
 # in the absence of event priorities, the event would have to wait
 # behind any other already-queued events.
 
-event notice_action(n: notice_info, action: NoticeAction)
+event notice_action(n: Notice::Info, action: Notice::Action)
 	{
 	}
 
-# Do not generate notice_action events for these NOTICE types.
-global suppress_notice_actions: set[Notice] &redef; 
 
 # Similar to notice_action but only generated if the notice also
 # triggers an alarm.
-event notice_alarm(n: notice_info, action: NoticeAction)
+event notice_alarm(n: Notice::Info, action: Notice::Action)
 	{
 	}
 
-# Hack to suppress duplicate notice_actions for remote notices.
-global suppress_notice_action = F;
-
-function notice_info_tags(n: notice_info) : table[string] of string
+function notice_tags(n: Notice::Info) : table[string] of string
 	{
-	local tags: table[string] of string;
-
-	local t = is_remote_event() ? current_time() : network_time();
-	tags["t"] = fmt("%.06f", t);
-	tags["no"] = fmt("%s", n$note);
-	tags["na"] = fmt("%s", n$action);
-	tags["sa"] = n?$src ? fmt("%s", n$src) : "";
-	tags["sp"] = n?$id && n$id$orig_h == n$src ? fmt("%s", n$id$orig_p) : "";
-	tags["da"] = n?$dst ? fmt("%s", n$dst) : "";
-	tags["dp"] = n?$id && n$id$resp_h == n$dst ? fmt("%s", n$id$resp_p) : "";
-	tags["p"] = n?$p ? fmt("%s", n$p) : "";
-	tags["user"] = n?$user ? n$user : "";
-	tags["file"] = n?$filename ? n$filename : "";
-	tags["method"] =  n?$method ? n$method : "";
-	tags["url"] = n?$URL ? n$URL : "";
-	tags["num"] = n?$n ? fmt("%s", n$n) : "";
-	tags["msg"] = n?$msg ? n$msg : "";
-	tags["sub"] = n?$sub ? n$sub : "";
-	tags["captured"] = n?$captured ? n$captured : "";
-	tags["tag"] = fmt("@%s", n$tag);
-	tags["dropped"] = n$dropped ? "1" : "";
-
-	if ( n?$aux )
-		{
-		for ( a in n$aux )
-			tags[fmt("aux_%s", a)] = n$aux[a];
-		}
-
 	if ( is_remote_event() )
 		{
-		if ( n$src_peer$descr != "" )
-			tags["es"] = n$src_peer$descr;
-		else
-			tags["es"] = fmt("%s/%s", n$src_peer$host, n$src_peer$p);
+		#if ( n$src_peer$descr != "" )
+		#	{
+		#	#tags["es"] = n$src_peer$descr;
+		#	}
+		#else
+		#	{
+		#	#tags["es"] = fmt("%s/%s", n$src_peer$host, n$src_peer$p);
+		#	}
 		}
-
 	else
-		tags["es"] = peer_description;
-
-	return tags;
+		{
+		#tags["es"] = peer_description;
+		}
+	#return tags;
 	}
 
-function build_notice_info_string_untagged(n: notice_info) : string
-	{
-	# We add the fields in this order. Fields not listed won't be added.
-	local fields = vector("t", "no", "na", "es", "sa", "sp", "da", "dp", 
-		"user", "file", "method", "url", "num", "msg", "sub", "tag");
-
-	local tags = notice_info_tags(n);
-	local cur_info = "";
-
-	for ( i in fields )
-		{
-		local val = tags[fields[i]];
-		val = string_escape(val, ":");
-
-		if ( cur_info == "" )
-			cur_info = val;
-		else
-			cur_info = fmt("%s:%s", cur_info, val);
-		}
-
-	return cur_info;
-	}
-
-function build_notice_info_string_tagged(n: notice_info) : string
-	{
-	# We add the fields in this order. Fields not listed won't be added
-	# (except aux_*).
-	local fields = vector("t", "no", "na", "dropped", "es", "sa", "sp",
-			"da", "dp", "p", "user", "file", "method", "url",
-			"num", "msg", "sub", "captured", "tag");
-
-	local tags = notice_info_tags(n);
-	local cur_info = "";
-
-	for ( i in fields )
-		{
-		local val = tags[fields[i]];
-		local f = fields[i];
-
-		if ( val == "" )
-			next;
-
-		val = string_escape(val, "= ");
-
-		if ( cur_info == "" )
-			cur_info = fmt("%s=%s", f, val);
-		else
-			cur_info = fmt("%s %s=%s", cur_info, f, val);
-		}
-
-	for ( t in tags )
-		{
-		if ( t == /aux_.*/ )
-			{
-			if ( cur_info == "" )
-				cur_info = fmt("%s=%s", t, tags[t]);
-			else
-				cur_info = fmt("%s %s=%s", cur_info, t, tags[t]);
-			}
-		}
-
-	return cur_info;
-	}
-
-global email_notice_to: function(n: notice_info, dest: string) &redef;
-
-function email_notice_to(n: notice_info, dest: string)
+function email_notice_to(n: Notice::Info, dest: string)
 	{
 	if ( reading_traces() || dest == "" )
 		return;
@@ -288,27 +188,26 @@ function email_notice_to(n: notice_info, dest: string)
 	system(mail_cmd);
 	}
 
-function email_notice(n: notice_info, action: NoticeAction)
+function email_notice(n: Notice::Info, action: Notice::Action)
 	{
 	# Choose destination address based on action type.
-	local destination =
-		(action == NOTICE_EMAIL) ?  mail_dest : mail_page_dest;
-
-	email_notice_to(n, destination);
+	local dest = (action == NOTICE_EMAIL) ? mail_dest : mail_page_dest;
+	email_notice_to(n, dest);
 	}
 
 # Executes a script with all of the notice fields put into the
 # new process' environment as "BRO_ARG_<field>" variables.
-function execute_with_notice(cmd: string, n: notice_info)
+function execute_with_notice(cmd: string, n: Notice::Info)
 	{
-	local tags = notice_info_tags(n);
+	# TODO: fix system calls
+	#local tags = tags(n);
 	system_env(cmd, tags);
 	}
 
 # Can't load it at the beginning due to circular dependencies.
-@load drop
+#@load drop
 
-function NOTICE(n: notice_info)
+function NOTICE(n: Notice::Info)
 	{
 	# Fill in some defaults.
 	if ( ! n?$id && n?$conn )
@@ -327,72 +226,45 @@ function NOTICE(n: notice_info)
 	if ( ! n?$dst && n?$iconn )
 		n$dst = n$iconn$resp_h;
 
-	if ( ! n?$src_peer )
-		n$src_peer = get_event_peer();
+	#if ( ! n?$src_peer )
+	#	n$src_peer = get_event_peer();
 
-	if ( n?$conn )
-		n$tag = add_notice_tag(n$conn);
+	#if ( n?$conn )
+	#	n$tag = add_notice_tag(n$conn);
+	#if ( ! n?$tag )
+	#	n$tag = new_notice_tag();
 
-	if ( ! n?$tag )
-		n$tag = new_notice_tag();
+	local action = match n using policy;
 
-	local action = match n using notice_policy;
-
-	local n_id = "";
-
-	if ( action != NOTICE_IGNORE && action != NOTICE_FILE &&
-		n$note in notice_action_filters )
-		action = notice_action_filters[n$note](n, action);
+	if ( action != NOTICE_IGNORE && 
+	     action != NOTICE_FILE &&
+	     n$note in action_filters )
+		action = action_filters[n$note](n, action);
 
 	n$action = action;
 
 	if ( action == NOTICE_EMAIL || action == NOTICE_PAGE )
 		email_notice(n, action);
 
-	if ( action == NOTICE_DROP )
-		{
-		local drop = Drop::drop_address(n$src, "");
-		local addl = drop?$sub ? fmt(" %s", drop$sub) : "";
-		n$dropped = drop$note != Drop::AddressDropIgnored;
-		n$msg += fmt(" [%s%s]", drop$note, addl);
-		}
+#	if ( action == NOTICE_DROP )
+#		{
+#		local drop = Drop::drop_address(n$src, "");
+#		local addl = drop?$sub ? fmt(" %s", drop$sub) : "";
+#		n$dropped = drop$note != Drop::AddressDropIgnored;
+#		n$msg += fmt(" [%s%s]", drop$note, addl);
+#		}
 
 	if ( action != NOTICE_IGNORE )
 		{
 		# Build the info here after we had a chance to set the
 		# $dropped field.
-		local info: string;
-		if ( use_tagging )
-			info = build_notice_info_string_tagged(n);
-		else
-			info = build_notice_info_string_untagged(n);
-
-		print notice_file, info;
+		Log::write("NOTICE", n);
 
 		if ( action != NOTICE_FILE && n$do_alarm )
 			{
-			if ( use_tagging )
-				{
-				alarm info;
-				event notice_alarm(n, action);
-				}
-			else
-				{
-				local descr = "";
-				if ( is_remote_event() )
-					{
-					if ( n$src_peer$descr != "" )
-						descr = fmt("<%s> ",
-							n$src_peer$descr);
-					else
-						descr = fmt("<%s:%s> ",
-							n$src_peer$host,
-							n$src_peer$p);
-					}
-
-				alarm fmt("%s %s%s", n$note, descr, n$msg);
-				event notice_alarm(n, action);
-				}
+			# TODO: alarm may turn into a filter.
+			alarm n;
+			event notice_alarm(n, action);
 			}
 		}
 

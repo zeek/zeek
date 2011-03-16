@@ -17,7 +17,7 @@ export {
 	};
 	
 	type Info: record {
-		note: Notice::Type;
+		note: Type;
 		msg: string &default="";
 		sub: string &optional;	# sub-message
 
@@ -50,7 +50,6 @@ export {
 		priority: count &default=1;
 	};
 	
-	
 	# Variables the control email notification.
 	const mail_script = "/bin/mail" &redef;	# local system mail program
 	const mail_dest = "" &redef;	# email address to send mail to
@@ -61,7 +60,6 @@ export {
 	
 	# Hack to suppress duplicate notice_actions for remote notices.
 	global suppress_notice_action = F;
-	
 	
 	# This is the Notice::policy where the local notice conversion policy
 	# is set.
@@ -98,7 +96,6 @@ export {
 	# These are implemented below
 	global email_notice_to: function(n: Notice::Info, dest: string) &redef;
 	global notice: function(n: Notice::Info);
-	
 }
 
 # Each notice has a unique ID associated with it.

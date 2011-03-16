@@ -26,15 +26,16 @@ export {
 	};
 
 	type Type: enum {
-		UNKNOWN_SOFTWARE,
-		WEB_SERVER, 
+		UNKNOWN,
+		OPERATING_SYSTEM,
+		WEB_SERVER,
 		WEB_BROWSER,
-		MAIL_SERVER, 
+		WEB_BROWSER_PLUGIN,
+		WEB_APPLICATION,
+		MAIL_SERVER,
 		MAIL_CLIENT,
-		FTP_SERVER, 
+		FTP_SERVER,
 		FTP_CLIENT,
-		BROWSER_PLUGIN,
-		WEBAPP,
 		DATABASE_SERVER,
 		## There are a number of ways to detect printers on the network.
 		PRINTER,
@@ -47,14 +48,14 @@ export {
 		## The IP address detected running the software.
 		host:             addr &default=0.0.0.0;
 		## The type of software detected (e.g. WEB_SERVER)
-		software_type:    Type &default=UNKNOWN_SOFTWARE;
+		software_type:    Type &default=UNKNOWN;
 		## Name of the software (e.g. Apache)
-		name:             string;
+		name:             string &default="";
 		## Version of the software
 		version:          Version;
 		## The full unparsed version string found because the version parsing 
 		## doesn't work 100% reliably and this acts as a fall back in the logs.
-		unparsed_version: string;
+		unparsed_version: string &default="";
 	};
 	
 	## The hosts whose software should be logged.
@@ -81,7 +82,13 @@ export {
 	## This function can take many software version strings and parse them into 
 	## a sensible Software::Version record.  There are still many cases where
 	## scripts may have to have their own specific version parsing though.
-	global default_software_parsing: function(unparsed_version: string): Info;
+	global default_parse: function(unparsed_version: string,
+	                               host: addr,
+	                               software_type: Type): Info;
+	
+	## This function compares two versions for equivalency.
+	## @return: -1 if v1<v2, 1 if v1>v2, or 0 if the two versions are equivalent
+	global cmp_versions: function(v1: Version, v2: Version): int;
 	
 	## Index is the name of the software.
 	type SoftwareSet: table[string] of Info;
@@ -95,7 +102,9 @@ event bro_init()
 	Log::add_default_filter("SOFTWARE");
 	}
 
-function default_software_parsing(unparsed_version: string): Info
+function default_parse(unparsed_version: string,
+	                   host: addr,
+	                   software_type: Type): Info
 	{
 	local software_name = "";
 	local v: Version;
@@ -117,8 +126,9 @@ function default_software_parsing(unparsed_version: string): Info
 		if ( |version_numbers| >= 1 )
 			v$major = to_count(version_numbers[1]);
 		}
-	return [$ts=network_time(), $host=0.0.0.0, $name=software_name,
-	        $version=v, $unparsed_version=unparsed_version];
+	return [$ts=network_time(), $host=host, $name=software_name,
+	        $version=v, $unparsed_version=unparsed_version,
+	        $software_type=software_type];
 	}
 
 
@@ -126,7 +136,7 @@ function default_software_parsing(unparsed_version: string): Info
 #   Returns -1 for v1 < v2, 0 for v1 == v2, 1 for v1 > v2.
 #   If the numerical version numbers match, the addl string
 #   is compared lexicographically.
-function software_cmp_version(v1: Version, v2: Version): int
+function cmp_versions(v1: Version, v2: Version): int
 	{
 	if ( v1$major < v2$major )
 		return -1;
@@ -182,7 +192,7 @@ event software_register(c: connection, info: Info)
 		# Is it a potentially interesting version change 
 		# and is it a different version?
 		if ( info$name in interesting_version_changes &&
-		     software_cmp_version(old$version, info$version) != 0 )
+		     cmp_versions(old$version, info$version) != 0 )
 			{
 			local msg = fmt("%.6f %s switched from %s to %s (%s)",
 					network_time(), software_endpoint_name(c, info$host),

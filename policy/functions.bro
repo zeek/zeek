@@ -1,5 +1,6 @@
 @load site
 @load logging
+@load dpd
 
 # Returns true if the given string is at least 25% composed of 8-bit
 # characters.

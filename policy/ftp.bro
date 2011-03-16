@@ -11,7 +11,8 @@
 ##!    (e.g. cyberduck@example.net)
 
 @load functions
-@load notice.bro
+@load notice
+@load software
 @load ftp-lib
 
 module FTP;
@@ -24,10 +25,14 @@ redef enum Notice::Type += {
 
 export {
 	redef enum Log::ID += { FTP };
+	type LogTags: enum {
+		UNKNOWN
+	};
+	
 	type Log: record {
 		ts:               time;
 		id:               conn_id;
-		user:             string &default="";
+		user:             string &default="<unknown>";
 		password:         string &optional;
 		command:          string &default="";
 		arg:              string &default="";
@@ -36,27 +41,17 @@ export {
 		file_size:        count &default=0;
 		reply_code:       count &default=0;
 		reply_msg:        string &default="";
+		tags:             set[LogTags];
 	};
 	
 	type SessionInfo: record {
-		ts:                 time;
-		id:                 conn_id;
-		user:               string &default="<unknown>";
-		password:           string &optional;
+		log:                Log;
 		## By setting the CWD to '/.', we can indicate that unless something
-		## more concrete is discovered that the exiting but unknown 
+		## more concrete is discovered that the exiting but unknown
 		## directory is ok to use.
 		cwd:                string &default="/.";
 		command:            CmdArg &optional;
-		reply_code:         count &default=0;
-		reply_msg:          string &default="";
-		mime_type:          string &default="";
-		mime_desc:          string &default="";
-		file_size:          count &default=0;
 		pending_commands:   PendingCmds;
-		
-		log_it:             bool &default=F;    # if true, log the command/response
-		has_response:       bool &default=F;
 	};
 
 	type ExpectedConn: record {
@@ -64,10 +59,12 @@ export {
 		session: SessionInfo;
 	};
 	
+	## This record is to hold a parsed FTP reply code.  For example, for the 
+	## 201 status code, the digits would be parsed as: x->2, y->0, z=>1.
 	type ReplyCode: record {
-		x: count;	# high-order (3rd digit)
-		y: count;	# middle (2nd) digit
-		z: count;	# bottom digit
+		x: count;
+		y: count;
+		z: count;
 	};
 
 	# TODO: add this back in some form.  raise a notice again?
@@ -82,9 +79,6 @@ export {
 		"APPE", "DELE", "RETR", "STOR", "STOU", "CLNT", "ACCT"
 	} &redef;
 	
-	## These are the ports used as the default FTP ports for DPD.
-	const ports = { 21/tcp } &redef;
-	
 	## This tracks all of the currently established FTP control sessions.
 	global active_conns: table[conn_id] of SessionInfo &read_expire=5mins;
 	
@@ -93,6 +87,7 @@ export {
 global ftp_data_expected: table[addr, port] of ExpectedConn &create_expire=5mins;
 
 # Configure DPD
+const ports = { 21/tcp } &redef;
 redef capture_filters += { ["ftp"] = "port 21" };
 redef dpd_config += { [ANALYZER_FTP] = [$ports = ports] };
 
@@ -138,10 +133,10 @@ function new_ftp_session(c: connection)
 	local id = c$id;
 
 	local info: SessionInfo;
-	info$id = id;
+	local tags: set[LogTags] = set();
+	info$log = [$ts=network_time(), $id=c$id, $tags=tags];
 	local cmds: table[count] of CmdArg = table();
 	info$pending_commands = cmds;
-
 	# Add a shim command so the server can respond with some init response.
 	add_pending_cmd(info$pending_commands, "<init>", "");
 
@@ -150,37 +145,38 @@ function new_ftp_session(c: connection)
 
 function ftp_message(s: SessionInfo)
 	{
-	if ( s$log_it || s$command$cmd in logged_commands )
+	# If it either has a tag associated with it (something detected)
+	# or it's a deliberately logged command.
+	if ( |s$log$tags| > 0 || s$command$cmd in logged_commands )
 		{
 		local pass = "\\N";
-		if ( to_lower(s$user) in guest_ids && s?$password )
-			pass = s$password;
+		if ( to_lower(s$log$user) in guest_ids && s$log?$password )
+			pass = s$log$password;
 	
 		local arg = s$command$arg;
 		if ( s$command$cmd in file_cmds )
-			arg = fmt("ftp://%s%s", s$id$resp_h, absolute_path(s$cwd, arg));
+			arg = fmt("ftp://%s%s", s$log$id$resp_h, absolute_path(s$cwd, arg));
 		
-		Log::write("FTP", [$ts=s$command$ts, $id=s$id,
-		                   $user=s$user, $password=pass,
-		                   $command=s$command$cmd, $arg=arg,
-		                   $mime_type=s$mime_type, $mime_desc=s$mime_desc,
-		                   $file_size=s$file_size,
-		                   $reply_code=s$reply_code,
-		                   $reply_msg=s$reply_msg]);
+		s$log$ts=s$command$ts;
+		s$log$command=s$command$cmd;
+		s$log$arg=arg;
+		
+		# TODO: does the framework do this atomicly or do I need the copy?
+		Log::write("FTP", copy(s$log));
 		}
+	
 	# The MIME and file_size fields are specific to file transfer commands 
 	# and may not be used in all commands so they need reset to "blank" 
 	# values after logging.
 	# TODO: change these to blank or remove the field when moving to the new
 	#       logging framework
-	s$mime_type="\\N";
-	s$mime_desc="\\N";
-	s$file_size=0;
-	
-	s$log_it=F;
+	s$log$mime_type="\\N";
+	s$log$mime_desc="\\N";
+	s$log$file_size=0;
+	s$log$tags=set();
 	}
 
-event ftp_request(c: connection, command: string, arg: string)
+event ftp_request(c: connection, command: string, arg: string) &priority=1
 	{
 	# TODO: find out if this issue is fixed with DPD
 	# Command may contain garbage, e.g. if we're parsing something
@@ -197,21 +193,20 @@ event ftp_request(c: connection, command: string, arg: string)
 	# next command is issued or the control session ends.  In practicality
 	# this isn't an issue, but I suppose it could be a delay tactic for
 	# attackers.
-	if ( session?$command && session$has_response )
+	if ( session?$command && session$log$reply_code != 0 )
 		{
 		remove_pending_cmd(session$pending_commands, session$command);
 		ftp_message(session);
-		session$has_response=F;
 		}
 		
 	# Queue up the new command and argument
 	add_pending_cmd(session$pending_commands, command, arg);
 	
 	if ( command == "USER" )
-		session$user = arg;
+		session$log$user = arg;
 	
 	else if ( command == "PASS" )
-		session$password = arg;
+		session$log$password = arg;
 	
 	else if ( command == "PORT" || command == "EPRT" )
 		{
@@ -222,7 +217,6 @@ event ftp_request(c: connection, command: string, arg: string)
 			{
 			local expected = [$host=c$id$resp_h, $session=session];
 			ftp_data_expected[data$h, data$p] = expected;
-			print data;
 			expect_connection(id$resp_h, data$h, data$p, ANALYZER_FILE, 5mins);
 			}
 		else
@@ -233,7 +227,7 @@ event ftp_request(c: connection, command: string, arg: string)
 	}
 
 
-event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool)
+event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &priority=1
 	{
 	# TODO: figure out what to do with continued FTP response (not used much)
 	if ( cont_resp ) return;
@@ -245,9 +239,8 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool)
 	
 	session$command = get_pending_cmd(session$pending_commands, code, msg);
 
-	session$reply_code = code;
-	session$reply_msg = msg;
-	session$has_response = T;
+	session$log$reply_code = code;
+	session$log$reply_msg = msg;
 	
 	# TODO: do some sort of generic clear text login processing here.
 	local response_xyz = parse_ftp_reply_code(code);
@@ -259,7 +252,7 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool)
 		{
 		local parts = split_all(msg, /\([0-9]+[[:blank:]]+/);
 		if ( |parts| >= 3 )
-			session$file_size = to_count(gsub(parts[2], /[^0-9]/, ""));
+			session$log$file_size = to_count(gsub(parts[2], /[^0-9]/, ""));
 		}
 	else if ( code == 213 && session$command$cmd == "SIZE" )
 		{
@@ -267,7 +260,7 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool)
 		#       on a different file could be checked, but the file size will
 		#       be overwritten by the server response to the RETR command
 		#       if that's given as well which would be more correct.
-		session$file_size = to_count(msg);
+		session$log$file_size = to_count(msg);
 		}
 		
 	# If a successful SITE EXEC command is executed, raise a notice.
@@ -277,7 +270,7 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool)
 		{
 		NOTICE([$note=FTP_Site_Exec_Success, $conn=c,
 		        $msg=fmt("%s %s", session$command$cmd, session$command$arg)]);
-		}       
+		}
 
 	# PASV and EPSV processing
 	else if ( (code == 227 || code == 229) &&
@@ -323,7 +316,7 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool)
 	}
 
 # Use state remove event to cover connections terminated by RST.
-event connection_state_remove(c: connection)
+event connection_state_remove(c: connection) &priority=1
 	{
 	local id = c$id;
 	if ( id !in active_conns ) return;
@@ -340,7 +333,7 @@ event connection_state_remove(c: connection)
 	delete active_conns[id];
 	}
 	
-event expected_connection_seen(c: connection, a: count)
+event expected_connection_seen(c: connection, a: count) &priority=1
 	{
 	local id = c$id;
 	if ( [id$resp_h, id$resp_p] in ftp_data_expected )
@@ -348,16 +341,15 @@ event expected_connection_seen(c: connection, a: count)
 	}
 
 event file_transferred(c: connection, prefix: string, descr: string,
-			mime_type: string)
+			mime_type: string) &priority=1
 	{
-	print "saw a file transfer";
 	local id = c$id;
 	if ( [id$resp_h, id$resp_p] in ftp_data_expected )
 		{
 		local expected = ftp_data_expected[id$resp_h, id$resp_p];
 		local s = expected$session;
-		s$mime_type = mime_type;
-		s$mime_desc = descr;
+		s$log$mime_type = mime_type;
+		s$log$mime_desc = descr;
 		
 		# TODO: not sure if it's ok to delete this here, but it should
 		#       always be called since the file analyzer is always attached

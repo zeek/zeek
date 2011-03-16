@@ -103,7 +103,6 @@ event bro_init()
 	Log::add_default_filter("SSH");
 }
 
-
 event check_ssh_connection(c: connection, done: bool)
 	{
 	# If this is no longer a known SSH connection, just return.
@@ -245,8 +244,10 @@ event ssh_client_version(c: connection, version: string)
 		active_conns[c$id] = [$ts=c$start_time, $id=c$id];
 		schedule +15secs { ssh_watcher(c) };
 		}
-		
-	local si = Software::default_parse(version, c$id$orig_h, SSH_CLIENT);
+	
+	# Get rid of the protocol information when passing to the software framework.
+	local cleaned_version = sub(version, /^SSH[0-9\.\-]+/, "");
+	local si = Software::default_parse(cleaned_version, c$id$orig_h, SSH_CLIENT);
 	Software::found(c, si);
 	}
 
@@ -254,8 +255,10 @@ event ssh_server_version(c: connection, version: string)
 	{
 	if ( c$id in active_conns )
 		active_conns[c$id]$server = version;
-		
-	local si = Software::default_parse(version, c$id$resp_h, SSH_SERVER);
+	
+	# Get rid of the protocol information when passing to the software framework.
+	local cleaned_version = sub(version, /SSH[0-9\.\-]{2,}/, "");
+	local si = Software::default_parse(cleaned_version, c$id$resp_h, SSH_SERVER);
 	Software::found(c, si);
 	}
 

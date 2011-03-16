@@ -86,8 +86,10 @@ export {
 	                               host: addr,
 	                               software_type: Type): Info;
 	
-	## This function compares two versions for equivalency.
-	## @return: -1 if v1<v2, 1 if v1>v2, or 0 if the two versions are equivalent
+	## Compare two versions.
+	## @return:  Returns -1 for v1 < v2, 0 for v1 == v2, 1 for v1 > v2.
+	##           If the numerical version numbers match, the addl string
+	##           is compared lexicographically.
 	global cmp_versions: function(v1: Version, v2: Version): int;
 	
 	## Index is the name of the software.
@@ -106,18 +108,20 @@ function default_parse(unparsed_version: string,
 	                   host: addr,
 	                   software_type: Type): Info
 	{
-	local software_name = "";
+	local software_name = "<parse error>";
 	local v: Version;
 
 	# The regular expression should match the complete version number
-	# TODO: this needs tests written!
-	local version_parts = split_all(unparsed_version, /[0-9\-\._]{2,}/);
+	# and software name.
+	local version_parts = split_all(unparsed_version, /[0-9\/\-\._ ]{2,}/);
 	if ( |version_parts| >= 2 )
 		{
-		# Remove the name/version separator
-		software_name = sub(version_parts[1], /.$/, "");
-		local version_numbers = split_n(version_parts[2], /[\-\._[:blank:]]/, F, 4);
-		if ( |version_numbers| >= 4 )
+		software_name = version_parts[1];
+		# Remove the name/version separator because it's left at the begging
+		# of the version number from the previous split_all.
+		local sv = sub(version_parts[2], /^./, "");
+		local version_numbers = split_n(sv, /[\-\._, \[\(]/, F, 4);
+		if ( |version_numbers| > 3 )
 			v$addl = version_numbers[4];
 		if ( |version_numbers| >= 3 )
 			v$minor2 = to_count(version_numbers[3]);
@@ -132,10 +136,6 @@ function default_parse(unparsed_version: string,
 	}
 
 
-# Compare two versions.
-#   Returns -1 for v1 < v2, 0 for v1 == v2, 1 for v1 > v2.
-#   If the numerical version numbers match, the addl string
-#   is compared lexicographically.
 function cmp_versions(v1: Version, v2: Version): int
 	{
 	if ( v1$major < v2$major )

@@ -19,13 +19,14 @@ redef enum Notice::Type += {
 
 export {
 	type Version: record {
-		major:  count;   ##< Major version number
-		minor:  count;   ##< Minor version number
-		minor2: count;   ##< Minor subversion number
-		addl:   string;  ##< Additional version string (e.g. "beta42")
+		major:  count &default=0;    ##< Major version number
+		minor:  count &default=0;    ##< Minor version number
+		minor2: count &default=0;    ##< Minor subversion number
+		addl:   string &default="";  ##< Additional version string (e.g. "beta42")
 	};
 
 	type Type: enum {
+		UNKNOWN_SOFTWARE,
 		WEB_SERVER, 
 		WEB_BROWSER,
 		MAIL_SERVER, 
@@ -44,9 +45,9 @@ export {
 		## The time at which the software was first detected.
 		ts:               time;
 		## The IP address detected running the software.
-		host:             addr;
+		host:             addr &default=0.0.0.0;
 		## The type of software detected (e.g. WEB_SERVER)
-		software_type:    Type;
+		software_type:    Type &default=UNKNOWN_SOFTWARE;
 		## Name of the software (e.g. Apache)
 		name:             string;
 		## Version of the software
@@ -72,9 +73,15 @@ export {
 	} &redef;
 	
 	## Other scripts should call this function when they detect software.
-	## @param unparsed_version: This is the full string from which the Software::Info was extracted.
+	## @param unparsed_version: This is the full string from which the
+	##                          Software::Info was extracted.
 	## @return: T if the software was logged, F otherwise.
 	global found: function(c: connection, info: Software::Info): bool;
+	
+	## This function can take many software version strings and parse them into 
+	## a sensible Software::Version record.  There are still many cases where
+	## scripts may have to have their own specific version parsing though.
+	global default_software_parsing: function(unparsed_version: string): Info;
 	
 	## Index is the name of the software.
 	type SoftwareSet: table[string] of Info;
@@ -87,6 +94,33 @@ event bro_init()
 	Log::create_stream("SOFTWARE", "Software::Info");
 	Log::add_default_filter("SOFTWARE");
 	}
+
+function default_software_parsing(unparsed_version: string): Info
+	{
+	local software_name = "";
+	local v: Version;
+
+	# The regular expression should match the complete version number
+	# TODO: this needs tests written!
+	local version_parts = split_all(unparsed_version, /[0-9\-\._]{2,}/);
+	if ( |version_parts| >= 2 )
+		{
+		# Remove the name/version separator
+		software_name = sub(version_parts[1], /.$/, "");
+		local version_numbers = split_n(version_parts[2], /[\-\._[:blank:]]/, F, 4);
+		if ( |version_numbers| >= 4 )
+			v$addl = version_numbers[4];
+		if ( |version_numbers| >= 3 )
+			v$minor2 = to_count(version_numbers[3]);
+		if ( |version_numbers| >= 2 )
+			v$minor = to_count(version_numbers[2]);
+		if ( |version_numbers| >= 1 )
+			v$major = to_count(version_numbers[1]);
+		}
+	return [$ts=network_time(), $host=0.0.0.0, $name=software_name,
+	        $version=v, $unparsed_version=unparsed_version];
+	}
+
 
 # Compare two versions.
 #   Returns -1 for v1 < v2, 0 for v1 == v2, 1 for v1 > v2.

@@ -68,6 +68,7 @@ double processing_start_time = 0.0;	// time started working on current pkt
 double bro_start_time = 0.0; // time Bro started.
 double bro_start_network_time;	// timestamp of first packet
 double last_watchdog_proc_time = 0.0;	// value of above during last watchdog
+bool bro_deterministic_output = 0; 	// whether determistic output is desired
 bool terminating = false;	// whether we're done reading and finishing up
 
 PacketSortGlobalPQ* packet_sorter = 0;

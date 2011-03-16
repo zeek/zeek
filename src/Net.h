@@ -73,6 +73,10 @@ extern double bro_start_time;
 // i.e. the timestamp of the first packet.
 extern double bro_start_network_time;
 
+// True if determistic output is requested. This is set if the user specifies
+// a seed for the random number generator.
+extern bool bro_deterministic_output;
+
 // True if we're a in the process of cleaning-up just before termination.
 extern bool terminating;
 

@@ -352,7 +352,7 @@ char* uitoa_n(uint64 value, char* str, int n, int base)
 
     do {
 		str[i++] = dig[v % base];
-        v /= base;
+		v /= base;
 	} while ( v && i < n );
 
     str[i] = '\0';
@@ -798,7 +798,7 @@ const char* bro_path()
 	if ( ! path )
 		path = ".:"
 			POLICYDEST ":"
-			POLICYDEST "/sigs:" 
+			POLICYDEST "/sigs:"
 			POLICYDEST "/time-machine:"
 			POLICYDEST "/site";
 

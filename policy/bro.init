@@ -21,7 +21,6 @@ type conn_id: record {
 	orig_p: port;
 	resp_h: addr;
 	resp_p: port;
-	uid: string;
 };
 
 type icmp_conn: record {
@@ -93,6 +92,7 @@ type connection: record {
 	addl: string;
 	hot: count;		# how hot; 0 = don't know or not hot
 	history: string;
+	uid: string;
 };
 
 type SYN_packet: record {

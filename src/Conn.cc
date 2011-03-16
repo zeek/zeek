@@ -222,23 +222,34 @@ uint64 Connection::uid_instance = 0;
 
 uint64 Connection::CalculateUID()
 	{
-	if ( uid_instance == 0 ) 
+	if ( uid_instance == 0 )
 		{
-		// This is the first time we need a UID. Calculate the instance ID by
-		// hashing something likely to be unique.
-		struct {
-			char hostname[128];
-			struct timeval time;
-			pid_t pid;
-		} unique;
+		// This is the first time we need a UID.
+		if ( ! bro_deterministic_output )
+			{
+			// In live mode, with determistic output not explicitly
+			// requested, calculate the instance ID by hashing something
+			// likely to be unique.
+			struct {
+				char hostname[128];
+				struct timeval time;
+				pid_t pid;
+				int rnd;
+			} unique;
 
-		gethostname(unique.hostname, 128);
-		unique.hostname[sizeof(unique.hostname)-1] = '\0';
-		gettimeofday(&unique.time, 0);
-		unique.pid = getpid();
+			gethostname(unique.hostname, 128);
+			unique.hostname[sizeof(unique.hostname)-1] = '\0';
+			gettimeofday(&unique.time, 0);
+			unique.pid = getpid();
+			unique.rnd = random();
 
-		uid_instance = HashKey::HashBytes(&unique, sizeof(unique));
-		++uid_instance; // Now it's larger than zero.
+			uid_instance = HashKey::HashBytes(&unique, sizeof(unique));
+			++uid_instance; // Now it's larger than zero.
+			}
+
+		else
+			// Generate determistic UIDs.
+			uid_instance = 1;
 		}
 
 	// Now calculate the unique ID for this connection.
@@ -386,9 +397,6 @@ RecordVal* Connection::BuildConnVal()
 		id_val->Assign(2, new AddrVal(resp_addr));
 		id_val->Assign(3, new PortVal(ntohs(resp_port), prot_type));
 
-		char tmp[16];
-		id_val->Assign(4, new StringVal(uitoa_n(uid, tmp, sizeof(tmp), 62)));
-
 		conn_val->Assign(0, id_val);
 
 		orig_endp = new RecordVal(endpoint);
@@ -406,6 +414,9 @@ RecordVal* Connection::BuildConnVal()
 		conn_val->Assign(6, new StringVal(""));	// addl
 		conn_val->Assign(7, new Val(0, TYPE_COUNT));	// hot
 		conn_val->Assign(8, new StringVal(""));	// history
+
+		char tmp[16];
+		conn_val->Assign(9, new StringVal(uitoa_n(uid, tmp, sizeof(tmp), 62)));
 		}
 
 	if ( root_analyzer )

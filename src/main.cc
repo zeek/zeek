@@ -667,6 +667,8 @@ int main(int argc, char** argv)
 
 	bro_start_time = current_time(true);
 
+	bro_deterministic_output = (seed || seed_load_file);
+
 	init_random_seed(seed, seed_load_file, seed_save_file);
 	// DEBUG_MSG("HMAC key: %s\n", md5_digest_print(shared_hmac_md5_key));
 	init_hash_function();

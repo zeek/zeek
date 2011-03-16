@@ -151,7 +151,7 @@ function do_match(c: connection, r: rule): bool
 				return F;
 		}
 
-	if ( r$is_ftp && ! is_ftp_data_conn(c) )
+	if ( r$is_ftp && ! FTP::is_ftp_data_conn(c) )
 		return F;
 
 	return T;

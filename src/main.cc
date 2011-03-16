@@ -31,6 +31,7 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "Event.h"
 #include "File.h"
 #include "Logger.h"
+#include "LogMgr.h"
 #include "Net.h"
 #include "NetVar.h"
 #include "Var.h"
@@ -72,6 +73,7 @@ name_list prefixes;
 DNS_Mgr* dns_mgr;
 TimerMgr* timer_mgr;
 Logger* bro_logger;
+LogMgr* log_mgr;
 Func* alarm_hook = 0;
 Stmt* stmts;
 EventHandlerPtr bro_signal = 0;
@@ -194,6 +196,7 @@ void usage()
 	fprintf(stderr, "    $BROPATH                       | file search path (%s)\n", bro_path());
 	fprintf(stderr, "    $BRO_PREFIXES                  | prefix list (%s)\n", bro_prefixes());
 	fprintf(stderr, "    $BRO_DNS_FAKE                  | disable DNS lookups (%s)\n", bro_dns_fake());
+	fprintf(stderr, "    $BRO_SEED_FILE                 | file to load seeds from (not set)\n");
 
 	exit(1);
 	}
@@ -290,6 +293,7 @@ void terminate_bro()
 	delete conn_compressor;
 	delete remote_serializer;
 	delete dpm;
+	delete log_mgr;
 	}
 
 void termination_signal()
@@ -347,7 +351,7 @@ int main(int argc, char** argv)
 	char* bst_file = 0;
 	char* id_name = 0;
 	char* events_file = 0;
-	char* seed_load_file = 0;
+	char* seed_load_file = getenv("BRO_SEED_FILE");
 	char* seed_save_file = 0;
 	int seed = 0;
 	int dump_cfg = false;
@@ -725,7 +729,8 @@ int main(int argc, char** argv)
 
 	persistence_serializer = new PersistenceSerializer();
 	remote_serializer = new RemoteSerializer();
-	event_registry = new EventRegistry;
+	event_registry = new EventRegistry();
+	log_mgr = new LogMgr();
 
 	if ( events_file )
 		event_player = new EventPlayer(events_file);

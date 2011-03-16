@@ -31,6 +31,7 @@ typedef enum {
 	TYPE_FUNC,
 	TYPE_FILE,
 	TYPE_VECTOR,
+	TYPE_TYPE,
 	TYPE_ERROR
 #define NUM_TYPES (int(TYPE_ERROR) + 1)
 } TypeTag;
@@ -59,6 +60,7 @@ class ListExpr;
 class EnumType;
 class Serializer;
 class VectorType;
+class TypeType;
 
 const int DOES_NOT_MATCH_INDEX = 0;
 const int MATCHES_INDEX_SCALAR = 1;
@@ -151,6 +153,7 @@ public:
 		CHECK_TYPE_TAG(TYPE_SUBNET, "BroType::AsSubNetType");
 		return (const SubNetType*) this;
 		}
+
 	SubNetType* AsSubNetType()
 		{
 		CHECK_TYPE_TAG(TYPE_SUBNET, "BroType::AsSubNetType");
@@ -190,6 +193,18 @@ public:
 	        {
 		CHECK_TYPE_TAG(TYPE_VECTOR, "BroType::AsVectorType");
 		return (VectorType*) this;
+		}
+
+	const TypeType* AsTypeType() const
+	        {
+		CHECK_TYPE_TAG(TYPE_TYPE, "BroType::AsTypeType");
+		return (TypeType*) this;
+		}
+
+	TypeType* AsTypeType()
+	        {
+		CHECK_TYPE_TAG(TYPE_TYPE, "BroType::AsTypeType");
+		return (TypeType*) this;
 		}
 
 	int IsSet() const
@@ -359,6 +374,19 @@ protected:
 	ID* return_value;
 };
 
+class TypeType : public BroType {
+public:
+	TypeType(BroType* t) : BroType(TYPE_TYPE)	{ type = t->Ref(); }
+	~TypeType()	{ Unref(type); }
+
+	BroType* Type()	{ return type; }
+
+protected:
+	TypeType()	{}
+
+	BroType* type;
+};
+
 class TypeDecl {
 public:
 	TypeDecl(BroType* t, const char* i, attr_list* attrs = 0);
@@ -514,6 +542,9 @@ inline BroType* error_type()	{ return base_type(TYPE_ERROR); }
 // True if the two types are equivalent.  If is_init is true then the
 // test is done in the context of an initialization.
 extern int same_type(const BroType* t1, const BroType* t2, int is_init=0);
+
+// True if the two attribute lists are equivalent.
+extern int same_attrs(const Attributes* a1, const Attributes* a2);
 
 // Returns true if the record sub_rec can be promoted to the record
 // super_rec.

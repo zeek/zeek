@@ -25,6 +25,7 @@ enum DebugStream {
 	DBG_MAINLOOP,	// Main IOSource loop
 	DBG_DPD,	// Dynamic application detection framework
 	DBG_TM,	// Time-machine packet input via Brocolli
+	DBG_LOGGING,	// Logging streams
 
 	NUM_DBGS // Has to be last
 };

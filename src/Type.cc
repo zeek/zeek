@@ -27,6 +27,7 @@ const char* type_name(TypeTag t)
 		"func",
 		"file",
 		"vector",
+		"type",
 		"error",
 	};
 
@@ -95,6 +96,7 @@ BroType::BroType(TypeTag t, bool arg_base_type)
 	case TYPE_FUNC:
 	case TYPE_FILE:
 	case TYPE_VECTOR:
+	case TYPE_TYPE:
 		internal_tag = TYPE_INTERNAL_OTHER;
 		break;
 
@@ -1320,7 +1322,9 @@ static int is_init_compat(const BroType* t1, const BroType* t2)
 
 int same_type(const BroType* t1, const BroType* t2, int is_init)
 	{
-	if ( t1 == t2 )
+	if ( t1 == t2 ||
+	     t1->Tag() == TYPE_ANY ||
+	     t2->Tag() == TYPE_ANY )
 		return 1;
 
 	t1 = flatten_type(t1);
@@ -1447,10 +1451,24 @@ int same_type(const BroType* t1, const BroType* t2, int is_init)
 	case TYPE_FILE:
 		return same_type(t1->YieldType(), t2->YieldType(), is_init);
 
+	case TYPE_TYPE:
+		return same_type(t1, t2, is_init);
+
 	case TYPE_UNION:
 		error("union type in same_type()");
 	}
 	return 0;
+	}
+
+int same_attrs(const Attributes* a1, const Attributes* a2)
+	{
+	if ( ! a1 )
+		return (a2 == 0);
+
+	if ( a2 )
+		return 0;
+
+	return (*a1 == *a2);
 	}
 
 int record_promotion_compatible(const RecordType* /* super_rec */,
@@ -1524,6 +1542,7 @@ int is_assignable(BroType* t)
 	case TYPE_VECTOR:
 	case TYPE_FILE:
 	case TYPE_TABLE:
+	case TYPE_TYPE:
 		return 1;
 
 	case TYPE_VOID:

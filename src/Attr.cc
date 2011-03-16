@@ -219,7 +219,17 @@ void Attributes::CheckAttr(Attr* a)
 					Error("&default function type clash");
 				}
 			else
+				{
+				BroType* ytype = tt->YieldType();
+
+				// Table defaults may be promotable.
+				if ( atype->Tag() == TYPE_RECORD && ytype->Tag() == TYPE_RECORD &&
+					 record_promotion_compatible(atype->AsRecordType(), ytype->AsRecordType()) )
+					 // Ok.
+					 break;
+
 				Error("&default value has inconsistent type");
+				}
 			}
 		}
 		break;
@@ -325,6 +335,41 @@ void Attributes::CheckAttr(Attr* a)
 	default:
 		BadTag("Attributes::CheckAttr", attr_name(a->Tag()));
 	}
+	}
+
+bool Attributes::operator==(const Attributes& other) const
+	{
+	if ( ! attrs )
+		return other.attrs;
+
+	if ( ! other.attrs )
+		return false;
+
+	loop_over_list(*attrs, i)
+		{
+		Attr* a = (*attrs)[i];
+		Attr* o = other.FindAttr(a->Tag());
+
+		if ( ! o )
+			return false;
+
+		if ( ! (*a == *o) )
+			return false;
+		}
+
+	loop_over_list(*other.attrs, j)
+		{
+		Attr* o = (*other.attrs)[j];
+		Attr* a = FindAttr(o->Tag());
+
+		if ( ! a )
+			return false;
+
+		if ( ! (*a == *o) )
+			return false;
+		}
+
+	return true;
 	}
 
 bool Attributes::Serialize(SerialInfo* info) const

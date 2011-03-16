@@ -42,7 +42,7 @@
 %left '$' '[' ']' '(' ')' TOK_HAS_FIELD TOK_HAS_ATTR
 
 %type <str> TOK_ID TOK_PATTERN_TEXT single_pattern
-%type <id> local_id global_id event_id global_or_event_id resolve_id begin_func
+%type <id> local_id global_id def_global_id event_id global_or_event_id resolve_id begin_func
 %type <id_l> local_id_list
 %type <ic> init_class
 %type <expr> opt_init
@@ -102,6 +102,7 @@ Expr* bro_this = 0;
 int in_init = 0;
 bool in_debug = false;
 bool resolving_global_ID = false;
+bool defining_global_ID = false;
 
 ID* func_id = 0;
 EnumType *cur_enum_type = 0;
@@ -400,6 +401,12 @@ expr:
 				$$ = new RecordConstructorExpr($2);
 			else
 				$$ = $2;
+			}
+
+	|	'[' ']'
+			{
+			// We take this as an empty record constructor.
+			$$ = new RecordConstructorExpr(new ListExpr);
 			}
 
 
@@ -842,10 +849,10 @@ decl:
 	|	TOK_EXPORT '{' { is_export = true; } decl_list '}'
 			{ is_export = false; }
 
-	|	TOK_GLOBAL global_id opt_type init_class opt_init opt_attr ';'
+	|	TOK_GLOBAL def_global_id opt_type init_class opt_init opt_attr ';'
 			{ add_global($2, $3, $4, $5, $6, VAR_REGULAR); }
 
-	|	TOK_CONST global_id opt_type init_class opt_init opt_attr ';'
+	|	TOK_CONST def_global_id opt_type init_class opt_init opt_attr ';'
 			{ add_global($2, $3, $4, $5, $6, VAR_CONST); }
 
 	|	TOK_REDEF global_id opt_type init_class opt_init opt_attr ';'
@@ -855,7 +862,7 @@ decl:
 		'{' { parser_redef_enum($3); } enum_body '}' ';'
 			{ /* no action */ }
 
-	|	TOK_TYPE global_id ':' refined_type opt_attr ';'
+	|	TOK_TYPE def_global_id ':' refined_type opt_attr ';'
 			{
 			add_type($2, $4, $5, 0);
 			}
@@ -883,7 +890,7 @@ conditional:
 	;
 
 func_hdr:
-		TOK_FUNCTION global_id func_params
+		TOK_FUNCTION def_global_id func_params
 			{
 			begin_func($2, current_module.c_str(),
 				   FUNC_FLAVOR_FUNCTION, 0, $3);
@@ -1265,6 +1272,11 @@ global_id:
 		{ $$ = $2; }
 	;
 
+def_global_id:
+	{ defining_global_ID = 1; } global_id { defining_global_ID = 0; } 
+		{ $$ = $2; }
+	;
+
 event_id:
 	{ resolving_global_ID = 0; } global_or_event_id
 		{ $$ = $2; }
@@ -1275,7 +1287,7 @@ global_or_event_id:
 			{
 			set_location(@1);
 
-			$$ = lookup_ID($1, current_module.c_str(), false);
+			$$ = lookup_ID($1, current_module.c_str(), false, defining_global_ID);
 			if ( $$ )
 				{
 				if ( ! $$->IsGlobal() )

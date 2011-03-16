@@ -23,6 +23,11 @@ EventHandler::~EventHandler()
 	delete [] group;
 	}
 
+EventHandler::operator bool() const
+	{
+	return enabled && ((local && local->HasBodies()) || receivers.length());
+	}
+
 FuncType* EventHandler::FType()
 	{
 	if ( type )

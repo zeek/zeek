@@ -360,6 +360,24 @@ function cat%(...%): string
 	return new StringVal(s);
 	%}
 
+function record_type_to_vector%(rt: string%): string_vec
+	%{
+	VectorVal* result =
+		new VectorVal(internal_type("string_vec")->AsVectorType());
+
+	RecordType *type = internal_type(rt->CheckString())->AsRecordType();
+	if ( type )
+		{
+		for ( int i = 0; i < type->NumFields(); ++i )
+			{
+			StringVal* val = new StringVal(type->FieldName(i));
+			result->Assign(i+1, val, 0);
+			}
+		}
+	return result;
+	%}
+
+
 function cat_sep%(sep: string, def: string, ...%): string
 	%{
 	ODesc d;
@@ -2090,6 +2108,12 @@ function request_remote_sync%(p: event_peer, auth: bool%) : bool
 	return new Val(remote_serializer->RequestSync(id, auth), TYPE_BOOL);
 	%}
 
+function request_remote_logs%(p: event_peer%) : bool
+	%{
+	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
+	return new Val(remote_serializer->RequestLogs(id), TYPE_BOOL);
+	%}
+
 function set_accept_state%(p: event_peer, accept: bool%) : bool
 	%{
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
@@ -3023,7 +3047,7 @@ function lookup_location%(a: addr%) : geo_location
 #ifdef GEOIP_COUNTRY_EDITION_V6
 	if ( geoip_v6 && ! is_v4_addr(a) )
 		gir = GeoIP_record_by_ipnum_v6(geoip_v6, geoipv6_t(a));
-	else 
+	else
 #endif
 	if ( geoip && is_v4_addr(a) )
 		{
@@ -3111,7 +3135,7 @@ function lookup_asn%(a: addr%) : count
 			gir = GeoIP_name_by_ipnum_v6(geoip_asn, geoipv6_t(a));
 		else
 #endif
-		if ( is_v4_addr(a) ) 
+		if ( is_v4_addr(a) )
 			{
 			uint32 addr = to_v4_addr(a);
 			gir = GeoIP_name_by_ipnum(geoip_asn, ntohl(addr));
@@ -3123,7 +3147,7 @@ function lookup_asn%(a: addr%) : count
 
 	if ( gir )
 		{
-		// Move the pointer +2 so we don't return 
+		// Move the pointer +2 so we don't return
 		// the first two characters: "AS".
 		return new Val(atoi(gir+2), TYPE_COUNT);
 		}

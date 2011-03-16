@@ -277,6 +277,9 @@ type entropy_test_result: record {
 @load strings.bif.bro
 @load bro.bif.bro
 
+@load logging  # sic! Not logging.bif.
+@load logging-ascii
+
 global bro_alarm_file: file &redef;
 global alarm_hook: function(msg: string): bool &redef;
 global log_file_name: function(tag: string): string &redef;
@@ -1383,7 +1386,7 @@ const suppress_local_output = F &redef;
 
 # Holds the filename of the trace file given with -w (empty if none).
 const trace_output_file = "";
-  
+
 # If a trace file is given, dump *all* packets seen by Bro into it.
 # By default, Bro applies (very few) heuristics to reduce the volume.
 # A side effect of setting this to true is that we can write the
@@ -1431,7 +1434,6 @@ const dump_selected_source_packets = F &redef;
 # the connection is not rewritten; if false, the policy script can decide
 # whether to dump a particular connection by calling dump_packets_of_connection.
 #
-# NOTE: DO NOT SET THIS TO TRUE WHEN ANONYMIZING A TRACE! 
+# NOTE: DO NOT SET THIS TO TRUE WHEN ANONYMIZING A TRACE!
 # (TODO: this variable should be disabled when using '-A' option)
 const dump_original_packets_if_not_rewriting = F &redef;
-

@@ -30,6 +30,17 @@ global matched_software: table[string] of Software::Info = {
 		[$name="Firefox", $version=[$major=3,$minor=6,$minor2=7], $ts=ts],
 	["Firefox/4.0b9pre"] = 
 		[$name="Firefox", $version=[$major=4,$minor=0,$minor2=0,$addl="b9pre"], $ts=ts],
+	["Python-urllib/3.1"] = 
+		[$name="Python-urllib", $version=[$major=3,$minor=1,$minor2=0], $ts=ts],
+	["libwww-perl/5.820"] = 
+		[$name="libwww-perl", $version=[$major=5,$minor=820,$minor2=0], $ts=ts],
+	["Wget/1.9+cvs-stable (Red Hat modified)"] = 
+		[$name="Wget", $version=[$major=1,$minor=9,$minor2=0,$addl="+cvs"], $ts=ts],
+	["Wget/1.11.4 (Red Hat modified)"] = 
+		[$name="Wget", $version=[$major=1,$minor=11,$minor2=4,$addl="Red"], $ts=ts],
+	# This is currently broken due to the do_split bug.
+	#["curl/7.15.1 (i486-pc-linux-gnu) libcurl/7.15.1 OpenSSL/0.9.8a zlib/1.2.3 libidn/0.5.18"] =
+	#	[$name="curl", $version=[$major=7,$minor=15,$minor2=1], $ts=ts],
 };
 
 event bro_init()

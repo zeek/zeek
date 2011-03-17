@@ -180,7 +180,7 @@ function cmp_versions(v1: Version, v2: Version): int
 	else
 		{
 		if ( !v1?$minor && !v2?$minor )
-			return 0;
+			{ }
 		else
 			return -1;
 		}
@@ -195,9 +195,9 @@ function cmp_versions(v1: Version, v2: Version): int
 	else
 		{
 		if ( !v1?$minor2 && !v2?$minor2 )
-			{ return 0; }
+			{ }
 		else
-			{print "super WTF!"; return -1; }
+			return -1;
 		}
 	
 	if ( v1?$addl && v2?$addl )

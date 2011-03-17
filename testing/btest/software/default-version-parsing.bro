@@ -43,6 +43,8 @@ global matched_software: table[string] of Software::Info = {
 	#	[$name="curl", $version=[$major=7,$minor=15,$minor2=1], $host=0.0.0.0, $ts=ts],
 	["Apache"] = 
 		[$name="Apache", $host=0.0.0.0, $ts=ts],
+	["Zope/(Zope 2.7.8-final, python 2.3.5, darwin) ZServer/1.1 Plone/Unknown"] =
+		[$name="Zope/(Zope", $version=[$major=2,$minor=7,$minor2=8,$addl="final"], $host=0.0.0.0, $ts=ts],
 };
 
 event bro_init()

@@ -509,15 +509,7 @@ void builtin_run_time(const char* msg, BroObj* arg)
 
 #include "bro.bif.func_h"
 #include "logging.bif.func_h"
-
-#include "common-rw.bif.func_h"
-#include "finger-rw.bif.func_h"
-#include "ftp-rw.bif.func_h"
-#include "http-rw.bif.func_h"
-#include "ident-rw.bif.func_h"
-#include "smtp-rw.bif.func_h"
 #include "strings.bif.func_h"
-#include "dns-rw.bif.func_h"
 
 #include "bro.bif.func_def"
 #include "logging.bif.func_def"
@@ -533,15 +525,7 @@ void init_builtin_funcs()
 
 #include "bro.bif.func_init"
 #include "logging.bif.func_init"
-
-#include "common-rw.bif.func_init"
-#include "finger-rw.bif.func_init"
-#include "ftp-rw.bif.func_init"
-#include "http-rw.bif.func_init"
-#include "ident-rw.bif.func_init"
-#include "smtp-rw.bif.func_init"
 #include "strings.bif.func_init"
-#include "dns-rw.bif.func_init"
 
 	did_builtin_init = true;
 	}

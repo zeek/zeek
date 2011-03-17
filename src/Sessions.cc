@@ -661,13 +661,6 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 				record_packet, record_content,
 			        hdr, pkt, hdr_size);
 
-	// Override content record setting according to
-	// flags set by the policy script.
-	if ( BifConst::dump_original_packets_if_not_rewriting )
-		record_packet = record_content = 1;
-	if ( BifConst::dump_selected_source_packets )
-		record_packet = record_content = 0;
-
 	if ( f )
 		{
 		// Above we already recorded the fragment in its entirety.
@@ -675,7 +668,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		Remove(f);	// ###
 		}
 
-	else if ( record_packet && ! conn->RewritingTrace() )
+	else if ( record_packet )
 		{
 		if ( record_content )
 			dump_this_packet = 1;	// save the whole thing

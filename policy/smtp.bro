@@ -505,17 +505,6 @@ event connection_state_remove(c: connection)
 		}
 	}
 
-global rewrite_smtp_header_line:
-	function(c: connection, is_orig: bool,
-			session: smtp_session_info, line: string);
-
-function smtp_header_line(c: connection, is_orig: bool,
-				session: smtp_session_info, line: string)
-	{
-	if ( rewriting_smtp_trace )
-		rewrite_smtp_header_line(c, is_orig, session, line);
-	}
-
 function smtp_body_line(c: connection, is_orig: bool,
 			session: smtp_session_info, line: string)
 	{

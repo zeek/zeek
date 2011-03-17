@@ -23,7 +23,6 @@ class RuleHdrTest;
 class Specific_RE_Matcher;
 class TransportLayerAnalyzer;
 class RuleEndpointState;
-class Rewriter;
 
 typedef enum {
 	NUL_IN_LINE,
@@ -134,17 +133,6 @@ public:
 	Analyzer* FindAnalyzer(AnalyzerTag::Tag tag);	// find first in tree.
 
 	TransportProto ConnTransport() const { return proto; }
-
-	// If we are rewriting the trace of the connection, then we do
-	// not record original packets. We are rewriting if at least one,
-	// then the analyzer is rewriting.
-	int RewritingTrace();
-
-	// If we are rewriting trace, we need a handle to the rewriter.
-	// Returns 0 if not rewriting.  (Note that if multiple analyzers
-	// want to rewrite, only one of them is returned.  It's undefined
-	// which one.)
-	Rewriter* TraceRewriter() const;
 
 	// True if we should record subsequent packets (either headers or
 	// in their entirety, depending on record_contents).  We still

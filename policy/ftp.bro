@@ -348,12 +348,6 @@ event ftp_excessive_filename(session: ftp_session_info,
 	session$log_it = T;
 	}
 
-global ftp_request_rewrite: function(c: connection, session: ftp_session_info,
-					cmd_arg: ftp_cmd_arg);
-global ftp_reply_rewrite: function(c: connection, session: ftp_session_info,
-					code: count, msg: string,
-					cont_resp: bool, cmd_arg: ftp_cmd_arg);
-
 # Returns true if the given string is at least 25% composed of 8-bit
 # characters.
 function is_string_binary(s: string): bool
@@ -517,9 +511,6 @@ event ftp_request(c: connection, command: string, arg: string)
 				session$request = cat(session$request, ", ", request);
 			}
 		}
-
-	if ( rewriting_ftp_trace )
-		ftp_request_rewrite(c, session, cmd_arg);
 
 	if ( command in ftp_all_cmds )
 		{
@@ -759,11 +750,6 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool)
 			do_ftp_login(c, session);
 
 		do_ftp_reply(c, session, code, msg, cmd_arg$cmd, cmd_arg$arg);
-		}
-
-	if ( rewriting_ftp_trace )
-		{
-		ftp_reply_rewrite(c, session, code, msg, cont_resp, cmd_arg);
 		}
 
 	if ( ! cont_resp )

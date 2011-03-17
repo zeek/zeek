@@ -10,7 +10,6 @@
 #include "SMTP.h"
 #include "Event.h"
 #include "ContentLine.h"
-#include "TCP_Rewriter.h"
 
 #undef SMTP_CMD_DEF
 #define SMTP_CMD_DEF(cmd)	#cmd,
@@ -885,5 +884,3 @@ void SMTP_Analyzer::EndData()
 		mail = 0;
 		}
 	}
-
-#include "smtp-rw.bif.func_def"

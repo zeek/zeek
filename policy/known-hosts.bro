@@ -2,9 +2,9 @@
 
 module KnownHosts;
 
+redef enum Log::ID += { KNOWN_HOSTS };
+
 export {
-	redef enum Log::ID += { KNOWN_HOSTS };
-	
 	type Log: record {
 		ts:      time;
 		address: addr;
@@ -20,13 +20,15 @@ export {
 	
 	# Maintain the list of known hosts for 24 hours so that the existence
 	# of each individual address is logged each day.
-	global known_hosts: set[addr] &create_expire=1day;
+	global known_hosts: set[addr] &create_expire=1day &syncronized;
+	
+	global log_known_hosts: event(rec: Log);
 }
 
 event bro_init()
 	{
-	Log::create_stream("KNOWN_HOSTS", "KnownHosts::Log");
-	Log::add_default_filter("KNOWN_HOSTS");
+	Log::create_stream(KNOWN_HOSTS, [$columns=KnownHosts::Log, $ev=log_known_hosts]);
+	Log::add_default_filter(KNOWN_HOSTS);
 	}
 
 event connection_established(c: connection)
@@ -36,11 +38,11 @@ event connection_established(c: connection)
 	if ( id$orig_h !in known_hosts && addr_matches_hosts(id$orig_h, logging) )
 		{
 		add known_hosts[id$orig_h];
-		Log::write("KNOWN_HOSTS", [$ts=network_time(), $address=id$orig_h]);
+		Log::write(KNOWN_HOSTS, [$ts=network_time(), $address=id$orig_h]);
 		}
 	if ( id$resp_h !in known_hosts && addr_matches_hosts(id$resp_h, logging) )
 		{
 		add known_hosts[id$resp_h];
-		Log::write("KNOWN_HOSTS", [$ts=network_time(), $address=id$resp_h]);
+		Log::write(KNOWN_HOSTS, [$ts=network_time(), $address=id$resp_h]);
 		}
 	}

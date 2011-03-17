@@ -12,6 +12,8 @@ redef enum Notice::Type += {
 	SSH_Bytecount_Inconsistency,
 };
 
+redef enum Log::ID += { SSH };
+
 redef enum Software::Type += {
 	SSH_SERVER,
 	SSH_CLIENT,
@@ -22,8 +24,6 @@ redef capture_filters += { ["ssh"] = "tcp port 22" };
 redef dpd_config += { [ANALYZER_SSH] = [$ports = set(22/tcp)] };
 
 export {
-	# Create a new ID for our log stream
-	redef enum Log::ID += { SSH };
 	type Log: record {
 		ts:              time;
 		id:              conn_id;
@@ -86,6 +86,8 @@ export {
 
 	# The list of active SSH connections and the associated session info.
 	global active_conns: table[conn_id] of Log &read_expire=2mins;
+	
+	global log_ssh: event(rec: Log);
 }
 
 function local_filter(rec: record { id: conn_id; } ): bool
@@ -98,9 +100,9 @@ event bro_init()
 	# Create the stream.
 	# First argument is the ID for the stream.
 	# Second argument is the log record type.
-	Log::create_stream("SSH", "SSH::Log");
+	Log::create_stream(SSH, [$columns=SSH::Log, $ev=log_ssh]);
 	# Add a default filter that simply logs everything to "ssh.log" using the default writer.
-	Log::add_default_filter("SSH");
+	Log::add_default_filter(SSH);
 }
 
 event check_ssh_connection(c: connection, done: bool)
@@ -204,7 +206,7 @@ event check_ssh_connection(c: connection, done: bool)
 	ssh_log$direction = direction;
 	ssh_log$resp_size = c$resp$size;
 	
-	Log::write("SSH", ssh_log);
+	Log::write(SSH, ssh_log);
 
 	delete active_conns[c$id];
 	# Stop watching this connection, we don't care about it anymore.
@@ -247,7 +249,7 @@ event ssh_client_version(c: connection, version: string)
 	
 	# Get rid of the protocol information when passing to the software framework.
 	local cleaned_version = sub(version, /^SSH[0-9\.\-]+/, "");
-	local si = Software::default_parse(cleaned_version, c$id$orig_h, SSH_CLIENT);
+	local si = Software::parse(cleaned_version, c$id$orig_h, SSH_CLIENT);
 	Software::found(c, si);
 	}
 
@@ -258,7 +260,7 @@ event ssh_server_version(c: connection, version: string)
 	
 	# Get rid of the protocol information when passing to the software framework.
 	local cleaned_version = sub(version, /SSH[0-9\.\-]{2,}/, "");
-	local si = Software::default_parse(cleaned_version, c$id$resp_h, SSH_SERVER);
+	local si = Software::parse(cleaned_version, c$id$resp_h, SSH_SERVER);
 	Software::found(c, si);
 	}
 

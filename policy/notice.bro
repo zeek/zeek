@@ -2,6 +2,10 @@
 
 module Notice;
 
+## This couldn't be named NOTICE because that name is already used by the
+## global function NOTICE().
+redef enum Log::ID += { NOTICE_LOG };
+
 export {
 	type Type: enum {
 		NoticeNone,   # placeholder
@@ -96,6 +100,8 @@ export {
 	# These are implemented below
 	global email_notice_to: function(n: Notice::Info, dest: string) &redef;
 	global notice: function(n: Notice::Info);
+	
+	global log_notice: event(rec: Info);
 }
 
 # Each notice has a unique ID associated with it.
@@ -105,8 +111,8 @@ redef new_notice_tag = function(): string
 
 event bro_init()
 	{
-	Log::create_stream("NOTICE", "Notice::Info");
-	Log::add_default_filter("NOTICE");
+	Log::create_stream(NOTICE_LOG, [$columns=Notice::Info, $ev=log_notice]);
+	Log::add_default_filter(NOTICE_LOG);
 	}
 
 function add_notice_tag(c: connection): string
@@ -255,7 +261,7 @@ function NOTICE(n: Notice::Info)
 		{
 		# Build the info here after we had a chance to set the
 		# $dropped field.
-		Log::write("NOTICE", n);
+		Log::write(NOTICE_LOG, n);
 
 		if ( action != NOTICE_FILE && n$do_alarm )
 			{

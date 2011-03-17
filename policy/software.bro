@@ -17,12 +17,14 @@ redef enum Notice::Type += {
 	Software_Version_Change,
 };
 
+redef enum Log::ID += { SOFTWARE };
+
 export {
 	type Version: record {
-		major:  count &default=0;    ##< Major version number
-		minor:  count &default=0;    ##< Minor version number
-		minor2: count &default=0;    ##< Minor subversion number
-		addl:   string &default="";  ##< Additional version string (e.g. "beta42")
+		major:  count &optional;    ##< Major version number
+		minor:  count &optional;    ##< Minor version number
+		minor2: count &optional;    ##< Minor subversion number
+		addl:   string &optional;  ##< Additional version string (e.g. "beta42")
 	};
 
 	type Type: enum {
@@ -38,21 +40,20 @@ export {
 		PRINTER,
 	};
 
-	redef enum Log::ID += { SOFTWARE };
 	type Info: record {
 		## The time at which the software was first detected.
 		ts:               time;
 		## The IP address detected running the software.
-		host:             addr &default=0.0.0.0;
+		host:             addr;
 		## The type of software detected (e.g. WEB_SERVER)
 		software_type:    Type &default=UNKNOWN;
 		## Name of the software (e.g. Apache)
-		name:             string &default="";
+		name:             string;
 		## Version of the software
 		version:          Version;
 		## The full unparsed version string found because the version parsing 
 		## doesn't work 100% reliably and this acts as a fall back in the logs.
-		unparsed_version: string &default="";
+		unparsed_version: string &optional;
 	};
 	
 	## The hosts whose software should be logged.
@@ -79,7 +80,7 @@ export {
 	## This function can take many software version strings and parse them into 
 	## a sensible Software::Version record.  There are still many cases where
 	## scripts may have to have their own specific version parsing though.
-	global default_parse: function(unparsed_version: string,
+	global parse: function(unparsed_version: string,
 	                               host: addr,
 	                               software_type: Type): Info;
 	
@@ -93,19 +94,21 @@ export {
 	type SoftwareSet: table[string] of Info;
 	# The set of software associated with an address.
 	global tracked_software: table[addr] of SoftwareSet &create_expire=1day &synchronized;
+	
+	global log_software: event(rec: Info);
 }
 
 event bro_init()
 	{
-	Log::create_stream("SOFTWARE", "Software::Info");
-	Log::add_default_filter("SOFTWARE");
+	Log::create_stream(SOFTWARE, [$columns=Software::Info, $ev=log_software]);
+	Log::add_default_filter(SOFTWARE);
 	}
 
 # Don't even try to understand this now, just make sure the tests are 
 # working.
-function default_parse(unparsed_version: string,
-	                   host: addr,
-	                   software_type: Type): Info
+function parse(unparsed_version: string,
+	           host: addr,
+	           software_type: Type): Info
 	{
 	local software_name = "<parse error>";
 	local v: Version;
@@ -113,30 +116,29 @@ function default_parse(unparsed_version: string,
 	# The regular expression should match the complete version number
 	# and software name.
 	local version_parts = split_n(unparsed_version, /[0-9\/\-\._ ]{2,}/, T, 1);
+	if ( 1 in version_parts )
+		software_name = version_parts[1];
 	if ( |version_parts| >= 2 )
 		{
-		software_name = version_parts[1];
 		# Remove the name/version separator because it's left at the begining
 		# of the version number from the previous split_all.
 		local sv = version_parts[2];
 		if ( /^[\/\-\._ ]/ in sv )
 		 	sv = sub(version_parts[2], /^[\/\-\._ ]/, "");
 		local version_numbers = split_n(sv, /[\-\._,\[\(\{ ]/, F, 4);
-		local addl = "";
 		if ( 4 in version_numbers && version_numbers[4] != "" )
-			addl = version_numbers[4];
+			v$addl = version_numbers[4];
 		else if ( 3 in version_parts && version_parts[3] != "" )
 			{
 			# TODO: there's a bug with do_split!
 			local vp = split_n(version_parts[3], /[\-\._,\[\]\(\)\{\} ]/, F, 2);
 			if ( |vp| >= 1 && vp[1] != "" )
-				addl = vp[1];
-			else if ( |vp| >= 2 )
-				addl = vp[2];
+				v$addl = vp[1];
+			else if ( |vp| >= 2 && vp[2] != "" )
+				v$addl = vp[2];
 			else
-				addl = version_parts[3];
+				v$addl = version_parts[3];
 			}
-		v$addl = addl;
 		
 		if ( |version_numbers| >= 3 )
 			v$minor2 = to_count(version_numbers[3]);
@@ -153,22 +155,60 @@ function default_parse(unparsed_version: string,
 
 function cmp_versions(v1: Version, v2: Version): int
 	{
-	if ( v1$major < v2$major )
-		return -1;
-	if ( v1$major > v2$major )
-		return 1;
-
-	if ( v1$minor < v2$minor )
-		return -1;
-	if ( v1$minor > v2$minor )
-		return 1;
-
-	if ( v1$minor2 < v2$minor2 )
-		return -1;
-	if ( v1$minor2 > v2$minor2 )
-		return 1;
-
-	return strcmp(v1$addl, v2$addl);
+	if ( v1?$major && v2?$major )
+		{
+		if ( v1$major < v2$major )
+			return -1;
+		if ( v1$major > v2$major )
+			return 1;
+		}
+	else
+		{
+		if ( !v1?$major && !v2?$major )
+			return 0;
+		else
+			return -1;
+		}
+		
+	if ( v1?$minor && v2?$minor )
+		{
+		if ( v1$minor < v2$minor )
+			return -1;
+		if ( v1$minor > v2$minor )
+			return 1;
+		}
+	else
+		{
+		if ( !v1?$minor && !v2?$minor )
+			return 0;
+		else
+			return -1;
+		}
+		
+	if ( v1?$minor2 && v2?$minor2 )
+		{
+		if ( v1$minor2 < v2$minor2 )
+			return -1;
+		if ( v1$minor2 > v2$minor2 )
+			return 1;
+		}
+	else
+		{
+		if ( !v1?$minor2 && !v2?$minor2 )
+			{ return 0; }
+		else
+			{print "super WTF!"; return -1; }
+		}
+	
+	if ( v1?$addl && v2?$addl )
+		return strcmp(v1$addl, v2$addl);
+	else
+		{
+		if ( !v1?$minor2 && !v2?$minor2 )
+			return 0;
+		else
+			return -1;
+		}
 	}
 
 function software_endpoint_name(c: connection, host: addr): string
@@ -225,7 +265,7 @@ event software_register(c: connection, info: Info)
 			}
 		}
 		
-	Log::write("SOFTWARE", info);
+	Log::write(SOFTWARE, info);
 	ts[info$name] = info;
 	}
 

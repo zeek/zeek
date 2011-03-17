@@ -36,12 +36,14 @@ export {
 	# This is where users can get access to the active Log record for a
 	# connection so they can extend and enhance the logged data.
 	global active_conns: table[conn_id] of Log;
+	
+	global log_conn: event(rec: Log);
 }
 
 event bro_init()
 	{
-	Log::create_stream("CONN", "Conn::Log");
-	Log::add_default_filter("CONN");
+	Log::create_stream(CONN, [$columns=Conn::Log, $ev=log_conn]);
+	Log::add_default_filter(CONN);
 	}
 
 function conn_state(c: connection, trans: transport_proto): string
@@ -143,7 +145,7 @@ event connection_established(c: connection) &priority = 10
 event connection_state_remove(c: connection) &priority = -10
 	{
 	local conn_log = get_conn_log(c);
-	Log::write("CONN", conn_log);
+	Log::write(CONN, conn_log);
 	
 	if ( c$id in active_conns )
 		delete active_conns[c$id];

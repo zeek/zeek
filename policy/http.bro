@@ -8,12 +8,13 @@
 
 module HTTP;
 
-redef enum Log::ID += { HTTP };
 redef enum Software::Type += {
 	WEB_SERVER,
 	WEB_BROWSER,
 	WEB_BROWSER_PLUGIN,
 };
+
+redef enum Log::ID += { HTTP };
 
 export {
 	type LogTags: enum {
@@ -113,12 +114,13 @@ export {
 	## List of all active HTTP session indexed by conn_id.
 	global active_conns: table[conn_id] of SessionInfo &read_expire=5mins;
 	
+	global log_http: event(rec: Log);
 }
 
 event bro_init()
 	{
-	Log::create_stream("HTTP", "HTTP::Log");
-	Log::add_default_filter("HTTP");
+	Log::create_stream(HTTP, [$columns=HTTP::Log, $ev=log_http]);
+	Log::add_default_filter(HTTP);
 	}
 
 # DPD configuration.
@@ -137,11 +139,7 @@ function new_http_log(id: conn_id): Log
 	{
 	local tags: set[LogTags] = set();
 	local proxied: set[string] = set();
-	local log: Log = [$ts=network_time(), $id=id, $tags=tags, $proxied=proxied,
-	# TODO: some bug with record default initialization
-	$user_agent="", $request_body_size=0, $response_body_size=0, $status_code=0, $status_msg="", $username="", $password="", $referrer="", $host=""
-	];
-	return log;
+	return [$ts=network_time(), $id=id, $tags=tags, $proxied=proxied];
 	}
 
 function get_http_session(id: conn_id): SessionInfo
@@ -250,7 +248,7 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 		{
 		if ( name == "SERVER" )
 			{
-			local si = Software::default_parse(value, c$id$resp_h, WEB_SERVER);
+			local si = Software::parse(value, c$id$resp_h, WEB_SERVER);
 			Software::found(c, si);
 			}
 		else if ( name == "CONTENT-LENGTH" )
@@ -264,10 +262,10 @@ event http_begin_entity(c: connection, is_orig: bool) &priority=1
 	
 	if ( is_orig )
 		if ( sess$log_point == AFTER_REQUEST ) 
-			Log::write("HTTP", sess$log);
+			Log::write(HTTP, sess$log);
 	else
 		if ( sess$log_point == AFTER_REQUEST ) 
-			Log::write("HTTP", sess$log);
+			Log::write(HTTP, sess$log);
 	}
 	
 event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &priority=1
@@ -276,10 +274,10 @@ event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &
 	
 	if ( is_orig )
 		if ( sess$log_point == AFTER_REQUEST_BODY ) 
-			Log::write("HTTP", sess$log);
+			Log::write(HTTP, sess$log);
 	else
 		if ( sess$log_point == AFTER_REPLY_BODY ) 
-			Log::write("HTTP", sess$log);
+			Log::write(HTTP, sess$log);
 		
 	}
 	

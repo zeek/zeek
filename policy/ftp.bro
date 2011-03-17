@@ -23,8 +23,15 @@ redef enum Notice::Type += {
 	FTP_Site_Exec_Success,
 };
 
+redef enum Log::ID += { FTP };
+
+# Configure DPD
+const ports = { 21/tcp } &redef;
+redef capture_filters += { ["ftp"] = "port 21" };
+redef dpd_config += { [ANALYZER_FTP] = [$ports = ports] };
+
+
 export {
-	redef enum Log::ID += { FTP };
 	type LogTags: enum {
 		UNKNOWN
 	};
@@ -47,7 +54,7 @@ export {
 	type SessionInfo: record {
 		log:                Log;
 		## By setting the CWD to '/.', we can indicate that unless something
-		## more concrete is discovered that the exiting but unknown
+		## more concrete is discovered that the existing but unknown
 		## directory is ok to use.
 		cwd:                string &default="/.";
 		command:            CmdArg &optional;
@@ -82,19 +89,15 @@ export {
 	## This tracks all of the currently established FTP control sessions.
 	global active_conns: table[conn_id] of SessionInfo &read_expire=5mins;
 	
+	global log_ftp: event(rec: Log);
 }
 
 global ftp_data_expected: table[addr, port] of ExpectedConn &create_expire=5mins;
 
-# Configure DPD
-const ports = { 21/tcp } &redef;
-redef capture_filters += { ["ftp"] = "port 21" };
-redef dpd_config += { [ANALYZER_FTP] = [$ports = ports] };
-
 event bro_init()
 	{
-	Log::create_stream("FTP", "FTP::Log");
-	Log::add_default_filter("FTP");
+	Log::create_stream(FTP, [$columns=FTP::Log, $ev=log_ftp]);
+	Log::add_default_filter(FTP);
 	}
 
 # A set of commands where the argument can be expected to refer
@@ -128,7 +131,7 @@ function parse_ftp_reply_code(code: count): ReplyCode
 	return a;
 	}
 
-function new_ftp_session(c: connection)
+function get_ftp_session(c: connection): SessionInfo
 	{
 	local id = c$id;
 
@@ -141,13 +144,14 @@ function new_ftp_session(c: connection)
 	add_pending_cmd(info$pending_commands, "<init>", "");
 
 	active_conns[id] = info;
+	return info;
 	}
 
 function ftp_message(s: SessionInfo)
 	{
 	# If it either has a tag associated with it (something detected)
 	# or it's a deliberately logged command.
-	if ( |s$log$tags| > 0 || s$command$cmd in logged_commands )
+	if ( |s$log$tags| > 0 || (s?$command && s$command$cmd in logged_commands) )
 		{
 		local pass = "\\N";
 		if ( to_lower(s$log$user) in guest_ids && s$log?$password )
@@ -162,7 +166,7 @@ function ftp_message(s: SessionInfo)
 		s$log$arg=arg;
 		
 		# TODO: does the framework do this atomicly or do I need the copy?
-		Log::write("FTP", copy(s$log));
+		Log::write(FTP, copy(s$log));
 		}
 	
 	# The MIME and file_size fields are specific to file transfer commands 
@@ -184,9 +188,7 @@ event ftp_request(c: connection, command: string, arg: string) &priority=1
 	#if ( is_string_binary(command) ) return;
 
 	local id = c$id;
-	if ( id !in active_conns )
-		new_ftp_session(c);
-	local session = active_conns[id];
+	local session = get_ftp_session(c);
 
 	# Log the previous command when a new command is seen.
 	# The downside here is that commands definitely aren't logged until the
@@ -233,9 +235,7 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &prior
 	if ( cont_resp ) return;
 	
 	local id = c$id;
-	if ( id !in active_conns )
-		new_ftp_session(c);
-	local session = active_conns[id];
+	local session = get_ftp_session(c);
 	
 	session$command = get_pending_cmd(session$pending_commands, code, msg);
 
@@ -247,6 +247,8 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &prior
 	#if ( response_xyz$x == 2 &&  # successful
 	#     session$command$cmd == "PASS" )
 	#	do_ftp_login(c, session);
+	if ( session$command$cmd == "PASS" )
+		print fmt("Woo: %s %s", session$log$user, session$log$password);
 
 	if ( code == 150 && session$command$cmd == "RETR" )
 		{
@@ -333,27 +335,27 @@ event connection_state_remove(c: connection) &priority=1
 	delete active_conns[id];
 	}
 	
-event expected_connection_seen(c: connection, a: count) &priority=1
-	{
-	local id = c$id;
-	if ( [id$resp_h, id$resp_p] in ftp_data_expected )
-		add c$service["ftp-data"];
-	}
+#event expected_connection_seen(c: connection, a: count) &priority=1
+#	{
+#	local id = c$id;
+#	if ( [id$resp_h, id$resp_p] in ftp_data_expected )
+#		add c$service["ftp-data"];
+#	}
 
-event file_transferred(c: connection, prefix: string, descr: string,
-			mime_type: string) &priority=1
-	{
-	local id = c$id;
-	if ( [id$resp_h, id$resp_p] in ftp_data_expected )
-		{
-		local expected = ftp_data_expected[id$resp_h, id$resp_p];
-		local s = expected$session;
-		s$log$mime_type = mime_type;
-		s$log$mime_desc = descr;
-		
-		# TODO: not sure if it's ok to delete this here, but it should
-		#       always be called since the file analyzer is always attached
-		#       to ftp-data sessions.
-		delete ftp_data_expected[id$resp_h, id$resp_p];
-		}
-	}
+#event file_transferred(c: connection, prefix: string, descr: string,
+#			mime_type: string) &priority=1
+#	{
+#	local id = c$id;
+#	if ( [id$resp_h, id$resp_p] in ftp_data_expected )
+#		{
+#		local expected = ftp_data_expected[id$resp_h, id$resp_p];
+#		local s = expected$session;
+#		s$log$mime_type = mime_type;
+#		s$log$mime_desc = descr;
+#		
+#		# TODO: not sure if it's ok to delete this here, but it should
+#		#       always be called since the file analyzer is always attached
+#		#       to ftp-data sessions.
+#		delete ftp_data_expected[id$resp_h, id$resp_p];
+#		}
+#	}

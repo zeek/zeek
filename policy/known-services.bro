@@ -5,7 +5,7 @@ module KnownServices;
 redef enum Log::ID += { KNOWN_SERVICES };
 
 export {
-	type LogPoints: enum { 
+	type LogPoint: enum { 
 		AFTER_PROTOCOL_DETECTION,
 		AT_CONNECTION_END,
 	};
@@ -16,9 +16,12 @@ export {
 		port_num:       port;
 		port_proto:     transport_proto;
 		service:        set[string];
-		log_point:      LogPoints;
 	};
 	
+	type Info: record {
+		log:       Log;
+		log_point: LogPoint;
+	};
 	
 	# The hosts whose services should be logged.
 	const logged_hosts = LocalHosts &redef;
@@ -31,21 +34,13 @@ export {
 }
 
 # The temporary holding place for new, unknown services.
-global established_conns: table[addr, port] of Log &create_expire=1day &redef;
+global established_conns: table[addr, port] of Info &read_expire=1hour &redef;
 
 event bro_init()
 	{
 	Log::create_stream(KNOWN_SERVICES, [$columns=KnownServices::Log, 
 	                                    $ev=log_known_services]);
 	Log::add_default_filter(KNOWN_SERVICES);
-	}
-
-event connection_established(c: connection)
-	{
-	local id = c$id;
-	if ( [id$resp_h, id$resp_p] !in established_conns && 
-	     addr_matches_hosts(id$resp_h, logged_hosts) )
-		add established_conns[id$resp_h, id$resp_p];
 	}
 	
 function known_services_done(c: connection)
@@ -56,23 +51,37 @@ function known_services_done(c: connection)
 	     "ftp-data" !in c$service ) # don't include ftp data sessions
 		{
 		add known_services[id$resp_h, id$resp_p];
-		Log::write(KNOWN_SERVICES, [$ts=c$start_time, 
-		                            $host=id$resp_h, 
-		                            $port_num=id$resp_p, 
-		                            $port_proto=get_port_transport_proto(id$resp_p),
-		                            $service=c$service] );
+		local log = established_conns[id$resp_h, id$resp_p]$log;
+		log$service=c$service;
+		Log::write(KNOWN_SERVICES, log);
+		}
+	
+	if ( [id$resp_h, id$resp_p] in established_conns )
+		delete established_conns[id$resp_h, id$resp_p];
+	}
+
+event connection_established(c: connection) &priority=1
+	{
+	local id = c$id;
+	if ( [id$resp_h, id$resp_p] !in established_conns && 
+	     addr_matches_hosts(id$resp_h, logged_hosts) )
+		{
+		local service_set: set[string] = set();
+		local l: Log = [$ts=c$start_time,
+		                $host=id$resp_h,
+		                $port_num=id$resp_p,
+		                $port_proto=get_port_transport_proto(id$resp_p),
+		                $service=service_set];
+		established_conns[id$resp_h, id$resp_p] = [$log=l, $log_point=default_log_point];
 		}
 	}
 	
-event connection_established(c: connection)
-	{
-	
-	}
-	
-# Log the event after protocol detection if 
 event protocol_confirmation(c: connection, atype: count, aid: count) &priority=-10
 	{
-	local l = established_conns[c$id$resp, c$id$resp_p];
+	if ( [c$id$resp_h, c$id$resp_p] !in established_conns )
+		return;
+		
+	local l = established_conns[c$id$resp_h, c$id$resp_p];
 	if ( l$log_point == AFTER_PROTOCOL_DETECTION )
 		known_services_done(c);
 	}
@@ -82,4 +91,3 @@ event connection_state_remove(c: connection)
 	{
 	known_services_done(c);
 	}
-

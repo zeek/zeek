@@ -3316,8 +3316,16 @@ Val* RecordConstructorExpr::InitVal(const BroType* t, Val* aggr) const
 				break;
 				}
 
-			else
-				ar->Assign(t_i, rv->Lookup(i)->Ref());
+			if ( ar_t->FieldType(t_i)->Tag() == TYPE_RECORD
+					&& ! same_type(ar_t->FieldType(t_i), rv->Lookup(i)->Type()) )
+				{
+				Expr* rhs = new ConstExpr(rv->Lookup(i)->Ref());
+				Expr* e = new RecordCoerceExpr(rhs, ar_t->FieldType(t_i)->AsRecordType());
+				ar->Assign(t_i, e->Eval(0));
+				break;
+				}
+
+			ar->Assign(t_i, rv->Lookup(i)->Ref());
 			}
 
 		for ( i = 0; i < ar_t->NumFields(); ++i )

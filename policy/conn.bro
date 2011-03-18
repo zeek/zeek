@@ -5,11 +5,9 @@ module Conn;
 export {
 	redef enum Log::ID += { CONN };
 	type Log: record {
-		start_time:   time;
-		orig_h:       addr;
-		orig_p:       count;
-		resp_h:       addr;
-		resp_p:       count;
+		## This is the time at which the connection was "fully established";
+		ts:           time;
+		id:           conn_id;
 		proto:        transport_proto;
 		service:      string   &optional;
 		duration:     interval &optional;
@@ -17,8 +15,10 @@ export {
 		resp_bytes:   count    &optional;
 		conn_state:   string   &default="";
 		local_orig:   bool     &optional;
-		addl:         string   &optional;
-		history:      string   &optional;
+		
+		# TODO: should these fields be included in the default log?
+		#addl:         string   &optional;
+		#history:      string   &optional;
 	};
 	
 	# Only log connections appear successful.
@@ -104,47 +104,55 @@ function determine_service(c: connection): string
 			service = service == "" ? s : cat(service, ",", s);
 		}
 
-	return service == "" ? "other" : to_lower(service);
+	return to_lower(service);
 	}
 
-function get_conn_log(c: connection): Log
+function get_conn_log(c: connection, eoc: bool): Log
 	{
 	local id = c$id;
 	local conn_log: Log;
-	if ( c$id in active_conns )
+	if ( id in active_conns )
 		conn_log = active_conns[id];
 	else
 		{
-		conn_log$start_time=c$start_time;
-		conn_log$orig_h=id$orig_h;
-		conn_log$orig_p=port_to_count(id$orig_p);
-		conn_log$resp_h=id$resp_h;
-		conn_log$resp_p=port_to_count(id$resp_p);
+		conn_log$ts=c$start_time;
+		conn_log$id=id;
 		conn_log$proto=get_port_transport_proto(id$resp_p);
-		conn_log$local_orig=is_local_addr(id$orig_h);
+		if( |local_nets| > 0 )
+			conn_log$local_orig=is_local_addr(id$orig_h);
+	
+		# Add the Log to the state tracking global.
+		active_conns[id] = conn_log;
 		}
+	
+	if ( eoc )
+		{
+		conn_log$duration=c$duration;
+		local service = determine_service(c);
+		if ( service != "" ) conn_log$service=service;
+		conn_log$conn_state=conn_state(c, get_port_transport_proto(c$id$resp_p));
 		
-	conn_log$duration=c$duration;
-	conn_log$service=determine_service(c);
+		# TODO: should these fields be included in the default logs?
+		#conn_log$addl=c$addl;
+		#conn_log$history=c$history;
+		}
+	
 	# TODO: these should optionally use Gregor's new
 	#       actual byte counting code if it's enabled.
 	conn_log$orig_bytes=c$orig$size;
 	conn_log$resp_bytes=c$resp$size;
-	conn_log$conn_state=conn_state(c, get_port_transport_proto(c$id$resp_p));
-	conn_log$addl=c$addl;
-	conn_log$history=c$history;
 	
 	return conn_log;
 	}
 
 event connection_established(c: connection) &priority = 10
 	{
-	active_conns[c$id] = get_conn_log(c);
+	active_conns[c$id] = get_conn_log(c, F);
 	}
 
 event connection_state_remove(c: connection) &priority = -10
 	{
-	local conn_log = get_conn_log(c);
+	local conn_log = get_conn_log(c, T);
 	Log::write(CONN, conn_log);
 	
 	if ( c$id in active_conns )

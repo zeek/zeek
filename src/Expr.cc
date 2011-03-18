@@ -3314,6 +3314,49 @@ Val* RecordConstructorExpr::InitVal(const BroType* t, Val* aggr) const
 
 	if ( ar )
 		{
+		RecordVal* ar = aggr->AsRecordVal();
+		RecordType* ar_t = aggr->Type()->AsRecordType();
+
+		RecordVal* rv = Eval(0)->AsRecordVal();
+		RecordType* rv_t = rv->Type()->AsRecordType();
+
+		int i;
+		for ( i = 0; i < rv_t->NumFields(); ++i )
+			{
+			int t_i = ar_t->FieldOffset(rv_t->FieldName(i));
+
+			if ( t_i < 0 )
+				{
+				char buf[512];
+				safe_snprintf(buf, sizeof(buf),
+					      "orphan field \"%s\" in initialization",
+					      rv_t->FieldName(i));
+				Error(buf);
+				break;
+				}
+
+			if ( ar_t->FieldType(t_i)->Tag() == TYPE_RECORD
+					&& ! same_type(ar_t->FieldType(t_i), rv->Lookup(i)->Type()) )
+				{
+				Expr* rhs = new ConstExpr(rv->Lookup(i)->Ref());
+				Expr* e = new RecordCoerceExpr(rhs, ar_t->FieldType(t_i)->AsRecordType());
+				ar->Assign(t_i, e->Eval(0));
+				break;
+				}
+
+			ar->Assign(t_i, rv->Lookup(i)->Ref());
+			}
+
+		for ( i = 0; i < ar_t->NumFields(); ++i )
+			if ( ! ar->Lookup(i) &&
+			     ! ar_t->FieldDecl(i)->FindAttr(ATTR_OPTIONAL) )
+				{
+				char buf[512];
+				safe_snprintf(buf, sizeof(buf),
+					      "non-optional field \"%s\" missing in initialization", ar_t->FieldName(i));
+				Error(buf);
+				}
+
 		Unref(rv);
 		return ar;
 		}
@@ -3977,15 +4020,8 @@ RecordCoerceExpr::RecordCoerceExpr(Expr* op, RecordType* r)
 			{
 			int t_i = t_r->FieldOffset(sub_r->FieldName(i));
 			if ( t_i < 0 )
-				{
-				// Same as in RecordConstructorExpr::InitVal.
-				char buf[512];
-				safe_snprintf(buf, sizeof(buf),
-					      "orphan record field \"%s\"",
-					      sub_r->FieldName(i));
-				Error(buf);
+				// Orphane field in rhs, that's ok.
 				continue;
-				}
 
 			BroType* sub_t_i = sub_r->FieldType(i);
 			BroType* sup_t_i = t_r->FieldType(t_i);
@@ -4031,8 +4067,19 @@ Val* RecordCoerceExpr::Fold(Val* v) const
 		{
 		if ( map[i] >= 0 )
 			{
-			Val* v = rv->Lookup(map[i]);
-			val->Assign(i, v ? v->Ref() : 0);
+			Val* rhs = rv->Lookup(map[i]);
+			if ( ! rhs )
+				{
+				const Attr* def = rv->Type()->AsRecordType()->FieldDecl(map[i])->FindAttr(ATTR_DEFAULT);
+				if ( def )
+					rhs = def->AttrExpr()->Eval(0);
+				}
+
+			if ( rhs )
+				rhs = rhs->Ref();
+
+			assert(rhs || Type()->AsRecordType()->FieldDecl(i)->FindAttr(ATTR_OPTIONAL));
+			val->Assign(i, rhs);
 			}
 		else
 			val->Assign(i, 0);

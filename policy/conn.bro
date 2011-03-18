@@ -127,7 +127,14 @@ function get_conn_log(c: connection, eoc: bool): Log
 	
 	if ( eoc )
 		{
-		conn_log$duration=c$duration;
+		if ( c$duration > 0secs ) 
+			{
+			conn_log$duration=c$duration;
+			# TODO: these should optionally use Gregor's new
+			#       actual byte counting code if it's enabled.
+			conn_log$orig_bytes=c$orig$size;
+			conn_log$resp_bytes=c$resp$size;
+			}
 		local service = determine_service(c);
 		if ( service != "" ) conn_log$service=service;
 		conn_log$conn_state=conn_state(c, get_port_transport_proto(c$id$resp_p));
@@ -137,10 +144,6 @@ function get_conn_log(c: connection, eoc: bool): Log
 		#conn_log$history=c$history;
 		}
 	
-	# TODO: these should optionally use Gregor's new
-	#       actual byte counting code if it's enabled.
-	conn_log$orig_bytes=c$orig$size;
-	conn_log$resp_bytes=c$resp$size;
 	
 	return conn_log;
 	}

@@ -53,6 +53,9 @@ public:
 	void PopIndent();
 	int GetIndentLevel() const	{ return indent_level; }
 
+	int IndentSpaces() const { return indent_with_spaces; }
+	void SetIndentSpaces(int i) { indent_with_spaces = i; }
+
 	void Add(const char* s, int do_indent=1);
 	void AddN(const char* s, int len)	{ AddBytes(s, len); }
 	void Add(int i);
@@ -135,6 +138,7 @@ protected:
 	int want_quotes;
 	int do_flush;
 	int include_stats;
+	int indent_with_spaces;
 };
 
 #endif

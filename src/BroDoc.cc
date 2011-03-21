@@ -90,9 +90,8 @@ void BroDoc::WriteDocFile() const
 	WriteToDoc(":Namespaces: ");
 	WriteStringList("`%s`, ", "`%s`\n", modules);
 
-	WriteToDoc(":Imports:\n");
-	WriteStringList("\t:bro:script: `%s`\n",
-	                "\t:bro:script: `%s`\n\n", imports);
+	WriteToDoc(":Imports: ");
+	WriteStringList(":doc:`%s`, ", ":doc:`%s`\n\n", imports);
 
 	WriteSectionHeading("Notices", '-');
 	if ( notices )

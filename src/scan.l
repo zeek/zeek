@@ -908,6 +908,7 @@ static void check_capture_filter_changes()
 		if ( capture_filters )
 			{
 				ODesc desc;
+				desc.SetIndentSpaces(4);
 				capture_filters->ID_Val()->Describe(&desc);
 				last_reST_doc->SetPacketFilter(desc.Description());
 				capture_filters->ID_Val()->AsTableVal()->RemoveAll();
@@ -937,6 +938,7 @@ static void check_dpd_config_changes()
 
 			int tag = key->AsListVal()->Index(0)->AsCount();
 			ODesc valdesc;
+			valdesc.SetIndentSpaces(4);
 			valdesc.PushIndent();
 			v->Describe(&valdesc);
 

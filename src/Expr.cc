@@ -284,7 +284,7 @@ Val* NameExpr::Eval(Frame* f) const
 	Val* v;
 
 	if ( id->AsType() )
-		RunTime("cannot evaluate type name");
+		return new Val(id->AsType(), true);
 
 	if ( id->IsGlobal() )
 		v = id->ID_Val();
@@ -2531,16 +2531,35 @@ bool AssignExpr::TypeCheck()
 		return true;
 		}
 
+	if ( op1->Type()->Tag() == TYPE_RECORD &&
+		 op2->Type()->Tag() == TYPE_RECORD )
+		{
+		if ( same_type(op1->Type(), op2->Type()) )
+			{
+			RecordType* rt1 = op1->Type()->AsRecordType();
+			RecordType* rt2 = op2->Type()->AsRecordType();
+
+			// Make sure the attributes match as well.
+			for ( int i = 0; i < rt1->NumFields(); ++i )
+				{
+				const TypeDecl* td1 = rt1->FieldDecl(i);
+				const TypeDecl* td2 = rt2->FieldDecl(i);
+
+				if ( same_attrs(td1->attrs, td2->attrs) )
+					// Everything matches.
+					return true;
+				}
+			}
+
+		// Need to coerce.
+		op2 = new RecordCoerceExpr(op2, op1->Type()->AsRecordType());
+		return true;
+		}
+
 	if ( ! same_type(op1->Type(), op2->Type()) )
 		{
-		if ( op1->Type()->Tag() == TYPE_RECORD &&
-		     op2->Type()->Tag() == TYPE_RECORD )
-			op2 = new RecordCoerceExpr(op2, op1->Type()->AsRecordType());
-		else
-			{
-			ExprError("type clash in assignment");
-			return false;
-			}
+		ExprError("type clash in assignment");
+		return false;
 		}
 
 	return true;
@@ -3290,56 +3309,12 @@ RecordConstructorExpr::RecordConstructorExpr(ListExpr* constructor_list)
 
 Val* RecordConstructorExpr::InitVal(const BroType* t, Val* aggr) const
 	{
-	if ( ! aggr )
-		aggr = new RecordVal(const_cast<RecordType*>(t->AsRecordType()));
+	RecordVal* rv = Eval(0)->AsRecordVal();
+	RecordVal* ar = rv->CoerceTo(t->AsRecordType(), aggr);
 
-	if ( record_promotion_compatible(t->AsRecordType(), Type()->AsRecordType()) )
+	if ( ar )
 		{
-		RecordVal* ar = aggr->AsRecordVal();
-		RecordType* ar_t = aggr->Type()->AsRecordType();
-
-		RecordVal* rv = Eval(0)->AsRecordVal();
-		RecordType* rv_t = rv->Type()->AsRecordType();
-
-		int i;
-		for ( i = 0; i < rv_t->NumFields(); ++i )
-			{
-			int t_i = ar_t->FieldOffset(rv_t->FieldName(i));
-
-			if ( t_i < 0 )
-				{
-				char buf[512];
-				safe_snprintf(buf, sizeof(buf),
-					      "orphan field \"%s\" in initialization",
-					      rv_t->FieldName(i));
-				Error(buf);
-				break;
-				}
-
-			if ( ar_t->FieldType(t_i)->Tag() == TYPE_RECORD
-					&& ! same_type(ar_t->FieldType(t_i), rv->Lookup(i)->Type()) )
-				{
-				Expr* rhs = new ConstExpr(rv->Lookup(i)->Ref());
-				Expr* e = new RecordCoerceExpr(rhs, ar_t->FieldType(t_i)->AsRecordType());
-				ar->Assign(t_i, e->Eval(0));
-				break;
-				}
-
-			ar->Assign(t_i, rv->Lookup(i)->Ref());
-			}
-
-		for ( i = 0; i < ar_t->NumFields(); ++i )
-			if ( ! ar->Lookup(i) &&
-			     ! ar_t->FieldDecl(i)->FindAttr(ATTR_OPTIONAL) )
-				{
-				char buf[512];
-				safe_snprintf(buf, sizeof(buf),
-					      "non-optional field \"%s\" missing in initialization", ar_t->FieldName(i));
-				Error(buf);
-				}
-
 		Unref(rv);
-
 		return ar;
 		}
 
@@ -4002,8 +3977,15 @@ RecordCoerceExpr::RecordCoerceExpr(Expr* op, RecordType* r)
 			{
 			int t_i = t_r->FieldOffset(sub_r->FieldName(i));
 			if ( t_i < 0 )
-				// Orphane field in rhs, that's ok.
+				{
+				// Same as in RecordConstructorExpr::InitVal.
+				char buf[512];
+				safe_snprintf(buf, sizeof(buf),
+					      "orphan record field \"%s\"",
+					      sub_r->FieldName(i));
+				Error(buf);
 				continue;
+				}
 
 			BroType* sub_t_i = sub_r->FieldType(i);
 			BroType* sup_t_i = t_r->FieldType(t_i);
@@ -4049,19 +4031,8 @@ Val* RecordCoerceExpr::Fold(Val* v) const
 		{
 		if ( map[i] >= 0 )
 			{
-			Val* rhs = rv->Lookup(map[i]);
-			if ( ! rhs )
-				{
-				const Attr* def = rv->Type()->AsRecordType()->FieldDecl(map[i])->FindAttr(ATTR_DEFAULT);
-				if ( def )
-					rhs = def->AttrExpr()->Eval(0);
-				}
-
-			if ( rhs )
-				rhs = rhs->Ref();
-
-			assert(rhs || Type()->AsRecordType()->FieldDecl(i)->FindAttr(ATTR_OPTIONAL));
-			val->Assign(i, rhs);
+			Val* v = rv->Lookup(map[i]);
+			val->Assign(i, v ? v->Ref() : 0);
 			}
 		else
 			val->Assign(i, 0);
@@ -5323,21 +5294,39 @@ int check_and_promote_expr(Expr*& e, BroType* t)
 		return 1;
 		}
 
-	else if ( ! same_type(t, et) )
+	if ( t->Tag() == TYPE_RECORD && et->Tag() == TYPE_RECORD )
 		{
-		if ( t->Tag() == TYPE_RECORD && et->Tag() == TYPE_RECORD )
-			{
-			RecordType* t_r = t->AsRecordType();
-			RecordType* et_r = et->AsRecordType();
+		RecordType* t_r = t->AsRecordType();
+		RecordType* et_r = et->AsRecordType();
 
-			if ( record_promotion_compatible(t_r, et_r) )
+		if ( same_type(t, et) )
+			{
+			// Make sure the attributes match as well.
+			for ( int i = 0; i < t_r->NumFields(); ++i )
 				{
-				e = new RecordCoerceExpr(e, t_r);
-				return 1;
+				const TypeDecl* td1 = t_r->FieldDecl(i);
+				const TypeDecl* td2 = et_r->FieldDecl(i);
+
+				if ( same_attrs(td1->attrs, td2->attrs) )
+					// Everything matches perfectly.
+					return 1;
 				}
 			}
 
-		else if ( t->Tag() == TYPE_TABLE && et->Tag() == TYPE_TABLE &&
+		if ( record_promotion_compatible(t_r, et_r) ) // Note: This is always true currently.
+			{
+			e = new RecordCoerceExpr(e, t_r);
+			return 1;
+			}
+
+		t->Error("incompatible record types", e);
+		return 0;
+		}
+
+
+	if ( ! same_type(t, et) )
+		{
+		if ( t->Tag() == TYPE_TABLE && et->Tag() == TYPE_TABLE &&
 			  et->AsTableType()->IsUnspecifiedTable() )
 			{
 			e = new TableCoerceExpr(e, t->AsTableType());

@@ -85,7 +85,8 @@ void BroDoc::WriteDocFile() const
 	WriteSectionHeading("Summary", '-');
 	WriteStringList("%s\n", "%s\n\n", summary);
 
-	WriteToDoc(":Author: %s\n", author_name.c_str());
+	WriteToDoc(":Author(s): ");
+	WriteStringList("%s, ", "%s\n", authors);
 
 	WriteToDoc(":Namespaces: ");
 	WriteStringList("`%s`, ", "`%s`\n", modules);

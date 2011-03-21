@@ -137,7 +137,7 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 
 ##{OWS}Author:.* {
 	if ( generate_documentation )
-		current_reST_doc->SetAuthor(
+		current_reST_doc->AddAuthor(
 			skip_whitespace(            // Skip whitespace after "Author:"
 			skip_whitespace(yytext + 2) // Skip whitespace after ##
 			+ 7)                        // Skip "Author:"

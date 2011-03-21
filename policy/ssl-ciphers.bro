@@ -1,8 +1,6 @@
-# $Id: ssl-ciphers.bro 5857 2008-06-26 23:00:03Z vern $
+module SSL;
 
-# --- constant definitions of the cipher specs ---
-
-# --- sslv2 ---
+## SSLv2
 const SSLv20_CK_RC4_128_WITH_MD5 = 0x010080;
 const SSLv20_CK_RC4_128_EXPORT40_WITH_MD5 = 0x020080;
 const SSLv20_CK_RC2_128_CBC_WITH_MD5 = 0x030080;
@@ -11,7 +9,7 @@ const SSLv20_CK_IDEA_128_CBC_WITH_MD5 = 0x050080;
 const SSLv20_CK_DES_64_CBC_WITH_MD5 = 0x060040;
 const SSLv20_CK_DES_192_EDE3_CBC_WITH_MD5 = 0x0700C0;
 
-# --- TLS ---
+## TLS
 const TLS_NULL_WITH_NULL_NULL = 0x0000;
 const TLS_RSA_WITH_NULL_MD5 = 0x0001;
 const TLS_RSA_WITH_NULL_SHA = 0x0002;

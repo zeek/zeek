@@ -1,3 +1,34 @@
+1.6-dev.63 Mon Mar 21 16:31:15 PDT 2011
+
+- Changes to the way user-modifiable config files are installed  (Jon Siwek)
+
+    * Duplicates of the distribution's configuration files are now
+      always installed with a .example suffix
+
+    * Added --binary-package configure option to toggle configure
+      logic specific to the creation of binary packages.
+
+    * When not in binary packaging mode, `make install` never
+      overwrites existing configure files in case they've been
+      modified. The previous behavior (CMake's default) would only
+      avoid overwriting modified files if one consistently uses the
+      same build directory and doesn't reconfigure.
+
+- Fixed an issue with Mac package's pre-install script not preserving
+  ACLs. (Jon Siwek)
+
+- Minor cleanup/refactor of the make-mac/rpm-packages scripts. (Jon
+  Siwek)
+
+- Add explicit CMake check for compiler. (Jon Siwek)
+  
+- Add alternative way to set BROPATH for running bro from build/ dir.
+  (Jon Siwek)
+
+- Fixing compiler warnings (Gregor Maier)
+  
+- Remvoing leftover local variables that caused compile error on Mac
+  OS X. (Gregor Maier)
 
 1.6-dev.53 Fri Feb 25 17:03:05 PST 2011
 

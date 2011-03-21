@@ -75,6 +75,8 @@ void BroDoc::AddPortAnalysis(const std::string& analyzer,
 
 void BroDoc::WriteDocFile() const
 	{
+	WriteToDoc(".. Automatically generated.  Do not edit.\n\n");
+
 	WriteToDoc("%s\n", source_filename.c_str());
 	for ( size_t i = 0; i < source_filename.length(); ++i )
 		WriteToDoc("=");

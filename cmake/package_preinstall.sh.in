@@ -20,7 +20,7 @@ backupFile () {
 
         backupFile=${origFile}.${ver}
 
-        cp ${origFile} ${backupFile}
+        cp -p ${origFile} ${backupFile}
 
         # the post upgrade script will check whether the installed
         # config file actually differs from existing version

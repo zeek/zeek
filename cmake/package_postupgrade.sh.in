@@ -5,7 +5,7 @@
 
 backupNamesFile=/tmp/bro_install_backups
 version=@VERSION@
-newFiles=""
+sampleFiles=""
 
 # check whether it's safe to remove backup configuration files that
 # the most recent package install created
@@ -28,10 +28,8 @@ if [ -e ${backupNamesFile} ]; then
             # by the user, we should restore it to its original location
             # and rename the new version appropriately.
 
-            newFileName=${origFileName}.${version}
-            newFiles="${newFiles}\n${newFileName}"
+            sampleFiles="${sampleFiles}\n${origFileName}.example"
 
-            mv ${origFileName} ${newFileName}
             mv ${backupFile} ${origFileName}
         fi
 
@@ -40,12 +38,12 @@ if [ -e ${backupNamesFile} ]; then
     rm ${backupNamesFile}
 fi
 
-if [ -n "${newFiles}" ]; then
+if [ -n "${sampleFiles}" ]; then
 # Use some apple script to display a message to user
 /usr/bin/osascript << EOF
     tell application "System Events"
         activate
-        display alert "Existing configuration files differ from the ones that would be installed by this package.  To avoid overwriting configuration which you may have modified, the following new config files have been installed:\n${newFiles}\n\nIf you have previously modified configuration files, please make sure that they are still compatible, else you should update your config files to the new versions."
+        display alert "Existing configuration files differ from the ones that would be installed by this package.  To avoid overwriting configuration which you may have modified, the following new config files have been installed:\n${sampleFiles}\n\nIf you have previously modified configuration files, please make sure that they are still compatible, else you should update your config files to the new versions."
     end tell
 EOF
 fi

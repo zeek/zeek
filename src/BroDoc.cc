@@ -40,7 +40,6 @@ BroDoc::BroDoc(const std::string& sourcename)
 	else
 		fprintf(stdout, "Created reST document: %s\n", reST_filename.c_str());
 #endif
-	notices = 0;
 	}
 
 BroDoc::~BroDoc()
@@ -51,10 +50,10 @@ BroDoc::~BroDoc()
 	FreeBroDocObjPtrList(options);
 	FreeBroDocObjPtrList(state_vars);
 	FreeBroDocObjPtrList(types);
+	FreeBroDocObjPtrList(notices);
 	FreeBroDocObjPtrList(events);
 	FreeBroDocObjPtrList(functions);
 	FreeBroDocObjPtrList(redefs);
-	if ( notices ) delete notices;
 	}
 
 void BroDoc::SetPacketFilter(const std::string& s)
@@ -64,12 +63,24 @@ void BroDoc::SetPacketFilter(const std::string& s)
 	size_t pos2 = s.find("}");
 	if ( pos1 != std::string::npos && pos2 != std::string::npos )
 		packet_filter = s.substr(pos1 + 2, pos2 - 2);
+
+	bool has_non_whitespace = false;
+	for ( std::string::const_iterator it = packet_filter.begin();
+	      it != packet_filter.end(); ++it )
+		if ( *it != ' ' && *it != '\t' && *it != '\n' && *it != '\r' )
+			{
+			has_non_whitespace = true;
+			break;
+			}
+
+	if ( ! has_non_whitespace )
+		packet_filter.clear();
 	}
 
 void BroDoc::AddPortAnalysis(const std::string& analyzer,
                              const std::string& ports)
 	{
-	std::string reST_string = analyzer + "::\n" + ports + "\n";
+	std::string reST_string = analyzer + "::\n" + ports + "\n\n";
 	port_analysis.push_back(reST_string);
 	}
 
@@ -92,17 +103,28 @@ void BroDoc::WriteDocFile() const
 	WriteStringList("`%s`, ", "`%s`\n", modules);
 
 	WriteToDoc(":Imports: ");
-	WriteStringList(":doc:`%s`, ", ":doc:`%s`\n\n", imports);
+	WriteStringList(":doc:`%s`, ", ":doc:`%s`\n", imports);
 
-	WriteSectionHeading("Notices", '-');
-	if ( notices )
-		notices->WriteReST(reST_file);
+	WriteToDoc("\n");
 
-	WriteSectionHeading("Port Analysis", '-');
-	WriteStringList("%s", port_analysis);
+	if ( ! notices.empty() )
+		WriteBroDocObjList(notices, "Notices", '-');
 
-	WriteSectionHeading("Packet Filter", '-');
-	WriteToDoc("%s\n", packet_filter.c_str());
+	if ( ! port_analysis.empty() )
+		{
+		WriteSectionHeading("Port Analysis", '-');
+		WriteStringList("%s", port_analysis);
+		}
+
+	if ( ! packet_filter.empty() )
+		{
+		WriteSectionHeading("Packet Filter", '-');
+		WriteToDoc(".. note:: Filters are only relevant when dynamic protocol "
+		           "detection (DPD) is explicitly turned off (Bro release 1.6 "
+		           "enabled DPD by default).\n\n");
+		WriteToDoc("Filters added::\n\n");
+		WriteToDoc("%s\n", packet_filter.c_str());
+		}
 
 	WriteSectionHeading("Public Interface", '-');
 	WriteBroDocObjList(options, true, "Options", '~');
@@ -159,6 +181,16 @@ void BroDoc::WriteBroDocObjList(const std::list<const BroDocObj*>& l,
 				(*it)->WriteReST(reST_file);
 			}
 		}
+	}
+
+void BroDoc::WriteBroDocObjList(const std::list<const BroDocObj*>& l,
+                                const char* heading,
+                                char underline) const
+	{
+	WriteSectionHeading(heading, underline);
+	std::list<const BroDocObj*>::const_iterator it;
+	for ( it = l.begin(); it != l.end(); ++it )
+		(*it)->WriteReST(reST_file);
 	}
 
 void BroDoc::WriteToDoc(const char* format, ...) const

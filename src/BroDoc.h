@@ -122,7 +122,7 @@ public:
 	 *        Bro language representation of the Notice and also
 	 *        any associated comments about it.
 	 */
-	void AddNotice(const BroDocObj* o) { notices = o; }
+	void AddNotice(const BroDocObj* o) { notices.push_back(o); }
 
 	/**
 	 * Schedules documentation of an event declared by the script.
@@ -176,7 +176,7 @@ protected:
 	std::list<const BroDocObj*> options;
 	std::list<const BroDocObj*> state_vars;
 	std::list<const BroDocObj*> types;
-	const BroDocObj* notices;
+	std::list<const BroDocObj*> notices;
 	std::list<const BroDocObj*> events;
 	std::list<const BroDocObj*> functions;
 	std::list<const BroDocObj*> redefs;
@@ -214,6 +214,17 @@ protected:
 	 */
 	void WriteBroDocObjList(const std::list<const BroDocObj*>& l,
 	                        bool exportCond,
+	                        const char* heading,
+	                        char underline) const;
+
+	/**
+	 * Writes out a list of BroDocObj objects to the reST document
+	 * @param l A list of BroDocObj pointers
+	 * @param heading The title of the section to create in the reST doc.
+	 * @param underline The character to use to underline the reST
+	 *        section heading.
+	 */
+	void WriteBroDocObjList(const std::list<const BroDocObj*>& l,
 	                        const char* heading,
 	                        char underline) const;
 

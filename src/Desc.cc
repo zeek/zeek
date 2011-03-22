@@ -68,6 +68,12 @@ void ODesc::PopIndent()
 	NL();
 	}
 
+void ODesc::PopIndentNoNL()
+	{
+	if ( --indent_level < 0 )
+		internal_error("ODesc::PopIndent underflow");
+	}
+
 void ODesc::Add(const char* s, int do_indent)
 	{
 	unsigned int n = strlen(s);

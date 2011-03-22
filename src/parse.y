@@ -153,12 +153,13 @@ static void add_enum_comment (const char* comment)
 	cur_enum_type_doc->AddComment(current_module, cur_enum_elem_id, comment);
 	}
 
-static ID* create_dummy_id (const char* name, const BroType* type)
+static ID* create_dummy_id (const char* name, BroType* type)
 	{
 	// normally, install_ID() figures out the right IDScope
 	// but it doesn't matter for the dummy ID so use SCOPE_GLOBAL
 	ID* fake_id = new ID(copy_string(name), SCOPE_GLOBAL, is_export);
 	fake_id->SetType(cur_enum_type_doc);
+	type->SetTypeID(copy_string(name));
 	fake_id->MakeType();
 	return fake_id;
 	}
@@ -995,6 +996,7 @@ decl:
 				ID* fake_id = create_dummy_id($3->Name(), cur_enum_type_doc);
 				cur_enum_type_doc = 0;
 				BroDocObj* o = new BroDocObj(fake_id, reST_doc_comments, true);
+				o->SetRole(true);
 				if ( streq(fake_id->Name(), "Notice" ) )
 					current_reST_doc->AddNotice(o);
 				else

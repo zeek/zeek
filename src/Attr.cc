@@ -51,12 +51,17 @@ void Attr::Describe(ODesc* d) const
 
 void Attr::DescribeReST(ODesc* d) const
 	{
-	d->Add(".. bro:attr:: ");
+	d->Add(":bro:attr:`");
 	AddTag(d);
+	d->Add("`");
 	if ( expr )
 		{
+		d->SP();
 		d->Add("=");
+		d->SP();
+		d->Add("``");
 		expr->Describe(d);
+		d-> Add("``");
 		}
 	}
 
@@ -176,7 +181,8 @@ void Attributes::DescribeReST(ODesc* d) const
 	{
 	loop_over_list(*attrs, i)
 		{
-		d->NL();
+		if ( i > 0 )
+			d->Add(" ");
 		(*attrs)[i]->DescribeReST(d);
 		}
 	}

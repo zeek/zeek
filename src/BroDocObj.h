@@ -50,10 +50,25 @@ public:
 	bool HasDocumentation() const { return reST_doc_strings &&
 	                                reST_doc_strings->size() > 0; }
 
+	/**
+	 * @return whether this object will use reST role (T) or directive (F)
+	 * notation for the wrapped identifier.  Roles are usually used
+	 * for cross-referencing.
+	 */
+	bool UseRole() const { return use_role; }
+
+	/**
+	 * @param b whether this object will use reST role (T) or directive (F)
+	 * notation for the wrapped identifier.  Roles are usually used
+	 * for cross-referencing.
+	 */
+	void SetRole(bool b) { use_role = b; }
+
 protected:
 	std::list<std::string>* reST_doc_strings;
 	const ID* broID;
 	bool is_fake_id; /**< Whether the ID* is a dummy just for doc purposes */
+	bool use_role; /**< Whether to use a reST role or directive for the ID */
 
 private:
 };

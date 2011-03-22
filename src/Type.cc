@@ -149,7 +149,9 @@ void BroType::Describe(ODesc* d) const
 
 void BroType::DescribeReST(ODesc* d) const
 	{
-	Describe(d);
+	d->Add(":bro:type:`");
+	d->Add(type_name(Tag()));
+	d->Add("`");
 	}
 
 void BroType::SetError()
@@ -439,20 +441,22 @@ void IndexType::Describe(ODesc* d) const
 
 void IndexType::DescribeReST(ODesc* d) const
 	{
+	d->Add(":bro:type:`");
 	if ( IsSet() )
 		d->Add("set");
 	else
 		d->Add(type_name(Tag()));
+	d->Add("` ");
 
 	d->Add("[");
 	loop_over_list(*IndexTypes(), i)
 		{
 		if ( i > 0 )
-			d->Add(",");
+			d->Add(", ");
 		const BroType* t = (*IndexTypes())[i];
 		if ( t->GetTypeID() )
 			{
-			d->Add("`");
+			d->Add(":bro:type:`");
 			d->Add(t->GetTypeID());
 			d->Add("`");
 			}
@@ -466,7 +470,7 @@ void IndexType::DescribeReST(ODesc* d) const
 		d->Add(" of ");
 		if ( yield_type->GetTypeID() )
 			{
-			d->Add("`");
+			d->Add(":bro:type:`");
 			d->Add(yield_type->GetTypeID());
 			d->Add("`");
 			}
@@ -711,8 +715,10 @@ void FuncType::Describe(ODesc* d) const
 
 void FuncType::DescribeReST(ODesc* d) const
 	{
+	d->Add(":bro:type:`");
 	d->Add(is_event ? "event" : "function");
-	d->Add("(");
+	d->Add("`");
+	d->Add(" (");
 	args->DescribeFieldsReST(d, true);
 	d->Add(")");
 	if ( yield )
@@ -720,7 +726,7 @@ void FuncType::DescribeReST(ODesc* d) const
 		d->AddSP(" :");
 		if ( yield->GetTypeID() )
 			{
-			d->Add("`");
+			d->Add(":bro:type:`");
 			d->Add(yield->GetTypeID());
 			d->Add("`");
 			}
@@ -997,7 +1003,8 @@ void RecordType::Describe(ODesc* d) const
 
 void RecordType::DescribeReST(ODesc* d) const
 	{
-	d->Add("record");
+	d->Add(":bro:type:`record`");
+	d->NL();
 	DescribeFieldsReST(d, false);
 	}
 
@@ -1048,36 +1055,46 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 	for ( int i = 0; i < num_fields; ++i )
 		{
 		const TypeDecl* td = FieldDecl(i);
-		if ( ! func_args )
-			d->Add(":bro:field: ");
+
+		if ( i > 0 )
+			if ( func_args )
+				d->Add(", ");
+			else
+				{
+				d->NL();
+				d->NL();
+				}
 
 		d->Add(td->id);
 		d->Add(": ");
-		d->Add(":bro:type: ");
 		if ( td->type->GetTypeID() )
 			{
-			d->Add("`");
+			d->Add(":bro:type:`");
 			d->Add(td->type->GetTypeID());
 			d->Add("`");
 			}
 		else
 			td->type->DescribeReST(d);
 
+		if ( td->attrs )
+			{
+			d->SP();
+			td->attrs->DescribeReST(d);
+			}
+
 		if ( ! func_args )
+			{
 			if ( td->comment )
 				{
 				d->PushIndent();
-				d->Add(".. bro:comment:: ");
 				d->Add(td->comment);
-				d->PopIndent();
+				d->PopIndentNoNL();
 				}
-
-		if ( i + 1 != num_fields )
-			if ( func_args )
-				d->Add(", ");
-			else
-				d->NL();
+			}
 		}
+
+	if ( ! func_args )
+		d->PopIndentNoNL();
 	}
 
 IMPLEMENT_SERIAL(RecordType, SER_RECORD_TYPE)
@@ -1362,24 +1379,34 @@ void CommentedEnumType::DescribeReST(ODesc* d) const
 	for ( NameMap::const_iterator it = names.begin(); it != names.end(); ++it )
 		rev[it->second] = it->first;
 
+	d->Add(":bro:type:`");
 	d->Add(type_name(Tag()));
+	d->Add("`");
 	d->PushIndent();
+	d->NL();
 
-	for ( RevNameMap::const_iterator it = rev.begin(); it != rev.end(); )
+	for ( RevNameMap::const_iterator it = rev.begin(); it != rev.end(); ++it )
 		{
+		if ( it != rev.begin() )
+			{
+			d->NL();
+			d->NL();
+			}
+
 		d->Add(".. bro:enum:: ");
-		d->Add(it->second);
+		d->AddSP(it->second);
+		d->Add(GetTypeID());
+
 		CommentMap::const_iterator cmnt_it = comments.find(it->second);
 		if ( cmnt_it != comments.end() )
 			{
 			d->PushIndent();
-			d->Add(".. bro:comment:: ");
-			d->Add(cmnt_it->second);
-			d->PopIndent();
-			}
-		if ( ++it != rev.end() )
 			d->NL();
+			d->Add(cmnt_it->second);
+			d->PopIndentNoNL();
+			}
 		}
+	d->PopIndentNoNL();
 	}
 
 IMPLEMENT_SERIAL(EnumType, SER_ENUM_TYPE);

@@ -99,13 +99,17 @@ void BroDoc::WriteDocFile() const
 	WriteToDoc(":Author(s): ");
 	WriteStringList("%s, ", "%s\n", authors);
 
-	WriteToDoc(":Namespaces: ");
-	WriteStringList("`%s`, ", "`%s`\n", modules);
-
 	WriteToDoc(":Imports: ");
 	WriteStringList(":doc:`%s`, ", ":doc:`%s`\n", imports);
 
 	WriteToDoc("\n");
+
+	if ( ! modules.empty() )
+		{
+		WriteSectionHeading("Namespaces", '-');
+		WriteStringList(".. bro:namespace:: %s\n", modules);
+		WriteToDoc("\n");
+		}
 
 	if ( ! notices.empty() )
 		WriteBroDocObjList(notices, "Notices", '-');

@@ -51,6 +51,7 @@ public:
 
 	void PushIndent();
 	void PopIndent();
+	void PopIndentNoNL();
 	int GetIndentLevel() const	{ return indent_level; }
 
 	int IndentSpaces() const { return indent_with_spaces; }

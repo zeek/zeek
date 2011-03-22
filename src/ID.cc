@@ -607,39 +607,57 @@ void ID::DescribeExtended(ODesc* d) const
 		}
 	}
 
-void ID::DescribeReST(ODesc* d) const
+void ID::DescribeReST(ODesc* d, bool is_role) const
 	{
-	d->Add(".. bro:id:: ");
-	d->Add(name);
+	if ( is_role )
+		{
+		if ( is_type )
+			d->Add(":bro:type:`");
+		else
+			d->Add(":bro:id:`");
+		d->Add(name);
+		d->Add("`");
+		}
+	else
+		{
+		if ( is_type )
+			d->Add(".. bro:type:: ");
+		else
+			d->Add(".. bro:id:: ");
+		d->Add(name);
+		}
 	d->PushIndent();
+	d->NL();
 
 	if ( type )
 		{
-		d->Add(".. bro:type:: ");
+		d->Add(":Type: ");
 		if ( ! is_type && type->GetTypeID() )
 			{
-			d->Add("`");
+			d->Add(":bro:type:`");
 			d->Add(type->GetTypeID());
 			d->Add("`");
 			}
 		else
 			type->DescribeReST(d);
+		d->NL();
 		}
 
 	if ( attrs )
 		{
+		d->Add(":Attributes: ");
 		attrs->DescribeReST(d);
+		d->NL();
 		}
 
 	if ( val && type &&
 		 type->InternalType() != TYPE_INTERNAL_OTHER &&
 		 type->InternalType() != TYPE_INTERNAL_VOID )
 		{
-		d->NL();
-		d->Add(".. bro:val:: ");
+		d->Add(":Init: ");
 		val->DescribeReST(d);
+		d->NL();
 		}
-
 	}
 
 #ifdef DEBUG

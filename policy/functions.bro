@@ -2,6 +2,9 @@
 @load logging
 @load dpd
 
+# TODO: move this somewhere else.  It doesn't seem appropriate here.
+const private_address_space: set[subnet] = {10.0.0.0/8, 192.168.0.0/16, 127.0.0.0/8, 172.16.0.0/12};
+
 # Returns true if the given string is at least 25% composed of 8-bit
 # characters.
 function is_string_binary(s: string): bool
@@ -66,6 +69,80 @@ function build_full_path(cwd: string, file_name: string): string
 	return (file_name == absolute_path_pat) ?
 		file_name : cat(cwd, "/", file_name);
 	}
+
+
+# Functions for finding IP addresses in strings, etc.
+############# BEGIN IP FUNCTIONS #############
+# Regular expressions for matching IP addresses in strings.
+const ipv4_addr_regex = /[[:digit:]]{1,3}\.[[:digit:]]{1,3}\.[[:digit:]]{1,3}\.[[:digit:]]{1,3}/;
+const ipv6_8hex_regex = /([0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4}/;
+const ipv6_compressed_hex_regex = /(([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4})*)?)::(([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4})*)?)/;
+const ipv6_hex4dec_regex = /(([0-9A-Fa-f]{1,4}:){6,6})([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)/;
+const ipv6_compressed_hex4dec_regex = /(([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4})*)?)::(([0-9A-Fa-f]{1,4}:)*)([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)/;
+
+# These are commented out until I construct patterns this way at init time.
+#const ipv6_addr_regex = ipv6_8hex_regex |
+#                        ipv6_compressed_hex_regex |
+#                        ipv6_hex4dec_regex |
+#                        ipv6_compressed_hex4dec_regex;
+#const ip_addr_regex = ipv4_addr_regex | ipv6_addr_regex;
+
+const ipv6_addr_regex =     
+    /([0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4}/ |
+    /(([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4})*)?)::(([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4})*)?)/ | # IPv6 Compressed Hex
+    /(([0-9A-Fa-f]{1,4}:){6,6})([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)/ | # 6Hex4Dec
+    /(([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4})*)?)::(([0-9A-Fa-f]{1,4}:)*)([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)/; # CompressedHex4Dec
+
+const ip_addr_regex = 
+    /[[:digit:]]{1,3}\.[[:digit:]]{1,3}\.[[:digit:]]{1,3}\.[[:digit:]]{1,3}/ |
+    /([0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4}/ |
+    /(([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4})*)?)::(([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4})*)?)/ | # IPv6 Compressed Hex
+    /(([0-9A-Fa-f]{1,4}:){6,6})([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)/ | # 6Hex4Dec
+    /(([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4})*)?)::(([0-9A-Fa-f]{1,4}:)*)([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)/; # CompressedHex4Dec
+
+function is_valid_ip(ip_str: string): bool
+	{
+	if ( ip_str == ipv4_addr_regex )
+		{
+		local octets = split(ip_str, /\./);
+		if ( |octets| != 4 )
+			return F;
+		
+		local num=0;
+		for ( i in octets )
+			{
+			num = to_count(octets[i]);
+			if ( num < 0 || 255 < num )
+				return F;
+			}
+		return T;
+		}
+	else if ( ip_str == ipv6_addr_regex )
+		{
+		# TODO: make this work correctly.
+		return T;
+		}
+	return F;
+	}
+
+# This outputs a string_array of ip addresses extracted from a string.
+# given: "this is 1.1.1.1 a test 2.2.2.2 string with ip addresses 3.3.3.3"
+# outputs: { [1] = 1.1.1.1, [2] = 2.2.2.2, [3] = 3.3.3.3 }
+function find_ip_addresses(input: string): string_array
+	{
+	local parts = split_all(input, ip_addr_regex);
+	local output: string_array;
+
+	for ( i in parts )
+		{
+		if ( i % 2 == 0 && is_valid_ip(parts[i]) )
+			output[|output|+1] = parts[i];
+		}
+	return output;
+	}
+############# END IP FUNCTIONS #############
+
+
 
 # Simple functions for generating ASCII connection identifiers.
 ############# BEGIN ID FORMATTING #############

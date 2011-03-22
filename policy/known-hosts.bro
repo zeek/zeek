@@ -20,7 +20,7 @@ export {
 	
 	# Maintain the list of known hosts for 24 hours so that the existence
 	# of each individual address is logged each day.
-	global known_hosts: set[addr] &create_expire=1day &syncronized;
+	global known_hosts: set[addr] &create_expire=1day &synchronized;
 	
 	global log_known_hosts: event(rec: Log);
 }

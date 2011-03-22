@@ -34,7 +34,7 @@ export {
 }
 
 # The temporary holding place for new, unknown services.
-global established_conns: table[addr, port] of Info &read_expire=1hour &redef;
+global established_conns: table[addr, port] of Info &read_expire=1hr &redef;
 
 event bro_init()
 	{

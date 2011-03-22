@@ -3977,15 +3977,8 @@ RecordCoerceExpr::RecordCoerceExpr(Expr* op, RecordType* r)
 			{
 			int t_i = t_r->FieldOffset(sub_r->FieldName(i));
 			if ( t_i < 0 )
-				{
-				// Same as in RecordConstructorExpr::InitVal.
-				char buf[512];
-				safe_snprintf(buf, sizeof(buf),
-					      "orphan record field \"%s\"",
-					      sub_r->FieldName(i));
-				Error(buf);
+				// Orphane field in rhs, that's ok.
 				continue;
-				}
 
 			BroType* sub_t_i = sub_r->FieldType(i);
 			BroType* sup_t_i = t_r->FieldType(t_i);
@@ -4031,8 +4024,19 @@ Val* RecordCoerceExpr::Fold(Val* v) const
 		{
 		if ( map[i] >= 0 )
 			{
-			Val* v = rv->Lookup(map[i]);
-			val->Assign(i, v ? v->Ref() : 0);
+			Val* rhs = rv->Lookup(map[i]);
+			if ( ! rhs )
+				{
+				const Attr* def = rv->Type()->AsRecordType()->FieldDecl(map[i])->FindAttr(ATTR_DEFAULT);
+				if ( def )
+					rhs = def->AttrExpr()->Eval(0);
+				}
+
+			if ( rhs )
+				rhs = rhs->Ref();
+
+			assert(rhs || Type()->AsRecordType()->FieldDecl(i)->FindAttr(ATTR_OPTIONAL));
+			val->Assign(i, rhs);
 			}
 		else
 			val->Assign(i, 0);

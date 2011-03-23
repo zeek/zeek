@@ -56,6 +56,22 @@ BroDoc::~BroDoc()
 	FreeBroDocObjPtrList(redefs);
 	}
 
+void BroDoc::AddImport(const std::string& s)
+	{
+	size_t ext_pos = s.find_last_of('.');
+
+	if ( ext_pos == std::string::npos )
+		imports.push_back(s);
+	else
+		{
+		if ( s.substr(ext_pos + 1) == "bro" )
+			imports.push_back(s.substr(0, ext_pos));
+		else
+			fprintf(stderr, "Warning: skipped documenting @load of file "
+			                "without .bro extension: %s\n", s.c_str());
+		}
+	}
+
 void BroDoc::SetPacketFilter(const std::string& s)
 	{
 	packet_filter = s;

@@ -52,10 +52,11 @@ public:
 
 	/**
 	 * Schedules an import (@load) to be documented.
+	 * If the script being loaded has a .bro suffix, it is internally stripped.
 	 * This should be called whenever the scanner sees an @load.
 	 * @param s The name of the imported script.
 	 */
-	void AddImport(const std::string& s) { imports.push_back(s); }
+	void AddImport(const std::string& s);
 
 	/**
 	 * Schedules a namespace (module) to be documented.

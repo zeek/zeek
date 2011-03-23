@@ -36,8 +36,8 @@ export {
 
 		# Automatically set attributes.
 		action: Notice::Action &default=NOTICE_UNKNOWN; # once action determined
-		#src_peer: event_peer &optional;	# source that raised this notice
-		#tag: string &optional;	# tag associated with this notice
+		src_peer: event_peer &optional;	# source that raised this notice
+		tag: string &optional;	# tag associated with this notice
 		#dropped: bool &optional &default=F; # true if src successfully dropped
 
 		# If we asked the Time Machine to capture, the filename prefix.
@@ -60,7 +60,7 @@ export {
 	const mail_page_dest = "bro-page" &redef;	# email address of pager
 	
 	# Do not generate notice_action events for these NOTICE types.
-	const suppress_notice_actions: set[Notice::Type] &redef; 
+	const suppress_notice_actions: set[Type] &redef; 
 	
 	# Hack to suppress duplicate notice_actions for remote notices.
 	global suppress_notice_action = F;
@@ -95,11 +95,11 @@ export {
 	# to call this function in advance of that to ensure that the tag appears
 	# in the connection summaries (i.e., when connection_state_remove() can be
 	# raised before the NOTICE is generated.)
-	global tags: table[conn_id] of string;
+	global tags: table[conn_id] of string = {};
 
 	# These are implemented below
-	global email_notice_to: function(n: Notice::Info, dest: string) &redef;
-	global notice: function(n: Notice::Info);
+	global email_notice_to: function(n: Info, dest: string) &redef;
+	global notice: function(n: Info);
 	
 	global log_notice: event(rec: Info);
 }
@@ -111,7 +111,7 @@ redef new_notice_tag = function(): string
 
 event bro_init()
 	{
-	Log::create_stream(NOTICE_LOG, [$columns=Notice::Info, $ev=log_notice]);
+	Log::create_stream(NOTICE_LOG, [$columns=Info, $ev=log_notice]);
 	Log::add_default_filter(NOTICE_LOG);
 	}
 
@@ -159,22 +159,19 @@ event notice_alarm(n: Notice::Info, action: Notice::Action)
 
 function notice_tags(n: Notice::Info) : table[string] of string
 	{
+	local tgs: table[string] of string = table();
 	if ( is_remote_event() )
 		{
-		#if ( n$src_peer$descr != "" )
-		#	{
-		#	#tags["es"] = n$src_peer$descr;
-		#	}
-		#else
-		#	{
-		#	#tags["es"] = fmt("%s/%s", n$src_peer$host, n$src_peer$p);
-		#	}
+		if ( n$src_peer$descr != "" )
+			tgs["es"] = n$src_peer$descr;
+		else
+			tgs["es"] = fmt("%s/%s", n$src_peer$host, n$src_peer$p);
 		}
 	else
 		{
-		#tags["es"] = peer_description;
+		tgs["es"] = peer_description;
 		}
-	#return tags;
+	return tgs;
 	}
 
 function email_notice_to(n: Notice::Info, dest: string)
@@ -203,14 +200,14 @@ function email_notice(n: Notice::Info, action: Notice::Action)
 function execute_with_notice(cmd: string, n: Notice::Info)
 	{
 	# TODO: fix system calls
-	#local tags = tags(n);
+	#local tgs = tags(n);
 	system_env(cmd, tags);
 	}
 
 # Can't load it at the beginning due to circular dependencies.
 #@load drop
 
-function NOTICE(n: Notice::Info)
+function notice(n: Notice::Info)
 	{
 	# Fill in some defaults.
 	if ( ! n?$id && n?$conn )
@@ -229,13 +226,13 @@ function NOTICE(n: Notice::Info)
 	if ( ! n?$dst && n?$iconn )
 		n$dst = n$iconn$resp_h;
 
-	#if ( ! n?$src_peer )
-	#	n$src_peer = get_event_peer();
-
-	#if ( n?$conn )
-	#	n$tag = add_notice_tag(n$conn);
-	#if ( ! n?$tag )
-	#	n$tag = new_notice_tag();
+	if ( ! n?$src_peer )
+		n$src_peer = get_event_peer();
+    
+	if ( n?$conn )
+		n$tag = add_notice_tag(n$conn);
+	if ( ! n?$tag )
+		n$tag = new_notice_tag();
 
 	local action = match n using policy;
 
@@ -281,13 +278,12 @@ function NOTICE(n: Notice::Info)
 		event notice_action(n, action);
 	}
 
-
-@load notice-action-filters
-
 module GLOBAL;
 
 ## This is the wrapper in the global namespace for the Notice::notice function.
 function NOTICE(n: Notice::Info)
 	{
 	Notice::notice(n);
-	}	
+	}
+	
+@load notice-action-filters

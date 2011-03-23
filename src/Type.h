@@ -6,6 +6,7 @@
 #define type_h
 
 #include <string>
+#include <list>
 #include <map>
 
 #include "Obj.h"
@@ -381,12 +382,22 @@ public:
 	bool Serialize(SerialInfo* info) const;
 	static TypeDecl* Unserialize(UnserialInfo* info);
 
+	virtual void DescribeReST(ODesc* d) const;
+
 	BroType* type;
 	Attributes* attrs;
 	const char* id;
+};
 
-	// comments are only filled when in "documentation mode"
-	const char* comment;
+class CommentedTypeDecl : public TypeDecl {
+public:
+	CommentedTypeDecl(BroType* t, const char* i, attr_list* attrs = 0,
+	                  std::list<std::string>* cmnt_list = 0);
+	~CommentedTypeDecl();
+
+	void DescribeReST(ODesc* d) const;
+
+	std::list<std::string>* comments;
 };
 
 class RecordField {
@@ -506,7 +517,8 @@ public:
 	CommentedEnumType() {}
 	~CommentedEnumType();
 	void DescribeReST(ODesc* d) const;
-	void AddComment(const string& module_name, const char* name, const char* comment);
+	void AddComment(const string& module_name, const char* name,
+	                std::list<std::string>* comments);
 
 protected:
 	// This overriden method does not install the given ID name into a
@@ -515,7 +527,7 @@ protected:
 	void AddNameInternal(const string& module_name, const char* name, bro_int_t val, bool is_export);
 
 	// comments are only filled when in "documentation mode"
-	typedef std::map< const char*, const char*, ltstr > CommentMap;
+	typedef std::map< const char*, std::list<std::string>*, ltstr > CommentMap;
 	CommentMap comments;
 };
 

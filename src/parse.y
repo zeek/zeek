@@ -43,7 +43,8 @@
 %right '!'
 %left '$' '[' ']' '(' ')' TOK_HAS_FIELD TOK_HAS_ATTR
 
-%type <str> TOK_ID TOK_PATTERN_TEXT single_pattern TOK_DOC TOK_POST_DOC opt_doc_list opt_post_doc_list
+%type <str> TOK_ID TOK_PATTERN_TEXT single_pattern TOK_DOC TOK_POST_DOC
+%type <str_l> opt_doc_list opt_post_doc_list
 %type <id> local_id global_id event_id global_or_event_id resolve_id begin_func
 %type <id_l> local_id_list
 %type <ic> init_class
@@ -119,6 +120,9 @@ EnumType *cur_enum_type = 0;
 CommentedEnumType *cur_enum_type_doc = 0;
 const char* cur_enum_elem_id = 0;
 
+type_decl_list* fake_type_decl_list = 0;
+TypeDecl* last_fake_type_decl = 0;
+
 static void parser_new_enum (void)
 	{
 	/* Starting a new enum definition. */
@@ -148,9 +152,9 @@ static void parser_redef_enum (ID *id)
 		cur_enum_type_doc = new CommentedEnumType();
 	}
 
-static void add_enum_comment (const char* comment)
+static void add_enum_comment (std::list<std::string>* comments)
 	{
-	cur_enum_type_doc->AddComment(current_module, cur_enum_elem_id, comment);
+	cur_enum_type_doc->AddComment(current_module, cur_enum_elem_id, comments);
 	}
 
 static ID* create_dummy_id (const char* name, BroType* type)
@@ -158,41 +162,31 @@ static ID* create_dummy_id (const char* name, BroType* type)
 	// normally, install_ID() figures out the right IDScope
 	// but it doesn't matter for the dummy ID so use SCOPE_GLOBAL
 	ID* fake_id = new ID(copy_string(name), SCOPE_GLOBAL, is_export);
-	fake_id->SetType(cur_enum_type_doc);
+	fake_id->SetType(type);
 	type->SetTypeID(copy_string(name));
 	fake_id->MakeType();
 	return fake_id;
 	}
 
-static char* concat_opt_docs (const char* pre, const char* post)
+static std::list<std::string>* concat_opt_docs (std::list<std::string>* pre,
+                                                std::list<std::string>* post)
 	{
-	if ( ! pre && ! post )
-		return 0;
+	if ( ! pre && ! post ) return 0;
 
-	size_t len = 0;
-	if ( pre )
-		len += strlen(pre);
-	if ( post )
-		len += strlen(post);
-	char* s = new char[len + 1];
-	s[0] = '\0';
-	if ( pre )
-		{
-		strcat(s, pre);
-		delete [] pre;
-		}
-	if ( post )
-		{
-		strcat(s, post);
-		delete [] post;
-		}
-	return s;
+	if ( pre && ! post ) return pre;
+
+	if ( ! pre && post ) return post;
+
+	pre->splice(pre->end(), *post);
+	delete post;
+	return pre;
 	}
 
 %}
 
 %union {
 	char* str;
+	std::list<std::string>* str_l;
 	ID* id;
 	id_list* id_l;
 	init_class ic;
@@ -898,18 +892,40 @@ type_list:
 
 type_decl_list:
 		type_decl_list type_decl
-			{ $1->append($2); }
+			{
+			$1->append($2);
+			if ( generate_documentation && last_fake_type_decl )
+				{
+				fake_type_decl_list->append(last_fake_type_decl);
+				last_fake_type_decl = 0;
+				}
+			}
 	|
-			{ $$ = new type_decl_list(); }
+			{
+			$$ = new type_decl_list();
+			if ( generate_documentation )
+				fake_type_decl_list = new type_decl_list();
+			}
 	;
 
 type_decl:
 		opt_doc_list TOK_ID ':' type opt_attr ';' opt_post_doc_list
 			{
 			set_location(@2, @6);
-			$$ = new TypeDecl($4, $2, $5);
 			if ( generate_documentation )
-				$$->comment = concat_opt_docs($1, $7);
+				{
+				attr_list* a = $5;
+				attr_list* a_copy = 0;
+				if ( a )
+					{
+					a_copy = new attr_list;
+					loop_over_list(*a, i)
+						a_copy->append((*a)[i]);
+					}
+				last_fake_type_decl = new CommentedTypeDecl(
+				    $4, $2, a_copy, concat_opt_docs($1, $7));
+				}
+			$$ = new TypeDecl($4, $2, $5);
 			}
 	;
 
@@ -1009,10 +1025,19 @@ decl:
 			add_type($2, $4, $5, 0);
 			if ( generate_documentation )
 				{
-				if ( $2->AsType()->Tag() == TYPE_ENUM && cur_enum_type_doc )
+				TypeTag t = $2->AsType()->Tag();
+				if ( t == TYPE_ENUM && cur_enum_type_doc )
 					{
 					ID* fake = create_dummy_id($2->Name(), cur_enum_type_doc);
 					cur_enum_type_doc = 0;
+					current_reST_doc->AddType(
+						new BroDocObj(fake, reST_doc_comments, true));
+					}
+				else if ( t == TYPE_RECORD && fake_type_decl_list )
+					{
+					BroType* fake_record = new RecordType(fake_type_decl_list);
+					ID* fake = create_dummy_id($2->Name(), fake_record);
+					fake_type_decl_list = 0;
 					current_reST_doc->AddType(
 						new BroDocObj(fake, reST_doc_comments, true));
 					}
@@ -1484,11 +1509,16 @@ resolve_id:
 opt_post_doc_list:
 		opt_post_doc_list TOK_POST_DOC
 			{
-			$$ = concat_opt_docs($1, $2);
+			$1->push_back($2);
+			$$ = $1;
 			}
 	|
 		TOK_POST_DOC
-			{ $$ = $1; }
+			{
+			$$ = new std::list<std::string>();
+			$$->push_back($1);
+			delete [] $1;
+			}
 	|
 			{ $$ = 0; }
 	;
@@ -1496,11 +1526,16 @@ opt_post_doc_list:
 opt_doc_list:
 		opt_doc_list TOK_DOC
 			{
-			$$ = concat_opt_docs($1, $2);
+			$1->push_back($2);
+			$$ = $1;
 			}
 	|
 		TOK_DOC
-			{ $$ = $1; }
+			{
+			$$ = new std::list<std::string>();
+			$$->push_back($1);
+			delete [] $1;
+			}
 	|
 			{ $$ = 0; }
 	;

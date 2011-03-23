@@ -10,6 +10,10 @@
 #include "Scope.h"
 #include "Serializer.h"
 
+#include <string>
+#include <list>
+#include <map>
+
 extern int generate_documentation;
 
 const char* type_name(TypeTag t)
@@ -773,7 +777,6 @@ TypeDecl::TypeDecl(BroType* t, const char* i, attr_list* arg_attrs)
 	type = t;
 	attrs = arg_attrs ? new Attributes(arg_attrs, t) : 0;
 	id = i;
-	comment = 0;
 	}
 
 TypeDecl::~TypeDecl()
@@ -781,7 +784,6 @@ TypeDecl::~TypeDecl()
 	Unref(type);
 	Unref(attrs);
 	delete [] id;
-	if ( comment ) delete [] comment;
 	}
 
 bool TypeDecl::Serialize(SerialInfo* info) const
@@ -793,11 +795,6 @@ bool TypeDecl::Serialize(SerialInfo* info) const
 
 	if ( ! (type->Serialize(info) && SERIALIZE(id)) )
 		return false;
-
-	if ( generate_documentation )
-		{
-		SERIALIZE_OPTIONAL_STR(comment);
-		}
 
 	return true;
 	}
@@ -815,12 +812,57 @@ TypeDecl* TypeDecl::Unserialize(UnserialInfo* info)
 		return 0;
 		}
 
-	if ( generate_documentation )
-		{
-		UNSERIALIZE_OPTIONAL_STR_DEL(t->comment, t);
-		}
-
 	return t;
+	}
+
+void TypeDecl::DescribeReST(ODesc* d) const
+	{
+	d->Add(id);
+	d->Add(": ");
+	if ( type->GetTypeID() )
+		{
+		d->Add(":bro:type:`");
+		d->Add(type->GetTypeID());
+		d->Add("`");
+		}
+	else
+		type->DescribeReST(d);
+
+	if ( attrs )
+		{
+		d->SP();
+		attrs->DescribeReST(d);
+		}
+	}
+
+CommentedTypeDecl::CommentedTypeDecl(BroType* t, const char* i,
+                                     attr_list* attrs,
+                                     std::list<std::string>* cmnt_list)
+	: TypeDecl(t, i, attrs)
+	{
+	comments = cmnt_list;
+	}
+
+CommentedTypeDecl::~CommentedTypeDecl()
+	{
+	if ( comments ) delete comments;
+	}
+
+void CommentedTypeDecl::DescribeReST(ODesc* d) const
+	{
+	TypeDecl::DescribeReST(d);
+
+	if ( comments )
+		{
+		d->PushIndent();
+		std::list<std::string>::const_iterator i;
+		for ( i = comments->begin(); i != comments->end(); ++i)
+			{
+			if ( i != comments->begin() ) d->NL();
+			d->Add(i->c_str());
+			}
+		d->PopIndentNoNL();
+		}
 	}
 
 RecordField::RecordField(int arg_base, int arg_offset, int arg_total_offset)
@@ -1054,8 +1096,6 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 
 	for ( int i = 0; i < num_fields; ++i )
 		{
-		const TypeDecl* td = FieldDecl(i);
-
 		if ( i > 0 )
 			if ( func_args )
 				d->Add(", ");
@@ -1065,32 +1105,7 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 				d->NL();
 				}
 
-		d->Add(td->id);
-		d->Add(": ");
-		if ( td->type->GetTypeID() )
-			{
-			d->Add(":bro:type:`");
-			d->Add(td->type->GetTypeID());
-			d->Add("`");
-			}
-		else
-			td->type->DescribeReST(d);
-
-		if ( td->attrs )
-			{
-			d->SP();
-			td->attrs->DescribeReST(d);
-			}
-
-		if ( ! func_args )
-			{
-			if ( td->comment )
-				{
-				d->PushIndent();
-				d->Add(td->comment);
-				d->PopIndentNoNL();
-				}
-			}
+		FieldDecl(i)->DescribeReST(d);
 		}
 
 	if ( ! func_args )
@@ -1259,7 +1274,7 @@ CommentedEnumType::~CommentedEnumType()
 	for ( CommentMap::iterator iter = comments.begin(); iter != comments.end(); ++iter )
 		{
 		delete [] iter->first;
-		delete [] iter->second;
+		delete iter->second;
 		}
 	}
 
@@ -1292,26 +1307,22 @@ void EnumType::AddName(const string& module_name, const char* name, bro_int_t va
 	AddNameInternal(module_name, name, val, is_export);
 	}
 
-void CommentedEnumType::AddComment(const string& module_name, const char* name, const char* comment)
+void CommentedEnumType::AddComment(const string& module_name, const char* name,
+                                   std::list<std::string>* new_comments)
 	{
-	if ( ! comment ) return;
+	if ( ! new_comments ) return;
 
 	string fullname = make_full_var_name(module_name.c_str(), name);
 
 	CommentMap::iterator it = comments.find(fullname.c_str());
 
 	if ( it == comments.end() )
-		comments[copy_string(fullname.c_str())] = comment;
+		comments[copy_string(fullname.c_str())] = new_comments;
 	else
 		{
-		// append to current comments
-		size_t len = strlen(it->second) + strlen(comment) + 1;
-		char* s = new char[len];
-		sprintf(s, "%s%s", it->second, comment);
-		s[len - 1] = '\0';
-		delete [] it->second;
-		delete [] comment;
-		comments[fullname.c_str()] = s;
+		comments[fullname.c_str()]->splice(comments[fullname.c_str()]->end(),
+		                                   *new_comments);
+		delete [] new_comments;
 		}
 	}
 
@@ -1402,7 +1413,13 @@ void CommentedEnumType::DescribeReST(ODesc* d) const
 			{
 			d->PushIndent();
 			d->NL();
-			d->Add(cmnt_it->second);
+			std::list<std::string>::const_iterator i;
+			const std::list<std::string>* cmnt_list = cmnt_it->second;
+			for ( i = cmnt_list->begin(); i != cmnt_list->end(); ++i)
+				{
+				if ( i != cmnt_list->begin() ) d->NL();
+				d->Add(i->c_str());
+				}
 			d->PopIndentNoNL();
 			}
 		}

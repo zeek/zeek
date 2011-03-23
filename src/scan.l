@@ -75,6 +75,15 @@ static void check_capture_filter_changes();
 // adds changes to dpd_config to the current script's reST documentation
 static void check_dpd_config_changes();
 
+static const char* canon_doc_comment(const char* comment)
+	{
+	// "##Text" and "## Text" are treated the same in order to be able
+	// to still preserve indentation level, but not unintentionally
+	// signify an indentation level for all the text when using
+	// the "## Text" style
+	return ( comment[0] == ' ' ) ? comment + 1 : comment;
+	}
+
 class FileInfo {
 public:
 	FileInfo(string restore_module = "");
@@ -132,7 +141,9 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 ##!.* {
 	// Add this format of comments to the script documentation's "summary"
 	if ( generate_documentation )
-		current_reST_doc->AddSummary(yytext + 3);
+		{
+		current_reST_doc->AddSummary(canon_doc_comment(yytext + 3));
+		}
 	}
 
 ##{OWS}Author:.* {
@@ -145,22 +156,25 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 	}
 
 <DOC>##<.* {
-   yylval.str = copy_string(yytext + 3);
-   return TOK_POST_DOC;
+	yylval.str = copy_string(canon_doc_comment(yytext + 3));
+	return TOK_POST_DOC;
 }
 
-<DOC>##[^#\n].* {
-   yylval.str = copy_string(yytext + 2);
-   return TOK_DOC;
+<DOC>##.* {
+	if ( yytext[2] != '#' )
+		{
+		yylval.str = copy_string(canon_doc_comment(yytext + 2));
+		return TOK_DOC;
+		}
 }
 
 
-##[^#\n].* {
-	if ( generate_documentation )
+##.* {
+	if ( generate_documentation && (yytext[2] != '#') )
 		{
 		if ( ! reST_doc_comments )
 			reST_doc_comments = new std::list<std::string>();
-		reST_doc_comments->push_back(yytext + 2);
+		reST_doc_comments->push_back(canon_doc_comment(yytext + 2));
 		}
 }
 

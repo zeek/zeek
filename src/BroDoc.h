@@ -35,10 +35,7 @@ public:
 	 * BroDoc's default implementation of this function will care
 	 * about whether declarations made in the Bro script are part of
 	 * the public versus private interface (whether things are declared in
-	 * the export section).  Things in a script's export section make it
-	 * into the reST output regardless of whether they have ## comments
-	 * but things outside the export section are only output into the reST
-	 * if they have ## comments.
+	 * the export section).
 	 */
 	virtual void WriteDocFile() const;
 
@@ -92,6 +89,16 @@ public:
 	 *        also any associated comments about it.
 	 */
 	void AddOption(const BroDocObj* o) { options.push_back(o); }
+
+	/**
+	 * Schedules documentation of a script constant.  An option is
+	 * defined as any variable in the script that is declared 'const'
+	 * and does *not* have the '&redef' attribute.
+	 * @param o A pointer to a BroDocObj which contains the internal
+	 *        Bro language representation of the script constant and
+	 *        also any associated comments about it.
+	 */
+	void AddConstant(const BroDocObj* o) { constants.push_back(o); }
 
 	/**
 	 * Schedules documentation of a script state variable.  A state variable
@@ -167,6 +174,7 @@ protected:
 	std::list<std::string> port_analysis;
 
 	std::list<const BroDocObj*> options;
+	std::list<const BroDocObj*> constants;
 	std::list<const BroDocObj*> state_vars;
 	std::list<const BroDocObj*> types;
 	std::list<const BroDocObj*> notices;
@@ -235,6 +243,19 @@ protected:
 	 *        within the reST document
 	 */
 	void WriteSectionHeading(const char* heading, char underline) const;
+
+	/**
+	 * Writes out the reST for either the script's public or private interface
+	 * @param heading The title of the interfaces section heading
+	 * @param underline The underline character to use for the interface
+	 *        section
+	 * @param subunderline The underline character to use for interface
+	 *        sub-sections
+	 * @param isPublic Whether to write out the public or private script
+	 *        interface
+	 */
+	void WriteInterface(const char* heading, char underline, char subunderline,
+	                    bool isPublic) const;
 private:
 
 	/**

@@ -651,12 +651,26 @@ void ID::DescribeReST(ODesc* d, bool is_role) const
 		}
 
 	if ( val && type &&
-		 type->InternalType() != TYPE_INTERNAL_OTHER &&
+		 type->Tag() != TYPE_FUNC &&
 		 type->InternalType() != TYPE_INTERNAL_VOID )
 		{
-		d->Add(":Init: ");
-		val->DescribeReST(d);
-		d->NL();
+		if ( type->InternalType() == TYPE_INTERNAL_OTHER )
+			{
+			d->Add(":Init:");
+			d->NL();
+			d->NL();
+			d->Add("::");
+			d->NL();
+			d->PushIndent();
+			val->DescribeReST(d);
+			d->PopIndent();
+			}
+		else
+			{
+			d->Add(":Init: ");
+			val->DescribeReST(d);
+			d->NL();
+			}
 		}
 	}
 

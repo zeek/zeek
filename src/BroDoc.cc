@@ -48,6 +48,7 @@ BroDoc::~BroDoc()
 		if ( fclose( reST_file ) )
 			fprintf(stderr, "Failed to close %s", reST_filename.c_str());
 	FreeBroDocObjPtrList(options);
+	FreeBroDocObjPtrList(constants);
 	FreeBroDocObjPtrList(state_vars);
 	FreeBroDocObjPtrList(types);
 	FreeBroDocObjPtrList(notices);
@@ -146,21 +147,21 @@ void BroDoc::WriteDocFile() const
 		WriteToDoc("%s\n", packet_filter.c_str());
 		}
 
-	WriteSectionHeading("Public Interface", '-');
-	WriteBroDocObjList(options, true, "Options", '~');
-	WriteBroDocObjList(state_vars, true, "State Variables", '~');
-	WriteBroDocObjList(types, true, "Types", '~');
-	WriteBroDocObjList(events, true, "Events", '~');
-	WriteBroDocObjList(functions, true, "Functions", '~');
-	WriteBroDocObjList(redefs, true, "Redefinitions", '~');
+	WriteInterface("Public Interface", '-', '~', true);
+	WriteInterface("Private Interface", '-', '~', false);
+	}
 
-	WriteSectionHeading("Private Interface", '-');
-	WriteBroDocObjList(options, false, "Options", '~');
-	WriteBroDocObjList(state_vars, false, "State Variables", '~');
-	WriteBroDocObjList(types, false, "Types", '~');
-	WriteBroDocObjList(events, false, "Events", '~');
-	WriteBroDocObjList(functions, false, "Functions", '~');
-	WriteBroDocObjList(redefs, false, "Redefinitions", '~');
+void BroDoc::WriteInterface(const char* heading, char underline,
+                            char sub, bool isPublic) const
+	{
+	WriteSectionHeading(heading, underline);
+	WriteBroDocObjList(options, isPublic, "Options", sub);
+	WriteBroDocObjList(constants, isPublic, "Constants", sub);
+	WriteBroDocObjList(state_vars, isPublic, "State Variables", sub);
+	WriteBroDocObjList(types, isPublic, "Types", sub);
+	WriteBroDocObjList(events, isPublic, "Events", sub);
+	WriteBroDocObjList(functions, isPublic, "Functions", sub);
+	WriteBroDocObjList(redefs, isPublic, "Redefinitions", sub);
 	}
 
 void BroDoc::WriteStringList(const char* format,

@@ -576,9 +576,14 @@ void Val::Describe(ODesc* d) const
 
 void Val::DescribeReST(ODesc* d) const
 	{
-	d->Add("``");
-	ValDescribeReST(d);
-	d->Add("``");
+	if ( type->InternalType() == TYPE_INTERNAL_OTHER )
+		Describe(d);
+	else
+		{
+		d->Add("``");
+		ValDescribeReST(d);
+		d->Add("``");
+		}
 	}
 
 void Val::ValDescribe(ODesc* d) const

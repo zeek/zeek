@@ -59,9 +59,14 @@ void Attr::DescribeReST(ODesc* d) const
 		d->SP();
 		d->Add("=");
 		d->SP();
-		d->Add("``");
-		expr->Describe(d);
-		d-> Add("``");
+		if ( expr->Type()->Tag() == TYPE_FUNC )
+			d->Add(":bro:type:`func`");
+		else
+			{
+			d->Add("``");
+			expr->Describe(d);
+			d-> Add("``");
+			}
 		}
 	}
 

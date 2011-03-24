@@ -991,6 +991,9 @@ decl:
 				if ( $2->FindAttr(ATTR_REDEF) )
 					current_reST_doc->AddOption(
 						new BroDocObj($2, reST_doc_comments));
+				else
+					current_reST_doc->AddConstant(
+						new BroDocObj($2, reST_doc_comments));
 			}
 
 	|	TOK_REDEF global_id opt_type init_class opt_init opt_attr ';'

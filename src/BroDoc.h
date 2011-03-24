@@ -198,15 +198,15 @@ protected:
 	/**
 	 * Writes out a list of BroDocObj objects to the reST document
 	 * @param l A list of BroDocObj pointers
-	 * @param exportCond If true, filter out objects that are not in an
-	 *        export section.  If false, filter out those that are in
-	 *        an export section.
+	 * @param wantPublic If true, filter out objects that are not declared
+	 *        in the global scope.  If false, filter out those that are in
+	 *        the global scope.
 	 * @param heading The title of the section to create in the reST doc.
 	 * @param underline The character to use to underline the reST
 	 *        section heading.
 	 */
 	void WriteBroDocObjList(const std::list<const BroDocObj*>& l,
-	                        bool exportCond,
+	                        bool wantPublic,
 	                        const char* heading,
 	                        char underline) const;
 

@@ -37,11 +37,13 @@ public:
 	void WriteReST(FILE* file) const;
 
 	/**
-	 * Check whether this documentation is part of the public API
-	 * (The declaration was while in an export section).
+	 * Check whether this documentation is part of the public API.  In
+	 * other words, this means that the identifier is declared as part of
+	 * the global scope (has GLOBAL namespace or is exported from another
+	 * namespace).
 	 * @return true if the ID was declared in an export section, else false
 	 */
-	bool IsPublicAPI() const { return broID->IsExport(); }
+	bool IsPublicAPI() const { return broID->IsGlobal(); }
 
 	/**
 	 * Return whether this object has documentation (## comments)

@@ -157,13 +157,12 @@ static void add_enum_comment (std::list<std::string>* comments)
 	cur_enum_type_doc->AddComment(current_module, cur_enum_elem_id, comments);
 	}
 
-static ID* create_dummy_id (const char* name, BroType* type)
+static ID* create_dummy_id (const ID* id, BroType* type)
 	{
-	// normally, install_ID() figures out the right IDScope
-	// but it doesn't matter for the dummy ID so use SCOPE_GLOBAL
-	ID* fake_id = new ID(copy_string(name), SCOPE_GLOBAL, is_export);
+	ID* fake_id = new ID(copy_string(id->Name()), (IDScope) id->Scope(),
+	                     is_export);
 	fake_id->SetType(type);
-	type->SetTypeID(copy_string(name));
+	type->SetTypeID(copy_string(id->Name()));
 	fake_id->MakeType();
 	return fake_id;
 	}
@@ -1009,7 +1008,7 @@ decl:
 			do_doc_token_stop();
 			if ( generate_documentation )
 				{
-				ID* fake_id = create_dummy_id($3->Name(), cur_enum_type_doc);
+				ID* fake_id = create_dummy_id($3, cur_enum_type_doc);
 				cur_enum_type_doc = 0;
 				BroDocObj* o = new BroDocObj(fake_id, reST_doc_comments, true);
 				o->SetRole(true);
@@ -1028,7 +1027,7 @@ decl:
 				TypeTag t = $2->AsType()->Tag();
 				if ( t == TYPE_ENUM && cur_enum_type_doc )
 					{
-					ID* fake = create_dummy_id($2->Name(), cur_enum_type_doc);
+					ID* fake = create_dummy_id($2, cur_enum_type_doc);
 					cur_enum_type_doc = 0;
 					current_reST_doc->AddType(
 						new BroDocObj(fake, reST_doc_comments, true));
@@ -1036,7 +1035,7 @@ decl:
 				else if ( t == TYPE_RECORD && fake_type_decl_list )
 					{
 					BroType* fake_record = new RecordType(fake_type_decl_list);
-					ID* fake = create_dummy_id($2->Name(), fake_record);
+					ID* fake = create_dummy_id($2, fake_record);
 					fake_type_decl_list = 0;
 					current_reST_doc->AddType(
 						new BroDocObj(fake, reST_doc_comments, true));

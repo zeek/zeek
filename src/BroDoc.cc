@@ -152,6 +152,7 @@ void BroDoc::WriteDocFile() const
 	WriteBroDocObjList(redefs, true, "Redefinitions", '~');
 
 	WriteSectionHeading("Private Interface", '-');
+	WriteBroDocObjList(options, false, "Options", '~');
 	WriteBroDocObjList(state_vars, false, "State Variables", '~');
 	WriteBroDocObjList(types, false, "Types", '~');
 	WriteBroDocObjList(events, false, "Events", '~');
@@ -177,7 +178,7 @@ void BroDoc::WriteStringList(const char* format,
 	}
 
 void BroDoc::WriteBroDocObjList(const std::list<const BroDocObj*>& l,
-                                bool exportCond,
+                                bool wantPublic,
                                 const char* heading,
                                 char underline) const
 	{
@@ -185,18 +186,12 @@ void BroDoc::WriteBroDocObjList(const std::list<const BroDocObj*>& l,
 	std::list<const BroDocObj*>::const_iterator it;
 	for ( it = l.begin(); it != l.end(); ++it )
 		{
-		if ( exportCond )
-			{
-			// write out only those in an export section
+		if ( wantPublic )
 			if ( (*it)->IsPublicAPI() )
 				(*it)->WriteReST(reST_file);
-			}
 		else
-			{
-			// write out only those that have comments and are not exported
-			if ( !(*it)->IsPublicAPI() && (*it)->HasDocumentation() )
+			if ( ! (*it)->IsPublicAPI() )
 				(*it)->WriteReST(reST_file);
-			}
 		}
 	}
 

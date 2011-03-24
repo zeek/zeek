@@ -44,3 +44,9 @@ void BroDocObj::WriteReST(FILE* file) const
 
 	fprintf(file, "\n");
 	}
+
+bool BroDocObj::IsPublicAPI() const
+	{
+	return (broID->Scope() == SCOPE_GLOBAL) ||
+	       (broID->Scope() == SCOPE_MODULE && broID->IsExport());
+	}

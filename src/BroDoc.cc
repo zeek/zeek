@@ -112,8 +112,11 @@ void BroDoc::WriteDocFile() const
 	WriteSectionHeading("Summary", '-');
 	WriteStringList("%s\n", "%s\n\n", summary);
 
-	WriteToDoc(":Imports: ");
-	WriteStringList(":doc:`%s`, ", ":doc:`%s`\n", imports);
+	if ( ! imports.empty() )
+		{
+		WriteToDoc(":Imports: ");
+		WriteStringList(":doc:`%s`, ", ":doc:`%s`\n", imports);
+		}
 
 	WriteToDoc("\n");
 
@@ -182,16 +185,23 @@ void BroDoc::WriteBroDocObjList(const std::list<const BroDocObj*>& l,
                                 const char* heading,
                                 char underline) const
 	{
-	WriteSectionHeading(heading, underline);
+	if ( l.empty() ) return;
+
 	std::list<const BroDocObj*>::const_iterator it;
-	for ( it = l.begin(); it != l.end(); ++it )
+	bool (*f_ptr)(const BroDocObj* o) = 0;
+
+	if ( wantPublic )
+		f_ptr = IsPublicAPI;
+	else
+		f_ptr = IsPrivateAPI;
+
+	it = std::find_if(l.begin(), l.end(), f_ptr);
+	if ( it == l.end() ) return;
+	WriteSectionHeading(heading, underline);
+	while ( it != l.end() )
 		{
-		if ( wantPublic )
-			if ( (*it)->IsPublicAPI() )
-				(*it)->WriteReST(reST_file);
-		else
-			if ( ! (*it)->IsPublicAPI() )
-				(*it)->WriteReST(reST_file);
+		(*it)->WriteReST(reST_file);
+		it = find_if(++it, l.end(), f_ptr);
 		}
 	}
 

@@ -242,6 +242,9 @@ private:
 	 * @param a reference to a list of BroDocObj pointers
 	 */
 	void FreeBroDocObjPtrList(std::list<const BroDocObj*>& l);
+
+	static bool IsPublicAPI(const BroDocObj* o) { return o->IsPublicAPI(); }
+	static bool IsPrivateAPI(const BroDocObj* o) { return ! o->IsPublicAPI(); }
 };
 
 #endif

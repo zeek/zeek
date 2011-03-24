@@ -41,9 +41,9 @@ public:
 	 * other words, this means that the identifier is declared as part of
 	 * the global scope (has GLOBAL namespace or is exported from another
 	 * namespace).
-	 * @return true if the ID was declared in an export section, else false
+	 * @return true if the identifier is part of the script's public API
 	 */
-	bool IsPublicAPI() const { return broID->IsGlobal(); }
+	bool IsPublicAPI() const;
 
 	/**
 	 * Return whether this object has documentation (## comments)

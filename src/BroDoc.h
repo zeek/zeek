@@ -84,13 +84,6 @@ public:
 	void AddPortAnalysis(const std::string& analyzer, const std::string& ports);
 
 	/**
-	 * Adds a script author.
-	 * The scanner should call this when it sees "## Author: ..."
-	 * @param s The name, email, etc. of the script author.
-	 */
-	void AddAuthor(const std::string& s) { authors.push_back(s); }
-
-	/**
 	 * Schedules documentation of a script option.  An option is
 	 * defined as any variable in the script that is declared 'const'
 	 * and has the '&redef' attribute.
@@ -168,7 +161,6 @@ protected:
 	std::string source_filename;
 	std::string packet_filter;
 
-	std::list<std::string> authors;
 	std::list<std::string> modules;
 	std::list<std::string> summary;
 	std::list<std::string> imports;

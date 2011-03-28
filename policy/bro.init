@@ -11,6 +11,7 @@ global no_handler: event(name: string, val: any);
 # Type declarations
 type string_array: table[count] of string;
 type string_set: set[string];
+type count_set: set[count];
 type index_vec: vector of count;
 type string_vec: vector of string;
 
@@ -917,14 +918,18 @@ global dns_max_queries = 5;
 const ssl_max_cipherspec_size = 68 &redef;
 
 # SSL and X.509 types.
-type cipher_suites_list: set[count];
-type SSL_sessionID: table[count] of count;
-type X509_extension: table[count] of string;
+type X509Extensions: table[count] of string;
 type X509: record {
-	issuer: string;
+	version: count;
+	serial: string;
 	subject: string;
-	orig_addr: addr;
+	issuer: string;
+	not_valid_before: time;
+	not_valid_after: time;
 };
+
+# This is indexed with the CA's name and yields a DER (binary) encoded certificate.
+const root_ca_certs: table[string] of string = {} &redef;
 
 type http_stats_rec: record {
 	num_requests: count;

@@ -15,8 +15,10 @@ analyzer SSL withcontext {
 	flow : SSLFlow;
 };
 
-
-%include ssl-defs.pac
-
 %include ssl-protocol.pac
 %include ssl-analyzer.pac
+%include ssl-defs.pac
+
+flow SSLFlow(is_orig : bool) {
+	flowunit = SSLPDU(is_orig) withcontext(connection, this);
+};

@@ -1,5 +1,3 @@
-# $Id:$
-
 # Analyzer for SSL messages (general part).
 # To be used in conjunction with an SSL record-layer analyzer.
 # Separation is necessary due to possible fragmentation of SSL records.
@@ -25,6 +23,57 @@ type uint24 = record {
 %}
 
 extern type to_int;
+
+type SSLRecord(is_orig: bool) = record {
+	head0 : uint8;
+	head1 : uint8;
+	head2 : uint8;
+	head3 : uint8;
+	head4 : uint8;
+	rec : RecordText(this, is_orig) &requires(content_type), &restofdata;
+} &length = length+5, &byteorder=bigendian,
+  &let {
+	version : int =
+		$context.analyzer.determine_ssl_version(head0, head1, head2);
+
+	content_type : int = case version of {
+		UNKNOWN_VERSION -> 0;
+		SSLv20 -> head2+300;
+		default -> head0;
+	};
+	
+	length : int = case version of {
+		UNKNOWN_VERSION -> 0;
+		SSLv20 -> (((head0 & 0x7f) << 8) | head1) - 3;
+		default -> (head3 << 8) | head4;
+	};
+};
+
+type RecordText(rec: SSLRecord, is_orig: bool) = case $context.analyzer.state() of {
+	STATE_ABBREV_SERVER_ENCRYPTED, STATE_CLIENT_ENCRYPTED,
+	STATE_COMM_ENCRYPTED, STATE_CONN_ESTABLISHED
+		-> ciphertext : CiphertextRecord(rec, is_orig);
+	default
+		-> plaintext : PlaintextRecord(rec, is_orig);
+};
+
+type PlaintextRecord(rec: SSLRecord, is_orig: bool) = case rec.content_type of {
+	CHANGE_CIPHER_SPEC	-> ch_cipher : ChangeCipherSpec(rec);
+	ALERT			-> alert : Alert(rec);
+	HANDSHAKE		-> handshake : Handshake(rec)[];
+	APPLICATION_DATA	-> app_data : ApplicationData(rec);
+	V2_ERROR		-> v2_error : V2Error(rec);
+	V2_CLIENT_HELLO		-> v2_client_hello : V2ClientHello(rec);
+	V2_CLIENT_MASTER_KEY	-> v2_client_master_key : V2ClientMasterKey(rec);
+	V2_SERVER_HELLO		-> v2_server_hello : V2ServerHello(rec);
+	default			-> unknown_record : UnknownRecord(rec);
+};
+
+type SSLExtension = record {
+	type: uint16;
+	data_len: uint16;
+	data: bytestring &length=data_len;
+};
 
 ######################################################################
 # state management according to Section 7.3. in spec
@@ -99,6 +148,96 @@ enum AnalyzerState {
 		{
 		return string(is_orig ? "originator" :"responder");
 		}
+		
+	double get_time_from_asn1(const ASN1_TIME * atime)
+		{
+		time_t lResult = 0;
+
+		char lBuffer[24];
+		char * pBuffer = lBuffer;
+
+		size_t lTimeLength = atime->length;
+		char * pString = (char *) atime->data;
+
+		if ( atime->type == V_ASN1_UTCTIME )
+			{
+			if ( lTimeLength < 11 || lTimeLength > 17 )
+				return 0;
+
+			memcpy(pBuffer, pString, 10);
+			pBuffer += 10;
+			pString += 10;
+			}
+		else
+			{
+			if ( lTimeLength < 13 )
+	                 	return 0;
+
+			memcpy(pBuffer, pString, 12);
+			pBuffer += 12;
+			pString += 12;
+			}
+
+		if ((*pString == 'Z') || (*pString == '-') || (*pString == '+'))
+			{
+			*(pBuffer++) = '0';
+			*(pBuffer++) = '0';
+			}
+		else
+			{
+			*(pBuffer++) = *(pString++);
+			*(pBuffer++) = *(pString++);
+			// Skip any fractional seconds...
+			if (*pString == '.')
+				{
+				pString++;
+				while ((*pString >= '0') && (*pString <= '9'))
+					pString++;
+				}
+			}
+
+		*(pBuffer++) = 'Z';
+		*(pBuffer++) = '\0';
+
+		time_t lSecondsFromUTC;
+		if ( *pString == 'Z' )
+			lSecondsFromUTC = 0;
+		else
+			{
+			if ((*pString != '+') && (pString[5] != '-'))
+				return 0;
+
+			lSecondsFromUTC = ((pString[1]-'0') * 10 + (pString[2]-'0')) * 60;
+			lSecondsFromUTC += (pString[3]-'0') * 10 + (pString[4]-'0');
+			if (*pString == '-')
+				lSecondsFromUTC = -lSecondsFromUTC;
+			}
+
+		tm lTime;
+		lTime.tm_sec  = ((lBuffer[10] - '0') * 10) + (lBuffer[11] - '0');
+		lTime.tm_min  = ((lBuffer[8] - '0') * 10) + (lBuffer[9] - '0');
+		lTime.tm_hour = ((lBuffer[6] - '0') * 10) + (lBuffer[7] - '0');
+		lTime.tm_mday = ((lBuffer[4] - '0') * 10) + (lBuffer[5] - '0');
+		lTime.tm_mon  = (((lBuffer[2] - '0') * 10) + (lBuffer[3] - '0')) - 1;
+		lTime.tm_year = ((lBuffer[0] - '0') * 10) + (lBuffer[1] - '0');
+		if (lTime.tm_year < 50)
+			lTime.tm_year += 100; // RFC 2459
+		lTime.tm_wday = 0;
+		lTime.tm_yday = 0;
+		lTime.tm_isdst = 0;  // No DST adjustment requested
+		
+		lResult = mktime(&lTime);
+		if ( lResult )
+			{
+			if ( 0 != lTime.tm_isdst )
+				lResult -= 3600;  // mktime may adjust for DST  (OS dependent)
+			lResult += lSecondsFromUTC;
+			}
+	         else
+	         	lResult = 0;
+
+		return lResult;
+	}
 %}
 
 ######################################################################
@@ -115,7 +254,9 @@ enum HandshakeType {
 	SERVER_HELLO_DONE	= 14,
 	CERTIFICATE_VERIFY	= 15,
 	CLIENT_KEY_EXCHANGE	= 16,
-	FINISHED		= 20
+	FINISHED		= 20,
+	CERTIFICATE_URL		= 21, # RFC 3546
+	CERTIFICATE_STATUS	= 22, # RFC 3546
 };
 
 %code{
@@ -132,6 +273,8 @@ enum HandshakeType {
 		case CERTIFICATE_VERIFY: return string("CERTIFICATE_VERIFY");
 		case CLIENT_KEY_EXCHANGE: return string("CLIENT_KEY_EXCHANGE");
 		case FINISHED: return string("FINISHED");
+		case CERTIFICATE_URL: return string("CERTIFICATE_URL");
+		case CERTIFICATE_STATUS: return string("CERTIFICATE_STATUS");
 		default: return string(fmt("UNKNOWN (%d)", type));
 		}
 		}
@@ -142,23 +285,25 @@ enum HandshakeType {
 # V3 Change Cipher Spec Protocol (7.1.)
 ######################################################################
 
-type ChangeCipherSpec = record {
+type ChangeCipherSpec(rec: SSLRecord) = record {
 	type : uint8;
 } &length = 1, &let {
 	state_changed : bool =
-	    $context.analyzer.transition(STATE_CLIENT_FINISHED,
-					 STATE_COMM_ENCRYPTED, false) ||
-	    $context.analyzer.transition(STATE_IN_SERVER_HELLO,
-					 STATE_ABBREV_SERVER_ENCRYPTED, false) ||
-	    $context.analyzer.transition(STATE_CLIENT_KEY_NO_CERT,
-					 STATE_CLIENT_ENCRYPTED, true) ||
-	    $context.analyzer.transition(STATE_CLIENT_CERT_VERIFIED,
-					 STATE_CLIENT_ENCRYPTED, true) ||
-	    $context.analyzer.transition(STATE_CLIENT_KEY_WITH_CERT,
-					 STATE_CLIENT_ENCRYPTED, true) ||
-	    $context.analyzer.transition(STATE_ABBREV_SERVER_FINISHED,
-					 STATE_COMM_ENCRYPTED, true) ||
-	    $context.analyzer.lost_track();
+		$context.analyzer.transition(STATE_CLIENT_FINISHED,
+					 STATE_COMM_ENCRYPTED, rec.is_orig, false) ||
+		$context.analyzer.transition(STATE_IN_SERVER_HELLO,
+					 STATE_ABBREV_SERVER_ENCRYPTED, rec.is_orig, false) ||
+		$context.analyzer.transition(STATE_CLIENT_KEY_NO_CERT,
+					 STATE_CLIENT_ENCRYPTED, rec.is_orig, true) ||
+		$context.analyzer.transition(STATE_CLIENT_CERT_VERIFIED,
+					 STATE_CLIENT_ENCRYPTED, rec.is_orig, true) ||
+		#$context.analyzer.transition(STATE_CLIENT_CERT,
+		#			 STATE_CLIENT_ENCRYPTED, rec.is_orig, true) ||
+		$context.analyzer.transition(STATE_CLIENT_KEY_WITH_CERT,
+					 STATE_CLIENT_ENCRYPTED, rec.is_orig, true) ||
+		$context.analyzer.transition(STATE_ABBREV_SERVER_FINISHED,
+					 STATE_COMM_ENCRYPTED, rec.is_orig, true) ||
+		$context.analyzer.lost_track();
 };
 
 
@@ -166,19 +311,19 @@ type ChangeCipherSpec = record {
 # V3 Alert Protocol (7.2.)
 ######################################################################
 
-type Alert = record {
+type Alert(rec: SSLRecord) = record {
 	level : uint8;
 	description: uint8;
-} &length = 2;
+};
 
 
 ######################################################################
 # V2 Error Records (SSLv2 2.7.)
 ######################################################################
 
-type V2Error = record {
+type V2Error(rec: SSLRecord) = record {
 	error_code : uint16;
-} &length = 2;
+};
 
 
 ######################################################################
@@ -187,9 +332,7 @@ type V2Error = record {
 
 # Application data should always be encrypted, so we should not
 # reach this point.
-type ApplicationData = empty &let {
-	discard: bool = $context.flow.discard_data();
-};
+type ApplicationData(rec: SSLRecord) = empty;
 
 ######################################################################
 # Handshake Protocol (7.4.)
@@ -200,7 +343,7 @@ type ApplicationData = empty &let {
 ######################################################################
 
 # Hello Request is empty
-type HelloRequest = empty &let {
+type HelloRequest(rec: SSLRecord) = empty &let {
 	hr: bool = $context.analyzer.set_hello_requested(true);
 };
 
@@ -209,7 +352,7 @@ type HelloRequest = empty &let {
 # V3 Client Hello (7.4.1.2.)
 ######################################################################
 
-type ClientHello = record {
+type ClientHello(rec: SSLRecord) = record {
 	client_version : uint16;
 	gmt_unix_time : uint32;
 	random_bytes : bytestring &length = 28 &transient;
@@ -219,12 +362,16 @@ type ClientHello = record {
 	csuits : uint16[csuit_len/2];
 	cmeth_len : uint8 &check(cmeth_len > 0);
 	cmeths : uint8[cmeth_len];
+	# This weirdness is to deal with the possible existence or absence
+	# of the following fields.
+	ext_len: uint16[] &until($element == 0 || $element != 0);
+	extensions : SSLExtension[] &until($input.length() == 0);
 } &let {
 	state_changed : bool =
 		$context.analyzer.transition(STATE_INITIAL,
-				STATE_CLIENT_HELLO_RCVD, true) ||
+				STATE_CLIENT_HELLO_RCVD, rec.is_orig, true) ||
 		($context.analyzer.hello_requested() &&
-		 $context.analyzer.transition(STATE_ANY, STATE_CLIENT_HELLO_RCVD, true)) ||
+		 $context.analyzer.transition(STATE_ANY, STATE_CLIENT_HELLO_RCVD, rec.is_orig, true)) ||
 		$context.analyzer.lost_track();
 };
 
@@ -233,7 +380,7 @@ type ClientHello = record {
 # V2 Client Hello (SSLv2 2.5.)
 ######################################################################
 
-type V2ClientHello = record {
+type V2ClientHello(rec: SSLRecord) = record {
 	client_version : uint16;
 	csuit_len : uint16;
 	session_len : uint16;
@@ -244,9 +391,9 @@ type V2ClientHello = record {
 } &length = 8 + csuit_len + session_len + chal_len, &let {
 	state_changed : bool =
 		$context.analyzer.transition(STATE_INITIAL,
-			STATE_CLIENT_HELLO_RCVD, true) ||
+			STATE_CLIENT_HELLO_RCVD, rec.is_orig, true) ||
 		($context.analyzer.hello_requested() &&
-		 $context.analyzer.transition(STATE_ANY, STATE_CLIENT_HELLO_RCVD, true)) ||
+		 $context.analyzer.transition(STATE_ANY, STATE_CLIENT_HELLO_RCVD, rec.is_orig, true)) ||
 		$context.analyzer.lost_track();
 };
 
@@ -255,18 +402,18 @@ type V2ClientHello = record {
 # V3 Server Hello (7.4.1.3.)
 ######################################################################
 
-type ServerHello = record {
+type ServerHello(rec: SSLRecord) = record {
 	server_version : uint16;
 	gmt_unix_time : uint32;
 	random_bytes : bytestring &length = 28 &transient;
 	session_len : uint8;
 	session_id : uint8[session_len];
-	cipher_suite : uint16[1];
+	cipher_suite : uint16;
 	compression_method : uint8;
 } &let {
 	state_changed : bool =
 		$context.analyzer.transition(STATE_CLIENT_HELLO_RCVD,
-					   STATE_IN_SERVER_HELLO, false) ||
+					   STATE_IN_SERVER_HELLO, rec.is_orig, false) ||
 		$context.analyzer.lost_track();
 };
 
@@ -275,7 +422,7 @@ type ServerHello = record {
 # V2 Server Hello (SSLv2 2.6.)
 ######################################################################
 
-type V2ServerHello = record {
+type V2ServerHello(rec: SSLRecord) = record {
 	session_id_hit : uint8;
 	cert_type : uint8;
 	server_version : uint16;
@@ -289,9 +436,9 @@ type V2ServerHello = record {
 	state_changed : bool =
 		(session_id_hit > 0 ?
 			$context.analyzer.transition(STATE_CLIENT_HELLO_RCVD,
-				STATE_CONN_ESTABLISHED, false) :
+				STATE_CONN_ESTABLISHED, rec.is_orig, false) :
 			$context.analyzer.transition(STATE_CLIENT_HELLO_RCVD,
-				STATE_V2_CL_MASTER_KEY_EXPECTED, false)) ||
+				STATE_V2_CL_MASTER_KEY_EXPECTED, rec.is_orig, false)) ||
 		$context.analyzer.lost_track();
 };
 
@@ -307,15 +454,15 @@ type X509Certificate = record {
 
 type CertificateList = X509Certificate[] &until($input.length() == 0);
 
-type Certificate = record {
+type Certificate(rec: SSLRecord) = record {
 	length : uint24;
 	certificates : CertificateList &length = to_int()(length);
 } &let {
 	state_changed : bool =
 		$context.analyzer.transition(STATE_IN_SERVER_HELLO,
-					STATE_IN_SERVER_HELLO, false) ||
+					STATE_IN_SERVER_HELLO, rec.is_orig, false) ||
 		$context.analyzer.transition(STATE_SERVER_HELLO_DONE,
-					STATE_CLIENT_CERT, true) ||
+					STATE_CLIENT_CERT, rec.is_orig, true) ||
 		$context.analyzer.lost_track();
 };
 
@@ -325,12 +472,12 @@ type Certificate = record {
 ######################################################################
 
 # For now ignore details; just eat up complete message
-type ServerKeyExchange = record {
-	cont : bytestring &restofdata &transient;
+type ServerKeyExchange(rec: SSLRecord) = record {
+	key : bytestring &restofdata;
 } &let {
 	state_changed : bool =
 		$context.analyzer.transition(STATE_IN_SERVER_HELLO,
-				STATE_IN_SERVER_HELLO, false) ||
+				STATE_IN_SERVER_HELLO, rec.is_orig, false) ||
 		$context.analyzer.lost_track();
 };
 
@@ -340,12 +487,12 @@ type ServerKeyExchange = record {
 ######################################################################
 
 # For now, ignore Certificate Request Details; just eat up message.
-type CertificateRequest = record {
+type CertificateRequest(rec: SSLRecord) = record {
 	cont : bytestring &restofdata &transient;
 } &let {
 	state_changed : bool =
 		$context.analyzer.transition(STATE_IN_SERVER_HELLO,
-					STATE_IN_SERVER_HELLO, false) ||
+					STATE_IN_SERVER_HELLO, rec.is_orig, false) ||
 		$context.analyzer.lost_track();
 };
 
@@ -355,10 +502,10 @@ type CertificateRequest = record {
 ######################################################################
 
 # Server Hello Done is empty
-type ServerHelloDone = empty &let {
+type ServerHelloDone(rec: SSLRecord) = empty &let {
 	state_changed : bool =
 		$context.analyzer.transition(STATE_IN_SERVER_HELLO,
-					STATE_SERVER_HELLO_DONE, false) ||
+					STATE_SERVER_HELLO_DONE, rec.is_orig, false) ||
 		$context.analyzer.lost_track();
 };
 
@@ -377,14 +524,16 @@ type ServerHelloDone = empty &let {
 
 # For now ignore details of ClientKeyExchange (most of it is
 # encrypted anyway); just eat up message.
-type ClientKeyExchange = record {
+type ClientKeyExchange(rec: SSLRecord) = record {
 	cont : bytestring &restofdata &transient;
 } &let {
 	state_changed : bool =
 		$context.analyzer.transition(STATE_SERVER_HELLO_DONE,
-					STATE_CLIENT_KEY_NO_CERT, true) ||
+					STATE_CLIENT_KEY_NO_CERT, rec.is_orig, true) ||
 		$context.analyzer.transition(STATE_CLIENT_CERT,
-					STATE_CLIENT_KEY_WITH_CERT, true) ||
+					STATE_CLIENT_KEY_WITH_CERT, rec.is_orig, true) ||
+		$context.analyzer.transition(STATE_CLIENT_CERT,
+					STATE_CLIENT_KEY_WITH_CERT, rec.is_orig, true) ||
 		$context.analyzer.lost_track();
 };
 
@@ -392,7 +541,7 @@ type ClientKeyExchange = record {
 # V2 Client Master Key (SSLv2 2.5.)
 ######################################################################
 
-type V2ClientMasterKey = record {
+type V2ClientMasterKey(rec: SSLRecord) = record {
 	cipher_kind : uint24;
 	cl_key_len : uint16;
 	en_key_len : uint16;
@@ -403,7 +552,7 @@ type V2ClientMasterKey = record {
 } &length = 9 + cl_key_len + en_key_len + key_arg_len, &let {
 	state_changed : bool =
 		$context.analyzer.transition(STATE_V2_CL_MASTER_KEY_EXPECTED,
-					STATE_CONN_ESTABLISHED, true) ||
+					STATE_CONN_ESTABLISHED, rec.is_orig, true) ||
 		$context.analyzer.lost_track();
 };
 
@@ -413,12 +562,12 @@ type V2ClientMasterKey = record {
 ######################################################################
 
 # For now, ignore Certificate Verify; just eat up the message.
-type CertificateVerify = record {
+type CertificateVerify(rec: SSLRecord) = record {
 	cont : bytestring &restofdata &transient;
 } &let {
 	state_changed : bool =
 		$context.analyzer.transition(STATE_CLIENT_KEY_WITH_CERT,
-					STATE_CLIENT_CERT_VERIFIED, true) ||
+					STATE_CLIENT_CERT_VERIFIED, rec.is_orig, true) ||
 		$context.analyzer.lost_track();
 };
 
@@ -435,27 +584,32 @@ type CertificateVerify = record {
 # V3 Handshake Protocol (7.)
 ######################################################################
 
-type UnknownHandshake(msg_type : uint8) =  record {
+type UnknownHandshake(hs: Handshake, is_orig: bool) =  record {
 	cont : bytestring &restofdata &transient;
 } &let {
-	state_changed : bool = $context.analyzer.lost_track();
+	# TODO: an unknown handshake could just be an encrypted handshake
+	#       before a server sends the change cipher spec message.
+	#       I have no clue why this happens, but it does seem to happen.
+	#  This should be solved in a different way eventually.
+	#state_changed : bool = $context.analyzer.lost_track();
 };
 
-type Handshake = record {
+
+type Handshake(rec: SSLRecord) = record {
 	msg_type : uint8;
 	length : uint24;
 
 	body : case msg_type of {
-	HELLO_REQUEST ->	hello_request : HelloRequest;
-	CLIENT_HELLO ->		client_hello : ClientHello;
-	SERVER_HELLO ->		server_hello : ServerHello;
-	CERTIFICATE ->		certificate : Certificate;
-	SERVER_KEY_EXCHANGE ->	server_key_exchange : ServerKeyExchange;
-	CERTIFICATE_REQUEST ->	certificate_request : CertificateRequest;
-	SERVER_HELLO_DONE ->	server_hello_done : ServerHelloDone;
-	CERTIFICATE_VERIFY ->	certificate_verify : CertificateVerify;
-	CLIENT_KEY_EXCHANGE ->	client_key_exchange : ClientKeyExchange;
-	default ->		unknown_handshake : UnknownHandshake(msg_type);
+		HELLO_REQUEST ->	hello_request : HelloRequest(rec);
+		CLIENT_HELLO ->		client_hello : ClientHello(rec);
+		SERVER_HELLO ->		server_hello : ServerHello(rec);
+		CERTIFICATE ->		certificate : Certificate(rec);
+		SERVER_KEY_EXCHANGE ->	server_key_exchange : ServerKeyExchange(rec);
+		CERTIFICATE_REQUEST ->	certificate_request : CertificateRequest(rec);
+		SERVER_HELLO_DONE ->	server_hello_done : ServerHelloDone(rec);
+		CERTIFICATE_VERIFY ->	certificate_verify : CertificateVerify(rec);
+		CLIENT_KEY_EXCHANGE ->	client_key_exchange : ClientKeyExchange(rec);
+		default ->		unknown_handshake : UnknownHandshake(this, rec.is_orig);
 	};
 } &length = 4 + to_int()(length);
 
@@ -464,40 +618,26 @@ type Handshake = record {
 # Fragmentation (6.2.1.)
 ######################################################################
 
-type UnknownRecord =  record {
-	cont : empty;
+type UnknownRecord(rec: SSLRecord) =  record {
+	cont : bytestring &restofdata &transient;
 } &let {
-	discard : bool = $context.flow.discard_data();
 	state_changed : bool = $context.analyzer.lost_track();
 };
 
-type PlaintextRecord =  case $context.analyzer.current_record_type() of {
-	CHANGE_CIPHER_SPEC	-> ch_cipher : ChangeCipherSpec;
-	ALERT			-> alert : Alert;
-	HANDSHAKE		-> handshakes : Handshake;
-	APPLICATION_DATA	-> app_data : ApplicationData;
-	V2_ERROR		-> v2_error : V2Error;
-	V2_CLIENT_HELLO		-> v2_client_hello : V2ClientHello;
-	V2_CLIENT_MASTER_KEY	-> v2_client_master_key : V2ClientMasterKey;
-	V2_SERVER_HELLO		-> v2_server_hello : V2ServerHello;
-	UNKNOWN_OR_V2_ENCRYPTED	-> unknown_record : UnknownRecord;
-};
-
-type CiphertextRecord = empty &let {
-	discard : bool = $context.flow.discard_data();
+type CiphertextRecord(rec: SSLRecord, is_orig: bool) = empty &let {
 	state_changed : bool =
 		$context.analyzer.transition(STATE_ABBREV_SERVER_ENCRYPTED,
-					STATE_ABBREV_SERVER_FINISHED, false) ||
+					STATE_ABBREV_SERVER_FINISHED, rec.is_orig, false) ||
 		$context.analyzer.transition(STATE_CLIENT_ENCRYPTED,
-					STATE_CLIENT_FINISHED, true) ||
+					STATE_CLIENT_FINISHED, rec.is_orig, true) ||
 		$context.analyzer.transition(STATE_COMM_ENCRYPTED,
-					STATE_CONN_ESTABLISHED, false) ||
+					STATE_CONN_ESTABLISHED, rec.is_orig, false) ||
 		$context.analyzer.transition(STATE_COMM_ENCRYPTED,
-					STATE_CONN_ESTABLISHED, true) ||
+					STATE_CONN_ESTABLISHED, rec.is_orig, true) ||
 		$context.analyzer.transition(STATE_CONN_ESTABLISHED,
-					STATE_CONN_ESTABLISHED, false) ||
+					STATE_CONN_ESTABLISHED, rec.is_orig, false) ||
 		$context.analyzer.transition(STATE_CONN_ESTABLISHED,
-					STATE_CONN_ESTABLISHED, true) ||
+					STATE_CONN_ESTABLISHED, rec.is_orig, true) ||
 		$context.analyzer.lost_track();
 };
 
@@ -506,15 +646,9 @@ type CiphertextRecord = empty &let {
 # initial datatype for binpac
 ######################################################################
 
-type SSLPDU = case $context.analyzer.state() of {
-	STATE_ABBREV_SERVER_ENCRYPTED, STATE_CLIENT_ENCRYPTED,
-	STATE_COMM_ENCRYPTED, STATE_CONN_ESTABLISHED
-		-> ciphertext : CiphertextRecord;
-	default
-		-> plaintext : PlaintextRecord;
-} &byteorder = bigendian, &let {
-	consumed : bool = $context.flow.consume_data();
-};
+type SSLPDU(is_orig: bool) = record {
+	records : SSLRecord(is_orig)[] &until($element == 0);
+} &byteorder = bigendian;
 
 
 ######################################################################
@@ -526,60 +660,48 @@ analyzer SSLAnalyzer {
 	downflow = SSLFlow(false);
 
 	%member{
-		int current_record_type_;
-		int current_record_version_;
-		int current_record_length_;
-		bool current_record_is_orig_;
 		int state_;
 		int old_state_;
 		bool hello_requested_;
 	%}
 
 	%init{
-		current_record_type_ = -1;
-		current_record_version_ = -1;
-		current_record_length_ = -1;
-		current_record_is_orig_ = false;
 		state_ = STATE_INITIAL;
 		old_state_ = STATE_INITIAL;
 		hello_requested_ = false;
 	%}
-
-	function current_record_type() : int
-					%{ return current_record_type_; %}
-	function current_record_version() : int
-					%{ return current_record_version_; %}
-	function current_record_length() : int
-					%{ return current_record_length_; %}
-	function current_record_is_orig() : bool
-					%{ return current_record_is_orig_; %}
-
-	function next_record(rec : const_bytestring, type : int,
-				version : int, is_orig : bool) : bool
+	
+	function determine_ssl_version(head0 : uint8, head1 : uint8,
+					head2 : uint8) : int
 		%{
-		current_record_type_ = type;
-		current_record_version_ = version;
-		current_record_length_ = rec.length();
-		current_record_is_orig_ = is_orig;
+		if ( head0 >= 20 && head0 <= 23 &&
+		     head1 == 0x03 && head2 <  0x03 )
+			// This is most probably SSL version 3.
+			return (head1 << 8) | head2;
 
-		NewData(is_orig, rec.begin(), rec.end());
+		else if ( head0 >= 128 && head2 < 5 && head2 != 3 )
+			// Not very strong evidence, but we suspect
+			// this to be SSLv2.
+			return SSLv20;
 
-		return true;
+		else
+			return UNKNOWN_VERSION;
 		%}
-
+	
 	function state() : int %{ return state_; %}
 	function old_state() : int %{ return old_state_; %}
 
 	function transition(olds : AnalyzerState, news : AnalyzerState,
-				is_orig : bool) : bool
+				current_record_is_orig : bool, is_orig : bool) : bool
 		%{
 		if ( (olds != STATE_ANY && olds != state_) ||
-		     current_record_is_orig_ != is_orig )
+		     current_record_is_orig != is_orig )
 			return false;
 
 		old_state_ = state_;
 		state_ = news;
 
+		//printf("transitioning from %s to %s\n", state_label(old_state()).c_str(), state_label(state()).c_str());
 		return true;
 		%}
 
@@ -603,28 +725,3 @@ analyzer SSLAnalyzer {
 		%}
 };
 
-
-######################################################################
-# binpac flow for SSL
-######################################################################
-
-flow SSLFlow(is_orig : bool) {
-	flowunit = SSLPDU withcontext(connection, this);
-
-	function discard_data() : bool
-		%{
-		flow_buffer_->DiscardData();
-		return true;
-		%}
-
-	function data_available() : bool
-		%{
-		return flow_buffer_->data_available();
-		%}
-
-	function consume_data() : bool
-		%{
-		flow_buffer_->NewFrame(0, false);
-		return true;
-		%}
-};

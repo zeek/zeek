@@ -21,6 +21,7 @@ extern RecordType* SYN_packet;
 extern RecordType* pcap_packet;
 extern EnumType* transport_proto;
 extern TableType* string_set;
+extern TableType* count_set;
 
 extern RecordType* net_stats;
 
@@ -61,11 +62,8 @@ extern int ssl_store_key_material;
 extern int ssl_max_cipherspec_size;
 extern StringVal* ssl_store_cert_path;
 extern StringVal* x509_trusted_cert_path;
-extern TableType* cipher_suites_list;
 extern RecordType* x509_type;
 extern StringVal* x509_crl_file;
-extern TableType* x509_extension;
-extern TableType* SSL_sessionID;
 
 extern double non_analyzed_lifetime;
 extern double tcp_inactivity_timeout;

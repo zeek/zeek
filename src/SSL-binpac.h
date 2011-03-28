@@ -1,5 +1,3 @@
-// $Id:$
-
 #ifndef ssl_binpac_h
 #define ssl_binpac_h
 
@@ -23,11 +21,9 @@ public:
 
 	static bool Available()
 		{
-		return FLAGS_use_binpac &&
-			(ssl_certificate_seen || ssl_certificate ||
-			 ssl_conn_attempt || ssl_conn_server_reply ||
-			 ssl_conn_established || ssl_conn_reused ||
-			 ssl_conn_alert);
+		return ( ssl_client_hello || ssl_server_hello ||
+			ssl_established || ssl_extension || ssl_alert ||
+			x509_certificate || x509_extension || x509_error );
 		}
 
 	static bool warnings_generated;
@@ -35,8 +31,7 @@ public:
 	static void generate_warnings();
 
 protected:
-	binpac::SSLRecordLayer::SSLRecordLayerAnalyzer* records;
-	binpac::SSL::SSLAnalyzer* ssl;
+	binpac::SSL::SSLAnalyzer* interp;
 };
 
 #endif

@@ -199,8 +199,6 @@ binpac_target(smb.pac
     smb-protocol.pac smb-pipe.pac smb-mailslot.pac)
 binpac_target(ssl.pac
     ssl-defs.pac ssl-protocol.pac ssl-analyzer.pac)
-binpac_target(ssl-record-layer.pac
-    ssl-defs.pac ssl.pac)
 
 ########################################################################
 ## bro target
@@ -222,8 +220,10 @@ set(dns_SRCS nb_dns.c nb_dns.h)
 set_source_files_properties(nb_dns.c PROPERTIES COMPILE_FLAGS
                             -fno-strict-aliasing)
 
-set(openssl_SRCS X509.cc SSLCiphers.cc SSLInterpreter.cc SSLProxy.cc
-                 SSLv2.cc SSLv3.cc SSLv3Automaton.cc)
+#set(openssl_SRCS X509.cc SSLCiphers.cc SSLInterpreter.cc SSLProxy.cc
+#                 SSLv2.cc SSLv3.cc SSLv3Automaton.cc)
+set(openssl_SRCS)
+
 
 if (USE_NMALLOC)
     set(malloc_SRCS malloc.c)

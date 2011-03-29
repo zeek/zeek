@@ -7,6 +7,7 @@
 #include "Attr.h"
 #include "Expr.h"
 #include "Serializer.h"
+#include "LogMgr.h"
 
 const char* attr_name(attr_tag t)
 	{
@@ -330,6 +331,11 @@ void Attributes::CheckAttr(Attr* a)
 			Error("&group only applicable to events");
 			break;
 			}
+		break;
+
+	case ATTR_LOG:
+		if ( ! LogVal::IsCompatibleType(type) )
+			Error("&log applied to a type that cannot be logged");
 		break;
 
 	default:

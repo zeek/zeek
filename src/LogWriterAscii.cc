@@ -167,6 +167,26 @@ bool LogWriterAscii::DoWriteOne(ODesc* desc, LogVal* val, const LogField* field)
 		break;
 		}
 
+	case TYPE_VECTOR:
+		{
+		if ( ! val->val.vector_val.size )
+			{
+			desc->AddN(empty_field, empty_field_len);
+			break;
+			}
+
+		for ( int j = 0; j < val->val.vector_val.size; j++ )
+			{
+			if ( j > 0 )
+				desc->AddN(set_separator, set_separator_len);
+
+			if ( ! DoWriteOne(desc, val->val.vector_val.vals[j], field) )
+				return false;
+			}
+
+		break;
+		}
+
 	default:
 		Error(Fmt("unsupported field format %d for %s", val->type, field->name.c_str()));
 		return false;

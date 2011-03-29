@@ -37,15 +37,17 @@ struct LogVal {
 	// The following union is a subset of BroValUnion, including only the
 	// atomic types.
 	struct set_t { bro_int_t size; LogVal** vals; };
+	typedef set_t vec_t;
 
  	union _val {
 		bro_int_t int_val;
 		bro_uint_t uint_val;
 		addr_type addr_val;
 		subnet_type subnet_val;
-    	double double_val;
+		double double_val;
 		string* string_val;
 		set_t set_val;
+		vec_t vector_val;
 	} val;
 
 	LogVal(TypeTag arg_type = TYPE_ERROR, bool arg_present = true) : type(arg_type), present(arg_present)	{}
@@ -75,11 +77,11 @@ public:
     bool EnableStream(EnumVal* id);
     bool DisableStream(EnumVal* id);
     bool AddFilter(EnumVal* id, RecordVal* filter);
-	bool RemoveFilter(EnumVal* id, StringVal* name);
+    bool RemoveFilter(EnumVal* id, StringVal* name);
     bool RemoveFilter(EnumVal* id, string name);
     bool Write(EnumVal* id, RecordVal* columns);
-	bool SetBuf(EnumVal* id, bool enabled); // Changes the state for all writers for that stream.
-	bool Flush(EnumVal* id); // Flushes all writers for the stream.
+    bool SetBuf(EnumVal* id, bool enabled); // Changes the state for all writers for that stream.
+    bool Flush(EnumVal* id); // Flushes all writers for the stream.
 
 protected:
     friend class LogWriter;
@@ -101,9 +103,9 @@ private:
 	struct Stream;
 	struct WriterInfo;
 
-	bool TraverseRecord(Filter* filter, RecordType* rt, TableVal* include, TableVal* exclude, string path, list<int> indices);
-	LogVal* ValToLogVal(Val* val);
-	LogVal** RecordToFilterVals(Filter* filter, RecordVal* columns);
+	bool TraverseRecord(Stream* stream, Filter* filter, RecordType* rt, TableVal* include, TableVal* exclude, string path, list<int> indices);
+	LogVal* ValToLogVal(Val* val, BroType* ty = 0);
+	LogVal** RecordToFilterVals(Stream* stream, Filter* filter, RecordVal* columns);
 	Stream* FindStream(EnumVal* id);
 	void RemoveDisabledWriters(Stream* stream);
 	void InstallRotationTimer(WriterInfo* winfo);

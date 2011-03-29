@@ -9,17 +9,15 @@ export {
 
 	type Log: record {
 		t: time;
-		id: conn_id; # Will be rolled out into individual columns.
-		status: string &optional;
-		country: string &default="unknown";
-	} &log;
+		id: conn_id;
+		status: string &optional &log;
+		country: string &default="unknown" &log;
+	};
 }
-
-global log_ssh: event(rec: Log);
 
 event bro_init()
 {
-	Log::create_stream(SSH, [$columns=Log, $ev=log_ssh]);
+	Log::create_stream(SSH, [$columns=Log]);
 
     local cid = [$orig_h=1.2.3.4, $orig_p=1234/tcp, $resp_h=2.3.4.5, $resp_p=80/tcp];
 

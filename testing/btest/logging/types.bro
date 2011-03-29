@@ -27,7 +27,9 @@ export {
 		sc: set[count];
 		ss: set[string];
 		se: set[string];
-	};
+		vc: vector of count;
+		ve: vector of string;
+	} &log;
 }
 
 event bro_init()
@@ -35,6 +37,7 @@ event bro_init()
 	Log::create_stream(SSH, [$columns=Log]);
 
 	local empty_set: set[string];
+	local empty_vector: vector of string;
 
 	Log::write(SSH, [
 		$b=T,
@@ -51,7 +54,9 @@ event bro_init()
 		$s="hurz",
 		$sc=set(1,2,3,4),
 		$ss=set("AA", "BB", "CC"),
-		$se=empty_set
+		$se=empty_set,
+		$vc=vector(10, 20, 30),
+		$ve=empty_vector
 		]);
 }
 

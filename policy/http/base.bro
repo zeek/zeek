@@ -3,7 +3,6 @@
 ## Author: Seth Hall <seth@icir.org> - Inspired by the work of many others.
 
 @load functions
-@load notice
 @load software
 
 module HTTP;

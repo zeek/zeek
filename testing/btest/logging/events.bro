@@ -17,7 +17,7 @@ export {
 		id: conn_id; # Will be rolled out into individual columns.
 		status: string &optional;
 		country: string &default="unknown";
-	};
+	} &log;
 }
 
 global ssh_log: event(rec: Log);

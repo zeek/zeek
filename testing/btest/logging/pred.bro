@@ -18,7 +18,7 @@ export {
 		id: conn_id; # Will be rolled out into individual columns.
 		status: string &optional;
 		country: string &default="unknown";
-	};
+	} &log;
 }
 
 function fail(rec: Log): bool

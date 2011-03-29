@@ -19,7 +19,7 @@ export {
 		status: string &optional;
 		country: string &default="unknown";
 		b: bool &optional;
-	};
+	} &log;
 }
 
 event bro_init()

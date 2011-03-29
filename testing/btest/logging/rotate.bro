@@ -14,7 +14,7 @@ export {
 	type Log: record {
 		t: time;
 		id: conn_id; # Will be rolled out into individual columns.
-	};
+	} &log;
 }
 
 redef Log::default_rotation_interval = 1hr;

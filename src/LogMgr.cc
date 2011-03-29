@@ -75,6 +75,14 @@ LogVal::~LogVal()
 
 		delete [] val.set_val.vals;
 		}
+
+	if ( type == TYPE_VECTOR && present )
+		{
+		for ( int i = 0; i < val.vector_val.size; i++ )
+			delete val.vector_val.vals[i];
+
+		delete [] val.vector_val.vals;
+		}
 	}
 
 bool LogVal::IsCompatibleType(BroType* t, bool atomic_only)
@@ -110,6 +118,14 @@ bool LogVal::IsCompatibleType(BroType* t, bool atomic_only)
 			return false;
 
 		return IsCompatibleType(t->AsSetType()->Indices()->PureType());
+		}
+
+	case TYPE_VECTOR:
+		{
+		if ( atomic_only )
+			return false;
+
+		return IsCompatibleType(t->AsVectorType()->YieldType());
 		}
 
 	default:
@@ -149,7 +165,7 @@ bool LogVal::Read(SerializationFormat* fmt)
 			&& fmt->Read(&net[2], "net2")
 			&& fmt->Read(&net[3], "net3")
 			&& fmt->Read(&val.subnet_val.width, "width")) )
-			return false;
+		    	return false;
 
 #ifdef BROv6
 		val.subnet_val.net[0] = net[0];
@@ -212,8 +228,25 @@ bool LogVal::Read(SerializationFormat* fmt)
 		return true;
 		}
 
+	case TYPE_VECTOR:
+		{
+		if ( ! fmt->Read(&val.vector_val.size, "vector_size") )
+			return false;
+
+		val.vector_val.vals = new LogVal* [val.vector_val.size];
+
+		for ( int i = 0; i < val.vector_val.size; ++i )
+			{
+			val.vector_val.vals[i] = new LogVal;
+			if ( ! val.vector_val.vals[i]->Read(fmt) )
+				return false;
+			}
+
+		return true;
+		}
+
 	default:
-		internal_error(::fmt("unsupported type %s in LogVal::Write", type_name(type)));
+		internal_error("unsupported type %s in LogVal::Write", type_name(type));
 	}
 
 	return false;
@@ -292,8 +325,22 @@ bool LogVal::Write(SerializationFormat* fmt) const
 		return true;
 		}
 
+	case TYPE_VECTOR:
+		{
+		if ( ! fmt->Write(val.vector_val.size, "vector_size") )
+			return false;
+
+		for ( int i = 0; i < val.vector_val.size; ++i )
+			{
+			if ( ! val.vector_val.vals[i]->Write(fmt) )
+				return false;
+			}
+
+		return true;
+		}
+
 	default:
-		internal_error(::fmt("unsupported type %s in LogVal::REad", type_name(type)));
+		internal_error("unsupported type %s in LogVal::REad", type_name(type));
 	}
 
 	return false;
@@ -379,13 +426,26 @@ bool LogMgr::CreateStream(EnumVal* id, RecordVal* sval)
 
 	RecordType* columns = sval->Lookup(rtype->FieldOffset("columns"))->AsType()->AsTypeType()->Type()->AsRecordType();
 
+	bool log_attr_present = false;
+
 	for ( int i = 0; i < columns->NumFields(); i++ )
 		{
+		if ( ! (columns->FieldDecl(i)->FindAttr(ATTR_LOG)) )
+		    continue;
+
 		if ( ! LogVal::IsCompatibleType(columns->FieldType(i)) )
 			{
 			run_time("type of field '%s' is not support for logging output", columns->FieldName(i));
 			return false;
 			}
+
+		log_attr_present = true;
+		}
+
+	if ( ! log_attr_present )
+		{
+		run_time("logged record type does not have any &log attributes");
+		return false;
 		}
 
 	Val* event_val = sval->Lookup(rtype->FieldOffset("ev"));
@@ -473,11 +533,15 @@ bool LogMgr::DisableStream(EnumVal* id)
 	}
 
 // Helper for recursive record field unrolling.
-bool LogMgr::TraverseRecord(Filter* filter, RecordType* rt, TableVal* include, TableVal* exclude, string path, list<int> indices)
+bool LogMgr::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt, TableVal* include, TableVal* exclude, string path, list<int> indices)
 	{
 	for ( int i = 0; i < rt->NumFields(); ++i )
 		{
 		BroType* t = rt->FieldType(i);
+
+		// Ignore if &log not specified.
+		if ( ! rt->FieldDecl(i)->FindAttr(ATTR_LOG) )
+			continue;
 
 		list<int> new_indices = indices;
 		new_indices.push_back(i);
@@ -496,12 +560,18 @@ bool LogMgr::TraverseRecord(Filter* filter, RecordType* rt, TableVal* include, T
 			if ( t->Tag() == TYPE_RECORD )
 				{
 				// Recurse.
-				if ( ! TraverseRecord(filter, t->AsRecordType(), include, exclude, new_path, new_indices) )
+				if ( ! TraverseRecord(stream, filter, t->AsRecordType(), include, exclude, new_path, new_indices) )
 					return false;
 
 				continue;
 				}
+
 			else if ( t->Tag() == TYPE_TABLE && t->AsTableType()->IsSet() )
+				{
+				// That's ok, handle it with all the other types below.
+				}
+
+			else if ( t->Tag() == TYPE_VECTOR )
 				{
 				// That's ok, handle it with all the other types below.
 				}
@@ -595,7 +665,7 @@ bool LogMgr::AddFilter(EnumVal* id, RecordVal* fval)
 
 	filter->num_fields = 0;
 	filter->fields = 0;
-	if ( ! TraverseRecord(filter, stream->columns, include ? include->AsTableVal() : 0, exclude ? exclude->AsTableVal() : 0, "", list<int>()) )
+	if ( ! TraverseRecord(stream, filter, stream->columns, include ? include->AsTableVal() : 0, exclude ? exclude->AsTableVal() : 0, "", list<int>()) )
 		return false;
 
 	// Get the path for the filter.
@@ -780,7 +850,7 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 
 		// Alright, can do the write now.
 
-		LogVal** vals = RecordToFilterVals(filter, columns);
+		LogVal** vals = RecordToFilterVals(stream, filter, columns);
 
 		if ( filter->remote )
 			remote_serializer->SendLogWrite(stream->id, filter->writer, path, filter->num_fields, vals);
@@ -801,9 +871,15 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 	return true;
 	}
 
-LogVal* LogMgr::ValToLogVal(Val* val)
+LogVal* LogMgr::ValToLogVal(Val* val, BroType* ty)
 	{
-	LogVal* lval = new LogVal(val->Type()->Tag());
+	if ( ! ty )
+		ty = val->Type();
+
+	if ( ! val )
+		return new LogVal(ty->Tag(), false);
+
+	LogVal* lval = new LogVal(ty->Tag());
 
 	switch ( lval->type ) {
 	case TYPE_BOOL:
@@ -864,14 +940,26 @@ LogVal* LogMgr::ValToLogVal(Val* val)
 		break;
 		}
 
-		default:
-			internal_error("unsupported type for log_write");
+	case TYPE_VECTOR:
+		{
+		VectorVal* vec = val->AsVectorVal();
+		lval->val.vector_val.size = vec->Size();
+		lval->val.vector_val.vals = new LogVal* [lval->val.vector_val.size];
+
+		for ( int i = 0; i < lval->val.vector_val.size; i++ )
+			lval->val.vector_val.vals[i] = ValToLogVal(vec->Lookup(VECTOR_MIN + i), vec->Type()->YieldType());
+
+		break;
 		}
+
+	default:
+		internal_error("unsupported type for log_write");
+	}
 
 	return lval;
 	}
 
-LogVal** LogMgr::RecordToFilterVals(Filter* filter, RecordVal* columns)
+LogVal** LogMgr::RecordToFilterVals(Stream* stream, Filter* filter, RecordVal* columns)
 	{
 	LogVal** vals = new LogVal*[filter->num_fields];
 
@@ -921,7 +1009,7 @@ LogWriter* LogMgr::CreateWriter(EnumVal* id, EnumVal* writer, string path, int n
 
 	// Need to instantiate a new writer.
 
-    LogWriterDefinition* ld = log_writers;
+	LogWriterDefinition* ld = log_writers;
 
 	while ( true )
 		{

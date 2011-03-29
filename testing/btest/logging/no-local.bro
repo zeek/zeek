@@ -12,7 +12,7 @@ export {
 		id: conn_id; # Will be rolled out into individual columns.
 		status: string &optional;
 		country: string &default="unknown";
-	};
+	} &log;
 }
 
 redef Log::enable_local_logging = F;

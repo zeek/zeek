@@ -21,7 +21,7 @@ type conn_id: record {
 	orig_p: port;
 	resp_h: addr;
 	resp_p: port;
-};
+} &log;
 
 type icmp_conn: record {
 	orig_h: addr;

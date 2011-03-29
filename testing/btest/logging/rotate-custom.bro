@@ -1,6 +1,6 @@
 #
 # @TEST-EXEC: bro -r %DIR/rotation.trace %INPUT >out
-# @TEST-EXEC: for i in test*.log; do printf '> %s\n' $i; cat $i; done >>out
+# @TEST-EXEC: for i in `ls test*.log | sort`; do printf '> %s\n' $i; cat $i; done >>out
 # @TEST-EXEC: btest-diff out
 
 module Test;
@@ -14,7 +14,7 @@ export {
 	type Log: record {
 		t: time;
 		id: conn_id; # Will be rolled out into individual columns.
-	};
+	} &log;
 }
 
 redef Log::default_rotation_interval = 1hr;

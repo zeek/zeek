@@ -180,7 +180,7 @@ void BroDoc::WriteStringList(const char* format,
 	WriteToDoc(last_format, last->c_str());
 	}
 
-void BroDoc::WriteBroDocObjList(const std::list<const BroDocObj*>& l,
+void BroDoc::WriteBroDocObjList(const BroDocObjList& l,
                                 bool wantPublic,
                                 const char* heading,
                                 char underline) const
@@ -205,14 +205,35 @@ void BroDoc::WriteBroDocObjList(const std::list<const BroDocObj*>& l,
 		}
 	}
 
-void BroDoc::WriteBroDocObjList(const std::list<const BroDocObj*>& l,
+void BroDoc::WriteBroDocObjList(const BroDocObjMap& m,
+                                bool wantPublic,
+                                const char* heading,
+                                char underline) const
+	{
+	BroDocObjMap::const_iterator it;
+	BroDocObjList l;
+	for ( it = m.begin(); it != m.end(); ++it ) l.push_back(it->second);
+	WriteBroDocObjList(l, wantPublic, heading, underline);
+	}
+
+void BroDoc::WriteBroDocObjList(const BroDocObjList& l,
                                 const char* heading,
                                 char underline) const
 	{
 	WriteSectionHeading(heading, underline);
-	std::list<const BroDocObj*>::const_iterator it;
+	BroDocObjList::const_iterator it;
 	for ( it = l.begin(); it != l.end(); ++it )
 		(*it)->WriteReST(reST_file);
+	}
+
+void BroDoc::WriteBroDocObjList(const BroDocObjMap& m,
+                                const char* heading,
+                                char underline) const
+	{
+	BroDocObjMap::const_iterator it;
+	BroDocObjList l;
+	for ( it = m.begin(); it != m.end(); ++it ) l.push_back(it->second);
+	WriteBroDocObjList(l, heading, underline);
 	}
 
 void BroDoc::WriteToDoc(const char* format, ...) const
@@ -232,10 +253,25 @@ void BroDoc::WriteSectionHeading(const char* heading, char underline) const
 	WriteToDoc("\n");
 	}
 
-void BroDoc::FreeBroDocObjPtrList(std::list<const BroDocObj*>& l)
+void BroDoc::FreeBroDocObjPtrList(BroDocObjList& l)
 	{
-	std::list<const BroDocObj*>::iterator it;
-	for ( it = l.begin(); it != l.end(); ++it )
+	for ( BroDocObjList::const_iterator it = l.begin(); it != l.end(); ++it )
 		delete *it;
 	l.clear();
+	}
+
+void BroDoc::FreeBroDocObjPtrList(BroDocObjMap& l)
+	{
+	for ( BroDocObjMap::const_iterator it = l.begin(); it != l.end(); ++it )
+		delete it->second;
+	l.clear();
+	}
+
+void BroDoc::AddFunction(BroDocObj* o)
+	{
+	BroDocObjMap::const_iterator it = functions.find(o->Name());
+	if ( it == functions.end() )
+		functions[o->Name()] = o;
+	else
+		functions[o->Name()]->Combine(o);
 	}

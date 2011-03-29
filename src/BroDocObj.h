@@ -66,6 +66,18 @@ public:
 	 */
 	void SetRole(bool b) { use_role = b; }
 
+	/**
+	 * Append any reST documentation strings in a given BroDocObj to this
+	 * object's list and then delete the given BroDocObj
+	 * @param o a pointer to a BroDocObj to subsume
+	 */
+	void Combine(const BroDocObj* o);
+
+	/**
+	 * @return the name of the wrapped identifier
+	 */
+	const char* Name() const { return broID->Name(); }
+
 protected:
 	std::list<std::string>* reST_doc_strings;
 	const ID* broID;

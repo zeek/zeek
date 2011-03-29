@@ -139,7 +139,7 @@ public:
 	 *        Bro language representation of the script function and
 	 *        also any associated comments about it.
 	 */
-	void AddFunction(const BroDocObj* o) { functions.push_back(o); }
+	void AddFunction(BroDocObj* o);
 
    /**
 	 * Schedules documentation of a redef done by the script
@@ -173,14 +173,17 @@ protected:
 	std::list<std::string> imports;
 	std::list<std::string> port_analysis;
 
-	std::list<const BroDocObj*> options;
-	std::list<const BroDocObj*> constants;
-	std::list<const BroDocObj*> state_vars;
-	std::list<const BroDocObj*> types;
-	std::list<const BroDocObj*> notices;
-	std::list<const BroDocObj*> events;
-	std::list<const BroDocObj*> functions;
-	std::list<const BroDocObj*> redefs;
+	typedef std::list<const BroDocObj*> BroDocObjList;
+	typedef std::map<std::string, BroDocObj*> BroDocObjMap;
+
+	BroDocObjList options;
+	BroDocObjList constants;
+	BroDocObjList state_vars;
+	BroDocObjList types;
+	BroDocObjList notices;
+	BroDocObjList events;
+	BroDocObjMap functions;
+	BroDocObjList redefs;
 
 	/**
 	 * Writes out a list of strings to the reST document.
@@ -213,7 +216,17 @@ protected:
 	 * @param underline The character to use to underline the reST
 	 *        section heading.
 	 */
-	void WriteBroDocObjList(const std::list<const BroDocObj*>& l,
+	void WriteBroDocObjList(const BroDocObjList& l,
+	                        bool wantPublic,
+	                        const char* heading,
+	                        char underline) const;
+
+	/**
+	 * Wraps the BroDocObjMap into a BroDocObjList and the writes that list
+	 * to the reST document
+	 * @see WriteBroDocObjList(const BroDocObjList&, bool, const char*, char)
+	 */
+	void WriteBroDocObjList(const BroDocObjMap& m,
 	                        bool wantPublic,
 	                        const char* heading,
 	                        char underline) const;
@@ -225,7 +238,16 @@ protected:
 	 * @param underline The character to use to underline the reST
 	 *        section heading.
 	 */
-	void WriteBroDocObjList(const std::list<const BroDocObj*>& l,
+	void WriteBroDocObjList(const BroDocObjList& l,
+	                        const char* heading,
+	                        char underline) const;
+
+	/**
+	 * Wraps the BroDocObjMap into a BroDocObjList and the writes that list
+	 * to the reST document
+	 * @see WriteBroDocObjList(const BroDocObjList&, const char*, char)
+	 */
+	void WriteBroDocObjList(const BroDocObjMap& m,
 	                        const char* heading,
 	                        char underline) const;
 
@@ -262,7 +284,8 @@ private:
 	 * Frees memory allocated to BroDocObj's objects in a given list.
 	 * @param a reference to a list of BroDocObj pointers
 	 */
-	void FreeBroDocObjPtrList(std::list<const BroDocObj*>& l);
+	void FreeBroDocObjPtrList(BroDocObjList& l);
+	void FreeBroDocObjPtrList(BroDocObjMap& l);
 
 	static bool IsPublicAPI(const BroDocObj* o) { return o->IsPublicAPI(); }
 	static bool IsPrivateAPI(const BroDocObj* o) { return ! o->IsPublicAPI(); }

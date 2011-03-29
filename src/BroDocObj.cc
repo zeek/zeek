@@ -16,7 +16,7 @@ BroDocObj::BroDocObj(const ID* id, std::list<std::string>*& reST,
 
 BroDocObj::~BroDocObj()
 	{
-	delete reST_doc_strings;
+	if ( reST_doc_strings ) delete reST_doc_strings;
 	if ( is_fake_id ) delete broID;
 	}
 
@@ -49,4 +49,18 @@ bool BroDocObj::IsPublicAPI() const
 	{
 	return (broID->Scope() == SCOPE_GLOBAL) ||
 	       (broID->Scope() == SCOPE_MODULE && broID->IsExport());
+	}
+
+void BroDocObj::Combine(const BroDocObj* o)
+	{
+	if ( o->reST_doc_strings )
+		{
+		if ( ! reST_doc_strings )
+			reST_doc_strings = new std::list<std::string>();
+
+		reST_doc_strings->splice(reST_doc_strings->end(),
+		                         *(o->reST_doc_strings));
+		}
+
+	delete o;
 	}

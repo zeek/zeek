@@ -61,6 +61,12 @@ void Attr::DescribeReST(ODesc* d) const
 		d->SP();
 		if ( expr->Type()->Tag() == TYPE_FUNC )
 			d->Add(":bro:type:`func`");
+		else if ( expr->Type()->Tag() == TYPE_ENUM )
+			{
+			d->Add(":bro:enum:`");
+			expr->Describe(d);
+			d->Add("`");
+			}
 		else
 			{
 			d->Add("``");

@@ -437,6 +437,10 @@ public:
 
 	int NumFields() const			{ return num_fields; }
 
+	// Returns 0 if all is ok, otherwise a pointer to an error message. Takes
+	// ownership of list.
+	const char* AddFields(type_decl_list* types, attr_list* attr);
+
 	void Describe(ODesc* d) const;
 	void DescribeFields(ODesc* d) const;
 

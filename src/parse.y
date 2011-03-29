@@ -862,7 +862,25 @@ decl:
 		'{' { parser_redef_enum($3); } enum_body '}' ';'
 			{ /* no action */ }
 
-	|	TOK_TYPE def_global_id ':' refined_type opt_attr ';'
+	|	TOK_REDEF TOK_RECORD global_id TOK_ADD_TO
+			'{' type_decl_list '}' opt_attr ';'
+			{
+			if ( ! $3->Type() )
+				$3->Error("unknown identifier");
+			else
+				{
+				RecordType* add_to = $3->Type()->AsRecordType();
+				if ( ! add_to )
+					$3->Error("not a record type");
+				else {
+					const char* error = add_to->AddFields($6, $8);
+					if ( error )
+    					$3->Error(error);
+				}
+			}
+    	}
+
+	|	TOK_TYPE global_id ':' refined_type opt_attr ';'
 			{
 			add_type($2, $4, $5, 0);
 			}

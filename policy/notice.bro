@@ -21,31 +21,31 @@ export {
 	};
 	
 	type Info: record {
-		note: Type;
-		msg: string &default="";
-		sub: string &optional;	# sub-message
+		note: Type &log;
+		msg: string &default="" &log;
+		sub: string &log &optional;	# sub-message
 
-		conn: connection &optional;	# connection associated with notice
-		iconn: icmp_conn &optional;	# associated ICMP "connection"
-		id: conn_id &optional;	# connection-ID, if we don't have a connection handy
-		src: addr &optional;	# source address, if we don't have a connection
-		dst: addr &optional;	# destination address
-		p: port &optional;	# associated port, if we don't have a conn.
+		conn: connection &log &optional;	# connection associated with notice
+		iconn: icmp_conn &log &optional;	# associated ICMP "connection"
+		id: conn_id &log &optional;	# connection-ID, if we don't have a connection handy
+		src: addr &log &optional;	# source address, if we don't have a connection
+		dst: addr &log &optional;	# destination address
+		p: port &log &optional;	# associated port, if we don't have a conn.
 
-		n: count &optional;  # associated count, or perhaps status code
+		n: count &log &optional;  # associated count, or perhaps status code
 
 		# Automatically set attributes.
-		action: Notice::Action &default=NOTICE_UNKNOWN; # once action determined
-		src_peer: event_peer &optional;	# source that raised this notice
-		tag: string &optional;	# tag associated with this notice
+		action: Notice::Action &log &default=NOTICE_UNKNOWN; # once action determined
+		src_peer: event_peer &log &optional;	# source that raised this notice
+		tag: string &log &optional;	# tag associated with this notice
 		#dropped: bool &optional &default=F; # true if src successfully dropped
 
 		# If we asked the Time Machine to capture, the filename prefix.
-		#captured: string &optional;
+		captured: string &optional;
 
 		# If false, don't alarm independent of the determined notice action.
 		# If true, alarm dependening on notice action.
-		do_alarm: bool &default=T;
+		do_alarm: bool &log &default=T;
 	};
 
 	type PolicyItem: record {

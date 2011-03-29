@@ -42,18 +42,18 @@ export {
 
 	type Info: record {
 		## The time at which the software was first detected.
-		ts:               time;
+		ts:               time &log;
 		## The IP address detected running the software.
-		host:             addr;
+		host:             addr &log;
 		## The type of software detected (e.g. WEB_SERVER)
-		software_type:    Type &default=UNKNOWN;
+		software_type:    Type &log &default=UNKNOWN;
 		## Name of the software (e.g. Apache)
-		name:             string;
+		name:             string &log;
 		## Version of the software
-		version:          Version;
+		version:          Version &log;
 		## The full unparsed version string found because the version parsing 
 		## doesn't work 100% reliably and this acts as a fall back in the logs.
-		unparsed_version: string &optional;
+		unparsed_version: string &log &optional;
 	};
 	
 	## The hosts whose software should be logged.

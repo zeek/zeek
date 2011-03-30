@@ -1,3 +1,9 @@
+1.6-dev.66 Tue Mar 29 21:52:01 PDT 2011
+
+- Initial btest setup (Don Appleman and Robin Sommer)
+  
+- Porting the istate tests to btest (not finished) (Robin Sommer)
+
 1.6-dev.63 Mon Mar 21 16:31:15 PDT 2011
 
 - Changes to the way user-modifiable config files are installed  (Jon Siwek)

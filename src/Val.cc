@@ -576,14 +576,7 @@ void Val::Describe(ODesc* d) const
 
 void Val::DescribeReST(ODesc* d) const
 	{
-	if ( type->InternalType() == TYPE_INTERNAL_OTHER )
-		Describe(d);
-	else
-		{
-		d->Add("``");
-		ValDescribeReST(d);
-		d->Add("``");
-		}
+	ValDescribeReST(d);
 	}
 
 void Val::ValDescribe(ODesc* d) const
@@ -629,7 +622,15 @@ void Val::ValDescribe(ODesc* d) const
 
 void Val::ValDescribeReST(ODesc* d) const
 	{
-	ValDescribe(d);
+	switch ( type->InternalType() ) {
+	case TYPE_INTERNAL_OTHER:
+		Describe(d);
+		break;
+	default:
+		d->Add("``");
+		ValDescribe(d);
+		d->Add("``");
+	}
 	}
 
 MutableVal::~MutableVal()
@@ -2944,6 +2945,34 @@ void RecordVal::Describe(ODesc* d) const
 
 	if ( d->IsReadable() )
 		d->Add("]");
+	}
+
+void RecordVal::DescribeReST(ODesc* d) const
+	{
+	const val_list* vl = AsRecord();
+	int n = vl->length();
+
+	d->Add("{");
+	d->PushIndent();
+
+	loop_over_list(*vl, i)
+		{
+		if ( i > 0 )
+			d->NL();
+
+		d->Add(record_type->FieldName(i));
+
+		d->Add("=");
+
+		Val* v = (*vl)[i];
+		if ( v )
+			v->Describe(d);
+		else
+			d->Add("<uninitialized>");
+		}
+
+	d->PopIndent();
+	d->Add("}");
 	}
 
 IMPLEMENT_SERIAL(RecordVal, SER_RECORD_VAL);

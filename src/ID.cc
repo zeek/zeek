@@ -681,20 +681,30 @@ void ID::DescribeReST(ODesc* d, bool is_role) const
 		 type->Tag() != TYPE_FUNC &&
 		 type->InternalType() != TYPE_INTERNAL_VOID )
 		{
+		d->Add(":Default:");
 		if ( type->InternalType() == TYPE_INTERNAL_OTHER )
 			{
-			d->Add(":Init:");
-			d->NL();
-			d->NL();
-			d->Add("::");
-			d->NL();
-			d->PushIndent();
-			val->DescribeReST(d);
-			d->PopIndent();
+			switch ( type->Tag() ) {
+			case TYPE_TABLE:
+				if ( val->AsTable()->Length() == 0 )
+					{
+					d->Add(" ``{}``");
+					d->NL();
+					break;
+					}
+			default:
+				d->NL();
+				d->NL();
+				d->Add("::");
+				d->NL();
+				d->PushIndent();
+				val->DescribeReST(d);
+				d->PopIndent();
+			}
 			}
 		else
 			{
-			d->Add(":Init: ");
+			d->SP();
 			val->DescribeReST(d);
 			d->NL();
 			}

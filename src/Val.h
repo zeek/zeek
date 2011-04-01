@@ -313,7 +313,7 @@ public:
 		}
 
 	void Describe(ODesc* d) const;
-	void DescribeReST(ODesc* d) const;
+	virtual void DescribeReST(ODesc* d) const;
 
 	bool Serialize(SerialInfo* info) const;
 	static Val* Unserialize(UnserialInfo* info, TypeTag type = TYPE_ANY)
@@ -904,6 +904,7 @@ public:
 	BroObj* GetOrigin() const	{ return origin; }
 
 	unsigned int MemoryAllocation() const;
+	void DescribeReST(ODesc* d) const;
 
 protected:
 	friend class Val;

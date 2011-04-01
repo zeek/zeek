@@ -47,14 +47,7 @@ BroDoc::~BroDoc()
 	if ( reST_file )
 		if ( fclose( reST_file ) )
 			fprintf(stderr, "Failed to close %s", reST_filename.c_str());
-	FreeBroDocObjPtrList(options);
-	FreeBroDocObjPtrList(constants);
-	FreeBroDocObjPtrList(state_vars);
-	FreeBroDocObjPtrList(types);
-	FreeBroDocObjPtrList(notices);
-	FreeBroDocObjPtrList(events);
-	FreeBroDocObjPtrList(functions);
-	FreeBroDocObjPtrList(redefs);
+	FreeBroDocObjPtrList(all);
 	}
 
 void BroDoc::AddImport(const std::string& s)
@@ -109,7 +102,7 @@ void BroDoc::WriteDocFile() const
 
 	WriteToDoc("\n`Original Source File <%s>`_\n\n", source_filename.c_str());
 
-	WriteSectionHeading("Summary", '-');
+	WriteSectionHeading("Overview", '-');
 	WriteStringList("%s\n", "%s\n\n", summary);
 
 	if ( ! imports.empty() )
@@ -120,18 +113,20 @@ void BroDoc::WriteDocFile() const
 
 	WriteToDoc("\n");
 
+	WriteInterface("Summary", '~', '#', true, true);
+
 	if ( ! modules.empty() )
 		{
-		WriteSectionHeading("Namespaces", '-');
+		WriteSectionHeading("Namespaces", '~');
 		WriteStringList(".. bro:namespace:: %s\n", modules);
 		WriteToDoc("\n");
 		}
 
 	if ( ! notices.empty() )
-		WriteBroDocObjList(notices, "Notices", '-');
+		WriteBroDocObjList(notices, "Notices", '~');
 
-	WriteInterface("Public Interface", '-', '~', true);
-	WriteInterface("Private Interface", '-', '~', false);
+	WriteInterface("Public Interface", '-', '~', true, false);
+	WriteInterface("Private Interface", '-', '~', false, false);
 
 	if ( ! port_analysis.empty() )
 		{
@@ -150,16 +145,16 @@ void BroDoc::WriteDocFile() const
 	}
 
 void BroDoc::WriteInterface(const char* heading, char underline,
-                            char sub, bool isPublic) const
+                            char sub, bool isPublic, bool isShort) const
 	{
 	WriteSectionHeading(heading, underline);
-	WriteBroDocObjList(options, isPublic, "Options", sub);
-	WriteBroDocObjList(constants, isPublic, "Constants", sub);
-	WriteBroDocObjList(state_vars, isPublic, "State Variables", sub);
-	WriteBroDocObjList(types, isPublic, "Types", sub);
-	WriteBroDocObjList(events, isPublic, "Events", sub);
-	WriteBroDocObjList(functions, isPublic, "Functions", sub);
-	WriteBroDocObjList(redefs, isPublic, "Redefinitions", sub);
+	WriteBroDocObjList(options, isPublic, "Options", sub, isShort);
+	WriteBroDocObjList(constants, isPublic, "Constants", sub, isShort);
+	WriteBroDocObjList(state_vars, isPublic, "State Variables", sub, isShort);
+	WriteBroDocObjList(types, isPublic, "Types", sub, isShort);
+	WriteBroDocObjList(events, isPublic, "Events", sub, isShort);
+	WriteBroDocObjList(functions, isPublic, "Functions", sub, isShort);
+	WriteBroDocObjList(redefs, isPublic, "Redefinitions", sub, isShort);
 	}
 
 void BroDoc::WriteStringList(const char* format,
@@ -179,10 +174,48 @@ void BroDoc::WriteStringList(const char* format,
 	WriteToDoc(last_format, last->c_str());
 	}
 
+void BroDoc::WriteBroDocObjTable(const BroDocObjList& l) const
+	{
+	int max_id_col = 0;
+	int max_com_col = 0;
+	BroDocObjList::const_iterator it;
+
+	for ( it = l.begin(); it != l.end(); ++it )
+		{
+		int c = (*it)->ColumnSize();
+		if ( c > max_id_col ) max_id_col = c;
+		c = (*it)->LongestShortDescLen();
+		if ( c > max_com_col ) max_com_col = c;
+		}
+
+	// start table
+	WriteRepeatedChar('=', max_id_col);
+	WriteToDoc(" ");
+	if ( max_com_col == 0 ) WriteToDoc("=");
+	else WriteRepeatedChar('=', max_com_col);
+	WriteToDoc("\n");
+
+	for ( it = l.begin(); it != l.end(); ++it )
+		{
+		if ( it != l.begin() )
+			WriteToDoc("\n\n");
+		(*it)->WriteReSTCompact(reST_file, max_id_col);
+		}
+
+	// end table
+	WriteToDoc("\n");
+	WriteRepeatedChar('=', max_id_col);
+	WriteToDoc(" ");
+	if ( max_com_col == 0 ) WriteToDoc("=");
+	else WriteRepeatedChar('=', max_com_col);
+	WriteToDoc("\n\n");
+	}
+
 void BroDoc::WriteBroDocObjList(const BroDocObjList& l,
                                 bool wantPublic,
                                 const char* heading,
-                                char underline) const
+                                char underline,
+                                bool isShort) const
 	{
 	if ( l.empty() ) return;
 
@@ -196,23 +229,33 @@ void BroDoc::WriteBroDocObjList(const BroDocObjList& l,
 
 	it = std::find_if(l.begin(), l.end(), f_ptr);
 	if ( it == l.end() ) return;
+
 	WriteSectionHeading(heading, underline);
+
+	BroDocObjList filtered_list;
+
 	while ( it != l.end() )
 		{
-		(*it)->WriteReST(reST_file);
+		filtered_list.push_back(*it);
 		it = find_if(++it, l.end(), f_ptr);
 		}
+
+	if ( isShort )
+		WriteBroDocObjTable(filtered_list);
+	else
+		WriteBroDocObjList(filtered_list);
 	}
 
 void BroDoc::WriteBroDocObjList(const BroDocObjMap& m,
                                 bool wantPublic,
                                 const char* heading,
-                                char underline) const
+                                char underline,
+                                bool isShort) const
 	{
 	BroDocObjMap::const_iterator it;
 	BroDocObjList l;
 	for ( it = m.begin(); it != m.end(); ++it ) l.push_back(it->second);
-	WriteBroDocObjList(l, wantPublic, heading, underline);
+	WriteBroDocObjList(l, wantPublic, heading, underline, isShort);
 	}
 
 void BroDoc::WriteBroDocObjList(const BroDocObjList& l,
@@ -220,8 +263,12 @@ void BroDoc::WriteBroDocObjList(const BroDocObjList& l,
                                 char underline) const
 	{
 	WriteSectionHeading(heading, underline);
-	BroDocObjList::const_iterator it;
-	for ( it = l.begin(); it != l.end(); ++it )
+	WriteBroDocObjList(l);
+	}
+
+void BroDoc::WriteBroDocObjList(const BroDocObjList& l) const
+	{
+	for ( BroDocObjList::const_iterator it = l.begin(); it != l.end(); ++it )
 		(*it)->WriteReST(reST_file);
 	}
 
@@ -246,10 +293,13 @@ void BroDoc::WriteToDoc(const char* format, ...) const
 void BroDoc::WriteSectionHeading(const char* heading, char underline) const
 	{
 	WriteToDoc("%s\n", heading);
-	size_t len = strlen(heading);
-	for ( size_t i = 0; i < len; ++i )
-		WriteToDoc("%c", underline);
+	WriteRepeatedChar(underline, strlen(heading));
 	WriteToDoc("\n");
+	}
+
+void BroDoc::WriteRepeatedChar(char c, size_t n) const
+	{
+	for ( size_t i = 0; i < n; ++i ) WriteToDoc("%c", c);
 	}
 
 void BroDoc::FreeBroDocObjPtrList(BroDocObjList& l)
@@ -259,18 +309,14 @@ void BroDoc::FreeBroDocObjPtrList(BroDocObjList& l)
 	l.clear();
 	}
 
-void BroDoc::FreeBroDocObjPtrList(BroDocObjMap& l)
-	{
-	for ( BroDocObjMap::const_iterator it = l.begin(); it != l.end(); ++it )
-		delete it->second;
-	l.clear();
-	}
-
 void BroDoc::AddFunction(BroDocObj* o)
 	{
 	BroDocObjMap::const_iterator it = functions.find(o->Name());
 	if ( it == functions.end() )
+		{
 		functions[o->Name()] = o;
+		all.push_back(o);
+		}
 	else
 		functions[o->Name()]->Combine(o);
 	}

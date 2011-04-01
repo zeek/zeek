@@ -88,7 +88,8 @@ public:
 	 *        Bro language representation of the script option and
 	 *        also any associated comments about it.
 	 */
-	void AddOption(const BroDocObj* o) { options.push_back(o); }
+	void AddOption(const BroDocObj* o) { options.push_back(o);
+	                                     all.push_back(o); }
 
 	/**
 	 * Schedules documentation of a script constant.  An option is
@@ -98,7 +99,8 @@ public:
 	 *        Bro language representation of the script constant and
 	 *        also any associated comments about it.
 	 */
-	void AddConstant(const BroDocObj* o) { constants.push_back(o); }
+	void AddConstant(const BroDocObj* o) { constants.push_back(o);
+	                                       all.push_back(o); }
 
 	/**
 	 * Schedules documentation of a script state variable.  A state variable
@@ -107,7 +109,8 @@ public:
 	 *        Bro language representation of the script state variable
 	 *        and also any associated comments about it.
 	 */
-	void AddStateVar(const BroDocObj* o) { state_vars.push_back(o); }
+	void AddStateVar(const BroDocObj* o) { state_vars.push_back(o);
+	                                       all.push_back(o); }
 
 	/**
 	 * Schedules documentation of a type declared by the script.
@@ -115,7 +118,8 @@ public:
 	 *        Bro language representation of the script option and
 	 *        also any associated comments about it.
 	 */
-	void AddType(const BroDocObj* o) { types.push_back(o); }
+	void AddType(const BroDocObj* o) { types.push_back(o);
+	                                   all.push_back(o); }
 
 	/**
 	 * Schedules documentation of a Notice (enum redef) declared by script
@@ -123,7 +127,8 @@ public:
 	 *        Bro language representation of the Notice and also
 	 *        any associated comments about it.
 	 */
-	void AddNotice(const BroDocObj* o) { notices.push_back(o); }
+	void AddNotice(const BroDocObj* o) { notices.push_back(o);
+	                                     all.push_back(o); }
 
 	/**
 	 * Schedules documentation of an event declared by the script.
@@ -131,7 +136,8 @@ public:
 	 *        Bro language representation of the script event and
 	 *        also any associated comments about it.
 	 */
-	void AddEvent(const BroDocObj* o) { events.push_back(o); }
+	void AddEvent(const BroDocObj* o) { events.push_back(o);
+	                                    all.push_back(o); }
 
    /**
 	 * Schedules documentation of a function declared by the script.
@@ -147,7 +153,8 @@ public:
 	 *        Bro language representation of the script identifier
 	 *        that was redefined and also any associated comments.
 	 */
-	void AddRedef(const BroDocObj* o) { redefs.push_back(o); }
+	void AddRedef(const BroDocObj* o) { redefs.push_back(o);
+	                                    all.push_back(o); }
 
 	/**
 	 * Gets the name of the Bro script source file for which reST
@@ -185,6 +192,8 @@ protected:
 	BroDocObjMap functions;
 	BroDocObjList redefs;
 
+	BroDocObjList all;
+
 	/**
 	 * Writes out a list of strings to the reST document.
 	 * If the list is empty, prints a newline character.
@@ -206,6 +215,13 @@ protected:
 	                     const std::list<std::string>& l) const
 		{ WriteStringList(format, format, l); }
 
+
+	/**
+	 * Writes out a table of BroDocObj's to the reST document
+	 * @param l A list of BroDocObj pointers
+	 */
+	void WriteBroDocObjTable(const BroDocObjList& l) const;
+
 	/**
 	 * Writes out a list of BroDocObj objects to the reST document
 	 * @param l A list of BroDocObj pointers
@@ -215,21 +231,26 @@ protected:
 	 * @param heading The title of the section to create in the reST doc.
 	 * @param underline The character to use to underline the reST
 	 *        section heading.
+	 * @param isShort Whether to write the full documentation or a "short"
+	 *        version (a single sentence)
 	 */
 	void WriteBroDocObjList(const BroDocObjList& l,
 	                        bool wantPublic,
 	                        const char* heading,
-	                        char underline) const;
+	                        char underline,
+	                        bool isShort) const;
 
 	/**
 	 * Wraps the BroDocObjMap into a BroDocObjList and the writes that list
 	 * to the reST document
-	 * @see WriteBroDocObjList(const BroDocObjList&, bool, const char*, char)
+	 * @see WriteBroDocObjList(const BroDocObjList&, bool, const char*, char,
+	        bool)
 	 */
 	void WriteBroDocObjList(const BroDocObjMap& m,
 	                        bool wantPublic,
 	                        const char* heading,
-	                        char underline) const;
+	                        char underline,
+	                        bool isShort) const;
 
 	/**
 	 * Writes out a list of BroDocObj objects to the reST document
@@ -241,6 +262,12 @@ protected:
 	void WriteBroDocObjList(const BroDocObjList& l,
 	                        const char* heading,
 	                        char underline) const;
+
+	/**
+	 * Writes out a list of BroDocObj objects to the reST document
+	 * @param l A list of BroDocObj pointers
+	 */
+	void WriteBroDocObjList(const BroDocObjList& l) const;
 
 	/**
 	 * Wraps the BroDocObjMap into a BroDocObjList and the writes that list
@@ -267,6 +294,13 @@ protected:
 	void WriteSectionHeading(const char* heading, char underline) const;
 
 	/**
+	 * Writes out given number of characters to reST document
+	 * @param c the character to write
+	 * @param n the number of characters to write
+	 */
+	void WriteRepeatedChar(char c, size_t n) const;
+
+	/**
 	 * Writes out the reST for either the script's public or private interface
 	 * @param heading The title of the interfaces section heading
 	 * @param underline The underline character to use for the interface
@@ -275,9 +309,11 @@ protected:
 	 *        sub-sections
 	 * @param isPublic Whether to write out the public or private script
 	 *        interface
+	 * @param isShort Whether to write out the full documentation or a "short"
+	 *        description (a single sentence)
 	 */
 	void WriteInterface(const char* heading, char underline, char subunderline,
-	                    bool isPublic) const;
+	                    bool isPublic, bool isShort) const;
 private:
 
 	/**
@@ -285,7 +321,6 @@ private:
 	 * @param a reference to a list of BroDocObj pointers
 	 */
 	void FreeBroDocObjPtrList(BroDocObjList& l);
-	void FreeBroDocObjPtrList(BroDocObjMap& l);
 
 	static bool IsPublicAPI(const BroDocObj* o) { return o->IsPublicAPI(); }
 	static bool IsPrivateAPI(const BroDocObj* o) { return ! o->IsPublicAPI(); }

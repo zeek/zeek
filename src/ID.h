@@ -86,6 +86,7 @@ public:
 	void DescribeExtended(ODesc* d) const;
 	// Produces a description that's reST-ready
 	void DescribeReST(ODesc* d, bool is_role=false) const;
+	void DescribeReSTShort(ODesc* d) const;
 
 	bool Serialize(SerialInfo* info) const;
 	static ID* Unserialize(UnserialInfo* info);

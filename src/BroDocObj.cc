@@ -12,6 +12,7 @@ BroDocObj::BroDocObj(const ID* id, std::list<std::string>*& reST,
 	reST = 0;
 	is_fake_id = is_fake;
 	use_role = 0;
+	FormulateShortDesc();
 	}
 
 BroDocObj::~BroDocObj()
@@ -20,13 +21,84 @@ BroDocObj::~BroDocObj()
 	if ( is_fake_id ) delete broID;
 	}
 
+void BroDocObj::WriteReSTCompact(FILE* file, int max_col) const
+	{
+	ODesc desc;
+	desc.SetQuotes(1);
+	broID->DescribeReSTShort(&desc);
+
+	fprintf(file, "%s", desc.Description());
+
+	std::list<std::string>::const_iterator it;
+	for ( it = short_desc.begin(); it != short_desc.end(); ++it )
+		{
+		int start_col;
+		if ( it == short_desc.begin() )
+			start_col = max_col - desc.Len() + 1;
+		else
+			{
+			start_col = max_col + 1;
+			fprintf(file, "\n");
+			}
+
+		for ( int i = 0; i < start_col; ++i )
+			fprintf(file, " ");
+
+		fprintf(file, "%s", it->c_str());
+		}
+	}
+
+int BroDocObj::LongestShortDescLen() const
+	{
+	size_t max = 0;
+	std::list<std::string>::const_iterator it;
+	for ( it = short_desc.begin(); it != short_desc.end(); ++it )
+		if ( it->size() > max ) max = it->size();
+	return max;
+	}
+
+void BroDocObj::FormulateShortDesc()
+	{
+	if ( ! reST_doc_strings ) return;
+
+	short_desc.clear();
+	std::list<std::string>::const_iterator it;
+	for ( it = reST_doc_strings->begin();
+		  it != reST_doc_strings->end(); ++it )
+		{
+		// the short description stops at the first sentence
+		// or the first empty comment
+		size_t end = it->find_first_of(".");
+		if ( end == string::npos )
+			{
+			std::string::const_iterator s;
+			bool empty = true;
+			for ( s = it->begin(); s != it->end(); ++s )
+				if ( *s != ' ' && *s != '\t' && *s != '\n' && *s != '\r' )
+					{
+					empty = false;
+					short_desc.push_back(*it);
+					break;
+					}
+			if ( empty ) break;
+			}
+		else
+			{
+			short_desc.push_back(it->substr(0, end + 1));
+			break;
+			}
+		}
+	}
+
 void BroDocObj::WriteReST(FILE* file) const
 	{
 	int indent_spaces = 3;
 	ODesc desc;
 	desc.SetIndentSpaces(indent_spaces);
 	desc.SetQuotes(1);
+
 	broID->DescribeReST(&desc, use_role);
+
 	fprintf(file, "%s", desc.Description());
 
 	if ( HasDocumentation() )
@@ -43,6 +115,14 @@ void BroDocObj::WriteReST(FILE* file) const
 		}
 
 	fprintf(file, "\n");
+	}
+
+int BroDocObj::ColumnSize() const
+	{
+	ODesc desc;
+	desc.SetQuotes(1);
+	broID->DescribeReSTShort(&desc);
+	return desc.Len();
 	}
 
 bool BroDocObj::IsPublicAPI() const
@@ -63,4 +143,5 @@ void BroDocObj::Combine(const BroDocObj* o)
 		}
 
 	delete o;
+	FormulateShortDesc();
 	}

@@ -607,6 +607,33 @@ void ID::DescribeExtended(ODesc* d) const
 		}
 	}
 
+void ID::DescribeReSTShort(ODesc* d) const
+	{
+	if ( is_type )
+		d->Add(":bro:type:`");
+	else
+		d->Add(":bro:id:`");
+	d->Add(name);
+	d->Add("`");
+
+	if ( type )
+		{
+		d->Add(": ");
+		d->Add(":bro:type:`");
+		if ( ! is_type && type->GetTypeID() )
+			d->Add(type->GetTypeID());
+		else
+			d->Add(type_name(type->Tag()));
+		d->Add("`");
+		}
+
+	if ( attrs )
+		{
+		d->SP();
+		attrs->DescribeReST(d);
+		}
+	}
+
 void ID::DescribeReST(ODesc* d, bool is_role) const
 	{
 	if ( is_role )

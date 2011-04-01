@@ -28,13 +28,26 @@ public:
 
 	/**
 	 * Writes the reST representation of this object which includes
-	 * 1) Any "##" or "##<" stylized comments.
+	 * 1) a reST friendly description of the ID
+	 * 2) "##" or "##<" stylized comments.
 	 *    Anything after these style of comments is inserted as-is into
 	 *    the reST document.
-	 * 2) a reST friendly description of the ID
-	 * @param The (already opened) file to write the reST to.
+	 * @param file The (already opened) file to write the reST to.
 	 */
 	void WriteReST(FILE* file) const;
+
+	/**
+	 * Writes a compact version of the ID and associated documentation
+	 * for insertion into a table.
+	 * @param file The (already opened) file to write the reST to.
+	 * @param max_col The maximum length of the first table column
+	 */
+	void WriteReSTCompact(FILE* file, int max_col) const;
+
+	/**
+	 * @return the column size required by the reST representation of the ID
+	 */
+	int ColumnSize() const;
 
 	/**
 	 * Check whether this documentation is part of the public API.  In
@@ -78,11 +91,26 @@ public:
 	 */
 	const char* Name() const { return broID->Name(); }
 
+	/**
+	 * @return the longest string element of the short description's list of
+	 *         strings
+	 */
+	int LongestShortDescLen() const;
+
+
 protected:
 	std::list<std::string>* reST_doc_strings;
+	std::list<std::string> short_desc;
 	const ID* broID;
 	bool is_fake_id; /**< Whether the ID* is a dummy just for doc purposes */
 	bool use_role; /**< Whether to use a reST role or directive for the ID */
+
+	/**
+	 * Set the short_desc member to be a subset of reST_doc_strings.
+	 * Specifically, short_desc will be everything in reST_doc_strings
+	 * up until the first period or first empty string list element found.
+	 */
+	void FormulateShortDesc();
 
 private:
 };

@@ -28,7 +28,6 @@
 #include "Var.h"
 #include "Logger.h"
 #include "Net.h"
-#include "TCP_Rewriter.h"
 #include "Anon.h"
 #include "PacketSort.h"
 #include "Serializer.h"
@@ -47,13 +46,6 @@ PList(PktSrc) pkt_srcs;
 // FIXME: We should really merge PktDumper and PacketDumper.
 // It's on my to-do [Robin].
 PktDumper* pkt_dumper = 0;
-PktDumper* pkt_transformed_dumper = 0;
-
-// For trace of rewritten packets
-PacketDumper* transformed_pkt_dump = 0;
-// For trace of original packets from selected connections
-PacketDumper* source_pkt_dump = 0;
-int transformed_pkt_dump_MTU = 1514;
 
 int reading_live = 0;
 int reading_traces = 0;
@@ -162,9 +154,8 @@ RETSIGTYPE watchdog(int /* signo */)
 
 void net_init(name_list& interfaces, name_list& readfiles, 
 	      name_list& netflows, name_list& flowfiles,
-	        const char* writefile, const char* transformed_writefile,
-	        const char* filter, const char* secondary_filter,
-		int do_watchdog)
+	        const char* writefile, const char* filter,
+			const char* secondary_filter, int do_watchdog)
 	{
 	init_net_var();
 
@@ -320,37 +311,7 @@ void net_init(name_list& interfaces, name_list& readfiles,
 			id->SetVal(new StringVal(writefile));
 		}
 
-	if ( transformed_writefile )
-		{
-		pkt_transformed_dumper = new PktDumper(transformed_writefile);
-		if ( pkt_transformed_dumper->IsError() )
-			{
-			fprintf(stderr, "%s: can't open trace transformation write file \"%s\" - %s\n",
-				prog, writefile,
-				pkt_transformed_dumper->ErrorMsg());
-			exit(1);
-			}
-
-		transformed_pkt_dump =
-			new PacketDumper(pkt_transformed_dumper->PcapDumper());
-
-		// If both -A and -w are specified, -A will be the transformed
-		// trace file and -w will be the source packet trace file.
-		// Otherwise the packets will go to the same file.
-		if ( pkt_dumper )
-			source_pkt_dump =
-				new PacketDumper(pkt_dumper->PcapDumper());
-		}
-
-	else if ( pkt_dumper )
-		transformed_pkt_dump =
-			new PacketDumper(pkt_dumper->PcapDumper());
-
-	if ( BifConst::anonymize_ip_addr )
-		init_ip_addr_anonymizers();
-	else
-		for ( int i = 0; i < NUM_ADDR_ANONYMIZATION_METHODS; ++i )
-			ip_anonymizer[i] = 0;
+	init_ip_addr_anonymizers();
 
 	if ( packet_sort_window > 0 )
 		packet_sorter = new PacketSortGlobalPQ();
@@ -627,7 +588,6 @@ void net_finish(int drain_events)
 		}
 
 	delete pkt_dumper;
-	delete pkt_transformed_dumper;
 
 	// fprintf(stderr, "uhash: %d/%d\n", hash_cnt_uhash, hash_cnt_all);
 
@@ -647,11 +607,6 @@ void net_delete()
 
 	delete sessions;
 	delete packet_sorter;
-
-	// Can't put this in net_finish() because packets might be
-	// dumped when connections are deleted.
-	if ( transformed_pkt_dump )
-		delete transformed_pkt_dump;
 
 	for ( int i = 0; i < NUM_ADDR_ANONYMIZATION_METHODS; ++i )
 		delete ip_anonymizer[i];

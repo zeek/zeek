@@ -755,16 +755,6 @@ void Connection::FlipRoles()
 		root_analyzer->FlipRoles();
 	}
 
-int Connection::RewritingTrace()
-	{
-	return root_analyzer ? root_analyzer->RewritingTrace() : 0;
-	}
-
-Rewriter* Connection::TraceRewriter() const
-	{
-	return root_analyzer ? root_analyzer->TraceRewriter() : 0;
-	}
-
 unsigned int Connection::MemoryAllocation() const
 	{
 	return padded_sizeof(*this)

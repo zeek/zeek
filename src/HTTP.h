@@ -169,8 +169,6 @@ public:
 	virtual void Done();
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
 	virtual void Undelivered(int seq, int len, bool orig);
-	virtual int RewritingTrace()
-		{ return BifConst::rewriting_http_trace || TCP_ApplicationAnalyzer::RewritingTrace(); }
 
 	// Overriden from TCP_ApplicationAnalyzer
 	virtual void EndpointEOF(bool is_orig);

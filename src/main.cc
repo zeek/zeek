@@ -152,7 +152,6 @@ void usage()
 	fprintf(stderr, "    -v|--version                   | print version and exit\n");
 	fprintf(stderr, "    -x|--print-state <file.bst>    | print contents of state file\n");
 	fprintf(stderr, "    -z|--analyze <analysis>        | run the specified policy file analysis\n");
-	fprintf(stderr, "    -A|--transfile <writefile>     | write transformed trace to given tcpdump file\n");
 #ifdef DEBUG
 	fprintf(stderr, "    -B|--debug <dbgstreams>        | Enable debugging output for selected streams\n");
 #endif
@@ -339,7 +338,6 @@ int main(int argc, char** argv)
 	name_list netflows;
 	name_list flow_files;
 	name_list rule_files;
-	char* transformed_writefile = 0;
 	char* bst_file = 0;
 	char* id_name = 0;
 	char* events_file = 0;
@@ -371,7 +369,6 @@ int main(int argc, char** argv)
 		{"version",		no_argument,		0,	'v'},
 		{"print-state",		required_argument,	0,	'x'},
 		{"analyze",		required_argument,	0,	'z'},
-		{"transfile",		required_argument,	0,	'A'},
 		{"no-checksums",	no_argument,		0,	'C'},
 		{"dfa-cache",		required_argument,	0,	'D'},
 		{"force-dns",		no_argument,		0,	'F'},
@@ -434,7 +431,7 @@ int main(int argc, char** argv)
 	opterr = 0;
 
 	char opts[256];
-	safe_strncpy(opts, "A:B:D:e:f:I:i:K:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGHLOPSWdghlv",
+	safe_strncpy(opts, "B:D:e:f:I:i:K:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGHLOPSWdghlv",
 		     sizeof(opts));
 
 #ifdef USE_PERFTOOLS
@@ -502,10 +499,6 @@ int main(int argc, char** argv)
 				fprintf(stderr, "Unknown analysis type: %s\n", optarg);
 				exit(1);
 				}
-			break;
-
-		case 'A':
-			transformed_writefile = optarg;
 			break;
 
 		case 'C':
@@ -795,7 +788,7 @@ int main(int argc, char** argv)
 
 	if ( dns_type != DNS_PRIME )
 		net_init(interfaces, read_files, netflows, flow_files,
-			writefile, transformed_writefile,
+			writefile,
 			user_pcap_filter ? user_pcap_filter : "tcp or udp",
 			secondary_path->Filter(), do_watchdog);
 

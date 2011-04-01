@@ -130,15 +130,7 @@ set(BIF_SRCS
     event.bif
     const.bif
     types.bif
-    common-rw.bif
-    finger-rw.bif
-    ident-rw.bif
-    dns-rw.bif
-    ftp-rw.bif
-    smtp-rw.bif
-    http-rw.bif
     strings.bif
-    smb-rw.bif
 )
 
 foreach (bift ${BIF_SRCS})
@@ -353,7 +345,6 @@ set(bro_SRCS
     TCP.cc
     TCP_Endpoint.cc
     TCP_Reassembler.cc
-    TCP_Rewriter.cc
     Telnet.cc
     Timer.cc
     Traverse.cc
@@ -370,10 +361,7 @@ set(bro_SRCS
     md5.c
     patricia.c
     setsignal.c
-    UDP_Rewriter.cc
-    DNS_Rewriter.cc
     PacketDumper.cc
-    Rewriter.cc
     strsep.c
     ${dns_SRCS}
     ${malloc_SRCS}

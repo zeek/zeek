@@ -349,7 +349,6 @@ set(bro_SRCS
     Timer.cc
     Traverse.cc
     Trigger.cc
-    TwoWise.cc
     Type.cc
     UDP.cc
     Val.cc

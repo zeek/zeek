@@ -242,7 +242,6 @@ set(bro_SRCS
     net_util.cc
     util.cc
     module_util.cc
-    Active.cc
     Analyzer.cc
     Anon.cc
     ARP.cc

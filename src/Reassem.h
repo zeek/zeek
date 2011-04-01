@@ -5,7 +5,6 @@
 #ifndef reassem_h
 #define reassem_h
 
-#include "Active.h"
 #include "Obj.h"
 
 class DataBlock {
@@ -73,8 +72,6 @@ protected:
 	DataBlock* last_block;
 	int last_reassem_seq;
 	int trim_seq;	// how far we've trimmed
-
-	ReassemblyPolicy policy;
 
 	static unsigned int total_size;
 };

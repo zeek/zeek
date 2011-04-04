@@ -9,7 +9,7 @@ redef enum Notice::Type += {
 };
 
 export {
-	redef enum LogTags += {
+	redef enum Tag += {
 		## Indicator of a URI based SQL injection attack.
 		URI_SQLI,
 		## Indicator of client body based SQL injection attack.  This is 

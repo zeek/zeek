@@ -1,7 +1,3 @@
-##! Yay, this is the new HTTP script
-
-## Author: Seth Hall <seth@icir.org> - Inspired by the work of many others.
-
 @load functions
 @load software
 
@@ -17,8 +13,8 @@ redef enum Log::ID += { HTTP };
 
 export {
 	## Indicate a type of attack or compromise in the record to be logged.
-	type LogTags: enum {
-		EMTPY
+	type Tag: enum {
+		EMPTY
 	};
 	
 	type LogPoint: enum { 
@@ -26,6 +22,7 @@ export {
 		AFTER_REQUEST_BODY,
 		AFTER_REPLY, 
 		AFTER_REPLY_BODY,
+		BEFORE_NEXT_REQUEST,
 	};
 	
 	## Define the default point at which you'd like the logging to take place.
@@ -42,27 +39,27 @@ export {
 	type State: record {
 		ts:                 time    &log;
 		id:                 conn_id &log;
-		method:             string  &log &default="";
-		host:               string  &log &default="";
-		uri:                string  &log &default="";
-		referrer:           string  &log &default="";
-		user_agent:         string  &log &default="";
-		request_body_size:  count   &log &default=0;
-		response_body_size: count   &log &default=0;
-		status_code:        count   &log &default=0;
-		status_msg:         string  &log &default="";
+		method:             string  &log &optional;
+		host:               string  &log &optional;
+		uri:                string  &log &optional;
+		referrer:           string  &log &optional;
+		user_agent:         string  &log &optional;
+		request_body_size:  count   &log &optional;
+		response_body_size: count   &log &optional;
+		status_code:        count   &log &optional;
+		status_msg:         string  &log &optional;
 		## This is a set of indicators of various attributes discovered and
 		## related to a particular request/response pair.
-		tags:               set[LogTags] &log;
+		tags:               set[Tag] &log;
 		
-		# Do these in a separate script.
-		#mime_type:   string &default="";
-		#generate_md5: bool &default=F;
-		#md5: string &default="";
 		#file_name: string; ##maybe if the header's there?
 		
 		#pending_requests: Request;
-		log_point:        LogPoint &default=default_log_point;
+		log_point:          LogPoint &default=default_log_point;
+		
+		## The total number of HTTP entity bodies that have been seen during 
+		## this connection.
+		entity_bodies:         count &default=0;
 	};
 	
 	## List of all active HTTP session indexed by conn_id.
@@ -96,9 +93,9 @@ redef capture_filters +=  {
 
 function new_http_session(c: connection): State
 	{
-	local tags: set[LogTags] = set();
-	local proxied: set[string] = set();
-	local tmp: State = [$ts=network_time(), $id=c$id, $tags=tags, $proxied=proxied];
+	local tmp: State;
+	tmp$ts=network_time();
+	tmp$id=c$id;
 	return tmp;
 	}
 
@@ -116,10 +113,22 @@ function do_log(c: connection)
 event http_request(c: connection, method: string, original_URI: string,
                    unescaped_URI: string, version: string) &priority=5
 	{
+	if ( c?$http )
+		{
+		# If there already an HTTP structure and we're logging at the beginning
+		# of a next request, go ahead and log here...
+		if ( c$http$log_point == BEFORE_NEXT_REQUEST )
+			do_log(c);
+		
+		# Clear out the existing HTTP structure since each request is standalone.
+		c$http = new_http_session(c);
+		}
+		
 	set_http_session(c);
 	
 	c$http$method = method;
 	c$http$uri = unescaped_URI;
+	
 	}
 	
 event http_reply(c: connection, version: string, code: count, reason: string) &priority=5
@@ -188,10 +197,10 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 		}
 	}
 	
-event http_begin_entity(c: connection, is_orig: bool) &priority=-5
+event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &priority=-5
 	{
 	set_http_session(c);
-	
+
 	if ( is_orig )
 		if ( c$http$log_point == AFTER_REQUEST )
 			do_log(c);
@@ -200,16 +209,28 @@ event http_begin_entity(c: connection, is_orig: bool) &priority=-5
 			do_log(c);
 	}
 	
-event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &priority=-5
+event http_begin_entity(c: connection, is_orig: bool) &priority=5
+	{
+	set_http_session(c);
+	
+	++c$http$entity_bodies;
+	}
+	
+event http_end_entity(c: connection, is_orig: bool) &priority=-5
 	{
 	set_http_session(c);
 	
 	if ( is_orig )
-		if ( c$http$log_point == AFTER_REQUEST_BODY ) 
+		if ( c$http$log_point == AFTER_REQUEST_BODY )
 			do_log(c);
 	else
-		if ( c$http$log_point == AFTER_REPLY_BODY ) 
+		if ( c$http$log_point == AFTER_REPLY_BODY )
 			do_log(c);
-		
+	}
+	
+event connection_state_remove(c: connection)
+	{
+	if ( c?$http && c$http$log_point == BEFORE_NEXT_REQUEST )
+		do_log(c);
 	}
 	

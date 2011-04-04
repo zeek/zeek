@@ -4,9 +4,9 @@ module HTTP;
 export {
 	redef record State += {
 		## The username if basic-auth is performed for the request.
-		username:           string  &log &default="";
+		username:           string  &log &optional;
 		## The password if basic-auth is performed for the request.
-		password:           string  &log &default="";
+		password:           string  &log &optional;
 		
 		## All of the headers that may indicate if the request was proxied.
 		proxied:            set[string] &log &optional;
@@ -43,7 +43,6 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 		{
 		if ( name in proxy_headers )
 			{
-			# TODO: remove this once we have default empty values on sets.
 			if ( ! c$http?$proxied )
 				c$http$proxied = set();
 			add c$http$proxied[fmt("%s -> %s", name, value)];

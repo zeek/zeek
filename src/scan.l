@@ -159,6 +159,40 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 		}
 }
 
+##{OWS}{ID}:.* {
+	if ( generate_documentation )
+		{
+		// Comment is documenting either a function parameter or return type,
+		// so appropriate reST markup substitutions are automatically made
+		// in order to distinguish them from other comments.
+		const char* id_start = skip_whitespace(yytext + 2);
+		size_t id_len = strcspn(id_start, ":");
+		char* id_name = new char[id_len + 1];
+		strncpy(id_name, id_start, id_len);
+		id_name[id_len] = '\0';
+		const char* comment = id_start + id_len + 1;
+
+		std::string doc;
+
+		if ( streq(id_name, "Returns") )
+			doc.append(":returns:").append(comment);
+		else
+			doc.append(":param ").append(id_name).append(":").append(comment);
+
+		if ( ! reST_doc_comments )
+			reST_doc_comments = new std::list<std::string>();
+
+		// always insert a blank line so that this param/return markup
+		// 1) doesn't show up in the summary section in the case that it's
+		//    the first comment for the function/event
+		// 2) has a blank line between it and non-field-list reST markup,
+		//    which is required for correct HTML rendering by Sphinx
+		reST_doc_comments->push_back("");
+		reST_doc_comments->push_back(doc);
+
+		delete [] id_name;
+		}
+}
 
 ##.* {
 	if ( generate_documentation && (yytext[2] != '#') )

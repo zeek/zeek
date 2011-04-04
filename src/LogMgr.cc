@@ -1,4 +1,6 @@
 
+#include <algorithm>
+
 #include "LogMgr.h"
 #include "Event.h"
 #include "EventHandler.h"

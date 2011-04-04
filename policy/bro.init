@@ -11,6 +11,7 @@ global no_handler: event(name: string, val: any);
 # Type declarations
 type string_array: table[count] of string;
 type string_set: set[string];
+type addr_set: set[addr];
 type index_vec: vector of count;
 type string_vec: vector of string;
 
@@ -1007,10 +1008,10 @@ type backdoor_endp_stats: record {
 };
 
 type signature_state: record {
-	id: string;          # ID of the signature
-	conn: connection;    # Current connection
-	is_orig: bool;       # True if current endpoint is originator
-	payload_size: count; # Payload size of the first pkt of curr. endpoint
+	sig_id:       string;     # ID of the signature
+	conn:         connection; # Current connection
+	is_orig:      bool;       # True if current endpoint is originator
+	payload_size: count;      # Payload size of the first pkt of curr. endpoint
 
 };
 

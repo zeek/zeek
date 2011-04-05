@@ -189,6 +189,7 @@ void usage()
 	fprintf(stderr, "    $BROPATH                       | file search path (%s)\n", bro_path());
 	fprintf(stderr, "    $BRO_PREFIXES                  | prefix list (%s)\n", bro_prefixes());
 	fprintf(stderr, "    $BRO_DNS_FAKE                  | disable DNS lookups (%s)\n", bro_dns_fake());
+	fprintf(stderr, "    $BRO_SEED_FILE                 | file to load seeds from (not set)\n");
 
 	exit(1);
 	}
@@ -341,7 +342,7 @@ int main(int argc, char** argv)
 	char* bst_file = 0;
 	char* id_name = 0;
 	char* events_file = 0;
-	char* seed_load_file = 0;
+	char* seed_load_file = getenv("BRO_SEED_FILE");
 	char* seed_save_file = 0;
 	int seed = 0;
 	int dump_cfg = false;

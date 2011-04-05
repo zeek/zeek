@@ -62,7 +62,7 @@ protected:
 // Manages a collection of attributes.
 class Attributes : public BroObj {
 public:
-	Attributes(attr_list* a, BroType* t);
+	Attributes(attr_list* a, BroType* t, bool in_record);
 	~Attributes();
 
 	void AddAttr(Attr* a);
@@ -87,6 +87,7 @@ protected:
 
 	BroType* type;
 	attr_list* attrs;
+	bool in_record;
 };
 
 #endif

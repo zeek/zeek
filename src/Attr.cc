@@ -57,10 +57,11 @@ void Attr::AddTag(ODesc* d) const
 		d->Add(attr_name(Tag()));
 	}
 
-Attributes::Attributes(attr_list* a, BroType* t)
+Attributes::Attributes(attr_list* a, BroType* t, bool arg_in_record)
 	{
 	attrs = new attr_list(a->length());
 	type = t->Ref();
+	in_record = arg_in_record;
 
 	SetLocationInfo(&start_location, &end_location);
 
@@ -199,7 +200,7 @@ void Attributes::CheckAttr(Attr* a)
 		{
 		BroType* atype = a->AttrExpr()->Type();
 
-		if ( type->Tag() != TYPE_TABLE || type->IsSet() )
+		if ( type->Tag() != TYPE_TABLE || (type->IsSet() && ! in_record) )
 			{
 			if ( ! same_type(atype, type) )
 				a->AttrExpr()->Error("&default value has inconsistent type", type);
@@ -208,18 +209,30 @@ void Attributes::CheckAttr(Attr* a)
 
 		TableType* tt = type->AsTableType();
 
-		if ( ! same_type(atype, tt->YieldType()) )
+		if ( ! in_record )
 			{
-			// It can still be a default function.
-			if ( atype->Tag() == TYPE_FUNC )
+			// &default applies to the type itself.
+			if ( ! same_type(atype, tt->YieldType()) )
 				{
-				FuncType* f = atype->AsFuncType();
-				if ( ! f->CheckArgs(tt->IndexTypes()) ||
-				     ! same_type(f->YieldType(), tt->YieldType()) )
-					Error("&default function type clash");
+				// It can still be a default function.
+				if ( atype->Tag() == TYPE_FUNC )
+					{
+					FuncType* f = atype->AsFuncType();
+					if ( ! f->CheckArgs(tt->IndexTypes()) ||
+						! same_type(f->YieldType(), tt->YieldType()) )
+						Error("&default function type clash");
+					}
+				else
+					Error("&default value has inconsistent type");
 				}
-			else
-				Error("&default value has inconsistent type");
+			}
+		else
+			{
+			// &default applies to record field.
+			if ( ! same_type(atype, type) &&
+			     ! (atype->Tag() == TYPE_TABLE && atype->AsTableType()->IsUnspecifiedTable()) )
+			    Error("&default value has inconsistent type");
+			break;
 			}
 		}
 		break;

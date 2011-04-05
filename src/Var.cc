@@ -107,7 +107,7 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 	id->SetType(t);
 
 	if ( attr )
-		id->AddAttrs(new Attributes(attr, t));
+		id->AddAttrs(new Attributes(attr, t, false));
 
 	if ( id->FindAttr(ATTR_PERSISTENT) || id->FindAttr(ATTR_SYNCHRONIZED) )
 		{
@@ -221,7 +221,7 @@ void add_type(ID* id, BroType* t, attr_list* attr, int /* is_event */)
 	id->MakeType();
 
 	if ( attr )
-		id->SetAttrs(new Attributes(attr, t));
+		id->SetAttrs(new Attributes(attr, t, false));
 	}
 
 void begin_func(ID* id, const char* module_name, function_flavor flavor,

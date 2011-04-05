@@ -3400,7 +3400,7 @@ TableConstructorExpr::TableConstructorExpr(ListExpr* constructor_list,
 			SetError("values in table(...) constructor do not specify a table");
 		}
 
-	attrs = arg_attrs ? new Attributes(arg_attrs, type) : 0;
+	attrs = arg_attrs ? new Attributes(arg_attrs, type, false) : 0;
 	}
 
 Val* TableConstructorExpr::Eval(Frame* f) const
@@ -3466,7 +3466,7 @@ SetConstructorExpr::SetConstructorExpr(ListExpr* constructor_list,
 	else if ( type->Tag() != TYPE_TABLE || ! type->AsTableType()->IsSet() )
 		SetError("values in set(...) constructor do not specify a set");
 
-	attrs = arg_attrs ? new Attributes(arg_attrs, type) : 0;
+	attrs = arg_attrs ? new Attributes(arg_attrs, type, false) : 0;
 	}
 
 Val* SetConstructorExpr::Eval(Frame* f) const

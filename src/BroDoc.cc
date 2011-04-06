@@ -100,7 +100,8 @@ void BroDoc::WriteDocFile() const
 
 	WriteSectionHeading(source_filename.c_str(), '=');
 
-	WriteToDoc("\n`Original Source File <%s>`_\n\n", source_filename.c_str());
+	WriteToDoc("\n:download:`Original Source File <%s>`\n\n",
+	           source_filename.c_str());
 
 	WriteSectionHeading("Overview", '-');
 	WriteStringList("%s\n", "%s\n\n", summary);

@@ -1,5 +1,5 @@
-Builtins
-========
+Builtin Types and Attributes
+============================
 
 Types
 -----

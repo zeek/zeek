@@ -5,6 +5,7 @@ import subprocess
 import shutil
 import glob
 import string
+import sys
 
 BRO = "@CMAKE_BINARY_DIR@/src/bro"
 BROPATHDEV = "`@CMAKE_BINARY_DIR@/bro-path-dev`"
@@ -14,13 +15,15 @@ BROPATH = subprocess.Popen("@CMAKE_BINARY_DIR@/bro-path-dev", shell=True,
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT).stdout.readline()
 
 class BroToReST:
-    bro_src_file = ""
-    doc_src_file = ""
+    bro_src_file = None
+    doc_src_file = None
     load_via_stdin = False
+    group = None
 
-    def __init__(self, src_file, load_method=False, src_dir="@POLICY_SRC_DIR@"):
-        self.bro_src_file = os.path.join(src_dir, src_file)
+    def __init__(self, src_file, load_method=False, search_dir=None, group=None):
+        self.bro_src_file = FindBroScript(src_file, search_dir)
         self.load_via_stdin = load_method
+        self.group = group
 
         # formulate doc_src_file from src_file
         filename = os.path.basename(src_file)
@@ -34,7 +37,8 @@ class BroToReST:
         return "bro_src_file: " + self.bro_src_file \
            + "\ndoc_src_file: " + self.doc_src_file \
            + "\ndoc_dst_file: " + os.path.join(DOC_DST_DIR, self.doc_src_file) \
-           + "\nstdin_load: %s" % self.load_via_stdin
+           + "\nstdin_load: %s" % self.load_via_stdin \
+           + "\ngroup: %s" % self.group
 
     def GenDoc(self):
         bro_src_basename = os.path.basename(self.bro_src_file)
@@ -49,56 +53,86 @@ class BroToReST:
         if p.wait() == 0:
             shutil.copy(self.doc_src_file, DOC_DST_DIR)
             shutil.copy(self.bro_src_file, DOC_DST_DIR)
+            AppendToDocGroup(self.group, self.bro_src_file, self.doc_src_file)
 
         for leftover in glob.glob("*.rst"):
             os.remove(leftover)
 
-def GenDocs(doc_list, load_method=False):
-    for f in doc_list:
-        doc = BroToReST(f, load_method)
-        print "Generating reST document for " + f
+def GenDocs(doc_dict, load_method=False):
+    for k, v in doc_dict.iteritems():
+        doc = BroToReST(k, load_method, group=v)
+        print "Generating reST document for " + k
         doc.GenDoc()
 
 # search BROPATH for the script and return the absolute path to it
-def FindBroScript(src_file):
-    for path in string.split(BROPATH, ":"):
+def FindBroScript(src_file, search_dir=None):
+    if search_dir is None:
+        search_dir = string.split(BROPATH, ":")
+    for path in search_dir:
         abs_path = os.path.join(path, src_file)
         if os.path.exists(abs_path):
             return abs_path
+    print >> sys.stderr, "Couldn't find '%s'" % src_file
+    return None
+
+def AppendToDocGroup(group, src_file, doc_file):
+    if group is None:
+        return
+
+    group_file = os.path.join(DOC_DST_DIR, group + ".rst")
+    if not os.path.exists(group_file):
+        print >> sys.stderr, "Group file doesn't exist: " + group_file
+        return
+
+    summary_comments = []
+
+    with open(src_file, 'r') as f:
+        for line in f:
+            sum_pos = string.find(line, "##!")
+            if sum_pos != -1:
+                summary_comments.append(line[(sum_pos+3):])
+
+    doc_name, ext = os.path.splitext(doc_file)
+
+    with open(group_file, 'a') as f:
+        f.write("\n:doc:`%s`\n" % doc_name)
+        for line in summary_comments:
+            f.write(line)
 
 # Scripts that can be loaded by bro via command line argument
 # TODO: generate docs for more scripts
-docs = [
-    "alarm.bro",
-    "arp.bro",
-    "conn.bro",
-    "dhcp.bro",
-    "dns.bro",
-    "ftp.bro",
-    "http.bro",
-    "http-reply.bro",
-    "http-request.bro",
-    "irc.bro",
-    "smtp.bro",
-    "ssl.bro",
-    "ssl-ciphers.bro",
-    "ssl-errors.bro",
-    "synflood.bro",
-    "tcp.bro",
-    "udp.bro",
-    "weird.bro",
-]
+# TODO: the groups are just made up to test the functionality, fix them
+docs = {
+    "alarm.bro":        "internal",
+    "arp.bro":          "user",
+    "conn.bro":         "internal",
+    "dhcp.bro":         "user",
+    "dns.bro":          "user",
+    "ftp.bro":          "user",
+    "http.bro":         "user",
+    "http-reply.bro":   None,
+    "http-request.bro": None,
+    "irc.bro":          "user",
+    "smtp.bro":         "user",
+    "ssl.bro":          "user",
+    "ssl-ciphers.bro":  None,
+    "ssl-errors.bro":   None,
+    "synflood.bro":     "user",
+    "tcp.bro":          "user",
+    "udp.bro":          "user",
+    "weird.bro":        "internal",
+}
 
 # Scripts that can't be loaded by bro via command line argument (possible
 # due to dependency issues), but can be loaded via an @load on stdin
-stdin_docs = [
-    "notice.bro",
-]
+stdin_docs = {
+    "notice.bro": "internal",
+}
 
 GenDocs(docs)
 GenDocs(stdin_docs, True)
 
-BroToReST("example.bro", False, "@PROJECT_SOURCE_DIR@/doc").GenDoc()
+BroToReST("example.bro", False, ["@PROJECT_SOURCE_DIR@/doc"], group="internal").GenDoc()
 
 # Generate documentation for stuff that's always loaded into bro by default
 cmd = "echo '' | %s %s" % (BRO, BRO_ARGS)
@@ -118,4 +152,8 @@ if p.wait() == 0:
         src_file = FindBroScript(src_file)
         shutil.copy(src_file, DOC_DST_DIR)
         shutil.copy(doc, DOC_DST_DIR)
+        if ext == ".bif":
+            AppendToDocGroup("bifs", src_file, doc)
+        else:
+            AppendToDocGroup("default", src_file, doc)
         os.remove(doc)

@@ -1,5 +1,7 @@
-Policy Files
-============
+Index of All Policy Script Documentation
+========================================
+
+Contents:
 
 .. toctree::
    :maxdepth: 1

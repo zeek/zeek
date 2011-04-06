@@ -11,6 +11,10 @@ Contents:
 
    common
    builtins
+   policy/default
+   policy/user
+   policy/bifs
+   policy/internal
    policy/index
 
 Indices and tables

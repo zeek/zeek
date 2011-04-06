@@ -17,7 +17,7 @@ BroDoc::BroDoc(const std::string& sourcename)
 	std::string ext = source_filename.substr(ext_pos + 1);
 	if ( ext_pos == std::string::npos || ext != "bro" )
 		{
-		if ( source_filename != "bro.init" )
+		if ( source_filename != "bro.init" && source_filename != "<stdin>" )
 			{
 			fprintf(stderr,
 			        "Warning: documenting file without .bro extension: %s\n",

@@ -1,0 +1,121 @@
+#! /usr/bin/env python
+
+import os
+import subprocess
+import shutil
+import glob
+import string
+
+BRO = "@CMAKE_BINARY_DIR@/src/bro"
+BROPATHDEV = "`@CMAKE_BINARY_DIR@/bro-path-dev`"
+BRO_ARGS = "--doc-scripts"
+DOC_DST_DIR = "@DOC_SOURCE_WORKDIR@/policy"
+BROPATH = subprocess.Popen("@CMAKE_BINARY_DIR@/bro-path-dev", shell=True,
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT).stdout.readline()
+
+class BroToReST:
+    bro_src_file = ""
+    doc_src_file = ""
+    load_via_stdin = False
+
+    def __init__(self, src_file, load_method=False, src_dir="@POLICY_SRC_DIR@"):
+        self.bro_src_file = os.path.join(src_dir, src_file)
+        self.load_via_stdin = load_method
+
+        # formulate doc_src_file from src_file
+        filename = os.path.basename(src_file)
+        basename, ext = os.path.splitext(filename)
+        if ext == ".bro":
+            self.doc_src_file = basename + ".rst"
+        else:
+            self.doc_src_file = filename + ".rst"
+
+    def __str__(self):
+        return "bro_src_file: " + self.bro_src_file \
+           + "\ndoc_src_file: " + self.doc_src_file \
+           + "\ndoc_dst_file: " + os.path.join(DOC_DST_DIR, self.doc_src_file) \
+           + "\nstdin_load: %s" % self.load_via_stdin
+
+    def GenDoc(self):
+        bro_src_basename = os.path.basename(self.bro_src_file)
+
+        if self.load_via_stdin:
+            cmd = "echo '@load %s' | %s %s" % (bro_src_basename, BRO, BRO_ARGS)
+        else:
+            cmd = "%s %s %s" % (BRO, BRO_ARGS, self.bro_src_file)
+
+        p = subprocess.Popen(cmd, shell=True, env={"BROPATH": BROPATH})
+
+        if p.wait() == 0:
+            shutil.copy(self.doc_src_file, DOC_DST_DIR)
+            shutil.copy(self.bro_src_file, DOC_DST_DIR)
+
+        for leftover in glob.glob("*.rst"):
+            os.remove(leftover)
+
+def GenDocs(doc_list, load_method=False):
+    for f in doc_list:
+        doc = BroToReST(f, load_method)
+        print "Generating reST document for " + f
+        doc.GenDoc()
+
+# search BROPATH for the script and return the absolute path to it
+def FindBroScript(src_file):
+    for path in string.split(BROPATH, ":"):
+        abs_path = os.path.join(path, src_file)
+        if os.path.exists(abs_path):
+            return abs_path
+
+# Scripts that can be loaded by bro via command line argument
+# TODO: generate docs for more scripts
+docs = [
+    "alarm.bro",
+    "arp.bro",
+    "conn.bro",
+    "dhcp.bro",
+    "dns.bro",
+    "ftp.bro",
+    "http.bro",
+    "http-reply.bro",
+    "http-request.bro",
+    "irc.bro",
+    "smtp.bro",
+    "ssl.bro",
+    "ssl-ciphers.bro",
+    "ssl-errors.bro",
+    "synflood.bro",
+    "tcp.bro",
+    "udp.bro",
+    "weird.bro",
+]
+
+# Scripts that can't be loaded by bro via command line argument (possible
+# due to dependency issues), but can be loaded via an @load on stdin
+stdin_docs = [
+    "notice.bro",
+]
+
+GenDocs(docs)
+GenDocs(stdin_docs, True)
+
+BroToReST("example.bro", False, "@PROJECT_SOURCE_DIR@/doc").GenDoc()
+
+# Generate documentation for stuff that's always loaded into bro by default
+cmd = "echo '' | %s %s" % (BRO, BRO_ARGS)
+p = subprocess.Popen(cmd, shell=True, env={"BROPATH": BROPATH})
+if p.wait() == 0:
+    for doc in glob.glob("*.rst"):
+        if doc == "<stdin>.rst":
+            os.remove(doc)
+            continue
+
+        basename, ext = os.path.splitext(doc)
+        basename2, ext = os.path.splitext(basename)
+        if ext == ".init":
+            src_file = basename
+        else:
+            src_file = basename + ".bro"
+        src_file = FindBroScript(src_file)
+        shutil.copy(src_file, DOC_DST_DIR)
+        shutil.copy(doc, DOC_DST_DIR)
+        os.remove(doc)

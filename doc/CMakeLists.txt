@@ -11,6 +11,9 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/conf.py.in
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_reST_docs.py.in
                ${CMAKE_CURRENT_BINARY_DIR}/generate_reST_docs.py
                @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/scripts/BroToReST.py.in
+               ${CMAKE_CURRENT_BINARY_DIR}/BroToReST.py
+               @ONLY)
 
 add_custom_target(doc
                   COMMAND "${CMAKE_COMMAND}" -E copy_directory
@@ -30,7 +33,6 @@ add_custom_target(doc
                   SOURCES ${DOC_SOURCES})
 
 add_dependencies(doc bro)
-# TODO: add dependency that's a check for `python`, `sphinx-build`, etc.
 
 add_custom_target(doc-clean
                   COMMAND "${CMAKE_COMMAND}" -E remove_directory

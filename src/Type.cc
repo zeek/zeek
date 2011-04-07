@@ -1322,7 +1322,7 @@ void CommentedEnumType::AddComment(const string& module_name, const char* name,
 		{
 		comments[fullname.c_str()]->splice(comments[fullname.c_str()]->end(),
 		                                   *new_comments);
-		delete [] new_comments;
+		delete new_comments;
 		}
 	}
 

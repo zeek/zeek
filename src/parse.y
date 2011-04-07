@@ -157,13 +157,16 @@ static void add_enum_comment (std::list<std::string>* comments)
 	cur_enum_type_doc->AddComment(current_module, cur_enum_elem_id, comments);
 	}
 
-static ID* create_dummy_id (const ID* id, BroType* type)
+static ID* create_dummy_id (ID* id, BroType* type)
 	{
 	ID* fake_id = new ID(copy_string(id->Name()), (IDScope) id->Scope(),
 	                     is_export);
 	fake_id->SetType(type);
-	type->SetTypeID(copy_string(id->Name()));
-	fake_id->MakeType();
+	if ( id->AsType() )
+		{
+		type->SetTypeID(copy_string(id->Name()));
+		fake_id->MakeType();
+		}
 	return fake_id;
 	}
 
@@ -999,9 +1002,14 @@ decl:
 	|	TOK_REDEF global_id opt_type init_class opt_init opt_attr ';'
 			{
 			add_global($2, $3, $4, $5, $6, VAR_REDEF);
-			if ( generate_documentation )
+			if ( generate_documentation &&
+			     !streq("capture_filters", $2->Name()) &&
+			     !streq("dpd_config", $2->Name()) )
 				{
-				// TODO: handle more types of redefs, e.g. adding record fields
+				ID* fake_id = create_dummy_id($2, $2->Type());
+				BroDocObj* o = new BroDocObj(fake_id, reST_doc_comments, true);
+				o->SetRole(true);
+				current_reST_doc->AddRedef(o);
 				}
 			}
 

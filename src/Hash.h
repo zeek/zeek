@@ -86,7 +86,6 @@ protected:
 	int size, hash;
 };
 
-extern int hash_cnt_all, hash_cnt_uhash;
 extern void init_hash_function();
 
 #endif

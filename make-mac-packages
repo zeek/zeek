@@ -3,6 +3,8 @@
 # This script creates binary packages for Mac OS X.
 # They can be found in build/ after running.
 
+prefix=/opt/bro
+
 # CMake/CPack versions before 2.8.2 have bugs that can create bad packages
 CMAKE_PACK_REQ=2.8.3
 CMAKE_VER=`cmake -version`
@@ -37,31 +39,26 @@ else
 fi
 
 # Minimum Bro
-CMAKE_OSX_ARCHITECTURES=${arch} ./configure --prefix=/opt/bro \
-    --disable-broccoli --disable-broctl --pkg-name-prefix=Bro
-cd build
-make package
-cd ..
+CMAKE_OSX_ARCHITECTURES=${arch} ./configure --prefix=${prefix} \
+    --disable-broccoli --disable-broctl --pkg-name-prefix=Bro \
+    --binary-package
+( cd build && make package )
 
 # Full Bro package
-CMAKE_OSX_ARCHITECTURES=${arch} ./configure --prefix=/opt/bro \
-    --pkg-name-prefix=Bro-all
-cd build
-make package
-cd ..
+CMAKE_OSX_ARCHITECTURES=${arch} ./configure --prefix=${prefix} \
+    --pkg-name-prefix=Bro-all --binary-package
+( cd build && make package )
 
 # Broccoli
 cd aux/broccoli
-CMAKE_OSX_ARCHITECTURES=${arch} ./configure --prefix=/opt/bro
-cd build
-make package
-mv Broccoli*.dmg ../../../build/
-cd ../../..
+CMAKE_OSX_ARCHITECTURES=${arch} ./configure --prefix=${prefix} \
+    --binary-package
+( cd build && make package && mv Broccoli*.dmg ../../../build/ )
+cd ../..
 
 # Broctl
 cd aux/broctl
-CMAKE_OSX_ARCHITECTURES=${arch} ./configure --prefix=/opt/bro
-cd build
-make package
-mv Broctl*.dmg ../../../build/
-cd ../../..
+CMAKE_OSX_ARCHITECTURES=${arch} ./configure --prefix=${prefix} \
+    --binary-package
+( cd build && make package && mv Broctl*.dmg ../../../build/ )
+cd ../..

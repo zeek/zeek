@@ -3263,8 +3263,7 @@ bool SocketComm::ProcessConnectTo()
 	peer->retry = ntohl(args[3]);
 	peer->ssl = ntohl(args[4]);
 
-	Connect(peer);
-	return true;
+	return Connect(peer);
 	}
 
 bool SocketComm::ProcessListen()
@@ -3502,7 +3501,7 @@ bool SocketComm::Connect(Peer* peer)
 		if ( ! peer->io->Init() )
 			{
 			Error(fmt("can't init peer io: %s",
-					peer->io->Error()), peer);
+					peer->io->Error()), false);
 			return 0;
 			}
 		}
@@ -3637,7 +3636,7 @@ bool SocketComm::AcceptConnection(int fd)
 	if ( ! peer->io->Init() )
 		{
 		Error(fmt("can't init peer io: %s",
-				  peer->io->Error()), peer);
+				  peer->io->Error()), false);
 		return false;
 		}
 

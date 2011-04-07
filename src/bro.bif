@@ -1588,21 +1588,6 @@ function global_ids%(%): id_table
 	%}
 
 %%{
-#include "TCP_Rewriter.h"
-
-// Trace rewriting functions.
-class PacketDumper;
-extern PacketDumper* transformed_pkt_dump;
-extern void commit_trace(Val* conn_val, int commit, int future);
-%%}
-
-# True if we're rewriting (anonymizing), false otherwise.
-function rewriting_trace%(%): bool
-	%{
-	return new Val(transformed_pkt_dump != 0, TYPE_BOOL);
-	%}
-
-%%{
 #include "Anon.h"
 %%}
 

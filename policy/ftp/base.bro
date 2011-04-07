@@ -17,16 +17,16 @@
 
 module FTP;
 
+redef enum Log::ID += { FTP };
+
 redef enum Notice::Type += {
 	## This indicates that a successful response to a "SITE EXEC" 
 	## command/arg pair was seen.
 	FTP_Site_Exec_Success,
 };
 
-redef enum Log::ID += { FTP };
-
 export {
-	type Tags: enum {
+	type Tag: enum {
 		UNKNOWN
 	};
 	
@@ -35,14 +35,14 @@ export {
 		id:               conn_id &log;
 		user:             string  &log &default="<unknown>";
 		password:         string  &log &optional;
-		command:          string  &log &default="";
-		arg:              string  &log &default="";
-		mime_type:        string  &log &default="";
-		mime_desc:        string  &log &default="";
-		file_size:        count   &log &default=0;
-		reply_code:       count   &log &default=0;
-		reply_msg:        string  &log &default="";
-		tags:             set[Tags] &log;
+		command:          string  &log &optional;
+		arg:              string  &log &optional;
+		mime_type:        string  &log &optional;
+		mime_desc:        string  &log &optional;
+		file_size:        count   &log &optional;
+		reply_code:       count   &log &optional;
+		reply_msg:        string  &log &optional;
+		tags:             set[Tag] &log;
 		
 		## By setting the CWD to '/.', we can indicate that unless something
 		## more concrete is discovered that the existing but unknown
@@ -74,7 +74,7 @@ export {
 	
 	## The list of commands that should have their command/response pairs logged.
 	const logged_commands = {
-		"CWD", "APPE", "DELE", "RETR", "STOR", "STOU", "CLNT", "ACCT"
+		"APPE", "DELE", "RETR", "STOR", "STOU", "CLNT", "ACCT"
 	} &redef;
 	
 	## This function splits FTP reply codes into the three constituent 
@@ -134,29 +134,28 @@ function parse_ftp_reply_code(code: count): ReplyCode
 
 function set_ftp_session(c: connection)
 	{
-	local tags: set[Tags] = set();
-	local cmds: table[count] of CmdArg = table();
-	local s: State = [$ts=network_time(), $id=c$id, $tags=tags,
-	                  $pending_commands=cmds];
-	c$ftp=s;
-	
-	# Add a shim command so the server can respond with some init response.
-	add_pending_cmd(c$ftp$pending_commands, "<init>", "");
+	if ( ! c?$ftp )
+		{
+		local s: State;
+		s$ts=network_time();
+		s$id=c$id;
+		c$ftp=s;
+		
+		# Add a shim command so the server can respond with some init response.
+		add_pending_cmd(c$ftp$pending_commands, "<init>", "");
+		}
 	}
 
 function ftp_message(s: State)
 	{
 	# If it either has a tag associated with it (something detected)
 	# or it's a deliberately logged command.
-	print fmt("blah: %s", s$cmdarg$cmd in logged_commands);
 	if ( |s$tags| > 0 || (s?$cmdarg && s$cmdarg$cmd in logged_commands) )
 		{
-		print "in ftp message";
-		
 		local pass = "\\N";
 		if ( to_lower(s$user) in guest_ids && s?$password )
 			pass = s$password;
-	
+		
 		local arg = s$cmdarg$arg;
 		if ( s$cmdarg$cmd in file_cmds )
 			arg = fmt("ftp://%s%s", s$id$resp_h, absolute_path(s$cwd, arg));
@@ -190,19 +189,18 @@ event ftp_request(c: connection, command: string, arg: string) &priority=5
 	local id = c$id;
 	set_ftp_session(c);
 
-	# State the previous command when a new command is seen.
+	# Write out the previous command when a new command is seen.
 	# The downside here is that commands definitely aren't logged until the
 	# next command is issued or the control session ends.  In practicality
 	# this isn't an issue, but I suppose it could be a delay tactic for
 	# attackers.
-	if ( c$ftp?$cmdarg && c$ftp$reply_code != 0 )
+	if ( c$ftp?$cmdarg && c$ftp?$reply_code )
 		{
 		remove_pending_cmd(c$ftp$pending_commands, c$ftp$cmdarg);
 		ftp_message(c$ftp);
 		}
 		
 	# Queue up the new command and argument
-	print fmt("queuing up %s %s", command, arg);
 	add_pending_cmd(c$ftp$pending_commands, command, arg);
 	
 	if ( command == "USER" )
@@ -234,12 +232,12 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &prior
 	{
 	# TODO: figure out what to do with continued FTP response (not used much)
 	if ( cont_resp ) return;
-	print "Ftp reply";
+
 	local id = c$id;
 	set_ftp_session(c);
 	
 	c$ftp$cmdarg = get_pending_cmd(c$ftp$pending_commands, code, msg);
-	print c$ftp$pending_commands;
+	
 	c$ftp$reply_code = code;
 	c$ftp$reply_msg = msg;
 	

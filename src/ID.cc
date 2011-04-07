@@ -623,7 +623,10 @@ void ID::DescribeReSTShort(ODesc* d) const
 		if ( ! is_type && type->GetTypeID() )
 			d->Add(type->GetTypeID());
 		else
-			d->Add(type_name(type->Tag()));
+			if ( type->IsSet() )
+				d->Add("set");
+			else
+				d->Add(type_name(type->Tag()));
 		d->Add("`");
 		}
 

@@ -310,7 +310,12 @@ builtin_lang:	definitions
 
 
 definitions:	definitions definition opt_ws
-			{ fprintf(fp_func_def, "%s", $3); }
+			{
+			if ( in_c_code )
+				fprintf(fp_func_def, "%s", $3);
+			else
+				fprintf(fp_bro_init, "%s", $3);
+			}
 	|	opt_ws
 			{
 			int n = 1024 + strlen(input_filename);
@@ -744,7 +749,12 @@ opt_ws:		opt_ws TOK_WS
 			if ( in_c_code )
 				$$ = concat($1, $2);
 			else
-				$$ = $1;
+				if ( $2[1] == '#' )
+					// This is a special type of comment that is used to
+					// generate bro script documentation, so pass it through
+					$$ = concat($1, $2);
+				else
+					$$ = $1;
 			}
 	|	/* empty */
 			{ $$ = ""; }

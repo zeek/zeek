@@ -127,7 +127,18 @@ void BroDoc::WriteDocFile() const
 		WriteBroDocObjList(notices, "Notices", '~');
 
 	WriteInterface("Public Interface", '-', '~', true, false);
-	WriteInterface("Private Interface", '-', '~', false, false);
+
+	BroDocObjList::const_iterator it;
+	bool hasPrivateIdentifiers = false;
+	for ( it = all.begin(); it != all.end(); ++it )
+		if ( ! IsPublicAPI(*it) )
+			{
+			hasPrivateIdentifiers = true;
+			break;
+			}
+
+	if ( hasPrivateIdentifiers )
+		WriteInterface("Private Interface", '-', '~', false, false);
 
 	if ( ! port_analysis.empty() )
 		{
@@ -220,7 +231,7 @@ void BroDoc::WriteBroDocObjList(const BroDocObjList& l,
 	{
 	if ( l.empty() ) return;
 
-	std::list<const BroDocObj*>::const_iterator it;
+	BroDocObjList::const_iterator it;
 	bool (*f_ptr)(const BroDocObj* o) = 0;
 
 	if ( wantPublic )

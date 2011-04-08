@@ -1,0 +1,282 @@
+.. Automatically generated.  Do not edit.
+
+example.bro
+===========
+
+:download:`Original Source File <example.bro>`
+
+Overview
+--------
+This is an example script that demonstrates how to document.  Comments
+of the form ``##!`` are for the script summary.  The contents of
+these comments are transferred directly into the auto-generated
+`reStructuredText <http://docutils.sourceforge.net/rst.html>`_
+(reST) document's summary section.
+
+.. tip:: You can embed directives and roles within ``##``-stylized comments
+
+:Author: Jon Siwek <jsiwek@ncsa.illinois.edu>
+
+:Imports: :doc:`notice`
+
+Summary
+~~~~~~~
+Options
+#######
+============================================================================ ======================================
+:bro:id:`Example::an_option`: :bro:type:`set` :bro:attr:`&redef`             add documentation for "an_option" here
+
+:bro:id:`Example::option_with_init`: :bro:type:`interval` :bro:attr:`&redef`
+============================================================================ ======================================
+
+State Variables
+###############
+=========================================================================== =======================================
+:bro:id:`Example::a_var`: :bro:type:`bool`                                  put some documentation for "a_var" here
+
+:bro:id:`Example::var_with_attr`: :bro:type:`count` :bro:attr:`&persistent`
+
+:bro:id:`Example::var_without_explicit_type`: :bro:type:`string`
+=========================================================================== =======================================
+
+Types
+#####
+====================================================== ==========================================================
+:bro:type:`Example::SimpleEnum`: :bro:type:`enum`      documentation for "SimpleEnum"
+                                                       goes here.
+
+:bro:type:`Example::SimpleRecord`: :bro:type:`record`  general documentation for a type "SimpleRecord"
+                                                       goes here.
+
+:bro:type:`Example::ComplexRecord`: :bro:type:`record` general documentation for a type "ComplexRecord" goes here
+====================================================== ==========================================================
+
+Events
+######
+============================================= ==========================
+:bro:id:`Example::an_event`: :bro:type:`func` Summarize "an_event" here.
+============================================= ==========================
+
+Functions
+#########
+=============================================== =======================================
+:bro:id:`Example::a_function`: :bro:type:`func` Summarize purpose of "a_function" here.
+=============================================== =======================================
+
+Redefinitions
+#############
+================================================= ====================================
+:bro:type:`Example::SimpleEnum`: :bro:type:`enum` document the "SimpleEnum" redef here
+================================================= ====================================
+
+Namespaces
+~~~~~~~~~~
+.. bro:namespace:: Example
+
+Notices
+~~~~~~~
+:bro:type:`Notice`
+
+   :Type: :bro:type:`enum`
+
+      .. bro:enum:: Example::Notice_One Notice
+
+         any number of this type of comment
+         will document "Notice_One"
+
+      .. bro:enum:: Example::Notice_Two Notice
+
+         any number of this type of comment
+         will document "Notice_Two"
+
+      .. bro:enum:: Example::Notice_Three Notice
+
+      .. bro:enum:: Example::Notice_Four Notice
+
+Public Interface
+----------------
+Options
+~~~~~~~
+.. bro:id:: Example::an_option
+
+   :Type: :bro:type:`set` [:bro:type:`addr`, :bro:type:`addr`, :bro:type:`string`]
+   :Attributes: :bro:attr:`&redef`
+   :Default: ``{}``
+
+   add documentation for "an_option" here
+
+.. bro:id:: Example::option_with_init
+
+   :Type: :bro:type:`interval`
+   :Attributes: :bro:attr:`&redef`
+   :Default: ``10.0 msecs``
+
+State Variables
+~~~~~~~~~~~~~~~
+.. bro:id:: Example::a_var
+
+   :Type: :bro:type:`bool`
+
+   put some documentation for "a_var" here
+
+.. bro:id:: Example::var_with_attr
+
+   :Type: :bro:type:`count`
+   :Attributes: :bro:attr:`&persistent`
+
+.. bro:id:: Example::var_without_explicit_type
+
+   :Type: :bro:type:`string`
+   :Default: ``"this works"``
+
+Types
+~~~~~
+.. bro:type:: Example::SimpleEnum
+
+   :Type: :bro:type:`enum`
+
+      .. bro:enum:: Example::ONE Example::SimpleEnum
+
+         and more specific info for "ONE"
+         can span multiple lines
+
+      .. bro:enum:: Example::TWO Example::SimpleEnum
+
+         or more info like this for "TWO"
+         can span multiple lines
+
+      .. bro:enum:: Example::THREE Example::SimpleEnum
+
+   documentation for "SimpleEnum"
+   goes here.
+
+.. bro:type:: Example::SimpleRecord
+
+   :Type: :bro:type:`record`
+
+      field1: :bro:type:`count`
+         counts something
+
+      field2: :bro:type:`bool`
+         toggles something
+
+   general documentation for a type "SimpleRecord"
+   goes here.
+
+.. bro:type:: Example::ComplexRecord
+
+   :Type: :bro:type:`record`
+
+      field1: :bro:type:`count`
+         counts something
+
+      field2: :bro:type:`bool`
+         toggles something
+
+      field3: :bro:type:`Example::SimpleRecord`
+
+      msg: :bro:type:`string` :bro:attr:`&default` = ``"blah"`` :bro:attr:`&optional`
+         attributes are self-documenting
+
+   general documentation for a type "ComplexRecord" goes here
+
+Events
+~~~~~~
+.. bro:id:: Example::an_event
+
+   :Type: :bro:type:`event` (name: :bro:type:`string`)
+
+   Summarize "an_event" here.
+   Give more details about "an_event" here.
+   
+   :param name: describe the argument here
+
+Functions
+~~~~~~~~~
+.. bro:id:: Example::a_function
+
+   :Type: :bro:type:`function` (tag: :bro:type:`string`, msg: :bro:type:`string`) : :bro:type:`string`
+
+   Summarize purpose of "a_function" here.
+   Give more details about "a_function" here.
+   Separating the documentation of the params/return values with
+   empty comments is optional, but improves readability of script.
+   
+   
+   :param tag: function arguments can be described
+        like this
+   
+   :param msg: another param
+   
+   
+   :returns: describe the return type here
+
+Redefinitions
+~~~~~~~~~~~~~
+:bro:type:`Example::SimpleEnum`
+
+   :Type: :bro:type:`enum`
+
+      .. bro:enum:: Example::FOUR Example::SimpleEnum
+
+         and some documentation for "FOUR"
+
+      .. bro:enum:: Example::FIVE Example::SimpleEnum
+
+         also "FIVE" for good measure
+
+   document the "SimpleEnum" redef here
+
+Private Interface
+-----------------
+State Variables
+~~~~~~~~~~~~~~~
+.. bro:id:: Example::example_ports
+
+   :Type: :bro:type:`set` [:bro:type:`port`]
+   :Attributes: :bro:attr:`&redef`
+   :Default:
+
+   ::
+
+      {
+         443/tcp,
+         563/tcp
+      }
+
+Types
+~~~~~
+.. bro:type:: Example::PrivateRecord
+
+   :Type: :bro:type:`record`
+
+      field1: :bro:type:`bool`
+
+      field2: :bro:type:`count`
+
+Functions
+~~~~~~~~~
+.. bro:id:: Example::function_without_proto
+
+   :Type: :bro:type:`function` (tag: :bro:type:`string`) : :bro:type:`string`
+
+Port Analysis
+-------------
+:ref:`More Information <common_port_analysis_doc>`
+
+SSL::
+
+    [ports={
+        443/tcp,
+        563/tcp
+    }]
+
+Packet Filter
+-------------
+:ref:`More Information <common_packet_filter_doc>`
+
+Filters added::
+
+    [ssl] = tcp port 443,
+    [nntps] = tcp port 563
+

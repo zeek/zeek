@@ -32,7 +32,7 @@ add_custom_target(doc
                   # SOURCES just adds stuff to IDE projects as a convienience
                   SOURCES ${DOC_SOURCES})
 
-add_dependencies(doc bro)
+add_dependencies(doc bro doc-clean)
 
 add_custom_target(doc-clean
                   COMMAND "${CMAKE_COMMAND}" -E remove_directory

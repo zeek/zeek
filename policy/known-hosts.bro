@@ -6,8 +6,8 @@ redef enum Log::ID += { KNOWN_HOSTS };
 
 export {
 	type Log: record {
-		ts:      time;
-		address: addr;
+		ts:      time &log;
+		address: addr &log;
 	};
 
 	# The hosts whose existence should be logged.
@@ -27,11 +27,10 @@ export {
 
 event bro_init()
 	{
-	Log::create_stream(KNOWN_HOSTS, [$columns=KnownHosts::Log, $ev=log_known_hosts]);
-	Log::add_default_filter(KNOWN_HOSTS);
+	Log::create_stream(KNOWN_HOSTS, [$columns=Log, $ev=log_known_hosts]);
 	}
 
-event connection_established(c: connection)
+event connection_established(c: connection) &priority=5
 	{
 	local id = c$id;
 	

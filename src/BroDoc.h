@@ -8,6 +8,10 @@
 
 #include "BroDocObj.h"
 
+/**
+ * This class is used to gather all data relevant to the automatic generation
+ * of a reStructuredText (reST) document from a given Bro script.
+ */
 class BroDoc {
 public:
 	/**

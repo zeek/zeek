@@ -7,6 +7,10 @@
 
 #include "ID.h"
 
+/**
+ * This class wraps a Bro script identifier, providing methods relevant
+ * to automatic generation of reStructuredText (reST) documentation for it.
+ */
 class BroDocObj {
 public:
 	/**
@@ -96,7 +100,6 @@ public:
 	 *         strings
 	 */
 	int LongestShortDescLen() const;
-
 
 protected:
 	std::list<std::string>* reST_doc_strings;

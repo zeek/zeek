@@ -27,5 +27,6 @@ function extract_keys(data: string, kv_splitter: pattern): string_vec
 
 function build_url(c: connection): string
 	{
-	return fmt("http://%s/%s", c$http$host, c$http$uri);
+	local host = c$http?$host ? c$http$host : fmt("%s",c$id$resp_h);
+	return fmt("http://%s/%s", host, c$http$uri);
 	}

@@ -66,19 +66,20 @@ event http_entity_data(c: connection, is_orig: bool, length: count, data: string
 	
 # When the file finishes downloading, finish the hash, check for the hash
 # in the MHR, and raise a notice if the hash is there.
-event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &priority=5
+event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &priority=-5
 	{
 	if ( is_orig || ! c?$http ) return;
 	
 	if ( c$http$calculating_md5 )
 		{
+		local url = build_url(c);
 		c$http$calculating_md5 = F;
 		c$http$md5 = md5_hash_finish(c$id);
 		
 		if ( c$http$md5 in interesting_md5 )
 			{
 			NOTICE([$note=HTTP_MD5, $conn=c, $method=c$http$method, 
-			        $URL=c$http$uri,
+			        $URL=url,
 			        $msg=interesting_md5[c$http$md5],
 			        $sub=c$http$md5]);
 			}
@@ -86,9 +87,9 @@ event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &
 		local hash_domain = fmt("%s.malware.hash.cymru.com", c$http$md5);
 		when ( local addrs = lookup_hostname(hash_domain) )
 			{
+			# 127.0.0.1 indicates that the md5 sum was found in the MHR.
 			if ( 127.0.0.2 in addrs )
 				{
-				local url = build_url(c);
 				local message = fmt("%s %s %s", c$id$orig_h, c$http$md5, url);
 				NOTICE([$note=HTTP_MHR_Malware, $msg=message, $conn=c,
 				        $method=c$http$method, $URL=url]);
@@ -97,7 +98,7 @@ event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &
 		}
 	}
 
-event connect_state_remove(c: connection)
+event connect_state_remove(c: connection) &priority=-5
 	{
 	if ( c?$http && c$http$calculating_md5 )
 		md5_hash_finish(c$id);

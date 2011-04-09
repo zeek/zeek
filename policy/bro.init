@@ -1349,21 +1349,6 @@ const likely_server_ports: set[port] &redef;
 # Set of all ports for which we know an analyzer.
 global dpd_analyzer_ports: table[port] of set[AnalyzerTag];
 
-event bro_init()
-	{
-	for ( a in dpd_config )
-		for ( p in dpd_config[a]$ports )
-			{
-			if ( p !in dpd_analyzer_ports )
-				{
-				local empty_set: set[AnalyzerTag];
-				dpd_analyzer_ports[p] = empty_set;
-				}
-
-			add dpd_analyzer_ports[p][a];
-			}
-	}
-
 @load server-ports
 
 # Per-incident timer managers are drained after this amount of inactivity.

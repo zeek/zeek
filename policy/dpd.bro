@@ -1,9 +1,20 @@
-# $Id: dpd.bro,v 1.1.2.1 2006/05/10 02:10:26 sommer Exp $
-#
-# Activates port-independent protocol detection.
+##! Activates port-independent protocol detection.
+@load signatures
 
 redef signature_files += "dpd.sig";
 
+event bro_init()
+	{
+	for ( a in dpd_config )
+		{
+		for ( p in dpd_config[a]$ports )
+			{
+			if ( p !in dpd_analyzer_ports )
+				dpd_analyzer_ports[p] = set();
+			add dpd_analyzer_ports[p][a];
+			}
+		}
+	}
 
 event protocol_confirmation(c: connection, atype: count, aid: count)
 	{

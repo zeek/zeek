@@ -623,10 +623,19 @@ void ID::DescribeReSTShort(ODesc* d) const
 		if ( ! is_type && type->GetTypeID() )
 			d->Add(type->GetTypeID());
 		else
-			if ( type->IsSet() )
-				d->Add("set");
-			else
-				d->Add(type_name(type->Tag()));
+			{
+			TypeTag t = type->Tag();
+			switch ( t ) {
+			case TYPE_TABLE:
+				d->Add(type->IsSet() ? "set" : type_name(t));
+				break;
+			case TYPE_FUNC:
+				d->Add(type->AsFuncType()->IsEvent() ? "event" : type_name(t));
+				break;
+			default:
+				d->Add(type_name(t));
+			}
+			}
 		d->Add("`");
 		}
 

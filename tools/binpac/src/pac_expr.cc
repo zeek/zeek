@@ -242,6 +242,11 @@ void Expr::GenCaseEval(Output *out_cc, Env *env)
 	Type *val_type = DataType(env);
 	ID *val_var = env->AddTempID(val_type);
 
+	// DataType(env) can return a null pointer if an enum value is not
+	// defined.
+	if ( ! val_type )
+		throw Exception(this, "undefined case value");
+
 	out_cc->println("%s %s;", 
 	                val_type->DataTypeStr().c_str(), 
 	                env->LValue(val_var));

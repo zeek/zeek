@@ -227,6 +227,26 @@ Redefinitions
 
    document the "SimpleEnum" redef here
 
+Port Analysis
+-------------
+:ref:`More Information <common_port_analysis_doc>`
+
+SSL::
+
+    [ports={
+        443/tcp,
+        563/tcp
+    }]
+
+Packet Filter
+-------------
+:ref:`More Information <common_packet_filter_doc>`
+
+Filters added::
+
+    [ssl] = tcp port 443,
+    [nntps] = tcp port 563
+
 Private Interface
 -----------------
 State Variables
@@ -259,24 +279,4 @@ Functions
 .. bro:id:: Example::function_without_proto
 
    :Type: :bro:type:`function` (tag: :bro:type:`string`) : :bro:type:`string`
-
-Port Analysis
--------------
-:ref:`More Information <common_port_analysis_doc>`
-
-SSL::
-
-    [ports={
-        443/tcp,
-        563/tcp
-    }]
-
-Packet Filter
--------------
-:ref:`More Information <common_packet_filter_doc>`
-
-Filters added::
-
-    [ssl] = tcp port 443,
-    [nntps] = tcp port 563
 

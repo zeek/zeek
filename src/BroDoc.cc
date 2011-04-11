@@ -128,18 +128,6 @@ void BroDoc::WriteDocFile() const
 
 	WriteInterface("Public Interface", '-', '~', true, false);
 
-	BroDocObjList::const_iterator it;
-	bool hasPrivateIdentifiers = false;
-	for ( it = all.begin(); it != all.end(); ++it )
-		if ( ! IsPublicAPI(*it) )
-			{
-			hasPrivateIdentifiers = true;
-			break;
-			}
-
-	if ( hasPrivateIdentifiers )
-		WriteInterface("Private Interface", '-', '~', false, false);
-
 	if ( ! port_analysis.empty() )
 		{
 		WriteSectionHeading("Port Analysis", '-');
@@ -154,6 +142,18 @@ void BroDoc::WriteDocFile() const
 		WriteToDoc("Filters added::\n\n");
 		WriteToDoc("%s\n", packet_filter.c_str());
 		}
+
+	BroDocObjList::const_iterator it;
+	bool hasPrivateIdentifiers = false;
+	for ( it = all.begin(); it != all.end(); ++it )
+		if ( ! IsPublicAPI(*it) )
+			{
+			hasPrivateIdentifiers = true;
+			break;
+			}
+
+	if ( hasPrivateIdentifiers )
+		WriteInterface("Private Interface", '-', '~', false, false);
 	}
 
 void BroDoc::WriteInterface(const char* heading, char underline,

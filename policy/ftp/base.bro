@@ -152,9 +152,8 @@ function ftp_message(s: State)
 	# or it's a deliberately logged command.
 	if ( |s$tags| > 0 || (s?$cmdarg && s$cmdarg$cmd in logged_commands) )
 		{
-		local pass = "\\N";
-		if ( to_lower(s$user) in guest_ids && s?$password )
-			pass = s$password;
+		if ( s?$password && to_lower(s$user) !in guest_ids )
+			s$password = "<hidden>";
 		
 		local arg = s$cmdarg$arg;
 		if ( s$cmdarg$cmd in file_cmds )

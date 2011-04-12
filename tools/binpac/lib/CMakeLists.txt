@@ -10,6 +10,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/binpac.h.in
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}
                     ${CMAKE_CURRENT_BINARY_DIR})
 set(binpac_headers
+    binpac.h.in
     ${CMAKE_CURRENT_BINARY_DIR}/binpac.h
     binpac_analyzer.h
     binpac_buffer.h

@@ -9,6 +9,8 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}
                     ${CMAKE_CURRENT_BINARY_DIR})
 
 set(binpac_SRCS
+    ${BISON_PACParser_INPUT}
+    ${FLEX_PACScanner_INPUT}
     ${BISON_PACParser_OUTPUTS}
     ${FLEX_PACScanner_OUTPUTS}
     pac_action.cc

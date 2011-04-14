@@ -17,21 +17,13 @@ export {
 	
 	## The list of HTTP headers typically used to indicate a proxied request.
 	const proxy_headers: set[string] = {
-		"HTTP-FORWARDED",
 		"FORWARDED",
-		"HTTP-X-FORWARDED-FOR",
 		"X-FORWARDED-FOR",
-		"HTTP-X-FORWARDED-FROM",
 		"X-FORWARDED-FROM",
-		"HTTP-CLIENT-IP",
 		"CLIENT-IP",
-		"HTTP-FROM",
 		"FROM",
-		"HTTP-VIA",
 		"VIA",
-		"HTTP-XROXY-CONNECTION",
 		"XROXY-CONNECTION",
-		"HTTP-PROXY-CONNECTION",
 		"PROXY-CONNECTION",
 	} &redef;
 	

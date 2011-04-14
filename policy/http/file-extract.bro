@@ -8,7 +8,6 @@
 # the connection tuple, and <is-orig> is "orig" if the item was transferred
 # from the originator to the responder, "resp" otherwise.
 
-@load http/base
 @load http/file-ident
 
 module HTTP;
@@ -33,7 +32,7 @@ redef record State += {
 };
 
 ## Mark files to be extracted if they were identified as a mime type matched 
-## by the extract_file_types variable.
+## by the extract_file_types variable and they aren't being extracted yet.
 event http_entity_data(c: connection, is_orig: bool, length: count, data: string) &priority=6
 	{
 	if ( ! c$http$extract_file &&
@@ -52,7 +51,7 @@ event http_entity_data(c: connection, is_orig: bool, length: count, data: string
 		{
 		local id = c$id;
 		local fname = fmt("%s.%d.%s_%d.%s_%d.%s",
-					extraction_prefix, c$http$entity_bodies,
+					extraction_prefix, c$http_entity_bodies,
 					id$orig_h, id$orig_p,
 					id$resp_h, id$resp_p,
 					is_orig ? "orig" : "resp");
@@ -62,7 +61,10 @@ event http_entity_data(c: connection, is_orig: bool, length: count, data: string
 		# TODO: is the problem with NULL bytes and raw_output still there?
 		enable_raw_output(c$http$extracted_file);
 		}
-	
-	# Printing enables file extraction even in a cluster deployment.
-	print c$http$extracted_file, data;
+	}
+
+event http_entity_data(c: connection, is_orig: bool, length: count, data: string) &priority=-5
+	{
+	if ( c$http?$extracted_file )
+		print c$http$extracted_file, data;
 	}

@@ -22,7 +22,6 @@ export {
 		AFTER_REQUEST_BODY,
 		AFTER_REPLY, 
 		AFTER_REPLY_BODY,
-		BEFORE_NEXT_REQUEST,
 	};
 	
 	## Define the default point at which you'd like the logging to take place.
@@ -34,36 +33,32 @@ export {
 	## of the response headers.
 	## This is settable per-session too by setting the $log_point value
 	## in a SessionInfo record.
-	const default_log_point = AFTER_REPLY_BODY &redef;
+	const default_log_point = AFTER_REPLY &redef;
 	
 	type State: record {
-		ts:                 time    &log;
-		id:                 conn_id &log;
-		method:             string  &log &optional;
-		host:               string  &log &optional;
-		uri:                string  &log &optional;
-		referrer:           string  &log &optional;
-		user_agent:         string  &log &optional;
-		request_body_size:  count   &log &optional;
-		response_body_size: count   &log &optional;
-		status_code:        count   &log &optional;
-		status_msg:         string  &log &optional;
+		ts:                      time     &log;
+		id:                      conn_id  &log;
+		method:                  string   &log &optional;
+		host:                    string   &log &optional;
+		uri:                     string   &log &optional;
+		referrer:                string   &log &optional;
+		user_agent:              string   &log &optional;
+		request_content_length:  count    &log &optional;
+		response_content_length: count    &log &optional;
+		status_code:             count    &log &optional;
+		status_msg:              string   &log &optional;
 		## This is a set of indicators of various attributes discovered and
 		## related to a particular request/response pair.
-		tags:               set[Tag] &log;
+		tags:                    set[Tag] &log &optional;
+		
+		# This will be removed once I'm done showing how the record
+		# extension mechanism seems to be broken.
+		mime_type2:              string   &log &optional;
 		
 		#file_name: string; ##maybe if the header's there?
 		
-		#pending_requests: Request;
-		log_point:          LogPoint &default=default_log_point;
-		
-		## The total number of HTTP entity bodies that have been seen during 
-		## this connection.
-		entity_bodies:         count &default=0;
+		log_point:               LogPoint &default=default_log_point;
 	};
-	
-	## List of all active HTTP session indexed by conn_id.
-	#global active_conns: table[conn_id] of SessionInfo &read_expire=5mins;
 	
 	global log_http: event(rec: State);
 }
@@ -71,6 +66,8 @@ export {
 # Add the http state tracking field to the connection record.
 redef record connection += {
 	http: State &optional;
+	http_pending: table[count] of State &optional;
+	http_current_response: count &default=0;
 };
 
 # Initialize the HTTP logging stream.
@@ -98,50 +95,66 @@ function new_http_session(c: connection): State
 	tmp$id=c$id;
 	return tmp;
 	}
-
-function set_http_session(c: connection)
+	
+function set_state(c: connection, request: bool, initial: bool)
 	{
-	if ( ! c?$http )
-		c$http = new_http_session(c);
-	}
-
-function do_log(c: connection)
-	{
-	Log::write(HTTP, c$http);
+	if ( ! c?$http_pending )
+		c$http_pending = table();
+	
+	# This handles each new request in a pipeline and the case where there
+	# is a response before any request.
+	if ( (request && initial) || |c$http_pending| == 0 )
+		# TODO: need some FIFO operations on vectors and/or sets.
+		c$http_pending[|c$http_pending|+1] = new_http_session(c);
+	
+	if ( request )
+		{
+		# Save the existing c$http back to the correct place in http_pending.
+		# TODO: understand why this isn't just updated correctly since it's 
+		#       all pointers internally.
+		if ( ! initial )
+			c$http_pending[|c$http_pending|] = c$http;
+		c$http = c$http_pending[|c$http_pending|];
+		}
+	else
+		{
+		if ( ! initial )
+			c$http_pending[c$http_current_response] = c$http;
+		if ( c$http_current_response in c$http_pending )
+			{
+			c$http = c$http_pending[c$http_current_response];
+			}
+		else
+			c$http = c$http_pending[|c$http_pending|];
+		}
+	
+	#print c$http_pending;
 	}
 
 event http_request(c: connection, method: string, original_URI: string,
                    unescaped_URI: string, version: string) &priority=5
 	{
-	if ( c?$http )
-		{
-		# If there already an HTTP structure and we're logging at the beginning
-		# of a next request, go ahead and log here...
-		if ( c$http$log_point == BEFORE_NEXT_REQUEST )
-			do_log(c);
-		
-		# Clear out the existing HTTP structure since each request is standalone.
-		c$http = new_http_session(c);
-		}
-		
-	set_http_session(c);
+	#print "http_request";
+	set_state(c, T, T);
 	
 	c$http$method = method;
 	c$http$uri = unescaped_URI;
-	
 	}
 	
 event http_reply(c: connection, version: string, code: count, reason: string) &priority=5
 	{
-	set_http_session(c);
-
+	#print "http reply";
+	++c$http_current_response;
+	set_state(c, F, T);
+	
 	c$http$status_code = code;
 	c$http$status_msg = reason;
 	}
 	
 event http_header(c: connection, is_orig: bool, name: string, value: string) &priority=5
 	{
-	set_http_session(c);
+	#print "http_header";
+	set_state(c, is_orig, F);
 	
 	if ( is_orig ) # client headers
 		{
@@ -152,7 +165,7 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 			c$http$host = value;
 		
 		else if ( name == "CONTENT-LENGTH" )
-			c$http$request_body_size = to_count(value);
+			c$http$request_content_length = to_count(value);
 			
 		else if ( name == "USER-AGENT" )
 			{
@@ -193,44 +206,46 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 			Software::found(c, si);
 			}
 		else if ( name == "CONTENT-LENGTH" )
-			c$http$response_body_size = to_count(value);
+			c$http$response_content_length = to_count(value);
 		}
+	
+	#if ( is_orig )
+	#	c$http_pending[|c$http_pending|] = c$http;
+	#else
+	#	c$http_pending[c$http_current_response] = c$http;
 	}
 	
+#event http_begin_entity(c: connection, is_orig: bool) &priority=5
+#	{
+#	set_state(c, is_orig, F);
+#	}
+	
+
 event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &priority=-5
 	{
-	set_http_session(c);
+	#print "message done";
+	set_state(c, is_orig, F);
 
 	if ( is_orig )
+		{
 		if ( c$http$log_point == AFTER_REQUEST )
-			do_log(c);
+			Log::write(HTTP, c$http);
+		}
 	else
+		{
 		if ( c$http$log_point == AFTER_REPLY )
-			do_log(c);
-	}
-	
-event http_begin_entity(c: connection, is_orig: bool) &priority=5
-	{
-	set_http_session(c);
-	
-	++c$http$entity_bodies;
-	}
-	
-event http_end_entity(c: connection, is_orig: bool) &priority=-5
-	{
-	set_http_session(c);
-	
-	if ( is_orig )
-		if ( c$http$log_point == AFTER_REQUEST_BODY )
-			do_log(c);
-	else
-		if ( c$http$log_point == AFTER_REPLY_BODY )
-			do_log(c);
+			{
+			#print "logging";
+			Log::write(HTTP, c$http);
+			}
+		}
 	}
 	
 event connection_state_remove(c: connection)
 	{
-	if ( c?$http && c$http$log_point == BEFORE_NEXT_REQUEST )
-		do_log(c);
+	# TODO: flush any unmatched requests
+	
+	#if ( c?$http && c$http$log_point == BEFORE_NEXT_REQUEST )
+	#	Log::write(HTTP, c$http);
 	}
 	

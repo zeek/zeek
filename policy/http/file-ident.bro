@@ -17,14 +17,15 @@ redef enum Notice::Type += {
 	HTTP_IncorrectFileType,
 };
 
+redef record HTTP::State += {
+	## This will record the mime_type identified.
+	mime_type:    string   &log &optional;
+};
+
+
 export {
 	redef enum Tag += {
 		IDENTIFIED_FILE
-	};
-	
-	redef record State += {
-		## This will record the mime_type identified.
-		mime_type:    string   &log &optional;
 	};
 	
 	# Since we're looking into the body for the mimetype detection, logging
@@ -33,7 +34,7 @@ export {
 	# next request because the http_entity_done event currently fires before 
 	# HTTP body content matching signatures.
 	# TODO: should there be another log point for "after X body bytes"?
-	redef default_log_point = BEFORE_NEXT_REQUEST;
+	redef default_log_point = AFTER_REPLY;
 	
 	# MIME types that you'd like this script to identify and log.
 	const watched_mime_types = /application\/x-dosexec/
@@ -57,25 +58,32 @@ redef Signatures::ignored_ids += /^matchfile-/;
 
 event signature_match(state: signature_state, msg: string, data: string) &priority=5
 	{
+	#print "signature match";
 	# Only signatures matching file types are dealt with here.
 	if ( /^matchfile/ !in state$sig_id ) return;
 	
 	local c = state$conn;
+	
+	set_state(c, F, F);
 	
 	# Not much point in any of this if we don't know about the HTTP session.
 	if ( ! c?$http ) return;
 	
 	# Set the mime type that was detected.
 	c$http$mime_type = msg;
+	# This will be removed when I'm done showing how the record extension 
+	# mechanism seems to be broken.
+	c$http$mime_type2 = msg;
 	
 	if ( msg in mime_types_extensions && 
 	     mime_types_extensions[msg] !in c$http$uri )
 		{
-		local message = fmt("%s %s %s %s", msg, c$http$method, c$http$host, c$http$uri);
+		local url = build_url(c);
+		local message = fmt("%s %s %s", msg, c$http$method, url);
 		NOTICE([$note=HTTP_IncorrectFileType,
 		        $msg=message,
 		        $conn=c,
 		        $method=c$http$method,
-		        $URL=c$http$uri]);
+		        $URL=url]);
 		}
 	}

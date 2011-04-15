@@ -143,7 +143,6 @@ function find_ip_addresses(input: string): string_array
 ############# END IP FUNCTIONS #############
 
 
-
 # Simple functions for generating ASCII connection identifiers.
 ############# BEGIN ID FORMATTING #############
 function id_string(id: conn_id): string

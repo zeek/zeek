@@ -253,7 +253,6 @@ function notice(n: Notice::Info)
 #		n$dropped = drop$note != Drop::AddressDropIgnored;
 #		n$msg += fmt(" [%s%s]", drop$note, addl);
 #		}
-
 	if ( action != NOTICE_IGNORE )
 		{
 		# Build the info here after we had a chance to set the
@@ -263,7 +262,7 @@ function notice(n: Notice::Info)
 		if ( action != NOTICE_FILE && n$do_alarm )
 			{
 			# TODO: alarm may turn into a filter.
-			alarm n;
+			#alarm n;
 			event notice_alarm(n, action);
 			}
 		}
@@ -276,6 +275,7 @@ function notice(n: Notice::Info)
 
 	if ( ! suppress_notice_action && n$note !in suppress_notice_actions )
 		event notice_action(n, action);
+			
 	}
 
 module GLOBAL;

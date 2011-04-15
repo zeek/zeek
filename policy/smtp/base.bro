@@ -72,7 +72,7 @@ export {
 		## number of message bodies transferred.
 		messages_transferred:     count &default=0;
 		
-		pending_messages:         set[Info] &default=set();;
+		#pending_messages:         set[Info];
 	};
 	
 	## Direction to capture the full "Received from" path.
@@ -118,6 +118,7 @@ function set_smtp_session(c: connection)
 		c$smtp = new_smtp_log(c);
 	
 	if ( ! c?$smtp_state )
+		#c$smtp_state = [$pending_messages=set()];
 		c$smtp_state = [];
 	}
 

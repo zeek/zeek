@@ -22,7 +22,7 @@ export {
 		TTL:           interval    &log &optional;
 		replies:       set[string] &log &optional;
 		
-		total_answers:    count    &default=0;
+		total_answers:    count    &optional;
 	};
 	
 	type State: record {
@@ -78,7 +78,7 @@ function new_session(c: connection, trans_id: count): Info
 	return info;
 	}
 
-function set_session(c: connection, trans_id: count)
+function set_session(c: connection, msg: dns_msg, is_query: bool)
 	{
 	local info: Info;
 	
@@ -86,21 +86,38 @@ function set_session(c: connection, trans_id: count)
 	if ( c?$dns_state && c?$dns )
 		c$dns_state$pending[c$dns$trans_id] = c$dns;
 	
-	if ( c?$dns_state && trans_id in c$dns_state$pending )
-		info = c$dns_state$pending[trans_id];
+	if ( c?$dns_state && msg$id in c$dns_state$pending )
+		info = c$dns_state$pending[msg$id];
 	else
 		{
-		info = new_session(c, trans_id);
-		c$dns_state$pending[trans_id] = info;
+		info = new_session(c, msg$id);
+		c$dns_state$pending[msg$id] = info;
 		}
 	
 	c$dns_state$last_active=network_time();
+
+	info$rcode = msg$rcode;
+	if ( ! is_query )
+		{
+		if ( info?$total_answers && 
+		     info$total_answers != msg$num_answers + msg$num_addl + msg$num_auth )
+			{
+			print "the total number of answers changed midstream on a dns response.";
+			print info;
+			print msg;
+			}
+		else
+			{
+			info$total_answers = msg$num_answers + msg$num_addl + msg$num_auth;
+			}
+		}
+	
 	c$dns = info;
 	}
 
 event dns_request(c: connection, msg: dns_msg, query: string, qtype: count, qclass: count) &priority=5
 	{
-	set_session(c, msg$id);
+	set_session(c, msg, T);
 	
 	c$dns$RD       = msg$RD;
 	c$dns$TC       = msg$TC;
@@ -111,66 +128,57 @@ event dns_request(c: connection, msg: dns_msg, query: string, qtype: count, qcla
 
 event dns_A_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr) &priority=5
 	{
-	set_session(c, msg$id);
+	set_session(c, msg, F);
 	
 	if ( ! c$dns?$replies )
 		c$dns$replies = set();
 	add c$dns$replies[fmt("%s", a)];
 	c$dns$RA    = msg$RA;
 	c$dns$TTL   = ans$TTL;
-	c$dns$rcode = msg$rcode;
 	}
 	
 event dns_TXT_reply(c: connection, msg: dns_msg, ans: dns_answer, str: string) &priority=5
 	{
-	set_session(c, msg$id);
+	set_session(c, msg, F);
 	
 	if ( ! c$dns?$replies )
 		c$dns$replies = set();
 	add c$dns$replies[str];
-	c$dns$rcode = msg$rcode;
 	}
 	
 event dns_AAAA_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr, 
                      astr: string) &priority=5
 	{
-	set_session(c, msg$id);
+	set_session(c, msg, F);
 	
 	if ( ! c$dns?$replies )
 		c$dns$replies = set();
 	add c$dns$replies[fmt("%s", a)];
-	c$dns$rcode = msg$rcode;
 	}
 
 
 event dns_MX_reply(c: connection, msg: dns_msg, ans: dns_answer, name: string,
                    preference: count) &priority=5
 	{
-	set_session(c, msg$id);
+	set_session(c, msg, F);
 	
 	if ( ! c$dns?$replies )
 		c$dns$replies = set();
 	add c$dns$replies[name];
-	c$dns$rcode = msg$rcode;
 	}
 	
 event dns_PTR_reply(c: connection, msg: dns_msg, ans: dns_answer, name: string) &priority=5
 	{
-	set_session(c, msg$id);
+	set_session(c, msg, F);
 	
 	if ( ! c$dns?$replies )
 		c$dns$replies = set();
 	add c$dns$replies[name];
-	c$dns$rcode = msg$rcode;
 	}
-
-event dns_end(c: connection, msg: dns_msg) &priority=-5
-	{
-	set_session(c, msg$id);
 	
-	c$dns$rcode = msg$rcode;
-	Log::write(DNS, c$dns);
-	delete c$dns_state$pending[msg$id];
+event dns_rejected(c: connection, msg: dns_msg,
+                   query: string, qtype: count, qclass: count)
+	{
 	}
 
 event connection_state_remove(c: connection) &priority=-5

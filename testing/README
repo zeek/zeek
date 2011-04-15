@@ -1,6 +1,9 @@
 This directory contains some of the suites for testing for Bro's
 correct operation:
 
+btest/
+	Tests Bro's logging & bundled scripts. See btest/README for more.
+
 istate/
 	Tests Bro's independent state facilities.  These include persistent
 	values and inter-process event/value communication.

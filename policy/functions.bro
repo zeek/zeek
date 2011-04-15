@@ -11,6 +11,21 @@ function is_string_binary(s: string): bool
 	{
 	return byte_len(gsub(s, /[\x00-\x7f]/, "")) * 100 / |s| >= 25;
 	}
+	
+function join_string_set(ss: set[string], j: string): string
+	{
+	local output="";
+	local i=0;
+	for ( s in ss )
+		{
+		if ( i > 0 )
+			output = cat(output, j);
+			
+		output = cat(output, s);
+		++i;
+		}
+	return output;
+	}
 
 # Given an arbitrary string, this should extract a single directory.
 # TODO: Make this work on Window's style directories.

@@ -2,7 +2,7 @@ module MIME;
 
 export {
 	## The default setting for finding mime types on files.
-	const default_find_type = F &redef;
+	const default_find_type = T &redef;
 
 	redef record Info += {
 		find_type:        bool    &default=default_find_type;
@@ -12,7 +12,7 @@ export {
 	};
 }
 
-event mime_segment_data(c: connection, length: count, data: string) &priority=5
+event mime_segment_data(c: connection, length: count, data: string) &priority=7
 	{
 	if ( c$mime$content_len == 0 )
 		{

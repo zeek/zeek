@@ -1,19 +1,26 @@
+@load mime/file-ident
 
 module MIME;
 
 export {
-	## The default setting for calculating MD5 sums on files transferred.
-	const default_calc_md5 = F &redef;
+	## Pattern of file mime types to calculate MD5 sums for MIME bodies.
+	const calc_md5_file_types = /NO_DEFAULT/ &redef;
 
 	redef record Info += {
 		## Optionally calculate the file's MD5 sum.  Must be set prior to the 
 		## first data chunk being see in an event.
-		calc_md5:         bool    &default=default_calc_md5;
+		calc_md5:         bool    &default=F;
 
 		## The calculated MD5 sum for the MIME entity.
 		md5_hash:         string  &log &optional;
 	};
 }
+
+event mime_segment_data(c: connection, length: count, data: string) &priority=5
+	{
+	if ( calc_md5_file_types in c$mime$mime_type ) 
+		c$mime$calc_md5 = T;
+	}
 
 event mime_segment_data(c: connection, length: count, data: string) &priority=3
 	{

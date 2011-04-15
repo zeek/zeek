@@ -1,4 +1,6 @@
 @load functions
+
+# TODO: need to figure out a way for these scripts to play along better.
 @load smtp
 
 # NOTES:
@@ -31,6 +33,7 @@ export {
 		## This is the timestamp of when the MIME content transfer began.
 		ts:               time    &log;
 		id:               conn_id &log;
+		app_protocol:     string  &log &optional;
 		filename:         string  &log &optional;
 		## Track how many byte of the MIME encoded file have been seen.
 		content_len:      count   &log &default=0;
@@ -85,6 +88,9 @@ event mime_begin_entity(c: connection) &priority=10
 	set_session(c, T);
 
 	++c$mime_state$level;
+	
+	if ( |c$service| > 0 )
+		c$mime$app_protocol = join_string_set(c$service, ",");
 	}
 
 # This has priority 1 because other handlers need to know the current 

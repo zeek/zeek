@@ -45,7 +45,7 @@ export {
 }
 
 redef record connection += {
-	mime:       Log &optional;
+	mime:       Info &optional;
 	mime_state: State &optional;
 };
 
@@ -60,10 +60,14 @@ function new_mime_session(c: connection): Info
 	
 	info$ts=network_time();
 	info$id=c$id;
+	return info;
 	}
 
 function set_session(c: connection, new_entity: bool)
 	{
+	if ( ! c?$mime_state )
+		c$mime_state = [];
+	
 	if ( ! c?$mime || new_entity )
 		c$mime = new_mime_session(c);
 	}
@@ -83,7 +87,9 @@ event mime_begin_entity(c: connection) &priority=10
 	++c$mime_state$level;
 	}
 
-event mime_segment_data(c: connection, length: count, data: string) &priority=5
+# This has priority 1 because other handlers need to know the current 
+# content_len before it's updated by this handler.
+event mime_segment_data(c: connection, length: count, data: string) &priority=1
 	{
 	c$mime$content_len = c$mime$content_len + length;
 	}

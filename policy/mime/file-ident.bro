@@ -9,7 +9,7 @@ export {
 		
 		mime_type:        string  &log &optional;
 		mime_desc:        string  &log &optional;
-	}
+	};
 }
 
 event mime_segment_data(c: connection, length: count, data: string) &priority=5

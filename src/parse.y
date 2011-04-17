@@ -100,6 +100,7 @@ extern Expr* g_curr_debug_expr;
 
 Expr* bro_this = 0;
 int in_init = 0;
+int in_record = 0;
 bool in_debug = false;
 bool resolving_global_ID = false;
 bool defining_global_ID = false;
@@ -711,10 +712,10 @@ type:
 				$$ = new SetType($3, 0);
 				}
 
-	|	TOK_RECORD '{' type_decl_list '}'
+	|	TOK_RECORD '{' { ++in_record; } type_decl_list { --in_record; } '}'
 				{
-				set_location(@1, @4);
-				$$ = new RecordType($3);
+				set_location(@1, @5);
+				$$ = new RecordType($4);
 				}
 
 	|	TOK_UNION '{' type_list '}'
@@ -812,7 +813,7 @@ type_decl:
 		TOK_ID ':' type opt_attr ';'
 			{
 			set_location(@1, @5);
-			$$ = new TypeDecl($3, $1, $4);
+			$$ = new TypeDecl($3, $1, $4, (in_record > 0));
 			}
 	;
 

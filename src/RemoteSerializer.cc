@@ -3050,7 +3050,7 @@ void RemoteSerializer::InternalCommError(const char* msg)
 #ifdef DEBUG_COMMUNICATION
 	DumpDebugData();
 #else
-	internal_error(msg);
+	internal_error("%s", msg);
 #endif
 	}
 
@@ -3596,8 +3596,7 @@ bool SocketComm::ProcessConnectTo()
 	peer->retry = ntohl(args[3]);
 	peer->ssl = ntohl(args[4]);
 
-	Connect(peer);
-	return true;
+	return Connect(peer);
 	}
 
 bool SocketComm::ProcessListen()
@@ -3838,7 +3837,7 @@ bool SocketComm::Connect(Peer* peer)
 		if ( ! peer->io->Init() )
 			{
 			Error(fmt("can't init peer io: %s",
-					peer->io->Error()), peer);
+					peer->io->Error()), false);
 			return 0;
 			}
 		}
@@ -3918,6 +3917,7 @@ bool SocketComm::Listen(uint32 ip, uint16 port, bool expect_ssl)
 	if ( bind(*listen_fd, (sockaddr*) &server, sizeof(server)) < 0 )
 		{
 		Error(fmt("can't bind to port %d, %s", port, strerror(errno)));
+		close(*listen_fd);
 		*listen_fd = -1;
 
 		if ( errno == EADDRINUSE )
@@ -3972,7 +3972,7 @@ bool SocketComm::AcceptConnection(int fd)
 	if ( ! peer->io->Init() )
 		{
 		Error(fmt("can't init peer io: %s",
-				  peer->io->Error()), peer);
+				  peer->io->Error()), false);
 		return false;
 		}
 

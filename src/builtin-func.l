@@ -68,7 +68,6 @@ HEX	[0-9a-fA-F]+
 "%)"		return check_c_mode(TOK_RPP);
 "..."		return check_c_mode(TOK_VAR_ARG);
 "function"	return check_c_mode(TOK_FUNCTION);
-"rewriter"	return check_c_mode(TOK_REWRITER);
 "event"		return check_c_mode(TOK_EVENT);
 "const"		return check_c_mode(TOK_CONST);
 "enum"		return check_c_mode(TOK_ENUM);
@@ -82,11 +81,6 @@ HEX	[0-9a-fA-F]+
 "@ARG@"		return TOK_ARG;
 "@ARGS@"	return TOK_ARGS;
 "@ARGC@"	return TOK_ARGC;
-
-"@WRITE@"	return TOK_WRITE;
-"@PUSH@"	return TOK_PUSH;
-"@EOF@"		return TOK_EOF;
-"@TRACE@"	return TOK_TRACE;
 
 "T"	yylval.val = 1; return TOK_BOOL;
 "F"	yylval.val = 0; return TOK_BOOL;

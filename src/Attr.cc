@@ -58,10 +58,11 @@ void Attr::AddTag(ODesc* d) const
 		d->Add(attr_name(Tag()));
 	}
 
-Attributes::Attributes(attr_list* a, BroType* t)
+Attributes::Attributes(attr_list* a, BroType* t, bool arg_in_record)
 	{
 	attrs = new attr_list(a->length());
 	type = t->Ref();
+	in_record = arg_in_record;
 
 	SetLocationInfo(&start_location, &end_location);
 
@@ -200,38 +201,71 @@ void Attributes::CheckAttr(Attr* a)
 		{
 		BroType* atype = a->AttrExpr()->Type();
 
-		if ( type->Tag() != TYPE_TABLE || type->IsSet() )
+		if ( type->Tag() != TYPE_TABLE || (type->IsSet() && ! in_record) )
 			{
-			if ( ! same_type(atype, type) )
-				a->AttrExpr()->Error("&default value has inconsistent type", type);
-			break;
+			if ( same_type(atype, type) )
+			    // Ok.
+			    break;
+
+			// Record defaults may be promotable.
+			if ( (type->Tag() == TYPE_RECORD && atype->Tag() == TYPE_RECORD &&
+			      record_promotion_compatible(atype->AsRecordType(), type->AsRecordType())) )
+			    // Ok.
+			    break;
+
+			a->AttrExpr()->Error("&default value has inconsistent type", type);
 			}
 
 		TableType* tt = type->AsTableType();
+		BroType* ytype = tt->YieldType();
 
-		if ( ! same_type(atype, tt->YieldType()) )
+		if ( ! in_record )
 			{
-			// It can still be a default function.
-			if ( atype->Tag() == TYPE_FUNC )
+			// &default applies to the type itself.
+			if ( ! same_type(atype, ytype) )
 				{
-				FuncType* f = atype->AsFuncType();
-				if ( ! f->CheckArgs(tt->IndexTypes()) ||
-				     ! same_type(f->YieldType(), tt->YieldType()) )
-					Error("&default function type clash");
-				}
-			else
-				{
-				BroType* ytype = tt->YieldType();
+				// It can still be a default function.
+				if ( atype->Tag() == TYPE_FUNC )
+					{
+					FuncType* f = atype->AsFuncType();
+					if ( ! f->CheckArgs(tt->IndexTypes()) ||
+						! same_type(f->YieldType(), ytype) )
+						Error("&default function type clash");
+
+					// Ok.
+					break;
+					}
 
 				// Table defaults may be promotable.
-				if ( atype->Tag() == TYPE_RECORD && ytype->Tag() == TYPE_RECORD &&
-					 record_promotion_compatible(atype->AsRecordType(), ytype->AsRecordType()) )
-					 // Ok.
-					 break;
+				if ( (ytype->Tag() == TYPE_RECORD && atype->Tag() == TYPE_RECORD &&
+					record_promotion_compatible(atype->AsRecordType(), ytype->AsRecordType())) )
+					// Ok.
+					break;
 
-				Error("&default value has inconsistent type");
+				Error("&default value has inconsistent type 2");
 				}
+
+			// Ok.
+			break;
 			}
+
+		else
+			{
+			// &default applies to record field.
+
+			if ( same_type(atype, type) ||
+				(atype->Tag() == TYPE_TABLE && atype->AsTableType()->IsUnspecifiedTable()) )
+				// Ok.
+				break;
+
+			// Table defaults may be promotable.
+			if ( (ytype->Tag() == TYPE_RECORD && atype->Tag() == TYPE_RECORD &&
+				record_promotion_compatible(atype->AsRecordType(), ytype->AsRecordType())) )
+			// Ok.
+			break;
+
+		    Error("&default value has inconsistent type");
+		    }
 		}
 		break;
 

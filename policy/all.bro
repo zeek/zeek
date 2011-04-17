@@ -53,10 +53,8 @@
 @load http-identified-files.bro
 @load http-reply
 @load http-request
-@load http-rewriter
 @load http
 @load icmp
-@load ident-rewriter
 @load ident
 @load inactivity
 @load interconn
@@ -111,7 +109,6 @@
 @load site
 @load smb
 @load smtp-relay
-@load smtp-rewriter
 @load smtp
 @load snort
 @load software

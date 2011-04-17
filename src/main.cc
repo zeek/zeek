@@ -23,7 +23,6 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 
 #include "bsd-getopt-long.h"
 #include "input.h"
-#include "Active.h"
 #include "ScriptAnaly.h"
 #include "DNS_Mgr.h"
 #include "Frame.h"
@@ -138,9 +137,6 @@ void usage()
 	fprintf(stderr, "bro version %s\n", bro_version());
 	fprintf(stderr, "usage: %s [options] [file ...]\n", prog);
 	fprintf(stderr, "    <file>                         | policy file, or read stdin\n");
-#ifdef ACTIVE_MAPPING
-	fprintf(stderr, "    -a|--active-mapping <mapfile>  | use active mapping results\n");
-#endif
 	fprintf(stderr, "    -d|--debug-policy              | activate policy file debugging\n");
 	fprintf(stderr, "    -e|--exec <bro code>           | augment loaded policies by given code\n");
 	fprintf(stderr, "    -f|--filter <filter>           | tcpdump filter\n");
@@ -158,7 +154,6 @@ void usage()
 	fprintf(stderr, "    -v|--version                   | print version and exit\n");
 	fprintf(stderr, "    -x|--print-state <file.bst>    | print contents of state file\n");
 	fprintf(stderr, "    -z|--analyze <analysis>        | run the specified policy file analysis\n");
-	fprintf(stderr, "    -A|--transfile <writefile>     | write transformed trace to given tcpdump file\n");
 #ifdef DEBUG
 	fprintf(stderr, "    -B|--debug <dbgstreams>        | Enable debugging output for selected streams\n");
 #endif
@@ -347,7 +342,6 @@ int main(int argc, char** argv)
 	name_list netflows;
 	name_list flow_files;
 	name_list rule_files;
-	char* transformed_writefile = 0;
 	char* bst_file = 0;
 	char* id_name = 0;
 	char* events_file = 0;
@@ -379,7 +373,6 @@ int main(int argc, char** argv)
 		{"version",		no_argument,		0,	'v'},
 		{"print-state",		required_argument,	0,	'x'},
 		{"analyze",		required_argument,	0,	'z'},
-		{"transfile",		required_argument,	0,	'A'},
 		{"no-checksums",	no_argument,		0,	'C'},
 		{"dfa-cache",		required_argument,	0,	'D'},
 		{"force-dns",		no_argument,		0,	'F'},
@@ -397,9 +390,6 @@ int main(int argc, char** argv)
 		{"print-id",		required_argument,	0,	'I'},
 		{"status-file",		required_argument,	0,	'U'},
 
-#ifdef	ACTIVE_MAPPING
-		{"active-mapping",	no_argument,		0,	'a'},
-#endif
 #ifdef	DEBUG
 		{"debug",		required_argument,	0,	'B'},
 #endif
@@ -445,7 +435,7 @@ int main(int argc, char** argv)
 	opterr = 0;
 
 	char opts[256];
-	safe_strncpy(opts, "A:a:B:D:e:f:I:i:K:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGHLOPSWdghlv",
+	safe_strncpy(opts, "B:D:e:f:I:i:K:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGHLOPSWdghlv",
 		     sizeof(opts));
 
 #ifdef USE_PERFTOOLS
@@ -455,16 +445,6 @@ int main(int argc, char** argv)
 	int op;
 	while ( (op = getopt_long(argc, argv, opts, long_opts, &long_optsind)) != EOF )
 		switch ( op ) {
-		case 'a':
-#ifdef ACTIVE_MAPPING
-			fprintf(stderr, "Using active mapping file %s.\n", optarg);
-			active_file = optarg;
-#else
-			fprintf(stderr, "Bro not compiled for active mapping.\n");
-			exit(1);
-#endif
-			break;
-
 		case 'd':
 			fprintf(stderr, "Policy file debugging ON.\n");
 			g_policy_debug = true;
@@ -523,10 +503,6 @@ int main(int argc, char** argv)
 				fprintf(stderr, "Unknown analysis type: %s\n", optarg);
 				exit(1);
 				}
-			break;
-
-		case 'A':
-			transformed_writefile = optarg;
 			break;
 
 		case 'C':
@@ -713,13 +689,6 @@ int main(int argc, char** argv)
 			add_input_file(argv[optind++]);
 		}
 
-	if ( ! load_mapping_table(active_file.c_str()) )
-		{
-		fprintf(stderr, "Could not load active mapping file %s\n",
-			active_file.c_str());
-		exit(1);
-		}
-
 	dns_mgr = new DNS_Mgr(dns_type);
 
 	// It would nice if this were configurable.  This is similar to the
@@ -824,7 +793,7 @@ int main(int argc, char** argv)
 
 	if ( dns_type != DNS_PRIME )
 		net_init(interfaces, read_files, netflows, flow_files,
-			writefile, transformed_writefile,
+			writefile,
 			user_pcap_filter ? user_pcap_filter : "tcp or udp",
 			secondary_path->Filter(), do_watchdog);
 

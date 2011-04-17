@@ -248,7 +248,7 @@ void ID::UpdateValAttrs()
 				TypeDecl* fd = rt->FieldDecl(i);
 
 				if ( ! fd->attrs )
-					fd->attrs = new Attributes(new attr_list, rt->FieldType(i));
+					fd->attrs = new Attributes(new attr_list, rt->FieldType(i), true);
 
 				fd->attrs->AddAttr(new Attr(ATTR_LOG));
 				}

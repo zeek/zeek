@@ -37,8 +37,7 @@ int tcp_checksum(const struct ip* ip, const struct tcphdr* tp, int len)
 	{
 	// ### Note, this is only correct for IPv4.  This routine is only
 	// used by the connection compressor (which we turn off for IPv6
-	// traffic) and trace rewriting (which currently doesn't support
-	// IPv6 either).
+	// traffic).
 
 	int tcp_len = tp->th_off * 4 + len;
 	uint32 sum;

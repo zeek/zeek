@@ -1504,8 +1504,8 @@ int same_attrs(const Attributes* a1, const Attributes* a2)
 	if ( ! a1 )
 		return (a2 == 0);
 
-	if ( a2 )
-		return 0;
+	if ( ! a2 )
+		return (a1 == 0);
 
 	return (*a1 == *a2);
 	}

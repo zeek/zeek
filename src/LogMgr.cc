@@ -553,8 +553,6 @@ bool LogMgr::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt, Tabl
 		else
 			new_path = path + "." + rt->FieldName(i);
 
-		StringVal* new_path_val = new StringVal(path.c_str());
-
 		if ( t->InternalType() == TYPE_INTERNAL_OTHER )
 			{
 			if ( t->Tag() == TYPE_RECORD )
@@ -585,15 +583,25 @@ bool LogMgr::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt, Tabl
 		// If include fields are specified, only include if explicitly listed.
 		if ( include )
 			{
-			if ( ! include->Lookup(new_path_val) )
-				return true;
+			StringVal* new_path_val = new StringVal(new_path.c_str());
+			bool result = include->Lookup(new_path_val);
+
+			Unref(new_path_val);
+
+			if ( ! result )
+				continue;
 			}
 
 		// If exclude fields are specified, do not only include if listed.
 		if ( exclude )
 			{
-			if ( exclude->Lookup(new_path_val) )
-				return true;
+			StringVal* new_path_val = new StringVal(new_path.c_str());
+			bool result = exclude->Lookup(new_path_val);
+
+			Unref(new_path_val);
+
+			if ( result )
+				continue;
 			}
 
 		// Alright, we want this field.

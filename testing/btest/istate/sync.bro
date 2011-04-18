@@ -1,9 +1,7 @@
 #
 # @TEST-EXEC: btest-bg-run sender   bro %INPUT ../sender.bro
-# @TEST-EXEC: sleep 1
 # @TEST-EXEC: btest-bg-run receiver bro %INPUT ../receiver.bro
-# @TEST-EXEC: sleep 1
-# @TEST-EXEC: btest-bg-wait -k 5
+# @TEST-EXEC: btest-bg-wait -k 20
 #
 # @TEST-EXEC: btest-diff sender/vars.log
 # @TEST-EXEC: btest-diff receiver/vars.log
@@ -45,8 +43,8 @@ type type2: record {
 
 global foo17: type2 = [
 	$a = "yuyuyu",
-    $b = [$a="rec1", $b=100, $c=1.24],
-    $c = [$a="rec2", $b=200, $c=2.24],
+	$b = [$a="rec1", $b=100, $c=1.24],
+	$c = [$a="rec2", $b=200, $c=2.24],
    	$d = 7.77				   
 	] &persistent &synchronized;
 
@@ -131,7 +129,6 @@ function modify()
 	foo17$d = 6.6666;
 	
 	foo2 = 1234567;
-	
 }
 
 @load listen-clear
@@ -160,5 +157,9 @@ redef Remote::destinations += {
     ["foo"] = [$host = 127.0.0.1, $events = /.*/, $connect=T, $sync=T]
 };
 
+event remote_connection_closed(p: event_peer)
+	{
+	terminate();
+	}
 
 @TEST-END-FILE

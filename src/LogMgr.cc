@@ -65,7 +65,7 @@ struct LogMgr::Stream {
 
 LogVal::~LogVal()
 	{
-	if ( (type == TYPE_ENUM || type == TYPE_STRING) && present )
+	if ( (type == TYPE_ENUM || type == TYPE_STRING || type == TYPE_FILE) && present )
 		delete val.string_val;
 
 	if ( type == TYPE_TABLE && present )
@@ -104,6 +104,7 @@ bool LogVal::IsCompatibleType(BroType* t, bool atomic_only)
 	case TYPE_INTERVAL:
 	case TYPE_ENUM:
 	case TYPE_STRING:
+	case TYPE_FILE:
 		return true;
 
 	case TYPE_RECORD:
@@ -206,6 +207,7 @@ bool LogVal::Read(SerializationFormat* fmt)
 
 	case TYPE_ENUM:
 	case TYPE_STRING:
+	case TYPE_FILE:
 		{
 		val.string_val = new string;
 		return fmt->Read(val.string_val, "string");
@@ -309,6 +311,7 @@ bool LogVal::Write(SerializationFormat* fmt) const
 
 	case TYPE_ENUM:
 	case TYPE_STRING:
+	case TYPE_FILE:
 		return fmt->Write(*val.string_val, "string");
 
 	case TYPE_TABLE:
@@ -570,6 +573,11 @@ bool LogMgr::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt, Tabl
 				}
 
 			else if ( t->Tag() == TYPE_VECTOR )
+				{
+				// That's ok, handle it with all the other types below.
+				}
+
+			else if ( t->Tag() == TYPE_FILE )
 				{
 				// That's ok, handle it with all the other types below.
 				}
@@ -933,6 +941,13 @@ LogVal* LogMgr::ValToLogVal(Val* val, BroType* ty)
 		{
 		const BroString* s = val->AsString();
 		lval->val.string_val = new string((const char*) s->Bytes(), s->Len());
+		break;
+		}
+
+	case TYPE_FILE:
+		{
+		const BroFile* f = val->AsFile();
+		lval->val.string_val = new string(f->Name());
 		break;
 		}
 

@@ -748,6 +748,8 @@ RecordType::RecordType(TypeList* arg_base, type_decl_list* refinements)
 
 void RecordType::Init(TypeList* arg_base)
 	{
+	assert(false);  // Is this ever used?
+
 	base = arg_base;
 
 	if ( ! base )
@@ -914,7 +916,7 @@ const char* RecordType::AddFields(type_decl_list* others, attr_list* attr)
 				log = true;
 			}
 		}
-	
+
 	loop_over_list(*others, i)
 		{
 		TypeDecl* td = (*others)[i];

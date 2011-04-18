@@ -120,9 +120,6 @@ void EventMgr::Drain()
 
 	// Note: we might eventually need a general way to specify things to
 	// do after draining events.
-	extern void flush_rewriter_packet();
-	flush_rewriter_packet();
-
 	draining = false;
 
 	// We evaluate Triggers here. While this is somewhat unrelated to event

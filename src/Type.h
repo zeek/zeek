@@ -389,7 +389,7 @@ protected:
 
 class TypeDecl {
 public:
-	TypeDecl(BroType* t, const char* i, attr_list* attrs = 0);
+	TypeDecl(BroType* t, const char* i, attr_list* attrs = 0, bool in_record = false);
 	~TypeDecl();
 
 	const Attr* FindAttr(attr_tag a) const

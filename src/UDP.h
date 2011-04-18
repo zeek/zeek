@@ -6,9 +6,6 @@
 #define udp_h
 
 #include "Analyzer.h"
-#include "Rewriter.h"
-
-class UDP_Rewriter;
 
 typedef enum {
 	UDP_INACTIVE,	// no packet seen
@@ -26,10 +23,6 @@ public:
 		{ return new UDP_Analyzer(conn); }
 
 	static bool Available() { return true; }
-
-	// -- XXX -- only want to return yes if the protocol flag is
-	//  on similar to TCP. (e.g. FTP_Connection etc.) /mc
-	int RewritingTrace() const	{ return 0; }
 
 protected:
 	virtual void Done();

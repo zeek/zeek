@@ -60,19 +60,6 @@ event finger_request(c: connection, full: bool, username: string, hostname: stri
 		req = fmt("(%s)", req);
 
 	append_addl_marker(c, req, " *");
-
-	if ( rewriting_finger_trace )
-		rewrite_finger_request(c, full,
-				public_user(username) ? username : "private user",
-				hostname);
-	}
-
-event finger_reply(c: connection, reply_line: string)
-	{
-	local id = c$id;
-	if ( rewriting_finger_trace )
-		rewrite_finger_reply(c,
-				authorized_client(id$orig_h) ? "finger reply ..." : reply_line);
 	}
 
 function is_finger_conn(c: connection): bool
@@ -80,10 +67,3 @@ function is_finger_conn(c: connection): bool
 	return c$id$resp_p == finger;
 	}
 
-event connection_state_remove(c: connection)
-	{
-	if ( rewriting_finger_trace && requires_trace_commitment &&
-	     is_finger_conn(c) )
-		# Commit queued packets and all packets in future.
-		rewrite_commit_trace(c, T, T);
-	}

@@ -35,7 +35,6 @@ string type_name;
 enum {
 	C_SEGMENT_DEF,
 	FUNC_DEF,
-	REWRITER_DEF,
 	EVENT_DEF,
 	TYPE_DEF,
 	CONST_DEF,
@@ -102,17 +101,6 @@ void set_decl_name(const char *name)
 		decl.c_fullname = "BifConst::";
 		break;
 
-	case REWRITER_DEF:
-		// XXX: Legacy. No module names / namespaces supported
-		// If support for namespaces is desired: add a namespace
-		// to c_namespace_* and bro_fullname and get rid of
-		// the hack to bro_name.
-		decl.c_namespace_start = "";
-		decl.c_namespace_end = "";
-		decl.bare_name = "rewrite_" + decl.bare_name;
-		decl.bro_name = "rewrite_";
-		break;
-
 	case FUNC_DEF:
 		decl.c_namespace_start = "namespace BifFunc { ";
 		decl.c_namespace_end = " } ";
@@ -155,7 +143,6 @@ void set_decl_name(const char *name)
 	}
 
 const char* arg_list_name = "BiF_ARGS";
-const char* trace_rewriter_name = "trace_rewriter";
 
 #include "bif_arg.h"
 
@@ -282,9 +269,8 @@ void print_event_c_body(FILE *fp)
 
 %token TOK_LPP TOK_RPP TOK_LPB TOK_RPB TOK_LPPB TOK_RPPB TOK_VAR_ARG
 %token TOK_BOOL
-%token TOK_FUNCTION TOK_REWRITER TOK_EVENT TOK_CONST TOK_ENUM
+%token TOK_FUNCTION TOK_EVENT TOK_CONST TOK_ENUM
 %token TOK_TYPE TOK_RECORD TOK_SET TOK_VECTOR TOK_TABLE TOK_MODULE
-%token TOK_WRITE TOK_PUSH TOK_EOF TOK_TRACE
 %token TOK_ARGS TOK_ARG TOK_ARGC
 %token TOK_ID TOK_ATTR TOK_CSTR TOK_LF TOK_WS TOK_COMMENT
 %token TOK_ATOM TOK_INT TOK_C_TOKEN
@@ -335,7 +321,6 @@ definitions:	definitions definition opt_ws
 
 definition:	event_def
 	|	func_def
-	|	rewriter_def
 	|	c_code_segment
 	|	enum_def
 	|	const_def
@@ -393,9 +378,6 @@ event_def:	event_prefix opt_ws plain_head opt_attr end_of_head ';'
 			}
 
 func_def:	func_prefix opt_ws typed_head end_of_head body
-	;
-
-rewriter_def:	rewriter_prefix opt_ws plain_head end_of_head body
 	;
 
 enum_def:	enum_def_1 enum_list TOK_RPB
@@ -490,10 +472,6 @@ func_prefix:	TOK_FUNCTION
 			{ set_definition_type(FUNC_DEF, 0); }
 	;
 
-rewriter_prefix: TOK_REWRITER
-			{ set_definition_type(REWRITER_DEF, 0); }
-	;
-
 event_prefix:	TOK_EVENT
 			{ set_definition_type(EVENT_DEF, 0); }
 	;
@@ -515,12 +493,9 @@ plain_head:	head_1 args arg_end opt_ws
 				fprintf(fp_bro_init, "va_args: any");
 			else
 				{
-				if ( definition_type == REWRITER_DEF )
-					fprintf(fp_bro_init, "c: connection");
-
 				for ( int i = 0; i < (int) args.size(); ++i )
 					{
-					if ( i > 0 || definition_type == REWRITER_DEF )
+					if ( i > 0 )
 						fprintf(fp_bro_init, ", ");
 					args[i]->PrintBro(fp_bro_init);
 					}
@@ -538,7 +513,7 @@ head_1:		TOK_ID opt_ws arg_begin
 			const char* method_type = 0;
 			set_decl_name($1);
 
-			if ( definition_type == FUNC_DEF || definition_type == REWRITER_DEF )
+			if ( definition_type == FUNC_DEF )
 				{
 				method_type = "function";
 				print_line_directive(fp_func_def);
@@ -551,7 +526,7 @@ head_1:		TOK_ID opt_ws arg_begin
 					"global %s: %s%s(",
 					decl.bro_name.c_str(), method_type, $2);
 
-			if ( definition_type == FUNC_DEF || definition_type == REWRITER_DEF )
+			if ( definition_type == FUNC_DEF )
 				{
 				fprintf(fp_func_init,
 					"\t(void) new BuiltinFunc(%s, \"%s\", 0);\n",
@@ -646,11 +621,6 @@ body_start:	TOK_LPB c_code_begin
 			int argc = args.size();
 
 			fprintf(fp_func_def, "{");
-			if ( definition_type == REWRITER_DEF )
-				{
-				implicit_arg = 1;
-				++argc;
-				}
 
 			if ( argc > 0 || ! var_arg )
 				fprintf(fp_func_def, "\n");
@@ -676,15 +646,6 @@ body_start:	TOK_LPB c_code_begin
 				fprintf(fp_func_def, "\t\t}\n");
 				}
 
-			if ( definition_type == REWRITER_DEF )
-				{
-				fprintf(fp_func_def,
-					"\tRewriter* %s = get_trace_rewriter((*%s)[0]);\n",
-					trace_rewriter_name,
-					arg_list_name);
-				fprintf(fp_func_def, "\tif ( ! trace_rewriter )\n");
-				fprintf(fp_func_def, "\t\treturn 0;\n");
-				}
 			for ( int i = 0; i < (int) args.size(); ++i )
 				args[i]->PrintCDef(fp_func_def, i + implicit_arg);
 			print_line_directive(fp_func_def);
@@ -693,8 +654,6 @@ body_start:	TOK_LPB c_code_begin
 
 body_end:	TOK_RPB c_code_end
 			{
-			if ( definition_type == REWRITER_DEF )
-				fprintf(fp_func_def, "\n\treturn 0;\n");
 			fprintf(fp_func_def, "}");
 			}
 	;
@@ -718,14 +677,6 @@ c_atom:		TOK_ID
 			{ fprintf(fp_func_def, "%s", arg_list_name); }
 	|	TOK_ARGC
 			{ fprintf(fp_func_def, "%s->length()", arg_list_name); }
-	|	TOK_TRACE
-			{ fprintf(fp_func_def, "%s", trace_rewriter_name); }
-	|	TOK_WRITE
-			{ fprintf(fp_func_def, "%s->WriteData", trace_rewriter_name); }
-	|	TOK_PUSH
-			{ fprintf(fp_func_def, "%s->Push", trace_rewriter_name); }
-	|	TOK_EOF
-			{ fprintf(fp_func_def, "%s->EndOfData", trace_rewriter_name); }
 	|	TOK_CSTR
 			{ fprintf(fp_func_def, "%s", $1); }
 	|	TOK_ATOM

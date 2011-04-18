@@ -41,8 +41,4 @@ struct ltipid {
 typedef set<IP_ID, ltipid> IP_IDSet;
 uint16 NextIP_ID(const uint32 src_addr, const uint16 id);
 
-extern PacketDumper* transformed_pkt_dump;
-extern PacketDumper* source_pkt_dump;
-extern int transformed_pkt_dump_MTU;
-
 #endif

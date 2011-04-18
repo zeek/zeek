@@ -10,7 +10,6 @@
 #include "FTP.h"
 #include "NVT.h"
 #include "Event.h"
-#include "TCP_Rewriter.h"
 
 FTP_Analyzer::FTP_Analyzer(Connection* conn)
 : TCP_ApplicationAnalyzer(AnalyzerTag::FTP, conn)
@@ -169,5 +168,3 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 	ConnectionEvent(f, vl);
 	}
 
-
-#include "ftp-rw.bif.func_def"

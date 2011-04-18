@@ -1,3 +1,22 @@
+1.6-dev.71 Fri Apr  1 16:06:33 PDT 2011
+
+- Removing code for the following no longer supported functionality.
+  
+    * Trace rewriting.
+    * DFA state expiration in regexp engine.
+    * Active mapping.
+    * Unused hash functions.
+
+  (Robin Sommer)
+
+- Fixing crashes when SSL is not configured correctly. (Robin Sommer)
+
+1.6-dev.66 Tue Mar 29 21:52:01 PDT 2011
+
+- Initial btest setup (Don Appleman and Robin Sommer)
+  
+- Porting the istate tests to btest (not finished) (Robin Sommer)
+
 1.6-dev.63 Mon Mar 21 16:31:15 PDT 2011
 
 - Changes to the way user-modifiable config files are installed  (Jon Siwek)

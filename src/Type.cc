@@ -682,10 +682,10 @@ bool FuncType::DoUnserialize(UnserialInfo* info)
 	return UNSERIALIZE(&is_event);
 	}
 
-TypeDecl::TypeDecl(BroType* t, const char* i, attr_list* arg_attrs)
+TypeDecl::TypeDecl(BroType* t, const char* i, attr_list* arg_attrs, bool in_record)
 	{
 	type = t;
-	attrs = arg_attrs ? new Attributes(arg_attrs, t) : 0;
+	attrs = arg_attrs ? new Attributes(arg_attrs, t, in_record) : 0;
 	id = i;
 	}
 
@@ -748,6 +748,8 @@ RecordType::RecordType(TypeList* arg_base, type_decl_list* refinements)
 
 void RecordType::Init(TypeList* arg_base)
 	{
+	assert(false);  // Is this ever used?
+
 	base = arg_base;
 
 	if ( ! base )
@@ -914,7 +916,7 @@ const char* RecordType::AddFields(type_decl_list* others, attr_list* attr)
 				log = true;
 			}
 		}
-	
+
 	loop_over_list(*others, i)
 		{
 		TypeDecl* td = (*others)[i];
@@ -925,7 +927,7 @@ const char* RecordType::AddFields(type_decl_list* others, attr_list* attr)
 		if ( log )
 			{
 			if ( ! td->attrs )
-				td->attrs = new Attributes(new attr_list, td->type);
+				td->attrs = new Attributes(new attr_list, td->type, true);
 
 			td->attrs->AddAttr(new Attr(ATTR_LOG));
 			}
@@ -1504,8 +1506,8 @@ int same_attrs(const Attributes* a1, const Attributes* a2)
 	if ( ! a1 )
 		return (a2 == 0);
 
-	if ( a2 )
-		return 0;
+	if ( ! a2 )
+		return (a1 == 0);
 
 	return (*a1 == *a2);
 	}

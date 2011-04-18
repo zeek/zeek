@@ -225,10 +225,6 @@ public:
 	virtual void ProtocolViolation(const char* reason,
 					const char* data = 0, int len = 0);
 
-	// Returns true if the analyzer or one of its children is rewriting
-	// the trace.
-	virtual int RewritingTrace();
-
 	virtual unsigned int MemoryAllocation() const;
 
 	// The following methods are proxies: calls are directly forwarded
@@ -367,9 +363,7 @@ private:
 class TransportLayerAnalyzer : public Analyzer {
 public:
 	TransportLayerAnalyzer(AnalyzerTag::Tag tag, Connection* conn)
-		: Analyzer(tag, conn)	{ pia = 0; rewriter = 0; }
-
-	virtual ~TransportLayerAnalyzer();
+		: Analyzer(tag, conn)	{ pia = 0; }
 
 	virtual void Done();
 	virtual void UpdateEndpointVal(RecordVal* endp, int is_orig) = 0;
@@ -381,11 +375,6 @@ public:
 	void SetPIA(PIA* arg_PIA)	{ pia = arg_PIA; }
 	PIA* GetPIA() const		{ return pia; }
 
-	Rewriter* TraceRewriter()	{ return rewriter; }
-
-	// Takes ownership.
-	void SetTraceRewriter(Rewriter* r);
-
 	// Raises packet_contents event.
 	void PacketContents(const u_char* data, int len);
 
@@ -394,7 +383,6 @@ protected:
 
 private:
 	PIA* pia;
-	Rewriter* rewriter;
 };
 
 #endif

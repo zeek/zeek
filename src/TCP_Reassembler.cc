@@ -4,7 +4,6 @@
 #include "TCP_Reassembler.h"
 #include "TCP.h"
 #include "TCP_Endpoint.h"
-#include "TCP_Rewriter.h"
 
 // Only needed for gap_report events.
 #include "Event.h"
@@ -185,10 +184,6 @@ void TCP_Reassembler::Undelivered(int up_to_seq)
 		// one for filtered traces, and may fail, for example, when
 		// the SYN packet carries data.
 		//
-		// Note, this check will confuse the EOF checker (and cause a
-		// missing FIN in the rewritten trace) when the content gap
-		// in the middle is discovered only after the FIN packet.
-
 		// Skip the undelivered part without reporting to the endpoint.
 		skip_deliveries = 1;
 		}
@@ -234,11 +229,6 @@ void TCP_Reassembler::Undelivered(int up_to_seq)
 
 				dst_analyzer->ConnectionEvent(content_gap, vl);
 				}
-
-			TCP_Rewriter* r = (TCP_Rewriter*)
-				dst_analyzer->Conn()->TraceRewriter();
-			if ( r )
-				r->ContentGap(is_orig, len);
 
 			if ( type == Direct )
 				dst_analyzer->NextUndelivered(last_reassem_seq,

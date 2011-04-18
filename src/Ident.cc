@@ -9,7 +9,6 @@
 #include "NetVar.h"
 #include "Ident.h"
 #include "Event.h"
-#include "TCP_Rewriter.h"
 
 Ident_Analyzer::Ident_Analyzer(Connection* conn)
 : TCP_ApplicationAnalyzer(AnalyzerTag::Ident, conn)
@@ -245,6 +244,3 @@ void Ident_Analyzer::BadReply(int length, const char* line)
 		did_bad_reply = 1;
 		}
 	}
-
-#include "ident-rw.bif.func_def"
-

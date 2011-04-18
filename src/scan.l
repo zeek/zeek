@@ -610,7 +610,7 @@ static int load_files_with_prefix(const char* orig_file)
 
 			if ( generate_documentation )
 				{
-				char* bifExtStart = strstr(full_filename, ".bif.bro");
+				const char* bifExtStart = strstr(full_filename, ".bif.bro");
 				BroDoc* reST_doc;
 
 				if ( bifExtStart )

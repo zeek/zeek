@@ -1,3 +1,5 @@
+@load mime/base
+
 module MIME;
 
 export {

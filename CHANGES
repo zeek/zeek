@@ -1,3 +1,25 @@
+1.6-dev.80 Mon Apr 18 14:50:54 PDT 2011
+
+- New framework for generating documentation from Bro scripts. (Jon
+  Siwek)
+
+  This includes:
+
+    - Changes to Bro's scanner/parser to facilitate automatic
+      generation of Bro policy script documentation in
+      reStructuredText format.
+
+    - New command line flags -Z/--doc-scripts to enable the new doc
+      generation mode.
+
+    - Changes to bifcl to pass comments starting with "##" through
+      into the generated .bro script.
+
+    - A "doc" build target for the top-level Makefile to first
+      generate reStructuredText for a defined set of Bro policy
+      scripts, and then run that through Sphinx to create HTML
+      documentation.
+
 1.6-dev.78 Mon Apr 18 12:52:55 PDT 2011
 
 - Adding files to CMake build targets so they show up in generated IDE

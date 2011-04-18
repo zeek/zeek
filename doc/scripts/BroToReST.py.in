@@ -1,0 +1,152 @@
+#! /usr/bin/env python
+
+import os
+import subprocess
+import shutil
+import glob
+import string
+import sys
+
+BRO = "@CMAKE_BINARY_DIR@/src/bro"
+BROPATHDEV = "`@CMAKE_BINARY_DIR@/bro-path-dev`"
+BRO_ARGS = "--doc-scripts"
+DOC_DST_DIR = "@DOC_SOURCE_WORKDIR@/policy"
+BROPATH = subprocess.Popen("@CMAKE_BINARY_DIR@/bro-path-dev", shell=True,
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT).stdout.readline()
+
+class BroToReST:
+    """A class to encapsulate the the generation of reST documentation from
+    a given Bro script.
+    """
+
+    bro_src_file = None
+    doc_src_file = None
+    load_via_stdin = False
+    group = None
+
+    def __init__(self, src_file, load_method=False, search_dir=None, group=None):
+        """
+        :param src_file: the file name of a Bro script (not a path)
+        :param load_method: T if script must be loaded by Bro via a stdin
+            redirection of "@load <script>", F if script can be loaded as
+            a command line argument to Bro
+        :param search_dir: a list of directories in which to search for
+            src_file.  If None, the default BROPATH is used.
+        :param group: a string representing a logical group that the script's
+            documentation should belong to.  A corresponding <group>.rst
+            document must be pre-existing in the policy/ dir of the source tree
+            used by Sphinx.
+        """
+
+        self.bro_src_file = FindBroScript(src_file, search_dir)
+        self.load_via_stdin = load_method
+        self.group = group
+
+        # formulate doc_src_file from src_file
+        filename = os.path.basename(src_file)
+        basename, ext = os.path.splitext(filename)
+        if ext == ".bro":
+            self.doc_src_file = basename + ".rst"
+        else:
+            self.doc_src_file = filename + ".rst"
+
+    def __str__(self):
+        return "bro_src_file: " + self.bro_src_file \
+           + "\ndoc_src_file: " + self.doc_src_file \
+           + "\ndoc_dst_file: " + os.path.join(DOC_DST_DIR, self.doc_src_file) \
+           + "\nstdin_load: %s" % self.load_via_stdin \
+           + "\ngroup: %s" % self.group
+
+    def GenDoc(self):
+        """Generates the reST documentation for a Bro script and copies
+        both the documentation and original script into Sphinx source tree.
+        If the documentation belongs to a group, the necessary modifications
+        to add it to the group's documentation are done.  Afterwards, any
+        files with a ".rst" suffix are removed for the working directory.
+        """
+
+        bro_src_basename = os.path.basename(self.bro_src_file)
+
+        if self.load_via_stdin:
+            cmd = "echo '@load %s' | %s %s" % (bro_src_basename, BRO, BRO_ARGS)
+        else:
+            cmd = "%s %s %s" % (BRO, BRO_ARGS, self.bro_src_file)
+
+        p = subprocess.Popen(cmd, shell=True, env={"BROPATH": BROPATH})
+
+        if p.wait() == 0:
+            shutil.copy(self.doc_src_file, DOC_DST_DIR)
+            shutil.copy(self.bro_src_file, DOC_DST_DIR)
+            AppendToDocGroup(self.group, self.bro_src_file, self.doc_src_file)
+
+        for leftover in glob.glob("*.rst"):
+            os.remove(leftover)
+
+def GenDocs(doc_dict, load_method=False):
+    """Generates reST documentation for all scripts in the given dictionary.
+
+    :param doc_dict: a dictionary whose keys are file names of Bro scripts
+        (not paths), and whose value is the logical documentation group
+        it belongs to
+    :param load_method: T if script must be loaded by Bro via a stdin
+            redirection of "@load <script>", F if script can be loaded as
+            a command line argument to Bro
+    """
+
+    for k, v in doc_dict.iteritems():
+        doc = BroToReST(k, load_method, group=v)
+        print "Generating reST document for " + k
+        doc.GenDoc()
+
+def FindBroScript(src_file, search_dir=None):
+    """Search a set of paths for a given Bro script and return the absolute
+    path to it.
+
+    :param src_file: the file name of a Bro script (not a path)
+    :param search_dir: a list of directories in which to search for
+        src_file.  If None, the default BROPATH is used.
+    """
+    if search_dir is None:
+        search_dir = string.split(BROPATH, ":")
+    for path in search_dir:
+        abs_path = os.path.join(path, src_file)
+        if os.path.exists(abs_path):
+            return abs_path
+    print >> sys.stderr, "Couldn't find '%s'" % src_file
+    return None
+
+def AppendToDocGroup(group, src_file, doc_file):
+    """Adds a reference to the given documentation for a Bro script
+    to the documentation file for it's associated group.  Also, associated
+    summary text (comments marked up like "##!" in the original Bro script
+    source) are added.
+
+    :param group: a string representing a logical group that the script's
+        documentation should belong to.  A corresponding <group>.rst
+        document must be pre-existing in the policy/ dir of the source tree
+        used by Sphinx.
+    :param src_file: a path to the original Bro script source file
+    :param doc_file: the file name of a script's generated reST document
+    """
+    if group is None:
+        return
+
+    group_file = os.path.join(DOC_DST_DIR, group + ".rst")
+    if not os.path.exists(group_file):
+        print >> sys.stderr, "Group file doesn't exist: " + group_file
+        return
+
+    summary_comments = []
+
+    with open(src_file, 'r') as f:
+        for line in f:
+            sum_pos = string.find(line, "##!")
+            if sum_pos != -1:
+                summary_comments.append(line[(sum_pos+3):])
+
+    doc_name, ext = os.path.splitext(doc_file)
+
+    with open(group_file, 'a') as f:
+        f.write("\n:doc:`%s`\n" % doc_name)
+        for line in summary_comments:
+            f.write(line)

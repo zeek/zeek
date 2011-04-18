@@ -49,6 +49,37 @@ void Attr::Describe(ODesc* d) const
 		}
 	}
 
+void Attr::DescribeReST(ODesc* d) const
+	{
+	d->Add(":bro:attr:`");
+	AddTag(d);
+	d->Add("`");
+
+	if ( expr )
+		{
+		d->SP();
+		d->Add("=");
+		d->SP();
+
+		if ( expr->Type()->Tag() == TYPE_FUNC )
+			d->Add(":bro:type:`func`");
+
+		else if ( expr->Type()->Tag() == TYPE_ENUM )
+			{
+			d->Add(":bro:enum:`");
+			expr->Describe(d);
+			d->Add("`");
+			}
+
+		else
+			{
+			d->Add("``");
+			expr->Describe(d);
+			d-> Add("``");
+			}
+		}
+	}
+
 void Attr::AddTag(ODesc* d) const
 	{
 	if ( d->IsBinary() )
@@ -158,6 +189,17 @@ void Attributes::Describe(ODesc* d) const
 			d->Add(", ");
 
 		(*attrs)[i]->Describe(d);
+		}
+	}
+
+void Attributes::DescribeReST(ODesc* d) const
+	{
+	loop_over_list(*attrs, i)
+		{
+		if ( i > 0 )
+			d->Add(" ");
+
+		(*attrs)[i]->DescribeReST(d);
 		}
 	}
 

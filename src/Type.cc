@@ -10,6 +10,12 @@
 #include "Scope.h"
 #include "Serializer.h"
 
+#include <string>
+#include <list>
+#include <map>
+
+extern int generate_documentation;
+
 const char* type_name(TypeTag t)
 	{
 	static char errbuf[512];
@@ -44,6 +50,7 @@ BroType::BroType(TypeTag t, bool arg_base_type)
 	tag = t;
 	is_network_order = 0;
 	base_type = arg_base_type;
+	type_id = 0;
 
 	switch ( tag ) {
 	case TYPE_VOID:
@@ -105,6 +112,12 @@ BroType::BroType(TypeTag t, bool arg_base_type)
 
 	}
 
+BroType::~BroType()
+	{
+	if ( type_id )
+		delete [] type_id;
+	}
+
 int BroType::MatchesIndex(ListExpr*& /* index */) const
 	{
 	return DOES_NOT_MATCH_INDEX;
@@ -137,6 +150,13 @@ void BroType::Describe(ODesc* d) const
 		else
 			d->Add(type_name(t));
 		}
+	}
+
+void BroType::DescribeReST(ODesc* d) const
+	{
+	d->Add(":bro:type:`");
+	d->Add(type_name(Tag()));
+	d->Add("`");
 	}
 
 void BroType::SetError()
@@ -195,8 +215,9 @@ BroType* BroType::Unserialize(UnserialInfo* info, TypeTag want)
 	if ( ! t )
 		return 0;
 
-	// For base types, we return our current instance.
-	if ( t->base_type )
+	// For base types, we return our current instance
+	// if not in "documentation mode".
+	if ( t->base_type && ! generate_documentation )
 		{
 		BroType* t2 = ::base_type(TypeTag(t->tag));
 		Unref(t);
@@ -230,6 +251,11 @@ bool BroType::DoSerialize(SerialInfo* info) const
 	void* null = NULL;
 	SERIALIZE(null);
 
+	if ( generate_documentation )
+		{
+		SERIALIZE_OPTIONAL_STR(type_id);
+		}
+
 	info->s->WriteCloseTag("Type");
 
 	return true;
@@ -259,6 +285,11 @@ bool BroType::DoUnserialize(UnserialInfo* info)
 	// Likewise, unserialize the former optional "RecordType*
 	// attributes_type" for backwards compatibility.
 	UNSERIALIZE_OPTIONAL(not_used_either, BroType::Unserialize(info, TYPE_RECORD));
+
+	if ( generate_documentation )
+		{
+		UNSERIALIZE_OPTIONAL_STR(type_id);
+		}
 
 	return true;
 	}
@@ -410,6 +441,52 @@ void IndexType::Describe(ODesc* d) const
 		if ( ! d->IsBinary() )
 			d->Add(" of ");
 		yield_type->Describe(d);
+		}
+	}
+
+void IndexType::DescribeReST(ODesc* d) const
+	{
+	d->Add(":bro:type:`");
+
+	if ( IsSet() )
+		d->Add("set");
+	else
+		d->Add(type_name(Tag()));
+
+	d->Add("` ");
+	d->Add("[");
+
+	loop_over_list(*IndexTypes(), i)
+		{
+		if ( i > 0 )
+			d->Add(", ");
+
+		const BroType* t = (*IndexTypes())[i];
+
+		if ( t->GetTypeID() )
+			{
+			d->Add(":bro:type:`");
+			d->Add(t->GetTypeID());
+			d->Add("`");
+			}
+		else
+			t->DescribeReST(d);
+		}
+
+	d->Add("]");
+
+	if ( yield_type )
+		{
+		d->Add(" of ");
+
+		if ( yield_type->GetTypeID() )
+			{
+			d->Add(":bro:type:`");
+			d->Add(yield_type->GetTypeID());
+			d->Add("`");
+			}
+		else
+			yield_type->DescribeReST(d);
 		}
 	}
 
@@ -647,6 +724,30 @@ void FuncType::Describe(ODesc* d) const
 		}
 	}
 
+void FuncType::DescribeReST(ODesc* d) const
+	{
+	d->Add(":bro:type:`");
+	d->Add(is_event ? "event" : "function");
+	d->Add("`");
+	d->Add(" (");
+	args->DescribeFieldsReST(d, true);
+	d->Add(")");
+
+	if ( yield )
+		{
+		d->AddSP(" :");
+
+		if ( yield->GetTypeID() )
+			{
+			d->Add(":bro:type:`");
+			d->Add(yield->GetTypeID());
+			d->Add("`");
+			}
+		else
+			yield->DescribeReST(d);
+		}
+	}
+
 IMPLEMENT_SERIAL(FuncType, SER_FUNC_TYPE);
 
 bool FuncType::DoSerialize(SerialInfo* info) const
@@ -701,7 +802,10 @@ bool TypeDecl::Serialize(SerialInfo* info) const
 
 	SERIALIZE_OPTIONAL(attrs);
 
-	return type->Serialize(info) && SERIALIZE(id);
+	if ( ! (type->Serialize(info) && SERIALIZE(id)) )
+		return false;
+
+	return true;
 	}
 
 TypeDecl* TypeDecl::Unserialize(UnserialInfo* info)
@@ -720,6 +824,58 @@ TypeDecl* TypeDecl::Unserialize(UnserialInfo* info)
 	return t;
 	}
 
+void TypeDecl::DescribeReST(ODesc* d) const
+	{
+	d->Add(id);
+	d->Add(": ");
+
+	if ( type->GetTypeID() )
+		{
+		d->Add(":bro:type:`");
+		d->Add(type->GetTypeID());
+		d->Add("`");
+		}
+	else
+		type->DescribeReST(d);
+
+	if ( attrs )
+		{
+		d->SP();
+		attrs->DescribeReST(d);
+		}
+	}
+
+CommentedTypeDecl::CommentedTypeDecl(BroType* t, const char* i,
+			attr_list* attrs, std::list<std::string>* cmnt_list)
+	: TypeDecl(t, i, attrs)
+	{
+	comments = cmnt_list;
+	}
+
+CommentedTypeDecl::~CommentedTypeDecl()
+	{
+	if ( comments ) delete comments;
+	}
+
+void CommentedTypeDecl::DescribeReST(ODesc* d) const
+	{
+	TypeDecl::DescribeReST(d);
+
+	if ( comments )
+		{
+		d->PushIndent();
+		std::list<std::string>::const_iterator i;
+
+		for ( i = comments->begin(); i != comments->end(); ++i)
+			{
+			if ( i != comments->begin() ) d->NL();
+			d->Add(i->c_str());
+			}
+
+		d->PopIndentNoNL();
+		}
+	}
+
 RecordField::RecordField(int arg_base, int arg_offset, int arg_total_offset)
 	{
 	base = arg_base;
@@ -736,7 +892,7 @@ RecordType::RecordType(type_decl_list* arg_types) : BroType(TYPE_RECORD)
 	}
 
 RecordType::RecordType(TypeList* arg_base, type_decl_list* refinements)
-: BroType(TYPE_RECORD)
+	: BroType(TYPE_RECORD)
 	{
 	if ( refinements )
 		arg_base->Append(new RecordType(refinements));
@@ -755,9 +911,11 @@ void RecordType::Init(TypeList* arg_base)
 	types = 0;
 
 	type_list* t = base->Types();
+
 	loop_over_list(*t, i)
 		{
 		BroType* ti = (*t)[i];
+
 		if ( ti->Tag() != TYPE_RECORD )
 			(*t)[i]->Error("non-record in base type list");
 
@@ -767,6 +925,7 @@ void RecordType::Init(TypeList* arg_base)
 		for ( int j = 0; j < n; ++j )
 			{
 			const TypeDecl* tdij = rti->FieldDecl(j);
+
 			if ( fields->Lookup(tdij->id) )
 				{
 				error("duplicate field", tdij->id);
@@ -774,6 +933,7 @@ void RecordType::Init(TypeList* arg_base)
 				}
 
 			RecordField* rf = new RecordField(i, j, fields->Length());
+
 			if ( fields->Insert(tdij->id, rf) )
 				Internal("duplicate field when constructing record");
 			}
@@ -788,6 +948,7 @@ RecordType::~RecordType()
 		{
 		loop_over_list(*types, i)
 			delete (*types)[i];
+
 		delete types;
 		}
 
@@ -898,6 +1059,13 @@ void RecordType::Describe(ODesc* d) const
 		}
 	}
 
+void RecordType::DescribeReST(ODesc* d) const
+	{
+	d->Add(":bro:type:`record`");
+	d->NL();
+	DescribeFieldsReST(d, false);
+	}
+
 void RecordType::DescribeFields(ODesc* d) const
 	{
 	if ( d->IsReadable() )
@@ -935,6 +1103,29 @@ void RecordType::DescribeFields(ODesc* d) const
 			base->Describe(d);
 			}
 		}
+	}
+
+void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
+	{
+	if ( ! func_args )
+		d->PushIndent();
+
+	for ( int i = 0; i < num_fields; ++i )
+		{
+		if ( i > 0 )
+			if ( func_args )
+				d->Add(", ");
+			else
+				{
+				d->NL();
+				d->NL();
+				}
+
+		FieldDecl(i)->DescribeReST(d);
+		}
+
+	if ( ! func_args )
+		d->PopIndentNoNL();
 	}
 
 IMPLEMENT_SERIAL(RecordType, SER_RECORD_TYPE)
@@ -1094,6 +1285,15 @@ EnumType::~EnumType()
 		delete [] iter->first;
 	}
 
+CommentedEnumType::~CommentedEnumType()
+	{
+	for ( CommentMap::iterator iter = comments.begin(); iter != comments.end(); ++iter )
+		{
+		delete [] iter->first;
+		delete iter->second;
+		}
+	}
+
 // Note, we use error() here (not Error()) to include the current script
 // location in the error message, rather than the one where the type was
 // originally defined.
@@ -1121,6 +1321,26 @@ void EnumType::AddName(const string& module_name, const char* name, bro_int_t va
 		}
 	counter = -1;
 	AddNameInternal(module_name, name, val, is_export);
+	}
+
+void CommentedEnumType::AddComment(const string& module_name, const char* name,
+                                   std::list<std::string>* new_comments)
+	{
+	if ( ! new_comments )
+		return;
+
+	string fullname = make_full_var_name(module_name.c_str(), name);
+
+	CommentMap::iterator it = comments.find(fullname.c_str());
+
+	if ( it == comments.end() )
+		comments[copy_string(fullname.c_str())] = new_comments;
+	else
+		{
+		comments[fullname.c_str()]->splice(comments[fullname.c_str()]->end(),
+			*new_comments);
+		delete new_comments;
+		}
 	}
 
 void EnumType::AddNameInternal(const string& module_name, const char* name, bro_int_t val, bool is_export)
@@ -1151,6 +1371,12 @@ void EnumType::AddNameInternal(const string& module_name, const char* name, bro_
 	names[copy_string(fullname.c_str())] = val;
 	}
 
+void CommentedEnumType::AddNameInternal(const string& module_name, const char* name, bro_int_t val, bool is_export)
+	{
+	string fullname = make_full_var_name(module_name.c_str(), name);
+	names[copy_string(fullname.c_str())] = val;
+	}
+
 bro_int_t EnumType::Lookup(const string& module_name, const char* name)
 	{
 	NameMap::iterator pos =
@@ -1170,6 +1396,51 @@ const char* EnumType::Lookup(bro_int_t value)
 			return iter->first;
 
 	return 0;
+	}
+
+void CommentedEnumType::DescribeReST(ODesc* d) const
+	{
+	// create temporary, reverse name map so that enums can be documented
+	// in ascending order of their actual integral value instead of by name
+	typedef std::map< bro_int_t, const char* > RevNameMap;
+	RevNameMap rev;
+	for ( NameMap::const_iterator it = names.begin(); it != names.end(); ++it )
+		rev[it->second] = it->first;
+
+	d->Add(":bro:type:`");
+	d->Add(type_name(Tag()));
+	d->Add("`");
+	d->PushIndent();
+	d->NL();
+
+	for ( RevNameMap::const_iterator it = rev.begin(); it != rev.end(); ++it )
+		{
+		if ( it != rev.begin() )
+			{
+			d->NL();
+			d->NL();
+			}
+
+		d->Add(".. bro:enum:: ");
+		d->AddSP(it->second);
+		d->Add(GetTypeID());
+
+		CommentMap::const_iterator cmnt_it = comments.find(it->second);
+		if ( cmnt_it != comments.end() )
+			{
+			d->PushIndent();
+			d->NL();
+			std::list<std::string>::const_iterator i;
+			const std::list<std::string>* cmnt_list = cmnt_it->second;
+			for ( i = cmnt_list->begin(); i != cmnt_list->end(); ++i)
+				{
+				if ( i != cmnt_list->begin() ) d->NL();
+				d->Add(i->c_str());
+				}
+			d->PopIndentNoNL();
+			}
+		}
+	d->PopIndentNoNL();
 	}
 
 IMPLEMENT_SERIAL(EnumType, SER_ENUM_TYPE);

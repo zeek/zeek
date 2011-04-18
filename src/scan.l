@@ -15,11 +15,18 @@
 #include "Debug.h"
 #include "PolicyFile.h"
 #include "broparse.h"
+#include "BroDoc.h"
+#include "BroBifDoc.h"
+#include "Analyzer.h"
+#include "AnalyzerTags.h"
 
 #include <stack>
+#include <list>
+#include <string>
 
 extern YYLTYPE yylloc;	// holds start line and column of token
 extern int print_loaded_scripts;
+extern int generate_documentation;
 
 int nwarn = 0;
 int nerr = 0;
@@ -28,13 +35,13 @@ int nruntime = 0;
 // Track the @if... depth.
 ptr_compat_int current_depth = 0;
 
-declare(List,ptr_compat_int);
-typedef List(ptr_compat_int) int_list;
 int_list if_stack;
 
 int line_number = 1;
 int include_level = 0;
 const char* filename = 0;
+BroDoc* current_reST_doc = 0;
+static BroDoc* last_reST_doc = 0;
 
 char last_tok[128];
 
@@ -50,6 +57,33 @@ char last_tok[128];
 // Files we have already scanned (or are in the process of scanning).
 static PList(char) files_scanned;
 
+// reST documents that we've created (or have at least opened so far).
+static std::list<BroDoc*> docs_generated;
+
+// reST comments (those starting with ##) seen so far.
+std::list<std::string>* reST_doc_comments = 0;
+
+// Print current contents of reST_doc_comments list to stderr.
+void print_current_reST_doc_comments();
+
+// Delete the reST_doc_comments list object.
+void clear_reST_doc_comments();
+
+// Adds changes to capture_filter to the current script's reST documentation.
+static void check_capture_filter_changes();
+
+// Adds changes to dpd_config to the current script's reST documentation.
+static void check_dpd_config_changes();
+
+static const char* canon_doc_comment(const char* comment)
+	{
+	// "##Text" and "## Text" are treated the same in order to be able
+	// to still preserve indentation level, but not unintentionally
+	// signify an indentation level for all the text when using
+	// the "## Text" style.
+	return ( comment[0] == ' ' ) ? comment + 1 : comment;
+	}
+
 class FileInfo {
 public:
 	FileInfo(string restore_module = "");
@@ -60,6 +94,7 @@ public:
 	const char* name;
 	int line;
 	int level;
+	BroDoc* doc;
 };
 
 // A stack of input buffers we're scanning.  file_stack[len-1] is the
@@ -87,6 +122,7 @@ static void report_file();
 
 %x RE
 %x IGNORE
+%s DOC
 
 OWS	[ \t]*
 WS	[ \t]+
@@ -102,11 +138,75 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 
 %%
 
+##!.* {
+	// Add this format of comments to the script documentation's "summary".
+	if ( generate_documentation )
+		current_reST_doc->AddSummary(canon_doc_comment(yytext + 3));
+	}
+
+<DOC>##<.* {
+	yylval.str = copy_string(canon_doc_comment(yytext + 3));
+	return TOK_POST_DOC;
+}
+
+<DOC>##.* {
+	if ( yytext[2] != '#' )
+		{
+		yylval.str = copy_string(canon_doc_comment(yytext + 2));
+		return TOK_DOC;
+		}
+}
+
+##{OWS}{ID}:.* {
+	if ( generate_documentation )
+		{
+		// Comment is documenting either a function parameter or return type,
+		// so appropriate reST markup substitutions are automatically made
+		// in order to distinguish them from other comments.
+		const char* id_start = skip_whitespace(yytext + 2);
+		size_t id_len = strcspn(id_start, ":");
+		char* id_name = new char[id_len + 1];
+		strncpy(id_name, id_start, id_len);
+		id_name[id_len] = '\0';
+		const char* comment = id_start + id_len + 1;
+
+		std::string doc;
+
+		if ( streq(id_name, "Returns") )
+			doc.append(":returns:").append(comment);
+		else
+			doc.append(":param ").append(id_name).append(":").append(comment);
+
+		if ( ! reST_doc_comments )
+			reST_doc_comments = new std::list<std::string>();
+
+		// always insert a blank line so that this param/return markup
+		// 1) doesn't show up in the summary section in the case that it's
+		//    the first comment for the function/event
+		// 2) has a blank line between it and non-field-list reST markup,
+		//    which is required for correct HTML rendering by Sphinx
+		reST_doc_comments->push_back("");
+		reST_doc_comments->push_back(doc);
+
+		delete [] id_name;
+		}
+}
+
+##.* {
+	if ( generate_documentation && (yytext[2] != '#') )
+		{
+		if ( ! reST_doc_comments )
+			reST_doc_comments = new std::list<std::string>();
+
+		reST_doc_comments->push_back(canon_doc_comment(yytext + 2));
+		}
+}
+
 #.*	/* eat comments */
 
 {WS}	/* eat whitespace */
 
-<INITIAL,IGNORE>\n	{
+<INITIAL,IGNORE,DOC>\n	{
 			report_file();
 			++line_number;
 			++yylloc.first_line;
@@ -211,6 +311,18 @@ when	return TOK_WHEN;
 
 @load{WS}{FILE}	{
 	const char* new_file = skip_whitespace(yytext + 5);	// Skip "@load".
+	if ( generate_documentation )
+		{
+		current_reST_doc->AddImport(new_file);
+
+		if ( reST_doc_comments )
+			{
+			fprintf(stderr, "Warning: unconsumed reST documentation is being "
+					"discarded before doing '@load %s' in %s:\n",
+					 new_file, current_reST_doc->GetSourceFileName());
+			clear_reST_doc_comments();
+			}
+		}
 	(void) load_files_with_prefix(new_file);
 	}
 
@@ -264,10 +376,10 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 	}
 
 {D}		{
- 		// TODO: check if we can use strtoull instead of atol, 
+ 		// TODO: check if we can use strtoull instead of atol,
 		// and similarly for {HEX}.
-		RET_CONST(new Val(static_cast<unsigned int>(atol(yytext)), 
-			  TYPE_COUNT))		
+		RET_CONST(new Val(static_cast<unsigned int>(atol(yytext)),
+			  TYPE_COUNT))
 		}
 {FLOAT}		RET_CONST(new Val(atof(yytext), TYPE_DOUBLE))
 
@@ -446,7 +558,6 @@ static int load_files_with_prefix(const char* orig_file)
 				strcpy(new_filename, file);
 
 			f = search_for_file(new_filename, "bro", &full_filename);
-
 			delete [] new_filename;
 			}
 
@@ -496,6 +607,21 @@ static int load_files_with_prefix(const char* orig_file)
 			// Don't delete the old filename - it's pointed to by
 			// every BroObj created when parsing it.
 			yylloc.filename = filename = full_filename;
+
+			if ( generate_documentation )
+				{
+				char* bifExtStart = strstr(full_filename, ".bif.bro");
+				BroDoc* reST_doc;
+
+				if ( bifExtStart )
+					reST_doc = new BroBifDoc(full_filename);
+				else
+					reST_doc = new BroDoc(full_filename);
+
+				docs_generated.push_back(reST_doc);
+
+				current_reST_doc = reST_doc;
+				}
 			}
 
 		else
@@ -589,6 +715,18 @@ void do_atendif()
 	--current_depth;
 	}
 
+void do_doc_token_start()
+	{
+	if ( generate_documentation )
+	    BEGIN(DOC);
+	}
+
+void do_doc_token_stop()
+	{
+	if ( generate_documentation )
+	    BEGIN(INITIAL);
+	}
+
 // Be careful to never delete things from this list, as the strings
 // are referred to (in order to save the locations of tokens and statements,
 // for error reporting and debugging).
@@ -655,6 +793,9 @@ int yywrap()
 	// Stack is now empty.
 	while ( input_files.length() > 0 )
 		{
+		check_capture_filter_changes();
+		check_dpd_config_changes();
+
 		if ( load_files_with_prefix(input_files[0]) )
 			{
 			// Don't delete the filename - it's pointed to by
@@ -667,6 +808,9 @@ int yywrap()
 		// if any.
 		(void) input_files.remove_nth(0);
 		}
+
+	check_capture_filter_changes();
+	check_dpd_config_changes();
 
 	// Add redef statements for any X=Y command line parameters.
 	if ( params.size() > 0 )
@@ -731,6 +875,20 @@ int yywrap()
 		return 0;
 		}
 
+	if ( generate_documentation )
+		{
+		std::list<BroDoc*>::iterator it;
+
+		for ( it = docs_generated.begin(); it != docs_generated.end(); ++it )
+			{
+			(*it)->WriteDocFile();
+			delete *it;
+			}
+
+		docs_generated.clear();
+		clear_reST_doc_comments();
+		}
+
 	// Otherwise, we are done.
 	return 1;
 	}
@@ -742,6 +900,7 @@ FileInfo::FileInfo(string arg_restore_module)
 	name = ::filename;
 	line = ::line_number;
 	level = ::include_level;
+	doc = ::current_reST_doc;
 	}
 
 FileInfo::~FileInfo()
@@ -753,6 +912,8 @@ FileInfo::~FileInfo()
 	yylloc.filename = filename = name;
 	yylloc.first_line = yylloc.last_line = line_number = line;
 	include_level = level;
+	last_reST_doc = current_reST_doc;
+	current_reST_doc = doc;
 
 	if ( restore_module != "" )
 		current_module = restore_module;
@@ -779,3 +940,93 @@ static void report_file()
 	files_reported.append(copy_string(filename));
 	}
 
+static void check_capture_filter_changes()
+	{
+	if ( ! generate_documentation )
+	    return;
+
+	// Lookup the "capture_filters" identifier, if it has any defined
+	// value, add it to the script's reST documentation, and finally
+	// clear the table so it doesn't taint the documentation for
+	// subsequent scripts.
+
+	ID* capture_filters = global_scope()->Lookup("capture_filters");
+
+	if ( capture_filters )
+		{
+		ODesc desc;
+		desc.SetIndentSpaces(4);
+		capture_filters->ID_Val()->Describe(&desc);
+		last_reST_doc->SetPacketFilter(desc.Description());
+		capture_filters->ID_Val()->AsTableVal()->RemoveAll();
+		}
+	}
+
+static void check_dpd_config_changes()
+	{
+	if ( ! generate_documentation )
+		return;
+
+	// Lookup the "dpd_config" identifier, if it has any defined value,
+	// add it to the script's documentation, and clear the table so that
+	// it doesn't taint the documentation for subsequent scripts.
+	ID* dpd_config = global_scope()->Lookup("dpd_config");
+	if ( ! dpd_config )
+		return;
+
+	TableVal* dpd_table = dpd_config->ID_Val()->AsTableVal();
+	ListVal* dpd_list = dpd_table->ConvertToList();
+
+	for ( int i = 0; i < dpd_list->Length(); ++i )
+		{
+		Val* key = dpd_list->Index(i);
+		if ( ! key )
+			continue;
+
+		Val* v = dpd_table->Lookup(key);
+		if ( ! v )
+			continue;
+
+		int tag = key->AsListVal()->Index(0)->AsCount();
+		ODesc valdesc;
+		valdesc.SetIndentSpaces(4);
+		valdesc.PushIndent();
+		v->Describe(&valdesc);
+
+		if ( tag < AnalyzerTag::Error || tag > AnalyzerTag::LastAnalyzer )
+			{
+			fprintf(stderr, "Warning: skipped bad analyzer tag: %i\n", tag);
+			continue;
+			}
+
+		last_reST_doc->AddPortAnalysis(
+			Analyzer::GetTagName((AnalyzerTag::Tag)tag),
+			valdesc.Description());
+		}
+
+	dpd_table->RemoveAll();
+	}
+
+void print_current_reST_doc_comments()
+	{
+	if ( ! reST_doc_comments )
+		return;
+
+	std::list<std::string>::iterator it;
+
+	for ( it = reST_doc_comments->begin(); it != reST_doc_comments->end(); ++it )
+		fprintf(stderr, "##%s\n", it->c_str());
+	}
+
+void clear_reST_doc_comments()
+	{
+	if ( ! reST_doc_comments )
+		return;
+
+	fprintf(stderr, "Warning: %lu unconsumed reST comments:\n",
+			reST_doc_comments->size());
+
+	print_current_reST_doc_comments();
+	delete reST_doc_comments;
+	reST_doc_comments = 0;
+	}

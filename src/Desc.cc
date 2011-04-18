@@ -41,6 +41,7 @@ ODesc::ODesc(desc_type t, BroFile* arg_f)
 	want_quotes = 0;
 	do_flush = 1;
 	include_stats = 0;
+	indent_with_spaces = 0;
 	}
 
 ODesc::~ODesc()
@@ -65,6 +66,12 @@ void ODesc::PopIndent()
 	if ( --indent_level < 0 )
 		internal_error("ODesc::PopIndent underflow");
 	NL();
+	}
+
+void ODesc::PopIndentNoNL()
+	{
+	if ( --indent_level < 0 )
+		internal_error("ODesc::PopIndent underflow");
 	}
 
 void ODesc::Add(const char* s, int do_indent)
@@ -179,8 +186,17 @@ void ODesc::AddBytes(const BroString* s)
 
 void ODesc::Indent()
 	{
-	for ( int i = 0; i < indent_level; ++i )
-		Add("\t", 0);
+	if ( indent_with_spaces > 0 )
+		{
+		for ( int i = 0; i < indent_level; ++i )
+			for ( int j = 0; j < indent_with_spaces; ++j )
+				Add(" ", 0);
+		}
+	else
+		{
+		for ( int i = 0; i < indent_level; ++i )
+			Add("\t", 0);
+		}
 	}
 
 

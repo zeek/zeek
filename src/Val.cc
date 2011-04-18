@@ -574,6 +574,11 @@ void Val::Describe(ODesc* d) const
 		Val::ValDescribe(d);
 	}
 
+void Val::DescribeReST(ODesc* d) const
+	{
+	ValDescribeReST(d);
+	}
+
 void Val::ValDescribe(ODesc* d) const
 	{
 	if ( d->IsReadable() && type->Tag() == TYPE_BOOL )
@@ -612,6 +617,20 @@ void Val::ValDescribe(ODesc* d) const
 	default:
 		// Don't call Internal(), that'll loop!
 		internal_error("Val description unavailable");
+	}
+	}
+
+void Val::ValDescribeReST(ODesc* d) const
+	{
+	switch ( type->InternalType() ) {
+	case TYPE_INTERNAL_OTHER:
+		Describe(d);
+		break;
+
+	default:
+		d->Add("``");
+		ValDescribe(d);
+		d->Add("``");
 	}
 	}
 
@@ -2927,6 +2946,34 @@ void RecordVal::Describe(ODesc* d) const
 
 	if ( d->IsReadable() )
 		d->Add("]");
+	}
+
+void RecordVal::DescribeReST(ODesc* d) const
+	{
+	const val_list* vl = AsRecord();
+	int n = vl->length();
+
+	d->Add("{");
+	d->PushIndent();
+
+	loop_over_list(*vl, i)
+		{
+		if ( i > 0 )
+			d->NL();
+
+		d->Add(record_type->FieldName(i));
+		d->Add("=");
+
+		Val* v = (*vl)[i];
+
+		if ( v )
+			v->Describe(d);
+		else
+			d->Add("<uninitialized>");
+		}
+
+	d->PopIndent();
+	d->Add("}");
 	}
 
 IMPLEMENT_SERIAL(RecordVal, SER_RECORD_VAL);

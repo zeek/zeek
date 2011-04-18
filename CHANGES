@@ -1,3 +1,19 @@
+1.6-dev.78 Mon Apr 18 12:52:55 PDT 2011
+
+- Adding files to CMake build targets so they show up in generated IDE
+  projects. This addresses #413. (Jon Siwek)
+    
+- Fix unnecessary config.h preprocessor (re)definitions. This
+  addresses #414. (Jon Siwek)
+
+- Updating istate tests. (Robin Sommer)
+  
+- Adding files to CMake build targets so they show up in generated IDE
+  projects.
+    
+- Adding new environment variable BRO_SEED_FILE to set the seed file
+  for the random number generator. (Robin Sommer)
+    
 1.6-dev.71 Fri Apr  1 16:06:33 PDT 2011
 
 - Removing code for the following no longer supported functionality.

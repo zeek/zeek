@@ -81,9 +81,14 @@ flex_target(Scanner scan.l ${CMAKE_CURRENT_BINARY_DIR}/scan.cc
 ## bifcl (BIF compiler) target
 
 set(bifcl_SRCS
+   ${BISON_BIFParser_INPUT}
+   ${FLEX_BIFScanner_INPUT}
    ${BISON_BIFParser_OUTPUTS}
    ${FLEX_BIFScanner_OUTPUTS}
-   bif_arg.cc module_util.cc
+   bif_arg.cc
+   module_util.cc
+   bif_arg.h
+   module_util.h
 )
 
 add_executable(bifcl ${bifcl_SRCS})
@@ -149,6 +154,7 @@ set(BINPAC_AUXSRC
 # A macro to define a command that uses the BinPac compiler to
 # produce C++ code that implements a protocol parser/analyzer
 # The outputs of the command are appended to list ALL_BINPAC_OUTPUTS
+# All arguments to this macro are appended to list ALL_BINPAC_INPUTS
 macro(BINPAC_TARGET pacFile)
     get_filename_component(basename ${pacFile} NAME_WE)
     add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${basename}_pac.h
@@ -161,6 +167,7 @@ macro(BINPAC_TARGET pacFile)
                                ${BINPAC_AUXSRC} ${ARGN}
                        COMMENT "[BINPAC] Processing ${pacFile}"
     )
+    list(APPEND ALL_BINPAC_INPUTS ${ARGV})
     list(APPEND ALL_BINPAC_OUTPUTS
          ${CMAKE_CURRENT_BINARY_DIR}/${basename}_pac.h
          ${CMAKE_CURRENT_BINARY_DIR}/${basename}_pac.cc) 
@@ -197,6 +204,25 @@ binpac_target(ssl-record-layer.pac
 ########################################################################
 ## bro target
 
+# This macro stores associated headers for any C/C++ source files given
+# as arguments (past _var) as a list in the CMake variable named "_var".
+macro(COLLECT_HEADERS _var)
+    foreach (src ${ARGN})
+        get_filename_component(ext ${src} EXT)
+        if (${ext} STREQUAL ".cc" OR ${ext} STREQUAL ".c")
+            get_filename_component(base ${src} NAME_WE)
+            get_filename_component(dir ${src} PATH)
+            if (NOT "${dir}")
+                set(dir ${CMAKE_CURRENT_SOURCE_DIR})
+            endif ()
+            set(header "${dir}/${base}.h")
+            if (EXISTS ${header})
+                list(APPEND ${_var} ${header})
+            endif ()
+        endif ()
+    endforeach ()
+endmacro(COLLECT_HEADERS _var)
+
 # define a command that's used to run the make_dbg_constants.pl script
 # building the bro binary depends on the outputs of this script
 add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
@@ -210,12 +236,19 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
                    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
 
-set(dns_SRCS nb_dns.c nb_dns.h)
+set(dns_SRCS nb_dns.c)
 set_source_files_properties(nb_dns.c PROPERTIES COMPILE_FLAGS
                             -fno-strict-aliasing)
 
-set(openssl_SRCS X509.cc SSLCiphers.cc SSLInterpreter.cc SSLProxy.cc
-                 SSLv2.cc SSLv3.cc SSLv3Automaton.cc)
+set(openssl_SRCS
+    X509.cc
+    SSLCiphers.cc
+    SSLInterpreter.cc
+    SSLProxy.cc
+    SSLv2.cc
+    SSLv3.cc
+    SSLv3Automaton.cc
+)
 
 if (USE_NMALLOC)
     set(malloc_SRCS malloc.c)
@@ -223,12 +256,21 @@ endif ()
 
 set(bro_SRCS
     ${CMAKE_CURRENT_BINARY_DIR}/version.c
+    ${BIF_SRCS}
     ${ALL_BIF_OUTPUTS}
+    ${BINPAC_AUXSRC}
+    ${ALL_BINPAC_INPUTS}
     ${ALL_BINPAC_OUTPUTS}
     ${TRANSFORMED_BISON_OUTPUTS}
     ${FLEX_RuleScanner_OUTPUTS}
+    ${FLEX_RuleScanner_INPUT}
+    ${BISON_RuleParser_INPUT}
     ${FLEX_REScanner_OUTPUTS}
+    ${FLEX_REScanner_INPUT}
+    ${BISON_REParser_INPUT}
     ${FLEX_Scanner_OUTPUTS}
+    ${FLEX_Scanner_INPUT}
+    ${BISON_Parser_INPUT}
     ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
     main.cc
     net_util.cc
@@ -367,9 +409,11 @@ set(bro_SRCS
     ${openssl_SRCS}
 )
 
+collect_headers(bro_HEADERS ${bro_SRCS})
+
 add_definitions(-DPOLICYDEST="${POLICYDIR}")
 
-add_executable(bro ${bro_SRCS})
+add_executable(bro ${bro_SRCS} ${bro_HEADERS})
 
 set(brolibs
     ${BinPAC_LIBRARY}

@@ -71,9 +71,6 @@ event signature_match(state: signature_state, msg: string, data: string) &priori
 	
 	# Set the mime type that was detected.
 	c$http$mime_type = msg;
-	# This will be removed when I'm done showing how the record extension 
-	# mechanism seems to be broken.
-	c$http$mime_type2 = msg;
 	
 	if ( msg in mime_types_extensions && 
 	     mime_types_extensions[msg] !in c$http$uri )

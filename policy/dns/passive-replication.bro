@@ -25,6 +25,6 @@ event bro_init()
 				}
 			return F;
 			},
-		$include=set("query", "replies"),
-	    ]);
+		$include=set("query", "replies")
+		]);
 	}

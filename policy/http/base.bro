@@ -51,10 +51,6 @@ export {
 		## related to a particular request/response pair.
 		tags:                    set[Tag] &log &optional;
 		
-		# This will be removed once I'm done showing how the record
-		# extension mechanism seems to be broken.
-		mime_type2:              string   &log &optional;
-		
 		#file_name: string; ##maybe if the header's there?
 		
 		log_point:               LogPoint &default=default_log_point;

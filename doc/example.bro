@@ -39,7 +39,7 @@ module Example;
 # go into the generated documentation's "Packet Filter" section
 redef capture_filters += {
     ["ssl"] = "tcp port 443",
-    ["nntps"] = "tcp port 563",
+    ["nntps"] = "tcp port 562",
 };
 
 global example_ports = {

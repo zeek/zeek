@@ -43,7 +43,7 @@ redef capture_filters += {
 };
 
 global example_ports = {
-    443/tcp, 563/tcp,
+    443/tcp, 562/tcp,
 } &redef;
 
 # redefinitions of "dpd_config" are self-documenting and

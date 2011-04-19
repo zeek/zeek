@@ -68,6 +68,8 @@
 # t	id.orig_h	id.orig_p	id.resp_h	id.resp_p
 1299499205.0	10.0.0.1	20	10.0.0.2	1033
 1299502795.0	10.0.0.2	20	10.0.0.3	9
+> test.log
+# t	id.orig_h	id.orig_p	id.resp_h	id.resp_p
 > test2-11-03-06_19.00.05.log
 # t	id.orig_h	id.orig_p	id.resp_h	id.resp_p
 1299466805.0	10.0.0.1	20	10.0.0.2	1024
@@ -129,6 +131,4 @@
 # t	id.orig_h	id.orig_p	id.resp_h	id.resp_p
 1299502795.0	10.0.0.2	20	10.0.0.3	9
 > test2.log
-# t	id.orig_h	id.orig_p	id.resp_h	id.resp_p
-> test.log
 # t	id.orig_h	id.orig_p	id.resp_h	id.resp_p

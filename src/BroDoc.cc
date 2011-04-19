@@ -2,6 +2,7 @@
 #include <cstdarg>
 #include <string>
 #include <list>
+#include <algorithm>
 
 #include "BroDoc.h"
 #include "BroDocObj.h"

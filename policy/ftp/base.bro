@@ -164,7 +164,7 @@ function ftp_message(s: State)
 			arg = fmt("ftp://%s%s", s$id$resp_h, absolute_path(s$cwd, arg));
 		
 		s$ts=s$cmdarg$ts;
-		s$command=s$cmdarg$s;
+		s$command=s$cmdarg$cmd;
 		s$arg=arg;
 		
 		# TODO: does the framework do this atomicly or do I need the copy?

@@ -225,6 +225,8 @@ Val* do_split(StringVal* str_val, RE_Matcher* re, TableVal* other_sep,
 			}
 
 		Val* ind = new Val(++num, TYPE_COUNT);
+		if ( num_sep >= max_num_sep )
+			offset = end_of_s-s;
 		a->Assign(ind, new StringVal(offset, (const char*) s));
 		Unref(ind);
 
@@ -238,7 +240,7 @@ Val* do_split(StringVal* str_val, RE_Matcher* re, TableVal* other_sep,
 			a->Assign(ind, new StringVal(end_of_match, (const char*) s+offset));
 			Unref(ind);
 			}
-
+			
 		if ( max_num_sep && num_sep >= max_num_sep )
 			break;
 

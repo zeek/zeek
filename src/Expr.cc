@@ -2497,12 +2497,7 @@ AssignExpr::AssignExpr(Expr* arg_op1, Expr* arg_op2, int arg_is_init,
 bool AssignExpr::TypeCheck()
 	{
 	TypeTag bt1 = op1->Type()->Tag();
-	if ( IsVector(bt1) )
-		bt1 = op1->Type()->AsVectorType()->YieldType()->Tag();
-
 	TypeTag bt2 = op2->Type()->Tag();
-	if ( IsVector(bt2) )
-		bt2 = op2->Type()->AsVectorType()->YieldType()->Tag();
 
 	if ( bt1 == TYPE_LIST && bt2 == TYPE_ANY )
 		// This is ok because we cannot explicitly declare lists on
@@ -2528,6 +2523,13 @@ bool AssignExpr::TypeCheck()
 	     op2->Type()->AsTableType()->IsUnspecifiedTable() )
 		{
 		op2 = new TableCoerceExpr(op2, op1->Type()->AsTableType());
+		return true;
+		}
+
+	if ( bt1 == TYPE_VECTOR && bt2 == bt1 &&
+	     op2->Type()->AsVectorType()->IsUnspecifiedVector() )
+		{
+		op2 = new VectorCoerceExpr(op2, op1->Type()->AsVectorType());
 		return true;
 		}
 
@@ -3506,6 +3508,13 @@ VectorConstructorExpr::VectorConstructorExpr(ListExpr* constructor_list)
 	if ( IsError() )
 		return;
 
+	if ( constructor_list->Exprs().length() == 0 )
+		{
+		// vector().
+		SetType(new ::VectorType(base_type(TYPE_ANY)));
+		return;
+		}
+
 	BroType* t = merge_type_list(constructor_list);
 	if ( t )
 		{
@@ -4117,6 +4126,50 @@ bool TableCoerceExpr::DoSerialize(SerialInfo* info) const
 	}
 
 bool TableCoerceExpr::DoUnserialize(UnserialInfo* info)
+	{
+	DO_UNSERIALIZE(UnaryExpr);
+	return true;
+	}
+
+VectorCoerceExpr::VectorCoerceExpr(Expr* op, VectorType* v)
+: UnaryExpr(EXPR_VECTOR_COERCE, op)
+	{
+	if ( IsError() )
+		return;
+
+	SetType(v->Ref());
+
+	if ( Type()->Tag() != TYPE_VECTOR )
+		ExprError("coercion to non-vector");
+
+	else if ( op->Type()->Tag() != TYPE_VECTOR )
+		ExprError("coercion of non-vector to vector");
+	}
+
+
+VectorCoerceExpr::~VectorCoerceExpr()
+	{
+	}
+
+Val* VectorCoerceExpr::Fold(Val* v) const
+	{
+	VectorVal* vv = v->AsVectorVal();
+
+	if ( vv->Size() > 0 )
+		Internal("coercion of non-empty vector");
+
+	return new VectorVal(Type()->Ref()->AsVectorType());
+	}
+
+IMPLEMENT_SERIAL(VectorCoerceExpr, SER_VECTOR_COERCE_EXPR);
+
+bool VectorCoerceExpr::DoSerialize(SerialInfo* info) const
+	{
+	DO_SERIALIZE(SER_VECTOR_COERCE_EXPR, UnaryExpr);
+	return true;
+	}
+
+bool VectorCoerceExpr::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(UnaryExpr);
 	return true;
@@ -5334,6 +5387,13 @@ int check_and_promote_expr(Expr*& e, BroType* t)
 			  et->AsTableType()->IsUnspecifiedTable() )
 			{
 			e = new TableCoerceExpr(e, t->AsTableType());
+			return 1;
+			}
+
+		if ( t->Tag() == TYPE_VECTOR && et->Tag() == TYPE_VECTOR &&
+			  et->AsVectorType()->IsUnspecifiedVector() )
+			{
+			e = new VectorCoerceExpr(e, t->AsVectorType());
 			return 1;
 			}
 

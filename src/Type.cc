@@ -1290,6 +1290,11 @@ int VectorType::MatchesIndex(ListExpr*& index) const
 				MATCHES_INDEX_SCALAR : DOES_NOT_MATCH_INDEX;
 	}
 
+bool VectorType::IsUnspecifiedVector() const
+	{
+	return yield_type->Tag() == TYPE_ANY;
+	}
+
 IMPLEMENT_SERIAL(VectorType, SER_VECTOR_TYPE);
 
 bool VectorType::DoSerialize(SerialInfo* info) const
@@ -1651,6 +1656,7 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 	case TYPE_ADDR:
 	case TYPE_NET:
 	case TYPE_SUBNET:
+	case TYPE_BOOL:
 	case TYPE_ANY:
 	case TYPE_ERROR:
 		return base_type(tg1);

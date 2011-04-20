@@ -525,6 +525,10 @@ public:
 
 	int MatchesIndex(ListExpr*& index) const;
 
+	// Returns true if this table type is "unspecified", which is what one
+	// gets using an empty "vector()" constructor.
+	bool IsUnspecifiedVector() const;
+
 protected:
 	VectorType()	{ yield_type = 0; }
 

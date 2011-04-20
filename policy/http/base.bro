@@ -1,19 +1,12 @@
 @load functions
-@load software
 
 module HTTP;
-
-redef enum Software::Type += {
-	WEB_SERVER,
-	WEB_BROWSER,
-	WEB_BROWSER_PLUGIN,
-};
 
 redef enum Log::ID += { HTTP };
 
 export {
 	## Indicate a type of attack or compromise in the record to be logged.
-	type Tag: enum {
+	type Tags: enum {
 		EMPTY
 	};
 	
@@ -49,7 +42,7 @@ export {
 		status_msg:              string   &log &optional;
 		## This is a set of indicators of various attributes discovered and
 		## related to a particular request/response pair.
-		tags:                    set[Tag] &log &optional;
+		tags:                    set[Tags] &log &optional;
 		
 		#file_name: string; ##maybe if the header's there?
 		
@@ -89,6 +82,8 @@ function new_http_session(c: connection): State
 	local tmp: State;
 	tmp$ts=network_time();
 	tmp$id=c$id;
+	# TODO: remove this when &default on this set isn't segfaulting Bro anymore.
+	tmp$tags = set();
 	return tmp;
 	}
 	
@@ -166,42 +161,12 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 		else if ( name == "USER-AGENT" )
 			{
 			c$http$user_agent = value;
-	        #
-			#if ( ignored_user_agents in value ) 
-			#	return;
-	        #
-			#if ( /Java\// in value )
-			#	{
-			#	local java_tokens = split_n(value, /Java\//, F, 2);
-			#	if ( |java_tokens| == 2 )
-			#		{
-			#		local java_string = fmt("Java/%s", java_tokens[2]);
-			#		local java_ver = default_software_parsing(java_string);
-			#		event software_version_found(c, c$id$orig_h, 
-			#		                             java_ver,
-			#		                             WEB_BROWSER_PLUGIN);
-			#		}
-			#	}
-	        #
-			#if ( addr_matches_hosts(c$id$orig_h, track_user_agents_for) &&
-			#	 value !in known_user_agents[c$id$orig_h] )
-			#	{
-			#	if ( c$id$orig_h !in known_user_agents )
-			#		known_user_agents[c$id$orig_h] = set();
-			#	add known_user_agents[c$id$orig_h][value];
-			#	ci$new_user_agent = T;
-			#	}
 			}
 		
 		}
 	else # server headers
 		{
-		if ( name == "SERVER" )
-			{
-			local si = Software::parse(value, c$id$resp_h, WEB_SERVER);
-			Software::found(c, si);
-			}
-		else if ( name == "CONTENT-LENGTH" )
+		if ( name == "CONTENT-LENGTH" )
 			c$http$response_content_length = to_count(value);
 		}
 	

@@ -25,7 +25,7 @@ export {
 		minor:  count &optional;    ##< Minor version number
 		minor2: count &optional;    ##< Minor subversion number
 		addl:   string &optional;  ##< Additional version string (e.g. "beta42")
-	};
+	} &log;
 
 	type Type: enum {
 		UNKNOWN,
@@ -75,7 +75,7 @@ export {
 	## @param unparsed_version: This is the full string from which the
 	##                          Software::Info was extracted.
 	## @return: T if the software was logged, F otherwise.
-	global found: function(c: connection, info: Software::Info): bool;
+	global found: function(id: conn_id, info: Software::Info): bool;
 	
 	## This function can take many software version strings and parse them into 
 	## a sensible Software::Version record.  There are still many cases where
@@ -103,6 +103,24 @@ event bro_init()
 	Log::create_stream(SOFTWARE, [$columns=Software::Info, $ev=log_software]);
 	Log::add_default_filter(SOFTWARE);
 	}
+	
+function parse_mozilla(unparsed_version: string, 
+	                   host: addr, 
+	                   software_type: Type): Info
+	{
+	local software_name = "<parse error>";
+	local v: Version;
+	
+	if ( /Version\/.*Safari\// in unparsed_version )
+		{
+		software_name = "Safari";
+		local parts = split_all(unparsed_version, /Version\/[0-9\.]*/);
+		if ( 2 in parts )
+			v = parse(parts[2], host, software_type)$version;
+		}
+	return [$ts=network_time(), $host=host, $name=software_name, $version=v,
+	        $unparsed_version=unparsed_version];
+	}
 
 # Don't even try to understand this now, just make sure the tests are 
 # working.
@@ -112,40 +130,55 @@ function parse(unparsed_version: string,
 	{
 	local software_name = "<parse error>";
 	local v: Version;
-
-	# The regular expression should match the complete version number
-	# and software name.
-	local version_parts = split_n(unparsed_version, /[0-9\/\-\._ ]{2,}/, T, 1);
-	if ( 1 in version_parts )
-		software_name = version_parts[1];
-	if ( |version_parts| >= 2 )
+	
+	# Parse browser-alike versions separately
+	if ( /^Mozilla\/[0-9]\./ in unparsed_version )
 		{
-		# Remove the name/version separator because it's left at the begining
-		# of the version number from the previous split_all.
-		local sv = version_parts[2];
-		if ( /^[\/\-\._ ]/ in sv )
-		 	sv = sub(version_parts[2], /^[\/\-\._ ]/, "");
-		local version_numbers = split_n(sv, /[\-\._,\[\(\{ ]/, F, 4);
-		if ( 4 in version_numbers && version_numbers[4] != "" )
-			v$addl = version_numbers[4];
-		else if ( 3 in version_parts && version_parts[3] != "" )
+		print parse_mozilla(unparsed_version, host, software_type);
+		}
+	else
+		{
+		# The regular expression should match the complete version number
+		# and software name.
+		local version_parts = split_n(unparsed_version, /[0-9\/\-\._, ]{2,}/, T, 1);
+		if ( 1 in version_parts )
+			software_name = version_parts[1];
+		if ( |version_parts| >= 2 )
 			{
-			# TODO: there's a bug with do_split!
-			local vp = split_n(version_parts[3], /[\-\._,\[\]\(\)\{\} ]/, F, 2);
-			if ( |vp| >= 1 && vp[1] != "" )
-				v$addl = vp[1];
-			else if ( |vp| >= 2 && vp[2] != "" )
-				v$addl = vp[2];
-			else
-				v$addl = version_parts[3];
-			}
+			# Remove the name/version separator if it's left at the beginning
+			# of the version number from the previous split_all.
+			local sv = version_parts[2];
+			if ( /^[\/\-\._ ]/ in sv )
+			 	sv = sub(version_parts[2], /^[\/\-\._ ]/, "");
+			local version_numbers = split_n(sv, /[\-\._,\[\(\{ ]/, F, 4);
+			if ( 4 in version_numbers && version_numbers[4] != "" )
+				v$addl = version_numbers[4];
+			else if ( 3 in version_parts && version_parts[3] != "" )
+				{
+				if ( /^[[:blank:]]*\(.*\)/ in version_parts[3] )
+					{
+					v$addl = split_n(version_parts[3], /[\(\)]/, F, 2)[2];
+					}
+				else
+					{
+					# TODO: there's a bug with do_split!
+					local vp = split_n(version_parts[3], /[\-\._,\[\]\(\)\{\} ]/, F, 2);
+					if ( |vp| >= 1 && vp[1] != "" )
+						v$addl = vp[1];
+					else if ( |vp| >= 2 && vp[2] != "" )
+						v$addl = vp[2];
+					else
+						v$addl = version_parts[3];
+					}
+				}
 		
-		if ( |version_numbers| >= 3 )
-			v$minor2 = to_count(version_numbers[3]);
-		if ( |version_numbers| >= 2 )
-			v$minor = to_count(version_numbers[2]);
-		if ( |version_numbers| >= 1 )
-			v$major = to_count(version_numbers[1]);
+			if ( |version_numbers| >= 3 )
+				v$minor2 = to_count(version_numbers[3]);
+			if ( |version_numbers| >= 2 )
+				v$minor = to_count(version_numbers[2]);
+			if ( |version_numbers| >= 1 )
+				v$major = to_count(version_numbers[1]);
+			}
 		}
 	return [$ts=network_time(), $host=host, $name=software_name,
 	        $version=v, $unparsed_version=unparsed_version,
@@ -211,9 +244,9 @@ function cmp_versions(v1: Version, v2: Version): int
 		}
 	}
 
-function software_endpoint_name(c: connection, host: addr): string
+function software_endpoint_name(id: conn_id, host: addr): string
 	{
-	return fmt("%s %s", host, (host == c$id$orig_h ? "client" : "server"));
+	return fmt("%s %s", host, (host == id$orig_h ? "client" : "server"));
 	}
 
 # Convert a version into a string "a.b.c-x".
@@ -232,7 +265,7 @@ function software_fmt(i: Info): string
 
 # Insert a mapping into the table
 # Overides old entries for the same software and generates events if needed.
-event software_register(c: connection, info: Info)
+event software_register(id: conn_id, info: Info)
 	{
 	# Host already known?
 	if ( info$host !in tracked_software )
@@ -250,10 +283,10 @@ event software_register(c: connection, info: Info)
 		     cmp_versions(old$version, info$version) != 0 )
 			{
 			local msg = fmt("%.6f %s switched from %s to %s (%s)",
-					network_time(), software_endpoint_name(c, info$host),
+					network_time(), software_endpoint_name(id, info$host),
 					software_fmt_version(old$version),
 					software_fmt(info), info$software_type);
-			NOTICE([$note=Software_Version_Change, $conn=c,
+			NOTICE([$note=Software_Version_Change, $id=id,
 			        $msg=msg, $sub=software_fmt(info)]);
 			}
 		else
@@ -269,11 +302,11 @@ event software_register(c: connection, info: Info)
 	ts[info$name] = info;
 	}
 
-function found(c: connection, info: Info): bool
+function found(id: conn_id, info: Info): bool
 	{
 	if ( addr_matches_hosts(info$host, logging) )
 		{
-		event software_register(c, info);
+		event software_register(id, info);
 		return T;
 		}
 	else

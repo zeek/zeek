@@ -9,3 +9,5 @@
 @load http/detect
 @load http/detect-intel
 @load http/file-ident
+@load http/software
+@load http/headers

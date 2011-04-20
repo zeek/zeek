@@ -26,30 +26,34 @@ redef enum Notice::Type += {
 };
 
 export {
-	type Tag: enum {
+	type Tags: enum {
 		UNKNOWN
 	};
 	
 	type State: record {
-		ts:               time    &log;
-		id:               conn_id &log;
-		user:             string  &log &default="<unknown>";
-		password:         string  &log &optional;
-		command:          string  &log &optional;
-		arg:              string  &log &optional;
-		mime_type:        string  &log &optional;
-		mime_desc:        string  &log &optional;
-		file_size:        count   &log &optional;
-		reply_code:       count   &log &optional;
-		reply_msg:        string  &log &optional;
-		tags:             set[Tag] &log;
+		ts:               time      &log;
+		id:               conn_id   &log;
+		user:             string    &log &default="<unknown>";
+		password:         string    &log &optional;
+		command:          string    &log &optional;
+		arg:              string    &log &optional;
+		                            
+		mime_type:        string    &log &optional;
+		mime_desc:        string    &log &optional;
+		file_size:        count     &log &optional;
+		reply_code:       count     &log &optional;
+		reply_msg:        string    &log &optional;
+		tags:             set[Tags] &log &default=set();
 		
 		## By setting the CWD to '/.', we can indicate that unless something
 		## more concrete is discovered that the existing but unknown
 		## directory is ok to use.
-		cwd:                string &default="/.";
-		cmdarg:             CmdArg &optional;
+		cwd:                string  &default="/.";
+		cmdarg:             CmdArg  &optional;
 		pending_commands:   PendingCmds;
+		
+		## This indicates if the session is in active or passive mode.
+		passive:            bool &default=F;
 	};
 	
 	type ExpectedConn: record {
@@ -160,7 +164,7 @@ function ftp_message(s: State)
 			arg = fmt("ftp://%s%s", s$id$resp_h, absolute_path(s$cwd, arg));
 		
 		s$ts=s$cmdarg$ts;
-		s$command=s$cmdarg$cmd;
+		s$command=s$cmdarg$s;
 		s$arg=arg;
 		
 		# TODO: does the framework do this atomicly or do I need the copy?
@@ -172,10 +176,10 @@ function ftp_message(s: State)
 	# values after logging.
 	# TODO: change these to blank or remove the field when moving to the new
 	#       logging framework
-	s$mime_type="\\N";
-	s$mime_desc="\\N";
-	s$file_size=0;
-	s$tags=set();
+	s$mime_type = "";
+	s$mime_desc = "";
+	s$file_size = 0;
+	s$tags = set();
 	}
 
 event ftp_request(c: connection, command: string, arg: string) &priority=5
@@ -215,7 +219,9 @@ event ftp_request(c: connection, command: string, arg: string) &priority=5
 
 		if ( data$valid )
 			{
-			local expected = [$host=id$resp_h, $state=c$ftp];
+			c$ftp$passive=F;
+			
+			local expected = [$host=id$resp_h, $state=copy(c$ftp)];
 			ftp_data_expected[data$h, data$p] = expected;
 			expect_connection(id$resp_h, data$h, data$p, ANALYZER_FILE, 5mins);
 			}
@@ -278,6 +284,8 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &prior
 		
 		if ( data$valid )
 			{
+			c$ftp$passive=T;
+			
 			if ( code == 229 && data$h == 0.0.0.0 )
 				data$h = id$resp_h;
 			
@@ -313,6 +321,36 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &prior
 		}
 	}
 
+
+event expected_connection_seen(c: connection, a: count) &priority=10
+	{
+	local id = c$id;
+	if ( [id$resp_h, id$resp_p] in ftp_data_expected )
+		add c$service["ftp-data"];
+	}
+
+event file_transferred(c: connection, prefix: string, descr: string,
+			mime_type: string) &priority=5
+	{
+	local id = c$id;
+	print descr;
+	if ( [id$resp_h, id$resp_p] in ftp_data_expected )
+		{
+		local expected = ftp_data_expected[id$resp_h, id$resp_p];
+		local s = expected$state;
+		s$mime_type = mime_type;
+		s$mime_desc = descr;
+		}
+	}
+	
+event file_transferred(c: connection, prefix: string, descr: string,
+			mime_type: string) &priority=-5
+	{
+	local id = c$id;
+	if ( [id$resp_h, id$resp_p] in ftp_data_expected )
+		delete ftp_data_expected[id$resp_h, id$resp_p];
+	}
+	
 # Use state remove event to cover connections terminated by RST.
 event connection_state_remove(c: connection) &priority=-5
 	{
@@ -327,28 +365,3 @@ event connection_state_remove(c: connection) &priority=-5
 		ftp_message(c$ftp);
 		}
 	}
-	
-#event expected_connection_seen(c: connection, a: count) &priority=1
-#	{
-#	local id = c$id;
-#	if ( [id$resp_h, id$resp_p] in ftp_data_expected )
-#		add c$service["ftp-data"];
-#	}
-
-#event file_transferred(c: connection, prefix: string, descr: string,
-#			mime_type: string) &priority=1
-#	{
-#	local id = c$id;
-#	if ( [id$resp_h, id$resp_p] in ftp_data_expected )
-#		{
-#		local expected = ftp_data_expected[id$resp_h, id$resp_p];
-#		local s = expected$session;
-#		s$mime_type = mime_type;
-#		s$mime_desc = descr;
-#		
-#		# TODO: not sure if it's ok to delete this here, but it should
-#		#       always be called since the file analyzer is always attached
-#		#       to ftp-data sessions.
-#		delete ftp_data_expected[id$resp_h, id$resp_p];
-#		}
-#	}

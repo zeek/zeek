@@ -37,7 +37,7 @@ global matched_software: table[string] of Software::Info = {
 	["Wget/1.9+cvs-stable (Red Hat modified)"] = 
 		[$name="Wget", $version=[$major=1,$minor=9,$addl="+cvs"], $host=0.0.0.0, $ts=ts],
 	["Wget/1.11.4 (Red Hat modified)"] = 
-		[$name="Wget", $version=[$major=1,$minor=11,$minor2=4,$addl="Red"], $host=0.0.0.0, $ts=ts],
+		[$name="Wget", $version=[$major=1,$minor=11,$minor2=4,$addl="Red Hat Modified"], $host=0.0.0.0, $ts=ts],
 	# This is currently broken due to the do_split bug.
 	#["curl/7.15.1 (i486-pc-linux-gnu) libcurl/7.15.1 OpenSSL/0.9.8a zlib/1.2.3 libidn/0.5.18"] =
 	#	[$name="curl", $version=[$major=7,$minor=15,$minor2=1], $host=0.0.0.0, $ts=ts],
@@ -45,6 +45,8 @@ global matched_software: table[string] of Software::Info = {
 		[$name="Apache", $host=0.0.0.0, $ts=ts],
 	["Zope/(Zope 2.7.8-final, python 2.3.5, darwin) ZServer/1.1 Plone/Unknown"] =
 		[$name="Zope/(Zope", $version=[$major=2,$minor=7,$minor2=8,$addl="final"], $host=0.0.0.0, $ts=ts],
+	["The Bat! (v2.00.9) Personal"] =
+		[$name="The Bat!", $version=[$major=2,$minor=0,$minor2=9,$addl="Personal"], $host=0.0.0.0, $ts=ts],
 };
 
 event bro_init()

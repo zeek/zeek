@@ -24,7 +24,7 @@ redef record HTTP::State += {
 
 
 export {
-	redef enum Tag += {
+	redef enum Tags += {
 		IDENTIFIED_FILE
 	};
 	

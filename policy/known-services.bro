@@ -14,13 +14,13 @@ export {
 	
 
 	type Info: record {
-		ts:             time &log;
-		host:           addr &log;
-		port_num:       port &log;
+		ts:             time            &log;
+		host:           addr            &log;
+		port_num:       port            &log;
 		port_proto:     transport_proto &log;
-		service:        set[string] &log &optional;
+		service:        set[string]     &log &optional;
 		
-		log_point:      LogPoint &default=default_log_point;
+		log_point:      LogPoint        &default=default_log_point;
 	};
 	
 	# The hosts whose services should be logged.

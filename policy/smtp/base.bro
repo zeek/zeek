@@ -16,11 +16,6 @@ redef enum Notice::Type += {
 	SMTP_Suspicious_Origination,
 };
 
-redef enum Software::Type += {
-	MAIL_CLIENT,
-	MAIL_SERVER,
-};
-
 redef enum Log::ID += { SMTP };
 
 # Configure DPD
@@ -70,9 +65,9 @@ export {
 		## Count the number of individual messages transmitted during this 
 		## SMTP session.  Note, this is not the number of recipients, but the
 		## number of message bodies transferred.
-		messages_transferred:     count &default=0;
+		messages_transferred:     count     &default=0;
 		
-		#pending_messages:         set[Info];
+		pending_messages:         set[Info] &optional;
 	};
 	
 	## Direction to capture the full "Received from" path.
@@ -101,13 +96,8 @@ function new_smtp_log(c: connection): Info
 	local l: Info;
 	l$ts=network_time();
 	l$id=c$id;
-	if ( c?$smtp )
-		{
-		if ( c$smtp?$helo )
-			l$helo = c$smtp$helo;
-		
-		++c$smtp_state$messages_transferred;
-		}
+	if ( c?$smtp &&c$smtp?$helo )
+		l$helo = c$smtp$helo;
 	
 	return l;
 	}
@@ -118,25 +108,12 @@ function set_smtp_session(c: connection)
 		c$smtp = new_smtp_log(c);
 	
 	if ( ! c?$smtp_state )
-		#c$smtp_state = [$pending_messages=set()];
 		c$smtp_state = [];
 	}
 
 
 function smtp_message(c: connection)
 	{
-	# If the MUA provided a user-agent string, kick over to the software framework.
-	# This is done here so that the "Received: from" path has a chance to be
-	# built since that's where the IP address is pulled from.
-	# This falls apart a bit in the cases where a webmail client includes the 
-	# IP address of the client in a header.  This will be compensated for 
-	# later with more comprehensive webmail interface detection.
-	if ( c$smtp?$agent && c$smtp?$path )
-		{
-		local s = Software::parse(c$smtp$agent, c$smtp$path[|c$smtp$path|], MAIL_CLIENT);
-		Software::found(c, s);
-		}
-
 	Log::write(SMTP, c$smtp);
 	c$smtp$done = T;
 	}
@@ -163,6 +140,9 @@ event smtp_request(c: connection, is_orig: bool, command: string, arg: string) &
 		if ( ! c$smtp?$rcptto ) 
 			c$smtp$rcptto = set();
 		add c$smtp$rcptto[split1(arg, /:[[:blank:]]*/)[2]];
+		
+		# This is as good a place as any to increase the message count.
+		++c$smtp_state$messages_transferred;
 		}
 
 	else if ( upper_command == "MAIL" && /^[fF][rR][oO][mM]:/ in arg )
@@ -344,9 +324,9 @@ event smtp_data(c: connection, is_orig: bool, data: string) &priority=3
 	# whatever reason, we're done.  Could be due to only watching until 
 	# local addresses are seen in the received from headers.
 	if ( c$smtp$current_header != "received" ||
-	     c$smtp$process_received_from )
+	     ! c$smtp$process_received_from )
 		return;
-		
+	
 	local text_ip = find_address_in_smtp_header(data);
 	if ( text_ip == "" )
 		return;
@@ -362,10 +342,8 @@ event smtp_data(c: connection, is_orig: bool, data: string) &priority=3
 		}
 
 	if ( ! c$smtp?$path )
-		# TODO: empty vectors are still a problem.
-		c$smtp$path = vector(ip);
-	else
-		c$smtp$path[|c$smtp$path|+1] = ip;
+		c$smtp$path = vector();
+	c$smtp$path[|c$smtp$path|+1] = ip;
 	}
 
 

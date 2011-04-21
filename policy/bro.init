@@ -1015,6 +1015,8 @@ type signature_state: record {
 
 };
 
+# This type is no longer used
+# TODO: remove any use of this from the core.
 type software_version: record {
 	major: int;	# Major version number
 	minor: int;	# Minor version number
@@ -1022,6 +1024,8 @@ type software_version: record {
 	addl: string;	# Additional version string (e.g. "beta42")
 };
 
+# This type is no longer used
+# TODO: remove any use of this from the core.
 type software: record {
 	name: string;	# Unique name of a software, e.g., "OS"
 	version: software_version;

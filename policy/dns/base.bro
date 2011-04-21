@@ -46,13 +46,15 @@ redef record connection += {
 # DPD configuration.
 redef capture_filters += { 
 	["dns"] = "port 53",
+	["mdns"] = "udp and port 5353",
+	["llmns"] = "udp and port 5355",
 	["netbios-ns"] = "udp port 137", 
 };
 
-global dns_ports = { 53/udp, 53/tcp, 137/udp } &redef;
+global dns_ports = { 53/udp, 53/tcp, 137/udp, 5353/udp, 5355/udp } &redef;
 redef dpd_config += { [ANALYZER_DNS] = [$ports = dns_ports] };
 
-global dns_udp_ports = { 53/udp, 137/udp } &redef;
+global dns_udp_ports = { 53/udp, 137/udp, 5353/udp, 5355/udp } &redef;
 global dns_tcp_ports = { 53/tcp } &redef;
 redef dpd_config += { [ANALYZER_DNS_UDP_BINPAC] = [$ports = dns_udp_ports] };
 redef dpd_config += { [ANALYZER_DNS_TCP_BINPAC] = [$ports = dns_tcp_ports] };

@@ -109,7 +109,7 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 	id->SetType(t);
 
 	if ( attr )
-		id->AddAttrs(new Attributes(attr, t));
+		id->AddAttrs(new Attributes(attr, t, false));
 
 	if ( id->FindAttr(ATTR_PERSISTENT) || id->FindAttr(ATTR_SYNCHRONIZED) )
 		{
@@ -172,6 +172,16 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 		}
 
 	id->UpdateValAttrs();
+
+	if ( t && t->Tag() == TYPE_FUNC && t->AsFuncType()->IsEvent() )
+		{
+		// For events, add a function value (without any body) here so that
+		// we can later access the ID even if no implementations have been
+		// defined.
+		Func* f = new BroFunc(id, 0, 0, 0);
+		id->SetVal(new Val(f));
+		id->SetConst();
+		}
 	}
 
 
@@ -256,7 +266,7 @@ void add_type(ID* id, BroType* t, attr_list* attr, int /* is_event */)
 	id->MakeType();
 
 	if ( attr )
-		id->SetAttrs(new Attributes(attr, tnew));
+		id->SetAttrs(new Attributes(attr, tnew, false));
 	}
 
 void begin_func(ID* id, const char* module_name, function_flavor flavor,

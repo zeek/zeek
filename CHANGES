@@ -1,3 +1,55 @@
+1.6-dev.88 Wed Apr 20 20:43:48 PDT 2011
+
+- Implementation of Bro's new logging framework. We will document this
+  separately. (Robin Sommer)
+
+- Already defined record types can now be further extended via the
+  '+=' operator. The added fields must be either &optional or have a
+  &default value. (Robin Sommer)
+    
+  Example:
+    
+        type Foo: record {
+            a: count;
+            b: count &optional;
+        };
+    
+        redef record Foo += {
+            c: count &default=42;
+            d: count &optional;
+        };
+    
+        global f: Foo = [$a=21];
+    
+        print f;
+    
+  Output:
+   
+        [a=21, b=<uninitialized>, c=42, d=<uninitialized>]
+
+- Enabling assignment of empty vectors ("vector()"). (Robin Sommer)
+
+- Fixing attributes to allow &default attributes to be associated with
+  records fields of type tables/sets/vector. (Robin Sommer)
+    
+- '[]' is now a valid record constructor. (Robin Sommer)
+  
+- A instance of a record type A is now coercable into one of type B if
+  the fields of type A are a subset of those of type B. (Robin Sommer)
+
+- A number of bug fixes and enhancements for record/set/table/vector
+  coercion. (Robin Sommer)
+
+- Fixing a problem with records that have optional fields when used as
+  table/set indices. Addresses #367. (Robin Sommer)
+
+- Fixing an off-by-one error in join_string_vec(). (Seth Hall)
+  
+- Updating to_count() to cope with 64bit ints. (Seth Hall)
+  
+- A new BiF count_to_v4_addr() to turn a count into an IPv4 address.
+  (Seth Hall)
+
 1.6-dev.80 Mon Apr 18 14:50:54 PDT 2011
 
 - New framework for generating documentation from Bro scripts. (Jon

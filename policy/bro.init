@@ -21,7 +21,7 @@ type conn_id: record {
 	orig_p: port;
 	resp_h: addr;
 	resp_p: port;
-};
+} &log;
 
 type icmp_conn: record {
 	orig_h: addr;
@@ -276,6 +276,9 @@ type entropy_test_result: record {
 # Prototypes of Bro built-in functions.
 @load strings.bif.bro
 @load bro.bif.bro
+
+@load logging  # sic! Not logging.bif.
+@load logging-ascii
 
 global bro_alarm_file: file &redef;
 global alarm_hook: function(msg: string): bool &redef;
@@ -1375,7 +1378,7 @@ const suppress_local_output = F &redef;
 
 # Holds the filename of the trace file given with -w (empty if none).
 const trace_output_file = "";
-  
+
 # If a trace file is given, dump *all* packets seen by Bro into it.
 # By default, Bro applies (very few) heuristics to reduce the volume.
 # A side effect of setting this to true is that we can write the

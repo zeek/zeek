@@ -33,6 +33,7 @@ const char* type_name(TypeTag t)
 		"func",
 		"file",
 		"vector",
+		"type",
 		"error",
 	};
 
@@ -102,6 +103,7 @@ BroType::BroType(TypeTag t, bool arg_base_type)
 	case TYPE_FUNC:
 	case TYPE_FILE:
 	case TYPE_VECTOR:
+	case TYPE_TYPE:
 		internal_tag = TYPE_INTERNAL_OTHER;
 		break;
 
@@ -781,10 +783,10 @@ bool FuncType::DoUnserialize(UnserialInfo* info)
 	return UNSERIALIZE(&is_event);
 	}
 
-TypeDecl::TypeDecl(BroType* t, const char* i, attr_list* arg_attrs)
+TypeDecl::TypeDecl(BroType* t, const char* i, attr_list* arg_attrs, bool in_record)
 	{
 	type = t;
-	attrs = arg_attrs ? new Attributes(arg_attrs, t) : 0;
+	attrs = arg_attrs ? new Attributes(arg_attrs, t, in_record) : 0;
 	id = i;
 	}
 
@@ -902,6 +904,8 @@ RecordType::RecordType(TypeList* arg_base, type_decl_list* refinements)
 
 void RecordType::Init(TypeList* arg_base)
 	{
+	assert(false);  // Is this ever used?
+
 	base = arg_base;
 
 	if ( ! base )
@@ -1064,6 +1068,46 @@ void RecordType::DescribeReST(ODesc* d) const
 	d->Add(":bro:type:`record`");
 	d->NL();
 	DescribeFieldsReST(d, false);
+	}
+
+const char* RecordType::AddFields(type_decl_list* others, attr_list* attr)
+	{
+	assert(types);
+
+	bool log = false;
+
+	if ( attr )
+		{
+		loop_over_list(*attr, j)
+			{
+			if ( (*attr)[j]->Tag() == ATTR_LOG )
+				log = true;
+			}
+		}
+
+	loop_over_list(*others, i)
+		{
+		TypeDecl* td = (*others)[i];
+
+		if ( ! td->FindAttr(ATTR_DEFAULT) &&
+		     ! td->FindAttr(ATTR_OPTIONAL) )
+			return "extension field must be &optional or have &default";
+
+		if ( log )
+			{
+			if ( ! td->attrs )
+				td->attrs = new Attributes(new attr_list, td->type, true);
+
+			td->attrs->AddAttr(new Attr(ATTR_LOG));
+			}
+
+		types->append(td);
+		}
+
+	delete others;
+
+	num_fields = types->length();
+	return 0;
 	}
 
 void RecordType::DescribeFields(ODesc* d) const
@@ -1518,6 +1562,11 @@ int VectorType::MatchesIndex(ListExpr*& index) const
 				MATCHES_INDEX_SCALAR : DOES_NOT_MATCH_INDEX;
 	}
 
+bool VectorType::IsUnspecifiedVector() const
+	{
+	return yield_type->Tag() == TYPE_ANY;
+	}
+
 IMPLEMENT_SERIAL(VectorType, SER_VECTOR_TYPE);
 
 bool VectorType::DoSerialize(SerialInfo* info) const
@@ -1591,7 +1640,9 @@ static int is_init_compat(const BroType* t1, const BroType* t2)
 
 int same_type(const BroType* t1, const BroType* t2, int is_init)
 	{
-	if ( t1 == t2 )
+	if ( t1 == t2 ||
+	     t1->Tag() == TYPE_ANY ||
+	     t2->Tag() == TYPE_ANY )
 		return 1;
 
 	t1 = flatten_type(t1);
@@ -1718,10 +1769,24 @@ int same_type(const BroType* t1, const BroType* t2, int is_init)
 	case TYPE_FILE:
 		return same_type(t1->YieldType(), t2->YieldType(), is_init);
 
+	case TYPE_TYPE:
+		return same_type(t1, t2, is_init);
+
 	case TYPE_UNION:
 		error("union type in same_type()");
 	}
 	return 0;
+	}
+
+int same_attrs(const Attributes* a1, const Attributes* a2)
+	{
+	if ( ! a1 )
+		return (a2 == 0);
+
+	if ( ! a2 )
+		return (a1 == 0);
+
+	return (*a1 == *a2);
 	}
 
 int record_promotion_compatible(const RecordType* /* super_rec */,
@@ -1795,6 +1860,7 @@ int is_assignable(BroType* t)
 	case TYPE_VECTOR:
 	case TYPE_FILE:
 	case TYPE_TABLE:
+	case TYPE_TYPE:
 		return 1;
 
 	case TYPE_VOID:
@@ -1862,6 +1928,7 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 	case TYPE_ADDR:
 	case TYPE_NET:
 	case TYPE_SUBNET:
+	case TYPE_BOOL:
 	case TYPE_ANY:
 	case TYPE_ERROR:
 		return base_type(tg1);

@@ -74,13 +74,14 @@ function mime_header_subject(session: mime_session_info,
 ### This is a bit clunky.  These are functions we call out to, defined
 # elsewhere.  The way we really ought to do this is to have them passed
 # in during initialization.  But for now, we presume knowledge of their
-# names in global scope.
-module GLOBAL;
-global check_relay_3:
-	function(session: MIME::mime_session_info, msg_id: string);
-global check_relay_4:
-	function(session: MIME::mime_session_info, content_hash: string);
-module MIME;
+# names.
+export
+	{
+	global SMTP::check_relay_3:
+		function(session: MIME::mime_session_info, msg_id: string);
+	global SMTP::check_relay_4:
+		function(session: MIME::mime_session_info, content_hash: string);
+	}
 
 function mime_header_message_id(session: mime_session_info, name: string, arg: string)
 	{
@@ -107,7 +108,7 @@ function mime_header_message_id(session: mime_session_info, name: string, arg: s
 	s = t[1];
 
 	if ( session$level == 1 && SMTP::process_smtp_relay )
-		check_relay_3(session, s);
+		SMTP::check_relay_3(session, s);
 	}
 
 redef mime_header_handler = {

@@ -20,25 +20,23 @@ redef enum Notice::Type += {
 redef enum Log::ID += { SOFTWARE };
 
 export {
-	type Version: record {
-		major:  count &optional;    ##< Major version number
-		minor:  count &optional;    ##< Minor version number
-		minor2: count &optional;    ##< Minor subversion number
-		addl:   string &optional;  ##< Additional version string (e.g. "beta42")
-	} &log;
-
 	type Type: enum {
 		UNKNOWN,
 		OPERATING_SYSTEM,
 		WEB_APPLICATION,
-		MAIL_SERVER,
-		MAIL_CLIENT,
 		FTP_SERVER,
 		FTP_CLIENT,
 		DATABASE_SERVER,
 		## There are a number of ways to detect printers on the network.
 		PRINTER,
 	};
+
+	type Version: record {
+		major:  count  &optional;  ##< Major version number
+		minor:  count  &optional;  ##< Minor version number
+		minor2: count  &optional;  ##< Minor subversion number
+		addl:   string &optional;  ##< Additional version string (e.g. "beta42")
+	} &log;
 
 	type Info: record {
 		## The time at which the software was first detected.
@@ -101,7 +99,6 @@ export {
 event bro_init()
 	{
 	Log::create_stream(SOFTWARE, [$columns=Software::Info, $ev=log_software]);
-	Log::add_default_filter(SOFTWARE);
 	}
 	
 function parse_mozilla(unparsed_version: string, 
@@ -141,7 +138,8 @@ function parse(unparsed_version: string,
 		{
 		# The regular expression should match the complete version number
 		# and software name.
-		local version_parts = split_n(unparsed_version, /[0-9\/\-\._, ]{2,}/, T, 1);
+		local version_parts = split_n(unparsed_version, /\/?v?[0-9\-\._, ]{2,}/, T, 2);
+		#print version_parts;
 		if ( 1 in version_parts )
 			software_name = version_parts[1];
 		if ( |version_parts| >= 2 )
@@ -149,8 +147,8 @@ function parse(unparsed_version: string,
 			# Remove the name/version separator if it's left at the beginning
 			# of the version number from the previous split_all.
 			local sv = version_parts[2];
-			if ( /^[\/\-\._ ]/ in sv )
-			 	sv = sub(version_parts[2], /^[\/\-\._ ]/, "");
+			if ( /^[\/\-\._v ]/ in sv )
+			 	sv = sub(version_parts[2], /^[\/\-\._v ]/, "");
 			local version_numbers = split_n(sv, /[\-\._,\[\(\{ ]/, F, 4);
 			if ( 4 in version_numbers && version_numbers[4] != "" )
 				v$addl = version_numbers[4];
@@ -173,11 +171,11 @@ function parse(unparsed_version: string,
 					}
 				}
 		
-			if ( |version_numbers| >= 3 )
+			if ( |version_numbers| >= 3 && version_numbers[3] != "" )
 				v$minor2 = to_count(version_numbers[3]);
-			if ( |version_numbers| >= 2 )
+			if ( |version_numbers| >= 2 && version_numbers[2] != "" )
 				v$minor = to_count(version_numbers[2]);
-			if ( |version_numbers| >= 1 )
+			if ( |version_numbers| >= 1 && version_numbers[1] != "" )
 				v$major = to_count(version_numbers[1]);
 			}
 		}
@@ -199,9 +197,9 @@ function cmp_versions(v1: Version, v2: Version): int
 	else
 		{
 		if ( !v1?$major && !v2?$major )
-			return 0;
+			{ }
 		else
-			return -1;
+		return v1?$major ? 1 : -1;
 		}
 		
 	if ( v1?$minor && v2?$minor )
@@ -216,7 +214,7 @@ function cmp_versions(v1: Version, v2: Version): int
 		if ( !v1?$minor && !v2?$minor )
 			{ }
 		else
-			return -1;
+			return v1?$minor ? 1 : -1;
 		}
 		
 	if ( v1?$minor2 && v2?$minor2 )
@@ -231,17 +229,17 @@ function cmp_versions(v1: Version, v2: Version): int
 		if ( !v1?$minor2 && !v2?$minor2 )
 			{ }
 		else
-			return -1;
+			return v1?$minor2 ? 1 : -1;
 		}
-	
+
 	if ( v1?$addl && v2?$addl )
 		return strcmp(v1$addl, v2$addl);
 	else
 		{
-		if ( !v1?$minor2 && !v2?$minor2 )
+		if ( !v1?$addl && !v2?$addl )
 			return 0;
 		else
-			return -1;
+			return v1?$addl ? 1 : -1;
 		}
 	}
 
@@ -254,8 +252,10 @@ function software_endpoint_name(id: conn_id, host: addr): string
 function software_fmt_version(v: Version): string
 	{
 	return fmt("%d.%d.%d%s", 
-	           v$major, v$minor, v$minor2,
-	           v$addl != ""  ? fmt("-%s", v$addl)   : "");
+	           v?$major ? v$major : 0,
+	           v?$minor ? v$minor : 0,
+	           v?$minor2 ? v$minor2 : 0,
+	           v?$addl ? fmt("-%s", v$addl) : "");
 	}
 
 # Convert a software into a string "name a.b.cx".

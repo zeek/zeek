@@ -1,102 +1,127 @@
+##! The Bro logging interface.
+##!
+##! See XXX for a introduction to Bro's logging framework.
+
 module Log;
 
 # Log::ID and Log::Writer are defined in bro.init due to circular dependencies.
 
 export {
-	# If true, local logging is by default enabled for all filters.
+	## If true, is local logging is by default enabled for all filters.
 	const enable_local_logging = T &redef;
 
-	# If true, remote logging is by default enabled for all filters.
+	## If true, is remote logging is by default enabled for all filters.
 	const enable_remote_logging = T &redef;
 
-	# The default writer to use.
+	## Default writer to use if a filter does not specify
+	## anything else.
 	const default_writer = WRITER_ASCII &redef;
 
-    # A stream defining the logging.
+	## Type defining the content of a logging stream.
 	type Stream: record {
-	    # A record type defining the log's columns.
+		## A record type defining the log's columns.
 		columns: any;
 
-	    # A optional event raised for each log entry. It must receive
-		# a single argument of type $columns.
+		## Event that will be raised once for each log entry.
+		## The event receives a single same parameter, an instance of type ``columns``.
 		ev: any &optional;
 	};
 
-	# A filter customizes logging.
+	## Filter customizing logging.
 	type Filter: record {
-		# A name to reference this filter.
+		## Descriptive name to reference this filter.
 		name: string;
 
-		# A predicate returning True if the filter wants a log entry
-		# to be recorded. If not given, an implicit True is assumed
-		# for all entries. The predicate receives one parameter:
-		# an instance of the log's record type with the fields to be
-		# logged.
+		## The writer to use.
+		writer: Writer &default=default_writer;
+
+		## Predicate indicating whether a log entry should be recorded.
+		## If not given, all entries are recorded.
+		##
+		## rec: An instance of the streams's ``columns`` type with its
+		## fields set to the values to logged.
+		##
+		## Returns: True if the entry is to be recorded.
 		pred: function(rec: any): bool &optional;
 
-		# A path for outputting everything matching this
-		# filter. The path is either a string, or a function
-		# called with a single ``ID`` argument and returning a string.
-		#
-		# The specific interpretation of the string is left to the
-		# Writer, but if it's refering to a file, it's assumed that no
-		# extension is given; the writer will add whatever is
-		# appropiate.
+		## Output path for recording entries matching this
+		## filter.
+                ##
+		## The specific interpretation of the string is up to
+		## the used writer, and may for example be the destination
+		## file name. Generally, filenames are expected to given
+		## without any extensions; writers will add appropiate 
+		## extensions automatically.
 		path: string &optional;
+
+		## A function returning the output path for recording entries
+		## matching this filter. This is similar to ``path`` yet allows
+		## to compute the string dynamically. It is ok to return
+		## different strings for separate calls, but be careful: it's
+		## easy to flood the disk by returning a new string for each
+		## connection ...
 		path_func: function(id: ID, path: string): string &optional;
 
-		# A subset of column names to record. If not given, all
-		# columns are recorded.
+		## Subset of column names to record. If not given, all
+		## columns are recorded.
 		include: set[string] &optional;
+
+		## Subset of column names to exclude from recording. If not given,
+		## all columns are recorded.
 		exclude: set[string] &optional;
 
-		# If true, record all log records locally.
+		## If true, entries are recorded locally.
 		log_local: bool &default=enable_local_logging;
 
-		# If true, pass all log records on to remote peers if they request it.
+		## If true, entries are passed on to remote peers.
 		log_remote: bool &default=enable_remote_logging;
-
-		# The writer to use.
-		writer: Writer &default=default_writer;
-    };
-
-	### Log rotation support.
-
-	# Information passed to a rotation callback function.
-	type RotationInfo: record {
-		writer: Writer;	# The writer.
-		path: string;	# Original path value.
-		open: time;	# Time when opened.
-		close: time;	# Time when closed.
 	};
 
-	# Default rotation interval; zero disables rotation.
+	# Log rotation support.
+
+	## Information passed into rotation callback functions.
+	type RotationInfo: record {
+		writer: Writer;	##> Writer.
+		path: string;	##> Original path value.
+		open: time;	##> Time when opened.
+		close: time;	##> Time when closed.
+	};
+
+	## Default rotation interval. Zero disables rotation.
 	const default_rotation_interval = 0secs &redef;
 
-	# Default naming suffix format.
+	## Default naming suffix format. Uses a strftime() style.
 	const default_rotation_date_format = "%y-%m-%d_%H.%M.%S" &redef;
 
-	# Default postprocessor for writers outputting into files.
+	## Default postprocessor for writers outputting into files.
 	const default_rotation_postprocessor = "" &redef;
 
-	# Default function to construct the name of the rotated file.
-	# The default implementation includes
-	# default_rotation_date_format into the file name.   
+	## Default function to construct the name of a rotated output file.
+	## The default implementation appends info$date_fmt to the original
+	## file name.
+	##
+	## info: Meta-data about the file to be rotated.
 	global default_rotation_path_func: function(info: RotationInfo) : string &redef;
 
+	## Type for controlling file rotation.
 	type RotationControl: record  {
+		## Rotation interval.
 		interv: interval &default=default_rotation_interval;
+		## Format for timestamps embedded into rotated file names.
 		date_fmt: string &default=default_rotation_date_format;
+		## Postprocessor process to run on rotate file.
 		postprocessor: string &default=default_rotation_postprocessor;
 	};
 
-	# Defines rotation parameters per (id, path) tuple.
+	## Specifies rotation parameters per ``(id, path)`` tuple.
+	## If a pair is not found in this table, default values defined in
+	## ``RotationControl`` are used.
 	const rotation_control: table[Writer, string] of RotationControl &default=[] &redef;
 
-	### Function.
-
+	## Sentinel value for indicating that a filter was not found when looked up.
 	const no_filter: Filter = [$name="<not found>"]; # Sentinel.
 
+	# TODO: Document.
 	global create_stream: function(id: ID, stream: Stream) : bool;
 	global enable_stream: function(id: ID) : bool;
 	global disable_stream: function(id: ID) : bool;
@@ -110,7 +135,7 @@ export {
 	global remove_default_filter: function(id: ID) : bool;
 }
 
-# We keep a script-level copy of all filters so that we can directly manipulate them.
+# We keep a script-level copy of all filters so that we can manipulate them.
 global filters: table[ID, string] of Filter;
 
 @load logging.bif # Needs Filter and Stream defined.

@@ -65,7 +65,7 @@ CompositeHash::~CompositeHash()
 
 // Computes the piece of the hash for Val*, returning the new kp.
 char* CompositeHash::SingleValHash(int type_check, char* kp0,
-					BroType* bt, Val* v, bool optional) const
+				   BroType* bt, Val* v, bool optional) const
 	{
 	char* kp1 = 0;
 	InternalTypeTag t = bt->InternalType();
@@ -330,7 +330,7 @@ HashKey* CompositeHash::ComputeSingletonHash(const Val* v, int type_check) const
 	}
 
 int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
-					int type_check, int sz, bool optional) const
+				     int type_check, int sz, bool optional) const
 	{
 	InternalTypeTag t = bt->InternalType();
 
@@ -391,8 +391,8 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 				bool optional = (a && a->FindAttr(ATTR_OPTIONAL));
 
 				sz = SingleTypeKeySize(rt->FieldType(i),
-							rv ? rv->Lookup(i) : 0,
-							type_check, sz, optional);
+						       rv ? rv->Lookup(i) : 0,
+						       type_check, sz, optional);
 				if ( ! sz )
 					return 0;
 				}

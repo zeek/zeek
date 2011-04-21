@@ -1,4 +1,5 @@
-# @TEST-EXEC: bro %INPUT >output
+# @TEST-EXEC-FAIL: bro %INPUT  >output.tmp 2>&1 
+# @TEST-EXEC: sed 's#^.*:##g' <output.tmp >output
 # @TEST-EXEC: btest-diff output
 
 type Foo: record {
@@ -7,11 +8,7 @@ type Foo: record {
 };
 
 redef record Foo += {
-        c: count &default=42;
+        c: count;
         d: string &optional;
 };
-
-global f: Foo = [$a=21, $d="XXX"];
-
-print f;
 

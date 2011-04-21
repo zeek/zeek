@@ -52,6 +52,7 @@ public:
 		{ return tag == ATTR_REDEF || tag == ATTR_OPTIONAL; }
 
 	void Describe(ODesc* d) const;
+	void DescribeReST(ODesc* d) const;
 
 	bool operator==(const Attr& other) const
 		{
@@ -88,6 +89,7 @@ public:
 	void RemoveAttr(attr_tag t);
 
 	void Describe(ODesc* d) const;
+	void DescribeReST(ODesc* d) const;
 
 	attr_list* Attrs()	{ return attrs; }
 

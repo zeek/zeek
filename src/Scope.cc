@@ -113,7 +113,8 @@ TraversalCode Scope::Traverse(TraversalCallback* cb) const
 	}
 
 
-ID* lookup_ID(const char* name, const char* curr_module, bool no_global, bool same_module_only)
+ID* lookup_ID(const char* name, const char* curr_module, bool no_global,
+	      bool same_module_only)
 	{
 	string fullname = make_full_var_name(curr_module, name);
 
@@ -135,7 +136,8 @@ ID* lookup_ID(const char* name, const char* curr_module, bool no_global, bool sa
 			}
 		}
 
-	if ( ! no_global && (strcmp(GLOBAL_MODULE_NAME, curr_module) == 0 || ! same_module_only) )
+	if ( ! no_global && (strcmp(GLOBAL_MODULE_NAME, curr_module) == 0 ||
+			     ! same_module_only) )
 		{
 		string globalname = make_full_var_name(GLOBAL_MODULE_NAME, name);
 		ID* id = global_scope()->Lookup(globalname.c_str());

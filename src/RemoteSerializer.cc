@@ -767,7 +767,7 @@ bool RemoteSerializer::RequestLogs(PeerID id)
 	if ( peer->phase != Peer::HANDSHAKE )
 		{
 		run_time(fmt("can't request logs from peer; wrong phase %d",
-				peer->phase));
+			     peer->phase));
 		return false;
 		}
 

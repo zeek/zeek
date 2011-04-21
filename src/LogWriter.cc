@@ -1,3 +1,4 @@
+// See the file "COPYING" in the main distribution directory for copyright.
 
 #include "util.h"
 #include "LogWriter.h"
@@ -18,7 +19,8 @@ LogWriter::~LogWriter()
 	delete [] fields;
 	}
 
-bool LogWriter::Init(string arg_path, int arg_num_fields, const LogField* const * arg_fields)
+bool LogWriter::Init(string arg_path, int arg_num_fields,
+		     const LogField* const * arg_fields)
 	{
 	path = arg_path;
 	num_fields = arg_num_fields;
@@ -39,18 +41,24 @@ bool LogWriter::Write(int arg_num_fields, LogVal** vals)
 	// something might be mixed up.
 	if ( num_fields != arg_num_fields )
 		{
-		DBG_LOG(DBG_LOGGING, "Number of fields don't match in LogWriter::Write() (%d vs. %d)", arg_num_fields, num_fields);
+		DBG_LOG(DBG_LOGGING, "Number of fields don't match in LogWriter::Write() (%d vs. %d)",
+			arg_num_fields, num_fields);
+
 		return false;
 		}
 
 	for ( int i = 0; i < num_fields; ++i )
+		{
 		if ( vals[i]->type != fields[i]->type )
 			{
-			DBG_LOG(DBG_LOGGING, "Field type doesn't match in LogWriter::Write() (%d vs. %d)", vals[i]->type, fields[i]->type);
+			DBG_LOG(DBG_LOGGING, "Field type doesn't match in LogWriter::Write() (%d vs. %d)",
+				vals[i]->type, fields[i]->type);
 			return false;
 			}
+		}
 
 	bool result = DoWrite(num_fields, fields, vals);
+
 	DeleteVals(vals);
 
 	if ( ! result )
@@ -66,6 +74,7 @@ bool LogWriter::SetBuf(bool enabled)
 		return true;
 
 	buffering = enabled;
+
 	if ( ! DoSetBuf(enabled) )
 		{
 		disabled = true;
@@ -75,7 +84,8 @@ bool LogWriter::SetBuf(bool enabled)
 	return true;
 	}
 
-bool LogWriter::Rotate(string rotated_path, string postprocessor, double open, double close, bool terminating)
+bool LogWriter::Rotate(string rotated_path, string postprocessor, double open,
+		       double close, bool terminating)
 	{
 	if ( ! DoRotate(rotated_path, postprocessor, open, close, terminating) )
 		{
@@ -137,10 +147,12 @@ void LogWriter::DeleteVals(LogVal** vals)
 		delete vals[i];
 	}
 
-bool LogWriter::RunPostProcessor(string fname, string postprocessor, string old_name, double open, double close, bool terminating)
+bool LogWriter::RunPostProcessor(string fname, string postprocessor,
+				 string old_name, double open, double close,
+				 bool terminating)
 	{
-	// This function operates in way backwards-compatible with the old Bro
-	// log rotation scheme.
+	// This function operates in a way that is backwards-compatible with
+	// the old Bro log rotation scheme.
 
 	if ( ! postprocessor.size() )
 		return true;
@@ -174,8 +186,3 @@ bool LogWriter::RunPostProcessor(string fname, string postprocessor, string old_
 
 	return true;
 	}
-
-
-
-
-

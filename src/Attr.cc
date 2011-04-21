@@ -50,6 +50,37 @@ void Attr::Describe(ODesc* d) const
 		}
 	}
 
+void Attr::DescribeReST(ODesc* d) const
+	{
+	d->Add(":bro:attr:`");
+	AddTag(d);
+	d->Add("`");
+
+	if ( expr )
+		{
+		d->SP();
+		d->Add("=");
+		d->SP();
+
+		if ( expr->Type()->Tag() == TYPE_FUNC )
+			d->Add(":bro:type:`func`");
+
+		else if ( expr->Type()->Tag() == TYPE_ENUM )
+			{
+			d->Add(":bro:enum:`");
+			expr->Describe(d);
+			d->Add("`");
+			}
+
+		else
+			{
+			d->Add("``");
+			expr->Describe(d);
+			d-> Add("``");
+			}
+		}
+	}
+
 void Attr::AddTag(ODesc* d) const
 	{
 	if ( d->IsBinary() )
@@ -163,6 +194,17 @@ void Attributes::Describe(ODesc* d) const
 		}
 	}
 
+void Attributes::DescribeReST(ODesc* d) const
+	{
+	loop_over_list(*attrs, i)
+		{
+		if ( i > 0 )
+			d->Add(" ");
+
+		(*attrs)[i]->DescribeReST(d);
+		}
+	}
+
 void Attributes::CheckAttr(Attr* a)
 	{
 	switch ( a->Tag() ) {
@@ -204,14 +246,15 @@ void Attributes::CheckAttr(Attr* a)
 		if ( type->Tag() != TYPE_TABLE || (type->IsSet() && ! in_record) )
 			{
 			if ( same_type(atype, type) )
-			    // Ok.
-			    break;
+				// Ok.
+				break;
 
 			// Record defaults may be promotable.
 			if ( (type->Tag() == TYPE_RECORD && atype->Tag() == TYPE_RECORD &&
-			      record_promotion_compatible(atype->AsRecordType(), type->AsRecordType())) )
-			    // Ok.
-			    break;
+			      record_promotion_compatible(atype->AsRecordType(),
+							  type->AsRecordType())) )
+				// Ok.
+				break;
 
 			a->AttrExpr()->Error("&default value has inconsistent type", type);
 			}
@@ -229,7 +272,7 @@ void Attributes::CheckAttr(Attr* a)
 					{
 					FuncType* f = atype->AsFuncType();
 					if ( ! f->CheckArgs(tt->IndexTypes()) ||
-						! same_type(f->YieldType(), ytype) )
+					     ! same_type(f->YieldType(), ytype) )
 						Error("&default function type clash");
 
 					// Ok.
@@ -238,7 +281,8 @@ void Attributes::CheckAttr(Attr* a)
 
 				// Table defaults may be promotable.
 				if ( (ytype->Tag() == TYPE_RECORD && atype->Tag() == TYPE_RECORD &&
-					record_promotion_compatible(atype->AsRecordType(), ytype->AsRecordType())) )
+				      record_promotion_compatible(atype->AsRecordType(),
+								  ytype->AsRecordType())) )
 					// Ok.
 					break;
 
@@ -254,18 +298,18 @@ void Attributes::CheckAttr(Attr* a)
 			// &default applies to record field.
 
 			if ( same_type(atype, type) ||
-				(atype->Tag() == TYPE_TABLE && atype->AsTableType()->IsUnspecifiedTable()) )
+			     (atype->Tag() == TYPE_TABLE && atype->AsTableType()->IsUnspecifiedTable()) )
 				// Ok.
 				break;
 
 			// Table defaults may be promotable.
 			if ( (ytype->Tag() == TYPE_RECORD && atype->Tag() == TYPE_RECORD &&
-				record_promotion_compatible(atype->AsRecordType(), ytype->AsRecordType())) )
-			// Ok.
-			break;
+			      record_promotion_compatible(atype->AsRecordType(), ytype->AsRecordType())) )
+				// Ok.
+				break;
 
-		    Error("&default value has inconsistent type");
-		    }
+			Error("&default value has inconsistent type");
+			}
 		}
 		break;
 
@@ -361,10 +405,7 @@ void Attributes::CheckAttr(Attr* a)
 	case ATTR_GROUP:
 		if ( type->Tag() != TYPE_FUNC ||
 		     ! type->AsFuncType()->IsEvent() )
-			{
 			Error("&group only applicable to events");
-			break;
-			}
 		break;
 
 	case ATTR_LOG:

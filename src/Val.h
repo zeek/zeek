@@ -330,6 +330,7 @@ public:
 		}
 
 	void Describe(ODesc* d) const;
+	virtual void DescribeReST(ODesc* d) const;
 
 	bool Serialize(SerialInfo* info) const;
 	static Val* Unserialize(UnserialInfo* info, TypeTag type = TYPE_ANY)
@@ -364,6 +365,7 @@ protected:
 		}
 
 	virtual void ValDescribe(ODesc* d) const;
+	virtual void ValDescribeReST(ODesc* d) const;
 
 	Val(TypeTag t)
 		{
@@ -909,8 +911,8 @@ public:
 		{ return new Val(record_type->NumFields(), TYPE_COUNT); }
 
 	void Assign(int field, Val* new_val, Opcode op = OP_ASSIGN);
-	Val* Lookup(int field) const;	// does not Ref() value.
-	Val* LookupWithDefault(int field) const;	// does Ref() value.
+	Val* Lookup(int field) const;	// Does not Ref() value.
+	Val* LookupWithDefault(int field) const;	// Does Ref() value.
 
 	void Describe(ODesc* d) const;
 
@@ -919,16 +921,19 @@ public:
 	void SetOrigin(BroObj* o)	{ origin = o; }
 	BroObj* GetOrigin() const	{ return origin; }
 
-	// Returns a new value representing the value coerced to the given type.
-	// If coercion is not possible, returns 0. The non-const version may
-	// return the current value ref'ed if its type matches directly.
+	// Returns a new value representing the value coerced to the given
+	// type. If coercion is not possible, returns 0. The non-const
+	// version may return the current value ref'ed if its type matches
+	// directly.
 	//
-	// *aggr* is optional; if non-zero, we add to it. See Expr::InitVal(). We
-	// leave it out in the non-const version to make the choice unambigious.
+	// *aggr* is optional; if non-zero, we add to it. See
+	// Expr::InitVal(). We leave it out in the non-const version to make
+	// the choice unambigious.
 	RecordVal* CoerceTo(const RecordType* other, Val* aggr) const;
 	RecordVal* CoerceTo(RecordType* other);
 
 	unsigned int MemoryAllocation() const;
+	void DescribeReST(ODesc* d) const;
 
 protected:
 	friend class Val;

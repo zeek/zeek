@@ -2534,7 +2534,7 @@ bool AssignExpr::TypeCheck()
 		}
 
 	if ( op1->Type()->Tag() == TYPE_RECORD &&
-		 op2->Type()->Tag() == TYPE_RECORD )
+	     op2->Type()->Tag() == TYPE_RECORD )
 		{
 		if ( same_type(op1->Type(), op2->Type()) )
 			{
@@ -4036,7 +4036,9 @@ Val* RecordCoerceExpr::Fold(Val* v) const
 			Val* rhs = rv->Lookup(map[i]);
 			if ( ! rhs )
 				{
-				const Attr* def = rv->Type()->AsRecordType()->FieldDecl(map[i])->FindAttr(ATTR_DEFAULT);
+				const Attr* def = rv->Type()->AsRecordType()->FieldDecl(
+					map[i])->FindAttr(ATTR_DEFAULT);
+
 				if ( def )
 					rhs = def->AttrExpr()->Eval(0);
 				}
@@ -5370,7 +5372,7 @@ int check_and_promote_expr(Expr*& e, BroType* t)
 				}
 			}
 
-		if ( record_promotion_compatible(t_r, et_r) ) // Note: This is always true currently.
+		if ( record_promotion_compatible(t_r, et_r) )
 			{
 			e = new RecordCoerceExpr(e, t_r);
 			return 1;
@@ -5391,7 +5393,7 @@ int check_and_promote_expr(Expr*& e, BroType* t)
 			}
 
 		if ( t->Tag() == TYPE_VECTOR && et->Tag() == TYPE_VECTOR &&
-			  et->AsVectorType()->IsUnspecifiedVector() )
+		     et->AsVectorType()->IsUnspecifiedVector() )
 			{
 			e = new VectorCoerceExpr(e, t->AsVectorType());
 			return 1;

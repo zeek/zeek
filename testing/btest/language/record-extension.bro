@@ -11,7 +11,9 @@ redef record Foo += {
         d: count &optional;
 };
 
-global f: Foo = [$a=21];
+global f1: Foo = [$a=21];
+global f2: Foo = [$a=21, $d="XXX"];
 
-print f;
+print f1;
+print f2;
 

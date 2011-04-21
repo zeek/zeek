@@ -1,3 +1,4 @@
+// See the file "COPYING" in the main distribution directory for copyright.
 
 #include <string>
 #include <errno.h>
@@ -14,23 +15,28 @@ LogWriterAscii::LogWriterAscii()
 
 	separator_len = BifConst::LogAscii::separator->Len();
 	separator = new char[separator_len];
-	memcpy(separator, BifConst::LogAscii::separator->Bytes(), separator_len);
+	memcpy(separator, BifConst::LogAscii::separator->Bytes(),
+	       separator_len);
 
 	set_separator_len = BifConst::LogAscii::set_separator->Len();
 	set_separator = new char[set_separator_len];
-	memcpy(set_separator, BifConst::LogAscii::set_separator->Bytes(), set_separator_len);
+	memcpy(set_separator, BifConst::LogAscii::set_separator->Bytes(),
+	       set_separator_len);
 
 	empty_field_len = BifConst::LogAscii::empty_field->Len();
 	empty_field = new char[empty_field_len];
-	memcpy(empty_field, BifConst::LogAscii::empty_field->Bytes(), empty_field_len);
+	memcpy(empty_field, BifConst::LogAscii::empty_field->Bytes(),
+	       empty_field_len);
 
 	unset_field_len = BifConst::LogAscii::unset_field->Len();
 	unset_field = new char[unset_field_len];
-	memcpy(unset_field, BifConst::LogAscii::unset_field->Bytes(), unset_field_len);
+	memcpy(unset_field, BifConst::LogAscii::unset_field->Bytes(),
+	       unset_field_len);
 
 	header_prefix_len = BifConst::LogAscii::header_prefix->Len();
 	header_prefix = new char[header_prefix_len];
-	memcpy(header_prefix, BifConst::LogAscii::header_prefix->Bytes(), header_prefix_len);
+	memcpy(header_prefix, BifConst::LogAscii::header_prefix->Bytes(),
+	       header_prefix_len);
 
 	}
 
@@ -46,7 +52,8 @@ LogWriterAscii::~LogWriterAscii()
 	delete [] header_prefix;
 	}
 
-bool LogWriterAscii::DoInit(string path, int num_fields, const LogField* const * fields)
+bool LogWriterAscii::DoInit(string path, int num_fields,
+			    const LogField* const * fields)
 	{
 	if ( output_to_stdout )
 		path = "/dev/stdout";
@@ -55,7 +62,9 @@ bool LogWriterAscii::DoInit(string path, int num_fields, const LogField* const *
 
 	if ( ! (file = fopen(fname.c_str(), "w")) )
 		{
-		Error(Fmt("cannot open %s: %s", fname.c_str(), strerror(errno)));
+		Error(Fmt("cannot open %s: %s", fname.c_str(),
+			  strerror(errno)));
+
 		return false;
 		}
 
@@ -66,10 +75,12 @@ bool LogWriterAscii::DoInit(string path, int num_fields, const LogField* const *
 
 		for ( int i = 0; i < num_fields; i++ )
 			{
-			if ( i > 0 && fwrite(separator, separator_len, 1, file) != 1 )
+			if ( i > 0 &&
+			     fwrite(separator, separator_len, 1, file) != 1 )
 				goto write_error;
 
 			const LogField* field = fields[i];
+
 			if ( fputs(field->name.c_str(), file) == EOF )
 				goto write_error;
 			}
@@ -107,11 +118,11 @@ bool LogWriterAscii::DoWriteOne(ODesc* desc, LogVal* val, const LogField* field)
 
 	case TYPE_BOOL:
 		desc->Add(val->val.int_val ? "T" : "F");
-	break;
+		break;
 
 	case TYPE_INT:
 		desc->Add(val->val.int_val);
-	break;
+		break;
 
 	case TYPE_COUNT:
 	case TYPE_COUNTER:
@@ -189,14 +200,16 @@ bool LogWriterAscii::DoWriteOne(ODesc* desc, LogVal* val, const LogField* field)
 		}
 
 	default:
-		Error(Fmt("unsupported field format %d for %s", val->type, field->name.c_str()));
+		Error(Fmt("unsupported field format %d for %s", val->type,
+			  field->name.c_str()));
 		return false;
 	}
 
 	return true;
 	}
 
-bool LogWriterAscii::DoWrite(int num_fields, const LogField* const * fields, LogVal** vals)
+bool LogWriterAscii::DoWrite(int num_fields, const LogField* const * fields,
+			     LogVal** vals)
 	{
 	ODesc desc(DESC_READABLE);
 	desc.SetEscape(separator, separator_len);
@@ -224,7 +237,8 @@ bool LogWriterAscii::DoWrite(int num_fields, const LogField* const * fields, Log
 	return true;
 	}
 
-bool LogWriterAscii::DoRotate(string rotated_path, string postprocessor, double open, double close, bool terminating)
+bool LogWriterAscii::DoRotate(string rotated_path, string postprocessor, double open,
+			      double close, bool terminating)
 	{
 	if ( IsSpecial(Path()) )
 		// Don't rotate special files.
@@ -235,7 +249,9 @@ bool LogWriterAscii::DoRotate(string rotated_path, string postprocessor, double 
 	string nname = rotated_path + ".log";
 	rename(fname.c_str(), nname.c_str());
 
-	if ( postprocessor.size() && ! RunPostProcessor(nname, postprocessor, fname.c_str(), open, close, terminating) )
+	if ( postprocessor.size() &&
+	     ! RunPostProcessor(nname, postprocessor, fname.c_str(),
+				open, close, terminating) )
 		return false;
 
 	return DoInit(Path(), NumFields(), Fields());

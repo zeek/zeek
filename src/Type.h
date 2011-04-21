@@ -6,6 +6,7 @@
 #define type_h
 
 #include <string>
+#include <list>
 #include <map>
 
 #include "Obj.h"
@@ -69,6 +70,7 @@ const int MATCHES_INDEX_VECTOR = 2;
 class BroType : public BroObj {
 public:
 	BroType(TypeTag tag, bool base_type = false);
+	~BroType();
 
 	TypeTag Tag() const		{ return tag; }
 	InternalTypeTag InternalType() const	{ return internal_tag; }
@@ -215,14 +217,18 @@ public:
 	BroType* Ref()		{ ::Ref(this); return this; }
 
 	virtual void Describe(ODesc* d) const;
+	virtual void DescribeReST(ODesc* d) const;
 
 	virtual unsigned MemoryAllocation() const;
 
 	bool Serialize(SerialInfo* info) const;
 	static BroType* Unserialize(UnserialInfo* info, TypeTag want = TYPE_ANY);
 
+	void SetTypeID(const char* id)	{ type_id = id; }
+	const char* GetTypeID() const	{ return type_id; }
+
 protected:
-	BroType()	{ }
+	BroType()	{ type_id = 0; }
 
 	void SetError();
 
@@ -233,6 +239,10 @@ private:
 	InternalTypeTag internal_tag;
 	bool is_network_order;
 	bool base_type;
+
+	// This type_id field is only used by the documentation framework to
+	// track the names of declared types.
+	const char* type_id;
 };
 
 class TypeList : public BroType {
@@ -288,6 +298,7 @@ public:
 	BroType* YieldType();
 
 	void Describe(ODesc* d) const;
+	void DescribeReST(ODesc* d) const;
 
 	// Returns true if this table is solely indexed by subnet.
 	bool IsSubNetIndex() const;
@@ -362,6 +373,7 @@ public:
 	ID* GetReturnValueID() const;
 
 	void Describe(ODesc* d) const;
+	void DescribeReST(ODesc* d) const;
 
 protected:
 	FuncType()	{ args = 0; arg_types = 0; yield = 0; return_value = 0; }
@@ -390,7 +402,7 @@ protected:
 class TypeDecl {
 public:
 	TypeDecl(BroType* t, const char* i, attr_list* attrs = 0, bool in_record = false);
-	~TypeDecl();
+	virtual ~TypeDecl();
 
 	const Attr* FindAttr(attr_tag a) const
 		{ return attrs ? attrs->FindAttr(a) : 0; }
@@ -398,9 +410,22 @@ public:
 	bool Serialize(SerialInfo* info) const;
 	static TypeDecl* Unserialize(UnserialInfo* info);
 
+	virtual void DescribeReST(ODesc* d) const;
+
 	BroType* type;
 	Attributes* attrs;
 	const char* id;
+};
+
+class CommentedTypeDecl : public TypeDecl {
+public:
+	CommentedTypeDecl(BroType* t, const char* i, attr_list* attrs = 0,
+			std::list<std::string>* cmnt_list = 0);
+	virtual ~CommentedTypeDecl();
+
+	void DescribeReST(ODesc* d) const;
+
+	std::list<std::string>* comments;
 };
 
 class RecordField {
@@ -437,12 +462,14 @@ public:
 
 	int NumFields() const			{ return num_fields; }
 
-	// Returns 0 if all is ok, otherwise a pointer to an error message. Takes
-	// ownership of list.
+	// Returns 0 if all is ok, otherwise a pointer to an error message.
+	// Takes ownership of list.
 	const char* AddFields(type_decl_list* types, attr_list* attr);
 
 	void Describe(ODesc* d) const;
+	void DescribeReST(ODesc* d) const;
 	void DescribeFields(ODesc* d) const;
+	void DescribeFieldsReST(ODesc* d, bool func_args) const;
 
 protected:
 	RecordType() { fields = 0; base = 0; types = 0; }
@@ -503,7 +530,8 @@ public:
 protected:
 	DECLARE_SERIAL(EnumType)
 
-	void AddNameInternal(const string& module_name, const char* name, bro_int_t val, bool is_export);
+	virtual void AddNameInternal(const string& module_name,
+			const char* name, bro_int_t val, bool is_export);
 
 	typedef std::map< const char*, bro_int_t, ltstr > NameMap;
 	NameMap names;
@@ -515,6 +543,27 @@ protected:
 	// as a flag to prevent mixing of auto-increment and explicit
 	// enumerator specifications.
 	bro_int_t counter;
+};
+
+class CommentedEnumType: public EnumType {
+public:
+	CommentedEnumType() {}
+	~CommentedEnumType();
+
+	void DescribeReST(ODesc* d) const;
+	void AddComment(const string& module_name, const char* name,
+			std::list<std::string>* comments);
+
+protected:
+	// This overriden method does not install the given ID name into a
+	// scope and it also does not do any kind of checking that the
+	// provided name already exists.
+	void AddNameInternal(const string& module_name, const char* name,
+			bro_int_t val, bool is_export);
+
+	// Comments are only filled when in "documentation mode".
+	typedef std::map< const char*, std::list<std::string>*, ltstr > CommentMap;
+	CommentMap comments;
 };
 
 class VectorType : public BroType {

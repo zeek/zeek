@@ -366,6 +366,7 @@ function record_type_to_vector%(rt: string%): string_vec
 		new VectorVal(internal_type("string_vec")->AsVectorType());
 
 	RecordType *type = internal_type(rt->CheckString())->AsRecordType();
+
 	if ( type )
 		{
 		for ( int i = 0; i < type->NumFields(); ++i )
@@ -374,6 +375,7 @@ function record_type_to_vector%(rt: string%): string_vec
 			result->Assign(i+1, val, 0);
 			}
 		}
+
 	return result;
 	%}
 
@@ -484,15 +486,15 @@ function to_count%(str: string%): count
 	%{
 	const char* s = str->CheckString();
 	char* end_s;
-
-	long l = strtol(s, &end_s, 10);
-	uint32 u = uint32(l);
-
-#if 0
+	
+	uint64 u = (uint64) strtoll(s, &end_s, 10);
+	
 	if ( s[0] == '\0' || end_s[0] != '\0' )
-		builtin_run_time("bad conversion to count", @ARGS@[0]);
-#endif
-
+    	{
+		builtin_run_time("bad conversion to count", @ARG@[0]);
+        u = 0;
+        }
+	
 	return new Val(u, TYPE_COUNT);
 	%}
 
@@ -553,6 +555,17 @@ function to_addr%(ip: string%): addr
 	Val* ret = new AddrVal(s);
 	delete [] s;
 	return ret;
+	%}
+	
+function count_to_v4_addr%(ip: count%): addr
+	%{
+	if ( ip > 4294967295 )
+		{
+		builtin_run_time("conversion of non-IPv4 count to addr", @ARG@[0]);
+		return new AddrVal(uint32(0));
+		}
+	
+	return new AddrVal(htonl(uint32(ip)));
 	%}
 
 # Interprets the first 4 bytes of 'b' as an IPv4 address in network order.

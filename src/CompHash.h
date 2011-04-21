@@ -29,8 +29,8 @@ protected:
 
 	// Computes the piece of the hash for Val*, returning the new kp.
 	// Used as a helper for ComputeHash in the non-singleton case.
-	char* SingleValHash(int type_check, char* kp,
-				BroType* bt, Val* v, bool optional) const;
+	char* SingleValHash(int type_check, char* kp, BroType* bt, Val* v,
+			    bool optional) const;
 
 	// Recovers just one Val of possibly many; called from RecoverVals.
 	// Upon return, pval will point to the recovered Val of type t.
@@ -77,7 +77,7 @@ protected:
 	int ComputeKeySize(const Val* v = 0, int type_check = 1) const;
 
 	int SingleTypeKeySize(BroType*, const Val*,
-				int type_check, int sz, bool optional) const;
+			      int type_check, int sz, bool optional) const;
 
 	TypeList* type;
 	char* key;	// space for composite key

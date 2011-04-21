@@ -43,7 +43,7 @@ export {
 		# Whether to perform state synchronization with peer.
 		sync: bool &default = T;
 
-		# Whether to requests logs from the peer.
+		# Whether to request logs from the peer.
 		request_logs: bool &default = F;
 
 		# When performing state synchronization, whether we consider

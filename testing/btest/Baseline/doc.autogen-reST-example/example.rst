@@ -13,7 +13,7 @@ these comments are transferred directly into the auto-generated
 `reStructuredText <http://docutils.sourceforge.net/rst.html>`_
 (reST) document's summary section.
 
-.. tip:: You can embed directives and roles within ``##``-stylized comments
+.. tip:: You can embed directives and roles within ``##``-stylized comments.
 
 :Author: Jon Siwek <jsiwek@ncsa.illinois.edu>
 

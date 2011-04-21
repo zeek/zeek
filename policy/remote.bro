@@ -43,6 +43,9 @@ export {
 		# Whether to perform state synchronization with peer.
 		sync: bool &default = T;
 
+		# Whether to request logs from the peer.
+		request_logs: bool &default = F;
+
 		# When performing state synchronization, whether we consider
 		# our state to be authoritative.  If so, we will send the peer
 		# our current set when the connection is set up.
@@ -174,6 +177,12 @@ function setup_peer(p: event_peer, dst: Destination)
 		{
 		do_script_log(p, "requesting synchronized state");
 		request_remote_sync(p, dst$auth);
+		}
+
+	if ( dst$request_logs )
+		{
+		do_script_log(p, "requesting logs");
+		request_remote_logs(p);
 		}
 
 	dst$peer = p;

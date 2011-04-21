@@ -3,7 +3,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 %}
 
-%expect 81
+%expect 85
 
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ALARM TOK_ANY
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
@@ -24,7 +24,7 @@
 %token TOK_ATTR_EXPIRE_CREATE TOK_ATTR_EXPIRE_READ TOK_ATTR_EXPIRE_WRITE
 %token TOK_ATTR_PERSISTENT TOK_ATTR_SYNCHRONIZED
 %token TOK_ATTR_DISABLE_PRINT_HOOK TOK_ATTR_RAW_OUTPUT TOK_ATTR_MERGEABLE
-%token TOK_ATTR_PRIORITY TOK_ATTR_GROUP
+%token TOK_ATTR_PRIORITY TOK_ATTR_GROUP TOK_ATTR_LOG
 
 %token TOK_DEBUG
 
@@ -45,7 +45,7 @@
 
 %type <str> TOK_ID TOK_PATTERN_TEXT single_pattern TOK_DOC TOK_POST_DOC
 %type <str_l> opt_doc_list opt_post_doc_list
-%type <id> local_id global_id event_id global_or_event_id resolve_id begin_func
+%type <id> local_id global_id def_global_id event_id global_or_event_id resolve_id begin_func
 %type <id_l> local_id_list
 %type <ic> init_class
 %type <expr> opt_init
@@ -112,8 +112,10 @@ extern Expr* g_curr_debug_expr;
 
 Expr* bro_this = 0;
 int in_init = 0;
+int in_record = 0;
 bool in_debug = false;
 bool resolving_global_ID = false;
+bool defining_global_ID = false;
 
 ID* func_id = 0;
 EnumType *cur_enum_type = 0;
@@ -464,6 +466,12 @@ expr:
 				$$ = $2;
 			}
 
+	|	'[' ']'
+			{
+			// We interpret this as an empty record constructor.
+			$$ = new RecordConstructorExpr(new ListExpr);
+			}
+
 
 	|	TOK_RECORD '(' expr_list ')'
 			{
@@ -805,7 +813,11 @@ type:
 				$$ = new SetType($3, 0);
 				}
 
-	|	TOK_RECORD '{' { do_doc_token_start(); } type_decl_list '}'
+	|	TOK_RECORD '{'
+			{ ++in_record; do_doc_token_start(); }
+		type_decl_list
+			{ --in_record; }
+		'}'
 				{
 				do_doc_token_stop();
 				set_location(@1, @5);
@@ -938,7 +950,7 @@ type_decl:
 					$4, $2, a_copy, concat_opt_docs($1, $7));
 				}
 
-			$$ = new TypeDecl($4, $2, $5);
+			$$ = new TypeDecl($4, $2, $5, (in_record > 0));
 			}
 	;
 
@@ -980,7 +992,7 @@ decl:
 	|	TOK_EXPORT '{' { is_export = true; } decl_list '}'
 			{ is_export = false; }
 
-	|	TOK_GLOBAL global_id opt_type init_class opt_init opt_attr ';'
+	|	TOK_GLOBAL def_global_id opt_type init_class opt_init opt_attr ';'
 			{
 			add_global($2, $3, $4, $5, $6, VAR_REGULAR);
 
@@ -1005,7 +1017,7 @@ decl:
 				}
 			}
 
-	|	TOK_CONST global_id opt_type init_class opt_init opt_attr ';'
+	|	TOK_CONST def_global_id opt_type init_class opt_init opt_attr ';'
 			{
 			add_global($2, $3, $4, $5, $6, VAR_CONST);
 
@@ -1051,6 +1063,25 @@ decl:
 					current_reST_doc->AddNotice(o);
 				else
 					current_reST_doc->AddRedef(o);
+				}
+			}
+
+	|	TOK_REDEF TOK_RECORD global_id TOK_ADD_TO
+			'{' type_decl_list '}' opt_attr ';'
+			{
+			if ( ! $3->Type() )
+				$3->Error("unknown identifier");
+			else
+				{
+				RecordType* add_to = $3->Type()->AsRecordType();
+				if ( ! add_to )
+					$3->Error("not a record type");
+				else
+					{
+					const char* error = add_to->AddFields($6, $8);
+					if ( error )
+					$3->Error(error);
+					}
 				}
 			}
 
@@ -1113,7 +1144,7 @@ conditional:
 	;
 
 func_hdr:
-		TOK_FUNCTION global_id func_params
+		TOK_FUNCTION def_global_id func_params
 			{
 			begin_func($2, current_module.c_str(),
 				FUNC_FLAVOR_FUNCTION, 0, $3);
@@ -1263,6 +1294,8 @@ attr:
 			{ $$ = new Attr(ATTR_PRIORITY, $3); }
 	|	TOK_ATTR_GROUP '=' expr
 			{ $$ = new Attr(ATTR_GROUP, $3); }
+	|	TOK_ATTR_LOG
+			{ $$ = new Attr(ATTR_LOG); }
 	;
 
 stmt:
@@ -1501,6 +1534,11 @@ global_id:
 		{ $$ = $2; }
 	;
 
+def_global_id:
+	{ defining_global_ID = 1; } global_id { defining_global_ID = 0; } 
+		{ $$ = $2; }
+	;
+
 event_id:
 	{ resolving_global_ID = 0; } global_or_event_id
 		{ $$ = $2; }
@@ -1511,7 +1549,7 @@ global_or_event_id:
 			{
 			set_location(@1);
 
-			$$ = lookup_ID($1, current_module.c_str(), false);
+			$$ = lookup_ID($1, current_module.c_str(), false, defining_global_ID);
 			if ( $$ )
 				{
 				if ( ! $$->IsGlobal() )

@@ -49,6 +49,9 @@ public:
 
 	void SetFlush(int arg_do_flush)	{ do_flush = arg_do_flush; }
 
+	// The string passed in must remain valid as long as this object lives.
+	void SetEscape(const char* escape, int len);
+
 	void PushIndent();
 	void PopIndent();
 	void PopIndentNoNL();
@@ -97,6 +100,9 @@ public:
 				Add("\n", 0);
 			}
 
+	// Bypasses the escaping enabled via SetEscape().
+	void AddRaw(const char* s, int len)	{ AddBytesRaw(s, len); }
+
 	// Returns the description as a string.
 	const char* Description() const		{ return (const char*) base; }
 
@@ -119,6 +125,7 @@ protected:
 	void Indent();
 
 	void AddBytes(const void* bytes, unsigned int n);
+	void AddBytesRaw(const void* bytes, unsigned int n);
 
 	// Make buffer big enough for n bytes beyond bufp.
 	void Grow(unsigned int n);
@@ -131,6 +138,9 @@ protected:
 	void* base;		// beginning of buffer
 	unsigned int offset;	// where we are in the buffer
 	unsigned int size;	// size of buffer in bytes
+
+	int escape_len;	// number of bytes in to escape sequence
+	const char* escape;	// bytes to escape on output
 
 	BroFile* f;	// or the file we're using.
 

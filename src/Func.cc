@@ -239,11 +239,15 @@ BroFunc::BroFunc(ID* arg_id, Stmt* arg_body, id_list* aggr_inits,
 : Func(BRO_FUNC)
 	{
 	id = arg_id;
-	Body b;
-	b.stmts = AddInits(arg_body, aggr_inits);
-	b.priority = 0;
-	bodies.push_back(b);
 	frame_size = arg_frame_size;
+
+	if ( arg_body )
+		{
+		Body b;
+		b.stmts = AddInits(arg_body, aggr_inits);
+		b.priority = 0;
+		bodies.push_back(b);
+		}
 	}
 
 BroFunc::~BroFunc()
@@ -267,6 +271,13 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 #ifdef PROFILE_BRO_FUNCTIONS
 	DEBUG_MSG("Function: %s\n", id->Name());
 #endif
+	if ( ! bodies.size() ) 
+		{
+		// Can only happen for events.
+		assert(IsEvent());
+		return 0 ;
+		}
+
 	SegmentProfiler(segment_logger, location);
 	Frame* f = new Frame(frame_size, this, args);
 
@@ -497,9 +508,11 @@ void builtin_run_time(const char* msg, BroObj* arg)
 	}
 
 #include "bro.bif.func_h"
+#include "logging.bif.func_h"
 #include "strings.bif.func_h"
 
 #include "bro.bif.func_def"
+#include "logging.bif.func_def"
 #include "strings.bif.func_def"
 
 void init_builtin_funcs()
@@ -511,6 +524,7 @@ void init_builtin_funcs()
 	gap_info = internal_type("gap_info")->AsRecordType();
 
 #include "bro.bif.func_init"
+#include "logging.bif.func_init"
 #include "strings.bif.func_init"
 
 	did_builtin_init = true;

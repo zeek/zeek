@@ -235,6 +235,25 @@ void ID::UpdateValAttrs()
 				}
 			}
 		}
+
+	if ( Type()->Tag() == TYPE_RECORD )
+		{
+		Attr* attr = attrs->FindAttr(ATTR_LOG);
+		if ( attr )
+			{
+			// Apply &log to all record fields.
+			RecordType* rt = Type()->AsRecordType();
+			for ( int i = 0; i < rt->NumFields(); ++i )
+				{
+				TypeDecl* fd = rt->FieldDecl(i);
+
+				if ( ! fd->attrs )
+					fd->attrs = new Attributes(new attr_list, rt->FieldType(i), true);
+
+				fd->attrs->AddAttr(new Attr(ATTR_LOG));
+				}
+			}
+		}
 	}
 
 void ID::AddAttrs(Attributes* a)

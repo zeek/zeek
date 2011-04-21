@@ -35,6 +35,7 @@ typedef enum {
 	ATTR_MERGEABLE,
 	ATTR_PRIORITY,
 	ATTR_GROUP,
+	ATTR_LOG,
 	ATTR_TRACKED,	// hidden attribute, tracked by NotifierRegistry
 #define NUM_ATTRS (int(ATTR_TRACKED) + 1)
 } attr_tag;
@@ -53,6 +54,20 @@ public:
 	void Describe(ODesc* d) const;
 	void DescribeReST(ODesc* d) const;
 
+	bool operator==(const Attr& other) const
+		{
+		if ( tag != other.tag )
+			return false;
+
+		if ( expr || other.expr )
+			// If any has an expression and they aren't the same object, we
+			// declare them unequal, as we can't really find out if the two
+			// expressions are equivalent.
+			return (expr == other.expr);
+
+		return true;
+		}
+
 protected:
 	void AddTag(ODesc* d) const;
 
@@ -63,7 +78,7 @@ protected:
 // Manages a collection of attributes.
 class Attributes : public BroObj {
 public:
-	Attributes(attr_list* a, BroType* t);
+	Attributes(attr_list* a, BroType* t, bool in_record);
 	~Attributes();
 
 	void AddAttr(Attr* a);
@@ -81,6 +96,8 @@ public:
 	bool Serialize(SerialInfo* info) const;
 	static Attributes* Unserialize(UnserialInfo* info);
 
+	bool operator==(const Attributes& other) const;
+
 protected:
 	Attributes()	{ type = 0; attrs = 0; }
 	void CheckAttr(Attr* attr);
@@ -89,6 +106,7 @@ protected:
 
 	BroType* type;
 	attr_list* attrs;
+	bool in_record;
 };
 
 #endif

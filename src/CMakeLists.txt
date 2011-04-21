@@ -132,6 +132,7 @@ endmacro(GET_BIF_OUTPUT_FILES)
 
 set(BIF_SRCS
     bro.bif
+    logging.bif
     event.bif
     const.bif
     types.bif
@@ -338,6 +339,9 @@ set(bro_SRCS
     IRC.cc
     List.cc
     Logger.cc
+    LogMgr.cc
+    LogWriter.cc
+    LogWriterAscii.cc
     Login.cc
     MIME.cc
     NCP.cc

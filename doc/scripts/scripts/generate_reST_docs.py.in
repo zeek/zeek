@@ -44,7 +44,7 @@ GenDocs(stdin_docs, True)
 
 # The example documentation script doesn't live on the BROPATH, so
 # explicitly generate the docs for it like this:
-BroToReST("example.bro", False, ["@PROJECT_SOURCE_DIR@/doc"], group="internal").GenDoc()
+BroToReST("example.bro", False, ["@PROJECT_SOURCE_DIR@/doc/scripts"], group="internal").GenDoc()
 
 # Generate documentation for stuff that's always loaded into bro by default:
 cmd = "echo '' | %s %s" % (BRO, BRO_ARGS)

@@ -1,0 +1,44 @@
+This directory contains scripts and templates that can be used to automate
+the generation of Bro script documentation.  Two build targets are defined
+by CMake:
+
+``make doc``
+
+    This target depends on a Python interpreter (>=2.5) and
+    `Sphinx <http://sphinx.pocoo.org/>`_ being installed.  Sphinx can be
+    installed like::
+
+        > sudo easy_install sphinx
+
+    This target will also first build the bro binary if it is not already
+    since the generation of reStructuredText (reST) documentation from
+    Bro scripts is integrated within the parsing process.
+
+    After completion, HTML documentation can be located inside the CMake
+    ``build/`` directory as ``doc/scripts/out/html``.  The generated
+    reST documentation will be located in ``doc/scripts/source/policy``.
+
+``make doc-clean``
+
+    This target removes Sphinx inputs and outputs from the CMake ``build/`` dir.
+
+To schedule a script to be documented, edit ``scripts/generate_reST_docs.py.in``
+and try adding the name of the script along with an optional script group to
+the ``docs`` dictionary.  That python script also shows other, more specialized
+methods for generating documentation for some types of corner-cases.
+
+When adding a new logical grouping for generated scripts, create a new
+reST document in ``source/policy/<group_name>.rst`` and add some default
+documentation.  References to (and summaries of) documents associated with
+the group get appended to this file during the ``make doc`` process.
+
+The Sphinx source tree template in ``source/`` can be modified to add more
+common/general documentation, style sheets, JavaScript, etc.  The Sphinx
+config file is produced from ``conf.py.in``, so that can be edited to change
+various Sphinx options, like setting the default HTML rendering theme.
+There is also a custom Sphinx domain implemented in ``source/ext/bro.py``
+which adds some reST directives and roles that aid in generating useful
+index entries and cross-references.
+
+See ``example.bro`` for an example of how to document a Bro script such that
+``make doc`` will be able to produce reST/HTML documentation for it.

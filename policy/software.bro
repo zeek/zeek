@@ -135,7 +135,7 @@ function parse(unparsed_version: string,
 	# Parse browser-alike versions separately
 	if ( /^Mozilla\/[0-9]\./ in unparsed_version )
 		{
-		print parse_mozilla(unparsed_version, host, software_type);
+		#print parse_mozilla(unparsed_version, host, software_type);
 		}
 	else
 		{

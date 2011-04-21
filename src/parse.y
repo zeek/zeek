@@ -1622,7 +1622,7 @@ opt_doc_list:
 
 int yyerror(const char msg[])
 	{
-	char* msgbuf = new char[strlen(msg) + strlen(last_tok) + 64];
+	char* msgbuf = new char[strlen(msg) + strlen(last_tok) + 128];
 
 	if ( last_tok[0] == '\n' )
 		sprintf(msgbuf, "%s, on previous line", msg);
@@ -1630,6 +1630,10 @@ int yyerror(const char msg[])
 		sprintf(msgbuf, "%s, at end of file", msg);
 	else
 		sprintf(msgbuf, "%s, at or near \"%s\"", msg, last_tok);
+
+	if ( generate_documentation )
+		strcat(msgbuf, "\nDocumentation mode is enabled: "
+		       "remember to check syntax of ## style comments\n");
 
 	error(msgbuf);
 

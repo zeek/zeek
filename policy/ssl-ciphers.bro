@@ -465,7 +465,7 @@ const ssl_cipher_desc: table[count] of string = {
 	[SSL_RSA_FIPS_WITH_3DES_EDE_CBC_SHA] = "SSL_RSA_FIPS_WITH_3DES_EDE_CBC_SHA",
 	[SSL_RSA_FIPS_WITH_DES_CBC_SHA_2] = "SSL_RSA_FIPS_WITH_DES_CBC_SHA_2",
 	[SSL_RSA_FIPS_WITH_3DES_EDE_CBC_SHA_2] = "SSL_RSA_FIPS_WITH_3DES_EDE_CBC_SHA_2",
-};
+} &default="UNKNOWN";
 
 
 # --- the following sets are provided for convenience

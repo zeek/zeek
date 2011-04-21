@@ -47,6 +47,16 @@ global matched_software: table[string] of Software::Info = {
 		[$name="Zope/(Zope", $version=[$major=2,$minor=7,$minor2=8,$addl="final"], $host=0.0.0.0, $ts=ts],
 	["The Bat! (v2.00.9) Personal"] =
 		[$name="The Bat!", $version=[$major=2,$minor=0,$minor2=9,$addl="Personal"], $host=0.0.0.0, $ts=ts],
+	["Flash/10,2,153,1"] =
+		[$name="Flash", $version=[$major=10,$minor=2,$minor2=153,$addl="1"], $host=0.0.0.0, $ts=ts],
+		
+	["Apache/2.0.46 (Win32) mod_ssl/2.0.46 OpenSSL/0.9.7b mod_jk2/2.0.4"] =
+		[$name="Apache", $version=[$major=2,$minor=0,$minor2=46,$addl="Win32"], $host=0.0.0.0, $ts=ts],
+		
+	["Apple iPhone v4.3.1 Weather v1.0.0.8G4"] =
+		[$name="Apple iPhone", $version=[$major=4,$minor=3,$minor2=1,$addl="Weather"], $host=0.0.0.0, $ts=ts],
+	["Mozilla/5.0 (iPhone; U; CPU iPhone OS 4_3_2 like Mac OS X; en-us) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8H7 Safari/6533.18.5"] =
+		[$name="Safari", $version=[$major=5,$minor=0,$minor2=2,$addl="Mobile"], $host=0.0.0.0, $ts=ts],
 };
 
 event bro_init()

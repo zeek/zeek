@@ -8,6 +8,8 @@ module IRC;
 redef enum Log::ID += { IRC };
 
 export {
+	type Tags: enum { EMPTY };
+
 	type Info: record {
 		ts:       time        &log;
 		id:       conn_id     &log;
@@ -18,6 +20,7 @@ export {
 		command: string       &log &optional;
 		value:   string       &log &optional;
 		addl:    string       &log &optional;
+		tags:     set[Tags]    &log &default=set();
 	};
 	
 	const logged_commands = set("JOIN", "DCC SEND");
@@ -147,11 +150,4 @@ event irc_join_message(c: connection, info_list: irc_join_list) &priority=-5
 		c$irc$addl = (l$password != "" ? fmt(" with channel key: '%s'", l$password) : "");
 		Log::write(IRC, c$irc);
 		}
-	}
-
-event expected_connection_seen(c: connection, a: count) &priority=10
-	{
-	local id = c$id;
-	if ( [id$resp_h, id$resp_p] in dcc_expected_transfers )
-		add c$service["ftp-data"];
 	}

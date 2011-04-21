@@ -118,6 +118,7 @@ function parse_mozilla(unparsed_version: string,
 		if ( 2 in parts )
 			v = parse(parts[2], host, software_type)$version;
 		}
+	
 	return [$ts=network_time(), $host=host, $name=software_name, $version=v,
 	        $unparsed_version=unparsed_version];
 	}

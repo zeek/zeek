@@ -3,6 +3,8 @@
 @load http/base
 @load software
 
+module HTTP;
+
 redef enum Software::Type += {
 	WEB_SERVER,
 	WEB_BROWSER,
@@ -32,7 +34,7 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 			{
 			# Flash doesn't include it's name so we'll add it here since it 
 			# simplifies the version parsing.
-			value = cat("Flash ", value);
+			value = cat("Flash/", value);
 			local flash_version = Software::parse(value, c$id$orig_h, WEB_BROWSER_PLUGIN);
 			Software::found(c$id, flash_version);
 			}

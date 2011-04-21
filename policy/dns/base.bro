@@ -11,6 +11,7 @@ export {
 		trans_id:      count       &log &optional;
 		query:         string      &log &optional;
 		qtype:         count       &log &optional;
+		qtype_name:    string      &log &optional;
 		qclass:        count       &log &optional;
 		rcode:         count       &log &optional;
 		QR:            bool        &log &default=F;
@@ -102,9 +103,9 @@ function set_session(c: connection, msg: dns_msg, is_query: bool)
 		if ( info?$total_answers && 
 		     info$total_answers != msg$num_answers + msg$num_addl + msg$num_auth )
 			{
-			print "the total number of answers changed midstream on a dns response.";
-			print info;
-			print msg;
+			#print "the total number of answers changed midstream on a dns response.";
+			#print info;
+			#print msg;
 			}
 		else
 			{
@@ -119,10 +120,18 @@ event dns_request(c: connection, msg: dns_msg, query: string, qtype: count, qcla
 	{
 	set_session(c, msg, T);
 	
-	c$dns$RD       = msg$RD;
-	c$dns$TC       = msg$TC;
-	c$dns$qtype    = qtype;
-	c$dns$qclass   = qclass;
+	c$dns$RD         = msg$RD;
+	c$dns$TC         = msg$TC;
+	c$dns$qtype      = qtype;
+	c$dns$qtype_name = query_types[qtype];
+	c$dns$qclass     = qclass;
+	
+	# Decode netbios name queries
+	# Note: I'm ignoring the name type for now.  Not sure if this should be 
+	#       worked into the query/response in some fashion.
+	if ( c$id$resp_p == 137/udp )
+		query = decode_netbios_name(query);
+		
 	c$dns$query    = query;
 	}
 
@@ -155,6 +164,24 @@ event dns_AAAA_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr,
 		c$dns$replies = set();
 	add c$dns$replies[fmt("%s", a)];
 	}
+	
+event dns_NS_reply(c: connection, msg: dns_msg, ans: dns_answer, name: string) &priority=5
+	{
+	set_session(c, msg, F);
+	
+	if ( ! c$dns?$replies )
+		c$dns$replies = set();
+	add c$dns$replies[name];
+	}
+
+event dns_CNAME_reply(c: connection, msg: dns_msg, ans: dns_answer, name: string) &priority=5
+	{
+	set_session(c, msg, F);
+	
+	if ( ! c$dns?$replies )
+		c$dns$replies = set();
+	add c$dns$replies[name];
+	}
 
 
 event dns_MX_reply(c: connection, msg: dns_msg, ans: dns_answer, name: string,
@@ -175,6 +202,43 @@ event dns_PTR_reply(c: connection, msg: dns_msg, ans: dns_answer, name: string) 
 		c$dns$replies = set();
 	add c$dns$replies[name];
 	}
+	
+event dns_SOA_reply(c: connection, msg: dns_msg, ans: dns_answer, soa: dns_soa)
+	{
+	set_session(c, msg, F);
+	
+	if ( ! c$dns?$replies )
+		c$dns$replies = set();
+	add c$dns$replies[soa$mname];
+	}
+
+event dns_WKS_reply(c: connection, msg: dns_msg, ans: dns_answer)
+	{
+	set_session(c, msg, F);
+	}
+	
+event dns_SRV_reply(c: connection, msg: dns_msg, ans: dns_answer)
+	{
+	set_session(c, msg, F);
+	}
+
+# TODO: figure out how to handle these
+#event dns_EDNS(c: connection, msg: dns_msg, ans: dns_answer)
+#	{
+#	
+#	}
+#
+#event dns_EDNS_addl(c: connection, msg: dns_msg, ans: dns_edns_additional)
+#	{
+#	
+#	}
+#
+#event dns_TSIG_addl(c: connection, msg: dns_msg, ans: dns_tsig_additional)
+#	{
+#	
+#	}
+
+
 	
 event dns_rejected(c: connection, msg: dns_msg,
                    query: string, qtype: count, qclass: count)

@@ -1,3 +1,6 @@
+
+module SMTP;
+
 function find_address_in_smtp_header(header: string): string
 {
 	local ips = find_ip_addresses(header);

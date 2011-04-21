@@ -259,12 +259,12 @@ type pcap_packet: record {
 
 # GeoIP support.
 type geo_location: record {
-	country_code: string &default="";
-	region: string &default="";
-	city: string &default="";
-	latitude: double &default=0.0;
-	longitude: double &default=0.0;
-};
+	country_code: string &optional;
+	region: string &optional;
+	city: string &optional;
+	latitude: double &optional;
+	longitude: double &optional;
+} &log;
 
 type entropy_test_result: record {
 	entropy: double;
@@ -925,10 +925,10 @@ type cipher_suites_list: set[count];
 type SSL_sessionID: table[count] of count;
 type X509_extension: table[count] of string;
 type X509: record {
-	issuer: string;
-	subject: string;
+	issuer:    string;
+	subject:   string;
 	orig_addr: addr;
-};
+} &log;
 
 type http_stats_rec: record {
 	num_requests: count;

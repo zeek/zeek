@@ -12,25 +12,74 @@
 module IRC;
 
 export {
+	redef enum Tags += { EXTRACTED_FILE };
+
+	## Pattern of file mime types to extract from IRC DCC file transfers.
+	const extract_file_types = /NO_DEFAULT/ &redef;
+
+	## The on-disk prefix for files to be extracted from IRC DCC file transfers.
+	const extraction_prefix = "irc-dcc-item" &redef;
+
 	redef record Info += {
-		file_name:    string &optional;
-		file_size:    count &optional;
+		dcc_file_name:    string &log &optional;
+		dcc_file_size:    count  &log &optional;
+		dcc_mime_type:    string &log &optional;
+		
+		## The file handle for the file to be extracted
+		extraction_file:  file &log &optional;
+		
+		## A boolean to indicate if the current file transfer shoudl be transfered.
+		extract_file:     bool &default=F;
 	};
 }
 
 global dcc_expected_transfers: table[addr, port] of Info = table();
 
 event file_transferred(c: connection, prefix: string, descr: string,
-                       mime_type: string) &priority=5
+                       mime_type: string) &priority=3
 	{
 	local id = c$id;
-	if ( [id$resp_h, id$resp_p] in dcc_expected_transfers )
+	if ( [id$resp_h, id$resp_p] !in dcc_expected_transfers )
+		return;
+		
+	local irc = dcc_expected_transfers[id$resp_h, id$resp_p];
+	
+	irc$dcc_mime_type = mime_type;
+
+	if ( extract_file_types in mime_type )
+		irc$extract_file = T;
+
+	if ( irc$extract_file )
 		{
-		delete dcc_expected_transfers[id$resp_h, id$resp_p];
-		local fh = open("irc-dcc-item");
-		set_contents_file(id, CONTENTS_RESP, fh);
+		add irc$tags[EXTRACTED_FILE];
+		irc$extraction_file = open(fmt("%s.%s", extraction_prefix, id_string(c$id)));
 		}
+	
 	}
+	
+event file_transferred(c: connection, prefix: string, descr: string,
+			mime_type: string) &priority=-4
+	{
+	local id = c$id;
+	if ( [id$resp_h, id$resp_p] !in dcc_expected_transfers )
+		return;
+
+	local irc = dcc_expected_transfers[id$resp_h, id$resp_p];
+
+	if ( irc$extract_file && irc?$extraction_file )
+		set_contents_file(id, CONTENTS_RESP, irc$extraction_file);
+	
+	# Delete these values in case another DCC transfer 
+	# happens during the IRC session.
+	# TODO: uncomment these when this operator works
+	# delete irc$extract_file;
+	# delete irc$extraction_file;
+	# delete irc$dcc_file_name;
+	# delete irc$dcc_file_size;
+	# delete irc$dcc_mime_type;
+	delete dcc_expected_transfers[id$resp_h, id$resp_p];
+	}
+
 
 event irc_server(c: connection, prefix: string, data: string) &priority=5
 	{
@@ -45,11 +94,17 @@ event irc_server(c: connection, prefix: string, data: string) &priority=5
 		c$irc$command = "DCC SEND";
 		#local ex_h = count_to_v4_addr(to_count(parts[|parts|-4]));
 		local ex_p = to_port(to_count(parts[|parts|-2]), tcp);
-		c$irc$file_name = parts[|parts|-6];
-		c$irc$file_size = to_count(parts[|parts|]);
+		c$irc$dcc_file_name = parts[|parts|-6];
+		c$irc$dcc_file_size = to_count(parts[|parts|]);
 		#print fmt("file! %s->%s:%d", c$id$orig_h, ex_h, ex_p);
 		#expect_connection(c$id$orig_h, ex_h, ex_p, ANALYZER_FILE, 5 min);
 		#dcc_expected_transfers[ex_h, ex_p];
 		}
 	}
 
+event expected_connection_seen(c: connection, a: count) &priority=10
+	{
+	local id = c$id;
+	if ( [id$resp_h, id$resp_p] in dcc_expected_transfers )
+		add c$service["irc-dcc-data"];
+	}

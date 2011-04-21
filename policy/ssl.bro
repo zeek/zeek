@@ -9,7 +9,7 @@
 module SSL;
 
 redef enum Notice::Type += {
-	# Blanket X509 error
+	## Blanket X509 error
 	SSL_X509Violation,
 	## Session data not consistent with connection
 	SSL_SessConIncon,
@@ -18,33 +18,31 @@ redef enum Notice::Type += {
 redef enum Log::ID += { SSL };
 
 export {
-	type Log: record {
-		ts:                     time;
-		id:                     conn_id;
-		## This is the session ID.  It's optional because SSLv2 doesn't have it.
-		sid:                    string &optional;
-		# TODO: dga 3/11 The following 2 fields are not yet picked up
-		#not_valid_before:       time;               # certificate valid time constraint
-		#not_valid_after:        time;               # certificate valid time constraint
-		version:                string &default="UNKNOWN"; # version number
-		weak_client_cipher:     bool &default = F;  # true if client offered insecure ciphers
-		weak_server_cipher:     bool &default = F;  # true if server offered insecure ciphers
-		weak_cipher_agreed:     bool &default = F;  # true if insecure cipher agreed upon for use
-		
-		version:                string &default=""; # version associated with connection
-		client_cert:            X509 &optional;     # client certificate
-		server_cert:            X509 &optional;     # server certificate
-		handshake_cipher:       string &default=""; # agreed-upon cipher for session/conn.
+	type Tags: enum { 
+		WEAK_CLIENT_CIPHER,
+		WEAK_SERVER_CIPHER,
+		WEAK_CIPHER_AGREED
 	};
 	
-	type ConnectionInfo: record {
-		log:      Log;
+	type Info: record {
+		ts:                     time    &log;
+		id:                     conn_id &log;
+		## This is the session ID.  It's optional because SSLv2 doesn't have it.
+		sid:                    string  &log &optional;
+		# TODO: dga 3/11 The following 2 fields are not yet picked up
+		#not_valid_before:       time &log &optional;              ##< certificate valid time constraint
+		#not_valid_after:        time &log &optional;              ##< certificate valid time constraint
+		version:                string  &log &default="UNKNOWN";   ##< SSL/TLS version number
 		
+		client_cert:            X509    &log &optional;   ##< client certificate
+		server_cert:            X509    &log &optional;   ##< server certificate
+		handshake_cipher:       string  &log &optional;   ##< agreed-upon cipher for session/conn.
+		tags:                   set[Tags] &log;
 	};
 
 	type SessionInfo: record {
-		## This tracks the number of times this session has been reused.
-		num_reuse:  count &default=1;
+		## This tracks the number of times this session has been used.
+		num_use:                count &default=1;
 		
 		version:                string &default=""; # version associated with connection
 		client_cert:            X509 &optional;     # client certificate
@@ -89,13 +87,10 @@ export {
 	## The list of all detected X509 certs.
 	global certs: set[addr, port, string] &create_expire=1day &synchronized;
 
-	## All active SSL/TLS connections
-	global active_conns: table[conn_id] of ConnectionInfo &read_expire=1hr;
-
 	## Recent TLS session IDs
 	global recent_sessions: table[string] of SessionInfo &read_expire=1hr;
 	
-	global log_ssl: event(rec: Log);
+	global log_ssl: event(rec: Info);
 	
 	## This is the set of SSL/TLS ciphers are are seen as weak to attack.
 	const weak_ciphers: set[count] = {
@@ -140,6 +135,10 @@ export {
 	
 }
 
+redef record connection += {
+	ssl:   Info &optional;
+};
+
 # NOTE: this is a 'local' port format for your site
 # --- well-known ports for ssl ---------
 redef capture_filters += {
@@ -167,8 +166,7 @@ redef dpd_config += {
 
 event bro_init()
 	{
-	Log::create_stream(SSL, [$columns=SSL::Log, $ev=log_ssl] );
-	Log::add_default_filter(SSL);
+	Log::create_stream(SSL, [$columns=Info, $ev=log_ssl] );
 	
 	# The event engine will generate a run-time if this fails for
 	# reasons other than that the directory already exists.
@@ -199,24 +197,16 @@ const x509_hot_errors: set[int] = {
 	};
 @endif
 
-function ssl_get_cipher_name(cipherSuite: count): string
-	{
-	return cipherSuite in ssl_cipher_desc ?
-		ssl_cipher_desc[cipherSuite] : "UNKNOWN";
-	}
-	
-function get_connection_info(c: connection): ConnectionInfo
+function set_session(c: connection)
 	{
 	local id = c$id;
 	
-	if ( id in active_conns )
-		return active_conns[id];
-	else
+	if ( ! c?$ssl )
 		{
-		local log: Log = [$ts=network_time(), $id=id];
-		local conn_info: ConnectionInfo = [$log=log];
-		active_conns[id] = conn_info;
-		return conn_info;
+		local info: Info;
+		info$ts=network_time();
+		info$id=id;
+		c$ssl = info;
 		}
 	}
 	
@@ -231,44 +221,43 @@ function get_session_info(s: SSL_sessionID): SessionInfo
 
 event ssl_certificate(c: connection, cert: X509, is_server: bool)
 	{
-	#if ( is_server )
-	#	event protocol_confirmation(c, ANALYZER_SSL, 0);
-	local conn = get_connection_info(c);
-
+	print "hello?";
+	set_session(c);
+	
 	if ( [c$id$resp_h, c$id$resp_p, cert$subject] !in certs )
 		add certs[c$id$resp_h, c$id$resp_p, cert$subject];
 
 	if( is_server )
 		{
-		conn$log$server_cert = cert;
+		c$ssl$server_cert = cert;
 
 		# We have not filled in the field for the master session
 		# for this connection.  Do it now, but only if this is not a
 		# SSLv2 connection (no session information in that case).
-		if ( conn$log$sid in recent_sessions &&
-		     recent_sessions[conn$log$sid]?$server_cert )
-			recent_sessions[conn$log$sid]$server_cert$subject = cert$subject;
+		if ( c$ssl$sid in recent_sessions &&
+		     recent_sessions[c$ssl$sid]?$server_cert )
+			recent_sessions[c$ssl$sid]$server_cert$subject = cert$subject;
 		}
 	else
 		{
-		conn$log$client_cert = cert;
+		c$ssl$client_cert = cert;
 		}
 	}
 
 event ssl_conn_attempt(c: connection, version: count, ciphers: cipher_suites_list)
 	{
-	local conn = get_connection_info(c);
+	set_session(c);
 	
-	conn$log$version = version_strings[version];
+	c$ssl$version = version_strings[version];
 	
 	for ( cs in ciphers )
 		{
 		if ( cs in weak_ciphers )
 			{
-			conn$log$weak_client_cipher = T;
+			add c$ssl$tags[WEAK_CLIENT_CIPHER];
 			#event ssl_conn_weak(
 			#	fmt("SSL client supports weak cipher: %s (0x%x)",
-			#		ssl_get_cipher_name(cs), cs), c);
+			#		ssl_cipher_desc[cs], cs), c);
 			}
 		}
 	}
@@ -276,7 +265,7 @@ event ssl_conn_attempt(c: connection, version: count, ciphers: cipher_suites_lis
 event ssl_conn_server_reply(c: connection, version: count,
 				ciphers: cipher_suites_list)
 	{
-	local conn = get_connection_info(c);
+	set_session(c);
 	
 	#conn$log$version = version_strings[version];
 
@@ -284,32 +273,28 @@ event ssl_conn_server_reply(c: connection, version: count,
 		{
 		if ( cs in weak_ciphers )
 			{
-			conn$log$weak_server_cipher = T;
-			#event ssl_conn_weak(
-			#	fmt("SSLv2 server supports weak cipher: %s (0x%x)",
-			#		ssl_get_cipher_name(cs), cs), c);
+			add c$ssl$tags[WEAK_SERVER_CIPHER];
 			}
 		}
 	}
 
 event ssl_conn_established(c: connection, version: count, cipher_suite: count) &priority=1
 	{
-	local conn = get_connection_info(c);
+	set_session(c);
 	
-	conn$log$ts = network_time();
-	#conn$log$version = version_strings[version];
+	c$ssl$version = version_strings[version];
 	
 	if ( cipher_suite in weak_ciphers )
-		conn$log$weak_cipher_agreed = T;
+		add c$ssl$tags[WEAK_CIPHER_AGREED];
 	
 	# log the connection
-	Log::write(SSL, conn$log);
+	Log::write(SSL, c$ssl);
 	}
 
 event process_X509_extensions(c: connection, ex: X509_extension)
 	{
-	local conn = get_connection_info(c);
-
+	set_session(c);
+	
 	#local msg = fmt( "%.6f X.509 extensions: ", network_time() );
 	#for ( i in ex )
 	#	msg = fmt("%s, %s", msg, ex[i]);
@@ -317,33 +302,34 @@ event process_X509_extensions(c: connection, ex: X509_extension)
 
 event ssl_session_insertion(c: connection, id: SSL_sessionID)
 	{
+	set_session(c);
+	
 	local cid = c$id;
-	local conn = get_connection_info(c);
-	conn$log$sid=md5_hash(id);
+	c$ssl$sid=md5_hash(id);
 	
 	# This will create a new session if one doesn't already exist.
 	local session = get_session_info(id);
-	session$version=conn$log$version;
-	if ( conn$log?$client_cert ) session$client_cert=conn$log$client_cert;
-	if ( conn$log?$server_cert ) session$server_cert=conn$log$server_cert;
-	session$handshake_cipher=conn$log$handshake_cipher;
+	session$version=c$ssl$version;
+	if ( c$ssl?$client_cert ) session$client_cert=c$ssl$client_cert;
+	if ( c$ssl?$server_cert ) session$server_cert=c$ssl$server_cert;
+	if ( c$ssl?$handshake_cipher )session$handshake_cipher=c$ssl$handshake_cipher;
 	}
 
 event ssl_conn_reused(c: connection, session_id: SSL_sessionID)
 	{
-	local conn = get_connection_info(c);
-
+	set_session(c);
+	
 	# We cannot track sessions with SSLv2.
-	if ( conn$log$version == version_strings[SSLv2] )
+	if ( c$ssl$version == version_strings[SSLv2] )
 		return;
 
 	local session = get_session_info(session_id);
-	++session$num_reuse;
+	++session$num_use;
 
 	# At this point, the connection values have been set.  We can then
 	# compare session and connection values with some confidence.
-	if ( session$version != conn$log$version ||
-	     session$handshake_cipher != conn$log$handshake_cipher )
+	if ( session$version != c$ssl$version ||
+	     session$handshake_cipher != c$ssl$handshake_cipher )
 		{
 		NOTICE([$note=SSL_SessConIncon, $conn=c, $msg="session violation"]);
 		}
@@ -353,8 +339,9 @@ event ssl_X509_error(c: connection, err: int, err_string: string)
 	{
 	if ( err in x509_ignore_errors )
 		return;
+	
+	set_session(c);
 
-	local conn = get_connection_info(c);
 	local error =
 		err in x509_errors ?  x509_errors[err] : "unknown X.509 error";
 
@@ -362,13 +349,7 @@ event ssl_X509_error(c: connection, err: int, err_string: string)
 	if ( err in x509_hot_errors )
 		{
 		NOTICE([$note=SSL_X509Violation, $conn=c, $msg=error]);
-		++c$hot;
 		severity = "error";
 		}
-	}
-
-event connection_state_remove(c: connection)
-	{
-	delete active_conns[c$id];
 	}
 

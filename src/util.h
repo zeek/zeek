@@ -140,7 +140,7 @@ extern void hmac_md5(size_t size, const unsigned char* bytes,
 
 extern const char* md5_digest_print(const unsigned char digest[16]);
 
-// Initializes RNGs for random() and MD5 usage.  If seed is given, then
+// Initializes RNGs for bro_random() and MD5 usage.  If seed is given, then
 // it is used (to provide determinism).  If load_file is given, the seeds
 // (both random & MD5) are loaded from that file.  This takes precedence
 // over the "seed" argument.  If write_file is given, the seeds are written
@@ -148,6 +148,11 @@ extern const char* md5_digest_print(const unsigned char digest[16]);
 //
 extern void init_random_seed(uint32 seed, const char* load_file,
 				const char* write_file);
+
+// Replacement for the system random(), to which is normally falls back
+// except when a seed has been given. In that case, we use our own
+// predictable PRNG.
+long int bro_random();
 
 extern uint64 rand64bit();
 

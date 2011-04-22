@@ -367,7 +367,7 @@ void net_packet_dispatch(double t, const struct pcap_pkthdr* hdr,
 		if ( load_freq == 0 )
 			load_freq = uint32(0xffffffff) / uint32(load_sample_freq);
 
-		if ( uint32(random() & 0xffffffff) < load_freq )
+		if ( uint32(bro_random() & 0xffffffff) < load_freq )
 			{
 			// Drain the queued timer events so they're not
 			// charged against this sample.

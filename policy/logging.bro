@@ -81,10 +81,10 @@ export {
 
 	## Information passed into rotation callback functions.
 	type RotationInfo: record {
-		writer: Writer;	##> Writer.
-		path: string;	##> Original path value.
-		open: time;	##> Time when opened.
-		close: time;	##> Time when closed.
+		writer: Writer;	##< Writer.
+		path: string;	##< Original path value.
+		open: time;	##< Time when opened.
+		close: time;	##< Time when closed.
 	};
 
 	## Default rotation interval. Zero disables rotation.

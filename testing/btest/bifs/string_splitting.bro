@@ -6,4 +6,7 @@ event bro_init()
 	{
 	local a = "X-Mailer: Testing Test (http://www.example.com)";
 	print split1(a, /:[[:blank:]]*/);
+
+	a = "A = B = C = D";
+	print split_all(a, /=/);
 	}

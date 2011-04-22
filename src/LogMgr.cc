@@ -214,13 +214,11 @@ bool LogVal::Read(SerializationFormat* fmt)
 			fmt->Read(&addr[3], "addr3")) )
 			return false;
 
-#ifdef BROv6
 		val.addr_val[0] = addr[0];
+#ifdef BROv6
 		val.addr_val[1] = addr[1];
 		val.addr_val[2] = addr[2];
 		val.addr_val[3] = addr[3];
-#else
-		val.addr_val = addr[0];
 #endif
 		return true;
 		}
@@ -302,10 +300,13 @@ bool LogVal::Write(SerializationFormat* fmt) const
 
 	case TYPE_SUBNET:
 		{
-#ifdef BROv6
-		uint32* net = val.subnet_val;
-#else
 		uint32 net[4];
+#ifdef BROv6
+		net[0] = val.subnet_val.net[0];
+		net[1] = val.subnet_val.net[1];
+		net[2] = val.subnet_val.net[2];
+		net[3] = val.subnet_val.net[3];
+#else
 		net[0] = val.subnet_val.net;
 		net[1] = net[2] = net[3] = 0;
 #endif
@@ -319,11 +320,13 @@ bool LogVal::Write(SerializationFormat* fmt) const
 	case TYPE_NET:
 	case TYPE_ADDR:
 		{
-#ifdef BROv6
-		uint32* addr = val.addr_val;
-#else
 		uint32 addr[4];
-		addr[0] = val.addr_val;
+		addr[0] = val.addr_val[0];
+#ifdef BROv6
+		addr[1] = val.addr_val[1];
+		addr[2] = val.addr_val[2];
+		addr[3] = val.addr_val[3];
+#else
 		addr[1] = addr[2] = addr[3] = 0;
 #endif
 		return fmt->Write(addr[0], "addr0") &&
@@ -999,7 +1002,11 @@ LogVal* LogMgr::ValToLogVal(Val* val, BroType* ty)
 	case TYPE_ADDR:
 		{
 		addr_type t = val->AsAddr();
-		copy_addr(&t, &lval->val.addr_val);
+#ifdef BROv6
+		copy_addr(t, lval->val.addr_val);
+#else
+		copy_addr(&t, lval->val.addr_val);
+#endif
 		break;
 		}
 

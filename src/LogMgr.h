@@ -38,7 +38,7 @@ struct LogVal {
 	union _val {
 		bro_int_t int_val;
 		bro_uint_t uint_val;
-		addr_type addr_val;
+		uint32 addr_val[NUM_ADDR_WORDS];
 		subnet_type subnet_val;
 		double double_val;
 		string* string_val;

@@ -138,7 +138,7 @@ export {
 # We keep a script-level copy of all filters so that we can manipulate them.
 global filters: table[ID, string] of Filter;
 
-@load logging.bif # Needs Filter and Stream defined.
+@load logging.bif.bro # Needs Filter and Stream defined.
 
 module Log;
 

@@ -244,8 +244,11 @@ Val* do_split(StringVal* str_val, RE_Matcher* re, TableVal* other_sep,
 			--n;
 			}
 
-		if ( num_sep >= max_num_sep )
+		if ( max_num_sep && num_sep >= max_num_sep )
+			{
 			offset = end_of_s - s;
+			n=0;
+			}
 
 		Val* ind = new Val(++num, TYPE_COUNT);
 		a->Assign(ind, new StringVal(offset, (const char*) s));

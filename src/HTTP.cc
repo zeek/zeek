@@ -12,7 +12,6 @@
 #include "HTTP.h"
 #include "Event.h"
 #include "MIME.h"
-#include "TCP_Rewriter.h"
 
 const bool DEBUG_http = false;
 
@@ -1756,5 +1755,3 @@ BroString* unescape_URI(const u_char* line, const u_char* line_end,
 
 	return new BroString(1, decoded_URI, URI_p - decoded_URI);
 	}
-
-#include "http-rw.bif.func_def"

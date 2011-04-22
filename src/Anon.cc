@@ -17,7 +17,7 @@ AnonymizeIPAddr* ip_anonymizer[NUM_ADDR_ANONYMIZATION_METHODS] = {0};
 
 static uint32 rand32()
 	{
-	return ((random() & 0xffff) << 16) | (random() & 0xffff);
+	return ((bro_random() & 0xffff) << 16) | (bro_random() & 0xffff);
 	}
 
 // From tcpdpriv.

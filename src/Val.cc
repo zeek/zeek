@@ -574,6 +574,11 @@ void Val::Describe(ODesc* d) const
 		Val::ValDescribe(d);
 	}
 
+void Val::DescribeReST(ODesc* d) const
+	{
+	ValDescribeReST(d);
+	}
+
 void Val::ValDescribe(ODesc* d) const
 	{
 	if ( d->IsReadable() && type->Tag() == TYPE_BOOL )
@@ -612,6 +617,20 @@ void Val::ValDescribe(ODesc* d) const
 	default:
 		// Don't call Internal(), that'll loop!
 		internal_error("Val description unavailable");
+	}
+	}
+
+void Val::ValDescribeReST(ODesc* d) const
+	{
+	switch ( type->InternalType() ) {
+	case TYPE_INTERNAL_OTHER:
+		Describe(d);
+		break;
+
+	default:
+		d->Add("``");
+		ValDescribe(d);
+		d->Add("``");
 	}
 	}
 
@@ -1734,7 +1753,7 @@ void TableVal::CheckExpireAttr(attr_tag at)
 			a->AttrExpr()->Error("value of timeout not fixed");
 			return;
 			}
-		
+
 		expire_time = timeout->AsInterval();
 
 		if ( timer )
@@ -2023,7 +2042,23 @@ Val* TableVal::Default(Val* index)
 		return 0;
 
 	if ( ! def_val )
-		def_val = def_attr->AttrExpr()->Eval(0);
+		{
+		BroType* ytype = Type()->YieldType();
+		BroType* dtype = def_attr->AttrExpr()->Type();
+
+		if ( dtype->Tag() == TYPE_RECORD && ytype->Tag() == TYPE_RECORD &&
+		     ! same_type(dtype, ytype) &&
+		     record_promotion_compatible(dtype->AsRecordType(),
+						 ytype->AsRecordType()) )
+			{
+			Expr* coerce = new RecordCoerceExpr(def_attr->AttrExpr(), ytype->AsRecordType());
+			def_val = coerce->Eval(0);
+			Unref(coerce);
+			}
+
+		else
+			def_val = def_attr->AttrExpr()->Eval(0);
+		}
 
 	if ( ! def_val )
 		{
@@ -2893,6 +2928,83 @@ Val* RecordVal::Lookup(int field) const
 	return (*AsRecord())[field];
 	}
 
+Val* RecordVal::LookupWithDefault(int field) const
+	{
+	Val* val = (*AsRecord())[field];
+
+	if ( val )
+		return val->Ref();
+
+	// Check for &default.
+	const Attr* def_attr =
+		record_type->FieldDecl(field)->attrs->FindAttr(ATTR_DEFAULT);
+
+	return def_attr ? def_attr->AttrExpr()->Eval(0) : 0;
+	}
+
+RecordVal* RecordVal::CoerceTo(const RecordType* t, Val* aggr) const
+	{
+	if ( ! record_promotion_compatible(t->AsRecordType(), Type()->AsRecordType()) )
+		return 0;
+
+	if ( ! aggr )
+		aggr = new RecordVal(const_cast<RecordType*>(t->AsRecordType()));
+
+	RecordVal* ar = aggr->AsRecordVal();
+	RecordType* ar_t = aggr->Type()->AsRecordType();
+
+	const RecordType* rv_t = Type()->AsRecordType();
+
+	int i;
+	for ( i = 0; i < rv_t->NumFields(); ++i )
+		{
+		int t_i = ar_t->FieldOffset(rv_t->FieldName(i));
+
+		if ( t_i < 0 )
+			{
+			char buf[512];
+			safe_snprintf(buf, sizeof(buf),
+					"orphan field \"%s\" in initialization",
+					rv_t->FieldName(i));
+			Error(buf);
+			break;
+			}
+
+		if ( ar_t->FieldType(t_i)->Tag() == TYPE_RECORD
+				&& ! same_type(ar_t->FieldType(t_i), Lookup(i)->Type()) )
+			{
+			Expr* rhs = new ConstExpr(Lookup(i)->Ref());
+			Expr* e = new RecordCoerceExpr(rhs, ar_t->FieldType(t_i)->AsRecordType());
+			ar->Assign(t_i, e->Eval(0));
+			}
+
+		ar->Assign(t_i, Lookup(i)->Ref());
+		}
+
+	for ( i = 0; i < ar_t->NumFields(); ++i )
+		if ( ! ar->Lookup(i) &&
+			 ! ar_t->FieldDecl(i)->FindAttr(ATTR_OPTIONAL) )
+			{
+			char buf[512];
+			safe_snprintf(buf, sizeof(buf),
+					"non-optional field \"%s\" missing in initialization", ar_t->FieldName(i));
+			Error(buf);
+			}
+
+	return ar;
+	}
+
+RecordVal* RecordVal::CoerceTo(RecordType* t)
+	{
+	if ( same_type(Type(), t) )
+		{
+		this->Ref();
+		return this;
+		}
+
+	return CoerceTo(t, 0);
+	}
+
 void RecordVal::Describe(ODesc* d) const
 	{
 	const val_list* vl = AsRecord();
@@ -2927,6 +3039,34 @@ void RecordVal::Describe(ODesc* d) const
 
 	if ( d->IsReadable() )
 		d->Add("]");
+	}
+
+void RecordVal::DescribeReST(ODesc* d) const
+	{
+	const val_list* vl = AsRecord();
+	int n = vl->length();
+
+	d->Add("{");
+	d->PushIndent();
+
+	loop_over_list(*vl, i)
+		{
+		if ( i > 0 )
+			d->NL();
+
+		d->Add(record_type->FieldName(i));
+		d->Add("=");
+
+		Val* v = (*vl)[i];
+
+		if ( v )
+			v->Describe(d);
+		else
+			d->Add("<uninitialized>");
+		}
+
+	d->PopIndent();
+	d->Add("}");
 	}
 
 IMPLEMENT_SERIAL(RecordVal, SER_RECORD_VAL);
@@ -3292,6 +3432,10 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init)
 
 	TypeTag t_tag = t->Tag();
 	TypeTag v_tag = vt->Tag();
+
+	// More thought definitely needs to go into this.
+	if ( t_tag == TYPE_ANY || v_tag == TYPE_ANY )
+		return v;
 
 	if ( ! EitherArithmetic(t_tag, v_tag) ||
 	     /* allow sets as initializers */

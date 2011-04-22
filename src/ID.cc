@@ -235,6 +235,25 @@ void ID::UpdateValAttrs()
 				}
 			}
 		}
+
+	if ( Type()->Tag() == TYPE_RECORD )
+		{
+		Attr* attr = attrs->FindAttr(ATTR_LOG);
+		if ( attr )
+			{
+			// Apply &log to all record fields.
+			RecordType* rt = Type()->AsRecordType();
+			for ( int i = 0; i < rt->NumFields(); ++i )
+				{
+				TypeDecl* fd = rt->FieldDecl(i);
+
+				if ( ! fd->attrs )
+					fd->attrs = new Attributes(new attr_list, rt->FieldType(i), true);
+
+				fd->attrs->AddAttr(new Attr(ATTR_LOG));
+				}
+			}
+		}
 	}
 
 void ID::AddAttrs(Attributes* a)
@@ -604,6 +623,135 @@ void ID::DescribeExtended(ODesc* d) const
 		{
 		d->Add(" ");
 		attrs->Describe(d);
+		}
+	}
+
+void ID::DescribeReSTShort(ODesc* d) const
+	{
+	if ( is_type )
+		d->Add(":bro:type:`");
+	else
+		d->Add(":bro:id:`");
+
+	d->Add(name);
+	d->Add("`");
+
+	if ( type )
+		{
+		d->Add(": ");
+		d->Add(":bro:type:`");
+
+		if ( ! is_type && type->GetTypeID() )
+			d->Add(type->GetTypeID());
+		else
+			{
+			TypeTag t = type->Tag();
+
+			switch ( t ) {
+			case TYPE_TABLE:
+				d->Add(type->IsSet() ? "set" : type_name(t));
+				break;
+
+			case TYPE_FUNC:
+				d->Add(type->AsFuncType()->IsEvent() ? "event" : type_name(t));
+				break;
+
+			default:
+				d->Add(type_name(t));
+			}
+			}
+
+		d->Add("`");
+		}
+
+	if ( attrs )
+		{
+		d->SP();
+		attrs->DescribeReST(d);
+		}
+	}
+
+void ID::DescribeReST(ODesc* d, bool is_role) const
+	{
+	if ( is_role )
+		{
+		if ( is_type )
+			d->Add(":bro:type:`");
+		else
+			d->Add(":bro:id:`");
+		d->Add(name);
+		d->Add("`");
+		}
+	else
+		{
+		if ( is_type )
+			d->Add(".. bro:type:: ");
+		else
+			d->Add(".. bro:id:: ");
+		d->Add(name);
+		}
+
+	d->PushIndent();
+	d->NL();
+
+	if ( type )
+		{
+		d->Add(":Type: ");
+
+		if ( ! is_type && type->GetTypeID() )
+			{
+			d->Add(":bro:type:`");
+			d->Add(type->GetTypeID());
+			d->Add("`");
+			}
+		else
+			type->DescribeReST(d);
+
+		d->NL();
+		}
+
+	if ( attrs )
+		{
+		d->Add(":Attributes: ");
+		attrs->DescribeReST(d);
+		d->NL();
+		}
+
+	if ( val && type &&
+		type->Tag() != TYPE_FUNC &&
+		type->InternalType() != TYPE_INTERNAL_VOID )
+		{
+		d->Add(":Default:");
+
+		if ( type->InternalType() == TYPE_INTERNAL_OTHER )
+			{
+			switch ( type->Tag() ) {
+			case TYPE_TABLE:
+				if ( val->AsTable()->Length() == 0 )
+					{
+					d->Add(" ``{}``");
+					d->NL();
+					break;
+					}
+				// Fall-through.
+
+			default:
+				d->NL();
+				d->NL();
+				d->Add("::");
+				d->NL();
+				d->PushIndent();
+				val->DescribeReST(d);
+				d->PopIndent();
+			}
+			}
+
+		else
+			{
+			d->SP();
+			val->DescribeReST(d);
+			d->NL();
+			}
 		}
 	}
 

@@ -14,11 +14,6 @@ public:
 	virtual void Done();
 
 	virtual void DeliverStream(int length, const u_char* data, bool is_orig);
-	virtual int RewritingTrace()
-		{
-		return BifConst::rewriting_ident_trace ||
-			TCP_ApplicationAnalyzer::RewritingTrace();
-		}
 
 	static Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new Ident_Analyzer(conn); }

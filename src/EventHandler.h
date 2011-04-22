@@ -34,8 +34,7 @@ public:
 	void Call(val_list* vl, bool no_remote = false);
 
 	// Returns true if there is at least one local or remote handler.
-	operator  bool() const
-		{ return enabled && (local || receivers.length()); }
+	operator  bool() const;
 
 	void SetUsed()          { used = true; }
 	bool Used()             { return used; }

@@ -49,9 +49,16 @@ public:
 
 	void SetFlush(int arg_do_flush)	{ do_flush = arg_do_flush; }
 
+	// The string passed in must remain valid as long as this object lives.
+	void SetEscape(const char* escape, int len);
+
 	void PushIndent();
 	void PopIndent();
+	void PopIndentNoNL();
 	int GetIndentLevel() const	{ return indent_level; }
+
+	int IndentSpaces() const	{ return indent_with_spaces; }
+	void SetIndentSpaces(int i)	{ indent_with_spaces = i; }
 
 	void Add(const char* s, int do_indent=1);
 	void AddN(const char* s, int len)	{ AddBytes(s, len); }
@@ -93,6 +100,9 @@ public:
 				Add("\n", 0);
 			}
 
+	// Bypasses the escaping enabled via SetEscape().
+	void AddRaw(const char* s, int len)	{ AddBytesRaw(s, len); }
+
 	// Returns the description as a string.
 	const char* Description() const		{ return (const char*) base; }
 
@@ -115,6 +125,7 @@ protected:
 	void Indent();
 
 	void AddBytes(const void* bytes, unsigned int n);
+	void AddBytesRaw(const void* bytes, unsigned int n);
 
 	// Make buffer big enough for n bytes beyond bufp.
 	void Grow(unsigned int n);
@@ -128,6 +139,9 @@ protected:
 	unsigned int offset;	// where we are in the buffer
 	unsigned int size;	// size of buffer in bytes
 
+	int escape_len;	// number of bytes in to escape sequence
+	const char* escape;	// bytes to escape on output
+
 	BroFile* f;	// or the file we're using.
 
 	int indent_level;
@@ -135,6 +149,7 @@ protected:
 	int want_quotes;
 	int do_flush;
 	int include_stats;
+	int indent_with_spaces;
 };
 
 #endif

@@ -12,6 +12,8 @@
 #include "RemoteSerializer.h"
 #include "EventRegistry.h"
 
+extern int generate_documentation;
+
 static Val* init_val(Expr* init, const BroType* t, Val* aggr)
 	{
 	return init->InitVal(t, aggr);
@@ -107,7 +109,7 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 	id->SetType(t);
 
 	if ( attr )
-		id->AddAttrs(new Attributes(attr, t));
+		id->AddAttrs(new Attributes(attr, t, false));
 
 	if ( id->FindAttr(ATTR_PERSISTENT) || id->FindAttr(ATTR_SYNCHRONIZED) )
 		{
@@ -170,6 +172,16 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 		}
 
 	id->UpdateValAttrs();
+
+	if ( t && t->Tag() == TYPE_FUNC && t->AsFuncType()->IsEvent() )
+		{
+		// For events, add a function value (without any body) here so that
+		// we can later access the ID even if no implementations have been
+		// defined.
+		Func* f = new BroFunc(id, 0, 0, 0);
+		id->SetVal(new Val(f));
+		id->SetConst();
+		}
 	}
 
 
@@ -217,11 +229,44 @@ extern Expr* add_and_assign_local(ID* id, Expr* init, Val* val)
 
 void add_type(ID* id, BroType* t, attr_list* attr, int /* is_event */)
 	{
-	id->SetType(t);
+	BroType* tnew = t;
+
+	// In "documentation mode", we'd like to to be able to associate
+	// an identifier name with a declared type.  Dealing with declared
+	// types that are "aliases" to a builtin type requires that the BroType
+	// is cloned before setting the identifier name that resolves to it.
+	// And still this is not enough to document cases where the declared type
+	// is an alias for another declared type -- but that's not a natural/common
+	// practice.  If documenting that corner case is desired, one way
+	// is to add an ID* to class ID that tracks aliases and set it here if
+	// t->GetTypeID() is true.
+	if ( generate_documentation )
+		{
+		SerializationFormat* form = new BinarySerializationFormat();
+		form->StartWrite();
+		CloneSerializer ss(form);
+		SerialInfo sinfo(&ss);
+		sinfo.cache = false;
+
+		t->Serialize(&sinfo);
+		char* data;
+		uint32 len = form->EndWrite(&data);
+		form->StartRead(data, len);
+
+		UnserialInfo uinfo(&ss);
+		uinfo.cache = false;
+		tnew = t->Unserialize(&uinfo);
+
+		delete [] data;
+
+		tnew->SetTypeID(copy_string(id->Name()));
+		}
+
+	id->SetType(tnew);
 	id->MakeType();
 
 	if ( attr )
-		id->SetAttrs(new Attributes(attr, t));
+		id->SetAttrs(new Attributes(attr, tnew, false));
 	}
 
 void begin_func(ID* id, const char* module_name, function_flavor flavor,

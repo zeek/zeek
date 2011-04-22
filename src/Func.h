@@ -15,6 +15,7 @@ class FuncType;
 class Stmt;
 class Frame;
 class ID;
+class CallExpr;
 
 class Func : public BroObj {
 public:
@@ -36,7 +37,8 @@ public:
 			{ return priority > other.priority; } // reverse sort
 	};
 
-	virtual const vector<Body>& GetBodies() const	{ return bodies; }
+	const vector<Body>& GetBodies() const	{ return bodies; }
+	bool HasBodies() const	{ return bodies.size(); }
 
 	// virtual Val* Call(ListExpr* args) const = 0;
 	virtual Val* Call(val_list* args, Frame* parent = 0) const = 0;

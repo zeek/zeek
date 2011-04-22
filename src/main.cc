@@ -23,7 +23,6 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 
 #include "bsd-getopt-long.h"
 #include "input.h"
-#include "Active.h"
 #include "ScriptAnaly.h"
 #include "DNS_Mgr.h"
 #include "Frame.h"
@@ -31,6 +30,7 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "Event.h"
 #include "File.h"
 #include "Logger.h"
+#include "LogMgr.h"
 #include "Net.h"
 #include "NetVar.h"
 #include "Var.h"
@@ -72,6 +72,7 @@ name_list prefixes;
 DNS_Mgr* dns_mgr;
 TimerMgr* timer_mgr;
 Logger* bro_logger;
+LogMgr* log_mgr;
 Func* alarm_hook = 0;
 Stmt* stmts;
 EventHandlerPtr bro_signal = 0;
@@ -92,6 +93,7 @@ int optimize = 0;
 int do_notice_analysis = 0;
 int rule_bench = 0;
 int print_loaded_scripts = 0;
+int generate_documentation = 0;
 SecondaryPath* secondary_path = 0;
 ConnCompressor* conn_compressor = 0;
 extern char version[];
@@ -136,9 +138,6 @@ void usage()
 	fprintf(stderr, "bro version %s\n", bro_version());
 	fprintf(stderr, "usage: %s [options] [file ...]\n", prog);
 	fprintf(stderr, "    <file>                         | policy file, or read stdin\n");
-#ifdef ACTIVE_MAPPING
-	fprintf(stderr, "    -a|--active-mapping <mapfile>  | use active mapping results\n");
-#endif
 	fprintf(stderr, "    -d|--debug-policy              | activate policy file debugging\n");
 	fprintf(stderr, "    -e|--exec <bro code>           | augment loaded policies by given code\n");
 	fprintf(stderr, "    -f|--filter <filter>           | tcpdump filter\n");
@@ -146,6 +145,7 @@ void usage()
 	fprintf(stderr, "    -h|--help|-?                   | command line help\n");
 	fprintf(stderr, "    -i|--iface <interface>         | read from given interface\n");
 	fprintf(stderr, "    -l|--print-scripts             | print all loaded scripts\n");
+	fprintf(stderr, "    -Z|--doc-scripts               | generate documentation for all loaded scripts\n");
 	fprintf(stderr, "    -p|--prefix <prefix>           | add given prefix to policy file resolution\n");
 	fprintf(stderr, "    -r|--readfile <readfile>       | read from given tcpdump file\n");
 	fprintf(stderr, "    -y|--flowfile <file>[=<ident>] | read from given flow file\n");
@@ -156,7 +156,6 @@ void usage()
 	fprintf(stderr, "    -v|--version                   | print version and exit\n");
 	fprintf(stderr, "    -x|--print-state <file.bst>    | print contents of state file\n");
 	fprintf(stderr, "    -z|--analyze <analysis>        | run the specified policy file analysis\n");
-	fprintf(stderr, "    -A|--transfile <writefile>     | write transformed trace to given tcpdump file\n");
 #ifdef DEBUG
 	fprintf(stderr, "    -B|--debug <dbgstreams>        | Enable debugging output for selected streams\n");
 #endif
@@ -194,6 +193,7 @@ void usage()
 	fprintf(stderr, "    $BROPATH                       | file search path (%s)\n", bro_path());
 	fprintf(stderr, "    $BRO_PREFIXES                  | prefix list (%s)\n", bro_prefixes());
 	fprintf(stderr, "    $BRO_DNS_FAKE                  | disable DNS lookups (%s)\n", bro_dns_fake());
+	fprintf(stderr, "    $BRO_SEED_FILE                 | file to load seeds from (not set)\n");
 
 	exit(1);
 	}
@@ -290,6 +290,7 @@ void terminate_bro()
 	delete conn_compressor;
 	delete remote_serializer;
 	delete dpm;
+	delete log_mgr;
 	}
 
 void termination_signal()
@@ -343,11 +344,10 @@ int main(int argc, char** argv)
 	name_list netflows;
 	name_list flow_files;
 	name_list rule_files;
-	char* transformed_writefile = 0;
 	char* bst_file = 0;
 	char* id_name = 0;
 	char* events_file = 0;
-	char* seed_load_file = 0;
+	char* seed_load_file = getenv("BRO_SEED_FILE");
 	char* seed_save_file = 0;
 	int seed = 0;
 	int dump_cfg = false;
@@ -365,6 +365,7 @@ int main(int argc, char** argv)
 		{"help",		no_argument,		0,	'h'},
 		{"iface",		required_argument,	0,	'i'},
 		{"print-scripts",	no_argument,		0,	'l'},
+		{"doc-scripts",		no_argument,		0,	'Z'},
 		{"prefix",		required_argument,	0,	'p'},
 		{"readfile",		required_argument,	0,	'r'},
 		{"flowfile",		required_argument,	0,	'y'},
@@ -375,7 +376,6 @@ int main(int argc, char** argv)
 		{"version",		no_argument,		0,	'v'},
 		{"print-state",		required_argument,	0,	'x'},
 		{"analyze",		required_argument,	0,	'z'},
-		{"transfile",		required_argument,	0,	'A'},
 		{"no-checksums",	no_argument,		0,	'C'},
 		{"dfa-cache",		required_argument,	0,	'D'},
 		{"force-dns",		no_argument,		0,	'F'},
@@ -393,9 +393,6 @@ int main(int argc, char** argv)
 		{"print-id",		required_argument,	0,	'I'},
 		{"status-file",		required_argument,	0,	'U'},
 
-#ifdef	ACTIVE_MAPPING
-		{"active-mapping",	no_argument,		0,	'a'},
-#endif
 #ifdef	DEBUG
 		{"debug",		required_argument,	0,	'B'},
 #endif
@@ -441,7 +438,7 @@ int main(int argc, char** argv)
 	opterr = 0;
 
 	char opts[256];
-	safe_strncpy(opts, "A:a:B:D:e:f:I:i:K:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGHLOPSWdghlv",
+	safe_strncpy(opts, "B:D:e:f:I:i:K:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGHLOPSWdghlvZ",
 		     sizeof(opts));
 
 #ifdef USE_PERFTOOLS
@@ -451,16 +448,6 @@ int main(int argc, char** argv)
 	int op;
 	while ( (op = getopt_long(argc, argv, opts, long_opts, &long_optsind)) != EOF )
 		switch ( op ) {
-		case 'a':
-#ifdef ACTIVE_MAPPING
-			fprintf(stderr, "Using active mapping file %s.\n", optarg);
-			active_file = optarg;
-#else
-			fprintf(stderr, "Bro not compiled for active mapping.\n");
-			exit(1);
-#endif
-			break;
-
 		case 'd':
 			fprintf(stderr, "Policy file debugging ON.\n");
 			g_policy_debug = true;
@@ -519,10 +506,6 @@ int main(int argc, char** argv)
 				fprintf(stderr, "Unknown analysis type: %s\n", optarg);
 				exit(1);
 				}
-			break;
-
-		case 'A':
-			transformed_writefile = optarg;
 			break;
 
 		case 'C':
@@ -634,6 +617,10 @@ int main(int argc, char** argv)
 			break;
 #endif
 
+		case 'Z':
+			generate_documentation = 1;
+			break;
+
 #ifdef USE_IDMEF
 		case 'n':
 			fprintf(stderr, "Using IDMEF XML DTD from %s\n", optarg);
@@ -709,13 +696,6 @@ int main(int argc, char** argv)
 			add_input_file(argv[optind++]);
 		}
 
-	if ( ! load_mapping_table(active_file.c_str()) )
-		{
-		fprintf(stderr, "Could not load active mapping file %s\n",
-			active_file.c_str());
-		exit(1);
-		}
-
 	dns_mgr = new DNS_Mgr(dns_type);
 
 	// It would nice if this were configurable.  This is similar to the
@@ -725,7 +705,8 @@ int main(int argc, char** argv)
 
 	persistence_serializer = new PersistenceSerializer();
 	remote_serializer = new RemoteSerializer();
-	event_registry = new EventRegistry;
+	event_registry = new EventRegistry();
+	log_mgr = new LogMgr();
 
 	if ( events_file )
 		event_player = new EventPlayer(events_file);
@@ -819,7 +800,7 @@ int main(int argc, char** argv)
 
 	if ( dns_type != DNS_PRIME )
 		net_init(interfaces, read_files, netflows, flow_files,
-			writefile, transformed_writefile,
+			writefile,
 			user_pcap_filter ? user_pcap_filter : "tcp or udp",
 			secondary_path->Filter(), do_watchdog);
 

@@ -183,6 +183,7 @@
 #include "Sessions.h"
 #include "File.h"
 #include "Conn.h"
+#include "LogMgr.h"
 
 extern "C" {
 #include "setsignal.h"
@@ -190,7 +191,7 @@ extern "C" {
 
 // Gets incremented each time there's an incompatible change
 // to the communication internals.
-static const unsigned short PROTOCOL_VERSION = 0x06;
+static const unsigned short PROTOCOL_VERSION = 0x07;
 
 static const char MSG_NONE = 0x00;
 static const char MSG_VERSION = 0x01;
@@ -216,15 +217,21 @@ static const char MSG_SYNC_POINT = 0x14;
 static const char MSG_TERMINATE = 0x15;
 static const char MSG_DEBUG_DUMP = 0x16;
 static const char MSG_REMOTE_PRINT = 0x17;
+static const char MSG_LOG_CREATE_WRITER = 0x18;
+static const char MSG_LOG_WRITE = 0x19;
+static const char MSG_REQUEST_LOGS = 0x20;
 
 // Update this one whenever adding a new ID:
-static const char MSG_ID_MAX = MSG_REMOTE_PRINT;
+static const char MSG_ID_MAX = MSG_REQUEST_LOGS;
 
 static const uint32 FINAL_SYNC_POINT = /* UINT32_MAX */ 4294967295U;
 
 // Buffer size for remote-print data
 static const int PRINT_BUFFER_SIZE = 10 * 1024;
 static const int SOCKBUF_SIZE = 1024 * 1024;
+
+// Buffer size for remote-log data.
+static const int LOG_BUFFER_SIZE = 50 * 1024;
 
 struct ping_args {
 	uint32 seq;
@@ -303,6 +310,9 @@ static const char* msgToStr(int msg)
 	MSG_STR(MSG_TERMINATE)
 	MSG_STR(MSG_DEBUG_DUMP)
 	MSG_STR(MSG_REMOTE_PRINT)
+	MSG_STR(MSG_LOG_CREATE_WRITER)
+	MSG_STR(MSG_LOG_WRITE)
+	MSG_STR(MSG_REQUEST_LOGS)
 	default:
 		return "UNKNOWN_MSG";
 	}
@@ -469,7 +479,10 @@ static inline bool is_peer_msg(int msg)
 		msg == MSG_CAPS ||
 		msg == MSG_COMPRESS ||
 		msg == MSG_SYNC_POINT ||
-		msg == MSG_REMOTE_PRINT;
+		msg == MSG_REMOTE_PRINT ||
+		msg == MSG_LOG_CREATE_WRITER ||
+		msg == MSG_LOG_WRITE ||
+		msg == MSG_REQUEST_LOGS;
 	}
 
 bool RemoteSerializer::IsConnectedPeer(PeerID id)
@@ -704,6 +717,7 @@ bool RemoteSerializer::CloseConnection(Peer* peer)
 		return true;
 
 	FlushPrintBuffer(peer);
+	FlushLogBuffer(peer);
 
 	Log(LogInfo, "closing connection", peer);
 
@@ -734,6 +748,31 @@ bool RemoteSerializer::RequestSync(PeerID id, bool auth)
 		return false;
 
 	peer->sync_requested |= Peer::WE | (auth ? Peer::AUTH_WE : 0);
+
+	return true;
+	}
+
+bool RemoteSerializer::RequestLogs(PeerID id)
+	{
+	if ( ! using_communication )
+		return true;
+
+	Peer* peer = LookupPeer(id, true);
+	if ( ! peer )
+		{
+		run_time(fmt("unknown peer id %d for request logs", int(id)));
+		return false;
+		}
+
+	if ( peer->phase != Peer::HANDSHAKE )
+		{
+		run_time(fmt("can't request logs from peer; wrong phase %d",
+			     peer->phase));
+		return false;
+		}
+
+	if ( ! SendToChild(MSG_REQUEST_LOGS, peer, 0) )
+		return false;
 
 	return true;
 	}
@@ -1443,6 +1482,7 @@ bool RemoteSerializer::Poll(bool may_block)
 		case MSG_PHASE_DONE:
 		case MSG_TERMINATE:
 		case MSG_DEBUG_DUMP:
+		case MSG_REQUEST_LOGS:
 			{
 			// No further argument chunk.
 			msgstate = TYPE;
@@ -1465,6 +1505,8 @@ bool RemoteSerializer::Poll(bool may_block)
 		case MSG_LOG:
 		case MSG_SYNC_POINT:
 		case MSG_REMOTE_PRINT:
+		case MSG_LOG_CREATE_WRITER:
+		case MSG_LOG_WRITE:
 			{
 			// One further argument chunk.
 			msgstate = ARGS;
@@ -1601,6 +1643,15 @@ bool RemoteSerializer::DoMessage()
 	case MSG_REMOTE_PRINT:
 		return ProcessRemotePrint();
 
+	case MSG_LOG_CREATE_WRITER:
+		return ProcessLogCreateWriter();
+
+	case MSG_LOG_WRITE:
+		return ProcessLogWrite();
+
+	case MSG_REQUEST_LOGS:
+		return ProcessRequestLogs();
+
 	default:
 		DEBUG_COMM(fmt("unexpected msg type: %d",
 					int(current_msgtype)));
@@ -1663,6 +1714,7 @@ void RemoteSerializer::PeerConnected(Peer* peer)
 	peer->cache_out->Clear();
 	peer->our_runtime = int(current_time(true) - bro_start_time);
 	peer->sync_point = 0;
+	peer->logs_requested = false;
 
 	if ( ! SendCMsgToChild(MSG_VERSION, peer) )
 		return;
@@ -1725,6 +1777,7 @@ RemoteSerializer::Peer* RemoteSerializer::AddPeer(uint32 ip, uint16 port,
 	peer->orig = false;
 	peer->accept_state = false;
 	peer->send_state = false;
+	peer->logs_requested = false;
 	peer->caps = 0;
 	peer->comp_level = 0;
 	peer->suspended_processing = false;
@@ -1735,6 +1788,8 @@ RemoteSerializer::Peer* RemoteSerializer::AddPeer(uint32 ip, uint16 port,
 	peer->sync_point = 0;
 	peer->print_buffer = 0;
 	peer->print_buffer_used = 0;
+	peer->log_buffer = 0;
+	peer->log_buffer_used = 0;
 
 	peers.append(peer);
 	Log(LogInfo, "added peer", peer);
@@ -1767,6 +1822,7 @@ void RemoteSerializer::RemovePeer(Peer* peer)
 	int id = peer->id;
 	Unref(peer->val);
 	delete [] peer->print_buffer;
+	delete [] peer->log_buffer;
 	delete peer->cache_in;
 	delete peer->cache_out;
 	delete peer;
@@ -1960,6 +2016,19 @@ bool RemoteSerializer::ProcessRequestSyncMsg()
 	return true;
 	}
 
+bool RemoteSerializer::ProcessRequestLogs()
+	{
+	if ( ! current_peer )
+		return false;
+
+	Log(LogInfo, "peer requested logs", current_peer);
+
+	current_peer->logs_requested = true;
+	current_peer->log_buffer = new char[LOG_BUFFER_SIZE];
+	current_peer->log_buffer_used = 0;
+	return true;
+	}
+
 bool RemoteSerializer::ProcessPhaseDone()
 	{
 	switch ( current_peer->phase ) {
@@ -2023,6 +2092,9 @@ bool RemoteSerializer::HandshakeDone(Peer* peer)
 
 	if ( (peer->caps & Peer::NEW_CACHE_STRATEGY) )
 		Log(LogInfo, "peer supports keep-in-cache; using that", peer);
+
+	if ( peer->logs_requested )
+		log_mgr->SendAllWritersTo(peer->id);
 
 	if ( peer->sync_requested != Peer::NONE )
 		{
@@ -2377,6 +2449,260 @@ bool RemoteSerializer::ProcessRemotePrint()
 	return true;
 	}
 
+bool RemoteSerializer::SendLogCreateWriter(EnumVal* id, EnumVal* writer, string path, int num_fields, const LogField* const * fields)
+	{
+	loop_over_list(peers, i)
+		{
+		SendLogCreateWriter(peers[i]->id, id, writer, path, num_fields, fields);
+		}
+
+	return true;
+	}
+
+bool RemoteSerializer::SendLogCreateWriter(PeerID peer_id, EnumVal* id, EnumVal* writer, string path, int num_fields, const LogField* const * fields)
+	{
+	SetErrorDescr("logging");
+
+	ChunkedIO::Chunk* c = 0;
+
+	Peer* peer = LookupPeer(peer_id, true);
+	if ( ! peer )
+		return false;
+
+	if ( peer->phase != Peer::HANDSHAKE && peer->phase != Peer::RUNNING )
+		return false;
+
+	BinarySerializationFormat fmt;
+
+	fmt.StartWrite();
+
+	bool success = fmt.Write(id->AsEnum(), "id") &&
+		fmt.Write(writer->AsEnum(), "writer") &&
+		fmt.Write(path, "path") &&
+		fmt.Write(num_fields, "num_fields");
+
+	if ( ! success )
+		goto error;
+
+	for ( int i = 0; i < num_fields; i++ )
+		{
+		if ( ! fields[i]->Write(&fmt) )
+			goto error;
+		}
+
+	c = new ChunkedIO::Chunk;
+	c->len = fmt.EndWrite(&c->data);
+
+	if ( ! SendToChild(MSG_LOG_CREATE_WRITER, peer, 0) )
+		goto error;
+
+	if ( ! SendToChild(c) )
+		goto error;
+
+	return true;
+
+error:
+	FatalError(io->Error());
+	return false;
+	}
+
+bool RemoteSerializer::SendLogWrite(EnumVal* id, EnumVal* writer, string path, int num_fields, const LogVal* const * vals)
+	{
+	loop_over_list(peers, i)
+		{
+		SendLogWrite(peers[i], id, writer, path, num_fields, vals);
+		}
+
+	return true;
+	}
+
+bool RemoteSerializer::SendLogWrite(Peer* peer, EnumVal* id, EnumVal* writer, string path, int num_fields, const LogVal* const * vals)
+	{
+	if ( peer->phase != Peer::HANDSHAKE && peer->phase != Peer::RUNNING )
+		return false;
+
+	if ( ! peer->logs_requested )
+		return false;
+
+	assert(peer->log_buffer);
+
+	// Serialize the log record entry.
+
+	BinarySerializationFormat fmt;
+
+	fmt.StartWrite();
+
+	bool success = fmt.Write(id->AsEnum(), "id") &&
+		fmt.Write(writer->AsEnum(), "writer") &&
+		fmt.Write(path, "path") &&
+		fmt.Write(num_fields, "num_fields");
+
+	if ( ! success )
+		goto error;
+
+	for ( int i = 0; i < num_fields; i++ )
+		{
+		if ( ! vals[i]->Write(&fmt) )
+			goto error;
+		}
+
+	// Ok, we have the binary data now.
+	char* data;
+	int len;
+
+	len = fmt.EndWrite(&data);
+
+	// Do we have enough space in the buffer? If not, flush first.
+	if ( len > (LOG_BUFFER_SIZE - peer->log_buffer_used) )
+		FlushLogBuffer(peer);
+
+	// If the data is actually larger than our complete buffer, just send it out.
+	if ( len > LOG_BUFFER_SIZE )
+		return SendToChild(MSG_LOG_WRITE, peer, data, len);
+
+	// Now we have space in the buffer, copy it into there.
+	memcpy(peer->log_buffer + peer->log_buffer_used, data, len);
+	peer->log_buffer_used += len;
+	assert(peer->log_buffer_used <= LOG_BUFFER_SIZE);
+
+	FlushLogBuffer(peer);
+	return false;
+
+error:
+	FatalError(io->Error());
+	return false;
+	}
+
+bool RemoteSerializer::FlushLogBuffer(Peer* p)
+	{
+	if ( p->state == Peer::CLOSING )
+		return false;
+
+	if ( ! p->log_buffer )
+		return true;
+
+	SendToChild(MSG_LOG_WRITE, p, p->log_buffer, p->log_buffer_used);
+
+	p->log_buffer = new char[LOG_BUFFER_SIZE];
+	p->log_buffer_used = 0;
+	return true;
+	}
+
+bool RemoteSerializer::ProcessLogCreateWriter()
+	{
+	if ( current_peer->state == Peer::CLOSING )
+		return false;
+
+	assert(current_args);
+
+	EnumVal* id_val = 0;
+	EnumVal* writer_val = 0;
+	LogField** fields = 0;
+
+	BinarySerializationFormat fmt;
+	fmt.StartRead(current_args->data, current_args->len);
+
+	int id, writer;
+	string path;
+	int num_fields;
+
+	bool success = fmt.Read(&id, "id") &&
+		fmt.Read(&writer, "writer") &&
+		fmt.Read(&path, "path") &&
+		fmt.Read(&num_fields, "num_fields");
+
+	if ( ! success )
+		goto error;
+
+	fields = new LogField* [num_fields];
+
+	for ( int i = 0; i < num_fields; i++ )
+		{
+		fields[i] = new LogField;
+		if ( ! fields[i]->Read(&fmt) )
+			goto error;
+		}
+
+	fmt.EndRead();
+
+	id_val = new EnumVal(id, BifType::Enum::Log::ID);
+	writer_val = new EnumVal(writer, BifType::Enum::Log::Writer);
+
+	if ( ! log_mgr->CreateWriter(id_val, writer_val, path, num_fields, fields) )
+		goto error;
+
+	Unref(id_val);
+	Unref(writer_val);
+
+	return true;
+
+error:
+	Unref(id_val);
+	Unref(writer_val);
+
+	Error("write error for creating writer");
+	return false;
+	}
+
+bool RemoteSerializer::ProcessLogWrite()
+	{
+	if ( current_peer->state == Peer::CLOSING )
+		return false;
+
+	assert(current_args);
+
+	BinarySerializationFormat fmt;
+	fmt.StartRead(current_args->data, current_args->len);
+
+	while ( fmt.BytesRead() != (int)current_args->len )
+		{
+		// Unserialize one entry.
+		EnumVal* id_val = 0;
+		EnumVal* writer_val = 0;
+		LogVal** vals = 0;
+
+		int id, writer;
+		string path;
+		int num_fields;
+
+		bool success = fmt.Read(&id, "id") &&
+			fmt.Read(&writer, "writer") &&
+			fmt.Read(&path, "path") &&
+			fmt.Read(&num_fields, "num_fields");
+
+		if ( ! success )
+			goto error;
+
+		vals = new LogVal* [num_fields];
+
+		for ( int i = 0; i < num_fields; i++ )
+			{
+			vals[i] = new LogVal;
+			if ( ! vals[i]->Read(&fmt) )
+				goto error;
+			}
+
+		id_val = new EnumVal(id, BifType::Enum::Log::ID);
+		writer_val = new EnumVal(writer, BifType::Enum::Log::Writer);
+
+		success = log_mgr->Write(id_val, writer_val, path, num_fields, vals);
+
+		Unref(id_val);
+		Unref(writer_val);
+
+		if ( ! success )
+			goto error;
+
+		}
+
+	fmt.EndRead();
+
+	return true;
+
+error:
+	Error("write error for log entry");
+	return false;
+	}
 
 void RemoteSerializer::GotEvent(const char* name, double time,
 				EventHandlerPtr event, val_list* args)
@@ -3048,6 +3374,7 @@ bool SocketComm::ProcessParentMessage()
 		case MSG_TERMINATE:
 		case MSG_PHASE_DONE:
 		case MSG_DEBUG_DUMP:
+		case MSG_REQUEST_LOGS:
 			{
 			// No further argument chunk.
 			parent_msgstate = TYPE;
@@ -3067,6 +3394,8 @@ bool SocketComm::ProcessParentMessage()
 		case MSG_CAPS:
 		case MSG_SYNC_POINT:
 		case MSG_REMOTE_PRINT:
+		case MSG_LOG_CREATE_WRITER:
+		case MSG_LOG_WRITE:
 			{
 			// One further argument chunk.
 			parent_msgstate = ARGS;
@@ -3167,18 +3496,6 @@ bool SocketComm::DoParentMessage()
 		return true;
 		}
 
-	case MSG_PHASE_DONE:
-		{
-		// No argument block follows.
-		if ( parent_peer && parent_peer->connected )
-			{
-			DEBUG_COMM("child: forwarding with MSG_PHASE_DONE to peer");
-			if ( ! SendToPeer(parent_peer, MSG_PHASE_DONE, 0) )
-				return false;
-			}
-		return true;
-		}
-
 	case MSG_LISTEN:
 		return ProcessListen();
 
@@ -3206,6 +3523,20 @@ bool SocketComm::DoParentMessage()
 		return ForwardChunkToPeer();
 		}
 
+	case MSG_PHASE_DONE:
+	case MSG_REQUEST_LOGS:
+		{
+		// No argument block follows.
+		if ( parent_peer && parent_peer->connected )
+			{
+			DEBUG_COMM(fmt("child: forwarding %s to peer", msgToStr(parent_msgtype)));
+			if ( ! SendToPeer(parent_peer, parent_msgtype, 0) )
+				return false;
+			}
+
+		return true;
+		}
+
 	case MSG_REQUEST_EVENTS:
 	case MSG_REQUEST_SYNC:
 	case MSG_SERIAL:
@@ -3214,6 +3545,8 @@ bool SocketComm::DoParentMessage()
 	case MSG_CAPS:
 	case MSG_SYNC_POINT:
 	case MSG_REMOTE_PRINT:
+	case MSG_LOG_CREATE_WRITER:
+	case MSG_LOG_WRITE:
 		assert(parent_args);
 		return ForwardChunkToPeer();
 
@@ -3263,8 +3596,7 @@ bool SocketComm::ProcessConnectTo()
 	peer->retry = ntohl(args[3]);
 	peer->ssl = ntohl(args[4]);
 
-	Connect(peer);
-	return true;
+	return Connect(peer);
 	}
 
 bool SocketComm::ProcessListen()
@@ -3332,6 +3664,7 @@ bool SocketComm::ProcessRemoteMessage(SocketComm::Peer* peer)
 
 		switch ( msg->Type() ) {
 		case MSG_PHASE_DONE:
+		case MSG_REQUEST_LOGS:
 			// No further argument block.
 			DEBUG_COMM("child: forwarding with 0 args to parent");
 			if ( ! SendToParent(msg->Type(), peer, 0) )
@@ -3388,6 +3721,8 @@ bool SocketComm::ProcessRemoteMessage(SocketComm::Peer* peer)
 	case MSG_CAPS:
 	case MSG_SYNC_POINT:
 	case MSG_REMOTE_PRINT:
+	case MSG_LOG_CREATE_WRITER:
+	case MSG_LOG_WRITE:
 		{
 		// Messages with one further argument block which we simply
 		// forward to our parent.
@@ -3502,7 +3837,7 @@ bool SocketComm::Connect(Peer* peer)
 		if ( ! peer->io->Init() )
 			{
 			Error(fmt("can't init peer io: %s",
-					peer->io->Error()), peer);
+					peer->io->Error()), false);
 			return 0;
 			}
 		}
@@ -3637,7 +3972,7 @@ bool SocketComm::AcceptConnection(int fd)
 	if ( ! peer->io->Init() )
 		{
 		Error(fmt("can't init peer io: %s",
-				  peer->io->Error()), peer);
+				  peer->io->Error()), false);
 		return false;
 		}
 

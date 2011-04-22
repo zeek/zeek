@@ -130,19 +130,21 @@
 #endif
 
 /* Define int32_t */
-#define int32_t @INT32_T@
+#cmakedefine int32_t @int32_t@
 
 /* use sigset() instead of signal() */
-#define signal @SIG_FUNC@
+#ifdef HAVE_SIGSET
+#define signal sigset
+#endif
 
 /* define to int if socklen_t not available */
-#define socklen_t @SOCKLEN_T@
+#cmakedefine socklen_t @socklen_t@
 
 /* Define u_int16_t */
-#define u_int16_t @U_INT16_T@
+#cmakedefine u_int16_t @u_int16_t@
 
 /* Define u_int32_t */
-#define u_int32_t @U_INT32_T@
+#cmakedefine u_int32_t @u_int32_t@
 
 /* Define u_int8_t */
-#define u_int8_t @U_INT8_T@
+#cmakedefine u_int8_t @u_int8_t@

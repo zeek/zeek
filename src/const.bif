@@ -5,15 +5,3 @@
 const ignore_keep_alive_rexmit: bool;
 const skip_http_data: bool;
 const parse_udp_tunnels: bool;
-const requires_trace_commitment: bool;
-const anonymize_ip_addr: bool;
-const omit_rewrite_place_holder: bool;
-const rewriting_http_trace :bool;
-const rewriting_smtp_trace: bool;
-const rewriting_ftp_trace: bool;
-const rewriting_ident_trace: bool;
-const rewriting_finger_trace: bool;
-const rewriting_dns_trace: bool;
-const rewriting_smb_trace: bool;
-const dump_selected_source_packets: bool;
-const dump_original_packets_if_not_rewriting: bool;

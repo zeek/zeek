@@ -5,7 +5,6 @@
 #include "Net.h"
 #include "NetVar.h"
 #include "TCP.h"
-#include "TCP_Rewriter.h"
 #include "TCP_Reassembler.h"
 #include "Sessions.h"
 #include "Event.h"

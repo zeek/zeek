@@ -15,9 +15,8 @@
 
 extern void net_init(name_list& interfaces, name_list& readfiles,
 		name_list& netflows, name_list& flowfiles,
-		const char* writefile, const char* transformed_writefile,
-		const char* filter, const char* secondary_filter,
-		int do_watchdog);
+		const char* writefile, const char* filter,
+		const char* secondary_filter, int do_watchdog);
 extern void net_run();
 extern void net_get_final_stats();
 extern void net_finish(int drain_events);
@@ -91,7 +90,6 @@ declare(PList,PktSrc);
 extern PList(PktSrc) pkt_srcs;
 
 extern PktDumper* pkt_dumper;	// where to save packets
-extern PktDumper* pkt_transformed_dumper;
 
 extern char* writefile;
 

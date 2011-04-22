@@ -45,9 +45,6 @@
 // - We don't match signatures on connections which are completely handled
 //   by the compressor. Matching would require significant additional state
 //   w/o being very helpful.
-//
-// - Trace rewriting doesn't work if the compressor is turned on (this is
-//   not a conceptual problem, but simply not implemented).
 
 
 #ifdef DEBUG

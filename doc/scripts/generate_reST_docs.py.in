@@ -1,0 +1,71 @@
+#! /usr/bin/env python
+
+import os
+import subprocess
+import shutil
+import glob
+import string
+import sys
+from BroToReST import *
+
+# TODO: generate docs for more scripts
+# TODO: the groups are just made up to test the functionality, fix them
+
+# Scripts that can be loaded by bro via command line argument:
+docs = {
+    "alarm.bro":        "internal",
+    "arp.bro":          "user",
+    "conn.bro":         "internal",
+    "dhcp.bro":         "user",
+    "dns.bro":          "user",
+    "ftp.bro":          "user",
+    "http.bro":         "user",
+    "http-reply.bro":   None,
+    "http-request.bro": None,
+    "irc.bro":          "user",
+    "smtp.bro":         "user",
+    "ssl.bro":          "user",
+    "ssl-ciphers.bro":  None,
+    "ssl-errors.bro":   None,
+    "synflood.bro":     "user",
+    "tcp.bro":          "user",
+    "udp.bro":          "user",
+    "weird.bro":        "internal",
+}
+
+# Scripts that can't be loaded by bro via command line argument (possible
+# due to dependency issues), but can be loaded via an @load on stdin:
+stdin_docs = {
+    "notice.bro": "internal",
+}
+
+GenDocs(docs)
+GenDocs(stdin_docs, True)
+
+# The example documentation script doesn't live on the BROPATH, so
+# explicitly generate the docs for it like this:
+BroToReST("example.bro", False, ["@PROJECT_SOURCE_DIR@/doc"], group="internal").GenDoc()
+
+# Generate documentation for stuff that's always loaded into bro by default:
+cmd = "echo '' | %s %s" % (BRO, BRO_ARGS)
+p = subprocess.Popen(cmd, shell=True, env={"BROPATH": BROPATH})
+if p.wait() == 0:
+    for doc in glob.glob("*.rst"):
+        if doc == "<stdin>.rst":
+            os.remove(doc)
+            continue
+
+        basename, ext = os.path.splitext(doc)
+        basename2, ext = os.path.splitext(basename)
+        if ext == ".init":
+            src_file = basename
+        else:
+            src_file = basename + ".bro"
+        src_file = FindBroScript(src_file)
+        shutil.copy(src_file, DOC_DST_DIR)
+        shutil.copy(doc, DOC_DST_DIR)
+        if ext == ".bif":
+            AppendToDocGroup("bifs", src_file, doc)
+        else:
+            AppendToDocGroup("default", src_file, doc)
+        os.remove(doc)

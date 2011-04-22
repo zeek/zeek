@@ -39,6 +39,7 @@ class TableVal;
 class RecordVal;
 class ListVal;
 class StringVal;
+class EnumVal;
 class MutableVal;
 
 class StateAccess;
@@ -143,6 +144,15 @@ public:
 	// class has ref'd it.
 	Val(BroFile* f);
 
+	Val(BroType* t, bool type_type) // Extra arg to differentiate from protected version.
+		{
+		type = new TypeType(t->Ref());
+		attribs = 0;
+#ifdef DEBUG
+		bound_id = 0;
+#endif
+		}
+
 	Val()
 		{
 		val.int_val = 0;
@@ -225,6 +235,12 @@ public:
 		return &val.subnet_val;
 		}
 
+	BroType* AsType() const
+		{
+		CHECK_TAG(type->Tag(), TYPE_TYPE, "Val::Type", type_name)
+		return type;
+		}
+
 	// ... in network byte order
 	const addr_type AsAddr() const
 		{
@@ -275,6 +291,7 @@ public:
 	CONVERTER(TYPE_LIST, ListVal*, AsListVal)
 	CONVERTER(TYPE_STRING, StringVal*, AsStringVal)
 	CONVERTER(TYPE_VECTOR, VectorVal*, AsVectorVal)
+	CONVERTER(TYPE_ENUM, EnumVal*, AsEnumVal)
 
 #define CONST_CONVERTER(tag, ctype, name) \
 	const ctype name() const \
@@ -313,6 +330,7 @@ public:
 		}
 
 	void Describe(ODesc* d) const;
+	virtual void DescribeReST(ODesc* d) const;
 
 	bool Serialize(SerialInfo* info) const;
 	static Val* Unserialize(UnserialInfo* info, TypeTag type = TYPE_ANY)
@@ -347,6 +365,7 @@ protected:
 		}
 
 	virtual void ValDescribe(ODesc* d) const;
+	virtual void ValDescribeReST(ODesc* d) const;
 
 	Val(TypeTag t)
 		{
@@ -892,7 +911,8 @@ public:
 		{ return new Val(record_type->NumFields(), TYPE_COUNT); }
 
 	void Assign(int field, Val* new_val, Opcode op = OP_ASSIGN);
-	Val* Lookup(int field) const;
+	Val* Lookup(int field) const;	// Does not Ref() value.
+	Val* LookupWithDefault(int field) const;	// Does Ref() value.
 
 	void Describe(ODesc* d) const;
 
@@ -901,7 +921,19 @@ public:
 	void SetOrigin(BroObj* o)	{ origin = o; }
 	BroObj* GetOrigin() const	{ return origin; }
 
+	// Returns a new value representing the value coerced to the given
+	// type. If coercion is not possible, returns 0. The non-const
+	// version may return the current value ref'ed if its type matches
+	// directly.
+	//
+	// *aggr* is optional; if non-zero, we add to it. See
+	// Expr::InitVal(). We leave it out in the non-const version to make
+	// the choice unambigious.
+	RecordVal* CoerceTo(const RecordType* other, Val* aggr) const;
+	RecordVal* CoerceTo(RecordType* other);
+
 	unsigned int MemoryAllocation() const;
+	void DescribeReST(ODesc* d) const;
 
 protected:
 	friend class Val;

@@ -50,3 +50,14 @@ enum rpc_status %{
 	RPC_AUTH_ERROR,
 	RPC_UNKNOWN_ERROR,
 %}
+
+module Log;
+
+enum Writer %{
+	WRITER_DEFAULT,
+	WRITER_ASCII,
+%}
+
+enum ID %{
+	Unknown,
+%}

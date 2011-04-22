@@ -102,5 +102,5 @@ bool PacketFilter::MatchFilter(const Filter& f, const IP_Hdr& ip,
 			return false;
 		}
 
-	return uint32(random()) < f.probability;
+	return uint32(bro_random()) < f.probability;
 	}

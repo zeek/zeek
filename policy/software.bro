@@ -107,15 +107,56 @@ function parse_mozilla(unparsed_version: string,
 	{
 	local software_name = "<parse error>";
 	local v: Version;
+	local parts: table[count] of string;
 	
-	if ( /Version\/.*Safari\// in unparsed_version )
+	if ( /MSIE 7.*Trident\/4\.0/ in unparsed_version )
+		{
+		software_name = "MSIE"; 
+		v = [$major=8,$minor=0];
+		}
+	else if ( /[cC]ompatible; MSIE [0-9\.]*/ in unparsed_version )
+		{
+		parts = split_all(unparsed_version, /MSIE \/[0-9\.]*/);
+		if ( 2 in parts )
+			return parse(parts[2], host, software_type);
+		}
+	else if ( /Version\/.*Safari\// in unparsed_version )
 		{
 		software_name = "Safari";
-		local parts = split_all(unparsed_version, /Version\/[0-9\.]*/);
+		parts = split_all(unparsed_version, /Version\/[0-9\.]*/);
+		if ( 2 in parts )
+			{
+			v = parse(parts[2], host, software_type)$version;
+			if ( / Mobile\// in unparsed_version )
+				v$addl = "Mobile";
+			}
+		}
+	else if ( /Firefox\/[0-9\.]*/ in unparsed_version )
+		{
+		parts = split_all(unparsed_version, /Firefox\/[0-9\.]*/);
+		if ( 2 in parts )
+			return parse(parts[2], host, software_type);
+		}
+	else if ( /Chrome\/.*Safari\// in unparsed_version )
+		{
+		parts = split_all(unparsed_version, /Chrome\/[0-9\.]*/);
+		if ( 2 in parts )
+			return parse(parts[2], host, software_type);
+		}
+	else if ( /^Opera\// in unparsed_version )
+		{
+		software_name = "Opera";
+		parts = split_all(unparsed_version, /Version\/[0-9\.]*/);
 		if ( 2 in parts )
 			v = parse(parts[2], host, software_type)$version;
 		}
-	
+	else if ( /Thunderbird\/[0-9\.]*/ in unparsed_version )
+		{
+		parts = split_all(unparsed_version, /Thunderbird\/[0-9\.]*/);
+		if ( 2 in parts )
+			return parse(parts[2], host, software_type);
+		}
+
 	return [$ts=network_time(), $host=host, $name=software_name, $version=v,
 	        $unparsed_version=unparsed_version];
 	}
@@ -130,44 +171,53 @@ function parse(unparsed_version: string,
 	local v: Version;
 	
 	# Parse browser-alike versions separately
-	if ( /^Mozilla\/[0-9]\./ in unparsed_version )
+	if ( /^(Mozilla|Opera)\/[0-9]\./ in unparsed_version )
 		{
-		#print parse_mozilla(unparsed_version, host, software_type);
+		return parse_mozilla(unparsed_version, host, software_type);
 		}
 	else
 		{
 		# The regular expression should match the complete version number
 		# and software name.
-		local version_parts = split_n(unparsed_version, /\/?v?[0-9\-\._, ]{2,}/, T, 2);
-		#print version_parts;
+		local version_parts = split_n(unparsed_version, /\/?( [\(])?v?[0-9\-\._, ]{2,}/, T, 1);
 		if ( 1 in version_parts )
-			software_name = version_parts[1];
+			software_name = strip(version_parts[1]);
 		if ( |version_parts| >= 2 )
 			{
 			# Remove the name/version separator if it's left at the beginning
 			# of the version number from the previous split_all.
-			local sv = version_parts[2];
-			if ( /^[\/\-\._v ]/ in sv )
-			 	sv = sub(version_parts[2], /^[\/\-\._v ]/, "");
-			local version_numbers = split_n(sv, /[\-\._,\[\(\{ ]/, F, 4);
+			local sv = strip(version_parts[2]);
+			if ( /^[\/\-\._v\(]/ in sv )
+			 	sv = strip(sub(version_parts[2], /^\(?[\/\-\._v]/, ""));
+			local version_numbers = split_n(sv, /[\-\._,\[\(\{ ]/, F, 3);
 			if ( 4 in version_numbers && version_numbers[4] != "" )
-				v$addl = version_numbers[4];
+				v$addl = strip(version_numbers[4]);
 			else if ( 3 in version_parts && version_parts[3] != "" )
 				{
-				if ( /^[[:blank:]]*\(.*\)/ in version_parts[3] )
+				if ( /^[[:blank:]]*\([a-zA-Z0-9\-\._[:blank:]]*\)/ in version_parts[3] )
 					{
 					v$addl = split_n(version_parts[3], /[\(\)]/, F, 2)[2];
 					}
 				else
 					{
-					# TODO: there's a bug with do_split!
-					local vp = split_n(version_parts[3], /[\-\._,\[\]\(\)\{\} ]/, F, 2);
+					local vp = split_n(version_parts[3], /[\-\._,;\[\]\(\)\{\} ]/, F, 3);
 					if ( |vp| >= 1 && vp[1] != "" )
-						v$addl = vp[1];
+						{
+						v$addl = strip(vp[1]);
+						}
 					else if ( |vp| >= 2 && vp[2] != "" )
-						v$addl = vp[2];
+						{
+						v$addl = strip(vp[2]);
+						}
+					else if ( |vp| >= 3 && vp[3] != "" )
+						{
+						v$addl = strip(vp[3]);
+						}
 					else
-						v$addl = version_parts[3];
+						{
+						v$addl = strip(version_parts[3]);
+						}
+						
 					}
 				}
 		

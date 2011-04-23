@@ -340,6 +340,27 @@ int atoi_n(int len, const char* s, const char** end, int base, int& result)
 	return 1;
 	}
 
+char* uitoa_n(uint64 value, char* str, int n, int base)
+	{
+	static char dig[] = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+	int i = 0;
+	uint64 v;
+	char* p, *q;
+	char c;
+
+	v = value;
+
+	do {
+		str[i++] = dig[v % base];
+		v /= base;
+	} while ( v && i < n - 1 );
+
+	str[i] = '\0';
+
+	return str;
+	}
+
 int strstr_n(const int big_len, const u_char* big,
 		const int little_len, const u_char* little)
 	{
@@ -659,6 +680,11 @@ void init_random_seed(uint32 seed, const char* read_file, const char* write_file
 	if ( write_file && ! write_random_seeds(write_file, seed, buf, bufsiz) )
 		fprintf(stderr, "Could not write seeds to file '%s'.\n",
 				write_file);
+	}
+
+bool have_random_seed()
+	{
+	return bro_rand_determistic;
 	}
 
 long int bro_random()

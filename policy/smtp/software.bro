@@ -17,9 +17,9 @@ event log_smtp(rec: Info)
 	# This falls apart a bit in the cases where a webmail client includes the 
 	# IP address of the client in a header.  This will be compensated for 
 	# later with more comprehensive webmail interface detection.
-	if ( rec?$agent && rec?$path )
+	if ( rec?$agent && rec?$received_from_originating_ip )
 		{
-		local s = Software::parse(rec$agent, rec$path[|rec$path|], MAIL_CLIENT);
+		local s = Software::parse(rec$agent, rec$received_from_originating_ip, MAIL_CLIENT);
 		Software::found(rec$id, s);
 		}
 	}

@@ -165,7 +165,10 @@ function ftp_message(s: State)
 		
 		s$ts=s$cmdarg$ts;
 		s$command=s$cmdarg$cmd;
-		s$arg=arg;
+		if ( arg == "" )
+			delete s$arg;
+		else
+			s$arg=arg;
 		
 		# TODO: does the framework do this atomicly or do I need the copy?
 		Log::write(FTP, copy(s));
@@ -174,12 +177,13 @@ function ftp_message(s: State)
 	# The MIME and file_size fields are specific to file transfer commands 
 	# and may not be used in all commands so they need reset to "blank" 
 	# values after logging.
-	# TODO: change these to blank or remove the field when moving to the new
-	#       logging framework
-	s$mime_type = "";
-	s$mime_desc = "";
-	s$file_size = 0;
-	s$tags = set();
+	delete s$mime_type;
+	delete s$mime_desc;
+	delete s$file_size;
+	# Tags are cleared everytime too.  Maybe that's not a good idea?
+	# TODO: deleting sets with a &default seems to be broken.
+	#delete s$tags;
+	s$tags=set();
 	}
 
 event ftp_request(c: connection, command: string, arg: string) &priority=5
@@ -333,7 +337,6 @@ event file_transferred(c: connection, prefix: string, descr: string,
 			mime_type: string) &priority=5
 	{
 	local id = c$id;
-	print descr;
 	if ( [id$resp_h, id$resp_p] in ftp_data_expected )
 		{
 		local expected = ftp_data_expected[id$resp_h, id$resp_p];

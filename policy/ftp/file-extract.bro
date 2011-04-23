@@ -15,7 +15,7 @@ export {
 redef record State += {
 	extracted_filename:   string &log &optional;
 	
-	extract_file:        bool &default=T;
+	extract_file:         bool &default=F;
 };
 
 redef enum Tags += { EXTRACTED_FILE };
@@ -58,4 +58,10 @@ event file_transferred(c: connection, prefix: string, descr: string,
 		else
 			set_contents_file(id, CONTENTS_ORIG, fh);
 		}
+	}
+
+event log_ftp(rec: State) &priority=-10
+	{
+	delete rec$extracted_filename;
+	delete rec$extract_file;
 	}

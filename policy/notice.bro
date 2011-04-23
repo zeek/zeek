@@ -114,7 +114,6 @@ redef new_notice_tag = function(): string
 event bro_init()
 	{
 	Log::create_stream(NOTICE_LOG, [$columns=Info, $ev=log_notice]);
-	Log::add_default_filter(NOTICE_LOG);
 	}
 
 function add_notice_tag(c: connection): string

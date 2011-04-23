@@ -98,34 +98,15 @@ function set_state(c: connection, request: bool, initial: bool)
 		# TODO: need some FIFO operations on vectors and/or sets.
 		c$http_pending[|c$http_pending|+1] = new_http_session(c);
 	
-	if ( request )
-		{
-		# Save the existing c$http back to the correct place in http_pending.
-		# TODO: understand why this isn't just updated correctly since it's 
-		#       all pointers internally.
-		if ( ! initial )
-			c$http_pending[|c$http_pending|] = c$http;
-		c$http = c$http_pending[|c$http_pending|];
-		}
+	if ( c$http_current_response in c$http_pending )
+		c$http = c$http_pending[c$http_current_response];
 	else
-		{
-		if ( ! initial )
-			c$http_pending[c$http_current_response] = c$http;
-		if ( c$http_current_response in c$http_pending )
-			{
-			c$http = c$http_pending[c$http_current_response];
-			}
-		else
-			c$http = c$http_pending[|c$http_pending|];
-		}
-	
-	#print c$http_pending;
+		c$http = c$http_pending[|c$http_pending|];
 	}
 
 event http_request(c: connection, method: string, original_URI: string,
                    unescaped_URI: string, version: string) &priority=5
 	{
-	#print "http_request";
 	set_state(c, T, T);
 	
 	c$http$method = method;
@@ -134,7 +115,6 @@ event http_request(c: connection, method: string, original_URI: string,
 	
 event http_reply(c: connection, version: string, code: count, reason: string) &priority=5
 	{
-	#print "http reply";
 	++c$http_current_response;
 	set_state(c, F, T);
 	
@@ -144,7 +124,6 @@ event http_reply(c: connection, version: string, code: count, reason: string) &p
 	
 event http_header(c: connection, is_orig: bool, name: string, value: string) &priority=5
 	{
-	#print "http_header";
 	set_state(c, is_orig, F);
 	
 	if ( is_orig ) # client headers
@@ -167,7 +146,7 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 	else # server headers
 		{
 		if ( name == "CONTENT-LENGTH" )
-			c$http$response_content_length = to_count(value);
+			c$http$response_content_length = to_count(strip(value));
 		}
 	
 	#if ( is_orig )
@@ -184,7 +163,6 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 
 event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &priority=-5
 	{
-	#print "message done";
 	set_state(c, is_orig, F);
 
 	if ( is_orig )
@@ -196,7 +174,6 @@ event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &
 		{
 		if ( c$http$log_point == AFTER_REPLY )
 			{
-			#print "logging";
 			Log::write(HTTP, c$http);
 			}
 		}

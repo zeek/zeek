@@ -47,6 +47,9 @@ global matched_software: table[string] of Software::Info = {
 		[$name="CacheFlyServe", $version=[$major=26,$addl="b"], $host=0.0.0.0, $ts=ts],
 	["Apache/2.0.46 (Win32) mod_ssl/2.0.46 OpenSSL/0.9.7b mod_jk2/2.0.4"] =
 		[$name="Apache", $version=[$major=2,$minor=0,$minor2=46,$addl="Win32"], $host=0.0.0.0, $ts=ts],
+	# I have no clue how I'd support this without a special case.
+	#["Apache mod_fcgid/2.3.6 mod_auth_passthrough/2.1 mod_bwlimited/1.4 FrontPage/5.0.2.2635"] =
+	#	[$name="Apache", $version=[], $host=0.0.0.0, $ts=ts],
 	["Apple iPhone v4.3.1 Weather v1.0.0.8G4"] =
 		[$name="Apple iPhone", $version=[$major=4,$minor=3,$minor2=1,$addl="Weather"], $host=0.0.0.0, $ts=ts],
 	["Mozilla/5.0 (iPhone; U; CPU iPhone OS 4_3_2 like Mac OS X; en-us) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8H7 Safari/6533.18.5"] =
@@ -59,7 +62,29 @@ global matched_software: table[string] of Software::Info = {
 		[$name="Thunderbird", $version=[$major=3,$minor=1,$minor2=5], $host=0.0.0.0, $ts=ts],
 	["iTunes/9.0 (Macintosh; Intel Mac OS X 10.5.8) AppleWebKit/531.9"] = 
 		[$name="iTunes", $version=[$major=9,$minor=0,$addl="Macintosh"], $host=0.0.0.0, $ts=ts],
+	["Java1.3.1_04"] =
+		[$name="Java", $version=[$major=1,$minor=3,$minor2=1,$addl="04"], $host=0.0.0.0, $ts=ts],
+	["Mozilla/5.0 (Linux; U; Android 2.3.3; zh-tw; HTC Pyramid Build/GRI40) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1"] = 
+		[$name="Safari", $version=[$major=4,$minor=0,$addl="Mobile"], $host=0.0.0.0, $ts=ts],
+	["Opera/9.80 (J2ME/MIDP; Opera Mini/9.80 (S60; SymbOS; Opera Mobi/23.348; U; en) Presto/2.5.25 Version/10.54"] = 
+		[$name="Opera Mini", $version=[$major=10,$minor=54], $host=0.0.0.0, $ts=ts],
+	["Opera/9.80 (J2ME/MIDP; Opera Mini/5.0.18741/18.794; U; en) Presto/2.4.15"] =
+		[$name="Opera Mini", $version=[$major=5,$minor=0,$minor2=18741], $host=0.0.0.0, $ts=ts],
+	["Opera/9.80 (Windows NT 5.1; Opera Mobi/49; U; en) Presto/2.4.18 Version/10.00"] =
+		[$name="Opera Mobi", $version=[$major=10,$minor=0], $host=0.0.0.0, $ts=ts],
+	["Mozilla/4.0 (compatible; MSIE 8.0; Android 2.2.2; Linux; Opera Mobi/ADR-1103311355; en) Opera 11.00"] =
+		[$name="Opera", $version=[$major=11,$minor=0], $host=0.0.0.0, $ts=ts],
+	["Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0; GTB5; SLCC1; .NET CLR 2.0.50727; Media Center PC 5.0; .NET CLR 3.0.04506; InfoPath.2)"] =
+		[$name="MSIE", $version=[$major=7,$minor=0], $host=0.0.0.0, $ts=ts],
 	
+	
+	# This is an FTP client (found with CLNT command)
+	["Total Commander"] =
+		[$name="Total Commander", $version=[], $host=0.0.0.0, $ts=ts],
+	#["(vsFTPd 2.0.5)"] =
+	#	[$name="vsFTPd", $version=[$major=2,$minor=0,$minor2=5], $host=0.0.0.0, $ts=ts],
+	
+		
 };
 
 event bro_init()

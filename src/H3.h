@@ -52,8 +52,8 @@
 //     together to get the same result as hashing the full string.
 // Any number of hash functions can be created by creating new instances of H3,
 //     with the same or different template parameters.  The hash function is
-//     randomly generated using random(); you must call srandom() before the
-//     H3 constructor if you wish to seed it.
+//     randomly generated using bro_random(); you must call init_random_seed()
+//     before the H3 constructor if you wish to seed it.
 
 
 #ifndef H3_H
@@ -96,7 +96,7 @@ H3<T,N>::H3()
 	bit_lookup[bit] = 0;
 	for (size_t i = 0; i < sizeof(T)/2; i++) {
 	    // assume random() returns at least 16 random bits
-	    bit_lookup[bit] = (bit_lookup[bit] << 16) | (random() & 0xFFFF);
+	    bit_lookup[bit] = (bit_lookup[bit] << 16) | (bro_random() & 0xFFFF);
 	}
     }
 

@@ -2976,6 +2976,7 @@ RecordVal* RecordVal::CoerceTo(const RecordType* t, Val* aggr) const
 			Expr* rhs = new ConstExpr(Lookup(i)->Ref());
 			Expr* e = new RecordCoerceExpr(rhs, ar_t->FieldType(t_i)->AsRecordType());
 			ar->Assign(t_i, e->Eval(0));
+			continue;
 			}
 
 		ar->Assign(t_i, Lookup(i)->Ref());

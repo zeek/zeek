@@ -573,6 +573,17 @@ static bool write_random_seeds(const char* write_file, uint32 seed,
 	return true;
 	}
 
+static bool bro_rand_determistic = false;
+static unsigned int bro_rand_state = 0;
+
+static void bro_srand(unsigned int seed, bool deterministic)
+	{
+	bro_rand_state = seed;
+	bro_rand_determistic = deterministic;
+
+	srand(seed);
+	}
+
 void init_random_seed(uint32 seed, const char* read_file, const char* write_file)
 	{
 	static const int bufsiz = 16;
@@ -633,9 +644,11 @@ void init_random_seed(uint32 seed, const char* read_file, const char* write_file
 				seed = (seed << 1) | (seed >> 31);
 				}
 			}
+		else
+			seeds_done = true;
 		}
 
-	srandom(seed);
+	bro_srand(seed, seeds_done);
 
 	if ( ! hmac_key_set )
 		{
@@ -648,6 +661,25 @@ void init_random_seed(uint32 seed, const char* read_file, const char* write_file
 				write_file);
 	}
 
+long int bro_random()
+	{
+	if ( ! bro_rand_determistic )
+		return random(); // Use system PRNG.
+
+	// Use our own simple linear congruence PRNG to make sure we are
+	// predictable across platforms.
+	const long int m = 2147483647;
+	const long int a = 16807;
+	const long int q = m / a;
+	const long int r = m % a;
+
+	bro_rand_state = a * ( bro_rand_state % q ) - r * ( bro_rand_state / q );
+
+	if ( bro_rand_state <= 0 )
+		bro_rand_state += m;
+
+	return bro_rand_state;
+	}
 
 // Returns a 64-bit random string.
 uint64 rand64bit()
@@ -656,7 +688,7 @@ uint64 rand64bit()
 	int i;
 
 	for ( i = 1; i <= 4; ++i )
-		base = (base<<16) | random();
+		base = (base<<16) | bro_random();
 	return base;
 	}
 
@@ -778,7 +810,7 @@ const char* bro_path()
 	if ( ! path )
 		path = ".:"
 			POLICYDEST ":"
-			POLICYDEST "/sigs:" 
+			POLICYDEST "/sigs:"
 			POLICYDEST "/time-machine:"
 			POLICYDEST "/site";
 

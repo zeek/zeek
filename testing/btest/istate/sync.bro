@@ -39,13 +39,14 @@ type type2: record {
     b: type1;
     c: type1;
     d: double;
+    e: double &optional;
     };
 
 global foo17: type2 = [
 	$a = "yuyuyu",
 	$b = [$a="rec1", $b=100, $c=1.24],
 	$c = [$a="rec2", $b=200, $c=2.24],
-   	$d = 7.77				   
+	$d = 7.77, $e=100.0
 	] &persistent &synchronized;
 
 # Print variables.
@@ -127,6 +128,7 @@ function modify()
 	++foo17$c$b;
 	foo17$c$c = 612.2;
 	foo17$d = 6.6666;
+	delete foo17$e;
 	
 	foo2 = 1234567;
 }

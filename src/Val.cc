@@ -2883,7 +2883,7 @@ RecordVal::~RecordVal()
 
 void RecordVal::Assign(int field, Val* new_val, Opcode op)
 	{
-	if ( Lookup(field) &&
+	if ( new_val && Lookup(field) &&
 	     record_type->FieldType(field)->Tag() == TYPE_TABLE &&
 	     new_val->AsTableVal()->FindAttr(ATTR_MERGEABLE) )
 		{

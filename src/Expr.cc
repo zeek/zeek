@@ -3113,9 +3113,14 @@ Expr* FieldExpr::Simplify(SimplifyType simp_type)
 	return this;
 	}
 
+int FieldExpr::CanDel() const
+	{
+	return td->FindAttr(ATTR_DEFAULT) || td->FindAttr(ATTR_OPTIONAL);
+	}
+
 void FieldExpr::Assign(Frame* f, Val* v, Opcode opcode)
 	{
-	if ( IsError() || ! v )
+	if ( IsError() )
 		return;
 
 	if ( field < 0 )
@@ -3128,6 +3133,11 @@ void FieldExpr::Assign(Frame* f, Val* v, Opcode opcode)
 		r->Assign(field, v, opcode);
 		Unref(r);
 		}
+	}
+
+void FieldExpr::Delete(Frame* f)
+	{
+	Assign(f, 0, OP_ASSIGN_IDX);
 	}
 
 Val* FieldExpr::Fold(Val* v) const

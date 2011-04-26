@@ -1,3 +1,45 @@
+1.6-dev.99 Fri Apr 22 22:10:03 PDT 2011
+
+- Extending the connection record with a unique identifier. (Robin
+  Sommer)
+
+    type connection: record {
+        [...]
+        id: string;
+   };
+
+  These identifiers very likely unique even across independent Bro
+  runs.
+
+- Delete operator for record fields. (Robin Sommer)
+    
+  "delete x$y" now resets record field "x" back to its original state
+  if it is either &optional or has a &default. "delete" may not be
+  used with non-optional/default fields.
+
+- Fixing bug with nested record coercions. (Robin Sommer)
+
+- Fixing a do_split() bug. (Seth Hall)
+
+
+1.6-dev.94 Thu Apr 21 19:51:38 PDT 2011
+
+- Fixing generation of config.h. (Jon Siwek)
+    
+- Updates and tests for NetBIOS name BiF. (Seth Hall)
+  
+- Fixing do_split bug(), and adding a test. (Seth Hall)
+    
+- When Bro is given a PRNG seed, it now uses its own internal random
+  number generator that produces consistent results across sytems.
+  Note that this internal generator isn't very good, so it should only
+  be used for testing purpses. (Robin Sommer)
+    
+- The BTest configuration now sets the environemnt variables TZ=UTC
+  and LANG=C to ensure consistent results. (Robin Sommer)
+    
+- Logging fixes. (Robin Sommer)
+    
 1.6-dev.88 Wed Apr 20 20:43:48 PDT 2011
 
 - Implementation of Bro's new logging framework. We will document this

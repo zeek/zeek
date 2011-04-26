@@ -112,6 +112,7 @@ extern char* strcasestr(const char* s, const char* find);
 extern const char* strpbrk_n(size_t len, const char* s, const char* charset);
 extern int atoi_n(int len, const char* s, const char** end,
 			int base, int& result);
+extern char* uitoa_n(uint64 value, char* str, int n, int base);
 int strstr_n(const int big_len, const unsigned char* big,
 		const int little_len, const unsigned char* little);
 extern int fputs(int len, const char* s, FILE* fp);
@@ -140,7 +141,7 @@ extern void hmac_md5(size_t size, const unsigned char* bytes,
 
 extern const char* md5_digest_print(const unsigned char digest[16]);
 
-// Initializes RNGs for random() and MD5 usage.  If seed is given, then
+// Initializes RNGs for bro_random() and MD5 usage.  If seed is given, then
 // it is used (to provide determinism).  If load_file is given, the seeds
 // (both random & MD5) are loaded from that file.  This takes precedence
 // over the "seed" argument.  If write_file is given, the seeds are written
@@ -149,10 +150,15 @@ extern const char* md5_digest_print(const unsigned char digest[16]);
 extern void init_random_seed(uint32 seed, const char* load_file,
 				const char* write_file);
 
-extern uint64 rand64bit();
+// Returns true if the user explicitly set a seed via init_random_seed();
+extern bool have_random_seed();
 
-#define UHASH_KEY_SIZE	32
-extern uint8 uhash_key[UHASH_KEY_SIZE];
+// Replacement for the system random(), to which is normally falls back
+// except when a seed has been given. In that case, we use our own
+// predictable PRNG.
+long int bro_random();
+
+extern uint64 rand64bit();
 
 // Each event source that may generate events gets an internally unique ID.
 // This is always LOCAL for a local Bro. For remote event sources, it gets

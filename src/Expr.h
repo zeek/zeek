@@ -688,8 +688,11 @@ public:
 
 	int Field() const	{ return field; }
 
+	int CanDel() const;
+
 	Expr* Simplify(SimplifyType simp_type);
 	void Assign(Frame* f, Val* v, Opcode op = OP_ASSIGN);
+	void Delete(Frame* f);
 
 	Expr* MakeLvalue();
 

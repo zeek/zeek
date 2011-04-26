@@ -521,6 +521,8 @@ Connection* ConnCompressor::Instantiate(HashKey* key, PendingConn* pending)
 		return 0;
 		}
 
+	new_conn->SetUID(pending->uid);
+
 	DBG_LOG(DBG_COMPRESSOR, "%s instantiated", fmt_conn_id(pending));
 
 	++sizes.connections;
@@ -608,6 +610,7 @@ void ConnCompressor::PktHdrToPendingConn(double time, const HashKey* key,
 	c->FIN = (tp->th_flags & TH_FIN) != 0;
 	c->RST = (tp->th_flags & TH_RST) != 0;
 	c->ACK = (tp->th_flags & TH_ACK) != 0;
+	c->uid = Connection::CalculateNextUID();
 	c->invalid = 0;
 
 	if ( TCP_Analyzer::ParseTCPOptions(tp, parse_tcp_options, 0, 0, c) < 0 )
@@ -876,6 +879,9 @@ void ConnCompressor::Event(const PendingConn* pending, double t,
 		conn_val->Assign(6, new StringVal("cc=1"));	// addl
 		conn_val->Assign(7, new Val(0, TYPE_COUNT));	// hot
 		conn_val->Assign(8, new StringVal(""));	// history
+
+		char tmp[20]; // uid.
+		conn_val->Assign(9, new StringVal(uitoa_n(pending->uid, tmp, sizeof(tmp), 62)));
 
 		conn_val->SetOrigin(0);
 		}

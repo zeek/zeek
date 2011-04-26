@@ -2883,7 +2883,7 @@ RecordVal::~RecordVal()
 
 void RecordVal::Assign(int field, Val* new_val, Opcode op)
 	{
-	if ( Lookup(field) &&
+	if ( new_val && Lookup(field) &&
 	     record_type->FieldType(field)->Tag() == TYPE_TABLE &&
 	     new_val->AsTableVal()->FindAttr(ATTR_MERGEABLE) )
 		{
@@ -2976,6 +2976,7 @@ RecordVal* RecordVal::CoerceTo(const RecordType* t, Val* aggr) const
 			Expr* rhs = new ConstExpr(Lookup(i)->Ref());
 			Expr* e = new RecordCoerceExpr(rhs, ar_t->FieldType(t_i)->AsRecordType());
 			ar->Assign(t_i, e->Eval(0));
+			continue;
 			}
 
 		ar->Assign(t_i, Lookup(i)->Ref());

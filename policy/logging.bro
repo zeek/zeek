@@ -81,10 +81,10 @@ export {
 
 	## Information passed into rotation callback functions.
 	type RotationInfo: record {
-		writer: Writer;	##> Writer.
-		path: string;	##> Original path value.
-		open: time;	##> Time when opened.
-		close: time;	##> Time when closed.
+		writer: Writer;	##< Writer.
+		path: string;	##< Original path value.
+		open: time;	##< Time when opened.
+		close: time;	##< Time when closed.
 	};
 
 	## Default rotation interval. Zero disables rotation.
@@ -138,7 +138,7 @@ export {
 # We keep a script-level copy of all filters so that we can manipulate them.
 global filters: table[ID, string] of Filter;
 
-@load logging.bif # Needs Filter and Stream defined.
+@load logging.bif.bro # Needs Filter and Stream defined.
 
 module Log;
 

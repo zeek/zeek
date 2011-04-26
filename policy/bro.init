@@ -92,6 +92,7 @@ type connection: record {
 	addl: string;
 	hot: count;		# how hot; 0 = don't know or not hot
 	history: string;
+	uid: string;
 };
 
 type SYN_packet: record {

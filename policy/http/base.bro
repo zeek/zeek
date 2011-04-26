@@ -57,6 +57,7 @@ redef record connection += {
 	http: State &optional;
 	http_pending: table[count] of State &optional;
 	http_current_response: count &default=0;
+	http_current_request:  count &default=0;
 };
 
 # Initialize the HTTP logging stream.
@@ -87,21 +88,24 @@ function new_http_session(c: connection): State
 	return tmp;
 	}
 	
-function set_state(c: connection, request: bool, initial: bool)
+function set_state(c: connection, request: bool, is_orig: bool)
 	{
 	if ( ! c?$http_pending )
 		c$http_pending = table();
 	
 	# This handles each new request in a pipeline and the case where there
 	# is a response before any request.
-	if ( (request && initial) || |c$http_pending| == 0 )
+	if ( request || c$http_current_request == 0 )
+		{
 		# TODO: need some FIFO operations on vectors and/or sets.
-		c$http_pending[|c$http_pending|+1] = new_http_session(c);
+		++c$http_current_request;
+		c$http_pending[c$http_current_request] = new_http_session(c);
+		}
 	
-	if ( c$http_current_response in c$http_pending )
+	if ( ! is_orig && c$http_current_response in c$http_pending )
 		c$http = c$http_pending[c$http_current_response];
 	else
-		c$http = c$http_pending[|c$http_pending|];
+		c$http = c$http_pending[c$http_current_request];
 	}
 
 event http_request(c: connection, method: string, original_URI: string,
@@ -116,7 +120,7 @@ event http_request(c: connection, method: string, original_URI: string,
 event http_reply(c: connection, version: string, code: count, reason: string) &priority=5
 	{
 	++c$http_current_response;
-	set_state(c, F, T);
+	set_state(c, F, F);
 	
 	c$http$status_code = code;
 	c$http$status_msg = reason;
@@ -124,7 +128,7 @@ event http_reply(c: connection, version: string, code: count, reason: string) &p
 	
 event http_header(c: connection, is_orig: bool, name: string, value: string) &priority=5
 	{
-	set_state(c, is_orig, F);
+	set_state(c, F, is_orig);
 	
 	if ( is_orig ) # client headers
 		{
@@ -135,55 +139,44 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 			c$http$host = value;
 		
 		else if ( name == "CONTENT-LENGTH" )
-			c$http$request_content_length = to_count(value);
+			c$http$request_content_length = to_count(strip(value));
 			
 		else if ( name == "USER-AGENT" )
-			{
 			c$http$user_agent = value;
-			}
-		
 		}
 	else # server headers
 		{
 		if ( name == "CONTENT-LENGTH" )
 			c$http$response_content_length = to_count(strip(value));
 		}
-	
-	#if ( is_orig )
-	#	c$http_pending[|c$http_pending|] = c$http;
-	#else
-	#	c$http_pending[c$http_current_response] = c$http;
 	}
 	
 #event http_begin_entity(c: connection, is_orig: bool) &priority=5
 #	{
 #	set_state(c, is_orig, F);
 #	}
-	
 
 event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &priority=-5
 	{
-	set_state(c, is_orig, F);
+	set_state(c, F, is_orig);
 
-	if ( is_orig )
+	if ( is_orig && c$http$log_point == AFTER_REQUEST )
 		{
-		if ( c$http$log_point == AFTER_REQUEST )
-			Log::write(HTTP, c$http);
+		Log::write(HTTP, c$http);
+		delete c$http_pending[c$http_current_request];
 		}
-	else
+	
+	if ( ! is_orig && c$http$log_point == AFTER_REPLY )
 		{
-		if ( c$http$log_point == AFTER_REPLY )
-			{
-			Log::write(HTTP, c$http);
-			}
+		Log::write(HTTP, c$http);
+		delete c$http_pending[c$http_current_response];
 		}
 	}
 	
 event connection_state_remove(c: connection)
 	{
-	# TODO: flush any unmatched requests
-	
-	#if ( c?$http && c$http$log_point == BEFORE_NEXT_REQUEST )
-	#	Log::write(HTTP, c$http);
+	# Flush all unmatched requests.
+	for ( request in c$http_pending )
+		Log::write(HTTP, c$http_pending[request] );
 	}
 	

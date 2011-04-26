@@ -11,7 +11,7 @@
 
 #define UHASH_KEY_SIZE 32
 
-typedef unsigned int hash_t;
+typedef uint64 hash_t;
 
 typedef enum {
 	HASH_KEY_INT,

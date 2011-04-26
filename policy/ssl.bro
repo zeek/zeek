@@ -159,10 +159,8 @@ global ssl_ports = {
 	443/tcp, 563/tcp, 585/tcp, 614/tcp, 636/tcp,
 	989/tcp, 990/tcp, 992/tcp, 993/tcp, 995/tcp,
 };
-
-redef dpd_config += {
-	[[ANALYZER_SSL, ANALYZER_SSL_BINPAC]] = [$ports = ssl_ports]
-};
+redef dpd_config += { [ANALYZER_SSL] = [$ports = ssl_ports] };
+redef dpd_config += { [ANALYZER_SSL_BINPAC] = [$ports = ssl_ports] };
 
 event bro_init()
 	{
@@ -221,7 +219,6 @@ function get_session_info(s: SSL_sessionID): SessionInfo
 
 event ssl_certificate(c: connection, cert: X509, is_server: bool)
 	{
-	print "hello?";
 	set_session(c);
 	
 	if ( [c$id$resp_h, c$id$resp_p, cert$subject] !in certs )

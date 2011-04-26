@@ -122,9 +122,9 @@ function parse_mozilla(unparsed_version: string,
 		software_name = "MSIE"; 
 		v = [$major=8,$minor=0];
 		}
-	else if ( /[cC]ompatible; MSIE [0-9\.]*/ in unparsed_version )
+	else if ( / MSIE [0-9\.]*b?[0-9]*;/ in unparsed_version )
 		{
-		parts = split_all(unparsed_version, /MSIE [0-9\.]*/);
+		parts = split_all(unparsed_version, /MSIE [0-9\.]*b?[0-9]*/);
 		if ( 2 in parts )
 			return parse(parts[2], host, software_type);
 		}
@@ -139,9 +139,9 @@ function parse_mozilla(unparsed_version: string,
 				v$addl = "Mobile";
 			}
 		}
-	else if ( /Firefox\/[0-9\.]*/ in unparsed_version )
+	else if ( /(Firefox|Netscape|Thunderbird)\/[0-9\.]*/ in unparsed_version )
 		{
-		parts = split_all(unparsed_version, /Firefox\/[0-9\.]*/);
+		parts = split_all(unparsed_version, /(Firefox|Netscape|Thunderbird)\/[0-9\.]*/);
 		if ( 2 in parts )
 			return parse(parts[2], host, software_type);
 		}
@@ -174,12 +174,6 @@ function parse_mozilla(unparsed_version: string,
 			if ( 2 in parts )
 				v = parse(parts[2], host, software_type)$version;
 			}
-		}
-	else if ( /Thunderbird\/[0-9\.]*/ in unparsed_version )
-		{
-		parts = split_all(unparsed_version, /Thunderbird\/[0-9\.]*/);
-		if ( 2 in parts )
-			return parse(parts[2], host, software_type);
 		}
 
 	return [$ts=network_time(), $host=host, $name=software_name, $version=v,

@@ -73,10 +73,13 @@ global matched_software: table[string] of Software::Info = {
 	["Opera/9.80 (Windows NT 5.1; Opera Mobi/49; U; en) Presto/2.4.18 Version/10.00"] =
 		[$name="Opera Mobi", $version=[$major=10,$minor=0], $host=0.0.0.0, $ts=ts],
 	["Mozilla/4.0 (compatible; MSIE 8.0; Android 2.2.2; Linux; Opera Mobi/ADR-1103311355; en) Opera 11.00"] =
-		[$name="Opera", $version=[$major=11,$minor=0], $host=0.0.0.0, $ts=ts],
+		[$name="Opera Mobi", $version=[$major=11,$minor=0], $host=0.0.0.0, $ts=ts],
 	["Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0; GTB5; SLCC1; .NET CLR 2.0.50727; Media Center PC 5.0; .NET CLR 3.0.04506; InfoPath.2)"] =
 		[$name="MSIE", $version=[$major=7,$minor=0], $host=0.0.0.0, $ts=ts],
-	
+	["Mozilla/4.0 (compatible; MSIE 7.0b; Windows NT 5.1; Media Center PC 3.0; .NET CLR 1.0.3705; .NET CLR 1.1.4322; .NET CLR 2.0.50727; InfoPath.1)"] =
+		[$name="MSIE", $version=[$major=7,$minor=0,$addl="b"], $host=0.0.0.0, $ts=ts],
+	["Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.7.2) Gecko/20040804 Netscape/7.2 (ax)"] =
+		[$name="Netscape", $version=[$major=7,$minor=2], $host=0.0.0.0, $ts=ts],
 	
 	# This is an FTP client (found with CLNT command)
 	["Total Commander"] =

@@ -115,7 +115,7 @@ function parse_mozilla(unparsed_version: string,
 		software_name = "Opera";
 		parts = split_all(unparsed_version, /Opera [0-9\.]*$/);
 		if ( 2 in parts )
-			return parse(parts[2], host, software_type);
+			v = parse(parts[2], host, software_type)$version;
 		}
 	else if ( /MSIE 7.*Trident\/4\.0/ in unparsed_version )
 		{
@@ -124,9 +124,10 @@ function parse_mozilla(unparsed_version: string,
 		}
 	else if ( / MSIE [0-9\.]*b?[0-9]*;/ in unparsed_version )
 		{
+		software_name = "MSIE";
 		parts = split_all(unparsed_version, /MSIE [0-9\.]*b?[0-9]*/);
 		if ( 2 in parts )
-			return parse(parts[2], host, software_type);
+			v = parse(parts[2], host, software_type)$version;
 		}
 	else if ( /Version\/.*Safari\// in unparsed_version )
 		{
@@ -143,20 +144,26 @@ function parse_mozilla(unparsed_version: string,
 		{
 		parts = split_all(unparsed_version, /(Firefox|Netscape|Thunderbird)\/[0-9\.]*/);
 		if ( 2 in parts )
-			return parse(parts[2], host, software_type);
+			{
+			local tmp_s = parse(parts[2], host, software_type);
+			software_name = tmp_s$name;
+			v = tmp_s$version;
+			}
 		}
 	else if ( /Chrome\/.*Safari\// in unparsed_version )
 		{
+		software_name = "Chrome";
 		parts = split_all(unparsed_version, /Chrome\/[0-9\.]*/);
 		if ( 2 in parts )
-			return parse(parts[2], host, software_type);
+			v = parse(parts[2], host, software_type)$version;
 		}
 	else if ( /^Opera\// in unparsed_version )
 		{
 		if ( /Opera M(ini|obi)\// in unparsed_version )
 			{
 			parts = split_all(unparsed_version, /Opera M(ini|obi)/);
-			software_name = parts[2];
+			if ( 2 in parts )
+				software_name = parts[2];
 			parts = split_all(unparsed_version, /Version\/[0-9\.]*/);
 			if ( 2 in parts )
 				v = parse(parts[2], host, software_type)$version;

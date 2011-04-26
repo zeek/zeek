@@ -182,6 +182,13 @@ function parse_mozilla(unparsed_version: string,
 				v = parse(parts[2], host, software_type)$version;
 			}
 		}
+	else if ( /AppleWebKit\/[0-9\.]*/ in unparsed_version )
+		{
+		software_name = "Unspecified WebKit";
+		parts = split_all(unparsed_version, /AppleWebKit\/[0-9\.]*/);
+		if ( 2 in parts )
+			v = parse(parts[2], host, software_type)$version;
+		}
 
 	return [$ts=network_time(), $host=host, $name=software_name, $version=v,
 	        $software_type=software_type, $unparsed_version=unparsed_version];

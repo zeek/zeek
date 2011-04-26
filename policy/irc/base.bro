@@ -16,11 +16,11 @@ export {
 		nick:     string      &log &optional;
 		user:     string      &log &optional;
 		channels: set[string] &log &optional;
-		
-		command: string       &log &optional;
-		value:   string       &log &optional;
-		addl:    string       &log &optional;
-		tags:     set[Tags]    &log &default=set();
+		          
+		command:  string      &log &optional;
+		value:    string      &log &optional;
+		addl:     string      &log &optional;
+		tags:     set[Tags]   &log;
 	};
 	
 	const logged_commands = set("JOIN", "DCC SEND");
@@ -55,18 +55,16 @@ function new_session(c: connection): Info
 	
 function set_session(c: connection)
 	{
-	c$irc$ts=network_time();
-	
-	}
-	
-event protocol_confirmation(c: connection, atype: count, aid: count)
-	{
-	if ( atype == ANALYZER_IRC )
+	if ( ! c?$irc )
 		c$irc = new_session(c);
+		
+	c$irc$ts=network_time();
 	}
 	
 event irc_client(c: connection, prefix: string, data: string)
 	{
+	set_session(c);
+	
 	local parts = split1(data, / /);
 	local command = parts[1];
 	
@@ -79,6 +77,8 @@ event irc_client(c: connection, prefix: string, data: string)
 
 event irc_server(c: connection, prefix: string, data: string)
 	{
+	set_session(c);
+	
 	local parts = split1(data, / /);
 	local command = parts[1];
 	
@@ -105,7 +105,6 @@ event irc_server(c: connection, prefix: string, data: string)
 
 event irc_nick_message(c: connection, who: string, newnick: string) &priority=5
 	{
-	set_session(c);
 	c$irc$command="NICK";
 	c$irc$value = newnick;
 	
@@ -122,7 +121,6 @@ event irc_nick_message(c: connection, who: string, newnick: string) &priority=-5
 
 event irc_user_message(c: connection, user: string, host: string, server: string, real_name: string)
 	{
-	set_session(c);
 	c$irc$command = "USER";
 	c$irc$value = user;
 	c$irc$addl=fmt("%s %s %s", host, server, real_name);
@@ -137,8 +135,6 @@ event irc_user_message(c: connection, user: string, host: string,
 	
 event irc_join_message(c: connection, info_list: irc_join_list) &priority=5
 	{
-	set_session(c);
-	
 	c$irc$command = "JOIN";
 	}
 

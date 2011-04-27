@@ -28,7 +28,7 @@ export {
 	## in a SessionInfo record.
 	const default_log_point = AFTER_REPLY &redef;
 	
-	type State: record {
+	type Info: record {
 		ts:                      time     &log;
 		id:                      conn_id  &log;
 		method:                  string   &log &optional;
@@ -42,28 +42,32 @@ export {
 		status_msg:              string   &log &optional;
 		## This is a set of indicators of various attributes discovered and
 		## related to a particular request/response pair.
-		tags:                    set[Tags] &log &optional;
+		tags:                    set[Tags] &log;
 		
 		#file_name: string; ##maybe if the header's there?
 		
 		log_point:               LogPoint &default=default_log_point;
 	};
 	
-	global log_http: event(rec: State);
+	type State: record {
+		pending:          table[count] of Info;
+		current_response: count                &default=0;
+		current_request:  count                &default=0;
+	};
+	
+	global log_http: event(rec: Info);
 }
 
 # Add the http state tracking field to the connection record.
 redef record connection += {
-	http: State &optional;
-	http_pending: table[count] of State &optional;
-	http_current_response: count &default=0;
-	http_current_request:  count &default=0;
+	http:        Info  &optional;
+	http_state:  State &optional;
 };
 
 # Initialize the HTTP logging stream.
 event bro_init()
 	{
-	Log::create_stream(HTTP, [$columns=State, $ev=log_http]);
+	Log::create_stream(HTTP, [$columns=Info, $ev=log_http]);
 	}
 
 # DPD configuration.
@@ -78,39 +82,47 @@ redef capture_filters +=  {
 	["http"] = "tcp and port (80 or 81 or 631 or 1080 or 3138 or 8000 or 8080 or 8888)"
 };
 
-function new_http_session(c: connection): State
+function new_http_session(c: connection): Info
 	{
-	local tmp: State;
+	local tmp: Info;
 	tmp$ts=network_time();
 	tmp$id=c$id;
 	# TODO: remove this when &default on this set isn't segfaulting Bro anymore.
-	tmp$tags = set();
+	#tmp$tags = set();
 	return tmp;
 	}
 	
 function set_state(c: connection, request: bool, is_orig: bool)
 	{
-	if ( ! c?$http_pending )
-		c$http_pending = table();
-	
-	# This handles each new request in a pipeline and the case where there
-	# is a response before any request.
-	if ( request || c$http_current_request == 0 )
+	if ( ! c?$http_state )
 		{
-		# TODO: need some FIFO operations on vectors and/or sets.
-		++c$http_current_request;
-		c$http_pending[c$http_current_request] = new_http_session(c);
+		local s: State;
+		c$http_state = s;
 		}
 	
-	if ( ! is_orig && c$http_current_response in c$http_pending )
-		c$http = c$http_pending[c$http_current_response];
+	# These deal with new requests and responses.
+	if ( request || c$http_state$current_request !in c$http_state$pending )
+		# TODO: need some FIFO operations on vectors and/or sets.
+		c$http_state$pending[c$http_state$current_request] = new_http_session(c);
+	if ( ! is_orig && c$http_state$current_response !in c$http_state$pending )
+		c$http_state$pending[c$http_state$current_response] = new_http_session(c);
+	
+	if ( is_orig )
+		c$http = c$http_state$pending[c$http_state$current_request];
 	else
-		c$http = c$http_pending[c$http_current_request];
+		c$http = c$http_state$pending[c$http_state$current_response];
 	}
-
+	
 event http_request(c: connection, method: string, original_URI: string,
                    unescaped_URI: string, version: string) &priority=5
 	{
+	if ( ! c?$http_state )
+		{
+		local s: State;
+		c$http_state = s;
+		}
+	
+	++c$http_state$current_request;
 	set_state(c, T, T);
 	
 	c$http$method = method;
@@ -119,7 +131,13 @@ event http_request(c: connection, method: string, original_URI: string,
 	
 event http_reply(c: connection, version: string, code: count, reason: string) &priority=5
 	{
-	++c$http_current_response;
+	if ( ! c?$http_state )
+		{
+		local s: State;
+		c$http_state = s;
+		}
+	
+	++c$http_state$current_response;
 	set_state(c, F, F);
 	
 	c$http$status_code = code;
@@ -153,30 +171,36 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 	
 #event http_begin_entity(c: connection, is_orig: bool) &priority=5
 #	{
-#	set_state(c, is_orig, F);
+#	set_state(c, F, is_orig);
 #	}
 
 event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &priority=-5
 	{
+	# For some reason the analyzer seems to generate this event an extra time 
+	# when there is an interruption.  I'm not sure what's going on with that.
+	if ( stat$interrupted )
+		return;
+	
 	set_state(c, F, is_orig);
 
 	if ( is_orig && c$http$log_point == AFTER_REQUEST )
 		{
 		Log::write(HTTP, c$http);
-		delete c$http_pending[c$http_current_request];
+		delete c$http_state$pending[c$http_state$current_request];
 		}
 	
 	if ( ! is_orig && c$http$log_point == AFTER_REPLY )
 		{
 		Log::write(HTTP, c$http);
-		delete c$http_pending[c$http_current_response];
+		delete c$http_state$pending[c$http_state$current_response];
 		}
 	}
 	
 event connection_state_remove(c: connection)
 	{
 	# Flush all unmatched requests.
-	for ( request in c$http_pending )
-		Log::write(HTTP, c$http_pending[request] );
+	#if ( c?$http_state$pending )
+	#	for ( r in c$http_state$pending )
+	#		Log::write(HTTP, c$http_state$pending[r] );
 	}
 	

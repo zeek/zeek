@@ -4,7 +4,7 @@
 
 module HTTP;
 
-redef record State += {
+redef record Info += {
 	cookie_vars: vector of string &optional &log;
 };
 

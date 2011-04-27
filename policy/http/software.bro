@@ -19,7 +19,6 @@ export {
 
 event http_header(c: connection, is_orig: bool, name: string, value: string) &priority=2
 	{
-
 	if ( is_orig )
 		{
 		if ( name == "USER-AGENT" && ignored_user_agents !in value )

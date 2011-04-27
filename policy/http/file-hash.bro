@@ -15,7 +15,7 @@ redef enum Notice::Type += {
 };
 
 export {
-	redef record State += {
+	redef record Info += {
 		## The MD5 sum for a file transferred over HTTP will be stored here.
 		md5:             string   &log &optional;
 		

@@ -5,6 +5,7 @@
 #  * Add a filter for configurably extracting certain file types into their own log?
 
 @load http/base
+@load http/utils
 
 @load notice
 @load signatures
@@ -17,7 +18,7 @@ redef enum Notice::Type += {
 	HTTP_IncorrectFileType,
 };
 
-redef record HTTP::State += {
+redef record Info += {
 	## This will record the mime_type identified.
 	mime_type:    string   &log &optional;
 };
@@ -73,7 +74,7 @@ event signature_match(state: signature_state, msg: string, data: string) &priori
 	c$http$mime_type = msg;
 	
 	if ( msg in mime_types_extensions && 
-	     mime_types_extensions[msg] !in c$http$uri )
+	     c$http?$uri && mime_types_extensions[msg] !in c$http$uri )
 		{
 		local url = build_url(c);
 		local message = fmt("%s %s %s", msg, c$http$method, url);

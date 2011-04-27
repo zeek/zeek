@@ -4,7 +4,11 @@
 
 module HTTP;
 
-redef record State += {
+redef record Info += {
+	## The vector of HTTP headers.  No header values are included here, just
+	## the header names.
+	## TODO: with an empty vector as default, the vector isn't coerced to the
+	##       correct type.
 	headers:  vector of string &log &default=vector("");
 };
 

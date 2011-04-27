@@ -4,7 +4,7 @@
 
 module HTTP;
 
-redef record State += {
+redef record Info += {
 	uri_vars:    vector of string &optional &log;
 };
 

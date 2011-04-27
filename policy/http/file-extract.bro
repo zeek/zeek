@@ -20,7 +20,7 @@ export {
 	const extraction_prefix = "http-item" &redef;
 }
 
-redef record State += {
+redef record Info += {
 	# TODO: this will go away once file types can be sent to the logging framework.
 	extracted_filename:  string &optional &log;
 	
@@ -29,6 +29,10 @@ redef record State += {
 	## entity_body_data event.
 	extract_file:        bool &default=F;
 	extracted_file:      file &optional;
+};
+
+redef record State += {
+	entity_bodies:       count &optional;
 };
 
 ## Mark files to be extracted if they were identified as a mime type matched 
@@ -51,7 +55,7 @@ event http_entity_data(c: connection, is_orig: bool, length: count, data: string
 		{
 		local id = c$id;
 		local fname = fmt("%s.%d.%s_%d.%s_%d.%s",
-					extraction_prefix, c$http_entity_bodies,
+					extraction_prefix, c$http_state$entity_bodies,
 					id$orig_h, id$orig_p,
 					id$resp_h, id$resp_p,
 					is_orig ? "orig" : "resp");

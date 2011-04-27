@@ -6,22 +6,24 @@ redef enum Log::ID += { DNS };
 
 export {
 	type Info: record {
-		ts:            time        &log;
-		id:            conn_id     &log;
-		trans_id:      count       &log &optional;
-		query:         string      &log &optional;
-		qtype:         count       &log &optional;
-		qtype_name:    string      &log &optional;
-		qclass:        count       &log &optional;
-		rcode:         count       &log &optional;
-		QR:            bool        &log &default=F;
-		Z:             bool        &log &default=F;
-		AA:            bool        &log &default=F;
-		RD:            bool        &log &default=F;
-		RA:            bool        &log &default=F;
-		TC:            bool        &log &default=F;
-		TTL:           interval    &log &optional;
-		replies:       set[string] &log &optional;
+		ts:            time            &log;
+		id:            conn_id         &log;
+		proto:         transport_proto &log;
+		trans_id:      count           &log &optional;
+		query:         string          &log &optional;
+		qtype:         count           &log &optional;
+		qtype_name:    string          &log &optional;
+		qclass:        count           &log &optional;
+		rcode:         count           &log &optional;
+		QR:            bool            &log &default=F;
+		Z:             bool            &log &default=F;
+		AA:            bool            &log &default=F;
+		RD:            bool            &log &default=F;
+		RA:            bool            &log &default=F;
+		TC:            bool            &log &default=F;
+		TTL:           interval        &log &optional;
+		nxdomain:      bool            &log &default=F;
+		replies:       set[string]     &log &optional;
 		
 		total_answers:    count    &optional;
 	};
@@ -77,33 +79,25 @@ function new_session(c: connection, trans_id: count): Info
 	local info: Info;
 	info$ts       = network_time();
 	info$id       = c$id;
+	info$proto    = get_conn_transport_proto(c$id);
 	info$trans_id = trans_id;
 	return info;
 	}
 
 function set_session(c: connection, msg: dns_msg, is_query: bool)
 	{
-	local info: Info;
-	
-	# Set the current $dns value back to it's place in the pending queue.
-	if ( c?$dns_state && c?$dns )
-		c$dns_state$pending[c$dns$trans_id] = c$dns;
-	
-	if ( c?$dns_state && msg$id in c$dns_state$pending )
-		info = c$dns_state$pending[msg$id];
-	else
-		{
-		info = new_session(c, msg$id);
-		c$dns_state$pending[msg$id] = info;
-		}
-	
-	c$dns_state$last_active=network_time();
+	if ( ! c?$dns_state || msg$id !in c$dns_state$pending )
+		c$dns_state$pending[msg$id] = new_session(c, msg$id);
+		
+	c$dns = c$dns_state$pending[msg$id];
 
-	info$rcode = msg$rcode;
+	c$dns_state$last_active=network_time();
+	c$dns$rcode = msg$rcode;
+	
 	if ( ! is_query )
 		{
-		if ( info?$total_answers && 
-		     info$total_answers != msg$num_answers + msg$num_addl + msg$num_auth )
+		if ( c$dns?$total_answers && 
+		     c$dns$total_answers != msg$num_answers + msg$num_addl + msg$num_auth )
 			{
 			#print "the total number of answers changed midstream on a dns response.";
 			#print info;
@@ -111,11 +105,9 @@ function set_session(c: connection, msg: dns_msg, is_query: bool)
 			}
 		else
 			{
-			info$total_answers = msg$num_answers + msg$num_addl + msg$num_auth;
+			c$dns$total_answers = msg$num_answers + msg$num_addl + msg$num_auth;
 			}
 		}
-	
-	c$dns = info;
 	}
 
 event dns_request(c: connection, msg: dns_msg, query: string, qtype: count, qclass: count) &priority=5
@@ -141,20 +133,28 @@ event dns_A_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr) &priori
 	{
 	set_session(c, msg, F);
 	
-	if ( ! c$dns?$replies )
-		c$dns$replies = set();
-	add c$dns$replies[fmt("%s", a)];
-	c$dns$RA    = msg$RA;
-	c$dns$TTL   = ans$TTL;
+	if ( ans$answer_type == DNS_ANS )
+		{
+		if ( ! c$dns?$replies )
+			c$dns$replies = set();
+		add c$dns$replies[fmt("%s", a)];
+		c$dns$RA    = msg$RA;
+		c$dns$TTL   = ans$TTL;
+		}
 	}
 	
 event dns_TXT_reply(c: connection, msg: dns_msg, ans: dns_answer, str: string) &priority=5
 	{
 	set_session(c, msg, F);
 	
-	if ( ! c$dns?$replies )
-		c$dns$replies = set();
-	add c$dns$replies[str];
+	if ( ans$answer_type == DNS_ANS )
+		{
+		if ( ! c$dns?$replies )
+			c$dns$replies = set();
+		add c$dns$replies[str];
+		c$dns$RA    = msg$RA;
+		c$dns$TTL   = ans$TTL;
+		}
 	}
 	
 event dns_AAAA_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr, 
@@ -162,27 +162,42 @@ event dns_AAAA_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr,
 	{
 	set_session(c, msg, F);
 	
-	if ( ! c$dns?$replies )
-		c$dns$replies = set();
-	add c$dns$replies[fmt("%s", a)];
+	if ( ans$answer_type == DNS_ANS )
+		{
+		if ( ! c$dns?$replies )
+			c$dns$replies = set();
+		add c$dns$replies[fmt("%s", a)];
+		c$dns$RA    = msg$RA;
+		c$dns$TTL   = ans$TTL;
+		}
 	}
 	
 event dns_NS_reply(c: connection, msg: dns_msg, ans: dns_answer, name: string) &priority=5
 	{
 	set_session(c, msg, F);
 	
-	if ( ! c$dns?$replies )
-		c$dns$replies = set();
-	add c$dns$replies[name];
+	if ( ans$answer_type == DNS_ANS )
+		{
+		if ( ! c$dns?$replies )
+			c$dns$replies = set();
+		add c$dns$replies[name];
+		c$dns$RA    = msg$RA;
+		c$dns$TTL   = ans$TTL;
+		}
 	}
 
 event dns_CNAME_reply(c: connection, msg: dns_msg, ans: dns_answer, name: string) &priority=5
 	{
 	set_session(c, msg, F);
 	
-	if ( ! c$dns?$replies )
-		c$dns$replies = set();
-	add c$dns$replies[name];
+	if ( ans$answer_type == DNS_ANS )
+		{
+		if ( ! c$dns?$replies )
+			c$dns$replies = set();
+		add c$dns$replies[name];
+		c$dns$RA    = msg$RA;
+		c$dns$TTL   = ans$TTL;
+		}
 	}
 
 
@@ -191,27 +206,42 @@ event dns_MX_reply(c: connection, msg: dns_msg, ans: dns_answer, name: string,
 	{
 	set_session(c, msg, F);
 	
-	if ( ! c$dns?$replies )
-		c$dns$replies = set();
-	add c$dns$replies[name];
+	if ( ans$answer_type == DNS_ANS )
+		{
+		if ( ! c$dns?$replies )
+			c$dns$replies = set();
+		add c$dns$replies[name];
+		c$dns$RA    = msg$RA;
+		c$dns$TTL   = ans$TTL;
+		}
 	}
 	
 event dns_PTR_reply(c: connection, msg: dns_msg, ans: dns_answer, name: string) &priority=5
 	{
 	set_session(c, msg, F);
 	
-	if ( ! c$dns?$replies )
-		c$dns$replies = set();
-	add c$dns$replies[name];
+	if ( ans$answer_type == DNS_ANS )
+		{
+		if ( ! c$dns?$replies )
+			c$dns$replies = set();
+		add c$dns$replies[name];
+		c$dns$RA    = msg$RA;
+		c$dns$TTL   = ans$TTL;
+		}
 	}
 	
 event dns_SOA_reply(c: connection, msg: dns_msg, ans: dns_answer, soa: dns_soa)
 	{
 	set_session(c, msg, F);
 	
-	if ( ! c$dns?$replies )
-		c$dns$replies = set();
-	add c$dns$replies[soa$mname];
+	if ( ans$answer_type == DNS_ANS )
+		{
+		if ( ! c$dns?$replies )
+			c$dns$replies = set();
+		add c$dns$replies[soa$mname];
+		c$dns$RA    = msg$RA;
+		c$dns$TTL   = ans$TTL;
+		}
 	}
 
 event dns_WKS_reply(c: connection, msg: dns_msg, ans: dns_answer)
@@ -245,6 +275,9 @@ event dns_SRV_reply(c: connection, msg: dns_msg, ans: dns_answer)
 event dns_rejected(c: connection, msg: dns_msg,
                    query: string, qtype: count, qclass: count)
 	{
+	set_session(c, msg, F);
+	
+	c$dns$nxdomain = T;
 	}
 
 event connection_state_remove(c: connection) &priority=-5

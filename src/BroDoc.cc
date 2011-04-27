@@ -58,15 +58,8 @@ void BroDoc::AddImport(const std::string& s)
 
 	if ( ext_pos == std::string::npos )
 		imports.push_back(s);
-
 	else
-		{
-		if ( s.substr(ext_pos + 1) == "bro" )
-			imports.push_back(s.substr(0, ext_pos));
-		else
-			fprintf(stderr, "Warning: skipped documenting @load of file "
-			                "without .bro extension: %s\n", s.c_str());
-		}
+		imports.push_back(s.substr(0, ext_pos));
 	}
 
 void BroDoc::SetPacketFilter(const std::string& s)
@@ -116,7 +109,13 @@ void BroDoc::WriteDocFile() const
 	if ( ! imports.empty() )
 		{
 		WriteToDoc(":Imports: ");
-		WriteStringList(":doc:`%s`, ", ":doc:`%s`\n", imports);
+		std::list<std::string>::const_iterator it;
+		for ( it = imports.begin(); it != imports.end(); ++it)
+			{
+			if ( it != imports.begin() ) WriteToDoc(", ");
+			WriteToDoc(":doc:`%s </policy/%s>`", it->c_str(), it->c_str());
+			}
+		WriteToDoc("\n");
 		}
 
 	WriteToDoc("\n");

@@ -1,2 +1,2 @@
 @TEST-EXEC: bro --doc-scripts $DIST/doc/scripts/example.bro
-@TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/doc/example-diff-canonifier.py btest-diff example.rst
+@TEST-EXEC: btest-diff example.rst

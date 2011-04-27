@@ -17,7 +17,7 @@ these comments are transferred directly into the auto-generated
 
 :Author: Jon Siwek <jsiwek@ncsa.illinois.edu>
 
-:Imports: :doc:`notice`
+:Imports: :doc:`notice </policy/notice>`
 
 Summary
 ~~~~~~~
@@ -234,8 +234,8 @@ Port Analysis
 SSL::
 
     [ports={
-        563/tcp,
-        443/tcp
+        443/tcp,
+        562/tcp
     }]
 
 Packet Filter
@@ -244,8 +244,8 @@ Packet Filter
 
 Filters added::
 
-    [nntps] = tcp port 563,
-    [ssl] = tcp port 443
+    [ssl] = tcp port 443,
+    [nntps] = tcp port 562
 
 Private Interface
 -----------------
@@ -260,8 +260,8 @@ State Variables
    ::
 
       {
-         563/tcp,
-         443/tcp
+         443/tcp,
+         562/tcp
       }
 
 Types

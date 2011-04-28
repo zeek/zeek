@@ -226,7 +226,7 @@ void HTTP_Entity::DeliverBodyClear(int len, const char* data, int trailing_CRLF)
 
 // Returns 1 if the undelivered bytes are completely within the body,
 // otherwise returns 0.
-int HTTP_Entity::Undelivered(int len)
+int HTTP_Entity::Undelivered(int64_t len)
 	{
 	if ( DEBUG_http )
 		{
@@ -283,7 +283,7 @@ void HTTP_Entity::SubmitData(int len, const char* buf)
 		MIME_Entity::SubmitData(len, buf);
 	}
 
-void HTTP_Entity::SetPlainDelivery(int length)
+void HTTP_Entity::SetPlainDelivery(int64_t length)
 	{
 	ASSERT(length >= 0);
 	ASSERT(length == 0 || ! in_header);
@@ -302,7 +302,7 @@ void HTTP_Entity::SubmitHeader(MIME_Header* h)
 		data_chunk_t vt = h->get_value_token();
 		if ( ! is_null_data_chunk(vt) )
 			{
-			int n;
+			int64_t n;
 			if ( atoi_n(vt.length, vt.data, 0, 10, n) )
 				content_length = n;
 			else
@@ -409,7 +409,7 @@ void HTTP_Entity::SubmitAllHeaders()
 
 HTTP_Message::HTTP_Message(HTTP_Analyzer* arg_analyzer,
 				ContentLine_Analyzer* arg_cl, bool arg_is_orig,
-				int expect_body, int init_header_length)
+				int expect_body, int64_t init_header_length)
 : MIME_Message (arg_analyzer)
 	{
 	analyzer = arg_analyzer;
@@ -477,7 +477,7 @@ void HTTP_Message::Done(const int interrupted, const char* detail)
 		}
 	}
 
-int HTTP_Message::Undelivered(int len)
+int HTTP_Message::Undelivered(int64_t len)
 	{
 	if ( ! top_level )
 		return 0;
@@ -628,7 +628,7 @@ void HTTP_Message::SubmitEvent(int event_type, const char* detail)
 	MyHTTP_Analyzer()->HTTP_Event(category, detail);
 	}
 
-void HTTP_Message::SetPlainDelivery(int length)
+void HTTP_Message::SetPlainDelivery(int64_t length)
 	{
 	content_line->SetPlainDelivery(length);
 
@@ -701,7 +701,7 @@ void HTTP_Message::DeliverEntityData()
 	total_buffer_size = 0;
 	}
 
-int HTTP_Message::InitBuffer(int length)
+int HTTP_Message::InitBuffer(int64_t length)
 	{
 	if ( length <= 0 )
 		return 0;
@@ -1633,7 +1633,7 @@ void HTTP_Analyzer::HTTP_MessageDone(int is_orig, HTTP_Message* /* message */)
 	}
 
 void HTTP_Analyzer::InitHTTPMessage(ContentLine_Analyzer* cl, HTTP_Message*& message,
-		bool is_orig, int expect_body, int init_header_length)
+		bool is_orig, int expect_body, int64_t init_header_length)
 	{
 	if ( message )
 		{

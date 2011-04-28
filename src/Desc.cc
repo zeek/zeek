@@ -127,7 +127,7 @@ void ODesc::Add(int64 i)
 	else
 		{
 		char tmp[256];
-		sprintf(tmp, "%lld", i);
+		sprintf(tmp, "%" PRId64, i);
 		Add(tmp);
 		}
 	}
@@ -139,7 +139,7 @@ void ODesc::Add(uint64 u)
 	else
 		{
 		char tmp[256];
-		sprintf(tmp, "%llu", u);
+		sprintf(tmp, "%" PRIu64, u);
 		Add(tmp);
 		}
 	}

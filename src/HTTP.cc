@@ -230,7 +230,7 @@ int HTTP_Entity::Undelivered(int64_t len)
 	{
 	if ( DEBUG_http )
 		{
-		DEBUG_MSG("Content gap %d, expect_data_length %d\n",
+		DEBUG_MSG("Content gap %" PRId64", expect_data_length %" PRId64 "\n",
 			  len, expect_data_length);
 		}
 

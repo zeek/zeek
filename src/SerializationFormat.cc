@@ -397,7 +397,7 @@ bool XMLSerializationFormat::Write(char v, const char* tag)
 
 bool XMLSerializationFormat::Write(uint16 v, const char* tag)
 	{
-	const char* tmp = fmt("%"PRIu16, v);
+	const char* tmp = fmt("%" PRIu16, v);
 	return WriteElem(tag, "uint16", tmp, strlen(tmp));
 	}
 

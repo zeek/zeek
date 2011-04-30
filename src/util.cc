@@ -295,9 +295,9 @@ char* strcasestr(const char* s, const char* find)
 	}
 #endif
 
-int atoi_n(int len, const char* s, const char** end, int base, int& result)
+template<class T> int atoi_n(int len, const char* s, const char** end, int base, T& result)
 	{
-	int n = 0;
+	T n = 0;
 	int neg = 0;
 
 	if ( len > 0 && *s == '-' )
@@ -340,6 +340,10 @@ int atoi_n(int len, const char* s, const char** end, int base, int& result)
 	return 1;
 	}
 
+// Instantiate the ones we need.
+template int atoi_n<int>(int len, const char* s, const char** end, int base, int& result);
+template int atoi_n<int64_t>(int len, const char* s, const char** end, int base, int64_t& result);
+
 char* uitoa_n(uint64 value, char* str, int n, int base)
 	{
 	static char dig[] = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -360,6 +364,7 @@ char* uitoa_n(uint64 value, char* str, int n, int base)
 
 	return str;
 	}
+
 
 int strstr_n(const int big_len, const u_char* big,
 		const int little_len, const u_char* little)

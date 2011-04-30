@@ -58,9 +58,6 @@ extern int have_pending_timers;
 // is the speedup (1 = real-time, 0.5 = half real-time, etc.).
 extern double pseudo_realtime;
 
-// Pcap filter supplied by the user on the command line (if any).
-extern char* user_pcap_filter;
-
 // When we started processing the current packet and corresponding event
 // queue.
 extern double processing_start_time;

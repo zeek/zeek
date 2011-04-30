@@ -39,9 +39,9 @@ public:
 
 	void EndOfData();
 	void Deliver(int len, const char* data, int trailing_CRLF);
-	int Undelivered(int len);
-	int BodyLength() const 		{ return body_length; }
-	int HeaderLength() const 	{ return header_length; }
+	int Undelivered(int64_t len);
+	int64_t BodyLength() const 		{ return body_length; }
+	int64_t HeaderLength() const 	{ return header_length; }
 	void SkipBody() 		{ deliver_body = 0; }
 
 protected:
@@ -50,11 +50,11 @@ protected:
 
 	HTTP_Message* http_message;
 	int chunked_transfer_state;
-	int content_length;
-	int expect_data_length;
+	int64_t content_length;
+	int64_t expect_data_length;
 	int expect_body;
-	int body_length;
-	int header_length;
+	int64_t body_length;
+	int64_t header_length;
 	int deliver_body;
 	enum { IDENTITY, GZIP, COMPRESS, DEFLATE } encoding;
 #ifdef HAVE_LIBZ
@@ -68,7 +68,7 @@ protected:
 
 	void SubmitData(int len, const char* buf);
 
-	void SetPlainDelivery(int length);
+	void SetPlainDelivery(int64_t length);
 
 	void SubmitHeader(MIME_Header* h);
 	void SubmitAllHeaders();
@@ -94,12 +94,12 @@ enum {
 class HTTP_Message : public MIME_Message {
 public:
 	HTTP_Message(HTTP_Analyzer* analyzer, ContentLine_Analyzer* cl,
-			 bool is_orig, int expect_body, int init_header_length);
+			 bool is_orig, int expect_body, int64_t init_header_length);
 	~HTTP_Message();
 	void Done(const int interrupted, const char* msg);
 	void Done() { Done(0, "message ends normally"); }
 
-	int Undelivered(int len);
+	int Undelivered(int64_t len);
 
 	void BeginEntity(MIME_Entity* /* entity */);
 	void EndEntity(MIME_Entity* entity);
@@ -111,7 +111,7 @@ public:
 	void SubmitEvent(int event_type, const char* detail);
 
 	void SubmitTrailingHeaders(MIME_HeaderList& /* hlist */);
-	void SetPlainDelivery(int length);
+	void SetPlainDelivery(int64_t length);
 	void SkipEntityData();
 
 	HTTP_Analyzer* MyHTTP_Analyzer() const
@@ -135,16 +135,16 @@ protected:
 
 	double start_time;
 
-	int body_length;	// total length of entity bodies
-	int header_length;	// total length of headers, including the request/reply line
+	int64_t body_length;	// total length of entity bodies
+	int64_t header_length;	// total length of headers, including the request/reply line
 
 	// Total length of content gaps that are "successfully" skipped.
 	// Note: this might NOT include all content gaps!
-	int content_gap_length;
+	int64_t content_gap_length;
 
 	HTTP_Entity* current_entity;
 
-	int InitBuffer(int length);
+	int InitBuffer(int64_t length);
 	void DeliverEntityData();
 
 	Val* BuildMessageStat(const int interrupted, const char* msg);
@@ -191,7 +191,7 @@ protected:
 	int HTTP_ReplyLine(const char* line, const char* end_of_line);
 
 	void InitHTTPMessage(ContentLine_Analyzer* cl, HTTP_Message*& message, bool is_orig,
-				int expect_body, int init_header_length);
+				int expect_body, int64_t init_header_length);
 
 	const char* PrefixMatch(const char* line, const char* end_of_line,
 				const char* prefix);

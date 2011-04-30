@@ -51,7 +51,6 @@ int reading_live = 0;
 int reading_traces = 0;
 int have_pending_timers = 0;
 double pseudo_realtime = 0.0;
-char* user_pcap_filter = 0;
 bool using_communication = false;
 
 double network_time = 0.0;	// time according to last packet timestamp

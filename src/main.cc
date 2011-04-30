@@ -349,6 +349,7 @@ int main(int argc, char** argv)
 	char* events_file = 0;
 	char* seed_load_file = getenv("BRO_SEED_FILE");
 	char* seed_save_file = 0;
+	char* user_pcap_filter = 0;
 	int seed = 0;
 	int dump_cfg = false;
 	int to_xml = 0;
@@ -743,6 +744,16 @@ int main(int argc, char** argv)
 
 	init_general_global_var();
 
+	if ( user_pcap_filter )
+		{
+		ID* id = global_scope()->Lookup("cmd_line_bpf_filter");
+
+		if ( ! id )
+			internal_error("global cmd_line_bpf_filter not defined");
+
+		id->SetVal(new StringVal(user_pcap_filter));
+		}
+
 	// Parse rule files defined on the script level.
 	char* script_rule_files =
 		copy_string(internal_val("signature_files")->AsString()->CheckString());
@@ -800,8 +811,7 @@ int main(int argc, char** argv)
 
 	if ( dns_type != DNS_PRIME )
 		net_init(interfaces, read_files, netflows, flow_files,
-			writefile,
-			user_pcap_filter ? user_pcap_filter : "tcp or udp",
+			writefile, "tcp or udp or icmp",
 			secondary_path->Filter(), do_watchdog);
 
 	if ( ! reading_traces )

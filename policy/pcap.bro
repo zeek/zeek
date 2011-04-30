@@ -4,8 +4,16 @@
 global capture_filters: table[string] of string &redef;
 global restrict_filters: table[string] of string &redef;
 
-# Filter string which is unconditionally or'ed to every pcap filter.
-global unrestricted_filter = "" &redef;
+# By default, Bro will examine all packets. If this is set to false,
+# it will dynamically build a BPF filter that only select protocols
+# for which the user has loaded a corresponding analysis script.
+# The latter used to be default for Bro versions < 1.6. That has now
+# changed however to enable port-independent protocol analysis.
+const all_packets = T &redef;
+
+# Filter string which is unconditionally or'ed to every dynamically
+# built pcap filter.
+const unrestricted_filter = "" &redef;
 
 redef enum PcapFilterID += {
 	DefaultPcapFilter,
@@ -27,6 +35,7 @@ function join_filters(capture_filter: string, restrict_filter: string): string
 
 	if ( capture_filter != "" && restrict_filter != "" )
 		filter = fmt( "(%s) and (%s)", restrict_filter, capture_filter );
+
 	else if ( capture_filter != "" )
 		filter = capture_filter;
 
@@ -34,7 +43,7 @@ function join_filters(capture_filter: string, restrict_filter: string): string
 		filter = restrict_filter;
 
 	else
-		filter = "tcp or udp or icmp";
+		filter = "ip or not ip";
 
 	if ( unrestricted_filter != "" )
 		filter = fmt( "(%s) or (%s)", unrestricted_filter, filter );
@@ -44,28 +53,30 @@ function join_filters(capture_filter: string, restrict_filter: string): string
 
 function build_default_pcap_filter(): string
 	{
-	# Build capture_filter.
-	local cfilter = "";
+	if ( cmd_line_bpf_filter != "" )
+		# Return what the user specified on the command line;
+		return cmd_line_bpf_filter;
 
+	if ( all_packets )
+		# Return an "always true" filter.
+		return "ip or not ip";
+
+	## Build filter dynamically.
+
+	# First the capture_filter.
+	local cfilter = "";
 	for ( id in capture_filters )
 		cfilter = add_to_pcap_filter(cfilter, capture_filters[id], "or");
 
-	# Build restrict_filter.
+	# Then the restrict_filter.
 	local rfilter = "";
-	local saw_VLAN = F;
 	for ( id in restrict_filters )
-		{
-		if ( restrict_filters[id] == "vlan" )
-			# These are special - they need to come first.
-			saw_VLAN = T;
-		else
-			rfilter = add_to_pcap_filter(rfilter, restrict_filters[id], "and");
-		}
+		rfilter = add_to_pcap_filter(rfilter, restrict_filters[id], "and");
 
-	if ( saw_VLAN )
-		rfilter = add_to_pcap_filter("vlan", rfilter, "and");
+	# Finally, join them.
+	local filter = join_filters(cfilter, rfilter);
 
-	return join_filters(cfilter, rfilter);
+	return filter;
 	}
 
 function install_default_pcap_filter()

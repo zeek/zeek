@@ -1,0 +1,4 @@
+ip or not ip
+ip or not ip
+tcp[13] & 7 != 0
+port 42

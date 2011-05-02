@@ -735,7 +735,7 @@ int BroFile::Write(const char* data, int len)
 		while ( len )
 			{
 			int outl;
-			int inl = min(MIN_BUFFER_SIZE, len);
+			int inl = min(+MIN_BUFFER_SIZE, len);
 
 			if ( ! EVP_SealUpdate(cipher_ctx, cipher_buffer, &outl,
 						(unsigned char*)data, inl) )

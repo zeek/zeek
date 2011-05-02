@@ -220,7 +220,7 @@ void NetSessions::DispatchPacket(double t, const struct pcap_pkthdr* hdr,
 			}
 
 		else
-			// Blanket encapsulation (e.g., for VLAN).
+			// Blanket encapsulation
 			hdr_size += encap_hdr_size;
 		}
 

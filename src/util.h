@@ -110,8 +110,7 @@ extern int strcasecmp_n(int s_len, const char* s, const char* t);
 extern char* strcasestr(const char* s, const char* find);
 #endif
 extern const char* strpbrk_n(size_t len, const char* s, const char* charset);
-extern int atoi_n(int len, const char* s, const char** end,
-			int base, int& result);
+template<class T> int atoi_n(int len, const char* s, const char** end, int base, T& result);
 extern char* uitoa_n(uint64 value, char* str, int n, int base);
 int strstr_n(const int big_len, const unsigned char* big,
 		const int little_len, const unsigned char* little);
@@ -233,16 +232,6 @@ extern struct timeval double_to_timeval(double t);
 
 // Return > 0 if tv_a > tv_b, 0 if equal, < 0 if tv_a < tv_b.
 extern int time_compare(struct timeval* tv_a, struct timeval* tv_b);
-
-inline int min(int a, int b)
-	{
-	return a < b ? a : b;
-	}
-
-inline int max(int a, int b)
-	{
-	return a > b ? a : b;
-	}
 
 // For now, don't use hash_maps - they're not fully portable.
 #if 0

@@ -2394,7 +2394,7 @@ bool RemoteSerializer::SendPrintHookEvent(BroFile* f, const char* txt)
 		if ( ! fname )
 			continue; // not a managed file.
 
-		int len = strlen(txt);
+		long unsigned int len = strlen(txt);
 
 		// We cut off everything after the max buffer size.  That
 		// makes the code a bit easier, and we shouldn't have such

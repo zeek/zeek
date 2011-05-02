@@ -15,6 +15,7 @@ export {
 		qtype_name:    string          &log &optional;
 		qclass:        count           &log &optional;
 		rcode:         count           &log &optional;
+		rcode_name:    string          &log &optional;
 		QR:            bool            &log &default=F;
 		Z:             bool            &log &default=F;
 		AA:            bool            &log &default=F;
@@ -93,6 +94,7 @@ function set_session(c: connection, msg: dns_msg, is_query: bool)
 
 	c$dns_state$last_active=network_time();
 	c$dns$rcode = msg$rcode;
+	c$dns$rcode_name = base_errors[msg$rcode];
 	
 	if ( ! is_query )
 		{

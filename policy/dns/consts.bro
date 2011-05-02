@@ -65,7 +65,7 @@ export {
 		[22] = "BADTRUNC",      ##< draft-ietf-dnsext-tsig-sha-05.txt
 		[3842] = "BADSIG",      ##< 16 <= number collision with EDNS(16);
 		                        ##< this is a translation from TSIG(16)
-	} &default="?";
+	} &default = function(n: count): string { return fmt("rcode-%d", n); };
 
 	# This deciphers EDNS Z field values.
 	const edns_zfield = {

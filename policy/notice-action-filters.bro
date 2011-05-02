@@ -1,5 +1,6 @@
 ## A few predefined notice_action_filters (see notice.bro).
 @load notice
+@load functions
 
 module Notice;
 

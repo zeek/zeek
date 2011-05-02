@@ -14,8 +14,8 @@ export {
 event bro_init()
 	{
 	Log::add_filter(DNS, [
-		$name="passive-replication",
-		$path="passive-replication",
+		$name="dns-passive-replication",
+		$path="dns-passive-replication",
 		$pred=function(rec: DNS::Info): bool 
 			{ 
 			if ( rec?$query && rec$query !in recent_requests )

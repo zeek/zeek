@@ -1,4 +1,5 @@
 set(POLICY_SRC_DIR ${PROJECT_SOURCE_DIR}/policy)
+set(BIF_SRC_DIR ${PROJECT_SOURCE_DIR}/src)
 set(RST_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/rest_output)
 set(DOC_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/out)
 set(DOC_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/source)
@@ -38,16 +39,22 @@ endif ()
 # ALL_REST_OUTPUTS: a running list (the CMake list type) of all reST docs
 #   that are to be generated
 # MASTER_GROUP_LIST: a running list (the CMake list type) of all script groups
-# ${group}_TEXT: a running list of policy script :doc: references and summary
-#   text for a given group
+# ${group}_files: a running list of files belonging to a given group, from
+#   which summary text can be extracted at build time
+# ${group}_doc_names: a running list of reST style document names that can be
+#   given to a :doc: role, shared indices with ${group}_files
 #
 macro(REST_TARGET srcDir broInput)
     get_filename_component(basename ${broInput} NAME_WE)
     get_filename_component(extension ${broInput} EXT)
     get_filename_component(relDstDir ${broInput} PATH)
 
+    set(sumTextSrc ${srcDir}/${broInput})
     if (${extension} STREQUAL ".bif.bro")
         set(basename "${basename}.bif")
+        # the summary text is taken at configure time, but .bif.bro files
+        # may not have been generated yet, so read .bif file instead
+        set(sumTextSrc ${BIF_SRC_DIR}/${basename})
     elseif (${extension} STREQUAL ".init")
         set(basename "${basename}.init")
     endif ()
@@ -81,13 +88,8 @@ macro(REST_TARGET srcDir broInput)
             endif ()
         endif ()
 
-        # add script's summary documentation to text associated with the group
-        set(${group}_TEXT "${${group}_TEXT}\n\n:doc:`/policy/${docName}`\n")
-        file(STRINGS ${srcDir}/${broInput} summary_text REGEX "^\#\#!")
-        foreach (line ${summary_text})
-            string(REGEX REPLACE "^\#\#!" "   " line ${line})
-            set(${group}_TEXT "${${group}_TEXT}\n${line}")
-        endforeach ()
+        list(APPEND ${group}_files ${sumTextSrc})
+        list(APPEND ${group}_doc_names ${docName})
     else ()
         set(group "")
     endif ()
@@ -169,10 +171,20 @@ file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/tmp_policy_index
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/group_list
     "${MASTER_GROUP_LIST_TEXT}")
 
-# create temporary file containing the summary text for all scripts in a group
+# create temporary files containing list of each source file in a given group
 foreach (group ${MASTER_GROUP_LIST})
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${group}_text
-        "${${group}_TEXT}")
+    if (EXISTS ${CMAKE_CURRENT_BINARY_DIR}/${group}_files)
+        file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/${group}_files)
+    endif ()
+    if (EXISTS ${CMAKE_CURRENT_BINARY_DIR}/${group}_doc_names)
+        file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/${group}_doc_names)
+    endif ()
+    foreach (src ${${group}_files})
+        file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/${group}_files "${src}\n")
+    endforeach ()
+    foreach (dname ${${group}_doc_names})
+        file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/${group}_doc_names "${dname}\n")
+    endforeach ()
 endforeach ()
 
 # remove previously generated docs no longer scheduled for generation
@@ -219,10 +231,11 @@ add_custom_target(doc
                   # append to the master index of all policy scripts
                   COMMAND cat ${CMAKE_CURRENT_BINARY_DIR}/tmp_policy_index >>
                           ${DOC_SOURCE_WORKDIR}/policy/index.rst
-                  # construct the reST file for all groups
-                  COMMAND xargs -I{} sh -c 'cat "$$1_text" >>
-                          "${DOC_SOURCE_WORKDIR}/$$1.rst"' -- {} <
+                  # construct a reST file for each group
+                  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/group_index_generator.py
                           ${CMAKE_CURRENT_BINARY_DIR}/group_list
+                          ${CMAKE_CURRENT_BINARY_DIR}
+                          ${DOC_SOURCE_WORKDIR}
                   # tell sphinx to generate html
                   COMMAND sphinx-build
                           -b html

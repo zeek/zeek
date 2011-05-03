@@ -332,7 +332,8 @@ event smtp_data(c: connection, is_orig: bool, data: string) &priority=3
 		return;
 	local ip = to_addr(text_ip);
 	
-	# This overwrites each time.
+	# This overwrites each time to get the "bottom" address which should
+	# be where the message originated from.
 	c$smtp$received_from_originating_ip = ip;
 
 	if ( ! addr_matches_hosts(ip, mail_path_capture) && 
@@ -343,7 +344,7 @@ event smtp_data(c: connection, is_orig: bool, data: string) &priority=3
 
 	if ( ! c$smtp?$path )
 		c$smtp$path = vector();
-	c$smtp$path[|c$smtp$path|+1] = ip;
+	c$smtp$path[|c$smtp$path|] = ip;
 	}
 
 

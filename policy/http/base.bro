@@ -20,16 +20,17 @@ export {
 	## Define the default point at which you'd like the logging to take place.
 	## If you wait until after the reply body, you can be assured that you will
 	## get the most data, but at the expense of a delayed log which could
-	## be substantial in the event of a large file download.  It's typically
+	## be substantial in the event of a large file download, but it's typically
 	## not much of a problem.  To mitigate, you may want to change this value
 	## to AFTER_REPLY which will cause the log action to take place after all
 	## of the response headers.
 	## This is settable per-session too by setting the $log_point value
-	## in a SessionInfo record.
-	const default_log_point = AFTER_REPLY &redef;
+	## in an Info record to another of the LogPoint enum values.
+	const default_log_point: LogPoint = AFTER_REPLY &redef;
 	
 	type Info: record {
 		ts:                      time     &log;
+		uid:                     string   &log;
 		id:                      conn_id  &log;
 		method:                  string   &log &optional;
 		host:                    string   &log &optional;
@@ -86,6 +87,7 @@ function new_http_session(c: connection): Info
 	{
 	local tmp: Info;
 	tmp$ts=network_time();
+	tmp$uid=c$uid;
 	tmp$id=c$id;
 	# TODO: remove this when &default on this set isn't segfaulting Bro anymore.
 	#tmp$tags = set();
@@ -102,7 +104,6 @@ function set_state(c: connection, request: bool, is_orig: bool)
 	
 	# These deal with new requests and responses.
 	if ( request || c$http_state$current_request !in c$http_state$pending )
-		# TODO: need some FIFO operations on vectors and/or sets.
 		c$http_state$pending[c$http_state$current_request] = new_http_session(c);
 	if ( ! is_orig && c$http_state$current_response !in c$http_state$pending )
 		c$http_state$pending[c$http_state$current_response] = new_http_session(c);
@@ -169,11 +170,11 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 		}
 	}
 	
-#event http_begin_entity(c: connection, is_orig: bool) &priority=5
-#	{
-#	set_state(c, F, is_orig);
-#	}
-
+event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &priority=5
+	{
+	set_state(c, F, is_orig);
+	}
+	
 event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &priority=-5
 	{
 	# For some reason the analyzer seems to generate this event an extra time 
@@ -181,8 +182,6 @@ event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &
 	if ( stat$interrupted )
 		return;
 	
-	set_state(c, F, is_orig);
-
 	if ( is_orig && c$http$log_point == AFTER_REQUEST )
 		{
 		Log::write(HTTP, c$http);
@@ -195,12 +194,36 @@ event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &
 		delete c$http_state$pending[c$http_state$current_response];
 		}
 	}
+
+event http_end_entity(c: connection, is_orig: bool) &priority=5
+	{
+	set_state(c, F, is_orig);
+	}
+	
+# I don't like handling the AFTER_*_BODY handling this way, but I'm not
+# seeing another post-body event to handle.
+event http_end_entity(c: connection, is_orig: bool) &priority=-5
+	{
+	if ( is_orig && c$http$log_point == AFTER_REQUEST_BODY )
+		{
+		Log::write(HTTP, c$http);
+		delete c$http_state$pending[c$http_state$current_request];
+		}
+
+	if ( ! is_orig && c$http$log_point == AFTER_REPLY_BODY )
+		{
+		Log::write(HTTP, c$http);
+		delete c$http_state$pending[c$http_state$current_response];
+		}
+	}
 	
 event connection_state_remove(c: connection)
 	{
 	# Flush all unmatched requests.
-	#if ( c?$http_state$pending )
-	#	for ( r in c$http_state$pending )
-	#		Log::write(HTTP, c$http_state$pending[r] );
+	if ( c?$http_state )
+		{
+		for ( r in c$http_state$pending )
+			Log::write(HTTP, c$http_state$pending[r] );
+		}
 	}
 	

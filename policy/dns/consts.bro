@@ -80,5 +80,5 @@ export {
 		[4]   = "C_HESOD",
 		[254] = "C_NONE",
 		[255] = "C_ANY",
-	} &default="?";
+	} &default = function(n: count): string { return fmt("qclass-%d", n); };
 }

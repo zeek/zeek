@@ -133,11 +133,6 @@ export {
 		[NFS_world_servers, NFS_services],
 		[sun-rpc.mcast.net, "ypserv"],	# sigh
 	} &redef;
-	
-	# Maps a given port on a given server's address to an RPC service.
-	# If we haven't loaded portmapper.bro, then it will be empty
-	# (and, ideally, queries to it would be optimized away ...).
-	global RPC_server_map: table[addr, port] of string;
 }
 
 redef capture_filters += { ["portmapper"] = "port 111" };
@@ -261,7 +256,7 @@ event pm_request_unset(r: connection, m: pm_mapping, success: bool)
 		rpc_prog(m$program), m$p, success ? "ok" : "failed"), T);
 	}
 
-function update_RPC_server_map(r: connection, server: addr, p: port, prog: string)
+function update_RPC_server_map(server: addr, p: port, prog: string)
 	{
 	if ( [server, p] in RPC_server_map )
 		{
@@ -273,8 +268,6 @@ function update_RPC_server_map(r: connection, server: addr, p: port, prog: strin
 		}
 	else
 		RPC_server_map[server, p] = prog;
-		
-	add r$service[prog];
 	}
 
 event pm_request_getport(r: connection, pr: pm_port_request, p: port)
@@ -282,12 +275,12 @@ event pm_request_getport(r: connection, pr: pm_port_request, p: port)
 	local prog = rpc_prog(pr$program);
 	local log_it = pm_check_getport(r, prog);
 
-	update_RPC_server_map(r, r$id$resp_h, p, prog);
+	update_RPC_server_map(r$id$resp_h, p, prog);
 
 	pm_request(r, "pm_getport", fmt("%s -> %s", prog, p), log_it);
 	}
 
-function pm_mapping_to_text(r: connection, server: addr, m: pm_mappings): string
+function pm_mapping_to_text(server: addr, m: pm_mappings): string
 	{
 	# Used to suppress multiple entries for multiple versions.
 	local mapping_seen: set[count, port];
@@ -302,9 +295,9 @@ function pm_mapping_to_text(r: connection, server: addr, m: pm_mappings): string
 		if ( [prog, p] !in mapping_seen )
 			{
 			add mapping_seen[prog, p];
-			addls[++num_addls] = fmt("%s -> %s", rpc_prog(prog), p);
-
-			update_RPC_server_map(r, server, p, rpc_prog(prog));
+			addls[num_addls] = fmt("%s -> %s", rpc_prog(prog), p);
+			++num_addls;
+			update_RPC_server_map(server, p, rpc_prog(prog));
 			}
 		}
 
@@ -322,7 +315,7 @@ event pm_request_dump(r: connection, m: pm_mappings)
 	{
 	local log_it = [r$id$orig_h, r$id$resp_h] !in RPC_dump_okay;
 	pm_request(r, "pm_dump", length(m) == 0 ? "(nil)" : "(done)", log_it);
-	append_addl(r, cat("<", pm_mapping_to_text(r, r$id$resp_h, m), ">"));
+	append_addl(r, cat("<", pm_mapping_to_text(r$id$resp_h, m), ">"));
 	}
 
 event pm_request_callit(r: connection, call: pm_callit_request, p: port)

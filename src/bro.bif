@@ -2395,7 +2395,7 @@ function any_set%(v: any%) : bool
 		}
 
 	VectorVal* vv = v->AsVectorVal();
-	for ( unsigned int i = VECTOR_MIN; i < vv->Size() + VECTOR_MIN; ++i )
+	for ( unsigned int i = 0; i < vv->Size(); ++i )
 		if ( vv->Lookup(i) && vv->Lookup(i)->AsBool() )
 			return new Val(true, TYPE_BOOL);
 
@@ -2413,7 +2413,7 @@ function all_set%(v: any%) : bool
 		}
 
 	VectorVal* vv = v->AsVectorVal();
-	for ( unsigned int i = VECTOR_MIN; i < vv->Size() + VECTOR_MIN; ++i )
+	for ( unsigned int i = 0; i < vv->Size(); ++i )
 		if ( ! vv->Lookup(i) || ! vv->Lookup(i)->AsBool() )
 			return new Val(false, TYPE_BOOL);
 
@@ -2596,8 +2596,8 @@ function order%(v: any, ...%) : index_vec
 	// adjusting indices as we do so.
 	for ( i = 0; i < n; ++i )
 		{
-		int ind = ind_vv[i] + VECTOR_MIN;
-		result_v->Assign(i + VECTOR_MIN, new Val(ind, TYPE_COUNT), 0);
+		int ind = ind_vv[i];
+		result_v->Assign(i, new Val(ind, TYPE_COUNT), 0);
 		}
 
 	return result_v;

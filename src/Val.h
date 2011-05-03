@@ -969,9 +969,6 @@ protected:
 };
 
 
-// The minimum index for vectors (0 or 1).
-const int VECTOR_MIN = 1;
-
 class VectorVal : public MutableVal {
 public:
 	VectorVal(VectorType* t);

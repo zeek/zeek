@@ -500,7 +500,7 @@ event irc_channel_topic(c: connection, channel: string, topic: string)
 	local conn = get_conn(c);
 
 	local ch = get_channel(conn, channel);
-	ch$topic_history[|ch$topic_history| + 1] = ch$topic;
+	ch$topic_history[|ch$topic_history|] = ch$topic;
 	ch$topic = topic;
 
 	if ( c$id in bot_conns )

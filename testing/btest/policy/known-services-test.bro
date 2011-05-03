@@ -1,6 +1,6 @@
 
 #   Generate some output
-# @TEST-EXEC: bro -r $TRACES/workshop.trace1.trace %INPUT tcp
+# @TEST-EXEC: ../../build/src/bro -r $TRACES/workshop.trace1.trace %INPUT 
 
 
 #   Verify the log file, and stderr/out match the Baseline
@@ -11,6 +11,7 @@
 
 # Load the script we're here to test
 @load known-services
+@load tcp
 
 # Make some changes to how it runs
 export {

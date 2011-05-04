@@ -6,7 +6,7 @@
 @load http/utils
 @load http/base
 @load http/base-extended
-@load http/detect
+@load http/detect-sqli
 @load http/detect-intel
 @load http/file-ident
 @load http/software

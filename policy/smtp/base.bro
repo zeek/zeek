@@ -26,6 +26,7 @@ redef dpd_config += { [ANALYZER_SMTP] = [$ports = ports] };
 export {
 	type Info: record {
 		ts:                time            &log;
+		uid:               string          &log;
 		id:                conn_id         &log;
 		helo:              string          &log &optional;
 		mailfrom:          string          &log &optional;
@@ -95,6 +96,7 @@ function new_smtp_log(c: connection): Info
 	{
 	local l: Info;
 	l$ts=network_time();
+	l$uid=c$uid;
 	l$id=c$id;
 	if ( c?$smtp &&c$smtp?$helo )
 		l$helo = c$smtp$helo;

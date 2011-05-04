@@ -32,6 +32,7 @@ export {
 	type Info: record {
 		## This is the timestamp of when the MIME content transfer began.
 		ts:               time    &log;
+		uid:              string  &log;
 		id:               conn_id &log;
 		app_protocol:     string  &log &optional;
 		filename:         string  &log &optional;
@@ -62,6 +63,7 @@ function new_mime_session(c: connection): Info
 	local info: Info;
 	
 	info$ts=network_time();
+	info$uid=c$uid;
 	info$id=c$id;
 	return info;
 	}

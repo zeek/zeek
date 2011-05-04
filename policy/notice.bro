@@ -21,29 +21,30 @@ export {
 	};
 	
 	type Info: record {
-		ts:   time &log &optional;
-		id: conn_id &log &optional;	# connection-ID, if we don't have a connection handy
+		ts:    time    &log &optional;
+		uid:   string  &log &optional;
+		id:    conn_id &log &optional;   ##< connection-ID, if we don't have a connection handy
 		
-		note: Type &log;
-		msg: string &default="" &log;
-		sub: string &log &optional;	# sub-message
+		note:  Type    &log;
+		msg:   string  &log &default="";
+		sub:   string  &log &optional;    ##< sub-message
 
-		conn: connection &log &optional;	# connection associated with notice
-		iconn: icmp_conn &log &optional;	# associated ICMP "connection"
-		src: addr &log &optional;	# source address, if we don't have a connection
-		dst: addr &log &optional;	# destination address
-		p: port &log &optional;	# associated port, if we don't have a conn.
-
-		n: count &log &optional;  # associated count, or perhaps status code
+		conn:  connection &optional;      ##< connection associated with notice
+		iconn: icmp_conn  &optional;      ##< associated ICMP "connection"
+		src:   addr       &log &optional; ##< source address, if we don't have a connection
+		dst:   addr       &log &optional; ##< destination address
+		p:     port       &log &optional; ##< associated port, if we don't have a conn.
+		n:     count      &log &optional; #< associated count, or perhaps status code
 
 		# Automatically set attributes.
-		action: Notice::Action &log &default=NOTICE_UNKNOWN; # once action determined
-		src_peer: event_peer &log &optional;	# source that raised this notice
-		tag: string &log &optional;	# tag associated with this notice
-		#dropped: bool &optional &default=F; # true if src successfully dropped
+		action:   Notice::Action &log &default=NOTICE_UNKNOWN;
+		src_peer: event_peer     &log &optional;  ##< peer that raised this notice
+		tag:      string         &log &optional;  ##< tag associated with this notice
+		dropped:  bool           &log &default=F; ##< true if src successfully dropped
 
 		# If we asked the Time Machine to capture, the filename prefix.
-		captured: string &optional;
+		# TODO: implement this as a timemachine/notice.bro script?
+		#captured: string &optional;
 
 		# If false, don't alarm independent of the determined notice action.
 		# If true, alarm dependening on notice action.
@@ -213,6 +214,9 @@ function notice(n: Notice::Info)
 	# Fill in some defaults.
 	n$ts = network_time();
 	
+	if ( n?$conn )
+		n$uid = n$conn$uid;
+	
 	if ( ! n?$id && n?$conn )
 		n$id = n$conn$id;
 
@@ -260,6 +264,7 @@ function notice(n: Notice::Info)
 		{
 		# Build the info here after we had a chance to set the
 		# $dropped field.
+		
 		Log::write(NOTICE_LOG, n);
 
 		if ( action != NOTICE_FILE && n$do_alarm )

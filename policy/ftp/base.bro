@@ -32,6 +32,7 @@ export {
 	
 	type State: record {
 		ts:               time      &log;
+		uid:              string    &log;
 		id:               conn_id   &log;
 		user:             string    &log &default="<unknown>";
 		password:         string    &log &optional;
@@ -142,6 +143,7 @@ function set_ftp_session(c: connection)
 		{
 		local s: State;
 		s$ts=network_time();
+		s$uid=c$uid;
 		s$id=c$id;
 		c$ftp=s;
 		

@@ -13,13 +13,10 @@ redef enum Notice::Type += {
 
 redef enum Log::ID += { SSH };
 
-# Configure DPD and the packet filter
-redef capture_filters += { ["ssh"] = "tcp port 22" };
-redef dpd_config += { [ANALYZER_SSH] = [$ports = set(22/tcp)] };
-
 export {
 	type Info: record {
 		ts:              time         &log;
+		uid:             string       &log;
 		id:              conn_id      &log;
 		status:          string       &log &optional;
 		direction:       string       &log &optional;
@@ -81,12 +78,10 @@ export {
 	global log_ssh: event(rec: Info);
 }
 
-# TODO: move this elsewhere
-function local_filter(rec: record { id: conn_id; } ): bool
-	{
-	return is_local_addr(rec$id$resp_h);
-	}
-	
+# Configure DPD and the packet filter
+redef capture_filters += { ["ssh"] = "tcp port 22" };
+redef dpd_config += { [ANALYZER_SSH] = [$ports = set(22/tcp)] };
+
 redef record connection += {
 	ssh: Info &optional;
 };
@@ -96,12 +91,19 @@ event bro_init()
 	Log::create_stream(SSH, [$columns=Info, $ev=log_ssh]);
 }
 
+# TODO: move this elsewhere
+function local_filter(rec: record { id: conn_id; } ): bool
+	{
+	return is_local_addr(rec$id$resp_h);
+	}
+
 function set_session(c: connection)
 	{
 	if ( ! c?$ssh )
 		{
 		local info: Info;
 		info$ts=network_time();
+		info$uid=c$uid;
 		info$id=c$id;
 		c$ssh = info;
 		}
@@ -221,7 +223,7 @@ function check_ssh_connection(c: connection, done: bool)
 		}
 	}
 
-event connection_state_remove(c: connection)
+event connection_state_remove(c: connection) &priority=-5
 	{
 	if ( c?$ssh )
 		check_ssh_connection(c, T);

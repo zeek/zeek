@@ -12,6 +12,7 @@ export {
 
 	type Info: record {
 		ts:       time        &log;
+		uid:      string      &log;
 		id:       conn_id     &log;
 		nick:     string      &log &optional;
 		user:     string      &log &optional;
@@ -49,6 +50,7 @@ function new_session(c: connection): Info
 	{
 	local info: Info;
 	info$ts = network_time();
+	info$uid = c$uid;
 	info$id = c$id;
 	return info;
 	}

@@ -7,7 +7,7 @@ redef enum Log::ID += { CONN };
 
 export {
 	type Info: record {
-		## This is the time at which the connection was "fully established";
+		## This is the time of the first packet.
 		ts:           time            &log;
 		uid:          string          &log;
 		id:           conn_id         &log;

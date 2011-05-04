@@ -55,13 +55,9 @@ export {
 		unparsed_version: string &log &optional;
 	};
 	
-	## The hosts whose software should be logged.
+	## The hosts whose software should be detected and tracked.
 	## Choices are: LocalHosts, RemoteHosts, Enabled, Disabled
 	const logging = Enabled &redef;
-
-	## In case you are interested in more than logging just local assets
-	## you can split the log file.
-	#const split_log_file = F &redef;
 	
 	## Some software is more interesting when the version changes.  This is
 	## a set of all software that should raise a notice when a different version
@@ -80,8 +76,8 @@ export {
 	## a sensible Software::Version record.  There are still many cases where
 	## scripts may have to have their own specific version parsing though.
 	global parse: function(unparsed_version: string,
-	                               host: addr,
-	                               software_type: Type): Info;
+	                       host: addr,
+	                       software_type: Type): Info;
 	
 	## Compare two versions.
 	## @return:  Returns -1 for v1 < v2, 0 for v1 == v2, 1 for v1 > v2.
@@ -89,9 +85,12 @@ export {
 	##           is compared lexicographically.
 	global cmp_versions: function(v1: Version, v2: Version): int;
 	
-	## Index is the name of the software.
+	## The index is the name of the software.
 	type SoftwareSet: table[string] of Info;
-	# The set of software associated with an address.
+	
+	## The set of software associated with an address.  Data expires from this
+	## table after one day by default so that a detected piece of software will
+	## be logged each day.
 	global tracked_software: table[addr] of SoftwareSet &create_expire=1day &synchronized;
 	
 	global log_software: event(rec: Info);
@@ -361,10 +360,13 @@ event software_register(id: conn_id, info: Info)
 		{
 		local old = ts[info$name];
 		
-		# Is it a potentially interesting version change 
-		# and is it a different version?
-		if ( info$name in interesting_version_changes &&
-		     cmp_versions(old$version, info$version) != 0 )
+		# If the version hasn't changed, then we're just redetecting the
+		# same thing, then we don't care.  This results in no extra logging.
+		if ( cmp_versions(old$version, info$version) == 0)
+			return;
+			
+		# Is it a potentially interesting version change?
+		if ( info$name in interesting_version_changes )
 			{
 			local msg = fmt("%.6f %s switched from %s to %s (%s)",
 					network_time(), software_endpoint_name(id, info$host),
@@ -372,13 +374,6 @@ event software_register(id: conn_id, info: Info)
 					software_fmt(info), info$software_type);
 			NOTICE([$note=Software_Version_Change, $id=id,
 			        $msg=msg, $sub=software_fmt(info)]);
-			}
-		else
-			{
-			# If the software is known to be on this host already and version
-			# changes either aren't interesting or it's the same version as
-			# already known, just return and don't log.
-			return;
 			}
 		}
 	

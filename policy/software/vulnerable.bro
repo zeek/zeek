@@ -23,7 +23,6 @@ event log_software(rec: Info)
 	if ( rec$name in vulnerable_versions &&
 	     cmp_versions(rec$version, vulnerable_versions[rec$name]) < 1 )
 		{
-		#print fmt("Vulnerable version of ", software_fmt(rec));
 		NOTICE([$note=Vulnerable_Version, $src=rec$host, $msg=software_fmt(rec)]);
 		}
 	}

@@ -274,6 +274,10 @@ type entropy_test_result: record {
 	serial_correlation: double;
 };
 
+type test_object: record {
+	opaque: any;
+};
+
 # Prototypes of Bro built-in functions.
 @load strings.bif.bro
 @load bro.bif.bro

@@ -3327,3 +3327,33 @@ function entropy_test_finish%(index: any%): entropy_test_result
 	delete s;
 	return ent_result;
 	%}
+
+%%{
+class TestObject
+{
+public:
+	TestObject()	{ fprintf(stderr, "ctor %p\n", this); }
+	~TestObject()	{ fprintf(stderr, "dtor %p\n", this); }
+};
+%%}
+
+function create_test_object%(%) : test_object
+	%{
+	TestObject* obj = new TestObject;
+
+	OpaqueVal<TestObject>* v = new OpaqueVal<TestObject>(BifType::Record::test_object, obj);
+	RecordVal* rv = v->MakeRecordVal();
+
+	Unref(v);
+	return rv;
+	%}
+
+function do_something_with_test_object%(rv: test_object%) : any
+	%{
+	OpaqueVal<TestObject>* v = (OpaqueVal<TestObject>*) rv->AsRecordVal()->Lookup(0);
+	TestObject* obj = v->AsObject();
+
+	fprintf(stderr, "doing something with %p\n", obj);
+
+	return 0;
+	%}

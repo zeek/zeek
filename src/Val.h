@@ -1030,6 +1030,47 @@ protected:
 	VectorType* vector_type;
 };
 
+// An opaque value of script type "any" that can only be manipulated via
+// bifs. The value is a smart pointer that wraps a C pointer to an object of
+// type T, which will be deleted when the value is no longer referenced. At
+// the script level, the value is handled in a type-safe manner by embedding
+// it into a record value.
+template<class T>
+class OpaqueVal : public Val {
+public:
+	// Takes ownership of the object.
+	OpaqueVal(RecordType* arg_rt, T* arg_obj) : Val(TYPE_ANY)
+		{
+		obj = arg_obj;
+		rt = arg_rt;
+		rt->Ref();
+		
+		assert(rt->NumFields() == 1);
+		}
+
+	~OpaqueVal()
+		{
+		delete obj;
+		Unref(rt);
+		}
+
+	T* AsObject()	{ return obj; }
+	const T* AsObject()	const { return obj; }
+
+	// This returns a ref'ed RecordVal.
+	RecordVal* MakeRecordVal()
+		{
+		RecordVal* rv = new RecordVal(rt);
+		rv->Assign(0, this);
+		Ref();
+		return rv;
+		}
+
+private:
+	T* obj;
+	RecordType* rt;
+	bool refed;
+};
 
 // Checks the given value for consistency with the given type.  If an
 // exact match, returns it.  If promotable, returns the promoted version,

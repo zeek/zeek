@@ -51,6 +51,8 @@ enum rpc_status %{
 	RPC_UNKNOWN_ERROR,
 %}
 
+type test_object: record;
+
 module Log;
 
 enum Writer %{

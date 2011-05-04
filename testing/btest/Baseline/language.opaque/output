@@ -1,0 +1,9 @@
+ctor 0x673ed40
+doing something with 0x673ed40
+ctor 0x673b290
+dtor 0x673ed40
+ctor 0x6785890
+dtor 0x673b290
+{
+[1] = [opaque=<no value description>]
+}

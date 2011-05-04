@@ -14,8 +14,17 @@ redef enum Notice::Type += {
 	ContentGap,
 };
 
+redef enum Log::ID += { WEIRD };
+
 export {
-	const weird_file = open_log_file("weird") &redef;
+	type Info: record {
+		ts:     time    &log;
+		uid:    string  &log &optional;
+		id:     conn_id &log &optional;
+		msg:    string  &log;
+		addl:   string  &log &optional;
+		notice: bool    &log &default=F;
+	};
 
 	type WeirdAction: enum {
 		WEIRD_UNSPECIFIED, WEIRD_IGNORE, WEIRD_FILE,
@@ -223,6 +232,8 @@ export {
 		"bad_IP_checksum", "bad_TCP_checksum", "bad_UDP_checksum",
 		"bad_ICMP_checksum",
 	} &redef;
+	
+	global log_weird: event(rec: Info);
 }
 
 # id/msg pairs that should be ignored (because the problem has already
@@ -244,55 +255,59 @@ global did_inconsistency_msg: set[conn_id];
 # Used to pass the optional connection into report_weird().
 global current_conn: connection;
 
+event bro_init()
+	{
+	Log::create_stream(WEIRD, [$columns=Info, $ev=log_weird]);
+	}
+
 function report_weird(t: time, name: string, id: string, have_conn: bool,
 			addl: string, action: WeirdAction, no_log: bool)
 	{
+	local info: Info;
+	info$ts = t;
+	info$msg = name;
+	if ( addl != "" )
+		info$addl = addl;
+	if ( have_conn )
+		{
+		info$uid = current_conn$uid;
+		info$id = current_conn$id;
+		}
+	
 	if ( action == WEIRD_IGNORE ||
 	     (id in weird_ignore && name in weird_ignore[id]) )
 		return;
-
-	local msg = id;
-
+	
 	if ( action == WEIRD_UNSPECIFIED )
 		{
-		if ( name in weird_action )
-			{
-			action = weird_action[name];
-			if ( action == WEIRD_IGNORE )
-				return;
-
-			msg = fmt("%s: %s", msg, name);
-			}
+		if ( name in weird_action && weird_action[name] == WEIRD_IGNORE )
+			return;
 		else
 			{
 			action = WEIRD_NOTICE_ALWAYS;
-			msg = fmt("** %s: %s", msg, name);
+			info$notice = T;
 			}
 		}
-	else
-		msg = fmt("%s: %s", msg, name);
-
-	if ( addl != "" )
-		msg = fmt("%s (%s)", msg, addl);
-
+	
 	if ( action in notice_actions && ! no_log )
 		{
+		local n: Notice::Info;
+		n$note = WeirdActivity;
+		n$msg = info$msg;
 		if ( have_conn )
-			NOTICE([$note=WeirdActivity, $conn=current_conn,
-				$msg=msg]);
-		else
-			NOTICE([$note=WeirdActivity, $msg=msg]);
+			n$conn = current_conn;
+		if ( info?$addl )
+			n$sub = info$addl;
+		NOTICE(n);
 		}
-
 	else if ( id != "" && name !in weird_do_not_ignore_repeats )
 		{
 		if ( id !in weird_ignore )
 			weird_ignore[id] = set() &mergeable;
-
 		add weird_ignore[id][name];
 		}
-
-	print weird_file, fmt("%.6f %s", t, msg);
+		
+	Log::write(WEIRD, info);
 	}
 
 function report_weird_conn(t: time, name: string, id: string, addl: string,
@@ -388,9 +403,10 @@ event rexmit_inconsistency(c: connection, t1: string, t2: string)
 	{
 	if ( c$id !in did_inconsistency_msg )
 		{
-		NOTICE([$note=RetransmissionInconsistency, $conn=c,
-			$msg=fmt("%s rexmit inconsistency (%s) (%s)",
-				id_string(c$id), t1, t2)]);
+		NOTICE([$note=RetransmissionInconsistency, 
+		        $conn=c,
+		        $msg=fmt("%s rexmit inconsistency (%s) (%s)",
+		                 id_string(c$id), t1, t2)]);
 		add did_inconsistency_msg[c$id];
 		}
 	}
@@ -398,15 +414,15 @@ event rexmit_inconsistency(c: connection, t1: string, t2: string)
 event ack_above_hole(c: connection)
 	{
 	NOTICE([$note=AckAboveHole, $conn=c,
-		$msg=fmt("%s ack above a hole", id_string(c$id))]);
+	        $msg=fmt("%s ack above a hole", id_string(c$id))]);
 	}
 
 event content_gap(c: connection, is_orig: bool, seq: count, length: count)
 	{
 	NOTICE([$note=ContentGap, $conn=c,
-		$msg=fmt("%s content gap (%s %d/%d)%s",
-			id_string(c$id), is_orig ? ">" : "<", seq, length,
-				 is_external_connection(c) ? " [external]" : "")]);
+	        $msg=fmt("%s content gap (%s %d/%d)%s",
+	                 id_string(c$id), is_orig ? ">" : "<", seq, length,
+	                 is_external_connection(c) ? " [external]" : "")]);
 	}
 
 event connection_state_remove(c: connection)

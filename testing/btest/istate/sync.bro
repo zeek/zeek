@@ -114,9 +114,9 @@ function modify()
 	
 	foo15 = 6667/tcp;
 	
-	foo16[4] = 4;
-	foo16[2] = 20;
-	++foo16[1];
+	foo16[3] = 4;
+	foo16[1] = 20;
+	++foo16[0];
 	
 	local x: type1;
 	x$a = "pop";

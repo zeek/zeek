@@ -494,8 +494,7 @@ Val* UnaryExpr::Eval(Frame* f) const
 		VectorVal* v_op = v->AsVectorVal();
 		VectorVal* result = new VectorVal(Type()->AsVectorType());
 
-		for ( unsigned int i = VECTOR_MIN;
-		      i < v_op->Size() + VECTOR_MIN; ++i )
+		for ( unsigned int i = 0; i < v_op->Size(); ++i )
 			{
 			Val* v_i = v_op->Lookup(i);
 			result->Assign(i, v_i ? Fold(v_i) : 0, this);
@@ -633,8 +632,7 @@ Val* BinaryExpr::Eval(Frame* f) const
 
 		VectorVal* v_result = new VectorVal(Type()->AsVectorType());
 
-		for ( unsigned int i = VECTOR_MIN;
-		      i < v_op1->Size() + VECTOR_MIN; ++i )
+		for ( unsigned int i = 0; i < v_op1->Size(); ++i )
 			{
 			if ( v_op1->Lookup(i) && v_op2->Lookup(i) )
 				v_result->Assign(i,
@@ -656,8 +654,7 @@ Val* BinaryExpr::Eval(Frame* f) const
 		VectorVal* vv = (is_vec1 ? v1 : v2)->AsVectorVal();
 		VectorVal* v_result = new VectorVal(Type()->AsVectorType());
 
-		for ( unsigned int i = VECTOR_MIN;
-		      i < vv->Size() + VECTOR_MIN; ++i )
+		for ( unsigned int i = 0; i < vv->Size(); ++i )
 			{
 			Val* vv_i = vv->Lookup(i);
 			if ( vv_i )
@@ -1063,8 +1060,7 @@ Val* IncrExpr::Eval(Frame* f) const
 	if ( is_vector(v) )
 		{
 		VectorVal* v_vec = v->AsVectorVal();
-		for ( unsigned int i = VECTOR_MIN;
-		      i < v_vec->Size() + VECTOR_MIN; ++i )
+		for ( unsigned int i = 0; i < v_vec->Size(); ++i )
 			{
 			Val* elt = v_vec->Lookup(i);
 			if ( elt )
@@ -1941,7 +1937,7 @@ Val* BoolExpr::Eval(Frame* f) const
 			{
 			result = new VectorVal(Type()->AsVectorType());
 			result->Resize(vector_v->Size());
-			result->AssignRepeat(VECTOR_MIN, result->Size(),
+			result->AssignRepeat(0, result->Size(),
 						scalar_v, this);
 			}
 		else
@@ -1970,8 +1966,7 @@ Val* BoolExpr::Eval(Frame* f) const
 	VectorVal* result = new VectorVal(Type()->AsVectorType());
 	result->Resize(vec_v1->Size());
 
-	for ( unsigned int i = VECTOR_MIN;
-	      i < vec_v1->Size() + VECTOR_MIN; ++i )
+	for ( unsigned int i = 0; i < vec_v1->Size(); ++i )
 		{
 		Val* op1 = vec_v1->Lookup(i);
 		Val* op2 = vec_v2->Lookup(i);
@@ -2353,7 +2348,7 @@ Val* CondExpr::Eval(Frame* f) const
 	VectorVal* result = new VectorVal(Type()->AsVectorType());
 	result->Resize(cond->Size());
 
-	for ( unsigned int i = VECTOR_MIN; i < cond->Size() + VECTOR_MIN; ++i )
+	for ( unsigned int i = 0; i < cond->Size(); ++i )
 		{
 		Val* local_cond = cond->Lookup(i);
 		if ( local_cond )
@@ -2951,8 +2946,7 @@ Val* IndexExpr::Eval(Frame* f) const
 				return 0;
 				}
 
-			for ( unsigned int i = VECTOR_MIN;
-			      i < v_v2->Size() + VECTOR_MIN; ++i )
+			for ( unsigned int i = 0; i < v_v2->Size(); ++i )
 				{
 				if ( v_v2->Lookup(i)->AsBool() )
 					v_result->Assign(v_result->Size() + 1, v_v1->Lookup(i), this);
@@ -2964,8 +2958,7 @@ Val* IndexExpr::Eval(Frame* f) const
 			// S does, i.e., by excluding those elements.
 			// Probably only do this if *all* are negative.
 			v_result->Resize(v_v2->Size());
-			for ( unsigned int i = VECTOR_MIN;
-			      i < v_v2->Size() + VECTOR_MIN; ++i )
+			for ( unsigned int i = 0; i < v_v2->Size(); ++i )
 				v_result->Assign(i, v_v1->Lookup(v_v2->Lookup(i)->CoerceToInt()), this);
 			}
 		}
@@ -3551,9 +3544,9 @@ Val* VectorConstructorExpr::Eval(Frame* f) const
 		{
 		Expr* e = exprs[i];
 		Val* v = e->Eval(f);
-		if ( ! vec->Assign(i + VECTOR_MIN, v, e) )
+		if ( ! vec->Assign(i, v, e) )
 			{
-			Error(fmt("type mismatch at index %d", i + VECTOR_MIN), e);
+			Error(fmt("type mismatch at index %d", i), e);
 			return 0;
 			}
 		}
@@ -3575,9 +3568,9 @@ Val* VectorConstructorExpr::InitVal(const BroType* t, Val* aggr) const
 		Expr* e = exprs[i];
 		Val* v = check_and_promote(e->Eval(0), vt, 1);
 
-		if ( ! v || ! vec->Assign(i + VECTOR_MIN, v, e) )
+		if ( ! v || ! vec->Assign(i, v, e) )
 			{
-			Error(fmt("initialization type mismatch at index %d", i + VECTOR_MIN), e);
+			Error(fmt("initialization type mismatch at index %d", i), e);
 			return 0;
 			}
 		}
@@ -3936,7 +3929,7 @@ Val* ArithCoerceExpr::Fold(Val* v) const
 
 	VectorVal* vv = v->AsVectorVal();
 	VectorVal* result = new VectorVal(Type()->AsVectorType());
-	for ( unsigned int i = VECTOR_MIN; i < vv->Size() + VECTOR_MIN; ++i )
+	for ( unsigned int i = 0; i < vv->Size(); ++i )
 		{
 		Val* elt = vv->Lookup(i);
 		if ( elt )
@@ -5053,9 +5046,9 @@ Val* ListExpr::InitVal(const BroType* t, Val* aggr) const
 			{
 			Expr* e = exprs[i];
 			Val* v = e->Eval(0);
-			if ( ! vec->Assign(i + VECTOR_MIN, v, e) )
+			if ( ! vec->Assign(i, v, e) )
 				{
-				e->Error(fmt("type mismatch at index %d",  i + VECTOR_MIN));
+				e->Error(fmt("type mismatch at index %d", i));
 				return 0;
 				}
 

@@ -242,22 +242,31 @@ void add_type(ID* id, BroType* t, attr_list* attr, int /* is_event */)
 	// t->GetTypeID() is true.
 	if ( generate_documentation )
 		{
-		SerializationFormat* form = new BinarySerializationFormat();
-		form->StartWrite();
-		CloneSerializer ss(form);
-		SerialInfo sinfo(&ss);
-		sinfo.cache = false;
+		if ( t->Tag() == TYPE_RECORD )
+			{
+			// Only "shallow" copy record types because we want to be able
+			// to see additions to the original type's list of fields
+			tnew = new RecordType(t->AsRecordType()->Types());
+			}
+		else
+			{
+			SerializationFormat* form = new BinarySerializationFormat();
+			form->StartWrite();
+			CloneSerializer ss(form);
+			SerialInfo sinfo(&ss);
+			sinfo.cache = false;
 
-		t->Serialize(&sinfo);
-		char* data;
-		uint32 len = form->EndWrite(&data);
-		form->StartRead(data, len);
+			t->Serialize(&sinfo);
+			char* data;
+			uint32 len = form->EndWrite(&data);
+			form->StartRead(data, len);
 
-		UnserialInfo uinfo(&ss);
-		uinfo.cache = false;
-		tnew = t->Unserialize(&uinfo);
+			UnserialInfo uinfo(&ss);
+			uinfo.cache = false;
+			tnew = t->Unserialize(&uinfo);
 
-		delete [] data;
+			delete [] data;
+			}
 
 		tnew->SetTypeID(copy_string(id->Name()));
 		}

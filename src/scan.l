@@ -58,7 +58,7 @@ char last_tok[128];
 static PList(char) files_scanned;
 
 // reST documents that we've created (or have at least opened so far).
-static std::list<BroDoc*> docs_generated;
+std::list<BroDoc*> docs_generated;
 
 // reST comments (those starting with ##) seen so far.
 std::list<std::string>* reST_doc_comments = 0;
@@ -877,18 +877,7 @@ int yywrap()
 		}
 
 	if ( generate_documentation )
-		{
-		std::list<BroDoc*>::iterator it;
-
-		for ( it = docs_generated.begin(); it != docs_generated.end(); ++it )
-			{
-			(*it)->WriteDocFile();
-			delete *it;
-			}
-
-		docs_generated.clear();
 		clear_reST_doc_comments();
-		}
 
 	// Otherwise, we are done.
 	return 1;

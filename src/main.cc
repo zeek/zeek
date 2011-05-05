@@ -47,6 +47,8 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "Stats.h"
 #include "ConnCompressor.h"
 #include "DPM.h"
+#include "BroDoc.h"
+#include <list>
 
 #include "binpac_bro.h"
 
@@ -94,6 +96,7 @@ int do_notice_analysis = 0;
 int rule_bench = 0;
 int print_loaded_scripts = 0;
 int generate_documentation = 0;
+extern std::list<BroDoc*> docs_generated;
 SecondaryPath* secondary_path = 0;
 ConnCompressor* conn_compressor = 0;
 extern char version[];
@@ -970,6 +973,17 @@ int main(int argc, char** argv)
 	dpm->PostScriptInit();
 
 	mgr.Drain();
+
+	if ( generate_documentation )
+		{
+		std::list<BroDoc*>::iterator it;
+		for ( it = docs_generated.begin(); it != docs_generated.end(); ++it )
+			(*it)->WriteDocFile();
+		for ( it = docs_generated.begin(); it != docs_generated.end(); ++it )
+			delete *it;
+		terminate_bro();
+		return 0;
+		}
 
 	have_pending_timers = ! reading_traces && timer_mgr->Size() > 0;
 

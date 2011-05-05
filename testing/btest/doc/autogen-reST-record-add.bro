@@ -1,4 +1,5 @@
 # @TEST-EXEC: bro --doc-scripts %INPUT
+# @TEST-EXEC: btest-diff autogen-reST-record-add.rst
 
 # When in doc mode, bro will clone declared types (see add_type() in Var.cc)
 # in order to keep track of the identifier name associated with the new type.

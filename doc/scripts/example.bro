@@ -107,6 +107,11 @@ export {
         field2: bool; ##< toggles something
     };
 
+    ## document the record extension redef here
+    redef record SimpleRecord += {
+        ## document the extending field here
+        field_ext: string &optional; ##< (or here)
+    };
 
     ## general documentation for a type "ComplexRecord" goes here
     type ComplexRecord: record {

@@ -65,9 +65,11 @@ Functions
 
 Redefinitions
 #############
-================================================= ====================================
-:bro:type:`Example::SimpleEnum`: :bro:type:`enum` document the "SimpleEnum" redef here
-================================================= ====================================
+===================================================== ========================================
+:bro:type:`Example::SimpleEnum`: :bro:type:`enum`     document the "SimpleEnum" redef here
+
+:bro:type:`Example::SimpleRecord`: :bro:type:`record` document the record extension redef here
+===================================================== ========================================
 
 Namespaces
 ~~~~~~~~~~
@@ -226,6 +228,16 @@ Redefinitions
          also "FIVE" for good measure
 
    document the "SimpleEnum" redef here
+
+.. bro:type:: Example::SimpleRecord
+
+   :Type: :bro:type:`record`
+
+      field_ext: :bro:type:`string` :bro:attr:`&optional`
+         document the extending field here
+         (or here)
+
+   document the record extension redef here
 
 Port Analysis
 -------------

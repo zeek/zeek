@@ -1067,8 +1067,9 @@ decl:
 			}
 
 	|	TOK_REDEF TOK_RECORD global_id TOK_ADD_TO
-			'{' type_decl_list '}' opt_attr ';'
+			'{' { do_doc_token_start(); } type_decl_list '}' opt_attr ';'
 			{
+			do_doc_token_stop();
 			if ( ! $3->Type() )
 				$3->Error("unknown identifier");
 			else
@@ -1078,9 +1079,27 @@ decl:
 					$3->Error("not a record type");
 				else
 					{
-					const char* error = add_to->AddFields($6, $8);
+					const char* error = add_to->AddFields($7, $9);
 					if ( error )
-					$3->Error(error);
+						$3->Error(error);
+					else if ( generate_documentation )
+						{
+						if ( fake_type_decl_list )
+							{
+							BroType* fake_record =
+								new RecordType(fake_type_decl_list);
+							ID* fake = create_dummy_id($3, fake_record);
+							fake_type_decl_list = 0;
+							current_reST_doc->AddRedef(
+								new BroDocObj(fake, reST_doc_comments, true));
+							}
+						else
+							{
+							fprintf(stderr, "Warning: doc mode did not process "
+								"record extension for '%s', CommentedTypeDecl"
+								"list unavailable.\n", $3->Name());
+							}
+						}
 					}
 				}
 			}

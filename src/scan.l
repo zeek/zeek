@@ -16,7 +16,6 @@
 #include "PolicyFile.h"
 #include "broparse.h"
 #include "BroDoc.h"
-#include "BroBifDoc.h"
 #include "Analyzer.h"
 #include "AnalyzerTags.h"
 
@@ -611,17 +610,8 @@ static int load_files_with_prefix(const char* orig_file)
 
 			if ( generate_documentation )
 				{
-				const char* bifExtStart = strstr(full_filename, ".bif.bro");
-				BroDoc* reST_doc;
-
-				if ( bifExtStart )
-					reST_doc = new BroBifDoc(full_filename);
-				else
-					reST_doc = new BroDoc(full_filename);
-
-				docs_generated.push_back(reST_doc);
-
-				current_reST_doc = reST_doc;
+				current_reST_doc = new BroDoc(full_filename);
+				docs_generated.push_back(current_reST_doc);
 				}
 			}
 

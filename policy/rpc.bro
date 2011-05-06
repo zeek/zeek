@@ -60,7 +60,7 @@ function new_xid_table(): table[count] of rpc_call_info
 # Match requests to replies. 
 # The analyzer does this indepently and might differ in timeouts and 
 # handling of xid reuse. 
-# FIXME: no timeouts yet
+# FIXME: add timeouts. Note, we do clean up on connection_state_remove
 global rpc_calls: table[conn_id] of table[count] of rpc_call_info;
 #	&write_expire = rpc_timeout &expire_func=expire_rpc_call;
 
@@ -68,7 +68,7 @@ global rpc_calls: table[conn_id] of table[count] of rpc_call_info;
 event rpc_dialogue(c: connection, prog: count, ver: count, proc: count, status: rpc_status, start_time: time, call_len: count, reply_len: count) 
 	{
 	# TODO: We currently do nothing here.
-	# using the rpc_call and rpc_reply events, if all we need.
+	# using the rpc_call and rpc_reply events, is all we need.
 	}
 
 event rpc_call(c: connection, xid: count, prog: count, ver: count, proc: count, call_len: count)

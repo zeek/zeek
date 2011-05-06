@@ -47,16 +47,6 @@ enum {
 	RPC_AUTH_DES = 3,
 };
 
-/*GM not sure whether we actually need this. 
- * will probably remove it 
-class RPC_CallInfo_Cookie {
-	public:
-	virtual ~RPC_CallInfo_Cookie() 
-		{
-		}
-};
-*/
-
 class RPC_CallInfo {
 public:
 	RPC_CallInfo(uint32 xid, const u_char*& buf, int& n, double start_time, double last_time, int rpc_len);
@@ -65,15 +55,6 @@ public:
 	void AddVal(Val* arg_v)		{ Unref(v); v = arg_v; }
 	Val* RequestVal() const		{ return v; }
 	Val* TakeRequestVal()		{ Val* rv = v; v = 0; return rv; }
-
-	/*GM 
-	void SetCookie(RPC_CallInfo_Cookie *arg_cookie) { 
-		if (cookie) 
-			delete cookie;
-		cookie = arg_cookie;
-	}
-	RPC_CallInfo_Cookie *GetCookie() { return cookie; }
-	*/
 
 	int CompareRexmit(const u_char* buf, int n) const;
 
@@ -106,11 +87,6 @@ protected:
 	bool valid_call;	// whether call was well-formed
 
 	Val* v;		// single (perhaps compound) value corresponding to call
-	/*GM
-	RPC_CallInfo_Cookie *cookie; // an opaque pointer to pass Program and 
-	                            // Procedure specific information from 
-								// call to reply.
-	*/
 };
 
 declare(PDict,RPC_CallInfo);
@@ -132,8 +108,6 @@ protected:
 	virtual int RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status success,
 					const u_char*& buf, int& n, double start_time, double last_time,
 					int reply_len) = 0;
-
-	//virtual void Event(EventHandlerPtr f, Val* request, int status, Val* reply) = 0;
 
 	void Event_RPC_Dialogue(RPC_CallInfo* c, BifEnum::rpc_status status, int reply_len);
 	void Event_RPC_Call(RPC_CallInfo* c);
@@ -264,28 +238,5 @@ protected:
 	Contents_RPC* resp_rpc;
 };
 
-#include "rpc_pac.h"
-
-class RPC_UDP_Analyzer_binpac : public Analyzer {
-public:
-	RPC_UDP_Analyzer_binpac(Connection* conn);
-	virtual ~RPC_UDP_Analyzer_binpac();
-
-	virtual void Done();
-	virtual void DeliverPacket(int len, const u_char* data, bool orig,
-					int seq, const IP_Hdr* ip, int caplen);
-
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
-		{ return new RPC_UDP_Analyzer_binpac(conn); }
-
-	static bool Available()
-		{ return pm_request || rpc_call; }
-
-protected:
-	friend class AnalyzerTimer;
-	void ExpireTimer(double t);
-
-	binpac::SunRPC::RPC_Conn* interp;
-};
 
 #endif

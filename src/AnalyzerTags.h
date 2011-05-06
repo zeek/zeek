@@ -34,7 +34,7 @@ namespace AnalyzerTag {
 
 		// Application-layer analyzers, binpac-generated.
 		DHCP_BINPAC, DNS_TCP_BINPAC, DNS_UDP_BINPAC,
-		HTTP_BINPAC, RPC_UDP_BINPAC, SSL_BINPAC,
+		HTTP_BINPAC, SSL_BINPAC,
 
 		// Other
 		File, Backdoor, InterConn, SteppingStone, TCPStats,

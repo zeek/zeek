@@ -193,8 +193,6 @@ binpac_target(http.pac
 binpac_target(ncp.pac)
 binpac_target(netflow.pac
     netflow-protocol.pac netflow-analyzer.pac)
-binpac_target(rpc.pac
-    rpc-analyzer.pac portmap-analyzer.pac)
 binpac_target(smb.pac
     smb-protocol.pac smb-pipe.pac smb-mailslot.pac)
 binpac_target(ssl.pac

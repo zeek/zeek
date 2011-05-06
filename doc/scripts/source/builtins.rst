@@ -118,4 +118,6 @@ The Bro scripting language supports the following built-in attributes.
 
 .. bro:attr:: &group
 
+.. bro:attr:: &log
+
 .. bro:attr:: (&tracked)

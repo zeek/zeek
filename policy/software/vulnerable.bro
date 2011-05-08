@@ -20,9 +20,10 @@ redef vulnerable_versions += {
 
 event log_software(rec: Info)
 	{
+	if ( rec$name != "Flash" ) return;
 	if ( rec$name in vulnerable_versions &&
-	     cmp_versions(rec$version, vulnerable_versions[rec$name]) < 1 )
+	     cmp_versions(rec$version, vulnerable_versions[rec$name]) <= 0 )
 		{
-		NOTICE([$note=Vulnerable_Version, $src=rec$host, $msg=software_fmt(rec)]);
+		NOTICE([$note=Vulnerable_Version, $relevant_host=rec$host, $msg=software_fmt(rec)]);
 		}
 	}

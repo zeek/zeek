@@ -12,13 +12,13 @@ export {
 	const extraction_prefix = "ftp-item" &redef;
 }
 
-redef record State += {
+redef record Info += {
 	extracted_filename:   string &log &optional;
 	
 	extract_file:         bool &default=F;
 };
 
-redef enum Tags += { EXTRACTED_FILE };
+redef enum Tag += { EXTRACTED_FILE };
 
 event file_transferred(c: connection, prefix: string, descr: string,
 			mime_type: string) &priority=3
@@ -60,7 +60,7 @@ event file_transferred(c: connection, prefix: string, descr: string,
 		}
 	}
 
-event log_ftp(rec: State) &priority=-10
+event log_ftp(rec: Info) &priority=-10
 	{
 	delete rec$extracted_filename;
 	delete rec$extract_file;

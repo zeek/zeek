@@ -38,9 +38,6 @@ export {
 	# The amount of time to remember presumed non-successful logins to build
 	# model of a password guesser.
 	const guessing_timeout = 30 mins &redef;
-	
-	# If you want to lookup and log geoip data in the event of a failed login.
-	const log_geodata_on_failure = F &redef;
 
 	# The set of countries for which you'd like to throw notices upon successful login
 	#   requires Bro compiled with libGeoIP support
@@ -68,12 +65,13 @@ export {
 	# Keeps count of how many rejections a host has had
 	global password_rejections: table[addr] of TrackCount 
 		&default=default_track_count
-		&write_expire=guessing_timeout;
+		&write_expire=guessing_timeout
+		&synchronized;
 
 	# Keeps track of hosts identified as guessing passwords
 	# TODO: guessing_timeout doesn't work correctly here.  If a user redefs
 	#       the variable, it won't take effect.
-	global password_guessers: set[addr] &read_expire=guessing_timeout+1hr;
+	global password_guessers: set[addr] &read_expire=guessing_timeout+1hr &synchronized;
 	
 	global log_ssh: event(rec: Info);
 }
@@ -129,13 +127,11 @@ function check_ssh_connection(c: connection, done: bool)
 	local status = "failure";
 	local direction = is_local_addr(c$id$orig_h) ? "to" : "from";
 	local location: geo_location;
+	location = (direction == "to") ? lookup_location(c$id$resp_h) : lookup_location(c$id$orig_h);
 	
 	if ( done && c$resp$size < authentication_data_size )
 		{
 		# presumed failure
-		if ( log_geodata_on_failure )
-			location = (direction == "to") ? lookup_location(c$id$resp_h) : lookup_location(c$id$orig_h);
-
 		if ( c$id$orig_h !in password_rejections )
 			password_rejections[c$id$orig_h] = default_track_count(c$id$orig_h);
 			
@@ -161,7 +157,6 @@ function check_ssh_connection(c: connection, done: bool)
 		{ 
 		# presumed successful login
 		status = "success";
-		location = (direction == "to") ? lookup_location(c$id$resp_h) : lookup_location(c$id$orig_h);
 
 		if ( password_rejections[c$id$orig_h]$n > password_guesses_limit &&
 		     c$id$orig_h !in password_guessers)
@@ -253,13 +248,3 @@ event ssh_client_version(c: connection, version: string) &priority=5
 	c$ssh$client = version;
 	schedule +15secs { ssh_watcher(c) };
 	}
-
-#event protocol_confirmation(c: connection, atype: count, aid: count) &priority=5
-#	{
-#	if ( atype == ANALYZER_SSH )
-#		{
-#		if ( ! c?$ssh )
-#			schedule +15secs { ssh_watcher(c) };
-#		set_session(c);
-#		}
-#	}

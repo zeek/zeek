@@ -18,11 +18,6 @@ redef enum Notice::Type += {
 
 redef enum Log::ID += { SMTP };
 
-# Configure DPD
-const ports = { 25/tcp, 587/tcp };
-redef capture_filters += { ["smtp"] = "tcp port smtp or tcp port 587" };
-redef dpd_config += { [ANALYZER_SMTP] = [$ports = ports] };
-
 export {
 	type Info: record {
 		ts:                time            &log;
@@ -42,14 +37,14 @@ export {
 		received_from_originating_ip: addr &log &optional;
 		first_received:    string          &log &optional;
 		second_received:   string          &log &optional;
-		# The last message the server sent to the client.
+		## The last message the server sent to the client.
 		last_reply:        string          &log &optional;
 		files:             set[string]     &log &optional;
 		path:              vector of addr  &log &optional;
 		## Boolean indicator of if the message was sent through a webmail 
 		## interface.  This is not being set yet.
 		is_webmail:        bool            &log &default=F;
-		agent:             string          &log &optional;
+		user_agent:        string          &log &optional;
 		
 		## Indicate if this session is currently transmitting SMTP message 
 		## envelope headers.
@@ -86,6 +81,10 @@ redef record connection += {
 	smtp_state: State &optional;
 };
 
+# Configure DPD
+const ports = { 25/tcp, 587/tcp };
+redef capture_filters += { ["smtp"] = "tcp port smtp or tcp port 587" };
+redef dpd_config += { [ANALYZER_SMTP] = [$ports = ports] };
 
 event bro_init()
 	{
@@ -98,7 +97,7 @@ function new_smtp_log(c: connection): Info
 	l$ts=network_time();
 	l$uid=c$uid;
 	l$id=c$id;
-	if ( c?$smtp &&c$smtp?$helo )
+	if ( c?$smtp && c$smtp?$helo )
 		l$helo = c$smtp$helo;
 	
 	return l;
@@ -219,20 +218,20 @@ event smtp_data(c: connection, is_orig: bool, data: string) &priority=5
 		# Remove all but a single space at the beginning (this seems to follow
 		# the most common behavior).
 		data = sub(data, /^[[:blank:]]*/, " ");
-		if ( c$smtp$current_header == "message-id" )
+		if ( c$smtp$current_header == "MESSAGE-ID" )
 			c$smtp$msg_id += data;
-		else if ( c$smtp$current_header == "received" )
+		else if ( c$smtp$current_header == "RECEIVED" )
 			c$smtp$first_received += data;
-		else if ( c$smtp$current_header == "in-reply-to" )
+		else if ( c$smtp$current_header == "IN-REPLY-TO" )
 			c$smtp$in_reply_to += data;
-		else if ( c$smtp$current_header == "subject" )
+		else if ( c$smtp$current_header == "SUBJECCT" )
 			c$smtp$subject += data;
-		else if ( c$smtp$current_header == "from" )
+		else if ( c$smtp$current_header == "FROM" )
 			c$smtp$from += data;
-		else if ( c$smtp$current_header == "reply-to" )
+		else if ( c$smtp$current_header == "REPLY-TO" )
 			c$smtp$reply_to += data;
-		else if ( c$smtp$current_header == "agent" )
-			c$smtp$agent += data;
+		else if ( c$smtp$current_header == "USER-AGENT" )
+			c$smtp$user_agent += data;
 		return;
 		}
 	# Once there isn't a line starting with a blank, we're not continuing a 
@@ -247,74 +246,57 @@ event smtp_data(c: connection, is_orig: bool, data: string) &priority=5
 		return;
 	
 	local header_key = to_upper(header_parts[1]);
+	c$smtp$current_header = header_key;
+	
 	local header_val = header_parts[2];
 	
 	if ( header_key == "MESSAGE-ID" )
-		{
 		c$smtp$msg_id = header_val;
-		c$smtp$current_header = "message-id";
-		}
 	
 	else if ( header_key == "RECEIVED" )
 		{
 		if ( c$smtp?$first_received )
 			c$smtp$second_received = c$smtp$first_received;
 		c$smtp$first_received = header_val;
-		c$smtp$current_header = "received";
 		}
 	
 	else if ( header_key == "IN-REPLY-TO" )
-		{
 		c$smtp$in_reply_to = header_val;
-		c$smtp$current_header = "in-reply-to";
-		}
 	
 	else if ( header_key == "DATE" )
-		{
 		c$smtp$date = header_val;
-		c$smtp$current_header = "date";
-		}
 	
 	else if ( header_key == "FROM" )
-		{
 		c$smtp$from = header_val;
-		c$smtp$current_header = "from";
-		}
 	
 	else if ( header_key == "TO" )
 		{
 		if ( ! c$smtp?$to )
-				c$smtp$to = set();
+			c$smtp$to = set();
 		add c$smtp$to[header_val];
-		c$smtp$current_header = "to";
 		}
 	
 	else if ( header_key == "REPLY-TO" )
-		{
 		c$smtp$reply_to = header_val;
-		c$smtp$current_header = "reply-to";
-		}
 	
 	else if ( header_key == "SUBJECT" )
-		{
 		c$smtp$subject = header_val;
-		c$smtp$current_header = "subject";
-		}
 
 	else if ( header_key == "X-ORIGINATING-IP" )
 		{
 		local addresses = find_ip_addresses(header_val);
 		if ( 1 in addresses )
 			c$smtp$x_originating_ip = to_addr(addresses[1]);
-		c$smtp$current_header = "x-originating-ip";
 		}
 	
 	else if ( header_key == "X-MAILER" || 
 	          header_key == "USER-AGENT" ||
 	          header_key == "X-USER-AGENT" )
 		{
-		c$smtp$agent = header_val;
-		c$smtp$current_header = "agent";
+		c$smtp$user_agent = header_val;
+		# Explicitly set the current header here because there are several 
+		# headers bulked under this same key.
+		c$smtp$current_header = "USER-AGENT";
 		}
 	}
 	

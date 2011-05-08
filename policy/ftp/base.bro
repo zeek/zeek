@@ -5,32 +5,20 @@
 ##! 
 ##! TODO:
 ##!  * Handle encrypted sessions correctly (get an example?)
-##!  * Detect client software with CLNT command
-##!  * Detect server software with initial 220 message
-##!  * Detect client software with password given for anonymous users 
-##!    (e.g. cyberduck@example.net)
 
 @load functions
-@load notice
-@load software
 @load ftp/utils-commands
 
 module FTP;
 
 redef enum Log::ID += { FTP };
 
-redef enum Notice::Type += {
-	## This indicates that a successful response to a "SITE EXEC" 
-	## command/arg pair was seen.
-	FTP_Site_Exec_Success,
-};
-
 export {
-	type Tags: enum {
+	type Tag: enum {
 		UNKNOWN
 	};
 	
-	type State: record {
+	type Info: record {
 		ts:               time      &log;
 		uid:              string    &log;
 		id:               conn_id   &log;
@@ -38,13 +26,13 @@ export {
 		password:         string    &log &optional;
 		command:          string    &log &optional;
 		arg:              string    &log &optional;
-		                            
+		
 		mime_type:        string    &log &optional;
 		mime_desc:        string    &log &optional;
 		file_size:        count     &log &optional;
 		reply_code:       count     &log &optional;
 		reply_msg:        string    &log &optional;
-		tags:             set[Tags] &log &default=set();
+		tags:             set[Tag]  &log &default=set();
 		
 		## By setting the CWD to '/.', we can indicate that unless something
 		## more concrete is discovered that the existing but unknown
@@ -56,10 +44,10 @@ export {
 		## This indicates if the session is in active or passive mode.
 		passive:            bool &default=F;
 	};
-	
+		
 	type ExpectedConn: record {
 		host:    addr;
-		state:   State;
+		state:   Info;
 	};
 	
 	## This record is to hold a parsed FTP reply code.  For example, for the 
@@ -79,18 +67,18 @@ export {
 	
 	## The list of commands that should have their command/response pairs logged.
 	const logged_commands = {
-		"APPE", "DELE", "RETR", "STOR", "STOU", "CLNT", "ACCT"
+		"APPE", "DELE", "RETR", "STOR", "STOU", "ACCT"
 	} &redef;
 	
 	## This function splits FTP reply codes into the three constituent 
 	global parse_ftp_reply_code: function(code: count): ReplyCode;
 
-	global log_ftp: event(rec: State);
+	global log_ftp: event(rec: Info);
 }
 
 # Add the state tracking information variable to the connection record
 redef record connection += {
-	ftp: State &optional;
+	ftp: Info &optional;
 };
 
 # Configure DPD
@@ -103,17 +91,18 @@ global ftp_data_expected: table[addr, port] of ExpectedConn &create_expire=5mins
 
 event bro_init()
 	{
-	Log::create_stream(FTP, [$columns=State, $ev=log_ftp]);
+	Log::create_stream(FTP, [$columns=Info, $ev=log_ftp]);
 	}
 
-# A set of commands where the argument can be expected to refer
-# to a file or directory.
+## A set of commands where the argument can be expected to refer
+## to a file or directory.
 const file_cmds = {
 	"APPE", "CWD", "DELE", "MKD", "RETR", "RMD", "RNFR", "RNTO",
 	"STOR", "STOU", "REST", "SIZE", "MDTM",
 };
 
-# Commands that either display or change the current working directory.
+## Commands that either display or change the current working directory along
+## with the response codes to indicate a successful command.
 const directory_cmds = {
 	["CWD",  250],
 	["CDUP", 200], # typo in RFC?
@@ -141,7 +130,7 @@ function set_ftp_session(c: connection)
 	{
 	if ( ! c?$ftp )
 		{
-		local s: State;
+		local s: Info;
 		s$ts=network_time();
 		s$uid=c$uid;
 		s$id=c$id;
@@ -152,7 +141,7 @@ function set_ftp_session(c: connection)
 		}
 	}
 
-function ftp_message(s: State)
+function ftp_message(s: Info)
 	{
 	# If it either has a tag associated with it (something detected)
 	# or it's a deliberately logged command.
@@ -172,8 +161,7 @@ function ftp_message(s: State)
 		else
 			s$arg=arg;
 		
-		# TODO: does the framework do this atomicly or do I need the copy?
-		Log::write(FTP, copy(s));
+		Log::write(FTP, s);
 		}
 	
 	# The MIME and file_size fields are specific to file transfer commands 
@@ -182,32 +170,25 @@ function ftp_message(s: State)
 	delete s$mime_type;
 	delete s$mime_desc;
 	delete s$file_size;
-	# Tags are cleared everytime too.  Maybe that's not a good idea?
-	# TODO: deleting sets with a &default seems to be broken.
-	#delete s$tags;
-	s$tags=set();
+	# Tags are cleared everytime too.
+	delete s$tags;
 	}
 
 event ftp_request(c: connection, command: string, arg: string) &priority=5
 	{
-	# TODO: find out if this issue is fixed with DPD
-	# Command may contain garbage, e.g. if we're parsing something
-	# which isn't ftp. Ignore this.
-	#if ( is_string_binary(command) ) return;
-
-	local id = c$id;
-	set_ftp_session(c);
-
 	# Write out the previous command when a new command is seen.
 	# The downside here is that commands definitely aren't logged until the
 	# next command is issued or the control session ends.  In practicality
 	# this isn't an issue, but I suppose it could be a delay tactic for
 	# attackers.
-	if ( c$ftp?$cmdarg && c$ftp?$reply_code )
+	if ( c?$ftp && c$ftp?$cmdarg && c$ftp?$reply_code )
 		{
 		remove_pending_cmd(c$ftp$pending_commands, c$ftp$cmdarg);
 		ftp_message(c$ftp);
 		}
+	
+	local id = c$id;
+	set_ftp_session(c);
 		
 	# Queue up the new command and argument
 	add_pending_cmd(c$ftp$pending_commands, command, arg);
@@ -261,7 +242,7 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &prior
 	if ( code == 150 && c$ftp$cmdarg$cmd == "RETR" )
 		{
 		local parts = split_all(msg, /\([0-9]+[[:blank:]]+/);
-		if ( |parts| >= 3 )
+		if ( 2 in parts )
 			c$ftp$file_size = to_count(gsub(parts[2], /[^0-9]/, ""));
 		}
 	else if ( code == 213 && c$ftp$cmdarg$cmd == "SIZE" )
@@ -270,18 +251,9 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &prior
 		#       on a different file could be checked, but the file size will
 		#       be overwritten by the server response to the RETR command
 		#       if that's given as well which would be more correct.
-		c$ftp$file_size = to_count(msg);
+		c$ftp$file_size = to_count(strip(msg));
 		}
 		
-	# If a successful SITE EXEC command is executed, raise a notice.
-	else if ( response_xyz$x == 2 &&
-	          c$ftp$cmdarg$cmd == "SITE" && 
-	          /[Ee][Xx][Ee][Cc]/ in c$ftp$cmdarg$arg )
-		{
-		NOTICE([$note=FTP_Site_Exec_Success, $conn=c,
-		        $msg=fmt("%s %s", c$ftp$cmdarg$cmd, c$ftp$cmdarg$arg)]);
-		}
-
 	# PASV and EPSV processing
 	else if ( (code == 227 || code == 229) &&
 	     (c$ftp$cmdarg$cmd == "PASV" || c$ftp$cmdarg$cmd == "EPSV") )
@@ -359,14 +331,11 @@ event file_transferred(c: connection, prefix: string, descr: string,
 # Use state remove event to cover connections terminated by RST.
 event connection_state_remove(c: connection) &priority=-5
 	{
-	local id = c$id;
 	if ( ! c?$ftp ) return;
 
-	# NOTE: Only dealing with a single pending command here.
-	#       Extra pending commands are ignored for now.
-	if ( |c$ftp$pending_commands| > 0 )
+	for ( ca in c$ftp$pending_commands )
 		{
-		c$ftp$cmdarg = pop_pending_cmd(c$ftp$pending_commands, 0, "<finish>");
+		c$ftp$cmdarg = c$ftp$pending_commands[ca];
 		ftp_message(c$ftp);
 		}
 	}

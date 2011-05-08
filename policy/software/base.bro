@@ -53,6 +53,9 @@ export {
 		## The full unparsed version string found because the version parsing 
 		## doesn't work 100% reliably and this acts as a fall back in the logs.
 		unparsed_version: string &log &optional;
+		
+		## This can indicate that this software should definitely be logged.
+		force_log:        bool &default=F;
 	};
 	
 	## The hosts whose software should be detected and tracked.
@@ -91,7 +94,7 @@ export {
 	## The set of software associated with an address.  Data expires from this
 	## table after one day by default so that a detected piece of software will
 	## be logged each day.
-	global tracked_software: table[addr] of SoftwareSet &create_expire=1day &synchronized;
+	global tracked: table[addr] of SoftwareSet &create_expire=1day &synchronized;
 	
 	global log_software: event(rec: Info);
 }
@@ -100,7 +103,7 @@ event bro_init()
 	{
 	Log::create_stream(SOFTWARE, [$columns=Info, $ev=log_software]);
 	}
-	
+
 function parse_mozilla(unparsed_version: string, 
 	                   host: addr, 
 	                   software_type: Type): Info
@@ -281,7 +284,7 @@ function cmp_versions(v1: Version, v2: Version): int
 		if ( !v1?$major && !v2?$major )
 			{ }
 		else
-		return v1?$major ? 1 : -1;
+			return v1?$major ? 1 : -1;
 		}
 		
 	if ( v1?$minor && v2?$minor )
@@ -351,10 +354,10 @@ function software_fmt(i: Info): string
 event software_register(id: conn_id, info: Info)
 	{
 	# Host already known?
-	if ( info$host !in tracked_software )
-		tracked_software[info$host] = table();
+	if ( info$host !in tracked )
+		tracked[info$host] = table();
 
-	local ts = tracked_software[info$host];
+	local ts = tracked[info$host];
 	# Software already registered for this host?
 	if ( info$name in ts )
 		{
@@ -362,7 +365,8 @@ event software_register(id: conn_id, info: Info)
 		
 		# If the version hasn't changed, then we're just redetecting the
 		# same thing, then we don't care.  This results in no extra logging.
-		if ( cmp_versions(old$version, info$version) == 0)
+		# But if the $force_log value is set then we'll continue.
+		if ( ! info$force_log && cmp_versions(old$version, info$version) == 0 )
 			return;
 			
 		# Is it a potentially interesting version change?
@@ -383,7 +387,7 @@ event software_register(id: conn_id, info: Info)
 
 function found(id: conn_id, info: Info): bool
 	{
-	if ( addr_matches_hosts(info$host, logging) )
+	if ( info$force_log || addr_matches_hosts(info$host, logging) )
 		{
 		event software_register(id, info);
 		return T;

@@ -5,6 +5,8 @@
 ##! not be the packet that actually caused the protocol violation.  For this
 ##! reason, this script should not be loaded by default in shipped scripts.
 
+@load dpd/base
+
 module DPD;
 
 export {

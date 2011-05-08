@@ -21,20 +21,30 @@ export {
 	};
 	
 	type Info: record {
-		ts:    time    &log &optional;
-		uid:   string  &log &optional;
-		id:    conn_id &log &optional;   ##< connection-ID, if we don't have a connection handy
+		ts:             time    &log &optional;
+		uid:            string  &log &optional;
+		id:             conn_id &log &optional; ##< connection-ID, if we don't have a connection handy
+		## This is the relevant host for this notice.  It could be set because
+		## either::
+		##   1. There is no connection associated with this notice.
+		##   2. There is some underlying semantic of the notice where either
+		##      orig_h or resp_h is the relevant host in the associated
+		##      connection.  For example, if a host is detected scanning, the
+		##      particular connection taking place when the notice is generated
+		##      is irrelevant and only the host detected scanning is relevant.
+		relevant_host:  addr    &log &optional;
 		
-		note:  Type    &log;
-		msg:   string  &log &default="";
-		sub:   string  &log &optional;    ##< sub-message
+		note:           Type    &log;
+		msg:            string  &log &optional;
+		sub:            string  &log &optional;    ##< sub-message
 
-		conn:  connection &optional;      ##< connection associated with notice
-		iconn: icmp_conn  &optional;      ##< associated ICMP "connection"
-		src:   addr       &log &optional; ##< source address, if we don't have a connection
-		dst:   addr       &log &optional; ##< destination address
-		p:     port       &log &optional; ##< associated port, if we don't have a conn.
-		n:     count      &log &optional; #< associated count, or perhaps status code
+		src:            addr    &log &optional; ##< source address, if we don't have a connection
+		dst:            addr    &log &optional; ##< destination address
+		p:              port    &log &optional; ##< associated port, if we don't have a conn.
+		n:              count   &log &optional; ##< associated count, or perhaps status code
+
+		conn:           connection &optional;      ##< connection associated with notice
+		iconn:          icmp_conn  &optional;      ##< associated ICMP "connection"
 
 		# Automatically set attributes.
 		action:   Notice::Action &log &default=NOTICE_UNKNOWN;
@@ -233,6 +243,11 @@ function notice(n: Notice::Info)
 	if ( ! n?$dst && n?$iconn )
 		n$dst = n$iconn$resp_h;
 
+	# Auto-set $relevant_host to $src if $src was given as the "relevant host"
+	# This keeps with existing usage for the $src field while applying the 
+	# new relevant host semantics to it.
+	if ( ! n?$relevant_host && n?$src && ! n?$dst )
+
 	if ( ! n?$src_peer )
 		n$src_peer = get_event_peer();
     
@@ -264,7 +279,6 @@ function notice(n: Notice::Info)
 		{
 		# Build the info here after we had a chance to set the
 		# $dropped field.
-		
 		Log::write(NOTICE_LOG, n);
 
 		if ( action != NOTICE_FILE && n$do_alarm )

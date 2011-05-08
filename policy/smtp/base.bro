@@ -41,9 +41,6 @@ export {
 		last_reply:        string          &log &optional;
 		files:             set[string]     &log &optional;
 		path:              vector of addr  &log &optional;
-		## Boolean indicator of if the message was sent through a webmail 
-		## interface.  This is not being set yet.
-		is_webmail:        bool            &log &default=F;
 		user_agent:        string          &log &optional;
 		
 		## Indicate if this session is currently transmitting SMTP message 

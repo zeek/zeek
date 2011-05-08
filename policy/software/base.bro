@@ -24,9 +24,6 @@ export {
 	type Type: enum {
 		UNKNOWN,
 		OPERATING_SYSTEM,
-		WEB_APPLICATION,
-		FTP_SERVER,
-		FTP_CLIENT,
 		DATABASE_SERVER,
 		## There are a number of ways to detect printers on the network.
 		PRINTER,

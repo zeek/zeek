@@ -11,3 +11,5 @@
 @load http/file-ident
 @load http/software
 @load http/headers
+
+@load http/detect-webapps

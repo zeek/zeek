@@ -9,6 +9,8 @@
 #include <assert.h>
 #include <openssl/ssl.h>
 
+#include <algorithm>
+
 #include "config.h"
 #include "ChunkedIO.h"
 #include "NetVar.h"
@@ -166,13 +168,13 @@ bool ChunkedIOFd::Write(Chunk* chunk)
 
 	// We have to split it up.
 	char* p = chunk->data;
-	unsigned long left = chunk->len;
+	uint32 left = chunk->len;
 
 	while ( left )
 		{
 		Chunk* part = new Chunk;
 
-		part->len = min(BUFFER_SIZE - sizeof(uint32), left);
+		part->len = min<uint32>(BUFFER_SIZE - sizeof(uint32), left);
 		part->data = new char[part->len];
 		memcpy(part->data, p, part->len);
 		left -= part->len;

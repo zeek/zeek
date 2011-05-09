@@ -187,8 +187,6 @@
 #include "Conn.h"
 #include "LogMgr.h"
 
-#include <algorithm>
-
 extern "C" {
 #include "setsignal.h"
 };

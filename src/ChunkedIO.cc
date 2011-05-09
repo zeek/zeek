@@ -16,8 +16,6 @@
 #include "NetVar.h"
 #include "RemoteSerializer.h"
 
-#include <algorithm>
-
 ChunkedIO::ChunkedIO()
 	{
 	pure = false;

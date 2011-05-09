@@ -10,8 +10,6 @@
 
 #include "LogWriterAscii.h"
 
-#include <algorithm>
-
 // Structure describing a log writer type.
 struct LogWriterDefinition {
 	bro_int_t type;			// The type.

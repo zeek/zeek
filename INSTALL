@@ -9,6 +9,8 @@ Prerequisites
 Bro relies on the following libraries and tools, which need to be installed
 before you begin:
 
+    * A C/C++ compiler
+
     * Libpcap headers and libraries
        Network traffic capture library
 
@@ -35,7 +37,7 @@ before you begin:
         though some platforms may require installation of a 'devel' package
          for the headers.
 
-    * CMake 2.8 or greater
+    * CMake 2.6 or greater
        CMake is a cross-platform, open-source build system, typically
        not installed by default.  See http://www.cmake.org for more
        information regarding CMake and the installation steps below for
@@ -92,6 +94,13 @@ with it. In the following we give a few simple examples.  See the
 quickstart guide at http://www.bro-ids.org for more information; you
 can the source that in doc/quick-start.
 
-For developers that wish to run Bro after performing "make", but
-without performing "make install", see build/bro-path-dev for
-an example.
+For developers that wish to run Bro from the the build/ directory
+after performing "make", but without performing "make install", they
+will have to first set BROPATH to look for scripts inside the build
+directory.  Sourcing either build/bro-path-dev.sh or build/bro-path-dev.csh
+as appropriate for the current shell accomplishes this. e.g.:
+
+    > ./configure
+    > make
+    > source build/bro-path-dev.sh
+    > ./build/src/bro

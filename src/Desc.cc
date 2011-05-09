@@ -41,6 +41,9 @@ ODesc::ODesc(desc_type t, BroFile* arg_f)
 	want_quotes = 0;
 	do_flush = 1;
 	include_stats = 0;
+	indent_with_spaces = 0;
+	escape = 0;
+	escape_len = 0;
 	}
 
 ODesc::~ODesc()
@@ -54,6 +57,12 @@ ODesc::~ODesc()
 		free(base);
 	}
 
+void ODesc::SetEscape(const char* arg_escape, int len)
+	{
+	escape = arg_escape;
+	escape_len = len;
+	}
+
 void ODesc::PushIndent()
 	{
 	++indent_level;
@@ -65,6 +74,12 @@ void ODesc::PopIndent()
 	if ( --indent_level < 0 )
 		internal_error("ODesc::PopIndent underflow");
 	NL();
+	}
+
+void ODesc::PopIndentNoNL()
+	{
+	if ( --indent_level < 0 )
+		internal_error("ODesc::PopIndent underflow");
 	}
 
 void ODesc::Add(const char* s, int do_indent)
@@ -112,7 +127,7 @@ void ODesc::Add(int64 i)
 	else
 		{
 		char tmp[256];
-		sprintf(tmp, "%lld", i);
+		sprintf(tmp, "%" PRId64, i);
 		Add(tmp);
 		}
 	}
@@ -124,7 +139,7 @@ void ODesc::Add(uint64 u)
 	else
 		{
 		char tmp[256];
-		sprintf(tmp, "%llu", u);
+		sprintf(tmp, "%" PRIu64, u);
 		Add(tmp);
 		}
 	}
@@ -179,12 +194,57 @@ void ODesc::AddBytes(const BroString* s)
 
 void ODesc::Indent()
 	{
-	for ( int i = 0; i < indent_level; ++i )
-		Add("\t", 0);
+	if ( indent_with_spaces > 0 )
+		{
+		for ( int i = 0; i < indent_level; ++i )
+			for ( int j = 0; j < indent_with_spaces; ++j )
+				Add(" ", 0);
+		}
+	else
+		{
+		for ( int i = 0; i < indent_level; ++i )
+			Add("\t", 0);
+		}
 	}
 
+static const char hex_chars[] = "0123456789ABCDEF";
 
 void ODesc::AddBytes(const void* bytes, unsigned int n)
+	{
+	if ( ! escape )
+		return AddBytesRaw(bytes, n);
+
+	const char* s = (const char*) bytes;
+	const char* e = (const char*) bytes + n;
+
+	while ( s < e )
+		{
+		const char* t = (const char*) memchr(s, escape[0], e - s);
+
+		if ( ! t )
+			break;
+
+		if ( memcmp(t, escape, escape_len) != 0 )
+			break;
+
+		AddBytesRaw(s, t - s);
+
+		for ( int i = 0; i < escape_len; ++i )
+			{
+			char hex[5] = "\\x00";
+			hex[2] = hex_chars[(*t) >> 4];
+			hex[3] = hex_chars[(*t) & 0x0f];
+			AddBytesRaw(hex, sizeof(hex));
+			++t;
+			}
+
+		s = t;
+		}
+
+	AddBytesRaw(s, e - s);
+	}
+
+void ODesc::AddBytesRaw(const void* bytes, unsigned int n)
 	{
 	if ( n == 0 )
 		return;

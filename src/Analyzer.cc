@@ -37,6 +37,8 @@
 #include "SSLProxy.h"
 #include "SSL-binpac.h"
 
+#include <algorithm>
+
 // Keep same order here as in AnalyzerTag definition!
 const Analyzer::Config Analyzer::analyzer_configs[] = {
 	{ AnalyzerTag::Error, "<ERROR>", 0, 0, 0, false },
@@ -748,15 +750,6 @@ void Analyzer::FlipRoles()
 	resp_supporters = tmp;
 	}
 
-int Analyzer::RewritingTrace()
-	{
-	LOOP_OVER_CHILDREN(i)
-		if ( (*i)->RewritingTrace() )
-			return 1;
-
-	return 0;
-	}
-
 void Analyzer::ProtocolConfirmation()
 	{
 	if ( protocol_confirmed )
@@ -901,17 +894,10 @@ void SupportAnalyzer::ForwardUndelivered(int seq, int len, bool is_orig)
 		Parent()->Undelivered(seq, len, is_orig);
 	}
 
-TransportLayerAnalyzer::~TransportLayerAnalyzer()
-	{
-	delete rewriter;
-	}
 
 void TransportLayerAnalyzer::Done()
 	{
 	Analyzer::Done();
-
-	if ( rewriter )
-		rewriter->Done();
 	}
 
 void TransportLayerAnalyzer::SetContentsFile(unsigned int /* direction */,
@@ -924,14 +910,6 @@ BroFile* TransportLayerAnalyzer::GetContentsFile(unsigned int /* direction */) c
 	{
 	run_time("analyzer type does not support writing to a contents file");
 	return 0;
-	}
-
-void TransportLayerAnalyzer::SetTraceRewriter(Rewriter* r)
-	{
-	if ( rewriter )
-		rewriter->Done();
-	delete rewriter;
-	rewriter = r;
 	}
 
 void TransportLayerAnalyzer::PacketContents(const u_char* data, int len)

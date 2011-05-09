@@ -265,11 +265,6 @@ public:
 	virtual void Done();
 	virtual void ConnectionClosed(TCP_Endpoint* endpoint,
 					TCP_Endpoint* peer, int gen_event);
-	virtual int RewritingTrace()
-		{
-		return BifConst::rewriting_dns_trace ||
-			TCP_ApplicationAnalyzer::RewritingTrace();
-		}
 
 	void ExpireTimer(double t);
 

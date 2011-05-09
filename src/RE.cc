@@ -211,8 +211,8 @@ int Specific_RE_Matcher::MatchAll(const u_char* bv, int n)
 		// matched is empty.
 		return n == 0;
 
-	DFA_State_Handle* d = dfa->StartState();
-	d = (*d)->Xtion(ecs[SYM_BOL], dfa);
+	DFA_State* d = dfa->StartState();
+	d = d->Xtion(ecs[SYM_BOL], dfa);
 
 	while ( d )
 		{
@@ -220,13 +220,13 @@ int Specific_RE_Matcher::MatchAll(const u_char* bv, int n)
 			break;
 
 		int ec = ecs[*(bv++)];
-		d = (*d)->Xtion(ec, dfa);
+		d = d->Xtion(ec, dfa);
 		}
 
 	if ( d )
-		d = (*d)->Xtion(ecs[SYM_EOL], dfa);
+		d = d->Xtion(ecs[SYM_EOL], dfa);
 
-	return d && (*d)->Accept() != 0;
+	return d && d->Accept() != 0;
 	}
 
 
@@ -236,26 +236,26 @@ int Specific_RE_Matcher::Match(const u_char* bv, int n)
 		// An empty pattern matches anything.
 		return 1;
 
-	DFA_State_Handle* d = dfa->StartState();
+	DFA_State* d = dfa->StartState();
 
-	d = (*d)->Xtion(ecs[SYM_BOL], dfa);
+	d = d->Xtion(ecs[SYM_BOL], dfa);
 	if ( ! d ) return 0;
 
 	for ( int i = 0; i < n; ++i )
 		{
 		int ec = ecs[bv[i]];
-		d = (*d)->Xtion(ec, dfa);
+		d = d->Xtion(ec, dfa);
 		if ( ! d )
 			break;
 
-		if ( (*d)->Accept() )
+		if ( d->Accept() )
 			return i + 1;
 		}
 
 	if ( d )
 		{
-		d = (*d)->Xtion(ecs[SYM_EOL], dfa);
-		if ( d && (*d)->Accept() )
+		d = d->Xtion(ecs[SYM_EOL], dfa);
+		if ( d && d->Accept() )
 			return n > 0 ? n : 1;	// we can't return 0 here for match...
 		}
 
@@ -266,12 +266,6 @@ int Specific_RE_Matcher::Match(const u_char* bv, int n)
 void Specific_RE_Matcher::Dump(FILE* f)
 	{
 	dfa->Dump(f);
-	}
-
-RE_Match_State::~RE_Match_State()
-	{
-	if ( current_state )
-		StateUnref(current_state);
 	}
 
 bool RE_Match_State::Match(const u_char* bv, int n,
@@ -289,9 +283,8 @@ bool RE_Match_State::Match(const u_char* bv, int n,
 		// Initialize state and copy the accepting states of the start
 		// state into the acceptance set.
 		current_state = dfa->StartState();
-		StateRef(current_state);
 
-		const AcceptingSet* ac = (*current_state)->Accept();
+		const AcceptingSet* ac = current_state->Accept();
 		if ( ac )
 			{
 			loop_over_list(*ac, i)
@@ -303,19 +296,10 @@ bool RE_Match_State::Match(const u_char* bv, int n,
 		}
 
 	else if ( clear )
-		{
-		if ( current_state )
-			StateUnref(current_state);
-
 		current_state = dfa->StartState();
-		StateRef(current_state);
-		}
 
 	if ( ! current_state )
 		return false;
-
-	else
-		(*current_state)->Unlock();
 
 	current_pos = 0;
 
@@ -334,7 +318,7 @@ bool RE_Match_State::Match(const u_char* bv, int n,
 		else
 			ec = ecs[*(bv++)];
 
-		DFA_State_Handle* next_state = (*current_state)->Xtion(ec,dfa);
+		DFA_State* next_state = current_state->Xtion(ec,dfa);
 
 		if ( ! next_state )
 			{
@@ -342,9 +326,9 @@ bool RE_Match_State::Match(const u_char* bv, int n,
 			break;
 			}
 
-		if ( (*next_state)->Accept() )
+		if ( next_state->Accept() )
 			{
-			const AcceptingSet* ac = (*next_state)->Accept();
+			const AcceptingSet* ac = next_state->Accept();
 			loop_over_list(*ac, i)
 				{
 				if ( ! accepted.is_member((*ac)[i]) )
@@ -357,14 +341,8 @@ bool RE_Match_State::Match(const u_char* bv, int n,
 
 		++current_pos;
 
-		StateRef(next_state);
-		StateUnref(current_state);
 		current_state = next_state;
 		}
-
-	// Make sure our state doesn't expire until we return.
-	if ( current_state )
-		(*current_state)->Lock();
 
 	return accepted.length() != old_matches;
 	}
@@ -377,31 +355,31 @@ int Specific_RE_Matcher::LongestMatch(const u_char* bv, int n)
 
 	// Use -1 to indicate no match.
 	int last_accept = -1;
-	DFA_State_Handle* d = dfa->StartState();
+	DFA_State* d = dfa->StartState();
 
-	d = (*d)->Xtion(ecs[SYM_BOL], dfa);
+	d = d->Xtion(ecs[SYM_BOL], dfa);
 	if ( ! d )
 		return -1;
 
-	if ( (*d)->Accept() )
+	if ( d->Accept() )
 		last_accept = 0;
 
 	for ( int i = 0; i < n; ++i )
 		{
 		int ec = ecs[bv[i]];
-		d = (*d)->Xtion(ec, dfa);
+		d = d->Xtion(ec, dfa);
 
 		if ( ! d )
 			break;
 
-		if ( (*d)->Accept() )
+		if ( d->Accept() )
 			last_accept = i + 1;
 		}
 
 	if ( d )
 		{
-		d = (*d)->Xtion(ecs[SYM_EOL], dfa);
-		if ( d && (*d)->Accept() )
+		d = d->Xtion(ecs[SYM_EOL], dfa);
+		if ( d && d->Accept() )
 			return n;
 		}
 

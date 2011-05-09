@@ -186,17 +186,17 @@ export {
 	# More precisely, the counter is the next index of threshold vector.
 	global shut_down_thresh_reached: table[addr] of bool &default=F;
 	global rb_idx: table[addr] of count
-			&default=1 &read_expire = 1 days &redef;
+			&default=0 &read_expire = 1 days &redef;
 	global rps_idx: table[addr] of count
-			&default=1 &read_expire = 1 days &redef;
+			&default=0 &read_expire = 1 days &redef;
 	global rops_idx: table[addr] of count
-			&default=1 &read_expire = 1 days &redef;
+			&default=0 &read_expire = 1 days &redef;
 	global rpts_idx: table[addr,addr] of count
-			&default=1 &read_expire = 1 days &redef;
+			&default=0 &read_expire = 1 days &redef;
 	global rat_idx: table[addr] of count
-			&default=1 &read_expire = 1 days &redef;
+			&default=0 &read_expire = 1 days &redef;
 	global rrat_idx: table[addr] of count
-			&default=1 &read_expire = 1 days &redef;
+			&default=0 &read_expire = 1 days &redef;
 }
 
 global thresh_check: function(v: vector of count, idx: table[addr] of count,
@@ -609,7 +609,7 @@ function thresh_check(v: vector of count, idx: table[addr] of count,
 		return F;
 		}
 
-	if ( idx[orig] <= |v| && n >= v[idx[orig]] )
+	if ( idx[orig] < |v| && n >= v[idx[orig]] )
 		{
 		++idx[orig];
 		return T;
@@ -628,7 +628,7 @@ function thresh_check_2(v: vector of count, idx: table[addr, addr] of count,
 		return F;
 		}
 
-	if ( idx[orig,resp] <= |v| && n >= v[idx[orig, resp]] )
+	if ( idx[orig,resp] < |v| && n >= v[idx[orig, resp]] )
 		{
 		++idx[orig,resp];
 		return T;

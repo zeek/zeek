@@ -3,7 +3,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 %}
 
-%expect 71
+%expect 85
 
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ALARM TOK_ANY
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
@@ -24,9 +24,11 @@
 %token TOK_ATTR_EXPIRE_CREATE TOK_ATTR_EXPIRE_READ TOK_ATTR_EXPIRE_WRITE
 %token TOK_ATTR_PERSISTENT TOK_ATTR_SYNCHRONIZED
 %token TOK_ATTR_DISABLE_PRINT_HOOK TOK_ATTR_RAW_OUTPUT TOK_ATTR_MERGEABLE
-%token TOK_ATTR_PRIORITY TOK_ATTR_GROUP
+%token TOK_ATTR_PRIORITY TOK_ATTR_GROUP TOK_ATTR_LOG
 
 %token TOK_DEBUG
+
+%token TOK_DOC TOK_POST_DOC
 
 %left ',' '|'
 %right '=' TOK_ADD_TO TOK_REMOVE_FROM
@@ -41,8 +43,9 @@
 %right '!'
 %left '$' '[' ']' '(' ')' TOK_HAS_FIELD TOK_HAS_ATTR
 
-%type <str> TOK_ID TOK_PATTERN_TEXT single_pattern
-%type <id> local_id global_id event_id global_or_event_id resolve_id begin_func
+%type <str> TOK_ID TOK_PATTERN_TEXT single_pattern TOK_DOC TOK_POST_DOC
+%type <str_l> opt_doc_list opt_post_doc_list
+%type <id> local_id global_id def_global_id event_id global_or_event_id resolve_id begin_func
 %type <id_l> local_id_list
 %type <ic> init_class
 %type <expr> opt_init
@@ -51,7 +54,7 @@
 %type <expr> expr init anonymous_function
 %type <event_expr> event
 %type <stmt> stmt stmt_list func_body for_head
-%type <type> type opt_type refined_type enum_body 
+%type <type> type opt_type refined_type enum_body
 %type <func_type> func_hdr func_params
 %type <type_l> type_list
 %type <type_decl> type_decl formal_args_decl
@@ -75,6 +78,15 @@
 #include "DNS.h"
 #include "RE.h"
 #include "Scope.h"
+#include "BroDoc.h"
+#include "BroDocObj.h"
+
+#include <list>
+#include <string>
+
+extern BroDoc* current_reST_doc;
+extern int generate_documentation;
+extern std::list<std::string>* reST_doc_comments;
 
 YYLTYPE GetCurrentLocation();
 extern int yyerror(const char[]);
@@ -100,37 +112,90 @@ extern Expr* g_curr_debug_expr;
 
 Expr* bro_this = 0;
 int in_init = 0;
+int in_record = 0;
 bool in_debug = false;
 bool resolving_global_ID = false;
+bool defining_global_ID = false;
 
 ID* func_id = 0;
 EnumType *cur_enum_type = 0;
+CommentedEnumType *cur_enum_type_doc = 0;
+const char* cur_enum_elem_id = 0;
 
-static void parser_new_enum (void) 
+type_decl_list* fake_type_decl_list = 0;
+TypeDecl* last_fake_type_decl = 0;
+
+static void parser_new_enum (void)
 	{
-	/* starting a new enum definition. */
+	/* Starting a new enum definition. */
 	assert(cur_enum_type == NULL);
 	cur_enum_type = new EnumType();
+
+	// For documentation purposes, a separate type object is created
+	// in order to avoid overlap that can be caused by redefs.
+	if ( generate_documentation )
+		cur_enum_type_doc = new CommentedEnumType();
 	}
+
 static void parser_redef_enum (ID *id)
 	{
-	/* redef an enum. id points to the enum to be redefined.
-	   let cur_enum_type point to it */
+	/* Redef an enum. id points to the enum to be redefined.
+	   Let cur_enum_type point to it. */
 	assert(cur_enum_type == NULL);
 	if ( ! id->Type() )
 		id->Error("unknown identifier");
-	else 
+	else
 		{
 		cur_enum_type = id->Type()->AsEnumType();
 		if ( ! cur_enum_type )
 			id->Error("not an enum");
 		}
+
+	if ( generate_documentation )
+		cur_enum_type_doc = new CommentedEnumType();
 	}
-	
+
+static void add_enum_comment (std::list<std::string>* comments)
+	{
+	cur_enum_type_doc->AddComment(current_module, cur_enum_elem_id, comments);
+	}
+
+static ID* create_dummy_id (ID* id, BroType* type)
+	{
+	ID* fake_id = new ID(copy_string(id->Name()), (IDScope) id->Scope(),
+	                     is_export);
+
+	fake_id->SetType(type);
+
+	if ( id->AsType() )
+		{
+		type->SetTypeID(copy_string(id->Name()));
+		fake_id->MakeType();
+		}
+
+	return fake_id;
+	}
+
+static std::list<std::string>* concat_opt_docs (std::list<std::string>* pre,
+                                                std::list<std::string>* post)
+	{
+	if ( ! pre && ! post ) return 0;
+
+	if ( pre && ! post ) return pre;
+
+	if ( ! pre && post ) return post;
+
+	pre->splice(pre->end(), *post);
+	delete post;
+
+	return pre;
+	}
+
 %}
 
 %union {
 	char* str;
+	std::list<std::string>* str_l;
 	ID* id;
 	id_list* id_l;
 	init_class ic;
@@ -401,6 +466,12 @@ expr:
 				$$ = $2;
 			}
 
+	|	'[' ']'
+			{
+			// We interpret this as an empty record constructor.
+			$$ = new RecordConstructorExpr(new ListExpr);
+			}
+
 
 	|	TOK_RECORD '(' expr_list ')'
 			{
@@ -545,11 +616,6 @@ opt_expr_list:
 		{ $$ = new ListExpr(); }
 	;
 
-opt_comma:
-		','
-	|
-	;
-
 pattern:
 		pattern '|' single_pattern
 			{
@@ -570,49 +636,94 @@ single_pattern:
 	;
 
 enum_body:
-		enum_body_list opt_comma
+		enum_body_list opt_post_doc_list
 			{
 			$$ = cur_enum_type;
+
+			if ( generate_documentation )
+				{
+				add_enum_comment($2);
+				cur_enum_elem_id = 0;
+				}
+
+			cur_enum_type = NULL;
+			}
+
+	|	enum_body_list ',' opt_post_doc_list
+			{
+			$$ = cur_enum_type;
+
+			if ( generate_documentation )
+				{
+				add_enum_comment($3);
+				cur_enum_elem_id = 0;
+				}
+
 			cur_enum_type = NULL;
 			}
 	;
 
 enum_body_list:
-			enum_body_elem	 /* No action */
-		|	enum_body_list ',' enum_body_elem  /* no action */
-	;
+		enum_body_elem opt_post_doc_list
+			{
+			if ( generate_documentation )
+				add_enum_comment($2);
+			}
+
+	|	enum_body_list ',' opt_post_doc_list
+			{
+			if ( generate_documentation )
+				add_enum_comment($3);
+			} enum_body_elem
+;
 
 enum_body_elem:
-		/* TODO: We could also define this as TOK_ID '=' expr, (or 
-		   TOK_ID '=' = TOK_ID) so that we can return more descriptive 
+		/* TODO: We could also define this as TOK_ID '=' expr, (or
+		   TOK_ID '=' = TOK_ID) so that we can return more descriptive
 		   error messages if someboy tries to use constant variables as
-		   enumerator. 
+		   enumerator.
 		*/
-		TOK_ID '=' TOK_CONSTANT
+		opt_doc_list TOK_ID '=' TOK_CONSTANT
 			{
-			set_location(@1, @3);
+			set_location(@2, @4);
 			assert(cur_enum_type);
-			if ($3->Type()->Tag() != TYPE_COUNT)
+
+			if ( $4->Type()->Tag() != TYPE_COUNT )
 				error("enumerator is not a count constant");
-			else 
-				cur_enum_type->AddName(current_module, $1, $3->InternalUnsigned(), is_export);
+			else
+				cur_enum_type->AddName(current_module, $2, $4->InternalUnsigned(), is_export);
+
+			if ( generate_documentation )
+				{
+				cur_enum_type_doc->AddName(current_module, $2, $4->InternalUnsigned(), is_export);
+				cur_enum_elem_id = $2;
+				add_enum_comment($1);
+				}
 			}
-	|	TOK_ID '=' '-' TOK_CONSTANT
+
+	|	opt_doc_list TOK_ID '=' '-' TOK_CONSTANT
 			{
 			/* We only accept counts as enumerator, but we want to return a nice
-			   error message if users tries to use a negative integer (will also
-			   catch other cases, but that's fine)
+			   error message if users triy to use a negative integer (will also
+			   catch other cases, but that's fine.)
 			*/
 			error("enumerator is not a count constant");
 			}
-	|	TOK_ID 
+
+	|	opt_doc_list TOK_ID
 			{
-			set_location(@1);
+			set_location(@2);
 			assert(cur_enum_type);
-			cur_enum_type->AddName(current_module, $1, is_export);
+			cur_enum_type->AddName(current_module, $2, is_export);
+
+			if ( generate_documentation )
+				{
+				cur_enum_type_doc->AddName(current_module, $2, is_export);
+				cur_enum_elem_id = $2;
+				add_enum_comment($1);
+				}
 			}
 	;
-		
 
 type:
 		TOK_BOOL	{
@@ -702,10 +813,15 @@ type:
 				$$ = new SetType($3, 0);
 				}
 
-	|	TOK_RECORD '{' type_decl_list '}'
+	|	TOK_RECORD '{'
+			{ ++in_record; do_doc_token_start(); }
+		type_decl_list
+			{ --in_record; }
+		'}'
 				{
-				set_location(@1, @4);
-				$$ = new RecordType($3);
+				do_doc_token_stop();
+				set_location(@1, @5);
+				$$ = new RecordType($4);
 				}
 
 	|	TOK_UNION '{' type_list '}'
@@ -715,8 +831,9 @@ type:
 				$$ = 0;
 				}
 
-	|	TOK_ENUM '{' { set_location(@1); parser_new_enum(); } enum_body '}'
+	|	TOK_ENUM '{' { set_location(@1); parser_new_enum(); do_doc_token_start(); } enum_body '}'
 				{
+				do_doc_token_stop();
 				set_location(@1, @5);
 				$4->UpdateLocationEndInfo(@5);
 				$$ = $4;
@@ -794,16 +911,46 @@ type_list:
 
 type_decl_list:
 		type_decl_list type_decl
-			{ $1->append($2); }
+			{
+			$1->append($2);
+
+			if ( generate_documentation && last_fake_type_decl )
+				{
+				fake_type_decl_list->append(last_fake_type_decl);
+				last_fake_type_decl = 0;
+				}
+			}
 	|
-			{ $$ = new type_decl_list(); }
+			{
+			$$ = new type_decl_list();
+
+			if ( generate_documentation )
+				fake_type_decl_list = new type_decl_list();
+			}
 	;
 
 type_decl:
-		TOK_ID ':' type opt_attr ';'
+		opt_doc_list TOK_ID ':' type opt_attr ';' opt_post_doc_list
 			{
-			set_location(@1, @5);
-			$$ = new TypeDecl($3, $1, $4);
+			set_location(@2, @6);
+
+			if ( generate_documentation )
+				{
+				attr_list* a = $5;
+				attr_list* a_copy = 0;
+
+				if ( a )
+					{
+					a_copy = new attr_list;
+					loop_over_list(*a, i)
+						a_copy->append((*a)[i]);
+					}
+
+				last_fake_type_decl = new CommentedTypeDecl(
+					$4, $2, a_copy, concat_opt_docs($1, $7));
+				}
+
+			$$ = new TypeDecl($4, $2, $5, (in_record > 0));
 			}
 	;
 
@@ -835,31 +982,147 @@ formal_args_decl:
 
 decl:
 		TOK_MODULE TOK_ID ';'
-			{ current_module = $2; }
+			{
+			current_module = $2;
+
+			if ( generate_documentation )
+				current_reST_doc->AddModule(current_module);
+			}
 
 	|	TOK_EXPORT '{' { is_export = true; } decl_list '}'
 			{ is_export = false; }
 
-	|	TOK_GLOBAL global_id opt_type init_class opt_init opt_attr ';'
-			{ add_global($2, $3, $4, $5, $6, VAR_REGULAR); }
+	|	TOK_GLOBAL def_global_id opt_type init_class opt_init opt_attr ';'
+			{
+			add_global($2, $3, $4, $5, $6, VAR_REGULAR);
 
-	|	TOK_CONST global_id opt_type init_class opt_init opt_attr ';'
-			{ add_global($2, $3, $4, $5, $6, VAR_CONST); }
+			if ( generate_documentation )
+				{
+				ID* id = $2;
+				if ( id->Type()->Tag() == TYPE_FUNC )
+					{
+					if ( id->Type()->AsFuncType()->IsEvent() )
+						current_reST_doc->AddEvent(
+							new BroDocObj(id, reST_doc_comments));
+					else
+						current_reST_doc->AddFunction(
+							new BroDocObj(id, reST_doc_comments));
+					}
+
+				else
+					{
+					current_reST_doc->AddStateVar(
+						new BroDocObj(id, reST_doc_comments));
+					}
+				}
+			}
+
+	|	TOK_CONST def_global_id opt_type init_class opt_init opt_attr ';'
+			{
+			add_global($2, $3, $4, $5, $6, VAR_CONST);
+
+			if ( generate_documentation )
+				{
+				if ( $2->FindAttr(ATTR_REDEF) )
+					current_reST_doc->AddOption(
+						new BroDocObj($2, reST_doc_comments));
+				else
+					current_reST_doc->AddConstant(
+						new BroDocObj($2, reST_doc_comments));
+				}
+			}
 
 	|	TOK_REDEF global_id opt_type init_class opt_init opt_attr ';'
-			{ add_global($2, $3, $4, $5, $6, VAR_REDEF); }
+			{
+			add_global($2, $3, $4, $5, $6, VAR_REDEF);
+
+			if ( generate_documentation &&
+				! streq("capture_filters", $2->Name()) &&
+				! streq("dpd_config", $2->Name()) )
+				{
+				ID* fake_id = create_dummy_id($2, $2->Type());
+				BroDocObj* o = new BroDocObj(fake_id, reST_doc_comments, true);
+				o->SetRole(true);
+				current_reST_doc->AddRedef(o);
+				}
+			}
 
 	|	TOK_REDEF TOK_ENUM global_id TOK_ADD_TO
-		'{' { parser_redef_enum($3); } enum_body '}' ';'
-			{ /* no action */ }
+		'{' { parser_redef_enum($3); do_doc_token_start(); } enum_body '}' ';'
+			{
+			do_doc_token_stop();
+
+			if ( generate_documentation )
+				{
+				ID* fake_id = create_dummy_id($3, cur_enum_type_doc);
+				cur_enum_type_doc = 0;
+				BroDocObj* o = new BroDocObj(fake_id, reST_doc_comments, true);
+				o->SetRole(true);
+
+				if ( streq(fake_id->Name(), "Notice" ) )
+					current_reST_doc->AddNotice(o);
+				else
+					current_reST_doc->AddRedef(o);
+				}
+			}
+
+	|	TOK_REDEF TOK_RECORD global_id TOK_ADD_TO
+			'{' type_decl_list '}' opt_attr ';'
+			{
+			if ( ! $3->Type() )
+				$3->Error("unknown identifier");
+			else
+				{
+				RecordType* add_to = $3->Type()->AsRecordType();
+				if ( ! add_to )
+					$3->Error("not a record type");
+				else
+					{
+					const char* error = add_to->AddFields($6, $8);
+					if ( error )
+					$3->Error(error);
+					}
+				}
+			}
 
 	|	TOK_TYPE global_id ':' refined_type opt_attr ';'
 			{
 			add_type($2, $4, $5, 0);
+
+			if ( generate_documentation )
+				{
+				TypeTag t = $2->AsType()->Tag();
+				if ( t == TYPE_ENUM && cur_enum_type_doc )
+					{
+					ID* fake = create_dummy_id($2, cur_enum_type_doc);
+					cur_enum_type_doc = 0;
+					current_reST_doc->AddType(
+						new BroDocObj(fake, reST_doc_comments, true));
+					}
+
+				else if ( t == TYPE_RECORD && fake_type_decl_list )
+					{
+					BroType* fake_record = new RecordType(fake_type_decl_list);
+					ID* fake = create_dummy_id($2, fake_record);
+					fake_type_decl_list = 0;
+					current_reST_doc->AddType(
+						new BroDocObj(fake, reST_doc_comments, true));
+					}
+
+				else
+					current_reST_doc->AddType(
+						new BroDocObj($2, reST_doc_comments));
+				}
 			}
 
 	|	TOK_EVENT event_id ':' refined_type opt_attr ';'
-			{ add_type($2, $4, $5, 1); }
+			{
+			add_type($2, $4, $5, 1);
+
+			if ( generate_documentation )
+				current_reST_doc->AddEvent(
+					new BroDocObj($2, reST_doc_comments));
+			}
 
 	|	func_hdr func_body
 			{ }
@@ -881,17 +1144,23 @@ conditional:
 	;
 
 func_hdr:
-		TOK_FUNCTION global_id func_params
+		TOK_FUNCTION def_global_id func_params
 			{
 			begin_func($2, current_module.c_str(),
-				   FUNC_FLAVOR_FUNCTION, 0, $3);
+				FUNC_FLAVOR_FUNCTION, 0, $3);
 			$$ = $3;
+			if ( generate_documentation )
+				current_reST_doc->AddFunction(
+					new BroDocObj($2, reST_doc_comments));
 			}
 	|	TOK_EVENT event_id func_params
 			{
 			begin_func($2, current_module.c_str(),
 				   FUNC_FLAVOR_EVENT, 0, $3);
 			$$ = $3;
+			if ( generate_documentation )
+				current_reST_doc->AddEvent(
+					new BroDocObj($2, reST_doc_comments));
 			}
 	|	TOK_REDEF TOK_EVENT event_id func_params
 			{
@@ -1025,6 +1294,8 @@ attr:
 			{ $$ = new Attr(ATTR_PRIORITY, $3); }
 	|	TOK_ATTR_GROUP '=' expr
 			{ $$ = new Attr(ATTR_GROUP, $3); }
+	|	TOK_ATTR_LOG
+			{ $$ = new Attr(ATTR_LOG); }
 	;
 
 stmt:
@@ -1263,6 +1534,11 @@ global_id:
 		{ $$ = $2; }
 	;
 
+def_global_id:
+	{ defining_global_ID = 1; } global_id { defining_global_ID = 0; } 
+		{ $$ = $2; }
+	;
+
 event_id:
 	{ resolving_global_ID = 0; } global_or_event_id
 		{ $$ = $2; }
@@ -1273,7 +1549,7 @@ global_or_event_id:
 			{
 			set_location(@1);
 
-			$$ = lookup_ID($1, current_module.c_str(), false);
+			$$ = lookup_ID($1, current_module.c_str(), false, defining_global_ID);
 			if ( $$ )
 				{
 				if ( ! $$->IsGlobal() )
@@ -1287,7 +1563,7 @@ global_or_event_id:
 				const char* module_name =
 					resolving_global_ID ?
 						current_module.c_str() : 0;
-					
+
 				$$ = install_ID($1, module_name,
 						true, is_export);
 				}
@@ -1300,10 +1576,46 @@ resolve_id:
 			{
 			set_location(@1);
 			$$ = lookup_ID($1, current_module.c_str());
+
 			if ( ! $$ )
 				error("identifier not defined:", $1);
+
 			delete [] $1;
 			}
+	;
+
+opt_post_doc_list:
+		opt_post_doc_list TOK_POST_DOC
+			{
+			$1->push_back($2);
+			$$ = $1;
+			}
+	|
+		TOK_POST_DOC
+			{
+			$$ = new std::list<std::string>();
+			$$->push_back($1);
+			delete [] $1;
+			}
+	|
+			{ $$ = 0; }
+	;
+
+opt_doc_list:
+		opt_doc_list TOK_DOC
+			{
+			$1->push_back($2);
+			$$ = $1;
+			}
+	|
+		TOK_DOC
+			{
+			$$ = new std::list<std::string>();
+			$$->push_back($1);
+			delete [] $1;
+			}
+	|
+			{ $$ = 0; }
 	;
 
 %%

@@ -3,6 +3,8 @@
 # This script generates binary RPM packages.
 # They can be found in build/ after running.
 
+prefix=/opt/bro
+
 # CMake/CPack versions before 2.8.2 have bugs that can create bad packages
 CMAKE_PACK_REQ=2.8.2
 CMAKE_VER=`cmake -version`
@@ -13,30 +15,22 @@ if [ "${CMAKE_VER}" \< "${CMAKE_PACK_REQ}" ]; then
 fi
 
 # Minimum Bro
-./configure --prefix=/opt/bro --disable-broccoli --disable-broctl \
-            --pkg-name-prefix=Bro
-cd build
-make package
-cd ..
+./configure --prefix=${prefix} --disable-broccoli --disable-broctl \
+            --pkg-name-prefix=Bro --binary-package
+( cd build && make package )
 
 # Full Bro package
-./configure --prefix=/opt/bro --pkg-name-prefix=Bro-all
-cd build
-make package
-cd ..
+./configure --prefix=${prefix} --pkg-name-prefix=Bro-all --binary-package
+( cd build && make package )
 
 # Broccoli
 cd aux/broccoli
-./configure --prefix=/opt/bro
-cd build
-make package
-mv Broccoli*.rpm ../../../build/
-cd ../../..
+./configure --prefix=${prefix} --binary-package
+( cd build && make package && mv Broccoli*.rpm ../../../build/ )
+cd ../..
 
 # Broctl
 cd aux/broctl
-./configure --prefix=/opt/bro
-cd build
-make package
-mv Broctl*.rpm ../../../build/
-cd ../../..
+./configure --prefix=${prefix} --binary-package
+( cd build && make package && mv Broctl*.rpm ../../../build/ )
+cd ../..

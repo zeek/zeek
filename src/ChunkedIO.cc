@@ -14,6 +14,8 @@
 #include "NetVar.h"
 #include "RemoteSerializer.h"
 
+#include <algorithm>
+
 ChunkedIO::ChunkedIO()
 	{
 	pure = false;
@@ -140,7 +142,7 @@ bool ChunkedIOFd::Write(Chunk* chunk)
 	{
 #ifdef DEBUG
 	DBG_LOG(DBG_CHUNKEDIO, "write of size %d [%s]",
-		chunk->len, fmt_bytes(chunk->data, min(20, chunk->len)));
+		chunk->len, fmt_bytes(chunk->data, min((uint32)20, chunk->len)));
 #endif
 
 	// Reject if our queue of pending chunks is way too large. Otherwise,
@@ -427,7 +429,7 @@ bool ChunkedIOFd::Read(Chunk** chunk, bool may_block)
 				(*chunk)->len & ~FLAG_PARTIAL,
 				(*chunk)->len & FLAG_PARTIAL ? "(P) " : "",
 				fmt_bytes((*chunk)->data,
-						min(20, (*chunk)->len)));
+						min((uint32)20, (*chunk)->len)));
 #endif
 
 	if ( ! ((*chunk)->len & FLAG_PARTIAL) )

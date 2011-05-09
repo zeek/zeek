@@ -8,6 +8,8 @@
 #include "Var.h"
 #include "Discard.h"
 
+#include <algorithm>
+
 Discarder::Discarder()
 	{
 	ip_hdr = internal_type("ip_hdr")->AsRecordType();

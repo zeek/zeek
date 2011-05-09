@@ -37,8 +37,6 @@ string extract_var_name(const char *name)
 
 	return var_name.substr(pos+2);
 	}
-	
-
 
 string normalized_module_name(const char* module_name)
 	{
@@ -62,4 +60,3 @@ string make_full_var_name(const char* module_name, const char* var_name)
 
 	return full_name;
 	}
-

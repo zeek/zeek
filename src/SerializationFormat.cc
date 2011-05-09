@@ -44,6 +44,7 @@ void SerializationFormat::StartWrite()
 
 	output_pos = 0;
 	bytes_written = 0;
+	bytes_read = 0;
 	}
 
 uint32 SerializationFormat::EndWrite(char** data)
@@ -64,6 +65,8 @@ bool SerializationFormat::ReadData(void* b, size_t count)
 
 	memcpy(b, input + input_pos, count);
 	input_pos += count;
+	bytes_read += count;
+
 	return true;
 	}
 
@@ -214,6 +217,20 @@ bool BinarySerializationFormat::Read(char** str, int* len, const char* tag)
 	return true;
 	}
 
+bool BinarySerializationFormat::Read(string* v, const char* tag)
+	{
+	char* buffer;
+	int len;
+
+	if ( ! Read(&buffer, &len, tag) )
+		return false;
+
+	*v = string(buffer, len);
+
+	delete [] buffer;
+	return true;
+	}
+
 bool BinarySerializationFormat::Write(char v, const char* tag)
 	{
 	DBG_LOG(DBG_SERIAL, "Write char %s [%s]", fmt_bytes(&v, 1), tag);
@@ -276,6 +293,11 @@ bool BinarySerializationFormat::Write(bool v, const char* tag)
 bool BinarySerializationFormat::Write(const char* s, const char* tag)
 	{
 	return Write(s, strlen(s), tag);
+	}
+
+bool BinarySerializationFormat::Write(const string& s, const char* tag)
+	{
+	return Write(s.data(), s.size(), tag);
 	}
 
 bool BinarySerializationFormat::WriteOpenTag(const char* tag)
@@ -362,6 +384,12 @@ bool XMLSerializationFormat::Read(char** str, int* len, const char* tag)
 	return false;
 	}
 
+bool XMLSerializationFormat::Read(string* s, const char* tag)
+	{
+	internal_error("no reading of xml");
+	return false;
+	}
+
 bool XMLSerializationFormat::Write(char v, const char* tag)
 	{
 	return WriteElem(tag, "char", &v, 1);
@@ -369,7 +397,7 @@ bool XMLSerializationFormat::Write(char v, const char* tag)
 
 bool XMLSerializationFormat::Write(uint16 v, const char* tag)
 	{
-	const char* tmp = fmt("%"PRIu16, v);
+	const char* tmp = fmt("%" PRIu16, v);
 	return WriteElem(tag, "uint16", tmp, strlen(tmp));
 	}
 
@@ -414,6 +442,11 @@ bool XMLSerializationFormat::Write(bool v, const char* tag)
 bool XMLSerializationFormat::Write(const char* s, const char* tag)
 	{
 	return WriteElem(tag, "string", s, strlen(s));
+	}
+
+bool XMLSerializationFormat::Write(const string& s, const char* tag)
+	{
+	return WriteElem(tag, "string", s.data(), s.size());
 	}
 
 bool XMLSerializationFormat::WriteOpenTag(const char* tag)

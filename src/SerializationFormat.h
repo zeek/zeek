@@ -5,6 +5,10 @@
 #ifndef SERIALIZATION_FORMAT
 #define SERIALIZATION_FORMAT
 
+#include <string>
+
+using namespace std;
+
 #include "util.h"
 
 // Abstract base class.
@@ -25,6 +29,10 @@ public:
 	virtual bool Read(char* v, const char* tag) = 0;
 	virtual bool Read(bool* v, const char* tag) = 0;
 	virtual bool Read(double* d, const char* tag) = 0;
+	virtual bool Read(string* s, const char* tag) = 0;
+
+	// Returns number of raw bytes read since last call to StartRead().
+	int BytesRead() const	{ return bytes_read; }
 
 	// Passes ownership of string.
 	virtual bool Read(char** str, int* len, const char* tag) = 0;
@@ -43,6 +51,7 @@ public:
 	virtual bool Write(double d, const char* tag) = 0;
 	virtual bool Write(const char* s, const char* tag) = 0;
 	virtual bool Write(const char* buf, int len, const char* tag) = 0;
+	virtual bool Write(const string& s, const char* tag) = 0;
 
 	virtual bool WriteOpenTag(const char* tag) = 0;
 	virtual bool WriteCloseTag(const char* tag) = 0;
@@ -65,6 +74,7 @@ protected:
 	uint32 input_pos;
 
 	int bytes_written;
+	int bytes_read;
 };
 
 class BinarySerializationFormat : public SerializationFormat {
@@ -81,6 +91,7 @@ public:
 	virtual bool Read(bool* v, const char* tag);
 	virtual bool Read(double* d, const char* tag);
 	virtual bool Read(char** str, int* len, const char* tag);
+	virtual bool Read(string* s, const char* tag);
 	virtual bool Write(int v, const char* tag);
 	virtual bool Write(uint16 v, const char* tag);
 	virtual bool Write(uint32 v, const char* tag);
@@ -91,6 +102,7 @@ public:
 	virtual bool Write(double d, const char* tag);
 	virtual bool Write(const char* s, const char* tag);
 	virtual bool Write(const char* buf, int len, const char* tag);
+	virtual bool Write(const string& s, const char* tag);
 	virtual bool WriteOpenTag(const char* tag);
 	virtual bool WriteCloseTag(const char* tag);
 	virtual bool WriteSeparator();
@@ -112,6 +124,7 @@ public:
 	virtual bool Write(double d, const char* tag);
 	virtual bool Write(const char* s, const char* tag);
 	virtual bool Write(const char* buf, int len, const char* tag);
+	virtual bool Write(const string& s, const char* tag);
 	virtual bool WriteOpenTag(const char* tag);
 	virtual bool WriteCloseTag(const char* tag);
 	virtual bool WriteSeparator();
@@ -126,6 +139,7 @@ public:
 	virtual bool Read(bool* v, const char* tag);
 	virtual bool Read(double* d, const char* tag);
 	virtual bool Read(char** str, int* len, const char* tag);
+	virtual bool Read(string* s, const char* tag);
 
 private:
 	// Encodes non-printable characters.

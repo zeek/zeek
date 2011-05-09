@@ -14,7 +14,9 @@ const conn_closed = { TCP_CLOSED, TCP_RESET };
 
 global have_FTP = F;	# if true, we've loaded ftp.bro
 global have_SMTP = F;	# if true, we've loaded smtp.bro
-global is_ftp_data_conn: function(c: connection): bool;
+
+# TODO: Do we have a nicer way of defining this prototype?
+export { global FTP::is_ftp_data_conn: function(c: connection): bool; }
 
 # Whether to include connection state history in the logs generated
 # by record_connection.
@@ -186,7 +188,7 @@ function determine_service_non_DPD(c: connection) : string
 			return i;	# return first;
 		}
 
-	else if ( have_FTP && is_ftp_data_conn(c) )
+	else if ( have_FTP && FTP::is_ftp_data_conn(c) )
 		return port_names[20/tcp];
 
 	else if ( [c$id$resp_h, c$id$resp_p] in RPC_server_map )

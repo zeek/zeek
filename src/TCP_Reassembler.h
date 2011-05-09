@@ -6,12 +6,12 @@
 #include "Reassem.h"
 #include "TCP_Endpoint.h"
 
-// The skip_to_seq feature does not work correctly with 
-// connections >2GB due to use of 32 bit signed ints (see
-// comments in TCP_Reassembler.cc)
-// Since it's not used by any analyzer or policy script we disable
-// it. Could be added back in once we start using 64bit integers.
-// #define XXX_USE_SEQ_TO_SKIP
+// The skip_to_seq feature does not work correctly with connections >2GB due
+// to use of 32 bit signed ints (see comments in TCP_Reassembler.cc) Since
+// it's not used by any analyzer or policy script we disable it. Could be
+// added back in once we start using 64bit integers.
+//
+// #define ENABLE_SEQ_TO_SKIP
 
 class BroFile;
 class Connection;
@@ -67,11 +67,11 @@ public:
 
 	void MatchUndelivered(int up_to_seq = -1);
 
-#ifdef XXX_USE_SEQ_TO_SKIP
+#ifdef ENABLE_SEQ_TO_SKIP
 	// Skip up to seq, as if there's a content gap.
 	// Can be used to skip HTTP data for performance considerations.
 	void SkipToSeq(int seq);
-#endif 
+#endif
 
 	int DataSent(double t, int seq, int len, const u_char* data,
 			bool replaying=true);
@@ -94,10 +94,10 @@ public:
 	const TCP_Endpoint* Endpoint() const	{ return endp; }
 
 	int IsOrig() const	{ return endp->IsOrig(); }
-#ifdef XXX_USE_SEQ_TO_SKIP
+#ifdef ENABLE_SEQ_TO_SKIP
 	bool IsSkippedContents(int seq, int length) const
 		{ return seq + length <= seq_to_skip; }
-#endif 
+#endif
 
 private:
 	TCP_Reassembler()	{ }
@@ -120,9 +120,9 @@ private:
 	unsigned int did_EOF:1;
 	unsigned int skip_deliveries:1;
 
-#ifdef XXX_USE_SEQ_TO_SKIP
+#ifdef ENABLE_SEQ_TO_SKIP
 	int seq_to_skip;
-#endif 
+#endif
 	bool in_delivery;
 
 	BroFile* record_contents_file;	// file on which to reassemble contents

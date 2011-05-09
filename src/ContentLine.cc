@@ -3,6 +3,8 @@
 #include "ContentLine.h"
 #include "TCP.h"
 
+#include <algorithm>
+
 ContentLine_Analyzer::ContentLine_Analyzer(Connection* conn, bool orig)
 : TCP_SupportAnalyzer(AnalyzerTag::ContentLine, conn, orig)
 	{
@@ -120,7 +122,7 @@ void ContentLine_Analyzer::EndpointEOF(bool is_orig)
 		DeliverStream(1, (const u_char*) "\n", is_orig);
 	}
 
-void ContentLine_Analyzer::SetPlainDelivery(int length)
+void ContentLine_Analyzer::SetPlainDelivery(int64_t length)
 	{
 	if ( length < 0 )
 		internal_error("negative length for plain delivery");
@@ -154,7 +156,7 @@ void ContentLine_Analyzer::DoDeliver(int len, const u_char* data)
 
 		if ( plain_delivery_length > 0 )
 			{
-			int deliver_plain = min(plain_delivery_length, len);
+			int deliver_plain = min(plain_delivery_length, (int64_t)len);
 
 			last_char = 0; // clear last_char
 			plain_delivery_length -= deliver_plain;
@@ -179,7 +181,7 @@ void ContentLine_Analyzer::DoDeliver(int len, const u_char* data)
 		if ( seq < seq_to_skip )
 			{
 			// Skip rest of the data and return
-			int skip_len = seq_to_skip - seq;
+			int64_t skip_len = seq_to_skip - seq;
 			if ( skip_len > len )
 				skip_len = len;
 
@@ -310,7 +312,7 @@ void ContentLine_Analyzer::CheckNUL()
 		}
 	}
 
-void ContentLine_Analyzer::SkipBytesAfterThisLine(int length)
+void ContentLine_Analyzer::SkipBytesAfterThisLine(int64_t length)
 	{
 	// This is a little complicated because Bro has to handle
 	// both CR and CRLF as a line break. When a line is delivered,
@@ -326,7 +328,7 @@ void ContentLine_Analyzer::SkipBytesAfterThisLine(int length)
 		SkipBytes(length);
 	}
 
-void ContentLine_Analyzer::SkipBytes(int length)
+void ContentLine_Analyzer::SkipBytes(int64_t length)
 	{
 	skip_pending = 0;
 	seq_to_skip = SeqDelivered() + length;

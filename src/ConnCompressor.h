@@ -97,6 +97,7 @@ public:
 		uint32 ack;
 		hash_t hash;
 		uint16 window;
+		uint64 uid;
 	};
 
 private:

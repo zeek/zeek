@@ -28,13 +28,13 @@ int check_c_mode(int t)
 %}
 
 WS	[ \t]+
- /* Note, bifcl only accepts a single :: in IDs while the policy
+ /* Note, bifcl only accepts a single "::" in IDs while the policy
     layer acceptes multiple. (But the policy layer doesn't have 
-	a hierachy */
+	a hierachy. */
 IDCOMPONENT [A-Za-z_][A-Za-z_0-9]*
 ID	{IDCOMPONENT}(::{IDCOMPONENT})?
 ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
-D   [[:digit:]]+
+DEC [[:digit:]]+
 HEX	[0-9a-fA-F]+
 
 
@@ -68,7 +68,6 @@ HEX	[0-9a-fA-F]+
 "%)"		return check_c_mode(TOK_RPP);
 "..."		return check_c_mode(TOK_VAR_ARG);
 "function"	return check_c_mode(TOK_FUNCTION);
-"rewriter"	return check_c_mode(TOK_REWRITER);
 "event"		return check_c_mode(TOK_EVENT);
 "const"		return check_c_mode(TOK_CONST);
 "enum"		return check_c_mode(TOK_ENUM);
@@ -83,15 +82,10 @@ HEX	[0-9a-fA-F]+
 "@ARGS@"	return TOK_ARGS;
 "@ARGC@"	return TOK_ARGC;
 
-"@WRITE@"	return TOK_WRITE;
-"@PUSH@"	return TOK_PUSH;
-"@EOF@"		return TOK_EOF;
-"@TRACE@"	return TOK_TRACE;
-
 "T"	yylval.val = 1; return TOK_BOOL;
 "F"	yylval.val = 0; return TOK_BOOL;
 
-{D}	{
+{DEC}	{
 	yylval.str = copy_string(yytext);
 	return TOK_INT;
 	}
@@ -100,7 +94,7 @@ HEX	[0-9a-fA-F]+
 	yylval.str = copy_string(yytext);
 	return TOK_INT;
 	}
-	
+
 
 {ID}	{
 	yylval.str = copy_string(yytext);
@@ -135,7 +129,6 @@ HEX	[0-9a-fA-F]+
 	}
 %%
 
-
 int yywrap()
 	{
 	yy_delete_buffer(YY_CURRENT_BUFFER);
@@ -152,7 +145,6 @@ FILE* fp_func_init = 0;
 FILE* fp_netvar_h = 0;
 FILE* fp_netvar_def = 0;
 FILE* fp_netvar_init = 0;
-
 
 void remove_file(const char *surfix);
 void err_exit(void);

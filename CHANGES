@@ -1,3 +1,223 @@
+1.6-dev.99 Fri Apr 22 22:10:03 PDT 2011
+
+- Extending the connection record with a unique identifier. (Robin
+  Sommer)
+
+    type connection: record {
+        [...]
+        id: string;
+   };
+
+  These identifiers very likely unique even across independent Bro
+  runs.
+
+- Delete operator for record fields. (Robin Sommer)
+    
+  "delete x$y" now resets record field "x" back to its original state
+  if it is either &optional or has a &default. "delete" may not be
+  used with non-optional/default fields.
+
+- Fixing bug with nested record coercions. (Robin Sommer)
+
+- Fixing a do_split() bug. (Seth Hall)
+
+
+1.6-dev.94 Thu Apr 21 19:51:38 PDT 2011
+
+- Fixing generation of config.h. (Jon Siwek)
+    
+- Updates and tests for NetBIOS name BiF. (Seth Hall)
+  
+- Fixing do_split bug(), and adding a test. (Seth Hall)
+    
+- When Bro is given a PRNG seed, it now uses its own internal random
+  number generator that produces consistent results across sytems.
+  Note that this internal generator isn't very good, so it should only
+  be used for testing purpses. (Robin Sommer)
+    
+- The BTest configuration now sets the environemnt variables TZ=UTC
+  and LANG=C to ensure consistent results. (Robin Sommer)
+    
+- Logging fixes. (Robin Sommer)
+    
+1.6-dev.88 Wed Apr 20 20:43:48 PDT 2011
+
+- Implementation of Bro's new logging framework. We will document this
+  separately. (Robin Sommer)
+
+- Already defined record types can now be further extended via the
+  '+=' operator. The added fields must be either &optional or have a
+  &default value. (Robin Sommer)
+    
+  Example:
+    
+        type Foo: record {
+            a: count;
+            b: count &optional;
+        };
+    
+        redef record Foo += {
+            c: count &default=42;
+            d: count &optional;
+        };
+    
+        global f: Foo = [$a=21];
+    
+        print f;
+    
+  Output:
+   
+        [a=21, b=<uninitialized>, c=42, d=<uninitialized>]
+
+- Enabling assignment of empty vectors ("vector()"). (Robin Sommer)
+
+- Fixing attributes to allow &default attributes to be associated with
+  records fields of type tables/sets/vector. (Robin Sommer)
+    
+- '[]' is now a valid record constructor. (Robin Sommer)
+  
+- A instance of a record type A is now coercable into one of type B if
+  the fields of type A are a subset of those of type B. (Robin Sommer)
+
+- A number of bug fixes and enhancements for record/set/table/vector
+  coercion. (Robin Sommer)
+
+- Fixing a problem with records that have optional fields when used as
+  table/set indices. Addresses #367. (Robin Sommer)
+
+- Fixing an off-by-one error in join_string_vec(). (Seth Hall)
+  
+- Updating to_count() to cope with 64bit ints. (Seth Hall)
+  
+- A new BiF count_to_v4_addr() to turn a count into an IPv4 address.
+  (Seth Hall)
+
+1.6-dev.80 Mon Apr 18 14:50:54 PDT 2011
+
+- New framework for generating documentation from Bro scripts. (Jon
+  Siwek)
+
+  This includes:
+
+    - Changes to Bro's scanner/parser to facilitate automatic
+      generation of Bro policy script documentation in
+      reStructuredText format.
+
+    - New command line flags -Z/--doc-scripts to enable the new doc
+      generation mode.
+
+    - Changes to bifcl to pass comments starting with "##" through
+      into the generated .bro script.
+
+    - A "doc" build target for the top-level Makefile to first
+      generate reStructuredText for a defined set of Bro policy
+      scripts, and then run that through Sphinx to create HTML
+      documentation.
+
+1.6-dev.78 Mon Apr 18 12:52:55 PDT 2011
+
+- Adding files to CMake build targets so they show up in generated IDE
+  projects. This addresses #413. (Jon Siwek)
+    
+- Fix unnecessary config.h preprocessor (re)definitions. This
+  addresses #414. (Jon Siwek)
+
+- Updating istate tests. (Robin Sommer)
+  
+- Adding files to CMake build targets so they show up in generated IDE
+  projects.
+    
+- Adding new environment variable BRO_SEED_FILE to set the seed file
+  for the random number generator. (Robin Sommer)
+    
+1.6-dev.71 Fri Apr  1 16:06:33 PDT 2011
+
+- Removing code for the following no longer supported functionality.
+  
+    * Trace rewriting.
+    * DFA state expiration in regexp engine.
+    * Active mapping.
+    * Unused hash functions.
+
+  (Robin Sommer)
+
+- Fixing crashes when SSL is not configured correctly. (Robin Sommer)
+
+1.6-dev.66 Tue Mar 29 21:52:01 PDT 2011
+
+- Initial btest setup (Don Appleman and Robin Sommer)
+  
+- Porting the istate tests to btest (not finished) (Robin Sommer)
+
+1.6-dev.63 Mon Mar 21 16:31:15 PDT 2011
+
+- Changes to the way user-modifiable config files are installed  (Jon Siwek)
+
+    * Duplicates of the distribution's configuration files are now
+      always installed with a .example suffix
+
+    * Added --binary-package configure option to toggle configure
+      logic specific to the creation of binary packages.
+
+    * When not in binary packaging mode, `make install` never
+      overwrites existing configure files in case they've been
+      modified. The previous behavior (CMake's default) would only
+      avoid overwriting modified files if one consistently uses the
+      same build directory and doesn't reconfigure.
+
+- Fixed an issue with Mac package's pre-install script not preserving
+  ACLs. (Jon Siwek)
+
+- Minor cleanup/refactor of the make-mac/rpm-packages scripts. (Jon
+  Siwek)
+
+- Add explicit CMake check for compiler. (Jon Siwek)
+  
+- Add alternative way to set BROPATH for running bro from build/ dir.
+  (Jon Siwek)
+
+- Fixing compiler warnings (Gregor Maier)
+  
+- Remvoing leftover local variables that caused compile error on Mac
+  OS X. (Gregor Maier)
+
+1.6-dev.53 Fri Feb 25 17:03:05 PST 2011
+
+- Fixing file detector leak in remote communication module. (Scott
+  Campbell)
+
+- Updating independent-state tests to work with new setup. (Robin
+  Sommer)
+
+1.6-dev.49 Fri Feb 25 15:37:28 PST 2011
+
+- Enum IDs can have explicitly defined values. (Gregor Maier)
+
+- Extensions for the built-in function compiler, bifcl. (Gregor Maier)
+
+    * Support for policy-layer namespaces.
+    * Support for type declarations in bif files (with access them
+      from C++)
+    * Extended const declarations in bif files.
+
+  See http://bro.icir.org/devel/bif-doc for more information.
+
+1.6-dev.48 Fri Feb 25 10:53:04 PST 2011
+
+- Preliminary TCP Reassembler fix: deliver data after 2GB by disabling
+  the unused seq_to_skip feature. (Gregor Maier)
+
+1.6-dev.47 Fri Feb 25 10:40:22 PST 2011
+
+- Fixing endianess error in XDR when data is not 4-byte aligned.
+  (Gregor Maier)
+
+- Fix for Val constructor with new int64 typedefs. (Gregor Maier)
+
+- Updated fix for OS X 10.5 compile error wrt llabs(). (Gregor Maier)
+
+- Fix more compiler warning wrt printf format strings.  (Gregor Maier)
+
 1.6-dev.45 Tue Feb  8 21:28:01 PST 2011
 
 - Fixing a number of compiler warnings. (Seth Hall and Robin Sommer)

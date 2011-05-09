@@ -1,6 +1,5 @@
 // $Id: Scope.h 6219 2008-10-01 05:39:07Z vern $
 //
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef scope_h
@@ -66,7 +65,7 @@ extern bool in_debug;
 
 // If no_global is true, don't search in the default "global" namespace.
 extern ID* lookup_ID(const char* name, const char* module,
-			bool no_global = false);
+		     bool no_global = false, bool same_module_only=false);
 extern ID* install_ID(const char* name, const char* module_name,
 			bool is_global, bool is_export);
 

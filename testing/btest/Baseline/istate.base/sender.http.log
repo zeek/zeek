@@ -1,0 +1,18 @@
+1301452424.214794 %events-send-1 start 141.42.64.125:56730 > 125.190.109.199:80
+1301452424.214794 %events-send-1 > USER-AGENT: Wget/1.10
+1301452424.214794 %events-send-1 > ACCEPT: */*
+1301452424.214794 %events-send-1 > HOST: www.icir.org
+1301452424.214794 %events-send-1 > CONNECTION: Keep-Alive
+1301452424.398834 %events-send-1 < DATE: Fri, 07 Oct 2005 23:23:55 GMT
+1301452424.398834 %events-send-1 < SERVER: Apache/1.3.33 (Unix)
+1301452424.398834 %events-send-1 < LAST-MODIFIED: Fri, 07 Oct 2005 16:23:01 GMT
+1301452424.398834 %events-send-1 < ETAG: "2c96c-23aa-4346a0e5"
+1301452424.398834 %events-send-1 < ACCEPT-RANGES: bytes
+1301452424.398834 %events-send-1 < CONTENT-LENGTH: 9130
+1301452424.398834 %events-send-1 < KEEP-ALIVE: timeout=15, max=100
+1301452424.398834 %events-send-1 < CONNECTION: Keep-Alive
+1301452424.398834 %events-send-1 < CONTENT-TYPE: text/html
+1301452424.583323 %events-send-1 <= 4096 bytes: "<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML ..."
+1301452424.583617 %events-send-1 <= 4096 bytes: "gn=top>^J^J<h2>^JPublications^J</h2>^J<ul>^J<l..."
+1301452424.767141 %events-send-1 <= 938 bytes: "ational Internet Measurement Infrastruct..."
+1301452424.767141 %events-send-1 GET / (200 "OK" [9130] www.icir.org)

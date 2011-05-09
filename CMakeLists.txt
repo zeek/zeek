@@ -1,4 +1,12 @@
-project(Bro)
+project(Bro C CXX)
+
+if (NOT CMAKE_C_COMPILER)
+    message(FATAL_ERROR "Could not find prerequisite C compiler")
+endif ()
+
+if (NOT CMAKE_CXX_COMPILER)
+    message(FATAL_ERROR "Could not find prerequisite C++ compiler")
+endif ()
 
 ########################################################################
 ## CMake Configuration
@@ -37,8 +45,17 @@ endif ()
 get_filename_component(POLICYDIR ${POLICYDIR} ABSOLUTE)
 
 configure_file(bro-path-dev.in ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev)
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev.sh
+     "export BROPATH=`${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev`\n")
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev.csh
+     "setenv BROPATH `${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev`\n")
 
 file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" VERSION LIMIT_COUNT 1)
+string(REPLACE "." " " version_numbers ${VERSION})
+separate_arguments(version_numbers)
+list(GET version_numbers 0 VERSION_MAJOR)
+list(GET version_numbers 1 VERSION_MINOR)
+set(VERSION_MAJ_MIN "${VERSION_MAJOR}.${VERSION_MINOR}")
 
 set(EXTRA_COMPILE_FLAGS "-Wall -Wno-unused")
 
@@ -158,8 +175,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_subdirectory(src)
 add_subdirectory(policy)
-#add_subdirectory(scripts)
-#add_subdirectory(doc)
+add_subdirectory(doc)
 
 include(CheckOptionalBuildSources)
 

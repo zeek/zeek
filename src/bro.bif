@@ -360,6 +360,26 @@ function cat%(...%): string
 	return new StringVal(s);
 	%}
 
+function record_type_to_vector%(rt: string%): string_vec
+	%{
+	VectorVal* result =
+		new VectorVal(internal_type("string_vec")->AsVectorType());
+
+	RecordType *type = internal_type(rt->CheckString())->AsRecordType();
+
+	if ( type )
+		{
+		for ( int i = 0; i < type->NumFields(); ++i )
+			{
+			StringVal* val = new StringVal(type->FieldName(i));
+			result->Assign(i+1, val, 0);
+			}
+		}
+
+	return result;
+	%}
+
+
 function cat_sep%(sep: string, def: string, ...%): string
 	%{
 	ODesc d;
@@ -466,15 +486,15 @@ function to_count%(str: string%): count
 	%{
 	const char* s = str->CheckString();
 	char* end_s;
-
-	long l = strtol(s, &end_s, 10);
-	uint32 u = uint32(l);
-
-#if 0
+	
+	uint64 u = (uint64) strtoll(s, &end_s, 10);
+	
 	if ( s[0] == '\0' || end_s[0] != '\0' )
-		builtin_run_time("bad conversion to count", @ARGS@[0]);
-#endif
-
+    	{
+		builtin_run_time("bad conversion to count", @ARG@[0]);
+        u = 0;
+        }
+	
 	return new Val(u, TYPE_COUNT);
 	%}
 
@@ -535,6 +555,17 @@ function to_addr%(ip: string%): addr
 	Val* ret = new AddrVal(s);
 	delete [] s;
 	return ret;
+	%}
+	
+function count_to_v4_addr%(ip: count%): addr
+	%{
+	if ( ip > 4294967295 )
+		{
+		builtin_run_time("conversion of non-IPv4 count to addr", @ARG@[0]);
+		return new AddrVal(uint32(0));
+		}
+	
+	return new AddrVal(htonl(uint32(ip)));
 	%}
 
 # Interprets the first 4 bytes of 'b' as an IPv4 address in network order.
@@ -1329,15 +1360,24 @@ function decode_netbios_name%(name: string%): string
 		}
 
 	for ( i = 0; i < 15; ++i )
-		if ( isalnum(buf[i]) || ispunct(buf[i]) )
+		{
+		if ( isalnum(buf[i]) || ispunct(buf[i]) ||
+		     // \x01\x02 is seen in at least one case as the first two bytes.
+		     // I think that any \x01 and \x02 should always be passed through.
+		     buf[i] < 3 )
 			result[i] = buf[i];
 		else
 			break;
-
-	// The last byte denotes the name type.
-	snprintf(result + i, sizeof(result) - i, "<%02x>", buf[15]);
+		}
 
 	return new StringVal(result);
+	%}
+
+function decode_netbios_name_type%(name: string%): count
+	%{
+	const u_char* s = name->Bytes();
+	char return_val = ((toupper(s[30]) - 'A') << 4) + (toupper(s[31]) - 'A');
+	return new Val(return_val, TYPE_COUNT);
 	%}
 
 %%{
@@ -1585,21 +1625,6 @@ function global_ids%(%): id_table
 		}
 
 	return ids;
-	%}
-
-%%{
-#include "TCP_Rewriter.h"
-
-// Trace rewriting functions.
-class PacketDumper;
-extern PacketDumper* transformed_pkt_dump;
-extern void commit_trace(Val* conn_val, int commit, int future);
-%%}
-
-# True if we're rewriting (anonymizing), false otherwise.
-function rewriting_trace%(%): bool
-	%{
-	return new Val(transformed_pkt_dump != 0, TYPE_BOOL);
 	%}
 
 %%{
@@ -1954,9 +1979,14 @@ function precompile_pcap_filter%(id: PcapFilterID, s: string%): bool
 # Install precompiled pcap filter.
 function install_pcap_filter%(id: PcapFilterID%): bool
 	%{
-	// Don't allow the script-level to change the filter when
-	// the user has specified one on the command line.
-	if ( user_pcap_filter )
+	ID* user_filter = global_scope()->Lookup("cmd_line_bpf_filter");
+
+	if ( ! user_filter )
+		internal_error("global cmd_line_bpf_filter not defined");
+
+	if ( user_filter->ID_Val()->AsStringVal()->Len() )
+		// Don't allow the script-level to change the filter when
+		// the user has specified one on the command line.
 		return new Val(0, TYPE_BOOL);
 
 	bool success = true;
@@ -2088,6 +2118,12 @@ function request_remote_sync%(p: event_peer, auth: bool%) : bool
 	%{
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
 	return new Val(remote_serializer->RequestSync(id, auth), TYPE_BOOL);
+	%}
+
+function request_remote_logs%(p: event_peer%) : bool
+	%{
+	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
+	return new Val(remote_serializer->RequestLogs(id), TYPE_BOOL);
 	%}
 
 function set_accept_state%(p: event_peer, accept: bool%) : bool
@@ -2359,7 +2395,7 @@ function any_set%(v: any%) : bool
 		}
 
 	VectorVal* vv = v->AsVectorVal();
-	for ( unsigned int i = VECTOR_MIN; i < vv->Size() + VECTOR_MIN; ++i )
+	for ( unsigned int i = 0; i < vv->Size(); ++i )
 		if ( vv->Lookup(i) && vv->Lookup(i)->AsBool() )
 			return new Val(true, TYPE_BOOL);
 
@@ -2377,7 +2413,7 @@ function all_set%(v: any%) : bool
 		}
 
 	VectorVal* vv = v->AsVectorVal();
-	for ( unsigned int i = VECTOR_MIN; i < vv->Size() + VECTOR_MIN; ++i )
+	for ( unsigned int i = 0; i < vv->Size(); ++i )
 		if ( ! vv->Lookup(i) || ! vv->Lookup(i)->AsBool() )
 			return new Val(false, TYPE_BOOL);
 
@@ -2560,8 +2596,8 @@ function order%(v: any, ...%) : index_vec
 	// adjusting indices as we do so.
 	for ( i = 0; i < n; ++i )
 		{
-		int ind = ind_vv[i] + VECTOR_MIN;
-		result_v->Assign(i + VECTOR_MIN, new Val(ind, TYPE_COUNT), 0);
+		int ind = ind_vv[i];
+		result_v->Assign(i, new Val(ind, TYPE_COUNT), 0);
 		}
 
 	return result_v;
@@ -3023,7 +3059,7 @@ function lookup_location%(a: addr%) : geo_location
 #ifdef GEOIP_COUNTRY_EDITION_V6
 	if ( geoip_v6 && ! is_v4_addr(a) )
 		gir = GeoIP_record_by_ipnum_v6(geoip_v6, geoipv6_t(a));
-	else 
+	else
 #endif
 	if ( geoip && is_v4_addr(a) )
 		{
@@ -3111,7 +3147,7 @@ function lookup_asn%(a: addr%) : count
 			gir = GeoIP_name_by_ipnum_v6(geoip_asn, geoipv6_t(a));
 		else
 #endif
-		if ( is_v4_addr(a) ) 
+		if ( is_v4_addr(a) )
 			{
 			uint32 addr = to_v4_addr(a);
 			gir = GeoIP_name_by_ipnum(geoip_asn, ntohl(addr));
@@ -3123,7 +3159,7 @@ function lookup_asn%(a: addr%) : count
 
 	if ( gir )
 		{
-		// Move the pointer +2 so we don't return 
+		// Move the pointer +2 so we don't return
 		// the first two characters: "AS".
 		return new Val(atoi(gir+2), TYPE_COUNT);
 		}

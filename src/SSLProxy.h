@@ -7,6 +7,8 @@
 #include "SSLInterpreter.h"
 #include "binpac_bro.h"
 
+#include <algorithm>
+
 // --- forward declarations ---------------------------------------------------
 
 class SSL_Interpreter;

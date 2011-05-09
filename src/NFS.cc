@@ -9,6 +9,8 @@
 #include "NFS.h"
 #include "Event.h"
 
+#include <algorithm>
+
 
 int NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 	{
@@ -209,7 +211,7 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 		if ( c->Proc() < BifEnum::NFS3::PROC_END_OF_PROCS )
 			{ // We know the procedure but haven't implemented it
 			n = 0; // otherwise DeliverRPC complains about excess_RPC
-			reply = new EnumVal(c->Proc(), BifTypePtr::Enum::NFS3::proc_t);
+			reply = new EnumVal(c->Proc(), BifType::Enum::NFS3::proc_t);
 			event = nfs_proc_not_implemented;
 			}
 		else
@@ -258,7 +260,7 @@ StringVal* NFS_Interp::nfs3_file_data(const u_char*& buf, int& n, uint64_t offse
 		return 0;
 	// Ok, so we want to return some data
 	data_n = min(data_n, size);
-	data_n = min(data_n, BifConst::NFS3::return_data_max);
+	data_n = min(data_n, int(BifConst::NFS3::return_data_max));
 	if (data_n>0)
 		return new StringVal(new BroString(data, data_n, 0));
 	return 0;
@@ -273,9 +275,9 @@ val_list* NFS_Interp::event_common_vl(RPC_CallInfo *c, BifEnum::rpc_status rpc_s
 	val_list *vl = new val_list;
 	vl->append(analyzer->BuildConnVal());
 
-	RecordVal *info = new RecordVal(BifTypePtr::Record::NFS3::info_t);
-	info->Assign(0, new EnumVal(rpc_status, BifTypePtr::Enum::rpc_status));  
-	info->Assign(1, new EnumVal(nfs_status, BifTypePtr::Enum::NFS3::status_t));  
+	RecordVal *info = new RecordVal(BifType::Record::NFS3::info_t);
+	info->Assign(0, new EnumVal(rpc_status, BifType::Enum::rpc_status));  
+	info->Assign(1, new EnumVal(nfs_status, BifType::Enum::NFS3::status_t));  
 	info->Assign(2, new Val(c->StartTime(), TYPE_TIME));
 	info->Assign(3, new Val(c->LastTime()-c->StartTime(), TYPE_INTERVAL));
 	info->Assign(4, new Val(c->RPCLen(), TYPE_COUNT));
@@ -300,7 +302,7 @@ StringVal* NFS_Interp::nfs3_fh(const u_char*& buf, int& n)
 
 RecordVal* NFS_Interp::nfs3_fattr(const u_char*& buf, int& n)
 	{
-	RecordVal* attrs = new RecordVal(BifTypePtr::Record::NFS3::fattr_t);
+	RecordVal* attrs = new RecordVal(BifType::Record::NFS3::fattr_t);
 	attrs->Assign(0, nfs3_ftype(buf, n));	// file type
 	attrs->Assign(1, ExtractUint32(buf, n));	// mode
 	attrs->Assign(2, ExtractUint32(buf, n));	// nlink
@@ -322,12 +324,12 @@ RecordVal* NFS_Interp::nfs3_fattr(const u_char*& buf, int& n)
 EnumVal* NFS_Interp::nfs3_ftype(const u_char*& buf, int& n) 
 	{
 	BifEnum::NFS3::file_type_t t = (BifEnum::NFS3::file_type_t)extract_XDR_uint32(buf, n);
-	return new EnumVal(t, BifTypePtr::Enum::NFS3::file_type_t);
+	return new EnumVal(t, BifType::Enum::NFS3::file_type_t);
 	}
 
 RecordVal* NFS_Interp::nfs3_wcc_attr(const u_char*& buf, int& n)
 	{
-	RecordVal* attrs = new RecordVal(BifTypePtr::Record::NFS3::wcc_attr_t);
+	RecordVal* attrs = new RecordVal(BifType::Record::NFS3::wcc_attr_t);
 	attrs->Assign(0, ExtractUint64(buf, n));	// size
 	attrs->Assign(1, ExtractTime(buf, n));	// mtime
 	attrs->Assign(2, ExtractTime(buf, n));	// ctime
@@ -346,7 +348,7 @@ StringVal *NFS_Interp::nfs3_filename(const u_char*& buf, int& n)
 
 RecordVal *NFS_Interp::nfs3_diropargs(const u_char*& buf, int& n)
 	{
-	RecordVal *diropargs = new RecordVal(BifTypePtr::Record::NFS3::diropargs_t);
+	RecordVal *diropargs = new RecordVal(BifType::Record::NFS3::diropargs_t);
 	diropargs->Assign(0, nfs3_fh(buf, n));
 	diropargs->Assign(1, nfs3_filename(buf, n));
 
@@ -384,12 +386,12 @@ RecordVal* NFS_Interp::nfs3_pre_op_attr(const u_char*& buf, int& n)
 EnumVal *NFS_Interp::nfs3_stable_how(const u_char*& buf, int& n) 
 	{
 	BifEnum::NFS3::stable_how_t stable = (BifEnum::NFS3::stable_how_t)extract_XDR_uint32(buf, n);
-	return new EnumVal(stable, BifTypePtr::Enum::NFS3::stable_how_t);
+	return new EnumVal(stable, BifType::Enum::NFS3::stable_how_t);
 	}
 
 RecordVal* NFS_Interp::nfs3_lookup_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status)
 	{
-	RecordVal *rep = new RecordVal(BifTypePtr::Record::NFS3::lookup_reply_t);
+	RecordVal *rep = new RecordVal(BifType::Record::NFS3::lookup_reply_t);
 	if (status == BifEnum::NFS3::NFS3ERR_OK)
 		{
 		rep->Assign(0, nfs3_fh(buf,n));
@@ -407,7 +409,7 @@ RecordVal* NFS_Interp::nfs3_lookup_reply(const u_char*& buf, int& n, BifEnum::NF
 
 RecordVal *NFS_Interp::nfs3_readargs(const u_char*& buf, int& n)
 	{
-	RecordVal *readargs = new RecordVal(BifTypePtr::Record::NFS3::readargs_t);
+	RecordVal *readargs = new RecordVal(BifType::Record::NFS3::readargs_t);
 	readargs->Assign(0, nfs3_fh(buf, n));
 	readargs->Assign(1, ExtractUint64(buf, n));  // offset
 	readargs->Assign(2, ExtractUint32(buf,n));   // size 
@@ -417,7 +419,7 @@ RecordVal *NFS_Interp::nfs3_readargs(const u_char*& buf, int& n)
 RecordVal* NFS_Interp::nfs3_read_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status, 
 		bro_uint_t offset)
 	{
-	RecordVal *rep = new RecordVal(BifTypePtr::Record::NFS3::read_reply_t);
+	RecordVal *rep = new RecordVal(BifType::Record::NFS3::read_reply_t);
 	if (status == BifEnum::NFS3::NFS3ERR_OK)
 		{
 		uint32_t bytes_read;
@@ -437,7 +439,7 @@ RecordVal* NFS_Interp::nfs3_read_reply(const u_char*& buf, int& n, BifEnum::NFS3
 
 RecordVal* NFS_Interp::nfs3_readlink_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status)
 	{
-	RecordVal *rep = new RecordVal(BifTypePtr::Record::NFS3::readlink_reply_t);
+	RecordVal *rep = new RecordVal(BifType::Record::NFS3::readlink_reply_t);
 	if (status == BifEnum::NFS3::NFS3ERR_OK)
 		{
 		rep->Assign(0, nfs3_post_op_attr(buf, n));
@@ -454,7 +456,7 @@ RecordVal *NFS_Interp::nfs3_writeargs(const u_char*& buf, int& n)
 	{
 	uint32_t bytes;
 	uint64_t offset;
-	RecordVal *writeargs = new RecordVal(BifTypePtr::Record::NFS3::writeargs_t);
+	RecordVal *writeargs = new RecordVal(BifType::Record::NFS3::writeargs_t);
 	writeargs->Assign(0, nfs3_fh(buf, n));
 	offset = extract_XDR_uint64(buf, n);
 	bytes = extract_XDR_uint32(buf, n);
@@ -467,7 +469,7 @@ RecordVal *NFS_Interp::nfs3_writeargs(const u_char*& buf, int& n)
 
 RecordVal *NFS_Interp::nfs3_write_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status)
 	{
-	RecordVal *rep = new RecordVal(BifTypePtr::Record::NFS3::write_reply_t);
+	RecordVal *rep = new RecordVal(BifType::Record::NFS3::write_reply_t);
 	if (status == BifEnum::NFS3::NFS3ERR_OK)
 		{
 		rep->Assign(0, nfs3_pre_op_attr(buf, n));
@@ -488,7 +490,7 @@ RecordVal *NFS_Interp::nfs3_write_reply(const u_char*& buf, int& n, BifEnum::NFS
 
 RecordVal* NFS_Interp::nfs3_newobj_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status)
 	{
-	RecordVal *rep = new RecordVal(BifTypePtr::Record::NFS3::newobj_reply_t);
+	RecordVal *rep = new RecordVal(BifType::Record::NFS3::newobj_reply_t);
 	if (status == BifEnum::NFS3::NFS3ERR_OK)
 		{
 		int i = 0;
@@ -510,7 +512,7 @@ RecordVal* NFS_Interp::nfs3_newobj_reply(const u_char*& buf, int& n, BifEnum::NF
 
 RecordVal* NFS_Interp::nfs3_delobj_reply(const u_char*& buf, int& n)
 	{
-	RecordVal *rep = new RecordVal(BifTypePtr::Record::NFS3::delobj_reply_t);
+	RecordVal *rep = new RecordVal(BifType::Record::NFS3::delobj_reply_t);
 	// wcc_data
 	rep->Assign(0, nfs3_pre_op_attr(buf, n));
 	rep->Assign(1, nfs3_post_op_attr(buf, n));
@@ -519,7 +521,7 @@ RecordVal* NFS_Interp::nfs3_delobj_reply(const u_char*& buf, int& n)
 
 RecordVal* NFS_Interp::nfs3_readdirargs(bool isplus, const u_char*& buf, int&n) 
 	{
-	RecordVal *args = new RecordVal(BifTypePtr::Record::NFS3::readdirargs_t);
+	RecordVal *args = new RecordVal(BifType::Record::NFS3::readdirargs_t);
 	args->Assign(0, new Val(isplus, TYPE_BOOL));
 	args->Assign(1, nfs3_fh(buf, n));
 	args->Assign(2, ExtractUint64(buf,n));  // cookie
@@ -533,19 +535,19 @@ RecordVal* NFS_Interp::nfs3_readdirargs(bool isplus, const u_char*& buf, int&n)
 RecordVal* NFS_Interp::nfs3_readdir_reply(bool isplus, const u_char*& buf,
 		int&n, BifEnum::NFS3::status_t status)
 	{
-	RecordVal *rep = new RecordVal(BifTypePtr::Record::NFS3::readdir_reply_t);
+	RecordVal *rep = new RecordVal(BifType::Record::NFS3::readdir_reply_t);
 
 	rep->Assign(0, new Val(isplus, TYPE_BOOL));
 	if (status == BifEnum::NFS3::NFS3ERR_OK)
 		{
-		VectorVal *entries = new VectorVal(BifTypePtr::Vector::NFS3::direntry_vec_t);
+		VectorVal *entries = new VectorVal(BifType::Vector::NFS3::direntry_vec_t);
 		unsigned pos;
 		rep->Assign(1, nfs3_post_op_attr(buf,n));   // dir_attr
 		rep->Assign(2, ExtractUint64(buf,n));  // cookieverf
 		pos = 1;
 		while ( extract_XDR_uint32(buf,n) )  
 			{
-			RecordVal *entry = new RecordVal(BifTypePtr::Record::NFS3::direntry_t);
+			RecordVal *entry = new RecordVal(BifType::Record::NFS3::direntry_t);
 			entry->Assign(0, ExtractUint64(buf,n)); // fileid 
 			entry->Assign(1, nfs3_filename(buf,n)); // fname
 			entry->Assign(2, ExtractUint64(buf,n)); // cookie 

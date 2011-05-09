@@ -234,7 +234,7 @@ void DCE_RPC_Session::DeliverPDU(int is_orig, int len, const u_char* data)
 		val_list* vl = new val_list;
 		vl->append(analyzer->BuildConnVal());
 		vl->append(new Val(is_orig, TYPE_BOOL));
-		vl->append(new EnumVal(data[2], BifTypePtr::Enum::dce_rpc_ptype));
+		vl->append(new EnumVal(data[2], BifType::Enum::dce_rpc_ptype));
 		vl->append(new StringVal(len, (const char*) data));
 
 		analyzer->ConnectionEvent(dce_rpc_message, vl);
@@ -296,7 +296,7 @@ void DCE_RPC_Session::DeliverBind(const binpac::DCE_RPC_Simple::DCE_RPC_PDU* pdu
 			val_list* vl = new val_list;
 			vl->append(analyzer->BuildConnVal());
 			vl->append(new StringVal(if_uuid.to_string()));
-			// vl->append(new EnumVal(if_id, BifTypePtr::Enum::dce_rpc_if_id));
+			// vl->append(new EnumVal(if_id, BifType::Enum::dce_rpc_if_id));
 
 			analyzer->ConnectionEvent(dce_rpc_bind, vl);
 			}

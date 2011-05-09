@@ -9,6 +9,8 @@
 #include "Scope.h"
 #include "File.h"
 
+#include <algorithm>
+
 // FIXME: Things that are not fully implemented/working yet:
 //
 //		  - "ip-options" always evaluates to false

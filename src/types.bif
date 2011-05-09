@@ -51,7 +51,6 @@ enum rpc_status %{
 	RPC_UNKNOWN_ERROR,
 %}
 
-
 module NFS3;
 enum proc_t %{   # NFSv3 procedures
 	PROC_NULL     = 0,  # done
@@ -156,5 +155,16 @@ type readdir_reply_t: record;
 
 
 type fsstat_t: record;
+
+module Log;
+
+enum Writer %{
+	WRITER_DEFAULT,
+	WRITER_ASCII,
+%}
+
+enum ID %{
+	Unknown,
+%}
 
 module GLOBAL;

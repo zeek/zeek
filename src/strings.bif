@@ -135,6 +135,26 @@ function sort_string_array%(a: string_array%): string_array
 	vs_to_string_array(vs, b, 1, n);
 	return b;
 	%}
+	
+function join_string_vec%(vec: string_vec, sep: string%): string
+	%{
+	ODesc d;
+	VectorVal *v = vec->AsVectorVal();
+
+	for ( unsigned i = 0; i < v->Size(); ++i )
+		{
+		if ( i > 0 )
+			d.Add(sep->CheckString(), 0);
+
+		v->Lookup(i+1)->Describe(&d);
+		}
+
+	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
+	s->SetUseFreeToDelete(true);
+
+	return new StringVal(s);
+	%}
+
 
 function edit%(arg_s: string, arg_edit_char: string%): string
 	%{
@@ -222,6 +242,12 @@ Val* do_split(StringVal* str_val, RE_Matcher* re, TableVal* other_sep,
 			// Move on to next byte.
 			++offset;
 			--n;
+			}
+
+		if ( max_num_sep && num_sep >= max_num_sep )
+			{
+			offset = end_of_s - s;
+			n=0;
 			}
 
 		Val* ind = new Val(++num, TYPE_COUNT);
@@ -604,7 +630,7 @@ function strip%(str: string%): string
 function string_fill%(len: int, source: string%): string
 	%{
 	const u_char* src = source->Bytes();
-	int n = source->Len();
+	int64_t n = source->Len();
 	char* dst = new char[len];
 
 	for ( int i = 0; i < len; i += n )

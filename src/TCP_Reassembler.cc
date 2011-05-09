@@ -4,34 +4,18 @@
 #include "TCP_Reassembler.h"
 #include "TCP.h"
 #include "TCP_Endpoint.h"
-#include "TCP_Rewriter.h"
+
+#include <algorithm>
 
 // Only needed for gap_report events.
 #include "Event.h"
 
-// Note, sequence numbers are relative. I.e., they start with 1. 
+// Note, sequence numbers are relative. I.e., they start with 1.
 
-// The Reassembler uses 32 bit ints for keeping track of sequence numbers. 
-// This means that the seq numbers will become negative once we exceed
-// 2 GB of data. The Reassembler seems to mostly work despite negative
-// sequence numbers, since seq_delta() will handle them gracefully. 
-// However, there are a couple of issues. E.g., seq_to_skip doesn't work
-// (which is now disabled with an ifdef, since it wasn't used)
-// Also, a check in Undelivered() had a problem with negative sequence
-// numbers. 
+// TODO: The Reassembler should start using 64 bit ints for keeping track of
+// sequence numbers; currently they become negative once 2GB are exceeded.
 //
-// There are numerous counters (e.g., number of total bytes, etc.) that are 
-// incorrect due to overflow too. However, these seem to be for informative
-// purposes only, so we currently ignore them. 
-//
-// There might be other problems hidden somewhere, that I haven't discovered
-// yet...... 
-//
-// Ideally the Reassembler should start using 64 bit ints for keeping track
-// of sequence numbers 
-//
-// Reassem.{cc|h} and other "Reassemblers" that inherit from it (e.g., Frag)
-// need to be updated too. 
+// See #348 for more information.
 
 const bool DEBUG_tcp_contents = false;
 const bool DEBUG_tcp_connection_close = false;
@@ -59,7 +43,7 @@ TCP_Reassembler::TCP_Reassembler(Analyzer* arg_dst_analyzer,
 	deliver_tcp_contents = 0;
 	skip_deliveries = 0;
 	did_EOF = 0;
-#ifdef XXX_USE_SEQ_TO_SKIP
+#ifdef ENABLE_SEQ_TO_SKIP
 	seq_to_skip = 0;
 #endif
 	in_delivery = false;
@@ -155,15 +139,14 @@ void TCP_Reassembler::Undelivered(int up_to_seq)
 		// (if up_to_seq is 2).  The latter can occur when the
 		// first packet we saw instantiating the partial connection
 		// was a keep-alive.  So, in either case, just ignore it.
-		
+
 		// TODO: Don't we need to update last_reassm_seq ????
-		
-		if (up_to_seq >=0 )
-			// Since seq are currently only 32 bit signed integers, they
-			// will become negative if a connection has more than 2GB of
-			// data..... 
-			// Remove the above if and always return here,
-			// once we're using 64 bit ints
+		if ( up_to_seq >=0 )
+			// Since seq are currently only 32 bit signed
+			// integers, they will become negative if a
+			// connection has more than 2GB of data. Remove the
+			// above if and always return here, once we're using
+			// 64 bit ints
 			return;
 	}
 
@@ -189,11 +172,8 @@ void TCP_Reassembler::Undelivered(int up_to_seq)
 		}
 
 	if ( seq_delta(up_to_seq, last_reassem_seq) <= 0 )
-		{
-		// This should never happen. 
+		// This should never happen.
 		internal_error("Calling Undelivered for data that has already been delivered (or has already been marked as undelivered");
-		return;
-		}
 
 	if ( last_reassem_seq == 1 &&
 	     (endpoint->FIN_cnt > 0 || endpoint->RST_cnt > 0 ||
@@ -206,10 +186,6 @@ void TCP_Reassembler::Undelivered(int up_to_seq)
 		// one for filtered traces, and may fail, for example, when
 		// the SYN packet carries data.
 		//
-		// Note, this check will confuse the EOF checker (and cause a
-		// missing FIN in the rewritten trace) when the content gap
-		// in the middle is discovered only after the FIN packet.
-
 		// Skip the undelivered part without reporting to the endpoint.
 		skip_deliveries = 1;
 		}
@@ -258,11 +234,6 @@ void TCP_Reassembler::Undelivered(int up_to_seq)
 
 				dst_analyzer->ConnectionEvent(content_gap, vl);
 				}
-
-			TCP_Rewriter* r = (TCP_Rewriter*)
-				dst_analyzer->Conn()->TraceRewriter();
-			if ( r )
-				r->ContentGap(is_orig, len);
 
 			if ( type == Direct )
 				dst_analyzer->NextUndelivered(last_reassem_seq,
@@ -614,8 +585,8 @@ void TCP_Reassembler::CheckEOF()
 
 void TCP_Reassembler::DeliverBlock(int seq, int len, const u_char* data)
 	{
-#ifdef XXX_USE_SEQ_TO_SKIP
-	if ( seq_delta(seq + len, seq_to_skip) <= 0 ) 
+#ifdef ENABLE_SEQ_TO_SKIP
+	if ( seq_delta(seq + len, seq_to_skip) <= 0 )
 		return;
 
 	if ( seq_delta(seq, seq_to_skip) < 0 )
@@ -650,13 +621,13 @@ void TCP_Reassembler::DeliverBlock(int seq, int len, const u_char* data)
 	in_delivery = true;
 	Deliver(seq, len, data);
 	in_delivery = false;
-#ifdef XXX_USE_SEQ_TO_SKIP
+#ifdef ENABLE_SEQ_TO_SKIP
 	if ( seq_delta(seq + len, seq_to_skip) < 0 )
 		SkipToSeq(seq_to_skip);
 #endif
 	}
 
-#ifdef XXX_USE_SEQ_TO_SKIP
+#ifdef ENABLE_SEQ_TO_SKIP
 void TCP_Reassembler::SkipToSeq(int seq)
 	{
 	if ( seq_delta(seq, seq_to_skip) > 0 )

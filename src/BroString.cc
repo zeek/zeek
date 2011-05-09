@@ -10,6 +10,8 @@
 #include "BroString.h"
 #include "Var.h"
 
+#include <algorithm>
+
 #ifdef DEBUG
 #define DEBUG_STR(msg) DBG_LOG(DBG_STRING, msg)
 #else

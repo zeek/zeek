@@ -35,13 +35,12 @@ string type_name;
 enum {
 	C_SEGMENT_DEF,
 	FUNC_DEF,
-	REWRITER_DEF,
 	EVENT_DEF,
 	TYPE_DEF,
 	CONST_DEF,
 };
 
-// Holds the name of a declared object (function, enum, record type, event, 
+// Holds the name of a declared object (function, enum, record type, event,
 // etc. and information about namespaces, etc.
 struct decl_struct {
 	string module_name;
@@ -51,7 +50,7 @@ struct decl_struct {
 	string c_fullname; // fully qualified name (namespace::....) for use in netvar_init
 	string bro_fullname; // fully qualified bro name, for netvar (and lookup_ID())
 	string bro_name;  // the name as we read it from input. What we write into the .bro file
-	
+
 	// special cases for events. Events have an EventHandlerPtr
 	// and a generate_* function. This name is for the generate_* function
 	string generate_bare_name;
@@ -63,7 +62,7 @@ struct decl_struct {
 void set_definition_type(int type, const char *arg_type_name)
 	{
 	definition_type = type;
-	if (type == TYPE_DEF && arg_type_name)
+	if ( type == TYPE_DEF && arg_type_name )
 		type_name = string(arg_type_name);
 	else
 		type_name = "";
@@ -74,10 +73,10 @@ void set_decl_name(const char *name)
 	decl.bare_name = extract_var_name(name);
 
 	// make_full_var_name prepends the correct module, if any
-	// then we can extract the module name again. 
+	// then we can extract the module name again.
 	string varname = make_full_var_name(current_module.c_str(), name);
 	decl.module_name = extract_module_name(varname.c_str());
-	
+
 	decl.c_namespace_start = "";
 	decl.c_namespace_end = "";
 	decl.c_fullname = "";
@@ -91,26 +90,15 @@ void set_decl_name(const char *name)
 
 	switch ( definition_type ) {
 	case TYPE_DEF:
-		decl.c_namespace_start = "namespace BifTypePtr { namespace " + type_name + "{ ";
+		decl.c_namespace_start = "namespace BifType { namespace " + type_name + "{ ";
 		decl.c_namespace_end = " } }";
-		decl.c_fullname = "BifTypePtr::" + type_name + "::";
+		decl.c_fullname = "BifType::" + type_name + "::";
 		break;
 
 	case CONST_DEF:
 		decl.c_namespace_start = "namespace BifConst { ";
 		decl.c_namespace_end = " } ";
 		decl.c_fullname = "BifConst::";
-		break;
-	
-	case REWRITER_DEF:
-		// XXX: Legacy. No module names / namespaces supported
-		// If support for namespaces is desired: add a namespace 
-		// to c_namespace_* and bro_fullname and get rid of 
-		// the hack to bro_name.
-		decl.c_namespace_start = "";
-		decl.c_namespace_end = "";
-		decl.bare_name = "rewrite_" + decl.bare_name;
-		decl.bro_name = "rewrite_";
 		break;
 
 	case FUNC_DEF:
@@ -132,9 +120,9 @@ void set_decl_name(const char *name)
 		break;
 	}
 
-	if (decl.module_name != GLOBAL_MODULE_NAME)
+	if ( decl.module_name != GLOBAL_MODULE_NAME )
 		{
-		decl.c_namespace_start += "namespace " + decl.module_name + " { "; 
+		decl.c_namespace_start += "namespace " + decl.module_name + " { ";
 		decl.c_namespace_end += string(" }");
 		decl.c_fullname += decl.module_name + "::";
 		decl.bro_fullname += decl.module_name + "::";
@@ -145,7 +133,7 @@ void set_decl_name(const char *name)
 		}
 
 	decl.bro_fullname += decl.bare_name;
-	if (definition_type == FUNC_DEF)
+	if ( definition_type == FUNC_DEF )
 		decl.bare_name = string("bro_") + decl.bare_name;
 
 	decl.c_fullname += decl.bare_name;
@@ -155,7 +143,6 @@ void set_decl_name(const char *name)
 	}
 
 const char* arg_list_name = "BiF_ARGS";
-const char* trace_rewriter_name = "trace_rewriter";
 
 #include "bif_arg.h"
 
@@ -175,9 +162,9 @@ static struct {
 
 int get_type_index(const char *type_name)
 	{
-	for ( int i = 0; builtin_types[i].bif_type[0] != '\0'; ++i ) 
+	for ( int i = 0; builtin_types[i].bif_type[0] != '\0'; ++i )
 		{
-		if (strcmp(builtin_types[i].bif_type, type_name) == 0)
+		if ( strcmp(builtin_types[i].bif_type, type_name) == 0 )
 			return i;
 		}
 		return TYPE_OTHER;
@@ -209,13 +196,13 @@ char* concat(const char* str1, const char* str2)
 // Print the bro_event_* function prototype in C++, without the ending ';'
 void print_event_c_prototype(FILE *fp, bool is_header)
 	{
-	if (is_header)
-		fprintf(fp, "%s void %s(Analyzer* analyzer%s", 
+	if ( is_header )
+		fprintf(fp, "%s void %s(Analyzer* analyzer%s",
 			decl.generate_c_namespace_start.c_str(), decl.generate_bare_name.c_str(),
 			args.size() ? ", " : "" );
 	else
-		fprintf(fp, "void %s(Analyzer* analyzer%s", 
-			decl.generate_c_fullname.c_str(), 
+		fprintf(fp, "void %s(Analyzer* analyzer%s",
+			decl.generate_c_fullname.c_str(),
 			args.size() ? ", " : "" );
 	for ( int i = 0; i < (int) args.size(); ++i )
 		{
@@ -224,9 +211,9 @@ void print_event_c_prototype(FILE *fp, bool is_header)
 		args[i]->PrintCArg(fp, i);
 		}
 	fprintf(fp, ")");
-	if (is_header)
+	if ( is_header )
 		fprintf(fp, "; %s\n", decl.generate_c_namespace_end.c_str());
-	else 
+	else
 		fprintf(fp, "\n");
 	}
 
@@ -282,9 +269,8 @@ void print_event_c_body(FILE *fp)
 
 %token TOK_LPP TOK_RPP TOK_LPB TOK_RPB TOK_LPPB TOK_RPPB TOK_VAR_ARG
 %token TOK_BOOL
-%token TOK_FUNCTION TOK_REWRITER TOK_EVENT TOK_CONST TOK_ENUM 
+%token TOK_FUNCTION TOK_EVENT TOK_CONST TOK_ENUM
 %token TOK_TYPE TOK_RECORD TOK_SET TOK_VECTOR TOK_TABLE TOK_MODULE
-%token TOK_WRITE TOK_PUSH TOK_EOF TOK_TRACE
 %token TOK_ARGS TOK_ARG TOK_ARGC
 %token TOK_ID TOK_ATTR TOK_CSTR TOK_LF TOK_WS TOK_COMMENT
 %token TOK_ATOM TOK_INT TOK_C_TOKEN
@@ -307,10 +293,15 @@ builtin_lang:	definitions
 			fprintf(fp_bro_init, "module %s;\n", GLOBAL_MODULE_NAME);
 			}
 
-			
 
-definitions:	definitions definition opt_ws 
-			{ fprintf(fp_func_def, "%s", $3); }
+
+definitions:	definitions definition opt_ws
+			{
+			if ( in_c_code )
+				fprintf(fp_func_def, "%s", $3);
+			else
+				fprintf(fp_bro_init, "%s", $3);
+			}
 	|	opt_ws
 			{
 			int n = 1024 + strlen(input_filename);
@@ -335,7 +326,6 @@ definitions:	definitions definition opt_ws
 
 definition:	event_def
 	|	func_def
-	|	rewriter_def
 	|	c_code_segment
 	|	enum_def
 	|	const_def
@@ -351,10 +341,10 @@ module_def:	TOK_MODULE opt_ws TOK_ID opt_ws ';'
 			}
 
 	 // XXX: Add the netvar glue so that the event engine knows about
-	 // the type. One still has to define the type in bro.init. 
+	 // the type. One still has to define the type in bro.init.
 	 // Would be nice, if we could just define the record type here
-	 // and then copy to the .bif.bro file, but type delcarations in
-	 // bro can be quite powerful. Don't know whether it's worth it
+	 // and then copy to the .bif.bro file, but type declarations in
+	 // Bro can be quite powerful. Don't know whether it's worth it
 	 // extend the bif-language to be able to handle that all....
 	 // Or we just support a simple form of record type definitions
 	 // TODO: add other types (tables, sets)
@@ -370,12 +360,12 @@ type_def:	TOK_TYPE opt_ws TOK_ID opt_ws ':' opt_ws type_def_types opt_ws ';'
 				decl.bare_name.c_str(), decl.c_namespace_end.c_str());
 			fprintf(fp_netvar_init,
 				"\t%s = internal_type(\"%s\")->As%sType();\n",
-				decl.c_fullname.c_str(), decl.bro_fullname.c_str(), 
+				decl.c_fullname.c_str(), decl.bro_fullname.c_str(),
 				type_name.c_str());
 			}
 	;
 
-type_def_types: TOK_RECORD 
+type_def_types: TOK_RECORD
 			{ set_definition_type(TYPE_DEF, "Record"); }
 	| TOK_SET
 			{ set_definition_type(TYPE_DEF, "Set"); }
@@ -391,18 +381,15 @@ event_def:	event_prefix opt_ws plain_head opt_attr end_of_head ';'
 			print_event_c_prototype(fp_func_def, false);
 			print_event_c_body(fp_func_def);
 			}
-	
-func_def:	func_prefix opt_ws typed_head end_of_head body
-	;
 
-rewriter_def:	rewriter_prefix opt_ws plain_head end_of_head body
+func_def:	func_prefix opt_ws typed_head end_of_head body
 	;
 
 enum_def:	enum_def_1 enum_list TOK_RPB
 			{
 			// First, put an end to the enum type decl.
 			fprintf(fp_bro_init, "};\n");
-			if (decl.module_name != GLOBAL_MODULE_NAME)
+			if ( decl.module_name != GLOBAL_MODULE_NAME )
 				fprintf(fp_netvar_h, "}; } }\n");
 			else
 				fprintf(fp_netvar_h, "}; }\n");
@@ -427,8 +414,8 @@ enum_def_1:	TOK_ENUM opt_ws TOK_ID opt_ws TOK_LPB opt_ws
 			// this is the namespace were the enumerators are defined, not where
 			// the type is defined.
 			// We don't support fully qualified names as enumerators. Use a module name
-			fprintf(fp_netvar_h, "namespace BifEnum { "); 
-			if (decl.module_name != GLOBAL_MODULE_NAME)
+			fprintf(fp_netvar_h, "namespace BifEnum { ");
+			if ( decl.module_name != GLOBAL_MODULE_NAME )
 				fprintf(fp_netvar_h, "namespace %s { ", decl.module_name.c_str());
 			fprintf(fp_netvar_h, "enum %s {\n", $3);
 			}
@@ -458,20 +445,20 @@ const_def:	TOK_CONST opt_ws TOK_ID opt_ws ':' opt_ws TOK_ID opt_ws ';'
 			snprintf(accessor, sizeof(accessor), builtin_types[typeidx].accessor, "");
 
 
-			fprintf(fp_netvar_h, "%s extern %s %s; %s\n", 
-					decl.c_namespace_start.c_str(), 
-					builtin_types[typeidx].c_type, decl.bare_name.c_str(), 
+			fprintf(fp_netvar_h, "%s extern %s %s; %s\n",
+					decl.c_namespace_start.c_str(),
+					builtin_types[typeidx].c_type, decl.bare_name.c_str(),
 					decl.c_namespace_end.c_str());
-			fprintf(fp_netvar_def, "%s %s %s; %s\n", 
-					decl.c_namespace_start.c_str(), 
-					builtin_types[typeidx].c_type, decl.bare_name.c_str(), 
+			fprintf(fp_netvar_def, "%s %s %s; %s\n",
+					decl.c_namespace_start.c_str(),
+					builtin_types[typeidx].c_type, decl.bare_name.c_str(),
 					decl.c_namespace_end.c_str());
 			fprintf(fp_netvar_init, "\t%s = internal_const_val(\"%s\")%s;\n",
 				decl.c_fullname.c_str(), decl.bro_fullname.c_str(),
 				accessor);
 			}
-				
-			
+
+
 /* Currently support only boolean and string values */
 opt_attr_init:	'=' opt_ws TOK_BOOL opt_ws
 			{
@@ -488,10 +475,6 @@ opt_attr:	/* nothing */
 
 func_prefix:	TOK_FUNCTION
 			{ set_definition_type(FUNC_DEF, 0); }
-	;
-
-rewriter_prefix: TOK_REWRITER
-			{ set_definition_type(REWRITER_DEF, 0); }
 	;
 
 event_prefix:	TOK_EVENT
@@ -515,12 +498,9 @@ plain_head:	head_1 args arg_end opt_ws
 				fprintf(fp_bro_init, "va_args: any");
 			else
 				{
-				if ( definition_type == REWRITER_DEF )
-					fprintf(fp_bro_init, "c: connection");
-
 				for ( int i = 0; i < (int) args.size(); ++i )
 					{
-					if ( i > 0 || definition_type == REWRITER_DEF )
+					if ( i > 0 )
 						fprintf(fp_bro_init, ", ");
 					args[i]->PrintBro(fp_bro_init);
 					}
@@ -538,7 +518,7 @@ head_1:		TOK_ID opt_ws arg_begin
 			const char* method_type = 0;
 			set_decl_name($1);
 
-			if ( definition_type == FUNC_DEF || definition_type == REWRITER_DEF )
+			if ( definition_type == FUNC_DEF )
 				{
 				method_type = "function";
 				print_line_directive(fp_func_def);
@@ -551,7 +531,7 @@ head_1:		TOK_ID opt_ws arg_begin
 					"global %s: %s%s(",
 					decl.bro_name.c_str(), method_type, $2);
 
-			if ( definition_type == FUNC_DEF || definition_type == REWRITER_DEF )
+			if ( definition_type == FUNC_DEF )
 				{
 				fprintf(fp_func_init,
 					"\t(void) new BuiltinFunc(%s, \"%s\", 0);\n",
@@ -646,11 +626,6 @@ body_start:	TOK_LPB c_code_begin
 			int argc = args.size();
 
 			fprintf(fp_func_def, "{");
-			if ( definition_type == REWRITER_DEF )
-				{
-				implicit_arg = 1;
-				++argc;
-				}
 
 			if ( argc > 0 || ! var_arg )
 				fprintf(fp_func_def, "\n");
@@ -676,15 +651,6 @@ body_start:	TOK_LPB c_code_begin
 				fprintf(fp_func_def, "\t\t}\n");
 				}
 
-			if ( definition_type == REWRITER_DEF )
-				{
-				fprintf(fp_func_def,
-					"\tRewriter* %s = get_trace_rewriter((*%s)[0]);\n",
-					trace_rewriter_name,
-					arg_list_name);
-				fprintf(fp_func_def, "\tif ( ! trace_rewriter )\n");
-				fprintf(fp_func_def, "\t\treturn 0;\n");
-				}
 			for ( int i = 0; i < (int) args.size(); ++i )
 				args[i]->PrintCDef(fp_func_def, i + implicit_arg);
 			print_line_directive(fp_func_def);
@@ -693,8 +659,6 @@ body_start:	TOK_LPB c_code_begin
 
 body_end:	TOK_RPB c_code_end
 			{
-			if ( definition_type == REWRITER_DEF )
-				fprintf(fp_func_def, "\n\treturn 0;\n");
 			fprintf(fp_func_def, "}");
 			}
 	;
@@ -718,21 +682,13 @@ c_atom:		TOK_ID
 			{ fprintf(fp_func_def, "%s", arg_list_name); }
 	|	TOK_ARGC
 			{ fprintf(fp_func_def, "%s->length()", arg_list_name); }
-	|	TOK_TRACE
-			{ fprintf(fp_func_def, "%s", trace_rewriter_name); }
-	|	TOK_WRITE
-			{ fprintf(fp_func_def, "%s->WriteData", trace_rewriter_name); }
-	|	TOK_PUSH
-			{ fprintf(fp_func_def, "%s->Push", trace_rewriter_name); }
-	|	TOK_EOF
-			{ fprintf(fp_func_def, "%s->EndOfData", trace_rewriter_name); }
 	|	TOK_CSTR
 			{ fprintf(fp_func_def, "%s", $1); }
 	|	TOK_ATOM
 			{ fprintf(fp_func_def, "%c", $1); }
 	|	TOK_INT
 			{ fprintf(fp_func_def, "%s", $1); }
-			
+
 	;
 
 opt_ws:		opt_ws TOK_WS
@@ -744,7 +700,12 @@ opt_ws:		opt_ws TOK_WS
 			if ( in_c_code )
 				$$ = concat($1, $2);
 			else
-				$$ = $1;
+				if ( $2[1] == '#' )
+					// This is a special type of comment that is used to
+					// generate bro script documentation, so pass it through.
+					$$ = concat($1, $2);
+				else
+					$$ = $1;
 			}
 	|	/* empty */
 			{ $$ = ""; }

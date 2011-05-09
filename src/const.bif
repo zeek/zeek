@@ -1,51 +1,12 @@
 # $Id: const.bif 3929 2007-01-14 00:37:59Z vern $
 
-# Some connections (e.g., SSH) retransmit the acknowledged last
-# byte to keep the connection alive. If ignore_keep_alive_rexmit
-# is set to T, such retransmissions will be excluded in the rexmit
-# counter in conn_stats.
+# Documentation and default values for these are located in policy/bro.dif.
+
 const ignore_keep_alive_rexmit: bool;
-
-# Skip HTTP data portions for performance considerations (the skipped
-# portion will not go through TCP reassembly).
 const skip_http_data: bool;
-
-# Whether the analysis engine parses IP packets encapsulated in
-# UDP tunnels. See also: udp_tunnel_port, policy/udp-tunnel.bro.
 const parse_udp_tunnels: bool;
 
-# Whether a commitment is required before writing the transformed
-# trace for a connection into the dump file.
-const requires_trace_commitment: bool;
-
-# Whether IP address anonymization is enabled.
-const anonymize_ip_addr: bool;
-
-# Whether to omit place holder packets when rewriting.
-const omit_rewrite_place_holder : bool ;
-
-# Whether trace of various protocols is being rewritten.
-const rewriting_http_trace :bool;
-const rewriting_smtp_trace: bool;
-const rewriting_ftp_trace: bool;
-const rewriting_ident_trace: bool;
-const rewriting_finger_trace: bool;
-const rewriting_dns_trace: bool;
-const rewriting_smb_trace: bool;
-
-# Whether we dump selected original packets to the output trace.
-const dump_selected_source_packets: bool;
-
-# If true, we dump original packets to the output trace *if and only if*
-# the connection is not rewritten; if false, the policy script can decide
-# whether to dump a particular connection by calling dump_packets_of_connection.
-#
-# NOTE: DO NOT SET THIS TO TRUE WHEN ANONYMIZING A TRACE! 
-# (TODO: this variable should be disabled when using '-A' option)
-const dump_original_packets_if_not_rewriting: bool;
-
 const report_gaps_for_partial: bool;
-
 
 # NFS analyzer settings. See bro.init for documentation
 const NFS3::return_data: bool;

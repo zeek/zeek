@@ -338,8 +338,6 @@ protected:
 	double start_time, last_time;
 	double inactivity_timeout;
 	RecordVal* conn_val;
-	RecordVal* orig_endp;
-	RecordVal* resp_endp;
 	LoginConn* login_conn;	// either nil, or this
 	int suppress_event;	// suppress certain events to once per conn.
 

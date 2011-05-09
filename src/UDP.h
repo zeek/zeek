@@ -19,6 +19,8 @@ public:
 
 	virtual void Init();
 
+	virtual void UpdateConnVal(RecordVal *conn_val);
+
 	static Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new UDP_Analyzer(conn); }
 
@@ -28,11 +30,13 @@ protected:
 	virtual void Done();
 	virtual void DeliverPacket(int len, const u_char* data, bool orig,
 					int seq, const IP_Hdr* ip, int caplen);
-	virtual void UpdateEndpointVal(RecordVal* endp, int is_orig);
 	virtual bool IsReuse(double t, const u_char* pkt);
 	virtual unsigned int MemoryAllocation() const;
 
 	bro_int_t request_len, reply_len;
+
+private:
+	void UpdateEndpointVal(RecordVal* endp, int is_orig);
 
 #define HIST_ORIG_DATA_PKT 0x1
 #define HIST_RESP_DATA_PKT 0x2

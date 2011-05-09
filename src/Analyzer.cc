@@ -36,6 +36,7 @@
 #include "SSH.h"
 #include "SSLProxy.h"
 #include "SSL-binpac.h"
+#include "ConnSizeAnalyzer.h"
 
 // Keep same order here as in AnalyzerTag definition!
 const Analyzer::Config Analyzer::analyzer_configs[] = {
@@ -151,6 +152,9 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 	{ AnalyzerTag::TCPStats, "TCPSTATS",
 		TCPStats_Analyzer::InstantiateAnalyzer,
 		TCPStats_Analyzer::Available, 0, false },
+	{ AnalyzerTag::ConnSize, "CONNSIZE", 
+		ConnSize_Analyzer::InstantiateAnalyzer,
+		ConnSize_Analyzer::Available, 0, false },
 
 	{ AnalyzerTag::Contents, "CONTENTS", 0, 0, 0, false },
 	{ AnalyzerTag::ContentLine, "CONTENTLINE", 0, 0, 0, false },
@@ -850,6 +854,12 @@ unsigned int Analyzer::MemoryAllocation() const
 		mem += a->MemoryAllocation();
 
 	return mem;
+	}
+
+void Analyzer::UpdateConnVal(RecordVal *conn_val)
+	{
+	LOOP_OVER_CHILDREN(i)
+		(*i)->UpdateConnVal(conn_val);
 	}
 
 void SupportAnalyzer::ForwardPacket(int len, const u_char* data, bool is_orig,

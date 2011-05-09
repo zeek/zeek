@@ -1,5 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include <algorithm>
+
 #include "LogMgr.h"
 #include "Event.h"
 #include "EventHandler.h"

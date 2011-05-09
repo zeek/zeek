@@ -173,6 +173,8 @@
 #endif
 #include <sys/resource.h>
 
+#include <algorithm>
+
 #include "RemoteSerializer.h"
 #include "Func.h"
 #include "EventRegistry.h"
@@ -2396,12 +2398,12 @@ bool RemoteSerializer::SendPrintHookEvent(BroFile* f, const char* txt)
 		if ( ! fname )
 			continue; // not a managed file.
 
-		long unsigned int len = strlen(txt);
+		size_t len = strlen(txt);
 
 		// We cut off everything after the max buffer size.  That
 		// makes the code a bit easier, and we shouldn't have such
 		// long lines anyway.
-		len = min(len, PRINT_BUFFER_SIZE - strlen(fname) - 2);
+		len = min<size_t>(len, PRINT_BUFFER_SIZE - strlen(fname) - 2);
 
 		// If there's not enough space in the buffer, flush it.
 

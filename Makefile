@@ -23,13 +23,13 @@ install: configured
 
 clean: configured
 	( cd $(BUILD) && make clean )
-	( cd $(BUILD) && make doc-clean )
+	( cd $(BUILD) && make docclean && make restclean )
 
 doc: configured
 	( cd $(BUILD) && make doc )
 
-doc-clean: configured
-	( cd $(BUILD) && make doc-clean )
+docclean: configured
+	( cd $(BUILD) && make docclean && make restclean )
 
 dist: cmake_version
 	# Minimum Bro source package

@@ -80,7 +80,9 @@ global matched_software: table[string] of Software::Info = {
 		[$name="MSIE", $version=[$major=7,$minor=0,$addl="b"], $host=0.0.0.0, $ts=ts],
 	["Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.7.2) Gecko/20040804 Netscape/7.2 (ax)"] =
 		[$name="Netscape", $version=[$major=7,$minor=2], $host=0.0.0.0, $ts=ts],
-	
+	# This next one currently fails.
+	#["The Bat! (3.0.1 RC3) Professional"] =
+	#	[$name="The Bat!", $version=[$major=3,$minor=0,$minor2=1,$addl="RC3"], $host=0.0.0.0, $ts=ts],
 	# This is an FTP client (found with CLNT command)
 	["Total Commander"] =
 		[$name="Total Commander", $version=[], $host=0.0.0.0, $ts=ts],

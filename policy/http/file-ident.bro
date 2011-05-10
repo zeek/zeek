@@ -76,7 +76,7 @@ event signature_match(state: signature_state, msg: string, data: string) &priori
 	if ( msg in mime_types_extensions && 
 	     c$http?$uri && mime_types_extensions[msg] !in c$http$uri )
 		{
-		local url = build_url(c);
+		local url = build_url(c$http);
 		local message = fmt("%s %s %s", msg, c$http$method, url);
 		NOTICE([$note=HTTP_IncorrectFileType,
 		        $msg=message,

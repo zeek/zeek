@@ -6,7 +6,7 @@ module HTTP;
 
 export {
 	global extract_keys: function(data: string, kv_splitter: pattern): string_vec;
-	global build_url: function(c: connection): string;
+	global build_url: function(h: Info): string;
 }
 
 
@@ -24,11 +24,11 @@ function extract_keys(data: string, kv_splitter: pattern): string_vec
 	return key_vec;
 	}
 
-function build_url(c: connection): string
+function build_url(h: Info): string
 	{
-	if ( ! c?$http ) return "";
-	
-	local host = c$http?$host ? c$http$host : fmt("%s:%d", c$id$resp_h, c$id$resp_p);
-	local uri  = c$http?$uri  ? c$http$uri : "/<missed_request>";
+	local uri  = h?$uri ? h$uri : "/<missed_request>";
+	local host = h?$host ? h$host : fmt("%s", h$id$resp_h);
+	if ( h$id$resp_p != 80/tcp )
+		host = fmt("%s:%s", host, h$id$resp_p);
 	return fmt("http://%s%s", host, uri);
 	}

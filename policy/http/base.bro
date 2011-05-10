@@ -155,7 +155,8 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 			c$http$referrer = value;
 
 		else if ( name == "HOST" )
-			c$http$host = value;
+			# The split is done to remove the occasional port value that shows up here.
+			c$http$host = split1(value, /:/)[1];
 		
 		else if ( name == "CONTENT-LENGTH" )
 			c$http$request_content_length = to_count(strip(value));

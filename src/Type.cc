@@ -1157,6 +1157,7 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 	for ( int i = 0; i < num_fields; ++i )
 		{
 		if ( i > 0 )
+			{
 			if ( func_args )
 				d->Add(", ");
 			else
@@ -1164,6 +1165,7 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 				d->NL();
 				d->NL();
 				}
+			}
 
 		FieldDecl(i)->DescribeReST(d);
 		}

@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <string.h>
+#include <list>
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
@@ -47,6 +48,7 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "Stats.h"
 #include "ConnCompressor.h"
 #include "DPM.h"
+#include "BroDoc.h"
 
 #include "binpac_bro.h"
 
@@ -102,6 +104,8 @@ vector<string> params;
 char* proc_status_file = 0;
 
 int FLAGS_use_binpac = false;
+
+extern std::list<BroDoc*> docs_generated;
 
 // Keep copy of command line
 int bro_argc;
@@ -970,6 +974,20 @@ int main(int argc, char** argv)
 	dpm->PostScriptInit();
 
 	mgr.Drain();
+
+	if ( generate_documentation )
+		{
+		std::list<BroDoc*>::iterator it;
+
+		for ( it = docs_generated.begin(); it != docs_generated.end(); ++it )
+			(*it)->WriteDocFile();
+
+		for ( it = docs_generated.begin(); it != docs_generated.end(); ++it )
+			delete *it;
+
+		terminate_bro();
+		return 0;
+		}
 
 	have_pending_timers = ! reading_traces && timer_mgr->Size() > 0;
 

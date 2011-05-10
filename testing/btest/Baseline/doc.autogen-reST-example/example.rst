@@ -13,11 +13,23 @@ these comments are transferred directly into the auto-generated
 `reStructuredText <http://docutils.sourceforge.net/rst.html>`_
 (reST) document's summary section.
 
-.. tip:: You can embed directives and roles within ``##``-stylized comments
+.. tip:: You can embed directives and roles within ``##``-stylized comments.
+
+A script's logging information has to be documented manually as minimally
+shown below.  Note that references may not always be possible (e.g.
+anonymous filter functions) and a script may not need to document
+each of "columns", "event", "filter" depending on exactly what it's doing.
+
+**Logging Stream ID:** :bro:enum:`Example::EXAMPLE`
+    :Columns:    :bro:type:`Example::Info`
+    :Event:      :bro:id:`Example::log_example`
+    :Filter:     ``example-filter``
+        uses :bro:id:`Example::filter_func` to determine whether to
+        exclude the ``ts`` field
 
 :Author: Jon Siwek <jsiwek@ncsa.illinois.edu>
 
-:Imports: :doc:`notice`
+:Imports: :doc:`notice </policy/notice>`
 
 Summary
 ~~~~~~~
@@ -49,13 +61,20 @@ Types
                                                        goes here.
 
 :bro:type:`Example::ComplexRecord`: :bro:type:`record` general documentation for a type "ComplexRecord" goes here
+
+:bro:type:`Example::Info`: :bro:type:`record`          An example record to be used with a logging stream.
 ====================================================== ==========================================================
 
 Events
 ######
-============================================== ==========================
-:bro:id:`Example::an_event`: :bro:type:`event` Summarize "an_event" here.
-============================================== ==========================
+================================================= =============================================================
+:bro:id:`Example::an_event`: :bro:type:`event`    Summarize "an_event" here.
+
+:bro:id:`Example::log_example`: :bro:type:`event` This is a declaration of an example event that can be used in
+                                                  logging streams and is raised once for each log entry.
+
+:bro:id:`bro_init`: :bro:type:`event`
+================================================= =============================================================
 
 Functions
 #########
@@ -65,9 +84,13 @@ Functions
 
 Redefinitions
 #############
-================================================= ====================================
-:bro:type:`Example::SimpleEnum`: :bro:type:`enum` document the "SimpleEnum" redef here
-================================================= ====================================
+===================================================== ========================================
+:bro:type:`Log::ID`: :bro:type:`enum`
+
+:bro:type:`Example::SimpleEnum`: :bro:type:`enum`     document the "SimpleEnum" redef here
+
+:bro:type:`Example::SimpleRecord`: :bro:type:`record` document the record extension redef here
+===================================================== ========================================
 
 Namespaces
 ~~~~~~~~~~
@@ -180,6 +203,18 @@ Types
 
    general documentation for a type "ComplexRecord" goes here
 
+.. bro:type:: Example::Info
+
+   :Type: :bro:type:`record`
+
+      ts: :bro:type:`time` :bro:attr:`&log`
+
+      uid: :bro:type:`string` :bro:attr:`&log`
+
+      status: :bro:type:`count` :bro:attr:`&log` :bro:attr:`&optional`
+
+   An example record to be used with a logging stream.
+
 Events
 ~~~~~~
 .. bro:id:: Example::an_event
@@ -190,6 +225,17 @@ Events
    Give more details about "an_event" here.
    
    :param name: describe the argument here
+
+.. bro:id:: Example::log_example
+
+   :Type: :bro:type:`event` (rec: :bro:type:`Example::Info`)
+
+   This is a declaration of an example event that can be used in
+   logging streams and is raised once for each log entry.
+
+.. bro:id:: bro_init
+
+   :Type: :bro:type:`event` ()
 
 Functions
 ~~~~~~~~~
@@ -213,6 +259,12 @@ Functions
 
 Redefinitions
 ~~~~~~~~~~~~~
+:bro:type:`Log::ID`
+
+   :Type: :bro:type:`enum`
+
+      .. bro:enum:: Example::EXAMPLE Log::ID
+
 :bro:type:`Example::SimpleEnum`
 
    :Type: :bro:type:`enum`
@@ -227,6 +279,16 @@ Redefinitions
 
    document the "SimpleEnum" redef here
 
+.. bro:type:: Example::SimpleRecord
+
+   :Type: :bro:type:`record`
+
+      field_ext: :bro:type:`string` :bro:attr:`&optional`
+         document the extending field here
+         (or here)
+
+   document the record extension redef here
+
 Port Analysis
 -------------
 :ref:`More Information <common_port_analysis_doc>`
@@ -234,8 +296,8 @@ Port Analysis
 SSL::
 
     [ports={
-        563/tcp,
-        443/tcp
+        443/tcp,
+        562/tcp
     }]
 
 Packet Filter
@@ -244,8 +306,8 @@ Packet Filter
 
 Filters added::
 
-    [nntps] = tcp port 563,
-    [ssl] = tcp port 443
+    [ssl] = tcp port 443,
+    [nntps] = tcp port 562
 
 Private Interface
 -----------------
@@ -260,8 +322,8 @@ State Variables
    ::
 
       {
-         563/tcp,
-         443/tcp
+         443/tcp,
+         562/tcp
       }
 
 Types
@@ -276,6 +338,10 @@ Types
 
 Functions
 ~~~~~~~~~
+.. bro:id:: Example::filter_func
+
+   :Type: :bro:type:`function` (rec: :bro:type:`Example::Info`) : :bro:type:`bool`
+
 .. bro:id:: Example::function_without_proto
 
    :Type: :bro:type:`function` (tag: :bro:type:`string`) : :bro:type:`string`

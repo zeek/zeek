@@ -456,6 +456,8 @@ public:
 	// Given an offset, returns the field's name.
 	const char* FieldName(int field) const;
 
+	type_decl_list* Types() { return types; }
+
 	// Given an offset, returns the field's TypeDecl.
 	const TypeDecl* FieldDecl(int field) const;
 	TypeDecl* FieldDecl(int field);

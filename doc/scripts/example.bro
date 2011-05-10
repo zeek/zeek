@@ -6,6 +6,18 @@
 ##!
 ##! .. tip:: You can embed directives and roles within ``##``-stylized comments.
 ##!
+##! A script's logging information has to be documented manually as minimally
+##! shown below.  Note that references may not always be possible (e.g.
+##! anonymous filter functions) and a script may not need to document
+##! each of "columns", "event", "filter" depending on exactly what it's doing.
+##!
+##! **Logging Stream ID:** :bro:enum:`Example::EXAMPLE`
+##!     :Columns:    :bro:type:`Example::Info`
+##!     :Event:      :bro:id:`Example::log_example`
+##!     :Filter:     ``example-filter``
+##!         uses :bro:id:`Example::filter_func` to determine whether to
+##!         exclude the ``ts`` field
+##!
 ##! :Author: Jon Siwek <jsiwek@ncsa.illinois.edu>
 
 # Comments that use a single pound sign (#) are not significant to
@@ -64,6 +76,12 @@ redef enum Notice += {
     Notice_Four,
 };
 
+# Redef'ing the ID enumeration for logging streams is automatically tracked.
+# Comments of the "##" form can be use to further document it, but it's
+# better to do all documentation related to logging in the summary section
+# as is shown above.
+redef enum Log::ID += { EXAMPLE };
+
 # Anything declared in the export section will show up in the rendered
 # documentation's "public interface" section
 
@@ -107,6 +125,11 @@ export {
         field2: bool; ##< toggles something
     };
 
+    ## document the record extension redef here
+    redef record SimpleRecord += {
+        ## document the extending field here
+        field_ext: string &optional; ##< (or here)
+    };
 
     ## general documentation for a type "ComplexRecord" goes here
     type ComplexRecord: record {
@@ -115,6 +138,13 @@ export {
         field3: SimpleRecord;
         msg: string &default="blah"; ##< attributes are self-documenting
     } &redef;
+
+    ## An example record to be used with a logging stream.
+    type Info: record {
+        ts:       time       &log;
+        uid:      string     &log;
+        status:   count      &log &optional;
+    };
 
     ############## options ################
     # right now, I'm just defining an option as
@@ -159,7 +189,16 @@ export {
     ## Give more details about "an_event" here.
     ## name: describe the argument here
     global an_event: event(name: string);
+
+    ## This is a declaration of an example event that can be used in
+    ## logging streams and is raised once for each log entry.
+    global log_example: event(rec: Info);
 }
+
+function filter_func(rec: Info): bool
+    {
+    return T;
+    }
 
 # this function is documented in the "private interface" section
 # of generated documentation and any "##"-stylized comments would also
@@ -176,3 +215,14 @@ type PrivateRecord: record {
     field1: bool;
     field2: count;
 };
+
+event bro_init()
+    {
+    Log::create_stream(EXAMPLE, [$columns=Info, $ev=log_example]);
+    Log::add_filter(EXAMPLE, [
+        $name="example-filter",
+        $path="example-filter",
+        $pred=filter_func,
+        $exclude=set("ts")
+        ]);
+    }

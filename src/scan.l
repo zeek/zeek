@@ -16,7 +16,6 @@
 #include "PolicyFile.h"
 #include "broparse.h"
 #include "BroDoc.h"
-#include "BroBifDoc.h"
 #include "Analyzer.h"
 #include "AnalyzerTags.h"
 
@@ -59,7 +58,7 @@ char last_tok[128];
 static PList(char) files_scanned;
 
 // reST documents that we've created (or have at least opened so far).
-static std::list<BroDoc*> docs_generated;
+std::list<BroDoc*> docs_generated;
 
 // reST comments (those starting with ##) seen so far.
 std::list<std::string>* reST_doc_comments = 0;
@@ -612,17 +611,8 @@ static int load_files_with_prefix(const char* orig_file)
 
 			if ( generate_documentation )
 				{
-				const char* bifExtStart = strstr(full_filename, ".bif.bro");
-				BroDoc* reST_doc;
-
-				if ( bifExtStart )
-					reST_doc = new BroBifDoc(full_filename);
-				else
-					reST_doc = new BroDoc(full_filename);
-
-				docs_generated.push_back(reST_doc);
-
-				current_reST_doc = reST_doc;
+				current_reST_doc = new BroDoc(full_filename);
+				docs_generated.push_back(current_reST_doc);
 				}
 			}
 
@@ -878,18 +868,7 @@ int yywrap()
 		}
 
 	if ( generate_documentation )
-		{
-		std::list<BroDoc*>::iterator it;
-
-		for ( it = docs_generated.begin(); it != docs_generated.end(); ++it )
-			{
-			(*it)->WriteDocFile();
-			delete *it;
-			}
-
-		docs_generated.clear();
 		clear_reST_doc_comments();
-		}
 
 	// Otherwise, we are done.
 	return 1;

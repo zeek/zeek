@@ -18,6 +18,8 @@ class ICMP_Analyzer : public TransportLayerAnalyzer {
 public:
 	ICMP_Analyzer(Connection* conn);
 
+	virtual void UpdateConnVal(RecordVal *conn_val);
+
 	static Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new ICMP_Analyzer(conn); }
 
@@ -30,7 +32,6 @@ protected:
 	virtual void Done();
 	virtual void DeliverPacket(int len, const u_char* data, bool orig,
 					int seq, const IP_Hdr* ip, int caplen);
-	virtual void UpdateEndpointVal(RecordVal* endp, int is_orig);
 	virtual bool IsReuse(double t, const u_char* pkt);
 	virtual unsigned int MemoryAllocation() const;
 
@@ -52,6 +53,9 @@ protected:
 	int request_len, reply_len;
 
 	RuleMatcherState matcher_state;
+
+private:
+	void UpdateEndpointVal(RecordVal* endp, int is_orig);
 };
 
 class ICMP_Echo_Analyzer : public ICMP_Analyzer {

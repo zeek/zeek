@@ -2,7 +2,7 @@
 //
 // See the file "COPYING" in the main distribution directory for copyright.
 
-
+#include "NetVar.h"
 #include "PIA.h"
 #include "File.h"
 #include "TCP.h"
@@ -924,9 +924,6 @@ int TCP_Analyzer::DeliverData(double t, const u_char* data, int len, int caplen,
 	int need_contents = endpoint->DataSent(t, data_seq,
 					len, caplen, data, ip, tp);
 
-	LOOP_OVER_GIVEN_CHILDREN(i, packet_children)
-		(*i)->NextPacket(len, data, is_orig, data_seq, ip, caplen);
-
 	return need_contents;
 	}
 
@@ -1055,6 +1052,12 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 	CheckRecording(need_contents, flags);
 
+	// Handle child_packet analyzers.  Note: This happens *after* the
+	// packet has been processed and the TCP state updated.
+	LOOP_OVER_GIVEN_CHILDREN(i, packet_children)
+		(*i)->NextPacket(len, data, is_orig,
+				base_seq - endpoint->StartSeq(), ip, caplen);
+
 	if ( ! reassembling )
 		ForwardPacket(len, data, is_orig,
 				base_seq - endpoint->StartSeq(), ip, caplen);
@@ -1084,11 +1087,25 @@ void TCP_Analyzer::FlipRoles()
 	resp->is_orig = !resp->is_orig;
 	}
 
-void TCP_Analyzer::UpdateEndpointVal(RecordVal* endp, int is_orig)
+void TCP_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	{
-	TCP_Endpoint* s = is_orig ? orig : resp;
-	endp->Assign(0, new Val(s->Size(), TYPE_COUNT));
-	endp->Assign(1, new Val(int(s->state), TYPE_COUNT));
+	int orig_endp_idx = connection_type->FieldOffset("orig");
+	int resp_endp_idx = connection_type->FieldOffset("resp");
+
+	RecordVal *orig_endp_val = conn_val->Lookup(orig_endp_idx)->AsRecordVal();
+	RecordVal *resp_endp_val = conn_val->Lookup(resp_endp_idx)->AsRecordVal();
+
+	orig_endp_val->Assign(0, new Val(orig->Size(), TYPE_COUNT));
+	orig_endp_val->Assign(1, new Val(int(orig->state), TYPE_COUNT));
+	resp_endp_val->Assign(0, new Val(resp->Size(), TYPE_COUNT));
+	resp_endp_val->Assign(1, new Val(int(resp->state), TYPE_COUNT));
+
+	// Call children's UpdateConnVal
+	Analyzer::UpdateConnVal(conn_val);
+
+	// Have to do packet_children ourselves.
+	LOOP_OVER_GIVEN_CHILDREN(i, packet_children)
+		(*i)->UpdateConnVal(conn_val);
 	}
 
 Val* TCP_Analyzer::BuildSYNPacketVal(int is_orig, const IP_Hdr* ip,

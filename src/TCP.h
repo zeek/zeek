@@ -77,6 +77,9 @@ public:
 			const u_char* option, TCP_Analyzer* analyzer,
 			bool is_orig, void* cookie);
 
+	// From Analyzer.h
+	virtual void UpdateConnVal(RecordVal *conn_val);
+
 	// Needs to be static because it's passed as a pointer-to-function
 	// rather than pointer-to-member-function.
 	static int ParseTCPOptions(const struct tcphdr* tcp,
@@ -100,7 +103,6 @@ protected:
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
 	virtual void Undelivered(int seq, int len, bool orig);
 	virtual void FlipRoles();
-	virtual void UpdateEndpointVal(RecordVal* endp, int is_orig);
 	virtual bool IsReuse(double t, const u_char* pkt);
 
 	// Returns the TCP header pointed to by data (which we assume is

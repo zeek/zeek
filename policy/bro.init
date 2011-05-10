@@ -66,8 +66,12 @@ type ftp_port: record {
 };
 
 type endpoint: record {
-	size: count;
+	size: count;	# logical size (for TCP: from seq numbers)
 	state: count;
+
+	# The following are set if use_conn_size_analyzer is T.
+	num_pkts: count &optional;	# number of packets on the wire
+	num_bytes_ip: count &optional;	# actual number of IP-level bytes on the wire
 };
 
 type endpoint_stats: record {
@@ -496,6 +500,12 @@ const frag_timeout = 0.0 sec &redef;
 const encap_hdr_size = 0 &redef;
 # ... or just for the following UDP port.
 const tunnel_port = 0/udp &redef;
+
+# Whether to use the ConnSize analyzer to count the number of
+# packets and IP-level bytes transfered by each endpoint. If
+# true, these values are returned in the connection's endpoint
+# record val.
+const use_conn_size_analyzer = F &redef;
 
 const UDP_INACTIVE = 0;
 const UDP_ACTIVE = 1;	# means we've seen something from this endpoint

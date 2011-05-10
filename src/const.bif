@@ -1,11 +1,11 @@
 # $Id: const.bif 3929 2007-01-14 00:37:59Z vern $
 
-# Documentation and default values for these are located in policy/bro.dif.
+# Documentation and default values for these are located in policy/bro.init
 
 const ignore_keep_alive_rexmit: bool;
 const skip_http_data: bool;
 const parse_udp_tunnels: bool;
-
+const use_conn_size_analyzer: bool;
 const report_gaps_for_partial: bool;
 
 # NFS analyzer settings. See bro.init for documentation

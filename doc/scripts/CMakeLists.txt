@@ -250,8 +250,7 @@ add_custom_target(doc
                   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
                   COMMENT "[Sphinx] Generating HTML policy script docs"
                   # SOURCES just adds stuff to IDE projects as a convienience
-                  SOURCES ${DOC_SOURCES}
-                  DEPENDS restdoc docclean)
+                  SOURCES ${DOC_SOURCES})
 
 # The "docclean" target removes just the Sphinx input/output directories
 # from the build directory.
@@ -261,3 +260,5 @@ add_custom_target(docclean
                   COMMAND "${CMAKE_COMMAND}" -E remove_directory
                           ${DOC_OUTPUT_DIR}
                   VERBATIM)
+
+add_dependencies(doc docclean restdoc)

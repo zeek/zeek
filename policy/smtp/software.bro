@@ -1,3 +1,5 @@
+##! This script feeds software detected through email into the software
+##! framework.  Mail clients are the only thing currently detected.
 
 @load smtp/base
 @load software
@@ -17,9 +19,9 @@ event log_smtp(rec: Info)
 	# This falls apart a bit in the cases where a webmail client includes the 
 	# IP address of the client in a header.  This will be compensated for 
 	# later with more comprehensive webmail interface detection.
-	if ( rec?$user_agent && rec?$received_from_originating_ip )
+	if ( rec?$user_agent )
 		{
-		local s = Software::parse(rec$user_agent, rec$received_from_originating_ip, MAIL_CLIENT);
+		local s = Software::parse(rec$user_agent, rec$path[|rec$path|-1], MAIL_CLIENT);
 		Software::found(rec$id, s);
 		}
 	}

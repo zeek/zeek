@@ -34,7 +34,6 @@ export {
 		in_reply_to:       string          &log &optional;
 		subject:           string          &log &optional;
 		x_originating_ip:  addr            &log &optional;
-		received_from_originating_ip: addr &log &optional;
 		first_received:    string          &log &optional;
 		second_received:   string          &log &optional;
 		## The last message the server sent to the client.
@@ -97,6 +96,10 @@ function new_smtp_log(c: connection): Info
 	if ( c?$smtp && c$smtp?$helo )
 		l$helo = c$smtp$helo;
 	
+	# The path will always end with the hosts involved in this connection.
+	# The lower values in the vector are the end of the path.
+	l$path = vector(c$id$resp_h, c$id$orig_h);
+	
 	return l;
 	}
 
@@ -120,7 +123,7 @@ event smtp_request(c: connection, is_orig: bool, command: string, arg: string) &
 	{
 	set_smtp_session(c);
 	local upper_command = to_upper(command);
-
+	
 	# In case this is not the first message in a session we want to 
 	# essentially write out a log, clear the session tracking, and begin
 	# new session tracking.
@@ -191,9 +194,9 @@ event smtp_data(c: connection, is_orig: bool, data: string) &priority=5
 	{
 	# Is there something we should be handling from the server?
 	if ( ! is_orig ) return;
-		
+	
 	set_smtp_session(c);
-
+	
 	if ( ! c$smtp$in_headers )
 		{
 		if ( /^[cC][oO][nN][tT][eE][nN][tT]-[dD][iI][sS].*[fF][iI][lL][eE][nN][aA][mM][eE]/ in data )
@@ -304,28 +307,23 @@ event smtp_data(c: connection, is_orig: bool, data: string) &priority=3
 	# If we've decided that we're done watching the received headers for
 	# whatever reason, we're done.  Could be due to only watching until 
 	# local addresses are seen in the received from headers.
-	if ( c$smtp$current_header != "received" ||
+	if ( c$smtp$current_header != "RECEIVED" ||
 	     ! c$smtp$process_received_from )
 		return;
-	
+		
 	local text_ip = find_address_in_smtp_header(data);
 	if ( text_ip == "" )
 		return;
 	local ip = to_addr(text_ip);
 	
-	# This overwrites each time to get the "bottom" address which should
-	# be where the message originated from.
-	c$smtp$received_from_originating_ip = ip;
-
 	if ( ! addr_matches_hosts(ip, mail_path_capture) && 
 	     ip !in private_address_space )
 		{
 		c$smtp$process_received_from = F;
 		}
-
-	if ( ! c$smtp?$path )
-		c$smtp$path = vector();
-	c$smtp$path[|c$smtp$path|] = ip;
+	
+	if ( c$smtp$path[|c$smtp$path|-1] != ip )
+		c$smtp$path[|c$smtp$path|] = ip;
 	}
 
 

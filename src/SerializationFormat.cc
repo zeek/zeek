@@ -21,6 +21,7 @@ void SerializationFormat::StartRead(char* data, uint32 arg_len)
 	input = data;
 	input_len = arg_len;
 	input_pos = 0;
+	bytes_read = 0;
 	}
 
 void SerializationFormat::EndRead()
@@ -44,7 +45,6 @@ void SerializationFormat::StartWrite()
 
 	output_pos = 0;
 	bytes_written = 0;
-	bytes_read = 0;
 	}
 
 uint32 SerializationFormat::EndWrite(char** data)

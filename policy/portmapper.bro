@@ -150,11 +150,6 @@ redef capture_filters += { ["portmapper"] = "port 111" };
 const portmapper_ports = { 111/tcp, 111/udp } &redef;
 redef dpd_config += { [ANALYZER_PORTMAPPER] = [$ports = portmapper_ports] };
 
-# BINPAC analyzer can only handle UDP and is not as stable, so we use
-# ANALYZER_PORTMAPPER
-#const portmapper_binpac_ports = { 111/udp } &redef;
-#redef dpd_config += { [ANALYZER_RPC_UDP_BINPAC] = [$ports = portmapper_binpac_ports] };
-
 # Indexed by source and destination addresses, plus the portmapper service.
 # If the tuple is in the set, then we already created a NOTICE for it and 
 # shouldn't do so again.

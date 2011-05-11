@@ -1,3 +1,5 @@
+# @TEST-REQUIRES: bro -e 'print bro_has_ipv6()' | grep -q F
+#
 # @TEST-EXEC: bro print-filter >output 2>&1
 # @TEST-EXEC: bro tcp print-filter >>output
 # @TEST-EXEC: bro tcp print-filter all_packets=F >>output

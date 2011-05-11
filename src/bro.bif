@@ -3327,3 +3327,12 @@ function entropy_test_finish%(index: any%): entropy_test_result
 	delete s;
 	return ent_result;
 	%}
+
+function bro_has_ipv6%(%) : bool
+    %{
+#ifdef BROv6
+	return new Val(1, TYPE_BOOL);
+#else
+	return new Val(0, TYPE_BOOL);
+#endif
+    %}

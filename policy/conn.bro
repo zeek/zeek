@@ -18,6 +18,10 @@ global have_SMTP = F;	# if true, we've loaded smtp.bro
 # TODO: Do we have a nicer way of defining this prototype?
 export { global FTP::is_ftp_data_conn: function(c: connection): bool; }
 
+# Whether to include connection state history in the logs generated
+# by record_connection.
+const record_state_history = F &redef;
+
 # Whether to add 4 more columns to conn.log with 
 # orig_packet orig_ip_bytes resp_packets resp_ip_bytes
 # Requires use_conn_size_analyzer=T
@@ -310,6 +314,10 @@ function record_connection(f: file, c: connection)
 			id$orig_p, id$resp_p, trans,
 			conn_size(c$orig, trans), conn_size(c$resp, trans),
 			conn_state(c, trans), flags);
+
+	if ( record_state_history )
+		log_msg = fmt("%s %s", log_msg,
+				c$history == "" ? "X" : c$history);
 
 	if ( use_conn_size_analyzer && report_conn_size_analyzer )
 		log_msg = fmt("%s %s %s", log_msg, 

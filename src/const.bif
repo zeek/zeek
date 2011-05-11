@@ -5,3 +5,5 @@
 const ignore_keep_alive_rexmit: bool;
 const skip_http_data: bool;
 const parse_udp_tunnels: bool;
+const use_conn_size_analyzer: bool;
+

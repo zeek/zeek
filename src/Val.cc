@@ -2866,7 +2866,7 @@ RecordVal::RecordVal(RecordType* t) : MutableVal(t)
 			else if ( tag == TYPE_TABLE )
 				def = new TableVal(type->AsTableType(), a);
 
-			else if ( t->Tag() == TYPE_VECTOR )
+			else if ( tag == TYPE_VECTOR )
 				def = new VectorVal(type->AsVectorType());
 			}
 

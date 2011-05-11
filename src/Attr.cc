@@ -19,7 +19,7 @@ const char* attr_name(attr_tag t)
 		"&persistent", "&synchronized", "&postprocessor",
 		"&encrypt", "&match", "&disable_print_hook",
 		"&raw_output", "&mergeable", "&priority",
-		"&group", "(&tracked)",
+		"&group", "&log", "(&tracked)",
 	};
 
 	return attr_names[int(t)];

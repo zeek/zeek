@@ -319,8 +319,8 @@ definitions:	definitions definition opt_ws
 			fprintf(fp_netvar_h, "// %s\n\n", auto_gen_comment);
 			fprintf(fp_netvar_init, "// %s\n\n", auto_gen_comment);
 
+			fprintf(fp_bro_init, "%s", $1);
 			fprintf(fp_bro_init, "export {\n");
-			fprintf(fp_func_def, "%s", $1);
 			}
 	;
 

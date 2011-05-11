@@ -24,7 +24,7 @@ Types
 ============================================ ==========================================================================
 :bro:type:`TypeAlias`: :bro:type:`bool`      This is just an alias for a builtin type ``bool``.
 
-:bro:type:`OtherTypeAlias`: :bro:type:`bool` We decided that creating alias "chains" might now be so useful to document
+:bro:type:`OtherTypeAlias`: :bro:type:`bool` We decided that creating alias "chains" might not be so useful to document
                                              so this type just creates a cross reference to ``bool``.
 ============================================ ==========================================================================
 
@@ -56,6 +56,6 @@ Types
 
    :Type: :bro:type:`bool`
 
-   We decided that creating alias "chains" might now be so useful to document
+   We decided that creating alias "chains" might not be so useful to document
    so this type just creates a cross reference to ``bool``.
 

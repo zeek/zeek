@@ -1,7 +1,7 @@
 #
 # In "normal" test mode, connection uids should be determistic.
 #
-# @TEST-EXEC: bro -C -r $TRACES/wikipedia.trace %INPUT tcp >output
+# @TEST-EXEC: bro -C -r $TRACES/wikipedia.trace %INPUT conn >output
 # @TEST-EXEC: btest-diff output
 #
 # Without a seed, they should differ each time:

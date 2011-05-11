@@ -134,6 +134,7 @@ event do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string) &pri
 	{
 	set_session(c, msg, F);
 
+	c$dns$AA    = msg$AA;
 	c$dns$RA    = msg$RA;
 	c$dns$TTL   = ans$TTL;
 

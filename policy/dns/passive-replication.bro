@@ -1,7 +1,10 @@
-##! Script for logging passive DNS relpication data.  
+##! Script for logging passive DNS replication-type data.
+##! For a definition of what passive DNS repliction is, see here::
+##!     https://sie.isc.org/
 
+## NOTE: This is a major hack job.
 ## TODO: two queries within the create_expire with different results will
-#        cause only one to be logged.
+##       cause only one to be logged.
 
 @load dns/base
 
@@ -25,6 +28,6 @@ event bro_init()
 				}
 			return F;
 			},
-		$include=set("query", "replies")
+		$include=set("ts", "query", "answers")
 		]);
 	}

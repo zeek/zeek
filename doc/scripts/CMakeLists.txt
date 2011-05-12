@@ -129,9 +129,15 @@ endmacro(REST_TARGET)
 # Schedule Bro scripts for which to generate documentation.
 # Note: the script may be located in a subdirectory off of one of the main
 # directories in BROPATH.  In that case, just list the script as 'foo/bar.bro'
-rest_target(${POLICY_SRC_DIR} conn.bro                          user)
-rest_target(${POLICY_SRC_DIR} dns.bro                           user)
-rest_target(${CMAKE_CURRENT_SOURCE_DIR} example.bro             internal)
+rest_target(${POLICY_SRC_DIR} conn.bro                         user)
+rest_target(${POLICY_SRC_DIR} site.bro                         user)
+rest_target(${POLICY_SRC_DIR} dns.bro                          policy/dns-index)
+rest_target(${POLICY_SRC_DIR} dns/auth-addl.bro                policy/dns-index)
+rest_target(${POLICY_SRC_DIR} dns/base.bro                     policy/dns-index)
+rest_target(${POLICY_SRC_DIR} dns/consts.bro                   policy/dns-index)
+rest_target(${POLICY_SRC_DIR} dns/detect.bro                   policy/dns-index)
+rest_target(${POLICY_SRC_DIR} dns/passive-replication.bro      policy/dns-index)
+rest_target(${CMAKE_CURRENT_SOURCE_DIR} example.bro            internal)
 
 # Finding out what scripts bro will generate documentation for by default
 # can be done like: `bro --doc-scripts --exec ""`

@@ -11,11 +11,12 @@ Contents:
 
    common
    builtins
-   policy/index
    default
    bifs
    user
+   policy/dns-index
    internal
+   policy/index
 
 Indices and tables
 ==================

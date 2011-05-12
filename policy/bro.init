@@ -1,11 +1,6 @@
 @load const.bif.bro
 @load types.bif.bro
 
-global bro_signal: event(signal: count);
-
-# Called (one day) if there's no handler for an internal event.
-global no_handler: event(name: string, val: any);
-
 # Type declarations
 type string_array: table[count] of string;
 type string_set: set[string];
@@ -297,16 +292,6 @@ const state_write_delay = 0.01 secs &redef;
 
 global done_with_network = F;
 event net_done(t: time) { done_with_network = T; }
-
-const SIGHUP = 1;
-event bro_signal(signal: count)
-	{
-	if ( signal == SIGHUP )
-		{
-		flush_all();
-		checkpoint_state();
-		}
-	}
 
 function log_file_name(tag: string): string
 	{

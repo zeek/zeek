@@ -40,8 +40,6 @@ type icmp_context: record {
 	DF: bool;
 };
 
-type addr_set: set[addr];
-
 type dns_mapping: record {
 	creation_time: time;
 

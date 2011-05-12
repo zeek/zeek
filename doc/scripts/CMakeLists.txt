@@ -129,24 +129,8 @@ endmacro(REST_TARGET)
 # Schedule Bro scripts for which to generate documentation.
 # Note: the script may be located in a subdirectory off of one of the main
 # directories in BROPATH.  In that case, just list the script as 'foo/bar.bro'
-rest_target(${POLICY_SRC_DIR} alarm.bro                         user)
-rest_target(${POLICY_SRC_DIR} arp.bro                           user)
 rest_target(${POLICY_SRC_DIR} conn.bro                          user)
-rest_target(${POLICY_SRC_DIR} dhcp.bro                          user)
 rest_target(${POLICY_SRC_DIR} dns.bro                           user)
-rest_target(${POLICY_SRC_DIR} ftp.bro                           user)
-rest_target(${POLICY_SRC_DIR} http.bro                          user)
-rest_target(${POLICY_SRC_DIR} http-reply.bro                    user)
-rest_target(${POLICY_SRC_DIR} http-request.bro                  user)
-rest_target(${POLICY_SRC_DIR} irc.bro                           user)
-rest_target(${POLICY_SRC_DIR} smtp.bro                          user)
-rest_target(${POLICY_SRC_DIR} ssl.bro                           user)
-rest_target(${POLICY_SRC_DIR} ssl-ciphers.bro                   user)
-rest_target(${POLICY_SRC_DIR} ssl-errors.bro                    user)
-rest_target(${POLICY_SRC_DIR} synflood.bro                      user)
-rest_target(${POLICY_SRC_DIR} tcp.bro                           user)
-rest_target(${POLICY_SRC_DIR} udp.bro                           user)
-rest_target(${POLICY_SRC_DIR} weird.bro                         user)
 rest_target(${CMAKE_CURRENT_SOURCE_DIR} example.bro             internal)
 
 # Finding out what scripts bro will generate documentation for by default

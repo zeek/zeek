@@ -1059,7 +1059,8 @@ decl:
 				BroDocObj* o = new BroDocObj(fake_id, reST_doc_comments, true);
 				o->SetRole(true);
 
-				if ( streq(fake_id->Name(), "Notice" ) )
+				if ( extract_module_name(fake_id->Name()) == "Notice" &&
+				     extract_var_name(fake_id->Name()) == "Type" )
 					current_reST_doc->AddNotice(o);
 				else
 					current_reST_doc->AddRedef(o);

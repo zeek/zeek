@@ -576,9 +576,11 @@ void POP3_Analyzer::ProcessReply(int length, const char* line)
 	if ( multiLine == true )
 		{
 		bool terminator =
-			length > 1 && line[0] == '.' &&
-			(line[1] == '\n' ||
-			 (length > 2 && line[1] == '\r' && line[2] == '\n'));
+			line[0] == '.' &&
+			(length == 1 ||
+			 (length > 1 &&
+			  (line[1] == '\n' ||
+			  (length > 2 && line[1] == '\r' && line[2] == '\n'))));
 
 		if ( terminator )
 			{

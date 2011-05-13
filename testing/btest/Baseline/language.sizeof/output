@@ -1,0 +1,17 @@
+Address 1.2.3.4: 16909060
+Boolean T: 1
+Count 10: 10
+Double -1.23: 1.230000
+Enum ENUM3: 2
+File 21.000000
+Function add_interface: 2
+Integer -10: 10
+Interval -5.0 secs: 5.000000
+Net 192.168.0: 65536.000000
+Port 80/tcp: 65616
+Record [i=10, j=<uninitialized>, k=<uninitialized>]: 3
+Set: 3
+String 'Hello': 5
+Subnet 192.168.0.0/24: 256.000000
+Table 2
+Vector [Hello, , , , World]: 5

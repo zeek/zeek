@@ -1,6 +1,6 @@
 #
 # @TEST-EXEC: bro -r %DIR/rotation.trace %INPUT >out
-# @TEST-EXEC: for i in `ls test*.log | sort`; do printf '> %s\n' $i; cat $i; done >>out
+# @TEST-EXEC: for i in `ls test*.log | sort`; do printf '> %s\n' $i; cat $i; done | sort | uniq >>out
 # @TEST-EXEC: btest-diff out
 
 module Test;

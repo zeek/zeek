@@ -3106,7 +3106,13 @@ function lookup_location%(a: addr%) : geo_location
 		}
 
 #else
-	builtin_run_time("Bro was not configured for GeoIP support");
+	static int missing_geoip_reported = 0;
+
+	if ( ! missing_geoip_reported )
+		{
+		builtin_run_time("Bro was not configured for GeoIP support");
+		missing_geoip_reported = 1;
+		}
 #endif
 
 	// We can get here even if we have GeoIP support if we weren't
@@ -3164,7 +3170,13 @@ function lookup_asn%(a: addr%) : count
 		return new Val(atoi(gir+2), TYPE_COUNT);
 		}
 #else
-	builtin_run_time("Bro was not configured for GeoIP ASN support");
+	static int missing_geoip_reported = 0;
+
+	if ( ! missing_geoip_reported )
+		{
+		builtin_run_time("Bro was not configured for GeoIP ASN support");
+		missing_geoip_reported = 1;
+		}
 #endif
 
 	// We can get here even if we have GeoIP support, if we weren't
@@ -3327,3 +3339,12 @@ function entropy_test_finish%(index: any%): entropy_test_result
 	delete s;
 	return ent_result;
 	%}
+
+function bro_has_ipv6%(%) : bool
+    %{
+#ifdef BROv6
+	return new Val(1, TYPE_BOOL);
+#else
+	return new Val(0, TYPE_BOOL);
+#endif
+    %}

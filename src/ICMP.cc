@@ -321,6 +321,24 @@ void ICMP_Echo_Analyzer::NextICMP(double t, const struct icmp* icmpp, int len,
 	ConnectionEvent(f, vl);
 	}
 
+ICMP_Redir_Analyzer::ICMP_Redir_Analyzer(Connection* c)
+: ICMP_Analyzer(AnalyzerTag::ICMP_Redir, c)
+	{
+	}
+
+void ICMP_Redir_Analyzer::NextICMP(double t, const struct icmp* icmpp, int len,
+					 int caplen, const u_char*& data)
+	{
+	uint32 addr = ntohl(icmpp->icmp_hun.ih_void);
+
+	val_list* vl = new val_list;
+	vl->append(BuildConnVal());
+	vl->append(BuildICMPVal());
+	vl->append(new AddrVal(htonl(addr)));
+
+	ConnectionEvent(icmp_redirect, vl);
+	}
+
 
 void ICMP_Context_Analyzer::NextICMP(double t, const struct icmp* icmpp,
 				int len, int caplen, const u_char*& data)

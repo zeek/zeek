@@ -1,4 +1,6 @@
 
+@load functions
+
 module SMTP;
 
 function find_address_in_smtp_header(header: string): string

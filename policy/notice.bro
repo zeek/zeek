@@ -25,13 +25,14 @@ export {
 		uid:            string  &log &optional;
 		id:             conn_id &log &optional; ##< connection-ID, if we don't have a connection handy
 		## This is the relevant host for this notice.  It could be set because
-		## either::
-		##   1. There is no connection associated with this notice.
-		##   2. There is some underlying semantic of the notice where either
-		##      orig_h or resp_h is the relevant host in the associated
-		##      connection.  For example, if a host is detected scanning, the
-		##      particular connection taking place when the notice is generated
-		##      is irrelevant and only the host detected scanning is relevant.
+		## either:
+		##
+		## 1. There is no connection associated with this notice.
+		## 2. There is some underlying semantic of the notice where either
+		##    orig_h or resp_h is the relevant host in the associated
+		##    connection.  For example, if a host is detected scanning, the
+		##    particular connection taking place when the notice is generated
+		##    is irrelevant and only the host detected scanning is relevant.
 		relevant_host:  addr    &log &optional;
 		
 		note:           Type    &log;

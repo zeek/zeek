@@ -15,6 +15,16 @@ Contents:
    bifs
    user
    policy/dns-index
+   policy/ftp-index
+   policy/http-index
+   policy/irc-index
+   policy/metrics-index
+   policy/mime-index
+   policy/sig-index
+   policy/smtp-index
+   policy/software-index
+   policy/ssh-index
+   policy/ssl-index
    internal
    policy/index
 

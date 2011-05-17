@@ -1,6 +1,7 @@
-## This script extracts and logs variables from cookies sent by clients
+##! This script extracts and logs variables from cookies sent by clients
 
-@load http
+@load http/base
+@load http/utils
 
 module HTTP;
 

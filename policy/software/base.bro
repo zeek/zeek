@@ -68,7 +68,7 @@ export {
 	
 	## Other scripts should call this function when they detect software.
 	## unparsed_version: This is the full string from which the
-	##                          Software::Info was extracted.
+	##                   :bro:type:`Software::Info` was extracted.
 	## Returns: T if the software was logged, F otherwise.
 	global found: function(id: conn_id, info: Software::Info): bool;
 	

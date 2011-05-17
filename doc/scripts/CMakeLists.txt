@@ -59,8 +59,6 @@ macro(REST_TARGET srcDir broInput)
         set(basename "${basename}.init")
     endif ()
 
-    set (restFile "${basename}.rst")
-
     if (NOT relDstDir)
         set(docName "${basename}")
         set(dstDir "${RST_OUTPUT_DIR}")
@@ -69,7 +67,9 @@ macro(REST_TARGET srcDir broInput)
         set(dstDir "${RST_OUTPUT_DIR}/${relDstDir}")
     endif ()
 
-    set(restOutput "${dstDir}/${restFile}")
+    set(restFile "${docName}.rst")
+    string(REPLACE "/" "^" restFile ${restFile})
+    set(restOutput "${dstDir}/${basename}.rst")
 
     set(indexEntry "   ${docName} <${docName}>")
     set(MASTER_POLICY_INDEX_TEXT "${MASTER_POLICY_INDEX_TEXT}\n${indexEntry}")
@@ -97,7 +97,7 @@ macro(REST_TARGET srcDir broInput)
     if (${group} STREQUAL "default" OR ${group} STREQUAL "bifs")
         set(BRO_ARGS --doc-scripts --exec '')
     else ()
-        set(BRO_ARGS --doc-scripts ${srcDir}/${broInput})
+        set(BRO_ARGS --doc-scripts ${broInput})
     endif ()
 
     add_custom_command(OUTPUT ${restOutput}
@@ -105,7 +105,7 @@ macro(REST_TARGET srcDir broInput)
         COMMAND "${CMAKE_COMMAND}"
         ARGS -E remove_directory .state
         # generate the reST documentation using bro
-        COMMAND BROPATH=${BROPATH} ${CMAKE_BINARY_DIR}/src/bro
+        COMMAND BROPATH=${BROPATH}:${srcDir} ${CMAKE_BINARY_DIR}/src/bro
         ARGS ${BRO_ARGS} || (rm -rf .state *.log *.rst && exit 1)
         # move generated doc into a new directory tree that
         # defines the final structure of documents

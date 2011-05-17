@@ -610,7 +610,7 @@ static int load_files_with_prefix(const char* orig_file)
 
 			if ( generate_documentation )
 				{
-				current_reST_doc = new BroDoc(full_filename);
+				current_reST_doc = new BroDoc(file, full_filename);
 				docs_generated.push_back(current_reST_doc);
 				}
 			}

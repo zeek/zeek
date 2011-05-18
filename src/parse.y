@@ -1093,8 +1093,10 @@ decl:
 								new RecordType(fake_type_decl_list);
 							ID* fake = create_dummy_id($3, fake_record);
 							fake_type_decl_list = 0;
-							current_reST_doc->AddRedef(
-								new BroDocObj(fake, reST_doc_comments, true));
+							BroDocObj* o =
+								new BroDocObj(fake, reST_doc_comments, true);
+							o->SetRole(true);
+							current_reST_doc->AddRedef(o);
 							}
 						else
 							{

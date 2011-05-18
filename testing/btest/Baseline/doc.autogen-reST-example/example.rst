@@ -279,7 +279,7 @@ Redefinitions
 
    document the "SimpleEnum" redef here
 
-.. bro:type:: Example::SimpleRecord
+:bro:type:`Example::SimpleRecord`
 
    :Type: :bro:type:`record`
 

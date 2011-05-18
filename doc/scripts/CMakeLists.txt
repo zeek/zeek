@@ -160,14 +160,12 @@ rest_target(${POLICY_SRC_DIR} functions.bro                   user)
 # TODO: hot.conn.bro currently won't load because hot.bro doesn't exist
 #rest_target(${POLICY_SRC_DIR} hot.conn.bro                    user)
 
-# TODO: http.bro doesn't load because http/detect-webapps.bro doesn't load
-#rest_target(${POLICY_SRC_DIR} http.bro                        policy/http-index)
+rest_target(${POLICY_SRC_DIR} http.bro                        policy/http-index)
 rest_target(${POLICY_SRC_DIR} http/base-extended.bro          policy/http-index)
 rest_target(${POLICY_SRC_DIR} http/base.bro                   policy/http-index)
 rest_target(${POLICY_SRC_DIR} http/detect-intel.bro           policy/http-index)
 rest_target(${POLICY_SRC_DIR} http/detect-sqli.bro            policy/http-index)
-# TODO: http/detect-webapps.bro doesn't load in doc mode, not sure why yet
-#rest_target(${POLICY_SRC_DIR} http/detect-webapps.bro         policy/http-index)
+rest_target(${POLICY_SRC_DIR} http/detect-webapps.bro         policy/http-index)
 rest_target(${POLICY_SRC_DIR} http/file-extract.bro           policy/http-index)
 rest_target(${POLICY_SRC_DIR} http/file-hash.bro              policy/http-index)
 rest_target(${POLICY_SRC_DIR} http/file-ident.bro             policy/http-index)
@@ -184,12 +182,10 @@ rest_target(${POLICY_SRC_DIR} irc/dcc-send.bro                policy/irc-index)
 rest_target(${POLICY_SRC_DIR} known-services.bro              user)
 rest_target(${POLICY_SRC_DIR} known-hosts.bro                 user)
 
-# TODO: metrics.bro doesn't load because of http/detect-webapps.bro
-#rest_target(${POLICY_SRC_DIR} metrics.bro                  policy/metrics-index)
+rest_target(${POLICY_SRC_DIR} metrics.bro                  policy/metrics-index)
 rest_target(${POLICY_SRC_DIR} metrics/base.bro             policy/metrics-index)
 rest_target(${POLICY_SRC_DIR} metrics/conn-example.bro     policy/metrics-index)
-# TODO: metrics/http-example.bro doesn't load because of http/detect-webapps.bro
-#rest_target(${POLICY_SRC_DIR} metrics/http-example.bro     policy/metrics-index)
+rest_target(${POLICY_SRC_DIR} metrics/http-example.bro     policy/metrics-index)
 
 rest_target(${POLICY_SRC_DIR} mime.bro                        policy/mime-index)
 rest_target(${POLICY_SRC_DIR} mime/base.bro                   policy/mime-index)

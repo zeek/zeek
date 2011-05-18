@@ -242,15 +242,26 @@ void add_type(ID* id, BroType* t, attr_list* attr, int /* is_event */)
 	// t->GetTypeID() is true.
 	if ( generate_documentation )
 		{
-		if ( t->Tag() == TYPE_RECORD )
-			{
-			// Only "shallow" copy record types because we want to be able
-			// to see additions to the original type's list of fields
+		switch ( t->Tag() ) {
+		// Only "shallow" copy types that may contain records because
+		// we want to be able to see additions to the original record type's
+		// list of fields
+		case TYPE_RECORD:
 			tnew = new RecordType(t->AsRecordType()->Types());
-			}
-
-		else
-			{
+			break;
+		case TYPE_TABLE:
+			tnew = new TableType(t->AsTableType()->Indices(),
+			                     t->AsTableType()->YieldType());
+			break;
+		case TYPE_VECTOR:
+			tnew = new VectorType(t->AsVectorType()->YieldType());
+			break;
+		case TYPE_FUNC:
+			tnew = new FuncType(t->AsFuncType()->Args(),
+			                    t->AsFuncType()->YieldType(),
+			                    t->AsFuncType()->IsEvent());
+			break;
+		default:
 			SerializationFormat* form = new BinarySerializationFormat();
 			form->StartWrite();
 			CloneSerializer ss(form);
@@ -267,7 +278,7 @@ void add_type(ID* id, BroType* t, attr_list* attr, int /* is_event */)
 			tnew = t->Unserialize(&uinfo);
 
 			delete [] data;
-			}
+		}
 
 		tnew->SetTypeID(copy_string(id->Name()));
 		}

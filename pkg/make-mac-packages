@@ -1,18 +1,9 @@
 #!/bin/sh
 
 # This script creates binary packages for Mac OS X.
-# They can be found in build/ after running.
+# They can be found in ../build/ after running.
 
-prefix=/opt/bro
-
-# CMake/CPack versions before 2.8.2 have bugs that can create bad packages
-CMAKE_PACK_REQ=2.8.3
-CMAKE_VER=`cmake -version`
-
-if [ "${CMAKE_VER}" \< "${CMAKE_PACK_REQ}" ]; then
-    echo "Package creation requires CMake > 2.8.2" >&2
-    exit 1
-fi
+./check-cmake || { exit 1; }
 
 type sw_vers > /dev/null 2>&1 || {
     echo "Unable to get Mac OS X version" >&2;
@@ -37,6 +28,10 @@ else
     # --osx-sysroot and --osx-min-version options
     arch=x86_64
 fi
+
+prefix=/opt/bro
+
+cd ..
 
 # Minimum Bro
 CMAKE_OSX_ARCHITECTURES=${arch} ./configure --prefix=${prefix} \

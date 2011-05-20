@@ -5,15 +5,12 @@
 # to offer. For more, execute that one directly. 
 #
 
-BUILD=build
-BROCCOLI=aux/broccoli
-BROCTL=aux/broctl
-
-# CMake/CPack versions before 2.8.2 have bugs that can create bad packages
-CMAKE_PACK_REQ=2.8.2
-CMAKE_VER=`cmake -version`
-
-OSX_VER_CMD=sw_vers | sed -n 's/ProductVersion://p' | cut -d . -f 2
+SOURCE=$(PWD)
+BUILD=$(SOURCE)/build
+TMP=/tmp/bro-dist.$(UID)
+BRO_V=`cat $(SOURCE)/VERSION`
+BROCCOLI_V=`cat $(SOURCE)/aux/broccoli/VERSION`
+BROCTL_V=`cat $(SOURCE)/aux/broctl/VERSION`
 
 all: configured
 	( cd $(BUILD) && make )
@@ -31,39 +28,25 @@ doc: configured
 docclean: configured
 	( cd $(BUILD) && make docclean && make restclean )
 
-dist: cmake_version
-	# Minimum Bro source package
-	( \
-	./configure --ignore-dirs='aux/broctl;aux/broccoli' --pkg-name-prefix=Bro && \
-	cd $(BUILD) && \
-	make package_source \
-	)
-	# Full Bro source package
-	( \
-	./configure --pkg-name-prefix=Bro-all && \
-	cd $(BUILD) && \
-	make package_source \
-	)
-	# Broccoli source package
-	( \
-	cd $(BROCCOLI) && \
-	./configure && \
-	cd $(BUILD) && \
-	make package_source && \
-	mv Broccoli*.tar.gz ../../../$(BUILD)/ && \
-	cd .. && \
-	rm -r $(BUILD) \
-	)
-	# Broctl source package
-	( \
-	cd $(BROCTL) && \
-	./configure && \
-	cd $(BUILD) && \
-	make package_source && \
-	mv Broctl*.tar.gz ../../../$(BUILD)/ && \
-	cd .. && \
-	rm -r $(BUILD) \
-	)
+dist:
+	@( mkdir -p $(BUILD) && rm -rf $(TMP) && mkdir $(TMP) )
+	@cp -R $(SOURCE) $(TMP)/Bro-$(BRO_V)
+	@( cd $(TMP) && find . -name .git\* | xargs rm -rf )
+	@( cd $(TMP) && find . -name \*.swp | xargs rm -rf )
+	@( cd $(TMP) && find . -type d -name build | xargs rm -rf )
+	@( cd $(TMP) && tar -czf $(BUILD)/Bro-all-$(BRO_V).tar.gz Bro-$(BRO_V) )
+	@( cd $(TMP)/Bro-$(BRO_V)/aux && mv broccoli Broccoli-$(BROCCOLI_V) && \
+	    tar -czf $(BUILD)/Broccoli-$(BROCCOLI_V).tar.gz Broccoli-$(BROCCOLI_V) )
+	@( cd $(TMP)/Bro-$(BRO_V)/aux && mv broctl Broctl-$(BROCTL_V) && \
+	    tar -czf $(BUILD)/Broctl-$(BROCTL_V).tar.gz Broctl-$(BROCTL_V) )
+	@( cd $(TMP)/Bro-$(BRO_V)/aux && rm -rf Broctl* Broccoli* )
+	@( cd $(TMP) && tar -czf $(BUILD)/Bro-$(BRO_V).tar.gz Bro-$(BRO_V) )
+	@rm -rf $(TMP)
+	@echo "Distribution source tarballs have been compiled in $(BUILD)"
+
+bindist:
+	@( cd pkg && ( ./make-deb-packages || ./make-mac-packages || \
+	               ./make-rpm-packages ) )
 
 distclean:
 	rm -rf $(BUILD)
@@ -72,7 +55,4 @@ configured:
 	@test -d $(BUILD) || ( echo "Error: No build/ directory found. Did you run configure?" && exit 1 )
 	@test -e $(BUILD)/Makefile || ( echo "Error: No build/Makefile found. Did you run configure?" && exit 1 )
 
-cmake_version:
-	@test "$(CMAKE_VER)" \> "cmake version $(CMAKE_PACK_REQ)" || ( echo "Error: please use a CMake version greater than $(CMAKE_PACK_REQ)" && exit 1 )
-
-.PHONY : all install clean distclean configured cmake_version
+.PHONY : all install clean doc docclean dist bindist distclean configured

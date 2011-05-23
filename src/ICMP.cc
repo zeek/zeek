@@ -79,6 +79,9 @@ void ICMP_Analyzer::DeliverPacket(int arg_len, const u_char* data,
 
 	NextICMP(current_timestamp, icmpp, len, caplen, data);
 
+	if ( caplen >= len )
+		ForwardPacket(len, data, is_orig, seq, ip, caplen);
+
 	if ( rule_matcher )
 		matcher_state.Match(Rule::PAYLOAD, data, len, is_orig,
 					false, false, true);
@@ -252,6 +255,20 @@ void ICMP_Analyzer::Describe(ODesc* d) const
 	d->Add(dotted_addr(Conn()->RespAddr()));
 	}
 
+void ICMP_Analyzer::UpdateConnVal(RecordVal *conn_val)
+	{
+	int orig_endp_idx = connection_type->FieldOffset("orig");
+	int resp_endp_idx = connection_type->FieldOffset("resp");
+	RecordVal *orig_endp = conn_val->Lookup(orig_endp_idx)->AsRecordVal();
+	RecordVal *resp_endp = conn_val->Lookup(resp_endp_idx)->AsRecordVal();
+
+	UpdateEndpointVal(orig_endp, 1);
+	UpdateEndpointVal(resp_endp, 0);
+
+	// Call children's UpdateConnVal
+	Analyzer::UpdateConnVal(conn_val);
+	}
+
 void ICMP_Analyzer::UpdateEndpointVal(RecordVal* endp, int is_orig)
 	{
 	Conn()->EnableStatusUpdateTimer();
@@ -302,6 +319,24 @@ void ICMP_Echo_Analyzer::NextICMP(double t, const struct icmp* icmpp, int len,
 	vl->append(new StringVal(payload));
 
 	ConnectionEvent(f, vl);
+	}
+
+ICMP_Redir_Analyzer::ICMP_Redir_Analyzer(Connection* c)
+: ICMP_Analyzer(AnalyzerTag::ICMP_Redir, c)
+	{
+	}
+
+void ICMP_Redir_Analyzer::NextICMP(double t, const struct icmp* icmpp, int len,
+					 int caplen, const u_char*& data)
+	{
+	uint32 addr = ntohl(icmpp->icmp_hun.ih_void);
+
+	val_list* vl = new val_list;
+	vl->append(BuildConnVal());
+	vl->append(BuildICMPVal());
+	vl->append(new AddrVal(htonl(addr)));
+
+	ConnectionEvent(icmp_redirect, vl);
 	}
 
 

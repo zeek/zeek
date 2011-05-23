@@ -285,7 +285,6 @@ set(bro_SRCS
     BitTorrent.cc
     BitTorrentTracker.cc
     BPF_Program.cc
-    BroBifDoc.cc
     BroDoc.cc
     BroDocObj.cc
     BroString.cc
@@ -294,6 +293,7 @@ set(bro_SRCS
     CompHash.cc
     Conn.cc
     ConnCompressor.cc
+    ConnSizeAnalyzer.cc
     ContentLine.cc
     DCE_RPC.cc
     DFA.cc

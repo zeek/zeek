@@ -1,0 +1,5 @@
+#! /usr/bin/env bash
+#
+# Replace absolute paths with the basename.
+
+sed 's#/\([^/]\{1,\}/\)\{1,\}\([^/]\{1,\}\)#<...>/\2#g'

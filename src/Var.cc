@@ -242,22 +242,43 @@ void add_type(ID* id, BroType* t, attr_list* attr, int /* is_event */)
 	// t->GetTypeID() is true.
 	if ( generate_documentation )
 		{
-		SerializationFormat* form = new BinarySerializationFormat();
-		form->StartWrite();
-		CloneSerializer ss(form);
-		SerialInfo sinfo(&ss);
-		sinfo.cache = false;
+		switch ( t->Tag() ) {
+		// Only "shallow" copy types that may contain records because
+		// we want to be able to see additions to the original record type's
+		// list of fields
+		case TYPE_RECORD:
+			tnew = new RecordType(t->AsRecordType()->Types());
+			break;
+		case TYPE_TABLE:
+			tnew = new TableType(t->AsTableType()->Indices(),
+			                     t->AsTableType()->YieldType());
+			break;
+		case TYPE_VECTOR:
+			tnew = new VectorType(t->AsVectorType()->YieldType());
+			break;
+		case TYPE_FUNC:
+			tnew = new FuncType(t->AsFuncType()->Args(),
+			                    t->AsFuncType()->YieldType(),
+			                    t->AsFuncType()->IsEvent());
+			break;
+		default:
+			SerializationFormat* form = new BinarySerializationFormat();
+			form->StartWrite();
+			CloneSerializer ss(form);
+			SerialInfo sinfo(&ss);
+			sinfo.cache = false;
 
-		t->Serialize(&sinfo);
-		char* data;
-		uint32 len = form->EndWrite(&data);
-		form->StartRead(data, len);
+			t->Serialize(&sinfo);
+			char* data;
+			uint32 len = form->EndWrite(&data);
+			form->StartRead(data, len);
 
-		UnserialInfo uinfo(&ss);
-		uinfo.cache = false;
-		tnew = t->Unserialize(&uinfo);
+			UnserialInfo uinfo(&ss);
+			uinfo.cache = false;
+			tnew = t->Unserialize(&uinfo);
 
-		delete [] data;
+			delete [] data;
+		}
 
 		tnew->SetTypeID(copy_string(id->Name()));
 		}

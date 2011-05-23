@@ -18,8 +18,8 @@ event bro_init()
 
     local v: vector of string;
 
-	v[2] = "2";
-	v[5] = "5";
+	v[1] = "2";
+	v[4] = "5";
 
 	Log::write(SSH, [$vec=v]);
 }

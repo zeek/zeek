@@ -301,7 +301,12 @@ public:
 			::operator delete(((char*) ptr) - 4);
 		}
 
+	void SetUID(uint64 arg_uid)	 { uid = arg_uid; }
+
+	static uint64 CalculateNextUID();
+
 protected:
+
 	Connection()	{ persistent = 0; }
 
 	// Add the given timer to expire at time t.  If do_expire
@@ -333,8 +338,6 @@ protected:
 	double start_time, last_time;
 	double inactivity_timeout;
 	RecordVal* conn_val;
-	RecordVal* orig_endp;
-	RecordVal* resp_endp;
 	LoginConn* login_conn;	// either nil, or this
 	int suppress_event;	// suppress certain events to once per conn.
 
@@ -358,6 +361,11 @@ protected:
 
 	TransportLayerAnalyzer* root_analyzer;
 	PIA* primary_PIA;
+
+	uint64 uid;	// Globally unique connection ID.
+
+	static uint64 uid_counter;	// Counter for uids.
+	static uint64 uid_instance;	// Instance ID, computed once.
 };
 
 class ConnectionTimer : public Timer {

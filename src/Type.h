@@ -420,7 +420,7 @@ public:
 class CommentedTypeDecl : public TypeDecl {
 public:
 	CommentedTypeDecl(BroType* t, const char* i, attr_list* attrs = 0,
-			std::list<std::string>* cmnt_list = 0);
+			bool in_record = false, std::list<std::string>* cmnt_list = 0);
 	virtual ~CommentedTypeDecl();
 
 	void DescribeReST(ODesc* d) const;
@@ -455,6 +455,8 @@ public:
 
 	// Given an offset, returns the field's name.
 	const char* FieldName(int field) const;
+
+	type_decl_list* Types() { return types; }
 
 	// Given an offset, returns the field's TypeDecl.
 	const TypeDecl* FieldDecl(int field) const;

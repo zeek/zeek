@@ -110,8 +110,8 @@ extern int strcasecmp_n(int s_len, const char* s, const char* t);
 extern char* strcasestr(const char* s, const char* find);
 #endif
 extern const char* strpbrk_n(size_t len, const char* s, const char* charset);
-extern int atoi_n(int len, const char* s, const char** end,
-			int base, int& result);
+template<class T> int atoi_n(int len, const char* s, const char** end, int base, T& result);
+extern char* uitoa_n(uint64 value, char* str, int n, int base);
 int strstr_n(const int big_len, const unsigned char* big,
 		const int little_len, const unsigned char* little);
 extern int fputs(int len, const char* s, FILE* fp);
@@ -149,15 +149,15 @@ extern const char* md5_digest_print(const unsigned char digest[16]);
 extern void init_random_seed(uint32 seed, const char* load_file,
 				const char* write_file);
 
+// Returns true if the user explicitly set a seed via init_random_seed();
+extern bool have_random_seed();
+
 // Replacement for the system random(), to which is normally falls back
 // except when a seed has been given. In that case, we use our own
 // predictable PRNG.
 long int bro_random();
 
 extern uint64 rand64bit();
-
-#define UHASH_KEY_SIZE	32
-extern uint8 uhash_key[UHASH_KEY_SIZE];
 
 // Each event source that may generate events gets an internally unique ID.
 // This is always LOCAL for a local Bro. For remote event sources, it gets
@@ -232,16 +232,6 @@ extern struct timeval double_to_timeval(double t);
 
 // Return > 0 if tv_a > tv_b, 0 if equal, < 0 if tv_a < tv_b.
 extern int time_compare(struct timeval* tv_a, struct timeval* tv_b);
-
-inline int min(int a, int b)
-	{
-	return a < b ? a : b;
-	}
-
-inline int max(int a, int b)
-	{
-	return a > b ? a : b;
-	}
 
 // For now, don't use hash_maps - they're not fully portable.
 #if 0

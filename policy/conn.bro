@@ -22,6 +22,15 @@ export { global FTP::is_ftp_data_conn: function(c: connection): bool; }
 # by record_connection.
 const record_state_history = F &redef;
 
+# Whether to add 4 more columns to conn.log with 
+# orig_packet orig_ip_bytes resp_packets resp_ip_bytes
+# Requires use_conn_size_analyzer=T
+# Columns are added after history but before addl
+const report_conn_size_analyzer = F &redef;
+
+# Activate conn-size analyzer if necessary.
+redef use_conn_size_analyzer = (! report_conn_size_analyzer);
+
 # Whether to translate the local address in SensitiveConnection notices
 # to a hostname.  Meant as a demonstration of the "when" construct.
 const xlate_hot_local_addr = F &redef;
@@ -94,6 +103,12 @@ function conn_size(e: endpoint, trans: transport_proto): string
 	else
 		### should return 0 for TCP_RESET that went through TCP_CLOSED
 		return "?";
+	}
+
+function conn_size_from_analyzer(e: endpoint): string
+	{
+	return fmt("%d %d", (e?$num_pkts) ? e$num_pkts : 0,
+			(e?$num_bytes_ip) ? e$num_bytes_ip : 0);
 	}
 
 function service_name(c: connection): string
@@ -303,6 +318,10 @@ function record_connection(f: file, c: connection)
 	if ( record_state_history )
 		log_msg = fmt("%s %s", log_msg,
 				c$history == "" ? "X" : c$history);
+
+	if ( use_conn_size_analyzer && report_conn_size_analyzer )
+		log_msg = fmt("%s %s %s", log_msg, 
+				conn_size_from_analyzer(c$orig),  conn_size_from_analyzer(c$resp));
 
 	if ( addl != "" )
 		log_msg = fmt("%s %s", log_msg, addl);

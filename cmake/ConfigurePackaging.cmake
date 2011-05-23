@@ -63,10 +63,7 @@ endmacro(SetPackageVersion)
 #
 # Darwin - PackageMaker
 # Linux - RPM if the platform has rpmbuild installed
-#         DEB is ommitted because CPack does not give enough
-#         control over how the package is created and lacks support
-#         for automatic dependency detection.
-#         
+#         DEB if the platform has dpkg-shlibdeps installed
 #
 # CPACK_GENERATOR is set by this macro
 # CPACK_SOURCE_GENERATOR is set by this macro
@@ -77,8 +74,13 @@ macro(SetPackageGenerators)
         list(APPEND CPACK_GENERATOR PackageMaker)
     elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         find_program(RPMBUILD_EXE rpmbuild)
+        find_program(DPKGSHLIB_EXE dpkg-shlibdeps)
         if (RPMBUILD_EXE)
             set(CPACK_GENERATOR ${CPACK_GENERATOR} RPM)
+        endif ()
+        if (DPKGSHLIB_EXE)
+            set(CPACK_GENERATOR ${CPACK_GENERATOR} DEB)
+            set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS true)
         endif ()
     endif ()
 endmacro(SetPackageGenerators)
@@ -159,11 +161,27 @@ macro(SetPackageInstallScripts VERSION)
     endif ()
 
     if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+        # DEB packages can automatically handle configuration files
+        # if provided in a "conffiles" file in the packaging
+        set(conffiles_file ${CMAKE_CURRENT_BINARY_DIR}/conffiles)
+        if (INSTALLED_CONFIG_FILES)
+            string(REPLACE " " ";" conffiles ${INSTALLED_CONFIG_FILES})
+        endif ()
+        file(WRITE ${conffiles_file} "")
+        foreach (_file ${conffiles})
+            file(APPEND ${conffiles_file} "${_file}\n")
+        endforeach ()
+
+        list(APPEND CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA
+            ${CMAKE_CURRENT_BINARY_DIR}/conffiles)
+
+        # RPMs don't need any explicit direction regarding config files.
+
         # Leaving the set of installed config files empty will just
-        # bypass the logic in the pre/post install scripts and let
-        # the RPM do their own thing (regarding backups, etc.)
+        # bypass the logic in the default pre/post install scripts and let
+        # the RPMs/DEBs do their own thing (regarding backups, etc.)
         # when upgrading packages.
-        set (INSTALLED_CONFIG_FILES "")
+        set(INSTALLED_CONFIG_FILES "")
     endif ()
 
     if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/cmake/package_preinstall.sh.in)
@@ -171,10 +189,16 @@ macro(SetPackageInstallScripts VERSION)
             ${CMAKE_CURRENT_SOURCE_DIR}/cmake/package_preinstall.sh.in
             ${CMAKE_CURRENT_BINARY_DIR}/package_preinstall.sh
             @ONLY)
+        configure_file(
+            ${CMAKE_CURRENT_SOURCE_DIR}/cmake/package_preinstall.sh.in
+            ${CMAKE_CURRENT_BINARY_DIR}/preinst
+            @ONLY)
         set(CPACK_PREFLIGHT_SCRIPT
             ${CMAKE_CURRENT_BINARY_DIR}/package_preinstall.sh)
         set(CPACK_RPM_PRE_INSTALL_SCRIPT_FILE
             ${CMAKE_CURRENT_BINARY_DIR}/package_preinstall.sh)
+        list(APPEND CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA
+            ${CMAKE_CURRENT_BINARY_DIR}/preinst)
     endif ()
 
     if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/cmake/package_postupgrade.sh.in)
@@ -182,10 +206,16 @@ macro(SetPackageInstallScripts VERSION)
             ${CMAKE_CURRENT_SOURCE_DIR}/cmake/package_postupgrade.sh.in
             ${CMAKE_CURRENT_BINARY_DIR}/package_postupgrade.sh
             @ONLY)
+        configure_file(
+            ${CMAKE_CURRENT_SOURCE_DIR}/cmake/package_postupgrade.sh.in
+            ${CMAKE_CURRENT_BINARY_DIR}/postinst
+            @ONLY)
         set(CPACK_POSTUPGRADE_SCRIPT
             ${CMAKE_CURRENT_BINARY_DIR}/package_postupgrade.sh)
         set(CPACK_RPM_POST_INSTALL_SCRIPT_FILE
             ${CMAKE_CURRENT_BINARY_DIR}/package_postupgrade.sh)
+        list(APPEND CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA
+            ${CMAKE_CURRENT_BINARY_DIR}/postinst)
     endif ()
 endmacro(SetPackageInstallScripts)
 

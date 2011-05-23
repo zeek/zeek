@@ -1,0 +1,4 @@
+not ip6
+not ip6
+(not ip6) and (tcp[13] & 7 != 0)
+port 42

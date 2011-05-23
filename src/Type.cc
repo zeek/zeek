@@ -848,8 +848,8 @@ void TypeDecl::DescribeReST(ODesc* d) const
 	}
 
 CommentedTypeDecl::CommentedTypeDecl(BroType* t, const char* i,
-			attr_list* attrs, std::list<std::string>* cmnt_list)
-	: TypeDecl(t, i, attrs)
+			attr_list* attrs, bool in_record, std::list<std::string>* cmnt_list)
+	: TypeDecl(t, i, attrs, in_record)
 	{
 	comments = cmnt_list;
 	}
@@ -1157,6 +1157,7 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 	for ( int i = 0; i < num_fields; ++i )
 		{
 		if ( i > 0 )
+			{
 			if ( func_args )
 				d->Add(", ");
 			else
@@ -1164,6 +1165,7 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 				d->NL();
 				d->NL();
 				}
+			}
 
 		FieldDecl(i)->DescribeReST(d);
 		}

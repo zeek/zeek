@@ -8,8 +8,8 @@
 #include <sys/types.h>
 #include <regex.h>
 
-# define FMT_INT "%lld"
-# define FMT_UINT "%llu"
+# define FMT_INT "%" PRId64
+# define FMT_UINT "%" PRIu64
 
 static TableType* bt_tracker_headers = 0;
 static RecordType* bittorrent_peer;

@@ -936,6 +936,7 @@ type_decl:
 
 			if ( generate_documentation )
 				{
+				// TypeDecl ctor deletes the attr list, so make a copy
 				attr_list* a = $5;
 				attr_list* a_copy = 0;
 
@@ -947,7 +948,7 @@ type_decl:
 					}
 
 				last_fake_type_decl = new CommentedTypeDecl(
-					$4, $2, a_copy, concat_opt_docs($1, $7));
+					$4, $2, a_copy, (in_record > 0), concat_opt_docs($1, $7));
 				}
 
 			$$ = new TypeDecl($4, $2, $5, (in_record > 0));
@@ -1067,8 +1068,10 @@ decl:
 			}
 
 	|	TOK_REDEF TOK_RECORD global_id TOK_ADD_TO
-			'{' type_decl_list '}' opt_attr ';'
+			'{' { do_doc_token_start(); } type_decl_list '}' opt_attr ';'
 			{
+			do_doc_token_stop();
+
 			if ( ! $3->Type() )
 				$3->Error("unknown identifier");
 			else
@@ -1078,9 +1081,29 @@ decl:
 					$3->Error("not a record type");
 				else
 					{
-					const char* error = add_to->AddFields($6, $8);
+					const char* error = add_to->AddFields($7, $9);
 					if ( error )
-					$3->Error(error);
+						$3->Error(error);
+					else if ( generate_documentation )
+						{
+						if ( fake_type_decl_list )
+							{
+							BroType* fake_record =
+								new RecordType(fake_type_decl_list);
+							ID* fake = create_dummy_id($3, fake_record);
+							fake_type_decl_list = 0;
+							BroDocObj* o =
+								new BroDocObj(fake, reST_doc_comments, true);
+							o->SetRole(true);
+							current_reST_doc->AddRedef(o);
+							}
+						else
+							{
+							fprintf(stderr, "Warning: doc mode did not process "
+								"record extension for '%s', CommentedTypeDecl"
+								"list unavailable.\n", $3->Name());
+							}
+						}
 					}
 				}
 			}
@@ -1622,7 +1645,7 @@ opt_doc_list:
 
 int yyerror(const char msg[])
 	{
-	char* msgbuf = new char[strlen(msg) + strlen(last_tok) + 64];
+	char* msgbuf = new char[strlen(msg) + strlen(last_tok) + 128];
 
 	if ( last_tok[0] == '\n' )
 		sprintf(msgbuf, "%s, on previous line", msg);
@@ -1630,6 +1653,10 @@ int yyerror(const char msg[])
 		sprintf(msgbuf, "%s, at end of file", msg);
 	else
 		sprintf(msgbuf, "%s, at or near \"%s\"", msg, last_tok);
+
+	if ( generate_documentation )
+		strcat(msgbuf, "\nDocumentation mode is enabled: "
+		       "remember to check syntax of ## style comments\n");
 
 	error(msgbuf);
 

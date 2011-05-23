@@ -35,6 +35,7 @@
 #include "POP3.h"
 #include "SSH.h"
 #include "SSL-binpac.h"
+#include "ConnSizeAnalyzer.h"
 
 // Keep same order here as in AnalyzerTag definition!
 const Analyzer::Config Analyzer::analyzer_configs[] = {
@@ -56,6 +57,9 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 	{ AnalyzerTag::ICMP_Echo, "ICMP_ECHO",
 		ICMP_Echo_Analyzer::InstantiateAnalyzer,
 		ICMP_Echo_Analyzer::Available, 0, false },
+	{ AnalyzerTag::ICMP_Redir, "ICMP_REDIR",
+		ICMP_Redir_Analyzer::InstantiateAnalyzer,
+		ICMP_Redir_Analyzer::Available, 0, false },
 
 	{ AnalyzerTag::TCP, "TCP", TCP_Analyzer::InstantiateAnalyzer,
 		TCP_Analyzer::Available, 0, false },
@@ -148,6 +152,9 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 	{ AnalyzerTag::TCPStats, "TCPSTATS",
 		TCPStats_Analyzer::InstantiateAnalyzer,
 		TCPStats_Analyzer::Available, 0, false },
+	{ AnalyzerTag::ConnSize, "CONNSIZE", 
+		ConnSize_Analyzer::InstantiateAnalyzer,
+		ConnSize_Analyzer::Available, 0, false },
 
 	{ AnalyzerTag::Contents, "CONTENTS", 0, 0, 0, false },
 	{ AnalyzerTag::ContentLine, "CONTENTLINE", 0, 0, 0, false },
@@ -846,6 +853,12 @@ unsigned int Analyzer::MemoryAllocation() const
 		mem += a->MemoryAllocation();
 
 	return mem;
+	}
+
+void Analyzer::UpdateConnVal(RecordVal *conn_val)
+	{
+	LOOP_OVER_CHILDREN(i)
+		(*i)->UpdateConnVal(conn_val);
 	}
 
 void SupportAnalyzer::ForwardPacket(int len, const u_char* data, bool is_orig,

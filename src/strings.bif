@@ -244,8 +244,11 @@ Val* do_split(StringVal* str_val, RE_Matcher* re, TableVal* other_sep,
 			--n;
 			}
 
-		if ( num_sep >= max_num_sep )
+		if ( max_num_sep && num_sep >= max_num_sep )
+			{
 			offset = end_of_s - s;
+			n=0;
+			}
 
 		Val* ind = new Val(++num, TYPE_COUNT);
 		a->Assign(ind, new StringVal(offset, (const char*) s));
@@ -627,7 +630,7 @@ function strip%(str: string%): string
 function string_fill%(len: int, source: string%): string
 	%{
 	const u_char* src = source->Bytes();
-	int n = source->Len();
+	int64_t n = source->Len();
 	char* dst = new char[len];
 
 	for ( int i = 0; i < len; i += n )

@@ -4,6 +4,7 @@
 
 #include "ConnCompressor.h"
 #include "Event.h"
+#include "ConnSizeAnalyzer.h"
 #include "net_util.h"
 
 // The basic model of the compressor is to wait for an answer before
@@ -45,6 +46,11 @@
 // - We don't match signatures on connections which are completely handled
 //   by the compressor. Matching would require significant additional state
 //   w/o being very helpful.
+//
+// - If use_conn_size_analyzer is True, the reported counts for bytes and
+//   packets may not account for some packets/data that is part of those
+//   packets which the connection compressor handles. The error, if any, will
+//   however be small.
 
 
 #ifdef DEBUG
@@ -234,7 +240,7 @@ Connection* ConnCompressor::NextPacket(double t, HashKey* key, const IP_Hdr* ip,
 	else if ( addr_eq(ip->SrcAddr(), SrcAddr(pending)) &&
 		  tp->th_sport == SrcPort(pending) )
 		// Another packet from originator.
-		tc = NextFromOrig(pending, t, key, tp);
+		tc = NextFromOrig(pending, t, key, ip, tp);
 
 	else
 		// A reply.
@@ -329,10 +335,14 @@ Connection* ConnCompressor::FirstFromOrig(double t, HashKey* key,
 	}
 
 Connection* ConnCompressor::NextFromOrig(PendingConn* pending, double t,
-						HashKey* key, const tcphdr* tp)
+						HashKey* key, const IP_Hdr* ip,
+						const tcphdr* tp)
 	{
 	// Another packet from the same host without seeing an answer so far.
 	DBG_LOG(DBG_COMPRESSOR, "%s same again", fmt_conn_id(pending));
+
+	++pending->num_pkts;
+	++pending->num_bytes_ip += ip->PayloadLen();
 
 	// New window scale overrides old - not great, this is a (subtle)
 	// evasion opportunity.
@@ -521,6 +531,8 @@ Connection* ConnCompressor::Instantiate(HashKey* key, PendingConn* pending)
 		return 0;
 		}
 
+	new_conn->SetUID(pending->uid);
+
 	DBG_LOG(DBG_COMPRESSOR, "%s instantiated", fmt_conn_id(pending));
 
 	++sizes.connections;
@@ -608,6 +620,9 @@ void ConnCompressor::PktHdrToPendingConn(double time, const HashKey* key,
 	c->FIN = (tp->th_flags & TH_FIN) != 0;
 	c->RST = (tp->th_flags & TH_RST) != 0;
 	c->ACK = (tp->th_flags & TH_ACK) != 0;
+	c->uid = Connection::CalculateNextUID();
+	c->num_bytes_ip = ip->TotalLen();
+	c->num_pkts = 1;
 	c->invalid = 0;
 
 	if ( TCP_Analyzer::ParseTCPOptions(tp, parse_tcp_options, 0, 0, c) < 0 )
@@ -848,8 +863,23 @@ void ConnCompressor::Event(const PendingConn* pending, double t,
 							TRANSPORT_TCP));
 			orig_endp->Assign(0, new Val(orig_size, TYPE_COUNT));
 			orig_endp->Assign(1, new Val(orig_state, TYPE_COUNT));
+
+			if ( ConnSize_Analyzer::Available() )
+				{
+				orig_endp->Assign(2, new Val(pending->num_pkts, TYPE_COUNT));
+				orig_endp->Assign(3, new Val(pending->num_bytes_ip, TYPE_COUNT));
+				}
+			else
+				{
+				orig_endp->Assign(2, new Val(0, TYPE_COUNT));
+				orig_endp->Assign(3, new Val(0, TYPE_COUNT));
+				}
+
+
 			resp_endp->Assign(0, new Val(0, TYPE_COUNT));
 			resp_endp->Assign(1, new Val(resp_state, TYPE_COUNT));
+			resp_endp->Assign(2, new Val(0, TYPE_COUNT));
+			resp_endp->Assign(3, new Val(0, TYPE_COUNT));
 			}
 		else
 			{
@@ -859,10 +889,26 @@ void ConnCompressor::Event(const PendingConn* pending, double t,
 			id_val->Assign(2, new AddrVal(SrcAddr(pending)));
 			id_val->Assign(3, new PortVal(ntohs(SrcPort(pending)),
 							TRANSPORT_TCP));
+
 			orig_endp->Assign(0, new Val(0, TYPE_COUNT));
 			orig_endp->Assign(1, new Val(resp_state, TYPE_COUNT));
+			orig_endp->Assign(2, new Val(0, TYPE_COUNT));
+			orig_endp->Assign(3, new Val(0, TYPE_COUNT));
+
 			resp_endp->Assign(0, new Val(orig_size, TYPE_COUNT));
 			resp_endp->Assign(1, new Val(orig_state, TYPE_COUNT));
+
+			if ( ConnSize_Analyzer::Available() )
+				{
+				resp_endp->Assign(2, new Val(pending->num_pkts, TYPE_COUNT));
+				resp_endp->Assign(3, new Val(pending->num_bytes_ip, TYPE_COUNT));
+				}
+			else
+				{
+				resp_endp->Assign(2, new Val(0, TYPE_COUNT));
+				resp_endp->Assign(3, new Val(0, TYPE_COUNT));
+				}
+
 			DBG_LOG(DBG_COMPRESSOR, "%s swapped direction", fmt_conn_id(pending));
 			}
 
@@ -876,6 +922,9 @@ void ConnCompressor::Event(const PendingConn* pending, double t,
 		conn_val->Assign(6, new StringVal("cc=1"));	// addl
 		conn_val->Assign(7, new Val(0, TYPE_COUNT));	// hot
 		conn_val->Assign(8, new StringVal(""));	// history
+
+		char tmp[20]; // uid.
+		conn_val->Assign(9, new StringVal(uitoa_n(pending->uid, tmp, sizeof(tmp), 62)));
 
 		conn_val->SetOrigin(0);
 		}

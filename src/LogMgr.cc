@@ -1,5 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include <algorithm>
+
 #include "LogMgr.h"
 #include "Event.h"
 #include "EventHandler.h"
@@ -1051,7 +1053,7 @@ LogVal* LogMgr::ValToLogVal(Val* val, BroType* ty)
 		for ( int i = 0; i < lval->val.vector_val.size; i++ )
 			{
 			lval->val.vector_val.vals[i] =
-				ValToLogVal(vec->Lookup(VECTOR_MIN + i),
+				ValToLogVal(vec->Lookup(i),
 					    vec->Type()->YieldType());
 			}
 

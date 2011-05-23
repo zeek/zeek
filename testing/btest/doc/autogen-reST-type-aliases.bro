@@ -4,7 +4,7 @@
 ## This is just an alias for a builtin type ``bool``.
 type TypeAlias: bool;
 
-## We decided that creating alias "chains" might now be so useful to document
+## We decided that creating alias "chains" might not be so useful to document
 ## so this type just creates a cross reference to ``bool``.
 type OtherTypeAlias: TypeAlias;
 

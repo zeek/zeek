@@ -1,0 +1,32 @@
+abcdefgh - ijklmnop:
+AAAabcefghij - lmnopAAAqrst:
+tok 1: AAA (0/5, T)
+abcAAAefghij - lmnopAAAqrst:
+tok 1: AAA (3/5, T)
+abcefghijAAA - lmnopAAAqrst:
+tok 1: AAA (9/5, T)
+xxxAAAyyy - AAAaAAAbAAA:
+tok 1: AAA (3/0, T)
+tok 2: AAA (3/4, T)
+tok 3: AAA (3/8, T)
+AAAaAAAbAAA - xxxAAAyyy:
+tok 1: AAA (0/3, T)
+tok 2: AAA (4/3, T)
+tok 3: AAA (8/3, T)
+xxCDyABzCDyABzz - ABCD:
+tok 1: CD (2/2, T)
+tok 2: AB (5/0, T)
+tok 3: CD (8/2, F)
+tok 4: AB (11/0, T)
+ABCD - xxCDyABzCDyABzz:
+tok 1: CD (2/2, T)
+tok 2: AB (0/5, T)
+tok 3: CD (2/8, F)
+tok 4: AB (0/11, T)
+Cache-control: no-cache^M^JAccept: - Accept-: deflate^M^JAccept-: Accept-:
+tok 1: Accept (27/0, T)
+tok 2: e^M^JAccept (22/15, T)
+tok 3: Accept (27/29, T)
+xxAAxxAAxx - yyyyyAAyyyyy:
+tok 1: AA (2/5, T)
+tok 2: AA (6/5, T)

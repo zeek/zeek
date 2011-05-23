@@ -152,7 +152,6 @@ Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id)
 	proto = TRANSPORT_UNKNOWN;
 
 	conn_val = 0;
-	orig_endp = resp_endp = 0;
 	login_conn = 0;
 
 	is_active = 1;
@@ -181,6 +180,8 @@ Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id)
 
 	TimerMgr::Tag* tag = current_iosrc->GetCurrentTag();
 	conn_timer_mgr = tag ? new TimerMgr::Tag(*tag) : 0;
+
+	uid = 0; // Will set later.
 
 	if ( conn_timer_mgr )
 		{
@@ -213,6 +214,56 @@ Connection::~Connection()
 	--current_connections;
 	if ( conn_timer_mgr )
 		--external_connections;
+	}
+
+uint64 Connection::uid_counter = 0;
+uint64 Connection::uid_instance = 0;
+
+uint64 Connection::CalculateNextUID()
+	{
+	if ( uid_instance == 0 )
+		{
+		// This is the first time we need a UID.
+
+		if ( ! have_random_seed() )
+			{
+			// If we don't need deterministic output (as
+			// indicated by a set seed), we calculate the
+			// instance ID by hashing something likely to be
+			// globally unique.
+			struct {
+				char hostname[128];
+				struct timeval time;
+				pid_t pid;
+				int rnd;
+			} unique;
+
+			gethostname(unique.hostname, 128);
+			unique.hostname[sizeof(unique.hostname)-1] = '\0';
+			gettimeofday(&unique.time, 0);
+			unique.pid = getpid();
+			unique.rnd = bro_random();
+
+			uid_instance = HashKey::HashBytes(&unique, sizeof(unique));
+			++uid_instance; // Now it's larger than zero.
+			}
+
+		else
+			// Generate determistic UIDs.
+			uid_instance = 1;
+		}
+
+	// Now calculate the unique ID for this connection.
+	struct {
+		uint64 counter;
+		hash_t instance;
+	} key;
+
+	key.counter = ++uid_counter;
+	key.instance = uid_instance;
+
+	uint64_t h = HashKey::HashBytes(&key, sizeof(key));
+	return h;
 	}
 
 void Connection::Done()
@@ -346,14 +397,15 @@ RecordVal* Connection::BuildConnVal()
 		id_val->Assign(1, new PortVal(ntohs(orig_port), prot_type));
 		id_val->Assign(2, new AddrVal(resp_addr));
 		id_val->Assign(3, new PortVal(ntohs(resp_port), prot_type));
+
 		conn_val->Assign(0, id_val);
 
-		orig_endp = new RecordVal(endpoint);
+		RecordVal *orig_endp = new RecordVal(endpoint);
 		orig_endp->Assign(0, new Val(0, TYPE_COUNT));
 		orig_endp->Assign(1, new Val(0, TYPE_COUNT));
 		conn_val->Assign(1, orig_endp);
 
-		resp_endp = new RecordVal(endpoint);
+		RecordVal *resp_endp = new RecordVal(endpoint);
 		resp_endp->Assign(0, new Val(0, TYPE_COUNT));
 		resp_endp->Assign(1, new Val(0, TYPE_COUNT));
 		conn_val->Assign(2, resp_endp);
@@ -363,13 +415,16 @@ RecordVal* Connection::BuildConnVal()
 		conn_val->Assign(6, new StringVal(""));	// addl
 		conn_val->Assign(7, new Val(0, TYPE_COUNT));	// hot
 		conn_val->Assign(8, new StringVal(""));	// history
+
+		if ( ! uid )
+			uid = CalculateNextUID();
+
+		char tmp[20];
+		conn_val->Assign(9, new StringVal(uitoa_n(uid, tmp, sizeof(tmp), 62)));
 		}
 
 	if ( root_analyzer )
-		{
-		root_analyzer->UpdateEndpointVal(orig_endp, 1);
-		root_analyzer->UpdateEndpointVal(resp_endp, 0);
-		}
+		root_analyzer->UpdateConnVal(conn_val);
 
 	conn_val->Assign(3, new Val(start_time, TYPE_TIME));	// ###
 	conn_val->Assign(4, new Val(last_time - start_time, TYPE_INTERVAL));
@@ -744,10 +799,6 @@ void Connection::FlipRoles()
 	resp_port = orig_port;
 	orig_port = tmp_port;
 
-	RecordVal* tmp_rc = resp_endp;
-	resp_endp = orig_endp;
-	orig_endp = tmp_rc;
-
 	Unref(conn_val);
 	conn_val = 0;
 
@@ -843,8 +894,6 @@ bool Connection::DoSerialize(SerialInfo* info) const
 			return false;
 
 	SERIALIZE_OPTIONAL(conn_val);
-	SERIALIZE_OPTIONAL(orig_endp);
-	SERIALIZE_OPTIONAL(resp_endp);
 
 	// FIXME: RuleEndpointState not yet serializable.
 	// FIXME: Analyzers not yet serializable.
@@ -908,10 +957,6 @@ bool Connection::DoUnserialize(UnserialInfo* info)
 
 	UNSERIALIZE_OPTIONAL(conn_val,
 			(RecordVal*) Val::Unserialize(info, connection_type));
-	UNSERIALIZE_OPTIONAL(orig_endp,
-			(RecordVal*) Val::Unserialize(info, endpoint));
-	UNSERIALIZE_OPTIONAL(resp_endp,
-			(RecordVal*) Val::Unserialize(info, endpoint));
 
 	int iproto;
 

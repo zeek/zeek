@@ -2866,7 +2866,7 @@ RecordVal::RecordVal(RecordType* t) : MutableVal(t)
 			else if ( tag == TYPE_TABLE )
 				def = new TableVal(type->AsTableType(), a);
 
-			else if ( t->Tag() == TYPE_VECTOR )
+			else if ( tag == TYPE_VECTOR )
 				def = new VectorVal(type->AsVectorType());
 			}
 
@@ -2883,7 +2883,7 @@ RecordVal::~RecordVal()
 
 void RecordVal::Assign(int field, Val* new_val, Opcode op)
 	{
-	if ( Lookup(field) &&
+	if ( new_val && Lookup(field) &&
 	     record_type->FieldType(field)->Tag() == TYPE_TABLE &&
 	     new_val->AsTableVal()->FindAttr(ATTR_MERGEABLE) )
 		{
@@ -2976,6 +2976,7 @@ RecordVal* RecordVal::CoerceTo(const RecordType* t, Val* aggr) const
 			Expr* rhs = new ConstExpr(Lookup(i)->Ref());
 			Expr* e = new RecordCoerceExpr(rhs, ar_t->FieldType(t_i)->AsRecordType());
 			ar->Assign(t_i, e->Eval(0));
+			continue;
 			}
 
 		ar->Assign(t_i, Lookup(i)->Ref());
@@ -3230,15 +3231,6 @@ bool VectorVal::Assign(unsigned int index, Val* element, const Expr* assigner,
 		return false;
 		}
 
-	if ( index == 0 || index > (1 << 30) )
-		{
-		if ( assigner )
-			assigner->Error(fmt("index (%d) must be positive",
-						index));
-		Unref(element);
-		return true;	// true = "no fatal error"
-		}
-
 	BroType* yt = Type()->AsVectorType()->YieldType();
 
 	if ( yt && yt->Tag() == TYPE_TABLE &&
@@ -3253,7 +3245,7 @@ bool VectorVal::Assign(unsigned int index, Val* element, const Expr* assigner,
 				Val* ival = new Val(index, TYPE_COUNT);
 				StateAccess::Log(new StateAccess(OP_ASSIGN_IDX,
 						this, ival, element,
-						(*val.vector_val)[index - 1]));
+						(*val.vector_val)[index]));
 				Unref(ival);
 				}
 
@@ -3263,10 +3255,10 @@ bool VectorVal::Assign(unsigned int index, Val* element, const Expr* assigner,
 			}
 		}
 
-	if ( index <= val.vector_val->size() )
-		Unref((*val.vector_val)[index - 1]);
+	if ( index < val.vector_val->size() )
+		Unref((*val.vector_val)[index]);
 	else
-		val.vector_val->resize(index);
+		val.vector_val->resize(index + 1);
 
 	if ( LoggingAccess() && op != OP_NONE )
 		{
@@ -3277,14 +3269,14 @@ bool VectorVal::Assign(unsigned int index, Val* element, const Expr* assigner,
 
 		StateAccess::Log(new StateAccess(op == OP_INCR ?
 				OP_INCR_IDX : OP_ASSIGN_IDX,
-				this, ival, element, (*val.vector_val)[index - 1]));
+				this, ival, element, (*val.vector_val)[index]));
 		Unref(ival);
 		}
 
 	// Note: we do *not* Ref() the element, if any, at this point.
 	// AssignExpr::Eval() already does this; other callers must remember
 	// to do it similarly.
-	(*val.vector_val)[index - 1] = element;
+	(*val.vector_val)[index] = element;
 
 	Modified();
 	return true;
@@ -3293,7 +3285,7 @@ bool VectorVal::Assign(unsigned int index, Val* element, const Expr* assigner,
 bool VectorVal::AssignRepeat(unsigned int index, unsigned int how_many,
 				Val* element, const Expr* assigner)
 	{
-	ResizeAtLeast(index + how_many - 1);
+	ResizeAtLeast(index + how_many);
 
 	for ( unsigned int i = index; i < index + how_many; ++i )
 		if ( ! Assign(i, element, assigner) )
@@ -3305,10 +3297,10 @@ bool VectorVal::AssignRepeat(unsigned int index, unsigned int how_many,
 
 Val* VectorVal::Lookup(unsigned int index) const
 	{
-	if ( index == 0 || index > val.vector_val->size() )
+	if ( index >= val.vector_val->size() )
 		return 0;
 
-	return (*val.vector_val)[index - 1];
+	return (*val.vector_val)[index];
 	}
 
 unsigned int VectorVal::Resize(unsigned int new_num_elements)
@@ -3397,7 +3389,7 @@ bool VectorVal::DoUnserialize(UnserialInfo* info)
 		{
 		Val* v;
 		UNSERIALIZE_OPTIONAL(v, Val::Unserialize(info, TYPE_ANY));
-		Assign(i + VECTOR_MIN, v, 0);
+		Assign(i, v, 0);
 		}
 
 	return true;

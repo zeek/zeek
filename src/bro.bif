@@ -1979,9 +1979,14 @@ function precompile_pcap_filter%(id: PcapFilterID, s: string%): bool
 # Install precompiled pcap filter.
 function install_pcap_filter%(id: PcapFilterID%): bool
 	%{
-	// Don't allow the script-level to change the filter when
-	// the user has specified one on the command line.
-	if ( user_pcap_filter )
+	ID* user_filter = global_scope()->Lookup("cmd_line_bpf_filter");
+
+	if ( ! user_filter )
+		internal_error("global cmd_line_bpf_filter not defined");
+
+	if ( user_filter->ID_Val()->AsStringVal()->Len() )
+		// Don't allow the script-level to change the filter when
+		// the user has specified one on the command line.
 		return new Val(0, TYPE_BOOL);
 
 	bool success = true;
@@ -2390,7 +2395,7 @@ function any_set%(v: any%) : bool
 		}
 
 	VectorVal* vv = v->AsVectorVal();
-	for ( unsigned int i = VECTOR_MIN; i < vv->Size() + VECTOR_MIN; ++i )
+	for ( unsigned int i = 0; i < vv->Size(); ++i )
 		if ( vv->Lookup(i) && vv->Lookup(i)->AsBool() )
 			return new Val(true, TYPE_BOOL);
 
@@ -2408,7 +2413,7 @@ function all_set%(v: any%) : bool
 		}
 
 	VectorVal* vv = v->AsVectorVal();
-	for ( unsigned int i = VECTOR_MIN; i < vv->Size() + VECTOR_MIN; ++i )
+	for ( unsigned int i = 0; i < vv->Size(); ++i )
 		if ( ! vv->Lookup(i) || ! vv->Lookup(i)->AsBool() )
 			return new Val(false, TYPE_BOOL);
 
@@ -2591,8 +2596,8 @@ function order%(v: any, ...%) : index_vec
 	// adjusting indices as we do so.
 	for ( i = 0; i < n; ++i )
 		{
-		int ind = ind_vv[i] + VECTOR_MIN;
-		result_v->Assign(i + VECTOR_MIN, new Val(ind, TYPE_COUNT), 0);
+		int ind = ind_vv[i];
+		result_v->Assign(i, new Val(ind, TYPE_COUNT), 0);
 		}
 
 	return result_v;
@@ -3101,7 +3106,13 @@ function lookup_location%(a: addr%) : geo_location
 		}
 
 #else
-	builtin_run_time("Bro was not configured for GeoIP support");
+	static int missing_geoip_reported = 0;
+
+	if ( ! missing_geoip_reported )
+		{
+		builtin_run_time("Bro was not configured for GeoIP support");
+		missing_geoip_reported = 1;
+		}
 #endif
 
 	// We can get here even if we have GeoIP support if we weren't
@@ -3159,7 +3170,13 @@ function lookup_asn%(a: addr%) : count
 		return new Val(atoi(gir+2), TYPE_COUNT);
 		}
 #else
-	builtin_run_time("Bro was not configured for GeoIP ASN support");
+	static int missing_geoip_reported = 0;
+
+	if ( ! missing_geoip_reported )
+		{
+		builtin_run_time("Bro was not configured for GeoIP ASN support");
+		missing_geoip_reported = 1;
+		}
 #endif
 
 	// We can get here even if we have GeoIP support, if we weren't
@@ -3322,6 +3339,15 @@ function entropy_test_finish%(index: any%): entropy_test_result
 	delete s;
 	return ent_result;
 	%}
+
+function bro_has_ipv6%(%) : bool
+    %{
+#ifdef BROv6
+	return new Val(1, TYPE_BOOL);
+#else
+	return new Val(0, TYPE_BOOL);
+#endif
+    %}
 
 
 %%{

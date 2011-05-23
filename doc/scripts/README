@@ -1,0 +1,61 @@
+This directory contains scripts and templates that can be used to automate
+the generation of Bro script documentation.  Several build targets are defined
+by CMake:
+
+``restdoc``
+
+    This target uses Bro to parse policy scripts in order to generate
+    reStructuredText (reST) documentation from them.  The list of scripts
+    for which to generate reST documentation is defined in the
+    ``CMakeLists.txt`` file in this directory.  Script documentation is
+    rebuild automatically if the policy script from which it is derived
+    or the Bro binary becomes out of date
+
+    The resulting output from this target can be found in the CMake
+    ``build/`` directory inside ``reST`` (a symlink to
+    ``doc/scripts/rest_output``).
+
+``doc``
+
+    This target depends on a Python interpreter (>=2.5) and
+    `Sphinx <http://sphinx.pocoo.org/>`_ being installed.  Sphinx can be
+    installed like::
+
+        > sudo easy_install sphinx
+
+    This target will first build ``restdoc`` target and then copy the
+    resulting reST files as an input directory to Sphinx.
+
+    After completion, HTML documentation can be located in the CMake
+    ``build/`` directory inside ``html`` (a symlink to
+    ``doc/scripts/out/html``)
+
+``restclean``
+
+    This target removes any reST documentation that has been generated so far.
+
+``docclean``
+
+    This target removes Sphinx inputs and outputs from the CMake ``build/`` dir.
+
+To schedule a script to be documented, edit ``CMakeLists.txt`` inside this
+directory add a call to the ``rest_target()`` macro.  Calling that macro
+with a group name for the script is optional, but if not given, the only
+link to the script will be in the master TOC tree for all policy scripts.
+
+When adding a new logical grouping for generated scripts, create a new
+reST document in ``source/<group_name>.rst`` and add some default
+documentation for the group.  References to (and summaries of) documents
+associated with the group get appended to this file during the
+``make doc`` process.
+
+The Sphinx source tree template in ``source/`` can be modified to add more
+common/general documentation, style sheets, JavaScript, etc.  The Sphinx
+config file is produced from ``conf.py.in``, so that can be edited to change
+various Sphinx options, like setting the default HTML rendering theme.
+There is also a custom Sphinx domain implemented in ``source/ext/bro.py``
+which adds some reST directives and roles that aid in generating useful
+index entries and cross-references.
+
+See ``example.bro`` for an example of how to document a Bro script such that
+``make doc`` will be able to produce reST/HTML documentation for it.

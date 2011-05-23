@@ -10,6 +10,7 @@
 #include "BackDoor.h"
 #include "InterConn.h"
 #include "SteppingStone.h"
+#include "ConnSizeAnalyzer.h"
 
 
 ExpectedConn::ExpectedConn(const uint32* _orig, const uint32* _resp,
@@ -189,6 +190,8 @@ bool DPM::BuildInitialAnalyzerTree(TransportProto proto, Connection* conn,
 					const u_char* data)
 	{
 	TCP_Analyzer* tcp = 0;
+	UDP_Analyzer* udp = 0;
+	ICMP_Analyzer* icmp = 0;
 	TransportLayerAnalyzer* root = 0;
 	AnalyzerTag::Tag expected = AnalyzerTag::Error;
 	analyzer_map* ports = 0;
@@ -206,7 +209,7 @@ bool DPM::BuildInitialAnalyzerTree(TransportProto proto, Connection* conn,
 		break;
 
 	case TRANSPORT_UDP:
-		root = new UDP_Analyzer(conn);
+		root = udp = new UDP_Analyzer(conn);
 		pia = new PIA_UDP(conn);
 		expected = GetExpected(proto, conn);
 		ports = &udp_ports;
@@ -221,15 +224,23 @@ bool DPM::BuildInitialAnalyzerTree(TransportProto proto, Connection* conn,
 		case ICMP_ECHOREPLY:
 			if ( ICMP_Echo_Analyzer::Available() )
 				{
-				root = new ICMP_Echo_Analyzer(conn);
+				root = icmp = new ICMP_Echo_Analyzer(conn);
 				DBG_DPD(conn, "activated ICMP Echo analyzer");
+				}
+			break;
+
+		case ICMP_REDIRECT:
+			if ( ICMP_Redir_Analyzer::Available() )
+				{
+				root = new ICMP_Redir_Analyzer(conn);
+				DBG_DPD(conn, "activated ICMP Redir analyzer");
 				}
 			break;
 
 		case ICMP_UNREACH:
 			if ( ICMP_Unreachable_Analyzer::Available() )
 				{
-				root = new ICMP_Unreachable_Analyzer(conn);
+				root = icmp = new ICMP_Unreachable_Analyzer(conn);
 				DBG_DPD(conn, "activated ICMP Unreachable analyzer");
 				}
 			break;
@@ -237,14 +248,14 @@ bool DPM::BuildInitialAnalyzerTree(TransportProto proto, Connection* conn,
 		case ICMP_TIMXCEED:
 			if ( ICMP_TimeExceeded_Analyzer::Available() )
 				{
-				root = new ICMP_TimeExceeded_Analyzer(conn);
+				root = icmp = new ICMP_TimeExceeded_Analyzer(conn);
 				DBG_DPD(conn, "activated ICMP Time Exceeded analyzer");
 				}
 			break;
 		}
 
 		if ( ! root )
-			root = new ICMP_Analyzer(conn);
+			root = icmp = new ICMP_Analyzer(conn);
 
 		analyzed = true;
 		break;
@@ -363,6 +374,16 @@ bool DPM::BuildInitialAnalyzerTree(TransportProto proto, Connection* conn,
 		// we cannot add it as a normal child.
 		if ( TCPStats_Analyzer::Available() )
 			tcp->AddChildPacketAnalyzer(new TCPStats_Analyzer(conn));
+
+		// Add ConnSize analyzer. Needs to see packets, not stream.
+		if ( ConnSize_Analyzer::Available() )
+			tcp->AddChildPacketAnalyzer(new ConnSize_Analyzer(conn));
+		}
+
+	else
+		{
+		if ( ConnSize_Analyzer::Available() )
+			root->AddChildAnalyzer(new ConnSize_Analyzer(conn), false);
 		}
 
 	if ( pia )
@@ -381,7 +402,7 @@ bool DPM::BuildInitialAnalyzerTree(TransportProto proto, Connection* conn,
 	if ( expected != AnalyzerTag::Error  )
 		conn->Event(expected_connection_seen, 0,
 				new Val(expected, TYPE_COUNT));
-	
+
 	return true;
 	}
 

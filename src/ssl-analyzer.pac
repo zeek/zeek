@@ -263,7 +263,7 @@ refine analyzer SSLAnalyzer += {
 				if ( ! pTemp )
 					{
 					// X509_V_UNABLE_TO_DECRYPT_CERT_SIGNATURE
-					certificate_error(4);
+					certificate_error(ERR_get_error());
 					return false;
 					}
 				
@@ -271,18 +271,26 @@ refine analyzer SSLAnalyzer += {
 				char tmp[256];
 				pX509Cert->Assign(0, new Val((uint64) X509_get_version(pTemp), TYPE_COUNT));
 				pX509Cert->Assign(1, new StringVal(16, (const char*) X509_get_serialNumber(pTemp)->data));
-				X509_NAME_oneline(X509_get_subject_name(pTemp), tmp, sizeof tmp);
-				pX509Cert->Assign(2, new StringVal(tmp));
-				X509_NAME_oneline(X509_get_issuer_name(pTemp), tmp, sizeof tmp);
-				pX509Cert->Assign(3, new StringVal(tmp));
+				
+				BIO *bio = BIO_new(BIO_s_mem());
+				X509_NAME_print_ex(bio, X509_get_subject_name(pTemp), 0, XN_FLAG_RFC2253);
+				int len = BIO_gets(bio, &(*tmp), sizeof tmp);
+				pX509Cert->Assign(2, new StringVal(len, tmp));
+				X509_NAME_print_ex(bio, X509_get_issuer_name(pTemp), 0, XN_FLAG_RFC2253);
+				len = BIO_gets(bio, &(*tmp), sizeof tmp);
+				pX509Cert->Assign(3, new StringVal(len, tmp));
+				BIO_free(bio);
+				
 				pX509Cert->Assign(4, new Val(get_time_from_asn1(X509_get_notBefore(pTemp)), TYPE_TIME));
 				pX509Cert->Assign(5, new Val(get_time_from_asn1(X509_get_notAfter(pTemp)), TYPE_TIME));
-			
+				StringVal* der_cert = new StringVal(cert.length(), (const char*) cert.data());
+				
 				BifEvent::generate_x509_certificate(bro_analyzer_, bro_analyzer_->Conn(),
-							pX509Cert, 
-							${rec.is_orig},
-							i, certificates->size()-1);
-		
+							pX509Cert,
+							! ${rec.is_orig},
+							i, certificates->size()-1,
+							der_cert);
+				
 				// Are there any X509 extensions?
 				if ( x509_extension && X509_get_ext_count(pTemp) > 0 )
 					{

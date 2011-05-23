@@ -270,7 +270,7 @@ event ssl_extension%(c: connection, code: count, val: string%);
 event ssl_established%(c: connection%);
 event ssl_alert%(c: connection, level: count, desc: count%);
 
-event x509_certificate%(c: connection, cert: X509, is_server: bool, chain_idx: count, chain_len: count%);
+event x509_certificate%(c: connection, cert: X509, is_server: bool, chain_idx: count, chain_len: count, der_cert: string%);
 event x509_extension%(c: connection, data: string%);
 event x509_error%(c: connection, err: int, err_string: string%);
 event x509_cert_validated%(c: connection%);

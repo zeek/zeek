@@ -15,6 +15,8 @@ type count_set: set[count];
 type index_vec: vector of count;
 type string_vec: vector of string;
 
+type table_s_of_s: table[string] of string;
+
 type transport_proto: enum { unknown_transport, tcp, udp, icmp };
 
 type conn_id: record {
@@ -920,7 +922,6 @@ global dns_max_queries = 5;
 # has bigger cipherspecs, we won't do a comparisons of cipherspecs.
 const ssl_max_cipherspec_size = 68 &redef;
 
-# SSL and X.509 types.
 type X509Extensions: table[count] of string;
 type X509: record {
 	version: count;

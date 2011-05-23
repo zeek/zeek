@@ -3325,6 +3325,12 @@ function entropy_test_finish%(index: any%): entropy_test_result
 
 
 %%{
+#include <openssl/x509.h>
+#include <openssl/asn1.h>
+#include <openssl/x509_vfy.h>
+
+// This is the indexed map of X509 certificate stores.
+static map<BroString, X509_STORE*> x509_stores;
 
 // ### NOTE: while d2i_X509 does not take a const u_char** pointer,
 // here we assume d2i_X509 does not write to <data>, so it is safe to
@@ -3332,26 +3338,26 @@ function entropy_test_finish%(index: any%): entropy_test_result
 // this?
 
 X509* d2i_X509_(X509** px, const u_char** in, int len)
-	{
-	// This is the indexed map of X509 certificate stores.
-	static map<BroString, X509_STORE*> x509_stores;
-	
+	{	
 #ifdef OPENSSL_D2I_X509_USES_CONST_CHAR
 	  return d2i_X509(px, in, len);
 #else
 	  return d2i_X509(px, (u_char**)in, len);
 #endif
 	}
+	
 %%}
 
 
-function x509_verify%(der_cert: string, cert_stack: string_vec, root_certs: table_s_of_s%): bool
+function x509_verify%(der_cert: string, cert_stack: string_vec, root_certs: table_s_of_s%): count
 	%{
-	//BroString* s = convert_index_to_string(index);
-	
 	X509_STORE* ctx = 0;
-	
 	int i = 0;
+	
+	// If this certificate store was built previously, just reuse the old one.
+	BroString* s = convert_index_to_string(root_certs);
+	if ( x509_stores.count(*s) > 0 )
+		ctx = x509_stores[*s];
 	
 	if ( ! ctx ) // lookup to see if we have this one built already!
 		{
@@ -3369,15 +3375,21 @@ function x509_verify%(der_cert: string, cert_stack: string_vec, root_certs: tabl
 			if ( ! x )
 				{
 				builtin_run_time(fmt("Root CA error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
-				return new Val(false, TYPE_BOOL);
+				return new Val((uint64) ERR_get_error(), TYPE_COUNT);
 				}
 			X509_STORE_add_cert(ctx, x);
 			}
+		
+		// Save the newly constructed certificate store into the cacheing map.
+		x509_stores[*s] = ctx;
 		}
 	
 	STACK_OF(X509)* untrusted_certs = sk_X509_new_null();
-	//if ( ! untrusted_certs )
-	//	certificate_error(X509_V_ERR_OUT_OF_MEM);
+	if ( ! untrusted_certs )
+		{
+		builtin_run_time(fmt("Untrusted certificate stack initialization error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
+		return new Val((uint64) ERR_get_error(), TYPE_COUNT);
+		}
 	VectorVal *cert_stack_vec = cert_stack->AsVectorVal();
 	for ( i = 1; i < (int) cert_stack_vec->Size(); ++i )
 		{
@@ -3387,14 +3399,10 @@ function x509_verify%(der_cert: string, cert_stack: string_vec, root_certs: tabl
 		if ( ! x )
 			{
 			builtin_run_time(fmt("Untrusted certificate stack creation error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
-			return new Val(false, TYPE_BOOL);
+			return new Val((uint64) ERR_get_error(), TYPE_COUNT);
 			}
 		sk_X509_push(untrusted_certs, x);
 		}
-	// Verify first cert or full chain upon 
-	// reaching the last cert.
-	//if ( certificates->size() == i+1 )
-	//	{
 		
 	const uint8 *cert_data = der_cert->Bytes();
 	
@@ -3403,17 +3411,19 @@ function x509_verify%(der_cert: string, cert_stack: string_vec, root_certs: tabl
 	if ( ! cert )
 		{
 		builtin_run_time(fmt("Certificate error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
-		return new Val(false, TYPE_BOOL);
+		return new Val((uint64) ERR_get_error(), TYPE_COUNT);
 		}
 	X509_STORE_CTX_init(&csc, ctx, cert, untrusted_certs);
 	X509_STORE_CTX_set_time(&csc, 0, (time_t) network_time);
 	
 	int result = X509_verify_cert(&csc);
-	//		certificate_error(csc.error);
 	X509_STORE_CTX_cleanup(&csc);
 	if ( untrusted_certs )
 		sk_X509_pop_free(untrusted_certs, X509_free);
-	return new Val(result, TYPE_BOOL);
+	return new Val((uint64) csc.error, TYPE_COUNT);
 	%}
 	
-	
+function x509_err2str%(err_num: count%): string
+	%{
+	return new StringVal(X509_verify_cert_error_string(err_num));
+	%}

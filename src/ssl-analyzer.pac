@@ -9,7 +9,6 @@
 #include "util.h"
 
 #include <openssl/x509.h>
-#include <openssl/x509_vfy.h>
 #include <openssl/asn1.h>
 %}
 
@@ -92,27 +91,10 @@ function convert_ciphers_uint16(ciph : uint16[]) : int[]
 refine analyzer SSLAnalyzer += {
 	%member{
 		Analyzer* bro_analyzer_;
-		X509_STORE* ctx;
 	%}
 
 	%init{
 		bro_analyzer_ = 0;
-		ctx = 0;
-		if ( !ctx )
-			{
-			ctx = X509_STORE_new();
-			TableVal* root_certs = opt_internal_table("root_ca_certs")->AsTableVal();
-			ListVal* idxs = root_certs->ConvertToPureList();
-
-			for ( int i = 0; i < idxs->Length(); ++i )
-				{
-				Val* key = idxs->Index(i);
-				StringVal *sv = root_certs->Lookup(key)->AsStringVal();
-				const uint8* data = sv->Bytes();
-				X509* x = d2i_X509_binpac(NULL, &data, sv->Len());
-				X509_STORE_add_cert(ctx, x);
-				}
-			}
 	%}
 
 	%eof{
@@ -133,14 +115,6 @@ refine analyzer SSLAnalyzer += {
 	function set_bro_analyzer(a : Analyzer) : void
 		%{
 		bro_analyzer_ = a;
-		%}
-
-	function certificate_error(err_num : int) : void
-		%{
-		StringVal* err_str =
-			new StringVal(X509_verify_cert_error_string(err_num));
-		BifEvent::generate_x509_error(bro_analyzer_, bro_analyzer_->Conn(),
-						err_num, err_str);
 		%}
 		
 	function proc_change_cipher_spec(rec: SSLRecord) : bool
@@ -262,19 +236,22 @@ refine analyzer SSLAnalyzer += {
 				X509* pTemp = d2i_X509_binpac(NULL, &data, cert.length());
 				if ( ! pTemp )
 					{
-					// X509_V_UNABLE_TO_DECRYPT_CERT_SIGNATURE
-					certificate_error(ERR_get_error());
+					BifEvent::generate_x509_error(bro_analyzer_, bro_analyzer_->Conn(),
+					                              ERR_get_error());
 					return false;
 					}
 				
 				RecordVal* pX509Cert = new RecordVal(x509_type);
 				char tmp[256];
-				pX509Cert->Assign(0, new Val((uint64) X509_get_version(pTemp), TYPE_COUNT));
-				pX509Cert->Assign(1, new StringVal(16, (const char*) X509_get_serialNumber(pTemp)->data));
-				
 				BIO *bio = BIO_new(BIO_s_mem());
+				
+				pX509Cert->Assign(0, new Val((uint64) X509_get_version(pTemp), TYPE_COUNT));
+				i2a_ASN1_INTEGER(bio, X509_get_serialNumber(pTemp));
+				int len = BIO_read(bio, &(*tmp), sizeof tmp);
+				pX509Cert->Assign(1, new StringVal(len, tmp));
+				
 				X509_NAME_print_ex(bio, X509_get_subject_name(pTemp), 0, XN_FLAG_RFC2253);
-				int len = BIO_gets(bio, &(*tmp), sizeof tmp);
+				len = BIO_gets(bio, &(*tmp), sizeof tmp);
 				pX509Cert->Assign(2, new StringVal(len, tmp));
 				X509_NAME_print_ex(bio, X509_get_issuer_name(pTemp), 0, XN_FLAG_RFC2253);
 				len = BIO_gets(bio, &(*tmp), sizeof tmp);
@@ -320,57 +297,6 @@ refine analyzer SSLAnalyzer += {
 										bro_analyzer_->Conn(), value);
 							OPENSSL_free(pBuffer);
 							}
-						}
-					}
-					
-				// Only grab the cert body for the first 
-				// certificate.
-				if ( x509_cert_body && i == 0 )
-					{
-					StringVal* der = new StringVal(cert.length(), (const char*) cert.data());
-					BifEvent::generate_x509_cert_body(bro_analyzer_,
-								bro_analyzer_->Conn(), der);
-					}
-				
-				if ( ssl_verify_certificates )
-					{
-					if ( i == 0 )
-						// Store the first cert
-						pCert = pTemp;
-						
-					else if ( i == 1 )
-						{
-						// Init the cert stack on the 
-						// second cert seen.
-						untrusted_certs = sk_X509_new_null();
-						if ( ! untrusted_certs )
-							certificate_error(X509_V_ERR_OUT_OF_MEM);
-						}	
-					
-					if ( i > 0 )
-						// If this isn't the first cert,
-						// push it onto the cert stack.
-						sk_X509_push(untrusted_certs, pTemp);
-						
-					// Verify first cert or full chain upon 
-					// reaching the last cert.
-					if ( certificates->size() == i+1 )
-						{
-						X509_STORE_CTX csc;
-						X509_STORE_CTX_init(&csc, ctx,
-									pCert,
-									untrusted_certs);
-						X509_STORE_CTX_set_time(&csc, 0, (time_t) network_time());
-						
-						if ( X509_verify_cert(&csc) )
-							BifEvent::generate_x509_cert_validated(bro_analyzer_,
-										bro_analyzer_->Conn());
-						else
-							certificate_error(csc.error);
-
-						X509_STORE_CTX_cleanup(&csc);
-						if ( untrusted_certs )
-							sk_X509_pop_free(untrusted_certs, X509_free);
 						}
 					}
 				}

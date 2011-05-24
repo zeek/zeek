@@ -229,6 +229,14 @@ bool DPM::BuildInitialAnalyzerTree(TransportProto proto, Connection* conn,
 				}
 			break;
 
+		case ICMP_REDIRECT:
+			if ( ICMP_Redir_Analyzer::Available() )
+				{
+				root = new ICMP_Redir_Analyzer(conn);
+				DBG_DPD(conn, "activated ICMP Redir analyzer");
+				}
+			break;
+
 		case ICMP_UNREACH:
 			if ( ICMP_Unreachable_Analyzer::Available() )
 				{

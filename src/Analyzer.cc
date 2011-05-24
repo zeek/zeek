@@ -58,6 +58,9 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 	{ AnalyzerTag::ICMP_Echo, "ICMP_ECHO",
 		ICMP_Echo_Analyzer::InstantiateAnalyzer,
 		ICMP_Echo_Analyzer::Available, 0, false },
+	{ AnalyzerTag::ICMP_Redir, "ICMP_REDIR",
+		ICMP_Redir_Analyzer::InstantiateAnalyzer,
+		ICMP_Redir_Analyzer::Available, 0, false },
 
 	{ AnalyzerTag::TCP, "TCP", TCP_Analyzer::InstantiateAnalyzer,
 		TCP_Analyzer::Available, 0, false },

@@ -1,8 +1,8 @@
-## This script provides the framework for software version detection and
-## parsing, but doesn't actually do any detection on it's own.  It relys on
-## other protocol specific scripts to parse out software from the protocol(s)
-## that they analyze.  The entry point for providing new software detections
-## to this framework is through the Software::found function.
+##! This script provides the framework for software version detection and
+##! parsing, but doesn't actually do any detection on it's own.  It relys on
+##! other protocol specific scripts to parse out software from the protocol(s)
+##! that they analyze.  The entry point for providing new software detections
+##! to this framework is through the Software::found function.
 
 @load functions
 @load notice
@@ -67,9 +67,9 @@ export {
 	} &redef;
 	
 	## Other scripts should call this function when they detect software.
-	## @param unparsed_version: This is the full string from which the
-	##                          Software::Info was extracted.
-	## @return: T if the software was logged, F otherwise.
+	## unparsed_version: This is the full string from which the
+	##                   :bro:type:`Software::Info` was extracted.
+	## Returns: T if the software was logged, F otherwise.
 	global found: function(id: conn_id, info: Software::Info): bool;
 	
 	## This function can take many software version strings and parse them into 
@@ -80,7 +80,7 @@ export {
 	                       software_type: Type): Info;
 	
 	## Compare two versions.
-	## @return:  Returns -1 for v1 < v2, 0 for v1 == v2, 1 for v1 > v2.
+	## Returns:  -1 for v1 < v2, 0 for v1 == v2, 1 for v1 > v2.
 	##           If the numerical version numbers match, the addl string
 	##           is compared lexicographically.
 	global cmp_versions: function(v1: Version, v2: Version): int;

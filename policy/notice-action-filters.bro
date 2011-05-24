@@ -1,4 +1,4 @@
-## A few predefined notice_action_filters (see notice.bro).
+##! A few predefined notice_action_filters (see notice.bro).
 @load notice
 @load functions
 

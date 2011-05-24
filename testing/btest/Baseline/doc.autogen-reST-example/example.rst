@@ -98,23 +98,23 @@ Namespaces
 
 Notices
 ~~~~~~~
-:bro:type:`Notice`
+:bro:type:`Notice::Type`
 
    :Type: :bro:type:`enum`
 
-      .. bro:enum:: Example::Notice_One Notice
+      .. bro:enum:: Example::Notice_One Notice::Type
 
          any number of this type of comment
          will document "Notice_One"
 
-      .. bro:enum:: Example::Notice_Two Notice
+      .. bro:enum:: Example::Notice_Two Notice::Type
 
          any number of this type of comment
          will document "Notice_Two"
 
-      .. bro:enum:: Example::Notice_Three Notice
+      .. bro:enum:: Example::Notice_Three Notice::Type
 
-      .. bro:enum:: Example::Notice_Four Notice
+      .. bro:enum:: Example::Notice_Four Notice::Type
 
 Public Interface
 ----------------
@@ -279,7 +279,7 @@ Redefinitions
 
    document the "SimpleEnum" redef here
 
-.. bro:type:: Example::SimpleRecord
+:bro:type:`Example::SimpleRecord`
 
    :Type: :bro:type:`record`
 

@@ -1,8 +1,12 @@
 ##! Script for detecting strange activity within DNS.
-##! Detections:
-##!   * Raise a notice for responses from remote hosts that resolve to local 
-##!     hosts but the name is not considered to be within a local zone.
-##!       - local_zones variable **must** be set appropriately for this detection.
+##!
+##! Notices raised:
+##!
+##!   * :bro:enum:`DNS::DNS_ExternalName`
+##!
+##!     A remote host resolves to a local host, but the name is not considered
+##!     to be within a local zone.  :bro:id:`local_zones` variable **must**
+##!     be set appropriately for this detection.
 
 @load dns/base
 @load notice
@@ -10,9 +14,9 @@
 module DNS;
 
 redef enum Notice::Type += { 
-	# Raised when a non-local name is found to be pointing at a local host.
-	#  This only works appropriately when all of your authoritative DNS 
-	#  servers are located in your "local_nets".
+	## Raised when a non-local name is found to be pointing at a local host.
+	## This only works appropriately when all of your authoritative DNS
+	## servers are located in your :bro:id:`local_nets`.
 	DNS_ExternalName, 
 	};
 

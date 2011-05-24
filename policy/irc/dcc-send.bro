@@ -5,9 +5,10 @@
 ##! but that connection will actually be between B and C which could be 
 ##! analyzed on a different worker.
 ##!
+##! Example line from IRC server indicating that the DCC SEND is about to start:
+##!    PRIVMSG my_nick :^ADCC SEND whateverfile.zip 3640061780 1026 41709^A
 
-## Example line from IRC server indicating that the DCC SEND is about to start:
-##    PRIVMSG my_nick :^ADCC SEND whateverfile.zip 3640061780 1026 41709^A
+@load irc/base
 
 module IRC;
 

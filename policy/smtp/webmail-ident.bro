@@ -2,10 +2,13 @@
 ##! with the USER-AGENT (or other) header unless not possible and will resort
 ##! to heuristics if necessary.
 ##!
-##! TODO::
-##!     * Find some heuristic to determine if email was sent through 
-##!       a MS Exhange webmail interface as opposed to a desktop client.
+##! TODO:
+##!
+##! * Find some heuristic to determine if email was sent through 
+##!   a MS Exhange webmail interface as opposed to a desktop client.
 ##! 
+
+@load smtp/base
 
 module SMTP;
 

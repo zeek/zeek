@@ -1,4 +1,4 @@
-## This script extracts and logs variables from the requested URI
+##! This script extracts and logs variables from the requested URI
 
 @load http/utils
 

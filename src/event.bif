@@ -3,9 +3,6 @@
 event bro_init%(%);
 event bro_done%(%);
 
-# bro_signal is initiated in main.cc
-# event bro_signal%(signal: count%);
-
 event dns_mapping_valid%(dm: dns_mapping%);
 event dns_mapping_unverified%(dm: dns_mapping%);
 event dns_mapping_new_name%(dm: dns_mapping%);
@@ -52,6 +49,7 @@ event icmp_echo_request%(c: connection, icmp: icmp_conn, id: count, seq: count, 
 event icmp_echo_reply%(c: connection, icmp: icmp_conn, id: count, seq: count, payload: string%);
 event icmp_unreachable%(c: connection, icmp: icmp_conn, code: count, context: icmp_context%);
 event icmp_time_exceeded%(c: connection, icmp: icmp_conn, code: count, context: icmp_context%);
+event icmp_redirect%(c: connection, icmp: icmp_conn, a: addr%);
 event net_stats_update%(t: time, ns: net_stats%);
 event conn_stats%(c: connection, os: endpoint_stats, rs: endpoint_stats%);
 event conn_weird%(name: string, c: connection%);

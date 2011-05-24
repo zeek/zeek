@@ -1,8 +1,10 @@
 ##! Software detection with the FTP protocol.
-##! TODO::
-##!  * Detect server software with initial 220 message
-##!  * Detect client software with password given for anonymous users 
-##!    (e.g. cyberduck@example.net)
+##!
+##! TODO:
+##!
+##! * Detect server software with initial 220 message
+##! * Detect client software with password given for anonymous users
+##!   (e.g. cyberduck@example.net)
 
 @load ftp/base
 @load software

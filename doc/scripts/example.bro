@@ -66,7 +66,7 @@ redef dpd_config += {
 
 # redefinitions of "Notice::Type" are self-documenting, but
 # more information can be supplied in two different ways
-redef enum Notice += {
+redef enum Notice::Type += {
     ## any number of this type of comment
     ## will document "Notice_One"
     Notice_One,

@@ -74,6 +74,22 @@ protected:
 	                      int len, int caplen, const u_char*& data);
 };
 
+class ICMP_Redir_Analyzer : public ICMP_Analyzer {
+public:
+	ICMP_Redir_Analyzer(Connection* conn);
+
+	static Analyzer* InstantiateAnalyzer(Connection* conn)
+		{ return new ICMP_Redir_Analyzer(conn); }
+
+	static bool Available()	{ return icmp_redirect; }
+
+protected:
+	ICMP_Redir_Analyzer()	{ }
+
+	virtual void NextICMP(double t, const struct icmp* icmpp,
+	                      int len, int caplen, const u_char*& data);
+};
+
 class ICMP_Context_Analyzer : public ICMP_Analyzer {
 public:
 	ICMP_Context_Analyzer(AnalyzerTag::Tag tag, Connection* conn)

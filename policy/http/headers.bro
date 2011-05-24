@@ -8,7 +8,7 @@ redef record Info += {
 	## The vector of HTTP headers.  No header values are included here, just
 	## the header names.
 	## TODO: with an empty vector as &default, the vector isn't coerced to the
-	##       correct type.
+	## correct type.
 	headers:  vector of string &log &optional;
 };
 

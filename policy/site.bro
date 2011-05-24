@@ -25,7 +25,6 @@ function is_local_addr(a: addr): bool
 	return a in local_nets;
 	}
 	
-	
 function is_local_name(name: string): bool
 	{
 	return local_dns_suffix_regex in name;
@@ -34,5 +33,5 @@ function is_local_name(name: string): bool
 event bro_init() &priority=10
 	{
 	# Double backslashes are needed due to string parsing.
-	local_dns_suffix_regex = build_regex(local_zones, "(^\\.?|\\.)(~~)$");
+	local_dns_suffix_regex = set_to_regex(local_zones, "(^\\.?|\\.)(~~)$");
 	}

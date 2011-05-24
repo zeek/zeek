@@ -6,7 +6,7 @@
 ## If a literal backslash is include in 'pat', it needs to be given as a double
 ## backslash due to Bro's string parsing reducing it to a single backslash
 ## upon rendering.
-function build_regex(ss: set[string], pat: string): pattern
+function set_to_regex(ss: set[string], pat: string): pattern
 	{
 	local i: count = 0;
 	local return_pat = "";

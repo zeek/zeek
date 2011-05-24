@@ -59,9 +59,8 @@ redef Signatures::ignored_ids += /^matchfile-/;
 
 event signature_match(state: signature_state, msg: string, data: string) &priority=5
 	{
-	#print "signature match";
 	# Only signatures matching file types are dealt with here.
-	if ( /^matchfile/ !in state$sig_id ) return;
+	if ( /^matchfile-/ !in state$sig_id ) return;
 	
 	local c = state$conn;
 	
@@ -72,6 +71,14 @@ event signature_match(state: signature_state, msg: string, data: string) &priori
 	
 	# Set the mime type that was detected.
 	c$http$mime_type = msg;
+	
+	# Fire the file_transferred event so that it can be picked up by other
+	# scripts, like the http/file-hash script since that uses file type to
+	# conditionally calculate an MD5 sum.
+	# TODO: We are leaving the descr field blank for now, but it shouldn't 
+	#       matter too much and hopefully the more generic file analysis code
+	#       will make this completely irrelevant.
+	event file_transferred(c, data, "", msg);
 	
 	if ( msg in mime_types_extensions && 
 	     c$http?$uri && mime_types_extensions[msg] !in c$http$uri )

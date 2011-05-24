@@ -89,8 +89,6 @@ function new_http_session(c: connection): Info
 	tmp$ts=network_time();
 	tmp$uid=c$uid;
 	tmp$id=c$id;
-	# TODO: remove this when &default on this set isn't segfaulting Bro anymore.
-	#tmp$tags = set();
 	return tmp;
 	}
 	

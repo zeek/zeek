@@ -43,10 +43,10 @@ export {
 
 # Once a file that we're interested has begun downloading, initialize
 # an MD5 hash.
-event file_transferred(c: connection, prefix: string, descr: string, mime_type: string) &priority=-5
+event file_transferred(c: connection, prefix: string, descr: string, mime_type: string) &priority=5
 	{
 	if ( ! c?$http ) return;
-		
+	
 	if ( (generate_md5 in mime_type || c$http$calc_md5 ) && 
 		 ! c$http$calculating_md5 )
 		{
@@ -66,7 +66,7 @@ event http_entity_data(c: connection, is_orig: bool, length: count, data: string
 	
 # When the file finishes downloading, finish the hash, check for the hash
 # in the MHR, and raise a notice if the hash is there.
-event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &priority=-5
+event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &priority=-4
 	{
 	if ( is_orig || ! c?$http ) return;
 	
@@ -98,7 +98,7 @@ event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &
 		}
 	}
 
-event connect_state_remove(c: connection) &priority=-5
+event connection_state_remove(c: connection) &priority=-5
 	{
 	if ( c?$http && c$http$calculating_md5 )
 		md5_hash_finish(c$id);

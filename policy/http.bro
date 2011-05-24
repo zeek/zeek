@@ -2,14 +2,12 @@
 
 ## Author: Seth Hall <seth@icir.org> - Inspired by the work of many others.
 
-
-@load http/utils
 @load http/base
 @load http/base-extended
 @load http/detect-sqli
 @load http/detect-intel
 @load http/file-ident
+@load http/file-hash
 @load http/software
 @load http/headers
-
 @load http/detect-webapps

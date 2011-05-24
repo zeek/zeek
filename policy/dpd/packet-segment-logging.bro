@@ -2,8 +2,7 @@
 ##! parsing violation is encountered.  The amount of 
 ##! data from the packet logged is set by the packet_segment_size variable.
 ##! A caveat to logging packet data is that in some cases, the packet may
-##! not be the packet that actually caused the protocol violation.  For this
-##! reason, this script should not be loaded by default in shipped scripts.
+##! not be the packet that actually caused the protocol violation.
 
 @load dpd/base
 

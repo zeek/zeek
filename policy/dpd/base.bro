@@ -6,7 +6,7 @@
 module DPD;
 
 # Add the DPD signatures.
-redef signature_files += "dpd.sig";
+redef signature_files += "dpd/dpd.sig";
 
 redef enum Log::ID += { DPD };
 

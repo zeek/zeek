@@ -17,6 +17,7 @@ export {
 
 redef record Info += {
 	## Disabled analyzer IDs.
+	# TODO: This is waiting on ticket #460 to remove the '0'.
 	disabled_aids: set[count] &default=set(0);
 };
 

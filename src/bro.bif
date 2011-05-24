@@ -3417,7 +3417,7 @@ function x509_verify%(der_cert: string, cert_stack: string_vec, root_certs: tabl
 		return new Val((uint64) ERR_get_error(), TYPE_COUNT);
 		}
 	VectorVal *cert_stack_vec = cert_stack->AsVectorVal();
-	for ( i = 1; i < (int) cert_stack_vec->Size(); ++i )
+	for ( i = 0; i < (int) cert_stack_vec->Size(); ++i )
 		{
 		StringVal *sv = cert_stack_vec->Lookup(i)->AsStringVal();
 		const uint8 *data = sv->Bytes();

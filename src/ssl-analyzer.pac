@@ -265,7 +265,7 @@ refine analyzer SSLAnalyzer += {
 				BifEvent::generate_x509_certificate(bro_analyzer_, bro_analyzer_->Conn(),
 							pX509Cert,
 							! ${rec.is_orig},
-							i, certificates->size()-1,
+							i, certificates->size(),
 							der_cert);
 				
 				// Are there any X509 extensions?

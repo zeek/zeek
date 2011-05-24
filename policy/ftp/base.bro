@@ -15,6 +15,9 @@ module FTP;
 redef enum Log::ID += { FTP };
 
 export {
+	## This setting changes if passwords used in FTP sessions are captured or not.
+	const default_capture_password = F &redef;
+
 	type Tag: enum {
 		UNKNOWN
 	};
@@ -44,6 +47,9 @@ export {
 		
 		## This indicates if the session is in active or passive mode.
 		passive:            bool &default=F;
+		
+		## This determines if the password will be captured for this request.
+		capture_password:   bool &default=default_capture_password;
 	};
 		
 	type ExpectedConn: record {
@@ -224,7 +230,7 @@ event ftp_request(c: connection, command: string, arg: string) &priority=5
 event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &priority=5
 	{
 	# TODO: figure out what to do with continued FTP response (not used much)
-	if ( cont_resp ) return;
+	#if ( cont_resp ) return;
 
 	local id = c$id;
 	set_ftp_session(c);
@@ -240,24 +246,19 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &prior
 	#     session$cmdarg$cmd == "PASS" )
 	#	do_ftp_login(c, session);
 
-	if ( code == 150 && c$ftp$cmdarg$cmd == "RETR" )
+	if ( (code == 150 && c$ftp$cmdarg$cmd == "RETR") ||
+	     (code == 213 && c$ftp$cmdarg$cmd == "SIZE") )
 		{
-		local parts = split_all(msg, /\([0-9]+[[:blank:]]+/);
-		if ( 2 in parts )
-			c$ftp$file_size = to_count(gsub(parts[2], /[^0-9]/, ""));
-		}
-	else if ( code == 213 && c$ftp$cmdarg$cmd == "SIZE" )
-		{
-		# NOTE: This isn't exactly the right thing to do here since the size
+		# NOTE: This isn't exactly the right thing to do for SIZE since the size
 		#       on a different file could be checked, but the file size will
 		#       be overwritten by the server response to the RETR command
 		#       if that's given as well which would be more correct.
-		c$ftp$file_size = to_count(strip(msg));
+		c$ftp$file_size = extract_count(msg);
 		}
 		
 	# PASV and EPSV processing
 	else if ( (code == 227 || code == 229) &&
-	     (c$ftp$cmdarg$cmd == "PASV" || c$ftp$cmdarg$cmd == "EPSV") )
+	          (c$ftp$cmdarg$cmd == "PASV" || c$ftp$cmdarg$cmd == "EPSV") )
 		{
 		local data = (code == 227) ? parse_ftp_pasv(msg) : parse_ftp_epsv(msg);
 		

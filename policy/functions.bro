@@ -1,6 +1,7 @@
 @load site
 @load logging
 @load dpd
+@load utils
 
 # TODO: move this somewhere else.  It doesn't seem appropriate here.
 const private_address_space: set[subnet] = {10.0.0.0/8, 192.168.0.0/16, 127.0.0.0/8, 172.16.0.0/12};

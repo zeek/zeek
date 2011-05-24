@@ -5,7 +5,7 @@
 module FTP;
 
 export {
-	## Pattern of file mime types to extract from HTTP entity bodies.
+	## Pattern of file mime types to extract from FTP entity bodies.
 	const extract_file_types = /NO_DEFAULT/ &redef;
 
 	## The on-disk prefix for files to be extracted from FTP-data transfers.

@@ -19,8 +19,8 @@
 #include <pcap-int.h>
 #endif
 
-int snaplen = 8192;	// really want "capture entire packet"
-
+// Capture the entire packet please!
+int snaplen = 0;
 
 PktSrc::PktSrc()
 	{

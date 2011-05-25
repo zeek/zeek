@@ -1,15 +1,15 @@
 ##! This script can be used to extract either the originator's data or the 
 ##! responders data or both.  By default nothing is extracted, and in order 
-##! to actually extract data the :bro:id:`c$extract_orig` and/or the 
-##! :bro:id:`c$extract_resp` variable must be set to T.  One way to achieve 
+##! to actually extract data the ``c$extract_orig`` and/or the
+##! ``c$extract_resp`` variable must be set to T.  One way to achieve
 ##! would be to handle the connection_established event elsewhere and set the
 ##! extract_orig and extract_resp options there.
 ##! This script does not work well in a cluster context unless it has a remotely
 ##! mounted disk to write the content files to.
-
-##! Note: This script has a problem is another connection happens using the 
-##!       same IP addresses and ports.  There is nothing in place to test for
-##!       the existence of a file.
+##!
+##! .. note:: This script has a problem if another connection happens using the 
+##!    same IP addresses and ports.  There is nothing in place to test for
+##!    the existence of a file.
 
 module Conn;
 

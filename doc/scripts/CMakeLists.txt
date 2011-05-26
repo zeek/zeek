@@ -132,6 +132,8 @@ endmacro(REST_TARGET)
 rest_target(${CMAKE_CURRENT_SOURCE_DIR} example.bro           internal)
 
 rest_target(${POLICY_SRC_DIR} conn.bro                        user)
+rest_target(${POLICY_SRC_DIR} conn/base.bro                   user)
+rest_target(${POLICY_SRC_DIR} conn/contents.bro               user)
 
 rest_target(${POLICY_SRC_DIR} dns.bro                         policy/dns-index)
 rest_target(${POLICY_SRC_DIR} dns/auth-addl.bro               policy/dns-index)

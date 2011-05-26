@@ -33,18 +33,18 @@ event connection_established(c: connection) &priority=-5
 
 	if ( c$extract_orig )
 		{
-		local orig_file =
-			fmt("%s.%s.%s.%d-%s.%d", extraction_prefix, c$uid,
-				id$orig_h, id$orig_p, id$resp_h, id$resp_p);
+		local orig_file = fmt("%s.%s.%s:%d-%s:%d.dat", 
+		                      extraction_prefix, c$uid,
+		                      id$orig_h, id$orig_p, id$resp_h, id$resp_p);
 		local orig_f = open(orig_file);
 		set_contents_file(id, CONTENTS_ORIG, orig_f);
 		}
 		
 	if ( c$extract_resp )
 		{
-		local resp_file =
-			fmt("%s.%s.%s.%d-%s.%d", extraction_prefix, c$uid,
-				id$resp_h, id$resp_p, id$orig_h, id$orig_p);
+		local resp_file = fmt("%s.%s.%s:%d-%s:%d.dat", 
+		                      extraction_prefix, c$uid,
+		                      id$resp_h, id$resp_p, id$orig_h, id$orig_p);
 		local resp_f = open(resp_file);
 		set_contents_file(id, CONTENTS_RESP, resp_f);
 		}

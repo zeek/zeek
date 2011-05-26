@@ -13,6 +13,7 @@ redef enum Log::ID += { DPD };
 export {
 	type Info: record {
 		ts:             time            &log;
+		uid:            string          &log;
 		id:             conn_id         &log;
 		proto:          transport_proto &log;
 		analyzer:       string          &log;
@@ -56,6 +57,7 @@ event protocol_violation(c: connection, atype: count, aid: count,
 	
 	local info: Info;
 	info$ts=network_time();
+	info$uid=c$uid;
 	info$id=c$id;
 	info$proto=get_conn_transport_proto(c$id);
 	info$analyzer=analyzer_name(atype);

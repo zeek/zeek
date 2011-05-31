@@ -54,6 +54,7 @@ export {
 	};
 	
 	type State: record {
+		helo:                     string    &optional;
 		## Count the number of individual messages transmitted during this 
 		## SMTP session.  Note, this is not the number of recipients, but the
 		## number of message bodies transferred.
@@ -93,8 +94,8 @@ function new_smtp_log(c: connection): Info
 	l$ts=network_time();
 	l$uid=c$uid;
 	l$id=c$id;
-	if ( c?$smtp && c$smtp?$helo )
-		l$helo = c$smtp$helo;
+	if ( c?$smtp_state && c$smtp_state?$helo )
+		l$helo = c$smtp_state$helo;
 	
 	# The path will always end with the hosts involved in this connection.
 	# The lower values in the vector are the end of the path.
@@ -105,18 +106,23 @@ function new_smtp_log(c: connection): Info
 
 function set_smtp_session(c: connection)
 	{
-	if ( ! c?$smtp || c$smtp$done )
-		c$smtp = new_smtp_log(c);
-	
 	if ( ! c?$smtp_state )
 		c$smtp_state = [];
+	
+	if ( ! c?$smtp || c$smtp$done )
+		{
+		c$smtp = new_smtp_log(c);
+		}
 	}
 
 
 function smtp_message(c: connection)
 	{
 	Log::write(SMTP, c$smtp);
+
 	c$smtp$done = T;
+	# Track the number of messages seen in this session.
+	++c$smtp_state$messages_transferred;
 	}
 	
 event smtp_request(c: connection, is_orig: bool, command: string, arg: string) &priority=5
@@ -124,32 +130,32 @@ event smtp_request(c: connection, is_orig: bool, command: string, arg: string) &
 	set_smtp_session(c);
 	local upper_command = to_upper(command);
 	
-	# In case this is not the first message in a session we want to 
-	# essentially write out a log, clear the session tracking, and begin
-	# new session tracking.
-	if ( upper_command == "MAIL" && /^[fF][rR][oO][mM]:/ in arg &&
-	     c$smtp_state$messages_transferred > 0 )
-		{
-		smtp_message(c);
-		}
-
 	if ( upper_command == "HELO" || upper_command == "EHLO" )
+		{
+		c$smtp_state$helo = arg;
 		c$smtp$helo = arg;
+		}
 
 	else if ( upper_command == "RCPT" && /^[tT][oO]:/ in arg )
 		{
 		if ( ! c$smtp?$rcptto ) 
 			c$smtp$rcptto = set();
 		add c$smtp$rcptto[split1(arg, /:[[:blank:]]*/)[2]];
-		
-		# This is as good a place as any to increase the message count.
-		++c$smtp_state$messages_transferred;
 		}
 
 	else if ( upper_command == "MAIL" && /^[fF][rR][oO][mM]:/ in arg )
 		{
+		# In case this is not the first message in a session we want to 
+		# essentially write out a log, clear the session tracking, and begin
+		# new session tracking.
+		if ( c$smtp_state$messages_transferred > 0 )
+			{
+			smtp_message(c);
+			set_smtp_session(c);
+			}
+		
 		local partially_done = split1(arg, /:[[:blank:]]*/)[2];
-		c$smtp$mailfrom = split1(partially_done, /[[:blank:]]/)[1];
+		c$smtp$mailfrom = split1(partially_done, /[[:blank:]]?/)[1];
 		}
 		
 	else if ( upper_command == "DATA" )

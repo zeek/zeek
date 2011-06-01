@@ -308,5 +308,3 @@ function NOTICE(n: Notice::Info)
 	{
 	Notice::notice(n);
 	}
-	
-@load notice-action-filters

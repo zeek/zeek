@@ -275,7 +275,6 @@ type entropy_test_result: record {
 @load bro.bif.bro
 
 @load logging  # sic! Not logging.bif.
-@load logging-ascii
 
 global bro_alarm_file: file &redef;
 global alarm_hook: function(msg: string): bool &redef;
@@ -322,19 +321,20 @@ function add_signature_file(sold: string, snew: string): string
 
 global signature_files = "" &add_func = add_signature_file;
 
-const passive_fingerprint_file = "sigs/p0fsyn" &redef;
+const passive_fingerprint_file = "signatures/p0f.fp" &redef;
 
-const ftp = 21/tcp;
-const ssh = 22/tcp;
-const telnet = 23/tcp;
-const smtp = 25/tcp;
-const domain = 53/tcp;	# note, doesn't include UDP version
-const gopher = 70/tcp;
-const finger = 79/tcp;
-const http = 80/tcp;
-const ident = 113/tcp;
-const bgp = 179/tcp;
-const rlogin = 513/tcp;
+# TODO: testing to see if I can remove these without causing problems.
+#const ftp = 21/tcp;
+#const ssh = 22/tcp;
+#const telnet = 23/tcp;
+#const smtp = 25/tcp;
+#const domain = 53/tcp;	# note, doesn't include UDP version
+#const gopher = 70/tcp;
+#const finger = 79/tcp;
+#const http = 80/tcp;
+#const ident = 113/tcp;
+#const bgp = 179/tcp;
+#const rlogin = 513/tcp;
 
 const TCP_INACTIVE = 0;
 const TCP_SYN_SENT = 1;
@@ -1341,8 +1341,6 @@ const likely_server_ports: set[port] &redef;
 # Set of all ports for which we know an analyzer.
 global dpd_analyzer_ports: table[port] of set[AnalyzerTag];
 
-@load server-ports
-
 # Per-incident timer managers are drained after this amount of inactivity.
 const timer_mgr_inactivity_timeout = 1 min &redef;
 
@@ -1386,4 +1384,6 @@ const skip_http_data = F &redef;
 # UDP tunnels. See also: udp_tunnel_port, policy/udp-tunnel.bro.
 const parse_udp_tunnels = F &redef;
 
+#@load utils
+#@load site
 #@load dpd

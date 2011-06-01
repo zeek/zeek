@@ -16,7 +16,7 @@ export {
 
 event mime_segment_data(c: connection, length: count, data: string) &priority=7
 	{
-	if ( c$mime$content_len == 0 )
+	if ( c$mime$content_len == 0 && c$mime$find_type )
 		{
 		c$mime$mime_type = identify_data(data, T);
 		c$mime$mime_desc = identify_data(data, F);

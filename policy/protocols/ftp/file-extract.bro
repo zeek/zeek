@@ -37,7 +37,11 @@ event file_transferred(c: connection, prefix: string, descr: string,
 	if ( s$extract_file )
 		{
 		add s$tags[EXTRACTED_FILE];
-		s$extracted_filename = fmt("%s.%s", extraction_prefix, id_string(c$id));
+		s$extracted_filename = fmt("%s.%s.%s:%d-%s:%d.dat", 
+		                           extraction_prefix, c$uid,
+		                           id$orig_h, id$orig_p, 
+		                           id$resp_h, id$resp_p);
+		
 		}
 	}
 

@@ -1,5 +1,5 @@
-@load functions
 @load notice
+@load utils/thresholds
 
 module SSH;
 
@@ -64,7 +64,6 @@ export {
 	
 	# Keeps count of how many rejections a host has had
 	global password_rejections: table[addr] of TrackCount 
-		&default=default_track_count
 		&write_expire=guessing_timeout
 		&synchronized;
 
@@ -133,7 +132,7 @@ function check_ssh_connection(c: connection, done: bool)
 		{
 		# presumed failure
 		if ( c$id$orig_h !in password_rejections )
-			password_rejections[c$id$orig_h] = default_track_count(c$id$orig_h);
+			password_rejections[c$id$orig_h] = [];
 			
 		# Track the number of rejections
 		if ( !(c$id$orig_h in ignore_guessers &&

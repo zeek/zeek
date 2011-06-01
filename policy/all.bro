@@ -5,8 +5,6 @@
 @load ftp
 @load http 
 @load irc 
-@load known-hosts 
-@load known-services 
 @load smtp 
 @load ssl 
 @load ssh 

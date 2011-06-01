@@ -3,7 +3,7 @@
 @load software
 
 @load smtp/detect
-@load smtp/utils
+@load utils/addrs
 
 module SMTP;
 
@@ -88,6 +88,20 @@ event bro_init()
 	Log::create_stream(SMTP, [$columns=SMTP::Info, $ev=log_smtp]);
 	}
 	
+function find_address_in_smtp_header(header: string): string
+{
+	local ips = find_ip_addresses(header);
+	# If there are more than one IP address found, return the second.
+	if ( |ips| > 1 )
+		return ips[1];
+	# Otherwise, return the first.
+	else if ( |ips| > 0 )
+		return ips[0];
+	# Otherwise, there wasn't an IP address found.
+	else
+		return "";
+}
+
 function new_smtp_log(c: connection): Info
 	{
 	local l: Info;
@@ -185,7 +199,7 @@ event smtp_reply(c: connection, is_orig: bool, code: count, cmd: string,
 			# Determine if the originator's IP address is in the message.
 			local ips = find_ip_addresses(msg);
 			local text_ip = "";
-			if ( |ips| > 0 && to_addr(ips[1]) == c$id$orig_h )
+			if ( |ips| > 0 && to_addr(ips[0]) == c$id$orig_h )
 				{
 				note = SMTP_BL_Blocked_Host;
 				message = fmt("%s is on an SMTP block list", c$id$orig_h);

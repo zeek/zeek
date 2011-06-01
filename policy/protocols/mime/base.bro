@@ -1,4 +1,4 @@
-@load functions
+@load utils/strings
 
 # TODO: need to figure out a way for these scripts to play along better.
 @load smtp

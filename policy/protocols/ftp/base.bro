@@ -9,6 +9,7 @@
 
 @load functions
 @load ftp/utils-commands
+@load utils/paths
 
 module FTP;
 

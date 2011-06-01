@@ -1,4 +1,4 @@
-@load functions
+@load utils/directions-and-hosts
 
 module KnownHosts;
 

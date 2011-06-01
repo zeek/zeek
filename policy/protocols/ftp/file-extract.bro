@@ -1,6 +1,7 @@
 ##! File extraction for FTP.
 
 @load ftp/base
+@load utils/conn_ids
 
 module FTP;
 

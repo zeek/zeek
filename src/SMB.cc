@@ -11,6 +11,8 @@ namespace {
 	const bool DEBUG_smb_ipc = true;
 }
 
+#define SMB_MAX_LEN (1<<17)
+
 #define BYTEORDER_SWAP16(n) ((256 * ((n) & 0xff)) + ((n) >> 8))
 
 enum SMB_Command {
@@ -135,10 +137,13 @@ void SMB_Session::set_andx(int is_orig, binpac::SMB::SMB_andx* andx)
 	andx_[ind] = andx;
 	}
 
-void SMB_Session::Deliver(int is_orig, int len, const u_char* data)
+void SMB_Session::Deliver(int is_orig, int len, const u_char* data,
+	                      double arg_first_time, double arg_last_time)
 	{
 	if ( len == 0 )
 		return;
+	first_time = arg_first_time;
+	last_time = arg_last_time;
 
 	try
 		{
@@ -152,8 +157,14 @@ void SMB_Session::Deliver(int is_orig, int len, const u_char* data)
 
 		int next_command = hdr.command();
 
+		fprintf(stderr, "SMB command: %02x %s len %-7d dur %.6lf\n", next_command, 
+				SMB_command_name[next_command], len,
+		        last_time-first_time);
+		int ncmds = 0;
+
 		while ( data < data_end )
 			{
+			ncmds++;
 			SMB_Body body(data, data_end);
 			set_andx(is_orig, 0);
 			ParseMessage(is_orig, next_command, hdr, body);
@@ -172,6 +183,7 @@ void SMB_Session::Deliver(int is_orig, int len, const u_char* data)
 
 			data = data_start + next;
 			}
+		fprintf(stderr, "ncmds %d\n", ncmds);
 		}
 	catch ( const binpac::Exception& e )
 		{
@@ -566,7 +578,8 @@ int SMB_Session::ParseReadAndx(binpac::SMB::SMB_header const& hdr,
 		val_list* vl = new val_list;
 		vl->append(analyzer->BuildConnVal());
 		vl->append(BuildHeaderVal(hdr));
-		vl->append(new StringVal(""));
+		vl->append(new Val(req.fid(), TYPE_COUNT));
+		//vl->append(new StringVal(""));
 
 		analyzer->ConnectionEvent(smb_com_read_andx, vl);
 		}
@@ -584,12 +597,13 @@ int SMB_Session::ParseReadAndxResponse(binpac::SMB::SMB_header const& hdr,
 	int data_count = resp.data_length();
 	const u_char* data = resp.data().begin();
 
-	if ( smb_com_read_andx )
+	if ( smb_com_read_andx_response )
 		{
 		val_list* vl = new val_list;
 		vl->append(analyzer->BuildConnVal());
 		vl->append(BuildHeaderVal(hdr));
-		vl->append(new StringVal(data_count, (const char*) data));
+		vl->append(new Val((resp.data_len_high()<<16)+(resp.data_len()), TYPE_COUNT));
+		//vl->append(new StringVal(data_count, (const char*) data));
 
 		analyzer->ConnectionEvent(smb_com_read_andx, vl);
 		}
@@ -614,7 +628,9 @@ int SMB_Session::ParseWriteAndx(binpac::SMB::SMB_header const& hdr,
 		val_list* vl = new val_list;
 		vl->append(analyzer->BuildConnVal());
 		vl->append(BuildHeaderVal(hdr));
-		vl->append(new StringVal(data_count, (const char*) data));
+		vl->append(new Val(req.fid(), TYPE_COUNT));
+		vl->append(new Val((req.data_len_high()<<16)+(req.data_len()), TYPE_COUNT));
+		//vl->append(new StringVal(data_count, (const char*) data));
 
 		analyzer->ConnectionEvent(smb_com_write_andx, vl);
 		}
@@ -631,14 +647,14 @@ int SMB_Session::ParseWriteAndxResponse(binpac::SMB::SMB_header const& hdr,
 	resp.Parse(body.data(), body.data() + body.length());
 	set_andx(0, resp.andx());
 
-	if ( smb_com_write_andx )
+	if ( smb_com_write_andx_response )
 		{
 		val_list* vl = new val_list;
 		vl->append(analyzer->BuildConnVal());
 		vl->append(BuildHeaderVal(hdr));
-		vl->append(new StringVal(""));
+		//vl->append(new StringVal(""));
 
-		analyzer->ConnectionEvent(smb_com_write_andx, vl);
+		analyzer->ConnectionEvent(smb_com_write_andx_response, vl);
 		}
 
 	return 0;
@@ -1016,6 +1032,8 @@ Val* SMB_Session::BuildHeaderVal(binpac::SMB::SMB_header const& hdr)
 	r->Assign(5, new Val(hdr.pid(), TYPE_COUNT));
 	r->Assign(6, new Val(hdr.uid(), TYPE_COUNT));
 	r->Assign(7, new Val(hdr.mid(), TYPE_COUNT));
+	r->Assign(8, new Val(first_time, TYPE_TIME));
+	r->Assign(9, new Val(last_time, TYPE_TIME));
 
 	return r;
 	}
@@ -1108,23 +1126,16 @@ Contents_SMB::Contents_SMB(Connection* conn, bool orig, SMB_Session* s)
 : TCP_SupportAnalyzer(AnalyzerTag::Contents_SMB, conn, orig)
 	{
 	smb_session = s;
-	msg_buf = 0;
+	state = WAIT_FOR_HDR;
+	first_time = last_time = 0.0;
+	hdr_buf.Init(4,4);
 	msg_len = 0;
-	buf_len = 0;
-	buf_n = 0;
+	msg_type = 0;
 	}
 
-void Contents_SMB::InitMsgBuf()
-	{
-	delete [] msg_buf;
-	msg_buf = new u_char[msg_len];
-	buf_len = msg_len;
-	buf_n = 0;
-	}
 
 Contents_SMB::~Contents_SMB()
 	{
-	delete [] msg_buf;
 	}
 
 void Contents_SMB::DeliverSMB(int len, const u_char* data)
@@ -1132,93 +1143,68 @@ void Contents_SMB::DeliverSMB(int len, const u_char* data)
 	// Check the 4-byte header.
 	if ( strncmp((const char*) data, "\xffSMB", 4) )
 		{
-		Conn()->Weird(fmt("SMB-over-TCP header error: %02x%02x%02x%02x, \\x%02x%c%c%c",
-			dshdr[0], dshdr[1], dshdr[2], dshdr[3],
+		Conn()->Weird(fmt("SMB-over-TCP header error: %02x %05x, >>\\x%02x%c%c%c<<",
+			//dshdr[0], dshdr[1], dshdr[2], dshdr[3],
+			msg_type, msg_len,
 			data[0], data[1], data[2], data[3]));
 		SetSkip(1);
 		}
 	else
-		smb_session->Deliver(IsOrig(), len, data);
+		smb_session->Deliver(IsOrig(), len, data, first_time, last_time);
 
-	buf_n = 0;
-	msg_len = 0;
 	}
 
 void Contents_SMB::DeliverStream(int len, const u_char* data, bool orig)
 	{
 	TCP_SupportAnalyzer::DeliverStream(len, data, orig);
+	if (Skipping())
+		return;
 
+	last_time = network_time;
 	while ( len > 0 )
 		{
-		if ( ! msg_len )
+		switch (state) {
+		case WAIT_FOR_HDR:
 			{
-			// Get the SMB-over-TCP header (4 bytes).
-			while ( buf_n < 4 && len > 0 )
+			if (first_time < 1e-3)
+				first_time = network_time;
+			bool got_hdr = hdr_buf.ConsumeChunk(data, len);
+			if (got_hdr)
 				{
-				dshdr[buf_n] = *data;
-				++buf_n; ++data; --len;
-				}
-
-			if ( buf_n < 4 )
-				return;
-
-			buf_n = 0;
-			for ( int i = 1; i < 4; ++i )
-				msg_len = ( msg_len << 8 ) + dshdr[i];
-
-			if ( dshdr[0] != 0 )
-				{
-				// Netbios header indicates this is NOT
-				// a session message ...
-				//	0x81 = session request
-				//	0x82 = positive response
-				//	0x83 = neg response
-				//	0x84 = retarget(?)
-				//	0x85 = keepalive
-				// Maybe we should just generate a Netbios
-				// event and die?
-				Conn()->Weird("SMB checked Netbios type and found != 0");
-				SetSkip(1);
-				return;
-				}
-
-			else if ( msg_len <= 4 )
-				{
-				Conn()->Weird("SMB message length error");
-				SetSkip(1);
-				return;
+				// We have the 4 bytes header now
+				const u_char *dummy = hdr_buf.GetBuf();
+				if (dummy[1] > 1) 
+					Conn()->Weird(fmt("NetBIOS session flags > 1: %d", dummy[1]));
+				msg_len = 0;
+				msg_type = dummy[0];
+				for ( int i =1; i < 4; i++)
+					msg_len = ( msg_len << 8) + dummy[i];
+				msg_buf.Init(SMB_MAX_LEN, msg_len);
+				state = WAIT_FOR_DATA;
 				}
 			}
-
-		if ( buf_n == 0 && msg_len <= len )
+			break;
+		case WAIT_FOR_DATA:
 			{
-			// The fast lane:
-			// Keep msg_len -- it will be changed in DeliverSMB
-			int mlen = msg_len;
-			DeliverSMB(msg_len, data);
-			len -= mlen;
-			data += mlen;
-			}
-
-		else
-			{
-			if ( buf_len < msg_len )
-				InitMsgBuf();
-
-			while ( buf_n < msg_len && len > 0 )
+			bool got_all_data = msg_buf.ConsumeChunk(data, len);
+			if (got_all_data)
 				{
-				msg_buf[buf_n] = *data;
-				++buf_n;
-				++data;
-				--len;
+				const u_char *dummy_p = msg_buf.GetBuf();
+				int dummy_len = (int) msg_buf.GetFill();
+				if (msg_type == 0x00 && dummy_len >= 4)
+					DeliverSMB(dummy_len, dummy_p);
+				else if (msg_type == 0x00)
+					Conn()->Weird(fmt("SMB too short: len=%d", msg_len));
+				else 
+					Conn()->Weird(fmt("SMB other msg type: %x", msg_type));
+				state = WAIT_FOR_HDR;
+				first_time = 0.0;
+				hdr_buf.Init(4,4);
 				}
-
-			if ( buf_n < msg_len )
-				return;
-
-			DeliverSMB(msg_len, msg_buf);
 			}
-		}
+			break;
+		} // end switch
+		} // end while
 	}
 
 SMB_Analyzer::SMB_Analyzer(Connection* conn)

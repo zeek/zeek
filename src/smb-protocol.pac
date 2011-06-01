@@ -337,12 +337,12 @@ type SMB_read_andx_response = record {
 	reserved2	: uint16[4];
 	byte_count	: uint16;
 	pad		: padding[padding_length];
-	data		: bytestring &length = data_length;
+	#data		: bytestring &length = data_length;
 	# Chris: the length here is causing problems - could we be having
 	# issues with the packet format or is the data_length just not
 	# right. The problem is that the padding isn't always filled right,
 	# espeically when its not the first command in the packet.
-	#data		: bytestring &restofdata;
+	data		: bytestring &restofdata;
 } &let {
 	data_length = data_len_high * 0x10000 + data_len;
 	padding_length = byte_count - data_length;
@@ -353,7 +353,7 @@ type SMB_write_andx = record {
 	andx		: SMB_andx;
 	fid		: uint16;
 	offset		: uint32;
-	reserved	: uint32;
+	timeout	: uint32;
 	write_mode	: uint16;
 	remaining	: uint16;
 	data_len_high	: uint16;
@@ -362,7 +362,8 @@ type SMB_write_andx = record {
 	rest_words	: uint8[word_count * 2 - offsetof(rest_words) + 1];
 	byte_count	: uint16;
 	pad		: padding to data_offset - smb_header_length;
-	data		: bytestring &length = data_length;
+	#data		: bytestring &length = data_length;
+	data		: bytestring &restofdata;
 } &let {
 	data_length = data_len_high * 0x10000 + data_len;
 } &byteorder = littleendian;

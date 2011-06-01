@@ -106,7 +106,7 @@ int NetbiosSSN_Interpreter::ParseDatagram(const u_char* data, int len,
 	{
 	if ( smb_session )
 		{
-		smb_session->Deliver(is_query, len, data);
+		smb_session->Deliver(is_query, len, data, 0, 0);
 		return 0;
 		}
 
@@ -129,7 +129,7 @@ int NetbiosSSN_Interpreter::ParseBroadcast(const u_char* data, int len,
 
 	if ( smb_session )
 		{
-		smb_session->Deliver(is_query, len, data);
+		smb_session->Deliver(is_query, len, data, 0, 0);
 		return 0;
 		}
 
@@ -188,7 +188,7 @@ int NetbiosSSN_Interpreter::ParseSessionMsg(const u_char* data, int len,
 
 	if ( smb_session )
 		{
-		smb_session->Deliver(is_query, len, data);
+		smb_session->Deliver(is_query, len, data, 0, 0);
 		return 0;
 		}
 	else

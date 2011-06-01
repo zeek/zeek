@@ -931,6 +931,8 @@ type smb_hdr : record {
 	pid: count;
 	uid: count;
 	mid: count;
+	first_time: time;
+	last_time: time;
 };
 
 type smb_trans : record {

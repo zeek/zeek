@@ -9,6 +9,7 @@
 // Reference: http://www.snia.org/tech_activities/CIFS/CIFS-TR-1p00_FINAL.pdf
 
 #include "TCP.h"
+#include "RPC.h"
 #include "DCE_RPC.h"
 #include "smb_pac.h"
 
@@ -44,7 +45,8 @@ public:
 	SMB_Session(Analyzer* analyzer);
 	~SMB_Session();
 
-	void Deliver(int is_orig, int len, const u_char* msg);
+	void Deliver(int is_orig, int len, const u_char* msg, 
+	             double first_time, double last_time);
 
 	static bool any_smb_event()
 		{
@@ -170,6 +172,8 @@ protected:
 	bool smb_pipe_prot;
 	StringVal* transaction_name;
 	binpac::SMB::SMB_andx* andx_[2];
+	double first_time;
+	double last_time;
 };
 
 class Contents_SMB : public TCP_SupportAnalyzer {
@@ -180,16 +184,21 @@ public:
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
 
 protected:
-	void InitMsgBuf();
-
+	typedef enum {
+		WAIT_FOR_HDR,
+		WAIT_FOR_DATA
+	} state_t;
 	void DeliverSMB(int len, const u_char* data);
 
 	SMB_Session* smb_session;
-	u_char dshdr[4];
-	u_char* msg_buf;
+
+	RPC_Reasm_Buffer hdr_buf; // Reassemlbes the NetBIOS length and glue 
+	RPC_Reasm_Buffer msg_buf; // Reassembles the SMB message.
 	int msg_len;
-	int buf_n;	// number of bytes in msg_buf
-	int buf_len;	// size off msg_buf
+	int msg_type;
+	double first_time;   // timestamp of first packet of current message
+	double last_time;    // timestamp of last pakcet of current message
+	state_t state;
 };
 
 class SMB_Analyzer : public TCP_ApplicationAnalyzer {
@@ -202,8 +211,9 @@ public:
 
 	static bool Available()
 		{
-		return SMB_Session::any_smb_event() ||
-			DCE_RPC_Session::any_dce_rpc_event();
+		return true;
+		//return SMB_Session::any_smb_event() ||
+		//	DCE_RPC_Session::any_dce_rpc_event();
 		}
 
 protected:

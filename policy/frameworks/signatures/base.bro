@@ -86,6 +86,17 @@ event bro_init()
 	{
 	Log::create_stream(SIGNATURES, [$columns=Info, $ev=log_signature]);
 	}
+	
+function add_signature_file(sold: string, snew: string): string
+	{
+	if ( sold == "" )
+		return snew;
+	else
+		return cat(sold, " ", snew);
+	}
+
+global signature_files = "" &add_func = add_signature_file;
+
 
 # Given a string, returns an escaped version suitable for being
 # printed in the colon-separated notice format.  This means that

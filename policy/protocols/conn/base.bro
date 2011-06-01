@@ -1,9 +1,8 @@
-@load functions
+@load site
 
 module Conn;
 
 redef enum Log::ID += { CONN };
-
 
 export {
 	type Info: record {
@@ -35,8 +34,18 @@ export {
 		## OTH          No SYN seen, just midstream traffic (a "partial connection" that was not later closed).
 		## ==========   ===============================================
 		conn_state:   string          &log &optional;
-
+		
+		## If the connection is originated locally, this value will be T.  If
+		## it was originated remotely it will be F.  In the case that the
+		## :bro:id:`local_nets` variable is undefined, this field will be left
+		## empty at all times.
 		local_orig:   bool            &log &optional;
+		
+		## Indicates the number of bytes missed in content gaps which is
+		## representative of packet loss.  A value other than zero will 
+		## normally cause protocol analysis to fail but some analysis may 
+		## have been completed prior to the packet loss.
+		missed_bytes: count           &log &default=0;
 
 		## Records the state history of (TCP) connections as
 		## a string of letters.
@@ -174,9 +183,17 @@ event connection_established(c: connection) &priority=5
 	{
 	set_conn(c, F);
 	}
-
+	
+event content_gap(c: connection, is_orig: bool, seq: count, length: count) &priority=5
+	{
+	set_conn(c, F);
+	
+	c$conn$missed_bytes = c$conn$missed_bytes + length;
+	}
+	
 event connection_state_remove(c: connection) &priority=-5
 	{
 	set_conn(c, T);
 	Log::write(CONN, c$conn);
 	}
+

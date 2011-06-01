@@ -1,4 +1,4 @@
-SL;
+module SSL;
 
 # To grab and format a PEM (ascii armored) certificate....
 # curl "http://www.icsi.berkeley.edu/certs/icsicert.crt" | openssl x509 -outform DER | hexdump -e '2/1 "%02X"' | sed -E 's/(..)/\\x\1/g'

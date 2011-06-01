@@ -37,7 +37,8 @@ export {
 	#	{ [0.0.0.0/0] = root_certs } &redef;
 }
 
-@load mozilla-root-certs
+# TODO: add the script for this and generate on one to ship.
+#@load mozilla-root-certs
 
 
 redef capture_filters += {

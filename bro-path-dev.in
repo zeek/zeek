@@ -10,12 +10,12 @@
 #     BROPATH=`./bro-path-dev` ./src/bro
 #
 
-broPolicies=${PROJECT_SOURCE_DIR}/policy:${PROJECT_SOURCE_DIR}/policy/sigs:${PROJECT_SOURCE_DIR}/policy/time-machine
+broPolicies=${PROJECT_SOURCE_DIR}/policy:${PROJECT_SOURCE_DIR}/policy/frameworks:${PROJECT_SOURCE_DIR}/policy/protocols:${PROJECT_SOURCE_DIR}/policy/detectors:${PROJECT_SOURCE_DIR}/policy/time-machine
 
 broGenPolicies=${CMAKE_BINARY_DIR}/src
 
 broctlPolicies=${PROJECT_SOURCE_DIR}/aux/broctl/policy:${CMAKE_BINARY_DIR}/aux/broctl/policy/local
 
-installedPolicies=${POLICYDIR}:${POLICYDIR}/sigs:${POLICYDIR}/time-machine:${POLICYDIR}/site
+installedPolicies=${POLICYDIR}:${POLICYDIR}/frameworks:${POLICYDIR}/protocols:${POLICYDIR}/detectors:${POLICYDIR}/time-machine:${POLICYDIR}/site
 
 echo .:$broPolicies:$broGenPolicies:$broctlPolicies

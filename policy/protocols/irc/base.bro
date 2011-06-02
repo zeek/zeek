@@ -1,14 +1,17 @@
-# Notes
-#   * irc_dcc_message doesn't seem to work.
-
-@load functions
+##! This is the script that implements the core IRC analysis support.  It only
+##! logs a very limited subset of the IRC protocol by default.  The points
+##! that it logs at are NICK commands, USER commands, and JOIN commands.  It 
+##! log various bits of meta data as indicated in the :bro:type:`Info` record
+##! along with the command at the command arguments.
 
 module IRC;
 
 redef enum Log::ID += { IRC };
 
 export {
-	type Tags: enum { EMPTY };
+	type Tag: enum { 
+		EMPTY 
+	};
 
 	type Info: record {
 		ts:       time        &log;
@@ -21,10 +24,8 @@ export {
 		command:  string      &log &optional;
 		value:    string      &log &optional;
 		addl:     string      &log &optional;
-		tags:     set[Tags]   &log;
+		tags:     set[Tag]    &log;
 	};
-	
-	const logged_commands = set("JOIN", "DCC SEND");
 	
 	global irc_log: event(rec: Info);
 }
@@ -62,48 +63,6 @@ function set_session(c: connection)
 		
 	c$irc$ts=network_time();
 	}
-	
-event irc_client(c: connection, prefix: string, data: string)
-	{
-	set_session(c);
-	
-	local parts = split1(data, / /);
-	local command = parts[1];
-	
-	if ( /^PING/ !in data )
-		{
-		#print "irc_client";
-		#print data;
-		}
-	}
-
-event irc_server(c: connection, prefix: string, data: string)
-	{
-	set_session(c);
-	
-	local parts = split1(data, / /);
-	local command = parts[1];
-	
-	if ( command == "PRIVMSG" )
-		{
-		local more_parts = split1(data, /\x01/);
-		if ( |more_parts| > 1 )
-			{
-			if ( /^DCC/ in more_parts[1] )
-				{
-				
-				}
-			}
-		#local p = split1(data, /:/);
-		#if ( /DCC CHAT/ in data )
-		#	print p;
-		#expect_connection(c$id$resp_h, data$h, data$p, ANALYZER_FILE, 5 min);
-		
-		#print data;
-		}
-	}
-
-
 
 event irc_nick_message(c: connection, who: string, newnick: string) &priority=5
 	{
@@ -121,7 +80,7 @@ event irc_nick_message(c: connection, who: string, newnick: string) &priority=-5
 	c$irc$nick=newnick;
 	}
 
-event irc_user_message(c: connection, user: string, host: string, server: string, real_name: string)
+event irc_user_message(c: connection, user: string, host: string, server: string, real_name: string) &priority=5
 	{
 	c$irc$command = "USER";
 	c$irc$value = user;

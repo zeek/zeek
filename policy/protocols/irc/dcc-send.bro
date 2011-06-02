@@ -13,7 +13,7 @@
 module IRC;
 
 export {
-	redef enum Tags += { EXTRACTED_FILE };
+	redef enum Tag += { EXTRACTED_FILE };
 
 	## Pattern of file mime types to extract from IRC DCC file transfers.
 	const extract_file_types = /NO_DEFAULT/ &redef;

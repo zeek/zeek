@@ -66,18 +66,14 @@ function set_session(c: connection)
 
 event irc_nick_message(c: connection, who: string, newnick: string) &priority=5
 	{
-	c$irc$command="NICK";
+	c$irc$command = "NICK";
 	c$irc$value = newnick;
-	
-	Log::write(IRC, c$irc);
-	
-	c$irc$nick=newnick;
 	}
 	
 event irc_nick_message(c: connection, who: string, newnick: string) &priority=-5
 	{
 	Log::write(IRC, c$irc);
-	c$irc$nick=newnick;
+	c$irc$nick  = newnick;
 	}
 
 event irc_user_message(c: connection, user: string, host: string, server: string, real_name: string) &priority=5

@@ -8,8 +8,8 @@ redef enum Notice::Type += {
 };
 
 export {
-	## This is a table of software versions indexed by the name of the software
-	## and yielding the latest version that is vulnerable.
+	## This is a table of software versions indexed by the name of the 
+	## software and yielding the latest version that is vulnerable.
 	const vulnerable_versions: table[string] of Version &redef;
 }
 
@@ -20,7 +20,6 @@ redef vulnerable_versions += {
 
 event log_software(rec: Info)
 	{
-	if ( rec$name != "Flash" ) return;
 	if ( rec$name in vulnerable_versions &&
 	     cmp_versions(rec$version, vulnerable_versions[rec$name]) <= 0 )
 		{

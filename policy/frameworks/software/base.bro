@@ -1,8 +1,8 @@
 ##! This script provides the framework for software version detection and
 ##! parsing, but doesn't actually do any detection on it's own.  It relys on
-##! other protocol specific scripts to parse out software from the protocol(s)
+##! other protocol specific scripts to parse out software from the protocols
 ##! that they analyze.  The entry point for providing new software detections
-##! to this framework is through the Software::found function.
+##! to this framework is through the :bro:id:`Software::found` function.
 
 @load functions
 @load notice
@@ -14,7 +14,7 @@ redef enum Notice::Type += {
 	## For certain softwares, a version changing may matter.  In that case, 
 	## this notice will be generated.  Software that matters if the version
 	## changes can be configured with the 
-	## Software::interesting_version_changes variable.
+	## :bro:id:`Software::interesting_version_changes` variable.
 	Software_Version_Change,
 };
 
@@ -25,7 +25,9 @@ export {
 		UNKNOWN,
 		OPERATING_SYSTEM,
 		DATABASE_SERVER,
-		## There are a number of ways to detect printers on the network.
+		# There are a number of ways to detect printers on the 
+		# network, we just need to codify them in a script and move
+		# this out of here.  It isn't currently used for anything.
 		PRINTER,
 	};
 
@@ -50,21 +52,23 @@ export {
 		## The full unparsed version string found because the version parsing 
 		## doesn't work 100% reliably and this acts as a fall back in the logs.
 		unparsed_version: string &log &optional;
-		
-		## This can indicate that this software should definitely be logged.
-		force_log:        bool &default=F;
 	};
 	
 	## The hosts whose software should be detected and tracked.
 	## Choices are: LocalHosts, RemoteHosts, Enabled, Disabled
 	const logging = Enabled &redef;
 	
-	## Some software is more interesting when the version changes.  This is
-	## a set of all software that should raise a notice when a different version
-	## is seen.
+	## Some software is more interesting when the version changes and this
+	## a set of all software that should raise a notice when a different 
+	## version is seen on a host.
 	const interesting_version_changes: set[string] = {
 		"SSH"
 	} &redef;
+	
+	## Some software is more interesting when the version changes and this
+	## a set of all software that should raise a notice when a different 
+	## version is seen on a host.
+	const interesting_type_changes: set[string] = set();
 	
 	## Other scripts should call this function when they detect software.
 	## unparsed_version: This is the full string from which the
@@ -72,9 +76,10 @@ export {
 	## Returns: T if the software was logged, F otherwise.
 	global found: function(id: conn_id, info: Software::Info): bool;
 	
-	## This function can take many software version strings and parse them into 
-	## a sensible Software::Version record.  There are still many cases where
-	## scripts may have to have their own specific version parsing though.
+	## This function can take many software version strings and parse them 
+	## into a sensible :bro:type:`Software::Version` record.  There are 
+	## still many cases where scripts may have to have their own specific 
+	## version parsing though.
 	global parse: function(unparsed_version: string,
 	                       host: addr,
 	                       software_type: Type): Info;
@@ -85,14 +90,24 @@ export {
 	##           is compared lexicographically.
 	global cmp_versions: function(v1: Version, v2: Version): int;
 	
-	## The index is the name of the software.
+	## This type represents a set of software.  It's used by the 
+	## :bro:id:`tracked` variable to store all known pieces of software
+	## for a particular host.  It's indexed with the name of a piece of 
+	## software such as "Firefox" and it yields a 
+	## :bro:type:`Software::Info` record with more information about the 
+	## software.
 	type SoftwareSet: table[string] of Info;
 	
-	## The set of software associated with an address.  Data expires from this
-	## table after one day by default so that a detected piece of software will
-	## be logged each day.
-	global tracked: table[addr] of SoftwareSet &create_expire=1day &synchronized;
+	## The set of software associated with an address.  Data expires from
+	## this table after one day by default so that a detected piece of 
+	## software will be logged once each day.
+	global tracked: table[addr] of SoftwareSet 
+		&create_expire=1day 
+		&synchronized
+		&redef;
 	
+	## This event can be handled to access the :bro:type:`Software::Info`
+	## record as it is sent on to the logging framework.
 	global log_software: event(rec: Info);
 }
 
@@ -362,8 +377,7 @@ event software_register(id: conn_id, info: Info)
 		
 		# If the version hasn't changed, then we're just redetecting the
 		# same thing, then we don't care.  This results in no extra logging.
-		# But if the $force_log value is set then we'll continue.
-		if ( ! info$force_log && cmp_versions(old$version, info$version) == 0 )
+		if ( cmp_versions(old$version, info$version) == 0 )
 			return;
 			
 		# Is it a potentially interesting version change?
@@ -384,7 +398,7 @@ event software_register(id: conn_id, info: Info)
 
 function found(id: conn_id, info: Info): bool
 	{
-	if ( info$force_log || addr_matches_hosts(info$host, logging) )
+	if ( addr_matches_hosts(info$host, logging) )
 		{
 		event software_register(id, info);
 		return T;

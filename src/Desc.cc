@@ -207,41 +207,71 @@ void ODesc::Indent()
 		}
 	}
 
-static const char hex_chars[] = "0123456789ABCDEF";
+static const char hex_chars[] = "0123456789abcdef";
+
+static const char* find_first_unprintable(ODesc* d, const char* bytes, unsigned int n)
+	{
+	if ( d->IsBinary() )
+		return 0;
+
+	while ( n-- )
+		{
+		if ( ! isprint(*bytes) )
+			return bytes;
+		++bytes;
+		}
+
+	return 0;
+	}
 
 void ODesc::AddBytes(const void* bytes, unsigned int n)
 	{
-	if ( ! escape )
-		return AddBytesRaw(bytes, n);
-
 	const char* s = (const char*) bytes;
 	const char* e = (const char*) bytes + n;
 
 	while ( s < e )
 		{
-		const char* t = (const char*) memchr(s, escape[0], e - s);
+		const char* t1 = escape ? (const char*) memchr(s, escape[0], e - s) : e;
+		const char* t2 = find_first_unprintable(this, s, t1 ? e - t1 : e - s);
 
-		if ( ! t )
+		if ( t2 && (t2 < t1 || ! t1) )
+			{
+			AddBytesRaw(s, t2 - s);
+
+			char hex[6] = "\\x00";
+			hex[2] = hex_chars[((*t2) & 0xf0) >> 4];
+			hex[3] = hex_chars[(*t2) & 0x0f];
+			AddBytesRaw(hex, sizeof(hex));
+
+			s = t2 + 1;
+			continue;
+			}
+
+		if ( ! escape )
 			break;
 
-		if ( memcmp(t, escape, escape_len) != 0 )
+		if ( ! t1 )
 			break;
 
-		AddBytesRaw(s, t - s);
+		if ( memcmp(t1, escape, escape_len) != 0 )
+			break;
+
+		AddBytesRaw(s, t1 - s);
 
 		for ( int i = 0; i < escape_len; ++i )
 			{
 			char hex[5] = "\\x00";
-			hex[2] = hex_chars[(*t) >> 4];
-			hex[3] = hex_chars[(*t) & 0x0f];
+			hex[2] = hex_chars[((*t1) & 0xf0) >> 4];
+			hex[3] = hex_chars[(*t1) & 0x0f];
 			AddBytesRaw(hex, sizeof(hex));
-			++t;
+			++t1;
 			}
 
-		s = t;
+		s = t1;
 		}
 
-	AddBytesRaw(s, e - s);
+	if ( s < e )
+		AddBytesRaw(s, e - s);
 	}
 
 void ODesc::AddBytesRaw(const void* bytes, unsigned int n)

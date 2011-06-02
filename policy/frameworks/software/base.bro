@@ -52,6 +52,14 @@ export {
 		## The full unparsed version string found because the version parsing 
 		## doesn't work 100% reliably and this acts as a fall back in the logs.
 		unparsed_version: string &log &optional;
+		
+		## This can indicate that this software being detected should
+		## definitely be sent onward to the logging framework.  By 
+		## default, only software that is "interesting" due to a change
+		## in version or it being currently unknown is sent to the
+		## logging framework.  This can be set to T to force the record
+		## to be sent to the logging framework.
+		force_log:        bool &default=F;
 	};
 	
 	## The hosts whose software should be detected and tracked.
@@ -377,7 +385,8 @@ event software_register(id: conn_id, info: Info)
 		
 		# If the version hasn't changed, then we're just redetecting the
 		# same thing, then we don't care.  This results in no extra logging.
-		if ( cmp_versions(old$version, info$version) == 0 )
+		# But if the $force_log value is set then we'll continue.
+		if ( ! info$force_log && cmp_versions(old$version, info$version) == 0 )
 			return;
 			
 		# Is it a potentially interesting version change?
@@ -398,7 +407,7 @@ event software_register(id: conn_id, info: Info)
 
 function found(id: conn_id, info: Info): bool
 	{
-	if ( addr_matches_hosts(info$host, logging) )
+	if ( info$force_log || addr_matches_hosts(info$host, logging) )
 		{
 		event software_register(id, info);
 		return T;

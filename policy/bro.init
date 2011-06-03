@@ -172,6 +172,13 @@ type script_id: record {
 	value: any &optional;
 };
 
+# The following two variables are defined here until the core is not
+# dependent on the names remaining as they are now.
+## This is the list of capture filters indexed by some user-definable ID.
+global capture_filters: table[string] of string &redef;
+## This is the list of restriction filters indexed by some user-definable ID.
+global restrict_filters: table[string] of string &redef;
+
 type id_table: table[string] of script_id;
 
 # {precompile,install}_pcap_filter identify the filter by IDs

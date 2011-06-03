@@ -1,57 +1,42 @@
-# $Id: pcap.bro 261 2004-08-31 19:25:40Z vern $
+##! This script supports how Bro sets it's BPF capture filter.  By default
+##! Bro sets an unrestricted filter that allows all traffic.  If a filter
+##! is set on the command line, that filter takes precedence over the default
+##! open filter and all filter defined internally in Bro scripts.
 
-# The set of capture_filters indexed by some user-definable ID.
-global capture_filters: table[string] of string &redef;
-global restrict_filters: table[string] of string &redef;
-
-# By default, Bro will examine all packets. If this is set to false,
-# it will dynamically build a BPF filter that only select protocols
-# for which the user has loaded a corresponding analysis script.
-# The latter used to be default for Bro versions < 1.6. That has now
-# changed however to enable port-independent protocol analysis.
-const all_packets = T &redef;
-
-# Filter string which is unconditionally or'ed to every dynamically
-# built pcap filter.
-const unrestricted_filter = "" &redef;
+module Filter;
 
 redef enum PcapFilterID += {
 	DefaultPcapFilter,
 };
 
-function add_to_pcap_filter(fold: string, fnew: string, op: string): string
+export {
+	## By default, Bro will examine all packets. If this is set to false,
+	## it will dynamically build a BPF filter that only select protocols
+	## for which the user has loaded a corresponding analysis script.
+	## The latter used to be default for Bro versions < 1.6. That has now
+	## changed however to enable port-independent protocol analysis.
+	const all_packets = T &redef;
+	
+	# Filter string which is unconditionally or'ed to every dynamically
+	# built pcap filter.
+	const unrestricted_filter = "" &redef;
+}
+
+global default_pcap_filter = "<not set yet>";
+
+function combine_filters(lfilter: string, rfilter: string, op: string): string
 	{
-	if ( fold == "" )
-		return fnew;
-	else if ( fnew == "" )
-		return fold;
+	if ( lfilter == "" && rfilter == "" )
+		return "";
+	else if ( lfilter == "" )
+		return rfilter;
+	else if ( rfilter == "" )
+		return lfilter;
 	else
-		return fmt("(%s) %s (%s)", fold, op, fnew);
+		return fmt("(%s) %s (%s)", lfilter, op, rfilter);
 	}
 
-function join_filters(capture_filter: string, restrict_filter: string): string
-	{
-	local filter: string;
-
-	if ( capture_filter != "" && restrict_filter != "" )
-		filter = fmt( "(%s) and (%s)", restrict_filter, capture_filter );
-
-	else if ( capture_filter != "" )
-		filter = capture_filter;
-
-	else if ( restrict_filter != "" )
-		filter = restrict_filter;
-
-	else
-		filter = "ip or not ip";
-
-	if ( unrestricted_filter != "" )
-		filter = fmt( "(%s) or (%s)", unrestricted_filter, filter );
-
-	return filter;
-	}
-
-function build_default_pcap_filter(): string
+function build_default_filter(): string
 	{
 	if ( cmd_line_bpf_filter != "" )
 		# Return what the user specified on the command line;
@@ -66,25 +51,27 @@ function build_default_pcap_filter(): string
 			return "not ip6";
 		}
 
-	## Build filter dynamically.
-
+	# Build filter dynamically.
+	
 	# First the capture_filter.
 	local cfilter = "";
 	for ( id in capture_filters )
-		cfilter = add_to_pcap_filter(cfilter, capture_filters[id], "or");
-
+		cfilter = combine_filters(cfilter, capture_filters[id], "or");
+		
 	# Then the restrict_filter.
 	local rfilter = "";
 	for ( id in restrict_filters )
-		rfilter = add_to_pcap_filter(rfilter, restrict_filters[id], "and");
-
-	# Finally, join them.
-	local filter = join_filters(cfilter, rfilter);
-
+		rfilter = combine_filters(rfilter, restrict_filters[id], "and");
+		
+	# Finally, join them into one filter.
+	local filter = combine_filters(rfilter, cfilter, "and");
+	if ( unrestricted_filter != "" )
+		filter = combine_filters(unrestricted_filter, filter, "or");
+	
 	# Exclude IPv6 if we don't support it.
 	if ( ! bro_has_ipv6() )
-		filter = fmt("(not ip6) and (%s)", filter);
-
+		filter = combine_filters(filter, "not ip6", "and");
+	
 	return filter;
 	}
 
@@ -92,18 +79,17 @@ function install_default_pcap_filter()
 	{
 	if ( ! install_pcap_filter(DefaultPcapFilter) )
 		 {
-		 ### This could be due to a true failure, or simply
+		 # This could be due to a true failure, or simply
 		 # because the user specified -f.  Since we currently
 		 # don't have an easy way to distinguish, we punt on
 		 # reporting it for now.
+		print "failure?";
 		 }
 	}
 
-global default_pcap_filter = "<not set>";
-
 function update_default_pcap_filter()
 	{
-	default_pcap_filter = build_default_pcap_filter();
+	default_pcap_filter = build_default_filter();
 
 	if ( ! precompile_pcap_filter(DefaultPcapFilter, default_pcap_filter) )
 		 {
@@ -111,10 +97,11 @@ function update_default_pcap_filter()
 		 exit();
 		 }
 
+	print default_pcap_filter;
 	install_default_pcap_filter();
 	}
 
-event bro_init()
+event bro_init() &priority=10
 	{
 	update_default_pcap_filter();
 	}

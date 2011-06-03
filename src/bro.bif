@@ -1979,16 +1979,6 @@ function precompile_pcap_filter%(id: PcapFilterID, s: string%): bool
 # Install precompiled pcap filter.
 function install_pcap_filter%(id: PcapFilterID%): bool
 	%{
-	ID* user_filter = global_scope()->Lookup("cmd_line_bpf_filter");
-
-	if ( ! user_filter )
-		internal_error("global cmd_line_bpf_filter not defined");
-
-	if ( user_filter->ID_Val()->AsStringVal()->Len() )
-		// Don't allow the script-level to change the filter when
-		// the user has specified one on the command line.
-		return new Val(0, TYPE_BOOL);
-
 	bool success = true;
 
 	loop_over_list(pkt_srcs, i)

@@ -132,13 +132,13 @@ function check_ssh_connection(c: connection, done: bool)
 		{
 		# presumed failure
 		if ( c$id$orig_h !in password_rejections )
-			password_rejections[c$id$orig_h] = [];
+			password_rejections[c$id$orig_h] = new_track_count();
 			
 		# Track the number of rejections
 		if ( !(c$id$orig_h in ignore_guessers &&
 		       c$id$resp_h in ignore_guessers[c$id$orig_h]) )
 			++password_rejections[c$id$orig_h]$n;
-
+			
 		if ( default_check_threshold(password_rejections[c$id$orig_h]) )
 			{
 			add password_guessers[c$id$orig_h];
@@ -157,8 +157,9 @@ function check_ssh_connection(c: connection, done: bool)
 		# presumed successful login
 		status = "success";
 
-		if ( password_rejections[c$id$orig_h]$n > password_guesses_limit &&
-		     c$id$orig_h !in password_guessers)
+		if ( c$id$orig_h in password_rejections &&
+		     password_rejections[c$id$orig_h]$n > password_guesses_limit &&
+		     c$id$orig_h !in password_guessers )
 			{
 			add password_guessers[c$id$orig_h];
 			NOTICE([$note=SSH_LoginByPasswordGuesser,
@@ -167,7 +168,7 @@ function check_ssh_connection(c: connection, done: bool)
 			        $msg=fmt("Successful SSH login by password guesser %s", c$id$orig_h),
 			        $sub=fmt("%d failed logins", password_rejections[c$id$orig_h]$n)]);
 			}
-
+		
 		local message = fmt("SSH login %s %s \"%s\" \"%s\" %f %f %s (triggered with %d bytes)",
 		              direction, location$country_code, location$region, location$city,
 		              location$latitude, location$longitude,

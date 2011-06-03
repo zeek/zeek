@@ -32,6 +32,12 @@ export {
 	global default_check_threshold: function(tracker: TrackCount): bool;
 }
 
+function new_track_count(): TrackCount
+	{
+	local tc: TrackCount;
+	return tc;
+	}
+
 function check_threshold(v: vector of count, tracker: TrackCount): bool
 	{
 	if ( tracker$index <= |v| && tracker$n >= v[tracker$index] )

@@ -78,13 +78,12 @@ function build_default_filter(): string
 function install_default_pcap_filter()
 	{
 	if ( ! install_pcap_filter(DefaultPcapFilter) )
-		 {
-		 # This could be due to a true failure, or simply
-		 # because the user specified -f.  Since we currently
-		 # don't have an easy way to distinguish, we punt on
-		 # reporting it for now.
-		print "failure?";
-		 }
+		{
+		# This could be due to a true failure, or simply
+		# because the user specified -f.  Since we currently
+		# don't have an easy way to distinguish, we punt on
+		# reporting it for now.
+		}
 	}
 
 function update_default_pcap_filter()
@@ -92,12 +91,11 @@ function update_default_pcap_filter()
 	default_pcap_filter = build_default_filter();
 
 	if ( ! precompile_pcap_filter(DefaultPcapFilter, default_pcap_filter) )
-		 {
-		 print fmt("can't compile filter %s", default_pcap_filter);
-		 exit();
-		 }
+		{
+		print fmt("can't compile filter %s", default_pcap_filter);
+		exit();
+		}
 
-	print default_pcap_filter;
 	install_default_pcap_filter();
 	}
 

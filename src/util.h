@@ -190,7 +190,7 @@ extern int int_list_cmp(const void* v1, const void* v2);
 extern const char* bro_path();
 extern const char* bro_prefixes();
 extern FILE* search_for_file(const char* filename, const char* ext,
-	const char** full_filename);
+	const char** full_filename, bool load_pkgs);
 
 // Renames the given file to a new temporary name, and opens a new file with
 // the original name. Returns new file or NULL on error. Inits rotate_info if

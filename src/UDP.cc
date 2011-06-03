@@ -7,7 +7,6 @@
 #include "Net.h"
 #include "NetVar.h"
 #include "UDP.h"
-#include "UDP_Rewriter.h"
 
 UDP_Analyzer::UDP_Analyzer(Connection* conn)
 : TransportLayerAnalyzer(AnalyzerTag::UDP, conn)
@@ -25,9 +24,6 @@ UDP_Analyzer::~UDP_Analyzer()
 
 void UDP_Analyzer::Init()
 	{
-	if ( transformed_pkt_dump && RewritingTrace() )
-		SetTraceRewriter(new UDP_Rewriter(this, transformed_pkt_dump_MTU,
-					transformed_pkt_dump));
 	}
 
 void UDP_Analyzer::Done()
@@ -164,17 +160,22 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 	if ( caplen >= len )
 		ForwardPacket(len, data, is_orig, seq, ip, caplen);
+	}
 
-	if ( TraceRewriter() && current_hdr )
-		((UDP_Rewriter*) TraceRewriter())->NextPacket(is_orig,
-					current_timestamp, current_hdr, current_pkt,
-					current_hdr_size, ip->IP4_Hdr(), up);
+void UDP_Analyzer::UpdateConnVal(RecordVal *conn_val)
+	{
+	int orig_endp_idx = connection_type->FieldOffset("orig");
+	int resp_endp_idx = connection_type->FieldOffset("resp");
+	RecordVal *orig_endp = conn_val->Lookup(orig_endp_idx)->AsRecordVal();
+	RecordVal *resp_endp = conn_val->Lookup(resp_endp_idx)->AsRecordVal();
 
-#if 0
-		// XXX: needs to be implemented fully!
-	if ( src_pkt_writer && current_hdr )
-		src_pkt_writer->NextPacket(current_hdr, current_pkt);
-#endif
+	orig_endp = conn_val->Lookup(orig_endp_idx)->AsRecordVal();
+	resp_endp = conn_val->Lookup(resp_endp_idx)->AsRecordVal();
+	UpdateEndpointVal(orig_endp, 1);
+	UpdateEndpointVal(resp_endp, 0);
+
+	// Call children's UpdateConnVal
+	Analyzer::UpdateConnVal(conn_val);
 	}
 
 void UDP_Analyzer::UpdateEndpointVal(RecordVal* endp, int is_orig)

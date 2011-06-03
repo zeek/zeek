@@ -11,45 +11,6 @@
 static scope_list scopes;
 static Scope* top_scope;
 
-extern const char* GLOBAL_MODULE_NAME = "GLOBAL";
-
-
-// Returns it without trailing "::".
-string extract_module_name(const char* name)
-	{
-	string module_name = name;
-	string::size_type pos = module_name.rfind("::");
-
-	if ( pos == string::npos )
-		return string(GLOBAL_MODULE_NAME);
-
-	module_name.erase(pos);
-
-	return module_name;
-	}
-
-string normalized_module_name(const char* module_name)
-	{
-	int mod_len;
-	if ( (mod_len = strlen(module_name)) >= 2 &&
-	     ! strcmp(module_name + mod_len - 2, "::") )
-		mod_len -= 2;
-
-	return string(module_name, mod_len);
-	}
-
-string make_full_var_name(const char* module_name, const char* var_name)
-	{
-	if ( ! module_name || streq(module_name, GLOBAL_MODULE_NAME) ||
-	     strstr(var_name, "::") )
-		return string(var_name);
-
-	string full_name = normalized_module_name(module_name);
-	full_name += "::";
-	full_name += var_name;
-
-	return full_name;
-	}
 
 Scope::Scope(ID* id)
 	{
@@ -152,9 +113,11 @@ TraversalCode Scope::Traverse(TraversalCallback* cb) const
 	}
 
 
-ID* lookup_ID(const char* name, const char* curr_module, bool no_global)
+ID* lookup_ID(const char* name, const char* curr_module, bool no_global,
+	      bool same_module_only)
 	{
 	string fullname = make_full_var_name(curr_module, name);
+
 	string ID_module = extract_module_name(fullname.c_str());
 	bool need_export = ID_module != GLOBAL_MODULE_NAME &&
 				ID_module != curr_module;
@@ -173,7 +136,8 @@ ID* lookup_ID(const char* name, const char* curr_module, bool no_global)
 			}
 		}
 
-	if ( ! no_global )
+	if ( ! no_global && (strcmp(GLOBAL_MODULE_NAME, curr_module) == 0 ||
+			     ! same_module_only) )
 		{
 		string globalname = make_full_var_name(GLOBAL_MODULE_NAME, name);
 		ID* id = global_scope()->Lookup(globalname.c_str());

@@ -10,19 +10,11 @@
 #include "Scope.h"
 #include "Serializer.h"
 
-RecordType* init_global_attrs();
+#include <string>
+#include <list>
+#include <map>
 
-bool in_global_attr_decl = false;
-RecordType* global_attributes_type = init_global_attrs();
-
-RecordType* init_global_attrs()
-	{
-	in_global_attr_decl = true;
-	RecordType* rt = new RecordType(new type_decl_list);
-	in_global_attr_decl = false;
-	rt->MakeGlobalAttributeType();
-	return rt;
-	}
+extern int generate_documentation;
 
 const char* type_name(TypeTag t)
 	{
@@ -41,6 +33,7 @@ const char* type_name(TypeTag t)
 		"func",
 		"file",
 		"vector",
+		"type",
 		"error",
 	};
 
@@ -58,7 +51,7 @@ BroType::BroType(TypeTag t, bool arg_base_type)
 	tag = t;
 	is_network_order = 0;
 	base_type = arg_base_type;
-	is_global_attributes_type = false;
+	type_id = 0;
 
 	switch ( tag ) {
 	case TYPE_VOID:
@@ -110,6 +103,7 @@ BroType::BroType(TypeTag t, bool arg_base_type)
 	case TYPE_FUNC:
 	case TYPE_FILE:
 	case TYPE_VECTOR:
+	case TYPE_TYPE:
 		internal_tag = TYPE_INTERNAL_OTHER;
 		break;
 
@@ -118,28 +112,12 @@ BroType::BroType(TypeTag t, bool arg_base_type)
 		break;
 	}
 
-	// Kind of hacky; we don't want an error while we're defining
-	// the global attrs!
-	if ( in_global_attr_decl )
-		{
-		attributes_type = 0;
-		return;
-		}
-
-	if ( ! global_attributes_type )
-		SetError();
-	else
-		attributes_type = global_attributes_type;
 	}
 
-bool BroType::SetAttributesType(type_decl_list* attr_types)
+BroType::~BroType()
 	{
-	TypeList* global = new TypeList();
-	global->Append(global_attributes_type);
-
-	attributes_type = refine_type(global, attr_types)->AsRecordType();
-
-	return (attributes_type != 0);
+	if ( type_id )
+		delete [] type_id;
 	}
 
 int BroType::MatchesIndex(ListExpr*& /* index */) const
@@ -174,6 +152,13 @@ void BroType::Describe(ODesc* d) const
 		else
 			d->Add(type_name(t));
 		}
+	}
+
+void BroType::DescribeReST(ODesc* d) const
+	{
+	d->Add(":bro:type:`");
+	d->Add(type_name(Tag()));
+	d->Add("`");
 	}
 
 void BroType::SetError()
@@ -232,21 +217,12 @@ BroType* BroType::Unserialize(UnserialInfo* info, TypeTag want)
 	if ( ! t )
 		return 0;
 
-	// For base types, we return our current instance.
-	if ( t->base_type )
+	// For base types, we return our current instance
+	// if not in "documentation mode".
+	if ( t->base_type && ! generate_documentation )
 		{
 		BroType* t2 = ::base_type(TypeTag(t->tag));
 		Unref(t);
-		assert(t2);
-		return t2;
-		}
-
-	// For the global_attribute_type, we also return our current instance.
-	if ( t->is_global_attributes_type )
-		{
-		BroType* t2 = global_attributes_type;
-		Unref(t);
-		t2->Ref();
 		assert(t2);
 		return t2;
 		}
@@ -267,10 +243,20 @@ bool BroType::DoSerialize(SerialInfo* info) const
 		return false;
 
 	if ( ! (SERIALIZE(is_network_order) && SERIALIZE(base_type) &&
-		SERIALIZE(is_global_attributes_type)) )
+		// Serialize the former "bool is_global_attributes_type" for
+		// backwards compatibility.
+		SERIALIZE(false)) )
 		return false;
 
-	SERIALIZE_OPTIONAL(attributes_type);
+	// Likewise, serialize the former optional "RecordType* attributes_type"
+	// for backwards compatibility.
+	void* null = NULL;
+	SERIALIZE(null);
+
+	if ( generate_documentation )
+		{
+		SERIALIZE_OPTIONAL_STR(type_id);
+		}
 
 	info->s->WriteCloseTag("Type");
 
@@ -288,13 +274,24 @@ bool BroType::DoUnserialize(UnserialInfo* info)
 	tag = (TypeTag) c1;
 	internal_tag = (InternalTypeTag) c2;
 
+	bool not_used;
+
 	if ( ! (UNSERIALIZE(&is_network_order) && UNSERIALIZE(&base_type)
-			&& UNSERIALIZE(&is_global_attributes_type)) )
+			// Unerialize the former "bool is_global_attributes_type" for
+			// backwards compatibility.
+			&& UNSERIALIZE(&not_used)) )
 		return 0;
 
-	BroType* type;
-	UNSERIALIZE_OPTIONAL(type, BroType::Unserialize(info, TYPE_RECORD));
-	attributes_type = (RecordType*) type;
+	BroType* not_used_either;
+
+	// Likewise, unserialize the former optional "RecordType*
+	// attributes_type" for backwards compatibility.
+	UNSERIALIZE_OPTIONAL(not_used_either, BroType::Unserialize(info, TYPE_RECORD));
+
+	if ( generate_documentation )
+		{
+		UNSERIALIZE_OPTIONAL_STR(type_id);
+		}
 
 	return true;
 	}
@@ -446,6 +443,52 @@ void IndexType::Describe(ODesc* d) const
 		if ( ! d->IsBinary() )
 			d->Add(" of ");
 		yield_type->Describe(d);
+		}
+	}
+
+void IndexType::DescribeReST(ODesc* d) const
+	{
+	d->Add(":bro:type:`");
+
+	if ( IsSet() )
+		d->Add("set");
+	else
+		d->Add(type_name(Tag()));
+
+	d->Add("` ");
+	d->Add("[");
+
+	loop_over_list(*IndexTypes(), i)
+		{
+		if ( i > 0 )
+			d->Add(", ");
+
+		const BroType* t = (*IndexTypes())[i];
+
+		if ( t->GetTypeID() )
+			{
+			d->Add(":bro:type:`");
+			d->Add(t->GetTypeID());
+			d->Add("`");
+			}
+		else
+			t->DescribeReST(d);
+		}
+
+	d->Add("]");
+
+	if ( yield_type )
+		{
+		d->Add(" of ");
+
+		if ( yield_type->GetTypeID() )
+			{
+			d->Add(":bro:type:`");
+			d->Add(yield_type->GetTypeID());
+			d->Add("`");
+			}
+		else
+			yield_type->DescribeReST(d);
 		}
 	}
 
@@ -683,6 +726,30 @@ void FuncType::Describe(ODesc* d) const
 		}
 	}
 
+void FuncType::DescribeReST(ODesc* d) const
+	{
+	d->Add(":bro:type:`");
+	d->Add(is_event ? "event" : "function");
+	d->Add("`");
+	d->Add(" (");
+	args->DescribeFieldsReST(d, true);
+	d->Add(")");
+
+	if ( yield )
+		{
+		d->AddSP(" :");
+
+		if ( yield->GetTypeID() )
+			{
+			d->Add(":bro:type:`");
+			d->Add(yield->GetTypeID());
+			d->Add("`");
+			}
+		else
+			yield->DescribeReST(d);
+		}
+	}
+
 IMPLEMENT_SERIAL(FuncType, SER_FUNC_TYPE);
 
 bool FuncType::DoSerialize(SerialInfo* info) const
@@ -716,14 +783,11 @@ bool FuncType::DoUnserialize(UnserialInfo* info)
 	return UNSERIALIZE(&is_event);
 	}
 
-TypeDecl::TypeDecl(BroType* t, const char* i, attr_list* arg_attrs)
+TypeDecl::TypeDecl(BroType* t, const char* i, attr_list* arg_attrs, bool in_record)
 	{
 	type = t;
-	attrs = arg_attrs ? new Attributes(arg_attrs, t) : 0;
+	attrs = arg_attrs ? new Attributes(arg_attrs, t, in_record) : 0;
 	id = i;
-
-	if ( in_global_attr_decl && ! attrs->FindAttr(ATTR_DEFAULT) )
-		error("global attribute types must have default values");
 	}
 
 TypeDecl::~TypeDecl()
@@ -740,7 +804,10 @@ bool TypeDecl::Serialize(SerialInfo* info) const
 
 	SERIALIZE_OPTIONAL(attrs);
 
-	return type->Serialize(info) && SERIALIZE(id);
+	if ( ! (type->Serialize(info) && SERIALIZE(id)) )
+		return false;
+
+	return true;
 	}
 
 TypeDecl* TypeDecl::Unserialize(UnserialInfo* info)
@@ -759,6 +826,58 @@ TypeDecl* TypeDecl::Unserialize(UnserialInfo* info)
 	return t;
 	}
 
+void TypeDecl::DescribeReST(ODesc* d) const
+	{
+	d->Add(id);
+	d->Add(": ");
+
+	if ( type->GetTypeID() )
+		{
+		d->Add(":bro:type:`");
+		d->Add(type->GetTypeID());
+		d->Add("`");
+		}
+	else
+		type->DescribeReST(d);
+
+	if ( attrs )
+		{
+		d->SP();
+		attrs->DescribeReST(d);
+		}
+	}
+
+CommentedTypeDecl::CommentedTypeDecl(BroType* t, const char* i,
+			attr_list* attrs, bool in_record, std::list<std::string>* cmnt_list)
+	: TypeDecl(t, i, attrs, in_record)
+	{
+	comments = cmnt_list;
+	}
+
+CommentedTypeDecl::~CommentedTypeDecl()
+	{
+	if ( comments ) delete comments;
+	}
+
+void CommentedTypeDecl::DescribeReST(ODesc* d) const
+	{
+	TypeDecl::DescribeReST(d);
+
+	if ( comments )
+		{
+		d->PushIndent();
+		std::list<std::string>::const_iterator i;
+
+		for ( i = comments->begin(); i != comments->end(); ++i)
+			{
+			if ( i != comments->begin() ) d->NL();
+			d->Add(i->c_str());
+			}
+
+		d->PopIndentNoNL();
+		}
+	}
+
 RecordField::RecordField(int arg_base, int arg_offset, int arg_total_offset)
 	{
 	base = arg_base;
@@ -775,7 +894,7 @@ RecordType::RecordType(type_decl_list* arg_types) : BroType(TYPE_RECORD)
 	}
 
 RecordType::RecordType(TypeList* arg_base, type_decl_list* refinements)
-: BroType(TYPE_RECORD)
+	: BroType(TYPE_RECORD)
 	{
 	if ( refinements )
 		arg_base->Append(new RecordType(refinements));
@@ -785,6 +904,8 @@ RecordType::RecordType(TypeList* arg_base, type_decl_list* refinements)
 
 void RecordType::Init(TypeList* arg_base)
 	{
+	assert(false);  // Is this ever used?
+
 	base = arg_base;
 
 	if ( ! base )
@@ -794,9 +915,11 @@ void RecordType::Init(TypeList* arg_base)
 	types = 0;
 
 	type_list* t = base->Types();
+
 	loop_over_list(*t, i)
 		{
 		BroType* ti = (*t)[i];
+
 		if ( ti->Tag() != TYPE_RECORD )
 			(*t)[i]->Error("non-record in base type list");
 
@@ -806,6 +929,7 @@ void RecordType::Init(TypeList* arg_base)
 		for ( int j = 0; j < n; ++j )
 			{
 			const TypeDecl* tdij = rti->FieldDecl(j);
+
 			if ( fields->Lookup(tdij->id) )
 				{
 				error("duplicate field", tdij->id);
@@ -813,6 +937,7 @@ void RecordType::Init(TypeList* arg_base)
 				}
 
 			RecordField* rf = new RecordField(i, j, fields->Length());
+
 			if ( fields->Insert(tdij->id, rf) )
 				Internal("duplicate field when constructing record");
 			}
@@ -827,6 +952,7 @@ RecordType::~RecordType()
 		{
 		loop_over_list(*types, i)
 			delete (*types)[i];
+
 		delete types;
 		}
 
@@ -937,6 +1063,53 @@ void RecordType::Describe(ODesc* d) const
 		}
 	}
 
+void RecordType::DescribeReST(ODesc* d) const
+	{
+	d->Add(":bro:type:`record`");
+	d->NL();
+	DescribeFieldsReST(d, false);
+	}
+
+const char* RecordType::AddFields(type_decl_list* others, attr_list* attr)
+	{
+	assert(types);
+
+	bool log = false;
+
+	if ( attr )
+		{
+		loop_over_list(*attr, j)
+			{
+			if ( (*attr)[j]->Tag() == ATTR_LOG )
+				log = true;
+			}
+		}
+
+	loop_over_list(*others, i)
+		{
+		TypeDecl* td = (*others)[i];
+
+		if ( ! td->FindAttr(ATTR_DEFAULT) &&
+		     ! td->FindAttr(ATTR_OPTIONAL) )
+			return "extension field must be &optional or have &default";
+
+		if ( log )
+			{
+			if ( ! td->attrs )
+				td->attrs = new Attributes(new attr_list, td->type, true);
+
+			td->attrs->AddAttr(new Attr(ATTR_LOG));
+			}
+
+		types->append(td);
+		}
+
+	delete others;
+
+	num_fields = types->length();
+	return 0;
+	}
+
 void RecordType::DescribeFields(ODesc* d) const
 	{
 	if ( d->IsReadable() )
@@ -974,6 +1147,31 @@ void RecordType::DescribeFields(ODesc* d) const
 			base->Describe(d);
 			}
 		}
+	}
+
+void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
+	{
+	if ( ! func_args )
+		d->PushIndent();
+
+	for ( int i = 0; i < num_fields; ++i )
+		{
+		if ( i > 0 )
+			{
+			if ( func_args )
+				d->Add(", ");
+			else
+				{
+				d->NL();
+				d->NL();
+				}
+			}
+
+		FieldDecl(i)->DescribeReST(d);
+		}
+
+	if ( ! func_args )
+		d->PopIndentNoNL();
 	}
 
 IMPLEMENT_SERIAL(RecordType, SER_RECORD_TYPE)
@@ -1121,10 +1319,9 @@ bool FileType::DoUnserialize(UnserialInfo* info)
 	return yield != 0;
 	}
 
-EnumType::EnumType(bool arg_is_export)
+EnumType::EnumType()
 : BroType(TYPE_ENUM)
 	{
-	is_export = arg_is_export;
 	counter = 0;
 	}
 
@@ -1134,9 +1331,75 @@ EnumType::~EnumType()
 		delete [] iter->first;
 	}
 
-int EnumType::AddName(const string& module_name, const char* name)
+CommentedEnumType::~CommentedEnumType()
 	{
-	ID* id = lookup_ID(name, module_name.c_str());
+	for ( CommentMap::iterator iter = comments.begin(); iter != comments.end(); ++iter )
+		{
+		delete [] iter->first;
+		delete iter->second;
+		}
+	}
+
+// Note, we use error() here (not Error()) to include the current script
+// location in the error message, rather than the one where the type was
+// originally defined.
+void EnumType::AddName(const string& module_name, const char* name, bool is_export)
+	{
+	/* implicit, auto-increment */
+	if ( counter < 0)
+		{
+		error("cannot mix explicit enumerator assignment and implicit auto-increment");
+		SetError();
+		return;
+		}
+	AddNameInternal(module_name, name, counter, is_export);
+	counter++;
+	}
+
+void EnumType::AddName(const string& module_name, const char* name, bro_int_t val, bool is_export)
+	{
+	/* explicit value specified */
+	if ( counter > 0 )
+		{
+		error("cannot mix explicit enumerator assignment and implicit auto-increment");
+		SetError();
+		return;
+		}
+	counter = -1;
+	AddNameInternal(module_name, name, val, is_export);
+	}
+
+void CommentedEnumType::AddComment(const string& module_name, const char* name,
+                                   std::list<std::string>* new_comments)
+	{
+	if ( ! new_comments )
+		return;
+
+	string fullname = make_full_var_name(module_name.c_str(), name);
+
+	CommentMap::iterator it = comments.find(fullname.c_str());
+
+	if ( it == comments.end() )
+		comments[copy_string(fullname.c_str())] = new_comments;
+	else
+		{
+		comments[fullname.c_str()]->splice(comments[fullname.c_str()]->end(),
+			*new_comments);
+		delete new_comments;
+		}
+	}
+
+void EnumType::AddNameInternal(const string& module_name, const char* name, bro_int_t val, bool is_export)
+	{
+	ID *id;
+	if ( Lookup(val) )
+		{
+		error("enumerator value in enumerated type definition already exists");
+		SetError();
+		return;
+		}
+
+	id = lookup_ID(name, module_name.c_str());
 	if ( ! id )
 		{
 		id = install_ID(name, module_name.c_str(), true, is_export);
@@ -1145,31 +1408,22 @@ int EnumType::AddName(const string& module_name, const char* name)
 		}
 	else
 		{
-		debug_msg("identifier already exists: %s\n", name);
-		return -1;
+		error("identifier or enumerator value in enumerated type definition already exists");
+		SetError();
+		return;
 		}
 
 	string fullname = make_full_var_name(module_name.c_str(), name);
-	names[copy_string(fullname.c_str())] = counter;
-	return counter++;
+	names[copy_string(fullname.c_str())] = val;
 	}
 
-int EnumType::AddNamesFrom(const string& module_name, EnumType* et)
+void CommentedEnumType::AddNameInternal(const string& module_name, const char* name, bro_int_t val, bool is_export)
 	{
-	int last_added = counter;
-	for ( NameMap::iterator iter = et->names.begin();
-	      iter != et->names.end(); ++iter )
-		{
-		ID* id = lookup_ID(iter->first, module_name.c_str());
-		id->SetType(this->Ref());
-		names[copy_string(id->Name())] = counter;
-		last_added = counter++;
-		}
-
-	return last_added;
+	string fullname = make_full_var_name(module_name.c_str(), name);
+	names[copy_string(fullname.c_str())] = val;
 	}
 
-int EnumType::Lookup(const string& module_name, const char* name)
+bro_int_t EnumType::Lookup(const string& module_name, const char* name)
 	{
 	NameMap::iterator pos =
 		names.find(make_full_var_name(module_name.c_str(), name).c_str());
@@ -1180,7 +1434,7 @@ int EnumType::Lookup(const string& module_name, const char* name)
 		return pos->second;
 	}
 
-const char* EnumType::Lookup(int value)
+const char* EnumType::Lookup(bro_int_t value)
 	{
 	for ( NameMap::iterator iter = names.begin();
 	      iter != names.end(); ++iter )
@@ -1190,15 +1444,60 @@ const char* EnumType::Lookup(int value)
 	return 0;
 	}
 
+void CommentedEnumType::DescribeReST(ODesc* d) const
+	{
+	// create temporary, reverse name map so that enums can be documented
+	// in ascending order of their actual integral value instead of by name
+	typedef std::map< bro_int_t, const char* > RevNameMap;
+	RevNameMap rev;
+	for ( NameMap::const_iterator it = names.begin(); it != names.end(); ++it )
+		rev[it->second] = it->first;
+
+	d->Add(":bro:type:`");
+	d->Add(type_name(Tag()));
+	d->Add("`");
+	d->PushIndent();
+	d->NL();
+
+	for ( RevNameMap::const_iterator it = rev.begin(); it != rev.end(); ++it )
+		{
+		if ( it != rev.begin() )
+			{
+			d->NL();
+			d->NL();
+			}
+
+		d->Add(".. bro:enum:: ");
+		d->AddSP(it->second);
+		d->Add(GetTypeID());
+
+		CommentMap::const_iterator cmnt_it = comments.find(it->second);
+		if ( cmnt_it != comments.end() )
+			{
+			d->PushIndent();
+			d->NL();
+			std::list<std::string>::const_iterator i;
+			const std::list<std::string>* cmnt_list = cmnt_it->second;
+			for ( i = cmnt_list->begin(); i != cmnt_list->end(); ++i)
+				{
+				if ( i != cmnt_list->begin() ) d->NL();
+				d->Add(i->c_str());
+				}
+			d->PopIndentNoNL();
+			}
+		}
+	d->PopIndentNoNL();
+	}
+
 IMPLEMENT_SERIAL(EnumType, SER_ENUM_TYPE);
 
 bool EnumType::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_ENUM_TYPE, BroType);
 
-	// I guess we don't really need both ...
 	if ( ! (SERIALIZE(counter) && SERIALIZE((unsigned int) names.size()) &&
-		SERIALIZE(is_export)) )
+		// Dummy boolean for backwards compatibility.
+		SERIALIZE(false)) )
 		return false;
 
 	for ( NameMap::const_iterator iter = names.begin();
@@ -1216,15 +1515,17 @@ bool EnumType::DoUnserialize(UnserialInfo* info)
 	DO_UNSERIALIZE(BroType);
 
 	unsigned int len;
+	bool dummy;
 	if ( ! UNSERIALIZE(&counter) ||
 	     ! UNSERIALIZE(&len) ||
-	     ! UNSERIALIZE(&is_export) )
+	     // Dummy boolean for backwards compatibility.
+	     ! UNSERIALIZE(&dummy) )
 		return false;
 
 	while ( len-- )
 		{
 		const char* name;
-		int val;
+		bro_int_t val;
 		if ( ! (UNSERIALIZE_STR(&name, 0) && UNSERIALIZE(&val)) )
 			return false;
 
@@ -1261,6 +1562,11 @@ int VectorType::MatchesIndex(ListExpr*& index) const
 		return (IsIntegral(el[0]->Type()->Tag()) ||
 			 IsBool(el[0]->Type()->Tag())) ?
 				MATCHES_INDEX_SCALAR : DOES_NOT_MATCH_INDEX;
+	}
+
+bool VectorType::IsUnspecifiedVector() const
+	{
+	return yield_type->Tag() == TYPE_ANY;
 	}
 
 IMPLEMENT_SERIAL(VectorType, SER_VECTOR_TYPE);
@@ -1336,7 +1642,9 @@ static int is_init_compat(const BroType* t1, const BroType* t2)
 
 int same_type(const BroType* t1, const BroType* t2, int is_init)
 	{
-	if ( t1 == t2 )
+	if ( t1 == t2 ||
+	     t1->Tag() == TYPE_ANY ||
+	     t2->Tag() == TYPE_ANY )
 		return 1;
 
 	t1 = flatten_type(t1);
@@ -1463,10 +1771,24 @@ int same_type(const BroType* t1, const BroType* t2, int is_init)
 	case TYPE_FILE:
 		return same_type(t1->YieldType(), t2->YieldType(), is_init);
 
+	case TYPE_TYPE:
+		return same_type(t1, t2, is_init);
+
 	case TYPE_UNION:
 		error("union type in same_type()");
 	}
 	return 0;
+	}
+
+int same_attrs(const Attributes* a1, const Attributes* a2)
+	{
+	if ( ! a1 )
+		return (a2 == 0);
+
+	if ( ! a2 )
+		return (a1 == 0);
+
+	return (*a1 == *a2);
 	}
 
 int record_promotion_compatible(const RecordType* /* super_rec */,
@@ -1540,6 +1862,7 @@ int is_assignable(BroType* t)
 	case TYPE_VECTOR:
 	case TYPE_FILE:
 	case TYPE_TABLE:
+	case TYPE_TYPE:
 		return 1;
 
 	case TYPE_VOID:
@@ -1607,6 +1930,7 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 	case TYPE_ADDR:
 	case TYPE_NET:
 	case TYPE_SUBNET:
+	case TYPE_BOOL:
 	case TYPE_ANY:
 	case TYPE_ERROR:
 		return base_type(tg1);

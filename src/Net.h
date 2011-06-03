@@ -15,9 +15,8 @@
 
 extern void net_init(name_list& interfaces, name_list& readfiles,
 		name_list& netflows, name_list& flowfiles,
-		const char* writefile, const char* transformed_writefile,
-		const char* filter, const char* secondary_filter,
-		int do_watchdog);
+		const char* writefile, const char* filter,
+		const char* secondary_filter, int do_watchdog);
 extern void net_run();
 extern void net_get_final_stats();
 extern void net_finish(int drain_events);
@@ -59,9 +58,6 @@ extern int have_pending_timers;
 // is the speedup (1 = real-time, 0.5 = half real-time, etc.).
 extern double pseudo_realtime;
 
-// Pcap filter supplied by the user on the command line (if any).
-extern char* user_pcap_filter;
-
 // When we started processing the current packet and corresponding event
 // queue.
 extern double processing_start_time;
@@ -91,7 +87,6 @@ declare(PList,PktSrc);
 extern PList(PktSrc) pkt_srcs;
 
 extern PktDumper* pkt_dumper;	// where to save packets
-extern PktDumper* pkt_transformed_dumper;
 
 extern char* writefile;
 

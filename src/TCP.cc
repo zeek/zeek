@@ -2,13 +2,11 @@
 //
 // See the file "COPYING" in the main distribution directory for copyright.
 
-
-#include "Active.h"
+#include "NetVar.h"
 #include "PIA.h"
 #include "File.h"
 #include "TCP.h"
 #include "TCP_Reassembler.h"
-#include "TCP_Rewriter.h"
 #include "OSFinger.h"
 #include "Event.h"
 
@@ -48,23 +46,12 @@ TCP_Analyzer::TCP_Analyzer(Connection* conn)
 	finished = 0;
 	reassembling = 0;
 	first_packet_seen = 0;
-	src_pkt_writer = 0;
 
 	orig = new TCP_Endpoint(this, 1);
 	resp = new TCP_Endpoint(this, 0);
 
 	orig->SetPeer(resp);
 	resp->SetPeer(orig);
-
-	if ( dump_selected_source_packets )
-		{
-		if ( source_pkt_dump )
-			src_pkt_writer =
-				new TCP_SourcePacketWriter(this, source_pkt_dump);
-		else if ( transformed_pkt_dump )
-			src_pkt_writer =
-				new TCP_SourcePacketWriter(this, transformed_pkt_dump);
-		}
 	}
 
 TCP_Analyzer::~TCP_Analyzer()
@@ -74,7 +61,6 @@ TCP_Analyzer::~TCP_Analyzer()
 
 	delete orig;
 	delete resp;
-	delete src_pkt_writer;
 	}
 
 void TCP_Analyzer::Init()
@@ -82,12 +68,6 @@ void TCP_Analyzer::Init()
 	Analyzer::Init();
 	LOOP_OVER_GIVEN_CHILDREN(i, packet_children)
 		(*i)->Init();
-
-	// Can't put this in construction because RewritingTrace() is virtual.
-	if ( transformed_pkt_dump && Conn()->RewritingTrace() )
-		SetTraceRewriter(new TCP_Rewriter(this, transformed_pkt_dump,
-						transformed_pkt_dump_MTU,
-						requires_trace_commitment));
 	}
 
 void TCP_Analyzer::Done()
@@ -412,49 +392,6 @@ bool TCP_Analyzer::ProcessRST(double t, TCP_Endpoint* endpoint,
 	else if ( endpoint->RST_cnt == 0 )
 		++endpoint->RST_cnt;	// Remember we've seen a RST
 
-#ifdef ACTIVE_MAPPING
-//		if ( peer->state == TCP_ENDPOINT_INACTIVE )
-//		    debug_msg("rst while inactive\n"); // ### Cold-start: what to do?
-//		else
-
-	const NumericData* AM_policy;
-	get_map_result(ip->DstAddr4(), AM_policy);
-
-	if ( base_seq == endpoint->AckSeq() )
-		;	 // everyone should accept a RST in sequence
-
-	else if ( endpoint->window == 0 )
-		; // ### Cold Start: we don't know the window,
-		  // so just go along for now
-
-	else
-		{
-		uint32 right_edge = endpoint->AckSeq() +
-			(endpoint->window << endpoint->window_scale);
-
-		if ( base_seq < right_edge  )
-			{
-			if ( ! AM_policy->accepts_rst_in_window )
-				{
-#if 0
-				debug_msg("Machine does not accept RST merely in window; ignoring. t=%.6f,base=%u, ackseq=%u, window=%hd \n",
-					network_time, base_seq, endpoint->AckSeq(), window);
-#endif
-				return false;
-				}
-			}
-
-		else if ( ! AM_policy->accepts_rst_outside_window )
-			{
-#if 0
-			debug_msg("Machine does not accept RST outside window; ignoring. t=%.6f,base=%u, ackseq=%u, window=%hd \n",
-				network_time, base_seq, endpoint->AckSeq(), window);
-#endif
-			return false;
-			}
-		}
-#endif
-
 	if ( len > 0 )
 		{
 		// This now happens often enough that it's
@@ -737,7 +674,7 @@ void TCP_Analyzer::UpdateInactiveState(double t,
 			{
 			endpoint->SetState(TCP_ENDPOINT_PARTIAL);
 			Conn()->EnableStatusUpdateTimer();
-			
+
 			if ( peer->state == TCP_ENDPOINT_PARTIAL )
 				// We've seen both sides of a partial
 				// connection, report it.
@@ -985,9 +922,6 @@ int TCP_Analyzer::DeliverData(double t, const u_char* data, int len, int caplen,
 	int need_contents = endpoint->DataSent(t, data_seq,
 					len, caplen, data, ip, tp);
 
-	LOOP_OVER_GIVEN_CHILDREN(i, packet_children)
-		(*i)->NextPacket(len, data, is_orig, data_seq, ip, caplen);
-
 	return need_contents;
 	}
 
@@ -1091,16 +1025,6 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	     tcp_hdr_len <= uint32(caplen) )
 		ParseTCPOptions(tp, TCPOptionEvent, this, is_orig, 0);
 
-	if ( TraceRewriter() && current_hdr )
-		{
-		TCP_Rewriter* r = (TCP_Rewriter*) TraceRewriter();
-		r->NextPacket(is_orig, t, current_hdr, current_pkt,
-				current_hdr_size, ip->IP4_Hdr(), tp);
-		}
-
-	if ( src_pkt_writer && current_hdr )
-		src_pkt_writer->NextPacket(current_hdr, current_pkt);
-
 	if ( DEBUG_tcp_data_sent )
 		{
 		DEBUG_MSG("%.6f before DataSent: len=%d caplen=%d skip=%d\n",
@@ -1125,6 +1049,12 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 		}
 
 	CheckRecording(need_contents, flags);
+
+	// Handle child_packet analyzers.  Note: This happens *after* the
+	// packet has been processed and the TCP state updated.
+	LOOP_OVER_GIVEN_CHILDREN(i, packet_children)
+		(*i)->NextPacket(len, data, is_orig,
+				base_seq - endpoint->StartSeq(), ip, caplen);
 
 	if ( ! reassembling )
 		ForwardPacket(len, data, is_orig,
@@ -1155,11 +1085,25 @@ void TCP_Analyzer::FlipRoles()
 	resp->is_orig = !resp->is_orig;
 	}
 
-void TCP_Analyzer::UpdateEndpointVal(RecordVal* endp, int is_orig)
+void TCP_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	{
-	TCP_Endpoint* s = is_orig ? orig : resp;
-	endp->Assign(0, new Val(s->Size(), TYPE_COUNT));
-	endp->Assign(1, new Val(int(s->state), TYPE_COUNT));
+	int orig_endp_idx = connection_type->FieldOffset("orig");
+	int resp_endp_idx = connection_type->FieldOffset("resp");
+
+	RecordVal *orig_endp_val = conn_val->Lookup(orig_endp_idx)->AsRecordVal();
+	RecordVal *resp_endp_val = conn_val->Lookup(resp_endp_idx)->AsRecordVal();
+
+	orig_endp_val->Assign(0, new Val(orig->Size(), TYPE_COUNT));
+	orig_endp_val->Assign(1, new Val(int(orig->state), TYPE_COUNT));
+	resp_endp_val->Assign(0, new Val(resp->Size(), TYPE_COUNT));
+	resp_endp_val->Assign(1, new Val(int(resp->state), TYPE_COUNT));
+
+	// Call children's UpdateConnVal
+	Analyzer::UpdateConnVal(conn_val);
+
+	// Have to do packet_children ourselves.
+	LOOP_OVER_GIVEN_CHILDREN(i, packet_children)
+		(*i)->UpdateConnVal(conn_val);
 	}
 
 Val* TCP_Analyzer::BuildSYNPacketVal(int is_orig, const IP_Hdr* ip,
@@ -1801,8 +1745,6 @@ void TCP_Analyzer::EndpointEOF(TCP_Reassembler* endp)
 	LOOP_OVER_CONST_CHILDREN(i)
 		static_cast<TCP_ApplicationAnalyzer*>(*i)->EndpointEOF(endp->IsOrig());
 
-	TraceRewriterEOF(endp);
-
 	if ( close_deferred )
 		{
 		if ( DataPending(endp->Endpoint()) )
@@ -1817,25 +1759,6 @@ void TCP_Analyzer::EndpointEOF(TCP_Reassembler* endp)
 		ConnectionClosed(endp->Endpoint(), endp->Endpoint()->peer,
 					deferred_gen_event);
 		close_deferred = 0;
-		}
-	}
-
-void TCP_Analyzer::TraceRewriterEOF(TCP_Reassembler* endp)
-	{
-	const analyzer_list& children(GetChildren());
-	LOOP_OVER_CONST_CHILDREN(i)
-		static_cast<TCP_ApplicationAnalyzer*>(*i)->TraceRewriterEOF(endp->IsOrig());
-
-	TCP_Rewriter* r = (TCP_Rewriter*) TraceRewriter();
-	if ( r )
-		{
-		// Add a FIN packet if there is one in the original trace.
-		int FIN_cnt = endp->IsOrig() ?
-				endp->GetTCPAnalyzer()->Orig()->FIN_cnt :
-				endp->GetTCPAnalyzer()->Resp()->FIN_cnt;
-
-		if ( FIN_cnt > 0 )
-			r->ScheduleFIN(endp->IsOrig());
 		}
 	}
 
@@ -1953,13 +1876,6 @@ void TCP_ApplicationAnalyzer::EndpointEOF(bool is_orig)
 	SupportAnalyzer* sa = is_orig ? orig_supporters : resp_supporters;
 	for ( ; sa; sa = sa->Sibling() )
 		static_cast<TCP_SupportAnalyzer*>(sa)->EndpointEOF(is_orig);
-	}
-
-void TCP_ApplicationAnalyzer::TraceRewriterEOF(bool is_orig)
-	{
-	SupportAnalyzer* sa = is_orig ? orig_supporters : resp_supporters;
-	for ( ; sa; sa = sa->Sibling() )
-		static_cast<TCP_SupportAnalyzer*>(sa)->TraceRewriterEOF(is_orig);
 	}
 
 void TCP_ApplicationAnalyzer::ConnectionClosed(TCP_Endpoint* endpoint,
@@ -2090,7 +2006,7 @@ int TCPStats_Endpoint::DataSent(double /* t */, int seq, int len, int caplen,
 	int seq_delta = top_seq - max_top_seq;
 	if ( seq_delta <= 0 )
 		{
-		if ( ! ignore_keep_alive_rexmit || len > 1 || data_in_flight > 0 )
+		if ( ! BifConst::ignore_keep_alive_rexmit || len > 1 || data_in_flight > 0 )
 			{
 			++num_rxmit;
 			num_rxmit_bytes += len;

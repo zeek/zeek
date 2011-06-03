@@ -10,11 +10,9 @@
 
 #include "util.h"
 
-#ifdef USE_OPENSSL
 #include <openssl/x509.h>
 #include <openssl/x509_vfy.h>
 #include "X509.h"
-#endif
 %}
 
 
@@ -27,14 +25,11 @@
 			}
 	};
 
-#ifdef USE_OPENSSL
 	void free_X509(void *);
 	X509* d2i_X509_binpac(X509** px, const uint8** in, int len);
-#endif
 	%}
 
 %code{
-#ifdef USE_OPENSSL
 	void free_X509(void* cert)
 		{
 		X509_free((X509*) cert);
@@ -48,8 +43,6 @@
 		return d2i_X509(px, (u_char**) in, len);
 #endif
 		}
-
-#endif
 %}
 
 
@@ -123,10 +116,8 @@ refine analyzer SSLAnalyzer += {
 		version_ = -1;
 		cipher_ = -1;
 
-#ifdef USE_OPENSSL
 		if ( ! X509_Cert::bInited )
 			X509_Cert::init();
-#endif
 	%}
 
 	%eof{
@@ -172,12 +163,10 @@ refine analyzer SSLAnalyzer += {
 
 	function certificate_error(err_num : int) : void
 		%{
-#ifdef USE_OPENSSL
 		StringVal* err_str =
 			new StringVal(X509_verify_cert_error_string(err_num));
-		bro_event_ssl_X509_error(bro_analyzer_, bro_analyzer_->Conn(),
+		BifEvent::generate_ssl_X509_error(bro_analyzer_, bro_analyzer_->Conn(),
 						err_num, err_str);
-#endif
 		%}
 
 	function proc_change_cipher_spec(msg : ChangeCipherSpec) : bool
@@ -200,7 +189,7 @@ refine analyzer SSLAnalyzer += {
 
 	function proc_alert(level : int, description : int) : bool
 		%{
-		bro_event_ssl_conn_alert(bro_analyzer_, bro_analyzer_->Conn(),
+		BifEvent::generate_ssl_conn_alert(bro_analyzer_, bro_analyzer_->Conn(),
 						current_record_version_, level,
 						description);
 		return true;
@@ -228,7 +217,7 @@ refine analyzer SSLAnalyzer += {
 			Unref(ciph);
 			}
 
-		bro_event_ssl_conn_attempt(bro_analyzer_, bro_analyzer_->Conn(),
+		BifEvent::generate_ssl_conn_attempt(bro_analyzer_, bro_analyzer_->Conn(),
 						version, cipher_table);
 
 		if ( ssl_compare_cipherspecs )
@@ -263,7 +252,7 @@ refine analyzer SSLAnalyzer += {
 			Unref(ciph);
 			}
 
-		bro_event_ssl_conn_server_reply(bro_analyzer_,
+		BifEvent::generate_ssl_conn_server_reply(bro_analyzer_,
 						bro_analyzer_->Conn(),
 						version_, chosen_ciphers);
 
@@ -274,10 +263,10 @@ refine analyzer SSLAnalyzer += {
 			TableVal* tv = to_table_val(session_id);
 			if ( client_session_id_ &&
 			     *client_session_id_ == *session_id )
-				bro_event_ssl_conn_reused(bro_analyzer_,
+				BifEvent::generate_ssl_conn_reused(bro_analyzer_,
 						bro_analyzer_->Conn(), tv);
 			else
-				bro_event_ssl_session_insertion(bro_analyzer_,
+				BifEvent::generate_ssl_session_insertion(bro_analyzer_,
 						bro_analyzer_->Conn(), tv);
 
 			delete ciphers;
@@ -288,13 +277,13 @@ refine analyzer SSLAnalyzer += {
 			if ( client_session_id_ )
 				{
 				TableVal* tv = to_table_val(client_session_id_);
-				bro_event_ssl_conn_reused(bro_analyzer_,
+				BifEvent::generate_ssl_conn_reused(bro_analyzer_,
 						bro_analyzer_->Conn(), tv);
 				}
 
 			// We don't know the chosen cipher, as there is
 			// no session storage.
-			bro_event_ssl_conn_established(bro_analyzer_,
+			BifEvent::generate_ssl_conn_established(bro_analyzer_,
 							bro_analyzer_->Conn(),
 							version_, 0xffffffff);
 			delete ciphers;
@@ -327,11 +316,10 @@ refine analyzer SSLAnalyzer += {
 		if ( certificates->size() == 0 )
 			return true;
 
-		bro_event_ssl_certificate_seen(bro_analyzer_,
+		BifEvent::generate_ssl_certificate_seen(bro_analyzer_,
 						bro_analyzer_->Conn(),
 						! current_record_is_orig_);
 
-#ifdef USE_OPENSSL
 		const bytestring& cert = (*certificates)[0];
 		const uint8* data = cert.data();
 
@@ -353,7 +341,7 @@ refine analyzer SSLAnalyzer += {
 		pX509Cert->Assign(1, new StringVal(tmp));
 		pX509Cert->Assign(2, new AddrVal(bro_analyzer_->Conn()->OrigAddr()));
 
-		bro_event_ssl_certificate(bro_analyzer_, bro_analyzer_->Conn(),
+		BifEvent::generate_ssl_certificate(bro_analyzer_, bro_analyzer_->Conn(),
 					pX509Cert, current_record_is_orig_);
 
 		if ( X509_get_ext_count(pCert) > 0 )
@@ -373,7 +361,7 @@ refine analyzer SSLAnalyzer += {
 				Unref(index);
 				}
 
-			bro_event_process_X509_extensions(bro_analyzer_,
+			BifEvent::generate_process_X509_extensions(bro_analyzer_,
 						bro_analyzer_->Conn(), x509ex);
 			}
 
@@ -382,7 +370,7 @@ refine analyzer SSLAnalyzer += {
 			STACK_OF(X509)* untrusted_certs = 0;
 			if ( certificates->size() > 1 )
 				{
-				untrusted_certs = sk_new_null();
+				untrusted_certs = sk_X509_new_null();
 				if ( ! untrusted_certs )
 					{
 					// X509_V_ERR_OUT_OF_MEM;
@@ -405,7 +393,7 @@ refine analyzer SSLAnalyzer += {
 						return false;
 						}
 
-					sk_push(untrusted_certs, (char*) pTemp);
+					sk_X509_push(untrusted_certs, pTemp);
 					}
 				}
 
@@ -417,11 +405,10 @@ refine analyzer SSLAnalyzer += {
 				certificate_error(csc.error);
 			X509_STORE_CTX_cleanup(&csc);
 
-			sk_pop_free(untrusted_certs, free_X509);
+			sk_X509_pop_free(untrusted_certs, X509_free);
 			}
 
 		X509_free(pCert);
-#endif
 	return true;
 		%}
 
@@ -455,7 +442,7 @@ refine analyzer SSLAnalyzer += {
 				state_label(old_state_).c_str()));
 
 		check_cipher(cipher);
-		bro_event_ssl_conn_established(bro_analyzer_,
+		BifEvent::generate_ssl_conn_established(bro_analyzer_,
 				bro_analyzer_->Conn(), version_, cipher);
 
 		return true;
@@ -496,7 +483,7 @@ refine analyzer SSLAnalyzer += {
 		if ( state_ == STATE_CONN_ESTABLISHED &&
 		     old_state_ == STATE_COMM_ENCRYPTED )
 			{
-			bro_event_ssl_conn_established(bro_analyzer_,
+			BifEvent::generate_ssl_conn_established(bro_analyzer_,
 							bro_analyzer_->Conn(),
 							version_, cipher_);
 			}

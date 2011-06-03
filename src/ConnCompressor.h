@@ -97,6 +97,11 @@ public:
 		uint32 ack;
 		hash_t hash;
 		uint16 window;
+		uint64 uid;
+
+		// The following are set if use_conn_size_analyzer is T.
+		uint16 num_pkts;
+		uint16 num_bytes_ip;
 	};
 
 private:
@@ -118,8 +123,8 @@ private:
 					const IP_Hdr* ip, const tcphdr* tp);
 
 	// Called for more packets from the orginator w/o seeing a response.
-	Connection* NextFromOrig(PendingConn* pending,
-				double t, HashKey* key, const tcphdr* tp);
+	Connection* NextFromOrig(PendingConn* pending, double t, HashKey* key,
+					const IP_Hdr* ip, const tcphdr* tp);
 
 	// Called for the first response packet. Instantiates a Connection.
 	Connection* Response(PendingConn* pending, double t, HashKey* key,
@@ -137,10 +142,6 @@ private:
 
 	// Fakes a TCP packet based on the available information.
 	const IP_Hdr* PendingConnToPacket(const PendingConn* c);
-
-	// For changing the timestamp of PendingConn - allocates a new one,
-	// sets the given time, and copies all other data from old.
-	PendingConn* MoveState(double time, PendingConn* old);
 
 	// Construct a TCP-flags byte.
 	uint8 MakeFlags(const PendingConn* c) const;

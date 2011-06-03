@@ -22,16 +22,16 @@ namespace AnalyzerTag {
 		PIA_TCP, PIA_UDP,
 
 		// Transport-layer analyzers.
-		ICMP, ICMP_TimeExceeded, ICMP_Unreachable, ICMP_Echo, TCP, UDP,
+		ICMP,
+		ICMP_TimeExceeded, ICMP_Unreachable, ICMP_Echo, ICMP_Redir,
+		TCP, UDP,
 
 		// Application-layer analyzers (hand-written).
 		BitTorrent, BitTorrentTracker,
 		DCE_RPC, DNS, Finger, FTP, Gnutella, HTTP, Ident, IRC,
 		Login, NCP, NetbiosSSN, NFS, NTP, POP3, Portmapper, Rlogin,
 		RPC, Rsh, SMB, SMTP, SSH,
-#ifdef USE_OPENSSL
 		SSL,
-#endif
 		Telnet,
 
 		// Application-layer analyzers, binpac-generated.
@@ -40,14 +40,14 @@ namespace AnalyzerTag {
 
 		// Other
 		File, Backdoor, InterConn, SteppingStone, TCPStats,
+		ConnSize,
+
 
 		// Support-analyzers
 		Contents, ContentLine, NVT, Zip, Contents_DNS, Contents_NCP,
 		Contents_NetbiosSSN, Contents_Rlogin, Contents_Rsh,
 		Contents_DCE_RPC, Contents_SMB, Contents_RPC, Contents_NFS,
-#ifdef USE_OPENSSL
 		Contents_SSL,
-#endif
 		// End-marker.
 		LastAnalyzer
 	};

@@ -1,6 +1,7 @@
 # $Id: bro.init 6887 2009-08-20 05:17:33Z vern $
 
 @load const.bif.bro
+@load types.bif.bro
 
 global bro_signal: event(signal: count);
 
@@ -20,7 +21,7 @@ type conn_id: record {
 	orig_p: port;
 	resp_h: addr;
 	resp_p: port;
-};
+} &log;
 
 type icmp_conn: record {
 	orig_h: addr;
@@ -65,8 +66,12 @@ type ftp_port: record {
 };
 
 type endpoint: record {
-	size: count;
+	size: count;	# logical size (for TCP: from seq numbers)
 	state: count;
+
+	# The following are set if use_conn_size_analyzer is T.
+	num_pkts: count &optional;	# number of packets on the wire
+	num_bytes_ip: count &optional;	# actual number of IP-level bytes on the wire
 };
 
 type endpoint_stats: record {
@@ -91,6 +96,7 @@ type connection: record {
 	addl: string;
 	hot: count;		# how hot; 0 = don't know or not hot
 	history: string;
+	uid: string;
 };
 
 type SYN_packet: record {
@@ -264,9 +270,20 @@ type geo_location: record {
 	longitude: double;
 };
 
+type entropy_test_result: record {
+	entropy: double;
+	chi_square: double;
+	mean: double;
+	monte_carlo_pi: double;
+	serial_correlation: double;
+};
+
 # Prototypes of Bro built-in functions.
 @load strings.bif.bro
 @load bro.bif.bro
+
+@load logging  # sic! Not logging.bif.
+@load logging-ascii
 
 global bro_alarm_file: file &redef;
 global alarm_hook: function(msg: string): bool &redef;
@@ -483,6 +500,12 @@ const frag_timeout = 0.0 sec &redef;
 const encap_hdr_size = 0 &redef;
 # ... or just for the following UDP port.
 const tunnel_port = 0/udp &redef;
+
+# Whether to use the ConnSize analyzer to count the number of
+# packets and IP-level bytes transfered by each endpoint. If
+# true, these values are returned in the connection's endpoint
+# record val.
+const use_conn_size_analyzer = F &redef;
 
 const UDP_INACTIVE = 0;
 const UDP_ACTIVE = 1;	# means we've seen something from this endpoint
@@ -904,8 +927,8 @@ global dns_skip_all_addl = T &redef;
 global dns_max_queries = 5;
 
 # The maxiumum size in bytes for an SSL cipherspec.  If we see a packet that
-# has bigger cipherspecs, we warn and won't do a comparisons of cipherspecs.
-const ssl_max_cipherspec_size = 45 &redef;
+# has bigger cipherspecs, we won't do a comparisons of cipherspecs.
+const ssl_max_cipherspec_size = 68 &redef;
 
 # SSL and X.509 types.
 type cipher_suites_list: set[count];
@@ -1108,14 +1131,6 @@ type bt_tracker_headers: table[string] of string;
 
 @load event.bif.bro
 
-@load common-rw.bif.bro
-@load finger-rw.bif.bro
-@load ftp-rw.bif.bro
-@load ident-rw.bif.bro
-@load smtp-rw.bif.bro
-@load http-rw.bif.bro
-@load dns-rw.bif.bro
-
 function subst(s: string, from: pattern, to: string): string
 	{
 	local p = split_all(s, from);
@@ -1165,6 +1180,10 @@ function string_escape(s: string, chars: string): string
 		s = subst_string(s, c, cat("\\", c));
 	return s;
 	}
+
+# The filter the user has set via the -f command line options, or
+# empty if none.
+const cmd_line_bpf_filter = "" &redef;
 
 @load pcap.bro
 
@@ -1374,10 +1393,24 @@ const suppress_local_output = F &redef;
 
 # Holds the filename of the trace file given with -w (empty if none).
 const trace_output_file = "";
-  
+
 # If a trace file is given, dump *all* packets seen by Bro into it.
 # By default, Bro applies (very few) heuristics to reduce the volume.
 # A side effect of setting this to true is that we can write the
 # packets out before we actually process them, which can be helpful
 # for debugging in case the analysis triggers a crash.
 const record_all_packets = F &redef;
+
+# Some connections (e.g., SSH) retransmit the acknowledged last
+# byte to keep the connection alive. If ignore_keep_alive_rexmit
+# is set to T, such retransmissions will be excluded in the rexmit
+# counter in conn_stats.
+const ignore_keep_alive_rexmit = F &redef;
+
+# Skip HTTP data portions for performance considerations (the skipped
+# portion will not go through TCP reassembly).
+const skip_http_data = F &redef;
+
+# Whether the analysis engine parses IP packets encapsulated in
+# UDP tunnels. See also: udp_tunnel_port, policy/udp-tunnel.bro.
+const parse_udp_tunnels = F &redef;

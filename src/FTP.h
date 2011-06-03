@@ -14,11 +14,6 @@ public:
 
 	virtual void Done();
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
-	virtual int RewritingTrace()
-		{
-		return rewriting_ftp_trace ||
-			TCP_ApplicationAnalyzer::RewritingTrace();
-		}
 
 	static Analyzer* InstantiateAnalyzer(Connection* conn)
 		{

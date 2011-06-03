@@ -126,6 +126,8 @@ TableType* smb_negotiate;
 
 RecordType* geo_location;
 
+RecordType* entropy_test_result;
+
 TableType* dhcp_router_list;
 RecordType* dhcp_msg;
 
@@ -258,8 +260,12 @@ int record_all_packets;
 RecordType* script_id;
 TableType* id_table;
 
+StringVal* cmd_line_bpf_filter;
+
 #include "const.bif.netvar_def"
+#include "types.bif.netvar_def"
 #include "event.bif.netvar_def"
+#include "logging.bif.netvar_def"
 
 void init_event_handlers()
 	{
@@ -295,7 +301,7 @@ void init_general_global_var()
 	ssl_passphrase = internal_val("ssl_passphrase")->AsStringVal();
 
 	packet_filter_default = opt_internal_int("packet_filter_default");
-	
+
 	sig_max_group_size = opt_internal_int("sig_max_group_size");
 	enable_syslog = opt_internal_int("enable_syslog");
 
@@ -309,11 +315,16 @@ void init_general_global_var()
 	trace_output_file = internal_val("trace_output_file")->AsStringVal();
 
 	record_all_packets = opt_internal_int("record_all_packets");
+
+	cmd_line_bpf_filter =
+		internal_val("cmd_line_bpf_filter")->AsStringVal();
 	}
 
 void init_net_var()
 	{
 #include "const.bif.netvar_init"
+#include "types.bif.netvar_init"
+#include "logging.bif.netvar_init"
 
 	conn_id = internal_type("conn_id")->AsRecordType();
 	endpoint = internal_type("endpoint")->AsRecordType();
@@ -459,6 +470,8 @@ void init_net_var()
 	smb_negotiate = internal_type("smb_negotiate")->AsTableType();
 
 	geo_location = internal_type("geo_location")->AsRecordType();
+
+	entropy_test_result = internal_type("entropy_test_result")->AsRecordType();
 
 	dhcp_router_list = internal_type("dhcp_router_list")->AsTableType();
 	dhcp_msg = internal_type("dhcp_msg")->AsRecordType();

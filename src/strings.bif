@@ -135,12 +135,32 @@ function sort_string_array%(a: string_array%): string_array
 	vs_to_string_array(vs, b, 1, n);
 	return b;
 	%}
+	
+function join_string_vec%(vec: string_vec, sep: string%): string
+	%{
+	ODesc d;
+	VectorVal *v = vec->AsVectorVal();
+
+	for ( unsigned i = 0; i < v->Size(); ++i )
+		{
+		if ( i > 0 )
+			d.Add(sep->CheckString(), 0);
+
+		v->Lookup(i+1)->Describe(&d);
+		}
+
+	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
+	s->SetUseFreeToDelete(true);
+
+	return new StringVal(s);
+	%}
+
 
 function edit%(arg_s: string, arg_edit_char: string%): string
 	%{
 	if ( arg_edit_char->Len() != 1 )
 		builtin_run_time("not exactly one edit character", @ARG@[1]);
-	
+
 	const u_char* s = arg_s->Bytes();
 	const u_char* edit_s = arg_edit_char->Bytes();
 
@@ -150,7 +170,7 @@ function edit%(arg_s: string, arg_edit_char: string%): string
 	u_char* new_s = new u_char[n+1];
 	int ind = 0;
 
-	for ( int i=0; i<n; ++i )
+	for ( int i = 0; i < n; ++i )
 		{
 		if ( s[i] == edit_c )
 			{ // Delete last character
@@ -204,31 +224,32 @@ Val* do_split(StringVal* str_val, RE_Matcher* re, TableVal* other_sep,
 	if ( other_sep && other_sep->Size() > 0 )
 		other_strings = other_sep->ConvertToPureList();
 
-	// Currently let us assume that str is NUL-terminated. In
-	// the future we expect to change this by giving RE_Matcher a
-	// const char* segment.
-
 	const u_char* s = str_val->Bytes();
 	int n = str_val->Len();
 	const u_char* end_of_s = s + n;
 	int num = 0;
 	int num_sep = 0;
-	
-	int offset = 0;
 
-	while ( n > 0 )
+	int offset = 0;
+	while ( n >= 0 )
 		{
 		offset = 0;
 		// Find next match offset.
-		int end_of_match;
+		int end_of_match = 0;
 		while ( n > 0 &&
-		        (end_of_match = re->MatchPrefix(&s[offset], n)) <= 0 )
+		        (end_of_match = re->MatchPrefix(s + offset, n)) <= 0 )
 			{
-			// Move on to next character.
+			// Move on to next byte.
 			++offset;
 			--n;
 			}
-		
+
+		if ( max_num_sep && num_sep >= max_num_sep )
+			{
+			offset = end_of_s - s;
+			n=0;
+			}
+
 		Val* ind = new Val(++num, TYPE_COUNT);
 		a->Assign(ind, new StringVal(offset, (const char*) s));
 		Unref(ind);
@@ -243,19 +264,17 @@ Val* do_split(StringVal* str_val, RE_Matcher* re, TableVal* other_sep,
 			a->Assign(ind, new StringVal(end_of_match, (const char*) s+offset));
 			Unref(ind);
 			}
-		
-		++num_sep;
+
 		if ( max_num_sep && num_sep >= max_num_sep )
 			break;
-		
-		offset += end_of_match;
+
+		++num_sep;
+
 		n -= end_of_match;
-		s += offset;
-		
+		s += offset + end_of_match;;
+
 		if ( s > end_of_s )
-			{
 			internal_error("RegMatch in split goes beyond the string");
-			}
 		}
 
 	if ( other_strings )
@@ -468,7 +487,7 @@ function to_lower%(str: string%): string
 	char* lower_s = new char[n];
 	char* ls = lower_s;
 
-	for (int i=0; i<n; ++i)
+	for ( int i = 0; i < n; ++i)
 		{
 		if ( isascii(s[i]) && isupper(s[i]) )
 			*ls++ = tolower(s[i]);
@@ -485,8 +504,8 @@ function to_upper%(str: string%): string
 	int n = str->Len();
 	char* upper_s = new char[n];
 	char* us = upper_s;
-	
-	for (int i=0; i<n; ++i)
+
+	for ( int i = 0; i < n; ++i)
 		{
 		if ( isascii(s[i]) && islower(s[i]) )
 			*us++ = toupper(s[i]);
@@ -595,22 +614,23 @@ function strip%(str: string%): string
 		return new StringVal(new BroString(s, n, 1));
 
 	const u_char* sp = s;
-	// Move a pointer to the end of the string
-	const u_char* e = &sp[n-1];
+
+	// Move a pointer from the end of the string.
+	const u_char* e = sp + n - 1;
 	while ( e > sp && isspace(*e) )
 		--e;
 
-	// Move the pointer for the beginning of the string
-	while ( isspace(*sp) )
+	// Move the pointer for the beginning of the string.
+	while ( isspace(*sp) && sp <= e )
 		++sp;
 
-	return new StringVal(new BroString(sp, e-sp+1, 1));
+	return new StringVal(new BroString(sp, (e - sp + 1), 1));
 	%}
 
 function string_fill%(len: int, source: string%): string
 	%{
 	const u_char* src = source->Bytes();
-	int n = source->Len();
+	int64_t n = source->Len();
 	char* dst = new char[len];
 
 	for ( int i = 0; i < len; i += n )
@@ -627,12 +647,12 @@ function string_fill%(len: int, source: string%): string
 #
 function str_shell_escape%(source: string%): string
 	%{
-	uint j = 0;
+	unsigned j = 0;
 	const u_char* src = source->Bytes();
-	uint n = source->Len();
+	unsigned n = source->Len();
 	byte_vec dst = new u_char[n * 2 + 1];
 
-	for ( uint i = 0; i < n; ++i )
+	for ( unsigned i = 0; i < n; ++i )
 		{
 		switch ( src[i] ) {
 		case '`': case '"': case '\\': case '$':

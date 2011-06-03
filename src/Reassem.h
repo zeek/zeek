@@ -5,13 +5,12 @@
 #ifndef reassem_h
 #define reassem_h
 
-#include "Active.h"
 #include "Obj.h"
 
 class DataBlock {
 public:
 	DataBlock(const u_char* data, int size, int seq,
-			DataBlock* next, DataBlock* prev);
+			DataBlock* prev, DataBlock* next);
 
 	~DataBlock();
 
@@ -73,8 +72,6 @@ protected:
 	DataBlock* last_block;
 	int last_reassem_seq;
 	int trim_seq;	// how far we've trimmed
-
-	ReassemblyPolicy policy;
 
 	static unsigned int total_size;
 };

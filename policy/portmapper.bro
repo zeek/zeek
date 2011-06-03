@@ -4,6 +4,7 @@
 @load hot
 @load conn
 @load weird
+@load scan
 
 module Portmapper;
 
@@ -294,8 +295,8 @@ function pm_mapping_to_text(server: addr, m: pm_mappings): string
 		if ( [prog, p] !in mapping_seen )
 			{
 			add mapping_seen[prog, p];
-			addls[++num_addls] = fmt("%s -> %s", rpc_prog(prog), p);
-
+			addls[num_addls] = fmt("%s -> %s", rpc_prog(prog), p);
+			++num_addls;
 			update_RPC_server_map(server, p, rpc_prog(prog));
 			}
 		}

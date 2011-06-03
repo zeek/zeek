@@ -935,7 +935,7 @@ void NotifierRegistry::Register(ID* id, NotifierRegistry::Notifier* notifier)
 		attr_list* a = new attr_list;
 		Attr* attr = new Attr(ATTR_TRACKED);
 		a->append(attr);
-		id->SetAttrs(new Attributes(a, id->Type()));
+		id->SetAttrs(new Attributes(a, id->Type(), false));
 		Unref(attr);
 		}
 

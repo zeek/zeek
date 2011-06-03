@@ -7,6 +7,9 @@
 #include <sys/time.h>
 #include <netinet/in.h>
 #include <assert.h>
+#include <openssl/ssl.h>
+
+#include <algorithm>
 
 #include "config.h"
 #include "ChunkedIO.h"
@@ -139,7 +142,7 @@ bool ChunkedIOFd::Write(Chunk* chunk)
 	{
 #ifdef DEBUG
 	DBG_LOG(DBG_CHUNKEDIO, "write of size %d [%s]",
-		chunk->len, fmt_bytes(chunk->data, min(20, chunk->len)));
+		chunk->len, fmt_bytes(chunk->data, min((uint32)20, chunk->len)));
 #endif
 
 	// Reject if our queue of pending chunks is way too large. Otherwise,
@@ -165,13 +168,13 @@ bool ChunkedIOFd::Write(Chunk* chunk)
 
 	// We have to split it up.
 	char* p = chunk->data;
-	unsigned long left = chunk->len;
+	uint32 left = chunk->len;
 
 	while ( left )
 		{
 		Chunk* part = new Chunk;
 
-		part->len = min(BUFFER_SIZE - sizeof(uint32), left);
+		part->len = min<uint32>(BUFFER_SIZE - sizeof(uint32), left);
 		part->data = new char[part->len];
 		memcpy(part->data, p, part->len);
 		left -= part->len;
@@ -426,7 +429,7 @@ bool ChunkedIOFd::Read(Chunk** chunk, bool may_block)
 				(*chunk)->len & ~FLAG_PARTIAL,
 				(*chunk)->len & FLAG_PARTIAL ? "(P) " : "",
 				fmt_bytes((*chunk)->data,
-						min(20, (*chunk)->len)));
+						min((uint32)20, (*chunk)->len)));
 #endif
 
 	if ( ! ((*chunk)->len & FLAG_PARTIAL) )
@@ -649,11 +652,6 @@ void ChunkedIOFd::Stats(char* buffer, int length)
 	int i = safe_snprintf(buffer, length, "pending=%d ", stats.pending);
 	ChunkedIO::Stats(buffer + i, length - i);
 	}
-
-
-#ifdef USE_OPENSSL
-
-#include <openssl/ssl.h>
 
 SSL_CTX* ChunkedIOSSL::ctx;
 
@@ -1173,8 +1171,6 @@ void ChunkedIOSSL::Stats(char* buffer, int length)
 	int i = safe_snprintf(buffer, length, "pending=%ld ", stats.pending);
 	ChunkedIO::Stats(buffer + i, length - i);
 	}
-
-#endif	/* USE_OPENSSL */
 
 #ifdef HAVE_LIBZ
 

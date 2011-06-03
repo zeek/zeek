@@ -11,6 +11,11 @@
 #include <stdarg.h>
 #include "config.h"
 
+// Expose C99 functionality from inttypes.h, which would otherwise not be
+// available in C++.
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
+
 #if __STDC__
 #define myattribute __attribute__
 #else
@@ -39,30 +44,20 @@
 extern HeapLeakChecker* heap_checker;
 #endif
 
-typedef unsigned long long int uint64;
-typedef unsigned int uint32;
-typedef unsigned short uint16;
-typedef unsigned char uint8;
-typedef long long int int64;
+#include <stdint.h>
 
-#ifdef USE_INT64
-	typedef int64 bro_int_t;
-	typedef uint64 bro_uint_t;
-#else
-	typedef int bro_int_t;
-	typedef uint32 bro_uint_t;
-// #	error "USE_INT64 not defined!"
-#endif
+typedef uint64_t uint64;
+typedef uint32_t uint32;
+typedef uint16_t uint16;
+typedef uint8_t uint8;
 
-#if SIZEOF_LONG_LONG == 8
-typedef unsigned long long uint64;
-typedef long long int64;
-#elif SIZEOF_LONG_INT == 8
-typedef unsigned long int uint64;
-typedef long int int64;
-#else
-# error "Couldn't reliably identify 64-bit type. Please report to bro@bro-ids.org."
-#endif
+typedef int64_t int64;
+typedef int32_t int32;
+typedef int16_t int16;
+typedef int8_t int8;
+
+typedef int64 bro_int_t;
+typedef uint64 bro_uint_t;
 
 // "ptr_compat_uint" and "ptr_compat_int" are (un)signed integers of
 // pointer size. They can be cast safely to a pointer, e.g. in Lists,
@@ -71,9 +66,13 @@ typedef long int int64;
 #if SIZEOF_VOID_P == 8
 typedef uint64 ptr_compat_uint;
 typedef int64 ptr_compat_int;
+#define PRI_PTR_COMPAT_INT PRId64 // Format to use with printf.
+#define PRI_PTR_COMPAT_UINT PRIu64
 #elif SIZEOF_VOID_P == 4
 typedef uint32 ptr_compat_uint;
-typedef int ptr_compat_int;
+typedef int32 ptr_compat_int;
+#define PRI_PTR_COMPAT_INT PRId32
+#define PRI_PTR_COMPAT_UINT PRIu32
 #else
 # error "Unusual pointer size. Please report to bro@bro-ids.org."
 #endif
@@ -111,8 +110,8 @@ extern int strcasecmp_n(int s_len, const char* s, const char* t);
 extern char* strcasestr(const char* s, const char* find);
 #endif
 extern const char* strpbrk_n(size_t len, const char* s, const char* charset);
-extern int atoi_n(int len, const char* s, const char** end,
-			int base, int& result);
+template<class T> int atoi_n(int len, const char* s, const char** end, int base, T& result);
+extern char* uitoa_n(uint64 value, char* str, int n, int base);
 int strstr_n(const int big_len, const unsigned char* big,
 		const int little_len, const unsigned char* little);
 extern int fputs(int len, const char* s, FILE* fp);
@@ -141,7 +140,7 @@ extern void hmac_md5(size_t size, const unsigned char* bytes,
 
 extern const char* md5_digest_print(const unsigned char digest[16]);
 
-// Initializes RNGs for random() and MD5 usage.  If seed is given, then
+// Initializes RNGs for bro_random() and MD5 usage.  If seed is given, then
 // it is used (to provide determinism).  If load_file is given, the seeds
 // (both random & MD5) are loaded from that file.  This takes precedence
 // over the "seed" argument.  If write_file is given, the seeds are written
@@ -150,10 +149,15 @@ extern const char* md5_digest_print(const unsigned char digest[16]);
 extern void init_random_seed(uint32 seed, const char* load_file,
 				const char* write_file);
 
-extern uint64 rand64bit();
+// Returns true if the user explicitly set a seed via init_random_seed();
+extern bool have_random_seed();
 
-#define UHASH_KEY_SIZE	32
-extern uint8 uhash_key[UHASH_KEY_SIZE];
+// Replacement for the system random(), to which is normally falls back
+// except when a seed has been given. In that case, we use our own
+// predictable PRNG.
+long int bro_random();
+
+extern uint64 rand64bit();
 
 // Each event source that may generate events gets an internally unique ID.
 // This is always LOCAL for a local Bro. For remote event sources, it gets
@@ -164,6 +168,7 @@ extern uint8 uhash_key[UHASH_KEY_SIZE];
 // the obvious places (like Event.h or RemoteSerializer.h)
 
 typedef ptr_compat_uint SourceID;
+#define PRI_SOURCE_ID PRI_PTR_COMPAT_UINT
 static const SourceID SOURCE_LOCAL = 0;
 
 class BroObj;
@@ -185,7 +190,7 @@ extern int int_list_cmp(const void* v1, const void* v2);
 extern const char* bro_path();
 extern const char* bro_prefixes();
 extern FILE* search_for_file(const char* filename, const char* ext,
-	const char** full_filename);
+	const char** full_filename, bool load_pkgs);
 
 // Renames the given file to a new temporary name, and opens a new file with
 // the original name. Returns new file or NULL on error. Inits rotate_info if
@@ -227,16 +232,6 @@ extern struct timeval double_to_timeval(double t);
 
 // Return > 0 if tv_a > tv_b, 0 if equal, < 0 if tv_a < tv_b.
 extern int time_compare(struct timeval* tv_a, struct timeval* tv_b);
-
-inline int min(int a, int b)
-	{
-	return a < b ? a : b;
-	}
-
-inline int max(int a, int b)
-	{
-	return a > b ? a : b;
-	}
 
 // For now, don't use hash_maps - they're not fully portable.
 #if 0

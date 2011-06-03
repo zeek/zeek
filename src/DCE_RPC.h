@@ -91,7 +91,7 @@ class DCE_RPC_Header {
 public:
 	DCE_RPC_Header(Analyzer* a, const u_char* bytes);
 
-	BroEnum::dce_rpc_ptype PTYPE() const	{ return ptype; }
+	BifEnum::dce_rpc_ptype PTYPE() const	{ return ptype; }
 	int FragLen() const		{ return frag_len; }
 	int LittleEndian() const	{ return bytes[4] >> 4; }
 	bool Fragmented() const		{ return fragmented; }
@@ -102,7 +102,7 @@ public:
 protected:
 	Analyzer* analyzer;
 	const u_char* bytes;
-	BroEnum::dce_rpc_ptype ptype;
+	BifEnum::dce_rpc_ptype ptype;
 	int frag_len;
 	bool fragmented;
 };
@@ -138,7 +138,7 @@ protected:
 
 	Analyzer* analyzer;
 	UUID if_uuid;
-	BroEnum::dce_rpc_if_id if_id;
+	BifEnum::dce_rpc_if_id if_id;
 	int opnum;
 	struct {
 		dce_rpc_endpoint_addr addr;

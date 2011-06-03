@@ -65,10 +65,8 @@ void PktSrc::GetFds(int* read, int* write, int* except)
 		return;
 		}
 
-#ifdef USE_SELECT_LOOP
 	if ( selectable_fd >= 0 )
 		*read = selectable_fd;
-#endif
 	}
 
 int PktSrc::ExtractNextPacket()
@@ -90,11 +88,7 @@ int PktSrc::ExtractNextPacket()
 	if ( ! first_timestamp )
 		first_timestamp = next_timestamp;
 
-#ifdef USE_SELECT_LOOP
 	idle = (data == 0);
-#else
-	idle = false;
-#endif
 
 	if ( data )
 		++stats.received;
@@ -187,16 +181,98 @@ void PktSrc::Process()
 
 	current_timestamp = next_timestamp;
 
+	int pkt_hdr_size = hdr_size;
+
+	// Unfortunately some packets on the link might have MPLS labels
+	// while others don't. That means we need to ask the link-layer if
+	// labels are in place.
+	bool have_mpls = false;
+
+	int protocol = 0;
+
+	switch ( datalink ) {
+	case DLT_NULL:
+		{
+		protocol = (data[3] << 24) + (data[2] << 16) + (data[1] << 8) + data[0];
+
+		if ( protocol != AF_INET && protocol != AF_INET6 )
+			{
+			sessions->Weird("non_ip_packet_in_null_transport", &hdr, data);
+			data = 0;
+			return;
+			}
+
+		break;
+		}
+
+	case DLT_EN10MB:
+		{
+		// Get protocol being carried from the ethernet frame.
+		protocol = (data[12] << 8) + data[13];
+
+		// MPLS carried over the ethernet frame.
+		if ( protocol == 0x8847 )
+			have_mpls = true;
+
+		// VLAN carried over ethernet frame.
+		else if ( protocol == 0x8100 )
+			{
+			data += get_link_header_size(datalink);
+			data += 4; // Skip the vlan header
+			pkt_hdr_size = 0;
+			}
+
+		break;
+		}
+
+	case DLT_PPP_SERIAL:
+		{
+		// Get PPP protocol.
+		protocol = (data[2] << 8) + data[3];
+
+		if ( protocol == 0x0281 )
+			// MPLS Unicast
+			have_mpls = true;
+
+		else if ( protocol != 0x0021 && protocol != 0x0057 )
+			{
+			// Neither IPv4 nor IPv6.
+			sessions->Weird("non_ip_packet_in_ppp_encapsulation", &hdr, data);
+			data = 0;
+			return;
+			}
+		break;
+		}
+	}
+
+	if ( have_mpls )
+		{
+		// Remove the data link layer
+		data += get_link_header_size(datalink);
+
+		// Denote a header size of zero before the IP header
+		pkt_hdr_size = 0;
+
+		// Skip the MPLS label stack.
+		bool end_of_stack = false;
+
+		while ( ! end_of_stack )
+			{
+			end_of_stack = *(data + 2) & 0x01;
+			data += 4;
+			}
+		}
+
 	if ( pseudo_realtime )
 		{
 		current_pseudo = CheckPseudoTime();
-		net_packet_arrival(current_pseudo, &hdr, data, hdr_size, this);
+		net_packet_arrival(current_pseudo, &hdr, data, pkt_hdr_size, this);
 		if ( ! first_wallclock )
 			first_wallclock = current_time(true);
 		}
 
 	else
-		net_packet_arrival(current_timestamp, &hdr, data, hdr_size, this);
+		net_packet_arrival(current_timestamp, &hdr, data, pkt_hdr_size, this);
 
 	data = 0;
 	}
@@ -370,16 +446,12 @@ PktInterfaceSrc::PktInterfaceSrc(const char* arg_interface, const char* filter,
 		netmask = 0xffffff00;
 		}
 
-#ifdef USE_SELECT_LOOP
 	// We use the smallest time-out possible to return almost immediately if
 	// no packets are available. (We can't use set_nonblocking() as it's
 	// broken on FreeBSD: even when select() indicates that we can read
 	// something, we may get nothing if the store buffer hasn't filled up
 	// yet.)
 	pd = pcap_open_live(interface, snaplen, 1, 1, tmp_errbuf);
-#else
-	pd = pcap_open_live(interface, snaplen, 1, PCAP_TIMEOUT, tmp_errbuf);
-#endif
 
 	if ( ! pd )
 		{
@@ -394,8 +466,6 @@ PktInterfaceSrc::PktInterfaceSrc(const char* arg_interface, const char* filter,
 	fprintf(stderr, "pcap bufsize = %d\n", ((struct pcap *) pd)->bufsize);
 #endif
 
-#ifdef USE_SELECT_LOOP
-
 #ifdef HAVE_LINUX
 	if ( pcap_setnonblock(pd, 1, tmp_errbuf) < 0 )
 		{
@@ -407,11 +477,15 @@ PktInterfaceSrc::PktInterfaceSrc(const char* arg_interface, const char* filter,
 		}
 #endif
 	selectable_fd = pcap_fileno(pd);
-#endif
 
 	if ( PrecompileFilter(0, filter) && SetFilter(0) )
 		{
 		SetHdrSize();
+
+		if ( closed )
+			// Couldn't get header size.
+			return;
+
 		fprintf(stderr, "listening on %s\n", interface);
 		}
 	else
@@ -437,7 +511,6 @@ PktFileSrc::PktFileSrc(const char* arg_readfile, const char* filter,
 			// Unknown link layer type.
 			return;
 
-#ifdef USE_SELECT_LOOP
 		// We don't put file sources into non-blocking mode as
 		// otherwise we would not be able to identify the EOF
 		// via next_packet().
@@ -446,7 +519,6 @@ PktFileSrc::PktFileSrc(const char* arg_readfile, const char* filter,
 
 		if ( selectable_fd < 0 )
 			internal_error("OS does not support selectable pcap fd");
-#endif
 		}
 	else
 		closed = true;
@@ -661,6 +733,9 @@ int get_link_header_size(int dl)
 	case DLT_LINUX_SLL:
 		return 16;
 #endif
+
+	case DLT_PPP_SERIAL:	// PPP_SERIAL
+		return 4;
 
 	case DLT_RAW:
 		return 0;

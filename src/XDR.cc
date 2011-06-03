@@ -17,13 +17,13 @@ uint32 extract_XDR_uint32(const u_char*& buf, int& len)
 		return 0;
 		}
 
-	uint32 bits32 = XDR_aligned(buf) ? *(uint32*) buf :
-		((buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8) | buf[3]);
+	// Takes care of alignment and endianess differences. 
+	uint32 bits32 = (buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8) | buf[3];
 
 	buf += 4;
 	len -= 4;
 
-	return ntohl(bits32);
+	return bits32;
 	}
 
 double extract_XDR_uint64_as_double(const u_char*& buf, int& len)

@@ -284,7 +284,7 @@ Val* NameExpr::Eval(Frame* f) const
 	Val* v;
 
 	if ( id->AsType() )
-		RunTime("cannot evaluate type name");
+		return new Val(id->AsType(), true);
 
 	if ( id->IsGlobal() )
 		v = id->ID_Val();
@@ -494,8 +494,7 @@ Val* UnaryExpr::Eval(Frame* f) const
 		VectorVal* v_op = v->AsVectorVal();
 		VectorVal* result = new VectorVal(Type()->AsVectorType());
 
-		for ( unsigned int i = VECTOR_MIN;
-		      i < v_op->Size() + VECTOR_MIN; ++i )
+		for ( unsigned int i = 0; i < v_op->Size(); ++i )
 			{
 			Val* v_i = v_op->Lookup(i);
 			result->Assign(i, v_i ? Fold(v_i) : 0, this);
@@ -633,8 +632,7 @@ Val* BinaryExpr::Eval(Frame* f) const
 
 		VectorVal* v_result = new VectorVal(Type()->AsVectorType());
 
-		for ( unsigned int i = VECTOR_MIN;
-		      i < v_op1->Size() + VECTOR_MIN; ++i )
+		for ( unsigned int i = 0; i < v_op1->Size(); ++i )
 			{
 			if ( v_op1->Lookup(i) && v_op2->Lookup(i) )
 				v_result->Assign(i,
@@ -656,8 +654,7 @@ Val* BinaryExpr::Eval(Frame* f) const
 		VectorVal* vv = (is_vec1 ? v1 : v2)->AsVectorVal();
 		VectorVal* v_result = new VectorVal(Type()->AsVectorType());
 
-		for ( unsigned int i = VECTOR_MIN;
-		      i < vv->Size() + VECTOR_MIN; ++i )
+		for ( unsigned int i = 0; i < vv->Size(); ++i )
 			{
 			Val* vv_i = vv->Lookup(i);
 			if ( vv_i )
@@ -1063,8 +1060,7 @@ Val* IncrExpr::Eval(Frame* f) const
 	if ( is_vector(v) )
 		{
 		VectorVal* v_vec = v->AsVectorVal();
-		for ( unsigned int i = VECTOR_MIN;
-		      i < v_vec->Size() + VECTOR_MIN; ++i )
+		for ( unsigned int i = 0; i < v_vec->Size(); ++i )
 			{
 			Val* elt = v_vec->Lookup(i);
 			if ( elt )
@@ -1941,7 +1937,7 @@ Val* BoolExpr::Eval(Frame* f) const
 			{
 			result = new VectorVal(Type()->AsVectorType());
 			result->Resize(vector_v->Size());
-			result->AssignRepeat(VECTOR_MIN, result->Size(),
+			result->AssignRepeat(0, result->Size(),
 						scalar_v, this);
 			}
 		else
@@ -1970,8 +1966,7 @@ Val* BoolExpr::Eval(Frame* f) const
 	VectorVal* result = new VectorVal(Type()->AsVectorType());
 	result->Resize(vec_v1->Size());
 
-	for ( unsigned int i = VECTOR_MIN;
-	      i < vec_v1->Size() + VECTOR_MIN; ++i )
+	for ( unsigned int i = 0; i < vec_v1->Size(); ++i )
 		{
 		Val* op1 = vec_v1->Lookup(i);
 		Val* op2 = vec_v2->Lookup(i);
@@ -2353,7 +2348,7 @@ Val* CondExpr::Eval(Frame* f) const
 	VectorVal* result = new VectorVal(Type()->AsVectorType());
 	result->Resize(cond->Size());
 
-	for ( unsigned int i = VECTOR_MIN; i < cond->Size() + VECTOR_MIN; ++i )
+	for ( unsigned int i = 0; i < cond->Size(); ++i )
 		{
 		Val* local_cond = cond->Lookup(i);
 		if ( local_cond )
@@ -2497,12 +2492,7 @@ AssignExpr::AssignExpr(Expr* arg_op1, Expr* arg_op2, int arg_is_init,
 bool AssignExpr::TypeCheck()
 	{
 	TypeTag bt1 = op1->Type()->Tag();
-	if ( IsVector(bt1) )
-		bt1 = op1->Type()->AsVectorType()->YieldType()->Tag();
-
 	TypeTag bt2 = op2->Type()->Tag();
-	if ( IsVector(bt2) )
-		bt2 = op2->Type()->AsVectorType()->YieldType()->Tag();
 
 	if ( bt1 == TYPE_LIST && bt2 == TYPE_ANY )
 		// This is ok because we cannot explicitly declare lists on
@@ -2531,16 +2521,42 @@ bool AssignExpr::TypeCheck()
 		return true;
 		}
 
+	if ( bt1 == TYPE_VECTOR && bt2 == bt1 &&
+	     op2->Type()->AsVectorType()->IsUnspecifiedVector() )
+		{
+		op2 = new VectorCoerceExpr(op2, op1->Type()->AsVectorType());
+		return true;
+		}
+
+	if ( op1->Type()->Tag() == TYPE_RECORD &&
+	     op2->Type()->Tag() == TYPE_RECORD )
+		{
+		if ( same_type(op1->Type(), op2->Type()) )
+			{
+			RecordType* rt1 = op1->Type()->AsRecordType();
+			RecordType* rt2 = op2->Type()->AsRecordType();
+
+			// Make sure the attributes match as well.
+			for ( int i = 0; i < rt1->NumFields(); ++i )
+				{
+				const TypeDecl* td1 = rt1->FieldDecl(i);
+				const TypeDecl* td2 = rt2->FieldDecl(i);
+
+				if ( same_attrs(td1->attrs, td2->attrs) )
+					// Everything matches.
+					return true;
+				}
+			}
+
+		// Need to coerce.
+		op2 = new RecordCoerceExpr(op2, op1->Type()->AsRecordType());
+		return true;
+		}
+
 	if ( ! same_type(op1->Type(), op2->Type()) )
 		{
-		if ( op1->Type()->Tag() == TYPE_RECORD &&
-		     op2->Type()->Tag() == TYPE_RECORD )
-			op2 = new RecordCoerceExpr(op2, op1->Type()->AsRecordType());
-		else
-			{
-			ExprError("type clash in assignment");
-			return false;
-			}
+		ExprError("type clash in assignment");
+		return false;
 		}
 
 	return true;
@@ -2611,7 +2627,6 @@ Val* AssignExpr::Eval(Frame* f) const
 	if ( v )
 		{
 		op1->Assign(f, v);
-		//### op1->SetAttribs();
 		return val ? val->Ref() : v->Ref();
 		}
 	else
@@ -2931,8 +2946,7 @@ Val* IndexExpr::Eval(Frame* f) const
 				return 0;
 				}
 
-			for ( unsigned int i = VECTOR_MIN;
-			      i < v_v2->Size() + VECTOR_MIN; ++i )
+			for ( unsigned int i = 0; i < v_v2->Size(); ++i )
 				{
 				if ( v_v2->Lookup(i)->AsBool() )
 					v_result->Assign(v_result->Size() + 1, v_v1->Lookup(i), this);
@@ -2944,8 +2958,7 @@ Val* IndexExpr::Eval(Frame* f) const
 			// S does, i.e., by excluding those elements.
 			// Probably only do this if *all* are negative.
 			v_result->Resize(v_v2->Size());
-			for ( unsigned int i = VECTOR_MIN;
-			      i < v_v2->Size() + VECTOR_MIN; ++i )
+			for ( unsigned int i = 0; i < v_v2->Size(); ++i )
 				v_result->Assign(i, v_v1->Lookup(v_v2->Lookup(i)->CoerceToInt()), this);
 			}
 		}
@@ -3062,13 +3075,6 @@ FieldExpr::FieldExpr(Expr* arg_op, const char* arg_field_name)
 	if ( IsError() )
 		return;
 
-	if ( streq(arg_field_name, "attr") )
-		{
-		field = -1;
-		SetType(op->Type()->AttributesType()->Ref());
-		return;
-		}
-
 	if ( ! IsRecord(op->Type()->Tag()) )
 		ExprError("not a record");
 	else
@@ -3100,18 +3106,18 @@ Expr* FieldExpr::Simplify(SimplifyType simp_type)
 	return this;
 	}
 
+int FieldExpr::CanDel() const
+	{
+	return td->FindAttr(ATTR_DEFAULT) || td->FindAttr(ATTR_OPTIONAL);
+	}
+
 void FieldExpr::Assign(Frame* f, Val* v, Opcode opcode)
 	{
-	if ( IsError() || ! v )
+	if ( IsError() )
 		return;
 
 	if ( field < 0 )
-		{
-		Val* lhs = op->Eval(f);
-		lhs->SetAttribs(v->AsRecordVal());
-		Unref(lhs);
-		return;
-		}
+		ExprError("no such field in record");
 
 	Val* op_v = op->Eval(f);
 	if ( op_v )
@@ -3122,11 +3128,13 @@ void FieldExpr::Assign(Frame* f, Val* v, Opcode opcode)
 		}
 	}
 
+void FieldExpr::Delete(Frame* f)
+	{
+	Assign(f, 0, OP_ASSIGN_IDX);
+	}
+
 Val* FieldExpr::Fold(Val* v) const
 	{
-	if ( field < 0 )
-		return v->GetAttribs(true)->Ref();
-
 	Val* result = v->AsRecordVal()->Lookup(field);
 	if ( result )
 		return result->Ref();
@@ -3179,24 +3187,20 @@ bool FieldExpr::DoUnserialize(UnserialInfo* info)
 	return td != 0;
 	}
 
-HasFieldExpr::HasFieldExpr(Expr* arg_op, const char* arg_field_name,
-			   bool arg_is_attr)
+HasFieldExpr::HasFieldExpr(Expr* arg_op, const char* arg_field_name)
 : UnaryExpr(EXPR_HAS_FIELD, arg_op)
 	{
 	field_name = arg_field_name;
-	is_attr = arg_is_attr;
 	field = 0;
 
 	if ( IsError() )
 		return;
 
-	if ( ! is_attr && ! IsRecord(op->Type()->Tag()) )
+	if ( ! IsRecord(op->Type()->Tag()) )
 		ExprError("not a record");
 	else
 		{
-		RecordType* rt = is_attr ?
-					op->Type()->AttributesType() :
-					op->Type()->AsRecordType();
+		RecordType* rt = op->Type()->AsRecordType();
 		field = rt->FieldOffset(field_name);
 
 		if ( field < 0 )
@@ -3215,10 +3219,7 @@ Val* HasFieldExpr::Fold(Val* v) const
 	{
 	RecordVal* rec_to_look_at;
 
-	if ( is_attr )
-		rec_to_look_at = v->GetAttribs(false);
-	else
-		rec_to_look_at = v->AsRecordVal();
+	rec_to_look_at = v->AsRecordVal();
 
 	if ( ! rec_to_look_at )
 		return new Val(0, TYPE_BOOL);
@@ -3235,12 +3236,7 @@ void HasFieldExpr::ExprDescribe(ODesc* d) const
 	op->Describe(d);
 
 	if ( d->IsReadable() )
-		{
-		if ( is_attr )
-			d->Add("?$$");
-		else
-			d->Add("?$");
-		}
+		d->Add("?$");
 
 	if ( IsError() )
 		d->Add("<error>");
@@ -3255,13 +3251,17 @@ IMPLEMENT_SERIAL(HasFieldExpr, SER_HAS_FIELD_EXPR);
 bool HasFieldExpr::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_HAS_FIELD_EXPR, UnaryExpr);
-	return SERIALIZE(is_attr) && SERIALIZE(field_name) && SERIALIZE(field);
+
+	// Serialize the former "bool is_attr" first for backwards compatibility.
+	return SERIALIZE(false) && SERIALIZE(field_name) && SERIALIZE(field);
 	}
 
 bool HasFieldExpr::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(UnaryExpr);
-	return UNSERIALIZE(&is_attr) && UNSERIALIZE_STR(&field_name, 0) && UNSERIALIZE(&field);
+	// Unserialize the former "bool is_attr" first for backwards compatibility.
+	bool not_used;
+	return UNSERIALIZE(&not_used) && UNSERIALIZE_STR(&field_name, 0) && UNSERIALIZE(&field);
 	}
 
 RecordConstructorExpr::RecordConstructorExpr(ListExpr* constructor_list)
@@ -3314,48 +3314,12 @@ RecordConstructorExpr::RecordConstructorExpr(ListExpr* constructor_list)
 
 Val* RecordConstructorExpr::InitVal(const BroType* t, Val* aggr) const
 	{
-	if ( ! aggr )
-		aggr = new RecordVal(const_cast<RecordType*>(t->AsRecordType()));
+	RecordVal* rv = Eval(0)->AsRecordVal();
+	RecordVal* ar = rv->CoerceTo(t->AsRecordType(), aggr);
 
-	if ( record_promotion_compatible(t->AsRecordType(), Type()->AsRecordType()) )
+	if ( ar )
 		{
-		RecordVal* ar = aggr->AsRecordVal();
-		RecordType* ar_t = aggr->Type()->AsRecordType();
-
-		RecordVal* rv = Eval(0)->AsRecordVal();
-		RecordType* rv_t = rv->Type()->AsRecordType();
-
-		int i;
-		for ( i = 0; i < rv_t->NumFields(); ++i )
-			{
-			int t_i = ar_t->FieldOffset(rv_t->FieldName(i));
-
-			if ( t_i < 0 )
-				{
-				char buf[512];
-				safe_snprintf(buf, sizeof(buf),
-					      "orphan field \"%s\" in initialization",
-					      rv_t->FieldName(i));
-				Error(buf);
-				break;
-				}
-
-			else
-				ar->Assign(t_i, rv->Lookup(i)->Ref());
-			}
-
-		for ( i = 0; i < ar_t->NumFields(); ++i )
-			if ( ! ar->Lookup(i) &&
-			     ! ar_t->FieldDecl(i)->FindAttr(ATTR_OPTIONAL) )
-				{
-				char buf[512];
-				safe_snprintf(buf, sizeof(buf),
-					      "non-optional field \"%s\" missing in initialization", ar_t->FieldName(i));
-				Error(buf);
-				}
-
 		Unref(rv);
-
 		return ar;
 		}
 
@@ -3424,7 +3388,7 @@ TableConstructorExpr::TableConstructorExpr(ListExpr* constructor_list,
 			SetError("values in table(...) constructor do not specify a table");
 		}
 
-	attrs = arg_attrs ? new Attributes(arg_attrs, type) : 0;
+	attrs = arg_attrs ? new Attributes(arg_attrs, type, false) : 0;
 	}
 
 Val* TableConstructorExpr::Eval(Frame* f) const
@@ -3490,7 +3454,7 @@ SetConstructorExpr::SetConstructorExpr(ListExpr* constructor_list,
 	else if ( type->Tag() != TYPE_TABLE || ! type->AsTableType()->IsSet() )
 		SetError("values in set(...) constructor do not specify a set");
 
-	attrs = arg_attrs ? new Attributes(arg_attrs, type) : 0;
+	attrs = arg_attrs ? new Attributes(arg_attrs, type, false) : 0;
 	}
 
 Val* SetConstructorExpr::Eval(Frame* f) const
@@ -3506,8 +3470,6 @@ Val* SetConstructorExpr::Eval(Frame* f) const
 		Val* element = exprs[i]->Eval(f);
 		aggr->Assign(element, 0);
 		}
-
-	aggr->AsTableVal()->SetAttrs(attrs);
 
 	return aggr;
 	}
@@ -3549,6 +3511,13 @@ VectorConstructorExpr::VectorConstructorExpr(ListExpr* constructor_list)
 	if ( IsError() )
 		return;
 
+	if ( constructor_list->Exprs().length() == 0 )
+		{
+		// vector().
+		SetType(new ::VectorType(base_type(TYPE_ANY)));
+		return;
+		}
+
 	BroType* t = merge_type_list(constructor_list);
 	if ( t )
 		{
@@ -3575,9 +3544,9 @@ Val* VectorConstructorExpr::Eval(Frame* f) const
 		{
 		Expr* e = exprs[i];
 		Val* v = e->Eval(f);
-		if ( ! vec->Assign(i + VECTOR_MIN, v, e) )
+		if ( ! vec->Assign(i, v, e) )
 			{
-			Error(fmt("type mismatch at index %d", i + VECTOR_MIN), e);
+			Error(fmt("type mismatch at index %d", i), e);
 			return 0;
 			}
 		}
@@ -3599,9 +3568,9 @@ Val* VectorConstructorExpr::InitVal(const BroType* t, Val* aggr) const
 		Expr* e = exprs[i];
 		Val* v = check_and_promote(e->Eval(0), vt, 1);
 
-		if ( ! v || ! vec->Assign(i + VECTOR_MIN, v, e) )
+		if ( ! v || ! vec->Assign(i, v, e) )
 			{
-			Error(fmt("initialization type mismatch at index %d", i + VECTOR_MIN), e);
+			Error(fmt("initialization type mismatch at index %d", i), e);
 			return 0;
 			}
 		}
@@ -3960,7 +3929,7 @@ Val* ArithCoerceExpr::Fold(Val* v) const
 
 	VectorVal* vv = v->AsVectorVal();
 	VectorVal* result = new VectorVal(Type()->AsVectorType());
-	for ( unsigned int i = VECTOR_MIN; i < vv->Size() + VECTOR_MIN; ++i )
+	for ( unsigned int i = 0; i < vv->Size(); ++i )
 		{
 		Val* elt = vv->Lookup(i);
 		if ( elt )
@@ -4020,15 +3989,8 @@ RecordCoerceExpr::RecordCoerceExpr(Expr* op, RecordType* r)
 			{
 			int t_i = t_r->FieldOffset(sub_r->FieldName(i));
 			if ( t_i < 0 )
-				{
-				// Same as in RecordConstructorExpr::InitVal.
-				char buf[512];
-				safe_snprintf(buf, sizeof(buf),
-					      "orphan record field \"%s\"",
-					      sub_r->FieldName(i));
-				Error(buf);
+				// Orphane field in rhs, that's ok.
 				continue;
-				}
 
 			BroType* sub_t_i = sub_r->FieldType(i);
 			BroType* sup_t_i = t_r->FieldType(t_i);
@@ -4073,7 +4035,23 @@ Val* RecordCoerceExpr::Fold(Val* v) const
 	for ( int i = 0; i < map_size; ++i )
 		{
 		if ( map[i] >= 0 )
-			val->Assign(i, rv->Lookup(map[i])->Ref());
+			{
+			Val* rhs = rv->Lookup(map[i]);
+			if ( ! rhs )
+				{
+				const Attr* def = rv->Type()->AsRecordType()->FieldDecl(
+					map[i])->FindAttr(ATTR_DEFAULT);
+
+				if ( def )
+					rhs = def->AttrExpr()->Eval(0);
+				}
+
+			if ( rhs )
+				rhs = rhs->Ref();
+
+			assert(rhs || Type()->AsRecordType()->FieldDecl(i)->FindAttr(ATTR_OPTIONAL));
+			val->Assign(i, rhs);
+			}
 		else
 			val->Assign(i, 0);
 		}
@@ -4153,6 +4131,50 @@ bool TableCoerceExpr::DoSerialize(SerialInfo* info) const
 	}
 
 bool TableCoerceExpr::DoUnserialize(UnserialInfo* info)
+	{
+	DO_UNSERIALIZE(UnaryExpr);
+	return true;
+	}
+
+VectorCoerceExpr::VectorCoerceExpr(Expr* op, VectorType* v)
+: UnaryExpr(EXPR_VECTOR_COERCE, op)
+	{
+	if ( IsError() )
+		return;
+
+	SetType(v->Ref());
+
+	if ( Type()->Tag() != TYPE_VECTOR )
+		ExprError("coercion to non-vector");
+
+	else if ( op->Type()->Tag() != TYPE_VECTOR )
+		ExprError("coercion of non-vector to vector");
+	}
+
+
+VectorCoerceExpr::~VectorCoerceExpr()
+	{
+	}
+
+Val* VectorCoerceExpr::Fold(Val* v) const
+	{
+	VectorVal* vv = v->AsVectorVal();
+
+	if ( vv->Size() > 0 )
+		Internal("coercion of non-empty vector");
+
+	return new VectorVal(Type()->Ref()->AsVectorType());
+	}
+
+IMPLEMENT_SERIAL(VectorCoerceExpr, SER_VECTOR_COERCE_EXPR);
+
+bool VectorCoerceExpr::DoSerialize(SerialInfo* info) const
+	{
+	DO_SERIALIZE(SER_VECTOR_COERCE_EXPR, UnaryExpr);
+	return true;
+	}
+
+bool VectorCoerceExpr::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(UnaryExpr);
 	return true;
@@ -5024,9 +5046,9 @@ Val* ListExpr::InitVal(const BroType* t, Val* aggr) const
 			{
 			Expr* e = exprs[i];
 			Val* v = e->Eval(0);
-			if ( ! vec->Assign(i + VECTOR_MIN, v, e) )
+			if ( ! vec->Assign(i, v, e) )
 				{
-				e->Error(fmt("type mismatch at index %d",  i + VECTOR_MIN));
+				e->Error(fmt("type mismatch at index %d", i));
 				return 0;
 				}
 
@@ -5334,24 +5356,49 @@ int check_and_promote_expr(Expr*& e, BroType* t)
 		return 1;
 		}
 
-	else if ( ! same_type(t, et) )
+	if ( t->Tag() == TYPE_RECORD && et->Tag() == TYPE_RECORD )
 		{
-		if ( t->Tag() == TYPE_RECORD && et->Tag() == TYPE_RECORD )
-			{
-			RecordType* t_r = t->AsRecordType();
-			RecordType* et_r = et->AsRecordType();
+		RecordType* t_r = t->AsRecordType();
+		RecordType* et_r = et->AsRecordType();
 
-			if ( record_promotion_compatible(t_r, et_r) )
+		if ( same_type(t, et) )
+			{
+			// Make sure the attributes match as well.
+			for ( int i = 0; i < t_r->NumFields(); ++i )
 				{
-				e = new RecordCoerceExpr(e, t_r);
-				return 1;
+				const TypeDecl* td1 = t_r->FieldDecl(i);
+				const TypeDecl* td2 = et_r->FieldDecl(i);
+
+				if ( same_attrs(td1->attrs, td2->attrs) )
+					// Everything matches perfectly.
+					return 1;
 				}
 			}
 
-		else if ( t->Tag() == TYPE_TABLE && et->Tag() == TYPE_TABLE &&
+		if ( record_promotion_compatible(t_r, et_r) )
+			{
+			e = new RecordCoerceExpr(e, t_r);
+			return 1;
+			}
+
+		t->Error("incompatible record types", e);
+		return 0;
+		}
+
+
+	if ( ! same_type(t, et) )
+		{
+		if ( t->Tag() == TYPE_TABLE && et->Tag() == TYPE_TABLE &&
 			  et->AsTableType()->IsUnspecifiedTable() )
 			{
 			e = new TableCoerceExpr(e, t->AsTableType());
+			return 1;
+			}
+
+		if ( t->Tag() == TYPE_VECTOR && et->Tag() == TYPE_VECTOR &&
+		     et->AsVectorType()->IsUnspecifiedVector() )
+			{
+			e = new VectorCoerceExpr(e, t->AsVectorType());
 			return 1;
 			}
 

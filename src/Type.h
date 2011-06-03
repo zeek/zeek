@@ -6,6 +6,7 @@
 #define type_h
 
 #include <string>
+#include <list>
 #include <map>
 
 #include "Obj.h"
@@ -31,6 +32,7 @@ typedef enum {
 	TYPE_FUNC,
 	TYPE_FILE,
 	TYPE_VECTOR,
+	TYPE_TYPE,
 	TYPE_ERROR
 #define NUM_TYPES (int(TYPE_ERROR) + 1)
 } TypeTag;
@@ -59,9 +61,7 @@ class ListExpr;
 class EnumType;
 class Serializer;
 class VectorType;
-
-extern bool in_global_attr_decl;
-extern RecordType* global_attributes_type;
+class TypeType;
 
 const int DOES_NOT_MATCH_INDEX = 0;
 const int MATCHES_INDEX_SCALAR = 1;
@@ -70,18 +70,10 @@ const int MATCHES_INDEX_VECTOR = 2;
 class BroType : public BroObj {
 public:
 	BroType(TypeTag tag, bool base_type = false);
+	~BroType();
 
 	TypeTag Tag() const		{ return tag; }
 	InternalTypeTag InternalType() const	{ return internal_tag; }
-
-	// Type for the attributes (metadata) on this type.
-	RecordType* AttributesType()
-		{
-		if ( ! attributes_type )
-			attributes_type = global_attributes_type;
-		return attributes_type;
-		}
-	bool SetAttributesType(type_decl_list* attr_types);
 
 	// Whether it's stored in network order.
 	int IsNetworkOrder() const	{ return is_network_order; }
@@ -163,6 +155,7 @@ public:
 		CHECK_TYPE_TAG(TYPE_SUBNET, "BroType::AsSubNetType");
 		return (const SubNetType*) this;
 		}
+
 	SubNetType* AsSubNetType()
 		{
 		CHECK_TYPE_TAG(TYPE_SUBNET, "BroType::AsSubNetType");
@@ -204,6 +197,18 @@ public:
 		return (VectorType*) this;
 		}
 
+	const TypeType* AsTypeType() const
+	        {
+		CHECK_TYPE_TAG(TYPE_TYPE, "BroType::AsTypeType");
+		return (TypeType*) this;
+		}
+
+	TypeType* AsTypeType()
+	        {
+		CHECK_TYPE_TAG(TYPE_TYPE, "BroType::AsTypeType");
+		return (TypeType*) this;
+		}
+
 	int IsSet() const
 		{
 		return tag == TYPE_TABLE && (YieldType() == 0);
@@ -211,17 +216,19 @@ public:
 
 	BroType* Ref()		{ ::Ref(this); return this; }
 
-	void MakeGlobalAttributeType()	{ is_global_attributes_type = true; }
-
 	virtual void Describe(ODesc* d) const;
+	virtual void DescribeReST(ODesc* d) const;
 
 	virtual unsigned MemoryAllocation() const;
 
 	bool Serialize(SerialInfo* info) const;
 	static BroType* Unserialize(UnserialInfo* info, TypeTag want = TYPE_ANY);
 
+	void SetTypeID(const char* id)	{ type_id = id; }
+	const char* GetTypeID() const	{ return type_id; }
+
 protected:
-	BroType()	{ attributes_type = 0; }
+	BroType()	{ type_id = 0; }
 
 	void SetError();
 
@@ -232,8 +239,10 @@ private:
 	InternalTypeTag internal_tag;
 	bool is_network_order;
 	bool base_type;
-	bool is_global_attributes_type;
-	RecordType* attributes_type;
+
+	// This type_id field is only used by the documentation framework to
+	// track the names of declared types.
+	const char* type_id;
 };
 
 class TypeList : public BroType {
@@ -289,6 +298,7 @@ public:
 	BroType* YieldType();
 
 	void Describe(ODesc* d) const;
+	void DescribeReST(ODesc* d) const;
 
 	// Returns true if this table is solely indexed by subnet.
 	bool IsSubNetIndex() const;
@@ -363,6 +373,7 @@ public:
 	ID* GetReturnValueID() const;
 
 	void Describe(ODesc* d) const;
+	void DescribeReST(ODesc* d) const;
 
 protected:
 	FuncType()	{ args = 0; arg_types = 0; yield = 0; return_value = 0; }
@@ -375,10 +386,23 @@ protected:
 	ID* return_value;
 };
 
+class TypeType : public BroType {
+public:
+	TypeType(BroType* t) : BroType(TYPE_TYPE)	{ type = t->Ref(); }
+	~TypeType()	{ Unref(type); }
+
+	BroType* Type()	{ return type; }
+
+protected:
+	TypeType()	{}
+
+	BroType* type;
+};
+
 class TypeDecl {
 public:
-	TypeDecl(BroType* t, const char* i, attr_list* attrs = 0);
-	~TypeDecl();
+	TypeDecl(BroType* t, const char* i, attr_list* attrs = 0, bool in_record = false);
+	virtual ~TypeDecl();
 
 	const Attr* FindAttr(attr_tag a) const
 		{ return attrs ? attrs->FindAttr(a) : 0; }
@@ -386,9 +410,22 @@ public:
 	bool Serialize(SerialInfo* info) const;
 	static TypeDecl* Unserialize(UnserialInfo* info);
 
+	virtual void DescribeReST(ODesc* d) const;
+
 	BroType* type;
 	Attributes* attrs;
 	const char* id;
+};
+
+class CommentedTypeDecl : public TypeDecl {
+public:
+	CommentedTypeDecl(BroType* t, const char* i, attr_list* attrs = 0,
+			bool in_record = false, std::list<std::string>* cmnt_list = 0);
+	virtual ~CommentedTypeDecl();
+
+	void DescribeReST(ODesc* d) const;
+
+	std::list<std::string>* comments;
 };
 
 class RecordField {
@@ -419,14 +456,22 @@ public:
 	// Given an offset, returns the field's name.
 	const char* FieldName(int field) const;
 
+	type_decl_list* Types() { return types; }
+
 	// Given an offset, returns the field's TypeDecl.
 	const TypeDecl* FieldDecl(int field) const;
 	TypeDecl* FieldDecl(int field);
 
 	int NumFields() const			{ return num_fields; }
 
+	// Returns 0 if all is ok, otherwise a pointer to an error message.
+	// Takes ownership of list.
+	const char* AddFields(type_decl_list* types, attr_list* attr);
+
 	void Describe(ODesc* d) const;
+	void DescribeReST(ODesc* d) const;
 	void DescribeFields(ODesc* d) const;
+	void DescribeFieldsReST(ODesc* d, bool func_args) const;
 
 protected:
 	RecordType() { fields = 0; base = 0; types = 0; }
@@ -468,31 +513,59 @@ protected:
 
 class EnumType : public BroType {
 public:
-	EnumType(bool arg_is_export);
+	EnumType();
 	~EnumType();
 
-	// The value of this name is next counter value, which is returned.
-	// A return value of -1 means that the identifier already existed
-	// (and thus could not be used).
-	int AddName(const string& module_name, const char* name);
+	// The value of this name is next internal counter value, starting
+	// with zero. The internal counter is incremented.
+	void AddName(const string& module_name, const char* name, bool is_export);
 
-	// Add in names from the suppled EnumType; the return value is
-	// the value of the last enum added.
-	int AddNamesFrom(const string& module_name, EnumType* et);
+	// The value of this name is set to val. Once a value has been
+	// explicitly assigned using this method, no further names can be
+	// added that aren't likewise explicitly initalized.
+	void AddName(const string& module_name, const char* name, bro_int_t val, bool is_export);
 
 	// -1 indicates not found.
-	int Lookup(const string& module_name, const char* name);
-	const char* Lookup(int value); // Returns 0 if not found
+	bro_int_t Lookup(const string& module_name, const char* name);
+	const char* Lookup(bro_int_t value); // Returns 0 if not found
 
 protected:
-	EnumType()	{}
-
 	DECLARE_SERIAL(EnumType)
 
-	typedef std::map< const char*, int, ltstr > NameMap;
+	virtual void AddNameInternal(const string& module_name,
+			const char* name, bro_int_t val, bool is_export);
+
+	typedef std::map< const char*, bro_int_t, ltstr > NameMap;
 	NameMap names;
-	int counter;
-	bool is_export;
+
+	// The counter is initialized to 0 and incremented on every implicit
+	// auto-increment name that gets added (thus its > 0 if
+	// auto-increment is used).  Once an explicit value has been
+	// specified, the counter is set to -1. This way counter can be used
+	// as a flag to prevent mixing of auto-increment and explicit
+	// enumerator specifications.
+	bro_int_t counter;
+};
+
+class CommentedEnumType: public EnumType {
+public:
+	CommentedEnumType() {}
+	~CommentedEnumType();
+
+	void DescribeReST(ODesc* d) const;
+	void AddComment(const string& module_name, const char* name,
+			std::list<std::string>* comments);
+
+protected:
+	// This overriden method does not install the given ID name into a
+	// scope and it also does not do any kind of checking that the
+	// provided name already exists.
+	void AddNameInternal(const string& module_name, const char* name,
+			bro_int_t val, bool is_export);
+
+	// Comments are only filled when in "documentation mode".
+	typedef std::map< const char*, std::list<std::string>*, ltstr > CommentMap;
+	CommentMap comments;
 };
 
 class VectorType : public BroType {
@@ -502,6 +575,10 @@ public:
 	BroType* YieldType()	{ return yield_type; }
 
 	int MatchesIndex(ListExpr*& index) const;
+
+	// Returns true if this table type is "unspecified", which is what one
+	// gets using an empty "vector()" constructor.
+	bool IsUnspecifiedVector() const;
 
 protected:
 	VectorType()	{ yield_type = 0; }
@@ -524,6 +601,9 @@ inline BroType* error_type()	{ return base_type(TYPE_ERROR); }
 // True if the two types are equivalent.  If is_init is true then the
 // test is done in the context of an initialization.
 extern int same_type(const BroType* t1, const BroType* t2, int is_init=0);
+
+// True if the two attribute lists are equivalent.
+extern int same_attrs(const Attributes* a1, const Attributes* a2);
 
 // Returns true if the record sub_rec can be promoted to the record
 // super_rec.

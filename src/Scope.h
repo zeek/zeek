@@ -11,6 +11,7 @@
 #include "Obj.h"
 #include "BroList.h"
 #include "TraverseTypes.h"
+#include "module_util.h"
 
 class ID;
 class BroType;
@@ -59,20 +60,12 @@ protected:
 	id_list* inits;
 };
 
-extern const char* GLOBAL_MODULE_NAME;
-
-extern string extract_module_name(const char* name);
-extern string normalized_module_name(const char* module_name); // w/o ::
-
-// Concatenates module_name::var_name unless var_name is already fully
-// qualified, in which case it is returned unmodified.
-extern string make_full_var_name(const char* module_name, const char* var_name);
 
 extern bool in_debug;
 
 // If no_global is true, don't search in the default "global" namespace.
 extern ID* lookup_ID(const char* name, const char* module,
-			bool no_global = false);
+		     bool no_global = false, bool same_module_only=false);
 extern ID* install_ID(const char* name, const char* module_name,
 			bool is_global, bool is_export);
 

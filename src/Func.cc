@@ -6,11 +6,11 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
-#if TIME_WITH_SYS_TIME
+#ifdef TIME_WITH_SYS_TIME
 # include <sys/time.h>
 # include <time.h>
 #else
-# if HAVE_SYS_TIME_H
+# ifdef HAVE_SYS_TIME_H
 #  include <sys/time.h>
 # else
 #  include <time.h>
@@ -239,11 +239,15 @@ BroFunc::BroFunc(ID* arg_id, Stmt* arg_body, id_list* aggr_inits,
 : Func(BRO_FUNC)
 	{
 	id = arg_id;
-	Body b;
-	b.stmts = AddInits(arg_body, aggr_inits);
-	b.priority = 0;
-	bodies.push_back(b);
 	frame_size = arg_frame_size;
+
+	if ( arg_body )
+		{
+		Body b;
+		b.stmts = AddInits(arg_body, aggr_inits);
+		b.priority = 0;
+		bodies.push_back(b);
+		}
 	}
 
 BroFunc::~BroFunc()
@@ -267,6 +271,13 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 #ifdef PROFILE_BRO_FUNCTIONS
 	DEBUG_MSG("Function: %s\n", id->Name());
 #endif
+	if ( ! bodies.size() ) 
+		{
+		// Can only happen for events.
+		assert(IsEvent());
+		return 0 ;
+		}
+
 	SegmentProfiler(segment_logger, location);
 	Frame* f = new Frame(frame_size, this, args);
 
@@ -496,7 +507,12 @@ void builtin_run_time(const char* msg, BroObj* arg)
 		run_time(msg, arg);
 	}
 
+#include "bro.bif.func_h"
+#include "logging.bif.func_h"
+#include "strings.bif.func_h"
+
 #include "bro.bif.func_def"
+#include "logging.bif.func_def"
 #include "strings.bif.func_def"
 
 void init_builtin_funcs()
@@ -508,22 +524,15 @@ void init_builtin_funcs()
 	gap_info = internal_type("gap_info")->AsRecordType();
 
 #include "bro.bif.func_init"
-
-#include "common-rw.bif.func_init"
-#include "finger-rw.bif.func_init"
-#include "ftp-rw.bif.func_init"
-#include "http-rw.bif.func_init"
-#include "ident-rw.bif.func_init"
-#include "smtp-rw.bif.func_init"
+#include "logging.bif.func_init"
 #include "strings.bif.func_init"
-#include "dns-rw.bif.func_init"
 
 	did_builtin_init = true;
 	}
 
 bool check_built_in_call(BuiltinFunc* f, CallExpr* call)
 	{
-	if ( f->TheFunc() != bro_fmt )
+	if ( f->TheFunc() != BifFunc::bro_fmt )
 		return true;
 
 	const expr_list& args = call->Args()->Exprs();

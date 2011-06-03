@@ -3,9 +3,7 @@
 #include "SSLInterpreter.h"
 #include "SSLv2.h"
 
-#ifdef USE_OPENSSL
 #include "X509.h"
-#endif
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -173,17 +171,12 @@ void SSL_Interpreter::analyzeCertificate(SSL_InterpreterEndpoint* s,
 		int invalid = 0;
 		switch ( type ) {
 		case SSLv2_CT_X509_CERTIFICATE:
-#ifdef USE_OPENSSL
 			if ( ! isChain )
 				invalid = X509_Cert::verify(s->GetProxyEndpoint(),
 							pCert, certLength);
 			else
 				invalid = X509_Cert::verifyChain(s->GetProxyEndpoint(),
 							data, length);
-#else
-			proxy->Weak("SSL: Could not verify certificate (missing OpenSSL support)!");
-			invalid = 0;
-#endif
 			break;
 
 		default:

@@ -11,7 +11,7 @@
 
 #define UHASH_KEY_SIZE 32
 
-typedef unsigned int hash_t;
+typedef uint64 hash_t;
 
 typedef enum {
 	HASH_KEY_INT,
@@ -24,9 +24,7 @@ class HashKey {
 public:
 	HashKey(bro_int_t i);
 	HashKey(bro_uint_t u);
-#ifdef USE_INT64
 	HashKey(uint32 u);
-#endif
 	HashKey(const uint32 u[], int n);
 	HashKey(double d);
 	HashKey(const void* p);
@@ -78,9 +76,7 @@ protected:
 
 	union {
 		bro_int_t i;
-#ifdef USE_INT64
 		uint32 u32;
-#endif
 		double d;
 		const void* p;
 	} key_u;
@@ -90,7 +86,6 @@ protected:
 	int size, hash;
 };
 
-extern int hash_cnt_all, hash_cnt_uhash;
 extern void init_hash_function();
 
 #endif

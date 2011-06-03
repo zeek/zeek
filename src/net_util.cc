@@ -37,8 +37,7 @@ int tcp_checksum(const struct ip* ip, const struct tcphdr* tp, int len)
 	{
 	// ### Note, this is only correct for IPv4.  This routine is only
 	// used by the connection compressor (which we turn off for IPv6
-	// traffic) and trace rewriting (which currently doesn't support
-	// IPv6 either).
+	// traffic).
 
 	int tcp_len = tp->th_off * 4 + len;
 	uint32 sum;
@@ -97,7 +96,9 @@ int udp6_checksum(const struct ip6_hdr* ip6, const struct udphdr* up, int len)
 	sum = ones_complement_checksum((void*) ip6->ip6_src.s6_addr, 16, sum);
 	sum = ones_complement_checksum((void*) ip6->ip6_dst.s6_addr, 16, sum);
 
-	sum = ones_complement_checksum((void*) &len, 4, sum);
+	uint32 l = htonl(len);
+	sum = ones_complement_checksum((void*) &l, 4, sum);
+
 	uint32 addl_pseudo = htons(IPPROTO_UDP);
 	sum = ones_complement_checksum((void*) &addl_pseudo, 4, sum);
 	sum = ones_complement_checksum((void*) up, len, sum);

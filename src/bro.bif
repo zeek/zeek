@@ -222,25 +222,15 @@ static void do_fmt(const char*& fmt, Val* v, ODesc* d)
 					u = ntohl(uint32(u));
 				}
 
-#ifdef USE_INT64
 			snprintf(fmt_buf, sizeof(fmt_buf), "%%%s%s", num_fmt,
 					*fmt == 'd' ? "llu" : "llx");
-#else
-			snprintf(fmt_buf, sizeof(fmt_buf), "%%%s%c", num_fmt,
-					*fmt == 'd' ? 'u' : 'x');
-#endif
 			snprintf(out_buf, sizeof(out_buf), fmt_buf, u);
 			}
 
 		else
 			{
-#ifdef USE_INT64
 			snprintf(fmt_buf, sizeof(fmt_buf), "%%%s%s", num_fmt,
 					*fmt == 'd' ? "lld" : "llx");
-#else
-			snprintf(fmt_buf, sizeof(fmt_buf), "%%%s%c", num_fmt,
-					*fmt == 'd' ? 'd' : 'x');
-#endif
 			snprintf(out_buf, sizeof(out_buf), fmt_buf,
 					v->CoerceToInt());
 			}
@@ -370,6 +360,26 @@ function cat%(...%): string
 	return new StringVal(s);
 	%}
 
+function record_type_to_vector%(rt: string%): string_vec
+	%{
+	VectorVal* result =
+		new VectorVal(internal_type("string_vec")->AsVectorType());
+
+	RecordType *type = internal_type(rt->CheckString())->AsRecordType();
+
+	if ( type )
+		{
+		for ( int i = 0; i < type->NumFields(); ++i )
+			{
+			StringVal* val = new StringVal(type->FieldName(i));
+			result->Assign(i+1, val, 0);
+			}
+		}
+
+	return result;
+	%}
+
+
 function cat_sep%(sep: string, def: string, ...%): string
 	%{
 	ODesc d;
@@ -476,15 +486,15 @@ function to_count%(str: string%): count
 	%{
 	const char* s = str->CheckString();
 	char* end_s;
-
-	long l = strtol(s, &end_s, 10);
-	uint32 u = uint32(l);
-
-#if 0
+	
+	uint64 u = (uint64) strtoll(s, &end_s, 10);
+	
 	if ( s[0] == '\0' || end_s[0] != '\0' )
-		builtin_run_time("bad conversion to count", @ARGS@[0]);
-#endif
-
+    	{
+		builtin_run_time("bad conversion to count", @ARG@[0]);
+        u = 0;
+        }
+	
 	return new Val(u, TYPE_COUNT);
 	%}
 
@@ -545,6 +555,17 @@ function to_addr%(ip: string%): addr
 	Val* ret = new AddrVal(s);
 	delete [] s;
 	return ret;
+	%}
+	
+function count_to_v4_addr%(ip: count%): addr
+	%{
+	if ( ip > 4294967295 )
+		{
+		builtin_run_time("conversion of non-IPv4 count to addr", @ARG@[0]);
+		return new AddrVal(uint32(0));
+		}
+	
+	return new AddrVal(htonl(uint32(ip)));
 	%}
 
 # Interprets the first 4 bytes of 'b' as an IPv4 address in network order.
@@ -1339,15 +1360,24 @@ function decode_netbios_name%(name: string%): string
 		}
 
 	for ( i = 0; i < 15; ++i )
-		if ( isalnum(buf[i]) || ispunct(buf[i]) )
+		{
+		if ( isalnum(buf[i]) || ispunct(buf[i]) ||
+		     // \x01\x02 is seen in at least one case as the first two bytes.
+		     // I think that any \x01 and \x02 should always be passed through.
+		     buf[i] < 3 )
 			result[i] = buf[i];
 		else
 			break;
-
-	// The last byte denotes the name type.
-	snprintf(result + i, sizeof(result) - i, "<%02x>", buf[15]);
+		}
 
 	return new StringVal(result);
+	%}
+
+function decode_netbios_name_type%(name: string%): count
+	%{
+	const u_char* s = name->Bytes();
+	char return_val = ((toupper(s[30]) - 'A') << 4) + (toupper(s[31]) - 'A');
+	return new Val(return_val, TYPE_COUNT);
 	%}
 
 %%{
@@ -1375,12 +1405,17 @@ function skip_http_entity_data%(c: connection, is_orig: bool%): any
 		{
 		Analyzer* ha = c->FindAnalyzer(id);
 
-		if ( ha->GetTag() == AnalyzerTag::HTTP )
-			static_cast<HTTP_Analyzer*>(ha)->SkipEntityData(is_orig);
+		if ( ha )
+			{
+			if ( ha->GetTag() == AnalyzerTag::HTTP )
+				static_cast<HTTP_Analyzer*>(ha)->SkipEntityData(is_orig);
+			else
+				run_time("non-HTTP analyzer associated with connection record");
+			}
 		else
-			run_time("non-HTTP analyzer associated with connection record");
-		}
+			run_time("could not find analyzer for skip_http_entity_data");
 
+		}
 	else
 		run_time("no analyzer associated with connection record");
 
@@ -1593,21 +1628,6 @@ function global_ids%(%): id_table
 	%}
 
 %%{
-#include "TCP_Rewriter.h"
-
-// Trace rewriting functions.
-class PacketDumper;
-extern PacketDumper* transformed_pkt_dump;
-extern void commit_trace(Val* conn_val, int commit, int future);
-%%}
-
-# True if we're rewriting (anonymizing), false otherwise.
-function rewriting_trace%(%): bool
-	%{
-	return new Val(transformed_pkt_dump != 0, TYPE_BOOL);
-	%}
-
-%%{
 #include "Anon.h"
 %%}
 
@@ -1735,7 +1755,7 @@ function md5_hmac%(...%): string
 %%{
 static map<BroString, md5_state_s> md5_states;
 
-BroString* convert_md5_index_to_string(Val* index)
+BroString* convert_index_to_string(Val* index)
 	{
 	ODesc d;
 	index->Describe(&d);
@@ -1745,7 +1765,7 @@ BroString* convert_md5_index_to_string(Val* index)
 
 function md5_hash_init%(index: any%): bool
 	%{
-	BroString* s = convert_md5_index_to_string(index);
+	BroString* s = convert_index_to_string(index);
 	int status = 0;
 
 	if ( md5_states.count(*s) < 1 )
@@ -1762,7 +1782,7 @@ function md5_hash_init%(index: any%): bool
 
 function md5_hash_update%(index: any, data: string%): bool
 	%{
-	BroString* s = convert_md5_index_to_string(index);
+	BroString* s = convert_index_to_string(index);
 	int status = 0;
 
 	if ( md5_states.count(*s) > 0 )
@@ -1777,7 +1797,7 @@ function md5_hash_update%(index: any, data: string%): bool
 
 function md5_hash_finish%(index: any%): string
 	%{
-	BroString* s = convert_md5_index_to_string(index);
+	BroString* s = convert_index_to_string(index);
 	StringVal* printable_digest;
 
 	if ( md5_states.count(*s) > 0 )
@@ -1858,15 +1878,15 @@ function uuid_to_string%(uuid: string%): string
 	%}
 
 
-# The following functions are attempts to convert strings into
-# patterns at run-time. These attempts were later *abandoned* because
-# NFA and DFA cannot be cleanly deallocated.
+# The following functions convert strings into patterns at run-time. As the
+# computed NFAs and DFAs cannot be cleanly deallocated (at least for now),
+# they can only be used at initialization time.
 
 function merge_pattern%(p1: pattern, p2: pattern%): pattern
 	%{
-	if ( reading_live )
+	if ( bro_start_network_time != 0.0 )
 		{
-		builtin_run_time("should not call merge_pattern while reading live traffic");
+		builtin_run_time("merge_pattern can only be called at init time");
 		return 0;
 		}
 
@@ -1910,9 +1930,9 @@ function convert_for_pattern%(s: string%): string
 
 function string_to_pattern%(s: string, convert: bool%): pattern
 	%{
-	if ( reading_live )
+	if ( bro_start_network_time != 0.0 )
 		{
-		builtin_run_time("should not call merge_pattern while reading live traffic");
+		builtin_run_time("string_to_pattern can only be called at init time");
 		return 0;
 		}
 
@@ -1959,9 +1979,14 @@ function precompile_pcap_filter%(id: PcapFilterID, s: string%): bool
 # Install precompiled pcap filter.
 function install_pcap_filter%(id: PcapFilterID%): bool
 	%{
-	// Don't allow the script-level to change the filter when
-	// the user has specified one on the command line.
-	if ( user_pcap_filter )
+	ID* user_filter = global_scope()->Lookup("cmd_line_bpf_filter");
+
+	if ( ! user_filter )
+		internal_error("global cmd_line_bpf_filter not defined");
+
+	if ( user_filter->ID_Val()->AsStringVal()->Len() )
+		// Don't allow the script-level to change the filter when
+		// the user has specified one on the command line.
 		return new Val(0, TYPE_BOOL);
 
 	bool success = true;
@@ -2093,6 +2118,12 @@ function request_remote_sync%(p: event_peer, auth: bool%) : bool
 	%{
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
 	return new Val(remote_serializer->RequestSync(id, auth), TYPE_BOOL);
+	%}
+
+function request_remote_logs%(p: event_peer%) : bool
+	%{
+	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
+	return new Val(remote_serializer->RequestLogs(id), TYPE_BOOL);
 	%}
 
 function set_accept_state%(p: event_peer, accept: bool%) : bool
@@ -2364,7 +2395,7 @@ function any_set%(v: any%) : bool
 		}
 
 	VectorVal* vv = v->AsVectorVal();
-	for ( unsigned int i = VECTOR_MIN; i < vv->Size() + VECTOR_MIN; ++i )
+	for ( unsigned int i = 0; i < vv->Size(); ++i )
 		if ( vv->Lookup(i) && vv->Lookup(i)->AsBool() )
 			return new Val(true, TYPE_BOOL);
 
@@ -2382,7 +2413,7 @@ function all_set%(v: any%) : bool
 		}
 
 	VectorVal* vv = v->AsVectorVal();
-	for ( unsigned int i = VECTOR_MIN; i < vv->Size() + VECTOR_MIN; ++i )
+	for ( unsigned int i = 0; i < vv->Size(); ++i )
 		if ( ! vv->Lookup(i) || ! vv->Lookup(i)->AsBool() )
 			return new Val(false, TYPE_BOOL);
 
@@ -2565,8 +2596,8 @@ function order%(v: any, ...%) : index_vec
 	// adjusting indices as we do so.
 	for ( i = 0; i < n; ++i )
 		{
-		int ind = ind_vv[i] + VECTOR_MIN;
-		result_v->Assign(i + VECTOR_MIN, new Val(ind, TYPE_COUNT), 0);
+		int ind = ind_vv[i];
+		result_v->Assign(i, new Val(ind, TYPE_COUNT), 0);
 		}
 
 	return result_v;
@@ -2818,11 +2849,7 @@ private:
 # function result.  Therefore, they can only be called inside a when-condition.
 function lookup_addr%(host: addr%) : string
 	%{
-#ifndef HAVE_NB_DNS
-	run_time("lookup_addr(): not configured for asynchronous DNS lookups");
-	return new StringVal("<error>");
-#else
-	// FIXME: Is should be easy to adapt the function to synchronous
+	// FIXME: It should be easy to adapt the function to synchronous
 	// lookups if we're reading a trace.
 	Trigger* trigger = frame->GetTrigger();
 
@@ -2838,8 +2865,18 @@ function lookup_addr%(host: addr%) : string
 #ifdef BROv6
 	if ( ! is_v4_addr(host) )
 		{
-		builtin_run_time("lookup_addr() only supports IPv4 addresses");
-		return new StringVal("<ipv6-address>");
+		// FIXME: This is a temporary work-around until we get this
+		// fixed. We warn the user once, and always trigger a timeout.
+		// Ticket #355 records the problem.
+		static bool warned = false;
+		if ( ! warned )
+			{
+			warn("lookup_addr() only supports IPv4 addresses currently");
+			warned = true;
+			}
+
+		trigger->Timeout();
+		return 0;
 		}
 
 	dns_mgr->AsyncLookupAddr(to_v4_addr(host),
@@ -2849,15 +2886,10 @@ function lookup_addr%(host: addr%) : string
 			new LookupHostCallback(trigger, frame->GetCall(), true));
 #endif
 	return 0;
-#endif
 	%}
 
 function lookup_hostname%(host: string%) : addr_set
 	%{
-#ifndef HAVE_NB_DNS
-	run_time("lookup_hostname(): not configured for asynchronous DNS lookups");
-	return new StringVal("<error>");
-#else
 	// FIXME: Is should be easy to adapt the function to synchronous
 	// lookups if we're reading a trace.
 	Trigger* trigger = frame->GetTrigger();
@@ -2874,7 +2906,6 @@ function lookup_hostname%(host: string%) : addr_set
 	dns_mgr->AsyncLookupName(host->CheckString(),
 			new LookupHostCallback(trigger, frame->GetCall(), false));
 	return 0;
-#endif
 	%}
 
 # Stop Bro's packet processing.
@@ -3028,7 +3059,7 @@ function lookup_location%(a: addr%) : geo_location
 #ifdef GEOIP_COUNTRY_EDITION_V6
 	if ( geoip_v6 && ! is_v4_addr(a) )
 		gir = GeoIP_record_by_ipnum_v6(geoip_v6, geoipv6_t(a));
-	else 
+	else
 #endif
 	if ( geoip && is_v4_addr(a) )
 		{
@@ -3075,7 +3106,13 @@ function lookup_location%(a: addr%) : geo_location
 		}
 
 #else
-	builtin_run_time("Bro was not configured for GeoIP support");
+	static int missing_geoip_reported = 0;
+
+	if ( ! missing_geoip_reported )
+		{
+		builtin_run_time("Bro was not configured for GeoIP support");
+		missing_geoip_reported = 1;
+		}
 #endif
 
 	// We can get here even if we have GeoIP support if we weren't
@@ -3116,7 +3153,7 @@ function lookup_asn%(a: addr%) : count
 			gir = GeoIP_name_by_ipnum_v6(geoip_asn, geoipv6_t(a));
 		else
 #endif
-		if ( is_v4_addr(a) ) 
+		if ( is_v4_addr(a) )
 			{
 			uint32 addr = to_v4_addr(a);
 			gir = GeoIP_name_by_ipnum(geoip_asn, ntohl(addr));
@@ -3128,12 +3165,18 @@ function lookup_asn%(a: addr%) : count
 
 	if ( gir )
 		{
-		// Move the pointer +2 so we don't return 
+		// Move the pointer +2 so we don't return
 		// the first two characters: "AS".
 		return new Val(atoi(gir+2), TYPE_COUNT);
 		}
 #else
-	builtin_run_time("Bro was not configured for GeoIP ASN support");
+	static int missing_geoip_reported = 0;
+
+	if ( ! missing_geoip_reported )
+		{
+		builtin_run_time("Bro was not configured for GeoIP ASN support");
+		missing_geoip_reported = 1;
+		}
 #endif
 
 	// We can get here even if we have GeoIP support, if we weren't
@@ -3216,3 +3259,92 @@ function disable_event_group%(group: string%) : any
 	event_registry->EnableGroup(group->CheckString(), false);
 	return 0;
 	%}
+
+
+%%{
+#include <RandTest.h>
+static map<BroString, RandTest*> entropy_states;
+%%}
+
+function find_entropy%(data: string%): entropy_test_result
+	%{
+	double montepi, scc, ent, mean, chisq;
+	montepi = scc = ent = mean = chisq = 0.0;
+	RecordVal* ent_result = new RecordVal(entropy_test_result);
+	RandTest *rt = new RandTest();
+
+	rt->add((char*) data->Bytes(), data->Len());
+	rt->end(&ent, &chisq, &mean, &montepi, &scc);
+	delete rt;
+
+	ent_result->Assign(0, new Val(ent,     TYPE_DOUBLE));
+	ent_result->Assign(1, new Val(chisq,   TYPE_DOUBLE));
+	ent_result->Assign(2, new Val(mean,    TYPE_DOUBLE));
+	ent_result->Assign(3, new Val(montepi, TYPE_DOUBLE));
+	ent_result->Assign(4, new Val(scc,     TYPE_DOUBLE));
+	return ent_result;
+	%}
+
+function entropy_test_init%(index: any%): bool
+	%{
+	BroString* s = convert_index_to_string(index);
+	int status = 0;
+
+	if ( entropy_states.count(*s) < 1 )
+		{
+		entropy_states[*s] = new RandTest();
+		status = 1;
+		}
+
+	delete s;
+	return new Val(status, TYPE_BOOL);
+	%}
+
+function entropy_test_add%(index: any, data: string%): bool
+	%{
+	BroString* s = convert_index_to_string(index);
+	int status = 0;
+
+	if ( entropy_states.count(*s) > 0 )
+		{
+		entropy_states[*s]->add((char*) data->Bytes(), data->Len());
+		status = 1;
+		}
+
+	delete s;
+	return new Val(status, TYPE_BOOL);
+	%}
+
+function entropy_test_finish%(index: any%): entropy_test_result
+	%{
+	BroString* s = convert_index_to_string(index);
+	double montepi, scc, ent, mean, chisq;
+	montepi = scc = ent = mean = chisq = 0.0;
+	RecordVal* ent_result = new RecordVal(entropy_test_result);
+
+	if ( entropy_states.count(*s) > 0 )
+		{
+		RandTest *rt = entropy_states[*s];
+		rt->end(&ent, &chisq, &mean, &montepi, &scc);
+		entropy_states.erase(*s);
+		delete rt;
+		}
+
+	ent_result->Assign(0, new Val(ent,     TYPE_DOUBLE));
+	ent_result->Assign(1, new Val(chisq,   TYPE_DOUBLE));
+	ent_result->Assign(2, new Val(mean,    TYPE_DOUBLE));
+	ent_result->Assign(3, new Val(montepi, TYPE_DOUBLE));
+	ent_result->Assign(4, new Val(scc,     TYPE_DOUBLE));
+
+	delete s;
+	return ent_result;
+	%}
+
+function bro_has_ipv6%(%) : bool
+    %{
+#ifdef BROv6
+	return new Val(1, TYPE_BOOL);
+#else
+	return new Val(0, TYPE_BOOL);
+#endif
+    %}

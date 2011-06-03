@@ -1,0 +1,25 @@
+Input string: broisaveryneatids
+
+String splitting
+----------------
+Splitting 'broisaveryneatids' at 6 points...
+bro
+is
+a
+very
+neat
+ids
+
+Substrings
+----------
+3@0: bro
+5@2: roisa
+7@4: isavery
+10@10: yneatids
+
+Finding strings
+---------------
+isa: 4
+very: 7
+ids: 15
+nono: 0

@@ -79,10 +79,8 @@ public:
 		virtual void Timeout() = 0;
 	};
 
-#ifdef HAVE_NB_DNS
 	void AsyncLookupAddr(dns_mgr_addr_type host, LookupCallback* callback);
 	void AsyncLookupName(string name, LookupCallback* callback);
-#endif
 
 protected:
 	friend class LookupCallback;
@@ -102,7 +100,6 @@ protected:
 	void LoadCache(FILE* f);
 	void Save(FILE* f, PDict(DNS_Mapping)& m);
 
-#ifdef HAVE_NB_DNS
 	// Selects on the fd to see if there is an answer available (timeout is
 	// secs). Returns 0 on timeout, -1 on EINTR, and 1 if answer is ready.
 	int AnswerAvailable(int timeout);
@@ -114,8 +111,6 @@ protected:
 	// requested.
 	void CheckAsyncAddrRequest(dns_mgr_addr_type addr, bool timeout);
 	void CheckAsyncHostRequest(const char* host, bool timeout);
-
-#endif
 
 	// IOSource interface.
 	virtual void GetFds(int* read, int* write, int* except);

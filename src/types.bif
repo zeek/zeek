@@ -1,0 +1,63 @@
+
+enum dce_rpc_ptype %{
+	DCE_RPC_REQUEST,
+	DCE_RPC_PING,
+	DCE_RPC_RESPONSE,
+	DCE_RPC_FAULT,
+	DCE_RPC_WORKING,
+	DCE_RPC_NOCALL,
+	DCE_RPC_REJECT,
+	DCE_RPC_ACK,
+	DCE_RPC_CL_CANCEL,
+	DCE_RPC_FACK,
+	DCE_RPC_CANCEL_ACK,
+	DCE_RPC_BIND,
+	DCE_RPC_BIND_ACK,
+	DCE_RPC_BIND_NAK,
+	DCE_RPC_ALTER_CONTEXT,
+	DCE_RPC_ALTER_CONTEXT_RESP,
+	DCE_RPC_SHUTDOWN,
+	DCE_RPC_CO_CANCEL,
+	DCE_RPC_ORPHANED,
+%}
+
+enum dce_rpc_if_id %{
+	DCE_RPC_unknown_if,
+	DCE_RPC_epmapper,
+	DCE_RPC_lsarpc,
+	DCE_RPC_lsa_ds,
+	DCE_RPC_mgmt,
+	DCE_RPC_netlogon,
+	DCE_RPC_samr,
+	DCE_RPC_srvsvc,
+	DCE_RPC_spoolss,
+	DCE_RPC_drs,
+	DCE_RPC_winspipe,
+	DCE_RPC_wkssvc,
+	DCE_RPC_oxid,
+	DCE_RPC_ISCMActivator,
+%}
+
+enum rpc_status %{
+	RPC_SUCCESS,
+	RPC_PROG_UNAVAIL,
+	RPC_PROG_MISMATCH,
+	RPC_PROC_UNAVAIL,
+	RPC_GARBAGE_ARGS,
+	RPC_SYSTEM_ERR,
+	RPC_TIMEOUT,
+	RPC_VERS_MISMATCH,
+	RPC_AUTH_ERROR,
+	RPC_UNKNOWN_ERROR,
+%}
+
+module Log;
+
+enum Writer %{
+	WRITER_DEFAULT,
+	WRITER_ASCII,
+%}
+
+enum ID %{
+	Unknown,
+%}

@@ -15,7 +15,6 @@
 #include "Timer.h"
 #include "NetVar.h"
 #include "Sessions.h"
-#include "Active.h"
 #include "OSFinger.h"
 
 #include "ICMP.h"
@@ -201,7 +200,7 @@ void NetSessions::DispatchPacket(double t, const struct pcap_pkthdr* hdr,
 		//
 		// Should we discourage the use of encap_hdr_size for UDP
 		// tunnneling?  It is probably better handled by enabling
-		// parse_udp_tunnels instead of specifying a fixed
+		// BifConst::parse_udp_tunnels instead of specifying a fixed
 		// encap_hdr_size.
 		if ( udp_tunnel_port > 0 )
 			{
@@ -221,14 +220,14 @@ void NetSessions::DispatchPacket(double t, const struct pcap_pkthdr* hdr,
 			}
 
 		else
-			// Blanket encapsulation (e.g., for VLAN).
+			// Blanket encapsulation
 			hdr_size += encap_hdr_size;
 		}
 
 	// Check IP packets encapsulated through UDP tunnels.
 	// Specifying a udp_tunnel_port is optional but recommended (to avoid
 	// the cost of checking every UDP packet).
-	else if ( parse_udp_tunnels && ip_data && ip_hdr->ip_p == IPPROTO_UDP )
+	else if ( BifConst::parse_udp_tunnels && ip_data && ip_hdr->ip_p == IPPROTO_UDP )
 		{
 		const struct udphdr* udp_hdr =
 			reinterpret_cast<const struct udphdr*>(ip_data);
@@ -465,36 +464,8 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		return;
 		}
 
-	// Check for TTL/MTU problems from Active Mapping
-#ifdef ACTIVE_MAPPING
-	const NumericData* numeric = 0;
-	if ( ip4 )
-		{
-		get_map_result(ip4->ip_dst.s_addr, numeric);
-
-		if ( numeric->hops && ip4->ip_ttl < numeric->hops )
-			{
-			debug_msg("Packet destined for %s had ttl %d but there are %d hops to host.\n",
-			inet_ntoa(ip4->ip_dst), ip4->ip_ttl, numeric->hops);
-			return;
-			}
-		}
-#endif
-
 	FragReassembler* f = 0;
 	uint32 frag_field = ip_hdr->FragField();
-
-#ifdef ACTIVE_MAPPING
-	if ( ip4 && numeric && numeric->path_MTU && (frag_field & IP_DF) )
-		{
-		if ( htons(ip4->ip_len) > numeric->path_MTU )
-			{
-			debug_msg("Packet destined for %s has DF flag but its size %d is greater than pmtu of %d\n",
-			inet_ntoa(ip4->ip_dst), htons(ip4->ip_len), numeric->path_MTU);
-			return;
-			}
-		}
-#endif
 
 	if ( (frag_field & 0x3fff) != 0 )
 		{
@@ -661,13 +632,6 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 				record_packet, record_content,
 			        hdr, pkt, hdr_size);
 
-	// Override content record setting according to
-	// flags set by the policy script.
-	if ( dump_original_packets_if_not_rewriting )
-		record_packet = record_content = 1;
-	if ( dump_selected_source_packets )
-		record_packet = record_content = 0;
-
 	if ( f )
 		{
 		// Above we already recorded the fragment in its entirety.
@@ -675,7 +639,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		Remove(f);	// ###
 		}
 
-	else if ( record_packet && ! conn->RewritingTrace() )
+	else if ( record_packet )
 		{
 		if ( record_content )
 			dump_this_packet = 1;	// save the whole thing
@@ -1354,7 +1318,7 @@ void NetSessions::Internal(const char* msg, const struct pcap_pkthdr* hdr,
 				const u_char* pkt)
 	{
 	DumpPacket(hdr, pkt);
-	internal_error(msg);
+	internal_error("%s", msg);
 	}
 
 void NetSessions::Weird(const char* name,

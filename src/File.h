@@ -10,7 +10,6 @@
 #include "Obj.h"
 #include "Attr.h"
 
-#ifdef USE_OPENSSL
 # ifdef NEED_KRB5_H
 #  include <krb5.h>
 # endif // NEED_KRB5_H
@@ -19,7 +18,6 @@ extern "C" {
 # include "openssl/pem.h"
 # include "openssl/err.h"
 }
-#endif
 
 class BroType;
 class RotateTimer;
@@ -114,6 +112,9 @@ protected:
 	// Stats the file to get its current size.
 	void UpdateFileSize();
 
+	// Raises a file_opened event.
+	void RaiseOpenEvent();
+
 	// Initialize encryption with the given public key.
 	void InitEncrypt(const char* keyfile);
 	// Finalize encryption.
@@ -149,13 +150,11 @@ protected:
 	static double default_rotation_interval;
 	static double default_rotation_size;
 
-#ifdef USE_OPENSSL
 	EVP_PKEY* pub_key;
 	EVP_CIPHER_CTX* cipher_ctx;
 
 	static const int MIN_BUFFER_SIZE = 1024;
 	unsigned char* cipher_buffer;
-#endif
 
 };
 

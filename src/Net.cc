@@ -5,11 +5,11 @@
 #include "config.h"
 
 #include <sys/types.h>
-#if TIME_WITH_SYS_TIME
+#ifdef TIME_WITH_SYS_TIME
 # include <sys/time.h>
 # include <time.h>
 #else
-# if HAVE_SYS_TIME_H
+# ifdef HAVE_SYS_TIME_H
 #  include <sys/time.h>
 # else
 #  include <time.h>
@@ -28,15 +28,10 @@
 #include "Var.h"
 #include "Logger.h"
 #include "Net.h"
-#include "TCP_Rewriter.h"
 #include "Anon.h"
 #include "PacketSort.h"
 #include "Serializer.h"
 #include "PacketDumper.h"
-
-#ifdef USE_DAG
-#include "PktDagSrc.h"
-#endif
 
 extern "C" {
 #include "setsignal.h"
@@ -51,19 +46,11 @@ PList(PktSrc) pkt_srcs;
 // FIXME: We should really merge PktDumper and PacketDumper.
 // It's on my to-do [Robin].
 PktDumper* pkt_dumper = 0;
-PktDumper* pkt_transformed_dumper = 0;
-
-// For trace of rewritten packets
-PacketDumper* transformed_pkt_dump = 0;
-// For trace of original packets from selected connections
-PacketDumper* source_pkt_dump = 0;
-int transformed_pkt_dump_MTU = 1514;
 
 int reading_live = 0;
 int reading_traces = 0;
 int have_pending_timers = 0;
 double pseudo_realtime = 0.0;
-char* user_pcap_filter = 0;
 bool using_communication = false;
 
 double network_time = 0.0;	// time according to last packet timestamp
@@ -166,9 +153,8 @@ RETSIGTYPE watchdog(int /* signo */)
 
 void net_init(name_list& interfaces, name_list& readfiles, 
 	      name_list& netflows, name_list& flowfiles,
-	        const char* writefile, const char* transformed_writefile,
-	        const char* filter, const char* secondary_filter,
-		int do_watchdog)
+	        const char* writefile, const char* filter,
+			const char* secondary_filter, int do_watchdog)
 	{
 	init_net_var();
 
@@ -243,12 +229,7 @@ void net_init(name_list& interfaces, name_list& readfiles,
 		for ( int i = 0; i < interfaces.length(); ++i )
 			{
 			PktSrc* ps;
-#ifdef USE_DAG
-			if ( strncmp(interfaces[i], "dag", 3) == 0 )
-				ps = new PktDagSrc(interfaces[i], filter);
-			else
-#endif
-				ps = new PktInterfaceSrc(interfaces[i], filter);
+			ps = new PktInterfaceSrc(interfaces[i], filter);
 
 			if ( ! ps->IsOpen() )
 				{
@@ -265,14 +246,8 @@ void net_init(name_list& interfaces, name_list& readfiles,
 			if ( secondary_filter )
 				{
 				PktSrc* ps;
-#ifdef USE_DAG
-				if ( strncmp(interfaces[i], "dag", 3) == 0 )
-					ps = new PktDagSrc(interfaces[i],
-						filter, TYPE_FILTER_SECONDARY);
-				else
-#endif
-					ps = new PktInterfaceSrc(interfaces[i],
-						filter, TYPE_FILTER_SECONDARY);
+				ps = new PktInterfaceSrc(interfaces[i],
+					filter, TYPE_FILTER_SECONDARY);
 
 				if ( ! ps->IsOpen() )
 					{
@@ -335,37 +310,7 @@ void net_init(name_list& interfaces, name_list& readfiles,
 			id->SetVal(new StringVal(writefile));
 		}
 
-	if ( transformed_writefile )
-		{
-		pkt_transformed_dumper = new PktDumper(transformed_writefile);
-		if ( pkt_transformed_dumper->IsError() )
-			{
-			fprintf(stderr, "%s: can't open trace transformation write file \"%s\" - %s\n",
-				prog, writefile,
-				pkt_transformed_dumper->ErrorMsg());
-			exit(1);
-			}
-
-		transformed_pkt_dump =
-			new PacketDumper(pkt_transformed_dumper->PcapDumper());
-
-		// If both -A and -w are specified, -A will be the transformed
-		// trace file and -w will be the source packet trace file.
-		// Otherwise the packets will go to the same file.
-		if ( pkt_dumper )
-			source_pkt_dump =
-				new PacketDumper(pkt_dumper->PcapDumper());
-		}
-
-	else if ( pkt_dumper )
-		transformed_pkt_dump =
-			new PacketDumper(pkt_dumper->PcapDumper());
-
-	if ( anonymize_ip_addr )
-		init_ip_addr_anonymizers();
-	else
-		for ( int i = 0; i < NUM_ADDR_ANONYMIZATION_METHODS; ++i )
-			ip_anonymizer[i] = 0;
+	init_ip_addr_anonymizers();
 
 	if ( packet_sort_window > 0 )
 		packet_sorter = new PacketSortGlobalPQ();
@@ -421,7 +366,7 @@ void net_packet_dispatch(double t, const struct pcap_pkthdr* hdr,
 		if ( load_freq == 0 )
 			load_freq = uint32(0xffffffff) / uint32(load_sample_freq);
 
-		if ( uint32(random() & 0xffffffff) < load_freq )
+		if ( uint32(bro_random() & 0xffffffff) < load_freq )
 			{
 			// Drain the queued timer events so they're not
 			// charged against this sample.
@@ -642,7 +587,6 @@ void net_finish(int drain_events)
 		}
 
 	delete pkt_dumper;
-	delete pkt_transformed_dumper;
 
 	// fprintf(stderr, "uhash: %d/%d\n", hash_cnt_uhash, hash_cnt_all);
 
@@ -662,11 +606,6 @@ void net_delete()
 
 	delete sessions;
 	delete packet_sorter;
-
-	// Can't put this in net_finish() because packets might be
-	// dumped when connections are deleted.
-	if ( transformed_pkt_dump )
-		delete transformed_pkt_dump;
 
 	for ( int i = 0; i < NUM_ADDR_ANONYMIZATION_METHODS; ++i )
 		delete ip_anonymizer[i];

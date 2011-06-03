@@ -29,7 +29,7 @@ public:
 	u_char msg_type;
 	u_char msg_ttl;
 	char payload[GNUTELLA_MAX_PAYLOAD];
-	int payload_len;
+	unsigned int payload_len;
 	unsigned int payload_left;
 };
 

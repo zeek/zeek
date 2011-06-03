@@ -12,20 +12,23 @@
 #include "HTTP.h"
 #include "Event.h"
 #include "MIME.h"
-#include "TCP_Rewriter.h"
 
 const bool DEBUG_http = false;
 
+// The EXPECT_*_NOTHING states are used to prevent further parsing. Used if a
+// message was interrupted. 
 enum {
 	EXPECT_REQUEST_LINE,
 	EXPECT_REQUEST_MESSAGE,
 	EXPECT_REQUEST_TRAILER,
+	EXPECT_REQUEST_NOTHING,
 };
 
 enum {
 	EXPECT_REPLY_LINE,
 	EXPECT_REPLY_MESSAGE,
 	EXPECT_REPLY_TRAILER,
+	EXPECT_REPLY_NOTHING,
 };
 
 HTTP_Entity::HTTP_Entity(HTTP_Message *arg_message, MIME_Entity* parent_entity, int arg_expect_body)
@@ -223,11 +226,11 @@ void HTTP_Entity::DeliverBodyClear(int len, const char* data, int trailing_CRLF)
 
 // Returns 1 if the undelivered bytes are completely within the body,
 // otherwise returns 0.
-int HTTP_Entity::Undelivered(int len)
+int HTTP_Entity::Undelivered(int64_t len)
 	{
 	if ( DEBUG_http )
 		{
-		DEBUG_MSG("Content gap %d, expect_data_length %d\n",
+		DEBUG_MSG("Content gap %" PRId64", expect_data_length %" PRId64 "\n",
 			  len, expect_data_length);
 		}
 
@@ -280,7 +283,7 @@ void HTTP_Entity::SubmitData(int len, const char* buf)
 		MIME_Entity::SubmitData(len, buf);
 	}
 
-void HTTP_Entity::SetPlainDelivery(int length)
+void HTTP_Entity::SetPlainDelivery(int64_t length)
 	{
 	ASSERT(length >= 0);
 	ASSERT(length == 0 || ! in_header);
@@ -299,7 +302,7 @@ void HTTP_Entity::SubmitHeader(MIME_Header* h)
 		data_chunk_t vt = h->get_value_token();
 		if ( ! is_null_data_chunk(vt) )
 			{
-			int n;
+			int64_t n;
 			if ( atoi_n(vt.length, vt.data, 0, 10, n) )
 				content_length = n;
 			else
@@ -406,7 +409,7 @@ void HTTP_Entity::SubmitAllHeaders()
 
 HTTP_Message::HTTP_Message(HTTP_Analyzer* arg_analyzer,
 				ContentLine_Analyzer* arg_cl, bool arg_is_orig,
-				int expect_body, int init_header_length)
+				int expect_body, int64_t init_header_length)
 : MIME_Message (arg_analyzer)
 	{
 	analyzer = arg_analyzer;
@@ -474,7 +477,7 @@ void HTTP_Message::Done(const int interrupted, const char* detail)
 		}
 	}
 
-int HTTP_Message::Undelivered(int len)
+int HTTP_Message::Undelivered(int64_t len)
 	{
 	if ( ! top_level )
 		return 0;
@@ -625,11 +628,11 @@ void HTTP_Message::SubmitEvent(int event_type, const char* detail)
 	MyHTTP_Analyzer()->HTTP_Event(category, detail);
 	}
 
-void HTTP_Message::SetPlainDelivery(int length)
+void HTTP_Message::SetPlainDelivery(int64_t length)
 	{
 	content_line->SetPlainDelivery(length);
 
-	if ( length > 0 && skip_http_data )
+	if ( length > 0 && BifConst::skip_http_data )
 		content_line->SkipBytesAfterThisLine(length);
 
 	if ( ! data_buffer )
@@ -698,7 +701,7 @@ void HTTP_Message::DeliverEntityData()
 	total_buffer_size = 0;
 	}
 
-int HTTP_Message::InitBuffer(int length)
+int HTTP_Message::InitBuffer(int64_t length)
 	{
 	if ( length <= 0 )
 		return 0;
@@ -851,7 +854,23 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 					HTTP_Event("crud_trailing_HTTP_request",
 						   new_string_val(line, end_of_line));
 				else
-					ProtocolViolation("not a http request line");
+					{
+					// We do see HTTP requests with a
+					// trailing EOL that's not accounted
+					// for by the content-length. This
+					// will lead to a call to this method
+					// with len==0 while we are expecting
+					// a new request. Since HTTP servers
+					// handle such requests gracefully,
+					// we should do so as well. 
+					if ( len == 0 )
+					    Weird("empty_http_request");
+					else 
+						{
+						ProtocolViolation("not a http request line");
+						request_state = EXPECT_REQUEST_NOTHING;
+						}
+					}
 				}
 			break;
 
@@ -860,6 +879,9 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 			break;
 
 		case EXPECT_REQUEST_TRAILER:
+			break;
+
+		case EXPECT_REQUEST_NOTHING:
 			break;
 		}
 		}
@@ -873,6 +895,8 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 
 				if ( unanswered_requests.empty() )
 					Weird("unmatched_HTTP_reply");
+				else
+					ProtocolConfirmation();
 
 				reply_state = EXPECT_REPLY_MESSAGE;
 				reply_ongoing = 1;
@@ -884,8 +908,11 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 						ExpectReplyMessageBody(),
 						len);
 				}
-		    else
+			else
+				{
 				ProtocolViolation("not a http reply line");
+				reply_state = EXPECT_REPLY_NOTHING;
+				}
 
 			break;
 
@@ -894,6 +921,9 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 			break;
 
 		case EXPECT_REPLY_TRAILER:
+			break;
+
+		case EXPECT_REPLY_NOTHING:
 			break;
 		}
 		}
@@ -1042,6 +1072,7 @@ int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 		// HTTP methods for distributed authoring.
 		"PROPFIND", "PROPPATCH", "MKCOL", "DELETE", "PUT",
 		"COPY", "MOVE", "LOCK", "UNLOCK",
+		"POLL", "REPORT", "SUBSCRIBE", "BMOVE",
 
 		"SEARCH",
 
@@ -1256,7 +1287,10 @@ void HTTP_Analyzer::RequestMade(const int interrupted, const char* msg)
 
 	num_request_lines = 0;
 
-	request_state = EXPECT_REQUEST_LINE;
+	if ( interrupted )
+		request_state = EXPECT_REQUEST_NOTHING;
+	else 
+		request_state = EXPECT_REQUEST_LINE;
 	}
 
 void HTTP_Analyzer::ReplyMade(const int interrupted, const char* msg)
@@ -1285,7 +1319,10 @@ void HTTP_Analyzer::ReplyMade(const int interrupted, const char* msg)
 		reply_reason_phrase = 0;
 		}
 
-	reply_state = EXPECT_REPLY_LINE;
+	if ( interrupted )
+		reply_state = EXPECT_REPLY_NOTHING;
+	else
+		reply_state = EXPECT_REPLY_LINE;
 	}
 
 void HTTP_Analyzer::RequestClash(Val* /* clash_val */)
@@ -1596,7 +1633,7 @@ void HTTP_Analyzer::HTTP_MessageDone(int is_orig, HTTP_Message* /* message */)
 	}
 
 void HTTP_Analyzer::InitHTTPMessage(ContentLine_Analyzer* cl, HTTP_Message*& message,
-		bool is_orig, int expect_body, int init_header_length)
+		bool is_orig, int expect_body, int64_t init_header_length)
 	{
 	if ( message )
 		{
@@ -1718,5 +1755,3 @@ BroString* unescape_URI(const u_char* line, const u_char* line_end,
 
 	return new BroString(1, decoded_URI, URI_p - decoded_URI);
 	}
-
-#include "http-rw.bif.func_def"

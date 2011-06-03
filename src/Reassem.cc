@@ -48,14 +48,7 @@ Reassembler::Reassembler(int init_seq, const uint32* ip_addr,
 	{
 	blocks = last_block = 0;
 	trim_seq = last_reassem_seq = init_seq;
-
-	const NumericData* host_profile;
-	get_map_result(ip_addr[0], host_profile);	// breaks for IPv6
-
-	policy = (arg_type == REASSEM_TCP) ?
-			host_profile->tcp_reassem : host_profile->ip_reassem;
 	}
-
 
 Reassembler::~Reassembler()
 	{
@@ -195,8 +188,10 @@ void Reassembler::Describe(ODesc* d) const
 	d->Add("reassembler");
 	}
 
-void Reassembler::Undelivered(int /* up_to_seq */)
+void Reassembler::Undelivered(int up_to_seq)
 	{
+	// TrimToSeq() expects this.
+	last_reassem_seq = up_to_seq;
 	}
 
 DataBlock* Reassembler::AddAndCheck(DataBlock* b, int seq, int upper,
@@ -241,67 +236,7 @@ DataBlock* Reassembler::AddAndCheck(DataBlock* b, int seq, int upper,
 		return new_b;
 		}
 
-	// The blocks overlap.
-
-#ifdef ACTIVE_MAPPING
-	if ( policy != RP_UNKNOWN )
-		{
-		if ( seq_delta(seq, b->seq) < 0 )
-			{ // The new block has a prefix that comes before b.
-			int prefix_len = seq_delta(b->seq, seq);
-			new_b = new DataBlock(data, prefix_len, seq, b->prev, b);
-			if ( b == blocks )
-				blocks = new_b;
-
-			data += prefix_len;
-			seq += prefix_len;
-			}
-
-		if ( policy == RP_LAST ||
-			     // After handling the prefix block, BSD takes the rest
-		     (policy == RP_BSD && new_b) ||
-			     // Similar, but overwrite for same seq number
-		     (policy == RP_LINUX && (new_b || seq == b->seq)) )
-			{
-			DataBlock* bprev = b->prev;
-			bool b_was_first = b == blocks;
-			while ( b && b->upper <= upper )
-				{
-				DataBlock* next = b->next;
-				delete b;
-				b = next;
-				}
-
-			new_b = new DataBlock(data, upper - seq, seq, bprev, b);
-			if ( b_was_first )
-				blocks = new_b;
-
-			// Trim the next block as needed.
-			if ( b && seq_delta(new_b->upper, b->seq) > 0 )
-				{
-				DataBlock* next_b =
-					new DataBlock(&b->block[upper - b->seq],
-							b->upper - upper, upper,
-							new_b, b->next);
-				if ( b == last_block )
-					last_block = next_b;
-
-				delete b;
-				}
-			}
-
-		else
-			{ // handle the piece that sticks out past b
-			new_b = b;
-			int len = upper - b->upper;
-			if ( len > 0 )
-				new_b = AddAndCheck(b, b->upper, upper, &data[b->upper - seq]);
-			}
-		}
-	else
-		{
-#endif
-	// Default behavior - complain about overlaps.
+	// The blocks overlap, complain.
 	if ( seq_delta(seq, b->seq) < 0 )
 		{
 		// The new block has a prefix that comes before b.
@@ -336,10 +271,6 @@ DataBlock* Reassembler::AddAndCheck(DataBlock* b, int seq, int upper,
 			(void) AddAndCheck(b, seq, upper, data);
 		}
 
-#ifdef ACTIVE_MAPPING
-		}	// else branch, for RP_UNKNOWN behavior
-#endif
-
 	if ( new_b->prev == last_block )
 		last_block = new_b;
 
@@ -363,7 +294,7 @@ bool Reassembler::DoSerialize(SerialInfo* info) const
 	// I'm not sure if it makes sense to actually save the buffered data.
 	// For now, we just remember the seq numbers so that we don't get
 	// complaints about missing content.
-	return SERIALIZE(trim_seq) && SERIALIZE(int(policy));
+	return SERIALIZE(trim_seq) && SERIALIZE(int(0));
 	}
 
 bool Reassembler::DoUnserialize(UnserialInfo* info)
@@ -372,11 +303,10 @@ bool Reassembler::DoUnserialize(UnserialInfo* info)
 
 	blocks = last_block = 0;
 
-	int p;
-	if ( ! UNSERIALIZE(&trim_seq) || ! UNSERIALIZE(&p) )
+	int dummy; // For backwards compatibility.
+	if ( ! UNSERIALIZE(&trim_seq) || ! UNSERIALIZE(&dummy) )
 		return false;
 
-	policy = ReassemblyPolicy(p);
 	last_reassem_seq = trim_seq;
 
 	return  true;

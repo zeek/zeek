@@ -4,11 +4,11 @@
 
 #include "config.h"
 
-#if TIME_WITH_SYS_TIME
+#ifdef TIME_WITH_SYS_TIME
 # include <sys/time.h>
 # include <time.h>
 #else
-# if HAVE_SYS_TIME_H
+# ifdef HAVE_SYS_TIME_H
 #  include <sys/time.h>
 # else
 #  include <time.h>
@@ -295,9 +295,9 @@ char* strcasestr(const char* s, const char* find)
 	}
 #endif
 
-int atoi_n(int len, const char* s, const char** end, int base, int& result)
+template<class T> int atoi_n(int len, const char* s, const char** end, int base, T& result)
 	{
-	int n = 0;
+	T n = 0;
 	int neg = 0;
 
 	if ( len > 0 && *s == '-' )
@@ -339,6 +339,32 @@ int atoi_n(int len, const char* s, const char** end, int base, int& result)
 
 	return 1;
 	}
+
+// Instantiate the ones we need.
+template int atoi_n<int>(int len, const char* s, const char** end, int base, int& result);
+template int atoi_n<int64_t>(int len, const char* s, const char** end, int base, int64_t& result);
+
+char* uitoa_n(uint64 value, char* str, int n, int base)
+	{
+	static char dig[] = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+	int i = 0;
+	uint64 v;
+	char* p, *q;
+	char c;
+
+	v = value;
+
+	do {
+		str[i++] = dig[v % base];
+		v /= base;
+	} while ( v && i < n - 1 );
+
+	str[i] = '\0';
+
+	return str;
+	}
+
 
 int strstr_n(const int big_len, const u_char* big,
 		const int little_len, const u_char* little)
@@ -573,6 +599,17 @@ static bool write_random_seeds(const char* write_file, uint32 seed,
 	return true;
 	}
 
+static bool bro_rand_determistic = false;
+static unsigned int bro_rand_state = 0;
+
+static void bro_srand(unsigned int seed, bool deterministic)
+	{
+	bro_rand_state = seed;
+	bro_rand_determistic = deterministic;
+
+	srand(seed);
+	}
+
 void init_random_seed(uint32 seed, const char* read_file, const char* write_file)
 	{
 	static const int bufsiz = 16;
@@ -633,9 +670,11 @@ void init_random_seed(uint32 seed, const char* read_file, const char* write_file
 				seed = (seed << 1) | (seed >> 31);
 				}
 			}
+		else
+			seeds_done = true;
 		}
 
-	srandom(seed);
+	bro_srand(seed, seeds_done);
 
 	if ( ! hmac_key_set )
 		{
@@ -648,6 +687,30 @@ void init_random_seed(uint32 seed, const char* read_file, const char* write_file
 				write_file);
 	}
 
+bool have_random_seed()
+	{
+	return bro_rand_determistic;
+	}
+
+long int bro_random()
+	{
+	if ( ! bro_rand_determistic )
+		return random(); // Use system PRNG.
+
+	// Use our own simple linear congruence PRNG to make sure we are
+	// predictable across platforms.
+	const long int m = 2147483647;
+	const long int a = 16807;
+	const long int q = m / a;
+	const long int r = m % a;
+
+	bro_rand_state = a * ( bro_rand_state % q ) - r * ( bro_rand_state / q );
+
+	if ( bro_rand_state <= 0 )
+		bro_rand_state += m;
+
+	return bro_rand_state;
+	}
 
 // Returns a 64-bit random string.
 uint64 rand64bit()
@@ -656,7 +719,7 @@ uint64 rand64bit()
 	int i;
 
 	for ( i = 1; i <= 4; ++i )
-		base = (base<<16) | random();
+		base = (base<<16) | bro_random();
 	return base;
 	}
 
@@ -776,9 +839,9 @@ const char* bro_path()
 	{
 	const char* path = getenv("BROPATH");
 	if ( ! path )
-		path = ".:policy:policy/sigs:policy/time-machine:"
+		path = ".:"
 			POLICYDEST ":"
-			POLICYDEST "/sigs:" 
+			POLICYDEST "/sigs:"
 			POLICYDEST "/time-machine:"
 			POLICYDEST "/site";
 
@@ -805,21 +868,45 @@ const char* bro_prefixes()
 	return p;
 	}
 
-FILE* open_file(const char* filename, const char** full_filename)
+static const char* PACKAGE_LOADER = "__load__.bro";
+
+// If filename is pointing to a directory that contains a file called
+// PACKAGE_LOADER, returns the files path. Otherwise returns filename itself.
+// In both cases, the returned string is newly allocated.
+static const char* check_for_dir(const char* filename, bool load_pkgs)
 	{
+	if ( load_pkgs && is_dir(filename) )
+		{
+		char init_filename_buf[1024];
+		safe_snprintf(init_filename_buf, sizeof(init_filename_buf),
+			      "%s/%s", filename, PACKAGE_LOADER);
+
+		if ( access(init_filename_buf, R_OK) == 0 )
+			return copy_string(init_filename_buf);
+		}
+
+	return copy_string(filename);
+	}
+
+FILE* open_file(const char* filename, const char** full_filename, bool load_pkgs)
+	{
+	filename = check_for_dir(filename, load_pkgs);
+
 	if ( full_filename )
 		*full_filename = copy_string(filename);
 
 	FILE* f = fopen(filename, "r");
 
+	delete [] filename;
+
 	return f;
 	}
 
 FILE* search_for_file(const char* filename, const char* ext,
-			const char** full_filename)
+			const char** full_filename, bool load_pkgs)
 	{
 	if ( filename[0] == '/' || filename[0] == '.' )
-		return open_file(filename, full_filename);
+		return open_file(filename, full_filename, load_pkgs);
 
 	char path[1024], full_filename_buf[1024];
 	safe_strncpy(path, bro_path(), sizeof(path));
@@ -842,13 +929,12 @@ FILE* search_for_file(const char* filename, const char* ext,
 				"%s/%s.%s", dir_beginning, filename, ext);
 		if ( access(full_filename_buf, R_OK) == 0 &&
 		     ! is_dir(full_filename_buf) )
-			return open_file(full_filename_buf, full_filename);
+			return open_file(full_filename_buf, full_filename, load_pkgs);
 
 		safe_snprintf(full_filename_buf, sizeof(full_filename_buf),
 				"%s/%s", dir_beginning, filename);
-		if ( access(full_filename_buf, R_OK) == 0 &&
-		      ! is_dir(full_filename_buf) )
-			return open_file(full_filename_buf, full_filename);
+		if ( access(full_filename_buf, R_OK) == 0 )
+			return open_file(full_filename_buf, full_filename, load_pkgs);
 
 		dir_beginning = ++dir_ending;
 		}

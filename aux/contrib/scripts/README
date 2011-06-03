@@ -1,5 +1,0 @@
-Contents of this directory:
-
-syslog2broccoli.py: converts syslog data to Broccoli events
-
-bro_report.py: alternate report script

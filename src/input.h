@@ -30,6 +30,8 @@ extern void do_atifdef(const char* id);
 extern void do_atifndef(const char* id);
 extern void do_atelse();
 extern void do_atendif();
+extern void do_doc_token_start();
+extern void do_doc_token_stop();
 
 extern int line_number;
 extern const char* filename;

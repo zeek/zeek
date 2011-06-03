@@ -343,7 +343,7 @@ vector<ParseLocationRec> parse_location_string(const string& s)
 				plr.type = plrUnknown;
 
 			FILE* throwaway = search_for_file(filename.c_str(), "bro",
-								&full_filename);
+								&full_filename, true);
 			if ( ! throwaway )
 				{
 				debug_msg("No such policy file: %s.\n", filename.c_str());

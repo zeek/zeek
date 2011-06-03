@@ -1,18 +1,22 @@
 #!/bin/sh
 
 # This script generates binary RPM packages.
-# They can be found in build/ after running.
+# They can be found in ../build/ after running.
+
+./check-cmake || { exit 1; }
+
+# The RPM CPack generator depends on `rpmbuild` to create packages
+type rpmbuild > /dev/null 2>&1 || {
+    echo "\
+Creating RPM packages requires the "rpmbuild" command, usually provided by
+the 'rpm-build' package, please install it first.
+" >&2;
+    exit 1;
+}
 
 prefix=/opt/bro
 
-# CMake/CPack versions before 2.8.2 have bugs that can create bad packages
-CMAKE_PACK_REQ=2.8.2
-CMAKE_VER=`cmake -version`
-
-if [ "${CMAKE_VER}" \< "${CMAKE_PACK_REQ}" ]; then
-    echo "Package creation requires CMake > 2.8.2" >&2
-    exit 1
-fi
+cd ..
 
 # Minimum Bro
 ./configure --prefix=${prefix} --disable-broccoli --disable-broctl \

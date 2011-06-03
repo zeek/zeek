@@ -1,34 +1,29 @@
 #!/bin/sh
 
 # This script generates binary DEB packages.
-# They can be found in build/ after running.
+# They can be found in ../build/ after running.
 
-prefix=/opt/bro
-
-# CMake/CPack versions before 2.8.2 have bugs that can create bad packages
-CMAKE_PACK_REQ=2.8.2
-CMAKE_VER=`cmake -version`
-
-if [ "${CMAKE_VER}" \< "${CMAKE_PACK_REQ}" ]; then
-    echo "Package creation requires CMake > 2.8.2" >&2
-    exit 1
-fi
+./check-cmake || { exit 1; }
 
 # The DEB CPack generator depends on `dpkg-shlibdeps` to automatically
 # determine what dependencies to set for the packages
 type dpkg-shlibdeps > /dev/null 2>&1 || {
     echo "\
-Creating DEB packages requires the `dpkg-shlibs` command, usually provided by
+Creating DEB packages requires the "dpkg-shlibs" command, usually provided by
 the 'dpkg-dev' package, please install it first.
 " >&2;
     exit 1;
 }
+
+prefix=/opt/bro
 
 # During the packaging process, `dpkg-shlibs` will fail if used on a library
 # that links to other internal/project libraries unless an RPATH is used or
 # we set LD_LIBRARY_PATH such that it can find the internal/project library
 # in the temporary packaging tree.
 export LD_LIBRARY_PATH=./${prefix}/lib
+
+cd ..
 
 # Minimum Bro
 ./configure --prefix=${prefix} --disable-broccoli --disable-broctl \

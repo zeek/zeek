@@ -868,21 +868,45 @@ const char* bro_prefixes()
 	return p;
 	}
 
-FILE* open_file(const char* filename, const char** full_filename)
+static const char* PACKAGE_LOADER = "__load__.bro";
+
+// If filename is pointing to a directory that contains a file called
+// PACKAGE_LOADER, returns the files path. Otherwise returns filename itself.
+// In both cases, the returned string is newly allocated.
+static const char* check_for_dir(const char* filename, bool load_pkgs)
 	{
+	if ( load_pkgs && is_dir(filename) )
+		{
+		char init_filename_buf[1024];
+		safe_snprintf(init_filename_buf, sizeof(init_filename_buf),
+			      "%s/%s", filename, PACKAGE_LOADER);
+
+		if ( access(init_filename_buf, R_OK) == 0 )
+			return copy_string(init_filename_buf);
+		}
+
+	return copy_string(filename);
+	}
+
+FILE* open_file(const char* filename, const char** full_filename, bool load_pkgs)
+	{
+	filename = check_for_dir(filename, load_pkgs);
+
 	if ( full_filename )
 		*full_filename = copy_string(filename);
 
 	FILE* f = fopen(filename, "r");
 
+	delete [] filename;
+
 	return f;
 	}
 
 FILE* search_for_file(const char* filename, const char* ext,
-			const char** full_filename)
+			const char** full_filename, bool load_pkgs)
 	{
 	if ( filename[0] == '/' || filename[0] == '.' )
-		return open_file(filename, full_filename);
+		return open_file(filename, full_filename, load_pkgs);
 
 	char path[1024], full_filename_buf[1024];
 	safe_strncpy(path, bro_path(), sizeof(path));
@@ -905,13 +929,12 @@ FILE* search_for_file(const char* filename, const char* ext,
 				"%s/%s.%s", dir_beginning, filename, ext);
 		if ( access(full_filename_buf, R_OK) == 0 &&
 		     ! is_dir(full_filename_buf) )
-			return open_file(full_filename_buf, full_filename);
+			return open_file(full_filename_buf, full_filename, load_pkgs);
 
 		safe_snprintf(full_filename_buf, sizeof(full_filename_buf),
 				"%s/%s", dir_beginning, filename);
-		if ( access(full_filename_buf, R_OK) == 0 &&
-		      ! is_dir(full_filename_buf) )
-			return open_file(full_filename_buf, full_filename);
+		if ( access(full_filename_buf, R_OK) == 0 )
+			return open_file(full_filename_buf, full_filename, load_pkgs);
 
 		dir_beginning = ++dir_ending;
 		}

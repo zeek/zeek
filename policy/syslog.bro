@@ -6,10 +6,10 @@ redef dpd_config += { [ANALYZER_SYSLOG_BINPAC] = [$ports = syslog_ports] };
 module Syslog;
 
 export {
-	redef enum Notice += { 
-		Syslog_New_Source,
-		Syslog_New_Destination,
-	};
+	#redef enum Notice += { 
+	#	Syslog_New_Source,
+	#	Syslog_New_Destination,
+	#};
 	
 	const facility_codes: table[count] of string = {
 		[0]  = "KERN",
@@ -53,5 +53,5 @@ export {
 
 event syslog_message(c: connection, facility: count, severity: count, msg: string)
 	{
-	
+	print msg;	
 	}

@@ -1,5 +1,3 @@
-// $Id:$
-
 #ifndef Syslog_binpac_h
 #define Syslog_binpac_h
 
@@ -21,8 +19,7 @@ public:
 		{ return new Syslog_Analyzer_binpac(conn); }
 
 	static bool Available()
-		{ return true; }
-		//{ return (Syslog_request || Syslog_full_request) && FLAGS_use_binpac; }
+		{ return syslog_message; }
 
 protected:
 	friend class AnalyzerTimer;

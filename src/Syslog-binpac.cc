@@ -1,5 +1,3 @@
-// $Id:$
-
 #include "Syslog-binpac.h"
 #include "TCP_Reassembler.h"
 

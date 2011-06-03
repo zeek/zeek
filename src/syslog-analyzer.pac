@@ -11,12 +11,12 @@ flow Syslog_Flow
 	
 	function process_syslog_message(m: Syslog_Message): bool
 		%{
-		bro_event_syslog_message(connection()->bro_analyzer(),
-		                         connection()->bro_analyzer()->Conn(),
-		                         ${m.PRI.facility},
-		                         ${m.PRI.severity},
-		                         new StringVal(${m.msg}.length(), (const char*) ${m.msg}.begin())
-		                         );
+		BifEvent::generate_syslog_message(connection()->bro_analyzer(),
+		                                  connection()->bro_analyzer()->Conn(),
+		                                  ${m.PRI.facility},
+		                                  ${m.PRI.severity},
+		                                  new StringVal(${m.msg}.length(), (const char*) ${m.msg}.begin())
+		                                  );
 		return true;
 		%}
 	

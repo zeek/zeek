@@ -201,6 +201,8 @@ binpac_target(ssl.pac
     ssl-defs.pac ssl-protocol.pac ssl-analyzer.pac)
 binpac_target(ssl-record-layer.pac
     ssl-defs.pac ssl.pac)
+binpac_target(syslog.pac
+    syslog-protocol.pac syslog-analyzer.pac)
 
 ########################################################################
 ## bro target
@@ -391,6 +393,7 @@ set(bro_SRCS
     Stats.cc
     SteppingStone.cc
     Stmt.cc
+    Syslog-binpac.cc
     TCP.cc
     TCP_Endpoint.cc
     TCP_Reassembler.cc

@@ -388,6 +388,8 @@ event irc_password_message%(c: connection, password: string%);
 event file_transferred%(c: connection, prefix: string, descr: string, mime_type: string%);
 event file_virus%(c: connection, virname: string%);
 
+event syslog_message%(c: connection, facility: count, severity: count, msg: string%);
+
 event signature_match%(state: signature_state, msg: string, data: string%);
 
 # Generated if a handler finds an identification of the software

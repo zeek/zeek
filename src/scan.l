@@ -4,6 +4,11 @@
 
 #include <errno.h>
 
+#include <stack>
+#include <list>
+#include <string>
+#include <algorithm>
+
 #include "input.h"
 #include "util.h"
 #include "Scope.h"
@@ -18,10 +23,6 @@
 #include "BroDoc.h"
 #include "Analyzer.h"
 #include "AnalyzerTags.h"
-
-#include <stack>
-#include <list>
-#include <string>
 
 extern YYLTYPE yylloc;	// holds start line and column of token
 extern int print_loaded_scripts;

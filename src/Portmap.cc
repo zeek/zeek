@@ -71,11 +71,14 @@ int PortmapperInterp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 	return 1;
 	}
 
-int PortmapperInterp::RPC_BuildReply(const RPC_CallInfo* c, int success,
-					const u_char*& buf, int& n,
-					EventHandlerPtr& event, Val*& reply)
+int PortmapperInterp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status status,
+				     const u_char*& buf, int& n,
+				     double start_time, double last_time,
+				     int reply_len)
 	{
-	reply = 0;
+	EventHandlerPtr event;
+	Val *reply = 0;
+	int success = (status == BifEnum::RPC_SUCCESS);
 
 	switch ( c->Proc() ) {
 	case PMAPPROC_NULL:
@@ -184,6 +187,7 @@ int PortmapperInterp::RPC_BuildReply(const RPC_CallInfo* c, int success,
 		return 0;
 	}
 
+	Event(event, c->TakeRequestVal(), status, reply);
 	return 1;
 	}
 
@@ -267,7 +271,7 @@ uint32 PortmapperInterp::CheckPort(uint32 port)
 	return port;
 	}
 
-void PortmapperInterp::Event(EventHandlerPtr f, Val* request, int status, Val* reply)
+void PortmapperInterp::Event(EventHandlerPtr f, Val* request, BifEnum::rpc_status status, Val* reply)
 	{
 	if ( ! f )
 		{
@@ -279,7 +283,8 @@ void PortmapperInterp::Event(EventHandlerPtr f, Val* request, int status, Val* r
 	val_list* vl = new val_list;
 
 	vl->append(analyzer->BuildConnVal());
-	if ( status == RPC_SUCCESS )
+
+	if ( status == BifEnum::RPC_SUCCESS )
 		{
 		if ( request )
 			vl->append(request);

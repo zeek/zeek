@@ -49,7 +49,8 @@ enum {
 
 class RPC_CallInfo {
 public:
-	RPC_CallInfo(uint32 xid, const u_char*& buf, int& n);
+	RPC_CallInfo(uint32 xid, const u_char*& buf, int& n, double start_time,
+		     double last_time, int rpc_len);
 	~RPC_CallInfo();
 
 	void AddVal(Val* arg_v)		{ Unref(v); v = arg_v; }
@@ -63,8 +64,12 @@ public:
 	uint32 Proc() const		{ return proc; }
 
 	double StartTime() const	{ return start_time; }
+	void SetStartTime(double t)	{ start_time = t; }
+	double LastTime() const	{ return last_time; }
+	void SetLastTime(double t)	{ last_time = t; }
 	int CallLen() const		{ return call_n; }
-	int HeaderLen() const		{ return header_len; }
+	int RPCLen() const	{ return rpc_len; }
+	int HeaderLen() const	{ return header_len; }
 
 	uint32 XID() const		{ return xid; }
 
@@ -76,6 +81,8 @@ protected:
 	uint32 cred_flavor, verf_flavor;
 	u_char* call_buf;	// copy of original call buffer
 	double start_time;
+	double last_time;
+	int rpc_len;		// size of the full RPC call, incl. xid and msg_type
 	int call_n;		// size of call buf
 	int header_len;		// size of data before the arguments
 	bool valid_call;	// whether call was well-formed
@@ -93,19 +100,19 @@ public:
 	// Delivers the given RPC.  Returns true if "len" bytes were
 	// enough, false otherwise.  "is_orig" is true if the data is
 	// from the originator of the connection.
-	int DeliverRPC(const u_char* data, int len, int is_orig);
+	int DeliverRPC(const u_char* data, int len, int caplen, int is_orig, double start_time, double last_time);
 
 	void Timeout();
 
 protected:
 	virtual int RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n) = 0;
-	virtual int RPC_BuildReply(const RPC_CallInfo* c, int success,
-					const u_char*& buf, int& n,
-					EventHandlerPtr& event, Val*& reply) = 0;
+	virtual int RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status success,
+				   const u_char*& buf, int& n, double start_time, double last_time,
+				   int reply_len) = 0;
 
-	virtual void Event(EventHandlerPtr f, Val* request, int status, Val* reply) = 0;
-
-	void RPC_Event(RPC_CallInfo* c, int status, int reply_len);
+	void Event_RPC_Dialogue(RPC_CallInfo* c, BifEnum::rpc_status status, int reply_len);
+	void Event_RPC_Call(RPC_CallInfo* c);
+	void Event_RPC_Reply(uint32_t xid, BifEnum::rpc_status status, int reply_len);
 
 	void Weird(const char* name);
 
@@ -113,35 +120,108 @@ protected:
 	Analyzer* analyzer;
 };
 
-typedef enum {
-	RPC_RECORD_MARKER,	// building up the stream record marker
-	RPC_MESSAGE_BUFFER,	// building up the message in the buffer
-	RPC_COMPLETE		// message fully built
-} TCP_RPC_state;
 
+/* A simple buffer for reassembling the fragments that RPC-over-TCP
+ * uses. Only needed by RPC_Contents.
+
+ * However, RPC messages can be quite large. As a first step, we only
+ * extract and analyzer the first part of an RPC message and skip
+ * over the rest.
+ *
+ * We specify:
+ *    maxsize:  the number of bytes we want to copy into the buffer to analyze.
+ *    expected: the total number of bytes in the RPC message. Can be
+ *              quite large. We will be "skipping over" expected-maxsize bytes.
+ *
+ * We can extend "expected" (by calling AddToExpected()), but maxsize is
+ * fixed.
+ *
+ * TODO: grow buffer dynamically
+ */
+class RPC_Reasm_Buffer {
+public:
+	RPC_Reasm_Buffer() {
+		maxsize = expected = 0;
+		fill = processed = 0;
+		buf = 0;
+	};
+
+	~RPC_Reasm_Buffer() { if (buf) delete [] buf; }
+
+	void Init(int64_t arg_maxsize, int64_t arg_expected);
+
+	const u_char *GetBuf() { return buf; }	// Pointer to the buffer
+	int64_t GetFill() { return fill; }	// Number of bytes in buf
+	int64_t GetSkipped() { return processed-fill; }	// How many bytes did we skipped?
+	int64_t GetExpected() { return expected; }	// How many bytes are we expecting?
+	int64_t GetProcessed() { return processed; }	// How many bytes are we expecting?
+
+	// Expand expected by delta bytes. Returns false if the number of
+	// expected bytes exceeds maxsize (which means that we will truncate
+	// the message).
+	bool AddToExpected(int64_t delta)
+		{ expected += delta; return ! (expected > maxsize); }
+
+	// Consume a chunk of input data (pointed to by data, up len in
+	// size). data and len will be adjusted accordingly. Returns true if
+	// "expected" bytes have been processed, i.e., returns true when we
+	// don't expect any more data.
+	bool ConsumeChunk(const u_char*& data, int& len);
+
+protected:
+	int64_t fill;	// how many bytes we currently have in the buffer
+	int64_t maxsize;	// maximum buffer size we want to allocate
+	int64_t processed;	// number of bytes we have processed so far
+	int64_t expected;	// number of input bytes we expect
+	u_char *buf;
+
+};
+
+/* Support Analyzer for reassembling RPC-over-TCP messages */
 class Contents_RPC : public TCP_SupportAnalyzer {
 public:
 	Contents_RPC(Connection* conn, bool orig, RPC_Interpreter* interp);
 	virtual ~Contents_RPC();
 
-	TCP_RPC_state State() const		{ return state; }
-
 protected:
+	typedef enum {
+		WAIT_FOR_MESSAGE,
+		WAIT_FOR_MARKER,
+		WAIT_FOR_DATA,
+		WAIT_FOR_LAST_DATA,
+	} state_t;
+
+	typedef enum {
+		NEED_RESYNC,
+		RESYNC_WAIT_FOR_MSG_START,
+		RESYNC_WAIT_FOR_FULL_MSG,
+		RESYNC_HAD_FULL_MSG,
+		INSYNC,
+		RESYNC_INIT,
+	} resync_state_t;
+
 	virtual void Init();
+	virtual bool CheckResync(int& len, const u_char*& data, bool orig);
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
 	virtual void Undelivered(int seq, int len, bool orig);
 
-	virtual void InitBuffer();
+	virtual void NeedResync() {
+		resync_state = NEED_RESYNC;
+		resync_toskip = 0;
+		state = WAIT_FOR_MESSAGE;
+	}
 
 	RPC_Interpreter* interp;
 
-	u_char* msg_buf;
-	int buf_n;	// number of bytes in msg_buf
-	int buf_len;	// size off msg_buf
-	int last_frag;	// if this buffer corresponds to the last "fragment"
-	bool resync;
+	RPC_Reasm_Buffer marker_buf;	// reassembles the 32bit RPC-over-TCP marker
+	RPC_Reasm_Buffer msg_buf;	// reassembles RPC messages
+	state_t state;
 
-	TCP_RPC_state state;
+	double start_time;
+	double last_time;
+
+	resync_state_t resync_state;
+	int resync_toskip;
 };
 
 class RPC_Analyzer : public TCP_ApplicationAnalyzer {
@@ -162,30 +242,6 @@ protected:
 
 	Contents_RPC* orig_rpc;
 	Contents_RPC* resp_rpc;
-};
-
-#include "rpc_pac.h"
-
-class RPC_UDP_Analyzer_binpac : public Analyzer {
-public:
-	RPC_UDP_Analyzer_binpac(Connection* conn);
-	virtual ~RPC_UDP_Analyzer_binpac();
-
-	virtual void Done();
-	virtual void DeliverPacket(int len, const u_char* data, bool orig,
-					int seq, const IP_Hdr* ip, int caplen);
-
-	static Analyzer* InstantiateAnalyzer(Connection* conn)
-		{ return new RPC_UDP_Analyzer_binpac(conn); }
-
-	static bool Available()
-		{ return pm_request || rpc_call; }
-
-protected:
-	friend class AnalyzerTimer;
-	void ExpireTimer(double t);
-
-	binpac::SunRPC::RPC_Conn* interp;
 };
 
 #endif

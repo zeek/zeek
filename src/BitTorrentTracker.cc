@@ -8,6 +8,8 @@
 #include <sys/types.h>
 #include <regex.h>
 
+#include <algorithm>
+
 # define FMT_INT "%" PRId64
 # define FMT_UINT "%" PRIu64
 

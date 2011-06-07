@@ -7,8 +7,11 @@
 #include <algorithm>
 #include <ctype.h>
 
+#include <algorithm>
+
 #include "BroString.h"
 #include "Var.h"
+
 
 #ifdef DEBUG
 #define DEBUG_STR(msg) DBG_LOG(DBG_STRING, msg)

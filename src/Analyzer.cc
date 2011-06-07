@@ -38,6 +38,8 @@
 #include "Syslog-binpac.h"
 #include "ConnSizeAnalyzer.h"
 
+#include <algorithm>
+
 // Keep same order here as in AnalyzerTag definition!
 const Analyzer::Config Analyzer::analyzer_configs[] = {
 	{ AnalyzerTag::Error, "<ERROR>", 0, 0, 0, false },
@@ -132,9 +134,6 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 	{ AnalyzerTag::HTTP_BINPAC, "HTTP_BINPAC",
 		HTTP_Analyzer_binpac::InstantiateAnalyzer,
 		HTTP_Analyzer_binpac::Available, 0, false },
-	{ AnalyzerTag::RPC_UDP_BINPAC, "RPC_UDP_BINPAC",
-		RPC_UDP_Analyzer_binpac::InstantiateAnalyzer,
-		RPC_UDP_Analyzer_binpac::Available, 0, false },
 	{ AnalyzerTag::SSL, "SSL",
 		SSL_Analyzer_binpac::InstantiateAnalyzer,
 		SSL_Analyzer_binpac::Available, 0, false },

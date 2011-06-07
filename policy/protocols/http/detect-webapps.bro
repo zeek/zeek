@@ -38,11 +38,14 @@ event signature_match(state: signature_state, msg: string, data: string) &priori
 		# If the new url is a substring of an existing, known url then let's
 		# use that as the new url for the software.
 		# PROBLEM: different version of the same software on the same server with a shared root path
-		local is_substring = strstr(Software::tracked[c$id$resp_h][si$name]$url, si$url);
+		local is_substring = 0;
+		if ( Software::tracked[c$id$resp_h][si$name]?$url )
+			is_substring = strstr(Software::tracked[c$id$resp_h][si$name]$url, si$url);
+		
 		if ( is_substring == 1 )
 			{
 			Software::tracked[c$id$resp_h][si$name]$url = si$url;
-			# Force the software to be logged because it indicates a URL 
+			# Force the software to be logged because it indicates a URL
 			# closer to the root of the site.
 			si$force_log = T;
 			}

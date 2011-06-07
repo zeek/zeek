@@ -265,19 +265,15 @@ event http_stats%(c: connection, stats: http_stats_rec%);
 event ssh_client_version%(c: connection, version: string%);
 event ssh_server_version%(c: connection, version: string%);
 
-event ssl_certificate_seen%(c: connection, is_server: bool%);
-event ssl_certificate%(c: connection, cert: X509, is_server: bool%);
-event ssl_conn_attempt%(c: connection, version: count, ciphers: cipher_suites_list%);
-event ssl_conn_server_reply%(c: connection, version: count, ciphers: cipher_suites_list%);
-event ssl_conn_established%(c: connection, version: count, cipher_suite: count%);
-event ssl_conn_reused%(c: connection, session_id: SSL_sessionID%);
-event ssl_conn_alert%(c: connection, version: count, level: count,
-			description: count%);
-event ssl_conn_weak%(name: string, c: connection%);
+event ssl_client_hello%(c: connection, version: count, possible_ts: time, session_id: string, ciphers: count_set%);
+event ssl_server_hello%(c: connection, version: count, possible_ts: time, session_id: string, cipher: count, comp_method: count%);
+event ssl_extension%(c: connection, code: count, val: string%);
+event ssl_established%(c: connection%);
+event ssl_alert%(c: connection, level: count, desc: count%);
 
-event ssl_session_insertion%(c: connection, id: SSL_sessionID%);
-event process_X509_extensions%(c: connection, ex: X509_extension%);
-event ssl_X509_error%(c: connection, err: int, err_string: string%);
+event x509_certificate%(c: connection, cert: X509, is_server: bool, chain_idx: count, chain_len: count, der_cert: string%);
+event x509_extension%(c: connection, data: string%);
+event x509_error%(c: connection, err: count%);
 
 event stp_create_endp%(c: connection, e: int, is_orig: bool%);
 event stp_resume_endp%(e: int%);

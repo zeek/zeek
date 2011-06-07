@@ -66,6 +66,8 @@ function set_session(c: connection)
 
 event irc_nick_message(c: connection, who: string, newnick: string) &priority=5
 	{
+	set_session(c);
+	
 	c$irc$command = "NICK";
 	c$irc$value = newnick;
 	}
@@ -78,6 +80,8 @@ event irc_nick_message(c: connection, who: string, newnick: string) &priority=-5
 
 event irc_user_message(c: connection, user: string, host: string, server: string, real_name: string) &priority=5
 	{
+	set_session(c);
+	
 	c$irc$command = "USER";
 	c$irc$value = user;
 	c$irc$addl=fmt("%s %s %s", host, server, real_name);
@@ -92,6 +96,8 @@ event irc_user_message(c: connection, user: string, host: string,
 	
 event irc_join_message(c: connection, info_list: irc_join_list) &priority=5
 	{
+	set_session(c);
+	
 	c$irc$command = "JOIN";
 	}
 

@@ -303,8 +303,6 @@ public:
 
 	void SetUID(uint64 arg_uid)	 { uid = arg_uid; }
 
-	static uint64 CalculateNextUID();
-
 protected:
 
 	Connection()	{ persistent = 0; }
@@ -363,9 +361,6 @@ protected:
 	PIA* primary_PIA;
 
 	uint64 uid;	// Globally unique connection ID.
-
-	static uint64 uid_counter;	// Counter for uids.
-	static uint64 uid_instance;	// Instance ID, computed once.
 };
 
 class ConnectionTimer : public Timer {

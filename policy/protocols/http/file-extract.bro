@@ -9,6 +9,7 @@
 # from the originator to the responder, "resp" otherwise.
 
 @load http/file-ident
+@load utils/files
 
 module HTTP;
 

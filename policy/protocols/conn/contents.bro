@@ -37,7 +37,7 @@ event connection_established(c: connection) &priority=-5
 		
 	if ( c$extract_resp )
 		{
-		local orig_file = generate_extraction_filename(extraction_prefix, c, "resp.dat");
+		local resp_file = generate_extraction_filename(extraction_prefix, c, "resp.dat");
 		local resp_f = open(resp_file);
 		set_contents_file(c$id, CONTENTS_RESP, resp_f);
 		}

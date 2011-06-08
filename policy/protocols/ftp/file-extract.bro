@@ -56,11 +56,11 @@ event file_transferred(c: connection, prefix: string, descr: string,
 		{
 		local suffix = fmt("%d.dat", s$num_extracted_files);
 		local fname = generate_extraction_filename(extraction_prefix, c, suffix);
-		local s$extraction_file = open(fname);
+		s$extraction_file = open(fname);
 		if ( s$passive )
-			set_contents_file(id, CONTENTS_RESP, fh);
+			set_contents_file(id, CONTENTS_RESP, s$extraction_file);
 		else
-			set_contents_file(id, CONTENTS_ORIG, fh);
+			set_contents_file(id, CONTENTS_ORIG, s$extraction_file);
 		}
 	}
 

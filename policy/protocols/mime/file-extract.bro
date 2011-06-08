@@ -1,4 +1,5 @@
 @load mime/file-ident
+@load utils/files
 
 module MIME;
 

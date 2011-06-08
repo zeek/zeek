@@ -1,0 +1,2 @@
+@TEST-EXEC: bro -r $TRACES/trace.pcap mt
+@TEST-EXEC: for i in *.log; do btest-diff $i; done

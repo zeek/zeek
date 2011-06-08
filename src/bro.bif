@@ -486,15 +486,15 @@ function to_count%(str: string%): count
 	%{
 	const char* s = str->CheckString();
 	char* end_s;
-	
+
 	uint64 u = (uint64) strtoll(s, &end_s, 10);
-	
+
 	if ( s[0] == '\0' || end_s[0] != '\0' )
     	{
 		builtin_run_time("bad conversion to count", @ARG@[0]);
         u = 0;
         }
-	
+
 	return new Val(u, TYPE_COUNT);
 	%}
 
@@ -556,7 +556,7 @@ function to_addr%(ip: string%): addr
 	delete [] s;
 	return ret;
 	%}
-	
+
 function count_to_v4_addr%(ip: count%): addr
 	%{
 	if ( ip > 4294967295 )
@@ -564,7 +564,7 @@ function count_to_v4_addr%(ip: count%): addr
 		builtin_run_time("conversion of non-IPv4 count to addr", @ARG@[0]);
 		return new AddrVal(uint32(0));
 		}
-	
+
 	return new AddrVal(htonl(uint32(ip)));
 	%}
 
@@ -3338,3 +3338,118 @@ function bro_has_ipv6%(%) : bool
 	return new Val(0, TYPE_BOOL);
 #endif
     %}
+
+function unique_id%(prefix: string%) : bool
+	%{
+	char tmp[20];
+	uint64 uid = calculate_unique_id();
+	return new StringVal(uitoa_n(uid, tmp, sizeof(tmp), 62, prefix->CheckString()));
+	%}
+
+%%{
+#include <openssl/x509.h>
+#include <openssl/asn1.h>
+#include <openssl/x509_vfy.h>
+
+// This is the indexed map of X509 certificate stores.
+static map<BroString, X509_STORE*> x509_stores;
+
+// ### NOTE: while d2i_X509 does not take a const u_char** pointer,
+// here we assume d2i_X509 does not write to <data>, so it is safe to
+// convert data to a non-const pointer.  Could some X509 guru verify
+// this?
+
+X509* d2i_X509_(X509** px, const u_char** in, int len)
+	{
+#ifdef OPENSSL_D2I_X509_USES_CONST_CHAR
+	  return d2i_X509(px, in, len);
+#else
+	  return d2i_X509(px, (u_char**)in, len);
+#endif
+	}
+
+%%}
+
+
+function x509_verify%(der_cert: string, cert_stack: string_vec, root_certs: table_string_of_string%): count
+	%{
+	X509_STORE* ctx = 0;
+	int i = 0;
+
+	// If this certificate store was built previously, just reuse the old one.
+	BroString* s = convert_index_to_string(root_certs);
+	if ( x509_stores.count(*s) > 0 )
+		ctx = x509_stores[*s];
+
+	if ( ! ctx ) // lookup to see if we have this one built already!
+		{
+		ctx = X509_STORE_new();
+		TableVal* root_certs2 = root_certs->AsTableVal();
+		ListVal* idxs = root_certs2->ConvertToPureList();
+
+		// Build the validation store
+		for ( i = 0; i < idxs->Length(); ++i )
+			{
+			Val* key = idxs->Index(i);
+			StringVal *sv = root_certs2->Lookup(key)->AsStringVal();
+			const uint8* data = sv->Bytes();
+			X509* x = d2i_X509_(NULL, &data, sv->Len());
+			if ( ! x )
+				{
+				builtin_run_time(fmt("Root CA error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
+				return new Val((uint64) ERR_get_error(), TYPE_COUNT);
+				}
+			X509_STORE_add_cert(ctx, x);
+			}
+
+		// Save the newly constructed certificate store into the cacheing map.
+		x509_stores[*s] = ctx;
+		}
+
+	STACK_OF(X509)* untrusted_certs = sk_X509_new_null();
+	if ( ! untrusted_certs )
+		{
+		builtin_run_time(fmt("Untrusted certificate stack initialization error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
+		return new Val((uint64) ERR_get_error(), TYPE_COUNT);
+		}
+
+	VectorVal *cert_stack_vec = cert_stack->AsVectorVal();
+	for ( i = 0; i < (int) cert_stack_vec->Size(); ++i )
+		{
+		StringVal *sv = cert_stack_vec->Lookup(i)->AsStringVal();
+		const uint8 *data = sv->Bytes();
+		X509* x = d2i_X509_(NULL, &data, sv->Len());
+		if ( ! x )
+			{
+			builtin_run_time(fmt("Untrusted certificate stack creation error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
+			return new Val((uint64) ERR_get_error(), TYPE_COUNT);
+			}
+		sk_X509_push(untrusted_certs, x);
+		}
+
+	const uint8 *cert_data = der_cert->Bytes();
+
+	X509_STORE_CTX csc;
+	X509* cert = d2i_X509_(NULL, &cert_data, der_cert->Len());
+	if ( ! cert )
+		{
+		builtin_run_time(fmt("Certificate error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
+		return new Val((uint64) ERR_get_error(), TYPE_COUNT);
+		}
+
+	X509_STORE_CTX_init(&csc, ctx, cert, untrusted_certs);
+	X509_STORE_CTX_set_time(&csc, 0, (time_t) network_time);
+
+	int result = X509_verify_cert(&csc);
+	X509_STORE_CTX_cleanup(&csc);
+
+	if ( untrusted_certs )
+		sk_X509_pop_free(untrusted_certs, X509_free);
+
+	return new Val((uint64) csc.error, TYPE_COUNT);
+	%}
+
+function x509_err2str%(err_num: count%): string
+	%{
+	return new StringVal(X509_verify_cert_error_string(err_num));
+	%}

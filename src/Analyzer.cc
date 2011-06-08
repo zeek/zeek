@@ -34,8 +34,8 @@
 #include "Portmap.h"
 #include "POP3.h"
 #include "SSH.h"
-#include "SSLProxy.h"
 #include "SSL-binpac.h"
+#include "Syslog-binpac.h"
 #include "ConnSizeAnalyzer.h"
 
 // Keep same order here as in AnalyzerTag definition!
@@ -117,8 +117,6 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 		SMTP_Analyzer::Available, 0, false },
 	{ AnalyzerTag::SSH, "SSH", SSH_Analyzer::InstantiateAnalyzer,
 		SSH_Analyzer::Available, 0, false },
-	{ AnalyzerTag::SSL, "SSL", SSLProxy_Analyzer::InstantiateAnalyzer,
-		SSLProxy_Analyzer::Available, 0, false },
 	{ AnalyzerTag::Telnet, "TELNET", Telnet_Analyzer::InstantiateAnalyzer,
 		Telnet_Analyzer::Available, 0, false },
 
@@ -137,9 +135,12 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 	{ AnalyzerTag::RPC_UDP_BINPAC, "RPC_UDP_BINPAC",
 		RPC_UDP_Analyzer_binpac::InstantiateAnalyzer,
 		RPC_UDP_Analyzer_binpac::Available, 0, false },
-	{ AnalyzerTag::SSL_BINPAC, "SSL_BINPAC",
+	{ AnalyzerTag::SSL, "SSL",
 		SSL_Analyzer_binpac::InstantiateAnalyzer,
 		SSL_Analyzer_binpac::Available, 0, false },
+	{ AnalyzerTag::SYSLOG_BINPAC, "SYSLOG_BINPAC",
+		Syslog_Analyzer_binpac::InstantiateAnalyzer,
+		Syslog_Analyzer_binpac::Available, 0, false },
 
 	{ AnalyzerTag::File, "FILE", File_Analyzer::InstantiateAnalyzer,
 		File_Analyzer::Available, 0, false },
@@ -172,7 +173,6 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 	{ AnalyzerTag::Contents_SMB, "CONTENTS_SMB", 0, 0, 0, false },
 	{ AnalyzerTag::Contents_RPC, "CONTENTS_RPC", 0, 0, 0, false },
 	{ AnalyzerTag::Contents_NFS, "CONTENTS_NFS", 0, 0, 0, false },
-	{ AnalyzerTag::Contents_SSL, "CONTENTS_SSL", 0, 0, 0, false },
 };
 
 AnalyzerTimer::~AnalyzerTimer()

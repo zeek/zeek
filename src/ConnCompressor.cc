@@ -620,7 +620,7 @@ void ConnCompressor::PktHdrToPendingConn(double time, const HashKey* key,
 	c->FIN = (tp->th_flags & TH_FIN) != 0;
 	c->RST = (tp->th_flags & TH_RST) != 0;
 	c->ACK = (tp->th_flags & TH_ACK) != 0;
-	c->uid = Connection::CalculateNextUID();
+	c->uid = calculate_unique_id();
 	c->num_bytes_ip = ip->TotalLen();
 	c->num_pkts = 1;
 	c->invalid = 0;

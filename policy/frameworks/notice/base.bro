@@ -48,16 +48,10 @@ export {
 		uid:            string  &log &optional;
 		id:             conn_id &log &optional;
 		
-		## This is the relevant host for this notice.  It could be set because
-		## either:
-		##
-		## 1. There is no connection associated with this notice.
-		## 2. There is some underlying semantic of the notice where either
-		##    orig_h or resp_h is the relevant host in the associated
-		##    connection.  For example, if a host is detected scanning, the
-		##    particular connection taking place when the notice is generated
-		##    is irrelevant and only the host detected scanning is relevant.
-		relevant_host:  addr    &log &optional;
+		## The victim of the notice.  This can be used in cases where there
+		## is a definite loser for a notice.  In cases where there isn't a 
+		## victim, this field should be left empty.
+		victim:         addr    &log &optional;
 		
 		## The :bro:enum:`Notice::Type` of the notice.
 		note:           Type    &log;
@@ -80,11 +74,11 @@ export {
 		## Uniquely identifying tag associated with this notice.
 		tag:            string         &log &optional;
 
-		## This value controls and indicates if alarms should be bumped up
+		## This value controls and indicates if notices should be bumped up
 		## to alarms independent of all other notice actions and filters.
 		## If false, don't alarm independent of the determined notice action.
-		## If true, alarm dependening on notice action.
-		do_alarm: bool &log &default=T;
+		## If true, alarm dependening on the notice action.
+		do_alarm: bool &log &default=F;
 	};
 
 	type PolicyItem: record {
@@ -134,19 +128,9 @@ export {
 	## real time constraints.
 	const notice_functions: set[function(n: Notice::Info)] = set() &redef;
 	
-	# This should have a high probability of being unique without
-	# generating overly long tags.  This is redef'able in case you need
-	# determinism in tags (such as for regression testing).
-	const notice_tag_prefix =
-		fmt("%x-%x-",
-		    double_to_count(time_to_double(current_time())) % 255,
-		    getpid()) &redef;
-
-	# Likewise redef'able for regression testing.
-	const new_notice_tag = function(): string { return ""; } &redef;
-
-	## This event is generated to send email.  This script includes a handler
-	## for this event which sends email already.
+	## Generate this event to send email.  This script includes a handler
+	## for this event which sends email so this event is mostly for generating
+	## and not for handling.
 	global email_notice_to: event(n: Info, dest: string) &redef;
 	
 	## This is the event that is called as the entry point to the 
@@ -178,14 +162,13 @@ redef record Conn::Info += {
 	notice_tags: set[string] &log &optional;
 };
 
-# Each notice has a unique ID associated with it.
-global notice_id = 0;
-redef new_notice_tag = function(): string
-		{ return fmt("%s%x", notice_tag_prefix, ++notice_id); };
-
 event bro_init()
 	{
 	Log::create_stream(NOTICE_LOG, [$columns=Info, $ev=log_notice]);
+	
+	# Add a filter to create the alarm log.
+	Log::add_filter(NOTICE_LOG, [$name = "alarm", $path = "alarm",
+	                             $pred(rec: Notice::Info) = { return rec$do_alarm; }]);
 	}
 
 # TODO: fix this.
@@ -264,15 +247,11 @@ function fill_in_missing_details(n: Notice::Info)
 	if ( ! n?$dst && n?$iconn )
 		n$dst = n$iconn$resp_h;
 
-	# Auto-set $relevant_host to $src if $src was given as the "relevant host"
-	# This keeps with existing usage for the $src field while applying the 
-	# new relevant host semantics to it.
-	if ( ! n?$relevant_host && n?$src && ! n?$dst )
-
 	if ( ! n?$src_peer )
 		n$src_peer = get_event_peer();
 
-	n$tag = new_notice_tag();
+	# Generate a unique ID for this notice.
+	n$tag = unique_id("@");
 
 	# Add the tag to the connection's notice_tags if there is a connection.
 	if ( n?$conn && n$conn?$conn )
@@ -301,11 +280,7 @@ event notice(n: Notice::Info) &priority=-5
 		Log::write(NOTICE_LOG, n);
 
 		if ( n$action != ACTION_FILE && n$do_alarm )
-			{
-			# TODO: alarm may turn into a filter.
-			#alarm n;
 			event notice_alarm(n, n$action);
-			}
 		}
 
 @ifdef ( IDMEF_support )
@@ -323,10 +298,13 @@ module GLOBAL;
 ## event.
 function NOTICE(n: Notice::Info)
 	{
+	# Fill out fields that might be empty and do the policy processing.
 	Notice::fill_in_missing_details(n);
+	# Run the synchronous functions with the notice.
 	for ( func in Notice::notice_functions )
 		{
 		func(n);
 		}
+	# Generate the notice event with the notice.
 	event Notice::notice(n);
 	}

@@ -14,25 +14,34 @@ export {
 	## From then on, tally instances per source.
 	#global notice_once_per_orig: table[Info, addr] of count
 	#	&default=0 &read_expire=5hrs;
+	
+	global ignore_action: function(n: Notice::Info, a: Notice::Action): Notice::Action;
+	global file_action: function(n: Notice::Info, a: Notice::Action): Notice::Action;
+	global send_email_action: function(n: Notice::Info, a: Notice::Action): Notice::Action;
+	global send_page_action: function(n: Notice::Info, a: Notice::Action): Notice::Action;
+	global tally_notice_type: function(n: Notice::Info, a: Notice::Action): Notice::Action;
+	global tally_notice_type_and_ignore: function(n: Notice::Info, a: Notice::Action): Notice::Action;
+	global file_local_bro_notices: function(n: Notice::Info, a: Notice::Action): Notice::Action;
+	global file_if_remote: function(n: Notice::Info, a: Notice::Action): Notice::Action;
 }
 
 
-function ignore_notice(n: Notice::Info, a: Notice::Action): Notice::Action
+function ignore_action(n: Notice::Info, a: Notice::Action): Notice::Action
 	{
 	return ACTION_IGNORE;
 	}
 
-function file_notice(n: Notice::Info, a: Notice::Action): Notice::Action
+function file_action(n: Notice::Info, a: Notice::Action): Notice::Action
 	{
 	return ACTION_FILE;
 	}
 
-function send_email_notice(n: Notice::Info, a: Notice::Action): Notice::Action
+function send_email_action(n: Notice::Info, a: Notice::Action): Notice::Action
 	{
 	return ACTION_EMAIL;
 	}
 
-function send_page_notice(n: Notice::Info, a: Notice::Action): Notice::Action
+function send_page_action(n: Notice::Info, a: Notice::Action): Notice::Action
 	{
 	return ACTION_PAGE;
 	}
@@ -49,8 +58,7 @@ function tally_notice_type(n: Notice::Info, a: Notice::Action): Notice::Action
 	return ACTION_FILE;
 	}
 
-function tally_notice_type_and_ignore(n: Notice::Info, a: Notice::Action)
-		: Notice::Action
+function tally_notice_type_and_ignore(n: Notice::Info, a: Notice::Action): Notice::Action
 	{
 	tally_notice(fmt("%s", n$note));
 	return ACTION_IGNORE;

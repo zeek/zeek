@@ -1,22 +1,24 @@
 @load functions
 @load notice
 
+@load utils/conn_ids
+
 module Weird;
 
-redef enum Notice::Type += {
-	## Generic unusual but alarm-worthy activity.
-	WeirdActivity,
-	## Possible evasion; usually just chud.
-	RetransmissionInconsistency,
-	## Could mean packet drop; could also be chud.
-	AckAboveHole,
-	## Data has sequence hole; perhaps due to filtering.
-	ContentGap,
-};
-
-redef enum Log::ID += { WEIRD };
-
 export {
+	redef enum Notice::Type += {
+		## Generic unusual but alarm-worthy activity.
+		WeirdActivity,
+		## Possible evasion; usually just chud.
+		RetransmissionInconsistency,
+		## Could mean packet drop; could also be chud.
+		AckAboveHole,
+		## Data has sequence hole; perhaps due to filtering.
+		ContentGap,
+	};
+	
+	redef enum Log::ID += { WEIRD };
+
 	type Info: record {
 		ts:     time    &log;
 		uid:    string  &log &optional;

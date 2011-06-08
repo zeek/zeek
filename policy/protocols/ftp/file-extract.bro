@@ -2,6 +2,7 @@
 
 @load ftp/base
 @load utils/conn_ids
+@load utils/files
 
 module FTP;
 
@@ -14,9 +15,11 @@ export {
 }
 
 redef record Info += {
-	extracted_filename:   string &log &optional;
+	## The file handle for the file to be extracted
+	extraction_file:       file &log &optional;
 	
-	extract_file:         bool &default=F;
+	extract_file:          bool &default=F;
+	num_extracted_files:   count &default=0;
 };
 
 redef enum Tag += { EXTRACTED_FILE };
@@ -32,16 +35,10 @@ event file_transferred(c: connection, prefix: string, descr: string,
 	local s = expected$state;
 
 	if ( extract_file_types in s$mime_type )
-		s$extract_file = T;
-	
-	if ( s$extract_file )
 		{
+		s$extract_file = T;
 		add s$tags[EXTRACTED_FILE];
-		s$extracted_filename = fmt("%s.%s.%s:%d-%s:%d.dat", 
-		                           extraction_prefix, c$uid,
-		                           id$orig_h, id$orig_p, 
-		                           id$resp_h, id$resp_p);
-		
+		++s$num_extracted_files;
 		}
 	}
 
@@ -55,9 +52,11 @@ event file_transferred(c: connection, prefix: string, descr: string,
 	local expected = ftp_data_expected[id$resp_h, id$resp_p];
 	local s = expected$state;
 	
-	if ( s$extract_file && s?$extracted_filename )
+	if ( s$extract_file )
 		{
-		local fh = open(s$extracted_filename);
+		local suffix = fmt("%d.dat", s$num_extracted_files);
+		local fname = generate_extraction_filename(extraction_prefix, c, suffix);
+		local s$extraction_file = open(fname);
 		if ( s$passive )
 			set_contents_file(id, CONTENTS_RESP, fh);
 		else
@@ -67,6 +66,6 @@ event file_transferred(c: connection, prefix: string, descr: string,
 
 event log_ftp(rec: Info) &priority=-10
 	{
-	delete rec$extracted_filename;
+	delete rec$extraction_file;
 	delete rec$extract_file;
 	}

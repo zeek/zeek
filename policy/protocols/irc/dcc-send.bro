@@ -29,8 +29,11 @@ export {
 		## The file handle for the file to be extracted
 		extraction_file:  file &log &optional;
 		
-		## A boolean to indicate if the current file transfer shoudl be transfered.
+		## A boolean to indicate if the current file transfer should be extraced.
 		extract_file:     bool &default=F;
+		
+		## The count of the number of file that have been extracted during the session.
+		num_extracted_files:   count &default=0;
 	};
 }
 
@@ -48,12 +51,13 @@ event file_transferred(c: connection, prefix: string, descr: string,
 	irc$dcc_mime_type = mime_type;
 
 	if ( extract_file_types in mime_type )
-		irc$extract_file = T;
-
-	if ( irc$extract_file )
 		{
+		irc$extract_file = T;
 		add irc$tags[EXTRACTED_FILE];
-		irc$extraction_file = open(fmt("%s.%s", extraction_prefix, id_string(c$id)));
+		
+		local suffix = fmt("%d.dat", ++irc$num_extracted_files);
+		local fname = generate_extraction_filename(extraction_prefix, c, suffix);
+		irc$extraction_file = open(fname);
 		}
 	
 	}
@@ -72,12 +76,11 @@ event file_transferred(c: connection, prefix: string, descr: string,
 	
 	# Delete these values in case another DCC transfer 
 	# happens during the IRC session.
-	# TODO: uncomment these when this operator works
-	# delete irc$extract_file;
-	# delete irc$extraction_file;
-	# delete irc$dcc_file_name;
-	# delete irc$dcc_file_size;
-	# delete irc$dcc_mime_type;
+	delete irc$extract_file;
+	delete irc$extraction_file;
+	delete irc$dcc_file_name;
+	delete irc$dcc_file_size;
+	delete irc$dcc_mime_type;
 	delete dcc_expected_transfers[id$resp_h, id$resp_p];
 	}
 

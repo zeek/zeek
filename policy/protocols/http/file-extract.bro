@@ -21,14 +21,14 @@ export {
 }
 
 redef record Info += {
-	# TODO: this will go away once file types can be sent to the logging framework.
-	extracted_filename:  string &optional &log;
-	
 	## This field can be set per-connection to determine if the entity body
 	## will be extracted.  It must be set to T on or before the first 
 	## entity_body_data event.
 	extract_file:        bool &default=F;
-	extracted_file:      file &optional;
+	
+	## This is the holder for the file handle as the file is being written
+	## to disk.
+	extraction_file:      file &log &optional;
 };
 
 redef record State += {
@@ -51,24 +51,18 @@ event http_entity_data(c: connection, is_orig: bool, length: count, data: string
 		return;
 		
 	# Open a file handle if this file hasn't seen any data yet.
-	if ( ! c$http?$extracted_file )
+	if ( ! c$http?$extraction_file )
 		{
-		local id = c$id;
-		local fname = fmt("%s.%d.%s_%d.%s_%d.%s",
-					extraction_prefix, c$http_state$entity_bodies,
-					id$orig_h, id$orig_p,
-					id$resp_h, id$resp_p,
-					is_orig ? "orig" : "resp");
-		# TODO: removed once the extract_file field can be logged.
-		c$http$extracted_filename = fname;
-		c$http$extracted_file = open(fname);
-		# TODO: is the problem with NULL bytes and raw_output still there?
-		enable_raw_output(c$http$extracted_file);
+		local suffix = fmt("_%s_%d.dat", is_orig ? "orig" : "resp", c$http_state$entity_bodies);
+		local fname = generate_extraction_filename(extraction_prefix, c, suffix);
+		
+		c$http$extraction_file = open(fname);
+		enable_raw_output(c$http$extraction_file);
 		}
 	}
 
 event http_entity_data(c: connection, is_orig: bool, length: count, data: string) &priority=-5
 	{
-	if ( c$http?$extracted_file )
-		print c$http$extracted_file, data;
+	if ( c$http?$extraction_file )
+		print c$http$extraction_file, data;
 	}

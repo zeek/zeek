@@ -10,15 +10,16 @@ export {
 	const extraction_prefix = "mime-item" &redef;
 
 	redef record Info += {
-		## The name of the file where this MIME entity is written.
-		extracted_filename: string &optional &log;
-		
 		## Optionally write the file to disk.  Must be set prior to first 
 		## data chunk being seen in an event.
-		extract_file:     bool    &default=F;
+		extract_file:         bool    &default=F;
 	
 		## Store the file handle here for the file currently being extracted.
-		file_handle:      file    &optional;
+		extraction_file:      file    &optional;
+		
+		## Store a count of the number of files that have been transferred in
+		## this conversation to create unique file names on disk.
+		num_extracted_files:  count   &optional;
 	};
 }
 
@@ -32,26 +33,22 @@ event mime_segment_data(c: connection, length: count, data: string) &priority=3
 	{
 	if ( c$mime$extract_file && c$mime$content_len == 0 )
 		{
-		local id = c$id;
-		c$mime$extracted_filename = fmt("%s.%s.%s:%d-%s:%d_%d.dat", 
-		                                extraction_prefix, c$uid,
-		                                id$orig_h, id$orig_p, 
-		                                id$resp_h, id$resp_p,
-		                                c$mime_state$level);
-		c$mime$file_handle = open(c$mime$extracted_filename);
-		enable_raw_output(c$mime$file_handle);
+		local suffix = fmt("%d.dat", ++c$mime$num_extracted_files);
+		local fname = generate_extraction_filename(extraction_prefix, c, suffix);
+		c$mime$extraction_file = open(fname);
+		enable_raw_output(c$mime$extraction_file);
 		}
 	}
 	
 event mime_segment_data(c: connection, length: count, data: string) &priority=-5
 	{
-	if ( c$mime$extract_file && c$mime?$file_handle )
-		print c$mime$file_handle, data;
+	if ( c$mime$extract_file && c$mime?$extraction_file )
+		print c$mime$extraction_file, data;
 	}
 	
 event mime_end_entity(c: connection) &priority=-5
 	{
-	if ( c$mime?$file_handle )
-		close(c$mime$file_handle);
+	if ( c$mime?$extraction_file )
+		close(c$mime$extraction_file);
 	}
 	

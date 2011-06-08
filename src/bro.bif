@@ -3339,7 +3339,7 @@ function bro_has_ipv6%(%) : bool
 #endif
     %}
 
-function unique_id%(prefix: string%) : bool
+function unique_id%(prefix: string%) : string
 	%{
 	char tmp[20];
 	uint64 uid = calculate_unique_id();

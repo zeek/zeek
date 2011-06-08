@@ -7,6 +7,7 @@
 @load functions
 @load notice
 @load utils/directions-and-hosts
+@load utils/numbers
 
 module Software;
 
@@ -277,11 +278,11 @@ function parse(unparsed_version: string,
 				}
 		
 			if ( 3 in version_numbers && version_numbers[3] != "" )
-				v$minor2 = to_count(version_numbers[3]);
+				v$minor2 = extract_count(version_numbers[3]);
 			if ( 2 in version_numbers && version_numbers[2] != "" )
-				v$minor = to_count(version_numbers[2]);
+				v$minor = extract_count(version_numbers[2]);
 			if ( 1 in version_numbers && version_numbers[1] != "" )
-				v$major = to_count(version_numbers[1]);
+				v$major = extract_count(version_numbers[1]);
 			}
 		}
 	return [$ts=network_time(), $host=host, $name=software_name,

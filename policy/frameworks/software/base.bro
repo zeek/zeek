@@ -276,11 +276,11 @@ function parse(unparsed_version: string,
 					}
 				}
 		
-			if ( |version_numbers| >= 3 && version_numbers[3] != "" )
+			if ( 3 in version_numbers && version_numbers[3] != "" )
 				v$minor2 = to_count(version_numbers[3]);
-			if ( |version_numbers| >= 2 && version_numbers[2] != "" )
+			if ( 2 in version_numbers && version_numbers[2] != "" )
 				v$minor = to_count(version_numbers[2]);
-			if ( |version_numbers| >= 1 && version_numbers[1] != "" )
+			if ( 1 in version_numbers && version_numbers[1] != "" )
 				v$major = to_count(version_numbers[1]);
 			}
 		}

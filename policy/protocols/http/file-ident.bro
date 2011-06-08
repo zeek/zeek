@@ -1,9 +1,6 @@
 ##! This script is involved in the identification of file types in HTTP
 ##! response bodies.
 
-# TODO: 
-#  * Add a filter for configurably extracting certain file types into their own log?
-
 @load http/base
 @load http/utils
 
@@ -28,23 +25,6 @@ export {
 	redef enum Tags += {
 		IDENTIFIED_FILE
 	};
-	
-	# Since we're looking into the body for the mimetype detection, logging
-	# *can't* take place until after the body.  To account for short bodies 
-	# that may be contained within a single packet, we will wait until the 
-	# next request because the http_entity_done event currently fires before 
-	# HTTP body content matching signatures.
-	# TODO: should there be another log point for "after X body bytes"?
-	redef default_log_point = AFTER_REPLY;
-	
-	# MIME types that you'd like this script to identify and log.
-	const watched_mime_types = /application\/x-dosexec/
-	                         | /application\/x-executable/ &redef;
-	
-	# TODO This may be better done with a filter.
-	# URLs included here are not logged and notices are not thrown.
-	# Take care when defining regexes to not be overly broad.
-	#const ignored_uris = /^http:\/\/(au\.|www\.)?download\.windowsupdate\.com\/msdownload\/update/ &redef;
 	
 	# Create regexes that *should* in be in the urls for specifics mime types.
 	# Notices are thrown if the pattern doesn't match the url for the file type.

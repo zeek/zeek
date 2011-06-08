@@ -18,13 +18,6 @@ redef record Software::Info += {
 	url:   string &optional &log;
 };
 
-export {
-	type WebApp: record {
-		url: string;
-		sw:  Software::Info;
-	};
-}
-
 event signature_match(state: signature_state, msg: string, data: string) &priority=5
 	{
 	if ( /^webapp-/ !in state$sig_id ) return;

@@ -10,44 +10,50 @@ export {
 		EMPTY
 	};
 	
-	type LogPoint: enum { 
-		AFTER_REQUEST,
-		AFTER_REQUEST_BODY,
-		AFTER_REPLY, 
-		AFTER_REPLY_BODY,
-	};
-	
-	## Define the default point at which you'd like the logging to take place.
-	## If you wait until after the reply body, you can be assured that you will
-	## get the most data, but at the expense of a delayed log which could
-	## be substantial in the event of a large file download, but it's typically
-	## not much of a problem.  To mitigate, you may want to change this value
-	## to AFTER_REPLY which will cause the log action to take place after all
-	## of the response headers.
-	## This is settable per-session too by setting the $log_point value
-	## in an Info record to another of the LogPoint enum values.
-	const default_log_point: LogPoint = AFTER_REPLY &redef;
+	## This setting changes if passwords used in Basic-Auth are captured or not.
+	const default_capture_password = F &redef;
 	
 	type Info: record {
 		ts:                      time     &log;
 		uid:                     string   &log;
 		id:                      conn_id  &log;
+		## The verb used in the HTTP request (GET, POST, HEAD, etc.).
 		method:                  string   &log &optional;
+		## The value of the HOST header.
 		host:                    string   &log &optional;
+		## The URI used in the request.
 		uri:                     string   &log &optional;
+		## The value of the "referer" header.  The comment is deliberately
+		## misspelled like the standard declares, but the name used here is
+		## "referrer" spelled correctly.
 		referrer:                string   &log &optional;
+		## The value of the User-Agent header from the client.
 		user_agent:              string   &log &optional;
+		## The value of the Content-Length header from the client.
 		request_content_length:  count    &log &optional;
+		## The value of the Content-Length header from the server.
 		response_content_length: count    &log &optional;
+		## The status code returned by the server.
 		status_code:             count    &log &optional;
+		## The status message returned by the server.
 		status_msg:              string   &log &optional;
+		## The filename given in the Content-Disposition header
+		## sent by the server.
+		filename:                string   &log &optional;
 		## This is a set of indicators of various attributes discovered and
 		## related to a particular request/response pair.
 		tags:                    set[Tags] &log;
 		
-		#file_name: string; ##maybe if the header's there?
+		## The username if basic-auth is performed for the request.
+		username:           string  &log &optional;
+		## The password if basic-auth is performed for the request.
+		password:           string  &log &optional;
 		
-		log_point:               LogPoint &default=default_log_point;
+		## This determines if the password will be captured for this request.
+		capture_password:   bool &default=default_capture_password;
+		
+		## All of the headers that may indicate if the request was proxied.
+		proxied:            set[string] &log &optional;
 	};
 	
 	type State: record {
@@ -55,11 +61,22 @@ export {
 		current_response: count                &default=0;
 		current_request:  count                &default=0;
 	};
+		
+	## The list of HTTP headers typically used to indicate a proxied request.
+	const proxy_headers: set[string] = {
+		"FORWARDED",
+		"X-FORWARDED-FOR",
+		"X-FORWARDED-FROM",
+		"CLIENT-IP",
+		"VIA",
+		"XROXY-CONNECTION",
+		"PROXY-CONNECTION",
+	} &redef;
 	
 	global log_http: event(rec: Info);
 }
 
-# Add the http state tracking field to the connection record.
+# Add the http state tracking fields to the connection record.
 redef record connection += {
 	http:        Info  &optional;
 	http_state:  State &optional;
@@ -161,37 +178,52 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 			
 		else if ( name == "USER-AGENT" )
 			c$http$user_agent = value;
+			
+		else if ( name in proxy_headers )
+				{
+				if ( ! c$http?$proxied )
+					c$http$proxied = set();
+				add c$http$proxied[fmt("%s -> %s", name, value)];
+				}
+
+		else if ( name == "AUTHORIZATION" )
+			{
+			if ( /^[bB][aA][sS][iI][cC] / in value )
+				{
+				local userpass = decode_base64(sub(value, /[bB][aA][sS][iI][cC][[:blank:]]/, ""));
+				local up = split(userpass, /:/);
+				if ( |up| >= 2 )
+					{
+					c$http$username = up[1];
+					if ( c$http$capture_password )
+						c$http$password = up[2];
+					}
+				else
+					{
+					c$http$username = "<problem-decoding>";
+					if ( c$http$capture_password )
+						c$http$password = userpass;
+					}
+				}
+			}
+			
+			
 		}
 	else # server headers
 		{
 		if ( name == "CONTENT-LENGTH" )
 			c$http$response_content_length = to_count(strip(value));
+		else if ( name == "CONTENT-DISPOSITION" &&
+		          /[fF][iI][lL][eE][nN][aA][mM][eE]/ in value )
+			c$http$filename = sub(value, /^.*[fF][iI][lL][eE][nN][aA][mM][eE]=/, "");
 		}
 	}
 	
 event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &priority=5
 	{
+	# We are still handling this event in case a user is handling it so that
+	# they don't need to call the set_state function in their handler.
 	set_state(c, F, is_orig);
-	}
-	
-event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &priority=-5
-	{
-	# For some reason the analyzer seems to generate this event an extra time 
-	# when there is an interruption.  I'm not sure what's going on with that.
-	if ( stat$interrupted )
-		return;
-	
-	if ( is_orig && c$http$log_point == AFTER_REQUEST )
-		{
-		Log::write(HTTP, c$http);
-		delete c$http_state$pending[c$http_state$current_request];
-		}
-	
-	if ( ! is_orig && c$http$log_point == AFTER_REPLY )
-		{
-		Log::write(HTTP, c$http);
-		delete c$http_state$pending[c$http_state$current_response];
-		}
 	}
 
 event http_end_entity(c: connection, is_orig: bool) &priority=5
@@ -199,17 +231,10 @@ event http_end_entity(c: connection, is_orig: bool) &priority=5
 	set_state(c, F, is_orig);
 	}
 	
-# I don't like handling the AFTER_*_BODY handling this way, but I'm not
-# seeing another post-body event to handle.
 event http_end_entity(c: connection, is_orig: bool) &priority=-5
 	{
-	if ( is_orig && c$http$log_point == AFTER_REQUEST_BODY )
-		{
-		Log::write(HTTP, c$http);
-		delete c$http_state$pending[c$http_state$current_request];
-		}
-
-	if ( ! is_orig && c$http$log_point == AFTER_REPLY_BODY )
+	# The reply body is done so we're ready to log.
+	if ( ! is_orig )
 		{
 		Log::write(HTTP, c$http);
 		delete c$http_state$pending[c$http_state$current_response];
@@ -218,7 +243,7 @@ event http_end_entity(c: connection, is_orig: bool) &priority=-5
 	
 event connection_state_remove(c: connection)
 	{
-	# Flush all unmatched requests.
+	# Flush all unmatched.
 	if ( c?$http_state )
 		{
 		for ( r in c$http_state$pending )

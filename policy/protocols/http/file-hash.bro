@@ -1,4 +1,4 @@
-##! Calculate hashes for HTTP body transfers
+##! Calculate hashes for HTTP body transfers.
 
 @load http/file-ident
 @load notice
@@ -19,7 +19,7 @@ export {
 		## The MD5 sum for a file transferred over HTTP will be stored here.
 		md5:             string   &log &optional;
 		
-		## This value can can be set at runtime to determine per request
+		## This value can be set per-transfer to determine per request
 		## if a file should have an MD5 sum generated.  It must be
 		## set to T at the time of or before the first chunk of body data.
 		calc_md5:        bool &default=F;
@@ -87,7 +87,7 @@ event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &
 		local hash_domain = fmt("%s.malware.hash.cymru.com", c$http$md5);
 		when ( local addrs = lookup_hostname(hash_domain) )
 			{
-			# 127.0.0.1 indicates that the md5 sum was found in the MHR.
+			# 127.0.0.2 indicates that the md5 sum was found in the MHR.
 			if ( 127.0.0.2 in addrs )
 				{
 				local message = fmt("%s %s %s", c$id$orig_h, c$http$md5, url);

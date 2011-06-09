@@ -252,14 +252,6 @@ function fill_in_missing_details(n: Notice::Info)
 
 	# Generate a unique ID for this notice.
 	n$tag = unique_id("@");
-
-	# Add the tag to the connection's notice_tags if there is a connection.
-	if ( n?$conn && n$conn?$conn )
-		{
-		if ( ! n$conn$conn?$notice_tags )
-			n$conn$conn$notice_tags = set();
-		add n$conn$conn$notice_tags[n$tag];
-		}
 		
 	local action = match n using policy;
 	if ( action != ACTION_IGNORE && 
@@ -277,6 +269,14 @@ event notice(n: Notice::Info) &priority=-5
 
 	if ( n$action != ACTION_IGNORE )
 		{
+		# Add the tag to the connection's notice_tags if there is a connection.
+		if ( n?$conn && n$conn?$conn )
+			{
+			if ( ! n$conn$conn?$notice_tags )
+				n$conn$conn$notice_tags = set();
+			add n$conn$conn$notice_tags[n$tag];
+			}
+		
 		Log::write(NOTICE_LOG, n);
 
 		if ( n$action != ACTION_FILE && n$do_alarm )

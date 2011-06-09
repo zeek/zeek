@@ -96,13 +96,12 @@ event irc_server(c: connection, prefix: string, data: string) &priority=5
 	     /^[0-9]*$/ == parts[|parts|-2] )
 		{
 		c$irc$command = "DCC SEND";
-		#local ex_h = count_to_v4_addr(to_count(parts[|parts|-4]));
+		local ex_h = count_to_v4_addr(extract_count(parts[|parts|-4]));
 		local ex_p = to_port(to_count(parts[|parts|-2]), tcp);
 		c$irc$dcc_file_name = parts[|parts|-6];
-		c$irc$dcc_file_size = to_count(parts[|parts|]);
-		#print fmt("file! %s->%s:%d", c$id$orig_h, ex_h, ex_p);
-		#expect_connection(c$id$orig_h, ex_h, ex_p, ANALYZER_FILE, 5 min);
-		#dcc_expected_transfers[ex_h, ex_p];
+		c$irc$dcc_file_size = extract_count(parts[|parts|]);
+		expect_connection(c$id$orig_h, ex_h, ex_p, ANALYZER_FILE, 5 min);
+		dcc_expected_transfers[ex_h, ex_p];
 		}
 	}
 

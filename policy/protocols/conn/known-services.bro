@@ -46,7 +46,7 @@ function known_services_done(c: connection)
 	local id = c$id;
 	if ( c?$known_services &&
 	     [id$resp_h, id$resp_p] !in known_services &&
-	     "ftp-data" !in c$service ) ##< don't include ftp data sessions
+	     "ftp-data" !in c$service ) # don't include ftp data sessions
 		{
 		add known_services[id$resp_h, id$resp_p];
 		c$known_services$service=c$service;

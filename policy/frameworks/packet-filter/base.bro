@@ -5,11 +5,11 @@
 
 module Filter;
 
-redef enum PcapFilterID += {
-	DefaultPcapFilter,
-};
-
 export {
+	redef enum PcapFilterID += {
+		DefaultPcapFilter,
+	};
+
 	## By default, Bro will examine all packets. If this is set to false,
 	## it will dynamically build a BPF filter that only select protocols
 	## for which the user has loaded a corresponding analysis script.

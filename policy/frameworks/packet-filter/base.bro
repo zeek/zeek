@@ -3,7 +3,7 @@
 ##! is set on the command line, that filter takes precedence over the default
 ##! open filter and all filter defined internally in Bro scripts.
 
-module Filter;
+module PacketFilter;
 
 export {
 	redef enum PcapFilterID += {

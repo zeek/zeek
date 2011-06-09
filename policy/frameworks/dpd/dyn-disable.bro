@@ -10,16 +10,17 @@ export {
 	redef enum Notice::Type += {
 		ProtocolViolation
 	};
-
+	
+	redef record DPD::Info += {
+		## Disabled analyzer IDs.
+		# TODO: This is waiting on ticket #460 to remove the '0'.
+		disabled_aids: set[count] &default=set(0);
+	};
+	
 	## Ignore violations which go this many bytes into the connection.
 	const max_data_volume = 10 * 1024 &redef;
 }
 
-redef record Info += {
-	## Disabled analyzer IDs.
-	# TODO: This is waiting on ticket #460 to remove the '0'.
-	disabled_aids: set[count] &default=set(0);
-};
 
 event protocol_violation(c: connection, atype: count, aid: count,
 				reason: string) &priority=5

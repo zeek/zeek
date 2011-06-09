@@ -5,12 +5,12 @@
 
 module DPD;
 
-# Add the DPD signatures.
+## Add the DPD signatures to the signature framework.
 redef signature_files += "dpd/dpd.sig";
 
-redef enum Log::ID += { DPD };
-
 export {
+	redef enum Log::ID += { DPD_LOG };
+
 	type Info: record {
 		ts:             time            &log;
 		uid:            string          &log;
@@ -27,7 +27,7 @@ redef record connection += {
 
 event bro_init()
 	{
-	Log::create_stream(DPD, [$columns=Info]);
+	Log::create_stream(DPD_LOG, [$columns=Info]);
 	
 	for ( a in dpd_config )
 		{
@@ -68,5 +68,5 @@ event protocol_violation(c: connection, atype: count, aid: count,
 event protocol_violation(c: connection, atype: count, aid: count,
 				reason: string) &priority=-5
 	{
-	Log::write(DPD, c$dpd);
+	Log::write(DPD_LOG, c$dpd);
 	}

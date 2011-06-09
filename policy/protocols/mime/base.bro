@@ -5,9 +5,9 @@
 
 module MIME;
 
-redef enum Log::ID += { MIME };
-
 export {
+	redef enum Log::ID += { MIME };
+
 	# Let's assume for now that nothing transferring files using 
 	# MIME attachments is multiplexing for simplicity's sake.
 	#   We can make the assumption that one connection == one file (at a time)

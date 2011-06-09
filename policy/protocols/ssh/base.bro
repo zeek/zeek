@@ -3,17 +3,17 @@
 
 module SSH;
 
-redef enum Notice::Type += {
-	SSH_Login,
-	SSH_PasswordGuessing,
-	SSH_LoginByPasswordGuesser,
-	SSH_Login_From_Interesting_Hostname,
-	SSH_Bytecount_Inconsistency,
-};
-
-redef enum Log::ID += { SSH };
-
 export {
+	redef enum Log::ID += { SSH };
+
+	redef enum Notice::Type += {
+		Login,
+		PasswordGuessing,
+		LoginByPasswordGuesser,
+		Login_From_Interesting_Hostname,
+		Bytecount_Inconsistency,
+	};
+
 	type Info: record {
 		ts:              time         &log;
 		uid:             string       &log;
@@ -142,7 +142,7 @@ function check_ssh_connection(c: connection, done: bool)
 		if ( default_check_threshold(password_rejections[c$id$orig_h]) )
 			{
 			add password_guessers[c$id$orig_h];
-			NOTICE([$note=SSH_PasswordGuessing,
+			NOTICE([$note=PasswordGuessing,
 			        $conn=c,
 			        $msg=fmt("SSH password guessing by %s", c$id$orig_h),
 			        $sub=fmt("%d failed logins", password_rejections[c$id$orig_h]$n),
@@ -162,7 +162,7 @@ function check_ssh_connection(c: connection, done: bool)
 		     c$id$orig_h !in password_guessers )
 			{
 			add password_guessers[c$id$orig_h];
-			NOTICE([$note=SSH_LoginByPasswordGuesser,
+			NOTICE([$note=LoginByPasswordGuesser,
 			        $conn=c,
 			        $n=password_rejections[c$id$orig_h]$n,
 			        $msg=fmt("Successful SSH login by password guesser %s", c$id$orig_h),
@@ -174,7 +174,7 @@ function check_ssh_connection(c: connection, done: bool)
 		              location$latitude, location$longitude,
 		              id_string(c$id), c$resp$size);
 		# TODO: rewrite the message once a location variable can be put in notices
-		NOTICE([$note=SSH_Login,
+		NOTICE([$note=Login,
 		        $conn=c,
 		        $msg=message,
 		        $sub=location$country_code]);
@@ -184,7 +184,7 @@ function check_ssh_connection(c: connection, done: bool)
 			{
 			if ( interesting_hostnames in hostname )
 				{
-				NOTICE([$note=SSH_Login_From_Interesting_Hostname,
+				NOTICE([$note=Login_From_Interesting_Hostname,
 				        $conn=c,
 				        $msg=fmt("Strange login from %s", hostname),
 				        $sub=hostname]);
@@ -193,7 +193,7 @@ function check_ssh_connection(c: connection, done: bool)
 		}
 	else if ( c$resp$size >= 200000000 ) 
 		{
-		NOTICE([$note=SSH_Bytecount_Inconsistency,
+		NOTICE([$note=Bytecount_Inconsistency,
 		        $conn=c,
 		        $msg="During byte counting in SSH analysis, an overly large value was seen.",
 		        $sub=fmt("%d",c$resp$size)]);

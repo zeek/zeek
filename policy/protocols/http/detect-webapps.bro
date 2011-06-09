@@ -10,13 +10,15 @@ redef signature_files += "http/detect-webapps.sig";
 # Ignore the signatures used to match webapps
 redef Signatures::ignored_ids += /^webapp-/;
 
-redef enum Software::Type += {
-	WEB_APPLICATION,
-};
+export {
+	redef enum Software::Type += {
+		WEB_APPLICATION,
+	};
 
-redef record Software::Info += {
-	url:   string &optional &log;
-};
+	redef record Software::Info += {
+		url:   string &optional &log;
+	};
+}
 
 event signature_match(state: signature_state, msg: string, data: string) &priority=5
 	{

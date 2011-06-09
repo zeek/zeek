@@ -11,10 +11,12 @@
 
 module FTP;
 
-redef enum Software::Type += {
-	FTP_CLIENT,
-	FTP_SERVER,
-};
+export {
+	redef enum Software::Type += {
+		FTP_CLIENT,
+		FTP_SERVER,
+	};
+}
 
 event ftp_request(c: connection, command: string, arg: string) &priority=4
 	{

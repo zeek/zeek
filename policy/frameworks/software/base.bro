@@ -11,17 +11,17 @@
 
 module Software;
 
-redef enum Notice::Type += { 
-	## For certain softwares, a version changing may matter.  In that case, 
-	## this notice will be generated.  Software that matters if the version
-	## changes can be configured with the 
-	## :bro:id:`Software::interesting_version_changes` variable.
-	Software_Version_Change,
-};
-
-redef enum Log::ID += { SOFTWARE };
-
 export {
+	redef enum Notice::Type += { 
+		## For certain softwares, a version changing may matter.  In that case, 
+		## this notice will be generated.  Software that matters if the version
+		## changes can be configured with the 
+		## :bro:id:`Software::interesting_version_changes` variable.
+		Software_Version_Change,
+	};
+
+	redef enum Log::ID += { SOFTWARE };
+
 	type Type: enum {
 		UNKNOWN,
 		OPERATING_SYSTEM,

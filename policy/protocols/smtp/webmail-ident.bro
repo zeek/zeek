@@ -12,13 +12,13 @@
 
 module SMTP;
 
-redef record Info += {
-	## Boolean indicator of if the message was sent through a webmail 
-	## interface.
-	is_webmail: bool &log &default=F;
-};
-
 export {
+	redef record Info += {
+		## Boolean indicator of if the message was sent through a webmail 
+		## interface.
+		is_webmail: bool &log &default=F;
+	};
+
 	## A regular expression to match USER-AGENT-like headers to find if a 
 	## message was sent with a webmail interface.
 	const webmail_user_agents = 

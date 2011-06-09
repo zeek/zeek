@@ -2,9 +2,9 @@
 
 module HTTP;
 
-redef enum Log::ID += { HTTP };
-
 export {
+	redef enum Log::ID += { HTTP };
+
 	## Indicate a type of attack or compromise in the record to be logged.
 	type Tags: enum {
 		EMPTY

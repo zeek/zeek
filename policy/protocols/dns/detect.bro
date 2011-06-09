@@ -13,12 +13,14 @@
 
 module DNS;
 
-redef enum Notice::Type += { 
-	## Raised when a non-local name is found to be pointing at a local host.
-	## This only works appropriately when all of your authoritative DNS
-	## servers are located in your :bro:id:`local_nets`.
-	DNS_ExternalName, 
-	};
+export {
+	redef enum Notice::Type += { 
+		## Raised when a non-local name is found to be pointing at a local host.
+		## This only works appropriately when all of your authoritative DNS
+		## servers are located in your :bro:id:`local_nets`.
+		DNS_ExternalName, 
+		};
+}
 
 event dns_A_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr) &priority=-3
 	{

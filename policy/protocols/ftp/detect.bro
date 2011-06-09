@@ -3,11 +3,13 @@
 
 module FTP;
 
-redef enum Notice::Type += {
-	## This indicates that a successful response to a "SITE EXEC" 
-	## command/arg pair was seen.
-	FTP_Site_Exec_Success,
-};
+export {
+	redef enum Notice::Type += {
+		## This indicates that a successful response to a "SITE EXEC" 
+		## command/arg pair was seen.
+		Site_Exec_Success,
+	};
+}
 
 event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &priority=3
 	{
@@ -18,7 +20,7 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &prior
 	     c$ftp$cmdarg$cmd == "SITE" && 
 	     /[Ee][Xx][Ee][Cc]/ in c$ftp$cmdarg$arg )
 		{
-		NOTICE([$note=FTP_Site_Exec_Success, $conn=c,
+		NOTICE([$note=Site_Exec_Success, $conn=c,
 		        $msg=fmt("%s %s", c$ftp$cmdarg$cmd, c$ftp$cmdarg$arg)]);
 		}
 	}

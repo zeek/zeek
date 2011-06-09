@@ -15,9 +15,9 @@
 
 module FTP;
 
-redef enum Log::ID += { FTP };
-
 export {
+	redef enum Log::ID += { FTP };
+
 	## This setting changes if passwords used in FTP sessions are captured or not.
 	const default_capture_password = F &redef;
 

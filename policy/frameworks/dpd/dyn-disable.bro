@@ -6,11 +6,11 @@
 
 module DPD;
 
-redef enum Notice::Type += {
-	ProtocolViolation
-};
-
 export {
+	redef enum Notice::Type += {
+		ProtocolViolation
+	};
+
 	## Ignore violations which go this many bytes into the connection.
 	const max_data_volume = 10 * 1024 &redef;
 }

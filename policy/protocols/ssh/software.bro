@@ -3,10 +3,12 @@
 
 module SSH;
 
-redef enum Software::Type += {
-	SSH_SERVER,
-	SSH_CLIENT,
-};
+export {
+	redef enum Software::Type += {
+		SSH_SERVER,
+		SSH_CLIENT,
+	};
+}
 
 event ssh_client_version(c: connection, version: string) &priority=4
 	{

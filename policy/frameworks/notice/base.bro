@@ -9,11 +9,11 @@
 
 module Notice;
 
-# This couldn't be named NOTICE because that id is already used by the
-# global function NOTICE().
-redef enum Log::ID += { NOTICE_LOG };
-
 export {
+	# This couldn't be named NOTICE because that id is already used by the
+	# global function NOTICE().
+	redef enum Log::ID += { NOTICE_LOG };
+
 	## Scripts creating new notices need to redef this enum to add their own 
 	## specific notice types which would then get used when they call the
 	## :bro:id:`NOTICE` function.  The convention is to give a general category

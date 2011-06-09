@@ -9,19 +9,18 @@
 
 module HTTP;
 
-redef enum Notice::Type += {
-	# This notice is thrown when the file extension doesn't 
-	# seem to match the file contents.
-	HTTP_IncorrectFileType,
-};
-
-redef record Info += {
-	## This will record the mime_type identified.
-	mime_type:    string   &log &optional;
-};
-
-
 export {
+	redef enum Notice::Type += {
+		# This notice is thrown when the file extension doesn't 
+		# seem to match the file contents.
+		IncorrectFileType,
+	};
+
+	redef record Info += {
+		## This will record the mime_type identified.
+		mime_type:    string   &log &optional;
+	};
+
 	redef enum Tags += {
 		IDENTIFIED_FILE
 	};
@@ -65,7 +64,7 @@ event signature_match(state: signature_state, msg: string, data: string) &priori
 		{
 		local url = build_url(c$http);
 		local message = fmt("%s %s %s", msg, c$http$method, url);
-		NOTICE([$note=HTTP_IncorrectFileType,
+		NOTICE([$note=IncorrectFileType,
 		        $msg=message,
 		        $conn=c,
 		        $method=c$http$method,

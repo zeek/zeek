@@ -7,18 +7,18 @@
 
 module SMTP;
 
-redef enum Notice::Type += { 
-	## Indicates that the server sent a reply mentioning an SMTP block list.
-	SMTP_BL_Error_Message, 
-	## Indicates the client's address is seen in the block list error message.
-	SMTP_BL_Blocked_Host, 
-	## When mail seems to originate from a suspicious location.
-	SMTP_Suspicious_Origination,
-};
-
-redef enum Log::ID += { SMTP };
-
 export {
+	redef enum Log::ID += { SMTP };
+
+	redef enum Notice::Type += { 
+		## Indicates that the server sent a reply mentioning an SMTP block list.
+		SMTP_BL_Error_Message, 
+		## Indicates the client's address is seen in the block list error message.
+		SMTP_BL_Blocked_Host, 
+		## When mail seems to originate from a suspicious location.
+		SMTP_Suspicious_Origination,
+	};
+
 	type Info: record {
 		ts:                time            &log;
 		uid:               string          &log;

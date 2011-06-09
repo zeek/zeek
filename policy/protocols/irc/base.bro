@@ -6,9 +6,9 @@
 
 module IRC;
 
-redef enum Log::ID += { IRC };
-
 export {
+	redef enum Log::ID += { IRC };
+
 	type Tag: enum { 
 		EMPTY 
 	};

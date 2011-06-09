@@ -6,10 +6,12 @@
 
 module SMTP;
 
-redef enum Software::Type += {
-	MAIL_CLIENT,
-	MAIL_SERVER,
-};
+export {
+	redef enum Software::Type += {
+		MAIL_CLIENT,
+		MAIL_SERVER,
+	};
+}
 
 event log_smtp(rec: Info)
 	{

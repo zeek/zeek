@@ -5,21 +5,20 @@
 
 module HTTP;
 
-redef enum Software::Type += {
-	WEB_SERVER,
-	WEB_BROWSER,
-	WEB_BROWSER_PLUGIN
-};
-
-
 export {
+	redef enum Software::Type += {
+		WEB_SERVER,
+		WEB_BROWSER,
+		WEB_BROWSER_PLUGIN
+	};
+
 	## The pattern of HTTP User-Agents which you would like to ignore.
 	const ignored_user_agents = /NO_DEFAULT/ &redef;
 	
 	## These are patterns to identify browser plugins (including toolbars)
 	## based on the User-Agent header.
-	const plugin_user_agents = /BingBar [0-9\.]*/         # Bing toolbar
-	                          | /GoogleToolbar [0-9\.]*;/ &redef; # Google toolbar
+	const plugin_user_agents = /BingBar [0-9\.]*/                 ##< Bing toolbar
+	                          | /GoogleToolbar [0-9\.]*;/ &redef; ##< Google toolbar
 }
 
 event http_header(c: connection, is_orig: bool, name: string, value: string) &priority=2
@@ -46,8 +45,6 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 	else
 		{
 		if ( name == "SERVER" )
-			{
 			Software::found(c$id, Software::parse(value, c$id$resp_h, WEB_SERVER));
-			}
 		}
 	}

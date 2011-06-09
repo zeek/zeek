@@ -19,22 +19,22 @@ export {
 
 	## The on-disk prefix for files to be extracted from HTTP entity bodies.
 	const extraction_prefix = "http-item" &redef;
-}
 
-redef record Info += {
-	## This field can be set per-connection to determine if the entity body
-	## will be extracted.  It must be set to T on or before the first 
-	## entity_body_data event.
-	extract_file:        bool &default=F;
+	redef record Info += {
+		## This field can be set per-connection to determine if the entity body
+		## will be extracted.  It must be set to T on or before the first 
+		## entity_body_data event.
+		extract_file:        bool &default=F;
 	
-	## This is the holder for the file handle as the file is being written
-	## to disk.
-	extraction_file:      file &log &optional;
-};
+		## This is the holder for the file handle as the file is being written
+		## to disk.
+		extraction_file:      file &log &optional;
+	};
 
-redef record State += {
-	entity_bodies:       count &optional;
-};
+	redef record State += {
+		entity_bodies:       count &optional;
+	};
+}
 
 ## Mark files to be extracted if they were identified as a mime type matched 
 ## by the extract_file_types variable and they aren't being extracted yet.

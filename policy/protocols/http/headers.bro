@@ -4,13 +4,15 @@
 
 module HTTP;
 
-redef record Info += {
-	## The vector of HTTP headers.  No header values are included here, just
-	## the header names.
-	## TODO: with an empty vector as &default, the vector isn't coerced to the
-	## correct type.
-	headers:  vector of string &log &optional;
-};
+export {
+	redef record Info += {
+		## The vector of HTTP headers.  No header values are included here, just
+		## the header names.
+		## TODO: with an empty vector as &default, the vector isn't coerced to the
+		## correct type.
+		headers:  vector of string &log &optional;
+	};
+}
 
 event http_header(c: connection, is_orig: bool, name: string, value: string) &priority=4
 	{

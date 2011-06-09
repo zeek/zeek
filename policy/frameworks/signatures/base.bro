@@ -4,29 +4,29 @@
 
 module Signatures;
 
-redef enum Notice::Type += {
-	## Generic for alarm-worthy
-	Sensitive_Signature,
-	## Host has triggered many signatures on the same host.  The number of 
-	## signatures is defined by the :bro:id:`vert_scan_thresholds` variable.
-	Multiple_Signatures,
-	## Host has triggered the same signature on multiple hosts as defined by the
-	## :bro:id:`horiz_scan_thresholds` variable.
-	Multiple_Sig_Responders,
-	## The same signature has triggered multiple times for a host.  The number 
-	## of times the signature has be trigger is defined by the 
-	## :bro:id:`count_thresholds` variable.  To generate this notice, the
-	## :bro:enum:`SIG_COUNT_PER_RESP` action must be set for the signature.
-	Count_Signature,
-	## Summarize the number of times a host triggered a signature.  The 
-	## interval between summaries is defined by the :bro:id:`summary_interval` 
-	## variable.
-	Signature_Summary,
-};
-
-redef enum Log::ID += { SIGNATURES };
-
 export {
+	redef enum Notice::Type += {
+		## Generic for alarm-worthy
+		Sensitive_Signature,
+		## Host has triggered many signatures on the same host.  The number of 
+		## signatures is defined by the :bro:id:`vert_scan_thresholds` variable.
+		Multiple_Signatures,
+		## Host has triggered the same signature on multiple hosts as defined by the
+		## :bro:id:`horiz_scan_thresholds` variable.
+		Multiple_Sig_Responders,
+		## The same signature has triggered multiple times for a host.  The number 
+		## of times the signature has be trigger is defined by the 
+		## :bro:id:`count_thresholds` variable.  To generate this notice, the
+		## :bro:enum:`SIG_COUNT_PER_RESP` action must be set for the signature.
+		Count_Signature,
+		## Summarize the number of times a host triggered a signature.  The 
+		## interval between summaries is defined by the :bro:id:`summary_interval` 
+		## variable.
+		Signature_Summary,
+	};
+
+	redef enum Log::ID += { SIGNATURES };
+
 	## These are the default actions you can apply to signature matches.
 	## All of them write the signature record to the logging stream unless
 	## declared otherwise.

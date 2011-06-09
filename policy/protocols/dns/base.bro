@@ -3,9 +3,9 @@
 
 module DNS;
 
-redef enum Log::ID += { DNS };
-
 export {
+	redef enum Log::ID += { DNS };
+	
 	type Info: record {
 		ts:            time            &log;
 		uid:           string          &log;

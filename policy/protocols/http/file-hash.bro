@@ -5,16 +5,13 @@
 
 module HTTP;
 
-redef enum Notice::Type += {
-	## Indicates an MD5 sum in Team Cymru's Malware Hash Registry.  
-	## http://www.team-cymru.org/Services/MHR/
-	HTTP_MHR_Malware,
-
-	## Notice type when locally defined MD5 sums are encountered.
-	HTTP_MD5,
-};
-
 export {
+	redef enum Notice::Type += {
+		## Indicates an MD5 sum in Team Cymru's Malware Hash Registry.  
+		## http://www.team-cymru.org/Services/MHR/
+		HTTP_MHR_Malware,
+	};
+
 	redef record Info += {
 		## The MD5 sum for a file transferred over HTTP will be stored here.
 		md5:             string   &log &optional;
@@ -29,15 +26,9 @@ export {
 		calculating_md5: bool &default=F;
 	};
 	
-	# Generate MD5 sums for these filetypes.
+	## Generate MD5 sums for these filetypes.
 	const generate_md5 = /application\/x-dosexec/    # Windows and DOS executables
 	                   | /application\/x-executable/ &redef; # *NIX executable binary
-	
-	# MD5 sums that are "interesting" for your local network.
-	# The index is the MD5 sum and the yield value is used as the $msg value
-	# for notices so that you can filter in your local notice policy.
-	# TODO: this will change to use the intelligence framework.
-	const interesting_md5: table[string] of string &redef;
 }
 
 
@@ -75,15 +66,7 @@ event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &
 		local url = build_url(c$http);
 		c$http$calculating_md5 = F;
 		c$http$md5 = md5_hash_finish(c$id);
-		
-		if ( c$http$md5 in interesting_md5 )
-			{
-			NOTICE([$note=HTTP_MD5, $conn=c, $method=c$http$method, 
-			        $URL=url,
-			        $msg=interesting_md5[c$http$md5],
-			        $sub=c$http$md5]);
-			}
-		
+				
 		local hash_domain = fmt("%s.malware.hash.cymru.com", c$http$md5);
 		when ( local addrs = lookup_hostname(hash_domain) )
 			{

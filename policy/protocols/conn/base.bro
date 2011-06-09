@@ -2,9 +2,9 @@
 
 module Conn;
 
-redef enum Log::ID += { CONN };
-
 export {
+	redef enum Log::ID += { CONN };
+
 	type Info: record {
 		## This is the time of the first packet.
 		ts:           time            &log;

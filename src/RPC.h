@@ -160,8 +160,9 @@ public:
 	// (which means that we will truncate the message). 
 	bool AddToExpected(int64_t delta) { expected += delta; return !(expected>maxsize); }
 
-	// Consume a chunk of data. data and len will be adjustes accordingly.
-	// Returns true if we "exptected" bytes have been processed, i.e., returns
+	// Consume a chunk of input data (pointed to by data, up len in size).
+	// data and len will be adjustes accordingly.
+	// Returns true if "exptected" bytes have been processed, i.e., returns
 	// true when we don't expect any more data.
 	bool ConsumeChunk(const u_char*& data, int& len);
 

@@ -376,7 +376,7 @@ Contents_RPC::Contents_RPC(Connection* conn, bool orig,
 	{
 	interp = arg_interp;
 	state = WAIT_FOR_MESSAGE;
-	resync_state = INSYNC;
+	resync_state = RESYNC_INIT;
 	resync_toskip = 0;
 	start_time = 0;
 	last_time = 0;
@@ -385,16 +385,6 @@ Contents_RPC::Contents_RPC(Connection* conn, bool orig,
 void Contents_RPC::Init()
 	{
 	TCP_SupportAnalyzer::Init();
-
-	TCP_Analyzer* tcp =
-		static_cast<TCP_ApplicationAnalyzer*>(Parent())->TCP();
-	assert(tcp);
-
-	if ((IsOrig() ? tcp->OrigState() : tcp->RespState()) !=
-						TCP_ENDPOINT_ESTABLISHED)
-		{
-		NeedResync();
-		}
 	}
 
 
@@ -416,6 +406,25 @@ bool Contents_RPC::CheckResync(int& len, const u_char*& data, bool orig)
 	uint32 frame_type;
 
 	bool discard_this_chunk = false;
+
+	if (resync_state == RESYNC_INIT)
+		{ 
+		// First time CheckResync is called. If the TCP endpoint
+		// is fully established we are in sync (since it's the first chunk 
+		// of data after the SYN if its not established we need to 
+		// resync.
+		TCP_Analyzer* tcp =
+			static_cast<TCP_ApplicationAnalyzer*>(Parent())->TCP();
+		assert(tcp);
+
+		if ((IsOrig() ? tcp->OrigState() : tcp->RespState()) !=
+							TCP_ENDPOINT_ESTABLISHED)
+			{
+			NeedResync();
+			}
+		else
+			resync_state = INSYNC;
+		}
 
 	if (resync_state == INSYNC)
 		return true;

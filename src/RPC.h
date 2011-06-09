@@ -194,6 +194,7 @@ protected:
 		RESYNC_WAIT_FOR_FULL_MSG,
 		RESYNC_HAD_FULL_MSG,
 		INSYNC,
+		RESYNC_INIT,
 	} resync_state_t;
 	virtual void Init();
 	virtual bool CheckResync(int& len, const u_char*& data, bool orig);

@@ -1,6 +1,9 @@
-##! These are default settings for the Notice framework that strive to 
-##! tune out high volume and less useful data from the logs.
+##! This strives to tune out high volume and less useful data 
+##! from the notice log.
 
+@load notice
+
+# Load the policy scripts where the notices are defined.
 @load weird
 @load dpd
 

@@ -156,6 +156,7 @@ function check_ssh_connection(c: connection, done: bool)
 		{ 
 		# presumed successful login
 		status = "success";
+		c$ssh$done = T;
 
 		if ( c$id$orig_h in password_rejections &&
 		     password_rejections[c$id$orig_h]$n > password_guesses_limit &&
@@ -173,7 +174,6 @@ function check_ssh_connection(c: connection, done: bool)
 		              direction, location$country_code, location$region, location$city,
 		              location$latitude, location$longitude,
 		              id_string(c$id), c$resp$size);
-		# TODO: rewrite the message once a location variable can be put in notices
 		NOTICE([$note=Login,
 		        $conn=c,
 		        $msg=message,

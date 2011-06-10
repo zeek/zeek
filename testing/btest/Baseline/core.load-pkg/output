@@ -1,1 +1,14 @@
+loading /home/robin/bro/master/policy/bro.init
+   loading /home/robin/bro/master/build/src/const.bif.bro
+   loading /home/robin/bro/master/build/src/types.bif.bro
+   loading /home/robin/bro/master/build/src/strings.bif.bro
+   loading /home/robin/bro/master/build/src/bro.bif.bro
+   loading /home/robin/bro/master/policy/logging.bro
+      loading /home/robin/bro/master/build/src/logging.bif.bro
+   loading /home/robin/bro/master/policy/logging-ascii.bro
+   loading /home/robin/bro/master/build/src/event.bif.bro
+   loading /home/robin/bro/master/policy/pcap.bro
+   loading /home/robin/bro/master/policy/server-ports.bro
+loading ./foo/test.bro
+loading ./foo/__load__.bro
 Foo loaded

@@ -1,4 +1,5 @@
 @load functions
+@load utils/numbers
 
 module HTTP;
 
@@ -174,7 +175,7 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 			c$http$host = split1(value, /:/)[1];
 		
 		else if ( name == "CONTENT-LENGTH" )
-			c$http$request_content_length = to_count(strip(value));
+			c$http$request_content_length = extract_count(value);
 			
 		else if ( name == "USER-AGENT" )
 			c$http$user_agent = value;
@@ -212,26 +213,19 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 	else # server headers
 		{
 		if ( name == "CONTENT-LENGTH" )
-			c$http$response_content_length = to_count(strip(value));
+			c$http$response_content_length = extract_count(value);
 		else if ( name == "CONTENT-DISPOSITION" &&
 		          /[fF][iI][lL][eE][nN][aA][mM][eE]/ in value )
 			c$http$filename = sub(value, /^.*[fF][iI][lL][eE][nN][aA][mM][eE]=/, "");
 		}
 	}
 	
-event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &priority=5
-	{
-	# We are still handling this event in case a user is handling it so that
-	# they don't need to call the set_state function in their handler.
-	set_state(c, F, is_orig);
-	}
-
-event http_end_entity(c: connection, is_orig: bool) &priority=5
+event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &priority = 5
 	{
 	set_state(c, F, is_orig);
 	}
 	
-event http_end_entity(c: connection, is_orig: bool) &priority=-5
+event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &priority = -5
 	{
 	# The reply body is done so we're ready to log.
 	if ( ! is_orig )
@@ -240,14 +234,16 @@ event http_end_entity(c: connection, is_orig: bool) &priority=-5
 		delete c$http_state$pending[c$http_state$current_response];
 		}
 	}
-	
+
 event connection_state_remove(c: connection)
 	{
-	# Flush all unmatched.
+	# Flush all pending but incomplete request/response pairs.
 	if ( c?$http_state )
 		{
 		for ( r in c$http_state$pending )
-			Log::write(HTTP, c$http_state$pending[r] );
+			{
+			Log::write(HTTP, c$http_state$pending[r]);
+			}
 		}
 	}
 	

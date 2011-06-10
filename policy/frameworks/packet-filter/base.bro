@@ -1,13 +1,36 @@
 ##! This script supports how Bro sets it's BPF capture filter.  By default
 ##! Bro sets an unrestricted filter that allows all traffic.  If a filter
 ##! is set on the command line, that filter takes precedence over the default
-##! open filter and all filter defined internally in Bro scripts.
+##! open filter and all filters defined in Bro scripts with the
+##! :bro:id:`capture_filters` and :bro:id:`restrict_filters` variables.
+
+@load notice
 
 module PacketFilter;
 
 export {
-	redef enum PcapFilterID += {
-		DefaultPcapFilter,
+	redef enum Log::ID += { PACKET_FILTER };
+	
+	redef enum Notice::Type += {
+		## This notice is generated if a packet filter is unable to be compiled.
+		Compile_Failure,
+	
+		## This notice is generated if a packet filter is unable to be installed.
+		Install_Failure,
+	};
+	
+	type Info: record {
+		ts:     time   &log;
+		
+		## This is a string representation of the node that applied this
+		## packet filter.  It's mostly useful in the context of dynamically
+		## changing filters on clusters.
+		node:   string &log &optional;
+		
+		## The packet filter that is being set.
+		filter: string &log;
+		
+		success: bool &log &default=T;
 	};
 
 	## By default, Bro will examine all packets. If this is set to false,
@@ -18,13 +41,21 @@ export {
 	const all_packets = T &redef;
 	
 	## Filter string which is unconditionally or'ed to every dynamically
-	## built pcap filter.
+	## built filter.
 	const unrestricted_filter = "" &redef;
+	
+	## Call this function to build and install a new dynamically build 
+	## packet filter.
+	global install: function();
 	
 	## This is where the default packet filter is stored and it should not 
 	## normally be modified by users.
 	global default_filter = "<not set yet>";
 }
+
+redef enum PcapFilterID += {
+	DefaultPcapFilter,
+};
 
 function combine_filters(lfilter: string, rfilter: string, op: string): string
 	{
@@ -77,31 +108,39 @@ function build_default_filter(): string
 	return filter;
 	}
 
-function install_default_pcap_filter()
-	{
-	if ( ! install_pcap_filter(DefaultPcapFilter) )
-		{
-		# This could be due to a true failure, or simply
-		# because the user specified -f.  Since we currently
-		# don't have an easy way to distinguish, we punt on
-		# reporting it for now.
-		}
-	}
-
-function update_default_pcap_filter()
+function install()
 	{
 	default_filter = build_default_filter();
 
 	if ( ! precompile_pcap_filter(DefaultPcapFilter, default_filter) )
 		{
-		print fmt("can't compile filter %s", default_filter);
+		NOTICE([$note=Compile_Failure, 
+		        $msg=fmt("Compiling packet filter failed"),
+		        $sub=default_filter]);
 		exit();
 		}
-
-	install_default_pcap_filter();
+	
+	# Do an audit log for the packet filter.
+	local info: Info;
+	info$ts = network_time();
+	if ( info$ts == 0.0 )
+		info$ts = current_time();
+	info$filter = default_filter;
+	
+	if ( ! install_pcap_filter(DefaultPcapFilter) )
+		{
+		# Installing the filter failed for some reason.
+		info$success = F;
+		NOTICE([$note=Install_Failure, 
+		        $msg=fmt("Installing packet filter failed"),
+		        $sub=default_filter]);
+		}
+	
+	Log::write(PACKET_FILTER, info);
 	}
 
 event bro_init() &priority=10
 	{
-	update_default_pcap_filter();
+	Log::create_stream(PACKET_FILTER, [$columns=Info]);
+	PacketFilter::install();
 	}

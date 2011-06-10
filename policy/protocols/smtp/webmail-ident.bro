@@ -26,7 +26,8 @@ export {
 	                   | /^Sun Java\(tm\) System Messenger Express/
 	                   | /\(IMP\)/  # Horde Internet Messaging Program
 	                   | /^SquirrelMail/
-	                   | /^NeoMail/ &redef;
+	                   | /^NeoMail/ 
+	                   | /ZimbraWebClient/ &redef;
 }
 
 

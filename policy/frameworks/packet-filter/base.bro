@@ -30,7 +30,11 @@ export {
 		## The packet filter that is being set.
 		filter: string &log;
 		
-		success: bool &log &default=T;
+		## Indicate if this is the filter set during initialization.
+		init:   bool   &log &default=F;
+		
+		## Indicate if the filter was applied successfully.
+		success: bool  &log &default=T;
 	};
 
 	## By default, Bro will examine all packets. If this is set to false,
@@ -123,8 +127,12 @@ function install()
 	# Do an audit log for the packet filter.
 	local info: Info;
 	info$ts = network_time();
-	if ( info$ts == 0.0 )
+	# If network_time() is 0.0 we're at init time so use the wall clock.
+	if ( info$ts == 0.0 ) 
+		{
 		info$ts = current_time();
+		info$init = T;
+		}
 	info$filter = default_filter;
 	
 	if ( ! install_pcap_filter(DefaultPcapFilter) )

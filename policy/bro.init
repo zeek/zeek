@@ -736,7 +736,8 @@ export {
 	 
 	type info_t: record {
 		rpc_stat: rpc_status; # if this indicates not successful, the reply record in the 
-		                      # events will be a null pointer, so don't use it
+		                      # events will be a empty and contain uninitialized fields, so 
+							  # don't use it!
 		nfs_stat: status_t;
 
 		# the start time, duration, and length in bytes of the 

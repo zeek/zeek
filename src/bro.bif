@@ -1348,7 +1348,7 @@ function fmt_ftp_port%(a: addr, p: port%): string
 function decode_netbios_name%(name: string%): string
 	%{
 	char buf[16];
-	char result[32];
+	char result[16];
 	const u_char* s = name->Bytes();
 	int i, j;
 
@@ -1367,7 +1367,10 @@ function decode_netbios_name%(name: string%): string
 		     buf[i] < 3 )
 			result[i] = buf[i];
 		else
+			{
+			result[i] = 0;
 			break;
+			}
 		}
 
 	return new StringVal(result);

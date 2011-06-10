@@ -101,7 +101,7 @@ event irc_server(c: connection, prefix: string, data: string) &priority=5
 		c$irc$dcc_file_name = parts[|parts|-6];
 		c$irc$dcc_file_size = extract_count(parts[|parts|]);
 		expect_connection(c$id$orig_h, ex_h, ex_p, ANALYZER_FILE, 5 min);
-		dcc_expected_transfers[ex_h, ex_p];
+		dcc_expected_transfers[ex_h, ex_p] = c$irc;
 		}
 	}
 

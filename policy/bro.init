@@ -622,6 +622,8 @@ type net_stats: record {
 
 
 const watchdog_interval = 10 sec &redef;
+
+## This interval defines how often the net_stats_update event is generated.
 const heartbeat_interval = 10 sec &redef;
 
 # The maximum number of timers to expire after processing each new

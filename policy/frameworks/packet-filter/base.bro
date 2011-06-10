@@ -17,12 +17,14 @@ export {
 	## changed however to enable port-independent protocol analysis.
 	const all_packets = T &redef;
 	
-	# Filter string which is unconditionally or'ed to every dynamically
-	# built pcap filter.
+	## Filter string which is unconditionally or'ed to every dynamically
+	## built pcap filter.
 	const unrestricted_filter = "" &redef;
+	
+	## This is where the default packet filter is stored and it should not 
+	## normally be modified by users.
+	global default_filter = "<not set yet>";
 }
-
-global default_pcap_filter = "<not set yet>";
 
 function combine_filters(lfilter: string, rfilter: string, op: string): string
 	{
@@ -88,11 +90,11 @@ function install_default_pcap_filter()
 
 function update_default_pcap_filter()
 	{
-	default_pcap_filter = build_default_filter();
+	default_filter = build_default_filter();
 
-	if ( ! precompile_pcap_filter(DefaultPcapFilter, default_pcap_filter) )
+	if ( ! precompile_pcap_filter(DefaultPcapFilter, default_filter) )
 		{
-		print fmt("can't compile filter %s", default_pcap_filter);
+		print fmt("can't compile filter %s", default_filter);
 		exit();
 		}
 

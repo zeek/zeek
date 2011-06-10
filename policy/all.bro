@@ -5,15 +5,17 @@
 @load ftp
 @load http
 @load irc
+@load mime 
 @load smtp
-#@load ssl
 @load ssh
+#@load ssl
 @load syslog
 
-@load mime 
-@load software
+@load communication
 @load metrics
-#@load communication
+@load notice
+@load signatures
+@load software
 @load weird 
 
 @load tuning/defaults

@@ -71,7 +71,7 @@ event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &
 		c$http$md5 = md5_hash_finish(c$id);
 		
 		NOTICE([$note=MD5, $msg=fmt("%s %s %s", c$id$orig_h, c$http$md5, url),
-		        $sub=c$http$md5, $conn=c, $method=c$http$method, $URL=url]);
+		        $sub=c$http$md5, $conn=c, $URL=url]);
 		
 		local hash_domain = fmt("%s.malware.hash.cymru.com", c$http$md5);
 		when ( local addrs = lookup_hostname(hash_domain) )
@@ -80,8 +80,7 @@ event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &
 			if ( 127.0.0.2 in addrs )
 				{
 				local message = fmt("%s %s %s", c$id$orig_h, c$http$md5, url);
-				NOTICE([$note=MHR_Malware, $msg=message, $conn=c,
-				        $method=c$http$method, $URL=url]);
+				NOTICE([$note=MHR_Malware, $msg=message, $conn=c, $URL=url]);
 				}
 			}
 		}

@@ -1348,7 +1348,7 @@ function fmt_ftp_port%(a: addr, p: port%): string
 function decode_netbios_name%(name: string%): string
 	%{
 	char buf[16];
-	char result[32];
+	char result[16];
 	const u_char* s = name->Bytes();
 	int i, j;
 
@@ -1370,7 +1370,7 @@ function decode_netbios_name%(name: string%): string
 			break;
 		}
 
-	return new StringVal(result);
+	return new StringVal(i, result);
 	%}
 
 function decode_netbios_name_type%(name: string%): count
@@ -3349,7 +3349,7 @@ function bro_has_ipv6%(%) : bool
 #endif
     %}
 
-function unique_id%(prefix: string%) : bool
+function unique_id%(prefix: string%) : string
 	%{
 	char tmp[20];
 	uint64 uid = calculate_unique_id();

@@ -58,7 +58,7 @@ event connection_established(c: connection) &priority=5
 	{
 	local id = c$id;
 	if ( ! c?$known_services && 
-	     addr_matches_hosts(id$resp_h, asset_tracking) )
+	     addr_matches_host(id$resp_h, asset_tracking) )
 		{
 		local i: Info;
 		i$ts=c$start_time;

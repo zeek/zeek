@@ -408,7 +408,7 @@ event software_register(id: conn_id, info: Info)
 
 function found(id: conn_id, info: Info): bool
 	{
-	if ( info$force_log || addr_matches_hosts(info$host, asset_tracking) )
+	if ( info$force_log || addr_matches_host(info$host, asset_tracking) )
 		{
 		event software_register(id, info);
 		return T;

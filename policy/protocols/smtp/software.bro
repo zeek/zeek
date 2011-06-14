@@ -71,8 +71,8 @@ event log_smtp(rec: Info)
 				client_ip = rec$path[|rec$path|-2];
 			}
 		
-		if ( addr_matches_hosts(rec$id$orig_h,
-		                        detect_clients_in_messages_from) )
+		if ( addr_matches_host(rec$id$orig_h,
+		                       detect_clients_in_messages_from) )
 			{
 			local s = Software::parse(rec$user_agent, client_ip, s_type);
 			Software::found(rec$id, s);

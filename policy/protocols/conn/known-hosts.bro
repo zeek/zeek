@@ -43,7 +43,7 @@ event connection_established(c: connection) &priority=5
 	
 	for ( host in set(id$orig_h, id$resp_h) )
 		{
-		if ( host !in known_hosts && addr_matches_hosts(host, asset_tracking) )
+		if ( host !in known_hosts && addr_matches_host(host, asset_tracking) )
 			{
 			add known_hosts[host];
 			Log::write(KNOWN_HOSTS, [$ts=network_time(), $host=host]);

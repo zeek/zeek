@@ -1,5 +1,5 @@
 type Direction: enum { INBOUND, OUTBOUND, BIDIRECTIONAL, NO_DIRECTION };
-function id_matches_directions(id: conn_id, d: Direction): bool
+function id_matches_direction(id: conn_id, d: Direction): bool
 	{
 	if ( d == NO_DIRECTION ) return F;
 
@@ -9,7 +9,7 @@ function id_matches_directions(id: conn_id, d: Direction): bool
 	}
 	
 type Host: enum { LOCAL_HOSTS, REMOTE_HOSTS, ALL_HOSTS, NO_HOSTS };
-function addr_matches_hosts(ip: addr, h: Host): bool
+function addr_matches_host(ip: addr, h: Host): bool
 	{
 	if ( h == NO_HOSTS ) return F;
 	

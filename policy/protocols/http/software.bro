@@ -8,6 +8,7 @@ module HTTP;
 export {
 	redef enum Software::Type += {
 		WEB_SERVER,
+		WEB_APPSERVER,
 		WEB_BROWSER,
 		WEB_BROWSER_PLUGIN
 	};
@@ -46,5 +47,7 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 		{
 		if ( name == "SERVER" )
 			Software::found(c$id, Software::parse(value, c$id$resp_h, WEB_SERVER));
+		else if ( name == "X-POWERED-BY" )
+			Software::found(c$id, Software::parse(value, c$id$resp_h, WEB_APPSERVER));
 		}
 	}

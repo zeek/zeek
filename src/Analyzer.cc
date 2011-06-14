@@ -1,5 +1,7 @@
 // $Id: Analyzer.cc,v 1.1.4.28 2006/06/01 17:18:10 sommer Exp $
 
+#include <algorithm>
+
 #include "Analyzer.h"
 #include "PIA.h"
 #include "Event.h"
@@ -132,9 +134,6 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 	{ AnalyzerTag::HTTP_BINPAC, "HTTP_BINPAC",
 		HTTP_Analyzer_binpac::InstantiateAnalyzer,
 		HTTP_Analyzer_binpac::Available, 0, false },
-	{ AnalyzerTag::RPC_UDP_BINPAC, "RPC_UDP_BINPAC",
-		RPC_UDP_Analyzer_binpac::InstantiateAnalyzer,
-		RPC_UDP_Analyzer_binpac::Available, 0, false },
 	{ AnalyzerTag::SSL, "SSL",
 		SSL_Analyzer_binpac::InstantiateAnalyzer,
 		SSL_Analyzer_binpac::Available, 0, false },

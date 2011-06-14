@@ -118,8 +118,8 @@ export {
 
 	# Indexed by the portmapper request and a boolean that's T if
 	# the request was answered, F it was attempted but not answered.
-	# If there's an entry in the set, then the access won't be logged
-	# (unless the connection is hot for some other reason).
+	# If there's an entry in the set, then the access won't lead to a
+	# NOTICE (unless the connection is hot for some other reason).
 	const RPC_do_not_complain: set[string, bool] = {
 		["pm_null", [T, F]],
 	} &redef;
@@ -133,24 +133,31 @@ export {
 		[NFS_world_servers, NFS_services],
 		[sun-rpc.mcast.net, "ypserv"],	# sigh
 	} &redef;
+
+	# Logs all portmapper activity as readable "messages"
+	# Format: timestamp orig_p resp_h resp_p proto localInit PortmapProcedure success details
+	const log_file = open_log_file("portmapper") &redef;
+	# Logs all portmapper mappings that we observe (i.e., getport and
+	# dump replies. Format:
+	# timestamp orig_h orig_p resp_h resp_p proto localInit PortmapProcedure RPCprogram version port proto
+	# the mapping is then: <resp_h> accepts <RPCprogram> with <version>
+	# calls on <port> <proto>. We learned this mapping via <PortmapProcedure>
+	const mapping_log_file = open_log_file("portmapper-maps") &redef;
 }
 
 redef capture_filters += { ["portmapper"] = "port 111" };
 
-const portmapper_ports = { 111/tcp } &redef;
+const portmapper_ports = { 111/tcp, 111/udp } &redef;
 redef dpd_config += { [ANALYZER_PORTMAPPER] = [$ports = portmapper_ports] };
 
-const portmapper_binpac_ports = { 111/udp } &redef;
-redef dpd_config += { [ANALYZER_RPC_UDP_BINPAC] = [$ports = portmapper_binpac_ports] };
-
 # Indexed by source and destination addresses, plus the portmapper service.
-# If the tuple is in the set, then we already logged it and shouldn't do
-# so again.
-global did_pm_log: set[addr, addr, string];
+# If the tuple is in the set, then we already created a NOTICE for it and
+# shouldn't do so again.
+global did_pm_notice: set[addr, addr, string];
 
-# Indexed by source and portmapper service.  If set, we already logged
-# and shouldn't do so again.
-global suppress_pm_log: set[addr, string];
+# Indexed by source and portmapper service.  If set, we already created
+# a notice and shouldn't do so again.
+global suppress_pm_notice: set[addr, string];
 
 
 function RPC_weird_action_filter(c: connection): Weird::WeirdAction
@@ -166,6 +173,7 @@ redef Weird::weird_action_filters += {
 		RPC_weird_action_filter,
 };
 
+
 function rpc_prog(p: count): string
 	{
 	if ( p in rpc_programs )
@@ -173,6 +181,56 @@ function rpc_prog(p: count): string
 	else
 		return fmt("unknown-%d", p);
 	}
+
+
+function pm_get_conn_string(cid: conn_id) : string
+	{
+	return fmt("%s %d %s %d %s %s",
+			cid$orig_h, cid$orig_p,
+			cid$resp_h, cid$resp_p,
+			get_port_transport_proto(cid$resp_p),
+			is_local_addr(cid$orig_h) ?  "L" : "X"
+	);
+	}
+
+# Log a pm_request or pm_attempt to the log file
+function pm_log(r: connection, proc: string, msg: string, success: bool)
+	{
+	print log_file, fmt("%f %s %s %s %s", network_time(),
+			pm_get_conn_string(r$id),
+			proc, success, msg);
+	}
+
+# Log portmapper mappings received from a dump procedure
+function pm_log_mapping_dump(r: connection, m: pm_mappings)
+	{
+	# TODO: sort by program and version
+	for ( mp in m )
+		{
+		local prog = rpc_prog(m[mp]$program);
+		local ver = m[mp]$version;
+		local p = m[mp]$p;
+
+		print mapping_log_file, fmt("%f %s pm_dump %s %d %d %s", network_time(),
+				pm_get_conn_string(r$id),
+				prog, ver, p, get_port_transport_proto(p));
+		}
+	}
+
+# Log portmapper mappings received from a getport procedure
+# Unfortunately, pm_request_getport doesn't return pm_mapping,
+# but returns the parameters separately ....
+function pm_log_mapping_getport(r: connection, pr: pm_port_request, p: port)
+	{
+	local prog = rpc_prog(pr$program);
+	local ver = pr$version;
+
+	print mapping_log_file, fmt("%f %s pm_getport %s %d %d %s", network_time(),
+			pm_get_conn_string(r$id),
+			prog, ver, p, get_port_transport_proto(p));
+	}
+
+
 
 function pm_check_getport(r: connection, prog: string): bool
 	{
@@ -187,25 +245,25 @@ function pm_check_getport(r: connection, prog: string): bool
 	return T;
 	}
 
-function pm_activity(r: connection, log_it: bool, proc: string)
+function pm_activity(r: connection, do_notice: bool, proc: string)
 	{
 	local id = r$id;
 
-	if ( log_it &&
-	     [id$orig_h, id$resp_h, proc] !in did_pm_log &&
-	     [id$orig_h, proc] !in suppress_pm_log )
+	if ( do_notice &&
+	     [id$orig_h, id$resp_h, proc] !in did_pm_notice &&
+	     [id$orig_h, proc] !in suppress_pm_notice )
 		{
 		NOTICE([$note=SensitivePortmapperAccess, $conn=r,
 			$msg=fmt("rpc: %s %s: %s",
 				id_string(r$id), proc, r$addl)]);
-		add did_pm_log[id$orig_h, id$resp_h, proc];
+		add did_pm_notice[id$orig_h, id$resp_h, proc];
 		}
 	}
 
-function pm_request(r: connection, proc: string, addl: string, log_it: bool)
+function pm_request(r: connection, proc: string, addl: string, do_notice: bool)
 	{
 	if ( [proc, T] in RPC_do_not_complain )
-		log_it = F;
+		do_notice = F;
 
 	if ( ! is_tcp_port(r$id$orig_p) )
 		{
@@ -235,7 +293,8 @@ function pm_request(r: connection, proc: string, addl: string, log_it: bool)
 
 	add r$service[proc];
 	Hot::check_hot(r, Hot::CONN_FINISHED);
-	pm_activity(r, log_it || r$hot > 0, proc);
+	pm_activity(r, do_notice || r$hot > 0, proc);
+	pm_log(r, proc, addl, T);
 	}
 
 
@@ -273,13 +332,16 @@ function update_RPC_server_map(server: addr, p: port, prog: string)
 event pm_request_getport(r: connection, pr: pm_port_request, p: port)
 	{
 	local prog = rpc_prog(pr$program);
-	local log_it = pm_check_getport(r, prog);
+	local do_notice = pm_check_getport(r, prog);
 
 	update_RPC_server_map(r$id$resp_h, p, prog);
 
-	pm_request(r, "pm_getport", fmt("%s -> %s", prog, p), log_it);
+	pm_request(r, "pm_getport", fmt("%s -> %s", prog, p), do_notice);
+	pm_log_mapping_getport(r, pr, p);
 	}
 
+# Note, this function has the side effect of updating the
+# RPC_server_map
 function pm_mapping_to_text(server: addr, m: pm_mappings): string
 	{
 	# Used to suppress multiple entries for multiple versions.
@@ -313,30 +375,33 @@ function pm_mapping_to_text(server: addr, m: pm_mappings): string
 
 event pm_request_dump(r: connection, m: pm_mappings)
 	{
-	local log_it = [r$id$orig_h, r$id$resp_h] !in RPC_dump_okay;
-	pm_request(r, "pm_dump", length(m) == 0 ? "(nil)" : "(done)", log_it);
-	append_addl(r, cat("<", pm_mapping_to_text(r$id$resp_h, m), ">"));
+	local do_notice = [r$id$orig_h, r$id$resp_h] !in RPC_dump_okay;
+	# pm_mapping_to_text has the side-effect of updating RPC_server_map
+	pm_request(r, "pm_dump",
+			length(m) == 0 ? "(nil)" : pm_mapping_to_text(r$id$resp_h, m),
+			do_notice);
+	pm_log_mapping_dump(r, m);
 	}
 
 event pm_request_callit(r: connection, call: pm_callit_request, p: port)
 	{
 	local orig_h = r$id$orig_h;
 	local prog = rpc_prog(call$program);
-	local log_it = [orig_h, prog] !in suppress_pm_log;
+	local do_notice = [orig_h, prog] !in suppress_pm_notice;
 
 	pm_request(r, "pm_callit", fmt("%s/%d (%d bytes) -> %s",
-		prog, call$proc, call$arg_size, p), log_it);
+		prog, call$proc, call$arg_size, p), do_notice);
 
 	if ( prog == "walld" )
-		add suppress_pm_log[orig_h, prog];
+		add suppress_pm_notice[orig_h, prog];
 	}
 
 
 function pm_attempt(r: connection, proc: string, status: rpc_status,
-			addl: string, log_it: bool)
+			addl: string, do_notice: bool)
 	{
 	if ( [proc, F] in RPC_do_not_complain )
-		log_it = F;
+		do_notice = F;
 
 	if ( ! is_tcp_port(r$id$orig_p) )
 		{
@@ -351,6 +416,7 @@ function pm_attempt(r: connection, proc: string, status: rpc_status,
 
 	# Current policy is ignore any failed attempts.
 	pm_activity(r, F, proc);
+	pm_log(r, proc, addl, F);
 	}
 
 event pm_attempt_null(r: connection, status: rpc_status)
@@ -371,14 +437,14 @@ event pm_attempt_unset(r: connection, status: rpc_status, m: pm_mapping)
 event pm_attempt_getport(r: connection, status: rpc_status, pr: pm_port_request)
 	{
 	local prog = rpc_prog(pr$program);
-	local log_it = pm_check_getport(r, prog);
-	pm_attempt(r, "pm_getport", status, prog, log_it);
+	local do_notice = pm_check_getport(r, prog);
+	pm_attempt(r, "pm_getport", status, prog, do_notice);
 	}
 
 event pm_attempt_dump(r: connection, status: rpc_status)
 	{
-	local log_it = [r$id$orig_h, r$id$resp_h] !in RPC_dump_okay;
-	pm_attempt(r, "pm_dump", status, "", log_it);
+	local do_notice = [r$id$orig_h, r$id$resp_h] !in RPC_dump_okay;
+	pm_attempt(r, "pm_dump", status, "", do_notice);
 	}
 
 event pm_attempt_callit(r: connection, status: rpc_status,
@@ -386,14 +452,14 @@ event pm_attempt_callit(r: connection, status: rpc_status,
 	{
 	local orig_h = r$id$orig_h;
 	local prog = rpc_prog(call$program);
-	local log_it = [orig_h, prog] !in suppress_pm_log;
+	local do_notice = [orig_h, prog] !in suppress_pm_notice;
 
 	pm_attempt(r, "pm_callit", status,
 		fmt("%s/%d (%d bytes)", prog, call$proc, call$arg_size),
-		log_it);
+		do_notice);
 
 	if ( prog == "walld" )
-		add suppress_pm_log[orig_h, prog];
+		add suppress_pm_notice[orig_h, prog];
 	}
 
 event pm_bad_port(r: connection, bad_p: count)

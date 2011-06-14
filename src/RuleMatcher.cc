@@ -1,5 +1,7 @@
 // $Id: RuleMatcher.cc 6724 2009-06-07 09:23:03Z vern $
 
+#include <algorithm>
+
 #include "config.h"
 
 #include "Analyzer.h"

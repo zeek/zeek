@@ -2,6 +2,8 @@
 //
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include <algorithm>
+
 #include "config.h"
 
 #include "Net.h"

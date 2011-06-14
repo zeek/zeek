@@ -1,5 +1,7 @@
 // $Id: TCP_Reassembler.cc,v 1.1.2.8 2006/05/31 01:52:02 sommer Exp $
 
+#include <algorithm>
+
 #include "Analyzer.h"
 #include "TCP_Reassembler.h"
 #include "TCP.h"
@@ -218,8 +220,9 @@ void TCP_Reassembler::Undelivered(int up_to_seq)
 			// handshakes, but Oh Well.
 
 			if ( content_gap &&
-			     endpoint->state == TCP_ENDPOINT_ESTABLISHED &&
-			     peer->state == TCP_ENDPOINT_ESTABLISHED )
+				(BifConst::report_gaps_for_partial ||
+					(endpoint->state == TCP_ENDPOINT_ESTABLISHED &&
+					peer->state == TCP_ENDPOINT_ESTABLISHED ) ) )
 				{
 				val_list* vl = new val_list;
 				vl->append(dst_analyzer->BuildConnVal());
@@ -487,8 +490,9 @@ void TCP_Reassembler::AckReceived(int seq)
 		return;
 
 	bool test_active = ! skip_deliveries && ! tcp_analyzer->Skipping() &&
-	     endp->state == TCP_ENDPOINT_ESTABLISHED &&
-	     endp->peer->state == TCP_ENDPOINT_ESTABLISHED;
+		( BifConst::report_gaps_for_partial ||
+			(endp->state == TCP_ENDPOINT_ESTABLISHED &&
+				endp->peer->state == TCP_ENDPOINT_ESTABLISHED ) );
 
 	int num_missing = TrimToSeq(seq);
 

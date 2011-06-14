@@ -154,7 +154,13 @@ event mime_all_data%(c: connection, length: count, data: string%);
 event mime_event%(c: connection, event_type: string, detail: string%);
 event mime_content_hash%(c: connection, content_len: count, hash_value: string%);
 
-event rpc_call%(c: connection, prog: count, ver: count, proc: count, status: count, start_time: time, call_len: count, reply_len: count%);
+# Generated for each RPC request / reply *pair* (if there is no reply, the event
+# will be generated on timeout).
+event rpc_dialogue%(c: connection, prog: count, ver: count, proc: count, status: rpc_status, start_time: time, call_len: count, reply_len: count%);
+# Generated for each (correctly formed) RPC_CALL message received.
+event rpc_call%(c: connection, xid: count, prog: count, ver: count, proc: count, call_len: count%);
+# Generated for each (correctly formed) RPC_REPLY message received.
+event rpc_reply%(c: connection, xid: count, status: rpc_status, reply_len: count%);
 
 event pm_request_null%(r: connection%);
 event pm_request_set%(r: connection, m: pm_mapping, success: bool%);
@@ -170,15 +176,28 @@ event pm_attempt_dump%(r: connection, status: rpc_status%);
 event pm_attempt_callit%(r: connection, status: rpc_status, call: pm_callit_request%);
 event pm_bad_port%(r: connection, bad_p: count%);
 
-event nfs_request_null%(n: connection%);
-event nfs_request_getattr%(n: connection, fh: string, attrs: nfs3_attrs%);
-event nfs_request_lookup%(n: connection, req: nfs3_lookup_args, rep: nfs3_lookup_reply%);
-event nfs_request_fsstat%(n: connection, root_fh: string, stat: nfs3_fsstat%);
-event nfs_attempt_null%(n: connection, status: count%);
-event nfs_attempt_getattr%(n: connection, status: count, fh: string%);
-event nfs_attempt_lookup%(n: connection, status: count, req: nfs3_lookup_args%);
-event nfs_attempt_fsstat%(n: connection, status: count, root_fh: string%);
-event nfs_reply_status%(n: connection, status: count%);
+# Events for the NFS analyzer. An event is generated if we have received a
+# Call (request) / Response pair (or in case of a time out). info$rpc_stat and
+# info$nfs_stat show whether the request was successful. The request record is
+# always filled out, however, the reply record(s) might not be set or might only
+# be partially set. See the comments for the record types in bro.init to see which
+# reply fields are set when.
+event nfs_proc_null%(c: connection, info: NFS3::info_t%);
+event nfs_proc_not_implemented%(c: connection, info: NFS3::info_t, proc: NFS3::proc_t%);
+
+event nfs_proc_getattr%(c: connection, info: NFS3::info_t, fh: string, attrs: NFS3::fattr_t%);
+event nfs_proc_lookup%(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t, rep: NFS3::lookup_reply_t%);
+event nfs_proc_read%(c: connection, info: NFS3::info_t, req: NFS3::readargs_t, rep: NFS3::read_reply_t%);
+event nfs_proc_readlink%(c: connection, info: NFS3::info_t, fh: string, rep: NFS3::readlink_reply_t%);
+event nfs_proc_write%(c: connection, info: NFS3::info_t, req: NFS3::writeargs_t, rep: NFS3::write_reply_t%);
+event nfs_proc_create%(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t, rep: NFS3::newobj_reply_t%);
+event nfs_proc_mkdir%(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t, rep: NFS3::newobj_reply_t%);
+event nfs_proc_remove%(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t, rep: NFS3::delobj_reply_t%);
+event nfs_proc_rmdir%(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t, rep: NFS3::delobj_reply_t%);
+event nfs_proc_readdir%(c: connection, info: NFS3::info_t, req: NFS3::readdirargs_t, rep: NFS3::readdir_reply_t%);
+
+# Generated for each NFS reply message we receive, giving just gives the status.
+event nfs_reply_status%(n: connection, info: NFS3::info_t%);
 
 event ntp_message%(u: connection, msg: ntp_msg, excess: string%);
 

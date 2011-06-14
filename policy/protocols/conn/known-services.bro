@@ -24,7 +24,7 @@ export {
 	};
 	
 	# The hosts whose services should be logged.
-	const logged_hosts = Enabled &redef;
+	const logged_hosts = AllHosts &redef;
 	
 	global known_services: set[addr, port] &create_expire=1day &synchronized;
 	

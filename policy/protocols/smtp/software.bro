@@ -43,7 +43,6 @@ export {
 	                   | /^SquirrelMail/
 	                   | /^NeoMail/ 
 	                   | /ZimbraWebClient/ &redef;
-	
 }
 
 event smtp_data(c: connection, is_orig: bool, data: string) &priority=4
@@ -66,8 +65,8 @@ event log_smtp(rec: Info)
 			{
 			s_type = WEBMAIL;
 			# If the earliest received header indicates that the connection
-			# was via HTTP, then that means the actual mail software is installed
-			# on the second value in the path.
+			# was via HTTP, then that likely means the actual mail software 
+			# is installed on the second address in the path.
 			if ( rec?$first_received && /via HTTP/ in rec$first_received )
 				client_ip = rec$path[|rec$path|-2];
 			}
@@ -75,7 +74,7 @@ event log_smtp(rec: Info)
 		if ( addr_matches_hosts(rec$id$orig_h,
 		                        detect_clients_in_messages_from) )
 			{
-			local s = Software::parse(rec$user_agent, rec$path[|rec$path|-1], s_type);
+			local s = Software::parse(rec$user_agent, client_ip, s_type);
 			Software::found(rec$id, s);
 			}
 		}

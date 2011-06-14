@@ -65,7 +65,7 @@ export {
 	
 	## The hosts whose software should be detected and tracked.
 	## Choices are: LocalHosts, RemoteHosts, Enabled, Disabled
-	const logging = Enabled &redef;
+	const asset_tracking=AllHosts &redef;
 	
 	## Some software is more interesting when the version changes and this
 	## a set of all software that should raise a notice when a different 
@@ -408,7 +408,7 @@ event software_register(id: conn_id, info: Info)
 
 function found(id: conn_id, info: Info): bool
 	{
-	if ( info$force_log || addr_matches_hosts(info$host, logging) )
+	if ( info$force_log || addr_matches_hosts(info$host, asset_tracking) )
 		{
 		event software_register(id, info);
 		return T;

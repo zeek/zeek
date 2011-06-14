@@ -1,7 +1,0 @@
-
-@load smtp/base
-
-export {
-
-}
-

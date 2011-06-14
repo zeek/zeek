@@ -1,5 +1,10 @@
 ##! This script feeds software detected through email into the software
-##! framework.  Mail clients are the only thing currently detected.
+##! framework.  Mail clients and webmail interfaces are the only thing 
+##! currently detected.
+##! 
+##! TODO:
+##! * Find some heuristic to determine if email was sent through 
+##!   a MS Exhange webmail interface as opposed to a desktop client.
 
 @load smtp/base
 @load software
@@ -10,20 +15,69 @@ export {
 	redef enum Software::Type += {
 		MAIL_CLIENT,
 		MAIL_SERVER,
+		WEBMAIL
 	};
+	
+	redef record Info += {
+		## Boolean indicator of if the message was sent through a webmail 
+		## interface.
+		is_webmail: bool &log &default=F;
+	};
+	
+	## Assuming that local mail servers are more trustworthy with the headers 
+	## they insert into messages envelopes, this default makes Bro not attempt
+	## to detect software in inbound message bodies.  If mail coming in from
+	## external addresses gives incorrect data in the Received headers, it 
+	## could populate your SOFTWARE logging stream with incorrect data.
+	## If you would like to detect mail clients for incoming messages 
+	## (network traffic originating from a non-local address), set this
+	## variable to ExternalHosts or AllHosts.
+	const detect_clients_in_messages_from = LocalHosts &redef;
+	
+	## A regular expression to match USER-AGENT-like headers to find if a 
+	## message was sent with a webmail interface.
+	const webmail_user_agents = 
+	                     /^iPlanet Messenger/ 
+	                   | /^Sun Java\(tm\) System Messenger Express/
+	                   | /\(IMP\)/  # Horde Internet Messaging Program
+	                   | /^SquirrelMail/
+	                   | /^NeoMail/ 
+	                   | /ZimbraWebClient/ &redef;
+	
 }
+
+event smtp_data(c: connection, is_orig: bool, data: string) &priority=4
+	{
+	if ( c$smtp$current_header == "USER-AGENT" &&
+	     webmail_user_agents in c$smtp$user_agent )
+		c$smtp$is_webmail = T;
+	}
 
 event log_smtp(rec: Info)
 	{
 	# If the MUA provided a user-agent string, kick over to the software framework.
 	# This is done here so that the "Received: from" path has a chance to be
 	# built since that's where the IP address is pulled from.
-	# This falls apart a bit in the cases where a webmail client includes the 
-	# IP address of the client in a header.  This will be compensated for 
-	# later with more comprehensive webmail interface detection.
 	if ( rec?$user_agent )
 		{
-		local s = Software::parse(rec$user_agent, rec$path[|rec$path|-1], MAIL_CLIENT);
-		Software::found(rec$id, s);
+		local s_type = MAIL_CLIENT;
+		local client_ip = rec$path[|rec$path|-1];
+		if ( rec$is_webmail )
+			{
+			s_type = WEBMAIL;
+			# If the earliest received header indicates that the connection
+			# was via HTTP, then that means the actual mail software is installed
+			# on the second value in the path.
+			if ( rec?$first_received && /via HTTP/ in rec$first_received )
+				client_ip = rec$path[|rec$path|-2];
+			}
+		
+		if ( addr_matches_hosts(rec$id$orig_h,
+		                        detect_clients_in_messages_from) )
+			{
+			local s = Software::parse(rec$user_agent, rec$path[|rec$path|-1], s_type);
+			Software::found(rec$id, s);
+			}
 		}
 	}
+

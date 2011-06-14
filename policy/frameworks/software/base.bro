@@ -64,8 +64,8 @@ export {
 	};
 	
 	## The hosts whose software should be detected and tracked.
-	## Choices are: LocalHosts, RemoteHosts, Enabled, Disabled
-	const asset_tracking=AllHosts &redef;
+	## Choices are: LOCAL_HOSTS, REMOTE_HOSTS, ALL_HOSTS, NO_HOSTS
+	const asset_tracking = default_asset_tracking &redef;
 	
 	## Some software is more interesting when the version changes and this
 	## a set of all software that should raise a notice when a different 

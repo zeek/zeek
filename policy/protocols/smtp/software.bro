@@ -31,8 +31,8 @@ export {
 	## could populate your SOFTWARE logging stream with incorrect data.
 	## If you would like to detect mail clients for incoming messages 
 	## (network traffic originating from a non-local address), set this
-	## variable to ExternalHosts or AllHosts.
-	const detect_clients_in_messages_from = LocalHosts &redef;
+	## variable to EXTERNAL_HOSTS or ALL_HOSTS.
+	const detect_clients_in_messages_from = LOCAL_HOSTS &redef;
 	
 	## A regular expression to match USER-AGENT-like headers to find if a 
 	## message was sent with a webmail interface.

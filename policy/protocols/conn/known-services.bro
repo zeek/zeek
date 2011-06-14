@@ -23,8 +23,8 @@ export {
 		log_point:      LogPoint        &default=default_log_point;
 	};
 	
-	# The hosts whose services should be logged.
-	const logged_hosts = AllHosts &redef;
+	# The hosts whose services should be tracked and logged.
+	const asset_tracking = default_asset_tracking &redef;
 	
 	global known_services: set[addr, port] &create_expire=1day &synchronized;
 	
@@ -58,7 +58,7 @@ event connection_established(c: connection) &priority=5
 	{
 	local id = c$id;
 	if ( ! c?$known_services && 
-	     addr_matches_hosts(id$resp_h, logged_hosts) )
+	     addr_matches_hosts(id$resp_h, asset_tracking) )
 		{
 		local i: Info;
 		i$ts=c$start_time;

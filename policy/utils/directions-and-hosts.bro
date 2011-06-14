@@ -1,24 +1,20 @@
-# Some enums for deciding what and when to log.
-type DirectionsAndHosts: enum {
-	Inbound, Outbound, Bidirectional,
-	LocalHosts, RemoteHosts, AllHosts,
-	NoHosts, Disabled
-};
+type Direction: enum { INBOUND, OUTBOUND, BIDIRECTIONAL, NEITHER };
+type Host: enum { LOCAL_HOSTS, REMOTE_HOSTS, ALL_HOSTS, NO_HOSTS };
 
-function id_matches_directions(id: conn_id, d: DirectionsAndHosts): bool
+function id_matches_directions(id: conn_id, d: Direction): bool
 	{
-	if ( d == Disabled ) return F;
+	if ( d == NEITHER ) return F;
 
-	return ( d == Bidirectional ||
-	        (d == Outbound && is_local_addr(id$orig_h)) ||
-	        (d == Inbound && is_local_addr(id$resp_h)) );
+	return ( d == BIDIRECTIONAL ||
+	        (d == OUTBOUND && is_local_addr(id$orig_h)) ||
+	        (d == INBOUND && is_local_addr(id$resp_h)) );
 	}
 	
-function addr_matches_hosts(ip: addr, h: DirectionsAndHosts): bool
+function addr_matches_hosts(ip: addr, h: Host): bool
 	{
-	if ( h == Disabled || h == NoHosts ) return F;
+	if ( h == NO_HOSTS ) return F;
 	
-	return ( h == AllHosts ||
-	        (h == LocalHosts && is_local_addr(ip)) ||
-	        (h == RemoteHosts && !is_local_addr(ip)) );
+	return ( h == ALL_HOSTS ||
+	        (h == LOCAL_HOSTS && is_local_addr(ip)) ||
+	        (h == REMOTE_HOSTS && !is_local_addr(ip)) );
 	}

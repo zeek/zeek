@@ -64,11 +64,11 @@ export {
 	};
 	
 	## Direction to capture the full "Received from" path.
-	##    RemoteHosts - only capture the path until an internal host is found.
-	##    LocalHosts - only capture the path until the external host is discovered.
-	##    AllHosts - always capture the entire path.
-	##    Disabled - never capture the path.
-	const mail_path_capture = AllHosts &redef;
+	##    REMOTE_HOSTS - only capture the path until an internal host is found.
+	##    LOCAL_HOSTS - only capture the path until the external host is discovered.
+	##    ALL_HOSTS - always capture the entire path.
+	##    NO_HOSTS - never capture the path.
+	const mail_path_capture = ALL_HOSTS &redef;
 	
 	global log_smtp: event(rec: Info);
 }

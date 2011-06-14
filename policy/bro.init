@@ -1539,6 +1539,13 @@ const skip_http_data = F &redef;
 # UDP tunnels. See also: udp_tunnel_port, policy/udp-tunnel.bro.
 const parse_udp_tunnels = F &redef;
 
+
+@load utils/directions-and-hosts
+## Scripts that do some sort of asset tracking like the software framework
+## or the conn/known-hosts script should use this as their default setting
+## for which hosts should be detected and tracked.
+const default_asset_tracking = ALL_HOSTS &redef;
+
 #@load utils
 #@load site
 #@load dpd

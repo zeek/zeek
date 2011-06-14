@@ -18,9 +18,9 @@ export {
 		host:    addr &log;
 	};
 
-	## The hosts whose existence should be logged.
-	## Choices are: LocalHosts, RemoteHosts, Enabled, Disabled
-	const logging = LocalHosts &redef;
+	## The hosts whose existence should be logged and tracked.
+	## Choices are: LOCAL_HOSTS, REMOTE_HOSTS, ALL_HOSTS, NO_HOSTS
+	const asset_tracking = default_asset_tracking &redef;
 	
 	## The set of all known addresses to store for preventing duplicate 
 	## logging of addresses.  It can also be used from other scripts to 
@@ -43,10 +43,10 @@ event connection_established(c: connection) &priority=5
 	
 	for ( host in set(id$orig_h, id$resp_h) )
 		{
-		if ( host !in known_hosts && addr_matches_hosts(host, logging) )
+		if ( host !in known_hosts && addr_matches_hosts(host, asset_tracking) )
 			{
 			add known_hosts[host];
-			Log::write(KNOWN_HOSTS, [$ts=network_time(), $address=host]);
+			Log::write(KNOWN_HOSTS, [$ts=network_time(), $host=host]);
 			}
 		}
 	}

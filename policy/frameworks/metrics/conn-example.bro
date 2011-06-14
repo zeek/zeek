@@ -7,13 +7,13 @@ redef enum Metrics::ID += {
 
 event bro_init()
 	{
-	Metrics::create(CONNS_ORIGINATED, [$aggregation_mask=24, $break_interval=5mins]);
-	Metrics::create(CONNS_RESPONDED, [$aggregation_mask=24, $break_interval=5mins]);
+	Metrics::configure(CONNS_ORIGINATED, [$aggregation_mask=24, $break_interval=5mins]);
+	Metrics::configure(CONNS_RESPONDED, [$aggregation_mask=24, $break_interval=5mins]);
 	}
 
 event connection_established(c: connection)
 	{
-	Metrics::add_data(CONNS_ORIGINATED, [$host=c$id$orig_h]);
-	Metrics::add_data(CONNS_RESPONDED, [$host=c$id$resp_h]);
+	Metrics::add_data(CONNS_ORIGINATED, [$host=c$id$orig_h], 1);
+	Metrics::add_data(CONNS_RESPONDED,  [$host=c$id$resp_h], 1);
 	}
 	

@@ -1,8 +1,10 @@
 ##! Functions to parse and manipulate UNIX style paths and directories.
 
-## Given an arbitrary string, this should extract a single directory.
+const absolute_path_pat = /(\/|[A-Za-z]:[\\\/]).*/;
+
+## Given an arbitrary string, this should extract a single directory with
+## filename if it's included.
 ## TODO: Make this work on Window's style directories.
-## NOTE: This does nothing to remove a filename if that's included.
 function extract_directory(input: string): string
 	{
 	const dir_pattern = /\"([^\"]|\"\")*(\/|\\)([^\"]|\"\")*\"/;
@@ -17,7 +19,6 @@ function extract_directory(input: string): string
 	}
 
 ## Process ..'s and eliminate duplicate '/'s
-## Unfixable deficiency: gives wrong results when a symbolic link is followed by ".."
 function compress_path(dir: string): string
 	{
 	const cdup_sep = /((\/)+([^\/]|\\\/)+)?((\/)+\.\.(\/)+)/;
@@ -40,7 +41,6 @@ function compress_path(dir: string): string
 	return dir;
 	}
 
-const absolute_path_pat = /(\/|[A-Za-z]:[\\\/]).*/;
 ## Computes the absolute path with current working directory.
 function absolute_path(cwd: string, file_name: string): string
 	{

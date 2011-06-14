@@ -3,21 +3,11 @@
 ##! output provides an easy way to determine a count of the IP addresses in
 ##! use on a network per day.
 
-@load utils/directions-and-hosts
-
 module KnownHosts;
 
-redef enum Log::ID += { KNOWN_HOSTS };
-
 export {
-	type Log: record {
-		## The timestamp at which the host was detected.
-		ts:      time &log;
-		## The address that was detected originating or responding to a TCP 
-		## connection.
-		host:    addr &log;
-	};
-
+	redef enum Log::ID += { KNOWN_HOSTS };
+	
 	## The hosts whose existence should be logged and tracked.
 	## Choices are: LOCAL_HOSTS, REMOTE_HOSTS, ALL_HOSTS, NO_HOSTS
 	const asset_tracking = default_asset_tracking &redef;
@@ -29,12 +19,22 @@ export {
 	## of each individual address is logged each day.
 	global known_hosts: set[addr] &create_expire=1day &synchronized &redef;
 	
-	global log_known_hosts: event(rec: Log);
+	global log_known_hosts: event(rec: Info);
 }
+
+## This type is left out of the export section because users have no way
+## to add extra data to it before it is logged.
+type Info: record {
+	## The timestamp at which the host was detected.
+	ts:      time &log;
+	## The address that was detected originating or responding to a TCP 
+	## connection.
+	host:    addr &log;
+};
 
 event bro_init()
 	{
-	Log::create_stream(KNOWN_HOSTS, [$columns=Log, $ev=log_known_hosts]);
+	Log::create_stream(KNOWN_HOSTS, [$columns=Info, $ev=log_known_hosts]);
 	}
 
 event connection_established(c: connection) &priority=5

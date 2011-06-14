@@ -88,8 +88,8 @@ global matched_software: table[string] of Software::Info = {
 		[$name="Total Commander", $version=[], $host=0.0.0.0, $ts=ts],
 	#["(vsFTPd 2.0.5)"] =
 	#	[$name="vsFTPd", $version=[$major=2,$minor=0,$minor2=5], $host=0.0.0.0, $ts=ts],
-	
-		
+	["Apple Mail (2.1084)"] = 
+		[$name="Apple Mail", $version=[$major=2,$minor=1084], $host=0.0.0.0, $ts=ts],
 };
 
 event bro_init()

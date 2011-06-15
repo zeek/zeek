@@ -18,4 +18,6 @@
 @load software
 @load weird 
 
+@load detectors/http-MHR
+
 @load tuning/defaults

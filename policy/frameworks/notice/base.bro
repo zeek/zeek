@@ -91,7 +91,7 @@ export {
 	# policy is set.
 	const policy: set[Notice::PolicyItem] = {
 		[$pred(n: Notice::Info) = { return T; },
-		 $result = ACTION_ALARM_ALWAYS,
+		 $result = ACTION_FILE,
 		 $priority = 0],
 	} &redef;
 	

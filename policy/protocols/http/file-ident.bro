@@ -7,6 +7,10 @@
 @load notice
 @load signatures
 
+redef signature_files += "http/file-ident.sig";
+# Ignore the signatures used to match files
+redef Signatures::ignored_ids += /^matchfile-/;
+
 module HTTP;
 
 export {
@@ -32,17 +36,12 @@ export {
 	} &redef;
 }
 
-redef signature_files += "http/file-ident.sig";
-# Ignore the signatures used to match files
-redef Signatures::ignored_ids += /^matchfile-/;
-
 event signature_match(state: signature_state, msg: string, data: string) &priority=5
 	{
 	# Only signatures matching file types are dealt with here.
 	if ( /^matchfile-/ !in state$sig_id ) return;
-	
+
 	local c = state$conn;
-	
 	set_state(c, F, F);
 	
 	# Not much point in any of this if we don't know about the HTTP session.

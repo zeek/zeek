@@ -318,7 +318,6 @@ function add_interface(iold: string, inew: string): string
 	else
 		return fmt("%s %s", iold, inew);
 	}
-
 global interfaces = "" &add_func = add_interface;
 
 function add_signature_file(sold: string, snew: string): string
@@ -328,7 +327,6 @@ function add_signature_file(sold: string, snew: string): string
 	else
 		return cat(sold, " ", snew);
 	}
-
 global signature_files = "" &add_func = add_signature_file;
 
 const passive_fingerprint_file = "signatures/p0f.fp" &redef;
@@ -1266,56 +1264,6 @@ type bt_tracker_headers: table[string] of string;
 
 @load event.bif.bro
 
-function subst(s: string, from: pattern, to: string): string
-	{
-	local p = split_all(s, from);
-
-	for ( p_i in p )
-		if ( p_i % 2 == 0 )
-			p[p_i] = to;
-
-	return cat_string_array(p);
-	}
-
-
-type pattern_match_result: record {
-	matched: bool;
-	str: string;
-	off: count;
-};
-
-function match_pattern(s: string, p:pattern): pattern_match_result
-	{
-	local a = split_n(s, p, T, 1);
-
-	if ( length(a) == 1 )
-		# no match
-		return [$matched = F, $str = "", $off = 0];
-	else
-		return [$matched = T, $str = a[2], $off = byte_len(a[1]) + 1];
-	}
-
-function cut_tail(s: string, tail_len: count): string
-	{
-	local len = byte_len(s);
-
-	if ( tail_len > len )
-		tail_len = len;
-
-	return sub_bytes(s, 1, int_to_count(len - tail_len));
-	}
-
-# Given a string, returns an escaped version.  This means that
-# (1) any occurrences of any character in "chars" are escaped using '\', and
-# (2) any '\'s are likewise escaped.
-function string_escape(s: string, chars: string): string
-	{
-	s = subst_string(s, "\\", "\\\\");
-	for ( c in chars )
-		s = subst_string(s, c, cat("\\", c));
-	return s;
-	}
-
 # The filter the user has set via the -f command line options, or
 # empty if none.
 const cmd_line_bpf_filter = "" &redef;
@@ -1539,13 +1487,6 @@ const skip_http_data = F &redef;
 # UDP tunnels. See also: udp_tunnel_port, policy/udp-tunnel.bro.
 const parse_udp_tunnels = F &redef;
 
-
-@load utils/directions-and-hosts
-## Scripts that do some sort of asset tracking like the software framework
-## or the conn/known-hosts script should use this as their default setting
-## for which hosts should be detected and tracked.
-const default_asset_tracking = ALL_HOSTS &redef;
-
-#@load utils
 #@load site
 #@load dpd
+@load weird

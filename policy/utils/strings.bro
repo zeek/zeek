@@ -25,3 +25,22 @@ function join_string_set(ss: set[string], j: string): string
 		}
 	return output;
 	}
+
+## Given a string, returns an escaped version.  This means that
+## (1) any occurrences of any character in "chars" are escaped using '\', and
+## (2) any '\'s are likewise escaped.
+function string_escape(s: string, chars: string): string
+	{
+	s = subst_string(s, "\\", "\\\\");
+	for ( c in chars )
+		s = subst_string(s, c, cat("\\", c));
+	return s;
+	}
+
+## Cut a number of character from the end of the given string.
+function cut_tail(s: string, tail_len: count): string
+	{
+	if ( tail_len > |s| )
+		tail_len = |s|;
+	return sub_bytes(s, 1, int_to_count(|s| - tail_len));
+	}

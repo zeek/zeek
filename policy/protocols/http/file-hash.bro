@@ -9,10 +9,6 @@ export {
 	redef enum Notice::Type += {
 		## Indicates that an MD5 sum was calculated for an HTTP response body.
 		MD5,
-		
-		## Indicates an MD5 sum was found in Team Cymru's Malware Hash Registry.
-		## http://www.team-cymru.org/Services/MHR/
-		MHR_Malware,
 	};
 
 	redef record Info += {
@@ -35,24 +31,16 @@ export {
 	                   &redef;
 }
 
-# Once a file that we're interested has begun downloading, initialize
-# an MD5 hash.
-event file_transferred(c: connection, prefix: string, descr: string, mime_type: string) &priority=5
+# Initialize and calculate the hash.
+event http_entity_data(c: connection, is_orig: bool, length: count, data: string) &priority=-5
 	{
-	if ( ! c?$http ) return;
+	if ( is_orig || ! c?$http || ! c$http$calc_md5 ) return;
 	
-	if ( (generate_md5 in mime_type || c$http$calc_md5 ) && 
-		 ! c$http$calculating_md5 )
+	if ( ! c$http$calculating_md5 )
 		{
 		c$http$calculating_md5 = T;
 		md5_hash_init(c$id);
 		}
-	}
-
-# As the file downloads, continue building the hash.
-event http_entity_data(c: connection, is_orig: bool, length: count, data: string) &priority=-5
-	{
-	if ( is_orig ) return;
 	
 	if ( c$http$calculating_md5 )
 		md5_hash_update(c$id, data);
@@ -72,17 +60,6 @@ event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &
 		
 		NOTICE([$note=MD5, $msg=fmt("%s %s %s", c$id$orig_h, c$http$md5, url),
 		        $sub=c$http$md5, $conn=c, $URL=url]);
-		
-		local hash_domain = fmt("%s.malware.hash.cymru.com", c$http$md5);
-		when ( local addrs = lookup_hostname(hash_domain) )
-			{
-			# 127.0.0.2 indicates that the md5 sum was found in the MHR.
-			if ( 127.0.0.2 in addrs )
-				{
-				local message = fmt("%s %s %s", c$id$orig_h, c$http$md5, url);
-				NOTICE([$note=MHR_Malware, $msg=message, $conn=c, $URL=url]);
-				}
-			}
 		}
 	}
 

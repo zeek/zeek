@@ -1,6 +1,4 @@
-@load functions
 @load notice
-
 @load utils/conn_ids
 
 module Weird;

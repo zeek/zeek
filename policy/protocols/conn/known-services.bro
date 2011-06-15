@@ -1,4 +1,9 @@
-@load functions
+##! This script logs and tracks services.  In the case of this script, a service
+##! is defined as an IP address and port which has responded to and fully 
+##! completed a TCP handshake with another host.  If a protocol is detected
+##! during the session, the protocol will also be logged.
+
+@load utils/directions-and-hosts
 
 module KnownServices;
 
@@ -16,7 +21,7 @@ export {
 	};
 	
 	## The hosts whose services should be tracked and logged.
-	const asset_tracking = default_asset_tracking &redef;
+	const asset_tracking = LOCAL_HOSTS &redef;
 	
 	global known_services: set[addr, port] &create_expire=1day &synchronized;
 	

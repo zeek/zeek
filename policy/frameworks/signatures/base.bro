@@ -116,35 +116,13 @@ event bro_init()
 	{
 	Log::create_stream(SIGNATURES, [$columns=Info, $ev=log_signature]);
 	}
-	
-function add_signature_file(sold: string, snew: string): string
-	{
-	if ( sold == "" )
-		return snew;
-	else
-		return cat(sold, " ", snew);
-	}
-
-global signature_files = "" &add_func = add_signature_file;
-
-
-# Given a string, returns an escaped version suitable for being
-# printed in the colon-separated notice format.  This means that
-# (1) any colons are escaped using '\', and (2) any '\'s are
-# likewise escaped.
-function signature_escape(s: string): string
-	{
-	s = subst_string(s, "\\", "\\\\");
-	return subst_string(s, ":", "\\:");
-	}
-	
+		
 # Returns true if the given signature has already been triggered for the given
 # [orig, resp] pair.
 function has_signature_matched(id: string, orig: addr, resp: addr): bool
 	{
 	return [orig, resp] in vert_table ? id in vert_table[orig, resp] : F;
 	}
-	
 
 event sig_summary(orig: addr, id: string, msg: string)
 	{

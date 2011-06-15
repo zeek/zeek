@@ -34,12 +34,16 @@ export {
 # Initialize and calculate the hash.
 event http_entity_data(c: connection, is_orig: bool, length: count, data: string) &priority=-5
 	{
-	if ( is_orig || ! c?$http || ! c$http$calc_md5 ) return;
+	if ( is_orig || ! c?$http ) return;
 	
-	if ( ! c$http$calculating_md5 )
+	if ( c$http$first_chunk )
 		{
-		c$http$calculating_md5 = T;
-		md5_hash_init(c$id);
+		if ( c$http?$mime_type &&
+		     generate_md5 in c$http$mime_type )
+			{
+			c$http$calculating_md5 = T;
+			md5_hash_init(c$id);
+			}
 		}
 	
 	if ( c$http$calculating_md5 )

@@ -23,6 +23,11 @@ export {
 	redef record Info += {
 		## This will record the mime_type identified.
 		mime_type:    string   &log &optional;
+		
+		## This indicates that no data of the current file transfer has been
+		## seen yet.  After the first :bro:id:`http_entity_data` event, it 
+		## will be set to T.
+		first_chunk:     bool &default=T;
 	};
 
 	redef enum Tags += {
@@ -50,14 +55,6 @@ event signature_match(state: signature_state, msg: string, data: string) &priori
 	# Set the mime type that was detected.
 	c$http$mime_type = msg;
 	
-	# Fire the file_transferred event so that it can be picked up by other
-	# scripts, like the http/file-hash script since that uses file type to
-	# conditionally calculate an MD5 sum.
-	# TODO: We are leaving the descr field blank for now, but it shouldn't 
-	#       matter too much and hopefully the more generic file analysis code
-	#       will make this completely irrelevant.
-	event file_transferred(c, data, "", msg);
-	
 	if ( msg in mime_types_extensions && 
 	     c$http?$uri && mime_types_extensions[msg] !in c$http$uri )
 		{
@@ -69,4 +66,16 @@ event signature_match(state: signature_state, msg: string, data: string) &priori
 		        $method=c$http$method,
 		        $URL=url]);
 		}
+	}
+
+event http_entity_data(c: connection, is_orig: bool, length: count, data: string) &priority=5
+	{
+	if ( c$http$first_chunk && ! c$http?$mime_type )
+			c$http$mime_type = split1(identify_data(data, T), /;/)[1];
+	}
+	
+event http_entity_data(c: connection, is_orig: bool, length: count, data: string) &priority=-10
+	{
+	if ( c$http$first_chunk )
+		c$http$first_chunk=F;
 	}

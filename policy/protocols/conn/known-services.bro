@@ -42,6 +42,7 @@ function known_services_done(c: connection)
 	{
 	local id = c$id;
 	if ( ! c$known_services_done &&
+	     get_port_transport_proto(id$resp_p) == tcp &&
 	     addr_matches_host(id$resp_h, asset_tracking) &&
 	     [id$resp_h, id$resp_p] !in known_services &&
 	     "ftp-data" !in c$service ) # don't include ftp data sessions

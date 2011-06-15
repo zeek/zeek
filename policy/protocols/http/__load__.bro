@@ -6,6 +6,7 @@
 @load http/detect-intel
 @load http/file-ident
 @load http/file-hash
+@load http/file-extract
 @load http/software
 @load http/headers
 @load http/detect-webapps

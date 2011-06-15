@@ -8,7 +8,8 @@
 @load dpd
 
 # Remove these notices from logging since they can be too noisy.
-redef Notice::action_filters += {
-	[[Weird::ContentGap, Weird::AckAboveHole]] = Notice::ignore_action,
-	[[DPD::ProtocolViolation]] = Notice::ignore_action,
+redef Notice::ignored_types += {
+	Weird::ContentGap,
+	Weird::AckAboveHole,
+	DPD::ProtocolViolation
 };

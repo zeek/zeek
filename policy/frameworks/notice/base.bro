@@ -28,16 +28,14 @@ export {
 	
 	## These are values representing actions that can be taken with notices.
 	type Action: enum {
-		## The default unknown action.
-		ACTION_UNKNOWN,
+		## Indicates that the notice should be sent to the notice file.
+		ACTION_FILE,
 		## Indicates that no action should be taken with the notice.
-		ACTION_IGNORE, 
+		ACTION_IGNORE,
 		## Indicates that the notice should always be turned into an alarm.
-		ACTION_ALARM_ALWAYS,
+		ACTION_ALARM,
 		## Indicates that the notice should be sent to the contact email.
 		ACTION_EMAIL, 
-		## Indicates that the notice should be sent to the notice file.
-		ACTION_FILE, 
 		## Indicates that the notice should be sent to the configured pager 
 		## email address.
 		ACTION_PAGE,
@@ -68,7 +66,7 @@ export {
 
 		## The action assigned to this notice after being processed by the 
 		## various action assigning methods.
-		action:         Notice::Action &log &default=ACTION_UNKNOWN;
+		action:         Notice::Action &log &default=ACTION_FILE;
 		## Peer that raised this notice.
 		src_peer:       event_peer     &log &optional;
 		## Uniquely identifying tag associated with this notice.
@@ -80,11 +78,16 @@ export {
 		## If true, alarm dependening on the notice action.
 		do_alarm: bool &log &default=F;
 	};
-
+	
+	## Ignored notice types.
+	const ignored_types: set[Notice::Type] = {} &redef;
+	## Emailed notice types.
+	const emailed_types: set[Notice::Type] = {} &redef;
+	
 	type PolicyItem: record {
 		result: Notice::Action &default=ACTION_FILE;
 		pred: function(n: Notice::Info): bool;
-		priority: count &default=1;
+		priority: count &default=5;
 	};
 	
 	# This is the :bro:id:`Notice::policy` where the local notice conversion 
@@ -93,6 +96,12 @@ export {
 		[$pred(n: Notice::Info) = { return T; },
 		 $result = ACTION_FILE,
 		 $priority = 0],
+		[$pred(n: Notice::Info) = { return (n$note in ignored_types); },
+		 $result = ACTION_IGNORE,
+		 $priority = 1],
+		[$pred(n: Notice::Info) = { return (n$note in emailed_types); },
+		 $result = ACTION_EMAIL,
+		 $priority = 3],
 	} &redef;
 	
 	## Local system mail program.
@@ -101,20 +110,7 @@ export {
 	const mail_dest      = ""          &redef;
 	## Email address to send notices with the :bro:enum:`ACTION_PAGE` action.
 	const mail_page_dest = ""          &redef;
-	
-	## Do not generate notice_action events for these notice types.
-	const suppress_notice_actions: set[Type] &redef; 
-	
-	## Hack to suppress duplicate notice_actions for remote notices.  Normally
-	## this setting should be left alone.
-	global suppress_notice_action = F;
-		
-	# Table that maps notices into a function that should be called
-	# to determine the action.
-	const action_filters:
-		table[Notice::Type] of
-			function(n: Notice::Info, a: Notice::Action): Notice::Action &redef;
-	
+
 	## This is a set of functions that provide a synchronous way for scripts 
 	## extending the notice framework to run before the normal event based
 	## notice pathway that most of the notice framework takes.  This is helpful
@@ -128,10 +124,10 @@ export {
 	## real time constraints.
 	const notice_functions: set[function(n: Notice::Info)] = set() &redef;
 	
-	## Generate this event to send email.  This script includes a handler
-	## for this event which sends email so this event is mostly for generating
-	## and not for handling.
-	global email_notice_to: event(n: Info, dest: string) &redef;
+	## Call this function to send a notice in an email.  It is already used
+	## by default with the built in :bro:enum:`ACTION_EMAIL` and
+	## :bro:enum:`ACTION_PAGE` actions.
+	global email_notice_to: function(n: Info, dest: string);
 	
 	## This is the event that is called as the entry point to the 
 	## notice framework by the global :bro:id:`NOTICE` function.  By the time 
@@ -139,14 +135,6 @@ export {
 	## the :bro:type:`Notice::Info` record and synchronous functions in the 
 	## :bro:id:`Notice:notice_functions` have already been called.
 	global notice: event(n: Info);
-	
-	## This event is useful for processing notices after the notice filters
-	## have been applied and yielded a Notice::Action.
-	global notice_action: event(n: Notice::Info, action: Notice::Action);
-	
-	## Similar to :bro:id:`Notice::notice_action` but only generated if the
-	## notice also triggers an alarm.
-	global notice_alarm: event(n: Notice::Info, action: Notice::Action);
 	
 	## This is an internally used function.  Please ignore it, it's only used
 	## for filling out missing details of :bro:type:`Notice:Info` records
@@ -189,11 +177,11 @@ event bro_init()
 #	return tgs;
 #	}
 
-event email_notice_to(n: Notice::Info, dest: string)
+function email_notice_to(n: Notice::Info, dest: string)
 	{
 	if ( reading_traces() || dest == "" )
 		return;
-
+	
 	# The contortions here ensure that the arguments to the mail
 	# script will not be confused.  Re-evaluate if 'system' is reworked.
 	local mail_cmd =
@@ -203,11 +191,11 @@ event email_notice_to(n: Notice::Info, dest: string)
 	system(mail_cmd);
 	}
 
-function email_notice(n: Notice::Info, action: Notice::Action)
+function email_notice(n: Notice::Info)
 	{
 	# Choose destination address based on action type.
-	local dest = (action == ACTION_EMAIL) ? mail_dest : mail_page_dest;
-	event email_notice_to(n, dest);
+	local dest = (n$action == ACTION_EMAIL) ? mail_dest : mail_page_dest;
+	email_notice_to(n, dest);
 	}
 
 # Executes a script with all of the notice fields put into the
@@ -253,43 +241,32 @@ function fill_in_missing_details(n: Notice::Info)
 	# Generate a unique ID for this notice.
 	n$tag = unique_id("@");
 		
-	local action = match n using policy;
-	if ( action != ACTION_IGNORE && 
-	     action != ACTION_FILE &&
-	     n$note in action_filters )
-		action = action_filters[n$note](n, action);
-
-	n$action = action;
+	n$action = match n using policy;
 	}
 	
 event notice(n: Notice::Info) &priority=-5
 	{
+	# Don't do anything if this notice is to be ignored.
+	if ( n$action == ACTION_IGNORE )
+		return;
+	
 	if ( n$action == ACTION_EMAIL || n$action == ACTION_PAGE )
-		email_notice(n, n$action);
-
-	if ( n$action != ACTION_IGNORE )
+		email_notice(n);
+	
+	# Add the tag to the connection's notice_tags if there is a connection.
+	if ( n?$conn && n$conn?$conn )
 		{
-		# Add the tag to the connection's notice_tags if there is a connection.
-		if ( n?$conn && n$conn?$conn )
-			{
-			if ( ! n$conn$conn?$notice_tags )
-				n$conn$conn$notice_tags = set();
-			add n$conn$conn$notice_tags[n$tag];
-			}
-		
-		Log::write(NOTICE_LOG, n);
-
-		if ( n$action != ACTION_FILE && n$do_alarm )
-			event notice_alarm(n, n$action);
+		if ( ! n$conn$conn?$notice_tags )
+			n$conn$conn$notice_tags = set();
+		add n$conn$conn$notice_tags[n$tag];
 		}
-
+	
+	Log::write(NOTICE_LOG, n);
+	
 @ifdef ( IDMEF_support )
 	if ( n?$id )
 		generate_idmef(n$id$orig_h, n$id$orig_p, n$id$resp_h, n$id$resp_p);
 @endif
-
-	if ( ! suppress_notice_action && n$note !in suppress_notice_actions )
-		event notice_action(n, n$action);
 	}
 
 module GLOBAL;

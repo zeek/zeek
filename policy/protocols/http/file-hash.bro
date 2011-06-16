@@ -31,7 +31,7 @@ export {
 	                   &redef;
 }
 
-# Initialize and calculate the hash.
+## Initialize and calculate the hash.
 event http_entity_data(c: connection, is_orig: bool, length: count, data: string) &priority=-5
 	{
 	if ( is_orig || ! c?$http ) return;
@@ -50,8 +50,23 @@ event http_entity_data(c: connection, is_orig: bool, length: count, data: string
 		md5_hash_update(c$id, data);
 	}
 	
-# When the file finishes downloading, finish the hash, check for the hash
-# in the MHR, and raise a notice if the hash is there.
+## In the event of a content gap during a file transfer, detect the state for
+## the MD5 sum calculation and stop calculating the MD5 since it would be 
+## incorrect anyway.
+event content_gap(c: connection, is_orig: bool, seq: count, length: count) &priority=5
+	{
+	if ( is_orig || ! c?$http ) return;
+		
+	set_state(c, F, is_orig);
+	if ( c$http$calculating_md5 )
+		{
+		c$http$calculating_md5 = F;
+		md5_hash_finish(c$id);
+		}
+	}
+
+## When the file finishes downloading, finish the hash, check for the hash
+## in the MHR, and raise a notice if the hash is there.
 event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &priority=-3
 	{
 	if ( is_orig || ! c?$http ) return;

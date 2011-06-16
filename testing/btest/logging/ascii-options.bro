@@ -1,8 +1,10 @@
 #
-# @TEST-EXEC: bro %INPUT >output
-# @TEST-EXEC: btest-diff output
+# @TEST-EXEC: bro %INPUT
+# @TEST-EXEC: btest-diff ssh.log
 
-redef LogAscii::output_to_stdout = T;
+@load logging/plugins/ascii
+
+redef LogAscii::output_to_stdout = F;
 redef LogAscii::separator = "|";
 redef LogAscii::include_header = F;
 

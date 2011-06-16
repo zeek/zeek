@@ -14,7 +14,6 @@ export {
 }
 
 global last_stat: net_stats;
-global last_stat_time: time;
 global have_stats = F;
 
 event net_stats_update(t: time, ns: net_stats)
@@ -27,15 +26,13 @@ event net_stats_update(t: time, ns: net_stats)
 			local new_recvd = ns$pkts_recvd - last_stat$pkts_recvd;
 			local new_link = ns$pkts_link - last_stat$pkts_link;
 			NOTICE([$note=DroppedPackets,
-				$msg=fmt("%d packets dropped after filtering, %d received%s",
-					new_dropped, new_recvd + new_dropped,
-					new_link != 0 ?
-						fmt(", %d on link", new_link) : "")]);
+			        $msg=fmt("%d packets dropped after filtering, %d received%s",
+			                 new_dropped, new_recvd + new_dropped,
+			                 new_link != 0 ? fmt(", %d on link", new_link) : "")]);
 			}
 		}
 	else
 		have_stats = T;
 
 	last_stat = ns;
-	last_stat_time = t;
 	}

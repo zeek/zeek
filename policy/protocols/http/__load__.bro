@@ -9,4 +9,7 @@
 @load http/file-extract
 @load http/software
 @load http/headers
-@load http/detect-webapps
+
+# Disabling web app detection for now.  It's too intense and will probably
+# be moved out of the core http protocol support later.
+#@load http/detect-webapps

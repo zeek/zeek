@@ -105,9 +105,6 @@ public:
 	// that are still active.
 	void Drain();
 
-	// Called periodically to generate statistics reports.
-	void HeartBeat(double t);
-
 	void GetStats(SessionStats& s) const;
 
 	void Weird(const char* name,

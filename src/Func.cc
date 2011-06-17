@@ -514,6 +514,7 @@ void init_builtin_funcs()
 	{
 	ftp_port = internal_type("ftp_port")->AsRecordType();
 	bro_resources = internal_type("bro_resources")->AsRecordType();
+	NetStats = internal_type("NetStats")->AsRecordType();
 	matcher_stats = internal_type("matcher_stats")->AsRecordType();
 	var_sizes = internal_type("var_sizes")->AsTableType();
 	gap_info = internal_type("gap_info")->AsRecordType();

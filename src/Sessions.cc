@@ -44,27 +44,6 @@ enum NetBIOS_Service {
 
 NetSessions* sessions;
 
-
-class NetworkTimer : public Timer {
-public:
-	NetworkTimer(NetSessions* arg_sess, double arg_t)
-		: Timer(arg_t, TIMER_NETWORK)
-		{ sess = arg_sess; }
-
-	void Dispatch(double t, int is_expire);
-
-protected:
-	NetSessions* sess;
-};
-
-void NetworkTimer::Dispatch(double t, int is_expire)
-	{
-	if ( is_expire )
-		return;
-
-	sess->HeartBeat(t);
-	}
-
 void TimerMgrExpireTimer::Dispatch(double t, int is_expire)
 	{
 	if ( mgr->LastAdvance() + timer_mgr_inactivity_timeout < timer_mgr->Time() )
@@ -105,9 +84,6 @@ NetSessions::NetSessions()
 	tcp_conns.SetDeleteFunc(bro_obj_delete_func);
 	udp_conns.SetDeleteFunc(bro_obj_delete_func);
 	fragments.SetDeleteFunc(bro_obj_delete_func);
-
-	if ( (reading_live || pseudo_realtime) && net_stats_update )
-		timer_mgr->Add(new NetworkTimer(this, 1.0));
 
 	if ( stp_correlate_pair )
 		stp_manager = new SteppingStoneManager();
@@ -1083,39 +1059,6 @@ void NetSessions::Drain()
 		}
 
 	ExpireTimerMgrs();
-	}
-
-void NetSessions::HeartBeat(double t)
-	{
-	unsigned int recv = 0;
-	unsigned int drop = 0;
-	unsigned int link = 0;
-
-	loop_over_list(pkt_srcs, i)
-		{
-		PktSrc* ps = pkt_srcs[i];
-
-		struct PktSrc::Stats stat;
-		ps->Statistics(&stat);
-		recv += stat.received;
-		drop += stat.dropped;
-		link += stat.link;
-		}
-
-	val_list* vl = new val_list;
-
-	vl->append(new Val(t, TYPE_TIME));
-
-	RecordVal* ns = new RecordVal(net_stats);
-	ns->Assign(0, new Val(recv, TYPE_COUNT));
-	ns->Assign(1, new Val(drop, TYPE_COUNT));
-	ns->Assign(2, new Val(link, TYPE_COUNT));
-
-	vl->append(ns);
-
-	mgr.QueueEvent(net_stats_update, vl);
-
-	timer_mgr->Add(new NetworkTimer(this, t + heartbeat_interval));
 	}
 
 void NetSessions::GetStats(SessionStats& s) const

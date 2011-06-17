@@ -1089,7 +1089,7 @@ LogVal** LogMgr::RecordToFilterVals(Stream* stream, Filter* filter,
 			if ( ! val )
 				{
 				// Value, or any of its parents, is not set.
-				vals[i] = new LogVal(type, false);
+				vals[i] = new LogVal(filter->fields[i]->type, false);
 				break;
 				}
 			}

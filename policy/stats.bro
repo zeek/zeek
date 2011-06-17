@@ -71,7 +71,6 @@ event check_stats(last_time: time, last_ns: NetStats, last_res: bro_resources)
 		NOTICE([$note=ResourceStats, $msg=stat_msg]);
 		}
 
-	print "did stats!";
 	schedule stats_report_interval { check_stats(now, ns, res) };
 	}
 

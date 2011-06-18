@@ -47,8 +47,13 @@ event mime_segment_data(c: connection, length: count, data: string) &priority=-5
 		print c$mime$extraction_file, data;
 	}
 	
-event mime_end_entity(c: connection) &priority=-5
+event mime_end_entity(c: connection) &priority=-3
 	{
+	# TODO: this check is only due to a bug in mime_end_entity that
+	#       causes the event to be generated twice for the same real event.
+	if ( ! c?$mime )
+		return;
+		
 	if ( c$mime?$extraction_file )
 		close(c$mime$extraction_file);
 	}

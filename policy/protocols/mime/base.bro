@@ -1,7 +1,7 @@
-@load utils/strings
+##! The mime script does analysis of MIME encoded messages seen in certain
+##! protocols (only SMTP and POP3 at the moment).
 
-# TODO: need to figure out a way for these scripts to play along better.
-@load smtp
+@load utils/strings
 
 module MIME;
 
@@ -17,7 +17,9 @@ export {
 		ts:               time    &log;
 		uid:              string  &log;
 		id:               conn_id &log;
+		## The application layer protocol over which the transfer was seen.
 		app_protocol:     string  &log &optional;
+		## The filename seen in the Content-Disposition header.
 		filename:         string  &log &optional;
 		## Track how many byte of the MIME encoded file have been seen.
 		content_len:      count   &log &default=0;
@@ -70,21 +72,28 @@ event mime_begin_entity(c: connection) &priority=10
 		c$mime$app_protocol = join_string_set(c$service, ",");
 	}
 
-# This has priority 1 because other handlers need to know the current 
+# This has priority -10 because other handlers need to know the current 
 # content_len before it's updated by this handler.
-event mime_segment_data(c: connection, length: count, data: string) &priority=1
+event mime_segment_data(c: connection, length: count, data: string) &priority=-10
 	{
 	c$mime$content_len = c$mime$content_len + length;
 	}
 	
+event mime_one_header(c: connection, h: mime_header_rec)
+	{
+	if ( h$name == "CONTENT-DISPOSITION" &&
+	          /[fF][iI][lL][eE][nN][aA][mM][eE]/ in h$value )
+		c$mime$filename = sub(h$value, /^.*[fF][iI][lL][eE][nN][aA][mM][eE]=\"?/, "");
+	}
+	
 event mime_end_entity(c: connection) &priority=-5
 	{
-	# TODO: this needs to be done smarter.
-	if ( c?$smtp && c$smtp?$files )
-		{
-		for ( fl in c$smtp$files )
-			c$mime$filename = fl;
-		}
-	
+	# This check and the delete below are just to cope with a bug where 
+	# mime_end_entity can be generated multiple times for the same event.
+	if ( ! c?$mime )
+		return;
+		
 	Log::write(MIME, c$mime);
+	
+	delete c$mime;
 	}

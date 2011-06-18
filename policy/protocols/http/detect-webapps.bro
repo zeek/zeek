@@ -26,7 +26,7 @@ event signature_match(state: signature_state, msg: string, data: string) &priori
 	
 	local c = state$conn;
 	local si = Software::parse(msg, c$id$resp_h, WEB_APPLICATION);
-	si$url = build_url(c$http);
+	si$url = build_url_http(c$http);
 	if ( c$id$resp_h in Software::tracked &&
 	     si$name in Software::tracked[c$id$resp_h] )
 		{

@@ -7,6 +7,7 @@ module HTTP;
 export {
 	global extract_keys: function(data: string, kv_splitter: pattern): string_vec;
 	global build_url: function(h: Info): string;
+	global build_url_http: function(h: Info): string;
 }
 
 
@@ -30,5 +31,10 @@ function build_url(h: Info): string
 	local host = h?$host ? h$host : fmt("%s", h$id$resp_h);
 	if ( h$id$resp_p != 80/tcp )
 		host = fmt("%s:%s", host, h$id$resp_p);
-	return fmt("http://%s%s", host, uri);
+	return fmt("%s%s", host, uri);
+	}
+	
+function build_url_http(h: Info): string
+	{
+	return fmt("http://%s", build_url);
 	}

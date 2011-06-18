@@ -72,7 +72,7 @@ event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &
 	
 	if ( c$http$calculating_md5 )
 		{
-		local url = build_url(c$http);
+		local url = build_url_http(c$http);
 		c$http$calculating_md5 = F;
 		c$http$md5 = md5_hash_finish(c$id);
 		

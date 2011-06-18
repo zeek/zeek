@@ -18,14 +18,13 @@ event log_http(rec: HTTP::Info)
 	{
 	if ( rec?$md5 )
 		{
-		local url = HTTP::build_url(rec);
 		local hash_domain = fmt("%s.malware.hash.cymru.com", rec$md5);
-		
 		when ( local addrs = lookup_hostname(hash_domain) )
 			{
 			# 127.0.0.2 indicates that the md5 sum was found in the MHR.
 			if ( 127.0.0.2 in addrs )
 				{
+				local url = HTTP::build_url_http(rec);
 				local message = fmt("%s %s %s", rec$id$orig_h, rec$md5, url);
 				NOTICE([$note=Malware_Hash_Registry_Match, 
 				        $msg=message, $id=rec$id, $URL=url]);

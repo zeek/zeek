@@ -10,7 +10,7 @@
 #   software
 #   user_name
 #   file_name
-#   file_md5sum
+#   file_md5
 #   x509_cert - DER encoded, not PEM (ascii armored)
 
 # Example tags: 
@@ -20,10 +20,18 @@
 #   canary
 #   friend
 
+@load notice
+
 module Intel;
 
 export {
 	redef enum Log::ID += { INTEL };
+	
+	redef enum Notice::Type += {
+		## This notice should be used in all detector scripts to indicate 
+		## an intelligence based detection.
+		Detection,
+	};
 	
 	type Info: record {
 		ts:      time   &log;
@@ -34,12 +42,11 @@ export {
 	
 	type MetaData: record {
 		desc:        string      &optional;
+		url:         string      &optional;
 		first_seen:  time        &optional;
 		latest_seen: time        &optional;
 		tags:        set[string];
 	};
-	
-	type MetaDataStore: table[count] of MetaData;
 	
 	type Item: record {
 		ip:          addr        &optional;
@@ -48,9 +55,25 @@ export {
 		subtype:     string      &optional;
 		
 		desc:        string      &optional;
+		url:         string      &optional;
 		first_seen:  time        &optional;
 		latest_seen: time        &optional;
-		tags:        set[string] &optional;
+		tags:        set[string];
+		
+		## These single string tags are throw away until pybroccoli supports sets
+		tag1: string &optional;
+		tag2: string &optional;
+		tag3: string &optional;
+	};
+	
+	type QueryItem: record {
+		ip:          addr        &optional;
+		str:         string      &optional;
+		num:         int         &optional;
+		subtype:     string      &optional;
+		
+		or_tags:     set[string] &optional;
+		and_tags:    set[string] &optional; 
 		
 		## The predicate can be given when searching for a match.  It will
 		## be tested against every :bro:type:`MetaData` item associated with 
@@ -59,10 +82,21 @@ export {
 		pred:    function(meta: Intel::MetaData): bool &optional;
 	};
 	
-	global insert: event(item: Item);
-	global insert_sync: function(item: Item): bool;
-	global matcher: function(item: Item): bool;
 	
+	global insert: function(item: Item): bool;
+	global insert_event: event(item: Item);
+	global matcher: function(item: QueryItem): bool;
+
+	type MetaDataStore: table[count] of MetaData;
+	type DataStore: record {
+		ip_data:     table[addr] of MetaDataStore;
+		## The first string is the actual value and the second string is the subtype.
+		string_data: table[string, string] of MetaDataStore;
+		int_data:    table[int, string] of MetaDataStore;
+	};
+	global data_store: DataStore;
+
+
 }
 
 event bro_init()
@@ -70,21 +104,11 @@ event bro_init()
 	Log::create_stream(INTEL, [$columns=Info]);
 	}
 
-type DataStore: record {
-	ip_data:     table[addr] of MetaDataStore;
-	## The first string is the actual value and the second string is the subtype.
-	string_data: table[string, string] of MetaDataStore;
-	int_data:    table[int, string] of MetaDataStore;
-};
-global data_store: DataStore;
 
-function insert_sync(item: Item): bool
+function insert(item: Item): bool
 	{
 	local err_msg = "";
-	
-	if ( item?$pred )
-		err_msg = "Intel::Items should not have the $pred field when calling insert_sync() or insert()";
-	else if ( (item?$str || item?$num) && ! item?$subtype )
+	if ( (item?$str || item?$num) && ! item?$subtype )
 		err_msg = "You must provide a subtype to insert_sync or this item doesn't make sense.";
 	
 	if ( err_msg == "" )
@@ -99,7 +123,18 @@ function insert_sync(item: Item): bool
 			meta$tags = item$tags;
 		if ( item?$desc )
 			meta$desc = item$desc;
-	
+		if ( item?$url )
+			meta$url = item$url;
+		
+		
+		# This is hopefully only temporary until pybroccoli supports sets.
+		if ( item?$tag1 )
+			add item$tags[item$tag1];
+		if ( item?$tag2 )
+			add item$tags[item$tag2];
+		if ( item?$tag3 )
+			add item$tags[item$tag3];
+		
 		if ( item?$ip )
 			{
 			if ( item$ip !in data_store$ip_data )
@@ -132,18 +167,18 @@ function insert_sync(item: Item): bool
 	return F;
 	}
 	
-event insert(item: Item)
+event insert_event(item: Item)
 	{
-	insert_sync(item);
+	insert(item);
 	}
 	
-function match_item_with_metadata(item: Item, meta: MetaData): bool
+function match_item_with_metadata(item: QueryItem, meta: MetaData): bool
 	{
-	if ( item?$tags )
+	if ( item?$and_tags )
 		{
 		local matched = T;
 		# Every tag given has to match in a single MetaData entry.
-		for ( tag in item$tags )
+		for ( tag in item$and_tags )
 			{
 			if ( tag !in meta$tags )
 				matched = F;
@@ -151,21 +186,31 @@ function match_item_with_metadata(item: Item, meta: MetaData): bool
 		if ( matched )
 			return T;
 		}
-	else if ( item?$pred )
+	else if ( item?$or_tags )
 		{
-		if ( item$pred(meta) )
-			return T;
+		# For OR tags, only a single tag has to match.
+		for ( tag in item$or_tags )
+			{
+			if ( tag in meta$tags )
+				return T;
+			}
 		}
+	else if ( item?$pred )
+		return item$pred(meta);
+
+	# This indicates some sort of failure in the query
 	return F;
 	}
 	
-function matcher(item: Item): bool
+function matcher(item: QueryItem): bool
 	{
 	local err_msg = "";
 	if ( ! (item?$ip || item?$str || item?$num) )
 		err_msg = "You must supply one of the $ip, $str, or $num fields to search on";
-	else if ( item?$tags && item?$pred )
+	else if ( (item?$or_tags || item?$and_tags) && item?$pred )
 		err_msg = "You can't match with both tags and a predicate.";
+	else if ( item?$or_tags && item?$and_tags )
+		err_msg = "You can't match with both OR'd together tags and AND'd together tags";
 	else if ( (item?$str || item?$num) && ! item?$subtype )
 		err_msg = "You must provide a subtype to matcher or this item doesn't make sense.";
 	else if ( item?$str && item?$num )
@@ -179,7 +224,7 @@ function matcher(item: Item): bool
 			{
 			if ( item$ip in data_store$ip_data )
 				{
-				if ( ! item?$tags && ! item?$pred )
+				if ( ! item?$and_tags && ! item?$or_tags && ! item?$pred )
 					return T;
 			
 				for ( i in data_store$ip_data[item$ip] )
@@ -195,7 +240,7 @@ function matcher(item: Item): bool
 			{
 			if ( [item$str, item$subtype] in data_store$string_data )
 				{
-				if ( ! item?$tags && ! item?$pred )
+				if ( ! item?$and_tags && ! item?$or_tags && ! item?$pred )
 					return T;
 
 				for ( i in data_store$string_data[item$str, item$subtype] )
@@ -211,7 +256,7 @@ function matcher(item: Item): bool
 			{
 			if ( [item$num, item$subtype] in data_store$int_data )
 				{
-				if ( ! item?$tags && ! item?$pred )
+				if ( ! item?$and_tags && ! item?$or_tags && ! item?$pred )
 					return T;
 
 				for ( i in data_store$int_data[item$num, item$subtype] )

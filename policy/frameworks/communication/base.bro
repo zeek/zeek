@@ -16,7 +16,7 @@ export {
 	global default_compression = 0 &redef;
 
 	type Info: record {
-		ts:           time &log;
+		ts:           time   &log;
 		level:        string &log &optional;
 		src_name:     string &log &optional;
 		remote_node:  string &log &optional;
@@ -56,7 +56,7 @@ export {
 		accept_input: bool &default = T;
 
 		## Whether to perform state synchronization with peer.
-		sync: bool &default = T;
+		sync: bool &default = F;
 
 		## Whether to request logs from the peer.
 		request_logs: bool &default = F;

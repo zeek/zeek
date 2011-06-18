@@ -1,9 +1,9 @@
 module SMTP;
 
 export {
-	## Places where it's suspicious for mail to originate from.
-	##  requires all-capital, two character country codes (e.x. US)
-	##  requires libGeoIP support built in.
+	## Places where it's suspicious for mail to originate from represented as
+	## all-capital, two character country codes (e.x. US).  It requires 
+	## libGeoIP support built in.
 	const suspicious_origination_countries: set[string] = {} &redef;
 	const suspicious_origination_networks: set[subnet] = {} &redef;
 

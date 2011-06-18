@@ -42,27 +42,35 @@ export {
 	};
 	
 	type Info: record {
-		ts:             time    &log &optional;
-		uid:            string  &log &optional;
-		id:             conn_id &log &optional;
+		ts:             time           &log &optional;
+		uid:            string         &log &optional;
+		id:             conn_id        &log &optional;
 		
 		## The victim of the notice.  This can be used in cases where there
 		## is a definite loser for a notice.  In cases where there isn't a 
 		## victim, this field should be left empty.
-		victim:         addr    &log &optional;
+		victim:         addr           &log &optional;
 		
 		## The :bro:enum:`Notice::Type` of the notice.
-		note:           Type    &log;
-		msg:            string  &log &optional; ##< The human readable message for the notice.
-		sub:            string  &log &optional; ##< Sub-message.
+		note:           Type           &log;
+		## The human readable message for the notice.
+		msg:            string         &log &optional;
+		## Sub-message.
+		sub:            string         &log &optional;
 
-		src:            addr    &log &optional; ##< Source address, if we don't have a connection.
-		dst:            addr    &log &optional; ##< Destination address.
-		p:              port    &log &optional; ##< Associated port, if we don't have a connection.
-		n:              count   &log &optional; ##< Associated count, or perhaps a status code.
+		## Source address, if we don't have a connection.
+		src:            addr           &log &optional;
+		## Destination address.
+		dst:            addr           &log &optional;
+		## Associated port, if we don't have a connection.
+		p:              port           &log &optional;
+		## Associated count, or perhaps a status code.
+		n:              count          &log &optional;
 
-		conn:           connection &optional;   ##< Connection associated with the notice.
-		iconn:          icmp_conn  &optional;   ##< Associated ICMP "connection".
+		## Connection associated with the notice.
+		conn:           connection     &optional;
+		## Associated ICMP "connection".
+		iconn:          icmp_conn      &optional;
 
 		## The action assigned to this notice after being processed by the 
 		## various action assigning methods.
@@ -76,7 +84,7 @@ export {
 		## to alarms independent of all other notice actions and filters.
 		## If false, don't alarm independent of the determined notice action.
 		## If true, alarm dependening on the notice action.
-		do_alarm: bool &log &default=F;
+		do_alarm:       bool           &log &default=F;
 	};
 	
 	## Ignored notice types.
@@ -136,10 +144,10 @@ export {
 	## :bro:id:`Notice:notice_functions` have already been called.
 	global notice: event(n: Info);
 	
-	## This is an internally used function.  Please ignore it, it's only used
+	## This is an internally used function, please ignore it.  It's only used
 	## for filling out missing details of :bro:type:`Notice:Info` records
 	## before the synchronous and asynchronous event pathways have begun.
-	global fill_in_missing_details: function(n: Notice::Info);
+	global apply_policy: function(n: Notice::Info);
 	
 	## This event can be handled to access the :bro:type:`Info`
 	## record as it is sent on to the logging framework.
@@ -210,7 +218,7 @@ function execute_with_notice(cmd: string, n: Notice::Info)
 # This is run synchronously as a function before all of the other 
 # notice related functions and events.  It also modifies the 
 # :bro:type:`Notice::Info` record in place.
-function fill_in_missing_details(n: Notice::Info)
+function apply_policy(n: Notice::Info)
 	{
 	# Fill in some defaults.
 	n$ts = network_time();
@@ -237,10 +245,13 @@ function fill_in_missing_details(n: Notice::Info)
 
 	if ( ! n?$src_peer )
 		n$src_peer = get_event_peer();
+		
+	if ( ! n?$do_alarm )
+		n$do_alarm = F;
 
 	# Generate a unique ID for this notice.
 	n$tag = unique_id("@");
-		
+	
 	n$action = match n using policy;
 	}
 	
@@ -276,7 +287,7 @@ module GLOBAL;
 function NOTICE(n: Notice::Info)
 	{
 	# Fill out fields that might be empty and do the policy processing.
-	Notice::fill_in_missing_details(n);
+	Notice::apply_policy(n);
 	# Run the synchronous functions with the notice.
 	for ( func in Notice::notice_functions )
 		{

@@ -18,11 +18,11 @@ export {
 		## This value can be set per-transfer to determine per request
 		## if a file should have an MD5 sum generated.  It must be
 		## set to T at the time of or before the first chunk of body data.
-		calc_md5:        bool &default=F;
+		calc_md5:        bool     &default=F;
 		
-		## This boolean value indicates if an MD5 sum is being calculated 
-		## for the current file transfer.
-		calculating_md5: bool &default=F;
+		## This boolean value indicates if an MD5 sum is currently being 
+		## calculated for the current file transfer.
+		calculating_md5: bool     &default=F;
 	};
 	
 	## Generate MD5 sums for these filetypes.
@@ -32,14 +32,14 @@ export {
 }
 
 ## Initialize and calculate the hash.
-event http_entity_data(c: connection, is_orig: bool, length: count, data: string) &priority=-5
+event http_entity_data(c: connection, is_orig: bool, length: count, data: string) &priority=5
 	{
 	if ( is_orig || ! c?$http ) return;
 	
 	if ( c$http$first_chunk )
 		{
-		if ( c$http?$mime_type &&
-		     generate_md5 in c$http$mime_type )
+		if ( c$http$calc_md5 || 
+		     (c$http?$mime_type && generate_md5 in c$http$mime_type) )
 			{
 			c$http$calculating_md5 = T;
 			md5_hash_init(c$id);
@@ -65,8 +65,7 @@ event content_gap(c: connection, is_orig: bool, seq: count, length: count) &prio
 		}
 	}
 
-## When the file finishes downloading, finish the hash, check for the hash
-## in the MHR, and raise a notice if the hash is there.
+## When the file finishes downloading, finish the hash and generate a notice.
 event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &priority=-3
 	{
 	if ( is_orig || ! c?$http ) return;

@@ -71,6 +71,9 @@ export {
 	const mail_path_capture = ALL_HOSTS &redef;
 	
 	global log_smtp: event(rec: Info);
+	
+	## Configure the default ports for SMTP analysis.
+	const ports = { 25/tcp, 587/tcp } &redef;
 }
 
 redef record connection += { 
@@ -79,7 +82,6 @@ redef record connection += {
 };
 
 # Configure DPD
-const ports = { 25/tcp, 587/tcp };
 redef capture_filters += { ["smtp"] = "tcp port smtp or tcp port 587" };
 redef dpd_config += { [ANALYZER_SMTP] = [$ports = ports] };
 

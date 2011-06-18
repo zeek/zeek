@@ -1,4 +1,4 @@
-# ALS signatures for protocol detection.
+# Signatures to initiate dynamic protocol detection.
 
 signature dpd_ftp_client {
   ip-proto == tcp

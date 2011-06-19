@@ -36,5 +36,5 @@ function build_url(h: Info): string
 	
 function build_url_http(h: Info): string
 	{
-	return fmt("http://%s", build_url);
+	return fmt("http://%s", build_url(h));
 	}

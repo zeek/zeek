@@ -1,5 +1,5 @@
-# @TEST-EXEC: bro %INPUT  >output 2>&1
-# @TEST-EXEC: btest-diff output
+# @TEST-EXEC: bro %INPUT
+# @TEST-EXEC: btest-diff notice.log
 
 # This is a test script whose job is to generate rarely-seen events
 # (i.e., events that test traces might not include) to ensure that they're
@@ -9,7 +9,7 @@
 # Drop::restore_dropped_address is never defined.
 redef check_for_unused_event_handlers = F;
 
-@load netstats
+@load packet-filter/netstats
 
 function test_net_stats_update()
     {

@@ -8,6 +8,7 @@
 #include <list>
 #include <string>
 #include <algorithm>
+#include <sys/stat.h>
 
 #include "input.h"
 #include "util.h"
@@ -55,7 +56,8 @@ char last_tok[128];
 		error(fmt("read failed with \"%s\"", strerror(errno)));
 
 // Files we have already scanned (or are in the process of scanning).
-static PList(char) files_scanned;
+// They are tracked by inode number
+static std::list<ino_t> files_scanned;
 
 // reST documents that we've created (or have at least opened so far).
 std::list<BroDoc*> docs_generated;
@@ -82,6 +84,14 @@ static const char* canon_doc_comment(const char* comment)
 	// signify an indentation level for all the text when using
 	// the "## Text" style.
 	return ( comment[0] == ' ' ) ? comment + 1 : comment;
+	}
+
+static ino_t get_inode_num(FILE* f, const char* filename)
+	{
+	struct stat b;
+	if ( fstat(fileno(f), &b) )
+		internal_error("failed to fstat fd of %s\n", filename);
+	return b.st_ino;
 	}
 
 class FileInfo {
@@ -332,7 +342,19 @@ when	return TOK_WHEN;
 	const char* new_file = skip_whitespace(yytext + 7);
 
 	// All we have to do is pretend we've already scanned it.
-	files_scanned.append(copy_string(new_file));
+	const char* full_filename;
+	FILE* f = search_for_file(new_file, "bro", &full_filename, true);
+	if ( f )
+		{
+		ino_t i = get_inode_num(f, full_filename);
+		fclose(f);
+		delete [] full_filename;
+		files_scanned.push_back(i);
+		}
+	else
+		{
+		internal_error("failed find file associated with @unload %s", new_file);
+		}
 	}
 
 @prefixes{WS}("+"?)={WS}{PREFIX}	{
@@ -499,32 +521,9 @@ YYLTYPE GetCurrentLocation()
 
 static int load_files_with_prefix(const char* orig_file)
 	{
-	loop_over_list(files_scanned, j)
-		{
-		if ( streq(files_scanned[j], orig_file) )
-			return 0;
-		}
-
-	// Be sure to copy "orig_file", since it could be an alias
-	// for yytext, which is ephemeral and will be zapped
-	// if we do a yy_switch_to_buffer() below.
-	char* file = copy_string(orig_file);
-
 	// Whether we pushed on a FileInfo that will restore the
 	// current module after the final file has been scanned. 
 	bool did_module_restore = false;
-
-	files_scanned.append(file);
-
-	// If the file has a .bro extension, add a second version to the list
-	// of known files which has it stripped.
-	char* ext = strrchr(file, '.');
-	if ( ext && streq(ext, ".bro") )
-		{
-		char* s = copy_string(file);
-		s[ext - file] = '\0';
-		files_scanned.append(s);
-		}
 
 	// Note, we need to loop through the prefixes backwards, since
 	// we push them onto a stack, with the last one we push on the
@@ -536,7 +535,7 @@ static int load_files_with_prefix(const char* orig_file)
 		const char* full_filename = "<internal error>";
 		FILE* f;
 
-		if ( streq(file, "-") )
+		if ( streq(orig_file, "-") )
 			{
 			f = stdin;
 			full_filename = "<stdin>";
@@ -550,13 +549,13 @@ static int load_files_with_prefix(const char* orig_file)
 
 		else
 			{
-			int n = strlen(prefix) + strlen(file) + 2;
+			int n = strlen(prefix) + strlen(orig_file) + 2;
 			char* new_filename = new char[n];
 
 			if ( prefix[0] )
-				sprintf(new_filename, "%s.%s", prefix, file);
+				sprintf(new_filename, "%s.%s", prefix, orig_file);
 			else
-				strcpy(new_filename, file);
+				strcpy(new_filename, orig_file);
 
 			f = search_for_file(new_filename, "bro", &full_filename, true);
 			delete [] new_filename;
@@ -564,6 +563,21 @@ static int load_files_with_prefix(const char* orig_file)
 
 		if ( f )
 			{
+			ino_t i = get_inode_num(f, full_filename);
+			std::list<ino_t>::const_iterator it;
+
+			for ( it = files_scanned.begin(); it != files_scanned.end(); ++it )
+				{
+				if ( *it == i )
+					{
+					fclose(f);
+					delete [] full_filename;
+					return 0;
+					}
+				}
+
+			files_scanned.push_back(i);
+
 			if ( g_policy_debug )
 				{
 				// Add the filename to the file mapping

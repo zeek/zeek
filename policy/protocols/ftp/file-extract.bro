@@ -22,8 +22,6 @@ redef record Info += {
 	num_extracted_files:   count &default=0;
 };
 
-redef enum Tag += { EXTRACTED_FILE };
-
 event file_transferred(c: connection, prefix: string, descr: string,
 			mime_type: string) &priority=3
 	{
@@ -37,7 +35,7 @@ event file_transferred(c: connection, prefix: string, descr: string,
 	if ( extract_file_types in s$mime_type )
 		{
 		s$extract_file = T;
-		add s$tags[EXTRACTED_FILE];
+		add s$tags["extracted_file"];
 		++s$num_extracted_files;
 		}
 	}

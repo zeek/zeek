@@ -157,8 +157,8 @@ void SMB_Session::Deliver(int is_orig, int len, const u_char* data,
 
 		int next_command = hdr.command();
 
-		fprintf(stderr, "SMB command: %02x %s len %-7d dur %.6lf\n", next_command, 
-				SMB_command_name[next_command], len,
+		fprintf(stderr, "SMB command: 0x%02x %s (%d) len %-7d dur %.6lf\n", next_command, 
+				SMB_command_name[next_command], is_orig, len,
 		        last_time-first_time);
 		int ncmds = 0;
 
@@ -218,25 +218,23 @@ void SMB_Session::ParseMessage(int is_orig, int cmd,
 	// What if there's an error?
 	// if ( hdr.status->status() || hdr.status->dos_error() )
 	// The command code in the header might be right, but
-	// the response is probably mangled :-(.
+	// the response is probably mangled :-.
 
 	int ci = hdr.status()->val_case_index();
-	if ( (ci == 1 && hdr.status()->status()) ||
-	     (ci == 0 && (hdr.status()->dos_error()->error_class() ||
-			  hdr.status()->dos_error()->error())) )
+	unsigned int error = 0;
+
+	switch ( ci ) {
+	case 0:
+		error = hdr.status()->dos_error()->error_class() << 24 ||
+			hdr.status()->dos_error()->error();
+		break;
+	case 1:
+		error = hdr.status()->status();
+		break;
+	}
+
+	if (error)
 		{
-		unsigned int error = 0;
-
-		switch ( ci ) {
-		case 0:
-			error = hdr.status()->dos_error()->error_class() << 24 ||
-				hdr.status()->dos_error()->error();
-			break;
-		case 1:
-			error = hdr.status()->status();
-			break;
-		}
-
 		val_list* vl = new val_list;
 		StringVal* cmd_str = get_SMB_command_str(cmd);
 		Ref(cmd_str);
@@ -245,11 +243,10 @@ void SMB_Session::ParseMessage(int is_orig, int cmd,
 		vl->append(BuildHeaderVal(hdr));
 		vl->append(new Val(cmd, TYPE_COUNT));
 		vl->append(cmd_str);
-		vl->append(new StringVal(body.length(),
-					(const char*) body.data()));
+		vl->append(new Val(ci, TYPE_COUNT));
+		vl->append(new Val(error, TYPE_COUNT));
 
 		analyzer->ConnectionEvent(smb_error, vl);
-
 		// Is this the right behavior?
 		return;
 		}
@@ -594,7 +591,8 @@ int SMB_Session::ParseReadAndxResponse(binpac::SMB::SMB_header const& hdr,
 	resp.Parse(body.data(), body.data() + body.length());
 	set_andx(0, resp.andx());
 
-	int data_count = resp.data_length();
+	uint32_t data_len = resp.data_len_high();
+	data_len = (data_len<<16) + resp.data_len();
 	const u_char* data = resp.data().begin();
 
 	if ( smb_com_read_andx_response )
@@ -602,13 +600,13 @@ int SMB_Session::ParseReadAndxResponse(binpac::SMB::SMB_header const& hdr,
 		val_list* vl = new val_list;
 		vl->append(analyzer->BuildConnVal());
 		vl->append(BuildHeaderVal(hdr));
-		vl->append(new Val((resp.data_len_high()<<16)+(resp.data_len()), TYPE_COUNT));
+		vl->append(new Val(data_len, TYPE_COUNT));
 		//vl->append(new StringVal(data_count, (const char*) data));
 
-		analyzer->ConnectionEvent(smb_com_read_andx, vl);
+		analyzer->ConnectionEvent(smb_com_read_andx_response, vl);
 		}
 
-	CheckRPC(0, data_count, data);
+	CheckRPC(0, data_len, data);
 
 	return 0;
 	}
@@ -620,7 +618,8 @@ int SMB_Session::ParseWriteAndx(binpac::SMB::SMB_header const& hdr,
 	req.Parse(body.data(), body.data() + body.length());
 	set_andx(1, req.andx());
 
-	int data_count = req.data_length();
+	uint32_t data_len = req.data_len_high();
+	data_len = (data_len<<16) + req.data_len();
 	const u_char* data = req.data().begin();
 
 	if ( smb_com_write_andx )
@@ -629,13 +628,13 @@ int SMB_Session::ParseWriteAndx(binpac::SMB::SMB_header const& hdr,
 		vl->append(analyzer->BuildConnVal());
 		vl->append(BuildHeaderVal(hdr));
 		vl->append(new Val(req.fid(), TYPE_COUNT));
-		vl->append(new Val((req.data_len_high()<<16)+(req.data_len()), TYPE_COUNT));
+		vl->append(new Val(data_len, TYPE_COUNT));
 		//vl->append(new StringVal(data_count, (const char*) data));
 
 		analyzer->ConnectionEvent(smb_com_write_andx, vl);
 		}
 
-	CheckRPC(1, data_count, data);
+	CheckRPC(1, data_len, data);
 
 	return 0;
 	}
@@ -1012,6 +1011,7 @@ Val* SMB_Session::BuildHeaderVal(binpac::SMB::SMB_header const& hdr)
 
 	unsigned int status = 0;
 
+#if 0
 	try
 		{
 		// FIXME: does this work?  We need to catch exceptions :-(
@@ -1023,13 +1023,16 @@ Val* SMB_Session::BuildHeaderVal(binpac::SMB::SMB_header const& hdr)
 	catch ( const binpac::Exception& )
 		{ // do nothing
 		}
+#endif
 
+	uint32_t pid = hdr.pid_high();
+	pid = (pid<<16) + hdr.pid();
 	r->Assign(0, new Val(hdr.command(), TYPE_COUNT));
 	r->Assign(1, new Val(status, TYPE_COUNT));
 	r->Assign(2, new Val(hdr.flags(), TYPE_COUNT));
 	r->Assign(3, new Val(hdr.flags2(), TYPE_COUNT));
 	r->Assign(4, new Val(hdr.tid(), TYPE_COUNT));
-	r->Assign(5, new Val(hdr.pid(), TYPE_COUNT));
+	r->Assign(5, new Val(pid, TYPE_COUNT));
 	r->Assign(6, new Val(hdr.uid(), TYPE_COUNT));
 	r->Assign(7, new Val(hdr.mid(), TYPE_COUNT));
 	r->Assign(8, new Val(first_time, TYPE_TIME));
@@ -1127,15 +1130,29 @@ Contents_SMB::Contents_SMB(Connection* conn, bool orig, SMB_Session* s)
 	{
 	smb_session = s;
 	state = WAIT_FOR_HDR;
+	resync_state = INSYNC;
 	first_time = last_time = 0.0;
 	hdr_buf.Init(4,4);
 	msg_len = 0;
 	msg_type = 0;
 	}
 
+void Contents_SMB::Init()
+	{
+	TCP_SupportAnalyzer::Init();
+
+	NeedResync();
+	}
 
 Contents_SMB::~Contents_SMB()
 	{
+	}
+
+
+void Contents_SMB::Undelivered(int seq, int len, bool orig)
+	{
+	TCP_SupportAnalyzer::Undelivered(seq, len, orig);
+	NeedResync();
 	}
 
 void Contents_SMB::DeliverSMB(int len, const u_char* data)
@@ -1147,18 +1164,83 @@ void Contents_SMB::DeliverSMB(int len, const u_char* data)
 			//dshdr[0], dshdr[1], dshdr[2], dshdr[3],
 			msg_type, msg_len,
 			data[0], data[1], data[2], data[3]));
-		SetSkip(1);
+		NeedResync();
 		}
 	else
 		smb_session->Deliver(IsOrig(), len, data, first_time, last_time);
 
 	}
 
+bool Contents_SMB::CheckResync(int& len, const u_char*& data, bool orig)
+	{
+
+	if (resync_state == INSYNC)
+		return true;
+
+	// This is an attempt to re-synchronize the stream after a content gap.  
+	// Returns true if we are in sync. 
+	// Returns false otherwise (we are in resync mode)
+	//
+	// We try to look for the beginning of a SMB message, assuming 
+	// SMB messages start at packet boundaries (though they may span 
+	// over multiple packets) (note that the data* of DeliverStream()
+	// usually starts at a packet boundrary). 
+	//
+
+	// Now lets see whether data points to the beginning of a
+	// SMB message. If the resync processs is successful, we should
+	// be at the beginning of a frame.
+
+	
+	if ( len < 36 )
+		{
+		// Ignore small chunks. 
+		// 4 byte NetBIOS header (or length field) + 32 Byte SMB header
+		Conn()->Weird(fmt("SMB resync: discard %d bytes\n",
+					len));
+		NeedResync();
+		return false;
+		}
+
+
+	const u_char *xdata = data;
+	int xlen = len;
+	bool discard_this_chunk = false;
+
+	// Check if it's a data message
+	if (xdata[0]!=0x00)
+		discard_this_chunk = true;
+
+	// Check if the flags / high-byte of the message length is < 1
+	if (xdata[1] > 1)
+		discard_this_chunk = true;
+
+	// check if the SMB header starts with \xFFSMB
+	if (strncmp((const char*) (xdata+4), "\xffSMB", 4)!=0)
+		discard_this_chunk = true;
+
+	if (discard_this_chunk)
+		{
+		NeedResync();
+		return false;
+		}
+
+	resync_state = INSYNC;
+	first_time = last_time = 0.0;
+	hdr_buf.Init(4,4);
+	msg_len = 0;
+	msg_type = 0;
+	fprintf(stderr, "Resync successful\n");
+	return true; 
+
+	}
+
 void Contents_SMB::DeliverStream(int len, const u_char* data, bool orig)
 	{
 	TCP_SupportAnalyzer::DeliverStream(len, data, orig);
-	if (Skipping())
-		return;
+	
+	if (!CheckResync(len, data, orig))
+		return;   // Not in sync yet. Still resyncing
 
 	last_time = network_time;
 	while ( len > 0 )
@@ -1191,10 +1273,13 @@ void Contents_SMB::DeliverStream(int len, const u_char* data, bool orig)
 				{
 				const u_char *dummy_p = msg_buf.GetBuf();
 				int dummy_len = (int) msg_buf.GetFill();
-				if (msg_type == 0x00 && dummy_len >= 4)
+				if (msg_type == 0x00 && dummy_len >= 32)
 					DeliverSMB(dummy_len, dummy_p);
 				else if (msg_type == 0x00)
+					{
 					Conn()->Weird(fmt("SMB too short: len=%d", msg_len));
+					NeedResync();
+					}
 				else 
 					Conn()->Weird(fmt("SMB other msg type: %x", msg_type));
 				state = WAIT_FOR_HDR;

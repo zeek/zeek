@@ -115,7 +115,10 @@ type SMB_header = record {
 	status		: SMB_error(err_status_type);
 	flags		: uint8;
 	flags2		: uint16;
-	pad		: padding[12];
+	#pad		: padding[12];
+	pid_high	: uint16;
+	security_features: uint8[8];
+	reserved	: uint16;
 	tid		: uint16;
 	pid		: uint16;
 	uid		: uint16;

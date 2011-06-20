@@ -49,10 +49,25 @@ global next_fid = 0;
 # request/reply matching, but the more specific event takes care of printing. 
 # It's all a hack....
 global more_specific_cmds: set[count];
+# Transaction commands and other commands for which request/reply matching
+# doesn't work. We ignore them all.
+# transaction commands re-use PID:MID. We'd have to look into the actual
+# transaction command to match requests/replies. 
+global smb_ignore_cmds: set[count];
 event bro_init() 
 	{
 	add more_specific_cmds[0x2e];  # read_andx
 	add more_specific_cmds[0x2f];  # write_andx
+
+	add smb_ignore_cmds[0x25];  # transaction
+	add smb_ignore_cmds[0x26];  # transaction_secondary
+	add smb_ignore_cmds[0x32];  # transaction2
+	add smb_ignore_cmds[0x33];  # transaction2_secondary
+	add smb_ignore_cmds[0xA0];  # nt_transact
+	add smb_ignore_cmds[0xA1];  # nt_transact_secondary
+
+	add smb_ignore_cmds[0xA4];  # nt_cancel
+
 	}
 
 function smb_new_cmd_info(hdr: smb_hdr, body_len: count): smb_cmd_info
@@ -112,11 +127,11 @@ function fmt_msg_prefix(cid: conn_id, is_orig: bool, hdr: smb_hdr): string
 function smb_log_cmd(c: connection, info: smb_cmd_info)
 	{
 	local msg = "";
-	msg = fmt("COMMAND %s (%d) %d:%d %.6f %.6f %d %.6f %.6f %d %s",
+	msg = fmt("COMMAND %s (%d) %d:%d %.6f %.6f %d %.6f %.6f %d %s %d %s %s %d",
 			info$cmdstr, info$cmd, info$pid, info$mid, 
 			info$req_first_time, info$req_last_time, info$req_body_len,
 			info$rep_first_time, info$rep_last_time, info$rep_body_len,
-			get_fid(c$id, info$fid));
+			get_fid(c$id, info$fid), info$file_payload, c$id$orig_h, c$id$resp_h, c$id$resp_p);
 	print smb_log, msg;
 	}
 
@@ -146,6 +161,8 @@ function smb_set_fid(cid: conn_id, hdr: smb_hdr, fid: count)
 	{
 	# smb_messge takes care of error / mismatch handling, so we can 
 	# just punt here
+	if (hdr$command == 0x2f)
+		print fmt("in set_fid: %d", fid);
 	if (cid !in smb_sessions)
 		return;
 	local cur_session = smb_sessions[cid];
@@ -154,6 +171,8 @@ function smb_set_fid(cid: conn_id, hdr: smb_hdr, fid: count)
 	local info = cur_session[hdr$pid, hdr$mid];
 
 	info$fid = fid;
+	if (hdr$command == 0x2f)
+		print fmt("end of set_fid: %d %d", info$fid, fid);
 	}
 
 function smb_set_file_payload(cid: conn_id, hdr: smb_hdr, payload_len: count)
@@ -176,6 +195,14 @@ function smb_set_file_payload(cid: conn_id, hdr: smb_hdr, payload_len: count)
 event smb_message(c: connection, hdr: smb_hdr, is_orig: bool, cmd: string, body_length: count, body: string) 
 	{
 	###print smb_log, fmt("%s %s %d", fmt_msg_prefix(c$id, is_orig, hdr), cmd, body_length);
+	
+	if (hdr$command==0x24 && hdr$mid == 0xffff)
+		# opLock break notification event from server.
+		# ignore it.
+		return;
+	if (hdr$command in smb_ignore_cmds)
+		return;
+	
 	if (c$id !in smb_sessions)
 		smb_sessions[c$id] = table();
 	local cur_session = smb_sessions[c$id];
@@ -188,15 +215,15 @@ event smb_message(c: connection, hdr: smb_hdr, is_orig: bool, cmd: string, body_
 	if (is_orig) 
 		{
 		if ([hdr$pid,hdr$mid] in cur_session)
-			print smb_log, fmt("Mismatch: got a request but already have request queued: %s %s", 
-				mismatch_fmt_info(cur_session[hdr$pid,hdr$mid]), mismatch_fmt_hdr(hdr,cmd));
+			print smb_log, fmt("Mismatch: got a request but already have request queued: %s %s %s", 
+				mismatch_fmt_info(cur_session[hdr$pid,hdr$mid]), mismatch_fmt_hdr(hdr,cmd), id_string(c$id));
 		cur_session[hdr$pid, hdr$mid] = smb_new_cmd_info(hdr, body_length);
 		cur_session[hdr$pid, hdr$mid]$cmdstr = cmd;
 		}
 	else
 		{
 		if ([hdr$pid,hdr$mid] !in cur_session)
-			print smb_log, fmt("Mismatch: got a reply but no request queued: %s",  mismatch_fmt_hdr(hdr,cmd));
+			print smb_log, fmt("Mismatch: got a reply but no request queued: %s %s",  mismatch_fmt_hdr(hdr,cmd), id_string(c$id));
 		else
 			{
 			local info = cur_session[hdr$pid, hdr$mid];
@@ -248,6 +275,11 @@ event smb_com_write_andx_response(c: connection, hdr: smb_hdr)
 	smb_log_cmd2(c, hdr);
 	}
 
+
+event smb_error(c: connection, hdr: smb_hdr, cmd: count, cmd_str: string, errtype: count, error: count) 
+	{
+	print smb_log, fmt("ERROR: %s %s (0x%2x): %d %08x", id_string(c$id), cmd_str, cmd, errtype, error);
+	}
 
 event connection_state_remove(c: connection)
 	{

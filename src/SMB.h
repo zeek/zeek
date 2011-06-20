@@ -188,6 +188,18 @@ protected:
 		WAIT_FOR_HDR,
 		WAIT_FOR_DATA
 	} state_t;
+	typedef enum {
+		NEED_RESYNC,
+		INSYNC,
+	} resync_state_t;
+	virtual void Init();
+	virtual bool CheckResync(int& len, const u_char*& data, bool orig);
+	virtual void Undelivered(int seq, int len, bool orig);
+	virtual void NeedResync() {
+		resync_state = NEED_RESYNC;
+		state = WAIT_FOR_HDR;
+	}
+
 	void DeliverSMB(int len, const u_char* data);
 
 	SMB_Session* smb_session;
@@ -199,6 +211,7 @@ protected:
 	double first_time;   // timestamp of first packet of current message
 	double last_time;    // timestamp of last pakcet of current message
 	state_t state;
+	resync_state_t resync_state;
 };
 
 class SMB_Analyzer : public TCP_ApplicationAnalyzer {

@@ -232,7 +232,7 @@ event smb_com_setup_andx%(c: connection, hdr: smb_hdr%);
 event smb_com_generic_andx%(c: connection, hdr: smb_hdr%);
 event smb_com_close%(c: connection, hdr: smb_hdr%);
 event smb_com_logoff_andx%(c: connection, hdr: smb_hdr%);
-event smb_error%(c: connection, hdr: smb_hdr, cmd: count, cmd_str: string, data: string%);
+event smb_error%(c: connection, hdr: smb_hdr, cmd: count, cmd_str: string, errtype: count, error: count%);
 
 event dns_message%(c: connection, is_orig: bool, msg: dns_msg, len: count%) &group="dns";
 event dns_request%(c: connection, msg: dns_msg, query: string, qtype: count, qclass: count%) &group="dns";

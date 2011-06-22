@@ -1351,7 +1351,7 @@ const packet_filter_default = F &redef;
 const sig_max_group_size = 50 &redef;
 
 # If true, send logger messages to syslog.
-const enable_syslog = T &redef;
+const enable_syslog = F &redef;
 
 # This is transmitted to peers receiving our events.
 const peer_description = "" &redef;

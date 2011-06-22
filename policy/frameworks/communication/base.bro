@@ -89,7 +89,7 @@ export {
 
 	## The table of Bro or Broccoli nodes that Bro will initiate connections
 	## to or respond to connections from.
-	const nodes: table[string] of Node &redef;
+	global nodes: table[string] of Node &redef;
 
 	# Write log message into remote.log
 	#global do_script_log: function(p: event_peer, msg: string);
@@ -97,14 +97,14 @@ export {
 	global pending_peers: table[peer_id] of Node;
 	global connected_peers: table[peer_id] of Node;
 
-	# Connect to nodes[node], independent of its "connect" flag.
+	## Connect to nodes[node], independent of its "connect" flag.
 	global connect_peer: function(peer: string);
 }
 
 const src_names = {
-	[REMOTE_SRC_CHILD] = "[child] ",
-	[REMOTE_SRC_PARENT] = "[parent]",
-	[REMOTE_SRC_SCRIPT] = "[script]",
+	[REMOTE_SRC_CHILD]  = "child",
+	[REMOTE_SRC_PARENT] = "parent",
+	[REMOTE_SRC_SCRIPT] = "script",
 };
 
 event bro_init()
@@ -115,7 +115,7 @@ event bro_init()
 function do_script_log_common(level: count, src: count, msg: string)
 	{
 	Log::write(COMMUNICATION, [$ts = network_time(), 
-	                           $level = (level == REMOTE_LOG_INFO ? "[info] " : "[error]"),
+	                           $level = (level == REMOTE_LOG_INFO ? "info" : "error"),
 	                           $src_name = src_names[src],
 	                           $message = msg]);
 	}

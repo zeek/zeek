@@ -319,13 +319,15 @@ type SMB_read_andx = record {
 	offset		: uint32;
 	max_count	: uint16;
 	min_count	: uint16;
-	max_count_high	: uint16;
+	max_count_high_or_timeout	: uint32;
 	remaining	: uint16;
 	offset_high_u	: case word_count of {
-		12-> offset_high : uint32;
+		12-> offset_high_tmp : uint32;
 		10-> null : empty;
 	};
 	byte_count	: uint16;
+} &let {
+	offset_high : uint32 = (word_count==12) ? offset_high_tmp : 0;
 } &byteorder = littleendian;
 
 type SMB_read_andx_response = record {
@@ -362,13 +364,17 @@ type SMB_write_andx = record {
 	data_len_high	: uint16;
 	data_len	: uint16;
 	data_offset	: uint16;
-	rest_words	: uint8[word_count * 2 - offsetof(rest_words) + 1];
+	offset_high_u	: case word_count of {
+		14-> offset_high_tmp : uint32;
+		12-> null : empty;
+	};
 	byte_count	: uint16;
 	pad		: padding to data_offset - smb_header_length;
 	#data		: bytestring &length = data_length;
 	data		: bytestring &restofdata;
 } &let {
 	data_length = data_len_high * 0x10000 + data_len;
+	offset_high : uint32 = (word_count==12) ? offset_high_tmp : 0;
 } &byteorder = littleendian;
 
 type SMB_write_andx_response = record {

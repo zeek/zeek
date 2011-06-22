@@ -22,8 +22,9 @@ type smb_cmd_info: record {
 	# this is 16 bit, so we use 0x10000 to indicate that the fid is not
 	# valid
 	fid: count;
-	# for read/writes: number of bytes read/written
+	# for read/writes: number of bytes read/written and offset
 	file_payload: count;
+	file_offset: count;
 
 	req_first_time: time;
 	req_last_time: time;
@@ -81,6 +82,7 @@ function smb_new_cmd_info(hdr: smb_hdr, body_len: count): smb_cmd_info
 
 	info$fid = 0x10000; 
 	info$file_payload = 0;
+	info$file_offset = 0;
 
 	info$req_first_time = hdr$first_time;
 	info$req_last_time = hdr$last_time;
@@ -127,11 +129,12 @@ function fmt_msg_prefix(cid: conn_id, is_orig: bool, hdr: smb_hdr): string
 function smb_log_cmd(c: connection, info: smb_cmd_info)
 	{
 	local msg = "";
-	msg = fmt("COMMAND %s (%d) %d:%d %.6f %.6f %d %.6f %.6f %d %s %d %s %s %d",
+	msg = fmt("COMMAND %s (%d) %d:%d %.6f %.6f %d %.6f %.6f %d %s %d %d %s %s %d",
 			info$cmdstr, info$cmd, info$pid, info$mid, 
 			info$req_first_time, info$req_last_time, info$req_body_len,
 			info$rep_first_time, info$rep_last_time, info$rep_body_len,
-			get_fid(c$id, info$fid), info$file_payload, c$id$orig_h, c$id$resp_h, c$id$resp_p);
+			get_fid(c$id, info$fid), info$file_offset, info$file_payload, 
+			c$id$orig_h, c$id$resp_h, c$id$resp_p);
 	print smb_log, msg;
 	}
 
@@ -157,12 +160,10 @@ function mismatch_fmt_info(info: smb_cmd_info): string
 	return fmt("%s %d:%d", info$cmdstr, info$pid, info$mid);
 	}
 
-function smb_set_fid(cid: conn_id, hdr: smb_hdr, fid: count)
+function smb_set_fid_offset(cid: conn_id, hdr: smb_hdr, fid: count, offset: count)
 	{
 	# smb_messge takes care of error / mismatch handling, so we can 
 	# just punt here
-	if (hdr$command == 0x2f)
-		print fmt("in set_fid: %d", fid);
 	if (cid !in smb_sessions)
 		return;
 	local cur_session = smb_sessions[cid];
@@ -171,8 +172,7 @@ function smb_set_fid(cid: conn_id, hdr: smb_hdr, fid: count)
 	local info = cur_session[hdr$pid, hdr$mid];
 
 	info$fid = fid;
-	if (hdr$command == 0x2f)
-		print fmt("end of set_fid: %d %d", info$fid, fid);
+	info$file_offset = offset;
 	}
 
 function smb_set_file_payload(cid: conn_id, hdr: smb_hdr, payload_len: count)
@@ -253,9 +253,9 @@ event smb_message(c: connection, hdr: smb_hdr, is_orig: bool, cmd: string, body_
 		}
 	}
 
-event smb_com_read_andx(c: connection, hdr: smb_hdr, fid: count)
+event smb_com_read_andx(c: connection, hdr: smb_hdr, fid: count, offset: count)
 	{
-	smb_set_fid(c$id, hdr, fid);
+	smb_set_fid_offset(c$id, hdr, fid, offset);
 	}
 
 event smb_com_read_andx_response(c: connection, hdr: smb_hdr, len: count) 
@@ -264,9 +264,9 @@ event smb_com_read_andx_response(c: connection, hdr: smb_hdr, len: count)
 	smb_log_cmd2(c, hdr);
 	}
 
-event smb_com_write_andx(c: connection, hdr: smb_hdr, fid: count, len: count)
+event smb_com_write_andx(c: connection, hdr: smb_hdr, fid: count, offset: count, len: count)
 	{
-	smb_set_fid(c$id, hdr, fid);
+	smb_set_fid_offset(c$id, hdr, fid, offset);
 	smb_set_file_payload(c$id, hdr, len);
 	}
 
@@ -275,6 +275,11 @@ event smb_com_write_andx_response(c: connection, hdr: smb_hdr)
 	smb_log_cmd2(c, hdr);
 	}
 
+
+event smb_com_nt_create_andx(c: connection, hdr: smb_hdr, name: string)
+	{
+	print fmt("CREATE_ANDX %s %s %s", c$id$orig_h, c$id$resp_h, name);
+	}
 
 event smb_error(c: connection, hdr: smb_hdr, cmd: count, cmd_str: string, errtype: count, error: count) 
 	{

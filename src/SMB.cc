@@ -157,9 +157,11 @@ void SMB_Session::Deliver(int is_orig, int len, const u_char* data,
 
 		int next_command = hdr.command();
 
+		/*
 		fprintf(stderr, "SMB command: 0x%02x %s (%d) len %-7d dur %.6lf\n", next_command, 
 				SMB_command_name[next_command], is_orig, len,
 		        last_time-first_time);
+		*/
 		int ncmds = 0;
 
 		while ( data < data_end )
@@ -183,7 +185,7 @@ void SMB_Session::Deliver(int is_orig, int len, const u_char* data,
 
 			data = data_start + next;
 			}
-		fprintf(stderr, "ncmds %d\n", ncmds);
+		//fprintf(stderr, "ncmds %d\n", ncmds);
 		}
 	catch ( const binpac::Exception& e )
 		{
@@ -567,8 +569,13 @@ int SMB_Session::ParseReadAndx(binpac::SMB::SMB_header const& hdr,
 				SMB_Body const& body)
 	{
 	binpac::SMB::SMB_read_andx req;
+	uint64_t offset = 0;
 	req.Parse(body.data(), body.data() + body.length());
 	set_andx(1, req.andx());
+
+	offset = req.offset_high();
+	offset = offset << 32;
+	offset += req.offset();
 
 	if ( smb_com_read_andx )
 		{
@@ -576,6 +583,7 @@ int SMB_Session::ParseReadAndx(binpac::SMB::SMB_header const& hdr,
 		vl->append(analyzer->BuildConnVal());
 		vl->append(BuildHeaderVal(hdr));
 		vl->append(new Val(req.fid(), TYPE_COUNT));
+		vl->append(new Val(offset, TYPE_COUNT));
 		//vl->append(new StringVal(""));
 
 		analyzer->ConnectionEvent(smb_com_read_andx, vl);
@@ -620,6 +628,12 @@ int SMB_Session::ParseWriteAndx(binpac::SMB::SMB_header const& hdr,
 
 	uint32_t data_len = req.data_len_high();
 	data_len = (data_len<<16) + req.data_len();
+	
+	uint64_t offset;
+	offset = req.offset_high();
+	offset = offset << 32;
+	offset += req.offset();
+
 	const u_char* data = req.data().begin();
 
 	if ( smb_com_write_andx )
@@ -628,6 +642,7 @@ int SMB_Session::ParseWriteAndx(binpac::SMB::SMB_header const& hdr,
 		vl->append(analyzer->BuildConnVal());
 		vl->append(BuildHeaderVal(hdr));
 		vl->append(new Val(req.fid(), TYPE_COUNT));
+		vl->append(new Val(offset, TYPE_COUNT));
 		vl->append(new Val(data_len, TYPE_COUNT));
 		//vl->append(new StringVal(data_count, (const char*) data));
 
@@ -1230,7 +1245,6 @@ bool Contents_SMB::CheckResync(int& len, const u_char*& data, bool orig)
 	hdr_buf.Init(4,4);
 	msg_len = 0;
 	msg_type = 0;
-	fprintf(stderr, "Resync successful\n");
 	return true; 
 
 	}

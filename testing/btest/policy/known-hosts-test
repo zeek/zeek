@@ -1,6 +1,0 @@
-
-@TEST-EXEC: bro -r $TRACES/wikipedia.trace known-hosts
-
-@TEST-EXEC: btest-diff KNOWN_HOSTS
-@TEST-EXEC: btest-diff .stderr
-@TEST-EXEC: btest-diff .stdout

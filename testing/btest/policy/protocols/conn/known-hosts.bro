@@ -1,8 +1,8 @@
 # A basic test of the known-hosts script's logging and asset_tracking options
 
-# @TEST-EXEC: bro -r $TRACES/wikipedia.trace %INPUT
-# @TEST-EXEC: mv knownhosts.log knownhosts-default.log
-# @TEST-EXEC: btest-diff knownhosts-default.log
+# @TEST-EXEC: bro -r $TRACES/wikipedia.trace %INPUT KnownHosts::asset_tracking=LOCAL_HOSTS
+# @TEST-EXEC: mv knownhosts.log knownhosts-local.log
+# @TEST-EXEC: btest-diff knownhosts-local.log
 
 # @TEST-EXEC: bro -r $TRACES/wikipedia.trace %INPUT KnownHosts::asset_tracking=REMOTE_HOSTS
 # @TEST-EXEC: mv knownhosts.log knownhosts-remote.log

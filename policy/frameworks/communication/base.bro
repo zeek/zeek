@@ -20,7 +20,7 @@ export {
 		level:        string &log &optional;
 		src_name:     string &log &optional;
 		remote_node:  string &log &optional;
-		message:      string &log;
+		msg:          string &log;
 	};
 
 	## A remote peer to which we would like to talk.
@@ -90,10 +90,7 @@ export {
 	## The table of Bro or Broccoli nodes that Bro will initiate connections
 	## to or respond to connections from.
 	global nodes: table[string] of Node &redef;
-
-	# Write log message into remote.log
-	#global do_script_log: function(p: event_peer, msg: string);
-
+	
 	global pending_peers: table[peer_id] of Node;
 	global connected_peers: table[peer_id] of Node;
 
@@ -117,7 +114,7 @@ function do_script_log_common(level: count, src: count, msg: string)
 	Log::write(COMMUNICATION, [$ts = network_time(), 
 	                           $level = (level == REMOTE_LOG_INFO ? "info" : "error"),
 	                           $src_name = src_names[src],
-	                           $message = msg]);
+	                           $msg = msg]);
 	}
 
 # This is a core generated event.
@@ -142,11 +139,11 @@ function connect_peer(peer: string)
 
 	local class = node?$class ? node$class : "";
 	local id = connect(node$host, p, class, node$retry, node$ssl);
-
+    
 	if ( id == PEER_ID_NONE )
 		Log::write(COMMUNICATION, [$ts = network_time(), 
 		                           $remote_node = fmt("%s:%d", node$host, p),
-		                           $message = "can't trigger connect"]);
+		                           $msg = "can't trigger connect"]);
 	pending_peers[id] = node;
 	}
 
@@ -273,7 +270,7 @@ event remote_state_inconsistency(operation: string, id: string,
 	local msg = fmt("state inconsistency: %s should be %s but is %s before %s",
 	                id, expected_old, real_old, operation);
 	Log::write(COMMUNICATION, [$ts = network_time(), 
-	                           $message = msg]);
+	                           $msg = msg]);
 	}
 
 

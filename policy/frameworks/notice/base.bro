@@ -10,35 +10,43 @@
 module Notice;
 
 export {
-	# This couldn't be named NOTICE because that id is already used by the
-	# global function NOTICE().
-	redef enum Log::ID += { NOTICE_LOG };
+	redef enum Log::ID += { 
+		## This is the primary logging stream for notices.  The logging stream
+		## couldn't be named NOTICE because that id is already used by the 
+		## global function :bro:id:`NOTICE`.
+		NOTICES, 
+		## This is the notice policy auditing log.  It records what the current
+		## notice policy is at Bro init time..
+		NOTICE_POLICY,
+	};
 
 	## Scripts creating new notices need to redef this enum to add their own 
 	## specific notice types which would then get used when they call the
 	## :bro:id:`NOTICE` function.  The convention is to give a general category
 	## along with the specific notice separating words with underscores and using
 	## leading capitals on each word except for abbreviations which are kept in
-	## all capitals.  For example, SSH_Login is for heuristically guessed 
+	## all capitals.  For example, SSH::Login is for heuristically guessed 
 	## successful SSH logins.
 	type Type: enum {
 		## Notice reporting a count of how often a notice occurred.
-		Notice_Tally,
+		Tally,
 	};
 	
 	## These are values representing actions that can be taken with notices.
 	type Action: enum {
 		## Indicates that the notice should be sent to the notice file.
 		ACTION_FILE,
-		## Indicates that no action should be taken with the notice.
-		ACTION_IGNORE,
-		## Indicates that the notice should always be turned into an alarm.
+		## Indicates that the notice should be alarmed on.
 		ACTION_ALARM,
-		## Indicates that the notice should be sent to the contact email.
-		ACTION_EMAIL, 
+		## Indicates that the notice should be sent to the configured notice
+		## contact email address(es).
+		ACTION_EMAIL,
 		## Indicates that the notice should be sent to the configured pager 
 		## email address.
 		ACTION_PAGE,
+		## Indicates that no more actions should be found after the policy 
+		## item returning this matched.
+		ACTION_STOP,
 	};
 	
 	type Info: record {
@@ -72,19 +80,15 @@ export {
 		## Associated ICMP "connection".
 		iconn:          icmp_conn      &optional;
 
-		## The action assigned to this notice after being processed by the 
-		## various action assigning methods.
-		action:         Notice::Action &log &default=ACTION_FILE;
 		## Peer that raised this notice.
 		src_peer:       event_peer     &log &optional;
 		## Uniquely identifying tag associated with this notice.
 		tag:            string         &log &optional;
-
-		## This value controls and indicates if notices should be bumped up
-		## to alarms independent of all other notice actions and filters.
-		## If false, don't alarm independent of the determined notice action.
-		## If true, alarm dependening on the notice action.
-		do_alarm:       bool           &log &default=F;
+		
+		## The set of actions that are to be applied to this notice.
+		## TODO: there is a problem setting a &default=set() attribute
+		##       for sets containing enum values.
+		actions:        set[Notice::Action] &log &optional;
 	};
 	
 	## Ignored notice types.
@@ -92,10 +96,18 @@ export {
 	## Emailed notice types.
 	const emailed_types: set[Notice::Type] = {} &redef;
 	
+	## This is the record that defines the items that make up the notice policy.
 	type PolicyItem: record {
-		result: Notice::Action &default=ACTION_FILE;
-		pred: function(n: Notice::Info): bool;
-		priority: count &default=5;
+		## Define the priority for this check.  Items are checked in ordered
+		## from highest value (10) to lowest value (0).
+		priority: count                            &log &default=5;
+		## An action given to the notice if the predicate return true.
+		result:   Notice::Action                   &log &default=ACTION_FILE;
+		## The pred (predicate) field is a function that returns a boolean T 
+		## or F value.  If the predicate function return true, the action in 
+		## this record is applied to the notice that is given as an argument 
+		## to the predicate function.
+		pred:     function(n: Notice::Info): bool;
 	};
 	
 	# This is the :bro:id:`Notice::policy` where the local notice conversion 
@@ -105,11 +117,11 @@ export {
 		 $result = ACTION_FILE,
 		 $priority = 0],
 		[$pred(n: Notice::Info) = { return (n$note in ignored_types); },
-		 $result = ACTION_IGNORE,
-		 $priority = 1],
+		 $result = ACTION_STOP,
+		 $priority = 10],
 		[$pred(n: Notice::Info) = { return (n$note in emailed_types); },
 		 $result = ACTION_EMAIL,
-		 $priority = 3],
+		 $priority = 9],
 	} &redef;
 	
 	## Local system mail program.
@@ -118,6 +130,14 @@ export {
 	const mail_dest      = ""          &redef;
 	## Email address to send notices with the :bro:enum:`ACTION_PAGE` action.
 	const mail_page_dest = ""          &redef;
+
+	## This is the event that is called as the entry point to the 
+	## notice framework by the global :bro:id:`NOTICE` function.  By the time 
+	## this event is generated, default values have already been filled out in
+	## the :bro:type:`Notice::Info` record and synchronous functions in the 
+	## :bro:id:`Notice:notice_functions` have already been called.  The notice
+	## policy has also been applied.
+	global notice: event(n: Info);
 
 	## This is a set of functions that provide a synchronous way for scripts 
 	## extending the notice framework to run before the normal event based
@@ -137,13 +157,6 @@ export {
 	## :bro:enum:`ACTION_PAGE` actions.
 	global email_notice_to: function(n: Info, dest: string);
 	
-	## This is the event that is called as the entry point to the 
-	## notice framework by the global :bro:id:`NOTICE` function.  By the time 
-	## this event is generated, default values have already been filled out in
-	## the :bro:type:`Notice::Info` record and synchronous functions in the 
-	## :bro:id:`Notice:notice_functions` have already been called.
-	global notice: event(n: Info);
-	
 	## This is an internally used function, please ignore it.  It's only used
 	## for filling out missing details of :bro:type:`Notice:Info` records
 	## before the synchronous and asynchronous event pathways have begun.
@@ -154,17 +167,25 @@ export {
 	global log_notice: event(rec: Info);
 }
 
+# This is an internal variable used to store the notice policy ordered by 
+# priority.
+global ordered_policy: vector of PolicyItem = vector();
+
+
 redef record Conn::Info += {
 	notice_tags: set[string] &log &optional;
 };
 
 event bro_init()
 	{
-	Log::create_stream(NOTICE_LOG, [$columns=Info, $ev=log_notice]);
+	Log::create_stream(NOTICE_POLICY, [$columns=PolicyItem]);
+	
+	Log::create_stream(NOTICES, [$columns=Info, $ev=log_notice]);
 	
 	# Add a filter to create the alarm log.
-	Log::add_filter(NOTICE_LOG, [$name = "alarm", $path = "alarm",
-	                             $pred(rec: Notice::Info) = { return rec$do_alarm; }]);
+	Log::add_filter(NOTICES, [$name = "alarm", $path = "alarm",
+	                          $pred(rec: Notice::Info) = { return (ACTION_ALARM in rec$actions); }]);
+	
 	}
 
 # TODO: fix this.
@@ -199,13 +220,6 @@ function email_notice_to(n: Notice::Info, dest: string)
 	system(mail_cmd);
 	}
 
-function email_notice(n: Notice::Info)
-	{
-	# Choose destination address based on action type.
-	local dest = (n$action == ACTION_EMAIL) ? mail_dest : mail_page_dest;
-	email_notice_to(n, dest);
-	}
-
 # Executes a script with all of the notice fields put into the
 # new process' environment as "BRO_ARG_<field>" variables.
 function execute_with_notice(cmd: string, n: Notice::Info)
@@ -229,7 +243,7 @@ function apply_policy(n: Notice::Info)
 		if ( ! n?$id )
 			n$id = n$conn$id;
 		}
-
+	
 	if ( ! n?$src && n?$id )
 		n$src = n$id$orig_h;
 	if ( ! n?$dst && n?$id )
@@ -246,25 +260,38 @@ function apply_policy(n: Notice::Info)
 	if ( ! n?$src_peer )
 		n$src_peer = get_event_peer();
 		
-	if ( ! n?$do_alarm )
-		n$do_alarm = F;
-
+	if ( ! n?$actions )
+		n$actions = set();
+	
 	# Generate a unique ID for this notice.
 	n$tag = unique_id("@");
 	
-	n$action = match n using policy;
+	for ( i in ordered_policy )
+		{
+		if ( ordered_policy[i]$pred(n) )
+			{
+			# If the predicate 
+			add n$actions[ordered_policy[i]$result];
+			
+			# This is the one special case for notice actions because it's
+			# acting as a stopper to the notice policy evaluation.
+			if ( ordered_policy[i]$result == ACTION_STOP )
+				break;
+			}
+		}
 	}
 	
 event notice(n: Notice::Info) &priority=-5
 	{
-	# Don't do anything if this notice is to be ignored.
-	if ( n$action == ACTION_IGNORE )
-		return;
+	if ( ACTION_EMAIL in n$actions )
+		email_notice_to(n, mail_dest);
 	
-	if ( n$action == ACTION_EMAIL || n$action == ACTION_PAGE )
-		email_notice(n);
+	if ( ACTION_PAGE in n$actions )
+		email_notice_to(n, mail_page_dest);
 	
 	# Add the tag to the connection's notice_tags if there is a connection.
+	# TODO: figure out how to move this to the conn scripts.  This should 
+	#       cause protocols/conn to be a dependency.
 	if ( n?$conn && n$conn?$conn )
 		{
 		if ( ! n$conn$conn?$notice_tags )
@@ -272,27 +299,59 @@ event notice(n: Notice::Info) &priority=-5
 		add n$conn$conn$notice_tags[n$tag];
 		}
 	
-	Log::write(NOTICE_LOG, n);
+	Log::write(NOTICES, n);
 	
 @ifdef ( IDMEF_support )
 	if ( n?$id )
 		generate_idmef(n$id$orig_h, n$id$orig_p, n$id$resp_h, n$id$resp_p);
 @endif
 	}
+	
+# Create the ordered notice policy automatically which will be used at runtime 
+# for prioritized matching of the notice policy.
+event bro_init()
+	{
+	local tmp: table[count] of set[PolicyItem] = table();
+	for ( pi in policy )
+		{
+		if ( pi$priority < 0 || pi$priority > 10 )
+			{
+			print "All Notice::PolicyItem priorities must be within 0 and 10";
+			exit();
+			}
+			
+		if ( pi$priority !in tmp )
+			tmp[pi$priority] = set();
+		add tmp[pi$priority][pi];
+		}
+	
+	local rev_count = vector(10,9,8,7,6,5,4,3,2,1,0);
+	for ( i in rev_count )
+		{
+		local j = rev_count[i];
+		if ( j in tmp )
+			{
+			for ( pi in tmp[j] )
+				{
+				ordered_policy[|ordered_policy|] = pi;
+				Log::write(NOTICE_POLICY, pi);
+				}
+			}
+		}
+	}
 
 module GLOBAL;
 
-## This is the wrapper in the global namespace for the :bro:id:`Notice::notice`
-## event.
+## This is the entry point in the global namespace for notice framework.
 function NOTICE(n: Notice::Info)
 	{
 	# Fill out fields that might be empty and do the policy processing.
 	Notice::apply_policy(n);
+
 	# Run the synchronous functions with the notice.
 	for ( func in Notice::notice_functions )
-		{
 		func(n);
-		}
+
 	# Generate the notice event with the notice.
 	event Notice::notice(n);
 	}

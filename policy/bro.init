@@ -1416,7 +1416,7 @@ function prefixed_id(id: count): string
 # ANALYZER_<analyzer-name>*, e.g., ANALYZER_HTTP.
 type AnalyzerTag: count;
 
-# DPM configuration.
+# DPD configuration.
 
 type dpd_protocol_config: record {
 	ports: set[port] &optional;
@@ -1489,4 +1489,3 @@ const parse_udp_tunnels = F &redef;
 
 #@load site
 #@load dpd
-@load weird

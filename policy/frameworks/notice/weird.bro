@@ -1,4 +1,4 @@
-@load notice
+@load frameworks/notice/base
 @load utils/conn_ids
 
 module Weird;

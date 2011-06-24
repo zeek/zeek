@@ -13,7 +13,7 @@ export {
 	
 	## Define inactivity timeouts based on common protocol ports.
 	const port_inactivity_timeouts: table[port] of interval = {
-		[[21/tcp, 22/tcp, ]] = 1 hrs,
+		[[21/tcp, 22/tcp, 23/tcp, 513/tcp]] = 1 hrs,
 	} &redef;
 	
 }
@@ -32,7 +32,7 @@ event connection_established(c: connection)
 		# We're seeing a half-established connection. Use the
 		# service of the originator if it's well-known and the
 		# responder isn't.
-		if ( service_port !in port_names && c$id$orig_p in port_names )
+		if ( service_port !in likely_server_ports && c$id$orig_p in likely_server_ports )
 			service_port = c$id$orig_p;
 		}
 

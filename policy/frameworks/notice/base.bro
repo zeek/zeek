@@ -11,10 +11,10 @@ module Notice;
 
 export {
 	redef enum Log::ID += { 
-		## This is the primary logging stream for notices.  The logging stream
-		## couldn't be named NOTICE because that id is already used by the 
-		## global function :bro:id:`NOTICE`.
-		NOTICES, 
+		## This is the primary logging stream for notices.  It must always be
+		## referenced with the module name included because the name is 
+		## also used by the global function :bro:id:`NOTICE`.
+		NOTICE, 
 		## This is the notice policy auditing log.  It records what the current
 		## notice policy is at Bro init time..
 		NOTICE_POLICY,
@@ -180,10 +180,10 @@ event bro_init()
 	{
 	Log::create_stream(NOTICE_POLICY, [$columns=PolicyItem]);
 	
-	Log::create_stream(NOTICES, [$columns=Info, $ev=log_notice]);
+	Log::create_stream(Notice::NOTICE, [$columns=Info, $ev=log_notice]);
 	
 	# Add a filter to create the alarm log.
-	Log::add_filter(NOTICES, [$name = "alarm", $path = "alarm",
+	Log::add_filter(Notice::NOTICE, [$name = "alarm", $path = "alarm",
 	                          $pred(rec: Notice::Info) = { return (ACTION_ALARM in rec$actions); }]);
 	
 	}
@@ -299,7 +299,7 @@ event notice(n: Notice::Info) &priority=-5
 		add n$conn$conn$notice_tags[n$tag];
 		}
 	
-	Log::write(NOTICES, n);
+	Log::write(Notice::NOTICE, n);
 	
 @ifdef ( IDMEF_support )
 	if ( n?$id )

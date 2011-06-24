@@ -5,6 +5,8 @@
 #include <unistd.h>
 #include <assert.h>
 
+#include <algorithm>
+
 #include "util.h"
 #include "IOSource.h"
 

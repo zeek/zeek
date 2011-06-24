@@ -11,8 +11,11 @@ global no_handler: event(name: string, val: any);
 # Type declarations
 type string_array: table[count] of string;
 type string_set: set[string];
+type count_set: set[count];
 type index_vec: vector of count;
 type string_vec: vector of string;
+
+type table_string_of_string: table[string] of string;
 
 type transport_proto: enum { unknown_transport, tcp, udp, icmp };
 
@@ -718,47 +721,43 @@ const RPC_status = {
 };
 
 module NFS3;
+
 export {
-	# Should the read and write events return the file data that
-	# has been read/written?
+	# Should the read and write events return the file data that has been
+	# read/written?
 	const return_data = F &redef;
 
-	# If nfs_return_data==T: how much data should be returned at most
+	# If nfs_return_data is true, how much data should be returned at most.
 	const return_data_max = 512 &redef;
 
-	# If nfs_return_data==T: whether to *only* return data if the read or
-	# write offset is 0, i.e., only return data for the beginning of the 
-	# file
-	const return_data_first_only = T &redef; 
-	# This record summarizes the general results and status
-	# of NFSv3 request/reply pairs. It's part of every NFSv3
-	# event
-	 
+	# If nfs_return_data is true, whether to *only* return data if the read or write
+	# offset is 0, i.e., only return data for the beginning of the file.
+	const return_data_first_only = T &redef;
+
+	# This record summarizes the general results and status of NFSv3 request/reply
+	# pairs. It's part of every NFSv3 event.
 	type info_t: record {
-		rpc_stat: rpc_status; # if this indicates not successful, the reply record in the 
-		                      # events will be a empty and contain uninitialized fields, so 
-							  # don't use it!
+		rpc_stat: rpc_status;	# If this indicates not successful, the reply record in the
+					# events will be empty and contain uninitialized fields, so
+					# don't use it.
 		nfs_stat: status_t;
 
-		# the start time, duration, and length in bytes of the 
-		# request (call). 
-		# NOTE that the start and end time might not be accurate. For TCP we 
-		# record the time when a chunk of data is delivered to the analyzer. Depending
-		# on the Reassembler, this might be well after the first packet of the request
+		# The start time, duration, and length in bytes of the request (call). Note that
+		# the start and end time might not be accurate. For TCP, we record the
+		# time when a chunk of data is delivered to the analyzer. Depending on the
+		# Reassembler, this might be well after the first packet of the request
 		# was received.
 		req_start: time;
 		req_dur: interval;
 		req_len: count;
 
-		# Same for the reply
+		# Same for the reply.
 		rep_start: time;
 		rep_dur: interval;
 		rep_len: count;
 	};
 
-
-	# NFSv3 types
-	# type names are based on RFC 1813
+	# NFSv3 types. Type names are based on RFC 1813.
 	type fattr_t: record {
 		ftype: file_type_t;
 		mode: count;
@@ -777,15 +776,15 @@ export {
 	};
 
 	type diropargs_t : record {
-		dirfh: string;  # the file handle of the directory
-		fname: string;  # the name of the file we are interested in 
+		dirfh: string;	# the file handle of the directory
+		fname: string;	# the name of the file we are interested in
 	};
 
-	# Note, we don't need a  post_op_attr type. We can always use
-	# an fattr_t &optional
+	# Note, we don't need a "post_op_attr" type. We use an "fattr_t &optional"
+	# instead.
 
 	type lookup_reply_t: record {
-		# If the lookup failed, dir_attr may be set. 
+		# If the lookup failed, dir_attr may be set.
 		# If the lookup succeeded, fh is always set and obj_attr and dir_attr may be set.
 		fh: string &optional;	# file handle of object looked up
 		obj_attr: fattr_t &optional;	# optional attributes associated w/ file
@@ -793,33 +792,33 @@ export {
 	};
 
 	type readargs_t: record {
-		fh: string;      # file handle to read from 
-		offset: count;   # Offset in file. Should really go to 64 bit int here
-		size: count;     # number of bytes to read
+		fh: string;	# file handle to read from
+		offset: count;	# offset in file
+		size: count;	# number of bytes to read
 	};
 
 	type read_reply_t: record {
-		# if the lookup fails attr may be set. 
-		# if the lookup succeeds, attr may be set and all other fields are set
-		attr: fattr_t &optional; # attributes 	
-		size: count &optional;      # number of bytes read
-		eof: bool &optional;        # did the read end at EOF
-		data: string &optional;     # the actual data. NOT IMPLEMENTED YET.
+		# If the lookup fails, attr may be set. If the lookup succeeds, attr may be set
+		# and all other fields are set.
+		attr: fattr_t &optional;	# attributes
+		size: count &optional;	# number of bytes read
+		eof: bool &optional;	# did the read end at EOF
+		data: string &optional;	# the actual data; not yet implemented.
 	};
 
 	type readlink_reply_t: record {
-		# if the request fails attr may be set. 
-		# if the request succeeds, attr may be set and all other fields are set
-		attr: fattr_t &optional; # attributes 	
-		nfspath: string &optional;  # the contents of the symlink. In general a pathname as text
+		# If the request fails, attr may be set. If the request succeeds, attr may be
+		# set and all other fields are set.
+		attr: fattr_t &optional;	# attributes
+		nfspath: string &optional;	# the contents of the symlink; in general a pathname as text
 	};
 
 	type writeargs_t: record {
-		fh: string;      # file handle to write to 
-		offset: count;   # Offset in file. Should really go to 64 bit int here
-		size: count;     # number of bytes to write
-		stable: stable_how_t; # how and when data is commited 
-		data: string &optional;  # the actual data. NOT IMPLEMENTED YET.
+		fh: string;	# file handle to write to
+		offset: count;	# offset in file
+		size: count;	# number of bytes to write
+		stable: stable_how_t;	# how and when data is commited
+		data: string &optional;	# the actual data; not implemented yet
 	};
 
 	type wcc_attr_t: record {
@@ -829,65 +828,64 @@ export {
 	};
 
 	type write_reply_t: record {
-		# if the request fails pre|post attr may be set. 
-		# if the request succeeds, pre|post attr may be set and all other fields are set
-		preattr: wcc_attr_t &optional;  # pre operation attributes
-		postattr: fattr_t &optional;    # post operation attributes 
+		# If the request fails, pre|post attr may be set. If the request succeeds,
+		# pre|post attr may be set and all other fields are set.
+		preattr: wcc_attr_t &optional;	# pre operation attributes
+		postattr: fattr_t &optional;	# post operation attributes
 		size: count &optional;
-		commited: stable_how_t &optional; 
+		commited: stable_how_t &optional;
 		verf: count &optional;     # write verifier cookue
 	};
 
 	# reply for create, mkdir, symlink
 	type newobj_reply_t: record {
-		# If the proc failed, dir_*_attr may be set. 
-		# If the proc succeeded, fh and the attr's may be set.
-		# Note no guarantee that fh is set after success
-		fh: string &optional;	# file handle of object created. 
-		obj_attr: fattr_t &optional;	    # optional attributes associated w/ new object
-		dir_pre_attr: wcc_attr_t &optional;	# optional attributes associated w/ dir.
-		dir_post_attr: fattr_t &optional;	# optional attributes associated w/ dir.
+		# If the proc failed, dir_*_attr may be set. If the proc succeeded, fh and
+		# the attr's may be set. Note: no guarantee that fh is set after
+		# success.
+		fh: string &optional;	# file handle of object created
+		obj_attr: fattr_t &optional;	# optional attributes associated w/ new object
+		dir_pre_attr: wcc_attr_t &optional;	# optional attributes associated w/ dir
+		dir_post_attr: fattr_t &optional;	# optional attributes associated w/ dir
 	};
 
 	# reply for remove, rmdir
-	# == wcc_data
+	# Corresponds to "wcc_data" in the spec.
 	type delobj_reply_t: record {
-		dir_pre_attr: wcc_attr_t &optional;	# optional attributes associated w/ dir.
-		dir_post_attr: fattr_t &optional;	# optional attributes associated w/ dir.
+		dir_pre_attr: wcc_attr_t &optional;	# optional attributes associated w/ dir
+		dir_post_attr: fattr_t &optional;	# optional attributes associated w/ dir
 	};
 
-	# This record is used for both readdir and readdirplus
+	# This record is used for both readdir and readdirplus.
 	type readdirargs_t: record {
-		isplus: bool;         # is this a readdirplus request?
-		dirfh: string;      # the directory filehandle
-		cookie: count;      # cookie / pos in dir. 0 for first call
-		cookieverf: count;  # the cookie verifier 
-		dircount: count;    # "count" field for readdir, maxcount otherwise. in bytes
-		maxcount: count &optional; # only used for readdirplus. in bytes
+		isplus: bool;	# is this a readdirplus request?
+		dirfh: string;	# the directory filehandle
+		cookie: count;	# cookie / pos in dir; 0 for first call
+		cookieverf: count;	# the cookie verifier
+		dircount: count;	# "count" field for readdir; maxcount otherwise (in bytes)
+		maxcount: count &optional;	# only used for readdirplus. in bytes
 	};
 
 	type direntry_t: record {
-		# fh and attr are used for readdirplus. However, even for readdirplus they need not
-		# be filled out. 
-		fileid: count;    # e.g., inode number
-		fname:  string;   # filename
-		cookie: count;    
-		attr: fattr_t &optional;  # readdirplus: the FH attributes for the entry
-		fh: string &optional;     # readdirplus: the FH for the entry
+		# fh and attr are used for readdirplus. However, even for readdirplus they may
+		# not be filled out.
+		fileid: count;	# e.g., inode number
+		fname:  string;	# filename
+		cookie: count;
+		attr: fattr_t &optional;	# readdirplus: the FH attributes for the entry
+		fh: string &optional;	# readdirplus: the FH for the entry
 	};
 
 	type direntry_vec_t: vector of direntry_t;
 
-	# used for readdir and readdirplus
+	# Used for readdir and readdirplus.
 	type readdir_reply_t: record {
-		isplus: bool;  # is the reply for a readdirplus request
-		# if error: dir_attr might be set
-		# if success: dir_attr may be set, all others must be set
-		dir_attr: fattr_t &optional; 
+		# If error: dir_attr might be set. If success: dir_attr may be set, all others
+		# must be set.
+		isplus: bool;	# is the reply for a readdirplus request
+		dir_attr: fattr_t &optional;
 		cookieverf: count &optional;
 		entries: direntry_vec_t &optional;
-		eof: bool;     # if T: no more entries in dir.
-
+		eof: bool;	# if true, no more entries in dir.
 	};
 
 	type fsstat_t: record {
@@ -903,6 +901,7 @@ export {
 } # end export
 
 module GLOBAL;
+
 type ntp_msg: record {
 	id: count;
 	code: count;
@@ -1069,15 +1068,19 @@ global dns_max_queries = 5;
 # has bigger cipherspecs, we won't do a comparisons of cipherspecs.
 const ssl_max_cipherspec_size = 68 &redef;
 
-# SSL and X.509 types.
-type cipher_suites_list: set[count];
-type SSL_sessionID: table[count] of count;
-type X509_extension: table[count] of string;
+type X509_extensions: table[count] of string;
+
 type X509: record {
-	issuer: string;
+	version: count;
+	serial: string;
 	subject: string;
-	orig_addr: addr;
+	issuer: string;
+	not_valid_before: time;
+	not_valid_after: time;
 };
+
+# This is indexed with the CA's name and yields a DER (binary) encoded certificate.
+const root_ca_certs: table[string] of string = {} &redef;
 
 type http_stats_rec: record {
 	num_requests: count;
@@ -1383,7 +1386,7 @@ const gap_report_freq = 1.0 sec &redef;
 
 # Whether we want content_gap and drop reports for partial connections
 # (a connection is partial if it is missing a full handshake). Note that
-# gap reports for partial connections might not be reliable. 
+# gap reports for partial connections might not be reliable.
 const report_gaps_for_partial = F &redef;
 
 # Globals associated with entire-run statistics on gaps (useful

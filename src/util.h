@@ -116,7 +116,7 @@ extern char* strcasestr(const char* s, const char* find);
 #endif
 extern const char* strpbrk_n(size_t len, const char* s, const char* charset);
 template<class T> int atoi_n(int len, const char* s, const char** end, int base, T& result);
-extern char* uitoa_n(uint64 value, char* str, int n, int base);
+extern char* uitoa_n(uint64 value, char* str, int n, int base, const char* prefix=0);
 int strstr_n(const int big_len, const unsigned char* big,
 		const int little_len, const unsigned char* little);
 extern int fputs(int len, const char* s, FILE* fp);
@@ -195,7 +195,7 @@ extern int int_list_cmp(const void* v1, const void* v2);
 extern const char* bro_path();
 extern const char* bro_prefixes();
 extern FILE* search_for_file(const char* filename, const char* ext,
-	const char** full_filename);
+	const char** full_filename, bool load_pkgs);
 
 // Renames the given file to a new temporary name, and opens a new file with
 // the original name. Returns new file or NULL on error. Inits rotate_info if
@@ -237,6 +237,10 @@ extern struct timeval double_to_timeval(double t);
 
 // Return > 0 if tv_a > tv_b, 0 if equal, < 0 if tv_a < tv_b.
 extern int time_compare(struct timeval* tv_a, struct timeval* tv_b);
+
+// Returns an integer that's very likely to be unique, even across Bro
+// instances.
+extern uint64 calculate_unique_id();
 
 // For now, don't use hash_maps - they're not fully portable.
 #if 0

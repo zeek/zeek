@@ -20,6 +20,8 @@
 #include <errno.h>
 #include <unistd.h>
 
+#include <algorithm>
+
 #include "File.h"
 #include "Type.h"
 #include "Timer.h"

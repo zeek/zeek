@@ -420,7 +420,7 @@ public:
 class CommentedTypeDecl : public TypeDecl {
 public:
 	CommentedTypeDecl(BroType* t, const char* i, attr_list* attrs = 0,
-			std::list<std::string>* cmnt_list = 0);
+			bool in_record = false, std::list<std::string>* cmnt_list = 0);
 	virtual ~CommentedTypeDecl();
 
 	void DescribeReST(ODesc* d) const;

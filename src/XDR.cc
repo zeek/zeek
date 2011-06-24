@@ -2,6 +2,8 @@
 //
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include <algorithm>
+
 #include "config.h"
 
 #include "XDR.h"
@@ -33,7 +35,7 @@ uint64 extract_XDR_uint64(const u_char*& buf, int& len)
 	if ( ! buf || len < 8 )
 		{
 		buf = 0;
-		return 0.0;
+		return 0;
 		}
 
 	uint64 uhi = extract_XDR_uint32(buf, len);
@@ -64,6 +66,9 @@ const u_char* extract_XDR_opaque(const u_char*& buf, int& len, int& n, int max_l
 	if (short_buf_ok)
 		n = std::min(n, len);
 
+	if ( short_buf_ok )
+		n = std::min(n, len);
+
 	if ( n < 0 || n > len || n > max_len )
 		{ // ### Should really flag this as a different sort of error.
 		buf = 0;
@@ -78,7 +83,6 @@ const u_char* extract_XDR_opaque(const u_char*& buf, int& len, int& n, int max_l
 
 	return opaque;
 	}
-
 
 const u_char* extract_XDR_opaque_fixed(const u_char*& buf, int& len, int n)
 	{

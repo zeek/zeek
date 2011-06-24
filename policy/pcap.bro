@@ -58,8 +58,13 @@ function build_default_pcap_filter(): string
 		return cmd_line_bpf_filter;
 
 	if ( all_packets )
+		{
 		# Return an "always true" filter.
-		return "ip or not ip";
+		if ( bro_has_ipv6() )
+			return "ip or not ip";
+		else
+			return "not ip6";
+		}
 
 	## Build filter dynamically.
 
@@ -75,6 +80,10 @@ function build_default_pcap_filter(): string
 
 	# Finally, join them.
 	local filter = join_filters(cfilter, rfilter);
+
+	# Exclude IPv6 if we don't support it.
+	if ( ! bro_has_ipv6() )
+		filter = fmt("(not ip6) and (%s)", filter);
 
 	return filter;
 	}

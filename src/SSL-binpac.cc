@@ -1,5 +1,3 @@
-// $Id:$
-
 #include "SSL-binpac.h"
 #include "TCP_Reassembler.h"
 #include "util.h"
@@ -8,13 +6,10 @@
 bool SSL_Analyzer_binpac::warnings_generated = false;
 
 SSL_Analyzer_binpac::SSL_Analyzer_binpac(Connection* c)
-: TCP_ApplicationAnalyzer(AnalyzerTag::SSL_BINPAC, c)
+: TCP_ApplicationAnalyzer(AnalyzerTag::SSL, c)
 	{
-	ssl = new binpac::SSL::SSLAnalyzer;
-	ssl->set_bro_analyzer(this);
-
-	records = new binpac::SSLRecordLayer::SSLRecordLayerAnalyzer;
-	records->set_ssl_analyzer(ssl);
+	interp = new binpac::SSL::SSLAnalyzer;
+	interp->set_bro_analyzer(this);
 
 	if ( ! warnings_generated )
 		generate_warnings();
@@ -22,23 +17,21 @@ SSL_Analyzer_binpac::SSL_Analyzer_binpac(Connection* c)
 
 SSL_Analyzer_binpac::~SSL_Analyzer_binpac()
 	{
-	delete records;
-	delete ssl;
+	delete interp;
 	}
 
 void SSL_Analyzer_binpac::Done()
 	{
 	TCP_ApplicationAnalyzer::Done();
 
-	records->FlowEOF(true);
-	records->FlowEOF(false);
+	interp->FlowEOF(true);
+	interp->FlowEOF(false);
 	}
 
 void SSL_Analyzer_binpac::EndpointEOF(TCP_Reassembler* endp)
 	{
 	TCP_ApplicationAnalyzer::EndpointEOF(endp);
-	records->FlowEOF(endp->IsOrig());
-	ssl->FlowEOF(endp->IsOrig());
+	interp->FlowEOF(endp->IsOrig());
 	}
 
 void SSL_Analyzer_binpac::DeliverStream(int len, const u_char* data, bool orig)
@@ -50,13 +43,13 @@ void SSL_Analyzer_binpac::DeliverStream(int len, const u_char* data, bool orig)
 	if ( TCP()->IsPartial() )
 		return;
 
-	records->NewData(orig, data, data + len);
+	interp->NewData(orig, data, data + len);
 	}
 
 void SSL_Analyzer_binpac::Undelivered(int seq, int len, bool orig)
 	{
 	TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
-	records->NewGap(orig, len);
+	interp->NewGap(orig, len);
 	}
 
 void SSL_Analyzer_binpac::warn_(const char* msg)

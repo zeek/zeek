@@ -29,6 +29,8 @@
 #endif
 #include <stdlib.h>
 
+#include <algorithm>
+
 #include "DNS_Mgr.h"
 #include "Event.h"
 #include "Net.h"

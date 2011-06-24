@@ -936,6 +936,7 @@ type_decl:
 
 			if ( generate_documentation )
 				{
+				// TypeDecl ctor deletes the attr list, so make a copy
 				attr_list* a = $5;
 				attr_list* a_copy = 0;
 
@@ -947,7 +948,7 @@ type_decl:
 					}
 
 				last_fake_type_decl = new CommentedTypeDecl(
-					$4, $2, a_copy, concat_opt_docs($1, $7));
+					$4, $2, a_copy, (in_record > 0), concat_opt_docs($1, $7));
 				}
 
 			$$ = new TypeDecl($4, $2, $5, (in_record > 0));
@@ -1091,8 +1092,10 @@ decl:
 								new RecordType(fake_type_decl_list);
 							ID* fake = create_dummy_id($3, fake_record);
 							fake_type_decl_list = 0;
-							current_reST_doc->AddRedef(
-								new BroDocObj(fake, reST_doc_comments, true));
+							BroDocObj* o =
+								new BroDocObj(fake, reST_doc_comments, true);
+							o->SetRole(true);
+							current_reST_doc->AddRedef(o);
 							}
 						else
 							{

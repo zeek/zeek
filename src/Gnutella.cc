@@ -6,13 +6,13 @@
 
 #include <ctype.h>
 
+#include <algorithm>
+
 #include "NetVar.h"
 #include "HTTP.h"
 #include "Gnutella.h"
 #include "Event.h"
 #include "PIA.h"
-
-#include <algorithm>
 
 GnutellaMsgState::GnutellaMsgState()
 	{

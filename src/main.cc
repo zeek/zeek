@@ -740,6 +740,20 @@ int main(int argc, char** argv)
 	}
 #endif
 
+	if ( generate_documentation )
+		{
+		std::list<BroDoc*>::iterator it;
+
+		for ( it = docs_generated.begin(); it != docs_generated.end(); ++it )
+			(*it)->WriteDocFile();
+
+		for ( it = docs_generated.begin(); it != docs_generated.end(); ++it )
+			delete *it;
+
+		terminate_bro();
+		return 0;
+		}
+
 	if ( nerr > 0 )
 		{
 		delete dns_mgr;
@@ -974,20 +988,6 @@ int main(int argc, char** argv)
 	dpm->PostScriptInit();
 
 	mgr.Drain();
-
-	if ( generate_documentation )
-		{
-		std::list<BroDoc*>::iterator it;
-
-		for ( it = docs_generated.begin(); it != docs_generated.end(); ++it )
-			(*it)->WriteDocFile();
-
-		for ( it = docs_generated.begin(); it != docs_generated.end(); ++it )
-			delete *it;
-
-		terminate_bro();
-		return 0;
-		}
 
 	have_pending_timers = ! reading_traces && timer_mgr->Size() > 0;
 

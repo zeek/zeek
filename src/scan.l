@@ -4,6 +4,11 @@
 
 #include <errno.h>
 
+#include <stack>
+#include <list>
+#include <string>
+#include <algorithm>
+
 #include "input.h"
 #include "util.h"
 #include "Scope.h"
@@ -18,11 +23,6 @@
 #include "BroDoc.h"
 #include "Analyzer.h"
 #include "AnalyzerTags.h"
-
-#include <stack>
-#include <list>
-#include <string>
-#include <algorithm>
 
 extern YYLTYPE yylloc;	// holds start line and column of token
 extern int print_loaded_scripts;
@@ -558,7 +558,7 @@ static int load_files_with_prefix(const char* orig_file)
 			else
 				strcpy(new_filename, file);
 
-			f = search_for_file(new_filename, "bro", &full_filename);
+			f = search_for_file(new_filename, "bro", &full_filename, true);
 			delete [] new_filename;
 			}
 

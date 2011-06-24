@@ -223,7 +223,7 @@ bool LogWriterAscii::DoWrite(int num_fields, const LogField* const * fields,
 			return false;
 		}
 
-	desc.Add("\n");
+	desc.AddRaw("\n", 1);
 
 	if ( fwrite(desc.Bytes(), desc.Len(), 1, file) != 1 )
 		{

@@ -344,14 +344,26 @@ template<class T> int atoi_n(int len, const char* s, const char** end, int base,
 template int atoi_n<int>(int len, const char* s, const char** end, int base, int& result);
 template int atoi_n<int64_t>(int len, const char* s, const char** end, int base, int64_t& result);
 
-char* uitoa_n(uint64 value, char* str, int n, int base)
+char* uitoa_n(uint64 value, char* str, int n, int base, const char* prefix)
 	{
 	static char dig[] = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+	assert(n);
 
 	int i = 0;
 	uint64 v;
 	char* p, *q;
 	char c;
+
+	if ( prefix ) 
+		{
+		strncpy(str, prefix, n);
+		str[n-1] = '\0';
+		i += strlen(prefix);
+		}
+
+	if ( i >= n )
+		return str;
 
 	v = value;
 
@@ -868,21 +880,45 @@ const char* bro_prefixes()
 	return p;
 	}
 
-FILE* open_file(const char* filename, const char** full_filename)
+static const char* PACKAGE_LOADER = "__load__.bro";
+
+// If filename is pointing to a directory that contains a file called
+// PACKAGE_LOADER, returns the files path. Otherwise returns filename itself.
+// In both cases, the returned string is newly allocated.
+static const char* check_for_dir(const char* filename, bool load_pkgs)
 	{
+	if ( load_pkgs && is_dir(filename) )
+		{
+		char init_filename_buf[1024];
+		safe_snprintf(init_filename_buf, sizeof(init_filename_buf),
+			      "%s/%s", filename, PACKAGE_LOADER);
+
+		if ( access(init_filename_buf, R_OK) == 0 )
+			return copy_string(init_filename_buf);
+		}
+
+	return copy_string(filename);
+	}
+
+FILE* open_file(const char* filename, const char** full_filename, bool load_pkgs)
+	{
+	filename = check_for_dir(filename, load_pkgs);
+
 	if ( full_filename )
 		*full_filename = copy_string(filename);
 
 	FILE* f = fopen(filename, "r");
 
+	delete [] filename;
+
 	return f;
 	}
 
 FILE* search_for_file(const char* filename, const char* ext,
-			const char** full_filename)
+			const char** full_filename, bool load_pkgs)
 	{
 	if ( filename[0] == '/' || filename[0] == '.' )
-		return open_file(filename, full_filename);
+		return open_file(filename, full_filename, load_pkgs);
 
 	char path[1024], full_filename_buf[1024];
 	safe_strncpy(path, bro_path(), sizeof(path));
@@ -905,13 +941,12 @@ FILE* search_for_file(const char* filename, const char* ext,
 				"%s/%s.%s", dir_beginning, filename, ext);
 		if ( access(full_filename_buf, R_OK) == 0 &&
 		     ! is_dir(full_filename_buf) )
-			return open_file(full_filename_buf, full_filename);
+			return open_file(full_filename_buf, full_filename, load_pkgs);
 
 		safe_snprintf(full_filename_buf, sizeof(full_filename_buf),
 				"%s/%s", dir_beginning, filename);
-		if ( access(full_filename_buf, R_OK) == 0 &&
-		      ! is_dir(full_filename_buf) )
-			return open_file(full_filename_buf, full_filename);
+		if ( access(full_filename_buf, R_OK) == 0 )
+			return open_file(full_filename_buf, full_filename, load_pkgs);
 
 		dir_beginning = ++dir_ending;
 		}
@@ -1097,6 +1132,56 @@ int time_compare(struct timeval* tv_a, struct timeval* tv_b)
 		return tv_a->tv_usec - tv_b->tv_usec;
 	else
 		return tv_a->tv_sec - tv_b->tv_sec;
+	}
+
+static uint64 uid_counter;	// Counter for unique IDs.
+static uint64 uid_instance;	// Instance ID, computed once.
+
+uint64 calculate_unique_id()
+	{
+	if ( uid_instance == 0 )
+		{
+		// This is the first time we need a UID.
+
+		if ( ! have_random_seed() )
+			{
+			// If we don't need deterministic output (as
+			// indicated by a set seed), we calculate the
+			// instance ID by hashing something likely to be
+			// globally unique.
+			struct {
+				char hostname[128];
+				struct timeval time;
+				pid_t pid;
+				int rnd;
+			} unique;
+
+			gethostname(unique.hostname, 128);
+			unique.hostname[sizeof(unique.hostname)-1] = '\0';
+			gettimeofday(&unique.time, 0);
+			unique.pid = getpid();
+			unique.rnd = bro_random();
+
+			uid_instance = HashKey::HashBytes(&unique, sizeof(unique));
+			++uid_instance; // Now it's larger than zero.
+			}
+
+		else
+			// Generate determistic UIDs.
+			uid_instance = 1;
+		}
+
+	// Now calculate the unique ID.
+	struct {
+		uint64 counter;
+		hash_t instance;
+	} key;
+
+	key.counter = ++uid_counter;
+	key.instance = uid_instance;
+
+	uint64_t h = HashKey::HashBytes(&key, sizeof(key));
+	return h;
 	}
 
 void out_of_memory(const char* where)

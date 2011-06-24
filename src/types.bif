@@ -52,33 +52,34 @@ enum rpc_status %{
 %}
 
 module NFS3;
-enum proc_t %{   # NFSv3 procedures
-	PROC_NULL     = 0,  # done
-	PROC_GETATTR  = 1,  # done
-	PROC_SETATTR  = 2,
-	PROC_LOOKUP   = 3,  # done  
-	PROC_ACCESS   = 4,
-	PROC_READLINK = 5,  # done
-	PROC_READ     = 6,  # done
-	PROC_WRITE    = 7,  # done 
-	PROC_CREATE   = 8,  # partial
-	PROC_MKDIR    = 9,  # partial
-	PROC_SYMLINK  = 10,
-	PROC_MKNOD    = 11,
-	PROC_REMOVE   = 12, # done
-	PROC_RMDIR    = 13, # done
-	PROC_RENAME   = 14,
-	PROC_LINK     = 15,
-	PROC_READDIR  = 16, # done
-	PROC_READDIRPLUS  = 17, # done
-	PROC_FSSTAT   = 18,
-	PROC_FSINFO   = 19,
-	PROC_PATHCONF = 20,
-	PROC_COMMIT   = 21,
-	PROC_END_OF_PROCS = 22,
+
+enum proc_t %{	# NFSv3 procedures
+	PROC_NULL     = 0,	# done
+	PROC_GETATTR  = 1,	# done
+	PROC_SETATTR  = 2,	# not implemented
+	PROC_LOOKUP   = 3,	# done
+	PROC_ACCESS   = 4,	# not implemented
+	PROC_READLINK = 5,	# done
+	PROC_READ     = 6,	# done
+	PROC_WRITE    = 7,	# done
+	PROC_CREATE   = 8,	# partial
+	PROC_MKDIR    = 9,	# partial
+	PROC_SYMLINK  = 10,	# not implemented
+	PROC_MKNOD    = 11,	# not implemented
+	PROC_REMOVE   = 12,	# done
+	PROC_RMDIR    = 13,	# done
+	PROC_RENAME   = 14,	# not implemented
+	PROC_LINK     = 15,	# not implemented
+	PROC_READDIR  = 16,	# done
+	PROC_READDIRPLUS  = 17,	# done
+	PROC_FSSTAT   = 18,	# not implemented
+	PROC_FSINFO   = 19,	# not implemented
+	PROC_PATHCONF = 20,	# not implemented
+	PROC_COMMIT   = 21,	# not implemented
+	PROC_END_OF_PROCS = 22,	# not implemented
 %}
 
-enum status_t %{  #NFSv3 return status
+enum status_t %{	# NFSv3 return status
 	NFS3ERR_OK          = 0,
 	NFS3ERR_PERM        = 1,
 	NFS3ERR_NOENT       = 2,
@@ -111,14 +112,13 @@ enum status_t %{  #NFSv3 return status
 	NFS3ERR_UNKNOWN     = 0xffffffff,
 %}
 
-
 enum file_type_t %{
-	FTYPE_REG   = 1, 
-	FTYPE_DIR   = 2, 
-	FTYPE_BLK   = 3, 
-	FTYPE_CHR   = 4, 
-	FTYPE_LNK   = 5, 
-	FTYPE_SOCK  = 6, 
+	FTYPE_REG   = 1,
+	FTYPE_DIR   = 2,
+	FTYPE_BLK   = 3,
+	FTYPE_CHR   = 4,
+	FTYPE_LNK   = 5,
+	FTYPE_SOCK  = 6,
 	FTYPE_FIFO  = 7,
 %}
 
@@ -134,8 +134,8 @@ enum createmode_t %{
 	EXCLUSIVE = 2,
 %}
 
-# Decleare record types that we want to access from the C++
-# These are defined in bro.init
+# Decleare record types that we want to access from the even engine. These are
+# defined in bro.init.
 type info_t: record;
 type fattr_t: record;
 type diropargs_t: record;
@@ -152,7 +152,6 @@ type readdirargs_t: record;
 type direntry_t: record;
 type direntry_vec_t: vector;
 type readdir_reply_t: record;
-
 
 type fsstat_t: record;
 

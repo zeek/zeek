@@ -1,5 +1,7 @@
 // $Id: Analyzer.cc,v 1.1.4.28 2006/06/01 17:18:10 sommer Exp $
 
+#include <algorithm>
+
 #include "Analyzer.h"
 #include "PIA.h"
 #include "Event.h"
@@ -34,8 +36,8 @@
 #include "Portmap.h"
 #include "POP3.h"
 #include "SSH.h"
-#include "SSLProxy.h"
 #include "SSL-binpac.h"
+#include "Syslog-binpac.h"
 #include "ConnSizeAnalyzer.h"
 
 #include <algorithm>
@@ -60,6 +62,9 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 	{ AnalyzerTag::ICMP_Echo, "ICMP_ECHO",
 		ICMP_Echo_Analyzer::InstantiateAnalyzer,
 		ICMP_Echo_Analyzer::Available, 0, false },
+	{ AnalyzerTag::ICMP_Redir, "ICMP_REDIR",
+		ICMP_Redir_Analyzer::InstantiateAnalyzer,
+		ICMP_Redir_Analyzer::Available, 0, false },
 
 	{ AnalyzerTag::TCP, "TCP", TCP_Analyzer::InstantiateAnalyzer,
 		TCP_Analyzer::Available, 0, false },
@@ -116,8 +121,6 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 		SMTP_Analyzer::Available, 0, false },
 	{ AnalyzerTag::SSH, "SSH", SSH_Analyzer::InstantiateAnalyzer,
 		SSH_Analyzer::Available, 0, false },
-	{ AnalyzerTag::SSL, "SSL", SSLProxy_Analyzer::InstantiateAnalyzer,
-		SSLProxy_Analyzer::Available, 0, false },
 	{ AnalyzerTag::Telnet, "TELNET", Telnet_Analyzer::InstantiateAnalyzer,
 		Telnet_Analyzer::Available, 0, false },
 
@@ -133,9 +136,12 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 	{ AnalyzerTag::HTTP_BINPAC, "HTTP_BINPAC",
 		HTTP_Analyzer_binpac::InstantiateAnalyzer,
 		HTTP_Analyzer_binpac::Available, 0, false },
-	{ AnalyzerTag::SSL_BINPAC, "SSL_BINPAC",
+	{ AnalyzerTag::SSL, "SSL",
 		SSL_Analyzer_binpac::InstantiateAnalyzer,
 		SSL_Analyzer_binpac::Available, 0, false },
+	{ AnalyzerTag::SYSLOG_BINPAC, "SYSLOG_BINPAC",
+		Syslog_Analyzer_binpac::InstantiateAnalyzer,
+		Syslog_Analyzer_binpac::Available, 0, false },
 
 	{ AnalyzerTag::File, "FILE", File_Analyzer::InstantiateAnalyzer,
 		File_Analyzer::Available, 0, false },
@@ -168,7 +174,6 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 	{ AnalyzerTag::Contents_SMB, "CONTENTS_SMB", 0, 0, 0, false },
 	{ AnalyzerTag::Contents_RPC, "CONTENTS_RPC", 0, 0, 0, false },
 	{ AnalyzerTag::Contents_NFS, "CONTENTS_NFS", 0, 0, 0, false },
-	{ AnalyzerTag::Contents_SSL, "CONTENTS_SSL", 0, 0, 0, false },
 };
 
 AnalyzerTimer::~AnalyzerTimer()

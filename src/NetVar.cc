@@ -18,6 +18,7 @@ RecordType* pcap_packet;
 RecordType* signature_state;
 EnumType* transport_proto;
 TableType* string_set;
+TableType* count_set;
 
 RecordType* net_stats;
 
@@ -195,8 +196,6 @@ StringVal* ssl_private_key;
 StringVal* ssl_passphrase;
 
 StringVal* x509_crl_file;
-TableType* x509_extension;
-TableType* SSL_sessionID;
 
 Val* profiling_file;
 double profiling_interval;
@@ -367,10 +366,7 @@ void init_net_var()
 	x509_trusted_cert_path = opt_internal_string("X509_trusted_cert_path");
 	ssl_store_cert_path = opt_internal_string("ssl_store_cert_path");
 	x509_type = internal_type("X509")->AsRecordType();
-	cipher_suites_list = internal_type("cipher_suites_list")->AsTableType();
 	x509_crl_file = opt_internal_string("X509_crl_file");
-	x509_extension = internal_type("X509_extension")->AsTableType();
-	SSL_sessionID = internal_type("SSL_sessionID")->AsTableType();
 
 	non_analyzed_lifetime = opt_internal_double("non_analyzed_lifetime");
 	tcp_inactivity_timeout = opt_internal_double("tcp_inactivity_timeout");

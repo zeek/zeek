@@ -1,5 +1,3 @@
-# $Id:$
-
 # Analyzer for SSL (Bro-specific part).
 
 %extern{
@@ -11,8 +9,7 @@
 #include "util.h"
 
 #include <openssl/x509.h>
-#include <openssl/x509_vfy.h>
-#include "X509.h"
+#include <openssl/asn1.h>
 %}
 
 
@@ -46,22 +43,20 @@
 %}
 
 
-function to_table_val(data : uint8[]) : TableVal
+function to_string_val(data : uint8[]) : StringVal
 	%{
-	TableVal* tv = new TableVal(SSL_sessionID);
-	for ( unsigned int i = 0; i < data->size(); i += 4 )
-		{
-		uint32 temp = 0;
-		for ( unsigned int j = 0; j < 4; ++j )
-		if ( i + j < data->size() )
-			temp |= (*data)[i + j] << (24 - 8 * j);
+	assert(data->size() <= 32);
 
-		Val* idx = new Val(i / 4, TYPE_COUNT);
-		tv->Assign(idx, new Val((*data)[i], TYPE_COUNT));
-		Unref(idx);
+	char tmp[32];
+	memset(tmp, 0, sizeof(tmp));
+
+	if ( data )
+		{
+		for ( unsigned int i = data->size(); i > 0; --i )
+			tmp[i-1] = (*data)[i-1];
 		}
 
-	return tv;
+	return new StringVal(32, tmp);
 	%}
 
 function version_ok(vers : uint16) : bool
@@ -83,7 +78,7 @@ function convert_ciphers_uint24(ciph : uint24[]) : int[]
 	vector<int>* newciph = new vector<int>();
 
 	std::transform(ciph->begin(), ciph->end(),
-	std::back_inserter(*newciph), to_int());
+		std::back_inserter(*newciph), to_int());
 
 	return newciph;
 	%}
@@ -93,7 +88,7 @@ function convert_ciphers_uint16(ciph : uint16[]) : int[]
 	vector<int>* newciph = new vector<int>();
 
 	std::copy(ciph->begin(), ciph->end(),
-	std::back_inserter(*newciph));
+		std::back_inserter(*newciph));
 
 	return newciph;
 	%}
@@ -101,23 +96,10 @@ function convert_ciphers_uint16(ciph : uint16[]) : int[]
 refine analyzer SSLAnalyzer += {
 	%member{
 		Analyzer* bro_analyzer_;
-
-		vector<uint8>* client_session_id_;
-		vector<int>* advertised_ciphers_;
-		int version_;
-		int cipher_;
 	%}
 
 	%init{
 		bro_analyzer_ = 0;
-
-		client_session_id_ = 0;
-		advertised_ciphers_ = new vector<int>;
-		version_ = -1;
-		cipher_ = -1;
-
-		if ( ! X509_Cert::bInited )
-			X509_Cert::init();
 	%}
 
 	%eof{
@@ -128,11 +110,6 @@ refine analyzer SSLAnalyzer += {
 	%}
 
 	%cleanup{
-		delete client_session_id_;
-		client_session_id_ = 0;
-
-		delete advertised_ciphers_;
-		advertised_ciphers_ = 0;
 	%}
 
 	function bro_analyzer() : Analyzer
@@ -145,282 +122,203 @@ refine analyzer SSLAnalyzer += {
 		bro_analyzer_ = a;
 		%}
 
-	function check_cipher(cipher : int) : bool
-		%{
-		if ( ! ssl_compare_cipherspecs )
-			return true;
-
-		if ( std::find(advertised_ciphers_->begin(),
-				advertised_ciphers_->end(), cipher) ==
-		     advertised_ciphers_->end() )
-			{
-			bro_analyzer()->ProtocolViolation("chosen cipher not advertised before");
-			return false;
-			}
-
-		return true;
-		%}
-
-	function certificate_error(err_num : int) : void
-		%{
-		StringVal* err_str =
-			new StringVal(X509_verify_cert_error_string(err_num));
-		BifEvent::generate_ssl_X509_error(bro_analyzer_, bro_analyzer_->Conn(),
-						err_num, err_str);
-		%}
-
-	function proc_change_cipher_spec(msg : ChangeCipherSpec) : bool
+	function proc_change_cipher_spec(rec: SSLRecord) : bool
 		%{
 		if ( state_ == STATE_TRACK_LOST )
 			bro_analyzer()->ProtocolViolation(fmt("unexpected ChangeCipherSpec from %s at state %s",
-				orig_label(current_record_is_orig_).c_str(),
+				orig_label(${rec.is_orig}).c_str(),
 				state_label(old_state_).c_str()));
 		return true;
 		%}
 
-	function proc_application_data(msg : ApplicationData) : bool
+	function proc_application_data(rec: SSLRecord) : bool
 		%{
 		if ( state_ != STATE_CONN_ESTABLISHED )
 			bro_analyzer()->ProtocolViolation(fmt("unexpected ApplicationData from %s at state %s",
-				orig_label(current_record_is_orig_).c_str(),
+				orig_label(${rec.is_orig}).c_str(),
 				state_label(old_state_).c_str()));
 		return true;
 		%}
 
-	function proc_alert(level : int, description : int) : bool
+	function proc_alert(rec: SSLRecord, level : int, desc : int) : bool
 		%{
-		BifEvent::generate_ssl_conn_alert(bro_analyzer_, bro_analyzer_->Conn(),
-						current_record_version_, level,
-						description);
+		BifEvent::generate_ssl_alert(bro_analyzer_, bro_analyzer_->Conn(),
+						level, desc);
 		return true;
 		%}
 
-	function proc_client_hello(version : uint16, session_id : uint8[],
-					csuits : int[]) : bool
+	function proc_client_hello(rec: SSLRecord,
+					version : uint16, ts : double,
+					session_id : uint8[],
+					cipher_suites : int[]) : bool
 		%{
 		if ( state_ == STATE_TRACK_LOST )
 			bro_analyzer()->ProtocolViolation(fmt("unexpected client hello message from %s in state %s",
-				orig_label(current_record_is_orig_).c_str(),
+				orig_label(${rec.is_orig}).c_str(),
 				state_label(old_state_).c_str()));
 
 		if ( ! version_ok(version) )
 			bro_analyzer()->ProtocolViolation(fmt("unsupported client SSL version 0x%04x", version));
 
-		delete client_session_id_;
-		client_session_id_ = new vector<uint8>(*session_id);
-
-		TableVal* cipher_table = new TableVal(cipher_suites_list);
-		for ( unsigned int i = 0; i < csuits->size(); ++i )
+		if ( ssl_client_hello )
 			{
-			Val* ciph = new Val((*csuits)[i], TYPE_COUNT);
-			cipher_table->Assign(ciph, 0);
-			Unref(ciph);
-			}
+			BroType* count_t = base_type(TYPE_COUNT);
+			TypeList* set_index = new TypeList(count_t);
+			set_index->Append(count_t);
+			SetType* s = new SetType(set_index, 0);
+			TableVal* cipher_set = new TableVal(s);
+			for ( unsigned int i = 0; i < cipher_suites->size(); ++i )
+				{
+				Val* ciph = new Val((*cipher_suites)[i], TYPE_COUNT);
+				cipher_set->Assign(ciph, 0);
+				Unref(ciph);
+				}
 
-		BifEvent::generate_ssl_conn_attempt(bro_analyzer_, bro_analyzer_->Conn(),
-						version, cipher_table);
-
-		if ( ssl_compare_cipherspecs )
-			{
-			delete advertised_ciphers_;
-			advertised_ciphers_ = csuits;
+			BifEvent::generate_ssl_client_hello(bro_analyzer_, bro_analyzer_->Conn(),
+							version, ts,
+							to_string_val(session_id),
+							cipher_set);
 			}
-		else
-			delete csuits;
 
 		return true;
 		%}
 
-	function proc_server_hello(version : uint16, session_id : uint8[],
-				ciphers : int[], v2_sess_hit : int) : bool
+	function proc_server_hello(rec: SSLRecord,
+					version : uint16, ts : double,
+					session_id : uint8[],
+					cipher_suite : uint16,
+					comp_method : uint8) : bool
 		%{
 		if ( state_ == STATE_TRACK_LOST )
 			bro_analyzer()->ProtocolViolation(fmt("unexpected server hello message from %s in state %s",
-				orig_label(current_record_is_orig_).c_str(),
+				orig_label(${rec.is_orig}).c_str(),
 				state_label(old_state_).c_str()));
 
 		if ( ! version_ok(version) )
 			bro_analyzer()->ProtocolViolation(fmt("unsupported server SSL version 0x%04x", version));
 
-		version_ = version;
-
-		TableVal* chosen_ciphers = new TableVal(cipher_suites_list);
-		for ( unsigned int i = 0; i < ciphers->size(); ++i )
+		if ( ssl_server_hello )
 			{
-			Val* ciph = new Val((*ciphers)[i], TYPE_COUNT);
-			chosen_ciphers->Assign(ciph, 0);
-			Unref(ciph);
-			}
-
-		BifEvent::generate_ssl_conn_server_reply(bro_analyzer_,
-						bro_analyzer_->Conn(),
-						version_, chosen_ciphers);
-
-		if ( v2_sess_hit < 0 )
-			{ // this is SSLv3
-			cipher_ = (*ciphers)[0];
-			check_cipher(cipher_);
-			TableVal* tv = to_table_val(session_id);
-			if ( client_session_id_ &&
-			     *client_session_id_ == *session_id )
-				BifEvent::generate_ssl_conn_reused(bro_analyzer_,
-						bro_analyzer_->Conn(), tv);
-			else
-				BifEvent::generate_ssl_session_insertion(bro_analyzer_,
-						bro_analyzer_->Conn(), tv);
-
-			delete ciphers;
-			}
-
-		else if ( v2_sess_hit > 0 )
-			{ // this is SSLv2 and a session hit
-			if ( client_session_id_ )
-				{
-				TableVal* tv = to_table_val(client_session_id_);
-				BifEvent::generate_ssl_conn_reused(bro_analyzer_,
-						bro_analyzer_->Conn(), tv);
-				}
-
-			// We don't know the chosen cipher, as there is
-			// no session storage.
-			BifEvent::generate_ssl_conn_established(bro_analyzer_,
+			BifEvent::generate_ssl_server_hello(bro_analyzer_,
 							bro_analyzer_->Conn(),
-							version_, 0xffffffff);
-			delete ciphers;
-			}
-
-		else
-			{
-			// This is SSLv2; we have to set advertised
-			// ciphers to server ciphers.
-			if ( ssl_compare_cipherspecs )
-				{
-				delete advertised_ciphers_;
-				advertised_ciphers_ = ciphers;
-				}
+							version, ts,
+							to_string_val(session_id),
+							cipher_suite, comp_method);
 			}
 
 		bro_analyzer()->ProtocolConfirmation();
 		return true;
 		%}
 
-	function proc_certificate(certificates : bytestring[]) : bool
+	function proc_ssl_extension(type: int, data: bytestring) : bool
+		%{
+		if ( ssl_extension )
+			BifEvent::generate_ssl_extension(bro_analyzer_,
+						bro_analyzer_->Conn(), type,
+						new StringVal(data.length(), (const char*) data.data()));
+		return true;
+		%}
+
+	function proc_certificate(rec: SSLRecord, certificates : bytestring[]) : bool
 		%{
 		if ( state_ == STATE_TRACK_LOST )
 			bro_analyzer()->ProtocolViolation(fmt("unexpected certificate message from %s in state %s",
-				orig_label(current_record_is_orig_).c_str(),
+				orig_label(${rec.is_orig}).c_str(),
 				state_label(old_state_).c_str()));
 
-		if ( ! ssl_analyze_certificates )
-			return true;
 		if ( certificates->size() == 0 )
 			return true;
 
-		BifEvent::generate_ssl_certificate_seen(bro_analyzer_,
-						bro_analyzer_->Conn(),
-						! current_record_is_orig_);
+		STACK_OF(X509)* untrusted_certs = 0;
 
-		const bytestring& cert = (*certificates)[0];
-		const uint8* data = cert.data();
-
-		X509* pCert = d2i_X509_binpac(NULL, &data, cert.length());
-		if ( ! pCert )
+		if ( x509_certificate )
 			{
-			// X509_V_UNABLE_TO_DECRYPT_CERT_SIGNATURE
-			certificate_error(4);
-			return false;
-			}
-
-		RecordVal* pX509Cert = new RecordVal(x509_type);
-
-		char tmp[256];
-		X509_NAME_oneline(X509_get_issuer_name(pCert), tmp, sizeof tmp);
-		pX509Cert->Assign(0, new StringVal(tmp));
-		X509_NAME_oneline(X509_get_subject_name(pCert), tmp, sizeof tmp);
-
-		pX509Cert->Assign(1, new StringVal(tmp));
-		pX509Cert->Assign(2, new AddrVal(bro_analyzer_->Conn()->OrigAddr()));
-
-		BifEvent::generate_ssl_certificate(bro_analyzer_, bro_analyzer_->Conn(),
-					pX509Cert, current_record_is_orig_);
-
-		if ( X509_get_ext_count(pCert) > 0 )
-			{
-			TableVal* x509ex = new TableVal(x509_extension);
-
-			for ( int k = 0; k < X509_get_ext_count(pCert); ++k )
+			X509* pCert = 0;
+			for ( unsigned int i = 0; i < certificates->size(); ++i )
 				{
-				X509_EXTENSION* ex = X509_get_ext(pCert, k);
-				ASN1_OBJECT* obj = X509_EXTENSION_get_object(ex);
-
-				char buf[256];
-				i2t_ASN1_OBJECT(buf, sizeof(buf), obj);
-				Val* index = new Val(k+1, TYPE_COUNT);
-				Val* value = new StringVal(strlen(buf), buf);
-				x509ex->Assign(index, value);
-				Unref(index);
-				}
-
-			BifEvent::generate_process_X509_extensions(bro_analyzer_,
-						bro_analyzer_->Conn(), x509ex);
-			}
-
-		if ( ssl_verify_certificates )
-			{
-			STACK_OF(X509)* untrusted_certs = 0;
-			if ( certificates->size() > 1 )
-				{
-				untrusted_certs = sk_X509_new_null();
-				if ( ! untrusted_certs )
+				const bytestring& cert = (*certificates)[i];
+				const uint8* data = cert.data();
+				X509* pTemp = d2i_X509_binpac(NULL, &data, cert.length());
+				if ( ! pTemp )
 					{
-					// X509_V_ERR_OUT_OF_MEM;
-					certificate_error(17);
+					BifEvent::generate_x509_error(bro_analyzer_, bro_analyzer_->Conn(),
+					                              ERR_get_error());
 					return false;
 					}
 
-				for ( unsigned int i = 1;
-				      i < certificates->size(); ++i )
-					{
-					const bytestring& temp =
-						(*certificates)[i];
-					const uint8* tdata = temp.data();
-					X509* pTemp = d2i_X509_binpac(NULL,
-							&tdata, temp.length());
-					if ( ! pTemp )
-						{
-						// X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT
-						certificate_error(2);
-						return false;
-						}
+				RecordVal* pX509Cert = new RecordVal(x509_type);
+				char tmp[256];
+				BIO *bio = BIO_new(BIO_s_mem());
 
-					sk_X509_push(untrusted_certs, pTemp);
+				pX509Cert->Assign(0, new Val((uint64) X509_get_version(pTemp), TYPE_COUNT));
+				i2a_ASN1_INTEGER(bio, X509_get_serialNumber(pTemp));
+				int len = BIO_read(bio, &(*tmp), sizeof tmp);
+				pX509Cert->Assign(1, new StringVal(len, tmp));
+
+				X509_NAME_print_ex(bio, X509_get_subject_name(pTemp), 0, XN_FLAG_RFC2253);
+				len = BIO_gets(bio, &(*tmp), sizeof tmp);
+				pX509Cert->Assign(2, new StringVal(len, tmp));
+				X509_NAME_print_ex(bio, X509_get_issuer_name(pTemp), 0, XN_FLAG_RFC2253);
+				len = BIO_gets(bio, &(*tmp), sizeof tmp);
+				pX509Cert->Assign(3, new StringVal(len, tmp));
+				BIO_free(bio);
+
+				pX509Cert->Assign(4, new Val(get_time_from_asn1(X509_get_notBefore(pTemp)), TYPE_TIME));
+				pX509Cert->Assign(5, new Val(get_time_from_asn1(X509_get_notAfter(pTemp)), TYPE_TIME));
+				StringVal* der_cert = new StringVal(cert.length(), (const char*) cert.data());
+
+				BifEvent::generate_x509_certificate(bro_analyzer_, bro_analyzer_->Conn(),
+							pX509Cert,
+							! ${rec.is_orig},
+							i, certificates->size(),
+							der_cert);
+
+				// Are there any X509 extensions?
+				if ( x509_extension && X509_get_ext_count(pTemp) > 0 )
+					{
+					BroType* count_t = base_type(TYPE_COUNT);
+					TypeList* set_index = new TypeList(count_t);
+					set_index->Append(count_t);
+					SetType* s = new SetType(set_index, 0);
+					TableVal* x509ex = new TableVal(s);
+					int num_ext = X509_get_ext_count(pTemp);
+					for ( int k = 0; k < num_ext; ++k )
+						{
+						char *pBuffer = 0;
+						int length = 0;
+
+						X509_EXTENSION* ex = X509_get_ext(pTemp, k);
+						if (ex)
+							{
+							ASN1_STRING *pString = X509_EXTENSION_get_data(ex);
+							length = ASN1_STRING_to_UTF8((unsigned char**)&pBuffer, pString);
+							//i2t_ASN1_OBJECT(&pBuffer, length, obj)
+
+							// -1 indicates an error.
+							if ( length < 0 )
+								continue;
+
+							StringVal* value = new StringVal(length, pBuffer);
+							BifEvent::generate_x509_extension(bro_analyzer_,
+										bro_analyzer_->Conn(), value);
+							OPENSSL_free(pBuffer);
+							}
+						}
 					}
 				}
-
-			X509_STORE_CTX csc;
-			X509_STORE_CTX_init(&csc, X509_Cert::ctx,
-						pCert, untrusted_certs);
-			X509_STORE_CTX_set_time(&csc, 0, time_t(network_time()));
-			if (! X509_verify_cert(&csc))
-				certificate_error(csc.error);
-			X509_STORE_CTX_cleanup(&csc);
-
-			sk_X509_pop_free(untrusted_certs, X509_free);
 			}
-
-		X509_free(pCert);
-	return true;
+		return true;
 		%}
 
-	function proc_v2_certificate(cert : bytestring) : bool
+	function proc_v2_certificate(rec: SSLRecord, cert : bytestring) : bool
 		%{
 		vector<bytestring>* cert_list = new vector<bytestring>(1,cert);
-		bool ret = proc_certificate(cert_list);
+		bool ret = proc_certificate(rec, cert_list);
 		delete cert_list;
 		return ret;
 		%}
 
-	function proc_v3_certificate(cl : CertificateList) : bool
+	function proc_v3_certificate(rec: SSLRecord, cl : CertificateList) : bool
 		%{
 		vector<X509Certificate*>* certs = cl->val();
 		vector<bytestring>* cert_list = new vector<bytestring>();
@@ -428,65 +326,61 @@ refine analyzer SSLAnalyzer += {
 		std::transform(certs->begin(), certs->end(),
 		std::back_inserter(*cert_list), extract_certs());
 
-		bool ret = proc_certificate(cert_list);
+		bool ret = proc_certificate(rec, cert_list);
 		delete cert_list;
 
 		return ret;
 		%}
 
-	function proc_v2_client_master_key(cipher : int) : bool
+	function proc_v2_client_master_key(rec: SSLRecord, cipher_kind: int) : bool
 		%{
 		if ( state_ == STATE_TRACK_LOST )
 			bro_analyzer()->ProtocolViolation(fmt("unexpected v2 client master key message from %s in state %s",
-				orig_label(current_record_is_orig_).c_str(),
+				orig_label(${rec.is_orig}).c_str(),
 				state_label(old_state_).c_str()));
 
-		check_cipher(cipher);
-		BifEvent::generate_ssl_conn_established(bro_analyzer_,
-				bro_analyzer_->Conn(), version_, cipher);
+		BifEvent::generate_ssl_established(bro_analyzer_,
+				bro_analyzer_->Conn());
 
 		return true;
 		%}
 
-	function proc_unknown_handshake(msg_type : int) : bool
+	function proc_unknown_handshake(hs: Handshake, is_orig: bool) : bool
 		%{
 		bro_analyzer()->ProtocolViolation(fmt("unknown handshake message (%d) from %s",
-			msg_type, orig_label(current_record_is_orig_).c_str()));
+			${hs.msg_type}, orig_label(is_orig).c_str()));
 		return true;
 		%}
 
-	function proc_handshake(msg : Handshake) : bool
+	function proc_handshake(hs: Handshake, is_orig: bool) : bool
 		%{
 		if ( state_ == STATE_TRACK_LOST )
 			bro_analyzer()->ProtocolViolation(fmt("unexpected Handshake message %s from %s in state %s",
-				handshake_type_label(msg->msg_type()).c_str(),
-				orig_label(current_record_is_orig_).c_str(),
+				handshake_type_label(${hs.msg_type}).c_str(),
+				orig_label(is_orig).c_str(),
 				state_label(old_state_).c_str()));
 		return true;
 		%}
 
-	function proc_unknown_record(msg : UnknownRecord) : bool
+	function proc_unknown_record(rec: SSLRecord) : bool
 		%{
 		bro_analyzer()->ProtocolViolation(fmt("unknown SSL record type (%d) from %s",
-				current_record_type_,
-				orig_label(current_record_is_orig_).c_str()));
+				${rec.content_type},
+				orig_label(${rec.is_orig}).c_str()));
 		return true;
 		%}
 
-	function proc_ciphertext_record(msg : CiphertextRecord) : bool
+	function proc_ciphertext_record(rec : SSLRecord) : bool
 		%{
 		if ( state_ == STATE_TRACK_LOST )
 			bro_analyzer()->ProtocolViolation(fmt("unexpected ciphertext record from %s in state %s",
-				orig_label(current_record_is_orig_).c_str(),
+				orig_label(${rec.is_orig}).c_str(),
 				state_label(old_state_).c_str()));
 
-		if ( state_ == STATE_CONN_ESTABLISHED &&
-		     old_state_ == STATE_COMM_ENCRYPTED )
-			{
-			BifEvent::generate_ssl_conn_established(bro_analyzer_,
-							bro_analyzer_->Conn(),
-							version_, cipher_);
-			}
+		else if ( state_ == STATE_CONN_ESTABLISHED &&
+		          old_state_ == STATE_COMM_ENCRYPTED )
+			BifEvent::generate_ssl_established(bro_analyzer_,
+							bro_analyzer_->Conn());
 
 		return true;
 		%}
@@ -494,72 +388,80 @@ refine analyzer SSLAnalyzer += {
 };
 
 refine typeattr ChangeCipherSpec += &let {
-	proc : bool = $context.analyzer.proc_change_cipher_spec(this)
+	proc : bool = $context.analyzer.proc_change_cipher_spec(rec)
 		&requires(state_changed);
 };
 
 refine typeattr Alert += &let {
-	proc : bool = $context.analyzer.proc_alert(level, description);
+	proc : bool = $context.analyzer.proc_alert(rec, level, description);
 };
 
 refine typeattr V2Error += &let {
-	proc : bool = $context.analyzer.proc_alert(-1, error_code);
+	proc : bool = $context.analyzer.proc_alert(rec, -1, error_code);
 };
 
 refine typeattr ApplicationData += &let {
-	proc : bool = $context.analyzer.proc_application_data(this);
+	proc : bool = $context.analyzer.proc_application_data(rec);
 };
 
 refine typeattr ClientHello += &let {
-	proc : bool = $context.analyzer.proc_client_hello(client_version,
+	proc : bool = $context.analyzer.proc_client_hello(rec, client_version,
+				gmt_unix_time,
 				session_id, convert_ciphers_uint16(csuits))
 		&requires(state_changed);
 };
 
 refine typeattr V2ClientHello += &let {
-	proc : bool = $context.analyzer.proc_client_hello(client_version,
+	proc : bool = $context.analyzer.proc_client_hello(rec, client_version, 0,
 				session_id, convert_ciphers_uint24(ciphers))
 		&requires(state_changed);
 };
 
 refine typeattr ServerHello += &let {
-	proc : bool = $context.analyzer.proc_server_hello(server_version,
-			session_id, convert_ciphers_uint16(cipher_suite), -1)
+	proc : bool = $context.analyzer.proc_server_hello(rec, server_version,
+			gmt_unix_time, session_id, cipher_suite,
+			compression_method)
 		&requires(state_changed);
 };
 
 refine typeattr V2ServerHello += &let {
-	proc : bool = $context.analyzer.proc_server_hello(server_version, 0,
-				convert_ciphers_uint24(ciphers), session_id_hit)
+	proc : bool = $context.analyzer.proc_server_hello(rec, server_version, 0, 0,
+				convert_ciphers_uint24(ciphers)[0], 0)
 		&requires(state_changed);
 
-	cert : bool = $context.analyzer.proc_v2_certificate(cert_data)
+	cert : bool = $context.analyzer.proc_v2_certificate(rec, cert_data)
 		&requires(proc);
 };
 
 refine typeattr Certificate += &let {
-	proc : bool = $context.analyzer.proc_v3_certificate(certificates)
+	proc : bool = $context.analyzer.proc_v3_certificate(rec, certificates)
 		&requires(state_changed);
 };
 
 refine typeattr V2ClientMasterKey += &let {
-	proc : bool = $context.analyzer.proc_v2_client_master_key(to_int()(cipher_kind))
+	proc : bool = $context.analyzer.proc_v2_client_master_key(rec, to_int()(cipher_kind))
 		&requires(state_changed);
 };
 
 refine typeattr UnknownHandshake += &let {
-	proc : bool = $context.analyzer.proc_unknown_handshake(msg_type);
+	proc : bool = $context.analyzer.proc_unknown_handshake(hs, is_orig);
 };
 
 refine typeattr Handshake += &let {
-	proc : bool = $context.analyzer.proc_handshake(this);
+	proc : bool = $context.analyzer.proc_handshake(this, rec.is_orig);
 };
 
 refine typeattr UnknownRecord += &let {
-	proc : bool = $context.analyzer.proc_unknown_record(this);
+	proc : bool = $context.analyzer.proc_unknown_record(rec);
 };
 
 refine typeattr CiphertextRecord += &let {
-	proc : bool = $context.analyzer.proc_ciphertext_record(this)
-		&requires(state_changed);
+	proc : bool = $context.analyzer.proc_ciphertext_record(rec);
+}
+
+refine typeattr SSLExtension += &let {
+	proc : bool = $context.analyzer.proc_ssl_extension(type, data);
 };
+
+
+

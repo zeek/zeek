@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <ctype.h>
 
+#include <algorithm>
+
 #include "BroString.h"
 #include "Var.h"
 

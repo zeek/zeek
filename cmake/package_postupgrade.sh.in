@@ -48,21 +48,13 @@ if [ -n "${sampleFiles}" ]; then
 EOF
 fi
 
-# make sure that world-writeable dirs have the sticky bit set
-# so that unprivileged can't rename/remove files within
-
-if [ -d /var/opt/bro/spool ]; then
-    chmod +t /var/opt/bro/spool
-fi
-
-if [ -d /var/opt/bro/spool/tmp ]; then
-    chmod +t /var/opt/bro/spool/tmp
-fi
-
-if [ -d /var/opt/bro/spool/policy ]; then
-    chmod +t /var/opt/bro/spool/policy
-fi
-
-if [ -d /var/opt/bro/logs ]; then
-    chmod +t /var/opt/bro/logs
+# Set up world writeable spool and logs directory for broctl, making sure
+# to set the sticky bit so that unprivileged users can't rename/remove files.
+# (CMake/CPack is supposed to install them, but has problems with empty dirs)
+if [ -n "@EMPTY_WORLD_DIRS@" ]; then
+    for dir in "@EMPTY_WORLD_DIRS@"; do
+        mkdir -p ${dir}
+        chmod 777 ${dir}
+        chmod +t ${dir}
+    done
 fi

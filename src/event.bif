@@ -52,6 +52,7 @@ event icmp_echo_request%(c: connection, icmp: icmp_conn, id: count, seq: count, 
 event icmp_echo_reply%(c: connection, icmp: icmp_conn, id: count, seq: count, payload: string%);
 event icmp_unreachable%(c: connection, icmp: icmp_conn, code: count, context: icmp_context%);
 event icmp_time_exceeded%(c: connection, icmp: icmp_conn, code: count, context: icmp_context%);
+event icmp_redirect%(c: connection, icmp: icmp_conn, a: addr%);
 event net_stats_update%(t: time, ns: net_stats%);
 event conn_stats%(c: connection, os: endpoint_stats, rs: endpoint_stats%);
 event conn_weird%(name: string, c: connection%);
@@ -156,6 +157,13 @@ event mime_all_data%(c: connection, length: count, data: string%);
 event mime_event%(c: connection, event_type: string, detail: string%);
 event mime_content_hash%(c: connection, content_len: count, hash_value: string%);
 
+# Generated for each RPC request / reply *pair* (if there is no reply, the event
+# will be generated on timeout).
+event rpc_dialogue%(c: connection, prog: count, ver: count, proc: count, status: rpc_status, start_time: time, call_len: count, reply_len: count%);
+# Generated for each (correctly formed) RPC_CALL message received.
+event rpc_call%(c: connection, xid: count, prog: count, ver: count, proc: count, call_len: count%);
+# Generated for each (correctly formed) RPC_REPLY message received.
+event rpc_reply%(c: connection, xid: count, status: rpc_status, reply_len: count%);
 
 # Generated for each RPC request / reply *pair* (if there is no reply, the event
 # will be generated on timeout). 
@@ -179,12 +187,12 @@ event pm_attempt_dump%(r: connection, status: rpc_status%);
 event pm_attempt_callit%(r: connection, status: rpc_status, call: pm_callit_request%);
 event pm_bad_port%(r: connection, bad_p: count%);
 
-# Event for the NFS analyzer. An event is generated if we have received a 
-# Call (request) / Response pair (or in case of a time out). 
-# info$rpc_stat and info$nfs_stat show whether the request was successful. 
-# The request record is always filled out, however, the reply record(s) might not be set or 
-# might only be partially set. See the comments for the record types in 
-# bro.init to see which reply fields are set when.
+# Events for the NFS analyzer. An event is generated if we have received a
+# Call (request) / Response pair (or in case of a time out). info$rpc_stat and
+# info$nfs_stat show whether the request was successful. The request record is
+# always filled out, however, the reply record(s) might not be set or might only
+# be partially set. See the comments for the record types in bro.init to see which
+# reply fields are set when.
 event nfs_proc_null%(c: connection, info: NFS3::info_t%);
 event nfs_proc_not_implemented%(c: connection, info: NFS3::info_t, proc: NFS3::proc_t%);
 
@@ -199,7 +207,7 @@ event nfs_proc_remove%(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t
 event nfs_proc_rmdir%(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t, rep: NFS3::delobj_reply_t%);
 event nfs_proc_readdir%(c: connection, info: NFS3::info_t, req: NFS3::readdirargs_t, rep: NFS3::readdir_reply_t%);
 
-# Generated for each NFS reply message we receive. Just gives the status.
+# Generated for each NFS reply message we receive, giving just gives the status.
 event nfs_reply_status%(n: connection, info: NFS3::info_t%);
 
 event ntp_message%(u: connection, msg: ntp_msg, excess: string%);
@@ -287,19 +295,15 @@ event http_stats%(c: connection, stats: http_stats_rec%);
 event ssh_client_version%(c: connection, version: string%);
 event ssh_server_version%(c: connection, version: string%);
 
-event ssl_certificate_seen%(c: connection, is_server: bool%);
-event ssl_certificate%(c: connection, cert: X509, is_server: bool%);
-event ssl_conn_attempt%(c: connection, version: count, ciphers: cipher_suites_list%);
-event ssl_conn_server_reply%(c: connection, version: count, ciphers: cipher_suites_list%);
-event ssl_conn_established%(c: connection, version: count, cipher_suite: count%);
-event ssl_conn_reused%(c: connection, session_id: SSL_sessionID%);
-event ssl_conn_alert%(c: connection, version: count, level: count,
-			description: count%);
-event ssl_conn_weak%(name: string, c: connection%);
+event ssl_client_hello%(c: connection, version: count, possible_ts: time, session_id: string, ciphers: count_set%);
+event ssl_server_hello%(c: connection, version: count, possible_ts: time, session_id: string, cipher: count, comp_method: count%);
+event ssl_extension%(c: connection, code: count, val: string%);
+event ssl_established%(c: connection%);
+event ssl_alert%(c: connection, level: count, desc: count%);
 
-event ssl_session_insertion%(c: connection, id: SSL_sessionID%);
-event process_X509_extensions%(c: connection, ex: X509_extension%);
-event ssl_X509_error%(c: connection, err: int, err_string: string%);
+event x509_certificate%(c: connection, cert: X509, is_server: bool, chain_idx: count, chain_len: count, der_cert: string%);
+event x509_extension%(c: connection, data: string%);
+event x509_error%(c: connection, err: count%);
 
 event stp_create_endp%(c: connection, e: int, is_orig: bool%);
 event stp_resume_endp%(e: int%);
@@ -409,6 +413,8 @@ event irc_password_message%(c: connection, password: string%);
 
 event file_transferred%(c: connection, prefix: string, descr: string, mime_type: string%);
 event file_virus%(c: connection, virname: string%);
+
+event syslog_message%(c: connection, facility: count, severity: count, msg: string%);
 
 event signature_match%(state: signature_state, msg: string, data: string%);
 

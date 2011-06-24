@@ -118,6 +118,8 @@ export {
 
 	# Indexed by the portmapper request and a boolean that's T if
 	# the request was answered, F it was attempted but not answered.
+	# If there's an entry in the set, then the access won't lead to a
+	# NOTICE (unless the connection is hot for some other reason).
 	# If there's an entry in the set, then the access won't lead to a 
 	# NOTICE (unless the connection is hot for some other reason).
 	const RPC_do_not_complain: set[string, bool] = {
@@ -140,7 +142,7 @@ export {
 	# Logs all portmapper mappings that we observe (i.e., getport and
 	# dump replies. Format:
 	# timestamp orig_h orig_p resp_h resp_p proto localInit PortmapProcedure RPCprogram version port proto
-	# the mapping is then: <resp_h> accepts <RPCprogram> with <version>  
+	# the mapping is then: <resp_h> accepts <RPCprogram> with <version>
 	# calls on <port> <proto>. We learned this mapping via <PortmapProcedure>
 	const mapping_log_file = open_log_file("portmapper-maps") &redef;
 }
@@ -151,7 +153,7 @@ const portmapper_ports = { 111/tcp, 111/udp } &redef;
 redef dpd_config += { [ANALYZER_PORTMAPPER] = [$ports = portmapper_ports] };
 
 # Indexed by source and destination addresses, plus the portmapper service.
-# If the tuple is in the set, then we already created a NOTICE for it and 
+# If the tuple is in the set, then we already created a NOTICE for it and
 # shouldn't do so again.
 global did_pm_notice: set[addr, addr, string];
 
@@ -185,7 +187,7 @@ function rpc_prog(p: count): string
 
 function pm_get_conn_string(cid: conn_id) : string
 	{
-	return fmt("%s %d %s %d %s %s", 
+	return fmt("%s %d %s %d %s %s",
 			cid$orig_h, cid$orig_p,
 			cid$resp_h, cid$resp_p,
 			get_port_transport_proto(cid$resp_p),
@@ -194,9 +196,9 @@ function pm_get_conn_string(cid: conn_id) : string
 	}
 
 # Log a pm_request or pm_attempt to the log file
-function pm_log(r: connection, proc: string, msg: string, success: bool) 
+function pm_log(r: connection, proc: string, msg: string, success: bool)
 	{
-	print log_file, fmt("%f %s %s %s %s", network_time(), 
+	print log_file, fmt("%f %s %s %s %s", network_time(),
 			pm_get_conn_string(r$id),
 			proc, success, msg);
 	}
@@ -218,9 +220,9 @@ function pm_log_mapping_dump(r: connection, m: pm_mappings)
 	}
 
 # Log portmapper mappings received from a getport procedure
-# Unfortunately, pm_request_getport doesn't return pm_mapping, 
+# Unfortunately, pm_request_getport doesn't return pm_mapping,
 # but returns the parameters separately ....
-function pm_log_mapping_getport(r: connection, pr: pm_port_request, p: port) 
+function pm_log_mapping_getport(r: connection, pr: pm_port_request, p: port)
 	{
 	local prog = rpc_prog(pr$program);
 	local ver = pr$version;
@@ -229,7 +231,7 @@ function pm_log_mapping_getport(r: connection, pr: pm_port_request, p: port)
 			pm_get_conn_string(r$id),
 			prog, ver, p, get_port_transport_proto(p));
 	}
- 
+
 
 
 function pm_check_getport(r: connection, prog: string): bool
@@ -377,7 +379,7 @@ event pm_request_dump(r: connection, m: pm_mappings)
 	{
 	local do_notice = [r$id$orig_h, r$id$resp_h] !in RPC_dump_okay;
 	# pm_mapping_to_text has the side-effect of updating RPC_server_map
-	pm_request(r, "pm_dump", 
+	pm_request(r, "pm_dump",
 			length(m) == 0 ? "(nil)" : pm_mapping_to_text(r$id$resp_h, m),
 			do_notice);
 	pm_log_mapping_dump(r, m);

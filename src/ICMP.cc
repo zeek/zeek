@@ -2,6 +2,8 @@
 //
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include <algorithm>
+
 #include "config.h"
 
 #include "Net.h"
@@ -321,6 +323,24 @@ void ICMP_Echo_Analyzer::NextICMP(double t, const struct icmp* icmpp, int len,
 	vl->append(new StringVal(payload));
 
 	ConnectionEvent(f, vl);
+	}
+
+ICMP_Redir_Analyzer::ICMP_Redir_Analyzer(Connection* c)
+: ICMP_Analyzer(AnalyzerTag::ICMP_Redir, c)
+	{
+	}
+
+void ICMP_Redir_Analyzer::NextICMP(double t, const struct icmp* icmpp, int len,
+					 int caplen, const u_char*& data)
+	{
+	uint32 addr = ntohl(icmpp->icmp_hun.ih_void);
+
+	val_list* vl = new val_list;
+	vl->append(BuildConnVal());
+	vl->append(BuildICMPVal());
+	vl->append(new AddrVal(htonl(addr)));
+
+	ConnectionEvent(icmp_redirect, vl);
 	}
 
 

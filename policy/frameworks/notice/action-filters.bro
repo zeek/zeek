@@ -126,6 +126,6 @@ event bro_done()
 		{
 		local n = tallies[s];
 		local msg = fmt("%s (%d time%s)", s, n, n > 1 ? "s" : "");
-		NOTICE([$note=Notice_Tally, $msg=msg, $n=n]);
+		NOTICE([$note=Notice::Tally, $msg=msg, $n=n]);
 		}
 	}

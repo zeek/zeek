@@ -130,78 +130,74 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 		analyzer->ConnectionEvent(nfs_reply_status, vl);
 		}
 
+	if (!rpc_success)
+		{
+		// We set the buffer to NULL, the function that extract the reply 
+		// from the data stream will then return empty records. 
+		buf = NULL;
+		n = 0;
+		}
 	switch ( c->Proc() ) {
 	case BifEnum::NFS3::PROC_NULL:
 		event = nfs_proc_null;
 		break;
 
 	case BifEnum::NFS3::PROC_GETATTR:
-		if ( rpc_success && nfs_status == BifEnum::NFS3::NFS3ERR_OK )
-			reply = nfs3_fattr(buf, n);
+		reply = nfs3_fattr(buf, n);
 		event = nfs_proc_getattr;
 		break;
 
 	case BifEnum::NFS3::PROC_LOOKUP:
-		if (rpc_success)
-			reply = nfs3_lookup_reply(buf, n, nfs_status);
+		reply = nfs3_lookup_reply(buf, n, nfs_status);
 		event = nfs_proc_lookup;
 		break;
 
 	case BifEnum::NFS3::PROC_READ:
-		if (rpc_success)
-			{
-			bro_uint_t offset;
-			offset = c->RequestVal()->AsRecordVal()->Lookup(1)->AsCount();
-			reply = nfs3_read_reply(buf, n, nfs_status, offset);
-			}
+		{
+		bro_uint_t offset;
+		offset = c->RequestVal()->AsRecordVal()->Lookup(1)->AsCount();
+		reply = nfs3_read_reply(buf, n, nfs_status, offset);
+		}
 		event = nfs_proc_read;
 		break;
 
 	case BifEnum::NFS3::PROC_READLINK:
-		if (rpc_success)
-			reply = nfs3_readlink_reply(buf, n, nfs_status);
+		reply = nfs3_readlink_reply(buf, n, nfs_status);
 		event = nfs_proc_readlink;
 		break;
 
 	case BifEnum::NFS3::PROC_WRITE:
-		if (rpc_success)
-			reply = nfs3_write_reply(buf, n, nfs_status);
+		reply = nfs3_write_reply(buf, n, nfs_status);
 		event = nfs_proc_write;
 		break;
 
 	case BifEnum::NFS3::PROC_CREATE:
-		if (rpc_success)
-			reply = nfs3_newobj_reply(buf, n, nfs_status);
+		reply = nfs3_newobj_reply(buf, n, nfs_status);
 		event = nfs_proc_create;
 		break;
 
 	case BifEnum::NFS3::PROC_MKDIR:
-		if (rpc_success)
-			reply = nfs3_newobj_reply(buf, n, nfs_status);
+		reply = nfs3_newobj_reply(buf, n, nfs_status);
 		event = nfs_proc_mkdir;
 		break;
 
 	case BifEnum::NFS3::PROC_REMOVE:
-		if (rpc_success)
-			reply = nfs3_delobj_reply(buf, n);
+		reply = nfs3_delobj_reply(buf, n);
 		event = nfs_proc_remove;
 		break;
 
 	case BifEnum::NFS3::PROC_RMDIR:
-		if (rpc_success)
-			reply = nfs3_delobj_reply(buf, n);
+		reply = nfs3_delobj_reply(buf, n);
 		event = nfs_proc_rmdir;
 		break;
 
 	case BifEnum::NFS3::PROC_READDIR:
-		if (rpc_success)
-			reply = nfs3_readdir_reply(false, buf, n, nfs_status);
+		reply = nfs3_readdir_reply(false, buf, n, nfs_status);
 		event = nfs_proc_readdir;
 		break;
 
 	case BifEnum::NFS3::PROC_READDIRPLUS:
-		if (rpc_success)
-			reply = nfs3_readdir_reply(true, buf, n, nfs_status);
+		reply = nfs3_readdir_reply(true, buf, n, nfs_status);
 		event = nfs_proc_readdir;
 		break;
 
@@ -218,7 +214,7 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 			return 0;
 	}
 
-	if (!buf)
+	if (rpc_success && !buf)
 		{
 		// There was a parse error. We have to unref the reply.
 		// (see also comments in RPC_BuildCall

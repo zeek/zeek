@@ -97,6 +97,10 @@ function name_string(trans: SMB_transaction): SMB_string
 		return NULL;
 	%}
 
+type SMB_int64 = record {
+	lowword		: uint32;
+	highword	: int32;
+};
 
 type SMB_dos_error = record {
 	error_class	: uint8;
@@ -292,7 +296,7 @@ type SMB_tree_connect_andx(unicode: bool) = record {
 type SMB_close(unicode: bool) = record {
 	word_count  : uint8;
 	fid		: uint16;
-	time		: SMB_time;
+	time		: uint32;
 	byte_count  : uint16;
 } &byteorder = littleendian;
 
@@ -310,6 +314,25 @@ type SMB_nt_create_andx(unicode: bool) = record {
 	rest_words	: uint8[word_count * 2 - 11];
 	byte_count	: uint16;
 	name		: SMB_string(unicode, offsetof(name));
+} &byteorder = littleendian;
+
+type SMB_nt_create_andx_response = record {
+	word_count	: uint8;
+	andx		: SMB_andx;
+	op_lock_level	: uint8;
+	fid		: uint16;
+	create_disposition	: uint32;
+	create_time		: SMB_int64;
+	last_access_time	: SMB_int64;
+	last_write_time		: SMB_int64;
+	last_change_time	: SMB_int64;
+	ext_file_attr		: uint32;
+	allocation_size		: SMB_int64;
+	end_of_file		: SMB_int64;
+	resource_type		: uint16;
+	nm_pipe_status		: uint16;
+	directory		: uint8;
+	byte_count		: uint16; # must be 0x0
 } &byteorder = littleendian;
 
 type SMB_read_andx = record {

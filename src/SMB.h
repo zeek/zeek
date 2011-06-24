@@ -50,6 +50,7 @@ public:
 
 	static bool any_smb_event()
 		{
+		// FIXME: this list is incomplete....
 		return smb_message ||
 			smb_com_tree_connect_andx ||
 			smb_com_nt_create_andx || smb_com_transaction ||
@@ -71,7 +72,7 @@ protected:
 	int ParseAndx(int is_orig, binpac::SMB::SMB_header const &hdr,
 				SMB_Body const &body);
 
-	int ParseClose(int is_orig, binpac::SMB::SMB_header const &hdr,
+	int ParseClose(binpac::SMB::SMB_header const &hdr,
 				SMB_Body const &body);
 
 	int ParseLogoffAndx(int is_orig, binpac::SMB::SMB_header const &hdr,
@@ -87,6 +88,9 @@ protected:
 				SMB_Body const &body);
 
 	int ParseNtCreateAndx(binpac::SMB::SMB_header const &hdr,
+				SMB_Body const &body);
+
+	int ParseNtCreateAndxResponse(binpac::SMB::SMB_header const &hdr,
 				SMB_Body const &body);
 
 	int ParseReadAndx(binpac::SMB::SMB_header const &hdr,
@@ -161,6 +165,15 @@ protected:
 	Val* BuildTransactionVal(binpac::SMB::SMB_transaction_secondary const &trans);
 	Val* BuildTransactionVal(binpac::SMB::SMB_transaction_response const &trans);
 	Val* BuildTransactionDataVal(binpac::SMB::SMB_transaction_data* data);
+
+	int64_t get_int64(const binpac::SMB::SMB_int64 *x)
+		{
+		int64_t rv; 
+		rv = x->highword();
+		rv = rv<<32;
+		rv += x->lowword();
+		return rv;
+		}
 
 	Analyzer* analyzer;
 	DCE_RPC_Session* dce_rpc_session;

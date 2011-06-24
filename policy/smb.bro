@@ -10,6 +10,7 @@ global smb_ports = { 139/tcp, 445/tcp } &redef;
 redef dpd_config += { [ANALYZER_SMB] = [$ports = smb_ports] };
 
 const smb_log = open_log_file("smb") &redef;
+const smb_files_log = open_log_file("smb-files") &redef;
 
 
 type smb_cmd_info: record {
@@ -18,13 +19,12 @@ type smb_cmd_info: record {
 	cmd: count;
 	cmdstr: string;
 
-	# hack: for operations involving file ids: note the file id. 
-	# this is 16 bit, so we use 0x10000 to indicate that the fid is not
-	# valid
-	fid: count;
+	fidstr: string;
 	# for read/writes: number of bytes read/written and offset
 	file_payload: count;
 	file_offset: count;
+
+	cmdid: count;
 
 	req_first_time: time;
 	req_last_time: time;
@@ -39,6 +39,13 @@ type smb_cmd_info: record {
 
 type smb_pending_cmds: table[count, count] of smb_cmd_info;
 global smb_sessions: table[conn_id] of smb_pending_cmds;
+
+# can be used by more specific event handlers for request/reply
+# matching. See nt_create_andx for an example. 
+global nextcmdid = 1;
+
+# indexed by cmdid
+global smb_filenames: table[count] of string &read_expire=900secs;
 
 # it seems Bro has issues with anonymous records of the form [cid,count] 
 # so we just use a table of table
@@ -59,6 +66,7 @@ event bro_init()
 	{
 	add more_specific_cmds[0x2e];  # read_andx
 	add more_specific_cmds[0x2f];  # write_andx
+	add more_specific_cmds[0xa2];  # nt_create_andx
 
 	add smb_ignore_cmds[0x25];  # transaction
 	add smb_ignore_cmds[0x26];  # transaction_secondary
@@ -80,9 +88,11 @@ function smb_new_cmd_info(hdr: smb_hdr, body_len: count): smb_cmd_info
 	info$mid = hdr$mid;
 	info$cmdstr = "";
 
-	info$fid = 0x10000; 
+	info$fidstr = "FIDxx"; 
 	info$file_payload = 0;
 	info$file_offset = 0;
+	info$cmdid = nextcmdid;
+	++nextcmdid;
 
 	info$req_first_time = hdr$first_time;
 	info$req_last_time = hdr$last_time;
@@ -112,6 +122,15 @@ function get_fid(cid: conn_id, fid: count): string
 	return fid_map[cid][fid];
 	}
 
+function delete_fid(cid: conn_id, fid: count)
+	{
+	if (cid !in fid_map)
+		return;
+	if ( fid !in fid_map[cid])
+		return;
+	delete fid_map[cid][fid];
+	}
+
 
 function fmt_smb_hdr(hdr: smb_hdr): string 
 	{
@@ -131,9 +150,9 @@ function smb_log_cmd(c: connection, info: smb_cmd_info)
 	local msg = "";
 	msg = fmt("COMMAND %s (%d) %d:%d %.6f %.6f %d %.6f %.6f %d %s %d %d %s %s %d",
 			info$cmdstr, info$cmd, info$pid, info$mid, 
-			info$req_first_time, info$req_last_time, info$req_body_len,
-			info$rep_first_time, info$rep_last_time, info$rep_body_len,
-			get_fid(c$id, info$fid), info$file_offset, info$file_payload, 
+			info$req_first_time, info$req_last_time-info$req_first_time, info$req_body_len,
+			info$rep_first_time, info$rep_last_time-info$rep_first_time, info$rep_body_len,
+			info$fidstr, info$file_offset, info$file_payload, 
 			c$id$orig_h, c$id$resp_h, c$id$resp_p);
 	print smb_log, msg;
 	}
@@ -160,6 +179,20 @@ function mismatch_fmt_info(info: smb_cmd_info): string
 	return fmt("%s %d:%d", info$cmdstr, info$pid, info$mid);
 	}
 
+
+function get_cmdid(cid: conn_id, hdr: smb_hdr): count
+	{
+	# smb_messge takes care of error / mismatch handling, so we can 
+	# just punt here
+	if (cid !in smb_sessions)
+		return 0;
+	local cur_session = smb_sessions[cid];
+	if ([hdr$pid,hdr$mid] !in cur_session)
+		return 0;
+	local info = cur_session[hdr$pid, hdr$mid];
+	return info$cmdid;
+	}
+
 function smb_set_fid_offset(cid: conn_id, hdr: smb_hdr, fid: count, offset: count)
 	{
 	# smb_messge takes care of error / mismatch handling, so we can 
@@ -171,7 +204,7 @@ function smb_set_fid_offset(cid: conn_id, hdr: smb_hdr, fid: count, offset: coun
 		return;
 	local info = cur_session[hdr$pid, hdr$mid];
 
-	info$fid = fid;
+	info$fidstr = get_fid(cid, fid);
 	info$file_offset = offset;
 	}
 
@@ -278,7 +311,37 @@ event smb_com_write_andx_response(c: connection, hdr: smb_hdr)
 
 event smb_com_nt_create_andx(c: connection, hdr: smb_hdr, name: string)
 	{
-	print fmt("CREATE_ANDX %s %s %s", c$id$orig_h, c$id$resp_h, name);
+	local cmdid = get_cmdid(c$id, hdr);	
+	if (!cmdid)
+		return;  # weird. Should not happen actually.
+	# TODO: could/should check that there isn't a filename already there.
+	smb_filenames[cmdid] = name;
+	}
+
+event smb_com_nt_create_andx_response(c: connection, hdr: smb_hdr, fid: count, size: count) 
+	{
+	# delete any old FID mappings. 
+	delete_fid(c$id, fid);
+	# this will implicitly create a new mapping
+	smb_set_fid_offset(c$id, hdr, fid, 0);
+	local cmdid = get_cmdid(c$id, hdr);	
+	if (!cmdid)
+		return;  # weird. Should not happen actually.
+	if (cmdid !in smb_filenames)
+		return;
+	print smb_files_log, fmt("%.6f %s %d %s", network_time(), get_fid(c$id, fid), 
+			size, smb_filenames[cmdid]);
+	smb_log_cmd2(c, hdr);
+	}
+
+
+event smb_com_close(c: connection, hdr: smb_hdr, fid: count) 
+	{
+	# We first set to fid in the smb_cmd_info record, so it will be 
+	# printed.
+	smb_set_fid_offset(c$id, hdr, fid, 0);
+	# Now we delete the fid mapping since the file has been closed.
+	delete_fid(c$id, fid);
 	}
 
 event smb_error(c: connection, hdr: smb_hdr, cmd: count, cmd_str: string, errtype: count, error: count) 
@@ -289,4 +352,5 @@ event smb_error(c: connection, hdr: smb_hdr, cmd: count, cmd_str: string, errtyp
 event connection_state_remove(c: connection)
 	{
 	delete smb_sessions[c$id];
+	delete fid_map[c$id];
 	}

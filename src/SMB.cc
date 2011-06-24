@@ -266,7 +266,7 @@ void SMB_Session::ParseMessage(int is_orig, int cmd,
 		if ( is_orig )
 			ret = ParseNtCreateAndx(hdr, body);
 		else
-			ret = ParseAndx(is_orig, hdr, body);
+			ret = ParseNtCreateAndxResponse(hdr, body);
 		break;
 
 	case SMB_COM_TRANSACTION:
@@ -298,7 +298,10 @@ void SMB_Session::ParseMessage(int is_orig, int cmd,
 		break;
 
 	case SMB_COM_CLOSE:
-		ret = ParseClose(is_orig, hdr, body);
+		if ( is_orig )
+			ret = ParseClose(hdr, body);
+		else
+			ret = 0;
 		break;
 
 	case SMB_COM_TREE_DISCONNECT:
@@ -405,14 +408,18 @@ int SMB_Session::ParseSetupAndx(int is_orig, binpac::SMB::SMB_header const& hdr,
 	return 0;
 	}
 
-int SMB_Session::ParseClose(int is_orig, binpac::SMB::SMB_header const& hdr,
+int SMB_Session::ParseClose(binpac::SMB::SMB_header const& hdr,
 				SMB_Body const& body)
 	{
+	binpac::SMB::SMB_close req(hdr.unicode());
+	req.Parse(body.data(), body.data() + body.length());
+
 	if ( smb_com_close )
 		{
 		val_list* vl = new val_list;
 		vl->append(analyzer->BuildConnVal());
 		vl->append(BuildHeaderVal(hdr));
+		vl->append(new Val(req.fid(), TYPE_COUNT));
 
 		analyzer->ConnectionEvent(smb_com_close, vl);
 		}
@@ -561,6 +568,28 @@ int SMB_Session::ParseNtCreateAndx(binpac::SMB::SMB_header const& hdr,
 		}
 	else
 		delete name;
+
+	return 0;
+	}
+
+int SMB_Session::ParseNtCreateAndxResponse(binpac::SMB::SMB_header const& hdr,
+					SMB_Body const& body)
+	{
+	binpac::SMB::SMB_nt_create_andx_response resp;
+	resp.Parse(body.data(), body.data() + body.length());
+	set_andx(1, resp.andx());
+
+	if ( smb_com_nt_create_andx_response )
+		{
+		val_list* vl = new val_list;
+		vl->append(analyzer->BuildConnVal());
+		vl->append(BuildHeaderVal(hdr));
+		vl->append(new Val(resp.fid(), TYPE_COUNT));
+		//vl->append(new Val(get_int64(resp.allocation_size()), TYPE_COUNT));
+		vl->append(new Val(get_int64(resp.end_of_file()), TYPE_COUNT));
+
+		analyzer->ConnectionEvent(smb_com_nt_create_andx_response, vl);
+		}
 
 	return 0;
 	}

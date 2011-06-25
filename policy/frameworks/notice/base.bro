@@ -16,7 +16,7 @@ export {
 		## also used by the global function :bro:id:`NOTICE`.
 		NOTICE, 
 		## This is the notice policy auditing log.  It records what the current
-		## notice policy is at Bro init time..
+		## notice policy is at Bro init time.
 		NOTICE_POLICY,
 	};
 
@@ -38,11 +38,15 @@ export {
 		ACTION_FILE,
 		## Indicates that the notice should be alarmed on.
 		ACTION_ALARM,
-		## Indicates that the notice should be sent to the configured notice
-		## contact email address(es).
+		## Indicates that the notice should be sent to the email address(es) 
+		## configured in the :bro:id:`mail_dest` variable.
 		ACTION_EMAIL,
-		## Indicates that the notice should be sent to the configured pager 
-		## email address.
+		## Indicate that the generated email should be addressed to the 
+		## appropriate addresses as found in the :bro:id:`Site::addr_to_emails`
+		## variable.
+		ACTION_EMAIL_ADMIN,
+		## Indicates that the notice should be sent to the pager email address
+		## configured in the :bro:id:`mail_page_dest` variable.
 		ACTION_PAGE,
 		## Indicates that no more actions should be found after the policy 
 		## item returning this matched.
@@ -113,15 +117,15 @@ export {
 	# This is the :bro:id:`Notice::policy` where the local notice conversion 
 	# policy is set.
 	const policy: set[Notice::PolicyItem] = {
-		[$pred(n: Notice::Info) = { return T; },
-		 $result = ACTION_FILE,
-		 $priority = 0],
 		[$pred(n: Notice::Info) = { return (n$note in ignored_types); },
 		 $result = ACTION_STOP,
 		 $priority = 10],
 		[$pred(n: Notice::Info) = { return (n$note in emailed_types); },
 		 $result = ACTION_EMAIL,
 		 $priority = 9],
+		[$pred(n: Notice::Info) = { return T; },
+		 $result = ACTION_FILE,
+		 $priority = 0],
 	} &redef;
 	
 	## Local system mail program.

@@ -339,7 +339,7 @@ event smtp_data(c: connection, is_orig: bool, data: string) &priority=3
 	local ip = to_addr(text_ip);
 	
 	if ( ! addr_matches_host(ip, mail_path_capture) && 
-	     ip !in private_address_space )
+	     ! Site::is_private_addr(ip) )
 		{
 		c$smtp$process_received_from = F;
 		}

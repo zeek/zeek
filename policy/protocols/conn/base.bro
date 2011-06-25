@@ -37,8 +37,8 @@ export {
 		
 		## If the connection is originated locally, this value will be T.  If
 		## it was originated remotely it will be F.  In the case that the
-		## :bro:id:`local_nets` variable is undefined, this field will be left
-		## empty at all times.
+		## :bro:id:`Site::local_nets` variable is undefined, this field will 
+		## be left empty at all times.
 		local_orig:   bool            &log &optional;
 		
 		## Indicates the number of bytes missed in content gaps which is
@@ -154,8 +154,8 @@ function set_conn(c: connection, eoc: bool)
 		tmp$uid=c$uid;
 		tmp$id=id;
 		tmp$proto=get_port_transport_proto(id$resp_p);
-		if( |local_nets| > 0 )
-			tmp$local_orig=is_local_addr(id$orig_h);
+		if( |Site::local_nets| > 0 )
+			tmp$local_orig=Site::is_local_addr(id$orig_h);
 		c$conn = tmp;
 		}
 	

@@ -347,7 +347,7 @@ PacketSortElement* PacketSortGlobalPQ::RemoveMin(double timestamp)
 PacketSortConnPQ* PacketSortGlobalPQ::FindConnPQ(PacketSortElement* e)
 	{
 	if ( ! e->is_tcp )
-		internal_error("cannot find a connection for an invalid id");
+		bro_logger->InternalError("cannot find a connection for an invalid id");
 	
 	PacketSortConnPQ* pq = (PacketSortConnPQ*) conn_pq_table.Lookup(e->key);
 	if ( ! pq )

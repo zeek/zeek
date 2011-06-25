@@ -55,8 +55,7 @@ event icmp_time_exceeded%(c: connection, icmp: icmp_conn, code: count, context: 
 event icmp_redirect%(c: connection, icmp: icmp_conn, a: addr%);
 event net_stats_update%(t: time, ns: net_stats%);
 event conn_stats%(c: connection, os: endpoint_stats, rs: endpoint_stats%);
-event conn_weird%(name: string, c: connection%);
-event conn_weird_addl%(name: string, c: connection, addl: string%);
+event conn_weird%(name: string, c: connection, addl: string%);
 event flow_weird%(name: string, src: addr, dst: addr%);
 event net_weird%(name: string%);
 event load_sample%(samples: load_sample_info, CPU: interval, dmem: int%);
@@ -479,3 +478,8 @@ event rotate_size%(f: file%);
 
 event netflow_v5_header%(h: nf_v5_header%);
 event netflow_v5_record%(r: nf_v5_record%);
+
+# Different types of log messages.
+event log_message%(t: time, msg: string, location: string%);
+event log_warning%(t: time, msg: string, location: string%);
+event log_error%(t: time, msg: string, location: string%);

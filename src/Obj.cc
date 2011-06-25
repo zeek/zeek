@@ -52,6 +52,32 @@ bool Location::DoUnserialize(UnserialInfo* info)
 		&& UNSERIALIZE(&last_column);
 	}
 
+void Location::Describe(ODesc* d) const
+	{
+	if ( filename )
+		{
+		d->Add(filename);
+
+		if ( first_line == 0 )
+			return;
+
+		d->AddSP(",");
+		}
+
+	if ( last_line != first_line )
+		{
+		d->Add("lines ");
+		d->Add(first_line);
+		d->Add("-");
+		d->Add(last_line);
+		}
+	else
+		{
+		d->Add("line ");
+		d->Add(first_line);
+		}
+	}
+
 bool Location::operator==(const Location& l) const
 	{
 	if ( filename == l.filename ||
@@ -61,7 +87,7 @@ bool Location::operator==(const Location& l) const
 		return false;
 	}
 
-int BroObj::suppress_runtime = 0;
+int BroObj::suppress_errors = 0;
 
 BroObj::~BroObj()
 	{
@@ -70,23 +96,21 @@ BroObj::~BroObj()
 
 void BroObj::Warn(const char* msg, const BroObj* obj2, int pinpoint_only) const
 	{
-	DoMsg("warning,", msg, obj2, pinpoint_only);
-	++nwarn;
+	ODesc d;
+	DoMsg(&d, msg, obj2, pinpoint_only);
+	bro_logger->Warning("%s", d.Description());
+	bro_logger->PopLocation();
 	}
 
 void BroObj::Error(const char* msg, const BroObj* obj2, int pinpoint_only) const
 	{
-	DoMsg("error,", msg, obj2, pinpoint_only);
-	++nerr;
-	}
+	if ( suppress_errors )
+		return;
 
-void BroObj::RunTime(const char* msg, const BroObj* obj2, int pinpoint_only) const
-	{
-	if ( ! suppress_runtime )
-		{
-		DoMsg("run-time error,", msg, obj2, pinpoint_only);
-		++nruntime;
-		}
+	ODesc d;
+	DoMsg(&d, msg, obj2, pinpoint_only);
+	bro_logger->Error("%s", d.Description());
+	bro_logger->PopLocation();
 	}
 
 void BroObj::BadTag(const char* msg, const char* t1, const char* t2) const
@@ -100,19 +124,23 @@ void BroObj::BadTag(const char* msg, const char* t1, const char* t2) const
 	else
 		snprintf(out, sizeof(out), "%s", msg);
 
-	DoMsg("bad tag in", out);
-	Fatal();
+	ODesc d;
+	DoMsg(&d, out);
+	bro_logger->FatalError("%s", d.Description());
 	}
 
 void BroObj::Internal(const char* msg) const
 	{
-	DoMsg("internal error:", msg);
-	Fatal();
+	ODesc d;
+	DoMsg(&d, msg);
+	bro_logger->InternalError("%s", d.Description());
 	}
 
 void BroObj::InternalWarning(const char* msg) const
 	{
-	DoMsg("internal warning:", msg);
+	ODesc d;
+	DoMsg(&d, msg);
+	bro_logger->InternalWarning("%s", d.Description());
 	}
 
 void BroObj::AddLocation(ODesc* d) const
@@ -123,28 +151,7 @@ void BroObj::AddLocation(ODesc* d) const
 		return;
 		}
 
-	if ( location->filename )
-		{
-		d->Add(location->filename);
-
-		if ( location->first_line == 0 )
-			return;
-
-		d->AddSP(",");
-		}
-
-	if ( location->last_line != location->first_line )
-		{
-		d->Add("lines ");
-		d->Add(location->first_line);
-		d->Add("-");
-		d->Add(location->last_line);
-		}
-	else
-		{
-		d->Add("line ");
-		d->Add(location->first_line);
-		}
+	location->Describe(d);
 	}
 
 bool BroObj::SetLocationInfo(const Location* start, const Location* end)
@@ -177,39 +184,24 @@ void BroObj::UpdateLocationEndInfo(const Location& end)
 	location->last_column = end.last_column;
 	}
 
-void BroObj::DoMsg(const char s1[], const char s2[], const BroObj* obj2,
+void BroObj::DoMsg(ODesc* d, const char s1[], const BroObj* obj2,
 			int pinpoint_only) const
 	{
-	ODesc d;
-	d.SetShort();
+	d->SetShort();
 
-	PinPoint(&d, obj2, pinpoint_only);
-	d.SP();
-	d.Add(s1);
-	d.SP();
-	d.Add(s2);
-	fprintf(stderr, "%s\n", d.Description());
+	d->Add(s1);
+	PinPoint(d, obj2, pinpoint_only);
+
+	const Location* loc2 = 0;
+	if ( obj2 && obj2->GetLocationInfo() != &no_location &&
+		 *obj2->GetLocationInfo() != *GetLocationInfo() )
+		loc2 = obj2->GetLocationInfo();
+
+	bro_logger->PushLocation(GetLocationInfo(), loc2);
 	}
 
 void BroObj::PinPoint(ODesc* d, const BroObj* obj2, int pinpoint_only) const
 	{
-	if ( network_time > 0.0 )
-		{
-		char time[256];
-		safe_snprintf(time, sizeof(time), "%.6f", network_time);
-		d->Add(time);
-		d->SP();
-		}
-
-	AddLocation(d);
-	if ( obj2 && obj2->GetLocationInfo() != &no_location &&
-	     *obj2->GetLocationInfo() != *GetLocationInfo() )
-		{
-		d->Add(" and ");
-		obj2->AddLocation(d);
-		d->Add("\n  ");
-		}
-
 	d->Add(" (");
 	Describe(d);
 	if ( obj2 && ! pinpoint_only )
@@ -218,15 +210,7 @@ void BroObj::PinPoint(ODesc* d, const BroObj* obj2, int pinpoint_only) const
 		obj2->Describe(d);
 		}
 
-	d->Add("):");
-	}
-
-void BroObj::Fatal() const
-	{
-#ifdef DEBUG_BRO
-	internal_error("BroObj::Fatal()");
-#endif
-	exit(1);
+	d->Add(")");
 	}
 
 bool BroObj::DoSerialize(SerialInfo* info) const
@@ -260,7 +244,7 @@ void print(const BroObj* obj)
 
 void bad_ref(int type)
 	{
-	internal_error("bad reference count [%d]", type);
+	bro_logger->InternalError("bad reference count [%d]", type);
 	abort();
 	}
 

@@ -10,6 +10,7 @@
 #include <cmath>
 #include <sys/stat.h>
 
+#include "Logger.h"
 
 using namespace std;
 
@@ -93,7 +94,7 @@ static void do_fmt(const char*& fmt, Val* v, ODesc* d)
 
 	if ( field_width > 128 || precision > 128 )
 		{
-		builtin_run_time("excessive field width or precision");
+		builtin_error("excessive field width or precision");
 		return;
 		}
 
@@ -124,7 +125,7 @@ static void do_fmt(const char*& fmt, Val* v, ODesc* d)
 		}
 
 	if ( precision >= 0 && *fmt != 'e' && *fmt != 'f' && *fmt != 'g' )
-		builtin_run_time("precision specified for non-floating point");
+		builtin_error("precision specified for non-floating point");
 
 	switch ( *fmt ) {
 	case 'D':
@@ -132,7 +133,7 @@ static void do_fmt(const char*& fmt, Val* v, ODesc* d)
 		{
 		if ( t != TYPE_TIME )
 			{
-			builtin_run_time("bad type for Date/Time format", v);
+			builtin_error("bad type for Date/Time format", v);
 			break;
 			}
 
@@ -206,7 +207,7 @@ static void do_fmt(const char*& fmt, Val* v, ODesc* d)
 
 		else if ( ! check_fmt_type(t, ok_d_fmt) )
 			{
-			builtin_run_time("bad type for %d/%x format", v);
+			builtin_error("bad type for %d/%x format", v);
 			break;
 			}
 
@@ -249,7 +250,7 @@ static void do_fmt(const char*& fmt, Val* v, ODesc* d)
 		{
 		if ( ! check_fmt_type(t, ok_f_fmt) )
 			{
-			builtin_run_time("bad type for floating-point format", v);
+			builtin_error("bad type for floating-point format", v);
 			break;
 			}
 
@@ -260,7 +261,7 @@ static void do_fmt(const char*& fmt, Val* v, ODesc* d)
 		break;
 
 	default:
-		builtin_run_time("bad format");
+		builtin_error("bad format");
 	}
 
 	// Left-padding with whitespace, if any.
@@ -328,7 +329,7 @@ function length%(v: any%): count
 
 	else
 		{
-		builtin_run_time("length() requires a table/set/vector argument");
+		builtin_error("length() requires a table/set/vector argument");
 		return new Val(0, TYPE_COUNT);
 		}
 	%}
@@ -343,7 +344,7 @@ function clear_table%(v: any%): any
 	if ( v->Type()->Tag() == TYPE_TABLE )
 		v->AsTableVal()->RemoveAll();
 	else
-		builtin_run_time("clear_table() requires a table/set argument");
+		builtin_error("clear_table() requires a table/set argument");
 
 	return 0;
 	%}
@@ -424,10 +425,10 @@ function fmt%(...%): string
 		;
 
 	if ( n < @ARGC@ - 1 )
-		builtin_run_time("too many arguments for format", fmt_v);
+		builtin_error("too many arguments for format", fmt_v);
 
 	else if ( n >= @ARGC@ )
-		builtin_run_time("too few arguments for format", fmt_v);
+		builtin_error("too few arguments for format", fmt_v);
 
 	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
 	s->SetUseFreeToDelete(true);
@@ -458,7 +459,7 @@ function to_int%(str: string%): int
 	// Not clear we should complain.  For example, is " 205 "
 	// a legal conversion?
 	if ( s[0] == '\0' || end_s[0] != '\0' )
-		builtin_run_time("bad conversion to integer", @ARG@[0]);
+		builtin_error("bad conversion to integer", @ARG@[0]);
 #endif
 
 	return new Val(i, TYPE_INT);
@@ -468,7 +469,7 @@ function int_to_count%(n: int%): count
 	%{
 	if ( n < 0 )
 		{
-		builtin_run_time("bad conversion to count", @ARG@[0]);
+		builtin_error("bad conversion to count", @ARG@[0]);
 		n = 0;
 		}
 	return new Val(n, TYPE_COUNT);
@@ -477,7 +478,7 @@ function int_to_count%(n: int%): count
 function double_to_count%(d: double%): count
 	%{
 	if ( d < 0.0 )
-		builtin_run_time("bad conversion to count", @ARG@[0]);
+		builtin_error("bad conversion to count", @ARG@[0]);
 
 	return new Val(bro_uint_t(rint(d)), TYPE_COUNT);
 	%}
@@ -491,7 +492,7 @@ function to_count%(str: string%): count
 
 	if ( s[0] == '\0' || end_s[0] != '\0' )
     	{
-		builtin_run_time("bad conversion to count", @ARG@[0]);
+		builtin_error("bad conversion to count", @ARG@[0]);
         u = 0;
         }
 
@@ -523,7 +524,7 @@ function addr_to_count%(a: addr%): count
 #ifdef BROv6
 	if ( ! is_v4_addr(a) )
 		{
-		builtin_run_time("conversion of non-IPv4 address to count", @ARG@[0]);
+		builtin_error("conversion of non-IPv4 address to count", @ARG@[0]);
 		return new Val(0, TYPE_COUNT);
 		}
 
@@ -561,7 +562,7 @@ function count_to_v4_addr%(ip: count%): addr
 	%{
 	if ( ip > 4294967295 )
 		{
-		builtin_run_time("conversion of non-IPv4 count to addr", @ARG@[0]);
+		builtin_error("conversion of non-IPv4 count to addr", @ARG@[0]);
 		return new AddrVal(uint32(0));
 		}
 
@@ -574,7 +575,7 @@ function raw_bytes_to_v4_addr%(b: string%): addr
 	uint32 a = 0;
 
 	if ( b->Len() < 4 )
-		builtin_run_time("too short a string as input to raw_bytes_to_v4_addr()");
+		builtin_error("too short a string as input to raw_bytes_to_v4_addr()");
 
 	else
 		{
@@ -590,7 +591,7 @@ function to_net%(a: addr%): net
 #ifdef BROv6
 	if ( ! is_v4_addr(a) )
 		{
-		builtin_run_time("conversion of non-IPv4 address to net", @ARG@[0]);
+		builtin_error("conversion of non-IPv4 address to net", @ARG@[0]);
 		return new NetVal(uint32(0));
 		}
 
@@ -609,7 +610,7 @@ function net_to_subnet%(a: net%): subnet
 #ifdef BROv6
 	if ( ! is_v4_addr(a) )
 		{
-		builtin_run_time("conversion of non-IPv4 address to subnet", @ARG@[0]);
+		builtin_error("conversion of non-IPv4 address to subnet", @ARG@[0]);
 		return new SubNetVal(uint32(0), 0);
 		}
 
@@ -651,7 +652,7 @@ function remask_addr%(a1: addr, a2: addr, top_bits_from_a1: count%): addr
 #ifdef BROv6
 	if ( ! is_v4_addr(a1) || ! is_v4_addr(a2) )
 		{
-		builtin_run_time("cannot use remask_addr on IPv6 addresses");
+		builtin_error("cannot use remask_addr on IPv6 addresses");
 		return new AddrVal(a1);
 		}
 
@@ -736,7 +737,7 @@ function mkdir%(f: string%): bool
 	const char* filename = f->CheckString();
 	if ( mkdir(filename, 0777) < 0 && errno != EEXIST )
 		{
-		builtin_run_time("cannot create directory", @ARG@[0]);
+		builtin_error("cannot create directory", @ARG@[0]);
 		return new Val(0, TYPE_BOOL);
 		}
 	else
@@ -764,7 +765,7 @@ function connection_record%(cid: conn_id%): connection
 	else
 		{
 		// Hard to recover from this until we have union types ...
-		builtin_run_time("connection ID not a known connection (fatal)", cid);
+		builtin_error("connection ID not a known connection (fatal)", cid);
 		exit(0);
 		return 0;
 		}
@@ -791,8 +792,11 @@ EnumVal* map_conn_type(TransportProto tp)
 		break;
 
 	default:
-		internal_error("bad connection type in map_conn_type()");
+		bro_logger->InternalError("bad connection type in map_conn_type()");
 	}
+
+    // Cannot be reached;
+	assert(false);
 	}
 %%}
 
@@ -801,7 +805,7 @@ function get_conn_transport_proto%(cid: conn_id%): transport_proto
 	Connection* c = sessions->FindConnection(cid);
 	if ( ! c )
 		{
-		builtin_run_time("unknown connection id in get_conn_transport_proto()", cid);
+		builtin_error("unknown connection id in get_conn_transport_proto()", cid);
 		return new EnumVal(0, transport_proto);
 		}
 
@@ -835,7 +839,7 @@ function sqrt%(x: double%): double
 	%{
 	if ( x < 0 )
 		{
-		run_time("negative sqrt argument");
+		bro_logger->Error("negative sqrt argument");
 		return new Val(-1.0, TYPE_DOUBLE);
 		}
 
@@ -890,7 +894,7 @@ static bool prepare_environment(TableVal* tbl, bool set)
 		if ( key->Type()->Tag() != TYPE_STRING ||
 		     val->Type()->Tag() != TYPE_STRING )
 			{
-			builtin_run_time("system_env() needs a table[string] of string");
+			builtin_error("system_env() needs a table[string] of string");
 			return false;
 			}
 
@@ -931,7 +935,7 @@ function system_env%(str: string, env: any%): int
 	%{
 	if ( env->Type()->Tag() != TYPE_TABLE )
 		{
-		builtin_run_time("system_env() requires a table/set argument");
+		builtin_error("system_env() requires a table/set argument");
 		return new Val(-1, TYPE_INT);
 		}
 
@@ -1058,7 +1062,7 @@ function lookup_connection%(cid: conn_id%): connection
 	if ( conn )
 		return conn->BuildConnVal();
 
-	builtin_run_time("connection ID not a known connection", cid);
+	builtin_error("connection ID not a known connection", cid);
 
 	// Return a dummy connection record.
 	RecordVal* c = new RecordVal(connection_type);
@@ -1134,9 +1138,9 @@ function get_contents_file%(cid: conn_id, direction: count%): file
 
 	// Return some sort of error value.
 	if ( ! c )
-		builtin_run_time("unknown connection id in get_contents_file()", cid);
+		builtin_error("unknown connection id in get_contents_file()", cid);
 	else
-		builtin_run_time("no contents file for given direction");
+		builtin_error("no contents file for given direction");
 
 	return new Val(new BroFile(stderr, "-", "w"));
 	%}
@@ -1211,7 +1215,7 @@ function get_orig_seq%(cid: conn_id%): count
 				TYPE_COUNT);
 	else
 		{
-		run_time("connection does not have TCP analyzer");
+		bro_logger->Error("connection does not have TCP analyzer");
 		return new Val(0, TYPE_COUNT);
 		}
 	%}
@@ -1231,7 +1235,7 @@ function get_resp_seq%(cid: conn_id%): count
 				TYPE_COUNT);
 	else
 		{
-		run_time("connection does not have TCP analyzer");
+		bro_logger->Error("connection does not have TCP analyzer");
 		return new Val(0, TYPE_COUNT);
 		}
 	%}
@@ -1246,7 +1250,7 @@ function ptr_name_to_addr%(s: string%): addr
 			"%d.%d.%d.%d.in-addr.arpa",
 			a, a+1, a+2, a+3) != 4 )
 		{
-		builtin_run_time("bad PTR name", @ARG@[0]);
+		builtin_error("bad PTR name", @ARG@[0]);
 		addr = 0;
 		}
 	else
@@ -1265,7 +1269,7 @@ function addr_to_ptr_name%(a: addr%): string
 		addr = a[3];
 	else
 		{
-		builtin_run_time("conversion of non-IPv4 address to net", @ARG@[0]);
+		builtin_error("conversion of non-IPv4 address to net", @ARG@[0]);
 		addr = 0;
 		}
 #else
@@ -1331,7 +1335,7 @@ function fmt_ftp_port%(a: addr, p: port%): string
 	%{
 #ifdef BROv6
 	if ( ! is_v4_addr(a) )
-		builtin_run_time("conversion of non-IPv4 address to net", @ARG@[0]);
+		builtin_error("conversion of non-IPv4 address to net", @ARG@[0]);
 
 	uint32 addr = to_v4_addr(a);
 #else
@@ -1410,14 +1414,14 @@ function skip_http_entity_data%(c: connection, is_orig: bool%): any
 			if ( ha->GetTag() == AnalyzerTag::HTTP )
 				static_cast<HTTP_Analyzer*>(ha)->SkipEntityData(is_orig);
 			else
-				run_time("non-HTTP analyzer associated with connection record");
+				bro_logger->Error("non-HTTP analyzer associated with connection record");
 			}
 		else
-			run_time("could not find analyzer for skip_http_entity_data");
+			bro_logger->Error("could not find analyzer for skip_http_entity_data");
 
 		}
 	else
-		run_time("no analyzer associated with connection record");
+		bro_logger->Error("no analyzer associated with connection record");
 
 	return 0;
 	%}
@@ -1476,7 +1480,7 @@ function resource_usage%(%): bro_resources
 	struct rusage r;
 
 	if ( getrusage(RUSAGE_SELF, &r) < 0 )
-		internal_error("getrusage() failed in bro_resource_usage()");
+		bro_logger->InternalError("getrusage() failed in bro_resource_usage()");
 
 	double elapsed_time = current_time() - bro_start_time;
 
@@ -1639,7 +1643,7 @@ function preserve_prefix%(a: addr, width: count%): any
 		{
 #ifdef BROv6
 		if ( ! is_v4_addr(a) )
-			builtin_run_time("preserve_prefix() not supported for IPv6 addresses");
+			builtin_error("preserve_prefix() not supported for IPv6 addresses");
 		else
 			ip_anon->PreservePrefix(a[3], width);
 #else
@@ -1659,7 +1663,7 @@ function preserve_subnet%(a: subnet%): any
 		{
 #ifdef BROv6
 		if ( ! is_v4_addr(a->AsAddr()) )
-			builtin_run_time("preserve_subnet() not supported for IPv6 addresses");
+			builtin_error("preserve_subnet() not supported for IPv6 addresses");
 		else
 			ip_anon->PreservePrefix(a->AsAddr()[3], a->Width());
 #else
@@ -1673,7 +1677,7 @@ function preserve_subnet%(a: subnet%): any
 function preserve_net%(a: net%): any
 	%{
 #ifdef BROv6
-	builtin_run_time("preserve_net() not supported with --enable-BROv6");
+	builtin_error("preserve_net() not supported with --enable-BROv6");
 #else
 	AnonymizeIPAddr* ip_anon = ip_anonymizer[PREFIX_PRESERVING_A50];
 	if ( ip_anon )
@@ -1688,12 +1692,12 @@ function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
 	%{
 	int anon_class = cl->InternalInt();
 	if ( anon_class < 0 || anon_class >= NUM_ADDR_ANONYMIZATION_CLASSES )
-		builtin_run_time("anonymize_addr(): invalid ip addr anonymization class");
+		builtin_error("anonymize_addr(): invalid ip addr anonymization class");
 
 #ifdef BROv6
 	if ( ! is_v4_addr(a) )
 		{
-		builtin_run_time("anonymize_addr() not supported for IPv6 addresses");
+		builtin_error("anonymize_addr() not supported for IPv6 addresses");
 		return 0;
 		}
 	else
@@ -1835,7 +1839,7 @@ function decode_base64%(s: string%): string
 		return new StringVal(t);
 	else
 		{
-		run_time("error in decoding string %s", @ARG@[0]);
+		bro_logger->Error("error in decoding string %s", @ARG@[0]);
 		return new StringVal("");
 		}
 	%}
@@ -1886,7 +1890,7 @@ function merge_pattern%(p1: pattern, p2: pattern%): pattern
 	%{
 	if ( bro_start_network_time != 0.0 )
 		{
-		builtin_run_time("merge_pattern can only be called at init time");
+		builtin_error("merge_pattern can only be called at init time");
 		return 0;
 		}
 
@@ -1932,7 +1936,7 @@ function string_to_pattern%(s: string, convert: bool%): pattern
 	%{
 	if ( bro_start_network_time != 0.0 )
 		{
-		builtin_run_time("string_to_pattern can only be called at init time");
+		builtin_error("string_to_pattern can only be called at init time");
 		return 0;
 		}
 
@@ -1967,7 +1971,7 @@ function precompile_pcap_filter%(id: PcapFilterID, s: string%): bool
 		if ( ! pkt_srcs[i]->PrecompileFilter(id->ForceAsInt(),
 							s->CheckString()) )
 			{
-			run_time( "precompile_pcap_filter: %s",
+			bro_logger->Error( "precompile_pcap_filter: %s",
 				pkt_srcs[i]->ErrorMsg() );
 			success = false;
 			}
@@ -1982,7 +1986,7 @@ function install_pcap_filter%(id: PcapFilterID%): bool
 	ID* user_filter = global_scope()->Lookup("cmd_line_bpf_filter");
 
 	if ( ! user_filter )
-		internal_error("global cmd_line_bpf_filter not defined");
+		bro_logger->InternalError("global cmd_line_bpf_filter not defined");
 
 	if ( user_filter->ID_Val()->AsStringVal()->Len() )
 		// Don't allow the script-level to change the filter when
@@ -2165,7 +2169,7 @@ function send_id%(p: event_peer, id: string%) : bool
 	ID* i = global_scope()->Lookup(id->CheckString());
 	if ( ! i )
 		{
-		run_time(fmt("send_id: no global id %s", id->CheckString()));
+		bro_logger->Error(fmt("send_id: no global id %s", id->CheckString()));
 		return new Val(0, TYPE_BOOL);
 		}
 
@@ -2229,12 +2233,12 @@ function get_event_peer%(%) : event_peer
 		}
 
 	if ( ! remote_serializer )
-		internal_error("remote_serializer not initialized");
+		bro_logger->InternalError("remote_serializer not initialized");
 
 	Val* v = remote_serializer->GetPeerVal(src);
 	if ( ! v )
 		{
-		run_time(fmt("peer %d does not exist anymore", int(src)));
+		bro_logger->Error(fmt("peer %d does not exist anymore", int(src)));
 		RecordVal* p = mgr.GetLocalPeerVal();
 		Ref(p);
 		return p;
@@ -2291,7 +2295,7 @@ function is_local_interface%(ip: addr%) : bool
 #ifdef BROv6
 	if ( ! is_v4_addr(ip) )
 		{
-		builtin_run_time("is_local_interface() only supports IPv4 addresses");
+		builtin_error("is_local_interface() only supports IPv4 addresses");
 		return new Val(0, TYPE_BOOL);
 		}
 
@@ -2377,7 +2381,7 @@ function resize%(aggr: any, newsize: count%) : count
 	%{
 	if ( aggr->Type()->Tag() != TYPE_VECTOR )
 		{
-		builtin_run_time("resize() operates on vectors");
+		builtin_error("resize() operates on vectors");
 		return 0;
 		}
 
@@ -2390,7 +2394,7 @@ function any_set%(v: any%) : bool
 	if ( v->Type()->Tag() != TYPE_VECTOR ||
 	     v->Type()->YieldType()->Tag() != TYPE_BOOL )
 		{
-		builtin_run_time("any_set() requires vector of bool");
+		builtin_error("any_set() requires vector of bool");
 		return new Val(false, TYPE_BOOL);
 		}
 
@@ -2408,7 +2412,7 @@ function all_set%(v: any%) : bool
 	if ( v->Type()->Tag() != TYPE_VECTOR ||
 	     v->Type()->YieldType()->Tag() != TYPE_BOOL )
 		{
-		builtin_run_time("all_set() requires vector of bool");
+		builtin_error("all_set() requires vector of bool");
 		return new Val(false, TYPE_BOOL);
 		}
 
@@ -2479,7 +2483,7 @@ function sort%(v: any, ...%) : any
 
 	if ( v->Type()->Tag() != TYPE_VECTOR )
 		{
-		builtin_run_time("sort() requires vector");
+		builtin_error("sort() requires vector");
 		return v;
 		}
 
@@ -2487,14 +2491,14 @@ function sort%(v: any, ...%) : any
 	Func* comp = 0;
 
 	if ( @ARG@.length() > 2 )
-		builtin_run_time("sort() called with extraneous argument");
+		builtin_error("sort() called with extraneous argument");
 
 	if ( @ARG@.length() == 2 )
 		{
 		Val* comp_val = @ARG@[1];
 		if ( ! IsFunc(comp_val->Type()->Tag()) )
 			{
-			builtin_run_time("second argument to sort() needs to be comparison function");
+			builtin_error("second argument to sort() needs to be comparison function");
 			return v;
 			}
 
@@ -2502,7 +2506,7 @@ function sort%(v: any, ...%) : any
 		}
 
 	if ( ! comp && ! IsIntegral(elt_type->Tag()) )
-		builtin_run_time("comparison function required for sort() with non-integral types");
+		builtin_error("comparison function required for sort() with non-integral types");
 
 	vector<Val*>& vv = *v->AsVector();
 
@@ -2512,7 +2516,7 @@ function sort%(v: any, ...%) : any
 		if ( comp_type->YieldType()->Tag() != TYPE_INT ||
 		     ! comp_type->ArgTypes()->AllMatch(elt_type, 0) )
 			{
-			builtin_run_time("invalid comparison function in call to sort()");
+			builtin_error("invalid comparison function in call to sort()");
 			return v;
 			}
 
@@ -2533,7 +2537,7 @@ function order%(v: any, ...%) : index_vec
 
 	if ( v->Type()->Tag() != TYPE_VECTOR )
 		{
-		builtin_run_time("order() requires vector");
+		builtin_error("order() requires vector");
 		return result_v;
 		}
 
@@ -2541,14 +2545,14 @@ function order%(v: any, ...%) : index_vec
 	Func* comp = 0;
 
 	if ( @ARG@.length() > 2 )
-		builtin_run_time("order() called with extraneous argument");
+		builtin_error("order() called with extraneous argument");
 
 	if ( @ARG@.length() == 2 )
 		{
 		Val* comp_val = @ARG@[1];
 		if ( ! IsFunc(comp_val->Type()->Tag()) )
 			{
-			builtin_run_time("second argument to order() needs to be comparison function");
+			builtin_error("second argument to order() needs to be comparison function");
 			return v;
 			}
 
@@ -2556,7 +2560,7 @@ function order%(v: any, ...%) : index_vec
 		}
 
 	if ( ! comp && ! IsIntegral(elt_type->Tag()) )
-		builtin_run_time("comparison function required for sort() with non-integral types");
+		builtin_error("comparison function required for sort() with non-integral types");
 
 	vector<Val*>& vv = *v->AsVector();
 	int n = vv.size();
@@ -2578,7 +2582,7 @@ function order%(v: any, ...%) : index_vec
 		if ( comp_type->YieldType()->Tag() != TYPE_INT ||
 		     ! comp_type->ArgTypes()->AllMatch(elt_type, 0) )
 			{
-			builtin_run_time("invalid comparison function in call to sort()");
+			builtin_error("invalid comparison function in call to sort()");
 			return v;
 			}
 
@@ -2657,7 +2661,7 @@ function generate_idmef%(src_ip: addr, src_port: port,
 	printCurrentMessage(stderr);
 	return new Val(1, TYPE_BOOL);
 #else
-	builtin_run_time("Bro was not configured for IDMEF support");
+	builtin_error("Bro was not configured for IDMEF support");
 	return new Val(0, TYPE_BOOL);
 #endif
 	%}
@@ -2855,7 +2859,7 @@ function lookup_addr%(host: addr%) : string
 
 	if ( ! trigger)
 		{
-		builtin_run_time("lookup_addr() can only be called inside a when-condition");
+		builtin_error("lookup_addr() can only be called inside a when-condition");
 		return new StringVal("<error>");
 		}
 
@@ -2871,7 +2875,7 @@ function lookup_addr%(host: addr%) : string
 		static bool warned = false;
 		if ( ! warned )
 			{
-			warn("lookup_addr() only supports IPv4 addresses currently");
+			bro_logger->Warning("lookup_addr() only supports IPv4 addresses currently");
 			warned = true;
 			}
 
@@ -2896,7 +2900,7 @@ function lookup_hostname%(host: string%) : addr_set
 
 	if ( ! trigger)
 		{
-		builtin_run_time("lookup_hostname() can only be called inside a when-condition");
+		builtin_error("lookup_hostname() can only be called inside a when-condition");
 		return new StringVal("<error>");
 		}
 
@@ -2942,14 +2946,14 @@ function disable_analyzer%(cid: conn_id, aid: count%) : bool
 	Connection* c = sessions->FindConnection(cid);
 	if ( ! c )
 		{
-		run_time("cannot find connection");
+		bro_logger->Error("cannot find connection");
 		return new Val(0, TYPE_BOOL);
 		}
 
 	Analyzer* a = c->FindAnalyzer(aid);
 	if ( ! a )
 		{
-		run_time("connection does not have analyzer specified to disable");
+		bro_logger->Error("connection does not have analyzer specified to disable");
 		return new Val(0, TYPE_BOOL);
 		}
 
@@ -3038,11 +3042,11 @@ function lookup_location%(a: addr%) : geo_location
 					GEOIP_MEMORY_CACHE);
 		if ( ! geoip )
 			{
-			builtin_run_time("can't initialize GeoIP City database.. trying Country version");
+			builtin_error("can't initialize GeoIP City database.. trying Country version");
 			geoip = GeoIP_open_type(GEOIP_COUNTRY_EDITION,
 						GEOIP_MEMORY_CACHE);
 			if ( ! geoip )
-				builtin_run_time("can't initialize GeoIP Country database");
+				builtin_error("can't initialize GeoIP Country database");
 			}
 
 #ifdef BROv6
@@ -3050,7 +3054,7 @@ function lookup_location%(a: addr%) : geo_location
 		geoip_v6 = GeoIP_open_type(GEOIP_COUNTRY_EDITION_V6,
 						GEOIP_MEMORY_CACHE);
 		if ( ! geoip_v6 )
-			builtin_run_time("can't initialize the GeoIPv6 Country database");
+			builtin_error("can't initialize the GeoIPv6 Country database");
 #endif
 #endif
 		}
@@ -3110,7 +3114,7 @@ function lookup_location%(a: addr%) : geo_location
 
 	if ( ! missing_geoip_reported )
 		{
-		builtin_run_time("Bro was not configured for GeoIP support");
+		builtin_error("Bro was not configured for GeoIP support");
 		missing_geoip_reported = 1;
 		}
 #endif
@@ -3140,7 +3144,7 @@ function lookup_asn%(a: addr%) : count
 		geoip_asn = GeoIP_open_type(GEOIP_ASNUM_EDITION,
 						GEOIP_MEMORY_CACHE);
 		if ( ! geoip_asn )
-			builtin_run_time("can't initialize GeoIP ASNUM database");
+			builtin_error("can't initialize GeoIP ASNUM database");
 		}
 
 	if ( geoip_asn )
@@ -3174,7 +3178,7 @@ function lookup_asn%(a: addr%) : count
 
 	if ( ! missing_geoip_reported )
 		{
-		builtin_run_time("Bro was not configured for GeoIP ASN support");
+		builtin_error("Bro was not configured for GeoIP ASN support");
 		missing_geoip_reported = 1;
 		}
 #endif
@@ -3229,13 +3233,13 @@ function identify_data%(data: string, return_mime: bool%): string
 
 		if ( ! *magic )
 			{
-			error(fmt("can't init libmagic: %s", magic_error(*magic)));
+			bro_logger->Error(fmt("can't init libmagic: %s", magic_error(*magic)));
 			return new StringVal("");
 			}
 
 		if ( magic_load(*magic, 0) < 0 )
 			{
-			error(fmt("can't load magic file: %s", magic_error(*magic)));
+			bro_logger->Error(fmt("can't load magic file: %s", magic_error(*magic)));
 			magic_close(*magic);
 			*magic = 0;
 			return new StringVal("");
@@ -3406,7 +3410,7 @@ function x509_verify%(der_cert: string, cert_stack: string_vec, root_certs: tabl
 			X509* x = d2i_X509_(NULL, &data, sv->Len());
 			if ( ! x )
 				{
-				builtin_run_time(fmt("Root CA error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
+				builtin_error(fmt("Root CA error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
 				return new Val((uint64) ERR_get_error(), TYPE_COUNT);
 				}
 			X509_STORE_add_cert(ctx, x);
@@ -3419,7 +3423,7 @@ function x509_verify%(der_cert: string, cert_stack: string_vec, root_certs: tabl
 	STACK_OF(X509)* untrusted_certs = sk_X509_new_null();
 	if ( ! untrusted_certs )
 		{
-		builtin_run_time(fmt("Untrusted certificate stack initialization error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
+		builtin_error(fmt("Untrusted certificate stack initialization error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
 		return new Val((uint64) ERR_get_error(), TYPE_COUNT);
 		}
 
@@ -3431,7 +3435,7 @@ function x509_verify%(der_cert: string, cert_stack: string_vec, root_certs: tabl
 		X509* x = d2i_X509_(NULL, &data, sv->Len());
 		if ( ! x )
 			{
-			builtin_run_time(fmt("Untrusted certificate stack creation error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
+			builtin_error(fmt("Untrusted certificate stack creation error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
 			return new Val((uint64) ERR_get_error(), TYPE_COUNT);
 			}
 		sk_X509_push(untrusted_certs, x);
@@ -3443,7 +3447,7 @@ function x509_verify%(der_cert: string, cert_stack: string_vec, root_certs: tabl
 	X509* cert = d2i_X509_(NULL, &cert_data, der_cert->Len());
 	if ( ! cert )
 		{
-		builtin_run_time(fmt("Certificate error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
+		builtin_error(fmt("Certificate error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
 		return new Val((uint64) ERR_get_error(), TYPE_COUNT);
 		}
 

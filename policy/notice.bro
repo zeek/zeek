@@ -373,7 +373,7 @@ function NOTICE(n: notice_info)
 			{
 			if ( use_tagging )
 				{
-				alarm info;
+				# alarm info;
 				event notice_alarm(n, action);
 				}
 			else
@@ -390,7 +390,7 @@ function NOTICE(n: notice_info)
 							n$src_peer$p);
 					}
 
-				alarm fmt("%s %s%s", n$note, descr, n$msg);
+				# alarm fmt("%s %s%s", n$note, descr, n$msg);
 				event notice_alarm(n, action);
 				}
 			}

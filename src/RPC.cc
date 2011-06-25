@@ -263,7 +263,7 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen,
 		}
 
 	else if ( n < 0 )
-		internal_error("RPC underflow");
+		bro_logger->InternalError("RPC underflow");
 
 	return 1;
 	}
@@ -473,7 +473,7 @@ bool Contents_RPC::CheckResync(int& len, const u_char*& data, bool orig)
 
 		if ( resync_toskip != 0 )
 			// Should never happen.
-			internal_error("RPC resync: skipping over data failed");
+			bro_logger->InternalError("RPC resync: skipping over data failed");
 
 		// Now lets see whether data points to the beginning of a RPC
 		// frame. If the resync processs is successful, we should be
@@ -623,9 +623,7 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
 				marker_buf.Init(4,4);
 
 				if ( ! dummy_p )
-					{
-					internal_error("inconsistent RPC record marker extraction");
-					}
+					bro_logger->InternalError("inconsistent RPC record marker extraction");
 
 				last_frag = (marker & 0x80000000) != 0;
 				marker &= 0x7fffffff;

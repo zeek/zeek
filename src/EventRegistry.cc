@@ -91,7 +91,7 @@ void EventRegistry::SetGroup(const char* name, const char* group)
 	{
 	EventHandler* eh = Lookup(name);
 	if ( ! eh )
-		internal_error("unknown event handler in SetGroup()");
+		bro_logger->InternalError("unknown event handler in SetGroup()");
 
 	eh->SetGroup(group);
 	}

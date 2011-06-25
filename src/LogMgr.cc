@@ -273,7 +273,7 @@ bool LogVal::Read(SerializationFormat* fmt)
 		}
 
 	default:
-		internal_error("unsupported type %s in LogVal::Write", type_name(type));
+		bro_logger->InternalError("unsupported type %s in LogVal::Write", type_name(type));
 	}
 
 	return false;
@@ -374,7 +374,7 @@ bool LogVal::Write(SerializationFormat* fmt) const
 		}
 
 	default:
-		internal_error("unsupported type %s in LogVal::REad", type_name(type));
+		bro_logger->InternalError("unsupported type %s in LogVal::REad", type_name(type));
 	}
 
 	return false;
@@ -452,7 +452,7 @@ bool LogMgr::CreateStream(EnumVal* id, RecordVal* sval)
 
 	if ( ! same_type(rtype, BifType::Record::Log::Stream, 0) )
 		{
-		run_time("sval argument not of right type");
+		bro_logger->Error("sval argument not of right type");
 		return false;
 		}
 
@@ -468,7 +468,7 @@ bool LogMgr::CreateStream(EnumVal* id, RecordVal* sval)
 
 		if ( ! LogVal::IsCompatibleType(columns->FieldType(i)) )
 			{
-			run_time("type of field '%s' is not support for logging output",
+			bro_logger->Error("type of field '%s' is not support for logging output",
 				 columns->FieldName(i));
 
 			return false;
@@ -479,7 +479,7 @@ bool LogMgr::CreateStream(EnumVal* id, RecordVal* sval)
 
 	if ( ! log_attr_present )
 		{
-		run_time("logged record type does not have any &log attributes");
+		bro_logger->Error("logged record type does not have any &log attributes");
 		return false;
 		}
 
@@ -493,7 +493,7 @@ bool LogMgr::CreateStream(EnumVal* id, RecordVal* sval)
 
 		if ( ! etype->IsEvent() )
 			{
-			run_time("stream event is a function, not an event");
+			bro_logger->Error("stream event is a function, not an event");
 			return false;
 			}
 
@@ -501,13 +501,13 @@ bool LogMgr::CreateStream(EnumVal* id, RecordVal* sval)
 
 		if ( args->length() != 1 )
 			{
-			run_time("stream event must take a single argument");
+			bro_logger->Error("stream event must take a single argument");
 			return false;
 			}
 
 		if ( ! same_type((*args)[0], columns) )
 			{
-			run_time("stream event's argument type does not match column record type");
+			bro_logger->Error("stream event's argument type does not match column record type");
 			return new Val(0, TYPE_BOOL);
 			}
 		}
@@ -627,7 +627,7 @@ bool LogMgr::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 
 			else
 				{
-				run_time("unsupported field type for log column");
+				bro_logger->Error("unsupported field type for log column");
 				return false;
 				}
 			}
@@ -666,7 +666,7 @@ bool LogMgr::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 
 		if ( ! filter->fields )
 			{
-			run_time("out of memory in add_filter");
+			bro_logger->Error("out of memory in add_filter");
 			return false;
 			}
 
@@ -685,7 +685,7 @@ bool LogMgr::AddFilter(EnumVal* id, RecordVal* fval)
 
 	if ( ! same_type(rtype, BifType::Record::Log::Filter, 0) )
 		{
-		run_time("filter argument not of right type");
+		bro_logger->Error("filter argument not of right type");
 		return false;
 		}
 
@@ -835,7 +835,7 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 
 	if ( ! columns )
 		{
-		run_time("incompatible log record type");
+		bro_logger->Error("incompatible log record type");
 		return false;
 		}
 
@@ -877,7 +877,7 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 
 			if ( ! v->Type()->Tag() == TYPE_STRING )
 				{
-				run_time("path_func did not return string");
+				bro_logger->Error("path_func did not return string");
 				Unref(v);
 				return false;
 				}
@@ -1061,7 +1061,7 @@ LogVal* LogMgr::ValToLogVal(Val* val, BroType* ty)
 		}
 
 	default:
-		internal_error("unsupported type for log_write");
+		bro_logger->InternalError("unsupported type for log_write");
 	}
 
 	return lval;
@@ -1126,7 +1126,7 @@ LogWriter* LogMgr::CreateWriter(EnumVal* id, EnumVal* writer, string path,
 		{
 		if ( ld->type == BifEnum::Log::WRITER_DEFAULT )
 			{
-			run_time("unknow writer when creating writer");
+			bro_logger->Error("unknow writer when creating writer");
 			return 0;
 			}
 
@@ -1285,7 +1285,7 @@ bool LogMgr::Flush(EnumVal* id)
 
 void LogMgr::Error(LogWriter* writer, const char* msg)
 	{
-	run_time(fmt("error with writer for %s: %s",
+	bro_logger->Error(fmt("error with writer for %s: %s",
 		     writer->Path().c_str(), msg));
 	}
 

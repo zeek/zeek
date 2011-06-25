@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include "RuleMatcher.h"
+#include "Logger.h"
 
 extern void begin_PS();
 extern void end_PS();
@@ -169,7 +170,7 @@ rule_attr:
 	|	TOK_PATTERN_TYPE '[' rangeopt ']' pattern
 			{
 			if ( $3.offset > 0 )
-				warn("Offsets are currently ignored for patterns");
+				bro_logger->Warning("Offsets are currently ignored for patterns");
 			current_rule->AddPattern($5, $1, 0, $3.len);
 			}
 
@@ -316,14 +317,14 @@ pattern:
 
 void rules_error(const char* msg)
 	{
-	fprintf(stderr, "Error in signature (%s:%d): %s\n",
+	bro_logger->Error("Error in signature (%s:%d): %s\n",
 			current_rule_file, rules_line_number+1, msg);
 	rule_matcher->SetParseError();
 	}
 
 void rules_error(const char* msg, const char* addl)
 	{
-	fprintf(stderr, "Error in signature (%s:%d): %s (%s)\n",
+	bro_logger->Error("Error in signature (%s:%d): %s (%s)\n",
 			current_rule_file, rules_line_number+1, msg, addl);
 	rule_matcher->SetParseError();
 	}
@@ -331,7 +332,7 @@ void rules_error(const char* msg, const char* addl)
 void rules_error(Rule* r, const char* msg)
 	{
 	const Location& l = r->GetLocation();
-	fprintf(stderr, "Error in signature %s (%s:%d): %s\n",
+	bro_logger->Error("Error in signature %s (%s:%d): %s\n",
 			r->ID(), l.filename, l.first_line, msg);
 	rule_matcher->SetParseError();
 	}

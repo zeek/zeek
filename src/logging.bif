@@ -62,6 +62,30 @@ function Log::__flush%(id: Log::ID%): bool
 	return new Val(result, TYPE_BOOL);
 	%}
 
+function Log::message%(msg: string%): bool
+	%{
+	bro_logger->PushLocation(frame->GetCall()->GetLocationInfo());
+	bro_logger->Message("%s", msg->CheckString());
+	bro_logger->PopLocation();
+	return new Val(1, TYPE_BOOL);
+	%}
+
+function Log::warning%(msg: string%): bool
+	%{
+	bro_logger->PushLocation(frame->GetCall()->GetLocationInfo());
+	bro_logger->Warning("%s", msg->CheckString());
+	bro_logger->PopLocation();
+	return new Val(1, TYPE_BOOL);
+	%}
+
+function Log::error%(msg: string%): bool
+	%{
+	bro_logger->PushLocation(frame->GetCall()->GetLocationInfo());
+	bro_logger->Error("%s", msg->CheckString());
+	bro_logger->PopLocation();
+	return new Val(1, TYPE_BOOL);
+	%}
+
 # Options for the ASCII writer.
 
 module LogAscii;

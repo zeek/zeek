@@ -103,7 +103,7 @@ void ContentLine_Analyzer::DeliverStream(int len, const u_char* data,
 		buf = tmp;
 
 		if ( ! buf )
-			internal_error("out of memory delivering endpoint line");
+			bro_logger->InternalError("out of memory delivering endpoint line");
 		}
 
 	DoDeliver(len, data);
@@ -125,7 +125,7 @@ void ContentLine_Analyzer::EndpointEOF(bool is_orig)
 void ContentLine_Analyzer::SetPlainDelivery(int64_t length)
 	{
 	if ( length < 0 )
-		internal_error("negative length for plain delivery");
+		bro_logger->InternalError("negative length for plain delivery");
 
 	plain_delivery_length = length;
 	}

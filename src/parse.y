@@ -5,7 +5,7 @@
 
 %expect 85
 
-%token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ALARM TOK_ANY
+%token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ANY
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
 %token TOK_BOOL TOK_BREAK TOK_CASE TOK_CONST
 %token TOK_CONSTANT TOK_COPY TOK_COUNT TOK_COUNTER TOK_DEFAULT TOK_DELETE
@@ -78,6 +78,7 @@
 #include "DNS.h"
 #include "RE.h"
 #include "Scope.h"
+#include "Logger.h"
 #include "BroDoc.h"
 #include "BroDocObj.h"
 
@@ -562,7 +563,7 @@ expr:
 					int intval = t->Lookup(id->ModuleName(),
 							       id->Name());
 					if ( intval < 0 )
-						internal_error("enum value not found for %s", id->Name());
+						bro_logger->InternalError("enum value not found for %s", id->Name());
 					$$ = new ConstExpr(new EnumVal(intval, t));
 					}
 				else
@@ -689,7 +690,7 @@ enum_body_elem:
 			assert(cur_enum_type);
 
 			if ( $4->Type()->Tag() != TYPE_COUNT )
-				error("enumerator is not a count constant");
+				bro_logger->Error("enumerator is not a count constant");
 			else
 				cur_enum_type->AddName(current_module, $2, $4->InternalUnsigned(), is_export);
 
@@ -707,7 +708,7 @@ enum_body_elem:
 			   error message if users triy to use a negative integer (will also
 			   catch other cases, but that's fine.)
 			*/
-			error("enumerator is not a count constant");
+			bro_logger->Error("enumerator is not a count constant");
 			}
 
 	|	opt_doc_list TOK_ID
@@ -827,7 +828,7 @@ type:
 	|	TOK_UNION '{' type_list '}'
 				{
 				set_location(@1, @4);
-				error("union type not implemented");
+				bro_logger->Error("union type not implemented");
 				$$ = 0;
 				}
 
@@ -843,7 +844,7 @@ type:
 				{
 				set_location(@1);
 				// $$ = new TypeList();
-				error("list type not implemented");
+				bro_logger->Error("list type not implemented");
 				$$ = 0;
 				}
 
@@ -851,7 +852,7 @@ type:
 				{
 				set_location(@1);
 				// $$ = new TypeList($3);
-				error("list type not implemented");
+				bro_logger->Error("list type not implemented");
 				$$ = 0;
 				}
 
@@ -1328,12 +1329,6 @@ stmt:
 			$$ = $2;
 			}
 
-	|	TOK_ALARM expr_list ';'
-			{
-			set_location(@1, @3);
-			$$ = new AlarmStmt($2);
-			}
-
 	|	TOK_PRINT expr_list ';'
 			{
 			set_location(@1, @3);
@@ -1601,7 +1596,7 @@ resolve_id:
 			$$ = lookup_ID($1, current_module.c_str());
 
 			if ( ! $$ )
-				error("identifier not defined:", $1);
+				bro_logger->Error("identifier not defined:", $1);
 
 			delete [] $1;
 			}
@@ -1658,7 +1653,7 @@ int yyerror(const char msg[])
 		strcat(msgbuf, "\nDocumentation mode is enabled: "
 		       "remember to check syntax of ## style comments\n");
 
-	error(msgbuf);
+	bro_logger->Error(msgbuf);
 
 	return 0;
 	}

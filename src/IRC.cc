@@ -1178,7 +1178,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		AddSupportAnalyzer(new ZIP_Analyzer(Conn(), true));
 		AddSupportAnalyzer(new ZIP_Analyzer(Conn(), false));
 #else
-		run_time("IRC analyzer lacking libz support");
+		bro_logger->Error("IRC analyzer lacking libz support");
 		Remove();
 #endif
 		}

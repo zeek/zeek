@@ -9,6 +9,7 @@
 
 #include "Desc.h"
 #include "File.h"
+#include "Logger.h"
 
 #define DEFAULT_SIZE 128
 #define SLOP 10
@@ -72,14 +73,14 @@ void ODesc::PushIndent()
 void ODesc::PopIndent()
 	{
 	if ( --indent_level < 0 )
-		internal_error("ODesc::PopIndent underflow");
+		bro_logger->InternalError("ODesc::PopIndent underflow");
 	NL();
 	}
 
 void ODesc::PopIndentNoNL()
 	{
 	if ( --indent_level < 0 )
-		internal_error("ODesc::PopIndent underflow");
+		bro_logger->InternalError("ODesc::PopIndent underflow");
 	}
 
 void ODesc::Add(const char* s, int do_indent)
@@ -288,7 +289,7 @@ void ODesc::AddBytesRaw(const void* bytes, unsigned int n)
 			if ( ! write_failed )
 				// Most likely it's a "disk full" so report
 				// subsequent failures only once.
-				run_time(fmt("error writing to %s: %s", f->Name(), strerror(errno)));
+				bro_logger->Error(fmt("error writing to %s: %s", f->Name(), strerror(errno)));
 
 			write_failed = true;
 			return;
@@ -324,5 +325,5 @@ void ODesc::Grow(unsigned int n)
 
 void ODesc::OutOfMemory()
 	{
-	internal_error("out of memory");
+	bro_logger->InternalError("out of memory");
 	}

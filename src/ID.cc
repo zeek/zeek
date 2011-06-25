@@ -448,7 +448,7 @@ ID* ID::Unserialize(UnserialInfo* info)
 			break;
 
 		default:
-			internal_error("unknown type for UnserialInfo::id_policy");
+			bro_logger->InternalError("unknown type for UnserialInfo::id_policy");
 
 		}
 		}
@@ -552,7 +552,7 @@ bool ID::DoUnserialize(UnserialInfo* info)
 		}
 
 	if ( installed_tmp && ! global_scope()->Remove(name) )
-		internal_error("tmp id missing");
+		bro_logger->InternalError("tmp id missing");
 
 	return true;
 	}

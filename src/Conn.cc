@@ -54,7 +54,7 @@ void ConnectionTimer::Init(Connection* arg_conn, timer_func arg_timer,
 ConnectionTimer::~ConnectionTimer()
 	{
 	if ( conn->RefCnt() < 1 )
-		internal_error("reference count inconsistency in ~ConnectionTimer");
+		bro_logger->InternalError("reference count inconsistency in ~ConnectionTimer");
 
 	conn->RemoveTimer(this);
 	Unref(conn);
@@ -72,7 +72,7 @@ void ConnectionTimer::Dispatch(double t, int is_expire)
 	(conn->*timer)(t);
 
 	if ( conn->RefCnt() < 1 )
-		internal_error("reference count inconsistency in ConnectionTimer::Dispatch");
+		bro_logger->InternalError("reference count inconsistency in ConnectionTimer::Dispatch");
 	}
 
 IMPLEMENT_SERIAL(ConnectionTimer, SER_CONNECTION_TIMER);
@@ -94,7 +94,7 @@ bool ConnectionTimer::DoSerialize(SerialInfo* info) const
 	else if ( timer == timer_func(&Connection::RemoveConnectionTimer) )
 		type = 4;
 	else
-		internal_error("unknown function in ConnectionTimer::DoSerialize()");
+		bro_logger->InternalError("unknown function in ConnectionTimer::DoSerialize()");
 
 	return conn->Serialize(info) && SERIALIZE(type) && SERIALIZE(do_expire);
 	}
@@ -197,7 +197,7 @@ Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id)
 Connection::~Connection()
 	{
 	if ( ! finished )
-		internal_error("Done() not called before destruction of Connection");
+		bro_logger->InternalError("Done() not called before destruction of Connection");
 
 	CancelTimers();
 
@@ -636,54 +636,10 @@ void Connection::ConnectionEvent(EventHandlerPtr f, Analyzer* a, val_list* vl)
 			a ? a->GetID() : 0, GetTimerMgr(), this);
 	}
 
-void Connection::Weird(const char* name)
-	{
-	weird = 1;
-	if ( conn_weird )
-		Event(conn_weird, 0, name);
-	else
-		fprintf(stderr, "%.06f weird: %s\n", network_time, name);
-	}
-
 void Connection::Weird(const char* name, const char* addl)
 	{
 	weird = 1;
-	if ( conn_weird_addl )
-		{
-		val_list* vl = new val_list(3);
-
-		vl->append(new StringVal(name));
-		vl->append(BuildConnVal());
-		vl->append(new StringVal(addl));
-
-		ConnectionEvent(conn_weird_addl, 0, vl);
-		}
-
-	else
-		fprintf(stderr, "%.06f weird: %s (%s)\n", network_time, name, addl);
-	}
-
-void Connection::Weird(const char* name, int addl_len, const char* addl)
-	{
-	weird = 1;
-	if ( conn_weird_addl )
-		{
-		val_list* vl = new val_list(3);
-
-		vl->append(new StringVal(name));
-		vl->append(BuildConnVal());
-		vl->append(new StringVal(addl_len, addl));
-
-		ConnectionEvent(conn_weird_addl, 0, vl);
-		}
-
-	else
-		{
-		fprintf(stderr, "%.06f weird: %s (", network_time, name);
-		for ( int i = 0; i < addl_len; ++i )
-			fputc(addl[i], stderr);
-		fprintf(stderr, ")\n");
-		}
+	bro_logger->Weird(this, name, addl ? addl : "");
 	}
 
 void Connection::AddTimer(timer_func timer, double t, int do_expire,
@@ -794,7 +750,7 @@ void Connection::Describe(ODesc* d) const
 			break;
 
 		case TRANSPORT_UNKNOWN:
-			internal_error("unknown transport in Connction::Describe()");
+			bro_logger->InternalError("unknown transport in Connction::Describe()");
 			break;
 		}
 

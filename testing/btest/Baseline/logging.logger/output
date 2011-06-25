@@ -1,0 +1,9 @@
+1309043879.656442 /da/home/robin/bro/topic/testing/btest/.tmp/logging.logger/logger.bro, line 52: pre test-message
+1309043879.656442 warning in /da/home/robin/bro/topic/testing/btest/.tmp/logging.logger/logger.bro, line 53: pre test-warning
+1309043879.656442 error in /da/home/robin/bro/topic/testing/btest/.tmp/logging.logger/logger.bro, line 54: pre test-error
+[script] log_message: init test-message [/da/home/robin/bro/topic/testing/btest/.tmp/logging.logger/logger.bro, line 8] [1309043879.656442]
+[script] log_warning: init test-warning [/da/home/robin/bro/topic/testing/btest/.tmp/logging.logger/logger.bro, line 9] [1309043879.656442]
+[script] log_error: init test-error [/da/home/robin/bro/topic/testing/btest/.tmp/logging.logger/logger.bro, line 10] [1309043879.656442]
+[script] log_message: done test-message [/da/home/robin/bro/topic/testing/btest/.tmp/logging.logger/logger.bro, line 15] [1309043879.656442]
+[script] log_warning: done test-warning [/da/home/robin/bro/topic/testing/btest/.tmp/logging.logger/logger.bro, line 16] [1309043879.656442]
+[script] log_error: done test-error [/da/home/robin/bro/topic/testing/btest/.tmp/logging.logger/logger.bro, line 17] [1309043879.656442]

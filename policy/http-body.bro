@@ -53,8 +53,8 @@ event http_message_done(c: connection, is_orig: bool, stat: http_message_stat)
 		# This can happen for multipart messages with a
 		# 'content-length' header, which is not required for multipart
 		# messages.
-		alarm fmt("length mismatch: %s %d %d %d",
-			id_string(c$id), stat$body_length, msg$data_length,
-			stat$content_gap_length);
+        # Log::warning(fmt("length mismatch: %s %d %d %d",
+		#	id_string(c$id), stat$body_length, msg$data_length,
+		#	stat$content_gap_length));
 		}
 	}

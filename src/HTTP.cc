@@ -574,7 +574,7 @@ void HTTP_Message::SubmitData(int len, const char* buf)
 	{
 	if ( buf != (const char*) data_buffer->Bytes() + buffer_offset ||
 	     buffer_offset + len > buffer_size )
-		internal_error("buffer misalignment");
+		bro_logger->InternalError("buffer misalignment");
 
 	buffer_offset += len;
 	if ( buffer_offset >= buffer_size )
@@ -622,7 +622,7 @@ void HTTP_Message::SubmitEvent(int event_type, const char* detail)
 		break;
 
 	default:
-		internal_error("unrecognized HTTP message event");
+		bro_logger->InternalError("unrecognized HTTP message event");
 	}
 
 	MyHTTP_Analyzer()->HTTP_Event(category, detail);
@@ -1095,7 +1095,7 @@ int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 	request_method = new StringVal(http_methods[i]);
 
 	if ( ! ParseRequest(rest, end_of_line) )
-		internal_error("HTTP ParseRequest failed");
+		bro_logger->InternalError("HTTP ParseRequest failed");
 
 	Conn()->Match(Rule::HTTP_REQUEST,
 			(const u_char*) unescaped_URI->AsString()->Bytes(),

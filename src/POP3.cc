@@ -15,6 +15,7 @@
 #include "POP3.h"
 #include "Event.h"
 #include "NVT.h"
+#include "Logger.h"
 
 #undef POP3_CMD_DEF
 #define POP3_CMD_DEF(cmd)	#cmd,
@@ -199,7 +200,7 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line)
 			break;
 
 		default:
-			internal_error("unexpected authorization state");
+			bro_logger->InternalError("unexpected authorization state");
 		}
 
 		delete decoded;
@@ -555,7 +556,7 @@ void POP3_Analyzer::ProcessClientCmd()
 		break;
 
 	default: 
-		internal_error("command not known");
+		bro_logger->InternalError("command not known");
 	}
 	}
 
@@ -807,7 +808,7 @@ void POP3_Analyzer::BeginData()
 void POP3_Analyzer::EndData()
 	{
 	if ( ! mail )
-		warn("unmatched end of data");
+		bro_logger->Warning("unmatched end of data");
 	else
 		{
 		mail->Done();

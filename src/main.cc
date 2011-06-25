@@ -73,9 +73,7 @@ char* writefile = 0;
 name_list prefixes;
 DNS_Mgr* dns_mgr;
 TimerMgr* timer_mgr;
-Logger* bro_logger;
 LogMgr* log_mgr;
-Func* alarm_hook = 0;
 Stmt* stmts;
 EventHandlerPtr bro_signal = 0;
 EventHandlerPtr net_done = 0;
@@ -283,7 +281,6 @@ void terminate_bro()
 		remote_serializer->LogStats();
 
 	delete timer_mgr;
-	delete bro_logger;
 	delete dns_mgr;
 	delete persistence_serializer;
 	delete event_player;
@@ -295,6 +292,7 @@ void terminate_bro()
 	delete remote_serializer;
 	delete dpm;
 	delete log_mgr;
+	delete bro_logger;
 	}
 
 void termination_signal()
@@ -302,7 +300,7 @@ void termination_signal()
 	set_processing_status("TERMINATING", "termination_signal");
 
 	Val sval(signal_val, TYPE_COUNT);
-	message("received termination signal");
+	bro_logger->Message("received termination signal");
 	net_get_final_stats();
 	done_with_network();
 	net_delete();
@@ -654,6 +652,7 @@ int main(int argc, char** argv)
 	set_processing_status("INITIALIZING", "main");
 
 	bro_start_time = current_time(true);
+	bro_logger = new Logger();
 
 	init_random_seed(seed, seed_load_file, seed_save_file);
 	// DEBUG_MSG("HMAC key: %s\n", md5_digest_print(shared_hmac_md5_key));
@@ -754,7 +753,7 @@ int main(int argc, char** argv)
 		return 0;
 		}
 
-	if ( nerr > 0 )
+	if ( bro_logger->Errors() > 0 )
 		{
 		delete dns_mgr;
 		exit(1);
@@ -767,7 +766,7 @@ int main(int argc, char** argv)
 		ID* id = global_scope()->Lookup("cmd_line_bpf_filter");
 
 		if ( ! id )
-			internal_error("global cmd_line_bpf_filter not defined");
+			bro_logger->InternalError("global cmd_line_bpf_filter not defined");
 
 		id->SetVal(new StringVal(user_pcap_filter));
 		}
@@ -803,11 +802,6 @@ int main(int argc, char** argv)
 		// ### Add support for debug command file.
 		dbg_init_debugger(0);
 
-	Val* bro_alarm_file = internal_val("bro_alarm_file");
-	bro_logger = new Logger("bro",
-			bro_alarm_file ?
-				bro_alarm_file->AsFile() : new BroFile(stderr));
-
 	if ( (flow_files.length() == 0 || read_files.length() == 0) && 
 	     (netflows.length() == 0 || interfaces.length() == 0) )
 		{
@@ -832,15 +826,8 @@ int main(int argc, char** argv)
 			writefile, "tcp or udp or icmp",
 			secondary_path->Filter(), do_watchdog);
 
-	if ( ! reading_traces )
-		// Only enable actual syslog'ing for live input.
-		bro_logger->SetEnabled(enable_syslog);
-	else
-		bro_logger->SetEnabled(0);
-
 	BroFile::SetDefaultRotation(log_rotate_interval, log_max_size);
 
-	alarm_hook = internal_func("alarm_hook");
 	bro_signal = internal_handler("bro_signal");
 	net_done = internal_handler("net_done");
 
@@ -861,10 +848,7 @@ int main(int argc, char** argv)
 		dns_mgr->Resolve();
 
 		if ( ! dns_mgr->Save() )
-			{
-			bro_logger->Log("**Can't update DNS cache");
-			exit(1);
-			}
+			bro_logger->FatalError("can't update DNS cache");
 
 		mgr.Drain();
 		delete dns_mgr;
@@ -906,10 +890,7 @@ int main(int argc, char** argv)
 
 		ID* id = global_scope()->Lookup(id_name);
 		if ( ! id )
-			{
-			fprintf(stderr, "No such ID: %s\n", id_name);
-			exit(1);
-			}
+			bro_logger->FatalError("No such ID: %s\n", id_name);
 
 		ODesc desc;
 		desc.SetQuotes(true);
@@ -951,9 +932,9 @@ int main(int argc, char** argv)
 
 	if ( dead_handlers->length() > 0 && check_for_unused_event_handlers )
 		{
-		warn("event handlers never invoked:");
+		bro_logger->Warning("event handlers never invoked:");
 		for ( int i = 0; i < dead_handlers->length(); ++i )
-			warn("\t", (*dead_handlers)[i]);
+			bro_logger->Warning("\t", (*dead_handlers)[i]);
 		}
 
 	delete dead_handlers;
@@ -963,9 +944,9 @@ int main(int argc, char** argv)
 
 	if ( alive_handlers->length() > 0 && dump_used_event_handlers )
 		{
-		message("invoked event handlers:");
+		bro_logger->Message("invoked event handlers:");
 		for ( int i = 0; i < alive_handlers->length(); ++i )
-			message((*alive_handlers)[i]);
+			bro_logger->Message((*alive_handlers)[i]);
 		}
 
 	delete alive_handlers;
@@ -987,6 +968,8 @@ int main(int argc, char** argv)
 
 	dpm->PostScriptInit();
 
+	bro_logger->ReportViaEvents(true);
+
 	mgr.Drain();
 
 	have_pending_timers = ! reading_traces && timer_mgr->Size() > 0;
@@ -1007,6 +990,7 @@ int main(int argc, char** argv)
 			}
 
 #endif
+
 		net_run();
 		done_with_network();
 		net_delete();

@@ -213,7 +213,7 @@ void PersistenceSerializer::GotStateAccess(StateAccess* s)
 
 void PersistenceSerializer::GotTimer(Timer* s)
 	{
-	run_time("PersistenceSerializer::GotTimer not implemented");
+	bro_logger->Error("PersistenceSerializer::GotTimer not implemented");
 	}
 
 void PersistenceSerializer::GotConnection(Connection* c)
@@ -228,7 +228,7 @@ void PersistenceSerializer::GotID(ID* id, Val* /* val */)
 
 void PersistenceSerializer::GotPacket(Packet* p)
 	{
-	run_time("PersistenceSerializer::GotPacket not implemented");
+	bro_logger->Error("PersistenceSerializer::GotPacket not implemented");
 	}
 
 bool PersistenceSerializer::LogAccess(const StateAccess& s)
@@ -286,7 +286,7 @@ bool PersistenceSerializer::SendState(SourceID peer, bool may_suspend)
 	status->conns = &persistent_conns;
 	status->peer = peer;
 
-	bro_logger->Log("Sending state...");
+	bro_logger->Message("Sending state...");
 
 	return RunSerialization(status);
 	}
@@ -301,7 +301,7 @@ bool PersistenceSerializer::SendConfig(SourceID peer, bool may_suspend)
 	status->ids = global_scope()->GetIDs();
 	status->peer = peer;
 
-	bro_logger->Log("Sending config...");
+	bro_logger->Message("Sending config...");
 
 	return RunSerialization(status);
 	}
@@ -319,8 +319,7 @@ bool PersistenceSerializer::RunSerialization(SerialStatus* status)
 			{
 			if ( running[i]->type == status->type )
 				{
-				// ### We don't report this anymore as it would go to stderr.
-				// Warning(fmt("Serialization of type %d already running.", status->type));
+				bro_logger->Warning("Serialization of type %d already running.", status->type);
 				return false;
 				}
 			}
@@ -382,14 +381,14 @@ bool PersistenceSerializer::RunSerialization(SerialStatus* status)
 			}
 
 		else
-			internal_error("unknown suspend state");
+			bro_logger->InternalError("unknown suspend state");
 		}
 
 	else if ( cont->Resuming() )
 		cont->Resume();
 
 	else
-		internal_error("unknown continuation state");
+		bro_logger->InternalError("unknown continuation state");
 
 	if ( status->id_cookie )
 		{
@@ -505,7 +504,7 @@ bool PersistenceSerializer::DoIDSerialization(SerialStatus* status, ID* id)
 		break;
 
 	default:
-		internal_error("unknown serialization type");
+		bro_logger->InternalError("unknown serialization type");
 	}
 
 	return success;
@@ -536,7 +535,7 @@ bool PersistenceSerializer::DoConnSerialization(SerialStatus* status,
 		break;
 
 	default:
-		internal_error("unknown serialization type");
+		bro_logger->InternalError("unknown serialization type");
 	}
 
 	return success;
@@ -561,7 +560,7 @@ bool PersistenceSerializer::DoAccessSerialization(SerialStatus* status,
 		break;
 
 	default:
-		internal_error("unknown serialization type");
+		bro_logger->InternalError("unknown serialization type");
 	}
 
 	return success;

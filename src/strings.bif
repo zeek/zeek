@@ -159,7 +159,7 @@ function join_string_vec%(vec: string_vec, sep: string%): string
 function edit%(arg_s: string, arg_edit_char: string%): string
 	%{
 	if ( arg_edit_char->Len() != 1 )
-		builtin_run_time("not exactly one edit character", @ARG@[1]);
+		builtin_error("not exactly one edit character", @ARG@[1]);
 
 	const u_char* s = arg_s->Bytes();
 	const u_char* edit_s = arg_edit_char->Bytes();
@@ -274,7 +274,7 @@ Val* do_split(StringVal* str_val, RE_Matcher* re, TableVal* other_sep,
 		s += offset + end_of_match;;
 
 		if ( s > end_of_s )
-			internal_error("RegMatch in split goes beyond the string");
+			bro_logger->InternalError("RegMatch in split goes beyond the string");
 		}
 
 	if ( other_strings )

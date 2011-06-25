@@ -46,7 +46,7 @@ int Base64Decoder::Decode(int len, const char* data, int* pblen, char** pbuf)
 	char* buf;
 
 	if ( ! pbuf )
-		internal_error("nil pointer to decoding result buffer");
+		bro_logger->InternalError("nil pointer to decoding result buffer");
 
 	if ( *pbuf )
 		{

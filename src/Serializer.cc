@@ -911,7 +911,7 @@ bool FileSerializer::Read(UnserialInfo* info, const char* file, bool header)
 
 void FileSerializer::ReportError(const char* str)
 	{
-	run_time(str);
+	bro_logger->Error(str);
 	}
 
 void FileSerializer::GotID(ID* id, Val* val)
@@ -971,7 +971,7 @@ ConversionSerializer::~ConversionSerializer()
 
 bool ConversionSerializer::Convert(const char* file_in, const char* file_out)
 	{
-	internal_error("Error: Printing as XML is broken.");
+	bro_logger->InternalError("Error: Printing as XML is broken.");
 
 	if ( ! serout->Open(file_out, true) )
 		return false;
@@ -1004,19 +1004,19 @@ void ConversionSerializer::GotFunctionCall(const char* name, double time,
 
 void ConversionSerializer::GotID(ID* id, Val* val)
 	{
-	warn("ConversionSerializer::GotID not implemented");
+	bro_logger->Warning("ConversionSerializer::GotID not implemented");
 	Unref(id);
 	}
 
 void ConversionSerializer::GotStateAccess(StateAccess* s)
 	{
-	warn("ConversionSerializer::GotID not implemented");
+	bro_logger->Warning("ConversionSerializer::GotID not implemented");
 	delete s;
 	}
 
 void ConversionSerializer::GotPacket(Packet* p)
 	{
-	warn("ConversionSerializer::GotPacket not implemented");
+	bro_logger->Warning("ConversionSerializer::GotPacket not implemented");
 	delete p;
 	}
 

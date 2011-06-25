@@ -1,0 +1,6 @@
+log_message|init test-message|/da/home/robin/bro/topic/testing/btest/.tmp/logging.logger/logger.bro, line 8|1309043879.656442
+log_warning|init test-warning|/da/home/robin/bro/topic/testing/btest/.tmp/logging.logger/logger.bro, line 9|1309043879.656442
+log_error|init test-error|/da/home/robin/bro/topic/testing/btest/.tmp/logging.logger/logger.bro, line 10|1309043879.656442
+log_message|done test-message|/da/home/robin/bro/topic/testing/btest/.tmp/logging.logger/logger.bro, line 15|1309043879.656442
+log_warning|done test-warning|/da/home/robin/bro/topic/testing/btest/.tmp/logging.logger/logger.bro, line 16|1309043879.656442
+log_error|done test-error|/da/home/robin/bro/topic/testing/btest/.tmp/logging.logger/logger.bro, line 17|1309043879.656442

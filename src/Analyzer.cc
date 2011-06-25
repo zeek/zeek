@@ -916,12 +916,12 @@ void TransportLayerAnalyzer::Done()
 void TransportLayerAnalyzer::SetContentsFile(unsigned int /* direction */,
 						BroFile* /* f */)
 	{
-	run_time("analyzer type does not support writing to a contents file");
+	bro_logger->Error("analyzer type does not support writing to a contents file");
 	}
 
 BroFile* TransportLayerAnalyzer::GetContentsFile(unsigned int /* direction */) const
 	{
-	run_time("analyzer type does not support writing to a contents file");
+	bro_logger->Error("analyzer type does not support writing to a contents file");
 	return 0;
 	}
 

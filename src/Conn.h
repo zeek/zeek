@@ -199,9 +199,7 @@ public:
 	void ConnectionEvent(EventHandlerPtr f, Analyzer* analyzer,
 				val_list* vl);
 
-	void Weird(const char* name);
-	void Weird(const char* name, const char* addl);
-	void Weird(const char* name, int addl_len, const char* addl);
+	void Weird(const char* name, const char* addl = "");
 	bool DidWeird() const	{ return weird != 0; }
 
 	// Cancel all associated timers.

@@ -74,6 +74,9 @@ public:
 	const EventHandlerPtr& operator=(const EventHandlerPtr& h)
 		{ handler = h.handler; return *this; }
 
+	bool operator==(const EventHandlerPtr& h) const
+		{ return handler == h.handler; }
+
 	EventHandler* Ptr()	{ return handler; }
 
 	operator bool() const	{ return handler && *handler; }

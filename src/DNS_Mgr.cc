@@ -35,6 +35,7 @@
 #include "Event.h"
 #include "Net.h"
 #include "Var.h"
+#include "Logger.h"
 
 extern "C" {
 extern int select(int, fd_set *, fd_set *, fd_set *, struct timeval *);
@@ -352,7 +353,7 @@ DNS_Mgr::DNS_Mgr(DNS_MgrMode arg_mode)
 	nb_dns = nb_dns_init(err);
 
 	if ( ! nb_dns )
-		warn(fmt("problem initializing NB-DNS: %s", err));
+		bro_logger->Warning(fmt("problem initializing NB-DNS: %s", err));
 
 	dns_mapping_valid = dns_mapping_unverified = dns_mapping_new_name =
 		dns_mapping_lost_name = dns_mapping_name_changed =
@@ -439,7 +440,7 @@ TableVal* DNS_Mgr::LookupHost(const char* name)
 				return d->Addrs()->ConvertToSet();
 			else
 				{
-				warn("no such host:", name);
+				bro_logger->Warning("no such host:", name);
 				return empty_addr_set();
 				}
 			}
@@ -452,7 +453,7 @@ TableVal* DNS_Mgr::LookupHost(const char* name)
 		return empty_addr_set();
 
 	case DNS_FORCE:
-		internal_error("can't find DNS entry for %s in cache", name);
+		bro_logger->InternalError("can't find DNS entry for %s in cache", name);
 		return 0;
 
 	case DNS_DEFAULT:
@@ -461,7 +462,7 @@ TableVal* DNS_Mgr::LookupHost(const char* name)
 		return LookupHost(name);
 
 	default:
-		internal_error("bad mode in DNS_Mgr::LookupHost");
+		bro_logger->InternalError("bad mode in DNS_Mgr::LookupHost");
 		return 0;
 	}
 	}
@@ -482,7 +483,7 @@ Val* DNS_Mgr::LookupAddr(uint32 addr)
 				return d->Host();
 			else
 				{
-				warn("can't resolve IP address:", dotted_addr(addr));
+				bro_logger->Warning("can't resolve IP address:", dotted_addr(addr));
 				return new StringVal(dotted_addr(addr));
 				}
 			}
@@ -495,7 +496,7 @@ Val* DNS_Mgr::LookupAddr(uint32 addr)
 		return new StringVal("<none>");
 
 	case DNS_FORCE:
-		internal_error("can't find DNS entry for %s in cache",
+		bro_logger->InternalError("can't find DNS entry for %s in cache",
 				dotted_addr(addr));
 		return 0;
 
@@ -505,7 +506,7 @@ Val* DNS_Mgr::LookupAddr(uint32 addr)
 		return LookupAddr(addr);
 
 	default:
-		internal_error("bad mode in DNS_Mgr::LookupHost");
+		bro_logger->InternalError("bad mode in DNS_Mgr::LookupHost");
 		return 0;
 	}
 	}
@@ -566,7 +567,7 @@ void DNS_Mgr::Resolve()
 		struct nb_dns_result r;
 		status = nb_dns_activity(nb_dns, &r, err);
 		if ( status < 0 )
-			internal_error(
+			bro_logger->InternalError(
 			    "NB-DNS error in DNS_Mgr::WaitForReplies (%s)",
 			    err);
 		else if ( status > 0 )
@@ -744,7 +745,7 @@ void DNS_Mgr::CompareMappings(DNS_Mapping* prev_dm, DNS_Mapping* new_dm)
 	ListVal* new_a = new_dm->Addrs();
 
 	if ( ! prev_a || ! new_a )
-		internal_error("confused in DNS_Mgr::CompareMappings");
+		bro_logger->InternalError("confused in DNS_Mgr::CompareMappings");
 
 	ListVal* prev_delta = AddrListDelta(prev_a, new_a);
 	ListVal* new_delta = AddrListDelta(new_a, prev_a);
@@ -814,7 +815,7 @@ void DNS_Mgr::LoadCache(FILE* f)
 		}
 
 	if ( ! m->NoMapping() )
-		internal_error("DNS cache corrupted");
+		bro_logger->InternalError("DNS cache corrupted");
 
 	delete m;
 	fclose(f);
@@ -934,7 +935,7 @@ void DNS_Mgr::IssueAsyncRequests()
 
 		if ( ! dr->MakeRequest(nb_dns) )
 			{
-			run_time("can't issue DNS request");
+			bro_logger->Error("can't issue DNS request");
 			req->Timeout();
 			continue;
 			}
@@ -1047,7 +1048,7 @@ void  DNS_Mgr::Process()
 	int status = nb_dns_activity(nb_dns, &r, err);
 
 	if ( status < 0 )
-		internal_error("NB-DNS error in DNS_Mgr::Process (%s)", err);
+		bro_logger->InternalError("NB-DNS error in DNS_Mgr::Process (%s)", err);
 
 	else if ( status > 0 )
 		{
@@ -1071,7 +1072,7 @@ int DNS_Mgr::AnswerAvailable(int timeout)
 	{
 	int fd = nb_dns_fd(nb_dns);
 	if ( fd < 0 )
-		internal_error("nb_dns_fd() failed in DNS_Mgr::WaitForReplies");
+		bro_logger->InternalError("nb_dns_fd() failed in DNS_Mgr::WaitForReplies");
 
 	fd_set read_fds;
 
@@ -1088,11 +1089,11 @@ int DNS_Mgr::AnswerAvailable(int timeout)
 		{
 		if ( errno == EINTR )
 			return -1;
-		internal_error("problem with DNS select");
+		bro_logger->InternalError("problem with DNS select");
 		}
 
 	if ( status > 1 )
-		internal_error("strange return from DNS select");
+		bro_logger->InternalError("strange return from DNS select");
 
 	return status;
 	}

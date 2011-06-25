@@ -171,19 +171,6 @@ typedef ptr_compat_uint SourceID;
 #define PRI_SOURCE_ID PRI_PTR_COMPAT_UINT
 static const SourceID SOURCE_LOCAL = 0;
 
-class BroObj;
-extern void message(const char* msg);
-extern void warn(const char* msg);
-extern void warn(const char* msg, const char* addl);
-extern void error(const char* msg);
-extern void error(const char* msg, const char* addl);
-extern void error(const char* msg, uint32 addl);
-extern void run_time(const char* msg);
-extern void run_time(const char* fmt, BroObj* obj);
-extern void run_time(const char* fmt, const char* arg);
-extern void run_time(const char* fmt, const char* arg1, const char* arg2);
-extern void internal_error(const char* fmt, ...)
-	myattribute((volatile, format (printf, 1, 2)));
 extern void pinpoint();
 extern int int_list_cmp(const void* v1, const void* v2);
 

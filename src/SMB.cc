@@ -6,6 +6,7 @@
 #include "SMB.h"
 #include "smb_pac.h"
 #include "Val.h"
+#include "Logger.h"
 
 namespace {
 	const bool DEBUG_smb_ipc = true;
@@ -732,7 +733,7 @@ int SMB_Session::ParseTransaction(int is_orig, int cmd,
 		break;
 
 	default:
-		internal_error("command mismatch for ParseTransaction");
+		bro_logger->InternalError("command mismatch for ParseTransaction");
 	}
 
 	int ret;
@@ -932,7 +933,7 @@ void SMB_Session::Weird(const char* msg)
 // input can be in Unicode (little endian), and the returned string
 // will be in ASCII.  Note, Unicode strings have NUL characters
 // at the end of them already.  Adding an additional NUL byte at
-// the end leads to embedded-NUL warnings (CheckString() run_time error).
+// the end leads to embedded-NUL warnings (CheckString() run time error).
 
 BroString* SMB_Session::ExtractString(binpac::SMB::SMB_string const* s)
 	{

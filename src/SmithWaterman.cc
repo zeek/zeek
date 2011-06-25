@@ -10,6 +10,7 @@
 #include "SmithWaterman.h"
 #include "Var.h"
 #include "util.h"
+#include "Logger.h"
 
 BroSubstring::BroSubstring(const BroSubstring& bst)
 : BroString((const BroString&) bst), _new(bst._new)
@@ -185,7 +186,7 @@ bool BroSubstringCmp::operator()(const BroSubstring* bst1,
 	if ( _index >= bst1->GetNumAlignments() ||
 	     _index >= bst2->GetNumAlignments() )
 		{
-		warn("BroSubstringCmp::operator(): invalid index for input strings.\n");
+		bro_logger->Warning("BroSubstringCmp::operator(): invalid index for input strings.\n");
 		return false;
 		}
 

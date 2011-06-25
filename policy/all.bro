@@ -1,7 +1,6 @@
 @load heavy-analysis
 @load OS-fingerprint
 @load adu
-@load alarm
 @load analy
 @load anon
 @load arp

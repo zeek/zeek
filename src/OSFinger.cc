@@ -87,7 +87,7 @@ void OSFingerprint::collide(uint32 id)
   if (sig[id].ttl % 32 && sig[id].ttl != 255 && sig[id].ttl % 30)
     {
     problems=1;
-    warn(fmt("OS fingerprinting: [!] Unusual TTL (%d) for signature '%s %s' (line %d).",
+    bro_logger->Warning(fmt("OS fingerprinting: [!] Unusual TTL (%d) for signature '%s %s' (line %d).",
           sig[id].ttl,sig[id].os,sig[id].desc,sig[id].line));
     }
 
@@ -96,7 +96,7 @@ void OSFingerprint::collide(uint32 id)
     if (!strcmp(sig[i].os,sig[id].os) &&
         !strcmp(sig[i].desc,sig[id].desc)) {
       problems=1;
-      warn(fmt("OS fingerprinting: [!] Duplicate signature name: '%s %s' (line %d and %d).",
+      bro_logger->Warning(fmt("OS fingerprinting: [!] Duplicate signature name: '%s %s' (line %d and %d).",
             sig[i].os,sig[i].desc,sig[i].line,sig[id].line));
     }
 
@@ -279,7 +279,7 @@ do_const:
       if (sig[id].opt[j] ^ sig[i].opt[j]) goto reloop;
 
     problems=1;
-    warn(fmt("OS fingerprinting: [!] Signature '%s %s' (line %d)\n"
+    bro_logger->Warning(fmt("OS fingerprinting: [!] Signature '%s %s' (line %d)\n"
           "    is already covered by '%s %s' (line %d).",
           sig[id].os,sig[id].desc,sig[id].line,sig[i].os,sig[i].desc,
           sig[i].line));

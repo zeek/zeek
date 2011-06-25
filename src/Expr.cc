@@ -300,7 +300,7 @@ Val* NameExpr::Eval(Frame* f) const
 		return v->Ref();
 	else
 		{
-		RunTime("value used but not set");
+		Error("value used but not set");
 		return 0;
 		}
 	}
@@ -383,7 +383,7 @@ bool NameExpr::DoUnserialize(UnserialInfo* info)
 		if ( id )
 			::Ref(id);
 		else
-			run_time("unserialized unknown global name");
+			bro_logger->Warning("unserialized unknown global name");
 
 		delete [] name;
 		}
@@ -626,7 +626,7 @@ Val* BinaryExpr::Eval(Frame* f) const
 
 		if ( v_op1->Size() != v_op2->Size() )
 			{
-			RunTime("vector operands are of different sizes");
+			Error("vector operands are of different sizes");
 			return 0;
 			}
 
@@ -1040,7 +1040,7 @@ Val* IncrExpr::DoSingleEval(Frame* f, Val* v) const
 
 		if ( k < 0 &&
 		     v->Type()->InternalType() == TYPE_INTERNAL_UNSIGNED )
-			RunTime("count underflow");
+			Error("count underflow");
 		}
 
 	 BroType* ret_type = Type();
@@ -1959,7 +1959,7 @@ Val* BoolExpr::Eval(Frame* f) const
 
 	if ( vec_v1->Size() != vec_v2->Size() )
 		{
-		RunTime("vector operands have different sizes");
+		Error("vector operands have different sizes");
 		return 0;
 		}
 
@@ -2341,7 +2341,7 @@ Val* CondExpr::Eval(Frame* f) const
 
 	if ( cond->Size() != a->Size() || a->Size() != b->Size() )
 		{
-		RunTime("vectors in conditional expression have different sizes");
+		Error("vectors in conditional expression have different sizes");
 		return 0;
 		}
 
@@ -2942,7 +2942,7 @@ Val* IndexExpr::Eval(Frame* f) const
 			{
 			if ( v_v1->Size() != v_v2->Size() )
 				{
-				RunTime("size mismatch, boolean index and vector");
+				Error("size mismatch, boolean index and vector");
 				return 0;
 				}
 
@@ -2989,7 +2989,7 @@ Val* IndexExpr::Fold(Val* v1, Val* v2) const
 	if ( v )
 		return v->Ref();
 
-	RunTime("no such index");
+	Error("no such index");
 	return 0;
 	}
 
@@ -4894,7 +4894,7 @@ Val* ListExpr::Eval(Frame* f) const
 		Val* ev = exprs[i]->Eval(f);
 		if ( ! ev )
 			{
-			RunTime("uninitialized list value");
+			Error("uninitialized list value");
 			return 0;
 			}
 
@@ -5623,7 +5623,7 @@ int same_expr(const Expr* e1, const Expr* e2)
 		}
 
 	default:
-		internal_error("bad tag in same_expr()");
+		bro_logger->InternalError("bad tag in same_expr()");
 	}
 
 	return 0;
@@ -5643,7 +5643,7 @@ static Expr* make_constant(BroType* t, double d)
 	case TYPE_INTERNAL_DOUBLE:	v = new Val(double(d), t->Tag()); break;
 
 	default:
-		internal_error("bad type in make_constant()");
+		bro_logger->InternalError("bad type in make_constant()");
 	}
 
 	return new ConstExpr(v);

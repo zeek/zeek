@@ -194,7 +194,7 @@ static int dbg_backtrace_internal(int start, int end)
 	if ( start < 0 || end < 0 ||
 	     (unsigned) start >= g_frame_stack.size() ||
 	     (unsigned) end >= g_frame_stack.size() )
-		internal_error("Invalid stack frame index in DbgBacktraceInternal\n");
+		bro_logger->InternalError("Invalid stack frame index in DbgBacktraceInternal\n");
 
 	if ( start < end )
 		{
@@ -325,7 +325,7 @@ int dbg_cmd_frame(DebugCmd cmd, const vector<string>& args)
 	// for 'list', 'break', etc.
 	const Stmt* stmt = g_frame_stack[user_frame_number]->GetNextStmt();
 	if ( ! stmt )
-		internal_error("Assertion failed: %s", "stmt != 0");
+		bro_logger->InternalError("Assertion failed: %s", "stmt != 0");
 
 	const Location loc = *stmt->GetLocationInfo();
 	g_debugger_state.last_loc = loc;
@@ -365,7 +365,7 @@ int dbg_cmd_break(DebugCmd cmd, const vector<string>& args)
 
 		Stmt* stmt = g_frame_stack[user_frame_number]->GetNextStmt();
 		if ( ! stmt )
-			internal_error("Assertion failed: %s", "stmt != 0");
+			bro_logger->InternalError("Assertion failed: %s", "stmt != 0");
 
 		DbgBreakpoint* bp = new DbgBreakpoint();
 		bp->SetID(g_debugger_state.NextBPID());
@@ -530,7 +530,7 @@ int dbg_cmd_break_set_state(DebugCmd cmd, const vector<string>& args)
 				break;
 
 			default:
-				internal_error("Invalid command in DbgCmdBreakSetState\n");
+				bro_logger->InternalError("Invalid command in DbgCmdBreakSetState\n");
 			}
 			}
 

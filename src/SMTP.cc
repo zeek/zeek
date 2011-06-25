@@ -10,6 +10,7 @@
 #include "SMTP.h"
 #include "Event.h"
 #include "ContentLine.h"
+#include "Logger.h"
 
 #undef SMTP_CMD_DEF
 #define SMTP_CMD_DEF(cmd)	#cmd,
@@ -865,7 +866,7 @@ void SMTP_Analyzer::BeginData()
 	skip_data = 0; // reset the flag at the beginning of the mail
 	if ( mail != 0 )
 		{
-		warn("nested mail transaction");
+		bro_logger->Warning("nested mail transaction");
 		mail->Done();
 		delete mail;
 		}
@@ -876,7 +877,7 @@ void SMTP_Analyzer::BeginData()
 void SMTP_Analyzer::EndData()
 	{
 	if ( ! mail )
-		warn("Unmatched end of data");
+		bro_logger->Warning("Unmatched end of data");
 	else
 		{
 		mail->Done();

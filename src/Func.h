@@ -132,7 +132,7 @@ protected:
 };
 
 
-extern void builtin_run_time(const char* msg, BroObj* arg = 0);
+extern void builtin_error(const char* msg, BroObj* arg = 0);
 extern void init_builtin_funcs();
 
 extern bool check_built_in_call(BuiltinFunc* f, CallExpr* call);

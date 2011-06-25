@@ -192,7 +192,7 @@ void Contents_Rlogin_Analyzer::DoDeliver(int len, const u_char* data)
 			break;
 
 		default:
-			internal_error("bad state in Contents_Rlogin_Analyzer::DoDeliver");
+			bro_logger->InternalError("bad state in Contents_Rlogin_Analyzer::DoDeliver");
 			break;
 		}
 		}
@@ -223,7 +223,7 @@ Rlogin_Analyzer::Rlogin_Analyzer(Connection* conn)
 void Rlogin_Analyzer::ClientUserName(const char* s)
 	{
 	if ( client_name )
-		internal_error("multiple rlogin client names");
+		bro_logger->InternalError("multiple rlogin client names");
 
 	client_name = new StringVal(s);
 	}

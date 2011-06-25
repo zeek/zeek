@@ -93,7 +93,7 @@ void EventMgr::QueueEvent(Event* event)
 void EventMgr::Dispatch()
 	{
 	if ( ! head )
-		internal_error("EventMgr underflow");
+		bro_logger->InternalError("EventMgr underflow");
 
 	Event* current = head;
 

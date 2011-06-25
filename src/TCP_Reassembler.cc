@@ -104,7 +104,7 @@ void TCP_Reassembler::SetContentsFile(BroFile* f)
 	{
 	if ( ! f->IsOpen() )
 		{
-		run_time("no such file \"%s\"", f->Name());
+		bro_logger->Error("no such file \"%s\"", f->Name());
 		return;
 		}
 
@@ -173,7 +173,7 @@ void TCP_Reassembler::Undelivered(int up_to_seq)
 
 	if ( seq_delta(up_to_seq, last_reassem_seq) <= 0 )
 		// This should never happen.
-		internal_error("Calling Undelivered for data that has already been delivered (or has already been marked as undelivered");
+		bro_logger->InternalError("Calling Undelivered for data that has already been delivered (or has already been marked as undelivered");
 
 	if ( last_reassem_seq == 1 &&
 	     (endpoint->FIN_cnt > 0 || endpoint->RST_cnt > 0 ||
@@ -323,14 +323,14 @@ void TCP_Reassembler::RecordBlock(DataBlock* b, BroFile* f)
 	unsigned int len = b->Size();
 	if ( ! f->Write((const char*) b->block, len) )
 		// ### this should really generate an event
-		internal_error("contents write failed");
+		bro_logger->InternalError("contents write failed");
 	}
 
 void TCP_Reassembler::RecordGap(int start_seq, int upper_seq, BroFile* f)
 	{
 	if ( ! f->Write(fmt("\n<<gap %d>>\n", seq_delta(upper_seq, start_seq))) )
 		// ### this should really generate an event
-		internal_error("contents gap write failed");
+		bro_logger->InternalError("contents gap write failed");
 	}
 
 void TCP_Reassembler::BlockInserted(DataBlock* start_block)
@@ -407,12 +407,14 @@ IMPLEMENT_SERIAL(TCP_Reassembler, SER_TCP_REASSEMBLER);
 
 bool TCP_Reassembler::DoSerialize(SerialInfo* info) const
 	{
-	internal_error("TCP_Reassembler::DoSerialize not implemented");
+	bro_logger->InternalError("TCP_Reassembler::DoSerialize not implemented");
+	return false; // Cannot be reached.
 	}
 
 bool TCP_Reassembler::DoUnserialize(UnserialInfo* info)
 	{
-	internal_error("TCP_Reassembler::DoUnserialize not implemented");
+	bro_logger->InternalError("TCP_Reassembler::DoUnserialize not implemented");
+	return false; // Cannot be reached.
 	}
 
 void TCP_Reassembler::Deliver(int seq, int len, const u_char* data)

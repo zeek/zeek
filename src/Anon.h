@@ -18,6 +18,7 @@
 #include <map>
 using namespace std;
 
+#include "Logger.h"
 #include "net_util.h"
 
 // TODO: Anon.h may not be the right place to put these functions ...
@@ -52,7 +53,7 @@ public:
 	// Keep the specified prefix unchanged.
 	virtual int PreservePrefix(ipaddr32_t /* input */, int /* num_bits */)
 		{
-		internal_error("prefix preserving is not supported for the anonymizer");
+		bro_logger->InternalError("prefix preserving is not supported for the anonymizer");
 		return 0;
 		}
 

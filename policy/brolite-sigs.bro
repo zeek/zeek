@@ -4,7 +4,6 @@
 
 # General policy - these scripts are more infrastructural than service
 # oriented, so in general avoid changing anything here.
-@load alarm	# open logging file for alarm events
 
 # Set global constant.  This can be used in ifdef statements to determine 
 # if signatures are enabled.

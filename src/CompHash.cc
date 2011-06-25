@@ -6,6 +6,7 @@
 
 #include "CompHash.h"
 #include "Val.h"
+#include "Logger.h"
 
 CompositeHash::CompositeHash(TypeList* composite_type)
 	{
@@ -191,7 +192,7 @@ char* CompositeHash::SingleValHash(int type_check, char* kp0,
 			}
 		else
 			{
-			internal_error("bad index type in CompositeHash::SingleValHash");
+			bro_logger->InternalError("bad index type in CompositeHash::SingleValHash");
 			return 0;
 			}
 		}
@@ -314,7 +315,7 @@ HashKey* CompositeHash::ComputeSingletonHash(const Val* v, int type_check) const
 		if ( v->Type()->Tag() == TYPE_FUNC )
 			return new HashKey(v);
 
-		internal_error("bad index type in CompositeHash::ComputeSingletonHash");
+		bro_logger->InternalError("bad index type in CompositeHash::ComputeSingletonHash");
 		return 0;
 
 	case TYPE_INTERNAL_STRING:
@@ -324,7 +325,7 @@ HashKey* CompositeHash::ComputeSingletonHash(const Val* v, int type_check) const
 		return 0;
 
 	default:
-		internal_error("bad internal type in CompositeHash::ComputeSingletonHash");
+		bro_logger->InternalError("bad internal type in CompositeHash::ComputeSingletonHash");
 		return 0;
 	}
 	}
@@ -399,7 +400,7 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 			}
 		else
 			{
-			internal_error("bad index type in CompositeHash::CompositeHash");
+			bro_logger->InternalError("bad index type in CompositeHash::CompositeHash");
 			return 0;
 			}
 		}
@@ -522,7 +523,7 @@ ListVal* CompositeHash::RecoverVals(const HashKey* k) const
 		}
 
 	if ( kp != k_end )
-		internal_error("under-ran key in CompositeHash::DescribeKey %ld", k_end - kp);
+		bro_logger->InternalError("under-ran key in CompositeHash::DescribeKey %ld", k_end - kp);
 
 	return l;
 	}
@@ -533,7 +534,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 	{
 	// k->Size() == 0 for a single empty string.
 	if ( kp0 >= k_end && k->Size() > 0 )
-		internal_error("over-ran key in CompositeHash::RecoverVals");
+		bro_logger->InternalError("over-ran key in CompositeHash::RecoverVals");
 
 	TypeTag tag = t->Tag();
 	InternalTypeTag it = t->InternalType();
@@ -580,7 +581,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 			break;
 
 		default:
-			internal_error("bad internal unsigned int in CompositeHash::RecoverOneVal()");
+			bro_logger->InternalError("bad internal unsigned int in CompositeHash::RecoverOneVal()");
 			pval = 0;
 			break;
 		}
@@ -619,7 +620,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 			break;
 
 		default:
-			internal_error("bad internal address in CompositeHash::RecoverOneVal()");
+			bro_logger->InternalError("bad internal address in CompositeHash::RecoverOneVal()");
 			pval = 0;
 			break;
 		}
@@ -648,21 +649,21 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 			Val* v = *kp;
 
 			if ( ! v || ! v->Type() )
-				internal_error("bad aggregate Val in CompositeHash::RecoverOneVal()");
+				bro_logger->InternalError("bad aggregate Val in CompositeHash::RecoverOneVal()");
 
 			if ( t->Tag() != TYPE_FUNC &&
 			     // ### Maybe fix later, but may be fundamentally
 			     // un-checkable --US
 			     ! same_type(v->Type(), t) )
 				{
-				internal_error("inconsistent aggregate Val in CompositeHash::RecoverOneVal()");
+				bro_logger->InternalError("inconsistent aggregate Val in CompositeHash::RecoverOneVal()");
 				}
 
 			// ### A crude approximation for now.
 			if ( t->Tag() == TYPE_FUNC &&
 			     v->Type()->Tag() != TYPE_FUNC )
 				{
-				internal_error("inconsistent aggregate Val in CompositeHash::RecoverOneVal()");
+				bro_logger->InternalError("inconsistent aggregate Val in CompositeHash::RecoverOneVal()");
 				}
 
 			pval = v->Ref();
@@ -687,7 +688,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 				                   rt->FieldType(i), v, optional);
 				if ( ! (v || optional) )
 					{
-					internal_error("didn't recover expected number of fields from HashKey");
+					bro_logger->InternalError("didn't recover expected number of fields from HashKey");
 					pval = 0;
 					break;
 					}
@@ -707,7 +708,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 			}
 		else
 			{
-			internal_error("bad index type in CompositeHash::DescribeKey");
+			bro_logger->InternalError("bad index type in CompositeHash::DescribeKey");
 			}
 		}
 		break;

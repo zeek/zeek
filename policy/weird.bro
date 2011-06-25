@@ -372,12 +372,7 @@ function report_weird_orig(t: time, name: string, id: string, orig: addr)
 	report_weird(t, name, id, F, "", action, no_log);
 	}
 
-event conn_weird(name: string, c: connection)
-	{
-	report_weird_conn(network_time(), name, weird_id_string(c$id), "", c);
-	}
-
-event conn_weird_addl(name: string, c: connection, addl: string)
+event conn_weird(name: string, c: connection, addl: string)
 	{
 	report_weird_conn(network_time(), name, weird_id_string(c$id), addl, c);
 	}

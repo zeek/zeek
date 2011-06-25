@@ -48,6 +48,7 @@
 #include "RemoteSerializer.h"
 #include "Event.h"
 #include "Traverse.h"
+#include "Logger.h"
 
 extern	RETSIGTYPE sig_handler(int signo);
 
@@ -333,7 +334,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 	     (flow != FLOW_RETURN /* we fell off the end */ ||
 	      ! result /* explicit return with no result */) &&
 	     ! f->HasDelayed() )
-		warn("non-void function returns without a value:", id->Name());
+		bro_logger->Warning("non-void function returns without a value:", id->Name());
 
 	if ( result && g_trace_state.DoTrace() )
 		{
@@ -425,9 +426,9 @@ BuiltinFunc::BuiltinFunc(built_in_func arg_func, const char* arg_name,
 
 	id = lookup_ID(name, GLOBAL_MODULE_NAME, false);
 	if ( ! id )
-		internal_error("built-in function %s missing", name);
+		bro_logger->InternalError("built-in function %s missing", name);
 	if ( id->HasVal() )
-		internal_error("built-in function %s multiply defined", name);
+		bro_logger->InternalError("built-in function %s multiply defined", name);
 
 	id->SetVal(new Val(this));
 	}
@@ -499,12 +500,12 @@ bool BuiltinFunc::DoUnserialize(UnserialInfo* info)
 	return UNSERIALIZE_STR(&name, 0);
 	}
 
-void builtin_run_time(const char* msg, BroObj* arg)
+void builtin_error(const char* msg, BroObj* arg)
 	{
 	if ( calling_expr )
-		calling_expr->RunTime(msg, arg);
+		calling_expr->Error(msg, arg);
 	else
-		run_time(msg, arg);
+		bro_logger->Error(msg, arg);
 	}
 
 #include "bro.bif.func_h"

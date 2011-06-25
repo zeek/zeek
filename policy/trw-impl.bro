@@ -147,7 +147,7 @@ function check_TRW_scan(c: connection, state: string, reverse: bool): bool
 	     theta_one >= 1 || theta_one >= theta_zero )
 		{
 		# Error: theta_zero should be between 0 and 1.
-		alarm "bad theta_zero/theta_one in check_TRW_scan";
+        # Log::error("bad theta_zero/theta_one in check_TRW_scan");
 		use_TRW_algorithm = F;
 		return F;
 		}
@@ -169,7 +169,7 @@ function check_TRW_scan(c: connection, state: string, reverse: bool): bool
 	     target_false_positive_prob >= 1 )
 		{
 		# Error: target probabilities should be between 0 and 1
-		alarm "bad target probabilities in check_TRW_scan";
+        # Log::error("bad target probabilities in check_TRW_scan");
 		use_TRW_algorithm = F;
 		return F;
 		}

@@ -245,11 +245,8 @@ public:
 		{ conn->Event(f, this, v1, v2); }
 	void ConnectionEvent(EventHandlerPtr f, val_list* vl)
 		{ conn->ConnectionEvent(f, this, vl); }
-	void Weird(const char* name)	{ conn->Weird(name); }
-	void Weird(const char* name, const char* addl)
+	void Weird(const char* name, const char* addl = "")
 		{ conn->Weird(name, addl); }
-	void Weird(const char* name, int addl_len, const char* addl)
-		{ conn->Weird(name, addl_len, addl); };
 
 	// Factory function to instantiate new analyzers.
 	static Analyzer* InstantiateAnalyzer(AnalyzerTag::Tag tag, Connection* c);

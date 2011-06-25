@@ -288,8 +288,6 @@ type entropy_test_result: record {
 @load logging  # sic! Not logging.bif.
 @load logging-ascii
 
-global bro_alarm_file: file &redef;
-global alarm_hook: function(msg: string): bool &redef;
 global log_file_name: function(tag: string): string &redef;
 global open_log_file: function(tag: string): file &redef;
 
@@ -1559,3 +1557,18 @@ const skip_http_data = F &redef;
 # Whether the analysis engine parses IP packets encapsulated in
 # UDP tunnels. See also: udp_tunnel_port, policy/udp-tunnel.bro.
 const parse_udp_tunnels = F &redef;
+
+event log_message(t: time, msg: string, location: string)
+	{
+	print fmt("[script] log_message: %s [%s] [%.6f]", msg, location, t);
+    }
+
+event log_warning(t: time, msg: string, location: string)
+	{
+	print fmt("[script] log_warning: %s [%s] [%.6f]", msg, location, t);
+    }
+
+event log_error(t: time, msg: string, location: string)
+	{
+	print fmt("[script] log_error: %s [%s] [%.6f]", msg, location, t);
+    }

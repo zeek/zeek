@@ -253,7 +253,7 @@ bool Val::DoSerialize(SerialInfo* info) const
 		return false;
 	}
 
-	internal_error("should not be reached");
+	bro_logger->InternalError("should not be reached");
 	return false;
 	}
 
@@ -410,7 +410,7 @@ bool Val::DoUnserialize(UnserialInfo* info)
 		return false;
 	}
 
-	internal_error("should not be reached");
+	bro_logger->InternalError("should not be reached");
 	return false;
 	}
 
@@ -616,7 +616,7 @@ void Val::ValDescribe(ODesc* d) const
 
 	default:
 		// Don't call Internal(), that'll loop!
-		internal_error("Val description unavailable");
+		bro_logger->InternalError("Val description unavailable");
 	}
 	}
 
@@ -964,7 +964,7 @@ AddrVal::AddrVal(const char* text) : Val(TYPE_ADDR)
 #ifdef BROv6
 		Init(dotted_to_addr6(text));
 #else
-		error("bro wasn't compiled with IPv6 support");
+		bro_logger->Error("bro wasn't compiled with IPv6 support");
 		Init(uint32(0));
 #endif
 		}
@@ -998,7 +998,7 @@ Val* AddrVal::SizeVal() const
 #ifdef BROv6
 	if ( ! is_v4_addr(val.addr_val) )
 		{
-		RunTime("|addr| for IPv6 addresses not supported");
+		Error("|addr| for IPv6 addresses not supported");
 		return new Val(0, TYPE_COUNT);
 		}
 
@@ -1085,13 +1085,13 @@ static uint32 parse_dotted(const char* text, int& dots)
 		}
 
 	else
-		internal_error("scanf failed in parse_dotted()");
+		bro_logger->InternalError("scanf failed in parse_dotted()");
 
 	for ( int i = 0; i <= dots; ++i )
 		{
 		if ( addr[i] < 0 || addr[i] > 255 )
 			{
-			error("bad dotted address", text);
+			bro_logger->Error("bad dotted address", text);
 			break;
 			}
 		}
@@ -1105,7 +1105,7 @@ NetVal::NetVal(const char* text) : AddrVal(TYPE_NET)
 	uint32 a = parse_dotted(text, dots);
 
 	if ( addr_to_net(a) != a )
-		error("bad net address", text);
+		bro_logger->Error("bad net address", text);
 
 	Init(uint32(htonl(a)));
 	}
@@ -1129,7 +1129,7 @@ Val* NetVal::SizeVal() const
 #ifdef BROv6
 	if ( ! is_v4_addr(val.addr_val) )
 		{
-		RunTime("|net| for IPv6 addresses not supported");
+		Error("|net| for IPv6 addresses not supported");
 		return new Val(0.0, TYPE_DOUBLE);
 		}
 
@@ -1998,7 +1998,7 @@ int TableVal::ExpandAndInit(Val* index, Val* new_val)
 	if ( iv->BaseTag() != TYPE_ANY )
 		{
 		if ( table_type->Indices()->Types()->length() != 1 )
-			internal_error("bad singleton list index");
+			bro_logger->InternalError("bad singleton list index");
 
 		for ( int i = 0; i < iv->Length(); ++i )
 			if ( ! ExpandAndInit(iv->Index(i), new_val ? new_val->Ref() : 0) )
@@ -2062,7 +2062,7 @@ Val* TableVal::Default(Val* index)
 
 	if ( ! def_val )
 		{
-		RunTime("non-constant default attribute");
+		Error("non-constant default attribute");
 		return 0;
 		}
 
@@ -2087,7 +2087,7 @@ Val* TableVal::Default(Val* index)
 
 	if ( ! result )
 		{
-		RunTime("no value returned from &default function");
+		Error("no value returned from &default function");
 		return 0;
 		}
 
@@ -2193,7 +2193,7 @@ Val* TableVal::Delete(const Val* index)
 	Val* va = v ? (v->Value() ? v->Value() : this->Ref()) : 0;
 
 	if ( subnets && ! subnets->Remove(index) )
-		internal_error( "index not in prefix table" );
+		bro_logger->InternalError( "index not in prefix table" );
 
 	if ( LoggingAccess() )
 		{
@@ -2235,7 +2235,7 @@ Val* TableVal::Delete(const HashKey* k)
 		{
 		Val* index = table_hash->RecoverVals(k);
 		if ( ! subnets->Remove(index) )
-			internal_error( "index not in prefix table" );
+			bro_logger->InternalError( "index not in prefix table" );
 		Unref(index);
 		}
 
@@ -2316,7 +2316,7 @@ void TableVal::Describe(ODesc* d) const
 		TableEntryVal* v = tbl->NextEntry(k, c);
 
 		if ( ! v )
-			internal_error("hash table underflow in TableVal::Describe");
+			bro_logger->InternalError("hash table underflow in TableVal::Describe");
 
 		ListVal* vl = table_hash->RecoverVals(k);
 		int dim = vl->Length();
@@ -2367,7 +2367,7 @@ void TableVal::Describe(ODesc* d) const
 		}
 
 	if ( tbl->NextEntry(c) )
-		internal_error("hash table overflow in TableVal::Describe");
+		bro_logger->InternalError("hash table overflow in TableVal::Describe");
 
 	if ( d->IsPortable() || d->IsReadable() )
 		{
@@ -2489,7 +2489,7 @@ void TableVal::DoExpire(double t)
 				{
 				Val* index = RecoverIndex(k);
 				if ( ! subnets->Remove(index) )
-					internal_error( "index not in prefix table" );
+					bro_logger->InternalError( "index not in prefix table" );
 				Unref(index);
 				}
 
@@ -2610,7 +2610,7 @@ bool TableVal::DoSerialize(SerialInfo* info) const
 		state = (State*) info->cont.RestoreState();
 		}
 	else
-		internal_error("unknown continuation state");
+		bro_logger->InternalError("unknown continuation state");
 
 	HashKey* k;
 	int count = 0;
@@ -2695,7 +2695,7 @@ bool TableVal::DoSerialize(SerialInfo* info) const
 			{
 			info->cont.SaveState(state);
 			info->cont.Suspend();
-			bro_logger->Log("TableVals serialization suspended right in the middle.");
+			bro_logger->Message("TableVals serialization suspended right in the middle.");
 			return true;
 			}
 		}
@@ -3489,7 +3489,7 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init)
 		break;
 
 	default:
-		internal_error("bad internal type in check_and_promote()");
+		bro_logger->InternalError("bad internal type in check_and_promote()");
 		Unref(v);
 		return 0;
 	}
@@ -3500,7 +3500,7 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init)
 
 int same_val(const Val* /* v1 */, const Val* /* v2 */)
 	{
-	internal_error("same_val not implemented");
+	bro_logger->InternalError("same_val not implemented");
 	return 0;
 	}
 
@@ -3551,7 +3551,7 @@ int same_atomic_val(const Val* v1, const Val* v2)
 		return subnet_eq(v1->AsSubNet(), v2->AsSubNet());
 
 	default:
-		internal_error("same_atomic_val called for non-atomic value");
+		bro_logger->InternalError("same_atomic_val called for non-atomic value");
 		return 0;
 	}
 

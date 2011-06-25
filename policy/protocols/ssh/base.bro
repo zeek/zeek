@@ -8,8 +8,8 @@ export {
 
 	redef enum Notice::Type += {
 		Login,
-		PasswordGuessing,
-		LoginByPasswordGuesser,
+		Password_Guessing,
+		Login_By_Password_Guesser,
 		Login_From_Interesting_Hostname,
 		Bytecount_Inconsistency,
 	};
@@ -88,12 +88,6 @@ event bro_init()
 	Log::create_stream(SSH, [$columns=Info, $ev=log_ssh]);
 }
 
-# TODO: move this elsewhere
-function local_filter(rec: record { id: conn_id; } ): bool
-	{
-	return is_local_addr(rec$id$resp_h);
-	}
-
 function set_session(c: connection)
 	{
 	if ( ! c?$ssh )
@@ -124,7 +118,7 @@ function check_ssh_connection(c: connection, done: bool)
 		return;
 
 	local status = "failure";
-	local direction = is_local_addr(c$id$orig_h) ? "to" : "from";
+	local direction = Site::is_local_addr(c$id$orig_h) ? "to" : "from";
 	local location: geo_location;
 	location = (direction == "to") ? lookup_location(c$id$resp_h) : lookup_location(c$id$orig_h);
 	
@@ -142,7 +136,7 @@ function check_ssh_connection(c: connection, done: bool)
 		if ( default_check_threshold(password_rejections[c$id$orig_h]) )
 			{
 			add password_guessers[c$id$orig_h];
-			NOTICE([$note=PasswordGuessing,
+			NOTICE([$note=Password_Guessing,
 			        $conn=c,
 			        $msg=fmt("SSH password guessing by %s", c$id$orig_h),
 			        $sub=fmt("%d failed logins", password_rejections[c$id$orig_h]$n),
@@ -163,7 +157,7 @@ function check_ssh_connection(c: connection, done: bool)
 		     c$id$orig_h !in password_guessers )
 			{
 			add password_guessers[c$id$orig_h];
-			NOTICE([$note=LoginByPasswordGuesser,
+			NOTICE([$note=Login_By_Password_Guesser,
 			        $conn=c,
 			        $n=password_rejections[c$id$orig_h]$n,
 			        $msg=fmt("Successful SSH login by password guesser %s", c$id$orig_h),
@@ -180,7 +174,7 @@ function check_ssh_connection(c: connection, done: bool)
 		        $sub=location$country_code]);
 		
 		# Check to see if this login came from an interesting hostname
-		when( local hostname = lookup_addr(c$id$orig_h) )
+		when ( local hostname = lookup_addr(c$id$orig_h) )
 			{
 			if ( interesting_hostnames in hostname )
 				{
@@ -190,6 +184,12 @@ function check_ssh_connection(c: connection, done: bool)
 				        $sub=hostname]);
 				}
 			}
+			
+		if ( location$country_code in watched_countries )
+			{
+			
+			}
+			
 		}
 	else if ( c$resp$size >= 200000000 ) 
 		{

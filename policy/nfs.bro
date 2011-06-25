@@ -1,4 +1,3 @@
-# $Id$
 
 @load udp
 

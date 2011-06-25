@@ -40,8 +40,6 @@
 #include "Syslog-binpac.h"
 #include "ConnSizeAnalyzer.h"
 
-#include <algorithm>
-
 // Keep same order here as in AnalyzerTag definition!
 const Analyzer::Config Analyzer::analyzer_configs[] = {
 	{ AnalyzerTag::Error, "<ERROR>", 0, 0, 0, false },

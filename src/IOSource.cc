@@ -10,8 +10,6 @@
 #include "util.h"
 #include "IOSource.h"
 
-#include <algorithm>
-
 IOSourceRegistry io_sources;
 
 IOSourceRegistry::~IOSourceRegistry()

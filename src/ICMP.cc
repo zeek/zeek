@@ -11,8 +11,6 @@
 #include "Event.h"
 #include "ICMP.h"
 
-#include <algorithm>
-
 ICMP_Analyzer::ICMP_Analyzer(Connection* c)
 : TransportLayerAnalyzer(AnalyzerTag::ICMP, c)
 	{

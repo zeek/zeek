@@ -10,8 +10,6 @@
 #include "NetVar.h"
 #include "UDP.h"
 
-#include <algorithm>
-
 UDP_Analyzer::UDP_Analyzer(Connection* conn)
 : TransportLayerAnalyzer(AnalyzerTag::UDP, conn)
 	{

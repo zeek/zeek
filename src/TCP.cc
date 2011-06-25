@@ -12,8 +12,6 @@
 #include "OSFinger.h"
 #include "Event.h"
 
-#include <algorithm>
-
 namespace { // local namespace
 	const bool DEBUG_tcp_data_sent = false;
 	const bool DEBUG_tcp_connection_close = false;

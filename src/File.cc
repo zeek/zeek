@@ -31,8 +31,6 @@
 #include "Serializer.h"
 #include "Event.h"
 
-#include <algorithm>
-
 // Timer which on dispatching rotates the file.
 class RotateTimer : public Timer {
 public:

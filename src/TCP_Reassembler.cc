@@ -7,8 +7,6 @@
 #include "TCP.h"
 #include "TCP_Endpoint.h"
 
-#include <algorithm>
-
 // Only needed for gap_report events.
 #include "Event.h"
 

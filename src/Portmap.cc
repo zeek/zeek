@@ -80,7 +80,6 @@ int PortmapperInterp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status status
 	Val *reply = 0;
 	int success = (status == BifEnum::RPC_SUCCESS);
 
-
 	switch ( c->Proc() ) {
 	case PMAPPROC_NULL:
 		event = success ? pm_request_null : pm_attempt_null;

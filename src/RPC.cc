@@ -13,8 +13,6 @@
 #include "RPC.h"
 #include "Sessions.h"
 
-#include <algorithm>
-
 namespace { // local namespace
 	const bool DEBUG_rpc_resync = false;
 }
@@ -48,17 +46,12 @@ RPC_CallInfo::RPC_CallInfo(uint32 arg_xid, const u_char*& buf, int& n, double ar
 	valid_call = false;
 
 	v = 0;
-	/*GM cookie = 0; */
 	}
 
 RPC_CallInfo::~RPC_CallInfo()
 	{
 	delete [] call_buf;
 	Unref(v);
-	/*GM
-	if (cookie)
-		delete cookie;
-	*/
 	}
 
 int RPC_CallInfo::CompareRexmit(const u_char* buf, int n) const
@@ -94,6 +87,7 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen,
 
 	if ( ! buf )
 		return 0;
+
 	HashKey h(&xid, 1);
 	RPC_CallInfo* call = calls.Lookup(&h);
 
@@ -106,9 +100,6 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen,
 			{
 			if ( ! call->CompareRexmit(buf, n) )
 				Weird("RPC_rexmit_inconsistency");
-			// XXX: Should we update start_time and last_time or not??
-			call->SetStartTime(start_time);
-			call->SetLastTime(last_time);
 
 			// TODO: Should we update start_time and last_time or
 			// not??
@@ -140,10 +131,6 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen,
 
 			calls.Insert(&h, call);
 			}
-		// We now have a valid RPC_CallInfo (either the previous one in case 
-		// of a rexmit or the current one). 
-		// TODO: What to do in case of a rexmit_inconistency?? 
-		Event_RPC_Call(call);
 
 		// We now have a valid RPC_CallInfo (either the previous one
 		// in case of a rexmit or the current one).

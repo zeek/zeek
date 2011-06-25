@@ -9,8 +9,6 @@
 #include "Reassem.h"
 #include "Serializer.h"
 
-#include <algorithm>
-
 const bool DEBUG_reassem = false;
 
 #ifdef DEBUG

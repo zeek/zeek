@@ -5,8 +5,6 @@
 #include "ContentLine.h"
 #include "TCP.h"
 
-#include <algorithm>
-
 ContentLine_Analyzer::ContentLine_Analyzer(Connection* conn, bool orig)
 : TCP_SupportAnalyzer(AnalyzerTag::ContentLine, conn, orig)
 	{

@@ -8,8 +8,6 @@
 
 #include "XDR.h"
 
-#include <algorithm>
-
 uint32 extract_XDR_uint32(const u_char*& buf, int& len)
 	{
 	if ( ! buf )
@@ -63,8 +61,6 @@ const u_char* extract_XDR_opaque(const u_char*& buf, int& len, int& n, int max_l
 	n = int(extract_XDR_uint32(buf, len));
 	if ( ! buf )
 		return 0;
-	if (short_buf_ok)
-		n = std::min(n, len);
 
 	if ( short_buf_ok )
 		n = std::min(n, len);

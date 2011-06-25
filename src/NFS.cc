@@ -204,8 +204,6 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 		event = nfs_proc_readdir;
 		break;
 
-
-
 	default:
 		if ( c->Proc() < BifEnum::NFS3::PROC_END_OF_PROCS )
 			{
@@ -614,8 +612,6 @@ RecordVal* NFS_Interp::nfs3_readdir_reply(bool isplus, const u_char*& buf,
 		{
 		rep->Assign(1, nfs3_post_op_attr(buf,n));
 		}
-	return rep;
-	}
 
 	return rep;
 	}

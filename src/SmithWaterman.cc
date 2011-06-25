@@ -11,8 +11,6 @@
 #include "Var.h"
 #include "util.h"
 
-#include <algorithm>
-
 BroSubstring::BroSubstring(const BroSubstring& bst)
 : BroString((const BroString&) bst), _new(bst._new)
 	{

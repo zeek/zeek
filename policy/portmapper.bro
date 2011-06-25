@@ -120,8 +120,6 @@ export {
 	# the request was answered, F it was attempted but not answered.
 	# If there's an entry in the set, then the access won't lead to a
 	# NOTICE (unless the connection is hot for some other reason).
-	# If there's an entry in the set, then the access won't lead to a 
-	# NOTICE (unless the connection is hot for some other reason).
 	const RPC_do_not_complain: set[string, bool] = {
 		["pm_null", [T, F]],
 	} &redef;

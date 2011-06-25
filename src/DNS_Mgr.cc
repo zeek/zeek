@@ -36,8 +36,6 @@
 #include "Net.h"
 #include "Var.h"
 
-#include <algorithm>
-
 extern "C" {
 extern int select(int, fd_set *, fd_set *, fd_set *, struct timeval *);
 

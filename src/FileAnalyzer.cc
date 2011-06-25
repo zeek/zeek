@@ -4,8 +4,6 @@
 
 #include "FileAnalyzer.h"
 
-#include <algorithm>
-
 #ifdef HAVE_LIBMAGIC
 magic_t File_Analyzer::magic = 0;
 magic_t File_Analyzer::magic_mime = 0;

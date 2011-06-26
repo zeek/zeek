@@ -38,7 +38,7 @@ test repository:
 
 .. console:
 
-    > cd public.git
+    > cd bro-testing.git
     > btest
 
 All the standard ``btest`` options can be used to run individual
@@ -51,7 +51,7 @@ To update a test's baseline, first run ``btest`` in update mode:
 
 .. console:
 
-    > cd public.git
+    > cd bro-testing.git
     > btest -U tests/test-you-want-to-update
 
 Then use ``git`` to commit the changes and push the changes upstream
@@ -66,19 +66,16 @@ public one. A helper script is provided to set up such a repository:
 
 .. console:
 
-    > ./scripts/create-new-repo private-repo /home/git/bro-private-repo
+    > ./scripts/create-new-repo <repo-name> <repo-url>
 
 The first argument is the local name of the repository (it will be
-cloned into ``<name>.git``); and then second is the path to the (bare)
+cloned into ``<repo-name>.git``); and then second is the path to the
 git repository. The repository will be initialized with a few standard
 directories as well as a skeleton test in ``<name>.git/tests``. You
 can then edit files as needed (and in particular add traces to
 ``<name>.git/traces``).
 
-If you want the repository to be located somewhere else than the local
-machine, just push the created local repository to the right place,
-delete ``<name>.git``, and clone from the remote location. Likewise,
-if you already have such a private test repository that you want to
+If you already have such a private test repository that you want to
 include into the test suite, clone it directly into
-``<name>.git/tests``.
+``<repo-name>.git``.
 

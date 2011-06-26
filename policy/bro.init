@@ -113,6 +113,14 @@ type SYN_packet: record {
 	SACK_OK: bool;
 };
 
+## This record is used for grabbing packet capturing information from
+## the core with the :bro:id:`net_stats` BiF.  All counts are cumulative.
+type NetStats: record {
+	pkts_recvd:   count &default=0; ##< Packets received by Bro.
+	pkts_dropped: count &default=0; ##< Packets dropped.
+	pkts_link:    count &default=0; ##< Packets seen on the link (not always available).
+};
+
 type bro_resources: record {
 	version: string;        # Bro version string
 	debug: bool;            # true if compiled with --enable-debug
@@ -623,17 +631,7 @@ global discarder_check_udp: function(i: ip_hdr, u: udp_hdr, d: string): bool;
 global discarder_check_icmp: function(i: ip_hdr, ih: icmp_hdr): bool;
 # End of definition of access to packet headers, discarders.
 
-
-type net_stats: record {
-	# All counts are cumulative.
-	pkts_recvd: count;	# pkts received by Bro
-	pkts_dropped: count;	# pkts dropped
-	pkts_link: count;	# pkts seen on link (not always available)
-};
-
-
 const watchdog_interval = 10 sec &redef;
-const heartbeat_interval = 10 sec &redef;
 
 # The maximum number of timers to expire after processing each new
 # packet.  The value trades off spreading out the timer expiration load

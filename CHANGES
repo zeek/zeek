@@ -3,539 +3,146 @@
 - DNS mapping are now becoming invalid when an entry's TTL expires.
   (Thomas Other)
 
-- Merge remote branch 'origin/topic/jsiwek/script-load-cleanup'
-    
-    * origin/topic/jsiwek/script-load-cleanup:
-      Cleaning up the script loading implementation.
-      Fix baseline for core.conn-id (now core.conn-uid) test. (Robin Sommer)
+- Reworking how Bro tracks which scripts are already loaded. Rather
+  than paths, Bro now tracks inode numbers. (Jon Siwek)
 
-- Cleaning up the script loading implementation.
-    
-    This change primarily improves the way Bro detects and prevents
-    the same script from being loaded twice.  It now compares inode
-    numbers instead of path names. (Jon Siwek)
+- New BiF netstats() to query packet capture statistics. The netstats
+  script now uses the new BiF to periocally report packets drops. The
+  net_stats_update() event and the heartbeat_interval global went
+  away. (Seth Hall)
 
-- Fix baseline for core.conn-id (now core.conn-uid) test.
-    
-    "conn-id.bro" was the name of a script in the policy/ directory that conn.bro
-    expected to @load, but when the unit test was also named "conn-id.bro",
-    it would be loaded twice during the test (once from conn.bro and once
-    as a command line argument to bro).  This means two event handlers were
-    registered in error and the baseline output contained duplicate lines
-    that can be removed. (Jon Siwek)
+- Fixing bug with logging &optional records. Closes #476. (Robin
+  Sommer)
 
-- Merge remote branch 'origin/topic/seth/net-stats-bif'
-    
-    * origin/topic/seth/net-stats-bif:
-      Removing a stray print statement.
-      Changed netstats (packet loss) handling to script-land.
-    
-    Nice idea to pass the old data into a regular scheduled event!
-    
-    Conflicts:
-    	src/event.bif (Robin Sommer)
+- Fixing istate.events-ssl test failing because of expired cert. (Jon
+  Siwek)
 
-- Removing a stray print statement. (Seth Hall)
+- A large number of improvements and fixes for Bro's doc mode. (Jon
+  Siwek)
 
-- Changed netstats (packet loss) handling to script-land.
-    
-    - Removed the net_stats_update event.
-    - Created a net_stats function for building and retrieving the
-      current network statistics.
-    - Removed the internal timer for firing the net_stats_update event
-      along with the global heartbeat_interval variable.
-    - Updated the netstats script to use the new BiF.
-    - Updated the stats script to use the new BiF. (Seth Hall)
+- Significant updates for RPC and NFS analyzers (Gregor Maier)
 
-- Merge remote branch 'origin/fastpath'
-    
-    * origin/fastpath:
-      Raise internal error when failing to read contents of state file with -x option
-    
-    I've changed this to use error() instead of internal_error(). The
-    latter should only be used for logic errors that indicate a bug in
-    Bro. In this case, the message flags a problem that's more likely to
-    be external. (Robin Sommer)
+    * Unify semantics for UDP and TCP connections.
 
-- Raise internal error when failing to read contents of state file with -x option
-    
-    Instead of just exiting w/ code 0 (Jon Siwek)
+    * RPC can now log to a log file if desired.
 
-- Fixing bug with logging &optional records.
-    
-    Closes #476. (Robin Sommer)
+    * Portmapper can now log general activity to a log file and also log
+      actual port mappings.
 
-- Merge remote branch 'origin/fastpath'
-    
-    * origin/fastpath:
-      Fix istate.events-ssl test failing because of expired cert. (Robin Sommer)
+    * NFS analyzer now supports significantly more procedure calls as
+      as file name tracking and file content extraction.
 
-- Fix istate.events-ssl test failing because of expired cert.
-    
-    Replaced expired certificate w/ one that's valid for ~100 years. (Jon Siwek)
+- NetBIOS fixes. (Jon Siwek)
 
-- Updating submodule(s). (Robin Sommer)
+- A number of unit tests are more robust and portable.  (Jon Siwek)
 
-- Merge remote branch 'origin/fastpath'
-    
-    * origin/fastpath:
-      Change bro doc mode to write out docs immediately after parsing. (Robin Sommer)
+- A new BiF unique_id() that returns a string that's unique across Bro
+  instaces with high probablity.  (Robin Sommer)
 
-- Merge branch 'master' into fastpath (Jon Siwek)
+- Complete rewrite of the BinPAC SSL analyzer. (Seth Hall)
 
-- Merge remote branch 'origin/fastpath' (Robin Sommer)
-
-- Merge remote branch 'origin/topic/gregor/rpc'
-    
-    Note, I haven't gone through the script-level code as that will change
-    soon anyway. (Robin Sommer)
-
-- Change bro doc mode to write out docs immediately after parsing.
-    
-    Originally docs were written right after parsing, but it changed to after
-    the bro_init event happens when I was experimenting with auto-documenting
-    logging streams by querying the LogMgr after bro_init.  That experiment
-    dead-ended, and that location is bad for other reasons: the doc framework
-    may try to access BroObj's that have already been freed. (Jon Siwek)
-
-- Really, null-terminate full 15-char NetBIOS host names, too. (Jon Siwek)
-
-- Fixed core.load-pkg test w/ diff canonifier instead (Jon Siwek)
-
-- Revert "Fix core.load-pkg unit test."
-    
-    This reverts commit 80558a994a7ef2040164f79b3992df1ee91bbae7. (Jon Siwek)
-
-- Fix language.wrong-delete-field test by running through abs path canonifier (Jon Siwek)
-
-- Fix bifs.unique_id-rnd test failing because of wc output formatting (Jon Siwek)
-
-- Null-terminate the string created by decode_netbios_name BiF.
-    
-    (initially observed through failures of bifs.netbios-functions unit test) (Jon Siwek)
-
-- Fix core.conn-id test on some platforms.
-    
-    The output of some versions of `wc` (e.g. MacOS) seems to indent
-    their output while others don't, causing the baseline diff to fail.
-    So pipe to sed to get rid of spaces before diffing. (Jon Siwek)
-
-- Fix core.load-pkg unit test.
-    
-    Removed the test's diff against baseline output that contained absolute
-    paths so that it will work across systems.  Also don't redirect anything
-    to stderr so that failure information shows up in btest diagnostic output. (Jon Siwek)
-
-- Small but crucial fix for the new unique_id function. (Seth Hall)
-
-- A new bif unique_id(prefix) that returns a string that's unique across
-    Bro instaces with high probablity.
-    
-    "prefix" is a string that will be prepended to the returned ID. (Robin Sommer)
-
-- Merge remote branch 'origin/topic/seth/ssl-binpac'
-    
-    * origin/topic/seth/ssl-binpac:
-      Fixed bug due to vectors now initially indexed on 0.
-      Finished core support for new SSL analyzer.
-      SSL analyzer changes with accompanying BiF.
-      A table_s_of_s type to get around bifcl type limitation.
-      Regenerated the Mozilla CA bundle without the untrusted server authentication certs.
-      Complete rewrite to SSL analyzer.
-    
-    Conflicts:
-    	src/AnalyzerTags.h
-    	src/CMakeLists.txt
-    
-    Notes:
-    
-        - Haven't looked at the script-level, postponed to
-          policy-scripts-new.
-    
-        - I renamed X509Extension to X509_extension for consistency. (Robin Sommer)
-
-- Fixed bug due to vectors now initially indexed on 0. (Seth Hall)
-
-- Merge remote branch 'origin/master' into topic/seth/ssl-binpac
-    
-    Conflicts:
-    	src/bro.bif (Seth Hall)
-
-- Finished core support for new SSL analyzer.
-    
-    - Certificate and certificate chain validation is now done
-      fully in policy script land.  The script to do this will
-      be written in the new policy scripts branch once this is
-      merged.
-    
-    - Removed hand written SSL analyzer.
-    
-    - Rewrote and reworked much of the BinPAC SSL analyzer. (Seth Hall)
-
-- SSL analyzer changes with accompanying BiF.
-    
-    - Full DER certificates are extracted as strings to be used with
+    * DER certificates are extracted as strings to be used with
       corresponding BiFs.
-    - x509_verify function to verify single certs and/or full certificate chains. (Seth Hall)
 
-- A table_s_of_s type to get around bifcl type limitation. (Seth Hall)
+    * x509_verify function to verify single certs and/or full
+      certificate chains.
 
-- Merge remote branch 'origin/master' into topic/seth/ssl-binpac (Seth Hall)
+    * Removed hand written SSL analyzer.
 
-- Regenerated the Mozilla CA bundle without the untrusted server authentication certs.
-    
-    Certs intended for email protection and code signing have been removed
-    as well due to the change. (Seth Hall)
+    * The ssl.bro script is just a place-holder for now. New version
+      will come with the other new scripts.
 
-- Complete rewrite to SSL analyzer.
-    
-    * I haven't removed handwritten analyzer code yet although it isn't built anymore.
-    * The ssl.bro script is just an example and doesn't keep any state yet. (Seth Hall)
+- New syslog analyzer. (Seth Hall)
 
-- Merge remote branch 'origin/topic/seth/syslog-analyzer'
-    
-    Note: I didn't merge anything in policy/*. Seems there was some
-    unrelated stuff in there, and the ticket says that the policy script
-    was a dummy for now anyway.
-    
-    * origin/topic/seth/syslog-analyzer:
-      Updates for syslog analyzer to prepare it for merging.
-      Added the initial syslog analyzer and policy script.
-      Adding some of the initial scripts that are going to be merged from my script repository. (Robin Sommer)
+- @load now supports loading a directory. With a directory "foo"
+  somewhere in BROPATH, "@load foo" now checks if there's a file
+  "foo/__load__.bro". If so, it reads that file in. (Robin Sommer)
 
-- Updates for syslog analyzer to prepare it for merging.
-    
-    - Integrated with CMake.
-    - Analyzer only support syslog over UDP right now.
-    - Fixed small bug in the analyzer to make it generate events correctly. (Seth Hall)
+- ASCII logger now escapes non-printable characters. Closes #450.
+  (Robin Sommer)
 
-- Merge remote branch 'origin/master' into topic/seth/syslog-analyzer
-    
-    Conflicts:
-    	src/Analyzer.cc
-    	src/Makefile.am (Seth Hall)
+- Packaging tweaks and rewrite of 'dist' target. (Jon Siwek)
 
-- Fixing typo in test. (Robin Sommer)
+- Changes to allow DEB packaging via CPack, addresses #458. (Jon
+  Siwek)
 
-- @load now supports loading a directory.
-    
-    With a directory "foo" somewhere in BROPATH, "@load foo" now checks if
-    there's a file "foo/__load__.bro". If so, it reads that file in. (If
-    not, Bro reports the same error as before, complaining that it can't
-    read a directory). (Robin Sommer)
-
-- ASCII logger now escapes non-printable characters.
-    
-    Closes #450. (Robin Sommer)
-
-- Updating submodule(s). (Robin Sommer)
-
-- Updating submodule(s). (Robin Sommer)
-
-- Revert "Setting the snaplen to 0 to capture the full packet regardless of size."
-    
-    This reverts commit fe274c3e64c845a2d587dc30254c439c530cf4a4. (Robin Sommer)
-
-- Setting the snaplen to 0 to capture the full packet regardless of size.
-    
-    In my limited testing this seemed to work fine but we should
-    make an actual test for this eventually. (Seth Hall)
-
-- Packaging tweaks and rewrite of 'dist' target.
-    
-    - Move binary packaging scripts out of source root into pkg/ subdir
-    - A consistent CMake version (2.8.4) is now enforced for binary packaging
-    - Added a 'bindist' target to top Makefile as a convenience
-    - The 'dist' target has been rewritten to depend on standard system
-      command/utils rather than CMake and the full dependency chain of Bro,
-      addressing #398 (but the CMake 'package_source' target is still available
-      in the generated build/Makefile and can be used if desired) (Jon Siwek)
-
-- Updating submodule(s). (Robin Sommer)
-
-- Merge remote branch 'origin/topic/jsiwek/deb-packaging'
-    
-    * origin/topic/jsiwek/deb-packaging:
-      Changes to allow DEB packaging via CPack, addresses #458 (Robin Sommer)
-
-- Changes to allow DEB packaging via CPack, addresses #458 (Jon Siwek)
-
-- Merge remote branch 'origin/fastpath'
-    
-    * origin/fastpath:
-      Fix reST markup generated for record redefs.
-      Fixes for more doc mode corner cases caused by type cloning.
-    
-    Jon, I added the line below, please double-check.
-    
-    diff --git a/src/Var.cc b/src/Var.cc
-    index 7880325..00ac734 100644
-    --- a/src/Var.cc
-    +++ b/src/Var.cc
-    @@ -260,6 +260,7 @@ void add_type(ID* id, BroType* t, attr_list* attr, int /* is_event */)
-     			tnew = new FuncType(t->AsFuncType()->Args(),
-     			                    t->AsFuncType()->YieldType(),
-     			                    t->AsFuncType()->IsEvent());
-    +			break;
-     		default:
-     			SerializationFormat* form = new BinarySerializationFormat();
-     			form->StartWrite(); (Robin Sommer)
-
-- Fix reST markup generated for record redefs.
-    
-    They should have been using reST roles to xref the original record type
-    instead of a reST directive to declare a new type. (Jon Siwek)
-
-- Fixes for more doc mode corner cases caused by type cloning.
-    
-    "shallow" copying has to be done for any type that can contain
-    record types in order to accommodate record redefs that add fields. (Jon Siwek)
-
-- An extension to the ICMP analyzer to handle redirects.
-    
-    The analyzer now raises icmp_redirect() events that come with the
-    redirection address.
-    
-    By Julien Sentier. (Robin Sommer)
-
-- Updating submodule(s). (Robin Sommer)
-
-- Merge branch 'fastpath' of ssh://git.bro-ids.org/bro into fastpath (Gregor Maier)
-
-- Fix CommentedTypeDecl to track whether it's in a record like TypeDecl does. (Jon Siwek)
-
-- Portability fixes for tests on MacOS. (Robin Sommer)
-
-- Merge branch 'master' of ssh://git.bro-ids.org/bro (Robin Sommer)
-
-- Fixing bug with uninitialized counter. (Robin Sommer)
-
-- Updating submodule(s). (Robin Sommer)
-
-- Sorting was still not consistent. (Robin Sommer)
-
-- Test updates.
-    
-    Includes splitting up one test which's output now depends on wether
-    we've compiled with IPv6 support or not. (Robin Sommer)
+- An extension to the ICMP analyzer to handle redirects. Julien
+  Sentier
 
 - Removing old istate test-suite. (Robin Sommer)
 
-- Updating submodule(s). (Robin Sommer)
+- A hack to report missing GeoIP support only once. This closes #357,
+  but #455 captures the need for a more general solution. (Robin
+  Sommer)
 
-- A hack to report missing GeoIP support only once.
-    
-    This closes #357, but #455 captures the need for a more general
-    solution. (Robin Sommer)
-
-- Bugfix: vectors in records were not initalized.
-    
-    Closes #421. (Robin Sommer)
+- Bugfix: vectors in records were not initalized. Closes #421. (Robin
+  Sommer)
 
 - If IPv6 default is not compiled in, the default BPF filters now
-    excludes IPv6 packets. (Robin Sommer)
+  excludes IPv6 packets. (Robin Sommer)
 
-- New bif bro_has_ipv6() to check whether IPv6 support is compiled in. (Robin Sommer)
+- New bif bro_has_ipv6() to check whether IPv6 support is compiled in.
+  (Robin Sommer)
 
-- Bringing connection state history back, which was accidentally deleted
-    from conn.bro.
-    
-    However, this is primarily for the record, conn.bro will be replaced
-    with a new version soon. (Robin Sommer)
+- Updating btests and a Makefile. "make" now runs all the tests.
+  (Robin Sommer)
 
-- Updating btests and a Makefile.
-    
-    "make" now runs all the tests. (Robin Sommer)
-
-- Moving the test-scripts from the old test-suite over to btest. (Robin Sommer)
+- Moving the test-scripts from the old test-suite over to btest.
+  (Robin Sommer)
 
 - Fix for major bug in POP3 analyzer, which didn't recognize '.'
-    terminators in multi-line replies if the terminator was bare (no
-    newline). This caused it to ignore the rest of the session that it's
-    analyzing.
+  terminators in multi-line replies if the terminator was bare (no
+  newline). This caused it to ignore the rest of the session that it's
+  analyzing. (Vern Paxson)
     
-    Patch from #444 by Vern. (Robin Sommer)
-
 - Fix compiler warning with gcc-4.4.4 (Gregor Maier)
-
-- Fix `make doc` CMake 2.8.3 incompatibility.
-    
-    CMake 2.8.4 seems to be able to handle add_custom_target()
-    interdependencies with the DEPENDS arguments, but 2.8.3 does not.
-    
-    Using add_dependencies() to create top-level target
-    dependencies works in both cases. (Jon Siwek)
-
-- Fixing top-level Makefile target 'doc-clean' (now 'docclean') (Jon Siwek)
-
-- Merge remote branch 'remotes/origin/topic/jsiwek/doc-framework'
-    
-    * remotes/origin/topic/jsiwek/doc-framework:
-      Adding example documentation for a script's use of logging features.
-      Adding &log attribute to static attr_names array.
-      Small typo fix.
-      Bro doc mode now tracks record redefs that extend its field list.
-      BroBifDoc was unneeded; now dead code, so removed.
-      Bro doc mode now only does a "shallow" copy of declared record types
-      Bro's doc mode now terminates after processing bro_init but before net_run
-      Fixes related to `make doc` handling of script summary text (##! comments)
-      Overhaul of "doc" build target for generating policy script documentation.
-      Add parser error hint when in doc mode about checking ## comment syntax.
-      Move stuff related to policy script documentation from doc/ to doc/scripts/
-      Fixing example.bro's auto-reST generation baseline test. (Robin Sommer)
-
-- Merge branch 'master' into topic/jsiwek/doc-framework (Jon Siwek)
-
-- Adding example documentation for a script's use of logging features. (Jon Siwek)
+  
+- Adding example documentation for a script's use of logging features.
+  (Jon Siwek)
 
 - Adding &log attribute to static attr_names array. (Jon Siwek)
+  
+- Bro can now track packet and byte counts per connection. (Gregor
+  Maier)
 
-- Small typo fix. (Jon Siwek)
-
-- Bro doc mode now tracks record redefs that extend its field list. (Jon Siwek)
-
-- BroBifDoc was unneeded; now dead code, so removed. (Jon Siwek)
-
-- Bro doc mode now only does a "shallow" copy of declared record types
+    * If 'use_conn_size_analyzer' is true, the event engine tracks
+      number of packets and raw IP bytes per connection. If
+      report_conn_size_analyzer is true, these values are included as
+      four new columns into conn.log
     
-    This is necessary so that the cloned type will be able to see additions
-    to the original type's list of fields (Jon Siwek)
+    * I changed conn.bro so that the value of
+      report_conn_size_analyzer follows that of
+      use_conn_size_analyzer. For the new conn.log, we probably want
+      to get rid of report_conn_size_analyzer anyway.
 
-- Bro's doc mode now terminates after processing bro_init but before net_run
-    
-    Generated script reST documentation is also written out at this time
-    instead of at the end of lexical scanning.
-    
-    The persistence serializer will no longer write out Bro's state to the
-    .state directory when in doc mode. (Jon Siwek)
+- Fixing numerous compiler warnings and portability issues. (All)
 
-- Merge branch 'master' into topic/jsiwek/doc-framework (Jon Siwek)
+- Switching vectors from being 1-based to 0-based. Note that this is a
+  change that break backwards-compatibility. (Robin Sommer)
 
-- Merge branch 'master' into topic/jsiwek/doc-framework (Jon Siwek)
-
-- Fixes related to `make doc` handling of script summary text (##! comments)
-    
-    - Summary comments (##!) can now be placed at the beginning of
-    BiF files (but still outside C segments).  An issue was fixed where
-    these comments would mistakenly be transferred into the generated
-    .func_def file and cause a compile error. I completely removed writing
-    any opt_ws value into the .func_def file because it was currently not
-    writing anything besides whitespace.
-    
-    - The generation of reST for the collecting of "groups" of policy
-    script documentation now happens at build time of `make doc` through the
-    use of a helper script rather than doing this at configure time so that
-    changes to summary text will always be reflected in the documentation. (Jon Siwek)
-
-- Merge branch 'master' into topic/jsiwek/doc-framework (Jon Siwek)
-
-- Overhaul of "doc" build target for generating policy script documentation.
-    
-    It's now all implemented in CMake scripting.
-    
-    The generation of reST docs is now a distinct target, "restdoc", while
-    the target to generate HTML docs, "doc", depends on "restdoc".  reST doc
-    generation supports incremental builds (documentation for a given policy
-    script is only regenerated when it is out of date), but HTML doc generation
-    via ``make doc`` is not incremental (Sphinx always starts with fresh input).
-    
-    Building the "restdoc" target is now covered by a btest to ensure all
-    policy scripts are parse-able when Bro is in "doc mode".
-    
-    Generated reST docs should now support "@load"ing from subdirectories.  e.g.
-    "@load foo/baz" and "@load bar/baz" will now generate the right xref links. (Jon Siwek)
-
-- Merge branch 'master' into topic/jsiwek/doc-framework (Jon Siwek)
-
-- Add parser error hint when in doc mode about checking ## comment syntax. (Jon Siwek)
-
-- Merge branch 'master' into topic/jsiwek/doc-framework (Jon Siwek)
-
-- Move stuff related to policy script documentation from doc/ to doc/scripts/ (Jon Siwek)
-
-- Fixing example.bro's auto-reST generation baseline test.
-    
-    Adds a diff canonifier that skips diffing the places where example.bro
-    may use MutableVal derivatives (e.g. sets/tables), which don't always
-    generate the same ordering in the reST docs across runs. (Jon Siwek)
-
-- Merge of Gregor's conn-size branch.
-    
-    If 'use_conn_size_analyzer' is true, the event engine tracks number of
-    packets and raw IP bytes per connection. If report_conn_size_analyzer
-    is true, these values are included as four new columns into conn.log
-    
-    I changed conn.bro so that the value of report_conn_size_analyzer
-    follows that of use_conn_size_analyzer. For the new conn.log, we
-    probably want to get rid of report_conn_size_analyzer anyway. (Robin Sommer)
-
-- Merge remote branch 'origin/fastpath'
-    
-    * origin/fastpath:
-      Fix compile errors possible on some platforms. (Robin Sommer)
-
-- Fix compile errors possible on some platforms.
-    
-    Include <algorithm> in some sources that require it; addresses #430
-    
-    Places where STL's min() template function could get used with
-    arguments of differing types can fail to deduce the right template type.
-    These are fixed with some type tweaking of local variables and also
-    giving an explicit template argument for good measure. (Jon Siwek)
-
-- Updating submodule(s). (Robin Sommer)
-
-- Switching vectors from being 1-based to 0-based.
-    
-    This is obviously a change that break backwards-compatibility. I hope
-    I caught all cases where vectors are used ...
-    
-    I've completely removed the VECTOR_MIN constant. Turns out that was
-    already not working: some code pieces were nevertheless hard-coding
-    the 1-based indexing ... (Robin Sommer)
-
-- Updating submodule(s). (Robin Sommer)
-
-- Adding istate tests to default btest configuration. (Robin Sommer)
-
-- Increasing serialization format version for the recent 64-bit changes. (Robin Sommer)
-
-- Updating tests.
-    
-    The istate tests now all pass except for the SSL one. Still need to
-    figure out why it fails. (Robin Sommer)
+- Increasing serialization format version for the recent 64-bit
+  changes. (Robin Sommer)
 
 - Support for (mixed) MPLS and VLAN traffic, and a new default BPF
-    filter. (Seth Hall and Robin Sommer)
+  filter. (Seth Hall and Robin Sommer)
     
     - Merging in the patch from #264, which provides support for mixed
       VLAN and MPLS traffic.
     
-    - Changing Bro's default filter from being built dynamically to being
-      a static "ip or not ip". To get the old behaviour back (i.e., the
-      dynamically built filter), redef "all_packets" to false.
+    - Changing Bro's default filter from being built dynamically to
+      being a static "ip or not ip". To get the old behaviour back
+      (i.e., the dynamically built filter), redef "all_packets" to
+      false.
     
-    - print-filter.bro now always prints the filter that Bro is actually
-      using, even if overriden from the command line. (Robin Sommer)
-
-- Fixing some more format strings. (Robin Sommer)
+    - print-filter.bro now always prints the filter that Bro is
+      actually using, even if overriden from the command line. (Robin
+      Sommer)
 
 - Changing the HTTP's analyzers internals to use 64-bit integers.
-    (Gregor Maier).
+  (Gregor Maier). 
     
-    This is the patch from #326, plus some cleanup. (Robin Sommer)
-
-- Updating submodule(s). (Robin Sommer)
-
-- Updating baselines. (Robin Sommer)
-
-- Fixing bug with deleting still unset record fields of table type. (Robin Sommer)
-
-- Added the initial syslog analyzer and policy script. (Seth Hall)
-
-- Adding some of the initial scripts that are going to be merged from
-    my script repository. (Seth Hall)
-
+- Fixing bug with deleting still unset record fields of table type.
+  (Robin Sommer)
 
 1.6-dev.99 Fri Apr 22 22:10:03 PDT 2011
 

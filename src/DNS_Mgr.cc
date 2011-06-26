@@ -63,6 +63,7 @@ public:
 protected:
 	char* host;	// if non-nil, this is a host request
 	uint32 addr;
+	uint32 ttl;
 	int request_pending;
 };
 
@@ -82,8 +83,8 @@ int DNS_Mgr_Request::MakeRequest(nb_dns_info* nb_dns)
 
 class DNS_Mapping {
 public:
-	DNS_Mapping(const char* host, struct hostent* h);
-	DNS_Mapping(uint32 addr, struct hostent* h);
+	DNS_Mapping(const char* host, struct hostent* h, uint32 ttl);
+	DNS_Mapping(uint32 addr, struct hostent* h, uint32 ttl);
 	DNS_Mapping(FILE* f);
 
 	int NoMapping() const		{ return no_mapping; }
@@ -108,6 +109,9 @@ public:
 	int Failed() const		{ return failed; }
 	int Valid() const		{ return ! failed; }
 
+	bool Expired() const
+		{ return current_time() > (creation_time + req_ttl); }
+
 protected:
 	friend class DNS_Mgr;
 
@@ -119,6 +123,7 @@ protected:
 
 	char* req_host;
 	uint32 req_addr;
+	uint32 req_ttl;
 
 	int num_names;
 	char** names;
@@ -146,21 +151,23 @@ static TableVal* empty_addr_set()
 	return new TableVal(s);
 	}
 
-DNS_Mapping::DNS_Mapping(const char* host, struct hostent* h)
+DNS_Mapping::DNS_Mapping(const char* host, struct hostent* h, uint32 ttl)
 	{
 	Init(h);
 	req_host = copy_string(host);
 	req_addr = 0;
+	req_ttl = ttl;
 
 	if ( names && ! names[0] )
 		names[0] = copy_string(host);
 	}
 
-DNS_Mapping::DNS_Mapping(uint32 addr, struct hostent* h)
+DNS_Mapping::DNS_Mapping(uint32 addr, struct hostent* h, uint32 ttl)
 	{
 	Init(h);
 	req_addr = addr;
 	req_host = 0;
+	req_ttl = ttl;
 	}
 
 DNS_Mapping::DNS_Mapping(FILE* f)
@@ -663,6 +670,7 @@ Val* DNS_Mgr::BuildMappingVal(DNS_Mapping* dm)
 void DNS_Mgr::AddResult(DNS_Mgr_Request* dr, struct nb_dns_result* r)
 	{
 	struct hostent* h = (r && r->host_errno == 0) ? r->hostent : 0;
+	u_int32_t ttl = r->ttl;
 
 	DNS_Mapping* new_dm;
 	DNS_Mapping* prev_dm;
@@ -670,7 +678,7 @@ void DNS_Mgr::AddResult(DNS_Mgr_Request* dr, struct nb_dns_result* r)
 
 	if ( dr->ReqHost() )
 		{
-		new_dm = new DNS_Mapping(dr->ReqHost(), h);
+		new_dm = new DNS_Mapping(dr->ReqHost(), h, ttl);
 		prev_dm = host_mappings.Insert(dr->ReqHost(), new_dm);
 
 		if ( new_dm->Failed() && prev_dm && prev_dm->Valid() )
@@ -683,7 +691,7 @@ void DNS_Mgr::AddResult(DNS_Mgr_Request* dr, struct nb_dns_result* r)
 		}
 	else
 		{
-		new_dm = new DNS_Mapping(dr->ReqAddr(), h);
+		new_dm = new DNS_Mapping(dr->ReqAddr(), h, ttl);
 		uint32 tmp_addr = dr->ReqAddr();
 		HashKey k(&tmp_addr, 1);
 		prev_dm = addr_mappings.Insert(&k, new_dm);
@@ -833,8 +841,15 @@ const char* DNS_Mgr::LookupAddrInCache(dns_mgr_addr_type addr)
 	{
 	HashKey h(&addr, 1);
 	DNS_Mapping* d = dns_mgr->addr_mappings.Lookup(&h);
+
 	if ( ! d )
 		return 0;
+
+	if ( d->Expired() )
+		{
+		dns_mgr->addr_mappings.Remove(&h);
+		return 0;
+		}
 
 	// The escapes in the following strings are to avoid having it
 	// interpreted as a trigraph sequence.
@@ -844,8 +859,16 @@ const char* DNS_Mgr::LookupAddrInCache(dns_mgr_addr_type addr)
 TableVal* DNS_Mgr::LookupNameInCache(string name)
 	{
 	DNS_Mapping* d = dns_mgr->host_mappings.Lookup(name.c_str());
+
 	if ( ! d || ! d->names )
 		return 0;
+
+	if ( d->Expired() )
+		{
+		HashKey h(name.c_str());
+		dns_mgr->host_mappings.Remove(&h);
+		return 0;
+		}
 
 	return d->AddrsSet();
 	}

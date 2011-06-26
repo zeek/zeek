@@ -11,6 +11,7 @@ struct nb_dns_result {
 	void *cookie;
 	int host_errno;
 	struct hostent *hostent;
+	uint32_t ttl;
 };
 
 typedef unsigned int nb_uint32_t;

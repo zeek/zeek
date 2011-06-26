@@ -886,7 +886,8 @@ int main(int argc, char** argv)
 			UnserialInfo info(&s);
 			info.print = stdout;
 			info.install_uniques = true;
-			s.Read(&info, bst_file);
+			if ( ! s.Read(&info, bst_file) )
+				error("Failed to read events from %s\n", bst_file);
 			}
 
 		exit(0);

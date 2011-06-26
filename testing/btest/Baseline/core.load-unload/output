@@ -1,0 +1,12 @@
+loading /Users/jsiwek/tmp/bro/policy/bro.init
+   loading /Users/jsiwek/tmp/bro/build/src/const.bif.bro
+   loading /Users/jsiwek/tmp/bro/build/src/types.bif.bro
+   loading /Users/jsiwek/tmp/bro/build/src/strings.bif.bro
+   loading /Users/jsiwek/tmp/bro/build/src/bro.bif.bro
+   loading /Users/jsiwek/tmp/bro/policy/logging.bro
+      loading /Users/jsiwek/tmp/bro/build/src/logging.bif.bro
+   loading /Users/jsiwek/tmp/bro/policy/logging-ascii.bro
+   loading /Users/jsiwek/tmp/bro/build/src/event.bif.bro
+   loading /Users/jsiwek/tmp/bro/policy/pcap.bro
+   loading /Users/jsiwek/tmp/bro/policy/server-ports.bro
+loading /Users/jsiwek/tmp/bro/testing/btest/.tmp/core.load-unload/load-unload.bro

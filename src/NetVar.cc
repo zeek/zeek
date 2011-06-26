@@ -20,10 +20,7 @@ EnumType* transport_proto;
 TableType* string_set;
 TableType* count_set;
 
-RecordType* net_stats;
-
 int watchdog_interval;
-double heartbeat_interval;
 
 int max_timer_expires;
 int max_remote_events_processed;
@@ -404,10 +401,7 @@ void init_net_var()
 	ntp_session_timeout = opt_internal_double("ntp_session_timeout");
 	rpc_timeout = opt_internal_double("rpc_timeout");
 
-	net_stats = internal_type("net_stats")->AsRecordType();
-
 	watchdog_interval = int(opt_internal_double("watchdog_interval"));
-	heartbeat_interval = opt_internal_double("heartbeat_interval");
 
 	max_timer_expires = opt_internal_int("max_timer_expires");
 	max_remote_events_processed =

@@ -34,6 +34,8 @@ export {
 	
 	## These are values representing actions that can be taken with notices.
 	type Action: enum {
+		## Indicates that there is no action to be taken.
+		ACTION_NONE,
 		## Indicates that the notice should be sent to the notice file.
 		ACTION_FILE,
 		## Indicates that the notice should be alarmed on.
@@ -54,9 +56,6 @@ export {
 		## Indicates that the notice should be sent to the pager email address
 		## configured in the :bro:id:`mail_page_dest` variable.
 		ACTION_PAGE,
-		## Indicates that no more actions should be found after the policy 
-		## item returning this matched.
-		ACTION_STOP,
 	};
 	
 	type Info: record {
@@ -99,6 +98,12 @@ export {
 		## TODO: there is a problem setting a &default=set() attribute
 		##       for sets containing enum values.
 		actions:        set[Notice::Action] &log &optional;
+		
+		## By adding chunks of text into this element, other scripts can
+		## expand on notices that being emailed.  The normal way to add text
+		## is to extend the vector by handling the :bro:id:`Notice::notice`
+		## event and modifying the notice in place.
+		email_body_sections:  vector of string &default=vector();
 	};
 	
 	## Ignored notice types.
@@ -112,21 +117,23 @@ export {
 		## from highest value (10) to lowest value (0).
 		priority: count                            &log &default=5;
 		## An action given to the notice if the predicate return true.
-		result:   Notice::Action                   &log &default=ACTION_FILE;
+		result:   Notice::Action                   &log &default=ACTION_NONE;
 		## The pred (predicate) field is a function that returns a boolean T 
 		## or F value.  If the predicate function return true, the action in 
 		## this record is applied to the notice that is given as an argument 
 		## to the predicate function.
 		pred:     function(n: Notice::Info): bool;
+		## Indicates this item should terminate policy processing if the 
+		## predicate returns T.
+		halt:     bool                             &log &default=F;
 	};
 	
 	# This is the :bro:id:`Notice::policy` where the local notice conversion 
 	# policy is set.
 	const policy: set[Notice::PolicyItem] = {
-		[$pred(n: Notice::Info) = { return (n$note in ignored_types); },
-		 $result = ACTION_STOP,
-		 $priority = 10],
-		[$pred(n: Notice::Info) = { return (n$note in emailed_types); },
+		[$pred(n: Notice::Info) = { return (n$note in Notice::ignored_types); },
+		 $halt=T, $priority = 10],
+		[$pred(n: Notice::Info) = { return (n$note in Notice::emailed_types); },
 		 $result = ACTION_EMAIL,
 		 $priority = 9],
 		[$pred(n: Notice::Info) = { return T; },
@@ -165,7 +172,7 @@ export {
 	## Call this function to send a notice in an email.  It is already used
 	## by default with the built in :bro:enum:`ACTION_EMAIL` and
 	## :bro:enum:`ACTION_PAGE` actions.
-	global email_notice_to: function(n: Info, dest: string);
+	global email_notice_to: function(n: Info, dest: string, extend: bool);
 	
 	## This is an internally used function, please ignore it.  It's only used
 	## for filling out missing details of :bro:type:`Notice:Info` records
@@ -216,16 +223,25 @@ event bro_init()
 #	return tgs;
 #	}
 
-function email_notice_to(n: Notice::Info, dest: string)
+function email_notice_to(n: Notice::Info, dest: string, extend: bool)
 	{
 	if ( reading_traces() || dest == "" )
 		return;
+	
+	# The notice emails always start off with the human readable message.
+	local email_text = n$msg;
+	if ( extend )
+		{
+		email_text = cat(email_text, "\n\n------------------\n");
+		for ( i in n$email_body_sections )
+			email_text = cat(email_text, n$email_body_sections[i]);
+		}
 	
 	# The contortions here ensure that the arguments to the mail
 	# script will not be confused.  Re-evaluate if 'system' is reworked.
 	local mail_cmd =
 		fmt("echo \"%s\" | %s -s \"[Bro Alarm] %s\" %s",
-			str_shell_escape(n$msg), mail_script, n$note, dest);
+			str_shell_escape(email_text), mail_script, n$note, dest);
 
 	system(mail_cmd);
 	}
@@ -249,7 +265,8 @@ function apply_policy(n: Notice::Info)
 
 	if ( n?$conn )
 		{
-		n$uid = n$conn$uid;
+		if ( ! n?$uid )
+			n$uid = n$conn$uid;
 		if ( ! n?$id )
 			n$id = n$conn$id;
 		}
@@ -280,12 +297,12 @@ function apply_policy(n: Notice::Info)
 		{
 		if ( ordered_policy[i]$pred(n) )
 			{
-			# If the predicate 
+			# If the predicate matched, the result of the PolicyItem is added
+			# to the notices actions.
 			add n$actions[ordered_policy[i]$result];
 			
-			# This is the one special case for notice actions because it's
-			# acting as a stopper to the notice policy evaluation.
-			if ( ordered_policy[i]$result == ACTION_STOP )
+			# If the policy item wants to halt policy processing, do it now!
+			if ( ordered_policy[i]$halt )
 				break;
 			}
 		}
@@ -294,36 +311,32 @@ function apply_policy(n: Notice::Info)
 event notice(n: Notice::Info) &priority=-5
 	{
 	if ( ACTION_EMAIL in n$actions )
-		email_notice_to(n, mail_dest);
+		email_notice_to(n, mail_dest, T);
 	
 	if ( ACTION_PAGE in n$actions )
-		email_notice_to(n, mail_page_dest);
+		email_notice_to(n, mail_page_dest, F);
 	
 	if ( |Site::local_admins| > 0 )
 		{
 		local email = "";
-		if ( ACTION_EMAIL_ADMIN_ORIG in n$actions )
+		if ( n?$src && ACTION_EMAIL_ADMIN_ORIG in n$actions )
 			{
-			if ( n?$src )
-				{
-				email = Site::get_emails(n$src);
-				if ( email != "" )
-					email_notice_to(n, email);
-				}
+			email = Site::get_emails(n$src);
+			if ( email != "" )
+				email_notice_to(n, email, T);
 			}
 	
-		if ( ACTION_EMAIL_ADMIN_RESP in n$actions )
+		if ( n?$dst && ACTION_EMAIL_ADMIN_RESP in n$actions )
 			{
-			if ( n?$dst )
-				{
-				email = Site::get_emails(n$dst);
-				if ( email != "" )
-					email_notice_to(n, email);
-				}
+			email = Site::get_emails(n$dst);
+			if ( email != "" )
+				email_notice_to(n, email, T);
 			}
 		}
 	
-	
+	if ( ACTION_FILE in n$actions )
+		Log::write(Notice::NOTICE, n);
+		
 	# Add the tag to the connection's notice_tags if there is a connection.
 	# TODO: figure out how to move this to the conn scripts.  This shouldn't
 	#       cause protocols/conn to be a dependency.
@@ -333,13 +346,6 @@ event notice(n: Notice::Info) &priority=-5
 			n$conn$conn$notice_tags = set();
 		add n$conn$conn$notice_tags[n$tag];
 		}
-	
-	Log::write(Notice::NOTICE, n);
-	
-@ifdef ( IDMEF_support )
-	if ( n?$id )
-		generate_idmef(n$id$orig_h, n$id$orig_p, n$id$resp_h, n$id$resp_p);
-@endif
 	}
 	
 # Create the ordered notice policy automatically which will be used at runtime 

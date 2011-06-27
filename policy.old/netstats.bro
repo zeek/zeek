@@ -6,29 +6,27 @@ redef enum Notice += {
 	DroppedPackets,	# Bro reported packets dropped by the packet filter
 };
 
-global last_stat: net_stats;
-global last_stat_time: time;
-global have_stats = F;
+const stats_collection_interval = 10secs;
 
-event net_stats_update(t: time, ns: net_stats)
+event net_stats_update(last_stat: NetStats)
 	{
-	if ( have_stats )
+	local ns = net_stats();
+	local new_dropped = ns$pkts_dropped - last_stat$pkts_dropped;
+	if ( new_dropped > 0 )
 		{
-		local new_dropped = ns$pkts_dropped - last_stat$pkts_dropped;
-		if ( new_dropped > 0 )
-			{
-			local new_recvd = ns$pkts_recvd - last_stat$pkts_recvd;
-			local new_link = ns$pkts_link - last_stat$pkts_link;
-			NOTICE([$note=DroppedPackets,
-				$msg=fmt("%d packets dropped after filtering, %d received%s",
-					new_dropped, new_recvd + new_dropped,
-					new_link != 0 ?
-						fmt(", %d on link", new_link) : "")]);
-			}
+		local new_recvd = ns$pkts_recvd - last_stat$pkts_recvd;
+		local new_link = ns$pkts_link - last_stat$pkts_link;
+		NOTICE([$note=DroppedPackets,
+			$msg=fmt("%d packets dropped after filtering, %d received%s",
+				new_dropped, new_recvd + new_dropped,
+				new_link != 0 ?
+					fmt(", %d on link", new_link) : "")]);
 		}
-	else
-		have_stats = T;
+	
+	schedule stats_collection_interval { net_stats_update(ns) };
+	}
 
-	last_stat = ns;
-	last_stat_time = t;
+event bro_init()
+	{
+	schedule stats_collection_interval { net_stats_update(net_stats()) };
 	}

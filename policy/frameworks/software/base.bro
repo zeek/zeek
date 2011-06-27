@@ -237,18 +237,24 @@ function parse(unparsed_version: string,
 		# and software name.
 		local version_parts = split_n(unparsed_version, /\/?( [\(])?v?[0-9\-\._, ]{2,}/, T, 1);
 		if ( 1 in version_parts )
-			software_name = strip(version_parts[1]);
+			{
+			if ( /^\(/ in version_parts[1] )
+				software_name = strip(sub(version_parts[1], /[\(]/, ""));
+			else
+				software_name = strip(version_parts[1]);
+			}
 		if ( |version_parts| >= 2 )
 			{
 			# Remove the name/version separator if it's left at the beginning
 			# of the version number from the previous split_all.
 			local sv = strip(version_parts[2]);
 			if ( /^[\/\-\._v\(]/ in sv )
-			 	sv = strip(sub(version_parts[2], /^\(?[\/\-\._v]/, ""));
+				sv = strip(sub(version_parts[2], /^\(?[\/\-\._v\(]/, ""));
 			local version_numbers = split_n(sv, /[\-\._,\[\(\{ ]/, F, 3);
 			if ( 4 in version_numbers && version_numbers[4] != "" )
 				v$addl = strip(version_numbers[4]);
-			else if ( 3 in version_parts && version_parts[3] != "" )
+			else if ( 3 in version_parts && version_parts[3] != "" &&
+			          version_parts[3] != ")" )
 				{
 				if ( /^[[:blank:]]*\([a-zA-Z0-9\-\._[:blank:]]*\)/ in version_parts[3] )
 					{

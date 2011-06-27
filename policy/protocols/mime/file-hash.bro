@@ -73,6 +73,6 @@ event mime_end_entity(c: connection) &priority=-3
 		c$mime$md5 = md5_hash_finish(c$id);
 		
 		NOTICE([$note=MD5, $msg=fmt("Calculated a hash for a MIME entity from %s", c$id$orig_h),
-		        $sub=c$http$md5, $conn=c]);
+		        $sub=c$mime$md5, $conn=c]);
 		}
 	}

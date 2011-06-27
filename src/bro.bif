@@ -14,6 +14,7 @@
 using namespace std;
 
 RecordType* ftp_port;
+RecordType* net_stats;
 RecordType* bro_resources;
 RecordType* matcher_stats;
 TableType* var_sizes;
@@ -1470,6 +1471,31 @@ function bytestring_to_hexstr%(bytestring: string%): string
 %%{
 extern const char* bro_version();
 %%}
+
+function net_stats%(%): NetStats
+	%{
+	unsigned int recv = 0;
+	unsigned int drop = 0;
+	unsigned int link = 0;
+
+	loop_over_list(pkt_srcs, i)
+		{
+		PktSrc* ps = pkt_srcs[i];
+
+		struct PktSrc::Stats stat;
+		ps->Statistics(&stat);
+		recv += stat.received;
+		drop += stat.dropped;
+		link += stat.link;
+		}
+
+	RecordVal* ns = new RecordVal(net_stats);
+	ns->Assign(0, new Val(recv, TYPE_COUNT));
+	ns->Assign(1, new Val(drop, TYPE_COUNT));
+	ns->Assign(2, new Val(link, TYPE_COUNT));
+
+	return ns;
+	%}
 
 function resource_usage%(%): bro_resources
 	%{

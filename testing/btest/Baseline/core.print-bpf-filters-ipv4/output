@@ -1,4 +1,8 @@
-not ip6
-not ip6
-(not ip6) and (tcp[13] & 7 != 0)
-port 42
+# ts	node	filter	init	success
+1308602779.63662	-	not ip6	F	T
+# ts	node	filter	init	success
+1308602779.68967	-	(tcp port 22) and (not ip6)	F	T
+# ts	node	filter	init	success
+1308602779.73049	-	port 42	F	T
+# ts	node	filter	init	success
+1308602779.77495	-	port 56730	T	T

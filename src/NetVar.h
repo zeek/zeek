@@ -23,10 +23,7 @@ extern EnumType* transport_proto;
 extern TableType* string_set;
 extern TableType* count_set;
 
-extern RecordType* net_stats;
-
 extern int watchdog_interval;
-extern double heartbeat_interval;
 
 extern int max_timer_expires;
 extern int max_remote_events_processed;
@@ -245,7 +242,6 @@ extern int dump_used_event_handlers;
 extern int suppress_local_output;
 
 extern double timer_mgr_inactivity_timeout;
-extern double expected_connection_timeout;
 
 extern int time_machine_profiling;
 

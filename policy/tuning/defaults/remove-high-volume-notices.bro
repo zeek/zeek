@@ -4,7 +4,7 @@
 @load notice
 
 # Load the policy scripts where the notices are defined.
-@load weird
+@load frameworks/notice/weird
 @load dpd
 
 # Remove these notices from logging since they can be too noisy.

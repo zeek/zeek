@@ -11,12 +11,11 @@
 #@load ssl
 @load syslog
 
-@load communication
+#@load communication
 @load metrics
 @load notice
 @load signatures
 @load software
-@load weird 
 
 @load detectors/http-MHR
 

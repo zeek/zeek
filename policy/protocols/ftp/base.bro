@@ -20,26 +20,22 @@ export {
 
 	## This setting changes if passwords used in FTP sessions are captured or not.
 	const default_capture_password = F &redef;
-
-	type Tag: enum {
-		UNKNOWN
-	};
 	
 	type Info: record {
-		ts:               time      &log;
-		uid:              string    &log;
-		id:               conn_id   &log;
-		user:             string    &log &default="<unknown>";
-		password:         string    &log &optional;
-		command:          string    &log &optional;
-		arg:              string    &log &optional;
-		
-		mime_type:        string    &log &optional;
-		mime_desc:        string    &log &optional;
-		file_size:        count     &log &optional;
-		reply_code:       count     &log &optional;
-		reply_msg:        string    &log &optional;
-		tags:             set[Tag]  &log &default=set();
+		ts:               time        &log;
+		uid:              string      &log;
+		id:               conn_id     &log;
+		user:             string      &log &default="<unknown>";
+		password:         string      &log &optional;
+		command:          string      &log &optional;
+		arg:              string      &log &optional;
+		                              
+		mime_type:        string      &log &optional;
+		mime_desc:        string      &log &optional;
+		file_size:        count       &log &optional;
+		reply_code:       count       &log &optional;
+		reply_msg:        string      &log &optional;
+		tags:             set[string] &log &default=set();
 		
 		## By setting the CWD to '/.', we can indicate that unless something
 		## more concrete is discovered that the existing but unknown

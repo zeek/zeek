@@ -30,6 +30,7 @@ export {
 
 redef record connection += {
 	known_services_done: bool &default=F;
+	known_services_watch: bool &default=F;
 };
 
 event bro_init()
@@ -64,9 +65,15 @@ event protocol_confirmation(c: connection, atype: count, aid: count) &priority=-
 	{
 	known_services_done(c);
 	}
+	
+event connection_establihsed(c: connection)
+	{
+	c$known_services_watch=T;
+	}
 
 # Handle the connection ending in case no protocol was ever detected.
 event connection_state_remove(c: connection) &priority=-5
 	{
-	known_services_done(c);
+	if ( c$known_services_watch )
+		known_services_done(c);
 	}

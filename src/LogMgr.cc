@@ -790,13 +790,14 @@ bool LogMgr::AddFilter(EnumVal* id, RecordVal* fval)
 
 	else
 		{
-		// If no path is given, use the Stream ID's namespace as the default
-		// if it has one, and it ID itself otherwise.
+		// If no path is given, use the Stream ID as the default but
+		// strip the namespace.
 		const char* s = stream->name.c_str();
-		const char* e = strstr(s, "::");
+		const char* e = s + strlen(s);
 
-		if ( ! e )
-			e = s + strlen(s);
+		const char* t = strstr(s, "::");
+		if ( t )
+			s = t + 2;
 
 		string path(s, e);
 		std::transform(path.begin(), path.end(), path.begin(), ::tolower);

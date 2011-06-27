@@ -9,7 +9,7 @@ module DPD;
 redef signature_files += "dpd/dpd.sig";
 
 export {
-	redef enum Log::ID += { DPD_LOG };
+	redef enum Log::ID += { DPD };
 
 	type Info: record {
 		ts:             time            &log;
@@ -27,7 +27,7 @@ redef record connection += {
 
 event bro_init()
 	{
-	Log::create_stream(DPD_LOG, [$columns=Info]);
+	Log::create_stream(DPD, [$columns=Info]);
 	
 	for ( a in dpd_config )
 		{
@@ -68,5 +68,5 @@ event protocol_violation(c: connection, atype: count, aid: count,
 event protocol_violation(c: connection, atype: count, aid: count,
 				reason: string) &priority=-5
 	{
-	Log::write(DPD_LOG, c$dpd);
+	Log::write(DPD, c$dpd);
 	}

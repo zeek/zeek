@@ -83,7 +83,7 @@ event mime_one_header(c: connection, h: mime_header_rec)
 	{
 	if ( h$name == "CONTENT-DISPOSITION" &&
 	          /[fF][iI][lL][eE][nN][aA][mM][eE]/ in h$value )
-		c$mime$filename = sub(h$value, /^.*[fF][iI][lL][eE][nN][aA][mM][eE]=\"?/, "");
+		c$mime$filename = sub(h$value, /^.*[fF][iI][lL][eE][nN][aA][mM][eE]=/, "");
 	}
 	
 event mime_end_entity(c: connection) &priority=-5
@@ -92,8 +92,10 @@ event mime_end_entity(c: connection) &priority=-5
 	# mime_end_entity can be generated multiple times for the same event.
 	if ( ! c?$mime )
 		return;
-		
-	Log::write(MIME, c$mime);
+	
+	# Don't log anything if there wasn't any content.
+	if ( c$mime$content_len > 0 )
+		Log::write(MIME, c$mime);
 	
 	delete c$mime;
 	}

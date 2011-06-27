@@ -242,7 +242,6 @@ extern int dump_used_event_handlers;
 extern int suppress_local_output;
 
 extern double timer_mgr_inactivity_timeout;
-extern double expected_connection_timeout;
 
 extern int time_machine_profiling;
 

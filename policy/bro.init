@@ -1443,9 +1443,6 @@ global dpd_analyzer_ports: table[port] of set[AnalyzerTag];
 # Per-incident timer managers are drained after this amount of inactivity.
 const timer_mgr_inactivity_timeout = 1 min &redef;
 
-# Time-out for expected connections.
-const expected_connection_timeout = 5 min &redef;
-
 # If true, output profiling for time-machine queries.
 const time_machine_profiling = F &redef;
 

@@ -30,6 +30,7 @@ export {
 
 redef record connection += {
 	known_services_done: bool &default=F;
+	known_services_watch: bool &default=F;
 };
 
 event bro_init()
@@ -45,8 +46,7 @@ function known_services_done(c: connection)
 	     get_port_transport_proto(id$resp_p) == tcp &&
 	     addr_matches_host(id$resp_h, asset_tracking) &&
 	     [id$resp_h, id$resp_p] !in known_services &&
-	     "ftp-data" !in c$service && # don't include ftp data sessions
-	     (c$state == "SF" || c$state == "S1") ) 
+	     "ftp-data" !in c$service ) # don't include ftp data sessions
 		{
 		local i: Info;
 		i$ts=c$start_time;
@@ -65,9 +65,15 @@ event protocol_confirmation(c: connection, atype: count, aid: count) &priority=-
 	{
 	known_services_done(c);
 	}
+	
+event connection_establihsed(c: connection)
+	{
+	c$known_services_watch=T;
+	}
 
 # Handle the connection ending in case no protocol was ever detected.
 event connection_state_remove(c: connection) &priority=-5
 	{
-	known_services_done(c);
+	if ( c$known_services_watch )
+		known_services_done(c);
 	}

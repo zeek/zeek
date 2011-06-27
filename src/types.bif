@@ -160,6 +160,7 @@ module Log;
 enum Writer %{
 	WRITER_DEFAULT,
 	WRITER_ASCII,
+	WRITER_DATASERIES,
 %}
 
 enum ID %{

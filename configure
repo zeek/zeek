@@ -91,6 +91,7 @@ append_cache_entry POLICYDIR            STRING /usr/local/bro/share/bro
 append_cache_entry ENABLE_DEBUG         BOOL   false
 append_cache_entry BROv6                BOOL   false
 append_cache_entry ENABLE_PERFTOOLS     BOOL   false
+append_cache_entry ENABLE_DATASERIES	BOOL   false
 append_cache_entry BinPAC_SKIP_INSTALL  BOOL   true
 append_cache_entry BUILD_SHARED_LIBS    BOOL   true
 append_cache_entry INSTALL_AUX_TOOLS    BOOL   true
@@ -138,6 +139,9 @@ while [ $# -ne 0 ]; do
         --enable-perftools)
             append_cache_entry ENABLE_PERFTOOLS     BOOL   true
             ;;
+		--enable-dataseries)
+			append_cache_entry ENABLE_DATASERIES	BOOL   true
+			;;
         --disable-broccoli)
             append_cache_entry INSTALL_BROCCOLI     BOOL   false
             ;;
@@ -193,6 +197,12 @@ while [ $# -ne 0 ]; do
             append_cache_entry PYTHON_INCLUDE_DIR   PATH    $optarg
             append_cache_entry PYTHON_INCLUDE_PATH  PATH    $optarg
             ;;
+		--with-dataseries=*)
+			append_cache_entry DataSeries_ROOT_DIR PATH $optarg
+			;;
+		--with-lintel=*)
+			append_cache_entry Lintel_ROOT_DIR PATH $optarg
+			;;
         --with-swig=*)
             append_cache_entry SWIG_EXECUTABLE      PATH    $optarg
             ;;

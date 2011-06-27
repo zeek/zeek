@@ -74,3 +74,8 @@ const set_separator: string;
 const empty_field: string;
 const unset_field: string;
 
+module LogDataSeries;
+const ds_compression: string;
+const ds_extent_rows: count;
+const ds_dump_schema: bool;
+

@@ -8,23 +8,33 @@
 #include "NetVar.h"
 #include "Net.h"
 
-#include "LogWriterAscii.h"
-
 // Structure describing a log writer type.
 struct LogWriterDefinition {
 	bro_int_t type;			// The type.
 	const char *name;		// Descriptive name for error messages.
 	bool (*init)();			// An optional one-time initialization function.
 	LogWriter* (*factory)();	// A factory function creating instances.
+	LogWriterDefinition()
+	: type(0), name("UnintializedLogWriter"), init(NULL), factory(NULL) { }
+	LogWriterDefinition(const bro_int_t t, const char *n, LogWriter* (*f)())
+	: type(t), name(n), init(NULL), factory(f) { }
+	LogWriterDefinition(const bro_int_t t, const char *n, bool (*i)(), LogWriter* (*f)())
+	: type(t), name(n), init(i), factory(f) { }
 };
 
+static int writer_count = 1;
+LogWriterDefinition *log_writers = NULL;
+
+/*
 // Static table defining all availabel log writers.
 LogWriterDefinition log_writers[] = {
 	{ BifEnum::Log::WRITER_ASCII, "Ascii", 0, LogWriterAscii::Instantiate },
+	{ BifEnum::Log::WRITER_DATASERIES, "DataSeries", 0, LogWriterDS::Instantiate },
 
 	// End marker, don't touch.
 	{ BifEnum::Log::WRITER_DEFAULT, "None", 0, (LogWriter* (*)())0 }
 };
+*/
 
 struct LogMgr::Filter {
 	string name;
@@ -409,6 +419,19 @@ LogMgr::Stream::~Stream()
 		delete *f;
 	}
 
+
+LogWriterRegistrar::LogWriterRegistrar(const bro_int_t type, const char *name, 
+							bool(*init)(), LogWriter* (*factory)())
+	{
+		LogMgr::RegisterWriter(type, name, init, factory);
+	}
+
+LogWriterRegistrar::LogWriterRegistrar(const bro_int_t type, const char *name, 
+							LogWriter* (*factory)())
+	{
+		LogMgr::RegisterWriter(type, name, NULL, factory);
+	}
+
 LogMgr::LogMgr()
 	{
 	}
@@ -417,6 +440,29 @@ LogMgr::~LogMgr()
 	{
 	for ( vector<Stream *>::iterator s = streams.begin(); s != streams.end(); ++s )
 		delete *s;
+	}
+
+void LogMgr::RegisterWriter(const bro_int_t type, const char *name,
+								  bool (*init)(), LogWriter* (*factory)())
+	{
+	if(NULL == log_writers)
+		{
+			writer_count = 2;  // NULL terminator + 1
+			log_writers = new LogWriterDefinition[writer_count];
+			log_writers[0] = LogWriterDefinition(type, name, init, factory);
+			log_writers[1] = LogWriterDefinition(BifEnum::Log::WRITER_DEFAULT, "None", NULL);
+		}
+	else
+		{
+			LogWriterDefinition *t_writers = new LogWriterDefinition[writer_count + 1];
+			for(int i = 0; i < writer_count; ++i)
+				t_writers[i+1] = log_writers[i];
+			t_writers[0] = LogWriterDefinition(type, name, init, factory);
+			delete[] log_writers;
+			log_writers = t_writers;
+			++writer_count;
+		}
+	// printf("Registered writer: %s\n", (name == NULL) ? "(null)" : name);
 	}
 
 LogMgr::Stream* LogMgr::FindStream(EnumVal* id)
@@ -1126,7 +1172,7 @@ LogWriter* LogMgr::CreateWriter(EnumVal* id, EnumVal* writer, string path,
 		{
 		if ( ld->type == BifEnum::Log::WRITER_DEFAULT )
 			{
-			run_time("unknow writer when creating writer");
+			run_time("unknown writer when creating writer");
 			return 0;
 			}
 

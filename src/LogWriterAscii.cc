@@ -263,4 +263,6 @@ bool LogWriterAscii::DoSetBuf(bool enabled)
 	return true;
 	}
 
+// Register the ASCII logger so that Bro can use it.
+static LogWriterRegistrar __register_logger(BifEnum::Log::WRITER_ASCII, "Ascii", LogWriterAscii::Instantiate);
 

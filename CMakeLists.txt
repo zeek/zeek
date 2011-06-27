@@ -150,6 +150,27 @@ if (ENABLE_PERFTOOLS)
     endif ()
 endif ()
 
+set(USE_DATASERIES false)
+if (ENABLE_DATASERIES)
+	find_package(Lintel)
+	if (LINTEL_FOUND)
+		find_package(DataSeries)
+		if (DATASERIES_FOUND)
+			find_package(LibXML)
+			if(LIBXML_FOUND)
+				set(USE_DATASERIES true)
+				include_directories(BEFORE ${Lintel_INCLUDE_DIR})
+				include_directories(BEFORE ${DataSeries_INCLUDE_DIR})
+				include_directories(BEFORE ${LibXML_INCLUDE_DIR})
+				list(APPEND OPTLIBS ${Lintel_LIBRARIES})
+				list(APPEND OPTLIBS ${DataSeries_LIBRARIES})
+				list(APPEND OPTLIBS ${LibXML_LIBRARIES})
+			endif()
+		endif()
+	endif()
+endif()
+
+
 ########################################################################
 ## System Introspection
 
@@ -237,6 +258,7 @@ message(
     "\nlibz:              ${HAVE_LIBZ}"
     "\nlibmagic:          ${HAVE_LIBMAGIC}"
     "\nGoogle perftools:  ${USE_PERFTOOLS}"
+    "\nDataSeries:        ${USE_DATASERIES}"
     "\n"
     "\n================================================================\n"
 )

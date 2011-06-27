@@ -243,6 +243,10 @@ if (USE_NMALLOC)
     set(malloc_SRCS malloc.c)
 endif ()
 
+if (USE_DATASERIES)
+	set(dataseries_SRCS LogWriterDS.cc)
+endif ()
+
 set(bro_SRCS
     ${CMAKE_CURRENT_BINARY_DIR}/version.c
     ${BIF_SRCS}
@@ -403,6 +407,7 @@ set(bro_SRCS
     ${dns_SRCS}
     ${malloc_SRCS}
     ${openssl_SRCS}
+	${dataseries_SRCS}
 )
 
 collect_headers(bro_HEADERS ${bro_SRCS})

@@ -8,6 +8,7 @@
 #include "Val.h"
 #include "EventHandler.h"
 #include "RemoteSerializer.h"
+#include "LogWriter.h"
 
 class SerializationFormat;
 
@@ -66,10 +67,32 @@ class LogWriter;
 class RemoteSerializer;
 class RotationTimer;
 
+class LogWriterRegistrar {
+public:
+	LogWriterRegistrar(const bro_int_t type, const char *name, 
+							bool(*init)(), LogWriter* (*factory)());
+	LogWriterRegistrar(const bro_int_t type, const char *name, 
+							LogWriter* (*factory)());
+};
+
 class LogMgr {
 public:
 	LogMgr();
 	~LogMgr();
+
+	/**
+	 *  Registers a new log writer so that scripts can use it.
+	 *
+	 *  This function modifies the shared log_writers object; it is therefore *not*
+	 *  thread-safe.
+	 *
+	 *  @param type BifEnum::Log::WRITER_NAME
+	 *  @param name Common name of this writer (e.g. "ASCII") 
+	 *  @param init Function to call (once!) before *any* instances are built
+	 *  @param factory Function used to instantiate this type of LogWriter (probably MyLogClass::Instantiate) 
+	*/
+	static void RegisterWriter(const bro_int_t type, const char *name,
+								  bool (*init)(), LogWriter* (*factory)());
 
 	// These correspond to the BiFs visible on the scripting layer. The
 	// actual BiFs just forward here.
@@ -82,6 +105,7 @@ public:
 	bool Write(EnumVal* id, RecordVal* columns);
 	bool SetBuf(EnumVal* id, bool enabled);	// Adjusts all writers.
 	bool Flush(EnumVal* id);		// Flushes all writers..
+	
 
 protected:
 	friend class LogWriter;

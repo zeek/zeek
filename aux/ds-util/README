@@ -1,0 +1,10 @@
+These tools are meant to be proof-of-concept; there is some commenting / useful arguments in there, but there's a lot of documentation left to do.
+
+Also, note that "-" (NULL values) in the log file are converted to '0' when output to DataSeries.  Once I figure out how to write NULL values, this will be corrected.
+
+Anyway:
+
+bro2ds.sh -- Converts a bro logfile to a DS data file.  Use '-h' to see options, etc.
+bro2csv.py -- Converts a bro logfile to a CSV file suitable for import into DataSeries (via csv2ds).  Called by bro2ds.sh; see that script for sample usage.
+
+--gclark, 6/27/2011

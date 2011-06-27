@@ -45,7 +45,8 @@ function known_services_done(c: connection)
 	     get_port_transport_proto(id$resp_p) == tcp &&
 	     addr_matches_host(id$resp_h, asset_tracking) &&
 	     [id$resp_h, id$resp_p] !in known_services &&
-	     "ftp-data" !in c$service ) # don't include ftp data sessions
+	     "ftp-data" !in c$service && # don't include ftp data sessions
+	     (c$state == "SF" || c$state == "S1") ) 
 		{
 		local i: Info;
 		i$ts=c$start_time;

@@ -2,7 +2,7 @@
 ##!
 ##! Notices raised:
 ##!
-##!   * :bro:enum:`DNS::DNS_ExternalName`
+##!   * :bro:enum:`DNS::ExternalName`
 ##!
 ##!     A remote host resolves to a local host, but the name is not considered
 ##!     to be within a local zone.  :bro:id:`local_zones` variable **must**
@@ -18,7 +18,7 @@ export {
 		## Raised when a non-local name is found to be pointing at a local host.
 		## This only works appropriately when all of your authoritative DNS
 		## servers are located in your :bro:id:`Site::local_nets`.
-		DNS_ExternalName, 
+		ExternalName, 
 		};
 }
 
@@ -33,7 +33,7 @@ event dns_A_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr) &priori
 	     !Site::is_local_addr(c$id$resp_h) && # response from an external nameserver
 	     !Site::is_local_name(ans$query) )    # name isn't in a local zone.
 		{
-		NOTICE([$note=DNS_ExternalName,
+		NOTICE([$note=ExternalName,
 		        $msg=fmt("%s is pointing to a local host - %s.", ans$query, a),
 		        $conn=c]);
 		}

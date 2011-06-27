@@ -4,6 +4,7 @@
 #define LOGWRITERDS_H
 
 #include <DataSeries/ExtentType.hpp>
+#include <DataSeries/GeneralField.hpp>
 #include <DataSeries/DataSeriesFile.hpp>
 #include <DataSeries/DataSeriesModule.hpp>
 #include "LogWriter.h"
@@ -27,7 +28,7 @@ protected:
 	virtual void DoFinish();
 
 private:
-	typedef std::map<string, Field *> ExtentMap;
+	typedef std::map<string, GeneralField *> ExtentMap;
 	typedef ExtentMap::iterator ExtentIterator;
 	bool IsSpecial(string path) 	{ return path.find("/dev/") == 0; }
 	bool DoWriteOne(ODesc* desc, LogVal* val, const LogField* field);

@@ -1,3 +1,149 @@
+1.6-dev.146 Sat Jun 25 18:12:27 PDT 2011
+
+- DNS mapping are now becoming invalid when an entry's TTL expires.
+  (Thomas Other)
+
+- Reworking how Bro tracks which scripts are already loaded. Rather
+  than paths, Bro now tracks inode numbers. (Jon Siwek)
+
+- New BiF netstats() to query packet capture statistics. The netstats
+  script now uses the new BiF to periocally report packets drops. The
+  net_stats_update() event and the heartbeat_interval global went
+  away. (Seth Hall)
+
+- Fixing bug with logging &optional records. Closes #476. (Robin
+  Sommer)
+
+- Fixing istate.events-ssl test failing because of expired cert. (Jon
+  Siwek)
+
+- A large number of improvements and fixes for Bro's doc mode. (Jon
+  Siwek)
+
+- Significant updates for RPC and NFS analyzers (Gregor Maier)
+
+    * Unify semantics for UDP and TCP connections.
+
+    * RPC can now log to a log file if desired.
+
+    * Portmapper can now log general activity to a log file and also log
+      actual port mappings.
+
+    * NFS analyzer now supports significantly more procedure calls as
+      as file name tracking and file content extraction.
+
+- NetBIOS fixes. (Jon Siwek)
+
+- A number of unit tests are more robust and portable.  (Jon Siwek)
+
+- A new BiF unique_id() that returns a string that's unique across Bro
+  instaces with high probablity.  (Robin Sommer)
+
+- Complete rewrite of the BinPAC SSL analyzer. (Seth Hall)
+
+    * DER certificates are extracted as strings to be used with
+      corresponding BiFs.
+
+    * x509_verify function to verify single certs and/or full
+      certificate chains.
+
+    * Removed hand written SSL analyzer.
+
+    * The ssl.bro script is just a place-holder for now. New version
+      will come with the other new scripts.
+
+- New syslog analyzer. (Seth Hall)
+
+- @load now supports loading a directory. With a directory "foo"
+  somewhere in BROPATH, "@load foo" now checks if there's a file
+  "foo/__load__.bro". If so, it reads that file in. (Robin Sommer)
+
+- ASCII logger now escapes non-printable characters. Closes #450.
+  (Robin Sommer)
+
+- Packaging tweaks and rewrite of 'dist' target. (Jon Siwek)
+
+- Changes to allow DEB packaging via CPack, addresses #458. (Jon
+  Siwek)
+
+- An extension to the ICMP analyzer to handle redirects. Julien
+  Sentier
+
+- Removing old istate test-suite. (Robin Sommer)
+
+- A hack to report missing GeoIP support only once. This closes #357,
+  but #455 captures the need for a more general solution. (Robin
+  Sommer)
+
+- Bugfix: vectors in records were not initalized. Closes #421. (Robin
+  Sommer)
+
+- If IPv6 default is not compiled in, the default BPF filters now
+  excludes IPv6 packets. (Robin Sommer)
+
+- New bif bro_has_ipv6() to check whether IPv6 support is compiled in.
+  (Robin Sommer)
+
+- Updating btests and a Makefile. "make" now runs all the tests.
+  (Robin Sommer)
+
+- Moving the test-scripts from the old test-suite over to btest.
+  (Robin Sommer)
+
+- Fix for major bug in POP3 analyzer, which didn't recognize '.'
+  terminators in multi-line replies if the terminator was bare (no
+  newline). This caused it to ignore the rest of the session that it's
+  analyzing. (Vern Paxson)
+    
+- Fix compiler warning with gcc-4.4.4 (Gregor Maier)
+  
+- Adding example documentation for a script's use of logging features.
+  (Jon Siwek)
+
+- Adding &log attribute to static attr_names array. (Jon Siwek)
+  
+- Bro can now track packet and byte counts per connection. (Gregor
+  Maier)
+
+    * If 'use_conn_size_analyzer' is true, the event engine tracks
+      number of packets and raw IP bytes per connection. If
+      report_conn_size_analyzer is true, these values are included as
+      four new columns into conn.log
+    
+    * I changed conn.bro so that the value of
+      report_conn_size_analyzer follows that of
+      use_conn_size_analyzer. For the new conn.log, we probably want
+      to get rid of report_conn_size_analyzer anyway.
+
+- Fixing numerous compiler warnings and portability issues. (All)
+
+- Switching vectors from being 1-based to 0-based. Note that this is a
+  change that break backwards-compatibility. (Robin Sommer)
+
+- Increasing serialization format version for the recent 64-bit
+  changes. (Robin Sommer)
+
+- Support for (mixed) MPLS and VLAN traffic, and a new default BPF
+  filter. (Seth Hall and Robin Sommer)
+    
+    - Merging in the patch from #264, which provides support for mixed
+      VLAN and MPLS traffic.
+    
+    - Changing Bro's default filter from being built dynamically to
+      being a static "ip or not ip". To get the old behaviour back
+      (i.e., the dynamically built filter), redef "all_packets" to
+      false.
+    
+    - print-filter.bro now always prints the filter that Bro is
+      actually using, even if overriden from the command line. (Robin
+      Sommer)
+
+- Changing the HTTP's analyzers internals to use 64-bit integers.
+  (Gregor Maier). 
+    
+- Fixing bug with deleting still unset record fields of table type.
+  (Robin Sommer)
+
 1.6-dev.99 Fri Apr 22 22:10:03 PDT 2011
 
 - Extending the connection record with a unique identifier. (Robin

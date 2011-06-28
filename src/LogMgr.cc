@@ -25,17 +25,6 @@ struct LogWriterDefinition {
 static int writer_count = 1;
 LogWriterDefinition *log_writers = NULL;
 
-/*
-// Static table defining all availabel log writers.
-LogWriterDefinition log_writers[] = {
-	{ BifEnum::Log::WRITER_ASCII, "Ascii", 0, LogWriterAscii::Instantiate },
-	{ BifEnum::Log::WRITER_DATASERIES, "DataSeries", 0, LogWriterDS::Instantiate },
-
-	// End marker, don't touch.
-	{ BifEnum::Log::WRITER_DEFAULT, "None", 0, (LogWriter* (*)())0 }
-};
-*/
-
 struct LogMgr::Filter {
 	string name;
 	EnumVal* id;

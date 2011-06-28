@@ -130,7 +130,6 @@ LogWriterDS::LogWriterDS()
  */
 LogWriterDS::~LogWriterDS()
 {
-	fprintf(stderr, "Welcome to the destructor!\n");
 	for(ExtentIterator iter = extents.begin();
 		iter != extents.end(); ++iter)
 		{
@@ -245,19 +244,53 @@ bool LogWriterDS::DoInit(string path, int num_fields,
 		fclose (pFile);
 		}
 	
-    log_types;
+	int compress_type = Extent::compress_all;
+	if(ds_compression == "lzf")
+		{
+		compress_type = Extent::compress_lzf;
+		}
+	else if(ds_compression == "lzo")
+		{
+		compress_type = Extent::compress_lzo;
+		}
+	else if(ds_compression == "gz")
+		{
+		compress_type = Extent::compress_gz;
+		}
+	else if(ds_compression == "bz2")
+		{
+		compress_type = Extent::compress_bz2;
+		}
+	else if(ds_compression == "none")
+		{
+		compress_type = Extent::compress_none;
+		}
+	else
+		{
+		fprintf(stderr, "%s is not a valid compression type.  Valid types are: 'lzf', 'lzo', 'gz', 'bz2', 'none', 'any'\n", ds_compression.c_str());
+		fprintf(stderr, "Defaulting to 'any'\n");
+		}
+
     log_type = const_cast<ExtentType *>(log_types.registerType(schema));
 
 	log_series.setType(*log_type);
-    log_file = new DataSeriesSink(path + ".ds");
+    log_file = new DataSeriesSink(path + ".ds", compress_type);
     log_file->writeExtentLibrary(log_types);
 	
 	for(size_t i = 0; i < typevec.size(); ++i)
 		extents.insert(std::make_pair(namevec[i], GeneralField::create(log_series, namevec[i])));
 
-    log_output = new OutputModule(*log_file, log_series, log_type, 1024);
-
-	fprintf(stderr, "%s opened.  Let's rock!\n", string(path + ".ds").c_str());
+	if(ds_extent_rows < ROW_MIN)
+		{
+			fprintf(stderr, "%d is not a valid value for 'rows'.  Using min of %d instead.\n", ds_extent_rows, (int)ROW_MIN);
+			ds_extent_rows = ROW_MIN;
+		}
+	else if(ds_extent_rows > ROW_MAX)
+		{
+			fprintf(stderr, "%d is not a valid value for 'rows'.  Using max of %d instead.\n", ds_extent_rows, (int)ROW_MAX);
+			ds_extent_rows = ROW_MAX;
+		}
+    log_output = new OutputModule(*log_file, log_series, log_type, ds_extent_rows);
 
 	return true;
 
@@ -300,7 +333,7 @@ bool LogWriterDS::DoWrite(int num_fields, const LogField* const * fields,
 {
 
 	log_output->newRecord();
-	for(int i = 0; i < num_fields; ++i)
+	for(size_t i = 0; i < (size_t)num_fields; ++i)
 		{
 		ExtentIterator iter = extents.find(fields[i]->name);
 		assert(iter != extents.end());

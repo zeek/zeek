@@ -14,6 +14,8 @@ public:
 	LogWriterDS();
 	~LogWriterDS();
 
+	static const size_t ROW_MIN = 2048;
+	static const size_t ROW_MAX = (1024 * 1024 * 100);
 	static LogWriter* Instantiate()	{ return new LogWriterDS; }
 
 protected:

@@ -16,6 +16,8 @@ public:
 
 	static const size_t ROW_MIN = 2048;
 	static const size_t ROW_MAX = (1024 * 1024 * 100);
+	static const size_t THREAD_MIN = 1;
+	static const size_t THREAD_MAX = 128;
 	static LogWriter* Instantiate()	{ return new LogWriterDS; }
 
 protected:
@@ -44,8 +46,10 @@ private:
 
 	// Options set from the script-level.
 	string ds_compression;
-	uint32 ds_extent_rows; 
+	uint64 ds_extent_rows; 
 	bool ds_dump_schema;
+	uint64 ds_num_threads;
 };
 
 #endif
+

@@ -121,6 +121,7 @@ LogWriterDS::LogWriterDS()
 	ds_compression = string((const char *)BifConst::LogDataSeries::ds_compression->Bytes(), BifConst::LogDataSeries::ds_compression->Len());
 	ds_dump_schema = BifConst::LogDataSeries::ds_dump_schema;
 	ds_extent_rows = BifConst::LogDataSeries::ds_extent_rows;
+	ds_num_threads = BifConst::LogDataSeries::ds_num_threads;
 }
 
 /**
@@ -137,7 +138,6 @@ LogWriterDS::~LogWriterDS()
 		}
 	extents.clear();
 	// Don't delete the file before you delete the output, or bad things happen.
-	// ASK ME HOW I KNOW!  *insane laughter*
 	delete log_output;
 	delete log_file;
 }
@@ -223,6 +223,22 @@ static string _BuildDSSchemaFromFieldTypes(const vector<string> types, const vec
 bool LogWriterDS::DoInit(string path, int num_fields,
 			    const LogField* const * fields)
 	{
+	// Note: compressor count must be set *BEFORE* DataSeriesSink is instantiated.
+	if(ds_num_threads < THREAD_MIN && ds_num_threads != 0)
+		{
+		fprintf(stderr, "%d is too few threads!  Using %d instead\n", (int)ds_num_threads, (int)THREAD_MIN);
+		ds_num_threads = THREAD_MIN;
+		}
+	if(ds_num_threads > THREAD_MAX)
+		{
+		fprintf(stderr, "%d is too many threads!  Dropping back to %d\n", (int)ds_num_threads, (int)THREAD_MAX);
+		ds_num_threads = THREAD_MAX;
+		}
+	
+    if(ds_num_threads > 0)
+		{
+		DataSeriesSink::setCompressorCount(ds_num_threads);
+		}
 	vector<string> typevec;
 	vector<string> namevec;
 	for ( int i = 0; i < num_fields; i++ )
@@ -245,6 +261,7 @@ bool LogWriterDS::DoInit(string path, int num_fields,
 		}
 	
 	int compress_type = Extent::compress_all;
+	
 	if(ds_compression == "lzf")
 		{
 		compress_type = Extent::compress_lzf;
@@ -265,6 +282,10 @@ bool LogWriterDS::DoInit(string path, int num_fields,
 		{
 		compress_type = Extent::compress_none;
 		}
+	else if(ds_compression == "any")
+		{
+		compress_type = Extent::compress_all;
+		}
 	else
 		{
 		fprintf(stderr, "%s is not a valid compression type.  Valid types are: 'lzf', 'lzo', 'gz', 'bz2', 'none', 'any'\n", ds_compression.c_str());
@@ -275,19 +296,19 @@ bool LogWriterDS::DoInit(string path, int num_fields,
 
 	log_series.setType(*log_type);
     log_file = new DataSeriesSink(path + ".ds", compress_type);
-    log_file->writeExtentLibrary(log_types);
+	log_file->writeExtentLibrary(log_types);
 	
 	for(size_t i = 0; i < typevec.size(); ++i)
 		extents.insert(std::make_pair(namevec[i], GeneralField::create(log_series, namevec[i])));
 
 	if(ds_extent_rows < ROW_MIN)
 		{
-			fprintf(stderr, "%d is not a valid value for 'rows'.  Using min of %d instead.\n", ds_extent_rows, (int)ROW_MIN);
+			fprintf(stderr, "%d is not a valid value for 'rows'.  Using min of %d instead.\n", (int)ds_extent_rows, (int)ROW_MIN);
 			ds_extent_rows = ROW_MIN;
 		}
 	else if(ds_extent_rows > ROW_MAX)
 		{
-			fprintf(stderr, "%d is not a valid value for 'rows'.  Using max of %d instead.\n", ds_extent_rows, (int)ROW_MAX);
+			fprintf(stderr, "%d is not a valid value for 'rows'.  Using max of %d instead.\n", (int)ds_extent_rows, (int)ROW_MAX);
 			ds_extent_rows = ROW_MAX;
 		}
     log_output = new OutputModule(*log_file, log_series, log_type, ds_extent_rows);

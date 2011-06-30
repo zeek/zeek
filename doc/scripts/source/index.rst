@@ -13,7 +13,6 @@ Contents:
    builtins
    default
    bifs
-   user
    policy/dns-index
    policy/ftp-index
    policy/http-index

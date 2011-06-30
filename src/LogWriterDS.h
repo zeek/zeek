@@ -45,10 +45,10 @@ private:
 	ExtentMap extents; 
 
 	// Options set from the script-level.
-	string ds_compression;
 	uint64 ds_extent_rows; 
-	bool ds_dump_schema;
 	uint64 ds_num_threads;
+	string ds_compression;
+	bool ds_dump_schema;
 };
 
 #endif

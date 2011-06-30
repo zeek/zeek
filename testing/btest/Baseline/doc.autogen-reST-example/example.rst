@@ -29,7 +29,7 @@ each of "columns", "event", "filter" depending on exactly what it's doing.
 
 :Author: Jon Siwek <jsiwek@ncsa.illinois.edu>
 
-:Imports: :doc:`notice </policy/notice>`
+:Imports: :doc:`frameworks/notice/index </policy/frameworks/notice/index>`
 
 Summary
 ~~~~~~~

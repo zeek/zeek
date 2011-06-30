@@ -348,7 +348,7 @@ when	return TOK_WHEN;
 
 	// All we have to do is pretend we've already scanned it.
 	const char* full_filename;
-	FILE* f = search_for_file(new_file, "bro", &full_filename, true);
+	FILE* f = search_for_file(new_file, "bro", &full_filename, true, 0);
 
 	if ( f )
 		{
@@ -537,6 +537,7 @@ static int load_files_with_prefix(const char* orig_file)
 		const char* prefix = prefixes[i];
 
 		const char* full_filename = "<internal error>";
+		const char* bropath_subpath = "<internal error>";
 		FILE* f;
 
 		if ( streq(orig_file, "-") )
@@ -561,7 +562,7 @@ static int load_files_with_prefix(const char* orig_file)
 			else
 				strcpy(new_filename, orig_file);
 
-			f = search_for_file(new_filename, "bro", &full_filename, true);
+			f = search_for_file(new_filename, "bro", &full_filename, true, &bropath_subpath);
 			delete [] new_filename;
 			}
 
@@ -576,6 +577,7 @@ static int load_files_with_prefix(const char* orig_file)
 					{
 					fclose(f);
 					delete [] full_filename;
+					delete [] bropath_subpath;
 					return 0;
 					}
 				}
@@ -621,9 +623,11 @@ static int load_files_with_prefix(const char* orig_file)
 
 			if ( generate_documentation )
 				{
-				current_reST_doc = new BroDoc(orig_file, full_filename);
+				current_reST_doc = new BroDoc(bropath_subpath, full_filename);
 				docs_generated.push_back(current_reST_doc);
 				}
+
+			delete [] bropath_subpath;
 
 			// "orig_file", could be an alias for yytext, which is ephemeral
 			//  and will be zapped after the yy_switch_to_buffer() below.

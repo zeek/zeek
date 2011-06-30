@@ -197,7 +197,7 @@ bool RuleMatcher::ReadFiles(const name_list& files)
 
 	for ( int i = 0; i < files.length(); ++i )
 		{
-		rules_in = search_for_file( files[i], "sig", 0, false);
+		rules_in = search_for_file( files[i], "sig", 0, false, 0);
 		if ( ! rules_in )
 			{
 			error("Can't open signature file", files[i]);

@@ -40,7 +40,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Bro'
-copyright = u'2011, Jon Siwek'
+copyright = u'2011, The Bro Project'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -178,7 +178,7 @@ htmlhelp_basename = 'Brodoc'
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
   ('index', 'Bro.tex', u'Bro Documentation',
-   u'Jon Siwek', 'manual'),
+   u'The Bro Project', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -211,5 +211,5 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'bro', u'Bro Documentation',
-     [u'Jon Siwek'], 1)
+     [u'The Bro Project'], 1)
 ]

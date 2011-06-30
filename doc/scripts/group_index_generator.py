@@ -46,6 +46,16 @@ with open(group_list, 'r') as f_group_list:
                         summary_comments.append(line[(sum_pos+3):])
             #print summary_comments
             group_file = os.path.join(output_dir, group + ".rst")
+            if not os.path.exists(group_file):
+                if not os.path.exists(os.path.dirname(group_file)):
+                    os.makedirs(os.path.dirname(group_file))
+                with open(group_file, 'w') as f_group_file:
+                    title = "Package Index: %s\n" % os.path.dirname(group)
+                    f_group_file.write(title);
+                    for n in range(len(title)):
+                        f_group_file.write("=")
+                    f_group_file.write("\n");
+
             with open(group_file, 'a') as f_group_file:
                 f_group_file.write("\n:doc:`/policy/%s`\n" % doc_names[i])
                 for line in summary_comments:

@@ -93,7 +93,6 @@ void BroDoc::AddImport(const std::string& s)
 		if ( streq(filename, PACKAGE_LOADER) )
 			{
 			// link to the package's index
-			// TODO: check that this works
 			string pkg(subpath);
 			pkg += "/index";
 			imports.push_back(pkg);
@@ -180,7 +179,11 @@ void BroDoc::WriteDocFile() const
 			if ( it != imports.begin() )
 				WriteToDoc(", ");
 
-			WriteToDoc(":doc:`%s </policy/%s>`", it->c_str(), it->c_str());
+			string pretty(*it);
+			size_t pos = pretty.find("/index");
+			if ( pos != std::string::npos && pos + 6 == pretty.size() )
+				pretty = pretty.substr(0, pos);
+			WriteToDoc(":doc:`%s </policy/%s>`", pretty.c_str(), it->c_str());
 			}
 		WriteToDoc("\n");
 		}

@@ -38,15 +38,19 @@ by CMake:
 
     This target removes Sphinx inputs and outputs from the CMake ``build/`` dir.
 
-To schedule a script to be documented, edit ``CMakeLists.txt`` inside this
-directory add a call to the ``rest_target()`` macro.  Calling that macro
-with a group name for the script is optional, but if not given, the only
-link to the script will be in the master TOC tree for all policy scripts.
+To schedule a script to be documented, edit ``DocSourcesList.cmake`` inside
+this directory add a call to the ``rest_target()`` macro.  Calling that macro
+with a group name for the script is optional.  If the group is omitted, the
+only links to the script will be in the master TOC tree for all policy scripts
+as well as the master TOC tree for script packages (derived from the path
+component of the second argument to ``rest_target()``), with the exception
+of ``.bif`` files which are grouped automatically.
 
-When adding a new logical grouping for generated scripts, create a new
-reST document in ``source/<group_name>.rst`` and add some default
+When adding a new logical grouping e.g. "my/group" (groups are allowed
+to contain slashes specifying a path) for generated scripts,
+create a new reST document in ``source/my/group.rst`` and add some default
 documentation for the group.  References to (and summaries of) documents
-associated with the group get appended to this file during the
+associated with the group get appended to this pre-created file during the
 ``make doc`` process.
 
 The Sphinx source tree template in ``source/`` can be modified to add more

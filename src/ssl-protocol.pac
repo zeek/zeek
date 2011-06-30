@@ -737,7 +737,6 @@ refine connection SSL_Conn += {
 
 	function lost_track() : bool
 		%{
-		printf("just lost track!\n");
 		state_ = STATE_TRACK_LOST;
 		return false;
 		%}

@@ -341,7 +341,9 @@ type Alert(rec: SSLRecord) = record {
 # V2 Error Records (SSLv2 2.7.)
 ######################################################################
 
-type V2Error(rec: SSLRecord) = empty &let {
+type V2Error(rec: SSLRecord) = record {
+	data:   bytestring &restofdata &transient;
+} &let {
 	error_code : uint16 = ((rec.head3 << 8) | rec.head4);
 };
 
@@ -352,7 +354,9 @@ type V2Error(rec: SSLRecord) = empty &let {
 
 # Application data should always be encrypted, so we should not
 # reach this point.
-type ApplicationData(rec: SSLRecord) = empty;
+type ApplicationData(rec: SSLRecord) = record {
+	data : bytestring &restofdata &transient;
+};
 
 ######################################################################
 # Handshake Protocol (7.4.)
@@ -550,7 +554,7 @@ type ServerHelloDone(rec: SSLRecord) = empty &let {
 # For now ignore details of ClientKeyExchange (most of it is
 # encrypted anyway); just eat up message.
 type ClientKeyExchange(rec: SSLRecord) = record {
-	key : bytestring &restofdata;
+	key : bytestring &restofdata &transient;
 } &let {
 	state_changed : bool =
 		$context.connection.transition(STATE_SERVER_HELLO_DONE,

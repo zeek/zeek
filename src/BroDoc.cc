@@ -3,9 +3,11 @@
 #include <string>
 #include <list>
 #include <algorithm>
+#include <libgen.h>
 
 #include "BroDoc.h"
 #include "BroDocObj.h"
+#include "util.h"
 
 BroDoc::BroDoc(const std::string& rel, const std::string& abs)
 	{
@@ -16,25 +18,19 @@ BroDoc::BroDoc(const std::string& rel, const std::string& abs)
 	else
 		source_filename = abs.substr(f_pos + 1);
 
-	if ( rel == abs )
+	if ( rel[0] == '/' || rel[0] == '.' )
 		{
-		// The Bro script must have been loaded from an explicit path,
-		// so just use the basename as the document title
+		// The Bro script must not be on a subpath of the policy/ dir of
+		// BROPATH, so just use the basename as the document title.
 		doc_title = source_filename;
 		}
 	else
 		{
-		// Must have relied on BROPATH to load the script, keep the relative
-		// directory as part of the source file name
-		size_t ext_pos = rel.find_last_of('.');
-		std::string rel_ext = rel.substr(ext_pos + 1);
-		ext_pos = abs.find_last_of('.');
-		std::string abs_ext = abs.substr(ext_pos + 1);
-
-		if ( rel_ext == abs_ext || std::string::npos == ext_pos )
-			doc_title = rel;
+		// Keep the relative directory as part of the document title.
+		if ( rel.size() == 0 || rel[rel.size() - 1] == '/' )
+			doc_title = rel + source_filename;
 		else
-			doc_title = rel + "." + abs_ext;
+			doc_title = rel + "/" + source_filename;
 		}
 
 	reST_filename = doc_title;
@@ -60,7 +56,7 @@ BroDoc::BroDoc(const std::string& rel, const std::string& abs)
 
 #ifdef DEBUG
 	fprintf(stdout, "Documenting absolute source: %s\n", abs.c_str());
-	fprintf(stdout, "\trelative load: %s\n", rel.c_str());
+	fprintf(stdout, "\trelative dir: %s\n", rel.c_str());
 	fprintf(stdout, "\tdoc title: %s\n", doc_title.c_str());
 	fprintf(stdout, "\tbro file: %s\n", source_filename.c_str());
 	fprintf(stdout, "\trst file: %s\n", reST_filename.c_str());
@@ -77,12 +73,59 @@ BroDoc::~BroDoc()
 
 void BroDoc::AddImport(const std::string& s)
 	{
-	size_t ext_pos = s.find_last_of('.');
+	std::string lname(s);
+	// First strip any .bro extension.
+	size_t ext_pos = lname.find(".bro");
+	if ( ext_pos != std::string::npos )
+		lname = lname.substr(0, ext_pos);
 
-	if ( ext_pos == std::string::npos )
-		imports.push_back(s);
+	const char* full_filename = "<error>";
+	const char* subpath = "<error>";
+	FILE* f = search_for_file(lname.c_str(), "bro", &full_filename, true,
+	                          &subpath);
+
+	if ( f )
+		{
+		fclose(f);
+
+		char* tmp = copy_string(full_filename);
+		char* filename = basename(tmp);
+		extern char* PACKAGE_LOADER;
+
+		if ( streq(filename, PACKAGE_LOADER) )
+			{
+			// link to the package's index
+			string pkg(subpath);
+			pkg += "/index";
+			imports.push_back(pkg);
+			}
+		else
+			{
+			if ( subpath[0] == '/' || subpath[0] == '.' )
+				{
+				// it's not a subpath of policy/, so just add the name of it
+				// as it's given in the @load directive
+				imports.push_back(lname);
+				}
+			else
+				{
+				// combine the base file name of script in the @load directive
+				// with the subpath of BROPATH's policy/ directory
+				string fname(subpath);
+				char* othertmp = copy_string(lname.c_str());
+				fname.append("/").append(basename(othertmp));
+				imports.push_back(fname);
+				delete [] othertmp;
+				}
+			}
+
+		delete [] tmp;
+		delete [] full_filename;
+		delete [] subpath;
+		}
 	else
-		imports.push_back(s.substr(0, ext_pos));
+		fprintf(stderr, "Failed to document '@load %s' in file: %s\n",
+		        s.c_str(), reST_filename.c_str());
 	}
 
 void BroDoc::SetPacketFilter(const std::string& s)
@@ -138,7 +181,11 @@ void BroDoc::WriteDocFile() const
 			if ( it != imports.begin() )
 				WriteToDoc(", ");
 
-			WriteToDoc(":doc:`%s </policy/%s>`", it->c_str(), it->c_str());
+			string pretty(*it);
+			size_t pos = pretty.find("/index");
+			if ( pos != std::string::npos && pos + 6 == pretty.size() )
+				pretty = pretty.substr(0, pos);
+			WriteToDoc(":doc:`%s </policy/%s>`", pretty.c_str(), it->c_str());
 			}
 		WriteToDoc("\n");
 		}

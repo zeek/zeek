@@ -10,9 +10,12 @@ public:
 	SSL_Analyzer_binpac(Connection* conn);
 	virtual ~SSL_Analyzer_binpac();
 
+	// Overriden from Analyzer.
 	virtual void Done();
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
 	virtual void Undelivered(int seq, int len, bool orig);
+
+	// Overriden from TCP_ApplicationAnalyzer.
 	virtual void EndpointEOF(TCP_Reassembler* endp);
 
 	static Analyzer* InstantiateAnalyzer(Connection* conn)
@@ -25,12 +28,9 @@ public:
 			x509_certificate || x509_extension || x509_error );
 		}
 
-	static bool warnings_generated;
-	static void warn_(const char* msg);
-	static void generate_warnings();
-
 protected:
-	binpac::SSL::SSLAnalyzer* interp;
+	binpac::SSL::SSL_Conn* interp;
+
 };
 
 #endif

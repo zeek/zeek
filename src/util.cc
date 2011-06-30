@@ -26,6 +26,7 @@
 #include <stdarg.h>
 #include <errno.h>
 #include <signal.h>
+#include <libgen.h>
 
 #ifdef HAVE_MALLINFO
 # include <malloc.h>
@@ -881,7 +882,7 @@ const char* bro_prefixes()
 	return p;
 	}
 
-static const char* PACKAGE_LOADER = "__load__.bro";
+const char* PACKAGE_LOADER = "__load__.bro";
 
 // If filename is pointing to a directory that contains a file called
 // PACKAGE_LOADER, returns the files path. Otherwise returns filename itself.
@@ -915,11 +916,73 @@ FILE* open_file(const char* filename, const char** full_filename, bool load_pkgs
 	return f;
 	}
 
+// Returns the subpath of BROPATH's policy/ directory in which the loaded
+// file in located.  If it's not under a subpath of policy/ then the full
+// path is returned, else the subpath of policy/ concatentated with any
+// directory prefix of the file is returned.
+void get_policy_subpath(const char* dir, const char* file, const char** subpath)
+	{
+	// first figure out if this is a subpath of policy/
+	const char* ploc = strstr(dir, "policy");
+	if ( ploc )
+		if ( ploc[6] == '\0' )
+			*subpath = copy_string(ploc + 6);
+		else if ( ploc[6] == '/' )
+			*subpath = copy_string(ploc + 7);
+		else
+			*subpath = copy_string(dir);
+	else
+		*subpath = copy_string(dir);
+
+	// and now add any directory parts of the filename
+	char full_filename_buf[1024];
+	safe_snprintf(full_filename_buf, sizeof(full_filename_buf),
+			"%s/%s", dir, file);
+	char* tmp = copy_string(file);
+	const char* fdir = 0;
+
+	if ( is_dir(full_filename_buf) )
+		fdir = file;
+
+	if ( ! fdir )
+		fdir = dirname(tmp);
+
+	if ( ! streq(fdir, ".") )
+		{
+		size_t full_subpath_len = strlen(*subpath) + strlen(fdir) + 1;
+		bool needslash = false;
+		if ( strlen(*subpath) != 0 && (*subpath)[strlen(*subpath) - 1] != '/' )
+			{
+			++full_subpath_len;
+			needslash = true;
+			}
+
+		char* full_subpath = new char[full_subpath_len];
+		strcpy(full_subpath, *subpath);
+		if ( needslash )
+			strcat(full_subpath, "/");
+		strcat(full_subpath, fdir);
+		delete [] *subpath;
+		*subpath = full_subpath;
+		}
+
+	delete [] tmp;
+	}
+
 FILE* search_for_file(const char* filename, const char* ext,
-			const char** full_filename, bool load_pkgs)
+			const char** full_filename, bool load_pkgs,
+			const char** bropath_subpath)
 	{
 	if ( filename[0] == '/' || filename[0] == '.' )
+		{
+		if ( bropath_subpath )
+			{
+			char* tmp = copy_string(filename);
+			*bropath_subpath = copy_string(dirname(tmp));
+			delete [] tmp;
+			}
 		return open_file(filename, full_filename, load_pkgs);
+		}
 
 	char path[1024], full_filename_buf[1024];
 	safe_strncpy(path, bro_path(), sizeof(path));
@@ -942,18 +1005,32 @@ FILE* search_for_file(const char* filename, const char* ext,
 				"%s/%s.%s", dir_beginning, filename, ext);
 		if ( access(full_filename_buf, R_OK) == 0 &&
 		     ! is_dir(full_filename_buf) )
+			{
+			if ( bropath_subpath )
+				get_policy_subpath(dir_beginning, filename, bropath_subpath);
 			return open_file(full_filename_buf, full_filename, load_pkgs);
+			}
 
 		safe_snprintf(full_filename_buf, sizeof(full_filename_buf),
 				"%s/%s", dir_beginning, filename);
 		if ( access(full_filename_buf, R_OK) == 0 )
+			{
+			if ( bropath_subpath )
+				get_policy_subpath(dir_beginning, filename, bropath_subpath);
 			return open_file(full_filename_buf, full_filename, load_pkgs);
+			}
 
 		dir_beginning = ++dir_ending;
 		}
 
 	if ( full_filename )
 		*full_filename = copy_string(filename);
+	if ( bropath_subpath )
+			{
+			char* tmp = copy_string(filename);
+			*bropath_subpath = copy_string(dirname(tmp));
+			delete [] tmp;
+			}
 
 	return 0;
 	}

@@ -45,13 +45,11 @@
 
 function to_string_val(data : uint8[]) : StringVal
 	%{
-	if ( data->size() > 32 )
-		return new StringVal("");
-
 	char tmp[32];
 	memset(tmp, 0, sizeof(tmp));
 
-	if ( data )
+	// Just return an empty string if the string is longer than 32 bytes
+	if ( data && data->size() <= 32)
 		{
 		for ( unsigned int i = data->size(); i > 0; --i )
 			tmp[i-1] = (*data)[i-1];

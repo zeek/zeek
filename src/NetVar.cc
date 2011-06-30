@@ -239,7 +239,6 @@ int dump_used_event_handlers;
 int suppress_local_output;
 
 double timer_mgr_inactivity_timeout;
-double expected_connection_timeout;
 
 int time_machine_profiling;
 
@@ -545,8 +544,6 @@ void init_net_var()
 
 	timer_mgr_inactivity_timeout =
 		opt_internal_double("timer_mgr_inactivity_timeout");
-	expected_connection_timeout =
-		opt_internal_double("expected_connection_timeout");
 	time_machine_profiling = opt_internal_int("time_machine_profiling");
 
 	script_id = internal_type("script_id")->AsRecordType();

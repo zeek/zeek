@@ -853,8 +853,9 @@ const char* bro_path()
 	if ( ! path )
 		path = ".:"
 			POLICYDEST ":"
-			POLICYDEST "/sigs:"
-			POLICYDEST "/time-machine:"
+			POLICYDEST "/detectors:"
+			POLICYDEST "/frameworks:"
+			POLICYDEST "/protocols:"
 			POLICYDEST "/site";
 
 	return path;

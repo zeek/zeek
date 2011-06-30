@@ -11,4 +11,9 @@ Servus
 0.0
 192.168.0.0/16
 ==== record
+[a=42, b=6.6.7.7]
 42, 6.6.7.7
+==== coerced record
+[a=13, b=<uninitialized>, c=helloworld]
+13
+helloworld

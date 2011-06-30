@@ -1,4 +1,5 @@
+.. This is a stub doc to which the build process can append.
+
 Built-In Functions (BIFs)
 =========================
 
-Here's a list of all documentation for BIFs that Bro provides:

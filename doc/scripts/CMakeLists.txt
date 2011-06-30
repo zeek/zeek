@@ -59,8 +59,6 @@ macro(REST_TARGET srcDir broInput)
         set(basename "${basename}.init")
     endif ()
 
-    set (restFile "${basename}.rst")
-
     if (NOT relDstDir)
         set(docName "${basename}")
         set(dstDir "${RST_OUTPUT_DIR}")
@@ -69,7 +67,9 @@ macro(REST_TARGET srcDir broInput)
         set(dstDir "${RST_OUTPUT_DIR}/${relDstDir}")
     endif ()
 
-    set(restOutput "${dstDir}/${restFile}")
+    set(restFile "${docName}.rst")
+    string(REPLACE "/" "^" restFile ${restFile})
+    set(restOutput "${dstDir}/${basename}.rst")
 
     set(indexEntry "   ${docName} <${docName}>")
     set(MASTER_POLICY_INDEX_TEXT "${MASTER_POLICY_INDEX_TEXT}\n${indexEntry}")
@@ -97,7 +97,7 @@ macro(REST_TARGET srcDir broInput)
     if (${group} STREQUAL "default" OR ${group} STREQUAL "bifs")
         set(BRO_ARGS --doc-scripts --exec '')
     else ()
-        set(BRO_ARGS --doc-scripts ${srcDir}/${broInput})
+        set(BRO_ARGS --doc-scripts ${broInput})
     endif ()
 
     add_custom_command(OUTPUT ${restOutput}
@@ -105,7 +105,7 @@ macro(REST_TARGET srcDir broInput)
         COMMAND "${CMAKE_COMMAND}"
         ARGS -E remove_directory .state
         # generate the reST documentation using bro
-        COMMAND BROPATH=${BROPATH} ${CMAKE_BINARY_DIR}/src/bro
+        COMMAND BROPATH=${BROPATH}:${srcDir} ${CMAKE_BINARY_DIR}/src/bro
         ARGS ${BRO_ARGS} || (rm -rf .state *.log *.rst && exit 1)
         # move generated doc into a new directory tree that
         # defines the final structure of documents
@@ -129,39 +129,115 @@ endmacro(REST_TARGET)
 # Schedule Bro scripts for which to generate documentation.
 # Note: the script may be located in a subdirectory off of one of the main
 # directories in BROPATH.  In that case, just list the script as 'foo/bar.bro'
-rest_target(${POLICY_SRC_DIR} alarm.bro                         user)
-rest_target(${POLICY_SRC_DIR} arp.bro                           user)
-rest_target(${POLICY_SRC_DIR} conn.bro                          user)
-rest_target(${POLICY_SRC_DIR} dhcp.bro                          user)
-rest_target(${POLICY_SRC_DIR} dns.bro                           user)
-rest_target(${POLICY_SRC_DIR} ftp.bro                           user)
-rest_target(${POLICY_SRC_DIR} http.bro                          user)
-rest_target(${POLICY_SRC_DIR} http-reply.bro                    user)
-rest_target(${POLICY_SRC_DIR} http-request.bro                  user)
-rest_target(${POLICY_SRC_DIR} irc.bro                           user)
-rest_target(${POLICY_SRC_DIR} smtp.bro                          user)
-rest_target(${POLICY_SRC_DIR} ssl.bro                           user)
-rest_target(${POLICY_SRC_DIR} ssl-ciphers.bro                   user)
-rest_target(${POLICY_SRC_DIR} ssl-errors.bro                    user)
-rest_target(${POLICY_SRC_DIR} synflood.bro                      user)
-rest_target(${POLICY_SRC_DIR} tcp.bro                           user)
-rest_target(${POLICY_SRC_DIR} udp.bro                           user)
-rest_target(${POLICY_SRC_DIR} weird.bro                         user)
-rest_target(${CMAKE_CURRENT_SOURCE_DIR} example.bro             internal)
+rest_target(${CMAKE_CURRENT_SOURCE_DIR} example.bro           internal)
+
+rest_target(${POLICY_SRC_DIR} conn.bro                        user)
+rest_target(${POLICY_SRC_DIR} conn/base.bro                   user)
+rest_target(${POLICY_SRC_DIR} conn/contents.bro               user)
+
+rest_target(${POLICY_SRC_DIR} dns.bro                         policy/dns-index)
+rest_target(${POLICY_SRC_DIR} dns/auth-addl.bro               policy/dns-index)
+rest_target(${POLICY_SRC_DIR} dns/base.bro                    policy/dns-index)
+rest_target(${POLICY_SRC_DIR} dns/consts.bro                  policy/dns-index)
+rest_target(${POLICY_SRC_DIR} dns/detect.bro                  policy/dns-index)
+rest_target(${POLICY_SRC_DIR} dns/passive-replication.bro     policy/dns-index)
+
+# TODO: these don't currently work due to something that looks like a
+# circular dependency.  They'll also change to the 'default' group once
+# loaded from bro.init.
+#rest_target(${POLICY_SRC_DIR} dpd.bro                         policy/dpd-index)
+#rest_target(${POLICY_SRC_DIR} dpd/base.bro                    policy/dpd-index)
+#rest_target(${POLICY_SRC_DIR} dpd/dyn-disable.bro             policy/dpd-index)
+#rest_target(${POLICY_SRC_DIR} dpd/packet-segment-logging.bro  policy/dpd-index)
+
+rest_target(${POLICY_SRC_DIR} ftp.bro                         policy/ftp-index)
+rest_target(${POLICY_SRC_DIR} ftp/base.bro                    policy/ftp-index)
+rest_target(${POLICY_SRC_DIR} ftp/detect.bro                  policy/ftp-index)
+rest_target(${POLICY_SRC_DIR} ftp/file-extract.bro            policy/ftp-index)
+rest_target(${POLICY_SRC_DIR} ftp/software.bro                policy/ftp-index)
+rest_target(${POLICY_SRC_DIR} ftp/utils-commands.bro          policy/ftp-index)
+
+rest_target(${POLICY_SRC_DIR} functions.bro                   user)
+
+# TODO: hot.conn.bro currently won't load because hot.bro doesn't exist
+#rest_target(${POLICY_SRC_DIR} hot.conn.bro                    user)
+
+rest_target(${POLICY_SRC_DIR} http.bro                        policy/http-index)
+rest_target(${POLICY_SRC_DIR} http/base-extended.bro          policy/http-index)
+rest_target(${POLICY_SRC_DIR} http/base.bro                   policy/http-index)
+rest_target(${POLICY_SRC_DIR} http/detect-intel.bro           policy/http-index)
+rest_target(${POLICY_SRC_DIR} http/detect-sqli.bro            policy/http-index)
+rest_target(${POLICY_SRC_DIR} http/detect-webapps.bro         policy/http-index)
+rest_target(${POLICY_SRC_DIR} http/file-extract.bro           policy/http-index)
+rest_target(${POLICY_SRC_DIR} http/file-hash.bro              policy/http-index)
+rest_target(${POLICY_SRC_DIR} http/file-ident.bro             policy/http-index)
+rest_target(${POLICY_SRC_DIR} http/headers.bro                policy/http-index)
+rest_target(${POLICY_SRC_DIR} http/software.bro               policy/http-index)
+rest_target(${POLICY_SRC_DIR} http/utils.bro                  policy/http-index)
+rest_target(${POLICY_SRC_DIR} http/var-extraction-cookies.bro policy/http-index)
+rest_target(${POLICY_SRC_DIR} http/var-extraction-uri.bro     policy/http-index)
+
+rest_target(${POLICY_SRC_DIR} irc.bro                         policy/irc-index)
+rest_target(${POLICY_SRC_DIR} irc/base.bro                    policy/irc-index)
+rest_target(${POLICY_SRC_DIR} irc/dcc-send.bro                policy/irc-index)
+
+rest_target(${POLICY_SRC_DIR} known-services.bro              user)
+rest_target(${POLICY_SRC_DIR} known-hosts.bro                 user)
+
+rest_target(${POLICY_SRC_DIR} metrics.bro                  policy/metrics-index)
+rest_target(${POLICY_SRC_DIR} metrics/base.bro             policy/metrics-index)
+rest_target(${POLICY_SRC_DIR} metrics/conn-example.bro     policy/metrics-index)
+rest_target(${POLICY_SRC_DIR} metrics/http-example.bro     policy/metrics-index)
+
+rest_target(${POLICY_SRC_DIR} mime.bro                        policy/mime-index)
+rest_target(${POLICY_SRC_DIR} mime/base.bro                   policy/mime-index)
+rest_target(${POLICY_SRC_DIR} mime/file-extract.bro           policy/mime-index)
+rest_target(${POLICY_SRC_DIR} mime/file-hash.bro              policy/mime-index)
+rest_target(${POLICY_SRC_DIR} mime/file-ident.bro             policy/mime-index)
+
+rest_target(${POLICY_SRC_DIR} notice-action-filters.bro       user)
+rest_target(${POLICY_SRC_DIR} notice.bro                      user)
+rest_target(${POLICY_SRC_DIR} site.bro                        user)
+
+rest_target(${POLICY_SRC_DIR} signatures.bro                  policy/sig-index)
+rest_target(${POLICY_SRC_DIR} signatures/base.bro             policy/sig-index)
+
+rest_target(${POLICY_SRC_DIR} smtp.bro                        policy/smtp-index)
+rest_target(${POLICY_SRC_DIR} smtp/base-extended.bro          policy/smtp-index)
+rest_target(${POLICY_SRC_DIR} smtp/base.bro                   policy/smtp-index)
+rest_target(${POLICY_SRC_DIR} smtp/detect.bro                 policy/smtp-index)
+rest_target(${POLICY_SRC_DIR} smtp/software.bro               policy/smtp-index)
+rest_target(${POLICY_SRC_DIR} smtp/utils.bro                  policy/smtp-index)
+rest_target(${POLICY_SRC_DIR} smtp/webmail-ident.bro          policy/smtp-index)
+
+rest_target(${POLICY_SRC_DIR} software.bro                policy/software-index)
+rest_target(${POLICY_SRC_DIR} software/base.bro           policy/software-index)
+rest_target(${POLICY_SRC_DIR} software/vulnerable.bro     policy/software-index)
+
+rest_target(${POLICY_SRC_DIR} ssh.bro                         policy/ssh-index)
+rest_target(${POLICY_SRC_DIR} ssh/base.bro                    policy/ssh-index)
+rest_target(${POLICY_SRC_DIR} ssh/software.bro                policy/ssh-index)
+
+rest_target(${POLICY_SRC_DIR} ssl-ciphers.bro                 policy/ssl-index)
+rest_target(${POLICY_SRC_DIR} ssl-errors.bro                  policy/ssl-index)
+rest_target(${POLICY_SRC_DIR} ssl.bro                         policy/ssl-index)
+
+rest_target(${POLICY_SRC_DIR} utils/pattern.bro               user)
+rest_target(${POLICY_SRC_DIR} weird.bro                       user)
 
 # Finding out what scripts bro will generate documentation for by default
 # can be done like: `bro --doc-scripts --exec ""`
-rest_target(${POLICY_SRC_DIR} bro.init                          default)
-rest_target(${POLICY_SRC_DIR} logging-ascii.bro                 default)
-rest_target(${POLICY_SRC_DIR} logging.bro                       default)
-rest_target(${POLICY_SRC_DIR} pcap.bro                          default)
-rest_target(${POLICY_SRC_DIR} server-ports.bro                  default)
-rest_target(${CMAKE_BINARY_DIR}/src bro.bif.bro                 bifs)
-rest_target(${CMAKE_BINARY_DIR}/src const.bif.bro               bifs)
-rest_target(${CMAKE_BINARY_DIR}/src event.bif.bro               bifs)
-rest_target(${CMAKE_BINARY_DIR}/src logging.bif.bro             bifs)
-rest_target(${CMAKE_BINARY_DIR}/src strings.bif.bro             bifs)
-rest_target(${CMAKE_BINARY_DIR}/src types.bif.bro               bifs)
+rest_target(${POLICY_SRC_DIR} bro.init                         default)
+rest_target(${POLICY_SRC_DIR} logging-ascii.bro                default)
+rest_target(${POLICY_SRC_DIR} logging.bro                      default)
+rest_target(${POLICY_SRC_DIR} pcap.bro                         default)
+rest_target(${POLICY_SRC_DIR} server-ports.bro                 default)
+rest_target(${CMAKE_BINARY_DIR}/src bro.bif.bro                bifs)
+rest_target(${CMAKE_BINARY_DIR}/src const.bif.bro              bifs)
+rest_target(${CMAKE_BINARY_DIR}/src event.bif.bro              bifs)
+rest_target(${CMAKE_BINARY_DIR}/src logging.bif.bro            bifs)
+rest_target(${CMAKE_BINARY_DIR}/src strings.bif.bro            bifs)
+rest_target(${CMAKE_BINARY_DIR}/src types.bif.bro              bifs)
 
 # create temporary list of all docs to include in the master policy/index file
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/tmp_policy_index

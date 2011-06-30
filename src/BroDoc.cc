@@ -7,47 +7,70 @@
 #include "BroDoc.h"
 #include "BroDocObj.h"
 
-BroDoc::BroDoc(const std::string& sourcename)
+BroDoc::BroDoc(const std::string& rel, const std::string& abs)
 	{
-#ifdef DEBUG
-	fprintf(stdout, "Documenting source: %s\n", sourcename.c_str());
-#endif
-	source_filename = sourcename.substr(sourcename.find_last_of('/') + 1);
+	size_t f_pos = abs.find_last_of('/');
 
-	size_t ext_pos = source_filename.find_last_of('.');
-	std::string ext = source_filename.substr(ext_pos + 1);
+	if ( std::string::npos == f_pos )
+		source_filename = abs;
+	else
+		source_filename = abs.substr(f_pos + 1);
 
-	if ( ext_pos == std::string::npos || ext != "bro" )
+	if ( rel == abs )
 		{
-		if ( source_filename != "bro.init" && source_filename != "<stdin>" )
-			{
-			fprintf(stderr,
-				"Warning: documenting file without .bro extension: %s\n",
-				sourcename.c_str());
-			}
+		// The Bro script must have been loaded from an explicit path,
+		// so just use the basename as the document title
+		doc_title = source_filename;
+		}
+	else
+		{
+		// Must have relied on BROPATH to load the script, keep the relative
+		// directory as part of the source file name
+		size_t ext_pos = rel.find_last_of('.');
+		std::string rel_ext = rel.substr(ext_pos + 1);
+		ext_pos = abs.find_last_of('.');
+		std::string abs_ext = abs.substr(ext_pos + 1);
+
+		if ( rel_ext == abs_ext || std::string::npos == ext_pos )
+			doc_title = rel;
 		else
-			{
-			// Force the reST documentation file to be "bro.init.rst".
-			ext_pos = std::string::npos;
-			}
+			doc_title = rel + "." + abs_ext;
 		}
 
-	reST_filename = source_filename.substr(0, ext_pos);
+	reST_filename = doc_title;
+	size_t ext_pos = reST_filename.find(".bro");
+
+	if ( std::string::npos == ext_pos )
+		reST_filename += ".rst";
+	else
+		reST_filename.replace(ext_pos, 4, ".rst");
+
+	reST_filename = doc_title.substr(0, ext_pos);
 	reST_filename += ".rst";
+
+	// Instead of re-creating the directory hierarchy based on related
+	// loads, just replace the directory separatories such that the reST
+	// output will all be placed in a flat directory (the working dir).
+	std::for_each(reST_filename.begin(), reST_filename.end(), replace_slash());
+
 	reST_file = fopen(reST_filename.c_str(), "w");
 
 	if ( ! reST_file )
-		fprintf(stderr, "Failed to open %s", reST_filename.c_str());
+		fprintf(stderr, "Failed to open %s\n", reST_filename.c_str());
+
 #ifdef DEBUG
-	else
-		fprintf(stdout, "Created reST document: %s\n", reST_filename.c_str());
+	fprintf(stdout, "Documenting absolute source: %s\n", abs.c_str());
+	fprintf(stdout, "\trelative load: %s\n", rel.c_str());
+	fprintf(stdout, "\tdoc title: %s\n", doc_title.c_str());
+	fprintf(stdout, "\tbro file: %s\n", source_filename.c_str());
+	fprintf(stdout, "\trst file: %s\n", reST_filename.c_str());
 #endif
 	}
 
 BroDoc::~BroDoc()
 	{
 	if ( reST_file && fclose( reST_file ) )
-		fprintf(stderr, "Failed to close %s", reST_filename.c_str());
+		fprintf(stderr, "Failed to close %s\n", reST_filename.c_str());
 
 	FreeBroDocObjPtrList(all);
 	}
@@ -98,7 +121,7 @@ void BroDoc::WriteDocFile() const
 	{
 	WriteToDoc(".. Automatically generated.  Do not edit.\n\n");
 
-	WriteSectionHeading(source_filename.c_str(), '=');
+	WriteSectionHeading(doc_title.c_str(), '=');
 
 	WriteToDoc("\n:download:`Original Source File <%s>`\n\n",
 		source_filename.c_str());

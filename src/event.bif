@@ -3,9 +3,6 @@
 event bro_init%(%);
 event bro_done%(%);
 
-# bro_signal is initiated in main.cc
-# event bro_signal%(signal: count%);
-
 event dns_mapping_valid%(dm: dns_mapping%);
 event dns_mapping_unverified%(dm: dns_mapping%);
 event dns_mapping_new_name%(dm: dns_mapping%);

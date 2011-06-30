@@ -22,10 +22,15 @@ public:
 	 * the filename of the Bro script that generates it, except any
 	 * ".bro" file extension is stripped and ".rst" takes it place.
 	 * If the filename doesn't end in ".bro", then ".rst" is just appended.
-	 * @param sourcename The name of the Bro script for which to generate
-	 *        documentation.  May contain a path.
+	 * Any '/' characters in the reST file name that result from choice of
+	 * the 'rel' parameter are replaced with '^'.
+	 * @param rel A string representing the path relative to BROPATH off of
+	 *        which the source file is loaded or generally any filesystem
+	 *        path to a Bro script.  May or may not have .bro file extension.
+	 * @param abs The absolute path to the Bro script for which to generate
+	 *        documentation.
 	 */
-	BroDoc(const std::string& sourcename);
+	BroDoc(const std::string& rel, const std::string& abs);
 
 	/**
 	 * BroDoc destructor
@@ -203,7 +208,8 @@ public:
 protected:
 	FILE* reST_file;
 	std::string reST_filename;
-	std::string source_filename;
+	std::string source_filename;	// points to the basename of source file
+	std::string doc_title;
 	std::string packet_filter;
 
 	std::list<std::string> modules;
@@ -357,6 +363,13 @@ private:
 		{
 		return ! o->IsPublicAPI();
 		}
+
+    struct replace_slash {
+        void operator()(char& c)
+            {
+            if ( c == '/' ) c = '^';
+            }
+    };
 };
 
 #endif

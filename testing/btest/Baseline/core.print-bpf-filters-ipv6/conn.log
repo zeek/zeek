@@ -1,1 +1,2 @@
-1128727435.450898 1.733303 141.42.64.125 125.190.109.199 http 56730 80 tcp 98 9417 SF X
+# ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	missed_bytes	history	notice_tags
+1128727435.4509	UWkUyAuUGXf	141.42.64.125	56730	125.190.109.199	80	tcp	-	1.73330307006836	98	9417	SF	-	0	ShADdFaf	-

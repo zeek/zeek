@@ -77,7 +77,6 @@ Logger* bro_logger;
 LogMgr* log_mgr;
 Func* alarm_hook = 0;
 Stmt* stmts;
-EventHandlerPtr bro_signal = 0;
 EventHandlerPtr net_done = 0;
 RuleMatcher* rule_matcher = 0;
 PersistenceSerializer* persistence_serializer = 0;
@@ -841,7 +840,6 @@ int main(int argc, char** argv)
 	BroFile::SetDefaultRotation(log_rotate_interval, log_max_size);
 
 	alarm_hook = internal_func("alarm_hook");
-	bro_signal = internal_handler("bro_signal");
 	net_done = internal_handler("net_done");
 
 	if ( ! g_policy_debug )

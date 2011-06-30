@@ -619,6 +619,14 @@ static int load_files_with_prefix(const char* orig_file)
 			else
 				file_stack.append(new FileInfo);
 
+			if ( generate_documentation )
+				{
+				current_reST_doc = new BroDoc(orig_file, full_filename);
+				docs_generated.push_back(current_reST_doc);
+				}
+
+			// "orig_file", could be an alias for yytext, which is ephemeral
+			//  and will be zapped after the yy_switch_to_buffer() below.
 			yy_switch_to_buffer(yy_create_buffer(f, YY_BUF_SIZE));
 
 			yylloc.first_line = yylloc.last_line = line_number = 1;
@@ -626,12 +634,6 @@ static int load_files_with_prefix(const char* orig_file)
 			// Don't delete the old filename - it's pointed to by
 			// every BroObj created when parsing it.
 			yylloc.filename = filename = full_filename;
-
-			if ( generate_documentation )
-				{
-				current_reST_doc = new BroDoc(full_filename);
-				docs_generated.push_back(current_reST_doc);
-				}
 			}
 
 		else

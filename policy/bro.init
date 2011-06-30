@@ -1,16 +1,10 @@
-# $Id: bro.init 6887 2009-08-20 05:17:33Z vern $
-
 @load const.bif.bro
 @load types.bif.bro
-
-global bro_signal: event(signal: count);
-
-# Called (one day) if there's no handler for an internal event.
-global no_handler: event(name: string, val: any);
 
 # Type declarations
 type string_array: table[count] of string;
 type string_set: set[string];
+type addr_set: set[addr];
 type count_set: set[count];
 type index_vec: vector of count;
 type string_vec: vector of string;
@@ -48,8 +42,6 @@ type icmp_context: record {
 	MF: bool;
 	DF: bool;
 };
-
-type addr_set: set[addr];
 
 type dns_mapping: record {
 	creation_time: time;
@@ -191,6 +183,13 @@ type script_id: record {
 	value: any &optional;
 };
 
+# The following two variables are defined here until the core is not
+# dependent on the names remaining as they are now.
+## This is the list of capture filters indexed by some user-definable ID.
+global capture_filters: table[string] of string &redef;
+## This is the list of restriction filters indexed by some user-definable ID.
+global restrict_filters: table[string] of string &redef;
+
 type id_table: table[string] of script_id;
 
 # {precompile,install}_pcap_filter identify the filter by IDs
@@ -274,12 +273,12 @@ type pcap_packet: record {
 
 # GeoIP support.
 type geo_location: record {
-	country_code: string;
-	region: string;
-	city: string;
-	latitude: double;
-	longitude: double;
-};
+	country_code: string &optional;
+	region: string &optional;
+	city: string &optional;
+	latitude: double &optional;
+	longitude: double &optional;
+} &log;
 
 type entropy_test_result: record {
 	entropy: double;
@@ -294,7 +293,6 @@ type entropy_test_result: record {
 @load bro.bif.bro
 
 @load logging  # sic! Not logging.bif.
-@load logging-ascii
 
 global bro_alarm_file: file &redef;
 global alarm_hook: function(msg: string): bool &redef;
@@ -309,16 +307,6 @@ const state_write_delay = 0.01 secs &redef;
 
 global done_with_network = F;
 event net_done(t: time) { done_with_network = T; }
-
-const SIGHUP = 1;
-event bro_signal(signal: count)
-	{
-	if ( signal == SIGHUP )
-		{
-		flush_all();
-		checkpoint_state();
-		}
-	}
 
 function log_file_name(tag: string): string
 	{
@@ -338,7 +326,6 @@ function add_interface(iold: string, inew: string): string
 	else
 		return fmt("%s %s", iold, inew);
 	}
-
 global interfaces = "" &add_func = add_interface;
 
 function add_signature_file(sold: string, snew: string): string
@@ -348,22 +335,22 @@ function add_signature_file(sold: string, snew: string): string
 	else
 		return cat(sold, " ", snew);
 	}
-
 global signature_files = "" &add_func = add_signature_file;
 
-const passive_fingerprint_file = "sigs/p0fsyn" &redef;
+const passive_fingerprint_file = "signatures/p0f.fp" &redef;
 
-const ftp = 21/tcp;
-const ssh = 22/tcp;
-const telnet = 23/tcp;
-const smtp = 25/tcp;
-const domain = 53/tcp;	# note, doesn't include UDP version
-const gopher = 70/tcp;
-const finger = 79/tcp;
-const http = 80/tcp;
-const ident = 113/tcp;
-const bgp = 179/tcp;
-const rlogin = 513/tcp;
+# TODO: testing to see if I can remove these without causing problems.
+#const ftp = 21/tcp;
+#const ssh = 22/tcp;
+#const telnet = 23/tcp;
+#const smtp = 25/tcp;
+#const domain = 53/tcp;	# note, doesn't include UDP version
+#const gopher = 70/tcp;
+#const finger = 79/tcp;
+#const http = 80/tcp;
+#const ident = 113/tcp;
+#const bgp = 179/tcp;
+#const rlogin = 513/tcp;
 
 const TCP_INACTIVE = 0;
 const TCP_SYN_SENT = 1;
@@ -1156,13 +1143,15 @@ type backdoor_endp_stats: record {
 };
 
 type signature_state: record {
-	id: string;          # ID of the signature
-	conn: connection;    # Current connection
-	is_orig: bool;       # True if current endpoint is originator
-	payload_size: count; # Payload size of the first pkt of curr. endpoint
+	sig_id:       string;     # ID of the signature
+	conn:         connection; # Current connection
+	is_orig:      bool;       # True if current endpoint is originator
+	payload_size: count;      # Payload size of the first pkt of curr. endpoint
 
 };
 
+# This type is no longer used
+# TODO: remove any use of this from the core.
 type software_version: record {
 	major: int;	# Major version number
 	minor: int;	# Minor version number
@@ -1170,6 +1159,8 @@ type software_version: record {
 	addl: string;	# Additional version string (e.g. "beta42")
 };
 
+# This type is no longer used
+# TODO: remove any use of this from the core.
 type software: record {
 	name: string;	# Unique name of a software, e.g., "OS"
 	version: software_version;
@@ -1269,61 +1260,12 @@ type bt_tracker_headers: table[string] of string;
 
 @load event.bif.bro
 
-function subst(s: string, from: pattern, to: string): string
-	{
-	local p = split_all(s, from);
-
-	for ( p_i in p )
-		if ( p_i % 2 == 0 )
-			p[p_i] = to;
-
-	return cat_string_array(p);
-	}
-
-
-type pattern_match_result: record {
-	matched: bool;
-	str: string;
-	off: count;
-};
-
-function match_pattern(s: string, p:pattern): pattern_match_result
-	{
-	local a = split_n(s, p, T, 1);
-
-	if ( length(a) == 1 )
-		# no match
-		return [$matched = F, $str = "", $off = 0];
-	else
-		return [$matched = T, $str = a[2], $off = byte_len(a[1]) + 1];
-	}
-
-function cut_tail(s: string, tail_len: count): string
-	{
-	local len = byte_len(s);
-
-	if ( tail_len > len )
-		tail_len = len;
-
-	return sub_bytes(s, 1, int_to_count(len - tail_len));
-	}
-
-# Given a string, returns an escaped version.  This means that
-# (1) any occurrences of any character in "chars" are escaped using '\', and
-# (2) any '\'s are likewise escaped.
-function string_escape(s: string, chars: string): string
-	{
-	s = subst_string(s, "\\", "\\\\");
-	for ( c in chars )
-		s = subst_string(s, c, cat("\\", c));
-	return s;
-	}
-
 # The filter the user has set via the -f command line options, or
 # empty if none.
 const cmd_line_bpf_filter = "" &redef;
 
-@load pcap.bro
+# Load the packet filtering framework.
+@load packet-filter
 
 # Rotate logs every x seconds.
 const log_rotate_interval = 0 sec &redef;
@@ -1405,7 +1347,7 @@ const packet_filter_default = F &redef;
 const sig_max_group_size = 50 &redef;
 
 # If true, send logger messages to syslog.
-const enable_syslog = T &redef;
+const enable_syslog = F &redef;
 
 # This is transmitted to peers receiving our events.
 const peer_description = "" &redef;
@@ -1470,7 +1412,7 @@ function prefixed_id(id: count): string
 # ANALYZER_<analyzer-name>*, e.g., ANALYZER_HTTP.
 type AnalyzerTag: count;
 
-# DPM configuration.
+# DPD configuration.
 
 type dpd_protocol_config: record {
 	ports: set[port] &optional;
@@ -1498,28 +1440,8 @@ const likely_server_ports: set[port] &redef;
 # Set of all ports for which we know an analyzer.
 global dpd_analyzer_ports: table[port] of set[AnalyzerTag];
 
-event bro_init()
-	{
-	for ( a in dpd_config )
-		for ( p in dpd_config[a]$ports )
-			{
-			if ( p !in dpd_analyzer_ports )
-				{
-				local empty_set: set[AnalyzerTag];
-				dpd_analyzer_ports[p] = empty_set;
-				}
-
-			add dpd_analyzer_ports[p][a];
-			}
-	}
-
-@load server-ports
-
 # Per-incident timer managers are drained after this amount of inactivity.
 const timer_mgr_inactivity_timeout = 1 min &redef;
-
-# Time-out for expected connections.
-const expected_connection_timeout = 5 min &redef;
 
 # If true, output profiling for time-machine queries.
 const time_machine_profiling = F &redef;
@@ -1557,3 +1479,6 @@ const skip_http_data = F &redef;
 # Whether the analysis engine parses IP packets encapsulated in
 # UDP tunnels. See also: udp_tunnel_port, policy/udp-tunnel.bro.
 const parse_udp_tunnels = F &redef;
+
+#@load site
+#@load dpd

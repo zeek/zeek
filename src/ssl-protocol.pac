@@ -20,6 +20,11 @@ type uint24 = record {
 		return (num->byte1() << 16) | (num->byte2() << 8) | num->byte3();
 		}
 	};
+	
+	string state_label(int state_nr);
+	string orig_label(bool is_orig);
+	double get_time_from_asn1(const ASN1_TIME * atime);
+	string handshake_type_label(int type);
 %}
 
 extern type to_int;
@@ -30,11 +35,11 @@ type SSLRecord(is_orig: bool) = record {
 	head2 : uint8;
 	head3 : uint8;
 	head4 : uint8;
-	rec : RecordText(this, is_orig) &requires(content_type), &restofdata;
+	rec : RecordText(this, is_orig)[] &length=length, &requires(content_type);
 } &length = length+5, &byteorder=bigendian,
   &let {
 	version : int =
-		$context.analyzer.determine_ssl_version(head0, head1, head2);
+		$context.connection.determine_ssl_version(head0, head1, head2);
 
 	content_type : int = case version of {
 		UNKNOWN_VERSION -> 0;
@@ -49,7 +54,7 @@ type SSLRecord(is_orig: bool) = record {
 	};
 };
 
-type RecordText(rec: SSLRecord, is_orig: bool) = case $context.analyzer.state() of {
+type RecordText(rec: SSLRecord, is_orig: bool) = case $context.connection.state() of {
 	STATE_ABBREV_SERVER_ENCRYPTED, STATE_CLIENT_ENCRYPTED,
 	STATE_COMM_ENCRYPTED, STATE_CONN_ESTABLISHED
 		-> ciphertext : CiphertextRecord(rec, is_orig);
@@ -57,10 +62,17 @@ type RecordText(rec: SSLRecord, is_orig: bool) = case $context.analyzer.state() 
 		-> plaintext : PlaintextRecord(rec, is_orig);
 };
 
+type PossibleEncryptedHandshake(rec: SSLRecord, is_orig: bool) = case $context.connection.state() of {
+	# Deal with encrypted handshakes before the server cipher spec change.
+	STATE_CLIENT_FINISHED, STATE_CLIENT_ENCRYPTED
+		-> ct : CiphertextRecord(rec, is_orig);
+	default               -> hs : Handshake(rec);
+};
+
 type PlaintextRecord(rec: SSLRecord, is_orig: bool) = case rec.content_type of {
 	CHANGE_CIPHER_SPEC	-> ch_cipher : ChangeCipherSpec(rec);
 	ALERT			-> alert : Alert(rec);
-	HANDSHAKE		-> handshake : Handshake(rec)[];
+	HANDSHAKE		-> handshake : PossibleEncryptedHandshake(rec, is_orig);
 	APPLICATION_DATA	-> app_data : ApplicationData(rec);
 	V2_ERROR		-> v2_error : V2Error(rec);
 	V2_CLIENT_HELLO		-> v2_client_hello : V2ClientHello(rec);
@@ -297,21 +309,21 @@ type ChangeCipherSpec(rec: SSLRecord) = record {
 	type : uint8;
 } &length = 1, &let {
 	state_changed : bool =
-		$context.analyzer.transition(STATE_CLIENT_FINISHED,
+		$context.connection.transition(STATE_CLIENT_FINISHED,
 					 STATE_COMM_ENCRYPTED, rec.is_orig, false) ||
-		$context.analyzer.transition(STATE_IN_SERVER_HELLO,
+		$context.connection.transition(STATE_IN_SERVER_HELLO,
 					 STATE_ABBREV_SERVER_ENCRYPTED, rec.is_orig, false) ||
-		$context.analyzer.transition(STATE_CLIENT_KEY_NO_CERT,
+		$context.connection.transition(STATE_CLIENT_KEY_NO_CERT,
 					 STATE_CLIENT_ENCRYPTED, rec.is_orig, true) ||
-		$context.analyzer.transition(STATE_CLIENT_CERT_VERIFIED,
+		$context.connection.transition(STATE_CLIENT_CERT_VERIFIED,
 					 STATE_CLIENT_ENCRYPTED, rec.is_orig, true) ||
-		#$context.analyzer.transition(STATE_CLIENT_CERT,
-		#			 STATE_CLIENT_ENCRYPTED, rec.is_orig, true) ||
-		$context.analyzer.transition(STATE_CLIENT_KEY_WITH_CERT,
+		$context.connection.transition(STATE_CLIENT_CERT,
 					 STATE_CLIENT_ENCRYPTED, rec.is_orig, true) ||
-		$context.analyzer.transition(STATE_ABBREV_SERVER_FINISHED,
+		$context.connection.transition(STATE_CLIENT_KEY_WITH_CERT,
+					 STATE_CLIENT_ENCRYPTED, rec.is_orig, true) ||
+		$context.connection.transition(STATE_ABBREV_SERVER_FINISHED,
 					 STATE_COMM_ENCRYPTED, rec.is_orig, true) ||
-		$context.analyzer.lost_track();
+		$context.connection.lost_track();
 };
 
 
@@ -329,8 +341,8 @@ type Alert(rec: SSLRecord) = record {
 # V2 Error Records (SSLv2 2.7.)
 ######################################################################
 
-type V2Error(rec: SSLRecord) = record {
-	error_code : uint16;
+type V2Error(rec: SSLRecord) = empty &let {
+	error_code : uint16 = ((rec.head3 << 8) | rec.head4);
 };
 
 
@@ -352,7 +364,7 @@ type ApplicationData(rec: SSLRecord) = empty;
 
 # Hello Request is empty
 type HelloRequest(rec: SSLRecord) = empty &let {
-	hr: bool = $context.analyzer.set_hello_requested(true);
+	hr: bool = $context.connection.set_hello_requested(true);
 };
 
 
@@ -376,11 +388,11 @@ type ClientHello(rec: SSLRecord) = record {
 	extensions : SSLExtension[] &until($input.length() == 0);
 } &let {
 	state_changed : bool =
-		$context.analyzer.transition(STATE_INITIAL,
+		$context.connection.transition(STATE_INITIAL,
 				STATE_CLIENT_HELLO_RCVD, rec.is_orig, true) ||
-		($context.analyzer.hello_requested() &&
-		 $context.analyzer.transition(STATE_ANY, STATE_CLIENT_HELLO_RCVD, rec.is_orig, true)) ||
-		$context.analyzer.lost_track();
+		($context.connection.hello_requested() &&
+		 $context.connection.transition(STATE_ANY, STATE_CLIENT_HELLO_RCVD, rec.is_orig, true)) ||
+		$context.connection.lost_track();
 };
 
 
@@ -389,20 +401,21 @@ type ClientHello(rec: SSLRecord) = record {
 ######################################################################
 
 type V2ClientHello(rec: SSLRecord) = record {
-	client_version : uint16;
 	csuit_len : uint16;
 	session_len : uint16;
 	chal_len : uint16;
 	ciphers : uint24[csuit_len/3];
 	session_id : uint8[session_len];
 	challenge : bytestring &length = chal_len;
-} &length = 8 + csuit_len + session_len + chal_len, &let {
+} &length = 6 + csuit_len + session_len + chal_len, &let {
 	state_changed : bool =
-		$context.analyzer.transition(STATE_INITIAL,
+		$context.connection.transition(STATE_INITIAL,
 			STATE_CLIENT_HELLO_RCVD, rec.is_orig, true) ||
-		($context.analyzer.hello_requested() &&
-		 $context.analyzer.transition(STATE_ANY, STATE_CLIENT_HELLO_RCVD, rec.is_orig, true)) ||
-		$context.analyzer.lost_track();
+		($context.connection.hello_requested() &&
+		 $context.connection.transition(STATE_ANY, STATE_CLIENT_HELLO_RCVD, rec.is_orig, true)) ||
+		$context.connection.lost_track();
+		
+	client_version : int = rec.version;
 };
 
 
@@ -420,9 +433,9 @@ type ServerHello(rec: SSLRecord) = record {
 	compression_method : uint8;
 } &let {
 	state_changed : bool =
-		$context.analyzer.transition(STATE_CLIENT_HELLO_RCVD,
+		$context.connection.transition(STATE_CLIENT_HELLO_RCVD,
 					   STATE_IN_SERVER_HELLO, rec.is_orig, false) ||
-		$context.analyzer.lost_track();
+		$context.connection.lost_track();
 };
 
 
@@ -431,8 +444,8 @@ type ServerHello(rec: SSLRecord) = record {
 ######################################################################
 
 type V2ServerHello(rec: SSLRecord) = record {
-	session_id_hit : uint8;
-	cert_type : uint8;
+	#session_id_hit : uint8;
+	#cert_type : uint8;
 	server_version : uint16;
 	cert_len : uint16;
 	ciph_len : uint16;
@@ -440,14 +453,18 @@ type V2ServerHello(rec: SSLRecord) = record {
 	cert_data : bytestring &length = cert_len;
 	ciphers : uint24[ciph_len/3];
 	conn_id_data : bytestring &length = conn_id_len;
-} &length = 10 + cert_len + ciph_len + conn_id_len, &let {
+} #&length = 8 + cert_len + ciph_len + conn_id_len, 
+&let {
 	state_changed : bool =
 		(session_id_hit > 0 ?
-			$context.analyzer.transition(STATE_CLIENT_HELLO_RCVD,
+			$context.connection.transition(STATE_CLIENT_HELLO_RCVD,
 				STATE_CONN_ESTABLISHED, rec.is_orig, false) :
-			$context.analyzer.transition(STATE_CLIENT_HELLO_RCVD,
+			$context.connection.transition(STATE_CLIENT_HELLO_RCVD,
 				STATE_V2_CL_MASTER_KEY_EXPECTED, rec.is_orig, false)) ||
-		$context.analyzer.lost_track();
+		$context.connection.lost_track();
+	
+	session_id_hit : uint8 = rec.head3;
+	cert_type : uint8 = rec.head4;
 };
 
 
@@ -467,11 +484,11 @@ type Certificate(rec: SSLRecord) = record {
 	certificates : CertificateList &length = to_int()(length);
 } &let {
 	state_changed : bool =
-		$context.analyzer.transition(STATE_IN_SERVER_HELLO,
+		$context.connection.transition(STATE_IN_SERVER_HELLO,
 					STATE_IN_SERVER_HELLO, rec.is_orig, false) ||
-		$context.analyzer.transition(STATE_SERVER_HELLO_DONE,
+		$context.connection.transition(STATE_SERVER_HELLO_DONE,
 					STATE_CLIENT_CERT, rec.is_orig, true) ||
-		$context.analyzer.lost_track();
+		$context.connection.lost_track();
 };
 
 
@@ -481,12 +498,12 @@ type Certificate(rec: SSLRecord) = record {
 
 # For now ignore details; just eat up complete message
 type ServerKeyExchange(rec: SSLRecord) = record {
-	key : bytestring &restofdata;
+	key : bytestring &restofdata &transient;
 } &let {
 	state_changed : bool =
-		$context.analyzer.transition(STATE_IN_SERVER_HELLO,
+		$context.connection.transition(STATE_IN_SERVER_HELLO,
 				STATE_IN_SERVER_HELLO, rec.is_orig, false) ||
-		$context.analyzer.lost_track();
+		$context.connection.lost_track();
 };
 
 
@@ -499,9 +516,9 @@ type CertificateRequest(rec: SSLRecord) = record {
 	cont : bytestring &restofdata &transient;
 } &let {
 	state_changed : bool =
-		$context.analyzer.transition(STATE_IN_SERVER_HELLO,
+		$context.connection.transition(STATE_IN_SERVER_HELLO,
 					STATE_IN_SERVER_HELLO, rec.is_orig, false) ||
-		$context.analyzer.lost_track();
+		$context.connection.lost_track();
 };
 
 
@@ -512,9 +529,9 @@ type CertificateRequest(rec: SSLRecord) = record {
 # Server Hello Done is empty
 type ServerHelloDone(rec: SSLRecord) = empty &let {
 	state_changed : bool =
-		$context.analyzer.transition(STATE_IN_SERVER_HELLO,
+		$context.connection.transition(STATE_IN_SERVER_HELLO,
 					STATE_SERVER_HELLO_DONE, rec.is_orig, false) ||
-		$context.analyzer.lost_track();
+		$context.connection.lost_track();
 };
 
 
@@ -533,16 +550,16 @@ type ServerHelloDone(rec: SSLRecord) = empty &let {
 # For now ignore details of ClientKeyExchange (most of it is
 # encrypted anyway); just eat up message.
 type ClientKeyExchange(rec: SSLRecord) = record {
-	cont : bytestring &restofdata &transient;
+	key : bytestring &restofdata;
 } &let {
 	state_changed : bool =
-		$context.analyzer.transition(STATE_SERVER_HELLO_DONE,
+		$context.connection.transition(STATE_SERVER_HELLO_DONE,
 					STATE_CLIENT_KEY_NO_CERT, rec.is_orig, true) ||
-		$context.analyzer.transition(STATE_CLIENT_CERT,
+		$context.connection.transition(STATE_CLIENT_CERT,
 					STATE_CLIENT_KEY_WITH_CERT, rec.is_orig, true) ||
-		$context.analyzer.transition(STATE_CLIENT_CERT,
+		$context.connection.transition(STATE_CLIENT_CERT,
 					STATE_CLIENT_KEY_WITH_CERT, rec.is_orig, true) ||
-		$context.analyzer.lost_track();
+		$context.connection.lost_track();
 };
 
 ######################################################################
@@ -550,18 +567,20 @@ type ClientKeyExchange(rec: SSLRecord) = record {
 ######################################################################
 
 type V2ClientMasterKey(rec: SSLRecord) = record {
-	cipher_kind : uint24;
+	cipher_kind_8 : uint8;
 	cl_key_len : uint16;
 	en_key_len : uint16;
 	key_arg_len : uint16;
 	cl_key_data : bytestring &length = cl_key_len &transient;
 	en_key_data : bytestring &length = en_key_len &transient;
 	key_arg_data : bytestring &length = key_arg_len &transient;
-} &length = 9 + cl_key_len + en_key_len + key_arg_len, &let {
+} &length = 7 + cl_key_len + en_key_len + key_arg_len, &let {
 	state_changed : bool =
-		$context.analyzer.transition(STATE_V2_CL_MASTER_KEY_EXPECTED,
+		$context.connection.transition(STATE_V2_CL_MASTER_KEY_EXPECTED,
 					STATE_CONN_ESTABLISHED, rec.is_orig, true) ||
-		$context.analyzer.lost_track();
+		$context.connection.lost_track();
+		
+	cipher_kind : int = (((rec.head3 << 16) | (rec.head4 << 8)) | cipher_kind_8);
 };
 
 
@@ -574,9 +593,9 @@ type CertificateVerify(rec: SSLRecord) = record {
 	cont : bytestring &restofdata &transient;
 } &let {
 	state_changed : bool =
-		$context.analyzer.transition(STATE_CLIENT_KEY_WITH_CERT,
+		$context.connection.transition(STATE_CLIENT_KEY_WITH_CERT,
 					STATE_CLIENT_CERT_VERIFIED, rec.is_orig, true) ||
-		$context.analyzer.lost_track();
+		$context.connection.lost_track();
 };
 
 
@@ -595,13 +614,8 @@ type CertificateVerify(rec: SSLRecord) = record {
 type UnknownHandshake(hs: Handshake, is_orig: bool) =  record {
 	cont : bytestring &restofdata &transient;
 } &let {
-	# TODO: an unknown handshake could just be an encrypted handshake
-	#       before a server sends the change cipher spec message.
-	#       I have no clue why this happens, but it does seem to happen.
-	#  This should be solved in a different way eventually.
-	#state_changed : bool = $context.analyzer.lost_track();
+	state_changed : bool = $context.connection.lost_track();
 };
-
 
 type Handshake(rec: SSLRecord) = record {
 	msg_type : uint8;
@@ -618,8 +632,8 @@ type Handshake(rec: SSLRecord) = record {
 		CERTIFICATE_VERIFY ->	certificate_verify : CertificateVerify(rec);
 		CLIENT_KEY_EXCHANGE ->	client_key_exchange : ClientKeyExchange(rec);
 		default ->		unknown_handshake : UnknownHandshake(this, rec.is_orig);
-	};
-} &length = 4 + to_int()(length);
+	} &length = to_int()(length);
+};
 
 
 ######################################################################
@@ -629,24 +643,30 @@ type Handshake(rec: SSLRecord) = record {
 type UnknownRecord(rec: SSLRecord) =  record {
 	cont : bytestring &restofdata &transient;
 } &let {
-	state_changed : bool = $context.analyzer.lost_track();
+	state_changed : bool = $context.connection.lost_track();
 };
 
-type CiphertextRecord(rec: SSLRecord, is_orig: bool) = empty &let {
+type CiphertextRecord(rec: SSLRecord, is_orig: bool) = record {
+	cont : bytestring &restofdata &transient;
+} &let {
 	state_changed : bool =
-		$context.analyzer.transition(STATE_ABBREV_SERVER_ENCRYPTED,
-					STATE_ABBREV_SERVER_FINISHED, rec.is_orig, false) ||
-		$context.analyzer.transition(STATE_CLIENT_ENCRYPTED,
+		$context.connection.transition(STATE_CLIENT_FINISHED,
+					STATE_CLIENT_FINISHED, rec.is_orig, false) ||
+		$context.connection.transition(STATE_CLIENT_FINISHED,
 					STATE_CLIENT_FINISHED, rec.is_orig, true) ||
-		$context.analyzer.transition(STATE_COMM_ENCRYPTED,
+		$context.connection.transition(STATE_ABBREV_SERVER_ENCRYPTED,
+					STATE_ABBREV_SERVER_FINISHED, rec.is_orig, false) ||
+		$context.connection.transition(STATE_CLIENT_ENCRYPTED,
+					STATE_CLIENT_FINISHED, rec.is_orig, true) ||
+		$context.connection.transition(STATE_COMM_ENCRYPTED,
 					STATE_CONN_ESTABLISHED, rec.is_orig, false) ||
-		$context.analyzer.transition(STATE_COMM_ENCRYPTED,
+		$context.connection.transition(STATE_COMM_ENCRYPTED,
 					STATE_CONN_ESTABLISHED, rec.is_orig, true) ||
-		$context.analyzer.transition(STATE_CONN_ESTABLISHED,
+		$context.connection.transition(STATE_CONN_ESTABLISHED,
 					STATE_CONN_ESTABLISHED, rec.is_orig, false) ||
-		$context.analyzer.transition(STATE_CONN_ESTABLISHED,
+		$context.connection.transition(STATE_CONN_ESTABLISHED,
 					STATE_CONN_ESTABLISHED, rec.is_orig, true) ||
-		$context.analyzer.lost_track();
+		$context.connection.lost_track();
 };
 
 
@@ -663,9 +683,7 @@ type SSLPDU(is_orig: bool) = record {
 # binpac analyzer for SSL including
 ######################################################################
 
-analyzer SSLAnalyzer {
-	upflow = SSLFlow(true);
-	downflow = SSLFlow(false);
+refine connection SSL_Conn += {
 
 	%member{
 		int state_;
@@ -715,6 +733,7 @@ analyzer SSLAnalyzer {
 
 	function lost_track() : bool
 		%{
+		printf("just lost track!\n");
 		state_ = STATE_TRACK_LOST;
 		return false;
 		%}

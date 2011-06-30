@@ -11,5 +11,7 @@
 redef Notice::ignored_types += {
 	Weird::ContentGap,
 	Weird::AckAboveHole,
-	DPD::ProtocolViolation
+	Weird::RetransmissionInconsistency,
+	Weird::WeirdActivity, # Only allow these to go in the weird log.
+	DPD::ProtocolViolation,
 };

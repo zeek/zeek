@@ -1,45 +1,47 @@
-
+@load notice
 
 module SSL;
 
 export {
-	
-	## This is the root CA bundle.  By default it is Mozilla's full trusted
-	## root CA list.
-	# TODO: move the mozilla_root_certs setting into the mozilla file.
-	#print mozilla_root_certs;
-	const root_certs: table[string] of string = {} &redef;
-	#const root_certs: table[string] of string = {} &redef;
-	
-	
-	## This is where you can define root certificates that you want to validate
-	## against servers.  For example, you may have a policy that states that 
-	## all local certificates must be signed by a specific signing authority.
-	## If you specify your local networks with only the specific authority
-	## or authorities your policy stipulates here, certificates signed by any
-	## other key will not validate.  By default, all servers are validated 
-	## against the full ``root_certs`` bundle.
-	#const server_validation: table[subnet] of table[string] of string =
-	#	{ [0.0.0.0/0] = root_certs } &redef;
+	redef enum Log::ID += { SSL };
 
-	## This is where you can define root certificates that you want to validate
-	## against clients.  This is still doing validation against the server
-	## certificate chain, but this allows you to define a restricted 
-	## list of signing certificate that clients should be seen connecting to. 
-	## For example, you may have a tightly controlled network
-	## that you **never** want to establish SSL sessions using anything other
-	## than certificates signed by a very select list of certificate
-	## authorities.  You can define the networks in this variable along with
-	## key signing certificates with which they should be allowed to establish
-	## SSL connections.  By default, all client connections are validated 
-	## against the full ``root_certs`` bundle.
-	#const client_validation: table[subnet] of table[string] of string =
-	#	{ [0.0.0.0/0] = root_certs } &redef;
+	redef enum Notice::Type += {
+		Invalid_Server_Cert,
+		Self_Signed_Cert
+	};
+
+	type Info: record {
+		ts:               time             &log;
+		uid:              string           &log;
+		id:               conn_id          &log;
+		version:          string           &log &optional;
+		cipher:           string           &log &optional;
+		validation_status:string           &log &optional;
+		server_name:      string           &log &optional;
+		server_subject:   string           &log &optional;
+		not_valid_before: time             &log &optional;
+		not_valid_after:  time             &log &optional;
+		
+		cert:             string           &optional;
+		cert_chain:       vector of string &optional;
+	};
+	
+	## This is where the default root CA bundle is defined.  By loading the
+	## protocols/ssl/mozilla-ca-list.bro script it will be set to Mozilla's
+	## root CA list.
+	const root_certs: table[string] of string = {} &redef;
+	
+	global log_ssl: event(rec: Info);
 }
 
-# TODO: add the script for this and generate on one to ship.
-#@load mozilla-root-certs
+redef record connection += {
+	ssl: Info &optional;
+};
 
+event bro_init()
+	{
+	Log::create_stream(SSL, [$columns=Info, $ev=log_ssl]);
+	}
 
 redef capture_filters += {
 	["ssl"] = "tcp port 443",
@@ -57,18 +59,93 @@ redef capture_filters += {
 
 global ssl_ports = {
 	443/tcp, 563/tcp, 585/tcp, 614/tcp, 636/tcp,
-	989/tcp, 990/tcp, 992/tcp, 993/tcp, 995/tcp,
+	989/tcp, 990/tcp, 992/tcp, 993/tcp, 995/tcp, 5223/tcp
 } &redef;
 
 redef dpd_config += {
 	[[ANALYZER_SSL]] = [$ports = ssl_ports]
 };
 
+function set_session(c: connection)
+	{
+	if ( ! c?$ssl )
+		c$ssl = [$ts=network_time(), $uid=c$uid, $id=c$id, $cert_chain=vector()];
+	}
+
+event ssl_client_hello(c: connection, version: count, possible_ts: time, session_id: string, ciphers: count_set) &priority=5
+	{
+	set_session(c);
+	}
 	
-#redef SSL::client_validation += table(
-#	[128.146.0.0/16] = table(
-#		["LOCAL_DER_CERT"] = "ADFADFWEAFASDFASDFA",  
-#		["LOCAL_DER_CERT2"] = "ADFADFWEAFASDFASDFA" )
-#		#["DER_CERT_1"]     = SSL::root_certs["DER_CERT_1"],
-#		#["LOCAL_DER_CERT"] = "ADFADFWEAFASDFASDFA"},
-#);
+event ssl_server_hello(c: connection, version: count, possible_ts: time, session_id: string, cipher: count, comp_method: count) &priority=5
+	{
+	set_session(c);
+	
+	c$ssl$version = version_strings[version];
+	c$ssl$cipher = cipher_desc[cipher];
+	}
+
+event x509_certificate(c: connection, cert: X509, is_server: bool, chain_idx: count, chain_len: count, der_cert: string) &priority=5
+	{
+	set_session(c);
+	
+	if ( chain_idx == 0 )
+		{
+		# Save the primary cert.
+		c$ssl$cert = der_cert;
+		
+		# Also save other certificate information about the primary cert.
+		c$ssl$server_subject = cert$subject;
+		c$ssl$not_valid_before = cert$not_valid_before;
+		c$ssl$not_valid_after = cert$not_valid_after;
+		}
+	else
+		{
+		# Otherwise, add it to the cert validation chain.
+		c$ssl$cert_chain[|c$ssl$cert_chain|] = der_cert;
+		}
+	}
+	
+event ssl_extension(c: connection, code: count, val: string)
+	{
+	set_session(c);
+	
+	if ( extensions[code] == "server_name" )
+		c$ssl$server_name = sub_bytes(val, 6, |val|);
+	}
+
+event ssl_alert(c: connection, level: count, desc: count)
+	{
+	#print level;
+	#print desc;
+	}
+
+event x509_error(c: connection, err: count)
+	{
+	print err;
+	}
+
+
+event x509_certificate(c: connection, cert: X509, is_server: bool, chain_idx: count, chain_len: count, der_cert: string) &priority=-5
+	{
+	if ( chain_idx == chain_len-1 || chain_len == 1 )
+		{
+		local result = x509_verify(c$ssl$cert, c$ssl$cert_chain, root_certs);
+		#print fmt("verifying cert... %s", x509_err2str(result));
+		
+		c$ssl$validation_status = x509_err2str(result);
+		if ( result != 0 )
+			{
+			#print c$ssl;
+			NOTICE([$note=Invalid_Server_Cert, $msg="validation failed", $conn=c]);
+			}
+		}
+	}
+	
+event ssl_established(c: connection) &priority=-5
+	{
+	set_session(c);
+	
+	Log::write(SSL, c$ssl);
+	}
+	

@@ -50,9 +50,9 @@ export {
 		handshake_cipher:       string &default=""; # agreed-upon cipher for session/conn.
 	};
 
-	# Certificates presented by which hosts to record.
-	# Choices are: LocalHosts, RemoteHosts, Enabled, Disabled
-	const logging = LocalHosts &redef;
+	## Certificates presented by which hosts to record.
+	## Choices are: LOCAL_HOSTS, REMOTE_HOSTS, ALL_HOSTS, NO_HOSTS
+	const asset_tracking = default_asset_tracking &redef;
 
 	# If set to T, this will split local and remote certs
 	# into separate files.  F merges everything into a single file.

@@ -2,17 +2,10 @@
 #include "TCP_Reassembler.h"
 #include "util.h"
 
-
-bool SSL_Analyzer_binpac::warnings_generated = false;
-
 SSL_Analyzer_binpac::SSL_Analyzer_binpac(Connection* c)
 : TCP_ApplicationAnalyzer(AnalyzerTag::SSL, c)
 	{
-	interp = new binpac::SSL::SSLAnalyzer;
-	interp->set_bro_analyzer(this);
-
-	if ( ! warnings_generated )
-		generate_warnings();
+	interp = new binpac::SSL::SSL_Conn(this);
 	}
 
 SSL_Analyzer_binpac::~SSL_Analyzer_binpac()
@@ -50,19 +43,4 @@ void SSL_Analyzer_binpac::Undelivered(int seq, int len, bool orig)
 	{
 	TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	interp->NewGap(orig, len);
-	}
-
-void SSL_Analyzer_binpac::warn_(const char* msg)
-	{
-	warn("SSL_Analyzer_binpac: ", msg);
-	}
-
-void SSL_Analyzer_binpac::generate_warnings()
-	{
-	if ( ssl_store_certificates )
-		warn_("storage of certificates (ssl_store_certificates) not supported");
-	if ( ssl_store_key_material )
-		warn_("storage of key material (ssl_store_key_material) not supported");
-
-	warnings_generated = true;
 	}

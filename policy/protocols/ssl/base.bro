@@ -18,7 +18,7 @@ export {
 		cipher:           string           &log &optional;
 		validation_status:string           &log &optional;
 		server_name:      string           &log &optional;
-		server_subject:   string           &log &optional;
+		subject:          string           &log &optional;
 		not_valid_before: time             &log &optional;
 		not_valid_after:  time             &log &optional;
 		
@@ -95,7 +95,7 @@ event x509_certificate(c: connection, cert: X509, is_server: bool, chain_idx: co
 		c$ssl$cert = der_cert;
 		
 		# Also save other certificate information about the primary cert.
-		c$ssl$server_subject = cert$subject;
+		c$ssl$subject = cert$subject;
 		c$ssl$not_valid_before = cert$not_valid_before;
 		c$ssl$not_valid_after = cert$not_valid_after;
 		}
@@ -114,30 +114,17 @@ event ssl_extension(c: connection, code: count, val: string)
 		c$ssl$server_name = sub_bytes(val, 6, |val|);
 	}
 
-event ssl_alert(c: connection, level: count, desc: count)
-	{
-	#print level;
-	#print desc;
-	}
-
-event x509_error(c: connection, err: count)
-	{
-	print err;
-	}
-
-
 event x509_certificate(c: connection, cert: X509, is_server: bool, chain_idx: count, chain_len: count, der_cert: string) &priority=-5
 	{
 	if ( chain_idx == chain_len-1 || chain_len == 1 )
 		{
 		local result = x509_verify(c$ssl$cert, c$ssl$cert_chain, root_certs);
-		#print fmt("verifying cert... %s", x509_err2str(result));
-		
 		c$ssl$validation_status = x509_err2str(result);
 		if ( result != 0 )
 			{
-			#print c$ssl;
-			NOTICE([$note=Invalid_Server_Cert, $msg="validation failed", $conn=c]);
+			local message = fmt("SSL certificate validation failed with (%s)", c$ssl$validation_status);
+			NOTICE([$note=Invalid_Server_Cert, $msg=message,
+			        $sub=c$ssl$subject, $conn=c]);
 			}
 		}
 	}

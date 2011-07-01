@@ -479,7 +479,8 @@ event rotate_size%(f: file%);
 event netflow_v5_header%(h: nf_v5_header%);
 event netflow_v5_record%(r: nf_v5_record%);
 
-# Different types of reporter messages.
-event reporter_message%(t: time, msg: string, location: string%);
-event reporter_warning%(t: time, msg: string, location: string%);
-event reporter_error%(t: time, msg: string, location: string%);
+# Different types of reporter messages. These won't be called
+# recursively.
+event reporter_message%(t: time, msg: string, location: string%) &error_handler;
+event reporter_warning%(t: time, msg: string, location: string%) &error_handler;
+event reporter_error%(t: time, msg: string, location: string%) &error_handler;

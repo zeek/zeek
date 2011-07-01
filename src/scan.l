@@ -290,6 +290,7 @@ when	return TOK_WHEN;
 &disable_print_hook	return TOK_ATTR_DISABLE_PRINT_HOOK;
 &raw_output return TOK_ATTR_RAW_OUTPUT;
 &encrypt	return TOK_ATTR_ENCRYPT;
+&error_handler	return TOK_ATTR_ERROR_HANDLER;
 &expire_func	return TOK_ATTR_EXPIRE_FUNC;
 &group		return TOK_ATTR_GROUP;
 &log		return TOK_ATTR_LOG;

@@ -13,6 +13,7 @@ EventHandler::EventHandler(const char* arg_name)
 	local = 0;
 	type = 0;
 	group = 0;
+	error_handler = false;
 	enabled = true;
 	}
 

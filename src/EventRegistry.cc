@@ -96,6 +96,15 @@ void EventRegistry::SetGroup(const char* name, const char* group)
 	eh->SetGroup(group);
 	}
 
+void EventRegistry::SetErrorHandler(const char* name)
+	{
+	EventHandler* eh = Lookup(name);
+	if ( ! eh )
+		reporter->InternalError("unknown event handler in SetErrorHandler()");
+
+	eh->SetErrorHandler();
+	}
+
 void EventRegistry::EnableGroup(const char* group, bool enable)
 	{
 	IterCookie* c = handlers.InitForIteration();

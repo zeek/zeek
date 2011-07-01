@@ -25,6 +25,7 @@ Reporter::Reporter()
 	{
 	errors = 0;
 	via_events = false;
+	in_error_handler = 0;
 
 	openlog("bro", 0, LOG_LOCAL5);
 	}
@@ -246,7 +247,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Conne
 			FatalError("out of memory in Reporter");
 		}
 
-	if ( event && via_events )
+	if ( event && via_events && ! in_error_handler )
 		{
 		val_list* vl = new val_list;
 
@@ -303,8 +304,6 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Conne
 
 		fprintf(out, s.c_str());
 		}
-
-
 
 	if ( alloced )
 		free(alloced);

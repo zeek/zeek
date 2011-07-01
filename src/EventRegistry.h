@@ -31,6 +31,11 @@ public:
 	// Associates a group with the given event.
 	void SetGroup(const char* name, const char* group);
 
+	// Marks a handler as handling errors. Error handler will not be called
+	// recursively to avoid infinite loops in case they trigger an error
+	// themselves.
+	void SetErrorHandler(const char* name);
+
 	// Enable/disable all members of the group.
 	void EnableGroup(const char* group, bool enable);
 

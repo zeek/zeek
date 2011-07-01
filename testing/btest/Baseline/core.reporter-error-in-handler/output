@@ -1,0 +1,3 @@
+[script] reporter_error: no such index (a[1]) [/da/home/robin/bro/topic/testing/btest/.tmp/core.reporter-error-in-handler/reporter-error-in-handler.bro, line 28] [0.000000]
+1st error printed on script level
+error in /da/home/robin/bro/topic/testing/btest/.tmp/core.reporter-error-in-handler/reporter-error-in-handler.bro, line 22: no such index (a[2])

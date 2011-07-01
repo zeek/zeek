@@ -460,7 +460,8 @@ const_def:	TOK_CONST opt_ws TOK_ID opt_ws ':' opt_ws TOK_ID opt_ws ';'
 
 
 /* Currently support only boolean and string values */
-opt_attr_init:	'=' opt_ws TOK_BOOL opt_ws
+opt_attr_init:	/* nothing */
+	|	'=' opt_ws TOK_BOOL opt_ws
 			{
 			fprintf(fp_bro_init, "=%s%c%s", $2, ($3) ? 'T' : 'F', $4);
 			}

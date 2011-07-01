@@ -79,6 +79,12 @@ public:
 	void PopLocation()
 		{ locations.pop_back(); }
 
+	// Signals that we're entering processing an error handler event.
+	void BeginErrorHandler()	{ ++in_error_handler; }
+
+	// Signals that we're done processing an error handler event.
+	void EndErrorHandler()	{ --in_error_handler; }
+
 private:
 	void DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Connection* conn, val_list* addl, bool location, bool time, const char* fmt, va_list ap);
 
@@ -87,6 +93,7 @@ private:
 
 	int errors;
 	bool via_events;
+	int in_error_handler;
 
 	std::list<std::pair<const Location*, const Location*> > locations;
 };

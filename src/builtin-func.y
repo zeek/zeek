@@ -460,7 +460,8 @@ const_def:	TOK_CONST opt_ws TOK_ID opt_ws ':' opt_ws TOK_ID opt_ws ';'
 
 
 /* Currently support only boolean and string values */
-opt_attr_init:	'=' opt_ws TOK_BOOL opt_ws
+opt_attr_init:	/* nothing */
+	|	'=' opt_ws TOK_BOOL opt_ws
 			{
 			fprintf(fp_bro_init, "=%s%c%s", $2, ($3) ? 'T' : 'F', $4);
 			}
@@ -635,7 +636,7 @@ body_start:	TOK_LPB c_code_begin
 				fprintf(fp_func_def, "\tif ( %s->length() != %d )\n", arg_list_name, argc);
 				fprintf(fp_func_def, "\t\t{\n");
 				fprintf(fp_func_def,
-					"\t\trun_time(\"%s() takes exactly %d argument(s)\");\n",
+					"\t\treporter->Error(\"%s() takes exactly %d argument(s)\");\n",
 					decl.bro_fullname.c_str(), argc);
 				fprintf(fp_func_def, "\t\treturn 0;\n");
 				fprintf(fp_func_def, "\t\t}\n");
@@ -645,7 +646,7 @@ body_start:	TOK_LPB c_code_begin
 				fprintf(fp_func_def, "\tif ( %s->length() < %d )\n", arg_list_name, argc);
 				fprintf(fp_func_def, "\t\t{\n");
 				fprintf(fp_func_def,
-					"\t\trun_time(\"%s() takes at least %d argument(s)\");\n",
+					"\t\treporter->Error(\"%s() takes at least %d argument(s)\");\n",
 					decl.bro_fullname.c_str(), argc);
 				fprintf(fp_func_def, "\t\treturn 0;\n");
 				fprintf(fp_func_def, "\t\t}\n");

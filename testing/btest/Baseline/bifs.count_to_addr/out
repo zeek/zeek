@@ -1,4 +1,5 @@
 0.0.0.1
 48.21.133.122
 255.255.255.255
+error in /da/home/robin/bro/seth/testing/btest/.tmp/bifs.count_to_addr/count_to_addr.bro, line 19: conversion of non-IPv4 count to addr (count_to_v4_addr(to_count(a)) and 4294967296)
 0.0.0.0

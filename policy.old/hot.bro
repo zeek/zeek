@@ -85,7 +85,7 @@ function check_spoof(c: connection): bool
 	     service !in allow_spoof_services )
 		{
 		if ( c$id$orig_p == service && orig == resp )
-			event conn_weird("Land_attack", c);
+			event conn_weird("Land_attack", c, "");
 
 		if ( same_local_net_is_spoof )
 			++c$hot;

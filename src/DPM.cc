@@ -262,7 +262,7 @@ bool DPM::BuildInitialAnalyzerTree(TransportProto proto, Connection* conn,
 		}
 
 	default:
-		internal_error("unknown protocol");
+		reporter->InternalError("unknown protocol");
 	}
 
 	if ( ! root )

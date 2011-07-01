@@ -89,7 +89,7 @@ void HTTP_Entity::Deliver(int len, const char* data, int trailing_CRLF)
 	if ( in_header )
 		{
 		if ( ! trailing_CRLF )
-			http_message->MyHTTP_Analyzer()->Weird("no_http_in_header_list");
+			http_message->MyHTTP_Analyzer()->Weird("http_no_crlf_in_header_list");
 
 		header_length += len;
 		MIME_Entity::Deliver(len, data, trailing_CRLF);
@@ -576,7 +576,7 @@ void HTTP_Message::SubmitData(int len, const char* buf)
 	{
 	if ( buf != (const char*) data_buffer->Bytes() + buffer_offset ||
 	     buffer_offset + len > buffer_size )
-		internal_error("buffer misalignment");
+		reporter->InternalError("buffer misalignment");
 
 	buffer_offset += len;
 	if ( buffer_offset >= buffer_size )
@@ -624,7 +624,7 @@ void HTTP_Message::SubmitEvent(int event_type, const char* detail)
 		break;
 
 	default:
-		internal_error("unrecognized HTTP message event");
+		reporter->InternalError("unrecognized HTTP message event");
 	}
 
 	MyHTTP_Analyzer()->HTTP_Event(category, detail);
@@ -1097,7 +1097,7 @@ int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 	request_method = new StringVal(http_methods[i]);
 
 	if ( ! ParseRequest(rest, end_of_line) )
-		internal_error("HTTP ParseRequest failed");
+		reporter->InternalError("HTTP ParseRequest failed");
 
 	Conn()->Match(Rule::HTTP_REQUEST,
 			(const u_char*) unescaped_URI->AsString()->Bytes(),

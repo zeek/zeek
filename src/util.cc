@@ -39,6 +39,7 @@
 #include "Val.h"
 #include "NetVar.h"
 #include "Net.h"
+#include "Reporter.h"
 
 char* copy_string(const char* s)
 	{
@@ -84,7 +85,7 @@ int expand_escape(const char*& s)
 		int result;
 		if ( sscanf(start, "%3o", &result) != 1 )
 			{
-			warn("bad octal escape: ", start);
+			reporter->Warning("bad octal escape: ", start);
 			result = 0;
 			}
 
@@ -103,7 +104,7 @@ int expand_escape(const char*& s)
 		int result;
 		if ( sscanf(start, "%2x", &result) != 1 )
 			{
-			warn("bad hexadecimal escape: ", start);
+			reporter->Warning("bad hexadecimal escape: ", start);
 			result = 0;
 			}
 
@@ -230,7 +231,7 @@ unsigned char encode_hex(int h)
 
 	if  ( h < 0 || h >= 16 )
 		{
-		internal_error("illegal value for encode_hex: %d", h);
+		reporter->InternalError("illegal value for encode_hex: %d", h);
 		return 'X';
 		}
 
@@ -456,7 +457,7 @@ const char* fmt(const char* format, ...)
 		va_end(al);
 
 		if ( (unsigned int) n >= buf_len )
-			internal_error("confusion reformatting in fmt()");
+			reporter->InternalError("confusion reformatting in fmt()");
 		}
 
 	return buf;
@@ -477,14 +478,14 @@ bool ensure_dir(const char *dirname)
 		{
 		if ( errno != ENOENT )
 			{
-			warn(fmt("can't stat directory %s: %s",
+			reporter->Warning(fmt("can't stat directory %s: %s",
 				dirname, strerror(errno)));
 			return false;
 			}
 
 		if ( mkdir(dirname, 0700) < 0 )
 			{
-			warn(fmt("can't create directory %s: %s",
+			reporter->Warning(fmt("can't create directory %s: %s",
 				dirname, strerror(errno)));
 			return false;
 			}
@@ -492,7 +493,7 @@ bool ensure_dir(const char *dirname)
 
 	else if ( ! S_ISDIR(st.st_mode) )
 		{
-		warn(fmt("%s exists but is not a directory", dirname));
+		reporter->Warning(fmt("%s exists but is not a directory", dirname));
 		return false;
 		}
 
@@ -505,7 +506,7 @@ bool is_dir(const char* path)
 	if ( stat(path, &st) < 0 )
 		{
 		if ( errno != ENOENT )
-			warn(fmt("can't stat %s: %s", path, strerror(errno)));
+			reporter->Warning(fmt("can't stat %s: %s", path, strerror(errno)));
 
 		return false;
 		}
@@ -537,7 +538,7 @@ uint8 shared_hmac_md5_key[16];
 void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16])
 	{
 	if ( ! hmac_key_set )
-		internal_error("HMAC-MD5 invoked before the HMAC key is set");
+		reporter->InternalError("HMAC-MD5 invoked before the HMAC key is set");
 
 	hash_md5(size, bytes, digest);
 
@@ -555,14 +556,14 @@ static bool read_random_seeds(const char* read_file, uint32* seed,
 
 	if ( stat(read_file, &st) < 0 )
 		{
-		warn(fmt("Seed file '%s' does not exist: %s",
+		reporter->Warning(fmt("Seed file '%s' does not exist: %s",
 				read_file, strerror(errno)));
 		return false;
 		}
 
 	if ( ! (f = fopen(read_file, "r")) )
 		{
-		warn(fmt("Could not open seed file '%s': %s",
+		reporter->Warning(fmt("Could not open seed file '%s': %s",
 				read_file, strerror(errno)));
 		return false;
 		}
@@ -598,7 +599,7 @@ static bool write_random_seeds(const char* write_file, uint32 seed,
 
 	if ( ! (f = fopen(write_file, "w+")) )
 		{
-		warn(fmt("Could not create seed file '%s': %s",
+		reporter->Warning(fmt("Could not create seed file '%s': %s",
 				write_file, strerror(errno)));
 		return false;
 		}
@@ -633,7 +634,7 @@ void init_random_seed(uint32 seed, const char* read_file, const char* write_file
 	if ( read_file )
 		{
 		if ( ! read_random_seeds(read_file, &seed, buf, bufsiz) )
-			fprintf(stderr, "Could not load seeds from file '%s'.\n",
+			reporter->Error("Could not load seeds from file '%s'.\n",
 					read_file);
 		else
 			seeds_done = true;
@@ -696,7 +697,7 @@ void init_random_seed(uint32 seed, const char* read_file, const char* write_file
 		}
 
 	if ( write_file && ! write_random_seeds(write_file, seed, buf, bufsiz) )
-		fprintf(stderr, "Could not write seeds to file '%s'.\n",
+		reporter->Error("Could not write seeds to file '%s'.\n",
 				write_file);
 	}
 
@@ -734,105 +735,6 @@ uint64 rand64bit()
 	for ( i = 1; i <= 4; ++i )
 		base = (base<<16) | bro_random();
 	return base;
-	}
-
-void message(const char* msg)
-	{
-	pinpoint();
-	fprintf(stderr, "%s\n", msg);
-	}
-
-void warn(const char* msg)
-	{
-	pinpoint();
-	fprintf(stderr, "warning: %s\n", msg);
-	++nwarn;
-	}
-
-void warn(const char* msg, const char* addl)
-	{
-	pinpoint();
-	fprintf(stderr, "warning: %s %s\n", msg, addl);
-	++nwarn;
-	}
-
-void error(const char* msg)
-	{
-	pinpoint();
-	fprintf(stderr, "error: %s\n", msg);
-	++nerr;
-	}
-
-void error(const char* msg, const char* addl)
-	{
-	pinpoint();
-	fprintf(stderr, "error: %s %s\n", msg, addl);
-	++nerr;
-	}
-
-void error(const char* msg, uint32 addl)
-	{
-	pinpoint();
-	fprintf(stderr, "error: %s - %u\n", msg, addl);
-	++nerr;
-	}
-
-void run_time(const char* msg)
-	{
-	pinpoint();
-	fprintf(stderr, "run-time error: %s\n", msg);
-	++nruntime;
-	}
-
-void run_time(const char* fmt, BroObj* obj)
-	{
-	ODesc d;
-	obj->Describe(&d);
-	run_time(fmt, d.Description());
-	}
-
-void run_time(const char* fmt, const char* arg)
-	{
-	pinpoint();
-	fprintf(stderr, "run-time error: ");
-	fprintf(stderr, fmt, arg);
-	fprintf(stderr, "\n");
-	++nruntime;
-	}
-
-void run_time(const char* fmt, const char* arg1, const char* arg2)
-	{
-	pinpoint();
-	fprintf(stderr, "run-time error: ");
-	fprintf(stderr, fmt, arg1, arg2);
-	fprintf(stderr, "\n");
-	++nruntime;
-	}
-
-void internal_error(const char* fmt, ...)
-	{
-	va_list al;
-
-	pinpoint();
-	fprintf(stderr, "internal error: ");
-	va_start(al, fmt);
-	vfprintf(stderr, fmt, al);
-	va_end(al);
-	fprintf(stderr, "\n");
-	set_processing_status("TERMINATED", "internal_error");
-	abort();
-	}
-
-void pinpoint()
-	{
-	if ( network_time > 0.0 )
-		fprintf(stderr, "%.6f ", network_time);
-	else
-		{
-		if ( filename )
-			fprintf(stderr, "%s, ", filename);
-		fprintf(stderr, "line %d: ", line_number);
-		}
 	}
 
 int int_list_cmp(const void* v1, const void* v2)
@@ -1052,7 +954,7 @@ FILE* rotate_file(const char* name, RecordVal* rotate_info)
 	FILE* newf = fopen(tmpname, "w");
 	if ( ! newf )
 		{
-		run_time(fmt("rotate_file: can't open %s: %s", tmpname, strerror(errno)));
+		reporter->Error(fmt("rotate_file: can't open %s: %s", tmpname, strerror(errno)));
 		return 0;
 		}
 
@@ -1061,7 +963,7 @@ FILE* rotate_file(const char* name, RecordVal* rotate_info)
 	struct stat dummy;
 	if ( link(name, newname) < 0 || stat(newname, &dummy) < 0 )
 		{
-		run_time(fmt("rotate_file: can't move %s to %s: %s", name, newname, strerror(errno)));
+		reporter->Error(fmt("rotate_file: can't move %s to %s: %s", name, newname, strerror(errno)));
 		fclose(newf);
 		unlink(newname);
 		unlink(tmpname);
@@ -1071,7 +973,7 @@ FILE* rotate_file(const char* name, RecordVal* rotate_info)
 	// Close current file, and move the tmp to its place.
 	if ( unlink(name) < 0 || link(tmpname, name) < 0 || unlink(tmpname) < 0 )
 		{
-		run_time(fmt("rotate_file: can't move %s to %s: %s", tmpname, name, strerror(errno)));
+		reporter->Error(fmt("rotate_file: can't move %s to %s: %s", tmpname, name, strerror(errno)));
 		exit(1);	// hard to fix, but shouldn't happen anyway...
 		}
 
@@ -1111,7 +1013,7 @@ double calc_next_rotate(double interval, const char* rotate_base_time)
 		{
 		struct tm t;
 		if ( ! strptime(rotate_base_time, "%H:%M", &t) )
-			run_time("calc_next_rotate(): can't parse rotation base time");
+			reporter->Error("calc_next_rotate(): can't parse rotation base time");
 		else
 			base = t.tm_min * 60 + t.tm_hour * 60 * 60;
 		}
@@ -1174,7 +1076,7 @@ double current_time(bool real)
 	{
 	struct timeval tv;
 	if ( gettimeofday(&tv, 0) < 0 )
-		internal_error("gettimeofday failed in current_time()");
+		reporter->InternalError("gettimeofday failed in current_time()");
 
 	double t = double(tv.tv_sec) + double(tv.tv_usec) / 1e6;
 
@@ -1264,8 +1166,7 @@ uint64 calculate_unique_id()
 
 void out_of_memory(const char* where)
 	{
-	fprintf( stderr, "bro: out of memory in %s.\n", where );
-	abort();
+	reporter->FatalError("out of memory in %s.\n", where);
 	}
 
 void get_memory_usage(unsigned int* total, unsigned int* malloced)

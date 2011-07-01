@@ -10,6 +10,7 @@
 #include "BroList.h"
 #include "Obj.h"
 #include "Expr.h"
+#include "Reporter.h"
 
 #include "StmtEnums.h"
 
@@ -62,7 +63,7 @@ public:
 		if ( breakpoint_count )
 			--breakpoint_count;
 		else
-			internal_error("breakpoint count decremented below 0");
+			reporter->InternalError("breakpoint count decremented below 0");
 		}
 
 	virtual unsigned int BPCount() const	{ return breakpoint_count; }
@@ -113,19 +114,6 @@ protected:
 	DECLARE_ABSTRACT_SERIAL(ExprListStmt);
 
 	ListExpr* l;
-};
-
-class AlarmStmt : public ExprListStmt {
-public:
-	AlarmStmt(ListExpr* l) : ExprListStmt(STMT_ALARM, l)	{ }
-
-protected:
-	friend class Stmt;
-	AlarmStmt()	{}
-
-	Val* DoExec(val_list* vals, stmt_flow_type& flow) const;
-
-	DECLARE_SERIAL(AlarmStmt);
 };
 
 class PrintStmt : public ExprListStmt {

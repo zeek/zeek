@@ -15,6 +15,7 @@
 #include "Timer.h"
 #include "NetVar.h"
 #include "Sessions.h"
+#include "Reporter.h"
 #include "OSFinger.h"
 
 #include "ICMP.h"
@@ -547,7 +548,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 
 	HashKey* h = id.BuildConnKey();
 	if ( ! h )
-		internal_error("hash computation failed");
+		reporter->InternalError("hash computation failed");
 
 	Connection* conn = 0;
 
@@ -736,7 +737,7 @@ FragReassembler* NetSessions::NextFragment(double t, const IP_Hdr* ip,
 
 	HashKey* h = ch->ComputeHash(key, 1);
 	if ( ! h )
-		internal_error("hash computation failed");
+		reporter->InternalError("hash computation failed");
 
 	FragReassembler* f = fragments.Lookup(h);
 	if ( ! f )
@@ -830,7 +831,7 @@ Connection* NetSessions::FindConnection(Val* v)
 
 	HashKey* h = id.BuildConnKey();
 	if ( ! h )
-		internal_error("hash computation failed");
+		reporter->InternalError("hash computation failed");
 
 	Dictionary* d;
 
@@ -908,21 +909,21 @@ void NetSessions::Remove(Connection* c)
 				;
 
 			else if ( ! tcp_conns.RemoveEntry(k) )
-				internal_error("connection missing");
+				reporter->InternalError("connection missing");
 			break;
 
 		case TRANSPORT_UDP:
 			if ( ! udp_conns.RemoveEntry(k) )
-				internal_error("connection missing");
+				reporter->InternalError("connection missing");
 			break;
 
 		case TRANSPORT_ICMP:
 			if ( ! icmp_conns.RemoveEntry(k) )
-				internal_error("connection missing");
+				reporter->InternalError("connection missing");
 			break;
 
 		case TRANSPORT_UNKNOWN:
-			internal_error("unknown transport when removing connection");
+			reporter->InternalError("unknown transport when removing connection");
 			break;
 		}
 
@@ -935,10 +936,10 @@ void NetSessions::Remove(FragReassembler* f)
 	{
 	HashKey* k = f->Key();
 	if ( ! k )
-		internal_error("fragment block not in dictionary");
+		reporter->InternalError("fragment block not in dictionary");
 
 	if ( ! fragments.RemoveEntry(k) )
-		internal_error("fragment block missing");
+		reporter->InternalError("fragment block missing");
 
 	Unref(f);
 	}
@@ -974,7 +975,7 @@ void NetSessions::Insert(Connection* c)
 		break;
 
 	default:
-		internal_error("unknown connection type");
+		reporter->InternalError("unknown connection type");
 	}
 
 	if ( old && old != c )
@@ -1065,7 +1066,7 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 			tproto = TRANSPORT_UDP;
 			break;
 		default:
-			internal_error("unknown transport protocol");
+			reporter->InternalError("unknown transport protocol");
 			break;
 	};
 
@@ -1252,7 +1253,7 @@ void NetSessions::DumpPacket(const struct pcap_pkthdr* hdr,
 		struct pcap_pkthdr h = *hdr;
 		h.caplen = len;
 		if ( h.caplen > hdr->caplen )
-			internal_error("bad modified caplen");
+			reporter->InternalError("bad modified caplen");
 		pkt_dumper->Dump(&h, pkt);
 		}
 	}
@@ -1261,7 +1262,7 @@ void NetSessions::Internal(const char* msg, const struct pcap_pkthdr* hdr,
 				const u_char* pkt)
 	{
 	DumpPacket(hdr, pkt);
-	internal_error("%s", msg);
+	reporter->InternalError("%s", msg);
 	}
 
 void NetSessions::Weird(const char* name,
@@ -1270,28 +1271,12 @@ void NetSessions::Weird(const char* name,
 	if ( hdr )
 		dump_this_packet = 1;
 
-	if ( net_weird )
-		{
-		val_list* vl = new val_list;
-		vl->append(new StringVal(name));
-		mgr.QueueEvent(net_weird, vl);
-		}
-	else
-		fprintf(stderr, "weird: %.06f %s\n", network_time, name);
+	reporter->Weird(name);
 	}
 
 void NetSessions::Weird(const char* name, const IP_Hdr* ip)
 	{
-	if ( flow_weird )
-		{
-		val_list* vl = new val_list;
-		vl->append(new StringVal(name));
-		vl->append(new AddrVal(ip->SrcAddr4()));
-		vl->append(new AddrVal(ip->DstAddr4()));
-		mgr.QueueEvent(flow_weird, vl);
-		}
-	else
-		fprintf(stderr, "weird: %.06f %s\n", network_time, name);
+	reporter->Weird(ip->SrcAddr4(), ip->DstAddr4(), name);
 	}
 
 unsigned int NetSessions::ConnectionMemoryUsage()

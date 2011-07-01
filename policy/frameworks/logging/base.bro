@@ -206,4 +206,3 @@ function remove_default_filter(id: ID) : bool
 	{
 	return remove_filter(id, "default");
 	}
-

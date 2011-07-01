@@ -165,11 +165,10 @@ private:
 
 	void Weird(const PendingConn* pending, double t, const char* msg)
 		{
-		if ( conn_weird )
-			Event(pending, t, conn_weird, TCP_ENDPOINT_INACTIVE, 0,
-				TCP_ENDPOINT_INACTIVE, new StringVal(msg));
-		else
-			fprintf(stderr, "%.06f weird: %s\n", t, msg);
+		// This will actually go through the Reporter; Event() takes
+		// care of that.
+		Event(pending, t, conn_weird, TCP_ENDPOINT_INACTIVE, 0,
+		      TCP_ENDPOINT_INACTIVE, new StringVal(msg));
 		}
 
 	static const int BLOCK_SIZE = 16 * 1024;

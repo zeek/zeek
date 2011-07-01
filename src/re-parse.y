@@ -8,6 +8,7 @@
 #include "CCL.h"
 #include "NFA.h"
 #include "EquivClass.h"
+#include "Reporter.h"
 
 int csize = 256;
 int syntax_error = 0;
@@ -220,7 +221,7 @@ int clower(int sym)
 void synerr(const char str[])
 	{
 	syntax_error = true;
-	run_time("%s (compiling pattern /%s/)", str, RE_parse_input);
+	reporter->Error("%s (compiling pattern /%s/)", str, RE_parse_input);
 	}
 
 void yyerror(const char msg[])

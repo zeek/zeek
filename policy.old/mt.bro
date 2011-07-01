@@ -1,6 +1,5 @@
 # $Id: mt.bro 340 2004-09-09 06:38:27Z vern $
 
-@load alarm
 @load dns-lookup
 @load hot
 @load frag

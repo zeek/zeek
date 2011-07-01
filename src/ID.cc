@@ -223,6 +223,7 @@ void ID::UpdateValAttrs()
 	if ( Type()->Tag() == TYPE_FUNC )
 		{
 		Attr* attr = attrs->FindAttr(ATTR_GROUP);
+
 		if ( attr )
 			{
 			Val* group = attr->AttrExpr()->ExprVal();
@@ -234,6 +235,11 @@ void ID::UpdateValAttrs()
 					Error("&group attribute takes string");
 				}
 			}
+
+		attr = attrs->FindAttr(ATTR_ERROR_HANDLER);
+
+		if ( attr )
+			event_registry->SetErrorHandler(Name());
 		}
 
 	if ( Type()->Tag() == TYPE_RECORD )
@@ -448,7 +454,7 @@ ID* ID::Unserialize(UnserialInfo* info)
 			break;
 
 		default:
-			internal_error("unknown type for UnserialInfo::id_policy");
+			reporter->InternalError("unknown type for UnserialInfo::id_policy");
 
 		}
 		}
@@ -552,7 +558,7 @@ bool ID::DoUnserialize(UnserialInfo* info)
 		}
 
 	if ( installed_tmp && ! global_scope()->Remove(name) )
-		internal_error("tmp id missing");
+		reporter->InternalError("tmp id missing");
 
 	return true;
 	}

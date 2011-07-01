@@ -1589,7 +1589,7 @@ BroFile* TCP_Analyzer::GetContentsFile(unsigned int direction) const
 	default:
 		break;
 	}
-	internal_error("inconsistency in TCP_Analyzer::GetContentsFile");
+	reporter->InternalError("inconsistency in TCP_Analyzer::GetContentsFile");
 	return 0;
 	}
 

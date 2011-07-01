@@ -1,5 +1,6 @@
 #include "SSL-binpac.h"
 #include "TCP_Reassembler.h"
+#include "Reporter.h"
 #include "util.h"
 
 SSL_Analyzer_binpac::SSL_Analyzer_binpac(Connection* c)

@@ -663,7 +663,7 @@ const IP_Hdr* ConnCompressor::PendingConnToPacket(const PendingConn* c)
 	// only an IPv4 address.
 #ifdef BROv6
 	if ( ! is_v4_addr(c->key.ip1) || ! is_v4_addr(c->key.ip2) )
-		internal_error("IPv6 snuck into connection compressor");
+		reporter->InternalError("IPv6 snuck into connection compressor");
 #endif
 	*(uint32*) &ip->ip_src =
 			to_v4_addr(c->ip1_is_src ? c->key.ip1 : c->key.ip2);
@@ -927,6 +927,14 @@ void ConnCompressor::Event(const PendingConn* pending, double t,
 		conn_val->Assign(9, new StringVal(uitoa_n(pending->uid, tmp, sizeof(tmp), 62)));
 
 		conn_val->SetOrigin(0);
+		}
+
+	if ( event == conn_weird )
+		{
+		// Special case to go through the logger.
+		const char* msg = arg->AsString()->CheckString();
+		reporter->Weird(conn_val->Ref(), msg);
+		return;
 		}
 
 	val_list* vl = new val_list;

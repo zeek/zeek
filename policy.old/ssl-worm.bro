@@ -2,7 +2,6 @@
 
 @load signatures
 @load software
-@load alarm
 
 redef signature_files += "ssl-worm.sig";
 

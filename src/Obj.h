@@ -44,6 +44,8 @@ public:
 			delete [] filename;
 		}
 
+	void Describe(ODesc* d) const;
+
 	bool Serialize(SerialInfo* info) const;
 	static Location* Unserialize(UnserialInfo* info);
 
@@ -120,8 +122,6 @@ public:
 			int pinpoint_only = 0) const;
 	void Error(const char* msg, const BroObj* obj2 = 0,
 			int pinpoint_only = 0) const;
-	void RunTime(const char* msg, const BroObj* obj2 = 0,
-			int pinpoint_only = 0) const;
 
 	// Report internal errors.
 	void BadTag(const char* msg, const char* t1 = 0,
@@ -155,12 +155,12 @@ public:
 
 	int RefCnt() const	{ return ref_cnt; }
 
-	// Helper class to temporarily suppress run-time errors
+	// Helper class to temporarily suppress errors
 	// as long as there exist any instances.
-	class SuppressRunTimeErrors {
+	class SuppressErrors {
 	public:
-		SuppressRunTimeErrors()		{ ++BroObj::suppress_runtime; }
-		~SuppressRunTimeErrors()	{ --BroObj::suppress_runtime; }
+		SuppressErrors()	{ ++BroObj::suppress_errors; }
+		~SuppressErrors()	{ --BroObj::suppress_errors; }
 	};
 
 	bool in_ser_cache;
@@ -173,13 +173,12 @@ protected:
 	Location* location;	// all that matters in real estate
 
 private:
-	friend class SuppressRunTimeErrors;
+	friend class SuppressErrors;
 
-	void DoMsg(const char s1[], const char s2[], const BroObj* obj2 = 0,
+	void DoMsg(ODesc* d, const char s1[], const BroObj* obj2 = 0,
 			int pinpoint_only = 0) const;
 	void PinPoint(ODesc* d, const BroObj* obj2 = 0,
 			int pinpoint_only = 0) const;
-	void Fatal() const;
 
 	friend inline void Ref(BroObj* o);
 	friend inline void Unref(BroObj* o);
@@ -188,7 +187,7 @@ private:
 
 	// If non-zero, do not print runtime errors.  Useful for
 	// speculative evaluation.
-	static int suppress_runtime;
+	static int suppress_errors;
 };
 
 // Prints obj to stderr, primarily for debugging.

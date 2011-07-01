@@ -186,6 +186,7 @@
 #include "File.h"
 #include "Conn.h"
 #include "LogMgr.h"
+#include "Reporter.h"
 
 extern "C" {
 #include "setsignal.h"
@@ -393,7 +394,7 @@ static bool sendToIO(ChunkedIO* io, ChunkedIO::Chunk* c)
 	{
 	if ( ! io->Write(c) )
 		{
-		warn(fmt("can't send chunk: %s", io->Error()));
+		reporter->Warning(fmt("can't send chunk: %s", io->Error()));
 		return false;
 		}
 
@@ -405,7 +406,7 @@ static bool sendToIO(ChunkedIO* io, char msg_type, RemoteSerializer::PeerID id,
 	{
 	if ( ! sendCMsg(io, msg_type, id) )
 		{
-		warn(fmt("can't send message of type %d: %s", msg_type, io->Error()));
+		reporter->Warning(fmt("can't send message of type %d: %s", msg_type, io->Error()));
 		return false;
 		}
 
@@ -420,7 +421,7 @@ static bool sendToIO(ChunkedIO* io, char msg_type, RemoteSerializer::PeerID id,
 	{
 	if ( ! sendCMsg(io, msg_type, id) )
 		{
-		warn(fmt("can't send message of type %d: %s", msg_type, io->Error()));
+		reporter->Warning(fmt("can't send message of type %d: %s", msg_type, io->Error()));
 		return false;
 		}
 
@@ -663,7 +664,7 @@ void RemoteSerializer::Fork()
 		setpriority(PRIO_PROCESS, 0, 5);
 
 		child.Run();
-		internal_error("cannot be reached");
+		reporter->InternalError("cannot be reached");
 		}
 	}
 
@@ -674,7 +675,7 @@ RemoteSerializer::PeerID RemoteSerializer::Connect(addr_type ip, uint16 port,
 		return true;
 
 	if ( ! initialized )
-		internal_error("remote serializer not initialized");
+		reporter->InternalError("remote serializer not initialized");
 
 #ifdef BROv6
 	if ( ! is_v4_addr(ip) )
@@ -735,13 +736,13 @@ bool RemoteSerializer::RequestSync(PeerID id, bool auth)
 	Peer* peer = LookupPeer(id, true);
 	if ( ! peer )
 		{
-		run_time(fmt("unknown peer id %d for request sync", int(id)));
+		reporter->Error(fmt("unknown peer id %d for request sync", int(id)));
 		return false;
 		}
 
 	if ( peer->phase != Peer::HANDSHAKE )
 		{
-		run_time(fmt("can't request sync from peer; wrong phase %d",
+		reporter->Error(fmt("can't request sync from peer; wrong phase %d",
 				peer->phase));
 		return false;
 		}
@@ -762,13 +763,13 @@ bool RemoteSerializer::RequestLogs(PeerID id)
 	Peer* peer = LookupPeer(id, true);
 	if ( ! peer )
 		{
-		run_time(fmt("unknown peer id %d for request logs", int(id)));
+		reporter->Error(fmt("unknown peer id %d for request logs", int(id)));
 		return false;
 		}
 
 	if ( peer->phase != Peer::HANDSHAKE )
 		{
-		run_time(fmt("can't request logs from peer; wrong phase %d",
+		reporter->Error(fmt("can't request logs from peer; wrong phase %d",
 			     peer->phase));
 		return false;
 		}
@@ -787,13 +788,13 @@ bool RemoteSerializer::RequestEvents(PeerID id, RE_Matcher* pattern)
 	Peer* peer = LookupPeer(id, true);
 	if ( ! peer )
 		{
-		run_time(fmt("unknown peer id %d for request sync", int(id)));
+		reporter->Error(fmt("unknown peer id %d for request sync", int(id)));
 		return false;
 		}
 
 	if ( peer->phase != Peer::HANDSHAKE )
 		{
-		run_time(fmt("can't request events from peer; wrong phase %d",
+		reporter->Error(fmt("can't request events from peer; wrong phase %d",
 				peer->phase));
 		return false;
 		}
@@ -854,7 +855,7 @@ bool RemoteSerializer::CompleteHandshake(PeerID id)
 
 	if ( p->phase != Peer::HANDSHAKE )
 		{
-		run_time(fmt("can't complete handshake; wrong phase %d",
+		reporter->Error(fmt("can't complete handshake; wrong phase %d",
 				p->phase));
 		return false;
 		}
@@ -1123,7 +1124,7 @@ bool RemoteSerializer::SendCaptureFilter(PeerID id, const char* filter)
 
 	if ( peer->phase != Peer::HANDSHAKE )
 		{
-		run_time(fmt("can't sent capture filter to peer; wrong phase %d", peer->phase));
+		reporter->Error(fmt("can't sent capture filter to peer; wrong phase %d", peer->phase));
 		return false;
 		}
 
@@ -1200,7 +1201,7 @@ bool RemoteSerializer::SendCapabilities(Peer* peer)
 	{
 	if ( peer->phase != Peer::HANDSHAKE )
 		{
-		run_time(fmt("can't sent capabilties to peer; wrong phase %d",
+		reporter->Error(fmt("can't sent capabilties to peer; wrong phase %d",
 				peer->phase));
 		return false;
 		}
@@ -1223,7 +1224,7 @@ bool RemoteSerializer::Listen(addr_type ip, uint16 port, bool expect_ssl)
 		return true;
 
 	if ( ! initialized )
-		internal_error("remote serializer not initialized");
+		reporter->InternalError("remote serializer not initialized");
 
 #ifdef BROv6
 	if ( ! is_v4_addr(ip) )
@@ -1545,10 +1546,11 @@ bool RemoteSerializer::Poll(bool may_block)
 		}
 
 	default:
-		internal_error("unknown msgstate");
+		reporter->InternalError("unknown msgstate");
 	}
 
-	internal_error("cannot be reached");
+	reporter->InternalError("cannot be reached");
+	return false;
 	}
 
 bool RemoteSerializer::DoMessage()
@@ -1662,7 +1664,7 @@ bool RemoteSerializer::DoMessage()
 		return true; // keep going
 	}
 
-	internal_error("cannot be reached");
+	reporter->InternalError("cannot be reached");
 	return false;
 	}
 
@@ -1953,7 +1955,7 @@ bool RemoteSerializer::ProcessConnected()
 
 	ID* descr = global_scope()->Lookup("peer_description");
 	if ( ! descr )
-		internal_error("peer_description not defined");
+		reporter->InternalError("peer_description not defined");
 
 	SerialInfo info(this);
 	SendID(&info, current_peer, *descr);
@@ -2136,7 +2138,7 @@ bool RemoteSerializer::HandshakeDone(Peer* peer)
 			else if ( peer->sync_requested & Peer::WE )
 				peer->send_state = false;
 			else
-				internal_error("illegal sync_requested value");
+				reporter->InternalError("illegal sync_requested value");
 			}
 		else
 			{
@@ -2834,7 +2836,7 @@ void RemoteSerializer::GotStateAccess(StateAccess* s)
 
 void RemoteSerializer::GotTimer(Timer* s)
 	{
-	run_time("RemoteSerializer::GotTimer not implemented");
+	reporter->Error("RemoteSerializer::GotTimer not implemented");
 	}
 
 void RemoteSerializer::GotPacket(Packet* p)
@@ -2938,7 +2940,7 @@ bool RemoteSerializer::SendCMsgToChild(char msg_type, Peer* peer)
 	{
 	if ( ! sendCMsg(io, msg_type, peer ? peer->id : PEER_NONE) )
 		{
-		warn(fmt("can't send message of type %d: %s",
+		reporter->Warning(fmt("can't send message of type %d: %s",
 				msg_type, io->Error()));
 		return false;
 		}
@@ -3011,7 +3013,7 @@ void RemoteSerializer::FatalError(const char* msg)
 	{
 	msg = fmt("fatal error, shutting down communication: %s", msg);
 	Log(LogError, msg);
-	error(msg);
+	reporter->Error(msg);
 
 	closed = true;
 	kill(child_pid, SIGQUIT);
@@ -3052,7 +3054,7 @@ void RemoteSerializer::InternalCommError(const char* msg)
 #ifdef DEBUG_COMMUNICATION
 	DumpDebugData();
 #else
-	internal_error("%s", msg);
+	reporter->InternalError("%s", msg);
 #endif
 	}
 
@@ -3073,7 +3075,7 @@ static ChunkedIO* openDump(const char* file)
 
 	if ( fd < 0 )
 		{
-		fprintf(stderr, "cannot open %s: %s\n", file, strerror(errno));
+		reporter->Error("cannot open %s: %s\n", file, strerror(errno));
 		return 0;
 		}
 
@@ -3090,7 +3092,7 @@ void RemoteSerializer::ReadDumpAsMessageType(const char* file)
 
 	if ( ! io->Read(&chunk, true ) )
 		{
-		fprintf(stderr, "cannot read %s: %s\n", file, strerror(errno));
+		reporter->Error("cannot read %s: %s\n", file, strerror(errno));
 		return;
 		}
 
@@ -3405,11 +3407,11 @@ bool SocketComm::ProcessParentMessage()
 			}
 
 		default:
-			internal_error("unknown msg type %d", parent_msgtype);
+			reporter->InternalError("unknown msg type %d", parent_msgtype);
 			return true;
 		}
 
-		internal_error("cannot be reached");
+		reporter->InternalError("cannot be reached");
 		}
 
 	case ARGS:
@@ -3432,10 +3434,11 @@ bool SocketComm::ProcessParentMessage()
 		}
 
 	default:
-		internal_error("unknown msgstate");
+		reporter->InternalError("unknown msgstate");
 	}
 
-	internal_error("cannot be reached");
+	reporter->InternalError("cannot be reached");
+	return false;
 	}
 
 bool SocketComm::DoParentMessage()
@@ -3493,7 +3496,7 @@ bool SocketComm::DoParentMessage()
 			peers[j]->io->DumpDebugData(fmt("comm-dump.child.peer.%d", id), false);
 			}
 #else
-		internal_error("DEBUG_DUMP support not compiled in");
+		reporter->InternalError("DEBUG_DUMP support not compiled in");
 #endif
 		return true;
 		}
@@ -3553,10 +3556,11 @@ bool SocketComm::DoParentMessage()
 		return ForwardChunkToPeer();
 
 	default:
-		internal_error("ProcessParentMessage: unexpected state");
+		reporter->InternalError("ProcessParentMessage: unexpected state");
 	}
 
-	internal_error("cannot be reached");
+	reporter->InternalError("cannot be reached");
+	return false;
 	}
 
 bool SocketComm::ForwardChunkToPeer()
@@ -3616,7 +3620,7 @@ bool SocketComm::ProcessListen()
 bool SocketComm::ProcessParentCompress()
 	{
 #ifndef HAVE_LIBZ
-	internal_error("supposed to enable compression but don't have zlib");
+	reporter->InternalError("supposed to enable compression but don't have zlib");
 	return false;
 #else
 
@@ -3736,10 +3740,11 @@ bool SocketComm::ProcessRemoteMessage(SocketComm::Peer* peer)
 		}
 
 	default:
-		internal_error("ProcessRemoteMessage: unexpected state");
+		reporter->InternalError("ProcessRemoteMessage: unexpected state");
 	}
 
-	return true;
+	assert(false); // Cannot be reached.
+	return false;
 	}
 
 bool SocketComm::ForwardChunkToParent(Peer* peer, ChunkedIO::Chunk* c)

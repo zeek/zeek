@@ -3433,6 +3433,14 @@ function x509_verify%(der_cert: string, cert_stack: string_vec, root_certs: tabl
 		x509_stores[*s] = ctx;
 		}
 	delete s;
+	
+	const uint8 *cert_data = der_cert->Bytes();
+	X509* cert = d2i_X509_(NULL, &cert_data, der_cert->Len());
+	if ( ! cert )
+		{
+		builtin_run_time(fmt("Certificate error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
+		return new Val((uint64) ERR_get_error(), TYPE_COUNT);
+		}
 
 	STACK_OF(X509)* untrusted_certs = sk_X509_new_null();
 	if ( ! untrusted_certs )
@@ -3449,23 +3457,15 @@ function x509_verify%(der_cert: string, cert_stack: string_vec, root_certs: tabl
 		X509* x = d2i_X509_(NULL, &data, sv->Len());
 		if ( ! x )
 			{
-			sk_X509_free(untrusted_certs);
+			X509_free(cert);
+			sk_X509_pop_free(untrusted_certs, X509_free);
 			builtin_run_time(fmt("Untrusted certificate stack creation error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
 			return new Val((uint64) ERR_get_error(), TYPE_COUNT);
 			}
 		sk_X509_push(untrusted_certs, x);
 		}
 
-	const uint8 *cert_data = der_cert->Bytes();
-
 	X509_STORE_CTX csc;
-	X509* cert = d2i_X509_(NULL, &cert_data, der_cert->Len());
-	if ( ! cert )
-		{
-		builtin_run_time(fmt("Certificate error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
-		return new Val((uint64) ERR_get_error(), TYPE_COUNT);
-		}
-
 	X509_STORE_CTX_init(&csc, ctx, cert, untrusted_certs);
 	X509_STORE_CTX_set_time(&csc, 0, (time_t) network_time);
 
@@ -3473,7 +3473,7 @@ function x509_verify%(der_cert: string, cert_stack: string_vec, root_certs: tabl
 	X509_STORE_CTX_cleanup(&csc);
 
 	if ( untrusted_certs )
-		sk_X509_free(untrusted_certs);
+		sk_X509_pop_free(untrusted_certs, X509_free);
 	X509_free(cert);
 
 	return new Val((uint64) csc.error, TYPE_COUNT);

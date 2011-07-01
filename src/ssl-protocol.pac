@@ -433,7 +433,7 @@ type ServerHello(rec: SSLRecord) = record {
 	random_bytes : bytestring &length = 28 &transient;
 	session_len : uint8;
 	session_id : uint8[session_len];
-	cipher_suite : uint16;
+	cipher_suite : uint16[1];
 	compression_method : uint8;
 } &let {
 	state_changed : bool =

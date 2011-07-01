@@ -3447,7 +3447,6 @@ function x509_verify%(der_cert: string, cert_stack: string_vec, root_certs: tabl
 		StringVal *sv = cert_stack_vec->Lookup(i)->AsStringVal();
 		const uint8 *data = sv->Bytes();
 		X509* x = d2i_X509_(NULL, &data, sv->Len());
-		Unref(sv);
 		if ( ! x )
 			{
 			sk_X509_free(untrusted_certs);

@@ -85,7 +85,7 @@ protected:
 
 class BroFunc : public Func {
 public:
-	BroFunc(ID* id, Stmt* body, id_list* inits, int frame_size);
+	BroFunc(ID* id, Stmt* body, id_list* inits, int frame_size, int priority);
 	~BroFunc();
 
 	int IsPure() const;

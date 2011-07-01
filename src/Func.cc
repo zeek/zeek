@@ -236,7 +236,7 @@ TraversalCode Func::Traverse(TraversalCallback* cb) const
 	}
 
 BroFunc::BroFunc(ID* arg_id, Stmt* arg_body, id_list* aggr_inits,
-		int arg_frame_size)
+		int arg_frame_size, int priority)
 : Func(BRO_FUNC)
 	{
 	id = arg_id;
@@ -246,7 +246,7 @@ BroFunc::BroFunc(ID* arg_id, Stmt* arg_body, id_list* aggr_inits,
 		{
 		Body b;
 		b.stmts = AddInits(arg_body, aggr_inits);
-		b.priority = 0;
+		b.priority = priority;
 		bodies.push_back(b);
 		}
 	}

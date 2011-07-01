@@ -178,7 +178,7 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 		// For events, add a function value (without any body) here so that
 		// we can later access the ID even if no implementations have been
 		// defined.
-		Func* f = new BroFunc(id, 0, 0, 0);
+		Func* f = new BroFunc(id, 0, 0, 0, 0);
 		id->SetVal(new Val(f));
 		id->SetConst();
 		}
@@ -392,7 +392,7 @@ void end_func(Stmt* body, attr_list* attrs)
 		id->ID_Val()->AsFunc()->AddBody(body, inits, frame_size, priority);
 	else
 		{
-		Func* f = new BroFunc(id, body, inits, frame_size);
+		Func* f = new BroFunc(id, body, inits, frame_size, priority);
 		id->SetVal(new Val(f));
 		id->SetConst();
 		}

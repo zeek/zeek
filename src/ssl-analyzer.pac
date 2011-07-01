@@ -197,7 +197,7 @@ refine connection SSL_Conn += {
 							bro_analyzer()->Conn(),
 							version, ts,
 							to_string_val(session_id),
-							ciphers->at(0), comp_method);
+							ciphers->size()==0 ? 0 : ciphers->at(0), comp_method);
 			}
 
 		delete ciphers;

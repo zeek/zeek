@@ -3012,7 +3012,7 @@ function getpid%(%) : count
 
 function syslog%(s: string%): any
 	%{
-	syslog(LOG_NOTICE, "%s", s->CheckString());
+    reporter->Syslog("%s", s->CheckString());
 	return 0;
 	%}
 

@@ -16,6 +16,10 @@ event do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string) &pri
 	# The "ready" flag will be set here.  This causes the setting from the 
 	# base script to be overridden since the base script will log immediately 
 	# after all of the ANS replies have been seen.
+
+    if ( ! c?$dns )
+                print c$id;
+            
 	c$dns$ready=F;
 	
 	if ( ans$answer_type == DNS_AUTH )

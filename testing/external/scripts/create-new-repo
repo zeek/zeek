@@ -27,14 +27,15 @@ git clone $repo $name
 
 cd $name
 
-for dir in traces tests Baseline; do
+for dir in Traces Tests Baseline; do
     mkdir $dir
     touch $dir/.gitignore
 done
 
-ln -s ../btest.cfg .
+ln -s ../subdir-btest.cfg ./btest.cfg
 
-cp $cwd/`dirname $0`/test.skeleton tests
+cp $cwd/`dirname $0`/files/test.skeleton tests
+cp $cwd/`dirname $0`/files/Makefile .
 
 git add *
 

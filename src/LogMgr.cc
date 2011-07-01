@@ -55,7 +55,7 @@ struct LogMgr::WriterInfo {
 	};
 
 struct LogMgr::Stream {
- 	EnumVal* id;
+	EnumVal* id;
 	bool enabled;
 	string name;
 	RecordType* columns;
@@ -67,7 +67,7 @@ struct LogMgr::Stream {
 	typedef map<WriterPathPair, WriterInfo*> WriterMap;
 
 	WriterMap writers;	// Writers indexed by id/path pair.
-
+	
 	~Stream();
 	};
 

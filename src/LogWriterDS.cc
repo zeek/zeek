@@ -7,6 +7,8 @@
 #include "LogWriterDS.h"
 #include "NetVar.h"
 
+// NOTE: Naming conventions are a little bit scattershot at the moment.  Within the scope of this file, a function name prefixed by '_' denotes a static function.
+
 /**
  *  Turns a log value into a std::string.  Uses an ostringstream to do the heavy lifting, but still need to switch
  *  on the type to know which value in the union to give to the string string for processing.
@@ -47,10 +49,19 @@ static std::string _LogValueToString(LogVal *val)
 	case TYPE_ADDR:
 		ostr << dotted_addr(val->val.addr_val);
 		return ostr.str();
-
-	case TYPE_DOUBLE:
+	
+	// Note: These two cases are relatively special.  We need to convert these values into their integer equivalents
+	// to maximize precision.  At the moment, there won't be a noticeable effect (Bro uses the double format everywhere
+	// internally, so we've already lost the precision we'd gain here), but timestamps may eventually switch to this
+	// representation within Bro
+	//
+	// in the near-term, this *should* lead to better pack_relative (and thus smaller output files).
 	case TYPE_TIME:
 	case TYPE_INTERVAL:
+		ostr << (unsigned long)(LogWriterDS::TIME_SCALE * val->val.double_val);
+		return ostr.str();
+
+	case TYPE_DOUBLE:
 		ostr << val->val.double_val;
 		return ostr.str();
 
@@ -66,48 +77,41 @@ static std::string _LogValueToString(LogVal *val)
 			tmpString = string("");
 		return tmpString;
 	}
-	/*
-	// These types are terrifying.  I'll get to them later.
 	case TYPE_TABLE:
 	{
 		if ( ! val->val.set_val.size )
 			{
-			desc->AddN(empty_field, empty_field_len);
-			break;
+			return "";
 			}
 
+		string tmpString = "";
 		for ( int j = 0; j < val->val.set_val.size; j++ )
 			{
 			if ( j > 0 )
-				desc->AddN(set_separator, set_separator_len);
+				tmpString += ":";  //TODO: Specify set separator char in configuration.
 
-			if ( ! DoWriteOne(desc, val->val.set_val.vals[j], field) )
-				return false;
+			tmpString += _LogValueToString(val->val.set_val.vals[j]);
+			}
+		return tmpString;
 	}
-
-		break;
-		}
-
 	case TYPE_VECTOR:
-		{
+	{
 		if ( ! val->val.vector_val.size )
 			{
-			desc->AddN(empty_field, empty_field_len);
-			break;
+			return "";
 			}
 
+		string tmpString = "";
 		for ( int j = 0; j < val->val.vector_val.size; j++ )
 			{
 			if ( j > 0 )
-				desc->AddN(set_separator, set_separator_len);
+				tmpString += ":";  //TODO: Specify set separator char in configuration.
 
-			if ( ! DoWriteOne(desc, val->val.vector_val.vals[j], field) )
-				return false;
+			tmpString += _LogValueToString(val->val.vector_val.vals[j]);
 			}
 
-		break;
-		}
-	*/
+		return tmpString;
+	}
 	default:
 		return "???";
 	}
@@ -143,9 +147,28 @@ LogWriterDS::~LogWriterDS()
 }
 
 /**
+ *  Are there any options we should put into the XML schema?
+ *
+ *  @param field We extract the type from this and return any options that make sense for that type.
+ *  @return Options that can be added directly to the XML (e.g. "pack_relative=\"yes\"")
+ */
+static std::string _GetDSOptionsForType(const LogField *field)
+{
+	switch(field->type)
+	{
+	case TYPE_TIME:
+	case TYPE_INTERVAL:
+		return "pack_relative=\"" + std::string(field->name) + "\"";
+	default:
+		return "";
+	}
+}
+
+/**
  *  Takes a field type and converts it to a relevant DataSeries type.
  *
- *  Note that the table / vector entries are tricky, and are going to be revisited later.
+ *  @param field We extract the type from this and convert it into a relevant DS type.
+ *  @return String representation of type that DataSeries can understand.
  */
 static string _GetDSFieldType(const LogField *field)
 {
@@ -158,11 +181,11 @@ static string _GetDSFieldType(const LogField *field)
 	case TYPE_COUNTER:
 	case TYPE_PORT:
 	case TYPE_INT:
+	case TYPE_TIME:
+	case TYPE_INTERVAL:
 		return "int64";
 
 	case TYPE_DOUBLE:
-	case TYPE_TIME:
-	case TYPE_INTERVAL:
 		return "double";
 	
 	case TYPE_SUBNET:
@@ -185,9 +208,10 @@ static string _GetDSFieldType(const LogField *field)
  *
  *  @param types std::vector of strings containing DataSeries types (e.g. "int64", "variable32")
  *  @param names std::vector of strings containing a list of field names; used to name our DS fields
+ *  @param opts std::vector of strings containing a list of options to be appended to each field (e.g. "pack_relative=yes")
  *  @param sTitle Name of this schema.  Ideally, these schemas would be aggregated and re-used.
  */
-static string _BuildDSSchemaFromFieldTypes(const vector<string> types, const vector<string> names, string sTitle)
+static string _BuildDSSchemaFromFieldTypes(const vector<string>& types, const vector<string>& names, const vector<string>& opts, string sTitle)
 {
 	if("" == sTitle)
 		{
@@ -198,11 +222,11 @@ static string _BuildDSSchemaFromFieldTypes(const vector<string> types, const vec
 		{
 		if(types[i] == "variable32")
 			{
-			xmlschema += "\t<field type=\"" + types[i] + "\" name=\"" + names[i] + "\" pack_unique=\"yes\" />\n";
+			xmlschema += "\t<field type=\"" + types[i] + "\" name=\"" + names[i] + "\" " + opts[i] + " pack_unique=\"yes\" />\n";
 			}
 		else
 			{
-			xmlschema += "\t<field type=\"" + types[i] + "\" name=\"" + names[i] + "\" />\n";
+			xmlschema += "\t<field type=\"" + types[i] + "\" name=\"" + names[i] + "\" " + opts[i] + " />\n";
 			}
 		}
 	xmlschema += "</ExtentType>\n";
@@ -241,13 +265,15 @@ bool LogWriterDS::DoInit(string path, int num_fields,
 		}
 	vector<string> typevec;
 	vector<string> namevec;
+	vector<string> optvec;
 	for ( int i = 0; i < num_fields; i++ )
 		{
 		const LogField* field = fields[i];
-		typevec.push_back(_GetDSFieldType(field).c_str());
+		typevec.push_back(_GetDSFieldType(field));
 		namevec.push_back(field->name);
+		optvec.push_back(_GetDSOptionsForType(field));
 		}
-	string schema = _BuildDSSchemaFromFieldTypes(typevec, namevec, path);
+	string schema = _BuildDSSchemaFromFieldTypes(typevec, namevec, optvec, path);
 	if(ds_dump_schema)
 		{
 		FILE * pFile;

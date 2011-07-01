@@ -18,6 +18,7 @@ public:
 	static const size_t ROW_MAX = (1024 * 1024 * 100);
 	static const size_t THREAD_MIN = 1;
 	static const size_t THREAD_MAX = 128;
+	static const size_t TIME_SCALE = 1000000;   //TODO: I don't think this should be a configurable option in the LogWriterDS scope, but might be good for Bro in general...
 	static LogWriter* Instantiate()	{ return new LogWriterDS; }
 
 protected:

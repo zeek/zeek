@@ -64,11 +64,6 @@ The Bro scripting language supports the following built-in types.
 
 .. bro:type:: event
 
-.. TODO: Notice will get documented as part of notice.bro, which can eventually
-   be referenced here once that documentation is auto-generated.
-
-.. bro:type:: Notice
-
 Attributes
 ----------
 

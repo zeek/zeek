@@ -21,7 +21,7 @@ uint32 tot_gap_bytes = 0;
 
 class ProfileTimer : public Timer {
 public:
-	ProfileTimer(double t, ProfileLogger* l, double i)
+	ProfileTimer(double t, ProfileReporter* l, double i)
 	: Timer(t, TIMER_PROFILE)
 		{
 		logger = l;
@@ -32,7 +32,7 @@ public:
 
 protected:
 	double interval;
-	ProfileLogger* logger;
+	ProfileReporter* logger;
 };
 
 void ProfileTimer::Dispatch(double t, int is_expire)
@@ -46,7 +46,7 @@ void ProfileTimer::Dispatch(double t, int is_expire)
 	}
 
 
-ProfileLogger::ProfileLogger(BroFile* arg_file, double interval)
+ProfileReporter::ProfileReporter(BroFile* arg_file, double interval)
 : SegmentStatsReporter()
 	{
 	file = arg_file;
@@ -54,12 +54,12 @@ ProfileLogger::ProfileLogger(BroFile* arg_file, double interval)
 	timer_mgr->Add(new ProfileTimer(1, this, interval));
 	}
 
-ProfileLogger::~ProfileLogger()
+ProfileReporter::~ProfileReporter()
 	{
 	file->Close();
 	}
 
-void ProfileLogger::Log()
+void ProfileReporter::Log()
 	{
 	if ( terminating )
 		// Connections have been flushed already.
@@ -285,7 +285,7 @@ void ProfileLogger::Log()
 		}
 	}
 
-void ProfileLogger::SegmentProfile(const char* name, const Location* loc,
+void ProfileReporter::SegmentProfile(const char* name, const Location* loc,
 					double dtime, int dmem)
 	{
 	if ( name )
@@ -303,7 +303,7 @@ void ProfileLogger::SegmentProfile(const char* name, const Location* loc,
 	}
 
 
-SampleLogger::SampleLogger()
+SampleReporter::SampleReporter()
 	{
 	static TableType* load_sample_info = 0;
 
@@ -313,22 +313,22 @@ SampleLogger::SampleLogger()
 	load_samples = new TableVal(load_sample_info);
 	}
 
-SampleLogger::~SampleLogger()
+SampleReporter::~SampleReporter()
 	{
 	Unref(load_samples);
 	}
 
-void SampleLogger::FunctionSeen(const Func* func)
+void SampleReporter::FunctionSeen(const Func* func)
 	{
 	load_samples->Assign(new StringVal(func->GetID()->Name()), 0);
 	}
 
-void SampleLogger::LocationSeen(const Location* loc)
+void SampleReporter::LocationSeen(const Location* loc)
 	{
 	load_samples->Assign(new StringVal(loc->filename), 0);
 	}
 
-void SampleLogger::SegmentProfile(const char* /* name */,
+void SampleReporter::SegmentProfile(const char* /* name */,
 					const Location* /* loc */,
 					double dtime, int dmem)
 	{

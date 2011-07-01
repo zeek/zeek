@@ -98,8 +98,8 @@ void BroObj::Warn(const char* msg, const BroObj* obj2, int pinpoint_only) const
 	{
 	ODesc d;
 	DoMsg(&d, msg, obj2, pinpoint_only);
-	bro_logger->Warning("%s", d.Description());
-	bro_logger->PopLocation();
+	reporter->Warning("%s", d.Description());
+	reporter->PopLocation();
 	}
 
 void BroObj::Error(const char* msg, const BroObj* obj2, int pinpoint_only) const
@@ -109,8 +109,8 @@ void BroObj::Error(const char* msg, const BroObj* obj2, int pinpoint_only) const
 
 	ODesc d;
 	DoMsg(&d, msg, obj2, pinpoint_only);
-	bro_logger->Error("%s", d.Description());
-	bro_logger->PopLocation();
+	reporter->Error("%s", d.Description());
+	reporter->PopLocation();
 	}
 
 void BroObj::BadTag(const char* msg, const char* t1, const char* t2) const
@@ -126,21 +126,21 @@ void BroObj::BadTag(const char* msg, const char* t1, const char* t2) const
 
 	ODesc d;
 	DoMsg(&d, out);
-	bro_logger->FatalError("%s", d.Description());
+	reporter->FatalError("%s", d.Description());
 	}
 
 void BroObj::Internal(const char* msg) const
 	{
 	ODesc d;
 	DoMsg(&d, msg);
-	bro_logger->InternalError("%s", d.Description());
+	reporter->InternalError("%s", d.Description());
 	}
 
 void BroObj::InternalWarning(const char* msg) const
 	{
 	ODesc d;
 	DoMsg(&d, msg);
-	bro_logger->InternalWarning("%s", d.Description());
+	reporter->InternalWarning("%s", d.Description());
 	}
 
 void BroObj::AddLocation(ODesc* d) const
@@ -197,7 +197,7 @@ void BroObj::DoMsg(ODesc* d, const char s1[], const BroObj* obj2,
 		 *obj2->GetLocationInfo() != *GetLocationInfo() )
 		loc2 = obj2->GetLocationInfo();
 
-	bro_logger->PushLocation(GetLocationInfo(), loc2);
+	reporter->PushLocation(GetLocationInfo(), loc2);
 	}
 
 void BroObj::PinPoint(ODesc* d, const BroObj* obj2, int pinpoint_only) const
@@ -244,7 +244,7 @@ void print(const BroObj* obj)
 
 void bad_ref(int type)
 	{
-	bro_logger->InternalError("bad reference count [%d]", type);
+	reporter->InternalError("bad reference count [%d]", type);
 	abort();
 	}
 

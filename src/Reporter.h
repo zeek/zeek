@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef logger_h
-#define logger_h
+#ifndef REPORTER_H
+#define REPORTER_H
 
 #include <stdarg.h>
 
@@ -15,10 +15,10 @@
 class Connection;
 class Location;
 
-class Logger {
+class Reporter {
 public:
-	Logger();
-	~Logger();
+	Reporter();
+	~Reporter();
 
 	// Report an informational message, nothing that needs specific
 	// attention.
@@ -71,7 +71,7 @@ public:
 	// the location is popped.
 	void PushLocation(const Location* location)
 		{ locations.push_back(std::pair<const Location*, const Location*>(location, 0)); }
-	
+
 	void PushLocation(const Location* loc1, const Location* loc2)
 		{ locations.push_back(std::pair<const Location*, const Location*>(loc1, loc2)); }
 
@@ -91,7 +91,7 @@ private:
 	std::list<std::pair<const Location*, const Location*> > locations;
 };
 
-extern Logger* bro_logger;
+extern Reporter* reporter;
 
 #endif
 

@@ -262,7 +262,7 @@ bool DPM::BuildInitialAnalyzerTree(TransportProto proto, Connection* conn,
 		}
 
 	default:
-		bro_logger->InternalError("unknown protocol");
+		reporter->InternalError("unknown protocol");
 	}
 
 	if ( ! root )

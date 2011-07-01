@@ -6,7 +6,7 @@
 #include "SMB.h"
 #include "smb_pac.h"
 #include "Val.h"
-#include "Logger.h"
+#include "Reporter.h"
 
 namespace {
 	const bool DEBUG_smb_ipc = true;
@@ -733,7 +733,7 @@ int SMB_Session::ParseTransaction(int is_orig, int cmd,
 		break;
 
 	default:
-		bro_logger->InternalError("command mismatch for ParseTransaction");
+		reporter->InternalError("command mismatch for ParseTransaction");
 	}
 
 	int ret;

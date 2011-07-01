@@ -153,7 +153,7 @@ void PIA_UDP::ActivateAnalyzer(AnalyzerTag::Tag tag, const Rule* rule)
 
 void PIA_UDP::DeactivateAnalyzer(AnalyzerTag::Tag tag)
 	{
-	bro_logger->InternalError("PIA_UDP::Deact not implemented yet");
+	reporter->InternalError("PIA_UDP::Deact not implemented yet");
 	}
 
 //// TCP PIA
@@ -375,7 +375,7 @@ void PIA_TCP::ActivateAnalyzer(AnalyzerTag::Tag tag, const Rule* rule)
 
 void PIA_TCP::DeactivateAnalyzer(AnalyzerTag::Tag tag)
 	{
-	bro_logger->InternalError("PIA_TCP::Deact not implemented yet");
+	reporter->InternalError("PIA_TCP::Deact not implemented yet");
 	}
 
 void PIA_TCP::ReplayStreamBuffer(Analyzer* analyzer)

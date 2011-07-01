@@ -133,11 +133,6 @@ export {
 	global flush: function(id: ID): bool;
 	global add_default_filter: function(id: ID) : bool;
 	global remove_default_filter: function(id: ID) : bool;
-
-    # Defined in logging.bif.
-    # global message: function(msg: string) : bool;
-    # global warning: function(msg: string) : bool;
-    # global error: function(msg: string) : bool;
 }
 
 # We keep a script-level copy of all filters so that we can manipulate them.

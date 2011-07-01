@@ -208,7 +208,7 @@ int TCP_Endpoint::DataSent(double t, int seq, int len, int caplen,
 
 		if ( fwrite(data, 1, len, f) < unsigned(len) )
 			// ### this should really generate an event
-			bro_logger->InternalError("contents write failed");
+			reporter->InternalError("contents write failed");
 		}
 
 	return status;

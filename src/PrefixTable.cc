@@ -1,7 +1,7 @@
 // $Id: PrefixTable.cc 1016 2005-01-31 21:23:50Z vern $
 
 #include "PrefixTable.h"
-#include "Logger.h"
+#include "Reporter.h"
 
 // IPv4 version.
 inline static prefix_t* make_prefix(const uint32 addr, int width)
@@ -37,7 +37,7 @@ void* PrefixTable::Insert(const_addr_type addr, int width, void* data)
 	Deref_Prefix(prefix);
 
 	if ( ! node )
-		bro_logger->InternalError("Cannot create node in patricia tree");
+		reporter->InternalError("Cannot create node in patricia tree");
 
 	void* old = node->data;
 
@@ -66,7 +66,7 @@ void* PrefixTable::Insert(const Val* value, void* data)
 		break;
 
 	default:
-		bro_logger->InternalError("Wrong index type for PrefixTable");
+		reporter->InternalError("Wrong index type for PrefixTable");
 		return 0;
 	}
 	}
@@ -100,7 +100,7 @@ void* PrefixTable::Lookup(const Val* value, bool exact) const
 		break;
 
 	default:
-		bro_logger->InternalError("Wrong index type %d for PrefixTable",
+		reporter->InternalError("Wrong index type %d for PrefixTable",
 		               value->Type()->Tag());
 		return 0;
 	}
@@ -138,7 +138,7 @@ void* PrefixTable::Remove(const Val* value)
 		break;
 
 	default:
-		bro_logger->InternalError("Wrong index type for PrefixTable");
+		reporter->InternalError("Wrong index type for PrefixTable");
 		return 0;
 	}
 	}

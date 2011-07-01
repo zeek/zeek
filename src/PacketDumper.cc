@@ -18,7 +18,7 @@ PacketDumper::PacketDumper(pcap_dumper_t* arg_pkt_dump)
 
 	pkt_dump = arg_pkt_dump;
 	if ( ! pkt_dump )
-		bro_logger->InternalError("PacketDumper: nil dump file");
+		reporter->InternalError("PacketDumper: nil dump file");
 	}
 
 void PacketDumper::DumpPacket(const struct pcap_pkthdr* hdr,
@@ -29,7 +29,7 @@ void PacketDumper::DumpPacket(const struct pcap_pkthdr* hdr,
 		struct pcap_pkthdr h = *hdr;
 		h.caplen = len;
 		if ( h.caplen > hdr->caplen )
-			bro_logger->InternalError("bad modified caplen");
+			reporter->InternalError("bad modified caplen");
 
 		pcap_dump((u_char*) pkt_dump, &h, pkt);
 		}

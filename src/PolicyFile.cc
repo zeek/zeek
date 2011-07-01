@@ -16,7 +16,7 @@ using namespace std;
 #include "Debug.h"
 #include "util.h"
 #include "PolicyFile.h"
-#include "Logger.h"
+#include "Reporter.h"
 
 struct PolicyFile {
 	PolicyFile ()	{ filedata = 0; lmtime = 0; }
@@ -33,7 +33,7 @@ static PolicyFileMap policy_files;
 int how_many_lines_in(const char* policy_filename)
 	{
 	if ( ! policy_filename )
-		bro_logger->InternalError("NULL value passed to how_many_lines_in\n");
+		reporter->InternalError("NULL value passed to how_many_lines_in\n");
 
 	FILE* throwaway = fopen(policy_filename, "r");
 	if ( ! throwaway )

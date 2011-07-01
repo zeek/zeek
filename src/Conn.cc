@@ -11,7 +11,7 @@
 #include "Conn.h"
 #include "Event.h"
 #include "Sessions.h"
-#include "Logger.h"
+#include "Reporter.h"
 #include "Timer.h"
 #include "PIA.h"
 #include "binpac.h"
@@ -54,7 +54,7 @@ void ConnectionTimer::Init(Connection* arg_conn, timer_func arg_timer,
 ConnectionTimer::~ConnectionTimer()
 	{
 	if ( conn->RefCnt() < 1 )
-		bro_logger->InternalError("reference count inconsistency in ~ConnectionTimer");
+		reporter->InternalError("reference count inconsistency in ~ConnectionTimer");
 
 	conn->RemoveTimer(this);
 	Unref(conn);
@@ -72,7 +72,7 @@ void ConnectionTimer::Dispatch(double t, int is_expire)
 	(conn->*timer)(t);
 
 	if ( conn->RefCnt() < 1 )
-		bro_logger->InternalError("reference count inconsistency in ConnectionTimer::Dispatch");
+		reporter->InternalError("reference count inconsistency in ConnectionTimer::Dispatch");
 	}
 
 IMPLEMENT_SERIAL(ConnectionTimer, SER_CONNECTION_TIMER);
@@ -94,7 +94,7 @@ bool ConnectionTimer::DoSerialize(SerialInfo* info) const
 	else if ( timer == timer_func(&Connection::RemoveConnectionTimer) )
 		type = 4;
 	else
-		bro_logger->InternalError("unknown function in ConnectionTimer::DoSerialize()");
+		reporter->InternalError("unknown function in ConnectionTimer::DoSerialize()");
 
 	return conn->Serialize(info) && SERIALIZE(type) && SERIALIZE(do_expire);
 	}
@@ -197,7 +197,7 @@ Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id)
 Connection::~Connection()
 	{
 	if ( ! finished )
-		bro_logger->InternalError("Done() not called before destruction of Connection");
+		reporter->InternalError("Done() not called before destruction of Connection");
 
 	CancelTimers();
 
@@ -639,7 +639,7 @@ void Connection::ConnectionEvent(EventHandlerPtr f, Analyzer* a, val_list* vl)
 void Connection::Weird(const char* name, const char* addl)
 	{
 	weird = 1;
-	bro_logger->Weird(this, name, addl ? addl : "");
+	reporter->Weird(this, name, addl ? addl : "");
 	}
 
 void Connection::AddTimer(timer_func timer, double t, int do_expire,
@@ -750,7 +750,7 @@ void Connection::Describe(ODesc* d) const
 			break;
 
 		case TRANSPORT_UNKNOWN:
-			bro_logger->InternalError("unknown transport in Connction::Describe()");
+			reporter->InternalError("unknown transport in Connction::Describe()");
 			break;
 		}
 

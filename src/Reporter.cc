@@ -1,11 +1,11 @@
-// $Id: Logger.cc 6916 2009-09-24 20:48:36Z vern $
 //
 // See the file "COPYING" in the main distribution directory for copyright.
+//
 
 #include <syslog.h>
 
 #include "config.h"
-#include "Logger.h"
+#include "Reporter.h"
 #include "Event.h"
 #include "NetVar.h"
 #include "Net.h"
@@ -19,9 +19,9 @@ int closelog();
 }
 #endif
 
-Logger* bro_logger = 0;
+Reporter* reporter = 0;
 
-Logger::Logger()
+Reporter::Reporter()
 	{
 	errors = 0;
 	via_events = false;
@@ -29,37 +29,37 @@ Logger::Logger()
 	openlog("bro", 0, LOG_LOCAL5);
 	}
 
-Logger::~Logger()
+Reporter::~Reporter()
 	{
 	closelog();
 	}
 
-void Logger::Message(const char* fmt, ...)
+void Reporter::Message(const char* fmt, ...)
 	{
 	va_list ap;
 	va_start(ap, fmt);
-	DoLog("", log_message, stdout, 0, 0, true, true, fmt, ap);
+	DoLog("", reporter_message, stdout, 0, 0, true, true, fmt, ap);
 	va_end(ap);
 	}
 
-void Logger::Warning(const char* fmt, ...)
+void Reporter::Warning(const char* fmt, ...)
 	{
 	va_list ap;
 	va_start(ap, fmt);
-	DoLog("warning", log_warning, stdout, 0, 0, true, true, fmt, ap);
+	DoLog("warning", reporter_warning, stdout, 0, 0, true, true, fmt, ap);
 	va_end(ap);
 	}
 
-void Logger::Error(const char* fmt, ...)
+void Reporter::Error(const char* fmt, ...)
 	{
 	++errors;
 	va_list ap;
 	va_start(ap, fmt);
-	DoLog("error", log_error, stdout, 0, 0, true, true, fmt, ap);
+	DoLog("error", reporter_error, stdout, 0, 0, true, true, fmt, ap);
 	va_end(ap);
 	}
 
-void Logger::FatalError(const char* fmt, ...)
+void Reporter::FatalError(const char* fmt, ...)
 	{
 	va_list ap;
 	va_start(ap, fmt);
@@ -73,7 +73,7 @@ void Logger::FatalError(const char* fmt, ...)
 	exit(1);
 	}
 
-void Logger::FatalErrorWithCore(const char* fmt, ...)
+void Reporter::FatalErrorWithCore(const char* fmt, ...)
 	{
 	va_list ap;
 	va_start(ap, fmt);
@@ -87,7 +87,7 @@ void Logger::FatalErrorWithCore(const char* fmt, ...)
 	abort();
 	}
 
-void Logger::InternalError(const char* fmt, ...)
+void Reporter::InternalError(const char* fmt, ...)
 	{
 	va_list ap;
 	va_start(ap, fmt);
@@ -101,15 +101,15 @@ void Logger::InternalError(const char* fmt, ...)
 	abort();
 	}
 
-void Logger::InternalWarning(const char* fmt, ...)
+void Reporter::InternalWarning(const char* fmt, ...)
 	{
 	va_list ap;
 	va_start(ap, fmt);
-	DoLog("internal warning", log_warning, stdout, 0, 0, true, true, fmt, ap);
+	DoLog("internal warning", reporter_warning, stdout, 0, 0, true, true, fmt, ap);
 	va_end(ap);
 	}
 
-void Logger::Syslog(const char* fmt, ...)
+void Reporter::Syslog(const char* fmt, ...)
 	{
 	if ( reading_traces )
 		return;
@@ -120,7 +120,7 @@ void Logger::Syslog(const char* fmt, ...)
 	va_end(ap);
 	}
 
-void Logger::WeirdHelper(EventHandlerPtr event, Val* conn_val, const char* name, const char* addl, ...)
+void Reporter::WeirdHelper(EventHandlerPtr event, Val* conn_val, const char* name, const char* addl, ...)
 	{
 	val_list* vl = new val_list(1);
 
@@ -138,7 +138,7 @@ void Logger::WeirdHelper(EventHandlerPtr event, Val* conn_val, const char* name,
 	delete vl;
 	}
 
-void Logger::WeirdFlowHelper(addr_type orig, addr_type resp, const char* name, ...)
+void Reporter::WeirdFlowHelper(addr_type orig, addr_type resp, const char* name, ...)
 	{
 	val_list* vl = new val_list(2);
 	vl->append(new AddrVal(orig));
@@ -152,27 +152,27 @@ void Logger::WeirdFlowHelper(addr_type orig, addr_type resp, const char* name, .
 	delete vl;
 	}
 
-void Logger::Weird(const char* name)
+void Reporter::Weird(const char* name)
 	{
 	WeirdHelper(net_weird, 0, name, 0);
 	}
 
-void Logger::Weird(Connection* conn, const char* name, const char* addl)
+void Reporter::Weird(Connection* conn, const char* name, const char* addl)
 	{
 	WeirdHelper(conn_weird, conn->BuildConnVal(), name, addl);
 	}
 
-void Logger::Weird(Val* conn_val, const char* name, const char* addl)
+void Reporter::Weird(Val* conn_val, const char* name, const char* addl)
 	{
 	WeirdHelper(conn_weird, conn_val, name, addl);
 	}
 
-void Logger::Weird(addr_type orig, addr_type resp, const char* name)
+void Reporter::Weird(addr_type orig, addr_type resp, const char* name)
 	{
 	WeirdFlowHelper(orig, resp, name);
 	}
 
-void Logger::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Connection* conn, val_list* addl, bool location, bool time, const char* fmt, va_list ap)
+void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Connection* conn, val_list* addl, bool location, bool time, const char* fmt, va_list ap)
 	{
 	static char tmp[512];
 
@@ -243,7 +243,7 @@ void Logger::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Connect
 		buffer = alloced = (char *)realloc(alloced, size);
 
 		if ( ! buffer )
-			FatalError("out of memory in logger");
+			FatalError("out of memory in Reporter");
 		}
 
 	if ( event && via_events )
@@ -251,7 +251,7 @@ void Logger::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Connect
 		val_list* vl = new val_list;
 
 		if ( time )
-			vl->append(new Val(network_time, TYPE_TIME));
+			vl->append(new Val((bro_start_network_time != 0.0) ? network_time : 0, TYPE_TIME));
 
 		vl->append(new StringVal(buffer));
 
@@ -277,7 +277,7 @@ void Logger::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Connect
 		{
 		string s = "";
 
-		if ( network_time )
+		if ( bro_start_network_time != 0.0 )
 			{
 			char tmp[32];
 			snprintf(tmp, 32, "%.6f", network_time);

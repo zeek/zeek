@@ -119,7 +119,7 @@ Trigger::Trigger(Expr* arg_cond, Stmt* arg_body, Stmt* arg_timeout_stmts,
 		Trigger* parent = frame->GetTrigger();
 		if ( ! parent )
 			{
-			bro_logger->Error("return trigger in context which does not allow delaying result");
+			reporter->Error("return trigger in context which does not allow delaying result");
 			Unref(this);
 			return;
 			}

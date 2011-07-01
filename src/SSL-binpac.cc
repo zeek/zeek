@@ -1,6 +1,6 @@
 #include "SSL-binpac.h"
 #include "TCP_Reassembler.h"
-#include "Logger.h"
+#include "Reporter.h"
 #include "util.h"
 
 
@@ -55,7 +55,7 @@ void SSL_Analyzer_binpac::Undelivered(int seq, int len, bool orig)
 
 void SSL_Analyzer_binpac::warn_(const char* msg)
 	{
-	bro_logger->Warning("SSL_Analyzer_binpac: ", msg);
+	reporter->Warning("SSL_Analyzer_binpac: ", msg);
 	}
 
 void SSL_Analyzer_binpac::generate_warnings()

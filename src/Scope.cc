@@ -7,7 +7,7 @@
 #include "ID.h"
 #include "Val.h"
 #include "Scope.h"
-#include "Logger.h"
+#include "Reporter.h"
 
 static scope_list scopes;
 static Scope* top_scope;
@@ -28,7 +28,7 @@ Scope::Scope(ID* id)
 		if ( id_type->Tag() == TYPE_ERROR )
 			return;
 		else if ( id_type->Tag() != TYPE_FUNC )
-			bro_logger->InternalError("bad scope id");
+			reporter->InternalError("bad scope id");
 
 		Ref(id);
 
@@ -129,7 +129,7 @@ ID* lookup_ID(const char* name, const char* curr_module, bool no_global,
 		if ( id )
 			{
 			if ( need_export && ! id->IsExport() && ! in_debug )
-				bro_logger->Error("identifier is not exported:",
+				reporter->Error("identifier is not exported:",
 				      fullname.c_str());
 
 			Ref(id);
@@ -156,7 +156,7 @@ ID* install_ID(const char* name, const char* module_name,
 		bool is_global, bool is_export)
 	{
 	if ( scopes.length() == 0 && ! is_global )
-		bro_logger->InternalError("local identifier in global scope");
+		reporter->InternalError("local identifier in global scope");
 
 	IDScope scope;
 	if ( is_export || ! module_name ||
@@ -198,7 +198,7 @@ Scope* pop_scope()
 	{
 	int n = scopes.length() - 1;
 	if ( n < 0 )
-		bro_logger->InternalError("scope underflow");
+		reporter->InternalError("scope underflow");
 	scopes.remove_nth(n);
 
 	Scope* old_top = top_scope;

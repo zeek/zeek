@@ -48,7 +48,7 @@
 #include "RemoteSerializer.h"
 #include "Event.h"
 #include "Traverse.h"
-#include "Logger.h"
+#include "Reporter.h"
 
 extern	RETSIGTYPE sig_handler(int signo);
 
@@ -334,7 +334,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 	     (flow != FLOW_RETURN /* we fell off the end */ ||
 	      ! result /* explicit return with no result */) &&
 	     ! f->HasDelayed() )
-		bro_logger->Warning("non-void function returns without a value:", id->Name());
+		reporter->Warning("non-void function returns without a value:", id->Name());
 
 	if ( result && g_trace_state.DoTrace() )
 		{
@@ -426,9 +426,9 @@ BuiltinFunc::BuiltinFunc(built_in_func arg_func, const char* arg_name,
 
 	id = lookup_ID(name, GLOBAL_MODULE_NAME, false);
 	if ( ! id )
-		bro_logger->InternalError("built-in function %s missing", name);
+		reporter->InternalError("built-in function %s missing", name);
 	if ( id->HasVal() )
-		bro_logger->InternalError("built-in function %s multiply defined", name);
+		reporter->InternalError("built-in function %s multiply defined", name);
 
 	id->SetVal(new Val(this));
 	}
@@ -505,15 +505,17 @@ void builtin_error(const char* msg, BroObj* arg)
 	if ( calling_expr )
 		calling_expr->Error(msg, arg);
 	else
-		bro_logger->Error(msg, arg);
+		reporter->Error(msg, arg);
 	}
 
 #include "bro.bif.func_h"
 #include "logging.bif.func_h"
+#include "reporter.bif.func_h"
 #include "strings.bif.func_h"
 
 #include "bro.bif.func_def"
 #include "logging.bif.func_def"
+#include "reporter.bif.func_def"
 #include "strings.bif.func_def"
 
 void init_builtin_funcs()
@@ -526,6 +528,7 @@ void init_builtin_funcs()
 
 #include "bro.bif.func_init"
 #include "logging.bif.func_init"
+#include "reporter.bif.func_init"
 #include "strings.bif.func_init"
 
 	did_builtin_init = true;

@@ -5,7 +5,7 @@
 
 #include "ARP.h"
 #include "Event.h"
-#include "Logger.h"
+#include "Reporter.h"
 
 
 ARP_Analyzer::ARP_Analyzer()
@@ -219,7 +219,7 @@ void ARP_Analyzer::BadARP(const struct arp_pkthdr* hdr, const char* msg)
 
 void ARP_Analyzer::Corrupted(const char* msg)
 	{
-	bro_logger->Weird(msg);
+	reporter->Weird(msg);
 	}
 
 void ARP_Analyzer::RREvent(EventHandlerPtr e,

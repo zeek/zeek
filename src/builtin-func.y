@@ -635,7 +635,7 @@ body_start:	TOK_LPB c_code_begin
 				fprintf(fp_func_def, "\tif ( %s->length() != %d )\n", arg_list_name, argc);
 				fprintf(fp_func_def, "\t\t{\n");
 				fprintf(fp_func_def,
-					"\t\tbro_logger->Error(\"%s() takes exactly %d argument(s)\");\n",
+					"\t\treporter->Error(\"%s() takes exactly %d argument(s)\");\n",
 					decl.bro_fullname.c_str(), argc);
 				fprintf(fp_func_def, "\t\treturn 0;\n");
 				fprintf(fp_func_def, "\t\t}\n");
@@ -645,7 +645,7 @@ body_start:	TOK_LPB c_code_begin
 				fprintf(fp_func_def, "\tif ( %s->length() < %d )\n", arg_list_name, argc);
 				fprintf(fp_func_def, "\t\t{\n");
 				fprintf(fp_func_def,
-					"\t\tbro_logger->Error(\"%s() takes at least %d argument(s)\");\n",
+					"\t\treporter->Error(\"%s() takes at least %d argument(s)\");\n",
 					decl.bro_fullname.c_str(), argc);
 				fprintf(fp_func_def, "\t\treturn 0;\n");
 				fprintf(fp_func_def, "\t\t}\n");

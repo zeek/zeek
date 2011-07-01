@@ -1,0 +1,9 @@
+/da/home/robin/bro/topic/testing/btest/.tmp/core.reporter/reporter.bro, line 52: pre test-message
+warning in /da/home/robin/bro/topic/testing/btest/.tmp/core.reporter/reporter.bro, line 53: pre test-warning
+error in /da/home/robin/bro/topic/testing/btest/.tmp/core.reporter/reporter.bro, line 54: pre test-error
+[script] reporter_message: init test-message [/da/home/robin/bro/topic/testing/btest/.tmp/core.reporter/reporter.bro, line 8] [0.000000]
+[script] reporter_warning: init test-warning [/da/home/robin/bro/topic/testing/btest/.tmp/core.reporter/reporter.bro, line 9] [0.000000]
+[script] reporter_error: init test-error [/da/home/robin/bro/topic/testing/btest/.tmp/core.reporter/reporter.bro, line 10] [0.000000]
+[script] reporter_message: done test-message [/da/home/robin/bro/topic/testing/btest/.tmp/core.reporter/reporter.bro, line 15] [0.000000]
+[script] reporter_warning: done test-warning [/da/home/robin/bro/topic/testing/btest/.tmp/core.reporter/reporter.bro, line 16] [0.000000]
+[script] reporter_error: done test-error [/da/home/robin/bro/topic/testing/btest/.tmp/core.reporter/reporter.bro, line 17] [0.000000]

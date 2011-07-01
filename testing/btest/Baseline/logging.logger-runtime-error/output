@@ -1,2 +1,0 @@
-1309043946.349646 error in /da/home/robin/bro/topic/testing/btest/.tmp/logging.logger-runtime-error/logger-runtime-error.bro, line 12: no such index (a[1])
-[script] log_error: no such index (a[2]) [/da/home/robin/bro/topic/testing/btest/.tmp/logging.logger-runtime-error/logger-runtime-error.bro, line 9] [1309043946.349646]

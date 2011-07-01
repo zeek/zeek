@@ -24,7 +24,7 @@ void FragTimer::Dispatch(double t, int /* is_expire */)
 	if ( f )
 		f->Expire(t);
 	else
-		bro_logger->InternalError("fragment timer dispatched w/o reassembler");
+		reporter->InternalError("fragment timer dispatched w/o reassembler");
 	}
 
 FragReassembler::FragReassembler(NetSessions* arg_s,
@@ -209,7 +209,7 @@ void FragReassembler::BlockInserted(DataBlock* /* start_block */)
 			break;
 
 		if ( b->upper > n )
-			bro_logger->InternalError("bad fragment reassembly");
+			reporter->InternalError("bad fragment reassembly");
 
 		memcpy((void*) &pkt[b->seq], (const void*) b->block,
 			b->upper - b->seq);

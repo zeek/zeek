@@ -26,7 +26,7 @@
 #include "Event.h"
 #include "Timer.h"
 #include "Var.h"
-#include "Logger.h"
+#include "Reporter.h"
 #include "Net.h"
 #include "Anon.h"
 #include "PacketSort.h"
@@ -119,7 +119,7 @@ RETSIGTYPE watchdog(int /* signo */)
 					pkt_dumper = new PktDumper("watchdog-pkt.pcap");
 					if ( pkt_dumper->IsError() )
 						{
-						bro_logger->Error("watchdog: can't open watchdog-pkt.pcap for writing\n");
+						reporter->Error("watchdog: can't open watchdog-pkt.pcap for writing\n");
 						pkt_dumper = 0;
 						}
 					}
@@ -131,7 +131,7 @@ RETSIGTYPE watchdog(int /* signo */)
 			net_get_final_stats();
 			net_finish(0);
 
-			bro_logger->FatalErrorWithCore(
+			reporter->FatalErrorWithCore(
 			          "**watchdog timer expired, t = %d.%06d, start = %d.%06d, dispatched = %d",
 				      int_ct, frac_ct, int_pst, frac_pst,
 					  current_dispatched);
@@ -161,7 +161,7 @@ void net_init(name_list& interfaces, name_list& readfiles,
 			PktFileSrc* ps = new PktFileSrc(readfiles[i], filter);
 
 			if ( ! ps->IsOpen() )
-				bro_logger->FatalError("%s: problem with trace file %s - %s\n",
+				reporter->FatalError("%s: problem with trace file %s - %s\n",
 					prog, readfiles[i], ps->ErrorMsg());
 			else
 				{
@@ -178,7 +178,7 @@ void net_init(name_list& interfaces, name_list& readfiles,
 							TYPE_FILTER_SECONDARY);
 
 				if ( ! ps->IsOpen() )
-					bro_logger->FatalError("%s: problem with trace file %s - %s\n",
+					reporter->FatalError("%s: problem with trace file %s - %s\n",
 						prog, readfiles[i],
 						ps->ErrorMsg());
 				else
@@ -196,7 +196,7 @@ void net_init(name_list& interfaces, name_list& readfiles,
 			FlowFileSrc* fs = new FlowFileSrc(flowfiles[i]);
 
 			if ( ! fs->IsOpen() )
-				bro_logger->FatalError("%s: problem with netflow file %s - %s\n",
+				reporter->FatalError("%s: problem with netflow file %s - %s\n",
 					prog, flowfiles[i], fs->ErrorMsg());
 			else
 				{
@@ -216,7 +216,7 @@ void net_init(name_list& interfaces, name_list& readfiles,
 			ps = new PktInterfaceSrc(interfaces[i], filter);
 
 			if ( ! ps->IsOpen() )
-				bro_logger->FatalError("%s: problem with interface %s - %s\n",
+				reporter->FatalError("%s: problem with interface %s - %s\n",
 					prog, interfaces[i], ps->ErrorMsg());
 			else
 				{
@@ -231,7 +231,7 @@ void net_init(name_list& interfaces, name_list& readfiles,
 					filter, TYPE_FILTER_SECONDARY);
 
 				if ( ! ps->IsOpen() )
-					bro_logger->Error("%s: problem with interface %s - %s\n",
+					reporter->Error("%s: problem with interface %s - %s\n",
 						prog, interfaces[i],
 						ps->ErrorMsg());
 				else
@@ -249,7 +249,7 @@ void net_init(name_list& interfaces, name_list& readfiles,
 			FlowSocketSrc* fs = new FlowSocketSrc(netflows[i]);
 
 			if ( ! fs->IsOpen() )
-				bro_logger->Error("%s: problem with netflow socket %s - %s\n",
+				reporter->Error("%s: problem with netflow socket %s - %s\n",
 					prog, netflows[i], fs->ErrorMsg());
 			else
 				{
@@ -272,12 +272,12 @@ void net_init(name_list& interfaces, name_list& readfiles,
 		// interfaces with different-lengthed media.
 		pkt_dumper = new PktDumper(writefile);
 		if ( pkt_dumper->IsError() )
-			bro_logger->FatalError("%s: can't open write file \"%s\" - %s\n",
+			reporter->FatalError("%s: can't open write file \"%s\" - %s\n",
 				prog, writefile, pkt_dumper->ErrorMsg());
 
 		ID* id = global_scope()->Lookup("trace_output_file");
 		if ( ! id )
-			bro_logger->Error("trace_output_file not defined in bro.init");
+			reporter->Error("trace_output_file not defined in bro.init");
 		else
 			id->SetVal(new StringVal(writefile));
 		}
@@ -344,7 +344,7 @@ void net_packet_dispatch(double t, const struct pcap_pkthdr* hdr,
 			// charged against this sample.
 			mgr.Drain();
 
-			sample_logger = new SampleLogger();
+			sample_logger = new SampleReporter();
 			sp = new SegmentProfiler(sample_logger, "load-samp");
 			}
 		}
@@ -537,7 +537,7 @@ void net_get_final_stats()
 			{
 			struct PktSrc::Stats s;
 			ps->Statistics(&s);
-			bro_logger->Message("%d packets received on interface %s, %d dropped\n",
+			reporter->Message("%d packets received on interface %s, %d dropped\n",
 					s.received, ps->Interface(), s.dropped);
 			}
 		}
@@ -611,7 +611,7 @@ static double suspend_start = 0;
 void net_suspend_processing()
 	{
 	if ( _processing_suspended == 0 )
-		bro_logger->Message("processing suspended");
+		reporter->Message("processing suspended");
 
 	++_processing_suspended;
 	}
@@ -620,7 +620,7 @@ void net_continue_processing()
 	{
 	if ( _processing_suspended == 1 )
 		{
-		bro_logger->Message("processing continued");
+		reporter->Message("processing continued");
 		loop_over_list(pkt_srcs, i)
 			pkt_srcs[i]->ContinueAfterSuspend();
 		}

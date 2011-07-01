@@ -46,7 +46,7 @@ public:
 		if ( analyzer )
 			analyzer->Weird("base64_illegal_encoding", msg);
 		else
-			bro_logger->Error(msg);
+			reporter->Error(msg);
 		}
 
 protected:

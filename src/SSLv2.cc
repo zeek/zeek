@@ -287,7 +287,7 @@ void SSLv2_Interpreter::NewSSLRecord(SSL_InterpreterEndpoint* s,
 		break;
 
 	default:
-		bro_logger->InternalError("SSLv2: unknown state");
+		reporter->InternalError("SSLv2: unknown state");
 		break;
 	}
 	}

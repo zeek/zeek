@@ -400,7 +400,7 @@ void PktSrc::Statistics(Stats* s)
 
 	else if ( pcap_stats(pd, &pstat) < 0 )
 		{
-		bro_logger->Error("problem getting packet filter statistics: %s",
+		reporter->Error("problem getting packet filter statistics: %s",
 				ErrorMsg());
 		s->received = s->dropped = s->link = 0;
 		}
@@ -463,7 +463,7 @@ PktInterfaceSrc::PktInterfaceSrc(const char* arg_interface, const char* filter,
 
 	// ### This needs autoconf'ing.
 #ifdef HAVE_PCAP_INT_H
-	bro_logger->Message("pcap bufsize = %d\n", ((struct pcap *) pd)->bufsize);
+	reporter->Message("pcap bufsize = %d\n", ((struct pcap *) pd)->bufsize);
 #endif
 
 #ifdef HAVE_LINUX
@@ -486,7 +486,7 @@ PktInterfaceSrc::PktInterfaceSrc(const char* arg_interface, const char* filter,
 			// Couldn't get header size.
 			return;
 
-		bro_logger->Message("listening on %s\n", interface);
+		reporter->Message("listening on %s\n", interface);
 		}
 	else
 		closed = true;
@@ -518,7 +518,7 @@ PktFileSrc::PktFileSrc(const char* arg_readfile, const char* filter,
 		selectable_fd = fileno(pcap_file(pd));
 
 		if ( selectable_fd < 0 )
-			bro_logger->InternalError("OS does not support selectable pcap fd");
+			reporter->InternalError("OS does not support selectable pcap fd");
 		}
 	else
 		closed = true;

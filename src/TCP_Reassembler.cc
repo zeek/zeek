@@ -104,7 +104,7 @@ void TCP_Reassembler::SetContentsFile(BroFile* f)
 	{
 	if ( ! f->IsOpen() )
 		{
-		bro_logger->Error("no such file \"%s\"", f->Name());
+		reporter->Error("no such file \"%s\"", f->Name());
 		return;
 		}
 
@@ -173,7 +173,7 @@ void TCP_Reassembler::Undelivered(int up_to_seq)
 
 	if ( seq_delta(up_to_seq, last_reassem_seq) <= 0 )
 		// This should never happen.
-		bro_logger->InternalError("Calling Undelivered for data that has already been delivered (or has already been marked as undelivered");
+		reporter->InternalError("Calling Undelivered for data that has already been delivered (or has already been marked as undelivered");
 
 	if ( last_reassem_seq == 1 &&
 	     (endpoint->FIN_cnt > 0 || endpoint->RST_cnt > 0 ||
@@ -323,14 +323,14 @@ void TCP_Reassembler::RecordBlock(DataBlock* b, BroFile* f)
 	unsigned int len = b->Size();
 	if ( ! f->Write((const char*) b->block, len) )
 		// ### this should really generate an event
-		bro_logger->InternalError("contents write failed");
+		reporter->InternalError("contents write failed");
 	}
 
 void TCP_Reassembler::RecordGap(int start_seq, int upper_seq, BroFile* f)
 	{
 	if ( ! f->Write(fmt("\n<<gap %d>>\n", seq_delta(upper_seq, start_seq))) )
 		// ### this should really generate an event
-		bro_logger->InternalError("contents gap write failed");
+		reporter->InternalError("contents gap write failed");
 	}
 
 void TCP_Reassembler::BlockInserted(DataBlock* start_block)
@@ -407,13 +407,13 @@ IMPLEMENT_SERIAL(TCP_Reassembler, SER_TCP_REASSEMBLER);
 
 bool TCP_Reassembler::DoSerialize(SerialInfo* info) const
 	{
-	bro_logger->InternalError("TCP_Reassembler::DoSerialize not implemented");
+	reporter->InternalError("TCP_Reassembler::DoSerialize not implemented");
 	return false; // Cannot be reached.
 	}
 
 bool TCP_Reassembler::DoUnserialize(UnserialInfo* info)
 	{
-	bro_logger->InternalError("TCP_Reassembler::DoUnserialize not implemented");
+	reporter->InternalError("TCP_Reassembler::DoUnserialize not implemented");
 	return false; // Cannot be reached.
 	}
 

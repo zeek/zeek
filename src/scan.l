@@ -23,7 +23,7 @@
 #include "BroDoc.h"
 #include "Analyzer.h"
 #include "AnalyzerTags.h"
-#include "Logger.h"
+#include "Reporter.h"
 
 extern YYLTYPE yylloc;	// holds start line and column of token
 extern int print_loaded_scripts;
@@ -49,7 +49,7 @@ char last_tok[128];
 // a read fails.
 #define YY_INPUT(buf,result,max_size) \
 	if ( ((result = fread(buf, 1, max_size, yyin)) == 0) && ferror(yyin) ) \
-		bro_logger->Error(fmt("read failed with \"%s\"", strerror(errno)));
+		reporter->Error(fmt("read failed with \"%s\"", strerror(errno)));
 
 // Files we have already scanned (or are in the process of scanning).
 static PList(char) files_scanned;
@@ -384,7 +384,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 		uint32 p = atoi(yytext);
 		if ( p > 65535 )
 			{
-			bro_logger->Error("bad port number -", yytext);
+			reporter->Error("bad port number -", yytext);
 			p = 0;
 			}
 		RET_CONST(new PortVal(p, TRANSPORT_TCP))
@@ -393,7 +393,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 		uint32 p = atoi(yytext);
 		if ( p > 65535 )
 			{
-			bro_logger->Error("bad port number -", yytext);
+			reporter->Error("bad port number -", yytext);
 			p = 0;
 			}
 		RET_CONST(new PortVal(p, TRANSPORT_UDP))
@@ -402,7 +402,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 		uint32 p = atoi(yytext);
 		if ( p > 255 )
 			{
-			bro_logger->Error("bad port number -", yytext);
+			reporter->Error("bad port number -", yytext);
 			p = 0;
 			}
 		RET_CONST(new PortVal(p, TRANSPORT_ICMP))
@@ -411,7 +411,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 		uint32 p = atoi(yytext);
 		if ( p > 255 )
 			{
-			bro_logger->Error("bad port number -", yytext);
+			reporter->Error("bad port number -", yytext);
 			p = 0;
 			}
 		RET_CONST(new PortVal(p, TRANSPORT_UNKNOWN))
@@ -457,13 +457,13 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 			{
 			s[i++] = *text;
 			if ( i >= len )
-				bro_logger->InternalError("bad string length computation");
+				reporter->InternalError("bad string length computation");
 			}
 		}
 
 	// Get rid of trailing quote.
 	if ( s[i-1] != '"' )
-		bro_logger->InternalError("string scanning confused");
+		reporter->InternalError("string scanning confused");
 
 	s[i-1] = '\0';
 
@@ -477,7 +477,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 
 <RE>[/\\\n]	return yytext[0];
 
-<*>.	bro_logger->Error("unrecognized character -", yytext);
+<*>.	reporter->Error("unrecognized character -", yytext);
 
 <<EOF>>	last_tok[0] = '\0'; return EOF;
 
@@ -570,7 +570,7 @@ static int load_files_with_prefix(const char* orig_file)
 				HashKey* key = new HashKey(full_filename);
 				if ( g_dbgfilemaps.Lookup(key) )
 					{
-					// bro_logger->Warning("Not re-reading policy file; check BRO_PREFIXES:", full_filename);
+					// reporter->Warning("Not re-reading policy file; check BRO_PREFIXES:", full_filename);
 					fclose(f);
 					delete key;
 					continue;
@@ -616,7 +616,7 @@ static int load_files_with_prefix(const char* orig_file)
 			{
 			if ( streq(prefixes[i], "") )
 				{
-				bro_logger->Error("can't open", full_filename);
+				reporter->Error("can't open", full_filename);
 				exit(1);
 				}
 			}
@@ -672,7 +672,7 @@ void do_atifndef(const char *id)
 void do_atelse()
 	{
 	if ( current_depth == 0 )
-		bro_logger->Error("@else without @if...");
+		reporter->Error("@else without @if...");
 
 	if ( if_stack.length() && current_depth > if_stack.last() )
 		return;
@@ -692,7 +692,7 @@ void do_atelse()
 void do_atendif()
 	{
 	if ( current_depth == 0 )
-		bro_logger->Error("unbalanced @if... @endif");
+		reporter->Error("unbalanced @if... @endif");
 
 	if ( current_depth == if_stack.last() )
 		{
@@ -728,7 +728,7 @@ const char* get_current_input_filename()
 void add_input_file(const char* file)
 	{
 	if ( ! file )
-		bro_logger->InternalError("empty filename");
+		reporter->InternalError("empty filename");
 
 	if ( ! filename )
 		(void) load_files_with_prefix(file);
@@ -755,7 +755,7 @@ void add_to_name_list(char* s, char delim, name_list& nl)
 
 int yywrap()
 	{
-	if ( bro_logger->Errors() > 0 )
+	if ( reporter->Errors() > 0 )
 		return 1;
 
 	--include_level;

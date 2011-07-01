@@ -9,7 +9,7 @@
 #include "Net.h"
 #include "NetVar.h"
 #include "UDP.h"
-#include "Logger.h"
+#include "Reporter.h"
 
 UDP_Analyzer::UDP_Analyzer(Connection* conn)
 : TransportLayerAnalyzer(AnalyzerTag::UDP, conn)
@@ -136,7 +136,7 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 			request_len += ulen;
 #ifdef DEBUG
 			if ( request_len < 0 )
-				bro_logger->Warning("wrapping around for UDP request length");
+				reporter->Warning("wrapping around for UDP request length");
 #endif
 			}
 
@@ -154,7 +154,7 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 			reply_len += ulen;
 #ifdef DEBUG
 			if ( reply_len < 0 )
-				bro_logger->Warning("wrapping around for UDP reply length");
+				reporter->Warning("wrapping around for UDP reply length");
 #endif
 			}
 

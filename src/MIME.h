@@ -193,7 +193,7 @@ public:
 	virtual ~MIME_Message()
 		{
 		if ( ! finished )
-			bro_logger->InternalError("Done() must be called before destruction");
+			reporter->InternalError("Done() must be called before destruction");
 		}
 
 	virtual void Done()	{ finished = 1; }

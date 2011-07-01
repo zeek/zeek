@@ -12,7 +12,7 @@
 #include "Serializer.h"
 #include "Scope.h"
 #include "Stmt.h"
-#include "Logger.h"
+#include "Reporter.h"
 #include "Func.h"
 #include "Event.h"
 #include "EventRegistry.h"
@@ -911,7 +911,7 @@ bool FileSerializer::Read(UnserialInfo* info, const char* file, bool header)
 
 void FileSerializer::ReportError(const char* str)
 	{
-	bro_logger->Error(str);
+	reporter->Error(str);
 	}
 
 void FileSerializer::GotID(ID* id, Val* val)
@@ -971,7 +971,7 @@ ConversionSerializer::~ConversionSerializer()
 
 bool ConversionSerializer::Convert(const char* file_in, const char* file_out)
 	{
-	bro_logger->InternalError("Error: Printing as XML is broken.");
+	reporter->InternalError("Error: Printing as XML is broken.");
 
 	if ( ! serout->Open(file_out, true) )
 		return false;
@@ -1004,19 +1004,19 @@ void ConversionSerializer::GotFunctionCall(const char* name, double time,
 
 void ConversionSerializer::GotID(ID* id, Val* val)
 	{
-	bro_logger->Warning("ConversionSerializer::GotID not implemented");
+	reporter->Warning("ConversionSerializer::GotID not implemented");
 	Unref(id);
 	}
 
 void ConversionSerializer::GotStateAccess(StateAccess* s)
 	{
-	bro_logger->Warning("ConversionSerializer::GotID not implemented");
+	reporter->Warning("ConversionSerializer::GotID not implemented");
 	delete s;
 	}
 
 void ConversionSerializer::GotPacket(Packet* p)
 	{
-	bro_logger->Warning("ConversionSerializer::GotPacket not implemented");
+	reporter->Warning("ConversionSerializer::GotPacket not implemented");
 	delete p;
 	}
 

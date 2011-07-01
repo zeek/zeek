@@ -8,7 +8,7 @@
 #include "Event.h"
 #include "Frame.h"
 #include "File.h"
-#include "Logger.h"
+#include "Reporter.h"
 #include "NetVar.h"
 #include "Stmt.h"
 #include "Scope.h"
@@ -2060,7 +2060,7 @@ int same_stmt(const Stmt* s1, const Stmt* s2)
 		return 1;
 
 	default:
-		bro_logger->Error("bad tag in same_stmt()");
+		reporter->Error("bad tag in same_stmt()");
 	}
 
 	return 0;

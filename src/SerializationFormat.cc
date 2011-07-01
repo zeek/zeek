@@ -5,7 +5,7 @@
 #include "net_util.h"
 #include "SerializationFormat.h"
 #include "Serializer.h"
-#include "Logger.h"
+#include "Reporter.h"
 
 SerializationFormat::SerializationFormat()
 	{
@@ -59,7 +59,7 @@ bool SerializationFormat::ReadData(void* b, size_t count)
 	{
 	if ( input_pos + count > input_len )
 		{
-		bro_logger->Error("data underflow during read in binary format");
+		reporter->Error("data underflow during read in binary format");
 		abort();
 		return false;
 		}
@@ -205,7 +205,7 @@ bool BinarySerializationFormat::Read(char** str, int* len, const char* tag)
 		for ( int i = 0; i < l; i++ )
 			if ( ! s[i] )
 				{
-				bro_logger->Error("binary Format: string contains null; replaced by '_'");
+				reporter->Error("binary Format: string contains null; replaced by '_'");
 				s[i] = '_';
 				}
 		}
@@ -333,61 +333,61 @@ XMLSerializationFormat::~XMLSerializationFormat()
 
 bool XMLSerializationFormat::Read(int* v, const char* tag)
 	{
-	bro_logger->InternalError("no reading of xml");
+	reporter->InternalError("no reading of xml");
 	return false;
 	}
 
 bool XMLSerializationFormat::Read(uint16* v, const char* tag)
 	{
-	bro_logger->InternalError("no reading of xml");
+	reporter->InternalError("no reading of xml");
 	return false;
 	}
 
 bool XMLSerializationFormat::Read(uint32* v, const char* tag)
 	{
-	bro_logger->InternalError("no reading of xml");
+	reporter->InternalError("no reading of xml");
 	return false;
 	}
 
 bool XMLSerializationFormat::Read(int64* v, const char* tag)
 	{
-	bro_logger->InternalError("no reading of xml");
+	reporter->InternalError("no reading of xml");
 	return false;
 	}
 
 bool XMLSerializationFormat::Read(uint64* v, const char* tag)
 	{
-	bro_logger->InternalError("no reading of xml");
+	reporter->InternalError("no reading of xml");
 	return false;
 	}
 
 bool XMLSerializationFormat::Read(bool* v, const char* tag)
 	{
-	bro_logger->InternalError("no reading of xml");
+	reporter->InternalError("no reading of xml");
 	return false;
 	}
 
 bool XMLSerializationFormat::Read(double* d, const char* tag)
 	{
-	bro_logger->InternalError("no reading of xml");
+	reporter->InternalError("no reading of xml");
 	return false;
 	}
 
 bool XMLSerializationFormat::Read(char* v, const char* tag)
 	{
-	bro_logger->InternalError("no reading of xml");
+	reporter->InternalError("no reading of xml");
 	return false;
 	}
 
 bool XMLSerializationFormat::Read(char** str, int* len, const char* tag)
 	{
-	bro_logger->InternalError("no reading of xml");
+	reporter->InternalError("no reading of xml");
 	return false;
 	}
 
 bool XMLSerializationFormat::Read(string* s, const char* tag)
 	{
-	bro_logger->InternalError("no reading of xml");
+	reporter->InternalError("no reading of xml");
 	return false;
 	}
 

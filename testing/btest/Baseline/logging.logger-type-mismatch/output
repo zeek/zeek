@@ -1,3 +1,0 @@
-error in string and /da/home/robin/bro/topic/testing/btest/.tmp/logging.logger-type-mismatch/logger-type-mismatch.bro, line 11: arithmetic mixed with non-arithmetic (string and 42)
-error in /da/home/robin/bro/topic/testing/btest/.tmp/logging.logger-type-mismatch/logger-type-mismatch.bro, line 11 and string: type mismatch (42 and string)
-error in /da/home/robin/bro/topic/testing/btest/.tmp/logging.logger-type-mismatch/logger-type-mismatch.bro, line 11: argument type mismatch in event invocation (foo(42))

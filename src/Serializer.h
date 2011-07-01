@@ -18,7 +18,7 @@
 #include "IP.h"
 #include "Timer.h"
 #include "IOSource.h"
-#include "Logger.h"
+#include "Reporter.h"
 
 class SerializationCache;
 class SerialInfo;
@@ -263,7 +263,7 @@ public:
 	virtual ~CloneSerializer()	{ }
 
 protected:
-	virtual void ReportError(const char* msg)	{ bro_logger->Error(msg); }
+	virtual void ReportError(const char* msg)	{ reporter->Error(msg); }
 	virtual void GotID(ID* id, Val* val)	{ }
 	virtual void GotEvent(const char* name, double time,
 				EventHandlerPtr event, val_list* args)	{ }

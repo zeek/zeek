@@ -127,7 +127,7 @@ void PQ_TimerMgr::Add(Timer* timer)
 	// multiple already-added timers are added, they'll still
 	// execute in sorted order.
 	if ( ! q->Add(timer) )
-		bro_logger->InternalError("out of memory");
+		reporter->InternalError("out of memory");
 
 	++current_timers[timer->Type()];
 	}
@@ -173,7 +173,7 @@ int PQ_TimerMgr::DoAdvance(double new_t, int max_expire)
 void PQ_TimerMgr::Remove(Timer* timer)
 	{
 	if ( ! q->Remove(timer) )
-		bro_logger->InternalError("asked to remove a missing timer");
+		reporter->InternalError("asked to remove a missing timer");
 
 	--current_timers[timer->Type()];
 	delete timer;
@@ -183,7 +183,7 @@ CQ_TimerMgr::CQ_TimerMgr(const Tag& tag) : TimerMgr(tag)
 	{
 	cq = cq_init(60.0, 1.0);
 	if ( ! cq )
-		bro_logger->InternalError("could not initialize calendar queue");
+		reporter->InternalError("could not initialize calendar queue");
 	}
 
 CQ_TimerMgr::~CQ_TimerMgr()
@@ -208,7 +208,7 @@ void CQ_TimerMgr::Add(Timer* timer)
 		t = network_time;
 
 	if ( cq_enqueue(cq, t, timer) < 0 )
-		bro_logger->InternalError("problem queueing timer");
+		reporter->InternalError("problem queueing timer");
 
 	++current_timers[timer->Type()];
 	}

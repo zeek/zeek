@@ -78,7 +78,7 @@
 #include "DNS.h"
 #include "RE.h"
 #include "Scope.h"
-#include "Logger.h"
+#include "Reporter.h"
 #include "BroDoc.h"
 #include "BroDocObj.h"
 
@@ -563,7 +563,7 @@ expr:
 					int intval = t->Lookup(id->ModuleName(),
 							       id->Name());
 					if ( intval < 0 )
-						bro_logger->InternalError("enum value not found for %s", id->Name());
+						reporter->InternalError("enum value not found for %s", id->Name());
 					$$ = new ConstExpr(new EnumVal(intval, t));
 					}
 				else
@@ -690,7 +690,7 @@ enum_body_elem:
 			assert(cur_enum_type);
 
 			if ( $4->Type()->Tag() != TYPE_COUNT )
-				bro_logger->Error("enumerator is not a count constant");
+				reporter->Error("enumerator is not a count constant");
 			else
 				cur_enum_type->AddName(current_module, $2, $4->InternalUnsigned(), is_export);
 
@@ -708,7 +708,7 @@ enum_body_elem:
 			   error message if users triy to use a negative integer (will also
 			   catch other cases, but that's fine.)
 			*/
-			bro_logger->Error("enumerator is not a count constant");
+			reporter->Error("enumerator is not a count constant");
 			}
 
 	|	opt_doc_list TOK_ID
@@ -828,7 +828,7 @@ type:
 	|	TOK_UNION '{' type_list '}'
 				{
 				set_location(@1, @4);
-				bro_logger->Error("union type not implemented");
+				reporter->Error("union type not implemented");
 				$$ = 0;
 				}
 
@@ -844,7 +844,7 @@ type:
 				{
 				set_location(@1);
 				// $$ = new TypeList();
-				bro_logger->Error("list type not implemented");
+				reporter->Error("list type not implemented");
 				$$ = 0;
 				}
 
@@ -852,7 +852,7 @@ type:
 				{
 				set_location(@1);
 				// $$ = new TypeList($3);
-				bro_logger->Error("list type not implemented");
+				reporter->Error("list type not implemented");
 				$$ = 0;
 				}
 
@@ -1596,7 +1596,7 @@ resolve_id:
 			$$ = lookup_ID($1, current_module.c_str());
 
 			if ( ! $$ )
-				bro_logger->Error("identifier not defined:", $1);
+				reporter->Error("identifier not defined:", $1);
 
 			delete [] $1;
 			}
@@ -1653,7 +1653,7 @@ int yyerror(const char msg[])
 		strcat(msgbuf, "\nDocumentation mode is enabled: "
 		       "remember to check syntax of ## style comments\n");
 
-	bro_logger->Error(msgbuf);
+	reporter->Error(msgbuf);
 
 	return 0;
 	}

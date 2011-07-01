@@ -113,7 +113,7 @@ bool RuleConditionPayloadSize::DoMatch(Rule* rule, RuleEndpointState* state,
 		return payload_size >= val;
 
 	default:
-		bro_logger->InternalError("unknown comparision type");
+		reporter->InternalError("unknown comparision type");
 	}
 
 	// Should not be reached
@@ -135,7 +135,7 @@ bool RuleConditionEval::DoMatch(Rule* rule, RuleEndpointState* state,
 	{
 	if ( ! id->HasVal() )
 		{
-		bro_logger->Error("undefined value");
+		reporter->Error("undefined value");
 		return false;
 		}
 

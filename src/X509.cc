@@ -80,7 +80,7 @@ int X509_Cert::init()
 		lookup = X509_STORE_add_lookup(ctx, X509_LOOKUP_hash_dir());
 		if ( ! lookup )
 			{
-			bro_logger->Error("X509_Cert::init(): initing lookup failed\n");
+			reporter->Error("X509_Cert::init(): initing lookup failed\n");
 			flag = 1;
 			}
 
@@ -89,7 +89,7 @@ int X509_Cert::init()
 				X509_FILETYPE_PEM);
 		if ( ! i )
 			{
-			bro_logger->Error("X509_Cert::init(): error adding lookup directory\n");
+			reporter->Error("X509_Cert::init(): error adding lookup directory\n");
 			ret = 0;
 			}
 		}
@@ -108,7 +108,7 @@ int X509_Cert::init()
 		if ( X509_load_crl_file(lookup, (const char*) rString->Bytes(),
 					X509_FILETYPE_PEM) != 1 )
 			{
-			bro_logger->Error("X509_Cert::init(): error reading CRL file\n");
+			reporter->Error("X509_Cert::init(): error reading CRL file\n");
 			ret = 1;
 			}
 

@@ -46,7 +46,7 @@ event bro_init()
 	{
 	# Disable packet processing.
 	install_src_net_filter(0.0.0.0/0, 0, 100);
-    # Log::message("waiting for hand-over - packet processing disabled.");
+    # Reporter::message("waiting for hand-over - packet processing disabled.");
 	}
 
 event remote_connection_error(p: event_peer, reason: string)
@@ -55,7 +55,7 @@ event remote_connection_error(p: event_peer, reason: string)
 		return;
 
 	# Seems that the other side in not running.
-    # Log::error("can't connect for hand-over - starting processing ...");
+    # Reporter::error("can't connect for hand-over - starting processing ...");
 	handover_start_processing();
 	}
 
@@ -72,7 +72,7 @@ event remote_connection_established(p: event_peer)
 		if ( ! is_handover_peer(p) )
 			return;
 
-        # Log::message(fmt("requesting hand-over from %s:%d", p$host, p$p));
+        # Reporter::message(fmt("requesting hand-over from %s:%d", p$host, p$p));
 
 		request_remote_events(p, /handover_.*|finished_send_state/);
 
@@ -85,7 +85,7 @@ event remote_connection_established(p: event_peer)
 	# if the remote host is defined as a hand-over host in remote_peers.
 	if ( is_handover_peer(p) )
 		{
-        # Log::message(fmt("allowing hand-over from %s:%d", p$host, p$p));
+        # Reporter::message(fmt("allowing hand-over from %s:%d", p$host, p$p));
 		request_remote_events(p, /handover_.*|finished_send_state/);
 		}
 	}
@@ -99,7 +99,7 @@ event handover_send_state(p: event_peer)
 	# we will have to try again.
 	if ( ! send_state(p) )
 		{
-		# Log::message("can't send state; serialization in progress");
+		# Reporter::message("can't send state; serialization in progress");
 		schedule 5 secs { handover_send_state(p$host, p$p) };
 		}
 	}
@@ -124,7 +124,7 @@ event finished_send_state(p: event_peer)
 	if ( ! is_handover_peer(p) )
 		 return;
 
-	#Log::message(fmt("full state received from %s:%d - starting processing ...",
+	#Reporter::message(fmt("full state received from %s:%d - starting processing ...",
  	#	p$host, p$p));
 
 	event handover_got_state(p);
@@ -139,6 +139,6 @@ event handover_got_state(p: event_peer)
 	if ( ! (is_remote_event() && is_it_us(p$host, p$p)) )
 		return;
 
-	# Log::message(fmt("%s:%d received our state - terminating", p$host, p$p));
+	# Reporter::message(fmt("%s:%d received our state - terminating", p$host, p$p));
 	terminate();
 	}

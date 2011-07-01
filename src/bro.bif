@@ -10,7 +10,7 @@
 #include <cmath>
 #include <sys/stat.h>
 
-#include "Logger.h"
+#include "Reporter.h"
 
 using namespace std;
 
@@ -792,7 +792,7 @@ EnumVal* map_conn_type(TransportProto tp)
 		break;
 
 	default:
-		bro_logger->InternalError("bad connection type in map_conn_type()");
+		reporter->InternalError("bad connection type in map_conn_type()");
 	}
 
     // Cannot be reached;
@@ -839,7 +839,7 @@ function sqrt%(x: double%): double
 	%{
 	if ( x < 0 )
 		{
-		bro_logger->Error("negative sqrt argument");
+		reporter->Error("negative sqrt argument");
 		return new Val(-1.0, TYPE_DOUBLE);
 		}
 
@@ -1215,7 +1215,7 @@ function get_orig_seq%(cid: conn_id%): count
 				TYPE_COUNT);
 	else
 		{
-		bro_logger->Error("connection does not have TCP analyzer");
+		reporter->Error("connection does not have TCP analyzer");
 		return new Val(0, TYPE_COUNT);
 		}
 	%}
@@ -1235,7 +1235,7 @@ function get_resp_seq%(cid: conn_id%): count
 				TYPE_COUNT);
 	else
 		{
-		bro_logger->Error("connection does not have TCP analyzer");
+		reporter->Error("connection does not have TCP analyzer");
 		return new Val(0, TYPE_COUNT);
 		}
 	%}
@@ -1414,14 +1414,14 @@ function skip_http_entity_data%(c: connection, is_orig: bool%): any
 			if ( ha->GetTag() == AnalyzerTag::HTTP )
 				static_cast<HTTP_Analyzer*>(ha)->SkipEntityData(is_orig);
 			else
-				bro_logger->Error("non-HTTP analyzer associated with connection record");
+				reporter->Error("non-HTTP analyzer associated with connection record");
 			}
 		else
-			bro_logger->Error("could not find analyzer for skip_http_entity_data");
+			reporter->Error("could not find analyzer for skip_http_entity_data");
 
 		}
 	else
-		bro_logger->Error("no analyzer associated with connection record");
+		reporter->Error("no analyzer associated with connection record");
 
 	return 0;
 	%}
@@ -1480,7 +1480,7 @@ function resource_usage%(%): bro_resources
 	struct rusage r;
 
 	if ( getrusage(RUSAGE_SELF, &r) < 0 )
-		bro_logger->InternalError("getrusage() failed in bro_resource_usage()");
+		reporter->InternalError("getrusage() failed in bro_resource_usage()");
 
 	double elapsed_time = current_time() - bro_start_time;
 
@@ -1839,7 +1839,7 @@ function decode_base64%(s: string%): string
 		return new StringVal(t);
 	else
 		{
-		bro_logger->Error("error in decoding string %s", @ARG@[0]);
+		reporter->Error("error in decoding string %s", @ARG@[0]);
 		return new StringVal("");
 		}
 	%}
@@ -1971,7 +1971,7 @@ function precompile_pcap_filter%(id: PcapFilterID, s: string%): bool
 		if ( ! pkt_srcs[i]->PrecompileFilter(id->ForceAsInt(),
 							s->CheckString()) )
 			{
-			bro_logger->Error( "precompile_pcap_filter: %s",
+			reporter->Error( "precompile_pcap_filter: %s",
 				pkt_srcs[i]->ErrorMsg() );
 			success = false;
 			}
@@ -1986,7 +1986,7 @@ function install_pcap_filter%(id: PcapFilterID%): bool
 	ID* user_filter = global_scope()->Lookup("cmd_line_bpf_filter");
 
 	if ( ! user_filter )
-		bro_logger->InternalError("global cmd_line_bpf_filter not defined");
+		reporter->InternalError("global cmd_line_bpf_filter not defined");
 
 	if ( user_filter->ID_Val()->AsStringVal()->Len() )
 		// Don't allow the script-level to change the filter when
@@ -2169,7 +2169,7 @@ function send_id%(p: event_peer, id: string%) : bool
 	ID* i = global_scope()->Lookup(id->CheckString());
 	if ( ! i )
 		{
-		bro_logger->Error(fmt("send_id: no global id %s", id->CheckString()));
+		reporter->Error(fmt("send_id: no global id %s", id->CheckString()));
 		return new Val(0, TYPE_BOOL);
 		}
 
@@ -2233,12 +2233,12 @@ function get_event_peer%(%) : event_peer
 		}
 
 	if ( ! remote_serializer )
-		bro_logger->InternalError("remote_serializer not initialized");
+		reporter->InternalError("remote_serializer not initialized");
 
 	Val* v = remote_serializer->GetPeerVal(src);
 	if ( ! v )
 		{
-		bro_logger->Error(fmt("peer %d does not exist anymore", int(src)));
+		reporter->Error(fmt("peer %d does not exist anymore", int(src)));
 		RecordVal* p = mgr.GetLocalPeerVal();
 		Ref(p);
 		return p;
@@ -2875,7 +2875,7 @@ function lookup_addr%(host: addr%) : string
 		static bool warned = false;
 		if ( ! warned )
 			{
-			bro_logger->Warning("lookup_addr() only supports IPv4 addresses currently");
+			reporter->Warning("lookup_addr() only supports IPv4 addresses currently");
 			warned = true;
 			}
 
@@ -2946,14 +2946,14 @@ function disable_analyzer%(cid: conn_id, aid: count%) : bool
 	Connection* c = sessions->FindConnection(cid);
 	if ( ! c )
 		{
-		bro_logger->Error("cannot find connection");
+		reporter->Error("cannot find connection");
 		return new Val(0, TYPE_BOOL);
 		}
 
 	Analyzer* a = c->FindAnalyzer(aid);
 	if ( ! a )
 		{
-		bro_logger->Error("connection does not have analyzer specified to disable");
+		reporter->Error("connection does not have analyzer specified to disable");
 		return new Val(0, TYPE_BOOL);
 		}
 
@@ -3233,13 +3233,13 @@ function identify_data%(data: string, return_mime: bool%): string
 
 		if ( ! *magic )
 			{
-			bro_logger->Error(fmt("can't init libmagic: %s", magic_error(*magic)));
+			reporter->Error(fmt("can't init libmagic: %s", magic_error(*magic)));
 			return new StringVal("");
 			}
 
 		if ( magic_load(*magic, 0) < 0 )
 			{
-			bro_logger->Error(fmt("can't load magic file: %s", magic_error(*magic)));
+			reporter->Error(fmt("can't load magic file: %s", magic_error(*magic)));
 			magic_close(*magic);
 			*magic = 0;
 			return new StringVal("");

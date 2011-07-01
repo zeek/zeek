@@ -274,7 +274,7 @@ Val* do_split(StringVal* str_val, RE_Matcher* re, TableVal* other_sep,
 		s += offset + end_of_match;;
 
 		if ( s > end_of_s )
-			bro_logger->InternalError("RegMatch in split goes beyond the string");
+			reporter->InternalError("RegMatch in split goes beyond the string");
 		}
 
 	if ( other_strings )

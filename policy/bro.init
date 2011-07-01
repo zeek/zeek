@@ -284,6 +284,7 @@ type entropy_test_result: record {
 # Prototypes of Bro built-in functions.
 @load strings.bif.bro
 @load bro.bif.bro
+@load reporter.bif.bro
 
 @load logging  # sic! Not logging.bif.
 @load logging-ascii
@@ -1558,17 +1559,17 @@ const skip_http_data = F &redef;
 # UDP tunnels. See also: udp_tunnel_port, policy/udp-tunnel.bro.
 const parse_udp_tunnels = F &redef;
 
-event log_message(t: time, msg: string, location: string)
+event reporter_message(t: time, msg: string, location: string)
 	{
-	print fmt("[script] log_message: %s [%s] [%.6f]", msg, location, t);
+	print fmt("[script] reporter_message: %s [%s] [%.6f]", msg, location, t);
     }
 
-event log_warning(t: time, msg: string, location: string)
+event reporter_warning(t: time, msg: string, location: string)
 	{
-	print fmt("[script] log_warning: %s [%s] [%.6f]", msg, location, t);
+	print fmt("[script] reporter_warning: %s [%s] [%.6f]", msg, location, t);
     }
 
-event log_error(t: time, msg: string, location: string)
+event reporter_error(t: time, msg: string, location: string)
 	{
-	print fmt("[script] log_error: %s [%s] [%.6f]", msg, location, t);
+	print fmt("[script] reporter_error: %s [%s] [%.6f]", msg, location, t);
     }

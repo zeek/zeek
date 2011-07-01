@@ -10,7 +10,7 @@
 #include "BroList.h"
 #include "Obj.h"
 #include "Expr.h"
-#include "Logger.h"
+#include "Reporter.h"
 
 #include "StmtEnums.h"
 
@@ -63,7 +63,7 @@ public:
 		if ( breakpoint_count )
 			--breakpoint_count;
 		else
-			bro_logger->InternalError("breakpoint count decremented below 0");
+			reporter->InternalError("breakpoint count decremented below 0");
 		}
 
 	virtual unsigned int BPCount() const	{ return breakpoint_count; }

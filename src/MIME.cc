@@ -5,7 +5,7 @@
 #include "NetVar.h"
 #include "MIME.h"
 #include "Event.h"
-#include "Logger.h"
+#include "Reporter.h"
 
 // Here are a few things to do:
 //
@@ -269,7 +269,7 @@ void MIME_Entity::init()
 MIME_Entity::~MIME_Entity()
 	{
 	if ( ! end_of_data )
-		bro_logger->InternalError("EndOfData must be called before delete a MIME_Entity");
+		reporter->InternalError("EndOfData must be called before delete a MIME_Entity");
 
 	delete current_header_line;
 	Unref(content_type_str);
@@ -654,7 +654,7 @@ int MIME_Entity::CheckBoundaryDelimiter(int len, const char* data)
 	{
 	if ( ! multipart_boundary )
 		{
-		bro_logger->Warning("boundary delimiter was not specified for a multipart message\n");
+		reporter->Warning("boundary delimiter was not specified for a multipart message\n");
 		DEBUG_MSG("headers of the MIME entity for debug:\n");
 		DebugPrintHeaders();
 		return NOT_MULTIPART_BOUNDARY;
@@ -800,7 +800,7 @@ void MIME_Entity::DecodeBase64(int len, const char* data)
 		char* prbuf = rbuf;
 		int decoded = base64_decoder->Decode(len, data, &rlen, &prbuf);
 		if ( prbuf != rbuf )
-			bro_logger->InternalError("buffer pointer modified in base64 decoding");
+			reporter->InternalError("buffer pointer modified in base64 decoding");
 		DataOctets(rlen, rbuf);
 		len -= decoded; data += decoded;
 		}
@@ -809,7 +809,7 @@ void MIME_Entity::DecodeBase64(int len, const char* data)
 void MIME_Entity::StartDecodeBase64()
 	{
 	if ( base64_decoder )
-		bro_logger->InternalError("previous Base64 decoder not released!");
+		reporter->InternalError("previous Base64 decoder not released!");
 
 	base64_decoder = new Base64Decoder(message->GetAnalyzer());
 	}
@@ -826,7 +826,7 @@ void MIME_Entity::FinishDecodeBase64()
 	if ( base64_decoder->Done(&rlen, &prbuf) )
 		{ // some remaining data
 		if ( prbuf != rbuf )
-			bro_logger->InternalError("buffer pointer modified in base64 decoding");
+			reporter->InternalError("buffer pointer modified in base64 decoding");
 		if ( rlen > 0 )
 			DataOctets(rlen, rbuf);
 		}
@@ -840,7 +840,7 @@ int MIME_Entity::GetDataBuffer()
 	int ret = message->RequestBuffer(&data_buf_length, &data_buf_data);
 	if ( ! ret || data_buf_length == 0 || data_buf_data == 0 )
 		{
-		// bro_logger->InternalError("cannot get data buffer from MIME_Message", "");
+		// reporter->InternalError("cannot get data buffer from MIME_Message", "");
 		return 0;
 		}
 
@@ -1093,7 +1093,7 @@ void MIME_Mail::SubmitAllHeaders(MIME_HeaderList& hlist)
 void MIME_Mail::SubmitData(int len, const char* buf)
 	{
 	if ( buf != (char*) data_buffer->Bytes() + buffer_start )
-		bro_logger->InternalError("buffer misalignment");
+		reporter->InternalError("buffer misalignment");
 
 	if ( compute_content_hash )
 		{
@@ -1181,7 +1181,7 @@ void MIME_Mail::SubmitEvent(int event_type, const char* detail)
 			break;
 
 		default:
-			bro_logger->InternalError("unrecognized MIME_Mail event");
+			reporter->InternalError("unrecognized MIME_Mail event");
 	}
 
 	if ( mime_event )

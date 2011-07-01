@@ -165,7 +165,7 @@ private:
 
 	void Weird(const PendingConn* pending, double t, const char* msg)
 		{
-		// This will actually go through the Logger; Event() takes care of
+		// This will actually go through the Reporter; Event() takes care of
 		// that.
 		Event(pending, t, conn_weird, TCP_ENDPOINT_INACTIVE, 0,
 			  TCP_ENDPOINT_INACTIVE, new StringVal(msg));

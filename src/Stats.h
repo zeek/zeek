@@ -73,10 +73,10 @@ protected:
 };
 
 
-class ProfileLogger : public SegmentStatsReporter {
+class ProfileReporter : public SegmentStatsReporter {
 public:
-	ProfileLogger(BroFile* file, double interval);
-	~ProfileLogger();
+	ProfileReporter(BroFile* file, double interval);
+	~ProfileReporter();
 
 	void Log();
 	BroFile* File()	{ return file; }
@@ -92,10 +92,10 @@ private:
 
 
 // Generates load_sample() events.
-class SampleLogger : public SegmentStatsReporter {
+class SampleReporter : public SegmentStatsReporter {
 public:
-	SampleLogger();
-	~SampleLogger();
+	SampleReporter();
+	~SampleReporter();
 
 	// These are called to report that a given function or location
 	// has been seen during the sampling.
@@ -110,9 +110,9 @@ protected:
 };
 
 
-extern ProfileLogger* profiling_logger;
-extern ProfileLogger* segment_logger;
-extern SampleLogger* sample_logger;
+extern ProfileReporter* profiling_logger;
+extern ProfileReporter* segment_logger;
+extern SampleReporter* sample_logger;
 
 // Connection statistics.
 extern int killed_by_inactivity;

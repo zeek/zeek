@@ -1,0 +1,2 @@
+error in /da/home/robin/bro/topic/testing/btest/.tmp/core.reporter-runtime-error/reporter-runtime-error.bro, line 12: no such index (a[1])
+[script] reporter_error: no such index (a[2]) [/da/home/robin/bro/topic/testing/btest/.tmp/core.reporter-runtime-error/reporter-runtime-error.bro, line 9] [0.000000]

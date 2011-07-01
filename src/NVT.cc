@@ -38,7 +38,7 @@ void TelnetOption::RecvOption(unsigned int type)
 	{
 	TelnetOption* peer = endp->FindPeerOption(code);
 	if ( ! peer )
-		bro_logger->InternalError("option peer missing in TelnetOption::RecvOption");
+		reporter->InternalError("option peer missing in TelnetOption::RecvOption");
 
 	// WILL/WONT/DO/DONT are messages we've *received* from our peer.
 	switch ( type ) {
@@ -83,7 +83,7 @@ void TelnetOption::RecvOption(unsigned int type)
 		break;
 
 	default:
-		bro_logger->InternalError("bad option type in TelnetOption::RecvOption");
+		reporter->InternalError("bad option type in TelnetOption::RecvOption");
 	}
 	}
 
@@ -163,7 +163,7 @@ void TelnetEncryptOption::RecvSubOption(u_char* data, int len)
 			(TelnetEncryptOption*) endp->FindPeerOption(code);
 
 		if ( ! peer )
-			bro_logger->InternalError("option peer missing in TelnetEncryptOption::RecvSubOption");
+			reporter->InternalError("option peer missing in TelnetEncryptOption::RecvSubOption");
 
 		if ( peer->DidRequest() || peer->DoingEncryption() ||
 		     peer->Endpoint()->AuthenticationHasBeenAccepted() )
@@ -199,7 +199,7 @@ void TelnetAuthenticateOption::RecvSubOption(u_char* data, int len)
 			(TelnetAuthenticateOption*) endp->FindPeerOption(code);
 
 		if ( ! peer )
-			bro_logger->InternalError("option peer missing in TelnetAuthenticateOption::RecvSubOption");
+			reporter->InternalError("option peer missing in TelnetAuthenticateOption::RecvSubOption");
 
 		if ( ! peer->DidRequestAuthentication() )
 			InconsistentOption(0);

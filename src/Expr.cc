@@ -383,7 +383,7 @@ bool NameExpr::DoUnserialize(UnserialInfo* info)
 		if ( id )
 			::Ref(id);
 		else
-			bro_logger->Warning("unserialized unknown global name");
+			reporter->Warning("unserialized unknown global name");
 
 		delete [] name;
 		}
@@ -5623,7 +5623,7 @@ int same_expr(const Expr* e1, const Expr* e2)
 		}
 
 	default:
-		bro_logger->InternalError("bad tag in same_expr()");
+		reporter->InternalError("bad tag in same_expr()");
 	}
 
 	return 0;
@@ -5643,7 +5643,7 @@ static Expr* make_constant(BroType* t, double d)
 	case TYPE_INTERNAL_DOUBLE:	v = new Val(double(d), t->Tag()); break;
 
 	default:
-		bro_logger->InternalError("bad type in make_constant()");
+		reporter->InternalError("bad type in make_constant()");
 	}
 
 	return new ConstExpr(v);

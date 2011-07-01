@@ -127,7 +127,7 @@ void Contents_Rsh_Analyzer::DoDeliver(int len, const u_char* data)
 			break;
 
 		default:
-			bro_logger->InternalError("bad state in Contents_Rsh_Analyzer::DoDeliver");
+			reporter->InternalError("bad state in Contents_Rsh_Analyzer::DoDeliver");
 			break;
 		}
 		}
@@ -179,7 +179,7 @@ void Rsh_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 void Rsh_Analyzer::ClientUserName(const char* s)
 	{
 	if ( client_name )
-		bro_logger->InternalError("multiple rsh client names");
+		reporter->InternalError("multiple rsh client names");
 
 	client_name = new StringVal(s);
 	}
@@ -187,7 +187,7 @@ void Rsh_Analyzer::ClientUserName(const char* s)
 void Rsh_Analyzer::ServerUserName(const char* s)
 	{
 	if ( username )
-		bro_logger->InternalError("multiple rsh initial client names");
+		reporter->InternalError("multiple rsh initial client names");
 
 	username = new StringVal(s);
 	}

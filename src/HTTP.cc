@@ -16,7 +16,7 @@
 const bool DEBUG_http = false;
 
 // The EXPECT_*_NOTHING states are used to prevent further parsing. Used if a
-// message was interrupted. 
+// message was interrupted.
 enum {
 	EXPECT_REQUEST_LINE,
 	EXPECT_REQUEST_MESSAGE,
@@ -88,7 +88,9 @@ void HTTP_Entity::Deliver(int len, const char* data, int trailing_CRLF)
 
 	if ( in_header )
 		{
-		ASSERT(trailing_CRLF);
+		if ( ! trailing_CRLF )
+			http_message->MyHTTP_Analyzer()->Weird("no_http_in_header_list");
+
 		header_length += len;
 		MIME_Entity::Deliver(len, data, trailing_CRLF);
 		return;
@@ -862,10 +864,10 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 					// with len==0 while we are expecting
 					// a new request. Since HTTP servers
 					// handle such requests gracefully,
-					// we should do so as well. 
+					// we should do so as well.
 					if ( len == 0 )
 					    Weird("empty_http_request");
-					else 
+					else
 						{
 						ProtocolViolation("not a http request line");
 						request_state = EXPECT_REQUEST_NOTHING;
@@ -1289,7 +1291,7 @@ void HTTP_Analyzer::RequestMade(const int interrupted, const char* msg)
 
 	if ( interrupted )
 		request_state = EXPECT_REQUEST_NOTHING;
-	else 
+	else
 		request_state = EXPECT_REQUEST_LINE;
 	}
 

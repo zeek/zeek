@@ -2375,7 +2375,7 @@ bool RemoteSerializer::FlushPrintBuffer(Peer* p)
 	if ( p->state == Peer::CLOSING )
 		return false;
 
-	if ( ! p->print_buffer )
+	if ( ! (p->print_buffer && p->print_buffer_used) )
 		return true;
 
 	SendToChild(MSG_REMOTE_PRINT, p, p->print_buffer, p->print_buffer_used);
@@ -3407,11 +3407,11 @@ bool SocketComm::ProcessParentMessage()
 			}
 
 		default:
-			reporter->InternalError("unknown msg type %d", parent_msgtype);
+			InternalError(fmt("unknown msg type %d", parent_msgtype));
 			return true;
 		}
 
-		reporter->InternalError("cannot be reached");
+		InternalError("cannot be reached");
 		}
 
 	case ARGS:
@@ -3434,10 +3434,10 @@ bool SocketComm::ProcessParentMessage()
 		}
 
 	default:
-		reporter->InternalError("unknown msgstate");
+		InternalError("unknown msgstate");
 	}
 
-	reporter->InternalError("cannot be reached");
+	InternalError("cannot be reached");
 	return false;
 	}
 
@@ -3496,7 +3496,7 @@ bool SocketComm::DoParentMessage()
 			peers[j]->io->DumpDebugData(fmt("comm-dump.child.peer.%d", id), false);
 			}
 #else
-		reporter->InternalError("DEBUG_DUMP support not compiled in");
+		InternalError("DEBUG_DUMP support not compiled in");
 #endif
 		return true;
 		}
@@ -3556,10 +3556,10 @@ bool SocketComm::DoParentMessage()
 		return ForwardChunkToPeer();
 
 	default:
-		reporter->InternalError("ProcessParentMessage: unexpected state");
+		InternalError("ProcessParentMessage: unexpected state");
 	}
 
-	reporter->InternalError("cannot be reached");
+	InternalError("cannot be reached");
 	return false;
 	}
 
@@ -3620,7 +3620,7 @@ bool SocketComm::ProcessListen()
 bool SocketComm::ProcessParentCompress()
 	{
 #ifndef HAVE_LIBZ
-	reporter->InternalError("supposed to enable compression but don't have zlib");
+	InternalError("supposed to enable compression but don't have zlib");
 	return false;
 #else
 
@@ -3740,11 +3740,10 @@ bool SocketComm::ProcessRemoteMessage(SocketComm::Peer* peer)
 		}
 
 	default:
-		reporter->InternalError("ProcessRemoteMessage: unexpected state");
+		InternalError("ProcessRemoteMessage: unexpected state");
 	}
 
-	assert(false); // Cannot be reached.
-	return false;
+	return true;
 	}
 
 bool SocketComm::ForwardChunkToParent(Peer* peer, ChunkedIO::Chunk* c)
@@ -4049,6 +4048,12 @@ void SocketComm::Log(const char* msg, Peer* peer)
 	const char* buffer = MakeLogString(msg, peer);
 	SendToParent(MSG_LOG, 0, copy_string(buffer));
 	DEBUG_COMM(fmt("child: %s", buffer));
+	}
+
+void SocketComm::InternalError(const char* msg)
+	{
+	fprintf(stderr, "interal error in child: %s\n", msg);
+	Kill();
 	}
 
 void SocketComm::Kill()

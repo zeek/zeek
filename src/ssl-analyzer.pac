@@ -72,22 +72,12 @@ function version_ok(vers : uint16) : bool
 	}
 	%}
 
-function convert_ciphers_uint24(ciph : uint24[]) : int[]
-	%{
-	vector<int>* newciph = new vector<int>();
-
-	std::transform(ciph->begin(), ciph->end(),
-		std::back_inserter(*newciph), to_int());
-
-	return newciph;
-	%}
 
 function convert_ciphers_uint16(ciph : uint16[]) : int[]
 	%{
 	vector<int>* newciph = new vector<int>();
 
-	std::copy(ciph->begin(), ciph->end(),
-		std::back_inserter(*newciph));
+	std::copy(ciph->begin(), ciph->end(), std::back_inserter(*newciph));
 
 	return newciph;
 	%}
@@ -140,7 +130,8 @@ refine connection SSL_Conn += {
 	function proc_client_hello(rec: SSLRecord,
 					version : uint16, ts : double,
 					session_id : uint8[],
-					cipher_suites : int[]) : bool
+					cipher_suites16 : uint16[], 
+					cipher_suites24 : uint24[]) : bool
 		%{
 		if ( state_ == STATE_TRACK_LOST )
 			bro_analyzer()->ProtocolViolation(fmt("unexpected client hello message from %s in state %s",
@@ -150,13 +141,15 @@ refine connection SSL_Conn += {
 		if ( ! version_ok(version) )
 			bro_analyzer()->ProtocolViolation(fmt("unsupported client SSL version 0x%04x", version));
 
+		vector<int>* cipher_suites = new vector<int>();
+		if ( cipher_suites16  )
+			std::copy(cipher_suites16->begin(), cipher_suites16->end(), std::back_inserter(*cipher_suites));
+		else
+			std::transform(cipher_suites24->begin(), cipher_suites24->end(), std::back_inserter(*cipher_suites), to_int());
+
 		if ( ssl_client_hello )
 			{
-			BroType* count_t = base_type(TYPE_COUNT);
-			TypeList* set_index = new TypeList(count_t);
-			set_index->Append(count_t);
-			SetType* s = new SetType(set_index, 0);
-			TableVal* cipher_set = new TableVal(s);
+			TableVal* cipher_set = new TableVal(internal_type("count_set")->AsTableType());
 			for ( unsigned int i = 0; i < cipher_suites->size(); ++i )
 				{
 				Val* ciph = new Val((*cipher_suites)[i], TYPE_COUNT);
@@ -168,6 +161,8 @@ refine connection SSL_Conn += {
 							version, ts,
 							to_string_val(session_id),
 							cipher_set);
+							
+			delete cipher_suites;
 			}
 
 		return true;
@@ -176,13 +171,21 @@ refine connection SSL_Conn += {
 	function proc_server_hello(rec: SSLRecord,
 					version : uint16, ts : double,
 					session_id : uint8[],
-					cipher_suite : uint16,
+					cipher_suites16 : uint16[],
+					cipher_suites24 : uint24[],
 					comp_method : uint8) : bool
 		%{
 		if ( state_ == STATE_TRACK_LOST )
 			bro_analyzer()->ProtocolViolation(fmt("unexpected server hello message from %s in state %s",
 				orig_label(${rec.is_orig}).c_str(),
 				state_label(old_state_).c_str()));
+
+		vector<int>* ciphers = new vector<int>();
+		
+		if ( cipher_suites16 )
+			std::copy(cipher_suites16->begin(), cipher_suites16->end(), std::back_inserter(*ciphers));
+		else
+			std::transform(cipher_suites24->begin(), cipher_suites24->end(), std::back_inserter(*ciphers), to_int());
 
 		if ( ! version_ok(version) )
 			bro_analyzer()->ProtocolViolation(fmt("unsupported server SSL version 0x%04x", version));
@@ -193,9 +196,10 @@ refine connection SSL_Conn += {
 							bro_analyzer()->Conn(),
 							version, ts,
 							to_string_val(session_id),
-							cipher_suite, comp_method);
+							ciphers->size()==0 ? 0 : ciphers->at(0), comp_method);
 			}
 
+		delete ciphers;
 		bro_analyzer()->ProtocolConfirmation();
 		return true;
 		%}
@@ -223,7 +227,6 @@ refine connection SSL_Conn += {
 
 		if ( x509_certificate )
 			{
-			X509* pCert = 0;
 			for ( unsigned int i = 0; i < certificates->size(); ++i )
 				{
 				const bytestring& cert = (*certificates)[i];
@@ -266,11 +269,6 @@ refine connection SSL_Conn += {
 				// Are there any X509 extensions?
 				if ( x509_extension && X509_get_ext_count(pTemp) > 0 )
 					{
-					BroType* count_t = base_type(TYPE_COUNT);
-					TypeList* set_index = new TypeList(count_t);
-					set_index->Append(count_t);
-					SetType* s = new SetType(set_index, 0);
-					TableVal* x509ex = new TableVal(s);
 					int num_ext = X509_get_ext_count(pTemp);
 					for ( int k = 0; k < num_ext; ++k )
 						{
@@ -295,6 +293,7 @@ refine connection SSL_Conn += {
 							}
 						}
 					}
+				X509_free(pTemp);
 				}
 			}
 		return true;
@@ -396,26 +395,26 @@ refine typeattr ApplicationData += &let {
 refine typeattr ClientHello += &let {
 	proc : bool = $context.connection.proc_client_hello(rec, client_version,
 				gmt_unix_time,
-				session_id, convert_ciphers_uint16(csuits))
+				session_id, csuits, 0)
 		&requires(state_changed);
 };
 
 refine typeattr V2ClientHello += &let {
 	proc : bool = $context.connection.proc_client_hello(rec, client_version, 0,
-				session_id, convert_ciphers_uint24(ciphers))
+				session_id, 0, ciphers)
 		&requires(state_changed);
 };
 
 refine typeattr ServerHello += &let {
 	proc : bool = $context.connection.proc_server_hello(rec, server_version,
-			gmt_unix_time, session_id, cipher_suite,
+			gmt_unix_time, session_id, cipher_suite, 0,
 			compression_method)
 		&requires(state_changed);
 };
 
 refine typeattr V2ServerHello += &let {
 	proc : bool = $context.connection.proc_server_hello(rec, server_version, 0, 0,
-				convert_ciphers_uint24(ciphers)[0], 0)
+				0, ciphers, 0)
 		&requires(state_changed);
 
 	cert : bool = $context.connection.proc_v2_certificate(rec, cert_data)

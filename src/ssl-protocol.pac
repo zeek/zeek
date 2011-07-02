@@ -433,7 +433,7 @@ type ServerHello(rec: SSLRecord) = record {
 	random_bytes : bytestring &length = 28 &transient;
 	session_len : uint8;
 	session_id : uint8[session_len];
-	cipher_suite : uint16;
+	cipher_suite : uint16[1];
 	compression_method : uint8;
 } &let {
 	state_changed : bool =
@@ -609,6 +609,16 @@ type CertificateVerify(rec: SSLRecord) = record {
 
 # The finished messages are always sent after encryption is in effect,
 # so we will not be able to read those message.
+type Finished(rec: SSLRecord) = record {
+	cont : bytestring &restofdata &transient;
+} &let {
+	state_changed : bool =
+		$context.connection.transition(STATE_SERVER_HELLO_DONE,
+					STATE_COMM_ENCRYPTED, rec.is_orig, true) ||
+		$context.connection.transition(STATE_CLIENT_FINISHED,
+					STATE_COMM_ENCRYPTED, rec.is_orig, false) ||
+		$context.connection.lost_track();
+};
 
 
 ######################################################################
@@ -635,6 +645,9 @@ type Handshake(rec: SSLRecord) = record {
 		SERVER_HELLO_DONE ->	server_hello_done : ServerHelloDone(rec);
 		CERTIFICATE_VERIFY ->	certificate_verify : CertificateVerify(rec);
 		CLIENT_KEY_EXCHANGE ->	client_key_exchange : ClientKeyExchange(rec);
+		FINISHED            ->  finished : Finished(rec);
+		CERTIFICATE_URL     ->  certificate_url : bytestring &restofdata &transient;
+		CERTIFICATE_STATUS  ->  certificate_status : bytestring &restofdata &transient;
 		default ->		unknown_handshake : UnknownHandshake(this, rec.is_orig);
 	} &length = to_int()(length);
 };
@@ -679,7 +692,7 @@ type CiphertextRecord(rec: SSLRecord, is_orig: bool) = record {
 ######################################################################
 
 type SSLPDU(is_orig: bool) = record {
-	records : SSLRecord(is_orig)[] &until($element == 0);
+	records : SSLRecord(is_orig)[] &until($element <= 0);
 } &byteorder = bigendian;
 
 

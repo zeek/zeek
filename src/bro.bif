@@ -3442,7 +3442,7 @@ function x509_verify%(der_cert: string, cert_stack: string_vec, root_certs: tabl
 	X509* cert = d2i_X509_(NULL, &cert_data, der_cert->Len());
 	if ( ! cert )
 		{
-		builtin_run_time(fmt("Certificate error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
+		builtin_error(fmt("Certificate error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
 		return new Val((uint64) ERR_get_error(), TYPE_COUNT);
 		}
 
@@ -3463,23 +3463,13 @@ function x509_verify%(der_cert: string, cert_stack: string_vec, root_certs: tabl
 			{
 			X509_free(cert);
 			sk_X509_pop_free(untrusted_certs, X509_free);
-			builtin_run_time(fmt("Untrusted certificate stack creation error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
+			builtin_error(fmt("Untrusted certificate stack creation error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
 			return new Val((uint64) ERR_get_error(), TYPE_COUNT);
 			}
 		sk_X509_push(untrusted_certs, x);
 		}
 
 	X509_STORE_CTX csc;
-<<<<<<< HEAD
-	X509* cert = d2i_X509_(NULL, &cert_data, der_cert->Len());
-	if ( ! cert )
-		{
-		builtin_error(fmt("Certificate error: %s", ERR_error_string(ERR_peek_last_error(),NULL)));
-		return new Val((uint64) ERR_get_error(), TYPE_COUNT);
-		}
-
-=======
->>>>>>> remotes/origin/topic/policy-scripts-new
 	X509_STORE_CTX_init(&csc, ctx, cert, untrusted_certs);
 	X509_STORE_CTX_set_time(&csc, 0, (time_t) network_time);
 

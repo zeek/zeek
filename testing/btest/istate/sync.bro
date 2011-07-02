@@ -1,7 +1,7 @@
 #
 # @TEST-EXEC: btest-bg-run sender   bro %INPUT ../sender.bro
 # @TEST-EXEC: btest-bg-run receiver bro %INPUT ../receiver.bro
-# @TEST-EXEC: btest-bg-wait -k 20
+# @TEST-EXEC: btest-bg-wait 20
 #
 # @TEST-EXEC: btest-diff sender/vars.log
 # @TEST-EXEC: btest-diff receiver/vars.log
@@ -133,7 +133,7 @@ function modify()
 	foo2 = 1234567;
 }
 
-@load listen-clear
+@load communication/listen-clear
 
 event remote_connection_handshake_done(p: event_peer)
 	{
@@ -141,7 +141,7 @@ event remote_connection_handshake_done(p: event_peer)
 	terminate_communication();
 	}
 			 
-redef Remote::destinations += {
+redef Communication::nodes += {
     ["foo"] = [$host = 127.0.0.1, $sync=T]
 };
 
@@ -151,11 +151,14 @@ redef Remote::destinations += {
 
 @TEST-START-FILE receiver.bro
 
-@load capture-events	
-@load remote
+@load communication
 
+event bro_init()
+    {
+    capture_events("events.bst");
+    }
 	
-redef Remote::destinations += {
+redef Communication::nodes += {
     ["foo"] = [$host = 127.0.0.1, $events = /.*/, $connect=T, $sync=T]
 };
 

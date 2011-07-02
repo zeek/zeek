@@ -2734,6 +2734,30 @@ void RemoteSerializer::GotEvent(const char* name, double time,
 	e->handler = event;
 	e->args = args;
 
+	// If needed, coerce received record arguments to the expected record type.
+	if ( e->handler->FType() )
+		{
+		const type_list* arg_types = e->handler->FType()->ArgTypes()->Types();
+		loop_over_list(*args, i)
+			{
+			Val* v = (*args)[i];
+			BroType* v_t = v->Type();
+			BroType* arg_t = (*arg_types)[i];
+			if ( v_t->Tag() == TYPE_RECORD && arg_t->Tag() == TYPE_RECORD )
+				{
+				if ( ! same_type(v_t, arg_t) )
+					{
+					Val* nv = v->AsRecordVal()->CoerceTo(arg_t->AsRecordType());
+					if ( nv )
+						{
+						args->replace(i, nv);
+						Unref(v);
+						}
+					}
+				}
+			}
+		}
+
 	events.append(e);
 	}
 

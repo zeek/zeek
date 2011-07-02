@@ -29,7 +29,6 @@ rest_target(${psd} frameworks/communication/listen-clear.bro)
 rest_target(${psd} frameworks/communication/listen-ssl.bro)
 
 rest_target(${psd} frameworks/dpd/base.bro)
-rest_target(${psd} frameworks/dpd/dyn-disable.bro)
 rest_target(${psd} frameworks/dpd/packet-segment-logging.bro)
 
 rest_target(${psd} frameworks/intel/base.bro)

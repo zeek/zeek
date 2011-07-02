@@ -30,7 +30,6 @@
 # @load frameworks/communication/listen-ssl.bro
 @load frameworks/dpd/__load__.bro
 @load frameworks/dpd/base.bro
-@load frameworks/dpd/dyn-disable.bro
 @load frameworks/dpd/packet-segment-logging.bro
 @load frameworks/intel/__load__.bro
 @load frameworks/intel/base.bro

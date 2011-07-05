@@ -66,7 +66,7 @@ event protocol_confirmation(c: connection, atype: count, aid: count) &priority=-
 	known_services_done(c);
 	}
 	
-event connection_establihsed(c: connection)
+event connection_established(c: connection)
 	{
 	c$known_services_watch=T;
 	}

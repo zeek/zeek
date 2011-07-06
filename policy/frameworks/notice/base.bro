@@ -5,8 +5,6 @@
 ##! the notice framework can be found in the documentation section of the
 ##! http://www.bro-ids.org/ website.
 
-@load conn/base
-
 module Notice;
 
 export {
@@ -188,11 +186,6 @@ export {
 # priority.
 global ordered_policy: vector of PolicyItem = vector();
 
-
-redef record Conn::Info += {
-	notice_tags: set[string] &log &optional;
-};
-
 event bro_init()
 	{
 	Log::create_stream(NOTICE_POLICY, [$columns=PolicyItem]);
@@ -336,16 +329,6 @@ event notice(n: Notice::Info) &priority=-5
 	
 	if ( ACTION_FILE in n$actions )
 		Log::write(Notice::NOTICE, n);
-		
-	# Add the tag to the connection's notice_tags if there is a connection.
-	# TODO: figure out how to move this to the conn scripts.  This shouldn't
-	#       cause protocols/conn to be a dependency.
-	if ( n?$conn && n$conn?$conn )
-		{
-		if ( ! n$conn$conn?$notice_tags )
-			n$conn$conn$notice_tags = set();
-		add n$conn$conn$notice_tags[n$tag];
-		}
 	}
 	
 # Create the ordered notice policy automatically which will be used at runtime 

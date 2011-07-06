@@ -24,14 +24,11 @@
 #include "BroDoc.h"
 #include "Analyzer.h"
 #include "AnalyzerTags.h"
+#include "Reporter.h"
 
 extern YYLTYPE yylloc;	// holds start line and column of token
 extern int print_loaded_scripts;
 extern int generate_documentation;
-
-int nwarn = 0;
-int nerr = 0;
-int nruntime = 0;
 
 // Track the @if... depth.
 ptr_compat_int current_depth = 0;
@@ -53,7 +50,7 @@ char last_tok[128];
 // a read fails.
 #define YY_INPUT(buf,result,max_size) \
 	if ( ((result = fread(buf, 1, max_size, yyin)) == 0) && ferror(yyin) ) \
-		error(fmt("read failed with \"%s\"", strerror(errno)));
+		reporter->Error(fmt("read failed with \"%s\"", strerror(errno)));
 
 // Files we have already scanned (or are in the process of scanning). They
 // are tracked by inode number. 
@@ -92,7 +89,7 @@ static ino_t get_inode_num(FILE* f, const char* filename)
 
 	if ( fstat(fileno(f), &b) )
 		{
-		error("failed to fstat fd of %s\n", filename);
+		reporter->Error("failed to fstat fd of %s\n", filename);
 		exit(1);
 		}
 
@@ -246,7 +243,6 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 
 add	return TOK_ADD;
 addr	return TOK_ADDR;
-alarm	return TOK_ALARM;
 any	return TOK_ANY;
 bool	return TOK_BOOL;
 break	return TOK_BREAK;
@@ -309,6 +305,7 @@ when	return TOK_WHEN;
 &disable_print_hook	return TOK_ATTR_DISABLE_PRINT_HOOK;
 &raw_output return TOK_ATTR_RAW_OUTPUT;
 &encrypt	return TOK_ATTR_ENCRYPT;
+&error_handler	return TOK_ATTR_ERROR_HANDLER;
 &expire_func	return TOK_ATTR_EXPIRE_FUNC;
 &group		return TOK_ATTR_GROUP;
 &log		return TOK_ATTR_LOG;
@@ -348,7 +345,7 @@ when	return TOK_WHEN;
 
 	// All we have to do is pretend we've already scanned it.
 	const char* full_filename;
-	FILE* f = search_for_file(new_file, "bro", &full_filename, true);
+	FILE* f = search_for_file(new_file, "bro", &full_filename, true, 0);
 
 	if ( f )
 		{
@@ -358,7 +355,7 @@ when	return TOK_WHEN;
 		files_scanned.push_back(i);
 		}
 	else
-		error("failed find file associated with @unload %s", new_file);
+		reporter->Error("failed find file associated with @unload %s", new_file);
 	}
 
 @prefixes{WS}("+"?)={WS}{PREFIX}	{
@@ -414,7 +411,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 		uint32 p = atoi(yytext);
 		if ( p > 65535 )
 			{
-			error("bad port number -", yytext);
+			reporter->Error("bad port number -", yytext);
 			p = 0;
 			}
 		RET_CONST(new PortVal(p, TRANSPORT_TCP))
@@ -423,7 +420,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 		uint32 p = atoi(yytext);
 		if ( p > 65535 )
 			{
-			error("bad port number -", yytext);
+			reporter->Error("bad port number -", yytext);
 			p = 0;
 			}
 		RET_CONST(new PortVal(p, TRANSPORT_UDP))
@@ -432,7 +429,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 		uint32 p = atoi(yytext);
 		if ( p > 255 )
 			{
-			error("bad port number -", yytext);
+			reporter->Error("bad port number -", yytext);
 			p = 0;
 			}
 		RET_CONST(new PortVal(p, TRANSPORT_ICMP))
@@ -441,7 +438,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 		uint32 p = atoi(yytext);
 		if ( p > 255 )
 			{
-			error("bad port number -", yytext);
+			reporter->Error("bad port number -", yytext);
 			p = 0;
 			}
 		RET_CONST(new PortVal(p, TRANSPORT_UNKNOWN))
@@ -487,13 +484,13 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 			{
 			s[i++] = *text;
 			if ( i >= len )
-				internal_error("bad string length computation");
+				reporter->InternalError("bad string length computation");
 			}
 		}
 
 	// Get rid of trailing quote.
 	if ( s[i-1] != '"' )
-		internal_error("string scanning confused");
+		reporter->InternalError("string scanning confused");
 
 	s[i-1] = '\0';
 
@@ -507,7 +504,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 
 <RE>[/\\\n]	return yytext[0];
 
-<*>.	error("unrecognized character -", yytext);
+<*>.	reporter->Error("unrecognized character -", yytext);
 
 <<EOF>>	last_tok[0] = '\0'; return EOF;
 
@@ -537,6 +534,7 @@ static int load_files_with_prefix(const char* orig_file)
 		const char* prefix = prefixes[i];
 
 		const char* full_filename = "<internal error>";
+		const char* bropath_subpath = "<internal error>";
 		FILE* f;
 
 		if ( streq(orig_file, "-") )
@@ -561,7 +559,7 @@ static int load_files_with_prefix(const char* orig_file)
 			else
 				strcpy(new_filename, orig_file);
 
-			f = search_for_file(new_filename, "bro", &full_filename, true);
+			f = search_for_file(new_filename, "bro", &full_filename, true, &bropath_subpath);
 			delete [] new_filename;
 			}
 
@@ -576,6 +574,7 @@ static int load_files_with_prefix(const char* orig_file)
 					{
 					fclose(f);
 					delete [] full_filename;
+					delete [] bropath_subpath;
 					return 0;
 					}
 				}
@@ -592,7 +591,7 @@ static int load_files_with_prefix(const char* orig_file)
 				HashKey* key = new HashKey(full_filename);
 				if ( g_dbgfilemaps.Lookup(key) )
 					{
-					// warn("Not re-reading policy file; check BRO_PREFIXES:", full_filename);
+					// reporter->Warning("Not re-reading policy file; check BRO_PREFIXES:", full_filename);
 					fclose(f);
 					delete key;
 					continue;
@@ -621,9 +620,11 @@ static int load_files_with_prefix(const char* orig_file)
 
 			if ( generate_documentation )
 				{
-				current_reST_doc = new BroDoc(orig_file, full_filename);
+				current_reST_doc = new BroDoc(bropath_subpath, full_filename);
 				docs_generated.push_back(current_reST_doc);
 				}
+
+			delete [] bropath_subpath;
 
 			// "orig_file", could be an alias for yytext, which is ephemeral
 			//  and will be zapped after the yy_switch_to_buffer() below.
@@ -640,7 +641,7 @@ static int load_files_with_prefix(const char* orig_file)
 			{
 			if ( streq(prefixes[i], "") )
 				{
-				error("can't open", full_filename);
+				reporter->Error("can't open %s", full_filename);
 				exit(1);
 				}
 			}
@@ -696,7 +697,7 @@ void do_atifndef(const char *id)
 void do_atelse()
 	{
 	if ( current_depth == 0 )
-		error("@else without @if...");
+		reporter->Error("@else without @if...");
 
 	if ( if_stack.length() && current_depth > if_stack.last() )
 		return;
@@ -716,7 +717,7 @@ void do_atelse()
 void do_atendif()
 	{
 	if ( current_depth == 0 )
-		error("unbalanced @if... @endif");
+		reporter->Error("unbalanced @if... @endif");
 
 	if ( current_depth == if_stack.last() )
 		{
@@ -752,7 +753,7 @@ const char* get_current_input_filename()
 void add_input_file(const char* file)
 	{
 	if ( ! file )
-		internal_error("empty filename");
+		reporter->InternalError("empty filename");
 
 	if ( ! filename )
 		(void) load_files_with_prefix(file);
@@ -779,7 +780,7 @@ void add_to_name_list(char* s, char delim, name_list& nl)
 
 int yywrap()
 	{
-	if ( nerr > 0 )
+	if ( reporter->Errors() > 0 )
 		return 1;
 
 	--include_level;

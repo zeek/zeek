@@ -4,7 +4,6 @@
 @load port-name
 @load demux
 @load login
-@load alarm
 
 module Stepping;
 

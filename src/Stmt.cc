@@ -8,7 +8,7 @@
 #include "Event.h"
 #include "Frame.h"
 #include "File.h"
-#include "Logger.h"
+#include "Reporter.h"
 #include "NetVar.h"
 #include "Stmt.h"
 #include "Scope.h"
@@ -21,7 +21,8 @@
 const char* stmt_name(BroStmtTag t)
 	{
 	static const char* stmt_names[int(NUM_STMTS)] = {
-		"alarm", "print", "event", "expr", "if", "when", "switch",
+		"alarm", // Does no longer exist, but kept for keeping enums consistent.
+		"print", "event", "expr", "if", "when", "switch",
 		"for", "next", "break", "return", "add", "delete",
 		"list", "bodylist",
 		"<init>",
@@ -253,47 +254,6 @@ TraversalCode ExprListStmt::Traverse(TraversalCallback* cb) const
 
 	tc = cb->PostStmt(this);
 	HANDLE_TC_STMT_POST(tc);
-	}
-
-Val* AlarmStmt::DoExec(val_list* vals, stmt_flow_type& /* flow */) const
-	{
-	ODesc d;
-	PrintVals(&d, vals, 0);
-
-	if ( alarm_hook )
-		{
-		ListExpr* args = new ListExpr();
-		args->Append(new ConstExpr(new StringVal(d.Description())));
-
-		CallExpr* ce =
-			new CallExpr(new ConstExpr(new Val(alarm_hook)), args);
-
-		Val* hook_eval = ce->Eval(0);
-		int do_log = hook_eval->IsOne();
-
-		Unref(ce);
-		Unref(hook_eval);
-
-		if ( ! do_log )
-			return 0;
-		}
-
-	bro_logger->Log(d.Description());
-	return 0;
-	}
-
-IMPLEMENT_SERIAL(AlarmStmt, SER_ALARM_STMT);
-
-bool AlarmStmt::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_ALARM_STMT, ExprListStmt);
-	return true;
-	}
-
-bool AlarmStmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(ExprListStmt);
-	return true;
 	}
 
 static BroFile* print_stdout = 0;
@@ -1957,7 +1917,6 @@ int same_stmt(const Stmt* s1, const Stmt* s2)
 		return 0;
 
 	switch ( s1->Tag() ) {
-	case STMT_ALARM:
 	case STMT_PRINT:
 		{
 		const ListExpr* l1 = ((const ExprListStmt*) s1)->ExprList();
@@ -2101,7 +2060,7 @@ int same_stmt(const Stmt* s1, const Stmt* s2)
 		return 1;
 
 	default:
-		error("bad tag in same_stmt()");
+		reporter->Error("bad tag in same_stmt()");
 	}
 
 	return 0;

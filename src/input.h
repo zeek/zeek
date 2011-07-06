@@ -49,8 +49,4 @@ extern Stmt* stmts;	// global statements
 
 extern int optimize;
 
-extern int nwarn;
-extern int nerr;
-extern int nruntime;
-
 #endif

@@ -178,7 +178,7 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 		// For events, add a function value (without any body) here so that
 		// we can later access the ID even if no implementations have been
 		// defined.
-		Func* f = new BroFunc(id, 0, 0, 0);
+		Func* f = new BroFunc(id, 0, 0, 0, 0);
 		id->SetVal(new Val(f));
 		id->SetConst();
 		}
@@ -392,7 +392,7 @@ void end_func(Stmt* body, attr_list* attrs)
 		id->ID_Val()->AsFunc()->AddBody(body, inits, frame_size, priority);
 	else
 		{
-		Func* f = new BroFunc(id, body, inits, frame_size);
+		Func* f = new BroFunc(id, body, inits, frame_size, priority);
 		id->SetVal(new Val(f));
 		id->SetConst();
 		}
@@ -404,7 +404,7 @@ Val* internal_val(const char* name)
 	{
 	ID* id = lookup_ID(name, GLOBAL_MODULE_NAME);
 	if ( ! id )
-		internal_error("internal variable %s missing", name);
+		reporter->InternalError("internal variable %s missing", name);
 
 	return id->ID_Val();
 	}
@@ -413,10 +413,10 @@ Val* internal_const_val(const char* name)
 	{
 	ID* id = lookup_ID(name, GLOBAL_MODULE_NAME);
 	if ( ! id )
-		internal_error("internal variable %s missing", name);
+		reporter->InternalError("internal variable %s missing", name);
 
 	if ( ! id->IsConst() )
-		internal_error("internal variable %s is not constant", name);
+		reporter->InternalError("internal variable %s is not constant", name);
 
 	return id->ID_Val();
 	}
@@ -477,7 +477,7 @@ ListVal* internal_list_val(const char* name)
 			}
 
 		else
-			internal_error("internal variable %s is not a list", name);
+			reporter->InternalError("internal variable %s is not a list", name);
 		}
 
 	return 0;
@@ -487,7 +487,7 @@ BroType* internal_type(const char* name)
 	{
 	ID* id = lookup_ID(name, GLOBAL_MODULE_NAME);
 	if ( ! id )
-		internal_error("internal type %s missing", name);
+		reporter->InternalError("internal type %s missing", name);
 
 	return id->Type();
 	}

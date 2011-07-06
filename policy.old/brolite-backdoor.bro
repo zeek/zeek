@@ -14,7 +14,6 @@
 @load site
 
 @load backdoor
-@load alarm
 @load weird
 
 # By default, do backdoor detection on everything except standard HTTP

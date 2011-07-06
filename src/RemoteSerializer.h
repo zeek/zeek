@@ -463,6 +463,9 @@ protected:
 	// Check whether everything has been sent out.
 	void CheckFinished();
 
+	// Reports the error and terminates the process.
+	void InternalError(const char* msg);
+
 	// Communication helpers.
 	bool SendToParent(char type, Peer* peer, const char* str, int len = -1);
 	bool SendToParent(char type, Peer* peer, int nargs, ...); // can send uints32 only

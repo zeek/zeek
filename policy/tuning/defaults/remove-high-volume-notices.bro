@@ -5,11 +5,11 @@
 
 # Load the policy scripts where the notices are defined.
 @load frameworks/notice/weird
-@load dpd
 
 # Remove these notices from logging since they can be too noisy.
 redef Notice::ignored_types += {
 	Weird::ContentGap,
 	Weird::AckAboveHole,
-	DPD::ProtocolViolation
+	Weird::RetransmissionInconsistency,
+	Weird::WeirdActivity, # Only allow these to go in the weird log.
 };

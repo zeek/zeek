@@ -137,6 +137,7 @@ set(BIF_SRCS
     const.bif
     types.bif
     strings.bif
+    reporter.bif
 )
 
 foreach (bift ${BIF_SRCS})
@@ -330,7 +331,7 @@ set(bro_SRCS
     IOSource.cc
     IRC.cc
     List.cc
-    Logger.cc
+    Reporter.cc
     LogMgr.cc
     LogWriter.cc
     LogWriterAscii.cc

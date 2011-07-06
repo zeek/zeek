@@ -6,10 +6,12 @@ redef dns_skip_all_addl = F;
 
 module DNS;
 
-redef record Info += {
-	auth:       set[string] &log &optional;
-	addl:       set[string] &log &optional;
-};
+export {
+	redef record Info += {
+		auth:       set[string] &log &optional;
+		addl:       set[string] &log &optional;
+	};
+}
 
 event do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string) &priority=4
 	{

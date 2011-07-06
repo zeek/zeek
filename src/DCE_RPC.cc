@@ -60,7 +60,7 @@ UUID::UUID(const u_char d[16])
 UUID::UUID(const binpac::bytestring& uuid)
 	{
 	if ( uuid.length() != 16 )
-		internal_error("UUID length error");
+		reporter->InternalError("UUID length error");
 	memcpy(data, uuid.begin(), 16);
 	s = uuid_to_string(data);
 	}
@@ -82,7 +82,7 @@ UUID::UUID(const char* str)
 		}
 
 	if ( i != 16 )
-		internal_error("invalid UUID string: %s", str);
+		reporter->InternalError("invalid UUID string: %s", str);
 	}
 
 typedef map<UUID, BifEnum::dce_rpc_if_id> uuid_map_t;

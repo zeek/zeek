@@ -40,10 +40,16 @@ protected:
 			event_serializer->Serialize(&info, handler->Name(), args);
 			}
 
+		if ( handler->ErrorHandler() )
+			reporter->BeginErrorHandler();
+
 		handler->Call(args, no_remote);
 		if ( obj )
 			// obj->EventDone();
 			Unref(obj);
+
+		if ( handler->ErrorHandler() )
+			reporter->EndErrorHandler();
 		}
 
 	EventHandlerPtr handler;

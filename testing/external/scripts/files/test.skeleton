@@ -1,0 +1,2 @@
+@TEST-EXEC: bro -r $TRACES/test.trace test-all
+@TEST-EXEC: for i in *.log; do btest-diff $i; done

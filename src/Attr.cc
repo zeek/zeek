@@ -19,7 +19,7 @@ const char* attr_name(attr_tag t)
 		"&persistent", "&synchronized", "&postprocessor",
 		"&encrypt", "&match", "&disable_print_hook",
 		"&raw_output", "&mergeable", "&priority",
-		"&group", "&log", "(&tracked)",
+		"&group", "&log", "&error_handler", "(&tracked)",
 	};
 
 	return attr_names[int(t)];
@@ -406,6 +406,12 @@ void Attributes::CheckAttr(Attr* a)
 		if ( type->Tag() != TYPE_FUNC ||
 		     ! type->AsFuncType()->IsEvent() )
 			Error("&group only applicable to events");
+		break;
+
+	case ATTR_ERROR_HANDLER:
+		if ( type->Tag() != TYPE_FUNC ||
+		     ! type->AsFuncType()->IsEvent() )
+			Error("&error_handler only applicable to events");
 		break;
 
 	case ATTR_LOG:

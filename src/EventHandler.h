@@ -36,8 +36,13 @@ public:
 	// Returns true if there is at least one local or remote handler.
 	operator  bool() const;
 
-	void SetUsed()          { used = true; }
-	bool Used()             { return used; }
+	void SetUsed()	{ used = true; }
+	bool Used()	{ return used; }
+
+	// Handlers marked as error handlers will not be called recursively to
+	// avoid infinite loops if they trigger a similar error themselves.
+	void SetErrorHandler()	{ error_handler = true; }
+	bool ErrorHandler()	{ return error_handler; }
 
 	const char* Group()	{ return group; }
 	void SetGroup(const char* arg_group)
@@ -57,6 +62,7 @@ private:
 	FuncType* type;
 	bool used;		// this handler is indeed used somewhere
 	bool enabled;
+	bool error_handler;	// this handler reports error messages.
 
 	declare(List, SourceID);
 	typedef List(SourceID) receiver_list;
@@ -73,6 +79,9 @@ public:
 		{ handler = p; return *this; }
 	const EventHandlerPtr& operator=(const EventHandlerPtr& h)
 		{ handler = h.handler; return *this; }
+
+	bool operator==(const EventHandlerPtr& h) const
+		{ return handler == h.handler; }
 
 	EventHandler* Ptr()	{ return handler; }
 

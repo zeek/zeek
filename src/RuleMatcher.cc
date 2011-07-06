@@ -10,6 +10,7 @@
 #include "NetVar.h"
 #include "Scope.h"
 #include "File.h"
+#include "Reporter.h"
 
 // FIXME: Things that are not fully implemented/working yet:
 //
@@ -197,10 +198,10 @@ bool RuleMatcher::ReadFiles(const name_list& files)
 
 	for ( int i = 0; i < files.length(); ++i )
 		{
-		rules_in = search_for_file( files[i], "sig", 0, false);
+		rules_in = search_for_file(files[i], "sig", 0, false, 0);
 		if ( ! rules_in )
 			{
-			error("Can't open signature file", files[i]);
+			reporter->Error("Can't open signature file", files[i]);
 			return false;
 			}
 
@@ -400,7 +401,7 @@ static inline uint32 getval(const u_char* data, int size)
 		return ntohl(*(uint32*) data);
 
 	default:
-		internal_error("illegal HdrTest size");
+		reporter->InternalError("illegal HdrTest size");
 	}
 
 	// Should not be reached.
@@ -513,7 +514,7 @@ RuleEndpointState* RuleMatcher::InitEndpoint(Analyzer* analyzer,
 
 				default:
 					data = 0;
-					internal_error("unknown protocol");
+					reporter->InternalError("unknown protocol");
 				}
 
 				// ### data can be nil here if it's an
@@ -542,7 +543,7 @@ RuleEndpointState* RuleMatcher::InitEndpoint(Analyzer* analyzer,
 						DO_MATCH_OR(*h->vals, getval(data + h->offset, h->size), >=);
 
 					default:
-						internal_error("unknown comparision type");
+						reporter->InternalError("unknown comparision type");
 				}
 
 no_match:
@@ -569,7 +570,7 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type,
 	{
 	if ( ! state )
 		{
-		warn("RuleEndpointState not initialized yet.");
+		reporter->Warning("RuleEndpointState not initialized yet.");
 		return;
 		}
 

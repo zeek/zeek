@@ -120,6 +120,11 @@ public:
 #endif
 
 protected:
+	void InternalError(const char* msg)
+		// We can't use the reporter here as we might be running in a
+		// sub-process.
+		{ fprintf(stderr, "%s", msg); abort(); }
+
 	Statistics stats;
 	const char* tag;
 

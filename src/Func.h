@@ -85,7 +85,7 @@ protected:
 
 class BroFunc : public Func {
 public:
-	BroFunc(ID* id, Stmt* body, id_list* inits, int frame_size);
+	BroFunc(ID* id, Stmt* body, id_list* inits, int frame_size, int priority);
 	~BroFunc();
 
 	int IsPure() const;
@@ -132,7 +132,7 @@ protected:
 };
 
 
-extern void builtin_run_time(const char* msg, BroObj* arg = 0);
+extern void builtin_error(const char* msg, BroObj* arg = 0);
 extern void init_builtin_funcs();
 
 extern bool check_built_in_call(BuiltinFunc* f, CallExpr* call);

@@ -36,6 +36,7 @@ typedef enum {
 	ATTR_PRIORITY,
 	ATTR_GROUP,
 	ATTR_LOG,
+	ATTR_ERROR_HANDLER,
 	ATTR_TRACKED,	// hidden attribute, tracked by NotifierRegistry
 #define NUM_ATTRS (int(ATTR_TRACKED) + 1)
 } attr_tag;

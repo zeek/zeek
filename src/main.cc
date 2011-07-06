@@ -30,7 +30,7 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "Scope.h"
 #include "Event.h"
 #include "File.h"
-#include "Logger.h"
+#include "Reporter.h"
 #include "LogMgr.h"
 #include "Net.h"
 #include "NetVar.h"
@@ -73,9 +73,7 @@ char* writefile = 0;
 name_list prefixes;
 DNS_Mgr* dns_mgr;
 TimerMgr* timer_mgr;
-Logger* bro_logger;
 LogMgr* log_mgr;
-Func* alarm_hook = 0;
 Stmt* stmts;
 EventHandlerPtr net_done = 0;
 RuleMatcher* rule_matcher = 0;
@@ -282,7 +280,6 @@ void terminate_bro()
 		remote_serializer->LogStats();
 
 	delete timer_mgr;
-	delete bro_logger;
 	delete dns_mgr;
 	delete persistence_serializer;
 	delete event_player;
@@ -294,6 +291,7 @@ void terminate_bro()
 	delete remote_serializer;
 	delete dpm;
 	delete log_mgr;
+	delete reporter;
 	}
 
 void termination_signal()
@@ -301,7 +299,7 @@ void termination_signal()
 	set_processing_status("TERMINATING", "termination_signal");
 
 	Val sval(signal_val, TYPE_COUNT);
-	message("received termination signal");
+	reporter->Message("received termination signal");
 	net_get_final_stats();
 	done_with_network();
 	net_delete();
@@ -653,8 +651,9 @@ int main(int argc, char** argv)
 	set_processing_status("INITIALIZING", "main");
 
 	bro_start_time = current_time(true);
+	reporter = new Reporter();
 
-	init_random_seed(seed, seed_load_file, seed_save_file);
+	init_random_seed(seed, (seed_load_file && *seed_load_file ? seed_load_file : 0) , seed_save_file);
 	// DEBUG_MSG("HMAC key: %s\n", md5_digest_print(shared_hmac_md5_key));
 	init_hash_function();
 
@@ -753,7 +752,7 @@ int main(int argc, char** argv)
 		return 0;
 		}
 
-	if ( nerr > 0 )
+	if ( reporter->Errors() > 0 )
 		{
 		delete dns_mgr;
 		exit(1);
@@ -766,7 +765,7 @@ int main(int argc, char** argv)
 		ID* id = global_scope()->Lookup("cmd_line_bpf_filter");
 
 		if ( ! id )
-			internal_error("global cmd_line_bpf_filter not defined");
+			reporter->InternalError("global cmd_line_bpf_filter not defined");
 
 		id->SetVal(new StringVal(user_pcap_filter));
 		}
@@ -802,11 +801,6 @@ int main(int argc, char** argv)
 		// ### Add support for debug command file.
 		dbg_init_debugger(0);
 
-	Val* bro_alarm_file = internal_val("bro_alarm_file");
-	bro_logger = new Logger("bro",
-			bro_alarm_file ?
-				bro_alarm_file->AsFile() : new BroFile(stderr));
-
 	if ( (flow_files.length() == 0 || read_files.length() == 0) && 
 	     (netflows.length() == 0 || interfaces.length() == 0) )
 		{
@@ -831,15 +825,8 @@ int main(int argc, char** argv)
 			writefile, "tcp or udp or icmp",
 			secondary_path->Filter(), do_watchdog);
 
-	if ( ! reading_traces )
-		// Only enable actual syslog'ing for live input.
-		bro_logger->SetEnabled(enable_syslog);
-	else
-		bro_logger->SetEnabled(0);
-
 	BroFile::SetDefaultRotation(log_rotate_interval, log_max_size);
 
-	alarm_hook = internal_func("alarm_hook");
 	net_done = internal_handler("net_done");
 
 	if ( ! g_policy_debug )
@@ -859,10 +846,7 @@ int main(int argc, char** argv)
 		dns_mgr->Resolve();
 
 		if ( ! dns_mgr->Save() )
-			{
-			bro_logger->Log("**Can't update DNS cache");
-			exit(1);
-			}
+			reporter->FatalError("can't update DNS cache");
 
 		mgr.Drain();
 		delete dns_mgr;
@@ -887,7 +871,7 @@ int main(int argc, char** argv)
 			info.print = stdout;
 			info.install_uniques = true;
 			if ( ! s.Read(&info, bst_file) )
-				error("Failed to read events from %s\n", bst_file);
+				reporter->Error("Failed to read events from %s\n", bst_file);
 			}
 
 		exit(0);
@@ -905,10 +889,7 @@ int main(int argc, char** argv)
 
 		ID* id = global_scope()->Lookup(id_name);
 		if ( ! id )
-			{
-			fprintf(stderr, "No such ID: %s\n", id_name);
-			exit(1);
-			}
+			reporter->FatalError("No such ID: %s\n", id_name);
 
 		ODesc desc;
 		desc.SetQuotes(true);
@@ -950,9 +931,9 @@ int main(int argc, char** argv)
 
 	if ( dead_handlers->length() > 0 && check_for_unused_event_handlers )
 		{
-		warn("event handlers never invoked:");
+		reporter->Warning("event handlers never invoked:");
 		for ( int i = 0; i < dead_handlers->length(); ++i )
-			warn("\t", (*dead_handlers)[i]);
+			reporter->Warning("\t", (*dead_handlers)[i]);
 		}
 
 	delete dead_handlers;
@@ -962,9 +943,9 @@ int main(int argc, char** argv)
 
 	if ( alive_handlers->length() > 0 && dump_used_event_handlers )
 		{
-		message("invoked event handlers:");
+		reporter->Message("invoked event handlers:");
 		for ( int i = 0; i < alive_handlers->length(); ++i )
-			message((*alive_handlers)[i]);
+			reporter->Message((*alive_handlers)[i]);
 		}
 
 	delete alive_handlers;
@@ -986,6 +967,8 @@ int main(int argc, char** argv)
 
 	dpm->PostScriptInit();
 
+	reporter->ReportViaEvents(true);
+
 	mgr.Drain();
 
 	have_pending_timers = ! reading_traces && timer_mgr->Size() > 0;
@@ -1006,6 +989,7 @@ int main(int argc, char** argv)
 			}
 
 #endif
+
 		net_run();
 		done_with_network();
 		net_delete();

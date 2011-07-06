@@ -28,10 +28,7 @@ DebugLogger::DebugLogger(const char* filename)
 		
 		file = fopen(filename, "w");
 		if ( ! file )
-			{
-			fprintf(stderr, "Can't open '%s' for debugging output.", filename);
-			exit(1);
-			}
+			reporter->FatalError("can't open '%s' for debugging output.", filename);
 
 		setvbuf(file, NULL, _IOLBF, 0);
 		}
@@ -68,7 +65,7 @@ void DebugLogger::EnableStreams(const char* s)
 			if ( strcasecmp("verbose", tok) == 0 )
 				verbose = true;
 			else
-				internal_error("unknown debug stream %s\n", tok);
+				reporter->InternalError("unknown debug stream %s\n", tok);
 			}
 
 		tok = strtok(0, ",");

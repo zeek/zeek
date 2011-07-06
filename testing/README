@@ -1,13 +1,13 @@
-This directory contains some of the suites for testing for Bro's
-correct operation:
+This directory contains suites for testing for Bro's correct
+operation:
 
-btest/
-	Tests Bro's logging & bundled scripts. See btest/README for more.
+    btest/
+        An ever-growing set of small unit tests testing Bro's
+        functionality.
 
-istate/
-	Tests Bro's independent state facilities.  These include persistent
-	values and inter-process event/value communication.
+    external/
+        A framework for downloading additional test sets that run more
+        complex Bro configuration on larger traces files. Due to their
+        size, these are not included directly. See the README for more
+        information. 
 
-(Note that the Bro developers maintain a separate test suite for
- Bro's trace analysis capabilities.  This is kept private as it uses
- sensitive raw traces for input.)

@@ -48,6 +48,7 @@
 #include "RemoteSerializer.h"
 #include "Event.h"
 #include "Traverse.h"
+#include "Reporter.h"
 
 extern	RETSIGTYPE sig_handler(int signo);
 
@@ -235,7 +236,7 @@ TraversalCode Func::Traverse(TraversalCallback* cb) const
 	}
 
 BroFunc::BroFunc(ID* arg_id, Stmt* arg_body, id_list* aggr_inits,
-		int arg_frame_size)
+		int arg_frame_size, int priority)
 : Func(BRO_FUNC)
 	{
 	id = arg_id;
@@ -245,7 +246,7 @@ BroFunc::BroFunc(ID* arg_id, Stmt* arg_body, id_list* aggr_inits,
 		{
 		Body b;
 		b.stmts = AddInits(arg_body, aggr_inits);
-		b.priority = 0;
+		b.priority = priority;
 		bodies.push_back(b);
 		}
 	}
@@ -333,7 +334,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 	     (flow != FLOW_RETURN /* we fell off the end */ ||
 	      ! result /* explicit return with no result */) &&
 	     ! f->HasDelayed() )
-		warn("non-void function returns without a value:", id->Name());
+		reporter->Warning("non-void function returns without a value:", id->Name());
 
 	if ( result && g_trace_state.DoTrace() )
 		{
@@ -425,9 +426,9 @@ BuiltinFunc::BuiltinFunc(built_in_func arg_func, const char* arg_name,
 
 	id = lookup_ID(name, GLOBAL_MODULE_NAME, false);
 	if ( ! id )
-		internal_error("built-in function %s missing", name);
+		reporter->InternalError("built-in function %s missing", name);
 	if ( id->HasVal() )
-		internal_error("built-in function %s multiply defined", name);
+		reporter->InternalError("built-in function %s multiply defined", name);
 
 	id->SetVal(new Val(this));
 	}
@@ -499,20 +500,22 @@ bool BuiltinFunc::DoUnserialize(UnserialInfo* info)
 	return UNSERIALIZE_STR(&name, 0);
 	}
 
-void builtin_run_time(const char* msg, BroObj* arg)
+void builtin_error(const char* msg, BroObj* arg)
 	{
 	if ( calling_expr )
-		calling_expr->RunTime(msg, arg);
+		calling_expr->Error(msg, arg);
 	else
-		run_time(msg, arg);
+		reporter->Error(msg, arg);
 	}
 
 #include "bro.bif.func_h"
 #include "logging.bif.func_h"
+#include "reporter.bif.func_h"
 #include "strings.bif.func_h"
 
 #include "bro.bif.func_def"
 #include "logging.bif.func_def"
+#include "reporter.bif.func_def"
 #include "strings.bif.func_def"
 
 void init_builtin_funcs()
@@ -526,6 +529,7 @@ void init_builtin_funcs()
 
 #include "bro.bif.func_init"
 #include "logging.bif.func_init"
+#include "reporter.bif.func_init"
 #include "strings.bif.func_init"
 
 	did_builtin_init = true;

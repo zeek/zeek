@@ -193,15 +193,13 @@ public:
 	// Raises a software_unparsed_version_found event.
 	int UnparsedVersionFoundEvent(const uint32* addr,
 			const char* full_descr, int len, Analyzer* analyzer);
-	
+
 	void Event(EventHandlerPtr f, Analyzer* analyzer, const char* name = 0);
 	void Event(EventHandlerPtr f, Analyzer* analyzer, Val* v1, Val* v2 = 0);
 	void ConnectionEvent(EventHandlerPtr f, Analyzer* analyzer,
 				val_list* vl);
 
-	void Weird(const char* name);
-	void Weird(const char* name, const char* addl);
-	void Weird(const char* name, int addl_len, const char* addl);
+	void Weird(const char* name, const char* addl = "");
 	bool DidWeird() const	{ return weird != 0; }
 
 	// Cancel all associated timers.

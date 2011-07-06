@@ -9,7 +9,8 @@
 // These are in a separate file to break circular dependences 
 typedef enum {
 	STMT_ANY = -1,
-	STMT_ALARM, STMT_PRINT, STMT_EVENT,
+	STMT_ALARM, // Does no longer exist but kept to create enums consistent.
+	STMT_PRINT, STMT_EVENT,
 	STMT_EXPR,
 	STMT_IF, STMT_WHEN, STMT_SWITCH,
 	STMT_FOR, STMT_NEXT, STMT_BREAK,

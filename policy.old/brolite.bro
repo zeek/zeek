@@ -190,6 +190,6 @@ redef notice_policy += {
 	};
 @endif
 
-# Use tagged log files for alarms and notices.
+# Use tagged log files for notices.
 redef use_tagging = T;
 

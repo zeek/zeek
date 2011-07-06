@@ -26,7 +26,7 @@
 #include "Event.h"
 #include "Timer.h"
 #include "Var.h"
-#include "Logger.h"
+#include "Reporter.h"
 #include "Net.h"
 #include "Anon.h"
 #include "PacketSort.h"
@@ -108,15 +108,6 @@ RETSIGTYPE watchdog(int /* signo */)
 			int frac_pst =
 				int((processing_start_time - int_pst) * 1e6);
 
-			char msg[512];
-			safe_snprintf(msg, sizeof(msg),
-				      "**watchdog timer expired, t = %d.%06d, start = %d.%06d, dispatched = %d",
-				      int_ct, frac_ct, int_pst, frac_pst,
-				      current_dispatched);
-
-			bro_logger->Log(msg);
-			run_time("watchdog timer expired");
-
 			if ( current_hdr )
 				{
 				if ( ! pkt_dumper )
@@ -128,7 +119,7 @@ RETSIGTYPE watchdog(int /* signo */)
 					pkt_dumper = new PktDumper("watchdog-pkt.pcap");
 					if ( pkt_dumper->IsError() )
 						{
-						fprintf(stderr, "watchdog: can't open watchdog-pkt.pcap for writing\n");
+						reporter->Error("watchdog: can't open watchdog-pkt.pcap for writing\n");
 						pkt_dumper = 0;
 						}
 					}
@@ -140,8 +131,10 @@ RETSIGTYPE watchdog(int /* signo */)
 			net_get_final_stats();
 			net_finish(0);
 
-			abort();
-			exit(1);
+			reporter->FatalErrorWithCore(
+			          "**watchdog timer expired, t = %d.%06d, start = %d.%06d, dispatched = %d",
+				      int_ct, frac_ct, int_pst, frac_pst,
+					  current_dispatched);
 			}
 		}
 
@@ -168,11 +161,8 @@ void net_init(name_list& interfaces, name_list& readfiles,
 			PktFileSrc* ps = new PktFileSrc(readfiles[i], filter);
 
 			if ( ! ps->IsOpen() )
-				{
-				fprintf(stderr, "%s: problem with trace file %s - %s\n",
+				reporter->FatalError("%s: problem with trace file %s - %s\n",
 					prog, readfiles[i], ps->ErrorMsg());
-				exit(1);
-				}
 			else
 				{
 				pkt_srcs.append(ps);
@@ -188,12 +178,9 @@ void net_init(name_list& interfaces, name_list& readfiles,
 							TYPE_FILTER_SECONDARY);
 
 				if ( ! ps->IsOpen() )
-					{
-					fprintf(stderr, "%s: problem with trace file %s - %s\n",
+					reporter->FatalError("%s: problem with trace file %s - %s\n",
 						prog, readfiles[i],
 						ps->ErrorMsg());
-					exit(1);
-					}
 				else
 					{
 					pkt_srcs.append(ps);
@@ -209,11 +196,8 @@ void net_init(name_list& interfaces, name_list& readfiles,
 			FlowFileSrc* fs = new FlowFileSrc(flowfiles[i]);
 
 			if ( ! fs->IsOpen() )
-				{
-				fprintf(stderr, "%s: problem with netflow file %s - %s\n",
+				reporter->FatalError("%s: problem with netflow file %s - %s\n",
 					prog, flowfiles[i], fs->ErrorMsg());
-				exit(1);
-				}
 			else
 				{
 				io_sources.Register(fs);
@@ -232,11 +216,8 @@ void net_init(name_list& interfaces, name_list& readfiles,
 			ps = new PktInterfaceSrc(interfaces[i], filter);
 
 			if ( ! ps->IsOpen() )
-				{
-				fprintf(stderr, "%s: problem with interface %s - %s\n",
+				reporter->FatalError("%s: problem with interface %s - %s\n",
 					prog, interfaces[i], ps->ErrorMsg());
-				exit(1);
-				}
 			else
 				{
 				pkt_srcs.append(ps);
@@ -250,12 +231,9 @@ void net_init(name_list& interfaces, name_list& readfiles,
 					filter, TYPE_FILTER_SECONDARY);
 
 				if ( ! ps->IsOpen() )
-					{
-					fprintf(stderr, "%s: problem with interface %s - %s\n",
+					reporter->Error("%s: problem with interface %s - %s\n",
 						prog, interfaces[i],
 						ps->ErrorMsg());
-					exit(1);
-					}
 				else
 					{
 					pkt_srcs.append(ps);
@@ -271,11 +249,8 @@ void net_init(name_list& interfaces, name_list& readfiles,
 			FlowSocketSrc* fs = new FlowSocketSrc(netflows[i]);
 
 			if ( ! fs->IsOpen() )
-				{
-				fprintf(stderr, "%s: problem with netflow socket %s - %s\n",
+				reporter->Error("%s: problem with netflow socket %s - %s\n",
 					prog, netflows[i], fs->ErrorMsg());
-				exit(1);
-				}
 			else
 				{
 				io_sources.Register(fs);
@@ -297,15 +272,12 @@ void net_init(name_list& interfaces, name_list& readfiles,
 		// interfaces with different-lengthed media.
 		pkt_dumper = new PktDumper(writefile);
 		if ( pkt_dumper->IsError() )
-			{
-			fprintf(stderr, "%s: can't open write file \"%s\" - %s\n",
+			reporter->FatalError("%s: can't open write file \"%s\" - %s\n",
 				prog, writefile, pkt_dumper->ErrorMsg());
-			exit(1);
-			}
 
 		ID* id = global_scope()->Lookup("trace_output_file");
 		if ( ! id )
-			run_time("trace_output_file not defined in bro.init");
+			reporter->Error("trace_output_file not defined in bro.init");
 		else
 			id->SetVal(new StringVal(writefile));
 		}
@@ -565,7 +537,7 @@ void net_get_final_stats()
 			{
 			struct PktSrc::Stats s;
 			ps->Statistics(&s);
-			fprintf(stderr, "%d packets received on interface %s, %d dropped\n",
+			reporter->Message("%d packets received on interface %s, %d dropped\n",
 					s.received, ps->Interface(), s.dropped);
 			}
 		}
@@ -587,8 +559,6 @@ void net_finish(int drain_events)
 		}
 
 	delete pkt_dumper;
-
-	// fprintf(stderr, "uhash: %d/%d\n", hash_cnt_uhash, hash_cnt_all);
 
 #ifdef DEBUG
 	extern int reassem_seen_bytes, reassem_copied_bytes;
@@ -641,7 +611,7 @@ static double suspend_start = 0;
 void net_suspend_processing()
 	{
 	if ( _processing_suspended == 0 )
-		bro_logger->Log("processing suspended");
+		reporter->Message("processing suspended");
 
 	++_processing_suspended;
 	}
@@ -650,7 +620,7 @@ void net_continue_processing()
 	{
 	if ( _processing_suspended == 1 )
 		{
-		bro_logger->Log("processing continued");
+		reporter->Message("processing continued");
 		loop_over_list(pkt_srcs, i)
 			pkt_srcs[i]->ContinueAfterSuspend();
 		}

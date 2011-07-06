@@ -102,9 +102,9 @@ ipaddr32_t AnonymizeIPAddr_RandomMD5::anonymize(ipaddr32_t input)
 	}
 
 
-// This code is from "On the Design and Performance of Prefix-Preserving 
+// This code is from "On the Design and Performance of Prefix-Preserving
 // IP Traffic Trace Anonymization", by Xu et al (IMW 2001)
-// 
+//
 // http://www.imconf.net/imw-2001/proceedings.html
 
 ipaddr32_t AnonymizeIPAddr_PrefixMD5::anonymize(ipaddr32_t input)
@@ -159,7 +159,7 @@ int AnonymizeIPAddr_A50::PreservePrefix(ipaddr32_t input, int num_bits)
 
 	if ( ! before_anonymization )
 		{
-		run_time("prefix perservation specified after anonymization begun");
+		reporter->Error("prefix perservation specified after anonymization begun");
 		return 0;
 		}
 
@@ -206,7 +206,7 @@ AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::new_node_block()
 	int block_size = 1024;
 	Node* block = new Node[block_size];
 	if ( ! block )
-		internal_error("out of memory!");
+		reporter->InternalError("out of memory!");
 
 	blocks.push_back(block);
 
@@ -258,7 +258,7 @@ ipaddr32_t AnonymizeIPAddr_A50::make_output(ipaddr32_t old_output, int swivel) c
 AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::make_peer(ipaddr32_t a, Node* n)
 	{
 	if ( a == 0 || a == 0xFFFFFFFFU )
-		internal_error("0.0.0.0 and 255.255.255.255 should never get into the tree");
+		reporter->InternalError("0.0.0.0 and 255.255.255.255 should never get into the tree");
 
 	// Become a peer.
 	// Algorithm: create two nodes, the two peers.  Leave orig node as
@@ -341,7 +341,7 @@ AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::find_node(ipaddr32_t a)
 			}
 		}
 
-	internal_error("out of memory!");
+	reporter->InternalError("out of memory!");
 	return 0;
 	}
 
@@ -379,24 +379,24 @@ ipaddr32_t anonymize_ip(ipaddr32_t ip, enum ip_addr_anonymization_class_t cl)
 	}
 
 	ipaddr32_t new_ip = 0;
-		
+
 	if ( preserve_addr && preserve_addr->Lookup(&addr) )
 		new_ip = ip;
 
 	else if ( method >= 0 && method < NUM_ADDR_ANONYMIZATION_METHODS )
 		{
-		if ( method == KEEP_ORIG_ADDR ) 
+		if ( method == KEEP_ORIG_ADDR )
 			new_ip = ip;
 
 		else if ( ! ip_anonymizer[method] )
-			internal_error("IP anonymizer not initialized");
+			reporter->InternalError("IP anonymizer not initialized");
 
 		else
 			new_ip = ip_anonymizer[method]->Anonymize(ip);
 		}
 
 	else
-		internal_error("invalid IP anonymization method");
+		reporter->InternalError("invalid IP anonymization method");
 
 #ifdef LOG_ANONYMIZATION_MAPPING
 	log_anonymization_mapping(ip, new_ip);

@@ -1,6 +1,6 @@
 # $Id:$
 #
-# Forward remote alarms to our local system.
+# Forward remote notices to our local system.
 
 event notice_action(n: notice_info, action: NoticeAction)
 	{

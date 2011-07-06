@@ -10,6 +10,8 @@ module DPD;
 
 export {
 	redef record Info += {
+		## A chunk of the payload the most likely resulted in the protocol 
+		## violation.
 		packet_segment: string &optional &log;
 	};
 
@@ -21,5 +23,7 @@ export {
 event protocol_violation(c: connection, atype: count, aid: count,
                          reason: string) &priority=4
 	{
+	if ( ! c?$dpd ) return;
+	
 	c$dpd$packet_segment=fmt("%s", sub_bytes(get_current_packet()$data, 0, packet_segment_size));
 	}

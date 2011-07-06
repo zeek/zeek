@@ -34,7 +34,7 @@ protected:
 
 	// Recovers just one Val of possibly many; called from RecoverVals.
 	// Upon return, pval will point to the recovered Val of type t.
-	// Returns and updated kp for the next Val.  Calls internal_error()
+	// Returns and updated kp for the next Val.  Calls reporter->InternalError()
 	// upon errors, so there is no return value for invalid input.
 	const char* RecoverOneVal(const HashKey* k,
 				  const char* kp, const char* const k_end,

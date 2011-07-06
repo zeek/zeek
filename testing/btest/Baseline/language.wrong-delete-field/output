@@ -1,1 +1,1 @@
-/da/home/robin/bro/master/testing/btest/.tmp/language.wrong-delete-field/wrong-delete-field.bro, line 10 (delete x$a): error, illegal delete statement
+error in /da/home/robin/bro/seth/testing/btest/.tmp/language.wrong-delete-field/wrong-delete-field.bro, line 10: illegal delete statement (delete x$a)

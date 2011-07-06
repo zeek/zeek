@@ -9,6 +9,7 @@
 #endif
 
 #include "Dict.h"
+#include "Reporter.h"
 
 // If the mean bucket length exceeds the following then Insert() will
 // increase the size of the hash table.
@@ -474,7 +475,7 @@ void Dictionary::StartChangeSize(int new_size)
 		return;
 
 	if ( tbl2 )
-		internal_error("Dictionary::StartChangeSize() tbl2 not NULL");
+		reporter->InternalError("Dictionary::StartChangeSize() tbl2 not NULL");
 
 	Init2(new_size);
 
@@ -521,7 +522,7 @@ void Dictionary::FinishChangeSize()
 	{
 	// Cheap safety check.
 	if ( num_entries != 0 )
-		internal_error(
+		reporter->InternalError(
 		    "Dictionary::FinishChangeSize: num_entries is %d\n",
 		    num_entries);
 

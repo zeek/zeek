@@ -1,0 +1,81 @@
+
+Test Suite for Large Trace Files
+================================
+
+This test-suite runs more complex Bro configurations on larger trace
+files, and compares the results to a preestablished baseline. Due to
+their size, both traces and baseline are not part of the main Bro
+repository but kept externally. In addition to the publically provided
+files, one can also add a local set to the test-suite for running on
+private traces.
+
+Initialization
+--------------
+
+Before the test-suite can be run, one needs to download the traces and
+the corresponding test and baseline files. They are kept in a separate
+git repository and a ``Makefile`` is provided to clone a copy:
+
+.. console:
+
+    > make init
+
+To later update to upstream changes:
+
+.. console:
+
+    > make pull
+
+Running Tests
+-------------
+
+The easiest way to run all tests is simply typing ``make``. Doing so
+will iterate through all ``*.git`` repositories and run ``btest`` in
+each of them.
+
+Alternatively, one can also manually run all tests inside a single
+test repository:
+
+.. console:
+
+    > cd bro-testing.git
+    > btest
+
+All the standard ``btest`` options can be used to run individual
+tests, get diagnostic output, etc.
+
+Updating Baseline
+-----------------
+
+To update a test's baseline, first run ``btest`` in update mode:
+
+.. console:
+
+    > cd bro-testing.git
+    > btest -U tests/test-you-want-to-update
+
+Then use ``git`` to commit the changes and push the changes upstream
+as usual.
+
+Adding a Local Repository
+-------------------------
+
+One can add local non-public set of tests (potentially using private
+traces) by creating a git repository of a similar structure as the
+public one. A helper script is provided to set up such a repository:
+
+.. console:
+
+    > ./scripts/create-new-repo <repo-name> <repo-url>
+
+The first argument is the local name of the repository (it will be
+cloned into ``<repo-name>.git``); and then second is the path to the
+git repository. The repository will be initialized with a few standard
+directories as well as a skeleton test in ``<name>.git/tests``. You
+can then edit files as needed (and in particular add traces to
+``<name>.git/traces``).
+
+If you already have such a private test repository that you want to
+include into the test suite, clone it directly into
+``<repo-name>.git``.
+

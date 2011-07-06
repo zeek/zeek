@@ -9,6 +9,7 @@
 #include "Expr.h"
 #include "Scope.h"
 #include "Serializer.h"
+#include "Reporter.h"
 
 #include <string>
 #include <list>
@@ -315,7 +316,7 @@ int TypeList::AllMatch(const BroType* t, int is_init) const
 void TypeList::Append(BroType* t)
 	{
 	if ( pure_type && ! same_type(t, pure_type) )
-		internal_error("pure type-list violation");
+		reporter->InternalError("pure type-list violation");
 
 	types.append(t);
 	}
@@ -932,7 +933,7 @@ void RecordType::Init(TypeList* arg_base)
 
 			if ( fields->Lookup(tdij->id) )
 				{
-				error("duplicate field", tdij->id);
+				reporter->Error("duplicate field", tdij->id);
 				continue;
 				}
 
@@ -1023,7 +1024,7 @@ const TypeDecl* RecordType::FieldDecl(int field) const
 		{
 		RecordField* rf = fields->NthEntry(field);
 		if ( ! rf )
-			internal_error("missing field in RecordType::FieldDecl");
+			reporter->InternalError("missing field in RecordType::FieldDecl");
 
 		BroType* bt = (*base->Types())[rf->base];
 		RecordType* rbt = bt->AsRecordType();
@@ -1340,7 +1341,7 @@ CommentedEnumType::~CommentedEnumType()
 		}
 	}
 
-// Note, we use error() here (not Error()) to include the current script
+// Note, we use reporter->Error() here (not Error()) to include the current script
 // location in the error message, rather than the one where the type was
 // originally defined.
 void EnumType::AddName(const string& module_name, const char* name, bool is_export)
@@ -1348,7 +1349,7 @@ void EnumType::AddName(const string& module_name, const char* name, bool is_expo
 	/* implicit, auto-increment */
 	if ( counter < 0)
 		{
-		error("cannot mix explicit enumerator assignment and implicit auto-increment");
+		reporter->Error("cannot mix explicit enumerator assignment and implicit auto-increment");
 		SetError();
 		return;
 		}
@@ -1361,7 +1362,7 @@ void EnumType::AddName(const string& module_name, const char* name, bro_int_t va
 	/* explicit value specified */
 	if ( counter > 0 )
 		{
-		error("cannot mix explicit enumerator assignment and implicit auto-increment");
+		reporter->Error("cannot mix explicit enumerator assignment and implicit auto-increment");
 		SetError();
 		return;
 		}
@@ -1394,7 +1395,7 @@ void EnumType::AddNameInternal(const string& module_name, const char* name, bro_
 	ID *id;
 	if ( Lookup(val) )
 		{
-		error("enumerator value in enumerated type definition already exists");
+		reporter->Error("enumerator value in enumerated type definition already exists");
 		SetError();
 		return;
 		}
@@ -1408,7 +1409,7 @@ void EnumType::AddNameInternal(const string& module_name, const char* name, bro_
 		}
 	else
 		{
-		error("identifier or enumerator value in enumerated type definition already exists");
+		reporter->Error("identifier or enumerator value in enumerated type definition already exists");
 		SetError();
 		return;
 		}
@@ -1775,7 +1776,7 @@ int same_type(const BroType* t1, const BroType* t2, int is_init)
 		return same_type(t1, t2, is_init);
 
 	case TYPE_UNION:
-		error("union type in same_type()");
+		reporter->Error("union type in same_type()");
 	}
 	return 0;
 	}
@@ -1820,7 +1821,7 @@ const BroType* flatten_type(const BroType* t)
 	const type_list* types = tl->Types();
 
 	if ( types->length() == 0 )
-		internal_error("empty type list in flatten_type");
+		reporter->InternalError("empty type list in flatten_type");
 
 	const BroType* ft = (*types)[0];
 	if ( types->length() == 1 || tl->AllMatch(ft, 0) )
@@ -1869,7 +1870,7 @@ int is_assignable(BroType* t)
 		return 0;
 
 	case TYPE_UNION:
-		error("union type in is_assignable()");
+		reporter->Error("union type in is_assignable()");
 	}
 
 	return 0;
@@ -1898,7 +1899,7 @@ TypeTag max_type(TypeTag t1, TypeTag t2)
 		}
 	else
 		{
-		internal_error("non-arithmetic tags in max_type()");
+		reporter->InternalError("non-arithmetic tags in max_type()");
 		return TYPE_ERROR;
 		}
 	}
@@ -1993,7 +1994,7 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 			return new TableType(tl3, y3);
 		else
 			{
-			internal_error("bad tag in merge_types");
+			reporter->InternalError("bad tag in merge_types");
 			return 0;
 			}
 		}
@@ -2111,11 +2112,11 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 		return new FileType(merge_types(t1->YieldType(), t2->YieldType()));
 
 	case TYPE_UNION:
-		internal_error("union type in merge_types()");
+		reporter->InternalError("union type in merge_types()");
 		return 0;
 
 	default:
-		internal_error("bad type in merge_types()");
+		reporter->InternalError("bad type in merge_types()");
 		return 0;
 	}
 	}
@@ -2127,7 +2128,7 @@ BroType* merge_type_list(ListExpr* elements)
 
 	if ( tl->length() < 1 )
 		{
-		error("no type can be inferred for empty list");
+		reporter->Error("no type can be inferred for empty list");
 		return 0;
 		}
 
@@ -2144,7 +2145,7 @@ BroType* merge_type_list(ListExpr* elements)
 		}
 
 	if ( ! t )
-		error("inconsistent types in list");
+		reporter->Error("inconsistent types in list");
 
 	return t;
 	}

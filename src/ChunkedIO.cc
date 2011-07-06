@@ -195,7 +195,7 @@ bool ChunkedIOFd::WriteChunk(Chunk* chunk, bool partial)
 	assert(chunk->len <= BUFFER_SIZE - sizeof(uint32) );
 
 	if ( chunk->len == 0 )
-		internal_error( "attempt to write 0 bytes chunk");
+		InternalError("attempt to write 0 bytes chunk");
 
 	if ( partial )
 		chunk->len |= FLAG_PARTIAL;
@@ -285,7 +285,7 @@ bool ChunkedIOFd::FlushWriteBuffer()
 			}
 
 		if ( written == 0 )
-			internal_error("written==0");
+			InternalError("written==0");
 
 		// Short write.
 		write_pos += written;
@@ -906,7 +906,7 @@ bool ChunkedIOSSL::WriteData(char* p, uint32 len, bool* error)
 			return false;
 	}
 
-	internal_error("can't be reached");
+	InternalError("can't be reached");
 	return false;
 	}
 
@@ -1026,7 +1026,7 @@ bool ChunkedIOSSL::ReadData(char* p, uint32 len, bool* error)
 		}
 
 	// Can't be reached.
-	internal_error("can't be reached");
+	InternalError("can't be reached");
 	return false;
 	}
 

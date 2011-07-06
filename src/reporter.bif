@@ -1,0 +1,30 @@
+
+module Reporter;
+
+%%{
+#include "NetVar.h"
+%%}
+
+function Reporter::message%(msg: string%): bool
+	%{
+	reporter->PushLocation(frame->GetCall()->GetLocationInfo());
+	reporter->Message("%s", msg->CheckString());
+	reporter->PopLocation();
+	return new Val(1, TYPE_BOOL);
+	%}
+
+function Reporter::warning%(msg: string%): bool
+	%{
+	reporter->PushLocation(frame->GetCall()->GetLocationInfo());
+	reporter->Warning("%s", msg->CheckString());
+	reporter->PopLocation();
+	return new Val(1, TYPE_BOOL);
+	%}
+
+function Reporter::error%(msg: string%): bool
+	%{
+	reporter->PushLocation(frame->GetCall()->GetLocationInfo());
+	reporter->Error("%s", msg->CheckString());
+	reporter->PopLocation();
+	return new Val(1, TYPE_BOOL);
+	%}

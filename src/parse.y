@@ -3,9 +3,9 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 %}
 
-%expect 85
+%expect 88
 
-%token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ALARM TOK_ANY
+%token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ANY
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
 %token TOK_BOOL TOK_BREAK TOK_CASE TOK_CONST
 %token TOK_CONSTANT TOK_COPY TOK_COUNT TOK_COUNTER TOK_DEFAULT TOK_DELETE
@@ -24,7 +24,7 @@
 %token TOK_ATTR_EXPIRE_CREATE TOK_ATTR_EXPIRE_READ TOK_ATTR_EXPIRE_WRITE
 %token TOK_ATTR_PERSISTENT TOK_ATTR_SYNCHRONIZED
 %token TOK_ATTR_DISABLE_PRINT_HOOK TOK_ATTR_RAW_OUTPUT TOK_ATTR_MERGEABLE
-%token TOK_ATTR_PRIORITY TOK_ATTR_GROUP TOK_ATTR_LOG
+%token TOK_ATTR_PRIORITY TOK_ATTR_GROUP TOK_ATTR_LOG TOK_ATTR_ERROR_HANDLER
 
 %token TOK_DEBUG
 
@@ -78,6 +78,7 @@
 #include "DNS.h"
 #include "RE.h"
 #include "Scope.h"
+#include "Reporter.h"
 #include "BroDoc.h"
 #include "BroDocObj.h"
 
@@ -562,7 +563,7 @@ expr:
 					int intval = t->Lookup(id->ModuleName(),
 							       id->Name());
 					if ( intval < 0 )
-						internal_error("enum value not found for %s", id->Name());
+						reporter->InternalError("enum value not found for %s", id->Name());
 					$$ = new ConstExpr(new EnumVal(intval, t));
 					}
 				else
@@ -689,7 +690,7 @@ enum_body_elem:
 			assert(cur_enum_type);
 
 			if ( $4->Type()->Tag() != TYPE_COUNT )
-				error("enumerator is not a count constant");
+				reporter->Error("enumerator is not a count constant");
 			else
 				cur_enum_type->AddName(current_module, $2, $4->InternalUnsigned(), is_export);
 
@@ -707,7 +708,7 @@ enum_body_elem:
 			   error message if users triy to use a negative integer (will also
 			   catch other cases, but that's fine.)
 			*/
-			error("enumerator is not a count constant");
+			reporter->Error("enumerator is not a count constant");
 			}
 
 	|	opt_doc_list TOK_ID
@@ -827,7 +828,7 @@ type:
 	|	TOK_UNION '{' type_list '}'
 				{
 				set_location(@1, @4);
-				error("union type not implemented");
+				reporter->Error("union type not implemented");
 				$$ = 0;
 				}
 
@@ -843,7 +844,7 @@ type:
 				{
 				set_location(@1);
 				// $$ = new TypeList();
-				error("list type not implemented");
+				reporter->Error("list type not implemented");
 				$$ = 0;
 				}
 
@@ -851,7 +852,7 @@ type:
 				{
 				set_location(@1);
 				// $$ = new TypeList($3);
-				error("list type not implemented");
+				reporter->Error("list type not implemented");
 				$$ = 0;
 				}
 
@@ -1320,6 +1321,8 @@ attr:
 			{ $$ = new Attr(ATTR_GROUP, $3); }
 	|	TOK_ATTR_LOG
 			{ $$ = new Attr(ATTR_LOG); }
+	|	TOK_ATTR_ERROR_HANDLER
+			{ $$ = new Attr(ATTR_ERROR_HANDLER); }
 	;
 
 stmt:
@@ -1327,12 +1330,6 @@ stmt:
 			{
 			set_location(@1, @3);
 			$$ = $2;
-			}
-
-	|	TOK_ALARM expr_list ';'
-			{
-			set_location(@1, @3);
-			$$ = new AlarmStmt($2);
 			}
 
 	|	TOK_PRINT expr_list ';'
@@ -1602,7 +1599,7 @@ resolve_id:
 			$$ = lookup_ID($1, current_module.c_str());
 
 			if ( ! $$ )
-				error("identifier not defined:", $1);
+				reporter->Error("identifier not defined:", $1);
 
 			delete [] $1;
 			}
@@ -1659,7 +1656,7 @@ int yyerror(const char msg[])
 		strcat(msgbuf, "\nDocumentation mode is enabled: "
 		       "remember to check syntax of ## style comments\n");
 
-	error(msgbuf);
+	reporter->Error(msgbuf);
 
 	return 0;
 	}

@@ -118,7 +118,7 @@ function set_session(c: connection, msg: dns_msg, is_query: bool)
 		if ( c$dns?$total_replies && 
 		     c$dns$total_replies != msg$num_answers + msg$num_addl + msg$num_auth )
 			{
-			event conn_weird_addl("dns_changed_number_of_responses", c, 
+			event conn_weird("dns_changed_number_of_responses", c, 
 			                      fmt("The declared number of responses changed from %d to %d", 
 			                          c$dns$total_replies,
 			                          msg$num_answers + msg$num_addl + msg$num_auth));
@@ -142,7 +142,7 @@ event do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string) &pri
 	if ( ans$answer_type == DNS_ANS )
 		{
 		if ( msg$id in c$dns_state$finished_answers )
-			event conn_weird("dns_reply_seen_after_done", c);
+			event conn_weird("dns_reply_seen_after_done", c, "");
 		
 		if ( reply != "" )
 			{

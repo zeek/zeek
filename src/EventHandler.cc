@@ -13,6 +13,7 @@ EventHandler::EventHandler(const char* arg_name)
 	local = 0;
 	type = 0;
 	group = 0;
+	error_handler = false;
 	enabled = true;
 	}
 
@@ -69,32 +70,7 @@ void EventHandler::Call(val_list* vl, bool no_remote)
 		}
 
 	if ( local )
-		{
-		if ( FType() )
-			{
-			const type_list* arg_types = type->ArgTypes()->Types();
-			loop_over_list(*vl, i)
-				{
-				Val* v = (*vl)[i];
-				BroType* va_t = v->Type();
-				BroType* ar_t = (*arg_types)[i];
-				if ( va_t->Tag() == TYPE_RECORD && ar_t->Tag() == TYPE_RECORD )
-					{
-					if ( ! same_type(va_t, ar_t) )
-						{
-						Val* nv;
-						nv = v->AsRecordVal()->CoerceTo(ar_t->AsRecordType());
-						if ( nv )
-							{
-							vl->replace(i, nv);
-							Unref(v);
-							}
-						}
-					}
-				}
-			}
 		Unref(local->Call(vl));
-		}
 	else
 		{
 		loop_over_list(*vl, i)

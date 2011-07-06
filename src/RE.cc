@@ -114,7 +114,7 @@ int Specific_RE_Matcher::Compile(int lazy)
 	RE_set_input(pattern_text);
 	if ( RE_parse() )
 		{
-		run_time("error compiling pattern /%s/", pattern_text);
+		reporter->Error("error compiling pattern /%s/", pattern_text);
 		return 0;
 		}
 
@@ -134,7 +134,7 @@ int Specific_RE_Matcher::Compile(int lazy)
 int Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx)
 	{
 	if ( set.length() != idx.length() )
-		internal_error("compileset: lengths of sets differ");
+		reporter->InternalError("compileset: lengths of sets differ");
 
 	rem = this;
 
@@ -145,7 +145,7 @@ int Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx)
 		RE_set_input(set[i]);
 		if ( RE_parse() )
 			{
-			run_time("error compiling pattern /%s/", set[i]);
+			reporter->Error("error compiling pattern /%s/", set[i]);
 			return 0;
 			}
 

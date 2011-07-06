@@ -43,7 +43,7 @@ TraversalCode TriggerTraversalCallback::PreExpr(const Expr* expr)
 	case EXPR_INDEX:
 		{
 		const IndexExpr* e = static_cast<const IndexExpr*>(expr);
-		BroObj::SuppressRunTimeErrors no_errors;
+		BroObj::SuppressErrors no_errors;
 		Val* v = e->Eval(trigger->frame);
 		if ( v )
 			trigger->Register(v);
@@ -119,7 +119,7 @@ Trigger::Trigger(Expr* arg_cond, Stmt* arg_body, Stmt* arg_timeout_stmts,
 		Trigger* parent = frame->GetTrigger();
 		if ( ! parent )
 			{
-			run_time("return trigger in context which does not allow delaying result");
+			reporter->Error("return trigger in context which does not allow delaying result");
 			Unref(this);
 			return;
 			}

@@ -15,7 +15,7 @@
 
 #include "util.h"
 #include "Dict.h"
-
+#include "Reporter.h"
 
 // Size limit for size wildcards.
 #define PACKET_BIG 100
@@ -105,19 +105,19 @@ protected:
 
 	void Error(const char* msg)
 		{
-		error(msg);
+		reporter->Error(msg);
 		err = true;
 		}
 
 	void Error(const char* msg, int n)
 		{
-		error(msg, n);
+		reporter->Error(msg, n);
 		err = true;
 		}
 
 	void Error(const char* msg, const char* s)
 		{
-		error(msg, s);
+		reporter->Error(msg, s);
 		err = true;
 		}
 

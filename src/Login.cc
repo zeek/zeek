@@ -115,7 +115,7 @@ void Login_Analyzer::NewLine(bool orig, char* line)
 		}
 
 	if ( state != LOGIN_STATE_CONFUSED )
-		internal_error("bad state in Login_Analyzer::NewLine");
+		reporter->InternalError("bad state in Login_Analyzer::NewLine");
 
 	// When we're in "confused", we feed each user input line to
 	// login_confused_text, but also scan the text in the
@@ -572,7 +572,7 @@ void Login_Analyzer::AddUserText(const char* line)
 char* Login_Analyzer::PeekUserText() const
 	{
 	if ( num_user_text <= 0 )
-		internal_error("underflow in Login_Analyzer::PeekUserText()");
+		reporter->InternalError("underflow in Login_Analyzer::PeekUserText()");
 
 	return user_text[user_text_first];
 	}

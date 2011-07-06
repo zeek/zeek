@@ -24,9 +24,11 @@ public:
 	 * If the filename doesn't end in ".bro", then ".rst" is just appended.
 	 * Any '/' characters in the reST file name that result from choice of
 	 * the 'rel' parameter are replaced with '^'.
-	 * @param rel A string representing the path relative to BROPATH off of
-	 *        which the source file is loaded or generally any filesystem
-	 *        path to a Bro script.  May or may not have .bro file extension.
+	 * @param subpath A string representing a subpath of BROPATH's policy/
+	 *        directory in which the source file is located.  It can
+	 *        also be full path to the file or a full path that's in BROPATH,
+	 *        but in either of those cases, the parameter is essentially
+	 *        ignored and the document title is just derived from file name
 	 * @param abs The absolute path to the Bro script for which to generate
 	 *        documentation.
 	 */
@@ -208,7 +210,7 @@ public:
 protected:
 	FILE* reST_file;
 	std::string reST_filename;
-	std::string source_filename; // points to the basename of source file
+	std::string source_filename;	// points to the basename of source file
 	std::string doc_title;
 	std::string packet_filter;
 

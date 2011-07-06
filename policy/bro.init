@@ -293,8 +293,6 @@ type entropy_test_result: record {
 @load bro.bif.bro
 @load reporter.bif.bro
 
-@load logging  # sic! Not logging.bif.
-
 global log_file_name: function(tag: string): string &redef;
 global open_log_file: function(tag: string): file &redef;
 
@@ -1263,9 +1261,6 @@ type bt_tracker_headers: table[string] of string;
 # empty if none.
 const cmd_line_bpf_filter = "" &redef;
 
-# Load the packet filtering framework.
-@load packet-filter
-
 # Rotate logs every x seconds.
 const log_rotate_interval = 0 sec &redef;
 
@@ -1479,22 +1474,11 @@ const skip_http_data = F &redef;
 # UDP tunnels. See also: udp_tunnel_port, policy/udp-tunnel.bro.
 const parse_udp_tunnels = F &redef;
 
-#@load site
-#@load dpd
+@load site
+# Load the logging framework.
+@load frameworks/logging
 
-# TODO: These need to go somewhere else with real implementations.
-#
-# event reporter_message(t: time, msg: string, location: string)
-# 	{
-# 	print fmt("[script] reporter_message: %s [%s] [%.6f]", msg, location, t);
-#     }
-#
-# event reporter_warning(t: time, msg: string, location: string)
-# 	{
-# 	print fmt("[script] reporter_warning: %s [%s] [%.6f]", msg, location, t);
-#     }
-#
-# event reporter_error(t: time, msg: string, location: string)
-# 	{
-# 	print fmt("[script] reporter_error: %s [%s] [%.6f]", msg, location, t);
-#     }
+# Load the packet filtering framework.
+@load frameworks/packet-filter
+
+#@load dpd

@@ -49,5 +49,10 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 			Software::found(c$id, Software::parse(value, c$id$resp_h, WEB_SERVER));
 		else if ( name == "X-POWERED-BY" )
 			Software::found(c$id, Software::parse(value, c$id$resp_h, WEB_APPSERVER));
+		else if ( name == "MICROSOFTSHAREPOINTTEAMSERVICES" )
+			{
+			value = cat("SharePoint/", value);
+			Software::found(c$id, Software::parse(value, c$id$resp_h, WEB_APPSERVER));
+			}
 		}
 	}

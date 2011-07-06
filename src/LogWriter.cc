@@ -16,6 +16,9 @@ LogWriter::~LogWriter()
 	if ( buf )
 		free(buf);
 
+	for(int i = 0; i < num_fields; ++i)
+		delete fields[i];
+	
 	delete [] fields;
 	}
 

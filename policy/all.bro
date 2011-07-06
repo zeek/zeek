@@ -1,21 +1,22 @@
 ##! This script only aims at loading all of the base analysis scripts.
 
-@load conn
-@load dns
-@load ftp
-@load http
-@load irc
-@load mime 
-@load smtp
-@load ssh
-@load ssl
-@load syslog
+@load protocols/conn
+@load protocols/dns
+@load protocols/ftp
+@load protocols/http
+@load protocols/irc
+@load protocols/mime 
+@load protocols/smtp
+@load protocols/ssh
+@load protocols/ssl
+@load protocols/syslog
 
-#@load communication
-@load metrics
-@load notice
-@load signatures
-@load software
+#@load frameworks/communication
+@load frameworks/metrics
+@load frameworks/notice
+@load frameworks/signatures
+@load frameworks/software
+@load frameworks/reporter
 
 @load detectors/http-MHR
 

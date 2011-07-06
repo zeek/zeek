@@ -2,7 +2,7 @@
 #include "TCP_Reassembler.h"
 
 Modbus_Analyzer::Modbus_Analyzer(Connection* c)
-: Analyzer(AnalyzerTag::ModbusTCP, c)
+: TCP_ApplicationAnalyzer(AnalyzerTag::ModbusTCP, c)
         {
         interp = new binpac::ModbusTCP::ModbusTCP_Conn(this);
         }
@@ -26,7 +26,7 @@ void Modbus_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
         interp->NewData(orig, data, data + len);
         }
 
-void Sample_Analyzer::Undelivered(int seq, int len, bool orig)
+void Modbus_Analyzer::Undelivered(int seq, int len, bool orig)
         {
         }
 

@@ -460,3 +460,26 @@ event rotate_size%(f: file%);
 
 event netflow_v5_header%(h: nf_v5_header%);
 event netflow_v5_record%(r: nf_v5_record%);
+
+#Hui Lin modbus event
+event modbus_request%(c: connection, is_orig: bool, length: count%);
+event modbus_header%(c: connection, is_orig: bool, tid: count, pid:count, len:count, uid:count, fc:count%);
+event modbus_request_read_multiple_register%(c: connection, is_orig: bool, referencenumber: count, wordcount: count%);
+event modbus_request_write_multiple_register%(c: connection, is_orig: bool, referencenumber: count, wordcount: count, byteCount: count%);
+event modbus_register_unit%(c: connection, is_orig: bool, ru: count%); 
+event modbus_request_read_coil%(c: connection, is_orig: bool, referencenumber: count, bitcount: count%);
+event modbus_request_read_input_discrete%(c: connection, is_orig: bool, referencenumber: count, bitcount: count%);
+event modbus_request_read_input_register%(c: connection, is_orig: bool, referencenumber: count, bitcount: count%);
+event modbus_request_write_coil%(c: connection, is_orig: bool, referencenumber: count, onoff: count, other: count%);
+event modbus_request_write_single_register%(c: connection, is_orig: bool, referencenumber: count, registervalue: count%);
+event modbus_request_read_exception_status%(c: connection, is_orig: bool%);
+event modbus_request_force_multiple_coils%(c: connection, is_orig: bool, ru: count, bitcount: count, bytecount: count, coil: string%);
+event modbus_request_read_general_reference%(c: connection, is_orig: bool, bytecount: count%);
+event modbus_request_write_general_reference%(c: connection, is_orig: bool, bytecount: count%);
+event modbus_reference%(c: connection, is_orig: bool, reftype: count, refnumber: count, wordcount: count%);
+event modbus_reference_with_data%(c: connection, is_orig: bool, reftype: count, refnumber: count, wordcount: count%);
+event modbus_register_value_unit%(c: connection, is_orig: bool, rvu: count%);
+
+event modbus_request_mask_write_register%(c: connection, is_orig: bool, refnumber: count, andmask: count, ormask: count%);
+event modbus_request_read_write_registers%(c: connection, is_orig: bool, refnumber: count, wordcountread: count, refnumberwrite: count, wordcountwrite: count, bytecount: count%);
+event modbus_request_read_FIFO_queue%(c: connection, is_orig: bool, refnumber: count%);

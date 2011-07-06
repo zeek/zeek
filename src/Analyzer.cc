@@ -37,6 +37,7 @@
 #include "SSL-binpac.h"
 #include "Syslog-binpac.h"
 #include "ConnSizeAnalyzer.h"
+#include "MODBUS.h"
 
 // Keep same order here as in AnalyzerTag definition!
 const Analyzer::Config Analyzer::analyzer_configs[] = {
@@ -141,6 +142,10 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 	{ AnalyzerTag::SYSLOG_BINPAC, "SYSLOG_BINPAC",
 		Syslog_Analyzer_binpac::InstantiateAnalyzer,
 		Syslog_Analyzer_binpac::Available, 0, false },
+
+	{ AnalyzerTag::ModbusTCP, "MODBUSTCP",
+		Modbus_Analyzer::InstantiateAnalyzer,
+		Modbus_Analyzer::Available, 0, false },
 
 	{ AnalyzerTag::File, "FILE", File_Analyzer::InstantiateAnalyzer,
 		File_Analyzer::Available, 0, false },

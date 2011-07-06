@@ -201,6 +201,10 @@ binpac_target(ssl.pac
     ssl-defs.pac ssl-protocol.pac ssl-analyzer.pac)
 binpac_target(syslog.pac
     syslog-protocol.pac syslog-analyzer.pac)
+binpac_target(modbus.pac
+    modbus-protocol.pac modbus-analyzer.pac)
+#Hui Lin
+
 
 ########################################################################
 ## bro target
@@ -402,6 +406,7 @@ set(bro_SRCS
     setsignal.c
     PacketDumper.cc
     strsep.c
+    MODBUS.cc
     ${dns_SRCS}
     ${malloc_SRCS}
     ${openssl_SRCS}

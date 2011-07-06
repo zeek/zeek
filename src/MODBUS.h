@@ -6,7 +6,7 @@
 
 #include "modbus_pac.h"
 
-class Modbus_Analyzer : public Analyzer {
+class Modbus_Analyzer : public TCP_ApplicationAnalyzer {
 public:
         Modbus_Analyzer(Connection* conn);
         virtual ~Modbus_Analyzer();

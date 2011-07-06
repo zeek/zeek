@@ -1,9 +1,5 @@
 
 
-connection ModbusTCP_Conn() {
-    upflow = ModbusTCP_Flow(true);
-    downflow = ModbusTCP_Flow(false);
-};
 
 enum function_codes {
 # Class 0
@@ -77,11 +73,16 @@ type Reference = record {
 	wordCount: uint16;
 };
 
+#Hui Lin
+type RegisterValueUnit = record { rvu: uint16; };
+
 type ReferenceWithData = record {
 	refType: uint8;
 	refNumber: uint32;
 	wordCount: uint16;
-	registerValue: uint16[wordCount] &length = 2*wordCount; # TODO: check that the array length is calculated correctly
+	#registerValue: uint16[wordCount] &length = 2*wordCount; # TODO: check that the array length is calculated correctly
+	# Hui Lin
+	registerValue: RegisterValueUnit[wordCount] &length = 2*wordCount; # TODO: check that the array length is calculated correctly
 };
 
 type Exception(len: uint16) = record {
@@ -116,6 +117,9 @@ type ModbusTCP_RequestPDU = record {
 	};
 } &length = (header.len+6);
 
+# Hui Lin
+type RegisterUnit = record { ru: uint16; }
+
 # Class 0 requests
 
 type ReadMultipleRegistersRequest(len: uint16) = record {
@@ -125,9 +129,13 @@ type ReadMultipleRegistersRequest(len: uint16) = record {
 
 type WriteMultipleRegistersRequest(len: uint16) = record {
 	referenceNumber: uint16;
-	wordCount: uint16 &check(wordCount <= 100);
-	byteCount: uint8;
-	registers: uint16[wordCount] &length = byteCount;
+#	wordCount: uint16 &check(wordCount <= 100);
+#	byteCount: uint8;
+#	registers: uint16[wordCount] &length = byteCount;
+# modified by Hui Lin
+	wordCount: uint16 &check(wordCount <= 123);
+	byteCount: uint8  &check(byteCount == (wordCount + wordCount) );
+	registers: RegisterUnit[wordCount] &length = byteCount;
 };
 
 # Class 1 requests
@@ -194,7 +202,9 @@ type ReadWriteRegistersRequest(len: uint16) = record {
 	referenceNumberWrite: uint16;
 	wordCountWrite: uint16 &check(wordCountWrite <= 100);
 	byteCount: uint8 &check(byteCount == 2*wordCountWrite);
-	registerValues: uint16[registerCount] &length = byteCount;
+	#registerValues: uint16[registerCount] &length = byteCount;
+	# Hui Lin
+	registerValues: RegisterValueUnit[registerCount] &length = byteCount;
 } &length = len, &let{
 	registerCount : uint8 = byteCount / 2;
 };

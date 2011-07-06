@@ -1,3 +1,6 @@
+%include binpac.pac
+%include bro.pac
+
 
 analyzer ModbusTCP withcontext {
     connection:                 ModbusTCP_Conn;

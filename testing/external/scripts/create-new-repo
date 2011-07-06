@@ -34,8 +34,9 @@ done
 
 ln -s ../subdir-btest.cfg ./btest.cfg
 
-cp $cwd/`dirname $0`/files/test.skeleton tests
-cp $cwd/`dirname $0`/files/Makefile .
+cp $cwd/`dirname $0`/skel/test.skeleton tests
+cp $cwd/`dirname $0`/skel/Makefile .
+cp $cwd/`dirname $0`/skel/.gitignore .
 
 git add *
 

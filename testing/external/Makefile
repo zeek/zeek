@@ -1,8 +1,15 @@
 
 PUBLIC_REPO=git://git.bro-ids.org/bro-testing
 
+DIAG=diag.log
+
 all:
-	@for repo in *.git; do (echo "==== $$repo" && cd $$repo && btest ); echo; done
+	@rm -f $(DIAG)
+	@for repo in *.git; do (cd $$repo && make ); done
+
+brief:
+	@rm -f $(DIAG)
+	@for repo in *.git; do (cd $$repo && make brief ); done
 
 init:
 	git clone $(PUBLIC_REPO) bro-testing.git

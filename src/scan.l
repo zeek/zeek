@@ -36,7 +36,6 @@ ptr_compat_int current_depth = 0;
 int_list if_stack;
 
 int line_number = 1;
-int include_level = 0;
 const char* filename = 0;
 BroDoc* current_reST_doc = 0;
 static BroDoc* last_reST_doc = 0;
@@ -51,10 +50,6 @@ char last_tok[128];
 #define YY_INPUT(buf,result,max_size) \
 	if ( ((result = fread(buf, 1, max_size, yyin)) == 0) && ferror(yyin) ) \
 		reporter->Error(fmt("read failed with \"%s\"", strerror(errno)));
-
-// Files we have already scanned (or are in the process of scanning). They
-// are tracked by inode number. 
-static std::list<ino_t> files_scanned;
 
 // reST documents that we've created (or have at least opened so far).
 std::list<BroDoc*> docs_generated;
@@ -122,10 +117,6 @@ static PList(FileInfo) file_stack;
 
 // Returns true if the file is new, false if it's already been scanned.
 static int load_files_with_prefix(const char* file);
-
-// If print_loaded_files is true, print current filename if we haven't
-// reported it already.
-static void report_file();
 
 // ### TODO: columns too - use yyless with '.' action?
 %}
@@ -219,7 +210,6 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 {WS}	/* eat whitespace */
 
 <INITIAL,IGNORE,DOC>\n	{
-			report_file();
 			++line_number;
 			++yylloc.first_line;
 			++yylloc.last_line;
@@ -349,11 +339,13 @@ when	return TOK_WHEN;
 
 	if ( f )
 		{
-		ino_t i = get_inode_num(f, full_filename);
+		ScannedFile sf(get_inode_num(f, full_filename), file_stack.length(), full_filename);
+		files_scanned.push_back(sf);
+
 		fclose(f);
 		delete [] full_filename;
-		files_scanned.push_back(i);
 		}
+
 	else
 		reporter->Error("failed find file associated with @unload %s", new_file);
 	}
@@ -566,11 +558,11 @@ static int load_files_with_prefix(const char* orig_file)
 		if ( f )
 			{
 			ino_t i = get_inode_num(f, full_filename);
-			std::list<ino_t>::const_iterator it;
+			std::list<ScannedFile>::const_iterator it;
 
 			for ( it = files_scanned.begin(); it != files_scanned.end(); ++it )
 				{
-				if ( *it == i )
+				if ( it->inode == i )
 					{
 					fclose(f);
 					delete [] full_filename;
@@ -579,7 +571,8 @@ static int load_files_with_prefix(const char* orig_file)
 					}
 				}
 
-			files_scanned.push_back(i);
+			ScannedFile sf(i, file_stack.length(), full_filename);
+			files_scanned.push_back(sf);
 
 			if ( g_policy_debug )
 				{
@@ -783,8 +776,6 @@ int yywrap()
 	if ( reporter->Errors() > 0 )
 		return 1;
 
-	--include_level;
-
 	if ( ! did_builtin_init && file_stack.length() == 1 )
 		{
 		// ### This is a gross hack - we know that the first file
@@ -901,7 +892,6 @@ FileInfo::FileInfo(string arg_restore_module)
 	restore_module = arg_restore_module;
 	name = ::filename;
 	line = ::line_number;
-	level = ::include_level;
 	doc = ::current_reST_doc;
 	}
 
@@ -913,33 +903,11 @@ FileInfo::~FileInfo()
 	yy_switch_to_buffer(buffer_state);
 	yylloc.filename = filename = name;
 	yylloc.first_line = yylloc.last_line = line_number = line;
-	include_level = level;
 	last_reST_doc = current_reST_doc;
 	current_reST_doc = doc;
 
 	if ( restore_module != "" )
 		current_module = restore_module;
-	}
-
-static void report_file()
-	{
-	if ( ! print_loaded_scripts || ! filename )
-		return;
-
-	static PList(char) files_reported;
-
-	loop_over_list(files_reported, i)
-		{
-		if ( streq(files_reported[i], filename) )
-			return;
-		}
-
-	for ( int i = include_level - 1; i >= 0; --i )
-		fprintf(stderr, "   ");
-	fprintf(stderr, "loading %s\n", filename);
-
-	++include_level;
-	files_reported.append(copy_string(filename));
 	}
 
 static void check_capture_filter_changes()

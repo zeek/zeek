@@ -480,3 +480,6 @@ event netflow_v5_record%(r: nf_v5_record%);
 event reporter_info%(t: time, msg: string, location: string%) &error_handler;
 event reporter_warning%(t: time, msg: string, location: string%) &error_handler;
 event reporter_error%(t: time, msg: string, location: string%) &error_handler;
+
+# Raised for each policy script loaded.
+event bro_script_loaded%(path: string, level: count%);

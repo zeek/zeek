@@ -71,6 +71,7 @@ double current_timestamp = 0.0;
 PktSrc* current_pktsrc = 0;
 IOSource* current_iosrc;
 
+std::list<ScannedFile> files_scanned;
 
 RETSIGTYPE watchdog(int /* signo */)
 	{

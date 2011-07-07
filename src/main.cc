@@ -91,7 +91,6 @@ DPM* dpm = 0;
 int optimize = 0;
 int do_notice_analysis = 0;
 int rule_bench = 0;
-int print_loaded_scripts = 0;
 int generate_documentation = 0;
 SecondaryPath* secondary_path = 0;
 ConnCompressor* conn_compressor = 0;
@@ -130,7 +129,7 @@ const char* bro_dns_fake()
 	{
 	if ( ! getenv("BRO_DNS_FAKE") )
 		return "off";
-	else 
+	else
 		return "on";
 	}
 
@@ -145,7 +144,6 @@ void usage()
 	fprintf(stderr, "    -g|--dump-config               | dump current config into .state dir\n");
 	fprintf(stderr, "    -h|--help|-?                   | command line help\n");
 	fprintf(stderr, "    -i|--iface <interface>         | read from given interface\n");
-	fprintf(stderr, "    -l|--print-scripts             | print all loaded scripts\n");
 	fprintf(stderr, "    -Z|--doc-scripts               | generate documentation for all loaded scripts\n");
 	fprintf(stderr, "    -p|--prefix <prefix>           | add given prefix to policy file resolution\n");
 	fprintf(stderr, "    -r|--readfile <readfile>       | read from given tcpdump file\n");
@@ -440,7 +438,7 @@ int main(int argc, char** argv)
 	opterr = 0;
 
 	char opts[256];
-	safe_strncpy(opts, "B:D:e:f:I:i:K:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGHLOPSWdghlvZ",
+	safe_strncpy(opts, "B:D:e:f:I:i:K:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGHLOPSWdghvZ",
 		     sizeof(opts));
 
 #ifdef USE_PERFTOOLS
@@ -469,10 +467,6 @@ int main(int argc, char** argv)
 
 		case 'i':
 			interfaces.append(optarg);
-			break;
-
-		case 'l':
-			print_loaded_scripts = 1;
 			break;
 
 		case 'p':
@@ -666,7 +660,7 @@ int main(int argc, char** argv)
 	// seed the PRNG. We should do this here (but at least Linux, FreeBSD
 	// and Solaris provide /dev/urandom).
 
-	if ( (interfaces.length() > 0 || netflows.length() > 0) && 
+	if ( (interfaces.length() > 0 || netflows.length() > 0) &&
 	     (read_files.length() > 0 || flow_files.length() > 0 ))
 		usage();
 
@@ -801,7 +795,7 @@ int main(int argc, char** argv)
 		// ### Add support for debug command file.
 		dbg_init_debugger(0);
 
-	if ( (flow_files.length() == 0 || read_files.length() == 0) && 
+	if ( (flow_files.length() == 0 || read_files.length() == 0) &&
 	     (netflows.length() == 0 || interfaces.length() == 0) )
 		{
 		Val* interfaces_val = internal_val("interfaces");
@@ -964,6 +958,15 @@ int main(int argc, char** argv)
 
 	if ( override_ignore_checksums )
 		ignore_checksums = 1;
+
+	// Queue events reporting loaded scripts.
+	for ( std::list<ScannedFile>::iterator i = files_scanned.begin(); i != files_scanned.end(); i++ )
+		{
+		val_list* vl = new val_list;
+		vl->append(new StringVal(i->name.c_str()));
+		vl->append(new Val(i->include_level, TYPE_COUNT));
+		mgr.QueueEvent(bro_script_loaded, vl);
+		}
 
 	dpm->PostScriptInit();
 

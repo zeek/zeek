@@ -527,6 +527,7 @@ static int load_files_with_prefix(const char* orig_file)
 
 		const char* full_filename = "<internal error>";
 		const char* bropath_subpath = "<internal error>";
+		const char* bropath_subpath_delete = 0;
 		FILE* f;
 
 		if ( streq(orig_file, "-") )
@@ -552,6 +553,7 @@ static int load_files_with_prefix(const char* orig_file)
 				strcpy(new_filename, orig_file);
 
 			f = search_for_file(new_filename, "bro", &full_filename, true, &bropath_subpath);
+			bropath_subpath_delete = bropath_subpath; // This will be deleted.
 			delete [] new_filename;
 			}
 
@@ -566,7 +568,7 @@ static int load_files_with_prefix(const char* orig_file)
 					{
 					fclose(f);
 					delete [] full_filename;
-					delete [] bropath_subpath;
+					delete [] bropath_subpath_delete;
 					return 0;
 					}
 				}
@@ -617,7 +619,7 @@ static int load_files_with_prefix(const char* orig_file)
 				docs_generated.push_back(current_reST_doc);
 				}
 
-			delete [] bropath_subpath;
+			delete [] bropath_subpath_delete;
 
 			// "orig_file", could be an alias for yytext, which is ephemeral
 			//  and will be zapped after the yy_switch_to_buffer() below.

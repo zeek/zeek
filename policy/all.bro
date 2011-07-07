@@ -11,12 +11,12 @@
 @load protocols/ssl
 @load protocols/syslog
 
-#@load frameworks/communication
 @load frameworks/metrics
 @load frameworks/notice
 @load frameworks/signatures
 @load frameworks/software
 @load frameworks/reporter
+@load frameworks/cluster
 
 @load detectors/http-MHR
 

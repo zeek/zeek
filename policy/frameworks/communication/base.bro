@@ -19,7 +19,7 @@ export {
 		ts:           time   &log;
 		level:        string &log &optional;
 		src_name:     string &log &optional;
-		remote_node:  string &log &optional;
+		peer:         string &log &optional;
 		msg:          string &log;
 	};
 
@@ -114,6 +114,7 @@ function do_script_log_common(level: count, src: count, msg: string)
 	Log::write(COMMUNICATION, [$ts = network_time(), 
 	                           $level = (level == REMOTE_LOG_INFO ? "info" : "error"),
 	                           $src_name = src_names[src],
+	                           $peer = get_event_peer()$descr,
 	                           $msg = msg]);
 	}
 
@@ -142,7 +143,7 @@ function connect_peer(peer: string)
     
 	if ( id == PEER_ID_NONE )
 		Log::write(COMMUNICATION, [$ts = network_time(), 
-		                           $remote_node = fmt("%s:%d", node$host, p),
+		                           $peer = get_event_peer()$descr,
 		                           $msg = "can't trigger connect"]);
 	pending_peers[id] = node;
 	}
@@ -269,7 +270,8 @@ event remote_state_inconsistency(operation: string, id: string,
 
 	local msg = fmt("state inconsistency: %s should be %s but is %s before %s",
 	                id, expected_old, real_old, operation);
-	Log::write(COMMUNICATION, [$ts = network_time(), 
+	Log::write(COMMUNICATION, [$ts = network_time(),
+	                           $peer = get_event_peer()$descr,
 	                           $msg = msg]);
 	}
 

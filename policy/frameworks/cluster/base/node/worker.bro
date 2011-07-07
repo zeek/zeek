@@ -15,7 +15,7 @@ redef Log::default_rotation_interval = 1hr;
 redef Log::default_rotation_postprocessor = "delete-log";
 
 ## Give the worker a name.
-redef peer_description = Cluster::nodes[Cluster::node]$tag;
+redef peer_description = Cluster::node;
 
 ## Record all packets into trace file.
 # TODO: should we really be setting this to T?

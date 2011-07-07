@@ -32,7 +32,7 @@ redef Log::default_rotation_postprocessor = "archive-log";
 redef interfaces = "";
 
 ## Set the name for the manager.
-redef peer_description = Cluster::nodes[Cluster::node]$tag;
+redef peer_description = Cluster::node;
 
 ## We're processing essentially *only* remote events.
 redef max_remote_events_processed = 10000;

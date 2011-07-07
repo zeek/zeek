@@ -1,6 +1,10 @@
 @load frameworks/cluster/base/main
 
-@if ( Cluster::node != 0 )
+@if ( Cluster::node != "" )
+
+# Only load the communication framework if it really looks like someone is
+# trying to start up a cluster node.
+@load frameworks/communication
 
 ## If this script isn't found anywhere, the cluster bombs out.
 ## Loading the cluster framework requires that a script by this name exists

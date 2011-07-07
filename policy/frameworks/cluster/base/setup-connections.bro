@@ -18,14 +18,14 @@ event bro_init()
 		if ( me$node_type == MANAGER )
 			{
 			if ( n$node_type == WORKER && n$manager == node )
-				Communication::nodes[fmt("w%d", i)] =
+				Communication::nodes[i] =
 				    [$host=n$ip, $connect=F,
-				     $class=n$tag, $events=worker_events, $request_logs=T];
+				     $class=i, $events=worker_events, $request_logs=T];
 			
 			if ( n$node_type == PROXY && n$manager == node )
-				Communication::nodes[fmt("p%d", i)] =
+				Communication::nodes[i] =
 		    	    [$host=n$ip, $connect=F,
-				     $class=n$tag, $events=proxy_events, $request_logs=T];
+				     $class=i, $events=proxy_events, $request_logs=T];
 				
 			if ( n$node_type == TIME_MACHINE && me?$time_machine && me$time_machine == i )
 				Communication::nodes["time-machine"] = [$host=nodes[i]$ip, $p=nodes[i]$p,
@@ -35,8 +35,8 @@ event bro_init()
 		else if ( me$node_type == PROXY )
 			{
 			if ( n$node_type == WORKER && n$proxy == node )
-				Communication::nodes[fmt("w%d", i)] =
-				    [$host=n$ip, $connect=F, $class=n$tag, $events=worker_events];
+				Communication::nodes[i] =
+				    [$host=n$ip, $connect=F, $class=i, $events=worker_events];
 			
 			# accepts connections from the previous one. 
 			# (This is not ideal for setups with many proxies)
@@ -44,11 +44,11 @@ event bro_init()
 			if ( n$node_type == PROXY )
 				{
 				if ( n?$proxy )
-					Communication::nodes[fmt("p%d", i)]
+					Communication::nodes[i]
 					     = [$host=n$ip, $p=n$p,
 					        $connect=T, $auth=F, $sync=T, $retry=1mins];
 				else if ( me?$proxy && me$proxy == i )
-					Communication::nodes[fmt("p%d", me$proxy)]
+					Communication::nodes[me$proxy]
 					     = [$host=nodes[i]$ip, $connect=F, $auth=T, $sync=T];
 				}
 			
@@ -56,7 +56,7 @@ event bro_init()
 			if ( n$node_type == MANAGER && me$manager == i )
 				Communication::nodes["manager"] = [$host=nodes[i]$ip, $p=nodes[i]$p, 
 				                                   $connect=T, $retry=1mins, 
-				                                   $class=me$tag];
+				                                   $class=node];
 			}
 		
 		else if ( me$node_type == WORKER )
@@ -64,12 +64,12 @@ event bro_init()
 			if ( n$node_type == MANAGER && me$manager == i )
 				Communication::nodes["manager"] = [$host=nodes[i]$ip, $p=nodes[i]$p,
 				                                   $connect=T, $retry=1mins, 
-				                                   $class=me$tag];
+				                                   $class=node];
 			
 			if ( n$node_type == PROXY && me$proxy == i )
 				Communication::nodes["proxy"] = [$host=nodes[i]$ip, $p=nodes[i]$p,
 				                                 $connect=T, $retry=1mins, 
-				                                 $class=me$tag];
+				                                 $class=node];
 			
 			if ( n$node_type == TIME_MACHINE && me?$time_machine && me$time_machine == i )
 				Communication::nodes["time-machine"] = [$host=nodes[i]$ip, $p=nodes[i]$p,

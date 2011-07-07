@@ -2,15 +2,6 @@
 
 module Cluster;
 
-const ENV_VAR = getenv("CLUSTER_NODE");
-const ENVIRONMENT_NODE = (ENV_VAR == "" ? 0: extract_count(ENV_VAR));
-
-# Only load the communication framework if it really looks like someone is
-# trying to start up a cluster node.
-@if ( ENVIRONMENT_NODE != 0 )
-@load frameworks/communication
-@endif
-
 export {
 	redef enum Log::ID += { CLUSTER };
 	type Info: record {
@@ -48,38 +39,34 @@ export {
 		node_type:    NodeType;
 		ip:           addr;
 		p:            port;
-		tag:          string;
 		
 		## Identifier for the interface a worker is sniffing.
-		interface:    string     &optional;
+		interface:    string      &optional;
 		
 		## Manager node this node uses.  For workers and proxies.
-		manager:      count      &optional;
+		manager:      string      &optional;
 		## Proxy node this node uses.  For workers and managers.
-		proxy:        count      &optional;
+		proxy:        string      &optional;
 		## Worker nodes that this node connects with.  For managers and proxies.
-		workers:      set[count] &optional;
-		time_machine: count      &optional;
+		workers:      set[string] &optional;
+		time_machine: string       &optional;
 	};
 	
-	const nodes: table[count] of Node = {} &redef;
+	const nodes: table[string] of Node = {} &redef;
 	
-	## This will frequently be supplied on the command line for each instance
+	## This is usually supplied on the command line for each instance
 	## of the cluster that is started up.
-	const node = ENVIRONMENT_NODE &redef;
+	const node = getenv("CLUSTER_NODE") &redef;
 }
-
-event bro_init() &priority=10
-	{
-	if ( 0 in nodes )
-		{
-		local msg = "You can't supply a node at the zero value in the Cluster::nodes configuration.";
-		event reporter_error(current_time(), msg, "");
-		terminate();
-		}
-	}
 
 event bro_init()
 	{
+	if ( node !in nodes )
+		{
+		local msg = "You didn't supply a valid node in the Cluster::nodes configuration.";
+		event reporter_error(current_time(), msg, "");
+		terminate();
+		}
+	
 	Log::create_stream(CLUSTER, [$columns=Info]);
 	}

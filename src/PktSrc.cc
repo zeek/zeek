@@ -463,7 +463,7 @@ PktInterfaceSrc::PktInterfaceSrc(const char* arg_interface, const char* filter,
 
 	// ### This needs autoconf'ing.
 #ifdef HAVE_PCAP_INT_H
-	reporter->Message("pcap bufsize = %d\n", ((struct pcap *) pd)->bufsize);
+	reporter->Info("pcap bufsize = %d\n", ((struct pcap *) pd)->bufsize);
 #endif
 
 #ifdef HAVE_LINUX
@@ -486,7 +486,7 @@ PktInterfaceSrc::PktInterfaceSrc(const char* arg_interface, const char* filter,
 			// Couldn't get header size.
 			return;
 
-		reporter->Message("listening on %s\n", interface);
+		reporter->Info("listening on %s\n", interface);
 		}
 	else
 		closed = true;

@@ -299,7 +299,7 @@ void termination_signal()
 	set_processing_status("TERMINATING", "termination_signal");
 
 	Val sval(signal_val, TYPE_COUNT);
-	reporter->Message("received termination signal");
+	reporter->Info("received termination signal");
 	net_get_final_stats();
 	done_with_network();
 	net_delete();
@@ -943,9 +943,9 @@ int main(int argc, char** argv)
 
 	if ( alive_handlers->length() > 0 && dump_used_event_handlers )
 		{
-		reporter->Message("invoked event handlers:");
+		reporter->Info("invoked event handlers:");
 		for ( int i = 0; i < alive_handlers->length(); ++i )
-			reporter->Message((*alive_handlers)[i]);
+			reporter->Info((*alive_handlers)[i]);
 		}
 
 	delete alive_handlers;

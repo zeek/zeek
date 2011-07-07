@@ -22,7 +22,7 @@ public:
 
 	// Report an informational message, nothing that needs specific
 	// attention.
-	void Message(const char* fmt, ...);
+	void Info(const char* fmt, ...);
 
 	// Report a warning that may indicate a problem.
 	void Warning(const char* fmt, ...);

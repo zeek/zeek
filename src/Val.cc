@@ -2695,7 +2695,7 @@ bool TableVal::DoSerialize(SerialInfo* info) const
 			{
 			info->cont.SaveState(state);
 			info->cont.Suspend();
-			reporter->Message("TableVals serialization suspended right in the middle.");
+			reporter->Info("TableVals serialization suspended right in the middle.");
 			return true;
 			}
 		}

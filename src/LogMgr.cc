@@ -951,6 +951,8 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 		DBG_LOG(DBG_LOGGING, "Wrote record to filter '%s' on stream '%s'",
 			filter->name.c_str(), stream->name.c_str());
 #endif
+
+		delete [] vals;
 		}
 
 	Unref(columns);
@@ -1041,6 +1043,7 @@ LogVal* LogMgr::ValToLogVal(Val* val, BroType* ty)
 		for ( int i = 0; i < lval->val.set_val.size; i++ )
 			lval->val.set_val.vals[i] = ValToLogVal(set->Index(i));
 
+		Unref(set);
 		break;
 		}
 

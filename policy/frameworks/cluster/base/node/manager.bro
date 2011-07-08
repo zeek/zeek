@@ -9,13 +9,6 @@
 ##! This is where the cluster manager sets it's specific settings for other
 ##! frameworks and in the core.
 
-## Set the mail script to be the default script for the cluster deployment.
-redef Notice::mail_script = "mail-alarm";
-
-## Set the template value that the mail script will use to send email.  The
-## default mail-alarm script will replace the value.
-redef Notice::mail_dest = "_broctl_default_";
-
 ## Set the port that the manager is supposed to listen on.
 redef Communication::listen_port_clear = Cluster::nodes[Cluster::node]$p;
 

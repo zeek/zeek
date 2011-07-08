@@ -1,4 +1,1 @@
-@load metrics/base
-
-@load metrics/http-example
-@load metrics/conn-example
+@load frameworks/metrics/base

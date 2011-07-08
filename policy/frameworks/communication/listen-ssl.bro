@@ -1,6 +1,6 @@
 ##! Listen for other Bro instances and encrypt the connection with SSL.
 
-@load communication/base
+@load frameworks/communication/base
 
 module Communication;
 

@@ -1,4 +1,4 @@
-@load mime/base
-@load mime/file-ident
-@load mime/file-extract
-@load mime/file-hash
+@load protocols/mime/base
+@load protocols/mime/file-ident
+@load protocols/mime/file-extract
+@load protocols/mime/file-hash

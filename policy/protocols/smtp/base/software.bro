@@ -6,8 +6,7 @@
 ##! * Find some heuristic to determine if email was sent through 
 ##!   a MS Exhange webmail interface as opposed to a desktop client.
 
-@load smtp/base
-@load software
+@load frameworks/software
 
 module SMTP;
 
@@ -15,7 +14,7 @@ export {
 	redef enum Software::Type += {
 		MAIL_CLIENT,
 		MAIL_SERVER,
-		WEBMAIL
+		WEBMAIL_SERVER
 	};
 	
 	redef record Info += {
@@ -63,7 +62,7 @@ event log_smtp(rec: Info)
 		local client_ip = rec$path[|rec$path|-1];
 		if ( rec$is_webmail )
 			{
-			s_type = WEBMAIL;
+			s_type = WEBMAIL_SERVER;
 			# If the earliest received header indicates that the connection
 			# was via HTTP, then that likely means the actual mail software 
 			# is installed on the second address in the path.

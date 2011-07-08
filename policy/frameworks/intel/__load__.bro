@@ -1,1 +1,1 @@
-@load intel/base
+@load frameworks/intel/base

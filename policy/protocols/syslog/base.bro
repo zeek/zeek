@@ -1,7 +1,5 @@
 ##! Core script support for logging syslog messages.
 
-@load syslog/consts 
-
 module Syslog;
 
 export {

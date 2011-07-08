@@ -1,2 +1,2 @@
-@load packet-filter/base
-@load packet-filter/netstats
+@load frameworks/packet-filter/base
+@load frameworks/packet-filter/netstats

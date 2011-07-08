@@ -1,6 +1,6 @@
 ##! Script level signature support script.
 
-@load notice
+@load frameworks/notice
 
 module Signatures;
 

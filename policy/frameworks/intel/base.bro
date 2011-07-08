@@ -20,7 +20,7 @@
 #   canary
 #   friend
 
-@load notice
+@load frameworks/notice
 
 module Intel;
 

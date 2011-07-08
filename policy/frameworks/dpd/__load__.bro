@@ -1,2 +1,1 @@
-@load dpd/base
-@load dpd/packet-segment-logging
+@load frameworks/dpd/base

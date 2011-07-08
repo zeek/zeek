@@ -1344,7 +1344,7 @@ const sig_max_group_size = 50 &redef;
 const enable_syslog = F &redef;
 
 # This is transmitted to peers receiving our events.
-const peer_description = "" &redef;
+const peer_description = "bro" &redef;
 
 # If true, broadcast events/state received from one peer to other peers.
 # NOTE: These options are only temporary. They will disappear when we get a

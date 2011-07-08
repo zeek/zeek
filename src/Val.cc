@@ -2935,11 +2935,7 @@ Val* RecordVal::LookupWithDefault(int field) const
 	if ( val )
 		return val->Ref();
 
-	// Check for &default.
-	const Attr* def_attr =
-		record_type->FieldDecl(field)->attrs->FindAttr(ATTR_DEFAULT);
-
-	return def_attr ? def_attr->AttrExpr()->Eval(0) : 0;
+	return record_type->FieldDefault(field);
 	}
 
 RecordVal* RecordVal::CoerceTo(const RecordType* t, Val* aggr) const

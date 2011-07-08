@@ -61,7 +61,7 @@ export {
 
 event bro_init()
 	{
-	if ( node !in nodes )
+	if ( node != "" && node !in nodes )
 		{
 		local msg = "You didn't supply a valid node in the Cluster::nodes configuration.";
 		event reporter_error(current_time(), msg, "");

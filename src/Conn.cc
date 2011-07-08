@@ -348,19 +348,18 @@ RecordVal* Connection::BuildConnVal()
 		id_val->Assign(2, new AddrVal(resp_addr));
 		id_val->Assign(3, new PortVal(ntohs(resp_port), prot_type));
 
-		conn_val->Assign(0, id_val);
-
 		RecordVal *orig_endp = new RecordVal(endpoint);
 		orig_endp->Assign(0, new Val(0, TYPE_COUNT));
 		orig_endp->Assign(1, new Val(0, TYPE_COUNT));
-		conn_val->Assign(1, orig_endp);
 
 		RecordVal *resp_endp = new RecordVal(endpoint);
 		resp_endp->Assign(0, new Val(0, TYPE_COUNT));
 		resp_endp->Assign(1, new Val(0, TYPE_COUNT));
-		conn_val->Assign(2, resp_endp);
 
-		// conn_val->Assign(3, new Val(start_time, TYPE_TIME));	// ###
+		conn_val->Assign(0, id_val);
+		conn_val->Assign(1, orig_endp);
+		conn_val->Assign(2, resp_endp);
+		// 3 and 4 are set below.
 		conn_val->Assign(5, new TableVal(string_set));	// service
 		conn_val->Assign(6, new StringVal(""));	// addl
 		conn_val->Assign(7, new Val(0, TYPE_COUNT));	// hot

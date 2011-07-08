@@ -987,6 +987,18 @@ BroType* RecordType::FieldType(int field) const
 		}
 	}
 
+Val* RecordType::FieldDefault(int field) const
+	{
+	const TypeDecl* td = FieldDecl(field);
+
+	if ( ! td->attrs )
+		return false;
+
+	const Attr* def_attr = td->attrs->FindAttr(ATTR_DEFAULT);
+
+	return def_attr ? def_attr->AttrExpr()->Eval(0) : 0;
+	}
+
 int RecordType::FieldOffset(const char* field) const
 	{
 	if ( types )

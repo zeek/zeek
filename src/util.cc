@@ -364,7 +364,7 @@ char* uitoa_n(uint64 value, char* str, int n, int base, const char* prefix)
 		i += strlen(prefix);
 		}
 
-	if ( i >= n )
+	if ( i >= n - 1 )
 		return str;
 
 	v = value;

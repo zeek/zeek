@@ -5,10 +5,10 @@ module Reporter;
 #include "NetVar.h"
 %%}
 
-function Reporter::message%(msg: string%): bool
+function Reporter::info%(msg: string%): bool
 	%{
 	reporter->PushLocation(frame->GetCall()->GetLocationInfo());
-	reporter->Message("%s", msg->CheckString());
+	reporter->Info("%s", msg->CheckString());
 	reporter->PopLocation();
 	return new Val(1, TYPE_BOOL);
 	%}

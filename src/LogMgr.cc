@@ -385,6 +385,8 @@ LogMgr::Filter::~Filter()
 	for ( int i = 0; i < num_fields; ++i )
 		delete fields[i];
 
+	free(fields);
+
 	Unref(path_val);
 	}
 

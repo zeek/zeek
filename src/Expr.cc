@@ -3469,6 +3469,7 @@ Val* SetConstructorExpr::Eval(Frame* f) const
 		{
 		Val* element = exprs[i]->Eval(f);
 		aggr->Assign(element, 0);
+		Unref(element);
 		}
 
 	return aggr;

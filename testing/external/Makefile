@@ -1,18 +1,26 @@
 
 PUBLIC_REPO=git://git.bro-ids.org/bro-testing
+REPOS=`./scripts/find-git-repos `
 
 DIAG=diag.log
 
 all:
 	@rm -f $(DIAG)
-	@for repo in *.git; do (cd $$repo && make ); done
+	@for repo in $(REPOS); do (cd $$repo && make ); done
 
 brief:
 	@rm -f $(DIAG)
-	@for repo in *.git; do (cd $$repo && make brief ); done
+	@for repo in $(REPOS); do (cd $$repo && make brief ); done
 
 init:
-	git clone $(PUBLIC_REPO) bro-testing.git
+	git clone $(PUBLIC_REPO)
 
 pull:
-	@for repo in *.git; do ( cd $$repo && git pull ); done
+	@for repo in $(REPOS); do ( cd $$repo && git pull ); done
+
+push:
+	@for repo in $(REPOS); do ( cd $$repo && git push origin HEAD ); done
+
+status:
+	@for repo in $(REPOS); do ( cd $$repo && echo '>>' $$repo && git status -bs && echo ); done
+

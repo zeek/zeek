@@ -7,7 +7,7 @@ if [ $# != 2 ]; then
     exit 1
 fi
 
-name=`pwd`/$1.git
+name=`pwd`/$1
 repo=$2
 
 if [ -e $repo ]; then

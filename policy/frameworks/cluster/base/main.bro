@@ -28,7 +28,7 @@ export {
 	
 	## Events sent by the manager host (i.e. BroControl) when dynamically 
 	## connecting to a running instance to update settings or request data.
-	const control_events = /Cluster::(configuration_update|request_id|get_peer_status)/ &redef;
+	const control_events = /Remote::(configuration_update|id_request|net_stats_request|peer_status_request)/ &redef;
 	
 	## Directory where the cluster is archiving logs.
 	## TODO: we need a sane default here.
@@ -49,7 +49,7 @@ export {
 		proxy:        string      &optional;
 		## Worker nodes that this node connects with.  For managers and proxies.
 		workers:      set[string] &optional;
-		time_machine: string       &optional;
+		time_machine: string      &optional;
 	};
 	
 	const nodes: table[string] of Node = {} &redef;

@@ -1,7 +1,7 @@
 
 module Cluster;
 
-event bro_init() 
+event bro_init() &priority=9
 	{
 	local me = nodes[node];
 	
@@ -12,8 +12,13 @@ event bro_init()
 		# Connections from the control node for runtime control and update events.
 		# Every node in a cluster is eligible for control from this host.
 		if ( n$node_type == CONTROL )
-			Communication::nodes["control"] = [$host = n$ip, $connect=F,
+			Communication::nodes["control"] = [$host=n$ip, $connect=F,
 			                                   $class="control", $events=control_events];
+		
+		# The node being started up is this node so we create a dummy 
+		# communication entry to point at this host for control.
+		if ( i == node )
+			Communication::nodes[i] = [$host=n$ip, $p=n$p, $connect=F, $class="control", $sync=F];
 		
 		if ( me$node_type == MANAGER )
 			{
@@ -24,7 +29,7 @@ event bro_init()
 			
 			if ( n$node_type == PROXY && n$manager == node )
 				Communication::nodes[i] =
-		    	    [$host=n$ip, $connect=F,
+				    [$host=n$ip, $connect=F,
 				     $class=i, $events=proxy_events, $request_logs=T];
 				
 			if ( n$node_type == TIME_MACHINE && me?$time_machine && me$time_machine == i )

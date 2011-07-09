@@ -19,3 +19,5 @@
 @load frameworks/cluster
 
 @load tuning/defaults
+
+@load support/loaded-scripts

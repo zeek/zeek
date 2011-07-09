@@ -14,7 +14,7 @@ export {
 	
 }
 
-event bro_init()
+event bro_init() &priority=-10
 	{
 	listen(listen_if_ssl, listen_port_ssl, T);
 	}

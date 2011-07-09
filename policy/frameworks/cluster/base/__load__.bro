@@ -14,7 +14,6 @@
 
 @if ( Cluster::node in Cluster::nodes )
 
-@load frameworks/cluster/base/external-events
 @load frameworks/cluster/base/setup-connections
 
 # Don't start the listening process until we're a bit more sure that the

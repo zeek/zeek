@@ -1657,6 +1657,44 @@ function global_ids%(%): id_table
 	return ids;
 	%}
 
+function record_fields%(rec: any%): record_field_table
+	%{
+	TableVal* fields = new TableVal(record_field_table);
+
+	RecordVal* rv = rec->AsRecordVal();
+	RecordType* rt = rv->Type()->AsRecordType();
+
+	if ( rt->Tag() != TYPE_RECORD )
+		{
+		reporter->Error("non-record passed to record_fields");
+		return fields;
+		}
+
+	for ( int i = 0; i < rt->NumFields(); ++i )
+		{
+		BroType* ft = rt->FieldType(i);
+		TypeDecl* fd = rt->FieldDecl(i);
+		Val* fv = rv->Lookup(i);
+
+		if ( fv )
+			Ref(fv);
+
+		bool logged = (fd->attrs && fd->FindAttr(ATTR_LOG) != 0);
+
+		RecordVal* nr = new RecordVal(record_field);
+		nr->Assign(0, new StringVal(type_name(rt->Tag())));
+		nr->Assign(1, new Val(logged, TYPE_BOOL));
+		nr->Assign(2, fv);
+		nr->Assign(3, rt->FieldDefault(i));
+
+		Val* field_name = new StringVal(rt->FieldName(i));
+		fields->Assign(field_name, nr);
+		Unref(field_name);
+		}
+
+	return fields;
+	%}
+
 %%{
 #include "Anon.h"
 %%}
@@ -3410,7 +3448,7 @@ function x509_verify%(der_cert: string, cert_stack: string_vec, root_certs: tabl
 	BroString* s = convert_index_to_string(root_certs);
 	if ( x509_stores.count(*s) > 0 )
 		ctx = x509_stores[*s];
-	
+
 	if ( ! ctx ) // lookup to see if we have this one built already!
 		{
 		ctx = X509_STORE_new();
@@ -3437,7 +3475,7 @@ function x509_verify%(der_cert: string, cert_stack: string_vec, root_certs: tabl
 		x509_stores[*s] = ctx;
 		}
 	delete s;
-	
+
 	const uint8 *cert_data = der_cert->Bytes();
 	X509* cert = d2i_X509_(NULL, &cert_data, der_cert->Len());
 	if ( ! cert )

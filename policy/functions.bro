@@ -1,3 +1,3 @@
 @load site
-@load dpd
+@load frameworks/dpd
 

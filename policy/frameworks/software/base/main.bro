@@ -4,8 +4,7 @@
 ##! that they analyze.  The entry point for providing new software detections
 ##! to this framework is through the :bro:id:`Software::found` function.
 
-@load functions
-@load notice
+@load frameworks/notice
 @load utils/directions-and-hosts
 @load utils/numbers
 

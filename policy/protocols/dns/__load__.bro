@@ -1,3 +1,1 @@
-@load dns/consts
-@load dns/base
-@load dns/detect
+@load protocols/dns/base

@@ -7,7 +7,7 @@
 @load notice
 @load signatures
 
-redef signature_files += "http/file-ident.sig";
+redef signature_files += "protocols/http/file-ident.sig";
 # Ignore the signatures used to match files
 redef Signatures::ignored_ids += /^matchfile-/;
 

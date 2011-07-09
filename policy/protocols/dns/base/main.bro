@@ -1,5 +1,4 @@
-@load functions
-@load dns/consts
+@load protocols/dns/base/consts
 
 module DNS;
 

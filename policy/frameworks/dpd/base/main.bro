@@ -1,13 +1,12 @@
 ##! Activates port-independent protocol detection and selectively disables
 ##! analyzers if protocol violations occur.
 
-@load functions
-@load signatures
+@load frameworks/signatures
 
 module DPD;
 
 ## Add the DPD signatures to the signature framework.
-redef signature_files += "frameworks/dpd/dpd.sig";
+redef signature_files += "frameworks/dpd/base/dpd.sig";
 
 export {
 	redef enum Log::ID += { DPD };

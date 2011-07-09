@@ -286,7 +286,7 @@ bool PersistenceSerializer::SendState(SourceID peer, bool may_suspend)
 	status->conns = &persistent_conns;
 	status->peer = peer;
 
-	reporter->Message("Sending state...");
+	reporter->Info("Sending state...");
 
 	return RunSerialization(status);
 	}
@@ -301,7 +301,7 @@ bool PersistenceSerializer::SendConfig(SourceID peer, bool may_suspend)
 	status->ids = global_scope()->GetIDs();
 	status->peer = peer;
 
-	reporter->Message("Sending config...");
+	reporter->Info("Sending config...");
 
 	return RunSerialization(status);
 	}

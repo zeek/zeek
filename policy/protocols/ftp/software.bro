@@ -6,8 +6,8 @@
 ##! * Detect client software with password given for anonymous users
 ##!   (e.g. cyberduck@example.net)
 
-@load ftp/base
-@load software
+@load protocols/ftp
+@load frameworks/software
 
 module FTP;
 

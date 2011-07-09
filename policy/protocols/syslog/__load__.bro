@@ -1,1 +1,2 @@
-@load syslog/base
+@load protocols/syslog/consts
+@load protocols/syslog/base

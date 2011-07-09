@@ -4,7 +4,7 @@
 ##! open filter and all filters defined in Bro scripts with the
 ##! :bro:id:`capture_filters` and :bro:id:`restrict_filters` variables.
 
-@load notice
+@load frameworks/notice
 
 module PacketFilter;
 

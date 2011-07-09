@@ -5,14 +5,14 @@
 
 event bro_init()
 {
-    Reporter::message("init test-message");
+    Reporter::info("init test-info");
     Reporter::warning("init test-warning");
     Reporter::error("init test-error");
 }
 
 event bro_done()
 {
-    Reporter::message("done test-message");
+    Reporter::info("done test-info");
     Reporter::warning("done test-warning");
     Reporter::error("done test-error");
 }
@@ -26,7 +26,7 @@ event connection_established(c: connection)
 
     print "established";
     
-    Reporter::message("processing test-message");
+    Reporter::info("processing test-info");
     Reporter::warning("processing test-warning");
     Reporter::error("processing test-error");
     first = 0;
@@ -34,9 +34,9 @@ event connection_established(c: connection)
 
 global f = open_log_file("logger-test");
 
-event reporter_message(t: time, msg: string, location: string)
+event reporter_info(t: time, msg: string, location: string)
 	{
-    print f, fmt("reporter_message|%s|%s|%.6f", msg, location, t);
+    print f, fmt("reporter_info|%s|%s|%.6f", msg, location, t);
     }
 
 event reporter_warning(t: time, msg: string, location: string)
@@ -49,7 +49,7 @@ event reporter_error(t: time, msg: string, location: string)
     print f, fmt("reporter_error|%s|%s|%.6f", msg, location, t);
     }
 
-Reporter::message("pre test-message");
+Reporter::info("pre test-info");
 Reporter::warning("pre test-warning");
 Reporter::error("pre test-error");
 

@@ -18,6 +18,6 @@
 @load frameworks/reporter
 @load frameworks/cluster
 
-@load detectors/http-MHR
-
 @load tuning/defaults
+
+@load support/loaded-scripts

@@ -1,6 +1,6 @@
 ##! File extraction for FTP.
 
-@load ftp/base
+@load protocols/ftp
 @load utils/conn_ids
 @load utils/files
 

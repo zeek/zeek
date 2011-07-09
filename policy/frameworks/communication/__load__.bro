@@ -1,1 +1,1 @@
-@load communication/base
+@load frameworks/communication/base

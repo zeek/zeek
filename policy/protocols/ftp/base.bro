@@ -7,9 +7,6 @@
 ##!
 ##! * Handle encrypted sessions correctly (get an example?)
 
-@load functions
-@load ftp/utils-commands
-
 @load utils/paths
 @load utils/numbers
 

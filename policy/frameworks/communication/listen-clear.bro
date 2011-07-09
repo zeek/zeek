@@ -1,6 +1,6 @@
 ##! Listen for other Bro instances to make unencrypted connections.
 
-@load communication/base
+@load frameworks/communication/base
 
 module Communication;
 
@@ -13,7 +13,7 @@ export {
 	
 }
 
-event bro_init()
+event bro_init() &priority=-10
 	{
 	listen(listen_if_clear, listen_port_clear, F);
 	}

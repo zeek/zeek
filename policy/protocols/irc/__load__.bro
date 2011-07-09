@@ -1,2 +1,2 @@
-@load irc/base
-@load irc/dcc-send
+@load protocols/irc/base
+@load protocols/irc/dcc-send

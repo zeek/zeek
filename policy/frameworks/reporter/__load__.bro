@@ -1,1 +1,1 @@
-@load frameworks/reporter/main
+@load frameworks/reporter/base

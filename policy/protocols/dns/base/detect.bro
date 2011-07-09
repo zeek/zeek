@@ -8,8 +8,7 @@
 ##!     to be within a local zone.  :bro:id:`local_zones` variable **must**
 ##!     be set appropriately for this detection.
 
-@load dns/base
-@load notice
+@load frameworks/notice
 
 module DNS;
 

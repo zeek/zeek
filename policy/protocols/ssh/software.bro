@@ -1,5 +1,5 @@
-@load ssh/base
-@load software
+@load protocols/ssh
+@load frameworks/software
 
 module SSH;
 

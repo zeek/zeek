@@ -2695,7 +2695,7 @@ bool TableVal::DoSerialize(SerialInfo* info) const
 			{
 			info->cont.SaveState(state);
 			info->cont.Suspend();
-			reporter->Message("TableVals serialization suspended right in the middle.");
+			reporter->Info("TableVals serialization suspended right in the middle.");
 			return true;
 			}
 		}
@@ -2935,11 +2935,7 @@ Val* RecordVal::LookupWithDefault(int field) const
 	if ( val )
 		return val->Ref();
 
-	// Check for &default.
-	const Attr* def_attr =
-		record_type->FieldDecl(field)->attrs->FindAttr(ATTR_DEFAULT);
-
-	return def_attr ? def_attr->AttrExpr()->Eval(0) : 0;
+	return record_type->FieldDefault(field);
 	}
 
 RecordVal* RecordVal::CoerceTo(const RecordType* t, Val* aggr) const

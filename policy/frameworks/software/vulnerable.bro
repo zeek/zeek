@@ -1,5 +1,5 @@
-@load software/base
-@load notice
+@load frameworks/software
+@load frameworks/notice
 
 module Software;
 

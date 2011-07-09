@@ -1,7 +1,7 @@
 ##! Connect to remote Bro or Broccoli instances to share state and/or transfer
 ##! events.
 
-@load packet-filter
+@load frameworks/packet-filter
 
 module Communication;
 
@@ -17,9 +17,9 @@ export {
 
 	type Info: record {
 		ts:           time   &log;
+		peer:         string &log &optional;
 		level:        string &log &optional;
 		src_name:     string &log &optional;
-		peer:         string &log &optional;
 		msg:          string &log;
 	};
 

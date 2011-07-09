@@ -251,6 +251,8 @@ extern int record_all_packets;
 
 extern RecordType* script_id;
 extern TableType* id_table;
+extern RecordType* record_field;
+extern TableType* record_field_table;
 
 extern StringVal* cmd_line_bpf_filter;
 

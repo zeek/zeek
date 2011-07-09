@@ -2,27 +2,29 @@
 ##! consts to a remote Bro then sends the :bro:id:`configuration_update` event
 ##! and terminates processing.
 ##!
-##! Intended to be used from the command line as in:
-##!     bro Cluster::config_node=<node> <scripts> frameworks/cluster/send-config
+##! Intended to be used from the command line like this:
+##!     bro Remote::config_node=<node> <scripts> support/remote/send-config
 ##! 
-##! The :bro:id:`config_node` value should contain the node name of one of the
-##! nodes of the configured cluster.
+##! The :bro:id:`Remote::config_node` value should contain the node name of one of the
+##! nodes of the configured communications.
 
 @load frameworks/communication
-@load frameworks/cluster
+@load support/remote
 
-module Cluster;
+module Remote;
 
 export {
-	## This is the name of the node configured in the cluster that the
-	## updated configuration should be sent to.
+	## This is the name of the node configured in the communication framework
+	## that you want to send new variables to.
 	const config_node = "" &redef;
 
 	## Variable IDs that are to be ignored by the update process.
 	const ignore_ids: set[string] = {
-		"Communication::nodes",
-		"Cluster::config_node"
+		# TODO: Bro crashes if it tries to send this ID.
+		"Log::rotation_control",
 	};
+	
+	## 
 }
 
 event terminate_event()
@@ -51,11 +53,11 @@ event remote_connection_handshake_done(p: event_peer)
 		# We don't want to update non-const globals because that's usually
 		# where state is stored and those values will frequently be declared
 		# with &redef so that attributes can be redefined.
-		if ( ! t$redefinable || ! t$constant )
-			next;
-
-		send_id(p, id);
-		++cnt;
+		if ( t$constant && t$redefinable )
+			{
+			send_id(p, id);
+			++cnt;
+			}
 		}
 
 	print fmt("sent %d IDs", cnt);
@@ -70,39 +72,21 @@ event remote_connection_handshake_done(p: event_peer)
 	event terminate_event();
 	}
 
-function make_dest(tag: string, ip: addr, p: port)
+event bro_init() &priority=-3
 	{
-	Communication::nodes[fmt("%s-update", tag)] 
-		= [$host=ip, $p=p, $sync=F, $class="update"];
-	}
-
-# This handler is executed after the other bro_inits() so that we can
-# actually delete all previous destinations and fill the table ourselves.
-event bro_init() &priority=-1
-	{
-	clear_table(Communication::nodes);
-
-	for ( n in workers ) 
-		make_dest(workers[n]$tag, workers[n]$ip, workers[n]$p);
-
-	for ( n in proxies ) 
-		make_dest(proxies[n]$tag, proxies[n]$ip, proxies[n]$p);
-
-	make_dest(manager$tag, manager$ip, manager$p);
-	}
-
-event bro_init() &priority=-2
-	{
+	if ( config_node == "" )
+		return;
+	
 	if ( config_node !in Communication::nodes )
 		{
-		if ( config_node == "" )
-			print "You must supply a value to the Cluster::config_node variable.";
-		else
-			print fmt("Unknown peer '%s'", config_node);
+		print fmt("Unknown peer '%s'", config_node);
 		terminate();
 		return;
 		}
 
-	Communication::connect_peer(config_node);
+	local n = Communication::nodes[config_node];
+	n$connect=T;
+	n$sync=F;
+	n$class="control";
+	Communication::nodes = table(["control"] = n);
 	}
-

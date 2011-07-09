@@ -1,3 +1,3 @@
-@load signatures/base
+@load frameworks/signatures/base
 
-redef signature_files += "signatures/detect-windows-shells.sig";
+redef signature_files += "frameworks/signatures/detect-windows-shells.sig";

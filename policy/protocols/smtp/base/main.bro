@@ -1,8 +1,4 @@
-@load functions
-@load notice
-@load software
-
-@load smtp/detect
+@load frameworks/notice
 @load utils/addrs
 
 module SMTP;
@@ -12,11 +8,9 @@ export {
 
 	redef enum Notice::Type += { 
 		## Indicates that the server sent a reply mentioning an SMTP block list.
-		SMTP_BL_Error_Message, 
+		BL_Error_Message, 
 		## Indicates the client's address is seen in the block list error message.
-		SMTP_BL_Blocked_Host, 
-		## When mail seems to originate from a suspicious location.
-		SMTP_Suspicious_Origination,
+		BL_Blocked_Host, 
 	};
 
 	type Info: record {
@@ -69,6 +63,25 @@ export {
 	##    ALL_HOSTS - always capture the entire path.
 	##    NO_HOSTS - never capture the path.
 	const mail_path_capture = ALL_HOSTS &redef;
+	
+	# This matches content in SMTP error messages that indicate some
+	# block list doesn't like the connection/mail.
+	const bl_error_messages = 
+	    /spamhaus\.org\//
+	  | /sophos\.com\/security\//
+	  | /spamcop\.net\/bl/
+	  | /cbl\.abuseat\.org\// 
+	  | /sorbs\.net\// 
+	  | /bsn\.borderware\.com\//
+	  | /mail-abuse\.com\//
+	  | /b\.barracudacentral\.com\//
+	  | /psbl\.surriel\.com\// 
+	  | /antispam\.imp\.ch\// 
+	  | /dyndns\.com\/.*spam/
+	  | /rbl\.knology\.net\//
+	  | /intercept\.datapacket\.net\//
+	  | /uceprotect\.net\//
+	  | /hostkarma\.junkemailfilter\.com\// &redef;
 	
 	global log_smtp: event(rec: Info);
 	
@@ -195,7 +208,7 @@ event smtp_reply(c: connection, is_orig: bool, code: count, cmd: string,
 		# Raise a notice when an SMTP error about a block list is discovered.
 		if ( bl_error_messages in msg )
 			{
-			local note = SMTP_BL_Error_Message;
+			local note = BL_Error_Message;
 			local message = fmt("%s received an error message mentioning an SMTP block list", c$id$orig_h);
 
 			# Determine if the originator's IP address is in the message.
@@ -203,7 +216,7 @@ event smtp_reply(c: connection, is_orig: bool, code: count, cmd: string,
 			local text_ip = "";
 			if ( |ips| > 0 && to_addr(ips[0]) == c$id$orig_h )
 				{
-				note = SMTP_BL_Blocked_Host;
+				note = BL_Blocked_Host;
 				message = fmt("%s is on an SMTP block list", c$id$orig_h);
 				}
 			

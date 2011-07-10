@@ -1133,6 +1133,7 @@ uint64 calculate_unique_id()
 				int rnd;
 			} unique;
 
+			memset(&unique, 0, sizeof(unique)); // Make valgrind happy.
 			gethostname(unique.hostname, 128);
 			unique.hostname[sizeof(unique.hostname)-1] = '\0';
 			gettimeofday(&unique.time, 0);

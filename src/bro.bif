@@ -1827,7 +1827,9 @@ BroString* convert_index_to_string(Val* index)
 	{
 	ODesc d;
 	index->Describe(&d);
-	return new BroString(1, d.TakeBytes(), d.Len());
+	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
+	s->SetUseFreeToDelete(1);
+	return s;
 	}
 %%}
 

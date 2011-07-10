@@ -1028,7 +1028,7 @@ Contents_DNS::Contents_DNS(Connection* conn, bool orig,
 
 Contents_DNS::~Contents_DNS()
 	{
-	delete msg_buf;
+	free(msg_buf);
 	}
 
 void Contents_DNS::Flush()

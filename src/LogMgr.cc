@@ -1039,6 +1039,11 @@ LogVal* LogMgr::ValToLogVal(Val* val, BroType* ty)
 	case TYPE_TABLE:
 		{
 		ListVal* set = val->AsTableVal()->ConvertToPureList();
+		if ( ! set )
+			// ConvertToPureList has reported an internal warning
+			// already. Just keep going by making something up.
+			set = new ListVal(TYPE_INT);
+
 		lval->val.set_val.size = set->Length();
 		lval->val.set_val.vals = new LogVal* [lval->val.set_val.size];
 

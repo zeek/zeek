@@ -282,9 +282,15 @@ type ReadInputDiscretesResponse(len: uint16) = record {
 	bits: bytestring &length = byteCount;
 };
 
+#Hui Lin
+
+type RRegister_Unit = record { rru: uint16; };
+
 type ReadInputRegistersResponse(len: uint16) = record {
 	byteCount: uint8;
-	registers: uint16[registerCount] &length = byteCount;
+	#registers: uint16[registerCount] &length = byteCount;
+	#Hui Lin
+	registers: RRegister_Unit[registerCount] &length = byteCount;
 } &let {
 	registerCount = byteCount/2;
 };
@@ -329,14 +335,21 @@ type MaskWriteRegisterResponse(len: uint16) = record {
 
 type ReadWriteRegistersResponse(len: uint16) = record {
 	byteCount: uint8;
-	registerValues: uint16[registerCount] &length = byteCount;
+	#registerValues: uint16[registerCount] &length = byteCount;
+	# Hui Lin	
+	registerValues: RegisterValueUnit[registerCount] &length = byteCount;
 } &length = len, &let {
 	registerCount = byteCount / 2;
 };
 
+# Hui Lin
+type RRegisterDataUnit =  record { rrdu: uint16; };
+
 type ReadFIFOQueueResponse(len: uint16) = record {
 	byteCount: uint16 &check(byteCount <= 64);
 	wordCount: uint16 &check(wordCount <= 31);
-	registerData: uint16[wordCount] &length = byteCount; 
+	#registerData: uint16[wordCount] &length = byteCount; 
+	# Hui Lin
+	registerData: RRegisterDataUnit[wordCount] &length = byteCount; 
 } &length = len;
 

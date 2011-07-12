@@ -20,4 +20,4 @@
 
 @load tuning/defaults
 
-@load support/loaded-scripts
+@load misc/loaded-scripts

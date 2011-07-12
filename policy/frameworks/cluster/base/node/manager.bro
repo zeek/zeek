@@ -9,14 +9,8 @@
 ##! This is where the cluster manager sets it's specific settings for other
 ##! frameworks and in the core.
 
-## Set the port that the manager is supposed to listen on.
-redef Communication::listen_port_clear = Cluster::nodes[Cluster::node]$p;
-
 ## Turn off remote logging since this is the manager and should only log here.
 redef Log::enable_remote_logging = F;
-
-## Make the logging framework's default log rotation 1 hour.
-redef Log::default_rotation_interval = 1hr;
 
 ## Use the cluster's archive logging script.
 redef Log::default_rotation_postprocessor = "archive-log";
@@ -24,13 +18,8 @@ redef Log::default_rotation_postprocessor = "archive-log";
 ## The cluster manager does not capture packets.
 redef interfaces = "";
 
-## Set the name for the manager.
-redef peer_description = Cluster::node;
-
 ## We're processing essentially *only* remote events.
 redef max_remote_events_processed = 10000;
-
-module Cluster;
 
 # Reraise remote notices locally.
 event Notice::notice(n: Notice::Info)

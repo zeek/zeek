@@ -59,6 +59,12 @@ export {
 	const node = getenv("CLUSTER_NODE") &redef;
 }
 
+# Give the node being started up it's peer name.
+redef peer_description = Cluster::node;
+
+## Set the port that this node is supposed to listen on.
+redef Communication::listen_port_clear = Cluster::nodes[Cluster::node]$p;
+
 event bro_init()
 	{
 	if ( node != "" && node !in nodes )

@@ -1,13 +1,12 @@
 ##! This script is involved in the identification of file types in HTTP
 ##! response bodies.
 
-@load http/base
-@load http/utils
+@load protocols/http
 
-@load notice
-@load signatures
+@load frameworks/notice
+@load frameworks/signatures
 
-redef signature_files += "protocols/http/file-ident.sig";
+redef signature_files += "protocols/http/base/file-ident.sig";
 # Ignore the signatures used to match files
 redef Signatures::ignored_ids += /^matchfile-/;
 

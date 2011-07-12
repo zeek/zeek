@@ -1,7 +1,7 @@
 ##! Intelligence based HTTP detections.
 
-@load intel
-@load http/utils
+@load frameworks/intel
+@load protocols/http/base/utils
 
 module HTTP;
 

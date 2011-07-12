@@ -15,7 +15,6 @@
 # @TEST-EXEC: bro -r $TRACES/wikipedia.trace %INPUT KnownHosts::asset_tracking=NO_HOSTS
 # @TEST-EXEC: test '!' -e known_hosts.log
 
-@load conn/known-hosts
-@load site
+@load protocols/conn
 
 redef Site::local_nets += {141.142.0.0/16};

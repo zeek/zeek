@@ -1,23 +1,23 @@
 #
 # In "normal" test mode, connection uids should be determistic.
 #
-# @TEST-EXEC: bro -C -r $TRACES/wikipedia.trace %INPUT conn >output
+# @TEST-EXEC: bro -C -r $TRACES/wikipedia.trace %INPUT protocols/conn >output
 # @TEST-EXEC: btest-diff output
 #
 # Without a seed, they should differ each time:
 #
-# @TEST-EXEC: unset BRO_SEED_FILE &&  bro -C -r $TRACES/wikipedia.trace %INPUT conn >output2
+# @TEST-EXEC: unset BRO_SEED_FILE &&  bro -C -r $TRACES/wikipedia.trace %INPUT protocols/conn >output2
 # @TEST-EXEC: cat output output2 | sort | uniq -c | wc -l | sed 's/ //g' >counts
 # @TEST-EXEC: btest-diff counts
 #
 # Make sure it works without the connection compressor as well.
 #
-# @TEST-EXEC: bro -C -r $TRACES/wikipedia.trace %INPUT conn use_connection_compressor=F >output.cc
+# @TEST-EXEC: bro -C -r $TRACES/wikipedia.trace %INPUT protocols/conn use_connection_compressor=F >output.cc
 # @TEST-EXEC: btest-diff output.cc
 #
 # Make sure it works with the full connection compressor as well.
 #
-# @TEST-EXEC: bro -C -r $TRACES/wikipedia.trace %INPUT conn cc_handle_only_syns=F >output.cc2
+# @TEST-EXEC: bro -C -r $TRACES/wikipedia.trace %INPUT protocols/conn cc_handle_only_syns=F >output.cc2
 # @TEST-EXEC: btest-diff output.cc2
 
 

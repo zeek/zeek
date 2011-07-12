@@ -4,8 +4,6 @@
 
 module SSH;
 
-@load logging
-
 export {
 	# Create a new ID for our log stream
 	redef enum Log::ID += { SSH };

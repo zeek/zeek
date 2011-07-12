@@ -1,7 +1,5 @@
 ##! Utilities specific for HTTP processing.
 
-@load http/base
-
 module HTTP;
 
 export {

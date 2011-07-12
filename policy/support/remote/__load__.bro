@@ -1,1 +1,0 @@
-@load support/remote/events

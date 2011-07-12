@@ -2,7 +2,7 @@
 # @TEST-EXEC: bro %INPUT >out
 # @TEST-EXEC: btest-diff out
 
-@load intel
+@load frameworks/intel
 
 event bro_init()
 	{

@@ -1,2 +1,2 @@
-@load ssh/base
-@load ssh/software
+@load protocols/ssh/base
+@load protocols/ssh/software

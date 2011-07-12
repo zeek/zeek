@@ -16,8 +16,8 @@
 
 @TEST-START-FILE sender.bro
 
-@load http/base
-@load communication/listen-ssl
+@load protocols/http
+@load frameworks/communication/listen-ssl
 
 event bro_init()
     {
@@ -41,8 +41,8 @@ redef ssl_passphrase = "my-password";
 
 @TEST-START-FILE receiver.bro
 
-@load http/base
-@load communication
+@load protocols/http
+@load frameworks/communication
 
 event bro_init()
     {

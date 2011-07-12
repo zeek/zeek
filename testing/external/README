@@ -30,15 +30,15 @@ Running Tests
 -------------
 
 The easiest way to run all tests is simply typing ``make``. Doing so
-will iterate through all ``*.git`` repositories and run ``btest`` in
-each of them.
+will iterate through all git repositories found in the current
+directory and run ``btest`` in each of them.
 
 Alternatively, one can also manually run all tests inside a single
 test repository:
 
 .. console:
 
-    > cd bro-testing.git
+    > cd bro-testing
     > btest
 
 All the standard ``btest`` options can be used to run individual
@@ -51,7 +51,7 @@ To update a test's baseline, first run ``btest`` in update mode:
 
 .. console:
 
-    > cd bro-testing.git
+    > cd bro-testing
     > btest -U tests/test-you-want-to-update
 
 Then use ``git`` to commit the changes and push the changes upstream
@@ -69,13 +69,13 @@ public one. A helper script is provided to set up such a repository:
     > ./scripts/create-new-repo <repo-name> <repo-url>
 
 The first argument is the local name of the repository (it will be
-cloned into ``<repo-name>.git``); and then second is the path to the
-git repository. The repository will be initialized with a few standard
-directories as well as a skeleton test in ``<name>.git/tests``. You
+cloned into ``<repo-name>``); and then second is the path to the git
+repository. The repository will be initialized with a few standard
+directories as well as a skeleton test in ``<name>/tests``. You
 can then edit files as needed (and in particular add traces to
-``<name>.git/traces``).
+``<name>/traces``).
 
 If you already have such a private test repository that you want to
 include into the test suite, clone it directly into
-``<repo-name>.git``.
+``<repo-name>``.
 

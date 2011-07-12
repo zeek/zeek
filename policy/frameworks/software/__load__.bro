@@ -1,2 +1,1 @@
-@load software/base
-@load software/vulnerable
+@load frameworks/software/base

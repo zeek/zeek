@@ -448,6 +448,7 @@ public:
 	int HasField(const char* field) const;
 	BroType* FieldType(const char* field) const;
 	BroType* FieldType(int field) const;
+	Val* FieldDefault(int field) const; // Ref's the returned value; 0 if none.
 
 	// A field's offset is its position in the type_decl_list,
 	// starting at 0.  Returns negative if the field doesn't exist.

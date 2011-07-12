@@ -1,6 +1,6 @@
 ##! This script reports on packet loss from the various packet sources.
 
-@load notice
+@load frameworks/notice
 
 module PacketFilter;
 

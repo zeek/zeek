@@ -133,7 +133,7 @@ function modify()
 	foo2 = 1234567;
 }
 
-@load communication/listen-clear
+@load frameworks/communication/listen-clear
 
 event remote_connection_handshake_done(p: event_peer)
 	{
@@ -151,7 +151,7 @@ redef Communication::nodes += {
 
 @TEST-START-FILE receiver.bro
 
-@load communication
+@load frameworks/communication
 
 event bro_init()
     {

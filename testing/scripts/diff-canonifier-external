@@ -1,0 +1,5 @@
+#! /usr/bin/env bash
+#
+# Default canonifier used with the trace-based tests in testing/external/*.
+
+`dirname $0`/diff-remove-timestamps | `dirname $0`/diff-remove-uids

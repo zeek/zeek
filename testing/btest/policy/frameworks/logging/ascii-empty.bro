@@ -2,7 +2,7 @@
 # @TEST-EXEC: bro %INPUT
 # @TEST-EXEC: btest-diff ssh.log
 
-@load logging/plugins/ascii
+@load frameworks/logging/plugins/ascii
 
 redef LogAscii::output_to_stdout = F;
 redef LogAscii::separator = "|";

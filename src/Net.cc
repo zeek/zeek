@@ -71,6 +71,7 @@ double current_timestamp = 0.0;
 PktSrc* current_pktsrc = 0;
 IOSource* current_iosrc;
 
+std::list<ScannedFile> files_scanned;
 
 RETSIGTYPE watchdog(int /* signo */)
 	{
@@ -537,7 +538,7 @@ void net_get_final_stats()
 			{
 			struct PktSrc::Stats s;
 			ps->Statistics(&s);
-			reporter->Message("%d packets received on interface %s, %d dropped\n",
+			reporter->Info("%d packets received on interface %s, %d dropped\n",
 					s.received, ps->Interface(), s.dropped);
 			}
 		}
@@ -611,7 +612,7 @@ static double suspend_start = 0;
 void net_suspend_processing()
 	{
 	if ( _processing_suspended == 0 )
-		reporter->Message("processing suspended");
+		reporter->Info("processing suspended");
 
 	++_processing_suspended;
 	}
@@ -620,7 +621,7 @@ void net_continue_processing()
 	{
 	if ( _processing_suspended == 1 )
 		{
-		reporter->Message("processing continued");
+		reporter->Info("processing continued");
 		loop_over_list(pkt_srcs, i)
 			pkt_srcs[i]->ContinueAfterSuspend();
 		}

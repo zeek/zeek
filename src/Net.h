@@ -90,4 +90,18 @@ extern PktDumper* pkt_dumper;	// where to save packets
 
 extern char* writefile;
 
+// Script file we have already scanned (or are in the process of scanning).
+// They are identified by inode number.
+struct ScannedFile {
+    ino_t inode;
+    int include_level;
+    string name;
+
+    ScannedFile(ino_t arg_inode, int arg_include_level, string arg_name)
+        : inode(arg_inode), include_level(arg_include_level), name(arg_name)
+	{ }
+};
+
+extern std::list<ScannedFile> files_scanned;
+
 #endif

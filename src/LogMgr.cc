@@ -384,6 +384,8 @@ LogMgr::Filter::~Filter()
 	for ( int i = 0; i < num_fields; ++i )
 		delete fields[i];
 
+	free(fields);
+
 	Unref(path_val);
 	}
 
@@ -991,7 +993,6 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 		DBG_LOG(DBG_LOGGING, "Wrote record to filter '%s' on stream '%s'",
 			filter->name.c_str(), stream->name.c_str());
 #endif
-		
 		}
 
 	Unref(columns);
@@ -1076,6 +1077,11 @@ LogVal* LogMgr::ValToLogVal(Val* val, BroType* ty)
 	case TYPE_TABLE:
 		{
 		ListVal* set = val->AsTableVal()->ConvertToPureList();
+		if ( ! set )
+			// ConvertToPureList has reported an internal warning
+			// already. Just keep going by making something up.
+			set = new ListVal(TYPE_INT);
+
 		lval->val.set_val.size = set->Length();
 		lval->val.set_val.vals = new LogVal* [lval->val.set_val.size];
 
@@ -1083,6 +1089,7 @@ LogVal* LogMgr::ValToLogVal(Val* val, BroType* ty)
 			lval->val.set_val.vals[i] = ValToLogVal(set->Index(i));
 		delete set;
 
+		Unref(set);
 		break;
 		}
 

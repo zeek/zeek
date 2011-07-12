@@ -1,4 +1,4 @@
-@load notice
+@load frameworks/notice
 @load utils/thresholds
 
 module SSH;

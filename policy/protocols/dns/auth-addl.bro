@@ -1,4 +1,4 @@
-@load dns/base
+@load protocols/dns/base
 
 # TODO: remove these when the options are removed from the core analyzers.
 redef dns_skip_all_auth = F;

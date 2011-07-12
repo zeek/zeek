@@ -364,7 +364,7 @@ char* uitoa_n(uint64 value, char* str, int n, int base, const char* prefix)
 		i += strlen(prefix);
 		}
 
-	if ( i >= n )
+	if ( i >= n - 1 )
 		return str;
 
 	v = value;
@@ -756,9 +756,6 @@ const char* bro_path()
 	if ( ! path )
 		path = ".:"
 			POLICYDEST ":"
-			POLICYDEST "/detectors:"
-			POLICYDEST "/frameworks:"
-			POLICYDEST "/protocols:"
 			POLICYDEST "/site";
 
 	return path;
@@ -1136,6 +1133,7 @@ uint64 calculate_unique_id()
 				int rnd;
 			} unique;
 
+			memset(&unique, 0, sizeof(unique)); // Make valgrind happy.
 			gethostname(unique.hostname, 128);
 			unique.hostname[sizeof(unique.hostname)-1] = '\0';
 			gettimeofday(&unique.time, 0);

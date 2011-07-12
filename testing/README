@@ -11,3 +11,5 @@ operation:
         size, these are not included directly. See the README for more
         information. 
 
+    scripts/
+        Helpers scripts used by some tests.

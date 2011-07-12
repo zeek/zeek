@@ -35,11 +35,11 @@ Reporter::~Reporter()
 	closelog();
 	}
 
-void Reporter::Message(const char* fmt, ...)
+void Reporter::Info(const char* fmt, ...)
 	{
 	va_list ap;
 	va_start(ap, fmt);
-	DoLog("", reporter_message, stderr, 0, 0, true, true, fmt, ap);
+	DoLog("", reporter_info, stderr, 0, 0, true, true, fmt, ap);
 	va_end(ap);
 	}
 

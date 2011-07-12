@@ -1,5 +1,5 @@
-@load ftp/base
-@load notice
+@load protocols/ftp
+@load frameworks/notice
 
 module FTP;
 

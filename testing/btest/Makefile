@@ -1,14 +1,13 @@
 
+DIAG=diag.log
+BTEST=../../aux/btest/btest
+
 all:
     # Showing all tests.
-	@btest
+	@rm -f $(DIAG)
+	@$(BTEST) -f $(DIAG)
 
 brief:
     # Brief output showing only failed tests.
-	@btest -b
-
-brief-debug:
-    # Verbose output for failed tests, also recorded in test.log.
-	@rm -f test.log
-	@btest -b -d -f test.log
-	@echo Output in test.log
+	@rm -f $(DIAG)
+	@$(BTEST) -b -f $(DIAG)

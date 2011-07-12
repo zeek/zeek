@@ -8,7 +8,7 @@ LogWriter::LogWriter()
 	buf = 0;
 	buf_len = 1024;
 	buffering = true;
-	disabled = false;
+	this->start();
 	}
 
 LogWriter::~LogWriter()
@@ -27,12 +27,7 @@ bool LogWriter::Init(string arg_path, int arg_num_fields,
 	num_fields = arg_num_fields;
 	fields = arg_fields;
 
-	if ( ! DoInit(arg_path, arg_num_fields, arg_fields) )
-		{
-		disabled = true;
-		return false;
-		}
-
+	putMessage(new InitMessage(arg_path, arg_num_fields, arg_fields));
 	return true;
 	}
 
@@ -58,59 +53,37 @@ bool LogWriter::Write(int arg_num_fields, LogVal** vals)
 			}
 		}
 
-	bool result = DoWrite(num_fields, fields, vals);
+	putMessage(new WriteMessage(num_fields, fields, vals));
 
-	DeleteVals(vals);
-
-	if ( ! result )
-		disabled = true;
-
-	return result;
+	return true;
 	}
 
 bool LogWriter::SetBuf(bool enabled)
 	{
-	if ( enabled == buffering )
-		// No change.
-		return true;
-
-	buffering = enabled;
-
-	if ( ! DoSetBuf(enabled) )
-		{
-		disabled = true;
-		return false;
-		}
-
+	putMessage(new BufferMessage(enabled));
 	return true;
 	}
 
 bool LogWriter::Rotate(string rotated_path, string postprocessor, double open,
 		       double close, bool terminating)
 	{
-	if ( ! DoRotate(rotated_path, postprocessor, open, close, terminating) )
+	putMessage(new RotateMessage(rotated_path, postprocessor, open, close, terminating));
+	if(terminating)
 		{
-		disabled = true;
-		return false;
+		Finish();
 		}
-
 	return true;
 	}
 
 bool LogWriter::Flush()
 	{
-	if ( ! DoFlush() )
-		{
-		disabled = true;
-		return false;
-		}
-
+	putMessage(new FlushMessage());
 	return true;
 	}
 
 void LogWriter::Finish()
 	{
-	DoFinish();
+	putMessage(new FinishMessage());
 	}
 
 const char* LogWriter::Fmt(const char* format, ...)
@@ -146,6 +119,7 @@ void LogWriter::DeleteVals(LogVal** vals)
 	{
 	for ( int i = 0; i < num_fields; i++ )
 		delete vals[i];
+	delete[] vals;
 	}
 
 bool LogWriter::RunPostProcessor(string fname, string postprocessor,

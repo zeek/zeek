@@ -93,6 +93,7 @@ FindRequiredPackage(BISON)
 FindRequiredPackage(PCAP)
 FindRequiredPackage(OpenSSL)
 FindRequiredPackage(BIND)
+# FindRequiredPackage(ZeroMQ)    # Not used for now, but don't think it's been totally discounted yet.
 
 if (NOT BinPAC_ROOT_DIR AND
     EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/aux/binpac/CMakeLists.txt)

@@ -9,6 +9,7 @@
 #include "EventHandler.h"
 #include "RemoteSerializer.h"
 #include "LogWriter.h"
+#include "ThreadSafeQueue.h"
 
 class SerializationFormat;
 

@@ -31,7 +31,8 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --enable-perftools     use Google's perftools
     --enable-cluster       install Broctl configured for cluster operation
                            (overridden by --disable-broctl)
-    --disable-broccoli     don't build or install the Broccoli library
+    --enable-dataseries    enable DataSeries log target (EXPERIMENTAL!)
+	--disable-broccoli     don't build or install the Broccoli library
     --disable-broctl       don't install Broctl
     --disable-auxtools     don't build or install auxilliary tools
 

@@ -16,8 +16,14 @@
 
 #include "LogMgr.h"
 #include "BroString.h"
+#include "ThreadSafeQueue.h"
+#include "BasicThread.h"
 
-class LogWriter {
+class LogWriter;
+
+class LogMessage : public bro::ThreadMessage <LogWriter *> { };
+
+class LogWriter : public bro::BasicThread< LogMessage*, LogWriter* > {
 public:
 	LogWriter();
 	virtual ~LogWriter();
@@ -90,9 +96,31 @@ protected:
 	virtual bool DoInit(string path, int num_fields,
 			    const LogField* const * fields) = 0;
 
+	class InitMessage : public LogMessage {
+	public:
+		InitMessage(const string p, const int nf, const LogField* const *f)
+		: path(p), num_fields(nf), fields(f) { }
+		bool execute(LogWriter *ref) { return ref->DoInit(path, num_fields, fields); }
+	private:
+		const string path;
+		const int num_fields;
+		const LogField* const* fields;
+	};
+
 	// Called once per log entry to record.
 	virtual bool DoWrite(int num_fields, const LogField* const * fields,
 			     LogVal** vals) = 0;
+
+	class WriteMessage : public LogMessage {
+	public:
+		WriteMessage(const int nf, const LogField* const *f, LogVal** v)
+		: num_fields(nf), fields(f), vals(v) { }
+		bool execute(LogWriter *ref) { bool res = ref->DoWrite(num_fields, fields, vals); ref->DeleteVals(vals); return res; }
+	private:
+		const int num_fields;
+		const LogField* const *fields;
+		LogVal **vals;
+	};
 
 	// Called when the buffering status for this writer is changed. If
 	// buffering is disabled, the writer should attempt to write out
@@ -106,12 +134,26 @@ protected:
 	// semantics (but must still return true in that case).
 	virtual bool DoSetBuf(bool enabled) = 0;
 
+	class BufferMessage : public LogMessage {
+	public:
+		BufferMessage(const bool e)
+		: enabled(e) { }
+		bool execute(LogWriter *ref) { return ref->DoSetBuf(enabled); }
+	private:
+		const bool enabled;
+	};
+
 	// Called to flush any currently buffered output.
 	//
 	// A writer may ignore flush requests if it doesn't fit with its
 	// semantics (but must still return true in that case).
 	virtual bool DoFlush() = 0;
 
+	class FlushMessage : public LogMessage {
+	public:
+		bool execute(LogWriter *ref) { return ref->DoFlush(); }
+	};
+	
 	// Called when a log output is to be rotated. Most directly this only
 	// applies to writers writing into files, which should then close the
 	// current file and open a new one.  However, a writer may also
@@ -141,10 +183,28 @@ protected:
 	virtual bool DoRotate(string rotated_path, string postprocessor,
 			      double open, double close, bool terminating) = 0;
 
+	class RotateMessage : public LogMessage {
+	public:
+		RotateMessage(const string p, const string pp, const double o, const double c, const bool t)
+		: rotated_path(p), postprocessor(p), open(o), close(c), terminating(t) { }
+		bool execute(LogWriter *ref) { return ref->DoRotate(rotated_path, postprocessor, open, close, terminating); }
+	private:
+		const string rotated_path;
+		const string postprocessor;
+		const double open;
+		const double close;
+		const bool terminating;
+	};
+
 	// Called once on termination. Not called when any of the other
 	// methods has previously signaled an error, i.e., executing this
 	// method signals a regular shutdown of the writer.
 	virtual void DoFinish() = 0;
+	
+	class FinishMessage : public LogMessage {
+	public:
+		bool execute(LogWriter *ref) { ref->DoFinish(); return true; }
+	};
 
 	//// Methods for writers to use. These are thread-safe.
 
@@ -166,11 +226,6 @@ protected:
 private:
 	friend class LogMgr;
 
-	// When an error occurs, we call this method to set a flag marking
-	// the writer as disabled. The LogMgr will check the flag later and
-	// remove the writer.
-	bool Disabled()	{ return disabled; }
-
 	// Deletes the values as passed into Write().
 	void DeleteVals(LogVal** vals);
 
@@ -178,7 +233,6 @@ private:
 	int num_fields;
 	const LogField* const * fields;
 	bool buffering;
-	bool disabled;
 
 	// For implementing Fmt().
 	char* buf;
@@ -186,3 +240,4 @@ private:
 };
 
 #endif
+

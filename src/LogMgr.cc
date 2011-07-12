@@ -400,7 +400,7 @@ LogMgr::Stream::~Stream()
 
 		Unref(winfo->type);
 
-		delete winfo->writer;
+		// delete winfo->writer;  // NO!  Needs to be done elsewhere. . .
 		delete i->second;
 		}
 
@@ -466,6 +466,7 @@ LogMgr::Stream* LogMgr::FindStream(EnumVal* id)
 
 void LogMgr::RemoveDisabledWriters(Stream* stream)
 	{
+	/*
 	list<Stream::WriterPathPair> disabled;
 
 	for ( Stream::WriterMap::iterator j = stream->writers.begin(); j != stream->writers.end(); j++ )
@@ -479,6 +480,7 @@ void LogMgr::RemoveDisabledWriters(Stream* stream)
 
 	for ( list<Stream::WriterPathPair>::iterator j = disabled.begin(); j != disabled.end(); j++ )
 		stream->writers.erase(*j);
+	*/
 	}
 
 bool LogMgr::CreateStream(EnumVal* id, RecordVal* sval)
@@ -591,6 +593,7 @@ bool LogMgr::EnableStream(EnumVal* id)
 
 bool LogMgr::DisableStream(EnumVal* id)
 	{
+	/*
 	Stream* stream = FindStream(id);
 
 	if ( ! stream )
@@ -602,6 +605,8 @@ bool LogMgr::DisableStream(EnumVal* id)
 	stream->enabled = false;
 
 	DBG_LOG(DBG_LOGGING, "Disabled logging stream '%s'", stream->name.c_str());
+	return true;
+	*/
 	return true;
 	}
 
@@ -864,8 +869,8 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 	if ( ! stream )
 		return false;
 
-	if ( ! stream->enabled )
-		return true;
+	//if ( ! stream->enabled )
+	//	return true;
 
 	columns = columns->CoerceTo(stream->columns);
 
@@ -987,7 +992,6 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 			filter->name.c_str(), stream->name.c_str());
 #endif
 		
-		delete[] vals;
 		}
 
 	Unref(columns);

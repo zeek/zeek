@@ -1,0 +1,8 @@
+#! /usr/bin/env bash
+#
+# Returns a list of git repositories found in subdirs of the
+# current directory.
+
+for i in `find . -type d`; do
+    test -e $i/.git && echo $i
+done

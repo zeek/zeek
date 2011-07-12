@@ -2284,7 +2284,10 @@ ListVal* TableVal::ConvertToPureList() const
 	{
 	type_list* tl = table_type->Indices()->Types();
 	if ( tl->length() != 1 )
+		{
 		InternalWarning("bad index type in TableVal::ConvertToPureList");
+		return 0;
+		}
 
 	return ConvertToList((*tl)[0]->Tag());
 	}

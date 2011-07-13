@@ -51,7 +51,7 @@ event bro_init()
 
 module SSH;
 
-@load communication/listen-clear
+@load frameworks/communication/listen-clear
 
 event remote_connection_handshake_done(p: event_peer)
 	{
@@ -84,7 +84,7 @@ event remote_connection_handshake_done(p: event_peer)
 
 #####
 
-@load communication
+@load frameworks/communication
 
 redef Communication::nodes += {
     ["foo"] = [$host = 127.0.0.1, $connect=T, $request_logs=T]

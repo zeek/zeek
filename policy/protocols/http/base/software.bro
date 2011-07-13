@@ -1,7 +1,7 @@
 ##! Software identification and extraction for HTTP traffic.
 
-@load http/base
-@load software
+@load protocols/http
+@load frameworks/software
 
 module HTTP;
 

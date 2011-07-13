@@ -5,5 +5,5 @@
 # @TEST-EXEC: bro -r $TRACES/http-byteranges.trace %INPUT
 # @TEST-EXEC: grep -q http_no_crlf_in_header_list weird.log && exit 1 || exit 0
 
-@load http
+@load protocols/http
 

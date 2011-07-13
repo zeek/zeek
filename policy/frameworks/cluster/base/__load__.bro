@@ -1,6 +1,7 @@
-@load frameworks/cluster/base/main
-
 @if ( Cluster::node != "" )
+
+# Load the core cluster support.
+@load frameworks/cluster/base/main
 
 # Only load the communication framework if it really looks like someone is
 # trying to start up a cluster node.

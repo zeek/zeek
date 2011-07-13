@@ -1,8 +1,8 @@
 # ts	node	filter	init	success
-1308602779.63662	-	not ip6	F	T
+1310591294.19008	-	not ip6	F	T
 # ts	node	filter	init	success
-1308602779.68967	-	(tcp port 22) and (not ip6)	F	T
+1310591294.28313	-	(tcp port 22) and (not ip6)	F	T
 # ts	node	filter	init	success
-1308602779.73049	-	port 42	F	T
+1310591294.36249	-	port 42	F	T
 # ts	node	filter	init	success
-1308602779.77495	-	port 56730	T	T
+1310591294.47815	-	port 56730	T	T

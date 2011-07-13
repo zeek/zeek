@@ -16,11 +16,14 @@ export {
 	global default_compression = 0 &redef;
 
 	type Info: record {
-		ts:           time   &log;
-		peer:         string &log &optional;
-		level:        string &log &optional;
-		src_name:     string &log &optional;
-		msg:          string &log;
+		ts:                  time   &log;
+		peer:                string &log &optional;
+		src_name:            string &log &optional;
+		connected_peer_desc: string &log &optional;
+		connected_peer_addr: addr   &log &optional;
+		connected_peer_port: port   &log &optional;
+		level:               string &log &optional;
+		message:             string &log;
 	};
 
 	## A remote peer to which we would like to talk.
@@ -115,7 +118,7 @@ function do_script_log_common(level: count, src: count, msg: string)
 	                           $level = (level == REMOTE_LOG_INFO ? "info" : "error"),
 	                           $src_name = src_names[src],
 	                           $peer = get_event_peer()$descr,
-	                           $msg = msg]);
+	                           $message = msg]);
 	}
 
 # This is a core generated event.
@@ -126,8 +129,7 @@ event remote_log(level: count, src: count, msg: string)
 
 function do_script_log(p: event_peer, msg: string)
 	{
-	do_script_log_common(REMOTE_LOG_INFO, REMOTE_SRC_SCRIPT,
-				  fmt("[#%d/%s:%d] %s", p$id, p$host, p$p, msg));
+	do_script_log_common(REMOTE_LOG_INFO, REMOTE_SRC_SCRIPT, msg);
 	}
 
 function connect_peer(peer: string)
@@ -144,7 +146,7 @@ function connect_peer(peer: string)
 	if ( id == PEER_ID_NONE )
 		Log::write(COMMUNICATION, [$ts = network_time(), 
 		                           $peer = get_event_peer()$descr,
-		                           $msg = "can't trigger connect"]);
+		                           $message = "can't trigger connect"]);
 	pending_peers[id] = node;
 	}
 
@@ -272,7 +274,7 @@ event remote_state_inconsistency(operation: string, id: string,
 	                id, expected_old, real_old, operation);
 	Log::write(COMMUNICATION, [$ts = network_time(),
 	                           $peer = get_event_peer()$descr,
-	                           $msg = msg]);
+	                           $message = msg]);
 	}
 
 

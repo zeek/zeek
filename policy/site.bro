@@ -103,10 +103,13 @@ function find_all_emails(ip: addr): set[string]
 	for ( i in one_to_32 )
 		{
 		tmp_ip = mask_addr(ip, one_to_32[i]);
-		for ( email in local_admins[tmp_ip] )
+		if ( tmp_ip in local_admins )
 			{
-			if ( email != "" )
-				add output_values[email];
+			for ( email in local_admins[tmp_ip] )
+				{
+				if ( email != "" )
+					add output_values[email];
+				}
 			}
 		}
 	return output_values;

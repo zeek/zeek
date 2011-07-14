@@ -27,29 +27,56 @@ const ip_addr_regex =
     /(([0-9A-Fa-f]{1,4}:){6,6})([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)/ | # 6Hex4Dec
     /(([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4})*)?)::(([0-9A-Fa-f]{1,4}:)*)([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)/; # CompressedHex4Dec
 
+## Takes an array of strings and returns T if all elements in are a valid
+## value for an octet (0-255), else returns F
+function has_valid_octets(octets: string_array): bool
+	{
+	local num = 0;
+	for ( i in octets )
+		{
+		num = to_count(octets[i]);
+		if ( num < 0 || 255 < num )
+			return F;
+		}
+	return T;
+	}
+
 ## Takes a string and returns T or F if the string appears to be a full and 
 ## valid IP address.
 function is_valid_ip(ip_str: string): bool
 	{
+	local octets: string_array;
 	if ( ip_str == ipv4_addr_regex )
 		{
-		local octets = split(ip_str, /\./);
+		octets = split(ip_str, /\./);
 		if ( |octets| != 4 )
 			return F;
 		
-		local num=0;
-		for ( i in octets )
-			{
-			num = to_count(octets[i]);
-			if ( num < 0 || 255 < num )
-				return F;
-			}
-		return T;
+		return has_valid_octets(octets);
 		}
 	else if ( ip_str == ipv6_addr_regex )
 		{
-		# TODO: make this work correctly.
-		return T;
+		if ( ip_str == ipv6_hex4dec_regex ||
+		     ip_str == ipv6_compressed_hex4dec_regex )
+			{
+			# the regexes for hybrid IPv6-IPv4 address formats don't for valid
+			# octets within the IPv4 part, so do that now
+			octets = split(ip_str, /\./);
+			if ( |octets| != 4 )
+				return F;
+
+			# get rid of remaining IPv6 stuff in first octet
+			local tmp = split(octets[1], /:/);
+			octets[1] = tmp[|tmp|];
+
+			return has_valid_octets(octets);
+			}
+		else
+			{
+			# pure IPv6 address formats that only use hex digits don't need
+			# any additional checks -- the regexes should be complete
+			return T;
+			}
 		}
 	return F;
 	}

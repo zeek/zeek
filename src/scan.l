@@ -9,6 +9,7 @@
 #include <string>
 #include <algorithm>
 #include <sys/stat.h>
+#include <libgen.h>
 
 #include "input.h"
 #include "util.h"
@@ -39,6 +40,7 @@ int line_number = 1;
 const char* filename = 0;
 BroDoc* current_reST_doc = 0;
 static BroDoc* last_reST_doc = 0;
+string current_scanned_file_path;
 
 char last_tok[128];
 
@@ -102,6 +104,7 @@ public:
 	int line;
 	int level;
 	BroDoc* doc;
+	string path;
 };
 
 // A stack of input buffers we're scanning.  file_stack[len-1] is the
@@ -613,6 +616,10 @@ static int load_files_with_prefix(const char* orig_file)
 			else
 				file_stack.append(new FileInfo);
 
+			char* tmp = copy_string(full_filename);
+			current_scanned_file_path = dirname(tmp);
+			delete [] tmp;
+
 			if ( generate_documentation )
 				{
 				current_reST_doc = new BroDoc(bropath_subpath, full_filename);
@@ -895,6 +902,7 @@ FileInfo::FileInfo(string arg_restore_module)
 	name = ::filename;
 	line = ::line_number;
 	doc = ::current_reST_doc;
+	path = current_scanned_file_path;
 	}
 
 FileInfo::~FileInfo()
@@ -907,6 +915,7 @@ FileInfo::~FileInfo()
 	yylloc.first_line = yylloc.last_line = line_number = line;
 	last_reST_doc = current_reST_doc;
 	current_reST_doc = doc;
+	current_scanned_file_path = path;
 
 	if ( restore_module != "" )
 		current_module = restore_module;

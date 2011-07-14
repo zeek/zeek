@@ -868,11 +868,20 @@ void get_policy_subpath(const char* dir, const char* file, const char** subpath)
 	delete [] tmp;
 	}
 
+extern string current_scanned_file_path;
+
 FILE* search_for_file(const char* filename, const char* ext,
 			const char** full_filename, bool load_pkgs,
 			const char** bropath_subpath)
 	{
-	if ( filename[0] == '/' || filename[0] == '.' )
+	// If the file is a literal absolute path we don't have to search,
+	// just return the result of trying to open it.  If the file is
+	// might be a relative path, check first if it's a real file that
+	// can be referenced from cwd, else we'll try to search for it based
+	// on what path the currently-loading script is in as well as the
+	// standard BROPATH paths.
+	if ( filename[0] == '/' ||
+	    (filename[0] == '.' && access(filename, R_OK) == 0) )
 		{
 		if ( bropath_subpath )
 			{
@@ -885,6 +894,12 @@ FILE* search_for_file(const char* filename, const char* ext,
 
 	char path[1024], full_filename_buf[1024];
 	safe_strncpy(path, bro_path(), sizeof(path));
+
+	// append the currently loading script's path to BROPATH so that
+	// @loads can be referenced relatively
+	if ( current_scanned_file_path != "" )
+		safe_snprintf(path, sizeof(path), "%s:%s", path,
+		              current_scanned_file_path.c_str());
 
 	char* dir_beginning = path;
 	char* dir_ending = path;

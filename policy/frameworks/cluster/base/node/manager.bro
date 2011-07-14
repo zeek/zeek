@@ -4,8 +4,6 @@
 ##! the manager registers for the events on the workers that are needed
 ##! to get the desired data from the workers.
 
-@load frameworks/notice
-
 ##! This is where the cluster manager sets it's specific settings for other
 ##! frameworks and in the core.
 

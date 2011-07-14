@@ -24,7 +24,7 @@ event bro_init()
 	Log::create_stream(REPORTER, [$columns=Info]);
 	}
 
-event reporter_message(t: time, msg: string, location: string)
+event reporter_info(t: time, msg: string, location: string)
 	{
 	Log::write(REPORTER, [$ts=t, $level=INFO, $message=msg, $location=location]);
 	}

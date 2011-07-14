@@ -1,4 +1,4 @@
 @load frameworks/logging/base
 
-@load logging/plugins/ascii
-@load logging/plugins/dataseries
+@load frameworks/logging/plugins/ascii
+@load frameworks/logging/plugins/dataseries

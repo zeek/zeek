@@ -893,13 +893,14 @@ FILE* search_for_file(const char* filename, const char* ext,
 		}
 
 	char path[1024], full_filename_buf[1024];
-	safe_strncpy(path, bro_path(), sizeof(path));
 
 	// append the currently loading script's path to BROPATH so that
 	// @loads can be referenced relatively
 	if ( current_scanned_file_path != "" )
-		safe_snprintf(path, sizeof(path), "%s:%s", path,
+		safe_snprintf(path, sizeof(path), "%s:%s", bro_path(),
 		              current_scanned_file_path.c_str());
+	else
+		safe_strncpy(path, bro_path(), sizeof(path));
 
 	char* dir_beginning = path;
 	char* dir_ending = path;

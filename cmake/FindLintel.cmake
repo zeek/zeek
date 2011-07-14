@@ -18,7 +18,7 @@
 #  Lintel_INCLUDE_DIR        The location of Lintel headers
 
 find_path(Lintel_ROOT_DIR
-    NAMES include/Lintel/LintelVersion
+    NAMES include/Lintel/LintelVersion.hpp
 )
 
 find_library(Lintel_LIBRARIES
@@ -27,7 +27,7 @@ find_library(Lintel_LIBRARIES
 )
 
 find_path(Lintel_INCLUDE_DIR
-    NAMES google/heap-profiler.h
+    NAMES Lintel/LintelVersion.hpp
     HINTS ${Lintel_ROOT_DIR}/include
 )
 

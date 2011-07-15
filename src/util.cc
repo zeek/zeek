@@ -15,6 +15,8 @@
 # endif
 #endif
 
+#include <string>
+#include <vector>
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -815,6 +817,79 @@ FILE* open_file(const char* filename, const char** full_filename, bool load_pkgs
 	return f;
 	}
 
+// Canonicalizes a given 'file' that lives in 'path' into a flattened,
+// dotted format.  If the optional 'prefix' argument is given, it is
+// prepended to the dotted-format, separated by another dot.
+// If 'file' is __load__.bro, that part is discarded when constructing
+// the final dotted-format.
+string dot_canon(string path, string file, string prefix)
+	{
+	string dottedform(prefix);
+	if ( prefix != "" )
+		dottedform.append(".");
+	dottedform.append(path);
+	char* tmp = copy_string(file.c_str());
+	char* bname = basename(tmp);
+	if ( ! streq(bname, PACKAGE_LOADER) )
+		{
+		if ( path != "" )
+			dottedform.append(".");
+		dottedform.append(bname);
+		}
+	delete [] tmp;
+	size_t n;
+	while ( (n = dottedform.find("/")) != string::npos ) 
+		dottedform.replace(n, 1, ".");
+	return dottedform;
+	}
+
+// returns a normalized version of a path, removing duplicate slashes,
+// extraneous dots that refer to the current directory, and pops as many
+// parent directories referred to by "../" as possible
+const char* normalize_path(const char* path)
+	{
+	size_t n;
+	string p(path);
+	vector<string> components, final_components;
+	string new_path;
+
+	if ( p[0] == '/' )
+		new_path = "/";
+
+	while ( (n = p.find("/")) != string::npos )
+		{
+		components.push_back(p.substr(0, n));
+		p.erase(0, n + 1);
+		}
+	components.push_back(p);
+
+	vector<string>::const_iterator it;
+	for ( it = components.begin(); it != components.end(); ++it )
+		{
+		if ( *it == "" ) continue;
+		final_components.push_back(*it);
+
+		if ( *it == "." && it != components.begin() )
+			final_components.pop_back();
+		else if ( *it == ".." && final_components[0] != ".." )
+			{
+			final_components.pop_back();
+			final_components.pop_back();
+			}
+		}
+
+	for ( it = final_components.begin(); it != final_components.end(); ++it )
+		{
+		new_path.append(*it);
+		new_path.append("/");
+		}
+
+	if ( new_path.size() > 1 && new_path[new_path.size() - 1] == '/' )
+		new_path.erase(new_path.size() - 1);
+
+	return copy_string(new_path.c_str());
+	}
+
 // Returns the subpath of BROPATH's policy/ directory in which the loaded
 // file in located.  If it's not under a subpath of policy/ then the full
 // path is returned, else the subpath of policy/ concatentated with any
@@ -865,7 +940,10 @@ void get_policy_subpath(const char* dir, const char* file, const char** subpath)
 		*subpath = full_subpath;
 		}
 
+	const char* normalized_subpath = normalize_path(*subpath);
 	delete [] tmp;
+	delete [] *subpath;
+	*subpath = normalized_subpath;
 	}
 
 extern string current_scanned_file_path;

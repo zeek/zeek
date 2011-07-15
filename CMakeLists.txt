@@ -228,16 +228,6 @@ if (CMAKE_BUILD_TYPE)
     string(TOUPPER ${CMAKE_BUILD_TYPE} BuildType)
 endif ()
 
-if (INSTALL_BROCTL)
-    if (STANDALONE)
-        set(BROCTL_INSTALL_MODE "standalone")
-    else ()
-        set(BROCTL_INSTALL_MODE "cluster")
-    endif ()
-else ()
-    set(BROCTL_INSTALL_MODE "false")
-endif ()
-
 message(
     "\n====================|  Bro Build Summary  |====================="
     "\n"
@@ -252,7 +242,7 @@ message(
     "\nCPP:               ${CMAKE_CXX_COMPILER}"
     "\n"
     "\nBroccoli:          ${INSTALL_BROCCOLI}"
-    "\nBroctl:            ${BROCTL_INSTALL_MODE}"
+    "\nBroctl:            ${INSTALL_BROCTL}"
     "\nAux. Tools:        ${INSTALL_AUX_TOOLS}"
     "\n"
     "\nGeoIP:             ${USE_GEOIP}"

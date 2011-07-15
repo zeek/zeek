@@ -1,5 +1,8 @@
 @load utils/numbers
 
+@load frameworks/notice
+@load frameworks/control
+
 module Cluster;
 
 export {
@@ -26,14 +29,14 @@ export {
 	## Events raised by workers and handled by the manager.
 	const worker_events = /(Notice::notice|TimeMachine::command|Drop::.*)/ &redef;
 	
-	## Events sent by the manager host (i.e. BroControl) when dynamically 
+	## Events sent by the control host (i.e. BroControl) when dynamically 
 	## connecting to a running instance to update settings or request data.
-	const control_events = /Remote::(configuration_update|id_request|net_stats_request|peer_status_request)/ &redef;
+	const control_events = Control::controller_events &redef;
 	
 	## Directory where the cluster is archiving logs.
 	## TODO: we need a sane default here.
 	const log_dir = "/not/set" &redef;
-		
+	
 	## Record type to indicate a node in a cluster.
 	type Node: record {
 		node_type:    NodeType;
@@ -58,12 +61,6 @@ export {
 	## of the cluster that is started up.
 	const node = getenv("CLUSTER_NODE") &redef;
 }
-
-# Give the node being started up it's peer name.
-redef peer_description = Cluster::node;
-
-## Set the port that this node is supposed to listen on.
-redef Communication::listen_port_clear = Cluster::nodes[Cluster::node]$p;
 
 event bro_init()
 	{

@@ -1,7 +1,7 @@
 # @TEST-EXEC: bro %INPUT > output
 # @TEST-EXEC: btest-diff output
 
-@load software
+@load frameworks/software
 
 global ts = network_time();
 global host = 0.0.0.0;

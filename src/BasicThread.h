@@ -3,6 +3,9 @@
 
 #include "ThreadSafeQueue.h"
 #include <typeinfo>
+#include <sys/signal.h>
+#include <signal.h>
+#include <pthread.h>
 
 class ThreadInterface
 {
@@ -92,7 +95,11 @@ public:
 
 	void run()
 		{
-		unsigned int id = (unsigned int)(pthread_self());
+		sigset_t mask_set;
+		sigfillset(&mask_set);
+		int res = pthread_sigmask(SIG_BLOCK, &mask_set, NULL);
+		assert(res == 0);  // 
+		// unsigned int id = (unsigned int)(pthread_self());
 		while(!thread_finished)
 			{
 			MessageEvent *msg = in_queue.get();

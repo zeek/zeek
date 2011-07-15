@@ -1089,7 +1089,6 @@ LogVal* LogMgr::ValToLogVal(Val* val, BroType* ty)
 
 		for ( int i = 0; i < lval->val.set_val.size; i++ )
 			lval->val.set_val.vals[i] = ValToLogVal(set->Index(i));
-		delete set;
 
 		Unref(set);
 		break;

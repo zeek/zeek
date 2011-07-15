@@ -15,11 +15,6 @@ event bro_init() &priority=9
 			Communication::nodes["control"] = [$host=n$ip, $connect=F,
 			                                   $class="control", $events=control_events];
 		
-		# The node being started up is this node so we create a dummy 
-		# communication entry to point at this host for control.
-		if ( i == node )
-			Communication::nodes[i] = [$host=n$ip, $p=n$p, $connect=F, $class="control", $sync=F];
-		
 		if ( me$node_type == MANAGER )
 			{
 			if ( n$node_type == WORKER && n$manager == node )

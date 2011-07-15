@@ -3,6 +3,12 @@
 
 @if ( Cluster::node != "" )
 
+# Give the node being started up it's peer name.
+redef peer_description = Cluster::node;
+
+# Add a cluster prefix.
+@prefixes += cluster
+
 # Only load the communication framework if it really looks like someone is
 # trying to start up a cluster node.
 @load frameworks/communication

@@ -7,12 +7,12 @@
 
 #include "LogWriter.h"
 
-class LogWriterAscii : public LogWriter {
+class LogWriterAscii : public bro::LogWriter {
 public:
-	LogWriterAscii();
+	LogWriterAscii(const bro::LogEmissary& parent, bro::QueueInterface<bro::MessageEvent *>& in_queue, bro::QueueInterface<bro::MessageEvent *>& out_queue);
 	~LogWriterAscii();
 
-	static LogWriter* Instantiate()	{ return new LogWriterAscii; }
+	static LogWriter* Instantiate(const bro::LogEmissary& parent, bro::QueueInterface<bro::MessageEvent *>& in_queue, bro::QueueInterface<bro::MessageEvent *>& out_queue);	
 
 protected:
 	virtual bool DoInit(string path, int num_fields,

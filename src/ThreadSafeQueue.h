@@ -7,12 +7,22 @@
 
 namespace bro
 {
+	template <typename T>
+	class QueueInterface
+	{
+	public:
+		virtual T get() = 0;
+		virtual void put(T) = 0;
+		virtual bool ready() = 0;
+		virtual ~QueueInterface() { }
+	};
+	
 	/**
 	 *  Just a simple threaded queue wrapper class.  Uses multiple queues and reads / writes in rotary fashion in an attempt to limit contention.
 	 *  Due to locking granularity, bulk put / get is no faster than single put / get as long as FIFO guarantee is required.
 	 */
 	template <typename T>
-	class ThreadSafeQueue
+	class ThreadSafeQueue : public QueueInterface<T>
 	{
 	public:
 		ThreadSafeQueue()
@@ -64,21 +74,6 @@ namespace bro
 			return data;
 			}
 
-		T get() const
-			{
-			pthread_mutex_lock(&mutex[read_ptr]);
-			if(messages[read_ptr].empty())
-				{
-				pthread_cond_wait(&hasdata[read_ptr], &mutex[read_ptr]);
-				}
-			int old_read_ptr = read_ptr;
-			T data = messages[read_ptr].front();
-			messages[read_ptr].pop();
-			read_ptr = (read_ptr + 1) % NUM_QUEUES;
-			pthread_mutex_unlock(&mutex[old_read_ptr]);
-			return data;
-			}
-		
 		bool ready()
 			{
 			pthread_mutex_lock(&mutex[read_ptr]);
@@ -97,11 +92,6 @@ namespace bro
 		unsigned char   	write_ptr;                  // Where the next operation will write to
 	};
 
-	template <typename T>
-	struct ThreadMessage
-	{
-		virtual bool execute(T ref) = 0;
-	};
 }
 
 #endif

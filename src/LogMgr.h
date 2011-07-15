@@ -13,6 +13,13 @@
 
 class SerializationFormat;
 
+namespace bro
+{
+class LogEmissary;
+}
+
+using bro::LogEmissary;
+
 // Description of a log field.
 struct LogField {
 	string name;
@@ -64,16 +71,22 @@ private:
 	LogVal(const LogVal& other)	{ }
 };
 
+namespace bro
+{
 class LogWriter;
+class MessageEvent;
+}
+
 class RemoteSerializer;
 class RotationTimer;
 
 class LogWriterRegistrar {
 public:
+	typedef bro::LogWriter* (*InstantiateFunction)( const LogEmissary&, bro::QueueInterface<bro::MessageEvent *>&, bro::QueueInterface<bro::MessageEvent *>& );
 	LogWriterRegistrar(const bro_int_t type, const char *name, 
-							bool(*init)(), LogWriter* (*factory)());
+							bool(*init)(), InstantiateFunction factory);
 	LogWriterRegistrar(const bro_int_t type, const char *name, 
-							LogWriter* (*factory)());
+							InstantiateFunction factory);
 };
 
 class LogMgr {
@@ -93,7 +106,7 @@ public:
 	 *  @param factory Function used to instantiate this type of LogWriter (probably MyLogClass::Instantiate) 
 	*/
 	static void RegisterWriter(const bro_int_t type, const char *name,
-								  bool (*init)(), LogWriter* (*factory)());
+								  bool (*init)(), LogWriterRegistrar::InstantiateFunction factory);
 
 	// These correspond to the BiFs visible on the scripting layer. The
 	// actual BiFs just forward here.
@@ -109,14 +122,14 @@ public:
 	
 
 protected:
-	friend class LogWriter;
+	friend class LogEmissary;
 	friend class RemoteSerializer;
 	friend class RotationTimer;
 
 	//// Function also used by the RemoteSerializer.
 
 	// Takes ownership of fields.
-	LogWriter* CreateWriter(EnumVal* id, EnumVal* writer, string path,
+	LogEmissary* CreateWriter(EnumVal* id, EnumVal* writer, string path,
 				int num_fields, LogField** fields);
 
 	// Takes ownership of values..
@@ -129,7 +142,7 @@ protected:
 	//// Functions safe to use by writers.
 
 	// Reports an error for the given writer.
-	void Error(LogWriter* writer, const char* msg);
+	void Error(LogEmissary* writer, const char* msg);
 
 private:
 	struct Filter;

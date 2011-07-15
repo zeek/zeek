@@ -8,17 +8,19 @@
 #include "NetVar.h"
 #include "Net.h"
 
+using namespace bro;
+
 // Structure describing a log writer type.
 struct LogWriterDefinition {
-	bro_int_t type;			// The type.
-	const char *name;		// Descriptive name for error messages.
-	bool (*init)();			// An optional one-time initialization function.
-	LogWriter* (*factory)();	// A factory function creating instances.
+	bro_int_t type;										// The type.
+	const char *name;									// Descriptive name for error messages.
+	bool (*init)();										// An optional one-time initialization function.
+	LogWriterRegistrar::InstantiateFunction factory;	// A factory function creating instances.
 	LogWriterDefinition()
 	: type(0), name("UnintializedLogWriter"), init(NULL), factory(NULL) { }
-	LogWriterDefinition(const bro_int_t t, const char *n, LogWriter* (*f)())
+	LogWriterDefinition(const bro_int_t t, const char *n, LogWriterRegistrar::InstantiateFunction f)
 	: type(t), name(n), init(NULL), factory(f) { }
-	LogWriterDefinition(const bro_int_t t, const char *n, bool (*i)(), LogWriter* (*f)())
+	LogWriterDefinition(const bro_int_t t, const char *n, bool (*i)(), LogWriterRegistrar::InstantiateFunction f)
 	: type(t), name(n), init(i), factory(f) { }
 };
 
@@ -51,7 +53,7 @@ struct LogMgr::WriterInfo {
 	EnumVal* type;
 	double open_time;
 	Timer* rotation_timer;
-	LogWriter *writer;
+	LogEmissary *writer;
 	};
 
 struct LogMgr::Stream {
@@ -412,13 +414,13 @@ LogMgr::Stream::~Stream()
 
 
 LogWriterRegistrar::LogWriterRegistrar(const bro_int_t type, const char *name, 
-							bool(*init)(), LogWriter* (*factory)())
+							bool(*init)(), LogWriterRegistrar::InstantiateFunction factory)
 	{
 		LogMgr::RegisterWriter(type, name, init, factory);
 	}
 
 LogWriterRegistrar::LogWriterRegistrar(const bro_int_t type, const char *name, 
-							LogWriter* (*factory)())
+							LogWriterRegistrar::InstantiateFunction factory)
 	{
 		LogMgr::RegisterWriter(type, name, NULL, factory);
 	}
@@ -434,7 +436,7 @@ LogMgr::~LogMgr()
 	}
 
 void LogMgr::RegisterWriter(const bro_int_t type, const char *name,
-								  bool (*init)(), LogWriter* (*factory)())
+								  bool (*init)(), LogWriterRegistrar::InstantiateFunction factory)
 	{
 	if(NULL == log_writers)
 		{
@@ -937,7 +939,7 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 		Stream::WriterMap::iterator w =
 			stream->writers.find(Stream::WriterPathPair(filter->writer->AsEnum(), path));
 
-		LogWriter* writer = 0;
+		LogEmissary* writer = NULL;
 
 		if ( w != stream->writers.end() )
 			// We have a writer already.
@@ -947,7 +949,7 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 			{
 			// No, need to create one.
 
-			// Copy the fields for LogWriter::Init() as it will take
+			// Copy the fields for LogEmissary::Init() as it will take
 			// ownership.
 			LogField** arg_fields = new LogField*[filter->num_fields];
 
@@ -1151,7 +1153,7 @@ LogVal** LogMgr::RecordToFilterVals(Stream* stream, Filter* filter,
 	return vals;
 	}
 
-LogWriter* LogMgr::CreateWriter(EnumVal* id, EnumVal* writer, string path,
+LogEmissary* LogMgr::CreateWriter(EnumVal* id, EnumVal* writer, string path,
 				int num_fields, LogField** fields)
 	{
 	Stream* stream = FindStream(id);
@@ -1209,9 +1211,13 @@ LogWriter* LogMgr::CreateWriter(EnumVal* id, EnumVal* writer, string path,
 		}
 
 	assert(ld->factory);
-	LogWriter* writer_obj = (*ld->factory)();
+	ThreadSafeQueue<MessageEvent *> *push_queue = new ThreadSafeQueue<MessageEvent *>;
+	ThreadSafeQueue<MessageEvent *> *pull_queue = new ThreadSafeQueue<MessageEvent *>;
+	LogEmissary* emissary = new LogEmissary(*push_queue, *pull_queue);
+	LogWriter *writer_obj = (*ld->factory)(*emissary, *push_queue, *pull_queue);
+	emissary->BindWriter(writer_obj);
 
-	if ( ! writer_obj->Init(path, num_fields, fields) )
+	if ( ! emissary->Init(path, num_fields, fields) )
 		{
 		DBG_LOG(DBG_LOGGING, "failed to init instance of writer %s",
 			ld->name);
@@ -1221,7 +1227,7 @@ LogWriter* LogMgr::CreateWriter(EnumVal* id, EnumVal* writer, string path,
 
 	WriterInfo* winfo = new WriterInfo;
 	winfo->type = writer->Ref()->AsEnumVal();
-	winfo->writer = writer_obj;
+	winfo->writer = emissary;
 	winfo->open_time = network_time;
 	winfo->rotation_timer = 0;
 	InstallRotationTimer(winfo);
@@ -1230,7 +1236,7 @@ LogWriter* LogMgr::CreateWriter(EnumVal* id, EnumVal* writer, string path,
 		Stream::WriterMap::value_type(Stream::WriterPathPair(writer->AsEnum(), path),
 		winfo));
 
-	return writer_obj;
+	return emissary;
 	}
 
 bool LogMgr::Write(EnumVal* id, EnumVal* writer, string path, int num_fields,
@@ -1289,7 +1295,7 @@ void LogMgr::SendAllWritersTo(RemoteSerializer::PeerID peer)
 		for ( Stream::WriterMap::iterator i = stream->writers.begin();
 		      i != stream->writers.end(); i++ )
 			{
-			LogWriter* writer = i->second->writer;
+			LogEmissary* writer = i->second->writer;
 			EnumVal writer_val(i->first.first, BifType::Enum::Log::Writer);
 			remote_serializer->SendLogCreateWriter(peer, (*s)->id,
 							       &writer_val,
@@ -1333,7 +1339,7 @@ bool LogMgr::Flush(EnumVal* id)
 	return true;
 	}
 
-void LogMgr::Error(LogWriter* writer, const char* msg)
+void LogMgr::Error(LogEmissary* writer, const char* msg)
 	{
 	reporter->Error(fmt("error with writer for %s: %s",
 		     writer->Path().c_str(), msg));

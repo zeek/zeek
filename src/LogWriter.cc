@@ -3,43 +3,61 @@
 #include "util.h"
 #include "LogWriter.h"
 
-LogWriter::LogWriter()
+namespace bro
+{
+
+const char *LogWriter::Fmt (char * format, ...) const
 	{
-	buf = 0;
-	buf_len = 1024;
-	buffering = true;
-	this->start();
+	va_list args;
+	va_start (args, format);
+	vsnprintf (strbuf, LOGWRITER_MAX_BUFSZ, format, args);
+	va_end (args);
+	return strbuf;
 	}
 
-LogWriter::~LogWriter()
+void LogWriter::Error (const char *msg) 
 	{
-	if ( buf )
-		free(buf);
+	putNotification(new ErrorReport(msg));
+	}
 
+LogEmissary::LogEmissary(QueueInterface<MessageEvent *>& push_queue, QueueInterface<MessageEvent *>& pull_queue)
+: bound(NULL), push_queue(push_queue), pull_queue(pull_queue), path(""), fields(NULL), num_fields(0) 
+	{
+	}
+
+LogEmissary::~LogEmissary()
+	{
 	for(int i = 0; i < num_fields; ++i)
 		delete fields[i];
-
+	
 	delete [] fields;
 	}
 
-bool LogWriter::Init(string arg_path, int arg_num_fields,
-		     const LogField* const * arg_fields)
+void LogEmissary::BindWriter(LogWriter *writer)
+{
+	bound = writer;
+}
+
+bool LogEmissary::Init(string arg_path, int arg_num_fields,
+		     LogField* const * arg_fields)
 	{
 	path = arg_path;
 	num_fields = arg_num_fields;
 	fields = arg_fields;
 
-	putMessage(new InitMessage(arg_path, arg_num_fields, arg_fields));
+	assert(bound);
+	push_queue.put(new InitMessage(*bound, arg_path, arg_num_fields, arg_fields));
+	
 	return true;
 	}
 
-bool LogWriter::Write(int arg_num_fields, LogVal** vals)
+bool LogEmissary::Write(int arg_num_fields, LogVal** vals)
 	{
 	// Double-check that the arguments match. If we get this from remote,
 	// something might be mixed up.
 	if ( num_fields != arg_num_fields )
 		{
-		DBG_LOG(DBG_LOGGING, "Number of fields don't match in LogWriter::Write() (%d vs. %d)",
+		DBG_LOG(DBG_LOGGING, "Number of fields don't match in LogEmissary::Write() (%d vs. %d)",
 			arg_num_fields, num_fields);
 
 		return false;
@@ -49,75 +67,54 @@ bool LogWriter::Write(int arg_num_fields, LogVal** vals)
 		{
 		if ( vals[i]->type != fields[i]->type )
 			{
-			DBG_LOG(DBG_LOGGING, "Field type doesn't match in LogWriter::Write() (%d vs. %d)",
+			DBG_LOG(DBG_LOGGING, "Field type doesn't match in LogEmissary::Write() (%d vs. %d)",
 				vals[i]->type, fields[i]->type);
 			return false;
 			}
 		}
 
-	putMessage(new WriteMessage(num_fields, fields, vals));
+	assert(bound);
+	push_queue.put(new WriteMessage(*bound, num_fields, fields, vals));
 
 	return true;
 	}
 
-bool LogWriter::SetBuf(bool enabled)
+bool LogEmissary::SetBuf(bool enabled)
 	{
-	putMessage(new BufferMessage(enabled));
+	assert(bound);
+	push_queue.put(new BufferMessage(*bound, enabled));
+	
 	return true;
 	}
 
-bool LogWriter::Rotate(string rotated_path, string postprocessor, double open,
+bool LogEmissary::Rotate(string rotated_path, string postprocessor, double open,
 		       double close, bool terminating)
 	{
-	putMessage(new RotateMessage(rotated_path, postprocessor, open, close, terminating));
+	assert(bound);
+	push_queue.put(new RotateMessage(*bound, rotated_path, postprocessor, open, close, terminating));
 	if(terminating)
 		{
 		Finish();
 		}
+	
 	return true;
 	}
 
-bool LogWriter::Flush()
+bool LogEmissary::Flush()
 	{
-	putMessage(new FlushMessage());
+	assert(bound);
+	push_queue.put(new FlushMessage(*bound));
+	
 	return true;
 	}
 
-void LogWriter::Finish()
+void LogEmissary::Finish()
 	{
-	putMessage(new FinishMessage());
+	assert(bound);
+	push_queue.put(new FinishMessage(*bound));
 	}
 
-const char* LogWriter::Fmt(const char* format, ...)
-	{
-	if ( ! buf )
-		buf = (char*) malloc(buf_len);
-
-	va_list al;
-	va_start(al, format);
-	int n = safe_vsnprintf(buf, buf_len, format, al);
-	va_end(al);
-
-	if ( (unsigned int) n >= buf_len )
-		{ // Not enough room, grow the buffer.
-		buf_len = n + 32;
-		buf = (char*) realloc(buf, buf_len);
-
-		// Is it portable to restart?
-		va_start(al, format);
-		n = safe_vsnprintf(buf, buf_len, format, al);
-		va_end(al);
-		}
-
-	return buf;
-	}
-
-void LogWriter::Error(const char *msg)
-	{
-	log_mgr->Error(this, msg);
-	}
-
-void LogWriter::DeleteVals(LogVal** vals)
+void LogEmissary::DeleteVals(LogVal** vals)
 	{
 	for ( int i = 0; i < num_fields; i++ )
 		delete vals[i];
@@ -163,3 +160,6 @@ bool LogWriter::RunPostProcessor(string fname, string postprocessor,
 
 	return true;
 	}
+
+}
+

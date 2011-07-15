@@ -26,6 +26,7 @@ const char* TimerNames[] = {
 	"NetworkTimer",
 	"NTPExpireTimer",
 	"ProfileTimer",
+	"MessageFlushTimer",
 	"RotateTimer",
 	"RemoveConnection",
 	"RPCExpireTimer",

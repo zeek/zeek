@@ -6,7 +6,15 @@
 #include "LogWriterAscii.h"
 #include "NetVar.h"
 
-LogWriterAscii::LogWriterAscii()
+using namespace bro;
+
+LogWriter* LogWriterAscii::Instantiate(const bro::LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue)	
+{ 
+	return new LogWriterAscii(parent, in_queue, out_queue); 
+}
+
+LogWriterAscii::LogWriterAscii(const bro::LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue)
+	: LogWriter(parent, in_queue, out_queue)
 	{
 	file = 0;
 
@@ -240,7 +248,7 @@ bool LogWriterAscii::DoWrite(int num_fields, const LogField* const * fields,
 bool LogWriterAscii::DoRotate(string rotated_path, string postprocessor, double open,
 			      double close, bool terminating)
 	{
-	if ( IsSpecial(Path()) )
+	if ( IsSpecial(parent.Path()) )
 		// Don't rotate special files.
 		return true;
 
@@ -254,7 +262,7 @@ bool LogWriterAscii::DoRotate(string rotated_path, string postprocessor, double 
 				open, close, terminating) )
 		return false;
 
-	return DoInit(Path(), NumFields(), Fields());
+	return DoInit(parent.Path(), parent.NumFields(), parent.Fields());
 	}
 
 bool LogWriterAscii::DoSetBuf(bool enabled)

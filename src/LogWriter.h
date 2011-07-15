@@ -14,76 +14,57 @@
 #ifndef LOGWRITER_H
 #define LOGWRITER_H
 
+#include <string>
+
 #include "LogMgr.h"
 #include "BroString.h"
 #include "ThreadSafeQueue.h"
 #include "BasicThread.h"
 
+namespace bro
+{
+
 class LogWriter;
 
-class LogMessage : public bro::ThreadMessage <LogWriter *> { };
-
-class LogWriter : public bro::BasicThread< LogMessage*, LogWriter* > {
+class LogEmissary {
 public:
-	LogWriter();
-	virtual ~LogWriter();
+	LogEmissary(QueueInterface<MessageEvent *>& push_queue, QueueInterface<MessageEvent *>& pull_queue);
+	virtual ~LogEmissary();
 
-	//// Interface methods to interact with the writer. Note that these
-	//// methods are not necessarily thread-safe and must be called only
-	//// from the main thread (which will typically mean only from the
-	//// LogMgr). In particular, they must not be called from the
-	//// writer's derived implementation.
-
-	// One-time initialization of the writer to define the logged fields.
-	// Interpretation of "path" is left to the writer, and will be
-	// corresponding the value configured on the script-level.
-	// 
-	// Returns false if an error occured, in which case the writer must
-	// not be used further.
-	//
-	// The new instance takes ownership of "fields", and will delete them
-	// when done.
-	bool Init(string path, int num_fields, const LogField* const * fields);
-
-	// Writes one log entry. The method takes ownership of "vals" and
-	// will return immediately after queueing the write request, which is
-	// potentially before output has actually been written out.
-	//
-	// num_fields and the types of the LogVals must match what was passed
-	// to Init().
-	//
-	// Returns false if an error occured, in which case the writer must
-	// not be used any further.
-	bool Write(int num_fields, LogVal** vals);
-
-	// Sets the buffering status for the writer, if the writer supports
-	// that. (If not, it will be ignored).
-	bool SetBuf(bool enabled);
-
-	// Flushes any currently buffered output, if the writer supports 
-	// that. (If not, it will be ignored).
+	bool Init(const string path, const int num_fields, LogField* const *fields);
+	bool Write(const int num_fields, LogVal **vals);
+	bool SetBuf(const bool enabled);
 	bool Flush();
-
-	// Triggers rotation, if the writer supports that. (If not, it will
-	// be ignored).
 	bool Rotate(string rotated_path, string postprocessor, double open,
 		    double close, bool terminating);
-
-	// Finishes writing to this logger regularly. Must not be called if
-	// an error has been indicated earlier. After calling this, no
-	// further writing must be performed.
 	void Finish();
+	/**
+	 *  Runs through the list of outstanding events for the child thread (if any)
+	 *  and calls process() on each of them.
+	 */
+	void Update();
+	void BindWriter(LogWriter *writer);
+	std::string Path() const { return path; }
+	const LogField* const *Fields() const { return fields; }
+	const int NumFields() const { return num_fields; }
 
-	//// Thread-safe methods that may be called from the writer
-	//// implementation.
+private:
+	void DeleteVals(LogVal** vals);
 
-	// The following methods return the information as passed to Init().
-	const string Path() const	{ return path; }
-	int NumFields() const	{ return num_fields; }
-	const LogField* const * Fields() const	{ return fields; }
+	LogWriter *bound;               						// The writer we're bound to
+	QueueInterface<MessageEvent *>& push_queue;     		// Pushes messages to the thread
+	QueueInterface<MessageEvent *>& pull_queue;     		// Pulls notifications from the thread
 
-protected:
+	std::string path;
+	LogField* const *fields;
+	int num_fields;
+};
 
+class LogWriter : public BasicThread {
+public:
+	LogWriter(const LogEmissary& parent, QueueInterface<MessageEvent *>& in_q, QueueInterface<MessageEvent *>& out_q)
+	: BasicThread(in_q, out_q), parent(parent), buffered(true) { }
+	
 	// Methods for writers to override. If any of these returs false, it
 	// will be assumed that a fatal error has occured that prevents the
 	// writer from further operation. It will then be disabled and
@@ -96,31 +77,9 @@ protected:
 	virtual bool DoInit(string path, int num_fields,
 			    const LogField* const * fields) = 0;
 
-	class InitMessage : public LogMessage {
-	public:
-		InitMessage(const string p, const int nf, const LogField* const *f)
-		: path(p), num_fields(nf), fields(f) { }
-		bool execute(LogWriter *ref) { return ref->DoInit(path, num_fields, fields); }
-	private:
-		const string path;
-		const int num_fields;
-		const LogField* const* fields;
-	};
-
 	// Called once per log entry to record.
 	virtual bool DoWrite(int num_fields, const LogField* const * fields,
 			     LogVal** vals) = 0;
-
-	class WriteMessage : public LogMessage {
-	public:
-		WriteMessage(const int nf, const LogField* const *f, LogVal** v)
-		: num_fields(nf), fields(f), vals(v) { }
-		bool execute(LogWriter *ref) { bool res = ref->DoWrite(num_fields, fields, vals); ref->DeleteVals(vals); return res; }
-	private:
-		const int num_fields;
-		const LogField* const *fields;
-		LogVal **vals;
-	};
 
 	// Called when the buffering status for this writer is changed. If
 	// buffering is disabled, the writer should attempt to write out
@@ -134,26 +93,12 @@ protected:
 	// semantics (but must still return true in that case).
 	virtual bool DoSetBuf(bool enabled) = 0;
 
-	class BufferMessage : public LogMessage {
-	public:
-		BufferMessage(const bool e)
-		: enabled(e) { }
-		bool execute(LogWriter *ref) { return ref->DoSetBuf(enabled); }
-	private:
-		const bool enabled;
-	};
-
 	// Called to flush any currently buffered output.
 	//
 	// A writer may ignore flush requests if it doesn't fit with its
 	// semantics (but must still return true in that case).
 	virtual bool DoFlush() = 0;
 
-	class FlushMessage : public LogMessage {
-	public:
-		bool execute(LogWriter *ref) { return ref->DoFlush(); }
-	};
-	
 	// Called when a log output is to be rotated. Most directly this only
 	// applies to writers writing into files, which should then close the
 	// current file and open a new one.  However, a writer may also
@@ -183,61 +128,116 @@ protected:
 	virtual bool DoRotate(string rotated_path, string postprocessor,
 			      double open, double close, bool terminating) = 0;
 
-	class RotateMessage : public LogMessage {
-	public:
-		RotateMessage(const string p, const string pp, const double o, const double c, const bool t)
-		: rotated_path(p), postprocessor(p), open(o), close(c), terminating(t) { }
-		bool execute(LogWriter *ref) { return ref->DoRotate(rotated_path, postprocessor, open, close, terminating); }
-	private:
-		const string rotated_path;
-		const string postprocessor;
-		const double open;
-		const double close;
-		const bool terminating;
-	};
-
 	// Called once on termination. Not called when any of the other
 	// methods has previously signaled an error, i.e., executing this
 	// method signals a regular shutdown of the writer.
 	virtual void DoFinish() = 0;
-	
-	class FinishMessage : public LogMessage {
-	public:
-		bool execute(LogWriter *ref) { ref->DoFinish(); return true; }
-	};
 
-	//// Methods for writers to use. These are thread-safe.
+	/**
+	 *  Version of format that uses storage local to this particular LogWriter.  Given the
+	 *  current threading model, this should be thread-safe.
+	 */
+	const char *Fmt (char * format, ...) const;
 
-	// A thread-safe version of fmt().
-	const char* Fmt(const char* format, ...);
-
-	// Returns the current buffering state.
-	bool IsBuf()	{ return buffering; }
-
-	// Reports an error to the user.
+	/**
+	 *  Instantiates and passes an ErrorMessage to the parent.
+	 */
 	void Error(const char *msg);
 
-	// Runs a post-processor on the given file. Parameters correspond to
-	// those of DoRotate(). 
-	bool RunPostProcessor(string fname, string postprocessor,
-			      string old_name, double open, double close,
-			      bool terminating);
+	bool IsBuf() { return buffered; }
+
+protected:
+	bool RunPostProcessor(std::string fname, std::string postprocessor,
+				 std::string old_name, double open, double close,
+				 bool terminating);
+
+	const LogEmissary& parent;
+	bool buffered;
 
 private:
-	friend class LogMgr;
-
-	// Deletes the values as passed into Write().
-	void DeleteVals(LogVal** vals);
-
-	string path;
-	int num_fields;
-	const LogField* const * fields;
-	bool buffering;
-
-	// For implementing Fmt().
-	char* buf;
-	unsigned int buf_len;
+	const static int LOGWRITER_MAX_BUFSZ = 4096;
+	mutable char strbuf[LOGWRITER_MAX_BUFSZ];
 };
+
+class RotateMessage : public MessageEvent
+{
+public:
+	RotateMessage(LogWriter& ref, const string rotated_path, const string postprocessor, const double open,
+					const double close, const bool terminating)
+	: ref(ref), rotated_path(rotated_path), postprocessor(postprocessor), open(open), 
+			close(close), terminating(terminating) { }
+	
+	bool process() { return ref.DoRotate(rotated_path, postprocessor, open, close, terminating); }
+private:
+	LogWriter &ref;
+	const string rotated_path;
+	const string postprocessor;
+	const double open;
+	const double close;
+	const bool terminating;
+};
+
+class InitMessage : public MessageEvent
+{
+public:
+	InitMessage(LogWriter& ref, const string path, const int num_fields, const LogField* const *fields)
+	: ref(ref), path(path), num_fields(num_fields), fields(fields)
+	{ }
+	bool process() { return ref.DoInit(path, num_fields, fields); }
+private:
+	LogWriter& ref;
+	const string path;
+	const int num_fields;
+	const LogField * const* fields;
+};
+
+class WriteMessage : public MessageEvent
+{
+public:
+	WriteMessage(LogWriter& ref, const int num_fields, const LogField* const* fields, LogVal **vals)
+	: ref(ref), num_fields(num_fields), fields(fields)
+	{/* TODO: copy vals here; seems like memory corruption is happening :| */ }
+	bool process() { return ref.DoWrite(num_fields, fields, vals); }
+private:
+	LogWriter& ref;
+	const int num_fields;
+	const LogField* const* fields;
+	LogVal **vals;
+};
+
+class BufferMessage : public MessageEvent
+{
+public:
+	BufferMessage(LogWriter& ref, const bool enabled)
+	: ref(ref), enabled(enabled) { }
+	bool process() { ref.DoSetBuf(enabled); return true; }
+private:
+	LogWriter& ref;
+	const bool enabled;
+};
+
+class FlushMessage : public MessageEvent
+{
+public:
+	FlushMessage(LogWriter& ref)
+	: ref(ref) { }
+	bool process() { ref.DoFlush(); return true; }
+private:
+	LogWriter& ref;
+};
+
+class FinishMessage : public MessageEvent
+{
+public:
+	FinishMessage(LogWriter& ref)
+	: ref(ref) { }
+
+	bool process() { ref.DoFinish(); return true; }
+private:
+	LogWriter& ref;
+};
+
+}
 
 #endif
 

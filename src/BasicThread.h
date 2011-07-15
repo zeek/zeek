@@ -2,69 +2,108 @@
 #define BASICTHREAD_H
 
 #include "ThreadSafeQueue.h"
+#include <typeinfo>
 
 namespace bro
 {
-	class ThreadNotification
+
+	class ThreadInterface
 	{
 	public:
-		enum MessageType
+	ThreadInterface()
+	: thread_finished(false) { }
+
+	static void *launcher(void *args)
 		{
-			NOTIFY_UNKNOWN,
-			NOTIFY_ERROR,
-			NOTIFY_FATAL,
-			NOTIFY_FORCE_SHUTDOWN_ACK,
-			NOTIFY_TERMINATED_ACK
-		};
+		((ThreadInterface *)(args))->run();
+		return 0;
+		}
 
-		ThreadNotification(const MessageType c)
-		: code(c) { }
+	void start()
+		{
+		pthread_create(&thread, NULL, ThreadInterface::launcher, this);
+		}
 
-		MessageType getCode() const {return code; }
-	private:
-		const MessageType code;
+	void stop()
+		{
+		thread_finished = true;
+		}
+
+	void join()
+		{
+		pthread_join(thread, NULL);
+		}
+
+	virtual void run() = 0;
+	protected:
+		pthread_t thread;
+		bool thread_finished;
 	};
 
-	// TODO: Get rid of RefType ...
-	template <typename InQueueType, typename RefType>
-	class BasicThread
+	class MessageEvent
 	{
 	public:
-		BasicThread()
-		: thread_finished(false) { }
+		virtual bool process() = 0;
+	};
 
-		static void *launcher(void *args)
+	class ErrorReport : public MessageEvent
+	{
+	public:
+		ErrorReport(const MessageEvent *src, const std::string message)
+		: src(src), message(message) { }
+
+		ErrorReport(const std::string message)
+		: src(this), message(message) { }
+
+		bool process()
 			{
-			((BasicThread *)(args))->run();
-			return 0;
+			fprintf(stderr, "%s: %s", typeid(*src).name(), message.c_str());
+			return true;
 			}
 
-		virtual void run()
+	private:
+		const MessageEvent *src;
+		const std::string message;
+	};
+
+	class TerminateThread : public MessageEvent
+	{
+	public:
+		TerminateThread(ThreadInterface &ref)
+		: ref(ref) { }
+		
+		bool process()
+			{
+			ref.stop();
+			return true;
+			}
+
+	private:
+		ThreadInterface &ref;
+	};
+
+	class BasicThread : public ThreadInterface
+	{
+	public:
+		BasicThread(QueueInterface<MessageEvent *>& in_q, QueueInterface<MessageEvent *>& out_q)
+		: in_queue(in_q), out_queue(out_q) { }
+
+		void run()
 			{
 			while(!thread_finished)
 				{
-				InQueueType msg = in_queue.get();
-				bool res = msg->execute((RefType)this);
-				delete msg;
+				MessageEvent *msg = in_queue.get();
+				bool res = msg->process();
 				if(!res)
 					{
-					putNotification(ThreadNotification(ThreadNotification::NOTIFY_FATAL));
-					return;
+					putNotification(new ErrorReport(msg, "process() failed"));
+					thread_finished = true;
 					}
+				delete msg;
 				}
 			}
 
-		void start()
-			{
-			pthread_create(&thread, NULL, BasicThread::launcher, this);
-			}
-
-		void putNotification(ThreadNotification n)
-			{
-			out_queue.put(n);
-			}
-
-		ThreadNotification getNotification()
+		MessageEvent *getNotification()
 			{
 			return out_queue.get();
 			}
@@ -74,22 +113,26 @@ namespace bro
 			return out_queue.ready();
 			}
 
-		void putMessage(InQueueType type)
+		void putMessage(MessageEvent * const type)
 			{
 			in_queue.put(type);
 			}
 
-		InQueueType getMessage()
+	protected:
+		// Thread-local access to these functions.
+		void putNotification(MessageEvent *notification)
+			{
+			out_queue.put(notification);
+			}
+
+		MessageEvent *getMessage()
 			{
 			return in_queue.get();
 			}
 
-	protected:
-		bool thread_finished;
 	private:
-		ThreadSafeQueue<InQueueType> in_queue;
-		ThreadSafeQueue<ThreadNotification> out_queue;
-		pthread_t thread;
+		QueueInterface<MessageEvent *>& in_queue;
+		QueueInterface<MessageEvent *>& out_queue;
 	};
 }
 

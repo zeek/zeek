@@ -6,6 +6,15 @@
 namespace bro
 {
 
+WriteMessage::~WriteMessage()
+	{
+	for(int i = 0; i < num_fields; ++i)
+		{
+			delete vals[i];
+		}
+		delete[] vals;
+	}
+
 const char *LogWriter::Fmt (char * format, ...) const
 	{
 	va_list args;

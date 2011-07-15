@@ -196,8 +196,9 @@ class WriteMessage : public MessageEvent
 public:
 	WriteMessage(LogWriter& ref, const int num_fields, const LogField* const* fields, LogVal **vals)
 	: ref(ref), num_fields(num_fields), fields(fields)
-	{/* TODO: copy vals here; seems like memory corruption is happening :| */ }
+	{ this->vals = vals;  /* TODO: copy vals here; seems like memory corruption is happening :| */ }
 	bool process() { return ref.DoWrite(num_fields, fields, vals); }
+	~WriteMessage();
 private:
 	LogWriter& ref;
 	const int num_fields;

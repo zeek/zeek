@@ -1215,6 +1215,7 @@ LogEmissary* LogMgr::CreateWriter(EnumVal* id, EnumVal* writer, string path,
 	LogEmissary* emissary = new LogEmissary(*push_queue, *pull_queue);
 	LogWriter *writer_obj = (*ld->factory)(*emissary, *push_queue, *pull_queue);
 	emissary->BindWriter(writer_obj);
+	writer_obj->start();
 
 	if ( ! emissary->Init(path, num_fields, fields) )
 		{

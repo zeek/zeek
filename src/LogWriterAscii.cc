@@ -139,14 +139,14 @@ bool LogWriterAscii::DoWriteOne(ODesc* desc, LogVal* val, const LogField* field)
 		break;
 
 	case TYPE_SUBNET:
-		desc->Add(dotted_addr(val->val.subnet_val.net));
+		desc->Add(dotted_addr_r(val->val.subnet_val.net, strbuf));
 		desc->Add("/");
 		desc->Add(val->val.subnet_val.width);
 		break;
 
 	case TYPE_NET:
 	case TYPE_ADDR:
-		desc->Add(dotted_addr(val->val.addr_val));
+		desc->Add(dotted_addr_r(val->val.addr_val, strbuf));
 		break;
 
 	case TYPE_DOUBLE:

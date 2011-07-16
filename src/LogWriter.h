@@ -153,9 +153,7 @@ protected:
 
 	const LogEmissary& parent;
 	bool buffered;
-
-private:
-	const static int LOGWRITER_MAX_BUFSZ = 4096;
+	const static int LOGWRITER_MAX_BUFSZ = 2048;
 	mutable char strbuf[LOGWRITER_MAX_BUFSZ];
 };
 

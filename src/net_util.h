@@ -109,6 +109,14 @@ extern const char* dotted_addr(const uint32* addr, int alternative=0);
 extern const char* dotted_net(uint32 addr);
 extern const char* dotted_net6(const uint32* addr);
 
+// Re-entrant versions of the above.  Storage *MUST* be provided.
+
+extern const char* dotted_addr_r(uint32 addr, char *target, int alternative=0);
+extern const char* dotted_addr_r(const uint32* addr, char *target, int alternative=0);
+
+extern const char* dotted_net_r(uint32 addr, char *target);
+extern const char* dotted_net6_r(const uint32* addr, char *target);
+
 // Given an ASCII dotted representation, returns the corresponding address
 // in network order.
 extern uint32 dotted_to_addr(const char* addr_text);

@@ -597,7 +597,6 @@ bool LogMgr::EnableStream(EnumVal* id)
 
 bool LogMgr::DisableStream(EnumVal* id)
 	{
-	/*
 	Stream* stream = FindStream(id);
 
 	if ( ! stream )
@@ -609,8 +608,6 @@ bool LogMgr::DisableStream(EnumVal* id)
 	stream->enabled = false;
 
 	DBG_LOG(DBG_LOGGING, "Disabled logging stream '%s'", stream->name.c_str());
-	return true;
-	*/
 	return true;
 	}
 
@@ -873,8 +870,8 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 	if ( ! stream )
 		return false;
 
-	//if ( ! stream->enabled )
-	//	return true;
+	if ( ! stream->enabled )
+		return true;
 
 	columns = columns->CoerceTo(stream->columns);
 

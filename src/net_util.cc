@@ -161,40 +161,49 @@ uint32 addr_to_net(uint32 addr)
 
 const char* dotted_addr(uint32 addr, int alternative)
 	{
+	static char buf[32];
+	return dotted_addr_r(addr, buf, alternative);
+	}
+
+const char* dotted_addr(const uint32* addr, int alternative)
+	{
+	static char buf[256];
+	return dotted_addr_r(addr, buf, alternative);
+	}
+
+const char* dotted_addr_r(uint32 addr, char *buf, int alternative)
+	{
 	addr = ntohl(addr);
 	const char* fmt = alternative ? "%d,%d.%d.%d" : "%d.%d.%d.%d";
 
-	static char buf[32];
-	snprintf(buf, sizeof(buf), fmt,
+	//TODO: How do we fix the 32 in there without adding an extra argument?
+	snprintf(buf, 32, fmt,
 		addr >> 24, (addr >> 16) & 0xff,
 		(addr >> 8) & 0xff, addr & 0xff);
 
 	return buf;
 	}
 
-const char* dotted_addr(const uint32* addr, int alternative)
+const char* dotted_addr_r(const uint32* addr, char *buf, int alternative)
 	{
 #ifdef BROv6
 	if ( is_v4_addr(addr) )
-		return dotted_addr(addr[3], alternative);
+		return dotted_addr_r(addr[3], target, alternative);
 
-	static char buf[256];
-
-	if ( inet_ntop(AF_INET6, addr, buf, sizeof buf) == NULL )
+	//TODO: How do we fix the 32 in there without adding an extra argument?
+	if ( inet_ntop(AF_INET6, addr, buf, 32) == NULL )
 		return "<bad IPv6 address conversion>";
 
 	return buf;
 
 #else
-	return dotted_addr(to_v4_addr(addr), alternative);
+	return dotted_addr_r(to_v4_addr(addr), buf, alternative);
 #endif
 	}
 
-const char* dotted_net(uint32 addr)
+const char* dotted_net_r(uint32 addr, char *buf)
 	{
 	addr = ntohl(addr);
-
-	static char buf[32];
 
 	if ( CHECK_CLASS(addr, CLASS_D) )
 		sprintf(buf, "%d.%d.%d.%d",
@@ -212,6 +221,12 @@ const char* dotted_net(uint32 addr)
 	return buf;
 	}
 
+const char* dotted_net(uint32 addr)
+	{
+	static char buf[32];
+	return dotted_net_r(addr, buf);
+	}
+
 #ifdef BROv6
 const char* dotted_net6(const uint32* addr)
 	{
@@ -220,6 +235,15 @@ const char* dotted_net6(const uint32* addr)
 	else
 		// ### this isn't right, but net's should go away eventually ...
 		return dotted_addr(addr);
+	}
+
+const char* dotted_net6_r(const uint32* addr, char *buf)
+	{
+	if ( is_v4_addr(addr) )
+		return dotted_net_r(to_v4_addr(addr), buf);
+	else
+		// ### this isn't right, but net's should go away eventually ...
+		return dotted_addr_r(addr, buf);
 	}
 #endif
 

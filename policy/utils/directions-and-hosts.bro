@@ -1,4 +1,3 @@
-@load site
 
 type Direction: enum { INBOUND, OUTBOUND, BIDIRECTIONAL, NO_DIRECTION };
 function id_matches_direction(id: conn_id, d: Direction): bool

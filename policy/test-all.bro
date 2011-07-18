@@ -8,8 +8,6 @@
 
 @load all.bro
 # @load test-all.bro
-@load site.bro
-@load detectors/http-MHR.bro
 @load tuning/__load__.bro
 @load tuning/defaults/__load__.bro
 @load tuning/defaults/packet-fragments.bro

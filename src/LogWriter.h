@@ -63,7 +63,7 @@ private:
 class LogWriter : public BasicThread {
 public:
 	LogWriter(const LogEmissary& parent, QueueInterface<MessageEvent *>& in_q, QueueInterface<MessageEvent *>& out_q)
-	: BasicThread(in_q, out_q), parent(parent), buffered(true) { }
+	: BasicThread(in_q, out_q), parent(parent), buffered(false) { }
 	
 	// Methods for writers to override. If any of these returs false, it
 	// will be assumed that a fatal error has occured that prevents the

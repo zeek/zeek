@@ -112,6 +112,8 @@ bool LogWriterAscii::DoFlush()
 
 void LogWriterAscii::DoFinish()
 	{
+	fclose(file);
+	file = NULL;
 	}
 
 bool LogWriterAscii::DoWriteOne(ODesc* desc, LogVal* val, const LogField* field)
@@ -139,14 +141,14 @@ bool LogWriterAscii::DoWriteOne(ODesc* desc, LogVal* val, const LogField* field)
 		break;
 
 	case TYPE_SUBNET:
-		desc->Add(dotted_addr_r(val->val.subnet_val.net, strbuf));
+		desc->Add(dotted_addr_r(val->val.subnet_val.net, strbuf, LOGWRITER_MAX_BUFSZ));
 		desc->Add("/");
 		desc->Add(val->val.subnet_val.width);
 		break;
 
 	case TYPE_NET:
 	case TYPE_ADDR:
-		desc->Add(dotted_addr_r(val->val.addr_val, strbuf));
+		desc->Add(dotted_addr_r(val->val.addr_val, strbuf, LOGWRITER_MAX_BUFSZ));
 		break;
 
 	case TYPE_DOUBLE:

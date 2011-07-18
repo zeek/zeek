@@ -83,7 +83,7 @@ namespace bro
 			}
 
 	protected:
-		const static int 	DEFAULT_NUM_QUEUES = 8;     // Default number of queues
+		const static int 	DEFAULT_NUM_QUEUES = 1;     // Default number of queues
 		const int			NUM_QUEUES;                 // Number of queues to use for this structure; locking proceeds in rotary fashion
 		pthread_cond_t 		*hasdata;               	// Signals when data becomes available
 		pthread_mutex_t 	*mutex;                 	// This is locked when modifying the mutex

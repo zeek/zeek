@@ -162,61 +162,59 @@ uint32 addr_to_net(uint32 addr)
 const char* dotted_addr(uint32 addr, int alternative)
 	{
 	static char buf[32];
-	return dotted_addr_r(addr, buf, alternative);
+	return dotted_addr_r(addr, buf, 32, alternative);
 	}
 
 const char* dotted_addr(const uint32* addr, int alternative)
 	{
 	static char buf[256];
-	return dotted_addr_r(addr, buf, alternative);
+	return dotted_addr_r(addr, buf, 256, alternative);
 	}
 
-const char* dotted_addr_r(uint32 addr, char *buf, int alternative)
+const char* dotted_addr_r(uint32 addr, char *buf, const size_t sz, int alternative)
 	{
 	addr = ntohl(addr);
 	const char* fmt = alternative ? "%d,%d.%d.%d" : "%d.%d.%d.%d";
 
-	//TODO: How do we fix the 32 in there without adding an extra argument?
-	snprintf(buf, 32, fmt,
+	snprintf(buf, sz, fmt,
 		addr >> 24, (addr >> 16) & 0xff,
 		(addr >> 8) & 0xff, addr & 0xff);
 
 	return buf;
 	}
 
-const char* dotted_addr_r(const uint32* addr, char *buf, int alternative)
+const char* dotted_addr_r(const uint32* addr, char *buf, const size_t sz, int alternative)
 	{
 #ifdef BROv6
 	if ( is_v4_addr(addr) )
 		return dotted_addr_r(addr[3], target, alternative);
 
-	//TODO: How do we fix the 32 in there without adding an extra argument?
-	if ( inet_ntop(AF_INET6, addr, buf, 32) == NULL )
+	if ( inet_ntop(AF_INET6, addr, buf, sz) == NULL )
 		return "<bad IPv6 address conversion>";
 
 	return buf;
 
 #else
-	return dotted_addr_r(to_v4_addr(addr), buf, alternative);
+	return dotted_addr_r(to_v4_addr(addr), buf, sz, alternative);
 #endif
 	}
 
-const char* dotted_net_r(uint32 addr, char *buf)
+const char* dotted_net_r(uint32 addr, char *buf, const size_t sz)
 	{
 	addr = ntohl(addr);
 
 	if ( CHECK_CLASS(addr, CLASS_D) )
-		sprintf(buf, "%d.%d.%d.%d",
+		snprintf(buf, sz, "%d.%d.%d.%d",
 			addr >> 24, (addr >> 16) & 0xff,
 			(addr >> 8) & 0xff, addr & 0xff);
 
 	else if ( CHECK_CLASS(addr, CLASS_C) )
-		sprintf(buf, "%d.%d.%d",
+		snprintf(buf, sz, "%d.%d.%d",
 			addr >> 24, (addr >> 16) & 0xff, (addr >> 8) & 0xff);
 
 	else
 		// Same for class A's and B's.
-		sprintf(buf, "%d.%d", addr >> 24, (addr >> 16) & 0xff);
+		snprintf(buf, sz, "%d.%d", addr >> 24, (addr >> 16) & 0xff);
 
 	return buf;
 	}
@@ -224,7 +222,7 @@ const char* dotted_net_r(uint32 addr, char *buf)
 const char* dotted_net(uint32 addr)
 	{
 	static char buf[32];
-	return dotted_net_r(addr, buf);
+	return dotted_net_r(addr, buf, 32);
 	}
 
 #ifdef BROv6
@@ -237,13 +235,13 @@ const char* dotted_net6(const uint32* addr)
 		return dotted_addr(addr);
 	}
 
-const char* dotted_net6_r(const uint32* addr, char *buf)
+const char* dotted_net6_r(const uint32* addr, char *buf, const size_t sz)
 	{
 	if ( is_v4_addr(addr) )
-		return dotted_net_r(to_v4_addr(addr), buf);
+		return dotted_net_r(to_v4_addr(addr), buf, sz);
 	else
 		// ### this isn't right, but net's should go away eventually ...
-		return dotted_addr_r(addr, buf);
+		return dotted_addr_r(addr, buf, sz);
 	}
 #endif
 

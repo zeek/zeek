@@ -404,7 +404,7 @@ LogMgr::Stream::~Stream()
 
 		Unref(winfo->type);
 
-		// delete winfo->writer;  // NO!  Needs to be done elsewhere. . .
+		delete winfo->writer;
 		delete i->second;
 		}
 
@@ -455,7 +455,6 @@ void LogMgr::RegisterWriter(const bro_int_t type, const char *name,
 			log_writers = t_writers;
 			++writer_count;
 		}
-	// printf("Registered writer: %s\n", (name == NULL) ? "(null)" : name);
 	}
 
 LogMgr::Stream* LogMgr::FindStream(EnumVal* id)

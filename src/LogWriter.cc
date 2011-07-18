@@ -36,10 +36,17 @@ LogEmissary::LogEmissary(QueueInterface<MessageEvent *>& push_queue, QueueInterf
 
 LogEmissary::~LogEmissary()
 	{
+	push_queue.put(new FinishMessage(*bound));
+	push_queue.put(new TerminateThread(*bound));
+	bound->join();
+	
 	for(int i = 0; i < num_fields; ++i)
 		delete fields[i];
-	
 	delete [] fields;
+
+	delete bound;
+	delete &push_queue;
+	delete &pull_queue;
 	}
 
 void LogEmissary::BindWriter(LogWriter *writer)
@@ -100,12 +107,8 @@ bool LogEmissary::Rotate(string rotated_path, string postprocessor, double open,
 		       double close, bool terminating)
 	{
 	assert(bound);
-	push_queue.put(new RotateMessage(*bound, rotated_path, postprocessor, open, close, terminating));
-	if(terminating)
-		{
-		Finish();
-		}
 	
+	push_queue.put(new RotateMessage(*bound, rotated_path, postprocessor, open, close, terminating));
 	return true;
 	}
 

@@ -11,7 +11,7 @@ namespace bro
 	{
 	public:
 	ThreadInterface()
-	: thread_finished(false) { }
+	: thread_finished(false), evt_count(0) { }
 
 	static void *launcher(void *args)
 		{
@@ -38,6 +38,7 @@ namespace bro
 	protected:
 		pthread_t thread;
 		bool thread_finished;
+		size_t evt_count;
 	};
 
 	class MessageEvent
@@ -94,6 +95,7 @@ namespace bro
 				{
 				MessageEvent *msg = in_queue.get();
 				bool res = msg->process();
+				++evt_count;
 				if(!res)
 					{
 					putNotification(new ErrorReport(msg, "process() failed"));
@@ -101,6 +103,11 @@ namespace bro
 					}
 				delete msg;
 				}
+			if(in_queue.ready())
+				{
+				printf("Warning: Unprocessed events in queue at thread shutdown.\n");
+				}
+			// printf("Thread shutting down after processing %lu events.\n", evt_count);
 			}
 
 		MessageEvent *getNotification()

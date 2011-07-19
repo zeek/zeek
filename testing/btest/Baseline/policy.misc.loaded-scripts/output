@@ -16,6 +16,6 @@
 3, /Users/seth/bro.git9/policy/frameworks/notice/__load__.bro
 4, /Users/seth/bro.git9/policy/frameworks/notice/base.bro
 4, /Users/seth/bro.git9/policy/frameworks/notice/weird.bro
-5, /Users/seth/bro.git9/policy/utils/conn_ids.bro
+5, /Users/seth/bro.git9/policy/utils/conn-ids.bro
 2, /Users/seth/bro.git9/policy/frameworks/packet-filter/netstats.bro
 0, /Users/seth/bro.git9/testing/btest/.tmp/policy.misc.loaded-scripts/loaded-scripts.bro

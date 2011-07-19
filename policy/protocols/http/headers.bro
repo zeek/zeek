@@ -1,6 +1,6 @@
 ##! Extract and include the header keys used for each request in the log.
 
-@load http/base
+@load protocols/http
 
 module HTTP;
 

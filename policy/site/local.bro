@@ -1,13 +1,15 @@
-
-
-# Template for local site policy. Customize as appropriate. 
-#
-# (Note that enabling a particular kind of analysis via the cluster's 
-# "analysis command" only has an effect if the corresponding scripts are
-# loaded by this site policy.)
+##! Template for local site policy. Customize as appropriate.
 
 # DPD should typically be loaded for detecting protocols on any port.
 @load frameworks/dpd
+
+@load misc/loaded-scripts
+@load frameworks/notice
+@load frameworks/signatures
+@load frameworks/metrics
+@load frameworks/intel
+@load frameworks/software
+@load frameworks/reporter
 
 @load protocols/conn
 @load protocols/dns
@@ -20,20 +22,7 @@
 @load protocols/ssl
 @load protocols/syslog
 
-@load frameworks/metrics
-@load frameworks/intel
-@load frameworks/notice
-@load frameworks/signatures
-@load frameworks/software
-@load frameworks/reporter
-
-@load misc/loaded-scripts
-
 @load tuning/defaults
-
-# Uncomment for profiling resource usage.
-# @load profiling 
-# redef expensive_profiling_multiple = 20;
 
 # Sample notice policy which you will almost certainly want 
 # to adapt to your environment. 

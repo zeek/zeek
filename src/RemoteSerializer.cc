@@ -2558,7 +2558,10 @@ bool RemoteSerializer::SendLogWrite(Peer* peer, EnumVal* id, EnumVal* writer, st
 
 	// Do we have enough space in the buffer? If not, flush first.
 	if ( len > (LOG_BUFFER_SIZE - peer->log_buffer_used) )
-		FlushLogBuffer(peer);
+		{
+		if ( ! FlushLogBuffer(peer) )
+			return false;
+		}
 
 	// If the data is actually larger than our complete buffer, just send it out.
 	if ( len > LOG_BUFFER_SIZE )
@@ -2569,8 +2572,8 @@ bool RemoteSerializer::SendLogWrite(Peer* peer, EnumVal* id, EnumVal* writer, st
 	peer->log_buffer_used += len;
 	assert(peer->log_buffer_used <= LOG_BUFFER_SIZE);
 
-	FlushLogBuffer(peer);
-	return false;
+	FlushLogBuffer(peer); // FIXME: This should go away, but then the unit test fails. See #498.
+	return true;
 
 error:
 	FatalError(io->Error());
@@ -2582,7 +2585,7 @@ bool RemoteSerializer::FlushLogBuffer(Peer* p)
 	if ( p->state == Peer::CLOSING )
 		return false;
 
-	if ( ! p->log_buffer )
+	if ( ! (p->log_buffer && p->log_buffer_used) )
 		return true;
 
 	SendToChild(MSG_LOG_WRITE, p, p->log_buffer, p->log_buffer_used);

@@ -14,7 +14,7 @@
 @load tuning/defaults/remove-high-volume-notices.bro
 @load tuning/track-all-assets.bro
 @load utils/addrs.bro
-@load utils/conn_ids.bro
+@load utils/conn-ids.bro
 @load utils/directions-and-hosts.bro
 @load utils/files.bro
 @load utils/numbers.bro

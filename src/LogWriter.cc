@@ -2,9 +2,14 @@
 
 #include "util.h"
 #include "LogWriter.h"
+#include "Reporter.h"
 
 namespace bro
 {
+
+// DO NOT! initialize this variable.  Out of order initialization in the global scope could
+// overwrite a successfully initialized writer map with whatever goes here.
+LogWriterRegistrar::WriterMap *LogWriterRegistrar::writers;
 
 WriteMessage::~WriteMessage()
 	{
@@ -13,6 +18,54 @@ WriteMessage::~WriteMessage()
 			delete vals[i];
 		}
 		delete[] vals;
+	}
+
+LogWriterRegistrar::LogWriterRegistrar(const bro_int_t type, const char *name, 
+							bool(*init)(), LogWriterRegistrar::InstantiateFunction factory)
+	{
+		static bool needsInit = true;
+		if(needsInit)
+			{
+			writers = new WriterMap;
+			needsInit = false;
+			}
+		writers->insert(std::make_pair(type, LogWriterDefinition(type, factory, init, name)));
+	}
+
+LogEmissary *LogWriterRegistrar::LaunchWriterThread(std::string path, size_t num_fields, LogField * const *fields, const bro_int_t type)
+	{
+	WriterMapIterator iter = writers->find(type);
+	if(iter == writers->end())
+		{
+		reporter->Error("Could not construct writer: unknown writer type");
+		return NULL;
+		}
+
+	if(!iter->second.factory)
+		{
+		return NULL;
+		}
+
+	if(iter->second.init)
+		{
+			if(!iter->second.init())
+				{
+				reporter->Error("Writer initialization failed");
+				iter->second.init = NULL;
+				iter->second.factory = NULL;
+				return NULL;
+				}
+			iter->second.init = NULL;
+		}
+
+	ThreadSafeQueue<MessageEvent *> *push_queue = new ThreadSafeQueue<MessageEvent *>;
+	ThreadSafeQueue<MessageEvent *> *pull_queue = new ThreadSafeQueue<MessageEvent *>;
+	LogEmissary* emissary = new LogEmissary(*push_queue, *pull_queue);
+	LogWriter *writer_obj = iter->second.factory(*emissary, *push_queue, *pull_queue);
+	emissary->BindWriter(writer_obj);
+	writer_obj->start();
+	emissary->Init(path, num_fields, fields); 
+	return emissary;
 	}
 
 const char *LogWriter::Fmt (char * format, ...) const
@@ -45,6 +98,15 @@ LogEmissary::~LogEmissary()
 	delete [] fields;
 
 	delete bound;
+	//TODO: flushing the queues will probably need to work differently once IPC / network communication become important.
+	while(push_queue.ready())
+		{
+			delete push_queue.get();
+		}
+	while(pull_queue.ready())
+		{
+			delete pull_queue.get();
+		}
 	delete &push_queue;
 	delete &pull_queue;
 	}

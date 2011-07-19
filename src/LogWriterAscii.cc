@@ -1,12 +1,14 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include <string>
-#include <errno.h>
+#include <cerrno>
+#include <cstdio>
 
 #include "LogWriterAscii.h"
 #include "NetVar.h"
 
-using namespace bro;
+namespace bro
+{
 
 LogWriter* LogWriterAscii::Instantiate(const bro::LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue)	
 { 
@@ -274,5 +276,7 @@ bool LogWriterAscii::DoSetBuf(bool enabled)
 	}
 
 // Register the ASCII logger so that Bro can use it.
-static LogWriterRegistrar __register_logger(BifEnum::Log::WRITER_ASCII, "Ascii", LogWriterAscii::Instantiate);
+static LogWriterRegistrar __register_logger(BifEnum::Log::WRITER_ASCII, "Ascii", NULL, LogWriterAscii::Instantiate);
+
+}
 

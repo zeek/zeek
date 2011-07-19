@@ -52,6 +52,8 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 
 #include "binpac_bro.h"
 
+using namespace bro;
+
 #ifndef HAVE_STRSEP
 extern "C" {
 char* strsep(char**, const char*);

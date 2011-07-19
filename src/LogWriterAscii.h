@@ -7,12 +7,15 @@
 
 #include "LogWriter.h"
 
-class LogWriterAscii : public bro::LogWriter {
+namespace bro
+{
+
+class LogWriterAscii : public LogWriter {
 public:
-	LogWriterAscii(const bro::LogEmissary& parent, bro::QueueInterface<bro::MessageEvent *>& in_queue, bro::QueueInterface<bro::MessageEvent *>& out_queue);
+	LogWriterAscii(const LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue);
 	~LogWriterAscii();
 
-	static LogWriter* Instantiate(const bro::LogEmissary& parent, bro::QueueInterface<bro::MessageEvent *>& in_queue, bro::QueueInterface<bro::MessageEvent *>& out_queue);	
+	static LogWriter* Instantiate(const LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue);	
 
 protected:
 	virtual bool DoInit(string path, int num_fields,
@@ -51,5 +54,7 @@ private:
 	char* header_prefix;
 	int header_prefix_len;
 };
+
+}
 
 #endif

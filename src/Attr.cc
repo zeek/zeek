@@ -8,6 +8,9 @@
 #include "Expr.h"
 #include "Serializer.h"
 #include "LogMgr.h"
+#include "LogWriter.h"
+
+using namespace bro;
 
 const char* attr_name(attr_tag t)
 	{

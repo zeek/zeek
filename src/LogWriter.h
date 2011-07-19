@@ -15,22 +15,40 @@
 #define LOGWRITER_H
 
 #include <string>
+#include <map>
 
-#include "LogMgr.h"
-#include "BroString.h"
+#include "net_util.h"
+
 #include "ThreadSafeQueue.h"
 #include "BasicThread.h"
+#include "LogBase.h"
 
 namespace bro
 {
 
 class LogWriter;
 
+/**
+ *  Acts as a go-between for Bro / an individual logger.  Individual functions, when called, build appropriate
+ *  messages and send them to whichever writer is bound to this individual LogEmissary via the pull_queue
+ *  / push_queue channels.
+ *
+ *  Note that, in the case of IPC, there may not be a bound writer, only a bound push / pull queue.
+ */
+
 class LogEmissary {
 public:
+	std::string Path() const { return path; }
+	const LogField* const *Fields() const { return fields; }
+	const int NumFields() const { return num_fields; }
+
 	LogEmissary(QueueInterface<MessageEvent *>& push_queue, QueueInterface<MessageEvent *>& pull_queue);
 	virtual ~LogEmissary();
 
+	/**
+	 *  Note that these values are used by the child thread.  As such, once initially set,
+	 *  they MUST not change!
+	 */
 	bool Init(const string path, const int num_fields, LogField* const *fields);
 	bool Write(const int num_fields, LogVal **vals);
 	bool SetBuf(const bool enabled);
@@ -38,16 +56,7 @@ public:
 	bool Rotate(string rotated_path, string postprocessor, double open,
 		    double close, bool terminating);
 	void Finish();
-	/**
-	 *  Runs through the list of outstanding events for the child thread (if any)
-	 *  and calls process() on each of them.
-	 */
-	void Update();
 	void BindWriter(LogWriter *writer);
-	std::string Path() const { return path; }
-	const LogField* const *Fields() const { return fields; }
-	const int NumFields() const { return num_fields; }
-
 private:
 	void DeleteVals(LogVal** vals);
 
@@ -234,6 +243,49 @@ public:
 	bool process() { ref.DoFinish(); return true; }
 private:
 	LogWriter& ref;
+};
+
+class LogWriterRegistrar {
+public:
+	typedef bro::LogWriter* (*InstantiateFunction)( const LogEmissary&, bro::QueueInterface<bro::MessageEvent *>&, bro::QueueInterface<bro::MessageEvent *>& );
+	typedef bool (*InitFunction)();
+
+	LogWriterRegistrar(const bro_int_t type, const char *name, 
+							InitFunction init, InstantiateFunction factory);
+	LogWriterRegistrar(const bro_int_t type, const char *name, 
+							InstantiateFunction factory);
+	/**
+	 *  Registers a new log writer so that scripts can use it.
+	 *
+	 *  This function modifies the shared log_writers object; it is therefore *not*
+	 *  thread-safe.
+	 *
+	 *  @param type BifEnum::Log::WRITER_NAME
+	 *  @param name Common name of this writer (e.g. "ASCII") 
+	 *  @param init Function to call (once!) before *any* instances are built
+	 *  @param factory Function used to instantiate this type of LogWriter (probably MyLogClass::Instantiate) 
+	*/
+	static void RegisterWriter(const bro_int_t type, const char *name,
+								  bool (*init)(), LogWriterRegistrar::InstantiateFunction factory);
+
+	static LogEmissary *LaunchWriterThread(std::string path, size_t num_fields, LogField * const *fields, const bro_int_t type);
+private:
+	struct LogWriterDefinition
+	{
+		bro_int_t type;
+		InstantiateFunction factory;
+		InitFunction init;
+		std::string name;
+		LogWriterDefinition(const bro_int_t type, InstantiateFunction factory, InitFunction init, const std::string name)
+		: type(type), factory(factory), init(init), name(name) { }
+
+		LogWriterDefinition(const bro_int_t type, InstantiateFunction factory, const std::string name)
+		: type(type), factory(factory), init(NULL), name(name) { }
+	};
+	typedef std::map<bro_int_t, LogWriterDefinition> WriterMap;
+	typedef WriterMap::iterator WriterMapIterator;
+	static WriterMap *writers;
+
 };
 
 }

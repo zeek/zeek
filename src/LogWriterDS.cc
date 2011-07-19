@@ -7,6 +7,9 @@
 #include "LogWriterDS.h"
 #include "NetVar.h"
 
+namespace bro
+{
+
 // NOTE: Naming conventions are a little bit scattershot at the moment.  Within the scope of this file, a function name prefixed by '_' denotes a static function.
 
 /**
@@ -19,6 +22,9 @@
 //TODO: Should I be using a SerializationFormat here and calling appropriate functions instead?  That somehow seems like overkill...
 static std::string _LogValueToString(LogVal *val)
 {
+	const int strsz = 1024;
+	char strbuf[strsz];
+
 	// In some cases, no value is attached.  If this is the case, return an empty string.
 	if(!val->present)
 		return "";
@@ -40,14 +46,14 @@ static std::string _LogValueToString(LogVal *val)
 		return ostr.str();
 
 	case TYPE_SUBNET:
-		ostr << dotted_addr(val->val.subnet_val.net);
+		ostr << dotted_addr_r(val->val.subnet_val.net, strbuf, strsz);
 		ostr << "/";
 		ostr << val->val.subnet_val.width;
 		return ostr.str();
 
 	case TYPE_NET:
 	case TYPE_ADDR:
-		ostr << dotted_addr(val->val.addr_val);
+		ostr << dotted_addr_r(val->val.addr_val, strbuf, strsz);
 		return ostr.str();
 	
 	// Note: These two cases are relatively special.  We need to convert these values into their integer equivalents
@@ -118,9 +124,18 @@ static std::string _LogValueToString(LogVal *val)
 }
 
 /**
+ * Builds an instance of the LogWriterDS
+ */
+LogWriter* LogWriterDS::Instantiate(const bro::LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue)	
+{ 
+	return new LogWriterDS(parent, in_queue, out_queue); 
+}
+
+/**
  *  Turns script variables into a form our logger can use.
  */
-LogWriterDS::LogWriterDS()
+LogWriterDS::LogWriterDS(const bro::LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue)
+: LogWriter(parent, in_queue, out_queue)
 {
 	ds_compression = string((const char *)BifConst::LogDataSeries::ds_compression->Bytes(), BifConst::LogDataSeries::ds_compression->Len());
 	ds_dump_schema = BifConst::LogDataSeries::ds_dump_schema;
@@ -416,5 +431,7 @@ bool LogWriterDS::DoSetBuf(bool enabled)
 // Call our constructor in the global scope to register this logging type with the LogMgr.  This is used because
 // certain logging types depend on optional libraries, and we feel like this is slightly cleaner than wrapping stuff 
 // in #ifdef.
-static LogWriterRegistrar __register_logger(BifEnum::Log::WRITER_DATASERIES, "DataSeries", LogWriterDS::Instantiate);
+static LogWriterRegistrar __register_logger(BifEnum::Log::WRITER_DATASERIES, "DataSeries", NULL, LogWriterDS::Instantiate);
+
+}
 

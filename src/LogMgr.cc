@@ -10,6 +10,7 @@
 
 using namespace bro;
 
+/*
 // Structure describing a log writer type.
 struct LogWriterDefinition {
 	bro_int_t type;										// The type.
@@ -23,9 +24,7 @@ struct LogWriterDefinition {
 	LogWriterDefinition(const bro_int_t t, const char *n, bool (*i)(), LogWriterRegistrar::InstantiateFunction f)
 	: type(t), name(n), init(i), factory(f) { }
 };
-
-static int writer_count = 1;
-LogWriterDefinition *log_writers = NULL;
+*/
 
 struct LogMgr::Filter {
 	string name;
@@ -413,18 +412,6 @@ LogMgr::Stream::~Stream()
 	}
 
 
-LogWriterRegistrar::LogWriterRegistrar(const bro_int_t type, const char *name, 
-							bool(*init)(), LogWriterRegistrar::InstantiateFunction factory)
-	{
-		LogMgr::RegisterWriter(type, name, init, factory);
-	}
-
-LogWriterRegistrar::LogWriterRegistrar(const bro_int_t type, const char *name, 
-							LogWriterRegistrar::InstantiateFunction factory)
-	{
-		LogMgr::RegisterWriter(type, name, NULL, factory);
-	}
-
 LogMgr::LogMgr()
 	{
 	}
@@ -433,28 +420,6 @@ LogMgr::~LogMgr()
 	{
 	for ( vector<Stream *>::iterator s = streams.begin(); s != streams.end(); ++s )
 		delete *s;
-	}
-
-void LogMgr::RegisterWriter(const bro_int_t type, const char *name,
-								  bool (*init)(), LogWriterRegistrar::InstantiateFunction factory)
-	{
-	if(NULL == log_writers)
-		{
-			writer_count = 2;  // NULL terminator + 1
-			log_writers = new LogWriterDefinition[writer_count];
-			log_writers[0] = LogWriterDefinition(type, name, init, factory);
-			log_writers[1] = LogWriterDefinition(BifEnum::Log::WRITER_DEFAULT, "None", NULL);
-		}
-	else
-		{
-			LogWriterDefinition *t_writers = new LogWriterDefinition[writer_count + 1];
-			for(int i = 0; i < writer_count; ++i)
-				t_writers[i+1] = log_writers[i];
-			t_writers[0] = LogWriterDefinition(type, name, init, factory);
-			delete[] log_writers;
-			log_writers = t_writers;
-			++writer_count;
-		}
 	}
 
 LogMgr::Stream* LogMgr::FindStream(EnumVal* id)
@@ -1161,65 +1126,9 @@ LogEmissary* LogMgr::CreateWriter(EnumVal* id, EnumVal* writer, string path,
 		stream->writers.find(Stream::WriterPathPair(writer->AsEnum(), path));
 
 	if ( w != stream->writers.end() )
-		// If we already have a writer for this. That's fine, we just
-		// return it.
 		return w->second->writer;
 
-	// Need to instantiate a new writer.
-
-	LogWriterDefinition* ld = log_writers;
-
-	while ( true )
-		{
-		if ( ld->type == BifEnum::Log::WRITER_DEFAULT )
-			{
-			reporter->Error("unknown writer when creating writer");
-			return 0;
-			}
-
-		if ( ld->type == writer->AsEnum() )
-			break;
-
-		if ( ! ld->factory )
-			// Oops, we can't instantiate this guy.
-			return 0;
-
-		// If the writer has an init function, call it.
-		if ( ld->init )
-			{
-			if ( (*ld->init)() )
-				// Clear the init function so that we won't
-				// call it again later.
-				ld->init = 0;
-			else
-				// Init failed, disable by deleting factory
-				// function.
-				ld->factory = 0;
-
-			DBG_LOG(DBG_LOGGING, "failed to init writer class %s",
-				ld->name);
-
-			return false;
-			}
-
-		++ld;
-		}
-
-	assert(ld->factory);
-	ThreadSafeQueue<MessageEvent *> *push_queue = new ThreadSafeQueue<MessageEvent *>;
-	ThreadSafeQueue<MessageEvent *> *pull_queue = new ThreadSafeQueue<MessageEvent *>;
-	LogEmissary* emissary = new LogEmissary(*push_queue, *pull_queue);
-	LogWriter *writer_obj = (*ld->factory)(*emissary, *push_queue, *pull_queue);
-	emissary->BindWriter(writer_obj);
-	writer_obj->start();
-
-	if ( ! emissary->Init(path, num_fields, fields) )
-		{
-		DBG_LOG(DBG_LOGGING, "failed to init instance of writer %s",
-			ld->name);
-
-		return 0;
-		}
+	LogEmissary *emissary = LogWriterRegistrar::LaunchWriterThread(path, num_fields, fields, writer->AsEnum());
 
 	WriterInfo* winfo = new WriterInfo;
 	winfo->type = writer->Ref()->AsEnumVal();

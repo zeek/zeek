@@ -1,4 +1,3 @@
-@load site
 
 type Direction: enum {
 	## The connection originator is not within the locally-monitored network,

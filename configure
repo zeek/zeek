@@ -29,8 +29,6 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --enable-debug         compile in debugging mode
     --enable-brov6         enable IPv6 processing
     --enable-perftools     use Google's perftools
-    --enable-cluster       install Broctl configured for cluster operation
-                           (overridden by --disable-broctl)
     --disable-broccoli     don't build or install the Broccoli library
     --disable-broctl       don't install Broctl
     --disable-auxtools     don't build or install auxilliary tools
@@ -96,7 +94,6 @@ append_cache_entry BUILD_SHARED_LIBS    BOOL   true
 append_cache_entry INSTALL_AUX_TOOLS    BOOL   true
 append_cache_entry INSTALL_BROCCOLI     BOOL   true
 append_cache_entry INSTALL_BROCTL       BOOL   true
-append_cache_entry STANDALONE           BOOL   true
 append_cache_entry CPACK_SOURCE_IGNORE_FILES STRING
 
 # parse arguments
@@ -143,12 +140,6 @@ while [ $# -ne 0 ]; do
             ;;
         --disable-broctl)
             append_cache_entry INSTALL_BROCTL       BOOL   false
-            user_disabled_broctl="true"
-            ;;
-        --enable-cluster)
-            if [ "$user_disabled_broctl" != "true" ]; then
-                append_cache_entry STANDALONE       BOOL   false
-            fi
             ;;
         --disable-auxtools)
             append_cache_entry INSTALL_AUX_TOOLS    BOOL   false

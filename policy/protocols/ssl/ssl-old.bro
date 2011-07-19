@@ -1,6 +1,5 @@
 ##! SSL connections
 
-@load functions
 @load notice
 
 @load ssl-ciphers

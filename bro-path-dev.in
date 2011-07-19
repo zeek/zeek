@@ -10,7 +10,7 @@
 #     BROPATH=`./bro-path-dev` ./src/bro
 #
 
-broPolicies=${PROJECT_SOURCE_DIR}/policy
+broPolicies=${PROJECT_SOURCE_DIR}/policy:${PROJECT_SOURCE_DIR}/policy/site
 
 broGenPolicies=${CMAKE_BINARY_DIR}/src
 

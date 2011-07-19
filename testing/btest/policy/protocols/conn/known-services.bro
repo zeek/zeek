@@ -15,7 +15,8 @@
 # @TEST-EXEC: bro -r $TRACES/var-services-std-ports.trace %INPUT KnownServices::asset_tracking=NO_HOSTS
 # @TEST-EXEC: test '!' -e known_services.log
 
-@load protocols/conn
+@load frameworks/dpd
+@load protocols/conn/known-services
 @load protocols/http
 @load protocols/ssh
 @load protocols/ftp

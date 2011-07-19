@@ -1,8 +1,6 @@
 #
 # @TEST-EXEC: btest-bg-run sender bro --pseudo-realtime %INPUT ../sender.bro
-# @TEST-EXEC: sleep 1
 # @TEST-EXEC: btest-bg-run receiver bro --pseudo-realtime %INPUT ../receiver.bro
-# @TEST-EXEC: sleep 1
 # @TEST-EXEC: btest-bg-wait -k 1
 # @TEST-EXEC: btest-diff receiver/ssh.log
 # @TEST-EXEC: cmp receiver/ssh.log sender/ssh.log

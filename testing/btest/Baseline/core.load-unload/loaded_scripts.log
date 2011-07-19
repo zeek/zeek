@@ -6,7 +6,7 @@
 1	/Users/seth/bro.git9/build/src/bro.bif.bro
 1	/Users/seth/bro.git9/build/src/reporter.bif.bro
 1	/Users/seth/bro.git9/build/src/event.bif.bro
-1	/Users/seth/bro.git9/policy/site.bro
+1	/Users/seth/bro.git9/policy/utils/site.bro
 2	/Users/seth/bro.git9/policy/utils/pattern.bro
 1	/Users/seth/bro.git9/policy/frameworks/logging/__load__.bro
 2	/Users/seth/bro.git9/policy/frameworks/logging/base.bro

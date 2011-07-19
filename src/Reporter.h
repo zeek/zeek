@@ -47,7 +47,7 @@ public:
 	void Weird(const char* name);	// Raises net_weird().
 	void Weird(Connection* conn, const char* name, const char* addl = "");	// Raises conn_weird().
 	void Weird(Val* conn_val, const char* name, const char* addl = "");	// Raises conn_weird().
-	void Weird(addr_type orig, addr_type resp, const char* name);	// Raises flow_weird().
+	void Weird(const uint32* orig, const uint32* resp, const char* name);	// Raises flow_weird().
 
 	// Syslog a message. This methods does nothing if we're running
 	// offline from a trace.
@@ -90,7 +90,7 @@ private:
 	void DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Connection* conn, val_list* addl, bool location, bool time, const char* fmt, va_list ap);
 
 	void WeirdHelper(EventHandlerPtr event, Val* conn_val, const char* name, const char* addl, ...);
-	void WeirdFlowHelper(addr_type orig, addr_type resp, const char* name, ...);
+	void WeirdFlowHelper(const uint32* orig, const uint32* resp, const char* name, ...);
 
 	int errors;
 	bool via_events;

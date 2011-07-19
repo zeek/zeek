@@ -96,4 +96,9 @@ event bro_init()
 	# hybrid format's ipv4 part should test that all octet's are 0-255
 	ip = "2001:db8:0:0:0:FFFF:192.168.0.256";
 	print is_valid_ip(ip);
+
+	print "============ test find_ip_addresses()";
+	print find_ip_addresses("this is 1.1.1.1 a test 2.2.2.2 string with ip addresses 3.3.3.3");
+	print find_ip_addresses("this is 1.1.1.1 a test 0:0:0:0:0:0:0:0 string with ip addresses 3.3.3.3");
+
 	}

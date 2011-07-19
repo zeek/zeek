@@ -155,7 +155,7 @@ function ftp_message(s: Info)
 		
 		local arg = s$cmdarg$arg;
 		if ( s$cmdarg$cmd in file_cmds )
-			arg = fmt("ftp://%s%s", s$id$resp_h, absolute_path(s$cwd, arg));
+			arg = fmt("ftp://%s%s", s$id$resp_h, build_path_compressed(s$cwd, arg));
 		
 		s$ts=s$cmdarg$ts;
 		s$command=s$cmdarg$cmd;
@@ -278,13 +278,13 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &prior
 	if ( [c$ftp$cmdarg$cmd, code] in directory_cmds )
 		{
 		if ( c$ftp$cmdarg$cmd == "CWD" )
-			c$ftp$cwd = build_full_path(c$ftp$cwd, c$ftp$cmdarg$arg);
+			c$ftp$cwd = build_path(c$ftp$cwd, c$ftp$cmdarg$arg);
 
 		else if ( c$ftp$cmdarg$cmd == "CDUP" )
 			c$ftp$cwd = cat(c$ftp$cwd, "/..");
 
 		else if ( c$ftp$cmdarg$cmd == "PWD" || c$ftp$cmdarg$cmd == "XPWD" )
-			c$ftp$cwd = extract_directory(msg);
+			c$ftp$cwd = extract_path(msg);
 		}
 	
 	# In case there are multiple commands queued, go ahead and remove the

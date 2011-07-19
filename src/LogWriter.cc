@@ -188,7 +188,7 @@ void LogEmissary::Finish()
 	push_queue.put(new FinishMessage(*bound));
 	}
 
-void LogEmissary::DeleteVals(LogVal** vals)
+void LogWriter::DeleteVals(LogVal** vals, const int num_fields)
 	{
 	for ( int i = 0; i < num_fields; i++ )
 		delete vals[i];

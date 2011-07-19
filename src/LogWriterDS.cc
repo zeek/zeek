@@ -150,15 +150,6 @@ LogWriterDS::LogWriterDS(const bro::LogEmissary& parent, QueueInterface<MessageE
  */
 LogWriterDS::~LogWriterDS()
 {
-	for(ExtentIterator iter = extents.begin();
-		iter != extents.end(); ++iter)
-		{
-		delete iter->second;
-		}
-	extents.clear();
-	// Don't delete the file before you delete the output, or bad things happen.
-	delete log_output;
-	delete log_file;
 }
 
 /**
@@ -378,7 +369,15 @@ bool LogWriterDS::DoFlush()
 
 void LogWriterDS::DoFinish()
 {
-	fprintf(stderr, "Welcome to the finish!\n");
+	for(ExtentIterator iter = extents.begin();
+		iter != extents.end(); ++iter)
+		{
+		delete iter->second;
+		}
+	extents.clear();
+	// Don't delete the file before you delete the output, or bad things happen.
+	delete log_output;
+	delete log_file;
 }
 
 /**
@@ -411,8 +410,7 @@ bool LogWriterDS::DoWrite(int num_fields, const LogField* const * fields,
 }
 
 /**
- *  Still trying to figure out what this is supposed to do.
- *  TODO: Make this work.  Somehow.
+ *  Doesn't do anything for now. . . do we need to rotate this format?
  */
 bool LogWriterDS::DoRotate(string rotated_path, string postprocessor, double open,
 			      double close, bool terminating)

@@ -58,7 +58,6 @@ public:
 	void Finish();
 	void BindWriter(LogWriter *writer);
 private:
-	void DeleteVals(LogVal** vals);
 
 	LogWriter *bound;               						// The writer we're bound to
 	QueueInterface<MessageEvent *>& push_queue;     		// Pushes messages to the thread
@@ -155,6 +154,7 @@ public:
 
 	bool IsBuf() { return buffered; }
 
+	void DeleteVals(LogVal** vals, const int num_fields);
 protected:
 	bool RunPostProcessor(std::string fname, std::string postprocessor,
 				 std::string old_name, double open, double close,
@@ -204,7 +204,7 @@ public:
 	WriteMessage(LogWriter& ref, const int num_fields, const LogField* const* fields, LogVal **vals)
 	: ref(ref), num_fields(num_fields), fields(fields)
 	{ this->vals = vals;  /* TODO: copy vals here; seems like memory corruption is happening :| */ }
-	bool process() { return ref.DoWrite(num_fields, fields, vals); }
+	bool process() { bool res = ref.DoWrite(num_fields, fields, vals); ref.DeleteVals(vals, num_fields); return res; }
 	~WriteMessage();
 private:
 	LogWriter& ref;

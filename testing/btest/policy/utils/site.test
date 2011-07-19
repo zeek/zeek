@@ -1,7 +1,7 @@
 # @TEST-EXEC: bro %INPUT > output
 # @TEST-EXEC: btest-diff output
 
-@load site
+@load utils/site
 
 global a = { "site-admin@example.com", "other-site-admin@example.com" };
 global b = { "net-admin@example.com" };

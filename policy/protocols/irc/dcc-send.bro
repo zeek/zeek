@@ -52,7 +52,7 @@ event file_transferred(c: connection, prefix: string, descr: string,
 	
 	irc$dcc_mime_type = mime_type;
 
-	if ( extract_file_types in mime_type )
+	if ( extract_file_types == mime_type )
 		{
 		irc$extract_file = T;
 		add irc$tags[EXTRACTED_FILE];
@@ -61,12 +61,8 @@ event file_transferred(c: connection, prefix: string, descr: string,
 		local fname = generate_extraction_filename(extraction_prefix, c, suffix);
 		irc$extraction_file = open(fname);
 		}
-	local tmp = c$irc$command;
-	c$irc$command = "DCC";
-	Log::write(IRC, c$irc);
-	c$irc$command = tmp;
 	}
-	
+
 event file_transferred(c: connection, prefix: string, descr: string,
 			mime_type: string) &priority=-4
 	{
@@ -76,9 +72,14 @@ event file_transferred(c: connection, prefix: string, descr: string,
 
 	local irc = dcc_expected_transfers[id$resp_h, id$resp_p];
 
+	local tmp = irc$command;
+	irc$command = "DCC";
+	Log::write(IRC, irc);
+	irc$command = tmp;
+
 	if ( irc$extract_file && irc?$extraction_file )
 		set_contents_file(id, CONTENTS_RESP, irc$extraction_file);
-	
+
 	# Delete these values in case another DCC transfer 
 	# happens during the IRC session.
 	delete irc$extract_file;
@@ -99,7 +100,7 @@ event irc_dcc_message(c: connection, is_orig: bool,
 	c$irc$dcc_file_name = argument;
 	c$irc$dcc_file_size = size;
 	local p = to_port(dest_port, tcp);
-	expect_connection(c$id$orig_h, address, p, ANALYZER_FILE, 5 min);
+	expect_connection(to_addr("0.0.0.0"), address, p, ANALYZER_FILE, 5 min);
 	dcc_expected_transfers[address, p] = c$irc;
 	}
 

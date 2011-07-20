@@ -668,9 +668,9 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			vl->append(new Val(atoi(parts[4].c_str()), TYPE_COUNT));
 			if ( parts.size() >= 6 )
 				vl->append(new Val(atoi(parts[5].c_str()),
-							TYPE_INT));
+							TYPE_COUNT));
 			else
-				vl->append(new Val(0, TYPE_INT));
+				vl->append(new Val(0, TYPE_COUNT));
 
 			ConnectionEvent(irc_dcc_message, vl);
 			}

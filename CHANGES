@@ -1,3 +1,54 @@
+1.6-dev.218 Tue Jul 19 18:16:44 PDT 2011
+
+- Comprehensive policy script overhaul/rewrite. (Seth Hall)
+
+  Changes are too extensive to list individually.
+
+- Removing undocumented -H command line flag. (Robin Sommer)
+    
+- Fixing many tests. (Everybody)
+
+- Fixing 0-chunk bug in remote logging. (Robin Sommer)
+
+- $PATH is now appropriately set by the bro-path-dev.(sh|csh) scripts.
+  (Seth Hall)
+
+- Making valgrind a bit more happy. (Robin Sommer)
+
+- New BiF record_field_vals() that returns the fields of a record in a
+  table with meta-information. (Robin Sommer)
+    
+- Adding a script in aux/devel-tools that extracts a connection from a
+  trace based on uid. (Robin Sommer)
+    
+- Fixing bug causing crash when running without arguments. (Robin Sommer)
+
+- A new event bro_script_loaded() raised for each policy script
+  loaded. Also removing the -l command-line option as that can now be
+  done at the script-level. (Robin Sommer)
+
+- Fixing memory leaks. (Gilbert Clark, Seth Hall, Robin Sommer)
+  
+- Many SSL analysis improvements and fixes. (Seth Hall)
+
+- Fixing bug with event priorities potentially being ignored for the
+  handler. (Robin Sommer)
+
+- Overhauling the internal reporting of messages to the user. The new
+  Reporter class is now in charge of reporting all errors, warnings,
+  informational messages, weirds, and syslogs; and it passes
+  everything through the script layer. (Robin Sommer)
+
+* Removed the alarm statement and the alarm_hook event. (Robin Sommer)
+    
+- Adding new policy file test-all.bro that loads all other policies.
+  This is for testing only. (Robin Sommer)
+
+- A new framework for doing regression testing with larger traces and
+  more complex Bro configurations in testing/external. (Robin Sommer)
+    
+- Many updates to script doc generation.  (Jon Siwek)
+
 1.6-dev.146 Sat Jun 25 18:12:27 PDT 2011
 
 - DNS mapping are now becoming invalid when an entry's TTL expires.

@@ -530,6 +530,7 @@ static int load_files(const char* orig_file)
 		{
 		f = stdin;
 		full_filename = "<stdin>";
+		bropath_subpath = "";
 
 		if ( g_policy_debug )
 			{

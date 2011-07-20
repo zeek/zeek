@@ -962,6 +962,7 @@ int main(int argc, char** argv)
 	// Queue events reporting loaded scripts.
 	for ( std::list<ScannedFile>::iterator i = files_scanned.begin(); i != files_scanned.end(); i++ )
 		{
+		if ( i->skipped ) continue;
 		val_list* vl = new val_list;
 		vl->append(new StringVal(i->name.c_str()));
 		vl->append(new Val(i->include_level, TYPE_COUNT));

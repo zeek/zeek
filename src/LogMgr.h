@@ -30,7 +30,7 @@ public:
 	bool Write(EnumVal* id, RecordVal* columns);
 	bool SetBuf(EnumVal* id, bool enabled);	// Adjusts all writers.
 	bool Flush(EnumVal* id);		// Flushes all writers..
-	
+	void Shutdown();
 
 protected:
 	friend class bro::LogEmissary;

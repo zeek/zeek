@@ -126,7 +126,7 @@ static std::string _LogValueToString(LogVal *val)
 /**
  * Builds an instance of the LogWriterDS
  */
-LogWriter* LogWriterDS::Instantiate(const bro::LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue)	
+LogWriter* LogWriterDS::Instantiate(bro::LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue)	
 { 
 	return new LogWriterDS(parent, in_queue, out_queue); 
 }
@@ -134,7 +134,7 @@ LogWriter* LogWriterDS::Instantiate(const bro::LogEmissary& parent, QueueInterfa
 /**
  *  Turns script variables into a form our logger can use.
  */
-LogWriterDS::LogWriterDS(const bro::LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue)
+LogWriterDS::LogWriterDS(bro::LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue)
 : LogWriter(parent, in_queue, out_queue)
 {
 	ds_compression = string((const char *)BifConst::LogDataSeries::ds_compression->Bytes(), BifConst::LogDataSeries::ds_compression->Len());

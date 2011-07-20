@@ -1188,6 +1188,27 @@ bool LogMgr::Write(EnumVal* id, EnumVal* writer, string path, int num_fields,
 	return success;
 	}
 
+void LogMgr::Shutdown()
+	{
+	for ( vector<Stream *>::iterator s = streams.begin(); s != streams.end(); ++s )
+		{
+		Stream* stream = (*s);
+
+		if ( ! stream )
+			continue;
+
+		for ( Stream::WriterMap::iterator i = stream->writers.begin();
+		      i != stream->writers.end(); i++ )
+			{
+			LogEmissary* writer = i->second->writer;
+			writer->Finish();
+			}
+
+		stream->enabled = false;
+		}
+		
+	}
+
 void LogMgr::SendAllWritersTo(RemoteSerializer::PeerID peer)
 	{
 	for ( vector<Stream *>::iterator s = streams.begin(); s != streams.end(); ++s )

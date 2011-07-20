@@ -12,10 +12,10 @@ namespace bro
 
 class LogWriterAscii : public LogWriter {
 public:
-	LogWriterAscii(const LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue);
+	LogWriterAscii(LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue);
 	~LogWriterAscii();
 
-	static LogWriter* Instantiate(const LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue);	
+	static LogWriter* Instantiate(LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue);	
 
 protected:
 	virtual bool DoInit(string path, int num_fields,

@@ -31,7 +31,9 @@ namespace bro
 
 	void join()
 		{
-		pthread_join(thread, NULL);
+		// printf("**** Joining on thread:%x\n", (unsigned int)thread);
+		assert(!pthread_join(thread, NULL));
+		// printf("**** JOIN COMPLETE\n");
 		}
 
 	virtual void run() = 0;
@@ -44,7 +46,9 @@ namespace bro
 	class MessageEvent
 	{
 	public:
+		MessageEvent() { /*printf("ctor: %p -- %x\n", this, (unsigned int)(pthread_self()));*/ }
 		virtual bool process() = 0;
+		virtual ~MessageEvent() { /*printf("dtor: %p -- %x\n", this, (unsigned int)(pthread_self()));*/ }
 	};
 
 	class ErrorReport : public MessageEvent
@@ -91,9 +95,11 @@ namespace bro
 
 		void run()
 			{
+			unsigned int id = (unsigned int)(pthread_self());
 			while(!thread_finished)
 				{
 				MessageEvent *msg = in_queue.get();
+				// printf("%x:%u (%s) -- %p\n", id, (unsigned int)evt_count, typeid(*msg).name(), msg);
 				bool res = msg->process();
 				++evt_count;
 				if(!res)
@@ -124,7 +130,15 @@ namespace bro
 			{
 			in_queue.put(type);
 			}
-
+		
+		BasicThread& operator=(const BasicThread &thr)
+			{
+			if(this == &thr)
+				return *this;
+			in_queue = thr.in_queue;
+			out_queue = thr.out_queue;
+			return *this;
+			}
 	protected:
 		// Thread-local access to these functions.
 		void putNotification(MessageEvent *notification)

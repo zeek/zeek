@@ -14,7 +14,7 @@ namespace bro
 
 class LogWriterDS : public LogWriter {
 public:
-	LogWriterDS(const bro::LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue);
+	LogWriterDS(bro::LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue);
 	~LogWriterDS();
 
 	static const size_t ROW_MIN = 2048;
@@ -22,7 +22,7 @@ public:
 	static const size_t THREAD_MIN = 1;
 	static const size_t THREAD_MAX = 128;
 	static const size_t TIME_SCALE = 1000000;   //TODO: I don't think this should be a configurable option in the LogWriterDS scope, but might be good for Bro in general...
-	static LogWriter* Instantiate(const LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue);	
+	static LogWriter* Instantiate(LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue);	
 
 protected:
 	virtual bool DoInit(string path, int num_fields,

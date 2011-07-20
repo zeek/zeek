@@ -11,25 +11,42 @@ namespace bro
 // overwrite a successfully initialized writer map with whatever goes here.
 LogWriterRegistrar::WriterMap *LogWriterRegistrar::writers;
 
-WriteMessage::~WriteMessage()
+WriteMessage& WriteMessage::operator= (const WriteMessage& target)
 	{
-	for(int i = 0; i < num_fields; ++i)
+		if(this == &target)
+			return *this;
+		ref = target.ref;
+		num_fields = target.num_fields;
+		fields = target.fields;
+		vals = target.vals;
+		return *this;
+	}
+
+WriteMessage::WriteMessage(const WriteMessage& target)
+: ref(target.ref), num_fields(target.num_fields), fields(target.fields), vals(target.vals)
+	{ }
+
+bool BulkWriteMessage::process()
+	{
+	for(std::vector<WriteMessage>::iterator iter = messages.begin();
+		iter != messages.end(); ++iter)
 		{
-			delete vals[i];
+		if(!iter->process())
+			return false;
 		}
-		delete[] vals;
+	return true;
 	}
 
 LogWriterRegistrar::LogWriterRegistrar(const bro_int_t type, const char *name, 
 							bool(*init)(), LogWriterRegistrar::InstantiateFunction factory)
 	{
-		static bool needsInit = true;
-		if(needsInit)
-			{
-			writers = new WriterMap;
-			needsInit = false;
-			}
-		writers->insert(std::make_pair(type, LogWriterDefinition(type, factory, init, name)));
+	static bool needsInit = true;
+	if(needsInit)
+		{
+		writers = new WriterMap;
+		needsInit = false;
+		}
+	writers->insert(std::make_pair(type, LogWriterDefinition(type, factory, init, name)));
 	}
 
 LogEmissary *LogWriterRegistrar::LaunchWriterThread(std::string path, size_t num_fields, LogField * const *fields, const bro_int_t type)
@@ -85,11 +102,11 @@ void LogWriter::Error (const char *msg)
 LogEmissary::LogEmissary(QueueInterface<MessageEvent *>& push_queue, QueueInterface<MessageEvent *>& pull_queue)
 : bound(NULL), push_queue(push_queue), pull_queue(pull_queue), path(""), fields(NULL), num_fields(0) 
 	{
+		bMessage = new BulkWriteMessage();
 	}
 
 LogEmissary::~LogEmissary()
 	{
-	push_queue.put(new FinishMessage(*bound));
 	push_queue.put(new TerminateThread(*bound));
 	bound->join();
 	
@@ -129,6 +146,20 @@ bool LogEmissary::Init(string arg_path, int arg_num_fields,
 	return true;
 	}
 
+LogEmissary& LogEmissary::operator= (const LogEmissary& target)
+	{
+	if(this == &target)
+		return *this;
+	bound = target.bound;
+	push_queue = target.push_queue;
+	pull_queue = target.pull_queue;
+	path = target.path;
+	num_fields = target.num_fields;
+	fields = target.fields;
+	bMessage = target.bMessage;
+	return *this;
+	}
+
 bool LogEmissary::Write(int arg_num_fields, LogVal** vals)
 	{
 	// Double-check that the arguments match. If we get this from remote,
@@ -152,7 +183,17 @@ bool LogEmissary::Write(int arg_num_fields, LogVal** vals)
 		}
 
 	assert(bound);
-	push_queue.put(new WriteMessage(*bound, num_fields, fields, vals));
+	
+	WriteMessage w(*bound, num_fields, fields, vals);
+	bMessage->add(w);
+
+	if(bMessage->size() > LOG_QUEUE_SZ)
+		{
+		push_queue.put(bMessage);
+		bMessage = new BulkWriteMessage();
+		}
+	
+	// push_queue.put(new WriteMessage(*bound, num_fields, fields, vals));
 
 	return true;
 	}
@@ -169,23 +210,32 @@ bool LogEmissary::Rotate(string rotated_path, string postprocessor, double open,
 		       double close, bool terminating)
 	{
 	assert(bound);
-	
+
+	push_queue.put(bMessage);
 	push_queue.put(new RotateMessage(*bound, rotated_path, postprocessor, open, close, terminating));
+	
+	bMessage = new BulkWriteMessage();
 	return true;
 	}
 
+// Need to flush both the local bulk write buffer and the log itself
 bool LogEmissary::Flush()
 	{
 	assert(bound);
+	push_queue.put(bMessage);
 	push_queue.put(new FlushMessage(*bound));
 	
+	bMessage = new BulkWriteMessage();
 	return true;
 	}
 
 void LogEmissary::Finish()
 	{
 	assert(bound);
+	push_queue.put(bMessage);
 	push_queue.put(new FinishMessage(*bound));
+	
+	bMessage = new BulkWriteMessage();
 	}
 
 void LogWriter::DeleteVals(LogVal** vals, const int num_fields)
@@ -233,6 +283,15 @@ bool LogWriter::RunPostProcessor(string fname, string postprocessor,
 	system(cmd.c_str());
 
 	return true;
+	}
+
+LogWriter& LogWriter::operator=(const LogWriter& target)
+	{
+	if(this == &target)
+		return *this;
+	parent = target.parent;
+	buffered = target.buffered;
+	return *this;
 	}
 
 }

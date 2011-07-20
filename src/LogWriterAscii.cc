@@ -10,15 +10,15 @@
 namespace bro
 {
 
-LogWriter* LogWriterAscii::Instantiate(const bro::LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue)	
+LogWriter* LogWriterAscii::Instantiate(bro::LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue)	
 { 
 	return new LogWriterAscii(parent, in_queue, out_queue); 
 }
 
-LogWriterAscii::LogWriterAscii(const bro::LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue)
+LogWriterAscii::LogWriterAscii(bro::LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue)
 	: LogWriter(parent, in_queue, out_queue)
 	{
-	file = 0;
+	file = NULL;
 
 	output_to_stdout = BifConst::LogAscii::output_to_stdout;
 	include_header = BifConst::LogAscii::include_header;
@@ -74,7 +74,7 @@ bool LogWriterAscii::DoInit(string path, int num_fields,
 		{
 		Error(Fmt("cannot open %s: %s", fname.c_str(),
 			  strerror(errno)));
-
+		assert(file);
 		return false;
 		}
 
@@ -99,10 +99,12 @@ bool LogWriterAscii::DoInit(string path, int num_fields,
 			goto write_error;
 		}
 
+	assert(file);
 	return true;
 
 write_error:
 	Error(Fmt("error writing to %s: %s", fname.c_str(), strerror(errno)));
+	assert(file);
 	return false;
 	}
 
@@ -114,6 +116,8 @@ bool LogWriterAscii::DoFlush()
 
 void LogWriterAscii::DoFinish()
 	{
+	assert(file);
+	// printf("FINISH: %s\n", parent.Path().c_str());
 	fclose(file);
 	file = NULL;
 	}
@@ -243,7 +247,7 @@ bool LogWriterAscii::DoWrite(int num_fields, const LogField* const * fields,
 		return false;
 		}
 
-	if ( IsBuf() )
+	if ( !IsBuf() )
 		fflush(file);
 
 	return true;
@@ -252,11 +256,14 @@ bool LogWriterAscii::DoWrite(int num_fields, const LogField* const * fields,
 bool LogWriterAscii::DoRotate(string rotated_path, string postprocessor, double open,
 			      double close, bool terminating)
 	{
+	
 	if ( IsSpecial(parent.Path()) )
 		// Don't rotate special files.
 		return true;
 
-	fclose(file);
+	// printf("Rotating: %s\n", parent.Path().c_str());
+	if(file)
+		fclose(file);
 
 	string nname = rotated_path + ".log";
 	rename(fname.c_str(), nname.c_str());

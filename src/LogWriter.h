@@ -27,6 +27,7 @@ namespace bro
 {
 
 class LogWriter;
+class BulkWriteMessage;
 
 /**
  *  Acts as a go-between for Bro / an individual logger.  Individual functions, when called, build appropriate
@@ -57,7 +58,9 @@ public:
 		    double close, bool terminating);
 	void Finish();
 	void BindWriter(LogWriter *writer);
+	LogEmissary& operator=(const LogEmissary& target);
 private:
+	static const size_t LOG_QUEUE_SZ = 128;                 // Must queue LOG_QUEUE_SZ messages before passing a bulk log update
 
 	LogWriter *bound;               						// The writer we're bound to
 	QueueInterface<MessageEvent *>& push_queue;     		// Pushes messages to the thread
@@ -66,11 +69,12 @@ private:
 	std::string path;
 	LogField* const *fields;
 	int num_fields;
+	BulkWriteMessage *bMessage;                             // Aggregate individual log write messages until there's a timeout or we exceed the LOG_QUEUE_SZ threshold
 };
 
 class LogWriter : public BasicThread {
 public:
-	LogWriter(const LogEmissary& parent, QueueInterface<MessageEvent *>& in_q, QueueInterface<MessageEvent *>& out_q)
+	LogWriter(LogEmissary& parent, QueueInterface<MessageEvent *>& in_q, QueueInterface<MessageEvent *>& out_q)
 	: BasicThread(in_q, out_q), parent(parent), buffered(false) { }
 	
 	// Methods for writers to override. If any of these returs false, it
@@ -155,12 +159,14 @@ public:
 	bool IsBuf() { return buffered; }
 
 	void DeleteVals(LogVal** vals, const int num_fields);
+
+	LogWriter& operator=(const LogWriter& target);
 protected:
 	bool RunPostProcessor(std::string fname, std::string postprocessor,
 				 std::string old_name, double open, double close,
 				 bool terminating);
 
-	const LogEmissary& parent;
+	LogEmissary& parent;
 	bool buffered;
 	const static int LOGWRITER_MAX_BUFSZ = 2048;
 	mutable char strbuf[LOGWRITER_MAX_BUFSZ];
@@ -201,16 +207,29 @@ private:
 class WriteMessage : public MessageEvent
 {
 public:
-	WriteMessage(LogWriter& ref, const int num_fields, const LogField* const* fields, LogVal **vals)
+	WriteMessage(LogWriter& ref, const int num_fields, LogField* const* fields, LogVal **vals)
 	: ref(ref), num_fields(num_fields), fields(fields)
 	{ this->vals = vals;  /* TODO: copy vals here; seems like memory corruption is happening :| */ }
 	bool process() { bool res = ref.DoWrite(num_fields, fields, vals); ref.DeleteVals(vals, num_fields); return res; }
-	~WriteMessage();
+	WriteMessage& operator= (const WriteMessage& target);
+	WriteMessage(const WriteMessage& target);
 private:
 	LogWriter& ref;
-	const int num_fields;
-	const LogField* const* fields;
+	int num_fields;
+	LogField* const* fields;
 	LogVal **vals;
+};
+
+class BulkWriteMessage : public MessageEvent
+{
+public:
+	bool process();
+	void add(const WriteMessage w) { messages.push_back(w); }
+	void add(LogWriter& ref, const int num_fields, LogField* const* fields, LogVal **vals) { add(WriteMessage(ref, num_fields, fields, vals)); }
+	size_t size() { return messages.size(); }
+private:
+	std::vector<WriteMessage> messages;
+
 };
 
 class BufferMessage : public MessageEvent
@@ -247,7 +266,7 @@ private:
 
 class LogWriterRegistrar {
 public:
-	typedef bro::LogWriter* (*InstantiateFunction)( const LogEmissary&, bro::QueueInterface<bro::MessageEvent *>&, bro::QueueInterface<bro::MessageEvent *>& );
+	typedef bro::LogWriter* (*InstantiateFunction)(LogEmissary&, bro::QueueInterface<bro::MessageEvent *>&, bro::QueueInterface<bro::MessageEvent *>& );
 	typedef bool (*InitFunction)();
 
 	LogWriterRegistrar(const bro_int_t type, const char *name, 

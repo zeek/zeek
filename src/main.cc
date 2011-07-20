@@ -256,7 +256,6 @@ void done_with_network()
 void terminate_bro()
 	{
 	set_processing_status("TERMINATING", "terminate_bro");
-
 	terminating = true;
 
 	EventHandlerPtr bro_done = internal_handler("bro_done");
@@ -298,6 +297,7 @@ void termination_signal()
 	{
 	set_processing_status("TERMINATING", "termination_signal");
 
+	log_mgr->Shutdown();
 	Val sval(signal_val, TYPE_COUNT);
 	reporter->Info("received termination signal");
 	net_get_final_stats();
@@ -996,6 +996,7 @@ int main(int argc, char** argv)
 #endif
 
 		net_run();
+		log_mgr->Shutdown();
 		done_with_network();
 		net_delete();
 

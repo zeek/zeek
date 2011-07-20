@@ -33,5 +33,8 @@ event net_stats_update(last_stat: NetStats)
 
 event bro_init()
 	{
-	schedule stats_collection_interval { net_stats_update(net_stats()) };
+	# Since this currently only calculates packet drops, let's skip the stats
+	# collection if reading traces.
+	if ( ! reading_traces() )
+		schedule stats_collection_interval { net_stats_update(net_stats()) };
 	}

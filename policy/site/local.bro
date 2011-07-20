@@ -3,13 +3,17 @@
 # DPD should typically be loaded for detecting protocols on any port.
 @load frameworks/dpd
 
-@load misc/loaded-scripts
 @load frameworks/notice
 @load frameworks/signatures
 @load frameworks/metrics
 @load frameworks/intel
 @load frameworks/software
 @load frameworks/reporter
+
+# Load a few extra scripts that aren't loaded by default.
+@load frameworks/packet-filter/netstats
+@load misc/loaded-scripts
+
 
 @load protocols/conn
 @load protocols/dns

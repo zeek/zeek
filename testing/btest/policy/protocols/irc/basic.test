@@ -1,0 +1,5 @@
+# This tests that basic IRC commands (NICK, USER, JOIN, DCC SEND)
+# are logged for a client.
+
+# @TEST-EXEC: bro protocols/irc -r $TRACES/irc-dcc-send.trace
+# @TEST-EXEC: btest-diff irc.log

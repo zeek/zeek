@@ -438,7 +438,7 @@ int main(int argc, char** argv)
 	opterr = 0;
 
 	char opts[256];
-	safe_strncpy(opts, "B:D:e:f:I:i:K:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGHLOPSWdghvZ",
+	safe_strncpy(opts, "B:D:e:f:I:i:K:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGLOPSWdghvZ",
 		     sizeof(opts));
 
 #ifdef USE_PERFTOOLS

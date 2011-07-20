@@ -110,7 +110,7 @@ event irc_join_message(c: connection, is_orig: bool, info_list: irc_join_list) &
 		c$irc$command = "JOIN";
 	}
 
-event irc_join_message(c: connection, is_orig: bool, info_list: irc_join_list) &priority=5
+event irc_join_message(c: connection, is_orig: bool, info_list: irc_join_list) &priority=-5
 	{
 	if ( is_orig )
 		{

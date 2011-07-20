@@ -50,9 +50,9 @@ event file_transferred(c: connection, prefix: string, descr: string,
 		
 	local irc = dcc_expected_transfers[id$resp_h, id$resp_p];
 	
-	irc$dcc_mime_type = mime_type;
+	irc$dcc_mime_type = split1(mime_type, /;/)[1];
 
-	if ( extract_file_types == mime_type )
+	if ( extract_file_types == irc$dcc_mime_type )
 		{
 		irc$extract_file = T;
 		add irc$tags[EXTRACTED_FILE];

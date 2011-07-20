@@ -62,9 +62,6 @@ export {
 	const node = getenv("CLUSTER_NODE") &redef;
 }
 
-# Give the node being started up it's peer name.
-redef peer_description = Cluster::node;
-
 event bro_init()
 	{
 	if ( node != "" && node !in nodes )

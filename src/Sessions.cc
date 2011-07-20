@@ -1276,7 +1276,7 @@ void NetSessions::Weird(const char* name,
 
 void NetSessions::Weird(const char* name, const IP_Hdr* ip)
 	{
-	reporter->Weird(ip->SrcAddr4(), ip->DstAddr4(), name);
+	reporter->Weird(ip->SrcAddr(), ip->DstAddr(), name);
 	}
 
 unsigned int NetSessions::ConnectionMemoryUsage()

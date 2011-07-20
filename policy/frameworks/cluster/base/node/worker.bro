@@ -1,4 +1,6 @@
 
+@prefixes += cluster-worker
+
 ## Don't do any local logging.
 redef Log::enable_local_logging = F;
 
@@ -11,3 +13,6 @@ redef Log::default_rotation_postprocessor = "delete-log";
 ## Record all packets into trace file.
 # TODO: should we really be setting this to T?
 redef record_all_packets = T;
+
+# TODO: Workers need to have a filter for the notice log which doesn't 
+#       do remote logging since we forward the notice event directly.

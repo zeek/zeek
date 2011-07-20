@@ -48,7 +48,7 @@ event bro_init()
 redef peer_description = "events-rcv";
 
 redef Communication::nodes += {
-    ["foo"] = [$host = 127.0.0.1, $events = /http_.*/, $connect=T]
+    ["foo"] = [$host = 127.0.0.1, $events = /http_.*|signature_match/, $connect=T]
 };
 
 event remote_connection_closed(p: event_peer)

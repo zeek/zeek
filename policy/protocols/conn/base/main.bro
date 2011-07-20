@@ -1,4 +1,3 @@
-@load site
 
 module Conn;
 

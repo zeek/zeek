@@ -8,15 +8,13 @@
 
 @load all.bro
 # @load test-all.bro
-@load site.bro
-@load detectors/http-MHR.bro
 @load tuning/__load__.bro
 @load tuning/defaults/__load__.bro
 @load tuning/defaults/packet-fragments.bro
 @load tuning/defaults/remove-high-volume-notices.bro
 @load tuning/track-all-assets.bro
 @load utils/addrs.bro
-@load utils/conn_ids.bro
+@load utils/conn-ids.bro
 @load utils/directions-and-hosts.bro
 @load utils/files.bro
 @load utils/numbers.bro
@@ -29,7 +27,7 @@
 # @load frameworks/communication/listen-clear.bro
 # @load frameworks/communication/listen-ssl.bro
 @load frameworks/dpd/__load__.bro
-@load frameworks/dpd/base.bro
+@load frameworks/dpd/base/main.bro
 @load frameworks/dpd/packet-segment-logging.bro
 @load frameworks/intel/__load__.bro
 @load frameworks/intel/base.bro
@@ -37,7 +35,7 @@
 @load frameworks/logging/base.bro
 @load frameworks/logging/plugins/ascii.bro
 @load frameworks/metrics/__load__.bro
-@load frameworks/metrics/base.bro
+@load frameworks/metrics/base/main.bro
 @load frameworks/metrics/conn-example.bro
 @load frameworks/metrics/http-example.bro
 @load frameworks/notice/__load__.bro
@@ -50,25 +48,24 @@
 @load frameworks/signatures/__load__.bro
 @load frameworks/signatures/base.bro
 @load frameworks/software/__load__.bro
-@load frameworks/software/base.bro
+@load frameworks/software/base/main.bro
 @load frameworks/software/vulnerable.bro
-@load functions.bro
 # @load hot.conn.bro
 @load integration/barnyard2/__load__.bro
 @load integration/barnyard2/base.bro
 @load integration/barnyard2/event.bro
 @load integration/barnyard2/types.bro
 @load protocols/conn/__load__.bro
-@load protocols/conn/base.bro
-@load protocols/conn/contents.bro
-@load protocols/conn/inactivity.bro
+@load protocols/conn/base/main.bro
+@load protocols/conn/base/contents.bro
+@load protocols/conn/base/inactivity.bro
 @load protocols/conn/known-hosts.bro
 @load protocols/conn/known-services.bro
 @load protocols/dns/__load__.bro
 @load protocols/dns/auth-addl.bro
-@load protocols/dns/base.bro
-@load protocols/dns/consts.bro
-@load protocols/dns/detect.bro
+@load protocols/dns/base/main.bro
+@load protocols/dns/base/consts.bro
+@load protocols/dns/base/detect.bro
 @load protocols/ftp/__load__.bro
 @load protocols/ftp/base.bro
 @load protocols/ftp/detect.bro
@@ -76,16 +73,18 @@
 @load protocols/ftp/software.bro
 @load protocols/ftp/utils-commands.bro
 @load protocols/http/__load__.bro
-@load protocols/http/base.bro
-@load protocols/http/detect-intel.bro
-@load protocols/http/detect-sqli.bro
+@load protocols/http/base/main.bro
+@load protocols/http/base/detect-intel.bro
+@load protocols/http/base/detect-sqli.bro
+@load protocols/http/base/file-extract.bro
+@load protocols/http/base/file-hash.bro
+@load protocols/http/base/file-ident.bro
+@load protocols/http/base/software.bro
+@load protocols/http/base/utils.bro
+@load protocols/http/detect-MHR.bro
 @load protocols/http/detect-webapps.bro
-@load protocols/http/file-extract.bro
-@load protocols/http/file-hash.bro
-@load protocols/http/file-ident.bro
 @load protocols/http/headers.bro
-@load protocols/http/software.bro
-@load protocols/http/utils.bro
+#@load protocols/http/partial-content.bro
 @load protocols/http/var-extraction-cookies.bro
 @load protocols/http/var-extraction-uri.bro
 @load protocols/irc/__load__.bro
@@ -97,9 +96,9 @@
 @load protocols/mime/file-hash.bro
 @load protocols/mime/file-ident.bro
 @load protocols/smtp/__load__.bro
-@load protocols/smtp/base.bro
-@load protocols/smtp/detect.bro
-@load protocols/smtp/software.bro
+@load protocols/smtp/base/main.bro
+@load protocols/smtp/base/software.bro
+@load protocols/smtp/detect-suspicious-orig.bro
 @load protocols/ssh/__load__.bro
 @load protocols/ssh/base.bro
 @load protocols/ssh/software.bro
@@ -113,3 +112,4 @@
 @load protocols/syslog/base.bro
 @load protocols/syslog/consts.bro
 @load protocols/rpc/base.bro
+@load site/local

@@ -512,8 +512,7 @@ PktFileSrc::PktFileSrc(const char* arg_readfile, const char* filter,
 			return;
 
 		// We don't put file sources into non-blocking mode as
-		// otherwise we would not be able to identify the EOF
-		// via next_packet().
+		// otherwise we would not be able to identify the EOF.
 
 		selectable_fd = fileno(pcap_file(pd));
 

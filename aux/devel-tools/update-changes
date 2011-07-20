@@ -25,8 +25,6 @@ function my_describe
     last_tag_rev="<norev>"
 
     for i in `git rev-list --first-parent $rev`; do
-        echo $d >&2 git describe --exact-match $i
-
         tag=`git describe --exact-match $i 2>/dev/null`;
         if [ "$tag" != "" ]; then
             last_tag="$tag"
@@ -121,7 +119,7 @@ last=`cat $changes | awk '{print $1}' | egrep '[0-9]+\.[0-9]+' | head -1 | sed '
 not_last_rev=""
 for i in `git rev-list --first-parent HEAD`; do
     descr=`normed_describe $i`
-    # echo "### debug: $i $descr $last"
+    #echo "### debug: $i $descr $last"
     echo -n .
     if [ "$descr" == "$last" ]; then
         not_last_rev="^$i"

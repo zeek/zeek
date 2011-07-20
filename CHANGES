@@ -1,3 +1,7 @@
+1.6-dev.223 Tue Jul 19 19:10:36 PDT 2011
+
+- Adding a script to update CHANGES and VERSION. (Robin Sommer)
+
 1.6-dev.218 Tue Jul 19 18:16:44 PDT 2011
 
 - Comprehensive policy script overhaul/rewrite. (Seth Hall)

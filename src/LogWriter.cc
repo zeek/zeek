@@ -4,9 +4,6 @@
 #include "LogWriter.h"
 #include "Reporter.h"
 
-namespace bro
-{
-
 // DO NOT! initialize this variable.  Out of order initialization in the global scope could
 // overwrite a successfully initialized writer map with whatever goes here.
 LogWriterRegistrar::WriterMap *LogWriterRegistrar::writers;
@@ -293,6 +290,4 @@ LogWriter& LogWriter::operator=(const LogWriter& target)
 	buffered = target.buffered;
 	return *this;
 	}
-
-}
 

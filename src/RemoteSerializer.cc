@@ -192,8 +192,6 @@ extern "C" {
 #include "setsignal.h"
 };
 
-using namespace bro;
-
 // Gets incremented each time there's an incompatible change
 // to the communication internals.
 static const unsigned short PROTOCOL_VERSION = 0x07;

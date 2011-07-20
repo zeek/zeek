@@ -23,9 +23,6 @@
 #include "BasicThread.h"
 #include "LogBase.h"
 
-namespace bro
-{
-
 class LogWriter;
 class BulkWriteMessage;
 
@@ -266,7 +263,7 @@ private:
 
 class LogWriterRegistrar {
 public:
-	typedef bro::LogWriter* (*InstantiateFunction)(LogEmissary&, bro::QueueInterface<bro::MessageEvent *>&, bro::QueueInterface<bro::MessageEvent *>& );
+	typedef LogWriter* (*InstantiateFunction)(LogEmissary&, QueueInterface<MessageEvent *>&, QueueInterface<MessageEvent *>& );
 	typedef bool (*InitFunction)();
 
 	LogWriterRegistrar(const bro_int_t type, const char *name, 
@@ -306,8 +303,6 @@ private:
 	static WriterMap *writers;
 
 };
-
-}
 
 #endif
 

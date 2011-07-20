@@ -33,19 +33,19 @@ public:
 	void Shutdown();
 
 protected:
-	friend class bro::LogEmissary;
+	friend class LogEmissary;
 	friend class RemoteSerializer;
 	friend class RotationTimer;
 
 	//// Function also used by the RemoteSerializer.
 
 	// Takes ownership of fields.
-	bro::LogEmissary* CreateWriter(EnumVal* id, EnumVal* writer, string path,
-				int num_fields, bro::LogField** fields);
+	LogEmissary* CreateWriter(EnumVal* id, EnumVal* writer, string path,
+				int num_fields, LogField** fields);
 
 	// Takes ownership of values..
 	bool Write(EnumVal* id, EnumVal* writer, string path,
-		   int num_fields, bro::LogVal** vals);
+		   int num_fields, LogVal** vals);
 
 	// Announces all instantiated writers to peer.
 	void SendAllWritersTo(RemoteSerializer::PeerID peer);
@@ -53,7 +53,7 @@ protected:
 	//// Functions safe to use by writers.
 
 	// Reports an error for the given writer.
-	void Error(bro::LogEmissary* writer, const char* msg);
+	void Error(LogEmissary* writer, const char* msg);
 
 private:
 	struct Filter;
@@ -63,10 +63,10 @@ private:
 	bool TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 			    TableVal* include, TableVal* exclude, string path, list<int> indices);
 
-	bro::LogVal** RecordToFilterVals(Stream* stream, Filter* filter,
+	LogVal** RecordToFilterVals(Stream* stream, Filter* filter,
 				    RecordVal* columns);
 
-	bro::LogVal* ValToLogVal(Val* val, BroType* ty = 0);
+	LogVal* ValToLogVal(Val* val, BroType* ty = 0);
 	Stream* FindStream(EnumVal* id);
 	void RemoveDisabledWriters(Stream* stream);
 	void InstallRotationTimer(WriterInfo* winfo);

@@ -10,8 +10,6 @@
 #include "LogMgr.h"
 #include "LogWriter.h"
 
-using namespace bro;
-
 const char* attr_name(attr_tag t)
 	{
 	static const char* attr_names[int(NUM_ATTRS)] = {

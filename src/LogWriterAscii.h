@@ -7,9 +7,6 @@
 
 #include "LogWriter.h"
 
-namespace bro
-{
-
 class LogWriterAscii : public LogWriter {
 public:
 	LogWriterAscii(LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue);
@@ -54,7 +51,5 @@ private:
 	char* header_prefix;
 	int header_prefix_len;
 };
-
-}
 
 #endif

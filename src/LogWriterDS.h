@@ -9,12 +9,9 @@
 #include <DataSeries/DataSeriesModule.hpp>
 #include "LogWriter.h"
 
-namespace bro
-{
-
 class LogWriterDS : public LogWriter {
 public:
-	LogWriterDS(bro::LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue);
+	LogWriterDS(LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue);
 	~LogWriterDS();
 
 	static const size_t ROW_MIN = 2048;
@@ -55,6 +52,5 @@ private:
 	bool ds_dump_schema;
 };
 
-}
 #endif
 

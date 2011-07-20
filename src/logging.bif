@@ -5,8 +5,6 @@ module Log;
 %%{
 #include "LogMgr.h"
 #include "NetVar.h"
-
-using namespace bro;
 %%}
 
 type Filter: record;

@@ -8,8 +8,6 @@
 #include "NetVar.h"
 #include "Net.h"
 
-using namespace bro;
-
 /*
 // Structure describing a log writer type.
 struct LogWriterDefinition {

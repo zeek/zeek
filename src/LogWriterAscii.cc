@@ -7,15 +7,12 @@
 #include "LogWriterAscii.h"
 #include "NetVar.h"
 
-namespace bro
-{
-
-LogWriter* LogWriterAscii::Instantiate(bro::LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue)	
+LogWriter* LogWriterAscii::Instantiate(LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue)	
 { 
 	return new LogWriterAscii(parent, in_queue, out_queue); 
 }
 
-LogWriterAscii::LogWriterAscii(bro::LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue)
+LogWriterAscii::LogWriterAscii(LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue)
 	: LogWriter(parent, in_queue, out_queue)
 	{
 	file = NULL;
@@ -284,6 +281,4 @@ bool LogWriterAscii::DoSetBuf(bool enabled)
 
 // Register the ASCII logger so that Bro can use it.
 static LogWriterRegistrar __register_logger(BifEnum::Log::WRITER_ASCII, "Ascii", NULL, LogWriterAscii::Instantiate);
-
-}
 

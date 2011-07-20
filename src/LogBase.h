@@ -6,9 +6,6 @@
 
 class SerializationFormat;
 
-namespace bro
-{
-
 // Description of a log field.
 struct LogField {
 	string name;
@@ -59,7 +56,5 @@ struct LogVal {
 private:
 	LogVal(const LogVal& other)	{ }
 };
-
-}
 
 #endif

@@ -1,6 +1,6 @@
 # A test of prefix-based @load'ing
 
-# @TEST-EXEC: bro addprefixes site protocols/http >output
+# @TEST-EXEC: bro addprefixes utils/site protocols/http >output
 # @TEST-EXEC: btest-diff output
 
 @TEST-START-FILE addprefixes.bro
@@ -8,11 +8,11 @@
 @prefixes += lcl2
 @TEST-END-FILE
 
-@TEST-START-FILE lcl.site.bro
+@TEST-START-FILE lcl.utils.site.bro
 print "loaded lcl.site.bro";
 @TEST-END-FILE
 
-@TEST-START-FILE lcl2.site.bro
+@TEST-START-FILE lcl2.utils.site.bro
 print "loaded lcl2.site.bro";
 @TEST-END-FILE
 

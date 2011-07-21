@@ -1,15 +1,46 @@
+1.6-dev.226 Thu Jul 21 15:23:39 PDT 2011
+
+- Extensions to the @load and @unload process. (Jon Siwek)
+
+    * Make @load statements recognize relative paths. For example a
+      script can do "@load ./foo" to load a script named foo.bro that
+      lives in the same directory or "@load ../bar" to load a script
+      named bar.bro in the parent directory, even if those directories
+      are not contained in BROPATH.
+
+    * Reimplementation of the @prefixes statement. (Closes #486)
+      
+      Any added prefixes are now used *after* all input files have
+      been parsed to look for a prefixed, flattened version of the
+      input file somewhere in BROPATH and, if found, load it. For
+      example, if "lcl" is in @prefixes, and site.bro is loaded, then
+      a file named "lcl.site.bro" that's in BROPATH would end up being
+      automatically loaded as well. Packages work similarly, e.g.
+      loading "protocols/http" means a file named
+      "lcl.protocols.http.bro" in BROPATH gets loaded automatically.
+
+    * Fix @unload'd files from generating bro_script_loaded event.
+
+    * Updates to tests.
+
 1.6-dev.225 Wed Jul 20 17:10:41 PDT 2011
 
 - IRC improvements (Jon Siwek). Including:
 
-    - Shorten what's displayed in the IRC's log mime_type column for
+    * Shorten what's displayed in the IRC's log mime_type column for
       DCC transfers.
-    - Add IRC unit tests.
-    - Fix IRC analyzer supplying wrong type to irc_dcc_message event.
-    - Removed irc_client and irc_server events.
-    - Added is_orig arguments to all other irc events.
-    - Fix analyzer not recognizing Turbo DCC extension message format.
-    - Fix analyzer not generating irc_dcc_message event when irc_privmsg_message
+
+    * Add IRC unit tests.
+
+    * Fix IRC analyzer supplying wrong type to irc_dcc_message event.
+
+    * Removed irc_client and irc_server events.
+
+    * Added is_orig arguments to all other irc events.
+
+    * Fix analyzer not recognizing Turbo DCC extension message format.
+
+    * Fix analyzer not generating irc_dcc_message event when irc_privmsg_message
       event doesn't have a handler registered.
 
 - Fixing tests that need a diff canonifier. (Jon Siwek)
@@ -197,15 +228,15 @@
 - Support for (mixed) MPLS and VLAN traffic, and a new default BPF
   filter. (Seth Hall and Robin Sommer)
     
-    - Merging in the patch from #264, which provides support for mixed
+    * Merging in the patch from #264, which provides support for mixed
       VLAN and MPLS traffic.
     
-    - Changing Bro's default filter from being built dynamically to
+    * Changing Bro's default filter from being built dynamically to
       being a static "ip or not ip". To get the old behaviour back
       (i.e., the dynamically built filter), redef "all_packets" to
       false.
     
-    - print-filter.bro now always prints the filter that Bro is
+    * print-filter.bro now always prints the filter that Bro is
       actually using, even if overriden from the command line. (Robin
       Sommer)
 
@@ -316,17 +347,17 @@
 
   This includes:
 
-    - Changes to Bro's scanner/parser to facilitate automatic
+    * Changes to Bro's scanner/parser to facilitate automatic
       generation of Bro policy script documentation in
       reStructuredText format.
 
-    - New command line flags -Z/--doc-scripts to enable the new doc
+    * New command line flags -Z/--doc-scripts to enable the new doc
       generation mode.
 
-    - Changes to bifcl to pass comments starting with "##" through
+    * Changes to bifcl to pass comments starting with "##" through
       into the generated .bro script.
 
-    - A "doc" build target for the top-level Makefile to first
+    * A "doc" build target for the top-level Makefile to first
       generate reStructuredText for a defined set of Bro policy
       scripts, and then run that through Sphinx to create HTML
       documentation.

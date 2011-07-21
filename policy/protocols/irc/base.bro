@@ -64,49 +64,61 @@ function set_session(c: connection)
 	c$irc$ts=network_time();
 	}
 
-event irc_nick_message(c: connection, who: string, newnick: string) &priority=5
+event irc_nick_message(c: connection, is_orig: bool, who: string, newnick: string) &priority=5
 	{
 	set_session(c);
-	
-	c$irc$command = "NICK";
-	c$irc$value = newnick;
-	}
-	
-event irc_nick_message(c: connection, who: string, newnick: string) &priority=-5
-	{
-	Log::write(IRC, c$irc);
-	c$irc$nick  = newnick;
-	}
-
-event irc_user_message(c: connection, user: string, host: string, server: string, real_name: string) &priority=5
-	{
-	set_session(c);
-	
-	c$irc$command = "USER";
-	c$irc$value = user;
-	c$irc$addl=fmt("%s %s %s", host, server, real_name);
-	}
-	
-event irc_user_message(c: connection, user: string, host: string, 
-                       server: string, real_name: string) &priority=-5
-	{
-	Log::write(IRC, c$irc);
-	c$irc$user = user;
-	}
-	
-event irc_join_message(c: connection, info_list: irc_join_list) &priority=5
-	{
-	set_session(c);
-	
-	c$irc$command = "JOIN";
-	}
-
-event irc_join_message(c: connection, info_list: irc_join_list) &priority=-5
-	{
-	for ( l in info_list )
+	if ( is_orig )
 		{
-		c$irc$value = l$channel;
-		c$irc$addl = (l$password != "" ? fmt(" with channel key: '%s'", l$password) : "");
+		c$irc$command = "NICK";
+		c$irc$value = newnick;
+		}
+	}
+
+event irc_nick_message(c: connection, is_orig: bool, who: string, newnick: string) &priority=-5
+	{
+	if ( is_orig )
+		{
 		Log::write(IRC, c$irc);
+		c$irc$nick  = newnick;
+		}
+	}
+
+event irc_user_message(c: connection, is_orig: bool, user: string, host: string, server: string, real_name: string) &priority=5
+	{
+	set_session(c);
+	if ( is_orig )
+		{
+		c$irc$command = "USER";
+		c$irc$value = user;
+		c$irc$addl=fmt("%s %s %s", host, server, real_name);
+		}
+	}
+
+event irc_user_message(c: connection, is_orig: bool, user: string, host: string, server: string, real_name: string) &priority=-5
+	{
+	if ( is_orig )
+		{
+		Log::write(IRC, c$irc);
+		c$irc$user = user;
+		}
+	}
+
+event irc_join_message(c: connection, is_orig: bool, info_list: irc_join_list) &priority=5
+	{
+	set_session(c);
+	if ( is_orig )
+		c$irc$command = "JOIN";
+	}
+
+event irc_join_message(c: connection, is_orig: bool, info_list: irc_join_list) &priority=-5
+	{
+	if ( is_orig )
+		{
+		for ( l in info_list )
+			{
+			c$irc$value = l$channel;
+			c$irc$addl = (l$password != "" ? fmt(" with channel key: '%s'", l$password) : "");
+			Log::write(IRC, c$irc);
+			}
 		}
 	}

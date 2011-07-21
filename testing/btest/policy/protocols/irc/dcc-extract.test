@@ -1,0 +1,8 @@
+# This tests that the contents of a DCC transfer negotiated with IRC can be
+# correctly extracted
+
+# @TEST-EXEC: bro protocols/irc -r $TRACES/irc-dcc-send.trace IRC::extract_file_types=/application.*/
+# @TEST-EXEC: btest-diff irc.log
+# @TEST-EXEC: btest-diff irc-dcc-item_192.168.1.77:57655-209.197.168.151:1024_1.dat
+# @TEST-EXEC: bro protocols/irc -r $TRACES/irc-dcc-send.trace IRC::extract_file_types=/application.*/ IRC::extraction_prefix="test"
+# @TEST-EXEC: test -e test_192.168.1.77:57655-209.197.168.151:1024_1.dat

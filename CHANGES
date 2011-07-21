@@ -1,3 +1,19 @@
+1.6-dev.225 Wed Jul 20 17:10:41 PDT 2011
+
+- IRC improvements (Jon Siwek). Including:
+
+    - Shorten what's displayed in the IRC's log mime_type column for
+      DCC transfers.
+    - Add IRC unit tests.
+    - Fix IRC analyzer supplying wrong type to irc_dcc_message event.
+    - Removed irc_client and irc_server events.
+    - Added is_orig arguments to all other irc events.
+    - Fix analyzer not recognizing Turbo DCC extension message format.
+    - Fix analyzer not generating irc_dcc_message event when irc_privmsg_message
+      event doesn't have a handler registered.
+
+- Fixing tests that need a diff canonifier. (Jon Siwek)
+
 1.6-dev.223 Tue Jul 19 19:10:36 PDT 2011
 
 - Adding a script to update CHANGES and VERSION. (Robin Sommer)

@@ -1,0 +1,5 @@
+# ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	nick	user	channels	command	value	addl	tags	dcc_file_name	dcc_file_size	dcc_mime_type	extraction_file
+1311189164.11944	UWkUyAuUGXf	192.168.1.77	57640	66.198.80.67	6667	-	-	-	NICK	bloed	-	-	-	-	-	-
+1311189164.11944	UWkUyAuUGXf	192.168.1.77	57640	66.198.80.67	6667	bloed	-	-	USER	sdkfje	sdkfje Montreal.QC.CA.Undernet.org dkdkrwq	-	-	-	-	-
+1311189174.47413	UWkUyAuUGXf	192.168.1.77	57640	66.198.80.67	6667	bloed	sdkfje	-	JOIN	#easymovies	-	-	-	-	-	-
+1311189316.32603	UWkUyAuUGXf	192.168.1.77	57640	66.198.80.67	6667	bloed	sdkfje	-	DCC	#easymovies	-	IRC::EXTRACTED_FILE	ladyvampress-default(2011-07-07)-OS.zip	42208	application/x-zip	irc-dcc-item_192.168.1.77:57655-209.197.168.151:1024_1.dat

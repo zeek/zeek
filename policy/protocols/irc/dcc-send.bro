@@ -9,6 +9,8 @@
 ##!    PRIVMSG my_nick :^ADCC SEND whateverfile.zip 3640061780 1026 41709^A
 
 @load protocols/irc
+@load utils/files
+@load utils/numbers
 
 module IRC;
 
@@ -48,9 +50,9 @@ event file_transferred(c: connection, prefix: string, descr: string,
 		
 	local irc = dcc_expected_transfers[id$resp_h, id$resp_p];
 	
-	irc$dcc_mime_type = mime_type;
+	irc$dcc_mime_type = split1(mime_type, /;/)[1];
 
-	if ( extract_file_types in mime_type )
+	if ( extract_file_types == irc$dcc_mime_type )
 		{
 		irc$extract_file = T;
 		add irc$tags[EXTRACTED_FILE];
@@ -59,9 +61,8 @@ event file_transferred(c: connection, prefix: string, descr: string,
 		local fname = generate_extraction_filename(extraction_prefix, c, suffix);
 		irc$extraction_file = open(fname);
 		}
-	
 	}
-	
+
 event file_transferred(c: connection, prefix: string, descr: string,
 			mime_type: string) &priority=-4
 	{
@@ -71,9 +72,14 @@ event file_transferred(c: connection, prefix: string, descr: string,
 
 	local irc = dcc_expected_transfers[id$resp_h, id$resp_p];
 
+	local tmp = irc$command;
+	irc$command = "DCC";
+	Log::write(IRC, irc);
+	irc$command = tmp;
+
 	if ( irc$extract_file && irc?$extraction_file )
 		set_contents_file(id, CONTENTS_RESP, irc$extraction_file);
-	
+
 	# Delete these values in case another DCC transfer 
 	# happens during the IRC session.
 	delete irc$extract_file;
@@ -84,25 +90,19 @@ event file_transferred(c: connection, prefix: string, descr: string,
 	delete dcc_expected_transfers[id$resp_h, id$resp_p];
 	}
 
-
-event irc_server(c: connection, prefix: string, data: string) &priority=5
+event irc_dcc_message(c: connection, is_orig: bool,
+			prefix: string, target: string,
+			dcc_type: string, argument: string,
+			address: addr, dest_port: count, size: count) &priority=5
 	{
-	local parts = split_all(data, / /);
-	local command = parts[1];
-	if ( command == "PRIVMSG" &&
-	     /[dD][cC][cC] [sS][eE][nN][dD]/ in data &&
-	     |parts| > 12 &&
-	     /^[0-9]*$/ == parts[|parts|-4] &&
-	     /^[0-9]*$/ == parts[|parts|-2] )
-		{
-		c$irc$command = "DCC SEND";
-		local ex_h = count_to_v4_addr(extract_count(parts[|parts|-4]));
-		local ex_p = to_port(to_count(parts[|parts|-2]), tcp);
-		c$irc$dcc_file_name = parts[|parts|-6];
-		c$irc$dcc_file_size = extract_count(parts[|parts|]);
-		expect_connection(c$id$orig_h, ex_h, ex_p, ANALYZER_FILE, 5 min);
-		dcc_expected_transfers[ex_h, ex_p] = c$irc;
-		}
+	set_session(c);
+	if ( dcc_type != "SEND" )
+            return;
+	c$irc$dcc_file_name = argument;
+	c$irc$dcc_file_size = size;
+	local p = to_port(dest_port, tcp);
+	expect_connection(to_addr("0.0.0.0"), address, p, ANALYZER_FILE, 5 min);
+	dcc_expected_transfers[address, p] = c$irc;
 	}
 
 event expected_connection_seen(c: connection, a: count) &priority=10

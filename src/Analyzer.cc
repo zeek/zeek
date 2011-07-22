@@ -243,6 +243,7 @@ Analyzer::Analyzer(AnalyzerTag::Tag arg_tag, Connection* arg_conn)
 	protocol_confirmed = false;
 	skip = false;
 	finished = false;
+	removing = false;
 	parent = 0;
 	orig_supporters = 0;
 	resp_supporters = 0;
@@ -424,10 +425,16 @@ void Analyzer::ForwardPacket(int len, const u_char* data, bool is_orig,
 		Analyzer* current = *i;
 		next = ++i;
 
-		if ( ! current->finished )
+		if ( ! (current->finished || current->removing ) )
 			current->NextPacket(len, data, is_orig, seq, ip, caplen);
 		else
 			{
+			if ( removing )
+				{
+				current->Done();
+				removing = false;
+				}
+
 			// Analyzer has already been disabled so delete it.
 			DBG_LOG(DBG_DPD, "%s deleted child %s",
 					fmt_analyzer(this).c_str(), fmt_analyzer(current).c_str());
@@ -453,11 +460,17 @@ void Analyzer::ForwardStream(int len, const u_char* data, bool is_orig)
 		Analyzer* current = *i;
 		next = ++i;
 
-		if ( ! current->finished )
+		if ( ! (current->finished || current->removing ) )
 			current->NextStream(len, data, is_orig);
 		else
 			{
 			// Analyzer has already been disabled so delete it.
+			if ( current->removing )
+				{
+				current->Done();
+				removing = false;
+				}
+
 			DBG_LOG(DBG_DPD, "%s deleted child %s",
 					fmt_analyzer(this).c_str(), fmt_analyzer(current).c_str());
 			children.erase(--i);
@@ -482,10 +495,16 @@ void Analyzer::ForwardUndelivered(int seq, int len, bool is_orig)
 		Analyzer* current = *i;
 		next = ++i;
 
-		if ( ! current->finished )
+		if ( ! (current->finished || current->removing ) )
 			current->NextUndelivered(seq, len, is_orig);
 		else
 			{
+			if ( current->removing )
+				{
+				current->Done();
+				removing = false;
+				}
+
 			// Analyzer has already been disabled so delete it.
 			DBG_LOG(DBG_DPD, "%s deleted child %s",
 					fmt_analyzer(this).c_str(), fmt_analyzer(current).c_str());
@@ -508,10 +527,16 @@ void Analyzer::ForwardEndOfData(bool orig)
 		Analyzer* current = *i;
 		next = ++i;
 
-		if ( ! current->finished )
+		if ( ! (current->finished || current->removing ) )
 			current->NextEndOfData(orig);
 		else
 			{
+			if ( current->removing )
+				{
+				current->Done();
+				removing = false;
+				}
+
 			// Analyzer has already been disabled so delete it.
 			DBG_LOG(DBG_DPD, "%s deleted child %s",
 					fmt_analyzer(this).c_str(), fmt_analyzer(current).c_str());
@@ -563,15 +588,17 @@ Analyzer* Analyzer::AddChildAnalyzer(AnalyzerTag::Tag analyzer)
 void Analyzer::RemoveChildAnalyzer(Analyzer* analyzer)
 	{
 	LOOP_OVER_CHILDREN(i)
-		if ( *i == analyzer && ! analyzer->finished )
+		if ( *i == analyzer && ! (analyzer->finished || analyzer->removing) )
 			{
-			DBG_LOG(DBG_DPD, "%s disabled child %s",
+			DBG_LOG(DBG_DPD, "%s disabling child %s",
 					fmt_analyzer(this).c_str(), fmt_analyzer(*i).c_str());
-			(*i)->Done();
-			// We don't delete it here as we may in fact
-			// iterate over the list right now.  Done() sets
-			// "finished" to true and this is checked
-			// later to delete it.
+			// We just flag it as being removed here but postpone
+			// actually doing that to later. Otherwise, we'd need
+			// to call Done() here, which then in turn might
+			// cause further code to be executed that may assume
+			// something not true because of a violation that
+			// triggered the removal in the first place.
+			(*i)->removing = true;
 			return;
 			}
 	}
@@ -579,11 +606,12 @@ void Analyzer::RemoveChildAnalyzer(Analyzer* analyzer)
 void Analyzer::RemoveChildAnalyzer(AnalyzerID id)
 	{
 	LOOP_OVER_CHILDREN(i)
-		if ( (*i)->id == id && ! (*i)->finished )
+		if ( (*i)->id == id && ! ((*i)->finished || (*i)->removing) )
 			{
 			DBG_LOG(DBG_DPD, "%s  disabled child %s", GetTagName(), id,
 					fmt_analyzer(this).c_str(), fmt_analyzer(*i).c_str());
-			(*i)->Done();
+			// See comment above.
+			(*i)->removing = true;
 			return;
 			}
 	}

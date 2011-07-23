@@ -806,34 +806,39 @@ int yywrap()
 	check_capture_filter_changes();
 	check_dpd_config_changes();
 
-	// For each file scanned so far, and for each @prefix, look for
-	// a prefixed and flattened version of the loaded file in BROPATH.
-	// The flattening involves taking the path in BROPATH in which
-	// the scanned file lives and replacing '/' path separators with a '.'
-	// If the scanned file is "__load__.bro", that part of the flattened file
-	// name is discarded.
-	// If the prefix is non-empty, it gets placed in front of the flattened
-	// path, separated with another '.'
+	// For each file scanned so far, and for each @prefix, look for a
+	// prefixed and flattened version of the loaded file in BROPATH. The
+	// flattening involves taking the path in BROPATH in which the
+	// scanned file lives and replacing '/' path separators with a '.' If
+	// the scanned file is "__load__.bro", that part of the flattened
+	// file name is discarded. If the prefix is non-empty, it gets placed
+	// in front of the flattened path, separated with another '.'
 	std::list<ScannedFile>::iterator it;
 	bool found_prefixed_files = false;
 	for ( it = files_scanned.begin(); it != files_scanned.end(); ++it )
 		{
-		if ( it->skipped || it->prefixes_checked ) continue;
+		if ( it->skipped || it->prefixes_checked )
+			continue;
+
 		it->prefixes_checked = true;
-		// prefixes are pushed onto a stack, so iterate backwards
+		// Prefixes are pushed onto a stack, so iterate backwards.
 		for ( int i = prefixes.length() - 1; i >= 0; --i )
 			{
-			// don't look at empty prefixes
-			if ( ! prefixes[i][0] ) continue;
+			// Don't look at empty prefixes.
+			if ( ! prefixes[i][0] )
+				continue;
+
 			string s;
 			s = dot_canon(it->subpath.c_str(), it->name.c_str(), prefixes[i]);
 			FILE* f = search_for_file(s.c_str(), "bro", 0, false, 0);
+
 			//printf("====== prefix search ======\n");
 			//printf("File  : %s\n", it->name.c_str());
 			//printf("Path  : %s\n", it->subpath.c_str());
 			//printf("Dotted: %s\n", s.c_str());
 			//printf("Found : %s\n", f ? "T" : "F");
 			//printf("===========================\n");
+
 			if ( f )
 				{
 				add_input_file(s.c_str());
@@ -842,7 +847,9 @@ int yywrap()
 				}
 			}
 		}
-	if ( found_prefixed_files ) return 0;
+
+	if ( found_prefixed_files )
+		return 0;
 
 	// Add redef statements for any X=Y command line parameters.
 	if ( params.size() > 0 )

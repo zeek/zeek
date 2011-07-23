@@ -5,7 +5,7 @@ module TrimTraceFile;
 
 export {
 	## The interval between times that the output tracefile is rotated.
-	const trim_interval = 5 secs &redef;
+	const trim_interval = 10 mins &redef;
 	
 	## This event can be generated externally to this script if on-demand
 	## tracefile rotation is required with the caveat that the script doesn't

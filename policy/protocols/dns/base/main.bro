@@ -1,4 +1,3 @@
-@load protocols/dns/base/consts
 
 module DNS;
 

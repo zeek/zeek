@@ -4,6 +4,11 @@
 ##!
 ##! Intended to be used from the command line like this when starting a controller:
 ##!     bro <scripts> frameworks/control/controller Control::host=<host_addr> Control::port=<host_port> Control::cmd=<command> [Control::arg=<arg>]
+##! 
+##! A controllee only needs to load the controllee script in addition
+##! to the specific analysis scripts desired.  It may also need a noded 
+##! configured as a controller node in the communications nodes configuration.
+##!     bro <scripts> frameworks/control/controllee
 ##!
 ##! To use the framework as a controllee, it only needs to be loaded and
 ##! the controlled node need to accept all events in the "Control::" namespace
@@ -21,8 +26,7 @@ export {
 
 	## This is the command that is being done.  It's typically set on the 
 	## command line and influences whether this instance starts up as a
-	## controller or controllee.  If left blank this node will start as a 
-	## controllee and a controller if there is a given command.
+	## controller or controllee.
 	const cmd = "" &redef;
 	
 	## This can be used by commands that take an argument.

@@ -1,2 +1,2 @@
-@load tuning/defaults/remove-high-volume-notices
-@load tuning/defaults/packet-fragments
+@load ./remove-high-volume-notices
+@load ./packet-fragments

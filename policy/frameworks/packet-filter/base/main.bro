@@ -44,11 +44,11 @@ export {
 	## changed however to enable port-independent protocol analysis.
 	const all_packets = T &redef;
 	
-	## Filter string which is unconditionally or'ed to every dynamically
-	## built filter.
+	## Filter string which is unconditionally or'ed to the beginning of every 
+	## dynamically built filter.
 	const unrestricted_filter = "" &redef;
 	
-	## Call this function to build and install a new dynamically build 
+	## Call this function to build and install a new dynamically built
 	## packet filter.
 	global install: function();
 	

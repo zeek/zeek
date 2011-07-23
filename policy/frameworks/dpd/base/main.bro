@@ -96,7 +96,7 @@ event protocol_violation(c: connection, atype: count, aid: count, reason: string
 	local size = c$orig$size + c$resp$size;
 	if ( ignore_violations_after > 0 && size > ignore_violations_after )
 		return;
-
+	
 	# Disable the analyzer that raised the last core-generated event.
 	disable_analyzer(c$id, aid);
 	add c$dpd$disabled_aids[aid];

@@ -16,6 +16,8 @@ export {
 		## This is the notice policy auditing log.  It records what the current
 		## notice policy is at Bro init time.
 		NOTICE_POLICY,
+		## This is the alarm stream.
+		ALARM,
 	};
 
 	## Scripts creating new notices need to redef this enum to add their own 
@@ -34,26 +36,13 @@ export {
 	type Action: enum {
 		## Indicates that there is no action to be taken.
 		ACTION_NONE,
-		## Indicates that the notice should be sent to the notice file.
-		ACTION_FILE,
-		## Indicates that the notice should be alarmed on.
-		ACTION_ALARM,
+		## Indicates that the notice should be sent to the notice logging stream.
+		ACTION_LOG,
 		## Indicates that the notice should be sent to the email address(es) 
-		## configured in the :bro:id:`mail_dest` variable.
+		## configured in the :bro:id:`Notice::mail_dest` variable.
 		ACTION_EMAIL,
-		## Indicate that the generated email should be addressed to the 
-		## appropriate email addresses as found in the 
-		## :bro:id:`Site::addr_to_emails` variable based on the originator
-		## of the connection or the $src field.
-		ACTION_EMAIL_ADMIN_ORIG,
-		## Indicate that the generated email should be addressed to the 
-		## appropriate email addresses as found in the 
-		## :bro:id:`Site::addr_to_emails` variable based on the responder
-		## of the connection or the $dst field.
-		ACTION_EMAIL_ADMIN_RESP,
-		## Indicates that the notice should be sent to the pager email address
-		## configured in the :bro:id:`mail_page_dest` variable.
-		ACTION_PAGE,
+		## Indicates that the notice should be alarmed.
+		ACTION_ALARM,
 	};
 	
 	type Info: record {
@@ -61,44 +50,45 @@ export {
 		uid:            string         &log &optional;
 		id:             conn_id        &log &optional;
 		
-		## The victim of the notice.  This can be used in cases where there
-		## is a definite loser for a notice.  In cases where there isn't a 
-		## victim, this field should be left empty.
-		victim:         addr           &log &optional;
+		## These are shorthand ways of giving the uid and id to a notice.  The
+		## reference to the actual connection will be deleted after applying
+		## the notice policy.
+		conn:           connection     &optional;
+		iconn:          icmp_conn      &optional;
 		
 		## The :bro:enum:`Notice::Type` of the notice.
 		note:           Type           &log;
 		## The human readable message for the notice.
 		msg:            string         &log &optional;
-		## Sub-message.
+		## The human readable sub-message.
 		sub:            string         &log &optional;
-
-		## Source address, if we don't have a connection.
+		
+		## Source address, if we don't have a :bro:type:`conn_id`.
 		src:            addr           &log &optional;
 		## Destination address.
 		dst:            addr           &log &optional;
-		## Associated port, if we don't have a connection.
+		## Associated port, if we don't have a :bro:type:`conn_id`.
 		p:              port           &log &optional;
 		## Associated count, or perhaps a status code.
 		n:              count          &log &optional;
-
-		## Connection associated with the notice.
-		conn:           connection     &optional;
-		## Associated ICMP "connection".
-		iconn:          icmp_conn      &optional;
-
-		## Peer that raised this notice.
-		src_peer:       event_peer     &log &optional;
-		## Uniquely identifying tag associated with this notice.
-		tag:            string         &log &optional;
 		
-		## The set of actions that are to be applied to this notice.
-		## TODO: there is a problem setting a &default=set() attribute
-		##       for sets containing enum values.
+		## Peer that raised this notice.
+		src_peer:       event_peer     &optional;
+		## Textual description for the peer that raised this notice.
+		peer_descr:     string         &log &optional;
+		
+		## The actions that are to be applied to this notice.  The set[count] 
+		## is to indicate which :bro:id:`Notice::policy` items
+		## triggered the action being added to the notice.
 		actions:        set[Notice::Action] &log &optional;
 		
+		## These are policy items that returned T and applied their action
+		## to the notice.
+		## TODO: this can't take set() as a default. (bug)
+		policy_items:   set[count]     &log &optional;
+		
 		## By adding chunks of text into this element, other scripts can
-		## expand on notices that being emailed.  The normal way to add text
+		## expand on notices that are being emailed.  The normal way to add text
 		## is to extend the vector by handling the :bro:id:`Notice::notice`
 		## event and modifying the notice in place.
 		email_body_sections:  vector of string &default=vector();
@@ -108,9 +98,14 @@ export {
 	const ignored_types: set[Notice::Type] = {} &redef;
 	## Emailed notice types.
 	const emailed_types: set[Notice::Type] = {} &redef;
+	## Alarmed notice types.
+	const alarmed_types: set[Notice::Type] = {} &redef;
 	
 	## This is the record that defines the items that make up the notice policy.
 	type PolicyItem: record {
+		## This is the exact positional order in which the :id:type:`PolicyItem`
+		## records are checked.  This is set internally by the notice framework.
+		position: count                            &log &optional;
 		## Define the priority for this check.  Items are checked in ordered
 		## from highest value (10) to lowest value (0).
 		priority: count                            &log &default=5;
@@ -126,31 +121,38 @@ export {
 		halt:     bool                             &log &default=F;
 	};
 	
-	# This is the :bro:id:`Notice::policy` where the local notice conversion 
-	# policy is set.
-	const policy: set[Notice::PolicyItem] = {
+	## This is the where the :bro:id:`Notice::policy` is defined.  All notice
+	## processing is done through this variable.
+	const policy: set[PolicyItem] = {
 		[$pred(n: Notice::Info) = { return (n$note in Notice::ignored_types); },
-		 $halt=T, $priority = 10],
+		 $halt=T, $priority = 9],
+		[$pred(n: Notice::Info) = { return (n$note in Notice::alarmed_types); },
+		 $priority = 8],
 		[$pred(n: Notice::Info) = { return (n$note in Notice::emailed_types); },
 		 $result = ACTION_EMAIL,
-		 $priority = 9],
+		 $priority = 8],
 		[$pred(n: Notice::Info) = { return T; },
-		 $result = ACTION_FILE,
+		 $result = ACTION_LOG,
 		 $priority = 0],
 	} &redef;
 	
-	## Local system mail program.
-	const mail_script    = "/bin/mail" &redef;
+	## Local system sendmail program.
+	const sendmail            = "/usr/sbin/sendmail" &redef;
 	## Email address to send notices with the :bro:enum:`ACTION_EMAIL` action.
-	const mail_dest      = ""          &redef;
-	## Email address to send notices with the :bro:enum:`ACTION_PAGE` action.
-	const mail_page_dest = ""          &redef;
+	const mail_dest           = ""                   &redef;
+	
+	## Address that emails will be from.
+	const mail_from           = "Big Brother <bro@localhost>" &redef;
+	## Reply-to address used in outbound email.
+	const reply_to            = "" &redef;
+	## Text string prefixed to the subject of all emails sent out.
+	const mail_subject_prefix = "[Bro]" &redef;
 
 	## This is the event that is called as the entry point to the 
 	## notice framework by the global :bro:id:`NOTICE` function.  By the time 
 	## this event is generated, default values have already been filled out in
 	## the :bro:type:`Notice::Info` record and synchronous functions in the 
-	## :bro:id:`Notice:notice_functions` have already been called.  The notice
+	## :bro:id:`Notice:sync_functions` have already been called.  The notice
 	## policy has also been applied.
 	global notice: event(n: Info);
 
@@ -165,7 +167,7 @@ export {
 	## Normally the event based extension model using the 
 	## :bro:id:`Notice::notice` event will work fine if there aren't harder
 	## real time constraints.
-	const notice_functions: set[function(n: Notice::Info)] = set() &redef;
+	const sync_functions: set[function(n: Notice::Info)] = set() &redef;
 	
 	## Call this function to send a notice in an email.  It is already used
 	## by default with the built in :bro:enum:`ACTION_EMAIL` and
@@ -182,21 +184,25 @@ export {
 	global log_notice: event(rec: Info);
 }
 
-# This is an internal variable used to store the notice policy ordered by 
+# This is an internal variable used to store the notice policy ordered by
 # priority.
 global ordered_policy: vector of PolicyItem = vector();
 
 event bro_init()
 	{
 	Log::create_stream(NOTICE_POLICY, [$columns=PolicyItem]);
-	
 	Log::create_stream(Notice::NOTICE, [$columns=Info, $ev=log_notice]);
 	
-	# Add a filter to create the alarm log.
-	Log::add_filter(Notice::NOTICE, [$name = "alarm", $path = "alarm",
-	                          $pred(rec: Notice::Info) = { return (ACTION_ALARM in rec$actions); }]);
-	
+	Log::create_stream(ALARM, [$columns=Notice::Info]);
+	# Make sure that this log is output as text so that it can be packaged
+	# up and emailed later.
+	Log::add_filter(ALARM, [$name="default", $writer=Log::WRITER_ASCII]);
 	}
+	# TODO: need a way to call a Bro script level callback during file rotation.
+	#       we need more than a just $postprocessor.
+	#redef Log::rotation_control += {
+	#	[Log::WRITER_ASCII, "alarm"] = [$postprocessor="mail-alarms"];
+	#};
 
 # TODO: fix this.
 #function notice_tags(n: Notice::Info) : table[string] of string
@@ -220,23 +226,46 @@ function email_notice_to(n: Notice::Info, dest: string, extend: bool)
 	{
 	if ( reading_traces() || dest == "" )
 		return;
+		
+	local email_text = cat(
+		"From: ", mail_from, "\n",
+		"Subject: ", mail_subject_prefix, " ", n$note, "\n",
+		"To: ", dest, "\n",
+		# TODO: BiF to get version (the resource_usage Bif seems like overkill).
+		"User-Agent: Bro-IDS/?.?.?\n"); 
+	
+	if ( reply_to != "" )
+		email_text = cat(email_text, "Reply-To: ", reply_to, "\n");
 	
 	# The notice emails always start off with the human readable message.
-	local email_text = n$msg;
+	email_text = cat(email_text, "\n", n$msg, "\n");
+	
+	# Add the extended information if it's requested.
 	if ( extend )
 		{
-		email_text = cat(email_text, "\n\n------------------\n");
 		for ( i in n$email_body_sections )
-			email_text = cat(email_text, n$email_body_sections[i]);
+			{
+			email_text = cat(email_text, "******************\n");
+			email_text = cat(email_text, n$email_body_sections[i], "\n");
+			}
 		}
 	
-	# The contortions here ensure that the arguments to the mail
-	# script will not be confused.  Re-evaluate if 'system' is reworked.
+	email_text = cat(email_text, "\n\n--\n[Automatically generated]\n\n");
+	
 	local mail_cmd =
-		fmt("echo \"%s\" | %s -s \"[Bro Alarm] %s\" %s",
-			str_shell_escape(email_text), mail_script, n$note, dest);
-
+		fmt("echo \"%s\" | %s -t -oi  %s",
+			str_shell_escape(email_text), sendmail);
 	system(mail_cmd);
+	}
+
+event notice(n: Notice::Info) &priority=-5
+	{
+	if ( ACTION_EMAIL in n$actions )
+		email_notice_to(n, mail_dest, T);
+	if ( ACTION_LOG in n$actions )
+		Log::write(Notice::NOTICE, n);
+	if ( ACTION_ALARM in n$actions )
+		Log::write(ALARM, n);
 	}
 
 # Executes a script with all of the notice fields put into the
@@ -254,81 +283,65 @@ function execute_with_notice(cmd: string, n: Notice::Info)
 function apply_policy(n: Notice::Info)
 	{
 	# Fill in some defaults.
-	n$ts = network_time();
+	if ( ! n?$ts )
+		n$ts = network_time();
 
 	if ( n?$conn )
 		{
-		if ( ! n?$uid )
-			n$uid = n$conn$uid;
 		if ( ! n?$id )
 			n$id = n$conn$id;
+		if ( ! n?$uid )
+			n$uid = n$conn$uid;
 		}
 	
-	if ( ! n?$src && n?$id )
-		n$src = n$id$orig_h;
-	if ( ! n?$dst && n?$id )
-		n$dst = n$id$resp_h;
+	if ( n?$id )
+		{
+		if ( ! n?$src  )
+			n$src = n$id$orig_h;
+		if ( ! n?$dst )
+			n$dst = n$id$resp_h;
+		if ( ! n?$p )
+			n$p = n$id$resp_p;
+		}
 
-	if ( ! n?$p && n?$id )
-		n$p = n$id$resp_p;
-
-	if ( ! n?$src && n?$iconn )
-		n$src = n$iconn$orig_h;
-	if ( ! n?$dst && n?$iconn )
-		n$dst = n$iconn$resp_h;
+	if ( n?$iconn )
+		{
+		if ( ! n?$src )
+			n$src = n$iconn$orig_h;
+		if ( ! n?$dst )
+			n$dst = n$iconn$resp_h;
+		}
 
 	if ( ! n?$src_peer )
 		n$src_peer = get_event_peer();
-		
+	n$peer_descr = n$src_peer?$descr ? n$src_peer$descr : fmt("%s", n$src_peer$host);
+	
 	if ( ! n?$actions )
 		n$actions = set();
 	
-	# Generate a unique ID for this notice.
-	n$tag = unique_id("@");
+	if ( ! n?$policy_items )
+		n$policy_items = set();
 	
 	for ( i in ordered_policy )
 		{
 		if ( ordered_policy[i]$pred(n) )
 			{
-			# If the predicate matched, the result of the PolicyItem is added
-			# to the notices actions.
 			add n$actions[ordered_policy[i]$result];
+			add n$policy_items[int_to_count(i)];
 			
 			# If the policy item wants to halt policy processing, do it now!
 			if ( ordered_policy[i]$halt )
 				break;
 			}
 		}
-	}
 	
-event notice(n: Notice::Info) &priority=-5
-	{
-	if ( ACTION_EMAIL in n$actions )
-		email_notice_to(n, mail_dest, T);
-	
-	if ( ACTION_PAGE in n$actions )
-		email_notice_to(n, mail_page_dest, F);
-	
-	if ( |Site::local_admins| > 0 )
-		{
-		local email = "";
-		if ( n?$src && ACTION_EMAIL_ADMIN_ORIG in n$actions )
-			{
-			email = Site::get_emails(n$src);
-			if ( email != "" )
-				email_notice_to(n, email, T);
-			}
-	
-		if ( n?$dst && ACTION_EMAIL_ADMIN_RESP in n$actions )
-			{
-			email = Site::get_emails(n$dst);
-			if ( email != "" )
-				email_notice_to(n, email, T);
-			}
-		}
-	
-	if ( ACTION_FILE in n$actions )
-		Log::write(Notice::NOTICE, n);
+	# Delete the connection record if it's there so we aren't sending that
+	# to remote machines.  It can cause problems due to the size of the 
+	# connection record.
+	if ( n?$conn )
+		delete n$conn;
+	if ( n?$iconn )
+		delete n$iconn;
 	}
 	
 # Create the ordered notice policy automatically which will be used at runtime 
@@ -357,6 +370,7 @@ event bro_init()
 			{
 			for ( pi in tmp[j] )
 				{
+				pi$position = |ordered_policy|;
 				ordered_policy[|ordered_policy|] = pi;
 				Log::write(NOTICE_POLICY, pi);
 				}
@@ -373,7 +387,7 @@ function NOTICE(n: Notice::Info)
 	Notice::apply_policy(n);
 
 	# Run the synchronous functions with the notice.
-	for ( func in Notice::notice_functions )
+	for ( func in Notice::sync_functions )
 		func(n);
 
 	# Generate the notice event with the notice.

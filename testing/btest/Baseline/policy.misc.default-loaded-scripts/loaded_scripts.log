@@ -1,0 +1,22 @@
+# depth	name
+0	/Users/jsiwek/Projects/bro/bro/policy/bro.init
+1	/Users/jsiwek/Projects/bro/bro/build/src/const.bif.bro
+1	/Users/jsiwek/Projects/bro/bro/build/src/types.bif.bro
+1	/Users/jsiwek/Projects/bro/bro/build/src/strings.bif.bro
+1	/Users/jsiwek/Projects/bro/bro/build/src/bro.bif.bro
+1	/Users/jsiwek/Projects/bro/bro/build/src/reporter.bif.bro
+1	/Users/jsiwek/Projects/bro/bro/build/src/event.bif.bro
+1	/Users/jsiwek/Projects/bro/bro/policy/utils/site.bro
+2	/Users/jsiwek/Projects/bro/bro/policy/utils/pattern.bro
+1	/Users/jsiwek/Projects/bro/bro/policy/frameworks/logging/__load__.bro
+2	/Users/jsiwek/Projects/bro/bro/policy/frameworks/logging/base.bro
+3	/Users/jsiwek/Projects/bro/bro/build/src/logging.bif.bro
+2	/Users/jsiwek/Projects/bro/bro/policy/frameworks/logging/plugins/ascii.bro
+1	/Users/jsiwek/Projects/bro/bro/policy/frameworks/packet-filter/__load__.bro
+2	/Users/jsiwek/Projects/bro/bro/policy/frameworks/packet-filter/base/__load__.bro
+3	/Users/jsiwek/Projects/bro/bro/policy/frameworks/packet-filter/base/main.bro
+4	/Users/jsiwek/Projects/bro/bro/policy/frameworks/notice/__load__.bro
+5	/Users/jsiwek/Projects/bro/bro/policy/frameworks/notice/base.bro
+5	/Users/jsiwek/Projects/bro/bro/policy/frameworks/notice/weird.bro
+6	/Users/jsiwek/Projects/bro/bro/policy/utils/conn-ids.bro
+0	/Users/jsiwek/Projects/bro/bro/policy/misc/loaded-scripts.bro

@@ -639,9 +639,9 @@ function to_port%(num: count, proto: transport_proto%): port
 	return new PortVal(num, (TransportProto)proto->AsEnum());
 	%}
 
-function mask_addr%(a: addr, top_bits_to_keep: count%): addr
+function mask_addr%(a: addr, top_bits_to_keep: count%): subnet
 	%{
-	return new AddrVal(mask_addr(a, top_bits_to_keep));
+	return new SubNetVal(mask_addr(a, top_bits_to_keep), top_bits_to_keep);
 	%}
 
 # Take some top bits (e.g. subnet address) from a1 and the other

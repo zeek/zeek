@@ -16,7 +16,12 @@
 2	/Users/jsiwek/Projects/bro/bro/policy/frameworks/packet-filter/base/__load__.bro
 3	/Users/jsiwek/Projects/bro/bro/policy/frameworks/packet-filter/base/main.bro
 4	/Users/jsiwek/Projects/bro/bro/policy/frameworks/notice/__load__.bro
-5	/Users/jsiwek/Projects/bro/bro/policy/frameworks/notice/base.bro
-5	/Users/jsiwek/Projects/bro/bro/policy/frameworks/notice/weird.bro
-6	/Users/jsiwek/Projects/bro/bro/policy/utils/conn-ids.bro
+5	/Users/jsiwek/Projects/bro/bro/policy/frameworks/notice/./base/__load__.bro
+6	/Users/jsiwek/Projects/bro/bro/policy/frameworks/notice/./base/./main.bro
+6	/Users/jsiwek/Projects/bro/bro/policy/frameworks/notice/./base/./weird.bro
+7	/Users/jsiwek/Projects/bro/bro/policy/utils/conn-ids.bro
+6	/Users/jsiwek/Projects/bro/bro/policy/frameworks/notice/./base/./actions/drop.bro
+6	/Users/jsiwek/Projects/bro/bro/policy/frameworks/notice/./base/./actions/email_admin.bro
+6	/Users/jsiwek/Projects/bro/bro/policy/frameworks/notice/./base/./actions/page.bro
+5	/Users/jsiwek/Projects/bro/bro/policy/frameworks/notice/./extend-email/hostnames.bro
 0	/Users/jsiwek/Projects/bro/bro/policy/misc/loaded-scripts.bro

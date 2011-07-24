@@ -1,3 +1,19 @@
+1.6-dev.240 Sun Jul 24 15:14:26 PDT 2011
+
+- Updated tests and test baselines. (Jon Siwek)
+  
+- ASCII log writer now prints time values w/ constant 6 digit
+  precision. (Jon Siwek)
+
+- Many policy script updates acrsso the board (Seth Hall).
+  
+- Moving devel-tools to bro-aux. (Robin Sommer)
+  
+- BugFix for disable_analyzer(), which could cause crashes with some
+  analyzers. (Robin Sommer)
+    
+- Bugfix for potential segfault in DebugLogger. (Robin Sommer)
+  
 1.6-dev.226 Thu Jul 21 15:23:39 PDT 2011
 
 - Extensions to the @load and @unload process. (Jon Siwek)

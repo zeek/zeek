@@ -1,7 +1,8 @@
 ##! This script makes it possible for the HTTP analysis scripts to analyze
 ##! the apparent normal case of "206 Partial Content" responses.
 
-@load notice
+@load ./base
+@load frameworks/notice
 
 module HTTP;
 

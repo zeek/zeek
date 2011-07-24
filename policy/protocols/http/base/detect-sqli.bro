@@ -1,6 +1,7 @@
 ##! SQL injection detection in HTTP.
 
 @load frameworks/metrics
+@load ./main
 
 module HTTP;
 

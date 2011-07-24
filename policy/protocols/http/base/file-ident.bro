@@ -1,8 +1,8 @@
 ##! This script is involved in the identification of file types in HTTP
 ##! response bodies.
 
-@load protocols/http
-
+@load ./main
+@load ./utils
 @load frameworks/notice
 @load frameworks/signatures
 

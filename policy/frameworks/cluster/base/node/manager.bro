@@ -22,6 +22,5 @@ redef max_remote_events_processed = 10000;
 event Notice::notice(n: Notice::Info)
 	{
 	if ( is_remote_event() )
-		#if ( FilterDuplicates::is_new(n) )
 		NOTICE(n);
 	}

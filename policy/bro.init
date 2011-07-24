@@ -1275,7 +1275,7 @@ const log_rotate_interval = 0 sec &redef;
 
 # If set, rotate logs at given time + i * log_rotate_interval.
 # (string is time in 24h format, e.g., "18:00").
-const log_rotate_base_time = "" &redef;
+const log_rotate_base_time = "0:00" &redef;
 
 # Rotate logs when they reach this size (in bytes).  Note, the
 # parameter is a double rather than a count to enable easy expression

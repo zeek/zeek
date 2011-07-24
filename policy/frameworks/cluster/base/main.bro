@@ -33,10 +33,6 @@ export {
 	## connecting to a running instance to update settings or request data.
 	const control_events = Control::controller_events &redef;
 	
-	## Directory where the cluster is archiving logs.
-	## TODO: we need a sane default here.
-	const log_dir = "/not/set" &redef;
-	
 	## Record type to indicate a node in a cluster.
 	type Node: record {
 		node_type:    NodeType;

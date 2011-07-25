@@ -299,6 +299,7 @@ private:
 	bool timers_canceled;
 	bool skip;
 	bool finished;
+	bool removing;
 
 	static AnalyzerID id_counter;
 

@@ -52,7 +52,7 @@ event bro_init()
 redef peer_description = "events-rcv";
 
 redef Communication::nodes += {
-    ["foo"] = [$host = 127.0.0.1, $events = /http_.*/, $connect=T, $ssl=T]
+    ["foo"] = [$host = 127.0.0.1, $events = /http_.*|signature_match/, $connect=T, $ssl=T]
 };
 
 redef ssl_ca_certificate = "../ca_cert.pem";

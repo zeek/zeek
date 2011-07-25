@@ -1,39 +1,39 @@
 ==== atomic a 1 ====
 -4L -4
 42 42
-1304213412.7213531 1304213412.72
-60.0 60.0
+1311279327.7680
+60.0
 True True
-3.1400000000000001 3.14
+3.14
 'Hurz' Hurz
 '12345/udp' 12345/udp
 '1.2.3.4' 1.2.3.4
 'X.X.X' X.X.X
-'X.X.X' 22.33.44.0/24
+'22.33.44.0/24' 22.33.44.0/24
 ==== atomic a 2 ====
 -10L -10
 2 2
-1304213412.6799209 1304213412.68
-120.0 120.0
+1311279327.7675
+120.0
 False False
-1.5 1.5
+1.5
 'Servus' Servus
 '5555/tcp' 5555/tcp
 '6.7.6.5' 6.7.6.5
 'X.X.X' X.X.X
-'X.X.X' 192.168.0.0/16
+'192.168.0.0/16' 192.168.0.0/16
 ==== atomic b 2 ====
 -10L -10
 <broccoli.count instance at > 2
-<broccoli.time instance at > 1304213412.68
+<broccoli.time instance at > 1311279327.7675
 <broccoli.interval instance at > 120.0
 False False
-1.5 1.5
+1.5
 'Servus' Servus
 <broccoli.port instance at > 5555/tcp
 <broccoli.addr instance at > 6.7.6.5
 <broccoli.net instance at > X.X.X
-<broccoli.net instance at > 192.168.0.0/16
+<broccoli.subnet instance at > 192.168.0.0/16
 ==== record 1 ====
 <broccoli.record instance at >
 42L 42

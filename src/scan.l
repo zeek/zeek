@@ -9,6 +9,7 @@
 #include <string>
 #include <algorithm>
 #include <sys/stat.h>
+#include <libgen.h>
 
 #include "input.h"
 #include "util.h"
@@ -39,6 +40,7 @@ int line_number = 1;
 const char* filename = 0;
 BroDoc* current_reST_doc = 0;
 static BroDoc* last_reST_doc = 0;
+string current_scanned_file_path;
 
 char last_tok[128];
 
@@ -102,6 +104,7 @@ public:
 	int line;
 	int level;
 	BroDoc* doc;
+	string path;
 };
 
 // A stack of input buffers we're scanning.  file_stack[len-1] is the
@@ -116,7 +119,7 @@ static PList(FileInfo) file_stack;
 	}
 
 // Returns true if the file is new, false if it's already been scanned.
-static int load_files_with_prefix(const char* file);
+static int load_files(const char* file);
 
 // ### TODO: columns too - use yyless with '.' action?
 %}
@@ -326,7 +329,7 @@ when	return TOK_WHEN;
 			clear_reST_doc_comments();
 			}
 		}
-	(void) load_files_with_prefix(new_file);
+	(void) load_files(new_file);
 	}
 
 @unload{WS}{FILE}	{
@@ -339,7 +342,7 @@ when	return TOK_WHEN;
 
 	if ( f )
 		{
-		ScannedFile sf(get_inode_num(f, full_filename), file_stack.length(), full_filename);
+		ScannedFile sf(get_inode_num(f, full_filename), file_stack.length(), full_filename, "", true);
 		files_scanned.push_back(sf);
 
 		fclose(f);
@@ -512,134 +515,119 @@ YYLTYPE GetCurrentLocation()
 	return currloc;
 	}
 
-static int load_files_with_prefix(const char* orig_file)
+static int load_files(const char* orig_file)
 	{
 	// Whether we pushed on a FileInfo that will restore the
 	// current module after the final file has been scanned. 
 	bool did_module_restore = false;
 
-	// Note, we need to loop through the prefixes backwards, since
-	// we push them onto a stack, with the last one we push on the
-	// stack being the first one we will scan.
-	for ( int i = prefixes.length() - 1; i >= 0; --i )
+	const char* full_filename = "<internal error>";
+	const char* bropath_subpath = "<internal error>";
+	const char* bropath_subpath_delete = 0;
+	FILE* f;
+
+	if ( streq(orig_file, "-") )
 		{
-		const char* prefix = prefixes[i];
+		f = stdin;
+		full_filename = "<stdin>";
+		bropath_subpath = "";
 
-		const char* full_filename = "<internal error>";
-		const char* bropath_subpath = "<internal error>";
-		const char* bropath_subpath_delete = 0;
-		FILE* f;
-
-		if ( streq(orig_file, "-") )
+		if ( g_policy_debug )
 			{
-			f = stdin;
-			full_filename = "<stdin>";
+			debug_msg("Warning: can't use debugger while reading policy from stdin; turning off debugging.\n");
+			g_policy_debug = false;
+			}
+		}
 
-			if ( g_policy_debug )
+	else
+		{
+		f = search_for_file(orig_file, "bro", &full_filename, true, &bropath_subpath);
+		bropath_subpath_delete = bropath_subpath; // This will be deleted.
+		}
+
+	if ( f )
+		{
+		ino_t i = get_inode_num(f, full_filename);
+		std::list<ScannedFile>::const_iterator it;
+
+		for ( it = files_scanned.begin(); it != files_scanned.end(); ++it )
+			{
+			if ( it->inode == i )
 				{
-				debug_msg("Warning: can't use debugger while reading policy from stdin; turning off debugging.\n");
-				g_policy_debug = false;
+				fclose(f);
+				delete [] full_filename;
+				delete [] bropath_subpath_delete;
+				return 0;
 				}
 			}
 
-		else
+		ScannedFile sf(i, file_stack.length(), full_filename, bropath_subpath);
+		files_scanned.push_back(sf);
+
+		if ( g_policy_debug )
 			{
-			int n = strlen(prefix) + strlen(orig_file) + 2;
-			char* new_filename = new char[n];
+			// Add the filename to the file mapping
+			// table (Debug.h).
+			Filemap* map = new Filemap;
 
-			if ( prefix[0] )
-				sprintf(new_filename, "%s.%s", prefix, orig_file);
-			else
-				strcpy(new_filename, orig_file);
-
-			f = search_for_file(new_filename, "bro", &full_filename, true, &bropath_subpath);
-			bropath_subpath_delete = bropath_subpath; // This will be deleted.
-			delete [] new_filename;
-			}
-
-		if ( f )
-			{
-			ino_t i = get_inode_num(f, full_filename);
-			std::list<ScannedFile>::const_iterator it;
-
-			for ( it = files_scanned.begin(); it != files_scanned.end(); ++it )
+			// Make sure it wasn't already read in.
+			HashKey* key = new HashKey(full_filename);
+			if ( g_dbgfilemaps.Lookup(key) )
 				{
-				if ( it->inode == i )
-					{
-					fclose(f);
-					delete [] full_filename;
-					delete [] bropath_subpath_delete;
-					return 0;
-					}
-				}
-
-			ScannedFile sf(i, file_stack.length(), full_filename);
-			files_scanned.push_back(sf);
-
-			if ( g_policy_debug )
-				{
-				// Add the filename to the file mapping
-				// table (Debug.h).
-				Filemap* map = new Filemap;
-
-				// Make sure it wasn't already read in.
-				HashKey* key = new HashKey(full_filename);
-				if ( g_dbgfilemaps.Lookup(key) )
-					{
-					// reporter->Warning("Not re-reading policy file; check BRO_PREFIXES:", full_filename);
-					fclose(f);
-					delete key;
-					continue;
-					}
-				else
-					{
-					g_dbgfilemaps.Insert(key, map);
-					}
-
-				if ( full_filename )
-					LoadPolicyFileText(full_filename);
-				}
-
-			// Remember where we were.  If this is the first
-			// file being pushed on the stack, i.e., the *last*
-			// one that will be processed, then we want to
-			// restore the module scope in which this @load
-			// was done when we're finished processing it.
-			if ( ! did_module_restore )
-				{
-				file_stack.append(new FileInfo(current_module));
-				did_module_restore = true;
+				// reporter->Warning("Not re-reading policy file; check BRO_PREFIXES:", full_filename);
+				fclose(f);
+				delete key;
+				return 0;
 				}
 			else
-				file_stack.append(new FileInfo);
-
-			if ( generate_documentation )
 				{
-				current_reST_doc = new BroDoc(bropath_subpath, full_filename);
-				docs_generated.push_back(current_reST_doc);
+				g_dbgfilemaps.Insert(key, map);
 				}
 
-			delete [] bropath_subpath_delete;
-
-			// "orig_file", could be an alias for yytext, which is ephemeral
-			//  and will be zapped after the yy_switch_to_buffer() below.
-			yy_switch_to_buffer(yy_create_buffer(f, YY_BUF_SIZE));
-
-			yylloc.first_line = yylloc.last_line = line_number = 1;
-
-			// Don't delete the old filename - it's pointed to by
-			// every BroObj created when parsing it.
-			yylloc.filename = filename = full_filename;
+			if ( full_filename )
+				LoadPolicyFileText(full_filename);
 			}
 
-		else
+		// Remember where we were.  If this is the first
+		// file being pushed on the stack, i.e., the *last*
+		// one that will be processed, then we want to
+		// restore the module scope in which this @load
+		// was done when we're finished processing it.
+		if ( ! did_module_restore )
 			{
-			if ( streq(prefixes[i], "") )
-				{
-				reporter->Error("can't open %s", full_filename);
-				exit(1);
-				}
+			file_stack.append(new FileInfo(current_module));
+			did_module_restore = true;
 			}
+		else
+			file_stack.append(new FileInfo);
+
+		char* tmp = copy_string(full_filename);
+		current_scanned_file_path = dirname(tmp);
+		delete [] tmp;
+
+		if ( generate_documentation )
+			{
+			current_reST_doc = new BroDoc(bropath_subpath, full_filename);
+			docs_generated.push_back(current_reST_doc);
+			}
+
+		delete [] bropath_subpath_delete;
+
+		// "orig_file", could be an alias for yytext, which is ephemeral
+		//  and will be zapped after the yy_switch_to_buffer() below.
+		yy_switch_to_buffer(yy_create_buffer(f, YY_BUF_SIZE));
+
+		yylloc.first_line = yylloc.last_line = line_number = 1;
+
+		// Don't delete the old filename - it's pointed to by
+		// every BroObj created when parsing it.
+		yylloc.filename = filename = full_filename;
+		}
+
+	else
+		{
+		reporter->Error("can't open %s", full_filename);
+		exit(1);
 		}
 
 	return 1;
@@ -751,7 +739,7 @@ void add_input_file(const char* file)
 		reporter->InternalError("empty filename");
 
 	if ( ! filename )
-		(void) load_files_with_prefix(file);
+		(void) load_files(file);
 	else
 		input_files.append(copy_string(file));
 	}
@@ -802,7 +790,7 @@ int yywrap()
 		check_capture_filter_changes();
 		check_dpd_config_changes();
 
-		if ( load_files_with_prefix(input_files[0]) )
+		if ( load_files(input_files[0]) )
 			{
 			// Don't delete the filename - it's pointed to by
 			// every BroObj created when parsing it.
@@ -817,6 +805,51 @@ int yywrap()
 
 	check_capture_filter_changes();
 	check_dpd_config_changes();
+
+	// For each file scanned so far, and for each @prefix, look for a
+	// prefixed and flattened version of the loaded file in BROPATH. The
+	// flattening involves taking the path in BROPATH in which the
+	// scanned file lives and replacing '/' path separators with a '.' If
+	// the scanned file is "__load__.bro", that part of the flattened
+	// file name is discarded. If the prefix is non-empty, it gets placed
+	// in front of the flattened path, separated with another '.'
+	std::list<ScannedFile>::iterator it;
+	bool found_prefixed_files = false;
+	for ( it = files_scanned.begin(); it != files_scanned.end(); ++it )
+		{
+		if ( it->skipped || it->prefixes_checked )
+			continue;
+
+		it->prefixes_checked = true;
+		// Prefixes are pushed onto a stack, so iterate backwards.
+		for ( int i = prefixes.length() - 1; i >= 0; --i )
+			{
+			// Don't look at empty prefixes.
+			if ( ! prefixes[i][0] )
+				continue;
+
+			string s;
+			s = dot_canon(it->subpath.c_str(), it->name.c_str(), prefixes[i]);
+			FILE* f = search_for_file(s.c_str(), "bro", 0, false, 0);
+
+			//printf("====== prefix search ======\n");
+			//printf("File  : %s\n", it->name.c_str());
+			//printf("Path  : %s\n", it->subpath.c_str());
+			//printf("Dotted: %s\n", s.c_str());
+			//printf("Found : %s\n", f ? "T" : "F");
+			//printf("===========================\n");
+
+			if ( f )
+				{
+				add_input_file(s.c_str());
+				found_prefixed_files = true;
+				fclose(f);
+				}
+			}
+		}
+
+	if ( found_prefixed_files )
+		return 0;
 
 	// Add redef statements for any X=Y command line parameters.
 	if ( params.size() > 0 )
@@ -895,6 +928,7 @@ FileInfo::FileInfo(string arg_restore_module)
 	name = ::filename;
 	line = ::line_number;
 	doc = ::current_reST_doc;
+	path = current_scanned_file_path;
 	}
 
 FileInfo::~FileInfo()
@@ -907,6 +941,7 @@ FileInfo::~FileInfo()
 	yylloc.first_line = yylloc.last_line = line_number = line;
 	last_reST_doc = current_reST_doc;
 	current_reST_doc = doc;
+	current_scanned_file_path = path;
 
 	if ( restore_module != "" )
 		current_module = restore_module;

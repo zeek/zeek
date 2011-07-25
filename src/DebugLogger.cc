@@ -25,10 +25,19 @@ DebugLogger::DebugLogger(const char* filename)
 	if ( filename )
 		{
 		filename = log_file_name(filename);
-		
+
 		file = fopen(filename, "w");
 		if ( ! file )
-			reporter->FatalError("can't open '%s' for debugging output.", filename);
+			{
+			// The reporter may not be initialized here yet.
+			if ( reporter )
+				reporter->FatalError("can't open '%s' for debugging output", filename);
+			else
+				{
+				fprintf(stderr, "can't open '%s' for debugging output\n", filename);
+				exit(1);
+				}
+			}
 
 		setvbuf(file, NULL, _IOLBF, 0);
 		}

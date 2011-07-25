@@ -17,23 +17,12 @@ redef Cluster::nodes = {
 	["proxy-2"] = [$node_type=Cluster::PROXY,     $ip=127.0.0.1, $p=37759/tcp, $manager="manager-1", $workers=set("worker-2")],
 	["worker-1"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=37760/tcp, $manager="manager-1", $proxy="proxy-1", $interface="eth0"],
 	["worker-2"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=37761/tcp, $manager="manager-1", $proxy="proxy-2", $interface="eth1"],
-	["control"] = [$node_type=Cluster::CONTROL,   $ip=127.0.0.1, $p=37762/tcp],
-	["time-machine"] = [$node_type=Cluster::TIME_MACHINE, $ip=127.0.0.1, $p=37763/tcp],
 };
 @TEST-END-FILE
 
 @load frameworks/cluster
 
-# Enable local logging on every node so that we can get the loaded_scripts log.
-redef Log::enable_local_logging = T;
-
 event remote_connection_handshake_done(p: event_peer)
 	{
-	local me = Cluster::nodes[Cluster::node];
-	if ( ( me$node_type == Cluster::MANAGER &&
-		 |Communication::connected_peers| == 4 ) ||
-		 ( |Communication::connected_peers| == 2 ) )
-		{
-		print "Successfully connected to all of my peers";
-		}
+	print "Connected to a peer";
 	}

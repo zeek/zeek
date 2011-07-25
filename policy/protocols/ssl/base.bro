@@ -32,6 +32,11 @@ export {
 	const root_certs: table[string] of string = {} &redef;
 	
 	global log_ssl: event(rec: Info);
+	
+	const ports = {
+		443/tcp, 563/tcp, 585/tcp, 614/tcp, 636/tcp,
+		989/tcp, 990/tcp, 992/tcp, 993/tcp, 995/tcp, 5223/tcp
+	} &redef;
 }
 
 redef record connection += {
@@ -57,13 +62,8 @@ redef capture_filters += {
 	["pop3s"] = "tcp port 995"
 };
 
-global ssl_ports = {
-	443/tcp, 563/tcp, 585/tcp, 614/tcp, 636/tcp,
-	989/tcp, 990/tcp, 992/tcp, 993/tcp, 995/tcp, 5223/tcp
-} &redef;
-
 redef dpd_config += {
-	[[ANALYZER_SSL]] = [$ports = ssl_ports]
+	[[ANALYZER_SSL]] = [$ports = ports]
 };
 
 function set_session(c: connection)

@@ -438,7 +438,7 @@ int main(int argc, char** argv)
 	opterr = 0;
 
 	char opts[256];
-	safe_strncpy(opts, "B:D:e:f:I:i:K:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGHLOPSWdghvZ",
+	safe_strncpy(opts, "B:D:e:f:I:i:K:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGLOPSWdghvZ",
 		     sizeof(opts));
 
 #ifdef USE_PERFTOOLS
@@ -962,6 +962,9 @@ int main(int argc, char** argv)
 	// Queue events reporting loaded scripts.
 	for ( std::list<ScannedFile>::iterator i = files_scanned.begin(); i != files_scanned.end(); i++ )
 		{
+		if ( i->skipped )
+			continue;
+
 		val_list* vl = new val_list;
 		vl->append(new StringVal(i->name.c_str()));
 		vl->append(new Val(i->include_level, TYPE_COUNT));

@@ -5,6 +5,7 @@
 #ifndef util_h
 #define util_h
 
+#include <string>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -176,6 +177,8 @@ extern int int_list_cmp(const void* v1, const void* v2);
 
 extern const char* bro_path();
 extern const char* bro_prefixes();
+std::string dot_canon(std::string path, std::string file, std::string prefix = "");
+const char* normalize_path(const char* path);
 void get_policy_subpath(const char* dir, const char* file, const char** subpath);
 extern FILE* search_for_file(const char* filename, const char* ext,
 	const char** full_filename, bool load_pkgs, const char** bropath_subpath);

@@ -1,0 +1,326 @@
+diff --git a/testing/btest/policy/frameworks/logging/adapt-filter.bro b/testing/btest/policy/frameworks/logging/adapt-filter.bro
+index 7036c90..c91b681 100644
+--- a/testing/btest/policy/frameworks/logging/adapt-filter.bro
++++ b/testing/btest/policy/frameworks/logging/adapt-filter.bro
+@@ -6,6 +6,7 @@
+ module SSH;
+ 
+ export {
++	redef Log::default_writer = Log::WRITER_DATASERIES;
+ 	# Create a new ID for our log stream
+ 	redef enum Log::ID += { SSH };
+ 
+diff --git a/testing/btest/policy/frameworks/logging/ascii-binary.bro b/testing/btest/policy/frameworks/logging/ascii-binary.bro
+index 6f095db..652c4a5 100644
+--- a/testing/btest/policy/frameworks/logging/ascii-binary.bro
++++ b/testing/btest/policy/frameworks/logging/ascii-binary.bro
+@@ -5,6 +5,7 @@
+ module SSH;
+ 
+ export {
++	redef Log::default_writer = Log::WRITER_DATASERIES;
+ 	redef enum Log::ID += { SSH };
+ 
+ 	type Log: record {
+diff --git a/testing/btest/policy/frameworks/logging/ascii-empty.bro b/testing/btest/policy/frameworks/logging/ascii-empty.bro
+index 44db69a..03869be 100644
+--- a/testing/btest/policy/frameworks/logging/ascii-empty.bro
++++ b/testing/btest/policy/frameworks/logging/ascii-empty.bro
+@@ -13,6 +13,7 @@ redef LogAscii::header_prefix = "PREFIX<>";
+ module SSH;
+ 
+ export {
++	redef Log::default_writer = Log::WRITER_DATASERIES;
+ 	redef enum Log::ID += { SSH };
+ 
+ 	type Log: record {
+diff --git a/testing/btest/policy/frameworks/logging/ascii-escape.bro b/testing/btest/policy/frameworks/logging/ascii-escape.bro
+index 7acea46..8968b01 100644
+--- a/testing/btest/policy/frameworks/logging/ascii-escape.bro
++++ b/testing/btest/policy/frameworks/logging/ascii-escape.bro
+@@ -7,6 +7,7 @@ redef LogAscii::separator = "||";
+ module SSH;
+ 
+ export {
++	redef Log::default_writer = Log::WRITER_DATASERIES;
+ 	redef enum Log::ID += { SSH };
+ 
+ 	type Log: record {
+diff --git a/testing/btest/policy/frameworks/logging/ascii-options.bro b/testing/btest/policy/frameworks/logging/ascii-options.bro
+index 2a5b121..e891276 100644
+--- a/testing/btest/policy/frameworks/logging/ascii-options.bro
++++ b/testing/btest/policy/frameworks/logging/ascii-options.bro
+@@ -11,6 +11,7 @@ redef LogAscii::include_header = F;
+ module SSH;
+ 
+ export {
++	redef Log::default_writer = Log::WRITER_DATASERIES;
+ 	redef enum Log::ID += { SSH };
+ 
+ 	type Log: record {
+diff --git a/testing/btest/policy/frameworks/logging/ascii-timestamps.bro b/testing/btest/policy/frameworks/logging/ascii-timestamps.bro
+index 4382c9c..5ac250a 100644
+--- a/testing/btest/policy/frameworks/logging/ascii-timestamps.bro
++++ b/testing/btest/policy/frameworks/logging/ascii-timestamps.bro
+@@ -5,6 +5,7 @@
+ module Test;
+ 
+ export {
++	redef Log::default_writer = Log::WRITER_DATASERIES;
+ 	redef enum Log::ID += { TEST };
+ 
+ 	type Info: record {
+diff --git a/testing/btest/policy/frameworks/logging/attr-extend.bro b/testing/btest/policy/frameworks/logging/attr-extend.bro
+index 4d7e96b..e2a1b3f 100644
+--- a/testing/btest/policy/frameworks/logging/attr-extend.bro
++++ b/testing/btest/policy/frameworks/logging/attr-extend.bro
+@@ -5,6 +5,7 @@
+ module SSH;
+ 
+ export {
++	redef Log::default_writer = Log::WRITER_DATASERIES;
+ 	redef enum Log::ID += { SSH };
+ 
+ 	type Log: record {
+diff --git a/testing/btest/policy/frameworks/logging/attr.bro b/testing/btest/policy/frameworks/logging/attr.bro
+index 658dcae..a60bae0 100644
+--- a/testing/btest/policy/frameworks/logging/attr.bro
++++ b/testing/btest/policy/frameworks/logging/attr.bro
+@@ -5,6 +5,7 @@
+ module SSH;
+ 
+ export {
++	redef Log::default_writer = Log::WRITER_DATASERIES;
+ 	redef enum Log::ID += { SSH };
+ 
+ 	type Log: record {
+diff --git a/testing/btest/policy/frameworks/logging/disable-stream.bro b/testing/btest/policy/frameworks/logging/disable-stream.bro
+index 472766d..0609267 100644
+--- a/testing/btest/policy/frameworks/logging/disable-stream.bro
++++ b/testing/btest/policy/frameworks/logging/disable-stream.bro
+@@ -5,6 +5,7 @@
+ module SSH;
+ 
+ export {
++	redef Log::default_writer = Log::WRITER_DATASERIES;
+ 	redef enum Log::ID += { SSH };
+ 
+ 	type Log: record {
+diff --git a/testing/btest/policy/frameworks/logging/empty-event.bro b/testing/btest/policy/frameworks/logging/empty-event.bro
+index 3e343b7..112fe80 100644
+--- a/testing/btest/policy/frameworks/logging/empty-event.bro
++++ b/testing/btest/policy/frameworks/logging/empty-event.bro
+@@ -5,6 +5,7 @@
+ module SSH;
+ 
+ export {
++	redef Log::default_writer = Log::WRITER_DATASERIES;
+ 	redef enum Log::ID += { SSH };
+ 
+ 	type Log: record {
+diff --git a/testing/btest/policy/frameworks/logging/events.bro b/testing/btest/policy/frameworks/logging/events.bro
+index 0ca7752..05b0e08 100644
+--- a/testing/btest/policy/frameworks/logging/events.bro
++++ b/testing/btest/policy/frameworks/logging/events.bro
+@@ -5,6 +5,7 @@
+ module SSH;
+ 
+ export {
++	redef Log::default_writer = Log::WRITER_DATASERIES;
+ 	# Create a new ID for our log stream
+ 	redef enum Log::ID += { SSH };
+ 
+diff --git a/testing/btest/policy/frameworks/logging/exclude.bro b/testing/btest/policy/frameworks/logging/exclude.bro
+index 46603d3..33adc0c 100644
+--- a/testing/btest/policy/frameworks/logging/exclude.bro
++++ b/testing/btest/policy/frameworks/logging/exclude.bro
+@@ -5,6 +5,7 @@
+ module SSH;
+ 
+ export {
++	redef Log::default_writer = Log::WRITER_DATASERIES;
+ 	redef enum Log::ID += { SSH };
+ 
+ 	type Log: record {
+diff --git a/testing/btest/policy/frameworks/logging/file.bro b/testing/btest/policy/frameworks/logging/file.bro
+index 6d73ec5..8f21d69 100644
+--- a/testing/btest/policy/frameworks/logging/file.bro
++++ b/testing/btest/policy/frameworks/logging/file.bro
+@@ -5,6 +5,7 @@
+ module SSH;
+ 
+ export {
++	redef Log::default_writer = Log::WRITER_DATASERIES;
+ 	redef enum Log::ID += { SSH };
+ 
+ 	type Log: record {
+diff --git a/testing/btest/policy/frameworks/logging/include.bro b/testing/btest/policy/frameworks/logging/include.bro
+index f1fac64..3795058 100644
+--- a/testing/btest/policy/frameworks/logging/include.bro
++++ b/testing/btest/policy/frameworks/logging/include.bro
+@@ -5,6 +5,7 @@
+ module SSH;
+ 
+ export {
++	redef Log::default_writer = Log::WRITER_DATASERIES;
+ 	redef enum Log::ID += { SSH };
+ 
+ 	type Log: record {
+diff --git a/testing/btest/policy/frameworks/logging/no-local.bro b/testing/btest/policy/frameworks/logging/no-local.bro
+index eb6cb60..be51db1 100644
+--- a/testing/btest/policy/frameworks/logging/no-local.bro
++++ b/testing/btest/policy/frameworks/logging/no-local.bro
+@@ -5,6 +5,7 @@
+ module SSH;
+ 
+ export {
++	redef Log::default_writer = Log::WRITER_DATASERIES;
+ 	redef enum Log::ID += { SSH };
+ 
+ 	type Log: record {
+diff --git a/testing/btest/policy/frameworks/logging/path-func.bro b/testing/btest/policy/frameworks/logging/path-func.bro
+index 760bb81..a5d1989 100644
+--- a/testing/btest/policy/frameworks/logging/path-func.bro
++++ b/testing/btest/policy/frameworks/logging/path-func.bro
+@@ -6,6 +6,7 @@
+ module SSH;
+ 
+ export {
++	redef Log::default_writer = Log::WRITER_DATASERIES;
+ 	# Create a new ID for our log stream
+ 	redef enum Log::ID += { SSH };
+ 
+diff --git a/testing/btest/policy/frameworks/logging/pred.bro b/testing/btest/policy/frameworks/logging/pred.bro
+index dc7653e..5f96f49 100644
+--- a/testing/btest/policy/frameworks/logging/pred.bro
++++ b/testing/btest/policy/frameworks/logging/pred.bro
+@@ -6,6 +6,7 @@
+ module SSH;
+ 
+ export {
++	redef Log::default_writer = Log::WRITER_DATASERIES;
+ 	# Create a new ID for our log stream
+ 	redef enum Log::ID += { SSH };
+ 
+diff --git a/testing/btest/policy/frameworks/logging/remote-types.bro b/testing/btest/policy/frameworks/logging/remote-types.bro
+index 607473d..6a3d438 100644
+--- a/testing/btest/policy/frameworks/logging/remote-types.bro
++++ b/testing/btest/policy/frameworks/logging/remote-types.bro
+@@ -14,6 +14,7 @@ redef LogAscii::empty_field = "EMPTY";
+ module SSH;
+ 
+ export {
++	redef Log::default_writer = Log::WRITER_DATASERIES;
+ 	# Create a new ID for our log stream
+ 	redef enum Log::ID += { SSH };
+ 
+diff --git a/testing/btest/policy/frameworks/logging/remote.bro b/testing/btest/policy/frameworks/logging/remote.bro
+index e389e6b..50f79ae 100644
+--- a/testing/btest/policy/frameworks/logging/remote.bro
++++ b/testing/btest/policy/frameworks/logging/remote.bro
+@@ -15,6 +15,7 @@
+ module SSH;
+ 
+ export {
++	redef Log::default_writer = Log::WRITER_DATASERIES;
+ 	# Create a new ID for our log stream
+ 	redef enum Log::ID += { SSH };
+ 
+diff --git a/testing/btest/policy/frameworks/logging/remove.bro b/testing/btest/policy/frameworks/logging/remove.bro
+index 488b214..ac79ab9 100644
+--- a/testing/btest/policy/frameworks/logging/remove.bro
++++ b/testing/btest/policy/frameworks/logging/remove.bro
+@@ -6,6 +6,7 @@
+ module SSH;
+ 
+ export {
++	redef Log::default_writer = Log::WRITER_DATASERIES;
+ 	# Create a new ID for our log stream
+ 	redef enum Log::ID += { SSH };
+ 
+diff --git a/testing/btest/policy/frameworks/logging/rotate-custom.bro b/testing/btest/policy/frameworks/logging/rotate-custom.bro
+index 2781a8f..33708df 100644
+--- a/testing/btest/policy/frameworks/logging/rotate-custom.bro
++++ b/testing/btest/policy/frameworks/logging/rotate-custom.bro
+@@ -6,6 +6,7 @@
+ module Test;
+ 
+ export {
++	redef Log::default_writer = Log::WRITER_DATASERIES;
+ 	# Create a new ID for our log stream
+ 	redef enum Log::ID += { Test };
+ 
+diff --git a/testing/btest/policy/frameworks/logging/rotate.bro b/testing/btest/policy/frameworks/logging/rotate.bro
+index 0179a0b..904b776 100644
+--- a/testing/btest/policy/frameworks/logging/rotate.bro
++++ b/testing/btest/policy/frameworks/logging/rotate.bro
+@@ -6,6 +6,7 @@
+ module Test;
+ 
+ export {
++	redef Log::default_writer = Log::WRITER_DATASERIES;
+ 	# Create a new ID for our log stream
+ 	redef enum Log::ID += { Test };
+ 
+diff --git a/testing/btest/policy/frameworks/logging/stdout.bro b/testing/btest/policy/frameworks/logging/stdout.bro
+index a482f74..c241875 100644
+--- a/testing/btest/policy/frameworks/logging/stdout.bro
++++ b/testing/btest/policy/frameworks/logging/stdout.bro
+@@ -6,6 +6,7 @@
+ module SSH;
+ 
+ export {
++	redef Log::default_writer = Log::WRITER_DATASERIES;
+ 	redef enum Log::ID += { SSH };
+ 
+ 	type Log: record {
+diff --git a/testing/btest/policy/frameworks/logging/test-logging.bro b/testing/btest/policy/frameworks/logging/test-logging.bro
+index 8443bc2..c7c9be3 100644
+--- a/testing/btest/policy/frameworks/logging/test-logging.bro
++++ b/testing/btest/policy/frameworks/logging/test-logging.bro
+@@ -5,6 +5,7 @@
+ module SSH;
+ 
+ export {
++	redef Log::default_writer = Log::WRITER_DATASERIES;
+ 	redef enum Log::ID += { SSH };
+ 
+ 	type Log: record {
+diff --git a/testing/btest/policy/frameworks/logging/types.bro b/testing/btest/policy/frameworks/logging/types.bro
+index 8cd5919..b5f5727 100644
+--- a/testing/btest/policy/frameworks/logging/types.bro
++++ b/testing/btest/policy/frameworks/logging/types.bro
+@@ -9,6 +9,7 @@ redef LogAscii::empty_field = "EMPTY";
+ module SSH;
+ 
+ export {
++	redef Log::default_writer = Log::WRITER_DATASERIES;
+ 	redef enum Log::ID += { SSH };
+ 
+ 	type Log: record {
+diff --git a/testing/btest/policy/frameworks/logging/unset-record.bro b/testing/btest/policy/frameworks/logging/unset-record.bro
+index e4c05ae..6755122 100644
+--- a/testing/btest/policy/frameworks/logging/unset-record.bro
++++ b/testing/btest/policy/frameworks/logging/unset-record.bro
+@@ -1,8 +1,8 @@
+-#
+ # @TEST-EXEC: bro %INPUT
+ # @TEST-EXEC: btest-diff testing.log
+ 
+ redef enum Log::ID += { TESTING };
++redef Log::default_writer = Log::WRITER_DATASERIES;
+ 
+ type Foo: record {
+ 	val1: count;
+diff --git a/testing/btest/policy/frameworks/logging/vec.bro b/testing/btest/policy/frameworks/logging/vec.bro
+index b9ed8f8..84e33e0 100644
+--- a/testing/btest/policy/frameworks/logging/vec.bro
++++ b/testing/btest/policy/frameworks/logging/vec.bro
+@@ -5,6 +5,7 @@
+ module SSH;
+ 
+ export {
++	redef Log::default_writer = Log::WRITER_DATASERIES;
+ 	redef enum Log::ID += { SSH };
+ 
+ 	type Log: record {

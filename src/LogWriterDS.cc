@@ -136,7 +136,7 @@ LogWriterDS::LogWriterDS(LogEmissary& parent, QueueInterface<MessageEvent *>& in
 {
 	ds_compression = string((const char *)BifConst::LogDataSeries::ds_compression->Bytes(), BifConst::LogDataSeries::ds_compression->Len());
 	ds_dump_schema = BifConst::LogDataSeries::ds_dump_schema;
-	ds_extent_rows = BifConst::LogDataSeries::ds_extent_rows;
+	ds_extent_size = BifConst::LogDataSeries::ds_extent_size;
 	ds_num_threads = BifConst::LogDataSeries::ds_num_threads;
 }
 
@@ -330,17 +330,17 @@ bool LogWriterDS::DoInit(string path, int num_fields,
 	for(size_t i = 0; i < typevec.size(); ++i)
 		extents.insert(std::make_pair(namevec[i], GeneralField::create(log_series, namevec[i])));
 
-	if(ds_extent_rows < ROW_MIN)
+	if(ds_extent_size < ROW_MIN)
 		{
-			fprintf(stderr, "%d is not a valid value for 'rows'.  Using min of %d instead.\n", (int)ds_extent_rows, (int)ROW_MIN);
-			ds_extent_rows = ROW_MIN;
+			fprintf(stderr, "%d is not a valid value for 'rows'.  Using min of %d instead.\n", (int)ds_extent_size, (int)ROW_MIN);
+			ds_extent_size = ROW_MIN;
 		}
-	else if(ds_extent_rows > ROW_MAX)
+	else if(ds_extent_size > ROW_MAX)
 		{
-			fprintf(stderr, "%d is not a valid value for 'rows'.  Using max of %d instead.\n", (int)ds_extent_rows, (int)ROW_MAX);
-			ds_extent_rows = ROW_MAX;
+			fprintf(stderr, "%d is not a valid value for 'rows'.  Using max of %d instead.\n", (int)ds_extent_size, (int)ROW_MAX);
+			ds_extent_size = ROW_MAX;
 		}
-    log_output = new OutputModule(*log_file, log_series, log_type, ds_extent_rows);
+    log_output = new OutputModule(*log_file, log_series, log_type, ds_extent_size);
 
 	return true;
 

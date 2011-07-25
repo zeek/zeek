@@ -11,9 +11,9 @@ export {
 	## 'bz2' -- BZIP2 compression.  Slower than GZIP, but also produces smaller output
 	const ds_compression = "lzf" &redef;
 
-    ## Extent buffer size.  Output is written in blocks of rows.
+    ## Extent buffer size.
 	## TODO: Tweak this value.
-	const ds_extent_rows = 65536 &redef;
+	const ds_extent_size = 65536 &redef;
 
 	## Should we dump the XML schema we use for this ds file to disk?
 	## If yes, the XML schema shares the name of the logfile, but has

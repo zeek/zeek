@@ -1,2 +1,5 @@
 #!/usr/bin/env bash
+pushd ../../
+patch -b -p3 < profiles/dataseries/dataseries.patch
+popd
 

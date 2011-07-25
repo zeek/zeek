@@ -95,6 +95,13 @@ FindRequiredPackage(BISON)
 FindRequiredPackage(PCAP)
 FindRequiredPackage(OpenSSL)
 FindRequiredPackage(BIND)
+
+find_package(Threads)
+if (NOT THREADS_FOUND)
+	message(FATAL_ERROR "Could not find thread library.")
+endif ()
+list(APPEND OPTLIBS ${CMAKE_THREAD_LIBS_INIT})
+
 # FindRequiredPackage(ZeroMQ)    # Not used for now, but don't think it's been totally discounted yet.
 
 if (NOT BinPAC_ROOT_DIR AND

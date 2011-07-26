@@ -12,7 +12,9 @@ export {
 	const ds_compression = "lzf" &redef;
 
     ## Extent buffer size.
-	## TODO: Tweak this value.
+	## Larger values here lead to better compression and more efficient writes, but
+	## also increases the lag between the time events are received and the time they
+	## are actually written to disk.
 	const ds_extent_size = 65536 &redef;
 
 	## Should we dump the XML schema we use for this ds file to disk?
@@ -29,5 +31,15 @@ export {
 	## 
 	## MAX is 128, MIN is 1
 	const ds_num_threads = 1 &redef;
+
+	## Should time be stored as an integer or a double?
+	## Storing time as a double leads to possible precision issues and
+	## could (significantly) increase the size of the resulting DS log.
+	## That said, timestamps stored in double form are more consistent
+	## with the rest of bro and are more easily readable / understandable
+	## when working with the raw DataSeries format.
+	## 
+	## Integer timestamps are used by default.
+	const ds_use_integer = T &redef;
 }
 

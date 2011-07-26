@@ -16,8 +16,7 @@
  *  @param val The value we wish to convert to a string
  *  @return the string value of val
  */
-//TODO: Should I be using a SerializationFormat here and calling appropriate functions instead?  That somehow seems like overkill...
-static std::string _LogValueToString(LogVal *val)
+static std::string _LogValueToString(LogVal *val, bool integerTime)
 {
 	const int strsz = 1024;
 	char strbuf[strsz];
@@ -56,12 +55,17 @@ static std::string _LogValueToString(LogVal *val)
 	// Note: These two cases are relatively special.  We need to convert these values into their integer equivalents
 	// to maximize precision.  At the moment, there won't be a noticeable effect (Bro uses the double format everywhere
 	// internally, so we've already lost the precision we'd gain here), but timestamps may eventually switch to this
-	// representation within Bro
+	// representation within Bro.
+	//
+	// For compatibility purposes, however, we *also* need to support the older (but more easily readable) double format.
 	//
 	// in the near-term, this *should* lead to better pack_relative (and thus smaller output files).
 	case TYPE_TIME:
 	case TYPE_INTERVAL:
-		ostr << (unsigned long)(LogWriterDS::TIME_SCALE * val->val.double_val);
+		if(integerTime)
+			ostr << (unsigned long)(LogWriterDS::TIME_SCALE * val->val.double_val);
+		else
+			ostr << val->val.double_val;
 		return ostr.str();
 
 	case TYPE_DOUBLE:
@@ -93,7 +97,7 @@ static std::string _LogValueToString(LogVal *val)
 			if ( j > 0 )
 				tmpString += ":";  //TODO: Specify set separator char in configuration.
 
-			tmpString += _LogValueToString(val->val.set_val.vals[j]);
+			tmpString += _LogValueToString(val->val.set_val.vals[j], integerTime);
 			}
 		return tmpString;
 	}
@@ -110,7 +114,7 @@ static std::string _LogValueToString(LogVal *val)
 			if ( j > 0 )
 				tmpString += ":";  //TODO: Specify set separator char in configuration.
 
-			tmpString += _LogValueToString(val->val.vector_val.vals[j]);
+			tmpString += _LogValueToString(val->val.vector_val.vals[j], integerTime);
 			}
 
 		return tmpString;
@@ -121,59 +125,13 @@ static std::string _LogValueToString(LogVal *val)
 }
 
 /**
- * Builds an instance of the LogWriterDS
- */
-LogWriter* LogWriterDS::Instantiate(LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue)	
-{ 
-	return new LogWriterDS(parent, in_queue, out_queue); 
-}
-
-/**
- *  Turns script variables into a form our logger can use.
- */
-LogWriterDS::LogWriterDS(LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue)
-: LogWriter(parent, in_queue, out_queue)
-{
-	ds_compression = string((const char *)BifConst::LogDataSeries::ds_compression->Bytes(), BifConst::LogDataSeries::ds_compression->Len());
-	ds_dump_schema = BifConst::LogDataSeries::ds_dump_schema;
-	ds_extent_size = BifConst::LogDataSeries::ds_extent_size;
-	ds_num_threads = BifConst::LogDataSeries::ds_num_threads;
-}
-
-/**
- *  After a long, tiring battle in the war for network domination, our LogWriterDS will be retired.  Rest well, dude; you've earned it.
- *
- *  Destroys the LogWriter, and cleans up any memory allocated to it.
- */
-LogWriterDS::~LogWriterDS()
-{
-}
-
-/**
- *  Are there any options we should put into the XML schema?
- *
- *  @param field We extract the type from this and return any options that make sense for that type.
- *  @return Options that can be added directly to the XML (e.g. "pack_relative=\"yes\"")
- */
-static std::string _GetDSOptionsForType(const LogField *field)
-{
-	switch(field->type)
-	{
-	case TYPE_TIME:
-	case TYPE_INTERVAL:
-		return "pack_relative=\"" + std::string(field->name) + "\"";
-	default:
-		return "";
-	}
-}
-
-/**
  *  Takes a field type and converts it to a relevant DataSeries type.
  *
  *  @param field We extract the type from this and convert it into a relevant DS type.
+ *  @param integerTime Should time be treated as an integer value?
  *  @return String representation of type that DataSeries can understand.
  */
-static string _GetDSFieldType(const LogField *field)
+static string _GetDSFieldType(const LogField *field, bool integerTime)
 {
 	switch(field->type)
 	{
@@ -184,12 +142,13 @@ static string _GetDSFieldType(const LogField *field)
 	case TYPE_COUNTER:
 	case TYPE_PORT:
 	case TYPE_INT:
+		return "int64";
 	case TYPE_TIME:
 	case TYPE_INTERVAL:
-		return "int64";
-
+		if(integerTime)
+			return "int64";
 	case TYPE_DOUBLE:
-		return "double";
+		return "double";  // Also applies to TYPE_TIME and TYPE_INTERVAL when integerTime is false
 	
 	case TYPE_SUBNET:
 	case TYPE_NET:
@@ -237,15 +196,43 @@ static string _BuildDSSchemaFromFieldTypes(const vector<string>& types, const ve
 }
 
 /**
- *  Takes a base path (*without* a file extension), a number of fields, and a list of those fields, and uses them
- *  to initialize an appropriate DataSeries output logfile.  To do this, we first construct an XML schema thing (and,
- *  if ds_dump_schema is set, dump it to path + ".ds.xml").  Assuming that goes well, we use that schema to build our
- *  output logfile and prepare it to be written to.
+ *  Are there any options we should put into the XML schema?
  *
- *  @param path Path to the logfile.  This function appends ".ds" to this value and tries to write there.
- *  @param num_fields The number of fields we're going to be logging (since fields is an old-school array)
- *  @param fields The fields themselves.  We pull types and names from these fields to create our schema.
+ *  @param field We extract the type from this and return any options that make sense for that type.
+ *  @param integerTime Should time be treated as an integer value?
+ *  @return Options that can be added directly to the XML (e.g. "pack_relative=\"yes\"")
  */
+static std::string _GetDSOptionsForType(const LogField *field, bool integerTime)
+{
+	switch(field->type)
+	{
+	case TYPE_TIME:
+	case TYPE_INTERVAL:
+		if(integerTime)  // Note: might fall to next case. . .
+			return "pack_relative=\"" + std::string(field->name) + "\"";
+	default:
+		return "";
+	}
+}
+
+LogWriter* LogWriterDS::Instantiate(LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue)	
+{ 
+	return new LogWriterDS(parent, in_queue, out_queue); 
+}
+
+LogWriterDS::LogWriterDS(LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue)
+: LogWriter(parent, in_queue, out_queue)
+{
+	ds_compression = string((const char *)BifConst::LogDataSeries::ds_compression->Bytes(), BifConst::LogDataSeries::ds_compression->Len());
+	ds_dump_schema = BifConst::LogDataSeries::ds_dump_schema;
+	ds_extent_size = BifConst::LogDataSeries::ds_extent_size;
+	ds_num_threads = BifConst::LogDataSeries::ds_num_threads;
+	ds_use_integer = BifConst::LogDataSeries::ds_use_integer;  
+}
+
+LogWriterDS::~LogWriterDS()
+{
+}
 
 bool LogWriterDS::DoInit(string path, int num_fields,
 			    const LogField* const * fields)
@@ -272,9 +259,9 @@ bool LogWriterDS::DoInit(string path, int num_fields,
 	for ( int i = 0; i < num_fields; i++ )
 		{
 		const LogField* field = fields[i];
-		typevec.push_back(_GetDSFieldType(field));
+		typevec.push_back(_GetDSFieldType(field, ds_use_integer));
 		namevec.push_back(field->name);
-		optvec.push_back(_GetDSOptionsForType(field));
+		optvec.push_back(_GetDSOptionsForType(field, ds_use_integer));
 		}
 	string schema = _BuildDSSchemaFromFieldTypes(typevec, namevec, optvec, path);
 	if(ds_dump_schema)
@@ -346,23 +333,10 @@ bool LogWriterDS::DoInit(string path, int num_fields,
 
 	}
 
-/**
- * TODO: Make this do something useful!
- *
- * @return true if we flushed, false otherwise.
- */
 bool LogWriterDS::DoFlush()
 {
 	return true;
 }
-
-/**
- *  Wrap up our files and write them out to disk.
- *
- *  In DataSeries' case, de-allocates relevant structures, which automatically calls flush code in their destructors.
- *
- *  TODO: Make Finish() work...
- */
 
 void LogWriterDS::DoFinish()
 {
@@ -377,15 +351,6 @@ void LogWriterDS::DoFinish()
 	delete log_file;
 }
 
-/**
- *  Writes a new record into the DataSeries object thingy.
- *
- *  @param num_fields Number of fields in this record
- *  @param fields The list of fields (so we can do cool things like get field type, get field name, etc)
- *  @param vals The values we're trying to write to the log.  Ideally, fields[i]->type == vals[i]->type
- *  
- *  @return true if the record was written successfully.  DataSeries will abort() otherwise, so we don't bother returning false here ...
- */
 bool LogWriterDS::DoWrite(int num_fields, const LogField* const * fields,
 			     LogVal** vals)
 {
@@ -399,25 +364,19 @@ bool LogWriterDS::DoWrite(int num_fields, const LogField* const * fields,
 			{
 			GeneralField *cField = iter->second;
 			if(vals[i]->present)
-				cField->set(_LogValueToString(vals[i]));
+				cField->set(_LogValueToString(vals[i], ds_use_integer));
 			}
 		}
 
 	return true;
 }
 
-/**
- *  Doesn't do anything for now. . . do we need to rotate this format?
- */
 bool LogWriterDS::DoRotate(string rotated_path, string postprocessor, double open,
 			      double close, bool terminating)
 {
 	return true;
 }
 
-/**
- *  DataSeries is *always* buffered to some degree.  This option is ignored.
- */
 bool LogWriterDS::DoSetBuf(bool enabled)
 {
 	return true;

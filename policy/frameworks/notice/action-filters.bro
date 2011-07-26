@@ -2,7 +2,7 @@
 ##!  This is completely and utterly not working right now!!!!!
 
 
-@load notice/base
+@load ./base
 
 module Notice;
 

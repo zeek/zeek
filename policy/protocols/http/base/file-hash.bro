@@ -1,6 +1,8 @@
 ##! Calculate hashes for HTTP body transfers.
 
-@load protocols/http
+@load ./main
+@load ./utils
+@load ./file-ident
 
 module HTTP;
 

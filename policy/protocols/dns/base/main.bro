@@ -1,4 +1,6 @@
 
+@load ./consts
+
 module DNS;
 
 export {

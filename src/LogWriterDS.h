@@ -75,6 +75,13 @@ protected:
 	virtual bool DoSetBuf(bool enabled);
 	
 	/**
+	*  Handles log rotation for DataSeries.  Note that if DS files are rotated too often, the aggregate log size will be (much) larger.
+	*
+	*  @param rotated_path The rotated path!
+	*  @param postprocessor A script / command to run that will effectively process the generated log
+	*  @param open The time at which this file was opened
+	*  @param close The time at which this file was closed
+	*  @param terminating Was this rotate because bro is shutting down?
 	*/
 	virtual bool DoRotate(string rotated_path, string postprocessr,
 			      double open, double close, bool terminating);

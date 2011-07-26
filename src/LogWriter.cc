@@ -97,7 +97,7 @@ void LogWriter::Error (const char *msg)
 	}
 
 LogEmissary::LogEmissary(QueueInterface<MessageEvent *>& push_queue, QueueInterface<MessageEvent *>& pull_queue)
-: bound(NULL), push_queue(push_queue), pull_queue(pull_queue), path(""), fields(NULL), num_fields(0) 
+: bound(NULL), push_queue(push_queue), pull_queue(pull_queue), path(""), fields(NULL), canInit(true), num_fields(0)
 	{
 		bMessage = new BulkWriteMessage();
 	}
@@ -133,6 +133,9 @@ void LogEmissary::BindWriter(LogWriter *writer)
 bool LogEmissary::Init(string arg_path, int arg_num_fields,
 		     LogField* const * arg_fields)
 	{
+	if(!canInit)
+		return false;
+	
 	path = arg_path;
 	num_fields = arg_num_fields;
 	fields = arg_fields;
@@ -140,6 +143,7 @@ bool LogEmissary::Init(string arg_path, int arg_num_fields,
 	assert(bound);
 	push_queue.put(new InitMessage(*bound, arg_path, arg_num_fields, arg_fields));
 	
+	canInit = false;
 	return true;
 	}
 

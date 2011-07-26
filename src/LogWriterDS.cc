@@ -374,7 +374,17 @@ bool LogWriterDS::DoWrite(int num_fields, const LogField* const * fields,
 bool LogWriterDS::DoRotate(string rotated_path, string postprocessor, double open,
 			      double close, bool terminating)
 {
-	return true;
+	DoFinish();
+
+	string nname = rotated_path + ".ds";
+	rename(string(parent.Path() + ".ds").c_str(), nname.c_str());
+
+	if ( postprocessor.size() &&
+	     ! RunPostProcessor(nname, postprocessor, string(parent.Path() + ".ds").c_str(),
+				open, close, terminating) )
+		return false;
+
+	return DoInit(parent.Path(), parent.NumFields(), parent.Fields());
 }
 
 bool LogWriterDS::DoSetBuf(bool enabled)

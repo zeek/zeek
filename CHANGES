@@ -1,3 +1,17 @@
+1.6-dev.242 Mon Jul 25 21:42:39 PDT 2011
+
+- Adding a documentation coverage test. (Jon Siwek)
+    
+- The CMake targets for generating reST docs from policy scripts are
+  now automatically generated via the genDocSourcesList.sh script.
+  (Jon Siwek)
+    
+- Fixed a number of script error. (Jon Siwek)
+
+- Fixes to relative @load'ing.  (Jon Siwek)
+
+- Fixes to tests. (Robin Sommer)
+
 1.6-dev.240 Sun Jul 24 15:14:26 PDT 2011
 
 - Updated tests and test baselines. (Jon Siwek)

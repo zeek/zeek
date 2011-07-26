@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-pushd ../../
 for EACH in `find -name *.orig`
 	do mv $EACH `echo $EACH | sed 's/\.orig//'`
 done
-popd
+for EACH in `find -name *.rej`
+	do rm $EACH
+done
 

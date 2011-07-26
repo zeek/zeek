@@ -298,20 +298,6 @@ index 8cd5919..b5f5727 100644
  	redef enum Log::ID += { SSH };
  
  	type Log: record {
-diff --git a/testing/btest/policy/frameworks/logging/unset-record.bro b/testing/btest/policy/frameworks/logging/unset-record.bro
-index e4c05ae..6755122 100644
---- a/testing/btest/policy/frameworks/logging/unset-record.bro
-+++ b/testing/btest/policy/frameworks/logging/unset-record.bro
-@@ -1,8 +1,8 @@
--#
- # @TEST-EXEC: bro %INPUT
- # @TEST-EXEC: btest-diff testing.log
- 
- redef enum Log::ID += { TESTING };
-+redef Log::default_writer = Log::WRITER_DATASERIES;
- 
- type Foo: record {
- 	val1: count;
 diff --git a/testing/btest/policy/frameworks/logging/vec.bro b/testing/btest/policy/frameworks/logging/vec.bro
 index b9ed8f8..84e33e0 100644
 --- a/testing/btest/policy/frameworks/logging/vec.bro

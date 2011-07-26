@@ -1,4 +1,4 @@
-
+# @TEST-USE-PROFILES dataseries
 # @TEST-EXEC: bro %INPUT >output
 # @TEST-EXEC: btest-diff output
 

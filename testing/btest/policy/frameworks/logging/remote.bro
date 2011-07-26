@@ -1,4 +1,4 @@
-#
+# @TEST-USE-PROFILES dataseries
 # @TEST-EXEC: btest-bg-run sender bro --pseudo-realtime %INPUT ../sender.bro
 # @TEST-EXEC: sleep 1
 # @TEST-EXEC: btest-bg-run receiver bro --pseudo-realtime %INPUT ../receiver.bro

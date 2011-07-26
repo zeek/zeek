@@ -1,4 +1,4 @@
-
+# @TEST-USE-PROFILES dataseries
 # @TEST-EXEC: bro %INPUT
 # @TEST-EXEC: ( ls static-*; cat static-* ) >output
 # @TEST-EXEC: btest-diff output

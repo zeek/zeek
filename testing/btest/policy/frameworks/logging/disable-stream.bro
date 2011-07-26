@@ -1,4 +1,4 @@
-#
+# @TEST-USE-PROFILES dataseries
 # @TEST-EXEC: bro %INPUT
 # @TEST-EXEC: test '!' -e ssh.log
 

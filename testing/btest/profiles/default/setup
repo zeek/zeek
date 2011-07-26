@@ -1,2 +1,9 @@
 #!/usr/bin/env bash
+# Do some cleanup in case something didn't go according to plan during our last run ...
+for EACH in `find . -name *.orig`
+	do mv $EACH `echo $EACH | sed 's/\.orig//'`
+done
+for EACH in `find . -name *.rej`
+	do mv $EACH `echo $EACH | sed 's/\.orig//'`
+done
 

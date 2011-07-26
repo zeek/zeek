@@ -1,4 +1,4 @@
-
+# @TEST-USE-PROFILES dataseries
 # @TEST-EXEC: bro %INPUT 
 # @TEST-EXEC: btest-diff ssh.success.log
 # @TEST-EXEC: btest-diff ssh.failure.log

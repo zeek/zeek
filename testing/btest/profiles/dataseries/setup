@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
-pushd ../../
-patch -b -p3 < profiles/dataseries/dataseries.patch
-popd
+# Do some cleanup in case something didn't go well the last time through. . .
+for EACH in `find -name *.orig`
+	do mv $EACH `echo $EACH | sed 's/\.orig//'`
+done
+for EACH in `find -name *.rej`
+	do rm $EACH
+done
+patch -b -p3 < profiles/dataseries/dataseries.patch > profiles/dataseries/patch.log 2> profiles/dataseries/patch.err
 

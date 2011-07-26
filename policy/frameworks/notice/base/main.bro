@@ -90,7 +90,8 @@ export {
 		## By adding chunks of text into this element, other scripts can
 		## expand on notices that are being emailed.  The normal way to add text
 		## is to extend the vector by handling the :bro:id:`Notice::notice`
-		## event and modifying the notice in place.
+		## event and modifying the notice in place.  For newline characters
+		## to be rendered properly, they must be escaped as "\\n".
 		email_body_sections:  vector of string &default=vector();
 	};
 	
@@ -138,6 +139,9 @@ export {
 	
 	## Local system sendmail program.
 	const sendmail            = "/usr/sbin/sendmail" &redef;
+	## Local system echo/printf program that supports interpretted character
+	## sequences (e.g. "\n"), for use in with conjunction with sendmail.
+	const echocmd             = "echo -e" &redef;
 	## Email address to send notices with the :bro:enum:`ACTION_EMAIL` action.
 	const mail_dest           = ""                   &redef;
 	
@@ -228,33 +232,33 @@ function email_notice_to(n: Notice::Info, dest: string, extend: bool)
 		return;
 		
 	local email_text = cat(
-		"From: ", mail_from, "\n",
-		"Subject: ", mail_subject_prefix, " ", n$note, "\n",
-		"To: ", dest, "\n",
+		"From: ", mail_from, "\\n",
+		"Subject: ", mail_subject_prefix, " ", n$note, "\\n",
+		"To: ", dest, "\\n",
 		# TODO: BiF to get version (the resource_usage Bif seems like overkill).
-		"User-Agent: Bro-IDS/?.?.?\n"); 
+		"User-Agent: Bro-IDS/?.?.?\\n");
 	
 	if ( reply_to != "" )
-		email_text = cat(email_text, "Reply-To: ", reply_to, "\n");
+		email_text = cat(email_text, "Reply-To: ", reply_to, "\\n");
 	
 	# The notice emails always start off with the human readable message.
-	email_text = cat(email_text, "\n", n$msg, "\n");
+	email_text = cat(email_text, "\\n", n$msg, "\\n");
 	
 	# Add the extended information if it's requested.
 	if ( extend )
 		{
 		for ( i in n$email_body_sections )
 			{
-			email_text = cat(email_text, "******************\n");
-			email_text = cat(email_text, n$email_body_sections[i], "\n");
+			email_text = cat(email_text, "******************\\n");
+			email_text = cat(email_text, n$email_body_sections[i], "\\n");
 			}
 		}
 	
-	email_text = cat(email_text, "\n\n--\n[Automatically generated]\n\n");
+	email_text = cat(email_text, "\\n\\n--\\n[Automatically generated]\\n\\n");
 	
 	local mail_cmd =
-		fmt("echo \"%s\" | %s -t -oi  %s",
-			str_shell_escape(email_text), sendmail);
+		fmt("%s \"%s\" | %s -t -oi",
+			echocmd, str_shell_escape(email_text), sendmail);
 	system(mail_cmd);
 	}
 

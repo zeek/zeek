@@ -15,8 +15,8 @@ export {
 
 	## Default writer to use if a filter does not specify
 	## anything else.
-	const default_writer = WRITER_ASCII &redef;
-	# const default_writer = WRITER_DATASERIES &redef;
+	# const default_writer = WRITER_ASCII &redef;
+	const default_writer = WRITER_DATASERIES &redef;
 
 	## Type defining the content of a logging stream.
 	type Stream: record {

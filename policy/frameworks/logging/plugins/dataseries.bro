@@ -39,7 +39,7 @@ export {
 	## with the rest of bro and are more easily readable / understandable
 	## when working with the raw DataSeries format.
 	## 
-	## Integer timestamps are used by default.
-	const ds_use_integer = T &redef;
+	## Double timestamps are used by default.
+	const ds_use_integer = F &redef;
 }
 

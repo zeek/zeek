@@ -9,6 +9,10 @@
 
 // NOTE: Naming conventions are a little bit scattershot at the moment.  Within the scope of this file, a function name prefixed by '_' denotes a static function.
 
+// ************************ LOCAL PROTOTYPES *********************************
+
+struct SchemaValue;
+
 /**
  *  Turns a log value into a std::string.  Uses an ostringstream to do the heavy lifting, but still need to switch
  *  on the type to know which value in the union to give to the string string for processing.
@@ -16,7 +20,63 @@
  *  @param val The value we wish to convert to a string
  *  @return the string value of val
  */
-static std::string _LogValueToString(LogVal *val, bool integerTime)
+static std::string _LogValueToString(LogVal *val);
+
+/**
+ *  Takes a field type and converts it to a relevant DataSeries type.
+ *
+ *  @param field We extract the type from this and convert it into a relevant DS type.
+ *  @return String representation of type that DataSeries can understand.
+ */
+static string _GetDSFieldType(const LogField *field);
+
+/**
+ *  Takes a field type and converts it to a readable string.
+ *
+ *  @param field We extract the type from this and convert it into a readable string.
+ *  @return String representation of the field's type
+ */
+static string _GetBroTypeString(const LogField *field);
+
+/**
+ *  Takes a list of types, a list of names, and a title, and uses it to construct a valid DataSeries XML schema
+ *  thing, which is then returned as a std::string
+ *
+ *  @param opts std::vector of strings containing a list of options to be appended to each field (e.g. "pack_relative=yes")
+ *  @param sTitle Name of this schema.  Ideally, these schemas would be aggregated and re-used.
+ */
+static string _BuildDSSchemaFromFieldTypes(const vector<SchemaValue>& vals, string sTitle);
+
+/**
+ *  Are there any options we should put into the XML schema?
+ *
+ *  @param field We extract the type from this and return any options that make sense for that type.
+ *  @return Options that can be added directly to the XML (e.g. "pack_relative=\"yes\"")
+ */
+static std::string _GetDSOptionsForType(const LogField *field);
+
+/**
+ *  Internal helper structure; populate a vector of these which is passed to the XML generator for its use.
+ */
+struct SchemaValue
+{
+	string ds_type;
+	string bro_type;
+	string field_name;
+	string field_options;
+
+	SchemaValue(const LogField *field)
+	{
+		ds_type = _GetDSFieldType(field);
+		field_name = string(field->name);
+		field_options = _GetDSOptionsForType(field);
+		bro_type = _GetBroTypeString(field);
+	}
+};
+
+// ************************ LOCAL IMPL *********************************
+
+static std::string _LogValueToString(LogVal *val)
 {
 	const int strsz = 1024;
 	char strbuf[strsz];
@@ -57,15 +117,10 @@ static std::string _LogValueToString(LogVal *val, bool integerTime)
 	// internally, so we've already lost the precision we'd gain here), but timestamps may eventually switch to this
 	// representation within Bro.
 	//
-	// For compatibility purposes, however, we *also* need to support the older (but more easily readable) double format.
-	//
 	// in the near-term, this *should* lead to better pack_relative (and thus smaller output files).
 	case TYPE_TIME:
 	case TYPE_INTERVAL:
-		if(integerTime)
-			ostr << (unsigned long)(LogWriterDS::TIME_SCALE * val->val.double_val);
-		else
-			ostr << val->val.double_val;
+		ostr << (unsigned long)(LogWriterDS::TIME_SCALE * val->val.double_val);
 		return ostr.str();
 
 	case TYPE_DOUBLE:
@@ -97,7 +152,7 @@ static std::string _LogValueToString(LogVal *val, bool integerTime)
 			if ( j > 0 )
 				tmpString += ":";  //TODO: Specify set separator char in configuration.
 
-			tmpString += _LogValueToString(val->val.set_val.vals[j], integerTime);
+			tmpString += _LogValueToString(val->val.set_val.vals[j]);
 			}
 		return tmpString;
 	}
@@ -114,7 +169,7 @@ static std::string _LogValueToString(LogVal *val, bool integerTime)
 			if ( j > 0 )
 				tmpString += ":";  //TODO: Specify set separator char in configuration.
 
-			tmpString += _LogValueToString(val->val.vector_val.vals[j], integerTime);
+			tmpString += _LogValueToString(val->val.vector_val.vals[j]);
 			}
 
 		return tmpString;
@@ -124,14 +179,7 @@ static std::string _LogValueToString(LogVal *val, bool integerTime)
 	}
 }
 
-/**
- *  Takes a field type and converts it to a relevant DataSeries type.
- *
- *  @param field We extract the type from this and convert it into a relevant DS type.
- *  @param integerTime Should time be treated as an integer value?
- *  @return String representation of type that DataSeries can understand.
- */
-static string _GetDSFieldType(const LogField *field, bool integerTime)
+static string _GetDSFieldType(const LogField *field)
 {
 	switch(field->type)
 	{
@@ -142,14 +190,13 @@ static string _GetDSFieldType(const LogField *field, bool integerTime)
 	case TYPE_COUNTER:
 	case TYPE_PORT:
 	case TYPE_INT:
-		return "int64";
 	case TYPE_TIME:
 	case TYPE_INTERVAL:
-		if(integerTime)
-			return "int64";
-	case TYPE_DOUBLE:
-		return "double";  // Also applies to TYPE_TIME and TYPE_INTERVAL when integerTime is false
+		return "int64";
 	
+	case TYPE_DOUBLE:
+		return "double"; 
+
 	case TYPE_SUBNET:
 	case TYPE_NET:
 	case TYPE_ADDR:
@@ -164,56 +211,89 @@ static string _GetDSFieldType(const LogField *field, bool integerTime)
 	}
 }
 
-/**
- *  Takes a list of types, a list of names, and a title, and uses it to construct a valid DataSeries XML schema
- *  thing, which is then returned as a std::string
- *
- *  @param types std::vector of strings containing DataSeries types (e.g. "int64", "variable32")
- *  @param names std::vector of strings containing a list of field names; used to name our DS fields
- *  @param opts std::vector of strings containing a list of options to be appended to each field (e.g. "pack_relative=yes")
- *  @param sTitle Name of this schema.  Ideally, these schemas would be aggregated and re-used.
- */
-static string _BuildDSSchemaFromFieldTypes(const vector<string>& types, const vector<string>& names, const vector<string>& opts, string sTitle)
+static string _GetBroTypeString(const LogField *field)
+{
+	switch(field->type)
+	{
+	case TYPE_BOOL:
+		return "bool";
+	case TYPE_COUNT:
+		return "count";
+	case TYPE_COUNTER:
+		return "counter";
+	case TYPE_PORT:
+		return "port";
+	case TYPE_INT:
+		return "int";
+	case TYPE_TIME:
+		return "time";
+	case TYPE_INTERVAL:
+		return "interval";
+	case TYPE_DOUBLE:
+		return "double"; 
+	case TYPE_SUBNET:
+		return "subnet";
+	case TYPE_NET:
+		return "net";
+	case TYPE_ADDR:
+		return "addr";
+	case TYPE_ENUM:
+		return "enum";
+	case TYPE_STRING:
+		return "string";
+	case TYPE_FILE:
+		return "file";
+	case TYPE_TABLE:
+		return "table";
+	case TYPE_VECTOR:
+		return "vector";
+	default:
+		return "???";
+	}
+}
+
+static string _BuildDSSchemaFromFieldTypes(const vector<SchemaValue>& vals, string sTitle)
 {
 	if("" == sTitle)
 		{
 		sTitle = "GenericBroStream";
 		}
-    string xmlschema = "<ExtentType name=\"" + sTitle + "\" version=\"1.0\" namespace=\"bro-ids.org\">\n";
-	for(size_t i = 0; i < types.size(); ++i)
+    string xmlschema;
+	xmlschema  = "<ExtentType name=\"" + sTitle + "\" version=\"1.0\" namespace=\"bro-ids.org\">\n";
+	for(size_t i = 0; i < vals.size(); ++i)
 		{
-		if(types[i] == "variable32")
-			{
-			xmlschema += "\t<field type=\"" + types[i] + "\" name=\"" + names[i] + "\" " + opts[i] + " pack_unique=\"yes\" />\n";
-			}
-		else
-			{
-			xmlschema += "\t<field type=\"" + types[i] + "\" name=\"" + names[i] + "\" " + opts[i] + " />\n";
-			}
+		xmlschema += "\t<field type=\"" + vals[i].ds_type + "\" name=\"" + vals[i].field_name + "\" " + vals[i].field_options + "/>\n";
 		}
 	xmlschema += "</ExtentType>\n";
+	for(size_t i = 0; i < vals.size(); ++i)
+		{
+		xmlschema += "<!--" + vals[i].field_name + "=" + vals[i].bro_type + "-->\n";
+		}
 	return xmlschema;
 }
 
-/**
- *  Are there any options we should put into the XML schema?
- *
- *  @param field We extract the type from this and return any options that make sense for that type.
- *  @param integerTime Should time be treated as an integer value?
- *  @return Options that can be added directly to the XML (e.g. "pack_relative=\"yes\"")
- */
-static std::string _GetDSOptionsForType(const LogField *field, bool integerTime)
+static std::string _GetDSOptionsForType(const LogField *field)
 {
 	switch(field->type)
 	{
 	case TYPE_TIME:
 	case TYPE_INTERVAL:
-		if(integerTime)  // Note: might fall to next case. . .
-			return "pack_relative=\"" + std::string(field->name) + "\"";
+		return "pack_relative=\"" + std::string(field->name) + "\"";
+	case TYPE_SUBNET:
+	case TYPE_NET:
+	case TYPE_ADDR:
+	case TYPE_ENUM:
+	case TYPE_STRING:
+	case TYPE_FILE:
+	case TYPE_TABLE:
+	case TYPE_VECTOR:
+		return "pack_unique=\"yes\"";
 	default:
 		return "";
 	}
 }
+
+// ************************ CLASS IMPL *********************************
 
 LogWriter* LogWriterDS::Instantiate(LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue)	
 { 
@@ -227,7 +307,6 @@ LogWriterDS::LogWriterDS(LogEmissary& parent, QueueInterface<MessageEvent *>& in
 	ds_dump_schema = BifConst::LogDataSeries::ds_dump_schema;
 	ds_extent_size = BifConst::LogDataSeries::ds_extent_size;
 	ds_num_threads = BifConst::LogDataSeries::ds_num_threads;
-	ds_use_integer = BifConst::LogDataSeries::ds_use_integer;  
 }
 
 LogWriterDS::~LogWriterDS()
@@ -253,17 +332,14 @@ bool LogWriterDS::DoInit(string path, int num_fields,
 		{
 		DataSeriesSink::setCompressorCount(ds_num_threads);
 		}
-	vector<string> typevec;
-	vector<string> namevec;
-	vector<string> optvec;
+	vector<SchemaValue> schema_list;
 	for ( int i = 0; i < num_fields; i++ )
 		{
 		const LogField* field = fields[i];
-		typevec.push_back(_GetDSFieldType(field, ds_use_integer));
-		namevec.push_back(field->name);
-		optvec.push_back(_GetDSOptionsForType(field, ds_use_integer));
+		SchemaValue val(field);
+		schema_list.push_back(val);
 		}
-	string schema = _BuildDSSchemaFromFieldTypes(typevec, namevec, optvec, path);
+	string schema = _BuildDSSchemaFromFieldTypes(schema_list, path);
 	if(ds_dump_schema)
 		{
 		FILE * pFile;
@@ -314,8 +390,8 @@ bool LogWriterDS::DoInit(string path, int num_fields,
     log_file = new DataSeriesSink(path + ".ds", compress_type);
 	log_file->writeExtentLibrary(log_types);
 	
-	for(size_t i = 0; i < typevec.size(); ++i)
-		extents.insert(std::make_pair(namevec[i], GeneralField::create(log_series, namevec[i])));
+	for(size_t i = 0; i < schema_list.size(); ++i)
+		extents.insert(std::make_pair(schema_list[i].field_name, GeneralField::create(log_series, schema_list[i].field_name)));
 
 	if(ds_extent_size < ROW_MIN)
 		{
@@ -364,7 +440,7 @@ bool LogWriterDS::DoWrite(int num_fields, const LogField* const * fields,
 			{
 			GeneralField *cField = iter->second;
 			if(vals[i]->present)
-				cField->set(_LogValueToString(vals[i], ds_use_integer));
+				cField->set(_LogValueToString(vals[i]));
 			}
 		}
 
@@ -391,6 +467,8 @@ bool LogWriterDS::DoSetBuf(bool enabled)
 {
 	return true;
 }
+
+// ************************ WRITER REGISTRATION *********************************
 
 // Call our constructor in the global scope to register this logging type with the LogMgr.  This is used because
 // certain logging types depend on optional libraries, and we feel like this is slightly cleaner than wrapping stuff 

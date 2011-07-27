@@ -96,8 +96,6 @@ protected:
 	 *  Wrap up our files and write them out to disk.
 	 *
 	 *  In DataSeries' case, de-allocates relevant structures, which automatically calls flush code in their destructors.
-	 *
-	 *  TODO: Make Finish() work...
 	 */
 	virtual void DoFinish();
 
@@ -117,7 +115,6 @@ private:
 	uint64 ds_extent_size; 
 	uint64 ds_num_threads;
 	string ds_compression;
-	bool ds_use_integer;
 	bool ds_dump_schema;
 };
 

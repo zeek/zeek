@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <cmath>
 #include <sys/stat.h>
+#include <cstdio>
 
 #include "Reporter.h"
 
@@ -3612,4 +3613,23 @@ function NFS3::mode2string%(mode: count%): string
 	*p = '\0';
 
 	return new StringVal(str);
+	%}
+
+## Opens a program with popen() and writes a given to string to the returned
+## stream to send it to the opened process's stdin.
+## program: a string naming the program to execute
+## to_write: a string to pipe to the opened program's process over stdin
+## Returns: F if popen'ing the program failed, else T
+function piped_exec%(program: string, to_write: string%): bool
+	%{
+	const char* prog = program->CheckString();
+	FILE* f = popen(prog, "w");
+	if ( !f )
+		{
+		reporter->Error("Failed to popen %s", prog);
+		return new Val(false, TYPE_BOOL);
+		}
+	fprintf(f, "%s", to_write->CheckString());
+	pclose(f);
+	return new Val(true, TYPE_BOOL);
 	%}

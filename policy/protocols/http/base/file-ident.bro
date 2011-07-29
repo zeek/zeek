@@ -16,7 +16,7 @@ export {
 	redef enum Notice::Type += {
 		# This notice is thrown when the file extension doesn't 
 		# seem to match the file contents.
-		IncorrectFileType,
+		Incorrect_File_Type,
 	};
 
 	redef record Info += {
@@ -59,7 +59,7 @@ event signature_match(state: signature_state, msg: string, data: string) &priori
 		{
 		local url = build_url_http(c$http);
 		local message = fmt("%s %s %s", msg, c$http$method, url);
-		NOTICE([$note=IncorrectFileType,
+		NOTICE([$note=Incorrect_File_Type,
 		        $msg=message,
 		        $conn=c,
 		        $method=c$http$method,

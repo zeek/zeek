@@ -1,10 +1,10 @@
 @load hot
 
 redef enum Notice += {
-	SensitiveConnection,	# connection marked "hot"
+	Sensitive_Connection,	# connection marked "hot"
 };
 
-# Whether to translate the local address in SensitiveConnection notices
+# Whether to translate the local address in Sensitive_Connection notices
 # to a hostname.  Meant as a demonstration of the "when" construct.
 const xlate_hot_local_addr = F &redef;
 
@@ -40,16 +40,16 @@ function full_id_string(c: connection): string
 	}
 
 
-# Low-level routine that generates the actual SensitiveConnection
+# Low-level routine that generates the actual Sensitive_Connection
 # notice associated with a "hot" connection.
 function do_hot_notice(c: connection, dir: string, host: string)
 	{
-	NOTICE([$note=SensitiveConnection, $conn=c,
+	NOTICE([$note=Sensitive_Connection, $conn=c,
 		$msg=fmt("hot: %s %s local host: %s",
 			full_id_string(c), dir, host)]);
 	}
 
-# Generate a SensitiveConnection notice with the local hostname
+# Generate a Sensitive_Connection notice with the local hostname
 # translated.  Mostly intended as a demonstration of using "when".
 function gen_hot_notice_with_hostnames(c: connection)
 	{
@@ -78,7 +78,7 @@ function log_hot_conn(c: connection)
 		if ( xlate_hot_local_addr )
 			gen_hot_notice_with_hostnames(c);
 		else
-			NOTICE([$note=SensitiveConnection, $conn=c,
+			NOTICE([$note=Sensitive_Connection, $conn=c,
 				$msg=fmt("hot: %s", full_id_string(c))]);
 
 		add hot_conns_reported[c$id][msg];

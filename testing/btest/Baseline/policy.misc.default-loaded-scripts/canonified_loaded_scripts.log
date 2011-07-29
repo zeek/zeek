@@ -1,0 +1,27 @@
+# depth	name
+0	policy/bro.init
+1	build/src/const.bif.bro
+1	build/src/types.bif.bro
+1	build/src/strings.bif.bro
+1	build/src/bro.bif.bro
+1	build/src/reporter.bif.bro
+1	build/src/event.bif.bro
+1	policy/utils/site.bro
+2	policy/utils/pattern.bro
+1	policy/frameworks/logging/__load__.bro
+2	policy/frameworks/logging/base.bro
+3	build/src/logging.bif.bro
+2	policy/frameworks/logging/plugins/ascii.bro
+1	policy/frameworks/packet-filter/__load__.bro
+2	policy/frameworks/packet-filter/base/__load__.bro
+3	policy/frameworks/packet-filter/base/main.bro
+4	policy/frameworks/notice/__load__.bro
+5	policy/frameworks/notice/./base/__load__.bro
+6	policy/frameworks/notice/./base/./main.bro
+6	policy/frameworks/notice/./base/./weird.bro
+7	policy/utils/conn-ids.bro
+6	policy/frameworks/notice/./base/./actions/drop.bro
+6	policy/frameworks/notice/./base/./actions/email_admin.bro
+6	policy/frameworks/notice/./base/./actions/page.bro
+5	policy/frameworks/notice/./extend-email/hostnames.bro
+0	policy/misc/loaded-scripts.bro

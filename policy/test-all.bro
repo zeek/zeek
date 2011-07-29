@@ -5,6 +5,7 @@
 # Note that we have unit test that makes sure that all policy files shipped are
 # actually loaded here. If we have files that are part of the distribution yet
 # can't be loaded here,  these must still be listed here with their load command
+# commented out.
 
 @load all.bro
 # @load test-all.bro
@@ -40,10 +41,9 @@
 @load frameworks/metrics/http-example.bro
 @load frameworks/notice/__load__.bro
 # @load frameworks/notice/action-filters.bro
-@load frameworks/notice/base.bro
-@load frameworks/notice/weird.bro
+# @load frameworks/notice/base.bro
+# @load frameworks/notice/weird.bro
 @load frameworks/packet-filter/__load__.bro
-@load frameworks/packet-filter/base.bro
 @load frameworks/packet-filter/netstats.bro
 @load frameworks/signatures/__load__.bro
 @load frameworks/signatures/base.bro

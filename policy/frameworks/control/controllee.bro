@@ -21,9 +21,13 @@ event Control::peer_status_request()
 		local peer = Communication::nodes[p];
 		if ( ! peer$connected )
 			next;
-
-		status += fmt("peer=%s host=%s events_in=? events_out=? ops_in=? ops_out=? bytes_in=? bytes_out=?\n",
-					  peer$peer$descr, peer$host);
+			
+		local res = resource_usage();
+		status += fmt("%.6f peer=%s host=%s events_in=%s events_out=%s ops_in=%s ops_out=%s bytes_in=? bytes_out=?\n",
+					network_time(),
+					peer$peer$descr, peer$host,
+					res$num_events_queued, res$num_events_dispatched,
+					res$blocking_input, res$blocking_output);
 		}
 
 	event Control::peer_status_response(status);

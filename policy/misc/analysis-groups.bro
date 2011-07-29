@@ -24,8 +24,8 @@ event Control::configuration_update()
 		if ( g !in disabled ) 
 			enable_event_group(g);
 	
-	# Disable those which are not already.
-	for ( g in disable_event_group )
+	# Disable those which are not already disabled.
+	for ( g in disabled )
 		if ( g !in currently_disabled )
 			disable_event_group(g);
 	

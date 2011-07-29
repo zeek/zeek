@@ -14,5 +14,14 @@ redef Log::default_rotation_postprocessor = "delete-log";
 # TODO: should we really be setting this to T?
 redef record_all_packets = T;
 
-# TODO: Workers need to have a filter for the notice log which doesn't 
-#       do remote logging since we forward the notice event directly.
+# Workers need to have a filter for the notice log which doesn't 
+# do remote logging since we forward the notice event directly.
+event bro_init()
+	{
+	Log::add_filter(Notice::NOTICE,
+		[
+		 $name="cluster-worker",
+		 $pred=function(rec: Notice::Info): bool { return F; }
+		]
+	);
+	}

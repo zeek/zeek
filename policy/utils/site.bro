@@ -97,15 +97,15 @@ function find_all_emails(ip: addr): set[string]
 	if ( ip !in local_admins ) return set();
 
 	local output_values: set[string] = set();
-	local tmp_ip: addr;
+	local tmp_subnet: subnet;
 	local i: count;
 	local emails: string;
 	for ( i in one_to_32 )
 		{
-		tmp_ip = mask_addr(ip, one_to_32[i]);
-		if ( tmp_ip in local_admins )
+		tmp_subnet = mask_addr(ip, one_to_32[i]);
+		if ( tmp_subnet in local_admins )
 			{
-			for ( email in local_admins[tmp_ip] )
+			for ( email in local_admins[tmp_subnet] )
 				{
 				if ( email != "" )
 					add output_values[email];

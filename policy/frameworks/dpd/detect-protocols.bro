@@ -1,17 +1,20 @@
 ##! Finds connections with protocols on non-standard ports with DPD.
 
 @load frameworks/notice
+@load utils/site
 
 module ProtocolDetector;
 
 export {
-	redef enum Notice += {
+	redef enum Notice::Type += {
 		Off_Port_Protocol_Found, # raised for each connection found
+		Protocol_Found,
+		Server_Found,
 	};
 
 	# Table of (protocol, resp_h, resp_p) tuples known to be uninteresting
 	# in the given direction.  For all other protocols detected on
-	# non-standard ports, we raise a ProtocolFound notice.  (More specific
+	# non-standard ports, we raise a Protocol_Found notice.  (More specific
 	# filtering can then be done via notice_filters.)
 	#
 	# Use 0.0.0.0 for to wildcard-match any resp_h.
@@ -36,8 +39,8 @@ export {
 		# [ANALYZER_HTTP, 0.0.0.0, 6348/tcp] = BOTH, # Gnutella
 	} &redef;
 
-	# Set of analyzers for which we suppress ServerFound notices
-	# (but not ProtocolFound).  Along with avoiding clutter in the
+	# Set of analyzers for which we suppress Server_Found notices
+	# (but not Protocol_Found).  Along with avoiding clutter in the
 	# log files, this also saves memory because for these we don't
 	# need to remember which servers we already have reported, which
 	# for some can be a lot.
@@ -99,20 +102,20 @@ function do_notice(c: connection, a: count, d: dir)
 	if ( d == BOTH )
 		return;
 
-	if ( d == INCOMING && is_local_addr(c$id$resp_h) )
+	if ( d == INCOMING && Site::is_local_addr(c$id$resp_h) )
 		return;
 
-	if ( d == OUTGOING && ! is_local_addr(c$id$resp_h) )
+	if ( d == OUTGOING && ! Site::is_local_addr(c$id$resp_h) )
 		return;
 
 	local p = get_protocol(c, a);
 	local s = fmt_protocol(p);
 
-	NOTICE([$note=ProtocolFound,
+	NOTICE([$note=Protocol_Found,
 		$msg=fmt("%s %s on port %s", id_string(c$id), s, c$id$resp_p),
 		$sub=s, $conn=c, $n=a]);
 
-	# We report multiple ServerFound's per host if we find a new
+	# We report multiple Server_Found's per host if we find a new
 	# sub-protocol.
 	local known = [c$id$resp_h, c$id$resp_p, p$a] in servers;
 
@@ -123,7 +126,7 @@ function do_notice(c: connection, a: count, d: dir)
 
 	if ( (! known || newsub) && a !in suppress_servers )
 		{
-		NOTICE([$note=ServerFound,
+		NOTICE([$note=Server_Found,
 			$msg=fmt("%s: %s server on port %s%s", c$id$resp_h, s,
 				c$id$resp_p, (known ? " (update)" : "")),
 			$p=c$id$resp_p, $sub=s, $conn=c, $src=c$id$resp_h, $n=a]);

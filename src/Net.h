@@ -93,13 +93,20 @@ extern char* writefile;
 // Script file we have already scanned (or are in the process of scanning).
 // They are identified by inode number.
 struct ScannedFile {
-    ino_t inode;
-    int include_level;
-    string name;
+	ino_t inode;
+	int include_level;
+	string name;
+	string subpath;		// Path in BROPATH's policy/ containing the file.
+	bool skipped;		// This ScannedFile was @unload'd.
+	bool prefixes_checked;	// If loading prefixes for this file has been tried.
 
-    ScannedFile(ino_t arg_inode, int arg_include_level, string arg_name)
-        : inode(arg_inode), include_level(arg_include_level), name(arg_name)
-	{ }
+	ScannedFile(ino_t arg_inode, int arg_include_level, string arg_name,
+		    string arg_subpath = "", bool arg_skipped = false,
+		    bool arg_prefixes_checked = false)
+			: inode(arg_inode), include_level(arg_include_level),
+			name(arg_name), subpath(arg_subpath), skipped(arg_skipped),
+			prefixes_checked(arg_prefixes_checked)
+		{ }
 };
 
 extern std::list<ScannedFile> files_scanned;

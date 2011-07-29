@@ -122,8 +122,7 @@ function add_data(name: ID, index: Index, increment: count)
 		if ( conf?$aggregation_mask )
 			{
 			local agg_mask = conf$aggregation_mask;
-			local agg = mask_addr(index$host, agg_mask);
-			agg_subnet = fmt("%s/%d", agg, agg_mask);
+			agg_subnet = fmt("%s", mask_addr(index$host, agg_mask));
 			}
 		else if ( conf?$aggregation_table )	
 			agg_subnet = fmt("%s", conf$aggregation_table[index$host]);

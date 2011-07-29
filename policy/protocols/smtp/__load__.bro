@@ -1,4 +1,4 @@
-@load protocols/smtp/base
+@load ./base
 
 # This should be optional
-@load protocols/smtp/detect-suspicious-orig
+@load ./detect-suspicious-orig

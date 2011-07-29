@@ -1,3 +1,15 @@
+1.6-dev.244 Thu Jul 28 17:08:21 PDT 2011
+
+- mask_addr() now returns subnet (addresses #512). (Jon Siwek)
+  
+- Normalize Notice::Type identifiers per convention (closes #484).
+  (Jon Siwek)
+
+- Fixing default-loaded-scripts test for BSD systems. (Jon Siwek)
+  
+- New piped_exec() BiF for pipeing data into an external command. (Jon
+  Siwek)
+    
 1.6-dev.242 Mon Jul 25 21:42:39 PDT 2011
 
 - Adding a documentation coverage test. (Jon Siwek)

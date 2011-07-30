@@ -2,9 +2,9 @@
 
 module Metrics;
 
-redef enum Log::ID += { METRICS };
-
 export {
+	redef enum Log::ID += { METRICS };
+
 	type ID: enum {
 		ALL,
 	};
@@ -12,10 +12,10 @@ export {
 	const default_aggregation_mask = 24 &redef;
 	const default_break_interval = 5mins &redef;
 	
-	# TODO: configure a metrics config logging stream to log the current
+	# TODO: configure a metrics filter logging stream to log the current
 	#       metrics configuration in case someone is looking through
 	#       old logs and the configuration has changed since then.
-	type Config: record {
+	type Filter: record {
 		name:              ID                      &optional;
 		## Global mask by which you'd like to aggregate traffic.
 		aggregation_mask:  count                   &optional;
@@ -46,13 +46,13 @@ export {
 		value:        count  &log;
 	};
 	
-	global configure: function(name: ID, config: Config);
+	global add_filter: function(name: ID, filter: Filter);
 	global add_data: function(name: ID, index: Index, increment: count);
 	
 	global log_metrics: event(rec: Info);
 }
 
-global metric_configs: table[ID] of Config = table();
+global metric_filters: table[ID] of Filter = table();
 
 type MetricIndex: table[string] of count &default=0;
 type MetricTable: table[string] of MetricIndex;
@@ -68,12 +68,12 @@ function reset(name: ID)
 	store[name] = table();
 	}
 
-event log_it(config: Config)
+event log_it(filter: Filter)
 	{
 	# If this node is the manager in a cluster, this needs to request values
 	# for this metric from all of the workers.
 	
-	local name = config$name;
+	local name = filter$name;
 	for ( agg_subnet in store[name] )
 		{
 		local metric_values = store[name][agg_subnet];
@@ -92,29 +92,32 @@ event log_it(config: Config)
 			Log::write(METRICS, m);
 			}
 		}
+	
+	
 	reset(name);
-	schedule config$break_interval { log_it(config) };
+	
+	schedule filter$break_interval { log_it(filter) };
 	}
 
-function configure(name: ID, config: Config)
+function add_filter(name: ID, filter: Filter)
 	{
-	if ( config?$aggregation_table && config?$aggregation_mask )
+	if ( filter?$aggregation_table && filter?$aggregation_mask )
 		{
-		print "INVALID Metric configuration: Defined $aggregation_table and $aggregation_mask.";
+		print "INVALID Metric filter: Defined $aggregation_table and $aggregation_mask.";
 		return;
 		}
 	
-	config$name = name;
-	metric_configs[name] = config;
+	filter$name = name;
+	metric_filters[name] = filter;
 	store[name] = table();
 	
 	# Only do this on the manager if in a cluster.
-	schedule config$break_interval { log_it(config) };
+	schedule filter$break_interval { log_it(filter) };
 	}
 	
 function add_data(name: ID, index: Index, increment: count)
 	{
-	local conf = metric_configs[name];
+	local conf = metric_filters[name];
 
 	local agg_subnet = "";
 	if ( index?$host )
@@ -127,14 +130,14 @@ function add_data(name: ID, index: Index, increment: count)
 			}
 		else if ( conf?$aggregation_table )	
 			agg_subnet = fmt("%s", conf$aggregation_table[index$host]);
+		else
+			agg_subnet = fmt("%s", index$host);
 		}
 	
 	if ( agg_subnet !in store[name] )
-		store[name][agg_subnet] = table([index$index] = increment);
-	else
-		{
-		if ( index$index !in store[name][agg_subnet] )
-			store[name][agg_subnet][index$index] = 0;
-		store[name][agg_subnet][index$index] = store[name][agg_subnet][index$index] + increment;
-		}
+		store[name][agg_subnet] = table();
+	
+	if ( index$index !in store[name][agg_subnet] )
+		store[name][agg_subnet][index$index] = 0;
+	store[name][agg_subnet][index$index] = store[name][agg_subnet][index$index] + increment;
 	}

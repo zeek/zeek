@@ -972,11 +972,11 @@ FILE* search_for_file(const char* filename, const char* ext,
 
 	char path[1024], full_filename_buf[1024];
 
-	// Append the currently loading script's path to BROPATH so that
+	// Prepend the currently loading script's path to BROPATH so that
 	// @loads can be referenced relatively.
-	if ( current_scanned_file_path != "" )
-		safe_snprintf(path, sizeof(path), "%s:%s", bro_path(),
-		              current_scanned_file_path.c_str());
+	if ( current_scanned_file_path != "" && filename[0] == '.' )
+		safe_snprintf(path, sizeof(path), "%s:%s",
+		              current_scanned_file_path.c_str(), bro_path());
 	else
 		safe_strncpy(path, bro_path(), sizeof(path));
 

@@ -7,6 +7,7 @@
 ##!   a MS Exhange webmail interface as opposed to a desktop client.
 
 @load frameworks/software
+@load ./main
 
 module SMTP;
 

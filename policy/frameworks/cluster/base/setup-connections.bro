@@ -1,3 +1,5 @@
+@load ./main
+@load frameworks/communication
 
 module Cluster;
 

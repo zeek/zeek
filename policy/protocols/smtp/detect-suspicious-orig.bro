@@ -1,7 +1,8 @@
-module SMTP;
-
 @load frameworks/notice
 @load protocols/smtp/base
+@load utils/directions-and-hosts
+
+module SMTP;
 
 export {
 	redef enum Notice::Type += {

@@ -227,35 +227,31 @@ function email_notice_to(n: Notice::Info, dest: string, extend: bool)
 	if ( reading_traces() || dest == "" )
 		return;
 		
-	local email_text = cat(
+	local email_text = string_cat(
 		"From: ", mail_from, "\n",
-		"Subject: ", mail_subject_prefix, " ", n$note, "\n",
+		"Subject: ", mail_subject_prefix, " ", fmt("%s", n$note), "\n",
 		"To: ", dest, "\n",
 		# TODO: BiF to get version (the resource_usage Bif seems like overkill).
 		"User-Agent: Bro-IDS/?.?.?\n"); 
 	
 	if ( reply_to != "" )
-		email_text = cat(email_text, "Reply-To: ", reply_to, "\n");
+		email_text = string_cat(email_text, "Reply-To: ", reply_to, "\n");
 	
 	# The notice emails always start off with the human readable message.
-	email_text = cat(email_text, "\n", n$msg, "\n");
+	email_text = string_cat(email_text, "\n", n$msg, "\n");
 	
 	# Add the extended information if it's requested.
 	if ( extend )
 		{
 		for ( i in n$email_body_sections )
 			{
-			email_text = cat(email_text, "******************\n");
-			email_text = cat(email_text, n$email_body_sections[i], "\n");
+			email_text = string_cat(email_text, "******************\n");
+			email_text = string_cat(email_text, n$email_body_sections[i], "\n");
 			}
 		}
 	
-	email_text = cat(email_text, "\n\n--\n[Automatically generated]\n\n");
-	
-	local mail_cmd =
-		fmt("echo \"%s\" | %s -t -oi  %s",
-			str_shell_escape(email_text), sendmail);
-	system(mail_cmd);
+	email_text = string_cat(email_text, "\n\n--\n[Automatically generated]\n\n");
+	piped_exec(fmt("%s -t -oi", sendmail), email_text);
 	}
 
 event notice(n: Notice::Info) &priority=-5

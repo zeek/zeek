@@ -1,5 +1,6 @@
 @load frameworks/notice
 @load utils/addrs
+@load utils/directions-and-hosts
 
 module SMTP;
 

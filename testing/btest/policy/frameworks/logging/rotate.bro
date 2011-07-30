@@ -1,5 +1,5 @@
 #
-# @TEST-EXEC: bro -r %DIR/rotation.trace %INPUT | grep "test" >out
+# @TEST-EXEC: bro -r %DIR/rotation.trace %INPUT 2>&1 | grep "test" >out
 # @TEST-EXEC: for i in test-*.log; do printf '> %s\n' $i; cat $i; done >>out
 # @TEST-EXEC: btest-diff out
 
@@ -18,7 +18,7 @@ export {
 }
 
 redef Log::default_rotation_interval = 1hr;
-redef Log::default_rotation_postprocessor = "echo";
+redef Log::default_rotation_postprocessor_cmd = "echo";
 
 event bro_init()
 {

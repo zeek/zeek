@@ -1,5 +1,5 @@
 #
-# @TEST-EXEC: bro -r %DIR/rotation.trace %INPUT | egrep "test|test2" | sort >out
+# @TEST-EXEC: bro -r %DIR/rotation.trace %INPUT 2>&1 | egrep "test|test2" | sort >out
 # @TEST-EXEC: for i in `ls test*.log | sort`; do printf '> %s\n' $i; cat $i; done | sort | uniq >>out
 # @TEST-EXEC: btest-diff out
 
@@ -18,10 +18,16 @@ export {
 }
 
 redef Log::default_rotation_interval = 1hr;
-redef Log::default_rotation_postprocessor = "echo 1st";
+redef Log::default_rotation_postprocessor_cmd = "echo 1st";
+
+function custom_rotate(info: Log::RotationInfo) : bool
+{
+    print "custom rotate", info;
+    return T;
+}
 
 redef Log::rotation_control += {
-	[Log::WRITER_ASCII, "test2"] = [$interv=30mins, $postprocessor="echo 2nd"]
+	[Log::WRITER_ASCII, "test2"] = [$interv=30mins, $postprocessor=custom_rotate]
 };
 
 event bro_init()

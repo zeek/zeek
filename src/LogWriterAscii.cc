@@ -242,7 +242,7 @@ bool LogWriterAscii::DoWrite(int num_fields, const LogField* const * fields,
 	return true;
 	}
 
-bool LogWriterAscii::DoRotate(string rotated_path, string postprocessor, double open,
+bool LogWriterAscii::DoRotate(string rotated_path, double open,
 			      double close, bool terminating)
 	{
 	if ( IsSpecial(Path()) )
@@ -254,10 +254,8 @@ bool LogWriterAscii::DoRotate(string rotated_path, string postprocessor, double 
 	string nname = rotated_path + ".log";
 	rename(fname.c_str(), nname.c_str());
 
-	if ( postprocessor.size() &&
-	     ! RunPostProcessor(nname, postprocessor, fname.c_str(),
-				open, close, terminating) )
-		return false;
+	if ( ! FinishedRotation(nname, fname, open, close, terminating) )
+		Error(Fmt("error rotating %s to %s", fname.c_str(), nname.c_str()));
 
 	return DoInit(Path(), NumFields(), Fields());
 	}

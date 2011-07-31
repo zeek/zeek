@@ -1,23 +1,40 @@
+
+1.6-dev-1016 | 2011-07-30 18:34:28 -0700
+
+  * Install example config files dynamically. They'll only get
+    installed when the distribution version differs from existing
+    version on disk. (Jon Siwek)
+
+  * Fixed memory leak in SSL analyzer. (Seth Hall)
+    
+  * Beginning rework of metrics interface. (Seth Hall)
+
+  * New/updated unit tests for scripts. (Jon Siwek)
+
+  * New/updated documentstion for scripts. (Jon Siwek)
+
+  * A number of fixes for scripts in utils/. (Jon Siwek)
+
 1.6-dev.244 Thu Jul 28 17:08:21 PDT 2011
 
 - mask_addr() now returns subnet (addresses #512). (Jon Siwek)
-  
+
 - Normalize Notice::Type identifiers per convention (closes #484).
   (Jon Siwek)
 
 - Fixing default-loaded-scripts test for BSD systems. (Jon Siwek)
-  
+
 - New piped_exec() BiF for pipeing data into an external command. (Jon
   Siwek)
-    
+
 1.6-dev.242 Mon Jul 25 21:42:39 PDT 2011
 
 - Adding a documentation coverage test. (Jon Siwek)
-    
+
 - The CMake targets for generating reST docs from policy scripts are
   now automatically generated via the genDocSourcesList.sh script.
   (Jon Siwek)
-    
+
 - Fixed a number of script error. (Jon Siwek)
 
 - Fixes to relative @load'ing.  (Jon Siwek)
@@ -27,19 +44,19 @@
 1.6-dev.240 Sun Jul 24 15:14:26 PDT 2011
 
 - Updated tests and test baselines. (Jon Siwek)
-  
+
 - ASCII log writer now prints time values w/ constant 6 digit
   precision. (Jon Siwek)
 
 - Many policy script updates acrsso the board (Seth Hall).
-  
+
 - Moving devel-tools to bro-aux. (Robin Sommer)
-  
+
 - BugFix for disable_analyzer(), which could cause crashes with some
   analyzers. (Robin Sommer)
-    
+
 - Bugfix for potential segfault in DebugLogger. (Robin Sommer)
-  
+
 1.6-dev.226 Thu Jul 21 15:23:39 PDT 2011
 
 - Extensions to the @load and @unload process. (Jon Siwek)
@@ -51,7 +68,7 @@
       are not contained in BROPATH.
 
     * Reimplementation of the @prefixes statement. (Closes #486)
-      
+
       Any added prefixes are now used *after* all input files have
       been parsed to look for a prefixed, flattened version of the
       input file somewhere in BROPATH and, if found, load it. For
@@ -98,7 +115,7 @@
   Changes are too extensive to list individually.
 
 - Removing undocumented -H command line flag. (Robin Sommer)
-    
+
 - Fixing many tests. (Everybody)
 
 - Fixing 0-chunk bug in remote logging. (Robin Sommer)
@@ -110,10 +127,10 @@
 
 - New BiF record_field_vals() that returns the fields of a record in a
   table with meta-information. (Robin Sommer)
-    
+
 - Adding a script in aux/devel-tools that extracts a connection from a
   trace based on uid. (Robin Sommer)
-    
+
 - Fixing bug causing crash when running without arguments. (Robin Sommer)
 
 - A new event bro_script_loaded() raised for each policy script
@@ -121,7 +138,7 @@
   done at the script-level. (Robin Sommer)
 
 - Fixing memory leaks. (Gilbert Clark, Seth Hall, Robin Sommer)
-  
+
 - Many SSL analysis improvements and fixes. (Seth Hall)
 
 - Fixing bug with event priorities potentially being ignored for the
@@ -133,13 +150,13 @@
   everything through the script layer. (Robin Sommer)
 
 * Removed the alarm statement and the alarm_hook event. (Robin Sommer)
-    
+
 - Adding new policy file test-all.bro that loads all other policies.
   This is for testing only. (Robin Sommer)
 
 - A new framework for doing regression testing with larger traces and
   more complex Bro configurations in testing/external. (Robin Sommer)
-    
+
 - Many updates to script doc generation.  (Jon Siwek)
 
 1.6-dev.146 Sat Jun 25 18:12:27 PDT 2011
@@ -238,14 +255,14 @@
   terminators in multi-line replies if the terminator was bare (no
   newline). This caused it to ignore the rest of the session that it's
   analyzing. (Vern Paxson)
-    
+
 - Fix compiler warning with gcc-4.4.4 (Gregor Maier)
-  
+
 - Adding example documentation for a script's use of logging features.
   (Jon Siwek)
 
 - Adding &log attribute to static attr_names array. (Jon Siwek)
-  
+
 - Bro can now track packet and byte counts per connection. (Gregor
   Maier)
 
@@ -253,7 +270,7 @@
       number of packets and raw IP bytes per connection. If
       report_conn_size_analyzer is true, these values are included as
       four new columns into conn.log
-    
+
     * I changed conn.bro so that the value of
       report_conn_size_analyzer follows that of
       use_conn_size_analyzer. For the new conn.log, we probably want
@@ -269,22 +286,22 @@
 
 - Support for (mixed) MPLS and VLAN traffic, and a new default BPF
   filter. (Seth Hall and Robin Sommer)
-    
+
     * Merging in the patch from #264, which provides support for mixed
       VLAN and MPLS traffic.
-    
+
     * Changing Bro's default filter from being built dynamically to
       being a static "ip or not ip". To get the old behaviour back
       (i.e., the dynamically built filter), redef "all_packets" to
       false.
-    
+
     * print-filter.bro now always prints the filter that Bro is
       actually using, even if overriden from the command line. (Robin
       Sommer)
 
 - Changing the HTTP's analyzers internals to use 64-bit integers.
-  (Gregor Maier). 
-    
+  (Gregor Maier).
+
 - Fixing bug with deleting still unset record fields of table type.
   (Robin Sommer)
 
@@ -302,7 +319,7 @@
   runs.
 
 - Delete operator for record fields. (Robin Sommer)
-    
+
   "delete x$y" now resets record field "x" back to its original state
   if it is either &optional or has a &default. "delete" may not be
   used with non-optional/default fields.
@@ -315,21 +332,21 @@
 1.6-dev.94 Thu Apr 21 19:51:38 PDT 2011
 
 - Fixing generation of config.h. (Jon Siwek)
-    
+
 - Updates and tests for NetBIOS name BiF. (Seth Hall)
-  
+
 - Fixing do_split bug(), and adding a test. (Seth Hall)
-    
+
 - When Bro is given a PRNG seed, it now uses its own internal random
   number generator that produces consistent results across sytems.
   Note that this internal generator isn't very good, so it should only
   be used for testing purpses. (Robin Sommer)
-    
+
 - The BTest configuration now sets the environemnt variables TZ=UTC
   and LANG=C to ensure consistent results. (Robin Sommer)
-    
+
 - Logging fixes. (Robin Sommer)
-    
+
 1.6-dev.88 Wed Apr 20 20:43:48 PDT 2011
 
 - Implementation of Bro's new logging framework. We will document this
@@ -338,34 +355,34 @@
 - Already defined record types can now be further extended via the
   '+=' operator. The added fields must be either &optional or have a
   &default value. (Robin Sommer)
-    
+
   Example:
-    
+
         type Foo: record {
             a: count;
             b: count &optional;
         };
-    
+
         redef record Foo += {
             c: count &default=42;
             d: count &optional;
         };
-    
+
         global f: Foo = [$a=21];
-    
+
         print f;
-    
+
   Output:
-   
+
         [a=21, b=<uninitialized>, c=42, d=<uninitialized>]
 
 - Enabling assignment of empty vectors ("vector()"). (Robin Sommer)
 
 - Fixing attributes to allow &default attributes to be associated with
   records fields of type tables/sets/vector. (Robin Sommer)
-    
+
 - '[]' is now a valid record constructor. (Robin Sommer)
-  
+
 - A instance of a record type A is now coercable into one of type B if
   the fields of type A are a subset of those of type B. (Robin Sommer)
 
@@ -376,9 +393,9 @@
   table/set indices. Addresses #367. (Robin Sommer)
 
 - Fixing an off-by-one error in join_string_vec(). (Seth Hall)
-  
+
 - Updating to_count() to cope with 64bit ints. (Seth Hall)
-  
+
 - A new BiF count_to_v4_addr() to turn a count into an IPv4 address.
   (Seth Hall)
 
@@ -408,22 +425,22 @@
 
 - Adding files to CMake build targets so they show up in generated IDE
   projects. This addresses #413. (Jon Siwek)
-    
+
 - Fix unnecessary config.h preprocessor (re)definitions. This
   addresses #414. (Jon Siwek)
 
 - Updating istate tests. (Robin Sommer)
-  
+
 - Adding files to CMake build targets so they show up in generated IDE
   projects.
-    
+
 - Adding new environment variable BRO_SEED_FILE to set the seed file
   for the random number generator. (Robin Sommer)
-    
+
 1.6-dev.71 Fri Apr  1 16:06:33 PDT 2011
 
 - Removing code for the following no longer supported functionality.
-  
+
     * Trace rewriting.
     * DFA state expiration in regexp engine.
     * Active mapping.
@@ -436,7 +453,7 @@
 1.6-dev.66 Tue Mar 29 21:52:01 PDT 2011
 
 - Initial btest setup (Don Appleman and Robin Sommer)
-  
+
 - Porting the istate tests to btest (not finished) (Robin Sommer)
 
 1.6-dev.63 Mon Mar 21 16:31:15 PDT 2011
@@ -462,12 +479,12 @@
   Siwek)
 
 - Add explicit CMake check for compiler. (Jon Siwek)
-  
+
 - Add alternative way to set BROPATH for running bro from build/ dir.
   (Jon Siwek)
 
 - Fixing compiler warnings (Gregor Maier)
-  
+
 - Remvoing leftover local variables that caused compile error on Mac
   OS X. (Gregor Maier)
 
@@ -529,7 +546,7 @@
 
 - Smarter way to increase the parent/child pipe's socket buffer.
   (Craig Leres).
-    
+
 - Fixing bug with defining bro_int_t and bro_uint_t to be 64 bits wide
   on some platforms. (Robin Sommer)
 

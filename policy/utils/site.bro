@@ -105,8 +105,11 @@ function find_all_emails(ip: addr): set[string]
 		tmp_subnet = mask_addr(ip, one_to_32[i]);
 		for ( email in local_admins[tmp_subnet] )
 			{
-			if ( email != "" )
-				add output_values[email];
+			for ( email in local_admins[tmp_ip] )
+				{
+				if ( email != "" )
+					add output_values[email];
+				}
 			}
 		}
 	return output_values;

@@ -1,0 +1,13 @@
+'hello' is NOT considered binary
+'\xff\xff\xff\0' IS considered binary
+'\0\0\xff\0' IS considered binary
+'\0\0\0\0' is NOT considered binary
+two, one, three
+one
+hell\o w\orl\d
+\\hello world\\
+hello world
+hello worl
+hello
+
+

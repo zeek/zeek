@@ -4,15 +4,17 @@ module GLOBAL;
 
 export {
 	## Takes a conn_id record and returns a string representation with the 
-	## the general data flow appearing to be toward the right.
+	## the general data flow appearing to be from the connection originator
+	## on the left to the responder on the right.
 	global id_string: function(id: conn_id): string;
 	
 	## Takes a conn_id record and returns a string representation with the 
-	## the general data flow appearing to be toward the left.
+	## the general data flow appearing to be from the connection responder
+	## on the right to the originator on the left.
 	global reverse_id_string: function(id: conn_id): string;
 	
-	## Calls either the :bro:id:`id_string` or :bro:id:`reverse_id_string`
-	## function depending on the second argument.
+	## Calls :bro:id:`id_string` or :bro:id:`reverse_id_string` if the second
+	## argument is T or F, respectively.
 	global directed_id_string: function(id: conn_id, is_orig: bool): string;
 }
 

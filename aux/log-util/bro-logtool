@@ -1,0 +1,22 @@
+#!/usr/bin/env python
+import argparse
+
+import broutil.logutil as logutil
+
+def parse_args():
+    parser = argparse.ArgumentParser(description='General-purpose tool for manipulating bro log files')
+    parser.add_argument('-v', default=False, action='store_true', dest='verbose', help='Explain what the script is doing')
+    parser.add_argument('logfiles', metavar='LOGFILE', nargs='+', help='Bro logfiles to load')
+    return parser.parse_args()
+
+if __name__ == '__main__':
+    args = parse_args()
+    logutil.LogOptions.verbose = args.verbose
+    manager = logutil.BroLogManager()
+    manager.load(args.logfiles)
+    manager.print_stats()
+    num_rows = 0
+    for e in manager["conn"]:
+        num_rows += 1
+    print "Processed " + str(num_rows) + " rows."
+

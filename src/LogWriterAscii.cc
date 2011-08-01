@@ -7,6 +7,47 @@
 #include "LogWriterAscii.h"
 #include "NetVar.h"
 
+static string _GetBroTypeString(const LogField *field)
+{
+	switch(field->type)
+	{
+	case TYPE_BOOL:
+		return "bool";
+	case TYPE_COUNT:
+		return "count";
+	case TYPE_COUNTER:
+		return "counter";
+	case TYPE_PORT:
+		return "port";
+	case TYPE_INT:
+		return "int";
+	case TYPE_TIME:
+		return "time";
+	case TYPE_INTERVAL:
+		return "interval";
+	case TYPE_DOUBLE:
+		return "double"; 
+	case TYPE_SUBNET:
+		return "subnet";
+	case TYPE_NET:
+		return "net";
+	case TYPE_ADDR:
+		return "addr";
+	case TYPE_ENUM:
+		return "enum";
+	case TYPE_STRING:
+		return "string";
+	case TYPE_FILE:
+		return "file";
+	case TYPE_TABLE:
+		return "table";
+	case TYPE_VECTOR:
+		return "vector";
+	default:
+		return "???";
+	}
+}
+
 LogWriter* LogWriterAscii::Instantiate(LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue)	
 { 
 	return new LogWriterAscii(parent, in_queue, out_queue); 
@@ -83,7 +124,7 @@ bool LogWriterAscii::DoInit(string path, int num_fields,
 		for ( int i = 0; i < num_fields; i++ )
 			{
 			if ( i > 0 &&
-			     fwrite(separator, separator_len, 1, file) != 1 )
+			     fwrite(" ", strlen(" "), 1, file) != 1 )
 				goto write_error;
 
 			const LogField* field = fields[i];
@@ -91,7 +132,23 @@ bool LogWriterAscii::DoInit(string path, int num_fields,
 			if ( fputs(field->name.c_str(), file) == EOF )
 				goto write_error;
 			}
+		
+		if ( fputc('\n', file) == EOF )
+			goto write_error;
+		
+		string wString = string(header_prefix, header_prefix_len) + string("path:'") + parent.Path() + string("'\n");
+		wString += string(header_prefix, header_prefix_len) + "separator:'" + string(separator, separator_len) + "'\n";
+		if(fwrite(wString.c_str(), wString.length(), 1, file) != 1)
+			goto write_error;
 
+		wString = string(header_prefix, header_prefix_len);
+		for ( int i = 0; i < num_fields; ++i )
+			{
+			const LogField* field = fields[i];
+			wString += ((i > 0) ? string(" ") : string("")) + field->name + string("=") + _GetBroTypeString(field);
+			}
+		if(fwrite(wString.c_str(), wString.length(), 1, file) != 1)
+			goto write_error;
 		if ( fputc('\n', file) == EOF )
 			goto write_error;
 		}

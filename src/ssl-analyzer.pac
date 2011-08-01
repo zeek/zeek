@@ -72,16 +72,6 @@ function version_ok(vers : uint16) : bool
 	}
 	%}
 
-
-function convert_ciphers_uint16(ciph : uint16[]) : int[]
-	%{
-	vector<int>* newciph = new vector<int>();
-
-	std::copy(ciph->begin(), ciph->end(), std::back_inserter(*newciph));
-
-	return newciph;
-	%}
-
 refine connection SSL_Conn += {
 
 	%member{
@@ -141,14 +131,14 @@ refine connection SSL_Conn += {
 		if ( ! version_ok(version) )
 			bro_analyzer()->ProtocolViolation(fmt("unsupported client SSL version 0x%04x", version));
 
-		vector<int>* cipher_suites = new vector<int>();
-		if ( cipher_suites16  )
-			std::copy(cipher_suites16->begin(), cipher_suites16->end(), std::back_inserter(*cipher_suites));
-		else
-			std::transform(cipher_suites24->begin(), cipher_suites24->end(), std::back_inserter(*cipher_suites), to_int());
-
 		if ( ssl_client_hello )
 			{
+			vector<int>* cipher_suites = new vector<int>();
+			if ( cipher_suites16  )
+				std::copy(cipher_suites16->begin(), cipher_suites16->end(), std::back_inserter(*cipher_suites));
+			else
+				std::transform(cipher_suites24->begin(), cipher_suites24->end(), std::back_inserter(*cipher_suites), to_int());
+
 			TableVal* cipher_set = new TableVal(internal_type("count_set")->AsTableType());
 			for ( unsigned int i = 0; i < cipher_suites->size(); ++i )
 				{
@@ -156,15 +146,15 @@ refine connection SSL_Conn += {
 				cipher_set->Assign(ciph, 0);
 				Unref(ciph);
 				}
-
+			
 			BifEvent::generate_ssl_client_hello(bro_analyzer(), bro_analyzer()->Conn(),
 							version, ts,
 							to_string_val(session_id),
 							cipher_set);
-							
+			
 			delete cipher_suites;
 			}
-
+		
 		return true;
 		%}
 
@@ -180,27 +170,29 @@ refine connection SSL_Conn += {
 				orig_label(${rec.is_orig}).c_str(),
 				state_label(old_state_).c_str()));
 
-		vector<int>* ciphers = new vector<int>();
-		
-		if ( cipher_suites16 )
-			std::copy(cipher_suites16->begin(), cipher_suites16->end(), std::back_inserter(*ciphers));
-		else
-			std::transform(cipher_suites24->begin(), cipher_suites24->end(), std::back_inserter(*ciphers), to_int());
-
 		if ( ! version_ok(version) )
 			bro_analyzer()->ProtocolViolation(fmt("unsupported server SSL version 0x%04x", version));
+		else
+			bro_analyzer()->ProtocolConfirmation();
 
 		if ( ssl_server_hello )
 			{
+			vector<int>* ciphers = new vector<int>();
+
+			if ( cipher_suites16 )
+				std::copy(cipher_suites16->begin(), cipher_suites16->end(), std::back_inserter(*ciphers));
+			else
+				std::transform(cipher_suites24->begin(), cipher_suites24->end(), std::back_inserter(*ciphers), to_int());
+			
 			BifEvent::generate_ssl_server_hello(bro_analyzer(),
 							bro_analyzer()->Conn(),
 							version, ts,
 							to_string_val(session_id),
 							ciphers->size()==0 ? 0 : ciphers->at(0), comp_method);
+			
+			delete ciphers;
 			}
-
-		delete ciphers;
-		bro_analyzer()->ProtocolConfirmation();
+		
 		return true;
 		%}
 
@@ -223,10 +215,10 @@ refine connection SSL_Conn += {
 		if ( certificates->size() == 0 )
 			return true;
 
-		STACK_OF(X509)* untrusted_certs = 0;
-
 		if ( x509_certificate )
 			{
+			STACK_OF(X509)* untrusted_certs = 0;
+			
 			for ( unsigned int i = 0; i < certificates->size(); ++i )
 				{
 				const bytestring& cert = (*certificates)[i];
@@ -317,7 +309,6 @@ refine connection SSL_Conn += {
 
 		bool ret = proc_certificate(rec, cert_list);
 		delete cert_list;
-
 		return ret;
 		%}
 
@@ -368,8 +359,10 @@ refine connection SSL_Conn += {
 
 		else if ( state_ == STATE_CONN_ESTABLISHED &&
 		          old_state_ == STATE_COMM_ENCRYPTED )
+			{
 			BifEvent::generate_ssl_established(bro_analyzer(),
 							bro_analyzer()->Conn());
+			}
 
 		return true;
 		%}

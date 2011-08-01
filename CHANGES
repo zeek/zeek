@@ -1,4 +1,8 @@
 
+1.6-dev-1018 | 2011-07-31 21:30:31 -0700
+
+  * Updating CHANGES. (Robin Sommer)
+
 1.6-dev-1016 | 2011-07-30 18:34:28 -0700
 
   * Install example config files dynamically. They'll only get
@@ -6,7 +10,7 @@
     version on disk. (Jon Siwek)
 
   * Fixed memory leak in SSL analyzer. (Seth Hall)
-    
+
   * Beginning rework of metrics interface. (Seth Hall)
 
   * New/updated unit tests for scripts. (Jon Siwek)

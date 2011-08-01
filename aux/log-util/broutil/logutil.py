@@ -113,7 +113,7 @@ class BroLogManager(object):
         if(os.path.isdir(path)):
             os.path.walk(path, lambda arg, dirname, fnames: arg.extend( [ os.path.join(os.path.abspath(dirname), f) for f in fnames ] ), self._logfiles)
         else:
-            self._logfiles.append([path])
+            self._logfiles.append(path)
         self._logfiles = list(set(self._logfiles))  # Remove duplicates
         self._logfiles = [f for f in self._logfiles if BroLogManager.supports(f) ]  # Only keep supported file types
         self._total_count = len(self._logfiles)

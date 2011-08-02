@@ -27,7 +27,7 @@ git clone $repo $name
 
 cd $name
 
-for dir in Traces Tests Baseline; do
+for dir in Traces tests Baseline; do
     mkdir $dir
     touch $dir/.gitignore
 done

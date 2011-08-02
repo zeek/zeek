@@ -2,31 +2,41 @@
 
 const absolute_path_pat = /(\/|[A-Za-z]:[\\\/]).*/;
 
-## Given an arbitrary string, this should extract a single directory with
-## filename if it's included.
+## Given an arbitrary string, extracts a single, absolute path (directory
+## with filename).
 ## TODO: Make this work on Window's style directories.
-function extract_directory(input: string): string
+## input: a string that may contain an absolute path
+## Returns: the first absolute path found in input string, else an empty string
+function extract_path(input: string): string
 	{
-	const dir_pattern = /\"([^\"]|\"\")*(\/|\\)([^\"]|\"\")*\"/;
+	const dir_pattern = /(\/|[A-Za-z]:[\\\/])([^\"\ ]|(\\\ ))*/;
 	local parts = split_all(input, dir_pattern);
 
-	# This basically indicates no identifiable directory was found.
 	if ( |parts| < 3 )
 		return "";
 
-	local d = parts[2];
-	return sub_bytes(d, 2, int_to_count(|d| - 2));
+	return parts[2];
 	}
 
-## Process ..'s and eliminate duplicate '/'s
+## Compresses a given path by removing '..'s and the parent directory it
+## references and also removing '/'s.
+## dir: a path string, either relative or absolute
+## Returns: a compressed version of the input path
 function compress_path(dir: string): string
 	{
-	const cdup_sep = /((\/)+([^\/]|\\\/)+)?((\/)+\.\.(\/)+)/;
+	const cdup_sep = /((\/)*([^\/]|\\\/)+)?((\/)+\.\.(\/)*)/;
 
 	local parts = split_n(dir, cdup_sep, T, 1);
 	if ( length(parts) > 1 )
 		{
-		parts[2] = "/";
+		# reaching a point with two parent dir references back-to-back means
+		# we don't know about anything higher in the tree to pop off
+		if ( parts[2] == "../.." )
+			return cat_string_array(parts);
+		if ( sub_bytes(parts[2], 0, 1) == "/" )
+			parts[2] = "/";
+		else
+			parts[2] = "";
 		dir = cat_string_array(parts);
 		return compress_path(dir);
 		}
@@ -38,24 +48,27 @@ function compress_path(dir: string): string
 			parts[i] = "/";
 	dir = cat_string_array(parts);
 
+	# remove trailing slashes from path
+	if ( |dir| > 1 && sub_bytes(dir, |dir|, 1) == "/" )
+		dir = sub_bytes(dir, 0, |dir| - 1);
+
 	return dir;
 	}
 
-## Computes the absolute path with current working directory.
-function absolute_path(cwd: string, file_name: string): string
-	{
-	local abs_file_name: string;
-	if ( file_name == absolute_path_pat ) # start with '/' or 'A:\'
-		abs_file_name = file_name;
-	else
-		abs_file_name = string_cat(cwd, "/", file_name);
-	return compress_path(abs_file_name);
-	}
-
-## Takes a directory and a filename and combines them together into a full
-## filename with path.
-function build_full_path(cwd: string, file_name: string): string
+## Constructs a path to a file given a directory and a file name.
+## dir: the directory in which the file lives
+## file_name: the name of the file
+## Returns: the concatenation of the directory path and file name, or just
+##          the file name if it's already an absolute path
+function build_path(dir: string, file_name: string): string
 	{
 	return (file_name == absolute_path_pat) ?
-		file_name : cat(cwd, "/", file_name);
+		file_name : cat(dir, "/", file_name);
+	}
+
+## Returns a compressed path to a file given a directory and file name.
+## See :bro:id`build_path` and :bro:id:`compress_path`.
+function build_path_compressed(dir: string, file_name: string): string
+	{
+	return compress_path(build_path(dir, file_name));
 	}

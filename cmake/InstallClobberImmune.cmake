@@ -9,6 +9,12 @@ macro(InstallClobberImmune _srcfile _dstfile)
     install(CODE "
         if (EXISTS ${_dstfile})
             message(STATUS \"Skipping: ${_dstfile} (already exists)\")
+            execute_process(COMMAND \"${CMAKE_COMMAND}\" -E compare_files
+                ${_srcfile} ${_dstfile} RESULT_VARIABLE _diff)
+            if (NOT \"\${_diff}\" STREQUAL \"0\")
+                message(STATUS \"Installing: ${_dstfile}.example\")
+                configure_file(${_srcfile} ${_dstfile}.example COPY_ONLY)
+            endif ()
         else ()
             message(STATUS \"Installing: ${_dstfile}\")
             # install() is not scriptable within install(), and

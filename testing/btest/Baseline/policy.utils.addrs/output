@@ -1,0 +1,43 @@
+============ test ipv4 regex
+T
+T
+T
+T
+T
+T
+T
+F
+F
+F
+T
+T
+============ test ipv6 regex
+T
+T
+T
+T
+T
+F
+F
+F
+F
+F
+T
+T
+============ test ipv6-ipv4 hybrid regexes
+T
+T
+F
+F
+F
+============ test find_ip_addresses()
+{
+[0] = 1.1.1.1,
+[2] = 3.3.3.3,
+[1] = 2.2.2.2
+}
+{
+[0] = 1.1.1.1,
+[2] = 3.3.3.3,
+[1] = 0:0:0:0:0:0:0:0
+}

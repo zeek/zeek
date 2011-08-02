@@ -22,8 +22,12 @@ export {
 		30, 100, 1000, 10000, 100000, 1000000, 10000000,
 	} &redef;
 	
-	## This will check if a :bro:type:`TrackCount` variable has crossed the 
-	## thresholds given in the first value.
+	## This will check if a :bro:type:`TrackCount` variable has crossed any
+	## thresholds in a given set.
+	## v: a vector holding counts that represent thresholds
+	## tracker: the record being used to track event counter and currently
+	##          monitored threshold value
+	## Returns: T if a threshold has been crossed, else F
 	global check_threshold: function(v: vector of count, tracker: TrackCount): bool;
 	
 	## This will use the :bro:id:`default_notice_thresholds` variable to check 

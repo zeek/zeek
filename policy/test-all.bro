@@ -37,8 +37,6 @@
 @load frameworks/logging/plugins/ascii.bro
 @load frameworks/metrics/__load__.bro
 @load frameworks/metrics/base/main.bro
-@load frameworks/metrics/conn-example.bro
-@load frameworks/metrics/http-example.bro
 @load frameworks/notice/__load__.bro
 # @load frameworks/notice/action-filters.bro
 # @load frameworks/notice/base.bro

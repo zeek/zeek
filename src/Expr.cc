@@ -319,6 +319,8 @@ void NameExpr::Assign(Frame* f, Val* v, Opcode op)
 		id->SetVal(v, op);
 	else
 		f->SetElement(id->Offset(), v);
+	if ( v->Type()->Tag() == TYPE_FILE )
+		v->AsFile()->SetAttrs(id->Attrs());
 	}
 
 int NameExpr::IsPure() const

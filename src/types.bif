@@ -167,3 +167,10 @@ enum ID %{
 %}
 
 module GLOBAL;
+
+enum tunneltype_t %{
+	NONE,
+	IP6inIP,
+%}
+
+type tunnel_parent_t: record;

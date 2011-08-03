@@ -33,6 +33,7 @@
 #include "DPM.h"
 
 #include "PacketSort.h"
+#include "TunnelHandler.h"
 
 // These represent NetBIOS services on ephemeral ports.  They're numbered
 // so that we can use a single int to hold either an actual TCP/UDP server
@@ -128,6 +129,12 @@ NetSessions::NetSessions()
 		arp_analyzer = new ARP_Analyzer();
 	else
 		arp_analyzer = 0;
+
+
+	if ( 1 )
+		tunnel_handler = new TunnelHandler(this);
+	else
+		tunnel_handler = 0;
 	}
 
 NetSessions::~NetSessions()
@@ -433,14 +440,6 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 	if ( discarder && discarder->NextPacket(ip_hdr, len, caplen) )
 		return;
 
-	int proto = ip_hdr->NextProto();
-	if ( proto != IPPROTO_TCP && proto != IPPROTO_UDP &&
-	     proto != IPPROTO_ICMP )
-		{
-		dump_this_packet = 1;
-		return;
-		}
-
 	FragReassembler* f = 0;
 	uint32 frag_field = ip_hdr->FragField();
 
@@ -472,6 +471,23 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 			caplen = len = ip_hdr->TotalLen();
 			ip_hdr_len = ip_hdr->HdrLen();
 			}
+		}
+
+	TunnelInfo *tunnel_info = tunnel_handler->DecapsulateTunnel(ip_hdr, len, caplen, hdr, pkt);
+	if (tunnel_info) 
+		{
+		ip4 = tunnel_info->child->IP4_Hdr();
+		ip_hdr = tunnel_info->child;
+		len -= tunnel_info->hdr_len;
+		caplen -= tunnel_info->hdr_len;
+		}
+
+	int proto = ip_hdr->NextProto();
+	if ( proto != IPPROTO_TCP && proto != IPPROTO_UDP &&
+	     proto != IPPROTO_ICMP )
+		{
+		dump_this_packet = 1;
+		return;
 		}
 
 	len -= ip_hdr_len;	// remove IP header
@@ -561,7 +577,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		conn = (Connection*) d->Lookup(h);
 		if ( ! conn )
 			{
-			conn = NewConn(h, t, &id, data, proto);
+			conn = NewConn(h, t, &id, data, proto, tunnel_info);
 			if ( conn )
 				d->Insert(h, conn);
 			}
@@ -581,7 +597,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 					conn->Event(connection_reused, 0);
 
 				Remove(conn);
-				conn = NewConn(h, t, &id, data, proto);
+				conn = NewConn(h, t, &id, data, proto, tunnel_info);
 				if ( conn )
 					d->Insert(h, conn);
 				}
@@ -609,6 +625,8 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 				record_packet, record_content,
 			        hdr, pkt, hdr_size);
 
+	if ( tunnel_info )
+		delete tunnel_info;
 	if ( f )
 		{
 		// Above we already recorded the fragment in its entirety.
@@ -1045,13 +1063,17 @@ void NetSessions::GetStats(SessionStats& s) const
 	}
 
 Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
-					const u_char* data, int proto)
+					const u_char* data, int proto, TunnelInfo* tunnel_info)
 	{
 	// FIXME: This should be cleaned up a bit, it's too protocol-specific.
 	// But I'm not yet sure what the right abstraction for these things is.
 	int src_h = ntohs(id->src_port);
 	int dst_h = ntohs(id->dst_port);
 	int flags = 0;
+	RecordVal *tunnel_parent = 0;
+	
+	if ( tunnel_info )
+		tunnel_parent = tunnel_info->GetRecordVal();
 
 	// Hmm... This is not great.
 	TransportProto tproto;
@@ -1098,7 +1120,7 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 		id = &flip_id;
 		}
 
-	Connection* conn = new Connection(this, k, t, id);
+	Connection* conn = new Connection(this, k, t, id, tunnel_parent);
 	conn->SetTransport(tproto);
 	dpm->BuildInitialAnalyzerTree(tproto, conn, data);
 

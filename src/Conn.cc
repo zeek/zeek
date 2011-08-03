@@ -139,7 +139,7 @@ unsigned int Connection::external_connections = 0;
 
 IMPLEMENT_SERIAL(Connection, SER_CONNECTION);
 
-Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id)
+Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id, RecordVal *arg_tunnel_parent)
 	{
 	sessions = s;
 	key = k;
@@ -182,6 +182,8 @@ Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id)
 	conn_timer_mgr = tag ? new TimerMgr::Tag(*tag) : 0;
 
 	uid = 0; // Will set later.
+
+	tunnel_parent = arg_tunnel_parent;
 
 	if ( conn_timer_mgr )
 		{
@@ -370,6 +372,7 @@ RecordVal* Connection::BuildConnVal()
 
 		char tmp[20];
 		conn_val->Assign(9, new StringVal(uitoa_n(uid, tmp, sizeof(tmp), 62)));
+		conn_val->Assign(10, tunnel_parent);
 		}
 
 	if ( root_analyzer )

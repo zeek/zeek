@@ -521,7 +521,7 @@ Connection* ConnCompressor::Instantiate(HashKey* key, PendingConn* pending)
 	// Fake the first packet.
 	const IP_Hdr* faked_pkt = PendingConnToPacket(pending);
 	Connection* new_conn = sessions->NewConn(key, pending->time, &conn_id,
-			faked_pkt->Payload(), IPPROTO_TCP);
+			faked_pkt->Payload(), IPPROTO_TCP, 0);
 
 	if ( ! new_conn )
 		{
@@ -574,7 +574,7 @@ Connection* ConnCompressor::Instantiate(double t, HashKey* key,
 	conn_id.dst_port = tp->th_dport;
 
 	Connection* new_conn =
-		sessions->NewConn(key, t, &conn_id, ip->Payload(), IPPROTO_TCP);
+		sessions->NewConn(key, t, &conn_id, ip->Payload(), IPPROTO_TCP, 0);
 
 	if ( ! new_conn )
 		{

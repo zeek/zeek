@@ -81,6 +81,11 @@ type endpoint_stats: record {
 
 type AnalyzerID: count;
 
+type tunnel_parent_t: record {
+	cid: conn_id;
+	tunnel_type: tunneltype_t;
+};
+
 type connection: record {
 	id: conn_id;
 	orig: endpoint;
@@ -92,6 +97,7 @@ type connection: record {
 	hot: count;		# how hot; 0 = don't know or not hot
 	history: string;
 	uid: string;
+	tunnel_parent: tunnel_parent_t &optional;
 };
 
 type SYN_packet: record {

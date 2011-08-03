@@ -28,6 +28,9 @@ class Discarder;
 class SteppingStoneManager;
 class PacketFilter;
 
+class TunnelHandler;
+class TunnelInfo;
+
 class PacketSortElement;
 
 struct SessionStats {
@@ -144,7 +147,7 @@ protected:
 	friend class TimerMgrExpireTimer;
 
 	Connection* NewConn(HashKey* k, double t, const ConnID* id,
-			const u_char* data, int proto);
+			const u_char* data, int proto, TunnelInfo *tunnel_info);
 
 	// Check whether the tag of the current packet is consistent with
 	// the given connection.  Returns:
@@ -213,6 +216,8 @@ protected:
 	int dump_this_packet;	// if true, current packet should be recorded
 	int num_packets_processed;
 	PacketProfiler* pkt_profiler;
+
+	TunnelHandler *tunnel_handler;
 
 	// We may use independent timer managers for different sets of related
 	// activity.  The managers are identified by an unique tag.

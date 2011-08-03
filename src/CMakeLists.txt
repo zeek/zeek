@@ -388,6 +388,7 @@ set(bro_SRCS
     Timer.cc
     Traverse.cc
     Trigger.cc
+    TunnelHandler.cc
     Type.cc
     UDP.cc
     Val.cc

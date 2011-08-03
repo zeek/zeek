@@ -43,7 +43,7 @@ sourcedir=${thisdir}/../..
 
 echo "$statictext" > $outfile
 
-bifs=`( cd ${sourcedir}/build/src && find . -name \*\.bro )`
+bifs=`( cd ${sourcedir}/build/src && find . -name \*\.bro | sort )`
 
 for file in $bifs
 do
@@ -51,7 +51,7 @@ do
     echo "rest_target(\${CMAKE_BINARY_DIR}/src $f)" >> $outfile
 done
 
-policyfiles=`( cd ${sourcedir}/policy && find . -name \*\.bro )`
+policyfiles=`( cd ${sourcedir}/policy && find . -name \*\.bro | sort )`
 
 for file in $policyfiles
 do

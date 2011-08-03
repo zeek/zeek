@@ -393,21 +393,27 @@ void PktSrc::AddSecondaryTablePrograms()
 
 void PktSrc::Statistics(Stats* s)
 	{
-	struct pcap_stat pstat;
-
 	if ( reading_traces )
 		s->received = s->dropped = s->link = 0;
 
-	else if ( pcap_stats(pd, &pstat) < 0 )
+	else
 		{
-		reporter->Error("problem getting packet filter statistics: %s",
-				ErrorMsg());
-		s->received = s->dropped = s->link = 0;
+		struct pcap_stat pstat;
+		if ( pcap_stats(pd, &pstat) < 0 )
+			{
+			reporter->Error("problem getting packet filter statistics: %s",
+					ErrorMsg());
+			s->received = s->dropped = s->link = 0;
+			}
+
+		else
+			{
+			s->dropped = pstat.ps_drop;
+			s->link = pstat.ps_recv;
+			}
 		}
 
 	s->received = stats.received;
-	s->dropped = pstat.ps_drop;
-	s->link = pstat.ps_recv;
 
 	if ( pseudo_realtime )
 		s->dropped = 0;

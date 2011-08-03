@@ -27,7 +27,7 @@ git clone $repo $name
 
 cd $name
 
-for dir in Traces Tests Baseline; do
+for dir in Traces tests Baseline; do
     mkdir $dir
     touch $dir/.gitignore
 done
@@ -38,7 +38,7 @@ cp $cwd/`dirname $0`/skel/test.skeleton tests
 cp $cwd/`dirname $0`/skel/Makefile .
 cp $cwd/`dirname $0`/skel/.gitignore .
 
-git add *
+git add * .gitignore
 
 git commit -m "Repository initialized."
 git push origin master

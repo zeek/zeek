@@ -277,16 +277,28 @@ Val* PrintStmt::DoExec(val_list* vals, stmt_flow_type& /* flow */) const
 
 	bool ph = print_hook && f->IsPrintHookEnabled();
 
-	desc_style style = f->IsRawOutput() ? ALTERNATIVE_STYLE : STANDARD_STYLE;
+	desc_style style = f->IsRawOutput() ? RAW_STYLE : STANDARD_STYLE;
 
 	if ( ! (suppress_local_output && ph) )
 		{
-		ODesc d(DESC_READABLE, f);
-		d.SetFlush(0);
-		d.SetStyle(style);
+		if ( f->IsRawOutput() )
+			{
+			ODesc d(DESC_READABLE);
+			d.SetFlush(0);
+			d.SetStyle(style);
 
-		PrintVals(&d, vals, offset);
-		f->Write("\n", 1);
+			PrintVals(&d, vals, offset);
+			f->Write(d.Description(), d.Len());
+			}
+		else
+			{
+			ODesc d(DESC_READABLE, f);
+			d.SetFlush(0);
+			d.SetStyle(style);
+
+			PrintVals(&d, vals, offset);
+			f->Write("\n", 1);
+			}
 		}
 
 	if ( ph )
@@ -300,14 +312,14 @@ Val* PrintStmt::DoExec(val_list* vals, stmt_flow_type& /* flow */) const
 			val_list* vl = new val_list(2);
 			::Ref(f);
 			vl->append(new Val(f));
-			vl->append(new StringVal(d.Description()));
+			vl->append(new StringVal(d.Len(), d.Description()));
 
 			// Note, this doesn't do remote printing.
 			mgr.Dispatch(new Event(print_hook, vl), true);
 			}
 
 		if ( remote_serializer )
-			remote_serializer->SendPrintHookEvent(f, d.Description());
+			remote_serializer->SendPrintHookEvent(f, d.Description(), d.Len());
 		}
 
 	return 0;

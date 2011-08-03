@@ -95,7 +95,7 @@ public:
 	bool SendPing(PeerID peer, uint32 seq);
 
 	// Broadcast remote print.
-	bool SendPrintHookEvent(BroFile* f, const char* txt);
+	bool SendPrintHookEvent(BroFile* f, const char* txt, size_t len);
 
 	// Send a request to create a writer on a remote side.
 	bool SendLogCreateWriter(PeerID peer, EnumVal* id, EnumVal* writer, string path, int num_fields, const LogField* const * fields);

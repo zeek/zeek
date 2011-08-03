@@ -3567,7 +3567,7 @@ void describe_vals(const val_list* vals, ODesc* d, int offset)
 
 	for ( int i = offset; i < vals->length(); ++i )
 		{
-		if ( i > offset && d->IsReadable() )
+		if ( i > offset && d->IsReadable() && d->Style() != RAW_STYLE )
 			d->Add(", ");
 
 		(*vals)[i]->Describe(d);

@@ -62,7 +62,6 @@ Installation
 To build and install into /usr/local/bro:
 
     > ./configure
-    > cd build
     > make
     > make install
 

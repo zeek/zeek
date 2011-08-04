@@ -1,31 +1,11 @@
-This is release 1.6 of Bro, a system for detecting network intruders in
-real-time using passive network monitoring.
+============================
+Bro Network Security Monitor
+============================
 
-Please see the file INSTALL for installation instructions and
-pointers for getting started. For more documentation, see the
-documentation on Bro's home page:
+Bro is a powerful framework for network analysis and security monitoring.
 
-    http://www.bro-ids.org/docs
+Please see the INSTALL file for installation instructions and pointers
+for getting started. For more documentation, research publications, or
+community contact information see Bro's home page:
 
-The main parts of Bro's documentation are also available in the doc/
-directory of the distribution. (Please note that the documentation
-is still a work in progress; there will be more in future releases.)
-
-Numerous other Bro-related publications, including a paper describing the
-system, can be found at
-
-    http://www.bro-ids.org/publications.html
-
-Send comments, etc., to the Bro mailing list, bro@bro-ids.org.
-However, please note that you must first subscribe to the list in
-order to be able to post to it.
-
-- Vern Paxson & Robin Sommer, on behalf of the Bro development team
-
-Lawrence Berkeley National Laboratory
-University of California, Berkeley  USA
-
-ICSI Center for Internet Research (ICIR)
-International Computer Science Institute
-Berkeley, CA  USA
-vern@icir.org / robin@icir.org
+    http://www.bro-ids.org

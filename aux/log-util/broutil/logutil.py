@@ -3,6 +3,7 @@ import bz2
 import csv
 import gzip
 import hashlib
+import itertools
 import os
 import os.path
 import re
@@ -13,22 +14,6 @@ import tempfile
 class LogOptions(object):
     verbose = False
 
-class BroLogEntry(object):
-    def __init__(self, typespec, vals):
-        self._typespec = typespec
-        val_index = 0
-        self._fields = []
-        for field, typename in typespec.types():
-           self._fields.append(field)
-           setattr(self, field, typespec.get_val(vals[val_index], typename))
-           val_index += 1
-
-    def __str__(self):
-        ret = "( "
-        for f in self._fields:
-            ret += "(" + f + ", " + str(getattr(self, f)) + ") "
-        return (ret + ")")
-
 class BroLogGenerator(object):
     def __init__(self, log_list):
         self._logs = log_list
@@ -37,30 +22,45 @@ class BroLogGenerator(object):
         if not self._logs:
             return
         
+        rlist = []
         for log in self._logs:
             log_type = log.type()
+            log_fields = log_type._names
             log_fd = log_type.open(log.path())
+            translator = log_type._translator
+            # Very ugly, but also pretty fast.
+            class BroLogEntry(object):
+                def __init__(self, vals):
+                    self._vals = vals
+
+                def __getattr__(self, name):
+                    self.__dict__[name] = translator[name](self._vals[name]) 
+                    return self.__dict__[name]
+            
+            def field_transform(x):
+                return BroLogEntry(dict(zip(log_fields, x)))
+
             if not log_fd:
                 continue
-            for entry in log_fd:
-                yield BroLogEntry(log_type, entry)
+            rlist.append(itertools.imap(field_transform, log_fd))
+        return itertools.chain.from_iterable(rlist)
 
 class BroLogFile(object):
     def __init__(self, path):
         self._path = path
-        self._typespec = BroLogManager.get_typespec(path)()
-        self._valid = self._typespec.load(path)
+        self._field_info = BroLogManager.get_field_info(path)()
+        self._valid = self._field_info.load(path)
         self._fd = None
 
     def type(self):
-        return self._typespec
+        return self._field_info
 
     def type_id(self):
-        return self._typespec.id()
+        return self._field_info.id()
 
     def open(self):
         if(self._valid):
-            self._fd = self._typespec.open(path)
+            self._fd = self._field_info.open(path)
             return self._fd
         return None
 
@@ -71,7 +71,7 @@ class BroLogFile(object):
         return self._path
 
     def bro_path(self):
-        return self._typespec.get_bro_path()
+        return self._field_info.get_bro_path()
 
 class BroLogManager(object):
     logtypes = dict()
@@ -83,7 +83,7 @@ class BroLogManager(object):
         return BroLogManager.get_ext(fname) in BroLogManager.logtypes
 
     @staticmethod
-    def get_typespec(path):
+    def get_field_info(path):
         base, fname = os.path.split(path)
         return BroLogManager.logtypes[ BroLogManager.get_ext(fname) ]
 
@@ -120,9 +120,9 @@ class BroLogManager(object):
         self._logobj = [ BroLogFile(f) for f in self._logfiles ]
         self._logobj = [ f for f in self._logobj if f.valid() ]
         self._success_count = len(self._logobj)
-        # self._types = [ obj._typespec for obj in self._logobj ]
-        # self._types = set(self._types)
-        # self._type_count = len(self._types)
+        # self._fields = [ obj._field_info for obj in self._logobj ]
+        # self._fields = set(self._fields)
+        # self._type_count = len(self._fields)
         self._logs = dict()
         for obj in self._logobj:
             if obj.bro_path() not in self._logs:
@@ -157,9 +157,29 @@ class BroLogManager(object):
 
 class BaseLogSpec(object):
     def __init__(self):
-        self._types = []
+        self._fields = []
+        self._names = []
         self._bro_log_path = ""
         self._valid = False
+        self._translator = dict()
+
+    def _get_translator(self, field_type):
+        if(field_type == 'double' or field_type == 'time' or field_type == 'interval'):
+            def get_val(val):
+                try:
+                    return float(val)
+                except:
+                    return None
+        elif(field_type == 'int' or field_type == 'count' or field_type == 'counter'):
+            def get_val(val):
+                try:
+                    return int(val)
+                except:
+                    return None
+        else:
+            def get_val(val):
+                return val
+        return get_val
 
     def get_bro_path(self):
         return self._bro_log_path
@@ -167,17 +187,17 @@ class BaseLogSpec(object):
     def id(self):
         m = hashlib.md5()
         m.update(str(self._bro_log_path))
-        m.update(str(self._types))
+        m.update(str(self._fields))
         return m.hexdigest()
 
     def valid(self):
         return self._valid
 
     def __str__(self):
-        return (self.id() + " : " + self._bro_log_path + " -- " + str(self._types))
+        return (self.id() + " : " + self._bro_log_path + " -- " + str(self._fields))
 
     def __repr__(self):
-        return (self.id() + " : " + self._bro_log_path + " -- " + str(self._types))
+        return (self.id() + " : " + self._bro_log_path + " -- " + str(self._fields))
 
     def __eq__(self, other):
         if issubclass(other.__class__, BaseLogSpec):
@@ -195,6 +215,7 @@ class DsLogSpec(BaseLogSpec):
     RE_PATHSPEC = re.compile(r'<ExtentType name="(.*?)" version="1.0" namespace="bro-ids.org">')  # e.g. <ExtentType name="mime" version="1.0" namespace="bro-ids.org">
     TIME_SCALE = 100000.0
     DS_EXTRACT_DIR = tempfile.mkdtemp()
+    EXTRACTED_FILES = dict()
 
     @staticmethod
     def cleanup():
@@ -202,36 +223,47 @@ class DsLogSpec(BaseLogSpec):
         shutil.rmtree(DsLogSpec.DS_EXTRACT_DIR)
 
     def __init__(self):
-        self._types = []
+        self._fields = []
+        self._names = []
         self._bro_log_path = ""
         self._opened = None
         self._tpath = None
         self._valid = False
+        self._translator = dict()
 
-    def get_val(self, val, type_info):
-        if(type_info == 'double'): 
-            return float(val)
-        if(type_info == 'time' or type_info == 'interval'):
-            return float(val) / DsLogSpec.TIME_SCALE
-        if(type_info == 'int' or type_info == 'counter' or type_info == 'port' or type_info == 'count'):
-            return int(val)
-        return val
-
-    def id(self):
-        m = hashlib.md5()
-        m.update(str(self._bro_log_path))
-        m.update(str(self._types))
-        return m.hexdigest()
+    def _get_translator(self, field_type):
+        if(field_type == 'double'):
+            def get_val(val):
+                try:
+                    return float(val)
+                except:
+                    return None
+        elif(field_type == 'time' or field_type == 'interval'):
+            def get_val(val):
+                try:
+                    return float(val) / DsLogSpec.TIME_SCALE
+                except:
+                    return None
+        elif(field_type == 'int' or field_type == 'count' or field_type == 'counter'):
+            def get_val(val):
+                try:
+                    return int(val)
+                except:
+                    return None
+        else:
+            def get_val(val):
+                return val
+        return get_val
 
     def open(self, path):
-        if not (self._opened == path and self._tpath):
+        if path not in DsLogSpec.EXTRACTED_FILES:
             if(LogOptions.verbose):
                 print "Extracting " + path
-            self._opened = path
-            tfd, self._tpath = tempfile.mkstemp()
+            tfd, tpath = tempfile.mkstemp()
+            DsLogSpec.EXTRACTED_FILES[path] = tpath
             os.close(tfd)
-            os.system('ds2txt --csv --skip-extent-fieldnames --separator="\t" ' + path + ' > ' + self._tpath)
-        return csv.reader( open(self._tpath, "rb"), delimiter='\t' )
+            os.system('ds2txt --csv --skip-extent-fieldnames --separator="\t" ' + path + ' > ' + tpath)
+        return csv.reader( open(DsLogSpec.EXTRACTED_FILES[path], "rb"), delimiter='\t' )
 
     def close(self, fd):
         fd.close()
@@ -249,7 +281,6 @@ class DsLogSpec(BaseLogSpec):
             self._valid = False
             return False
         if(self.parse(xml_str)):
-            self._fd = self.open(path)
             self._valid = True
             return True
         self._valid = False
@@ -259,19 +290,22 @@ class DsLogSpec(BaseLogSpec):
         for line in parse_string.splitlines():
             m = DsLogSpec.RE_TYPESPEC.match(line)
             if m:
-                self._types.append( (m.group(1), m.group(2)) )
+                self._fields.append( (m.group(1), m.group(2)) )
+                self._names.append( m.group(1) )
+                self._translator[m.group(1)] = self._get_translator(m.group(2))
+            
             m = DsLogSpec.RE_PATHSPEC.match(line)
             if m:
                 self._bro_log_path = m.group(1)
         if(len(self._bro_log_path) == 0):
             # print "no bro path assignment (e.g. the 'conn' bit of something like 'conn.log' or 'conn.ds') found.  Skipping file..."
             return False
-        if(len(self._types) == 0):
+        if(len(self._fields) == 0):
             return False
         return True
     
     def types(self):
-        return self._types
+        return self._fields
 
 class AsciiLogSpec(BaseLogSpec):
     RE_TYPESPEC = re.compile(r"\s*#(.*?)\n?")  # Pull out everything after a comment character
@@ -280,19 +314,12 @@ class AsciiLogSpec(BaseLogSpec):
     RE_TYPE_ENTRY = re.compile(r"(.*)=(.*)")  # Extract FIELD=BRO_TYPE
 
     def __init__(self):
-        self._types = []
+        self._fields = []
+        self._names = []
         self._bro_log_path = ""
         self._separator = ""
         self._valid = False
-
-    def get_val(self, val, type_info):
-        if(val == '-'):
-            return None
-        if(type_info == 'double' or type_info == 'time' or type_info == 'interval'):
-            return float(val)
-        if(type_info == 'int' or type_info == 'counter' or type_info == 'port' or type_info == 'count'):
-            return int(val)
-        return val
+        self._translator = dict()
 
     def raw_open(self, path):
         if(BroLogManager.get_ext(path) == 'log.gz'):
@@ -302,13 +329,9 @@ class AsciiLogSpec(BaseLogSpec):
         else:
             ascii_file = open(path)
         return ascii_file
-  
-    def open_gen(self, fd):
-        for entry in fd:
-            tentry = entry[0].strip()
-            if(tentry[0] == '#'):
-                continue
-            yield entry
+    
+    def _open_filter(self, line):
+        return line[0][0] != '#'
 
     def open(self, path):
         if(BroLogManager.get_ext(path) == 'log.gz'):
@@ -317,7 +340,10 @@ class AsciiLogSpec(BaseLogSpec):
             ascii_file = bz2.BZ2File(path)
         else:
             ascii_file = open(path, 'rb')
-        return self.open_gen(csv.reader(ascii_file, delimiter=self._separator))
+        self._null_check = re.compile('-' + self._separator)
+        open_filter = self._open_filter
+        return itertools.ifilter(open_filter, csv.reader(ascii_file, delimiter=self._separator))
+        # return self.open_gen(csv.reader(ascii_file, delimiter=self._separator))
 
     def close(self, fd):
         fd.close()
@@ -349,15 +375,19 @@ class AsciiLogSpec(BaseLogSpec):
             return False
         type_array = re.sub("\s*#\s*", '', type_info).split(" ")
         m = [AsciiLogSpec.RE_TYPE_ENTRY.match(entry) for entry in type_array]
-        self._types = [ ( entry.group(1), entry.group(2) ) for entry in m]
-        if(len(self._types) == 0):
+        self._fields = [ ( entry.group(1), entry.group(2) ) for entry in m]
+        self._names = [ entry.group(1) for entry in m ]
+        for entry in m:
+            self._translator[ entry.group(1) ] = self._get_translator( entry.group(2) )
+
+        if(len(self._fields) == 0):
             return False
-        #for e in self._types:
+        #for e in self._fields:
         #    print e
         return True
 
     def types(self):
-        return self._types
+        return self._fields
 
 BroLogManager.register_type('log', AsciiLogSpec)
 BroLogManager.register_type('log.gz', AsciiLogSpec)

@@ -4,6 +4,7 @@ import csv
 import gzip
 import hashlib
 import itertools
+import math
 import os
 import os.path
 import re
@@ -264,21 +265,26 @@ class BroAccumulators(object):
             except:
                 self.max = x
 
-        def variance(self):
-            return (self.sum_of_squares / self.count) - (self.mean() ** 2)
+        def _variance(self):
+            return (self.sum_of_squares / self.count) - (self.mean ** 2)
 
-        def mean(self):
+        def _mean(self):
             return (self.sum / self.count)
 
+        def _std_dev(self):
+            return math.sqrt(self.variance)
+
         def __str__(self):
-            ret_str = "StatsAccumulator -- E(X)=%f, VAR(X)=%f, RANGE:[%f, %f]" % (round(self.mean(), 3), round(self.variance(), 3), round(self.min, 3), round(self.max, 3))
+            ret_str = "StatsAccumulator -- E(X)=%f, STDDEV(X)=%f, RANGE:[%f, %f]" % (round(self.mean, 3), round(self.std_dev, 3), round(self.min, 3), round(self.max, 3))
             return ret_str
 
         def __getattr__(self, name):
             if(name == 'variance'):
-                return self.variance()
+                return self._variance()
             if(name == 'mean'):
-                return self.mean()
+                return self._mean()
+            if(name == 'std_dev'):
+                return self._std_dev()
             raise AttributeError
 
 class BaseLogSpec(object):

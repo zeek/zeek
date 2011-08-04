@@ -17,7 +17,8 @@ if __name__ == '__main__':
     manager.print_stats()
     num_rows = 0
     connections = manager["conn"]  # or '.get("conn")
-    print connections.get_stats('orig_bytes')
+    print 'orig_bytes: ' + str(connections.get_stats('orig_bytes'))
+    print 'resp_bytes: ' + str(connections.get_stats('resp_bytes'))
 
     #for e in manager["conn"].entries():
     #    print (getattr(e, 'id.resp_p'))

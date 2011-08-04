@@ -17,10 +17,48 @@ class LogOptions(object):
 class BroLogGenerator(object):
     def __init__(self, log_list):
         self._logs = log_list
+        self._filter = None
+        self._must_compute = True
+
+    def filter(self, f):
+        self._filter = f
+
+    def get_stats(self, field):
+        if(self._must_compute):
+            self.compute_stats()
+        if(self._must_compute):
+            return None  # Computation failed for some reason
+        return self._accumulator[field]
+
+    def get_fields(self):
+        if(self._logs and len(self._logs) >= 1):
+            return self._logs[0]._names
+
+    def get_types(self):
+        if(self._logs and len(self._logs) >= 1):
+            return self._logs[0]._types
+
+    def compute_stats(self):
+        if not self._logs:
+            return False
+        accumulator = None
+        for log in self._logs:
+            log_type = log.type()
+            log_fields = log_type._names
+            log_fd = log_type.open(log.path())
+            if accumulator:
+                log_type._accumulator = accumulator
+            def accum(line):
+                line = zip(log_fields, line)
+                map(lambda x: log_type._accumulator[ x[0] ].accumulate(x[1]), line)
+            map(accum, log_fd)
+            accumulator = log_type._accumulator
+        self._accumulator = accumulator
+        self._must_compute = False
 
     def entries(self):
         if not self._logs:
-            return
+            return False
         
         rlist = []
         for log in self._logs:
@@ -37,6 +75,15 @@ class BroLogGenerator(object):
                     self.__dict__[name] = translator[name](self._vals[name]) 
                     return self.__dict__[name]
             
+                def __getitem__(self, name):
+                    return translator[name](self._vals[name])
+
+                def type(self):
+                    return log_type
+
+                def types(self):
+                    return log_type._types
+
             def field_transform(x):
                 return BroLogEntry(dict(zip(log_fields, x)))
 
@@ -145,15 +192,94 @@ class BroLogManager(object):
                         # print tmp_id
         del self._logobj
 
+    def get(self, key):
+        if key in self._log_gen:
+            return self._log_gen[key]
+        return None
+
     def __getitem__(self, key):
         if key in self._log_gen:
-            return self._log_gen[key].entries()
+            return self._log_gen[key]
         return None
 
     def print_stats(self):
         print "Found " + str(self._total_count) + " logfiles."
         print "Successfully loaded " + str(self._success_count) + " logfiles."
         print "Identified " + str(self._type_count) + " unique bro paths."
+
+class BroAccumulators(object):
+    class DummyAccumulator(object): 
+        def __init__(self):
+            self.count = 0
+        def accumulate(self, entry):
+            self.count += 1
+        def __str__(self):
+            return "DummyAccumulator -- accumulated %d times" % self.count
+
+    class GroupAccumulator(object):
+        def __init__(self):
+            self.groups = dict()
+            self.count = 0
+
+        def accumulate(self, entry):
+            # Using '-' for NULL is nice for reading but sucks for processing.
+            if entry == '-':
+                return
+            if entry not in self.groups:
+                self.groups[entry] = 0
+            else:
+                self.groups[entry] += 1
+            self.count += 1
+
+        def __str__(self):
+            return "GroupAccumulator -- accumulated %d times and contains %d groups" % (self.count, len(self.groups))
+
+    # TODO: Revise variance formula -- http://www.cs.berkeley.edu/~mhoemmen/cs194/Tutorials/variance.pdf
+    class StatsAccumulator(object):
+        def __init__(self):
+            self.sum = 0.0
+            self.sum_of_squares = 0.0
+            self.count = 0
+
+        def accumulate(self, entry):
+            try:
+                x = float(entry)
+            except:
+                return
+            self.sum += x
+            self.sum_of_squares += x ** 2
+            self.count += 1
+
+            # Hack to avoid the additional 'if' condition
+            try:
+                if x < self.min:
+                    self.min = x
+            except:
+                self.min = x
+
+            # Hack to avoid the additional 'if' condition
+            try:
+                if x > self.max:
+                    self.max = x
+            except:
+                self.max = x
+
+        def variance(self):
+            return (self.sum_of_squares / self.count) - (self.mean() ** 2)
+
+        def mean(self):
+            return (self.sum / self.count)
+
+        def __str__(self):
+            ret_str = "StatsAccumulator -- E(X)=%f, VAR(X)=%f, RANGE:[%f, %f]" % (round(self.mean(), 3), round(self.variance(), 3), round(self.min, 3), round(self.max, 3))
+            return ret_str
+
+        def __getattr__(self, name):
+            if(name == 'variance'):
+                return self.variance()
+            if(name == 'mean'):
+                return self.mean()
+            raise AttributeError
 
 class BaseLogSpec(object):
     def __init__(self):
@@ -162,6 +288,18 @@ class BaseLogSpec(object):
         self._bro_log_path = ""
         self._valid = False
         self._translator = dict()
+
+    def _get_accumulator(self, field_type):
+        # Basic numeric accumulator: mean, variance, min, max
+        if(field_type == 'double' or field_type == 'int' or field_type == 'count' or field_type == 'counter'):
+            return BroAccumulators.StatsAccumulator
+
+        # These types should be classified by group.
+        if(field_type == 'port' or field_type == 'addr' or field_type == 'net' or field_type == 'subnet' or field_type == 'string'):
+            return BroAccumulators.GroupAccumulator
+
+        # Other types aren't supported as of yet.
+        return BroAccumulators.DummyAccumulator
 
     def _get_translator(self, field_type):
         if(field_type == 'double' or field_type == 'time' or field_type == 'interval'):
@@ -225,11 +363,13 @@ class DsLogSpec(BaseLogSpec):
     def __init__(self):
         self._fields = []
         self._names = []
+        self._types = []
         self._bro_log_path = ""
         self._opened = None
         self._tpath = None
         self._valid = False
         self._translator = dict()
+        self._accumulator = dict()
 
     def _get_translator(self, field_type):
         if(field_type == 'double'):
@@ -292,8 +432,9 @@ class DsLogSpec(BaseLogSpec):
             if m:
                 self._fields.append( (m.group(1), m.group(2)) )
                 self._names.append( m.group(1) )
+                self._types.append( m.group(2) )
                 self._translator[m.group(1)] = self._get_translator(m.group(2))
-            
+                self._accumulator[m.group(1)] = self._get_accumulator(m.group(2))()
             m = DsLogSpec.RE_PATHSPEC.match(line)
             if m:
                 self._bro_log_path = m.group(1)
@@ -316,10 +457,12 @@ class AsciiLogSpec(BaseLogSpec):
     def __init__(self):
         self._fields = []
         self._names = []
+        self._types = []
         self._bro_log_path = ""
         self._separator = ""
         self._valid = False
         self._translator = dict()
+        self._accumulator = dict()
 
     def raw_open(self, path):
         if(BroLogManager.get_ext(path) == 'log.gz'):
@@ -377,8 +520,10 @@ class AsciiLogSpec(BaseLogSpec):
         m = [AsciiLogSpec.RE_TYPE_ENTRY.match(entry) for entry in type_array]
         self._fields = [ ( entry.group(1), entry.group(2) ) for entry in m]
         self._names = [ entry.group(1) for entry in m ]
+        self._types = [ entry.group(2) for entry in m ]
         for entry in m:
             self._translator[ entry.group(1) ] = self._get_translator( entry.group(2) )
+            self._accumulator[ entry.group(1) ] = self._get_accumulator( entry.group(2) )()
 
         if(len(self._fields) == 0):
             return False

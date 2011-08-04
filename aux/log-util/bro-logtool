@@ -16,5 +16,8 @@ if __name__ == '__main__':
     manager.load(args.logfiles)
     manager.print_stats()
     num_rows = 0
-    for e in manager["conn"]:
-        print (getattr(e, 'id.resp_p'))
+    connections = manager["conn"]  # or '.get("conn")
+    print connections.get_stats('orig_bytes')
+
+    #for e in manager["conn"].entries():
+    #    print (getattr(e, 'id.resp_p'))

@@ -12,3 +12,7 @@ const NFS3::return_data: bool;
 const NFS3::return_data_max: count;
 const NFS3::return_data_first_only: bool;
 
+const Tunnel::decapsulate_ip: bool;
+const Tunnel::decapsulate_udp: bool;
+const Tunnel::udp_tunnel_ports: any;
+const Tunnel::udp_tunnel_allports: bool;

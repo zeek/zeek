@@ -166,11 +166,18 @@ enum ID %{
 	Unknown,
 %}
 
-module GLOBAL;
 
+module Tunnel;
 enum tunneltype_t %{
 	NONE,
-	IP6inIP,
+	IP6inIP,     
+	IP4inIP,  
+	IP6inUDP,
+	IP4inUDP,
+	IP6inAYIAY,
+	IP4inAYIAY,
 %}
 
-type tunnel_parent_t: record;
+type parent_t: record;
+
+module GLOBAL;

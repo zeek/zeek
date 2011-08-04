@@ -3,6 +3,7 @@
 #ifndef tunnelhandler_h
 #define tunnelhandler_h
 
+#include <netinet/udp.h>
 #include "IP.h"
 #include "Conn.h"
 #include "Sessions.h"
@@ -14,7 +15,7 @@ public:
 	TunnelInfo()
 		{
 		child = 0;
-		tunneltype = BifEnum::NONE;
+		tunneltype = BifEnum::Tunnel::NONE;
 		hdr_len = 0;
 		parent.src_addr = parent.dst_addr = 0;
 		parent.src_port = parent.dst_port = 0;
@@ -30,30 +31,39 @@ public:
 		parent.src_addr = ip_hdr->SrcAddr();
 		parent.dst_addr = ip_hdr->DstAddr();
 		}
-	void SetParentPorts(uint32 src_port, uint32 dst_port)
+	void SetParentPorts(const struct udphdr *uh)
 		{
-		parent.src_port = src_port;
-		parent.dst_port = dst_port;
+		parent.src_port = uh->uh_sport;
+		parent.dst_port = uh->uh_dport;
 		}
 
 	RecordVal* GetRecordVal() const 
 		{
-		RecordVal *rv = new RecordVal(BifType::Record::tunnel_parent_t);
+		RecordVal *rv = new RecordVal(BifType::Record::Tunnel::parent_t);
+		TransportProto tproto;
+		switch(tunneltype) {
+		case BifEnum::Tunnel::IP6inIP:
+		case BifEnum::Tunnel::IP4inIP:
+			tproto = TRANSPORT_UNKNOWN;
+			break;
+		default:
+			tproto = TRANSPORT_UDP;
+		} // end switch
 
 		RecordVal* id_val = new RecordVal(conn_id);
 		id_val->Assign(0, new AddrVal(parent.src_addr));
-		id_val->Assign(1, new PortVal(ntohs(parent.src_port), TRANSPORT_UNKNOWN));
+		id_val->Assign(1, new PortVal(ntohs(parent.src_port), tproto));
 		id_val->Assign(2, new AddrVal(parent.dst_addr));
-		id_val->Assign(3, new PortVal(ntohs(parent.dst_port), TRANSPORT_UNKNOWN));
+		id_val->Assign(3, new PortVal(ntohs(parent.dst_port), tproto));
 		rv->Assign(0, id_val);
-		rv->Assign(1, new EnumVal(tunneltype, BifType::Enum::tunneltype_t));
+		rv->Assign(1, new EnumVal(tunneltype, BifType::Enum::Tunnel::tunneltype_t));
 		return rv;
 		}
 
 	IP_Hdr *child;
 	ConnID parent;
 	int hdr_len;
-	BifEnum::tunneltype_t tunneltype;
+	BifEnum::Tunnel::tunneltype_t tunneltype;
 };
 
 class TunnelHandler {
@@ -61,12 +71,16 @@ public:
 	TunnelHandler(NetSessions *arg_s);
 	~TunnelHandler();
 
+	// Main entry point. Returns a nil if not tunneled.
 	TunnelInfo* DecapsulateTunnel(const IP_Hdr* ip_hdr, int len, int caplen,
-			/* need those for passing them back to NetSessions::Weird() */
+			// need those for passing them back to NetSessions::Weird() 
 			const struct pcap_pkthdr* hdr, const u_char* const pkt);
 
 protected:
 	NetSessions *s;
+	short udp_ports[65536]; // which UDP ports to decapsulate
+	IP_Hdr* LookForIPHdr(const u_char *data, int datalen);
+	TunnelInfo* HandleUDP(const IP_Hdr *ip_hdr, int len, int caplen);
 };
 
 

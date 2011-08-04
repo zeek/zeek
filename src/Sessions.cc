@@ -131,10 +131,11 @@ NetSessions::NetSessions()
 		arp_analyzer = 0;
 
 
-	if ( 1 )
+	if ( BifConst::Tunnel::decapsulate_ip || BifConst::Tunnel::decapsulate_udp )
 		tunnel_handler = new TunnelHandler(this);
 	else
 		tunnel_handler = 0;
+	printf("tunnel_handler: %p\n", tunnel_handler);
 	}
 
 NetSessions::~NetSessions()
@@ -473,13 +474,20 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 			}
 		}
 
-	TunnelInfo *tunnel_info = tunnel_handler->DecapsulateTunnel(ip_hdr, len, caplen, hdr, pkt);
-	if (tunnel_info) 
+	len -= ip_hdr_len;	// remove IP header
+	caplen -= ip_hdr_len;
+
+	TunnelInfo *tunnel_info = 0;
+	if ( tunnel_handler ) 
 		{
-		ip4 = tunnel_info->child->IP4_Hdr();
-		ip_hdr = tunnel_info->child;
-		len -= tunnel_info->hdr_len;
-		caplen -= tunnel_info->hdr_len;
+		tunnel_info = tunnel_handler->DecapsulateTunnel(ip_hdr, len, caplen, hdr, pkt);
+		if (tunnel_info) 
+			{
+			ip4 = tunnel_info->child->IP4_Hdr();
+			ip_hdr = tunnel_info->child;
+			len -= tunnel_info->hdr_len;
+			caplen -= tunnel_info->hdr_len;
+			}
 		}
 
 	int proto = ip_hdr->NextProto();
@@ -489,9 +497,6 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		dump_this_packet = 1;
 		return;
 		}
-
-	len -= ip_hdr_len;	// remove IP header
-	caplen -= ip_hdr_len;
 
 	uint32 min_hdr_len = (proto == IPPROTO_TCP) ?  sizeof(struct tcphdr) :
 		(proto == IPPROTO_UDP ? sizeof(struct udphdr) : ICMP_MINLEN);

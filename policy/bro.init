@@ -81,10 +81,14 @@ type endpoint_stats: record {
 
 type AnalyzerID: count;
 
-type tunnel_parent_t: record {
-	cid: conn_id;
-	tunnel_type: tunneltype_t;
-};
+module Tunnel;
+export {
+	type parent_t: record {
+		cid: conn_id;
+		tunnel_type: tunneltype_t;
+	};
+} # end export
+module GLOBAL;
 
 type connection: record {
 	id: conn_id;
@@ -97,7 +101,7 @@ type connection: record {
 	hot: count;		# how hot; 0 = don't know or not hot
 	history: string;
 	uid: string;
-	tunnel_parent: tunnel_parent_t &optional;
+	tunnel_parent: Tunnel::parent_t &optional;
 };
 
 type SYN_packet: record {
@@ -1488,6 +1492,28 @@ const skip_http_data = F &redef;
 # Whether the analysis engine parses IP packets encapsulated in
 # UDP tunnels. See also: udp_tunnel_port, policy/udp-tunnel.bro.
 const parse_udp_tunnels = F &redef;
+
+module Tunnel;
+export {
+	# Whether to decapsulate IP tunnels (IPinIP, 6in4, 6to4)
+	const decapsulate_ip = F &redef;
+
+	# Whether to decapsulate URDP tunnels (e.g., Teredo, IPv4 in UDP)
+	const decapsulate_udp = F &redef;
+
+	# If decapsulating UDP: the set of ports for which to do so
+	const udp_tunnel_ports: set[port] = { 
+		3544/udp,    # Teredo 
+		5072/udp,    # AYIAY
+	} &redef;
+
+	# If udp_tunnel_allports is T udp_tunnel_ports is ignored and we
+	# check every UDP packet for tunnels. 
+	const udp_tunnel_allports = F &redef;
+} # end export
+module GLOBAL;
+
+
 
 # Load the site utilities.
 @load utils/site

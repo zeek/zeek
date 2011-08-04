@@ -1,5 +1,3 @@
-// $Id: pac_output.cc 3225 2006-06-08 00:00:01Z vern $
-
 #include <string.h>
 #include <errno.h>
 #include <stdarg.h>

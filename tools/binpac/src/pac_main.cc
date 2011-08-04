@@ -1,5 +1,3 @@
-// $Id: pac_main.cc 3320 2006-06-20 21:19:33Z rpang $
-
 #include <unistd.h>
 #include <ctype.h>
 

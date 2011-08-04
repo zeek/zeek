@@ -1,5 +1,3 @@
-/* $Id: pac_dbg.h 3265 2006-06-09 21:16:12Z rpang $ */
-
 #ifndef pac_dbg_h
 #define pac_dbg_h
 

@@ -1,4 +1,3 @@
-// $Id: binpac.h,v 1.1.4.2 2006/06/02 15:13:13 rpang Exp $
 // Do not edit binpac.h, edit binpac.h.in instead!
 
 #ifndef binpac_h

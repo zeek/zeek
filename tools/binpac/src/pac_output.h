@@ -1,5 +1,3 @@
-// $Id: pac_output.h 3225 2006-06-08 00:00:01Z vern $
-
 #ifndef pac_output_h
 #define pac_output_h
 

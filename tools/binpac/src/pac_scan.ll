@@ -1,6 +1,4 @@
 %{
-// $Id: pac_scan.ll 3361 2006-07-06 18:06:49Z rpang $
-
 #include "pac_action.h"
 #include "pac_array.h"
 #include "pac_attr.h"

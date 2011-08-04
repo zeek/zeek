@@ -1,8 +1,6 @@
 // parse.y - parser for flex input
 
 %{
-// $Id: re-parse.y 5857 2008-06-26 23:00:03Z vern $
-
 #include <stdlib.h>
 
 #include "CCL.h"

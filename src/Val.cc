@@ -1,5 +1,3 @@
-// $Id: Val.cc 6945 2009-11-27 19:25:10Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"

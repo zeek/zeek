@@ -1,5 +1,3 @@
-// $Id: ConnCompressor.cc 7008 2010-03-25 02:42:20Z vern $
-
 #include <arpa/inet.h>
 
 #include "ConnCompressor.h"

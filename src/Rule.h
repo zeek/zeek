@@ -1,5 +1,3 @@
-// $Id: Rule.h 6914 2009-09-22 00:35:24Z vern $
-
 #ifndef rule_h
 #define rule_h
 

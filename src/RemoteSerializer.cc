@@ -1,5 +1,3 @@
-// $Id: RemoteSerializer.cc 6951 2009-12-04 22:23:28Z vern $
-//
 // Processes involved in the communication:
 //
 //	 (Local-Parent) <-> (Local-Child) <-> (Remote-Child) <-> (Remote-Parent)

@@ -1,5 +1,3 @@
-// $Id: ZIP.cc,v 1.1.4.2 2006/05/31 21:49:29 sommer Exp $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "ZIP.h"

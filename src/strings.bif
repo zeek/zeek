@@ -1,5 +1,3 @@
-# $Id: strings.bif 6920 2009-10-03 20:47:25Z vern $
-#
 # Definitions of Bro built-in functions related to strings.
 
 

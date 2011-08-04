@@ -1,5 +1,3 @@
-// $Id: PIA.cc,v 1.1.2.14 2006/05/31 23:19:07 sommer Exp $
-
 #include "PIA.h"
 #include "RuleMatcher.h"
 #include "TCP_Reassembler.h"

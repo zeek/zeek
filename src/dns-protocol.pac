@@ -1,5 +1,3 @@
-# $Id:$
-
 enum DNS_answer_type {
 	DNS_QUESTION,
 	DNS_ANSWER,

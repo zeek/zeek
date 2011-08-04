@@ -1,5 +1,3 @@
-// $Id: bif_type.def 5083 2007-11-28 17:42:58Z vern $
-
 // DEFINE_BIF_TYPE(id, bif_type, bro_type, c_type, accessor, constructor)
 
 DEFINE_BIF_TYPE(TYPE_ADDR, 	"addr", "addr", "addr_type", 		"%s->AsAddr()", 	"new AddrVal(%s)")

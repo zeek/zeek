@@ -1,5 +1,3 @@
-// $Id: PacketSort.cc 3228 2006-06-08 02:12:03Z vern $
-
 #include "IP.h"
 #include "PacketSort.h"
 

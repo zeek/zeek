@@ -1,5 +1,3 @@
-// $Id: Anon.cc 7075 2010-09-13 02:39:38Z vern $
-
 #include <stdlib.h>
 #include <unistd.h>
 #include <assert.h>

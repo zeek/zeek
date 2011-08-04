@@ -1,5 +1,3 @@
-// $Id:$
-
 #include "Val.h"
 #include "Analyzer.h"
 #include "EventLauncher.h"

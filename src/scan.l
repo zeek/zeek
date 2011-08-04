@@ -1,4 +1,3 @@
-/* $Id: scan.l 6510 2009-01-08 14:51:04Z vern $ */
 %{
 // See the file "COPYING" in the main distribution directory for copyright.
 

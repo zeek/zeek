@@ -1,5 +1,3 @@
-// $Id: NetVar.h 6887 2009-08-20 05:17:33Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef netvar_h

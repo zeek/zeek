@@ -1,5 +1,3 @@
-// $Id: DNS_Mgr.h 6915 2009-09-22 05:04:17Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef dnsmgr_h

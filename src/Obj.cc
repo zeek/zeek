@@ -1,5 +1,3 @@
-// $Id: Obj.cc 6752 2009-06-14 04:24:52Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"

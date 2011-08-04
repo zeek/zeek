@@ -1,5 +1,3 @@
-// $Id: ContentLine.h,v 1.1.2.9 2006/06/01 01:55:42 sommer Exp $
-//
 // Support-analyzer to split a reassembled stream into lines.
 
 #ifndef CONTENTLINE_H

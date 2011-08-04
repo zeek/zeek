@@ -1,5 +1,3 @@
-// $Id:$
-
 #include "DHCP-binpac.h"
 
 DHCP_Analyzer_binpac::DHCP_Analyzer_binpac(Connection* conn)

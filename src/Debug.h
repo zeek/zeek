@@ -1,5 +1,3 @@
-// $Id: Debug.h 80 2004-07-14 20:15:50Z jason $
-
 // Debugging support for Bro policy files.
 
 #ifndef debug_h

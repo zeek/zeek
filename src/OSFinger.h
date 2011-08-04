@@ -1,5 +1,3 @@
-// $Id: OSFinger.h 5857 2008-06-26 23:00:03Z vern $
-
 // Taken with permission from:
 //
 // p0f - passive OS fingerprinting (GNU LESSER GENERAL PUBLIC LICENSE)

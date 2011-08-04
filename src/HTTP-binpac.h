@@ -1,5 +1,3 @@
-// $Id:$
-
 #ifndef http_binpac_h
 #define http_binpac_h
 

@@ -1,5 +1,3 @@
-// $Id: EventRegistry.cc 6829 2009-07-09 09:12:59Z vern $
-
 #include "EventRegistry.h"
 #include "RE.h"
 #include "RemoteSerializer.h"

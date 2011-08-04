@@ -5,8 +5,6 @@
  */
 
 %{
-// $Id: re-scan.l 6219 2008-10-01 05:39:07Z vern $
-
 #include "CCL.h"
 #include "NFA.h"
 #include "util.h"

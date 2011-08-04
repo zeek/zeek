@@ -1,5 +1,3 @@
-// $Id: SerializationFormat.cc 5873 2008-06-28 19:25:03Z vern $
-
 #include <ctype.h>
 
 #include "net_util.h"

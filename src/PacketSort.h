@@ -1,5 +1,3 @@
-// $Id: PacketSort.h 3228 2006-06-08 02:12:03Z vern $
-
 #ifndef packetsort_h
 #define packetsort_h
 

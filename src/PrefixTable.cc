@@ -1,5 +1,3 @@
-// $Id: PrefixTable.cc 1016 2005-01-31 21:23:50Z vern $
-
 #include "PrefixTable.h"
 #include "Reporter.h"
 

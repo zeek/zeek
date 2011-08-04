@@ -1,4 +1,3 @@
-# $Id:$
 # Code written by Bernhard Ager (2007).
 
 %extern{

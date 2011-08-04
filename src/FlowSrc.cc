@@ -1,5 +1,3 @@
-/// $Id: FlowSrc.cc 4621 2007-07-10 13:37:13Z bager $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 //
 // Written by Bernhard Ager, TU Berlin (2006/2007).

@@ -1,5 +1,3 @@
-# $Id: bro.bif 7075 2010-09-13 02:39:38Z vern $
-#
 # Definitions of Bro built-in functions.
 
 %%{ // C segment

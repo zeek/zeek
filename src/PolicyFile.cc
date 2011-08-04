@@ -1,5 +1,3 @@
-// $Id: PolicyFile.cc 1473 2005-10-06 21:32:45Z vern $
-
 #include "config.h"
 
 #include <sys/types.h>

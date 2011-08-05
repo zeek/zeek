@@ -203,6 +203,8 @@ binpac_target(syslog.pac
     syslog-protocol.pac syslog-analyzer.pac)
 binpac_target(modbus.pac
     modbus-protocol.pac modbus-analyzer.pac)
+binpac_target(dnp3.pac
+    dnp3-protocol.pac dnp3-analyzer.pac)
 #Hui Lin
 
 
@@ -407,6 +409,7 @@ set(bro_SRCS
     PacketDumper.cc
     strsep.c
     MODBUS.cc
+    DNP3.cc
     ${dns_SRCS}
     ${malloc_SRCS}
     ${openssl_SRCS}

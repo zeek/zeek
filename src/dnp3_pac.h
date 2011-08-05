@@ -17,11 +17,11 @@ class ContextDnp3;
 class Dnp3_PDU;
 class Dnp3_Request;
 class Dnp3_Response;
-class TypeOne;
 class Dnp3_Application_Request_Header;
 class Dnp3_Application_Response_Header;
 class Response_Internal_Indication;
 class Request_Objects;
+class Response_Objects;
 class Object_Header;
 class Range_Field_0;
 class Range_Field_1;
@@ -29,11 +29,15 @@ class Range_Field_2;
 class Range_Field_3;
 class Range_Field_4;
 class Range_Field_5;
-class Range_Field_7;
-class Range_Field_8;
-class Range_Field_9;
-class Range_Field_B;
 class Object_With_Header;
+class AnalogInput32woTime;
+class AnalogInput16woTime;
+class AnalogInput32wTime;
+class AnalogInput16wTime;
+class AnalogInputSPwoTime;
+class AnalogInputDPwoTime;
+class AnalogInputSPwTime;
+class AnalogInputDPwTime;
 enum function_codes_value {
 	CONFIRM = 0,
 	READ = 1,
@@ -155,7 +159,7 @@ public:
 	// Member access functions
 	Dnp3_Application_Request_Header * app_header() const { return app_header_; }
 	int data_case_index() const	{ return data_case_index_; }
-	Request_Objects * objects() const
+	vector<Request_Objects *> * objects() const
 		{
 		switch ( data_case_index() )
 			{
@@ -175,7 +179,8 @@ public:
 protected:
 	Dnp3_Application_Request_Header * app_header_;
 	int data_case_index_;
-	Request_Objects * objects_;
+	vector<Request_Objects *> * objects_;
+	Request_Objects * objects__elem_;
 	bytestring unknown_;
 };
 
@@ -199,25 +204,6 @@ protected:
 	Dnp3_Application_Response_Header * app_header_;
 	int data_case_index_;
 	bytestring unknown_;
-};
-
-
-class TypeOne
-{
-public:
-	TypeOne();
-	~TypeOne();
-	int Parse(const_byteptr const t_begin_of_data, const_byteptr const t_end_of_data);
-	
-	// Member access functions
-	uint8 mm1() const { return mm1_; }
-	uint8 mm2() const { return mm2_; }
-	int len() const { return len_; }
-	
-protected:
-	uint8 mm1_;
-	uint8 mm2_;
-	int len_;
 };
 
 
@@ -296,6 +282,128 @@ protected:
 };
 
 
+class Response_Objects
+{
+public:
+	Response_Objects();
+	~Response_Objects();
+	int Parse(const_byteptr const t_begin_of_data, const_byteptr const t_end_of_data, int t_byteorder);
+	
+	// Member access functions
+	Object_Header * object_header() const { return object_header_; }
+	int data_case_index() const	{ return data_case_index_; }
+	vector<AnalogInput32woTime *> * ai32wotime() const
+		{
+		switch ( data_case_index() )
+			{
+			case 8193:
+				break;  // OK
+			default:
+				throw ExceptionInvalidCase("./dnp3-protocol.pac:70:ai32wotime", data_case_index(), "((int) 0x2001)");
+				break;
+			}
+		return ai32wotime_;
+		}
+	AnalogInput16woTime * ai16wotime() const
+		{
+		switch ( data_case_index() )
+			{
+			case 8194:
+				break;  // OK
+			default:
+				throw ExceptionInvalidCase("./dnp3-protocol.pac:71:ai16wotime", data_case_index(), "((int) 0x2002)");
+				break;
+			}
+		return ai16wotime_;
+		}
+	AnalogInput32wTime * ai32wtime() const
+		{
+		switch ( data_case_index() )
+			{
+			case 8195:
+				break;  // OK
+			default:
+				throw ExceptionInvalidCase("./dnp3-protocol.pac:72:ai32wtime", data_case_index(), "((int) 0x2003)");
+				break;
+			}
+		return ai32wtime_;
+		}
+	AnalogInput16wTime * ai16wtime() const
+		{
+		switch ( data_case_index() )
+			{
+			case 8196:
+				break;  // OK
+			default:
+				throw ExceptionInvalidCase("./dnp3-protocol.pac:73:ai16wtime", data_case_index(), "((int) 0x2004)");
+				break;
+			}
+		return ai16wtime_;
+		}
+	AnalogInputSPwoTime * aispwotime() const
+		{
+		switch ( data_case_index() )
+			{
+			case 8197:
+				break;  // OK
+			default:
+				throw ExceptionInvalidCase("./dnp3-protocol.pac:74:aispwotime", data_case_index(), "((int) 0x2005)");
+				break;
+			}
+		return aispwotime_;
+		}
+	AnalogInputDPwoTime * aidpwotime() const
+		{
+		switch ( data_case_index() )
+			{
+			case 8198:
+				break;  // OK
+			default:
+				throw ExceptionInvalidCase("./dnp3-protocol.pac:75:aidpwotime", data_case_index(), "((int) 0x2006)");
+				break;
+			}
+		return aidpwotime_;
+		}
+	AnalogInputSPwTime * aispwtime() const
+		{
+		switch ( data_case_index() )
+			{
+			case 8199:
+				break;  // OK
+			default:
+				throw ExceptionInvalidCase("./dnp3-protocol.pac:76:aispwtime", data_case_index(), "((int) 0x2007)");
+				break;
+			}
+		return aispwtime_;
+		}
+	AnalogInputDPwTime * aidpwtime() const
+		{
+		switch ( data_case_index() )
+			{
+			case 8200:
+				break;  // OK
+			default:
+				throw ExceptionInvalidCase("./dnp3-protocol.pac:77:aidpwtime", data_case_index(), "((int) 0x2008)");
+				break;
+			}
+		return aidpwtime_;
+		}
+	
+protected:
+	Object_Header * object_header_;
+	int data_case_index_;
+	vector<AnalogInput32woTime *> * ai32wotime_;
+	AnalogInput32woTime * ai32wotime__elem_;
+	AnalogInput16woTime * ai16wotime_;
+	AnalogInput32wTime * ai32wtime_;
+	AnalogInput16wTime * ai16wtime_;
+	AnalogInputSPwoTime * aispwotime_;
+	AnalogInputDPwoTime * aidpwotime_;
+	AnalogInputSPwTime * aispwtime_;
+	AnalogInputDPwTime * aidpwtime_;
+};
+
+
 class Object_Header
 {
 public:
@@ -314,7 +422,7 @@ public:
 			case 0:
 				break;  // OK
 			default:
-				throw ExceptionInvalidCase("./dnp3-protocol.pac:63:range_field_0", range_field_case_index(), "((int) 0)");
+				throw ExceptionInvalidCase("./dnp3-protocol.pac:86:range_field_0", range_field_case_index(), "((int) 0)");
 				break;
 			}
 		return range_field_0_;
@@ -326,7 +434,7 @@ public:
 			case 1:
 				break;  // OK
 			default:
-				throw ExceptionInvalidCase("./dnp3-protocol.pac:64:range_field_1", range_field_case_index(), "((int) 1)");
+				throw ExceptionInvalidCase("./dnp3-protocol.pac:87:range_field_1", range_field_case_index(), "((int) 1)");
 				break;
 			}
 		return range_field_1_;
@@ -338,7 +446,7 @@ public:
 			case 2:
 				break;  // OK
 			default:
-				throw ExceptionInvalidCase("./dnp3-protocol.pac:65:range_field_2", range_field_case_index(), "((int) 2)");
+				throw ExceptionInvalidCase("./dnp3-protocol.pac:88:range_field_2", range_field_case_index(), "((int) 2)");
 				break;
 			}
 		return range_field_2_;
@@ -350,7 +458,7 @@ public:
 			case 3:
 				break;  // OK
 			default:
-				throw ExceptionInvalidCase("./dnp3-protocol.pac:66:range_field_3", range_field_case_index(), "((int) 3)");
+				throw ExceptionInvalidCase("./dnp3-protocol.pac:89:range_field_3", range_field_case_index(), "((int) 3)");
 				break;
 			}
 		return range_field_3_;
@@ -362,7 +470,7 @@ public:
 			case 4:
 				break;  // OK
 			default:
-				throw ExceptionInvalidCase("./dnp3-protocol.pac:67:range_field_4", range_field_case_index(), "((int) 4)");
+				throw ExceptionInvalidCase("./dnp3-protocol.pac:90:range_field_4", range_field_case_index(), "((int) 4)");
 				break;
 			}
 		return range_field_4_;
@@ -374,55 +482,55 @@ public:
 			case 5:
 				break;  // OK
 			default:
-				throw ExceptionInvalidCase("./dnp3-protocol.pac:68:range_field_5", range_field_case_index(), "((int) 5)");
+				throw ExceptionInvalidCase("./dnp3-protocol.pac:91:range_field_5", range_field_case_index(), "((int) 5)");
 				break;
 			}
 		return range_field_5_;
 		}
-	Range_Field_7 * range_field_7() const
+	uint8 range_field_7() const
 		{
 		switch ( range_field_case_index() )
 			{
 			case 7:
 				break;  // OK
 			default:
-				throw ExceptionInvalidCase("./dnp3-protocol.pac:70:range_field_7", range_field_case_index(), "((int) 7)");
+				throw ExceptionInvalidCase("./dnp3-protocol.pac:93:range_field_7", range_field_case_index(), "((int) 7)");
 				break;
 			}
 		return range_field_7_;
 		}
-	Range_Field_8 * range_field_8() const
+	uint16 range_field_8() const
 		{
 		switch ( range_field_case_index() )
 			{
 			case 8:
 				break;  // OK
 			default:
-				throw ExceptionInvalidCase("./dnp3-protocol.pac:71:range_field_8", range_field_case_index(), "((int) 8)");
+				throw ExceptionInvalidCase("./dnp3-protocol.pac:94:range_field_8", range_field_case_index(), "((int) 8)");
 				break;
 			}
 		return range_field_8_;
 		}
-	Range_Field_9 * range_field_9() const
+	uint32 range_field_9() const
 		{
 		switch ( range_field_case_index() )
 			{
 			case 9:
 				break;  // OK
 			default:
-				throw ExceptionInvalidCase("./dnp3-protocol.pac:72:range_field_9", range_field_case_index(), "((int) 9)");
+				throw ExceptionInvalidCase("./dnp3-protocol.pac:95:range_field_9", range_field_case_index(), "((int) 9)");
 				break;
 			}
 		return range_field_9_;
 		}
-	Range_Field_B * range_field_b() const
+	uint8 range_field_b() const
 		{
 		switch ( range_field_case_index() )
 			{
 			case 11:
 				break;  // OK
 			default:
-				throw ExceptionInvalidCase("./dnp3-protocol.pac:73:range_field_b", range_field_case_index(), "((int) 0xb)");
+				throw ExceptionInvalidCase("./dnp3-protocol.pac:96:range_field_b", range_field_case_index(), "((int) 0xb)");
 				break;
 			}
 		return range_field_b_;
@@ -431,6 +539,7 @@ public:
 		{
 		return unknown_;
 		}
+	uint32 number_of_item() const { return number_of_item_; }
 	
 protected:
 	uint16 object_type_field_;
@@ -442,11 +551,12 @@ protected:
 	Range_Field_3 * range_field_3_;
 	Range_Field_4 * range_field_4_;
 	Range_Field_5 * range_field_5_;
-	Range_Field_7 * range_field_7_;
-	Range_Field_8 * range_field_8_;
-	Range_Field_9 * range_field_9_;
-	Range_Field_B * range_field_b_;
+	uint8 range_field_7_;
+	uint16 range_field_8_;
+	uint32 range_field_9_;
+	uint8 range_field_b_;
 	bytestring unknown_;
+	uint32 number_of_item_;
 };
 
 
@@ -552,66 +662,6 @@ protected:
 };
 
 
-class Range_Field_7
-{
-public:
-	Range_Field_7();
-	~Range_Field_7();
-	int Parse(const_byteptr const t_begin_of_data, const_byteptr const t_end_of_data);
-	
-	// Member access functions
-	uint8 object_count() const { return object_count_; }
-	
-protected:
-	uint8 object_count_;
-};
-
-
-class Range_Field_8
-{
-public:
-	Range_Field_8();
-	~Range_Field_8();
-	int Parse(const_byteptr const t_begin_of_data, const_byteptr const t_end_of_data, int t_byteorder);
-	
-	// Member access functions
-	uint16 object_count() const { return object_count_; }
-	
-protected:
-	uint16 object_count_;
-};
-
-
-class Range_Field_9
-{
-public:
-	Range_Field_9();
-	~Range_Field_9();
-	int Parse(const_byteptr const t_begin_of_data, const_byteptr const t_end_of_data, int t_byteorder);
-	
-	// Member access functions
-	uint32 object_count() const { return object_count_; }
-	
-protected:
-	uint32 object_count_;
-};
-
-
-class Range_Field_B
-{
-public:
-	Range_Field_B();
-	~Range_Field_B();
-	int Parse(const_byteptr const t_begin_of_data, const_byteptr const t_end_of_data);
-	
-	// Member access functions
-	uint8 object_count() const { return object_count_; }
-	
-protected:
-	uint8 object_count_;
-};
-
-
 class Object_With_Header
 {
 public:
@@ -624,6 +674,156 @@ public:
 	
 protected:
 	Object_Header * object_header_;
+};
+
+
+class AnalogInput32woTime
+{
+public:
+	AnalogInput32woTime();
+	~AnalogInput32woTime();
+	int Parse(const_byteptr const t_begin_of_data, const_byteptr const t_end_of_data, int t_byteorder);
+	
+	// Member access functions
+	uint8 flag() const { return flag_; }
+	uint32 value() const { return value_; }
+	
+protected:
+	uint8 flag_;
+	uint32 value_;
+};
+
+
+class AnalogInput16woTime
+{
+public:
+	AnalogInput16woTime();
+	~AnalogInput16woTime();
+	int Parse(const_byteptr const t_begin_of_data, const_byteptr const t_end_of_data, int t_byteorder);
+	
+	// Member access functions
+	uint8 flag() const { return flag_; }
+	uint16 value() const { return value_; }
+	
+protected:
+	uint8 flag_;
+	uint16 value_;
+};
+
+
+class AnalogInput32wTime
+{
+public:
+	AnalogInput32wTime();
+	~AnalogInput32wTime();
+	int Parse(const_byteptr const t_begin_of_data, const_byteptr const t_end_of_data, int t_byteorder);
+	
+	// Member access functions
+	uint8 flag() const { return flag_; }
+	uint32 value() const { return value_; }
+	vector<uint8> * time() const { return time_; }
+	
+protected:
+	uint8 flag_;
+	uint32 value_;
+	vector<uint8> * time_;
+	uint8 time__elem_;
+};
+
+
+class AnalogInput16wTime
+{
+public:
+	AnalogInput16wTime();
+	~AnalogInput16wTime();
+	int Parse(const_byteptr const t_begin_of_data, const_byteptr const t_end_of_data, int t_byteorder);
+	
+	// Member access functions
+	uint8 flag() const { return flag_; }
+	uint16 value() const { return value_; }
+	vector<uint8> * time() const { return time_; }
+	
+protected:
+	uint8 flag_;
+	uint16 value_;
+	vector<uint8> * time_;
+	uint8 time__elem_;
+};
+
+
+class AnalogInputSPwoTime
+{
+public:
+	AnalogInputSPwoTime();
+	~AnalogInputSPwoTime();
+	int Parse(const_byteptr const t_begin_of_data, const_byteptr const t_end_of_data, int t_byteorder);
+	
+	// Member access functions
+	uint8 flag() const { return flag_; }
+	uint32 value() const { return value_; }
+	
+protected:
+	uint8 flag_;
+	uint32 value_;
+};
+
+
+class AnalogInputDPwoTime
+{
+public:
+	AnalogInputDPwoTime();
+	~AnalogInputDPwoTime();
+	int Parse(const_byteptr const t_begin_of_data, const_byteptr const t_end_of_data, int t_byteorder);
+	
+	// Member access functions
+	uint8 flag() const { return flag_; }
+	vector<uint32> * value() const { return value_; }
+	
+protected:
+	uint8 flag_;
+	vector<uint32> * value_;
+	uint32 value__elem_;
+};
+
+
+class AnalogInputSPwTime
+{
+public:
+	AnalogInputSPwTime();
+	~AnalogInputSPwTime();
+	int Parse(const_byteptr const t_begin_of_data, const_byteptr const t_end_of_data, int t_byteorder);
+	
+	// Member access functions
+	uint8 flag() const { return flag_; }
+	uint32 value() const { return value_; }
+	vector<uint8> * time() const { return time_; }
+	
+protected:
+	uint8 flag_;
+	uint32 value_;
+	vector<uint8> * time_;
+	uint8 time__elem_;
+};
+
+
+class AnalogInputDPwTime
+{
+public:
+	AnalogInputDPwTime();
+	~AnalogInputDPwTime();
+	int Parse(const_byteptr const t_begin_of_data, const_byteptr const t_end_of_data, int t_byteorder);
+	
+	// Member access functions
+	uint8 flag() const { return flag_; }
+	vector<uint32> * value() const { return value_; }
+	vector<uint8> * time() const { return time_; }
+	
+protected:
+	uint8 flag_;
+	vector<uint32> * value_;
+	uint32 value__elem_;
+	vector<uint8> * time_;
+	uint8 time__elem_;
 };
 
 

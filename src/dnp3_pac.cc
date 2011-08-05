@@ -90,6 +90,7 @@ Dnp3_Request::Dnp3_Request()
 	app_header_ = 0;
 	data_case_index_ = -1;
 	objects_ = 0;
+	objects__elem_ = 0;
 	}
 
 Dnp3_Request::~Dnp3_Request()
@@ -106,8 +107,18 @@ Dnp3_Request::~Dnp3_Request()
 		case 1:
 			// Clean up "objects"
 			{
+			delete objects__elem_;
+			objects__elem_ = 0;
+			if ( objects() )
+				{
+				for ( int i = 0; i < (int) objects()->size(); ++i )
+					{
+					Request_Objects * objects__elem_ = (*objects_)[i];
+					delete objects__elem_;
+					objects__elem_ = 0;
+					}
+				}
 			delete objects_;
-			objects_ = 0;
 			}
 			break;
 		default:
@@ -149,9 +160,32 @@ int Dnp3_Request::Parse(const_byteptr const t_begin_of_data, const_byteptr const
 		case 1:
 			// Parse "objects"
 			{
-			objects_ = new Request_Objects();
+			int t_objects__arraylength;
+			objects__elem_ = 0;
+			int t_objects__elem__it;
+			t_objects__elem__it = 0;
 			int t_objects__size;
-			t_objects__size = objects_->Parse((t_begin_of_data + 2), t_end_of_data, t_byteorder);
+			objects_ = new vector<Request_Objects *>;
+			const_byteptr t_objects__elem__dataptr = (t_begin_of_data + 2);
+			for (; /* forever */; ++t_objects__elem__it)
+				{
+				// Check &until(objects__elem__dataptr >= end_of_data)
+				if ( t_objects__elem__dataptr >= t_end_of_data )
+					{
+					objects__elem_ = 0;
+					goto end_of_objects;
+					}
+				objects__elem_ = new Request_Objects();
+				int t_objects__elem__size;
+				t_objects__elem__size = objects__elem_->Parse(t_objects__elem__dataptr, t_end_of_data, t_byteorder);
+				// Evaluate 'let' and 'withinput' fields
+				objects_->push_back(objects__elem_);
+				t_objects__elem__dataptr += t_objects__elem__size;
+				BINPAC_ASSERT(t_objects__elem__dataptr <= t_end_of_data);
+				objects__elem_ = 0;
+				}
+		end_of_objects: ;
+			t_objects__size = t_objects__elem__dataptr - ((t_begin_of_data + 2));
 			// Evaluate 'let' and 'withinput' fields
 			t_data__size = t_objects__size;
 			}
@@ -249,40 +283,6 @@ int Dnp3_Response::Parse(const_byteptr const t_begin_of_data, const_byteptr cons
 	// Evaluate 'let' and 'withinput' fields
 	BINPAC_ASSERT(t_begin_of_data + (t_Dnp3_Response__size) <= t_end_of_data);
 	return t_Dnp3_Response__size;
-	}
-
-TypeOne::TypeOne()
-	{
-	mm1_ = 0;
-	mm2_ = 0;
-	len_ = 9;
-	}
-
-TypeOne::~TypeOne()
-	{
-	}
-
-int TypeOne::Parse(const_byteptr const t_begin_of_data, const_byteptr const t_end_of_data)
-	{
-	// Checking out-of-bound for "TypeOne"
-	if ( t_begin_of_data + (2) > t_end_of_data )
-		{
-		// Handle out-of-bound condition
-		throw ExceptionOutOfBound("TypeOne",
-			(0) + (2), 
-			(t_end_of_data) - (t_begin_of_data));
-		}
-	// Parse "mm1"
-	mm1_ = *((uint8 const *) (t_begin_of_data));
-	// Evaluate 'let' and 'withinput' fields
-	
-	// Parse "mm2"
-	mm2_ = *((uint8 const *) ((t_begin_of_data + 1)));
-	// Evaluate 'let' and 'withinput' fields
-	
-	// Evaluate 'let' and 'withinput' fields
-	BINPAC_ASSERT(t_begin_of_data + (2) <= t_end_of_data);
-	return 2;
 	}
 
 Dnp3_Application_Request_Header::Dnp3_Application_Request_Header()
@@ -404,8 +404,63 @@ Request_Objects::~Request_Objects()
 	object_header_ = 0;
 	switch ( data_case_index() )
 		{
+		case 8193:
+			// Clean up "ai32wotime"
+			{
+			}
+			break;
+		case 8194:
+			// Clean up "ai16wotime"
+			{
+			}
+			break;
+		case 8195:
+			// Clean up "ai32wtime"
+			{
+			}
+			break;
+		case 8196:
+			// Clean up "ai16wtime"
+			{
+			}
+			break;
+		case 8197:
+			// Clean up "aispwotime"
+			{
+			}
+			break;
+		case 8198:
+			// Clean up "aidpwotime"
+			{
+			}
+			break;
+		case 8199:
+			// Clean up "aispwtime"
+			{
+			}
+			break;
+		case 8200:
+			// Clean up "aidpwtime"
+			{
+			}
+			break;
 		case 15361:
 			// Clean up "class0data"
+			{
+			}
+			break;
+		case 15362:
+			// Clean up "class1data"
+			{
+			}
+			break;
+		case 15363:
+			// Clean up "class2data"
+			{
+			}
+			break;
+		case 15364:
+			// Clean up "class3data"
 			{
 			}
 			break;
@@ -433,8 +488,85 @@ int Request_Objects::Parse(const_byteptr const t_begin_of_data, const_byteptr co
 	data_case_index_ =  ( object_header()->object_type_field() ) ;
 	switch ( data_case_index() )
 		{
+		case 8193:
+			// Parse "ai32wotime"
+			{
+			// Evaluate 'let' and 'withinput' fields
+			t_data__size = 0;
+			}
+			break;
+		case 8194:
+			// Parse "ai16wotime"
+			{
+			// Evaluate 'let' and 'withinput' fields
+			t_data__size = 0;
+			}
+			break;
+		case 8195:
+			// Parse "ai32wtime"
+			{
+			// Evaluate 'let' and 'withinput' fields
+			t_data__size = 0;
+			}
+			break;
+		case 8196:
+			// Parse "ai16wtime"
+			{
+			// Evaluate 'let' and 'withinput' fields
+			t_data__size = 0;
+			}
+			break;
+		case 8197:
+			// Parse "aispwotime"
+			{
+			// Evaluate 'let' and 'withinput' fields
+			t_data__size = 0;
+			}
+			break;
+		case 8198:
+			// Parse "aidpwotime"
+			{
+			// Evaluate 'let' and 'withinput' fields
+			t_data__size = 0;
+			}
+			break;
+		case 8199:
+			// Parse "aispwtime"
+			{
+			// Evaluate 'let' and 'withinput' fields
+			t_data__size = 0;
+			}
+			break;
+		case 8200:
+			// Parse "aidpwtime"
+			{
+			// Evaluate 'let' and 'withinput' fields
+			t_data__size = 0;
+			}
+			break;
 		case 15361:
 			// Parse "class0data"
+			{
+			// Evaluate 'let' and 'withinput' fields
+			t_data__size = 0;
+			}
+			break;
+		case 15362:
+			// Parse "class1data"
+			{
+			// Evaluate 'let' and 'withinput' fields
+			t_data__size = 0;
+			}
+			break;
+		case 15363:
+			// Parse "class2data"
+			{
+			// Evaluate 'let' and 'withinput' fields
+			t_data__size = 0;
+			}
+			break;
+		case 15364:
+			// Parse "class3data"
 			{
 			// Evaluate 'let' and 'withinput' fields
 			t_data__size = 0;
@@ -449,7 +581,7 @@ int Request_Objects::Parse(const_byteptr const t_begin_of_data, const_byteptr co
 			t_unknown__size = t_unknown_string_length;
 			// check for negative sizes
 			if ( t_unknown_string_length < 0 )
-			throw ExceptionInvalidStringLength("./dnp3-protocol.pac:55", t_unknown_string_length);
+			throw ExceptionInvalidStringLength("./dnp3-protocol.pac:63", t_unknown_string_length);
 			unknown_.init(t_dataptr_after_object_header, t_unknown_string_length);
 			// Evaluate 'let' and 'withinput' fields
 			t_data__size = t_unknown__size;
@@ -467,6 +599,231 @@ int Request_Objects::Parse(const_byteptr const t_begin_of_data, const_byteptr co
 	return t_Request_Objects__size;
 	}
 
+Response_Objects::Response_Objects()
+	{
+	object_header_ = 0;
+	data_case_index_ = -1;
+	ai32wotime_ = 0;
+	ai32wotime__elem_ = 0;
+	ai16wotime_ = 0;
+	ai32wtime_ = 0;
+	ai16wtime_ = 0;
+	aispwotime_ = 0;
+	aidpwotime_ = 0;
+	aispwtime_ = 0;
+	aidpwtime_ = 0;
+	}
+
+Response_Objects::~Response_Objects()
+	{
+	delete object_header_;
+	object_header_ = 0;
+	switch ( data_case_index() )
+		{
+		case 8193:
+			// Clean up "ai32wotime"
+			{
+			delete ai32wotime__elem_;
+			ai32wotime__elem_ = 0;
+			if ( ai32wotime() )
+				{
+				for ( int i = 0; i < (int) ai32wotime()->size(); ++i )
+					{
+					AnalogInput32woTime * ai32wotime__elem_ = (*ai32wotime_)[i];
+					delete ai32wotime__elem_;
+					ai32wotime__elem_ = 0;
+					}
+				}
+			delete ai32wotime_;
+			}
+			break;
+		case 8194:
+			// Clean up "ai16wotime"
+			{
+			delete ai16wotime_;
+			ai16wotime_ = 0;
+			}
+			break;
+		case 8195:
+			// Clean up "ai32wtime"
+			{
+			delete ai32wtime_;
+			ai32wtime_ = 0;
+			}
+			break;
+		case 8196:
+			// Clean up "ai16wtime"
+			{
+			delete ai16wtime_;
+			ai16wtime_ = 0;
+			}
+			break;
+		case 8197:
+			// Clean up "aispwotime"
+			{
+			delete aispwotime_;
+			aispwotime_ = 0;
+			}
+			break;
+		case 8198:
+			// Clean up "aidpwotime"
+			{
+			delete aidpwotime_;
+			aidpwotime_ = 0;
+			}
+			break;
+		case 8199:
+			// Clean up "aispwtime"
+			{
+			delete aispwtime_;
+			aispwtime_ = 0;
+			}
+			break;
+		case 8200:
+			// Clean up "aidpwtime"
+			{
+			delete aidpwtime_;
+			aidpwtime_ = 0;
+			}
+			break;
+		}
+	}
+
+int Response_Objects::Parse(const_byteptr const t_begin_of_data, const_byteptr const t_end_of_data, int t_byteorder)
+	{
+	// Parse "object_header"
+	object_header_ = new Object_Header();
+	int t_object_header__size;
+	t_object_header__size = object_header_->Parse(t_begin_of_data, t_end_of_data, t_byteorder);
+	// Evaluate 'let' and 'withinput' fields
+	
+	const_byteptr const t_dataptr_after_object_header = t_begin_of_data + (t_object_header__size);
+	BINPAC_ASSERT(t_dataptr_after_object_header <= t_end_of_data);
+	// Parse "data"
+	int t_data__size;
+	data_case_index_ =  ( object_header()->object_type_field() ) ;
+	switch ( data_case_index() )
+		{
+		case 8193:
+			// Parse "ai32wotime"
+			{
+			int t_ai32wotime__arraylength;
+			t_ai32wotime__arraylength = object_header()->number_of_item();
+			if ( t_begin_of_data + t_ai32wotime__arraylength > t_end_of_data + 1 )
+				{
+				t_ai32wotime__arraylength = t_end_of_data - t_begin_of_data + 1;
+				}
+			if ( t_ai32wotime__arraylength < 0 )
+				{
+				t_ai32wotime__arraylength = 0;
+				}
+			ai32wotime__elem_ = 0;
+			int t_ai32wotime__elem__it;
+			t_ai32wotime__elem__it = 0;
+			int t_ai32wotime__size;
+			ai32wotime_ = new vector<AnalogInput32woTime *>;
+			ai32wotime_->reserve(t_ai32wotime__arraylength);
+			const_byteptr t_ai32wotime__elem__dataptr = t_dataptr_after_object_header;
+			for (; t_ai32wotime__elem__it < t_ai32wotime__arraylength; ++t_ai32wotime__elem__it)
+				{
+				// Check &until(ai32wotime__elem__dataptr >= end_of_data)
+				if ( t_ai32wotime__elem__dataptr >= t_end_of_data )
+					{
+					ai32wotime__elem_ = 0;
+					goto end_of_ai32wotime;
+					}
+				ai32wotime__elem_ = new AnalogInput32woTime();
+				ai32wotime__elem_->Parse(t_ai32wotime__elem__dataptr, t_end_of_data, t_byteorder);
+				// Evaluate 'let' and 'withinput' fields
+				ai32wotime_->push_back(ai32wotime__elem_);
+				t_ai32wotime__elem__dataptr += 5;
+				BINPAC_ASSERT(t_ai32wotime__elem__dataptr <= t_end_of_data);
+				ai32wotime__elem_ = 0;
+				}
+		end_of_ai32wotime: ;
+			t_ai32wotime__size = t_ai32wotime__elem__dataptr - (t_dataptr_after_object_header);
+			// Evaluate 'let' and 'withinput' fields
+			t_data__size = t_ai32wotime__size;
+			}
+			break;
+		case 8194:
+			// Parse "ai16wotime"
+			{
+			ai16wotime_ = new AnalogInput16woTime();
+			ai16wotime_->Parse(t_dataptr_after_object_header, t_end_of_data, t_byteorder);
+			// Evaluate 'let' and 'withinput' fields
+			t_data__size = 3;
+			}
+			break;
+		case 8195:
+			// Parse "ai32wtime"
+			{
+			ai32wtime_ = new AnalogInput32wTime();
+			ai32wtime_->Parse(t_dataptr_after_object_header, t_end_of_data, t_byteorder);
+			// Evaluate 'let' and 'withinput' fields
+			t_data__size = 11;
+			}
+			break;
+		case 8196:
+			// Parse "ai16wtime"
+			{
+			ai16wtime_ = new AnalogInput16wTime();
+			ai16wtime_->Parse(t_dataptr_after_object_header, t_end_of_data, t_byteorder);
+			// Evaluate 'let' and 'withinput' fields
+			t_data__size = 9;
+			}
+			break;
+		case 8197:
+			// Parse "aispwotime"
+			{
+			aispwotime_ = new AnalogInputSPwoTime();
+			aispwotime_->Parse(t_dataptr_after_object_header, t_end_of_data, t_byteorder);
+			// Evaluate 'let' and 'withinput' fields
+			t_data__size = 5;
+			}
+			break;
+		case 8198:
+			// Parse "aidpwotime"
+			{
+			aidpwotime_ = new AnalogInputDPwoTime();
+			aidpwotime_->Parse(t_dataptr_after_object_header, t_end_of_data, t_byteorder);
+			// Evaluate 'let' and 'withinput' fields
+			t_data__size = 9;
+			}
+			break;
+		case 8199:
+			// Parse "aispwtime"
+			{
+			aispwtime_ = new AnalogInputSPwTime();
+			aispwtime_->Parse(t_dataptr_after_object_header, t_end_of_data, t_byteorder);
+			// Evaluate 'let' and 'withinput' fields
+			t_data__size = 11;
+			}
+			break;
+		case 8200:
+			// Parse "aidpwtime"
+			{
+			aidpwtime_ = new AnalogInputDPwTime();
+			aidpwtime_->Parse(t_dataptr_after_object_header, t_end_of_data, t_byteorder);
+			// Evaluate 'let' and 'withinput' fields
+			t_data__size = 15;
+			}
+			break;
+		default:
+			throw ExceptionInvalidCaseIndex("Response_Objects", data_case_index());
+			break;
+		}
+	// Evaluate 'let' and 'withinput' fields
+	
+	int t_Response_Objects__size;
+	const_byteptr const t_dataptr_after_data = t_dataptr_after_object_header + (t_data__size);
+	BINPAC_ASSERT(t_dataptr_after_data <= t_end_of_data);
+	t_Response_Objects__size = t_dataptr_after_data - t_begin_of_data;
+	// Evaluate 'let' and 'withinput' fields
+	BINPAC_ASSERT(t_begin_of_data + (t_Response_Objects__size) <= t_end_of_data);
+	return t_Response_Objects__size;
+	}
+
 Object_Header::Object_Header()
 	{
 	object_type_field_ = 0;
@@ -482,6 +839,7 @@ Object_Header::Object_Header()
 	range_field_8_ = 0;
 	range_field_9_ = 0;
 	range_field_b_ = 0;
+	number_of_item_ = 0;
 	}
 
 Object_Header::~Object_Header()
@@ -538,29 +896,21 @@ Object_Header::~Object_Header()
 		case 7:
 			// Clean up "range_field_7"
 			{
-			delete range_field_7_;
-			range_field_7_ = 0;
 			}
 			break;
 		case 8:
 			// Clean up "range_field_8"
 			{
-			delete range_field_8_;
-			range_field_8_ = 0;
 			}
 			break;
 		case 9:
 			// Clean up "range_field_9"
 			{
-			delete range_field_9_;
-			range_field_9_ = 0;
 			}
 			break;
 		case 11:
 			// Clean up "range_field_b"
 			{
-			delete range_field_b_;
-			range_field_b_ = 0;
 			}
 			break;
 		default:
@@ -659,8 +1009,15 @@ int Object_Header::Parse(const_byteptr const t_begin_of_data, const_byteptr cons
 		case 7:
 			// Parse "range_field_7"
 			{
-			range_field_7_ = new Range_Field_7();
-			range_field_7_->Parse((t_begin_of_data + 3), t_end_of_data);
+			// Checking out-of-bound for "Object_Header:range_field_7"
+			if ( (t_begin_of_data + 3) + (1) > t_end_of_data )
+				{
+				// Handle out-of-bound condition
+				throw ExceptionOutOfBound("Object_Header:range_field_7",
+					(3) + (1), 
+					(t_end_of_data) - (t_begin_of_data));
+				}
+			range_field_7_ = *((uint8 const *) ((t_begin_of_data + 3)));
 			// Evaluate 'let' and 'withinput' fields
 			t_range_field__size = 1;
 			}
@@ -668,8 +1025,15 @@ int Object_Header::Parse(const_byteptr const t_begin_of_data, const_byteptr cons
 		case 8:
 			// Parse "range_field_8"
 			{
-			range_field_8_ = new Range_Field_8();
-			range_field_8_->Parse((t_begin_of_data + 3), t_end_of_data, t_byteorder);
+			// Checking out-of-bound for "Object_Header:range_field_8"
+			if ( (t_begin_of_data + 3) + (2) > t_end_of_data )
+				{
+				// Handle out-of-bound condition
+				throw ExceptionOutOfBound("Object_Header:range_field_8",
+					(3) + (2), 
+					(t_end_of_data) - (t_begin_of_data));
+				}
+			range_field_8_ = FixByteOrder(t_byteorder, *((uint16 const *) ((t_begin_of_data + 3))));
 			// Evaluate 'let' and 'withinput' fields
 			t_range_field__size = 2;
 			}
@@ -677,8 +1041,15 @@ int Object_Header::Parse(const_byteptr const t_begin_of_data, const_byteptr cons
 		case 9:
 			// Parse "range_field_9"
 			{
-			range_field_9_ = new Range_Field_9();
-			range_field_9_->Parse((t_begin_of_data + 3), t_end_of_data, t_byteorder);
+			// Checking out-of-bound for "Object_Header:range_field_9"
+			if ( (t_begin_of_data + 3) + (4) > t_end_of_data )
+				{
+				// Handle out-of-bound condition
+				throw ExceptionOutOfBound("Object_Header:range_field_9",
+					(3) + (4), 
+					(t_end_of_data) - (t_begin_of_data));
+				}
+			range_field_9_ = FixByteOrder(t_byteorder, *((uint32 const *) ((t_begin_of_data + 3))));
 			// Evaluate 'let' and 'withinput' fields
 			t_range_field__size = 4;
 			}
@@ -686,8 +1057,15 @@ int Object_Header::Parse(const_byteptr const t_begin_of_data, const_byteptr cons
 		case 11:
 			// Parse "range_field_b"
 			{
-			range_field_b_ = new Range_Field_B();
-			range_field_b_->Parse((t_begin_of_data + 3), t_end_of_data);
+			// Checking out-of-bound for "Object_Header:range_field_b"
+			if ( (t_begin_of_data + 3) + (1) > t_end_of_data )
+				{
+				// Handle out-of-bound condition
+				throw ExceptionOutOfBound("Object_Header:range_field_b",
+					(3) + (1), 
+					(t_end_of_data) - (t_begin_of_data));
+				}
+			range_field_b_ = *((uint8 const *) ((t_begin_of_data + 3)));
 			// Evaluate 'let' and 'withinput' fields
 			t_range_field__size = 1;
 			}
@@ -701,7 +1079,7 @@ int Object_Header::Parse(const_byteptr const t_begin_of_data, const_byteptr cons
 			t_unknown__size = t_unknown_string_length;
 			// check for negative sizes
 			if ( t_unknown_string_length < 0 )
-			throw ExceptionInvalidStringLength("./dnp3-protocol.pac:74", t_unknown_string_length);
+			throw ExceptionInvalidStringLength("./dnp3-protocol.pac:97", t_unknown_string_length);
 			unknown_.init((t_begin_of_data + 3), t_unknown_string_length);
 			// Evaluate 'let' and 'withinput' fields
 			t_range_field__size = t_unknown__size;
@@ -715,6 +1093,23 @@ int Object_Header::Parse(const_byteptr const t_begin_of_data, const_byteptr cons
 	BINPAC_ASSERT(t_dataptr_after_range_field <= t_end_of_data);
 	t_Object_Header__size = t_dataptr_after_range_field - t_begin_of_data;
 	// Evaluate 'let' and 'withinput' fields
+	uint8 t_t_var_001;
+	switch (  ( qualifier_field() & 0x0f )  )
+		{
+		case 7:
+			t_t_var_001 = range_field_7();
+			break;
+		case 8:
+			t_t_var_001 = range_field_8();
+			break;
+		case 9:
+			t_t_var_001 = range_field_9();
+			break;
+		default:
+			t_t_var_001 = 0;
+			break;
+		}
+	number_of_item_ = t_t_var_001;
 	BINPAC_ASSERT(t_begin_of_data + (t_Object_Header__size) <= t_end_of_data);
 	return t_Object_Header__size;
 	}
@@ -917,118 +1312,6 @@ int Range_Field_5::Parse(const_byteptr const t_begin_of_data, const_byteptr cons
 	return 8;
 	}
 
-Range_Field_7::Range_Field_7()
-	{
-	object_count_ = 0;
-	}
-
-Range_Field_7::~Range_Field_7()
-	{
-	}
-
-int Range_Field_7::Parse(const_byteptr const t_begin_of_data, const_byteptr const t_end_of_data)
-	{
-	// Checking out-of-bound for "Range_Field_7"
-	if ( t_begin_of_data + (1) > t_end_of_data )
-		{
-		// Handle out-of-bound condition
-		throw ExceptionOutOfBound("Range_Field_7",
-			(0) + (1), 
-			(t_end_of_data) - (t_begin_of_data));
-		}
-	// Parse "object_count"
-	object_count_ = *((uint8 const *) (t_begin_of_data));
-	// Evaluate 'let' and 'withinput' fields
-	
-	// Evaluate 'let' and 'withinput' fields
-	BINPAC_ASSERT(t_begin_of_data + (1) <= t_end_of_data);
-	return 1;
-	}
-
-Range_Field_8::Range_Field_8()
-	{
-	object_count_ = 0;
-	}
-
-Range_Field_8::~Range_Field_8()
-	{
-	}
-
-int Range_Field_8::Parse(const_byteptr const t_begin_of_data, const_byteptr const t_end_of_data, int t_byteorder)
-	{
-	// Checking out-of-bound for "Range_Field_8"
-	if ( t_begin_of_data + (2) > t_end_of_data )
-		{
-		// Handle out-of-bound condition
-		throw ExceptionOutOfBound("Range_Field_8",
-			(0) + (2), 
-			(t_end_of_data) - (t_begin_of_data));
-		}
-	// Parse "object_count"
-	object_count_ = FixByteOrder(t_byteorder, *((uint16 const *) (t_begin_of_data)));
-	// Evaluate 'let' and 'withinput' fields
-	
-	// Evaluate 'let' and 'withinput' fields
-	BINPAC_ASSERT(t_begin_of_data + (2) <= t_end_of_data);
-	return 2;
-	}
-
-Range_Field_9::Range_Field_9()
-	{
-	object_count_ = 0;
-	}
-
-Range_Field_9::~Range_Field_9()
-	{
-	}
-
-int Range_Field_9::Parse(const_byteptr const t_begin_of_data, const_byteptr const t_end_of_data, int t_byteorder)
-	{
-	// Checking out-of-bound for "Range_Field_9"
-	if ( t_begin_of_data + (4) > t_end_of_data )
-		{
-		// Handle out-of-bound condition
-		throw ExceptionOutOfBound("Range_Field_9",
-			(0) + (4), 
-			(t_end_of_data) - (t_begin_of_data));
-		}
-	// Parse "object_count"
-	object_count_ = FixByteOrder(t_byteorder, *((uint32 const *) (t_begin_of_data)));
-	// Evaluate 'let' and 'withinput' fields
-	
-	// Evaluate 'let' and 'withinput' fields
-	BINPAC_ASSERT(t_begin_of_data + (4) <= t_end_of_data);
-	return 4;
-	}
-
-Range_Field_B::Range_Field_B()
-	{
-	object_count_ = 0;
-	}
-
-Range_Field_B::~Range_Field_B()
-	{
-	}
-
-int Range_Field_B::Parse(const_byteptr const t_begin_of_data, const_byteptr const t_end_of_data)
-	{
-	// Checking out-of-bound for "Range_Field_B"
-	if ( t_begin_of_data + (1) > t_end_of_data )
-		{
-		// Handle out-of-bound condition
-		throw ExceptionOutOfBound("Range_Field_B",
-			(0) + (1), 
-			(t_end_of_data) - (t_begin_of_data));
-		}
-	// Parse "object_count"
-	object_count_ = *((uint8 const *) (t_begin_of_data));
-	// Evaluate 'let' and 'withinput' fields
-	
-	// Evaluate 'let' and 'withinput' fields
-	BINPAC_ASSERT(t_begin_of_data + (1) <= t_end_of_data);
-	return 1;
-	}
-
 Object_With_Header::Object_With_Header()
 	{
 	object_header_ = 0;
@@ -1055,6 +1338,476 @@ int Object_With_Header::Parse(const_byteptr const t_begin_of_data, const_byteptr
 	// Evaluate 'let' and 'withinput' fields
 	BINPAC_ASSERT(t_begin_of_data + (t_Object_With_Header__size) <= t_end_of_data);
 	return t_Object_With_Header__size;
+	}
+
+AnalogInput32woTime::AnalogInput32woTime()
+	{
+	flag_ = 0;
+	value_ = 0;
+	}
+
+AnalogInput32woTime::~AnalogInput32woTime()
+	{
+	}
+
+int AnalogInput32woTime::Parse(const_byteptr const t_begin_of_data, const_byteptr const t_end_of_data, int t_byteorder)
+	{
+	// Checking out-of-bound for "AnalogInput32woTime"
+	if ( t_begin_of_data + (5) > t_end_of_data )
+		{
+		// Handle out-of-bound condition
+		throw ExceptionOutOfBound("AnalogInput32woTime",
+			(0) + (5), 
+			(t_end_of_data) - (t_begin_of_data));
+		}
+	// Parse "flag"
+	flag_ = *((uint8 const *) (t_begin_of_data));
+	// Evaluate 'let' and 'withinput' fields
+	
+	// Parse "value"
+	value_ = FixByteOrder(t_byteorder, *((uint32 const *) ((t_begin_of_data + 1))));
+	// Evaluate 'let' and 'withinput' fields
+	
+	// Evaluate 'let' and 'withinput' fields
+	BINPAC_ASSERT(t_begin_of_data + (5) <= t_end_of_data);
+	return 5;
+	}
+
+AnalogInput16woTime::AnalogInput16woTime()
+	{
+	flag_ = 0;
+	value_ = 0;
+	}
+
+AnalogInput16woTime::~AnalogInput16woTime()
+	{
+	}
+
+int AnalogInput16woTime::Parse(const_byteptr const t_begin_of_data, const_byteptr const t_end_of_data, int t_byteorder)
+	{
+	// Checking out-of-bound for "AnalogInput16woTime"
+	if ( t_begin_of_data + (3) > t_end_of_data )
+		{
+		// Handle out-of-bound condition
+		throw ExceptionOutOfBound("AnalogInput16woTime",
+			(0) + (3), 
+			(t_end_of_data) - (t_begin_of_data));
+		}
+	// Parse "flag"
+	flag_ = *((uint8 const *) (t_begin_of_data));
+	// Evaluate 'let' and 'withinput' fields
+	
+	// Parse "value"
+	value_ = FixByteOrder(t_byteorder, *((uint16 const *) ((t_begin_of_data + 1))));
+	// Evaluate 'let' and 'withinput' fields
+	
+	// Evaluate 'let' and 'withinput' fields
+	BINPAC_ASSERT(t_begin_of_data + (3) <= t_end_of_data);
+	return 3;
+	}
+
+AnalogInput32wTime::AnalogInput32wTime()
+	{
+	flag_ = 0;
+	value_ = 0;
+	time_ = 0;
+	time__elem_ = 0;
+	}
+
+AnalogInput32wTime::~AnalogInput32wTime()
+	{
+	delete time_;
+	}
+
+int AnalogInput32wTime::Parse(const_byteptr const t_begin_of_data, const_byteptr const t_end_of_data, int t_byteorder)
+	{
+	// Checking out-of-bound for "AnalogInput32wTime"
+	if ( t_begin_of_data + (11) > t_end_of_data )
+		{
+		// Handle out-of-bound condition
+		throw ExceptionOutOfBound("AnalogInput32wTime",
+			(0) + (11), 
+			(t_end_of_data) - (t_begin_of_data));
+		}
+	// Parse "flag"
+	flag_ = *((uint8 const *) (t_begin_of_data));
+	// Evaluate 'let' and 'withinput' fields
+	
+	// Parse "value"
+	value_ = FixByteOrder(t_byteorder, *((uint32 const *) ((t_begin_of_data + 1))));
+	// Evaluate 'let' and 'withinput' fields
+	
+	// Parse "time"
+	int t_time__arraylength;
+	t_time__arraylength = 6;
+	if ( t_begin_of_data + t_time__arraylength > t_end_of_data + 1 )
+		{
+		t_time__arraylength = t_end_of_data - t_begin_of_data + 1;
+		}
+	if ( t_time__arraylength < 0 )
+		{
+		t_time__arraylength = 0;
+		}
+	time__elem_ = 0;
+	int t_time__elem__it;
+	t_time__elem__it = 0;
+	time_ = new vector<uint8>;
+	time_->reserve(t_time__arraylength);
+	const_byteptr t_time__elem__dataptr = (t_begin_of_data + 5);
+	for (; t_time__elem__it < t_time__arraylength; ++t_time__elem__it)
+		{
+		// Check &until(time__elem__dataptr >= end_of_data)
+		if ( t_time__elem__dataptr >= t_end_of_data )
+			{
+			goto end_of_time;
+			}
+		time__elem_ = *((uint8 const *) (t_time__elem__dataptr));
+		// Evaluate 'let' and 'withinput' fields
+		time_->push_back(time__elem_);
+		t_time__elem__dataptr += 1;
+		BINPAC_ASSERT(t_time__elem__dataptr <= t_end_of_data);
+		}
+end_of_time: ;
+	// Evaluate 'let' and 'withinput' fields
+	
+	// Evaluate 'let' and 'withinput' fields
+	BINPAC_ASSERT(t_begin_of_data + (11) <= t_end_of_data);
+	return 11;
+	}
+
+AnalogInput16wTime::AnalogInput16wTime()
+	{
+	flag_ = 0;
+	value_ = 0;
+	time_ = 0;
+	time__elem_ = 0;
+	}
+
+AnalogInput16wTime::~AnalogInput16wTime()
+	{
+	delete time_;
+	}
+
+int AnalogInput16wTime::Parse(const_byteptr const t_begin_of_data, const_byteptr const t_end_of_data, int t_byteorder)
+	{
+	// Checking out-of-bound for "AnalogInput16wTime"
+	if ( t_begin_of_data + (9) > t_end_of_data )
+		{
+		// Handle out-of-bound condition
+		throw ExceptionOutOfBound("AnalogInput16wTime",
+			(0) + (9), 
+			(t_end_of_data) - (t_begin_of_data));
+		}
+	// Parse "flag"
+	flag_ = *((uint8 const *) (t_begin_of_data));
+	// Evaluate 'let' and 'withinput' fields
+	
+	// Parse "value"
+	value_ = FixByteOrder(t_byteorder, *((uint16 const *) ((t_begin_of_data + 1))));
+	// Evaluate 'let' and 'withinput' fields
+	
+	// Parse "time"
+	int t_time__arraylength;
+	t_time__arraylength = 6;
+	if ( t_begin_of_data + t_time__arraylength > t_end_of_data + 1 )
+		{
+		t_time__arraylength = t_end_of_data - t_begin_of_data + 1;
+		}
+	if ( t_time__arraylength < 0 )
+		{
+		t_time__arraylength = 0;
+		}
+	time__elem_ = 0;
+	int t_time__elem__it;
+	t_time__elem__it = 0;
+	time_ = new vector<uint8>;
+	time_->reserve(t_time__arraylength);
+	const_byteptr t_time__elem__dataptr = (t_begin_of_data + 3);
+	for (; t_time__elem__it < t_time__arraylength; ++t_time__elem__it)
+		{
+		// Check &until(time__elem__dataptr >= end_of_data)
+		if ( t_time__elem__dataptr >= t_end_of_data )
+			{
+			goto end_of_time;
+			}
+		time__elem_ = *((uint8 const *) (t_time__elem__dataptr));
+		// Evaluate 'let' and 'withinput' fields
+		time_->push_back(time__elem_);
+		t_time__elem__dataptr += 1;
+		BINPAC_ASSERT(t_time__elem__dataptr <= t_end_of_data);
+		}
+end_of_time: ;
+	// Evaluate 'let' and 'withinput' fields
+	
+	// Evaluate 'let' and 'withinput' fields
+	BINPAC_ASSERT(t_begin_of_data + (9) <= t_end_of_data);
+	return 9;
+	}
+
+AnalogInputSPwoTime::AnalogInputSPwoTime()
+	{
+	flag_ = 0;
+	value_ = 0;
+	}
+
+AnalogInputSPwoTime::~AnalogInputSPwoTime()
+	{
+	}
+
+int AnalogInputSPwoTime::Parse(const_byteptr const t_begin_of_data, const_byteptr const t_end_of_data, int t_byteorder)
+	{
+	// Checking out-of-bound for "AnalogInputSPwoTime"
+	if ( t_begin_of_data + (5) > t_end_of_data )
+		{
+		// Handle out-of-bound condition
+		throw ExceptionOutOfBound("AnalogInputSPwoTime",
+			(0) + (5), 
+			(t_end_of_data) - (t_begin_of_data));
+		}
+	// Parse "flag"
+	flag_ = *((uint8 const *) (t_begin_of_data));
+	// Evaluate 'let' and 'withinput' fields
+	
+	// Parse "value"
+	value_ = FixByteOrder(t_byteorder, *((uint32 const *) ((t_begin_of_data + 1))));
+	// Evaluate 'let' and 'withinput' fields
+	
+	// Evaluate 'let' and 'withinput' fields
+	BINPAC_ASSERT(t_begin_of_data + (5) <= t_end_of_data);
+	return 5;
+	}
+
+AnalogInputDPwoTime::AnalogInputDPwoTime()
+	{
+	flag_ = 0;
+	value_ = 0;
+	value__elem_ = 0;
+	}
+
+AnalogInputDPwoTime::~AnalogInputDPwoTime()
+	{
+	delete value_;
+	}
+
+int AnalogInputDPwoTime::Parse(const_byteptr const t_begin_of_data, const_byteptr const t_end_of_data, int t_byteorder)
+	{
+	// Checking out-of-bound for "AnalogInputDPwoTime"
+	if ( t_begin_of_data + (9) > t_end_of_data )
+		{
+		// Handle out-of-bound condition
+		throw ExceptionOutOfBound("AnalogInputDPwoTime",
+			(0) + (9), 
+			(t_end_of_data) - (t_begin_of_data));
+		}
+	// Parse "flag"
+	flag_ = *((uint8 const *) (t_begin_of_data));
+	// Evaluate 'let' and 'withinput' fields
+	
+	// Parse "value"
+	int t_value__arraylength;
+	t_value__arraylength = 2;
+	if ( t_begin_of_data + t_value__arraylength > t_end_of_data + 1 )
+		{
+		t_value__arraylength = t_end_of_data - t_begin_of_data + 1;
+		}
+	if ( t_value__arraylength < 0 )
+		{
+		t_value__arraylength = 0;
+		}
+	value__elem_ = 0;
+	int t_value__elem__it;
+	t_value__elem__it = 0;
+	value_ = new vector<uint32>;
+	value_->reserve(t_value__arraylength);
+	const_byteptr t_value__elem__dataptr = (t_begin_of_data + 1);
+	for (; t_value__elem__it < t_value__arraylength; ++t_value__elem__it)
+		{
+		// Check &until(value__elem__dataptr >= end_of_data)
+		if ( t_value__elem__dataptr >= t_end_of_data )
+			{
+			goto end_of_value;
+			}
+		value__elem_ = FixByteOrder(t_byteorder, *((uint32 const *) (t_value__elem__dataptr)));
+		// Evaluate 'let' and 'withinput' fields
+		value_->push_back(value__elem_);
+		t_value__elem__dataptr += 4;
+		BINPAC_ASSERT(t_value__elem__dataptr <= t_end_of_data);
+		}
+end_of_value: ;
+	// Evaluate 'let' and 'withinput' fields
+	
+	// Evaluate 'let' and 'withinput' fields
+	BINPAC_ASSERT(t_begin_of_data + (9) <= t_end_of_data);
+	return 9;
+	}
+
+AnalogInputSPwTime::AnalogInputSPwTime()
+	{
+	flag_ = 0;
+	value_ = 0;
+	time_ = 0;
+	time__elem_ = 0;
+	}
+
+AnalogInputSPwTime::~AnalogInputSPwTime()
+	{
+	delete time_;
+	}
+
+int AnalogInputSPwTime::Parse(const_byteptr const t_begin_of_data, const_byteptr const t_end_of_data, int t_byteorder)
+	{
+	// Checking out-of-bound for "AnalogInputSPwTime"
+	if ( t_begin_of_data + (11) > t_end_of_data )
+		{
+		// Handle out-of-bound condition
+		throw ExceptionOutOfBound("AnalogInputSPwTime",
+			(0) + (11), 
+			(t_end_of_data) - (t_begin_of_data));
+		}
+	// Parse "flag"
+	flag_ = *((uint8 const *) (t_begin_of_data));
+	// Evaluate 'let' and 'withinput' fields
+	
+	// Parse "value"
+	value_ = FixByteOrder(t_byteorder, *((uint32 const *) ((t_begin_of_data + 1))));
+	// Evaluate 'let' and 'withinput' fields
+	
+	// Parse "time"
+	int t_time__arraylength;
+	t_time__arraylength = 6;
+	if ( t_begin_of_data + t_time__arraylength > t_end_of_data + 1 )
+		{
+		t_time__arraylength = t_end_of_data - t_begin_of_data + 1;
+		}
+	if ( t_time__arraylength < 0 )
+		{
+		t_time__arraylength = 0;
+		}
+	time__elem_ = 0;
+	int t_time__elem__it;
+	t_time__elem__it = 0;
+	time_ = new vector<uint8>;
+	time_->reserve(t_time__arraylength);
+	const_byteptr t_time__elem__dataptr = (t_begin_of_data + 5);
+	for (; t_time__elem__it < t_time__arraylength; ++t_time__elem__it)
+		{
+		// Check &until(time__elem__dataptr >= end_of_data)
+		if ( t_time__elem__dataptr >= t_end_of_data )
+			{
+			goto end_of_time;
+			}
+		time__elem_ = *((uint8 const *) (t_time__elem__dataptr));
+		// Evaluate 'let' and 'withinput' fields
+		time_->push_back(time__elem_);
+		t_time__elem__dataptr += 1;
+		BINPAC_ASSERT(t_time__elem__dataptr <= t_end_of_data);
+		}
+end_of_time: ;
+	// Evaluate 'let' and 'withinput' fields
+	
+	// Evaluate 'let' and 'withinput' fields
+	BINPAC_ASSERT(t_begin_of_data + (11) <= t_end_of_data);
+	return 11;
+	}
+
+AnalogInputDPwTime::AnalogInputDPwTime()
+	{
+	flag_ = 0;
+	value_ = 0;
+	value__elem_ = 0;
+	time_ = 0;
+	time__elem_ = 0;
+	}
+
+AnalogInputDPwTime::~AnalogInputDPwTime()
+	{
+	delete value_;
+	delete time_;
+	}
+
+int AnalogInputDPwTime::Parse(const_byteptr const t_begin_of_data, const_byteptr const t_end_of_data, int t_byteorder)
+	{
+	// Checking out-of-bound for "AnalogInputDPwTime"
+	if ( t_begin_of_data + (15) > t_end_of_data )
+		{
+		// Handle out-of-bound condition
+		throw ExceptionOutOfBound("AnalogInputDPwTime",
+			(0) + (15), 
+			(t_end_of_data) - (t_begin_of_data));
+		}
+	// Parse "flag"
+	flag_ = *((uint8 const *) (t_begin_of_data));
+	// Evaluate 'let' and 'withinput' fields
+	
+	// Parse "value"
+	int t_value__arraylength;
+	t_value__arraylength = 2;
+	if ( t_begin_of_data + t_value__arraylength > t_end_of_data + 1 )
+		{
+		t_value__arraylength = t_end_of_data - t_begin_of_data + 1;
+		}
+	if ( t_value__arraylength < 0 )
+		{
+		t_value__arraylength = 0;
+		}
+	value__elem_ = 0;
+	int t_value__elem__it;
+	t_value__elem__it = 0;
+	value_ = new vector<uint32>;
+	value_->reserve(t_value__arraylength);
+	const_byteptr t_value__elem__dataptr = (t_begin_of_data + 1);
+	for (; t_value__elem__it < t_value__arraylength; ++t_value__elem__it)
+		{
+		// Check &until(value__elem__dataptr >= end_of_data)
+		if ( t_value__elem__dataptr >= t_end_of_data )
+			{
+			goto end_of_value;
+			}
+		value__elem_ = FixByteOrder(t_byteorder, *((uint32 const *) (t_value__elem__dataptr)));
+		// Evaluate 'let' and 'withinput' fields
+		value_->push_back(value__elem_);
+		t_value__elem__dataptr += 4;
+		BINPAC_ASSERT(t_value__elem__dataptr <= t_end_of_data);
+		}
+end_of_value: ;
+	// Evaluate 'let' and 'withinput' fields
+	
+	// Parse "time"
+	int t_time__arraylength;
+	t_time__arraylength = 6;
+	if ( t_begin_of_data + t_time__arraylength > t_end_of_data + 1 )
+		{
+		t_time__arraylength = t_end_of_data - t_begin_of_data + 1;
+		}
+	if ( t_time__arraylength < 0 )
+		{
+		t_time__arraylength = 0;
+		}
+	time__elem_ = 0;
+	int t_time__elem__it;
+	t_time__elem__it = 0;
+	time_ = new vector<uint8>;
+	time_->reserve(t_time__arraylength);
+	const_byteptr t_time__elem__dataptr = (t_begin_of_data + 9);
+	for (; t_time__elem__it < t_time__arraylength; ++t_time__elem__it)
+		{
+		// Check &until(time__elem__dataptr >= end_of_data)
+		if ( t_time__elem__dataptr >= t_end_of_data )
+			{
+			goto end_of_time;
+			}
+		time__elem_ = *((uint8 const *) (t_time__elem__dataptr));
+		// Evaluate 'let' and 'withinput' fields
+		time_->push_back(time__elem_);
+		t_time__elem__dataptr += 1;
+		BINPAC_ASSERT(t_time__elem__dataptr <= t_end_of_data);
+		}
+end_of_time: ;
+	// Evaluate 'let' and 'withinput' fields
+	
+	// Evaluate 'let' and 'withinput' fields
+	BINPAC_ASSERT(t_begin_of_data + (15) <= t_end_of_data);
+	return 15;
 	}
 
 Dnp3_Conn::Dnp3_Conn(BroAnalyzer const & bro_analyzer)

@@ -24,7 +24,7 @@ public:
 
 	// Put event names in this function
 	static bool Available()
-		{ return sample_message; }
+		{ return dnp3_application_request_header || dnp3_object_header ; }
 
 protected:
 	binpac::Dnp3::Dnp3_Conn* interp;

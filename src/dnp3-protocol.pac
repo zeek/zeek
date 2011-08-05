@@ -19,7 +19,7 @@ type Dnp3_Request = record {
 type Dnp3_Response = record {
 	app_header: Dnp3_Application_Response_Header;
 	data: case app_header.function_code of {
-		#READ -> 
+		RESPONSE -> objects: Response_Objects[];
 		default -> unknown: bytestring &restofdata;
 	};
 };
@@ -44,6 +44,30 @@ type Response_Internal_Indication = record {
 
 type Request_Objects = record {
 	object_header: Object_Header;
+	prefix: case(object_header.qualifier_field & 0xf0 ) of {
+                0x00 -> none: empty &check(object_header.qualifier_field == 0x01 ||
+                                                object_header.qualifier_field == 0x02 ||
+                                                object_header.qualifier_field == 0x03 ||
+                                                object_header.qualifier_field == 0x04 ||
+                                                object_header.qualifier_field == 0x05 ||
+                                                object_header.qualifier_field == 0x06 ||
+                                                object_header.qualifier_field == 0x07 ||
+                                                object_header.qualifier_field == 0x08 ||
+                                                object_header.qualifier_field == 0x09 );
+                0x10 -> prefix8: uint8 &check(object_header.qualifier_field == 0x17 ||
+                                                object_header.qualifier_field == 0x18 ||
+                                                object_header.qualifier_field == 0x19 );
+                0x20 -> prefix16: uint16 &check(object_header.qualifier_field == 0x27 ||
+                                                object_header.qualifier_field == 0x28 ||
+                                                object_header.qualifier_field == 0x29 );
+                0x30 -> prefix32: uint32 &check(object_header.qualifier_field == 0x37 ||
+                                                object_header.qualifier_field == 0x38 ||
+                                                object_header.qualifier_field == 0x39 );
+                0x40 -> object_size8: uint8 &check(object_header.qualifier_field == 0x4B);
+                0x50 -> object_size16: uint16 &check(object_header.qualifier_field == 0x5B);
+                0x60 -> object_size32: uint32 &check(object_header.qualifier_field == 0x6B);
+	 	default -> unknownprefix: empty;
+        };
 	data: case (object_header.object_type_field) of {
 		0x2001 -> ai32wotime: empty;
 		0x2002 -> ai16wotime: empty;
@@ -66,15 +90,52 @@ type Request_Objects = record {
 
 type Response_Objects = record {
 	object_header: Object_Header;
+	prefix: case(object_header.qualifier_field & 0xf0 ) of {
+		0x00 -> none: empty &check(object_header.qualifier_field == 0x01 ||
+						object_header.qualifier_field == 0x02 ||
+						object_header.qualifier_field == 0x03 ||
+						object_header.qualifier_field == 0x04 ||
+						object_header.qualifier_field == 0x05 ||	
+						object_header.qualifier_field == 0x06 ||
+						object_header.qualifier_field == 0x07 ||
+						object_header.qualifier_field == 0x08 ||
+						object_header.qualifier_field == 0x09 );
+		0x10 -> prefix8: uint8 &check(object_header.qualifier_field == 0x17 || 
+						object_header.qualifier_field == 0x18 ||
+						object_header.qualifier_field == 0x19 );
+		0x20 -> prefix16: uint16 &check(object_header.qualifier_field == 0x27 ||
+                                                object_header.qualifier_field == 0x28 ||
+                                                object_header.qualifier_field == 0x29 );
+		0x30 -> prefix32: uint32 &check(object_header.qualifier_field == 0x37 ||
+                                                object_header.qualifier_field == 0x38 ||
+                                                object_header.qualifier_field == 0x39 );
+		0x40 -> object_size8: uint8 &check(object_header.qualifier_field == 0x4B);
+		0x50 -> object_size16: uint16 &check(object_header.qualifier_field == 0x5B);
+		0x60 -> object_size32: uint32 &check(object_header.qualifier_field == 0x6B);
+		default -> unknownprefix: empty;
+	};
 	data: case(object_header.object_type_field) of {
-		0x2001 -> ai32wotime: AnalogInput32woTime;
-		0x2002 -> ai16wotime: AnalogInput16woTime;
-		0x2003 -> ai32wtime:  AnalogInput32wTime;
-		0x2004 -> ai16wtime:  AnalogInput16wTime;
-		0x2005 -> aispwotime: AnalogInputSPwoTime;
-		0x2006 -> aidpwotime: AnalogInputDPwoTime;
-		0x2007 -> aispwtime:  AnalogInputSPwTime;
-		0x2008 -> aidpwtime:  AnalogInputDPwTime;
+		0x0101 -> biwoflag: uint8[ ( object_header.number_of_item / 8 ) ];  # warning: returning integer index?
+		0x0102 -> biwflag: uint8;  # warning: only flag?
+		
+		0x0a01 -> bowoflag:  uint8[ ( object_header.number_of_item / 8 ) ];  # warning: returning integer index?	
+		0x0a02 -> bowflag: uint8;  # warning: only flag?
+		
+		0x1e01 -> ai_32_wflag: AnalogInput32wFlag[object_header.number_of_item];
+                0x1e02 -> ai_16_wflag: AnalogInput16wFlag[object_header.number_of_item];
+                0x1e03 -> ai_32_woflag: AnalogInput32woFlag[object_header.number_of_item];
+                0x1e04 -> ai_16_woflag: AnalogInput16woFlag[object_header.number_of_item];
+                0x1e05 -> ai_sp_wflag: AnalogInputSPwFlag[object_header.number_of_item];
+                0x1e06 -> ai_dp_wflag: AnalogInputDPwFlag[object_header.number_of_item];
+		
+		0x2001 -> ai32wotime: AnalogInput32woTime[object_header.number_of_item];
+		0x2002 -> ai16wotime: AnalogInput16woTime[object_header.number_of_item];
+		0x2003 -> ai32wtime:  AnalogInput32wTime[object_header.number_of_item];
+		0x2004 -> ai16wtime:  AnalogInput16wTime[object_header.number_of_item];
+		0x2005 -> aispwotime: AnalogInputSPwoTime[object_header.number_of_item];
+		0x2006 -> aidpwotime: AnalogInputDPwoTime[object_header.number_of_item];
+		0x2007 -> aispwtime:  AnalogInputSPwTime[object_header.number_of_item];
+		0x2008 -> aidpwtime:  AnalogInputDPwTime[object_header.number_of_item];
 	};
 };
 
@@ -83,18 +144,29 @@ type Object_Header = record {
 	object_type_field : uint16; #Object_Type;
 	qualifier_field: uint8;
 	range_field: case ( qualifier_field & 0x0f ) of {  # warning
-		0 -> range_field_0: Range_Field_0;
-		1 -> range_field_1: Range_Field_1;
-		2 -> range_field_2: Range_Field_2;
+		0 -> range_field_0: Range_Field_0 &check(range_field_0.stop_index >= range_field_0.start_index);
+		1 -> range_field_1: Range_Field_1 &check(range_field_1.stop_index >= range_field_1.start_index);
+		2 -> range_field_2: Range_Field_2 &check(range_field_2.stop_index >= range_field_2.start_index);
 		3 -> range_field_3: Range_Field_3;
 		4 -> range_field_4: Range_Field_4;
 		5 -> range_field_5: Range_Field_5;
 		6 -> range_field_6: empty;
-		7 -> range_field_7: Range_Field_7;
-		8 -> range_field_8: Range_Field_8;
-		9 -> range_field_9: Range_Field_9;
-		0xb -> range_field_b: Range_Field_B;
+		7 -> range_field_7: uint8;
+		8 -> range_field_8: uint16;
+		9 -> range_field_9: uint32;
+		0x0b -> range_field_b: uint8;
 		default -> unknown: bytestring &restofdata;	
+	};
+} &let{
+	number_of_item: uint32 = case (qualifier_field & 0x0f) of {
+		1 -> (range_field_0.stop_index - range_field_0.start_index + 1);
+		2 -> (range_field_1.stop_index - range_field_1.start_index + 1);
+		3 -> (range_field_2.stop_index - range_field_2.start_index + 1);
+		7 -> range_field_7;  # data type warning?
+		8 -> range_field_8;
+		9 -> range_field_9;
+		0x0b -> range_field_b;
+		default -> 0;
 	};
 };
 
@@ -133,21 +205,6 @@ type Range_Field_5 = record {
         stop_addr: uint32;
 };
 
-type Range_Field_7 = record {
-        object_count: uint8;
-};
-
-type Range_Field_8 = record {
-        object_count: uint16;
-};
-
-type Range_Field_9 = record {
-        object_count: uint32;
-};
-
-type Range_Field_B = record {
-        object_count: uint8;
-};
 
 type Object_With_Header = record {
 	object_header: Object_Header;
@@ -197,6 +254,35 @@ type AnalogInputDPwTime = record{
 	flag: uint8;
 	value: uint32[2];
 	time: uint8[6];
+};
+
+# group: 30; variation: 1
+type AnalogInput32wFlag = record{
+        flag: uint8;
+        value: uint32;
+};
+# group: 30; variation: 2
+type AnalogInput16wFlag = record{
+        flag: uint8;
+        value: uint16;
+};
+# group: 30; variation: 3
+type AnalogInput32woFlag = record{
+        value: uint32;
+};
+# group: 30; variation: 4
+type AnalogInput16woFlag = record{
+        value: uint16;
+};
+# group: 30; variation: 5; singple precision 32 bit
+type AnalogInputSPwFlag = record{
+        flag: uint8;
+        value: uint32;
+};
+# group: 30; variation: 6; double precision 64 bit
+type AnalogInputDPwFlag = record{
+        flag: uint8;
+        value: uint32[2];
 };
 enum function_codes_value {
 	CONFIRM = 0x00,

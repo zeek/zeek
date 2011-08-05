@@ -106,6 +106,9 @@ protected:
 	// Reports an error for the given writer.
 	void Error(LogWriter* writer, const char* msg);
 
+	// Deletes the values as passed into Write().
+	void DeleteVals(int num_fields, LogVal** vals);
+
 private:
 	struct Filter;
 	struct Stream;

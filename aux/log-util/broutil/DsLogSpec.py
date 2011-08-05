@@ -20,6 +20,9 @@ class DsLogSpec(BroLogSpec):
         print "Cleaning up " + DsLogSpec.DS_EXTRACT_DIR
         shutil.rmtree(DsLogSpec.DS_EXTRACT_DIR)
 
+    def supported(self):
+        return os.system('which ds2txt > /dev/null 2> /dev/null') == 0
+
     def __init__(self):
         self._fields = []
         self.names = []

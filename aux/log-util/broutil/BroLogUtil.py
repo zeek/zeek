@@ -16,9 +16,18 @@ class BroLogUtil(object):
         return BroLogUtil.logtypes[ BroLogUtil.get_ext(fname) ]
 
     @staticmethod
+    def process(path):
+        if(':' in path):
+            return (path.split(':'))[1].strip()
+        return path
+
+    @staticmethod
     def register_type(file_ext, target):
         BroLogUtil.logtypes[file_ext] = target
 
+    @staticmethod
+    def register_prefix(file_prefix, target):
+        BroLogUtil.prefixtypes[file_prefix] = target
     
     @staticmethod
     def get_ext(path):

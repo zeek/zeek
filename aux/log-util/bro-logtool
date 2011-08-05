@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import argparse
+import sys
 
 from broutil.BroLogManager import *
 from broutil.BroLogOptions import *
@@ -10,22 +11,36 @@ def parse_args():
     parser.add_argument('logfiles', metavar='LOGFILE', nargs='+', help='Bro logfiles to load')
     return parser.parse_args()
 
-if __name__ == '__main__':
-    args = parse_args()
-    BroLogOptions.verbose = args.verbose
-    manager = BroLogManager(sampling='0.1')
-    manager.load(args.logfiles)
+#def test_filter(entry):
+#    return entry['ts'] < 100
+
+def test_iterate(manager):
+    #manager['conn'].set_filter(test_filter)
+    for e in manager["conn"].entries():
+        print e['id.resp_p']
+
+def test_stats(manager):
     connections = manager["conn"]  # or '.get("conn")
+    #connections.set_filter(test_filter)
     print 'orig_bytes: ' + str(connections.get_stats('orig_bytes'))
     print 'resp_bytes: ' + str(connections.get_stats('resp_bytes'))
     print 'Top 5 id.orig_p entries:' 
-    for x in xrange(5):
+    for x in xrange(min(5, len(connections.get_stats('id.orig_p')) )):
         print str(connections.get_stats('id.orig_p').get_index(x)), 
     print ''
     print 'Top 5 id.resp_p entries:'
-    for x in xrange(5):
+    for x in xrange(min(5, len(connections.get_stats('id.resp_p')) )):
         print str(connections.get_stats('id.resp_p').get_index(x)),
     print ''
 
-    #for e in manager["conn"].entries():
-    #    print e['id.resp_p']
+if __name__ == '__main__':
+    args = parse_args()
+    BroLogOptions.verbose = args.verbose
+    manager = BroLogManager()
+    manager.load(args.logfiles)
+    if not manager['conn']:
+        print 'No log data of type "conn" found.  Exiting...'
+        sys.exit(0)
+    test_stats(manager)
+    test_iterate(manager)
+

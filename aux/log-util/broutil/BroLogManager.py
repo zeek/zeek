@@ -26,7 +26,7 @@ class BroLogManager(object):
         self._logfiles = [f for f in self._logfiles if BroLogUtil.supports(f) ]  # Only keep supported file types
         self._total_count = len(self._logfiles)
         self._logobj = [ BroLogFile(f, sampling=self._sampling) for f in self._logfiles ]
-        self._logobj = [ f for f in self._logobj if f.valid() ]
+        self._logobj = [ f for f in self._logobj if f.valid() ]  # Only keep file types that load successfully
         self._success_count = len(self._logobj)
         self._logs = dict()
         for obj in self._logobj:

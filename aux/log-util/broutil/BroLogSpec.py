@@ -40,6 +40,9 @@ class BroLogSpec(object):
                 return val
         return get_val
 
+    def supported(self):
+        return True
+
     def get_bro_path(self):
         return self._bro_log_path
 

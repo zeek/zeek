@@ -21,8 +21,10 @@ class BroAccumulators(object):
             return sorted(self.groups.iteritems(), key=operator.itemgetter(1), reverse=True)[index]
 
         def postprocess(self):
-            if('-' in self.groups.keys()):
+            if('-' in self.groups.keys()):    # NULL-character, new-style bro logs
                 del self.groups['-']
+            if('?' in self.groups.keys()):    # NULL-character, old-style bro logs
+                del self.groups['?']
 
         def accumulate(self, entry):
             # Using '-' for NULL is nice for reading but sucks for processing.
@@ -32,6 +34,9 @@ class BroAccumulators(object):
                 self.groups[entry] += 1
             self.count += 1
         
+        def __len__(self):
+            return len(self.groups)
+
         def __getitem__(self, key):
             return self.groups[key]
 
@@ -72,19 +77,33 @@ class BroAccumulators(object):
                 self.max = x
 
         def _variance(self):
-            return (self.sum_of_squares / self.count) - (self.mean ** 2)
+            try:
+                return (self.sum_of_squares / self.count) - (self.mean ** 2)
+            except:
+                return 0
 
         def _mean(self):
-            return (self.sum / self.count)
+            try:
+                return (self.sum / self.count)
+            except:
+                return 0
 
         def _std_dev(self):
-            return math.sqrt(self.variance)
+            try:
+                return math.sqrt(self.variance)
+            except:
+                return 0
 
         def __str__(self):
             ret_str = "StatsAccumulator -- E(X)=%f, STDDEV(X)=%f, RANGE:[%f, %f]" % (round(self.mean, 3), round(self.std_dev, 3), round(self.min, 3), round(self.max, 3))
             return ret_str
 
         def __getattr__(self, name):
+            # Note: min / max only happen if there were no entries accumulated.
+            if(name == 'min'):
+                return 0
+            if(name == 'max'):
+                return 0
             if(name == 'variance'):
                 return self._variance()
             if(name == 'mean'):

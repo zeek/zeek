@@ -70,7 +70,7 @@ event bro_init() &priority=9
 			
 			if ( n$node_type == PROXY && me$proxy == i )
 				Communication::nodes["proxy"] = [$host=nodes[i]$ip, $p=nodes[i]$p,
-				                                 $connect=T, $retry=1mins, 
+				                                 $connect=T, $retry=1mins, $sync=T,
 				                                 $class=node];
 			
 			if ( n$node_type == TIME_MACHINE && me?$time_machine && me$time_machine == i )

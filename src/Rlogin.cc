@@ -12,7 +12,7 @@
 Contents_Rlogin_Analyzer::Contents_Rlogin_Analyzer(Connection* conn, bool orig, Rlogin_Analyzer* arg_analyzer)
 : ContentLine_Analyzer(AnalyzerTag::Contents_Rlogin, conn, orig)
 	{
-	num_bytes_to_scan = num_bytes_to_scan = 0;
+	num_bytes_to_scan = 0;
 	analyzer = arg_analyzer;
 	peer = 0;
 

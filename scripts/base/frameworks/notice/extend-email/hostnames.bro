@@ -7,6 +7,10 @@ event Notice::notice(n: Notice::Info) &priority=10
 	if ( ! n?$src && ! n?$dst )
 		return;
 	
+	# This should only be done for notices that are being sent to email.
+	if ( ACTION_EMAIL !in n$action )
+		return;
+		
 	local output = "";
 	if ( n?$src )
 		{

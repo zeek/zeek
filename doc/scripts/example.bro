@@ -42,7 +42,7 @@
 # is taken as the summary text for a given identifier.
 
 # @load directives are self-documenting
-@load frameworks/notice
+@load frameworks/software/vulnerable
 
 # "module" statements are self-documenting
 module Example;

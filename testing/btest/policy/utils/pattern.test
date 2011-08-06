@@ -1,7 +1,8 @@
 # @TEST-EXEC: bro %INPUT >output
 # @TEST-EXEC: btest-diff output
 
-@load utils/pattern
+# This is loaded by default.
+#@load base/utils/pattern
 
 global r1 = set_to_regex(set("blah", "bleh", "blarg"), "(~~)");
 global r2 = set_to_regex(set("blah", "bleh", "blarg"), "foo(~~)bar");

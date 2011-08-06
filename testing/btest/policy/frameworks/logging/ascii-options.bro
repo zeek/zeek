@@ -1,8 +1,6 @@
 #
-# @TEST-EXEC: bro %INPUT
+# @TEST-EXEC: BRO_NO_BASE_SCRIPTS=1 bro %INPUT
 # @TEST-EXEC: btest-diff ssh.log
-
-@load frameworks/logging/plugins/ascii
 
 redef LogAscii::output_to_stdout = F;
 redef LogAscii::separator = "|";

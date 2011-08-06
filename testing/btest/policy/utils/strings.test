@@ -1,7 +1,8 @@
 # @TEST-EXEC: bro %INPUT >output
 # @TEST-EXEC: btest-diff output
 
-@load utils/strings
+# This is loaded by default.
+#@load base/utils/strings
 
 function test_binary_string(s: string)
 	{

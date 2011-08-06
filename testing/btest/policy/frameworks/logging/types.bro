@@ -1,5 +1,5 @@
 #
-# @TEST-EXEC: bro %INPUT
+# @TEST-EXEC: BRO_NO_BASE_SCRIPTS=1 bro %INPUT
 # @TEST-EXEC: btest-diff ssh.log
 #
 # Testing all possible types.

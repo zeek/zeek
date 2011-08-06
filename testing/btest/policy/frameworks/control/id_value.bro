@@ -1,10 +1,7 @@
-# @TEST-EXEC: btest-bg-run controllee  BROPATH=$BROPATH:.. bro %INPUT only-for-controllee frameworks/control/controllee Communication::listen_port_clear=65532/tcp 
-# @TEST-EXEC: btest-bg-run controller  BROPATH=$BROPATH:.. bro %INPUT frameworks/control/controller Control::host=127.0.0.1 Control::host_port=65532/tcp Control::cmd=id_value Control::arg=test_var
+# @TEST-EXEC: btest-bg-run controllee  BROPATH=$BROPATH:.. ENABLE_COMMUNICATION=1 bro %INPUT only-for-controllee frameworks/control/controllee Communication::listen_port_clear=65532/tcp 
+# @TEST-EXEC: btest-bg-run controller  BROPATH=$BROPATH:.. ENABLE_COMMUNICATION=1 bro %INPUT frameworks/control/controller Control::host=127.0.0.1 Control::host_port=65532/tcp Control::cmd=id_value Control::arg=test_var
 # @TEST-EXEC: btest-bg-wait -k 1
 # @TEST-EXEC: btest-diff controller/.stdout
-
-@load frameworks/control
-@load frameworks/communication
 
 redef Communication::nodes = {
 	# We're waiting for connections from this host for control.

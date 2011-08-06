@@ -675,7 +675,8 @@ int main(int argc, char** argv)
 	timer_mgr = new PQ_TimerMgr("<GLOBAL>");
 	// timer_mgr = new CQ_TimerMgr();
 
-	add_input_file("bro.init");
+	add_input_file("base/bro.init");
+	add_input_file("base/all.bro");
 
 	if ( optind == argc &&
 	     read_files.length() == 0 && flow_files.length() == 0 &&

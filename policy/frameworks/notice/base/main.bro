@@ -103,7 +103,7 @@ export {
 	
 	## This is the record that defines the items that make up the notice policy.
 	type PolicyItem: record {
-		## This is the exact positional order in which the :id:type:`PolicyItem`
+		## This is the exact positional order in which the :bro:type:`PolicyItem`
 		## records are checked.  This is set internally by the notice framework.
 		position: count                            &log &optional;
 		## Define the priority for this check.  Items are checked in ordered

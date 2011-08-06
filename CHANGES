@@ -1,4 +1,21 @@
 
+1.6-dev-1038 | 2011-08-05 18:25:44 -0700
+
+  * Smaller updates to script docs and their generation. (Jon Siwek)
+
+  * When using a `print` statement to write to a file that has raw output
+    enabled, NUL characters in string are no longer interpreted into "\0",
+    no newline is appended afterwards, and each argument to `print` is
+    written to the file without any additional separation. (Jon Siwek)
+
+  * Test portatibility tweaks. (Jon Siwek)
+
+  * Fixing PktSrc::Statistics() which retured bogus information
+    offline mode. Closes #500. (Jon Siwek)
+
+  * --with-perftools configure option now assumes --enable-perftools.
+    Closes #527. (Jon Siwek)
+
 1.6-dev-1018 | 2011-07-31 21:30:31 -0700
 
   * Updating CHANGES. (Robin Sommer)

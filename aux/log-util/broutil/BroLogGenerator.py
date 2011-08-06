@@ -25,9 +25,42 @@ class BroLogGenerator(object):
         if(self._logs and len(self._logs) >= 1):
             return self._logs[0].names
 
-    def gettypes(self):
+    def get_types(self):
         if(self._logs and len(self._logs) >= 1):
             return self._logs[0].types
+
+    def export(self, target_converter, target_path=None, type_hint=None, merge_types=False, type_filter=None, split_by=None):
+        types = set([log.type() for log in self._logs if \
+                     ((not type_filter) or (type_filter and isinstance(log.type(), type_filter))) ])
+        convert_type = None
+        if(len(types) == 1):
+            convert_type = list(types)[0]
+        elif(len(types) > 1 and not type_hint):
+            if(BroLogOptions.interactive):
+                print "'%s' has multiple types associated with it:" % log.type().get_bro_path()
+                ctr = 1
+                for each in types:
+                    print '%d: %s' % (ctr, each.type())
+                    ctr += 1
+                user_sel = int(raw_input('Select a type [1 - %d]: ' % ctr))
+                if(user_sel < 1 or user_sel >= ctr):
+                    print "Invalid selection."
+                    return False
+            else:
+                return False
+        elif(len(types) > 1):
+            if not type_hint in types:
+                print "Unknown type provided as hint: %s" % type_hint
+                return False
+            types = set([log.type() for log in self._logs if (log.type() == type_hint)])
+            if(len(types) != 1):
+                print "Ambiguous type hint?!  Types matched: " + types
+                return False
+            convert_type = list(types)[0]
+        converter = target_converter(target_path, convert_type.names, convert_type.get_bro_path())
+        map(converter.convert_row, self.entries(type_filter=convert_type))
+        converter.finish()
+        return True
 
     def compute_stats(self):
         if not self._logs:
@@ -97,12 +130,15 @@ class BroLogGenerator(object):
                 return log_type.types
         return _LogEntry
 
-    def entries(self):
+    def entries(self, type_filter=None):
         if not self._logs:
             return False
         
         rlist = []
         for log in self._logs:
+            if(type_filter):
+                if(log.type() != type_filter):
+                    continue
             if(BroLogOptions.verbose):
                 print "Processing " + log.path()
             log_type = log.type()
@@ -125,6 +161,5 @@ class BroLogGenerator(object):
                 local_filter = self._filter
                 field_gen = itertools.ifilter(local_filter, field_gen)
             rlist.append( field_gen )
-            # rlist.append( ( BroLogEntry(dict(zip(log_fields, l))) for l in log_fd ) )
         return itertools.chain.from_iterable(rlist)
 

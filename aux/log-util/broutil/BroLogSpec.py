@@ -40,6 +40,9 @@ class BroLogSpec(object):
                 return val
         return get_val
 
+    def fields(self):
+        return self._fields
+
     def supported(self):
         return True
 

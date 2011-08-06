@@ -4,6 +4,7 @@ import sys
 
 from broutil.BroLogManager import *
 from broutil.BroLogOptions import *
+from broutil.AsciiLogConverter import *
 
 def parse_args():
     parser = argparse.ArgumentParser(description='General-purpose tool for manipulating bro log files')
@@ -18,6 +19,9 @@ def test_iterate(manager):
     #manager['conn'].set_filter(test_filter)
     for e in manager["conn"].entries():
         print e['id.resp_p']
+
+def test_export(manager):
+    manager['conn'].export(AsciiLogConverter)
 
 def test_stats(manager):
     connections = manager["conn"]  # or '.get("conn")
@@ -43,4 +47,5 @@ if __name__ == '__main__':
         sys.exit(0)
     test_stats(manager)
     test_iterate(manager)
+    test_export(manager)
 

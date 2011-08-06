@@ -1,4 +1,15 @@
 
+1.6-dev-1044 | 2011-08-05 19:07:32 -0700
+
+  * Fixing memory (and CPU) leak in log writer.
+
+  * Fixing crash in memory profiling. (Robin Sommer)
+
+  * Fix compiler warning. (Robin Sommer)
+
+  * Fixing missing sync in cluster setup. (Robin Sommer)
+
+
 1.6-dev-1038 | 2011-08-05 18:25:44 -0700
 
   * Smaller updates to script docs and their generation. (Jon Siwek)

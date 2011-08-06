@@ -13,6 +13,7 @@
 set(psd ${PROJECT_SOURCE_DIR}/policy)
 
 rest_target(${CMAKE_CURRENT_SOURCE_DIR} example.bro internal)
+rest_target(${psd} bro.init internal)
 
 rest_target(${CMAKE_BINARY_DIR}/src bro.bif.bro)
 rest_target(${CMAKE_BINARY_DIR}/src const.bif.bro)

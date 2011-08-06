@@ -3163,14 +3163,13 @@ unsigned int RecordVal::MemoryAllocation() const
 	{
 	unsigned int size = 0;
 
-	for ( int i = 0; i < type->AsRecordType()->NumFields(); ++i )
-		{
-		Val* v = (*val.val_list_val)[i];
+	const val_list* vl = AsRecord();
 
-		// v might be nil for records that don't wind
-		// up being set to a value.
+	loop_over_list(*vl, i)
+		{
+		Val* v = (*vl)[i];
 		if ( v )
-			size += v->MemoryAllocation();
+		    size += v->MemoryAllocation();
 		}
 
 	return size + padded_sizeof(*this) + val.val_list_val->MemoryAllocation();

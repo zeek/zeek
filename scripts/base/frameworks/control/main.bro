@@ -2,12 +2,14 @@
 ##! consts to a remote Bro then sends the :bro:id:`configuration_update` event
 ##! and terminates processing.
 ##!
-##! Intended to be used from the command line like this when starting a controller:
+##! Intended to be used from the command line like this when starting a controller::
+##!
 ##!     bro <scripts> frameworks/control/controller Control::host=<host_addr> Control::port=<host_port> Control::cmd=<command> [Control::arg=<arg>]
 ##! 
 ##! A controllee only needs to load the controllee script in addition
-##! to the specific analysis scripts desired.  It may also need a node 
-##! configured as a controller node in the communications nodes configuration.
+##! to the specific analysis scripts desired.  It may also need a node
+##! configured as a controller node in the communications nodes configuration::
+##!
 ##!     bro <scripts> frameworks/control/controllee
 ##!
 ##! To use the framework as a controllee, it only needs to be loaded and

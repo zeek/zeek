@@ -14,7 +14,6 @@ Contents:
    internal
    bifs
    packages
-   collections
    policy/index
 
 Indices and tables

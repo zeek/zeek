@@ -38,20 +38,26 @@ by CMake:
 
     This target removes Sphinx inputs and outputs from the CMake ``build/`` dir.
 
-To schedule a script to be documented, edit ``DocSourcesList.cmake`` inside
-this directory add a call to the ``rest_target()`` macro.  Calling that macro
-with a group name for the script is optional.  If the group is omitted, the
-only links to the script will be in the master TOC tree for all policy scripts
-as well as the master TOC tree for script packages (derived from the path
-component of the second argument to ``rest_target()``), with the exception
-of ``.bif`` files which are grouped automatically.
+The ``genDocSourcesList.sh`` script can be run to automatically generate
+``DocSourcesList.cmake``, which is the file CMake uses to define the list
+of documentation targets.  This script should be run after adding new
+Bro script source files, and the changes commited to git.
 
-When adding a new logical grouping e.g. "my/group" (groups are allowed
-to contain slashes specifying a path) for generated scripts,
-create a new reST document in ``source/my/group.rst`` and add some default
-documentation for the group.  References to (and summaries of) documents
-associated with the group get appended to this pre-created file during the
-``make doc`` process.
+If a script shouldn't have documentation generated for it, there's also a
+blacklist variable that can be maintained in the ``genDocSourcesList.sh``
+script.
+
+The blacklist can also be used if you want to define a certain grouping for
+the script's generated docs to belong to (as opposed to the automatic grouping
+the happens for script packages/directories).  To do that, add the
+script's name to the blacklist, then append a ``rest_target()`` to the
+``statictext`` variable where the first argument is the source directory
+containing the policy script to document, the second argument is the file
+name of the policy script, and the third argument is the path/name of a
+pre-created reST document in the ``source/`` directory to which the
+``make doc`` process can append script documentation references.  This
+pre-created reST document should also then be linked to from the TOC tree
+in ``source/index.rst``.
 
 The Sphinx source tree template in ``source/`` can be modified to add more
 common/general documentation, style sheets, JavaScript, etc.  The Sphinx

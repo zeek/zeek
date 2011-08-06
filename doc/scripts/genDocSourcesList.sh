@@ -30,6 +30,7 @@ statictext="\
 set(psd \${PROJECT_SOURCE_DIR}/policy)
 
 rest_target(\${CMAKE_CURRENT_SOURCE_DIR} example.bro internal)
+rest_target(\${psd} bro.init internal)
 "
 
 if [[ $# -ge 1 ]]; then

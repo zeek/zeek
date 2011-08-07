@@ -1,7 +1,8 @@
 # @TEST-EXEC: bro %INPUT > output
 # @TEST-EXEC: btest-diff output
 
-@load utils/addrs
+# This is loaded by default
+#@load base/utils/addrs
 
 event bro_init()
 	{

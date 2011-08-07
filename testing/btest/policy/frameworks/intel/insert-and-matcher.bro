@@ -2,8 +2,6 @@
 # @TEST-EXEC: bro %INPUT >out
 # @TEST-EXEC: btest-diff out
 
-@load frameworks/intel
-
 event bro_init()
 	{
 	Intel::insert([$ip=1.2.3.4, $tags=set("zeustracker.abuse.ch", "malicious")]);

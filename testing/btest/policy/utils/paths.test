@@ -1,7 +1,8 @@
 # @TEST-EXEC: bro %INPUT >output
 # @TEST-EXEC: btest-diff output
 
-@load utils/paths
+# This is loaded by default.
+#@load base/utils/paths
 
 function test_extract(str: string, expect: string)
 	{

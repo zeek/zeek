@@ -174,15 +174,20 @@ void ODesc::AddBytes(const BroString* s)
 	{
 	if ( IsReadable() )
 		{
-		int render_style = BroString::EXPANDED_STRING;
-		if ( Style() == ALTERNATIVE_STYLE )
-			// Only change NULs, since we can't in any case
-			// cope with them.
-			render_style = BroString::ESC_NULL;
+		if ( Style() == RAW_STYLE )
+			AddBytes(reinterpret_cast<const char*>(s->Bytes()), s->Len());
+		else
+			{
+			int render_style = BroString::EXPANDED_STRING;
+			if ( Style() == ALTERNATIVE_STYLE )
+				// Only change NULs, since we can't in any case
+				// cope with them.
+				render_style = BroString::ESC_NULL;
 
-		const char* str = s->Render(render_style);
-		Add(str);
-		delete [] str;
+			const char* str = s->Render(render_style);
+			Add(str);
+			delete [] str;
+			}
 		}
 	else
 		{

@@ -1,9 +1,9 @@
 #
-# @TEST-EXEC: btest-bg-run sender bro --pseudo-realtime %INPUT ../sender.bro
-# @TEST-EXEC: btest-bg-run receiver bro --pseudo-realtime %INPUT ../receiver.bro
+# @TEST-EXEC: ENABLE_COMMUNICATION=1 btest-bg-run sender bro --pseudo-realtime %INPUT ../sender.bro
+# @TEST-EXEC: ENABLE_COMMUNICATION=1 btest-bg-run receiver bro --pseudo-realtime %INPUT ../receiver.bro
 # @TEST-EXEC: btest-bg-wait -k 1
-# @TEST-EXEC: btest-diff receiver/ssh.log
-# @TEST-EXEC: cmp receiver/ssh.log sender/ssh.log
+# @TEST-EXEC: btest-diff receiver/test.log
+# @TEST-EXEC: cmp receiver/test.log sender/test.log
 
 # Remote version testing all types.
 
@@ -11,11 +11,11 @@
 
 redef LogAscii::empty_field = "EMPTY";
 
-module SSH;
+module Test;
 
 export {
 	# Create a new ID for our log stream
-	redef enum Log::ID += { SSH };
+	redef enum Log::ID += { TEST };
 
 	type Log: record {
 		b: bool;
@@ -40,14 +40,14 @@ export {
 
 event bro_init()
 {
-	Log::create_stream(SSH, [$columns=Log]);
+	Log::create_stream(TEST, [$columns=Log]);
 }
 
 #####
 
 @TEST-START-FILE sender.bro
 
-module SSH;
+module Test;
 
 @load frameworks/communication/listen-clear
 
@@ -56,10 +56,10 @@ event remote_connection_handshake_done(p: event_peer)
 	local empty_set: set[string];
 	local empty_vector: vector of string;
 
-	Log::write(SSH, [
+	Log::write(TEST, [
 		$b=T,
 		$i=-42,
-		$e=SSH,
+		$e=TEST,
 		$c=21,
 		$p=123/tcp,
 		$sn=10.0.0.1/24,
@@ -81,8 +81,6 @@ event remote_connection_handshake_done(p: event_peer)
 @TEST-START-FILE receiver.bro
 
 #####
-
-@load frameworks/communication
 
 redef Communication::nodes += {
     ["foo"] = [$host = 127.0.0.1, $connect=T, $request_logs=T]

@@ -799,6 +799,7 @@ EnumVal* map_conn_type(TransportProto tp)
 
 	// Cannot be reached;
 	assert(false);
+	return 0; // Make compiler happy.
 	}
 %%}
 

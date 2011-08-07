@@ -1,14 +1,14 @@
 # 
-# @TEST-EXEC: btest-bg-run sender   bro -C -r $TRACES/web.trace --pseudo-realtime ../sender.bro
-# @TEST-EXEC: btest-bg-run receiver bro ../receiver.bro
+# @TEST-EXEC: ENABLE_COMMUNICATION=1 btest-bg-run sender   bro -C -r $TRACES/web.trace --pseudo-realtime ../sender.bro
+# @TEST-EXEC: ENABLE_COMMUNICATION=1 btest-bg-run receiver bro ../receiver.bro
 # @TEST-EXEC: btest-bg-wait -k 20
 # 
 # @TEST-EXEC: btest-diff sender/http.log
 # @TEST-EXEC: btest-diff receiver/http.log
 # @TEST-EXEC: cmp sender/http.log receiver/http.log
 # 
-# @TEST-EXEC: bro -x sender/events.bst protocols/http   | sed 's/^Event \[[-0-9.]*\] //g' | grep '^http_' | grep -v http_stats | sed 's/(.*$//g'  >events.snd.log
-# @TEST-EXEC: bro -x receiver/events.bst protocols/http | sed 's/^Event \[[-0-9.]*\] //g' | grep '^http_' | grep -v http_stats | sed 's/(.*$//g'  >events.rec.log
+# @TEST-EXEC: ENABLE_COMMUNICATION=1 bro -x sender/events.bst | sed 's/^Event \[[-0-9.]*\] //g' | grep '^http_' | grep -v http_stats | sed 's/(.*$//g'  >events.snd.log
+# @TEST-EXEC: ENABLE_COMMUNICATION=1 bro -x receiver/events.bst | sed 's/^Event \[[-0-9.]*\] //g' | grep '^http_' | grep -v http_stats | sed 's/(.*$//g'  >events.rec.log
 # @TEST-EXEC: cmp events.rec.log events.snd.log
 # 
 # We don't compare the transmitted event paramerters anymore. With the dynamic
@@ -16,7 +16,6 @@
 
 @TEST-START-FILE sender.bro
 
-@load protocols/http
 @load frameworks/communication/listen-clear
 
 event bro_init()
@@ -36,9 +35,6 @@ redef tcp_close_delay = 0secs;
 #############
 
 @TEST-START-FILE receiver.bro
-
-@load protocols/http
-@load frameworks/communication
 
 event bro_init()
     {

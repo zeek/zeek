@@ -12,7 +12,7 @@
 # parseable or they just aren't meant to be documented.
 
 blacklist="__load__.bro|test-all.bro|all.bro"
-blacklist_addl="hot.conn.bro|ssl-old.bro"
+blacklist_addl="hot.conn.bro"
 
 statictext="\
 # DO NOT EDIT
@@ -24,12 +24,14 @@ statictext="\
 # a given Bro script.
 #
 # Note: any path prefix of the script (2nd argument of rest_target macro)
-# will be used to derive what path under policy/ the generated documentation
+# will be used to derive what path under scripts/ the generated documentation
 # will be placed.
 
-set(psd \${PROJECT_SOURCE_DIR}/policy)
+set(psd \${PROJECT_SOURCE_DIR}/scripts)
 
 rest_target(\${CMAKE_CURRENT_SOURCE_DIR} example.bro internal)
+rest_target(\${psd} base/bro.init internal)
+rest_target(\${psd} base/all.bro internal)
 "
 
 if [[ $# -ge 1 ]]; then
@@ -43,7 +45,7 @@ sourcedir=${thisdir}/../..
 
 echo "$statictext" > $outfile
 
-bifs=`( cd ${sourcedir}/build/src && find . -name \*\.bro )`
+bifs=`( cd ${sourcedir}/build/src && find . -name \*\.bro | sort )`
 
 for file in $bifs
 do
@@ -51,9 +53,9 @@ do
     echo "rest_target(\${CMAKE_BINARY_DIR}/src $f)" >> $outfile
 done
 
-policyfiles=`( cd ${sourcedir}/policy && find . -name \*\.bro )`
+scriptfiles=`( cd ${sourcedir}/scripts && find . -name \*\.bro | sort )`
 
-for file in $policyfiles
+for file in $scriptfiles
 do
     f=${file:2}
     if [[ (! $f =~ $blacklist) && (! $f =~ $blacklist_addl)  ]]; then

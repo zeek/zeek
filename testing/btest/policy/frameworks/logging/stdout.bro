@@ -1,5 +1,5 @@
 #
-# @TEST-EXEC: bro %INPUT >output
+# @TEST-EXEC: BRO_NO_BASE_SCRIPTS=1 bro %INPUT >output
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: test '!' -e ssh.log
 

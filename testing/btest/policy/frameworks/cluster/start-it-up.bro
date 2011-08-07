@@ -1,8 +1,8 @@
-# @TEST-EXEC: btest-bg-run manager-1 BROPATH=$BROPATH:.. CLUSTER_NODE=manager-1 bro %INPUT
-# @TEST-EXEC: btest-bg-run proxy-1   BROPATH=$BROPATH:.. CLUSTER_NODE=proxy-1 bro %INPUT
-# @TEST-EXEC: btest-bg-run proxy-2   BROPATH=$BROPATH:.. CLUSTER_NODE=proxy-2 bro %INPUT
-# @TEST-EXEC: btest-bg-run worker-1  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-1 bro %INPUT
-# @TEST-EXEC: btest-bg-run worker-2  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-2 bro %INPUT
+# @TEST-EXEC: btest-bg-run manager-1 BROPATH=$BROPATH:.. ENABLE_COMMUNICATION=1 CLUSTER_NODE=manager-1 bro %INPUT
+# @TEST-EXEC: btest-bg-run proxy-1   BROPATH=$BROPATH:.. ENABLE_COMMUNICATION=1 CLUSTER_NODE=proxy-1 bro %INPUT
+# @TEST-EXEC: btest-bg-run proxy-2   BROPATH=$BROPATH:.. ENABLE_COMMUNICATION=1 CLUSTER_NODE=proxy-2 bro %INPUT
+# @TEST-EXEC: btest-bg-run worker-1  BROPATH=$BROPATH:.. ENABLE_COMMUNICATION=1 CLUSTER_NODE=worker-1 bro %INPUT
+# @TEST-EXEC: btest-bg-run worker-2  BROPATH=$BROPATH:.. ENABLE_COMMUNICATION=1 CLUSTER_NODE=worker-2 bro %INPUT
 # @TEST-EXEC: btest-bg-wait -k 2
 # @TEST-EXEC: btest-diff manager-1/.stdout
 # @TEST-EXEC: btest-diff proxy-1/.stdout
@@ -19,8 +19,6 @@ redef Cluster::nodes = {
 	["worker-2"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=37761/tcp, $manager="manager-1", $proxy="proxy-2", $interface="eth1"],
 };
 @TEST-END-FILE
-
-@load frameworks/cluster
 
 event remote_connection_handshake_done(p: event_peer)
 	{

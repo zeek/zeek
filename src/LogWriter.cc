@@ -47,6 +47,7 @@ bool LogWriter::Write(int arg_num_fields, LogVal** vals)
 		DBG_LOG(DBG_LOGGING, "Number of fields don't match in LogWriter::Write() (%d vs. %d)",
 			arg_num_fields, num_fields);
 
+		DeleteVals(vals);
 		return false;
 		}
 
@@ -56,6 +57,7 @@ bool LogWriter::Write(int arg_num_fields, LogVal** vals)
 			{
 			DBG_LOG(DBG_LOGGING, "Field type doesn't match in LogWriter::Write() (%d vs. %d)",
 				vals[i]->type, fields[i]->type);
+			DeleteVals(vals);
 			return false;
 			}
 		}
@@ -146,8 +148,7 @@ void LogWriter::Error(const char *msg)
 
 void LogWriter::DeleteVals(LogVal** vals)
 	{
-	for ( int i = 0; i < num_fields; i++ )
-		delete vals[i];
+	log_mgr->DeleteVals(num_fields, vals);
 	}
 
 bool LogWriter::RunPostProcessor(string fname, string postprocessor,

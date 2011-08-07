@@ -1,8 +1,6 @@
 # @TEST-EXEC: bro -r $TRACES/http-pipelined-requests.trace %INPUT > output
 # @TEST-EXEC: btest-diff http.log
 
-@load protocols/http
-
 # mime type is irrelevant to this test, so filter it out
 event bro_init()
 	{

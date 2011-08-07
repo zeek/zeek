@@ -86,7 +86,7 @@ export {
 	type parent_t: record {
 		cid: conn_id;
 		tunnel_type: tunneltype_t;
-	};
+	} &log;
 } # end export
 module GLOBAL;
 

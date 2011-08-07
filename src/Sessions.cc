@@ -135,7 +135,6 @@ NetSessions::NetSessions()
 		tunnel_handler = new TunnelHandler(this);
 	else
 		tunnel_handler = 0;
-	printf("tunnel_handler: %p\n", tunnel_handler);
 	}
 
 NetSessions::~NetSessions()

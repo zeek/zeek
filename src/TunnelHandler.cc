@@ -18,10 +18,22 @@
 TunnelHandler::TunnelHandler(NetSessions *arg_s) 
 	{
 	s = arg_s;
+	PortVal *pv = 0;
+	TableVal *udp_tunnel_ports = BifConst::Tunnel::udp_tunnel_ports->AsTableVal();
+	// Find UDP ports we want to analyze. Store them in an array for faster
+	// lookup. 
 	for (int i=0; i< 65536; i++)
-		udp_ports[i] = 0;
-	udp_ports[3544] = 1;
-	udp_ports[5072] = 1;
+		{
+		Unref(pv);
+		pv = new PortVal(i, TRANSPORT_UDP);
+		if (udp_tunnel_ports->Lookup(pv, false)) 
+			{
+			udp_ports[i] = 1;
+			}
+		else 
+			udp_ports[i] = 0;
+		}
+	Unref(pv);
 	}
 
 TunnelInfo* TunnelHandler::DecapsulateTunnel(const IP_Hdr *ip_hdr, int len, int caplen, 

@@ -515,12 +515,6 @@ const packet_sort_window = 0 usecs &redef;
 # state accrual.
 const frag_timeout = 0.0 sec &redef;
 
-# If positive, indicates the encapsulation header size that should
-# be skipped over for each captured packet ....
-const encap_hdr_size = 0 &redef;
-# ... or just for the following UDP port.
-const tunnel_port = 0/udp &redef;
-
 # Whether to use the ConnSize analyzer to count the number of
 # packets and IP-level bytes transfered by each endpoint. If
 # true, these values are returned in the connection's endpoint

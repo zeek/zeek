@@ -177,62 +177,6 @@ void NetSessions::DispatchPacket(double t, const struct pcap_pkthdr* hdr,
 			ip_data = pkt + hdr_size + (ip_hdr->ip_hl << 2);
 		}
 
-	if ( encap_hdr_size > 0 && ip_data )
-		{
-		// We're doing tunnel encapsulation.  Check whether there's
-		// a particular associated port.
-		//
-		// Should we discourage the use of encap_hdr_size for UDP
-		// tunnneling?  It is probably better handled by enabling
-		// BifConst::parse_udp_tunnels instead of specifying a fixed
-		// encap_hdr_size.
-		if ( udp_tunnel_port > 0 )
-			{
-			ASSERT(ip_hdr);
-			if ( ip_hdr->ip_p == IPPROTO_UDP )
-				{
-				const struct udphdr* udp_hdr =
-					reinterpret_cast<const struct udphdr*>
-					(ip_data);
-
-				if ( ntohs(udp_hdr->uh_dport) == udp_tunnel_port )
-					{
-					// A match.
-					hdr_size += encap_hdr_size;
-					}
-				}
-			}
-
-		else
-			// Blanket encapsulation
-			hdr_size += encap_hdr_size;
-		}
-
-	// Check IP packets encapsulated through UDP tunnels.
-	// Specifying a udp_tunnel_port is optional but recommended (to avoid
-	// the cost of checking every UDP packet).
-	else if ( BifConst::parse_udp_tunnels && ip_data && ip_hdr->ip_p == IPPROTO_UDP )
-		{
-		const struct udphdr* udp_hdr =
-			reinterpret_cast<const struct udphdr*>(ip_data);
-
-		if ( udp_tunnel_port == 0 || // 0 matches any port
-		     udp_tunnel_port == ntohs(udp_hdr->uh_dport) )
-			{
-			const u_char* udp_data =
-				ip_data + sizeof(struct udphdr);
-			const struct ip* ip_encap =
-				reinterpret_cast<const struct ip*>(udp_data);
-			const int ip_encap_len =
-				ntohs(udp_hdr->uh_ulen) - sizeof(struct udphdr);
-			const int ip_encap_caplen =
-				hdr->caplen - (udp_data - pkt);
-
-			if ( looks_like_IPv4_packet(ip_encap_len, ip_encap) )
-				hdr_size = udp_data - pkt;
-			}
-		}
-
 	if ( src_ps->FilterType() == TYPE_FILTER_NORMAL )
 		NextPacket(t, hdr, pkt, hdr_size, pkt_elem);
 	else

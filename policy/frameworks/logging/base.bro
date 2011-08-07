@@ -27,6 +27,17 @@ export {
 		ev: any &optional;
 	};
 
+	## Default function for building the path values for log filters if not
+	## speficied otherwise by a filter. The default implementation uses ``id``
+	## to derive a name.
+	##
+	## id: The log stream.
+	## path: A suggested path value, which may be either the filter's ``path``
+	## if defined or a fall-back generated internally.
+	##
+	## Returns: The path to be used for the filter.
+	global default_path_func: function(id: ID, path: string) : string &redef;
+
 	## Filter customizing logging.
 	type Filter: record {
 		## Descriptive name to reference this filter.
@@ -149,6 +160,12 @@ function __default_rotation_postprocessor(info: RotationInfo) : bool
 		return default_rotation_postprocessors[info$writer](info);
 	}
 
+function default_path_func(id: ID, path: string) : string
+	{
+	# TODO for Seth: Do what you want. :)
+	return path;
+	}
+
 # Run post-processor on file. If there isn't any postprocessor defined,
 # we move the file to a nicer name.
 function run_rotation_postprocessor_cmd(info: RotationInfo, npath: string) : bool
@@ -185,6 +202,12 @@ function disable_stream(id: ID) : bool
 
 function add_filter(id: ID, filter: Filter) : bool
 	{
+	# This is a work-around for the fact that we can't forward-declare
+	# the default_path_func and then use it as &default in the record
+	# definition.
+	if ( ! filter?$path_func )
+		filter$path_func = default_path_func;
+
 	filters[id, filter$name] = filter;
 	return __add_filter(id, filter);
 	}

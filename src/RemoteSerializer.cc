@@ -3060,13 +3060,6 @@ bool RemoteSerializer::IsActive()
 	return false;
 	}
 
-
-const char* const* RemoteSerializer::GetBuiltins() const
-	{
-	static const char* builtins[] = { "connect", "listen", 0 };
-	return builtins;
-	}
-
 void RemoteSerializer::ReportError(const char* msg)
 	{
 	if ( current_peer && current_peer->phase != Peer::SETUP )

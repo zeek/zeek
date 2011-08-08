@@ -40,7 +40,7 @@ typedef unsigned char 		uint8;
 typedef unsigned short 		uint16;
 typedef unsigned int		uint32;
 typedef unsigned long long	uint64;
-typedef void		*nullptr;
+typedef void		*nulptr;
 typedef void		*voidptr;
 typedef uint8		*byteptr;
 typedef const uint8	*const_byteptr;

@@ -1,10 +1,8 @@
 ##! This script loads everything in the base/ script directory.  If you want
-##! to run Bro without all of these scripts loaded by default, you can define
-##! the BRO_NO_BASE_SCRIPTS environment variable to any value.  You can also
-##! copy the "@load" lines from this script to your own script to load only
-##! the scripts that you actually want.
-
-@if ( getenv("BRO_NO_BASE_SCRIPTS") == "" )
+##! to run Bro without all of these scripts loaded by default, you can use
+##! the -b (--bare-mode) command line argument.  You can also copy the "@load"
+##! lines from this script to your own script to load only the scripts that 
+##! you actually want.
 
 @load base/utils/site
 @load base/utils/addrs
@@ -17,7 +15,8 @@
 @load base/utils/strings
 @load base/utils/thresholds
 
-# This has some weird interplay between types and BiFs so it's loaded in bro.init
+# This has some deep interplay between types and BiFs so it's 
+# loaded in base/init-bare.bro
 #@load base/frameworks/logging
 @load base/frameworks/notice
 @load base/frameworks/dpd
@@ -40,5 +39,3 @@
 @load base/protocols/ssh
 @load base/protocols/ssl
 @load base/protocols/syslog
-
-@endif

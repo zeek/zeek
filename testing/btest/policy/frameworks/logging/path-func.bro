@@ -1,5 +1,5 @@
 
-# @TEST-EXEC: BRO_NO_BASE_SCRIPTS=1 bro %INPUT
+# @TEST-EXEC: bro -b %INPUT
 # @TEST-EXEC: ( ls static-*; cat static-* ) >output
 # @TEST-EXEC: btest-diff output
 

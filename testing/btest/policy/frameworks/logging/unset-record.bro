@@ -1,5 +1,5 @@
 #
-# @TEST-EXEC: BRO_NO_BASE_SCRIPTS=1 bro %INPUT
+# @TEST-EXEC: bro -b %INPUT
 # @TEST-EXEC: btest-diff testing.log
 
 redef enum Log::ID += { TESTING };

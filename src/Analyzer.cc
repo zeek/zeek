@@ -39,6 +39,7 @@
 #include "ConnSizeAnalyzer.h"
 #include "MODBUS.h"
 #include "DNP3.h"
+#include "DNP3-TCP.h"
 
 // Keep same order here as in AnalyzerTag definition!
 const Analyzer::Config Analyzer::analyzer_configs[] = {
@@ -151,6 +152,10 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 	{ AnalyzerTag::Dnp3, "DNP3",
 		DNP3_Analyzer::InstantiateAnalyzer,
 		DNP3_Analyzer::Available, 0, false },
+
+	{ AnalyzerTag::Dnp3, "DNP3-TCP",
+		DNP3TCP_Analyzer::InstantiateAnalyzer,
+		DNP3TCP_Analyzer::Available, 0, false },
 
 
 	{ AnalyzerTag::File, "FILE", File_Analyzer::InstantiateAnalyzer,

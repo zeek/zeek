@@ -205,6 +205,9 @@ binpac_target(modbus.pac
     modbus-protocol.pac modbus-analyzer.pac)
 binpac_target(dnp3.pac
     dnp3-protocol.pac dnp3-analyzer.pac)
+binpac_target(dnp3-tcp.pac
+    dnp3-tcp-protocol.pac dnp3-tcp-analyzer.pac)
+
 #Hui Lin
 
 
@@ -410,6 +413,7 @@ set(bro_SRCS
     strsep.c
     MODBUS.cc
     DNP3.cc
+    DNP3-TCP.cc
     ${dns_SRCS}
     ${malloc_SRCS}
     ${openssl_SRCS}

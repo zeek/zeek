@@ -89,10 +89,10 @@ bool LogWriter::SetBuf(bool enabled)
 	return true;
 	}
 
-bool LogWriter::Rotate(string rotated_path, string postprocessor, double open,
+bool LogWriter::Rotate(string rotated_path, double open,
 		       double close, bool terminating)
 	{
-	if ( ! DoRotate(rotated_path, postprocessor, open, close, terminating) )
+	if ( ! DoRotate(rotated_path, open, close, terminating) )
 		{
 		disabled = true;
 		return false;
@@ -151,42 +151,8 @@ void LogWriter::DeleteVals(LogVal** vals)
 	log_mgr->DeleteVals(num_fields, vals);
 	}
 
-bool LogWriter::RunPostProcessor(string fname, string postprocessor,
-				 string old_name, double open, double close,
-				 bool terminating)
+bool LogWriter::FinishedRotation(string new_name, string old_name, double open,
+				 double close, bool terminating)
 	{
-	// This function operates in a way that is backwards-compatible with
-	// the old Bro log rotation scheme.
-
-	if ( ! postprocessor.size() )
-		return true;
-
-	const char* const fmt = "%y-%m-%d_%H.%M.%S";
-
-	struct tm tm1;
-	struct tm tm2;
-
-	time_t tt1 = (time_t)open;
-	time_t tt2 = (time_t)close;
-
-	localtime_r(&tt1, &tm1);
-	localtime_r(&tt2, &tm2);
-
-	char buf1[128];
-	char buf2[128];
-
-	strftime(buf1, sizeof(buf1), fmt, &tm1);
-	strftime(buf2, sizeof(buf2), fmt, &tm2);
-
-	string cmd = postprocessor;
-	cmd += " " + fname;
-	cmd += " " + old_name;
-	cmd += " " + string(buf1);
-	cmd += " " + string(buf2);
-	cmd += " " + string(terminating ? "1" : "0");
-	cmd += " &";
-
-	system(cmd.c_str());
-
-	return true;
+	return log_mgr->FinishedRotation(this, new_name, old_name, open, close, terminating);
 	}

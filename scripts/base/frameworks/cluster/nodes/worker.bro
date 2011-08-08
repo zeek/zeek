@@ -8,7 +8,7 @@ redef Log::enable_local_logging = F;
 redef Log::enable_remote_logging = T;
 
 ## Use the cluster's delete-log script.
-redef Log::default_rotation_postprocessor = "delete-log";
+redef Log::default_rotation_postprocessor_cmd = "delete-log";
 
 ## Record all packets into trace file.
 # TODO: should we really be setting this to T?

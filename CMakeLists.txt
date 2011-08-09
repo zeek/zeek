@@ -205,7 +205,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 ## Recurse on sub-directories
 
 add_subdirectory(src)
-add_subdirectory(policy)
+add_subdirectory(scripts)
 add_subdirectory(doc)
 
 include(CheckOptionalBuildSources)

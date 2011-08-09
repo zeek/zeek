@@ -95,7 +95,7 @@ public:
 	bool SendPing(PeerID peer, uint32 seq);
 
 	// Broadcast remote print.
-	bool SendPrintHookEvent(BroFile* f, const char* txt);
+	bool SendPrintHookEvent(BroFile* f, const char* txt, size_t len);
 
 	// Send a request to create a writer on a remote side.
 	bool SendLogCreateWriter(PeerID peer, EnumVal* id, EnumVal* writer, string path, int num_fields, const LogField* const * fields);
@@ -127,10 +127,6 @@ public:
 
 	// Log some statistics.
 	void LogStats();
-
-	// Return a 0-terminated array of built-in functions which,
-	// when referenced, trigger the remote serializer's initialization.
-	const char* const* GetBuiltins() const;
 
 	// Tries to sent out all remaining data.
 	// FIXME: Do we still need this?

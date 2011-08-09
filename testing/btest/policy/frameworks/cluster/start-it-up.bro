@@ -20,8 +20,6 @@ redef Cluster::nodes = {
 };
 @TEST-END-FILE
 
-@load frameworks/cluster
-
 event remote_connection_handshake_done(p: event_peer)
 	{
 	print "Connected to a peer";

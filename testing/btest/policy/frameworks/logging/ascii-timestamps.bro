@@ -1,5 +1,5 @@
-# @TEST-USE-PROFILES dataseries
-# @TEST-EXEC: bro %INPUT
+#
+# @TEST-EXEC: bro -b %INPUT
 # @TEST-EXEC: btest-diff test.log
 
 module Test;

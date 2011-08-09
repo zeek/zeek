@@ -1,0 +1,73 @@
+# @TEST-EXEC: bro %INPUT >output
+# @TEST-EXEC: btest-diff output
+
+# These are loaded by default.
+#@load base/utils/site
+#@load base/utils/directions-and-hosts
+
+redef Site::local_nets += { 10.0.0.0/8 };
+
+global local_ip = 10.0.0.100;
+global remote_ip = 192.168.1.100;
+
+global local2local: conn_id = [
+    $orig_h = 10.0.0.100, $orig_p = 10000,
+    $resp_h = 10.0.0.200, $resp_p = 20000 ];
+
+global local2remote: conn_id = [
+    $orig_h = 10.0.0.100,    $orig_p = 10000,
+    $resp_h = 192.168.1.100, $resp_p = 20000 ];
+
+global remote2local: conn_id = [
+    $orig_h = 192.168.1.100,    $orig_p = 10000,
+    $resp_h = 10.0.0.100,       $resp_p = 20000 ];
+
+global remote2remote: conn_id = [
+    $orig_h = 192.168.1.100, $orig_p = 10000,
+    $resp_h = 192.168.1.200, $resp_p = 20000 ];
+
+function test_host(ip: addr, h: Host, expect: bool)
+	{
+	local result = addr_matches_host(ip, h);
+	print fmt("%s(%s) == %s: %s", h, ip, expect,
+	          result == expect ? "SUCCESS" : "FAIL");
+	}
+
+function test_dir(id: conn_id, d: Direction, expect: bool)
+	{
+	local result = id_matches_direction(id, d);
+	print fmt("%s(o: %s, r: %s) == %s: %s", d, id$orig_h, id$resp_h, expect,
+	          result == expect ? "SUCCESS" : "FAIL");
+	}
+
+event bro_init()
+	{
+	test_host(local_ip,  LOCAL_HOSTS,  T);
+	test_host(local_ip,  REMOTE_HOSTS, F);
+	test_host(local_ip,  ALL_HOSTS,    T);
+	test_host(local_ip,  NO_HOSTS,     F);
+	test_host(remote_ip, LOCAL_HOSTS,  F);
+	test_host(remote_ip, REMOTE_HOSTS, T);
+	test_host(remote_ip, ALL_HOSTS,    T);
+	test_host(remote_ip, NO_HOSTS,     F);
+
+	test_dir(local2local,   INBOUND,       F);
+	test_dir(local2remote,  INBOUND,       F);
+	test_dir(remote2local,  INBOUND,       T);
+	test_dir(remote2remote, INBOUND,       F);
+
+	test_dir(local2local,   OUTBOUND,      F);
+	test_dir(local2remote,  OUTBOUND,      T);
+	test_dir(remote2local,  OUTBOUND,      F);
+	test_dir(remote2remote, OUTBOUND,      F);
+
+	test_dir(local2local,   BIDIRECTIONAL, F);
+	test_dir(local2remote,  BIDIRECTIONAL, T);
+	test_dir(remote2local,  BIDIRECTIONAL, T);
+	test_dir(remote2remote, BIDIRECTIONAL, F);
+
+	test_dir(local2local,   NO_DIRECTION,  F);
+	test_dir(local2remote,  NO_DIRECTION,  F);
+	test_dir(remote2local,  NO_DIRECTION,  F);
+	test_dir(remote2remote, NO_DIRECTION,  F);
+	}

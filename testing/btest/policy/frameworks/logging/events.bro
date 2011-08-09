@@ -1,5 +1,5 @@
-# @TEST-USE-PROFILES dataseries
-# @TEST-EXEC: bro %INPUT >output
+
+# @TEST-EXEC: bro -b %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 module SSH;

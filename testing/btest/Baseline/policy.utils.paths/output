@@ -1,0 +1,84 @@
+test compress_path()
+===============================
+Given : foo//bar
+Expect: foo/bar
+Result: foo/bar
+Result: SUCCESS
+===============================
+Given : foo//bar/..
+Expect: foo
+Result: foo
+Result: SUCCESS
+===============================
+Given : foo/bar/../..
+Expect: 
+Result: 
+Result: SUCCESS
+===============================
+Given : foo//bar/../..
+Expect: 
+Result: 
+Result: SUCCESS
+===============================
+Given : /foo/../bar
+Expect: /bar
+Result: /bar
+Result: SUCCESS
+===============================
+Given : /foo/../bar/..
+Expect: /
+Result: /
+Result: SUCCESS
+===============================
+Given : /foo/baz/../..
+Expect: /
+Result: /
+Result: SUCCESS
+===============================
+Given : ../..
+Expect: ../..
+Result: ../..
+Result: SUCCESS
+===============================
+Given : foo/../../..
+Expect: ../..
+Result: ../..
+Result: SUCCESS
+===============================
+test extract_path()
+===============================
+Given : "/this/is/a/dir" is current directory
+Expect: /this/is/a/dir
+Result: /this/is/a/dir
+Result: SUCCESS
+===============================
+Given : /this/is/a/dir is current directory
+Expect: /this/is/a/dir
+Result: /this/is/a/dir
+Result: SUCCESS
+===============================
+Given : /this/is/a/dir\ is\ current\ directory
+Expect: /this/is/a/dir\ is\ current\ directory
+Result: /this/is/a/dir\ is\ current\ directory
+Result: SUCCESS
+===============================
+Given : hey, /foo/bar/baz.bro is a cool script
+Expect: /foo/bar/baz.bro
+Result: /foo/bar/baz.bro
+Result: SUCCESS
+===============================
+Given : here's two dirs: /foo/bar and /foo/baz
+Expect: /foo/bar
+Result: /foo/bar
+Result: SUCCESS
+===============================
+test build_path_compressed()
+===============================
+/home/bro/policy/somefile.bro
+/usr/local/bro/share/bro/somefile.bro
+/usr/local/bro/somefile.bro
+===============================
+test build_full_path()
+===============================
+/home/bro//policy/somefile.bro
+/usr/local/bro/share/bro/somefile.bro

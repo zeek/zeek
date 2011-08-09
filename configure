@@ -179,6 +179,7 @@ while [ $# -ne 0 ]; do
             append_cache_entry LibGeoIP_ROOT_DIR PATH $optarg
             ;;
         --with-perftools=*)
+            append_cache_entry ENABLE_PERFTOOLS     BOOL   true
             append_cache_entry GooglePerftools_ROOT_DIR PATH $optarg
             ;;
         --with-python=*)

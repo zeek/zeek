@@ -20,8 +20,9 @@ if [ -e ${backupNamesFile} ]; then
 
         if [ $? -eq 0 ]; then
             # if the installed version and the backup version don't differ
-            # then we can remove the backup version
+            # then we can remove the backup version and the example file
             rm ${backupFile}
+            rm ${origFileName}.example
         else
             # The backup file differs from the newly installed version,
             # since we can't tell if the backup version has been modified

@@ -231,7 +231,6 @@ bool Expr::DoUnserialize(UnserialInfo* info)
 NameExpr::NameExpr(ID* arg_id) : Expr(EXPR_NAME)
 	{
 	id = arg_id;
-	ReferenceID();
 	SetType(id->Type()->Ref());
 
 	EventHandler* h = event_registry->Lookup(id->Name());
@@ -242,29 +241,6 @@ NameExpr::NameExpr(ID* arg_id) : Expr(EXPR_NAME)
 NameExpr::~NameExpr()
 	{
 	Unref(id);
-	}
-
-void NameExpr::ReferenceID()
-	{
-	// ### This is a hack. We check whether one of the remote serializer's
-	// built-in functions is referenced. If so, we activate the serializer.
-	// A better solution would be to either (1) a generic mechanism in
-	// which have (internal) attributes associated with identifiers and
-	// as we see references to the identifiers, we do bookkeeping
-	// associated with their attribute (so in this case the attribute
-	// would be "flag that inter-Bro communication is being used"),
-	// or (2) after the parse is done, we'd query whether these
-	// particular identifiers were seen, rather than doing the test
-	// here for every NameExpr we create.
-	if ( id->Type()->Tag() == TYPE_FUNC )
-		{
-		const char* const* builtins = remote_serializer->GetBuiltins();
-		while( *builtins )
-			{
-			if ( streq(id->Name(), *builtins++) )
-				using_communication = true;
-			}
-		}
 	}
 
 Expr* NameExpr::Simplify(SimplifyType simp_type)
@@ -392,8 +368,6 @@ bool NameExpr::DoUnserialize(UnserialInfo* info)
 
 	if ( ! id )
 		return false;
-
-	ReferenceID();
 
 	return true;
 	}

@@ -84,7 +84,7 @@ macro(REST_TARGET srcDir broInput)
     elseif (${extension} STREQUAL ".bif.bro")
         set(group bifs)
     elseif (relDstDir)
-        set(pkgIndex policy/${relDstDir}/index)
+        set(pkgIndex scripts/${relDstDir}/index)
         set(group ${pkgIndex})
         # add package index to master package list if not already in it
         list(FIND MASTER_PKG_LIST ${pkgIndex} _found)
@@ -220,10 +220,10 @@ add_custom_target(doc
                   # working copy of the template documentation
                   COMMAND "${CMAKE_COMMAND}" -E copy_directory
                           ${RST_OUTPUT_DIR}
-                          ${DOC_SOURCE_WORKDIR}/policy
+                          ${DOC_SOURCE_WORKDIR}/scripts
                   # append to the master index of all policy scripts
                   COMMAND cat ${MASTER_POLICY_INDEX} >>
-                          ${DOC_SOURCE_WORKDIR}/policy/index.rst
+                          ${DOC_SOURCE_WORKDIR}/scripts/index.rst
                   # append to the master index of all policy packages
                   COMMAND cat ${MASTER_PACKAGE_INDEX} >>
                           ${DOC_SOURCE_WORKDIR}/packages.rst

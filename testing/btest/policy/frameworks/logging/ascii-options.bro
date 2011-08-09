@@ -1,8 +1,6 @@
-# @TEST-USE-PROFILES dataseries
-# @TEST-EXEC: bro %INPUT
+#
+# @TEST-EXEC: bro -b %INPUT
 # @TEST-EXEC: btest-diff ssh.log
-
-@load frameworks/logging/plugins/ascii
 
 redef LogAscii::output_to_stdout = F;
 redef LogAscii::separator = "|";

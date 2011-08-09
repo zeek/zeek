@@ -3,7 +3,7 @@ Test Suite for Large Trace Files
 ================================
 
 This test-suite runs more complex Bro configurations on larger trace
-files, and compares the results to a preestablished baseline. Due to
+files, and compares the results to a pre-established baseline. Due to
 their size, both traces and baseline are not part of the main Bro
 repository but kept externally. In addition to the publically provided
 files, one can also add a local set to the test-suite for running on
@@ -31,7 +31,8 @@ Running Tests
 
 The easiest way to run all tests is simply typing ``make``. Doing so
 will iterate through all git repositories found in the current
-directory and run ``btest`` in each of them.
+directory and run the tests in there. Output for failed tests will be
+in files ``diag.log`` in the top-level repository directories.
 
 Alternatively, one can also manually run all tests inside a single
 test repository:

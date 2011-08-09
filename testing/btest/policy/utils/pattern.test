@@ -1,0 +1,17 @@
+# @TEST-EXEC: bro %INPUT >output
+# @TEST-EXEC: btest-diff output
+
+# This is loaded by default.
+#@load base/utils/pattern
+
+global r1 = set_to_regex(set("blah", "bleh", "blarg"), "(~~)");
+global r2 = set_to_regex(set("blah", "bleh", "blarg"), "foo(~~)bar");
+
+print r1;
+print "blah" == r1;
+
+print r2;
+print "fooblargbar" == r2;
+
+print match_pattern("123blah123", r1);
+print match_pattern("no match here", r1);

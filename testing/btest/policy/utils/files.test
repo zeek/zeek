@@ -1,0 +1,13 @@
+# @TEST-EXEC: bro -r $TRACES/wikipedia.trace %INPUT >output
+# @TEST-EXEC: btest-diff output
+
+# This is loaded by default.
+#@load base/utils/files
+
+event connection_established(c: connection)
+	{
+	print generate_extraction_filename("test-prefix", c, "test-suffix");
+	print generate_extraction_filename("test-prefix", c, "");
+	print generate_extraction_filename("", c, "test-suffix");
+	print generate_extraction_filename("", c, "");
+	}

@@ -4,19 +4,19 @@
 # @TEST-EXEC: btest-bg-run receiver bro --pseudo-realtime %INPUT ../receiver.bro
 # @TEST-EXEC: sleep 1
 # @TEST-EXEC: btest-bg-wait -k 1
-# @TEST-EXEC: btest-diff sender/ssh.log
-# @TEST-EXEC: btest-diff sender/ssh.failure.log
-# @TEST-EXEC: btest-diff sender/ssh.success.log
-# @TEST-EXEC: cmp receiver/ssh.log sender/ssh.log
-# @TEST-EXEC: cmp receiver/ssh.failure.log sender/ssh.failure.log
-# @TEST-EXEC: cmp receiver/ssh.success.log sender/ssh.success.log
+# @TEST-EXEC: btest-diff sender/test.log
+# @TEST-EXEC: btest-diff sender/test.failure.log
+# @TEST-EXEC: btest-diff sender/test.success.log
+# @TEST-EXEC: cmp receiver/test.log sender/test.log
+# @TEST-EXEC: cmp receiver/test.failure.log sender/test.failure.log
+# @TEST-EXEC: cmp receiver/test.success.log sender/test.success.log
 
 # This is the common part loaded by both sender and receiver.
-module SSH;
+module Test;
 
 export {
 	# Create a new ID for our log stream
-	redef enum Log::ID += { SSH };
+	redef enum Log::ID += { TEST };
 
 	# Define a record with all the columns the log file can have.
 	# (I'm using a subset of fields from ssh-ext for demonstration.)
@@ -30,15 +30,15 @@ export {
 
 event bro_init()
 {
-	Log::create_stream(SSH, [$columns=Log]);
-	Log::add_filter(SSH, [$name="f1", $path="ssh.success", $pred=function(rec: Log): bool { return rec$status == "success"; }]);
+	Log::create_stream(TEST, [$columns=Log]);
+	Log::add_filter(TEST, [$name="f1", $path="test.success", $pred=function(rec: Log): bool { return rec$status == "success"; }]);
 }
 
 #####
 
 @TEST-START-FILE sender.bro
 
-module SSH;
+module Test;
 
 @load frameworks/communication/listen-clear
 
@@ -49,26 +49,24 @@ function fail(rec: Log): bool
 
 event remote_connection_handshake_done(p: event_peer)
 	{
-	Log::add_filter(SSH, [$name="f2", $path="ssh.failure", $pred=fail]);
+	Log::add_filter(TEST, [$name="f2", $path="test.failure", $pred=fail]);
 
     local cid = [$orig_h=1.2.3.4, $orig_p=1234/tcp, $resp_h=2.3.4.5, $resp_p=80/tcp];
 
 	local r: Log = [$t=network_time(), $id=cid, $status="success"];
 
 	# Log something.
-	Log::write(SSH, r);
-	Log::write(SSH, [$t=network_time(), $id=cid, $status="failure", $country="US"]);
-	Log::write(SSH, [$t=network_time(), $id=cid, $status="failure", $country="UK"]);
-	Log::write(SSH, [$t=network_time(), $id=cid, $status="success", $country="BR"]);
-	Log::write(SSH, [$t=network_time(), $id=cid, $status="failure", $country="MX"]);
+	Log::write(TEST, r);
+	Log::write(TEST, [$t=network_time(), $id=cid, $status="failure", $country="US"]);
+	Log::write(TEST, [$t=network_time(), $id=cid, $status="failure", $country="UK"]);
+	Log::write(TEST, [$t=network_time(), $id=cid, $status="success", $country="BR"]);
+	Log::write(TEST, [$t=network_time(), $id=cid, $status="failure", $country="MX"]);
 	}
 @TEST-END-FILE
 
 @TEST-START-FILE receiver.bro
 
 #####
-
-@load frameworks/communication
 
 redef Communication::nodes += {
     ["foo"] = [$host = 127.0.0.1, $connect=T, $request_logs=T]

@@ -2385,7 +2385,7 @@ bool RemoteSerializer::FlushPrintBuffer(Peer* p)
 	return true;
 	}
 
-bool RemoteSerializer::SendPrintHookEvent(BroFile* f, const char* txt)
+bool RemoteSerializer::SendPrintHookEvent(BroFile* f, const char* txt, size_t len)
 	{
 	loop_over_list(peers, i)
 		{
@@ -2397,8 +2397,6 @@ bool RemoteSerializer::SendPrintHookEvent(BroFile* f, const char* txt)
 		const char* fname = f->Name();
 		if ( ! fname )
 			continue; // not a managed file.
-
-		size_t len = strlen(txt);
 
 		// We cut off everything after the max buffer size.  That
 		// makes the code a bit easier, and we shouldn't have such
@@ -3060,13 +3058,6 @@ bool RemoteSerializer::IsActive()
 			return true;
 
 	return false;
-	}
-
-
-const char* const* RemoteSerializer::GetBuiltins() const
-	{
-	static const char* builtins[] = { "connect", "listen", 0 };
-	return builtins;
 	}
 
 void RemoteSerializer::ReportError(const char* msg)

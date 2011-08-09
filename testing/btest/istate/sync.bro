@@ -151,8 +151,6 @@ redef Communication::nodes += {
 
 @TEST-START-FILE receiver.bro
 
-@load frameworks/communication
-
 event bro_init()
     {
     capture_events("events.bst");

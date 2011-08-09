@@ -217,7 +217,6 @@ protected:
 	friend class Expr;
 	NameExpr()	{ id = 0; }
 
-	void ReferenceID();
 	void ExprDescribe(ODesc* d) const;
 
 	DECLARE_SERIAL(NameExpr);

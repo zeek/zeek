@@ -138,6 +138,7 @@ void usage()
 	fprintf(stderr, "bro version %s\n", bro_version());
 	fprintf(stderr, "usage: %s [options] [file ...]\n", prog);
 	fprintf(stderr, "    <file>                         | policy file, or read stdin\n");
+	fprintf(stderr, "    -b|--bare-mode                 | don't load scripts from the base/ directory\n");
 	fprintf(stderr, "    -d|--debug-policy              | activate policy file debugging\n");
 	fprintf(stderr, "    -e|--exec <bro code>           | augment loaded policies by given code\n");
 	fprintf(stderr, "    -f|--filter <filter>           | tcpdump filter\n");
@@ -349,6 +350,7 @@ int main(int argc, char** argv)
 	char* seed_load_file = getenv("BRO_SEED_FILE");
 	char* seed_save_file = 0;
 	char* user_pcap_filter = 0;
+	int bare_mode = false;
 	int seed = 0;
 	int dump_cfg = false;
 	int to_xml = 0;
@@ -358,6 +360,7 @@ int main(int argc, char** argv)
 	int RE_level = 4;
 
 	static struct option long_opts[] = {
+		{"bare-mode",	no_argument,		0,	'b'},
 		{"debug-policy",	no_argument,		0,	'd'},
 		{"dump-config",		no_argument,		0,	'g'},
 		{"exec",		required_argument,	0,	'e'},
@@ -438,7 +441,7 @@ int main(int argc, char** argv)
 	opterr = 0;
 
 	char opts[256];
-	safe_strncpy(opts, "B:D:e:f:I:i:K:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGLOPSWdghvZ",
+	safe_strncpy(opts, "B:D:e:f:I:i:K:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGLOPSWbdghvZ",
 		     sizeof(opts));
 
 #ifdef USE_PERFTOOLS
@@ -448,6 +451,10 @@ int main(int argc, char** argv)
 	int op;
 	while ( (op = getopt_long(argc, argv, opts, long_opts, &long_optsind)) != EOF )
 		switch ( op ) {
+		case 'b':
+			bare_mode = true;
+			break;
+			
 		case 'd':
 			fprintf(stderr, "Policy file debugging ON.\n");
 			g_policy_debug = true;
@@ -675,7 +682,9 @@ int main(int argc, char** argv)
 	timer_mgr = new PQ_TimerMgr("<GLOBAL>");
 	// timer_mgr = new CQ_TimerMgr();
 
-	add_input_file("bro.init");
+	add_input_file("base/init-bare.bro");
+	if ( ! bare_mode )
+		add_input_file("base/init-default.bro");
 
 	if ( optind == argc &&
 	     read_files.length() == 0 && flow_files.length() == 0 &&
@@ -870,9 +879,6 @@ int main(int argc, char** argv)
 
 		exit(0);
 		}
-
-	if ( using_communication )
-		remote_serializer->Init();
 
 	persistence_serializer->SetDir((const char *)state_dir->AsString()->CheckString());
 

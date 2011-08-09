@@ -1,0 +1,13 @@
+# @TEST-EXEC: bro %INPUT >output
+# @TEST-EXEC: btest-diff output
+
+# This is loaded by default.
+#@load base/utils/numbers
+
+print extract_count("These aren't the numbers you're looking for.");
+print extract_count("13These aren't the numbers you're looking for.");
+print extract_count("13 These aren't the numbers you're looking for.");
+print extract_count("These aren't the 13 numbers you're looking for.");
+print extract_count("These aren't the numbers you're looking for.13");
+print extract_count("These aren't the numbers you're looking for. 13");
+print extract_count("These aren't the 1abc3 numbers you're looking for.");

@@ -15,7 +15,7 @@ Contents_Rsh_Analyzer::Contents_Rsh_Analyzer(Connection* conn, bool orig,
 						Rsh_Analyzer* arg_analyzer)
 : ContentLine_Analyzer(AnalyzerTag::Contents_Rsh, conn, orig)
 	{
-	num_bytes_to_scan = num_bytes_to_scan = 0;
+	num_bytes_to_scan = 0;
 	analyzer = arg_analyzer;
 
 	if ( orig )

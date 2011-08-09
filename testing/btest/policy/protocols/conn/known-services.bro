@@ -15,10 +15,6 @@
 # @TEST-EXEC: bro -r $TRACES/var-services-std-ports.trace %INPUT KnownServices::asset_tracking=NO_HOSTS
 # @TEST-EXEC: test '!' -e known_services.log
 
-@load frameworks/dpd
 @load protocols/conn/known-services
-@load protocols/http
-@load protocols/ssh
-@load protocols/ftp
 
 redef Site::local_nets += {172.16.238.0/24};

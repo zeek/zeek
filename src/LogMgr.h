@@ -52,8 +52,15 @@ protected:
 
 	//// Functions safe to use by writers.
 
+	// Signals that a file has been rotated.
+	bool FinishedRotation(LogWriter* writer, string new_name, string old_name,
+			      double open, double close, bool terminating);
+
 	// Reports an error for the given writer.
 	void Error(LogEmissary* writer, const char* msg);
+
+	// Deletes the values as passed into Write().
+	void DeleteVals(int num_fields, LogVal** vals);
 
 private:
 	struct Filter;
@@ -73,6 +80,7 @@ private:
 	void Rotate(WriterInfo* info);
 	RecordVal* LookupRotationControl(EnumVal* writer, string path);
 	Filter* FindFilter(EnumVal* id, StringVal* filter);
+	WriterInfo* FindWriter(LogWriter* writer);
 
 	vector<Stream *> streams;	// Indexed by stream enum.
 };

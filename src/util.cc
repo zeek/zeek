@@ -1229,13 +1229,13 @@ uint64 calculate_unique_id(const std::string& pool)
 	if ( pool_iter == uid_pool.end() )
 		{
 		// This is the first time we need a UID for this pool.
-		const size_t pool_sz = (pool.length() < 32) ? pool.length() : 32;  //Only keep the first 32 characters of the pool name
 		if ( ! have_random_seed() )
 			{
 			// If we don't need deterministic output (as
 			// indicated by a set seed), we calculate the
 			// instance ID by hashing something likely to be
 			// globally unique.
+			const size_t pool_sz = (pool.length() < 32) ? pool.length() : 32;  //Only keep the first 32 characters of the pool name
 			struct {
 				char hostname[96];
 				char pool[32];
@@ -1258,7 +1258,7 @@ uint64 calculate_unique_id(const std::string& pool)
 		else
 			{
 			// Generate determistic UIDs for each individual pool
-			uid_instance = HashKey::HashBytes(pool.c_str(), strnlen(pool.c_str(), pool_sz));
+			uid_instance = HashKey::HashBytes(pool.c_str(), pool.length());
 			}
 		// Guarantee no collisions (keep hashing until we get a unique instance)
 		bool found_collision = true;
@@ -1276,16 +1276,10 @@ uint64 calculate_unique_id(const std::string& pool)
 			}
 		// Our instance is unique.  Huzzah.
 		uid_pool.insert(std::make_pair(pool, BroUidEntry(uid_instance)));
-		pool_iter = uid_pool.end();
-		}
-	
-	if(pool_iter == uid_pool.end())
-		{
 		pool_iter = uid_pool.find(pool);
 		}
 	assert(pool_iter != uid_pool.end());  // After all that work, wouldn't it be a shame...?
 	++(pool_iter->second.counter);
-
 	uint64_t h = HashKey::HashBytes(&(pool_iter->second), sizeof(pool_iter->second));
 	return h;
 	}

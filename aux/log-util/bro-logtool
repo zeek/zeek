@@ -2,9 +2,9 @@
 import argparse
 import sys
 
-from broutil.BroLogManager import *
-from broutil.BroLogOptions import *
-from broutil.AsciiLogConverter import *
+from broutil.BroLogManager import BroLogManager
+from broutil.BroLogOptions import BroLogOptions
+from broutil.AsciiLogExporter import AsciiLogExporter
 
 def parse_args():
     parser = argparse.ArgumentParser(description='General-purpose tool for manipulating bro log files')
@@ -21,7 +21,7 @@ def test_iterate(manager):
         print e['id.resp_p']
 
 def test_export(manager):
-    manager['conn'].export(AsciiLogConverter)
+    manager['conn'].export(AsciiLogExporter)
 
 def test_stats(manager):
     connections = manager["conn"]  # or '.get("conn")
@@ -46,6 +46,6 @@ if __name__ == '__main__':
         print 'No log data of type "conn" found.  Exiting...'
         sys.exit(0)
     test_stats(manager)
-    test_iterate(manager)
-    test_export(manager)
+    # test_iterate(manager)
+    # test_export(manager)
 

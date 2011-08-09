@@ -1,10 +1,10 @@
 import atexit
 
-from AsciiLogSpec import *
-from DsLogSpec import *
-from OldConnLogSpec import *
+from AsciiLogSpec import AsciiLogSpec
+from DsLogSpec import DsLogSpec
+from OldConnLogSpec import OldConnLogSpec
 
-from BroLogUtil import *
+from BroLogUtil import BroLogUtil
 
 BroLogUtil.register_type('conn.log', OldConnLogSpec)
 BroLogUtil.register_type('log', AsciiLogSpec)

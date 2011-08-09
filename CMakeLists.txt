@@ -63,7 +63,8 @@ set(EXTRA_COMPILE_FLAGS "-Wall -Wno-unused")
 
 if (ENABLE_DEBUG)
     set(CMAKE_BUILD_TYPE Debug)
-    set(EXTRA_COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS} -DDEBUG")
+    # manual add of -g works around its omission in FreeBSD's CMake port
+    set(EXTRA_COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS} -g -DDEBUG")
 else ()
     set(CMAKE_BUILD_TYPE RelWithDebInfo)
 endif ()

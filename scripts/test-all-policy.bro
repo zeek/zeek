@@ -2,18 +2,17 @@
 # 
 # This is rarely makes sense, and is for testing only.
 # 
-# Note that we have unit test that makes sure that all policy files shipped are
+# Note that we have a unit test that makes sure that all policy files shipped are
 # actually loaded here. If we have files that are part of the distribution yet
 # can't be loaded here,  these must still be listed here with their load command
 # commented out.
 
 # The base/ scripts are all loaded by default and not included here.
 
-# @load test-all.bro
 # @load frameworks/communication/listen-clear.bro
 # @load frameworks/communication/listen-ssl.bro
-# @load frameworks/control/controllee
-# @load frameworks/control/controller
+# @load frameworks/control/controllee.bro
+# @load frameworks/control/controller.bro
 @load frameworks/dpd/detect-protocols.bro
 @load frameworks/dpd/packet-segment-logging.bro
 @load frameworks/software/version-changes.bro
@@ -27,6 +26,7 @@
 @load misc/trim-trace-file.bro
 @load protocols/conn/known-hosts.bro
 @load protocols/conn/known-services.bro
+# @load protocols/conn/scan.bro
 @load protocols/dns/auth-addl.bro
 @load protocols/dns/detect-external-names.bro
 @load protocols/ftp/detect.bro
@@ -50,4 +50,4 @@
 @load tuning/defaults/remove-high-volume-notices.bro
 @load tuning/defaults/warnings.bro
 @load tuning/track-all-assets.bro
-@load site/local
+# @load hot.conn.bro

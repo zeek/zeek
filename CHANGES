@@ -1,4 +1,9 @@
 
+1.6-dev-1061 | 2011-08-08 18:25:27 -0700
+
+  * A set of new/changed tests regarding the new policy script
+    organisation. (Robin Sommer)
+
 1.6-dev-1058 | 2011-08-08 16:15:18 -0700
 
   * Reorganisation of the scripts that Bro loads by default. (Seth

@@ -3414,10 +3414,16 @@ function bro_has_ipv6%(%) : bool
 function unique_id%(prefix: string%) : string
 	%{
 	char tmp[20];
-	uint64 uid = calculate_unique_id();
+	uint64 uid = calculate_unique_id(BRO_SCRIPT_UID_POOL);
 	return new StringVal(uitoa_n(uid, tmp, sizeof(tmp), 62, prefix->CheckString()));
 	%}
 
+function unique_id_from%(pool: string, prefix: string%) : string
+	%{
+	char tmp[20];
+	uint64 uid = calculate_unique_id(string((const char *)pool->Bytes(), pool->Len()));
+	return new StringVal(uitoa_n(uid, tmp, sizeof(tmp), 62, prefix->CheckString()));
+	%}
 %%{
 #include <openssl/x509.h>
 #include <openssl/asn1.h>

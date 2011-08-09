@@ -1,4 +1,4 @@
-@load protocols/mime/base
+@load ./base
 
 module MIME;
 

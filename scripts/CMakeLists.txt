@@ -1,9 +1,8 @@
 include(InstallPackageConfigFile)
 
-install(DIRECTORY ./ DESTINATION ${POLICYDIR} FILES_MATCHING
+install(DIRECTORY ./ DESTINATION ${BRO_SCRIPT_INSTALL_PATH} FILES_MATCHING
         PATTERN "all.bro" EXCLUDE
         PATTERN "site/local.bro" EXCLUDE
-        PATTERN "bro.init"
         PATTERN "*.bro"
         PATTERN "*.sig"
         PATTERN "*.osf"
@@ -13,6 +12,6 @@ install(DIRECTORY ./ DESTINATION ${POLICYDIR} FILES_MATCHING
 # user modify-able.
 InstallPackageConfigFile(
     ${CMAKE_CURRENT_SOURCE_DIR}/site/local.bro
-    ${POLICYDIR}/site
+    ${BRO_SCRIPT_INSTALL_PATH}/site
     local.bro)
 

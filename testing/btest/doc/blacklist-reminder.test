@@ -1,0 +1,8 @@
+# This test will fail if there are Bro scripts that have been temporarily
+# blacklisted from the documentation generation process for some reason
+# (e.g. they're a work-in-progress or otherwise fail to parse).  It's meant
+# to serve as a reminder that some future action may be needed to generate
+# documentation for the blacklisted scripts.
+#
+# @TEST-EXEC: $DIST/doc/scripts/genDocSourcesList.sh
+# @TEST-EXEC: btest-diff .stderr

@@ -1,4 +1,4 @@
-@load frameworks/notice
+@load base/frameworks/notice
 @load port-name
 
 module Scan;

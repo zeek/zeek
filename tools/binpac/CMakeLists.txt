@@ -49,7 +49,8 @@ if (NOT EXTRA_COMPILE_FLAGS)
     set(EXTRA_COMPILE_FLAGS "-Wall -Wno-unused")
 
     if (ENABLE_DEBUG)
-        set(EXTRA_COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS} -DDEBUG")
+        # manual add of -g works around its omission in FreeBSD's CMake port
+        set(EXTRA_COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS} -g -DDEBUG")
     endif ()
 
     # Compiler flags may already exist in CMake cache (e.g. when specifying

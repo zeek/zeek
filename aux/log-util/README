@@ -1,0 +1,6 @@
+This code is a work in progress.  The library is meant to offer a relatively simple way to work with bro log 
+files in python.  It is significantly slower than gawk + friends, but does feature transparent support for both
+ASCII (including .gz / .bz2) and DataSeries logs.  
+
+Note that the library uses file extensions to determine log type.
+

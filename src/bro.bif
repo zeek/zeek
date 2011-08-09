@@ -3631,7 +3631,14 @@ function piped_exec%(program: string, to_write: string%): bool
 		return new Val(false, TYPE_BOOL);
 		}
 
-	fprintf(f, "%s", to_write->CheckString());
+	const u_char* input_data = to_write->Bytes();
+	int input_data_len = to_write->Len();
+	int bytes_written = fwrite(input_data, 1, input_data_len, f);
+	if ( bytes_written != input_data_len )
+		{
+		reporter->Error("Failed to write all given data to %s", prog);
+		return new Val(false, TYPE_BOOL);
+		}
 	pclose(f);
 
 	return new Val(true, TYPE_BOOL);

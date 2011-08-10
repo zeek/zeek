@@ -1,6 +1,8 @@
 @load ./main
 @load base/frameworks/communication/main
 
+@if ( Cluster::node in Cluster::nodes )
+
 module Cluster;
 
 event bro_init() &priority=9
@@ -80,3 +82,5 @@ event bro_init() &priority=9
 			}
 		}
 	}
+
+@endif

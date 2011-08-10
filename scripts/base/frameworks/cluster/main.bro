@@ -60,8 +60,7 @@ event bro_init()
 	# If a node is given, but it's an unknown name we need to fail.
 	if ( node != "" && node !in nodes )
 		{
-		local msg = "You didn't supply a valid node in the Cluster::nodes configuration.";
-		event reporter_error(current_time(), msg, "");
+		Reporter::error(fmt("'%s' is not a valid node in the Cluster::nodes configuration", node));
 		terminate();
 		}
 	

@@ -1,5 +1,5 @@
 # depth	name
-0	scripts/base/bro.init
+0	scripts/base/init-bare.bro
 1	build/src/const.bif.bro
 1	build/src/types.bif.bro
 1	build/src/strings.bif.bro
@@ -10,7 +10,7 @@
 2	scripts/base/frameworks/logging/./main.bro
 3	build/src/logging.bif.bro
 2	scripts/base/frameworks/logging/./writers/ascii.bro
-0	scripts/base/all.bro
+0	scripts/base/init-default.bro
 1	scripts/base/utils/site.bro
 2	scripts/base/utils/./patterns.bro
 1	scripts/base/utils/addrs.bro

@@ -409,7 +409,8 @@ set(bro_SRCS
 
 collect_headers(bro_HEADERS ${bro_SRCS})
 
-add_definitions(-DPOLICYDEST="${POLICYDIR}")
+add_definitions(-DBRO_SCRIPT_INSTALL_PATH="${BRO_SCRIPT_INSTALL_PATH}")
+add_definitions(-DBRO_SCRIPT_SOURCE_PATH="${BRO_SCRIPT_SOURCE_PATH}")
 
 add_executable(bro ${bro_SRCS} ${bro_HEADERS})
 
@@ -424,7 +425,7 @@ set(brolibs
 target_link_libraries(bro ${brolibs})
 
 install(TARGETS bro DESTINATION bin)
-install(FILES ${INSTALL_BIF_OUTPUTS} DESTINATION ${POLICYDIR})
+install(FILES ${INSTALL_BIF_OUTPUTS} DESTINATION ${BRO_SCRIPT_INSTALL_PATH})
 
 set(BRO_EXE bro
     CACHE STRING "Bro executable binary" FORCE)

@@ -35,14 +35,16 @@ endif ()
 ## Project/Build Configuration
 
 set(BRO_ROOT_DIR ${CMAKE_INSTALL_PREFIX})
-if (NOT POLICYDIR)
-    # set the default policy installation path (user did not specify one)
-    set(POLICYDIR ${BRO_ROOT_DIR}/share/bro)
+if (NOT BRO_SCRIPT_INSTALL_PATH)
+    # set the default Bro script installation path (user did not specify one)
+    set(BRO_SCRIPT_INSTALL_PATH ${BRO_ROOT_DIR}/share/bro)
 endif ()
+set(BRO_SCRIPT_SOURCE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/scripts)
 
-# sanitize the policy install directory into an absolute path
+# sanitize the Bro script install directory into an absolute path
 # (CMake is confused by ~ as a representation of home directory)
-get_filename_component(POLICYDIR ${POLICYDIR} ABSOLUTE)
+get_filename_component(BRO_SCRIPT_INSTALL_PATH ${BRO_SCRIPT_INSTALL_PATH}
+    ABSOLUTE)
 
 configure_file(bro-path-dev.in ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev)
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev.sh
@@ -212,7 +214,7 @@ message(
     "\n====================|  Bro Build Summary  |====================="
     "\n"
     "\nInstall prefix:    ${CMAKE_INSTALL_PREFIX}"
-    "\nPolicy dir:        ${POLICYDIR}"
+    "\nBro Script Path:   ${BRO_SCRIPT_INSTALL_PATH}"
     "\nDebug mode:        ${ENABLE_DEBUG}"
     "\n"
     "\nCC:                ${CMAKE_C_COMPILER}"

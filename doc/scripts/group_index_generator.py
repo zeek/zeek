@@ -1,9 +1,8 @@
 #! /usr/bin/env python
 
 # This script automatically generates a reST documents that lists
-# a collection of Bro policy scripts that are "grouped" together.
-# The summary text (##! comments) of the policy script is embedded
-# in the list.
+# a collection of Bro scripts that are "grouped" together.
+# The summary text (##! comments) of the script is embedded in the list
 #
 # 1st argument is the file containing list of groups
 # 2nd argument is the directory containing ${group}_files lists of
@@ -57,6 +56,6 @@ with open(group_list, 'r') as f_group_list:
                     f_group_file.write("\n");
 
             with open(group_file, 'a') as f_group_file:
-                f_group_file.write("\n:doc:`/policy/%s`\n" % doc_names[i])
+                f_group_file.write("\n:doc:`/scripts/%s`\n" % doc_names[i])
                 for line in summary_comments:
                     f_group_file.write("   " + line)

@@ -1,5 +1,5 @@
 #
-# @TEST-EXEC: BRO_NO_BASE_SCRIPTS=1 bro -B logging %INPUT
+# @TEST-EXEC: bro -b -B logging %INPUT
 # @TEST-EXEC: btest-diff ssh.log
 # @TEST-EXEC: btest-diff ssh.failure.log
 

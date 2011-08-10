@@ -1,3 +1,5 @@
+@load base/frameworks/communication
+
 module Cluster;
 
 event bro_init() &priority=9

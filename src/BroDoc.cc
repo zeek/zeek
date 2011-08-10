@@ -20,8 +20,8 @@ BroDoc::BroDoc(const std::string& rel, const std::string& abs)
 
 	if ( rel[0] == '/' || rel[0] == '.' )
 		{
-		// The Bro script must not be on a subpath of the policy/ dir of
-		// BROPATH, so just use the basename as the document title.
+		// The Bro script isn't being loaded via BROPATH, so just use basename
+		// as the document title.
 		doc_title = source_filename;
 		}
 	else
@@ -33,8 +33,14 @@ BroDoc::BroDoc(const std::string& rel, const std::string& abs)
 			doc_title = rel + "/" + source_filename;
 		}
 
+	downloadable_filename = source_filename;
+
+	size_t ext_pos = downloadable_filename.find(".bif.bro");
+	if ( std::string::npos != ext_pos )
+		downloadable_filename.erase(ext_pos + 4);
+
 	reST_filename = doc_title;
-	size_t ext_pos = reST_filename.find(".bro");
+	ext_pos = reST_filename.find(".bro");
 
 	if ( std::string::npos == ext_pos )
 		reST_filename += ".rst";
@@ -103,14 +109,14 @@ void BroDoc::AddImport(const std::string& s)
 			{
 			if ( subpath[0] == '/' || subpath[0] == '.' )
 				{
-				// it's not a subpath of policy/, so just add the name of it
+				// it's not a subpath of scripts/, so just add the name of it
 				// as it's given in the @load directive
 				imports.push_back(lname);
 				}
 			else
 				{
 				// combine the base file name of script in the @load directive
-				// with the subpath of BROPATH's policy/ directory
+				// with the subpath of BROPATH's scripts/ directory
 				string fname(subpath);
 				char* othertmp = copy_string(lname.c_str());
 				fname.append("/").append(basename(othertmp));
@@ -167,7 +173,7 @@ void BroDoc::WriteDocFile() const
 	WriteSectionHeading(doc_title.c_str(), '=');
 
 	WriteToDoc("\n:download:`Original Source File <%s>`\n\n",
-		source_filename.c_str());
+		downloadable_filename.c_str());
 
 	WriteSectionHeading("Overview", '-');
 	WriteStringList("%s\n", "%s\n\n", summary);
@@ -185,7 +191,7 @@ void BroDoc::WriteDocFile() const
 			size_t pos = pretty.find("/index");
 			if ( pos != std::string::npos && pos + 6 == pretty.size() )
 				pretty = pretty.substr(0, pos);
-			WriteToDoc(":doc:`%s </policy/%s>`", pretty.c_str(), it->c_str());
+			WriteToDoc(":doc:`%s </scripts/%s>`", pretty.c_str(), it->c_str());
 			}
 		WriteToDoc("\n");
 		}

@@ -302,7 +302,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Conne
 		s += buffer;
 		s += "\n";
 
-		fprintf(out, s.c_str());
+		fprintf(out, "%s", s.c_str());
 		}
 
 	if ( alloced )

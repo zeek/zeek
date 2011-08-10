@@ -15,6 +15,10 @@ export {
 		ts:                time            &log;
 		uid:               string          &log;
 		id:                conn_id         &log;
+		## This is an internally generated "message id" that can be used to
+		## map between SMTP messages and MIME entities in the SMTP entities
+		## log.
+		mid:               string          &log;
 		helo:              string          &log &optional;
 		mailfrom:          string          &log &optional;
 		rcptto:            set[string]     &log &optional;
@@ -30,19 +34,13 @@ export {
 		second_received:   string          &log &optional;
 		## The last message the server sent to the client.
 		last_reply:        string          &log &optional;
-		files:             set[string]     &log &optional;
 		path:              vector of addr  &log &optional;
 		user_agent:        string          &log &optional;
 		
-		## Indicate if this session is currently transmitting SMTP message 
-		## envelope headers.
-		in_headers:        bool            &default=F;
 		## Indicate if the "Received: from" headers should still be processed.
 		process_received_from: bool        &default=T;
-		## Maintain the current header for cases where there is header wrapping.
-		current_header:    string          &default="";
-		## Indicate when the message is logged and no longer applicable.
-		done:              bool            &default=F;
+		## Indicates if client activity has been seen, but not yet logged
+		has_client_activity:  bool            &default=F;
 	};
 	
 	type State: record {
@@ -121,6 +119,7 @@ function new_smtp_log(c: connection): Info
 	l$ts=network_time();
 	l$uid=c$uid;
 	l$id=c$id;
+	l$mid=unique_id("@");
 	if ( c?$smtp_state && c$smtp_state?$helo )
 		l$helo = c$smtp_state$helo;
 	
@@ -136,26 +135,23 @@ function set_smtp_session(c: connection)
 	if ( ! c?$smtp_state )
 		c$smtp_state = [];
 	
-	if ( ! c?$smtp || c$smtp$done )
-		{
+	if ( ! c?$smtp )
 		c$smtp = new_smtp_log(c);
-		}
 	}
-
 
 function smtp_message(c: connection)
 	{
-	Log::write(SMTP, c$smtp);
-
-	c$smtp$done = T;
-	# Track the number of messages seen in this session.
-	++c$smtp_state$messages_transferred;
+	if ( c$smtp$has_client_activity )
+		Log::write(SMTP, c$smtp);
 	}
 	
 event smtp_request(c: connection, is_orig: bool, command: string, arg: string) &priority=5
 	{
 	set_smtp_session(c);
 	local upper_command = to_upper(command);
+
+	if ( upper_command != "QUIT" )
+		c$smtp$has_client_activity = T;
 	
 	if ( upper_command == "HELO" || upper_command == "EHLO" )
 		{
@@ -172,26 +168,11 @@ event smtp_request(c: connection, is_orig: bool, command: string, arg: string) &
 
 	else if ( upper_command == "MAIL" && /^[fF][rR][oO][mM]:/ in arg )
 		{
-		# In case this is not the first message in a session we want to 
-		# essentially write out a log, clear the session tracking, and begin
-		# new session tracking.
-		if ( c$smtp_state$messages_transferred > 0 )
-			{
-			smtp_message(c);
-			set_smtp_session(c);
-			}
-		
 		local partially_done = split1(arg, /:[[:blank:]]*/)[2];
 		c$smtp$mailfrom = split1(partially_done, /[[:blank:]]?/)[1];
 		}
-		
-	else if ( upper_command == "DATA" )
-		{
-		c$smtp$in_headers = T;
-		}
 	}
 	
-
 event smtp_reply(c: connection, is_orig: bool, code: count, cmd: string,
                  msg: string, cont_resp: bool) &priority=5
 	{
@@ -199,10 +180,10 @@ event smtp_reply(c: connection, is_orig: bool, code: count, cmd: string,
 	
 	# This continually overwrites, but we want the last reply,
 	# so this actually works fine.
+	c$smtp$last_reply = fmt("%d %s", code, msg);
+
 	if ( code != 421 && code >= 400 )
 		{
-		c$smtp$last_reply = fmt("%d %s", code, msg);
-
 		# Raise a notice when an SMTP error about a block list is discovered.
 		if ( bl_error_messages in msg )
 			{
@@ -223,145 +204,95 @@ event smtp_reply(c: connection, is_orig: bool, code: count, cmd: string,
 		}
 	}
 
-event smtp_data(c: connection, is_orig: bool, data: string) &priority=5
+event smtp_reply(c: connection, is_orig: bool, code: count, cmd: string,
+                 msg: string, cont_resp: bool) &priority=-5
 	{
-	# Is there something we should be handling from the server?
-	if ( ! is_orig ) return;
-	
 	set_smtp_session(c);
-	
-	if ( ! c$smtp$in_headers )
+	if ( cmd == "." )
 		{
-		if ( /^[cC][oO][nN][tT][eE][nN][tT]-[dD][iI][sS].*[fF][iI][lL][eE][nN][aA][mM][eE]/ in data )
-			{
-			if ( ! c$smtp?$files )
-				c$smtp$files = set();
-			data = sub(data, /^.*[fF][iI][lL][eE][nN][aA][mM][eE]=/, "");
-			add c$smtp$files[data];
-			}
-		return;
+		# Track the number of messages seen in this session.
+		++c$smtp_state$messages_transferred;
+		smtp_message(c);
+		c$smtp = new_smtp_log(c);
 		}
+	}
 
-	if ( /^[[:blank:]]*$/ in data )
-		c$smtp$in_headers = F;
+event mime_one_header(c: connection, h: mime_header_rec) &priority=5
+	{
+	if ( ! c?$smtp ) return;
+	c$smtp$has_client_activity = T;
 
-	# This is to reconstruct headers that tend to wrap around.
-	if ( /^[[:blank:]]/ in data )
-		{
-		# Remove all but a single space at the beginning (this seems to follow
-		# the most common behavior).
-		data = sub(data, /^[[:blank:]]*/, " ");
-		if ( c$smtp$current_header == "MESSAGE-ID" )
-			c$smtp$msg_id += data;
-		else if ( c$smtp$current_header == "RECEIVED" )
-			c$smtp$first_received += data;
-		else if ( c$smtp$current_header == "IN-REPLY-TO" )
-			c$smtp$in_reply_to += data;
-		else if ( c$smtp$current_header == "SUBJECCT" )
-			c$smtp$subject += data;
-		else if ( c$smtp$current_header == "FROM" )
-			c$smtp$from += data;
-		else if ( c$smtp$current_header == "REPLY-TO" )
-			c$smtp$reply_to += data;
-		else if ( c$smtp$current_header == "USER-AGENT" )
-			c$smtp$user_agent += data;
-		return;
-		}
-	# Once there isn't a line starting with a blank, we're not continuing a 
-	# header anymore.
-	c$smtp$current_header = "";
-	
-	local header_parts = split1(data, /:[[:blank:]]*/);
-	# TODO: do something in this case?  This would definitely be odd.
-	# Header wrapping needs to be handled more elegantly.  This will happen
-	# if the header value is wrapped immediately after the header key.
-	if ( |header_parts| != 2 )
-		return;
-	
-	local header_key = to_upper(header_parts[1]);
-	c$smtp$current_header = header_key;
-	
-	local header_val = header_parts[2];
-	
-	if ( header_key == "MESSAGE-ID" )
-		c$smtp$msg_id = header_val;
-	
-	else if ( header_key == "RECEIVED" )
+	if ( h$name == "MESSAGE-ID" )
+		c$smtp$msg_id = h$value;
+
+	else if ( h$name == "RECEIVED" )
 		{
 		if ( c$smtp?$first_received )
 			c$smtp$second_received = c$smtp$first_received;
-		c$smtp$first_received = header_val;
+		c$smtp$first_received = h$value;
 		}
-	
-	else if ( header_key == "IN-REPLY-TO" )
-		c$smtp$in_reply_to = header_val;
-	
-	else if ( header_key == "DATE" )
-		c$smtp$date = header_val;
-	
-	else if ( header_key == "FROM" )
-		c$smtp$from = header_val;
-	
-	else if ( header_key == "TO" )
+
+	else if ( h$name == "IN-REPLY-TO" )
+		c$smtp$in_reply_to = h$value;
+
+	else if ( h$name == "SUBJECT" )
+		c$smtp$subject = h$value;
+
+	else if ( h$name == "FROM" )
+		c$smtp$from = h$value;
+
+	else if ( h$name == "REPLY-TO" )
+		c$smtp$reply_to = h$value;
+
+	else if ( h$name == "DATE" )
+		c$smtp$date = h$value;
+
+	else if ( h$name == "TO" )
 		{
 		if ( ! c$smtp?$to )
 			c$smtp$to = set();
-		add c$smtp$to[header_val];
+		add c$smtp$to[h$value];
 		}
-	
-	else if ( header_key == "REPLY-TO" )
-		c$smtp$reply_to = header_val;
-	
-	else if ( header_key == "SUBJECT" )
-		c$smtp$subject = header_val;
 
-	else if ( header_key == "X-ORIGINATING-IP" )
+	else if ( h$name == "X-ORIGINATING-IP" )
 		{
-		local addresses = find_ip_addresses(header_val);
+		local addresses = find_ip_addresses(h$name);
 		if ( 1 in addresses )
 			c$smtp$x_originating_ip = to_addr(addresses[1]);
 		}
 	
-	else if ( header_key == "X-MAILER" || 
-	          header_key == "USER-AGENT" ||
-	          header_key == "X-USER-AGENT" )
-		{
-		c$smtp$user_agent = header_val;
-		# Explicitly set the current header here because there are several 
-		# headers bulked under this same key.
-		c$smtp$current_header = "USER-AGENT";
-		}
+	else if ( h$name == "X-MAILER" ||
+	          h$name == "USER-AGENT" ||
+	          h$name == "X-USER-AGENT" )
+		c$smtp$user_agent = h$value;
 	}
 	
 # This event handler builds the "Received From" path by reading the 
 # headers in the mail
-event smtp_data(c: connection, is_orig: bool, data: string) &priority=3
+event mime_one_header(c: connection, h: mime_header_rec) &priority=3
 	{
 	# If we've decided that we're done watching the received headers for
 	# whatever reason, we're done.  Could be due to only watching until 
 	# local addresses are seen in the received from headers.
-	if ( c$smtp$current_header != "RECEIVED" ||
-	     ! c$smtp$process_received_from )
+	if ( ! c?$smtp || h$name != "RECEIVED" || ! c$smtp$process_received_from)
 		return;
-		
-	local text_ip = find_address_in_smtp_header(data);
+
+	local text_ip = find_address_in_smtp_header(h$value);
 	if ( text_ip == "" )
 		return;
 	local ip = to_addr(text_ip);
-	
+
 	if ( ! addr_matches_host(ip, mail_path_capture) && 
 	     ! Site::is_private_addr(ip) )
 		{
 		c$smtp$process_received_from = F;
 		}
-	
 	if ( c$smtp$path[|c$smtp$path|-1] != ip )
 		c$smtp$path[|c$smtp$path|] = ip;
 	}
 
-
 event connection_state_remove(c: connection) &priority=-5
 	{
-	if ( c?$smtp && ! c$smtp$done )
+	if ( c?$smtp )
 		smtp_message(c);
 	}

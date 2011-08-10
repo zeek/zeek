@@ -18,7 +18,7 @@
 @load frameworks/software/version-changes.bro
 @load frameworks/software/vulnerable.bro
 @load integration/barnyard2/__load__.bro
-@load integration/barnyard2/base.bro
+@load integration/barnyard2/main.bro
 @load integration/barnyard2/types.bro
 @load misc/analysis-groups.bro
 @load misc/loaded-scripts.bro

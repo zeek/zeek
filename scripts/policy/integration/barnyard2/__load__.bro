@@ -1,2 +1,2 @@
 @load ./types
-@load ./base
+@load ./main

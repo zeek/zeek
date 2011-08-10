@@ -1,5 +1,5 @@
-@load const.bif.bro
-@load types.bif.bro
+@load base/const.bif
+@load base/types.bif
 
 # Type declarations
 type string_array: table[count] of string;
@@ -298,9 +298,9 @@ type entropy_test_result: record {
 };
 
 # Prototypes of Bro built-in functions.
-@load strings.bif.bro
-@load bro.bif.bro
-@load reporter.bif.bro
+@load base/strings.bif
+@load base/bro.bif
+@load base/reporter.bif
 
 global log_file_name: function(tag: string): string &redef;
 global open_log_file: function(tag: string): file &redef;
@@ -1264,7 +1264,7 @@ type bittorrent_benc_dir: table[string] of bittorrent_benc_value;
 # The header table type used by the bittorrenttracker analyzer.
 type bt_tracker_headers: table[string] of string;
 
-@load event.bif.bro
+@load base/event.bif
 
 # The filter the user has set via the -f command line options, or
 # empty if none.

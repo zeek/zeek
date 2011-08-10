@@ -107,6 +107,12 @@ macro(BIF_TARGET bifInput)
     add_custom_command(OUTPUT ${bifOutputs}
                        COMMAND bifcl
                        ARGS ${CMAKE_CURRENT_SOURCE_DIR}/${bifInput} || (rm -f ${bifOutputs} && exit 1)
+                       # in order be able to run bro from the build directory,
+                       # a copy of the generated bro script needs to be copied
+                       # to a directory tree named the same way it will be
+                       # referenced from an @load
+                       COMMAND "${CMAKE_COMMAND}"
+                       ARGS -E copy ${bifInput}.bro base/${bifInput}.bro
                        DEPENDS ${bifInput}
                        DEPENDS bifcl
                        COMMENT "[BIFCL] Processing ${bifInput}"
@@ -121,6 +127,7 @@ endmacro(BIF_TARGET)
 macro(GET_BIF_OUTPUT_FILES inputFile outputFileVar)
     set(${outputFileVar}
         ${inputFile}.bro
+        base/${inputFile}.bro
         ${inputFile}.func_def
         ${inputFile}.func_h
         ${inputFile}.func_init
@@ -423,7 +430,7 @@ set(brolibs
 target_link_libraries(bro ${brolibs})
 
 install(TARGETS bro DESTINATION bin)
-install(FILES ${INSTALL_BIF_OUTPUTS} DESTINATION ${POLICYDIR})
+install(FILES ${INSTALL_BIF_OUTPUTS} DESTINATION ${POLICYDIR}/base)
 
 set(BRO_EXE bro
     CACHE STRING "Bro executable binary" FORCE)

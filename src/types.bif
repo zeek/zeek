@@ -168,16 +168,16 @@ enum ID %{
 
 
 module Tunnel;
-enum tunneltype_t %{
+enum Tunneltype %{
 	NONE,
-	IP6inIP,     
-	IP4inIP,  
-	IP6inUDP,
-	IP4inUDP,
-	IP6inAYIAY,
-	IP4inAYIAY,
+	IP6_IN_IP,     
+	IP4_IN_IP,  
+	IP6_IN_UDP,
+	IP4_IN_UDP,
+	IP6_IN_AYIAY,
+	IP4_IN_AYIAY,
 %}
 
-type parent_t: record;
+type Parent: record;
 
 module GLOBAL;

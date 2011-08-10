@@ -54,7 +54,7 @@ TunnelInfo* TunnelHandler::DecapsulateTunnel(const IP_Hdr *ip_hdr, int len, int 
 			// TODO: check if IP6 header makes sense
 			tunnel_info = new TunnelInfo();
 			tunnel_info->child = new IP_Hdr((const struct ip6_hdr*)ip_hdr->Payload());
-			tunnel_info->tunneltype = BifEnum::Tunnel::IP6inIP;
+			tunnel_info->tunneltype = BifEnum::Tunnel::IP6_IN_IP;
 			tunnel_info->hdr_len = tunnel_info->child->HdrLen();
 			tunnel_info->SetParentIPs(ip_hdr);
 			return tunnel_info;
@@ -86,7 +86,7 @@ TunnelInfo* TunnelHandler::HandleUDP(const IP_Hdr *ip_hdr, int len, int caplen)
 	const u_char *data = ip_hdr->Payload();
 	const struct udphdr* uh = (const struct udphdr*)data;
 	IP_Hdr *cand_ip_hdr = 0;
-	BifEnum::Tunnel::tunneltype_t tunneltype = BifEnum::Tunnel::NONE;
+	BifEnum::Tunnel::Tunneltype tunneltype = BifEnum::Tunnel::NONE;
 
 	int hdr_len = sizeof(struct udphdr);
 	data += hdr_len;
@@ -103,7 +103,7 @@ TunnelInfo* TunnelHandler::HandleUDP(const IP_Hdr *ip_hdr, int len, int caplen)
 		if (cand_ip_hdr)
 			{
 			tunneltype =  (cand_ip_hdr->IP4_Hdr()) ? 
-					BifEnum::Tunnel::IP4inUDP : BifEnum::Tunnel::IP6inUDP;
+					BifEnum::Tunnel::IP4_IN_UDP : BifEnum::Tunnel::IP6_IN_UDP;
 			}
 		else if (datalen >= 8)
 			{
@@ -129,7 +129,7 @@ TunnelInfo* TunnelHandler::HandleUDP(const IP_Hdr *ip_hdr, int len, int caplen)
 				{
 				hdr_len += 8 + id_len + sig_len;
 				tunneltype =  (cand_ip_hdr->IP4_Hdr()) ? 
-						BifEnum::Tunnel::IP4inAYIAY : BifEnum::Tunnel::IP6inAYIAY;
+						BifEnum::Tunnel::IP4_IN_AYIAY : BifEnum::Tunnel::IP6_IN_AYIAY;
 				}
 			}
 		if (cand_ip_hdr)

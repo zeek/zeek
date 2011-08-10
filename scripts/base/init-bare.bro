@@ -84,14 +84,14 @@ type AnalyzerID: count;
 module Tunnel;
 export {
 	## Records the identity of a the parent of a tunneled connection. 
-	type parent_t: record {
+	type Parent: record {
 		## The 4-tuple of the tunnel "connection". In case of an IP-in-IP
 		## tunnel the ports will be set to 0. The direction (i.e., orig and
 		## resp) of the parent are set according to the tunneled connection
 		## and not according to the side that established the tunnel. 
 		cid: conn_id;
 		## The type of tunnel.
-		tunnel_type: tunneltype_t;
+		tunnel_type: Tunneltype;
 	} &log;
 } # end export
 module GLOBAL;
@@ -107,7 +107,7 @@ type connection: record {
 	hot: count;		# how hot; 0 = don't know or not hot
 	history: string;
 	uid: string;
-	tunnel_parent: Tunnel::parent_t &optional;
+	tunnel_parent: Tunnel::Parent &optional;
 };
 
 type SYN_packet: record {

@@ -39,11 +39,11 @@ public:
 
 	RecordVal* GetRecordVal() const 
 		{
-		RecordVal *rv = new RecordVal(BifType::Record::Tunnel::parent_t);
+		RecordVal *rv = new RecordVal(BifType::Record::Tunnel::Parent);
 		TransportProto tproto;
 		switch(tunneltype) {
-		case BifEnum::Tunnel::IP6inIP:
-		case BifEnum::Tunnel::IP4inIP:
+		case BifEnum::Tunnel::IP6_IN_IP:
+		case BifEnum::Tunnel::IP4_IN_IP:
 			tproto = TRANSPORT_UNKNOWN;
 			break;
 		default:
@@ -56,14 +56,14 @@ public:
 		id_val->Assign(2, new AddrVal(parent.dst_addr));
 		id_val->Assign(3, new PortVal(ntohs(parent.dst_port), tproto));
 		rv->Assign(0, id_val);
-		rv->Assign(1, new EnumVal(tunneltype, BifType::Enum::Tunnel::tunneltype_t));
+		rv->Assign(1, new EnumVal(tunneltype, BifType::Enum::Tunnel::Tunneltype));
 		return rv;
 		}
 
 	IP_Hdr *child;
 	ConnID parent;
 	int hdr_len;
-	BifEnum::Tunnel::tunneltype_t tunneltype;
+	BifEnum::Tunnel::Tunneltype tunneltype;
 };
 
 class TunnelHandler {

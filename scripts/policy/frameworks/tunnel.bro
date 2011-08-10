@@ -22,7 +22,7 @@
 ##! defragmentation but before there is a connection context. The tunnel
 ##! headers are stripped from packet and the identity of the parent is 
 ##! is stored as the ``tunnel_parent`` member of :bro:type:`connection`, 
-##! which is of type :bro:type:`parent_t`. 
+##! which is of type :bro:type:`Tunnel::Parent`. 
 ##! 
 ##! *Limitation:* The decapsulated packets are not fed through the 
 ##! defragmenter again and decapsulation happens only on the primary
@@ -30,9 +30,12 @@
 ##! 
 ##! 
 
+@load base/protocols/conn
+
 module Tunnel; 
 
 #redef use_connection_compressor = F;
+## enab
 redef Tunnel::decapsulate_ip = T;
 redef Tunnel::decapsulate_udp = T;
 redef Tunnel::udp_tunnel_allports = T;
@@ -51,14 +54,19 @@ export {
 		## The child's transport protocol
 		proto:    transport_proto &log;
 		## The parent connection of IP-pair
-		parent:   parent_t        &log;
+		parent:   Parent          &log;
 	};
-	global log_conn: event(rec: Info);
+	global log_tunnel: event(rec: Info);
+
+	redef record Conn::Info += {
+		## If the connection is tunneled the type of tunnel 
+		tunnel_type: Tunneltype   &log &optional;
+	};
 }
 
 event bro_init()
 	{
-	Log::create_stream(TUNNEL, [$columns=Info, $ev=log_conn]);
+	Log::create_stream(TUNNEL, [$columns=Info, $ev=log_tunnel]);
 	}
 
 event new_connection(c: connection)

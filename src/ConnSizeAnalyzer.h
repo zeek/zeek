@@ -1,10 +1,7 @@
-// $Id$
-//
 // See the file "COPYING" in the main distribution directory for copyright.
-//
 
-#ifndef CONNSTATS_H
-#define CONNSTATS_H
+#ifndef CONNSIZE_H
+#define CONNSIZE_H
 
 #include "Analyzer.h"
 #include "NetVar.h"

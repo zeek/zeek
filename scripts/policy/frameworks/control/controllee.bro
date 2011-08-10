@@ -1,4 +1,4 @@
-
+@load base/frameworks/control/main
 # If an instance is a controllee, it implicitly needs to listen for remote
 # connections.
 @load frameworks/communication/listen-clear

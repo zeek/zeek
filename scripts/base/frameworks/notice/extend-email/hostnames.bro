@@ -1,3 +1,4 @@
+@load ../main
 
 module Notice;
 
@@ -8,7 +9,7 @@ event Notice::notice(n: Notice::Info) &priority=10
 		return;
 	
 	# This should only be done for notices that are being sent to email.
-	if ( ACTION_EMAIL !in n$action )
+	if ( ACTION_EMAIL !in n$actions )
 		return;
 		
 	local output = "";

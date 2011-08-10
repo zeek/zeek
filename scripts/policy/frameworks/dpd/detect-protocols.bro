@@ -1,5 +1,9 @@
 ##! Finds connections with protocols on non-standard ports with DPD.
 
+@load base/frameworks/notice/main
+@load base/utils/site
+@load base/utils/conn-ids
+
 module ProtocolDetector;
 
 export {

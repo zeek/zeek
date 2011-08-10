@@ -1,6 +1,8 @@
 ##! Connect to remote Bro or Broccoli instances to share state and/or transfer
 ##! events.
 
+@load base/frameworks/packet-filter/main
+
 module Communication;
 
 export {

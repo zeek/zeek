@@ -8,6 +8,8 @@
 # programs for which we don't have an analyzer. 
 #
 
+@load base/utils/conn-ids
+
 module RPC;
 
 export {

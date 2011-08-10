@@ -20,6 +20,8 @@
 #   canary
 #   friend
 
+@load base/frameworks/notice/main
+
 module Intel;
 
 export {

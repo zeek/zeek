@@ -3,6 +3,10 @@
 ##!
 ##! This script doesn't work yet and isn't loaded by default.
 
+@load base/frameworks/notice/main
+@load ./main
+@load ./utils
+
 module HTTP;
 
 export {

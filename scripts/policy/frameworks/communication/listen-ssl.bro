@@ -1,5 +1,7 @@
 ##! Listen for other Bro instances and encrypt the connection with SSL.
 
+@load base/frameworks/communication/main
+
 module Communication;
 
 export {

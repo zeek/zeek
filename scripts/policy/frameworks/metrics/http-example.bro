@@ -1,4 +1,6 @@
-
+@load base/frameworks/metrics/main
+@load base/protocols/http/main
+@load base/utils/site
 
 redef enum Metrics::ID += {
 	HTTP_REQUESTS_BY_STATUS_CODE,

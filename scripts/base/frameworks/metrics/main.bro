@@ -1,5 +1,7 @@
 ##! This is the implementation of the metrics framework.
 
+@load base/frameworks/notice/main
+
 module Metrics;
 
 export {

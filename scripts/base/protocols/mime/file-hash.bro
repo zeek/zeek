@@ -1,4 +1,5 @@
-@load protocols/mime/file-ident
+@load ./file-ident
+@load base/frameworks/notice/main
 
 module MIME;
 

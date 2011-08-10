@@ -1,3 +1,4 @@
+@load base/frameworks/control/main
 
 module Cluster;
 

@@ -1,3 +1,5 @@
+@load ../main
+@load base/utils/site
 
 module Notice;
 

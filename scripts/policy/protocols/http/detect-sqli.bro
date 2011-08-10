@@ -1,5 +1,9 @@
 ##! SQL injection detection in HTTP.
 
+@load base/frameworks/notice/main
+@load base/frameworks/metrics/main
+@load base/protocols/http/main
+
 module HTTP;
 
 export {

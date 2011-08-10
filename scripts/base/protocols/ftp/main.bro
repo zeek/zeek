@@ -7,6 +7,10 @@
 ##!
 ##! * Handle encrypted sessions correctly (get an example?)
 
+@load ./utils-commands
+@load base/utils/paths
+@load base/utils/numbers
+
 module FTP;
 
 export {

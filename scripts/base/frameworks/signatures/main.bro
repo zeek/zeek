@@ -1,5 +1,7 @@
 ##! Script level signature support.
 
+@load base/frameworks/notice/main
+
 module Signatures;
 
 export {

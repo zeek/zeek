@@ -4,6 +4,11 @@
 ##! documentation for the protocols/http/file-hash.bro script to see how to 
 ##! configure which transfers will have hashes calculated.
 
+@load base/frameworks/notice/main
+@load base/protocols/http/main
+@load base/protocols/http/utils
+@load base/protocols/http/file-hash
+
 export {
 	redef enum Notice::Type += { 
 		## If the MD5 sum of a file transferred over HTTP 

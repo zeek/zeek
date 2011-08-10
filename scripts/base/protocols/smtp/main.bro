@@ -1,3 +1,6 @@
+@load base/frameworks/notice/main
+@load base/utils/addrs
+@load base/utils/directions-and-hosts
 
 module SMTP;
 

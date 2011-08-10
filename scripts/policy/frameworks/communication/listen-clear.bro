@@ -1,5 +1,7 @@
 ##! Listen for other Bro instances to make unencrypted connections.
 
+@load base/frameworks/communication/main
+
 module Communication;
 
 export {

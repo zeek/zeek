@@ -8,6 +8,8 @@
 ##! This is where the cluster manager sets it's specific settings for other
 ##! frameworks and in the core.
 
+@load base/frameworks/notice/main
+
 @prefixes += cluster-manager
 
 ## Turn off remote logging since this is the manager and should only log here.

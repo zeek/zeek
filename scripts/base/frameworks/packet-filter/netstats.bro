@@ -1,5 +1,7 @@
 ##! This script reports on packet loss from the various packet sources.
 
+@load base/frameworks/notice/main
+
 module PacketFilter;
 
 export {

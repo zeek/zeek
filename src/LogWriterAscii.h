@@ -9,10 +9,10 @@
 
 class LogWriterAscii : public LogWriter {
 public:
-	LogWriterAscii();
+	LogWriterAscii(LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue);
 	~LogWriterAscii();
 
-	static LogWriter* Instantiate()	{ return new LogWriterAscii; }
+	static LogWriter* Instantiate(LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue);	
 
 protected:
 	virtual bool DoInit(string path, int num_fields,

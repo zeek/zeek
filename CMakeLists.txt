@@ -96,6 +96,12 @@ FindRequiredPackage(PCAP)
 FindRequiredPackage(OpenSSL)
 FindRequiredPackage(BIND)
 
+find_package(Threads)
+if (NOT THREADS_FOUND)
+	message(FATAL_ERROR "Could not find thread library.")
+endif ()
+list(APPEND OPTLIBS ${CMAKE_THREAD_LIBS_INIT})
+
 if (NOT BinPAC_ROOT_DIR AND
     EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/aux/binpac/CMakeLists.txt)
     add_subdirectory(aux/binpac)

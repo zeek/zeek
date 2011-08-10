@@ -1,14 +1,62 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include <string>
-#include <errno.h>
+#include <cerrno>
+#include <cstdio>
 
 #include "LogWriterAscii.h"
 #include "NetVar.h"
 
-LogWriterAscii::LogWriterAscii()
+static string _GetBroTypeString(const LogField *field)
+{
+	switch(field->type)
 	{
-	file = 0;
+	case TYPE_BOOL:
+		return "bool";
+	case TYPE_COUNT:
+		return "count";
+	case TYPE_COUNTER:
+		return "counter";
+	case TYPE_PORT:
+		return "port";
+	case TYPE_INT:
+		return "int";
+	case TYPE_TIME:
+		return "time";
+	case TYPE_INTERVAL:
+		return "interval";
+	case TYPE_DOUBLE:
+		return "double"; 
+	case TYPE_SUBNET:
+		return "subnet";
+	case TYPE_NET:
+		return "net";
+	case TYPE_ADDR:
+		return "addr";
+	case TYPE_ENUM:
+		return "enum";
+	case TYPE_STRING:
+		return "string";
+	case TYPE_FILE:
+		return "file";
+	case TYPE_TABLE:
+		return "table";
+	case TYPE_VECTOR:
+		return "vector";
+	default:
+		return "???";
+	}
+}
+
+LogWriter* LogWriterAscii::Instantiate(LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue)	
+{ 
+	return new LogWriterAscii(parent, in_queue, out_queue); 
+}
+
+LogWriterAscii::LogWriterAscii(LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue)
+	: LogWriter(parent, in_queue, out_queue)
+	{
+	file = NULL;
 
 	output_to_stdout = BifConst::LogAscii::output_to_stdout;
 	include_header = BifConst::LogAscii::include_header;
@@ -64,7 +112,7 @@ bool LogWriterAscii::DoInit(string path, int num_fields,
 		{
 		Error(Fmt("cannot open %s: %s", fname.c_str(),
 			  strerror(errno)));
-
+		assert(file);
 		return false;
 		}
 
@@ -84,15 +132,34 @@ bool LogWriterAscii::DoInit(string path, int num_fields,
 			if ( fputs(field->name.c_str(), file) == EOF )
 				goto write_error;
 			}
-
+		
 		if ( fputc('\n', file) == EOF )
 			goto write_error;
+		/*
+		string wString = string(header_prefix, header_prefix_len) + string("path:'") + parent.Path() + string("'\n");
+		wString += string(header_prefix, header_prefix_len) + "separator:'" + string(separator, separator_len) + "'\n";
+		if(fwrite(wString.c_str(), wString.length(), 1, file) != 1)
+			goto write_error;
+
+		wString = string(header_prefix, header_prefix_len);
+		for ( int i = 0; i < num_fields; ++i )
+			{
+			const LogField* field = fields[i];
+			wString += ((i > 0) ? string(" ") : string("")) + field->name + string("=") + _GetBroTypeString(field);
+			}
+		if(fwrite(wString.c_str(), wString.length(), 1, file) != 1)
+			goto write_error;
+		if ( fputc('\n', file) == EOF )
+			goto write_error;
+		*/
 		}
 
+	assert(file);
 	return true;
 
 write_error:
 	Error(Fmt("error writing to %s: %s", fname.c_str(), strerror(errno)));
+	assert(file);
 	return false;
 	}
 
@@ -104,6 +171,10 @@ bool LogWriterAscii::DoFlush()
 
 void LogWriterAscii::DoFinish()
 	{
+	assert(file);
+	// printf("FINISH: %s\n", parent.Path().c_str());
+	fclose(file);
+	file = NULL;
 	}
 
 bool LogWriterAscii::DoWriteOne(ODesc* desc, LogVal* val, const LogField* field)
@@ -131,14 +202,14 @@ bool LogWriterAscii::DoWriteOne(ODesc* desc, LogVal* val, const LogField* field)
 		break;
 
 	case TYPE_SUBNET:
-		desc->Add(dotted_addr(val->val.subnet_val.net));
+		desc->Add(dotted_addr_r(val->val.subnet_val.net, strbuf, LOGWRITER_MAX_BUFSZ));
 		desc->Add("/");
 		desc->Add(val->val.subnet_val.width);
 		break;
 
 	case TYPE_NET:
 	case TYPE_ADDR:
-		desc->Add(dotted_addr(val->val.addr_val));
+		desc->Add(dotted_addr_r(val->val.addr_val, strbuf, LOGWRITER_MAX_BUFSZ));
 		break;
 
 	case TYPE_TIME:
@@ -236,7 +307,7 @@ bool LogWriterAscii::DoWrite(int num_fields, const LogField* const * fields,
 		return false;
 		}
 
-	if ( IsBuf() )
+	if ( !IsBuf() )
 		fflush(file);
 
 	return true;
@@ -245,11 +316,14 @@ bool LogWriterAscii::DoWrite(int num_fields, const LogField* const * fields,
 bool LogWriterAscii::DoRotate(string rotated_path, double open,
 			      double close, bool terminating)
 	{
-	if ( IsSpecial(Path()) )
+	
+	if ( IsSpecial(parent.Path()) )
 		// Don't rotate special files.
 		return true;
 
-	fclose(file);
+	// printf("Rotating: %s\n", parent.Path().c_str());
+	if(file)
+		fclose(file);
 
 	string nname = rotated_path + ".log";
 	rename(fname.c_str(), nname.c_str());
@@ -257,7 +331,7 @@ bool LogWriterAscii::DoRotate(string rotated_path, double open,
 	if ( ! FinishedRotation(nname, fname, open, close, terminating) )
 		Error(Fmt("error rotating %s to %s", fname.c_str(), nname.c_str()));
 
-	return DoInit(Path(), NumFields(), Fields());
+	return DoInit(parent.Path(), parent.NumFields(), parent.Fields());
 	}
 
 bool LogWriterAscii::DoSetBuf(bool enabled)
@@ -266,4 +340,6 @@ bool LogWriterAscii::DoSetBuf(bool enabled)
 	return true;
 	}
 
+// Register the ASCII logger so that Bro can use it.
+static LogWriterRegistrar __register_logger(BifEnum::Log::WRITER_ASCII, "Ascii", NULL, LogWriterAscii::Instantiate);
 

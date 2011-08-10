@@ -230,6 +230,7 @@ void done_with_network()
 	dpm->Done();
 	timer_mgr->Expire();
 	mgr.Drain();
+	log_mgr->Shutdown();
 
 	if ( remote_serializer )
 		remote_serializer->Finish();
@@ -255,7 +256,6 @@ void done_with_network()
 void terminate_bro()
 	{
 	set_processing_status("TERMINATING", "terminate_bro");
-
 	terminating = true;
 
 	EventHandlerPtr bro_done = internal_handler("bro_done");
@@ -1015,6 +1015,7 @@ int main(int argc, char** argv)
 	else
 		{
 		persistence_serializer->WriteState(false);
+		log_mgr->Shutdown();
 		terminate_bro();
 		}
 

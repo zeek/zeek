@@ -328,7 +328,8 @@ set(bro_SRCS
     IRC.cc
     List.cc
     Reporter.cc
-    LogMgr.cc
+    LogBase.cc
+	LogMgr.cc
     LogWriter.cc
     LogWriterAscii.cc
     Login.cc

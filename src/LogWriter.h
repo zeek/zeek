@@ -3,9 +3,13 @@
 // Interface API for a log writer backend. The LogMgr creates a separate
 // writer instance of pair of (writer type, output path).
 //
-// Note thay classes derived from LogWriter must be fully thread-safe and not
-// use any non-thread-safe Bro functionality (which includes almost
-// everything ...). In particular, do not use fmt() but LogWriter::Fmt()!.
+// Note thay classes derived from LogWriter must be fully thread-safe!  Since
+// bro doesn't really do much with threads at the moment, the majority of core
+// bro functions (e.g. script parsing, many things in net_util) are not safe
+// to use in a LogWriter without a little bit of modification..
+//
+// Log writers have a small scratch buffer (LogWriter::strbuf) that can be
+// passed to re-entrant stuff as an additional argument if needed.
 //
 // The one exception to this rule is the constructor: it is guaranteed to be
 // executed inside the main thread and can thus in particular access global
@@ -14,76 +18,127 @@
 #ifndef LOGWRITER_H
 #define LOGWRITER_H
 
-#include "LogMgr.h"
-#include "BroString.h"
+#include <string>
+#include <map>
 
-class LogWriter {
+#include "net_util.h"
+
+#include "ThreadSafeQueue.h"
+#include "BasicThread.h"
+#include "LogBase.h"
+
+class LogWriter;
+class BulkWriteMessage;
+
+/**
+ *  Acts as a go-between for Bro / an individual logger.  Individual functions, when called, build appropriate
+ *  messages and send them to whichever writer is bound to this individual LogEmissary via the pull_queue
+ *  / push_queue channels.
+ *
+ *  Note that, in the case of IPC, there *might* not be a bound writer.  Note also, however, that this class
+ *  will need to be modified to make IPC work properly (specifically, the queue flushing mechanics will need
+ *  to change).
+ */
+
+class LogEmissary {
 public:
-	LogWriter();
-	virtual ~LogWriter();
+	std::string Path() const { return path; }
+	const LogField* const *Fields() const { return fields; }
+	const int NumFields() const { return num_fields; }
 
-	//// Interface methods to interact with the writer. Note that these
-	//// methods are not necessarily thread-safe and must be called only
-	//// from the main thread (which will typically mean only from the
-	//// LogMgr). In particular, they must not be called from the
-	//// writer's derived implementation.
+	LogEmissary(QueueInterface<MessageEvent *>& push_queue, QueueInterface<MessageEvent *>& pull_queue);
+	virtual ~LogEmissary();
 
-	// One-time initialization of the writer to define the logged fields.
-	// Interpretation of "path" is left to the writer, and will be
-	// corresponding the value configured on the script-level.
-	// 
-	// Returns false if an error occured, in which case the writer must
-	// not be used further.
-	//
-	// The new instance takes ownership of "fields", and will delete them
-	// when done.
-	bool Init(string path, int num_fields, const LogField* const * fields);
+	/**
+	 *  Processes all pending notifications.
+	 */
+	void Update() { while(isActive && pull_queue.ready()) { pull_queue.get()->process(); } }
 
-	// Writes one log entry. The method takes ownership of "vals" and
-	// will return immediately after queueing the write request, which is
-	// potentially before output has actually been written out.
-	//
-	// num_fields and the types of the LogVals must match what was passed
-	// to Init().
-	//
-	// Returns false if an error occured, in which case the writer must
-	// not be used any further.
-	bool Write(int num_fields, LogVal** vals);
+	/**
+	 *  Performs a blocking shutdown of this thread.  Flushes all remaining messages, waits for termination ack,
+	 */
+	void Shutdown();
 
-	// Sets the buffering status for the writer, if the writer supports
-	// that. (If not, it will be ignored).
-	bool SetBuf(bool enabled);
-
-	// Flushes any currently buffered output, if the writer supports 
-	// that. (If not, it will be ignored).
+	/**
+	 *  Note that these values are used by the child thread.  As such, once initially set,
+	 *  they MUST not change!  As a consequence of this, Init may only ever be called once
+	 *  for a given LogEmissary; trying to call this function more than once will have
+	 *  no effect.
+	 */
+	bool Init(const string path, const int num_fields, LogField* const *fields);
+	/**
+	 *  Generates a single write message which is buffered in a BulkWriteMessage.  Once
+	 *  enough individual write messages have been gathered (LOG_QUEUE_SZ), the 
+	 *  BulkWriteMessage is passed along to the thread as a single message.
+	 */
+	bool Write(const int num_fields, LogVal **vals);
+	/**
+	 *  Generates a set buffering message to pass along to the bound writer.
+	 */
+	bool SetBuf(const bool enabled);
+	/**
+	 *  This function flushes the existing messages in the BulkWriteMessage to the
+	 *  bound writer, then additionally generates a flush message to tell the
+	 *  bound writer to flush its logs.
+	 */
 	bool Flush();
-
-	// Triggers rotation, if the writer supports that. (If not, it will
-	// be ignored).
+	/**
+	 *  This function generates a log rotation message, which should trigger the
+	 *  bound thread to rotate its logs (if such functionality is supported).
+	 */
 	bool Rotate(string rotated_path, double open, double close, bool terminating);
-
-	// Finishes writing to this logger regularly. Must not be called if
-	// an error has been indicated earlier. After calling this, no
-	// further writing must be performed.
+	/**
+	 *  This function generates a Finish message, which tells the bound writer
+	 *  to flush any existing messages and close the file it's working with at
+	 *  the moment.  
+	 */
 	void Finish();
+	/**
+	 *  Assigns a new writer to this LogEmissary.  A LogEmissary will only support
+	 *  a single writer at once, but it should be theoretically simple to extend
+	 *  that support for multiple writers (if there turns out to be a need to do
+	 *  so).
+	 */
+	void BindWriter(LogWriter *writer);
+	/**
+	 *  Assignment operator.  We need this to handle reference assignment.
+	 */
+	LogEmissary& operator=(const LogEmissary& target);
+private:
+	static const size_t LOG_QUEUE_SZ = 128;                 // Must queue LOG_QUEUE_SZ messages before passing a bulk log update
 
-	//// Thread-safe methods that may be called from the writer
-	//// implementation.
+	LogWriter *bound;               						// The writer we're bound to
+	QueueInterface<MessageEvent *>& push_queue;     		// Pushes messages to the thread
+	QueueInterface<MessageEvent *>& pull_queue;     		// Pulls notifications from the thread
 
-	// The following methods return the information as passed to Init().
-	const string Path() const	{ return path; }
-	int NumFields() const	{ return num_fields; }
-	const LogField* const * Fields() const	{ return fields; }
+	std::string path;
+	LogField* const *fields;
+	BulkWriteMessage *bMessage;                             // Aggregate individual log write messages until there's a timeout or we exceed the LOG_QUEUE_SZ threshold
+	int num_fields;
+	bool canInit;											// A log emissary can only ever be initialized *once*
+	bool isActive;											// Has this log emissary been shut down?
+};
 
-protected:
-	// Methods for writers to override. If any of these returs false, it
-	// will be assumed that a fatal error has occured that prevents the
-	// writer from further operation. It will then be disabled and
-	// deleted. When return false, the writer should also report the
-	// error via Error(). Note that even if a writer does not support the
-	// functionality for one these methods (like rotation), it must still
-	// return true if that is not to be considered a fatal error.
-	//
+/**
+ * The LogWriter class describes a LogWriter in the abstract.  In
+ * theory, a log writer should be able to write stuff, rotate logs,
+ * flush buffered output to disk, etc.  The mechanics of each of
+ * these functions largely depends on the log type (e.g. it might
+ * not make sense to rotate SQL logs), with some functions being
+ * more relevant than others to each individual logging target.
+ *
+ * Since LogWriter is an abstract class, it only provides a set of
+ * methods for writers to override. If any of these methods return false, 
+ * it will be assumed that a fatal error has occured that prevents
+ * further operation. Note that even if a writer does not support the
+ * functionality for one these methods (like rotation), it must still
+ * return true if that is not to be considered a fatal error.
+*/
+class LogWriter : public BasicThread {
+public:
+	LogWriter(LogEmissary& parent, QueueInterface<MessageEvent *>& in_q, QueueInterface<MessageEvent *>& out_q)
+	: BasicThread(in_q, out_q), parent(parent), buffered(false) { }
+	
 	// Called once for initialization of the writer.
 	virtual bool DoInit(string path, int num_fields,
 			    const LogField* const * fields) = 0;
@@ -143,17 +198,23 @@ protected:
 	// method signals a regular shutdown of the writer.
 	virtual void DoFinish() = 0;
 
-	//// Methods for writers to use. These are thread-safe.
+	/**
+	 *  Version of format that uses storage local to this particular LogWriter.  Given the
+	 *  current threading model, this should be thread-safe.
+	 */
+	const char *Fmt (char * format, ...) const;
 
-	// A thread-safe version of fmt().
-	const char* Fmt(const char* format, ...);
-
-	// Returns the current buffering state.
-	bool IsBuf()	{ return buffering; }
-
-	// Reports an error to the user.
+	/**
+	 *  Instantiates and passes an ErrorMessage to the parent.
+	 */
 	void Error(const char *msg);
 
+	bool IsBuf() { return buffered; }
+
+	void DeleteVals(LogVal** vals, const int num_fields);
+
+	LogWriter& operator=(const LogWriter& target);
+protected:
 	// Signals to the log manager that a file has been rotated.
 	//
 	// new_name: The filename of the rotated file. old_name: The filename
@@ -165,28 +226,165 @@ protected:
 	// terminating: True if rotation request occured due to the main Bro
 	// process shutting down.
 	bool FinishedRotation(string new_name, string old_name, double open,
-			      double close, bool terminating);
+				  double close, bool terminating);
 
+	LogEmissary& parent;
+	bool buffered;
+	const static int LOGWRITER_MAX_BUFSZ = 2048;
+	mutable char strbuf[LOGWRITER_MAX_BUFSZ];
+};
+
+class RotationFinishedMessage : public MessageEvent
+{
+public:
+	RotationFinishedMessage(LogEmissary& ref, string new_name, string old_name, double open,
+				 double close, bool terminating)
+	: ref(ref), new_name(new_name), old_name(old_name), open(open), 
+		    close(close), terminating(terminating) { }
+
+	bool process();
 private:
-	friend class LogMgr;
+	LogEmissary& ref;
+	string new_name;
+	string old_name;
+	double open;
+	double close;
+	bool terminating;
+};
 
-	// When an error occurs, we call this method to set a flag marking
-	// the writer as disabled. The LogMgr will check the flag later and
-	// remove the writer.
-	bool Disabled()	{ return disabled; }
+class RotateMessage : public MessageEvent
+{
+public:
+	RotateMessage(LogWriter& ref, const string rotated_path, const double open,
+					const double close, const bool terminating)
+	: ref(ref), rotated_path(rotated_path), open(open), 
+			close(close), terminating(terminating) { }
+	
+	bool process() { return ref.DoRotate(rotated_path, open, close, terminating); }
+private:
+	LogWriter &ref;
+	const string rotated_path;
+	const double open;
+	const double close;
+	const bool terminating;
+};
 
-	// Deletes the values as passed into Write().
-	void DeleteVals(LogVal** vals);
+class InitMessage : public MessageEvent
+{
+public:
+	InitMessage(LogWriter& ref, const string path, const int num_fields, const LogField* const *fields)
+	: ref(ref), path(path), num_fields(num_fields), fields(fields)
+	{ }
+	bool process() { return ref.DoInit(path, num_fields, fields); }
+private:
+	LogWriter& ref;
+	const string path;
+	const int num_fields;
+	const LogField * const* fields;
+};
 
-	string path;
+class WriteMessage : public MessageEvent
+{
+public:
+	WriteMessage(LogWriter& ref, const int num_fields, LogField* const* fields, LogVal **vals)
+	: ref(ref), num_fields(num_fields), fields(fields)
+	{ this->vals = vals;  /* TODO: copy vals here; seems like memory corruption is happening :| */ }
+	bool process() { bool res = ref.DoWrite(num_fields, fields, vals); ref.DeleteVals(vals, num_fields); return res; }
+	WriteMessage& operator= (const WriteMessage& target);
+	WriteMessage(const WriteMessage& target);
+private:
+	LogWriter& ref;
 	int num_fields;
-	const LogField* const * fields;
-	bool buffering;
-	bool disabled;
+	LogField* const* fields;
+	LogVal **vals;
+};
 
-	// For implementing Fmt().
-	char* buf;
-	unsigned int buf_len;
+class BulkWriteMessage : public MessageEvent
+{
+public:
+	bool process();
+	void add(const WriteMessage w) { messages.push_back(w); }
+	void add(LogWriter& ref, const int num_fields, LogField* const* fields, LogVal **vals) { add(WriteMessage(ref, num_fields, fields, vals)); }
+	size_t size() { return messages.size(); }
+private:
+	std::vector<WriteMessage> messages;
+
+};
+
+class BufferMessage : public MessageEvent
+{
+public:
+	BufferMessage(LogWriter& ref, const bool enabled)
+	: ref(ref), enabled(enabled) { }
+	bool process() { ref.DoSetBuf(enabled); return true; }
+private:
+	LogWriter& ref;
+	const bool enabled;
+};
+
+class FlushMessage : public MessageEvent
+{
+public:
+	FlushMessage(LogWriter& ref)
+	: ref(ref) { }
+	bool process() { ref.DoFlush(); return true; }
+private:
+	LogWriter& ref;
+};
+
+class FinishMessage : public MessageEvent
+{
+public:
+	FinishMessage(LogWriter& ref)
+	: ref(ref) { }
+
+	bool process() { ref.DoFinish(); return true; }
+private:
+	LogWriter& ref;
+};
+
+class LogWriterRegistrar {
+public:
+	typedef LogWriter* (*InstantiateFunction)(LogEmissary&, QueueInterface<MessageEvent *>&, QueueInterface<MessageEvent *>& );
+	typedef bool (*InitFunction)();
+
+	LogWriterRegistrar(const bro_int_t type, const char *name, 
+							InitFunction init, InstantiateFunction factory);
+	LogWriterRegistrar(const bro_int_t type, const char *name, 
+							InstantiateFunction factory);
+	/**
+	 *  Registers a new log writer so that scripts can use it.
+	 *
+	 *  This function modifies the shared log_writers object; it is therefore *not*
+	 *  thread-safe.
+	 *
+	 *  @param type BifEnum::Log::WRITER_NAME
+	 *  @param name Common name of this writer (e.g. "ASCII") 
+	 *  @param init Function to call (once!) before *any* instances are built
+	 *  @param factory Function used to instantiate this type of LogWriter (probably MyLogClass::Instantiate) 
+	*/
+	static void RegisterWriter(const bro_int_t type, const char *name,
+								  bool (*init)(), LogWriterRegistrar::InstantiateFunction factory);
+
+	static LogEmissary *LaunchWriterThread(std::string path, size_t num_fields, LogField * const *fields, const bro_int_t type);
+private:
+	struct LogWriterDefinition
+	{
+		bro_int_t type;
+		InstantiateFunction factory;
+		InitFunction init;
+		std::string name;
+		LogWriterDefinition(const bro_int_t type, InstantiateFunction factory, InitFunction init, const std::string name)
+		: type(type), factory(factory), init(init), name(name) { }
+
+		LogWriterDefinition(const bro_int_t type, InstantiateFunction factory, const std::string name)
+		: type(type), factory(factory), init(NULL), name(name) { }
+	};
+	typedef std::map<bro_int_t, LogWriterDefinition> WriterMap;
+	typedef WriterMap::iterator WriterMapIterator;
+	static WriterMap *writers;
+
 };
 
 #endif
+

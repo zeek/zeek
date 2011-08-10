@@ -3,8 +3,8 @@
 
 @load base/frameworks/signatures/main
 @load base/frameworks/notice/main
-@load base/protocols/http/main
-@load base/protocols/http/utils
+@load ./main
+@load ./utils
 
 # Add the magic number signatures to the core signature set.
 redef signature_files += "base/protocols/http/file-ident.sig";

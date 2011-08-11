@@ -12,7 +12,11 @@ export {
 		proto:        transport_proto &log;
 		service:      string          &log &optional;
 		duration:     interval        &log &optional;
+		## The number of payload bytes the originator sent. For TCP
+		## this is taken from sequence numbers and might be inaccurate 
+		## (e.g., due to large connections)
 		orig_bytes:   count           &log &optional;
+		## The number of payload bytes the responder sent. See ``orig_bytes``.
 		resp_bytes:   count           &log &optional;
 
 		## ==========   ===============================================
@@ -68,6 +72,17 @@ export {
 		## for instance. I.e., we just record that data went in that direction.
 		## This history is not meant to encode how much data that happened to be.
 		history:      string          &log &optional;
+		## Number of packets the originator sent.
+		## Only set if :bro:id:`use_conn_size_analyzer`=T
+		orig_pkts:     count      &log &optional;
+		## Number IP level bytes the originator sent (as seen on the wire,
+		## taken from IP total_length header field).
+		## Only set if :bro:id:`use_conn_size_analyzer`=T
+		orig_ip_bytes: count      &log &optional;
+		## Number of packets the responder sent. See ``orig_pkts``.
+		resp_pkts:     count      &log &optional;
+		## Number IP level bytes the responder sent. See ``orig_pkts``.
+		resp_ip_bytes: count      &log &optional;
 	};
 	
 	global log_conn: event(rec: Info);
@@ -163,10 +178,17 @@ function set_conn(c: connection, eoc: bool)
 		if ( c$duration > 0secs ) 
 			{
 			c$conn$duration=c$duration;
-			# TODO: these should optionally use Gregor's new
-			#       actual byte counting code if it's enabled.
 			c$conn$orig_bytes=c$orig$size;
 			c$conn$resp_bytes=c$resp$size;
+			}
+		if ( c$orig?$num_pkts )
+			{
+			# these are set if use_conn_size_analyzer=T
+			# we can have counts in here even without duration>0
+			c$conn$orig_pkts = c$orig$num_pkts;
+			c$conn$orig_ip_bytes = c$orig$num_bytes_ip;
+			c$conn$resp_pkts = c$resp$num_pkts;
+			c$conn$resp_ip_bytes = c$resp$num_bytes_ip;
 			}
 		local service = determine_service(c);
 		if ( service != "" ) 

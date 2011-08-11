@@ -215,7 +215,7 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 			c$http$response_content_length = extract_count(value);
 		else if ( name == "CONTENT-DISPOSITION" &&
 		          /[fF][iI][lL][eE][nN][aA][mM][eE]/ in value )
-			c$http$filename = sub(value, /^.*[fF][iI][lL][eE][nN][aA][mM][eE]=/, "");
+			c$http$filename = extract_filename_from_content_disposition(value);
 		}
 	}
 	

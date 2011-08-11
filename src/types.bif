@@ -181,3 +181,6 @@ enum Tunneltype %{
 type Parent: record;
 
 module GLOBAL;
+
+type EndpointExtInfo: record;
+

@@ -39,6 +39,7 @@
 #include "SSL-binpac.h"
 #include "Syslog-binpac.h"
 #include "ConnSizeAnalyzer.h"
+#include "ConnExtInfoAnalyzer.h"
 
 // Keep same order here as in AnalyzerTag definition!
 const Analyzer::Config Analyzer::analyzer_configs[] = {
@@ -158,6 +159,9 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 	{ AnalyzerTag::ConnSize, "CONNSIZE", 
 		ConnSize_Analyzer::InstantiateAnalyzer,
 		ConnSize_Analyzer::Available, 0, false },
+	{ AnalyzerTag::ConnExtInfo, "CONNEXTINFO ",
+		ConnExtInfo_Analyzer::InstantiateAnalyzer,
+		ConnExtInfo_Analyzer::Available, 0, false },
 
 	{ AnalyzerTag::Contents, "CONTENTS", 0, 0, 0, false },
 	{ AnalyzerTag::ContentLine, "CONTENTLINE", 0, 0, 0, false },

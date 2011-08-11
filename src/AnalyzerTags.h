@@ -39,7 +39,7 @@ namespace AnalyzerTag {
 
 		// Other
 		File, Backdoor, InterConn, SteppingStone, TCPStats,
-		ConnSize,
+		ConnSize, ConnExtInfo,
 
 
 		// Support-analyzers

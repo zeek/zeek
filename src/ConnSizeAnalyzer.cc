@@ -1,11 +1,11 @@
-// $Id$
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 //
 // See ConnSize.h for more extensive comments.
 
 
 #include "ConnSizeAnalyzer.h"
+#include "ConnExtInfoAnalyzer.h"
+#include "AnalyzerTags.h"
 #include "TCP.h"
 
 
@@ -28,6 +28,9 @@ void ConnSize_Analyzer::Init()
 	orig_pkts = 0;
 	resp_bytes = 0;
 	resp_pkts = 0;
+
+	if ( ConnExtInfo_Analyzer::Available )
+		AddChildAnalyzer(AnalyzerTag::ConnExtInfo);
 	}
 
 void ConnSize_Analyzer::Done()
@@ -49,6 +52,8 @@ void ConnSize_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 		resp_bytes += ip->TotalLen();
 		resp_pkts ++;
 		}
+
+	ForwardPacket(len, data, is_orig, seq, ip, caplen);
 	}
 
 void ConnSize_Analyzer::UpdateConnVal(RecordVal *conn_val)

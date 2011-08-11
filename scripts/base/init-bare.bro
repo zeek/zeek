@@ -60,6 +60,40 @@ type ftp_port: record {
 	valid: bool;	# true if format was right
 };
 
+## Extensive connection info that gets added to connection endpoints
+## if :bro:id:`get_conn_extensive_info` is true.
+type EndpointExtInfo: record {
+	## For TCP: MSS value used by this endpoint
+	mss: count &log;
+	## For TCP: SACK_OK option used
+	sack_ok: bool &log;
+	## For TCP: Number of packets with a SACK block (indicating loss or reodering)
+	sack_used: count &log;
+	## For TCP: Window scale factor *offered* by this endpoint. -1 if no scaling
+	## offered. Window scaling is only active if both endpoints have wscale>=0
+	wscale: int &log;
+	## For TCP: Was the timestamp option used?
+	ts_opt_used: bool &log;
+	## For TCP: Max receiver window this endpoint ever announced (already scaled)
+	maxwin: count &log;
+	## For TCP: Min receiver window this endpoint ever announced (already scaled)
+	minwin: count &log;
+	## For TCP: RTT measured at the connection handshake from the monitoring 
+	## point to this endpoint. The total handshake RTT is thus the sum from
+	## both endpoint. Set to 0secs if the there are problems with RTT 
+	## estimation (e.g., duplicate SYNs)
+	rtt: interval &log;
+	## For TCP: number of SYN packets this endpoint sent.
+	syns: count &log;
+	## For TCP: Number of packet with out of order sequence numbers. 
+	## I.e., roughly the number of loss or reodering events
+	out_of_seq: count &log;
+	## The IP TTL value of the first packet of this connection.
+	first_pkt_ttl: count &log;
+	## Did the TTL change for any packet after the first? 
+	ttl_changed: bool &log;
+};
+
 type endpoint: record {
 	size: count;	# logical size (for TCP: from seq numbers)
 	state: count;
@@ -67,6 +101,8 @@ type endpoint: record {
 	# The following are set if use_conn_size_analyzer is T.
 	num_pkts: count &optional;	# number of packets on the wire
 	num_bytes_ip: count &optional;	# actual number of IP-level bytes on the wire
+
+	ext_info: EndpointExtInfo &optional;
 };
 
 type endpoint_stats: record {
@@ -1513,6 +1549,11 @@ export {
 	const udp_tunnel_allports = F &redef;
 } # end export
 module GLOBAL;
+
+## If true, run the ConnExtInfo_Analyzer and populate connection
+## :bro:type:`endpoint` (``conn$resp``, ``conn$orig``) with
+## :bro:type:`EndpointExtInfo`.
+const get_conn_extensive_info = F &redef;
 
 
 # Load the logging framework here because it uses fairly deep integration with 

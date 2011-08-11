@@ -45,6 +45,11 @@ redef signature_files += "frameworks/signatures/detect-windows-shells.sig";
 # Load the script to enable SSL/TLS certificate validation.
 @load protocols/ssl/validate-certs
 
+# If you have libGeoIP support built in, do some geographic detections and logging.
+@load protocols/ssh/geo-data
+@load protocols/ssh/detect-bruteforcing
+@load protocols/ssh/interesting-hostnames
+
 # Uncomment this redef if you want to extract SMTP MIME entities for 
 # some file types.  The numbers given indicate how many bytes to extract for
 # the various mime types.

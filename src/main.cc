@@ -230,13 +230,13 @@ void done_with_network()
 	dpm->Done();
 	timer_mgr->Expire();
 	mgr.Drain();
+	net_finish(1);
 	log_mgr->Shutdown();
 
 	if ( remote_serializer )
 		remote_serializer->Finish();
 
-	net_finish(1);
-
+	//net_finish used to be here...
 #ifdef USE_PERFTOOLS
 
 		if ( perftools_profile )

@@ -126,6 +126,7 @@ void LogEmissary::Shutdown()
 LogEmissary::~LogEmissary()
 	{
 	assert(!isActive);  // If this emissary hasn't been shut down, there's a serious problem somewhere. . .
+	assert(bMessage->size() == 0);
 	for(int i = 0; i < num_fields; ++i)
 		delete fields[i];
 	delete [] fields;

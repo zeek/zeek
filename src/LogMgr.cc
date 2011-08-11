@@ -544,11 +544,16 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 
 	Stream* stream = FindStream(id);
 	if ( ! stream )
+		{
+		reporter->Error("Tried to write to unknown stream.");
 		return false;
-
+		}
 	if ( ! stream->enabled )
+		{
+		reporter->Error("Tried to write to disabled stream.");
+		// assert(false);
 		return true;
-
+		}
 	columns = columns->CoerceTo(stream->columns);
 
 	if ( ! columns )

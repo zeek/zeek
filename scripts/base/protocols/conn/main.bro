@@ -200,7 +200,7 @@ function set_conn(c: connection, eoc: bool)
 		}
 	}
 
-event connection_established(c: connection) &priority=5
+event new_connection(c: connection) &priority=5
 	{
 	set_conn(c, F);
 	}

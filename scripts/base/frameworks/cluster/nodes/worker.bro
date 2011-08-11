@@ -2,6 +2,9 @@
 
 @prefixes += cluster-worker
 
+## Load the script for local site configuration for the worker nodes.
+@load site/local-worker
+
 ## Don't do any local logging.
 redef Log::enable_local_logging = F;
 

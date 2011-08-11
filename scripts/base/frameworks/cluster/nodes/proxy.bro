@@ -1,6 +1,9 @@
 
 @prefixes += cluster-proxy
 
+## Load the script for local site configuration for proxy nodes.
+@load site/local-proxy
+
 ## The proxy only syncs state; does not forward events.
 redef forward_remote_events = F;
 redef forward_remote_state_changes = T;

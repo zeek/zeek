@@ -1,18 +1,27 @@
 include(InstallPackageConfigFile)
 
 install(DIRECTORY ./ DESTINATION ${POLICYDIR} FILES_MATCHING
-        PATTERN "all.bro" EXCLUDE
-        PATTERN "site/local.bro" EXCLUDE
-        PATTERN "bro.init"
+        PATTERN "site/local*" EXCLUDE
         PATTERN "*.bro"
         PATTERN "*.sig"
-        PATTERN "*.osf"
+        PATTERN "*.fp"
 )
 
-# Install as a config file since the local.bro script is meant to be
+# Install all local* scripts as config files since they are meant to be
 # user modify-able.
 InstallPackageConfigFile(
     ${CMAKE_CURRENT_SOURCE_DIR}/site/local.bro
     ${POLICYDIR}/site
     local.bro)
-
+InstallPackageConfigFile(
+    ${CMAKE_CURRENT_SOURCE_DIR}/site/local-manager.bro
+    ${POLICYDIR}/site
+    local-manager.bro)
+InstallPackageConfigFile(
+    ${CMAKE_CURRENT_SOURCE_DIR}/site/local-proxy.bro
+    ${POLICYDIR}/site
+    local-proxy.bro)
+InstallPackageConfigFile(
+    ${CMAKE_CURRENT_SOURCE_DIR}/site/local-worker.bro
+    ${POLICYDIR}/site
+    local-worker.bro)

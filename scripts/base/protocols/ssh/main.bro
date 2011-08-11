@@ -9,6 +9,7 @@
 @load base/utils/site
 @load base/utils/thresholds
 @load base/utils/conn-ids
+@load base/utils/directions-and-hosts
 
 module SSH;
 

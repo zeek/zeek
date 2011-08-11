@@ -35,6 +35,11 @@ struct LogMgr::WriterInfo {
 	double open_time;
 	Timer* rotation_timer;
 	LogEmissary *writer;
+	
+	WriterInfo()
+	: type(NULL), open_time(0), rotation_timer(NULL), 
+	writer(NULL) { }
+	
 	};
 
 struct LogMgr::Stream {
@@ -51,6 +56,10 @@ struct LogMgr::Stream {
 
 	WriterMap writers;	// Writers indexed by id/path pair.
 	
+	Stream()
+	: id(NULL), enabled(false), name(""), columns(NULL)
+	{ }
+
 	~Stream();
 	};
 
@@ -853,6 +862,7 @@ LogEmissary* LogMgr::CreateWriter(EnumVal* id, EnumVal* writer, string path,
 		return w->second->writer;
 
 	LogEmissary *emissary = LogWriterRegistrar::LaunchWriterThread(path, num_fields, fields, writer->AsEnum());
+	DBG_LOG(DBG_LOGGING, "Launched new writer thread (0x%p -- %.3f)", emissary, open_time);
 
 	WriterInfo* winfo = new WriterInfo;
 	winfo->type = writer->Ref()->AsEnumVal();
@@ -940,8 +950,15 @@ void LogMgr::Shutdown()
 		for ( Stream::WriterMap::iterator i = stream->writers.begin();
 		      i != stream->writers.end(); i++ )
 			{
+			if(!i->second)
+				{
+				DBG_LOG(DBG_LOGGING, "BUG: WriterInfo with NULL LogEmissary.");
+				continue;
+				}
 			LogEmissary* writer = i->second->writer;
+			DBG_LOG(DBG_LOGGING, "(0x%p) Commencing thread shutdown...", i->second->writer);
 			writer->Shutdown();
+			DBG_LOG(DBG_LOGGING, "(0x%p) Thread shutdown complete.", i->second->writer);
 			}
 
 		stream->enabled = false;

@@ -6,7 +6,8 @@
 @load ./actions/drop
 @load ./actions/email_admin
 @load ./actions/page
+@load ./actions/add-geodata
 
-# Load the script to add hostnames to emails by default.
-# NOTE: this exposes a memleak in async DNS lookups.
-#@load ./extend-email/hostnames
+# There shouldn't be any defaul toverhead from loading these since they 
+# *should* only do anything when notices have the ACTION_EMAIL action applied.
+@load ./extend-email/hostnames

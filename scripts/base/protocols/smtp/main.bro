@@ -4,13 +4,6 @@ module SMTP;
 export {
 	redef enum Log::ID += { SMTP };
 
-	redef enum Notice::Type += { 
-		## Indicates that the server sent a reply mentioning an SMTP block list.
-		BL_Error_Message, 
-		## Indicates the client's address is seen in the block list error message.
-		BL_Blocked_Host, 
-	};
-
 	type Info: record {
 		ts:                time            &log;
 		uid:               string          &log;
@@ -59,26 +52,7 @@ export {
 	##    ALL_HOSTS - always capture the entire path.
 	##    NO_HOSTS - never capture the path.
 	const mail_path_capture = ALL_HOSTS &redef;
-	
-	# This matches content in SMTP error messages that indicate some
-	# block list doesn't like the connection/mail.
-	const bl_error_messages = 
-	    /spamhaus\.org\//
-	  | /sophos\.com\/security\//
-	  | /spamcop\.net\/bl/
-	  | /cbl\.abuseat\.org\// 
-	  | /sorbs\.net\// 
-	  | /bsn\.borderware\.com\//
-	  | /mail-abuse\.com\//
-	  | /b\.barracudacentral\.com\//
-	  | /psbl\.surriel\.com\// 
-	  | /antispam\.imp\.ch\// 
-	  | /dyndns\.com\/.*spam/
-	  | /rbl\.knology\.net\//
-	  | /intercept\.datapacket\.net\//
-	  | /uceprotect\.net\//
-	  | /hostkarma\.junkemailfilter\.com\// &redef;
-	
+		
 	global log_smtp: event(rec: Info);
 	
 	## Configure the default ports for SMTP analysis.
@@ -181,27 +155,6 @@ event smtp_reply(c: connection, is_orig: bool, code: count, cmd: string,
 	# This continually overwrites, but we want the last reply,
 	# so this actually works fine.
 	c$smtp$last_reply = fmt("%d %s", code, msg);
-
-	if ( code != 421 && code >= 400 )
-		{
-		# Raise a notice when an SMTP error about a block list is discovered.
-		if ( bl_error_messages in msg )
-			{
-			local note = BL_Error_Message;
-			local message = fmt("%s received an error message mentioning an SMTP block list", c$id$orig_h);
-
-			# Determine if the originator's IP address is in the message.
-			local ips = find_ip_addresses(msg);
-			local text_ip = "";
-			if ( |ips| > 0 && to_addr(ips[0]) == c$id$orig_h )
-				{
-				note = BL_Blocked_Host;
-				message = fmt("%s is on an SMTP block list", c$id$orig_h);
-				}
-			
-			NOTICE([$note=note, $conn=c, $msg=message, $sub=msg]);
-			}
-		}
 	}
 
 event smtp_reply(c: connection, is_orig: bool, code: count, cmd: string,
@@ -256,7 +209,7 @@ event mime_one_header(c: connection, h: mime_header_rec) &priority=5
 
 	else if ( h$name == "X-ORIGINATING-IP" )
 		{
-		local addresses = find_ip_addresses(h$name);
+		local addresses = find_ip_addresses(h$value);
 		if ( 1 in addresses )
 			c$smtp$x_originating_ip = to_addr(addresses[1]);
 		}
@@ -274,7 +227,7 @@ event mime_one_header(c: connection, h: mime_header_rec) &priority=3
 	# If we've decided that we're done watching the received headers for
 	# whatever reason, we're done.  Could be due to only watching until 
 	# local addresses are seen in the received from headers.
-	if ( ! c?$smtp || h$name != "RECEIVED" || ! c$smtp$process_received_from)
+	if ( ! c?$smtp || h$name != "RECEIVED" || ! c$smtp$process_received_from )
 		return;
 
 	local text_ip = find_address_in_smtp_header(h$value);

@@ -88,6 +88,11 @@ function check_ssh_connection(c: connection, done: bool)
 	if ( c$ssh$done )
 		return;
 	
+	# Make sure conn_size_analyzer is active by checking 
+	# resp$num_bytes_ip
+	if ( !c$resp?$num_bytes_ip )
+		return;
+	
 	# If this is still a live connection and the byte count has not
 	# crossed the threshold, just return and let the resheduled check happen later.
 	if ( !done && c$resp$num_bytes_ip < authentication_data_size )

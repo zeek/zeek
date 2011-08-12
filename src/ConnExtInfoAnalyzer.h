@@ -31,13 +31,18 @@ public:
 	int syns;     // number of syns from this endpoint
 	bool ttl_changed;  // did TTL change after the first packet
 	int first_pkt_ttl;  // TTL of first packet
+	int pkts_below_seq;   // Number of packets with seq <= max seen sequence
+	int bytes_below_seq;  // Number of payload bytes carried in segments
+	                      // with seq <= max seen sequence. TODO: should this be IP bytes?
+						  // currently not used
+
+	uint32 last_seq;      // highest seq number seen
+	bool didrst;          // has sent rst.
 
 protected:
 	friend class ConnExtInfo_Analyzer;
 	bro_uint_t num_pkts;
 	bro_uint_t ip_bytes;     // Sum(ip_len) 
-	bro_uint_t pload_bytes;  // Sum of payload (not based on seq #)
-	TCP_Endpoint *tcp_endp;  // NULL on non TCP connections 
 	ConnExtInfo_Endpoint *peer;
 
 private:
@@ -77,7 +82,7 @@ protected:
 	virtual void DeliverPacket(int len, const u_char* data, bool is_orig,
 					int seq, const IP_Hdr* ip, int caplen);
 
-	void TCP_Packet(const struct tcphdr* tp, bool is_orig);
+	void TCP_Packet(const struct tcphdr* tp, bool is_orig, int len);
 
 	ConnExtInfo_Endpoint* orig_info;
 	ConnExtInfo_Endpoint* resp_info;

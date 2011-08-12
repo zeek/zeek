@@ -8,16 +8,9 @@ ConnExtInfo_Endpoint::ConnExtInfo_Endpoint()
 	init_common_members();
 	}
 
-ConnExtInfo_Endpoint::ConnExtInfo_Endpoint(TCP_Endpoint *te)
-	{
-	init_common_members();
-	tcp_endp = te;
-	}
-
 void ConnExtInfo_Endpoint::init_common_members()
 	{
 	peer = 0;
-	tcp_endp = 0;
 	RTT = 0.0;
 	MSS = 0;
 	SACK_OK = 0;
@@ -30,6 +23,9 @@ void ConnExtInfo_Endpoint::init_common_members()
 	syns = 0;
 	ttl_changed = false;
 	first_pkt_ttl =0;
+
+	last_seq = 0;
+	didrst = false;
 	}
 
 ConnExtInfo_Endpoint::~ConnExtInfo_Endpoint() 
@@ -73,11 +69,8 @@ RecordVal* ConnExtInfo_Endpoint::GetRecordVal()
 	rv->Assign(6, new Val(minwin,TYPE_COUNT));
 	rv->Assign(7, new Val(RTT,TYPE_INTERVAL));
 	rv->Assign(8, new Val(syns,TYPE_COUNT));
-	if (tcp_endp)
-		rv->Assign(9, new Val(0,TYPE_COUNT));
-		//FIXME: rv->Assign(9, new Val(tcp_endp->rexmit,TYPE_COUNT));
-	else 
-		rv->Assign(9, new Val(0,TYPE_COUNT));
+	rv->Assign(9, new Val(pkts_below_seq,TYPE_COUNT));
+	// we currently don't use bytes_below_seq
 	rv->Assign(10, new Val(first_pkt_ttl,TYPE_COUNT));
 	rv->Assign(11, new Val(ttl_changed,TYPE_BOOL));
 
@@ -99,21 +92,9 @@ void ConnExtInfo_Analyzer::Init()
 	{
 	Analyzer::Init();
 
-	if ( Conn()->GetRootAnalyzer()->GetTag() == AnalyzerTag::TCP )
-		tcp = (TCP_Analyzer *)(Conn()->GetRootAnalyzer());
-	else
-		tcp = 0;
+	orig_info = new ConnExtInfo_Endpoint();
+	resp_info = new ConnExtInfo_Endpoint();
 
-	if (tcp)
-		{
-		orig_info = new ConnExtInfo_Endpoint(tcp->Orig());
-		resp_info = new ConnExtInfo_Endpoint(tcp->Resp());
-		}
-	else
-		{
-		orig_info = new ConnExtInfo_Endpoint();
-		resp_info = new ConnExtInfo_Endpoint();
-		}
 	orig_info->peer = resp_info;
 	resp_info->peer = orig_info;
 	state = STATE_INACTIVE;
@@ -133,33 +114,32 @@ void ConnExtInfo_Analyzer::DeliverPacket(int len, const u_char* data, bool is_or
 	int ip_bytes=0;
 
 	ip_bytes = ip->TotalLen();
-	if (ip->NextProto() == IPPROTO_TCP && tcp ) 
-		{
-		tp = (struct tcphdr *)(ip->Payload());
-		TCP_Packet(tp, is_orig);
-		}
-	
 	if ( is_orig )
 		orig_info->AddPacket(ip_bytes, (unsigned)ip->TTL());
 	else
 		resp_info->AddPacket(ip_bytes, (unsigned)ip->TTL());
-	
+
+	if (ip->NextProto() == IPPROTO_TCP) 
+		{
+		int pload_bytes;
+		tp = (struct tcphdr *)(ip->Payload());
+		pload_bytes = ip->PayloadLen() - tp->th_off*4;
+		TCP_Packet(tp, is_orig, pload_bytes);
+		}
 	}
 
-void ConnExtInfo_Analyzer::TCP_Packet(const struct tcphdr *tp, bool is_orig) 
+void ConnExtInfo_Analyzer::TCP_Packet(const struct tcphdr *tp, bool is_orig, int len) 
 	{
 	TCP_Flags flags(tp);
 	ConnExtInfo_Endpoint *endp;
 	ConnExtInfoState nextstate;
-	uint32_t base_seq, ack_seq;
+	uint32_t first_seq, last_seq;
 
 	if ( is_orig )
 		endp = orig_info;
 	else
 		endp = resp_info;
 
-	base_seq = ntohl(tp->th_seq);
-	ack_seq = ntohl(tp->th_ack);
 	/* Simpified TCP handshake state machine. Only transition if pure SYN. SYNACK, ACK
 	 * handshake without retransmits, reodering,whatever. 
 	 * If it's anything else, we go to STATE_OTHER
@@ -215,7 +195,39 @@ void ConnExtInfo_Analyzer::TCP_Packet(const struct tcphdr *tp, bool is_orig)
 		endp->UpdateWindow(ntohs(tp->th_win));
 
 	if (flags.SYN())
+		{
 		endp->syns++;
+		len++; // SYNs take up 1 byte of seq space. 
+		}
+
+	if (flags.FIN())
+		len++; // FINs take up 1 byte of seq space.
+
+	first_seq = ntohl(tp->th_seq);
+	last_seq = first_seq + len;
+
+	if (flags.RST())
+		endp->didrst = true;
+
+	// Update sequence numbers and look for below sequence segments
+	// This is simplified but good enough for our purpose
+	if (endp->num_pkts<=1)
+		endp->last_seq = last_seq;
+	else if (!endp->didrst)
+		{
+		int delta = seq_delta(last_seq, endp->last_seq);
+		if (delta > 0 || flags.FIN())
+			// in order. update endpoint
+			endp->last_seq += last_seq;
+		else if ( delta <= 0 && len>0 )
+			{  // a below sequence, unless it was a pure ACK
+			if ( len>1 || !BifConst::ignore_keep_alive_rexmit )
+				{
+				endp->pkts_below_seq++;
+				endp->bytes_below_seq += len;
+				}
+			}
+		}
 
 	// Parse TCP options.
 	u_char* options = (u_char*) tp + sizeof(struct tcphdr);

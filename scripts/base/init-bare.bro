@@ -85,9 +85,9 @@ type EndpointExtInfo: record {
 	rtt: interval &log;
 	## For TCP: number of SYN packets this endpoint sent.
 	syns: count &log;
-	## For TCP: Number of packet with out of order sequence numbers. 
+	## For TCP: Number of packets with seq number < max seq number seen 
 	## I.e., roughly the number of loss or reodering events
-	out_of_seq: count &log;
+	pkts_below_seq: count &log;
 	## The IP TTL value of the first packet of this connection.
 	first_pkt_ttl: count &log;
 	## Did the TTL change for any packet after the first? 

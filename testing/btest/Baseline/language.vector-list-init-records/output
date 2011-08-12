@@ -1,0 +1,3 @@
+element 0 = [s=bar, o=check]
+element 1 = [s=baz, o=<uninitialized>]
+[[s=bar, o=check], [s=baz, o=<uninitialized>]]

@@ -100,6 +100,7 @@ find_package(Threads)
 if (NOT THREADS_FOUND)
 	message(FATAL_ERROR "Could not find thread library.")
 endif ()
+set(EXTRA_COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS} -DUSE_LOCKS")
 list(APPEND OPTLIBS ${CMAKE_THREAD_LIBS_INIT})
 
 if (NOT BinPAC_ROOT_DIR AND

@@ -102,6 +102,7 @@ TunnelInfo* TunnelHandler::HandleUDP(const IP_Hdr *ip_hdr, int len, int caplen)
 		cand_ip_hdr = LookForIPHdr(data, datalen);
 		if (cand_ip_hdr)
 			{
+			// Found and IP hdr directly in the UDP payload
 			tunneltype =  (cand_ip_hdr->IP4_Hdr()) ? 
 					BifEnum::Tunnel::IP4_IN_UDP : BifEnum::Tunnel::IP6_IN_UDP;
 			}
@@ -155,8 +156,10 @@ IP_Hdr* TunnelHandler::LookForIPHdr(const u_char *data, int datalen)
 	const struct ip *ip4 = (const struct ip*)(data);
 	if (ip4->ip_v == 4)
 		cand_ip_hdr = new IP_Hdr((const struct ip*)ip4);
+#ifdef BROv6
 	else if (ip4->ip_v == 6 && (datalen > (int)sizeof(struct ip6_hdr)))
 		cand_ip_hdr = new IP_Hdr((const struct ip6_hdr*)data);
+#endif
 
 	if (cand_ip_hdr) 
 		{

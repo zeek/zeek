@@ -89,7 +89,7 @@ bool LogField::Write(SerializationFormat* fmt) const
 
 LogVal::~LogVal()
 	{
-	if ( (type == TYPE_ENUM || type == TYPE_STRING || type == TYPE_FILE)
+	if ( (type == TYPE_ENUM || type == TYPE_STRING || type == TYPE_FILE || type == TYPE_FUNC)
 	     && present )
 		delete val.string_val;
 
@@ -130,6 +130,7 @@ bool LogVal::IsCompatibleType(BroType* t, bool atomic_only)
 	case TYPE_ENUM:
 	case TYPE_STRING:
 	case TYPE_FILE:
+	case TYPE_FUNC:
 		return true;
 
 	case TYPE_RECORD:
@@ -231,6 +232,7 @@ bool LogVal::Read(SerializationFormat* fmt)
 	case TYPE_ENUM:
 	case TYPE_STRING:
 	case TYPE_FILE:
+	case TYPE_FUNC:
 		{
 		val.string_val = new string;
 		return fmt->Read(val.string_val, "string");
@@ -343,6 +345,7 @@ bool LogVal::Write(SerializationFormat* fmt) const
 	case TYPE_ENUM:
 	case TYPE_STRING:
 	case TYPE_FILE:
+	case TYPE_FUNC:
 		return fmt->Write(*val.string_val, "string");
 
 	case TYPE_TABLE:
@@ -644,6 +647,11 @@ bool LogMgr::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 				}
 
 			else if ( t->Tag() == TYPE_FILE )
+				{
+				// That's ok, we handle it below.
+				}
+
+			else if ( t->Tag() == TYPE_FUNC )
 				{
 				// That's ok, we handle it below.
 				}
@@ -1071,6 +1079,15 @@ LogVal* LogMgr::ValToLogVal(Val* val, BroType* ty)
 		{
 		const BroFile* f = val->AsFile();
 		lval->val.string_val = new string(f->Name());
+		break;
+		}
+
+	case TYPE_FUNC:
+		{
+		ODesc d;
+		const Func* f = val->AsFunc();
+		f->Describe(&d);
+		lval->val.string_val = new string(d.Description());
 		break;
 		}
 

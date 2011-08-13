@@ -15,5 +15,6 @@ export {
 
 event bro_init() &priority=-10
 	{
+	enable_communication();
 	listen(listen_if_clear, listen_port_clear, F);
 	}

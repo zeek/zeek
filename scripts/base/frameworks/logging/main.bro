@@ -27,6 +27,17 @@ export {
 		ev: any &optional;
 	};
 
+	## Default function for building the path values for log filters if not
+	## speficied otherwise by a filter. The default implementation uses ``id``
+	## to derive a name.
+	##
+	## id: The log stream.
+	## path: A suggested path value, which may be either the filter's ``path``
+	## if defined or a fall-back generated internally.
+	##
+	## Returns: The path to be used for the filter.
+	global default_path_func: function(id: ID, path: string) : string &redef;
+
 	## Filter customizing logging.
 	type Filter: record {
 		## Descriptive name to reference this filter.
@@ -50,7 +61,7 @@ export {
 		## The specific interpretation of the string is up to
 		## the used writer, and may for example be the destination
 		## file name. Generally, filenames are expected to given
-		## without any extensions; writers will add appropiate 
+		## without any extensions; writers will add appropiate
 		## extensions automatically.
 		path: string &optional;
 
@@ -81,36 +92,34 @@ export {
 
 	## Information passed into rotation callback functions.
 	type RotationInfo: record {
-		writer: Writer;	##< Writer.
-		path: string;	##< Original path value.
-		open: time;	##< Time when opened.
-		close: time;	##< Time when closed.
+		writer: Writer;		##< Writer.
+		fname: string;		##< Full name of the rotated file.
+		path: string;		##< Original path value.
+		open: time;			##< Time when opened.
+		close: time;		##< Time when closed.
+		terminating: bool;	##< True if rotation occured due to Bro shutting down.
 	};
 
 	## Default rotation interval. Zero disables rotation.
 	const default_rotation_interval = 0secs &redef;
 
-	## Default naming suffix format. Uses a strftime() style.
-	const default_rotation_date_format = "%y-%m-%d_%H.%M.%S" &redef;
+	## Default naming format for timestamps embedded into filenames. Uses a strftime() style.
+	const default_rotation_date_format = "%Y-%m-%d-%H-%M-%S" &redef;
 
-	## Default postprocessor for writers outputting into files.
-	const default_rotation_postprocessor = "" &redef;
+	## Default shell command to run on rotated files. Empty for none.
+	const default_rotation_postprocessor_cmd = "" &redef;
 
-	## Default function to construct the name of a rotated output file.
-	## The default implementation appends info$date_fmt to the original
-	## file name.
-	##
-	## info: Meta-data about the file to be rotated.
-	global default_rotation_path_func: function(info: RotationInfo) : string &redef;
+	## Specifies the default postprocessor function per writer type. Entries in this
+	## table are initialized by each writer type.
+	const default_rotation_postprocessors: table[Writer] of function(info: RotationInfo) : bool &redef;
 
 	## Type for controlling file rotation.
 	type RotationControl: record  {
 		## Rotation interval.
 		interv: interval &default=default_rotation_interval;
-		## Format for timestamps embedded into rotated file names.
-		date_fmt: string &default=default_rotation_date_format;
-		## Postprocessor process to run on rotate file.
-		postprocessor: string &default=default_rotation_postprocessor;
+		## Callback function to trigger for rotated files. If not set, the default
+		## comes out of default_rotation_postprocessors.
+		postprocessor: function(info: RotationInfo) : bool &optional;
 	};
 
 	## Specifies rotation parameters per ``(id, path)`` tuple.
@@ -133,6 +142,8 @@ export {
 	global flush: function(id: ID): bool;
 	global add_default_filter: function(id: ID) : bool;
 	global remove_default_filter: function(id: ID) : bool;
+
+	global run_rotation_postprocessor_cmd: function(info: RotationInfo, npath: string) : bool;
 }
 
 # We keep a script-level copy of all filters so that we can manipulate them.
@@ -140,10 +151,39 @@ global filters: table[ID, string] of Filter;
 
 @load logging.bif.bro # Needs Filter and Stream defined.
 
-function default_rotation_path_func(info: RotationInfo) : string
+module Log;
+
+# Used internally by the log manager.
+function __default_rotation_postprocessor(info: RotationInfo) : bool
 	{
-	local date_fmt = rotation_control[info$writer, info$path]$date_fmt;
-	return fmt("%s-%s", info$path, strftime(date_fmt, info$open));
+	if ( info$writer in default_rotation_postprocessors )
+		return default_rotation_postprocessors[info$writer](info);
+	}
+
+function default_path_func(id: ID, path: string) : string
+	{
+	# TODO for Seth: Do what you want. :)
+	return path;
+	}
+
+# Run post-processor on file. If there isn't any postprocessor defined,
+# we move the file to a nicer name.
+function run_rotation_postprocessor_cmd(info: RotationInfo, npath: string) : bool
+	{
+	local pp_cmd = default_rotation_postprocessor_cmd;
+
+	if ( pp_cmd == "" )
+		return T;
+
+	# The date format is hard-coded here to provide a standardized
+	# script interface.
+	system(fmt("%s %s %s %s %s %d",
+               pp_cmd, npath, info$path,
+               strftime("%y-%m-%d_%H.%M.%S", info$open),
+               strftime("%y-%m-%d_%H.%M.%S", info$close),
+               info$terminating));
+
+	return T;
 	}
 
 function create_stream(id: ID, stream: Stream) : bool
@@ -159,9 +199,15 @@ function disable_stream(id: ID) : bool
 	if ( ! __disable_stream(id) )
 		return F;
 	}
-						   
+
 function add_filter(id: ID, filter: Filter) : bool
 	{
+	# This is a work-around for the fact that we can't forward-declare
+	# the default_path_func and then use it as &default in the record
+	# definition.
+	if ( ! filter?$path_func )
+		filter$path_func = default_path_func;
+
 	filters[id, filter$name] = filter;
 	return __add_filter(id, filter);
 	}

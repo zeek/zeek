@@ -880,9 +880,6 @@ int main(int argc, char** argv)
 		exit(0);
 		}
 
-	if ( using_communication )
-		remote_serializer->Init();
-
 	persistence_serializer->SetDir((const char *)state_dir->AsString()->CheckString());
 
 	// Print the ID.

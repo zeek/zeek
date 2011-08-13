@@ -1,6 +1,6 @@
 #
-# @TEST-EXEC: ENABLE_COMMUNICATION=1 btest-bg-run sender   bro %INPUT ../sender.bro
-# @TEST-EXEC: ENABLE_COMMUNICATION=1 btest-bg-run receiver bro %INPUT ../receiver.bro
+# @TEST-EXEC: btest-bg-run sender   bro %INPUT ../sender.bro
+# @TEST-EXEC: btest-bg-run receiver bro %INPUT ../receiver.bro
 # @TEST-EXEC: btest-bg-wait 20
 #
 # @TEST-EXEC: btest-diff sender/vars.log

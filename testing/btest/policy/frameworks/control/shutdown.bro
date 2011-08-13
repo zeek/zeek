@@ -1,5 +1,5 @@
-# @TEST-EXEC: btest-bg-run controllee BROPATH=$BROPATH:.. ENABLE_COMMUNICATION=1 bro %INPUT frameworks/control/controllee Communication::listen_port_clear=65530/tcp 
-# @TEST-EXEC: btest-bg-run controller BROPATH=$BROPATH:.. ENABLE_COMMUNICATION=1 bro %INPUT frameworks/control/controller Control::host=127.0.0.1 Control::host_port=65530/tcp Control::cmd=shutdown
+# @TEST-EXEC: btest-bg-run controllee BROPATH=$BROPATH:.. bro %INPUT frameworks/control/controllee Communication::listen_port_clear=65530/tcp 
+# @TEST-EXEC: btest-bg-run controller BROPATH=$BROPATH:.. bro %INPUT frameworks/control/controller Control::host=127.0.0.1 Control::host_port=65530/tcp Control::cmd=shutdown
 # @TEST-EXEC: btest-bg-wait 1
 
 redef Communication::nodes = {

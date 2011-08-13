@@ -1,4 +1,58 @@
 
+1.6-dev-1061 | 2011-08-08 18:25:27 -0700
+
+  * A set of new/changed tests regarding the new policy script
+    organisation. (Robin Sommer)
+
+1.6-dev-1058 | 2011-08-08 16:15:18 -0700
+
+  * Reorganisation of the scripts that Bro loads by default. (Seth
+    Hall)
+
+    - policy/ renamed to scripts/
+
+    - By default BROPATH now contains:
+    	- scripts/
+    	- scripts/policy
+    	- scripts/site
+
+    - The scripts in scripts/base/protocols/ only do logging and state
+      building.
+
+    - All of scripts/base/ is loaded by by default. This can however
+      be disabled by switching Bro into "bare mode" using the new
+      command-line option --bare-mode (or -b). The cripts in
+      scripts/base/ don't use relative path loading to ease use of
+      bare mode (to copy and paste that script).
+
+    - The scripts in scripts/base/frameworks/ add functionality
+      without causing any additional overhead.
+
+    - All "detection" activity happens through scripts in
+      scripts/policy/.
+
+    - bro.init was renamed to base/init-bare.bro, and base/all.bro was
+      renamed to init-default.bro.
+
+    - local.bro now loads more functionality from policy/ and adds
+      more documentation. (Seth Hall)
+
+  * Adding default_path_func() to the logging framework that makes the
+    default naming scheme script-level controlled. (Robin Sommer)
+
+  * Reworking logging's postprocessor logic so that postprocessor
+    commands are no longer run by the log writers themselves, but
+    instead by a script level function. (Robin Sommer)
+
+  * The communication subsystem is now by default off and must be
+    enabled explicitly with a new BiF, enable_communication(). Closes
+    #540. (Robin Sommer)
+
+  * The hostname notice email extension now only add hostnames for
+    emailed noticed. (Seth Hall)
+
+  * Cleaning up doc generation. (Seth Hall)
+
 1.6-dev-1044 | 2011-08-05 19:07:32 -0700
 
   * Fixing memory (and CPU) leak in log writer.

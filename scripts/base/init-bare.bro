@@ -509,7 +509,7 @@ const tunnel_port = 0/udp &redef;
 # packets and IP-level bytes transfered by each endpoint. If
 # true, these values are returned in the connection's endpoint
 # record val.
-const use_conn_size_analyzer = F &redef;
+const use_conn_size_analyzer = T &redef;
 
 const UDP_INACTIVE = 0;
 const UDP_ACTIVE = 1;	# means we've seen something from this endpoint

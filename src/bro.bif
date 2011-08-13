@@ -3632,7 +3632,27 @@ function piped_exec%(program: string, to_write: string%): bool
 		}
 
 	fprintf(f, "%s", to_write->CheckString());
-    pclose(f);
+	pclose(f);
 
-    return new Val(true, TYPE_BOOL);
+	return new Val(true, TYPE_BOOL);
+	%}
+
+## Enables the communication system. Note that by default,
+## communication is off until explicitly enabled, and all other calls
+## to communication-related BiFs' will be ignored until done so.
+function enable_communication%(%): any
+	%{
+	if ( bro_start_network_time != 0.0 )
+		{
+		builtin_error("communication must be enabled in bro_init");
+		return 0;
+		}
+
+	if ( using_communication )
+		// Ignore duplicate calls.
+		return 0;
+
+	using_communication = 1;
+	remote_serializer->Init();
+	return 0;
 	%}

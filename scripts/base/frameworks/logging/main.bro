@@ -33,7 +33,7 @@ export {
 	##
 	## id: The log stream.
 	## path: A suggested path value, which may be either the filter's ``path``
-	## if defined or a fall-back generated internally.
+	##       if defined or a fall-back generated internally.
 	##
 	## Returns: The path to be used for the filter.
 	global default_path_func: function(id: ID, path: string) : string &redef;

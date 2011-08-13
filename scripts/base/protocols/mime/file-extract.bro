@@ -1,5 +1,5 @@
-@load protocols/mime/file-ident
-@load utils/files
+@load ./file-ident
+@load base/utils/files
 
 module MIME;
 

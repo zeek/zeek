@@ -1,7 +1,7 @@
 
 @prefixes += cluster-worker
 
-## Load the script for local site configuration for the worker nodes.
+# Load the script for local site configuration for the worker nodes.
 @load site/local-worker
 
 ## Don't do any local logging.

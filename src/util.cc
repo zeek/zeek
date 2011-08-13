@@ -757,9 +757,9 @@ const char* bro_path()
 	const char* path = getenv("BROPATH");
 	if ( ! path )
 		path = ".:"
-			POLICYDEST ":"
-			POLICYDEST "/policy" ":"
-			POLICYDEST "/site";
+			BRO_SCRIPT_INSTALL_PATH ":"
+			BRO_SCRIPT_INSTALL_PATH "/policy" ":"
+			BRO_SCRIPT_INSTALL_PATH "/site";
 
 	return path;
 	}
@@ -891,60 +891,36 @@ const char* normalize_path(const char* path)
 	return copy_string(new_path.c_str());
 	}
 
-// Returns the subpath of BROPATH's policy/ directory in which the loaded
-// file in located.  If it's not under a subpath of policy/ then the full
-// path is returned, else the subpath of policy/ concatentated with any
-// directory prefix of the file is returned.
-void get_policy_subpath(const char* dir, const char* file, const char** subpath)
+// Returns the subpath of the root Bro script install/source directory in
+// which the loaded file is located.  If it's not under a subpath of that
+// directory (e.g. cwd or custom path) then the full path is returned.
+void get_script_subpath(const std::string& full_filename, const char** subpath)
 	{
-	// first figure out if this is a subpath of policy/
-	const char* ploc = strstr(dir, "policy");
-	if ( ploc )
-		if ( ploc[6] == '\0' )
-			*subpath = copy_string(ploc + 6);
-		else if ( ploc[6] == '/' )
-			*subpath = copy_string(ploc + 7);
-		else
-			*subpath = copy_string(dir);
-	else
-		*subpath = copy_string(dir);
+	size_t p;
+	std::string my_subpath(full_filename);
 
-	// and now add any directory parts of the filename
-	char full_filename_buf[1024];
-	safe_snprintf(full_filename_buf, sizeof(full_filename_buf),
-			"%s/%s", dir, file);
-	char* tmp = copy_string(file);
-	const char* fdir = 0;
-
-	if ( is_dir(full_filename_buf) )
-		fdir = file;
-
-	if ( ! fdir )
-		fdir = dirname(tmp);
-
-	if ( ! streq(fdir, ".") )
+	// get the parent directory of file (if not already a directory)
+	if ( ! is_dir(full_filename.c_str()) )
 		{
-		size_t full_subpath_len = strlen(*subpath) + strlen(fdir) + 1;
-		bool needslash = false;
-		if ( strlen(*subpath) != 0 && (*subpath)[strlen(*subpath) - 1] != '/' )
-			{
-			++full_subpath_len;
-			needslash = true;
-			}
-
-		char* full_subpath = new char[full_subpath_len];
-		strcpy(full_subpath, *subpath);
-		if ( needslash )
-			strcat(full_subpath, "/");
-		strcat(full_subpath, fdir);
-		delete [] *subpath;
-		*subpath = full_subpath;
+		char* tmp = copy_string(full_filename.c_str());
+		my_subpath = dirname(tmp);
+		delete [] tmp;
 		}
 
-	const char* normalized_subpath = normalize_path(*subpath);
-	delete [] tmp;
-	delete [] *subpath;
-	*subpath = normalized_subpath;
+	// first check if this is some subpath of the installed scripts root path,
+	// if not check if it's a subpath of the script source root path,
+	// if neither, will just use the given directory
+	if ( (p=my_subpath.find(BRO_SCRIPT_INSTALL_PATH)) != std::string::npos )
+		my_subpath.erase(0, strlen(BRO_SCRIPT_INSTALL_PATH));
+	else if ( (p=my_subpath.find(BRO_SCRIPT_SOURCE_PATH)) != std::string::npos )
+		my_subpath.erase(0, strlen(BRO_SCRIPT_SOURCE_PATH));
+
+	// if root path found, remove path separators until next path component
+	if ( p != std::string::npos )
+		while ( my_subpath.size() && my_subpath[0] == '/' )
+			my_subpath.erase(0, 1);
+
+	*subpath = normalize_path(my_subpath.c_str());
 	}
 
 extern string current_scanned_file_path;
@@ -1001,7 +977,7 @@ FILE* search_for_file(const char* filename, const char* ext,
 		     ! is_dir(full_filename_buf) )
 			{
 			if ( bropath_subpath )
-				get_policy_subpath(dir_beginning, filename, bropath_subpath);
+				get_script_subpath(full_filename_buf, bropath_subpath);
 			return open_file(full_filename_buf, full_filename, load_pkgs);
 			}
 
@@ -1010,7 +986,7 @@ FILE* search_for_file(const char* filename, const char* ext,
 		if ( access(full_filename_buf, R_OK) == 0 )
 			{
 			if ( bropath_subpath )
-				get_policy_subpath(dir_beginning, filename, bropath_subpath);
+				get_script_subpath(full_filename_buf, bropath_subpath);
 			return open_file(full_filename_buf, full_filename, load_pkgs);
 			}
 

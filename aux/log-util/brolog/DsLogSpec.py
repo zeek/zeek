@@ -84,7 +84,7 @@ class DsLogSpec(BroLogSpec):
         if path not in DsLogSpec.EXTRACTED_FILES:
             if(BroLogOptions.verbose):
                 print "Extracting " + path
-            tfd, tpath = tempfile.mkstemp()
+            tfd, tpath = tempfile.mkstemp(dir=DsLogSpec.DS_EXTRACT_DIR)
             DsLogSpec.EXTRACTED_FILES[path] = tpath
             os.close(tfd)
             os.system('ds2txt --csv --skip-extent-fieldnames --separator="\t" ' + path + ' > ' + tpath)

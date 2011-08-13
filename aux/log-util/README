@@ -4,3 +4,5 @@ ASCII (including .gz / .bz2) and DataSeries logs.
 
 Note that the library uses file extensions to determine log type.
 
+Thanks to Gregor Maier for his contributions!
+

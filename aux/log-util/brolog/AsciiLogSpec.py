@@ -104,7 +104,7 @@ class AsciiLogSpec(BroLogSpec):
         match = AsciiLogSpec.RE_TYPESPEC.match(type_info)
         if not match:
             return False
-        type_array = re.sub("\s*#\s*", '', type_info).split(" ")
+        type_array = re.sub("\s*#\s*", '', type_info).split(' ')  #TODO: Modify ASCII LogWriter to use logfile separators between individual entries.  (Gregor's suggestion)
         match = [AsciiLogSpec.RE_TYPE_ENTRY.match(entry) for entry in type_array]
         self._fields = [ ( entry.group(1), entry.group(2) ) for entry in match]
         self.names = [ entry.group(1) for entry in match ]

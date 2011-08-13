@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 import argparse
+import os
 import sys
 
 from brolog.BroLogManager import BroLogManager
+from brolog.BroLogManager import SimpleLogManager
 from brolog.BroLogOptions import BroLogOptions
 from brolog.AsciiLogExporter import AsciiLogExporter
 
@@ -12,8 +14,27 @@ def parse_args():
     parser.add_argument('logfiles', metavar='LOGFILE', nargs='+', help='Bro logfiles to load')
     return parser.parse_args()
 
-#def test_filter(entry):
-#    return entry['ts'] < 100
+def test_simple_logmgr(logfiles):
+    manager = SimpleLogManager()
+    manager.load(logfiles)
+    manager.set_filter(test_filter)
+    for e in manager:
+        assert(e['ts'] > 1000)
+    print manager.get().get_stats('orig_bytes')
+
+def test_logmgr(logfiles):
+    manager = BroLogManager()
+    manager.load(logfiles)
+    if not manager['conn']:
+        print 'No log data of type "conn" found.  Exiting...'
+        sys.exit(0)
+    test_stats(manager)
+    # test_iterate(manager)
+    # test_export(manager)
+
+
+def test_filter(entry):
+    return entry['ts'] > 1000000
 
 def test_iterate(manager):
     #manager['conn'].set_filter(test_filter)
@@ -41,11 +62,8 @@ if __name__ == '__main__':
     args = parse_args()
     BroLogOptions.verbose = args.verbose
     manager = BroLogManager()
-    manager.load(args.logfiles)
-    if not manager['conn']:
-        print 'No log data of type "conn" found.  Exiting...'
-        sys.exit(0)
-    test_stats(manager)
-    # test_iterate(manager)
-    # test_export(manager)
-
+    if(len(args.logfiles) == 1 and not os.path.isdir(args.logfiles[0])):
+        test_simple_logmgr(args.logfiles[0])
+        test_logmgr(args.logfiles)
+    else:
+        test_logmgr(args.logfiles)

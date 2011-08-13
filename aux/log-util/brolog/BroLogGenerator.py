@@ -160,18 +160,26 @@ class BroLogGenerator(object):
             conventions and are not available as attributes.
             """
             @staticmethod
-            def type(self):
+            def type():
                 """
                 Returns the BroLogSpec associated with the current LogEntry
                 """
                 return log_type
 
             @staticmethod
-            def types(self):
+            def types():
                 """
                 Returns the field types for the given LogEntry.
                 """
                 return log_type.types
+
+            @staticmethod
+            def names():
+                """
+                Returns the field names for the given LogEntry.
+                """
+                return log_type.names
+
             def __init__(self, vals):
                 """
                 Quick array copy.

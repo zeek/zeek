@@ -1,3 +1,6 @@
 # a.val1	a.val2	b
+# path:'testing'
+# separator:'	'
+# a.val1=count	a.val2=count	b=count
 -	-	6
 1	2	3

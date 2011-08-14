@@ -1,2 +1,5 @@
 # ts	host
-1300475168.78384	141.142.220.118
+# path:'known_hosts'
+# separator:'	'
+# ts=time	host=addr
+1300475168.783842	141.142.220.118

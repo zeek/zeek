@@ -6,16 +6,37 @@ static-prefix-1-US.log
 static-prefix-2-MX2.log
 static-prefix-2-UK.log
 # t	id.orig_h	id.orig_p	id.resp_h	id.resp_p	status	country
-1313212701.542245	1.2.3.4	1234	2.3.4.5	80	success	BR
+# path:'static-prefix-0-BR'
+# separator:'	'
+# t=time	id.orig_h=addr	id.orig_p=port	id.resp_h=addr	id.resp_p=port	status=string	country=string
+1313294713.688145	1.2.3.4	1234	2.3.4.5	80	success	BR
 # t	id.orig_h	id.orig_p	id.resp_h	id.resp_p	status	country
-1313212701.542245	1.2.3.4	1234	2.3.4.5	80	failure	MX3
+# path:'static-prefix-0-MX3'
+# separator:'	'
+# t=time	id.orig_h=addr	id.orig_p=port	id.resp_h=addr	id.resp_p=port	status=string	country=string
+1313294713.688145	1.2.3.4	1234	2.3.4.5	80	failure	MX3
 # t	id.orig_h	id.orig_p	id.resp_h	id.resp_p	status	country
-1313212701.542245	1.2.3.4	1234	2.3.4.5	80	success	unknown
+# path:'static-prefix-0-unknown'
+# separator:'	'
+# t=time	id.orig_h=addr	id.orig_p=port	id.resp_h=addr	id.resp_p=port	status=string	country=string
+1313294713.688145	1.2.3.4	1234	2.3.4.5	80	success	unknown
 # t	id.orig_h	id.orig_p	id.resp_h	id.resp_p	status	country
-1313212701.542245	1.2.3.4	1234	2.3.4.5	80	failure	MX
+# path:'static-prefix-1-MX'
+# separator:'	'
+# t=time	id.orig_h=addr	id.orig_p=port	id.resp_h=addr	id.resp_p=port	status=string	country=string
+1313294713.688145	1.2.3.4	1234	2.3.4.5	80	failure	MX
 # t	id.orig_h	id.orig_p	id.resp_h	id.resp_p	status	country
-1313212701.542245	1.2.3.4	1234	2.3.4.5	80	failure	US
+# path:'static-prefix-1-US'
+# separator:'	'
+# t=time	id.orig_h=addr	id.orig_p=port	id.resp_h=addr	id.resp_p=port	status=string	country=string
+1313294713.688145	1.2.3.4	1234	2.3.4.5	80	failure	US
 # t	id.orig_h	id.orig_p	id.resp_h	id.resp_p	status	country
-1313212701.542245	1.2.3.4	1234	2.3.4.5	80	failure	MX2
+# path:'static-prefix-2-MX2'
+# separator:'	'
+# t=time	id.orig_h=addr	id.orig_p=port	id.resp_h=addr	id.resp_p=port	status=string	country=string
+1313294713.688145	1.2.3.4	1234	2.3.4.5	80	failure	MX2
 # t	id.orig_h	id.orig_p	id.resp_h	id.resp_p	status	country
-1313212701.542245	1.2.3.4	1234	2.3.4.5	80	failure	UK
+# path:'static-prefix-2-UK'
+# separator:'	'
+# t=time	id.orig_h=addr	id.orig_p=port	id.resp_h=addr	id.resp_p=port	status=string	country=string
+1313294713.688145	1.2.3.4	1234	2.3.4.5	80	failure	UK

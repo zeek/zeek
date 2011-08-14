@@ -1,4 +1,7 @@
 # id.orig_p	id.resp_h	id.resp_p	status	country
+# path:'ssh'
+# separator:'	'
+# id.orig_p=port	id.resp_h=addr	id.resp_p=port	status=string	country=string
 1234	2.3.4.5	80	success	unknown
 1234	2.3.4.5	80	failure	US
 1234	2.3.4.5	80	failure	UK

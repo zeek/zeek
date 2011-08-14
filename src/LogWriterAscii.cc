@@ -6,6 +6,54 @@
 #include "LogWriterAscii.h"
 #include "NetVar.h"
 
+/**
+ * Takes a LogField and returns a human-readable version of its type.  Used to output the type to the log file's
+ * header.
+ *
+ * @param field Switches on field->type and returns an appropriate human-readable representation of that type.
+ * @return A std::string containing the human-readable representation of a given field's type.
+ */
+static string _GetBroTypeString(const LogField *field)
+{
+	switch(field->type)
+	{
+	case TYPE_BOOL:
+		return "bool";
+	case TYPE_COUNT:
+		return "count";
+	case TYPE_COUNTER:
+		return "counter";
+	case TYPE_PORT:
+		return "port";
+	case TYPE_INT:
+		return "int";
+	case TYPE_TIME:
+		return "time";
+	case TYPE_INTERVAL:
+		return "interval";
+	case TYPE_DOUBLE:
+		return "double"; 
+	case TYPE_SUBNET:
+		return "subnet";
+	case TYPE_NET:
+		return "net";
+	case TYPE_ADDR:
+		return "addr";
+	case TYPE_ENUM:
+		return "enum";
+	case TYPE_STRING:
+		return "string";
+	case TYPE_FILE:
+		return "file";
+	case TYPE_TABLE:
+		return "table";
+	case TYPE_VECTOR:
+		return "vector";
+	default:
+		return "???";
+	}
+}
+
 LogWriterAscii::LogWriterAscii()
 	{
 	file = 0;
@@ -87,6 +135,23 @@ bool LogWriterAscii::DoInit(string path, int num_fields,
 
 		if ( fputc('\n', file) == EOF )
 			goto write_error;
+		
+		string wString = string(header_prefix, header_prefix_len) + string("path:'") + path + string("'\n");
+		wString += string(header_prefix, header_prefix_len) + "separator:'" + string(separator, separator_len) + "'\n";
+		if(fwrite(wString.c_str(), wString.length(), 1, file) != 1)
+			goto write_error;
+
+		wString = string(header_prefix, header_prefix_len);
+		for ( int i = 0; i < num_fields; ++i )
+			{
+			const LogField* field = fields[i];
+			wString += ((i > 0) ? string(separator, separator_len) : string("")) + field->name + string("=") + _GetBroTypeString(field);
+			}
+		if(fwrite(wString.c_str(), wString.length(), 1, file) != 1)
+			goto write_error;
+		if ( fputc('\n', file) == EOF )
+			goto write_error;
+		
 		}
 
 	return true;

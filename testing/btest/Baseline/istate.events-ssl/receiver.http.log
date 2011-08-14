@@ -1,2 +1,5 @@
 # ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	method	host	uri	referrer	user_agent	request_content_length	response_content_length	status_code	status_msg	filename	tags	username	password	proxied	mime_type	md5	extraction_file
-1310750785.32134	56gKBmhBBB6	141.42.64.125	56730	125.190.109.199	80	GET	www.icir.org	/	-	Wget/1.10	-	9130	200	OK	-	-	-	-	-	text/html	-	-
+# path:'http'
+# separator:'	'
+# ts=time	uid=string	id.orig_h=addr	id.orig_p=port	id.resp_h=addr	id.resp_p=port	method=string	host=string	uri=string	referrer=string	user_agent=string	request_content_length=count	response_content_length=count	status_code=count	status_msg=string	filename=string	tags=table	username=string	password=string	proxied=table	mime_type=string	md5=string	extraction_file=file
+1313294803.616197	56gKBmhBBB6	141.42.64.125	56730	125.190.109.199	80	GET	www.icir.org	/	-	Wget/1.10	-	9130	200	OK	-	-	-	-	-	text/html	-	-

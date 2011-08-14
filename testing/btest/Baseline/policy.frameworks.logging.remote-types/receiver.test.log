@@ -1,2 +1,5 @@
 # b	i	e	c	p	sn	n	a	d	t	iv	s	sc	ss	se	vc	ve
-T	-42	Test::TEST	21	123	10.0.0.0/24	10.0.0.0	1.2.3.4	3.14	1312565184.899030	100.0	hurz	2,4,1,3	CC,AA,BB	EMPTY	10,20,30	EMPTY
+# path:'test'
+# separator:'	'
+# b=bool	i=int	e=enum	c=count	p=port	sn=subnet	n=net	a=addr	d=double	t=time	iv=interval	s=string	sc=table	ss=table	se=table	vc=vector	ve=vector
+T	-42	Test::TEST	21	123	10.0.0.0/24	10.0.0.0	1.2.3.4	3.14	1313294605.568014	100.0	hurz	2,4,1,3	CC,AA,BB	EMPTY	10,20,30	EMPTY

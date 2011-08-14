@@ -1,4 +1,7 @@
 # ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	mid	filename	content_len	mime_type	md5	extraction_file	excerpt
+# path:'smtp_entities'
+# separator:'	'
+# ts=time	uid=string	id.orig_h=addr	id.orig_p=port	id.resp_h=addr	id.resp_p=port	mid=string	filename=string	content_len=count	mime_type=string	md5=string	extraction_file=file	excerpt=string
 1254722770.692743	56gKBmhBBB6	10.10.1.4	1470	74.53.140.153	25	@50da4BEzauh	-	79	FAKE_MIME	92bca2e6cdcde73647125da7dccbdd07	-	-
 1254722770.692743	56gKBmhBBB6	10.10.1.4	1470	74.53.140.153	25	@50da4BEzauh	-	1918	FAKE_MIME	-	-	-
 1254722770.692804	56gKBmhBBB6	10.10.1.4	1470	74.53.140.153	25	@50da4BEzauh	NEWS.txt	10823	FAKE_MIME	a968bb0f9f9d95835b2e74c845877e87	-	-

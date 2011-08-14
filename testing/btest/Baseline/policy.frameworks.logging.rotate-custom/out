@@ -28,7 +28,11 @@ custom rotate, [writer=WRITER_ASCII, fname=test2-11-03-07_11.00.05.log, path=tes
 custom rotate, [writer=WRITER_ASCII, fname=test2-11-03-07_11.59.55.log, path=test2, open=1299499195.0, close=1299499205.0, terminating=F]
 custom rotate, [writer=WRITER_ASCII, fname=test2-11-03-07_12.00.05.log, path=test2, open=1299499205.0, close=1299502795.0, terminating=F]
 custom rotate, [writer=WRITER_ASCII, fname=test2-11-03-07_12.59.55.log, path=test2, open=1299502795.0, close=1299502795.0, terminating=T]
+# path:'test'
+# path:'test2'
+# separator:'	'
 # t	id.orig_h	id.orig_p	id.resp_h	id.resp_p
+# t=time	id.orig_h=addr	id.orig_p=port	id.resp_h=addr	id.resp_p=port
 1299466805.000000	10.0.0.1	20	10.0.0.2	1024
 1299470395.000000	10.0.0.2	20	10.0.0.3	0
 1299470405.000000	10.0.0.1	20	10.0.0.2	1025

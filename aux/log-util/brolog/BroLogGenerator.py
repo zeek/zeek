@@ -129,7 +129,7 @@ class BroLogGenerator(object):
 
             def filtered_transform(line):
                 line = zip(log_fields, line)
-                if(local_filter(BroLogEntry(dict(line)))):
+                if(local_filter(BroLogEntry(line))):
                     map(accum, line)
 
             if not self._filter:
@@ -153,6 +153,11 @@ class BroLogGenerator(object):
         must be used to access / manipulate these fields.
         """
         names = log_type.names
+        name2idx = dict()
+        i=0
+        for n in names:
+            name2idx[n] = i
+            i+=1
         class _LogEntry(object):
             """
             An individual log entry.  Supports access in classical dict form (entry['ts']) or in classical
@@ -196,7 +201,7 @@ class BroLogGenerator(object):
                 here because of the speed hit we take; as such, it's very possible for this function to
                 throw a KeyError.
                 """
-                self.__dict__[name] = translator[name](self._vals[name]) 
+                self.__dict__[name] = translator[name](self._vals[name2idx[name]]) 
                 return self.__dict__[name]
         
             def __getitem__(self, name):
@@ -204,7 +209,7 @@ class BroLogGenerator(object):
                 Translates and returns the attribute denoted by 'name'.  This method can be used to access
                 field names that break Python naming conventions (e.g. 'id.orig_p').
                 """
-                return translator[name](self._vals[name])
+                return translator[name](self._vals[name2idx[name]])
             
         return _LogEntry
 
@@ -232,7 +237,7 @@ class BroLogGenerator(object):
             if not log_fd:
                 continue
             def field_transform(entry):
-                return BroLogEntry(dict(zip(log_fields, entry)))
+                return BroLogEntry(entry)
             
             field_gen = log_fd
             if float(log.sampling) < .9999:

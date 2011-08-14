@@ -70,14 +70,18 @@ class BroLogSpec(object):
         """
         if(field_type == 'double' or field_type == 'time' or field_type == 'interval'):
             def get_val(val):
+                if val == '-':
+                    return None
                 try:
                     return float(val)
                 except:
                     return None
         elif(field_type == 'int' or field_type == 'count' or field_type == 'counter'):
             def get_val(val):
+                if val == '-':
+                    return None
                 try:
-                    return int(val)
+                    return long(val)
                 except:
                     return None
         else:

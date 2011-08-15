@@ -128,10 +128,6 @@ public:
 	// Log some statistics.
 	void LogStats();
 
-	// Return a 0-terminated array of built-in functions which,
-	// when referenced, trigger the remote serializer's initialization.
-	const char* const* GetBuiltins() const;
-
 	// Tries to sent out all remaining data.
 	// FIXME: Do we still need this?
 	void Finish();

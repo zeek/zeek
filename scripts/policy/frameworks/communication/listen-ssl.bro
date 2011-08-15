@@ -16,5 +16,6 @@ export {
 
 event bro_init() &priority=-10
 	{
+	enable_communication();
 	listen(listen_if_ssl, listen_port_ssl, T);
 	}

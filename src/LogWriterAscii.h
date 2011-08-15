@@ -20,8 +20,8 @@ protected:
 	virtual bool DoWrite(int num_fields, const LogField* const * fields,
 			     LogVal** vals);
 	virtual bool DoSetBuf(bool enabled);
-	virtual bool DoRotate(string rotated_path, string postprocessr,
-			      double open, double close, bool terminating);
+	virtual bool DoRotate(string rotated_path, double open, double close,
+			      bool terminating);
 	virtual bool DoFlush();
 	virtual void DoFinish();
 

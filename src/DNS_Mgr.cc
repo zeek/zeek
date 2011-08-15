@@ -1071,7 +1071,7 @@ void  DNS_Mgr::Process()
 	int status = nb_dns_activity(nb_dns, &r, err);
 
 	if ( status < 0 )
-		reporter->InternalError("NB-DNS error in DNS_Mgr::Process (%s)", err);
+		reporter->Warning("NB-DNS error in DNS_Mgr::Process (%s)", err);
 
 	else if ( status > 0 )
 		{

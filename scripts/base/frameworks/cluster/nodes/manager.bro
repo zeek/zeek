@@ -10,11 +10,14 @@
 
 @prefixes += cluster-manager
 
+# Load the script for local site configuration for the manager node.
+@load site/local-manager
+
 ## Turn off remote logging since this is the manager and should only log here.
 redef Log::enable_remote_logging = F;
 
 ## Use the cluster's archive logging script.
-redef Log::default_rotation_postprocessor = "archive-log";
+redef Log::default_rotation_postprocessor_cmd = "archive-log";
 
 ## We're processing essentially *only* remote events.
 redef max_remote_events_processed = 10000;

@@ -60,8 +60,7 @@ public:
 
 	// Triggers rotation, if the writer supports that. (If not, it will
 	// be ignored).
-	bool Rotate(string rotated_path, string postprocessor, double open,
-		    double close, bool terminating);
+	bool Rotate(string rotated_path, double open, double close, bool terminating);
 
 	// Finishes writing to this logger regularly. Must not be called if
 	// an error has been indicated earlier. After calling this, no
@@ -77,7 +76,6 @@ public:
 	const LogField* const * Fields() const	{ return fields; }
 
 protected:
-
 	// Methods for writers to override. If any of these returs false, it
 	// will be assumed that a fatal error has occured that prevents the
 	// writer from further operation. It will then be disabled and
@@ -116,6 +114,10 @@ protected:
 	// applies to writers writing into files, which should then close the
 	// current file and open a new one.  However, a writer may also
 	// trigger other apppropiate actions if semantics are similar.
+	// 
+	// Once rotation has finished, the implementation should call
+	// RotationDone() to signal the log manager that potential
+	// postprocessors can now run.
 	//
 	// "rotate_path" reflects the path to where the rotated output is to
 	// be moved, with specifics depending on the writer. It should
@@ -123,12 +125,7 @@ protected:
 	// as passed into DoInit(). As an example, for file-based output, 
 	// "rotate_path" could be the original filename extended with a
 	// timestamp indicating the time of the rotation.
-
-	// "postprocessor" is the name of a command to execute on the rotated
-	// file. If empty, no postprocessing should take place; if given but
-	// the writer doesn't support postprocessing, it can be ignored (but
-	// the method must still return true in that case).
-
+	// 
 	// "open" and "close" are the network time's when the *current* file
 	// was opened and closed, respectively.
 	//
@@ -138,8 +135,8 @@ protected:
 	//
 	// A writer may ignore rotation requests if it doesn't fit with its
 	// semantics (but must still return true in that case).
-	virtual bool DoRotate(string rotated_path, string postprocessor,
-			      double open, double close, bool terminating) = 0;
+	virtual bool DoRotate(string rotated_path, double open, double close,
+			      bool terminating) = 0;
 
 	// Called once on termination. Not called when any of the other
 	// methods has previously signaled an error, i.e., executing this
@@ -157,11 +154,18 @@ protected:
 	// Reports an error to the user.
 	void Error(const char *msg);
 
-	// Runs a post-processor on the given file. Parameters correspond to
-	// those of DoRotate(). 
-	bool RunPostProcessor(string fname, string postprocessor,
-			      string old_name, double open, double close,
-			      bool terminating);
+	// Signals to the log manager that a file has been rotated.
+	//
+	// new_name: The filename of the rotated file. old_name: The filename
+	// of the origina file.
+	//
+	// open/close: The timestamps when the original file was opened and
+	// closed, respectively.
+	//
+	// terminating: True if rotation request occured due to the main Bro
+	// process shutting down.
+	bool FinishedRotation(string new_name, string old_name, double open,
+			      double close, bool terminating);
 
 private:
 	friend class LogMgr;

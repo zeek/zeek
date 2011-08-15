@@ -6,11 +6,11 @@
 @TEST-START-FILE order_rand.bro
 
 print unique_id("A-");
-print unique_id_from("beta", "E-");
+print unique_id_from(5, "E-");
 print unique_id("B-");
-print unique_id_from("alpha", "D-");
+print unique_id_from(4, "D-");
 print unique_id("C-");
-print unique_id_from("beta", "F-");
+print unique_id_from(5, "F-");
 
 @TEST-END-FILE
 
@@ -19,9 +19,9 @@ print unique_id_from("beta", "F-");
 print unique_id("A-");
 print unique_id("B-");
 print unique_id("C-");
-print unique_id_from("alpha", "D-");
-print unique_id_from("beta", "E-");
-print unique_id_from("beta", "F-");
+print unique_id_from(4, "D-");
+print unique_id_from(5, "E-");
+print unique_id_from(5, "F-");
 
 @TEST-END-FILE
 

@@ -3418,10 +3418,10 @@ function unique_id%(prefix: string%) : string
 	return new StringVal(uitoa_n(uid, tmp, sizeof(tmp), 62, prefix->CheckString()));
 	%}
 
-function unique_id_from%(pool: string, prefix: string%) : string
+function unique_id_from%(pool: int, prefix: string%) : string
 	%{
 	char tmp[20];
-	uint64 uid = calculate_unique_id(string((const char *)pool->Bytes(), pool->Len()));
+	uint64 uid = calculate_unique_id(pool);
 	return new StringVal(uitoa_n(uid, tmp, sizeof(tmp), 62, prefix->CheckString()));
 	%}
 %%{

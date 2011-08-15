@@ -1184,25 +1184,38 @@ int time_compare(struct timeval* tv_a, struct timeval* tv_b)
 
 struct BroUidEntry
 {
-	uint64 instance;
-	uint64 counter;
+	struct BroUidKey
+	{
+		uint64 instance;
+		uint64 counter;
+		BroUidKey(uint64 i, uint64 c)
+		: instance(i), counter(c) { }
+	} key;
+	bool needs_init;
+
 	BroUidEntry(const uint64 i)
-	: instance(i), counter(0) { }
+	: key(i, 0), needs_init(false) { }
+
+	BroUidEntry()
+	: key(0, 0), needs_init(true) { }
 };
 
-static std::map<string, BroUidEntry> uid_pool;
-static const std::string default_pool = string(BRO_DEFAULT_UID_POOL);
+static std::vector<BroUidEntry> uid_pool;
 
 uint64 calculate_unique_id()
 	{
-	return calculate_unique_id(default_pool);
+	return calculate_unique_id(BRO_DEFAULT_UID_POOL);
 	}
 
-uint64 calculate_unique_id(const std::string& pool)
+uint64 calculate_unique_id(const size_t pool)
 	{
 	uint64 uid_instance = 0;
-	std::map<std::string, BroUidEntry>::iterator pool_iter = uid_pool.find(pool);
-	if ( pool_iter == uid_pool.end() )
+	if(uid_pool.size() <= pool)
+		{
+		assert(pool < 100000);  // ... Yeah.  No.
+		uid_pool.resize(pool + 1);
+		}
+	if ( uid_pool[pool].needs_init )
 		{
 		// This is the first time we need a UID for this pool.
 		if ( ! have_random_seed() )
@@ -1211,18 +1224,17 @@ uint64 calculate_unique_id(const std::string& pool)
 			// indicated by a set seed), we calculate the
 			// instance ID by hashing something likely to be
 			// globally unique.
-			const size_t pool_sz = (pool.length() < 32) ? pool.length() : 32;  //Only keep the first 32 characters of the pool name
 			struct {
-				char hostname[96];
-				char pool[32];
+				char hostname[120];
+				uint64 pool;
 				struct timeval time;
 				pid_t pid;
 				int rnd;
 			} unique;
 
 			memset(&unique, 0, sizeof(unique)); // Make valgrind happy.
-			gethostname(unique.hostname, 96);
-			memcpy(unique.pool, pool.c_str(), pool_sz);
+			gethostname(unique.hostname, 120);
+			memcpy(&unique.pool, &pool, sizeof(pool));
 			unique.hostname[sizeof(unique.hostname)-1] = '\0';
 			gettimeofday(&unique.time, 0);
 			unique.pid = getpid();
@@ -1234,16 +1246,16 @@ uint64 calculate_unique_id(const std::string& pool)
 		else
 			{
 			// Generate determistic UIDs for each individual pool
-			uid_instance = HashKey::HashBytes(pool.c_str(), pool.length());
+			uid_instance = pool;
 			}
 		// Guarantee no collisions (keep hashing until we get a unique instance)
 		bool found_collision = true;
 		while(found_collision)
 			{
 			found_collision = false;
-			for(pool_iter = uid_pool.begin(); pool_iter != uid_pool.end(); ++pool_iter)
+			for(size_t i = 0; i < uid_pool.size(); ++i)
 				{
-				if(pool_iter->second.instance == uid_instance)
+				if(!uid_pool[i].needs_init && uid_pool[i].key.instance == uid_instance)
 					{
 					found_collision = true;
 					uid_instance = HashKey::HashBytes(&uid_instance, sizeof(uid_instance));
@@ -1251,12 +1263,13 @@ uint64 calculate_unique_id(const std::string& pool)
 				}
 			}
 		// Our instance is unique.  Huzzah.
-		uid_pool.insert(std::make_pair(pool, BroUidEntry(uid_instance)));
-		pool_iter = uid_pool.find(pool);
+		uid_pool[pool] = BroUidEntry(uid_instance);
+		uid_pool[pool].needs_init = false;
 		}
-	assert(pool_iter != uid_pool.end());  // After all that work, wouldn't it be a shame...?
-	++(pool_iter->second.counter);
-	uint64_t h = HashKey::HashBytes(&(pool_iter->second), sizeof(pool_iter->second));
+	++(uid_pool[pool].key.counter);
+	assert(!uid_pool[pool].needs_init);
+	assert(uid_pool[pool].key.instance != 0);
+	uint64_t h = HashKey::HashBytes(&(uid_pool[pool].key), sizeof(uid_pool[pool].key));
 	return h;
 	}
 

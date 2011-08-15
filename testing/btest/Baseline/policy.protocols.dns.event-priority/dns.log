@@ -1,2 +1,2 @@
 # ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	trans_id	query	qclass	qclass_name	qtype	qtype_name	rcode	rcode_name	QR	AA	TC	RD	RA	Z	TTL	answers	auth	addl
-930613226.529070	fy6xiLr8WMl	212.180.42.100	25000	131.243.64.3	53	tcp	34798	-	-	-	-	-	0	NOERROR	F	F	F	F	T	0	31337.0	4.3.2.1	-	-
+930613226.529070	UWkUyAuUGXf	212.180.42.100	25000	131.243.64.3	53	tcp	34798	-	-	-	-	-	0	NOERROR	F	F	F	F	T	0	31337.0	4.3.2.1	-	-

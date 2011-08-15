@@ -226,10 +226,10 @@ extern int time_compare(struct timeval* tv_a, struct timeval* tv_b);
 
 // Returns an integer that's very likely to be unique, even across Bro
 // instances.
-#define BRO_DEFAULT_UID_POOL "bro"
-#define BRO_SCRIPT_UID_POOL "bro script"
+#define BRO_DEFAULT_UID_POOL 1
+#define BRO_SCRIPT_UID_POOL 2
 extern uint64 calculate_unique_id();
-extern uint64 calculate_unique_id(const std::string& pool);
+extern uint64 calculate_unique_id(const size_t pool);
 
 // For now, don't use hash_maps - they're not fully portable.
 #if 0

@@ -342,6 +342,11 @@ bool LogMgr::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 				// That's ok, we handle it below.
 				}
 
+			else if ( t->Tag() == TYPE_FUNC )
+				{
+				// That's ok, we handle it below.
+				}
+
 			else
 				{
 				reporter->Error("unsupported field type for log column");
@@ -593,9 +598,10 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 
 		if ( filter->path_func )
 			{
-			val_list vl(2);
+			val_list vl(3);
 			vl.append(id->Ref());
 			vl.append(filter->path_val->Ref());
+			vl.append(columns->Ref());
 			Val* v = filter->path_func->Call(&vl);
 
 			if ( ! v->Type()->Tag() == TYPE_STRING )
@@ -606,6 +612,7 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 				}
 
 			path = v->AsString()->CheckString();
+			Unref(v);
 
 #ifdef DEBUG
 			DBG_LOG(DBG_LOGGING, "Path function for filter '%s' on stream '%s' return '%s'",
@@ -770,6 +777,15 @@ LogVal* LogMgr::ValToLogVal(Val* val, BroType* ty)
 		{
 		const BroFile* f = val->AsFile();
 		lval->val.string_val = new string(f->Name());
+		break;
+		}
+
+	case TYPE_FUNC:
+		{
+		ODesc d;
+		const Func* f = val->AsFunc();
+		f->Describe(&d);
+		lval->val.string_val = new string(d.Description());
 		break;
 		}
 

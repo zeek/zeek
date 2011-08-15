@@ -13,3 +13,14 @@ function generate_extraction_filename(prefix: string, c: connection, suffix: str
 		
 	return conn_info;
 	}
+	
+## For CONTENT-DISPOSITION headers, this function can be used to extract 
+## the filename.
+function extract_filename_from_content_disposition(data: string): string
+	{
+	local filename = sub(data, /^.*[fF][iI][lL][eE][nN][aA][mM][eE]=/, "");
+	# Remove quotes around the filename if they are there.
+	if ( /^\"/ in filename )
+		filename =  split_n(filename, /\"/, F, 2)[2];
+	return filename;
+	}

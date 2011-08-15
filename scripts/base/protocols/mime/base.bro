@@ -1,7 +1,7 @@
 ##! The mime script does analysis of MIME encoded messages seen in certain
 ##! protocols (only SMTP and POP3 at the moment).
 
-@load utils/strings
+@load base/utils/strings
 
 module MIME;
 

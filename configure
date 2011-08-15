@@ -22,7 +22,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
 
   Installation Directories:
     --prefix=PREFIX        installation directory [/usr/local/bro]
-    --policydir=PATH       policy file installation directory
+    --scriptdir=PATH       root installation directory for Bro scripts
                            [PREFIX/share/bro]
 
   Optional Features:
@@ -85,7 +85,7 @@ CMakeCacheEntries=""
 append_cache_entry CMAKE_INSTALL_PREFIX PATH   /usr/local/bro
 append_cache_entry BRO_ROOT_DIR         PATH   /usr/local/bro
 append_cache_entry PY_MOD_INSTALL_DIR   PATH   /usr/local/bro/lib/broctl
-append_cache_entry POLICYDIR            STRING /usr/local/bro/share/bro
+append_cache_entry BRO_SCRIPT_INSTALL_PATH STRING /usr/local/bro/share/bro
 append_cache_entry ENABLE_DEBUG         BOOL   false
 append_cache_entry BROv6                BOOL   false
 append_cache_entry ENABLE_PERFTOOLS     BOOL   false
@@ -118,13 +118,13 @@ while [ $# -ne 0 ]; do
             append_cache_entry CMAKE_INSTALL_PREFIX PATH   $optarg
             append_cache_entry BRO_ROOT_DIR         PATH   $optarg
             append_cache_entry PY_MOD_INSTALL_DIR   PATH   $optarg/lib/broctl
-            if [ "$user_set_policydir" != "true" ]; then
-                append_cache_entry POLICYDIR        STRING $optarg/share/bro
+            if [ "$user_set_scriptdir" != "true" ]; then
+                append_cache_entry BRO_SCRIPT_INSTALL_PATH STRING $optarg/share/bro
             fi
             ;;
-        --policydir=*)
-            append_cache_entry POLICYDIR            STRING $optarg
-            user_set_policydir="true"
+        --scriptdir=*)
+            append_cache_entry BRO_SCRIPT_INSTALL_PATH STRING $optarg
+            user_set_scriptdir="true"
             ;;
         --enable-debug)
             append_cache_entry ENABLE_DEBUG         BOOL   true

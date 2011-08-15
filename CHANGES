@@ -1,4 +1,66 @@
 
+1.6-dev-1095 | 2011-08-13 11:59:07 -0700
+
+  * A larger number of script documentation updates. Closes #543. (Jon
+    Siwek)
+
+  * Workaround for FreeBSD CMake port missing debug flags. (Jon Siwek)
+    
+  * piped_exec() can now deal with null bytes. (Seth Hall)
+    
+  * Fix vector initialization for lists of records with optional
+    types. Closes #485. (Jon Siwek)
+
+  * Fix redef'ing records with &default empty set fields. Closes #460.
+    (Jon Siwek)
+
+  * Fix ConnSize_Analyzer when used in conjunction with the connection
+    compressor. (Gregor Maier)
+
+  * Fix reporter using part of the actual message as a format string.
+    (Jon Siwek)
+
+  * Fixing reporter's location tracking. Closes #492. (Robin Sommer)
+    
+  * Turning DNS errors into warnings. Closes #255. (Robin Sommer)
+    
+  * Logging's path_func now receives the log record as argument.
+    Closes #555. (Robin Sommer)
+
+  * Functions can now be logged; their full body gets recorded. 
+    Closes #506. (Robin Sommer)
+
+  * Bugfix for hostname notice email extension. (Seth Hall)
+    
+  * Updates for notice framework. (Seth Hall)
+    
+    - New ACTION_ADD_GEODATA to add geodata to notices in an extension
+      field named remote_location.
+
+    - Loading extend-email/hostnames by default now that it only does
+      anything when the ACTION_EMAIL action is applied (finally).
+
+  * Updates to local.bro (Seth Hall)
+
+  * Added the profiling script. (Seth Hall)
+    
+  * Updates for SSH scripts. (Seth Hall)
+
+  * ConnSize analyzer is turned on by default now. (Seth Hall)
+
+  * Updates for the build system and site local scripts for cluster.
+    (Seth Hall)
+
+  * HTTP now uses the extract_filename_from_content_disposition function. (Seth Hall)
+
+  * Major SMTP script refactor. Closes #509. (Jon Siwek and Seth Hall)
+    
+  * New variable Site::local_nets_table in utils/site for mapping
+    address to defined local subnet.
+
+  * Metrics framework updates, more to come. (Seth Hall)
+    
+
 1.6-dev-1061 | 2011-08-08 18:25:27 -0700
 
   * A set of new/changed tests regarding the new policy script

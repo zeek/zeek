@@ -29,8 +29,17 @@ export {
 		se: set[string];
 		vc: vector of count;
 		ve: vector of string;
+		f: function(i: count) : string;
 	} &log;
 }
+
+function foo(i : count) : string
+	{
+	if ( i > 0 )
+		return "Foo";
+	else
+		return "Bar";
+	}
 
 event bro_init()
 {
@@ -56,7 +65,8 @@ event bro_init()
 		$ss=set("AA", "BB", "CC"),
 		$se=empty_set,
 		$vc=vector(10, 20, 30),
-		$ve=empty_vector
+		$ve=empty_vector,
+		$f=foo
 		]);
 }
 

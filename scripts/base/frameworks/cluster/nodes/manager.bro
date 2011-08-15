@@ -10,6 +10,9 @@
 
 @prefixes += cluster-manager
 
+# Load the script for local site configuration for the manager node.
+@load site/local-manager
+
 ## Turn off remote logging since this is the manager and should only log here.
 redef Log::enable_remote_logging = F;
 

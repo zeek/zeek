@@ -866,15 +866,10 @@ void ConnCompressor::Event(const PendingConn* pending, double t,
 
 			if ( ConnSize_Analyzer::Available() )
 				{
+				// Fill in optional fields if ConnSize_Analyzer is on.
 				orig_endp->Assign(2, new Val(pending->num_pkts, TYPE_COUNT));
 				orig_endp->Assign(3, new Val(pending->num_bytes_ip, TYPE_COUNT));
 				}
-			else
-				{
-				orig_endp->Assign(2, new Val(0, TYPE_COUNT));
-				orig_endp->Assign(3, new Val(0, TYPE_COUNT));
-				}
-
 
 			resp_endp->Assign(0, new Val(0, TYPE_COUNT));
 			resp_endp->Assign(1, new Val(resp_state, TYPE_COUNT));
@@ -900,13 +895,9 @@ void ConnCompressor::Event(const PendingConn* pending, double t,
 
 			if ( ConnSize_Analyzer::Available() )
 				{
+				// Fill in optional fields if ConnSize_Analyzer is on
 				resp_endp->Assign(2, new Val(pending->num_pkts, TYPE_COUNT));
 				resp_endp->Assign(3, new Val(pending->num_bytes_ip, TYPE_COUNT));
-				}
-			else
-				{
-				resp_endp->Assign(2, new Val(0, TYPE_COUNT));
-				resp_endp->Assign(3, new Val(0, TYPE_COUNT));
 				}
 
 			DBG_LOG(DBG_COMPRESSOR, "%s swapped direction", fmt_conn_id(pending));

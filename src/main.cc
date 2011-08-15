@@ -662,6 +662,13 @@ int main(int argc, char** argv)
 
 	bro_start_time = current_time(true);
 	reporter = new Reporter();
+	// Try to set the main thread to RT priority.
+	int rc = 0;
+	if(!set_rt_prio(0.33))
+		{
+		reporter->Info("Successfully set SCHED_RR.", rc);
+		}
+
 
 	init_random_seed(seed, (seed_load_file && *seed_load_file ? seed_load_file : 0) , seed_save_file);
 	// DEBUG_MSG("HMAC key: %s\n", md5_digest_print(shared_hmac_md5_key));
@@ -771,13 +778,6 @@ int main(int argc, char** argv)
 		}
 
 	init_general_global_var();
-	// Try to set the main thread to RT priority.
-	int rc = 0;
-	if(!set_rt_prio(0.33))
-		{
-		reporter->Info("Successfully set SCHED_RR.", rc);
-		}
-
 	if ( user_pcap_filter )
 		{
 		ID* id = global_scope()->Lookup("cmd_line_bpf_filter");

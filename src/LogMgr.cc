@@ -89,7 +89,7 @@ bool LogField::Write(SerializationFormat* fmt) const
 
 LogVal::~LogVal()
 	{
-	if ( (type == TYPE_ENUM || type == TYPE_STRING || type == TYPE_FILE)
+	if ( (type == TYPE_ENUM || type == TYPE_STRING || type == TYPE_FILE || type == TYPE_FUNC)
 	     && present )
 		delete val.string_val;
 
@@ -130,6 +130,7 @@ bool LogVal::IsCompatibleType(BroType* t, bool atomic_only)
 	case TYPE_ENUM:
 	case TYPE_STRING:
 	case TYPE_FILE:
+	case TYPE_FUNC:
 		return true;
 
 	case TYPE_RECORD:
@@ -231,6 +232,7 @@ bool LogVal::Read(SerializationFormat* fmt)
 	case TYPE_ENUM:
 	case TYPE_STRING:
 	case TYPE_FILE:
+	case TYPE_FUNC:
 		{
 		val.string_val = new string;
 		return fmt->Read(val.string_val, "string");
@@ -343,6 +345,7 @@ bool LogVal::Write(SerializationFormat* fmt) const
 	case TYPE_ENUM:
 	case TYPE_STRING:
 	case TYPE_FILE:
+	case TYPE_FUNC:
 		return fmt->Write(*val.string_val, "string");
 
 	case TYPE_TABLE:
@@ -431,6 +434,25 @@ LogMgr::Stream* LogMgr::FindStream(EnumVal* id)
 		return 0;
 
 	return streams[idx];
+	}
+
+LogMgr::WriterInfo* LogMgr::FindWriter(LogWriter* writer)
+	{
+	for ( vector<Stream *>::iterator s = streams.begin(); s != streams.end(); ++s )
+		{
+		if ( ! *s )
+			continue;
+
+		for ( Stream::WriterMap::iterator i = (*s)->writers.begin(); i != (*s)->writers.end(); i++ )
+			{
+			WriterInfo* winfo = i->second;
+
+			if ( winfo->writer == writer )
+				return winfo;
+			}
+		}
+
+	return 0;
 	}
 
 void LogMgr::RemoveDisabledWriters(Stream* stream)
@@ -625,6 +647,11 @@ bool LogMgr::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 				}
 
 			else if ( t->Tag() == TYPE_FILE )
+				{
+				// That's ok, we handle it below.
+				}
+
+			else if ( t->Tag() == TYPE_FUNC )
 				{
 				// That's ok, we handle it below.
 				}
@@ -875,9 +902,10 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 
 		if ( filter->path_func )
 			{
-			val_list vl(2);
+			val_list vl(3);
 			vl.append(id->Ref());
 			vl.append(filter->path_val->Ref());
+			vl.append(columns->Ref());
 			Val* v = filter->path_func->Call(&vl);
 
 			if ( ! v->Type()->Tag() == TYPE_STRING )
@@ -888,6 +916,7 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 				}
 
 			path = v->AsString()->CheckString();
+			Unref(v);
 
 #ifdef DEBUG
 			DBG_LOG(DBG_LOGGING, "Path function for filter '%s' on stream '%s' return '%s'",
@@ -1052,6 +1081,15 @@ LogVal* LogMgr::ValToLogVal(Val* val, BroType* ty)
 		{
 		const BroFile* f = val->AsFile();
 		lval->val.string_val = new string(f->Name());
+		break;
+		}
+
+	case TYPE_FUNC:
+		{
+		ODesc d;
+		const Func* f = val->AsFunc();
+		f->Describe(&d);
+		lval->val.string_val = new string(d.Description());
 		break;
 		}
 
@@ -1411,6 +1449,8 @@ void LogMgr::InstallRotationTimer(WriterInfo* winfo)
 	RecordVal* rc =
 		LookupRotationControl(winfo->type, winfo->writer->Path());
 
+	assert(rc);
+
 	int idx = rc->Type()->AsRecordType()->FieldOffset("interv");
 	double rotation_interval = rc->LookupWithDefault(idx)->AsInterval();
 
@@ -1448,34 +1488,63 @@ void LogMgr::Rotate(WriterInfo* winfo)
 	DBG_LOG(DBG_LOGGING, "Rotating %s at %.6f",
 		winfo->writer->Path().c_str(), network_time);
 
-	// Create the RotationInfo record.
-	RecordVal* info = new RecordVal(BifType::Record::Log::RotationInfo);
-	info->Assign(0, winfo->type->Ref());
-	info->Assign(1, new StringVal(winfo->writer->Path().c_str()));
-	info->Assign(2, new Val(winfo->open_time, TYPE_TIME));
-	info->Assign(3, new Val(network_time, TYPE_TIME));
+	// Build a temporary path for the writer to move the file to.
+	struct tm tm;
+	char buf[128];
+	const char* const date_fmt = "%y-%m-%d_%H.%M.%S";
+	time_t teatime = (time_t)winfo->open_time;
 
-	// Call the function building us the new path.
+	localtime_r(&teatime, &tm);
+	strftime(buf, sizeof(buf), date_fmt, &tm);
 
-	Func* rotation_path_func =
-		internal_func("Log::default_rotation_path_func");
+	string tmp = string(fmt("%s-%s", winfo->writer->Path().c_str(), buf));
+
+	// Trigger the rotation.
+	winfo->writer->Rotate(tmp, winfo->open_time, network_time, terminating);
+	}
+
+bool LogMgr::FinishedRotation(LogWriter* writer, string new_name, string old_name,
+		      double open, double close, bool terminating)
+	{
+	DBG_LOG(DBG_LOGGING, "Finished rotating %s at %.6f, new name %s",
+		writer->Path().c_str(), network_time, new_name.c_str());
+
+	WriterInfo* winfo = FindWriter(writer);
+	assert(winfo);
 
 	RecordVal* rc =
 		LookupRotationControl(winfo->type, winfo->writer->Path());
 
+	assert(rc);
+
+	// Create the RotationInfo record.
+	RecordVal* info = new RecordVal(BifType::Record::Log::RotationInfo);
+	info->Assign(0, winfo->type->Ref());
+	info->Assign(1, new StringVal(new_name.c_str()));
+	info->Assign(2, new StringVal(winfo->writer->Path().c_str()));
+	info->Assign(3, new Val(open, TYPE_TIME));
+	info->Assign(4, new Val(close, TYPE_TIME));
+	info->Assign(5, new Val(terminating, TYPE_BOOL));
+
 	int idx = rc->Type()->AsRecordType()->FieldOffset("postprocessor");
+	assert(idx >= 0);
 
-	string rotation_postprocessor =
-		rc->LookupWithDefault(idx)->AsString()->CheckString();
+	Val* func = rc->Lookup(idx);
+	if ( ! func )
+		{
+		ID* id = global_scope()->Lookup("Log::__default_rotation_postprocessor");
+		assert(id);
+		func = id->ID_Val();
+		}
 
+	assert(func);
+
+	// Call the postprocessor function.
 	val_list vl(1);
 	vl.append(info);
-	Val* result = rotation_path_func->Call(&vl);
-	string new_path = result->AsString()->CheckString();
-	Unref(result);
-
-	winfo->writer->Rotate(new_path, rotation_postprocessor,
-			      winfo->open_time, network_time, terminating);
+	Val* v = func->AsFunc()->Call(&vl);
+	int result = v->AsBool();
+	Unref(v);
+	return result;
 	}
-
 

@@ -16,11 +16,13 @@ export {
 		extract_file:         bool    &default=F;
 	
 		## Store the file handle here for the file currently being extracted.
-		extraction_file:      file    &optional;
-		
+		extraction_file:      file    &log &optional;
+	};
+
+	redef record State += {
 		## Store a count of the number of files that have been transferred in
 		## this conversation to create unique file names on disk.
-		num_extracted_files:  count   &optional;
+		num_extracted_files:  count   &default=0;
 	};
 }
 
@@ -34,7 +36,7 @@ event mime_segment_data(c: connection, length: count, data: string) &priority=3
 	{
 	if ( c$mime$extract_file && c$mime$content_len == 0 )
 		{
-		local suffix = fmt("%d.dat", ++c$mime$num_extracted_files);
+		local suffix = fmt("%d.dat", ++c$mime_state$num_extracted_files);
 		local fname = generate_extraction_filename(extraction_prefix, c, suffix);
 		c$mime$extraction_file = open(fname);
 		enable_raw_output(c$mime$extraction_file);

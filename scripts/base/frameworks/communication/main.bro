@@ -108,6 +108,9 @@ const src_names = {
 event bro_init()
 	{
 	Log::create_stream(COMMUNICATION, [$columns=Info]);
+
+	if ( |nodes| > 0 )
+		enable_communication();
 	}
 
 function do_script_log_common(level: count, src: count, msg: string)

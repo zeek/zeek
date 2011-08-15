@@ -1,4 +1,120 @@
 
+1.6-dev-1095 | 2011-08-13 11:59:07 -0700
+
+  * A larger number of script documentation updates. Closes #543. (Jon
+    Siwek)
+
+  * Workaround for FreeBSD CMake port missing debug flags. (Jon Siwek)
+    
+  * piped_exec() can now deal with null bytes. (Seth Hall)
+    
+  * Fix vector initialization for lists of records with optional
+    types. Closes #485. (Jon Siwek)
+
+  * Fix redef'ing records with &default empty set fields. Closes #460.
+    (Jon Siwek)
+
+  * Fix ConnSize_Analyzer when used in conjunction with the connection
+    compressor. (Gregor Maier)
+
+  * Fix reporter using part of the actual message as a format string.
+    (Jon Siwek)
+
+  * Fixing reporter's location tracking. Closes #492. (Robin Sommer)
+    
+  * Turning DNS errors into warnings. Closes #255. (Robin Sommer)
+    
+  * Logging's path_func now receives the log record as argument.
+    Closes #555. (Robin Sommer)
+
+  * Functions can now be logged; their full body gets recorded. 
+    Closes #506. (Robin Sommer)
+
+  * Bugfix for hostname notice email extension. (Seth Hall)
+    
+  * Updates for notice framework. (Seth Hall)
+    
+    - New ACTION_ADD_GEODATA to add geodata to notices in an extension
+      field named remote_location.
+
+    - Loading extend-email/hostnames by default now that it only does
+      anything when the ACTION_EMAIL action is applied (finally).
+
+  * Updates to local.bro (Seth Hall)
+
+  * Added the profiling script. (Seth Hall)
+    
+  * Updates for SSH scripts. (Seth Hall)
+
+  * ConnSize analyzer is turned on by default now. (Seth Hall)
+
+  * Updates for the build system and site local scripts for cluster.
+    (Seth Hall)
+
+  * HTTP now uses the extract_filename_from_content_disposition function. (Seth Hall)
+
+  * Major SMTP script refactor. Closes #509. (Jon Siwek and Seth Hall)
+    
+  * New variable Site::local_nets_table in utils/site for mapping
+    address to defined local subnet.
+
+  * Metrics framework updates, more to come. (Seth Hall)
+    
+
+1.6-dev-1061 | 2011-08-08 18:25:27 -0700
+
+  * A set of new/changed tests regarding the new policy script
+    organisation. (Robin Sommer)
+
+1.6-dev-1058 | 2011-08-08 16:15:18 -0700
+
+  * Reorganisation of the scripts that Bro loads by default. (Seth
+    Hall)
+
+    - policy/ renamed to scripts/
+
+    - By default BROPATH now contains:
+    	- scripts/
+    	- scripts/policy
+    	- scripts/site
+
+    - The scripts in scripts/base/protocols/ only do logging and state
+      building.
+
+    - All of scripts/base/ is loaded by by default. This can however
+      be disabled by switching Bro into "bare mode" using the new
+      command-line option --bare-mode (or -b). The cripts in
+      scripts/base/ don't use relative path loading to ease use of
+      bare mode (to copy and paste that script).
+
+    - The scripts in scripts/base/frameworks/ add functionality
+      without causing any additional overhead.
+
+    - All "detection" activity happens through scripts in
+      scripts/policy/.
+
+    - bro.init was renamed to base/init-bare.bro, and base/all.bro was
+      renamed to init-default.bro.
+
+    - local.bro now loads more functionality from policy/ and adds
+      more documentation. (Seth Hall)
+
+  * Adding default_path_func() to the logging framework that makes the
+    default naming scheme script-level controlled. (Robin Sommer)
+
+  * Reworking logging's postprocessor logic so that postprocessor
+    commands are no longer run by the log writers themselves, but
+    instead by a script level function. (Robin Sommer)
+
+  * The communication subsystem is now by default off and must be
+    enabled explicitly with a new BiF, enable_communication(). Closes
+    #540. (Robin Sommer)
+
+  * The hostname notice email extension now only add hostnames for
+    emailed noticed. (Seth Hall)
+
+  * Cleaning up doc generation. (Seth Hall)
+
 1.6-dev-1044 | 2011-08-05 19:07:32 -0700
 
   * Fixing memory (and CPU) leak in log writer.

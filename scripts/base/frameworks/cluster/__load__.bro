@@ -9,10 +9,6 @@ redef peer_description = Cluster::node;
 # Add a cluster prefix.
 @prefixes += cluster
 
-# Make this a controllable node since all cluster nodes are inherently 
-# controllable.
-@load frameworks/control/controllee
-
 ## If this script isn't found anywhere, the cluster bombs out.
 ## Loading the cluster framework requires that a script by this name exists
 ## somewhere in the BROPATH.  The only thing in the file should be the

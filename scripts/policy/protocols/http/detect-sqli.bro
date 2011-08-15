@@ -55,7 +55,7 @@ event http_request(c: connection, method: string, original_URI: string,
 		{
 		add c$http$tags[URI_SQLI];
 		
-		Metrics::add_data(SQL_ATTACKS, [$host=c$id$orig_h]);
-		Metrics::add_data(SQL_ATTACKS_AGAINST, [$host=c$id$resp_h]);
+		Metrics::add_data(SQL_ATTACKS, [$host=c$id$orig_h], 1);
+		Metrics::add_data(SQL_ATTACKS_AGAINST, [$host=c$id$resp_h], 1);
 		}
 	}

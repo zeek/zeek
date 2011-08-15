@@ -4,6 +4,9 @@
 ##! probably a safe assumption to make in most cases.  If both addresses
 ##! are remote, it will use the $src address.
 
+@load base/frameworks/notice/main
+@load base/utils/site
+
 module Notice;
 
 export {

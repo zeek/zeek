@@ -5,6 +5,7 @@
 ##! transparently automated when running on a cluster.
 
 @load base/frameworks/cluster
+@load ./main
 
 module Metrics;
 

@@ -23,12 +23,7 @@ event bro_init()
 event HTTP::log_http(rec: HTTP::Info)
 	{
 	if ( rec?$host )
-		Metrics::add_data(HTTP_REQUESTS_BY_HOST_HEADER, [$str=rec$host]);
+		Metrics::add_data(HTTP_REQUESTS_BY_HOST_HEADER, [$str=rec$host], 1);
 	if ( rec?$status_code )
-<<<<<<< HEAD
-		Metrics::add_data(HTTP_REQUESTS_BY_STATUS_CODE, [$host=rec$id$orig_h, $index=fmt("%d", rec$status_code)]);
+		Metrics::add_data(HTTP_REQUESTS_BY_STATUS_CODE, [$host=rec$id$orig_h, $str=fmt("%d", rec$status_code)], 1);
 	}
-=======
-		Metrics::add_data(HTTP_REQUESTS_BY_STATUS_CODE, [$host=rec$id$orig_h, $str=fmt("%d", rec$status_code)]);
-	}
->>>>>>> master

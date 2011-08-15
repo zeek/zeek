@@ -13,6 +13,8 @@
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
+#include <sched.h>
+#include <pthread.h>
 
 #ifdef USE_IDMEF
 extern "C" {
@@ -67,6 +69,13 @@ HeapLeakChecker* heap_checker = 0;
 int perftools_leaks = 0;
 int perftools_profile = 0;
 #endif
+
+static int set_rt_prio(double relative_prio)
+{
+	struct sched_param prio;
+	prio.sched_priority = int(relative_prio * sched_get_priority_max(SCHED_RR));
+	return pthread_setschedparam(pthread_self(), SCHED_RR, &prio);
+}
 
 const char* prog;
 char* writefile = 0;
@@ -762,6 +771,12 @@ int main(int argc, char** argv)
 		}
 
 	init_general_global_var();
+	// Try to set the main thread to RT priority.
+	int rc = 0;
+	if(!set_rt_prio(0.33))
+		{
+		reporter->Info("Successfully set SCHED_RR.", rc);
+		}
 
 	if ( user_pcap_filter )
 		{

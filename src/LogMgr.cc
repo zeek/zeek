@@ -883,7 +883,7 @@ LogEmissary* LogMgr::CreateWriter(EnumVal* id, EnumVal* writer, string path,
 		return w->second->writer;
 
 	LogEmissary *emissary = LogWriterRegistrar::LaunchWriterThread(path, num_fields, fields, writer->AsEnum());
-	DBG_LOG(DBG_LOGGING, "Launched new writer thread (0x%p -- %.3f)", emissary, open_time);
+	DBG_LOG(DBG_LOGGING, "Launched new writer thread (0x%p)", emissary);
 
 	WriterInfo* winfo = new WriterInfo;
 	winfo->type = writer->Ref()->AsEnumVal();

@@ -57,10 +57,12 @@ macro(REST_TARGET srcDir broInput)
     get_filename_component(relDstDir ${broInput} PATH)
 
     set(sumTextSrc ${absSrcPath})
+    set(ogSourceFile ${absSrcPath})
     if (${extension} STREQUAL ".bif.bro")
+        set(ogSourceFile ${BIF_SRC_DIR}/${basename})
         # the summary text is taken at configure time, but .bif.bro files
         # may not have been generated yet, so read .bif file instead
-        set(sumTextSrc ${BIF_SRC_DIR}/${basename})
+        set(sumTextSrc ${ogSourceFile})
     endif ()
 
     if (NOT relDstDir)
@@ -124,9 +126,9 @@ macro(REST_TARGET srcDir broInput)
         ARGS -E make_directory ${dstDir}
         COMMAND "${CMAKE_COMMAND}"
         ARGS -E copy ${restFile} ${restOutput}
-        # copy the bro policy script, too
+        # copy the bro or bif script, too
         COMMAND "${CMAKE_COMMAND}"
-        ARGS -E copy ${absSrcPath} ${dstDir}
+        ARGS -E copy ${ogSourceFile} ${dstDir}
         # clean up the build directory
         COMMAND rm
         ARGS -rf .state *.log *.rst
@@ -151,6 +153,8 @@ set(MASTER_PKG_INDEX_TEXT "")
 foreach (pkg ${MASTER_PKG_LIST})
     # strip of the trailing /index for the link name
     get_filename_component(lnktxt ${pkg} PATH)
+    # pretty-up the link name by removing common scripts/ prefix
+    string(REPLACE "scripts/" "" lnktxt "${lnktxt}")
     set(MASTER_PKG_INDEX_TEXT "${MASTER_PKG_INDEX_TEXT}\n   ${lnktxt} <${pkg}>")
 endforeach ()
 file(WRITE ${MASTER_PACKAGE_INDEX} "${MASTER_PKG_INDEX_TEXT}")

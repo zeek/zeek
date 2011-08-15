@@ -22,6 +22,7 @@ redef signature_files += "frameworks/signatures/detect-windows-shells.sig";
 
 # Load all of the scripts that detect software in various protocols.
 @load protocols/http/software
+#@load protocols/http/detect-webapps
 @load protocols/ftp/software
 @load protocols/smtp/software
 @load protocols/ssh/software
@@ -44,3 +45,24 @@ redef signature_files += "frameworks/signatures/detect-windows-shells.sig";
 
 # Load the script to enable SSL/TLS certificate validation.
 @load protocols/ssl/validate-certs
+
+# If you have libGeoIP support built in, do some geographic detections and 
+# logging for SSH traffic.
+@load protocols/ssh/geo-data
+# Detect hosts doing SSH bruteforce attacks.
+@load protocols/ssh/detect-bruteforcing
+# Detect logins using "interesting" hostnames.
+@load protocols/ssh/interesting-hostnames
+
+# Detect MD5 sums in Team Cymru's Malware Hash Registry.
+@load protocols/http/detect-MHR
+# Detect SQL injection attacks
+@load protocols/http/detect-sqli
+
+# Uncomment this redef if you want to extract SMTP MIME entities for 
+# some file types.  The numbers given indicate how many bytes to extract for
+# the various mime types.
+redef SMTP::entity_excerpt_len += {
+#	["text/plain"] = 1024,
+#	["text/html"] = 1024,
+};

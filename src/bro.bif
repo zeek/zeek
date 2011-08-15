@@ -3630,17 +3630,28 @@ function NFS3::mode2string%(mode: count%): string
 function piped_exec%(program: string, to_write: string%): bool
 	%{
 	const char* prog = program->CheckString();
+
 	FILE* f = popen(prog, "w");
 	if ( ! f )
 		{
 		reporter->Error("Failed to popen %s", prog);
-		return new Val(false, TYPE_BOOL);
+		return new Val(0, TYPE_BOOL);
 		}
 
-	fprintf(f, "%s", to_write->CheckString());
+	const u_char* input_data = to_write->Bytes();
+	int input_data_len = to_write->Len();
+
+	int bytes_written = fwrite(input_data, 1, input_data_len, f);
+
 	pclose(f);
 
-	return new Val(true, TYPE_BOOL);
+	if ( bytes_written != input_data_len )
+		{
+		reporter->Error("Failed to write all given data to %s", prog);
+		return new Val(0, TYPE_BOOL);
+		}
+
+	return new Val(1, TYPE_BOOL);
 	%}
 
 ## Enables the communication system. Note that by default,

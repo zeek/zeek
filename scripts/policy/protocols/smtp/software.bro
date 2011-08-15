@@ -43,10 +43,10 @@ export {
 	                   | /ZimbraWebClient/ &redef;
 }
 
-event smtp_data(c: connection, is_orig: bool, data: string) &priority=4
+event mime_one_header(c: connection, h: mime_header_rec) &priority=4
 	{
-	if ( c$smtp$current_header == "USER-AGENT" &&
-	     webmail_user_agents in c$smtp$user_agent )
+	if ( ! c?$smtp ) return;
+	if ( h$name == "USER-AGENT" && webmail_user_agents in c$smtp$user_agent )
 		c$smtp$is_webmail = T;
 	}
 

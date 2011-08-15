@@ -14,7 +14,7 @@ Contents:
    internal
    bifs
    packages
-   policy/index
+   scripts/index
 
 Indices and tables
 ==================

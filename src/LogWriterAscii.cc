@@ -155,6 +155,7 @@ bool LogWriterAscii::DoWriteOne(ODesc* desc, LogVal* val, const LogField* field)
 	case TYPE_ENUM:
 	case TYPE_STRING:
 	case TYPE_FILE:
+	case TYPE_FUNC:
 		{
 		int size = val->val.string_val->size();
 		if ( size )

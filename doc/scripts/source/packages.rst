@@ -1,11 +1,15 @@
 .. This is a stub doc to which the build process can append.
 
-Policy Script Packages
-======================
+Bro Script Packages
+===================
 
-Bro has the following policy script packages (e.g. collections of related
-policy scripts).  If the package contains a ``__load__.bro`` script, it
-supports being loaded in mass as a whole directory for convenience.
+Bro has the following script packages (e.g. collections of related scripts in
+a common directory).  If the package directory contains a ``__load__.bro``
+script, it supports being loaded in mass as a whole directory for convenience.
+
+Packages/scripts in the ``base/`` directory are all loaded by default, while
+ones in ``policy/`` provide functionality and customization options that are
+more appropriate for users to decide whether they'd like to load it or not.
 
 .. toctree::
    :maxdepth: 1

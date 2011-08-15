@@ -29,7 +29,7 @@ each of "columns", "event", "filter" depending on exactly what it's doing.
 
 :Author: Jon Siwek <jsiwek@ncsa.illinois.edu>
 
-:Imports: :doc:`frameworks/notice </policy/frameworks/notice/index>`
+:Imports: :doc:`policy/frameworks/software/vulnerable </scripts/policy/frameworks/software/vulnerable>`
 
 Summary
 ~~~~~~~

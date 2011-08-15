@@ -19,7 +19,7 @@ redef peer_description = Cluster::node;
 
 @load ./setup-connections
 
-# Don't start the listening process until we're a bit more sure that the
+# Don't load the listening script until we're a bit more sure that the
 # cluster framework is actually being enabled.
 @load frameworks/communication/listen-clear
 

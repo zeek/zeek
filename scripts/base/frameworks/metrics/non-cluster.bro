@@ -1,10 +1,6 @@
 
 module Metrics;
 
-export {
-
-}
-
 event Metrics::log_it(filter: Filter)
 	{
 	local id = filter$id;

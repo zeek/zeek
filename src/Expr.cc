@@ -5022,13 +5022,11 @@ Val* ListExpr::InitVal(const BroType* t, Val* aggr) const
 			Expr* e = exprs[i];
 			check_and_promote_expr(e, vec->Type()->AsVectorType()->YieldType());
 			Val* v = e->Eval(0);
-			if ( ! vec->Assign(i, v->RefCnt() == 1 ? v->Ref() : v, e) )
+			if ( ! vec->Assign(i, v, e) )
 				{
 				e->Error(fmt("type mismatch at index %d", i));
 				return 0;
 				}
-
-			Unref(v);
 			}
 
 		return aggr;

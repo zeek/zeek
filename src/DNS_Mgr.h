@@ -100,8 +100,9 @@ protected:
 	void LoadCache(FILE* f);
 	void Save(FILE* f, PDict(DNS_Mapping)& m);
 
-	// Selects on the fd to see if there is an answer available (timeout is
-	// secs). Returns 0 on timeout, -1 on EINTR, and 1 if answer is ready.
+	// Selects on the fd to see if there is an answer available (timeout
+	// is secs). Returns 0 on timeout, -1 on EINTR or other error, and 1
+	// if answer is ready.
 	int AnswerAvailable(int timeout);
 
 	// Issue as many queued async requests as slots are available.

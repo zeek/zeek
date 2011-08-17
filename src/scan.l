@@ -265,7 +265,6 @@ list	return TOK_LIST;
 local	return TOK_LOCAL;
 match	return TOK_MATCH;
 module	return TOK_MODULE;
-net	return TOK_NET;
 next	return TOK_NEXT;
 of	return TOK_OF;
 pattern	return TOK_PATTERN;
@@ -439,8 +438,6 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 		RET_CONST(new PortVal(p, TRANSPORT_UNKNOWN))
 		}
 
-{D}"."{D}"."		RET_CONST(new NetVal(yytext))
-({D}"."){2}{D}		RET_CONST(new NetVal(yytext))
 ({D}"."){3}{D}		RET_CONST(new AddrVal(yytext))
 
 ({HEX}:){7}{HEX}	RET_CONST(new AddrVal(yytext))

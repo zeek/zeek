@@ -355,6 +355,12 @@ static bool looks_like_IPv4_packet(int len, const struct ip* ip_hdr)
 		return false;
 	}
 
+static inline void delete_tunnel_info(TunnelInfo *ti)
+	{
+	if ( ti )
+		delete ti;
+	}
+
 void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 				const IP_Hdr* ip_hdr, const u_char* const pkt,
 				int hdr_size)
@@ -438,6 +444,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 	     proto != IPPROTO_ICMP )
 		{
 		dump_this_packet = 1;
+		delete_tunnel_info(tunnel_info);
 		return;
 		}
 
@@ -449,6 +456,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		Weird("truncated_header", hdr, pkt);
 		if ( f )
 			Remove(f);	// ###
+		delete_tunnel_info(tunnel_info);
 		return;
 		}
 	if ( caplen < min_hdr_len )
@@ -456,6 +464,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		Weird("internally_truncated_header", hdr, pkt);
 		if ( f )
 			Remove(f);	// ###
+		delete_tunnel_info(tunnel_info);
 		return;
 		}
 
@@ -507,6 +516,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 
 	default:
 		Weird(fmt("unknown_protocol %d", proto), hdr, pkt);
+		delete_tunnel_info(tunnel_info);
 		return;
 	}
 
@@ -536,6 +546,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 			if ( consistent < 0 )
 				{
 				delete h;
+				delete_tunnel_info(tunnel_info);
 				return;
 				}
 
@@ -558,7 +569,10 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		}
 
 	if ( ! conn )
+		{
+		delete_tunnel_info(tunnel_info);
 		return;
+		}
 
 	int record_packet = 1;	// whether to record the packet at all
 	int record_content = 1;	// whether to record its data

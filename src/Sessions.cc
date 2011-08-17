@@ -1018,11 +1018,8 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 	int src_h = ntohs(id->src_port);
 	int dst_h = ntohs(id->dst_port);
 	int flags = 0;
-	RecordVal *tunnel_parent = 0;
+	TunnelParent *tunnel_parent = 0;
 	
-	if ( tunnel_info )
-		tunnel_parent = tunnel_info->GetRecordVal();
-
 	// Hmm... This is not great.
 	TransportProto tproto;
 	switch ( proto ) {
@@ -1067,6 +1064,9 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 
 		id = &flip_id;
 		}
+
+	if ( tunnel_info )
+		tunnel_parent = new TunnelParent(&(tunnel_info->parent));
 
 	Connection* conn = new Connection(this, k, t, id, tunnel_parent);
 	conn->SetTransport(tproto);

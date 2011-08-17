@@ -54,7 +54,7 @@ TunnelInfo* TunnelHandler::DecapsulateTunnel(const IP_Hdr *ip_hdr, int len, int 
 			// TODO: check if IP6 header makes sense
 			tunnel_info = new TunnelInfo();
 			tunnel_info->child = new IP_Hdr((const struct ip6_hdr*)ip_hdr->Payload());
-			tunnel_info->tunneltype = BifEnum::Tunnel::IP6_IN_IP;
+			tunnel_info->parent.tunneltype = BifEnum::Tunnel::IP6_IN_IP;
 			tunnel_info->hdr_len = tunnel_info->child->HdrLen();
 			tunnel_info->SetParentIPs(ip_hdr);
 			return tunnel_info;
@@ -137,7 +137,7 @@ TunnelInfo* TunnelHandler::HandleUDP(const IP_Hdr *ip_hdr, int len, int caplen)
 			{
 			TunnelInfo *tunnel_info = new TunnelInfo();
 			tunnel_info->child = cand_ip_hdr;
-			tunnel_info->tunneltype =  tunneltype;
+			tunnel_info->parent.tunneltype =  tunneltype;
 			tunnel_info->SetParentIPs(ip_hdr);
 			tunnel_info->SetParentPorts(uh);
 			tunnel_info->hdr_len = hdr_len + cand_ip_hdr->HdrLen();

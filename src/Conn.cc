@@ -15,6 +15,7 @@
 #include "Timer.h"
 #include "PIA.h"
 #include "binpac.h"
+#include "TunnelHandler.h"
 
 HashKey* ConnID::BuildConnKey() const
 	{
@@ -139,7 +140,7 @@ unsigned int Connection::external_connections = 0;
 
 IMPLEMENT_SERIAL(Connection, SER_CONNECTION);
 
-Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id, RecordVal *arg_tunnel_parent)
+Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id, TunnelParent* arg_tunnel_parent)
 	{
 	sessions = s;
 	key = k;
@@ -208,6 +209,9 @@ Connection::~Connection()
 		conn_val->SetOrigin(0);
 		Unref(conn_val);
 		}
+
+	if ( tunnel_parent )
+		delete tunnel_parent;
 
 	delete key;
 	delete root_analyzer;
@@ -372,7 +376,8 @@ RecordVal* Connection::BuildConnVal()
 
 		char tmp[20];
 		conn_val->Assign(9, new StringVal(uitoa_n(uid, tmp, sizeof(tmp), 62)));
-		conn_val->Assign(10, tunnel_parent);
+		if ( tunnel_parent )
+			conn_val->Assign(10, tunnel_parent->GetRecordVal());
 		}
 
 	if ( root_analyzer )

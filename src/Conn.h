@@ -23,6 +23,7 @@ class RuleHdrTest;
 class Specific_RE_Matcher;
 class TransportLayerAnalyzer;
 class RuleEndpointState;
+class TunnelParent;
 
 typedef enum {
 	NUL_IN_LINE,
@@ -86,7 +87,7 @@ class Analyzer;
 
 class Connection : public BroObj {
 public:
-	Connection(NetSessions* s, HashKey* k, double t, const ConnID* id, RecordVal *arg_tunnel_parent);
+	Connection(NetSessions* s, HashKey* k, double t, const ConnID* id, TunnelParent *arg_tunnel_parent);
 	virtual ~Connection();
 
 	// Invoked when connection is about to be removed.  Use Ref(this)
@@ -335,7 +336,7 @@ protected:
 	double inactivity_timeout;
 	RecordVal* conn_val;
 	LoginConn* login_conn;	// either nil, or this
-	RecordVal* tunnel_parent; // nil if not tunneled
+	TunnelParent* tunnel_parent; // nil if not tunneled
 	int suppress_event;	// suppress certain events to once per conn.
 
 	unsigned int installed_status_timer:1;

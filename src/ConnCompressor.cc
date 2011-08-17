@@ -866,7 +866,7 @@ void ConnCompressor::Event(const PendingConn* pending, double t,
 
 			if ( ConnSize_Analyzer::Available() )
 				{
-				// Fill in optional fields if ConnSize_Analyzer is on
+				// Fill in optional fields if ConnSize_Analyzer is on.
 				orig_endp->Assign(2, new Val(pending->num_pkts, TYPE_COUNT));
 				orig_endp->Assign(3, new Val(pending->num_bytes_ip, TYPE_COUNT));
 				}

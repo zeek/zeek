@@ -44,7 +44,7 @@ of documentation targets.  This script should be run after adding new
 Bro script source files, and the changes commited to git.
 
 If a script shouldn't have documentation generated for it, there's also a
-blacklist variable that can be maintained in the ``genDocSourcesList.sh``
+blacklist manifest that can be maintained in the ``genDocSourcesList.sh``
 script.
 
 The blacklist can also be used if you want to define a certain grouping for

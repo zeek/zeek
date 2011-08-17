@@ -21,11 +21,11 @@ export {
 
 global c = -1;
 
-function path_func(id: Log::ID, path: string) : string
+function path_func(id: Log::ID, path: string, rec: Log) : string
 	{
 	c = (c + 1) % 3;
 
-	return fmt("%s-%d", path, c);
+	return fmt("%s-%d-%s", path, c, rec$country);
 	}
 
 event bro_init()

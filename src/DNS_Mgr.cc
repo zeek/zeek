@@ -360,7 +360,7 @@ DNS_Mgr::DNS_Mgr(DNS_MgrMode arg_mode)
 	nb_dns = nb_dns_init(err);
 
 	if ( ! nb_dns )
-		reporter->Warning(fmt("problem initializing NB-DNS: %s", err));
+		reporter->Warning("problem initializing NB-DNS: %s", err);
 
 	dns_mapping_valid = dns_mapping_unverified = dns_mapping_new_name =
 		dns_mapping_lost_name = dns_mapping_name_changed =
@@ -447,7 +447,7 @@ TableVal* DNS_Mgr::LookupHost(const char* name)
 				return d->Addrs()->ConvertToSet();
 			else
 				{
-				reporter->Warning("no such host:", name);
+				reporter->Warning("no such host: %s", name);
 				return empty_addr_set();
 				}
 			}
@@ -460,7 +460,7 @@ TableVal* DNS_Mgr::LookupHost(const char* name)
 		return empty_addr_set();
 
 	case DNS_FORCE:
-		reporter->InternalError("can't find DNS entry for %s in cache", name);
+		reporter->FatalError("can't find DNS entry for %s in cache", name);
 		return 0;
 
 	case DNS_DEFAULT:
@@ -490,7 +490,7 @@ Val* DNS_Mgr::LookupAddr(uint32 addr)
 				return d->Host();
 			else
 				{
-				reporter->Warning("can't resolve IP address:", dotted_addr(addr));
+				reporter->Warning("can't resolve IP address: %s", dotted_addr(addr));
 				return new StringVal(dotted_addr(addr));
 				}
 			}
@@ -503,7 +503,7 @@ Val* DNS_Mgr::LookupAddr(uint32 addr)
 		return new StringVal("<none>");
 
 	case DNS_FORCE:
-		reporter->InternalError("can't find DNS entry for %s in cache",
+		reporter->FatalError("can't find DNS entry for %s in cache",
 				dotted_addr(addr));
 		return 0;
 
@@ -574,7 +574,7 @@ void DNS_Mgr::Resolve()
 		struct nb_dns_result r;
 		status = nb_dns_activity(nb_dns, &r, err);
 		if ( status < 0 )
-			reporter->InternalError(
+			reporter->Warning(
 			    "NB-DNS error in DNS_Mgr::WaitForReplies (%s)",
 			    err);
 		else if ( status > 0 )
@@ -823,7 +823,7 @@ void DNS_Mgr::LoadCache(FILE* f)
 		}
 
 	if ( ! m->NoMapping() )
-		reporter->InternalError("DNS cache corrupted");
+		reporter->FatalError("DNS cache corrupted");
 
 	delete m;
 	fclose(f);
@@ -958,7 +958,7 @@ void DNS_Mgr::IssueAsyncRequests()
 
 		if ( ! dr->MakeRequest(nb_dns) )
 			{
-			reporter->Error("can't issue DNS request");
+			reporter->Warning("can't issue DNS request");
 			req->Timeout();
 			continue;
 			}
@@ -1071,7 +1071,7 @@ void  DNS_Mgr::Process()
 	int status = nb_dns_activity(nb_dns, &r, err);
 
 	if ( status < 0 )
-		reporter->InternalError("NB-DNS error in DNS_Mgr::Process (%s)", err);
+		reporter->Warning("NB-DNS error in DNS_Mgr::Process (%s)", err);
 
 	else if ( status > 0 )
 		{
@@ -1095,7 +1095,10 @@ int DNS_Mgr::AnswerAvailable(int timeout)
 	{
 	int fd = nb_dns_fd(nb_dns);
 	if ( fd < 0 )
-		reporter->InternalError("nb_dns_fd() failed in DNS_Mgr::WaitForReplies");
+		{
+		reporter->Warning("nb_dns_fd() failed in DNS_Mgr::WaitForReplies");
+		return -1;
+		}
 
 	fd_set read_fds;
 
@@ -1110,13 +1113,17 @@ int DNS_Mgr::AnswerAvailable(int timeout)
 
 	if ( status < 0 )
 		{
-		if ( errno == EINTR )
-			return -1;
-		reporter->InternalError("problem with DNS select");
+		if ( errno != EINTR )
+			reporter->Warning("problem with DNS select");
+
+		return -1;
 		}
 
 	if ( status > 1 )
-		reporter->InternalError("strange return from DNS select");
+		{
+		reporter->Warning("strange return from DNS select");
+		return -1;
+		}
 
 	return status;
 	}

@@ -11,8 +11,31 @@
 # Specific scripts can be blacklisted below when e.g. they currently aren't
 # parseable or they just aren't meant to be documented.
 
-blacklist="__load__.bro|test-all.bro|all.bro"
-blacklist_addl="hot.conn.bro"
+blacklist ()
+    {
+    if [[ "$blacklist" == "" ]]; then
+        blacklist="$1"
+    else
+        blacklist="$blacklist|$1"
+    fi
+    }
+
+# files passed into this function are meant to be temporary workarounds
+# because they're not finished or otherwise can't be loaded for some reason
+tmp_blacklist ()
+    {
+    echo "Warning: temporarily blacklisted files named '$1'" 1>&2
+    blacklist $1
+    }
+
+blacklist __load__.bro
+blacklist test-all.bro
+blacklist all.bro
+blacklist init-default.bro
+blacklist init-bare.bro
+
+tmp_blacklist hot.conn.bro
+tmp_blacklist scan.bro
 
 statictext="\
 # DO NOT EDIT
@@ -30,8 +53,8 @@ statictext="\
 set(psd \${PROJECT_SOURCE_DIR}/scripts)
 
 rest_target(\${CMAKE_CURRENT_SOURCE_DIR} example.bro internal)
-rest_target(\${psd} base/bro.init internal)
-rest_target(\${psd} base/all.bro internal)
+rest_target(\${psd} base/init-default.bro internal)
+rest_target(\${psd} base/init-bare.bro internal)
 "
 
 if [[ $# -ge 1 ]]; then
@@ -58,7 +81,7 @@ scriptfiles=`( cd ${sourcedir}/scripts && find . -name \*\.bro | sort )`
 for file in $scriptfiles
 do
     f=${file:2}
-    if [[ (! $f =~ $blacklist) && (! $f =~ $blacklist_addl)  ]]; then
+    if [[ ! $f =~ $blacklist ]]; then
         echo "rest_target(\${psd} $f)" >> $outfile
     fi
 done

@@ -17,9 +17,11 @@ export {
 	## Networks that are considered "local".
 	const local_nets: set[subnet] &redef;
 	
-	## This is used for mapping between local networks and string
-	## values for the CIDRs represented.
-	global local_nets_table: table[subnet] of string = {};
+	## This is used for retrieving the subnet when you multiple 
+	## :bro:id:`local_nets`.  A membership query can be done with an 
+	## :bro:type:`addr` and the table will yield the subnet it was found 
+	## within.
+	global local_nets_table: table[subnet] of subnet = {};
 
 	## Networks that are considered "neighbors".
 	const neighbor_nets: set[subnet] &redef;
@@ -145,6 +147,6 @@ event bro_init() &priority=10
 
 	# Create the local_nets mapping table.
 	for ( cidr in Site::local_nets )
-		local_nets_table[cidr] = fmt("%s", cidr);
+		local_nets_table[cidr] = cidr;
 
 	}

@@ -33,10 +33,12 @@ export {
 	##
 	## id: The log stream.
 	## path: A suggested path value, which may be either the filter's ``path``
-	## if defined or a fall-back generated internally.
+	##       if defined or a fall-back generated internally.
+	## rec: An instance of the streams's ``columns`` type with its
+	##      fields set to the values to logged.
 	##
 	## Returns: The path to be used for the filter.
-	global default_path_func: function(id: ID, path: string) : string &redef;
+	global default_path_func: function(id: ID, path: string, rec: any) : string &redef;
 
 	## Filter customizing logging.
 	type Filter: record {
@@ -71,7 +73,15 @@ export {
 		## different strings for separate calls, but be careful: it's
 		## easy to flood the disk by returning a new string for each
 		## connection ...
-		path_func: function(id: ID, path: string): string &optional;
+		##
+		## id: The log stream.
+		## path: A suggested path value, which may be either the filter's ``path``
+		##       if defined or a fall-back generated internally.
+		## rec: An instance of the streams's ``columns`` type with its
+		##      fields set to the values to logged.
+		##
+		## Returns: The path to be used for the filter.
+		path_func: function(id: ID, path: string, rec: any): string &optional;
 
 		## Subset of column names to record. If not given, all
 		## columns are recorded.
@@ -160,7 +170,7 @@ function __default_rotation_postprocessor(info: RotationInfo) : bool
 		return default_rotation_postprocessors[info$writer](info);
 	}
 
-function default_path_func(id: ID, path: string) : string
+function default_path_func(id: ID, path: string, rec: any) : string
 	{
 	# TODO for Seth: Do what you want. :)
 	return path;

@@ -1,3 +1,5 @@
+@load ./main
+@load base/frameworks/communication/main
 
 module Cluster;
 
@@ -58,13 +60,12 @@ event bro_init() &priority=9
 				                                   $connect=T, $retry=1mins, 
 				                                   $class=node];
 			}
-		
 		else if ( me$node_type == WORKER )
 			{
 			if ( n$node_type == MANAGER && me$manager == i )
 				Communication::nodes["manager"] = [$host=nodes[i]$ip, $p=nodes[i]$p,
 				                                   $connect=T, $retry=1mins, 
-				                                   $class=node];
+				                                   $class=node, $events=manager_events];
 			
 			if ( n$node_type == PROXY && me$proxy == i )
 				Communication::nodes["proxy"] = [$host=nodes[i]$ip, $p=nodes[i]$p,

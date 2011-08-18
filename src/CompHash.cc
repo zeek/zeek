@@ -393,7 +393,7 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 
 				sz = SingleTypeKeySize(rt->FieldType(i),
 						       rv ? rv->Lookup(i) : 0,
-						       type_check, sz, optional);
+						       type_check, sz, v && optional);
 				if ( ! sz )
 					return 0;
 				}

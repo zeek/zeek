@@ -688,6 +688,7 @@ int main(int argc, char** argv)
 
 	if ( optind == argc &&
 	     read_files.length() == 0 && flow_files.length() == 0 &&
+	     interfaces.length() == 0 &&
 	     ! (id_name || bst_file) && ! command_line_policy )
 		add_input_file("-");
 

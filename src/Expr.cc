@@ -2046,7 +2046,6 @@ EqExpr::EqExpr(BroExprTag arg_tag, Expr* arg_op1, Expr* arg_op2)
 		case TYPE_STRING:
 		case TYPE_PORT:
 		case TYPE_ADDR:
-		case TYPE_NET:
 		case TYPE_SUBNET:
 		case TYPE_ERROR:
 			break;

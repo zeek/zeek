@@ -28,7 +28,7 @@ const char* type_name(TypeTag t)
 		"string", "pattern",
 		"enum",
 		"timer",
-		"port", "addr", "net", "subnet",
+		"port", "addr", "subnet",
 		"any",
 		"table", "union", "record", "types",
 		"func",
@@ -86,7 +86,6 @@ BroType::BroType(TypeTag t, bool arg_base_type)
 		break;
 
 	case TYPE_ADDR:
-	case TYPE_NET:
 		internal_tag = TYPE_INTERNAL_ADDR;
 		break;
 
@@ -1687,7 +1686,6 @@ int same_type(const BroType* t1, const BroType* t2, int is_init)
 	case TYPE_TIMER:
 	case TYPE_PORT:
 	case TYPE_ADDR:
-	case TYPE_NET:
 	case TYPE_SUBNET:
 	case TYPE_ANY:
 	case TYPE_ERROR:
@@ -1863,7 +1861,6 @@ int is_assignable(BroType* t)
 	case TYPE_TIMER:
 	case TYPE_PORT:
 	case TYPE_ADDR:
-	case TYPE_NET:
 	case TYPE_SUBNET:
 	case TYPE_RECORD:
 	case TYPE_FUNC:
@@ -1941,7 +1938,6 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 	case TYPE_TIMER:
 	case TYPE_PORT:
 	case TYPE_ADDR:
-	case TYPE_NET:
 	case TYPE_SUBNET:
 	case TYPE_BOOL:
 	case TYPE_ANY:

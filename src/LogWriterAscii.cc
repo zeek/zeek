@@ -136,7 +136,6 @@ bool LogWriterAscii::DoWriteOne(ODesc* desc, LogVal* val, const LogField* field)
 		desc->Add(val->val.subnet_val.width);
 		break;
 
-	case TYPE_NET:
 	case TYPE_ADDR:
 		desc->Add(dotted_addr(val->val.addr_val));
 		break;

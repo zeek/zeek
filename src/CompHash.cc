@@ -615,10 +615,6 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 			pval = new AddrVal(addr_val);
 			break;
 
-		case TYPE_NET:
-			pval = new NetVal(addr_val);
-			break;
-
 		default:
 			reporter->InternalError("bad internal address in CompositeHash::RecoverOneVal()");
 			pval = 0;

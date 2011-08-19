@@ -158,20 +158,21 @@ function determine_service(c: connection): string
 	return to_lower(service);
 	}
 
+## Fill out the c$conn record for logging
 function set_conn(c: connection, eoc: bool)
 	{
 	if ( ! c?$conn )
 		{
-		local id = c$id;
 		local tmp: Info;
-		tmp$ts=c$start_time;
-		tmp$uid=c$uid;
-		tmp$id=id;
-		tmp$proto=get_port_transport_proto(id$resp_p);
-		if( |Site::local_nets| > 0 )
-			tmp$local_orig=Site::is_local_addr(id$orig_h);
 		c$conn = tmp;
 		}
+
+	c$conn$ts=c$start_time;
+	c$conn$uid=c$uid;
+	c$conn$id=c$id;
+	c$conn$proto=get_port_transport_proto(c$id$resp_p);
+	if( |Site::local_nets| > 0 )
+		c$conn$local_orig=Site::is_local_addr(c$id$orig_h);
 	
 	if ( eoc )
 		{
@@ -200,11 +201,6 @@ function set_conn(c: connection, eoc: bool)
 		}
 	}
 
-event new_connection(c: connection) &priority=5
-	{
-	set_conn(c, F);
-	}
-	
 event content_gap(c: connection, is_orig: bool, seq: count, length: count) &priority=5
 	{
 	set_conn(c, F);
@@ -212,9 +208,13 @@ event content_gap(c: connection, is_orig: bool, seq: count, length: count) &prio
 	c$conn$missed_bytes = c$conn$missed_bytes + length;
 	}
 	
-event connection_state_remove(c: connection) &priority=-5
+event connection_state_remove(c: connection) &priority=5
 	{
 	set_conn(c, T);
+	}
+
+event connection_state_remove(c: connection) &priority=-5
+	{
 	Log::write(CONN, c$conn);
 	}
 

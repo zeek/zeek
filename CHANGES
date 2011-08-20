@@ -1,4 +1,8 @@
 
+1.6-dev-1120 | 2011-08-19 19:00:15 -0700
+
+  * Fix for the CompHash fix. (Robin Sommer)
+
 1.6-dev-1118 | 2011-08-18 14:11:55 -0700
 
   * Fixing key size calculation in composite hash code. (Robin Sommer)

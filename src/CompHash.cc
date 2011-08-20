@@ -47,7 +47,7 @@ CompositeHash::CompositeHash(TypeList* composite_type)
 
 	else
 		{
-		size = ComputeKeySize();
+		size = ComputeKeySize(0, 1, true);
 
 		if ( size > 0 )
 			// Fixed size.  Make sure what we get is fully aligned.
@@ -244,7 +244,7 @@ HashKey* CompositeHash::ComputeHash(const Val* v, int type_check) const
 
 	if ( ! k )
 		{
-		int sz = ComputeKeySize(v, type_check);
+		int sz = ComputeKeySize(v, type_check, false);
 		if ( sz == 0 )
 			return 0;
 
@@ -331,7 +331,8 @@ HashKey* CompositeHash::ComputeSingletonHash(const Val* v, int type_check) const
 	}
 
 int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
-				     int type_check, int sz, bool optional) const
+				     int type_check, int sz, bool optional,
+				     bool calc_static_size) const
 	{
 	InternalTypeTag t = bt->InternalType();
 
@@ -393,7 +394,8 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 
 				sz = SingleTypeKeySize(rt->FieldType(i),
 						       rv ? rv->Lookup(i) : 0,
-						       type_check, sz, v && optional);
+						       type_check, sz, optional,
+						       calc_static_size);
 				if ( ! sz )
 					return 0;
 				}
@@ -408,7 +410,7 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 
 	case TYPE_INTERNAL_STRING:
 		if ( ! v )
-			return optional ? sz : 0;
+			return (optional && ! calc_static_size) ? sz : 0;
 
 		// Factor in length field.
 		sz = SizeAlign(sz, sizeof(int));
@@ -422,7 +424,7 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 	return sz;
 	}
 
-int CompositeHash::ComputeKeySize(const Val* v, int type_check) const
+int CompositeHash::ComputeKeySize(const Val* v, int type_check, bool calc_static_size) const
 	{
 	const type_list* tl = type->Types();
 	const val_list* vl = 0;
@@ -440,7 +442,7 @@ int CompositeHash::ComputeKeySize(const Val* v, int type_check) const
 	loop_over_list(*tl, i)
 		{
 		sz = SingleTypeKeySize((*tl)[i], v ? v->AsListVal()->Index(i) : 0,
-				       type_check, sz, false);
+				       type_check, sz, false, calc_static_size);
 		if ( ! sz )
 			return 0;
 		}

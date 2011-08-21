@@ -1,10 +1,10 @@
 # @TEST-EXEC: btest-bg-run manager-1 BROPATH=$BROPATH:.. CLUSTER_NODE=manager-1 bro %INPUT
 # @TEST-EXEC: btest-bg-run proxy-1   BROPATH=$BROPATH:.. CLUSTER_NODE=proxy-1 bro %INPUT
 # @TEST-EXEC: sleep 1
-# @TEST-EXEC: btest-bg-run worker-1  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-1 bro %INPUT
+# @TEST-EXEC: btest-bg-run worker-1  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-1 bro %INPUT 
 # @TEST-EXEC: btest-bg-run worker-2  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-2 bro %INPUT
-# @TEST-EXEC: btest-bg-wait -k 6
-# @TEST-EXEC: btest-diff manager-1/metrics.log
+# @TEST-EXEC: btest-bg-wait -k 5
+# @TEST-EXEC: btest-diff manager-1/notice.log
 
 @TEST-START-FILE cluster-layout.bro
 redef Cluster::nodes = {
@@ -15,20 +15,40 @@ redef Cluster::nodes = {
 };
 @TEST-END-FILE
 
+redef enum Notice::Type += {
+	Test_Notice,
+};
+
 redef enum Metrics::ID += {
 	TEST_METRIC,
 };
 
 event bro_init() &priority=5
 	{
-	Metrics::add_filter(TEST_METRIC, 
+	Metrics::add_filter(TEST_METRIC,
 		[$name="foo-bar",
-		 $break_interval=3secs]);
-		
-	if ( Cluster::local_node_type() == Cluster::WORKER )
-		{
-		Metrics::add_data(TEST_METRIC, [$host=1.2.3.4], 3);
-		Metrics::add_data(TEST_METRIC, [$host=6.5.4.3], 2);
-		Metrics::add_data(TEST_METRIC, [$host=7.2.1.5], 1);
-		}
+		 $break_interval=1hr,
+		 $note=Test_Notice,
+		 $notice_threshold=100,
+		 $log=T]);
 	}
+
+@if ( Cluster::local_node_type() == Cluster::WORKER )
+
+event do_metrics(i: count)
+	{
+	# Worker-1 will trigger an intermediate update and then if everything
+	# works correctly, the data from worker-2 will hit the threshold and
+	# should trigger the notice.
+	Metrics::add_data(TEST_METRIC, [$host=1.2.3.4], i);
+	}
+
+event bro_init()
+	{
+	if ( Cluster::node == "worker-1" )
+		schedule 2sec { do_metrics(99) };
+	if ( Cluster::node == "worker-2" )
+		event do_metrics(1);
+	}
+
+@endif

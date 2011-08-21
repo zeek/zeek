@@ -32,11 +32,6 @@ export {
 	## client subnets and the yield value represents server subnets.
 	const ignore_guessers: table[subnet] of subnet &redef;
 
-	## Keeps count of how many rejections a host has had.
-	global password_rejections: table[addr] of TrackCount 
-		&write_expire=guessing_timeout
-		&synchronized;
-
 	## Keeps track of hosts identified as guessing passwords.
 	global password_guessers: set[addr] &read_expire=guessing_timeout+1hr &synchronized;
 }
@@ -46,6 +41,7 @@ event bro_init()
 	Metrics::add_filter(FAILED_LOGIN, [$name="detect-bruteforcing", $log=F,
 	                                   $note=Password_Guessing,
 	                                   $notice_threshold=password_guesses_limit,
+	                                   $notice_freq=1hr,
 	                                   $break_interval=guessing_timeout]);
 	}
 
@@ -59,9 +55,7 @@ event SSH::heuristic_successful_login(c: connection)
 	#	{
 	#	NOTICE([$note=Login_By_Password_Guesser,
 	#	        $conn=c,
-	#	        $n=password_rejections[id$orig_h]$n,
-	#	        $msg=fmt("Successful SSH login by password guesser %s", id$orig_h),
-	#	        $sub=fmt("%d failed logins", password_rejections[id$orig_h]$n)]);
+	#	        $msg=fmt("Successful SSH login by password guesser %s", id$orig_h)]);
 	#	}
 	}
 
@@ -74,14 +68,4 @@ event SSH::heuristic_failed_login(c: connection)
 	if ( ! (id$orig_h in ignore_guessers &&
 	        id$resp_h in ignore_guessers[id$orig_h]) )
 		Metrics::add_data(FAILED_LOGIN, [$host=id$orig_h], 1);
-	
-	#if ( default_check_threshold(password_rejections[id$orig_h]) )
-	#	{
-	#	add password_guessers[id$orig_h];
-	#	NOTICE([$note=Password_Guessing,
-	#	        $conn=c,
-	#	        $msg=fmt("SSH password guessing by %s", id$orig_h),
-	#	        $sub=fmt("%d apparently failed logins", password_rejections[id$orig_h]$n),
-	#	        $n=password_rejections[id$orig_h]$n]);
-	#	}
 	}

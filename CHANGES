@@ -1,4 +1,39 @@
 
+1.6-dev-1120 | 2011-08-19 19:00:15 -0700
+
+  * Fix for the CompHash fix. (Robin Sommer)
+
+1.6-dev-1118 | 2011-08-18 14:11:55 -0700
+
+  * Fixing key size calculation in composite hash code. (Robin Sommer)
+
+1.6-dev-1116 | 2011-08-18 10:05:07 -0700
+
+  * Remove the 'net' type from Bro (addresses #535).
+
+  * Fix H3 assumption of an 8-bit byte/char. (Jon Siwek)
+
+  * Allow reading from interface without additional script arguments.
+    Explicitly passing in '-' as an additional command line argument
+    still allows reading a script from stdin. (Jon Siwek)
+
+  * SSH bruteforcing detection now done with metrics framework. (Seth
+    Hall)
+
+  * Updates for SQL injection attack detection to match the metrics
+    framework updates. (Seth Hall)
+
+  * Metrics framework now works on cluster setups. (Seth Hall)
+    
+  * Reclassifying more DNS manager errors as non-fatal errors. (Robin
+    Sommer)
+
+  * Fix ConnSize_Analyzer when used in conjunction with connection
+    compressor. (Gregor Maier)
+
+  * Fix reporter using part of the actual message as a format string.
+    (Jon Siwek)
+
 1.6-dev-1095 | 2011-08-13 11:59:07 -0700
 
   * A larger number of script documentation updates. Closes #543. (Jon

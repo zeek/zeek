@@ -17,7 +17,6 @@ global foo3 = "Hallihallo" &persistent &synchronized;
 global foo4 = 1.2.3.4 &persistent &synchronized; 
 global foo5 = 1.2.0.0/16 &persistent &synchronized; 
 global foo6 = 3.14 &persistent &synchronized; 
-global foo7 = 131.159. &persistent &synchronized; 
 global foo8 = 42 secs &persistent &synchronized; 
 global foo9 = { [1] = "qwerty", [2] = "uiop" } &persistent &synchronized;
 global foo10 = open("test") &persistent &synchronized; 
@@ -60,7 +59,6 @@ event bro_done()
 	print out, foo4;
 	print out, foo5;
 	print out, foo6;
-	print out, foo7;
 	print out, foo8;
 	print out, foo9;
 	print out, foo10;
@@ -92,8 +90,6 @@ function modify()
 	foo5 = 4.0.0.0/8; 
 	
 	foo6 = 21;
-	
-	foo7 = 192.150.186; 
 	
 	foo9[3] = "asdfg1";
 	foo9[1] = "asdfg2";

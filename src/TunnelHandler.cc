@@ -24,7 +24,8 @@ TunnelHandler::TunnelHandler(NetSessions *arg_s)
 	// lookup. 
 	for (int i=0; i< 65536; i++)
 		{
-		Unref(pv);
+		if (pv)
+			Unref(pv);
 		pv = new PortVal(i, TRANSPORT_UDP);
 		if (udp_tunnel_ports->Lookup(pv, false)) 
 			{

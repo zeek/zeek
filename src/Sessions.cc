@@ -444,6 +444,8 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 	     proto != IPPROTO_ICMP )
 		{
 		dump_this_packet = 1;
+		if ( f )
+			Remove(t);
 		delete_tunnel_info(tunnel_info);
 		return;
 		}
@@ -516,6 +518,8 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 
 	default:
 		Weird(fmt("unknown_protocol %d", proto), hdr, pkt);
+		if ( f )
+			Remove(f);
 		delete_tunnel_info(tunnel_info);
 		return;
 	}
@@ -546,6 +550,8 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 			if ( consistent < 0 )
 				{
 				delete h;
+				if ( f )
+					Remove(f);
 				delete_tunnel_info(tunnel_info);
 				return;
 				}
@@ -571,6 +577,8 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 	if ( ! conn )
 		{
 		delete_tunnel_info(tunnel_info);
+		if ( f )
+			Remove(f);
 		return;
 		}
 

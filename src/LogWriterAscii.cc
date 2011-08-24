@@ -141,13 +141,13 @@ bool LogWriterAscii::DoWriteOne(ODesc* desc, LogVal* val, const LogField* field)
 		break;
 
 	case TYPE_TIME:
+	case TYPE_INTERVAL:
 		char buf[32];
 		snprintf(buf, sizeof(buf), "%.6f", val->val.double_val);
 		desc->Add(buf);
 		break;
 
 	case TYPE_DOUBLE:
-	case TYPE_INTERVAL:
 		desc->Add(val->val.double_val);
 	break;
 

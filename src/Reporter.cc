@@ -160,17 +160,17 @@ void Reporter::Weird(const char* name)
 
 void Reporter::Weird(Connection* conn, const char* name, const char* addl)
 	{
-	WeirdHelper(conn_weird, conn->BuildConnVal(), name, addl);
+	WeirdHelper(conn_weird, conn->BuildConnVal(), name, "%s", addl);
 	}
 
 void Reporter::Weird(Val* conn_val, const char* name, const char* addl)
 	{
-	WeirdHelper(conn_weird, conn_val, name, addl);
+	WeirdHelper(conn_weird, conn_val, name, "%s", addl);
 	}
 
 void Reporter::Weird(const uint32* orig, const uint32* resp, const char* name)
 	{
-	WeirdFlowHelper(orig, resp, name);
+	WeirdFlowHelper(orig, resp, "%s", name);
 	}
 
 void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Connection* conn, val_list* addl, bool location, bool time, const char* fmt, va_list ap)

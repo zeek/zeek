@@ -445,7 +445,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		{
 		dump_this_packet = 1;
 		if ( f )
-			Remove(t);
+			Remove(f);
 		delete_tunnel_info(tunnel_info);
 		return;
 		}

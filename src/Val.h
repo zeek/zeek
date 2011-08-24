@@ -30,7 +30,6 @@ class SerialInfo;
 
 class PortVal;
 class AddrVal;
-class NetVal;
 class SubNetVal;
 
 class IntervalVal;
@@ -244,7 +243,7 @@ public:
 	// ... in network byte order
 	const addr_type AsAddr() const
 		{
-		if ( type->Tag() != TYPE_ADDR && type->Tag() != TYPE_NET )
+		if ( type->Tag() != TYPE_ADDR )
 			BadTag("Val::AsAddr", type_name(type->Tag()));
 		return val.addr_val;
 		}
@@ -284,7 +283,6 @@ public:
 
 	CONVERTER(TYPE_PATTERN, PatternVal*, AsPatternVal)
 	CONVERTER(TYPE_PORT, PortVal*, AsPortVal)
-	CONVERTER(TYPE_NET, NetVal*, AsNetVal)
 	CONVERTER(TYPE_SUBNET, SubNetVal*, AsSubNetVal)
 	CONVERTER(TYPE_TABLE, TableVal*, AsTableVal)
 	CONVERTER(TYPE_RECORD, RecordVal*, AsRecordVal)
@@ -302,7 +300,6 @@ public:
 
 	CONST_CONVERTER(TYPE_PATTERN, PatternVal*, AsPatternVal)
 	CONST_CONVERTER(TYPE_PORT, PortVal*, AsPortVal)
-	CONST_CONVERTER(TYPE_NET, NetVal*, AsNetVal)
 	CONST_CONVERTER(TYPE_SUBNET, SubNetVal*, AsSubNetVal)
 	CONST_CONVERTER(TYPE_TABLE, TableVal*, AsTableVal)
 	CONST_CONVERTER(TYPE_RECORD, RecordVal*, AsRecordVal)
@@ -573,23 +570,6 @@ protected:
 	void Init(const uint32* addr);
 
 	DECLARE_SERIAL(AddrVal);
-};
-
-class NetVal : public AddrVal {
-public:
-	NetVal(const char* text);
-	NetVal(uint32 addr);
-	NetVal(const uint32* addr);
-
-	Val* SizeVal() const;
-
-protected:
-	friend class Val;
-	NetVal()	{}
-
-	void ValDescribe(ODesc* d) const;
-
-	DECLARE_SERIAL(NetVal);
 };
 
 class SubNetVal : public Val {

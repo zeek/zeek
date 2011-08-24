@@ -136,19 +136,18 @@ bool LogWriterAscii::DoWriteOne(ODesc* desc, LogVal* val, const LogField* field)
 		desc->Add(val->val.subnet_val.width);
 		break;
 
-	case TYPE_NET:
 	case TYPE_ADDR:
 		desc->Add(dotted_addr(val->val.addr_val));
 		break;
 
 	case TYPE_TIME:
+	case TYPE_INTERVAL:
 		char buf[32];
 		snprintf(buf, sizeof(buf), "%.6f", val->val.double_val);
 		desc->Add(buf);
 		break;
 
 	case TYPE_DOUBLE:
-	case TYPE_INTERVAL:
 		desc->Add(val->val.double_val);
 	break;
 

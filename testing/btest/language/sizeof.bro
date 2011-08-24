@@ -26,7 +26,6 @@ global d:  double = -1.23;
 global f:  file = open_log_file("sizeof_demo");
 global i:  int = -10;
 global iv: interval = -5sec;
-global n:  net = 192.168.;
 global p:  port = 80/tcp;
 global r:  example_record [ $i = 10 ];
 global si: set[int];
@@ -81,10 +80,6 @@ print fmt("Integer %s: %d", i, |i|);
 
 # Size of interval: returns double representation of the interval
 print fmt("Interval %s: %f", iv, |iv|);
-
-# Size of net: returns size of class N network as a double
-# (so that 2^32 can be expressed too).
-print fmt("Net %s: %f", n, |n|);
 
 # Size of port: returns port number as a count.
 print fmt("Port %s: %d", p, |p|);

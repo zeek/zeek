@@ -18,7 +18,6 @@ export {
 		c: count;
 		p: port;
 		sn: subnet;
-		n: net;
 		a: addr;
 		d: double;
 		t: time;
@@ -55,7 +54,6 @@ event bro_init()
 		$c=21,
 		$p=123/tcp,
 		$sn=10.0.0.1/24,
-		$n=10.0.,
 		$a=1.2.3.4,
 		$d=3.14,
 		$t=network_time(),

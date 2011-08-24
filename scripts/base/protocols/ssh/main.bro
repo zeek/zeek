@@ -9,6 +9,12 @@ module SSH;
 
 export {
 	redef enum Log::ID += { SSH };
+	
+	redef enum Notice::Type += { 
+		## This indicates that a heuristically detected "successful" SSH 
+		## authentication occurred.
+		Login 
+	};
 
 	type Info: record {
 		ts:              time         &log;
@@ -128,6 +134,10 @@ function check_ssh_connection(c: connection, done: bool)
 
 event SSH::heuristic_successful_login(c: connection) &priority=-5
 	{
+	NOTICE([$note=Login, 
+	        $msg="Heuristically detected successful SSH login.",
+	        $conn=c]);
+	
 	Log::write(SSH, c$ssh);
 	}
 event SSH::heuristic_failed_login(c: connection) &priority=-5

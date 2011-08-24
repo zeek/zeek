@@ -30,6 +30,7 @@ public:
 
 protected:
 	binpac::SSL::SSL_Conn* interp;
+	bool had_gap;
 
 };
 

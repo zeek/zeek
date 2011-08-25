@@ -12,7 +12,11 @@ export {
 		proto:        transport_proto &log;
 		service:      string          &log &optional;
 		duration:     interval        &log &optional;
+		## The number of payload bytes the originator sent. For TCP
+		## this is taken from sequence numbers and might be inaccurate 
+		## (e.g., due to large connections)
 		orig_bytes:   count           &log &optional;
+		## The number of payload bytes the responder sent. See ``orig_bytes``.
 		resp_bytes:   count           &log &optional;
 
 		## ==========   ===============================================
@@ -68,6 +72,17 @@ export {
 		## for instance. I.e., we just record that data went in that direction.
 		## This history is not meant to encode how much data that happened to be.
 		history:      string          &log &optional;
+		## Number of packets the originator sent.
+		## Only set if :bro:id:`use_conn_size_analyzer`=T
+		orig_pkts:     count      &log &optional;
+		## Number IP level bytes the originator sent (as seen on the wire,
+		## taken from IP total_length header field).
+		## Only set if :bro:id:`use_conn_size_analyzer`=T
+		orig_ip_bytes: count      &log &optional;
+		## Number of packets the responder sent. See ``orig_pkts``.
+		resp_pkts:     count      &log &optional;
+		## Number IP level bytes the responder sent. See ``orig_pkts``.
+		resp_ip_bytes: count      &log &optional;
 	};
 	
 	global log_conn: event(rec: Info);
@@ -143,30 +158,38 @@ function determine_service(c: connection): string
 	return to_lower(service);
 	}
 
+## Fill out the c$conn record for logging
 function set_conn(c: connection, eoc: bool)
 	{
 	if ( ! c?$conn )
 		{
-		local id = c$id;
 		local tmp: Info;
-		tmp$ts=c$start_time;
-		tmp$uid=c$uid;
-		tmp$id=id;
-		tmp$proto=get_port_transport_proto(id$resp_p);
-		if( |Site::local_nets| > 0 )
-			tmp$local_orig=Site::is_local_addr(id$orig_h);
 		c$conn = tmp;
 		}
+
+	c$conn$ts=c$start_time;
+	c$conn$uid=c$uid;
+	c$conn$id=c$id;
+	c$conn$proto=get_port_transport_proto(c$id$resp_p);
+	if( |Site::local_nets| > 0 )
+		c$conn$local_orig=Site::is_local_addr(c$id$orig_h);
 	
 	if ( eoc )
 		{
 		if ( c$duration > 0secs ) 
 			{
 			c$conn$duration=c$duration;
-			# TODO: these should optionally use Gregor's new
-			#       actual byte counting code if it's enabled.
 			c$conn$orig_bytes=c$orig$size;
 			c$conn$resp_bytes=c$resp$size;
+			}
+		if ( c$orig?$num_pkts )
+			{
+			# these are set if use_conn_size_analyzer=T
+			# we can have counts in here even without duration>0
+			c$conn$orig_pkts = c$orig$num_pkts;
+			c$conn$orig_ip_bytes = c$orig$num_bytes_ip;
+			c$conn$resp_pkts = c$resp$num_pkts;
+			c$conn$resp_ip_bytes = c$resp$num_bytes_ip;
 			}
 		local service = determine_service(c);
 		if ( service != "" ) 
@@ -178,11 +201,6 @@ function set_conn(c: connection, eoc: bool)
 		}
 	}
 
-event connection_established(c: connection) &priority=5
-	{
-	set_conn(c, F);
-	}
-	
 event content_gap(c: connection, is_orig: bool, seq: count, length: count) &priority=5
 	{
 	set_conn(c, F);
@@ -190,9 +208,13 @@ event content_gap(c: connection, is_orig: bool, seq: count, length: count) &prio
 	c$conn$missed_bytes = c$conn$missed_bytes + length;
 	}
 	
-event connection_state_remove(c: connection) &priority=-5
+event connection_state_remove(c: connection) &priority=5
 	{
 	set_conn(c, T);
+	}
+
+event connection_state_remove(c: connection) &priority=-5
+	{
 	Log::write(CONN, c$conn);
 	}
 

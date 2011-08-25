@@ -119,7 +119,7 @@ function install()
 		NOTICE([$note=Compile_Failure, 
 		        $msg=fmt("Compiling packet filter failed"),
 		        $sub=default_filter]);
-		exit();
+		Reporter::fatal(fmt("Bad pcap filter '%s'", default_filter));
 		}
 	
 	# Do an audit log for the packet filter.

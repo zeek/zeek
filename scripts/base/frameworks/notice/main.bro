@@ -348,10 +348,7 @@ event bro_init() &priority=10
 	for ( pi in policy )
 		{
 		if ( pi$priority < 0 || pi$priority > 10 )
-			{
-			print "All Notice::PolicyItem priorities must be within 0 and 10";
-			exit();
-			}
+			Reporter::fatal("All Notice::PolicyItem priorities must be within 0 and 10");
 			
 		if ( pi$priority !in tmp )
 			tmp[pi$priority] = set();

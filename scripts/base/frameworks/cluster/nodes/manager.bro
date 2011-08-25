@@ -8,6 +8,8 @@
 ##! This is where the cluster manager sets it's specific settings for other
 ##! frameworks and in the core.
 
+@load base/frameworks/notice
+
 @prefixes += cluster-manager
 
 # Load the script for local site configuration for the manager node.

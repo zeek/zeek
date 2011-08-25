@@ -1,3 +1,4 @@
+@load base/frameworks/notice/main
 
 module SSH;
 

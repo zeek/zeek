@@ -932,9 +932,8 @@ int main(int argc, char** argv)
 
 	if ( dead_handlers->length() > 0 && check_for_unused_event_handlers )
 		{
-		reporter->Warning("event handlers never invoked:");
 		for ( int i = 0; i < dead_handlers->length(); ++i )
-			reporter->Warning("\t", (*dead_handlers)[i]);
+			reporter->Warning("event handler never invoked: %s", (*dead_handlers)[i]);
 		}
 
 	delete dead_handlers;

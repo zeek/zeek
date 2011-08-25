@@ -1,3 +1,7 @@
+@load base/utils/conn-ids
+@load base/utils/site
+@load ./main
+
 module Weird;
 
 export {

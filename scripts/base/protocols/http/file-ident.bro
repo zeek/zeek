@@ -1,6 +1,11 @@
 ##! This script is involved in the identification of file types in HTTP
 ##! response bodies.
 
+@load base/frameworks/signatures
+@load base/frameworks/notice
+@load ./main
+@load ./utils
+
 # Add the magic number signatures to the core signature set.
 redef signature_files += "base/protocols/http/file-ident.sig";
 # Ignore the signatures used to match files

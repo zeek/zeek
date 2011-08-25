@@ -1,3 +1,4 @@
+@load base/frameworks/software/main
 
 module SSH;
 

@@ -1,3 +1,5 @@
+@load base/frameworks/metrics
+@load base/utils/site
 
 redef enum Metrics::ID += { 
 	CONNS_ORIGINATED, 

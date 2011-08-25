@@ -1,3 +1,7 @@
+@load base/frameworks/signatures/main
+@load base/frameworks/software/main
+@load base/protocols/http/main
+@load base/protocols/http/utils
 
 module HTTP;
 

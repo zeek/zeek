@@ -1,4 +1,8 @@
 
+@load base/frameworks/metrics
+@load base/frameworks/notice
+@load base/frameworks/intel
+
 module SSH;
 
 export {

@@ -1,7 +1,7 @@
 # Load the core cluster support.
 @load ./main
 
-@if ( Cluster::node != "" )
+@if ( Cluster::is_enabled() )
 
 # Give the node being started up it's peer name.
 redef peer_description = Cluster::node;
@@ -26,15 +26,15 @@ redef peer_description = Cluster::node;
 ## Set the port that this node is supposed to listen on.
 redef Communication::listen_port_clear = Cluster::nodes[Cluster::node]$p;
 
-@if ( Cluster::nodes[Cluster::node]$node_type == Cluster::MANAGER )
+@if ( Cluster::local_node_type() == Cluster::MANAGER )
 @load ./nodes/manager
 @endif
 
-@if ( Cluster::nodes[Cluster::node]$node_type == Cluster::PROXY )
+@if ( Cluster::local_node_type() == Cluster::PROXY )
 @load ./nodes/proxy
 @endif
 
-@if ( Cluster::nodes[Cluster::node]$node_type == Cluster::WORKER )
+@if ( Cluster::local_node_type() == Cluster::WORKER )
 @load ./nodes/worker
 @endif
 

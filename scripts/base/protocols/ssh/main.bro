@@ -5,6 +5,12 @@
 ##! Requires that :bro:id:`use_conn_size_analyzer` is set to T!  The heuristic
 ##! is not attempted if the connection size analyzer isn't enabled.
 
+@load base/frameworks/notice
+@load base/utils/site
+@load base/utils/thresholds
+@load base/utils/conn-ids
+@load base/utils/directions-and-hosts
+
 module SSH;
 
 export {

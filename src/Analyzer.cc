@@ -153,9 +153,9 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 		DNP3_Analyzer::InstantiateAnalyzer,
 		DNP3_Analyzer::Available, 0, false },
 
-	{ AnalyzerTag::Dnp3, "DNP3-TCP",
-		DNP3TCP_Analyzer::InstantiateAnalyzer,
-		DNP3TCP_Analyzer::Available, 0, false },
+	//{ AnalyzerTag::Dnp3TCP, "DNP3-TCP",
+	//	DNP3TCP_Analyzer::InstantiateAnalyzer,
+	//	DNP3TCP_Analyzer::Available, 0, false },
 
 
 	{ AnalyzerTag::File, "FILE", File_Analyzer::InstantiateAnalyzer,

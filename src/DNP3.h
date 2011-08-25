@@ -6,10 +6,11 @@
 #define dnp3_h
 
 #include "TCP.h"
-
+//#include "DNP3-TCP.h"
 #include "dnp3_pac.h"
 
 class DNP3_Analyzer : public TCP_ApplicationAnalyzer {
+//class DNP3_Analyzer : public DNP3TCP_Analyzer {
 public:
 	DNP3_Analyzer(Connection* conn);
 	virtual ~DNP3_Analyzer();
@@ -24,7 +25,7 @@ public:
 
 	// Put event names in this function
 	static bool Available()
-		{ return dnp3_application_request_header || dnp3_object_header ; }
+		{ return dnp3_header_block || dnp3_data_block || dnp3_pdu_test ; }
 
 protected:
 	binpac::Dnp3::Dnp3_Conn* interp;

@@ -6,7 +6,7 @@
 #include "TCP_Reassembler.h"
 
 DNP3TCP_Analyzer::DNP3TCP_Analyzer(Connection* c)
-: TCP_ApplicationAnalyzer(AnalyzerTag::Dnp3TCP, c)
+//: TCP_ApplicationAnalyzer(AnalyzerTag::Dnp3TCP, c)
 	{
 	interp = new binpac::Dnp3TCP::Dnp3TCP_Conn(this);
 	}
@@ -26,6 +26,13 @@ void DNP3TCP_Analyzer::Done()
 
 void DNP3TCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
+	int i;
+	printf("hl debug:");
+	for(i = 0; i < len; i++)
+	{
+		printf("%x ", data[i]);
+	}
+	printf("hl debug!\n");
 	TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 	interp->NewData(orig, data, data + len);
 	}

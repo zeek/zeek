@@ -12,6 +12,8 @@
 #include "SteppingStone.h"
 #include "ConnSizeAnalyzer.h"
 #include "MODBUS.h"
+#include "DNP3-TCP.h"
+#include "DNP3.h"
 
 ExpectedConn::ExpectedConn(const uint32* _orig, const uint32* _resp,
 				uint16 _resp_p, uint16 _proto)
@@ -385,8 +387,22 @@ bool DPM::BuildInitialAnalyzerTree(TransportProto proto, Connection* conn,
 			Modbus_Analyzer* bd = new Modbus_Analyzer(conn);
 			tcp->AddChildAnalyzer(bd, false);
 			}
+		//Hui Lin test adding DNP3TCP analyzer 
+		//if ( DNP3TCP_Analyzer::Available() )
+		//	{
+               	//	DNP3TCP_Analyzer*bd = new DNP3TCP_Analyzer(conn); 
+		//	tcp->AddChildAnalyzer(bd, false);
+		//	}
+		//}
 
+		//Hui Lin test adding DNP3 analyzer 
+		if ( DNP3_Analyzer::Available() )
+			{
+               		DNP3_Analyzer*bd = new DNP3_Analyzer(conn); 
+			tcp->AddChildAnalyzer(bd, false);
+			}
 		}
+
 
 	else
 		{

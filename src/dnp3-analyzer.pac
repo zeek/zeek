@@ -8,44 +8,59 @@ connection Dnp3_Conn(bro_analyzer: BroAnalyzer) {
 };
 
 flow Dnp3_Flow(is_orig: bool) {
-	datagram  = Dnp3_PDU(is_orig) withcontext (connection, this);
+	flowunit = Dnp3_PDU(is_orig) withcontext (connection, this);
 
-	function get_dnp3_application_request_header(app_control: uint8, fc: uint8): bool
+	function get_dnp3_header_block(start: uint16, len: uint8, ctrl: uint8, dest_addr: uint16, src_addr: uint16): bool
 		%{
-		if ( ::dnp3_application_request_header )
+		if ( ::dnp3_header_block )
 			{
-			BifEvent::generate_dnp3_application_request_header(
+			BifEvent::generate_dnp3_header_block(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
-				is_orig(), app_control, fc);
+				is_orig(), start, len, ctrl, dest_addr, src_addr);
 			}
 
 		return true;
 		%}
-	function get_dnp3_object_header(obj_type: uint16, qua_field: uint8): bool
+	function get_dnp3_data_block(data: const_bytestring, crc: uint16): bool
 		%{
-		if ( ::dnp3_object_header )
+		if ( ::dnp3_data_block )
 			{
-			BifEvent::generate_dnp3_object_header(
+			BifEvent::generate_dnp3_data_block(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
-				is_orig(), obj_type, qua_field);
+				is_orig(), bytestring_to_val(data), crc );
+			}
+
+		return true;
+		%}
+	function get_dnp3_pdu_test(rest: const_bytestring): bool
+		%{
+		if ( ::dnp3_pdu_test )
+			{
+			BifEvent::generate_dnp3_pdu_test(
+				connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				is_orig(), bytestring_to_val(rest) );
 			}
 
 		return true;
 		%}
 
-
 };
 
-refine typeattr Dnp3_Application_Request_Header += &let {
-        process_request: bool =  $context.flow.get_dnp3_application_request_header(application_control, function_code);
+refine typeattr Header_Block += &let {
+        get_header: bool =  $context.flow.get_dnp3_header_block(start, len, ctrl, dest_addr, src_addr);
 };
-
-refine typeattr Object_Header += &let {
-        process_request: bool =  $context.flow.get_dnp3_object_header(object_type_field, qualifier_field);
+refine typeattr Data_Block += &let {
+        get_data: bool =  $context.flow.get_dnp3_data_block(data, crc );
 };
-
+#refine typeattr Dnp3_PDU += &let {
+#        get_pdu: bool =  $context.flow.get_dnp3_pdu(rest );
+#};
+refine typeattr Dnp3_Test += &let {
+        get_pdu: bool =  $context.flow.get_dnp3_pdu_test(rest );
+};
 
 
 

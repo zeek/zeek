@@ -40,6 +40,45 @@ export {
 	## Returns: The path to be used for the filter.
 	global default_path_func: function(id: ID, path: string, rec: any) : string &redef;
 
+	# Log rotation support.
+
+	## Information passed into rotation callback functions.
+	type RotationInfo: record {
+		writer: Writer;		##< Writer.
+		fname: string;		##< Full name of the rotated file.
+		path: string;		##< Original path value.
+		open: time;			##< Time when opened.
+		close: time;		##< Time when closed.
+		terminating: bool;	##< True if rotation occured due to Bro shutting down.
+	};
+
+	## Default rotation interval. Zero disables rotation.
+	const default_rotation_interval = 0secs &redef;
+
+	## Default naming format for timestamps embedded into filenames. Uses a strftime() style.
+	const default_rotation_date_format = "%Y-%m-%d-%H-%M-%S" &redef;
+
+	## Default shell command to run on rotated files. Empty for none.
+	const default_rotation_postprocessor_cmd = "" &redef;
+
+	## Specifies the default postprocessor function per writer type. Entries in this
+	## table are initialized by each writer type.
+	const default_rotation_postprocessors: table[Writer] of function(info: RotationInfo) : bool &redef;
+
+	## Type for controlling file rotation.
+	type RotationControl: record  {
+		## Rotation interval.
+		interv: interval &default=default_rotation_interval;
+		## Callback function to trigger for rotated files. If not set, the default
+		## comes out of default_rotation_postprocessors.
+		postprocessor: function(info: RotationInfo) : bool &optional;
+	};
+
+	## Specifies rotation parameters per ``(id, path)`` tuple.
+	## If a pair is not found in this table, default values defined in
+	## ``RotationControl`` are used.
+	const rotation_control: table[Writer, string] of RotationControl &default=[] &redef;
+
 	## Filter customizing logging.
 	type Filter: record {
 		## Descriptive name to reference this filter.
@@ -96,46 +135,12 @@ export {
 
 		## If true, entries are passed on to remote peers.
 		log_remote: bool &default=enable_remote_logging;
+
+		## If set, the rotation control value is automatically added to
+		## :bro:id:`Log::rotation_control` for the filter's (writer, path)
+		## when adding the filter to a stream via :bro:id:`Log::add_filter`
+		rotation: RotationControl &optional;
 	};
-
-	# Log rotation support.
-
-	## Information passed into rotation callback functions.
-	type RotationInfo: record {
-		writer: Writer;		##< Writer.
-		fname: string;		##< Full name of the rotated file.
-		path: string;		##< Original path value.
-		open: time;			##< Time when opened.
-		close: time;		##< Time when closed.
-		terminating: bool;	##< True if rotation occured due to Bro shutting down.
-	};
-
-	## Default rotation interval. Zero disables rotation.
-	const default_rotation_interval = 0secs &redef;
-
-	## Default naming format for timestamps embedded into filenames. Uses a strftime() style.
-	const default_rotation_date_format = "%Y-%m-%d-%H-%M-%S" &redef;
-
-	## Default shell command to run on rotated files. Empty for none.
-	const default_rotation_postprocessor_cmd = "" &redef;
-
-	## Specifies the default postprocessor function per writer type. Entries in this
-	## table are initialized by each writer type.
-	const default_rotation_postprocessors: table[Writer] of function(info: RotationInfo) : bool &redef;
-
-	## Type for controlling file rotation.
-	type RotationControl: record  {
-		## Rotation interval.
-		interv: interval &default=default_rotation_interval;
-		## Callback function to trigger for rotated files. If not set, the default
-		## comes out of default_rotation_postprocessors.
-		postprocessor: function(info: RotationInfo) : bool &optional;
-	};
-
-	## Specifies rotation parameters per ``(id, path)`` tuple.
-	## If a pair is not found in this table, default values defined in
-	## ``RotationControl`` are used.
-	const rotation_control: table[Writer, string] of RotationControl &default=[] &redef;
 
 	## Sentinel value for indicating that a filter was not found when looked up.
 	const no_filter: Filter = [$name="<not found>"]; # Sentinel.

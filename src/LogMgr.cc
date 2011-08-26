@@ -382,6 +382,17 @@ bool LogVal::Write(SerializationFormat* fmt) const
 
 LogMgr::Filter::~Filter()
 	{
+	// If there's a rotation control table entry associated with this
+	// filter's (writer, path), remove it
+	TableVal* rc = BifConst::Log::rotation_control->AsTableVal();
+
+	ListVal* index = new ListVal(TYPE_ANY);
+	index->Append(writer->Ref());
+	index->Append(path_val->Ref());
+
+	Unref(rc->Delete(index));
+	Unref(index);
+
 	for ( int i = 0; i < num_fields; ++i )
 		delete fields[i];
 
@@ -790,6 +801,21 @@ bool LogMgr::AddFilter(EnumVal* id, RecordVal* fval)
 
 	// Remove any filter with the same name we might already have.
 	RemoveFilter(id, filter->name);
+
+	// Install the rotation support, if given
+	Val* rot_val = fval->Lookup(rtype->FieldOffset("rotation"));
+	if ( rot_val )
+		{
+		TableVal* rc = BifConst::Log::rotation_control->AsTableVal();
+
+		ListVal* index = new ListVal(TYPE_ANY);
+		index->Append(filter->writer->Ref());
+		index->Append(filter->path_val->Ref());
+
+		rc->Assign(index, rot_val->Ref());
+
+		Unref(index);
+		}
 
 	// Add the new one.
 	stream->filters.push_back(filter);

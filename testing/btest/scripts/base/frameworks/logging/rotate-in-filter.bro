@@ -1,6 +1,6 @@
 #
-# @TEST-EXEC: bro -b -r %DIR/rotation.trace %INPUT 2>&1 | grep "test" >out
-# @TEST-EXEC: for i in test.*.log; do printf '> %s\n' $i; cat $i; done >>out
+# @TEST-EXEC: bro -b -r %DIR/rotation.trace %INPUT 2>&1 | egrep "test|test2" | sort >out
+# @TEST-EXEC: for i in `ls test*.log | sort`; do printf '> %s\n' $i; cat $i; done | sort | uniq >>out
 # @TEST-EXEC: btest-diff out
 
 module Test;
@@ -18,11 +18,19 @@ export {
 }
 
 redef Log::default_rotation_interval = 1hr;
-redef Log::default_rotation_postprocessor_cmd = "echo";
+redef Log::default_rotation_postprocessor_cmd = "echo 1st";
+
+function custom_rotate(info: Log::RotationInfo) : bool
+{
+    print "custom rotate", info;
+    return T;
+}
 
 event bro_init()
 {
 	Log::create_stream(Test, [$columns=Log]);
+	Log::add_filter(Test, [$name="2nd", $path="test2",
+	    $rotation=[$interv=30mins, $postprocessor=custom_rotate]]);
 }
 
 event new_connection(c: connection)

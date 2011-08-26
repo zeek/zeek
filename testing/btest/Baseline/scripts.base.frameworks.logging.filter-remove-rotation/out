@@ -1,0 +1,10 @@
+{
+[WRITER_ASCII, test2] = [interv=30.0 mins, postprocessor=Test::custom_rotate
+{ 
+print custom rotate, Test::info;
+return (T);
+}]
+}
+{
+
+}

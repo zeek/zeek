@@ -1,0 +1,8 @@
+# Makes sure any given policy script in the scripts/ tree can be loaded in
+# bare mode.  btest-bg-run/btest-bg-wait are used to kill off scripts that
+# block after loading, e.g. start listening on a socket.
+#
+# @TEST-EXEC: test -d $DIST/scripts
+# @TEST-EXEC: for script in `find $DIST/scripts -name \*\.bro`; do echo $script;if [[ "$script" =~ listen-clear|listen-ssl|controllee ]]; then rm -rf load_attempt .bgprocs; btest-bg-run load_attempt bro -b $script; btest-bg-wait -k 2; cat load_attempt/.stderr >>allerrors; else bro -b $script 2>>allerrors; fi done || exit 0
+# @TEST-EXEC: cat allerrors | grep -v "received termination signal" | sort | uniq > unique_errors
+# @TEST-EXEC: btest-diff unique_errors

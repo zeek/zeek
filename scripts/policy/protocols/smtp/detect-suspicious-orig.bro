@@ -1,3 +1,5 @@
+@load base/frameworks/notice/main
+@load base/protocols/smtp/main
 
 module SMTP;
 

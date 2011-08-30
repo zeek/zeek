@@ -1,3 +1,4 @@
+@load base/frameworks/control
 
 module Cluster;
 
@@ -9,6 +10,7 @@ export {
 	} &log;
 	
 	type NodeType: enum {
+		NONE,
 		CONTROL,
 		MANAGER,
 		PROXY,
@@ -53,8 +55,8 @@ export {
 	
 	## This function can be called at any time to determine what type of
 	## cluster node the current Bro instance is going to be acting as.
-	## :bro:id:`is_enabled` should be called first to find out if this is
-	## actually going to be a cluster node.
+	## If :bro:id:`Cluster::is_enabled` returns false, then
+	## :bro:enum:`Cluster::NONE` is returned.
 	global local_node_type: function(): NodeType;
 	
 	## This gives the value for the number of workers currently connected to,
@@ -80,15 +82,15 @@ function is_enabled(): bool
 
 function local_node_type(): NodeType
 	{
-	return nodes[node]$node_type;
+	return is_enabled() ? nodes[node]$node_type : NONE;
 	}
-	
 
 event remote_connection_handshake_done(p: event_peer)
 	{
 	if ( nodes[p$descr]$node_type == WORKER )
 		++worker_count;
 	}
+
 event remote_connection_closed(p: event_peer)
 	{
 	if ( nodes[p$descr]$node_type == WORKER )
@@ -100,8 +102,7 @@ event bro_init() &priority=5
 	# If a node is given, but it's an unknown name we need to fail.
 	if ( node != "" && node !in nodes )
 		{
-		local msg = "You didn't supply a valid node in the Cluster::nodes configuration.";
-		event reporter_error(current_time(), msg, "");
+		Reporter::error(fmt("'%s' is not a valid node in the Cluster::nodes configuration", node));
 		terminate();
 		}
 	

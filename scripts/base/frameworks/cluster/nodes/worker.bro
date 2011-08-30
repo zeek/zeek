@@ -1,3 +1,4 @@
+@load base/frameworks/notice
 
 @prefixes += cluster-worker
 

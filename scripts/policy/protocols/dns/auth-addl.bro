@@ -1,3 +1,4 @@
+@load base/protocols/dns/main
 
 redef dns_skip_all_auth = F;
 redef dns_skip_all_addl = F;

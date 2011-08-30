@@ -588,53 +588,6 @@ function raw_bytes_to_v4_addr%(b: string%): addr
 	return new AddrVal(htonl(a));
 	%}
 
-function to_net%(a: addr%): net
-	%{
-#ifdef BROv6
-	if ( ! is_v4_addr(a) )
-		{
-		builtin_error("conversion of non-IPv4 address to net", @ARG@[0]);
-		return new NetVal(uint32(0));
-		}
-
-	uint32 addr = to_v4_addr(a);
-#else
-	uint32 addr = a;
-#endif
-
-	addr = htonl(addr_to_net(ntohl(addr)));
-
-	return new NetVal(addr);
-	%}
-
-function net_to_subnet%(a: net%): subnet
-	%{
-#ifdef BROv6
-	if ( ! is_v4_addr(a) )
-		{
-		builtin_error("conversion of non-IPv4 address to subnet", @ARG@[0]);
-		return new SubNetVal(uint32(0), 0);
-		}
-
-	uint32 addr = to_v4_addr(a);
-#else
-	uint32 addr = a;
-#endif
-
-	switch ( addr_to_class(ntohl(addr)) ) {
-	case 'A':
-		return new SubNetVal(addr, 8);
-	case 'B':
-		return new SubNetVal(addr, 16);
-	case 'C':
-	case 'D':
-		return new SubNetVal(addr, 24);
-
-	default:
-		return new SubNetVal(addr, 0);
-	}
-	%}
-
 function to_port%(num: count, proto: transport_proto%): port
 	%{
 	return new PortVal(num, (TransportProto)proto->AsEnum());
@@ -1736,19 +1689,6 @@ function preserve_subnet%(a: subnet%): any
 		ip_anon->PreservePrefix(a->AsAddr(), a->Width());
 #endif
 		}
-
-	return 0;
-	%}
-
-function preserve_net%(a: net%): any
-	%{
-#ifdef BROv6
-	builtin_error("preserve_net() not supported with --enable-BROv6");
-#else
-	AnonymizeIPAddr* ip_anon = ip_anonymizer[PREFIX_PRESERVING_A50];
-	if ( ip_anon )
-		ip_anon->PreserveNet(a);
-#endif
 
 	return 0;
 	%}

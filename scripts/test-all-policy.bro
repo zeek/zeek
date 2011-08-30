@@ -15,11 +15,13 @@
 # @load frameworks/control/controller.bro
 @load frameworks/dpd/detect-protocols.bro
 @load frameworks/dpd/packet-segment-logging.bro
+@load frameworks/metrics/conn-example.bro
+@load frameworks/metrics/http-example.bro
+@load frameworks/metrics/ssl-example.bro
 @load frameworks/software/version-changes.bro
 @load frameworks/software/vulnerable.bro
 @load integration/barnyard2/__load__.bro
-@load integration/barnyard2/base.bro
-@load integration/barnyard2/event.bro
+@load integration/barnyard2/main.bro
 @load integration/barnyard2/types.bro
 @load misc/analysis-groups.bro
 @load misc/loaded-scripts.bro

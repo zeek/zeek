@@ -1,4 +1,0 @@
-# ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	note	msg	sub	src	dst	p	n	peer_descr	actions	policy_items	dropped	remote_location.country_code	remote_location.region	remote_location.city	remote_location.latitude	remote_location.longitude	metric_index.host	metric_index.str	metric_index.network
-1313432466.662314	-	-	-	-	-	Test_Notice	Metrics threshold crossed by 6.5.4.3 2/1	-	6.5.4.3	-	-	2	bro	Notice::ACTION_LOG	4	-	-	-	-	-	-	6.5.4.3	-	-
-1313432466.662314	-	-	-	-	-	Test_Notice	Metrics threshold crossed by 1.2.3.4 3/1	-	1.2.3.4	-	-	3	bro	Notice::ACTION_LOG	4	-	-	-	-	-	-	1.2.3.4	-	-
-1313432466.662314	-	-	-	-	-	Test_Notice	Metrics threshold crossed by 7.2.1.5 1/1	-	7.2.1.5	-	-	1	bro	Notice::ACTION_LOG	4	-	-	-	-	-	-	7.2.1.5	-	-

@@ -1,3 +1,4 @@
+@load base/frameworks/notice/main
 
 module SSH;
 
@@ -36,7 +37,7 @@ event SSH::heuristic_successful_login(c: connection)
 			}
 		}
 	# Check to see if this login went to an interesting hostname.
-	when ( local resp_hostname = lookup_addr(c$id$orig_h) )
+	when ( local resp_hostname = lookup_addr(c$id$resp_h) )
 		{
 		if ( interesting_hostnames in resp_hostname )
 			{

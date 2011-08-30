@@ -8,6 +8,9 @@
 ##! Example line from IRC server indicating that the DCC SEND is about to start:
 ##!    PRIVMSG my_nick :^ADCC SEND whateverfile.zip 3640061780 1026 41709^A
 
+@load ./main
+@load base/utils/files
+
 module IRC;
 
 export {

@@ -1,5 +1,5 @@
-# status	country	a1	b1	b2
-# path:'ssh'
-# separator:'	'
-# status=string	country=string	a1=count	b1=count	b2=count
+# separator \x09
+# fields	status	country	a1	b1	b2
+# types	string	string	count	count	count
+# path	ssh
 success	unknown	1	3	4

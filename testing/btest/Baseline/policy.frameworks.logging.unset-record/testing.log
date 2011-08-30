@@ -1,6 +1,6 @@
-# a.val1	a.val2	b
-# path:'testing'
-# separator:'	'
-# a.val1=count	a.val2=count	b=count
+# separator \x09
+# fields	a.val1	a.val2	b
+# types	count	count	count
+# path	testing
 -	-	6
 1	2	3

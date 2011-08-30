@@ -1,7 +1,7 @@
-# ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	method	host	uri	referrer	user_agent	request_content_length	response_content_length	status_code	status_msg	filename	tags	username	password	proxied	md5	extraction_file
-# path:'http'
-# separator:'	'
-# ts=time	uid=string	id.orig_h=addr	id.orig_p=port	id.resp_h=addr	id.resp_p=port	method=string	host=string	uri=string	referrer=string	user_agent=string	request_content_length=count	response_content_length=count	status_code=count	status_msg=string	filename=string	tags=table	username=string	password=string	proxied=table	md5=string	extraction_file=file
+# separator \x09
+# fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	method	host	uri	referrer	user_agent	request_content_length	response_content_length	status_code	status_msg	filename	tags	username	password	proxied	md5	extraction_file
+# types	time	string	addr	port	addr	port	string	string	string	string	string	count	count	count	string	string	table	string	string	table	string	file
+# path	http
 1258577884.844956	UWkUyAuUGXf	192.168.1.104	1673	63.245.209.11	80	GET	www.mozilla.org	/style/enhanced.css	http://www.mozilla.org/projects/calendar/	Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.1.5) Gecko/20091102 Firefox/3.5.5	-	946	200	OK	-	-	-	-	-	-	-
 1258577884.960135	UWkUyAuUGXf	192.168.1.104	1673	63.245.209.11	80	GET	www.mozilla.org	/script/urchin.js	http://www.mozilla.org/projects/calendar/	Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.1.5) Gecko/20091102 Firefox/3.5.5	-	6716	200	OK	-	-	-	-	-	-	-
 1258577885.317160	UWkUyAuUGXf	192.168.1.104	1673	63.245.209.11	80	GET	www.mozilla.org	/images/template/screen/bullet_utility.png	http://www.mozilla.org/style/screen.css	Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.1.5) Gecko/20091102 Firefox/3.5.5	-	94	200	OK	-	-	-	-	-	-	-

@@ -1,5 +1,5 @@
-# vec
-# path:'ssh'
-# separator:'	'
-# vec=vector
+# separator \x09
+# fields	vec
+# types	vector
+# path	ssh
 -,2,-,-,5

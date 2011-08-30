@@ -1,7 +1,7 @@
-# status	country
-# path:'ssh'
-# separator:'	'
-# status=string	country=string
+# separator \x09
+# fields	status	country
+# types	string	string
+# path	ssh
 success	unknown
 failure	US
 failure	UK

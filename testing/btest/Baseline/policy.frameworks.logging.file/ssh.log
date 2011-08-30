@@ -1,5 +1,5 @@
-# t	f
-# path:'ssh'
-# separator:'	'
-# t=time	f=file
-1313294659.301877	Foo.log
+# separator \x09
+# fields	t	f
+# types	time	file
+# path	ssh
+1314727892.880049	Foo.log

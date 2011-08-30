@@ -1,7 +1,7 @@
-# ts	host	port_num	port_proto	service
-# path:'known_services'
-# separator:'	'
-# ts=time	host=addr	port_num=port	port_proto=enum	service=table
+# separator \x09
+# fields	ts	host	port_num	port_proto	service
+# types	time	addr	port	enum	table
+# path	known_services
 1308930691.035044	172.16.238.131	22	tcp	SSH
 1308930694.548964	172.16.238.131	80	tcp	HTTP
 1308930703.068148	172.16.238.131	21	tcp	FTP

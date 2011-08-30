@@ -1,7 +1,7 @@
-# ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	nick	user	channels	command	value	addl	tags	dcc_file_name	dcc_file_size	dcc_mime_type	extraction_file
-# path:'irc'
-# separator:'	'
-# ts=time	uid=string	id.orig_h=addr	id.orig_p=port	id.resp_h=addr	id.resp_p=port	nick=string	user=string	channels=table	command=string	value=string	addl=string	tags=table	dcc_file_name=string	dcc_file_size=count	dcc_mime_type=string	extraction_file=file
+# separator \x09
+# fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	nick	user	channels	command	value	addl	tags	dcc_file_name	dcc_file_size	dcc_mime_type	extraction_file
+# types	time	string	addr	port	addr	port	string	string	table	string	string	string	table	string	count	string	file
+# path	irc
 1311189164.119437	UWkUyAuUGXf	192.168.1.77	57640	66.198.80.67	6667	-	-	-	NICK	bloed	-	-	-	-	-	-
 1311189164.119437	UWkUyAuUGXf	192.168.1.77	57640	66.198.80.67	6667	bloed	-	-	USER	sdkfje	sdkfje Montreal.QC.CA.Undernet.org dkdkrwq	-	-	-	-	-
 1311189174.474127	UWkUyAuUGXf	192.168.1.77	57640	66.198.80.67	6667	bloed	sdkfje	-	JOIN	#easymovies	-	-	-	-	-	-

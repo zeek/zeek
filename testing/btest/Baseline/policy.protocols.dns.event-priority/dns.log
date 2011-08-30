@@ -1,5 +1,5 @@
-# ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	trans_id	query	qclass	qclass_name	qtype	qtype_name	rcode	rcode_name	QR	AA	TC	RD	RA	Z	TTL	answers	auth	addl
-# path:'dns'
-# separator:'	'
-# ts=time	uid=string	id.orig_h=addr	id.orig_p=port	id.resp_h=addr	id.resp_p=port	proto=enum	trans_id=count	query=string	qclass=count	qclass_name=string	qtype=count	qtype_name=string	rcode=count	rcode_name=string	QR=bool	AA=bool	TC=bool	RD=bool	RA=bool	Z=count	TTL=interval	answers=table	auth=table	addl=table
+# separator \x09
+# fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	trans_id	query	qclass	qclass_name	qtype	qtype_name	rcode	rcode_name	QR	AA	TC	RD	RA	Z	TTL	answers	auth	addl
+# types	time	string	addr	port	addr	port	enum	count	string	count	string	count	string	count	string	bool	bool	bool	bool	bool	count	interval	table	table	table
+# path	dns
 930613226.529070	UWkUyAuUGXf	212.180.42.100	25000	131.243.64.3	53	tcp	34798	-	-	-	-	-	0	NOERROR	F	F	F	F	T	0	31337.0	4.3.2.1	-	-

@@ -7,6 +7,25 @@
 #include "NetVar.h"
 
 /**
+ * Takes a string, escapes each character into its equivalent hex code (\x##), and
+ * returns a string containing all escaped values.
+ *
+ * @param str string to escape
+ * @return A std::string containing a list of escaped hex values of the form \x##
+ */
+static string _GetEscapedString(const std::string str)
+{
+	char tbuf[128];
+	string esc = "";
+	for (size_t i = 0; i < str.length(); ++i)
+		{
+		snprintf(tbuf, 128, "\\x%02x", str[i]);
+		esc += tbuf;
+		}
+	return esc;
+}
+
+/**
  * Takes a LogField and returns a human-readable version of its type.  Used to output the type to the log file's
  * header.
  *
@@ -118,40 +137,33 @@ bool LogWriterAscii::DoInit(string path, int num_fields,
 
 	if ( include_header )
 		{
-		if ( fwrite(header_prefix, header_prefix_len, 1, file) != 1 )
-			goto write_error;
-
-		for ( int i = 0; i < num_fields; i++ )
-			{
-			if ( i > 0 &&
-			     fwrite(separator, separator_len, 1, file) != 1 )
-				goto write_error;
-
-			const LogField* field = fields[i];
-
-			if ( fputs(field->name.c_str(), file) == EOF )
-				goto write_error;
-			}
-
-		if ( fputc('\n', file) == EOF )
-			goto write_error;
-		
-		string wString = string(header_prefix, header_prefix_len) + string("path:'") + path + string("'\n");
-		wString += string(header_prefix, header_prefix_len) + "separator:'" + string(separator, separator_len) + "'\n";
+		string wString = string(header_prefix, header_prefix_len) + "separator " + _GetEscapedString(string(separator, separator_len)) + "\n";
 		if(fwrite(wString.c_str(), wString.length(), 1, file) != 1)
 			goto write_error;
-
-		wString = string(header_prefix, header_prefix_len);
+		wString = string(header_prefix, header_prefix_len) + "fields" + string(separator, separator_len);
 		for ( int i = 0; i < num_fields; ++i )
 			{
 			const LogField* field = fields[i];
-			wString += ((i > 0) ? string(separator, separator_len) : string("")) + field->name + string("=") + _GetBroTypeString(field);
+			wString += ((i > 0) ? string(separator, separator_len) : string("")) + field->name.c_str();
 			}
 		if(fwrite(wString.c_str(), wString.length(), 1, file) != 1)
 			goto write_error;
 		if ( fputc('\n', file) == EOF )
 			goto write_error;
 		
+		wString = string(header_prefix, header_prefix_len) + "types" + string(separator, separator_len);
+		for ( int i = 0; i < num_fields; ++i )
+			{
+			const LogField* field = fields[i];
+			wString += ((i > 0) ? string(separator, separator_len) : string("")) + _GetBroTypeString(field);
+			}
+		if(fwrite(wString.c_str(), wString.length(), 1, file) != 1)
+			goto write_error;
+		if ( fputc('\n', file) == EOF )
+			goto write_error;
+		wString = string(header_prefix, header_prefix_len) + string("path") + string(separator, separator_len) + path + string("\n");
+		if(fwrite(wString.c_str(), wString.length(), 1, file) != 1)
+			goto write_error;
 		}
 
 	return true;

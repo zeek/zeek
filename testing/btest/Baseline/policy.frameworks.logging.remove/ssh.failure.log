@@ -1,6 +1,6 @@
-# t	id.orig_h	id.orig_p	id.resp_h	id.resp_p	status	country
-# path:'ssh.failure'
-# separator:'	'
-# t=time	id.orig_h=addr	id.orig_p=port	id.resp_h=addr	id.resp_p=port	status=string	country=string
-1313294785.141559	1.2.3.4	1234	2.3.4.5	80	failure	US
-1313294785.141559	1.2.3.4	1234	2.3.4.5	80	failure	UK
+# separator \x09
+# fields	t	id.orig_h	id.orig_p	id.resp_h	id.resp_p	status	country
+# types	time	addr	port	addr	port	string	string
+# path	ssh.failure
+1314727967.932172	1.2.3.4	1234	2.3.4.5	80	failure	US
+1314727967.932172	1.2.3.4	1234	2.3.4.5	80	failure	UK

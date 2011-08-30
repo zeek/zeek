@@ -204,7 +204,7 @@ binpac_target(syslog.pac
 binpac_target(modbus.pac
     modbus-protocol.pac modbus-analyzer.pac)
 binpac_target(dnp3.pac
-    dnp3-protocol.pac dnp3-analyzer.pac)
+    dnp3-protocol.pac dnp3-analyzer.pac dnp3-objects.pac)
 binpac_target(dnp3-tcp.pac
     dnp3-tcp-protocol.pac dnp3-tcp-analyzer.pac)
 

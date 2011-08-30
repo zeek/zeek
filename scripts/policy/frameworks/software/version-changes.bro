@@ -1,3 +1,5 @@
+@load base/frameworks/notice
+@load base/frameworks/software
 
 module Software;
 

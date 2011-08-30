@@ -1,3 +1,4 @@
+@load base/frameworks/control
 @load base/frameworks/communication
 
 module Control;

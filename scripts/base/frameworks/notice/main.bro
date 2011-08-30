@@ -308,7 +308,9 @@ function apply_policy(n: Notice::Info)
 
 	if ( ! n?$src_peer )
 		n$src_peer = get_event_peer();
-	n$peer_descr = n$src_peer?$descr ? n$src_peer$descr : fmt("%s", n$src_peer$host);
+	if ( ! n?$peer_descr )
+		n$peer_descr = n$src_peer?$descr ? 
+		                   n$src_peer$descr : fmt("%s", n$src_peer$host);
 	
 	if ( ! n?$actions )
 		n$actions = set();
@@ -340,7 +342,7 @@ function apply_policy(n: Notice::Info)
 	
 # Create the ordered notice policy automatically which will be used at runtime 
 # for prioritized matching of the notice policy.
-event bro_init()
+event bro_init() &priority=10
 	{
 	local tmp: table[count] of set[PolicyItem] = table();
 	for ( pi in policy )

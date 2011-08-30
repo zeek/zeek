@@ -1,6 +1,10 @@
 ##! Extracts the items from HTTP traffic, one per file.  At this time only 
 ##! the message body from the server can be extracted with this script.
 
+@load ./main
+@load ./file-ident
+@load base/utils/files
+
 module HTTP;
 
 export {

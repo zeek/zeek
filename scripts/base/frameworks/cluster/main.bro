@@ -1,3 +1,4 @@
+@load base/frameworks/control
 
 module Cluster;
 
@@ -9,6 +10,7 @@ export {
 	} &log;
 	
 	type NodeType: enum {
+		NONE,
 		CONTROL,
 		MANAGER,
 		PROXY,
@@ -47,6 +49,25 @@ export {
 		time_machine: string      &optional;
 	};
 	
+	## This function can be called at any time to determine if the cluster
+	## framework is being enabled for this run.
+	global is_enabled: function(): bool;
+	
+	## This function can be called at any time to determine what type of
+	## cluster node the current Bro instance is going to be acting as.
+	## If :bro:id:`Cluster::is_enabled` returns false, then
+	## :bro:enum:`Cluster::NONE` is returned.
+	global local_node_type: function(): NodeType;
+	
+	## This gives the value for the number of workers currently connected to,
+	## and it's maintained internally by the cluster framework.  It's 
+	## primarily intended for use by managers to find out how many workers 
+	## should be responding to requests.
+	global worker_count: count = 0;
+	
+	## The cluster layout definition.  This should be placed into a filter
+	## named cluster-layout.bro somewhere in the BROPATH.  It will be 
+	## automatically loaded if the CLUSTER_NODE environment variable is set.
 	const nodes: table[string] of Node = {} &redef;
 	
 	## This is usually supplied on the command line for each instance
@@ -54,13 +75,34 @@ export {
 	const node = getenv("CLUSTER_NODE") &redef;
 }
 
-event bro_init()
+function is_enabled(): bool
+	{
+	return (node != "");
+	}
+
+function local_node_type(): NodeType
+	{
+	return is_enabled() ? nodes[node]$node_type : NONE;
+	}
+
+event remote_connection_handshake_done(p: event_peer)
+	{
+	if ( nodes[p$descr]$node_type == WORKER )
+		++worker_count;
+	}
+
+event remote_connection_closed(p: event_peer)
+	{
+	if ( nodes[p$descr]$node_type == WORKER )
+		--worker_count;
+	}
+
+event bro_init() &priority=5
 	{
 	# If a node is given, but it's an unknown name we need to fail.
 	if ( node != "" && node !in nodes )
 		{
-		local msg = "You didn't supply a valid node in the Cluster::nodes configuration.";
-		event reporter_error(current_time(), msg, "");
+		Reporter::error(fmt("'%s' is not a valid node in the Cluster::nodes configuration", node));
 		terminate();
 		}
 	

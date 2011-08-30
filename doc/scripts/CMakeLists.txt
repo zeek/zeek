@@ -119,7 +119,7 @@ macro(REST_TARGET srcDir broInput)
         ARGS -E remove_directory .state
         # generate the reST documentation using bro
         COMMAND BROPATH=${BROPATH}:${srcDir} ${CMAKE_BINARY_DIR}/src/bro
-        ARGS --doc-scripts ${broInput} || (rm -rf .state *.log *.rst && exit 1)
+        ARGS -b -Z ${broInput} || (rm -rf .state *.log *.rst && exit 1)
         # move generated doc into a new directory tree that
         # defines the final structure of documents
         COMMAND "${CMAKE_COMMAND}"

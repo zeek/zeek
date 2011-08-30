@@ -74,10 +74,12 @@ protected:
 	// the value is computed for the particular list of values.
 	// Returns 0 if the key has an indeterminant size (if v not given),
 	// or if v doesn't match the index type (if given).
-	int ComputeKeySize(const Val* v = 0, int type_check = 1) const;
+	int ComputeKeySize(const Val* v, int type_check,
+			   bool calc_static_size) const;
 
 	int SingleTypeKeySize(BroType*, const Val*,
-			      int type_check, int sz, bool optional) const;
+			      int type_check, int sz, bool optional,
+			      bool calc_static_size) const;
 
 	TypeList* type;
 	char* key;	// space for composite key

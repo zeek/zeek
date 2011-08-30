@@ -1,4 +1,4 @@
-@load ./base
+@load ./main
 
 module MIME;
 

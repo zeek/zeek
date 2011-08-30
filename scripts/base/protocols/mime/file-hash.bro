@@ -1,4 +1,5 @@
 @load ./file-ident
+@load base/frameworks/notice
 
 module MIME;
 

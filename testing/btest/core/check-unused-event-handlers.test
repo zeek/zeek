@@ -1,0 +1,8 @@
+# This test should print a warning that the event handler is never invoked.
+# @TEST-EXEC: bro -b %INPUT check_for_unused_event_handlers=T
+# @TEST-EXEC: btest-diff .stderr
+
+event this_is_never_used()
+	{
+	print "not even once";
+	}

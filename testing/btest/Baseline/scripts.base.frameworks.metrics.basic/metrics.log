@@ -1,4 +1,7 @@
-# ts	metric_id	filter_name	index.host	index.str	index.network	value
-1313430544.678529	TEST_METRIC	foo-bar	6.5.4.3	-	-	2
-1313430544.678529	TEST_METRIC	foo-bar	1.2.3.4	-	-	3
-1313430544.678529	TEST_METRIC	foo-bar	7.2.1.5	-	-	1
+# separator \x09
+# fields	ts	metric_id	filter_name	index.host	index.str	index.network	value
+# types	time	enum	string	addr	string	subnet	count
+# path	metrics
+1314729506.922865	TEST_METRIC	foo-bar	6.5.4.3	-	-	2
+1314729506.922865	TEST_METRIC	foo-bar	1.2.3.4	-	-	3
+1314729506.922865	TEST_METRIC	foo-bar	7.2.1.5	-	-	1

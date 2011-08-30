@@ -54,8 +54,6 @@ static string _GetBroTypeString(const LogField *field)
 		return "double"; 
 	case TYPE_SUBNET:
 		return "subnet";
-	case TYPE_NET:
-		return "net";
 	case TYPE_ADDR:
 		return "addr";
 	case TYPE_ENUM:

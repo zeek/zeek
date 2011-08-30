@@ -1,3 +1,6 @@
-# ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	note	msg	sub	src	dst	p	n	peer_descr	actions	policy_items	dropped	remote_location.country_code	remote_location.region	remote_location.city	remote_location.latitude	remote_location.longitude	metric_index.host	metric_index.str	metric_index.network
-1313685819.326521	-	-	-	-	-	Test_Notice	Threshold crossed by metric_index(host=1.2.3.4) 3/2	-	1.2.3.4	-	-	3	bro	Notice::ACTION_LOG	4	-	-	-	-	-	-	1.2.3.4	-	-
-1313685819.326521	-	-	-	-	-	Test_Notice	Threshold crossed by metric_index(host=6.5.4.3) 2/2	-	6.5.4.3	-	-	2	bro	Notice::ACTION_LOG	4	-	-	-	-	-	-	6.5.4.3	-	-
+# separator \x09
+# fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	note	msg	sub	src	dst	p	n	peer_descr	actions	policy_items	dropped	remote_location.country_code	remote_location.region	remote_location.city	remote_location.latitude	remote_location.longitude	metric_index.host	metric_index.str	metric_index.network
+# types	time	string	addr	port	addr	port	enum	string	string	addr	addr	port	count	string	table	table	bool	string	string	string	double	double	addr	string	subnet
+# path	notice
+1314729528.972185	-	-	-	-	-	Test_Notice	Threshold crossed by metric_index(host=1.2.3.4) 3/2	-	1.2.3.4	-	-	3	bro	Notice::ACTION_LOG	4	-	-	-	-	-	-	1.2.3.4	-	-
+1314729528.972185	-	-	-	-	-	Test_Notice	Threshold crossed by metric_index(host=6.5.4.3) 2/2	-	6.5.4.3	-	-	2	bro	Notice::ACTION_LOG	4	-	-	-	-	-	-	6.5.4.3	-	-

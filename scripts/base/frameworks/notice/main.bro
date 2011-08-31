@@ -41,7 +41,9 @@ export {
 		## Indicates that the notice should be sent to the email address(es) 
 		## configured in the :bro:id:`Notice::mail_dest` variable.
 		ACTION_EMAIL,
-		## Indicates that the notice should be alarmed.
+		## Indicates that the notice should be alarmed.  A readable ASCII
+		## version of the alarm log is emailed in bulk to the address(es)
+		## configured in :bro:id:`Notice::mail_dest`.
 		ACTION_ALARM,
 	};
 	
@@ -136,7 +138,8 @@ export {
 	
 	## Local system sendmail program.
 	const sendmail            = "/usr/sbin/sendmail" &redef;
-	## Email address to send notices with the :bro:enum:`ACTION_EMAIL` action.
+	## Email address to send notices with the :bro:enum:`ACTION_EMAIL` action
+	## or to send bulk alarm logs on rotation with :bro:enum:`ACTION_ALARM`.
 	const mail_dest           = ""                   &redef;
 	
 	## Address that emails will be from.
@@ -145,6 +148,11 @@ export {
 	const reply_to            = "" &redef;
 	## Text string prefixed to the subject of all emails sent out.
 	const mail_subject_prefix = "[Bro]" &redef;
+
+	## A log postprocessing function that implements emailing the contents
+	## of a log upon rotation to any configured :bro:id:`Notice::mail_dest`.
+	## The rotated log is removed upon being sent.
+	global log_mailing_postprocessor: function(info: Log::RotationInfo): bool;
 
 	## This is the event that is called as the entry point to the 
 	## notice framework by the global :bro:id:`NOTICE` function.  By the time 
@@ -171,7 +179,14 @@ export {
 	## by default with the built in :bro:enum:`ACTION_EMAIL` and
 	## :bro:enum:`ACTION_PAGE` actions.
 	global email_notice_to: function(n: Info, dest: string, extend: bool);
-	
+
+	## Constructs mail headers to which an email body can be appended for
+	## sending with sendmail.
+	## subject_desc: a subject string to use for the mail
+	## dest: recipient string to use for the mail
+	## Returns: a string of mail headers to which an email body can be appended
+	global email_headers: function(subject_desc: string, dest: string): string;
+
 	## This is an internally used function, please ignore it.  It's only used
 	## for filling out missing details of :bro:type:`Notice:Info` records
 	## before the synchronous and asynchronous event pathways have begun.
@@ -186,21 +201,47 @@ export {
 # priority.
 global ordered_policy: vector of PolicyItem = vector();
 
+function log_mailing_postprocessor(info: Log::RotationInfo): bool
+	{
+	if ( ! reading_traces() && mail_dest != "" )
+		{
+		local headers = email_headers(fmt("Log Contents: %s", info$fname),
+		                              mail_dest);
+		local tmpfilename = fmt("%s.mailheaders.tmp", info$fname);
+		local tmpfile = open(tmpfilename);
+		write_file(tmpfile, headers);
+		close(tmpfile);
+		system(fmt("/bin/cat %s %s | %s -t -oi && /bin/rm %s %s",
+		       tmpfilename, info$fname, sendmail, tmpfilename, info$fname));
+		}
+	return T;
+	}
+
+# This extra export section here is just because this redefinition should
+# be documented as part of the "public API" of this script, but the redef
+# needs to occur after the postprocessor function implementation.
+export {
+	## By default, an ASCII version of the the alarm log is emailed daily to any
+	## configured :bro:id:`Notice::mail_dest` if not operating on trace files.
+	redef Log::rotation_control += {
+		[Log::WRITER_ASCII, "alarm-mail"] =
+		    [$interv=24hrs, $postprocessor=log_mailing_postprocessor]
+	};
+}
+
 event bro_init()
 	{
 	Log::create_stream(NOTICE_POLICY, [$columns=PolicyItem]);
 	Log::create_stream(Notice::NOTICE, [$columns=Info, $ev=log_notice]);
 	
 	Log::create_stream(ALARM, [$columns=Notice::Info]);
-	# Make sure that this log is output as text so that it can be packaged
-	# up and emailed later.
-	Log::add_filter(ALARM, [$name="default", $writer=Log::WRITER_ASCII]);
+	# If Bro is configured for mailing notices, set up mailing for alarms.
+	# Make sure that this alarm log is also output as text so that it can
+	# be packaged up and emailed later.
+	if ( ! reading_traces() && mail_dest != "" )
+		Log::add_filter(ALARM, [$name="alarm-mail", $path="alarm-mail",
+		                        $writer=Log::WRITER_ASCII]);
 	}
-	# TODO: need a way to call a Bro script level callback during file rotation.
-	#       we need more than a just $postprocessor.
-	#redef Log::rotation_control += {
-	#	[Log::WRITER_ASCII, "alarm"] = [$postprocessor="mail-alarms"];
-	#};
 
 # TODO: fix this.
 #function notice_tags(n: Notice::Info) : table[string] of string
@@ -220,20 +261,24 @@ event bro_init()
 #	return tgs;
 #	}
 
+function email_headers(subject_desc: string, dest: string): string
+	{
+	local header_text = string_cat(
+		"From: ", mail_from, "\n",
+		"Subject: ", mail_subject_prefix, " ", subject_desc, "\n",
+		"To: ", dest, "\n",
+		"User-Agent: Bro-IDS/", bro_version(), "\n");
+	if ( reply_to != "" )
+		header_text = string_cat(header_text, "Reply-To: ", reply_to, "\n");
+	return header_text;
+	}
+
 function email_notice_to(n: Notice::Info, dest: string, extend: bool)
 	{
 	if ( reading_traces() || dest == "" )
 		return;
 		
-	local email_text = string_cat(
-		"From: ", mail_from, "\n",
-		"Subject: ", mail_subject_prefix, " ", fmt("%s", n$note), "\n",
-		"To: ", dest, "\n",
-		# TODO: BiF to get version (the resource_usage Bif seems like overkill).
-		"User-Agent: Bro-IDS/?.?.?\n"); 
-	
-	if ( reply_to != "" )
-		email_text = string_cat(email_text, "Reply-To: ", reply_to, "\n");
+	local email_text = email_headers(fmt("%s", n$note), dest);
 	
 	# The notice emails always start off with the human readable message.
 	email_text = string_cat(email_text, "\n", n$msg, "\n");

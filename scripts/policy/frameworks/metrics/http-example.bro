@@ -1,3 +1,6 @@
+@load base/frameworks/metrics
+@load base/protocols/http
+@load base/utils/site
 
 redef enum Metrics::ID += {
 	HTTP_REQUESTS_BY_STATUS_CODE,
@@ -20,7 +23,7 @@ event bro_init()
 event HTTP::log_http(rec: HTTP::Info)
 	{
 	if ( rec?$host )
-		Metrics::add_data(HTTP_REQUESTS_BY_HOST_HEADER, [$str=rec$host]);
+		Metrics::add_data(HTTP_REQUESTS_BY_HOST_HEADER, [$str=rec$host], 1);
 	if ( rec?$status_code )
-		Metrics::add_data(HTTP_REQUESTS_BY_STATUS_CODE, [$host=rec$id$orig_h, $str=fmt("%d", rec$status_code)]);
+		Metrics::add_data(HTTP_REQUESTS_BY_STATUS_CODE, [$host=rec$id$orig_h, $str=fmt("%d", rec$status_code)], 1);
 	}

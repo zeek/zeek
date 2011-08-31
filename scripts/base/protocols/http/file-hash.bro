@@ -1,5 +1,7 @@
 ##! Calculate hashes for HTTP body transfers.
 
+@load ./file-ident
+
 module HTTP;
 
 export {

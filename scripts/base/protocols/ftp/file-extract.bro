@@ -1,5 +1,8 @@
 ##! File extraction for FTP.
 
+@load ./main
+@load base/utils/files
+
 module FTP;
 
 export {

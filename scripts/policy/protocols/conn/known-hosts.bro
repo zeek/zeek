@@ -3,6 +3,8 @@
 ##! output provides an easy way to determine a count of the IP addresses in
 ##! use on a network per day.
 
+@load base/utils/directions-and-hosts
+
 module KnownHosts;
 
 export {

@@ -2,7 +2,7 @@
 ##! Barnyard2 and logs them.  In the future it will do more correlation
 ##! and derive new notices from the alerts.
 
-@load integration/barnyard2/types
+@load ./types
 
 module Barnyard2;
 

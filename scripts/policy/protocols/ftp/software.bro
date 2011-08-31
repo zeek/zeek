@@ -6,6 +6,8 @@
 ##! * Detect client software with password given for anonymous users
 ##!   (e.g. cyberduck@example.net)
 
+@load base/frameworks/software/main
+
 module FTP;
 
 export {

@@ -1,6 +1,9 @@
 ##! This implements all of the additional information and geodata detections 
 ##! for SSH analysis.
 
+@load base/frameworks/notice/main
+@load base/protocols/ssh/main
+
 module SSH;
 
 export {

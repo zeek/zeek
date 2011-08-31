@@ -8,6 +8,8 @@
 ##! This script does not work well in a cluster context unless it has a 
 ##! remotely mounted disk to write the content files to.
 
+@load base/utils/files
+
 module Conn;
 
 export {

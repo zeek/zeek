@@ -5,6 +5,12 @@
 ##! Requires that :bro:id:`use_conn_size_analyzer` is set to T!  The heuristic
 ##! is not attempted if the connection size analyzer isn't enabled.
 
+@load base/frameworks/notice
+@load base/utils/site
+@load base/utils/thresholds
+@load base/utils/conn-ids
+@load base/utils/directions-and-hosts
+
 module SSH;
 
 export {
@@ -92,6 +98,11 @@ function check_ssh_connection(c: connection, done: bool)
 	{
 	# If done watching this connection, just return.
 	if ( c$ssh$done )
+		return;
+	
+	# Make sure conn_size_analyzer is active by checking 
+	# resp$num_bytes_ip
+	if ( !c$resp?$num_bytes_ip )
 		return;
 	
 	# If this is still a live connection and the byte count has not

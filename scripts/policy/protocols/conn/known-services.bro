@@ -3,6 +3,8 @@
 ##! completed a TCP handshake with another host.  If a protocol is detected
 ##! during the session, the protocol will also be logged.
 
+@load base/utils/directions-and-hosts
+
 module KnownServices;
 
 redef enum Log::ID += { KNOWN_SERVICES };

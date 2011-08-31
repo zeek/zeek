@@ -60,7 +60,7 @@ BroDoc::BroDoc(const std::string& rel, const std::string& abs)
 	if ( ! reST_file )
 		fprintf(stderr, "Failed to open %s\n", reST_filename.c_str());
 
-#ifdef DEBUG
+#ifdef DOCDEBUG
 	fprintf(stdout, "Documenting absolute source: %s\n", abs.c_str());
 	fprintf(stdout, "\trelative dir: %s\n", rel.c_str());
 	fprintf(stdout, "\tdoc title: %s\n", doc_title.c_str());

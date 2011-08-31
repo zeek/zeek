@@ -1,3 +1,4 @@
+@load ./consts
 
 module DNS;
 

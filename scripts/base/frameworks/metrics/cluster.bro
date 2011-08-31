@@ -8,6 +8,7 @@
 ##! to be an internal implementation detail.
 
 @load base/frameworks/cluster
+@load ./main
 
 module Metrics;
 

@@ -3607,3 +3607,9 @@ function enable_communication%(%): any
 	remote_serializer->Init();
 	return 0;
 	%}
+
+## Returns the Bro version string
+function bro_version%(%): string
+	%{
+	return new StringVal(bro_version());
+	%}

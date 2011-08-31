@@ -1,4 +1,5 @@
-
+@load base/frameworks/metrics
+@load base/protocols/ssl
 
 redef enum Metrics::ID += {
 	SSL_SERVERNAME,

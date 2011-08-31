@@ -1,5 +1,7 @@
 ##! Extract and include the header keys used for each request in the log.
 
+@load base/protocols/http/main
+
 module HTTP;
 
 export {

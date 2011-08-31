@@ -1,5 +1,8 @@
 ##! This script extracts and logs variables from the requested URI
 
+@load base/protocols/http/main
+@load base/protocols/http/utils
+
 module HTTP;
 
 redef record Info += {

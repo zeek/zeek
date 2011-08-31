@@ -3104,10 +3104,6 @@ void EnumVal::ValDescribe(ODesc* d) const
 	if ( ! ename )
 		ename = "<undefined>";
 
-	const char* module_offset = strstr(ename, "::");
-	if ( module_offset )
-		ename = module_offset + 2;
-
 	d->Add(ename);
 	}
 

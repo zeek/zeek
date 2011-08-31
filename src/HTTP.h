@@ -180,7 +180,10 @@ public:
 		{ return new HTTP_Analyzer(conn); }
 
 	static bool Available()
-		{ return (http_request || http_reply) && !FLAGS_use_binpac; }
+		{ return (http_request || http_reply || http_header ||
+			http_all_headers || http_begin_entity || http_end_entity ||
+			http_content_type || http_entity_data || http_message_done ||
+			http_event || http_stats) && !FLAGS_use_binpac; }
 
 	int IsConnectionClose()		{ return connection_close; }
 

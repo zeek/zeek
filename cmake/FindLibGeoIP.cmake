@@ -13,9 +13,11 @@
 #
 # Variables defined by this module:
 #
-#  LIBGEOIP_FOUND              System has GeoIP libraries and headers
-#  LibGeoIP_LIBRARY            The GeoIP library
-#  LibGeoIP_INCLUDE_DIR        The location of GeoIP headers
+#  LIBGEOIP_FOUND                   System has GeoIP libraries and headers
+#  LibGeoIP_LIBRARY                 The GeoIP library
+#  LibGeoIP_INCLUDE_DIR             The location of GeoIP headers
+#  HAVE_GEOIP_COUNTRY_EDITION_V6    Whether the API support IPv6 country edition
+#  HAVE_GEOIP_CITY_EDITION_REV0_V6  Whether the API supports IPv6 city edition
 
 find_path(LibGeoIP_ROOT_DIR
     NAMES include/GeoIPCity.h
@@ -44,6 +46,20 @@ find_package_handle_standard_args(LibGeoIP DEFAULT_MSG
     LibGeoIP_LIBRARY
     LibGeoIP_INCLUDE_DIR
 )
+
+if (LIBGEOIP_FOUND)
+    include(CheckCXXSourceCompiles)
+    set(CMAKE_REQUIRED_INCLUDES ${LibGeoIP_INCLUDE_DIR})
+    check_cxx_source_compiles("
+    #include <GeoIPCity.h>
+    int main() { GEOIP_COUNTRY_EDITION_V6; return 0; }
+    " HAVE_GEOIP_COUNTRY_EDITION_V6)
+    check_cxx_source_compiles("
+    #include <GeoIPCity.h>
+    int main() { GEOIP_CITY_EDITION_REV0_V6; return 0; }
+    " HAVE_GEOIP_CITY_EDITION_REV0_V6)
+    set(CMAKE_REQUIRED_INCLUDES)
+endif ()
 
 mark_as_advanced(
     LibGeoIP_ROOT_DIR

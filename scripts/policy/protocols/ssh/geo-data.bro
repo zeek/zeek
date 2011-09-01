@@ -33,7 +33,7 @@ event SSH::heuristic_successful_login(c: connection) &priority=5
 	# Add the location data to the SSH record.
 	c$ssh$remote_location = location;
 	
-	if ( location$country_code in watched_countries )
+	if ( location?$country_code && location$country_code in watched_countries )
 		{
 		NOTICE([$note=Login_From_Watched_Country,
 		        $conn=c,

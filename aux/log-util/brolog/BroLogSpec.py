@@ -7,6 +7,7 @@ a list of string elements that can be processed / filtered elsewhere.
 import hashlib
 
 from BroAccumulators import BroAccumulators
+from BroLogOptions import BroLogOptions
 
 class BroLogSpec(object):
     """
@@ -69,17 +70,19 @@ class BroLogSpec(object):
         other types are treated as strings.
         """
         if(field_type == 'double' or field_type == 'time' or field_type == 'interval'):
+            null_val = BroLogOptions.float_null_val
             def get_val(val):
                 if val == '-':
-                    return None
+                    return null_val
                 try:
                     return float(val)
                 except:
                     return None
         elif(field_type == 'int' or field_type == 'count' or field_type == 'counter'):
+            null_val = BroLogOptions.int_null_val
             def get_val(val):
                 if val == '-':
-                    return None
+                    return null_val
                 try:
                     return long(val)
                 except:

@@ -79,10 +79,10 @@ class BroLogSpec(object):
                 except:
                     return None
         elif(field_type == 'int' or field_type == 'count' or field_type == 'counter'):
-            null_val = BroLogOptions.int_null_val
+            null_val = BroLogOptions.long_null_val
             def get_val(val):
                 if val == '-':
-                    return null_val
+                    return long(null_val)
                 try:
                     return long(val)
                 except:

@@ -59,7 +59,6 @@ class BroLogSpec(object):
         # These types should be classified by group.
         if(field_type == 'port' or field_type == 'addr' or field_type == 'net' or field_type == 'subnet' or field_type == 'string'):
             return BroAccumulators.GroupAccumulator
-
         # Other types aren't supported as of yet.
         return BroAccumulators.DummyAccumulator
 

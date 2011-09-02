@@ -15,10 +15,10 @@ class AsciiLogSpec(BroLogSpec):
     """
     This log specification handles ASCII logfiles.  GZIP, BZIP2, and plaintext are supported.
     """
-    RE_TYPESPEC = re.compile(r"\s*#(.*?)\n?")  # Pull out everything after a comment character
-    RE_PATHSPEC = re.compile(r"\s*#\s*path:'(.*)'")  # Pull out the logfile path name (as defined by bro; this is *NOT* the filesystem path)
-    RE_SEPARATOR = re.compile(r"\s*#\s*separator:'(.*)'")  # Pull out the separator character
-    RE_TYPE_ENTRY = re.compile(r"(.*)=(.*)")  # Extract FIELD=BRO_TYPE
+    RE_TYPESPEC  = re.compile(r"\s*#\s*types(.*)\n?")  # Pull out everything after a comment character
+    RE_FIELDSPEC = re.compile(r"\s*#\s*fields(.*)\n?")  # Pull out everything after a comment character
+    RE_PATHSPEC  = re.compile(r"\s*#\s*path(.*)")  # Pull out the logfile path name (as defined by bro; this is *NOT* the filesystem path)
+    RE_SEPARATOR = re.compile(r"\s*#\s*separator\s*(.*)")  # Pull out the separator character
     
     @staticmethod
     def close(file_obj):
@@ -77,46 +77,48 @@ class AsciiLogSpec(BroLogSpec):
         the file is assumed to be a valid log file and is treated as such.
         """
         ascii_file = self.raw_open(path)
-        if(ascii_file):
-            ascii_file.readline()
-            match = AsciiLogSpec.RE_PATHSPEC.match(ascii_file.readline())
-            if not match:
-                # print "no bro path assignment (e.g. the 'conn' bit of something like 'conn.log' or 'conn.ds') found.  Skipping file..."
-                return False
-            self._bro_log_path = match.group(1)
-            match = AsciiLogSpec.RE_SEPARATOR.match(ascii_file.readline())
-            if not match:
-                # print "no separator found.  Skipping file..."
-                return False
-            self._separator = match.group(1)
-            fields = ascii_file.readline()
-            if not self.parse(fields):
-                # print "Unsupported logfile: " + path
-                return False
-            return True
-        self.close(ascii_file)
-
-    def parse(self, type_info):
-        """
-        Tries to read the schema embedded into this particular log file and use it to figure out the bro types and bro path associated
-        with this file.  If successful, this function return true and the file is considered valid.
-        """
-        match = AsciiLogSpec.RE_TYPESPEC.match(type_info)
-        if not match:
+        if not ascii_file:
             return False
-        type_array = re.sub("\s*#\s*", '', type_info).split(' ')  #TODO: Modify ASCII LogWriter to use logfile separators between individual entries.  (Gregor's suggestion)
-        match = [AsciiLogSpec.RE_TYPE_ENTRY.match(entry) for entry in type_array]
-        self._fields = [ ( entry.group(1), entry.group(2) ) for entry in match]
-        self.names = [ entry.group(1) for entry in match ]
-        self.types = [ entry.group(2) for entry in match ]
-        for entry in match:
-            self.translator[ entry.group(1) ] = self._get_translator( entry.group(2) )
-            self.accumulator[ entry.group(1) ] = self._get_accumulator( entry.group(2) )()
-
+        # Pull out the separator...
+        match = AsciiLogSpec.RE_SEPARATOR.match(ascii_file.readline())
+        if not match:
+            print "no separator found"
+            self.close(ascii_file)
+            return False
+        self._separator = match.group(1)
+        self._separator = self._separator.decode('string_escape')
+        # Next, pull out the fields...
+        match = AsciiLogSpec.RE_FIELDSPEC.match(ascii_file.readline())
+        if not match:
+            print "No valid field list found"
+            self.close(ascii_file)
+            return False
+        self.names = match.group(1).split(self._separator)
+        self.names = self.names[1:]
+        # and the types...
+        match = AsciiLogSpec.RE_TYPESPEC.match(ascii_file.readline())
+        if not match:
+            print "No valid type list found"
+            self.close(ascii_file)
+            return False
+        self.types = match.group(1).split(self._separator)
+        self.types = self.types[1:]
+        # and finally the path...
+        match = AsciiLogSpec.RE_PATHSPEC.match(ascii_file.readline())
+        if not match:
+            print "no bro path assignment (e.g. the 'conn' bit of something like 'conn.log' or 'conn.ds') found"
+            self.close(ascii_file)
+            return False
+        self._bro_log_path = match.group(1)
+        self._bro_log_path.split(self._separator)
+        self._bro_log_path = self._bro_log_path[1:]
+        self._fields = zip(self.names, self.types)
+        self.close(ascii_file)
         if(len(self._fields) == 0):
             return False
-        #for e in self._fields:
-        #    print e
+        for entry in self._fields:
+            self.translator[ entry[0] ] = self._get_translator( entry[1] )
+            self.accumulator[ entry[0] ] = self._get_accumulator( entry[1] )()
         return True
 
     def fields(self):

@@ -14,7 +14,7 @@
 module SSH;
 
 export {
-	redef enum Log::ID += { SSH };
+	redef enum Log::ID += { LOG };
 	
 	redef enum Notice::Type += { 
 		## This indicates that a heuristically detected "successful" SSH 
@@ -79,7 +79,7 @@ redef record connection += {
 
 event bro_init() &priority=5
 {
-	Log::create_stream(SSH, [$columns=Info, $ev=log_ssh]);
+	Log::create_stream(SSH::LOG, [$columns=Info, $ev=log_ssh]);
 }
 
 function set_session(c: connection)
@@ -149,11 +149,11 @@ event SSH::heuristic_successful_login(c: connection) &priority=-5
 	        $msg="Heuristically detected successful SSH login.",
 	        $conn=c]);
 	
-	Log::write(SSH, c$ssh);
+	Log::write(SSH::LOG, c$ssh);
 	}
 event SSH::heuristic_failed_login(c: connection) &priority=-5
 	{
-	Log::write(SSH, c$ssh);
+	Log::write(SSH::LOG, c$ssh);
 	}
 
 event connection_state_remove(c: connection) &priority=-5

@@ -3,7 +3,8 @@
 module Cluster;
 
 export {
-	redef enum Log::ID += { CLUSTER };
+	redef enum Log::ID += { LOG };
+	
 	type Info: record {
 		ts:       time;
 		message:  string;
@@ -106,5 +107,5 @@ event bro_init() &priority=5
 		terminate();
 		}
 	
-	Log::create_stream(CLUSTER, [$columns=Info]);
+	Log::create_stream(Cluster::LOG, [$columns=Info]);
 	}

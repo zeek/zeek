@@ -7,7 +7,7 @@ module DPD;
 redef signature_files += "base/frameworks/dpd/dpd.sig";
 
 export {
-	redef enum Log::ID += { DPD };
+	redef enum Log::ID += { LOG };
 
 	type Info: record {
 		## Timestamp for when protocol analysis failed.
@@ -38,9 +38,9 @@ redef record connection += {
 	dpd: Info &optional;
 };
 
-event bro_init()
+event bro_init() &priority=5
 	{
-	Log::create_stream(DPD, [$columns=Info]);
+	Log::create_stream(DPD::LOG, [$columns=Info]);
 	
 	# Populate the internal DPD analysis variable.
 	for ( a in dpd_config )
@@ -104,5 +104,5 @@ event protocol_violation(c: connection, atype: count, aid: count,
 				reason: string) &priority=-5
 	{
 	if ( c?$dpd )
-		Log::write(DPD, c$dpd);
+		Log::write(DPD::LOG, c$dpd);
 	}

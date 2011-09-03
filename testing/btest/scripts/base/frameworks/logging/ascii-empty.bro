@@ -11,7 +11,7 @@ redef LogAscii::header_prefix = "PREFIX<>";
 module SSH;
 
 export {
-	redef enum Log::ID += { SSH };
+	redef enum Log::ID += { LOG };
 
 	type Log: record {
 		t: time;
@@ -24,15 +24,15 @@ export {
 
 event bro_init()
 {
-	Log::create_stream(SSH, [$columns=Log]);
+	Log::create_stream(SSH::LOG, [$columns=Log]);
 
     local cid = [$orig_h=1.2.3.4, $orig_p=1234/tcp, $resp_h=2.3.4.5, $resp_p=80/tcp];
 
-	Log::write(SSH, [$t=network_time(), $id=cid, $status="success"]);
-	Log::write(SSH, [$t=network_time(), $id=cid, $country="US"]);
-	Log::write(SSH, [$t=network_time(), $id=cid, $status="failure", $country="UK"]);
-	Log::write(SSH, [$t=network_time(), $id=cid, $country="BR"]);
-	Log::write(SSH, [$t=network_time(), $id=cid, $b=T, $status="failure", $country=""]);
+	Log::write(SSH::LOG, [$t=network_time(), $id=cid, $status="success"]);
+	Log::write(SSH::LOG, [$t=network_time(), $id=cid, $country="US"]);
+	Log::write(SSH::LOG, [$t=network_time(), $id=cid, $status="failure", $country="UK"]);
+	Log::write(SSH::LOG, [$t=network_time(), $id=cid, $country="BR"]);
+	Log::write(SSH::LOG, [$t=network_time(), $id=cid, $b=T, $status="failure", $country=""]);
 	
 }
 

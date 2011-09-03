@@ -25,7 +25,7 @@ export {
 		Signature_Summary,
 	};
 
-	redef enum Log::ID += { SIGNATURES };
+	redef enum Log::ID += { LOG };
 
 	## These are the default actions you can apply to signature matches.
 	## All of them write the signature record to the logging stream unless
@@ -114,7 +114,7 @@ global did_sig_log: set[string] &read_expire = 1 hr;
 
 event bro_init()
 	{
-	Log::create_stream(SIGNATURES, [$columns=Info, $ev=log_signature]);
+	Log::create_stream(Signatures::LOG, [$columns=Info, $ev=log_signature]);
 	}
 		
 # Returns true if the given signature has already been triggered for the given
@@ -174,7 +174,7 @@ event signature_match(state: signature_state, msg: string, data: string)
 		                    $event_msg=fmt("%s: %s", src_addr, msg),
 		                    $sig_id=sig_id,
 		                    $sub_msg=data];
-		Log::write(SIGNATURES, info);
+		Log::write(Signatures::LOG, info);
 		}
 
 	local notice = F;
@@ -248,7 +248,7 @@ event signature_match(state: signature_state, msg: string, data: string)
 			fmt("%s has triggered signature %s on %d hosts",
 				orig, sig_id, hcount);
 
-		Log::write(SIGNATURES, 
+		Log::write(Signatures::LOG, 
 			[$note=Multiple_Sig_Responders,
 		     $src_addr=orig, $sig_id=sig_id, $event_msg=msg,
 		     $host_count=hcount, $sub_msg=horz_scan_msg]);
@@ -265,7 +265,7 @@ event signature_match(state: signature_state, msg: string, data: string)
 			fmt("%s has triggered %d different signatures on host %s",
 				orig, vcount, resp);
 
-		Log::write(SIGNATURES, 
+		Log::write(Signatures::LOG, 
 			[$ts=network_time(),
 			 $note=Multiple_Signatures, 
 			 $src_addr=orig,

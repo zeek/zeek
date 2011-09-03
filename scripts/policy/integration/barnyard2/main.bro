@@ -7,7 +7,7 @@
 module Barnyard2;
 
 export {
-	redef enum Log::ID += { BARNYARD2 };
+	redef enum Log::ID += { LOG };
 	
 	type Info: record {
 		ts:                 time      &log;
@@ -21,9 +21,9 @@ export {
 	global pid2cid: function(p: PacketID): conn_id;
 }
 
-event bro_init()
+event bro_init() &priority=5
 	{
-	Log::create_stream(BARNYARD2, [$columns=Info]);
+	Log::create_stream(Barnyard2::LOG, [$columns=Info]);
 	}
 
 
@@ -34,7 +34,7 @@ function pid2cid(p: PacketID): conn_id
 
 event barnyard_alert(id: PacketID, alert: AlertData, msg: string, data: string)
 	{
-	Log::write(BARNYARD2, [$ts=network_time(), $pid=id, $alert=alert]);
+	Log::write(Barnyard2::LOG, [$ts=network_time(), $pid=id, $alert=alert]);
 	
 	#local proto_connection_string: string;
 	#if ( id$src_p == 0/tcp )

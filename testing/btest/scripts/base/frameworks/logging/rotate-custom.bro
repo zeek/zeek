@@ -7,7 +7,7 @@ module Test;
 
 export {
 	# Create a new ID for our log stream
-	redef enum Log::ID += { Test };
+	redef enum Log::ID += { LOG };
 
 	# Define a record with all the columns the log file can have.
 	# (I'm using a subset of fields from ssh-ext for demonstration.)
@@ -32,12 +32,12 @@ redef Log::rotation_control += {
 
 event bro_init()
 {
-	Log::create_stream(Test, [$columns=Log]);
-	Log::add_filter(Test, [$name="2nd", $path="test2"]);
+	Log::create_stream(Test::LOG, [$columns=Log]);
+	Log::add_filter(Test::LOG, [$name="2nd", $path="test2"]);
 
 }
 
 event new_connection(c: connection)
 	{
-	Log::write(Test, [$t=network_time(), $id=c$id]);
+	Log::write(Test::LOG, [$t=network_time(), $id=c$id]);
 	}

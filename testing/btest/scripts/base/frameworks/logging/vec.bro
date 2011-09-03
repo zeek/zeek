@@ -5,7 +5,7 @@
 module SSH;
 
 export {
-	redef enum Log::ID += { SSH };
+	redef enum Log::ID += { LOG };
 
 	type Log: record {
         vec: vector of string &log;
@@ -14,14 +14,14 @@ export {
 
 event bro_init()
 {
-	Log::create_stream(SSH, [$columns=Log]);
+	Log::create_stream(SSH::LOG, [$columns=Log]);
 
     local v: vector of string;
 
 	v[1] = "2";
 	v[4] = "5";
 
-	Log::write(SSH, [$vec=v]);
+	Log::write(SSH::LOG, [$vec=v]);
 }
 
 

@@ -14,7 +14,7 @@
 module FTP;
 
 export {
-	redef enum Log::ID += { FTP };
+	redef enum Log::ID += { LOG };
 
 	## This setting changes if passwords used in FTP sessions are captured or not.
 	const default_capture_password = F &redef;
@@ -95,7 +95,7 @@ global ftp_data_expected: table[addr, port] of ExpectedConn &create_expire=5mins
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(FTP, [$columns=Info, $ev=log_ftp]);
+	Log::create_stream(FTP::LOG, [$columns=Info, $ev=log_ftp]);
 	}
 
 ## A set of commands where the argument can be expected to refer
@@ -165,7 +165,7 @@ function ftp_message(s: Info)
 		else
 			s$arg=arg;
 		
-		Log::write(FTP, s);
+		Log::write(FTP::LOG, s);
 		}
 	
 	# The MIME and file_size fields are specific to file transfer commands 

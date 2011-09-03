@@ -73,7 +73,7 @@ event file_transferred(c: connection, prefix: string, descr: string,
 
 	local tmp = irc$command;
 	irc$command = "DCC";
-	Log::write(IRC, irc);
+	Log::write(IRC::LOG, irc);
 	irc$command = tmp;
 
 	if ( irc$extract_file && irc?$extraction_file )

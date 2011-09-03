@@ -1,9 +1,9 @@
 @load base/utils/directions-and-hosts
 
-module KnownCerts;
+module Known;
 
 export {
-	redef enum Log::ID += { KNOWN_CERTS };
+	redef enum Log::ID += { CERTS_LOG };
 	
 	type Info: record {
 		## The timestamp when the certificate was detected.
@@ -23,7 +23,7 @@ export {
 	
 	## The certificates whose existence should be logged and tracked.
 	## Choices are: LOCAL_HOSTS, REMOTE_HOSTS, ALL_HOSTS, NO_HOSTS
-	const asset_tracking = LOCAL_HOSTS &redef;
+	const cert_tracking = LOCAL_HOSTS &redef;
 	
 	## The set of all known certificates to store for preventing duplicate 
 	## logging.  It can also be used from other scripts to 
@@ -36,7 +36,7 @@ export {
 
 event bro_init()
 	{
-	Log::create_stream(KNOWN_CERTS, [$columns=Info, $ev=log_known_certs]);
+	Log::create_stream(Known::CERTS_LOG, [$columns=Info, $ev=log_known_certs]);
 	}
 
 event x509_certificate(c: connection, cert: X509, is_server: bool, chain_idx: count, chain_len: count, der_cert: string)
@@ -47,12 +47,12 @@ event x509_certificate(c: connection, cert: X509, is_server: bool, chain_idx: co
 	if ( chain_idx != 0 ) return;
 		
 	local host = c$id$resp_h;
-	if ( [host, cert$serial] !in known_certs && addr_matches_host(host, asset_tracking) )
+	if ( [host, cert$serial] !in known_certs && addr_matches_host(host, cert_tracking) )
 		{
 		add known_certs[host, cert$serial];
-		Log::write(KNOWN_CERTS, [$ts=network_time(), $host=host,
-		                         $port_num=c$id$resp_p, $subject=cert$subject,
-		                         $issuer_subject=cert$issuer,
-		                         $serial=cert$serial]);
+		Log::write(Known::CERTS_LOG, [$ts=network_time(), $host=host,
+		                              $port_num=c$id$resp_p, $subject=cert$subject,
+		                              $issuer_subject=cert$issuer,
+		                              $serial=cert$serial]);
 		}
 	}

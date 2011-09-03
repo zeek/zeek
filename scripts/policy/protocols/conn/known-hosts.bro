@@ -5,10 +5,10 @@
 
 @load base/utils/directions-and-hosts
 
-module KnownHosts;
+module Known;
 
 export {
-	redef enum Log::ID += { KNOWN_HOSTS };
+	redef enum Log::ID += { HOSTS_LOG };
 	
 	type Info: record {
 		## The timestamp at which the host was detected.
@@ -20,7 +20,7 @@ export {
 	
 	## The hosts whose existence should be logged and tracked.
 	## Choices are: LOCAL_HOSTS, REMOTE_HOSTS, ALL_HOSTS, NO_HOSTS
-	const asset_tracking = LOCAL_HOSTS &redef;
+	const host_tracking = LOCAL_HOSTS &redef;
 	
 	## The set of all known addresses to store for preventing duplicate 
 	## logging of addresses.  It can also be used from other scripts to 
@@ -34,7 +34,7 @@ export {
 
 event bro_init()
 	{
-	Log::create_stream(KNOWN_HOSTS, [$columns=Info, $ev=log_known_hosts]);
+	Log::create_stream(Known::HOSTS_LOG, [$columns=Info, $ev=log_known_hosts]);
 	}
 
 event connection_established(c: connection) &priority=5
@@ -43,10 +43,10 @@ event connection_established(c: connection) &priority=5
 	
 	for ( host in set(id$orig_h, id$resp_h) )
 		{
-		if ( host !in known_hosts && addr_matches_host(host, asset_tracking) )
+		if ( host !in known_hosts && addr_matches_host(host, host_tracking) )
 			{
 			add known_hosts[host];
-			Log::write(KNOWN_HOSTS, [$ts=network_time(), $host=host]);
+			Log::write(Known::HOSTS_LOG, [$ts=network_time(), $host=host]);
 			}
 		}
 	}

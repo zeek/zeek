@@ -9,7 +9,7 @@
 module PacketFilter;
 
 export {
-	redef enum Log::ID += { PACKET_FILTER };
+	redef enum Log::ID += { LOG };
 	
 	redef enum Notice::Type += {
 		## This notice is generated if a packet filter is unable to be compiled.
@@ -144,11 +144,11 @@ function install()
 		        $sub=default_filter]);
 		}
 	
-	Log::write(PACKET_FILTER, info);
+	Log::write(PacketFilter::LOG, info);
 	}
 
 event bro_init() &priority=10
 	{
-	Log::create_stream(PACKET_FILTER, [$columns=Info]);
+	Log::create_stream(PacketFilter::LOG, [$columns=Info]);
 	PacketFilter::install();
 	}

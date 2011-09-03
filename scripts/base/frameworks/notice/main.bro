@@ -9,15 +9,13 @@ module Notice;
 
 export {
 	redef enum Log::ID += { 
-		## This is the primary logging stream for notices.  It must always be
-		## referenced with the module name included because the name is 
-		## also used by the global function :bro:id:`NOTICE`.
-		NOTICE, 
+		## This is the primary logging stream for notices.
+		LOG, 
 		## This is the notice policy auditing log.  It records what the current
 		## notice policy is at Bro init time.
-		NOTICE_POLICY,
+		POLICY_LOG,
 		## This is the alarm stream.
-		ALARM,
+		ALARM_LOG,
 	};
 
 	## Scripts creating new notices need to redef this enum to add their own 
@@ -229,18 +227,19 @@ export {
 	};
 }
 
-event bro_init()
+event bro_init() &priority=5
 	{
-	Log::create_stream(NOTICE_POLICY, [$columns=PolicyItem]);
-	Log::create_stream(Notice::NOTICE, [$columns=Info, $ev=log_notice]);
+	Log::create_stream(Notice::LOG, [$columns=Info, $ev=log_notice]);
+	Log::create_stream(Notice::POLICY_LOG, [$columns=PolicyItem]);
 	
-	Log::create_stream(ALARM, [$columns=Notice::Info]);
+	Log::create_stream(Notice::ALARM_LOG, [$columns=Notice::Info]);
 	# If Bro is configured for mailing notices, set up mailing for alarms.
 	# Make sure that this alarm log is also output as text so that it can
 	# be packaged up and emailed later.
 	if ( ! reading_traces() && mail_dest != "" )
-		Log::add_filter(ALARM, [$name="alarm-mail", $path="alarm-mail",
-		                        $writer=Log::WRITER_ASCII]);
+		Log::add_filter(Notice::ALARM_LOG, [$name="alarm-mail", 
+		                                    $path="alarm-mail",
+		                                    $writer=Log::WRITER_ASCII]);
 	}
 
 # TODO: fix this.
@@ -302,9 +301,9 @@ event notice(n: Notice::Info) &priority=-5
 	if ( ACTION_EMAIL in n$actions )
 		email_notice_to(n, mail_dest, T);
 	if ( ACTION_LOG in n$actions )
-		Log::write(Notice::NOTICE, n);
+		Log::write(Notice::LOG, n);
 	if ( ACTION_ALARM in n$actions )
-		Log::write(ALARM, n);
+		Log::write(Notice::ALARM_LOG, n);
 	}
 
 # Executes a script with all of the notice fields put into the
@@ -410,7 +409,7 @@ event bro_init() &priority=10
 				{
 				pi$position = |ordered_policy|;
 				ordered_policy[|ordered_policy|] = pi;
-				Log::write(NOTICE_POLICY, pi);
+				Log::write(Notice::POLICY_LOG, pi);
 				}
 			}
 		}

@@ -5,7 +5,7 @@
 module SMTP;
 
 export {
-	redef enum Log::ID += { SMTP };
+	redef enum Log::ID += { LOG };
 
 	type Info: record {
 		ts:                time            &log;
@@ -73,7 +73,7 @@ redef dpd_config += { [ANALYZER_SMTP] = [$ports = ports] };
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(SMTP, [$columns=SMTP::Info, $ev=log_smtp]);
+	Log::create_stream(SMTP::LOG, [$columns=SMTP::Info, $ev=log_smtp]);
 	}
 	
 function find_address_in_smtp_header(header: string): string
@@ -119,7 +119,7 @@ function set_smtp_session(c: connection)
 function smtp_message(c: connection)
 	{
 	if ( c$smtp$has_client_activity )
-		Log::write(SMTP, c$smtp);
+		Log::write(SMTP::LOG, c$smtp);
 	}
 	
 event smtp_request(c: connection, is_orig: bool, command: string, arg: string) &priority=5

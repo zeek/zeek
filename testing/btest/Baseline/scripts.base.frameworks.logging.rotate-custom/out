@@ -59,7 +59,6 @@ custom rotate, [writer=Log::WRITER_ASCII, fname=test2-11-03-07_12.59.55.log, pat
 > test.2011-03-07-10-00-05.log
 > test.2011-03-07-11-00-05.log
 > test.2011-03-07-12-00-05.log
-> test.log
 > test2-11-03-07_03.00.05.log
 > test2-11-03-07_03.59.55.log
 > test2-11-03-07_04.00.05.log
@@ -80,4 +79,3 @@ custom rotate, [writer=Log::WRITER_ASCII, fname=test2-11-03-07_12.59.55.log, pat
 > test2-11-03-07_11.59.55.log
 > test2-11-03-07_12.00.05.log
 > test2-11-03-07_12.59.55.log
-> test2.log

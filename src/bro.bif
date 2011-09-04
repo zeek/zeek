@@ -3023,8 +3023,10 @@ extern "C" {
 static GeoIP* open_geoip_db(GeoIPDBTypes type)
 	{
 	GeoIP* geoip = 0;
+
 	if ( GeoIP_db_avail(type) )
 		geoip = GeoIP_open_type(type, GEOIP_MEMORY_CACHE);
+
 	if ( ! geoip )
 		reporter->Warning("Failed to open GeoIP database: %s",
 		                  GeoIPDBFileName[type]);
@@ -3040,9 +3042,9 @@ function lookup_location%(a: addr%) : geo_location
 	RecordVal* location = new RecordVal(geo_location);
 
 #ifdef USE_GEOIP
+	static bool geoip_initialized = false;
 	static GeoIP* geoip = 0;
 	static GeoIP* geoip_v6 = 0;
-	static bool geoip_initialized = false;
 	static bool have_city_db = false;
 	static bool have_cityv6_db = false;
 	GeoIPRecord* gir = 0;
@@ -3051,7 +3053,6 @@ function lookup_location%(a: addr%) : geo_location
 	if ( ! geoip_initialized )
 		{
 		geoip_initialized = true;
-
 		geoip = open_geoip_db(GEOIP_CITY_EDITION_REV0);
 
 		if ( ! geoip )
@@ -3066,10 +3067,13 @@ function lookup_location%(a: addr%) : geo_location
 			have_city_db = true;
 
 #ifdef BROv6
+
 #ifdef HAVE_GEOIP_CITY_EDITION_REV0_V6
 		geoip_v6 = open_geoip_db(GEOIP_CITY_EDITION_REV0_V6);
-		if ( geoip_v6 ) have_cityv6_db = true;
+		if ( geoip_v6 )
+			have_cityv6_db = true;
 #endif
+
 #ifdef HAVE_GEOIP_COUNTRY_EDITION_V6
 		if ( ! geoip_v6 )
 			geoip_v6 = open_geoip_db(GEOIP_COUNTRY_EDITION_V6);
@@ -3080,6 +3084,7 @@ function lookup_location%(a: addr%) : geo_location
 		}
 
 #ifdef BROv6
+
 #ifdef HAVE_GEOIP_COUNTRY_EDITION_V6
 	if ( geoip_v6 && ! is_v4_addr(a) )
 		{
@@ -3092,6 +3097,7 @@ function lookup_location%(a: addr%) : geo_location
 		}
 	else
 #endif
+
 	if ( geoip && is_v4_addr(a) )
 		{
 		uint32 addr = to_v4_addr(a);
@@ -3100,7 +3106,8 @@ function lookup_location%(a: addr%) : geo_location
 		else
 			cc = GeoIP_country_code_by_ipnum(geoip, ntohl(addr));
 		}
-#else
+
+#else // not BROv6
 	if ( geoip )
 		{
 		if ( have_city_db )
@@ -3134,13 +3141,13 @@ function lookup_location%(a: addr%) : geo_location
 		return location;
 		}
 
-	else if (cc)
+	else if ( cc )
 		{
 		location->Assign(0, new StringVal(cc));
 		return location;
 		}
 
-#else
+#else // not USE_GEOIP
 	static int missing_geoip_reported = 0;
 
 	if ( ! missing_geoip_reported )
@@ -3186,12 +3193,14 @@ function lookup_asn%(a: addr%) : count
 			}
 		else
 #endif
+
 		if ( is_v4_addr(a) )
 			{
 			uint32 addr = to_v4_addr(a);
 			gir = GeoIP_name_by_ipnum(geoip_asn, ntohl(addr));
 			}
-#else
+
+#else // not BROv6
 		gir = GeoIP_name_by_ipnum(geoip_asn, ntohl(a));
 #endif
 		}
@@ -3202,7 +3211,8 @@ function lookup_asn%(a: addr%) : count
 		// the first two characters: "AS".
 		return new Val(atoi(gir+2), TYPE_COUNT);
 		}
-#else
+
+#else // not USE_GEOIP
 	static int missing_geoip_reported = 0;
 
 	if ( ! missing_geoip_reported )

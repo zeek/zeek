@@ -37,16 +37,17 @@ void SSL_Analyzer_binpac::DeliverStream(int len, const u_char* data, bool orig)
 
 	if ( TCP()->IsPartial() )
 		return;
+
 	if ( had_gap )
 		// XXX: If only one side had a content gap, we could still try to
 		// deliver data to the other side if the script layer can handle this.
-		return; 
+		return;
 
 	try
 		{
 		interp->NewData(orig, data, data + len);
 		}
-	catch ( binpac::Exception const &e )
+	catch ( const binpac::Exception& e )
 		{
 		ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
 		}

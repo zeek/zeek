@@ -6,6 +6,27 @@
 #include "LogWriterAscii.h"
 #include "NetVar.h"
 
+/**
+ * Takes a string, escapes each character into its equivalent hex code (\x##), and
+ * returns a string containing all escaped values.
+ *
+ * @param str string to escape
+ * @return A std::string containing a list of escaped hex values of the form \x##
+ */
+static string get_escaped_string(const std::string& str)
+{
+	char tbuf[16];
+	string esc = "";
+
+	for ( size_t i = 0; i < str.length(); ++i )
+		{
+		snprintf(tbuf, sizeof(tbuf), "\\x%02x", str[i]);
+		esc += tbuf;
+		}
+
+	return esc;
+}
+
 LogWriterAscii::LogWriterAscii()
 	{
 	file = 0;
@@ -52,6 +73,14 @@ LogWriterAscii::~LogWriterAscii()
 	delete [] header_prefix;
 	}
 
+bool LogWriterAscii::WriteHeaderField(const string& key, const string& val)
+	{
+	string str = string(header_prefix, header_prefix_len) +
+		key + string(separator, separator_len) + val + "\n";
+
+	return (fwrite(str.c_str(), str.length(), 1, file) == 1);
+	}
+
 bool LogWriterAscii::DoInit(string path, int num_fields,
 			    const LogField* const * fields)
 	{
@@ -70,22 +99,35 @@ bool LogWriterAscii::DoInit(string path, int num_fields,
 
 	if ( include_header )
 		{
-		if ( fwrite(header_prefix, header_prefix_len, 1, file) != 1 )
+		string str = string(header_prefix, header_prefix_len)
+			+ "separator " // Always use space as separator here.
+			+ get_escaped_string(string(separator, separator_len))
+			+ "\n";
+
+		if( fwrite(str.c_str(), str.length(), 1, file) != 1 )
 			goto write_error;
 
-		for ( int i = 0; i < num_fields; i++ )
+		if ( ! WriteHeaderField("path", path) )
+			goto write_error;
+
+		string names;
+		string types;
+
+		for ( int i = 0; i < num_fields; ++i )
 			{
-			if ( i > 0 &&
-			     fwrite(separator, separator_len, 1, file) != 1 )
-				goto write_error;
+			if ( i > 0 )
+				{
+				names += string(separator, separator_len);
+				types += string(separator, separator_len);
+				}
 
 			const LogField* field = fields[i];
-
-			if ( fputs(field->name.c_str(), file) == EOF )
-				goto write_error;
+			names += field->name;
+			types += type_name(field->type);
 			}
 
-		if ( fputc('\n', file) == EOF )
+		if ( ! (WriteHeaderField("fields", names)
+			&& WriteHeaderField("types", types)) )
 			goto write_error;
 		}
 

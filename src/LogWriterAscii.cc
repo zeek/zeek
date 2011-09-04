@@ -216,6 +216,9 @@ bool LogWriterAscii::DoWriteOne(ODesc* desc, LogVal* val, const LogField* field)
 bool LogWriterAscii::DoWrite(int num_fields, const LogField* const * fields,
 			     LogVal** vals)
 	{
+	if ( ! file )
+		DoInit(Path(), NumFields(), Fields());
+
 	ODesc desc(DESC_READABLE);
 	desc.SetEscape(separator, separator_len);
 
@@ -245,19 +248,23 @@ bool LogWriterAscii::DoWrite(int num_fields, const LogField* const * fields,
 bool LogWriterAscii::DoRotate(string rotated_path, double open,
 			      double close, bool terminating)
 	{
-	if ( IsSpecial(Path()) )
-		// Don't rotate special files.
+	// Don't rotate special files or if there's not one currently open.
+	if ( ! file || IsSpecial(Path()) )
 		return true;
 
 	fclose(file);
+	file = 0;
 
 	string nname = rotated_path + ".log";
 	rename(fname.c_str(), nname.c_str());
 
 	if ( ! FinishedRotation(nname, fname, open, close, terminating) )
+		{
 		Error(Fmt("error rotating %s to %s", fname.c_str(), nname.c_str()));
+		return false;
+		}
 
-	return DoInit(Path(), NumFields(), Fields());
+	return true;
 	}
 
 bool LogWriterAscii::DoSetBuf(bool enabled)

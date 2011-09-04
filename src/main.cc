@@ -98,6 +98,7 @@ extern char version[];
 char* command_line_policy = 0;
 vector<string> params;
 char* proc_status_file = 0;
+int snaplen = 65535;	// really want "capture entire packet"
 
 int FLAGS_use_binpac = false;
 
@@ -145,7 +146,7 @@ void usage()
 	fprintf(stderr, "    -g|--dump-config               | dump current config into .state dir\n");
 	fprintf(stderr, "    -h|--help|-?                   | command line help\n");
 	fprintf(stderr, "    -i|--iface <interface>         | read from given interface\n");
-	fprintf(stderr, "    -Z|--doc-scripts               | generate documentation for all loaded scripts\n");
+	fprintf(stderr, "    -l|--snaplen <snaplen>         | number of bytes per packet to capture from interfaces (default 65535)\n");
 	fprintf(stderr, "    -p|--prefix <prefix>           | add given prefix to policy file resolution\n");
 	fprintf(stderr, "    -r|--readfile <readfile>       | read from given tcpdump file\n");
 	fprintf(stderr, "    -y|--flowfile <file>[=<ident>] | read from given flow file\n");
@@ -172,6 +173,7 @@ void usage()
 	fprintf(stderr, "    -T|--re-level <level>          | set 'RE_level' for rules\n");
 	fprintf(stderr, "    -U|--status-file <file>        | Record process status in file\n");
 	fprintf(stderr, "    -W|--watchdog                  | activate watchdog timer\n");
+	fprintf(stderr, "    -Z|--doc-scripts               | generate documentation for all loaded scripts\n");
 
 #ifdef USE_PERFTOOLS
 	fprintf(stderr, "    -m|--mem-leaks                 | show leaks  [perftools]\n");
@@ -367,7 +369,7 @@ int main(int argc, char** argv)
 		{"filter",		required_argument,	0,	'f'},
 		{"help",		no_argument,		0,	'h'},
 		{"iface",		required_argument,	0,	'i'},
-		{"print-scripts",	no_argument,		0,	'l'},
+		{"snaplen",		required_argument,	0,	'l'},
 		{"doc-scripts",		no_argument,		0,	'Z'},
 		{"prefix",		required_argument,	0,	'p'},
 		{"readfile",		required_argument,	0,	'r'},
@@ -441,7 +443,7 @@ int main(int argc, char** argv)
 	opterr = 0;
 
 	char opts[256];
-	safe_strncpy(opts, "B:D:e:f:I:i:K:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGLOPSWbdghvZ",
+	safe_strncpy(opts, "B:D:e:f:I:i:K:l:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGLOPSWbdghvZ",
 		     sizeof(opts));
 
 #ifdef USE_PERFTOOLS
@@ -454,7 +456,7 @@ int main(int argc, char** argv)
 		case 'b':
 			bare_mode = true;
 			break;
-			
+
 		case 'd':
 			fprintf(stderr, "Policy file debugging ON.\n");
 			g_policy_debug = true;
@@ -474,6 +476,10 @@ int main(int argc, char** argv)
 
 		case 'i':
 			interfaces.append(optarg);
+			break;
+
+		case 'l':
+			snaplen = atoi(optarg);
 			break;
 
 		case 'p':

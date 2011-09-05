@@ -38,7 +38,7 @@ type Header_Block = record {
 	src_addr: uint16;
 #	crc: uint16; 
 }
-#  &byteorder = littleendian
+  &byteorder = littleendian
   &length = 8 
 ;
 
@@ -80,7 +80,8 @@ type Dnp3_Response = record {
 	addin_header: Header_Block;
 	app_header: Dnp3_Application_Response_Header;
 	data: case ( app_header.function_code ) of {
-		RESPONSE -> objects: Response_Objects[];
+		RESPONSE -> response_objects: Response_Objects[];
+		UNSOLICITED_RESPONSE -> unsolicited_response_objects: Response_Objects[];
 		default -> unknown: bytestring &restofdata;
 	};
 } &byteorder = bigendian
@@ -134,6 +135,20 @@ type Request_Objects = record {
 	 	default -> unknownprefix: empty;
         };
 	data: case (object_header.object_type_field) of {
+	# binary input	
+		0x0100 -> bi_default: empty;
+		0x0101 -> bi_packed: empty;
+		0x0102 -> bi_flag: empty;
+	#analog input
+		0x1e00 -> ai_default: empty;
+		0x1e01 -> ai_32_wflag: empty;
+                0x1e02 -> ai_16_wflag: empty;
+                0x1e03 -> ai_32_woflag: empty;
+                0x1e04 -> ai_16_woflag: empty;
+                0x1e05 -> ai_sp_wflag: empty;
+                0x1e06 -> ai_dp_wflag: empty;
+	#analog input event
+		0x2000 -> aie_default: empty;
 		0x2001 -> ai32wotime: empty;
 		0x2002 -> ai16wotime: empty;
 		0x2003 -> ai32wtime:  empty;

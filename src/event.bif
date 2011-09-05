@@ -515,13 +515,18 @@ event dnp3_header_block%(c: connection, is_orig: bool, start: count, len: count,
 event dnp3_data_object%(c: connection, is_orig: bool, data_value: count%);
 event dnp3_analog_input32_woTime%(c: connection, is_orig: bool, flag: count, value: count%);
 event dnp3_analog_input16_woTime%(c: connection, is_orig: bool, flag: count, value: count%);
-event dnp3_analog_input32_wTime%(c: connection, is_orig: bool, flag: count, value: count, time: string%);
-event dnp3_analog_input16_wTime%(c: connection, is_orig: bool, flag: count, value: count, time: string%);
+event dnp3_analog_input32_wTime%(c: connection, is_orig: bool, flag: count, value: count, time48: string%);
+event dnp3_analog_input16_wTime%(c: connection, is_orig: bool, flag: count, value: count, time48: string%);
 event dnp3_analog_inputSP_woTime%(c: connection, is_orig: bool, flag: count, value: count%);
 event dnp3_analog_inputDP_woTime%(c: connection, is_orig: bool, flag: count, value_low: count, value_high: count%);
-event dnp3_analog_inputSP_wTime%(c: connection, is_orig: bool, flag: count, value: count, time: string%);
-event dnp3_analog_inputDP_wTime%(c: connection, is_orig: bool, flag: count, value_low: count, value_high: count, time: string%);
+event dnp3_analog_inputSP_wTime%(c: connection, is_orig: bool, flag: count, value: count, time48: string%);
+event dnp3_analog_inputDP_wTime%(c: connection, is_orig: bool, flag: count, value_low: count, value_high: count, time48: string%);
+event dnp3_analog_input32_wFlag%(c: connection, is_orig: bool, flag: count, value: count%);
+event dnp3_analog_input16_wFlag%(c: connection, is_orig: bool, flag: count, value: count%);
+event dnp3_analog_input32_woFlag%(c: connection, is_orig: bool, value: count%);
 event dnp3_analog_input16_woFlag%(c: connection, is_orig: bool, value: count%);
+event dnp3_analog_inputSP_wFlag%(c: connection, is_orig: bool, flag: count, value: count%);
+event dnp3_analog_inputDP_wFlag%(c: connection, is_orig: bool, flag: count, value_low: count, value_high: count%);
 #debug used
 event dnp3_data_block%(c: connection, is_orig: bool, data: string, crc: count%);
 event dnp3_pdu_test%(c: connection, is_orig: bool, rest: string%);

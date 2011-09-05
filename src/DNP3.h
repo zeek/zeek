@@ -27,7 +27,12 @@ public:
 	static bool Available()
 		{ return dnp3_header_block || dnp3_data_block || dnp3_pdu_test || 
 				dnp3_application_request_header || dnp3_object_header || 
-				dnp3_data_object || dnp3_analog_input16_woTime || dnp3_analog_input16_woFlag ||
+				dnp3_data_object || 
+				dnp3_analog_input32_woTime || dnp3_analog_input16_woTime || 
+				dnp3_analog_input32_wTime  || dnp3_analog_input16_wTime  ||
+				dnp3_analog_inputSP_woTime || dnp3_analog_inputDP_woTime ||
+				dnp3_analog_inputSP_wTime  || dnp3_analog_inputDP_wTime  ||
+				dnp3_analog_input16_woFlag ||
 				dnp3_debug_byte; }
 
 protected:

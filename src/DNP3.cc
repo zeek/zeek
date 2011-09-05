@@ -28,12 +28,32 @@ void DNP3_Analyzer::Done()
 
 void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
+
 	
 	int i;
 	int dnp3_i;  // index within the data block
 	int dnp3_length = 0;
 	u_char* tran_data = 0;  // so far only one transport segment is considered. So removing first byte will result application level data
+	bool m_orig;   //true -> request; false-> response
+	u_char control_field = 0;
 	//u_char* app_data = 0;   // contains dnp3 application layer data
+//// if it is not serial protocol data ignore
+	if(data[0] != 0x05 || data[1] != 0x64)
+	{
+		TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
+		return;
+	}
+//// double check the orig. in case that the first received traffic is response
+	control_field = data[3];
+	if( (control_field & 0x80) == 0x80 )   //true request
+	{
+		m_orig = true;
+		///parse the 
+	}
+	else
+	{
+		m_orig = false;
+	}
 ///allocate memory space for the dnp3 only data
 	tran_data = (u_char*)malloc(len); // definitely not more than original data payload
 	if(tran_data == NULL)
@@ -42,7 +62,7 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		return;
 	}
 //// for debug use just print data payload
-        printf("hl debug: %d  ", len);
+        printf("\n\nhl debug: len is %d, orig is %x ..", len, m_orig);
 	dnp3_i = 0;
         for(i = 0; i < len; i++)
         {
@@ -50,6 +70,11 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		
         }
         printf("hl debug!\n");
+////parse function code. Temporarily ignore PRM bit
+	if( (control_field & 0x0F) != 0x03 && (control_field & 0x0F) != 0x04 )
+	{
+		return;
+	}
 //// process the data payload; extract dnp3 application layer data directly
 //   the validation of crc can be set up here
 	for(i = 0; i < 8; i++)
@@ -76,10 +101,10 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	printf("\n");
 ///// original processing 
 	//TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
-	TCP_ApplicationAnalyzer::DeliverStream(dnp3_length, tran_data, orig);
+	TCP_ApplicationAnalyzer::DeliverStream(dnp3_length, tran_data, m_orig);
 	//DNP3TCP_Analyzer::DeliverStream(len, data, orig);
 	//interp->NewData(orig, data, data + len);
-	interp->NewData(orig, tran_data, tran_data + dnp3_length);
+	interp->NewData(m_orig, tran_data, tran_data + dnp3_length);
 	free(tran_data);
 	}
 

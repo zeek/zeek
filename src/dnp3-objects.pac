@@ -18,7 +18,7 @@ type AnalogInput32wTime = record{
 	flag: uint8;
 	value: uint32;
 	#time: uint8[6];
-	time: bytestring &length = 6;
+	time48: bytestring &length = 6;
 } &byteorder = littleendian;
 
 # group: 32; variation: 4
@@ -26,7 +26,7 @@ type AnalogInput16wTime = record{
 	flag: uint8;
 	value: uint16;
 	#time: uint8[6];
-	time: bytestring &length = 6;
+	time48: bytestring &length = 6;
 } &byteorder = littleendian;
 
 # group: 32; variation: 5; singple precision 32 bit
@@ -47,7 +47,7 @@ type AnalogInputSPwTime = record{
 	flag: uint8;
 	value: uint32;
 	#time: uint8[6];
-	time: bytestring &length = 6;
+	time48: bytestring &length = 6;
 } &byteorder = littleendian;
 
 # group: 32; variation: 8
@@ -56,7 +56,7 @@ type AnalogInputDPwTime = record{
 	value_low: uint32;
 	value_high: uint32;
 	#time: uint8[6];
-	timt: bytestring &length = 6;
+	time48: bytestring &length = 6;
 } &byteorder = littleendian;
 
 # group: 30; variation: 1
@@ -91,5 +91,6 @@ type AnalogInputSPwFlag = record{
 # group: 30; variation: 6; double precision 64 bit
 type AnalogInputDPwFlag = record{
         flag: uint8;
-        value: uint32[2];
+        value_low: uint32;
+	value_high: uint32;
 } &byteorder = littleendian;

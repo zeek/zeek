@@ -1,4 +1,7 @@
-# data
+#separator \x09
+#path	test
+#fields	data
+#types	time
 1234567890.000000
 1234567890.000000
 1234567890.010000

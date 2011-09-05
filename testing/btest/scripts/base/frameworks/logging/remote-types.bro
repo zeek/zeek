@@ -15,7 +15,7 @@ module Test;
 
 export {
 	# Create a new ID for our log stream
-	redef enum Log::ID += { TEST };
+	redef enum Log::ID += { LOG };
 
 	type Log: record {
 		b: bool;
@@ -39,7 +39,7 @@ export {
 
 event bro_init()
 {
-	Log::create_stream(TEST, [$columns=Log]);
+	Log::create_stream(Test::LOG, [$columns=Log]);
 }
 
 #####
@@ -55,10 +55,10 @@ event remote_connection_handshake_done(p: event_peer)
 	local empty_set: set[string];
 	local empty_vector: vector of string;
 
-	Log::write(TEST, [
+	Log::write(Test::LOG, [
 		$b=T,
 		$i=-42,
-		$e=TEST,
+		$e=Test::LOG,
 		$c=21,
 		$p=123/tcp,
 		$sn=10.0.0.1/24,

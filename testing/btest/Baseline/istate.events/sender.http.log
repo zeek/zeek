@@ -1,2 +1,10 @@
+<<<<<<< HEAD
 # ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	method	host	uri	referrer	user_agent	request_content_length	response_content_length	status_code	status_msg	filename	tags	username	password	proxied	mime_type	md5	extraction_file
 1313448372.638550	arKYeMETxOg	141.42.64.125	56730	125.190.109.199	80	GET	www.icir.org	/	-	Wget/1.10	-	9130	200	OK	-	-	-	-	-	text/html	-	-
+=======
+#separator \x09
+#path	http
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	method	host	uri	referrer	user_agent	request_content_length	response_content_length	status_code	status_msg	filename	tags	username	password	proxied	mime_type	md5	extraction_file
+#types	time	string	addr	port	addr	port	string	string	string	string	string	count	count	count	string	string	table	string	string	table	string	string	file
+1315167116.842377	56gKBmhBBB6	141.42.64.125	56730	125.190.109.199	80	GET	www.icir.org	/	-	Wget/1.10	-	9130	200	OK	-	-	-	-	-	text/html	-	-
+>>>>>>> master

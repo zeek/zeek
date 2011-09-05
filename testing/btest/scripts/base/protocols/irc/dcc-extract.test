@@ -13,8 +13,8 @@ redef IRC::extract_file_types=/.*/;
 
 event bro_init()
 	{
-	Log::remove_default_filter(IRC::IRC);
-	Log::add_filter(IRC::IRC, [$name="normalized-mime-types",
+	Log::remove_default_filter(IRC::LOG);
+	Log::add_filter(IRC::LOG, [$name="normalized-mime-types",
 	                           $pred=function(rec: IRC::Info): bool
 		{
 		if ( rec?$dcc_mime_type )

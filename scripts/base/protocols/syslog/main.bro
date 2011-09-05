@@ -5,7 +5,7 @@
 module Syslog;
 
 export {
-	redef enum Log::ID += { SYSLOG };
+	redef enum Log::ID += { LOG };
 	
 	type Info: record {
 		ts:        time            &log;
@@ -29,7 +29,7 @@ redef record connection += {
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(SYSLOG, [$columns=Info]);
+	Log::create_stream(Syslog::LOG, [$columns=Info]);
 	}
 
 event syslog_message(c: connection, facility: count, severity: count, msg: string) &priority=5
@@ -48,5 +48,5 @@ event syslog_message(c: connection, facility: count, severity: count, msg: strin
 
 event syslog_message(c: connection, facility: count, severity: count, msg: string) &priority=-5
 	{
-	Log::write(SYSLOG, c$syslog);
+	Log::write(Syslog::LOG, c$syslog);
 	}

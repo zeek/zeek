@@ -263,7 +263,7 @@ Redefinitions
 
    :Type: :bro:type:`enum`
 
-      .. bro:enum:: Example::EXAMPLE Log::ID
+      .. bro:enum:: Example::LOG Log::ID
 
 :bro:type:`Example::SimpleEnum`
 

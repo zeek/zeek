@@ -1,3 +1,6 @@
-# a.val1	a.val2	b
+#separator \x09
+#path	testing
+#fields	a.val1	a.val2	b
+#types	count	count	count
 -	-	6
 1	2	3

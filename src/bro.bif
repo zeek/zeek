@@ -3019,6 +3019,20 @@ function syslog%(s: string%): any
 extern "C" {
 #include <GeoIPCity.h>
 }
+
+static GeoIP* open_geoip_db(GeoIPDBTypes type)
+	{
+	GeoIP* geoip = 0;
+
+	if ( GeoIP_db_avail(type) )
+		geoip = GeoIP_open_type(type, GEOIP_MEMORY_CACHE);
+
+	if ( ! geoip )
+		reporter->Warning("Failed to open GeoIP database: %s",
+		                  GeoIPDBFileName[type]);
+	return geoip;
+	}
+
 #endif
 %%}
 
@@ -3028,86 +3042,112 @@ function lookup_location%(a: addr%) : geo_location
 	RecordVal* location = new RecordVal(geo_location);
 
 #ifdef USE_GEOIP
+	static bool geoip_initialized = false;
 	static GeoIP* geoip = 0;
 	static GeoIP* geoip_v6 = 0;
-	static bool geoip_initialized = false;
+	static bool have_city_db = false;
+	static bool have_cityv6_db = false;
 	GeoIPRecord* gir = 0;
+	const char* cc = 0;
 
 	if ( ! geoip_initialized )
 		{
 		geoip_initialized = true;
-		geoip = GeoIP_open_type(GEOIP_CITY_EDITION_REV0,
-					GEOIP_MEMORY_CACHE);
+		geoip = open_geoip_db(GEOIP_CITY_EDITION_REV0);
+
 		if ( ! geoip )
 			{
-			builtin_error("can't initialize GeoIP City database.. trying Country version");
-			geoip = GeoIP_open_type(GEOIP_COUNTRY_EDITION,
-						GEOIP_MEMORY_CACHE);
+			geoip = open_geoip_db(GEOIP_COUNTRY_EDITION);
 			if ( ! geoip )
-				builtin_error("can't initialize GeoIP Country database");
+				builtin_error("Can't initialize GeoIP City/Country database");
+			else
+				reporter->Warning("Fell back to GeoIP Country database");
 			}
+		else
+			have_city_db = true;
 
 #ifdef BROv6
-#ifdef GEOIP_COUNTRY_EDITION_V6
-		geoip_v6 = GeoIP_open_type(GEOIP_COUNTRY_EDITION_V6,
-						GEOIP_MEMORY_CACHE);
-		if ( ! geoip_v6 )
-			builtin_error("can't initialize the GeoIPv6 Country database");
+
+#ifdef HAVE_GEOIP_CITY_EDITION_REV0_V6
+		geoip_v6 = open_geoip_db(GEOIP_CITY_EDITION_REV0_V6);
+		if ( geoip_v6 )
+			have_cityv6_db = true;
 #endif
+
+#ifdef HAVE_GEOIP_COUNTRY_EDITION_V6
+		if ( ! geoip_v6 )
+			geoip_v6 = open_geoip_db(GEOIP_COUNTRY_EDITION_V6);
+#endif
+		if ( ! geoip_v6 )
+			builtin_error("Can't initialize GeoIPv6 City/Country database");
 #endif
 		}
 
 #ifdef BROv6
-#ifdef GEOIP_COUNTRY_EDITION_V6
+
+#ifdef HAVE_GEOIP_COUNTRY_EDITION_V6
 	if ( geoip_v6 && ! is_v4_addr(a) )
-		gir = GeoIP_record_by_ipnum_v6(geoip_v6, geoipv6_t(a));
+		{
+		geoipv6_t ga;
+		memcpy(&ga, a, 16);
+		if ( have_cityv6_db )
+			gir = GeoIP_record_by_ipnum_v6(geoip_v6, ga);
+		else
+			cc = GeoIP_country_code_by_ipnum_v6(geoip_v6, ga);
+		}
 	else
 #endif
+
 	if ( geoip && is_v4_addr(a) )
 		{
 		uint32 addr = to_v4_addr(a);
-		gir = GeoIP_record_by_ipnum(geoip, ntohl(addr));
+		if ( have_city_db )
+			gir = GeoIP_record_by_ipnum(geoip, ntohl(addr));
+		else
+			cc = GeoIP_country_code_by_ipnum(geoip, ntohl(addr));
 		}
-#else
+
+#else // not BROv6
 	if ( geoip )
-		gir = GeoIP_record_by_ipnum(geoip, ntohl(a));
+		{
+		if ( have_city_db )
+			gir = GeoIP_record_by_ipnum(geoip, ntohl(a));
+		else
+			cc = GeoIP_country_code_by_ipnum(geoip, ntohl(a));
+		}
 #endif
 
 	if ( gir )
 		{
 		if ( gir->country_code )
 			location->Assign(0, new StringVal(gir->country_code));
-		else
-			location->Assign(0, new StringVal(""));
 
 		if ( gir->region )
 			location->Assign(1, new StringVal(gir->region));
-		else
-			location->Assign(1, new StringVal(""));
 
 		if ( gir->city )
 			location->Assign(2, new StringVal(gir->city));
-		else
-			location->Assign(2, new StringVal(""));
 
 		if ( gir->latitude )
 			location->Assign(3, new Val(gir->latitude,
 							TYPE_DOUBLE));
-		else
-			location->Assign(3, new Val(0.0, TYPE_DOUBLE));
 
 		if ( gir->longitude )
 			location->Assign(4, new Val(gir->longitude,
 						TYPE_DOUBLE));
-		else
-			location->Assign(4, new Val(0.0, TYPE_DOUBLE));
 
 		GeoIPRecord_delete(gir);
 
 		return location;
 		}
 
-#else
+	else if ( cc )
+		{
+		location->Assign(0, new StringVal(cc));
+		return location;
+		}
+
+#else // not USE_GEOIP
 	static int missing_geoip_reported = 0;
 
 	if ( ! missing_geoip_reported )
@@ -3120,11 +3160,6 @@ function lookup_location%(a: addr%) : geo_location
 	// We can get here even if we have GeoIP support if we weren't
 	// able to initialize it or it didn't return any information for
 	// the address.
-	location->Assign(0, new StringVal(""));
-	location->Assign(1, new StringVal(""));
-	location->Assign(2, new StringVal(""));
-	location->Assign(3, new Val(0.0, TYPE_DOUBLE));
-	location->Assign(4, new Val(0.0, TYPE_DOUBLE));
 
 	return location;
 	%}
@@ -3139,10 +3174,9 @@ function lookup_asn%(a: addr%) : count
 	if ( ! geoip_asn_initialized )
 		{
 		geoip_asn_initialized = true;
-		geoip_asn = GeoIP_open_type(GEOIP_ASNUM_EDITION,
-						GEOIP_MEMORY_CACHE);
+		geoip_asn = open_geoip_db(GEOIP_ASNUM_EDITION);
 		if ( ! geoip_asn )
-			builtin_error("can't initialize GeoIP ASNUM database");
+			builtin_error("Can't initialize GeoIP ASNUM database");
 		}
 
 	if ( geoip_asn )
@@ -3150,17 +3184,23 @@ function lookup_asn%(a: addr%) : count
 #ifdef BROv6
 
 // IPv6 support showed up in 1.4.5.
-#ifdef GEOIP_COUNTRY_EDITION_V6
+#ifdef HAVE_GEOIP_COUNTRY_EDITION_V6
 		if ( ! is_v4_addr(a) )
-			gir = GeoIP_name_by_ipnum_v6(geoip_asn, geoipv6_t(a));
+			{
+			geoipv6_t ga;
+			memcpy(&ga, a, 16);
+			gir = GeoIP_name_by_ipnum_v6(geoip_asn, ga);
+			}
 		else
 #endif
+
 		if ( is_v4_addr(a) )
 			{
 			uint32 addr = to_v4_addr(a);
 			gir = GeoIP_name_by_ipnum(geoip_asn, ntohl(addr));
 			}
-#else
+
+#else // not BROv6
 		gir = GeoIP_name_by_ipnum(geoip_asn, ntohl(a));
 #endif
 		}
@@ -3171,7 +3211,8 @@ function lookup_asn%(a: addr%) : count
 		// the first two characters: "AS".
 		return new Val(atoi(gir+2), TYPE_COUNT);
 		}
-#else
+
+#else // not USE_GEOIP
 	static int missing_geoip_reported = 0;
 
 	if ( ! missing_geoip_reported )
@@ -3612,4 +3653,10 @@ function enable_communication%(%): any
 	using_communication = 1;
 	remote_serializer->Init();
 	return 0;
+	%}
+
+## Returns the Bro version string
+function bro_version%(%): string
+	%{
+	return new StringVal(bro_version());
 	%}

@@ -1,4 +1,4 @@
-# - Try to find libpcap include dirs and libraries 
+# - Try to find libpcap include dirs and libraries
 #
 # Usage of this module as follows:
 #
@@ -14,8 +14,9 @@
 # Variables defined by this module:
 #
 #  PCAP_FOUND                System has libpcap, include and library dirs found
-#  PCAP_INCLUDE_DIR          The libpcap include directories. 
-#  PCAP_LIBRARY              The libpcap library.
+#  PCAP_INCLUDE_DIR          The libpcap include directories.
+#  PCAP_LIBRARY              The libpcap library (possibly includes a thread
+#                            library e.g. required by pf_ring's libpcap)
 
 find_path(PCAP_ROOT_DIR
     NAMES include/pcap.h
@@ -36,6 +37,29 @@ find_package_handle_standard_args(PCAP DEFAULT_MSG
     PCAP_LIBRARY
     PCAP_INCLUDE_DIR
 )
+
+include(CheckCSourceCompiles)
+set(CMAKE_REQUIRED_LIBRARIES ${PCAP_LIBRARY})
+check_c_source_compiles("int main() { return 0; }" PCAP_LINKS_SOLO)
+set(CMAKE_REQUIRED_LIBRARIES)
+
+# check if linking against libpcap also needs to link against a thread library
+if (NOT PCAP_LINKS_SOLO)
+    find_package(Threads)
+    if (THREADS_FOUND)
+        set(CMAKE_REQUIRED_LIBRARIES ${PCAP_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})
+        check_c_source_compiles("int main() { return 0; }" PCAP_NEEDS_THREADS)
+        set(CMAKE_REQUIRED_LIBRARIES)
+    endif ()
+    if (THREADS_FOUND AND PCAP_NEEDS_THREADS)
+        set(_tmp ${PCAP_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})
+        list(REMOVE_DUPLICATES _tmp)
+        set(PCAP_LIBRARY ${_tmp}
+            CACHE STRING "Libraries needed to link against libpcap" FORCE)
+    else ()
+        message(FATAL_ERROR "Couldn't determine how to link against libpcap")
+    endif ()
+endif ()
 
 mark_as_advanced(
     PCAP_ROOT_DIR

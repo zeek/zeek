@@ -10,8 +10,8 @@ redef HTTP::generate_md5 += /image\/png/;
 
 event bro_init()
 	{
-	Log::remove_default_filter(HTTP::HTTP);
-	Log::add_filter(HTTP::HTTP, [$name="normalized-mime-types",
+	Log::remove_default_filter(HTTP::LOG);
+	Log::add_filter(HTTP::LOG, [$name="normalized-mime-types",
 	                             $pred=function(rec: HTTP::Info): bool
 		{
 		if ( rec?$mime_type && HTTP::generate_md5 != rec$mime_type )

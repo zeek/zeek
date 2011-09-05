@@ -5,7 +5,7 @@
 module SSH;
 
 export {
-	redef enum Log::ID += { SSH };
+	redef enum Log::ID += { LOG };
 
 	type Log: record {
 		t: time;
@@ -17,7 +17,7 @@ const foo_log = open_log_file("Foo") &redef;
 
 event bro_init()
 {
-	Log::create_stream(SSH, [$columns=Log]);
-	Log::write(SSH, [$t=network_time(), $f=foo_log]);
+	Log::create_stream(SSH::LOG, [$columns=Log]);
+	Log::write(SSH::LOG, [$t=network_time(), $f=foo_log]);
 }
 

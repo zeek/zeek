@@ -1,2 +1,5 @@
-# status	country	a1	b1	b2
+#separator \x09
+#path	ssh
+#fields	status	country	a1	b1	b2
+#types	string	string	count	count	count
 success	unknown	1	3	4

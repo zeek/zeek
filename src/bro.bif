@@ -791,6 +791,16 @@ function getenv%(var: string%): string
 	return new StringVal(env_val);
 	%}
 
+function setenv%(var: string, val: string%): bool
+	%{
+	int result = setenv(var->AsString()->CheckString(), 
+	                    val->AsString()->CheckString(), 1);
+	
+	if ( result < 0 )
+		return new Val(0, TYPE_BOOL);
+	return new Val(1, TYPE_BOOL);
+	%}
+
 function sqrt%(x: double%): double
 	%{
 	if ( x < 0 )

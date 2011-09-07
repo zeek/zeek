@@ -1,4 +1,13 @@
 
+1.6-dev-1212 | 2011-09-07 16:15:28 -0700
+
+  * Internally, the UID generation can now return values from
+    different pool for better reproducability in testing mode.
+    (Gilbert Clark).
+
+  * Added new BiF unique_id_from(pool: string, prefix: string) that
+    allows the user to specify a randomness pool. (Gilbert Clark)
+
 1.6-dev-1198 | 2011-09-07 11:03:36 -0700
 
   * Extended header for ASCII log that make it easier for scripts to

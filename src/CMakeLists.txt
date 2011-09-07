@@ -418,6 +418,7 @@ collect_headers(bro_HEADERS ${bro_SRCS})
 
 add_definitions(-DBRO_SCRIPT_INSTALL_PATH="${BRO_SCRIPT_INSTALL_PATH}")
 add_definitions(-DBRO_SCRIPT_SOURCE_PATH="${BRO_SCRIPT_SOURCE_PATH}")
+add_definitions(-DBRO_BUILD_PATH="${CMAKE_CURRENT_BINARY_DIR}")
 
 add_executable(bro ${bro_SRCS} ${bro_HEADERS})
 

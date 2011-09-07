@@ -891,7 +891,7 @@ const char* normalize_path(const char* path)
 	return copy_string(new_path.c_str());
 	}
 
-// Returns the subpath of the root Bro script install/source directory in
+// Returns the subpath of the root Bro script install/source/build directory in
 // which the loaded file is located.  If it's not under a subpath of that
 // directory (e.g. cwd or custom path) then the full path is returned.
 void get_script_subpath(const std::string& full_filename, const char** subpath)
@@ -909,11 +909,15 @@ void get_script_subpath(const std::string& full_filename, const char** subpath)
 
 	// first check if this is some subpath of the installed scripts root path,
 	// if not check if it's a subpath of the script source root path,
-	// if neither, will just use the given directory
+	// then check if it's a subpath of the build directory (where BIF scripts
+	// will get generated).
+	// If none of those, will just use the given directory.
 	if ( (p=my_subpath.find(BRO_SCRIPT_INSTALL_PATH)) != std::string::npos )
 		my_subpath.erase(0, strlen(BRO_SCRIPT_INSTALL_PATH));
 	else if ( (p=my_subpath.find(BRO_SCRIPT_SOURCE_PATH)) != std::string::npos )
 		my_subpath.erase(0, strlen(BRO_SCRIPT_SOURCE_PATH));
+	else if ( (p=my_subpath.find(BRO_BUILD_PATH)) != std::string::npos )
+		my_subpath.erase(0, strlen(BRO_BUILD_PATH));
 
 	// if root path found, remove path separators until next path component
 	if ( p != std::string::npos )

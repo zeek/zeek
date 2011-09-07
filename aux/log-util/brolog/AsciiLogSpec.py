@@ -87,23 +87,7 @@ class AsciiLogSpec(BroLogSpec):
             return False
         self._separator = match.group(1)
         self._separator = self._separator.decode('string_escape')
-        # Next, pull out the fields...
-        match = AsciiLogSpec.RE_FIELDSPEC.match(ascii_file.readline())
-        if not match:
-            print "No valid field list found"
-            self.close(ascii_file)
-            return False
-        self.names = match.group(1).split(self._separator)
-        self.names = self.names[1:]
-        # and the types...
-        match = AsciiLogSpec.RE_TYPESPEC.match(ascii_file.readline())
-        if not match:
-            print "No valid type list found"
-            self.close(ascii_file)
-            return False
-        self.types = match.group(1).split(self._separator)
-        self.types = self.types[1:]
-        # and finally the path...
+        # and the path...
         match = AsciiLogSpec.RE_PATHSPEC.match(ascii_file.readline())
         if not match:
             print "no bro path assignment (e.g. the 'conn' bit of something like 'conn.log' or 'conn.ds') found"
@@ -112,6 +96,22 @@ class AsciiLogSpec(BroLogSpec):
         self._bro_log_path = match.group(1)
         self._bro_log_path.split(self._separator)
         self._bro_log_path = self._bro_log_path[1:]
+        # Next, pull out the fields...
+        match = AsciiLogSpec.RE_FIELDSPEC.match(ascii_file.readline())
+        if not match:
+            print "No valid field list found"
+            self.close(ascii_file)
+            return False
+        self.names = match.group(1).split(self._separator)
+        self.names = self.names[1:]
+        # and, finally, the types...
+        match = AsciiLogSpec.RE_TYPESPEC.match(ascii_file.readline())
+        if not match:
+            print "No valid type list found"
+            self.close(ascii_file)
+            return False
+        self.types = match.group(1).split(self._separator)
+        self.types = self.types[1:]
         self._fields = zip(self.names, self.types)
         self.close(ascii_file)
         if(len(self._fields) == 0):
@@ -119,6 +119,7 @@ class AsciiLogSpec(BroLogSpec):
         for entry in self._fields:
             self.translator[ entry[0] ] = self._get_translator( entry[1] )
             self.accumulator[ entry[0] ] = self._get_accumulator( entry[1] )()
+            self.formatter[ entry[0] ] = self._get_formatter( entry[1] )
         return True
 
     def fields(self):

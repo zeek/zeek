@@ -44,6 +44,7 @@ class BroLogSpec(object):
         self._valid = False
         self.translator = dict()
         self.accumulator = dict()
+        self.formatter = dict()
 
     def _get_accumulator(self, field_type):
         """
@@ -62,6 +63,18 @@ class BroLogSpec(object):
         # Other types aren't supported as of yet.
         return BroAccumulators.DummyAccumulator
 
+    def _get_formatter(self, field_type):
+        """
+        Autogenerates a set of formatters based on field type.  Default is 6-digit precision for floats, 
+        print all digits for int / long, and print a string value otherwise.  These can be customized
+        by modifying relevant fields in BroLogOptions
+        """
+        if(field_type == 'double' or field_type == 'time' or field_type == 'interval'):
+            return "%.6f"
+        if(field_type == 'int' or field_type == 'count' or field_type == 'counter'):
+            return "%d"
+        return "%s"
+
     def _get_translator(self, field_type):
         """
         Autogenerates a set of translators based on field_type.  Double, time, and interval values are
@@ -71,21 +84,17 @@ class BroLogSpec(object):
         if(field_type == 'double' or field_type == 'time' or field_type == 'interval'):
             null_val = BroLogOptions.float_null_val
             def get_val(val):
-                if val == '-':
-                    return null_val
                 try:
                     return float(val)
                 except:
-                    return None
+                    return null_val
         elif(field_type == 'int' or field_type == 'count' or field_type == 'counter'):
             null_val = BroLogOptions.long_null_val
             def get_val(val):
-                if val == '-':
-                    return long(null_val)
                 try:
                     return long(val)
                 except:
-                    return None
+                    return null_val 
         else:
             def get_val(val):
                 return val

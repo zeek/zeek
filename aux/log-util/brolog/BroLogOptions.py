@@ -15,8 +15,14 @@ class BroLogOptions(object):
     float_null_val -- Used by default when a NULL character (often '-') is 
                       encountered in a field of type 'time', 'interval', or
                       'float'
+    null_string -- Used to render 'None'
     """
-    verbose = False
-    interactive = False
-    long_null_val = None
-    float_null_val = None
+    verbose          = False
+    interactive      = False
+    long_null_val    = None
+    float_null_val   = None
+    null_string      = "-"
+    long_export_str  = "%d"
+    float_export_str = "%.6f"
+    time_export_str  = "%.6f"
+    other_export_str = "%s"

@@ -9,7 +9,7 @@ from brolog.BroLogOptions import BroLogOptions
 from brolog.AsciiLogExporter import AsciiLogExporter
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='General-purpose tool for manipulating bro log files')
+    parser = argparse.ArgumentParser(description='Proof-of-concept library wrapper')
     parser.add_argument('-v', default=False, action='store_true', dest='verbose', help='Explain what the script is doing')
     parser.add_argument('logfiles', metavar='LOGFILE', nargs='+', help='Bro logfiles to load')
     return parser.parse_args()
@@ -28,9 +28,9 @@ def test_logmgr(logfiles):
     if not manager['conn']:
         print 'No log data of type "conn" found.  Exiting...'
         sys.exit(0)
-    test_stats(manager)
+    #test_stats(manager)
     # test_iterate(manager)
-    # test_export(manager)
+    test_export(manager)
 
 
 def test_filter(entry):
@@ -42,7 +42,10 @@ def test_iterate(manager):
         print e['id.resp_p']
 
 def test_export(manager):
-    manager['conn'].export(AsciiLogExporter)
+    try:
+		manager['ftp'].export(AsciiLogExporter)
+    except IOError,err:
+        print err
 
 def test_stats(manager):
     connections = manager["conn"]  # or '.get("conn")

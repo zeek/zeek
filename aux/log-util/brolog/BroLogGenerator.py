@@ -62,19 +62,6 @@ class BroLogGenerator(object):
         convert_type = None
         if(len(types) == 1):
             convert_type = list(types)[0]
-        elif(len(types) > 1 and not type_hint):
-            if(BroLogOptions.interactive):
-                print "'%s' has multiple types associated with it:" % log.type().get_bro_path()
-                ctr = 1
-                for each in types:
-                    print '%d: %s' % (ctr, each.type())
-                    ctr += 1
-                user_sel = int(raw_input('Select a type [1 - %d]: ' % ctr))
-                if(user_sel < 1 or user_sel >= ctr):
-                    print "Invalid selection."
-                    return False
-            else:
-                return False
         elif(len(types) > 1):
             if not type_hint in types:
                 print "Unknown type provided as hint: %s" % type_hint
@@ -87,6 +74,10 @@ class BroLogGenerator(object):
         converter = target_converter(target_path, convert_type.fields(), convert_type.get_bro_path())
         map(converter.convert_row, self.entries(type_filter=convert_type))
         converter.finish()
+        try:
+            del converter
+        except:
+            pass
         return True
 
     def compute_stats(self):
@@ -105,8 +96,9 @@ class BroLogGenerator(object):
             log_fields = log_type.names
             log_fd = log_type.open(log.path())
             translator = log_type.translator
+            formatter = log_type.formatter
             local_filter = self._filter
-            BroLogEntry = self._log_entry_generator(translator, log_type)
+            BroLogEntry = self._log_entry_generator(translator, log_type, formatter)
             
             if(float(log.sampling) < .9999):
                 sampling = float(log.sampling)
@@ -142,7 +134,7 @@ class BroLogGenerator(object):
             self.accumulator[acc].postprocess()
         self._must_compute = False
 
-    def _log_entry_generator(self, translator, log_type):
+    def _log_entry_generator(self, translator, log_type, formatter):
         """
         Builds a _LogEntry class for the BroLogGenerator to use.  This is done largely as an optimization;
         because this class is being constructed millions of times, the additional __init__ arguments and
@@ -211,6 +203,16 @@ class BroLogGenerator(object):
                 """
                 return translator[name](self._vals[name2idx[name]])
             
+            def render(self, name):
+                """
+                Pushes the field referenced by 'name' through the formatter and returns the resulting
+                string.
+                """
+                tVal = translator[name](self._vals[name2idx[name]])
+                if(tVal):
+                    return formatter[name] % tVal
+                return BroLogOptions.null_string 
+
         return _LogEntry
 
     def entries(self, type_filter=None):
@@ -233,7 +235,8 @@ class BroLogGenerator(object):
             log_fields = log_type.names
             log_fd = log_type.open(log.path())
             translator = log_type.translator
-            BroLogEntry = self._log_entry_generator(translator, log_type)
+            formatter = log_type.formatter
+            BroLogEntry = self._log_entry_generator(translator, log_type, formatter)
             if not log_fd:
                 continue
             def field_transform(entry):

@@ -29,7 +29,7 @@ class DsLogSpec(BroLogSpec):
         """
         Cleans up any temporary files we have extracted DataSeries logs into.
         """
-        print "Cleaning up " + DsLogSpec.DS_EXTRACT_DIR
+        # print "Cleaning up " + DsLogSpec.DS_EXTRACT_DIR
         shutil.rmtree(DsLogSpec.DS_EXTRACT_DIR)
 
     def supported(self):

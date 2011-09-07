@@ -5,7 +5,7 @@
 module Metrics;
 
 export {
-	redef enum Log::ID += { METRICS };
+	redef enum Log::ID += { LOG };
 	
 	type ID: enum {
 		NOTHING,
@@ -124,7 +124,7 @@ global thresholds: table[ID, string, Index] of count = {} &create_expire=renotic
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(METRICS, [$columns=Info, $ev=log_metrics]);
+	Log::create_stream(Metrics::LOG, [$columns=Info, $ev=log_metrics]);
 	}
 
 function index2str(index: Index): string
@@ -151,7 +151,7 @@ function write_log(ts: time, filter: Filter, data: MetricTable)
 		                 $value=val];
 		
 		if ( filter$log )
-			Log::write(METRICS, m);
+			Log::write(Metrics::LOG, m);
 		}
 	}
 

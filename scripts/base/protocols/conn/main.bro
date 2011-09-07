@@ -3,7 +3,7 @@
 module Conn;
 
 export {
-	redef enum Log::ID += { CONN };
+	redef enum Log::ID += { LOG };
 
 	type Info: record {
 		## This is the time of the first packet.
@@ -95,7 +95,7 @@ redef record connection += {
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(CONN, [$columns=Info, $ev=log_conn]);
+	Log::create_stream(Conn::LOG, [$columns=Info, $ev=log_conn]);
 	}
 
 function conn_state(c: connection, trans: transport_proto): string
@@ -216,6 +216,6 @@ event connection_state_remove(c: connection) &priority=5
 
 event connection_state_remove(c: connection) &priority=-5
 	{
-	Log::write(CONN, c$conn);
+	Log::write(Conn::LOG, c$conn);
 	}
 

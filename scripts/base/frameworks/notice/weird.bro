@@ -5,7 +5,7 @@
 module Weird;
 
 export {
-	redef enum Log::ID += { WEIRD };
+	redef enum Log::ID += { LOG };
 	
 	redef enum Notice::Type += {
 		## Generic unusual but alarm-worthy activity.
@@ -259,9 +259,9 @@ global did_inconsistency_msg: set[conn_id];
 # Used to pass the optional connection into report_weird().
 global current_conn: connection;
 
-event bro_init()
+event bro_init() &priority=5
 	{
-	Log::create_stream(WEIRD, [$columns=Info, $ev=log_weird]);
+	Log::create_stream(Weird::LOG, [$columns=Info, $ev=log_weird]);
 	}
 
 function report_weird(t: time, name: string, id: string, have_conn: bool,
@@ -311,7 +311,7 @@ function report_weird(t: time, name: string, id: string, have_conn: bool,
 		add weird_ignore[id][name];
 		}
 		
-	Log::write(WEIRD, info);
+	Log::write(Weird::LOG, info);
 	}
 
 function report_weird_conn(t: time, name: string, id: string, addl: string,

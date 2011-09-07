@@ -114,6 +114,12 @@
 /* GeoIP geographic lookup functionality */
 #cmakedefine USE_GEOIP
 
+/* Whether the found GeoIP API supports IPv6 Country Edition */
+#cmakedefine HAVE_GEOIP_COUNTRY_EDITION_V6
+
+/* Whether the found GeoIP API supports IPv6 City Edition */
+#cmakedefine HAVE_GEOIP_CITY_EDITION_REV0_V6
+
 /* Use Google's perftools */
 #cmakedefine USE_PERFTOOLS
 

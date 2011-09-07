@@ -107,10 +107,10 @@ macro(BIF_TARGET bifInput)
     add_custom_command(OUTPUT ${bifOutputs}
                        COMMAND bifcl
                        ARGS ${CMAKE_CURRENT_SOURCE_DIR}/${bifInput} || (rm -f ${bifOutputs} && exit 1)
-                       # in order be able to run bro from the build directory,
+                       # In order be able to run bro from the build directory,
                        # the generated bro script needs to be inside a
                        # a directory tree named the same way it will be
-                       # referenced from an @load
+                       # referenced from an @load.
                        COMMAND "${CMAKE_COMMAND}"
                        ARGS -E copy ${bifInput}.bro base/${bifInput}.bro
                        COMMAND "${CMAKE_COMMAND}"

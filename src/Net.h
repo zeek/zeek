@@ -75,6 +75,9 @@ extern bool terminating;
 // True if the remote serializer is to be activated.
 extern bool using_communication;
 
+// Snaplen passed to libpcap.
+extern int snaplen;
+
 extern const struct pcap_pkthdr* current_hdr;
 extern const u_char* current_pkt;
 extern int current_dispatched;

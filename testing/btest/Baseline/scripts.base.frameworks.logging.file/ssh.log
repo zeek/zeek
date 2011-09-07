@@ -1,2 +1,5 @@
-# t	f
-1303098703.62603	Foo.log
+#separator \x09
+#path	ssh
+#fields	t	f
+#types	time	file
+1315167053.585834	Foo.log

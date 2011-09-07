@@ -19,9 +19,6 @@
 #include <pcap-int.h>
 #endif
 
-int snaplen = 8192;	// really want "capture entire packet"
-
-
 PktSrc::PktSrc()
 	{
 	interface = readfile = 0;
@@ -492,7 +489,7 @@ PktInterfaceSrc::PktInterfaceSrc(const char* arg_interface, const char* filter,
 			// Couldn't get header size.
 			return;
 
-		reporter->Info("listening on %s\n", interface);
+		reporter->Info("listening on %s, capture length %d bytes\n", interface, snaplen);
 		}
 	else
 		closed = true;

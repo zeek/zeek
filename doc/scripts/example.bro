@@ -80,7 +80,7 @@ redef enum Notice::Type += {
 # Comments of the "##" form can be use to further document it, but it's
 # better to do all documentation related to logging in the summary section
 # as is shown above.
-redef enum Log::ID += { EXAMPLE };
+redef enum Log::ID += { LOG };
 
 # Anything declared in the export section will show up in the rendered
 # documentation's "public interface" section
@@ -218,8 +218,8 @@ type PrivateRecord: record {
 
 event bro_init()
     {
-    Log::create_stream(EXAMPLE, [$columns=Info, $ev=log_example]);
-    Log::add_filter(EXAMPLE, [
+    Log::create_stream(Example::LOG, [$columns=Info, $ev=log_example]);
+    Log::add_filter(Example::LOG, [
         $name="example-filter",
         $path="example-filter",
         $pred=filter_func,

@@ -4,7 +4,7 @@
 module SSL;
 
 export {
-	redef enum Log::ID += { SSL };
+	redef enum Log::ID += { LOG };
 
 	redef enum Notice::Type += {
 		Self_Signed_Cert
@@ -43,7 +43,7 @@ redef record connection += {
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(SSL, [$columns=Info, $ev=log_ssl]);
+	Log::create_stream(SSL::LOG, [$columns=Info, $ev=log_ssl]);
 	}
 
 redef capture_filters += {
@@ -117,6 +117,6 @@ event ssl_established(c: connection) &priority=-5
 	{
 	set_session(c);
 	
-	Log::write(SSL, c$ssl);
+	Log::write(SSL::LOG, c$ssl);
 	}
 	

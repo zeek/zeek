@@ -9,7 +9,7 @@ redef LogAscii::empty_field = "EMPTY";
 module SSH;
 
 export {
-	redef enum Log::ID += { SSH };
+	redef enum Log::ID += { LOG };
 
 	type Log: record {
 		b: bool;
@@ -42,15 +42,15 @@ function foo(i : count) : string
 
 event bro_init()
 {
-	Log::create_stream(SSH, [$columns=Log]);
+	Log::create_stream(SSH::LOG, [$columns=Log]);
 
 	local empty_set: set[string];
 	local empty_vector: vector of string;
 
-	Log::write(SSH, [
+	Log::write(SSH::LOG, [
 		$b=T,
 		$i=-42,
-		$e=SSH,
+		$e=SSH::LOG,
 		$c=21,
 		$p=123/tcp,
 		$sn=10.0.0.1/24,

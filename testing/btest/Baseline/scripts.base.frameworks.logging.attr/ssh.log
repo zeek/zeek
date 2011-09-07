@@ -1,4 +1,7 @@
-# status	country
+#separator \x09
+#path	ssh
+#fields	status	country
+#types	string	string
 success	unknown
 failure	US
 failure	UK

@@ -16,7 +16,7 @@ module Test;
 
 export {
 	# Create a new ID for our log stream
-	redef enum Log::ID += { TEST };
+	redef enum Log::ID += { LOG };
 
 	# Define a record with all the columns the log file can have.
 	# (I'm using a subset of fields from ssh-ext for demonstration.)
@@ -30,8 +30,8 @@ export {
 
 event bro_init()
 {
-	Log::create_stream(TEST, [$columns=Log]);
-	Log::add_filter(TEST, [$name="f1", $path="test.success", $pred=function(rec: Log): bool { return rec$status == "success"; }]);
+	Log::create_stream(Test::LOG, [$columns=Log]);
+	Log::add_filter(Test::LOG, [$name="f1", $path="test.success", $pred=function(rec: Log): bool { return rec$status == "success"; }]);
 }
 
 #####
@@ -49,18 +49,18 @@ function fail(rec: Log): bool
 
 event remote_connection_handshake_done(p: event_peer)
 	{
-	Log::add_filter(TEST, [$name="f2", $path="test.failure", $pred=fail]);
+	Log::add_filter(Test::LOG, [$name="f2", $path="test.failure", $pred=fail]);
 
     local cid = [$orig_h=1.2.3.4, $orig_p=1234/tcp, $resp_h=2.3.4.5, $resp_p=80/tcp];
 
 	local r: Log = [$t=network_time(), $id=cid, $status="success"];
 
 	# Log something.
-	Log::write(TEST, r);
-	Log::write(TEST, [$t=network_time(), $id=cid, $status="failure", $country="US"]);
-	Log::write(TEST, [$t=network_time(), $id=cid, $status="failure", $country="UK"]);
-	Log::write(TEST, [$t=network_time(), $id=cid, $status="success", $country="BR"]);
-	Log::write(TEST, [$t=network_time(), $id=cid, $status="failure", $country="MX"]);
+	Log::write(Test::LOG, r);
+	Log::write(Test::LOG, [$t=network_time(), $id=cid, $status="failure", $country="US"]);
+	Log::write(Test::LOG, [$t=network_time(), $id=cid, $status="failure", $country="UK"]);
+	Log::write(Test::LOG, [$t=network_time(), $id=cid, $status="success", $country="BR"]);
+	Log::write(Test::LOG, [$t=network_time(), $id=cid, $status="failure", $country="MX"]);
 	}
 @TEST-END-FILE
 

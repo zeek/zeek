@@ -113,10 +113,13 @@ event ssl_extension(c: connection, code: count, val: string) &priority=5
 		c$ssl$server_name = sub_bytes(val, 6, |val|);
 	}
 	
-event ssl_established(c: connection) &priority=-5
+event ssl_established(c: connection) &priority=5
 	{
 	set_session(c);
+	}
 	
+event ssl_established(c: connection) &priority=-5
+	{
 	Log::write(SSL::LOG, c$ssl);
 	}
 	

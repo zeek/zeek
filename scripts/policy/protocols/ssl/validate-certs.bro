@@ -14,7 +14,7 @@ export {
 
 }
 
-event ssl_established(c: connection) &priority=5
+event ssl_established(c: connection) &priority=3
 	{
 	# If there aren't any certs we can't very well do certificate validation.
 	if ( !c$ssl?$cert || !c$ssl?$cert_chain )

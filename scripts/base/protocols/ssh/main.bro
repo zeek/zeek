@@ -5,10 +5,22 @@
 ##! Requires that :bro:id:`use_conn_size_analyzer` is set to T!  The heuristic
 ##! is not attempted if the connection size analyzer isn't enabled.
 
+@load base/frameworks/notice
+@load base/utils/site
+@load base/utils/thresholds
+@load base/utils/conn-ids
+@load base/utils/directions-and-hosts
+
 module SSH;
 
 export {
-	redef enum Log::ID += { SSH };
+	redef enum Log::ID += { LOG };
+	
+	redef enum Notice::Type += { 
+		## This indicates that a heuristically detected "successful" SSH 
+		## authentication occurred.
+		Login 
+	};
 
 	type Info: record {
 		ts:              time         &log;
@@ -67,7 +79,7 @@ redef record connection += {
 
 event bro_init() &priority=5
 {
-	Log::create_stream(SSH, [$columns=Info, $ev=log_ssh]);
+	Log::create_stream(SSH::LOG, [$columns=Info, $ev=log_ssh]);
 }
 
 function set_session(c: connection)
@@ -86,6 +98,11 @@ function check_ssh_connection(c: connection, done: bool)
 	{
 	# If done watching this connection, just return.
 	if ( c$ssh$done )
+		return;
+	
+	# Make sure conn_size_analyzer is active by checking 
+	# resp$num_bytes_ip
+	if ( !c$resp?$num_bytes_ip )
 		return;
 	
 	# If this is still a live connection and the byte count has not
@@ -128,11 +145,15 @@ function check_ssh_connection(c: connection, done: bool)
 
 event SSH::heuristic_successful_login(c: connection) &priority=-5
 	{
-	Log::write(SSH, c$ssh);
+	NOTICE([$note=Login, 
+	        $msg="Heuristically detected successful SSH login.",
+	        $conn=c]);
+	
+	Log::write(SSH::LOG, c$ssh);
 	}
 event SSH::heuristic_failed_login(c: connection) &priority=-5
 	{
-	Log::write(SSH, c$ssh);
+	Log::write(SSH::LOG, c$ssh);
 	}
 
 event connection_state_remove(c: connection) &priority=-5

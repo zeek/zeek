@@ -28,3 +28,11 @@ function Reporter::error%(msg: string%): bool
 	reporter->PopLocation();
 	return new Val(1, TYPE_BOOL);
 	%}
+
+function Reporter::fatal%(msg: string%): bool
+	%{
+	reporter->PushLocation(frame->GetCall()->GetLocationInfo());
+	reporter->FatalError("%s", msg->CheckString());
+	reporter->PopLocation();
+	return new Val(1, TYPE_BOOL);
+	%}

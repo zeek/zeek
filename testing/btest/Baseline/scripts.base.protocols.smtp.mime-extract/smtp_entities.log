@@ -1,0 +1,7 @@
+#separator \x09
+#path	smtp_entities
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	mid	filename	content_len	mime_type	md5	extraction_file	excerpt
+#types	time	string	addr	port	addr	port	string	string	count	string	string	file	string
+1254722770.692743	arKYeMETxOg	10.10.1.4	1470	74.53.140.153	25	@56gKBmhBBB6	-	79	FAKE_MIME	-	smtp-entity_10.10.1.4:1470-74.53.140.153:25_1.dat	-
+1254722770.692743	arKYeMETxOg	10.10.1.4	1470	74.53.140.153	25	@56gKBmhBBB6	-	1918	FAKE_MIME	-	-	-
+1254722770.692804	arKYeMETxOg	10.10.1.4	1470	74.53.140.153	25	@56gKBmhBBB6	NEWS.txt	10823	FAKE_MIME	-	smtp-entity_10.10.1.4:1470-74.53.140.153:25_2.dat	-

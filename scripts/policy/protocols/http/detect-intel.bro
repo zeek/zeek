@@ -1,5 +1,9 @@
 ##! Intelligence based HTTP detections.
 
+@load base/protocols/http/main
+@load base/protocols/http/utils
+@load base/frameworks/intel/main
+
 module HTTP;
 
 event log_http(rec: Info)

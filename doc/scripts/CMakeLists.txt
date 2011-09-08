@@ -119,7 +119,7 @@ macro(REST_TARGET srcDir broInput)
         ARGS -E remove_directory .state
         # generate the reST documentation using bro
         COMMAND BROPATH=${BROPATH}:${srcDir} ${CMAKE_BINARY_DIR}/src/bro
-        ARGS --doc-scripts ${broInput} || (rm -rf .state *.log *.rst && exit 1)
+        ARGS -b -Z ${broInput} || (rm -rf .state *.log *.rst && exit 1)
         # move generated doc into a new directory tree that
         # defines the final structure of documents
         COMMAND "${CMAKE_COMMAND}"
@@ -212,9 +212,9 @@ add_custom_target(restclean
                           ${RST_OUTPUT_DIR}
                   VERBATIM)
 
-# The "doc" target generates reST documentation for any outdated bro scripts
-# and then uses Sphinx to generate HTML documentation from the reST
-add_custom_target(doc
+# The "sphinxdoc" target generates reST documentation for any outdated bro
+# scripts and then uses Sphinx to generate HTML documentation from the reST
+add_custom_target(sphinxdoc
                   # copy the template documentation to the build directory
                   # to give as input for sphinx
                   COMMAND "${CMAKE_COMMAND}" -E copy_directory
@@ -252,13 +252,16 @@ add_custom_target(doc
                   # SOURCES just adds stuff to IDE projects as a convenience
                   SOURCES ${DOC_SOURCES})
 
-# The "docclean" target removes just the Sphinx input/output directories
+# The "sphinxclean" target removes just the Sphinx input/output directories
 # from the build directory.
-add_custom_target(docclean
+add_custom_target(sphinxclean
                   COMMAND "${CMAKE_COMMAND}" -E remove_directory
                           ${DOC_SOURCE_WORKDIR}
                   COMMAND "${CMAKE_COMMAND}" -E remove_directory
                           ${DOC_OUTPUT_DIR}
                   VERBATIM)
 
-add_dependencies(doc docclean restdoc)
+add_dependencies(sphinxdoc sphinxclean restdoc)
+
+add_dependencies(doc sphinxdoc)
+add_dependencies(docclean sphinxclean restclean)

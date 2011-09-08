@@ -11,7 +11,7 @@ export {
 	const include_header = T &redef;
 
 	## Prefix for the header line if included.
-	const header_prefix = "# " &redef;
+	const header_prefix = "#" &redef;
 
 	## Separator between fields.
 	const separator = "\t" &redef;

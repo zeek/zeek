@@ -60,7 +60,7 @@ BroDoc::BroDoc(const std::string& rel, const std::string& abs)
 	if ( ! reST_file )
 		fprintf(stderr, "Failed to open %s\n", reST_filename.c_str());
 
-#ifdef DEBUG
+#ifdef DOCDEBUG
 	fprintf(stdout, "Documenting absolute source: %s\n", abs.c_str());
 	fprintf(stdout, "\trelative dir: %s\n", rel.c_str());
 	fprintf(stdout, "\tdoc title: %s\n", doc_title.c_str());
@@ -227,6 +227,7 @@ void BroDoc::WriteDocFile() const
 		WriteToDoc("%s\n", packet_filter.c_str());
 		}
 
+#if 0   // Disabled for now.
 	BroDocObjList::const_iterator it;
 	bool hasPrivateIdentifiers = false;
 
@@ -241,6 +242,7 @@ void BroDoc::WriteDocFile() const
 
 	if ( hasPrivateIdentifiers )
 		WriteInterface("Private Interface", '-', '~', false, false);
+#endif
 	}
 
 void BroDoc::WriteInterface(const char* heading, char underline,

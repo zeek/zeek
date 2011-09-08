@@ -52,7 +52,7 @@ export {
 		## If not given, all entries are recorded.
 		##
 		## rec: An instance of the streams's ``columns`` type with its
-		## fields set to the values to logged.
+		##      fields set to the values to logged.
 		##
 		## Returns: True if the entry is to be recorded.
 		pred: function(rec: any): bool &optional;
@@ -159,7 +159,7 @@ export {
 # We keep a script-level copy of all filters so that we can manipulate them.
 global filters: table[ID, string] of Filter;
 
-@load logging.bif.bro # Needs Filter and Stream defined.
+@load base/logging.bif # Needs Filter and Stream defined.
 
 module Log;
 
@@ -172,8 +172,47 @@ function __default_rotation_postprocessor(info: RotationInfo) : bool
 
 function default_path_func(id: ID, path: string, rec: any) : string
 	{
-	# TODO for Seth: Do what you want. :)
-	return path;
+	local id_str = fmt("%s", id);
+	
+	local parts = split1(id_str, /::/);
+	if ( |parts| == 2 )
+		{
+		# TODO: the core shouldn't be suggesting paths anymore.  Only 
+		#       statically defined paths should be sent into here.  This
+		#       is only to cope with the core generated paths.
+		if ( to_lower(parts[2]) != path )
+			return path;
+		
+		# Example: Notice::LOG -> "notice"
+		if ( parts[2] == "LOG" )
+			{
+			local module_parts = split_n(parts[1], /[^A-Z][A-Z][a-z]*/, T, 4);
+			local output = "";
+			if ( 1 in module_parts )
+				output = module_parts[1];
+			if ( 2 in module_parts && module_parts[2] != "" )
+				output = cat(output, sub_bytes(module_parts[2],1,1), "_", sub_bytes(module_parts[2], 2, |module_parts[2]|));
+			if ( 3 in module_parts && module_parts[3] != "" )
+				output = cat(output, "_", module_parts[3]);
+			if ( 4 in module_parts && module_parts[4] != "" )
+				output = cat(output, sub_bytes(module_parts[4],1,1), "_", sub_bytes(module_parts[4], 2, |module_parts[4]|));
+			# TODO: There seems to be some problem with the split function 
+			#       not putting \0 at the end of the string.  fmt will make
+			#       a better internal string.
+			return fmt("%s", to_lower(output));
+			}
+		
+		# Example: Notice::POLICY_LOG -> "notice_policy"
+		if ( /_LOG$/ in parts[2] )
+			parts[2] = sub(parts[2], /_LOG$/, "");
+		
+		return cat(to_lower(parts[1]),"_",to_lower(parts[2]));
+		}
+	else
+		{
+		# In case there is a logging stream in the global namespace.
+		return to_lower(id_str);
+		}
 	}
 
 # Run post-processor on file. If there isn't any postprocessor defined,
@@ -217,7 +256,7 @@ function add_filter(id: ID, filter: Filter) : bool
 	# definition.
 	if ( ! filter?$path_func )
 		filter$path_func = default_path_func;
-
+	
 	filters[id, filter$name] = filter;
 	return __add_filter(id, filter);
 	}

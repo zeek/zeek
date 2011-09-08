@@ -1,3 +1,4 @@
+@load base/frameworks/notice
 
 @prefixes += cluster-worker
 
@@ -21,10 +22,5 @@ redef record_all_packets = T;
 # do remote logging since we forward the notice event directly.
 event bro_init()
 	{
-	Log::add_filter(Notice::NOTICE,
-		[
-		 $name="cluster-worker",
-		 $pred=function(rec: Notice::Info): bool { return F; }
-		]
-	);
+	Log::disable_stream(Notice::LOG);
 	}

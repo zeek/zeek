@@ -5,9 +5,13 @@
 module Reporter;
 
 export {
-	redef enum Log::ID += { REPORTER };
+	redef enum Log::ID += { LOG };
 	
-	type Level: enum { INFO, WARNING, ERROR };
+	type Level: enum { 
+		INFO, 
+		WARNING, 
+		ERROR
+	};
 	
 	type Info: record {
 		ts:       time   &log;
@@ -19,22 +23,22 @@ export {
 	};
 }
 
-event bro_init()
+event bro_init() &priority=5
 	{
-	Log::create_stream(REPORTER, [$columns=Info]);
+	Log::create_stream(Reporter::LOG, [$columns=Info]);
 	}
 
 event reporter_info(t: time, msg: string, location: string)
 	{
-	Log::write(REPORTER, [$ts=t, $level=INFO, $message=msg, $location=location]);
+	Log::write(Reporter::LOG, [$ts=t, $level=INFO, $message=msg, $location=location]);
 	}
 	
 event reporter_warning(t: time, msg: string, location: string)
 	{
-	Log::write(REPORTER, [$ts=t, $level=WARNING, $message=msg, $location=location]);
+	Log::write(Reporter::LOG, [$ts=t, $level=WARNING, $message=msg, $location=location]);
 	}
 
 event reporter_error(t: time, msg: string, location: string)
 	{
-	Log::write(REPORTER, [$ts=t, $level=ERROR, $message=msg, $location=location]);
+	Log::write(Reporter::LOG, [$ts=t, $level=ERROR, $message=msg, $location=location]);
 	}

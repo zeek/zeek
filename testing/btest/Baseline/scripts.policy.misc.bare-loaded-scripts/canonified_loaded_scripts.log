@@ -1,0 +1,13 @@
+# depth	name
+0	scripts/base/init-bare.bro
+1	build/src/base/const.bif.bro
+1	build/src/base/types.bif.bro
+1	build/src/base/strings.bif.bro
+1	build/src/base/bro.bif.bro
+1	build/src/base/reporter.bif.bro
+1	build/src/base/event.bif.bro
+1	scripts/base/frameworks/logging/__load__.bro
+2	scripts/base/frameworks/logging/./main.bro
+3	build/src/base/logging.bif.bro
+2	scripts/base/frameworks/logging/./writers/ascii.bro
+0	scripts/policy/misc/loaded-scripts.bro

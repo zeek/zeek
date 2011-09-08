@@ -1,5 +1,9 @@
 ##! SQL injection detection in HTTP.
 
+@load base/frameworks/notice/main
+@load base/frameworks/metrics/main
+@load base/protocols/http/main
+
 module HTTP;
 
 export {
@@ -35,13 +39,13 @@ export {
 
 event bro_init()
 	{
-	Metrics::add_filter(SQL_ATTACKS, [$log=T, 
-	                                  $break_interval=1mins, 
+	Metrics::add_filter(SQL_ATTACKS, [$log=F,
+	                                  $break_interval=5mins, 
 	                                  $note=SQL_Injection_Attacker]);
-	Metrics::add_filter(SQL_ATTACKS_AGAINST, [$log=T, 
-	                                          $break_interval=1mins, 
+	Metrics::add_filter(SQL_ATTACKS_AGAINST, [$log=F, 
+	                                          $break_interval=5mins, 
 	                                          $note=SQL_Injection_Attack, 
-	                                          $notice_thresholds=vector(10,100)]);
+	                                          $notice_threshold=50]);
 	}
 
 event http_request(c: connection, method: string, original_URI: string,

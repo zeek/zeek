@@ -1,4 +1,7 @@
-# ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	missed_bytes	history
-952109346.874907	UWkUyAuUGXf	10.1.2.1	11001	10.34.0.1	23	tcp	-	2.10255992412567	25	0	SH	-	0	-
-1128727435.450898	56gKBmhBBB6	141.42.64.125	56730	125.190.109.199	80	tcp	http	1.73330307006836	98	9417	SF	-	0	ShADdFaf
-1278600802.069419	50da4BEzauh	10.20.80.1	50343	10.0.0.15	80	tcp	-	0.00415205955505371	9	3429	SF	-	0	ShADadfF
+#separator \x09
+#path	conn
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes
+#types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	count	string	count	count	count	count
+952109346.874907	UWkUyAuUGXf	10.1.2.1	11001	10.34.0.1	23	tcp	-	2.102560	25	0	SH	-	0	-	11	280	0	0
+1128727435.450898	arKYeMETxOg	141.42.64.125	56730	125.190.109.199	80	tcp	http	1.733303	98	9417	SF	-	0	ShADdFaf	12	710	10	9945
+1278600802.069419	k6kgXLOoSKl	10.20.80.1	50343	10.0.0.15	80	tcp	-	0.004152	9	3429	SF	-	0	ShADadfF	7	361	7	3801

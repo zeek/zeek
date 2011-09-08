@@ -5,12 +5,7 @@
 # to offer. For more, execute that one directly. 
 #
 
-SOURCE=$(PWD)
-BUILD=$(SOURCE)/build
-TMP=/tmp/bro-dist.$(UID)
-BRO_V=`cat $(SOURCE)/VERSION`
-BROCCOLI_V=`cat $(SOURCE)/aux/broccoli/VERSION`
-BROCTL_V=`cat $(SOURCE)/aux/broctl/VERSION`
+BUILD=build
 
 all: configured
 	( cd $(BUILD) && make )
@@ -18,31 +13,17 @@ all: configured
 install: configured
 	( cd $(BUILD) && make install )
 
-clean: configured
+clean: configured docclean
 	( cd $(BUILD) && make clean )
-	( cd $(BUILD) && make docclean && make restclean )
 
 doc: configured
 	( cd $(BUILD) && make doc )
 
 docclean: configured
-	( cd $(BUILD) && make docclean && make restclean )
+	( cd $(BUILD) && make docclean )
 
 dist:
-	@( mkdir -p $(BUILD) && rm -rf $(TMP) && mkdir $(TMP) )
-	@cp -R $(SOURCE) $(TMP)/Bro-$(BRO_V)
-	@( cd $(TMP) && find . -name .git\* | xargs rm -rf )
-	@( cd $(TMP) && find . -name \*.swp | xargs rm -rf )
-	@( cd $(TMP) && find . -type d -name build | xargs rm -rf )
-	@( cd $(TMP) && tar -czf $(BUILD)/Bro-all-$(BRO_V).tar.gz Bro-$(BRO_V) )
-	@( cd $(TMP)/Bro-$(BRO_V)/aux && mv broccoli Broccoli-$(BROCCOLI_V) && \
-	    tar -czf $(BUILD)/Broccoli-$(BROCCOLI_V).tar.gz Broccoli-$(BROCCOLI_V) )
-	@( cd $(TMP)/Bro-$(BRO_V)/aux && mv broctl Broctl-$(BROCTL_V) && \
-	    tar -czf $(BUILD)/Broctl-$(BROCTL_V).tar.gz Broctl-$(BROCTL_V) )
-	@( cd $(TMP)/Bro-$(BRO_V)/aux && rm -rf Broctl* Broccoli* )
-	@( cd $(TMP) && tar -czf $(BUILD)/Bro-$(BRO_V).tar.gz Bro-$(BRO_V) )
-	@rm -rf $(TMP)
-	@echo "Distribution source tarballs have been compiled in $(BUILD)"
+	@./pkg/make-src-packages
 
 bindist:
 	@( cd pkg && ( ./make-deb-packages || ./make-mac-packages || \

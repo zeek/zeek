@@ -5,20 +5,6 @@
 ##! (reST) document's summary section.
 ##!
 ##! .. tip:: You can embed directives and roles within ``##``-stylized comments.
-##!
-##! A script's logging information has to be documented manually as minimally
-##! shown below.  Note that references may not always be possible (e.g.
-##! anonymous filter functions) and a script may not need to document
-##! each of "columns", "event", "filter" depending on exactly what it's doing.
-##!
-##! **Logging Stream ID:** :bro:enum:`Example::EXAMPLE`
-##!     :Columns:    :bro:type:`Example::Info`
-##!     :Event:      :bro:id:`Example::log_example`
-##!     :Filter:     ``example-filter``
-##!         uses :bro:id:`Example::filter_func` to determine whether to
-##!         exclude the ``ts`` field
-##!
-##! :Author: Jon Siwek <jsiwek@ncsa.illinois.edu>
 
 # Comments that use a single pound sign (#) are not significant to
 # a script's auto-generated documentation, but ones that use a
@@ -80,7 +66,7 @@ redef enum Notice::Type += {
 # Comments of the "##" form can be use to further document it, but it's
 # better to do all documentation related to logging in the summary section
 # as is shown above.
-redef enum Log::ID += { EXAMPLE };
+redef enum Log::ID += { LOG };
 
 # Anything declared in the export section will show up in the rendered
 # documentation's "public interface" section
@@ -218,8 +204,8 @@ type PrivateRecord: record {
 
 event bro_init()
     {
-    Log::create_stream(EXAMPLE, [$columns=Info, $ev=log_example]);
-    Log::add_filter(EXAMPLE, [
+    Log::create_stream(Example::LOG, [$columns=Info, $ev=log_example]);
+    Log::add_filter(Example::LOG, [
         $name="example-filter",
         $path="example-filter",
         $pred=filter_func,

@@ -28,6 +28,7 @@ protected:
 private:
 	bool IsSpecial(string path) 	{ return path.find("/dev/") == 0; }
 	bool DoWriteOne(ODesc* desc, LogVal* val, const LogField* field);
+	bool WriteHeaderField(const string& key, const string& value);
 
 	FILE* file;
 	string fname;

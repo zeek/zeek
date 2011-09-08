@@ -3,9 +3,11 @@
 ##! completed a TCP handshake with another host.  If a protocol is detected
 ##! during the session, the protocol will also be logged.
 
-module KnownServices;
+@load base/utils/directions-and-hosts
 
-redef enum Log::ID += { KNOWN_SERVICES };
+module Known;
+
+redef enum Log::ID += { SERVICES_LOG };
 
 export {
 	type Info: record {
@@ -19,7 +21,7 @@ export {
 	};
 	
 	## The hosts whose services should be tracked and logged.
-	const asset_tracking = LOCAL_HOSTS &redef;
+	const service_tracking = LOCAL_HOSTS &redef;
 	
 	global known_services: set[addr, port] &create_expire=1day &synchronized;
 	
@@ -33,8 +35,8 @@ redef record connection += {
 
 event bro_init()
 	{
-	Log::create_stream(KNOWN_SERVICES, [$columns=Info,
-	                                    $ev=log_known_services]);
+	Log::create_stream(Known::SERVICES_LOG, [$columns=Info,
+	                                        $ev=log_known_services]);
 	}
 	
 function known_services_done(c: connection)
@@ -42,7 +44,7 @@ function known_services_done(c: connection)
 	local id = c$id;
 	if ( ! c$known_services_done &&
 	     get_port_transport_proto(id$resp_p) == tcp &&
-	     addr_matches_host(id$resp_h, asset_tracking) &&
+	     addr_matches_host(id$resp_h, service_tracking) &&
 	     [id$resp_h, id$resp_p] !in known_services &&
 	     "ftp-data" !in c$service ) # don't include ftp data sessions
 		{
@@ -54,7 +56,7 @@ function known_services_done(c: connection)
 		i$service=c$service;
 		
 		add known_services[id$resp_h, id$resp_p];
-		Log::write(KNOWN_SERVICES, i);
+		Log::write(Known::SERVICES_LOG, i);
 		c$known_services_done = T;
 		}
 	}

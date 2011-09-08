@@ -20,10 +20,12 @@
 #   canary
 #   friend
 
+@load base/frameworks/notice
+
 module Intel;
 
 export {
-	redef enum Log::ID += { INTEL };
+	redef enum Log::ID += { LOG };
 	
 	redef enum Notice::Type += {
 		## This notice should be used in all detector scripts to indicate 
@@ -99,7 +101,7 @@ export {
 
 event bro_init()
 	{
-	Log::create_stream(INTEL, [$columns=Info]);
+	Log::create_stream(Intel::LOG, [$columns=Info]);
 	}
 
 
@@ -161,7 +163,7 @@ function insert(item: Item): bool
 		}
 	
 	if ( err_msg != "" )
-		Log::write(INTEL, [$ts=network_time(), $level="warn", $message=fmt(err_msg)]);
+		Log::write(Intel::LOG, [$ts=network_time(), $level="warn", $message=fmt(err_msg)]);
 	return F;
 	}
 	
@@ -270,6 +272,6 @@ function matcher(item: QueryItem): bool
 		}
 		
 	if ( err_msg != "" )
-		Log::write(INTEL, [$ts=network_time(), $level="error", $message=fmt(err_msg)]);
+		Log::write(Intel::LOG, [$ts=network_time(), $level="error", $message=fmt(err_msg)]);
 	return F;
 	}

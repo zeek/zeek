@@ -4,11 +4,14 @@
 ##! that they analyze.  The entry point for providing new software detections
 ##! to this framework is through the :bro:id:`Software::found` function.
 
+@load base/utils/directions-and-hosts
+@load base/utils/numbers
+
 module Software;
 
 export {
 
-	redef enum Log::ID += { SOFTWARE };
+	redef enum Log::ID += { LOG };
 
 	type Type: enum {
 		UNKNOWN,
@@ -100,7 +103,7 @@ export {
 
 event bro_init()
 	{
-	Log::create_stream(SOFTWARE, [$columns=Info, $ev=log_software]);
+	Log::create_stream(Software::LOG, [$columns=Info, $ev=log_software]);
 	}
 
 function parse_mozilla(unparsed_version: string, 
@@ -376,7 +379,7 @@ event software_register(id: conn_id, info: Info)
 			return;
 		}
 	
-	Log::write(SOFTWARE, info);
+	Log::write(Software::LOG, info);
 	ts[info$name] = info;
 	}
 

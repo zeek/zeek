@@ -1,5 +1,7 @@
 ##! Software identification and extraction for HTTP traffic.
 
+@load base/frameworks/software/main
+
 module HTTP;
 
 export {

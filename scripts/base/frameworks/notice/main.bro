@@ -9,15 +9,13 @@ module Notice;
 
 export {
 	redef enum Log::ID += { 
-		## This is the primary logging stream for notices.  It must always be
-		## referenced with the module name included because the name is 
-		## also used by the global function :bro:id:`NOTICE`.
-		NOTICE, 
+		## This is the primary logging stream for notices.
+		LOG, 
 		## This is the notice policy auditing log.  It records what the current
 		## notice policy is at Bro init time.
-		NOTICE_POLICY,
+		POLICY_LOG,
 		## This is the alarm stream.
-		ALARM,
+		ALARM_LOG,
 	};
 
 	## Scripts creating new notices need to redef this enum to add their own 
@@ -41,7 +39,9 @@ export {
 		## Indicates that the notice should be sent to the email address(es) 
 		## configured in the :bro:id:`Notice::mail_dest` variable.
 		ACTION_EMAIL,
-		## Indicates that the notice should be alarmed.
+		## Indicates that the notice should be alarmed.  A readable ASCII
+		## version of the alarm log is emailed in bulk to the address(es)
+		## configured in :bro:id:`Notice::mail_dest`.
 		ACTION_ALARM,
 	};
 	
@@ -136,7 +136,8 @@ export {
 	
 	## Local system sendmail program.
 	const sendmail            = "/usr/sbin/sendmail" &redef;
-	## Email address to send notices with the :bro:enum:`ACTION_EMAIL` action.
+	## Email address to send notices with the :bro:enum:`ACTION_EMAIL` action
+	## or to send bulk alarm logs on rotation with :bro:enum:`ACTION_ALARM`.
 	const mail_dest           = ""                   &redef;
 	
 	## Address that emails will be from.
@@ -145,6 +146,11 @@ export {
 	const reply_to            = "" &redef;
 	## Text string prefixed to the subject of all emails sent out.
 	const mail_subject_prefix = "[Bro]" &redef;
+
+	## A log postprocessing function that implements emailing the contents
+	## of a log upon rotation to any configured :bro:id:`Notice::mail_dest`.
+	## The rotated log is removed upon being sent.
+	global log_mailing_postprocessor: function(info: Log::RotationInfo): bool;
 
 	## This is the event that is called as the entry point to the 
 	## notice framework by the global :bro:id:`NOTICE` function.  By the time 
@@ -171,7 +177,14 @@ export {
 	## by default with the built in :bro:enum:`ACTION_EMAIL` and
 	## :bro:enum:`ACTION_PAGE` actions.
 	global email_notice_to: function(n: Info, dest: string, extend: bool);
-	
+
+	## Constructs mail headers to which an email body can be appended for
+	## sending with sendmail.
+	## subject_desc: a subject string to use for the mail
+	## dest: recipient string to use for the mail
+	## Returns: a string of mail headers to which an email body can be appended
+	global email_headers: function(subject_desc: string, dest: string): string;
+
 	## This is an internally used function, please ignore it.  It's only used
 	## for filling out missing details of :bro:type:`Notice:Info` records
 	## before the synchronous and asynchronous event pathways have begun.
@@ -186,21 +199,48 @@ export {
 # priority.
 global ordered_policy: vector of PolicyItem = vector();
 
-event bro_init()
+function log_mailing_postprocessor(info: Log::RotationInfo): bool
 	{
-	Log::create_stream(NOTICE_POLICY, [$columns=PolicyItem]);
-	Log::create_stream(Notice::NOTICE, [$columns=Info, $ev=log_notice]);
-	
-	Log::create_stream(ALARM, [$columns=Notice::Info]);
-	# Make sure that this log is output as text so that it can be packaged
-	# up and emailed later.
-	Log::add_filter(ALARM, [$name="default", $writer=Log::WRITER_ASCII]);
+	if ( ! reading_traces() && mail_dest != "" )
+		{
+		local headers = email_headers(fmt("Log Contents: %s", info$fname),
+		                              mail_dest);
+		local tmpfilename = fmt("%s.mailheaders.tmp", info$fname);
+		local tmpfile = open(tmpfilename);
+		write_file(tmpfile, headers);
+		close(tmpfile);
+		system(fmt("/bin/cat %s %s | %s -t -oi && /bin/rm %s %s",
+		       tmpfilename, info$fname, sendmail, tmpfilename, info$fname));
+		}
+	return T;
 	}
-	# TODO: need a way to call a Bro script level callback during file rotation.
-	#       we need more than a just $postprocessor.
-	#redef Log::rotation_control += {
-	#	[Log::WRITER_ASCII, "alarm"] = [$postprocessor="mail-alarms"];
-	#};
+
+# This extra export section here is just because this redefinition should
+# be documented as part of the "public API" of this script, but the redef
+# needs to occur after the postprocessor function implementation.
+export {
+	## By default, an ASCII version of the the alarm log is emailed daily to any
+	## configured :bro:id:`Notice::mail_dest` if not operating on trace files.
+	redef Log::rotation_control += {
+		[Log::WRITER_ASCII, "alarm-mail"] =
+		    [$interv=24hrs, $postprocessor=log_mailing_postprocessor]
+	};
+}
+
+event bro_init() &priority=5
+	{
+	Log::create_stream(Notice::LOG, [$columns=Info, $ev=log_notice]);
+	Log::create_stream(Notice::POLICY_LOG, [$columns=PolicyItem]);
+	
+	Log::create_stream(Notice::ALARM_LOG, [$columns=Notice::Info]);
+	# If Bro is configured for mailing notices, set up mailing for alarms.
+	# Make sure that this alarm log is also output as text so that it can
+	# be packaged up and emailed later.
+	if ( ! reading_traces() && mail_dest != "" )
+		Log::add_filter(Notice::ALARM_LOG, [$name="alarm-mail", 
+		                                    $path="alarm-mail",
+		                                    $writer=Log::WRITER_ASCII]);
+	}
 
 # TODO: fix this.
 #function notice_tags(n: Notice::Info) : table[string] of string
@@ -220,20 +260,24 @@ event bro_init()
 #	return tgs;
 #	}
 
+function email_headers(subject_desc: string, dest: string): string
+	{
+	local header_text = string_cat(
+		"From: ", mail_from, "\n",
+		"Subject: ", mail_subject_prefix, " ", subject_desc, "\n",
+		"To: ", dest, "\n",
+		"User-Agent: Bro-IDS/", bro_version(), "\n");
+	if ( reply_to != "" )
+		header_text = string_cat(header_text, "Reply-To: ", reply_to, "\n");
+	return header_text;
+	}
+
 function email_notice_to(n: Notice::Info, dest: string, extend: bool)
 	{
 	if ( reading_traces() || dest == "" )
 		return;
 		
-	local email_text = string_cat(
-		"From: ", mail_from, "\n",
-		"Subject: ", mail_subject_prefix, " ", fmt("%s", n$note), "\n",
-		"To: ", dest, "\n",
-		# TODO: BiF to get version (the resource_usage Bif seems like overkill).
-		"User-Agent: Bro-IDS/?.?.?\n"); 
-	
-	if ( reply_to != "" )
-		email_text = string_cat(email_text, "Reply-To: ", reply_to, "\n");
+	local email_text = email_headers(fmt("%s", n$note), dest);
 	
 	# The notice emails always start off with the human readable message.
 	email_text = string_cat(email_text, "\n", n$msg, "\n");
@@ -257,9 +301,9 @@ event notice(n: Notice::Info) &priority=-5
 	if ( ACTION_EMAIL in n$actions )
 		email_notice_to(n, mail_dest, T);
 	if ( ACTION_LOG in n$actions )
-		Log::write(Notice::NOTICE, n);
+		Log::write(Notice::LOG, n);
 	if ( ACTION_ALARM in n$actions )
-		Log::write(ALARM, n);
+		Log::write(Notice::ALARM_LOG, n);
 	}
 
 # Executes a script with all of the notice fields put into the
@@ -308,7 +352,9 @@ function apply_policy(n: Notice::Info)
 
 	if ( ! n?$src_peer )
 		n$src_peer = get_event_peer();
-	n$peer_descr = n$src_peer?$descr ? n$src_peer$descr : fmt("%s", n$src_peer$host);
+	if ( ! n?$peer_descr )
+		n$peer_descr = n$src_peer?$descr ? 
+		                   n$src_peer$descr : fmt("%s", n$src_peer$host);
 	
 	if ( ! n?$actions )
 		n$actions = set();
@@ -340,16 +386,13 @@ function apply_policy(n: Notice::Info)
 	
 # Create the ordered notice policy automatically which will be used at runtime 
 # for prioritized matching of the notice policy.
-event bro_init()
+event bro_init() &priority=10
 	{
 	local tmp: table[count] of set[PolicyItem] = table();
 	for ( pi in policy )
 		{
 		if ( pi$priority < 0 || pi$priority > 10 )
-			{
-			print "All Notice::PolicyItem priorities must be within 0 and 10";
-			exit();
-			}
+			Reporter::fatal("All Notice::PolicyItem priorities must be within 0 and 10");
 			
 		if ( pi$priority !in tmp )
 			tmp[pi$priority] = set();
@@ -366,7 +409,7 @@ event bro_init()
 				{
 				pi$position = |ordered_policy|;
 				ordered_policy[|ordered_policy|] = pi;
-				Log::write(NOTICE_POLICY, pi);
+				Log::write(Notice::POLICY_LOG, pi);
 				}
 			}
 		}

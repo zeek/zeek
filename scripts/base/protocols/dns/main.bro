@@ -1,8 +1,9 @@
+@load ./consts
 
 module DNS;
 
 export {
-	redef enum Log::ID += { DNS };
+	redef enum Log::ID += { LOG };
 	
 	type Info: record {
 		ts:            time            &log;
@@ -76,7 +77,7 @@ redef dpd_config += { [ANALYZER_DNS_TCP_BINPAC] = [$ports = dns_tcp_ports] };
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(DNS, [$columns=Info, $ev=log_dns]);
+	Log::create_stream(DNS::LOG, [$columns=Info, $ev=log_dns]);
 	}
 
 function new_session(c: connection, trans_id: count): Info
@@ -162,7 +163,7 @@ event do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string) &pri
 	{
 	if ( c$dns$ready )
 		{
-		Log::write(DNS, c$dns);
+		Log::write(DNS::LOG, c$dns);
 		add c$dns_state$finished_answers[c$dns$trans_id];
 		# This record is logged and no longer pending.
 		delete c$dns_state$pending[c$dns$trans_id];
@@ -274,6 +275,6 @@ event connection_state_remove(c: connection) &priority=-5
 	# If Bro is expiring state, we should go ahead and log all unlogged 
 	# request/response pairs now.
 	for ( trans_id in c$dns_state$pending )
-		Log::write(DNS, c$dns_state$pending[trans_id]);
+		Log::write(DNS::LOG, c$dns_state$pending[trans_id]);
 	}
 	

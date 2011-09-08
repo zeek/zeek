@@ -89,8 +89,10 @@ public:
 private:
 	void DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Connection* conn, val_list* addl, bool location, bool time, const char* fmt, va_list ap);
 
-	void WeirdHelper(EventHandlerPtr event, Val* conn_val, const char* name, const char* addl, ...);
-	void WeirdFlowHelper(const uint32* orig, const uint32* resp, const char* name, ...);
+	// The order if addl, name needs to be like that since fmt_name can
+	// contain format specifiers
+	void WeirdHelper(EventHandlerPtr event, Val* conn_val, const char* addl, const char* fmt_name, ...);
+	void WeirdFlowHelper(const uint32* orig, const uint32* resp, const char* fmt_name, ...);
 
 	int errors;
 	bool via_events;

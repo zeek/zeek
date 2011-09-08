@@ -8,6 +8,9 @@
 ##! Example line from IRC server indicating that the DCC SEND is about to start:
 ##!    PRIVMSG my_nick :^ADCC SEND whateverfile.zip 3640061780 1026 41709^A
 
+@load ./main
+@load base/utils/files
+
 module IRC;
 
 export {
@@ -70,7 +73,7 @@ event file_transferred(c: connection, prefix: string, descr: string,
 
 	local tmp = irc$command;
 	irc$command = "DCC";
-	Log::write(IRC, irc);
+	Log::write(IRC::LOG, irc);
 	irc$command = tmp;
 
 	if ( irc$extract_file && irc?$extraction_file )

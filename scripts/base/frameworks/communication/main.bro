@@ -1,10 +1,12 @@
 ##! Connect to remote Bro or Broccoli instances to share state and/or transfer
 ##! events.
 
+@load base/frameworks/packet-filter
+
 module Communication;
 
 export {
-	redef enum Log::ID += { COMMUNICATION };
+	redef enum Log::ID += { LOG };
 	
 	const default_port_ssl = 47756/tcp &redef;
 	const default_port_clear = 47757/tcp &redef;
@@ -105,21 +107,18 @@ const src_names = {
 	[REMOTE_SRC_SCRIPT] = "script",
 };
 
-event bro_init()
+event bro_init() &priority=5
 	{
-	Log::create_stream(COMMUNICATION, [$columns=Info]);
-
-	if ( |nodes| > 0 )
-		enable_communication();
+	Log::create_stream(Communication::LOG, [$columns=Info]);
 	}
 
 function do_script_log_common(level: count, src: count, msg: string)
 	{
-	Log::write(COMMUNICATION, [$ts = network_time(), 
-	                           $level = (level == REMOTE_LOG_INFO ? "info" : "error"),
-	                           $src_name = src_names[src],
-	                           $peer = get_event_peer()$descr,
-	                           $message = msg]);
+	Log::write(Communication::LOG, [$ts = network_time(), 
+	                                $level = (level == REMOTE_LOG_INFO ? "info" : "error"),
+	                                $src_name = src_names[src],
+	                                $peer = get_event_peer()$descr,
+	                                $message = msg]);
 	}
 
 # This is a core generated event.
@@ -145,9 +144,9 @@ function connect_peer(peer: string)
 	local id = connect(node$host, p, class, node$retry, node$ssl);
     
 	if ( id == PEER_ID_NONE )
-		Log::write(COMMUNICATION, [$ts = network_time(), 
-		                           $peer = get_event_peer()$descr,
-		                           $message = "can't trigger connect"]);
+		Log::write(Communication::LOG, [$ts = network_time(), 
+		                                $peer = get_event_peer()$descr,
+		                                $message = "can't trigger connect"]);
 	pending_peers[id] = node;
 	}
 
@@ -273,15 +272,18 @@ event remote_state_inconsistency(operation: string, id: string,
 
 	local msg = fmt("state inconsistency: %s should be %s but is %s before %s",
 	                id, expected_old, real_old, operation);
-	Log::write(COMMUNICATION, [$ts = network_time(),
-	                           $peer = get_event_peer()$descr,
-	                           $message = msg]);
+	Log::write(Communication::LOG, [$ts = network_time(),
+	                                $peer = get_event_peer()$descr,
+	                                $message = msg]);
 	}
 
 
 # Actually initiate the connections that need to be established.
 event bro_init() &priority = -10 # let others modify nodes
 	{
+	if ( |nodes| > 0 )
+		enable_communication();
+	
 	for ( tag in nodes )
 		{
 		if ( ! nodes[tag]$connect )

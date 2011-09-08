@@ -122,7 +122,6 @@ bool LogVal::IsCompatibleType(BroType* t, bool atomic_only)
 	case TYPE_COUNTER:
 	case TYPE_PORT:
 	case TYPE_SUBNET:
-	case TYPE_NET:
 	case TYPE_ADDR:
 	case TYPE_DOUBLE:
 	case TYPE_TIME:
@@ -205,7 +204,6 @@ bool LogVal::Read(SerializationFormat* fmt)
 		return true;
 		}
 
-	case TYPE_NET:
 	case TYPE_ADDR:
 		{
 		uint32 addr[4];
@@ -319,7 +317,6 @@ bool LogVal::Write(SerializationFormat* fmt) const
 			fmt->Write(val.subnet_val.width, "width");
 		}
 
-	case TYPE_NET:
 	case TYPE_ADDR:
 		{
 		uint32 addr[4];
@@ -447,7 +444,7 @@ LogMgr::WriterInfo* LogMgr::FindWriter(LogWriter* writer)
 			{
 			WriterInfo* winfo = i->second;
 
-			if ( winfo->writer == writer )
+			if ( winfo && winfo->writer == writer )
 				return winfo;
 			}
 		}
@@ -1051,7 +1048,6 @@ LogVal* LogMgr::ValToLogVal(Val* val, BroType* ty)
 		lval->val.subnet_val = *val->AsSubNet();
 		break;
 
-	case TYPE_NET:
 	case TYPE_ADDR:
 		{
 		addr_type t = val->AsAddr();
@@ -1510,7 +1506,8 @@ bool LogMgr::FinishedRotation(LogWriter* writer, string new_name, string old_nam
 		writer->Path().c_str(), network_time, new_name.c_str());
 
 	WriterInfo* winfo = FindWriter(writer);
-	assert(winfo);
+	if ( ! winfo )
+		return true;
 
 	RecordVal* rc =
 		LookupRotationControl(winfo->type, winfo->writer->Path());

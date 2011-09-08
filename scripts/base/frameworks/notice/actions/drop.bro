@@ -1,6 +1,8 @@
 ##! This script extends the built in notice code to implement the IP address
 ##! dropping functionality.
 
+@load ../main
+
 module Notice;
 
 export {

@@ -1,8 +1,20 @@
-# ts	node	filter	init	success
-1312570784.336354	-	not ip6	F	T
-# ts	node	filter	init	success
-1312570784.550594	-	(((((((((((((((((((((((port 53) or (tcp port 989)) or (tcp port 443)) or (udp and port 5353)) or (udp and port 5355)) or (tcp port 22)) or (tcp port 995)) or (port 21)) or (tcp port smtp or tcp port 587)) or (port 6667)) or (tcp port 614)) or (tcp port 990)) or (udp port 137)) or (tcp port 993)) or (tcp port 5223)) or (port 514)) or (tcp port 585)) or (tcp port 992)) or (tcp port 563)) or (tcp port 994)) or (tcp port 636)) or (tcp and port (80 or 81 or 631 or 1080 or 3138 or 8000 or 8080 or 8888))) or (port 6666)) and (not ip6)	F	T
-# ts	node	filter	init	success
-1312570784.765990	-	port 42	F	T
-# ts	node	filter	init	success
-1312570784.992999	-	port 56730	T	T
+#separator \x09
+#path	packet_filter
+#fields	ts	node	filter	init	success
+#types	time	string	string	bool	bool
+1315167051.418730	-	not ip6	F	T
+#separator \x09
+#path	packet_filter
+#fields	ts	node	filter	init	success
+#types	time	string	string	bool	bool
+1315167051.652097	-	(((((((((((((((((((((((port 53) or (tcp port 989)) or (tcp port 443)) or (udp and port 5353)) or (udp and port 5355)) or (tcp port 22)) or (tcp port 995)) or (port 21)) or (tcp port smtp or tcp port 587)) or (port 6667)) or (tcp port 614)) or (tcp port 990)) or (udp port 137)) or (tcp port 993)) or (tcp port 5223)) or (port 514)) or (tcp port 585)) or (tcp port 992)) or (tcp port 563)) or (tcp port 994)) or (tcp port 636)) or (tcp and port (80 or 81 or 631 or 1080 or 3138 or 8000 or 8080 or 8888))) or (port 6666)) and (not ip6)	F	T
+#separator \x09
+#path	packet_filter
+#fields	ts	node	filter	init	success
+#types	time	string	string	bool	bool
+1315167051.885416	-	port 42	F	T
+#separator \x09
+#path	packet_filter
+#fields	ts	node	filter	init	success
+#types	time	string	string	bool	bool
+1315167052.120658	-	port 56730	T	T

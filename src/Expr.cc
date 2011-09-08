@@ -2046,7 +2046,6 @@ EqExpr::EqExpr(BroExprTag arg_tag, Expr* arg_op1, Expr* arg_op2)
 		case TYPE_STRING:
 		case TYPE_PORT:
 		case TYPE_ADDR:
-		case TYPE_NET:
 		case TYPE_SUBNET:
 		case TYPE_ERROR:
 			break;
@@ -3972,12 +3971,18 @@ RecordCoerceExpr::RecordCoerceExpr(Expr* op, RecordType* r)
 
 			if ( ! same_type(sup_t_i, sub_t_i) )
 				{
-				char buf[512];
-				safe_snprintf(buf, sizeof(buf),
-					      "type clash for field \"%s\"", sub_r->FieldName(i));
-				Error(buf, sub_t_i);
-				SetError();
-				break;
+				if ( sup_t_i->Tag() != TYPE_RECORD ||
+				     sub_t_i->Tag() != TYPE_RECORD ||
+				     ! record_promotion_compatible(sup_t_i->AsRecordType(),
+				                                   sub_t_i->AsRecordType()) )
+					{
+					char buf[512];
+					safe_snprintf(buf, sizeof(buf),
+						"type clash for field \"%s\"", sub_r->FieldName(i));
+					Error(buf, sub_t_i);
+					SetError();
+					break;
+					}
 				}
 
 			map[t_i] = i;
@@ -4025,6 +4030,24 @@ Val* RecordCoerceExpr::Fold(Val* v) const
 				rhs = rhs->Ref();
 
 			assert(rhs || Type()->AsRecordType()->FieldDecl(i)->FindAttr(ATTR_OPTIONAL));
+
+			BroType* rhs_type = rhs->Type();
+			RecordType* val_type = val->Type()->AsRecordType();
+			BroType* field_type = val_type->FieldType(i);
+
+			if ( rhs_type->Tag() == TYPE_RECORD &&
+			     field_type->Tag() == TYPE_RECORD &&
+			     ! same_type(rhs_type, field_type) )
+				{
+				Val* new_val = rhs->AsRecordVal()->CoerceTo(
+				    field_type->AsRecordType());
+				if ( new_val )
+					{
+					Unref(rhs);
+					rhs = new_val;
+					}
+				}
+
 			val->Assign(i, rhs);
 			}
 		else

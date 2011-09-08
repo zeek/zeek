@@ -1,0 +1,9 @@
+PREFIX<>separator \x7c
+PREFIX<>path|ssh
+PREFIX<>fields|t|id.orig_h|id.orig_p|id.resp_h|id.resp_p|status|country|b
+PREFIX<>types|time|addr|port|addr|port|string|string|bool
+1315167052.828457|1.2.3.4|1234|2.3.4.5|80|success|unknown|NOT-SET
+1315167052.828457|1.2.3.4|1234|2.3.4.5|80|NOT-SET|US|NOT-SET
+1315167052.828457|1.2.3.4|1234|2.3.4.5|80|failure|UK|NOT-SET
+1315167052.828457|1.2.3.4|1234|2.3.4.5|80|NOT-SET|BR|NOT-SET
+1315167052.828457|1.2.3.4|1234|2.3.4.5|80|failure|EMPTY|T

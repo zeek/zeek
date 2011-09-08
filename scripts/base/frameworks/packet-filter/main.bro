@@ -4,10 +4,12 @@
 ##! open filter and all filters defined in Bro scripts with the
 ##! :bro:id:`capture_filters` and :bro:id:`restrict_filters` variables.
 
+@load base/frameworks/notice
+
 module PacketFilter;
 
 export {
-	redef enum Log::ID += { PACKET_FILTER };
+	redef enum Log::ID += { LOG };
 	
 	redef enum Notice::Type += {
 		## This notice is generated if a packet filter is unable to be compiled.
@@ -119,7 +121,7 @@ function install()
 		NOTICE([$note=Compile_Failure, 
 		        $msg=fmt("Compiling packet filter failed"),
 		        $sub=default_filter]);
-		exit();
+		Reporter::fatal(fmt("Bad pcap filter '%s'", default_filter));
 		}
 	
 	# Do an audit log for the packet filter.
@@ -142,11 +144,11 @@ function install()
 		        $sub=default_filter]);
 		}
 	
-	Log::write(PACKET_FILTER, info);
+	Log::write(PacketFilter::LOG, info);
 	}
 
 event bro_init() &priority=10
 	{
-	Log::create_stream(PACKET_FILTER, [$columns=Info]);
+	Log::create_stream(PacketFilter::LOG, [$columns=Info]);
 	PacketFilter::install();
 	}

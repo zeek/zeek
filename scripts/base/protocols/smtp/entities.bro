@@ -12,7 +12,7 @@ export {
 		MD5,
 	};
 
-	redef enum Log::ID += { SMTP_ENTITIES };
+	redef enum Log::ID += { ENTITIES_LOG };
 
 	type EntityInfo: record {
 		## This is the timestamp of when the MIME content transfer began.
@@ -74,7 +74,7 @@ export {
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(SMTP_ENTITIES, [$columns=EntityInfo, $ev=log_mime]);
+	Log::create_stream(SMTP::ENTITIES_LOG, [$columns=EntityInfo, $ev=log_mime]);
 	}
 
 function set_session(c: connection, new_entity: bool)
@@ -185,7 +185,7 @@ event mime_end_entity(c: connection) &priority=-5
 
 	# Only log is there was some content.
 	if ( c$smtp$current_entity$content_len > 0 )
-		Log::write(SMTP_ENTITIES, c$smtp$current_entity);
+		Log::write(SMTP::ENTITIES_LOG, c$smtp$current_entity);
 
 	delete c$smtp$current_entity;
 	}

@@ -7,7 +7,7 @@
 module IRC;
 
 export {
-	redef enum Log::ID += { IRC };
+	redef enum Log::ID += { LOG };
 
 	type Tag: enum { 
 		EMPTY 
@@ -44,7 +44,7 @@ redef dpd_config += { [ANALYZER_IRC] = [$ports = irc_ports] };
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(IRC, [$columns=Info, $ev=irc_log]);
+	Log::create_stream(IRC::LOG, [$columns=Info, $ev=irc_log]);
 	}
 	
 function new_session(c: connection): Info
@@ -78,7 +78,7 @@ event irc_nick_message(c: connection, is_orig: bool, who: string, newnick: strin
 	{
 	if ( is_orig )
 		{
-		Log::write(IRC, c$irc);
+		Log::write(IRC::LOG, c$irc);
 		c$irc$nick  = newnick;
 		}
 	}
@@ -98,7 +98,7 @@ event irc_user_message(c: connection, is_orig: bool, user: string, host: string,
 	{
 	if ( is_orig )
 		{
-		Log::write(IRC, c$irc);
+		Log::write(IRC::LOG, c$irc);
 		c$irc$user = user;
 		}
 	}
@@ -118,7 +118,7 @@ event irc_join_message(c: connection, is_orig: bool, info_list: irc_join_list) &
 			{
 			c$irc$value = l$channel;
 			c$irc$addl = (l$password != "" ? fmt(" with channel key: '%s'", l$password) : "");
-			Log::write(IRC, c$irc);
+			Log::write(IRC::LOG, c$irc);
 			}
 		}
 	}

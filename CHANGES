@@ -1,4 +1,146 @@
 
+1.6-dev-1221 | 2011-09-08 08:41:17 -0700
+
+  * Updates for documentation framework and script docs. (Jon Siwek)
+
+  * The script level PF_RING support isn't working so removing it.
+    (Seth Hall)
+
+  * Delete SSL certificates from memory after ssl_established event.
+    (Seth Hall)
+
+  * Small fixes for SSL analysis. (Seth Hall)
+
+1.6-dev-1212 | 2011-09-07 16:15:28 -0700
+
+  * Internally, the UID generation can now return values from
+    different pool for better reproducability in testing mode.
+    (Gilbert Clark).
+
+  * Added new BiF unique_id_from(pool: string, prefix: string) that
+    allows the user to specify a randomness pool. (Gilbert Clark)
+
+1.6-dev-1198 | 2011-09-07 11:03:36 -0700
+
+  * Extended header for ASCII log that make it easier for scripts to
+    parse Bro log files. (Gilbert Clark)
+
+  * Potential fix for rotation crashes. Addresses #588. (Robin Sommer)
+    
+  * Added PF_RING load balancing support to the scripting layer,
+    enabled by loading the misc/pf-ring-load-balancing script. (Seth
+    Hall)
+
+  * Added a BiF setenv() for setting environment variables. (Seth
+    Hall)
+
+1.6-dev-1184 | 2011-09-04 09:34:50 -0700
+
+  * FindPCAP now links against thread library when necessary (e.g.
+    PF_RING's libpcap). (Jon Siwek)
+
+  * Install binaries with an RPATH. (Jon Siwek)
+
+  * Fix for a case where nested records weren't coerced even though
+    possible. (Jon Siwek)
+
+  * Changed ASCII writer to delay creation of log after rotation until
+    next write.
+
+  * Changed default snaplen to 65535 and added a -l/--snaplen command
+    line option to set it explicitly. Addresses #447. (Jon Siwek)
+
+  * Various updates to logging framework. (Seth Hall)
+    
+  * Changed presentation of enum labels to include namespace. (Jon
+    Siwek)
+
+  * HTTP analyzer is now enabled with any of the HTTP events. (Seth
+    Hall)
+
+  * Fixed missing format string that caused some segfaults. (Gregor
+    Maier)
+
+  * ASCII writer nows prints time interval with 6 decimal places.
+    (Gregor Maier)
+
+  * Added a Reporter::fatal BIF. (Jon Siwek)
+    
+  * Fixes for GeoIP support. Addresses #538. (Jon Siwek)
+
+  * Fixed excessive memory usage of SSL analyzer on connections with
+    gaps. (Gregor Maier)
+
+  * Added a log postprocessing function that can SCP rotated logs to
+    remote hosts. (Jon Siwek)
+
+  * Added a BiF for getting the current Bro version string. (Jon
+    Siwek)
+
+  * Misc. doc/script/test cleanup. (Jon Siwek)
+
+  * Fixed bare-mode @load dependency problems. (Jon Siwek)
+
+  * Fixed check_for_unused_event_handlers option. (Jon Siwek)
+    
+  * Fixing some more bare-mode @load dependency issues (Jon Siwek)
+
+  * Reorganizing btest/policy directory to match new scripts/
+    organization. Addresses #545 (Jon Siwek)
+
+  * bro scripts generated from bifs now install to
+    $prefix/share/bro/base. Addresses #545 (Jon Siwek)
+
+  * Changeed/fixed some cluster script error reporting. (Jon Siwek)
+    
+  * Various script normalization. (Jon Siwek)
+
+  * Add a test that checks each individual script can be loaded in
+    bare-mode. Adressess #545. (Jon Siwek)
+
+  * Tune when c$conn is set. Addresses #554. (Gregor Maier)
+    
+  * Add ConnSize_Analyzer's fields to conn.log. (Gregor Maier)
+    
+  * Fixing bug in "interesting hostnames" detection. (Seth Hall)
+    
+  * Adding metrics framework intermediate updates. (Seth Hall)
+
+1.6-dev-1120 | 2011-08-19 19:00:15 -0700
+
+  * Fix for the CompHash fix. (Robin Sommer)
+
+1.6-dev-1118 | 2011-08-18 14:11:55 -0700
+
+  * Fixing key size calculation in composite hash code. (Robin Sommer)
+
+1.6-dev-1116 | 2011-08-18 10:05:07 -0700
+
+  * Remove the 'net' type from Bro (addresses #535).
+
+  * Fix H3 assumption of an 8-bit byte/char. (Jon Siwek)
+
+  * Allow reading from interface without additional script arguments.
+    Explicitly passing in '-' as an additional command line argument
+    still allows reading a script from stdin. (Jon Siwek)
+
+  * SSH bruteforcing detection now done with metrics framework. (Seth
+    Hall)
+
+  * Updates for SQL injection attack detection to match the metrics
+    framework updates. (Seth Hall)
+
+  * Metrics framework now works on cluster setups. (Seth Hall)
+    
+  * Reclassifying more DNS manager errors as non-fatal errors. (Robin
+    Sommer)
+
+  * Fix ConnSize_Analyzer when used in conjunction with connection
+    compressor. (Gregor Maier)
+
+  * Fix reporter using part of the actual message as a format string.
+    (Jon Siwek)
+
 1.6-dev-1095 | 2011-08-13 11:59:07 -0700
 
   * A larger number of script documentation updates. Closes #543. (Jon

@@ -1099,84 +1099,6 @@ static uint32 parse_dotted(const char* text, int& dots)
 	return a;
 	}
 
-NetVal::NetVal(const char* text) : AddrVal(TYPE_NET)
-	{
-	int dots;
-	uint32 a = parse_dotted(text, dots);
-
-	if ( addr_to_net(a) != a )
-		reporter->Error("bad net address", text);
-
-	Init(uint32(htonl(a)));
-	}
-
-NetVal::NetVal(uint32 addr) : AddrVal(TYPE_NET)
-	{
-	Init(addr);
-	}
-
-#ifdef BROv6
-NetVal::NetVal(const uint32* addr) : AddrVal(TYPE_NET)
-	{
-	Init(addr);
-	}
-#endif
-
-Val* NetVal::SizeVal() const
-	{
-	uint32 addr;
-
-#ifdef BROv6
-	if ( ! is_v4_addr(val.addr_val) )
-		{
-		Error("|net| for IPv6 addresses not supported");
-		return new Val(0.0, TYPE_DOUBLE);
-		}
-
-	addr = to_v4_addr(val.addr_val);
-#else
-	addr = val.addr_val;
-#endif
-	addr = ntohl(addr);
-
-	if ( (addr & 0xFFFFFFFF) == 0L )
-		return new Val(4294967296.0, TYPE_DOUBLE);
-
-	if ( (addr & 0x00FFFFFF) == 0L )
-		return new Val(double(0xFFFFFF + 1), TYPE_DOUBLE);
-
-	if ( (addr & 0x0000FFFF) == 0L )
-		return new Val(double(0xFFFF + 1), TYPE_DOUBLE);
-
-	if ( (addr & 0x000000FF) == 0L )
-		return new Val(double(0xFF + 1), TYPE_DOUBLE);
-
-	return new Val(1.0, TYPE_DOUBLE);
-	}
-
-void NetVal::ValDescribe(ODesc* d) const
-	{
-#ifdef BROv6
-	d->Add(dotted_net6(val.addr_val));
-#else
-	d->Add(dotted_net(val.addr_val));
-#endif
-	}
-
-IMPLEMENT_SERIAL(NetVal, SER_NET_VAL);
-
-bool NetVal::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_NET_VAL, AddrVal);
-	return true;
-	}
-
-bool NetVal::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(AddrVal);
-	return true;
-	}
-
 SubNetVal::SubNetVal(const char* text) : Val(TYPE_SUBNET)
 	{
 	const char* sep = strchr(text, '/');
@@ -3181,10 +3103,6 @@ void EnumVal::ValDescribe(ODesc* d) const
 
 	if ( ! ename )
 		ename = "<undefined>";
-
-	const char* module_offset = strstr(ename, "::");
-	if ( module_offset )
-		ename = module_offset + 2;
 
 	d->Add(ename);
 	}

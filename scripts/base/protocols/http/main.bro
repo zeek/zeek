@@ -1,8 +1,10 @@
+@load base/utils/numbers
+@load base/utils/files
 
 module HTTP;
 
 export {
-	redef enum Log::ID += { HTTP };
+	redef enum Log::ID += { LOG };
 
 	## Indicate a type of attack or compromise in the record to be logged.
 	type Tags: enum {
@@ -84,7 +86,7 @@ redef record connection += {
 # Initialize the HTTP logging stream.
 event bro_init() &priority=5
 	{
-	Log::create_stream(HTTP, [$columns=Info, $ev=log_http]);
+	Log::create_stream(HTTP::LOG, [$columns=Info, $ev=log_http]);
 	}
 
 # DPD configuration.
@@ -228,7 +230,7 @@ event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &
 	# The reply body is done so we're ready to log.
 	if ( ! is_orig )
 		{
-		Log::write(HTTP, c$http);
+		Log::write(HTTP::LOG, c$http);
 		delete c$http_state$pending[c$http_state$current_response];
 		}
 	}
@@ -240,7 +242,7 @@ event connection_state_remove(c: connection)
 		{
 		for ( r in c$http_state$pending )
 			{
-			Log::write(HTTP, c$http_state$pending[r]);
+			Log::write(HTTP::LOG, c$http_state$pending[r]);
 			}
 		}
 	}

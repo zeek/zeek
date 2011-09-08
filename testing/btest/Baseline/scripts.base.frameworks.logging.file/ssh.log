@@ -1,0 +1,5 @@
+#separator \x09
+#path	ssh
+#fields	t	f
+#types	time	file
+1315167053.585834	Foo.log

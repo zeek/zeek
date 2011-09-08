@@ -11,7 +11,7 @@
 %token TOK_CONSTANT TOK_COPY TOK_COUNT TOK_COUNTER TOK_DEFAULT TOK_DELETE
 %token TOK_DOUBLE TOK_ELSE TOK_ENUM TOK_EVENT TOK_EXPORT TOK_FILE TOK_FOR
 %token TOK_FUNCTION TOK_GLOBAL TOK_ID TOK_IF TOK_INT
-%token TOK_INTERVAL TOK_LIST TOK_LOCAL TOK_MODULE TOK_MATCH TOK_NET
+%token TOK_INTERVAL TOK_LIST TOK_LOCAL TOK_MODULE TOK_MATCH
 %token TOK_NEXT TOK_OF TOK_PATTERN TOK_PATTERN_TEXT
 %token TOK_PORT TOK_PRINT TOK_RECORD TOK_REDEF
 %token TOK_REMOVE_FROM TOK_RETURN TOK_SCHEDULE TOK_SET
@@ -787,11 +787,6 @@ type:
 				$$ = base_type(TYPE_ADDR);
 				}
 
-	|	TOK_NET		{
-				set_location(@1);
-				$$ = base_type(TYPE_NET);
-				}
-
 	|	TOK_SUBNET	{
 				set_location(@1);
 				$$ = base_type(TYPE_SUBNET);
@@ -1184,7 +1179,7 @@ func_hdr:
 				   FUNC_FLAVOR_EVENT, 0, $3);
 			$$ = $3;
 			if ( generate_documentation )
-				current_reST_doc->AddEvent(
+				current_reST_doc->AddEventHandler(
 					new BroDocObj($2, reST_doc_comments));
 			}
 	|	TOK_REDEF TOK_EVENT event_id func_params

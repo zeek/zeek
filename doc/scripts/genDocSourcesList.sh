@@ -73,7 +73,7 @@ bifs=`( cd ${sourcedir}/src && find . -name \*\.bif | sort )`
 for file in $bifs
 do
     f=${file:2}.bro
-    echo "rest_target(\${CMAKE_BINARY_DIR}/src/base $f)" >> $outfile
+    echo "rest_target(\${CMAKE_BINARY_DIR}/src base/$f)" >> $outfile
 done
 
 scriptfiles=`( cd ${sourcedir}/scripts && find . -name \*\.bro | sort )`

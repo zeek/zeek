@@ -13,15 +13,14 @@ all: configured
 install: configured
 	( cd $(BUILD) && make install )
 
-clean: configured
+clean: configured docclean
 	( cd $(BUILD) && make clean )
-	( cd $(BUILD) && make docclean && make restclean )
 
 doc: configured
 	( cd $(BUILD) && make doc )
 
 docclean: configured
-	( cd $(BUILD) && make docclean && make restclean )
+	( cd $(BUILD) && make docclean )
 
 dist:
 	@./pkg/make-src-packages

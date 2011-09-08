@@ -1382,8 +1382,9 @@ const enable_syslog = F &redef;
 const peer_description = "bro" &redef;
 
 ## If true, broadcast events/state received from one peer to other peers.
-## NOTE: These options are only temporary. They will disappear when we get a
-## more sophisticated script-level communication framework.
+##
+## .. note:: These options are only temporary. They will disappear when we get
+##    a more sophisticated script-level communication framework.
 const forward_remote_events = F &redef;
 ## See :bro:id:`forward_remote_events`
 const forward_remote_state_changes = F &redef;
@@ -1513,6 +1514,6 @@ const skip_http_data = F &redef;
 ## UDP tunnels. See also: udp_tunnel_port, policy/udp-tunnel.bro.
 const parse_udp_tunnels = F &redef;
 
-## Load the logging framework here because it uses fairly deep integration with 
-## BiFs and script-land defined types.
+# Load the logging framework here because it uses fairly deep integration with 
+# BiFs and script-land defined types.
 @load base/frameworks/logging

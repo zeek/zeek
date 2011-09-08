@@ -74,11 +74,11 @@ export {
 		## This history is not meant to encode how much data that happened to be.
 		history:      string          &log &optional;
 		## Number of packets the originator sent.
-		## Only set if :bro:id:`use_conn_size_analyzer`=T
+		## Only set if :bro:id:`use_conn_size_analyzer` = T
 		orig_pkts:     count      &log &optional;
 		## Number IP level bytes the originator sent (as seen on the wire,
 		## taken from IP total_length header field).
-		## Only set if :bro:id:`use_conn_size_analyzer`=T
+		## Only set if :bro:id:`use_conn_size_analyzer` = T
 		orig_ip_bytes: count      &log &optional;
 		## Number of packets the responder sent. See ``orig_pkts``.
 		resp_pkts:     count      &log &optional;

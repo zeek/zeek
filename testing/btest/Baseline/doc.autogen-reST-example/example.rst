@@ -15,20 +15,6 @@ these comments are transferred directly into the auto-generated
 
 .. tip:: You can embed directives and roles within ``##``-stylized comments.
 
-A script's logging information has to be documented manually as minimally
-shown below.  Note that references may not always be possible (e.g.
-anonymous filter functions) and a script may not need to document
-each of "columns", "event", "filter" depending on exactly what it's doing.
-
-**Logging Stream ID:** :bro:enum:`Example::EXAMPLE`
-    :Columns:    :bro:type:`Example::Info`
-    :Event:      :bro:id:`Example::log_example`
-    :Filter:     ``example-filter``
-        uses :bro:id:`Example::filter_func` to determine whether to
-        exclude the ``ts`` field
-
-:Author: Jon Siwek <jsiwek@ncsa.illinois.edu>
-
 :Imports: :doc:`policy/frameworks/software/vulnerable </scripts/policy/frameworks/software/vulnerable>`
 
 Summary
@@ -72,8 +58,6 @@ Events
 
 :bro:id:`Example::log_example`: :bro:type:`event` This is a declaration of an example event that can be used in
                                                   logging streams and is raised once for each log entry.
-
-:bro:id:`bro_init`: :bro:type:`event`
 ================================================= =============================================================
 
 Functions
@@ -233,10 +217,6 @@ Events
    This is a declaration of an example event that can be used in
    logging streams and is raised once for each log entry.
 
-.. bro:id:: bro_init
-
-   :Type: :bro:type:`event` ()
-
 Functions
 ~~~~~~~~~
 .. bro:id:: Example::a_function
@@ -308,41 +288,4 @@ Filters added::
 
     [ssl] = tcp port 443,
     [nntps] = tcp port 562
-
-Private Interface
------------------
-State Variables
-~~~~~~~~~~~~~~~
-.. bro:id:: Example::example_ports
-
-   :Type: :bro:type:`set` [:bro:type:`port`]
-   :Attributes: :bro:attr:`&redef`
-   :Default:
-
-   ::
-
-      {
-         443/tcp,
-         562/tcp
-      }
-
-Types
-~~~~~
-.. bro:type:: Example::PrivateRecord
-
-   :Type: :bro:type:`record`
-
-      field1: :bro:type:`bool`
-
-      field2: :bro:type:`count`
-
-Functions
-~~~~~~~~~
-.. bro:id:: Example::filter_func
-
-   :Type: :bro:type:`function` (rec: :bro:type:`Example::Info`) : :bro:type:`bool`
-
-.. bro:id:: Example::function_without_proto
-
-   :Type: :bro:type:`function` (tag: :bro:type:`string`) : :bro:type:`string`
 

@@ -1,2 +1,2 @@
-@TEST-EXEC: bro -r $TRACES/test.trace test-all
-@TEST-EXEC: for i in *.log; do btest-diff $i; done
+@TEST-EXEC: zcat $TRACES/test.trace.gz | bro -r - test-all-policy
+@TEST-EXEC: $SCRIPTS/diff-all *.log

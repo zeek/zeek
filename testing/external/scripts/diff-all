@@ -1,0 +1,27 @@
+#! /usr/bin/env bash
+#
+# Runs btest-diff on $@ and fails if any fails.
+
+diag=$TEST_DIAGNOSTICS
+
+export TEST_DIAGNOSTICS=$diag.tmp
+
+if [ "$diag" = "" ]; then
+    diag=/dev/stdout
+else
+    rm -f $diag
+fi
+
+rc=0;
+
+for i in $@; do
+    if ! btest-diff $i; then
+       echo "" >>$diag
+       echo "#### btest-diff $i" >>$diag
+       echo "" >>$diag
+       cat $diag.tmp >>$diag
+       rc=1
+    fi
+done
+
+exit $rc

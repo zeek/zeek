@@ -25,6 +25,8 @@ for proxy in .proxy ../.proxy; do
     fi
 done
 
+mkdir -p $1
+
 cat $cfg | while read line; do
 
     if echo $line | grep -q '^[ \t]*$'; then
@@ -36,7 +38,7 @@ cat $cfg | while read line; do
     fi
 
     url=`echo $line | awk '{print $1}'`
-    auth=`echo $line | awk '{print $3}'`
+    auth=`echo $line | awk '{print $2}'`
 
     file=$1/`echo $url | sed 's#^.*/##g'`
     fp=$file.md5sum
@@ -47,7 +49,7 @@ cat $cfg | while read line; do
 
     # Get the fingerprint file.
     if ! eval "$proxy curl $auth -fsS --anyauth $url.md5sum -o $fp.tmp"; then
-        echo "Error: Could not get $url.fingerprint, skipping download."
+        echo "Error: Could not get $url.md5sum, skipping download."
         continue
     fi
 

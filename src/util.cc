@@ -359,7 +359,7 @@ char* uitoa_n(uint64 value, char* str, int n, int base, const char* prefix)
 	char* p, *q;
 	char c;
 
-	if ( prefix ) 
+	if ( prefix )
 		{
 		strncpy(str, prefix, n);
 		str[n-1] = '\0';
@@ -839,7 +839,7 @@ string dot_canon(string path, string file, string prefix)
 		}
 	delete [] tmp;
 	size_t n;
-	while ( (n = dottedform.find("/")) != string::npos ) 
+	while ( (n = dottedform.find("/")) != string::npos )
 		dottedform.replace(n, 1, ".");
 	return dottedform;
 	}
@@ -1182,15 +1182,44 @@ int time_compare(struct timeval* tv_a, struct timeval* tv_b)
 		return tv_a->tv_sec - tv_b->tv_sec;
 	}
 
-static uint64 uid_counter;	// Counter for unique IDs.
-static uint64 uid_instance;	// Instance ID, computed once.
+struct UIDEntry {
+	UIDEntry() : key(0, 0), needs_init(true) { }
+	UIDEntry(const uint64 i) : key(i, 0), needs_init(false) { }
+
+	struct UIDKey {
+		UIDKey(uint64 i, uint64 c) : instance(i), counter(c) { }
+		uint64 instance;
+		uint64 counter;
+	} key;
+
+	bool needs_init;
+};
+
+static std::vector<UIDEntry> uid_pool;
 
 uint64 calculate_unique_id()
 	{
-	if ( uid_instance == 0 )
-		{
-		// This is the first time we need a UID.
+	return calculate_unique_id(UID_POOL_DEFAULT_INTERNAL);
+	}
 
+uint64 calculate_unique_id(size_t pool)
+	{
+	uint64 uid_instance = 0;
+
+	if( pool >= uid_pool.size() )
+		{
+		if ( pool < 10000 )
+			uid_pool.resize(pool + 1);
+		else
+			{
+			reporter->Warning("pool passed to calculate_unique_id() too large, using default");
+			pool = UID_POOL_DEFAULT_INTERNAL;
+			}
+		}
+
+	if ( uid_pool[pool].needs_init )
+		{
+		// This is the first time we need a UID for this pool.
 		if ( ! have_random_seed() )
 			{
 			// If we don't need deterministic output (as
@@ -1198,39 +1227,37 @@ uint64 calculate_unique_id()
 			// instance ID by hashing something likely to be
 			// globally unique.
 			struct {
-				char hostname[128];
+				char hostname[120];
+				uint64 pool;
 				struct timeval time;
 				pid_t pid;
 				int rnd;
 			} unique;
 
 			memset(&unique, 0, sizeof(unique)); // Make valgrind happy.
-			gethostname(unique.hostname, 128);
+			gethostname(unique.hostname, 120);
 			unique.hostname[sizeof(unique.hostname)-1] = '\0';
 			gettimeofday(&unique.time, 0);
+			unique.pool = (uint64) pool;
 			unique.pid = getpid();
 			unique.rnd = bro_random();
 
 			uid_instance = HashKey::HashBytes(&unique, sizeof(unique));
 			++uid_instance; // Now it's larger than zero.
 			}
-
 		else
-			// Generate determistic UIDs.
-			uid_instance = 1;
+			// Generate determistic UIDs for each individual pool.
+			uid_instance = pool;
+
+		// Our instance is unique.  Huzzah.
+		uid_pool[pool] = UIDEntry(uid_instance);
 		}
 
-	// Now calculate the unique ID.
-	struct {
-		uint64 counter;
-		hash_t instance;
-	} key;
+	assert(!uid_pool[pool].needs_init);
+	assert(uid_pool[pool].key.instance != 0);
 
-	key.counter = ++uid_counter;
-	key.instance = uid_instance;
-
-	uint64_t h = HashKey::HashBytes(&key, sizeof(key));
-	return h;
+	++uid_pool[pool].key.counter;
+	return HashKey::HashBytes(&(uid_pool[pool].key), sizeof(uid_pool[pool].key));
 	}
 
 void out_of_memory(const char* where)

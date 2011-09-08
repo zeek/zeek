@@ -49,8 +49,6 @@ export {
 	
 	## Variable IDs that are to be ignored by the update process.
 	const ignore_ids: set[string] = {
-		# FIXME: Bro crashes if it tries to send this ID.
-		"Log::rotation_control",
 	};
 	
 	## Event for requesting the value of an ID (a variable).

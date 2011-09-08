@@ -32,8 +32,10 @@ export {
 	## to derive a name.
 	##
 	## id: The log stream.
-	## path: A suggested path value, which may be either the filter's ``path``
-	##       if defined or a fall-back generated internally.
+	## path: A suggested path value, which may be either the filter's
+	##       ``path`` if defined, else a previous result from the function.
+	##       If no ``path`` is defined for the filter, then the first call
+	##       to the function will contain an empty string.
 	## rec: An instance of the streams's ``columns`` type with its
 	##      fields set to the values to logged.
 	##
@@ -64,20 +66,6 @@ export {
 	## Specifies the default postprocessor function per writer type. Entries in this
 	## table are initialized by each writer type.
 	const default_rotation_postprocessors: table[Writer] of function(info: RotationInfo) : bool &redef;
-
-	## Type for controlling file rotation.
-	type RotationControl: record  {
-		## Rotation interval.
-		interv: interval &default=default_rotation_interval;
-		## Callback function to trigger for rotated files. If not set, the default
-		## comes out of default_rotation_postprocessors.
-		postprocessor: function(info: RotationInfo) : bool &optional;
-	};
-
-	## Specifies rotation parameters per ``(id, path)`` tuple.
-	## If a pair is not found in this table, default values defined in
-	## ``RotationControl`` are used.
-	const rotation_control: table[Writer, string] of RotationControl &default=[] &redef;
 
 	## Filter customizing logging.
 	type Filter: record {
@@ -114,8 +102,10 @@ export {
 		## connection ...
 		##
 		## id: The log stream.
-		## path: A suggested path value, which may be either the filter's ``path``
-		##       if defined or a fall-back generated internally.
+		## path: A suggested path value, which may be either the filter's
+		##       ``path`` if defined, else a previous result from the function.
+		##       If no ``path`` is defined for the filter, then the first call
+		##       to the function will contain an empty string.
 		## rec: An instance of the streams's ``columns`` type with its
 		##      fields set to the values to logged.
 		##
@@ -136,10 +126,12 @@ export {
 		## If true, entries are passed on to remote peers.
 		log_remote: bool &default=enable_remote_logging;
 
-		## If set, the rotation control value is automatically added to
-		## :bro:id:`Log::rotation_control` for the filter's (writer, path)
-		## when adding the filter to a stream via :bro:id:`Log::add_filter`
-		rotation: RotationControl &optional;
+		## Rotation interval.
+		interv: interval &default=default_rotation_interval;
+
+		## Callback function to trigger for rotated files. If not set,
+		## the default comes out of default_rotation_postprocessors.
+		postprocessor: function(info: RotationInfo) : bool &optional;
 	};
 
 	## Sentinel value for indicating that a filter was not found when looked up.
@@ -182,10 +174,9 @@ function default_path_func(id: ID, path: string, rec: any) : string
 	local parts = split1(id_str, /::/);
 	if ( |parts| == 2 )
 		{
-		# TODO: the core shouldn't be suggesting paths anymore.  Only 
-		#       statically defined paths should be sent into here.  This
-		#       is only to cope with the core generated paths.
-		if ( to_lower(parts[2]) != path )
+		# The suggested path value is a previous result of this function
+		# or a filter path explicitly set by the user, so continue using it
+		if ( path != "" )
 			return path;
 		
 		# Example: Notice::LOG -> "notice"

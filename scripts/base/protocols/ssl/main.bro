@@ -28,6 +28,11 @@ export {
 	## This is where the default root CA bundle is defined.  By loading the
 	## mozilla-ca-list.bro script it will be set to Mozilla's root CA list.
 	const root_certs: table[string] of string = {} &redef;
+
+	## This determines if the c$ssl record is deleted after the record is 
+	## logged. You probably want this to be deleted since it contains 
+	## the full certificate and all of the chain certificates in it.
+	const delete_certs_after_logging = T &redef;
 	
 	global log_ssl: event(rec: Info);
 	
@@ -113,10 +118,21 @@ event ssl_extension(c: connection, code: count, val: string) &priority=5
 		c$ssl$server_name = sub_bytes(val, 6, |val|);
 	}
 	
-event ssl_established(c: connection) &priority=-5
+event ssl_established(c: connection) &priority=5
 	{
 	set_session(c);
+	}
 	
+event ssl_established(c: connection) &priority=-5
+	{
 	Log::write(SSL::LOG, c$ssl);
+	
+	if ( delete_certs_after_logging )
+		{
+		if ( c$ssl?$cert )
+			delete c$ssl$cert;
+		if ( c$ssl?$cert_chain )
+			delete c$ssl$cert_chain;
+		}
 	}
 	

@@ -5,20 +5,6 @@
 ##! (reST) document's summary section.
 ##!
 ##! .. tip:: You can embed directives and roles within ``##``-stylized comments.
-##!
-##! A script's logging information has to be documented manually as minimally
-##! shown below.  Note that references may not always be possible (e.g.
-##! anonymous filter functions) and a script may not need to document
-##! each of "columns", "event", "filter" depending on exactly what it's doing.
-##!
-##! **Logging Stream ID:** :bro:enum:`Example::EXAMPLE`
-##!     :Columns:    :bro:type:`Example::Info`
-##!     :Event:      :bro:id:`Example::log_example`
-##!     :Filter:     ``example-filter``
-##!         uses :bro:id:`Example::filter_func` to determine whether to
-##!         exclude the ``ts`` field
-##!
-##! :Author: Jon Siwek <jsiwek@ncsa.illinois.edu>
 
 # Comments that use a single pound sign (#) are not significant to
 # a script's auto-generated documentation, but ones that use a

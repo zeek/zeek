@@ -225,8 +225,14 @@ extern struct timeval double_to_timeval(double t);
 extern int time_compare(struct timeval* tv_a, struct timeval* tv_b);
 
 // Returns an integer that's very likely to be unique, even across Bro
-// instances.
+// instances. The integer can be drawn from different pools, which is helpful
+// when the randon number generator is seeded to be deterministic. In that
+// case, the same sequence of integers is generated per pool.
+#define UID_POOL_DEFAULT_INTERNAL 1
+#define UID_POOL_DEFAULT_SCRIPT   2
+#define UID_POOL_CUSTOM_SCRIPT    10 // First available custom script level pool.
 extern uint64 calculate_unique_id();
+extern uint64 calculate_unique_id(const size_t pool);
 
 // For now, don't use hash_maps - they're not fully portable.
 #if 0

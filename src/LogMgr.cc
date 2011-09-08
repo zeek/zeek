@@ -455,7 +455,7 @@ LogMgr::WriterInfo* LogMgr::FindWriter(LogWriter* writer)
 			{
 			WriterInfo* winfo = i->second;
 
-			if ( winfo->writer == writer )
+			if ( winfo && winfo->writer == writer )
 				return winfo;
 			}
 		}
@@ -1532,7 +1532,8 @@ bool LogMgr::FinishedRotation(LogWriter* writer, string new_name, string old_nam
 		writer->Path().c_str(), network_time, new_name.c_str());
 
 	WriterInfo* winfo = FindWriter(writer);
-	assert(winfo);
+	if ( ! winfo )
+		return true;
 
 	RecordVal* rc =
 		LookupRotationControl(winfo->type, winfo->writer->Path());

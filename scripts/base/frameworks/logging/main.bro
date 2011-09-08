@@ -91,7 +91,7 @@ export {
 		## If not given, all entries are recorded.
 		##
 		## rec: An instance of the streams's ``columns`` type with its
-		## fields set to the values to logged.
+		##      fields set to the values to logged.
 		##
 		## Returns: True if the entry is to be recorded.
 		pred: function(rec: any): bool &optional;

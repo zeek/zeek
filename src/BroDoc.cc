@@ -227,6 +227,7 @@ void BroDoc::WriteDocFile() const
 		WriteToDoc("%s\n", packet_filter.c_str());
 		}
 
+#if 0   // Disabled for now.
 	BroDocObjList::const_iterator it;
 	bool hasPrivateIdentifiers = false;
 
@@ -241,6 +242,7 @@ void BroDoc::WriteDocFile() const
 
 	if ( hasPrivateIdentifiers )
 		WriteInterface("Private Interface", '-', '~', false, false);
+#endif
 	}
 
 void BroDoc::WriteInterface(const char* heading, char underline,

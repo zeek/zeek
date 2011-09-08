@@ -1,4 +1,39 @@
 
+1.6-dev-1221 | 2011-09-08 08:41:17 -0700
+
+  * Updates for documentation framework and script docs. (Jon Siwek)
+
+  * The script level PF_RING support isn't working so removing it.
+    (Seth Hall)
+
+  * Delete SSL certificates from memory after ssl_established event.
+    (Seth Hall)
+
+  * Small fixes for SSL analysis. (Seth Hall)
+
+1.6-dev-1212 | 2011-09-07 16:15:28 -0700
+
+  * Internally, the UID generation can now return values from
+    different pool for better reproducability in testing mode.
+    (Gilbert Clark).
+
+  * Added new BiF unique_id_from(pool: string, prefix: string) that
+    allows the user to specify a randomness pool. (Gilbert Clark)
+
+1.6-dev-1198 | 2011-09-07 11:03:36 -0700
+
+  * Extended header for ASCII log that make it easier for scripts to
+    parse Bro log files. (Gilbert Clark)
+
+  * Potential fix for rotation crashes. Addresses #588. (Robin Sommer)
+    
+  * Added PF_RING load balancing support to the scripting layer,
+    enabled by loading the misc/pf-ring-load-balancing script. (Seth
+    Hall)
+
+  * Added a BiF setenv() for setting environment variables. (Seth
+    Hall)
+
 1.6-dev-1184 | 2011-09-04 09:34:50 -0700
 
   * FindPCAP now links against thread library when necessary (e.g.

@@ -1179,7 +1179,7 @@ func_hdr:
 				   FUNC_FLAVOR_EVENT, 0, $3);
 			$$ = $3;
 			if ( generate_documentation )
-				current_reST_doc->AddEvent(
+				current_reST_doc->AddEventHandler(
 					new BroDocObj($2, reST_doc_comments));
 			}
 	|	TOK_REDEF TOK_EVENT event_id func_params

@@ -16,11 +16,11 @@ fi
 
 cfg=traces.cfg
 
-for proxy in .proxy ../.proxy; do
-    if [ -e $proxy ]; then
-        proxy=`cat $proxy | head -1 | awk '{print $1}'`
-        echo Using proxy $proxy ...
-        proxy="ALL_PROXY=$proxy"
+for p in .proxy ../.proxy; do
+    if [ -e $p ]; then
+        proxy=`cat $p | head -1 | awk '{print $1}'`
+        echo Using proxy $p ...
+        proxy="ALL_PROXY=$p"
         break
     fi
 done

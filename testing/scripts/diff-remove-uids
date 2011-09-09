@@ -2,7 +2,7 @@
 #
 # A diff canonifier that removes all connection UIDs.
 
-BEGIN { IFS="\t"; OFS="\t"; }
+BEGIN { FS="\t"; OFS="\t"; }
 
 column > 0 {
     $column = "XXXXXXXXXXX";

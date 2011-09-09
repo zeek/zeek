@@ -20,7 +20,7 @@ for p in .proxy ../.proxy; do
     if [ -e $p ]; then
         proxy=`cat $p | head -1 | awk '{print $1}'`
         echo Using proxy $p ...
-        proxy="ALL_PROXY=$p"
+        proxy="ALL_PROXY=$proxy"
         break
     fi
 done

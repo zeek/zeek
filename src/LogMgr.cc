@@ -902,7 +902,13 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 			val_list vl(3);
 			vl.append(id->Ref());
 			vl.append(filter->path_val->Ref());
-			vl.append(columns->Ref());
+			Val* rec_arg;
+			BroType* rt = filter->path_func->FType()->Args()->FieldType("rec");
+			if ( rt->Tag() == TYPE_RECORD )
+				rec_arg = columns->CoerceTo(rt->AsRecordType(), true);
+			else
+				rec_arg = columns->Ref();
+			vl.append(rec_arg);
 			Val* v = filter->path_func->Call(&vl);
 
 			if ( ! v->Type()->Tag() == TYPE_STRING )

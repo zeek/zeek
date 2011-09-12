@@ -34,7 +34,7 @@ export {
 	global log_known_certs: event(rec: Info);
 }
 
-event bro_init()
+event bro_init() &priority=5
 	{
 	Log::create_stream(Known::CERTS_LOG, [$columns=Info, $ev=log_known_certs]);
 	}

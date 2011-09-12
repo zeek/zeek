@@ -1,14 +1,9 @@
 @load ./consts
-@load base/frameworks/notice
 
 module SSL;
 
 export {
 	redef enum Log::ID += { LOG };
-
-	redef enum Notice::Type += {
-		Self_Signed_Cert
-	};
 
 	type Info: record {
 		ts:               time             &log;

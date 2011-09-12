@@ -1,19 +1,19 @@
 ##! SQL injection detection in HTTP.
 
-@load base/frameworks/notice/main
-@load base/frameworks/metrics/main
-@load base/protocols/http/main
+@load base/frameworks/notice
+@load base/frameworks/metrics
+@load base/protocols/http
 
 module HTTP;
 
 export {
 	redef enum Notice::Type += {
 		SQL_Injection_Attacker,
-		SQL_Injection_Attack,
+		SQL_Injection_Attack_Against,
 	};
 	
 	redef enum Metrics::ID += {
-		SQL_ATTACKS,
+		SQL_ATTACKER,
 		SQL_ATTACKS_AGAINST,
 	};
 
@@ -26,6 +26,16 @@ export {
 		## Indicator of a cookie based SQL injection attack. Not implemented yet.
 		COOKIE_SQLI,
 	};
+	
+	## This defines the threshold that determines if an SQL injection attack
+	## is ongoing based on the number of requests that appear to be SQL 
+	## injection attacks.
+	const sqli_requests_threshold = 50 &redef;
+	
+	## Interval at which to watch for the :bro:id:`sqli_requests_threshold`
+	## variable to be crossed.  At the end of each interval the counter is 
+	## reset.
+	const sqli_requests_interval = 5min &redef;
 
 	## This regular expression is used to match URI based SQL injections
 	const match_sql_injection_uri = 
@@ -37,15 +47,16 @@ export {
 		| /\/\*![[:digit:]]{5}.*?\*\// &redef;
 }
 
-event bro_init()
+event bro_init() &priority=3
 	{
-	Metrics::add_filter(SQL_ATTACKS, [$log=F,
-	                                  $break_interval=5mins, 
-	                                  $note=SQL_Injection_Attacker]);
+	Metrics::add_filter(SQL_ATTACKER, [$log=F,
+	                                   $notice_threshold=sqli_requests_threshold,
+	                                   $break_interval=sqli_requests_interval, 
+	                                   $note=SQL_Injection_Attacker]);
 	Metrics::add_filter(SQL_ATTACKS_AGAINST, [$log=F, 
-	                                          $break_interval=5mins, 
-	                                          $note=SQL_Injection_Attack, 
-	                                          $notice_threshold=50]);
+	                                          $notice_threshold=sqli_requests_threshold,
+	                                          $break_interval=sqli_requests_interval, 
+	                                          $note=SQL_Injection_Attack_Against]);
 	}
 
 event http_request(c: connection, method: string, original_URI: string,
@@ -55,7 +66,7 @@ event http_request(c: connection, method: string, original_URI: string,
 		{
 		add c$http$tags[URI_SQLI];
 		
-		Metrics::add_data(SQL_ATTACKS, [$host=c$id$orig_h], 1);
+		Metrics::add_data(SQL_ATTACKER, [$host=c$id$orig_h], 1);
 		Metrics::add_data(SQL_ATTACKS_AGAINST, [$host=c$id$resp_h], 1);
 		}
 	}

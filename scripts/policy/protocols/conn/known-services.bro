@@ -7,9 +7,9 @@
 
 module Known;
 
-redef enum Log::ID += { SERVICES_LOG };
-
 export {
+	redef enum Log::ID += { SERVICES_LOG };
+	
 	type Info: record {
 		ts:             time            &log;
 		host:           addr            &log;
@@ -33,10 +33,10 @@ redef record connection += {
 	known_services_watch: bool &default=F;
 };
 
-event bro_init()
+event bro_init() &priority=5
 	{
 	Log::create_stream(Known::SERVICES_LOG, [$columns=Info,
-	                                        $ev=log_known_services]);
+	                                         $ev=log_known_services]);
 	}
 	
 function known_services_done(c: connection)

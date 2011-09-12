@@ -358,12 +358,12 @@ event notice(n: Notice::Info) &priority=-5
 		Log::write(Notice::LOG, n);
 	if ( ACTION_ALARM in n$actions )
 		Log::write(Notice::ALARM_LOG, n);
-	# Normally suppress further notices like this one unless directed not to
-	# .
-	# n$identifier *must* be specified for suppression to function at all.
-	if ( n?$identifier && ACTION_NO_SUPPRESS !in n$actions &&
-		 [n$note, n$identifier] !in suppressing &&
-		 n$suppress_for != 0secs )
+	# Normally suppress further notices like this one unless directed not to.
+	#  n$identifier *must* be specified for suppression to function at all.
+	if ( n?$identifier && 
+	     ACTION_NO_SUPPRESS !in n$actions &&
+	     [n$note, n$identifier] !in suppressing &&
+	     n$suppress_for != 0secs )
 		{
 		suppressing[n$note, n$identifier] = n;
 		event Notice::begin_suppression(n);
@@ -445,6 +445,9 @@ function apply_policy(n: Notice::Info)
 	
 	if ( ! n?$policy_items )
 		n$policy_items = set();
+	
+	if ( ! n?$suppress_for )
+		n$suppress_for = default_suppression_interval;
 	
 	for ( i in ordered_policy )
 		{

@@ -17,11 +17,15 @@ export {
 		message:   string          &log;
 	};
 	
-	const ports = { 514/udp } &redef;
+	global log_syslog: event(rec: Info);
+	
+	const ports = { 514/udp, 514/tcp } &redef;
 }
 
 redef capture_filters += { ["syslog"] = "port 514" };
-redef dpd_config += { [ANALYZER_SYSLOG_BINPAC] = [$ports = ports] };
+redef dpd_config += { 
+	[[ANALYZER_SYSLOG]] = [$ports = ports] 
+};
 
 redef record connection += {
 	syslog: Info &optional;
@@ -29,7 +33,7 @@ redef record connection += {
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(Syslog::LOG, [$columns=Info]);
+	Log::create_stream(Syslog::LOG, [$columns=Info, $ev=log_syslog]);
 	}
 
 event syslog_message(c: connection, facility: count, severity: count, msg: string) &priority=5

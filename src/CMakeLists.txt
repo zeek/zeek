@@ -208,6 +208,8 @@ binpac_target(ssl.pac
     ssl-defs.pac ssl-protocol.pac ssl-analyzer.pac)
 binpac_target(syslog.pac
     syslog-protocol.pac syslog-analyzer.pac)
+binpac_target(syslog-tcp.pac
+    syslog.pac)
 
 ########################################################################
 ## bro target

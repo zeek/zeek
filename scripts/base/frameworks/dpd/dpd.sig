@@ -149,3 +149,17 @@ signature dpd_ssl_client {
   payload /^(\x16\x03[\x00\x01\x02]..\x01...\x03[\x00\x01\x02]|...?\x01[\x00\x01\x02][\x02\x03]).*/
   tcp-state originator
 }
+
+signature dpd_syslog_udp {
+  ip-proto == udp
+  payload /\<[0-9]{3}\> /
+  enable "syslog"
+}
+
+signature dpd_syslog_tcp {
+  ip-proto == tcp
+  tcp-state originator
+  # This regex supports octet stuffing and octet counting.
+  payload /([0-9][1-9]* )?\<[0-9]{3}\> /
+  enable "syslog_tcp"
+}

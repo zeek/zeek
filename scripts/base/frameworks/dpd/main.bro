@@ -25,8 +25,7 @@ export {
 		
 		## Disabled analyzer IDs.  This is only for internal tracking 
 		## so as to not attempt to disable analyzers multiple times.
-		# TODO: This is waiting on ticket #460 to remove the '0'.
-		disabled_aids:  set[count]      &default=set(0);
+		disabled_aids:  set[count]      &default=set();
 	};
 	
 	## Ignore violations which go this many bytes into the connection.

@@ -139,7 +139,7 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 		SSL_Analyzer_binpac::Available, 0, false },
 	{ AnalyzerTag::SYSLOG_TCP, "SYSLOG_TCP",
 		Syslog_TCP_Analyzer_binpac::InstantiateAnalyzer,
-		Syslog_TCP_Analyzer_binpac::Available, 0, false },
+		Syslog_TCP_Analyzer_binpac::Available, 0, true },
 	{ AnalyzerTag::SYSLOG, "SYSLOG",
 		Syslog_UDP_Analyzer_binpac::InstantiateAnalyzer,
 		Syslog_UDP_Analyzer_binpac::Available, 0, false },

@@ -60,7 +60,11 @@ void Syslog_TCP_Analyzer_binpac::DeliverStream(int len, const u_char* data,
 	assert(TCP());
 
 	// TODO: We could probably resync with syslog traffic pretty easily.
-	if ( TCP()->IsPartial() || TCP()->HadGap(orig) )
+	//       For now because it's likely for a Bro instance to catch
+	//       a tcp-syslog session midstream this is going to be able to
+	//       cope with partial sessions.
+	//if ( TCP()->IsPartial() || TCP()->HadGap(orig) )
+	if ( TCP()->HadGap(orig) )
 		// punt-on-partial or stop-on-gap.
 		return;
 

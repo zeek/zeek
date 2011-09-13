@@ -23,7 +23,7 @@ type Syslog_TCP_Message(is_orig: bool) = record {
 	#	true  -> stuffing : Octet_Stuffing(is_orig, first_byte) &oneline;
 	#	false -> counting : Octet_Counting(is_orig, first_byte);
 	#} &oneline;
-} &oneline, &let {
+} &let {
 	deliver: bool = $context.connection.deliver_syslog_message(is_orig, msg);
 };
 

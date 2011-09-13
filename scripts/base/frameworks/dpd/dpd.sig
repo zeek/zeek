@@ -158,8 +158,8 @@ signature dpd_syslog_udp {
 
 signature dpd_syslog_tcp {
   ip-proto == tcp
-  tcp-state originator
   # This regex supports octet stuffing and octet counting.
-  payload /([0-9][1-9]* )?\<[0-9]{3}\> /
+  payload /([1-9][0-9]* )?\<[0-9]{3}\> /
+  tcp-state originator
   enable "syslog_tcp"
 }

@@ -19,12 +19,14 @@ export {
 	
 	global log_syslog: event(rec: Info);
 	
-	const ports = { 514/udp, 514/tcp } &redef;
+	const udp_ports = { 514/udp } &redef;
+	const tcp_ports = { 514/tcp } &redef;
 }
 
 redef capture_filters += { ["syslog"] = "port 514" };
 redef dpd_config += { 
-	[[ANALYZER_SYSLOG]] = [$ports = ports] 
+	[ANALYZER_SYSLOG] = [$ports = udp_ports],
+	[ANALYZER_SYSLOG_TCP] = [$ports = tcp_ports], 
 };
 
 redef record connection += {

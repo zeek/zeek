@@ -23,7 +23,14 @@ void Syslog_UDP_Analyzer_binpac::Done()
 void Syslog_UDP_Analyzer_binpac::DeliverPacket(int len, const u_char* data, bool orig, int seq, const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
-	interp->NewData(orig, data, data + len);
+	try
+		{
+		interp->NewData(orig, data, data + len);
+		}
+	catch ( const binpac::Exception& e )
+		{
+		ProtocolViolation(fmt("Syslog analyzer BinPAC exception: %s", e.c_msg()));
+		}
 	}
 
 
@@ -68,7 +75,14 @@ void Syslog_TCP_Analyzer_binpac::DeliverStream(int len, const u_char* data,
 		// punt-on-partial or stop-on-gap.
 		return;
 
-	interp->NewData(orig, data, data + len);
+        try
+			{
+			interp->NewData(orig, data, data + len);
+			}
+		catch ( const binpac::Exception& e )
+			{
+			ProtocolViolation(fmt("Syslog_TCP analyzer BinPAC exception: %s", e.c_msg()));
+			}
 	}
 
 void Syslog_TCP_Analyzer_binpac::Undelivered(int seq, int len, bool orig)

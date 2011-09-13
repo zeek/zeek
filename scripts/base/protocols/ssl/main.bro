@@ -70,6 +70,20 @@ function set_session(c: connection)
 	if ( ! c?$ssl )
 		c$ssl = [$ts=network_time(), $uid=c$uid, $id=c$id, $cert_chain=vector()];
 	}
+	
+function finish(c: connection, violation: bool)
+	{
+	Log::write(SSL::LOG, c$ssl);
+	if ( delete_certs_after_logging )
+		{
+		if ( c$ssl?$cert )
+			delete c$ssl$cert;
+		if ( c$ssl?$cert_chain )
+			delete c$ssl$cert_chain;
+		}
+	if ( violation )
+		delete c$ssl;
+	}
 
 event ssl_client_hello(c: connection, version: count, possible_ts: time, session_id: string, ciphers: count_set) &priority=5
 	{
@@ -120,14 +134,12 @@ event ssl_established(c: connection) &priority=5
 	
 event ssl_established(c: connection) &priority=-5
 	{
-	Log::write(SSL::LOG, c$ssl);
-	
-	if ( delete_certs_after_logging )
-		{
-		if ( c$ssl?$cert )
-			delete c$ssl$cert;
-		if ( c$ssl?$cert_chain )
-			delete c$ssl$cert_chain;
-		}
+	finish(c, F);
 	}
 	
+event protocol_violation(c: connection, atype: count, aid: count,
+                         reason: string) &priority=5
+	{
+	if ( c?$ssl )
+		finish(c, T);
+	}

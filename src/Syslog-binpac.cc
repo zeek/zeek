@@ -29,7 +29,7 @@ void Syslog_UDP_Analyzer_binpac::DeliverPacket(int len, const u_char* data, bool
 		}
 	catch ( const binpac::Exception& e )
 		{
-		ProtocolViolation(fmt("Syslog analyzer BinPAC exception: %s", e.c_msg()));
+		ProtocolViolation("Syslog analyzer BinPAC exception");
 		}
 	}
 
@@ -81,7 +81,7 @@ void Syslog_TCP_Analyzer_binpac::DeliverStream(int len, const u_char* data,
 			}
 		catch ( const binpac::Exception& e )
 			{
-			ProtocolViolation(fmt("Syslog_TCP analyzer BinPAC exception: %s", e.c_msg()));
+			ProtocolViolation("Syslog_TCP analyzer BinPAC exception");
 			}
 	}
 

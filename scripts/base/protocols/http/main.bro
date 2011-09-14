@@ -30,10 +30,20 @@ export {
 		referrer:                string   &log &optional;
 		## The value of the User-Agent header from the client.
 		user_agent:              string   &log &optional;
-		## The value of the Content-Length header from the client.
-		request_content_length:  count    &log &optional;
-		## The value of the Content-Length header from the server.
-		response_content_length: count    &log &optional;
+		## The actual uncompressed content size of the data transferred from
+		## the client.
+		request_body_len:        count    &log &optional;
+		## This indicates whether or not there was an interruption while the
+		## request body was being sent.
+		request_body_interrupted: bool     &log &default=F;
+		## The actual uncompressed content size of the data transferred from
+		## the server.
+		response_body_len:       count    &log &optional;
+		## This indicates whether or not there was an interruption while the
+		## request body was being sent.  An interruption could cause hash
+		## calculation to fail and a number of other problems since the 
+		## analyzer may not be able to get back on track with the connection.
+		response_body_interrupted: bool     &log &default=F;
 		## The status code returned by the server.
 		status_code:             count    &log &optional;
 		## The status message returned by the server.
@@ -174,9 +184,6 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 			# The split is done to remove the occasional port value that shows up here.
 			c$http$host = split1(value, /:/)[1];
 		
-		else if ( name == "CONTENT-LENGTH" )
-			c$http$request_content_length = extract_count(value);
-			
 		else if ( name == "USER-AGENT" )
 			c$http$user_agent = value;
 			
@@ -201,7 +208,7 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 					}
 				else
 					{
-					c$http$username = "<problem-decoding>";
+					c$http$username = fmt("<problem-decoding> (%s)", value);
 					if ( c$http$capture_password )
 						c$http$password = userpass;
 					}
@@ -212,10 +219,8 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 		}
 	else # server headers
 		{
-		if ( name == "CONTENT-LENGTH" )
-			c$http$response_content_length = extract_count(value);
-		else if ( name == "CONTENT-DISPOSITION" &&
-		          /[fF][iI][lL][eE][nN][aA][mM][eE]/ in value )
+		if ( name == "CONTENT-DISPOSITION" &&
+		     /[fF][iI][lL][eE][nN][aA][mM][eE]/ in value )
 			c$http$filename = extract_filename_from_content_disposition(value);
 		}
 	}
@@ -223,6 +228,17 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &priority = 5
 	{
 	set_state(c, F, is_orig);
+	
+	if ( is_orig )
+		{
+		c$http$request_body_len = stat$body_length;
+		c$http$request_body_interrupted = stat$interrupted;
+		}
+	else
+		{
+		c$http$response_body_len = stat$body_length;
+		c$http$response_body_interrupted = stat$interrupted;
+		}
 	}
 	
 event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &priority = -5

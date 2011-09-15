@@ -276,6 +276,8 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 		{
 		// Can only happen for events.
 		assert(IsEvent());
+		loop_over_list(*args, i)
+			Unref((*args)[i]);
 		return 0 ;
 		}
 

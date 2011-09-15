@@ -303,6 +303,12 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Conne
 		s += "\n";
 
 		fprintf(out, "%s", s.c_str());
+
+		if ( addl )
+			{
+			loop_over_list(*addl, i)
+				Unref((*addl)[i]);
+			}
 		}
 
 	if ( alloced )

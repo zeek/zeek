@@ -1,10 +1,6 @@
 if (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
-    # alternate malloc is faster for FreeBSD, but needs more testing
-    # need to add way to set this from the command line
-    set(USE_NMALLOC true)
 
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "OpenBSD")
-    set(USE_NMALLOC true)
 
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 

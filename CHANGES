@@ -1,4 +1,15 @@
 
+1.6-dev-1248 | 2011-09-15 16:01:32 -0700
+
+  * Removed custom malloc() implementation for FreeBSD. Closes #557.
+    (Jon Siwek)
+
+  * Testing/external scripts no longer compute MD5 checksums for SMTP
+    entities. (Robin Sommer)
+
+  * External tests no longer include the full content of mismatching
+    files in the diagnostics output. (Robin Sommer)
+
 1.6-dev-1241 | 2011-09-14 22:51:52 -0400
 
   * Fixing a major memory utilization issues with SSL analysis. (Seth
@@ -12,7 +23,7 @@
         (Seth Hall)
 
       - HTTP body size measurement added to http.log.
-        
+
       - The value of the content-length headers has now been removed
         in the default output but it could be added back locally at an
         installation by a user.
@@ -23,7 +34,7 @@
   * Misc smaller usability and correctness updates: (Seth Hall)
 
     - Removed an notice definition from the base SSL scripts.
-      
+
     - Moved a logging stream ID into the export section for known-services
       and bumped priority for creating the stream.
 
@@ -34,7 +45,7 @@
     - Bumped priority when creating Known::CERTS_LOG.
 
     - Fixing a warning from the cluster framework. (Seth Hall)
-      
+
   * Bugfix for log writer, which didn't escape binary stuff in some
     situations. Closes #585. (Robin Sommer)
 
@@ -71,7 +82,7 @@
     parse Bro log files. (Gilbert Clark)
 
   * Potential fix for rotation crashes. Addresses #588. (Robin Sommer)
-    
+
   * Added PF_RING load balancing support to the scripting layer,
     enabled by loading the misc/pf-ring-load-balancing script. (Seth
     Hall)
@@ -96,7 +107,7 @@
     line option to set it explicitly. Addresses #447. (Jon Siwek)
 
   * Various updates to logging framework. (Seth Hall)
-    
+
   * Changed presentation of enum labels to include namespace. (Jon
     Siwek)
 
@@ -110,7 +121,7 @@
     (Gregor Maier)
 
   * Added a Reporter::fatal BIF. (Jon Siwek)
-    
+
   * Fixes for GeoIP support. Addresses #538. (Jon Siwek)
 
   * Fixed excessive memory usage of SSL analyzer on connections with
@@ -127,7 +138,7 @@
   * Fixed bare-mode @load dependency problems. (Jon Siwek)
 
   * Fixed check_for_unused_event_handlers option. (Jon Siwek)
-    
+
   * Fixing some more bare-mode @load dependency issues (Jon Siwek)
 
   * Reorganizing btest/policy directory to match new scripts/
@@ -137,18 +148,18 @@
     $prefix/share/bro/base. Addresses #545 (Jon Siwek)
 
   * Changeed/fixed some cluster script error reporting. (Jon Siwek)
-    
+
   * Various script normalization. (Jon Siwek)
 
   * Add a test that checks each individual script can be loaded in
     bare-mode. Adressess #545. (Jon Siwek)
 
   * Tune when c$conn is set. Addresses #554. (Gregor Maier)
-    
+
   * Add ConnSize_Analyzer's fields to conn.log. (Gregor Maier)
-    
+
   * Fixing bug in "interesting hostnames" detection. (Seth Hall)
-    
+
   * Adding metrics framework intermediate updates. (Seth Hall)
 
 1.6-dev-1120 | 2011-08-19 19:00:15 -0700
@@ -176,7 +187,7 @@
     framework updates. (Seth Hall)
 
   * Metrics framework now works on cluster setups. (Seth Hall)
-    
+
   * Reclassifying more DNS manager errors as non-fatal errors. (Robin
     Sommer)
 
@@ -192,9 +203,9 @@
     Siwek)
 
   * Workaround for FreeBSD CMake port missing debug flags. (Jon Siwek)
-    
+
   * piped_exec() can now deal with null bytes. (Seth Hall)
-    
+
   * Fix vector initialization for lists of records with optional
     types. Closes #485. (Jon Siwek)
 
@@ -208,19 +219,19 @@
     (Jon Siwek)
 
   * Fixing reporter's location tracking. Closes #492. (Robin Sommer)
-    
+
   * Turning DNS errors into warnings. Closes #255. (Robin Sommer)
-    
+
   * Logging's path_func now receives the log record as argument.
     Closes #555. (Robin Sommer)
 
-  * Functions can now be logged; their full body gets recorded. 
+  * Functions can now be logged; their full body gets recorded.
     Closes #506. (Robin Sommer)
 
   * Bugfix for hostname notice email extension. (Seth Hall)
-    
+
   * Updates for notice framework. (Seth Hall)
-    
+
     - New ACTION_ADD_GEODATA to add geodata to notices in an extension
       field named remote_location.
 
@@ -230,7 +241,7 @@
   * Updates to local.bro (Seth Hall)
 
   * Added the profiling script. (Seth Hall)
-    
+
   * Updates for SSH scripts. (Seth Hall)
 
   * ConnSize analyzer is turned on by default now. (Seth Hall)
@@ -241,12 +252,12 @@
   * HTTP now uses the extract_filename_from_content_disposition function. (Seth Hall)
 
   * Major SMTP script refactor. Closes #509. (Jon Siwek and Seth Hall)
-    
+
   * New variable Site::local_nets_table in utils/site for mapping
     address to defined local subnet.
 
   * Metrics framework updates, more to come. (Seth Hall)
-    
+
 
 1.6-dev-1061 | 2011-08-08 18:25:27 -0700
 

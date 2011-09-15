@@ -215,18 +215,6 @@ function log_mailing_postprocessor(info: Log::RotationInfo): bool
 	return T;
 	}
 
-# This extra export section here is just because this redefinition should
-# be documented as part of the "public API" of this script, but the redef
-# needs to occur after the postprocessor function implementation.
-export {
-	## By default, an ASCII version of the the alarm log is emailed daily to any
-	## configured :bro:id:`Notice::mail_dest` if not operating on trace files.
-	redef Log::rotation_control += {
-		[Log::WRITER_ASCII, "alarm-mail"] =
-		    [$interv=24hrs, $postprocessor=log_mailing_postprocessor]
-	};
-}
-
 event bro_init() &priority=5
 	{
 	Log::create_stream(Notice::LOG, [$columns=Info, $ev=log_notice]);
@@ -237,9 +225,9 @@ event bro_init() &priority=5
 	# Make sure that this alarm log is also output as text so that it can
 	# be packaged up and emailed later.
 	if ( ! reading_traces() && mail_dest != "" )
-		Log::add_filter(Notice::ALARM_LOG, [$name="alarm-mail", 
-		                                    $path="alarm-mail",
-		                                    $writer=Log::WRITER_ASCII]);
+		Log::add_filter(Notice::ALARM_LOG,
+		    [$name="alarm-mail", $path="alarm-mail", $writer=Log::WRITER_ASCII,
+		     $interv=24hrs, $postprocessor=log_mailing_postprocessor]);
 	}
 
 # TODO: fix this.

@@ -1,4 +1,49 @@
 
+1.6-dev-1241 | 2011-09-14 22:51:52 -0400
+
+  * Fixing a major memory utilization issues with SSL analysis. (Seth
+    Hall)
+
+  * Enhancements to HTTP analysis: (Seth Hall)
+
+      - More options for the header-names.bro script.
+
+      - New script for logging header names and values. Closes #519.
+        (Seth Hall)
+
+      - HTTP body size measurement added to http.log.
+        
+      - The value of the content-length headers has now been removed
+        in the default output but it could be added back locally at an
+        installation by a user.
+
+      - Added fields to indicate if some parsing interruption happened
+        during the body transfer. Closes #581 (Seth Hall)
+
+  * Misc smaller usability and correctness updates: (Seth Hall)
+
+    - Removed an notice definition from the base SSL scripts.
+      
+    - Moved a logging stream ID into the export section for known-services
+      and bumped priority for creating the stream.
+
+    - Adding configuration knobs for the SQL injection attack detection
+      script and renaming the HTTP::SQL_Injection_Attack notice to
+      HTTP::SQL_Injection_Attack_Against
+
+    - Bumped priority when creating Known::CERTS_LOG.
+
+    - Fixing a warning from the cluster framework. (Seth Hall)
+      
+  * Bugfix for log writer, which didn't escape binary stuff in some
+    situations. Closes #585. (Robin Sommer)
+
+  * A larget set of changes to the testing/external infrastructure.
+    The traces for external test-suites are no longer kept inside the
+    repositories themselves but downloaded separately via curl. This
+    is because git is pretty bad at dealing with large files. See the
+    README for more information. (Robin Sommer)
+
 1.6-dev-1221 | 2011-09-08 08:41:17 -0700
 
   * Updates for documentation framework and script docs. (Jon Siwek)

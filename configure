@@ -32,6 +32,8 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --disable-broccoli     don't build or install the Broccoli library
     --disable-broctl       don't install Broctl
     --disable-auxtools     don't build or install auxilliary tools
+    --disable-python       don't try to build python bindings for broccoli
+    --disable-ruby         don't try to build ruby bindings for broccoli
 
   Required Packages in Non-Standard Locations:
     --with-openssl=PATH    path to OpenSSL install root
@@ -49,6 +51,9 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-python=PATH     path to Python interpreter
     --with-python-lib=PATH path to libpython
     --with-python-inc=PATH path to Python headers
+    --with-ruby=PATH       path to ruby interpreter
+    --with-ruby-lib=PATH   path to ruby library
+    --with-ruby-inc=PATH   path to ruby headers
     --with-swig=PATH       path to SWIG executable
 
   Packaging Options (for developers):
@@ -144,6 +149,12 @@ while [ $# -ne 0 ]; do
         --disable-auxtools)
             append_cache_entry INSTALL_AUX_TOOLS    BOOL   false
             ;;
+        --disable-python)
+            append_cache_entry DISABLE_PYTHON_BINDINGS     BOOL   true
+            ;;
+        --disable-ruby)
+            append_cache_entry DISABLE_RUBY_BINDINGS     BOOL   true
+            ;;
         --with-openssl=*)
             append_cache_entry OpenSSL_ROOT_DIR PATH $optarg
             ;;
@@ -184,6 +195,16 @@ while [ $# -ne 0 ]; do
         --with-python-inc=*)
             append_cache_entry PYTHON_INCLUDE_DIR   PATH    $optarg
             append_cache_entry PYTHON_INCLUDE_PATH  PATH    $optarg
+            ;;
+        --with-ruby=*)
+            append_cache_entry RUBY_EXECUTABLE    PATH    $optarg
+            ;;
+        --with-ruby-lib=*)
+            append_cache_entry RUBY_LIBRARY       PATH    $optarg
+            ;;
+        --with-ruby-inc=*)
+            append_cache_entry RUBY_INCLUDE_DIRS  PATH    $optarg
+            append_cache_entry RUBY_INCLUDE_PATH  PATH    $optarg
             ;;
         --with-swig=*)
             append_cache_entry SWIG_EXECUTABLE      PATH    $optarg

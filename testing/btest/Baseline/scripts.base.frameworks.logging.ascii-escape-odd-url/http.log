@@ -1,0 +1,5 @@
+#separator \x09
+#path	http
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	method	host	uri	referrer	user_agent	request_content_length	response_content_length	status_code	status_msg	filename	tags	username	password	proxied	mime_type	md5	extraction_file
+#types	time	string	addr	port	addr	port	string	string	string	string	string	count	count	count	string	string	table	string	string	table	string	string	file
+1315799856.264750	UWkUyAuUGXf	10.0.1.104	64216	193.40.5.162	80	GET	lepo.it.da.ut.ee	/~cect/teoreetilised seminarid_2010/arheoloogia_uurimisr\xfchma_seminar/Joyce et al - The Languages of Archaeology ~ Dialogue, Narrative and Writing.pdf	-	Wget/1.12 (darwin10.8.0)	-	346	404	Not Found	-	-	-	-	-	text/html	-	-

@@ -86,15 +86,15 @@ function local_node_type(): NodeType
 	return is_enabled() ? nodes[node]$node_type : NONE;
 	}
 
-event remote_connection_handshake_done(p: event_peer)
+event remote_connection_handshake_done(p: event_peer) &priority=5
 	{
-	if ( nodes[p$descr]$node_type == WORKER )
+	if ( p$descr in nodes && nodes[p$descr]$node_type == WORKER )
 		++worker_count;
 	}
 
-event remote_connection_closed(p: event_peer)
+event remote_connection_closed(p: event_peer) &priority=5
 	{
-	if ( nodes[p$descr]$node_type == WORKER )
+	if ( p$descr in nodes && nodes[p$descr]$node_type == WORKER )
 		--worker_count;
 	}
 

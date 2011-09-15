@@ -3423,7 +3423,7 @@ function unique_id_from%(pool: int, prefix: string%) : string
 #include <openssl/x509_vfy.h>
 
 // This is the indexed map of X509 certificate stores.
-static map<BroString, X509_STORE*> x509_stores;
+static map<Val*, X509_STORE*> x509_stores;
 
 // ### NOTE: while d2i_X509 does not take a const u_char** pointer,
 // here we assume d2i_X509 does not write to <data>, so it is safe to
@@ -3448,9 +3448,8 @@ function x509_verify%(der_cert: string, cert_stack: string_vec, root_certs: tabl
 	int i = 0;
 
 	// If this certificate store was built previously, just reuse the old one.
-	BroString* s = convert_index_to_string(root_certs);
-	if ( x509_stores.count(*s) > 0 )
-		ctx = x509_stores[*s];
+	if ( x509_stores.count(root_certs) > 0 )
+		ctx = x509_stores[root_certs];
 
 	if ( ! ctx ) // lookup to see if we have this one built already!
 		{
@@ -3475,9 +3474,8 @@ function x509_verify%(der_cert: string, cert_stack: string_vec, root_certs: tabl
 		delete idxs;
 
 		// Save the newly constructed certificate store into the cacheing map.
-		x509_stores[*s] = ctx;
+		x509_stores[root_certs] = ctx;
 		}
-	delete s;
 
 	const uint8 *cert_data = der_cert->Bytes();
 	X509* cert = d2i_X509_(NULL, &cert_data, der_cert->Len());

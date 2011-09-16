@@ -1,4 +1,18 @@
 
+1.6-dev-1261 | 2011-09-15 17:13:55 -0700
+
+  * Memory leak fixes. Addresses #574 (Jon Siwek)
+
+  * Add configure options for ruby/bindings integration. (Jon Siwek)
+
+  * Fix filter path_func to allow record argument as a subset of
+    stream's columns. Addresses #600. (Jon Siwek)
+
+  * Log rotation is now controlled directly through Filter records. (Jon Siwek)
+
+  * Fix indexing for record types with optional fields. Addresses #378
+    (Jon Siwek)
+
 1.6-dev-1248 | 2011-09-15 16:01:32 -0700
 
   * Removed custom malloc() implementation for FreeBSD. Closes #557.

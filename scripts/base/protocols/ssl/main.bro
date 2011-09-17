@@ -18,16 +18,21 @@ export {
 		
 		cert:             string           &optional;
 		cert_chain:       vector of string &optional;
+		
+		## This stores the analyzer id used for the analyzer instance attached
+		## to each connection.  It is not used for logging since it's a 
+		## meaningless arbitrary number.
+		analyzer_id:      count            &optional;
 	};
 	
 	## This is where the default root CA bundle is defined.  By loading the
 	## mozilla-ca-list.bro script it will be set to Mozilla's root CA list.
 	const root_certs: table[string] of string = {} &redef;
-
-	## This determines if the c$ssl record is deleted after the record is 
-	## logged. You probably want this to be deleted since it contains 
-	## the full certificate and all of the chain certificates in it.
-	const delete_certs_after_logging = T &redef;
+	
+	## If true, detach the SSL analyzer from the connection to prevent 
+	## continuing to process encrypted traffic. Helps with performance
+	## (especially with large file transfers).
+	const disable_analyzer_after_detection = T &redef;
 	
 	global log_ssl: event(rec: Info);
 	
@@ -71,18 +76,12 @@ function set_session(c: connection)
 		c$ssl = [$ts=network_time(), $uid=c$uid, $id=c$id, $cert_chain=vector()];
 	}
 	
-function finish(c: connection, violation: bool)
+function finish(c: connection)
 	{
 	Log::write(SSL::LOG, c$ssl);
-	if ( delete_certs_after_logging )
-		{
-		if ( c$ssl?$cert )
-			delete c$ssl$cert;
-		if ( c$ssl?$cert_chain )
-			delete c$ssl$cert_chain;
-		}
-	if ( violation )
-		delete c$ssl;
+	if ( disable_analyzer_after_detection && c?$ssl && c$ssl?$analyzer_id )
+		disable_analyzer(c$id, c$ssl$analyzer_id);
+	delete c$ssl;
 	}
 
 event ssl_client_hello(c: connection, version: count, possible_ts: time, session_id: string, ciphers: count_set) &priority=5
@@ -134,12 +133,19 @@ event ssl_established(c: connection) &priority=5
 	
 event ssl_established(c: connection) &priority=-5
 	{
-	finish(c, F);
+	finish(c);
 	}
-	
+
+event protocol_confirmation(c: connection, atype: count, aid: count) &priority=5
+	{
+	# Check by checking for existence of c$ssl record.
+	if ( c?$ssl && analyzer_name(atype) == "SSL" )
+		c$ssl$analyzer_id = aid;
+	}
+
 event protocol_violation(c: connection, atype: count, aid: count,
                          reason: string) &priority=5
 	{
 	if ( c?$ssl )
-		finish(c, T);
+		finish(c);
 	}

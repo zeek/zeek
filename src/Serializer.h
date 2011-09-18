@@ -1,5 +1,3 @@
-// $Id: Serializer.h 6752 2009-06-14 04:24:52Z vern $
-
 #ifndef SERIALIZER_H
 #define SERIALIZER_H
 

@@ -1,5 +1,3 @@
-// $Id: Sessions.cc 7075 2010-09-13 02:39:38Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 

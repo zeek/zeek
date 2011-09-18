@@ -1,5 +1,3 @@
-// $Id: SerialInfo.h 6752 2009-06-14 04:24:52Z vern $
-//
 // Helper classes to pass data between serialization methods.
 
 #ifndef serialinfo_h

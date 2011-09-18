@@ -62,7 +62,6 @@ Installation
 To build and install into /usr/local/bro:
 
     > ./configure
-    > cd build
     > make
     > make install
 
@@ -89,17 +88,19 @@ Running Bro
 ===========
 
 Bro is a complex program and it takes a bit of time to get familiar
-with it. In the following we give a few simple examples.  See the
-quickstart guide at http://www.bro-ids.org for more information; you
-can the source that in doc/quick-start.
+with it.  A good place for newcomers to start is the quick start guide
+available here:
+
+    http://www.bro-ids.org/documentation/quickstart.html
 
 For developers that wish to run Bro from the the build/ directory
 after performing "make", but without performing "make install", they
 will have to first set BROPATH to look for scripts inside the build
 directory.  Sourcing either build/bro-path-dev.sh or build/bro-path-dev.csh
-as appropriate for the current shell accomplishes this. e.g.:
+as appropriate for the current shell accomplishes this and also augments your
+PATH so you can use Bro without qualifying the path to it. e.g.:
 
     > ./configure
     > make
     > source build/bro-path-dev.sh
-    > ./build/src/bro
+    > bro <options>

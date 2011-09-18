@@ -1,5 +1,3 @@
-// $Id: Base64.cc 6024 2008-07-26 19:20:47Z vern $
-
 #include "config.h"
 #include "Base64.h"
 

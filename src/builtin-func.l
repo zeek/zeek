@@ -1,6 +1,4 @@
 %{
-// $Id: builtin-func.l 6015 2008-07-23 05:42:37Z vern $
-
 #include <string.h>
 #include <unistd.h>
 #include "bif_arg.h"

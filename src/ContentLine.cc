@@ -1,5 +1,3 @@
-// $Id: ContentLine.cc,v 1.1.2.8 2006/06/01 01:55:42 sommer Exp $
-
 #include <algorithm>
 
 #include "ContentLine.h"

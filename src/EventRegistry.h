@@ -1,5 +1,3 @@
-// $Id: EventRegistry.h 6829 2009-07-09 09:12:59Z vern $
-//
 // Each event raised/handled by Bro is registered in the EventRegistry.
 
 #ifndef EVENT_REGISTRY

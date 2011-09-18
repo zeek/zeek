@@ -1,5 +1,3 @@
-// $Id: Stats.cc 7008 2010-03-25 02:42:20Z vern $
-
 #include "Conn.h"
 #include "File.h"
 #include "Event.h"

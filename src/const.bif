@@ -1,5 +1,3 @@
-# $Id: const.bif 3929 2007-01-14 00:37:59Z vern $
-
 # Documentation and default values for these are located in policy/bro.init.
 
 const ignore_keep_alive_rexmit: bool;

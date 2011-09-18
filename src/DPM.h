@@ -1,5 +1,3 @@
-// $Id:$
-//
 // The central management unit for dynamic analyzer selection.
 
 #ifndef DPM_H

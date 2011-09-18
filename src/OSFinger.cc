@@ -1,5 +1,3 @@
-// $Id: OSFinger.cc 5857 2008-06-26 23:00:03Z vern $
-
 /*
   Taken with permission from:
 

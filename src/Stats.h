@@ -1,5 +1,3 @@
-// $Id: Stats.h 6703 2009-05-13 22:27:44Z vern $
-//
 // Classes that collect and report statistics.
 
 #ifndef STATS_H

@@ -1,5 +1,3 @@
-// $Id: RuleCondition.cc 6008 2008-07-23 00:24:22Z vern $
-
 #include "config.h"
 
 #include "RuleCondition.h"

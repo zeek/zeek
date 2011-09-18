@@ -1,5 +1,3 @@
-# $Id:$
-
 %include bro.pac
 
 analyzer DCE_RPC_Simple withcontext {};

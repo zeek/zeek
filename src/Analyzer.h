@@ -1,5 +1,3 @@
-// $Id:$
-//
 // Main analyzer interface.
 
 #ifndef ANALYZER_H

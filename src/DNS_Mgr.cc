@@ -1,5 +1,3 @@
-// $Id: DNS_Mgr.cc 7073 2010-09-13 00:45:02Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"

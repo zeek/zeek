@@ -1,5 +1,3 @@
-// $Id:$
-//
 // Analyzer for connections that transfer binary data.
 
 #ifndef FILEANALYZER_H

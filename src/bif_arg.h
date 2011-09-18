@@ -1,5 +1,3 @@
-// $Id: bif_arg.h 3234 2006-06-08 02:38:11Z vern $
-
 #ifndef bif_arg_h
 #define bif_arg_h
 

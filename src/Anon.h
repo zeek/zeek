@@ -1,5 +1,3 @@
-// $Id: Anon.h 416 2004-09-17 03:52:28Z vern $
-
 // The prefix-preserving IP address anonymization code is largely
 // based on (and sometimes directly copied from) Eddie Kohler's
 // ipsumdump-1.20 code, per:

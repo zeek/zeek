@@ -1,5 +1,3 @@
-// $Id: SerialTypes.h 6752 2009-06-14 04:24:52Z vern $
-
 #ifndef serialtypes_h
 #define serialtypes_h
 

@@ -1,5 +1,3 @@
-// $Id: ChunkedIO.h 6888 2009-08-20 18:23:11Z vern $
-//
 // Implements non-blocking chunk-wise I/O.
 
 #ifndef CHUNKEDIO_H

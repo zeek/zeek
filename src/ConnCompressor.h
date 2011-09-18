@@ -1,5 +1,3 @@
-// $Id: ConnCompressor.h 6008 2008-07-23 00:24:22Z vern $
-//
 // The ConnCompressor keeps track of the first packet seen for a conn_id using
 // only a minimal amount of memory. This helps us to avoid instantiating
 // full Connection objects for never-established sessions.

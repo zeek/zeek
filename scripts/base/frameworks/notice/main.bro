@@ -90,7 +90,6 @@ export {
 		
 		## These are policy items that returned T and applied their action
 		## to the notice.
-		## TODO: this can't take set() as a default. (bug)
 		policy_items:   set[count]     &log &optional;
 		
 		## By adding chunks of text into this element, other scripts can
@@ -125,7 +124,7 @@ export {
 		## This field indicates the length of time that this
 		## unique notice should be suppressed.  This field is automatically 
 		## filled out and should not be written to by any other script.
-		suppress_for:         interval      &log &default=default_suppression_interval;
+		suppress_for:        interval       &log &optional;
 	};
 	
 	## Ignored notice types.
@@ -157,7 +156,7 @@ export {
 		halt:     bool                             &log &default=F;
 		## This defines the length of time that this particular notice should
 		## be supressed.
-		suppress_for: interval                     &log &default=default_suppression_interval;
+		suppress_for: interval                     &log &optional;
 	};
 	
 	## This is the where the :bro:id:`Notice::policy` is defined.  All notice
@@ -245,9 +244,30 @@ export {
 	global internal_NOTICE: function(n: Notice::Info);
 }
 
+# This is used as a hack to implement per-item expiration intervals.
+function per_notice_suppression_interval(t: table[Notice::Type, string] of Notice::Info, idx: any): interval
+	{
+	local n: Notice::Type;
+	local s: string;
+	[n,s] = idx;
+	
+	local suppress_time = t[n,s]$suppress_for - (network_time() - t[n,s]$ts);
+	if ( suppress_time < 0secs )
+		suppress_time = 0secs;
+	
+	# If there is no more suppression time left, the notice needs to be sent
+	# to the end_suppression event.
+	if ( suppress_time == 0secs )
+		event Notice::end_suppression(t[n,s]);
+	
+	return suppress_time;
+	}
+
 # This is the internally maintained notice suppression table.  It's 
 # indexed on the Notice::Type and the $identifier field from the notice.
-global suppressing: table[Type, string] of Notice::Info = {} &synchronized;
+global suppressing: table[Type, string] of Notice::Info = {} 
+		&create_expire=0secs
+		&expire_func=per_notice_suppression_interval;
 
 # This is an internal variable used to store the notice policy ordered by
 # priority.
@@ -358,6 +378,7 @@ event notice(n: Notice::Info) &priority=-5
 		Log::write(Notice::LOG, n);
 	if ( ACTION_ALARM in n$actions )
 		Log::write(Notice::ALARM_LOG, n);
+	
 	# Normally suppress further notices like this one unless directed not to.
 	#  n$identifier *must* be specified for suppression to function at all.
 	if ( n?$identifier && 
@@ -367,10 +388,9 @@ event notice(n: Notice::Info) &priority=-5
 		{
 		suppressing[n$note, n$identifier] = n;
 		event Notice::begin_suppression(n);
-		schedule n$suppress_for { Notice::end_suppression(n) };
 		}
 	}
-
+	
 ## This determines if a notice is being suppressed.  It is only used 
 ## internally as part of the mechanics for the global NOTICE function.
 function is_being_suppressed(n: Notice::Info): bool
@@ -382,12 +402,6 @@ function is_being_suppressed(n: Notice::Info): bool
 		}
 	else
 		return F;
-	}
-
-event Notice::end_suppression(n: Notice::Info) &priority=-5
-	{
-	if ( [n$note, n$identifier] in suppressing )
-		delete suppressing[n$note, n$identifier];
 	}
 	
 # Executes a script with all of the notice fields put into the
@@ -446,9 +460,6 @@ function apply_policy(n: Notice::Info)
 	if ( ! n?$policy_items )
 		n$policy_items = set();
 	
-	if ( ! n?$suppress_for )
-		n$suppress_for = default_suppression_interval;
-	
 	for ( i in ordered_policy )
 		{
 		if ( ordered_policy[i]$pred(n) )
@@ -456,11 +467,22 @@ function apply_policy(n: Notice::Info)
 			add n$actions[ordered_policy[i]$result];
 			add n$policy_items[int_to_count(i)];
 			
+			# If the predicate matched and there was a suppression interval, 
+			# apply it to the notice now.
+			if ( ordered_policy[i]?$suppress_for )
+				n$suppress_for = ordered_policy[i]$suppress_for;
+			
 			# If the policy item wants to halt policy processing, do it now!
 			if ( ordered_policy[i]$halt )
 				break;
 			}
 		}
+	
+	# Apply the suppression time after applying the policy so that policy
+	# items can give custom suppression intervals.  If there is no 
+	# suppression interval given yet, the default is applied.
+	if ( ! n?$suppress_for )
+		n$suppress_for = default_suppression_interval;
 	
 	# Delete the connection record if it's there so we aren't sending that
 	# to remote machines.  It can cause problems due to the size of the 

@@ -59,30 +59,31 @@ installation time:
 Installation
 ============
 
-To build and install into /usr/local/bro:
+To build and install into ``/usr/local/bro``::
 
     > ./configure
     > make
     > make install
 
 This will perform an out-of-source build into a directory called
-build/, using default build options. It then installs the Bro binary
-into /usr/local/bro/bin. Depending on the Bro package you
-downloaded, there may be auxiliary tools and libraries available in
-the aux/ directory. If so, they will be installed by default as well
-if not explicitly disabled via configure options and may also have
-additional installation/configuration instructions that you can
-find in their source directories.
+``build/``, using default build options. It then installs the Bro binary
+into ``/usr/local/bro/bin``. Depending on the Bro package you
+downloaded, there may be auxiliary tools and libraries available in the
+``aux/`` directory. All of them except for ``aux/bro-aux`` will also be
+built and installed by doing ``make install``.  To install the programs
+that come in the ``aux/bro-aux`` directory, additionally use ``make
+install-aux``.  There are ``--disable`` options that can be given to the
+configure script to turn off unwanted auxiliary projects.
 
-You can specify a different installation directory with
+You can specify a different installation directory with::
 
     > ./configure --prefix=<dir>
 
-Note that "/usr" and "/opt/bro" are standard prefixes for binary
+Note that ``/usr`` and ``/opt/bro`` are standard prefixes for binary
 packages to be installed, so those are typically not good choices
 unless you are creating such a package.
 
-Run "./configure --help" for more options.
+Run ``./configure --help`` for more options.
 
 Running Bro
 ===========
@@ -93,12 +94,13 @@ available here:
 
     http://www.bro-ids.org/documentation/quickstart.html
 
-For developers that wish to run Bro from the the build/ directory
-after performing "make", but without performing "make install", they
-will have to first set BROPATH to look for scripts inside the build
-directory.  Sourcing either build/bro-path-dev.sh or build/bro-path-dev.csh
-as appropriate for the current shell accomplishes this and also augments your
-PATH so you can use Bro without qualifying the path to it. e.g.:
+For developers that wish to run Bro from the the ``build/`` directory
+after performing ``make``, but without performing ``make install``, they
+will have to first set ``BROPATH`` to look for scripts inside the build
+directory.  Sourcing either ``build/bro-path-dev.sh`` or
+``build/bro-path-dev.csh`` as appropriate for the current shell
+accomplishes this and also augments your ``PATH`` so you can use Bro
+without qualifying the path to it. e.g.::
 
     > ./configure
     > make

@@ -12,6 +12,7 @@ export {
 		version:          string           &log &optional;
 		cipher:           string           &log &optional;
 		server_name:      string           &log &optional;
+		session_id:       string           &log &optional;
 		subject:          string           &log &optional;
 		not_valid_before: time             &log &optional;
 		not_valid_after:  time             &log &optional;
@@ -87,6 +88,10 @@ function finish(c: connection)
 event ssl_client_hello(c: connection, version: count, possible_ts: time, session_id: string, ciphers: count_set) &priority=5
 	{
 	set_session(c);
+	
+	# Save the session_id if there is one set.
+	if ( session_id != /^\x00{32}$/ )
+		c$ssl$session_id = bytestring_to_hexstr(session_id);
 	}
 	
 event ssl_server_hello(c: connection, version: count, possible_ts: time, session_id: string, cipher: count, comp_method: count) &priority=5

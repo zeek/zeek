@@ -1,5 +1,3 @@
-// $Id: RemoteSerializer.h 6951 2009-12-04 22:23:28Z vern $
-//
 // Communication between two Bro's.
 
 #ifndef REMOTE_SERIALIZER

@@ -1,5 +1,3 @@
-# $Id:$
-
 # DHCP Message Type according to RFC 1533.
 
 # Refer to RFC 2131 for op types.

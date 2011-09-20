@@ -1,5 +1,3 @@
-// $Id: MIME.h 3526 2006-09-12 07:32:21Z vern $
-
 #ifndef mime_h
 #define mime_h
 

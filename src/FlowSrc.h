@@ -1,5 +1,3 @@
-// $Id: FlowSrc.h 4618 2007-07-09 18:12:32Z bager $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 //
 // Written by Bernhard Ager, TU Berlin (2006/2007).

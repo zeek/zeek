@@ -1,5 +1,3 @@
-// $Id: DbgWatch.h 80 2004-07-14 20:15:50Z jason $
-
 // Structures and methods for implementing watches in the Bro debugger.
 
 #ifndef dbgwatch_h

@@ -1,5 +1,3 @@
-// $Id: PersistenceSerializer.cc 6752 2009-06-14 04:24:52Z vern $
-
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>

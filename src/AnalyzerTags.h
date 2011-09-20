@@ -1,5 +1,3 @@
-// $Id: AnalyzerTags.h,v 1.1.2.5 2006/06/01 01:55:42 sommer Exp $
-
 #ifndef ANALYZERTAGS_H
 #define ANALYZERTAGS_H
 

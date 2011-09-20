@@ -69,6 +69,11 @@ export {
 	## The on-disk prefix for files to be extracted from MIME entity bodies.
 	const extraction_prefix = "smtp-entity" &redef;
 
+	## If set, never generate MD5s. This is mainly for testing purposes to create
+	## reproducable output in the case that the decision whether to create
+	## checksums depends on environment specifics.
+	const never_calc_md5 = F &redef;
+
 	global log_mime: event(rec: EntityInfo);
 }
 
@@ -121,7 +126,7 @@ event mime_segment_data(c: connection, length: count, data: string) &priority=-5
 
 	if ( c$smtp$current_entity$content_len == 0 )
 		{
-		if ( generate_md5 in c$smtp$current_entity$mime_type )
+		if ( generate_md5 in c$smtp$current_entity$mime_type && ! never_calc_md5 )
 			c$smtp$current_entity$calc_md5 = T;
 
 		if ( c$smtp$current_entity$calc_md5 )

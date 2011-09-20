@@ -1,5 +1,3 @@
-// $Id: FileAnalyzer.cc,v 1.1.4.2 2006/06/01 17:18:10 sommer Exp $
-
 #include <algorithm>
 
 #include "FileAnalyzer.h"

@@ -1,5 +1,3 @@
-# $Id:$
-
 # binpac file for SSL analyzer
 
 # split in three parts:

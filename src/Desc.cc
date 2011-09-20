@@ -1,5 +1,3 @@
-// $Id: Desc.cc 6245 2008-10-07 00:56:59Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"

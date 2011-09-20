@@ -1,5 +1,3 @@
-# $Id: ncp.pac 4608 2007-07-05 18:23:58Z vern $
-#
 # Netware Core Protocol
 
 %include bro.pac

@@ -13,3 +13,6 @@
 [submodule "aux/btest"]
 	path = aux/btest
 	url = git://git.bro-ids.org/btest
+[submodule "cmake"]
+	path = cmake
+	url = git://git.bro-ids.org/cmake

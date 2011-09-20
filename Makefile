@@ -13,6 +13,9 @@ all: configured
 install: configured
 	( cd $(BUILD) && make install )
 
+install-aux: configured
+	( cd $(BUILD) && make install-aux )
+
 clean: configured docclean
 	( cd $(BUILD) && make clean )
 

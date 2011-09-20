@@ -1,5 +1,3 @@
-// $Id: Val.cc 6945 2009-11-27 19:25:10Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -2863,7 +2861,7 @@ Val* RecordVal::LookupWithDefault(int field) const
 	return record_type->FieldDefault(field);
 	}
 
-RecordVal* RecordVal::CoerceTo(const RecordType* t, Val* aggr) const
+RecordVal* RecordVal::CoerceTo(const RecordType* t, Val* aggr, bool allow_orphaning) const
 	{
 	if ( ! record_promotion_compatible(t->AsRecordType(), Type()->AsRecordType()) )
 		return 0;
@@ -2883,6 +2881,9 @@ RecordVal* RecordVal::CoerceTo(const RecordType* t, Val* aggr) const
 
 		if ( t_i < 0 )
 			{
+			if ( allow_orphaning )
+				continue;
+
 			char buf[512];
 			safe_snprintf(buf, sizeof(buf),
 					"orphan field \"%s\" in initialization",
@@ -2916,7 +2917,7 @@ RecordVal* RecordVal::CoerceTo(const RecordType* t, Val* aggr) const
 	return ar;
 	}
 
-RecordVal* RecordVal::CoerceTo(RecordType* t)
+RecordVal* RecordVal::CoerceTo(RecordType* t, bool allow_orphaning)
 	{
 	if ( same_type(Type(), t) )
 		{
@@ -2924,7 +2925,7 @@ RecordVal* RecordVal::CoerceTo(RecordType* t)
 		return this;
 		}
 
-	return CoerceTo(t, 0);
+	return CoerceTo(t, 0, allow_orphaning);
 	}
 
 void RecordVal::Describe(ODesc* d) const

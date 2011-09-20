@@ -1,5 +1,3 @@
-// $Id: DebugLogger.cc 4771 2007-08-11 05:50:24Z vern $
-
 #ifdef DEBUG
 
 #include <stdlib.h>

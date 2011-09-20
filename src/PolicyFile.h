@@ -1,5 +1,3 @@
-// $Id: PolicyFile.h 80 2004-07-14 20:15:50Z jason $
-
 // Functions for displaying the contents of policy files.
 // Mostly useful for debugging code that wants to show context.
 //

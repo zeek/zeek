@@ -1,5 +1,3 @@
-# $Id:$
-
 %extern{
 #include <ctype.h>
 

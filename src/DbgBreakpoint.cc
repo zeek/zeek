@@ -1,5 +1,3 @@
-// $Id: DbgBreakpoint.cc 1345 2005-09-08 07:42:11Z vern $
-
 // Implementation of breakpoints.
 
 #include "config.h"

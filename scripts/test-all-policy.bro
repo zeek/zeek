@@ -37,7 +37,6 @@
 @load protocols/http/detect-MHR.bro
 @load protocols/http/detect-sqli.bro
 @load protocols/http/detect-webapps.bro
-@load protocols/http/headers.bro
 @load protocols/http/software.bro
 @load protocols/http/var-extraction-cookies.bro
 @load protocols/http/var-extraction-uri.bro

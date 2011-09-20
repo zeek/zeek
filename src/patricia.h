@@ -1,5 +1,4 @@
 /*
- * $Id: patricia.h 967 2005-01-03 07:19:06Z vern $
  * Dave Plonka <plonka@doit.wisc.edu>
  *
  * This product includes software developed by the University of Michigan,

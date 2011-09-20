@@ -248,10 +248,6 @@ set(dns_SRCS nb_dns.c)
 set_source_files_properties(nb_dns.c PROPERTIES COMPILE_FLAGS
                             -fno-strict-aliasing)
 
-if (USE_NMALLOC)
-    set(malloc_SRCS malloc.c)
-endif ()
-
 set(bro_SRCS
     ${CMAKE_CURRENT_BINARY_DIR}/version.c
     ${BIF_SRCS}
@@ -410,7 +406,6 @@ set(bro_SRCS
     PacketDumper.cc
     strsep.c
     ${dns_SRCS}
-    ${malloc_SRCS}
     ${openssl_SRCS}
 )
 

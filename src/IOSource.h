@@ -1,5 +1,3 @@
-// $Id: IOSource.h 6888 2009-08-20 18:23:11Z vern $
-//
 // Interface for classes providing/consuming data during Bro's main loop.
 
 #ifndef iosource_h

@@ -1,5 +1,3 @@
-// $Id:$
-
 #ifndef dhcp_binpac_h
 #define dhcp_binpac_h
 

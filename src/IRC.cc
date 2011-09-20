@@ -1,5 +1,3 @@
-// $Id: IRC.cc 4582 2007-07-04 01:14:09Z vern $
-
 // An IRC analyzer contributed by Roland Gruber.
 
 #include <iostream>

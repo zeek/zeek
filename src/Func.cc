@@ -1,5 +1,3 @@
-// $Id: Func.cc 6703 2009-05-13 22:27:44Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -276,6 +274,8 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 		{
 		// Can only happen for events.
 		assert(IsEvent());
+		loop_over_list(*args, i)
+			Unref((*args)[i]);
 		return 0 ;
 		}
 

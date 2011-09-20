@@ -1,5 +1,6 @@
 ##! Implements notice functionality across clusters.
 
+@load ./main
 @load base/frameworks/cluster
 
 module Notice;

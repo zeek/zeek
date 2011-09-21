@@ -1,5 +1,3 @@
-// $Id:$
-
 #include "DNS-binpac.h"
 #include "TCP_Reassembler.h"
 

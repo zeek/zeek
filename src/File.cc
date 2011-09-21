@@ -1,5 +1,3 @@
-// $Id: File.cc 6942 2009-11-16 03:54:08Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"

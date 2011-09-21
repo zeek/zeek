@@ -1,6 +1,4 @@
 %{
-/* $Id: rule-parse.y 5988 2008-07-19 07:02:12Z vern $ */
-
 #include <stdio.h>
 #include "RuleMatcher.h"
 #include "Reporter.h"

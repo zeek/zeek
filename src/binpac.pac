@@ -1,5 +1,3 @@
-# $Id:$
-
 # Prototypes for functions implemented in binpac-lib.pac.
 
 function bytestring_to_int(s: const_bytestring, base: int): int;

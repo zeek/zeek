@@ -1,5 +1,3 @@
-// $Id: StateAccess.h 6781 2009-06-28 00:50:04Z vern $
-//
 // A class describing a state-modyfing access to a Value or an ID.
 
 #ifndef STATEACESSS_H

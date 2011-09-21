@@ -1,5 +1,3 @@
-// $Id: SSLv2.cc 5988 2008-07-19 07:02:12Z vern $
-
 #include "SSLv2.h"
 #include "SSLv3.h"
 

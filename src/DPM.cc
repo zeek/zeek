@@ -1,5 +1,3 @@
-// $Id: DPM.cc,v 1.1.4.14 2006/06/01 17:18:10 sommer Exp $
-
 #include "DPM.h"
 #include "PIA.h"
 #include "Hash.h"

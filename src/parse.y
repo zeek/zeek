@@ -1,5 +1,4 @@
 %{
-// $Id: parse.in 6688 2009-04-16 22:44:55Z vern $
 // See the file "COPYING" in the main distribution directory for copyright.
 %}
 

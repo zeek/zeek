@@ -1,5 +1,3 @@
-// $Id: MIME.cc 5906 2008-07-03 19:52:50Z vern $
-
 #include "config.h"
 
 #include "NetVar.h"

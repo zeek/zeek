@@ -1,5 +1,3 @@
-# $Id:$
-
 connection DHCP_Conn(bro_analyzer: BroAnalyzer) {
 	upflow = DHCP_Flow(true);
 	downflow = DHCP_Flow(false);

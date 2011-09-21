@@ -1,5 +1,3 @@
-// $Id: CompHash.cc 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -169,7 +167,7 @@ char* CompositeHash::SingleValHash(int type_check, char* kp0,
 			{
 			char* kp = kp0;
 			RecordVal* rv = v->AsRecordVal();
-			RecordType* rt = v->Type()->AsRecordType();
+			RecordType* rt = bt->AsRecordType();
 			int num_fields = rt->NumFields();
 
 			for ( int i = 0; i < num_fields; ++i )

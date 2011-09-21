@@ -1,5 +1,3 @@
-// $Id: ChunkedIO.cc 6888 2009-08-20 18:23:11Z vern $
-
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>

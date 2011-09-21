@@ -1,5 +1,3 @@
-// $Id: PktSrc.cc 6951 2009-12-04 22:23:28Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include <errno.h>

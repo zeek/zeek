@@ -1,5 +1,3 @@
-# $Id:$
-#
 # This code contributed by Nadi Sarrar.
 
 connection BitTorrent_Conn(bro_analyzer: BroAnalyzer) {

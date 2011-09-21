@@ -1,5 +1,3 @@
-// $Id:$
-
 #ifndef event_launcher_h
 #define event_launcher_h
 

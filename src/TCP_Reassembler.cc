@@ -1,5 +1,3 @@
-// $Id: TCP_Reassembler.cc,v 1.1.2.8 2006/05/31 01:52:02 sommer Exp $
-
 #include <algorithm>
 
 #include "Analyzer.h"

@@ -1,5 +1,3 @@
-// $Id: RuleMatcher.h 3526 2006-09-12 07:32:21Z vern $
-
 #ifndef sigs_h
 #define sigs_h
 

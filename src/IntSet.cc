@@ -1,5 +1,3 @@
-// $Id: IntSet.cc 80 2004-07-14 20:15:50Z jason $
-
 #include "config.h"
 
 #ifdef HAVE_MEMORY_H

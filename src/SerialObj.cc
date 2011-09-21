@@ -1,5 +1,3 @@
-// $Id: SerialObj.cc 7075 2010-09-13 02:39:38Z vern $
-
 #include "SerialObj.h"
 #include "Serializer.h"
 

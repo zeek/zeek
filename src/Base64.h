@@ -1,5 +1,3 @@
-// $Id: Base64.h 3526 2006-09-12 07:32:21Z vern $
-
 #ifndef base64_h
 #define base64_h
 

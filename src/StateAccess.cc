@@ -1,5 +1,3 @@
-// $Id: StateAccess.cc 6888 2009-08-20 18:23:11Z vern $
-
 #include "Val.h"
 #include "StateAccess.h"
 #include "Serializer.h"

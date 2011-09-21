@@ -1,5 +1,3 @@
-// $Id: H3.h 3230 2006-06-08 02:19:25Z vern $
-
 // Copyright 2004, 2005
 // The Regents of the University of California
 // All Rights Reserved

@@ -1,5 +1,3 @@
-// $Id: Trigger.cc 2359 2005-12-21 23:55:32Z vern $
-
 #include <algorithm>
 
 #include "Trigger.h"

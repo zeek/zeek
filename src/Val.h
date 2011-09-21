@@ -1,5 +1,3 @@
-// $Id: Val.h 6916 2009-09-24 20:48:36Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef val_h
@@ -909,8 +907,11 @@ public:
 	// *aggr* is optional; if non-zero, we add to it. See
 	// Expr::InitVal(). We leave it out in the non-const version to make
 	// the choice unambigious.
-	RecordVal* CoerceTo(const RecordType* other, Val* aggr) const;
-	RecordVal* CoerceTo(RecordType* other);
+	//
+	// The *allow_orphaning* parameter allows for a record to be demoted
+	// down to a record type that contains less fields.
+	RecordVal* CoerceTo(const RecordType* other, Val* aggr, bool allow_orphaning = false) const;
+	RecordVal* CoerceTo(RecordType* other, bool allow_orphaning = false);
 
 	unsigned int MemoryAllocation() const;
 	void DescribeReST(ODesc* d) const;

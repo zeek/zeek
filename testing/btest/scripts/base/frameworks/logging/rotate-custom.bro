@@ -26,15 +26,10 @@ function custom_rotate(info: Log::RotationInfo) : bool
     return T;
 }
 
-redef Log::rotation_control += {
-	[Log::WRITER_ASCII, "test2"] = [$interv=30mins, $postprocessor=custom_rotate]
-};
-
 event bro_init()
 {
 	Log::create_stream(Test::LOG, [$columns=Log]);
-	Log::add_filter(Test::LOG, [$name="2nd", $path="test2"]);
-
+	Log::add_filter(Test::LOG, [$name="2nd", $path="test2", $interv=30mins, $postprocessor=custom_rotate]);
 }
 
 event new_connection(c: connection)

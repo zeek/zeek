@@ -1,5 +1,3 @@
-// $Id: IRC.h 4582 2007-07-04 01:14:09Z vern $
-
 // An IRC analyzer contributed by Roland Gruber.
 
 #ifndef irc_h

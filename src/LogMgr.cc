@@ -1266,7 +1266,9 @@ LogWriter* LogMgr::CreateWriter(EnumVal* id, EnumVal* writer, string path,
 	winfo->postprocessor = 0;
 
 	// Search for a corresponding filter for the writer/path pair and use its
-	// rotation settings.
+	// rotation settings.  If no matching filter, is found fall back on
+	// looking up the logging framework's default rotation interval.
+	bool found_filter_match = false;
 	list<Filter*>::const_iterator it;
 	for ( it = stream->filters.begin(); it != stream->filters.end(); ++it )
 		{
@@ -1274,10 +1276,18 @@ LogWriter* LogMgr::CreateWriter(EnumVal* id, EnumVal* writer, string path,
 		if ( f->writer->AsEnum() == writer->AsEnum() &&
 		     f->path == winfo->writer->Path() )
 			{
+			found_filter_match = true;
 			winfo->interval = f->interval;
 			winfo->postprocessor = f->postprocessor;
 			break;
 			}
+		}
+
+	if ( ! found_filter_match )
+		{
+		ID* id = global_scope()->Lookup("Log::default_rotation_interval");
+		assert(id);
+		winfo->interval = id->ID_Val()->AsInterval();
 		}
 
 	InstallRotationTimer(winfo);

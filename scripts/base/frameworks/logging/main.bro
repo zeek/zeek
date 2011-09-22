@@ -192,10 +192,7 @@ function default_path_func(id: ID, path: string, rec: any) : string
 				output = cat(output, "_", module_parts[3]);
 			if ( 4 in module_parts && module_parts[4] != "" )
 				output = cat(output, sub_bytes(module_parts[4],1,1), "_", sub_bytes(module_parts[4], 2, |module_parts[4]|));
-			# TODO: There seems to be some problem with the split function 
-			#       not putting \0 at the end of the string.  fmt will make
-			#       a better internal string.
-			return fmt("%s", to_lower(output));
+			return to_lower(output);
 			}
 		
 		# Example: Notice::POLICY_LOG -> "notice_policy"
@@ -206,9 +203,7 @@ function default_path_func(id: ID, path: string, rec: any) : string
 		}
 	else
 		{
-		# In case there is a logging stream in the global namespace.
-		# TODO: same bug as above with split and lack of terminating \0
-		return fmt("%s", to_lower(id_str));
+		return to_lower(id_str);
 		}
 	}
 

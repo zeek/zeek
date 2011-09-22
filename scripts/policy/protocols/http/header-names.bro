@@ -14,7 +14,7 @@ export {
 		
 		## The vector of HTTP header names sent by the server.  No header 
 		## values are included here, just the header names.
-		server_headers_names:  vector of string &log &optional;
+		server_header_names:  vector of string &log &optional;
 	};
 	
 	## A boolean value to determine if client header names are to be logged.

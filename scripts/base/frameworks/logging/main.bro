@@ -207,7 +207,8 @@ function default_path_func(id: ID, path: string, rec: any) : string
 	else
 		{
 		# In case there is a logging stream in the global namespace.
-		return to_lower(id_str);
+		# TODO: same bug as above with split and lack of terminating \0
+		return fmt("%s", to_lower(id_str));
 		}
 	}
 
@@ -241,8 +242,7 @@ function create_stream(id: ID, stream: Stream) : bool
 
 function disable_stream(id: ID) : bool
 	{
-	if ( ! __disable_stream(id) )
-		return F;
+	return __disable_stream(id);
 	}
 
 function add_filter(id: ID, filter: Filter) : bool

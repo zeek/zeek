@@ -32,6 +32,10 @@
 2	scripts/base/frameworks/notice/./actions/page.bro
 2	scripts/base/frameworks/notice/./actions/add-geodata.bro
 2	scripts/base/frameworks/notice/./extend-email/hostnames.bro
+2	scripts/base/frameworks/cluster/__load__.bro
+3	scripts/base/frameworks/cluster/./main.bro
+4	scripts/base/frameworks/control/__load__.bro
+5	scripts/base/frameworks/control/./main.bro
 1	scripts/base/frameworks/dpd/__load__.bro
 2	scripts/base/frameworks/dpd/./main.bro
 1	scripts/base/frameworks/signatures/__load__.bro
@@ -43,10 +47,6 @@
 2	scripts/base/frameworks/software/./main.bro
 1	scripts/base/frameworks/communication/__load__.bro
 2	scripts/base/frameworks/communication/./main.bro
-1	scripts/base/frameworks/control/__load__.bro
-2	scripts/base/frameworks/control/./main.bro
-1	scripts/base/frameworks/cluster/__load__.bro
-2	scripts/base/frameworks/cluster/./main.bro
 1	scripts/base/frameworks/metrics/__load__.bro
 2	scripts/base/frameworks/metrics/./main.bro
 2	scripts/base/frameworks/metrics/./non-cluster.bro

@@ -184,6 +184,7 @@ public:
 			http_event || http_stats) && !FLAGS_use_binpac; }
 
 	int IsConnectionClose()		{ return connection_close; }
+	int HTTP_ReplyCode() const { return reply_code; };
 
 protected:
 	void GenStats();

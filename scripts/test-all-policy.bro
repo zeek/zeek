@@ -25,6 +25,7 @@
 @load integration/barnyard2/types.bro
 @load misc/analysis-groups.bro
 @load misc/loaded-scripts.bro
+@load misc/profiling.bro
 @load misc/trim-trace-file.bro
 @load protocols/conn/known-hosts.bro
 @load protocols/conn/known-services.bro
@@ -37,11 +38,16 @@
 @load protocols/http/detect-MHR.bro
 @load protocols/http/detect-sqli.bro
 @load protocols/http/detect-webapps.bro
+@load protocols/http/header-names.bro
 @load protocols/http/software.bro
 @load protocols/http/var-extraction-cookies.bro
 @load protocols/http/var-extraction-uri.bro
+@load protocols/smtp/blocklists.bro
 @load protocols/smtp/detect-suspicious-orig.bro
 @load protocols/smtp/software.bro
+@load protocols/ssh/detect-bruteforcing.bro
+@load protocols/ssh/geo-data.bro
+@load protocols/ssh/interesting-hostnames.bro
 @load protocols/ssh/software.bro
 @load protocols/ssl/known-certs.bro
 @load protocols/ssl/validate-certs.bro

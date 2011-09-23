@@ -493,7 +493,7 @@ function to_lower%(str: string%): string
 			*ls++ = s[i];
 		}
 
-	return new StringVal(new BroString(1, byte_vec(lower_s), n));
+	return new StringVal(n, lower_s);
 	%}
 
 function to_upper%(str: string%): string
@@ -511,7 +511,7 @@ function to_upper%(str: string%): string
 			*us++ = s[i];
 		}
 
-	return new StringVal(new BroString(1, byte_vec(upper_s), n));
+	return new StringVal(n, upper_s);
 	%}
 
 function clean%(str: string%): string

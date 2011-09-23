@@ -1,4 +1,7 @@
-# depth	name
+#separator \x09
+#path	loaded_scripts
+#fields	depth	name
+#types	count	string
 0	scripts/base/init-bare.bro
 1	build/src/base/const.bif.bro
 1	build/src/base/types.bif.bro

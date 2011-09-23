@@ -43,7 +43,15 @@ export {
 		## version of the alarm log is emailed in bulk to the address(es)
 		## configured in :bro:id:`Notice::mail_dest`.
 		ACTION_ALARM,
+		## Indicates that the notice should not be supressed by the normal
+		## duplicate notice suppression that the notice framework does.
+		ACTION_NO_SUPPRESS,
 	};
+	
+	## The notice framework is able to do automatic notice supression by 
+	## utilizing the $identifier field in :bro:type:`Info` records.
+	## Set this to "0secs" to completely disable automated notice suppression.
+	const default_suppression_interval = 1hrs &redef;
 	
 	type Info: record {
 		ts:             time           &log &optional;
@@ -82,7 +90,6 @@ export {
 		
 		## These are policy items that returned T and applied their action
 		## to the notice.
-		## TODO: this can't take set() as a default. (bug)
 		policy_items:   set[count]     &log &optional;
 		
 		## By adding chunks of text into this element, other scripts can
@@ -90,6 +97,34 @@ export {
 		## is to extend the vector by handling the :bro:id:`Notice::notice`
 		## event and modifying the notice in place.
 		email_body_sections:  vector of string &default=vector();
+		
+		## This field is to be provided when a notice is generated for the
+		## purpose of deduplicating notices.  The identifier string should
+		## be unique for a single instance of the notice.  This field should be 
+		## filled out in almost all cases when generating notices to define 
+		## when a notice is conceptually a duplicate of a previous notice.
+		## 
+		## For example, an SSL certificate that is going to expire soon should 
+		## always have the same identifier no matter the client IP address 
+		## that connected and resulted in the certificate being exposed.  In
+		## this case, the resp_h, resp_p, and hash of the certificate would be
+		## used to create this value.  The hash of the cert is included
+		## because servers can return multiple certificates on the same port.
+		##
+		## Another example might be a host downloading a file which triggered
+		## a notice because the MD5 sum of the file it downloaded was known
+		## by some set of intelligence.  In that case, the orig_h (client)
+		## and MD5 sum would be used in this field to dedup because if the 
+		## same file is downloaded over and over again you really only want to
+		## know about it a single time.  This makes it possible to send those
+		## notices to email without worrying so much about sending thousands
+		## of emails.
+		identifier:          string         &optional;
+		
+		## This field indicates the length of time that this
+		## unique notice should be suppressed.  This field is automatically 
+		## filled out and should not be written to by any other script.
+		suppress_for:        interval       &log &optional;
 	};
 	
 	## Ignored notice types.
@@ -98,6 +133,8 @@ export {
 	const emailed_types: set[Notice::Type] = {} &redef;
 	## Alarmed notice types.
 	const alarmed_types: set[Notice::Type] = {} &redef;
+	## Types that should be suppressed for the default suppression interval.
+	const not_suppressed_types: set[Notice::Type] = {} &redef;
 	
 	## This is the record that defines the items that make up the notice policy.
 	type PolicyItem: record {
@@ -117,6 +154,9 @@ export {
 		## Indicates this item should terminate policy processing if the 
 		## predicate returns T.
 		halt:     bool                             &log &default=F;
+		## This defines the length of time that this particular notice should
+		## be supressed.
+		suppress_for: interval                     &log &optional;
 	};
 	
 	## This is the where the :bro:id:`Notice::policy` is defined.  All notice
@@ -124,6 +164,9 @@ export {
 	const policy: set[PolicyItem] = {
 		[$pred(n: Notice::Info) = { return (n$note in Notice::ignored_types); },
 		 $halt=T, $priority = 9],
+		[$pred(n: Notice::Info) = { return (n$note in Notice::not_suppressed_types); },
+		 $result = ACTION_NO_SUPPRESS,
+		 $priority = 9],
 		[$pred(n: Notice::Info) = { return (n$note in Notice::alarmed_types); },
 		 $priority = 8],
 		[$pred(n: Notice::Info) = { return (n$note in Notice::emailed_types); },
@@ -173,6 +216,13 @@ export {
 	## real time constraints.
 	const sync_functions: set[function(n: Notice::Info)] = set() &redef;
 	
+	## This event is generated when a notice begins to be suppressed.
+	global begin_suppression: event(n: Notice::Info);
+	## This event is generated on each occurence of an event being suppressed.
+	global suppressed: event(n: Notice::Info);
+	## This event is generated when a notice stops being suppressed.
+	global end_suppression: event(n: Notice::Info);
+	
 	## Call this function to send a notice in an email.  It is already used
 	## by default with the built in :bro:enum:`ACTION_EMAIL` and
 	## :bro:enum:`ACTION_PAGE` actions.
@@ -184,16 +234,40 @@ export {
 	## dest: recipient string to use for the mail
 	## Returns: a string of mail headers to which an email body can be appended
 	global email_headers: function(subject_desc: string, dest: string): string;
-
-	## This is an internally used function, please ignore it.  It's only used
-	## for filling out missing details of :bro:type:`Notice:Info` records
-	## before the synchronous and asynchronous event pathways have begun.
-	global apply_policy: function(n: Notice::Info);
 	
 	## This event can be handled to access the :bro:type:`Info`
 	## record as it is sent on to the logging framework.
 	global log_notice: event(rec: Info);
+	
+	## This is an internal wrapper for the global NOTICE function.  Please 
+	## disregard.
+	global internal_NOTICE: function(n: Notice::Info);
 }
+
+# This is used as a hack to implement per-item expiration intervals.
+function per_notice_suppression_interval(t: table[Notice::Type, string] of Notice::Info, idx: any): interval
+	{
+	local n: Notice::Type;
+	local s: string;
+	[n,s] = idx;
+	
+	local suppress_time = t[n,s]$suppress_for - (network_time() - t[n,s]$ts);
+	if ( suppress_time < 0secs )
+		suppress_time = 0secs;
+	
+	# If there is no more suppression time left, the notice needs to be sent
+	# to the end_suppression event.
+	if ( suppress_time == 0secs )
+		event Notice::end_suppression(t[n,s]);
+	
+	return suppress_time;
+	}
+
+# This is the internally maintained notice suppression table.  It's 
+# indexed on the Notice::Type and the $identifier field from the notice.
+global suppressing: table[Type, string] of Notice::Info = {} 
+		&create_expire=0secs
+		&expire_func=per_notice_suppression_interval;
 
 # This is an internal variable used to store the notice policy ordered by
 # priority.
@@ -292,8 +366,32 @@ event notice(n: Notice::Info) &priority=-5
 		Log::write(Notice::LOG, n);
 	if ( ACTION_ALARM in n$actions )
 		Log::write(Notice::ALARM_LOG, n);
+	
+	# Normally suppress further notices like this one unless directed not to.
+	#  n$identifier *must* be specified for suppression to function at all.
+	if ( n?$identifier && 
+	     ACTION_NO_SUPPRESS !in n$actions &&
+	     [n$note, n$identifier] !in suppressing &&
+	     n$suppress_for != 0secs )
+		{
+		suppressing[n$note, n$identifier] = n;
+		event Notice::begin_suppression(n);
+		}
 	}
-
+	
+## This determines if a notice is being suppressed.  It is only used 
+## internally as part of the mechanics for the global NOTICE function.
+function is_being_suppressed(n: Notice::Info): bool
+	{
+	if ( n?$identifier && [n$note, n$identifier] in suppressing )
+		{
+		event Notice::suppressed(n);
+		return T;
+		}
+	else
+		return F;
+	}
+	
 # Executes a script with all of the notice fields put into the
 # new process' environment as "BRO_ARG_<field>" variables.
 function execute_with_notice(cmd: string, n: Notice::Info)
@@ -357,11 +455,22 @@ function apply_policy(n: Notice::Info)
 			add n$actions[ordered_policy[i]$result];
 			add n$policy_items[int_to_count(i)];
 			
+			# If the predicate matched and there was a suppression interval, 
+			# apply it to the notice now.
+			if ( ordered_policy[i]?$suppress_for )
+				n$suppress_for = ordered_policy[i]$suppress_for;
+			
 			# If the policy item wants to halt policy processing, do it now!
 			if ( ordered_policy[i]$halt )
 				break;
 			}
 		}
+	
+	# Apply the suppression time after applying the policy so that policy
+	# items can give custom suppression intervals.  If there is no 
+	# suppression interval given yet, the default is applied.
+	if ( ! n?$suppress_for )
+		n$suppress_for = default_suppression_interval;
 	
 	# Delete the connection record if it's there so we aren't sending that
 	# to remote machines.  It can cause problems due to the size of the 
@@ -402,19 +511,28 @@ event bro_init() &priority=10
 			}
 		}
 	}
+	
+function internal_NOTICE(n: Notice::Info)
+	{
+	# Suppress this notice if necessary.
+	if ( is_being_suppressed(n) )
+		return;
+
+	# Fill out fields that might be empty and do the policy processing.
+	apply_policy(n);
+
+	# Run the synchronous functions with the notice.
+	for ( func in sync_functions )
+		func(n);
+
+	# Generate the notice event with the notice.
+	event Notice::notice(n);
+	}
 
 module GLOBAL;
 
 ## This is the entry point in the global namespace for notice framework.
 function NOTICE(n: Notice::Info)
 	{
-	# Fill out fields that might be empty and do the policy processing.
-	Notice::apply_policy(n);
-
-	# Run the synchronous functions with the notice.
-	for ( func in Notice::sync_functions )
-		func(n);
-
-	# Generate the notice event with the notice.
-	event Notice::notice(n);
+	Notice::internal_NOTICE(n);
 	}

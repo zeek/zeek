@@ -217,5 +217,5 @@ Scope* current_scope()
 
 Scope* global_scope()
 	{
-	return scopes[0];
+	return scopes.length() == 0 ? 0 : scopes[0];
 	}

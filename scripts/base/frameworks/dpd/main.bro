@@ -25,7 +25,7 @@ export {
 		
 		## Disabled analyzer IDs.  This is only for internal tracking 
 		## so as to not attempt to disable analyzers multiple times.
-		disabled_aids:  set[count]      &default=set();
+		disabled_aids:  set[count];
 	};
 	
 	## Ignore violations which go this many bytes into the connection.

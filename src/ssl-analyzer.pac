@@ -75,17 +75,21 @@ function version_ok(vers : uint16) : bool
 refine connection SSL_Conn += {
 
 	%member{
+		int eof;
 	%}
 
 	%init{
+		eof=0;
 	%}
 
 	%eof{
-		if ( state_ != STATE_CONN_ESTABLISHED &&
+		if ( ! eof &&
+		     state_ != STATE_CONN_ESTABLISHED &&
 		     state_ != STATE_TRACK_LOST &&
 		     state_ != STATE_INITIAL )
 			bro_analyzer()->ProtocolViolation(fmt("unexpected end of connection in state %s",
 				state_label(state_).c_str()));
+		++eof;
 	%}
 
 	%cleanup{

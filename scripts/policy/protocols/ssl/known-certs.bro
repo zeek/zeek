@@ -5,7 +5,7 @@ module Known;
 export {
 	redef enum Log::ID += { CERTS_LOG };
 	
-	type Info: record {
+	type CertsInfo: record {
 		## The timestamp when the certificate was detected.
 		ts:             time   &log;
 		## The address that offered the certificate.
@@ -31,12 +31,12 @@ export {
 	## in the set is for storing the certificate's serial number.
 	global known_certs: set[addr, string] &create_expire=1day &synchronized &redef;
 	
-	global log_known_certs: event(rec: Info);
+	global log_known_certs: event(rec: CertsInfo);
 }
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(Known::CERTS_LOG, [$columns=Info, $ev=log_known_certs]);
+	Log::create_stream(Known::CERTS_LOG, [$columns=CertsInfo, $ev=log_known_certs]);
 	}
 
 event x509_certificate(c: connection, cert: X509, is_server: bool, chain_idx: count, chain_len: count, der_cert: string)

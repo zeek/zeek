@@ -35,6 +35,11 @@ export {
 	## (especially with large file transfers).
 	const disable_analyzer_after_detection = T &redef;
 	
+	## The openssl command line utility.  If it's in the path the default
+	## value will work, otherwise a full path string can be supplied for the
+	## utility.
+	const openssl_util = "openssl" &redef;
+	
 	global log_ssl: event(rec: Info);
 	
 	const ports = {

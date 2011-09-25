@@ -179,21 +179,21 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 		{
 		if ( name == "REFERER" )
 			c$http$referrer = value;
-
+		
 		else if ( name == "HOST" )
 			# The split is done to remove the occasional port value that shows up here.
 			c$http$host = split1(value, /:/)[1];
 		
 		else if ( name == "USER-AGENT" )
 			c$http$user_agent = value;
-			
+		
 		else if ( name in proxy_headers )
 				{
 				if ( ! c$http?$proxied )
 					c$http$proxied = set();
 				add c$http$proxied[fmt("%s -> %s", name, value)];
 				}
-
+		
 		else if ( name == "AUTHORIZATION" )
 			{
 			if ( /^[bB][aA][sS][iI][cC] / in value )
@@ -214,9 +214,8 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 					}
 				}
 			}
-			
-			
 		}
+	
 	else # server headers
 		{
 		if ( name == "CONTENT-DISPOSITION" &&
@@ -251,13 +250,15 @@ event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &
 		}
 	}
 
-event connection_state_remove(c: connection)
+event connection_state_remove(c: connection) &priority=-5
 	{
 	# Flush all pending but incomplete request/response pairs.
 	if ( c?$http_state )
 		{
 		for ( r in c$http_state$pending )
 			{
+			# We don't use pending elements at index 0.
+			if ( r == 0 ) next;
 			Log::write(HTTP::LOG, c$http_state$pending[r]);
 			}
 		}

@@ -135,6 +135,9 @@ export {
 	const alarmed_types: set[Notice::Type] = {} &redef;
 	## Types that should be suppressed for the default suppression interval.
 	const not_suppressed_types: set[Notice::Type] = {} &redef;
+	## This table can be used as a shorthand way to modify suppression 
+	## intervals for entire notice types.
+	const type_suppression_intervals: table[Notice::Type] of interval = {} &redef;
 	
 	## This is the record that defines the items that make up the notice policy.
 	type PolicyItem: record {
@@ -149,8 +152,9 @@ export {
 		## The pred (predicate) field is a function that returns a boolean T 
 		## or F value.  If the predicate function return true, the action in 
 		## this record is applied to the notice that is given as an argument 
-		## to the predicate function.
-		pred:     function(n: Notice::Info): bool;
+		## to the predicate function.  If no predicate is supplied, it's 
+		## assumed that the PolicyItem always applies.
+		pred:     function(n: Notice::Info): bool  &log &optional;
 		## Indicates this item should terminate policy processing if the 
 		## predicate returns T.
 		halt:     bool                             &log &default=F;
@@ -172,8 +176,17 @@ export {
 		[$pred(n: Notice::Info) = { return (n$note in Notice::emailed_types); },
 		 $result = ACTION_EMAIL,
 		 $priority = 8],
-		[$pred(n: Notice::Info) = { return T; },
-		 $result = ACTION_LOG,
+		[$pred(n: Notice::Info) = { 
+		 	if (n$note in Notice::type_suppression_intervals) 
+				{
+		 		n$suppress_for=Notice::type_suppression_intervals[n$note];
+				return T;
+				}
+		 	return F; 
+		 },
+		 $result = ACTION_NONE,
+		 $priority = 8],
+		[$result = ACTION_LOG,
 		 $priority = 0],
 	} &redef;
 	
@@ -292,7 +305,6 @@ function log_mailing_postprocessor(info: Log::RotationInfo): bool
 event bro_init() &priority=5
 	{
 	Log::create_stream(Notice::LOG, [$columns=Info, $ev=log_notice]);
-	Log::create_stream(Notice::POLICY_LOG, [$columns=PolicyItem]);
 	
 	Log::create_stream(Notice::ALARM_LOG, [$columns=Notice::Info]);
 	# If Bro is configured for mailing notices, set up mailing for alarms.
@@ -450,7 +462,8 @@ function apply_policy(n: Notice::Info)
 	
 	for ( i in ordered_policy )
 		{
-		if ( ordered_policy[i]$pred(n) )
+		# If there's no predicate or the predicate returns F.
+		if ( ! ordered_policy[i]?$pred || ordered_policy[i]$pred(n) )
 			{
 			add n$actions[ordered_policy[i]$result];
 			add n$policy_items[int_to_count(i)];
@@ -485,6 +498,9 @@ function apply_policy(n: Notice::Info)
 # for prioritized matching of the notice policy.
 event bro_init() &priority=10
 	{
+	# Create the policy log here because it's only written to in this handler.
+	Log::create_stream(Notice::POLICY_LOG, [$columns=PolicyItem]);
+	
 	local tmp: table[count] of set[PolicyItem] = table();
 	for ( pi in policy )
 		{

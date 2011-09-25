@@ -149,8 +149,9 @@ export {
 		## The pred (predicate) field is a function that returns a boolean T 
 		## or F value.  If the predicate function return true, the action in 
 		## this record is applied to the notice that is given as an argument 
-		## to the predicate function.
-		pred:     function(n: Notice::Info): bool;
+		## to the predicate function.  If no predicate is supplied, it's 
+		## assumed that the PolicyItem always applies.
+		pred:     function(n: Notice::Info): bool  &log &optional;
 		## Indicates this item should terminate policy processing if the 
 		## predicate returns T.
 		halt:     bool                             &log &default=F;
@@ -172,8 +173,7 @@ export {
 		[$pred(n: Notice::Info) = { return (n$note in Notice::emailed_types); },
 		 $result = ACTION_EMAIL,
 		 $priority = 8],
-		[$pred(n: Notice::Info) = { return T; },
-		 $result = ACTION_LOG,
+		[$result = ACTION_LOG,
 		 $priority = 0],
 	} &redef;
 	
@@ -292,7 +292,6 @@ function log_mailing_postprocessor(info: Log::RotationInfo): bool
 event bro_init() &priority=5
 	{
 	Log::create_stream(Notice::LOG, [$columns=Info, $ev=log_notice]);
-	Log::create_stream(Notice::POLICY_LOG, [$columns=PolicyItem]);
 	
 	Log::create_stream(Notice::ALARM_LOG, [$columns=Notice::Info]);
 	# If Bro is configured for mailing notices, set up mailing for alarms.
@@ -450,7 +449,8 @@ function apply_policy(n: Notice::Info)
 	
 	for ( i in ordered_policy )
 		{
-		if ( ordered_policy[i]$pred(n) )
+		# If there's no predicate or the predicate returns F.
+		if ( ! ordered_policy[i]?$pred || ordered_policy[i]$pred(n) )
 			{
 			add n$actions[ordered_policy[i]$result];
 			add n$policy_items[int_to_count(i)];
@@ -485,6 +485,9 @@ function apply_policy(n: Notice::Info)
 # for prioritized matching of the notice policy.
 event bro_init() &priority=10
 	{
+	# Create the policy log here because it's only written to in this handler.
+	Log::create_stream(Notice::POLICY_LOG, [$columns=PolicyItem]);
+	
 	local tmp: table[count] of set[PolicyItem] = table();
 	for ( pi in policy )
 		{

@@ -2117,6 +2117,12 @@ function connect%(ip: addr, p: port, our_class: string, retry: interval, ssl: bo
 			TYPE_COUNT);
 	%}
 
+function disconnect%(p: event_peer%) : bool
+    %{
+	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
+	return new Val(remote_serializer->CloseConnection(id), TYPE_BOOL);
+	%}
+
 function request_remote_events%(p: event_peer, handlers: pattern%) : bool
 	%{
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();

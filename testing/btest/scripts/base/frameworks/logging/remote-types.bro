@@ -73,6 +73,7 @@ event remote_connection_handshake_done(p: event_peer)
 		$vc=vector(10, 20, 30),
 		$ve=empty_vector
 		]);
+	disconnect(p);
 	}
 @TEST-END-FILE
 

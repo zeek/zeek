@@ -23,10 +23,10 @@ export {
 	const manager_events = /Drop::.*/ &redef;
 	
 	## Events raised by the proxies and handled by the manager.
-	const proxy_events = /Notice::notice/ &redef;
+	const proxy_events = /EMPTY/ &redef;
 	
 	## Events raised by workers and handled by the manager.
-	const worker_events = /(Notice::notice|TimeMachine::command|Drop::.*)/ &redef;
+	const worker_events = /(TimeMachine::command|Drop::.*)/ &redef;
 	
 	## Events sent by the control host (i.e. BroControl) when dynamically 
 	## connecting to a running instance to update settings or request data.

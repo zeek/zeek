@@ -21,6 +21,7 @@ PktSrc::PktSrc()
 	{
 	interface = readfile = 0;
 	data = last_data = 0;
+	memset(&hdr, 0, sizeof(hdr));
 	hdr_size = 0;
 	datalink = 0;
 	netmask = 0xffffff00;
@@ -75,7 +76,9 @@ int PktSrc::ExtractNextPacket()
 		}
 
 	data = last_data = pcap_next(pd, &hdr);
-	next_timestamp = hdr.ts.tv_sec + double(hdr.ts.tv_usec) / 1e6;
+
+	if ( data )
+		next_timestamp = hdr.ts.tv_sec + double(hdr.ts.tv_usec) / 1e6;
 
 	if ( pseudo_realtime )
 		current_wallclock = current_time(true);

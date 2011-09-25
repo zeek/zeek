@@ -1,4 +1,5 @@
 
+@load base/protocols/ssh
 @load base/frameworks/metrics
 @load base/frameworks/notice
 @load base/frameworks/intel

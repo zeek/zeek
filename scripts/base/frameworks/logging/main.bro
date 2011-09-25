@@ -192,10 +192,7 @@ function default_path_func(id: ID, path: string, rec: any) : string
 				output = cat(output, "_", module_parts[3]);
 			if ( 4 in module_parts && module_parts[4] != "" )
 				output = cat(output, sub_bytes(module_parts[4],1,1), "_", sub_bytes(module_parts[4], 2, |module_parts[4]|));
-			# TODO: There seems to be some problem with the split function 
-			#       not putting \0 at the end of the string.  fmt will make
-			#       a better internal string.
-			return fmt("%s", to_lower(output));
+			return to_lower(output);
 			}
 		
 		# Example: Notice::POLICY_LOG -> "notice_policy"
@@ -205,10 +202,7 @@ function default_path_func(id: ID, path: string, rec: any) : string
 		return cat(to_lower(parts[1]),"_",to_lower(parts[2]));
 		}
 	else
-		{
-		# In case there is a logging stream in the global namespace.
 		return to_lower(id_str);
-		}
 	}
 
 # Run post-processor on file. If there isn't any postprocessor defined,
@@ -241,8 +235,7 @@ function create_stream(id: ID, stream: Stream) : bool
 
 function disable_stream(id: ID) : bool
 	{
-	if ( ! __disable_stream(id) )
-		return F;
+	return __disable_stream(id);
 	}
 
 function add_filter(id: ID, filter: Filter) : bool

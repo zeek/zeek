@@ -1,5 +1,3 @@
-@load base/frameworks/notice
-
 @prefixes += cluster-worker
 
 # Load the script for local site configuration for the worker nodes.
@@ -15,12 +13,8 @@ redef Log::enable_remote_logging = T;
 redef Log::default_rotation_postprocessor_cmd = "delete-log";
 
 ## Record all packets into trace file.
-# TODO: should we really be setting this to T?
+##
+## Note that this only indicates that *if* we are recording packets, we want all
+## of them (rather than just those the core deems sufficiently important). Setting
+## this does not turn recording on. Use '-w <trace>' for that.
 redef record_all_packets = T;
-
-# Workers need to have a filter for the notice log which doesn't 
-# do remote logging since we forward the notice event directly.
-event bro_init()
-	{
-	Log::disable_stream(Notice::LOG);
-	}

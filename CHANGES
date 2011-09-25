@@ -1,4 +1,70 @@
 
+1.6-dev-1293 | 2011-09-22 19:44:37 -0700
+
+  * Smaller script tweaks. (Seth Hall)
+
+  * Duplicate notice suppression. (Seth Hall)
+
+    - Duplicate notices are discovered with the new Notice::Info
+      field $identifier.  It's a string that is left up to the
+      notice implementor to define which would indicate a
+      fundamentally duplicate notice.  The field is optional and
+      if it's not included it's not possible for notice
+      suppression to take place.
+
+    - Duplicate notices are suppressed by default for the interval
+      defined by the Notice::default_suppression_interval variable
+      (1 hour by default).
+
+    - A new notice action was defined ACTION_NO_SUPPRESS to prevent
+      suppression for a specific notice instance.  A convenience set
+      named not_suppressed_types was also created to not suppress
+      entire notice types.
+
+    - A new field was added to the PolicyItem type to modify the length
+      of time a notice should be suppressed if the predicate matches.
+      The field is named $suppress_for.  This name makes the code more
+      readable like this: $suppress_for = 1day
+
+    - New events were created to give visibility into the notice
+      framework's suppression activity.
+      - event Notice::begin_suppression(n: Notice::Info)
+      - event Notice::suppressed(n: Notice::Info)
+      - event Notice::end_suppression(n: Notice::Info)
+
+    - The suppression.bro script doesn't have a baseline because
+      it is causing a segfault in Bro.  This one test is the
+      reason that this is being integrated into a branch instead
+      of master. (Seth Hall)
+
+  * Fix crash on exit. Addresses #607. (Jon Siwek)
+
+  * Fix PktSrc setting next_timestamp even when no packet available.
+    (Jon Siwek)
+
+  * Fix lack of NUL-termination in to_upper/to_lower BIF's return val.
+    (Jon Siwek)
+
+  * Fixing unit tests and some minor bugs. (Jon Siwek)
+
+  * Fix broctl cluster log rotation. Addresses #619. (Jon Siwek)
+
+  * Added session ID to the SSL logging. (Seth Hall)
+
+  * Adding "install-aux" target + updating bro-aux submodule. (Jon
+    Siwek)
+
+  * Cleaning up INSTALL and README. (Jon Siwek)
+
+  * Remove $Id$ tags. (Jon Siwek)
+
+  * Remove policy.old directory. Addresses #511. (Jon Siwek)
+
+  * Small rework with ssl base script to reduce memory usage. (Seth
+    Hall)
+
+  * Updated the mozilla root certs. (Seth Hall)
+
 1.6-dev-1261 | 2011-09-15 17:13:55 -0700
 
   * Memory leak fixes. Addresses #574 (Jon Siwek)

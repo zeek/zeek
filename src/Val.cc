@@ -636,14 +636,16 @@ MutableVal::~MutableVal()
 	{
 	for ( list<ID*>::iterator i = aliases.begin(); i != aliases.end(); ++i )
 		{
-		global_scope()->Remove((*i)->Name());
+		if ( global_scope() )
+			global_scope()->Remove((*i)->Name());
 		(*i)->ClearVal();	// just to make sure.
 		Unref((*i));
 		}
 
 	if ( id )
 		{
-		global_scope()->Remove(id->Name());
+		if ( global_scope() )
+			global_scope()->Remove(id->Name());
 		id->ClearVal(); // just to make sure.
 		Unref(id);
 		}

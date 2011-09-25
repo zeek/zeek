@@ -2,4 +2,4 @@
 #path	notice
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	note	msg	sub	src	dst	p	n	peer_descr	actions	policy_items	suppress_for	dropped	remote_location.country_code	remote_location.region	remote_location.city	remote_location.latitude	remote_location.longitude	metric_index.host	metric_index.str	metric_index.network
 #types	time	string	addr	port	addr	port	enum	string	string	addr	addr	port	count	string	table	table	interval	bool	string	string	string	double	double	addr	string	subnet
-1316745737.870305	-	-	-	-	-	Test_Notice	Threshold crossed by metric_index(host=1.2.3.4) 100/100	-	1.2.3.4	-	-	100	manager-1	Notice::ACTION_LOG	5	3600.000000	-	-	-	-	-	-	1.2.3.4	-	-
+1316447937.245073	-	-	-	-	-	Test_Notice	test notice!	-	-	-	-	-	worker-1	Notice::ACTION_LOG	5	3600.000000	-	-	-	-	-	-	-	-	-

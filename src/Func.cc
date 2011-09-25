@@ -334,7 +334,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 	     (flow != FLOW_RETURN /* we fell off the end */ ||
 	      ! result /* explicit return with no result */) &&
 	     ! f->HasDelayed() )
-		reporter->Warning("non-void function returns without a value:", id->Name());
+		reporter->Warning("non-void function returns without a value: %s", id->Name());
 
 	if ( result && g_trace_state.DoTrace() )
 		{

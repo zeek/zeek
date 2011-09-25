@@ -10,7 +10,7 @@ module Known;
 export {
 	redef enum Log::ID += { SERVICES_LOG };
 	
-	type Info: record {
+	type ServicesInfo: record {
 		ts:             time            &log;
 		host:           addr            &log;
 		port_num:       port            &log;
@@ -25,7 +25,7 @@ export {
 	
 	global known_services: set[addr, port] &create_expire=1day &synchronized;
 	
-	global log_known_services: event(rec: Info);
+	global log_known_services: event(rec: ServicesInfo);
 }
 
 redef record connection += {
@@ -35,7 +35,7 @@ redef record connection += {
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(Known::SERVICES_LOG, [$columns=Info,
+	Log::create_stream(Known::SERVICES_LOG, [$columns=ServicesInfo,
 	                                         $ev=log_known_services]);
 	}
 	
@@ -48,7 +48,7 @@ function known_services_done(c: connection)
 	     [id$resp_h, id$resp_p] !in known_services &&
 	     "ftp-data" !in c$service ) # don't include ftp data sessions
 		{
-		local i: Info;
+		local i: ServicesInfo;
 		i$ts=c$start_time;
 		i$host=id$resp_h;
 		i$port_num=id$resp_p;

@@ -10,7 +10,7 @@ module Known;
 export {
 	redef enum Log::ID += { HOSTS_LOG };
 	
-	type Info: record {
+	type HostsInfo: record {
 		## The timestamp at which the host was detected.
 		ts:      time &log;
 		## The address that was detected originating or responding to a TCP 
@@ -29,12 +29,12 @@ export {
 	## of each individual address is logged each day.
 	global known_hosts: set[addr] &create_expire=1day &synchronized &redef;
 	
-	global log_known_hosts: event(rec: Info);
+	global log_known_hosts: event(rec: HostsInfo);
 }
 
 event bro_init()
 	{
-	Log::create_stream(Known::HOSTS_LOG, [$columns=Info, $ev=log_known_hosts]);
+	Log::create_stream(Known::HOSTS_LOG, [$columns=HostsInfo, $ev=log_known_hosts]);
 	}
 
 event connection_established(c: connection) &priority=5

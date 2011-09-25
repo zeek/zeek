@@ -135,6 +135,9 @@ export {
 	const alarmed_types: set[Notice::Type] = {} &redef;
 	## Types that should be suppressed for the default suppression interval.
 	const not_suppressed_types: set[Notice::Type] = {} &redef;
+	## This table can be used as a shorthand way to modify suppression 
+	## intervals for entire notice types.
+	const type_suppression_intervals: table[Notice::Type] of interval = {} &redef;
 	
 	## This is the record that defines the items that make up the notice policy.
 	type PolicyItem: record {
@@ -172,6 +175,16 @@ export {
 		 $priority = 8],
 		[$pred(n: Notice::Info) = { return (n$note in Notice::emailed_types); },
 		 $result = ACTION_EMAIL,
+		 $priority = 8],
+		[$pred(n: Notice::Info) = { 
+		 	if (n$note in Notice::type_suppression_intervals) 
+				{
+		 		n$suppress_for=Notice::type_suppression_intervals[n$note];
+				return T;
+				}
+		 	return F; 
+		 },
+		 $result = ACTION_NONE,
 		 $priority = 8],
 		[$result = ACTION_LOG,
 		 $priority = 0],

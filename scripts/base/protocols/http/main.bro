@@ -163,8 +163,12 @@ event http_reply(c: connection, version: string, code: count, reason: string) &p
 		local s: State;
 		c$http_state = s;
 		}
-	
-	++c$http_state$current_response;
+
+	# If the last response was an informational 1xx, we're still expecting
+	# the real response to the request, so don't create a new Info record yet.
+	if ( c$http_state$current_response !in c$http_state$pending ||
+	  c$http_state$pending[c$http_state$current_response]$status_code/100 != 1 )
+		++c$http_state$current_response;
 	set_state(c, F, F);
 	
 	c$http$status_code = code;
@@ -246,7 +250,10 @@ event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &
 	if ( ! is_orig )
 		{
 		Log::write(HTTP::LOG, c$http);
-		delete c$http_state$pending[c$http_state$current_response];
+		# If the response was an informational 1xx, we're still expecting
+		# the real response later, so we'll continue using the same record
+		if ( c$http$status_code/100 != 1 )
+			delete c$http_state$pending[c$http_state$current_response];
 		}
 	}
 

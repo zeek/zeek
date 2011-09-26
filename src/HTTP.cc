@@ -1305,7 +1305,9 @@ void HTTP_Analyzer::ReplyMade(const int interrupted, const char* msg)
 	if ( reply_message )
 		reply_message->Done(interrupted, msg);
 
-	if ( ! unanswered_requests.empty() )
+	// 1xx replies do not indicate the final response to a request,
+	// so don't pop an unanswered request in that case.
+	if ( reply_code/100 != 1 && ! unanswered_requests.empty() )
 		{
 		Unref(unanswered_requests.front());
 		unanswered_requests.pop();

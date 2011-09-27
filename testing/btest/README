@@ -1,97 +1,85 @@
-BTest is simple framework for writing unit tests. Each test consists of a set
-of command lines that will be executed, and success is determined based on
-their exit codes. In addition, output can optionally be compared against a
-previously established baseline.
+This a test suite of small "unit tests" that verify small pieces of bro
+functionality.  They all utilize BTest, a simple framework/driver for
+writing unit tests.  More information about BTest can be found at
+http://www.bro-ids.org/development/btest.html
 
-More information about BTest can be found at http://www.icir.org/robin/btest/
+The test suite's BTest configuration is handled through the
+``btest.cfg`` file.  Of particular interest is the "TestDirs" settings,
+which specifies which directories BTest will recursively search for
+test files.
 
+Significant Subdirectories
+==========================
 
-This README contains the following sections:
-	* Contents of the testing/btest/ directory
-	* Running tests
-	* Adding tests
+* Baseline/
+	Validated baselines for comparison against the output of each
+	test on future runs. If the new output differs from the Baseline
+	output, then the test fails.
 
-
-Contents of the testing/btest/ directory:
-
-Baseline/*/
-	The validated baselines for comparison against the output of each test on
-	future runs. If the new output differs from the Baseline output, then the
-	test fails.
-
-Scripts/
-	Shell scripts invoked by BTest to support testing.
-
-Traces/
+* Traces/
 	Packet captures utilized by the various BTest tests.
 
-logging/
-	Tests to validate the logging framework.
+* scripts/
+    This hierarchy of tests emulates the hierarchy of the bro scripts/
+    directory.
 
-policy/
-	Tests of the functionality of Bro's bundled policy scripts.
+* coverage/
+    This collection of tests relates to checking whether we're covering
+    everything we want to in terms of tests, documentation, and which
+    scripts get loaded in different Bro configurations.  These tests are
+    more prone to fail as new bro scripts are developed and added to the
+    distribution -- checking the individual test's comments is the best
+    place to check for more details on what exactly the test is checking
+    and hints on how to fix it when it fails.
 
-software/
-	Tests to validate Bro software not tested elsewhere.
+Running Tests
+=============
 
-btest.cfg
-	Configuration file that specifies run-time settings for BTest. Of particular
-	interest is the "TestDirs" settings, which specifies which directories BTest
-	will recursively search for test files.
+Either use the ``make all`` or ``make brief`` ``Makefile`` targets, or
+run ``btest`` directly with desired options/arguments.  Examples:
 
-
-Running tests:
-
-btest  <no arguments>
-	If you simply execute btest in this directory with no arguments, then all
-	directories listed as "TestDirs" in btest.cfg will be searched recursively
-	for	test files. This is how the NMI automated build & test environment
-	invokes BTest to run all tests.
-
-
-btest  test_directory
-	You can specify a directory on the command line to run just the tests
-	contained in that directory. This is useful if you wish to run all of a
-	given type of test, without running all the tests there are. For example,
-	"btest policy" will run all of the tests for Bro's bundled policy scripts.
+* btest <no arguments>
+	If you simply execute btest in this directory with no arguments,
+	then all directories listed as "TestDirs" in btest.cfg will be
+	searched recursively for     test files.
 
 
-btest  test_directory/test_file
-	You can specify a single test file to run just that test. This is useful
-	when testing a single aspect of Bro functionality, and also when developing
+* btest <btest options> test_directory
+	You can specify a directory on the command line to run just the
+	tests contained in that directory. This is useful if you wish to
+	run all of a given type of test, without running all the tests
+	there are. For example, "btest scripts" will run all of the Bro
+	script unit tests.
+
+
+* btest <btest options> test_directory/test_file
+	You can specify a single test file to run just that test. This
+	is useful when testing a single failing test or when developing
 	a new test.
 
+Addding Tests
+=============
 
+See either the `BTest documentation
+<http://www.bro-ids.org/development/btest.html>`_ or the existing unit
+tests for examples of what they actually look like.  The essential
+components of a new test include:
 
-Adding tests:
+* A test file in one of the subdirectories listed in the ``TestDirs``
+  of the ``btest.cfg`` file.
 
-See the documentation at http://www.icir.org/robin/btest/ for information on
-what BTests actually look like.
+* If the unit test requires a known-good baseline output against which
+  future tests will be compared (via ``btest-diff``), then that baseline
+  output will need to live in the ``Baseline`` directory.  Manually
+  adding that is possible, but it's easier to just use the ``-u`` or
+  ``-U`` options of ``btest`` to do it for you (using ``btest -d`` on a
+  test for which no baseline exists will show you the output so it can
+  be verified first before adding/updating the baseline output).
 
-The essential components of a new test include:
-* A test file in a subdirectory of /testing/btest. This can be a sub-sub-
-	directory, as the search for test files is recursive from the directories
-	listed as "TestDirs" in btest.cfg
-* A baseline for the output of your test. Although the baseline will be stored
-	in testing/btest/Baseline/ you should allow btest to copy the correct files
-	to that location, rather than copying them manually (see below).
+If you create a new top-level testing directory for collecting related
+tests, then you'll need to add it to the list of ``TestDirs`` in
+``btest.cfg``. Do this only if your test really doesn't fit logically in
+any of the extant directories.
 
-If you create a new subdirectory from testing/btest you'll need to add it to the
-list of "TestDirs" in btest.cfg. Do this only if your test really doesn't fit
-logically in any of the extant directories.
-
-While developing your test, you can specify the "-t" command-line option to make
-BTest preserve the testing/btest/.tmp directory. This directory holds the output
-from your test run; you can inspect it in place to ensure it is correct and as
-expected.
-
-Once you are satisfied with the results in testing/btest/.tmp you can make BTest
-store this output as the Baseline for the test by specifying the "-U" command-
-line option.
-
-When you are ready to commit your test to git, be sure the testing/btest/.tmp
-directory is deleted, and use "git status" to ensure you correctly identify all
-of the files that should be committed to the repository.
-
-Note that any new test you add this way will automatically be included in the
-testing done in the NMI automated build & test environment.
+Note that any new test you add this way will automatically be included
+in the testing done in the NMI automated build & test environment.

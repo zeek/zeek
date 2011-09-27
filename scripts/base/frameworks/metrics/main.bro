@@ -218,6 +218,10 @@ function add_data(id: ID, index: Index, increment: count)
 				}
 			else if ( filter?$aggregation_table )
 				{
+				# Don't add the data if the aggregation table doesn't include 
+				# the given host address.
+				if ( index$host !in filter$aggregation_table )
+					next;
 				index$network = filter$aggregation_table[index$host];
 				delete index$host;
 				}

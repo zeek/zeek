@@ -48,6 +48,10 @@ export {
 		status_code:             count    &log &optional;
 		## The status message returned by the server.
 		status_msg:              string   &log &optional;
+		## The last 1xx informational reply code returned by the server.
+		info_code:               count    &log &optional;
+		## The last 1xx informational reply message returned by the server.
+		info_msg:               string    &log &optional;
 		## The filename given in the Content-Disposition header
 		## sent by the server.
 		filename:                string   &log &optional;
@@ -173,6 +177,11 @@ event http_reply(c: connection, version: string, code: count, reason: string) &p
 	
 	c$http$status_code = code;
 	c$http$status_msg = reason;
+	if ( code/100 == 1 )
+		{
+		c$http$info_code = code;
+		c$http$info_msg = reason;
+		}
 	}
 	
 event http_header(c: connection, is_orig: bool, name: string, value: string) &priority=5
@@ -249,11 +258,13 @@ event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &
 	# The reply body is done so we're ready to log.
 	if ( ! is_orig )
 		{
-		Log::write(HTTP::LOG, c$http);
 		# If the response was an informational 1xx, we're still expecting
 		# the real response later, so we'll continue using the same record
 		if ( c$http$status_code/100 != 1 )
+			{
+			Log::write(HTTP::LOG, c$http);
 			delete c$http_state$pending[c$http_state$current_response];
+			}
 		}
 	}
 

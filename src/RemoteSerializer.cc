@@ -706,6 +706,21 @@ RemoteSerializer::PeerID RemoteSerializer::Connect(addr_type ip, uint16 port,
 	return p->id;
 	}
 
+bool RemoteSerializer::CloseConnection(PeerID id)
+	{
+	if ( ! using_communication )
+		return true;
+
+	Peer* peer = LookupPeer(id, true);
+	if ( ! peer )
+		{
+		reporter->Error(fmt("unknown peer id %d for closing connection", int(id)));
+		return false;
+		}
+
+	return CloseConnection(peer);
+	}
+
 bool RemoteSerializer::CloseConnection(Peer* peer)
 	{
 	if ( peer->suspended_processing )
@@ -1288,7 +1303,14 @@ void RemoteSerializer::SendFinalSyncPoint()
 
 bool RemoteSerializer::Terminate()
 	{
+	loop_over_list(peers, i)
+	    {
+	    FlushPrintBuffer(peers[i]);
+	    FlushLogBuffer(peers[i]);
+	    }
+
 	Log(LogInfo, fmt("terminating..."));
+
 	return terminating = SendToChild(MSG_TERMINATE, 0, 0);
 	}
 
@@ -2552,6 +2574,8 @@ bool RemoteSerializer::SendLogWrite(Peer* peer, EnumVal* id, EnumVal* writer, st
 
 	len = fmt.EndWrite(&data);
 
+	assert(len > 10);
+
 	// Do we have enough space in the buffer? If not, flush first.
 	if ( len > (LOG_BUFFER_SIZE - peer->log_buffer_used) )
 		{
@@ -2568,7 +2592,6 @@ bool RemoteSerializer::SendLogWrite(Peer* peer, EnumVal* id, EnumVal* writer, st
 	peer->log_buffer_used += len;
 	assert(peer->log_buffer_used <= LOG_BUFFER_SIZE);
 
-	FlushLogBuffer(peer); // FIXME: This should go away, but then the unit test fails. See #498.
 	return true;
 
 error:

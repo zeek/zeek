@@ -692,7 +692,7 @@ type CiphertextRecord(rec: SSLRecord, is_orig: bool) = record {
 ######################################################################
 
 type SSLPDU(is_orig: bool) = record {
-	records : SSLRecord(is_orig)[] &until($element <= 0);
+	records : SSLRecord(is_orig)[] &transient &until($element <= 0);
 } &byteorder = bigendian;
 
 

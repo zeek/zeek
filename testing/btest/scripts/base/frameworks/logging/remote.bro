@@ -51,7 +51,7 @@ event remote_connection_handshake_done(p: event_peer)
 	{
 	Log::add_filter(Test::LOG, [$name="f2", $path="test.failure", $pred=fail]);
 
-    local cid = [$orig_h=1.2.3.4, $orig_p=1234/tcp, $resp_h=2.3.4.5, $resp_p=80/tcp];
+	local cid = [$orig_h=1.2.3.4, $orig_p=1234/tcp, $resp_h=2.3.4.5, $resp_p=80/tcp];
 
 	local r: Log = [$t=network_time(), $id=cid, $status="success"];
 
@@ -61,6 +61,7 @@ event remote_connection_handshake_done(p: event_peer)
 	Log::write(Test::LOG, [$t=network_time(), $id=cid, $status="failure", $country="UK"]);
 	Log::write(Test::LOG, [$t=network_time(), $id=cid, $status="success", $country="BR"]);
 	Log::write(Test::LOG, [$t=network_time(), $id=cid, $status="failure", $country="MX"]);
+	disconnect(p);
 	}
 @TEST-END-FILE
 

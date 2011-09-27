@@ -34,6 +34,9 @@ public:
 	// Connect to host (returns PEER_NONE on error).
 	PeerID Connect(addr_type ip, uint16 port, const char* our_class, double retry, bool use_ssl);
 
+	// Close connection to host.
+	bool CloseConnection(PeerID peer);
+
 	// Request all events matching pattern from remote side.
 	bool RequestEvents(PeerID peer, RE_Matcher* pattern);
 

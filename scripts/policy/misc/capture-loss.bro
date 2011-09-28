@@ -31,12 +31,12 @@ export {
 		## to the same host, this distinguishes each peer with it's
 		## individual name.
 		peer:         string   &log;
-		## Number of ACKs seen in the previous measurement interval.
-		acks:         count    &log;
 		## Number of missed ACKs from the previous measurement interval.
 		gaps:         count    &log;
+		## Total number of ACKs seen in the previous measurement interval.
+		acks:         count    &log;
 		## Percentage of ACKs seen where the data being ACKed wasn't seen.
-		percent_lost: double   &log;
+		percent_lost: string   &log;
 	};
 	
 	## The interval at which capture loss reports are created.
@@ -66,11 +66,11 @@ event CaptureLoss::take_measurement(last_ts: time, last_acks: count, last_gaps: 
 	                    $ts_delta=now-last_ts,
 	                    $peer=peer_description,
 	                    $acks=acks, $gaps=gaps, 
-	                    $percent_lost=pct_lost];
+	                    $percent_lost=fmt("%.3f%%", pct_lost)];
 	
 	if ( pct_lost >= too_much_loss*100 )
 		NOTICE([$note=Too_Much_Loss, 
-		        $msg=fmt("The capture loss script detected an estimated loss rate above %.1f%%", pct_lost)]);
+		        $msg=fmt("The capture loss script detected an estimated loss rate above %.3f%%", pct_lost)]);
 	
 	Log::write(LOG, info);
 	schedule watch_interval { CaptureLoss::take_measurement(now, g$ack_events, g$gap_events) };

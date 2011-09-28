@@ -32,13 +32,13 @@ export {
 		user_agent:              string   &log &optional;
 		## The actual uncompressed content size of the data transferred from
 		## the client.
-		request_body_len:        count    &log &optional;
+		request_body_len:        count    &log &default=0;
 		## This indicates whether or not there was an interruption while the
 		## request body was being sent.
 		request_body_interrupted: bool     &log &default=F;
 		## The actual uncompressed content size of the data transferred from
 		## the server.
-		response_body_len:       count    &log &optional;
+		response_body_len:       count    &log &default=0;
 		## This indicates whether or not there was an interruption while the
 		## request body was being sent.  An interruption could cause hash
 		## calculation to fail and a number of other problems since the 

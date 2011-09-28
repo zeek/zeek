@@ -30,7 +30,6 @@ export {
 
 redef record connection += {
 	known_services_done: bool &default=F;
-	known_services_watch: bool &default=F;
 };
 
 event bro_init() &priority=5
@@ -39,41 +38,48 @@ event bro_init() &priority=5
 	                                         $ev=log_known_services]);
 	}
 	
+event log_it(ts: time, a: addr, p: port, services: set[string])
+	{
+	if ( [a, p] !in known_services )
+		{
+		add known_services[a, p];
+	
+		local i: ServicesInfo;
+		i$ts=ts;
+		i$host=a;
+		i$port_num=p;
+		i$port_proto=get_port_transport_proto(p);
+		i$service=services;
+		Log::write(Known::SERVICES_LOG, i);
+		}
+	}
+	
 function known_services_done(c: connection)
 	{
 	local id = c$id;
-	if ( ! c$known_services_done &&
-	     get_port_transport_proto(id$resp_p) == tcp &&
-	     addr_matches_host(id$resp_h, service_tracking) &&
-	     [id$resp_h, id$resp_p] !in known_services &&
-	     "ftp-data" !in c$service ) # don't include ftp data sessions
-		{
-		local i: ServicesInfo;
-		i$ts=c$start_time;
-		i$host=id$resp_h;
-		i$port_num=id$resp_p;
-		i$port_proto=get_port_transport_proto(id$resp_p);
-		i$service=c$service;
-		
-		add known_services[id$resp_h, id$resp_p];
-		Log::write(Known::SERVICES_LOG, i);
-		c$known_services_done = T;
-		}
+	c$known_services_done = T;
+	
+	if ( ! addr_matches_host(id$resp_h, service_tracking) ||
+	     "ftp-data" in c$service ) # don't include ftp data sessions
+		return;
+	
+	# If no protocol was detected, wait a short
+	# time before attempting to log in case a protocol is detected
+	# on another connection.
+	if ( |c$service| == 0 )
+		schedule 2mins { log_it(network_time(), id$resp_h, id$resp_p, c$service) };
+	else 
+		event log_it(network_time(), id$resp_h, id$resp_p, c$service);
 	}
 	
 event protocol_confirmation(c: connection, atype: count, aid: count) &priority=-5
 	{
 	known_services_done(c);
 	}
-	
-event connection_established(c: connection)
-	{
-	c$known_services_watch=T;
-	}
 
 # Handle the connection ending in case no protocol was ever detected.
 event connection_state_remove(c: connection) &priority=-5
 	{
-	if ( c$known_services_watch )
+	if ( ! c$known_services_done && c$resp$state == TCP_ESTABLISHED )
 		known_services_done(c);
 	}

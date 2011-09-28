@@ -12,5 +12,7 @@
 1	scripts/base/frameworks/logging/__load__.bro
 2	scripts/base/frameworks/logging/./main.bro
 3	build/src/base/logging.bif.bro
+2	scripts/base/frameworks/logging/./postprocessors/__load__.bro
+3	scripts/base/frameworks/logging/./postprocessors/./scp.bro
 2	scripts/base/frameworks/logging/./writers/ascii.bro
 0	scripts/policy/misc/loaded-scripts.bro

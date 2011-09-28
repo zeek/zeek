@@ -1,4 +1,62 @@
 
+1.6-dev-1316 | 2011-09-28 16:50:05 -0700
+
+  * Unit test cleanup. Updated README and collected coverage-related
+    tests in a common dir. (Jon Siwek)
+
+  * Fixes for known-services. (Seth Hall)
+
+  * Ported and 2.0ized the capture-loss script. (Seth Hall)
+
+  * Communication fix and extension.(Robin Sommer)
+
+    - Removing unnecessary log flushing. Closes #498.
+
+    - Adding new BiF disconnect() that shuts a connection to a peer down.
+
+    - terminate_connection() now first flushes any still buffered log
+      messages.
+
+  * Fix for high SSL memory usage by adding &transient attribute to
+    top-level SSL pac array type. Closes #574. (Robin Sommer)
+
+  * Fix a small bug in the metrics framework. (Seth Hall)
+
+  * Temporarily removing scripts that aren't ready to be included.
+    Will return before next release.  (Seth Hall)
+
+  * New SSL policy scripts.  (Seth Hall)
+
+    - protocols/ssl/expiring-certs uses time based information from
+      certificates to determine if they will expire soon, have already
+      expired, or haven't yet become valid.
+
+    - protocols/ssl/extract-certs-pem is a script for taking certs off
+      the line and converting them to PEM certificates with the openssl
+      command line tool then dumping them to a file.
+
+  * Notice::type_suppression_intervals: table[Notice::Type] of
+    interval can be used to modify the suppression intervals for
+    entire types of notices. (Seth Hall)
+
+  * EOF SSL protocol violations are only generated a single time now.
+    (Seth Hall)
+
+  * Script level fixes.  (Seth Hall)
+
+    - Fixed a type name conflict in the Known namespace.
+
+    - Fixed a DPD framework bug that was causing Reporter messages.
+
+    - Fixed the notice_policy log.
+
+    - Predicate functions are now logged.
+
+    - Predicate functions are now optional.  If not given, it's assumed that
+      the result should always apply. (Seth Hall)
+
+    - Fix a problem with accidental and mistaken HTTP log lines.
+
 1.6-dev-1293 | 2011-09-22 19:44:37 -0700
 
   * Smaller script tweaks. (Seth Hall)

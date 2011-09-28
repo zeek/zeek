@@ -5,6 +5,7 @@
 
 @load base/protocols/ssl
 @load base/frameworks/notice
+@load base/utils/directions-and-hosts
 
 module SSL;
 
@@ -58,5 +59,3 @@ event x509_certificate(c: connection, cert: X509, is_server: bool, chain_idx: co
 		        $conn=c, $suppress_for=1day,
 		        $identifier=fmt("%s:%d-%s", c$id$resp_h, c$id$resp_p, md5_hash(der_cert))]);
 	}
-	
-	

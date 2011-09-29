@@ -176,7 +176,8 @@ event http_reply(c: connection, version: string, code: count, reason: string) &p
 	# If the last response was an informational 1xx, we're still expecting
 	# the real response to the request, so don't create a new Info record yet.
 	if ( c$http_state$current_response !in c$http_state$pending ||
-	  ! code_in_range(c$http_state$pending[c$http_state$current_response]$status_code, 100, 199) )
+	     (c$http_state$pending[c$http_state$current_response]?$status_code &&
+	       ! code_in_range(c$http_state$pending[c$http_state$current_response]$status_code, 100, 199)) )
 		++c$http_state$current_response;
 	set_state(c, F, F);
 	

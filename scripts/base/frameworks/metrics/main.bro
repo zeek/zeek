@@ -221,7 +221,7 @@ function add_data(id: ID, index: Index, increment: count)
 				# Don't add the data if the aggregation table doesn't include 
 				# the given host address.
 				if ( index$host !in filter$aggregation_table )
-					next;
+					return;
 				index$network = filter$aggregation_table[index$host];
 				delete index$host;
 				}

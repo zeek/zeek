@@ -378,9 +378,9 @@ event software_register(id: conn_id, info: Info)
 		if ( ! info$force_log && cmp_versions(old$version, info$version) == 0 )
 			return;
 		}
+	ts[info$name] = info;
 	
 	Log::write(Software::LOG, info);
-	ts[info$name] = info;
 	}
 
 function found(id: conn_id, info: Info): bool

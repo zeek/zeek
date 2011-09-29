@@ -95,6 +95,7 @@ public:
 	virtual void EndOfData();
 
 	MIME_Entity* Parent() const { return parent; }
+	int MIMEContentType() const { return content_type; }
 	StringVal* ContentType() const { return content_type_str; }
 	StringVal* ContentSubType() const { return content_subtype_str; }
 	int ContentTransferEncoding() const { return content_encoding; }

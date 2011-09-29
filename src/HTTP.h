@@ -163,6 +163,9 @@ public:
 
 	void SkipEntityData(int is_orig);
 
+	int IsConnectionClose()		{ return connection_close; }
+	int HTTP_ReplyCode() const { return reply_code; };
+
 	// Overriden from Analyzer.
 	virtual void Done();
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
@@ -182,8 +185,6 @@ public:
 			http_all_headers || http_begin_entity || http_end_entity ||
 			http_content_type || http_entity_data || http_message_done ||
 			http_event || http_stats) && !FLAGS_use_binpac; }
-
-	int IsConnectionClose()		{ return connection_close; }
 
 protected:
 	void GenStats();

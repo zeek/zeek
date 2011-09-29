@@ -1,18 +1,18 @@
 #separator \x09
 #path	loaded_scripts
-#fields	depth	name
-#types	count	string
-0	scripts/base/init-bare.bro
-1	build/src/base/const.bif.bro
-1	build/src/base/types.bif.bro
-1	build/src/base/strings.bif.bro
-1	build/src/base/bro.bif.bro
-1	build/src/base/reporter.bif.bro
-1	build/src/base/event.bif.bro
-1	scripts/base/frameworks/logging/__load__.bro
-2	scripts/base/frameworks/logging/./main.bro
-3	build/src/base/logging.bif.bro
-2	scripts/base/frameworks/logging/./postprocessors/__load__.bro
-3	scripts/base/frameworks/logging/./postprocessors/./scp.bro
-2	scripts/base/frameworks/logging/./writers/ascii.bro
-0	scripts/policy/misc/loaded-scripts.bro
+#fields	name
+#types	string
+scripts/base/init-bare.bro
+  build/src/base/const.bif.bro
+  build/src/base/types.bif.bro
+  build/src/base/strings.bif.bro
+  build/src/base/bro.bif.bro
+  build/src/base/reporter.bif.bro
+  build/src/base/event.bif.bro
+  scripts/base/frameworks/logging/__load__.bro
+    scripts/base/frameworks/logging/./main.bro
+      build/src/base/logging.bif.bro
+    scripts/base/frameworks/logging/./postprocessors/__load__.bro
+      scripts/base/frameworks/logging/./postprocessors/./scp.bro
+    scripts/base/frameworks/logging/./writers/ascii.bro
+scripts/policy/misc/loaded-scripts.bro

@@ -5,6 +5,8 @@
 #include <ctype.h>
 #include <math.h>
 #include <stdlib.h>
+#include <string>
+#include <algorithm>
 
 #include "NetVar.h"
 #include "HTTP.h"
@@ -307,6 +309,67 @@ void HTTP_Entity::SubmitHeader(MIME_Header* h)
 				content_length = n;
 			else
 				content_length = 0;
+			}
+		}
+
+	// Figure out content-length for HTTP 206 Partial Content response
+	// that uses multipart/byteranges content-type.
+	else if ( strcasecmp_n(h->get_name(), "content-range") == 0 && Parent() &&
+	          Parent()->MIMEContentType() == CONTENT_TYPE_MULTIPART &&
+		      http_message->MyHTTP_Analyzer()->HTTP_ReplyCode() == 206 )
+		{
+		data_chunk_t vt = h->get_value_token();
+		string byte_unit(vt.data, vt.length);
+		vt = h->get_value_after_token();
+		string byte_range(vt.data, vt.length);
+		byte_range.erase(remove(byte_range.begin(), byte_range.end(), ' '),
+		                 byte_range.end());
+
+		if ( byte_unit != "bytes" )
+			{
+			http_message->Weird("HTTP_content_range_unknown_byte_unit");
+			return;
+			}
+
+		size_t p = byte_range.find("/");
+		if ( p == string::npos )
+			{
+			http_message->Weird("HTTP_content_range_cannot_parse");
+			return;
+			}
+
+		string byte_range_resp_spec = byte_range.substr(0, p);
+		string instance_length = byte_range.substr(p + 1);
+
+		p = byte_range_resp_spec.find("-");
+		if ( p == string::npos )
+			{
+			http_message->Weird("HTTP_content_range_cannot_parse");
+			return;
+			}
+
+		string first_byte_pos = byte_range_resp_spec.substr(0, p);
+		string last_byte_pos = byte_range_resp_spec.substr(p + 1);
+
+		if ( DEBUG_http )
+			DEBUG_MSG("Parsed Content-Range: %s %s-%s/%s\n", byte_unit.c_str(),
+		              first_byte_pos.c_str(), last_byte_pos.c_str(),
+		              instance_length.c_str());
+
+		int64_t f, l;
+		atoi_n(first_byte_pos.size(), first_byte_pos.c_str(), 0, 10, f);
+		atoi_n(last_byte_pos.size(), last_byte_pos.c_str(), 0, 10, l);
+		int64_t len = l - f + 1;
+
+		if ( DEBUG_http )
+			DEBUG_MSG("Content-Range length = %"PRId64"\n", len);
+
+		if ( len > 0 )
+			content_length = len;
+		else
+			{
+			http_message->Weird("HTTP_non_positive_content_range");
+			return;
 			}
 		}
 
@@ -1305,7 +1368,9 @@ void HTTP_Analyzer::ReplyMade(const int interrupted, const char* msg)
 	if ( reply_message )
 		reply_message->Done(interrupted, msg);
 
-	if ( ! unanswered_requests.empty() )
+	// 1xx replies do not indicate the final response to a request,
+	// so don't pop an unanswered request in that case.
+	if ( (reply_code < 100 || reply_code >= 200) && ! unanswered_requests.empty() )
 		{
 		Unref(unanswered_requests.front());
 		unanswered_requests.pop();

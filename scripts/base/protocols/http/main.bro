@@ -48,6 +48,10 @@ export {
 		status_code:             count    &log &optional;
 		## The status message returned by the server.
 		status_msg:              string   &log &optional;
+		## The last 1xx informational reply code returned by the server.
+		info_code:               count    &log &optional;
+		## The last 1xx informational reply message returned by the server.
+		info_msg:               string    &log &optional;
 		## The filename given in the Content-Disposition header
 		## sent by the server.
 		filename:                string   &log &optional;
@@ -111,6 +115,11 @@ redef capture_filters +=  {
 	["http"] = "tcp and port (80 or 81 or 631 or 1080 or 3138 or 8000 or 8080 or 8888)"
 };
 
+function code_in_range(c: count, min: count, max: count) : bool
+	{
+	return c >= min && c <= max;
+	}
+
 function new_http_session(c: connection): Info
 	{
 	local tmp: Info;
@@ -163,12 +172,21 @@ event http_reply(c: connection, version: string, code: count, reason: string) &p
 		local s: State;
 		c$http_state = s;
 		}
-	
-	++c$http_state$current_response;
+
+	# If the last response was an informational 1xx, we're still expecting
+	# the real response to the request, so don't create a new Info record yet.
+	if ( c$http_state$current_response !in c$http_state$pending ||
+	  ! code_in_range(c$http_state$pending[c$http_state$current_response]$status_code, 100, 199) )
+		++c$http_state$current_response;
 	set_state(c, F, F);
 	
 	c$http$status_code = code;
 	c$http$status_msg = reason;
+	if ( code_in_range(code, 100, 199) )
+		{
+		c$http$info_code = code;
+		c$http$info_msg = reason;
+		}
 	}
 	
 event http_header(c: connection, is_orig: bool, name: string, value: string) &priority=5
@@ -245,8 +263,13 @@ event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &
 	# The reply body is done so we're ready to log.
 	if ( ! is_orig )
 		{
-		Log::write(HTTP::LOG, c$http);
-		delete c$http_state$pending[c$http_state$current_response];
+		# If the response was an informational 1xx, we're still expecting
+		# the real response later, so we'll continue using the same record.
+		if ( ! code_in_range(c$http$status_code, 100, 199) )
+			{
+			Log::write(HTTP::LOG, c$http);
+			delete c$http_state$pending[c$http_state$current_response];
+			}
 		}
 	}
 

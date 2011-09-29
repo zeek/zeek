@@ -482,8 +482,8 @@ function to_lower%(str: string%): string
 	%{
 	const u_char* s = str->Bytes();
 	int n = str->Len();
-	char* lower_s = new char[n];
-	char* ls = lower_s;
+	u_char* lower_s = new u_char[n + 1];
+	u_char* ls = lower_s;
 
 	for ( int i = 0; i < n; ++i)
 		{
@@ -493,15 +493,17 @@ function to_lower%(str: string%): string
 			*ls++ = s[i];
 		}
 
-	return new StringVal(n, lower_s);
+    *ls++ = '\0';
+
+	return new StringVal(new BroString(1, lower_s, n));
 	%}
 
 function to_upper%(str: string%): string
 	%{
 	const u_char* s = str->Bytes();
 	int n = str->Len();
-	char* upper_s = new char[n];
-	char* us = upper_s;
+	u_char* upper_s = new u_char[n + 1];
+	u_char* us = upper_s;
 
 	for ( int i = 0; i < n; ++i)
 		{
@@ -511,7 +513,9 @@ function to_upper%(str: string%): string
 			*us++ = s[i];
 		}
 
-	return new StringVal(n, upper_s);
+    *us++ = '\0';
+
+	return new StringVal(new BroString(1, upper_s, n));
 	%}
 
 function clean%(str: string%): string

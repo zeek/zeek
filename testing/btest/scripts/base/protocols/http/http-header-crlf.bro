@@ -3,7 +3,7 @@
 # the http_no_crlf_in_header_list wierd.
 #
 # @TEST-EXEC: bro -r $TRACES/http-byteranges.trace %INPUT
-# @TEST-EXEC: grep -q http_no_crlf_in_header_list weird.log && exit 1 || exit 0
+# @TEST-EXEC: test ! -f weird.log
 
 # The base analysis scripts are loaded by default.
 #@load base/protocols/http

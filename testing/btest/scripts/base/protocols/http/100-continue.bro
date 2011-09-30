@@ -4,7 +4,7 @@
 # in a way that correlates the final response with the request.
 #
 # @TEST-EXEC: bro -r $TRACES/http-100-continue.trace %INPUT
-# @TEST-EXEC: grep -q unmatched_HTTP_reply weird.log && exit 1 || exit 0
+# @TEST-EXEC: grep -q unmatched_HTTP_reply weird.log && exit 0 || exit 1 
 # @TEST-EXEC: btest-diff http.log
 
 # The base analysis scripts are loaded by default.

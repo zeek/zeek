@@ -172,7 +172,7 @@ event http_reply(c: connection, version: string, code: count, reason: string) &p
 		local s: State;
 		c$http_state = s;
 		}
-
+	
 	# If the last response was an informational 1xx, we're still expecting
 	# the real response to the request, so don't create a new Info record yet.
 	if ( c$http_state$current_response !in c$http_state$pending ||

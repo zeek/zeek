@@ -24,12 +24,12 @@
 @load integration/barnyard2/main.bro
 @load integration/barnyard2/types.bro
 @load misc/analysis-groups.bro
+@load misc/capture-loss.bro
 @load misc/loaded-scripts.bro
 @load misc/profiling.bro
 @load misc/trim-trace-file.bro
 @load protocols/conn/known-hosts.bro
 @load protocols/conn/known-services.bro
-# @load protocols/conn/scan.bro
 @load protocols/dns/auth-addl.bro
 @load protocols/dns/detect-external-names.bro
 @load protocols/ftp/detect.bro
@@ -39,6 +39,7 @@
 @load protocols/http/detect-sqli.bro
 @load protocols/http/detect-webapps.bro
 @load protocols/http/header-names.bro
+@load protocols/http/software-browser-plugins.bro
 @load protocols/http/software.bro
 @load protocols/http/var-extraction-cookies.bro
 @load protocols/http/var-extraction-uri.bro
@@ -59,4 +60,3 @@
 @load tuning/defaults/remove-high-volume-notices.bro
 @load tuning/defaults/warnings.bro
 @load tuning/track-all-assets.bro
-# @load hot.conn.bro

@@ -34,9 +34,6 @@ blacklist all.bro
 blacklist init-default.bro
 blacklist init-bare.bro
 
-tmp_blacklist hot.conn.bro
-tmp_blacklist scan.bro
-
 statictext="\
 # DO NOT EDIT
 # This file is auto-generated from the "genDocSourcesList.sh" script.

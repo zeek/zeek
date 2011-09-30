@@ -1,4 +1,31 @@
 
+1.6-dev-1333 | 2011-09-29 22:29:51 -0700
+
+  * Fixing a number of memory leaks. (Robin Sommer)
+
+  * Loaded_scripts.log is indented with spaces now and makes more
+     sense to look at. (Seth Hall)
+
+  * Teach HTTP parser to derive content length of multipart/byteranges
+     bodies. Addresses #488. (Jon Siwek)
+
+  * Change logging of HTTP 1xx responses to occur in their own
+    columns. Addresses #411. (Jon Siwek)
+
+  * Fix handling of HTTP 1xx response codes. Addresses #411).
+
+  * Taking advantage of yet another trick to get installed browser
+  plugins. (Seth Hall)
+
+    - With the software-browser-plugins script you can watch for Omniture
+      advertising servers to grab the list of installed plugins.
+
+    - I reorganized the plugin detection a bit too to abstract it better.
+
+    - Removed the WEB_ prefix from all of the Software::Type HTTP enums.
+      They were essentially redundant due to the full name already being
+      HTTP::SERVER (for example).
+
 1.6-dev-1316 | 2011-09-28 16:50:05 -0700
 
   * Unit test cleanup. Updated README and collected coverage-related

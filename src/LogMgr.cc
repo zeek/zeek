@@ -966,6 +966,13 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 			for ( int j = 0; j < filter->num_fields; ++j )
 				arg_fields[j] = new LogField(*filter->fields[j]);
 
+			if ( filter->remote )
+				remote_serializer->SendLogCreateWriter(stream->id,
+								       filter->writer,
+								       path,
+								       filter->num_fields,
+								       arg_fields);
+
 			if ( filter->local )
 				{
 				writer = CreateWriter(stream->id, filter->writer,
@@ -979,17 +986,17 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 					}
 				}
 			else
+				{
 				// Insert a null pointer into the map to make
 				// sure we don't try creating it again.
 				stream->writers.insert(Stream::WriterMap::value_type(
 				Stream::WriterPathPair(filter->writer->AsEnum(), path), 0));
 
-			if ( filter->remote )
-				remote_serializer->SendLogCreateWriter(stream->id,
-								       filter->writer,
-								       path,
-								       filter->num_fields,
-								       arg_fields);
+				for( int i = 0; i < filter->num_fields; ++i)
+					delete arg_fields[i];
+
+				delete [] arg_fields;
+				}
 			}
 
 		// Alright, can do the write now.

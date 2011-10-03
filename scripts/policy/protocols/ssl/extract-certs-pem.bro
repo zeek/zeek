@@ -15,6 +15,7 @@
 
 @load base/protocols/ssl
 @load base/utils/directions-and-hosts
+@load protocols/ssl/cert-hash
 
 module SSL;
 

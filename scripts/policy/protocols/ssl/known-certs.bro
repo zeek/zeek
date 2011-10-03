@@ -1,5 +1,8 @@
 @load base/utils/directions-and-hosts
 
+@load base/protocols/ssl
+@load protocols/ssl/cert-hash
+
 module Known;
 
 export {
@@ -39,7 +42,7 @@ event bro_init() &priority=5
 	Log::create_stream(Known::CERTS_LOG, [$columns=CertsInfo, $ev=log_known_certs]);
 	}
 
-event x509_certificate(c: connection, cert: X509, is_server: bool, chain_idx: count, chain_len: count, der_cert: string)
+event x509_certificate(c: connection, cert: X509, is_server: bool, chain_idx: count, chain_len: count, der_cert: string) &priority=5
 	{
 	# We aren't tracking client certificates yet.
 	if ( ! is_server ) return;
@@ -53,6 +56,7 @@ event x509_certificate(c: connection, cert: X509, is_server: bool, chain_idx: co
 		Log::write(Known::CERTS_LOG, [$ts=network_time(), $host=host,
 		                              $port_num=c$id$resp_p, $subject=cert$subject,
 		                              $issuer_subject=cert$issuer,
-		                              $serial=cert$serial]);
+		                              $serial=cert$serial,
+		                              $identifier=cat(c$id$resp_h,c$id$resp_p,c$ssl$cert_hash)]);
 		}
 	}

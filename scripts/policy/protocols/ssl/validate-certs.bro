@@ -1,5 +1,9 @@
+##! Perform full certificate chain validation for SSL certificates.
+
 @load base/frameworks/notice/main
 @load base/protocols/ssl/main
+
+@load protocols/ssl/cert-hash
 
 module SSL;
 
@@ -11,22 +15,36 @@ export {
 	redef record Info += {
 		validation_status: string &log &optional;
 	};
-
+	
+	## MD5 hash values for recently validated certs along with the validation
+	## status message are kept in this table so avoid constant validation 
+	## everytime the same certificate is seen.
+	global recently_validated_certs: table[string] of string = table() 
+		&read_expire=5mins &synchronized;
 }
 
 event ssl_established(c: connection) &priority=3
 	{
 	# If there aren't any certs we can't very well do certificate validation.
-	if ( !c$ssl?$cert || !c$ssl?$cert_chain )
+	if ( ! c$ssl?$cert || ! c$ssl?$cert_chain )
 		return;
+	
+	if ( c$ssl?$cert_hash && c$ssl$cert_hash in recently_validated_certs )
+		{
+		c$ssl$validation_status = recently_validated_certs[c$ssl$cert_hash];
+		}
+	else
+		{
+		local result = x509_verify(c$ssl$cert, c$ssl$cert_chain, root_certs);
+		c$ssl$validation_status = x509_err2str(result);
+		}
 		
-	local result = x509_verify(c$ssl$cert, c$ssl$cert_chain, root_certs);
-	c$ssl$validation_status = x509_err2str(result);
-	if ( result != 0 )
+	if ( c$ssl$validation_status != "ok" )
 		{
 		local message = fmt("SSL certificate validation failed with (%s)", c$ssl$validation_status);
 		NOTICE([$note=Invalid_Server_Cert, $msg=message,
-		        $sub=c$ssl$subject, $conn=c]);
+		        $sub=c$ssl$subject, $conn=c,
+		        $identifier=cat(c$id$resp_h,c$id$resp_p,c$ssl$validation_status,c$ssl$cert_hash)]);
 		}
 	}
 

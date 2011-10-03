@@ -30,19 +30,18 @@ export {
 ## the certificate.
 global extracted_certs: set[string] = set() &read_expire=1hr &redef;
 
-event ssl_established(c: connection)
+event ssl_established(c: connection) &priority=5
 	{
 	if ( ! c$ssl?$cert )
 		return;
 	if ( ! addr_matches_host(c$id$resp_h, extract_certs_pem) )
 		return;
 	
-	local cert_hash = md5_hash(c$ssl$cert);
-	if ( cert_hash in extracted_certs )
+	if ( c$ssl$cert_hash in extracted_certs )
 		# If we already extracted this cert, don't do it again.
 		return;
 	
-	add extracted_certs[cert_hash];
+	add extracted_certs[c$ssl$cert_hash];
 	local side = Site::is_local_addr(c$id$resp_h) ? "local" : "remote";
 	local cmd = fmt("%s x509 -inform DER -outform PEM >> certs-%s.pem", openssl_util, side);
 	piped_exec(cmd, c$ssl$cert);

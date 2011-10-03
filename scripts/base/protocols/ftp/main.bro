@@ -266,7 +266,7 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &prior
 			if ( code == 229 && data$h == 0.0.0.0 )
 				data$h = id$resp_h;
 			
-			local expected = [$host=id$orig_h, $state=c$ftp];
+			local expected = [$host=id$orig_h, $state=copy(c$ftp)];
 			ftp_data_expected[data$h, data$p] = expected;
 			expect_connection(id$orig_h, data$h, data$p, ANALYZER_FILE, 5mins);
 			}

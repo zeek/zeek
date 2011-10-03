@@ -423,7 +423,7 @@ expr:
 
 	|       '$' TOK_ID func_params '='
 	                {
-			func_id = current_scope()->GenerateTemporary("anonymous-function");
+			func_id = global_scope()->GenerateTemporary("anonymous-function");
 			func_id->SetInferReturnType(true);
 			begin_func(func_id,
 				   current_module.c_str(),
@@ -1207,7 +1207,7 @@ anonymous_function:
 begin_func:
 		func_params
 			{
-			$$ = current_scope()->GenerateTemporary("anonymous-function");
+			$$ = global_scope()->GenerateTemporary("anonymous-function");
 			begin_func($$, current_module.c_str(),
 				   FUNC_FLAVOR_FUNCTION, 0, $1);
 			}

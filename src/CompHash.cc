@@ -5,6 +5,7 @@
 #include "CompHash.h"
 #include "Val.h"
 #include "Reporter.h"
+#include "Func.h"
 
 CompositeHash::CompositeHash(TypeList* composite_type)
 	{
@@ -156,11 +157,22 @@ char* CompositeHash::SingleValHash(int type_check, char* kp0,
 		{
 		if ( v->Type()->Tag() == TYPE_FUNC )
 			{
-			Val** kp = AlignAndPadType<Val*>(kp0);
 			v->Ref();
-			// Ref((BroObj*) v->AsFunc());
-			*kp = v;
-			kp1 = reinterpret_cast<char*>(kp+1);
+			if ( v->AsFunc()->GetID() )
+				{
+				int* kp = AlignAndPadType<int>(kp0);
+				const char* name = v->AsFunc()->GetID()->Name();
+				size_t len = strlen(name);
+				*kp = len;
+				kp1 = reinterpret_cast<char*>(kp+1);
+				memcpy(kp1, name, len);
+				kp1 += len;
+				}
+			else
+				{
+				reporter->InternalError("function without identifier in CompositeHash::SingleValHash()");
+				return 0;
+				}
 			}
 
 		else if ( v->Type()->Tag() == TYPE_RECORD )
@@ -311,7 +323,13 @@ HashKey* CompositeHash::ComputeSingletonHash(const Val* v, int type_check) const
 	case TYPE_INTERNAL_VOID:
 	case TYPE_INTERNAL_OTHER:
 		if ( v->Type()->Tag() == TYPE_FUNC )
-			return new HashKey(v);
+			{
+			if ( v->AsFunc()->GetID() )
+				return new HashKey(v->AsFunc()->GetID()->Name());
+
+			reporter->InternalError("missing function identifier in CompositeHash::ComputeSingletonHash");
+			return 0;
+			}
 
 		reporter->InternalError("bad index type in CompositeHash::ComputeSingletonHash");
 		return 0;
@@ -377,7 +395,21 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 	case TYPE_INTERNAL_OTHER:
 		{
 		if ( bt->Tag() == TYPE_FUNC )
-			sz = SizeAlign(sz, sizeof(Val*));
+			{
+			if ( ! v )
+				return (optional && ! calc_static_size) ? sz : 0;
+
+			if ( v->AsFunc()->GetID() )
+				{
+				sz = SizeAlign(sz, sizeof(int));
+				sz += strlen(v->AsFunc()->GetID()->Name());
+				}
+			else
+				{
+				reporter->InternalError("missing function identifier in CompositeHash::SingleTypeKeySize()");
+				return 0;
+				}
+			}
 
 		else if ( bt->Tag() == TYPE_RECORD )
 			{
@@ -639,13 +671,39 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 		{
 		if ( t->Tag() == TYPE_FUNC )
 			{
-			Val* const * const kp = AlignType<Val*>(kp0);
-			kp1 = reinterpret_cast<const char*>(kp+1);
+			int n;
+			if ( is_singleton )
+				{
+				kp1 = kp0;
+				n = k->Size();
+				}
+			else
+				{
+				const int* const kp = AlignType<int>(kp0);
+				n = *kp;
+				kp1 = reinterpret_cast<const char*>(kp+1);
+				}
 
-			Val* v = *kp;
+			string name(kp1, n);
+			kp1 += n;
+			ID* id = global_scope()->Lookup(name.c_str());
+			Val* v;
+
+			if ( id && id->HasVal() )
+				v = id->ID_Val();
+			else
+				{
+				reporter->InternalError("no function val for identifier '%s' in CompositeHash::RecoverOneVal()", name.c_str());
+				pval = 0;
+				break;
+				}
 
 			if ( ! v || ! v->Type() )
+				{
 				reporter->InternalError("bad aggregate Val in CompositeHash::RecoverOneVal()");
+				pval = 0;
+				break;
+				}
 
 			if ( t->Tag() != TYPE_FUNC &&
 			     // ### Maybe fix later, but may be fundamentally

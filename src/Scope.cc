@@ -9,7 +9,8 @@
 
 static scope_list scopes;
 static Scope* top_scope;
-
+// maps a temporary identifier string with the number of distinct uses
+static map<string, unsigned int> temporary_id_map;
 
 Scope::Scope(ID* id)
 	{
@@ -50,7 +51,15 @@ Scope::~Scope()
 
 ID* Scope::GenerateTemporary(const char* name)
 	{
-	return new ID(copy_string(name), SCOPE_FUNCTION, false);
+	if ( temporary_id_map.count(name) == 0 )
+		temporary_id_map[name] = 0;
+	char tmp[20];
+	uitoa_n(temporary_id_map[name]++, tmp, sizeof(tmp), 10, 0);
+	string id_name(name);
+	id_name.append(tmp);
+	ID* id = new ID(copy_string(id_name.c_str()), SCOPE_FUNCTION, false);
+	Insert(id->Name(), id);
+	return id;
 	}
 
 id_list* Scope::GetInits()

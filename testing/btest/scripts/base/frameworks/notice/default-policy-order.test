@@ -1,0 +1,4 @@
+# A simple baseline of the notice_policy.log using the default/base scripts.
+#
+# @TEST-EXEC: bro -e ''
+# @TEST-EXEC: btest-diff notice_policy.log

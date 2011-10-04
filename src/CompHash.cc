@@ -686,7 +686,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 
 			string name(kp1, n);
 			kp1 += n;
-			ID* id = global_scope()->Lookup(name.c_str());
+			ID* id = lookup_ID(name.c_str(), 0);
 			Val* v;
 
 			if ( id && id->HasVal() )

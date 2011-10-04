@@ -36,7 +36,7 @@ public:
 	int Length() const		{ return local->Length(); }
 	PDict(ID)* Vars() const		{ return local; }
 
-	ID* GenerateTemporary(const char* name);
+	ID* GenerateUniqueID(const char* prefix);
 
 	PDict(ID)* GetIDs() const	{ return local; }
 

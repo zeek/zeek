@@ -8,11 +8,14 @@ module Notice;
 # Define the event used to transport notices on the cluster.
 global cluster_notice: event(n: Notice::Info);
 
-redef Cluster::manager_events += /Notice::begin_suppression/;
-redef Cluster::proxy_events += /Notice::cluster_notice/;
-redef Cluster::worker_events += /Notice::cluster_notice/;
+redef Cluster::manager2worker_events += /Notice::begin_suppression/;
+redef Cluster::worker2manager_events += /Notice::cluster_notice/;
 
 @if ( Cluster::local_node_type() != Cluster::MANAGER )
+# The notice policy is completely handled by the manager and shouldn't be 
+# done by workers or proxies to save time for packet processing.
+redef policy = {};
+
 event Notice::begin_suppression(n: Notice::Info)
 	{
 	suppressing[n$note, n$identifier] = n;
@@ -24,7 +27,7 @@ event Notice::notice(n: Notice::Info)
 	event Notice::cluster_notice(n);
 	}
 
-event bro_init() &priority=3
+event bro_init() &priority=-3
 	{
 	# Workers and proxies need to disable the notice streams because notice
 	# events are forwarded directly instead of being logged remotely.

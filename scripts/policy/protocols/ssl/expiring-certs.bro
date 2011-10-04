@@ -1,7 +1,6 @@
 ##! This script can be used to generate notices when X.509 certificates over
 ##! SSL/TLS are expired or going to expire based on the date and time values
-##! stored within the certificate.  Notices will be suppressed for 1 day
-##! by default.
+##! stored within the certificate.
 
 @load base/protocols/ssl
 @load base/frameworks/notice
@@ -23,20 +22,21 @@ export {
 		Certificate_Not_Valid_Yet,
 	};
 	
-	## Which hosts you would like to be notified about which have certificates
-	## that are going to be expiring soon.
+	## The category of hosts you would like to be notified about which have 
+	## certificates that are going to be expiring soon.  By default, these 
+	## notices will be suppressed by the notice framework for 1 day.
 	## Choices are: LOCAL_HOSTS, REMOTE_HOSTS, ALL_HOSTS, NO_HOSTS
 	const notify_certs_expiration = LOCAL_HOSTS &redef;
 	
 	## The time before a certificate is going to expire that you would like to
-	## start receiving notices.
+	## start receiving :bro:enum:`Certificate_Expires_Soon` notices.
 	const notify_when_cert_expiring_in = 30days &redef;
 }
 
-event x509_certificate(c: connection, cert: X509, is_server: bool, chain_idx: count, chain_len: count, der_cert: string) &priority=5
+event x509_certificate(c: connection, cert: X509, is_server: bool, chain_idx: count, chain_len: count, der_cert: string) &priority=3
 	{
 	# If this isn't the host cert or we aren't interested in the server, just return.
-	if ( chain_idx != 0 || ! addr_matches_host(c$id$resp_h, notify_certs_expiration) )
+	if ( ! c$ssl?$cert_hash || ! addr_matches_host(c$id$resp_h, notify_certs_expiration) )
 		return;
 	
 	if ( cert$not_valid_before > network_time() )

@@ -18,21 +18,6 @@ export {
 	};
 }
 
-event conn_weird(name: string, c: connection, addl: string)
-	{
-	report_weird_conn(network_time(), name, id_string(c$id), addl, c);
-	}
-
-event flow_weird(name: string, src: addr, dst: addr)
-	{
-	report_weird_orig(network_time(), name, fmt("%s -> %s", src, dst), src);
-	}
-
-event net_weird(name: string)
-	{
-	report_weird(network_time(), name, "", F, "", WEIRD_UNSPECIFIED, F);
-	}
-
 event rexmit_inconsistency(c: connection, t1: string, t2: string)
 	{
 	if ( c$id !in did_inconsistency_msg )

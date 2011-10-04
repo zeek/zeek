@@ -36,7 +36,9 @@ export {
 event x509_certificate(c: connection, cert: X509, is_server: bool, chain_idx: count, chain_len: count, der_cert: string) &priority=3
 	{
 	# If this isn't the host cert or we aren't interested in the server, just return.
-	if ( ! c$ssl?$cert_hash || ! addr_matches_host(c$id$resp_h, notify_certs_expiration) )
+	if ( chain_idx != 0 ||
+		 ! c$ssl?$cert_hash || 
+		 ! addr_matches_host(c$id$resp_h, notify_certs_expiration) )
 		return;
 	
 	if ( cert$not_valid_before > network_time() )

@@ -46,17 +46,16 @@ event bro_init() &priority=5
 
 event x509_certificate(c: connection, cert: X509, is_server: bool, chain_idx: count, chain_len: count, der_cert: string) &priority=3
 	{
-	# We aren't tracking client certificates yet.
-	if ( ! c$ssl?$cert_hash ) return;
+	# Make sure this is the server cert and we have a hash for it.
+	if ( chain_idx == 0 && ! c$ssl?$cert_hash ) return;
 	
 	local host = c$id$resp_h;
 	if ( [host, c$ssl$cert_hash] !in certs && addr_matches_host(host, cert_tracking) )
 		{
-		add certs[host, cert$serial];
+		add certs[host, c$ssl$cert_hash];
 		Log::write(Known::CERTS_LOG, [$ts=network_time(), $host=host,
 		                              $port_num=c$id$resp_p, $subject=cert$subject,
 		                              $issuer_subject=cert$issuer,
-		                              $serial=cert$serial,
-		                              $identifier=cat(c$id$resp_h,c$id$resp_p,c$ssl$cert_hash)]);
+		                              $serial=cert$serial]);
 		}
 	}

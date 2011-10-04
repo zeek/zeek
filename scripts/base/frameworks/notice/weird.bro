@@ -376,6 +376,21 @@ function report_weird_orig(t: time, name: string, id: string, orig: addr)
 
 	report_weird(t, name, id, F, "", action, no_log);
 	}
+	
+event conn_weird(name: string, c: connection, addl: string)
+	{
+	report_weird_conn(network_time(), name, id_string(c$id), addl, c);
+	}
+
+event flow_weird(name: string, src: addr, dst: addr)
+	{
+	report_weird_orig(network_time(), name, fmt("%s -> %s", src, dst), src);
+	}
+
+event net_weird(name: string)
+	{
+	report_weird(network_time(), name, "", F, "", WEIRD_UNSPECIFIED, F);
+	}
 
 event connection_state_remove(c: connection)
 	{

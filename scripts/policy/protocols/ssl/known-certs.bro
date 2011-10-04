@@ -47,9 +47,7 @@ event bro_init() &priority=5
 event x509_certificate(c: connection, cert: X509, is_server: bool, chain_idx: count, chain_len: count, der_cert: string) &priority=3
 	{
 	# We aren't tracking client certificates yet.
-	if ( ! is_server ) return;
-	# We are also only tracking the primary cert.
-	if ( chain_idx != 0 ) return;
+	if ( ! c$ssl?$cert_hash ) return;
 	
 	local host = c$id$resp_h;
 	if ( [host, c$ssl$cert_hash] !in certs && addr_matches_host(host, cert_tracking) )

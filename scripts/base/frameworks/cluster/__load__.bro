@@ -28,14 +28,17 @@ redef Communication::listen_port_clear = Cluster::nodes[Cluster::node]$p;
 
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
 @load ./nodes/manager
+@load site/local-manager
 @endif
 
 @if ( Cluster::local_node_type() == Cluster::PROXY )
 @load ./nodes/proxy
+@load site/local-proxy
 @endif
 
 @if ( Cluster::local_node_type() == Cluster::WORKER )
 @load ./nodes/worker
+@load site/local-worker
 @endif
 
 @endif

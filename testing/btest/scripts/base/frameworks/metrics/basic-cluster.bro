@@ -15,6 +15,8 @@ redef Cluster::nodes = {
 };
 @TEST-END-FILE
 
+redef Log::default_rotation_interval = 0secs;
+
 redef enum Metrics::ID += {
 	TEST_METRIC,
 };

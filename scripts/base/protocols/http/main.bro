@@ -266,8 +266,7 @@ event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &
 		{
 		# If the response was an informational 1xx, we're still expecting
 		# the real response later, so we'll continue using the same record.
-		if ( c$http?$status_code && 
-			 ! code_in_range(c$http$status_code, 100, 199) )
+		if ( ! (c$http?$status_code && code_in_range(c$http$status_code, 100, 199)) )
 			{
 			Log::write(HTTP::LOG, c$http);
 			delete c$http_state$pending[c$http_state$current_response];

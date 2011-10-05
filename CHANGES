@@ -1,4 +1,30 @@
 
+1.6-dev-1352 | 2011-10-05 16:20:51 -0700
+
+  * Fix for optional HTTP::Info status_code. (Jon Siwek)
+
+  * Teaking some external testing scripts. (Jon Siwek)
+
+  * HTTP bug fix reported by Martin Holste. (Seth Hall)
+
+  * More script tuning. (Seth Hall)
+
+    - Moved some of the weird events back to the base/ directory.
+
+    - SSL fixes, updates, and performance optimization.
+
+  * More adjustment to reduce Weird volumes. (Seth Hall)
+
+  * Fixed an error when calculating x509 certificate hashes (reported
+    by Martin Holste). (Seth Hall)
+
+  * Clean up to cluster framework to make event handling clearer.
+    (Seth Hall)
+
+  * Fixed a bug in the notice framework. (Seth Hall)
+
+  * Bug fix for FTP analysis script. (Seth Hall)
+
 1.6-dev-1333 | 2011-09-29 22:29:51 -0700
 
   * Fixing a number of memory leaks. (Robin Sommer)

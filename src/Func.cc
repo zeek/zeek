@@ -53,6 +53,19 @@ extern	RETSIGTYPE sig_handler(int signo);
 const Expr* calling_expr = 0;
 bool did_builtin_init = false;
 
+vector<Func*> Func::unique_ids;
+
+Func::Func() : scope(0), id(0), return_value(0)
+	{
+	unique_id = unique_ids.size();
+	unique_ids.push_back(this);
+	}
+
+Func::Func(Kind arg_kind) : scope(0), kind(arg_kind), id(0), return_value(0)
+	{
+	unique_id = unique_ids.size();
+	unique_ids.push_back(this);
+	}
 
 Func::~Func()
 	{

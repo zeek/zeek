@@ -59,6 +59,7 @@ LogWriterAscii::LogWriterAscii()
 	memcpy(header_prefix, BifConst::LogAscii::header_prefix->Bytes(),
 	       header_prefix_len);
 
+	desc.SetEscape(separator, separator_len);
 	}
 
 LogWriterAscii::~LogWriterAscii()
@@ -184,8 +185,8 @@ bool LogWriterAscii::DoWriteOne(ODesc* desc, LogVal* val, const LogField* field)
 
 	case TYPE_TIME:
 	case TYPE_INTERVAL:
-		char buf[32];
-		snprintf(buf, sizeof(buf), "%.6f", val->val.double_val);
+		char buf[256];
+		modp_dtoa(val->val.double_val, buf, 6);
 		desc->Add(buf);
 		break;
 
@@ -261,8 +262,7 @@ bool LogWriterAscii::DoWrite(int num_fields, const LogField* const * fields,
 	if ( ! file )
 		DoInit(Path(), NumFields(), Fields());
 
-	ODesc desc(DESC_READABLE);
-	desc.SetEscape(separator, separator_len);
+	desc.Clear();
 
 	for ( int i = 0; i < num_fields; i++ )
 		{

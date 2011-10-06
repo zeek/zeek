@@ -76,6 +76,11 @@ typedef int32 ptr_compat_int;
 # error "Unusual pointer size. Please report to bro@bro-ids.org."
 #endif
 
+extern "C"
+	{
+	#include "modp_numtoa.h"
+	}
+
 template <class T>
 void delete_each(T* t)
 	{

@@ -120,6 +120,8 @@ public:
 
 	int Len() const		{ return offset; }
 
+	void Clear();
+
 protected:
 	void Indent();
 

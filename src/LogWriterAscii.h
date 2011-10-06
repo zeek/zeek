@@ -32,6 +32,7 @@ private:
 
 	FILE* file;
 	string fname;
+	ODesc desc;
 
 	// Options set from the script-level.
 	bool output_to_stdout;

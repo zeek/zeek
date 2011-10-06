@@ -405,6 +405,7 @@ set(bro_SRCS
     setsignal.c
     PacketDumper.cc
     strsep.c
+    modp_numtoa.c
     ${dns_SRCS}
     ${openssl_SRCS}
 )

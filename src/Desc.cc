@@ -102,7 +102,7 @@ void ODesc::Add(int i)
 	else
 		{
 		char tmp[256];
-		sprintf(tmp, "%d", i);
+		modp_litoa10(i, tmp);
 		Add(tmp);
 		}
 	}
@@ -114,7 +114,7 @@ void ODesc::Add(uint32 u)
 	else
 		{
 		char tmp[256];
-		sprintf(tmp, "%u", u);
+		modp_ulitoa10(u, tmp);
 		Add(tmp);
 		}
 	}
@@ -126,7 +126,7 @@ void ODesc::Add(int64 i)
 	else
 		{
 		char tmp[256];
-		sprintf(tmp, "%" PRId64, i);
+		modp_litoa10(i, tmp);
 		Add(tmp);
 		}
 	}
@@ -138,7 +138,7 @@ void ODesc::Add(uint64 u)
 	else
 		{
 		char tmp[256];
-		sprintf(tmp, "%" PRIu64, u);
+		modp_ulitoa10(u, tmp);
 		Add(tmp);
 		}
 	}
@@ -150,7 +150,7 @@ void ODesc::Add(double d)
 	else
 		{
 		char tmp[256];
-		sprintf(tmp, IsReadable() ? "%.15g" : "%.17g", d);
+		modp_dtoa(d, tmp, IsReadable() ? 15 : 17);
 		Add(tmp);
 
 		if ( d == double(int(d)) )
@@ -334,3 +334,18 @@ void ODesc::OutOfMemory()
 	{
 	reporter->InternalError("out of memory");
 	}
+
+void ODesc::Clear()
+	{
+	offset = 0;
+
+	// If we've allocated an exceedingly large amount of space, free it.
+	if ( size > 10 * 1024 * 1024 )
+		{
+		free(base);
+		size = DEFAULT_SIZE;
+		base = safe_malloc(size);
+		((char*) base)[0] = '\0';
+		}
+	}
+

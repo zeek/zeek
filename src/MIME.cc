@@ -873,11 +873,10 @@ void MIME_Entity::DataOctets(int len, const char* data)
 		if ( data_buf_offset < 0 && ! GetDataBuffer() )
 			return;
 
-		while ( data_buf_offset < data_buf_length && len > 0 )
-			{
-			data_buf_data[data_buf_offset++] = *data;
-			++data; --len;
-			}
+		int n = min(data_buf_length - data_buf_offset, len);
+		memcpy(data_buf_data + data_buf_offset, data, n);
+		data += n;
+		len -= n;
 
 		if ( data_buf_offset == data_buf_length )
 			{

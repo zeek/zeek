@@ -150,7 +150,7 @@ void ODesc::Add(double d)
 	else
 		{
 		char tmp[256];
-		modp_dtoa(d, tmp, IsReadable() ? 15 : 17);
+		modp_dtoa2(d, tmp, IsReadable() ? 6 : 8);
 		Add(tmp);
 
 		if ( d == double(int(d)) )

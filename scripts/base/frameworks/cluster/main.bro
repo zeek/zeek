@@ -19,14 +19,29 @@ export {
 		TIME_MACHINE,
 	};
 	
-	## Events raised by the manager and handled by the workers.
-	const manager_events = /Drop::.*/ &redef;
+	## Events raised by a manager and handled by the workers.
+	const manager2worker_events = /Drop::.*/ &redef;
 	
-	## Events raised by the proxies and handled by the manager.
-	const proxy_events = /EMPTY/ &redef;
+	## Events raised by a manager and handled by proxies.
+	const manager2proxy_events = /EMPTY/ &redef;
 	
-	## Events raised by workers and handled by the manager.
-	const worker_events = /(TimeMachine::command|Drop::.*)/ &redef;
+	## Events raised by proxies and handled by a manager.
+	const proxy2manager_events = /EMPTY/ &redef;
+	
+	## Events raised by proxies and handled by workers.
+	const proxy2worker_events = /EMPTY/ &redef;
+	
+	## Events raised by workers and handled by a manager.
+	const worker2manager_events = /(TimeMachine::command|Drop::.*)/ &redef;
+	
+	## Events raised by workers and handled by proxies..
+	const worker2proxy_events = /EMPTY/ &redef;
+	
+	## Events raised by TimeMachine instances and handled by a manager.
+	const tm2manager_events = /EMPTY/ &redef;
+	
+	## Events raised by TimeMachine instances and handled by workers.
+	const tm2worker_events = /EMPTY/ &redef;
 	
 	## Events sent by the control host (i.e. BroControl) when dynamically 
 	## connecting to a running instance to update settings or request data.

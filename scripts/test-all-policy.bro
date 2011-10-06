@@ -30,6 +30,7 @@
 @load misc/trim-trace-file.bro
 @load protocols/conn/known-hosts.bro
 @load protocols/conn/known-services.bro
+@load protocols/conn/weirds.bro
 @load protocols/dns/auth-addl.bro
 @load protocols/dns/detect-external-names.bro
 @load protocols/ftp/detect.bro
@@ -50,6 +51,7 @@
 @load protocols/ssh/geo-data.bro
 @load protocols/ssh/interesting-hostnames.bro
 @load protocols/ssh/software.bro
+@load protocols/ssl/cert-hash.bro
 @load protocols/ssl/expiring-certs.bro
 @load protocols/ssl/extract-certs-pem.bro
 @load protocols/ssl/known-certs.bro

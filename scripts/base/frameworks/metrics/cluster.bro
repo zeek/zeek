@@ -87,8 +87,8 @@ global index_requests: table[string, ID, string, Index] of count &create_expire=
 global recent_global_view_indexes: table[ID, string, Index] of count &create_expire=5mins &default=0;
 
 # Add events to the cluster framework to make this work.
-redef Cluster::manager_events += /Metrics::cluster_(filter_request|index_request)/;
-redef Cluster::worker_events += /Metrics::cluster_(filter_response|index_response|index_intermediate_response)/;
+redef Cluster::manager2worker_events += /Metrics::cluster_(filter_request|index_request)/;
+redef Cluster::worker2manager_events += /Metrics::cluster_(filter_response|index_response|index_intermediate_response)/;
 
 @if ( Cluster::local_node_type() != Cluster::MANAGER )
 # This is done on all non-manager node types in the event that a metric is 

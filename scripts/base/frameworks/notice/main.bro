@@ -172,6 +172,7 @@ export {
 		 $result = ACTION_NO_SUPPRESS,
 		 $priority = 9],
 		[$pred(n: Notice::Info) = { return (n$note in Notice::alarmed_types); },
+		 $result = ACTION_ALARM,
 		 $priority = 8],
 		[$pred(n: Notice::Info) = { return (n$note in Notice::emailed_types); },
 		 $result = ACTION_EMAIL,

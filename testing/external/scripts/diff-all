@@ -15,12 +15,14 @@ fi
 rc=0;
 
 for i in $@; do
-    if ! btest-diff $i; then
-       echo "" >>$diag
-       echo "#### btest-diff $i" >>$diag
-       echo "" >>$diag
-       cat $diag.tmp >>$diag
-       rc=1
+    if [[ "$i" != "loaded_scripts.log" && "$i" != "prof.log" ]]; then
+        if ! btest-diff $i; then
+           echo "" >>$diag
+           echo "#### btest-diff $i" >>$diag
+           echo "" >>$diag
+           cat $diag.tmp >>$diag
+           rc=1
+        fi
     fi
 done
 

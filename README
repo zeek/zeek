@@ -3,11 +3,9 @@ Bro Network Security Monitor
 ============================
 
 Bro is a powerful framework for network analysis and security
-monitoring.
-
-Please see the INSTALL file for installation instructions and pointers
-for getting started. For more documentation, research publications, or
-community contact information see Bro's home page:
+monitoring. Please see the INSTALL file for installation instructions
+and pointers for getting started. For more documentation, research
+publications, and community contact information see Bro's home page:
 
     http://www.bro-ids.org
 

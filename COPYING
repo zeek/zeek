@@ -1,4 +1,4 @@
-Copyright (c) 1995-2010, The Regents of the University of California,
+Copyright (c) 1995-2011, The Regents of the University of California,
 through Lawrence Berkeley National Laboratory. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -30,19 +30,5 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 
 Note that some files in the Bro distribution carry their own copyright
-notices.  The above applies to the Bro scripts in policy/ (other than as
-noted below) and the source files in src/, other than:
-
-	policy/sigs/p0fsyn.osf
-	src/H3.h
-	src/OSFinger.cc
-	src/OSFinger.h
-	src/bsd-getopt-long.c
-	src/bsd-getopt-long.h
-	src/md5.c
-	src/md5.h
-	src/patricia.c
-	src/patricia.h
-
-In addition, other components, such as the build system, may have
+notices. In addition, other components, such as the build system, may have
 separate copyrights.

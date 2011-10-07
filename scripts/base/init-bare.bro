@@ -1433,15 +1433,6 @@ const remote_trace_sync_peers = 0 &redef;
 ## Whether for &synchronized state to send the old value as a consistency check.
 const remote_check_sync_consistency = F &redef;
 
-## Prepend the peer description, if set.
-function prefixed_id(id: count): string
-	{
-	if ( peer_description == "" )
-		return fmt("%s", id);
-	else
-		return cat(peer_description, "-", id);
-	}
-
 ## Analyzer tags. The core automatically defines constants
 ## ANALYZER_<analyzer-name>*, e.g., ANALYZER_HTTP.
 type AnalyzerTag: count;

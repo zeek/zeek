@@ -43,7 +43,10 @@ event connection_established(c: connection) &priority=5
 	
 	for ( host in set(id$orig_h, id$resp_h) )
 		{
-		if ( host !in known_hosts && addr_matches_host(host, host_tracking) )
+		if ( host !in known_hosts && 
+		     c$orig$state == TCP_ESTABLISHED &&
+		     c$resp$state == TCP_ESTABLISHED &&
+		     addr_matches_host(host, host_tracking) )
 			{
 			add known_hosts[host];
 			Log::write(Known::HOSTS_LOG, [$ts=network_time(), $host=host]);

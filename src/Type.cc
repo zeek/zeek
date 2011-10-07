@@ -930,7 +930,7 @@ void RecordType::Init(TypeList* arg_base)
 
 			if ( fields->Lookup(tdij->id) )
 				{
-				reporter->Error("duplicate field", tdij->id);
+				reporter->Error("duplicate field %s", tdij->id);
 				continue;
 				}
 

@@ -1091,7 +1091,7 @@ static uint32 parse_dotted(const char* text, int& dots)
 		{
 		if ( addr[i] < 0 || addr[i] > 255 )
 			{
-			reporter->Error("bad dotted address", text);
+			reporter->Error("bad dotted address %s", text);
 			break;
 			}
 		}

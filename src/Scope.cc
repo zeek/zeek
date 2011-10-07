@@ -127,7 +127,7 @@ ID* lookup_ID(const char* name, const char* curr_module, bool no_global,
 		if ( id )
 			{
 			if ( need_export && ! id->IsExport() && ! in_debug )
-				reporter->Error("identifier is not exported:",
+				reporter->Error("identifier is not exported: %s",
 				      fullname.c_str());
 
 			Ref(id);

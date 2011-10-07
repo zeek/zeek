@@ -85,7 +85,7 @@ int expand_escape(const char*& s)
 		int result;
 		if ( sscanf(start, "%3o", &result) != 1 )
 			{
-			reporter->Warning("bad octal escape: ", start);
+			reporter->Warning("bad octal escape: %s ", start);
 			result = 0;
 			}
 
@@ -104,7 +104,7 @@ int expand_escape(const char*& s)
 		int result;
 		if ( sscanf(start, "%2x", &result) != 1 )
 			{
-			reporter->Warning("bad hexadecimal escape: ", start);
+			reporter->Warning("bad hexadecimal escape: %s", start);
 			result = 0;
 			}
 

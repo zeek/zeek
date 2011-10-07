@@ -1,12 +1,11 @@
 ##! This script logs evidence regarding the degree to which the packet
 ##! capture process suffers from measurement loss.  
-
-## The loss could be due to overload on the host or NIC performing 
-## the packet capture or it could even be beyond the host.  If you are 
-## capturing from a switch with a SPAN port, it's very possible that 
-## the switch itself could be overloaded and dropping packets.
-## Reported loss is computed in terms of number of "gap events" (ACKs 
-## for a sequence number that's above a gap).
+##! The loss could be due to overload on the host or NIC performing 
+##! the packet capture or it could even be beyond the host.  If you are 
+##! capturing from a switch with a SPAN port, it's very possible that 
+##! the switch itself could be overloaded and dropping packets.
+##! Reported loss is computed in terms of number of "gap events" (ACKs 
+##! for a sequence number that's above a gap).
 
 @load base/frameworks/notice
 @load base/frameworks/metrics

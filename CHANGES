@@ -1,4 +1,17 @@
 
+1.6-dev-1372 | 2011-10-06 18:09:17 -0700
+
+  * Filtering some potentially high-volume DNS weirds. (Robin Sommer)
+
+  * DNS now raises DPD events. Closes #577. (Robin Sommer)
+
+  * Fixing a bunch of compiler warnings. (Robin Sommer)
+
+  * Remote logs are auto-flushed if the last write was longer than a
+    second ago. Addresses #498. (Robin Sommer)
+
+  * Fix missing from previous MIME commit. (Robin Sommer)
+
 1.6-dev-1366 | 2011-10-06 17:05:21 -0700
 
   * Make CompHash computation/recovery for functions deterministic.

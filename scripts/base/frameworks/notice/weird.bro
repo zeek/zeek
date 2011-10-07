@@ -76,6 +76,8 @@ export {
 		["DNS_truncated_ans_too_short"] = 	WEIRD_FILE,
 		["DNS_truncated_len_lt_hdr_len"] = 	WEIRD_FILE,
 		["DNS_truncated_quest_too_short"] = 	WEIRD_FILE,
+		["dns_changed_number_of_responses"]	=	WEIRD_NOTICE_PER_ORIG,
+		["dns_reply_seen_after_done"]	=	WEIRD_NOTICE_PER_ORIG,
 		["excessive_data_without_further_acks"] = 	WEIRD_FILE,
 		["excess_RPC"]	=	WEIRD_NOTICE_PER_ORIG,
 		["excessive_RPC_len"]	=	WEIRD_NOTICE_PER_ORIG,

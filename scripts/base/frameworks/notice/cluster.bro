@@ -5,8 +5,10 @@
 
 module Notice;
 
-# Define the event used to transport notices on the cluster.
-global cluster_notice: event(n: Notice::Info);
+export {
+	## This is the event used to transport notices on the cluster.
+	global cluster_notice: event(n: Notice::Info);
+}
 
 redef Cluster::manager2worker_events += /Notice::begin_suppression/;
 redef Cluster::worker2manager_events += /Notice::cluster_notice/;

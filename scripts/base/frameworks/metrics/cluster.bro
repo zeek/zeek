@@ -24,33 +24,35 @@ export {
 	## since it may opt not to if it requested a global view for the index
 	## recently.
 	const cluster_request_global_view_percent = 0.1 &redef;
+	
+	## This event is sent by the manager in a cluster to initiate the 
+	## collection of metrics values for a filter.
+	global cluster_filter_request: event(uid: string, id: ID, filter_name: string);
+
+	## This event is sent by nodes that are collecting metrics after receiving
+	## a request for the metric filter from the manager.
+	global cluster_filter_response: event(uid: string, id: ID, filter_name: string, data: MetricTable, done: bool);
+
+	## This event is sent by the manager in a cluster to initiate the
+	## collection of a single index value from a filter.  It's typically
+	## used to get intermediate updates before the break interval triggers
+	## to speed detection of a value crossing a threshold.
+	global cluster_index_request: event(uid: string, id: ID, filter_name: string, index: Index);
+
+	## This event is sent by nodes in response to a 
+	## :bro:id:`cluster_index_request` event.
+	global cluster_index_response: event(uid: string, id: ID, filter_name: string, index: Index, val: count);
+
+	## This is sent by workers to indicate that they crossed the percent of the 
+	## current threshold by the percentage defined globally in 
+	## :bro:id:`cluster_request_global_view_percent`
+	global cluster_index_intermediate_response: event(id: Metrics::ID, filter_name: string, index: Metrics::Index, val: count);
+
+	## This event is scheduled internally on workers to send result chunks.
+	global send_data: event(uid: string, id: ID, filter_name: string, data: MetricTable);
+	
 }
 
-## This event is sent by the manager in a cluster to initiate the 
-## collection of metrics values for a filter.
-global cluster_filter_request: event(uid: string, id: ID, filter_name: string);
-
-## This event is sent by nodes that are collecting metrics after receiving
-## a request for the metric filter from the manager.
-global cluster_filter_response: event(uid: string, id: ID, filter_name: string, data: MetricTable, done: bool);
-
-## This event is sent by the manager in a cluster to initiate the
-## collection of a single index value from a filter.  It's typically
-## used to get intermediate updates before the break interval triggers
-## to speed detection of a value crossing a threshold.
-global cluster_index_request: event(uid: string, id: ID, filter_name: string, index: Index);
-
-## This event is sent by nodes in response to a 
-## :bro:id:`cluster_index_request` event.
-global cluster_index_response: event(uid: string, id: ID, filter_name: string, index: Index, val: count);
-
-## This is sent by workers to indicate that they crossed the percent of the 
-## current threshold by the percentage defined globally in 
-## :bro:id:`cluster_request_global_view_percent`
-global cluster_index_intermediate_response: event(id: Metrics::ID, filter_name: string, index: Metrics::Index, val: count);
-
-## This event is scheduled internally on workers to send result chunks.
-global send_data: event(uid: string, id: ID, filter_name: string, data: MetricTable);
 
 # This is maintained by managers so they can know what data they requested and
 # when they requested it.

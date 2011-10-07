@@ -1,6 +1,6 @@
 ##! This script logs hosts that Bro determines have performed complete TCP 
 ##! handshakes and logs the address once per day (by default).  The log that 
-##! output provides an easy way to determine a count of the IP addresses in
+##! is output provides an easy way to determine a count of the IP addresses in
 ##! use on a network per day.
 
 @load base/utils/directions-and-hosts

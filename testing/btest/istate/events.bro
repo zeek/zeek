@@ -16,7 +16,7 @@
 
 @TEST-START-FILE sender.bro
 
-@load frameworks/communication/listen-clear
+@load frameworks/communication/listen
 
 event bro_init()
     {

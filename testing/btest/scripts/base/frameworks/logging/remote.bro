@@ -40,7 +40,7 @@ event bro_init()
 
 module Test;
 
-@load frameworks/communication/listen-clear
+@load frameworks/communication/listen
 
 function fail(rec: Log): bool
 	{

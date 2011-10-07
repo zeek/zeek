@@ -1,7 +1,7 @@
 @load base/frameworks/control
 # If an instance is a controllee, it implicitly needs to listen for remote
 # connections.
-@load frameworks/communication/listen-clear
+@load frameworks/communication/listen
 
 module Control;
 

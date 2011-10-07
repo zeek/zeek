@@ -129,7 +129,7 @@ function modify()
 	foo2 = 1234567;
 }
 
-@load frameworks/communication/listen-clear
+@load frameworks/communication/listen
 
 event remote_connection_handshake_done(p: event_peer)
 	{

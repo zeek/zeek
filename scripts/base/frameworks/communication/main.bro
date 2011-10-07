@@ -8,12 +8,18 @@ module Communication;
 export {
 	redef enum Log::ID += { LOG };
 	
-	const default_port_ssl = 47756/tcp &redef;
-	const default_port_clear = 47757/tcp &redef;
+	## Which interface to listen on (0.0.0.0 for any interface).
+	const listen_interface = 0.0.0.0 &redef;
+	
+	## Which port to listen on.
+	const listen_port = 47757/tcp &redef;
+	
+	## This defines if a listening socket should use encryption.
+	const listen_encrypted = F &redef;
 
 	## Default compression level.  Compression level is 0-9, with 0 = no 
 	## compression.
-	global default_compression = 0 &redef;
+	global compression_level = 0 &redef;
 
 	type Info: record {
 		ts:                  time   &log;
@@ -77,11 +83,8 @@ export {
 		## Whether to use SSL-based communication.
 		ssl: bool &default = F;
 
-		## Take-over state from this host (activated by loading hand-over.bro)
-		hand_over: bool &default = F;
-
 		## Compression level is 0-9, with 0 = no compression.
-		compression: count &default = default_compression;
+		compression: count &default = compression_level;
 
 		## The remote peer.
 		peer: event_peer &optional;
@@ -135,7 +138,7 @@ function do_script_log(p: event_peer, msg: string)
 function connect_peer(peer: string)
 	{
 	local node = nodes[peer];
-	local p = node$ssl ? default_port_ssl : default_port_clear;
+	local p = listen_port;
 
 	if ( node?$p )
 		p = node$p;
@@ -238,7 +241,7 @@ event remote_connection_established(p: event_peer)
 			}
 
 		if ( ! found )
-			set_compression_level(p, default_compression);
+			set_compression_level(p, compression_level);
 		}
 
 	complete_handshake(p);

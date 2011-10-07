@@ -48,7 +48,7 @@ event bro_init()
 
 module Test;
 
-@load frameworks/communication/listen-clear
+@load frameworks/communication/listen
 
 event remote_connection_handshake_done(p: event_peer)
 	{

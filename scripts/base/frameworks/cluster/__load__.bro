@@ -21,10 +21,10 @@ redef peer_description = Cluster::node;
 
 # Don't load the listening script until we're a bit more sure that the
 # cluster framework is actually being enabled.
-@load frameworks/communication/listen-clear
+@load frameworks/communication/listen
 
 ## Set the port that this node is supposed to listen on.
-redef Communication::listen_port_clear = Cluster::nodes[Cluster::node]$p;
+redef Communication::listen_port = Cluster::nodes[Cluster::node]$p;
 
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
 @load ./nodes/manager

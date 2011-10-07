@@ -6,6 +6,6 @@
 # when writing a new bro scripts.
 #
 # @TEST-EXEC: test -d $DIST/scripts
-# @TEST-EXEC: for script in `find $DIST/scripts -name \*\.bro -not -path '*/site/*'`; do echo $script; if echo "$script" | egrep -q 'listen-clear|listen-ssl|controllee'; then rm -rf load_attempt .bgprocs; btest-bg-run load_attempt bro -b $script; btest-bg-wait -k 2; cat load_attempt/.stderr >>allerrors; else bro -b $script 2>>allerrors; fi done || exit 0
+# @TEST-EXEC: for script in `find $DIST/scripts -name \*\.bro -not -path '*/site/*'`; do echo $script; if echo "$script" | egrep -q 'communication/listen|controllee'; then rm -rf load_attempt .bgprocs; btest-bg-run load_attempt bro -b $script; btest-bg-wait -k 2; cat load_attempt/.stderr >>allerrors; else bro -b $script 2>>allerrors; fi done || exit 0
 # @TEST-EXEC: cat allerrors | grep -v "received termination signal" | sort | uniq > unique_errors
 # @TEST-EXEC: btest-diff unique_errors

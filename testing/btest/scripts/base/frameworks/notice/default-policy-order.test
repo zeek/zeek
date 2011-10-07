@@ -1,0 +1,4 @@
+# This test checks that the default notice policy ordering is the same
+# as a known baseline.
+# @TEST-EXEC: bro -e ''
+# @TEST-EXEC: btest-diff notice_policy.log

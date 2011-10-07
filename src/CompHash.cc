@@ -5,6 +5,7 @@
 #include "CompHash.h"
 #include "Val.h"
 #include "Reporter.h"
+#include "Func.h"
 
 CompositeHash::CompositeHash(TypeList* composite_type)
 	{
@@ -156,10 +157,8 @@ char* CompositeHash::SingleValHash(int type_check, char* kp0,
 		{
 		if ( v->Type()->Tag() == TYPE_FUNC )
 			{
-			Val** kp = AlignAndPadType<Val*>(kp0);
-			v->Ref();
-			// Ref((BroObj*) v->AsFunc());
-			*kp = v;
+			uint32* kp = AlignAndPadType<uint32>(kp0);
+			*kp = v->AsFunc()->GetUniqueFuncID();
 			kp1 = reinterpret_cast<char*>(kp+1);
 			}
 
@@ -311,7 +310,7 @@ HashKey* CompositeHash::ComputeSingletonHash(const Val* v, int type_check) const
 	case TYPE_INTERNAL_VOID:
 	case TYPE_INTERNAL_OTHER:
 		if ( v->Type()->Tag() == TYPE_FUNC )
-			return new HashKey(v);
+			return new HashKey(v->AsFunc()->GetUniqueFuncID());
 
 		reporter->InternalError("bad index type in CompositeHash::ComputeSingletonHash");
 		return 0;
@@ -377,7 +376,7 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 	case TYPE_INTERNAL_OTHER:
 		{
 		if ( bt->Tag() == TYPE_FUNC )
-			sz = SizeAlign(sz, sizeof(Val*));
+			sz = SizeAlign(sz, sizeof(uint32));
 
 		else if ( bt->Tag() == TYPE_RECORD )
 			{
@@ -639,30 +638,29 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 		{
 		if ( t->Tag() == TYPE_FUNC )
 			{
-			Val* const * const kp = AlignType<Val*>(kp0);
+			const uint32* const kp = AlignType<uint32>(kp0);
 			kp1 = reinterpret_cast<const char*>(kp+1);
 
-			Val* v = *kp;
+			Func* f = Func::GetFuncPtrByID(*kp);
 
-			if ( ! v || ! v->Type() )
+			if ( ! f )
+				reporter->InternalError("failed to look up unique function id %"PRIu32" in CompositeHash::RecoverOneVal()");
+
+			pval = new Val(f);
+
+			if ( ! pval->Type() )
 				reporter->InternalError("bad aggregate Val in CompositeHash::RecoverOneVal()");
 
-			if ( t->Tag() != TYPE_FUNC &&
-			     // ### Maybe fix later, but may be fundamentally
-			     // un-checkable --US
-			     ! same_type(v->Type(), t) )
-				{
+			else if ( t->Tag() != TYPE_FUNC &&
+				  ! same_type(pval->Type(), t) )
+				// ### Maybe fix later, but may be fundamentally
+				// un-checkable --US
 				reporter->InternalError("inconsistent aggregate Val in CompositeHash::RecoverOneVal()");
-				}
 
 			// ### A crude approximation for now.
-			if ( t->Tag() == TYPE_FUNC &&
-			     v->Type()->Tag() != TYPE_FUNC )
-				{
+			else if ( t->Tag() == TYPE_FUNC &&
+				  pval->Type()->Tag() != TYPE_FUNC )
 				reporter->InternalError("inconsistent aggregate Val in CompositeHash::RecoverOneVal()");
-				}
-
-			pval = v->Ref();
 			}
 
 		else if ( t->Tag() == TYPE_RECORD )

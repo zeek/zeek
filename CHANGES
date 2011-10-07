@@ -1,4 +1,20 @@
 
+1.6-dev-1366 | 2011-10-06 17:05:21 -0700
+
+  * Make CompHash computation/recovery for functions deterministic.
+    Closes #636. (Jon Siwek)
+
+  * Removing unnecessary @load in local.bro. (Robin Sommer)
+
+  * Optimizing some MIME code. (Robin Sommer)
+
+  * Speed improvements in logging code. (Robin Sommer)
+
+  * Consolidating some node-specific functionality from scripts in
+    broctl repo. (Jon Siwek)
+
+  * Another fix the for 1xx script code. (Robin Sommer)
+
 1.6-dev-1352 | 2011-10-05 16:20:51 -0700
 
   * Fix for optional HTTP::Info status_code. (Jon Siwek)

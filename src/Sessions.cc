@@ -1052,7 +1052,7 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 	int flags = 0;
 
 	// Hmm... This is not great.
-	TransportProto tproto;
+	TransportProto tproto = TRANSPORT_UNKNOWN;
 	switch ( proto ) {
 		case IPPROTO_ICMP:
 			tproto = TRANSPORT_ICMP;

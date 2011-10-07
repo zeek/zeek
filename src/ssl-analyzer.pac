@@ -268,21 +268,21 @@ refine connection SSL_Conn += {
 					int num_ext = X509_get_ext_count(pTemp);
 					for ( int k = 0; k < num_ext; ++k )
 						{
-						char *pBuffer = 0;
+						unsigned char *pBuffer = 0;
 						int length = 0;
 
 						X509_EXTENSION* ex = X509_get_ext(pTemp, k);
 						if (ex)
 							{
 							ASN1_STRING *pString = X509_EXTENSION_get_data(ex);
-							length = ASN1_STRING_to_UTF8((unsigned char**)&pBuffer, pString);
+							length = ASN1_STRING_to_UTF8(&pBuffer, pString);
 							//i2t_ASN1_OBJECT(&pBuffer, length, obj)
 
 							// -1 indicates an error.
 							if ( length < 0 )
 								continue;
 
-							StringVal* value = new StringVal(length, pBuffer);
+							StringVal* value = new StringVal(length, (char*)pBuffer);
 							BifEvent::generate_x509_extension(bro_analyzer(),
 										bro_analyzer()->Conn(), value);
 							OPENSSL_free(pBuffer);

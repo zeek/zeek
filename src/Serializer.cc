@@ -1145,7 +1145,7 @@ Packet* Packet::Unserialize(UnserialInfo* info)
 	if ( ! info->s->Read((char**) &tag, 0, "tag") )
 		return 0;
 
-	u_char* pkt;
+	char* pkt;
 	int caplen;
 	if ( ! info->s->Read((char**) &pkt, &caplen, "data") )
 		{
@@ -1155,7 +1155,7 @@ Packet* Packet::Unserialize(UnserialInfo* info)
 
 	hdr->caplen = uint32(caplen);
 	p->hdr = hdr;
-	p->pkt = pkt;
+	p->pkt = (u_char*) pkt;
 	p->tag = tag;
 	p->hdr_size = get_link_header_size(p->link_type);
 

@@ -663,7 +663,7 @@ void BroFile::InitEncrypt(const char* keyfile)
 
 	unsigned char secret[EVP_PKEY_size(pub_key)];
 	unsigned char* psecret = secret;
-	unsigned long secret_len;
+	unsigned int secret_len;
 
 	int iv_len = EVP_CIPHER_iv_length(cipher_type);
 	unsigned char iv[iv_len];

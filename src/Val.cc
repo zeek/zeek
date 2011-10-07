@@ -2497,7 +2497,7 @@ bool TableVal::DoSerialize(SerialInfo* info) const
 		IterCookie* c;
 		TableEntryVal* v;	// current value
 		bool did_index;	// already wrote the val's index
-	}* state;
+	}* state = 0;
 
 	PDict(TableEntryVal)* tbl =
 		const_cast<TableVal*>(this)->AsNonConstTable();

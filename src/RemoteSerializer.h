@@ -324,6 +324,7 @@ private:
 	PeerID current_id;
 	char current_msgtype;
 	ChunkedIO::Chunk* current_args;
+	double last_flush;
 
 	id_list sync_ids;
 

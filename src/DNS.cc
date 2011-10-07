@@ -44,6 +44,7 @@ int DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query)
 	// This should weed out most of it.
 	if ( dns_max_queries > 0 && msg.qdcount > dns_max_queries )
 		{
+		analyzer->ProtocolViolation("DNS_Conn_count_too_large");
 		analyzer->Weird("DNS_Conn_count_too_large");
 		EndMessage(&msg);
 		return 0;
@@ -66,6 +67,8 @@ int DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query)
 		EndMessage(&msg);
 		return 0;
 		}
+
+	analyzer->ProtocolConfirmation();
 
 	AddrVal server(analyzer->Conn()->RespAddr());
 

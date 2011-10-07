@@ -526,6 +526,7 @@ RemoteSerializer::RemoteSerializer()
 	closed = false;
 	terminating = false;
 	in_sync = 0;
+	last_flush = 0;
 	}
 
 RemoteSerializer::~RemoteSerializer()
@@ -2583,8 +2584,9 @@ bool RemoteSerializer::SendLogWrite(Peer* peer, EnumVal* id, EnumVal* writer, st
 
 	assert(len > 10);
 
-	// Do we have enough space in the buffer? If not, flush first.
-	if ( len > (LOG_BUFFER_SIZE - peer->log_buffer_used) )
+	// Do we have not enough space in the buffer, or was the last flush a
+	// while ago? If so, flush first.
+	if ( len > (LOG_BUFFER_SIZE - peer->log_buffer_used) || (network_time - last_flush > 1.0) )
 		{
 		if ( ! FlushLogBuffer(peer) )
 			return false;
@@ -2610,6 +2612,8 @@ error:
 
 bool RemoteSerializer::FlushLogBuffer(Peer* p)
 	{
+	last_flush = network_time;
+
 	if ( p->state == Peer::CLOSING )
 		return false;
 

@@ -23,6 +23,8 @@ export {
 redef capture_filters += { ["syslog"] = "port 514" };
 redef dpd_config += { [ANALYZER_SYSLOG_BINPAC] = [$ports = ports] };
 
+redef likely_server_ports += { 514/udp };
+
 redef record connection += {
 	syslog: Info &optional;
 };

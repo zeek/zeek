@@ -85,6 +85,8 @@ const ports = { 21/tcp } &redef;
 redef capture_filters += { ["ftp"] = "port 21" };
 redef dpd_config += { [ANALYZER_FTP] = [$ports = ports] };
 
+redef likely_server_ports += { 21/tcp };
+
 # Establish the variable for tracking expected connections.
 global ftp_data_expected: table[addr, port] of Info &create_expire=5mins;
 

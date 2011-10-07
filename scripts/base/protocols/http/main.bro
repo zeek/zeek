@@ -115,6 +115,11 @@ redef capture_filters +=  {
 	["http"] = "tcp and port (80 or 81 or 631 or 1080 or 3138 or 8000 or 8080 or 8888)"
 };
 
+redef likely_server_ports += { 
+	80/tcp, 81/tcp, 631/tcp, 1080/tcp, 3138/tcp,
+	8000/tcp, 8080/tcp, 8888/tcp,
+};
+
 function code_in_range(c: count, min: count, max: count) : bool
 	{
 	return c >= min && c <= max;

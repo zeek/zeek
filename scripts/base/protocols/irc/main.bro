@@ -37,10 +37,14 @@ redef record connection += {
 # Some common IRC ports.
 redef capture_filters += { ["irc-6666"] = "port 6666" };
 redef capture_filters += { ["irc-6667"] = "port 6667" };
+redef capture_filters += { ["irc-6668"] = "port 6668" };
+redef capture_filters += { ["irc-6669"] = "port 6669" };
 
 # DPD configuration.
-global irc_ports = { 6666/tcp, 6667/tcp } &redef;
+global irc_ports = { 6666/tcp, 6667/tcp, 6668/tcp, 6669/tcp } &redef;
 redef dpd_config += { [ANALYZER_IRC] = [$ports = irc_ports] };
+
+redef likely_server_ports += { 6666/tcp, 6667/tcp, 6668/tcp, 6669/tcp };
 
 event bro_init() &priority=5
 	{

@@ -73,6 +73,8 @@ global dns_tcp_ports = { 53/tcp } &redef;
 redef dpd_config += { [ANALYZER_DNS_UDP_BINPAC] = [$ports = dns_udp_ports] };
 redef dpd_config += { [ANALYZER_DNS_TCP_BINPAC] = [$ports = dns_tcp_ports] };
 
+redef likely_server_ports += { 53/udp, 53/tcp, 137/udp, 5353/udp, 5355/udp };
+
 event bro_init() &priority=5
 	{
 	Log::create_stream(DNS::LOG, [$columns=Info, $ev=log_dns]);

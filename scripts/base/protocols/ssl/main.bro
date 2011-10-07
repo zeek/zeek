@@ -76,6 +76,11 @@ redef dpd_config += {
 	[[ANALYZER_SSL]] = [$ports = ports]
 };
 
+redef likely_server_ports += {
+	443/tcp, 563/tcp, 585/tcp, 614/tcp, 636/tcp,
+	989/tcp, 990/tcp, 992/tcp, 993/tcp, 995/tcp, 5223/tcp
+};
+
 function set_session(c: connection)
 	{
 	if ( ! c?$ssl )

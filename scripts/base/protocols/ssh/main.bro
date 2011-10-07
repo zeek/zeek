@@ -73,6 +73,8 @@ export {
 redef capture_filters += { ["ssh"] = "tcp port 22" };
 redef dpd_config += { [ANALYZER_SSH] = [$ports = set(22/tcp)] };
 
+redef likely_server_ports += { 22/tcp };
+
 redef record connection += {
 	ssh: Info &optional;
 };

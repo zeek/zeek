@@ -68,8 +68,10 @@ redef record connection += {
 };
 
 # Configure DPD
-redef capture_filters += { ["smtp"] = "tcp port smtp or tcp port 587" };
+redef capture_filters += { ["smtp"] = "tcp port 25 or tcp port 587" };
 redef dpd_config += { [ANALYZER_SMTP] = [$ports = ports] };
+
+redef likely_server_ports += { 25/tcp, 587/tcp };
 
 event bro_init() &priority=5
 	{

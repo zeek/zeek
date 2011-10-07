@@ -31,7 +31,8 @@
 [orig_h=141.142.220.118, orig_p=49999/tcp, resp_h=208.80.152.3, resp_p=80/tcp], h5DsfNtYzi1
 [orig_h=141.142.220.118, orig_p=50001/tcp, resp_h=208.80.152.3, resp_p=80/tcp], GvmoxJFXdTa
 [orig_h=141.142.220.118, orig_p=35642/tcp, resp_h=208.80.152.2, resp_p=80/tcp], UfGkYA2HI2g
-[orig_h=173.192.163.128, orig_p=80/tcp, resp_h=141.142.220.235, resp_p=6705/tcp], i2rO3KD1Syg
+[orig_h=141.142.220.235, orig_p=6705/tcp, resp_h=173.192.163.128, resp_p=80/tcp], i2rO3KD1Syg
+[orig_h=141.142.220.235, orig_p=6705/tcp, resp_h=173.192.163.128, resp_p=80/tcp], i2rO3KD1Syg
 [orig_h=141.142.220.44, orig_p=5353/udp, resp_h=224.0.0.251, resp_p=5353/udp], 2cx26uAvUPl
 [orig_h=141.142.220.226, orig_p=137/udp, resp_h=141.142.220.255, resp_p=137/udp], BWaU4aSuwkc
 [orig_h=141.142.220.226, orig_p=55131/udp, resp_h=224.0.0.252, resp_p=5355/udp], 10XodEwRycf

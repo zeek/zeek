@@ -28,8 +28,7 @@ event file_transferred(c: connection, prefix: string, descr: string,
 	if ( [id$resp_h, id$resp_p] !in ftp_data_expected )
 		return;
 		
-	local expected = ftp_data_expected[id$resp_h, id$resp_p];
-	local s = expected$state;
+	local s = ftp_data_expected[id$resp_h, id$resp_p];
 
 	if ( extract_file_types in s$mime_type )
 		{
@@ -46,8 +45,7 @@ event file_transferred(c: connection, prefix: string, descr: string,
 	if ( [id$resp_h, id$resp_p] !in ftp_data_expected )
 		return;
 		
-	local expected = ftp_data_expected[id$resp_h, id$resp_p];
-	local s = expected$state;
+	local s = ftp_data_expected[id$resp_h, id$resp_p];
 	
 	if ( s$extract_file )
 		{

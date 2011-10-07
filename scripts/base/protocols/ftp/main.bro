@@ -48,12 +48,7 @@ export {
 		## This determines if the password will be captured for this request.
 		capture_password:   bool &default=default_capture_password;
 	};
-		
-	type ExpectedConn: record {
-		host:    addr;
-		state:   Info;
-	};
-	
+
 	## This record is to hold a parsed FTP reply code.  For example, for the 
 	## 201 status code, the digits would be parsed as: x->2, y->0, z=>1.
 	type ReplyCode: record {
@@ -91,7 +86,7 @@ redef capture_filters += { ["ftp"] = "port 21" };
 redef dpd_config += { [ANALYZER_FTP] = [$ports = ports] };
 
 # Establish the variable for tracking expected connections.
-global ftp_data_expected: table[addr, port] of ExpectedConn &create_expire=5mins;
+global ftp_data_expected: table[addr, port] of Info &create_expire=5mins;
 
 event bro_init() &priority=5
 	{
@@ -211,9 +206,7 @@ event ftp_request(c: connection, command: string, arg: string) &priority=5
 		if ( data$valid )
 			{
 			c$ftp$passive=F;
-			
-			local expected = [$host=id$resp_h, $state=copy(c$ftp)];
-			ftp_data_expected[data$h, data$p] = expected;
+			ftp_data_expected[data$h, data$p] = c$ftp;
 			expect_connection(id$resp_h, data$h, data$p, ANALYZER_FILE, 5mins);
 			}
 		else
@@ -266,8 +259,7 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &prior
 			if ( code == 229 && data$h == 0.0.0.0 )
 				data$h = id$resp_h;
 			
-			local expected = [$host=id$orig_h, $state=copy(c$ftp)];
-			ftp_data_expected[data$h, data$p] = expected;
+			ftp_data_expected[data$h, data$p] = c$ftp;
 			expect_connection(id$orig_h, data$h, data$p, ANALYZER_FILE, 5mins);
 			}
 		else
@@ -312,9 +304,8 @@ event file_transferred(c: connection, prefix: string, descr: string,
 	local id = c$id;
 	if ( [id$resp_h, id$resp_p] in ftp_data_expected )
 		{
-		local expected = ftp_data_expected[id$resp_h, id$resp_p];
-		local s = expected$state;
-		s$mime_type = mime_type;
+		local s = ftp_data_expected[id$resp_h, id$resp_p];
+		s$mime_type = split1(mime_type, /;/)[1];
 		s$mime_desc = descr;
 		}
 	}

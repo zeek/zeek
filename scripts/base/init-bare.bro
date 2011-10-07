@@ -1392,7 +1392,7 @@ const forward_remote_state_changes = F &redef;
 const PEER_ID_NONE = 0;
 
 ## Whether to use the connection tracker.
-const use_connection_compressor = T &redef;
+const use_connection_compressor = F &redef;
 
 ## Whether compressor should handle refused connections itself.
 const cc_handle_resets = F &redef;

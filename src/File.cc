@@ -300,7 +300,7 @@ FILE* BroFile::BringIntoCache()
 	UpdateFileSize();
 
 	if ( fseek(f, position, SEEK_SET) < 0 )
-		reporter->Error("reopen seek failed", this);
+		reporter->Error("reopen seek failed");
 
 	InsertAtBeginning();
 
@@ -313,7 +313,7 @@ FILE* BroFile::Seek(long new_position)
 		return 0;
 
 	if ( fseek(f, new_position, SEEK_SET) < 0 )
-		reporter->Error("seek failed", this);
+		reporter->Error("seek failed");
 
 	return f;
 	}
@@ -324,7 +324,7 @@ void BroFile::SetBuf(bool arg_buffered)
 		return;
 
 	if ( setvbuf(f, NULL, arg_buffered ? _IOFBF : _IOLBF, 0) != 0 )
-		reporter->Error("setvbuf failed", this);
+		reporter->Error("setvbuf failed");
 
 	buffered = arg_buffered;
 	}
@@ -386,7 +386,7 @@ void BroFile::Suspend()
 
 	if ( (position = ftell(f)) < 0 )
 		{
-		reporter->Error("ftell failed", this);
+		reporter->Error("ftell failed");
 		position = 0;
 		}
 

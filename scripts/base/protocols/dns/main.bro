@@ -49,9 +49,7 @@ export {
 	## This is called by the specific dns_*_reply events with a "reply" which
 	## may not represent the full data available from the resource record, but 
 	## it's generally considered a summarization of the response(s).
-	# TODO: Weirdly enough, if I define this, the locally defined script layer
-	#       event won't trigger any of it's handlers.
-	#global do_reply: event(c: connection, msg: dns_msg, ans: dns_answer, reply: string);
+	global do_reply: event(c: connection, msg: dns_msg, ans: dns_answer, reply: string);
 }
 
 redef record connection += {
@@ -130,7 +128,7 @@ function set_session(c: connection, msg: dns_msg, is_query: bool)
 		}
 	}
 	
-event do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string) &priority=5
+event DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string) &priority=5
 	{
 	set_session(c, msg, F);
 
@@ -159,7 +157,7 @@ event do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string) &pri
 		}
 	}
 	
-event do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string) &priority=-5
+event DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string) &priority=-5
 	{
 	if ( c$dns$ready )
 		{
@@ -193,55 +191,55 @@ event dns_request(c: connection, msg: dns_msg, query: string, qtype: count, qcla
 	
 event dns_A_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr) &priority=5
 	{
-	event do_reply(c, msg, ans, fmt("%s", a));
+	event DNS::do_reply(c, msg, ans, fmt("%s", a));
 	}
 	
 event dns_TXT_reply(c: connection, msg: dns_msg, ans: dns_answer, str: string) &priority=5
 	{
-	event do_reply(c, msg, ans, str);
+	event DNS::do_reply(c, msg, ans, str);
 	}
 	
 event dns_AAAA_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr, 
                      astr: string) &priority=5
 	{
 	# TODO: What should we do with astr?
-	event do_reply(c, msg, ans, fmt("%s", a));
+	event DNS::do_reply(c, msg, ans, fmt("%s", a));
 	}
 	
 event dns_NS_reply(c: connection, msg: dns_msg, ans: dns_answer, name: string) &priority=5
 	{
-	event do_reply(c, msg, ans, name);
+	event DNS::do_reply(c, msg, ans, name);
 	}
 
 event dns_CNAME_reply(c: connection, msg: dns_msg, ans: dns_answer, name: string) &priority=5
 	{
-	event do_reply(c, msg, ans, name);
+	event DNS::do_reply(c, msg, ans, name);
 	}
 
 event dns_MX_reply(c: connection, msg: dns_msg, ans: dns_answer, name: string,
                    preference: count) &priority=5
 	{
-	event do_reply(c, msg, ans, name);
+	event DNS::do_reply(c, msg, ans, name);
 	}
 	
 event dns_PTR_reply(c: connection, msg: dns_msg, ans: dns_answer, name: string) &priority=5
 	{
-	event do_reply(c, msg, ans, name);
+	event DNS::do_reply(c, msg, ans, name);
 	}
 	
 event dns_SOA_reply(c: connection, msg: dns_msg, ans: dns_answer, soa: dns_soa) &priority=5
 	{
-	event do_reply(c, msg, ans, soa$mname);
+	event DNS::do_reply(c, msg, ans, soa$mname);
 	}
 
 event dns_WKS_reply(c: connection, msg: dns_msg, ans: dns_answer) &priority=5
 	{
-	event do_reply(c, msg, ans, "");
+	event DNS::do_reply(c, msg, ans, "");
 	}
 	
 event dns_SRV_reply(c: connection, msg: dns_msg, ans: dns_answer) &priority=5
 	{
-	event do_reply(c, msg, ans, "");
+	event DNS::do_reply(c, msg, ans, "");
 	}
 
 # TODO: figure out how to handle these

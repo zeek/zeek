@@ -277,6 +277,10 @@ protected:
 	void AppendNewChildren();
 
 private:
+	// Internal method to eventually delete a child analyzer that's
+	// already Done().
+	void DeleteChild(analyzer_list::iterator i);
+
 	AnalyzerTag::Tag tag;
 	AnalyzerID id;
 

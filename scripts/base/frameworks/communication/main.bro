@@ -14,8 +14,8 @@ export {
 	## Which port to listen on.
 	const listen_port = 47757/tcp &redef;
 	
-	## This defines if a listening socket should use encryption.
-	const listen_encrypted = F &redef;
+	## This defines if a listening socket should use SSL.
+	const listen_ssl = F &redef;
 
 	## Default compression level.  Compression level is 0-9, with 0 = no 
 	## compression.

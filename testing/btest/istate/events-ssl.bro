@@ -17,7 +17,7 @@
 @TEST-START-FILE sender.bro
 
 @load frameworks/communication/listen
-redef Communication::listen_encrypted=T;
+redef Communication::listen_ssl=T;
 
 event bro_init()
     {

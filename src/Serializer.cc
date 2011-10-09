@@ -73,9 +73,13 @@ bool Serializer::EndSerialization(SerialInfo* info)
 	ChunkedIO::Chunk* chunk = new ChunkedIO::Chunk;
 	chunk->len = format->EndWrite(&chunk->data);
 
+	current_cache->End(info->new_cache_strategy);
+
+	if ( ! io )
+        return true;
+
 	if ( info->chunk )
 		{
-
 		if ( ! io->Write(info->chunk) )
 			{
 			Error(io->Error());
@@ -89,7 +93,6 @@ bool Serializer::EndSerialization(SerialInfo* info)
 		return false;
 		}
 
-	current_cache->End(info->new_cache_strategy);
 	return true;
 	}
 

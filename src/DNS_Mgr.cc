@@ -592,6 +592,8 @@ void DNS_Mgr::Resolve()
 				}
 			else
 				--num_pending;
+
+			delete dr;
 			}
 		}
 
@@ -847,6 +849,7 @@ const char* DNS_Mgr::LookupAddrInCache(dns_mgr_addr_type addr)
 	if ( d->Expired() )
 		{
 		dns_mgr->addr_mappings.Remove(&h);
+		delete d;
 		return 0;
 		}
 
@@ -866,6 +869,7 @@ TableVal* DNS_Mgr::LookupNameInCache(string name)
 		{
 		HashKey h(name.c_str());
 		dns_mgr->host_mappings.Remove(&h);
+		delete d;
 		return 0;
 		}
 
@@ -1038,14 +1042,29 @@ void DNS_Mgr::CheckAsyncHostRequest(const char* host, bool timeout)
 		}
 	}
 
-void  DNS_Mgr::Process()
+void DNS_Mgr::Flush()
 	{
+	DoProcess(false);
 
+	IterCookie* cookie = addr_mappings.InitForIteration();
+	DNS_Mapping* dm;
+
+	host_mappings.Clear();
+	addr_mappings.Clear();
+	}
+
+void DNS_Mgr::Process()
+	{
+	DoProcess(false);
+	}
+
+void DNS_Mgr::DoProcess(bool flush)
+	{
 	while ( asyncs_timeouts.size() > 0 )
 		{
 		AsyncRequest* req = asyncs_timeouts.top();
 
-		if ( req->time + DNS_TIMEOUT > current_time() )
+		if ( req->time + DNS_TIMEOUT > current_time() || flush )
 			break;
 
 		if ( req->IsAddrReq() )
@@ -1086,6 +1105,8 @@ void  DNS_Mgr::Process()
 			CheckAsyncHostRequest(dr->ReqHost(), true);
 
 		IssueAsyncRequests();
+
+		delete dr;
 		}
 	}
 

@@ -49,6 +49,7 @@ public:
 	virtual ~DNS_Mgr();
 
 	bool Init();
+	void Flush();
 
 	// Looks up the address or addresses of the given host, and returns
 	// a set of addr.
@@ -110,6 +111,9 @@ protected:
 	// requested.
 	void CheckAsyncAddrRequest(dns_mgr_addr_type addr, bool timeout);
 	void CheckAsyncHostRequest(const char* host, bool timeout);
+
+	// Process outstanding requests.
+	void DoProcess(bool flush);
 
 	// IOSource interface.
 	virtual void GetFds(int* read, int* write, int* except);

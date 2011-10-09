@@ -370,6 +370,9 @@ DNS_Mgr::DNS_Mgr(DNS_MgrMode arg_mode)
 	cache_name = dir = 0;
 
 	asyncs_pending = 0;
+	num_requests = 0;
+	successful = 0;
+	failed = 0;
 	}
 
 DNS_Mgr::~DNS_Mgr()
@@ -952,6 +955,8 @@ void DNS_Mgr::IssueAsyncRequests()
 		AsyncRequest* req = asyncs_queued.front();
 		asyncs_queued.pop_front();
 
+		++num_requests;
+
 		DNS_Mgr_Request* dr;
 		if ( req->IsAddrReq() )
 			dr = new DNS_Mgr_Request(req->host);
@@ -961,6 +966,7 @@ void DNS_Mgr::IssueAsyncRequests()
 		if ( ! dr->MakeRequest(nb_dns) )
 			{
 			reporter->Warning("can't issue DNS request");
+			++failed;
 			req->Timeout();
 			continue;
 			}
@@ -995,10 +1001,16 @@ void DNS_Mgr::CheckAsyncAddrRequest(dns_mgr_addr_type addr, bool timeout)
 		{
 		const char* name = LookupAddrInCache(addr);
 		if ( name )
+			{
+			++successful;
 			i->second->Resolved(name);
+			}
 
 		else if ( timeout )
+			{
+			++failed;
 			i->second->Timeout();
+			}
 
 		else
 			return;
@@ -1024,12 +1036,16 @@ void DNS_Mgr::CheckAsyncHostRequest(const char* host, bool timeout)
 
 		if ( addrs )
 			{
+			++successful;
 			i->second->Resolved(addrs);
 			Unref(addrs);
 			}
 
 		else if ( timeout )
+			{
+			++failed;
 			i->second->Timeout();
+			}
 
 		else
 			return;
@@ -1146,3 +1162,14 @@ int DNS_Mgr::AnswerAvailable(int timeout)
 
 	return status;
 	}
+
+void DNS_Mgr::GetStats(Stats* stats)
+	{
+	stats->requests = num_requests;
+	stats->successful = successful;
+	stats->failed = failed;
+	stats->pending = asyncs_pending;
+	stats->cached_hosts = host_mappings.Length();
+	stats->cached_addresses = addr_mappings.Length();
+	}
+

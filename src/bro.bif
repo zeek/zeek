@@ -560,7 +560,7 @@ function to_addr%(ip: string%): addr
 
 function count_to_v4_addr%(ip: count%): addr
 	%{
-	if ( ip > 4294967295 )
+	if ( ip > 4294967295LU )
 		{
 		builtin_error("conversion of non-IPv4 count to addr", @ARG@[0]);
 		return new AddrVal(uint32(0));

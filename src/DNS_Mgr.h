@@ -1,4 +1,4 @@
-// See the file "COPYING" in the main distribution directory for copyright.
+  // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef dnsmgr_h
 #define dnsmgr_h
@@ -80,6 +80,17 @@ public:
 
 	void AsyncLookupAddr(dns_mgr_addr_type host, LookupCallback* callback);
 	void AsyncLookupName(string name, LookupCallback* callback);
+
+	struct Stats {
+		unsigned long requests;	// These count only async requests.
+		unsigned long successful;
+		unsigned long failed;
+		unsigned long pending;
+		unsigned long cached_hosts;
+		unsigned long cached_addresses;
+	};
+
+	void GetStats(Stats* stats);
 
 protected:
 	friend class LookupCallback;
@@ -206,6 +217,10 @@ protected:
 	TimeoutQueue asyncs_timeouts;
 
 	int asyncs_pending;
+
+	unsigned long num_requests;
+	unsigned long successful;
+	unsigned long failed;
 };
 
 extern DNS_Mgr* dns_mgr;

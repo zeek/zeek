@@ -221,7 +221,9 @@ bool Expr::DoUnserialize(UnserialInfo* info)
 
 	tag = BroExprTag(c);
 
-	UNSERIALIZE_OPTIONAL(type, BroType::Unserialize(info));
+	BroType* t = 0;
+	UNSERIALIZE_OPTIONAL(t, BroType::Unserialize(info));
+	SetType(t);
 	return true;
 	}
 

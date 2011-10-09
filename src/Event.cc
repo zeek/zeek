@@ -95,6 +95,9 @@ void EventMgr::Dispatch()
 
 	Event* current = head;
 
+	if ( meta_event )
+	    Meta(current);
+
 	head = head->NextEvent();
 	if ( ! head )
 		tail = head;
@@ -159,3 +162,26 @@ RecordVal* EventMgr::GetLocalPeerVal()
 
 	return src_val;
 	}
+
+void EventMgr::Meta(Event* event)
+    {
+    // Estimate the raw event byte length via binary serialization.
+    SerializationFormat* fmt = new BinarySerializationFormat();
+    fmt->StartWrite();
+    CloneSerializer ss(fmt);
+    SerialInfo info(&ss);
+    ss.SetCache(new SerializationCache());
+	ss.Serialize(&info, event->handler->Name(), event->args);
+    char* data;
+    uint32 len = fmt->EndWrite(&data);
+    delete [] data;
+
+    // Construct the meta event and dispatch it.
+    val_list* vl = new val_list;
+    vl->append(new StringVal(event->handler->Name()));
+    vl->append(new Val(network_time, TYPE_TIME));
+    vl->append(new Val(len, TYPE_COUNT));
+
+    Event* ev = new Event(meta_event, vl);
+    ev->Dispatch();
+    }

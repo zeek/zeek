@@ -107,6 +107,9 @@ public:
 	// Returns a peer record describing the local Bro.
 	RecordVal* GetLocalPeerVal();
 
+    // Raise a meta event for a given event.
+	static void Meta(Event* event);
+
 	void Describe(ODesc* d) const;
 
 protected:

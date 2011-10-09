@@ -479,3 +479,6 @@ event reporter_error%(t: time, msg: string, location: string%) &error_handler;
 
 # Raised for each policy script loaded.
 event bro_script_loaded%(path: string, level: count%);
+
+# Raised for each event except itself.
+event meta_event%(name: string, timestamp: time, size: count%);

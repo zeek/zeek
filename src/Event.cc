@@ -61,6 +61,7 @@ EventMgr::EventMgr()
 	current_aid = 0;
 	src_val = 0;
 	draining = 0;
+    cache = new SerializationCache();
 	}
 
 EventMgr::~EventMgr()
@@ -73,6 +74,8 @@ EventMgr::~EventMgr()
 		}
 
 	Unref(src_val);
+
+	delete cache;
 	}
 
 void EventMgr::QueueEvent(Event* event)
@@ -170,7 +173,8 @@ void EventMgr::Meta(Event* event)
     fmt->StartWrite();
     CloneSerializer ss(fmt);
     SerialInfo info(&ss);
-    ss.SetCache(new SerializationCache());
+    info.include_locations = false;
+    ss.SetCache(cache);
 	ss.Serialize(&info, event->handler->Name(), event->args);
     char* data;
     uint32 len = fmt->EndWrite(&data);

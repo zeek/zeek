@@ -331,7 +331,14 @@ void NetSessions::NextPacketSecondary(double /* t */, const struct pcap_pkthdr* 
 			args->append(cmd_val);
 			args->append(BuildHeader(ip));
 			// ### Need to queue event here.
-			sp->Event()->Event()->Call(args);
+			try
+				{
+				sp->Event()->Event()->Call(args);
+				}
+
+			catch ( InterpreterException& e )
+				{ /* Already reported. */ }
+
 			delete args;
 			}
 		}

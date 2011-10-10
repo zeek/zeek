@@ -2007,7 +2007,16 @@ Val* TableVal::Default(Val* index)
 	else
 		vl->append(index->Ref());
 
-	Val* result = f->Call(vl);
+	Val* result = 0;
+
+	try
+		{
+		result = f->Call(vl);
+		}
+		
+	catch ( InterpreterException& e )
+		{ /* Already reported. */ }
+
 	delete vl;
 
 	if ( ! result )
@@ -2466,10 +2475,20 @@ double TableVal::CallExpireFunc(Val* idx)
 
 	vl->append(idx);
 
-	Val* vs = expire_expr->Eval(0)->AsFunc()->Call(vl);
-	double secs = vs->AsInterval();
-	Unref(vs);
-	delete vl;
+	double secs;
+
+	try
+		{
+		Val* vs = expire_expr->Eval(0)->AsFunc()->Call(vl);
+		secs = vs->AsInterval();
+		Unref(vs);
+		delete vl;
+		}
+
+	catch ( InterpreterException& e )
+		{
+		secs = 0;
+		}
 
 	return secs;
 	}

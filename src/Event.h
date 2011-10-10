@@ -108,7 +108,7 @@ public:
 	RecordVal* GetLocalPeerVal();
 
     // Raise a meta event for a given event.
-	static void Meta(Event* event);
+	void Meta(Event* event);
 
 	void Describe(ODesc* d) const;
 
@@ -122,6 +122,7 @@ protected:
 	TimerMgr* current_mgr;
 	RecordVal* src_val;
 	bool draining;
+	SerializationCache* cache;
 };
 
 extern EventMgr mgr;

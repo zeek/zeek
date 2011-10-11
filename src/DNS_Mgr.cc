@@ -370,6 +370,9 @@ DNS_Mgr::DNS_Mgr(DNS_MgrMode arg_mode)
 	cache_name = dir = 0;
 
 	asyncs_pending = 0;
+	num_requests = 0;
+	successful = 0;
+	failed = 0;
 	}
 
 DNS_Mgr::~DNS_Mgr()
@@ -592,6 +595,8 @@ void DNS_Mgr::Resolve()
 				}
 			else
 				--num_pending;
+
+			delete dr;
 			}
 		}
 
@@ -847,6 +852,7 @@ const char* DNS_Mgr::LookupAddrInCache(dns_mgr_addr_type addr)
 	if ( d->Expired() )
 		{
 		dns_mgr->addr_mappings.Remove(&h);
+		delete d;
 		return 0;
 		}
 
@@ -866,6 +872,7 @@ TableVal* DNS_Mgr::LookupNameInCache(string name)
 		{
 		HashKey h(name.c_str());
 		dns_mgr->host_mappings.Remove(&h);
+		delete d;
 		return 0;
 		}
 
@@ -948,6 +955,8 @@ void DNS_Mgr::IssueAsyncRequests()
 		AsyncRequest* req = asyncs_queued.front();
 		asyncs_queued.pop_front();
 
+		++num_requests;
+
 		DNS_Mgr_Request* dr;
 		if ( req->IsAddrReq() )
 			dr = new DNS_Mgr_Request(req->host);
@@ -957,6 +966,7 @@ void DNS_Mgr::IssueAsyncRequests()
 		if ( ! dr->MakeRequest(nb_dns) )
 			{
 			reporter->Warning("can't issue DNS request");
+			++failed;
 			req->Timeout();
 			continue;
 			}
@@ -991,10 +1001,16 @@ void DNS_Mgr::CheckAsyncAddrRequest(dns_mgr_addr_type addr, bool timeout)
 		{
 		const char* name = LookupAddrInCache(addr);
 		if ( name )
+			{
+			++successful;
 			i->second->Resolved(name);
+			}
 
 		else if ( timeout )
+			{
+			++failed;
 			i->second->Timeout();
+			}
 
 		else
 			return;
@@ -1020,12 +1036,16 @@ void DNS_Mgr::CheckAsyncHostRequest(const char* host, bool timeout)
 
 		if ( addrs )
 			{
+			++successful;
 			i->second->Resolved(addrs);
 			Unref(addrs);
 			}
 
 		else if ( timeout )
+			{
+			++failed;
 			i->second->Timeout();
+			}
 
 		else
 			return;
@@ -1038,14 +1058,29 @@ void DNS_Mgr::CheckAsyncHostRequest(const char* host, bool timeout)
 		}
 	}
 
-void  DNS_Mgr::Process()
+void DNS_Mgr::Flush()
 	{
+	DoProcess(false);
 
+	IterCookie* cookie = addr_mappings.InitForIteration();
+	DNS_Mapping* dm;
+
+	host_mappings.Clear();
+	addr_mappings.Clear();
+	}
+
+void DNS_Mgr::Process()
+	{
+	DoProcess(false);
+	}
+
+void DNS_Mgr::DoProcess(bool flush)
+	{
 	while ( asyncs_timeouts.size() > 0 )
 		{
 		AsyncRequest* req = asyncs_timeouts.top();
 
-		if ( req->time + DNS_TIMEOUT > current_time() )
+		if ( req->time + DNS_TIMEOUT > current_time() || flush )
 			break;
 
 		if ( req->IsAddrReq() )
@@ -1086,6 +1121,8 @@ void  DNS_Mgr::Process()
 			CheckAsyncHostRequest(dr->ReqHost(), true);
 
 		IssueAsyncRequests();
+
+		delete dr;
 		}
 	}
 
@@ -1125,3 +1162,14 @@ int DNS_Mgr::AnswerAvailable(int timeout)
 
 	return status;
 	}
+
+void DNS_Mgr::GetStats(Stats* stats)
+	{
+	stats->requests = num_requests;
+	stats->successful = successful;
+	stats->failed = failed;
+	stats->pending = asyncs_pending;
+	stats->cached_hosts = host_mappings.Length();
+	stats->cached_addresses = addr_mappings.Length();
+	}
+

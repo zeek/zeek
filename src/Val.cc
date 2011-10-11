@@ -1463,6 +1463,7 @@ TableVal* ListVal::ConvertToSet() const
 	loop_over_list(vals, i)
 		t->Assign(vals[i], 0);
 
+	Unref(s);
 	return t;
 	}
 
@@ -1582,6 +1583,7 @@ TableVal::TableVal(TableType* t, Attributes* a) : MutableVal(t)
 
 void TableVal::Init(TableType* t)
 	{
+	::Ref(t);
 	table_type = t;
 	expire_expr = 0;
 	expire_time = 0;
@@ -1604,6 +1606,7 @@ TableVal::~TableVal()
 	if ( timer )
 		timer_mgr->Cancel(timer);
 
+	Unref(table_type);
 	delete table_hash;
 	delete AsTable();
 	delete subnets;

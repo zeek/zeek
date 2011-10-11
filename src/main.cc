@@ -229,6 +229,8 @@ void done_with_network()
 
 	dpm->Done();
 	timer_mgr->Expire();
+	dns_mgr->Flush();
+	mgr.Drain();
 	mgr.Drain();
 
 	if ( remote_serializer )

@@ -560,7 +560,7 @@ function to_addr%(ip: string%): addr
 
 function count_to_v4_addr%(ip: count%): addr
 	%{
-	if ( ip > 4294967295 )
+	if ( ip > 4294967295LU )
 		{
 		builtin_error("conversion of non-IPv4 count to addr", @ARG@[0]);
 		return new AddrVal(uint32(0));
@@ -2828,13 +2828,15 @@ public:
 	// Overridden from DNS_Mgr:Lookup:Callback.
 	virtual void Resolved(const char* name)
 		{
-		trigger->Cache(call, new StringVal(name));
+		Val* result = new StringVal(name);
+		trigger->Cache(call, result);
+		Unref(result);
 		trigger->Release();
 		}
 
 	virtual void Resolved(TableVal* addrs)
 		{
-		Ref(addrs);
+		// No Ref() for addrs.
 		trigger->Cache(call, addrs);
 		trigger->Release();
 		}
@@ -2842,12 +2844,19 @@ public:
 	virtual void Timeout()
 		{
 		if ( lookup_name )
-			trigger->Cache(call, new StringVal("<\?\?\?>"));
+			{
+			Val* result = new StringVal("<\?\?\?>");
+			trigger->Cache(call, result);
+			Unref(result);
+			}
+
 		else
 			{
 			ListVal* lv = new ListVal(TYPE_ADDR);
 			lv->Append(new AddrVal("0.0.0.0"));
-			trigger->Cache(call, lv->ConvertToSet());
+			Val* result = lv->ConvertToSet();
+			trigger->Cache(call, result);
+			Unref(result);
 			Unref(lv);
 			}
 

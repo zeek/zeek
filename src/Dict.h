@@ -118,11 +118,15 @@ public:
 	void MakeRobustCookie(IterCookie* cookie)
 		{ cookies.append(cookie); }
 
+	// Remove all entries.
+	void Clear();
+
 	unsigned int MemoryAllocation() const;
 
 private:
 	void Init(int size);
 	void Init2(int size);	// initialize second table for resizing
+	void DeInit();
 
 	// Internal version of Insert().
 	void* Insert(DictEntry* entry, int copy_key);

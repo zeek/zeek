@@ -231,6 +231,8 @@ bool BroObj::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(SerialObj);
 
+	delete location;
+
 	UNSERIALIZE_OPTIONAL(location, Location::Unserialize(info));
 	return true;
 	}

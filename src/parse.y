@@ -165,7 +165,7 @@ static ID* create_dummy_id (ID* id, BroType* type)
 	ID* fake_id = new ID(copy_string(id->Name()), (IDScope) id->Scope(),
 	                     is_export);
 
-	fake_id->SetType(type);
+	fake_id->SetType(type->Ref());
 
 	if ( id->AsType() )
 		{

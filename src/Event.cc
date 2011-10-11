@@ -61,7 +61,7 @@ EventMgr::EventMgr()
 	current_aid = 0;
 	src_val = 0;
 	draining = 0;
-    cache = new SerializationCache();
+    cache = new SerializationCache(3000);
 	}
 
 EventMgr::~EventMgr()
@@ -175,7 +175,7 @@ void EventMgr::Meta(Event* event)
     SerialInfo info(&ss);
     info.include_locations = false;
     ss.SetCache(cache);
-	ss.Serialize(&info, event->handler->Name(), event->args);
+    ss.Serialize(&info, event->handler->Name(), event->args);
     char* data;
     uint32 len = fmt->EndWrite(&data);
     delete [] data;
@@ -188,4 +188,5 @@ void EventMgr::Meta(Event* event)
 
     Event* ev = new Event(meta_event, vl);
     ev->Dispatch();
+    delete ev;
     }

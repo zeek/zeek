@@ -1,1 +1,38 @@
-TODO
+
+Documentation
+=============
+
+This directory contains Bro documentation in reStructured text format
+(see http://docutils.sourceforge.net/rst.html).
+
+Please note that for now these files are primarily intended for use on
+http://www.bro-ids.org. While the Bro build process will render local
+versions into ``build/doc/`` (if docutils is found), the resulting
+HTML is very minimalistic and some features are not supported. In
+particular, some links will be broken.
+
+
+Notes for Writing Documentation
+-------------------------------
+
+* If you want to refer to a Bro script that's part of the
+  distribution, use {{'`foo.bro
+  <{{autodoc_bro_scripts}}/path/to/foo.html>`_'}}. For example,
+  ``{{'{{autodoc_bro_scripts}}/scripts/base/frameworks/notice/main.html}}'}}``.
+
+* If you want to refer to a page on the Bro web site, use the
+  ``docroot`` macro (e.g.,
+  ``{{'href="{{docroot}}/download/index.html"'}}). Make sure to
+  include the ``index.html`` for the main pages, just as in the
+  example.
+
+* If you want to refer to page inside this directory, use a relative
+  path with HTML extension. (e.g., ``href="quickstart.html``).
+
+Guidelines
+----------
+
+TODO.
+
+
+

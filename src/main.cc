@@ -30,6 +30,7 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "File.h"
 #include "Reporter.h"
 #include "LogMgr.h"
+#include "InputMgr.h"
 #include "Net.h"
 #include "NetVar.h"
 #include "Var.h"
@@ -72,6 +73,7 @@ name_list prefixes;
 DNS_Mgr* dns_mgr;
 TimerMgr* timer_mgr;
 LogMgr* log_mgr;
+InputMgr* input_mgr;
 Stmt* stmts;
 EventHandlerPtr net_done = 0;
 RuleMatcher* rule_matcher = 0;
@@ -724,6 +726,8 @@ int main(int argc, char** argv)
 	remote_serializer = new RemoteSerializer();
 	event_registry = new EventRegistry();
 	log_mgr = new LogMgr();
+        
+    input_mgr = new InputMgr();
 
 	if ( events_file )
 		event_player = new EventPlayer(events_file);

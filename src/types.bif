@@ -167,4 +167,11 @@ enum ID %{
 	Unknown,
 %}
 
+module Input;
+
+enum Reader %{
+	READER_DEFAULT,
+	READER_ASCII,
+%}
+
 module GLOBAL;

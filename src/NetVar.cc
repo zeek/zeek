@@ -255,6 +255,7 @@ StringVal* cmd_line_bpf_filter;
 #include "types.bif.netvar_def"
 #include "event.bif.netvar_def"
 #include "logging.bif.netvar_def"
+#include "input.bif.netvar_def"
 #include "reporter.bif.netvar_def"
 
 void init_event_handlers()
@@ -315,6 +316,7 @@ void init_net_var()
 #include "const.bif.netvar_init"
 #include "types.bif.netvar_init"
 #include "logging.bif.netvar_init"
+#include "input.bif.netvar_init"
 #include "reporter.bif.netvar_init"
 
 	conn_id = internal_type("conn_id")->AsRecordType();

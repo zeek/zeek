@@ -1,0 +1,16 @@
+# functions and types for the input framework
+
+module Input;
+
+%%{
+#include "InputMgr.h"
+#include "NetVar.h"
+%%}
+
+function Input::__create_reader%(reader: Input::Reader, source: string%) : bool
+	%{
+	exit(5);
+	InputReader *the_reader = input_mgr->CreateReader(reader->AsEnumVal(), source->AsString()->CheckString());
+	return new Val( the_reader != 0, TYPE_BOOL );
+	%}
+	

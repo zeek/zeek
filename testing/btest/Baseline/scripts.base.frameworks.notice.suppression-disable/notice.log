@@ -1,6 +1,0 @@
-#separator \x09
-#path	notice
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	note	msg	sub	src	dst	p	n	peer_descr	actions	policy_items	suppress_for	dropped	remote_location.country_code	remote_location.region	remote_location.city	remote_location.latitude	remote_location.longitude
-#types	time	string	addr	port	addr	port	enum	string	string	addr	addr	port	count	string	table	table	interval	bool	string	string	string	double	double
-1317927277.508920	-	-	-	-	-	Test_Notice	test	-	-	-	-	-	bro	Notice::ACTION_NO_SUPPRESS,Notice::ACTION_LOG	6,1	3600.000000	-	-	-	-	-	-
-1317927277.508920	-	-	-	-	-	Test_Notice	another test	-	-	-	-	-	bro	Notice::ACTION_NO_SUPPRESS,Notice::ACTION_LOG	6,1	3600.000000	-	-	-	-	-	-

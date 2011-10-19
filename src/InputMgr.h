@@ -16,7 +16,7 @@ class InputMgr {
 public:
     InputMgr();
     
-    InputReader* CreateReader(EnumVal* reader, string source, string eventName, RecordVal* eventDescription);
+    InputReader* CreateReader(EnumVal* reader, string source, RecordVal* event);
 	
 protected:
 	friend class InputReader;

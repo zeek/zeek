@@ -1509,4 +1509,5 @@ const parse_udp_tunnels = F &redef;
 # BiFs and script-land defined types.
 @load base/frameworks/logging
 
-@load base/input.bif
+@load base/frameworks/input
+

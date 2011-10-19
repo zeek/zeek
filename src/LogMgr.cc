@@ -475,7 +475,7 @@ void LogMgr::RemoveDisabledWriters(Stream* stream)
 		stream->writers.erase(*j);
 	}
 
-bool LogMgr::CreateStream(EnumVal* id, RecordVal* sval)
+bool LogMgr::(EnumVal* id, RecordVal* sval)
 	{
 	RecordType* rtype = sval->Type()->AsRecordType();
 

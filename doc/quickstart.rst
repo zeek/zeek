@@ -87,6 +87,10 @@ Required Dependencies
   linked above, but they're also likely available from your preferred Mac OS X
   package management system (e.g. MacPorts_, Fink_, or Homebrew_).
 
+  Note that the MacPorts ``swig`` package may not include any specific
+  language support so you may need to also install ``swig-ruby`` and
+  ``swig-python``.
+
 Optional Dependencies
 ~~~~~~~~~~~~~~~~~~~~~
 

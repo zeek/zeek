@@ -56,7 +56,7 @@ type Data_Block = record {
 # related to dnp3 application layer data
 
 type Dnp3_Request = record {
-	addin_header: Header_Block;
+	addin_header: Header_Block;  ## added by Hui Lin in Bro code
 	app_header: Dnp3_Application_Request_Header;
 	#unknown: bytestring &restofdata;
 	#data: case ( bytestring_to_int( (app_header.application_control), 16) ) of {
@@ -69,6 +69,33 @@ type Dnp3_Request = record {
 		OPERATE -> operate_requests: Request_Objects(app_header.function_code)[];
 		DIRECT_OPERATE -> direct_operate_requests: Request_Objects(app_header.function_code)[];
 		DIRECT_OPERATE_NR -> direct_operate_nr_requests: Request_Objects(app_header.function_code)[];
+		IMMED_FREEZE -> immed_freeze_requests: Request_Objects(app_header.function_code)[];
+		IMMED_FREEZE_NR -> immed_freeze_nr_requests: Request_Objects(app_header.function_code)[];
+		FREEZE_CLEAR -> freeze_clear_requests: Request_Objects(app_header.function_code)[];
+		FREEZE_CLEAR_NR -> freeze_clear_nr_requests: Request_Objects(app_header.function_code)[];
+		FREEZE_AT_TIME -> freeze_time_requests: Request_Objects(app_header.function_code)[];
+		FREEZE_AT_TIME_NR -> freeze_time_nr_requests: Request_Objects(app_header.function_code)[];
+		COLD_RESTART -> cold_restart: empty;
+		WARM_RESTART -> warm_restart: empty;
+		INITIALIZE_DATA -> initilize_data: empty &check(0);  # obsolete 
+		INITIALIZE_APPL -> initilize_appl: Request_Objects(app_header.function_code)[];
+		START_APPL -> start_appl: Request_Objects(app_header.function_code)[];
+		STOP_APPL -> stop_appl: Request_Objects(app_header.function_code)[];
+		SAVE_CONFIG -> save_config: empty &check(0);  # depracated
+		ENABLE_UNSOLICITED -> enable_unsolicited: Request_Objects(app_header.function_code)[];
+		DISABLE_UNSOLICITED -> disable_unsolicited: Request_Objects(app_header.function_code)[];
+		ASSIGN_CLASS -> assign_class: Request_Objects(app_header.function_code)[];
+		DELAY_MEASURE -> delay_measure: empty;
+		RECORD_CURRENT_TIME -> record_cur_time: empty;
+		OPEN_FILE -> open_file: Request_Objects(app_header.function_code)[];
+		CLOSE_FILE -> close_file: Request_Objects(app_header.function_code)[];
+		DELETE_FILE -> delete_file: Request_Objects(app_header.function_code)[];
+		ABORT_FILE -> abort_file: Request_Objects(app_header.function_code)[];
+		GET_FILE_INFO -> get_file_info: Request_Objects(app_header.function_code)[];
+		AUTHENTICATE_FILE  -> auth_file: Request_Objects(app_header.function_code)[];
+		ACTIVATE_CONFIG  -> active_config: Request_Objects(app_header.function_code)[];
+		AUTHENTICATE_REQ  -> auth_req: Request_Objects(app_header.function_code)[];
+		AUTHENTICATE_ERR  -> auth_err: Request_Objects(app_header.function_code)[];
 		default -> unknown: bytestring &restofdata;
 	};
 } &byteorder = bigendian
@@ -85,8 +112,9 @@ type Dnp3_Response = record {
 	addin_header: Header_Block;
 	app_header: Dnp3_Application_Response_Header;
 	data: case ( app_header.function_code ) of {
-		RESPONSE -> response_objects: Response_Objects[];
-		UNSOLICITED_RESPONSE -> unsolicited_response_objects: Response_Objects[];
+		RESPONSE -> response_objects: Response_Objects(app_header.function_code)[];
+		UNSOLICITED_RESPONSE -> unsolicited_response_objects: Response_Objects(app_header.function_code)[];
+		AUTHENTICATE_RESP -> auth_response: Response_Objects(app_header.function_code)[];
 		default -> unknown: bytestring &restofdata;
 	};
 } &byteorder = bigendian
@@ -114,163 +142,43 @@ type Response_Internal_Indication = record {
 };
 
 type Request_Objects(function_code: uint8) = record {
-	object_header: Object_Header;
+	object_header: Object_Header(function_code);
 	data: case (object_header.object_type_field) of {
 		0x0c03 -> bocmd_PM: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ ( object_header.number_of_item / 8 ) + 1 ];
+		0x3202 -> time_interval_ojbects: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item] 
+							&check( object_header.qualifer_field == 0x0f && object_header.number_of_item == 0x01);
 		default -> ojbects: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
 	};
-};
-type Request_Data_Object(function_code: uint8, qualifier_field: uint8, object_type_field: uint16) = record {
-	prefix: case ( qualifier_field & 0xf0 ) of {
-                0x00 -> none: empty &check(qualifier_field == 0x01 ||
-                                                qualifier_field == 0x02 ||
-                                                qualifier_field == 0x03 ||
-                                                qualifier_field == 0x04 ||
-                                                qualifier_field == 0x05 ||
-                                                qualifier_field == 0x06 ||
-                                                qualifier_field == 0x07 ||
-                                                qualifier_field == 0x08 ||
-                                                qualifier_field == 0x09 );
-                0x10 -> prefix8: uint8 &check(qualifier_field == 0x17 ||
-                                                qualifier_field == 0x18 ||
-                                                qualifier_field == 0x19 );
-                0x20 -> prefix16: uint16 &check(qualifier_field == 0x27 ||
-                                                qualifier_field == 0x28 ||
-                                                qualifier_field == 0x29 );
-                0x30 -> prefix32: uint32 &check(qualifier_field == 0x37 ||
-                                                qualifier_field == 0x38 ||
-                                                qualifier_field == 0x39 );
-                0x40 -> object_size8: uint8 &check(qualifier_field == 0x4B);
-                0x50 -> object_size16: uint16 &check(qualifier_field == 0x5B);
-                0x60 -> object_size32: uint32 &check(qualifier_field == 0x6B);
-	 	default -> unknownprefix: empty;
-        };
-	data: case (object_type_field) of {
-	# binary input	
-		0x0100 -> bi_default: empty;
-		0x0101 -> bi_packed: empty;
-		0x0102 -> bi_flag: empty;
-	# binary output command
-		0x0c01 -> bocmd_CROB: CROB &check (function_code == SELECT || function_code == OPERATE ||
-                                                        function_code == DIRECT_OPERATE || function_code == DIRECT_OPERATE_NR );
-		0x0c02 -> bocmd_PCB: PCB &check (function_code == SELECT || function_code == OPERATE ||
-                                                        function_code == DIRECT_OPERATE || function_code == DIRECT_OPERATE_NR || function_code == WRITE );
-		0x0c03 -> bocmd_PM: uint8;
-	#analog input
-		0x1e00 -> ai_default: empty;
-		0x1e01 -> ai_32_wflag: empty;
-                0x1e02 -> ai_16_wflag: empty;
-                0x1e03 -> ai_32_woflag: empty;
-                0x1e04 -> ai_16_woflag: empty;
-                0x1e05 -> ai_sp_wflag: empty;
-                0x1e06 -> ai_dp_wflag: empty;
-	#analog input event
-		0x2000 -> aie_default: empty;
-		0x2001 -> ai32wotime: empty;
-		0x2002 -> ai16wotime: empty;
-		0x2003 -> ai32wtime:  empty;
-                0x2004 -> ai16wtime:  empty;
-                0x2005 -> aispwotime: empty;
-                0x2006 -> aidpwotime: empty;
-                0x2007 -> aispwtime:  empty;
-                0x2008 -> aidpwtime:  empty;
-		0x3C01 -> class0data: empty &check(object_header.qualifier_field == 0x06);
-		#0x3C02 -> class1data: uint8 &check(object_header.qualifier_field == 0x06);
-		0x3C02 -> class1data: empty &check(object_header.qualifier_field == 0x06 || 
-							object_header.qualifier_field == 0x07 || object_header.qualifier_field == 0x08);
-		0x3C03 -> class2data: empty &check(object_header.qualifier_field == 0x06 || 
-							object_header.qualifier_field == 0x07 || object_header.qualifier_field == 0x08);
-		0x3C04 -> class3data: empty &check(object_header.qualifier_field == 0x06 || 
-							object_header.qualifier_field == 0x07 || object_header.qualifier_field == 0x08);
-		default -> unknown: bytestring &restofdata;
-	};	
+# dump for checking some conditions
+	dump_data: case (function_code) of {
+		OPEN_FILE -> open_file_dump: empty &check(object_header.object_type_field == 0x4603);
+                CLOSE_FILE -> close_file_dump: empty &check(object_header.object_type_field == 0x4604);
+                DELETE_FILE -> delete_file_dump: empty &check(object_header.object_type_field == 0x4603); 
+                ABORT_FILE -> abort_file_dump: empty &check(object_header.object_type_field == 0x4604); 
+                GET_FILE_INFO -> get_file_info: empty &check(object_header.object_type_field == 0x4607); 
+                AUTHENTICATE_FILE  -> auth_file: empty &check(object_header.object_type_field == 0x4602); 
+                ACTIVATE_CONFIG  -> active_config: empty &check(object_header.object_type_field == 0x4608 || (object_header.object_type_field & 0xFF00) == 0x6E00); 
+		default -> default_dump: empty;
+	};
 };
 
-type Response_Objects = record {
-	object_header: Object_Header;
+type Response_Objects(function_code: uint8) = record {
+	object_header: Object_Header(function_code);
 	data: case (object_header.object_type_field) of {
-                0x0101 -> biwoflag: Response_Data_Object(object_header.qualifier_field, object_header.object_type_field )[ ( object_header.number_of_item / 8 ) + 1 ];  # warning: returning integer index?
-                0x0a01 -> bowoflag: Response_Data_Object(object_header.qualifier_field, object_header.object_type_field )[ ( object_header.number_of_item / 8 ) + 1 ];  # warning: returning integer index?
-		0x0c03 -> bocmd_PM: Response_Data_Object(object_header.qualifier_field, object_header.object_type_field )[ ( object_header.number_of_item / 8 ) + 1 ];
-                default -> ojbects: Response_Data_Object(object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+                0x0101 -> biwoflag: Response_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ ( object_header.number_of_item / 8 ) + 1 ];  # warning: returning integer index?
+                0x0a01 -> bowoflag: Response_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ ( object_header.number_of_item / 8 ) + 1 ];  # warning: returning integer index?
+		0x0c03 -> bocmd_PM: Response_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ ( object_header.number_of_item / 8 ) + 1 ];
+                default -> ojbects: Response_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
         };
 
 #	objects: Data_Object(object_header.qualifier_field, object_header.object_type_field)[];
 };
 
-type Response_Data_Object(qualifier_field: uint8, object_type_field: uint16) = record {
-	prefix: case (qualifier_field & 0xf0 ) of {
-		0x00 -> none: empty &check(qualifier_field == 0x01 ||
-						qualifier_field == 0x02 ||
-						qualifier_field == 0x03 ||
-						qualifier_field == 0x04 ||
-						qualifier_field == 0x05 ||	
-						qualifier_field == 0x06 ||
-						qualifier_field == 0x07 ||
-						qualifier_field == 0x08 ||
-						qualifier_field == 0x09 );
-		0x10 -> prefix8: uint8 &check(qualifier_field == 0x17 || 
-						qualifier_field == 0x18 ||
-						qualifier_field == 0x19 );
-		0x20 -> prefix16: uint16 &check(qualifier_field == 0x27 ||
-                                                qualifier_field == 0x28 ||
-                                                qualifier_field == 0x29 );
-		0x30 -> prefix32: uint32 &check(qualifier_field == 0x37 ||
-                                                qualifier_field == 0x38 ||
-                                                qualifier_field == 0x39 );
-		0x40 -> object_size8: uint8 &check(qualifier_field == 0x4B);
-		0x50 -> object_size16: uint16 &check(qualifier_field == 0x5B);
-		0x60 -> object_size32: uint32 &check(qualifier_field == 0x6B);
-		default -> unknownprefix: empty;
-	};
-	data: case (object_type_field) of {
-		0x0101 -> biwoflag: uint8;  # warning: returning integer index?
-		0x0102 -> biwflag: uint8;  # warning: only flag?
-		
-		0x0a01 -> bowoflag:  uint8;  # warning: returning integer index?	
-		0x0a02 -> bowflag: uint8;  # warning: only flag?
-	# binary output command
-                0x0c01 -> bocmd_CROB: CROB &check (function_code == SELECT || function_code == OPERATE ||
-                                                        function_code == DIRECT_OPERATE || function_code == DIRECT_OPERATE_NR );
-                0x0c02 -> bocmd_PCB: PCB &check (function_code == SELECT || function_code == OPERATE ||
-                                                        function_code == DIRECT_OPERATE || function_code == DIRECT_OPERATE_NR || function_code == WRITE );
-		0x0c03 -> bocmd_PM: uint8;
-		
-		0x1e01 -> ai_32_wflag: AnalogInput32wFlag;
-                0x1e02 -> ai_16_wflag: AnalogInput16wFlag;
-                0x1e03 -> ai_32_woflag: AnalogInput32woFlag;
-                0x1e04 -> ai_16_woflag: AnalogInput16woFlag;
-                0x1e05 -> ai_sp_wflag: AnalogInputSPwFlag;
-                0x1e06 -> ai_dp_wflag: AnalogInputDPwFlag;
-		
-		0x2001 -> ai32wotime: AnalogInput32woTime;
-		0x2002 -> ai16wotime: AnalogInput16woTime;
-		0x2003 -> ai32wtime:  AnalogInput32wTime;
-		0x2004 -> ai16wtime:  AnalogInput16wTime;
-		0x2005 -> aispwotime: AnalogInputSPwoTime;
-		0x2006 -> aidpwotime: AnalogInputDPwoTime;
-		0x2007 -> aispwtime:  AnalogInputSPwTime;
-		0x2008 -> aidpwtime:  AnalogInputDPwTime;
-		default -> unkonwndata: Debug_Byte; 
-	};
-}
-  &let{
-	data_value: uint8 = case (object_type_field) of {  # this data_value is used for the Bro Event
-		0x0101 -> biwoflag;
-		0x0102 -> biwflag;
-		0x0a01 -> bowoflag;
-		0x0a02 -> bowflag;
-		default -> 0xff;		
-	};
-  }
-;
-
-
-type Object_Header = record {
+type Object_Header(function_code: uint8) = record {
 	#group: uint8;
 	#variation: uint8;
-	object_type_field: uint16;
-	qualifier_field: uint8;
+	object_type_field: uint16 ;
+	qualifier_field: uint8 ;
 	range_field: case ( qualifier_field & 0x0f ) of {  # warning
 		0 -> range_field_0: Range_Field_0 &check(range_field_0.stop_index >= range_field_0.start_index);
 		1 -> range_field_1: Range_Field_1 &check(range_field_1.stop_index >= range_field_1.start_index);
@@ -284,6 +192,10 @@ type Object_Header = record {
 		9 -> range_field_9: uint32;
 		0x0b -> range_field_b: uint8;
 		default -> unknown: bytestring &restofdata;	
+	};
+	dump_data: case ( object_type_field & 0xff00 ) of {    # type is always empty; used to check dependency bw object_type_field and qualifier_field
+		0x3C00 -> dump_3c: empty &check( (object_type_field == 0x3C01 || object_type_field == 0x3C02 || object_type_field == 0x3C03 || object_type_field == 0x3C04) && ( qualifier_field == 0x06 ) );
+		default -> dump_def: empty;
 	};
 }  
    # &byteorder = littleendian
@@ -340,10 +252,10 @@ type Range_Field_5 = record {
 };
 
 
-type Object_With_Header = record {
-	object_header: Object_Header;
+#type Object_With_Header = record {
+#	object_header: Object_Header;
 
-};
+#};
 
 enum function_codes_value {
 	CONFIRM = 0x00,

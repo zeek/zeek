@@ -34,11 +34,13 @@ public:
 				dnp3_frozen_counter32_wFlag || dnp3_frozen_counter16_wFlag ||
 				dnp3_frozen_counter32_wFlagTime || dnp3_frozen_counter16_wFlagTime ||
 				dnp3_frozen_counter32_woFlag || dnp3_frozen_counter16_woFlag ||
+				dnp3_analog_input32_wFlag || dnp3_analog_input16_wFlag ||
+				dnp3_analog_input32_woFlag || dnp3_analog_input16_woFlag ||
+				dnp3_analog_inputSP_wFlag || dnp3_analog_inputDP_wFlag ||
 				dnp3_analog_input32_woTime || dnp3_analog_input16_woTime || 
 				dnp3_analog_input32_wTime  || dnp3_analog_input16_wTime  ||
 				dnp3_analog_inputSP_woTime || dnp3_analog_inputDP_woTime ||
 				dnp3_analog_inputSP_wTime  || dnp3_analog_inputDP_wTime  ||
-				dnp3_analog_input16_woFlag ||
 				dnp3_debug_byte; }
 
 protected:

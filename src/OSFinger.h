@@ -103,7 +103,7 @@ protected:
 
 	void Error(const char* msg)
 		{
-		reporter->Error(msg);
+		reporter->Error("%s", msg);
 		err = true;
 		}
 

@@ -644,7 +644,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 			Func* f = Func::GetFuncPtrByID(*kp);
 
 			if ( ! f )
-				reporter->InternalError("failed to look up unique function id %"PRIu32" in CompositeHash::RecoverOneVal()");
+				reporter->InternalError("failed to look up unique function id %" PRIu32 " in CompositeHash::RecoverOneVal()", *kp);
 
 			pval = new Val(f);
 

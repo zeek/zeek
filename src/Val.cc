@@ -2118,7 +2118,7 @@ Val* TableVal::Delete(const Val* index)
 	Val* va = v ? (v->Value() ? v->Value() : this->Ref()) : 0;
 
 	if ( subnets && ! subnets->Remove(index) )
-		reporter->InternalError( "index not in prefix table" );
+		reporter->InternalError("index not in prefix table");
 
 	if ( LoggingAccess() )
 		{
@@ -2160,7 +2160,7 @@ Val* TableVal::Delete(const HashKey* k)
 		{
 		Val* index = table_hash->RecoverVals(k);
 		if ( ! subnets->Remove(index) )
-			reporter->InternalError( "index not in prefix table" );
+			reporter->InternalError("index not in prefix table");
 		Unref(index);
 		}
 
@@ -2417,7 +2417,7 @@ void TableVal::DoExpire(double t)
 				{
 				Val* index = RecoverIndex(k);
 				if ( ! subnets->Remove(index) )
-					reporter->InternalError( "index not in prefix table" );
+					reporter->InternalError("index not in prefix table");
 				Unref(index);
 				}
 

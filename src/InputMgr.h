@@ -10,12 +10,20 @@
 #include "EventHandler.h"
 #include "RemoteSerializer.h"
 
+class InputReader;
 
 class InputMgr {
 public:
     InputMgr();
     
-    InputReader* CreateReader(EnumVal* reader, string source);
+    InputReader* CreateReader(EnumVal* reader, string source, string eventName, RecordVal* eventDescription);
+	
+protected:
+	friend class InputReader;
+	
+	// Reports an error for the given reader.
+	void Error(InputReader* reader, const char* msg);
+
 };
 
 extern InputMgr* input_mgr;

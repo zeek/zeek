@@ -35,11 +35,17 @@ InputMgr::InputMgr()
 
 
 // create a new input reader object to be used at whomevers leisure lateron.
-InputReader* InputMgr::CreateReader(EnumVal* reader, string source) 
+InputReader* InputMgr::CreateReader(EnumVal* reader, string source, string eventName, RecordVal* eventDescription) 
 {
 	InputReaderDefinition* ir = input_readers;
-	exit(12);
-		
+	
+	RecordType* rtype = eventDescription->Type()->AsRecordType();
+	if ( ! same_type(rtype, BifType::Record::Input::Event, 0) )
+	{
+		reporter->Error("eventDescription argument not of right type");
+		return 0;
+	}
+	
 	while ( true ) {
 		if ( ir->type == BifEnum::Input::READER_DEFAULT ) 
 		{
@@ -86,5 +92,13 @@ InputReader* InputMgr::CreateReader(EnumVal* reader, string source)
 	return reader_obj;
 	
 }
+
+void InputMgr::Error(InputReader* reader, const char* msg)
+{
+	reporter->Error(fmt("error with input reader for %s: %s",
+						reader->Source().c_str(), msg));
+}
+
+
 		
 		

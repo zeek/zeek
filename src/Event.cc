@@ -175,6 +175,7 @@ void EventMgr::Meta(Event* event)
     SerialInfo info(&ss);
     info.include_locations = false;
     ss.SetCache(cache);
+
     ss.Serialize(&info, event->handler->Name(), event->args);
     char* data;
     uint32 len = fmt->EndWrite(&data);

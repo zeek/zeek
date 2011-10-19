@@ -76,7 +76,11 @@ bool Serializer::EndSerialization(SerialInfo* info)
 	current_cache->End(info->new_cache_strategy);
 
 	if ( ! io )
-        return true;
+		{
+		delete [] chunk->data;
+		delete chunk;
+		return true;
+		}
 
 	if ( info->chunk )
 		{

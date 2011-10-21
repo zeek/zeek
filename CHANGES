@@ -1,4 +1,55 @@
 
+1.6-dev-1430 | 2011-10-21 10:39:09 -0700
+
+  * Fixing crash with unknown debug streams. Closes #643. (Robin
+    Sommer)
+
+  * Code to better handle interpreter errors, which can now be turned
+    into non-fatal runtime errors rather than immediate aborts. (Robin
+    Sommer).
+
+  * Remove old make-src-packages script. (Jon Siwek)
+
+  * Fixing a bunch of format strings. Closes #567. (Robin Sommer)
+
+  * Cleaning up some distribution files. (Robin Sommer)
+
+  * Various test, doc, and installation fixes/tweaks. (Seth Hall, Jon
+    Siwek and Robin Sommer).
+
+  * Varios smaller policy fixes and tweaks (Seth Hall).
+
+  * Moving docs from web server into distribution. (Robin Sommer)
+
+  * Fixing more (small) memory leaks. (Robin Sommer)
+
+  * Profiling support for DNS_Mgr and triggers. With
+    misc/profiling.bro, both now report a line in prof.log with some
+    counters on usage. (Robin Sommer)
+
+  * Fixing DNS memory leaks. Closes #534. (Robin Sommer)
+
+  * Fix code for disabling analyzers. Closes #577. (Robin Sommer)
+
+  * Changed communication option from listen_encrypted to listen_ssl.
+    (Seth Hall)
+
+  * Modification to the Communication framework API. (Seth Hall)
+
+    - Simplified the communication API and made it easier to change
+      to encrypted connections by not having separate variables to
+      define encrypted and unencrypted ports.
+
+    - Now, to enable listening without configuring nodes just
+      load the frameworks/communication/listen script.
+
+    - If encrypted listening is desired set the following:
+    	redef Communication::listen_encrypted=T;
+
+  * Connection compressor now disabled by default. Addresses #559.
+    (Robin Sommer)
+
+
 1.6-dev-1372 | 2011-10-06 18:09:17 -0700
 
   * Filtering some potentially high-volume DNS weirds. (Robin Sommer)

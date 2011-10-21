@@ -72,7 +72,7 @@ void DebugLogger::EnableStreams(const char* s)
 			if ( strcasecmp("verbose", tok) == 0 )
 				verbose = true;
 			else
-				reporter->InternalError("unknown debug stream %s\n", tok);
+				reporter->FatalError("unknown debug stream %s\n", tok);
 			}
 
 		tok = strtok(0, ",");

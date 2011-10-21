@@ -46,6 +46,7 @@ export {
 	};
 
 	const actions: table[string] of Action = {
+		["unsolicited_SYN_response"]            = ACTION_IGNORE,
 		["above_hole_data_without_any_acks"]    = ACTION_LOG,
 		["active_connection_reuse"]             = ACTION_LOG,
 		["bad_HTTP_reply"]                      = ACTION_LOG,

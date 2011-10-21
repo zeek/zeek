@@ -14,6 +14,22 @@
 
 class Connection;
 class Location;
+class Reporter;
+
+// One cannot raise this exception directly, go through the
+// Reporter's methods instead.
+
+class ReporterException {
+protected:
+	friend class Reporter;
+	ReporterException()	{}
+};
+
+class InterpreterException : public ReporterException {
+protected:
+	friend class Reporter;
+	InterpreterException()	{}
+};
 
 // Check printf-style variadic arguments if we can.
 #if __GNUC__
@@ -48,6 +64,10 @@ public:
 	// Report a fatal error. Bro will terminate after the message has been
 	// reported and always generate a core dump.
 	void FatalErrorWithCore(const char* fmt, ...) FMT_ATTR;
+
+	// Report a runtime error in evaluating a Bro script expression. This
+	// function will not return but raise an InterpreterException.
+	void ExprRuntimeError(const Expr* expr, const char* fmt, ...);
 
 	// Report a traffic weirdness, i.e., an unexpected protocol situation
 	// that may lead to incorrectly processing a connnection.
@@ -94,7 +114,9 @@ public:
 	void EndErrorHandler()	{ --in_error_handler; }
 
 private:
-	void DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Connection* conn, val_list* addl, bool location, bool time, const char* fmt, va_list ap);
+	void DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
+		   Connection* conn, val_list* addl, bool location, bool time,
+		   const char* postfix, const char* fmt, va_list ap);
 
 	// The order if addl, name needs to be like that since fmt_name can
 	// contain format specifiers

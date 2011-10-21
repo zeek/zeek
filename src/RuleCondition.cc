@@ -149,9 +149,19 @@ bool RuleConditionEval::DoMatch(Rule* rule, RuleEndpointState* state,
 	else
 		args.append(new StringVal(""));
 
-	Val* val = id->ID_Val()->AsFunc()->Call(&args);
-	bool result = val->AsBool();
-	Unref(val);
+	bool result = 0;
+
+	try
+		{
+		Val* val = id->ID_Val()->AsFunc()->Call(&args);
+		result = val->AsBool();
+		Unref(val);
+		}
+
+	catch ( InterpreterException& e )
+		{
+		result = false;
+		}
 
 	return result;
 	}

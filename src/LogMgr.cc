@@ -888,9 +888,18 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 			// to log this record.
 			val_list vl(1);
 			vl.append(columns->Ref());
-			Val* v = filter->pred->Call(&vl);
-			int result = v->AsBool();
-			Unref(v);
+
+			int result = 1;
+
+			try
+				{
+				Val* v = filter->pred->Call(&vl);
+				int result = v->AsBool();
+				Unref(v);
+				}
+
+			catch ( InterpreterException& e )
+				{ /* Already reported. */ }
 
 			if ( ! result )
 				continue;
@@ -920,7 +929,17 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 
 			vl.append(rec_arg);
 
-			Val* v = filter->path_func->Call(&vl);
+			Val* v = 0;
+
+			try
+				{
+				v = filter->path_func->Call(&vl);
+				}
+
+			catch ( InterpreterException& e )
+				{
+				return false;
+				}
 
 			if ( ! v->Type()->Tag() == TYPE_STRING )
 				{
@@ -1569,9 +1588,19 @@ bool LogMgr::FinishedRotation(LogWriter* writer, string new_name, string old_nam
 	// Call the postprocessor function.
 	val_list vl(1);
 	vl.append(info);
-	Val* v = func->Call(&vl);
-	int result = v->AsBool();
-	Unref(v);
+
+	int result = 0;
+
+	try
+		{
+		Val* v = func->Call(&vl);
+		result = v->AsBool();
+		Unref(v);
+		}
+
+	catch ( InterpreterException& e )
+		{ /* Already reported. */ }
+
 	return result;
 	}
 

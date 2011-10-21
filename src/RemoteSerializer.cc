@@ -2809,7 +2809,13 @@ void RemoteSerializer::GotFunctionCall(const char* name, double time,
 		return;
 		}
 
-	function->Call(args);
+	try
+		{
+		function->Call(args);
+		}
+
+	catch ( InterpreterException& e )
+		{ /* Already reported. */ }
 	}
 
 void RemoteSerializer::GotID(ID* id, Val* val)

@@ -4,10 +4,8 @@
 ##! documentation for the :doc:base/protocols/http/file-hash.bro script to see how to 
 ##! configure which transfers will have hashes calculated.
 
-@load base/frameworks/notice/main
-@load base/protocols/http/main
-@load base/protocols/http/utils
-@load base/protocols/http/file-hash
+@load base/frameworks/notice
+@load base/protocols/http
 
 export {
 	redef enum Notice::Type += { 

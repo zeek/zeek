@@ -1,5 +1,6 @@
 ##! This script take advantage of a few ways that installed plugin information
-##! leaks from web browsers
+##! leaks from web browsers.
+
 @load base/protocols/http
 @load base/frameworks/software
 

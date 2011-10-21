@@ -54,14 +54,11 @@ event http_entity_data(c: connection, is_orig: bool, length: count, data: string
 ## incorrect anyway.
 event content_gap(c: connection, is_orig: bool, seq: count, length: count) &priority=5
 	{
-	if ( is_orig || ! c?$http ) return;
-		
+	if ( is_orig || ! c?$http || ! c$http$calculating_md5 ) return;
+	
 	set_state(c, F, is_orig);
-	if ( c$http$calculating_md5 )
-		{
-		c$http$calculating_md5 = F;
-		md5_hash_finish(c$id);
-		}
+	c$http$calculating_md5 = F;
+	md5_hash_finish(c$id);
 	}
 
 ## When the file finishes downloading, finish the hash and generate a notice.

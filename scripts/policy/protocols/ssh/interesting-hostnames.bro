@@ -1,15 +1,19 @@
-@load base/frameworks/notice/main
+##! This script will generate a notice if an apparent SSH login originates 
+##! or heads to a host with a reverse hostname that looks suspicious.  By 
+##! default, the regular expression to match "interesting" hostnames includes 
+##! names that are typically used for infrastructure hosts like nameservers, 
+##! mail servers, web servers and ftp servers.
+
+@load base/frameworks/notice
 
 module SSH;
 
 export {
 	redef enum Notice::Type += {
-		## Generated if a login originates from a host matched by the 
+		## Generated if a login originates or responds with a host and the 
+		## reverse hostname lookup resolves to a name matched by the 
 		## :bro:id:`interesting_hostnames` regular expression.
-		Login_From_Interesting_Hostname,
-		## Generated if a login goes to a host matched by the 
-		## :bro:id:`interesting_hostnames` regular expression.
-		Login_To_Interesting_Hostname,
+		Interesting_Hostname_Login,
 	};
 	
 	## Strange/bad host names to see successful SSH logins from or to.
@@ -25,26 +29,16 @@ export {
 
 event SSH::heuristic_successful_login(c: connection)
 	{
-	# Check to see if this login came from an interesting hostname.
-	when ( local orig_hostname = lookup_addr(c$id$orig_h) )
+	for ( host in set(c$id$orig_h, c$id$resp_h) )
 		{
-		if ( interesting_hostnames in orig_hostname )
+		when ( local hostname = lookup_addr(host) )
 			{
-			NOTICE([$note=Login_From_Interesting_Hostname,
-			        $conn=c,
-			        $msg=fmt("Interesting login from hostname: %s", orig_hostname),
-			        $sub=orig_hostname]);
-			}
-		}
-	# Check to see if this login went to an interesting hostname.
-	when ( local resp_hostname = lookup_addr(c$id$resp_h) )
-		{
-		if ( interesting_hostnames in resp_hostname )
-			{
-			NOTICE([$note=Login_To_Interesting_Hostname,
-			        $conn=c,
-			        $msg=fmt("Interesting login to hostname: %s", resp_hostname),
-			        $sub=resp_hostname]);
+			if ( interesting_hostnames in hostname )
+				{
+				NOTICE([$note=Interesting_Hostname_Login,
+				        $msg=fmt("Interesting login from hostname: %s", hostname),
+				        $sub=hostname, $conn=c]);
+				}
 			}
 		}
 	}

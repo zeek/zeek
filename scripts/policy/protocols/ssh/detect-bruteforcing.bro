@@ -38,7 +38,8 @@ export {
 	const ignore_guessers: table[subnet] of subnet &redef;
 
 	## Keeps track of hosts identified as guessing passwords.
-	global password_guessers: set[addr] &read_expire=guessing_timeout+1hr &synchronized;
+	global password_guessers: set[addr] 
+		&read_expire=guessing_timeout+1hr &synchronized &redef;
 }
 
 event bro_init()

@@ -1,4 +1,4 @@
-##! SQL injection detection in HTTP.
+##! SQL injection attack detection in HTTP.
 
 @load base/frameworks/notice
 @load base/frameworks/metrics
@@ -8,7 +8,10 @@ module HTTP;
 
 export {
 	redef enum Notice::Type += {
+		## Indicates that a host performing SQL injection attacks was detected.
 		SQL_Injection_Attacker,
+		## Indicates that a host was seen to have SQL injection attacks against
+		## it.  This is tracked by IP address as opposed to hostname.
 		SQL_Injection_Attack_Against,
 	};
 	
@@ -49,9 +52,13 @@ export {
 
 event bro_init() &priority=3
 	{
+	# Add filters to the metrics so that the metrics framework knows how to 
+	# determine when it looks like an actual attack and how to respond when
+	# thresholds are crossed.
+	
 	Metrics::add_filter(SQL_ATTACKER, [$log=F,
 	                                   $notice_threshold=sqli_requests_threshold,
-	                                   $break_interval=sqli_requests_interval, 
+	                                   $break_interval=sqli_requests_interval,
 	                                   $note=SQL_Injection_Attacker]);
 	Metrics::add_filter(SQL_ATTACKS_AGAINST, [$log=F, 
 	                                          $notice_threshold=sqli_requests_threshold,

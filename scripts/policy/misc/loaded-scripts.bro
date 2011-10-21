@@ -1,10 +1,15 @@
+##! 
+
 module LoadedScripts;
 
 export {
 	redef enum Log::ID += { LOG };
 	
 	type Info: record {
-		name:   string &log;
+		## Name of the script loaded potentially with spaces included before
+		## the file name to indicate load depth.  The convention is two spaces
+		## per level of depth.
+		name: string &log;
 	};
 }
 

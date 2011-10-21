@@ -29,6 +29,8 @@ export {
 }
 
 redef record connection += {
+	## This field is to indicate whether or not the processing for detecting 
+	## and logging the service for this connection is complete.
 	known_services_done: bool &default=F;
 };
 

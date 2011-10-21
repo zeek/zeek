@@ -2,9 +2,11 @@
 module Input;
 
 export {
-	type Event: record {
-		name: string;
-		columns: any;
+	type ReaderDescription: record {
+		source: string;
+		idx: any;
+		val: any;
+		destination: any;
 	};
 }
 

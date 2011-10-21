@@ -9,20 +9,26 @@
 #include "Val.h"
 #include "EventHandler.h"
 #include "RemoteSerializer.h"
+#include "LogMgr.h" // for the LogVal and LogType data types
 
 class InputReader;
+
 
 class InputMgr {
 public:
     InputMgr();
     
-    InputReader* CreateReader(EnumVal* reader, string source, RecordVal* event);
+    InputReader* CreateReader(EnumVal* reader, RecordVal* description);
 	
 protected:
 	friend class InputReader;
 	
 	// Reports an error for the given reader.
 	void Error(InputReader* reader, const char* msg);
+	
+private:
+	// required functionality
+	// InputValsToRecord to convert received inputvals back to bro records / tables / whatever
 
 };
 

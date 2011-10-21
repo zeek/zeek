@@ -35,14 +35,14 @@ InputMgr::InputMgr()
 
 
 // create a new input reader object to be used at whomevers leisure lateron.
-InputReader* InputMgr::CreateReader(EnumVal* reader, string source, RecordVal* event) 
+InputReader* InputMgr::CreateReader(EnumVal* reader, RecordVal* description) 
 {
 	InputReaderDefinition* ir = input_readers;
 	
-	RecordType* rtype = InputReaderDefinition->Type()->AsRecordType();
-	if ( ! same_type(rtype, BifType::Record::Input::Event, 0) )
+	RecordType* rtype = description->Type()->AsRecordType();
+	if ( ! same_type(rtype, BifType::Record::Input::ReaderDescription, 0) )
 	{
-		reporter->Error("eventDescription argument not of right type");
+		reporter->Error("readerDescription argument not of right type");
 		return 0;
 	}
 	
@@ -88,7 +88,11 @@ InputReader* InputMgr::CreateReader(EnumVal* reader, string source, RecordVal* e
 	InputReader* reader_obj = (*ir->factory)();
 	assert(reader_obj);
 	
-	reader_obj->Init(source, eventName);
+	// get the source...
+	const BroString* bsource = description->Lookup(rtype->FieldOffset("source"))->AsString();
+	string source((const char*) bsource->Bytes(), bsource->Len());
+	
+	reader_obj->Init(source, 0, NULL);
 	
 	return reader_obj;
 	
@@ -99,6 +103,27 @@ void InputMgr::Error(InputReader* reader, const char* msg)
 	reporter->Error(fmt("error with input reader for %s: %s",
 						reader->Source().c_str(), msg));
 }
+
+/*
+ TODO:
+
+void InputMgr::SendEvent(string name) {
+ //EventHandler* handler = event_registry->Lookup(eventName.c_str());
+ 
+ //if ( handler == 0 ) {
+ //	reporter->Error("Event %s not found", eventName.c_str());
+ //	return false;
+ //}
+ 
+ //val_list* vl = new val_list;
+ //vl->append(new Val(12, TYPE_COUNT));
+ 
+ //mgr.Dispatch(new Event(handler, vl));
+
+	
+}
+ 
+*/
 
 
 		

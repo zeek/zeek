@@ -45,7 +45,7 @@ bindist:
 	               ./make-rpm-packages ) )
 
 distclean:
-	git reset --hard HEAD && git clean -xdf
+	rm -rf $(BUILD)
 
 configured:
 	@test -d $(BUILD) || ( echo "Error: No build/ directory found. Did you run configure?" && exit 1 )

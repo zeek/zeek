@@ -285,7 +285,7 @@ FILE* BroFile::BringIntoCache()
 
 	if ( ! f )
 		{
-		reporter->Error("can't open %s", this);
+		reporter->Error("can't open %s", name);
 
 		f = fopen("/dev/null", "w");
 

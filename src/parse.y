@@ -1593,7 +1593,7 @@ resolve_id:
 			$$ = lookup_ID($1, current_module.c_str());
 
 			if ( ! $$ )
-				reporter->Error("identifier not defined:", $1);
+				reporter->Error("identifier not defined: %s", $1);
 
 			delete [] $1;
 			}
@@ -1650,7 +1650,7 @@ int yyerror(const char msg[])
 		strcat(msgbuf, "\nDocumentation mode is enabled: "
 		       "remember to check syntax of ## style comments\n");
 
-	reporter->Error(msgbuf);
+	reporter->Error("%s", msgbuf);
 
 	return 0;
 	}

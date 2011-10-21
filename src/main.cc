@@ -951,7 +951,7 @@ int main(int argc, char** argv)
 		{
 		reporter->Info("invoked event handlers:");
 		for ( int i = 0; i < alive_handlers->length(); ++i )
-			reporter->Info((*alive_handlers)[i]);
+			reporter->Info("%s", (*alive_handlers)[i]);
 		}
 
 	delete alive_handlers;

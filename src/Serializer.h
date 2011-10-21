@@ -261,7 +261,7 @@ public:
 	virtual ~CloneSerializer()	{ }
 
 protected:
-	virtual void ReportError(const char* msg)	{ reporter->Error(msg); }
+	virtual void ReportError(const char* msg)	{ reporter->Error("%s", msg); }
 	virtual void GotID(ID* id, Val* val)	{ }
 	virtual void GotEvent(const char* name, double time,
 				EventHandlerPtr event, val_list* args)	{ }

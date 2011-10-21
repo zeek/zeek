@@ -50,7 +50,7 @@ char last_tok[128];
 // a read fails.
 #define YY_INPUT(buf,result,max_size) \
 	if ( ((result = fread(buf, 1, max_size, yyin)) == 0) && ferror(yyin) ) \
-		reporter->Error(fmt("read failed with \"%s\"", strerror(errno)));
+		reporter->Error("read failed with \"%s\"", strerror(errno));
 
 // reST documents that we've created (or have at least opened so far).
 std::list<BroDoc*> docs_generated;
@@ -408,7 +408,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 		uint32 p = atoi(yytext);
 		if ( p > 65535 )
 			{
-			reporter->Error("bad port number -", yytext);
+			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
 		RET_CONST(new PortVal(p, TRANSPORT_TCP))
@@ -417,7 +417,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 		uint32 p = atoi(yytext);
 		if ( p > 65535 )
 			{
-			reporter->Error("bad port number -", yytext);
+			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
 		RET_CONST(new PortVal(p, TRANSPORT_UDP))
@@ -426,7 +426,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 		uint32 p = atoi(yytext);
 		if ( p > 255 )
 			{
-			reporter->Error("bad port number -", yytext);
+			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
 		RET_CONST(new PortVal(p, TRANSPORT_ICMP))
@@ -435,7 +435,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 		uint32 p = atoi(yytext);
 		if ( p > 255 )
 			{
-			reporter->Error("bad port number -", yytext);
+			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
 		RET_CONST(new PortVal(p, TRANSPORT_UNKNOWN))
@@ -499,7 +499,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 
 <RE>[/\\\n]	return yytext[0];
 
-<*>.	reporter->Error("unrecognized character -", yytext);
+<*>.	reporter->Error("unrecognized character - %s", yytext);
 
 <<EOF>>	last_tok[0] = '\0'; return EOF;
 

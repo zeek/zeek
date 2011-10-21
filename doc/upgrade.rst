@@ -5,22 +5,12 @@ Upgrading From Bro 1.5 to 2.0
 
 .. class:: opening
 
-   This guide details differences between Bro version 1.5 and 2.0 that
-   may be important for users to know as they work on updating their
-   Bro deployment/configuration to the later version.
+   This guide details differences between Bro versions 1.5 and 2.0
+   that may be important for users to know as they work on updating
+   their Bro deployment/configuration to the later version.
 
 .. contents::
 
-New Development Process
-=======================
-
-Bro development has moved from using SVN to Git for revision control.
-Users that like to use the latest Bro developments by checking it out
-from the source repositories should see the `development process
-<http://www.bro-ids.org/development/process.html>`_
-
-Bro now uses `CMake <http://www.cmake.org>`_ for its build system so
-that is a new required dependency when building from source.
 
 New Script Organization/Hierarchy
 =================================
@@ -28,22 +18,29 @@ New Script Organization/Hierarchy
 In versions before 2.0, Bro scripts were all maintained in a flat
 directory called ``policy/`` in the source tree.  This directory is now
 renamed to ``scripts/`` and contains major subdirectories ``base/``,
-``policy/``, and ``site/``, each of which may also be subdivided further
+``policy/``, and ``site/``, each of which may also be subdivided
+further.
 
 The contents of the new ``scripts/`` directory, like the old/flat
 ``policy/`` still gets installed under under the ``share/bro``
 subdirectory of the installation prefix path just like previous
 versions.  For example, if Bro was compiled like ``./configure
 --prefix=/usr/local/bro && make && make install``, then the script
-hierarchy can be found in ``/usr/local/bro/share/bro``.  And main
+hierarchy can be found in ``/usr/local/bro/share/bro``.
+
+THe main
 subdirectories of that hierarchy are as follows:
 
 - ``base/`` contains all scripts that are loaded by Bro by default
-  (unless the ``-b`` command line option is used to run Bro in a minimal
-  configuration).  Scripts under this directory generally either provide
-  extra Bro scripting-layer functionality that has no performance cost,
-  configure a default/recommended mode of operation, or accumulate/log
-  useful state/protocol information for monitored traffic.
+  (unless the ``-b`` command line option is used to run Bro in a
+  minimal configuration). Note that is a major conceptual change:
+  rather than not loading anything by default, Bro now uses an
+  extensive set of default scripts out of the box.
+
+  The scripts under this directory generally either accumulate/log
+  useful state/protocol information for monitored traffic, configure a
+  default/recommended mode of operation, or provide extra Bro
+  scripting-layer functionality that has no significant performance cost.
 
 - ``policy/`` contains all scripts that a user will need to explicitly
   tell Bro to load.  These are scripts that implement
@@ -51,24 +48,24 @@ subdirectories of that hierarchy are as follows:
   more significant performance costs.
 
 - ``site/`` remains a directory that can be used to store locally 
-  developed scripts, but now contains some extra scripts that may
-  contain some recommended default configurations.  E.g. ``local.bro``
-  is loads extra scripts from ``policy/`` and does extra tuning.
-  These files can also be customized in place without being overwritten
-  by upgrades/reinstalls, unlike scripts in other directories.
+  developed scripts, but now contains some extra scripts that contain
+  some recommended default configurations.  E.g. ``local.bro`` loads
+  extra scripts from ``policy/`` and does extra tuning. These files
+  can also be customized in place without being overwritten by
+  upgrades/reinstalls, unlike scripts in other directories.
 
-Now, with version 2.0, the default/builtin ``BROPATH`` automatically
-will search for scripts in only ``policy/``, ``site/`` and their parent
-directory, but **not** ``base/``.  Generally, everything under ``base/``
-is loaded automatically, but for users of the ``-b``, option, scripts
-it's important to know that loading a script in that directory requires
-the extra ``base/`` path qualification.  For example, the following two
-scripts:
+Now, with version 2.0, the default ``BROPATH`` automatically will
+search for scripts in ``policy/``, ``site/`` and their parent
+directory, but **not** ``base/``.  Generally, everything under
+``base/`` is loaded automatically, but for users of the ``-b`` option
+(which prevents this), it's important to know that loading a
+script in that directory requires the extra ``base/`` path
+qualification.  For example, the following two scripts:
 
 * ``$PREFIX/share/bro/base/protocols/ssl/main.bro``
 * ``$PREFIX/share/bro/policy/protocols/ssl/validate-certs.bro``
 
-Are referenced from another Bro script like:
+are referenced from another Bro script like:
 
 .. code:: bro
 
@@ -77,6 +74,34 @@ Are referenced from another Bro script like:
 
 Notice how ``policy/`` can be omitted as a convenience in the second
 case.
+
+Logging Framework
+-----------------
+
+- The logs generated by scripts that ship with Bro are entirely redone
+  to use a standardized format via the new logging framework and
+  generally the content has changed towards making the logs even more
+  useful.
+
+  * A particular format change that may be useful to note is that the
+    ``conn.log`` ``service`` field is derived from DPD instead of
+    well-known ports (while that was already possible in 1.5, it was
+    not the default).
+
+- A common pattern found in the new scripts is to store logging stream
+  records for protocols inside the ``connection`` records so that
+  state can be collected until enough is seen to log a coherent unit
+  of information regarding the activity of that connection.  This
+  state is now frequently seen/accessible in event handlers, for
+  example, like ``c$<protocol>`` where ``<protocol>`` is replaced by
+  the name of the protocol.  This field is added to the ``connection``
+  record by ``redef``'ing it in a
+  ``base/protocols/<protocol>/main.bro`` script.
+
+- The new logging framework also makes it possible to extend and
+  filter logs. See `the logging framework
+  <{{git('bro:doc/logging.rst')}}>`_ more information on usage.
+
 
 Scripting-Layer API Changes
 ===========================
@@ -94,7 +119,7 @@ Scripting-Layer API Changes
 
 - The ``make_addr`` BIF now returns a ``subnet`` versus an ``addr``
 
-- The ``net`` type has been removed
+- The ``net`` type has been removed.
 
 
 New Default Settings
@@ -117,33 +142,9 @@ Variable Naming
   ``site.bro`` exports the ``local_nets`` identifier (among other
   things) into the ``Site`` module.
 
-- Identifiers may have been renamed to conform to `scripting
+- Identifiers may have been renamed to conform to new `scripting
   conventions
-  <http://www.bro-ids.org/development/script-conventions.html>`_
-
-Logging Framework
------------------
-
-- The logs generated by scripts that ship with Bro are entirely redone
-  to use a standardized format via the new logging framework and
-  generally the content has changed towards making the logs even more
-  useful.
-
-  * a particular format change that may be useful to note is that the
-    ``conn.log`` ``service`` field is derived from DPD instead of
-    well-known ports
-
-- A common pattern found in the new scripts is to store logging
-  stream records for protocols inside ``connection`` records so that
-  state can be collected until enough is seen to log a coherent unit
-  of information regarding the activity of that connection.  This state
-  is now frequently seen/accessible in event handlers, for example, like
-  ``c$<protocol>`` where ``<protocol>`` is replaced by the name of the
-  protocol.  This field is added to the ``connection`` record by
-  ``redef``'ing it in a ``base/protocols/<protocol>/main.bro`` script.
-
-- The new logging framework also makes it possible to extend and
-  filter logs. See `<logging.rst>`_.
+  <{{docroot}}/development/script-conventions.html>`_
 
 Communication Framework
 -----------------------
@@ -161,10 +162,19 @@ Communication Framework
 Notice Framework
 ----------------
 
-The way users interact with "notices" has changed significantly in order
-to make it easier to define a site policy and more extensible for adding
-customized actions.
+The way users interact with "notices" has changed significantly in
+order to make it easier to define a site policy and more extensible
+for adding customized actions. See the `the notice framework
+<{{git('bro:doc/notice.rst')}}>`_.
 
-TODO: we need new notice documentation with examples to link from
-here. The `old notice documentation <notices.html>`_ can be used as a
-starting point.
+
+New Development Infrastructure
+==============================
+
+Bro development has moved from using SVN to Git for revision control.
+Users that like to use the latest Bro developments by checking it out
+from the source repositories should see the `development process
+<{{docroot}}/development/process.html>`_
+
+Bro now uses `CMake <http://www.cmake.org>`_ for its build system so
+that is a new required dependency when building from source.

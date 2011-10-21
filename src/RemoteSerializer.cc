@@ -3085,7 +3085,7 @@ void RemoteSerializer::FatalError(const char* msg)
 	{
 	msg = fmt("fatal error, shutting down communication: %s", msg);
 	Log(LogError, msg);
-	reporter->Error(msg);
+	reporter->Error("%s", msg);
 
 	closed = true;
 	kill(child_pid, SIGQUIT);

@@ -39,7 +39,7 @@ version. The two rules of thumb are:
         if you need help.
 
 Below we summarize changes from 1.x to 2.x in more detail. This list
-isn't complete, see the `CHANGES <{{git("bro:CHANGES")}}>`_ file in the
+isn't complete, see the `CHANGES <{{git('bro:CHANGES', 'rst')}}>`_ file in the
 distribution for the full story. 
 
 Default Scripts

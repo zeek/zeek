@@ -1,4 +1,7 @@
-@load base/frameworks/software/main
+##! This script extracts SSH client and server information from SSH 
+##! connections and forwards it to the software framework.
+
+@load base/frameworks/software
 
 module SSH;
 

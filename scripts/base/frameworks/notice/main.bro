@@ -353,11 +353,12 @@ function email_notice_to(n: Notice::Info, dest: string, extend: bool)
 		return;
 		
 	local email_text = email_headers(fmt("%s", n$note), dest);
+		
+	# First off, finish the headers and include the human readable message
+	# then leave a blank line after the message.
+	email_text = string_cat(email_text, "\nMessage: ", n$msg, "\n\n");
 	
-	# Finish off the headers and start the message body.
-	email_text = string_cat(email_text, "\n");
-	
-	# First off, add information about the connection if it exists.
+	# Next, add information about the connection if it exists.
 	if ( n?$id )
 		{
 		email_text = string_cat(email_text, "Connection: ", 
@@ -368,9 +369,6 @@ function email_notice_to(n: Notice::Info, dest: string, extend: bool)
 		}
 	else if ( n?$src )
 		email_text = string_cat(email_text, "Address: ", fmt("%s", n$src), "\n");
-	
-	# Any connection information is followed up by the human readable message.
-	email_text = string_cat(email_text, "Message: ", n$msg, "\n");
 	
 	# Add the extended information if it's requested.
 	if ( extend )

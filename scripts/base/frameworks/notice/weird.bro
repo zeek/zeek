@@ -286,8 +286,8 @@ function report(t: time, name: string, identifier: string, have_conn: bool, addl
 		if ( action in notice_actions )
 			{
 			# Handle notices
-			if ( action == ACTION_NOTICE_PER_ORIG && have_conn )
-				identifier = flow_id_string(current_conn$id$orig_h, current_conn$id$resp_h);
+			if ( have_conn && action == ACTION_NOTICE_PER_ORIG )
+				identifier = fmt("%s", current_conn$id$orig_h);
 			else if ( action == ACTION_NOTICE_ONCE )
 				identifier = "";
 		
@@ -299,8 +299,8 @@ function report(t: time, name: string, identifier: string, have_conn: bool, addl
 		else
 			{
 			# Handle logging.
-			if ( action == ACTION_LOG_PER_ORIG && have_conn )
-				identifier = flow_id_string(current_conn$id$orig_h, current_conn$id$resp_h);
+			if ( have_conn && action == ACTION_LOG_PER_ORIG )
+				identifier = fmt("%s", current_conn$id$orig_h);
 			else if ( action == ACTION_LOG_ONCE )
 				identifier = "";
 		

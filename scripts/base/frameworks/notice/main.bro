@@ -359,11 +359,11 @@ function email_notice_to(n: Notice::Info, dest: string, extend: bool)
 
 	# Add information about the connection if it exists.
 	if ( n?$id )
-		email_text = cat(email_text, "Connection: ", 
-			n$id$orig_h, ":", n$id$orig_p, " -> ",
-			n$id$resp_h, ":", n$id$resp_p, "\n");
+		email_text = string_cat(email_text, "Connection: ", 
+			fmt("%s", n$id$orig_h), ":", fmt("%d", n$id$orig_p), " -> ",
+			fmt("%s", n$id$resp_h), ":", fmt("%d", n$id$resp_p), "\n");
 	else if ( n?$src )
-		email_text = cat(email_text, "Address: ", n$src, "\n");
+		email_text = string_cat(email_text, "Address: ", fmt("%s", n$src), "\n");
 	
 	# Add the extended information if it's requested.
 	if ( extend )

@@ -62,14 +62,15 @@ function known_services_done(c: connection)
 	c$known_services_done = T;
 	
 	if ( ! addr_matches_host(id$resp_h, service_tracking) ||
-	     "ftp-data" in c$service ) # don't include ftp data sessions
+	     "ftp-data" in c$service || # don't include ftp data sessions
+	     ("DNS" in c$service && c$resp$size == 0) ) # for dns, require that the server talks.
 		return;
 	
 	# If no protocol was detected, wait a short
 	# time before attempting to log in case a protocol is detected
 	# on another connection.
 	if ( |c$service| == 0 )
-		schedule 2mins { log_it(network_time(), id$resp_h, id$resp_p, c$service) };
+		schedule 5min { log_it(network_time(), id$resp_h, id$resp_p, c$service) };
 	else 
 		event log_it(network_time(), id$resp_h, id$resp_p, c$service);
 	}

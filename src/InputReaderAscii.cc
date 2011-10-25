@@ -37,7 +37,7 @@ bool InputReaderAscii::DoInit(string path, int num_fields, const LogField* const
 	
 	file = new ifstream(path.c_str());
 	if ( !file->is_open() ) {
-		Error(Fmt("cannot open %s", path.c_str()));
+		Error(Fmt("cannot open %s", fname.c_str()));
 		return false;
 	}
 
@@ -108,7 +108,7 @@ bool InputReaderAscii::DoUpdate() {
 		istringstream splitstream(line);
 		string s;
 	
-		LogVal fields[num_fields];
+		LogVal** fields = new LogVal*[num_fields];
 
 		unsigned int currTab = 0;
 		unsigned int currField = 0;
@@ -136,17 +136,20 @@ bool InputReaderAscii::DoUpdate() {
 				return false;
 			}
 
-			LogVal val(currMapping.type, true);
+			LogVal* val = new LogVal(currMapping.type, true);
 
 			switch ( currMapping.type ) {
 			case TYPE_STRING:
-				val.val.string_val = new string(s);
+				val->val.string_val = new string(s);
+				break;
 
 			default:
 				Error(Fmt("unsupported field format %d for %s", currMapping.type,
 			 	 currMapping.name.c_str()));
 				return false;
 			}	
+
+			fields[currField] = val;
 
 			currField++;
 		}
@@ -157,6 +160,9 @@ bool InputReaderAscii::DoUpdate() {
 		}
 
 		// ok, now we have built our line. send it back to... whomever.
+		// for testing purposes: fixed event.
+
+		SendEvent("inputEvent", num_fields, fields);
 
 	}
 

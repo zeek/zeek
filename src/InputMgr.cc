@@ -91,8 +91,22 @@ InputReader* InputMgr::CreateReader(EnumVal* reader, RecordVal* description)
 	// get the source...
 	const BroString* bsource = description->Lookup(rtype->FieldOffset("source"))->AsString();
 	string source((const char*) bsource->Bytes(), bsource->Len());
-	
-	reader_obj->Init(source, 0, NULL);
+
+	RecordType *idx = description->Lookup(rtype->FieldOffset("idx"))->AsType()->AsTypeType()->Type()->AsRecordType();
+
+	LogField** fields = new LogField*[idx->NumFields()];
+	for ( int i = 0; i < idx->NumFields(); i++ ) 
+	{
+		// FIXME: do type checking...
+		LogField* field = new LogField();
+		field->name = idx->FieldName(i);
+		field->type = idx->FieldType(i)->Tag();
+		fields[i] = field;
+	}
+
+
+	reader_obj->Init(source, idx->NumFields(), fields);
+	reader_obj->Update();
 	
 	return reader_obj;
 	

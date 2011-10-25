@@ -31,6 +31,7 @@ protected:
 	virtual bool DoUpdate() = 0;
 	
 	// Reports an error to the user.
+	void Error(const string &msg);
 	void Error(const char *msg);
 	
 	// The following methods return the information as passed to Init().
@@ -38,6 +39,8 @@ protected:
 
 	// A thread-safe version of fmt(). (stolen from logwriter)
 	const char* Fmt(const char* format, ...);
+
+	void SendEvent(const string& name, const int num_vals, const LogVal* const *vals);
 
 private:
     friend class InputMgr;

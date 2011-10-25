@@ -5,6 +5,8 @@
 
 InputReader::InputReader()
 {
+	buf = 0;
+	buf_len = 1024;
     disabled = true; // disabled will be set correcty in init.
 }
 
@@ -17,6 +19,11 @@ void InputReader::Error(const char *msg)
 {
 	input_mgr->Error(this, msg);
 }
+
+void InputReader::Error(const string &msg)
+	{
+	input_mgr->Error(this, msg.c_str());
+	}
 
 bool InputReader::Init(string arg_source, int arg_num_fields,
 					   const LogField* const * arg_fields) 
@@ -36,6 +43,10 @@ void InputReader::Finish() {
 
 bool InputReader::Update() {
 	return DoUpdate();
+}
+
+void InputReader::SendEvent(const string& name, const int num_vals, const LogVal* const *vals) {
+	input_mgr->SendEvent(name, num_vals, vals);
 }
 
 // stolen from logwriter

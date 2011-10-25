@@ -33,42 +33,34 @@ export {
 		## The actual uncompressed content size of the data transferred from
 		## the client.
 		request_body_len:        count    &log &default=0;
-		## This indicates whether or not there was an interruption while the
-		## request body was being sent.
-		request_body_interrupted: bool     &log &default=F;
 		## The actual uncompressed content size of the data transferred from
 		## the server.
-		response_body_len:       count    &log &default=0;
-		## This indicates whether or not there was an interruption while the
-		## request body was being sent.  An interruption could cause hash
-		## calculation to fail and a number of other problems since the 
-		## analyzer may not be able to get back on track with the connection.
-		response_body_interrupted: bool     &log &default=F;
+		response_body_len:       count     &log &default=0;
 		## The status code returned by the server.
-		status_code:             count    &log &optional;
+		status_code:             count     &log &optional;
 		## The status message returned by the server.
-		status_msg:              string   &log &optional;
+		status_msg:              string    &log &optional;
 		## The last 1xx informational reply code returned by the server.
-		info_code:               count    &log &optional;
+		info_code:               count     &log &optional;
 		## The last 1xx informational reply message returned by the server.
-		info_msg:               string    &log &optional;
+		info_msg:                string    &log &optional;
 		## The filename given in the Content-Disposition header
 		## sent by the server.
-		filename:                string   &log &optional;
+		filename:                string    &log &optional;
 		## This is a set of indicators of various attributes discovered and
 		## related to a particular request/response pair.
 		tags:                    set[Tags] &log;
 		
 		## The username if basic-auth is performed for the request.
-		username:           string  &log &optional;
+		username:                string    &log &optional;
 		## The password if basic-auth is performed for the request.
-		password:           string  &log &optional;
+		password:                string    &log &optional;
 		
 		## This determines if the password will be captured for this request.
-		capture_password:   bool &default=default_capture_password;
+		capture_password:        bool      &default=default_capture_password;
 		
 		## All of the headers that may indicate if the request was proxied.
-		proxied:            set[string] &log &optional;
+		proxied:                 set[string] &log &optional;
 	};
 	
 	type State: record {
@@ -141,7 +133,7 @@ function set_state(c: connection, request: bool, is_orig: bool)
 		local s: State;
 		c$http_state = s;
 		}
-	
+		
 	# These deal with new requests and responses.
 	if ( request || c$http_state$current_request !in c$http_state$pending )
 		c$http_state$pending[c$http_state$current_request] = new_http_session(c);
@@ -253,15 +245,9 @@ event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &
 	set_state(c, F, is_orig);
 	
 	if ( is_orig )
-		{
 		c$http$request_body_len = stat$body_length;
-		c$http$request_body_interrupted = stat$interrupted;
-		}
 	else
-		{
 		c$http$response_body_len = stat$body_length;
-		c$http$response_body_interrupted = stat$interrupted;
-		}
 	}
 	
 event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &priority = -5

@@ -11,10 +11,9 @@ export {
 		ts:                time            &log;
 		uid:               string          &log;
 		id:                conn_id         &log;
-		## This is an internally generated "message id" that can be used to
-		## map between SMTP messages and MIME entities in the SMTP entities
-		## log.
-		mid:               string          &log;
+		## This is a number that indicates the number of messages deep into
+		## this connection where this particular message was transferred.
+		trans_depth:       count           &log;
 		helo:              string          &log &optional;
 		mailfrom:          string          &log &optional;
 		rcptto:            set[string]     &log &optional;
@@ -98,8 +97,11 @@ function new_smtp_log(c: connection): Info
 	l$ts=network_time();
 	l$uid=c$uid;
 	l$id=c$id;
-	l$mid=unique_id("@");
-	if ( c?$smtp_state && c$smtp_state?$helo )
+	# The messages_transferred count isn't incremented until the message is 
+	# finished so we need to increment the count by 1 here.
+	l$trans_depth = c$smtp_state$messages_transferred+1;
+	
+	if ( c$smtp_state?$helo )
 		l$helo = c$smtp_state$helo;
 	
 	# The path will always end with the hosts involved in this connection.
@@ -165,7 +167,6 @@ event smtp_reply(c: connection, is_orig: bool, code: count, cmd: string,
 event smtp_reply(c: connection, is_orig: bool, code: count, cmd: string,
                  msg: string, cont_resp: bool) &priority=-5
 	{
-	set_smtp_session(c);
 	if ( cmd == "." )
 		{
 		# Track the number of messages seen in this session.

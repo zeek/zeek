@@ -18,6 +18,9 @@ export {
 		ts:                      time     &log;
 		uid:                     string   &log;
 		id:                      conn_id  &log;
+		## This represents the pipelined depth into the connection of this 
+		## request/response transaction.
+		trans_depth:             count    &log;
 		## The verb used in the HTTP request (GET, POST, HEAD, etc.).
 		method:                  string   &log &optional;
 		## The value of the HOST header.
@@ -123,6 +126,9 @@ function new_http_session(c: connection): Info
 	tmp$ts=network_time();
 	tmp$uid=c$uid;
 	tmp$id=c$id;
+	# $current_request is set prior to the Info record creation so we 
+	# can use the value directly here.
+	tmp$trans_depth = c$http_state$current_request;
 	return tmp;
 	}
 	

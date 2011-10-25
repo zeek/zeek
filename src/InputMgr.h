@@ -13,7 +13,6 @@
 
 class InputReader;
 
-
 class InputMgr {
 public:
     InputMgr();
@@ -29,6 +28,9 @@ protected:
 private:
 	// required functionality
 	// InputValsToRecord to convert received inputvals back to bro records / tables / whatever
+	Val* LogValToVal(const LogVal* val);
+
+	void SendEvent(const string& name, const int num_vals, const LogVal* const *vals);
 
 };
 

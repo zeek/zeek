@@ -33,3 +33,34 @@ bool InputReader::Init(string arg_source, int arg_num_fields,
 void InputReader::Finish() {
 	DoFinish();
 }
+
+bool InputReader::Update() {
+	return DoUpdate();
+}
+
+// stolen from logwriter
+const char* InputReader::Fmt(const char* format, ...)
+	{
+	if ( ! buf )
+		buf = (char*) malloc(buf_len);
+
+	va_list al;
+	va_start(al, format);
+	int n = safe_vsnprintf(buf, buf_len, format, al);
+	va_end(al);
+
+	if ( (unsigned int) n >= buf_len )
+		{ // Not enough room, grow the buffer.
+		buf_len = n + 32;
+		buf = (char*) realloc(buf, buf_len);
+
+		// Is it portable to restart?
+		va_start(al, format);
+		n = safe_vsnprintf(buf, buf_len, format, al);
+		va_end(al);
+		}
+
+	return buf;
+	}
+
+

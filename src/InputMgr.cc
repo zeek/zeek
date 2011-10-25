@@ -100,31 +100,62 @@ InputReader* InputMgr::CreateReader(EnumVal* reader, RecordVal* description)
 
 void InputMgr::Error(InputReader* reader, const char* msg)
 {
-	reporter->Error(fmt("error with input reader for %s: %s",
-						reader->Source().c_str(), msg));
+	reporter->Error("error with input reader for %s: %s", reader->Source().c_str(), msg);
 }
 
-/*
- TODO:
 
-void InputMgr::SendEvent(string name) {
- //EventHandler* handler = event_registry->Lookup(eventName.c_str());
- 
- //if ( handler == 0 ) {
- //	reporter->Error("Event %s not found", eventName.c_str());
- //	return false;
- //}
- 
- //val_list* vl = new val_list;
- //vl->append(new Val(12, TYPE_COUNT));
- 
- //mgr.Dispatch(new Event(handler, vl));
+void InputMgr::SendEvent(const string& name, const int num_vals, const LogVal* const *vals) 
+{
+	EventHandler* handler = event_registry->Lookup(name.c_str());
+	if ( handler == 0 ) {
+		reporter->Error("Event %s not found", name.c_str());
+		return;
+	}
 
+	val_list* vl = new val_list;
+	for ( int i = 0; i < num_vals; i++) {
+		vl->append(LogValToVal(vals[i]));
+	}
+
+	mgr.Dispatch(new Event(handler, vl));
+}
+
+Val* InputMgr::LogValToVal(const LogVal* val) {
+	switch ( val->type ) {
+	case TYPE_BOOL:
+	case TYPE_INT:
+		return new Val(val->val.int_val, val->type);
+		break;
+
+	case TYPE_COUNT:
+	case TYPE_COUNTER:
+		return new Val(val->val.uint_val, val->type);
+		break;
 	
+	case TYPE_DOUBLE:
+	case TYPE_TIME:
+	case TYPE_INTERVAL:
+		return new Val(val->val.double_val, val->type);
+		break;
+
+	case TYPE_STRING:
+		{
+		BroString *s = new BroString(*(val->val.string_val));
+		return new StringVal(s);
+		break;
+		}
+	
+	case TYPE_PORT:
+		return new PortVal(val->val.uint_val);
+		break;
+
+	default:
+		reporter->InternalError("unsupported type for input_read");
+	}
+
+
+	reporter->InternalError("Impossible error");
+	return NULL;
 }
- 
-*/
-
-
 		
 		

@@ -66,6 +66,10 @@ global matched_software: table[string] of Software::Info = {
 		[$name="Java", $version=[$major=1,$minor=3,$minor2=1,$addl="04"], $host=host, $ts=ts],
 	["Mozilla/5.0 (Linux; U; Android 2.3.3; zh-tw; HTC Pyramid Build/GRI40) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1"] = 
 		[$name="Safari", $version=[$major=4,$minor=0,$addl="Mobile"], $host=host, $ts=ts],
+	["Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_6; en-us) AppleWebKit/533.20.25 (KHTML, like Gecko) Version/5.0.4 Safari/533.20.27"] =
+		[$name="Safari", $version=[$major=5,$minor=0,$minor2=4], $host=host, $ts=ts],
+	["Mozilla/5.0 (iPod; U; CPU iPhone OS 4_0 like Mac OS X; en-us) AppleWebKit/532.9 (KHTML, like Gecko) Version/4.0.5 Mobile/8A293 Safari/6531.22.7"] = 
+		[$name="Safari", $version=[$major=4,$minor=0,$minor2=5,$addl="Mobile"], $host=host, $ts=ts],
 	["Opera/9.80 (J2ME/MIDP; Opera Mini/9.80 (S60; SymbOS; Opera Mobi/23.348; U; en) Presto/2.5.25 Version/10.54"] = 
 		[$name="Opera Mini", $version=[$major=10,$minor=54], $host=host, $ts=ts],
 	["Opera/9.80 (J2ME/MIDP; Opera Mini/5.0.18741/18.794; U; en) Presto/2.4.15"] =
@@ -74,12 +78,20 @@ global matched_software: table[string] of Software::Info = {
 		[$name="Opera Mobi", $version=[$major=10,$minor=0], $host=host, $ts=ts],
 	["Mozilla/4.0 (compatible; MSIE 8.0; Android 2.2.2; Linux; Opera Mobi/ADR-1103311355; en) Opera 11.00"] =
 		[$name="Opera", $version=[$major=11,$minor=0], $host=host, $ts=ts],
+	["Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.7.2) Gecko/20040804 Netscape/7.2 (ax)"] =
+		[$name="Netscape", $version=[$major=7,$minor=2], $host=host, $ts=ts],
 	["Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0; GTB5; SLCC1; .NET CLR 2.0.50727; Media Center PC 5.0; .NET CLR 3.0.04506; InfoPath.2)"] =
 		[$name="MSIE", $version=[$major=7,$minor=0], $host=host, $ts=ts],
 	["Mozilla/4.0 (compatible; MSIE 7.0b; Windows NT 5.1; Media Center PC 3.0; .NET CLR 1.0.3705; .NET CLR 1.1.4322; .NET CLR 2.0.50727; InfoPath.1)"] =
 		[$name="MSIE", $version=[$major=7,$minor=0,$addl="b"], $host=host, $ts=ts],
-	["Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.7.2) Gecko/20040804 Netscape/7.2 (ax)"] =
-		[$name="Netscape", $version=[$major=7,$minor=2], $host=host, $ts=ts],
+	["Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1; Trident/4.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; Tablet PC 2.0; InfoPath.2; InfoPath.3)"] =
+		[$name="MSIE", $version=[$major=8,$minor=0], $host=host, $ts=ts],
+	["Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)"] =
+		[$name="MSIE", $version=[$major=9,$minor=0], $host=host, $ts=ts],
+	["Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.1; WOW64; Trident/5.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; .NET4.0C; .NET4.0E; InfoPath.3; Creative AutoUpdate v1.40.02)"] =
+		[$name="MSIE", $version=[$major=9,$minor=0], $host=host, $ts=ts],
+	["Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; WOW64; Trident/6.0)"] =
+		[$name="MSIE", $version=[$major=10,$minor=0], $host=host, $ts=ts],
 	["The Bat! (3.0.1 RC3) Professional"] =
 		[$name="The Bat!", $version=[$major=3,$minor=0,$minor2=1,$addl="RC3"], $host=host, $ts=ts],
 	# This is an FTP client (found with CLNT command)

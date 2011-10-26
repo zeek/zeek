@@ -894,7 +894,7 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 			try
 				{
 				Val* v = filter->pred->Call(&vl);
-				int result = v->AsBool();
+				result = v->AsBool();
 				Unref(v);
 				}
 

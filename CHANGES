@@ -1,4 +1,8 @@
 
+1.6-dev-1482 | 2011-10-25 19:08:32 -0700
+
+  * Fixing bug in log managers predicate evaluation. (Robin Sommer)
+
 1.6-dev-1481 | 2011-10-25 18:17:03 -0700
 
   * Fix a problem with DNS servers being logged that aren't actually

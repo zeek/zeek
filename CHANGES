@@ -1,4 +1,12 @@
 
+2.0-beta-pre | 2011-10-26 14:48:59 -0700
+
+  * Release 2.0-beta-pre.
+
+1.6-dev-1506 | 2011-10-26 14:48:43 -0700
+
+  * Updating submodule(s). (Robin Sommer)
+
 1.6-dev-1505 | 2011-10-26 14:43:58 -0700
 
   * A new base script that pretty-prints alarms in the regular

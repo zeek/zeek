@@ -8,6 +8,10 @@ export {
 	## Activate pretty-printed alarm summaries.
 	const pretty_print_alarms = T &redef;
 
+	## Address to send the pretty-printed reports to. Default if not set is
+	## :bro:id:`Notice::mail_dest`.
+	const mail_dest_pretty_printed = "" &redef;
+
 	## Function that renders a single alarm. Can be overidden.
 	global pretty_print_alarm: function(out: file, n: Info) &redef;
 }
@@ -20,9 +24,8 @@ global pp_alarms_open: bool = F;
 # Returns True if pretty-printed alarm summaries are activated.
 function want_pp() : bool
 	{
-	# return (pretty_print_alarms && ! reading_traces() && mail_dest != "");
-	print (pretty_print_alarms && mail_dest != "");
-	return (pretty_print_alarms && mail_dest != "");
+	return (pretty_print_alarms && ! reading_traces()
+		&& (mail_dest != "" || mail_dest_pretty_printed != ""));
 	}
 
 # Opens and intializes the output file.
@@ -33,8 +36,11 @@ function pp_open()
 
 	pp_alarms_open = T;
 	pp_alarms = open(pp_alarms_name);
+
+	local dest = mail_dest_pretty_printed != "" ? mail_dest_pretty_printed
+		: mail_dest;
 	
-	local headers = email_headers("Alarm Summary", mail_dest);
+	local headers = email_headers("Alarm summary", dest);
 	write_file(pp_alarms, headers + "\n");
 	}
 
@@ -45,6 +51,7 @@ function pp_send()
 		return;
 
 	write_file(pp_alarms, "\n\n--\n[Automatically generated]\n\n");
+	close(pp_alarms);
 	
 	system(fmt("/bin/cat %s | %s -t -oi && /bin/rm %s",
 		   pp_alarms_name, sendmail, pp_alarms_name));
@@ -57,6 +64,8 @@ function pp_postprocessor(info: Log::RotationInfo): bool
 	{
 	if ( want_pp() )
 		pp_send();
+	
+	return T;
 	}
 
 event bro_init()

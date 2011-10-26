@@ -9,6 +9,7 @@
 #include "Net.h"
 
 #include "LogWriterAscii.h"
+#include "LogWriterNone.h"
 
 // Structure describing a log writer type.
 struct LogWriterDefinition {
@@ -20,6 +21,7 @@ struct LogWriterDefinition {
 
 // Static table defining all availabel log writers.
 LogWriterDefinition log_writers[] = {
+	{ BifEnum::Log::WRITER_NONE,  "None", 0, LogWriterNone::Instantiate },
 	{ BifEnum::Log::WRITER_ASCII, "Ascii", 0, LogWriterAscii::Instantiate },
 
 	// End marker, don't touch.

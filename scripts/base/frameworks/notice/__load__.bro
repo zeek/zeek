@@ -18,3 +18,6 @@
 @if ( Cluster::is_enabled() )
 @load ./cluster
 @endif
+
+# Load here so that it can check whether clustering is enabled.
+@load ./actions/pp-alarms

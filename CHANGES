@@ -1,4 +1,12 @@
 
+1.6-dev-1505 | 2011-10-26 14:43:58 -0700
+
+  * A new base script that pretty-prints alarms in the regular
+    summary. (Robin Sommer)
+
+  * Adding a dummy log writer WRITER_NONE that just discards
+    everything. (Robin Sommer)
+
 1.6-dev-1498 | 2011-10-26 14:30:15 -0700
 
   * Adding instructions to local.bro how to do ACTION_ALARM by

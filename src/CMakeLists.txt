@@ -335,6 +335,7 @@ set(bro_SRCS
     LogMgr.cc
     LogWriter.cc
     LogWriterAscii.cc
+    LogWriterNone.cc
     Login.cc
     MIME.cc
     NCP.cc

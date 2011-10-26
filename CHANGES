@@ -1,4 +1,9 @@
 
+1.6-dev-1498 | 2011-10-26 14:30:15 -0700
+
+  * Adding instructions to local.bro how to do ACTION_ALARM by
+  default. (Seth Hall)
+
 1.6-dev-1495 | 2011-10-26 10:15:58 -0500
 
   * Updated unit test baselines. (Seth Hall)

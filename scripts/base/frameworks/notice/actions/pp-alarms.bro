@@ -2,6 +2,10 @@
 #! in regular intervals, formatted for better human readability. If activated,
 #! that replaces the default summary mail having the raw log output.
 
+@load base/utils/site
+@load base/frameworks/cluster
+@load ../main
+
 module Notice;
 
 export {
@@ -104,8 +108,10 @@ function do_msg(out: file, n: Info, line1: string, line2: string, line3: string,
 	if ( host != 0.0.0.0 )
 		{
 		local country = "";
+@ifdef ( Notice::ACTION_ADD_GEODATA ) # Make tests happy, cyclic dependency.
 		if ( n?$remote_location && n$remote_location?$country_code  )
 			country = fmt(" (%s)", n$remote_location$country_code);
+@endif		
 
 		name = fmt(" %s = %s%s", host, name, country);
 		}

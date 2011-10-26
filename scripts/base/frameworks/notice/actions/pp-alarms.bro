@@ -30,7 +30,6 @@ global pp_alarms_open: bool = F;
 # Returns True if pretty-printed alarm summaries are activated.
 function want_pp() : bool
 	{
-	return T;
 	return (pretty_print_alarms && ! reading_traces()
 		&& (mail_dest != "" || mail_dest_pretty_printed != ""));
 	}
@@ -60,8 +59,8 @@ function pp_send()
 	write_file(pp_alarms, "\n\n--\n[Automatically generated]\n\n");
 	close(pp_alarms);
 	
-	#system(fmt("/bin/cat %s | %s -t -oi && /bin/rm %s",
-	#	   pp_alarms_name, sendmail, pp_alarms_name));
+	system(fmt("/bin/cat %s | %s -t -oi && /bin/rm %s",
+		   pp_alarms_name, sendmail, pp_alarms_name));
 
 	pp_alarms_open = F;
 	}

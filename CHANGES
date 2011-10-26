@@ -1,4 +1,8 @@
 
+1.6-dev-1491 | 2011-10-25 20:22:56 -0700
+
+  * Updating submodule(s). (Robin Sommer)
+
 1.6-dev-1482 | 2011-10-25 19:08:32 -0700
 
   * Fixing bug in log managers predicate evaluation. (Robin Sommer)

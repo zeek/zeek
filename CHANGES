@@ -1,5 +1,5 @@
 
-1.6-dev-1480 | 2011-10-25 18:13:43 -0700
+1.6-dev-1481 | 2011-10-25 18:17:03 -0700
 
   * Fix a problem with DNS servers being logged that aren't actually
     servers. (Seth Hall)
@@ -8,16 +8,16 @@
     Siwek)
 
   * Removed :bro doc directives from notice documentation. (Seth Hall)
-    
+
   * New notice framework docs. (Seth Hall)
-    
+
   * Adding sub messages to emails. (Seth Hall)
 
-  * Adding extra fields to smtp and http to track transaction depth. 
+  * Adding extra fields to smtp and http to track transaction depth.
     (Seth Hall)
 
   * Fix for SSH login detection heuristic. (Seth Hall)
-    
+
   * Removed some fields from http analysis that weren't commonly
     needed or were wrong. (Seth Hall)
 
@@ -28,16 +28,16 @@
     name. (Jon Siwek)
 
   * weird.bro rewrite. (Seth Hall)
-    
+
   * More notice email tuning. (Seth Hall)
 
   * Slightly restructured http file hashing to fix a bug. (Seth Hall)
-    
+
   * Changed the notice name for interesting ssh logins to correctly
     reflect semantics of the notice.  (Seth Hall)
 
   * Field name change to notice framwork.  $result -> $action
-    
+
     - $result is renamed to $action to reflect changes to the notice
       framework since there is already another result-like field
       ($suppress_for) and there may be more in the future.
@@ -46,7 +46,7 @@
       emails too. (Seth Hall)
 
   * Small script refinements and documentation updates. (Seth Hall)
-    
+
   * Pass over upgrade guide. (Robin Sommer)
 
 

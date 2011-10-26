@@ -191,7 +191,7 @@ type Object_Header(function_code: uint8) = record {
 		8 -> range_field_8: uint16;
 		9 -> range_field_9: uint32;
 		0x0b -> range_field_b: uint8;
-		default -> unknown: bytestring &restofdata;	
+		default -> unknown: bytestring &restofdata &check(0);	
 	};
 	dump_data: case ( object_type_field & 0xff00 ) of {    # type is always empty; used to check dependency bw object_type_field and qualifier_field
 		0x3C00 -> dump_3c: empty &check( (object_type_field == 0x3C01 || object_type_field == 0x3C02 || object_type_field == 0x3C03 || object_type_field == 0x3C04) && ( qualifier_field == 0x06 ) );
@@ -199,8 +199,8 @@ type Object_Header(function_code: uint8) = record {
 	};
 }  
    # &byteorder = littleendian
-    &let{
-	number_of_item: uint32 = case (qualifier_field & 0x0f) of {
+    &let{	
+	number_of_item: int = case (qualifier_field & 0x0f) of {
 		0 -> (range_field_0.stop_index - range_field_0.start_index + 1);
 		1 -> (range_field_1.stop_index - range_field_1.start_index + 1);
 		2 -> (range_field_2.stop_index - range_field_2.start_index + 1);
@@ -209,6 +209,30 @@ type Object_Header(function_code: uint8) = record {
 		9 -> ( range_field_9 & 0x000000ff )* 0x1000000 + (range_field_9 & 0x0000ff00) * 0x100 + (range_field_9 & 0x00ff0000) / 0x100 + (range_field_9 & 0xff000000) / 0x1000000 ;
 		0x0b -> range_field_b;
 		default -> 0;
+	};
+	rf_value_low: int = case (qualifier_field & 0x0f) of {
+		0 -> 0 + range_field_0.start_index;
+		1 -> range_field_1.start_index;
+		2 -> range_field_2.start_index;
+		3 -> range_field_3.start_addr;
+		4 -> range_field_4.start_addr;
+		5 -> range_field_5.start_addr;
+		6 -> 0xffff;		
+		7 -> range_field_7;
+		8 -> range_field_8;
+		9 -> range_field_9;
+		0x0b -> range_field_b;
+		default -> 0 ;
+	};
+	rf_value_high: int = case (qualifier_field & 0x0f) of {
+		0 -> 0 + range_field_0.stop_index;
+		1 -> range_field_1.stop_index;
+		2 -> range_field_2.stop_index;
+		3 -> range_field_3.stop_addr;
+		4 -> range_field_4.stop_addr;
+		5 -> range_field_5.stop_addr;
+		6 -> 0xffff;		
+		default -> 0 ;
 	};
 };
 

@@ -79,14 +79,14 @@ flow Dnp3_Flow(is_orig: bool) {
                        }
                return true;
                %}
-       function get_dnp3_object_header(obj_type: uint16, qua_field: uint8, number: uint32 ): bool
+       function get_dnp3_object_header(obj_type: uint16, qua_field: uint8, number: uint32, rf_low: uint32, rf_high: uint32 ): bool
                %{
                if ( ::dnp3_object_header )
                        {
                        BifEvent::generate_dnp3_object_header(
                                connection()->bro_analyzer(),
                                connection()->bro_analyzer()->Conn(),
-                               is_orig(), obj_type, qua_field, number);
+                               is_orig(), obj_type, qua_field, number, rf_low, rf_high);
                        }
 
                return true;
@@ -584,7 +584,7 @@ refine typeattr Dnp3_Application_Response_Header += &let {
 };
 
 refine typeattr Object_Header += &let {
-       process_request: bool =  $context.flow.get_dnp3_object_header(object_type_field, qualifier_field, number_of_item);
+       process_request: bool =  $context.flow.get_dnp3_object_header(object_type_field, qualifier_field, number_of_item, rf_value_low, rf_value_high);
 };
 refine typeattr Response_Data_Object += &let {
        process_request: bool =  $context.flow.get_dnp3_response_data_object(data_value);

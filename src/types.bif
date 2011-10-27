@@ -174,4 +174,8 @@ enum Reader %{
 	READER_ASCII,
 %}
 
+enum ID %{
+	Unknown,
+%}
+
 module GLOBAL;

@@ -144,6 +144,13 @@ bool InputReaderAscii::DoUpdate() {
 				break;
 
 			case TYPE_BOOL:
+				if ( s == "T" ) {
+					val->val.int_val = 1;
+				} else {
+					val->val.int_val = 0;
+				}
+				break;
+
 			case TYPE_INT:
 				val->val.int_val = atoi(s.c_str());
 				break;
@@ -155,8 +162,29 @@ bool InputReaderAscii::DoUpdate() {
 				break;
 
 			case TYPE_COUNT:
+			case TYPE_COUNTER:
+			case TYPE_PORT:
 				val->val.uint_val = atoi(s.c_str());
 				break;
+
+			case TYPE_SUBNET: {
+				int pos = s.find("/");
+				string width = s.substr(pos);
+				val->val.subnet_val.width = atoi(width.c_str());
+				string addr = s.substr(0, pos);
+				s = addr;
+				// fallthrough
+				}
+			case TYPE_ADDR: {
+				addr_type t =  dotted_to_addr(s.c_str());
+#ifdef BROv6
+				copy_addr(t, val->val.addr_val);
+#else
+				copy_addr(&t, val->val.addr_val);
+#endif
+				break;
+				}
+
 
 			default:
 				Error(Fmt("unsupported field format %d for %s", currMapping.type,
@@ -164,7 +192,7 @@ bool InputReaderAscii::DoUpdate() {
 				return false;
 			}	
 
-			fields[currField] = val;
+			fields[currMapping.position] = val;
 
 			currField++;
 		}
@@ -174,10 +202,7 @@ bool InputReaderAscii::DoUpdate() {
 			return false;
 		}
 
-		// ok, now we have built our line. send it back to... whomever.
-		// for testing purposes: fixed event.
-
-		SendEvent("inputEvent", num_fields, fields);
+		// ok, now we have built our line. send it back to the input manager
 		Put(fields);
 
 	}

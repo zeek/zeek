@@ -30,6 +30,17 @@ void InputReader::Put(const LogVal* const *val)
 	input_mgr->Put(this, val);
 }
 
+void InputReader::Clear() 
+{
+	input_mgr->Clear(this);
+}
+
+void InputReader::Delete(const LogVal* const *val) 
+{
+	input_mgr->Delete(this, val);
+}
+
+
 bool InputReader::Init(string arg_source, int arg_num_fields,
 					   const LogField* const * arg_fields) 
 {

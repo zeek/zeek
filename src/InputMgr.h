@@ -11,13 +11,17 @@
 #include "RemoteSerializer.h"
 #include "LogMgr.h" // for the LogVal and LogType data types
 
+#include <vector>
+
 class InputReader;
 
 class InputMgr {
 public:
     InputMgr();
     
-    InputReader* CreateReader(EnumVal* reader, RecordVal* description);
+    	InputReader* CreateReader(EnumVal* id, RecordVal* description);
+	bool ForceUpdate(EnumVal* id);
+	bool RemoveReader(EnumVal* id);	
 	
 protected:
 	friend class InputReader;
@@ -26,14 +30,23 @@ protected:
 	void Error(InputReader* reader, const char* msg);
 
 	void Put(const InputReader* reader, const LogVal* const *vals);
+	void Clear(const InputReader* reader);
+	bool Delete(const InputReader* reader, const LogVal* const *vals);
 	
 private:
 	struct ReaderInfo;
 
-	Val* LogValToVal(const LogVal* val);
+	bool IsCompatibleType(BroType* t);
+
+	bool UnrollRecordType(vector<LogField*> *fields, const RecordType *rec, const string& nameprepend);
+
+	Val* LogValToVal(const LogVal* val, TypeTag request_type = TYPE_ANY);
+	Val* LogValToIndexVal(int num_fields, const RecordType* type, const LogVal* const *vals);
+	Val* LogValToRecordVal(const LogVal* const *vals, RecordType *request_type, int* position);	
 
 	void SendEvent(const string& name, const int num_vals, const LogVal* const *vals);
 	ReaderInfo* FindReader(const InputReader* reader);
+	ReaderInfo* FindReader(const EnumVal* id);
 
 	vector<ReaderInfo*> readers;
 };

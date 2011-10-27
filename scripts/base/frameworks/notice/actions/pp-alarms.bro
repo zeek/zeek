@@ -2,7 +2,6 @@
 #! in regular intervals, formatted for better human readability. If activated,
 #! that replaces the default summary mail having the raw log output.
 
-@load base/utils/site
 @load base/frameworks/cluster
 @load ../main
 
@@ -103,26 +102,31 @@ event notice(n: Notice::Info) &priority=-5
 	pretty_print_alarm(pp_alarms, n);
 	}
 
-function do_msg(out: file, n: Info, line1: string, line2: string, line3: string, host: addr, name: string)
+function do_msg(out: file, n: Info, line1: string, line2: string, line3: string, host1: addr, name1: string, host2: addr, name2: string)
 	{
-	if ( host != 0.0.0.0 )
-		{
-		local country = "";
+	local country = "";
 @ifdef ( Notice::ACTION_ADD_GEODATA ) # Make tests happy, cyclic dependency.
-		if ( n?$remote_location && n$remote_location?$country_code  )
-			country = fmt(" (%s)", n$remote_location$country_code);
+	if ( n?$remote_location && n$remote_location?$country_code  )
+		country = fmt(" (remote location %s)", n$remote_location$country_code);
 @endif		
+		
+	line1 = cat(line1, country);
 
-		name = fmt(" %s = %s%s", host, name, country);
-		}
+	local resolved = "";
 
-
-	line1 = cat(line1, name);
-
+	if ( host1 != 0.0.0.0 )
+		resolved = fmt("%s   # %s = %s", resolved, host1, name1);
+	
+	if ( host2 != 0.0.0.0 )
+		resolved = fmt("%s  %s = %s", resolved, host2, name2);
+	
 	print out, line1;
 	print out, line2;
 	if ( line3 != "" )
 		print out, line3;
+	if ( resolved != "" )
+		print out, resolved;
+	print out, "";
 	}
 
 # Default pretty-printer.
@@ -139,47 +143,91 @@ function pretty_print_alarm(out: file, n: Info)
 	pdescr = fmt("<%s> ", pdescr);
 @endif
 
-	local msg = fmt( "%s%s%s", pdescr, n$msg, n?$sub ? cat(" ", n$sub) : "");
+	local msg = fmt( "%s%s", pdescr, n$msg);
 
-	local orig = 0.0.0.0;
-	local resp = 0.0.0.0;
-	local host = 0.0.0.0;
+	local who = "";
+	local h1 = 0.0.0.0;
+	local h2 = 0.0.0.0;
 
-	if ( n?$src )
-		orig = host = n$src;
+	local orig_p = "";
+	local resp_p = "";
 
 	if ( n?$id )
 		{
-		orig = n$id$orig_h;
-		resp = n$id$resp_h;
+		orig_p = fmt(":%s", n$id$orig_p);
+		resp_p = fmt(":%s", n$id$resp_p);
 		}
 
-	if ( host == 0.0.0.0 )
-		host = orig;
-
-	local flag = (orig in flag_nets || resp in flag_nets);
-
-	local location = "";
-
-	if ( host != 0.0.0.0 )
-		location =  Site::is_local_addr(host) ? "(L)" : "(R)";
-
-	local line1 = fmt(">%s %D %s %s", (flag ? ">" : " "), network_time(), n$note, location);
-	local line2 = fmt("   %s", msg);
-	local line3 = ""; # Could use later.
-
-	if ( host == 0.0.0.0 )
+	if ( n?$src && n?$dst )
 		{
-		do_msg(out, n, line1, line2, line3, 0.0.0.0, "");
+		h1 = n$src;
+		h2 = n$dst;
+		who = fmt("%s%s -> %s%s", h1, orig_p, h2, resp_p);
+
+		if ( n?$uid )
+			who = fmt("%s (uid %s)", who, n$uid );
+		}
+
+	else if ( n?$src )
+		{
+		local p = "";
+
+		if ( n?$p )
+			p = fmt(":%s", n$p);
+		      
+		h1 = n$src;
+		who = fmt("%s%s", h1, p);
+		}
+
+	local flag = (h1 in flag_nets || h2 in flag_nets);
+
+	local line1 = fmt(">%s %D %s %s", (flag ? ">" : " "), network_time(), n$note, who);
+	local line2 = fmt("   %s", msg);
+	local line3 = n?$sub ? fmt("   %s", n$sub) : "";
+
+	if ( h1 == 0.0.0.0 )
+		{
+		do_msg(out, n, line1, line2, line3, h1, "", h2, "");
 		return;
 		}
 
-	when ( local name = lookup_addr(host) )
+	when ( local h1name = lookup_addr(h1) )
 		{
-		do_msg(out, n, line1, line2, line3, host, name);
+		if ( h2 == 0.0.0.0 ) 
+			{
+			do_msg(out, n, line1, line2, line3, h1, h1name, h2, "");
+			return;
+			}
+		
+		when ( local h2name = lookup_addr(h2) )
+			{
+			do_msg(out, n, line1, line2, line3, h1, h1name, h2, h2name);
+			return;
+			}
+		timeout 5secs 
+			{
+			do_msg(out, n, line1, line2, line3, h1, h1name, h2, "(dns timeout)");
+			return;
+			}
 		}
+	
 	timeout 5secs
 		{
-		do_msg(out, n, line1, line2, line3, host, "(dns timeout)");
+		if ( h2 == 0.0.0.0 ) 
+			{
+			do_msg(out, n, line1, line2, line3, h1,  "(dns timeout)", h2, "");
+			return;
+			}
+		
+		when ( local h2name_ = lookup_addr(h2) )
+			{
+			do_msg(out, n, line1, line2, line3, h1,  "(dns timeout)", h2, h2name_);
+			return;
+			}
+		timeout 5secs
+			{
+			do_msg(out, n, line1, line2, line3, h1,  "(dns timeout)", h2, "(dns timeout)");
+			return;
+			}
 		}
 	}

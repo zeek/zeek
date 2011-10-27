@@ -65,6 +65,9 @@ function configuration_update_func(p: event_peer)
 		# We don't want to update non-const globals because that's usually
 		# where state is stored and those values will frequently be declared
 		# with &redef so that attributes can be redefined.
+		# 
+		# NOTE: functions are currently not fully supported for serialization and hence
+		# aren't sent.
 		if ( t$constant && t$redefinable && t$type_name != "func" )
 			{
 			send_id(p, id);

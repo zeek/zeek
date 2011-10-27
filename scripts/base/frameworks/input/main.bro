@@ -5,8 +5,8 @@ export {
 	type ReaderDescription: record {
 		source: string;
 		idx: any;
-		val: any &optional;
-		destination: any &optional;
+		val: any;
+		destination: any;
 	};
 }
 

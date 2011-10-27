@@ -13,6 +13,16 @@
 
 #include "InputReaderAscii.h"
 
+struct InputMgr::ReaderInfo {
+	EnumVal* id;
+	EnumVal* type;
+	InputReader* reader;
+	unsigned int num_idx_fields;
+	unsigned int num_val_fields;
+
+	TableVal* tab;
+
+	};
 
 struct InputReaderDefinition {
 	bro_int_t type; // the type
@@ -30,7 +40,7 @@ InputReaderDefinition input_readers[] = {
 
 InputMgr::InputMgr()
 {
-	DBG_LOG(DBG_LOGGING, "this has to happen");
+	//DBG_LOG(DBG_LOGGING, "this has to happen");
 }
 
 
@@ -93,8 +103,10 @@ InputReader* InputMgr::CreateReader(EnumVal* reader, RecordVal* description)
 	string source((const char*) bsource->Bytes(), bsource->Len());
 
 	RecordType *idx = description->Lookup(rtype->FieldOffset("idx"))->AsType()->AsTypeType()->Type()->AsRecordType();
+	RecordType *val = description->Lookup(rtype->FieldOffset("val"))->AsType()->AsTypeType()->Type()->AsRecordType();
+	TableVal *dst = description->Lookup(rtype->FieldOffset("destination"))->AsTableVal();
 
-	LogField** fields = new LogField*[idx->NumFields()];
+	LogField** fields = new LogField*[idx->NumFields() + val->NumFields()];
 	for ( int i = 0; i < idx->NumFields(); i++ ) 
 	{
 		// FIXME: do type checking...
@@ -103,14 +115,42 @@ InputReader* InputMgr::CreateReader(EnumVal* reader, RecordVal* description)
 		field->type = idx->FieldType(i)->Tag();
 		fields[i] = field;
 	}
+	for ( int i = 0; i < val->NumFields(); i++ ) 
+	{
+		// FIXME: do type checking...
+		LogField* field = new LogField();
+		field->name = val->FieldName(i);
+		field->type = val->FieldType(i)->Tag();
+		fields[idx->NumFields() + i] = field;
+	}
+
+	ReaderInfo* info = new ReaderInfo;
+	info->reader = reader_obj;
+	info->type = reader;
+	info->num_idx_fields = idx->NumFields();
+	info->num_val_fields = val->NumFields();
+	info->tab = dst;
+	readers.push_back(info);
 
 
-	reader_obj->Init(source, idx->NumFields(), fields);
+	reader_obj->Init(source, idx->NumFields() + val->NumFields(), fields);
 	reader_obj->Update();
 	
 	return reader_obj;
 	
 }
+
+void InputMgr::Put(const InputReader* reader, const LogVal* const *vals) {
+	ReaderInfo *i = FindReader(reader);
+	if ( i == 0 ) {
+		reporter->InternalError("Unknown reader");
+		return;
+	}
+
+	i->tab->Assign(LogValToVal(vals[0]), LogValToVal(vals[1]));
+	reporter->Error("assigned");
+}
+
 
 void InputMgr::Error(InputReader* reader, const char* msg)
 {
@@ -172,4 +212,16 @@ Val* InputMgr::LogValToVal(const LogVal* val) {
 	return NULL;
 }
 		
-		
+InputMgr::ReaderInfo* InputMgr::FindReader(const InputReader* reader)
+	{
+	for ( vector<ReaderInfo *>::iterator s = readers.begin(); s != readers.end(); ++s )
+		{
+		if ( (*s)->reader == reader ) 
+		{
+			return *s;
+		}
+		}
+
+	return 0;
+	}
+

@@ -143,6 +143,21 @@ bool InputReaderAscii::DoUpdate() {
 				val->val.string_val = new string(s);
 				break;
 
+			case TYPE_BOOL:
+			case TYPE_INT:
+				val->val.int_val = atoi(s.c_str());
+				break;
+
+			case TYPE_DOUBLE:
+			case TYPE_TIME:
+			case TYPE_INTERVAL:
+				val->val.double_val = atof(s.c_str());
+				break;
+
+			case TYPE_COUNT:
+				val->val.uint_val = atoi(s.c_str());
+				break;
+
 			default:
 				Error(Fmt("unsupported field format %d for %s", currMapping.type,
 			 	 currMapping.name.c_str()));
@@ -163,6 +178,7 @@ bool InputReaderAscii::DoUpdate() {
 		// for testing purposes: fixed event.
 
 		SendEvent("inputEvent", num_fields, fields);
+		Put(fields);
 
 	}
 

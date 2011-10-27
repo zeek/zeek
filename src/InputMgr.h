@@ -24,14 +24,18 @@ protected:
 	
 	// Reports an error for the given reader.
 	void Error(InputReader* reader, const char* msg);
+
+	void Put(const InputReader* reader, const LogVal* const *vals);
 	
 private:
-	// required functionality
-	// InputValsToRecord to convert received inputvals back to bro records / tables / whatever
+	struct ReaderInfo;
+
 	Val* LogValToVal(const LogVal* val);
 
 	void SendEvent(const string& name, const int num_vals, const LogVal* const *vals);
+	ReaderInfo* FindReader(const InputReader* reader);
 
+	vector<ReaderInfo*> readers;
 };
 
 extern InputMgr* input_mgr;

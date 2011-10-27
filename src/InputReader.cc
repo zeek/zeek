@@ -25,6 +25,11 @@ void InputReader::Error(const string &msg)
 	input_mgr->Error(this, msg.c_str());
 	}
 
+void InputReader::Put(const LogVal* const *val) 
+{
+	input_mgr->Put(this, val);
+}
+
 bool InputReader::Init(string arg_source, int arg_num_fields,
 					   const LogField* const * arg_fields) 
 {

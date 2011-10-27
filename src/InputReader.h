@@ -42,6 +42,8 @@ protected:
 
 	void SendEvent(const string& name, const int num_vals, const LogVal* const *vals);
 
+	void Put(const LogVal* const *val);
+
 private:
     friend class InputMgr;
 	

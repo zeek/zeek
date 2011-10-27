@@ -103,17 +103,23 @@ function check_ssh_connection(c: connection, done: bool)
 		return;
 	
 	# Make sure conn_size_analyzer is active by checking 
-	# resp$num_bytes_ip
-	if ( !c$resp?$num_bytes_ip )
+	# resp$num_bytes_ip.  In general it should always be active though.
+	if ( ! c$resp?$num_bytes_ip )
 		return;
 	
-	local server_bytes = c$resp$num_bytes_ip - 
-			c$resp$num_pkts*32 - # Cut the TCP header
-			c$resp$num_pkts*20;  # Cut the IP header (TODO: fix for IPv6)
+	# Remove the IP and TCP header length from the total size.
+	# TODO: Fix for IPv6.  This whole approach also seems to break in some 
+	#       cases where there are more header bytes than num_bytes_ip.
+	local header_bytes = c$resp$num_pkts*32 + c$resp$num_pkts*20;
+	local server_bytes = c$resp$num_bytes_ip;
+	if ( server_bytes >= header_bytes )
+		server_bytes = server_bytes - header_bytes;
+	else
+		server_bytes = c$resp$size;
 	
-	# If this is still a live connection and the byte count has not
-	# crossed the threshold, just return and let the resheduled check happen later.
-	if ( !done && server_bytes < authentication_data_size )
+	# If this is still a live connection and the byte count has not crossed 
+	# the threshold, just return and let the rescheduled check happen later.
+	if ( ! done && server_bytes < authentication_data_size )
 		return;
 
 	# Make sure the server has sent back more than 50 bytes to filter out

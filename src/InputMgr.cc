@@ -13,6 +13,18 @@
 
 #include "InputReaderAscii.h"
 
+#include "CompHash.h"
+
+
+class InputHash {
+public:
+	HashKey* valhash;
+	HashKey* idxkey; // does not need ref or whatever - if it is present here, it is also still present in the TableVal.
+};
+
+declare(PDict, InputHash);
+
+
 struct InputMgr::ReaderInfo {
 	EnumVal* id;
 	EnumVal* type;
@@ -23,6 +35,9 @@ struct InputMgr::ReaderInfo {
 	TableVal* tab;
 	RecordType* rtype;
 	RecordType* itype;
+
+	PDict(InputHash)* currDict;
+	PDict(InputHash)* lastDict;
 
 	};
 
@@ -147,10 +162,20 @@ InputReader* InputMgr::CreateReader(EnumVal* id, RecordVal* description)
 	info->itype = idx;
 	Ref(idx);
 	readers.push_back(info);
+	info->currDict = new PDict(InputHash);
+	info->lastDict = new PDict(InputHash);
 
 
-	reader_obj->Init(source, fieldsV.size(), fields);
-	reader_obj->Update();
+	int success = reader_obj->Init(source, fieldsV.size(), idxfields, fields);
+	if ( success == false ) {
+		RemoveReader(id);
+		return 0;
+	}
+	success = reader_obj->Update();
+	if ( success == false ) {
+		RemoveReader(id);
+		return 0;
+	}
 	
 	return reader_obj;
 	
@@ -198,7 +223,6 @@ bool InputMgr::IsCompatibleType(BroType* t)
 	return false;
 	}
 
-
 bool InputMgr::RemoveReader(EnumVal* id) {
 	ReaderInfo *i = 0;
 	for ( vector<ReaderInfo *>::iterator s = readers.begin(); s != readers.end(); ++s )
@@ -214,6 +238,9 @@ bool InputMgr::RemoveReader(EnumVal* id) {
 	if ( i == 0 ) {
 		return false; // not found
 	}
+
+	i->reader->Finish();
+
 
 	Unref(i->type);
 	Unref(i->tab);
@@ -267,8 +294,7 @@ bool InputMgr::ForceUpdate(EnumVal* id)
 		return false;
 	}
 
-	i->reader->Update();
-	return true;
+	return i->reader->Update();
 }
 
 Val* InputMgr::LogValToIndexVal(int num_fields, const RecordType *type, const LogVal* const *vals) {
@@ -295,6 +321,105 @@ Val* InputMgr::LogValToIndexVal(int num_fields, const RecordType *type, const Lo
 
 	return idxval;
 
+}
+
+
+void InputMgr::SendEntry(const InputReader* reader, const LogVal* const *vals) {
+	ReaderInfo *i = FindReader(reader);
+	if ( i == 0 ) {
+		reporter->InternalError("Unknown reader");
+		return;
+	}
+
+	HashKey* idxhash = HashLogVals(i->num_idx_fields, vals);
+	HashKey* valhash = HashLogVals(i->num_val_fields, vals+i->num_idx_fields);
+
+	InputHash *h = i->lastDict->Lookup(idxhash);
+	if ( h != 0 ) {
+		// seen before
+		if ( h->valhash->Hash() == valhash->Hash() ) {
+			// ok, double.
+			i->lastDict->Remove(idxhash);
+			i->currDict->Insert(idxhash, h);
+			return;
+		} else {
+			// updated
+			i->lastDict->Remove(idxhash);
+			delete(h);
+		}
+	}
+
+
+	Val* idxval = LogValToIndexVal(i->num_idx_fields, i->itype, vals);
+	Val* valval;
+	
+	int position = i->num_idx_fields;
+	if ( i->num_val_fields == 1 ) {
+		valval = LogValToVal(vals[i->num_idx_fields]);
+	} else {
+		RecordVal * r = new RecordVal(i->rtype);
+
+		/* if ( i->rtype->NumFields() != (int) i->num_val_fields ) {
+			reporter->InternalError("Type mismatch");
+			return;
+		} */
+
+		for ( int j = 0; j < i->rtype->NumFields(); j++) {
+
+			Val* val = 0;
+			if ( i->rtype->FieldType(j)->Tag() == TYPE_RECORD ) {
+				val = LogValToRecordVal(vals, i->rtype->FieldType(j)->AsRecordType(), &position);
+			} else {
+				val =  LogValToVal(vals[position], i->rtype->FieldType(j)->Tag());
+				position++;
+			}
+			
+			if ( val == 0 ) {
+				reporter->InternalError("conversion error");
+				return;
+			}
+
+			r->Assign(j,val);
+
+		}
+		valval = r;
+	}
+
+	//i->tab->Assign(idxval, valval);
+	HashKey* k = i->tab->ComputeHash(idxval);
+	if ( !k ) {
+		reporter->InternalError("could not hash");
+		return;
+	}
+
+	i->tab->Assign(idxval, k, valval);
+	InputHash* ih = new InputHash();
+	ih->idxkey = k;
+	ih->valhash = valhash;
+
+	i->currDict->Insert(idxhash, ih);
+
+}
+
+void InputMgr::EndCurrentSend(const InputReader* reader) {
+	ReaderInfo *i = FindReader(reader);
+	if ( i == 0 ) {
+		reporter->InternalError("Unknown reader");
+		return;
+	}
+
+	// lastdict contains all deleted entries
+	IterCookie *c = i->lastDict->InitForIteration();
+	InputHash* ih;
+	while ( ( ih = i->lastDict->NextEntry(c )) ) {
+		i->tab->Delete(ih->idxkey);
+	}
+
+	i->lastDict->Clear();
+	delete(i->lastDict);
+
+	i->lastDict = i->currDict;	
+	i->currDict = new PDict(InputHash);
 }
 
 void InputMgr::Put(const InputReader* reader, const LogVal* const *vals) {
@@ -418,6 +543,95 @@ Val* InputMgr::LogValToRecordVal(const LogVal* const *vals, RecordType *request_
 
 } 
 
+HashKey* InputMgr::HashLogVals(const int num_elements, const LogVal* const *vals) {
+	int length = 0;
+
+	for ( int i = 0; i < num_elements; i++ ) {
+		const LogVal* val = vals[i];
+		switch (val->type) {
+		case TYPE_BOOL:
+		case TYPE_INT:
+			length += sizeof(val->val.int_val);
+			break;
+
+		case TYPE_COUNT:
+		case TYPE_COUNTER:
+		case TYPE_PORT:
+			length += sizeof(val->val.uint_val);
+		break;
+		
+		case TYPE_DOUBLE:
+		case TYPE_TIME:
+		case TYPE_INTERVAL:
+			length += sizeof(val->val.double_val);
+			break;
+
+		case TYPE_STRING:
+			{
+			length += val->val.string_val->size();
+			break;
+			}
+	
+		case TYPE_ADDR:
+			length += NUM_ADDR_WORDS*sizeof(uint32_t);
+			break;
+
+		default:
+			reporter->InternalError("unsupported type for hashlogvals");
+		}
+		
+	}
+
+	int position = 0;
+	char *data = (char*) malloc(length);
+	for ( int i = 0; i < num_elements; i++ ) {
+		const LogVal* val = vals[i];
+		switch ( val->type ) {
+		case TYPE_BOOL:
+		case TYPE_INT:
+			*(data+position) = val->val.int_val;
+			position += sizeof(val->val.int_val);
+			break;
+
+		case TYPE_COUNT:
+		case TYPE_COUNTER:
+		case TYPE_PORT:
+			*(data+position) = val->val.uint_val;
+			position += sizeof(val->val.uint_val);
+			break;
+	
+		case TYPE_DOUBLE:
+		case TYPE_TIME:
+		case TYPE_INTERVAL:
+			*(data+position) = val->val.double_val;
+			position += sizeof(val->val.double_val);
+			break;
+
+		case TYPE_STRING:
+			{
+			memcpy(data+position, val->val.string_val->c_str(), val->val.string_val->length());
+			position += val->val.string_val->size();
+			break;
+			}
+	
+		case TYPE_ADDR:
+			memcpy(data+position, val->val.addr_val, NUM_ADDR_WORDS*sizeof(uint32_t));
+			position += NUM_ADDR_WORDS*sizeof(uint32_t);
+			break;
+
+		default:
+			reporter->InternalError("unsupported type for hashlogvals2");
+		}
+
+		
+	}
+
+	assert(position == length);
+	return new HashKey(data, length);
+
+
+}
+
 Val* InputMgr::LogValToVal(const LogVal* val, TypeTag request_type) {
 	
 	if ( request_type != TYPE_ANY && request_type != val->type ) {
@@ -493,5 +707,13 @@ InputMgr::ReaderInfo* InputMgr::FindReader(const EnumVal* id)
 
 	return 0;
 	}
+
+
+string InputMgr::Hash(const string &input) {
+	unsigned char digest[16];
+	hash_md5(input.length(), (const unsigned char*) input.c_str(), digest);
+	string out((const char*) digest, 16);
+	return out;
+}
 
 

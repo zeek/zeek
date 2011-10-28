@@ -15,9 +15,10 @@
 
 class InputReader;
 
+
 class InputMgr {
 public:
-    InputMgr();
+	InputMgr();
     
     	InputReader* CreateReader(EnumVal* id, RecordVal* description);
 	bool ForceUpdate(EnumVal* id);
@@ -32,6 +33,9 @@ protected:
 	void Put(const InputReader* reader, const LogVal* const *vals);
 	void Clear(const InputReader* reader);
 	bool Delete(const InputReader* reader, const LogVal* const *vals);
+
+	void SendEntry(const InputReader* reader, const LogVal* const *vals);
+	void EndCurrentSend(const InputReader* reader);
 	
 private:
 	struct ReaderInfo;
@@ -39,6 +43,8 @@ private:
 	bool IsCompatibleType(BroType* t);
 
 	bool UnrollRecordType(vector<LogField*> *fields, const RecordType *rec, const string& nameprepend);
+
+	HashKey* HashLogVals(const int num_elements, const LogVal* const *vals);
 
 	Val* LogValToVal(const LogVal* val, TypeTag request_type = TYPE_ANY);
 	Val* LogValToIndexVal(int num_fields, const RecordType* type, const LogVal* const *vals);
@@ -49,6 +55,9 @@ private:
 	ReaderInfo* FindReader(const EnumVal* id);
 
 	vector<ReaderInfo*> readers;
+
+	string Hash(const string &input);	
+
 };
 
 extern InputMgr* input_mgr;

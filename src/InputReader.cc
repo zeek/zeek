@@ -41,20 +41,22 @@ void InputReader::Delete(const LogVal* const *val)
 }
 
 
-bool InputReader::Init(string arg_source, int arg_num_fields,
+bool InputReader::Init(string arg_source, int arg_num_fields, int arg_idx_fields,
 					   const LogField* const * arg_fields) 
 {
 	source = arg_source;
 	num_fields = arg_num_fields;
+	index_fields = arg_idx_fields;
 	fields = arg_fields;
 
 	// disable if DoInit returns error.
-	disabled = !DoInit(arg_source, arg_num_fields, arg_fields);
+	disabled = !DoInit(arg_source, arg_num_fields, arg_idx_fields, arg_fields);
 	return !disabled;
 }
 
 void InputReader::Finish() {
 	DoFinish();
+	disabled = true;
 }
 
 bool InputReader::Update() {
@@ -91,3 +93,10 @@ const char* InputReader::Fmt(const char* format, ...)
 	}
 
 
+void InputReader::SendEntry(const LogVal* const *vals) {
+	input_mgr->SendEntry(this, vals);
+}
+
+void InputReader::EndCurrentSend() {
+	input_mgr->EndCurrentSend(this);
+}

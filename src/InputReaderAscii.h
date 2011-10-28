@@ -30,7 +30,7 @@ public:
     
 protected:
 	
-	virtual bool DoInit(string path, int num_fields,
+	virtual bool DoInit(string path, int arg_num_fields, int arg_idx_fields,
 						const LogField* const * fields);
 	virtual void DoFinish();
 
@@ -42,9 +42,12 @@ private:
 	string fname;
 
 	unsigned int num_fields;
+	unsigned int idx_fields;
 
 	// map columns in the file to columns to send back to the manager
 	vector<FieldMapping> columnMap;
+
+	//map<string, string> *keyMap;
 	
 };
 

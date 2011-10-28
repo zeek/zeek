@@ -21,17 +21,26 @@ InputReaderAscii::InputReaderAscii()
 {
 	//DBG_LOG(DBG_LOGGING, "input reader initialized");
 	file = 0;
+
+	//keyMap = new map<string, string>();
 }
 
 InputReaderAscii::~InputReaderAscii()
 {
+	DoFinish();
 }
 
 void InputReaderAscii::DoFinish()
 {
+	columnMap.empty();
+	if ( file != 0 ) {
+		file->close();
+		delete(file);
+		file = 0;
+	}
 }
 
-bool InputReaderAscii::DoInit(string path, int num_fields, const LogField* const * fields)
+bool InputReaderAscii::DoInit(string path, int num_fields, int idx_fields, const LogField* const * fields)
 {
 	fname = path;
 	
@@ -47,6 +56,9 @@ bool InputReaderAscii::DoInit(string path, int num_fields, const LogField* const
 		Error("could not read first line");
 		return false;
 	}
+
+	this->num_fields = num_fields;
+	this->idx_fields = idx_fields;
 	 
 	// split on tabs...
 	istringstream splitstream(line);
@@ -83,12 +95,10 @@ bool InputReaderAscii::DoInit(string path, int num_fields, const LogField* const
 	if ( wantFields != num_fields ) {
 		// we did not find all fields?
 		// :(
-		Error("wantFields != num_fields");
+		Error("One of the requested fields could not be found in the input data file");
 		return false;
 	}
 	
-
-	this->num_fields = num_fields;
 	
 	// well, that seems to have worked...
 	return true;
@@ -101,6 +111,9 @@ bool InputReaderAscii::DoUpdate() {
 	//
 	
 
+	// new keymap
+	//map<string, string> *newKeyMap = new map<string, string>();
+
 	string line;
 	while ( getline(*file, line ) ) {
 		// split on tabs
@@ -109,10 +122,12 @@ bool InputReaderAscii::DoUpdate() {
 		string s;
 	
 		LogVal** fields = new LogVal*[num_fields];
+		//string string_fields[num_fields];
 
 		unsigned int currTab = 0;
 		unsigned int currField = 0;
 		while ( splitstream ) {
+
 			if ( !getline(splitstream, s, '\t') )
 				break;
 
@@ -146,8 +161,11 @@ bool InputReaderAscii::DoUpdate() {
 			case TYPE_BOOL:
 				if ( s == "T" ) {
 					val->val.int_val = 1;
-				} else {
+				} else if ( s == "F" ) {
 					val->val.int_val = 0;
+				} else {
+					Error(Fmt("Invalid value for boolean: %s", s.c_str()));
+					return false;
 				}
 				break;
 
@@ -173,9 +191,15 @@ bool InputReaderAscii::DoUpdate() {
 				val->val.subnet_val.width = atoi(width.c_str());
 				string addr = s.substr(0, pos);
 				s = addr;
-				// fallthrough
+				// NOTE: dottet_to_addr BREAKS THREAD SAFETY! it uses reporter.
+				// Solve this some other time....
+				val->val.subnet_val.net = dotted_to_addr(s.c_str());
+				break;
+
 				}
 			case TYPE_ADDR: {
+				// NOTE: dottet_to_addr BREAKS THREAD SAFETY! it uses reporter.
+				// Solve this some other time....
 				addr_type t =  dotted_to_addr(s.c_str());
 #ifdef BROv6
 				copy_addr(t, val->val.addr_val);
@@ -193,19 +217,57 @@ bool InputReaderAscii::DoUpdate() {
 			}	
 
 			fields[currMapping.position] = val;
+			//string_fields[currMapping.position] = s;
 
 			currField++;
 		}
 
 		if ( currField != num_fields ) {
-			Error("curr_field != num_fields in DoUpdate");
+			Error("curr_field != num_fields in DoUpdate. Columns in file do not match column definition.");
 			return false;
 		}
 
-		// ok, now we have built our line. send it back to the input manager
-		Put(fields);
+
+		SendEntry(fields);
+
+		/* 
+		string indexstring = "";
+		string valstring = "";
+		for ( unsigned int i = 0; i < idx_fields; i++ ) {
+			indexstring.append(string_fields[i]);
+		}
+
+		for ( unsigned int i = idx_fields; i < num_fields; i++ ) {
+			valstring.append(string_fields[i]);
+		}
+
+		string valhash = Hash(valstring);
+		string indexhash = Hash(indexstring);
+
+		if ( keyMap->find(indexhash) == keyMap->end() ) {
+			// new key
+			Put(fields);
+		} else if ( (*keyMap)[indexhash] != valhash ) {
+			// changed key
+			Put(fields);
+			keyMap->erase(indexhash);
+		} else {
+			// field not changed
+			keyMap->erase(indexhash);
+		}
+
+
+		(*newKeyMap)[indexhash] = valhash;
+		 */
+		
+		for ( unsigned int i = 0; i < num_fields; i++ ) {
+			delete fields[i];
+		}
+		delete [] fields;
 
 	}
 
+
+	EndCurrentSend();
 	return true;
 }

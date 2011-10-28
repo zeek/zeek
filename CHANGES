@@ -1,5 +1,5 @@
 
-2.0-beta | 2011-10-27 13:00:11 -0700
+2.0-beta | 2011-10-27 17:46:03 -0700
 
   * Preliminary fix for SSH login detection: we need a counted measure
     of payload bytes (not ack tracking and not with the IP header

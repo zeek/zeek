@@ -1,0 +1,24 @@
+#separator \x09
+#path	communication
+#fields	ts	peer	src_name	connected_peer_desc	connected_peer_addr	connected_peer_port	level	message
+#types	time	string	string	string	addr	port	string	string
+1319656555.629905	bro	parent	-	-	-	info	raised pipe's socket buffer size from 110K to 1024K
+1319656555.629905	bro	parent	-	-	-	info	communication started, parent pid is 2001, child pid is 2002
+1319656555.637481	bro	child	-	-	-	info	listening on 0.0.0.0:47758 (clear)
+1319656565.699352	bro	child	-	-	-	info	[#10000/127.0.0.1:41674] accepted clear connection
+1319656565.699650	bro	parent	-	-	-	info	[#10000/127.0.0.1:41674] added peer
+1319656565.699650	bro	parent	-	-	-	info	[#10000/127.0.0.1:41674] peer connected
+1319656565.699650	bro	parent	-	-	-	info	[#10000/127.0.0.1:41674] phase: version
+1319656565.699650	bro	script	-	-	-	info	connection established
+1319656565.699650	bro	script	-	-	-	info	requesting events matching /^?(ping)$?/
+1319656565.699650	bro	script	-	-	-	info	accepting state
+1319656565.700184	bro	parent	-	-	-	info	[#10000/127.0.0.1:41674] phase: handshake
+1319656565.917871	bro	parent	-	-	-	info	[#10000/127.0.0.1:41674] registered for event pong
+1319656565.964718	bro	parent	-	-	-	info	[#10000/127.0.0.1:41674] peer does not support 64bit PIDs; using compatibility mode
+1319656565.964718	bro	parent	-	-	-	info	[#10000/127.0.0.1:41674] phase: running
+1319656572.055132	bro	child	-	-	-	error	can't read data chunk: Connection reset by peer [104]
+1319656572.055132	bro	script	-	-	-	info	connection closed
+1319656572.055445	bro	parent	-	-	-	info	[#10000/127.0.0.1:41674] peer disconnected
+1319656572.055516	bro	child	-	-	-	info	[#10000/127.0.0.1:41674] connection closed
+1319656577.259807	bro	parent	-	-	-	error	logging: can't read data chunk: Connection reset by peer [104]
+1319656577.259807	bro	parent	-	-	-	info	[#10000/127.0.0.1:41674] closing connection

@@ -1,0 +1,11 @@
+#separator \x09
+#path	notice_policy
+#fields	position	priority	action	pred	halt	suppress_for
+#types	count	count	enum	func	bool	interval
+0	10	Notice::ACTION_NONE	anonymous-function\x0a{ \x0areturn ((Notice::n$note in Notice::lookup_location_types));\x0a}	F	-
+1	9	Notice::ACTION_NONE	anonymous-function\x0a{ \x0areturn ((Notice::n$note in Notice::ignored_types));\x0a}	T	-
+2	9	Notice::ACTION_NO_SUPPRESS	anonymous-function\x0a{ \x0areturn ((Notice::n$note in Notice::not_suppressed_types));\x0a}	F	-
+3	8	Notice::ACTION_ALARM	anonymous-function\x0a{ \x0areturn ((Notice::n$note in Notice::alarmed_types));\x0a}	F	-
+4	8	Notice::ACTION_EMAIL	anonymous-function\x0a{ \x0areturn ((Notice::n$note in Notice::emailed_types));\x0a}	F	-
+5	8	Notice::ACTION_NONE	anonymous-function\x0a{ \x0aif (Notice::n$note in Notice::type_suppression_intervals) \x0a\x09{ \x0a\x09Notice::n$suppress_for = Notice::type_suppression_intervals[Notice::n$note];\x0a\x09return (T);\x0a\x09}\x0a\x0areturn (F);\x0a}	F	-
+6	0	Notice::ACTION_LOG	-	F	-

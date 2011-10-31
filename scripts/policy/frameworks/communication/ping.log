@@ -1,0 +1,7 @@
+ping received, seq 0, 1319656565.902485 at src, 1319656565.964888 at dest, one-way: 0.062403
+ping received, seq 1, 1319656566.916301 at src, 1319656566.931944 at dest, one-way: 0.015643
+ping received, seq 2, 1319656567.930330 at src, 1319656567.945842 at dest, one-way: 0.015512
+ping received, seq 3, 1319656568.944244 at src, 1319656568.944463 at dest, one-way: 0.000219
+ping received, seq 4, 1319656569.958167 at src, 1319656569.958477 at dest, one-way: 0.000310
+ping received, seq 5, 1319656570.972534 at src, 1319656570.987766 at dest, one-way: 0.015232
+ping received, seq 6, 1319656571.986145 at src, 1319656571.986431 at dest, one-way: 0.000286

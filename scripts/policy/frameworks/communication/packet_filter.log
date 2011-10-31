@@ -1,0 +1,5 @@
+#separator \x09
+#path	packet_filter
+#fields	ts	node	filter	init	success
+#types	time	string	string	bool	bool
+1319656555.629905	-	not ip6	F	T

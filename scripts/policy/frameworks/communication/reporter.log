@@ -1,0 +1,5 @@
+#separator \x09
+#path	reporter
+#fields	ts	level	message	location
+#types	time	enum	string	string
+0.000000	Reporter::INFO	received termination signal	-

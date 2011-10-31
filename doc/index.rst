@@ -19,7 +19,7 @@ Bro Documentation
 `FAQ <{{docroot}}/documentation/faq.html>`_
     A list with frequently asked questions.
 
-`How to Report a Problem <{{docroot}}/reporting-problems.html>`_
+`How to Report a Problem <{{docroot}}/documentation/reporting-problems.html>`_
     Some advice for when you see Bro doing something you believe it
     shouldn't.
 

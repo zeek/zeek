@@ -1453,7 +1453,7 @@ bool LogMgr::Flush(EnumVal* id)
 
 void LogMgr::Error(LogWriter* writer, const char* msg)
 	{
-	reporter->Error(fmt("error with writer for %s: %s",
+	reporter->Error("%s", fmt("error with writer for %s: %s",
 		     writer->Path().c_str(), msg));
 	}
 

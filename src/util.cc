@@ -478,14 +478,14 @@ bool ensure_dir(const char *dirname)
 		{
 		if ( errno != ENOENT )
 			{
-			reporter->Warning(fmt("can't stat directory %s: %s",
+			reporter->Warning("%s", fmt("can't stat directory %s: %s",
 				dirname, strerror(errno)));
 			return false;
 			}
 
 		if ( mkdir(dirname, 0700) < 0 )
 			{
-			reporter->Warning(fmt("can't create directory %s: %s",
+			reporter->Warning("%s", fmt("can't create directory %s: %s",
 				dirname, strerror(errno)));
 			return false;
 			}
@@ -493,7 +493,7 @@ bool ensure_dir(const char *dirname)
 
 	else if ( ! S_ISDIR(st.st_mode) )
 		{
-		reporter->Warning(fmt("%s exists but is not a directory", dirname));
+		reporter->Warning("%s", fmt("%s exists but is not a directory", dirname));
 		return false;
 		}
 
@@ -506,7 +506,7 @@ bool is_dir(const char* path)
 	if ( stat(path, &st) < 0 )
 		{
 		if ( errno != ENOENT )
-			reporter->Warning(fmt("can't stat %s: %s", path, strerror(errno)));
+			reporter->Warning("%s", fmt("can't stat %s: %s", path, strerror(errno)));
 
 		return false;
 		}
@@ -556,14 +556,14 @@ static bool read_random_seeds(const char* read_file, uint32* seed,
 
 	if ( stat(read_file, &st) < 0 )
 		{
-		reporter->Warning(fmt("Seed file '%s' does not exist: %s",
+		reporter->Warning("%s", fmt("Seed file '%s' does not exist: %s",
 				read_file, strerror(errno)));
 		return false;
 		}
 
 	if ( ! (f = fopen(read_file, "r")) )
 		{
-		reporter->Warning(fmt("Could not open seed file '%s': %s",
+		reporter->Warning("%s", fmt("Could not open seed file '%s': %s",
 				read_file, strerror(errno)));
 		return false;
 		}
@@ -599,7 +599,7 @@ static bool write_random_seeds(const char* write_file, uint32 seed,
 
 	if ( ! (f = fopen(write_file, "w+")) )
 		{
-		reporter->Warning(fmt("Could not create seed file '%s': %s",
+		reporter->Warning("%s", fmt("Could not create seed file '%s': %s",
 				write_file, strerror(errno)));
 		return false;
 		}
@@ -1024,7 +1024,7 @@ FILE* rotate_file(const char* name, RecordVal* rotate_info)
 	FILE* newf = fopen(tmpname, "w");
 	if ( ! newf )
 		{
-		reporter->Error(fmt("rotate_file: can't open %s: %s", tmpname, strerror(errno)));
+		reporter->Error("%s", fmt("rotate_file: can't open %s: %s", tmpname, strerror(errno)));
 		return 0;
 		}
 
@@ -1033,7 +1033,7 @@ FILE* rotate_file(const char* name, RecordVal* rotate_info)
 	struct stat dummy;
 	if ( link(name, newname) < 0 || stat(newname, &dummy) < 0 )
 		{
-		reporter->Error(fmt("rotate_file: can't move %s to %s: %s", name, newname, strerror(errno)));
+		reporter->Error("%s", fmt("rotate_file: can't move %s to %s: %s", name, newname, strerror(errno)));
 		fclose(newf);
 		unlink(newname);
 		unlink(tmpname);
@@ -1043,7 +1043,7 @@ FILE* rotate_file(const char* name, RecordVal* rotate_info)
 	// Close current file, and move the tmp to its place.
 	if ( unlink(name) < 0 || link(tmpname, name) < 0 || unlink(tmpname) < 0 )
 		{
-		reporter->Error(fmt("rotate_file: can't move %s to %s: %s", tmpname, name, strerror(errno)));
+		reporter->Error("%s", fmt("rotate_file: can't move %s to %s: %s", tmpname, name, strerror(errno)));
 		exit(1);	// hard to fix, but shouldn't happen anyway...
 		}
 

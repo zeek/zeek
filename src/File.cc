@@ -149,7 +149,7 @@ BroFile::BroFile(const char* arg_name, const char* arg_access, BroType* arg_t)
 	t = arg_t ? arg_t : base_type(TYPE_STRING);
 	if ( ! Open() )
 		{
-		reporter->Error(fmt("cannot open %s: %s", name, strerror(errno)));
+		reporter->Error("%s", fmt("cannot open %s: %s", name, strerror(errno)));
 		is_open = 0;
 		okay_to_manage = 0;
 		}
@@ -641,7 +641,7 @@ void BroFile::InitEncrypt(const char* keyfile)
 
 		if ( ! key )
 			{
-			reporter->Error(fmt("can't open key file %s: %s", keyfile, strerror(errno)));
+			reporter->Error("%s", fmt("can't open key file %s: %s", keyfile, strerror(errno)));
 			Close();
 			return;
 			}
@@ -649,7 +649,7 @@ void BroFile::InitEncrypt(const char* keyfile)
 		pub_key = PEM_read_PUBKEY(key, 0, 0, 0);
 		if ( ! pub_key )
 			{
-			reporter->Error(fmt("can't read key from %s: %s", keyfile,
+			reporter->Error("%s", fmt("can't read key from %s: %s", keyfile,
 					ERR_error_string(ERR_get_error(), 0)));
 			Close();
 			return;
@@ -671,7 +671,7 @@ void BroFile::InitEncrypt(const char* keyfile)
 	if ( ! EVP_SealInit(cipher_ctx, cipher_type, &psecret,
 				(int*) &secret_len, iv, &pub_key, 1) )
 		{
-		reporter->Error(fmt("can't init cipher context for %s: %s", keyfile,
+		reporter->Error("%s", fmt("can't init cipher context for %s: %s", keyfile,
 				ERR_error_string(ERR_get_error(), 0)));
 		Close();
 		return;
@@ -684,7 +684,7 @@ void BroFile::InitEncrypt(const char* keyfile)
 		fwrite(secret, ntohl(secret_len), 1, f) &&
 		fwrite(iv, iv_len, 1, f)) )
 		{
-		reporter->Error(fmt("can't write header to log file %s: %s",
+		reporter->Error("%s", fmt("can't write header to log file %s: %s",
 				name, strerror(errno)));
 		Close();
 		return;
@@ -709,7 +709,7 @@ void BroFile::FinishEncrypt()
 
 		if ( outl && ! fwrite(cipher_buffer, outl, 1, f) )
 			{
-			reporter->Error(fmt("write error for %s: %s",
+			reporter->Error("%s", fmt("write error for %s: %s",
 					name, strerror(errno)));
 			return;
 			}
@@ -741,7 +741,7 @@ int BroFile::Write(const char* data, int len)
 			if ( ! EVP_SealUpdate(cipher_ctx, cipher_buffer, &outl,
 						(unsigned char*)data, inl) )
 				{
-				reporter->Error(fmt("encryption error for %s: %s",
+				reporter->Error("%s", fmt("encryption error for %s: %s",
 					name,
 					ERR_error_string(ERR_get_error(), 0)));
 				Close();
@@ -750,7 +750,7 @@ int BroFile::Write(const char* data, int len)
 
 			if ( outl && ! fwrite(cipher_buffer, outl, 1, f) )
 				{
-				reporter->Error(fmt("write error for %s: %s",
+				reporter->Error("%s", fmt("write error for %s: %s",
 						name, strerror(errno)));
 				Close();
 				return 0;
@@ -798,7 +798,7 @@ void BroFile::UpdateFileSize()
 	struct stat s;
 	if ( fstat(fileno(f), &s) < 0 )
 		{
-		reporter->Error(fmt("can't stat fd for %s: %s", name, strerror(errno)));
+		reporter->Error("%s", fmt("can't stat fd for %s: %s", name, strerror(errno)));
 		current_size = 0;
 		return;
 		}

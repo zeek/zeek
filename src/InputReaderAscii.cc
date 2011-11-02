@@ -50,6 +50,16 @@ bool InputReaderAscii::DoInit(string path, int num_fields, int idx_fields, const
 		return false;
 	}
 
+
+	this->num_fields = num_fields;
+	this->idx_fields = idx_fields;
+	this->fields = fields;
+
+	return true;
+}
+
+
+bool InputReaderAscii::ReadHeader() {	 
 	// try to read the header line...
 	string line;
 	if ( !getline(*file, line) ) {
@@ -57,9 +67,6 @@ bool InputReaderAscii::DoInit(string path, int num_fields, int idx_fields, const
 		return false;
 	}
 
-	this->num_fields = num_fields;
-	this->idx_fields = idx_fields;
-	 
 	// split on tabs...
 	istringstream splitstream(line);
 	unsigned int currTab = 0;
@@ -70,7 +77,7 @@ bool InputReaderAscii::DoInit(string path, int num_fields, int idx_fields, const
 			break;
 		
 		// current found heading in s... compare if we want it
-		for ( int i = 0; i < num_fields; i++ ) {
+		for ( unsigned int i = 0; i < num_fields; i++ ) {
 			const LogField* field = fields[i];
 			if ( field->name == s ) {
 				// cool, found field. note position
@@ -92,7 +99,7 @@ bool InputReaderAscii::DoInit(string path, int num_fields, int idx_fields, const
 		currTab++;
 	} 
 
-	if ( wantFields != num_fields ) {
+	if ( wantFields != (int) num_fields ) {
 		// we did not find all fields?
 		// :(
 		Error("One of the requested fields could not be found in the input data file");
@@ -106,8 +113,29 @@ bool InputReaderAscii::DoInit(string path, int num_fields, int idx_fields, const
 
 // read the entire file and send appropriate thingies back to InputMgr
 bool InputReaderAscii::DoUpdate() {
+
+	 
+	// dirty, fix me. (well, apparently after trying seeking, etc - this is not that bad)
+	if ( file && file->is_open() ) {
+		file->close();
+	}
+	file = new ifstream(fname.c_str());
+	if ( !file->is_open() ) {
+		Error(Fmt("cannot open %s", fname.c_str()));
+		return false;
+	}
+	// 
+	
+	// file->seekg(0, ios::beg); // do not forget clear.
+
+
+	if ( ReadHeader() == false ) {
+		return false;
+	}
+
 	// TODO: all the stuff we need for a second reading.
 	// *cough*
+	//
 	//
 	
 
@@ -152,6 +180,7 @@ bool InputReaderAscii::DoUpdate() {
 			}
 
 			LogVal* val = new LogVal(currMapping.type, true);
+			//bzero(val, sizeof(LogVal));
 
 			switch ( currMapping.type ) {
 			case TYPE_STRING:
@@ -267,6 +296,8 @@ bool InputReaderAscii::DoUpdate() {
 
 	}
 
+	//file->clear(); // remove end of file evil bits
+	//file->seekg(0, ios::beg); // and seek to start.
 
 	EndCurrentSend();
 	return true;

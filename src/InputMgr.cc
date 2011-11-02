@@ -290,10 +290,10 @@ bool InputMgr::ForceUpdate(EnumVal* id)
 {
 	ReaderInfo *i = FindReader(id);
 	if ( i == 0 ) {
-		reporter->Error("Reader not found");
+		reporter->InternalError("Reader not found");
 		return false;
 	}
-
+ 
 	return i->reader->Update();
 }
 
@@ -302,8 +302,9 @@ Val* InputMgr::LogValToIndexVal(int num_fields, const RecordType *type, const Lo
 	int position = 0;
 
 
-	if ( num_fields == 1 ) {
+	if ( num_fields == 1 && type->FieldType(0)->Tag() != TYPE_RECORD  ) {
 		idxval = LogValToVal(vals[0]);
+		position = 1;
 	} else {
 		ListVal *l = new ListVal(TYPE_ANY);
 		for ( int j = 0 ; j < type->NumFields(); j++ ) {
@@ -317,6 +318,7 @@ Val* InputMgr::LogValToIndexVal(int num_fields, const RecordType *type, const Lo
 		idxval = l;
 	}
 
+	//reporter->Error("Position: %d, num_fields: %d", position, num_fields);
 	assert ( position == num_fields );
 
 	return idxval;
@@ -331,8 +333,15 @@ void InputMgr::SendEntry(const InputReader* reader, const LogVal* const *vals) {
 		return;
 	}
 
+
+	reporter->Error("Hashing %d index fields", i->num_idx_fields);
 	HashKey* idxhash = HashLogVals(i->num_idx_fields, vals);
+	reporter->Error("Result: %d", (uint64_t) idxhash->Hash());
+	reporter->Error("Hashing %d val fields", i->num_val_fields);
 	HashKey* valhash = HashLogVals(i->num_val_fields, vals+i->num_idx_fields);
+	reporter->Error("Result: %d", (uint64_t) valhash->Hash());
+	
+	//reporter->Error("received entry with idxhash %d and valhash %d", (uint64_t) idxhash->Hash(), (uint64_t) valhash->Hash());
 
 	InputHash *h = i->lastDict->Lookup(idxhash);
 	if ( h != 0 ) {
@@ -393,9 +402,12 @@ void InputMgr::SendEntry(const InputReader* reader, const LogVal* const *vals) {
 	}
 
 	i->tab->Assign(idxval, k, valval);
+
 	InputHash* ih = new InputHash();
+	k = i->tab->ComputeHash(idxval);
 	ih->idxkey = k;
 	ih->valhash = valhash;
+	//i->tab->Delete(k);
 
 	i->currDict->Insert(idxhash, ih);
 
@@ -407,11 +419,12 @@ void InputMgr::EndCurrentSend(const InputReader* reader) {
 		reporter->InternalError("Unknown reader");
 		return;
 	}
-
-	// lastdict contains all deleted entries
+	// lastdict contains all deleted entries and should be empty apart from that
 	IterCookie *c = i->lastDict->InitForIteration();
 	InputHash* ih;
-	while ( ( ih = i->lastDict->NextEntry(c )) ) {
+	reporter->Error("ending");
+	while ( ( ih = i->lastDict->NextEntry(c) ) ) {
+		reporter->Error("Expiring element");
 		i->tab->Delete(ih->idxkey);
 	}
 
@@ -582,28 +595,37 @@ HashKey* InputMgr::HashLogVals(const int num_elements, const LogVal* const *vals
 		
 	}
 
+	//reporter->Error("Length: %d", length);
+
 	int position = 0;
 	char *data = (char*) malloc(length);
+	if ( data == 0 ) {
+		reporter->InternalError("Could not malloc?");
+	}
 	for ( int i = 0; i < num_elements; i++ ) {
 		const LogVal* val = vals[i];
 		switch ( val->type ) {
 		case TYPE_BOOL:
 		case TYPE_INT:
-			*(data+position) = val->val.int_val;
+			//reporter->Error("Adding field content to pos %d: %lld", val->val.int_val, position); 
+			memcpy(data+position, (const void*) &(val->val.int_val), sizeof(val->val.int_val));
+			//*(data+position) = val->val.int_val;
 			position += sizeof(val->val.int_val);
 			break;
 
 		case TYPE_COUNT:
 		case TYPE_COUNTER:
 		case TYPE_PORT:
-			*(data+position) = val->val.uint_val;
+			//*(data+position) = val->val.uint_val;
+			memcpy(data+position, (const void*) &(val->val.uint_val), sizeof(val->val.uint_val));
 			position += sizeof(val->val.uint_val);
 			break;
 	
 		case TYPE_DOUBLE:
 		case TYPE_TIME:
 		case TYPE_INTERVAL:
-			*(data+position) = val->val.double_val;
+			//*(data+position) = val->val.double_val;
+			memcpy(data+position, (const void*) &(val->val.double_val), sizeof(val->val.double_val));
 			position += sizeof(val->val.double_val);
 			break;
 
@@ -685,7 +707,7 @@ InputMgr::ReaderInfo* InputMgr::FindReader(const InputReader* reader)
 	{
 	for ( vector<ReaderInfo *>::iterator s = readers.begin(); s != readers.end(); ++s )
 		{
-		if ( (*s)->reader == reader ) 
+		if ( (*s)->reader && (*s)->reader == reader ) 
 		{
 			return *s;
 		}
@@ -699,7 +721,7 @@ InputMgr::ReaderInfo* InputMgr::FindReader(const EnumVal* id)
 	{
 	for ( vector<ReaderInfo *>::iterator s = readers.begin(); s != readers.end(); ++s )
 		{
-		if ( (*s)->id == id ) 
+		if ( (*s)->id && (*s)->id->AsEnum() == id->AsEnum() ) 
 		{
 			return *s;
 		}

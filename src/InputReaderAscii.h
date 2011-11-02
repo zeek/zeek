@@ -37,6 +37,8 @@ protected:
 	virtual bool DoUpdate();
     
 private:
+
+	bool ReadHeader();
 	
 	ifstream* file;
 	string fname;
@@ -46,6 +48,7 @@ private:
 
 	// map columns in the file to columns to send back to the manager
 	vector<FieldMapping> columnMap;
+	const LogField* const * fields; // raw mapping
 
 	//map<string, string> *keyMap;
 	

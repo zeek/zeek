@@ -144,7 +144,8 @@ function install()
 		        $sub=default_filter]);
 		}
 	
-	Log::write(PacketFilter::LOG, info);
+	if ( reading_live_traffic() || reading_traces() )
+		Log::write(PacketFilter::LOG, info);
 	}
 
 event bro_init() &priority=10

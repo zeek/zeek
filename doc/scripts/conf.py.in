@@ -27,7 +27,7 @@ sys.path.insert(0, os.path.abspath('source/ext'))
 extensions = ['bro']
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['source/_templates']
+templates_path = ['source/_templates', 'source/_static']
 
 # The suffix of source filenames.
 source_suffix = '.rst'
@@ -90,7 +90,7 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'default'
+html_theme = 'basic'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -163,7 +163,7 @@ html_static_path = ['source/_static']
 #html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'Brodoc'
+htmlhelp_basename = 'Broxygen'
 
 
 # -- Options for LaTeX output --------------------------------------------------

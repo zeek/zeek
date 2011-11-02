@@ -1,0 +1,34 @@
+
+{% set bg = "#ffffff" %}
+{% set text = "#333" %}
+{% set underline = "#aaa" %}
+{% set link = "#2a85a7" %}
+{% set emphasis_text = "#c24444" %}
+
+{% set topbar_bg      = "#000" %}
+
+{% set header_bg      = "#f0f0f0" %}
+{% set header_text    = "#000" %}
+
+{% set footer_bg      = "#333" %}
+{% set footer_text    = "#ddd" %}
+{% set footer_links   = "#ddd" %}
+
+{% set footer_bottom_bg   = "#2b2b2b" %}
+{% set footer_bottom_text = "#555" %}
+
+{% set menu_bg           = "#fff" %}
+{% set menu_hover_bg     = "#ddd" %}
+{% set menu_selected_bg  = "#ddd" %}
+{% set menu_shadow       = "#eee" %}
+{% set menu_border       = "#ccc" %}
+
+{% set highlight_bg   = "#ff6" %}
+{% set box_bg         = "#FFFAE2" %}
+{% set box_hover_bg   = "#FCF3A4" %}
+{% set box_border     = "#eee" %}
+
+{% set table_hover_bg = "#FFFAE2" %}
+
+{% set note_bg         = "#FEE0C6" %}
+{% set note_border     = "#aaa" %}

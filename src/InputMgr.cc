@@ -334,12 +334,12 @@ void InputMgr::SendEntry(const InputReader* reader, const LogVal* const *vals) {
 	}
 
 
-	reporter->Error("Hashing %d index fields", i->num_idx_fields);
+	//reporter->Error("Hashing %d index fields", i->num_idx_fields);
 	HashKey* idxhash = HashLogVals(i->num_idx_fields, vals);
-	reporter->Error("Result: %d", (uint64_t) idxhash->Hash());
-	reporter->Error("Hashing %d val fields", i->num_val_fields);
+	//reporter->Error("Result: %d", (uint64_t) idxhash->Hash());
+	//reporter->Error("Hashing %d val fields", i->num_val_fields);
 	HashKey* valhash = HashLogVals(i->num_val_fields, vals+i->num_idx_fields);
-	reporter->Error("Result: %d", (uint64_t) valhash->Hash());
+	//reporter->Error("Result: %d", (uint64_t) valhash->Hash());
 	
 	//reporter->Error("received entry with idxhash %d and valhash %d", (uint64_t) idxhash->Hash(), (uint64_t) valhash->Hash());
 
@@ -422,7 +422,6 @@ void InputMgr::EndCurrentSend(const InputReader* reader) {
 	// lastdict contains all deleted entries and should be empty apart from that
 	IterCookie *c = i->lastDict->InitForIteration();
 	InputHash* ih;
-	reporter->Error("ending");
 	while ( ( ih = i->lastDict->NextEntry(c) ) ) {
 		reporter->Error("Expiring element");
 		i->tab->Delete(ih->idxkey);
@@ -589,6 +588,11 @@ HashKey* InputMgr::HashLogVals(const int num_elements, const LogVal* const *vals
 			length += NUM_ADDR_WORDS*sizeof(uint32_t);
 			break;
 
+		case TYPE_SUBNET:
+			length += sizeof(val->val.subnet_val.width);
+			length += sizeof(val->val.subnet_val.net);
+			break;
+
 		default:
 			reporter->InternalError("unsupported type for hashlogvals");
 		}
@@ -639,6 +643,13 @@ HashKey* InputMgr::HashLogVals(const int num_elements, const LogVal* const *vals
 		case TYPE_ADDR:
 			memcpy(data+position, val->val.addr_val, NUM_ADDR_WORDS*sizeof(uint32_t));
 			position += NUM_ADDR_WORDS*sizeof(uint32_t);
+			break;
+
+		case TYPE_SUBNET:
+			memcpy(data+position,(const char*)  &(val->val.subnet_val.width), sizeof(val->val.subnet_val.width) );
+			position += sizeof(val->val.subnet_val.width);
+			memcpy(data+position, (const char*) &(val->val.subnet_val.net), sizeof(val->val.subnet_val.net) );
+			position += sizeof(val->val.subnet_val.net);		
 			break;
 
 		default:
@@ -692,6 +703,10 @@ Val* InputMgr::LogValToVal(const LogVal* val, TypeTag request_type) {
 
 	case TYPE_ADDR:
 		return new AddrVal(val->val.addr_val);
+		break;
+
+	case TYPE_SUBNET:
+		return new SubNetVal(val->val.subnet_val.net, val->val.subnet_val.width);
 		break;
 
 	default:

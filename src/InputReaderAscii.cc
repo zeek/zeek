@@ -216,7 +216,7 @@ bool InputReaderAscii::DoUpdate() {
 
 			case TYPE_SUBNET: {
 				int pos = s.find("/");
-				string width = s.substr(pos);
+				string width = s.substr(pos+1);
 				val->val.subnet_val.width = atoi(width.c_str());
 				string addr = s.substr(0, pos);
 				s = addr;

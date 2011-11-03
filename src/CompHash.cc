@@ -522,7 +522,7 @@ ListVal* CompositeHash::RecoverVals(const HashKey* k) const
 		}
 
 	if ( kp != k_end )
-		reporter->InternalError("under-ran key in CompositeHash::DescribeKey %ld", k_end - kp);
+		reporter->InternalError("under-ran key in CompositeHash::DescribeKey %zd", k_end - kp);
 
 	return l;
 	}

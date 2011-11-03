@@ -1030,7 +1030,7 @@ void clear_reST_doc_comments()
 	if ( ! reST_doc_comments )
 		return;
 
-	fprintf(stderr, "Warning: %lu unconsumed reST comments:\n",
+	fprintf(stderr, "Warning: %zu unconsumed reST comments:\n",
 			reST_doc_comments->size());
 
 	print_current_reST_doc_comments();

@@ -19,7 +19,7 @@ Bro Documentation
 `FAQ <{{docroot}}/documentation/faq.html>`_
     A list with frequently asked questions.
 
-`How to Report a Problem <{{docroot}}/reporting-problems.html>`_
+`How to Report a Problem <{{docroot}}/documentation/reporting-problems.html>`_
     Some advice for when you see Bro doing something you believe it
     shouldn't.
 
@@ -29,8 +29,8 @@ Frameworks
 Bro comes with a number of frameworks, some of which are described in
 more detail here:
 
-`Reporting <{{git('bro:doc/notice.rst')}}>`_
-    The notice/alarm framework.
+`Notice <{{git('bro:doc/notice.rst')}}>`_
+    The notice framework.
 
 `Logging <{{git('bro:doc/logging.rst')}}>`_
     Customizing and extensing Bro's logging.

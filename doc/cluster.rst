@@ -13,7 +13,7 @@ The figure below illustrates the main components of a Bro cluster.
 
 .. {{git_pull('bro:doc/deployment.png')}}
 
-.. image:: deployment.png
+.. image:: deployment.bro.png
 
 Tap
 ***

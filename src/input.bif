@@ -21,6 +21,17 @@ function Input::__force_update%(id: ID%) : bool
 	return new Val( res, TYPE_BOOL );
 	%}
 
+function Input::__add_event%(id: ID, name: string%) : bool
+	%{
+	bool res = input_mgr->RegisterEvent(id->AsEnumVal(), name->AsString()->CheckString());
+	return new Val( res, TYPE_BOOL );
+	%}
+
+function Input::__remove_event%(id: ID, name: string%) : bool
+	%{
+	bool res = input_mgr->UnregisterEvent(id->AsEnumVal(), name->AsString()->CheckString());
+	return new Val( res, TYPE_BOOL );
+	%}
 	
 function Input::__remove_reader%(id: ID%) : bool
 	%{

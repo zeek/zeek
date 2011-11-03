@@ -21,8 +21,11 @@ public:
 	InputMgr();
     
     	InputReader* CreateReader(EnumVal* id, RecordVal* description);
-	bool ForceUpdate(EnumVal* id);
-	bool RemoveReader(EnumVal* id);	
+	bool ForceUpdate(const EnumVal* id);
+	bool RemoveReader(const EnumVal* id);	
+	bool RegisterEvent(const EnumVal* id, string eventName);
+	bool UnregisterEvent(const EnumVal* id, string eventName);
+
 	
 protected:
 	friend class InputReader;
@@ -43,6 +46,7 @@ private:
 	bool IsCompatibleType(BroType* t);
 
 	bool UnrollRecordType(vector<LogField*> *fields, const RecordType *rec, const string& nameprepend);
+	void SendEvent(const string& name, EnumVal* event, Val* left, Val* right);	
 
 	HashKey* HashLogVals(const int num_elements, const LogVal* const *vals);
 

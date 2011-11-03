@@ -1,13 +1,12 @@
+// See the file "COPYING" in the main distribution directory for copyright.
 
 #include "InputReader.h"
-// #include "EventRegistry.h"
-// #include "Event.h"
 
 InputReader::InputReader()
 {
 	buf = 0;
 	buf_len = 1024;
-    disabled = true; // disabled will be set correcty in init.
+	disabled = true; // disabled will be set correcty in init.
 }
 
 InputReader::~InputReader() 
@@ -21,9 +20,9 @@ void InputReader::Error(const char *msg)
 }
 
 void InputReader::Error(const string &msg)
-	{
+{
 	input_mgr->Error(this, msg.c_str());
-	}
+}
 
 void InputReader::Put(const LogVal* const *val) 
 {
@@ -54,16 +53,19 @@ bool InputReader::Init(string arg_source, int arg_num_fields, int arg_idx_fields
 	return !disabled;
 }
 
-void InputReader::Finish() {
+void InputReader::Finish() 
+{
 	DoFinish();
 	disabled = true;
 }
 
-bool InputReader::Update() {
+bool InputReader::Update() 
+{
 	return DoUpdate();
 }
 
-void InputReader::SendEvent(const string& name, const int num_vals, const LogVal* const *vals) {
+void InputReader::SendEvent(const string& name, const int num_vals, const LogVal* const *vals) 
+{
 	input_mgr->SendEvent(name, num_vals, vals);
 }
 
@@ -93,10 +95,12 @@ const char* InputReader::Fmt(const char* format, ...)
 	}
 
 
-void InputReader::SendEntry(const LogVal* const *vals) {
+void InputReader::SendEntry(const LogVal* const *vals)
+{
 	input_mgr->SendEntry(this, vals);
 }
 
-void InputReader::EndCurrentSend() {
+void InputReader::EndCurrentSend() 
+{
 	input_mgr->EndCurrentSend(this);
 }

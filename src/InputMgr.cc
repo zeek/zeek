@@ -38,6 +38,8 @@ struct InputMgr::ReaderInfo {
 
 	PDict(InputHash)* currDict;
 	PDict(InputHash)* lastDict;
+	
+	list<string>* events; // events we fire when "something" happens
 
 	};
 
@@ -165,6 +167,7 @@ InputReader* InputMgr::CreateReader(EnumVal* id, RecordVal* description)
 	info->currDict = new PDict(InputHash);
 	info->lastDict = new PDict(InputHash);
 
+	info->events = new list<string>();
 
 	int success = reader_obj->Init(source, fieldsV.size(), idxfields, fields);
 	if ( success == false ) {
@@ -223,7 +226,7 @@ bool InputMgr::IsCompatibleType(BroType* t)
 	return false;
 	}
 
-bool InputMgr::RemoveReader(EnumVal* id) {
+bool InputMgr::RemoveReader(const EnumVal* id) {
 	ReaderInfo *i = 0;
 	for ( vector<ReaderInfo *>::iterator s = readers.begin(); s != readers.end(); ++s )
 		{
@@ -253,6 +256,43 @@ bool InputMgr::RemoveReader(EnumVal* id) {
 
 	return true;
 }
+
+bool InputMgr::RegisterEvent(const EnumVal* id, string eventName) {
+	ReaderInfo *i = FindReader(id);
+	if ( i == 0 ) {
+		reporter->InternalError("Reader not found");
+		return false;
+	}
+	
+	i->events->push_back(eventName);
+
+	return true;
+}
+
+bool InputMgr::UnregisterEvent(const EnumVal* id, string eventName) {
+	ReaderInfo *i = FindReader(id);
+	if ( i == 0 ) {
+		reporter->InternalError("Reader not found");
+		return false;
+	}
+	
+	bool erased = false;
+
+	std::list<string>::iterator it = i->events->begin();
+	while ( it != i->events->end() ) 
+	{
+		if ( *it == eventName ) {
+			it = i->events->erase(it);
+			erased = true;
+		}
+		else 
+			++it;
+	}
+
+
+	return erased;
+}
+
 
 bool InputMgr::UnrollRecordType(vector<LogField*> *fields, const RecordType *rec, const string& nameprepend) {
 	for ( int i = 0; i < rec->NumFields(); i++ ) 
@@ -286,7 +326,7 @@ bool InputMgr::UnrollRecordType(vector<LogField*> *fields, const RecordType *rec
 	
 }
 
-bool InputMgr::ForceUpdate(EnumVal* id)
+bool InputMgr::ForceUpdate(const EnumVal* id)
 {
 	ReaderInfo *i = FindReader(id);
 	if ( i == 0 ) {
@@ -333,6 +373,8 @@ void InputMgr::SendEntry(const InputReader* reader, const LogVal* const *vals) {
 		return;
 	}
 
+	bool updated = false;
+
 
 	//reporter->Error("Hashing %d index fields", i->num_idx_fields);
 	HashKey* idxhash = HashLogVals(i->num_idx_fields, vals);
@@ -355,6 +397,7 @@ void InputMgr::SendEntry(const InputReader* reader, const LogVal* const *vals) {
 			// updated
 			i->lastDict->Remove(idxhash);
 			delete(h);
+			updated = true;
 		}
 	}
 
@@ -411,7 +454,24 @@ void InputMgr::SendEntry(const InputReader* reader, const LogVal* const *vals) {
 
 	i->currDict->Insert(idxhash, ih);
 
+	std::list<string>::iterator it = i->events->begin();
+	while ( it != i->events->end() ) {
+		EnumVal* ev;
+		if ( updated ) {
+			ev = new EnumVal(BifEnum::Input::EVENT_CHANGED, BifType::Enum::Input::Event);
+		} else {
+			ev = new EnumVal(BifEnum::Input::EVENT_NEW, BifType::Enum::Input::Event);
+		}
+			
+
+		Ref(idxval);
+		Ref(valval);
+		SendEvent(*it, ev, idxval, valval);
+		++it;
+	}
+
 }
+
 
 void InputMgr::EndCurrentSend(const InputReader* reader) {
 	ReaderInfo *i = FindReader(reader);
@@ -423,6 +483,23 @@ void InputMgr::EndCurrentSend(const InputReader* reader) {
 	IterCookie *c = i->lastDict->InitForIteration();
 	InputHash* ih;
 	while ( ( ih = i->lastDict->NextEntry(c) ) ) {
+
+		if ( i->events->size() > 0 ) {
+			ListVal *idx = i->tab->RecoverIndex(ih->idxkey);
+			assert(idx != 0);
+			Val *val = i->tab->Lookup(idx);
+			assert(val != 0);
+
+			std::list<string>::iterator it = i->events->begin();
+			while ( it != i->events->end() ) {
+				Ref(idx);
+				Ref(val);
+				EnumVal *ev = new EnumVal(BifEnum::Input::EVENT_REMOVED, BifType::Enum::Input::Event);
+				SendEvent(*it, ev, idx, val);
+				++it;
+			}
+		}
+
 		reporter->Error("Expiring element");
 		i->tab->Delete(ih->idxkey);
 	}
@@ -519,6 +596,22 @@ void InputMgr::SendEvent(const string& name, const int num_vals, const LogVal* c
 	for ( int i = 0; i < num_vals; i++) {
 		vl->append(LogValToVal(vals[i]));
 	}
+
+	mgr.Dispatch(new Event(handler, vl));
+}
+
+void InputMgr::SendEvent(const string& name, EnumVal* event, Val* left, Val* right) 
+{
+	EventHandler* handler = event_registry->Lookup(name.c_str());
+	if ( handler == 0 ) {
+		reporter->Error("Event %s not found", name.c_str());
+		return;
+	}
+
+	val_list* vl = new val_list;
+	vl->append(event);
+	vl->append(left);
+	vl->append(right);
 
 	mgr.Dispatch(new Event(handler, vl));
 }

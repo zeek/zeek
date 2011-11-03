@@ -2181,7 +2181,7 @@ function send_id%(p: event_peer, id: string%) : bool
 	ID* i = global_scope()->Lookup(id->CheckString());
 	if ( ! i )
 		{
-		reporter->Error(fmt("send_id: no global id %s", id->CheckString()));
+		reporter->Error("send_id: no global id %s", id->CheckString());
 		return new Val(0, TYPE_BOOL);
 		}
 
@@ -2250,7 +2250,7 @@ function get_event_peer%(%) : event_peer
 	Val* v = remote_serializer->GetPeerVal(src);
 	if ( ! v )
 		{
-		reporter->Error(fmt("peer %d does not exist anymore", int(src)));
+		reporter->Error("peer %d does not exist anymore", int(src));
 		RecordVal* p = mgr.GetLocalPeerVal();
 		Ref(p);
 		return p;
@@ -3295,13 +3295,13 @@ function identify_data%(data: string, return_mime: bool%): string
 
 		if ( ! *magic )
 			{
-			reporter->Error(fmt("can't init libmagic: %s", magic_error(*magic)));
+			reporter->Error("can't init libmagic: %s", magic_error(*magic));
 			return new StringVal("");
 			}
 
 		if ( magic_load(*magic, 0) < 0 )
 			{
-			reporter->Error(fmt("can't load magic file: %s", magic_error(*magic)));
+			reporter->Error("can't load magic file: %s", magic_error(*magic));
 			magic_close(*magic);
 			*magic = 0;
 			return new StringVal("");

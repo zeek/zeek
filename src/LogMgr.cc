@@ -1453,8 +1453,8 @@ bool LogMgr::Flush(EnumVal* id)
 
 void LogMgr::Error(LogWriter* writer, const char* msg)
 	{
-	reporter->Error(fmt("error with writer for %s: %s",
-		     writer->Path().c_str(), msg));
+	reporter->Error("error with writer for %s: %s",
+		     writer->Path().c_str(), msg);
 	}
 
 // Timer which on dispatching rotates the filter.

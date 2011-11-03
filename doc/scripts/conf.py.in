@@ -90,12 +90,36 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'basic'
+html_theme = 'default'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-#html_theme_options = {}
+html_theme_options = {
+"rightsidebar": "true",
+"stickysidebar": "true",
+"externalrefs": "true",
+"footerbgcolor": "#333",
+"footertextcolor": "#ddd",
+"sidebarbgcolor": "#ffffff",
+#"sidebarbtncolor": "",
+"sidebartextcolor": "#333",
+"sidebarlinkcolor": "#2a85a7",
+"relbarbgcolor": "#ffffff",
+"relbartextcolor": "#333",
+"relbarlinkcolor": "#2a85a7",
+"bgcolor": "#ffffff",
+"textcolor": "#333",
+"linkcolor": "#2a85a7",
+"visitedlinkcolor": "#2a85a7",
+"headbgcolor": "#f0f0f0",
+"headtextcolor": "#000",
+"headlinkcolor": "#2a85a7",
+"codebgcolor": "#FFFAE2",
+#"codetextcolor": "",
+"bodyfont": "Arial, Helvetica, sans-serif",
+"headfont": "Palatino,'Palatino Linotype',Georgia,serif",
+}
 
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
@@ -130,7 +154,9 @@ html_static_path = ['source/_static']
 #html_use_smartypants = True
 
 # Custom sidebar templates, maps document names to template names.
-#html_sidebars = {}
+html_sidebars = {
+'**': ['localtoc.html', 'sourcelink.html', 'searchbox.html'],
+}
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.

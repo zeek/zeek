@@ -1,23 +1,5 @@
 {% extends "!layout.html" %}
-{% set css_files = css_files + ["_static/bro-base.css", "_static/bro-framing.css", "_static/bro-elements.css"] %}
 
-{% block relbar1 %}{% endblock %}
+{% set css_files = css_files + ["_static/broxygen.css"] %}
 
 {% block relbar2 %}{% endblock %}
-
-{% block sidebar2 %}
-<div class="grid_3 omega">
-  {{ super() }}
-</div>
-{% endblock %}
-
-{% block content %}
-  <div id="bro-outer" class="clearfix">
-    {{ relbar() }}
-    <div id="bro-main" class="clearfix">
-      <div class="container_12">
-        {{ super() }}
-      </div>
-    </div>
-  </div>
-{% endblock %}

@@ -1,4 +1,9 @@
 
+2.0-beta-12 | 2011-11-03 15:21:08 -0700
+
+  * No longer write to the PacketFilter::LOG stream if not reading
+    traffic. (Seth Hall)
+
 2.0-beta-10 | 2011-11-03 15:17:08 -0700
 
   * Notice framework documentation update. (Seth Hall)

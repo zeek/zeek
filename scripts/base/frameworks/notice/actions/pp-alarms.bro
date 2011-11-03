@@ -44,34 +44,40 @@ function pp_open()
 
 	pp_alarms_open = T;
 	pp_alarms = open(pp_alarms_name);
-
-	local dest = mail_dest_pretty_printed != "" ? mail_dest_pretty_printed
-		: mail_dest;
-
-	local headers = email_headers("Alarm summary", dest);
-	write_file(pp_alarms, headers + "\n");
 	}
 
 # Closes and mails out the current output file.
-function pp_send()
+function pp_send(rinfo: Log::RotationInfo)
 	{
 	if ( ! pp_alarms_open )
 		return;
 
 	write_file(pp_alarms, "\n\n--\n[Automatically generated]\n\n");
 	close(pp_alarms);
-
-	system(fmt("/bin/cat %s | %s -t -oi && /bin/rm %s",
-		   pp_alarms_name, sendmail, pp_alarms_name));
-
 	pp_alarms_open = F;
+
+	local from = strftime("%H:%M:%S", rinfo$open);
+	local to = strftime("%H:%M:%S", rinfo$close);
+	local subject = fmt("Alarm summary from %s-%s", from, to);
+	local dest = mail_dest_pretty_printed != "" ? mail_dest_pretty_printed
+		: mail_dest;
+	
+	local headers = email_headers(subject, dest);
+	
+	local header_name = pp_alarms_name + ".tmp";
+	local header = open(header_name);
+	write_file(header, headers + "\n");
+	close(header);
+	
+	system(fmt("/bin/cat %s %s | %s -t -oi && /bin/rm -f %s %s",
+		   header_name, pp_alarms_name, sendmail, header_name, pp_alarms_name));
 	}
 
 # Postprocessor function that triggers the email.
 function pp_postprocessor(info: Log::RotationInfo): bool
 	{
 	if ( want_pp() )
-		pp_send();
+		pp_send(info);
 
 	return T;
 	}
@@ -93,7 +99,7 @@ event notice(n: Notice::Info) &priority=-5
 	if ( ! want_pp() )
 		return;
 
-	if ( ACTION_LOG !in n$actions )
+	if ( ACTION_ALARM !in n$actions )
 		return;
 
 	if ( ! pp_alarms_open )
@@ -154,31 +160,27 @@ function pretty_print_alarm(out: file, n: Info)
 
 	if ( n?$id )
 		{
-		orig_p = fmt(":%s", n$id$orig_p);
-		resp_p = fmt(":%s", n$id$resp_p);
+		h1 = n$id$orig_h;
+		h2 = n$id$resp_h;
+		who = fmt("%s:%s -> %s:%s", h1, n$id$orig_p, h2, n$id$resp_p);
 		}
 
-	if ( n?$src && n?$dst )
+	else if ( n?$src && n?$dst )
 		{
 		h1 = n$src;
 		h2 = n$dst;
-		who = fmt("%s%s -> %s%s", h1, orig_p, h2, resp_p);
-
-		if ( n?$uid )
-			who = fmt("%s (uid %s)", who, n$uid );
+		who = fmt("%s -> %s", h1, h2);
 		}
 
 	else if ( n?$src )
 		{
-		local p = "";
-
-		if ( n?$p )
-			p = fmt(":%s", n$p);
-		      
 		h1 = n$src;
-		who = fmt("%s%s", h1, p);
+		who = fmt("%s%s", h1, (n?$p ? fmt(":%s", n$p) : ""));
 		}
 
+	if ( n?$uid )
+		who = fmt("%s (uid %s)", who, n$uid );
+	
 	local flag = (h1 in flag_nets || h2 in flag_nets);
 
 	local line1 = fmt(">%s %D %s %s", (flag ? ">" : " "), network_time(), n$note, who);

@@ -537,8 +537,14 @@ void InputMgr::SendEntry(const InputReader* reader, const LogVal* const *vals) {
 		Unref(v);
 
 		if ( result == false ) {
-			// throw away. Hence - we quit.
-			return;
+			if ( !updated ) {
+				// throw away. Hence - we quit.
+				return;
+			} else {
+				// keep old one
+				i->currDict->Insert(idxhash, h);
+				return;
+			}
 		}
 
 		++it;
@@ -596,8 +602,11 @@ void InputMgr::EndCurrentSend(const InputReader* reader) {
 	}
 	// lastdict contains all deleted entries and should be empty apart from that
 	IterCookie *c = i->lastDict->InitForIteration();
+	i->lastDict->MakeRobustCookie(c);
 	InputHash* ih;
-	while ( ( ih = i->lastDict->NextEntry(c) ) ) {
+	HashKey *lastDictIdxKey;
+	//while ( ( ih = i->lastDict->NextEntry(c) ) ) {
+	while ( ( ih = i->lastDict->NextEntry(lastDictIdxKey, c) ) ) {
 	
 		if ( i->events.size() != 0 || i->filters.size() != 0 )  // we have a filter or an event
 		{
@@ -609,6 +618,7 @@ void InputMgr::EndCurrentSend(const InputReader* reader) {
 
 
 			{	
+				bool doBreak = false;
 				// ask filter, if we want to expire this element...
 				std::list<InputMgr::Filter>::iterator it = i->filters.begin();
 				while ( it != i->filters.end() ) {
@@ -627,13 +637,21 @@ void InputMgr::EndCurrentSend(const InputReader* reader) {
 					Val* v = (*it).pred->Call(&vl);
 					bool result = v->AsBool();
 					Unref(v);
+					
+					++it;
 
 					if ( result == false ) {
-						// throw away. Hence - we quit and simply go to the next entry of lastDict
+						// Keep it. Hence - we quit and simply go to the next entry of lastDict
+						// ah well - and we have to add the entry to currDict...
+						i->currDict->Insert(lastDictIdxKey, i->lastDict->RemoveEntry(lastDictIdxKey));
+						doBreak = true;
 						continue;
 					}
 
-					++it;
+				}
+
+				if ( doBreak ) {
+					continue;
 				}
 			}
 		
@@ -654,6 +672,8 @@ void InputMgr::EndCurrentSend(const InputReader* reader) {
 
 		//reporter->Error("Expiring element");
 		i->tab->Delete(ih->idxkey);
+		i->lastDict->Remove(lastDictIdxKey);
+		delete(ih);
 	}
 
 	i->lastDict->Clear();

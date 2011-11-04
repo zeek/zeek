@@ -24,6 +24,11 @@ public:
 
 declare(PDict, InputHash);
 
+struct InputMgr::Filter {
+	EnumVal* id;	
+	string name;
+	Func* pred;	
+};
 
 struct InputMgr::ReaderInfo {
 	EnumVal* id;
@@ -39,9 +44,16 @@ struct InputMgr::ReaderInfo {
 	PDict(InputHash)* currDict;
 	PDict(InputHash)* lastDict;
 	
-	list<string>* events; // events we fire when "something" happens
+	list<string> events; // events we fire when "something" happens
+	list<InputMgr::Filter> filters; // events we fire when "something" happens
+
+//	~ReaderInfo();
 
 	};
+
+//void InputMgr::~ReaderInfo() {
+//
+//}
 
 struct InputReaderDefinition {
 	bro_int_t type; // the type
@@ -167,8 +179,6 @@ InputReader* InputMgr::CreateReader(EnumVal* id, RecordVal* description)
 	info->currDict = new PDict(InputHash);
 	info->lastDict = new PDict(InputHash);
 
-	info->events = new list<string>();
-
 	int success = reader_obj->Init(source, fieldsV.size(), idxfields, fields);
 	if ( success == false ) {
 		RemoveReader(id);
@@ -264,7 +274,7 @@ bool InputMgr::RegisterEvent(const EnumVal* id, string eventName) {
 		return false;
 	}
 	
-	i->events->push_back(eventName);
+	i->events.push_back(eventName);
 
 	return true;
 }
@@ -276,21 +286,23 @@ bool InputMgr::UnregisterEvent(const EnumVal* id, string eventName) {
 		return false;
 	}
 	
-	bool erased = false;
+	//bool erased = false;
 
-	std::list<string>::iterator it = i->events->begin();
-	while ( it != i->events->end() ) 
+	std::list<string>::iterator it = i->events.begin();
+	while ( it != i->events.end() ) 
 	{
 		if ( *it == eventName ) {
-			it = i->events->erase(it);
-			erased = true;
+			it = i->events.erase(it);
+			return true;
+			//	erased = true;
 		}
 		else 
 			++it;
 	}
 
 
-	return erased;
+	return false;
+	//return erased;
 }
 
 
@@ -336,6 +348,59 @@ bool InputMgr::ForceUpdate(const EnumVal* id)
  
 	return i->reader->Update();
 }
+
+bool InputMgr::AddFilter(EnumVal *id, RecordVal* fval) {
+	ReaderInfo *i = FindReader(id);
+	if ( i == 0 ) {
+		reporter->InternalError("Reader not found");
+		return false;
+	}
+
+	RecordType* rtype = fval->Type()->AsRecordType();
+	if ( ! same_type(rtype, BifType::Record::Input::Filter, 0) )
+	{
+		reporter->Error("filter argument not of right type");
+		return false;
+	}
+
+
+	Val* name = fval->Lookup(rtype->FieldOffset("name"));
+	Val* pred = fval->Lookup(rtype->FieldOffset("pred"));
+
+	Filter filter;
+	filter.name = name->AsString()->CheckString();
+	filter.id = id->Ref()->AsEnumVal();
+	filter.pred = pred ? pred->AsFunc() : 0;
+
+	i->filters.push_back(filter);
+
+	return true;
+}
+
+bool InputMgr::RemoveFilter(EnumVal* id, const string &name) {
+	ReaderInfo *i = FindReader(id);
+	if ( i == 0 ) {
+		reporter->InternalError("Reader not found");
+		return false;
+	}
+
+
+	std::list<InputMgr::Filter>::iterator it = i->filters.begin();
+	while ( it != i->filters.end() ) 
+	{
+		if ( (*it).name == name ) {
+			it = i->filters.erase(it);
+			return true;
+			break;
+		}
+		else 
+			++it;
+	}
+
+	return false;;
+}
+
+
 
 Val* InputMgr::LogValToIndexVal(int num_fields, const RecordType *type, const LogVal* const *vals) {
 	Val* idxval;
@@ -398,6 +463,7 @@ void InputMgr::SendEntry(const InputReader* reader, const LogVal* const *vals) {
 			i->lastDict->Remove(idxhash);
 			delete(h);
 			updated = true;
+			
 		}
 	}
 
@@ -437,6 +503,48 @@ void InputMgr::SendEntry(const InputReader* reader, const LogVal* const *vals) {
 		valval = r;
 	}
 
+
+	Val* oldval = 0;
+	if ( updated == true ) {
+			// in that case, we need the old value to send the event (if we send an event).
+			oldval = i->tab->Lookup(idxval);
+	}
+
+
+	// call filters first do determine if we really add / change the entry
+	std::list<InputMgr::Filter>::iterator it = i->filters.begin();
+	while ( it != i->filters.end() ) {
+		if (! (*it).pred ) {
+			continue;
+		}
+
+		EnumVal* ev;
+		Ref(idxval);
+		Ref(valval);
+
+		if ( updated ) {
+			ev = new EnumVal(BifEnum::Input::EVENT_CHANGED, BifType::Enum::Input::Event);
+		} else {
+			ev = new EnumVal(BifEnum::Input::EVENT_NEW, BifType::Enum::Input::Event);
+		}
+		
+		val_list vl(3);
+		vl.append(ev);
+		vl.append(idxval);
+		vl.append(valval);
+		Val* v = (*it).pred->Call(&vl);
+		bool result = v->AsBool();
+		Unref(v);
+
+		if ( result == false ) {
+			// throw away. Hence - we quit.
+			return;
+		}
+
+		++it;
+	}
+	
+
 	//i->tab->Assign(idxval, valval);
 	HashKey* k = i->tab->ComputeHash(idxval);
 	if ( !k ) {
@@ -454,21 +562,28 @@ void InputMgr::SendEntry(const InputReader* reader, const LogVal* const *vals) {
 
 	i->currDict->Insert(idxhash, ih);
 
-	std::list<string>::iterator it = i->events->begin();
-	while ( it != i->events->end() ) {
+	// send events now that we are kind of finished.
+	std::list<string>::iterator filter_iterator = i->events.begin();
+	while ( filter_iterator != i->events.end() ) {
 		EnumVal* ev;
-		if ( updated ) {
+		Ref(idxval);
+
+		if ( updated ) { // in case of update send back the old value.
 			ev = new EnumVal(BifEnum::Input::EVENT_CHANGED, BifType::Enum::Input::Event);
+			assert ( oldval != 0 );
+			Ref(oldval);
+			SendEvent(*filter_iterator, ev, idxval, oldval);
 		} else {
 			ev = new EnumVal(BifEnum::Input::EVENT_NEW, BifType::Enum::Input::Event);
+			Ref(valval);
+			SendEvent(*filter_iterator, ev, idxval, valval);
 		}
 			
 
-		Ref(idxval);
-		Ref(valval);
-		SendEvent(*it, ev, idxval, valval);
-		++it;
+		++filter_iterator;
 	}
+	
+	
 
 }
 
@@ -483,24 +598,61 @@ void InputMgr::EndCurrentSend(const InputReader* reader) {
 	IterCookie *c = i->lastDict->InitForIteration();
 	InputHash* ih;
 	while ( ( ih = i->lastDict->NextEntry(c) ) ) {
+	
+		if ( i->events.size() != 0 || i->filters.size() != 0 )  // we have a filter or an event
+		{
 
-		if ( i->events->size() > 0 ) {
 			ListVal *idx = i->tab->RecoverIndex(ih->idxkey);
 			assert(idx != 0);
 			Val *val = i->tab->Lookup(idx);
 			assert(val != 0);
 
-			std::list<string>::iterator it = i->events->begin();
-			while ( it != i->events->end() ) {
-				Ref(idx);
-				Ref(val);
-				EnumVal *ev = new EnumVal(BifEnum::Input::EVENT_REMOVED, BifType::Enum::Input::Event);
-				SendEvent(*it, ev, idx, val);
-				++it;
+
+			{	
+				// ask filter, if we want to expire this element...
+				std::list<InputMgr::Filter>::iterator it = i->filters.begin();
+				while ( it != i->filters.end() ) {
+					if (! (*it).pred ) {
+						continue;
+					}
+
+					EnumVal* ev = new EnumVal(BifEnum::Input::EVENT_REMOVED, BifType::Enum::Input::Event);
+					Ref(idx);
+					Ref(val);
+
+					val_list vl(3);
+					vl.append(ev);
+					vl.append(idx);
+					vl.append(val);
+					Val* v = (*it).pred->Call(&vl);
+					bool result = v->AsBool();
+					Unref(v);
+
+					if ( result == false ) {
+						// throw away. Hence - we quit and simply go to the next entry of lastDict
+						continue;
+					}
+
+					++it;
+				}
 			}
+		
+			// 
+
+			{
+				std::list<string>::iterator it = i->events.begin();
+				while ( it != i->events.end() ) {
+					Ref(idx);
+					Ref(val);
+					EnumVal *ev = new EnumVal(BifEnum::Input::EVENT_REMOVED, BifType::Enum::Input::Event);
+					SendEvent(*it, ev, idx, val);
+					++it;
+				}
+			}
+
 		}
 
-		reporter->Error("Expiring element");
+		//reporter->Error("Expiring element");
 		i->tab->Delete(ih->idxkey);
 	}
 

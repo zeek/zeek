@@ -26,6 +26,9 @@ public:
 	bool RegisterEvent(const EnumVal* id, string eventName);
 	bool UnregisterEvent(const EnumVal* id, string eventName);
 
+	bool AddFilter(EnumVal *id, RecordVal* filter);
+	bool RemoveFilter(EnumVal* id, const string &name);
+
 	
 protected:
 	friend class InputReader;
@@ -61,6 +64,8 @@ private:
 	vector<ReaderInfo*> readers;
 
 	string Hash(const string &input);	
+
+	struct Filter;
 
 };
 

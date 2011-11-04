@@ -8,34 +8,46 @@ module Input;
 %%}
 
 type ReaderDescription: record;
+type Filter: record;
 
-function Input::__create_reader%(id: ID, description: Input::ReaderDescription%) : bool
+function Input::__create_reader%(id: Log::ID, description: Input::ReaderDescription%) : bool
 	%{
 	InputReader *the_reader = input_mgr->CreateReader(id->AsEnumVal(), description->AsRecordVal());
 	return new Val( the_reader != 0, TYPE_BOOL );
 	%}
 
-function Input::__force_update%(id: ID%) : bool
+function Input::__force_update%(id: Log::ID%) : bool
 	%{
 	bool res = input_mgr->ForceUpdate(id->AsEnumVal());
 	return new Val( res, TYPE_BOOL );
 	%}
 
-function Input::__add_event%(id: ID, name: string%) : bool
+function Input::__add_event%(id: Log::ID, name: string%) : bool
 	%{
 	bool res = input_mgr->RegisterEvent(id->AsEnumVal(), name->AsString()->CheckString());
 	return new Val( res, TYPE_BOOL );
 	%}
 
-function Input::__remove_event%(id: ID, name: string%) : bool
+function Input::__remove_event%(id: Log::ID, name: string%) : bool
 	%{
 	bool res = input_mgr->UnregisterEvent(id->AsEnumVal(), name->AsString()->CheckString());
 	return new Val( res, TYPE_BOOL );
 	%}
 	
-function Input::__remove_reader%(id: ID%) : bool
+function Input::__remove_reader%(id: Log::ID%) : bool
 	%{
 	bool res = input_mgr->RemoveReader(id->AsEnumVal());
 	return new Val( res, TYPE_BOOL );
 	%}
 
+function Input::__add_filter%(id: Log::ID, filter: Input::Filter%) : bool
+	%{
+	bool res = input_mgr->AddFilter(id->AsEnumVal(), filter->AsRecordVal());
+	return new Val( res, TYPE_BOOL );
+	%}
+
+function Input::__remove_filter%(id: Log::ID, name: string%) : bool
+	%{
+	bool res = input_mgr->RemoveFilter(id->AsEnumVal(), name->AsString()->CheckString());
+	return new Val( res, TYPE_BOOL);
+	%}

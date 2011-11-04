@@ -74,11 +74,11 @@ void File_Analyzer::InitMagic(magic_t* magic, int flags)
 	*magic = magic_open(flags);
 
 	if ( ! *magic )
-		reporter->Error(fmt("can't init libmagic: %s", magic_error(*magic)));
+		reporter->Error("can't init libmagic: %s", magic_error(*magic));
 
 	else if ( magic_load(*magic, 0) < 0 )
 		{
-		reporter->Error(fmt("can't load magic file: %s", magic_error(*magic)));
+		reporter->Error("can't load magic file: %s", magic_error(*magic));
 		magic_close(*magic);
 		*magic = 0;
 		}

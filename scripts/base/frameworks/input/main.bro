@@ -16,7 +16,6 @@ export {
 		name: string; 
 		## descriptive name. for later removal
 
-
 		pred: function(typ: Input::Event, left: any, right: any): bool &optional;
 		## decision function, that decides if an inserton, update or removal should really be executed
 	};

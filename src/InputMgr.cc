@@ -28,7 +28,13 @@ struct InputMgr::Filter {
 	EnumVal* id;	
 	string name;
 	Func* pred;	
+
+	~Filter();
 };
+
+InputMgr::Filter::~Filter() {
+	Unref(id);
+}
 
 struct InputMgr::ReaderInfo {
 	EnumVal* id;
@@ -45,15 +51,20 @@ struct InputMgr::ReaderInfo {
 	PDict(InputHash)* lastDict;
 	
 	list<string> events; // events we fire when "something" happens
-	list<InputMgr::Filter> filters; // events we fire when "something" happens
+	list<InputMgr::Filter> filters; // filters that can prevent our actions
 
-//	~ReaderInfo();
-
+	~ReaderInfo();
 	};
 
-//void InputMgr::~ReaderInfo() {
-//
-//}
+InputMgr::ReaderInfo::~ReaderInfo() {
+	Unref(type);
+	Unref(tab);
+	Unref(itype);
+	Unref(rtype);
+	Unref(id);
+
+	delete(reader);	
+}
 
 struct InputReaderDefinition {
 	bro_int_t type; // the type
@@ -71,9 +82,7 @@ InputReaderDefinition input_readers[] = {
 
 InputMgr::InputMgr()
 {
-	//DBG_LOG(DBG_LOGGING, "this has to happen");
 }
-
 
 // create a new input reader object to be used at whomevers leisure lateron.
 InputReader* InputMgr::CreateReader(EnumVal* id, RecordVal* description) 
@@ -163,30 +172,26 @@ InputReader* InputMgr::CreateReader(EnumVal* id, RecordVal* description)
 
 	ReaderInfo* info = new ReaderInfo;
 	info->reader = reader_obj;
-	info->type = reader;
-	Ref(reader);
+	info->type = reader->Ref()->AsEnumVal();
 	info->num_idx_fields = idxfields;
 	info->num_val_fields = valfields;
-	info->tab = dst;
-	Ref(dst);
-	info->rtype = val;
-	Ref(val); // we save a pointer of it... I really hope that this wasn't already done anywhere.
-	info->id = id;
-	Ref(id); // ditto...
-	info->itype = idx;
-	Ref(idx);
-	readers.push_back(info);
+	info->tab = dst->Ref()->AsTableVal();
+	info->rtype = val->Ref()->AsRecordType();
+	info->id = id->Ref()->AsEnumVal();
+	info->itype = idx->Ref()->AsRecordType();
 	info->currDict = new PDict(InputHash);
 	info->lastDict = new PDict(InputHash);
 
+	readers.push_back(info);
+
 	int success = reader_obj->Init(source, fieldsV.size(), idxfields, fields);
 	if ( success == false ) {
-		RemoveReader(id);
+		assert( RemoveReader(id) );
 		return 0;
 	}
 	success = reader_obj->Update();
 	if ( success == false ) {
-		RemoveReader(id);
+		assert ( RemoveReader(id) );
 		return 0;
 	}
 	
@@ -240,12 +245,12 @@ bool InputMgr::RemoveReader(const EnumVal* id) {
 	ReaderInfo *i = 0;
 	for ( vector<ReaderInfo *>::iterator s = readers.begin(); s != readers.end(); ++s )
 		{
-		if ( (*s)->id == id ) 
-		{
-			i = (*s);
-			readers.erase(s); // remove from vector
-			break;	
-		}
+			if ( (*s)->id == id ) 
+			{
+				i = (*s);
+				readers.erase(s); // remove from vector
+				break;	
+			}
 		}
 
 	if ( i == 0 ) {
@@ -254,14 +259,6 @@ bool InputMgr::RemoveReader(const EnumVal* id) {
 
 	i->reader->Finish();
 
-
-	Unref(i->type);
-	Unref(i->tab);
-	Unref(i->itype);
-	Unref(i->rtype);
-	Unref(i->id);
-
-	delete(i->reader);
 	delete(i);
 
 	return true;
@@ -279,6 +276,8 @@ bool InputMgr::RegisterEvent(const EnumVal* id, string eventName) {
 	return true;
 }
 
+// remove first event with name eventName
+// (though there shouldn't really be several events with the same name...
 bool InputMgr::UnregisterEvent(const EnumVal* id, string eventName) {
 	ReaderInfo *i = FindReader(id);
 	if ( i == 0 ) {
@@ -286,23 +285,18 @@ bool InputMgr::UnregisterEvent(const EnumVal* id, string eventName) {
 		return false;
 	}
 	
-	//bool erased = false;
-
 	std::list<string>::iterator it = i->events.begin();
 	while ( it != i->events.end() ) 
 	{
 		if ( *it == eventName ) {
 			it = i->events.erase(it);
 			return true;
-			//	erased = true;
 		}
 		else 
 			++it;
 	}
 
-
 	return false;
-	//return erased;
 }
 
 
@@ -335,14 +329,13 @@ bool InputMgr::UnrollRecordType(vector<LogField*> *fields, const RecordType *rec
 	}
 
 	return true;
-	
 }
 
 bool InputMgr::ForceUpdate(const EnumVal* id)
 {
 	ReaderInfo *i = FindReader(id);
 	if ( i == 0 ) {
-		reporter->InternalError("Reader not found");
+		reporter->Error("Reader not found");
 		return false;
 	}
  
@@ -352,7 +345,7 @@ bool InputMgr::ForceUpdate(const EnumVal* id)
 bool InputMgr::AddFilter(EnumVal *id, RecordVal* fval) {
 	ReaderInfo *i = FindReader(id);
 	if ( i == 0 ) {
-		reporter->InternalError("Reader not found");
+		reporter->Error("Reader not found");
 		return false;
 	}
 
@@ -380,7 +373,7 @@ bool InputMgr::AddFilter(EnumVal *id, RecordVal* fval) {
 bool InputMgr::RemoveFilter(EnumVal* id, const string &name) {
 	ReaderInfo *i = FindReader(id);
 	if ( i == 0 ) {
-		reporter->InternalError("Reader not found");
+		reporter->Error("Reader not found");
 		return false;
 	}
 
@@ -427,7 +420,6 @@ Val* InputMgr::LogValToIndexVal(int num_fields, const RecordType *type, const Lo
 	assert ( position == num_fields );
 
 	return idxval;
-
 }
 
 
@@ -538,7 +530,8 @@ void InputMgr::SendEntry(const InputReader* reader, const LogVal* const *vals) {
 
 		if ( result == false ) {
 			if ( !updated ) {
-				// throw away. Hence - we quit.
+				// throw away. Hence - we quit. And remove the entry from the current dictionary...
+				delete(i->currDict->RemoveEntry(idxhash));
 				return;
 			} else {
 				// keep old one
@@ -588,9 +581,6 @@ void InputMgr::SendEntry(const InputReader* reader, const LogVal* const *vals) {
 
 		++filter_iterator;
 	}
-	
-	
-
 }
 
 
@@ -670,13 +660,12 @@ void InputMgr::EndCurrentSend(const InputReader* reader) {
 
 		}
 
-		//reporter->Error("Expiring element");
 		i->tab->Delete(ih->idxkey);
-		i->lastDict->Remove(lastDictIdxKey);
+		i->lastDict->Remove(lastDictIdxKey); // deletex in next line
 		delete(ih);
 	}
 
-	i->lastDict->Clear();
+	i->lastDict->Clear(); // should be empty... but... well... who knows...
 	delete(i->lastDict);
 
 	i->lastDict = i->currDict;	
@@ -698,11 +687,6 @@ void InputMgr::Put(const InputReader* reader, const LogVal* const *vals) {
 		valval = LogValToVal(vals[i->num_idx_fields]);
 	} else {
 		RecordVal * r = new RecordVal(i->rtype);
-
-		/* if ( i->rtype->NumFields() != (int) i->num_val_fields ) {
-			reporter->InternalError("Type mismatch");
-			return;
-		} */
 
 		for ( int j = 0; j < i->rtype->NumFields(); j++) {
 

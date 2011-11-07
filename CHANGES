@@ -1,4 +1,8 @@
 
+2.0-beta-21 | 2011-11-06 19:27:22 -0800
+
+  * Quickstart doc fixes. (Jon Siwek)
+
 2.0-beta-19 | 2011-11-03 17:41:00 -0700
 
   * Fixing packet filter test. (Robin Sommer)

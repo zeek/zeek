@@ -126,7 +126,7 @@ and sendmail for sending emails.
   against them.
 
 Additional steps may be needed to `get the right GeoIP database
-<geoip.html>`_.
+<{{git('bro:doc/geoip.rst')}}>`_.
 
 Compiling Bro Source Code
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -441,7 +441,7 @@ that only takes the email action for SSH logins to a defined set of servers:
     } &redef;
 
     redef Notice::policy += {
-        [$result = Notice::ACTION_EMAIL,
+        [$action = Notice::ACTION_EMAIL,
          $pred(n: Notice::Info) =
             {
             return n$note == SSH::Login && n$id$resp_h in watched_servers;

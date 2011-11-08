@@ -37,8 +37,9 @@ protected:
 	virtual bool DoUpdate();
     
 private:
-
 	bool ReadHeader();
+
+	bool GetLine(string& str);
 	
 	ifstream* file;
 	string fname;

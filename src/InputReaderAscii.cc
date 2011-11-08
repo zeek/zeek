@@ -62,7 +62,7 @@ bool InputReaderAscii::DoInit(string path, int num_fields, int idx_fields, const
 bool InputReaderAscii::ReadHeader() {	 
 	// try to read the header line...
 	string line;
-	if ( !getline(*file, line) ) {
+	if ( !GetLine(line) ) {
 		Error("could not read first line");
 		return false;
 	}
@@ -111,6 +111,21 @@ bool InputReaderAscii::ReadHeader() {
 	return true;
 }
 
+bool InputReaderAscii::GetLine(string& str) {
+	while ( getline(*file, str) ) {
+		if ( str[0] != '#' ) {
+			return true;
+		}
+
+		if ( str.compare(0,8, "#fields\t") == 0 ) {
+			str = str.substr(8);
+			return true;
+		}
+	}
+
+	return false;
+}
+
 // read the entire file and send appropriate thingies back to InputMgr
 bool InputReaderAscii::DoUpdate() {
 
@@ -143,7 +158,7 @@ bool InputReaderAscii::DoUpdate() {
 	//map<string, string> *newKeyMap = new map<string, string>();
 
 	string line;
-	while ( getline(*file, line ) ) {
+	while ( GetLine(line ) ) {
 		// split on tabs
 		
 		istringstream splitstream(line);

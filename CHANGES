@@ -1,4 +1,23 @@
 
+2.0-beta-21 | 2011-11-06 19:27:22 -0800
+
+  * Quickstart doc fixes. (Jon Siwek)
+
+2.0-beta-19 | 2011-11-03 17:41:00 -0700
+
+  * Fixing packet filter test. (Robin Sommer)
+
+2.0-beta-12 | 2011-11-03 15:21:08 -0700
+
+  * No longer write to the PacketFilter::LOG stream if not reading
+    traffic. (Seth Hall)
+
+2.0-beta-10 | 2011-11-03 15:17:08 -0700
+
+  * Notice framework documentation update. (Seth Hall)
+
+  * Fixing compiler warnings (addresses #388) (Jon Siwek)
+
 2.0-beta | 2011-10-27 17:46:28 -0700
 
   * Preliminary fix for SSH login detection: we need a counted measure

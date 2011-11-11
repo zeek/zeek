@@ -14,16 +14,15 @@ before you begin:
 
     * OpenSSL (headers and libraries)   http://www.openssl.org
 
-Bro can make uses of some optional libraries if they are found at
-installation time:
-
     * Libmagic  For identifying file types (e.g., in FTP transfers).
-
-    * LibGeoIP  For geo-locating IP addresses.
 
     * Libz      For decompressing HTTP bodies by the HTTP analyzer, and for
                 compressed Bro-to-Bro communication.
 
+Bro can make uses of some optional libraries if they are found at
+installation time:
+
+    * LibGeoIP  For geo-locating IP addresses.
 
 Bro also needs the following tools, but on most systems they will
 already come preinstalled:
@@ -32,7 +31,6 @@ already come preinstalled:
     * Bison (GNU Parser Generator)
     * Flex  (Fast Lexical Analyzer)
     * Perl  (Used only during the Bro build process)
-
 
 Installation
 ============

@@ -60,13 +60,13 @@ Required Dependencies
 
 .. console::
 
-   > sudo yum install cmake make gcc gcc-c++ flex bison libpcap-devel openssl-devel python-devel swig
+   > sudo yum install cmake make gcc gcc-c++ flex bison libpcap-devel openssl-devel python-devel swig zlib-devel file-devel
 
 * DEB/Debian-based Linux:
 
 .. console::
 
-   > sudo apt-get install cmake make gcc g++ flex bison libpcap-dev libssl-dev python-dev swig
+   > sudo apt-get install cmake make gcc g++ flex bison libpcap-dev libssl-dev python-dev swig zlib1g-dev libmagic-dev
 
 * FreeBSD
 
@@ -94,21 +94,20 @@ Required Dependencies
 Optional Dependencies
 ~~~~~~~~~~~~~~~~~~~~~
 
-Bro can use libmagic for identifying file types, libGeoIP for geo-locating
-IP addresses, libz for (de)compression during analysis and communication,
-and sendmail for sending emails.
+Bro can use libGeoIP for geo-locating IP addresses and sendmail for
+sending emails.
 
 * RPM/RedHat-based Linux:
 
 .. console::
 
-   > sudo yum install zlib-devel file-devel GeoIP-devel sendmail
+   > sudo yum install GeoIP-devel sendmail
 
 * DEB/Debian-based Linux:
 
 .. console::
 
-   > sudo apt-get install zlib1g-dev libmagic-dev libgeoip-dev sendmail
+   > sudo apt-get install libgeoip-dev sendmail
 
 * Ports-based FreeBSD
 
@@ -116,7 +115,7 @@ and sendmail for sending emails.
 
    > sudo pkg_add -r GeoIP
 
-  libz, libmagic, and sendmail are typically already available.
+  sendmail is typically already available.
 
 * Mac OS X
 

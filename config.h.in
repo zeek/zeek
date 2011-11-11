@@ -14,12 +14,6 @@
 /* Define if you have the `getopt_long' function. */
 #cmakedefine HAVE_GETOPT_LONG
 
-/* Define if you have the `magic' library (-lmagic). */
-#cmakedefine HAVE_LIBMAGIC
-
-/* Define if you have the `z' library (-lz). */
-#cmakedefine HAVE_LIBZ
-
 /* We are on a Linux system */
 #cmakedefine HAVE_LINUX
 

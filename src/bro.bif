@@ -1860,6 +1860,18 @@ function decode_base64%(s: string%): string
 		}
 	%}
 
+function decode_base64_custom%(s: string, a: string%): string
+	%{
+	BroString* t = decode_base64(s->AsString(), a->AsString());
+	if ( t )
+		return new StringVal(t);
+	else
+		{
+		reporter->Error("error in decoding string %s", s->CheckString());
+		return new StringVal("");
+		}
+	%}
+
 %%{
 #include "DCE_RPC.h"
 

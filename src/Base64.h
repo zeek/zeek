@@ -17,7 +17,8 @@ public:
 	// when the decoder is called by the built-in function
 	// decode_base64().
 	Base64Decoder(Analyzer* analyzer);
-	~Base64Decoder()	{ }
+	Base64Decoder(Analyzer* analyzer, const string& alphabet);
+	~Base64Decoder();
 
 	// A note on Decode():
 	//
@@ -47,6 +48,11 @@ public:
 			reporter->Error("%s", msg);
 		}
 
+	static int* InitBase64Table(const string& alphabet);
+
+	static const string default_alphabet;
+	static int default_base64_table[256];
+
 protected:
 	char error_msg[256];
 
@@ -57,8 +63,10 @@ protected:
 	int base64_after_padding;
 	int errored;	// if true, we encountered an error - skip further processing
 	Analyzer* analyzer;
+	int* base64_table;
 };
 
+BroString* decode_base64(const BroString* s, const BroString* a);
 BroString* decode_base64(const BroString* s);
 
 #endif /* base64_h */

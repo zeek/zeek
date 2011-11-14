@@ -35,25 +35,25 @@ cd ..
 
 # Minimum Bro
 CMAKE_OSX_ARCHITECTURES=${arch} ./configure --prefix=${prefix} \
-    --disable-broccoli --disable-broctl --pkg-name-prefix=Bro \
+    --disable-broccoli --disable-broctl --pkg-name-prefix=Bro-minimal \
     --binary-package
 ( cd build && make package )
 
 # Full Bro package
 CMAKE_OSX_ARCHITECTURES=${arch} ./configure --prefix=${prefix} \
-    --pkg-name-prefix=Bro-all --binary-package
+    --pkg-name-prefix=Bro --binary-package
 ( cd build && make package )
 
 # Broccoli
 cd aux/broccoli
 CMAKE_OSX_ARCHITECTURES=${arch} ./configure --prefix=${prefix} \
     --binary-package
-( cd build && make package && mv Broccoli*.dmg ../../../build/ )
+( cd build && make package && mv *.dmg ../../../build/ )
 cd ../..
 
 # Broctl
 cd aux/broctl
 CMAKE_OSX_ARCHITECTURES=${arch} ./configure --prefix=${prefix} \
     --binary-package
-( cd build && make package && mv Broctl*.dmg ../../../build/ )
+( cd build && make package && mv *.dmg ../../../build/ )
 cd ../..

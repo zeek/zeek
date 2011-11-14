@@ -283,7 +283,7 @@ uint32 mask_addr(uint32 a, uint32 top_bits_to_keep)
 	{
 	if ( top_bits_to_keep > 32 )
 		{
-		reporter->Error("bad address mask value %s", top_bits_to_keep);
+		reporter->Error("bad address mask value %d", top_bits_to_keep);
 		return a;
 		}
 

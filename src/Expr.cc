@@ -221,7 +221,9 @@ bool Expr::DoUnserialize(UnserialInfo* info)
 
 	tag = BroExprTag(c);
 
-	UNSERIALIZE_OPTIONAL(type, BroType::Unserialize(info));
+	BroType* t = 0;
+	UNSERIALIZE_OPTIONAL(t, BroType::Unserialize(info));
+	SetType(t);
 	return true;
 	}
 
@@ -3116,8 +3118,9 @@ Val* FieldExpr::Fold(Val* v) const
 		return def_attr->AttrExpr()->Eval(0);
 	else
 		{
-		Internal("field value missing");
-		return 0;
+		reporter->ExprRuntimeError(this, "field value missing");
+		assert(false);
+		return 0; // Will never get here, but compiler can't tell.
 		}
 	}
 
@@ -3728,6 +3731,7 @@ Val* RecordMatchExpr::Fold(Val* v1, Val* v2) const
 				}
 			}
 
+		// No try/catch here; we pass exceptions upstream.
 		Val* pred_val =
 			match_rec->Lookup(pred_field_index)->AsFunc()->Call(&args);
 		bool is_zero = pred_val->IsZero();
@@ -4218,7 +4222,7 @@ Val* FlattenExpr::Fold(Val* v) const
 			l->Append(fa->AttrExpr()->Eval(0));
 
 		else
-			Internal("missing field value");
+			reporter->ExprRuntimeError(this, "missing field value");
 		}
 
 	return l;
@@ -4644,7 +4648,7 @@ Val* CallExpr::Eval(Frame* f) const
 
 		if ( f )
 			f->SetCall(this);
-		ret = func->Call(v, f);
+		ret = func->Call(v, f); // No try/catch here; we pass exceptions upstream.
 		if ( f )
 			f->ClearCall();
 		// Don't Unref() the arguments, as Func::Call already did that.

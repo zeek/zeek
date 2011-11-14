@@ -2,6 +2,7 @@ include(InstallPackageConfigFile)
 
 install(DIRECTORY ./ DESTINATION ${BRO_SCRIPT_INSTALL_PATH} FILES_MATCHING
         PATTERN "site/local*" EXCLUDE
+        PATTERN "test-all-policy.bro" EXCLUDE
         PATTERN "*.bro"
         PATTERN "*.sig"
         PATTERN "*.fp"

@@ -58,6 +58,5 @@
 @load tuning/__load__.bro
 @load tuning/defaults/__load__.bro
 @load tuning/defaults/packet-fragments.bro
-@load tuning/defaults/remove-high-volume-notices.bro
 @load tuning/defaults/warnings.bro
 @load tuning/track-all-assets.bro

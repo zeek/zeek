@@ -67,6 +67,13 @@ public:
 	// Evaluates all queued Triggers.
 	static void EvaluatePending();
 
+	struct Stats {
+		unsigned long total;
+		unsigned long pending;
+	};
+
+	static void GetStats(Stats* stats);
+
 private:
 	friend class TriggerTraversalCallback;
 	friend class TriggerTimer;
@@ -99,6 +106,8 @@ private:
 
 	typedef list<Trigger*> TriggerList;
 	static TriggerList* pending;
+
+	static unsigned long total_triggers;
 };
 
 #endif

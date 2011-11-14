@@ -121,17 +121,21 @@ function parse_mozilla(unparsed_version: string,
 		if ( 2 in parts )
 			v = parse(parts[2], host, software_type)$version;
 		}
-	else if ( /MSIE 7.*Trident\/4\.0/ in unparsed_version )
-		{
-		software_name = "MSIE"; 
-		v = [$major=8,$minor=0];
-		}
-	else if ( / MSIE [0-9\.]*b?[0-9]*;/ in unparsed_version )
+	else if ( / MSIE / in unparsed_version )
 		{
 		software_name = "MSIE";
-		parts = split_all(unparsed_version, /MSIE [0-9\.]*b?[0-9]*/);
-		if ( 2 in parts )
-			v = parse(parts[2], host, software_type)$version;
+		if ( /Trident\/4\.0/ in unparsed_version )
+			v = [$major=8,$minor=0];
+		else if ( /Trident\/5\.0/ in unparsed_version )
+			v = [$major=9,$minor=0];
+		else if ( /Trident\/6\.0/ in unparsed_version )
+			v = [$major=10,$minor=0];
+		else
+			{
+			parts = split_all(unparsed_version, /MSIE [0-9]{1,2}\.*[0-9]*b?[0-9]*/);
+			if ( 2 in parts )
+				v = parse(parts[2], host, software_type)$version;
+			}
 		}
 	else if ( /Version\/.*Safari\// in unparsed_version )
 		{

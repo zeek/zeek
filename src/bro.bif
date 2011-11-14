@@ -560,7 +560,7 @@ function to_addr%(ip: string%): addr
 
 function count_to_v4_addr%(ip: count%): addr
 	%{
-	if ( ip > 4294967295 )
+	if ( ip > 4294967295LU )
 		{
 		builtin_error("conversion of non-IPv4 count to addr", @ARG@[0]);
 		return new AddrVal(uint32(0));
@@ -1855,7 +1855,7 @@ function decode_base64%(s: string%): string
 		return new StringVal(t);
 	else
 		{
-		reporter->Error("error in decoding string %s", @ARG@[0]);
+		reporter->Error("error in decoding string %s", s->CheckString());
 		return new StringVal("");
 		}
 	%}
@@ -1987,8 +1987,8 @@ function precompile_pcap_filter%(id: PcapFilterID, s: string%): bool
 		if ( ! pkt_srcs[i]->PrecompileFilter(id->ForceAsInt(),
 							s->CheckString()) )
 			{
-			reporter->Error( "precompile_pcap_filter: %s",
-				pkt_srcs[i]->ErrorMsg() );
+			reporter->Error("precompile_pcap_filter: %s",
+				pkt_srcs[i]->ErrorMsg());
 			success = false;
 			}
 		}
@@ -2181,7 +2181,7 @@ function send_id%(p: event_peer, id: string%) : bool
 	ID* i = global_scope()->Lookup(id->CheckString());
 	if ( ! i )
 		{
-		reporter->Error(fmt("send_id: no global id %s", id->CheckString()));
+		reporter->Error("send_id: no global id %s", id->CheckString());
 		return new Val(0, TYPE_BOOL);
 		}
 
@@ -2250,7 +2250,7 @@ function get_event_peer%(%) : event_peer
 	Val* v = remote_serializer->GetPeerVal(src);
 	if ( ! v )
 		{
-		reporter->Error(fmt("peer %d does not exist anymore", int(src)));
+		reporter->Error("peer %d does not exist anymore", int(src));
 		RecordVal* p = mgr.GetLocalPeerVal();
 		Ref(p);
 		return p;
@@ -2828,13 +2828,15 @@ public:
 	// Overridden from DNS_Mgr:Lookup:Callback.
 	virtual void Resolved(const char* name)
 		{
-		trigger->Cache(call, new StringVal(name));
+		Val* result = new StringVal(name);
+		trigger->Cache(call, result);
+		Unref(result);
 		trigger->Release();
 		}
 
 	virtual void Resolved(TableVal* addrs)
 		{
-		Ref(addrs);
+		// No Ref() for addrs.
 		trigger->Cache(call, addrs);
 		trigger->Release();
 		}
@@ -2842,12 +2844,19 @@ public:
 	virtual void Timeout()
 		{
 		if ( lookup_name )
-			trigger->Cache(call, new StringVal("<\?\?\?>"));
+			{
+			Val* result = new StringVal("<\?\?\?>");
+			trigger->Cache(call, result);
+			Unref(result);
+			}
+
 		else
 			{
 			ListVal* lv = new ListVal(TYPE_ADDR);
 			lv->Append(new AddrVal("0.0.0.0"));
-			trigger->Cache(call, lv->ConvertToSet());
+			Val* result = lv->ConvertToSet();
+			trigger->Cache(call, result);
+			Unref(result);
 			Unref(lv);
 			}
 
@@ -3286,13 +3295,13 @@ function identify_data%(data: string, return_mime: bool%): string
 
 		if ( ! *magic )
 			{
-			reporter->Error(fmt("can't init libmagic: %s", magic_error(*magic)));
+			reporter->Error("can't init libmagic: %s", magic_error(*magic));
 			return new StringVal("");
 			}
 
 		if ( magic_load(*magic, 0) < 0 )
 			{
-			reporter->Error(fmt("can't load magic file: %s", magic_error(*magic)));
+			reporter->Error("can't load magic file: %s", magic_error(*magic));
 			magic_close(*magic);
 			*magic = 0;
 			return new StringVal("");

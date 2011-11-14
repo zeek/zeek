@@ -1,4 +1,4 @@
-// See the file "COPYING" in the main distribution directory for copyright.
+  // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef dnsmgr_h
 #define dnsmgr_h
@@ -49,6 +49,7 @@ public:
 	virtual ~DNS_Mgr();
 
 	bool Init();
+	void Flush();
 
 	// Looks up the address or addresses of the given host, and returns
 	// a set of addr.
@@ -80,6 +81,17 @@ public:
 	void AsyncLookupAddr(dns_mgr_addr_type host, LookupCallback* callback);
 	void AsyncLookupName(string name, LookupCallback* callback);
 
+	struct Stats {
+		unsigned long requests;	// These count only async requests.
+		unsigned long successful;
+		unsigned long failed;
+		unsigned long pending;
+		unsigned long cached_hosts;
+		unsigned long cached_addresses;
+	};
+
+	void GetStats(Stats* stats);
+
 protected:
 	friend class LookupCallback;
 	friend class DNS_Mgr_Request;
@@ -110,6 +122,9 @@ protected:
 	// requested.
 	void CheckAsyncAddrRequest(dns_mgr_addr_type addr, bool timeout);
 	void CheckAsyncHostRequest(const char* host, bool timeout);
+
+	// Process outstanding requests.
+	void DoProcess(bool flush);
 
 	// IOSource interface.
 	virtual void GetFds(int* read, int* write, int* except);
@@ -202,6 +217,10 @@ protected:
 	TimeoutQueue asyncs_timeouts;
 
 	int asyncs_pending;
+
+	unsigned long num_requests;
+	unsigned long successful;
+	unsigned long failed;
 };
 
 extern DNS_Mgr* dns_mgr;

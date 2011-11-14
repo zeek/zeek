@@ -68,6 +68,19 @@ Dictionary::Dictionary(dict_order ordering, int initial_size)
 
 Dictionary::~Dictionary()
 	{
+	DeInit();
+	delete order;
+	}
+
+void Dictionary::Clear()
+	{
+	DeInit();
+	Init(2);
+	tbl2 = 0;
+	}
+
+void Dictionary::DeInit()
+	{
 	for ( int i = 0; i < num_buckets; ++i )
 		if ( tbl[i] )
 			{
@@ -84,7 +97,6 @@ Dictionary::~Dictionary()
 			}
 
 	delete [] tbl;
-	delete order;
 
 	if ( tbl2 == 0 )
 		return;
@@ -103,7 +115,9 @@ Dictionary::~Dictionary()
 
 			delete chain;
 			}
+
 	delete [] tbl2;
+	tbl2 = 0;
 	}
 
 void* Dictionary::Lookup(const void* key, int key_size, hash_t hash) const

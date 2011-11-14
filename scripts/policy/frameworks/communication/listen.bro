@@ -8,5 +8,5 @@ module Communication;
 event bro_init() &priority=-10
 	{
 	enable_communication();
-	listen(listen_interface, listen_port, listen_encrypted);
+	listen(listen_interface, listen_port, listen_ssl);
 	}

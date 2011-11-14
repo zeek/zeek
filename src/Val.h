@@ -869,7 +869,7 @@ protected:
 
 	DECLARE_SERIAL(TableVal);
 
-	const TableType* table_type;
+	TableType* table_type;
 	CompositeHash* table_hash;
 	Attributes* attrs;
 	double expire_time;

@@ -1,7 +1,6 @@
 ##! This script extracts and logs variables from the requested URI
 
-@load base/protocols/http/main
-@load base/protocols/http/utils
+@load base/protocols/http
 
 module HTTP;
 

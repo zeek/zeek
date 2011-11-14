@@ -41,7 +41,16 @@ protected:
 		if ( handler->ErrorHandler() )
 			reporter->BeginErrorHandler();
 
-		handler->Call(args, no_remote);
+		try
+			{
+			handler->Call(args, no_remote);
+			}
+
+		catch ( InterpreterException& e )
+			{
+			// Already reported.
+			}
+
 		if ( obj )
 			// obj->EventDone();
 			Unref(obj);

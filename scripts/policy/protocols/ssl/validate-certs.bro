@@ -1,26 +1,29 @@
 ##! Perform full certificate chain validation for SSL certificates.
 
-@load base/frameworks/notice/main
-@load base/protocols/ssl/main
-
+@load base/frameworks/notice
+@load base/protocols/ssl
 @load protocols/ssl/cert-hash
 
 module SSL;
 
 export {
 	redef enum Notice::Type += {
+		## This notice indicates that the result of validating the certificate
+		## along with it's full certificate chain was invalid.
 		Invalid_Server_Cert
 	};
 	
 	redef record Info += {
+		## This stores and logs the result of certificate validation for 
+		## this connection.
 		validation_status: string &log &optional;
 	};
 	
 	## MD5 hash values for recently validated certs along with the validation
-	## status message are kept in this table so avoid constant validation 
+	## status message are kept in this table to avoid constant validation 
 	## everytime the same certificate is seen.
 	global recently_validated_certs: table[string] of string = table() 
-		&read_expire=5mins &synchronized;
+		&read_expire=5mins &synchronized &redef;
 }
 
 event ssl_established(c: connection) &priority=3

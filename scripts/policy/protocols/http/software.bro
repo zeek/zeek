@@ -1,6 +1,6 @@
 ##! Software identification and extraction for HTTP traffic.
 
-@load base/frameworks/software/main
+@load base/frameworks/software
 
 module HTTP;
 

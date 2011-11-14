@@ -1,11 +1,12 @@
 ##! This script handles core generated connection related "weird" events to 
 ##! push weird information about connections into the weird framework.
 ##! For live operational deployments, this can frequently cause load issues
-##! due to large numbers of these events being passed between nodes.
+##! due to large numbers of these events and quite possibly shouldn't be
+##! loaded.
 
 @load base/frameworks/notice
 
-module Weird;
+module Conn;
 
 export {
 	redef enum Notice::Type += {
@@ -20,14 +21,11 @@ export {
 
 event rexmit_inconsistency(c: connection, t1: string, t2: string)
 	{
-	if ( c$id !in did_inconsistency_msg )
-		{
-		NOTICE([$note=Retransmission_Inconsistency,
-		        $conn=c,
-		        $msg=fmt("%s rexmit inconsistency (%s) (%s)",
-		                 id_string(c$id), t1, t2)]);
-		add did_inconsistency_msg[c$id];
-		}
+	NOTICE([$note=Retransmission_Inconsistency,
+	        $conn=c,
+	        $msg=fmt("%s rexmit inconsistency (%s) (%s)",
+	                 id_string(c$id), t1, t2),
+	        $identifier=fmt("%s", c$id)]);
 	}
 
 event ack_above_hole(c: connection)

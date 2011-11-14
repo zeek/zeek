@@ -148,7 +148,7 @@ export {
 		## from highest value (10) to lowest value (0).
 		priority: count                            &log &default=5;
 		## An action given to the notice if the predicate return true.
-		result:   Notice::Action                   &log &default=ACTION_NONE;
+		action:   Notice::Action                   &log &default=ACTION_NONE;
 		## The pred (predicate) field is a function that returns a boolean T 
 		## or F value.  If the predicate function return true, the action in 
 		## this record is applied to the notice that is given as an argument 
@@ -169,25 +169,25 @@ export {
 		[$pred(n: Notice::Info) = { return (n$note in Notice::ignored_types); },
 		 $halt=T, $priority = 9],
 		[$pred(n: Notice::Info) = { return (n$note in Notice::not_suppressed_types); },
-		 $result = ACTION_NO_SUPPRESS,
+		 $action = ACTION_NO_SUPPRESS,
 		 $priority = 9],
 		[$pred(n: Notice::Info) = { return (n$note in Notice::alarmed_types); },
-		 $result = ACTION_ALARM,
+		 $action = ACTION_ALARM,
 		 $priority = 8],
 		[$pred(n: Notice::Info) = { return (n$note in Notice::emailed_types); },
-		 $result = ACTION_EMAIL,
+		 $action = ACTION_EMAIL,
 		 $priority = 8],
 		[$pred(n: Notice::Info) = { 
-		 	if (n$note in Notice::type_suppression_intervals) 
+			if (n$note in Notice::type_suppression_intervals) 
 				{
-		 		n$suppress_for=Notice::type_suppression_intervals[n$note];
+				n$suppress_for=Notice::type_suppression_intervals[n$note];
 				return T;
 				}
-		 	return F; 
+			return F; 
 		 },
-		 $result = ACTION_NONE,
+		 $action = ACTION_NONE,
 		 $priority = 8],
-		[$result = ACTION_LOG,
+		[$action = ACTION_LOG,
 		 $priority = 0],
 	} &redef;
 	
@@ -353,9 +353,26 @@ function email_notice_to(n: Notice::Info, dest: string, extend: bool)
 		return;
 		
 	local email_text = email_headers(fmt("%s", n$note), dest);
+		
+	# First off, finish the headers and include the human readable messages
+	# then leave a blank line after the message.
+	email_text = string_cat(email_text, "\nMessage: ", n$msg);
+	if ( n?$sub )
+		email_text = string_cat(email_text, "\nSub-message: ", n$sub);
 	
-	# The notice emails always start off with the human readable message.
-	email_text = string_cat(email_text, "\n", n$msg, "\n");
+	email_text = string_cat(email_text, "\n\n");
+	
+	# Next, add information about the connection if it exists.
+	if ( n?$id )
+		{
+		email_text = string_cat(email_text, "Connection: ", 
+			fmt("%s", n$id$orig_h), ":", fmt("%d", n$id$orig_p), " -> ",
+			fmt("%s", n$id$resp_h), ":", fmt("%d", n$id$resp_p), "\n");
+		if ( n?$uid )
+			email_text = string_cat(email_text, "Connection uid: ", n$uid, "\n");
+		}
+	else if ( n?$src )
+		email_text = string_cat(email_text, "Address: ", fmt("%s", n$src), "\n");
 	
 	# Add the extended information if it's requested.
 	if ( extend )
@@ -466,7 +483,7 @@ function apply_policy(n: Notice::Info)
 		# If there's no predicate or the predicate returns F.
 		if ( ! ordered_policy[i]?$pred || ordered_policy[i]$pred(n) )
 			{
-			add n$actions[ordered_policy[i]$result];
+			add n$actions[ordered_policy[i]$action];
 			add n$policy_items[int_to_count(i)];
 			
 			# If the predicate matched and there was a suppression interval, 

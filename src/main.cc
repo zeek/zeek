@@ -229,6 +229,8 @@ void done_with_network()
 
 	dpm->Done();
 	timer_mgr->Expire();
+	dns_mgr->Flush();
+	mgr.Drain();
 	mgr.Drain();
 
 	if ( remote_serializer )
@@ -350,6 +352,7 @@ int main(int argc, char** argv)
 	char* seed_load_file = getenv("BRO_SEED_FILE");
 	char* seed_save_file = 0;
 	char* user_pcap_filter = 0;
+	char* debug_streams = 0;
 	int bare_mode = false;
 	int seed = 0;
 	int dump_cfg = false;
@@ -636,9 +639,7 @@ int main(int argc, char** argv)
 #endif
 
 		case 'B':
-#ifdef DEBUG
-			debug_logger.EnableStreams(optarg);
-#endif
+			debug_streams = optarg;
 			break;
 
 		case 0:
@@ -657,6 +658,11 @@ int main(int argc, char** argv)
 
 	bro_start_time = current_time(true);
 	reporter = new Reporter();
+
+#ifdef DEBUG
+	if ( debug_streams )
+		debug_logger.EnableStreams(debug_streams);
+#endif
 
 	init_random_seed(seed, (seed_load_file && *seed_load_file ? seed_load_file : 0) , seed_save_file);
 	// DEBUG_MSG("HMAC key: %s\n", md5_digest_print(shared_hmac_md5_key));
@@ -949,7 +955,7 @@ int main(int argc, char** argv)
 		{
 		reporter->Info("invoked event handlers:");
 		for ( int i = 0; i < alive_handlers->length(); ++i )
-			reporter->Info((*alive_handlers)[i]);
+			reporter->Info("%s", (*alive_handlers)[i]);
 		}
 
 	delete alive_handlers;

@@ -392,7 +392,7 @@ static bool sendToIO(ChunkedIO* io, ChunkedIO::Chunk* c)
 	{
 	if ( ! io->Write(c) )
 		{
-		reporter->Warning(fmt("can't send chunk: %s", io->Error()));
+		reporter->Warning("can't send chunk: %s", io->Error());
 		return false;
 		}
 
@@ -404,7 +404,7 @@ static bool sendToIO(ChunkedIO* io, char msg_type, RemoteSerializer::PeerID id,
 	{
 	if ( ! sendCMsg(io, msg_type, id) )
 		{
-		reporter->Warning(fmt("can't send message of type %d: %s", msg_type, io->Error()));
+		reporter->Warning("can't send message of type %d: %s", msg_type, io->Error());
 		return false;
 		}
 
@@ -419,7 +419,7 @@ static bool sendToIO(ChunkedIO* io, char msg_type, RemoteSerializer::PeerID id,
 	{
 	if ( ! sendCMsg(io, msg_type, id) )
 		{
-		reporter->Warning(fmt("can't send message of type %d: %s", msg_type, io->Error()));
+		reporter->Warning("can't send message of type %d: %s", msg_type, io->Error());
 		return false;
 		}
 
@@ -715,7 +715,7 @@ bool RemoteSerializer::CloseConnection(PeerID id)
 	Peer* peer = LookupPeer(id, true);
 	if ( ! peer )
 		{
-		reporter->Error(fmt("unknown peer id %d for closing connection", int(id)));
+		reporter->Error("unknown peer id %d for closing connection", int(id));
 		return false;
 		}
 
@@ -750,14 +750,14 @@ bool RemoteSerializer::RequestSync(PeerID id, bool auth)
 	Peer* peer = LookupPeer(id, true);
 	if ( ! peer )
 		{
-		reporter->Error(fmt("unknown peer id %d for request sync", int(id)));
+		reporter->Error("unknown peer id %d for request sync", int(id));
 		return false;
 		}
 
 	if ( peer->phase != Peer::HANDSHAKE )
 		{
-		reporter->Error(fmt("can't request sync from peer; wrong phase %d",
-				peer->phase));
+		reporter->Error("can't request sync from peer; wrong phase %d",
+				peer->phase);
 		return false;
 		}
 
@@ -777,14 +777,14 @@ bool RemoteSerializer::RequestLogs(PeerID id)
 	Peer* peer = LookupPeer(id, true);
 	if ( ! peer )
 		{
-		reporter->Error(fmt("unknown peer id %d for request logs", int(id)));
+		reporter->Error("unknown peer id %d for request logs", int(id));
 		return false;
 		}
 
 	if ( peer->phase != Peer::HANDSHAKE )
 		{
-		reporter->Error(fmt("can't request logs from peer; wrong phase %d",
-			     peer->phase));
+		reporter->Error("can't request logs from peer; wrong phase %d",
+			     peer->phase);
 		return false;
 		}
 
@@ -802,14 +802,14 @@ bool RemoteSerializer::RequestEvents(PeerID id, RE_Matcher* pattern)
 	Peer* peer = LookupPeer(id, true);
 	if ( ! peer )
 		{
-		reporter->Error(fmt("unknown peer id %d for request sync", int(id)));
+		reporter->Error("unknown peer id %d for request sync", int(id));
 		return false;
 		}
 
 	if ( peer->phase != Peer::HANDSHAKE )
 		{
-		reporter->Error(fmt("can't request events from peer; wrong phase %d",
-				peer->phase));
+		reporter->Error("can't request events from peer; wrong phase %d",
+				peer->phase);
 		return false;
 		}
 
@@ -869,8 +869,8 @@ bool RemoteSerializer::CompleteHandshake(PeerID id)
 
 	if ( p->phase != Peer::HANDSHAKE )
 		{
-		reporter->Error(fmt("can't complete handshake; wrong phase %d",
-				p->phase));
+		reporter->Error("can't complete handshake; wrong phase %d",
+				p->phase);
 		return false;
 		}
 
@@ -1138,7 +1138,7 @@ bool RemoteSerializer::SendCaptureFilter(PeerID id, const char* filter)
 
 	if ( peer->phase != Peer::HANDSHAKE )
 		{
-		reporter->Error(fmt("can't sent capture filter to peer; wrong phase %d", peer->phase));
+		reporter->Error("can't sent capture filter to peer; wrong phase %d", peer->phase);
 		return false;
 		}
 
@@ -1215,8 +1215,8 @@ bool RemoteSerializer::SendCapabilities(Peer* peer)
 	{
 	if ( peer->phase != Peer::HANDSHAKE )
 		{
-		reporter->Error(fmt("can't sent capabilties to peer; wrong phase %d",
-				peer->phase));
+		reporter->Error("can't sent capabilties to peer; wrong phase %d",
+				peer->phase);
 		return false;
 		}
 
@@ -2809,7 +2809,13 @@ void RemoteSerializer::GotFunctionCall(const char* name, double time,
 		return;
 		}
 
-	function->Call(args);
+	try
+		{
+		function->Call(args);
+		}
+
+	catch ( InterpreterException& e )
+		{ /* Already reported. */ }
 	}
 
 void RemoteSerializer::GotID(ID* id, Val* val)
@@ -3005,8 +3011,8 @@ bool RemoteSerializer::SendCMsgToChild(char msg_type, Peer* peer)
 	{
 	if ( ! sendCMsg(io, msg_type, peer ? peer->id : PEER_NONE) )
 		{
-		reporter->Warning(fmt("can't send message of type %d: %s",
-				msg_type, io->Error()));
+		reporter->Warning("can't send message of type %d: %s",
+				msg_type, io->Error());
 		return false;
 		}
 	return true;
@@ -3085,7 +3091,7 @@ void RemoteSerializer::FatalError(const char* msg)
 	{
 	msg = fmt("fatal error, shutting down communication: %s", msg);
 	Log(LogError, msg);
-	reporter->Error(msg);
+	reporter->Error("%s", msg);
 
 	closed = true;
 	kill(child_pid, SIGQUIT);

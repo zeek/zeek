@@ -44,7 +44,7 @@ public:
 		if ( analyzer )
 			analyzer->Weird("base64_illegal_encoding", msg);
 		else
-			reporter->Error(msg);
+			reporter->Error("%s", msg);
 		}
 
 protected:

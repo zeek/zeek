@@ -33,7 +33,7 @@ export {
 event http_entity_data(c: connection, is_orig: bool, length: count, data: string) &priority=5
 	{
 	# Client body extraction is not currently supported in this script.
-	if ( is_orig || ! c$http$first_chunk ) return;
+	if ( is_orig ) return;
 	
 	if ( c$http$first_chunk )
 		{

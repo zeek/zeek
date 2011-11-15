@@ -149,7 +149,7 @@ bool LogVal::IsCompatibleType(BroType* t, bool atomic_only)
 		if ( ! t->IsSet() )
 			return false;
 
-		return IsCompatibleType(t->AsSetType()->Indices()->PureType());
+		return IsCompatibleType(t->AsSetType()->Indices()->PureType(), true);
 		}
 
 	case TYPE_VECTOR:

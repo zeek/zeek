@@ -174,7 +174,7 @@ export {
 		["SYN_after_reset"]                     = ACTION_LOG,
 		["SYN_inside_connection"]               = ACTION_LOG,
 		["SYN_seq_jump"]                        = ACTION_LOG,
-		["SYN_with_data"]                       = ACTION_LOG,
+		["SYN_with_data"]                       = ACTION_LOG_PER_ORIG,
 		["TCP_christmas"]                       = ACTION_LOG,
 		["truncated_ARP"]                       = ACTION_LOG,
 		["truncated_NTP"]                       = ACTION_LOG,

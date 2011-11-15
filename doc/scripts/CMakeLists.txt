@@ -73,7 +73,7 @@ macro(REST_TARGET srcDir broInput)
     elseif (${extension} STREQUAL ".bif.bro")
         set(group bifs)
     elseif (relDstDir)
-        set(pkgIndex scripts/${relDstDir}/index)
+        set(pkgIndex ${relDstDir}/index)
         set(group ${pkgIndex})
         # add package index to master package list if not already in it
         list(FIND MASTER_PKG_LIST ${pkgIndex} _found)

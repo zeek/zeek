@@ -1,8 +1,8 @@
 set(BIF_SRC_DIR ${PROJECT_SOURCE_DIR}/src)
 set(RST_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/rest_output)
 set(DOC_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/out)
-set(DOC_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/source)
-set(DOC_SOURCE_WORKDIR ${CMAKE_CURRENT_BINARY_DIR}/source)
+set(DOC_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(DOC_SOURCE_WORKDIR ${CMAKE_CURRENT_BINARY_DIR}/sphinx-sources)
 
 set(MASTER_POLICY_INDEX ${CMAKE_CURRENT_BINARY_DIR}/scripts/policy_index)
 set(MASTER_PACKAGE_INDEX ${CMAKE_CURRENT_BINARY_DIR}/scripts/pkg_index)
@@ -34,12 +34,12 @@ add_custom_target(broxygen
                           ${DOC_SOURCE_WORKDIR}/scripts/index.rst
                   # append to the master index of all policy packages
                   COMMAND cat ${MASTER_PACKAGE_INDEX} >>
-                          ${DOC_SOURCE_WORKDIR}/packages.rst
+                          ${DOC_SOURCE_WORKDIR}/scripts/packages.rst
                   # construct a reST file for each group
                   COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/bin/group_index_generator.py
                           ${CMAKE_CURRENT_BINARY_DIR}/scripts/group_list
                           ${CMAKE_CURRENT_BINARY_DIR}/scripts
-                          ${DOC_SOURCE_WORKDIR}
+                          ${DOC_SOURCE_WORKDIR}/scripts
                   # tell sphinx to generate html
                   COMMAND sphinx-build
                           -b html

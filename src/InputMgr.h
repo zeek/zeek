@@ -46,7 +46,7 @@ protected:
 private:
 	struct ReaderInfo;
 
-	bool IsCompatibleType(BroType* t);
+	bool IsCompatibleType(BroType* t, bool atomic_only=false);
 
 	bool UnrollRecordType(vector<LogField*> *fields, const RecordType *rec, const string& nameprepend);
 	void SendEvent(const string& name, EnumVal* event, Val* left, Val* right);	

@@ -205,7 +205,8 @@ InputReader* InputMgr::CreateReader(EnumVal* id, RecordVal* description)
 	return reader_obj;
 	
 }
-bool InputMgr::IsCompatibleType(BroType* t)
+
+bool InputMgr::IsCompatibleType(BroType* t, bool atomic_only)
 	{
 	if ( ! t )
 		return false;
@@ -223,24 +224,29 @@ bool InputMgr::IsCompatibleType(BroType* t)
 	case TYPE_INTERVAL:
 	case TYPE_ENUM:
 	case TYPE_STRING:
-	case TYPE_RECORD:
-		// for record: check, if all elements are compatible? But... LogMgr also doesn't do this.
-		// ^ recursive checking is done in UnrollRecordType.
 		return true;
-	
-	case TYPE_FILE:
-	case TYPE_FUNC:
-		return false;
 
+	case TYPE_RECORD:
+		return ! atomic_only;
 
 	case TYPE_TABLE:
 		{
-		return IsCompatibleType(t->AsSetType()->Indices()->PureType());
+		if ( atomic_only )
+			return false;
+
+		if ( ! t->IsSet() )
+			return false;
+
+		return IsCompatibleType(t->AsSetType()->Indices()->PureType(), true);
 		}
 
 	case TYPE_VECTOR:
 		{
 		return false; // do me...
+				
+		//if ( atomic_only )
+		//	return false;
+		//
 		//return IsCompatibleType(t->AsVectorType()->YieldType());
 		}
 
@@ -249,7 +255,8 @@ bool InputMgr::IsCompatibleType(BroType* t)
 	}
 
 	return false;
-	}
+}
+
 
 bool InputMgr::RemoveReader(const EnumVal* id) {
 	ReaderInfo *i = 0;

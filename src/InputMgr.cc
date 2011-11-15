@@ -97,7 +97,7 @@ InputReader* InputMgr::CreateReader(EnumVal* id, RecordVal* description)
 		return 0;
 	}
 
-	EnumVal* reader = description->Lookup(rtype->FieldOffset("reader"))->AsEnumVal();
+	EnumVal* reader = description->LookupWithDefault(rtype->FieldOffset("reader"))->AsEnumVal();
 	
 	while ( true ) {
 		if ( ir->type == BifEnum::Input::READER_DEFAULT ) 
@@ -148,7 +148,6 @@ InputReader* InputMgr::CreateReader(EnumVal* id, RecordVal* description)
 	RecordType *idx = description->Lookup(rtype->FieldOffset("idx"))->AsType()->AsTypeType()->Type()->AsRecordType();
 	RecordType *val = description->Lookup(rtype->FieldOffset("val"))->AsType()->AsTypeType()->Type()->AsRecordType();
 	TableVal *dst = description->Lookup(rtype->FieldOffset("destination"))->AsTableVal();
-	Val *want_record = description->Lookup(rtype->FieldOffset("want_record"));
 
 
 	vector<LogField*> fieldsV; // vector, because we don't know the length beforehands
@@ -163,9 +162,11 @@ InputReader* InputMgr::CreateReader(EnumVal* id, RecordVal* description)
 
 	if ( status ) {
 		reporter->Error("Problem unrolling");
+		Unref(reader);
 		return 0;
 	}
 	
+	Val *want_record = description->LookupWithDefault(rtype->FieldOffset("want_record"));
 	
 	LogField** fields = new LogField*[fieldsV.size()];
 	for ( unsigned int i = 0; i < fieldsV.size(); i++ ) {
@@ -174,7 +175,7 @@ InputReader* InputMgr::CreateReader(EnumVal* id, RecordVal* description)
 
 	ReaderInfo* info = new ReaderInfo;
 	info->reader = reader_obj;
-	info->type = reader->Ref()->AsEnumVal();
+	info->type = reader->AsEnumVal(); // ref'd by lookupwithdefault
 	info->num_idx_fields = idxfields;
 	info->num_val_fields = valfields;
 	info->tab = dst->Ref()->AsTableVal();
@@ -184,6 +185,7 @@ InputReader* InputMgr::CreateReader(EnumVal* id, RecordVal* description)
 	info->currDict = new PDict(InputHash);
 	info->lastDict = new PDict(InputHash);
 	info->want_record = ( want_record->InternalInt() == 1 );
+	Unref(want_record); // ref'd by lookupwithdefault
 
 	if ( valfields > 1 ) {
 		assert(info->want_record);

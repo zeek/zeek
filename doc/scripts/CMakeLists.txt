@@ -1,16 +1,3 @@
-set(BIF_SRC_DIR ${PROJECT_SOURCE_DIR}/src)
-set(RST_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/rest_output)
-set(DOC_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/out)
-set(DOC_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/source)
-set(DOC_SOURCE_WORKDIR ${CMAKE_CURRENT_BINARY_DIR}/source)
-
-file(GLOB_RECURSE DOC_SOURCES FOLLOW_SYMLINKS "*")
-
-# configure the Sphinx config file (expand variables CMake might know about)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/conf.py.in
-               ${CMAKE_CURRENT_BINARY_DIR}/conf.py
-               @ONLY)
-
 # find out what BROPATH to use when executing bro
 execute_process(COMMAND ${CMAKE_BINARY_DIR}/bro-path-dev
                 OUTPUT_VARIABLE BROPATH
@@ -48,7 +35,7 @@ endif ()
 #   which summary text can be extracted at build time
 # ${group}_doc_names: a running list of reST style document names that can be
 #   given to a :doc: role, shared indices with ${group}_files
-#
+
 macro(REST_TARGET srcDir broInput)
     set(absSrcPath ${srcDir}/${broInput})
     get_filename_component(basename ${broInput} NAME)
@@ -143,12 +130,10 @@ endmacro(REST_TARGET)
 include(DocSourcesList.cmake)
 
 # create temporary list of all docs to include in the master policy/index file
-set(MASTER_POLICY_INDEX ${CMAKE_CURRENT_BINARY_DIR}/policy_index)
 file(WRITE ${MASTER_POLICY_INDEX} "${MASTER_POLICY_INDEX_TEXT}")
 
 # create the temporary list of all packages to include in the master
 # policy/packages.rst file
-set(MASTER_PACKAGE_INDEX ${CMAKE_CURRENT_BINARY_DIR}/pkg_index)
 set(MASTER_PKG_INDEX_TEXT "")
 foreach (pkg ${MASTER_PKG_LIST})
     # strip of the trailing /index for the link name
@@ -186,11 +171,11 @@ if (EXISTS ${RST_OUTPUT_DIR})
         list(FIND ALL_REST_OUTPUTS ${_doc} _found)
         if (_found EQUAL -1)
             file(REMOVE ${_doc})
-            message(STATUS "AutoDoc: remove stale reST doc: ${_doc}")
+            message(STATUS "Broxygen: remove stale reST doc: ${_doc}")
             string(REPLACE .rst .bro _brofile ${_doc})
             if (EXISTS ${_brofile})
                 file(REMOVE ${_brofile})
-                message(STATUS "AutoDoc: remove stale bro source: ${_brofile}")
+                message(STATUS "Broxygen: remove stale bro source: ${_brofile}")
             endif ()
         endif ()
     endforeach ()
@@ -211,57 +196,3 @@ add_custom_target(restclean
                   COMMAND "${CMAKE_COMMAND}" -E remove_directory
                           ${RST_OUTPUT_DIR}
                   VERBATIM)
-
-# The "sphinxdoc" target generates reST documentation for any outdated bro
-# scripts and then uses Sphinx to generate HTML documentation from the reST
-add_custom_target(sphinxdoc
-                  # copy the template documentation to the build directory
-                  # to give as input for sphinx
-                  COMMAND "${CMAKE_COMMAND}" -E copy_directory
-                          ${DOC_SOURCE_DIR}
-                          ${DOC_SOURCE_WORKDIR}
-                  # copy generated policy script documentation into the
-                  # working copy of the template documentation
-                  COMMAND "${CMAKE_COMMAND}" -E copy_directory
-                          ${RST_OUTPUT_DIR}
-                          ${DOC_SOURCE_WORKDIR}/scripts
-                  # append to the master index of all policy scripts
-                  COMMAND cat ${MASTER_POLICY_INDEX} >>
-                          ${DOC_SOURCE_WORKDIR}/scripts/index.rst
-                  # append to the master index of all policy packages
-                  COMMAND cat ${MASTER_PACKAGE_INDEX} >>
-                          ${DOC_SOURCE_WORKDIR}/packages.rst
-                  # construct a reST file for each group
-                  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/group_index_generator.py
-                          ${CMAKE_CURRENT_BINARY_DIR}/group_list
-                          ${CMAKE_CURRENT_BINARY_DIR}
-                          ${DOC_SOURCE_WORKDIR}
-                  # tell sphinx to generate html
-                  COMMAND sphinx-build
-                          -b html
-                          -c ${CMAKE_CURRENT_BINARY_DIR}
-                          -d ${DOC_OUTPUT_DIR}/doctrees
-                          ${DOC_SOURCE_WORKDIR}
-                          ${DOC_OUTPUT_DIR}/html
-                  # create symlink to the html output directory for convenience
-                  COMMAND "${CMAKE_COMMAND}" -E create_symlink
-                          ${DOC_OUTPUT_DIR}/html
-                          ${CMAKE_BINARY_DIR}/html
-                  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-                  COMMENT "[Sphinx] Generating HTML policy script docs"
-                  # SOURCES just adds stuff to IDE projects as a convenience
-                  SOURCES ${DOC_SOURCES})
-
-# The "sphinxclean" target removes just the Sphinx input/output directories
-# from the build directory.
-add_custom_target(sphinxclean
-                  COMMAND "${CMAKE_COMMAND}" -E remove_directory
-                          ${DOC_SOURCE_WORKDIR}
-                  COMMAND "${CMAKE_COMMAND}" -E remove_directory
-                          ${DOC_OUTPUT_DIR}
-                  VERBATIM)
-
-add_dependencies(sphinxdoc sphinxclean restdoc)
-
-add_dependencies(doc sphinxdoc)
-add_dependencies(docclean sphinxclean restclean)

@@ -12,11 +12,15 @@
 struct FieldMapping {
 	string name;
 	TypeTag type;
+	TypeTag set_type;
 	int position;
 
 	FieldMapping(const string& arg_name, const TypeTag& arg_type, int arg_position); 
+	FieldMapping(const string& arg_name, const TypeTag& arg_type, const TypeTag& arg_set_type, int arg_position); 
 	FieldMapping(const FieldMapping& arg);
 	FieldMapping() { position = -1; }
+
+	FieldMapping setType();
 	bool IsEmpty() { return position == -1; }
 };
 
@@ -38,6 +42,7 @@ protected:
     
 private:
 	bool ReadHeader();
+	LogVal* EntryToVal(string s, FieldMapping type);
 
 	bool GetLine(string& str);
 	

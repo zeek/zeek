@@ -81,16 +81,18 @@ struct LogMgr::Stream {
 bool LogField::Read(SerializationFormat* fmt)
 	{
 	int t;
+	int it;
 
-	bool success = (fmt->Read(&name, "name") && fmt->Read(&t, "type"));
+	bool success = (fmt->Read(&name, "name") && fmt->Read(&t, "type") && fmt->Read(&it, "set_type") );
 	type = (TypeTag) t;
+	set_type = (TypeTag) it;
 
 	return success;
 	}
 
 bool LogField::Write(SerializationFormat* fmt) const
 	{
-	return (fmt->Write(name, "name") && fmt->Write((int)type, "type"));
+	return (fmt->Write(name, "name") && fmt->Write((int)type, "type") && fmt->Write((int)set_type, "set_type"));
 	}
 
 LogVal::~LogVal()

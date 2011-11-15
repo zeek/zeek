@@ -52,6 +52,8 @@ private:
 	void SendEvent(const string& name, EnumVal* event, Val* left, Val* right);	
 
 	HashKey* HashLogVals(const int num_elements, const LogVal* const *vals);
+	int GetLogValLength(const LogVal* val);
+	int CopyLogVal(char *data, const int startpos, const LogVal* val);
 
 	Val* LogValToVal(const LogVal* val, TypeTag request_type = TYPE_ANY);
 	Val* LogValToIndexVal(int num_fields, const RecordType* type, const LogVal* const *vals);

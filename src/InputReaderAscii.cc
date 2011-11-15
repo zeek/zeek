@@ -11,10 +11,20 @@ FieldMapping::FieldMapping(const string& arg_name, const TypeTag& arg_type, int 
 	position = arg_position;
 }
 
+FieldMapping::FieldMapping(const string& arg_name, const TypeTag& arg_type, const TypeTag& arg_set_type, int arg_position) 
+	: name(arg_name), type(arg_type), set_type(arg_set_type)
+{
+	position = arg_position;
+}
+
 FieldMapping::FieldMapping(const FieldMapping& arg) 
-	: name(arg.name), type(arg.type)
+	: name(arg.name), type(arg.type), set_type(arg.set_type)
 {
 	position = arg.position;
+}
+
+FieldMapping FieldMapping::setType() {
+	return FieldMapping(name, set_type, position);
 }
 
 InputReaderAscii::InputReaderAscii()
@@ -81,7 +91,7 @@ bool InputReaderAscii::ReadHeader() {
 			const LogField* field = fields[i];
 			if ( field->name == s ) {
 				// cool, found field. note position
-				FieldMapping f(field->name, field->type, i);
+				FieldMapping f(field->name, field->type, field->set_type, i);
 				columnMap.push_back(f);
 				wantFields++;
 				break; // done with searching
@@ -126,6 +136,132 @@ bool InputReaderAscii::GetLine(string& str) {
 	return false;
 }
 
+
+LogVal* InputReaderAscii::EntryToVal(string s, FieldMapping field) {
+
+	LogVal* val = new LogVal(field.type, true);
+	//bzero(val, sizeof(LogVal));
+
+	switch ( field.type ) {
+	case TYPE_ENUM:
+	case TYPE_STRING:
+		val->val.string_val = new string(s);
+		break;
+
+	case TYPE_BOOL:
+		if ( s == "T" ) {
+			val->val.int_val = 1;
+		} else if ( s == "F" ) {
+			val->val.int_val = 0;
+		} else {
+			Error(Fmt("Invalid value for boolean: %s", s.c_str()));
+			return false;
+		}
+		break;
+
+	case TYPE_INT:
+		val->val.int_val = atoi(s.c_str());
+		break;
+
+	case TYPE_DOUBLE:
+	case TYPE_TIME:
+	case TYPE_INTERVAL:
+		val->val.double_val = atof(s.c_str());
+		break;
+
+	case TYPE_COUNT:
+	case TYPE_COUNTER:
+	case TYPE_PORT:
+		val->val.uint_val = atoi(s.c_str());
+		break;
+
+	case TYPE_SUBNET: {
+		int pos = s.find("/");
+		string width = s.substr(pos+1);
+		val->val.subnet_val.width = atoi(width.c_str());
+		string addr = s.substr(0, pos);
+		s = addr;
+		// NOTE: dottet_to_addr BREAKS THREAD SAFETY! it uses reporter.
+		// Solve this some other time....
+		val->val.subnet_val.net = dotted_to_addr(s.c_str());
+		break;
+
+		}
+	case TYPE_ADDR: {
+		// NOTE: dottet_to_addr BREAKS THREAD SAFETY! it uses reporter.
+		// Solve this some other time....
+		addr_type t =  dotted_to_addr(s.c_str());
+#ifdef BROv6
+		copy_addr(t, val->val.addr_val);
+#else
+		copy_addr(&t, val->val.addr_val);
+#endif
+		break;
+		}
+
+	case TYPE_TABLE: {
+		// construct a table from entry...
+		// for the moment assume, that entries are split by ",".
+
+		if ( s == "-" ) {
+			// empty 
+			val->val.set_val.size = 0;
+			break;
+		}
+
+		// how many entries do we have...
+		unsigned int length = 1;
+		for ( unsigned int i = 0; i < s.size(); i++ )
+			if ( s[i] == ',') length++;
+
+		unsigned int pos = 0;
+		LogVal** lvals = new LogVal* [length];
+		val->val.set_val.vals = lvals;
+		val->val.set_val.size = length;
+
+		istringstream splitstream(s);
+		while ( splitstream ) {
+			string element;
+
+			if ( pos >= length ) {
+				Error(Fmt("Internal error while parsing set. pos %d > length %d", pos, length));
+				break;
+			}
+
+			if ( !getline(splitstream, element, ',') )
+				break;
+			
+
+			LogVal* newval = EntryToVal(element, field.setType());
+			if ( newval == 0 ) {
+				Error("Error while reading set");
+				return 0;
+			}
+			lvals[pos] = newval;
+
+			pos++;
+	
+		}
+
+		if ( pos != length ) {
+			Error("Internal error while parsing set: did not find all elements");
+			return 0;
+		}
+
+		break;
+		}
+
+
+	default:
+		Error(Fmt("unsupported field format %d for %s", field.type,
+		field.name.c_str()));
+		return 0;
+	}	
+
+	return val;
+
+}
+
 // read the entire file and send appropriate thingies back to InputMgr
 bool InputReaderAscii::DoUpdate() {
 	 
@@ -161,7 +297,6 @@ bool InputReaderAscii::DoUpdate() {
 		// split on tabs
 		
 		istringstream splitstream(line);
-		string s;
 	
 		LogVal** fields = new LogVal*[num_fields];
 		//string string_fields[num_fields];
@@ -170,6 +305,7 @@ bool InputReaderAscii::DoUpdate() {
 		unsigned int currField = 0;
 		while ( splitstream ) {
 
+			string s;
 			if ( !getline(splitstream, s, '\t') )
 				break;
 
@@ -193,73 +329,10 @@ bool InputReaderAscii::DoUpdate() {
 				return false;
 			}
 
-			LogVal* val = new LogVal(currMapping.type, true);
-			//bzero(val, sizeof(LogVal));
-
-			switch ( currMapping.type ) {
-			case TYPE_ENUM:
-			case TYPE_STRING:
-				val->val.string_val = new string(s);
-				break;
-
-			case TYPE_BOOL:
-				if ( s == "T" ) {
-					val->val.int_val = 1;
-				} else if ( s == "F" ) {
-					val->val.int_val = 0;
-				} else {
-					Error(Fmt("Invalid value for boolean: %s", s.c_str()));
-					return false;
-				}
-				break;
-
-			case TYPE_INT:
-				val->val.int_val = atoi(s.c_str());
-				break;
-
-			case TYPE_DOUBLE:
-			case TYPE_TIME:
-			case TYPE_INTERVAL:
-				val->val.double_val = atof(s.c_str());
-				break;
-
-			case TYPE_COUNT:
-			case TYPE_COUNTER:
-			case TYPE_PORT:
-				val->val.uint_val = atoi(s.c_str());
-				break;
-
-			case TYPE_SUBNET: {
-				int pos = s.find("/");
-				string width = s.substr(pos+1);
-				val->val.subnet_val.width = atoi(width.c_str());
-				string addr = s.substr(0, pos);
-				s = addr;
-				// NOTE: dottet_to_addr BREAKS THREAD SAFETY! it uses reporter.
-				// Solve this some other time....
-				val->val.subnet_val.net = dotted_to_addr(s.c_str());
-				break;
-
-				}
-			case TYPE_ADDR: {
-				// NOTE: dottet_to_addr BREAKS THREAD SAFETY! it uses reporter.
-				// Solve this some other time....
-				addr_type t =  dotted_to_addr(s.c_str());
-#ifdef BROv6
-				copy_addr(t, val->val.addr_val);
-#else
-				copy_addr(&t, val->val.addr_val);
-#endif
-				break;
-				}
-
-
-			default:
-				Error(Fmt("unsupported field format %d for %s", currMapping.type,
-			 	 currMapping.name.c_str()));
+			LogVal* val = EntryToVal(s, currMapping);
+			if ( val == 0 ) {
 				return false;
-			}	
-
+			}
 			fields[currMapping.position] = val;
 			//string_fields[currMapping.position] = s;
 

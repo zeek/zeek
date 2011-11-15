@@ -234,11 +234,14 @@ bool InputMgr::IsCompatibleType(BroType* t)
 
 
 	case TYPE_TABLE:
-		return false;
+		{
+		return IsCompatibleType(t->AsSetType()->Indices()->PureType());
+		}
 
 	case TYPE_VECTOR:
 		{
-		return IsCompatibleType(t->AsVectorType()->YieldType());
+		return false; // do me...
+		//return IsCompatibleType(t->AsVectorType()->YieldType());
 		}
 
 	default:
@@ -329,6 +332,9 @@ bool InputMgr::UnrollRecordType(vector<LogField*> *fields, const RecordType *rec
 			LogField* field = new LogField();
 			field->name = nameprepend + rec->FieldName(i);
 			field->type = rec->FieldType(i)->Tag();	
+			if ( field->type == TYPE_TABLE ) {
+				field->set_type = rec->FieldType(i)->AsSetType()->Indices()->PureType()->Tag();
+			}
 
 			fields->push_back(field);
 		}
@@ -810,49 +816,133 @@ Val* InputMgr::LogValToRecordVal(const LogVal* const *vals, RecordType *request_
 
 } 
 
+
+int InputMgr::GetLogValLength(const LogVal* val) {
+	int length = 0;
+
+	switch (val->type) {
+	case TYPE_BOOL:
+	case TYPE_INT:
+		length += sizeof(val->val.int_val);
+		break;
+
+	case TYPE_COUNT:
+	case TYPE_COUNTER:
+	case TYPE_PORT:
+		length += sizeof(val->val.uint_val);
+	break;
+	
+	case TYPE_DOUBLE:
+	case TYPE_TIME:
+	case TYPE_INTERVAL:
+		length += sizeof(val->val.double_val);
+		break;
+
+	case TYPE_STRING:
+	case TYPE_ENUM:
+		{
+		length += val->val.string_val->size();
+		break;
+		}
+
+	case TYPE_ADDR:
+		length += NUM_ADDR_WORDS*sizeof(uint32_t);
+		break;
+
+	case TYPE_SUBNET:
+		length += sizeof(val->val.subnet_val.width);
+		length += sizeof(val->val.subnet_val.net);
+		break;
+
+	case TYPE_TABLE: {
+		for ( int i = 0; i < val->val.set_val.size; i++ ) {
+			length += GetLogValLength(val->val.set_val.vals[i]);
+		}
+		break;
+		}
+
+	default:
+		reporter->InternalError("unsupported type %d for GetLogValLength", val->type);
+	}
+
+	return length;
+	
+}
+
+int InputMgr::CopyLogVal(char *data, const int startpos, const LogVal* val) {
+	switch ( val->type ) {
+	case TYPE_BOOL:
+	case TYPE_INT:
+		//reporter->Error("Adding field content to pos %d: %lld", val->val.int_val, startpos); 
+		memcpy(data+startpos, (const void*) &(val->val.int_val), sizeof(val->val.int_val));
+		//*(data+startpos) = val->val.int_val;
+		return sizeof(val->val.int_val);
+		break;
+
+	case TYPE_COUNT:
+	case TYPE_COUNTER:
+	case TYPE_PORT:
+		//*(data+startpos) = val->val.uint_val;
+		memcpy(data+startpos, (const void*) &(val->val.uint_val), sizeof(val->val.uint_val));
+		return sizeof(val->val.uint_val);
+		break;
+
+	case TYPE_DOUBLE:
+	case TYPE_TIME:
+	case TYPE_INTERVAL:
+		//*(data+startpos) = val->val.double_val;
+		memcpy(data+startpos, (const void*) &(val->val.double_val), sizeof(val->val.double_val));
+		return sizeof(val->val.double_val);
+		break;
+
+	case TYPE_STRING:
+	case TYPE_ENUM:
+		{
+		memcpy(data+startpos, val->val.string_val->c_str(), val->val.string_val->length());
+		return val->val.string_val->size();
+		break;
+		}
+
+	case TYPE_ADDR:
+		memcpy(data+startpos, val->val.addr_val, NUM_ADDR_WORDS*sizeof(uint32_t));
+		return NUM_ADDR_WORDS*sizeof(uint32_t);
+		break;
+
+	case TYPE_SUBNET: {
+		int length = 0;
+		memcpy(data+startpos,(const char*)  &(val->val.subnet_val.width), sizeof(val->val.subnet_val.width) );
+		length += sizeof(val->val.subnet_val.width);
+		memcpy(data+startpos, (const char*) &(val->val.subnet_val.net), sizeof(val->val.subnet_val.net) );
+		length += sizeof(val->val.subnet_val.net);		
+		return length;
+		break;
+		}
+
+	case TYPE_TABLE: {
+		int length = 0;
+		for ( int i = 0; i < val->val.set_val.size; i++ ) {
+			length += CopyLogVal(data, startpos+length, val->val.set_val.vals[i]);
+		}
+		return length;
+		break;				 
+		}
+
+	default:
+		reporter->InternalError("unsupported type %d for CopyLogVal", val->type);
+		return 0;
+	}
+	
+	reporter->InternalError("internal error");
+	return 0;
+
+}
+
 HashKey* InputMgr::HashLogVals(const int num_elements, const LogVal* const *vals) {
 	int length = 0;
 
 	for ( int i = 0; i < num_elements; i++ ) {
 		const LogVal* val = vals[i];
-		switch (val->type) {
-		case TYPE_BOOL:
-		case TYPE_INT:
-			length += sizeof(val->val.int_val);
-			break;
-
-		case TYPE_COUNT:
-		case TYPE_COUNTER:
-		case TYPE_PORT:
-			length += sizeof(val->val.uint_val);
-		break;
-		
-		case TYPE_DOUBLE:
-		case TYPE_TIME:
-		case TYPE_INTERVAL:
-			length += sizeof(val->val.double_val);
-			break;
-
-		case TYPE_STRING:
-		case TYPE_ENUM:
-			{
-			length += val->val.string_val->size();
-			break;
-			}
-	
-		case TYPE_ADDR:
-			length += NUM_ADDR_WORDS*sizeof(uint32_t);
-			break;
-
-		case TYPE_SUBNET:
-			length += sizeof(val->val.subnet_val.width);
-			length += sizeof(val->val.subnet_val.net);
-			break;
-
-		default:
-			reporter->InternalError("unsupported type for hashlogvals");
-		}
-		
+		length += GetLogValLength(val);
 	}
 
 	//reporter->Error("Length: %d", length);
@@ -864,56 +954,7 @@ HashKey* InputMgr::HashLogVals(const int num_elements, const LogVal* const *vals
 	}
 	for ( int i = 0; i < num_elements; i++ ) {
 		const LogVal* val = vals[i];
-		switch ( val->type ) {
-		case TYPE_BOOL:
-		case TYPE_INT:
-			//reporter->Error("Adding field content to pos %d: %lld", val->val.int_val, position); 
-			memcpy(data+position, (const void*) &(val->val.int_val), sizeof(val->val.int_val));
-			//*(data+position) = val->val.int_val;
-			position += sizeof(val->val.int_val);
-			break;
-
-		case TYPE_COUNT:
-		case TYPE_COUNTER:
-		case TYPE_PORT:
-			//*(data+position) = val->val.uint_val;
-			memcpy(data+position, (const void*) &(val->val.uint_val), sizeof(val->val.uint_val));
-			position += sizeof(val->val.uint_val);
-			break;
-	
-		case TYPE_DOUBLE:
-		case TYPE_TIME:
-		case TYPE_INTERVAL:
-			//*(data+position) = val->val.double_val;
-			memcpy(data+position, (const void*) &(val->val.double_val), sizeof(val->val.double_val));
-			position += sizeof(val->val.double_val);
-			break;
-
-		case TYPE_STRING:
-		case TYPE_ENUM:
-			{
-			memcpy(data+position, val->val.string_val->c_str(), val->val.string_val->length());
-			position += val->val.string_val->size();
-			break;
-			}
-	
-		case TYPE_ADDR:
-			memcpy(data+position, val->val.addr_val, NUM_ADDR_WORDS*sizeof(uint32_t));
-			position += NUM_ADDR_WORDS*sizeof(uint32_t);
-			break;
-
-		case TYPE_SUBNET:
-			memcpy(data+position,(const char*)  &(val->val.subnet_val.width), sizeof(val->val.subnet_val.width) );
-			position += sizeof(val->val.subnet_val.width);
-			memcpy(data+position, (const char*) &(val->val.subnet_val.net), sizeof(val->val.subnet_val.net) );
-			position += sizeof(val->val.subnet_val.net);		
-			break;
-
-		default:
-			reporter->InternalError("unsupported type for hashlogvals2");
-		}
-
-		
+		position += CopyLogVal(data, position, val);
 	}
 
 	assert(position == length);
@@ -965,6 +1006,29 @@ Val* InputMgr::LogValToVal(const LogVal* val, TypeTag request_type) {
 	case TYPE_SUBNET:
 		return new SubNetVal(val->val.subnet_val.net, val->val.subnet_val.width);
 		break;
+
+	case TYPE_TABLE: {
+		if ( val->val.set_val.size == 0 ) {
+			// empty table
+			TypeList* set_index = new TypeList(base_type(TYPE_ANY));
+			// iim quite sure this does not work... we probably need the internal set type for this...
+			reporter->InternalError("Implement me.");
+			return new TableVal(new SetType(set_index, 0));
+		} else {
+			// all entries have to have the same type...
+			TypeTag type = val->val.set_val.vals[0]->type;
+			TypeList* set_index = new TypeList(base_type(type));
+			set_index->Append(base_type(type));
+			SetType* s = new SetType(set_index, 0);
+			TableVal* t = new TableVal(s);
+			for ( int i = 0; i < val->val.set_val.size; i++ ) {
+				assert( val->val.set_val.vals[i]->type == type);
+				t->Assign(LogValToVal( val->val.set_val.vals[i], type ), 0);
+			}
+			return t;
+		}	 
+		break;
+		}
 
 	case TYPE_ENUM:
 		reporter->InternalError("Sorry, Enum reading does not yet work, missing internal inferface");

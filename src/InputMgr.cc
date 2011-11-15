@@ -828,6 +828,7 @@ HashKey* InputMgr::HashLogVals(const int num_elements, const LogVal* const *vals
 			break;
 
 		case TYPE_STRING:
+		case TYPE_ENUM:
 			{
 			length += val->val.string_val->size();
 			break;
@@ -883,6 +884,7 @@ HashKey* InputMgr::HashLogVals(const int num_elements, const LogVal* const *vals
 			break;
 
 		case TYPE_STRING:
+		case TYPE_ENUM:
 			{
 			memcpy(data+position, val->val.string_val->c_str(), val->val.string_val->length());
 			position += val->val.string_val->size();
@@ -957,6 +959,10 @@ Val* InputMgr::LogValToVal(const LogVal* val, TypeTag request_type) {
 	case TYPE_SUBNET:
 		return new SubNetVal(val->val.subnet_val.net, val->val.subnet_val.width);
 		break;
+
+	case TYPE_ENUM:
+		reporter->InternalError("Sorry, Enums reading does not yet work, missing internal inferface");
+		
 
 	default:
 		reporter->InternalError("unsupported type for input_read");

@@ -51,3 +51,4 @@ function Input::__remove_filter%(id: Log::ID, name: string%) : bool
 	bool res = input_mgr->RemoveFilter(id->AsEnumVal(), name->AsString()->CheckString());
 	return new Val( res, TYPE_BOOL);
 	%}
+

@@ -128,7 +128,6 @@ bool InputReaderAscii::GetLine(string& str) {
 
 // read the entire file and send appropriate thingies back to InputMgr
 bool InputReaderAscii::DoUpdate() {
-
 	 
 	// dirty, fix me. (well, apparently after trying seeking, etc - this is not that bad)
 	if ( file && file->is_open() ) {
@@ -198,6 +197,7 @@ bool InputReaderAscii::DoUpdate() {
 			//bzero(val, sizeof(LogVal));
 
 			switch ( currMapping.type ) {
+			case TYPE_ENUM:
 			case TYPE_STRING:
 				val->val.string_val = new string(s);
 				break;

@@ -3,7 +3,7 @@
 Signatures
 ==========
 
-.. class:: opening
+.. rst-class:: opening
 
     Bro relies primarily on its extensive scripting language for 
     defining and analyzing detection policies. In addition, however,

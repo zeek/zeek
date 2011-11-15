@@ -2,4 +2,9 @@
 
 {% set css_files = css_files + ["_static/broxygen.css"] %}
 
+{% block extrahead %}
+<link rel="stylesheet" type="text/css" href="http://www.bro-ids.org/css/bro-base.css" />
+<link rel="stylesheet" type="text/css" href="http://www.bro-ids.org/css/pygments.css" />
+{% endblock %}
+
 {% block relbar2 %}{% endblock %}

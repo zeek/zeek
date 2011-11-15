@@ -121,6 +121,7 @@ macro(REST_TARGET srcDir broInput)
         ARGS -rf .state *.log *.rst
         DEPENDS bro
         DEPENDS ${absSrcPath}
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         COMMENT "[Bro] Generating reST docs for ${broInput}"
     )
 

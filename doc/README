@@ -5,29 +5,36 @@ Documentation
 This directory contains Bro documentation in reStructured text format
 (see http://docutils.sourceforge.net/rst.html).
 
-Please note that for now these files are primarily intended for use on
-http://www.bro-ids.org. While the Bro build process will render local
-versions into ``build/doc/`` (if docutils is found), the resulting
-HTML is very minimalistic and some features are not supported. In
-particular, some links will be broken.
+It is the root of a Sphinx source tree and can be modified to add more
+common/general documentation, style sheets, JavaScript, etc.  The Sphinx
+config file is produced from ``conf.py.in``, and can be edited to change
+various Sphinx options.
 
+There is also a custom Sphinx domain implemented in ``source/ext/bro.py``
+which adds some reST directives and roles that aid in generating useful
+index entries and cross-references.  Other extensions can be added in
+a similar fashion.
+
+Either the ``make doc`` or ``make broxygen`` can be used to locally
+render the reST files into HTML.  Those targets depend on:
+
+* Python interpreter >= 2.5
+* `Sphinx <http://sphinx.pocoo.org/>`_ >= 1.0.1
+
+After completion, HTML documentation is symlinked in ``build/html``.
+
+There's also ``make docclean`` and ``make broxygenclean`` targets to
+clean the resulting documentation.
 
 Notes for Writing Documentation
 -------------------------------
 
 * If you want to refer to a Bro script that's part of the
-  distribution, use {{'`foo.bro
-  <{{autodoc_bro_scripts}}/path/to/foo.html>`_'}}. For example,
-  ``{{'{{autodoc_bro_scripts}}/scripts/base/frameworks/notice/main.html}}'}}``.
+  distribution, it currently needs to be copied or otherwise symlinked
+  somewhere in to this Sphinx source tree. Then, it can be referenced
+  in a toc tree or with the :doc: role.
 
-* If you want to refer to a page on the Bro web site, use the
-  ``docroot`` macro (e.g.,
-  ``{{'href="{{docroot}}/download/index.html"'}}). Make sure to
-  include the ``index.html`` for the main pages, just as in the
-  example.
-
-* If you want to refer to page inside this directory, use a relative
-  path with HTML extension. (e.g., ``href="quickstart.html``).
+* If you want to refer to a page on the Bro web site, use an HTTP URL.
 
 Guidelines
 ----------

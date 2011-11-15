@@ -8,7 +8,7 @@
 Quick Start Guide
 =================
 
-.. class:: opening
+.. rst-class:: opening
 
    The short story for getting Bro up and running in a simple configuration
    for analysis of either live traffic from a network interface or a packet

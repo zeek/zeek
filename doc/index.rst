@@ -6,10 +6,11 @@ Bro Documentation
 .. toctree::
    :maxdepth: 1
 
+   INSTALL
    quickstart
    upgrade
-   FAQ <http://www.bro-ids.org/documentation/faq.html>
-   Reporting Problems <http://www.bro-ids.org/documentation/reporting-problems.html>
+   faq
+   reporting-problems
 
 Frameworks
 ----------
@@ -41,6 +42,20 @@ Script Reference
    scripts/bifs
    scripts/packages
    scripts/index
+
+Other Bro Components
+--------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   components/btest/README
+   components/broccoli/README
+   components/broccoli-python/README
+   components/broctl/README
+   components/capstats/README
+   components/pysubnettree/README
+   components/trace-summary/README
 
 Indices and tables
 ------------------

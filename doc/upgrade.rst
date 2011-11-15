@@ -3,7 +3,7 @@
 Upgrading From Bro 1.5 to 2.0
 =============================
 
-.. class:: opening
+.. rst-class:: opening
 
    This guide details differences between Bro versions 1.5 and 2.0
    that may be important for users to know as they work on updating

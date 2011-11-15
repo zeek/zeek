@@ -11,9 +11,7 @@ Architecture
 
 The figure below illustrates the main components of a Bro cluster.
 
-.. {{git_pull('bro:doc/deployment.png')}}
-
-.. image:: deployment.bro.png
+.. image:: images/deployment.png
 
 Tap
 ***

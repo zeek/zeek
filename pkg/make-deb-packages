@@ -27,21 +27,21 @@ cd ..
 
 # Minimum Bro
 ./configure --prefix=${prefix} --disable-broccoli --disable-broctl \
-            --pkg-name-prefix=Bro --binary-package
+            --pkg-name-prefix=Bro-minimal --binary-package
 ( cd build && make package )
 
 # Full Bro package
-./configure --prefix=${prefix} --pkg-name-prefix=Bro-all --binary-package
+./configure --prefix=${prefix} --pkg-name-prefix=Bro --binary-package
 ( cd build && make package )
 
 # Broccoli
 cd aux/broccoli
 ./configure --prefix=${prefix} --binary-package
-( cd build && make package && mv Broccoli*.deb ../../../build/ )
+( cd build && make package && mv *.deb ../../../build/ )
 cd ../..
 
 # Broctl
 cd aux/broctl
 ./configure --prefix=${prefix} --binary-package
-( cd build && make package && mv Broctl*.deb ../../../build/ )
+( cd build && make package && mv *.deb ../../../build/ )
 cd ../..

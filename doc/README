@@ -29,10 +29,11 @@ clean the resulting documentation.
 Notes for Writing Documentation
 -------------------------------
 
-* If you want to refer to a Bro script that's part of the
+* If you want to refer to a document that's part of the
   distribution, it currently needs to be copied or otherwise symlinked
   somewhere in to this Sphinx source tree. Then, it can be referenced
-  in a toc tree or with the :doc: role.
+  in a toc tree or with the :doc: role.  Use the :download: role to
+  refer to static files that will not undergo sphinx rendering.
 
 * If you want to refer to a page on the Bro web site, use an HTTP URL.
 

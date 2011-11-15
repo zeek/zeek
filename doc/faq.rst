@@ -80,7 +80,7 @@ required to capture packets to the ``bro`` executable file like this:
 
 .. console::
 
-   > sudo setcap cap_net_raw,cap_net_admin=eip /path/to/bro
+   sudo setcap cap_net_raw,cap_net_admin=eip /path/to/bro
 
 Now any unprivileged user should have the capability to capture packets
 using Bro provided that they have the traditional file permissions to
@@ -98,8 +98,8 @@ it using libpcap.
 
 .. console::
 
-   > sudo chgrp admin /dev/bpf*
-   > sudo chmod g+r /dev/bpf*
+   sudo chgrp admin /dev/bpf*
+   sudo chmod g+r /dev/bpf*
 
 * Example of configuring devfs to set permissions of BPF devices, adding
   entries to ``/etc/devfs.conf`` to grant ``admin`` group permission to
@@ -107,9 +107,9 @@ it using libpcap.
 
 .. console::
 
-   > sudo sh -c 'echo "own    bpf    root:admin" >> /etc/devfs.conf'
-   > sudo sh -c 'echo "perm   bpf    0640" >> /etc/devfs.conf'
-   > sudo service devfs restart
+   sudo sh -c 'echo "own    bpf    root:admin" >> /etc/devfs.conf'
+   sudo sh -c 'echo "perm   bpf    0640" >> /etc/devfs.conf'
+   sudo service devfs restart
 
 .. note:: As of Mac OS X 10.6, the BPF device is on devfs, but the used version
    of devfs isn't capable of setting the device permissions.  The permissions

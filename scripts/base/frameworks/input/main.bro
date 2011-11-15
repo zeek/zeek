@@ -9,6 +9,7 @@ export {
 		idx: any;
 		val: any;
 		destination: any;
+		want_record: bool &default=T;
 		reader: Reader &default=default_reader;
 	};
 

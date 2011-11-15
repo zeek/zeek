@@ -42,6 +42,7 @@ struct InputMgr::ReaderInfo {
 	InputReader* reader;
 	unsigned int num_idx_fields;
 	unsigned int num_val_fields;
+	bool want_record;
 
 	TableVal* tab;
 	RecordType* rtype;
@@ -147,6 +148,7 @@ InputReader* InputMgr::CreateReader(EnumVal* id, RecordVal* description)
 	RecordType *idx = description->Lookup(rtype->FieldOffset("idx"))->AsType()->AsTypeType()->Type()->AsRecordType();
 	RecordType *val = description->Lookup(rtype->FieldOffset("val"))->AsType()->AsTypeType()->Type()->AsRecordType();
 	TableVal *dst = description->Lookup(rtype->FieldOffset("destination"))->AsTableVal();
+	Val *want_record = description->Lookup(rtype->FieldOffset("want_record"));
 
 
 	vector<LogField*> fieldsV; // vector, because we don't know the length beforehands
@@ -181,6 +183,11 @@ InputReader* InputMgr::CreateReader(EnumVal* id, RecordVal* description)
 	info->itype = idx->Ref()->AsRecordType();
 	info->currDict = new PDict(InputHash);
 	info->lastDict = new PDict(InputHash);
+	info->want_record = ( want_record->InternalInt() == 1 );
+
+	if ( valfields > 1 ) {
+		assert(info->want_record);
+	}
 
 	readers.push_back(info);
 
@@ -311,7 +318,6 @@ bool InputMgr::UnrollRecordType(vector<LogField*> *fields, const RecordType *rec
 
 		if ( rec->FieldType(i)->Tag() == TYPE_RECORD ) 
 		{
-			
 			string prep = nameprepend + rec->FieldName(i) + ".";
 			
 			if ( !UnrollRecordType(fields, rec->FieldType(i)->AsRecordType(), prep) ) 
@@ -464,7 +470,7 @@ void InputMgr::SendEntry(const InputReader* reader, const LogVal* const *vals) {
 	Val* valval;
 	
 	int position = i->num_idx_fields;
-	if ( i->num_val_fields == 1 ) {
+	if ( i->num_val_fields == 1 && !i->want_record ) {
 		valval = LogValToVal(vals[i->num_idx_fields]);
 	} else {
 		RecordVal * r = new RecordVal(i->rtype);
@@ -683,7 +689,7 @@ void InputMgr::Put(const InputReader* reader, const LogVal* const *vals) {
 	Val* valval;
 	
 	int position = i->num_idx_fields;
-	if ( i->num_val_fields == 1 ) {
+	if ( i->num_val_fields == 1 && !i->want_record ) {
 		valval = LogValToVal(vals[i->num_idx_fields]);
 	} else {
 		RecordVal * r = new RecordVal(i->rtype);
@@ -961,7 +967,7 @@ Val* InputMgr::LogValToVal(const LogVal* val, TypeTag request_type) {
 		break;
 
 	case TYPE_ENUM:
-		reporter->InternalError("Sorry, Enums reading does not yet work, missing internal inferface");
+		reporter->InternalError("Sorry, Enum reading does not yet work, missing internal inferface");
 		
 
 	default:

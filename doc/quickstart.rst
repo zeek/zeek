@@ -3,12 +3,13 @@
 .. _MacPorts: http://www.macports.org
 .. _Fink: http://www.finkproject.org
 .. _Homebrew: http://mxcl.github.com/homebrew
+.. _bro downloads page: http://bro-ids.org/download/index.html
 
 =================
 Quick Start Guide
 =================
 
-.. class:: opening
+.. rst-class:: opening
 
    The short story for getting Bro up and running in a simple configuration
    for analysis of either live traffic from a network interface or a packet
@@ -26,20 +27,19 @@ source code forms.
 Pre-Built Binary Release Packages
 ---------------------------------
 
-See the `downloads page <{{docroot}}/download/index.html>`_ for currently
-supported/targeted platforms.
+See the `bro downloads page`_ for currently supported/targeted platforms.
 
 * RPM
 
 .. console::
 
-   > sudo yum localinstall Bro-all*.rpm
+   sudo yum localinstall Bro-all*.rpm
 
 * DEB
 
 .. console::
 
-   > sudo gdebi Bro-all-*.deb
+   sudo gdebi Bro-all-*.deb
 
 * MacOS Disk Image with Installer
 
@@ -60,13 +60,13 @@ Required Dependencies
 
 .. console::
 
-   > sudo yum install cmake make gcc gcc-c++ flex bison libpcap-devel openssl-devel python-devel swig
+   sudo yum install cmake make gcc gcc-c++ flex bison libpcap-devel openssl-devel python-devel swig
 
 * DEB/Debian-based Linux:
 
 .. console::
 
-   > sudo apt-get install cmake make gcc g++ flex bison libpcap-dev libssl-dev python-dev swig
+   sudo apt-get install cmake make gcc g++ flex bison libpcap-dev libssl-dev python-dev swig
 
 * FreeBSD
 
@@ -75,7 +75,7 @@ Required Dependencies
 
 .. console::
 
-   > sudo pkg_add -r cmake swig bison python
+   sudo pkg_add -r cmake swig bison python
 
 * Mac OS X
 
@@ -102,21 +102,21 @@ and sendmail for sending emails.
 
 .. console::
 
-   > sudo yum install zlib-devel file-devel GeoIP-devel sendmail
+   sudo yum install zlib-devel file-devel GeoIP-devel sendmail
 
 * DEB/Debian-based Linux:
 
 .. console::
 
-   > sudo apt-get install zlib1g-dev libmagic-dev libgeoip-dev sendmail
+   sudo apt-get install zlib1g-dev libmagic-dev libgeoip-dev sendmail
 
 * Ports-based FreeBSD
 
 .. console::
 
-   > sudo pkg_add -r GeoIP
+   sudo pkg_add -r GeoIP
 
-  libz, libmagic, and sendmail are typically already available.
+libz, libmagic, and sendmail are typically already available.
 
 * Mac OS X
 
@@ -125,20 +125,20 @@ and sendmail for sending emails.
   Fink Homebrew), they should be automatically detected and Bro will compile
   against them.
 
-Additional steps may be needed to `get the right GeoIP database
-<{{git('bro:doc/geoip.rst')}}>`_.
+Additional steps may be needed to :doc:`get the right GeoIP database <geoip>`
 
 Compiling Bro Source Code
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Bro releases are bundled into source packages for convenience and
-available from the `downloads page <{{docroot}}/download/index.html>`_.
+available from the `bro downloads page`_.
 
-The latest Bro development versions are obtainable through git repositories
-hosted at `git.bro-ids.org <http://git.bro-ids.org>`_.  See our `git development
-documentation <{{docroot}}/development/process.html>`_ for comprehensive
-information on Bro's use of git revision control, but the short story for
-downloading the full source code experience for Bro via git is:
+The latest Bro development versions are obtainable through git
+repositories hosted at `git.bro-ids.org <http://git.bro-ids.org>`_.  See
+our `git development documentation
+<http://bro-ids.org/development/process.html>`_ for comprehensive
+information on Bro's use of git revision control, but the short story
+for downloading the full source code experience for Bro via git is:
 
 .. console::
 
@@ -157,9 +157,9 @@ desired root install path):
 
 .. console::
 
-    > ./configure --prefix=/desired/install/path
-    > make
-    > make install
+    ./configure --prefix=/desired/install/path
+    make
+    make install
 
 The default installation prefix is ``/usr/local/bro``, which would typically
 require root privileges when doing the ``make install``.
@@ -174,13 +174,13 @@ Bourne-Shell Syntax:
 
 .. console::
 
-   > export PATH=/usr/local/bro/bin:$PATH
+   export PATH=/usr/local/bro/bin:$PATH
 
 C-Shell Syntax:
 
 .. console::
 
-   > setenv PATH /usr/local/bro/bin:$PATH
+   setenv PATH /usr/local/bro/bin:$PATH
 
 Or substitute ``/opt/bro/bin`` instead if you installed from a binary package.
 
@@ -211,7 +211,7 @@ Now start the BroControl shell like:
 
 .. console::
 
-   > broctl
+   broctl
 
 Since this is the first-time use of the shell, perform an initial installation
 of the BroControl configuration:
@@ -233,10 +233,9 @@ policy and output the results in ``$PREFIX/logs``.
 
 .. note:: The user starting BroControl needs permission to capture
    network traffic. If you are not root, you may need to grant further
-   privileges to the account you're using; see the `FAQ
-   <{{docroot}}/documentation/faq.html>`_. Also, if it
-   looks like Bro is not seeing any traffic, check out the FAQ entry
-   checksum offloading.
+   privileges to the account you're using; see the :doc:`FAQ <faq>`.
+   Also, if it looks like Bro is not seeing any traffic, check out
+   the FAQ entry on checksum offloading.
 
 You can leave it running for now, but to stop this Bro instance you would do:
 
@@ -244,9 +243,7 @@ You can leave it running for now, but to stop this Bro instance you would do:
 
    [BroControl] > stop
 
-We also recommend to insert the following entry into `crontab`:
-
-.. console::
+We also recommend to insert the following entry into `crontab`::
 
       0-59/5 * * * * $PREFIX/bin/broctl cron
 
@@ -373,9 +370,7 @@ the variable's value may not change at run-time, but whose initial value can be
 modified via the ``redef`` operator at parse-time.
 
 So let's continue on our path to modify the behavior for the two SSL
-and SSH notices.  Looking at
-`$PREFIX/share/bro/base/frameworks/notice/main.bro
-<{{autodoc_bro_scripts}}/scripts/base/frameworks/notice/main.html>`_,
+and SSH notices.  Looking at :doc:`scripts/base/frameworks/notice/main`,
 we see that it advertises:
 
 .. code:: bro
@@ -477,8 +472,7 @@ tweak the most basic options.  Here's some suggestions on what to explore next:
 * Reading the code of scripts that ship with Bro is also a great way to gain
   understanding of the language and how you can start writing your own custom
   analysis.
-* Review the `FAQ <{{docroot}}/documentation/faq.html>`_.
-* Check out more `documentation <{{docroot}}/documentation/index.html>`_.
+* Review the :doc:`FAQ <faq>`.
 * Continue reading below for another mini-tutorial on using Bro as a standalone
   command-line utility.
 
@@ -496,7 +490,7 @@ Analyzing live traffic from an interface is simple:
 
 .. console::
 
-   > bro -i en0 <list of scripts to load>
+   bro -i en0 <list of scripts to load>
 
 ``en0`` can be replaced by the interface of your choice and for the list of
 scripts, you can just use "all" for now to perform all the default analysis
@@ -504,7 +498,7 @@ that's available.
 
 Bro will output log files into the working directory.
 
-.. note:: The `FAQ <{{docroot}}/documentation/faq.html>`_ entries about
+.. note:: The :doc:`FAQ <faq>` entries about
    capturing as an unprivileged user and checksum offloading are particularly
    relevant at this point.
 
@@ -513,7 +507,7 @@ command-line:
 
 .. console::
 
-   > bro -i en0 local
+   bro -i en0 local
 
 This will cause Bro to print a warning about lacking the
 ``Site::local_nets`` variable being configured. You can supply this
@@ -522,7 +516,7 @@ in place of the example subnets):
 
 .. console::
 
-  > bro -r mypackets.trace local "Site::local_nets += { 1.2.3.0/24, 5.6.7.0/24 }"
+   bro -r mypackets.trace local "Site::local_nets += { 1.2.3.0/24, 5.6.7.0/24 }"
 
 
 Reading Packet Capture (pcap) Files
@@ -533,7 +527,7 @@ like this:
 
 .. console::
 
-   > sudo tcpdump -i en0 -s 0 -w mypackets.trace
+   sudo tcpdump -i en0 -s 0 -w mypackets.trace
 
 Where ``en0`` can be replaced by the correct interface for your system as
 shown by e.g. ``ifconfig``. (The ``-s 0`` argument tells it to capture
@@ -544,7 +538,7 @@ and tell Bro to perform all the default analysis on the capture which primarily 
 
 .. console::
 
-   > bro -r mypackets.trace
+   bro -r mypackets.trace
 
 Bro will output log files into the working directory.
 
@@ -553,7 +547,7 @@ script that we include as a suggested configuration:
 
 .. console::
 
-  > bro -r mypackets.trace local
+  bro -r mypackets.trace local
 
 
 Telling Bro Which Scripts to Load
@@ -563,7 +557,7 @@ A command-line invocation of Bro typically looks like:
 
 .. console::
 
-   > bro <options> <policies...>
+   bro <options> <policies...>
 
 Where the last arguments are the specific policy scripts that this Bro
 instance will load.  These arguments don't have to include the ``.bro``
@@ -578,7 +572,7 @@ logging) and adds SSL certificate validation.
 
 .. console::
 
-   > bro -r mypackets.trace protocols/ssl/validate-certs
+   bro -r mypackets.trace protocols/ssl/validate-certs
 
 You might notice that a script you load from the command line uses the
 ``@load`` directive in the Bro language to declare dependence on other scripts.

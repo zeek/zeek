@@ -3,7 +3,7 @@
 GeoLocation
 ===========
 
-.. class:: opening
+.. rst-class:: opening
 
     During the process of creating policy scripts the need may arise
     to find the geographic location for an IP address. Bro has support

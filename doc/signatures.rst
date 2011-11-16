@@ -3,7 +3,7 @@
 Signatures
 ==========
 
-.. class:: opening
+.. rst-class:: opening
 
     Bro relies primarily on its extensive scripting language for 
     defining and analyzing detection policies. In addition, however,
@@ -47,8 +47,8 @@ piece of payload which triggered the pattern match.
 
 To turn such ``signature_match`` events into actual alarms, you can
 load Bro's ``signature.bro`` script. This script contains a default
-event handler that raises ``SensitiveSignature`` `Notices
-<notices.html>`_ (as well as others; see the beginning of the script).
+event handler that raises ``SensitiveSignature`` :doc:`Notices <notice>`
+(as well as others; see the beginning of the script).
 
 As signatures are independent of Bro's policy scripts, they are put
 into their own file(s). There are two ways to specify which files

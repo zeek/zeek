@@ -11,20 +11,20 @@ FieldMapping::FieldMapping(const string& arg_name, const TypeTag& arg_type, int 
 	position = arg_position;
 }
 
-FieldMapping::FieldMapping(const string& arg_name, const TypeTag& arg_type, const TypeTag& arg_set_type, int arg_position) 
-	: name(arg_name), type(arg_type), set_type(arg_set_type)
+FieldMapping::FieldMapping(const string& arg_name, const TypeTag& arg_type, const TypeTag& arg_subtype, int arg_position) 
+	: name(arg_name), type(arg_type), subtype(arg_subtype)
 {
 	position = arg_position;
 }
 
 FieldMapping::FieldMapping(const FieldMapping& arg) 
-	: name(arg.name), type(arg.type), set_type(arg.set_type)
+	: name(arg.name), type(arg.type), subtype(arg.subtype)
 {
 	position = arg.position;
 }
 
-FieldMapping FieldMapping::setType() {
-	return FieldMapping(name, set_type, position);
+FieldMapping FieldMapping::subType() {
+	return FieldMapping(name, subtype, position);
 }
 
 InputReaderAscii::InputReaderAscii()
@@ -91,7 +91,7 @@ bool InputReaderAscii::ReadHeader() {
 			const LogField* field = fields[i];
 			if ( field->name == s ) {
 				// cool, found field. note position
-				FieldMapping f(field->name, field->type, field->set_type, i);
+				FieldMapping f(field->name, field->type, field->subtype, i);
 				columnMap.push_back(f);
 				wantFields++;
 				break; // done with searching
@@ -112,7 +112,7 @@ bool InputReaderAscii::ReadHeader() {
 	if ( wantFields != (int) num_fields ) {
 		// we did not find all fields?
 		// :(
-		Error("One of the requested fields could not be found in the input data file");
+		Error(Fmt("One of the requested fields could not be found in the input data file. Found %d fields, wanted %d", wantFields, num_fields));
 		return false;
 	}
 	
@@ -199,25 +199,40 @@ LogVal* InputReaderAscii::EntryToVal(string s, FieldMapping field) {
 		break;
 		}
 
-	case TYPE_TABLE: {
-		// construct a table from entry...
-		// for the moment assume, that entries are split by ",".
-
-		if ( s == "-" ) {
-			// empty 
-			val->val.set_val.size = 0;
-			break;
-		}
-
+	case TYPE_TABLE:
+	case TYPE_VECTOR:
+		// First - common initialization
+		// Then - initialization for table.
+		// Then - initialization for vector.
+		// Then - common stuff
+		{
 		// how many entries do we have...
 		unsigned int length = 1;
 		for ( unsigned int i = 0; i < s.size(); i++ )
 			if ( s[i] == ',') length++;
 
 		unsigned int pos = 0;
+
 		LogVal** lvals = new LogVal* [length];
-		val->val.set_val.vals = lvals;
-		val->val.set_val.size = length;
+
+		if ( field.type == TYPE_TABLE ) {
+			// construct a table from entry...
+			// for the moment assume, that entries are split by ",".
+
+			/* Fix support for emtyp tables if ( s == "-" ) {
+				// empty 
+				val->val.set_val.size = 0;
+				break;
+			} */
+
+			val->val.set_val.vals = lvals;
+			val->val.set_val.size = length;
+		} else if ( field.type == TYPE_VECTOR ) {
+			val->val.vector_val.vals = lvals;
+			val->val.vector_val.size = length;
+		} else {
+			assert(false);
+		}
 
 		istringstream splitstream(s);
 		while ( splitstream ) {
@@ -232,7 +247,7 @@ LogVal* InputReaderAscii::EntryToVal(string s, FieldMapping field) {
 				break;
 			
 
-			LogVal* newval = EntryToVal(element, field.setType());
+			LogVal* newval = EntryToVal(element, field.subType());
 			if ( newval == 0 ) {
 				Error("Error while reading set");
 				return 0;
@@ -242,6 +257,7 @@ LogVal* InputReaderAscii::EntryToVal(string s, FieldMapping field) {
 			pos++;
 	
 		}
+
 
 		if ( pos != length ) {
 			Error("Internal error while parsing set: did not find all elements");

@@ -15,12 +15,12 @@ class SerializationFormat;
 struct LogField {
 	string name;
 	TypeTag type;
-	// needed by input framework. otherwise it cannot determine the inner type of a set.
-	TypeTag set_type;
+	// needed by input framework. otherwise it cannot determine the inner type of a set or vector.
+	TypeTag subtype;
 
 	LogField()	{ }
 	LogField(const LogField& other)
-		: name(other.name), type(other.type), set_type(other.set_type) { }
+		: name(other.name), type(other.type), subtype(other.subtype) { }
 
 	// (Un-)serialize.
 	bool Read(SerializationFormat* fmt);

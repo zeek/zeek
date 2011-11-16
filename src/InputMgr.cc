@@ -244,12 +244,10 @@ bool InputMgr::IsCompatibleType(BroType* t, bool atomic_only)
 
 	case TYPE_VECTOR:
 		{
-		return false; // do me...
-				
-		//if ( atomic_only )
-		//	return false;
-		//
-		//return IsCompatibleType(t->AsVectorType()->YieldType());
+		if ( atomic_only )
+			return false;
+		
+		return IsCompatibleType(t->AsVectorType()->YieldType(), true);
 		}
 
 	default:
@@ -342,7 +340,9 @@ bool InputMgr::UnrollRecordType(vector<LogField*> *fields, const RecordType *rec
 			field->name = nameprepend + rec->FieldName(i);
 			field->type = rec->FieldType(i)->Tag();	
 			if ( field->type == TYPE_TABLE ) {
-				field->set_type = rec->FieldType(i)->AsSetType()->Indices()->PureType()->Tag();
+				field->subtype = rec->FieldType(i)->AsSetType()->Indices()->PureType()->Tag();
+			} else if ( field->type == TYPE_VECTOR ) {
+				field->subtype = rec->FieldType(i)->AsVectorType()->YieldType()->Tag();
 			}
 
 			fields->push_back(field);
@@ -870,6 +870,13 @@ int InputMgr::GetLogValLength(const LogVal* val) {
 		break;
 		}
 
+	case TYPE_VECTOR: {
+		for ( int i = 0; i < val->val.vector_val.size; i++ ) {
+			length += GetLogValLength(val->val.vector_val.vals[i]);
+		}
+		break;
+		}
+
 	default:
 		reporter->InternalError("unsupported type %d for GetLogValLength", val->type);
 	}
@@ -931,6 +938,15 @@ int InputMgr::CopyLogVal(char *data, const int startpos, const LogVal* val) {
 		int length = 0;
 		for ( int i = 0; i < val->val.set_val.size; i++ ) {
 			length += CopyLogVal(data, startpos+length, val->val.set_val.vals[i]);
+		}
+		return length;
+		break;				 
+		}
+
+	case TYPE_VECTOR: {
+		int length = 0;
+		for ( int i = 0; i < val->val.vector_val.size; i++ ) {
+			length += CopyLogVal(data, startpos+length, val->val.vector_val.vals[i]);
 		}
 		return length;
 		break;				 
@@ -1037,6 +1053,21 @@ Val* InputMgr::LogValToVal(const LogVal* val, TypeTag request_type) {
 			return t;
 		}	 
 		break;
+		}
+
+	case TYPE_VECTOR: {
+			assert ( val->val.vector_val.size > 1 ); // implement empty vector...
+
+			// all entries have to have the same type...
+			TypeTag type = val->val.vector_val.vals[0]->type;
+			VectorType* vt = new VectorType(base_type(type));
+			VectorVal* v = new VectorVal(vt);
+			for (  int i = 0; i < val->val.vector_val.size; i++ ) {
+				assert( val->val.vector_val.vals[i]->type == type);
+				v->Assign(i, LogValToVal( val->val.set_val.vals[i], type ), 0);
+			}
+			return v;
+
 		}
 
 	case TYPE_ENUM:

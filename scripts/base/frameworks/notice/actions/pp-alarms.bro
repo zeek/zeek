@@ -22,6 +22,10 @@ export {
 
 	## Function that renders a single alarm. Can be overidden.
 	global pretty_print_alarm: function(out: file, n: Info) &redef;
+
+	## Force generating mail file, even if reading from traces or no mail
+	## destination is defined. This is mainly for testing.
+	global force_email_summaries = F &redef;
 }
 
 # We maintain an old-style file recording the pretty-printed alarms.
@@ -32,6 +36,9 @@ global pp_alarms_open: bool = F;
 # Returns True if pretty-printed alarm summaries are activated.
 function want_pp() : bool
 	{
+	if ( force_email_summaries )
+		return T;
+
 	return (pretty_print_alarms && ! reading_traces()
 		&& (mail_dest != "" || mail_dest_pretty_printed != ""));
 	}
@@ -61,6 +68,11 @@ function pp_send(rinfo: Log::RotationInfo)
 	local subject = fmt("Alarm summary from %s-%s", from, to);
 	local dest = mail_dest_pretty_printed != "" ? mail_dest_pretty_printed
 		: mail_dest;
+
+	if ( dest == "" )
+		# No mail destination configured, just leave the file alone. This is mainly for
+		# testing.
+		return;
 	
 	local headers = email_headers(subject, dest);
 	
@@ -193,6 +205,12 @@ function pretty_print_alarm(out: file, n: Info)
 		return;
 		}
 
+	if ( reading_traces() )
+		{
+		do_msg(out, n, line1, line2, line3, h1, "<skipped>", h2, "<skipped>");
+		return;
+		}
+	
 	when ( local h1name = lookup_addr(h1) )
 		{
 		if ( h2 == 0.0.0.0 ) 

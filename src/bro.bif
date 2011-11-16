@@ -3284,18 +3284,15 @@ function enable_raw_output%(f: file%): any
 	%}
 
 %%{
-#ifdef HAVE_LIBMAGIC
 extern "C" {
 #include <magic.h>
 }
-#endif
 %%}
 
 function identify_data%(data: string, return_mime: bool%): string
 	%{
 	const char* descr = "";
 
-#ifdef HAVE_LIBMAGIC
 	static magic_t magic_mime = 0;
 	static magic_t magic_descr = 0;
 
@@ -3321,7 +3318,6 @@ function identify_data%(data: string, return_mime: bool%): string
 		}
 
 	descr = magic_buffer(*magic, data->Bytes(), data->Len());
-#endif
 
 	return new StringVal(descr);
 	%}

@@ -5,8 +5,6 @@
 
 #include "config.h"
 
-#ifdef HAVE_LIBZ
-
 #include "zlib.h"
 #include "TCP.h"
 
@@ -28,5 +26,4 @@ protected:
 	Method method;
 };
 
-#endif
 #endif

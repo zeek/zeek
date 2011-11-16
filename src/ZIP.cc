@@ -2,8 +2,6 @@
 
 #include "ZIP.h"
 
-#ifdef HAVE_LIBZ
-
 ZIP_Analyzer::ZIP_Analyzer(Connection* conn, bool orig, Method arg_method)
 : TCP_SupportAnalyzer(AnalyzerTag::Zip, conn, orig)
 	{
@@ -89,4 +87,3 @@ void ZIP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		}
 	while ( zip->avail_out == 0 );
 	}
-#endif

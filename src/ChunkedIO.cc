@@ -1170,8 +1170,6 @@ void ChunkedIOSSL::Stats(char* buffer, int length)
 	ChunkedIO::Stats(buffer + i, length - i);
 	}
 
-#ifdef HAVE_LIBZ
-
 bool CompressedChunkedIO::Init()
 	{
 	zin.zalloc = 0;
@@ -1348,5 +1346,3 @@ void CompressedChunkedIO::Stats(char* buffer, int length)
 	io->Stats(buffer + i, length - i);
 	buffer[length-1] = '\0';
 	}
-
-#endif	/* HAVE_LIBZ */

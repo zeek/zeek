@@ -100,6 +100,7 @@ type Dnp3_Request = record {
 	};
 } &byteorder = bigendian
   &length= 8 + addin_header.len -5 - 1
+  #&length= 128  # for performance evaluation
 ;
 
 

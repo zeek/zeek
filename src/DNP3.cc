@@ -5,7 +5,7 @@
 #include "DNP3.h"
 #include "TCP_Reassembler.h"
 
-#define P_TEST
+//#define P_TEST
 #define DEBUG 1
 
 DNP3_Analyzer::DNP3_Analyzer(Connection* c)
@@ -41,7 +41,7 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	u_char control_field = 0;
 
 ////used for performance experiment
-	u_char p_data[1024] = {0};
+	u_char p_data[2048] = {0};
 	int p_length = 0;
 	bool p_orig;
 	//u_char* app_data = 0;   // contains dnp3 application layer data
@@ -132,8 +132,23 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	#if DEBUG 
 	printf("performance test\n");
 	#endif
+//// let me add some extra meaning object head in order to increased packet size
+	// p_data[2]  size 
+	// p_length whole length
+	// 1002 - 1025; 489 - 512; 234 - 257; 105 - 128
+	for(i = 0; i < 105; i = i + 3 )
+	{
+		p_data[23 + i ] = 0x1e;
+		p_data[23 + i + 1 ] = 0x00;
+		p_data[23 + i + 2 ] = 0x06;
+		
+	}
+	p_length = 23 + 105;
+	//  p_data[2] = 0x15; if size > 255, I will hard code it in binpac code
+
 	TCP_ApplicationAnalyzer::DeliverStream(p_length, p_data, p_orig);	
 	interp->NewData(p_orig, p_data, p_data + p_length);
+
 	#endif
 //// free tran_data
 	free(tran_data);

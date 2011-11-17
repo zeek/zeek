@@ -14,16 +14,15 @@ before you begin:
 
     * OpenSSL (headers and libraries)   http://www.openssl.org
 
-Bro can make uses of some optional libraries if they are found at
-installation time:
-
     * Libmagic  For identifying file types (e.g., in FTP transfers).
-
-    * LibGeoIP  For geo-locating IP addresses.
 
     * Libz      For decompressing HTTP bodies by the HTTP analyzer, and for
                 compressed Bro-to-Bro communication.
 
+Bro can make uses of some optional libraries if they are found at
+installation time:
+
+    * LibGeoIP  For geo-locating IP addresses.
 
 Bro also needs the following tools, but on most systems they will
 already come preinstalled:
@@ -33,15 +32,14 @@ already come preinstalled:
     * Flex  (Fast Lexical Analyzer)
     * Perl  (Used only during the Bro build process)
 
-
 Installation
 ============
 
 To build and install into ``/usr/local/bro``::
 
-    > ./configure
-    > make
-    > make install
+    ./configure
+    make
+    make install
 
 This will first build Bro into a directory inside the distribution
 called ``build/``, using default build options. It then installs all
@@ -50,7 +48,7 @@ required files into ``/usr/local/bro``, including the Bro binary in
 
 You can specify a different installation directory with::
 
-    > ./configure --prefix=<dir>
+    ./configure --prefix=<dir>
 
 Note that ``/usr`` and ``/opt/bro`` are the standard prefixes for
 binary Bro packages to be installed, so those are typically not good
@@ -71,11 +69,8 @@ Running Bro
 ===========
 
 Bro is a complex program and it takes a bit of time to get familiar
-with it.  A good place for newcomers to start is the quick start guide
-available here:
-
-    http://www.bro-ids.org/documentation/quickstart.html
-
+with it.  A good place for newcomers to start is the
+:doc:`quick start guide <quickstart>`.
 
 For developers that wish to run Bro directly from the ``build/``
 directory (i.e., without performing ``make install``), they will have
@@ -83,9 +78,9 @@ to first adjust ``BROPATH`` to look for scripts inside the build
 directory.  Sourcing either ``build/bro-path-dev.sh`` or
 ``build/bro-path-dev.csh`` as appropriate for the current shell
 accomplishes this and also augments your ``PATH`` so you can use the
-Bro binary directly:
+Bro binary directly::
 
-    > ./configure
-    > make
-    > source build/bro-path-dev.sh
-    > bro <options>
+    ./configure
+    make
+    source build/bro-path-dev.sh
+    bro <options>

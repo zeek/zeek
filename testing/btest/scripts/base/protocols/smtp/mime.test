@@ -1,7 +1,6 @@
 # Checks logging of mime types and md5 calculation.  Mime type in the log
 # is normalized to prevent sensitivity to libmagic version.
 
-# @TEST-REQUIRES: grep -q '#define HAVE_LIBMAGIC' $BUILD/config.h
 # @TEST-EXEC: bro -r $TRACES/smtp.trace %INPUT
 # @TEST-EXEC: btest-diff smtp_entities.log
 

@@ -1,4 +1,3 @@
-# @TEST-REQUIRES: grep -q '#define HAVE_LIBMAGIC' $BUILD/config.h
 # @TEST-EXEC: bro -r $TRACES/smtp.trace %INPUT
 # @TEST-EXEC: btest-diff smtp_entities.log
 # @TEST-EXEC: btest-diff smtp-entity_10.10.1.4:1470-74.53.140.153:25_1.dat

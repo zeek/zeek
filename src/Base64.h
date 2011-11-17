@@ -13,11 +13,11 @@
 
 class Base64Decoder {
 public:
-	// <analyzer> is used for error reporting, and it should be zero
-	// when the decoder is called by the built-in function
-	// decode_base64().
-	Base64Decoder(Analyzer* analyzer);
-	~Base64Decoder()	{ }
+	// <analyzer> is used for error reporting, and it should be zero when
+	// the decoder is called by the built-in function decode_base64().
+	// Empty alphabet indicates the default base64 alphabet.
+	Base64Decoder(Analyzer* analyzer, const string& alphabet = "");
+	~Base64Decoder();
 
 	// A note on Decode():
 	//
@@ -57,8 +57,13 @@ protected:
 	int base64_after_padding;
 	int errored;	// if true, we encountered an error - skip further processing
 	Analyzer* analyzer;
+	int* base64_table;
+
+	static int* InitBase64Table(const string& alphabet);
+	static int default_base64_table[256];
+	static const string default_alphabet;
 };
 
-BroString* decode_base64(const BroString* s);
+BroString* decode_base64(const BroString* s, const BroString* a = 0);
 
 #endif /* base64_h */

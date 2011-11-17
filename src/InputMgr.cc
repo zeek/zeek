@@ -505,10 +505,10 @@ void InputMgr::SendEntry(const InputReader* reader, const LogVal* const *vals) {
 				position++;
 			}
 			
-			if ( val == 0 ) {
+			/* if ( val == 0 ) {
 				reporter->InternalError("conversion error");
 				return;
-			}
+			} */
 
 			r->Assign(j,val);
 
@@ -871,7 +871,9 @@ int InputMgr::GetLogValLength(const LogVal* val) {
 		}
 
 	case TYPE_VECTOR: {
-		for ( int i = 0; i < val->val.vector_val.size; i++ ) {
+		int j = val->val.vector_val.size;
+		for ( int i = 0; i < j; i++ ) {
+			reporter->Error("size is %d", val->val.vector_val.size);
 			length += GetLogValLength(val->val.vector_val.vals[i]);
 		}
 		break;
@@ -945,7 +947,8 @@ int InputMgr::CopyLogVal(char *data, const int startpos, const LogVal* val) {
 
 	case TYPE_VECTOR: {
 		int length = 0;
-		for ( int i = 0; i < val->val.vector_val.size; i++ ) {
+		int j = val->val.vector_val.size;
+		for ( int i = 0; i < j; i++ ) {
 			length += CopyLogVal(data, startpos+length, val->val.vector_val.vals[i]);
 		}
 		return length;
@@ -994,6 +997,10 @@ Val* InputMgr::LogValToVal(const LogVal* val, BroType* request_type) {
 		reporter->InternalError("Typetags don't match: %d vs %d", request_type->Tag(), val->type);
 		return 0;
 	}
+
+	if ( !val->present ) {
+		return 0; // unset field
+	}
 	
 
 	switch ( val->type ) {
@@ -1033,38 +1040,28 @@ Val* InputMgr::LogValToVal(const LogVal* val, BroType* request_type) {
 		break;
 
 	case TYPE_TABLE: {
-		if ( val->val.set_val.size == 0 ) {
-			// empty table
-			TypeList* set_index = new TypeList(base_type(TYPE_ANY));
-			// iim quite sure this does not work... we probably need the internal set type for this...
-			reporter->InternalError("Implement me.");
-			return new TableVal(new SetType(set_index, 0));
-		} else {
-			// all entries have to have the same type...
-			BroType* type = request_type->AsTableType()->Indices()->PureType();
-			TypeList* set_index = new TypeList(type->Ref());
-			set_index->Append(type->Ref());
-			SetType* s = new SetType(set_index, 0);
-			TableVal* t = new TableVal(s);
-			for ( int i = 0; i < val->val.set_val.size; i++ ) {
-				t->Assign(LogValToVal( val->val.set_val.vals[i], type ), 0);
-			}
-			return t;
-		}	 
+		// all entries have to have the same type...
+		BroType* type = request_type->AsTableType()->Indices()->PureType();
+		TypeList* set_index = new TypeList(type->Ref());
+		set_index->Append(type->Ref());
+		SetType* s = new SetType(set_index, 0);
+		TableVal* t = new TableVal(s);
+		for ( int i = 0; i < val->val.set_val.size; i++ ) {
+			t->Assign(LogValToVal( val->val.set_val.vals[i], type ), 0);
+		}
+		return t;
 		break;
 		}
 
 	case TYPE_VECTOR: {
-			assert ( val->val.vector_val.size > 1 ); // implement empty vector...
-
-			// all entries have to have the same type...
-			BroType* type = request_type->AsVectorType()->YieldType();
-			VectorType* vt = new VectorType(type->Ref());
-			VectorVal* v = new VectorVal(vt);
-			for (  int i = 0; i < val->val.vector_val.size; i++ ) {
-				v->Assign(i, LogValToVal( val->val.set_val.vals[i], type ), 0);
-			}
-			return v;
+		// all entries have to have the same type...
+		BroType* type = request_type->AsVectorType()->YieldType();
+		VectorType* vt = new VectorType(type->Ref());
+		VectorVal* v = new VectorVal(vt);
+		for (  int i = 0; i < val->val.vector_val.size; i++ ) {
+			v->Assign(i, LogValToVal( val->val.set_val.vals[i], type ), 0);
+		}
+		return v;
 
 		}
 

@@ -59,17 +59,13 @@ private:
 	//map<string, string> *keyMap;
 	//
 	// Options set from the script-level.
-	char* separator;
-	int separator_len;
+	string separator;
 
-	char* set_separator;
-	int set_separator_len;
+	string set_separator;
 
-	char* empty_field;
-	int empty_field_len;
+	string empty_field;
 
-	char* unset_field;
-	int unset_field_len;
+	string unset_field;
 
 };
 

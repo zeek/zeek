@@ -34,31 +34,19 @@ InputReaderAscii::InputReaderAscii()
 
 	//keyMap = new map<string, string>();
 	
-	separator_len = BifConst::LogAscii::separator->Len();
-	separator = new char[separator_len];
-	memcpy(separator, BifConst::LogAscii::separator->Bytes(),
-	       separator_len);
-	if ( separator_len != 1 ) {
+	separator.assign( (const char*) BifConst::InputAscii::separator->Bytes(), BifConst::InputAscii::separator->Len());
+	if ( separator.size() != 1 ) {
 		Error("separator length has to be 1. Separator will be truncated.");
 	}
 
-	set_separator_len = BifConst::LogAscii::set_separator->Len();
-	set_separator = new char[set_separator_len];
-	memcpy(set_separator, BifConst::LogAscii::set_separator->Bytes(),
-	       set_separator_len);
-	if ( set_separator_len != 1 ) {
+	set_separator.assign( (const char*) BifConst::InputAscii::set_separator->Bytes(), BifConst::InputAscii::set_separator->Len());
+	if ( set_separator.size() != 1 ) {
 		Error("set_separator length has to be 1. Separator will be truncated.");
 	}
 
-	empty_field_len = BifConst::LogAscii::empty_field->Len();
-	empty_field = new char[empty_field_len];
-	memcpy(empty_field, BifConst::LogAscii::empty_field->Bytes(),
-	       empty_field_len);
-
-	unset_field_len = BifConst::LogAscii::unset_field->Len();
-	unset_field = new char[unset_field_len];
-	memcpy(unset_field, BifConst::LogAscii::unset_field->Bytes(),
-	       unset_field_len);
+	empty_field.assign( (const char*) BifConst::InputAscii::empty_field->Bytes(), BifConst::InputAscii::empty_field->Len());
+	
+	unset_field.assign( (const char*) BifConst::InputAscii::unset_field->Bytes(), BifConst::InputAscii::unset_field->Len());
 	
 }
 
@@ -66,10 +54,6 @@ InputReaderAscii::~InputReaderAscii()
 {
 	DoFinish();
 
-	delete [] separator;
-	delete [] set_separator;
-	delete [] empty_field;
-	delete [] unset_field;	
 }
 
 void InputReaderAscii::DoFinish()
@@ -172,7 +156,10 @@ bool InputReaderAscii::GetLine(string& str) {
 LogVal* InputReaderAscii::EntryToVal(string s, FieldMapping field) {
 
 	LogVal* val = new LogVal(field.type, true);
-	//bzero(val, sizeof(LogVal));
+
+	if ( s.compare(unset_field) == 0 ) { // field is not set...
+		return new LogVal(field.type, false);
+	}
 
 	switch ( field.type ) {
 	case TYPE_ENUM:
@@ -244,19 +231,13 @@ LogVal* InputReaderAscii::EntryToVal(string s, FieldMapping field) {
 			if ( s[i] == ',') length++;
 
 		unsigned int pos = 0;
+		
+		if ( s.compare(empty_field) == 0 ) 
+			length = 0;
 
 		LogVal** lvals = new LogVal* [length];
 
 		if ( field.type == TYPE_TABLE ) {
-			// construct a table from entry...
-			// for the moment assume, that entries are split by ",".
-
-			/* Fix support for emtyp tables if ( s == "-" ) {
-				// empty 
-				val->val.set_val.size = 0;
-				break;
-			} */
-
 			val->val.set_val.vals = lvals;
 			val->val.set_val.size = length;
 		} else if ( field.type == TYPE_VECTOR ) {
@@ -266,18 +247,20 @@ LogVal* InputReaderAscii::EntryToVal(string s, FieldMapping field) {
 			assert(false);
 		}
 
+		if ( length == 0 )
+			break; //empty
+
 		istringstream splitstream(s);
 		while ( splitstream ) {
 			string element;
 
-			if ( pos >= length ) {
-				Error(Fmt("Internal error while parsing set. pos %d > length %d", pos, length));
-				break;
-			}
-
 			if ( !getline(splitstream, element, set_separator[0]) )
 				break;
-			
+
+			if ( pos >= length ) {
+				Error(Fmt("Internal error while parsing set. pos %d >= length %d. Element: %s", pos, length, element.c_str()));
+				break;
+			}
 
 			LogVal* newval = EntryToVal(element, field.subType());
 			if ( newval == 0 ) {

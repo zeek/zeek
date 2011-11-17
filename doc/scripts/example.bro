@@ -5,6 +5,11 @@
 ##! (reST) document's summary section.
 ##!
 ##! .. tip:: You can embed directives and roles within ``##``-stylized comments.
+##!
+##! There's also a custom role to reference any identifier node in
+##! the Bro Sphinx domain that's good for "see alsos", e.g.
+##! "see also :bro:see:`Example::a_var`, :bro:see:`Example::ONE`, and
+##! :bro:see:`SSH::Info`"
 
 # Comments that use a single pound sign (#) are not significant to
 # a script's auto-generated documentation, but ones that use a

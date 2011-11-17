@@ -19,6 +19,11 @@ from docutils.parsers.rst import directives
 from docutils.parsers.rst.roles import set_classes
 
 class BroGeneric(ObjectDescription):
+    def update_type_map(self, idname):
+        if 'idtypes' not in self.env.domaindata['bro']:
+            self.env.domaindata['bro']['idtypes'] = {}
+        self.env.domaindata['bro']['idtypes'][idname] = self.objtype
+
     def add_target_and_index(self, name, sig, signode):
         targetname = self.objtype + '-' + name
         if targetname not in self.state.document.ids:
@@ -29,9 +34,6 @@ class BroGeneric(ObjectDescription):
 
             objects = self.env.domaindata['bro']['objects']
             key = (self.objtype, name)
-# this is commented out mostly just to avoid having a special directive
-# for events in order to avoid the duplicate warnings in that case
-            """
             if key in objects:
                 self.env.warn(self.env.docname,
                               'duplicate description of %s %s, ' %
@@ -39,8 +41,9 @@ class BroGeneric(ObjectDescription):
                               'other instance in ' +
                               self.env.doc2path(objects[key]),
                               self.lineno)
-            """
             objects[key] = self.env.docname
+            self.update_type_map(name)
+
         indextext = self.get_index_text(self.objtype, name)
         if indextext:
             self.indexnode['entries'].append(('single', indextext,
@@ -65,6 +68,8 @@ class BroNamespace(BroGeneric):
             objects = self.env.domaindata['bro']['objects']
             key = (self.objtype, name)
             objects[key] = self.env.docname
+            self.update_type_map(name)
+
         indextext = self.get_index_text(self.objtype, name)
         self.indexnode['entries'].append(('single', indextext,
                                           targetname, targetname))
@@ -91,6 +96,8 @@ class BroEnum(BroGeneric):
             objects = self.env.domaindata['bro']['objects']
             key = (self.objtype, name)
             objects[key] = self.env.docname
+            self.update_type_map(name)
+
         indextext = self.get_index_text(self.objtype, name)
         #self.indexnode['entries'].append(('single', indextext,
         #                                  targetname, targetname))
@@ -140,6 +147,7 @@ class BroDomain(Domain):
         'id':               XRefRole(),
         'enum':             XRefRole(),
         'attr':             XRefRole(),
+        'see':              XRefRole(),
     }
 
     initial_data = {
@@ -154,13 +162,24 @@ class BroDomain(Domain):
     def resolve_xref(self, env, fromdocname, builder, typ, target, node,
                      contnode):
         objects = self.data['objects']
-        objtypes = self.objtypes_for_role(typ)
-        for objtype in objtypes:
-            if (objtype, target) in objects:
-                return make_refnode(builder, fromdocname,
-                                    objects[objtype, target],
-                                    objtype + '-' + target,
-                                    contnode, target + ' ' + objtype)
+        if typ == "see":
+            if target not in self.data['idtypes']:
+                self.env.warn(fromdocname,
+                              'unknown target for ":bro:see:`%s`' % (target))
+                return []
+            objtype = self.data['idtypes'][target]
+            return make_refnode(builder, fromdocname,
+                                        objects[objtype, target],
+                                        objtype + '-' + target,
+                                        contnode, target + ' ' + objtype)
+        else:
+            objtypes = self.objtypes_for_role(typ)
+            for objtype in objtypes:
+                if (objtype, target) in objects:
+                    return make_refnode(builder, fromdocname,
+                                        objects[objtype, target],
+                                        objtype + '-' + target,
+                                        contnode, target + ' ' + objtype)
 
     def get_objects(self):
         for (typ, name), docname in self.data['objects'].iteritems():

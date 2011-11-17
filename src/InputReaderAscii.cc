@@ -2,6 +2,7 @@
 
 #include "InputReaderAscii.h"
 #include "DebugLogger.h"
+#include "NetVar.h"
 
 #include <sstream>
 
@@ -29,15 +30,46 @@ FieldMapping FieldMapping::subType() {
 
 InputReaderAscii::InputReaderAscii()
 {
-	//DBG_LOG(DBG_LOGGING, "input reader initialized");
 	file = 0;
 
 	//keyMap = new map<string, string>();
+	
+	separator_len = BifConst::LogAscii::separator->Len();
+	separator = new char[separator_len];
+	memcpy(separator, BifConst::LogAscii::separator->Bytes(),
+	       separator_len);
+	if ( separator_len != 1 ) {
+		Error("separator length has to be 1. Separator will be truncated.");
+	}
+
+	set_separator_len = BifConst::LogAscii::set_separator->Len();
+	set_separator = new char[set_separator_len];
+	memcpy(set_separator, BifConst::LogAscii::set_separator->Bytes(),
+	       set_separator_len);
+	if ( set_separator_len != 1 ) {
+		Error("set_separator length has to be 1. Separator will be truncated.");
+	}
+
+	empty_field_len = BifConst::LogAscii::empty_field->Len();
+	empty_field = new char[empty_field_len];
+	memcpy(empty_field, BifConst::LogAscii::empty_field->Bytes(),
+	       empty_field_len);
+
+	unset_field_len = BifConst::LogAscii::unset_field->Len();
+	unset_field = new char[unset_field_len];
+	memcpy(unset_field, BifConst::LogAscii::unset_field->Bytes(),
+	       unset_field_len);
+	
 }
 
 InputReaderAscii::~InputReaderAscii()
 {
 	DoFinish();
+
+	delete [] separator;
+	delete [] set_separator;
+	delete [] empty_field;
+	delete [] unset_field;	
 }
 
 void InputReaderAscii::DoFinish()
@@ -83,7 +115,7 @@ bool InputReaderAscii::ReadHeader() {
 	int wantFields = 0;
 	while ( splitstream ) {
 		string s;
-		if ( !getline(splitstream, s, '\t'))
+		if ( !getline(splitstream, s, separator[0]))
 			break;
 		
 		// current found heading in s... compare if we want it
@@ -243,7 +275,7 @@ LogVal* InputReaderAscii::EntryToVal(string s, FieldMapping field) {
 				break;
 			}
 
-			if ( !getline(splitstream, element, ',') )
+			if ( !getline(splitstream, element, set_separator[0]) )
 				break;
 			
 
@@ -322,7 +354,7 @@ bool InputReaderAscii::DoUpdate() {
 		while ( splitstream ) {
 
 			string s;
-			if ( !getline(splitstream, s, '\t') )
+			if ( !getline(splitstream, s, separator[0]) )
 				break;
 
 			

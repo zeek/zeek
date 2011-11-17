@@ -57,7 +57,20 @@ private:
 	const LogField* const * fields; // raw mapping
 
 	//map<string, string> *keyMap;
-	
+	//
+	// Options set from the script-level.
+	char* separator;
+	int separator_len;
+
+	char* set_separator;
+	int set_separator_len;
+
+	char* empty_field;
+	int empty_field_len;
+
+	char* unset_field;
+	int unset_field_len;
+
 };
 
 

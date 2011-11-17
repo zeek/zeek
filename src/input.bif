@@ -52,3 +52,12 @@ function Input::__remove_filter%(id: Log::ID, name: string%) : bool
 	return new Val( res, TYPE_BOOL);
 	%}
 
+# Options for Ascii Reader
+
+module InputAscii;
+
+const separator: string;
+const set_separator: string;
+const empty_field: string;
+const unset_field: string;
+

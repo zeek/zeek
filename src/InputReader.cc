@@ -64,10 +64,11 @@ bool InputReader::Update()
 	return DoUpdate();
 }
 
+/* 
 void InputReader::SendEvent(const string& name, const int num_vals, const LogVal* const *vals) 
 {
 	input_mgr->SendEvent(name, num_vals, vals);
-}
+} */
 
 // stolen from logwriter
 const char* InputReader::Fmt(const char* format, ...)

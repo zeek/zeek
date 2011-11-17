@@ -40,7 +40,7 @@ protected:
 	// A thread-safe version of fmt(). (stolen from logwriter)
 	const char* Fmt(const char* format, ...);
 
-	void SendEvent(const string& name, const int num_vals, const LogVal* const *vals);
+	//void SendEvent(const string& name, const int num_vals, const LogVal* const *vals);
 
 	void Put(const LogVal* const *val);
 	void Clear();

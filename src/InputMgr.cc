@@ -422,7 +422,7 @@ Val* InputMgr::LogValToIndexVal(int num_fields, const RecordType *type, const Lo
 
 
 	if ( num_fields == 1 && type->FieldType(0)->Tag() != TYPE_RECORD  ) {
-		idxval = LogValToVal(vals[0]);
+		idxval = LogValToVal(vals[0], type->FieldType(0));
 		position = 1;
 	} else {
 		ListVal *l = new ListVal(TYPE_ANY);
@@ -430,7 +430,7 @@ Val* InputMgr::LogValToIndexVal(int num_fields, const RecordType *type, const Lo
 			if ( type->FieldType(j)->Tag() == TYPE_RECORD ) {
 				l->Append(LogValToRecordVal(vals, type->FieldType(j)->AsRecordType(), &position));
 			} else {
-				l->Append(LogValToVal(vals[position], type->FieldType(j)->Tag()));
+				l->Append(LogValToVal(vals[position], type->FieldType(j)));
 				position++;
 			}
 		}
@@ -486,7 +486,7 @@ void InputMgr::SendEntry(const InputReader* reader, const LogVal* const *vals) {
 	
 	int position = i->num_idx_fields;
 	if ( i->num_val_fields == 1 && !i->want_record ) {
-		valval = LogValToVal(vals[i->num_idx_fields]);
+		valval = LogValToVal(vals[i->num_idx_fields], i->rtype->FieldType(i->num_idx_fields));
 	} else {
 		RecordVal * r = new RecordVal(i->rtype);
 
@@ -501,7 +501,7 @@ void InputMgr::SendEntry(const InputReader* reader, const LogVal* const *vals) {
 			if ( i->rtype->FieldType(j)->Tag() == TYPE_RECORD ) {
 				val = LogValToRecordVal(vals, i->rtype->FieldType(j)->AsRecordType(), &position);
 			} else {
-				val =  LogValToVal(vals[position], i->rtype->FieldType(j)->Tag());
+				val =  LogValToVal(vals[position], i->rtype->FieldType(j));
 				position++;
 			}
 			
@@ -705,7 +705,7 @@ void InputMgr::Put(const InputReader* reader, const LogVal* const *vals) {
 	
 	int position = i->num_idx_fields;
 	if ( i->num_val_fields == 1 && !i->want_record ) {
-		valval = LogValToVal(vals[i->num_idx_fields]);
+		valval = LogValToVal(vals[i->num_idx_fields], i->rtype->FieldType(i->num_idx_fields));
 	} else {
 		RecordVal * r = new RecordVal(i->rtype);
 
@@ -715,7 +715,7 @@ void InputMgr::Put(const InputReader* reader, const LogVal* const *vals) {
 			if ( i->rtype->FieldType(j)->Tag() == TYPE_RECORD ) {
 				val = LogValToRecordVal(vals, i->rtype->FieldType(j)->AsRecordType(), &position);
 			} else {
-				val =  LogValToVal(vals[position], i->rtype->FieldType(j)->Tag());
+				val =  LogValToVal(vals[position], i->rtype->FieldType(j));
 				position++;
 			}
 			
@@ -760,7 +760,7 @@ void InputMgr::Error(InputReader* reader, const char* msg)
 	reporter->Error("error with input reader for %s: %s", reader->Source().c_str(), msg);
 }
 
-
+/* Does not work atm, because LogValToVal needs BroType
 void InputMgr::SendEvent(const string& name, const int num_vals, const LogVal* const *vals) 
 {
 	EventHandler* handler = event_registry->Lookup(name.c_str());
@@ -775,7 +775,7 @@ void InputMgr::SendEvent(const string& name, const int num_vals, const LogVal* c
 	}
 
 	mgr.Dispatch(new Event(handler, vl));
-}
+} */
 
 void InputMgr::SendEvent(const string& name, EnumVal* event, Val* left, Val* right) 
 {
@@ -814,7 +814,7 @@ Val* InputMgr::LogValToRecordVal(const LogVal* const *vals, RecordType *request_
 		if ( request_type->FieldType(i)->Tag() == TYPE_RECORD ) {
 			fieldVal = LogValToRecordVal(vals, request_type->FieldType(i)->AsRecordType(), position);	
 		} else {
-			fieldVal = LogValToVal(vals[*position], request_type->FieldType(i)->Tag());
+			fieldVal = LogValToVal(vals[*position], request_type->FieldType(i));
 			(*position)++;
 		}
 
@@ -988,10 +988,10 @@ HashKey* InputMgr::HashLogVals(const int num_elements, const LogVal* const *vals
 
 }
 
-Val* InputMgr::LogValToVal(const LogVal* val, TypeTag request_type) {
+Val* InputMgr::LogValToVal(const LogVal* val, BroType* request_type) {
 	
-	if ( request_type != TYPE_ANY && request_type != val->type ) {
-		reporter->InternalError("Typetags don't match: %d vs %d", request_type, val->type);
+	if ( request_type->Tag() != TYPE_ANY && request_type->Tag() != val->type ) {
+		reporter->InternalError("Typetags don't match: %d vs %d", request_type->Tag(), val->type);
 		return 0;
 	}
 	
@@ -1041,13 +1041,12 @@ Val* InputMgr::LogValToVal(const LogVal* val, TypeTag request_type) {
 			return new TableVal(new SetType(set_index, 0));
 		} else {
 			// all entries have to have the same type...
-			TypeTag type = val->val.set_val.vals[0]->type;
-			TypeList* set_index = new TypeList(base_type(type));
-			set_index->Append(base_type(type));
+			BroType* type = request_type->AsTableType()->Indices()->PureType();
+			TypeList* set_index = new TypeList(type->Ref());
+			set_index->Append(type->Ref());
 			SetType* s = new SetType(set_index, 0);
 			TableVal* t = new TableVal(s);
 			for ( int i = 0; i < val->val.set_val.size; i++ ) {
-				assert( val->val.set_val.vals[i]->type == type);
 				t->Assign(LogValToVal( val->val.set_val.vals[i], type ), 0);
 			}
 			return t;
@@ -1059,19 +1058,28 @@ Val* InputMgr::LogValToVal(const LogVal* val, TypeTag request_type) {
 			assert ( val->val.vector_val.size > 1 ); // implement empty vector...
 
 			// all entries have to have the same type...
-			TypeTag type = val->val.vector_val.vals[0]->type;
-			VectorType* vt = new VectorType(base_type(type));
+			BroType* type = request_type->AsVectorType()->YieldType();
+			VectorType* vt = new VectorType(type->Ref());
 			VectorVal* v = new VectorVal(vt);
 			for (  int i = 0; i < val->val.vector_val.size; i++ ) {
-				assert( val->val.vector_val.vals[i]->type == type);
 				v->Assign(i, LogValToVal( val->val.set_val.vals[i], type ), 0);
 			}
 			return v;
 
 		}
 
-	case TYPE_ENUM:
-		reporter->InternalError("Sorry, Enum reading does not yet work, missing internal inferface");
+	case TYPE_ENUM: {
+		// well, this is kind of stupid, because EnumType just mangles the module name and the var name together again...
+		// but well
+		string module = extract_module_name(val->val.string_val->c_str());
+		string var = extract_var_name(val->val.string_val->c_str());
+		bro_int_t index = request_type->AsEnumType()->Lookup(module, var.c_str());
+		if ( index == -1 ) {
+			reporter->InternalError("Value not found in enum mappimg. Module: %s, var: %s", module.c_str(), var.c_str());
+		}
+		return new EnumVal(index, request_type->Ref()->AsEnumType() );
+		break;
+		}
 		
 
 	default:

@@ -55,11 +55,11 @@ private:
 	int GetLogValLength(const LogVal* val);
 	int CopyLogVal(char *data, const int startpos, const LogVal* val);
 
-	Val* LogValToVal(const LogVal* val, TypeTag request_type = TYPE_ANY);
+	Val* LogValToVal(const LogVal* val, BroType* request_type);
 	Val* LogValToIndexVal(int num_fields, const RecordType* type, const LogVal* const *vals);
 	Val* LogValToRecordVal(const LogVal* const *vals, RecordType *request_type, int* position);	
 
-	void SendEvent(const string& name, const int num_vals, const LogVal* const *vals);
+	//void SendEvent(const string& name, const int num_vals, const LogVal* const *vals);
 	ReaderInfo* FindReader(const InputReader* reader);
 	ReaderInfo* FindReader(const EnumVal* id);
 

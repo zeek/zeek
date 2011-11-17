@@ -1188,15 +1188,10 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 	if ( orig_status == REGISTERED && resp_status == REGISTERED &&
 	     orig_zip_status == ACCEPT_ZIP && resp_zip_status == ACCEPT_ZIP )
 		{
-#ifdef HAVE_LIBZ
 		orig_zip_status = ZIP_LOADED;
 		resp_zip_status = ZIP_LOADED;
 		AddSupportAnalyzer(new ZIP_Analyzer(Conn(), true));
 		AddSupportAnalyzer(new ZIP_Analyzer(Conn(), false));
-#else
-		reporter->Error("IRC analyzer lacking libz support");
-		Remove();
-#endif
 		}
 
 	return;

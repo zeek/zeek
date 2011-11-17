@@ -1222,10 +1222,7 @@ bool RemoteSerializer::SendCapabilities(Peer* peer)
 
 	uint32 caps = 0;
 
-#ifdef HAVE_LIBZ
 	caps |= Peer::COMPRESSION;
-#endif
-
 	caps |= Peer::PID_64BIT;
 	caps |= Peer::NEW_CACHE_STRATEGY;
 
@@ -2106,11 +2103,9 @@ bool RemoteSerializer::ProcessPhaseDone()
 
 bool RemoteSerializer::HandshakeDone(Peer* peer)
 	{
-#ifdef HAVE_LIBZ
 	if ( peer->caps & Peer::COMPRESSION && peer->comp_level > 0 )
 		if ( ! SendToChild(MSG_COMPRESS, peer, 1, peer->comp_level) )
 			return false;
-#endif
 
 	if ( ! (peer->caps & Peer::PID_64BIT) )
 		Log(LogInfo, "peer does not support 64bit PIDs; using compatibility mode", peer);
@@ -3699,11 +3694,6 @@ bool SocketComm::ProcessListen()
 
 bool SocketComm::ProcessParentCompress()
 	{
-#ifndef HAVE_LIBZ
-	InternalError("supposed to enable compression but don't have zlib");
-	return false;
-#else
-
 	assert(parent_args);
 	uint32* args = (uint32*) parent_args->data;
 
@@ -3727,7 +3717,6 @@ bool SocketComm::ProcessParentCompress()
 	Log(fmt("enabling compression (level %d)", level), parent_peer);
 
 	return true;
-#endif
 	}
 
 bool SocketComm::ProcessRemoteMessage(SocketComm::Peer* peer)
@@ -3847,10 +3836,6 @@ bool SocketComm::ProcessPeerCompress(Peer* peer)
 	{
 	peer->state = MSG_NONE;
 
-#ifndef HAVE_LIBZ
-	Error("peer compresses although we do not support it", peer);
-	return false;
-#else
 	if ( ! parent_peer->compressor )
 		{
 		parent_peer->io = new CompressedChunkedIO(parent_peer->io);
@@ -3862,7 +3847,6 @@ bool SocketComm::ProcessPeerCompress(Peer* peer)
 	((CompressedChunkedIO*) peer->io)->EnableDecompression();
 	Log("enabling decompression", peer);
 	return true;
-#endif
 	}
 
 bool SocketComm::Connect(Peer* peer)

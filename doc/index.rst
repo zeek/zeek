@@ -1,50 +1,72 @@
-
+.. Bro documentation master file
 
 Bro Documentation
 =================
 
-`Getting Started <{{git('bro:doc/quickstart.rst')}}>`_
-    A quick introduction into using Bro 2.x.
+.. toctree::
+   :maxdepth: 1
 
-`Bro 1.5 to 2.0 Upgrade Guide <{{git('bro:doc/upgrade.rst')}}>`_
-    Guidelines and notes about upgrading from Bro 1.5 to 2.x. Lots of
-    things have changed, so make sure to read this when upgrading.
-
-`BroControl <{{git('broctl:doc/broctl.rst')}}>`_
-    An interactive console for managing Bro installations.
-
-`Script Reference <{{autodoc_bro_scripts}}/index.html>`_ 
-    A complete reference of all policy scripts shipped with Bro.
-
-`FAQ <{{docroot}}/documentation/faq.html>`_
-    A list with frequently asked questions.
-
-`How to Report a Problem <{{docroot}}/documentation/reporting-problems.html>`_
-    Some advice for when you see Bro doing something you believe it
-    shouldn't.
+   INSTALL
+   quickstart
+   upgrade
+   faq
+   reporting-problems
 
 Frameworks
 ----------
 
-Bro comes with a number of frameworks, some of which are described in
-more detail here:
+.. toctree::
+   :maxdepth: 1
 
-`Notice <{{git('bro:doc/notice.rst')}}>`_
-    The notice framework.
-
-`Logging <{{git('bro:doc/logging.rst')}}>`_
-    Customizing and extensing Bro's logging.
-
-`Cluster <{{git('bro:doc/cluster.rst')}}>`_
-    Setting up a Bro Cluster when a single box can't handle the traffic anymore.
-        
-`Signatures <{{git('bro:doc/signatures.rst')}}>`_ 
-    Bro has support for traditional NIDS signatures as well.
+   notice
+   logging
+   cluster
+   signatures
 
 How-Tos
 -------
 
-We also collect more specific How-Tos on specific topics:
+.. toctree::
+   :maxdepth: 1
 
-`Using GeoIP in Bro scripts <{{git('bro:doc/geoip.rst')}}>`_
-    Installation and usage of the the GeoIP library.
+   geoip
+
+Script Reference
+----------------
+
+.. toctree::
+   :maxdepth: 1
+
+   scripts/common
+   scripts/builtins
+   scripts/bifs
+   scripts/packages
+   scripts/index
+
+Other Bro Components
+--------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   components/btest/README
+   components/broccoli/README
+   components/broccoli-python/README
+   components/broctl/README
+   components/capstats/README
+   components/pysubnettree/README
+   components/trace-summary/README
+
+Indices and tables
+------------------
+
+* :ref:`genindex`
+* :ref:`search`
+
+Internal References
+-------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   scripts/internal

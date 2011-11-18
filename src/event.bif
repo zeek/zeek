@@ -1,22 +1,41 @@
 # Documentation conventions: 
 #              
-#     - Short initial sentence (which doesn't need to be a sentence), starting
-#       with "Generated ..."
-# 
 #     - Use past tense for activity that has already occured. 
+# 
+#     - List parameters with an empty line in between.
+# 
+#     - Within the description, reference other parameters of teh same events
+#       with *xyz*.
+# 
+#     - Order:
+# 
+#         - Short initial sentence  (which doesn't need to be a sentence),
+#         starting with "Generated ..." 
+# 
+#         - Description.
+# 
+#         - Parameters
+# 
+#         - .. see::
+#            
+#         - .. note::
+
   
 ## Generated at Bro initialization time. The event engine generates this
 ## event just before normal input processing begins. It can be used to execute
 ## one-time initialization code at startup. At the time a handler runs, Bro will
 ## have  executed any global initializations and statements. 
 ## 
-## .. note:: When a ``bro_init`` handler executes, Bro has not yet seen any
-##    input packets and therefore :bro:id:`network_time` is not  initialized yet. An
-##    artifact of that is that any timer installed in a ``bro_init`` handler will fire
+## see:: bro_done
+##  
+## .. note:: 
+##    
+##    When a ``bro_init`` handler executes, Bro has not yet seen any input packets
+##    and therefore :bro:id:`network_time` is not  initialized yet. An artifact
+##    of that is that any timer installed in a ``bro_init`` handler will fire
 ##    immediately with the first packet. The standard way to work around that is to
 ##    ignore the first time the timer fires and immediately reschedule.
 ##
-## see:: bro_done
 event bro_init%(%);
 
 ## Generated at Bro termination time. The event engine generates this event when
@@ -26,10 +45,12 @@ event bro_init%(%);
 ## This event is generated after :bro:id:`net_done`, which gets only raised when
 ## processing network traffic.
 ## 
-## .. note:: If Bro terminates due to an invocation of :bro:id:`exit`, then this
-##    event is not generated.
-##
 ## see:: net_done bro_init
+##
+## .. note:: 
+##    
+##    If Bro terminates due to an invocation of :bro:id:`exit`, then this event is
+##    not generated.
 event bro_done%(%);
 
 # TODO.
@@ -46,12 +67,14 @@ event dns_mapping_altered%(dm: dns_mapping, old_addrs: addr_set, new_addrs: addr
 ## flows.  
 ## 
 ## c: The connection.  
-## 
-## .. note:: Handling this event is potentially expensive. For example, during a
-##    SYN flooding attack, every spoofed SYN packet will lead to a new new_connection
-##    event.
 ##
 ## see:: *connection*
+## 
+## .. note:: 
+##    
+##    Handling this event is potentially expensive. For example, during a SYN
+##    flooding attack, every spoofed SYN packet will lead to a new new_connection
+##    event.
 event new_connection%(c: connection%);
 
 ## Generated when reassembly starts for a TCP connection. The event is raised
@@ -112,15 +135,17 @@ event connection_half_finished%(c: connection%);
 ## Generated for a rejected TCP connection. The event is raised when an originator
 ## attempted to setup a TCP connection but the responder replied with a RST packet
 ## denying it.   
+##
+## see:: *connection*
 ## 
 ## c: The connection. 
 ##    
-## .. note:: If the responder does not respond at all, :bro:id:`connection_attempt`
-##    is raised instead. If the responder initially accepts the connection but
-##    aborts it later, Bro first generates :bro:id:`connection_established` and then
+## .. note:: 
+##    
+##    If the responder does not respond at all, :bro:id:`connection_attempt` is
+##    raised instead. If the responder initially accepts the connection but aborts
+##    it later, Bro first generates :bro:id:`connection_established` and then
 ##    :bro:id:`connection_reset`.
-##
-## see:: *connection*
 event connection_rejected%(c: connection%);
 
 ## Generated when an endpoint aborted a TCP connection. The event is raised
@@ -156,13 +181,14 @@ event connection_state_remove%(c: connection%);
 ## 
 ## pkt: Information extracted from the SYN packet.
 ##    
-## .. note:: This event has quite low-level semantics and can potentially be
-##    expensive to generate. It should only be used if one really needs the
-##    specific information passed into the handler via the ``pkt`` argument. If
-##    not, handling one of the other ``connection_*`` events is typically the
-##    better approach.
-##
 ## see:: *connection*
+##    
+## .. note:: 
+##    
+##    This event has quite low-level semantics and can potentially be expensive to
+##    generate. It should only be used if one really needs the specific information
+##    passed into the handler via the ``pkt`` argument. If not, handling one of the
+##    other ``connection_*`` events is typically the better approach.
 event connection_SYN_packet%(c: connection, pkt: SYN_packet%);
 
 ## Generated for the first ACK packet seen for a TCP connection from
@@ -171,11 +197,12 @@ event connection_SYN_packet%(c: connection, pkt: SYN_packet%);
 ## c: The connection. 
 ## 
 ## pkt: Information extracted from the SYN packet.   
-##      
-## .. note:: This event has quite low-level semantics and should be used only
-##    rarely.
 ##
 ## see:: *connection*
+##      
+## .. note:: 
+##    
+##    This event has quite low-level semantics and should be used only rarely.
 event connection_first_ACK%(c: connection%);
 
 ## Generated when a TCP connection timed out. This event is raised when no activity
@@ -184,15 +211,17 @@ event connection_first_ACK%(c: connection%);
 ## never became active.  
 ## 
 ## c: The connection.
+##
+## see:: *connection*
 ##    
-## .. note:: The precise semantics of this event can be unintuitive  as it
-##    only covers a subset of cases where a connection times out. Often, handling
+## .. note:: 
+##    
+##    The precise semantics of this event can be unintuitive  as it only
+##    covers a subset of cases where a connection times out. Often, handling
 ##    :bro:id:`connection_state_remove` is the better option. That one will be
 ##    generated reliably when an interval of ``tcp_inactivity_timeout`` has passed
 ##    with out any activity seen (but also for all other ways a connection may
 ##    terminate).
-##
-## see:: *connection*
 event connection_timeout%(c: connection%);
 
 ## Generated when a connection 4-tuple is reused. The event is raised when Bro
@@ -204,24 +233,292 @@ event connection_timeout%(c: connection%);
 ## see:: *connection*
 event connection_reused%(c: connection%);
 
-
-
+## Generated in regular intervals during the life time of a connection. The
+## events is raised each :bro:id:`connection_status_update_interval` seconds
+## and can be used to check conditions on a regular basis.  
+##
+## c: The connection. 
+##   
+## see:: *connection*
 event connection_status_update%(c: connection%);
+
+## Generated at the end of reassembled TCP connections. The TCP reassembler
+## raised the event once for each endpoint of a connection when it finished
+## reassembling the corresponding side of the communication.
+##   
+## c: The connection. 
+## 
+## is_orig: True if the event is raised for the originator side.   
+##   
+## see:: *connection*
 event connection_EOF%(c: connection, is_orig: bool%);
+
+## Generated for a new connection received from the communication subsystem. Remote
+## peers can inject packets into Bro's packet loop, for example via TODO_Broccoli.
+## The communication systems raises this event with the first packet of a
+## connection coming in this way. 
 event connection_external%(c: connection, tag: string%);
 
+## Generated when a connected is seen that has previously marked as being expected.
+## The function :bro:id:`expect_connection` tells Bro to expect a particular
+## connection to come up, and which analyzer to associate with it. Once the
+## first packet of such a connection is indeed seen, this event is raised. 
+##   
+## c: The connection. 
+## 
+## a: The analyzer that was scheduled for the connection with the
+##    :bro:id:`expect_connection` call. When the event is raised, that
+##    analyzer will already have been activated to process the connection. The
+##    ``count`` is one of the ``ANALYZER_*`` constants, see TODO. 
+##   
+## see:: *connection*
 event expected_connection_seen%(c: connection, a: count%);
 
+## Generated for every packet Bro sees. This is a very low-level and expensive
+## event that should be avoided when at all possible. Is's usually infeasible to
+## handle when processing even medium volumes of traffic in real-time. That
+## said, if you work from a trace and want to do some packet-level analysis,
+## it may come in handy.
+##   
+## c: The connection the packet is part of.
+## 
+## p: Informattion from the header of the packet that triggered the event.  
+##   
+## see:: tcp_packet packet_contents
 event new_packet%(c: connection, p: pkt_hdr%);
 
+## Generated for every packet that has non-empty transport-layer payload. This is a
+## very low-level and expensive event that should be avoided when at all possible.
+## It's usually  infeasible to handle when processing even medium volumes of
+## traffic in real-time. It's even worse than :bro:id:`new_packet`. That said, if
+## you work from a trace and want to do some packet-level analysis, it may come in
+## handy.
+##
+## c: The connection the packet is part of.
+##
+## contants: The raw transport-layer payload. 
+## 
+## see:: new_packet tcp_packet
+event packet_contents%(c: connection, contents: string%);
+
+## Generated for every TCP packet. This is a very low-level and expensive event
+## that should be avoided when at all possible. It's usually  infeasible to handle
+## when processing even medium volumes of traffic in real-time.  It's slightly
+## better than :bro:id:`new_packet` because it affects only TCP, but not much. That
+## said, if you work from a trace and want to do some packet-level analysis, it may
+## come in handy.
+## 
+## c: The connection the packet is part of.
+## 
+## is_orig: True if the packet was sent by the connection's originator.
+## 
+## flags: A string with the packet's TCP flags. In the string, each character
+##        corresponds to one set flag, as follows: ``S`` -> SYN; ``F`` -> FIN;
+##                 ``R`` -> RST; ``A`` -> ACK; ``P`` -> PUSH.
+##   
+## seq: The packet's TCP sequence number.
+##   
+## ack: The packet's ACK number.
+##   
+## len: The length of the TCP payload, as specified in the packet header.
+##   
+## payload: The raw TCP payload. Note that this may less than *len* if the packet
+##          was not fully captured.
+##   
+## see:: new_packet packet_content tcp_option tcp_contents tcp_rexmit
+event tcp_packet%(c: connection, is_orig: bool, flags: string, seq: count, ack: count, len: count, payload: string%);
+
+## Generated for each option found in a TCP header. Like many of the ``tcp_*``
+## events, this is a very low-level event and potentially expensive as it may
+## be raised very often.
+##   
+## c: The connection the packet is part of.
+##   
+## is_orig: True if the packet was sent by the connection's originator.
+##   
+## opt: The numerical option number, as found in the TCP header.
+##   
+## optlen: The length of the options value.
+##   
+## see:: tcp_packet tcp_contents tcp_rexmit
+##   
+## .. note:: There is currently no way to get the actual option value, if any. 
+event tcp_option%(c: connection, is_orig: bool, opt: count, optlen: count%);
+
+## Generated for each chunk of reassembled TCP payload. When reassembly is enabled
+## for a TCP connection (as it is automatically whenever there is TCP protocol
+## analyzer parsing it), this event is raised for each chunk of in-order payload
+## reconstructed from the packet stream. Note that this event is potentially
+## expensive if many connections carry signficant amounts of data as then all
+## that needs to be passed on to the scripting layer. 
+##   
+## c: The connection the payload is part of.
+##   
+## is_orig: True if the packet was sent by the connection's originator.
+##   
+## seq: The sequence number corresponding to the first byte of the payload
+##      chunk.
+##   
+## payload: The raw payload, which will be non-empty. 
+##
+## see:: tcp_packet tcp_option tcp_rexmit
+##   
+## .. note:: 
+##    
+##    The payload received by this event is the same that is also passed into
+##    application-layer protocol analyzers internally. Subsequent invocations of
+##    this event for the same connection receive non-overlapping in-order chunks
+##    of its TCP payload stream. It is however undefined what size each chunk
+##    has; while Bro passes the data on as soon as possible, specifics depend
+##    on network-level effects such as latency, acknowledgements, reordering,
+##    etc.  Also note that Bro's reassembler holds on to any data until it has seen
+##    the other side's acknowledgement.
+event tcp_contents%(c: connection, is_orig: bool, seq: count, contents: string%);
+
+## Generated 
+event tcp_rexmit%(c: connection, is_orig: bool, seq: count, len: count, data_in_flight: count, window: count%);
+
+## Generated when Bro detects a TCP retransmission inconsistency. When
+## reassemling TCP stream, Bro buffers all payload until it seens the responder 
+## acking it. If during time, the sender resends a chunk of payload but with
+## content than originally, this event will be raised.
+##   
+## c: The connection showing the inconsistency.
+##   
+## t1: The original payload.
+##   
+## t2: The new payload.
+##   
+## see:: tcp_rexmit tcp_contents.
+event rexmit_inconsistency%(c: connection, t1: string, t2: string%);
+
+## Generated when a TCP endpoint acknowledges payload that Bro did never see.
+##   
+## c: The connection.
+##   
+## see:: content_gap
+##   
+## .. note:: 
+##    
+##    Seeing an acknowledgment indicates that the responder of the connection
+##    says it has received the corresponding data. If Bro did not, it must have
+##    either missed one or more packets, or the responder's TCP stack is broken
+##    (which isn't unheard of). In practice, one will always see a few of these
+##    events in any larger volume of network traffic. If there are lots of them,
+##    however, that typically  means that there is a problem with the monitoring
+##    infrastructure such as a tap dropping packets, split routing on the path, or
+##    reordering at the tap.
+##    
+##    This event reports similar situations as :bro:id:`content_gap`, though their
+##    specifics differ slightly. Often, however, both will be raised for the same
+##    connection if some of its data is missing. We should eventually merge
+##    the two.
+event ack_above_hole%(c: connection%);
+
+## Generated when Bro detects a gap in a reassembled TCP payload stream. This event
+## is raised when Bro, while reassemling a payload stream, determines that a chunk
+## of payload is missing (e.g., because the responder has already acknowledged it,
+## even though Bro didn't see it).  
+##   
+## c: The connection.
+##
+## is_orig: True if the gap is on the originator's side.
+##   
+## seq: The sequence number where the gap starts.
+##   
+## length: The number of bytes missing.
+##   
+## see:: ack_above_hole
+##    
+## .. note:: 
+##    
+##    Content gaps tend to occur occasionally for various reasons, including broken
+##    TCP stacks. If, however, one finds lots of them, that typically means that
+##    there is a problem with the monitoring infrastructure such as a tap dropping
+##    packets, split routing on the path, or reordering at the tap.
+##    
+##    This event reports similar situations as :bro:id:`ack_above_hole`, though
+##    their specifics differ slightly. Often, however, both will be raised for
+##    connection if some of its data is missing. We should eventually merge the
+##    two.
+event content_gap%(c: connection, is_orig: bool, seq: count, length: count%);
+
+## Summarizes the amount of missing TCP payload at regular intervals. Internally,
+## Bro tracks (1) the number of :bro:id:`ack_above_hole` events, including the
+## numer of bytes missing; and (2) the total number of TCP acks seen, with the
+## total volume of bytes that have been acked. This event reports these statistics
+## in :bro:id:`gap_report_freq` intervals for the purpose of determining packet
+## loss. 
+##    
+## dt: The time that has past since the last ``gap_report`` interval.
+##    
+## info: The gap statistics.
+##    
+## see:: content_gap ack_above_hole
+##    
+## .. note:: 
+##    
+##    Bro comes with a script :doc:`/scripts/policy/misc/capture-loss.bro`  that
+##    uses this event to estimate packet loss and report when a predefined
+##    threshold is exceeded.
+event gap_report%(dt: interval, info: gap_info%);
+
+
+## Generated when a protocol analyzer confirms that a connection is indeed
+## using that protocol. Bro's TODO_dynamic protocol detection heuristically
+## activates analyzers as soon as it believe a connection *could* be using a
+## particular protocol. It is then left to the corresponding analyzer to
+## verify whether that is indeed the case; if so, this event will be
+## generated. 
+## 
+## c: The connection.
+##   
+## atype: The type of the analyzer confirming that its protocol is in
+##        use. The value is one of the ``ANALYZER_*`` constants. For example,
+##        :bro:id:`ANALYZER_HTTP` means the HTTP analyzers determined that it's indeed
+##        parsing an HTTP connection. 
+## 
+## aid:   A unique integer ID identifying the specific *instance* of the
+##        analyzer *atype*  that is analyzing the connection ``c``. The ID can
+##        be used to reference the analyzer when using  builtin functions like
+##        :bro:id:`disable_analyzer`.  
+##    
+## see:: protocol_violation
+##   
+## .. note:: 
+##    
+##    Bro's default scripts use this event to determine the ``service`` column of
+##    TODO``conn.log``: once confirmed, the protocol will be listed there.  
 event protocol_confirmation%(c: connection, atype: count, aid: count%);
+
+## Generated when a protocol analyzer determines that a connection it is parsing is
+## not conforming to the protocol it expects. Bro's TODO_dynamic protocol detection
+## heuristically activates analyzers as soon as it believe a connection *could* be
+## using a particular protocol. It is then left to the corresponding analyzer to
+## verify whether that is indeed the case;  if not, the analyzer will 
+## trigger this event.   
+## 
+## c: The connection.
+##   
+## atype: The type of the analyzer confirming that its protocol is in
+##        use. The value is one of the ``ANALYZER_*`` constants. For example,
+##        :bro:id:`ANALYZER_HTTP` means the HTTP analyzers determined that it's indeed
+##        parsing an HTTP connection. 
+## 
+## aid:   A unique integer ID identifying the specific *instance* of the
+##        analyzer *atype*  that is analyzing the connection ``c``. The ID can
+##        be used to reference the analyzer when using  builtin functions like
+##        :bro:id:`disable_analyzer`.  
+##   
+## see:: protocol_confirmation
+##
+## .. note:: 
+##    
+##    Bro's default scripts use this event to disable an analyzer via
+##    :bro:id:`disable_analyzer` if it's parsing the wrong protocol. That's however
+##    a script-level decision and not done automatically by the event eninge.
 event protocol_violation%(c: connection, atype: count, aid: count, reason: string%);
 
-event packet_contents%(c: connection, contents: string%);
-event tcp_packet%(c: connection, is_orig: bool, flags: string, seq: count, ack: count, len: count, payload: string%);
-event tcp_option%(c: connection, is_orig: bool, opt: count, optlen: count%);
-event tcp_contents%(c: connection, is_orig: bool, seq: count, contents: string%);
-event tcp_rexmit%(c: connection, is_orig: bool, seq: count, len: count, data_in_flight: count, window: count%);
 event udp_request%(u: connection%);
 event udp_reply%(u: connection%);
 event udp_contents%(u: connection, is_orig: bool, contents: string%);
@@ -237,10 +534,6 @@ event conn_weird%(name: string, c: connection, addl: string%);
 event flow_weird%(name: string, src: addr, dst: addr%);
 event net_weird%(name: string%);
 event load_sample%(samples: load_sample_info, CPU: interval, dmem: int%);
-event rexmit_inconsistency%(c: connection, t1: string, t2: string%);
-event ack_above_hole%(c: connection%);
-event content_gap%(c: connection, is_orig: bool, seq: count, length: count%);
-event gap_report%(dt: interval, info: gap_info%);
 event inconsistent_option%(c: connection%);
 event bad_option%(c: connection%);
 event bad_option_termination%(c: connection%);

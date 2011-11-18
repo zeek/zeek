@@ -11,11 +11,23 @@ VERSION_FULL=$(REPO)-`cat VERSION`
 VERSION_MIN=$(REPO)-`cat VERSION`-minimal
 HAVE_MODULES=git submodule | grep -v cmake >/dev/null
 
-SUBDIRS = $(BUILD)
-$(SUBDIRS):: configured
-	$(MAKE) -C $@ $(MAKECMDGOALS)
+all: configured
+	( cd $(BUILD) && make )
 
-all install install-aux doc docclean clean: $(SUBDIRS)
+install: configured
+	( cd $(BUILD) && make install )
+
+install-aux: configured
+	( cd $(BUILD) && make install-aux )
+
+clean: configured docclean
+	( cd $(BUILD) && make clean )
+
+doc: configured
+	( cd $(BUILD) && make doc )
+
+docclean: configured
+	( cd $(BUILD) && make docclean )
 
 dist:
 	@rm -rf $(VERSION_FULL) $(VERSION_FULL).tgz

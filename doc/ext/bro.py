@@ -102,6 +102,11 @@ class BroEnum(BroGeneric):
         #self.indexnode['entries'].append(('single', indextext,
         #                                  targetname, targetname))
         m = sig.split()
+        if m[1] == "Notice::Type":
+            if 'notices' not in self.env.domaindata['bro']:
+                self.env.domaindata['bro']['notices'] = []
+            self.env.domaindata['bro']['notices'].append(
+                                (m[0], self.env.docname, targetname))
         self.indexnode['entries'].append(('single',
                                           "%s (enum values); %s" % (m[1], m[0]),
                                           targetname, targetname))
@@ -119,6 +124,26 @@ class BroIdentifier(BroGeneric):
 class BroAttribute(BroGeneric):
     def get_index_text(self, objectname, name):
         return _('%s (attribute)') % (name)
+
+class BroNotices(Index):
+    """
+    Index subclass to provide the Bro notices index.
+    """
+
+    name = 'noticeindex'
+    localname = l_('Bro Notice Index')
+    shortname = l_('notices')
+
+    def generate(self, docnames=None):
+        content = {}
+        for n in self.domain.env.domaindata['bro']['notices']:
+            modname = n[0].split("::")[0]
+            entries = content.setdefault(modname, [])
+            entries.append([n[0], 0, n[1], n[2], '', '', ''])
+
+        content = sorted(content.iteritems())
+
+        return content, False
 
 class BroDomain(Domain):
     """Bro domain."""
@@ -149,6 +174,10 @@ class BroDomain(Domain):
         'attr':             XRefRole(),
         'see':              XRefRole(),
     }
+
+    indices = [
+        BroNotices,
+    ]
 
     initial_data = {
         'objects': {},  # fullname -> docname, objtype

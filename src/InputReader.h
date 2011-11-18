@@ -15,7 +15,11 @@ public:
     InputReader();
     virtual ~InputReader();
 	
-	bool Init(string arg_source, int arg_num_fields, int arg_idx_fields, const LogField* const* fields);
+	bool Init(string arg_source);
+
+	bool AddFilter( int id, int arg_num_fields, const LogField* const* fields );
+
+	bool RemoveFilter ( int id );
     
 	void Finish();
 
@@ -23,8 +27,11 @@ public:
 	
 protected:
     // Methods that have to be overwritten by the individual readers
-	virtual bool DoInit(string arg_source, int arg_num_fields, int arg_idx_fields, const LogField* const * fields) = 0;
-	
+	virtual bool DoInit(string arg_sources) = 0;
+
+	virtual bool DoAddFilter( int id, int arg_num_fields, const LogField* const* fields ) = 0;
+	virtual bool DoRemoveFilter( int id );
+
 	virtual void DoFinish() = 0;
 
 	// update file contents to logmgr
@@ -42,28 +49,26 @@ protected:
 
 	//void SendEvent(const string& name, const int num_vals, const LogVal* const *vals);
 
-	void Put(const LogVal* const *val);
-	void Clear();
-	void Delete(const LogVal* const *val);
+	// Content-sendinf-functions (simple mode). Including table-specific stuff that simply is not used if we have no table
+	void Put(int id, const LogVal* const *val);
+	void Delete(int id, const LogVal* const *val);
+	void Clear(int id);
 
-	void SendEntry(const LogVal* const *vals);
-	void EndCurrentSend();
+	// Table-functions (tracking mode): Only changed lines are propagated.
+	void SendEntry(int id, const LogVal* const *vals);
+	void EndCurrentSend(int id);
 	
 
 private:
     friend class InputMgr;
 	
 	string source;
-	int num_fields;
-	int index_fields;
-	const LogField* const * fields;
     
-    // When an error occurs, this method is called to set a flag marking the 
-    // writer as disabled.
+    	// When an error occurs, this method is called to set a flag marking the 
+    	// writer as disabled.
     
-    bool disabled;
-    
-    bool Disabled() { return disabled; }
+    	bool disabled;
+    	bool Disabled() { return disabled; }
 
 	// For implementing Fmt().
 	char* buf;

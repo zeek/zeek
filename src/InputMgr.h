@@ -20,11 +20,9 @@ class InputMgr {
 public:
 	InputMgr();
     
-    	InputReader* CreateReader(EnumVal* id, RecordVal* description);
+    	InputReader* CreateStream(EnumVal* id, RecordVal* description);
 	bool ForceUpdate(const EnumVal* id);
-	bool RemoveReader(const EnumVal* id);	
-	bool RegisterEvent(const EnumVal* id, string eventName);
-	bool UnregisterEvent(const EnumVal* id, string eventName);
+	bool RemoveStream(const EnumVal* id);	
 
 	bool AddFilter(EnumVal *id, RecordVal* filter);
 	bool RemoveFilter(EnumVal* id, const string &name);
@@ -36,12 +34,14 @@ protected:
 	// Reports an error for the given reader.
 	void Error(InputReader* reader, const char* msg);
 
-	void Put(const InputReader* reader, const LogVal* const *vals);
-	void Clear(const InputReader* reader);
-	bool Delete(const InputReader* reader, const LogVal* const *vals);
+	// for readers to write to input stream in direct mode (reporting new/deleted values directly)
+	void Put(const InputReader* reader, int id. const LogVal* const *vals);
+	void Clear(const InputReader* reader, int id);
+	bool Delete(const InputReader* reader, int id, const LogVal* const *vals);
 
-	void SendEntry(const InputReader* reader, const LogVal* const *vals);
-	void EndCurrentSend(const InputReader* reader);
+	// for readers to write to input stream in indirect mode (manager is monitoring new/deleted values)
+	void SendEntry(const InputReader* reader, int id, const LogVal* const *vals);
+	void EndCurrentSend(const InputReader* reader, int id);
 	
 private:
 	struct ReaderInfo;

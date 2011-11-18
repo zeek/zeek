@@ -27,22 +27,11 @@ declare(PDict, InputHash);
 struct InputMgr::Filter {
 	EnumVal* id;	
 	string name;
-	Func* pred;	
 
-	~Filter();
-};
-
-InputMgr::Filter::~Filter() {
-	Unref(id);
-}
-
-struct InputMgr::ReaderInfo {
-	EnumVal* id;
-	EnumVal* type;
-	InputReader* reader;
 	unsigned int num_idx_fields;
 	unsigned int num_val_fields;
 	bool want_record;
+	EventHandlerPtr table_event;	
 
 	TableVal* tab;
 	RecordType* rtype;
@@ -50,18 +39,42 @@ struct InputMgr::ReaderInfo {
 
 	PDict(InputHash)* currDict;
 	PDict(InputHash)* lastDict;
-	
-	list<string> events; // events we fire when "something" happens
-	list<InputMgr::Filter> filters; // filters that can prevent our actions
+
+	Func* pred;	
+
+	EventHandlerPtr event;		
+	RecordType* event_type;
+
+	~Filter();
+};
+
+InputMgr::Filter::~Filter() {
+	Unref(id);
+	if ( tab ) 
+		Unref(tab);
+	if ( itype ) 
+		Unref(itype);
+	if ( rtype )
+		Unref(rtype);
+	if ( event_type)
+		Unref(event_type);
+}
+
+struct InputMgr::ReaderInfo {
+	EnumVal* id;
+	EnumVal* type;
+	InputReader* reader;
+
+	//list<string> events; // events we fire when "something" happens
+	map<int, InputMgr::Filter> filters; // filters that can prevent our actions
 
 	~ReaderInfo();
 	};
 
 InputMgr::ReaderInfo::~ReaderInfo() {
+	// all the contents of filters should delete themselves automatically...
+
 	Unref(type);
-	Unref(tab);
-	Unref(itype);
-	Unref(rtype);
 	Unref(id);
 
 	delete(reader);	
@@ -86,14 +99,14 @@ InputMgr::InputMgr()
 }
 
 // create a new input reader object to be used at whomevers leisure lateron.
-InputReader* InputMgr::CreateReader(EnumVal* id, RecordVal* description) 
+InputReader* InputMgr::CreateStream(EnumVal* id, RecordVal* description) 
 {
 	InputReaderDefinition* ir = input_readers;
 	
 	RecordType* rtype = description->Type()->AsRecordType();
-	if ( ! same_type(rtype, BifType::Record::Input::ReaderDescription, 0) )
+	if ( ! same_type(rtype, BifType::Record::Input::StreamDescription, 0) )
 	{
-		reporter->Error("readerDescription argument not of right type");
+		reporter->Error("Streamdescription argument not of right type");
 		return 0;
 	}
 
@@ -145,55 +158,15 @@ InputReader* InputMgr::CreateReader(EnumVal* id, RecordVal* description)
 	const BroString* bsource = description->Lookup(rtype->FieldOffset("source"))->AsString();
 	string source((const char*) bsource->Bytes(), bsource->Len());
 
-	RecordType *idx = description->Lookup(rtype->FieldOffset("idx"))->AsType()->AsTypeType()->Type()->AsRecordType();
-	RecordType *val = description->Lookup(rtype->FieldOffset("val"))->AsType()->AsTypeType()->Type()->AsRecordType();
-	TableVal *dst = description->Lookup(rtype->FieldOffset("destination"))->AsTableVal();
-
-
-	vector<LogField*> fieldsV; // vector, because we don't know the length beforehands
-	
-
-	bool status = !UnrollRecordType(&fieldsV, idx, "");
-
-	int idxfields = fieldsV.size();
-	
-	status = status || !UnrollRecordType(&fieldsV, val, "");
-	int valfields = fieldsV.size() - idxfields;
-
-	if ( status ) {
-		reporter->Error("Problem unrolling");
-		Unref(reader);
-		return 0;
-	}
-	
-	Val *want_record = description->LookupWithDefault(rtype->FieldOffset("want_record"));
-	
-	LogField** fields = new LogField*[fieldsV.size()];
-	for ( unsigned int i = 0; i < fieldsV.size(); i++ ) {
-		fields[i] = fieldsV[i];
-	}
 
 	ReaderInfo* info = new ReaderInfo;
 	info->reader = reader_obj;
 	info->type = reader->AsEnumVal(); // ref'd by lookupwithdefault
-	info->num_idx_fields = idxfields;
-	info->num_val_fields = valfields;
-	info->tab = dst->Ref()->AsTableVal();
-	info->rtype = val->Ref()->AsRecordType();
 	info->id = id->Ref()->AsEnumVal();
-	info->itype = idx->Ref()->AsRecordType();
-	info->currDict = new PDict(InputHash);
-	info->lastDict = new PDict(InputHash);
-	info->want_record = ( want_record->InternalInt() == 1 );
-	Unref(want_record); // ref'd by lookupwithdefault
-
-	if ( valfields > 1 ) {
-		assert(info->want_record);
-	}
 
 	readers.push_back(info);
 
-	int success = reader_obj->Init(source, fieldsV.size(), idxfields, fields);
+	int success = reader_obj->Init(source);
 	if ( success == false ) {
 		assert( RemoveReader(id) );
 		return 0;
@@ -207,6 +180,86 @@ InputReader* InputMgr::CreateReader(EnumVal* id, RecordVal* description)
 	return reader_obj;
 	
 }
+
+bool InputMgr::AddFilter(EnumVal *id, RecordVal* fval) {
+	ReaderInfo *i = FindReader(id);
+	if ( i == 0 ) {
+		reporter->Error("Stream not found");
+		return false;
+	}
+
+	RecordType* rtype = fval->Type()->AsRecordType();
+	if ( ! same_type(rtype, BifType::Record::Input::Filter, 0) )
+	{
+		reporter->Error("filter argument not of right type");
+		return false;
+	}
+
+
+	Val* name = fval->Lookup(rtype->FieldOffset("name"));
+	Val* pred = fval->Lookup(rtype->FieldOffset("pred"));
+
+	RecordType *idx = fval->Lookup(rtype->FieldOffset("idx"))->AsType()->AsTypeType()->Type()->AsRecordType();
+	RecordType *val = fval->Lookup(rtype->FieldOffset("val"))->AsType()->AsTypeType()->Type()->AsRecordType();
+	TableVal *dst = fval->Lookup(rtype->FieldOffset("destination"))->AsTableVal();
+
+	vector<LogField*> fieldsV; // vector, because we don't know the length beforehands
+
+	bool status = !UnrollRecordType(&fieldsV, idx, "");
+
+	int idxfields = fieldsV.size();
+	
+	status = status || !UnrollRecordType(&fieldsV, val, "");
+	int valfields = fieldsV.size() - idxfields;
+
+	if ( status ) {
+		reporter->Error("Problem unrolling");
+		return false;
+	}
+	
+	Val *want_record = fval->LookupWithDefault(rtype->FieldOffset("want_record"));
+	
+	LogField** fields = new LogField*[fieldsV.size()];
+	for ( unsigned int i = 0; i < fieldsV.size(); i++ ) {
+		fields[i] = fieldsV[i];
+	}
+	
+	Filter filter;
+	filter.name = name->AsString()->CheckString();
+	filter.id = id->Ref()->AsEnumVal();
+	filter.pred = pred ? pred->AsFunc() : 0;
+	filter.num_idx_fields = idxfields;
+	filter.num_val_fields = valfields;
+	filter.tab = dst ? dst->Ref()->AsTableVal() : 0;
+	filter.rtype = rtype ? val->Ref()->AsRecordType() : 0;
+	filter.itype = itype ? idx->Ref()->AsRecordType() : 0;
+	// ya - well - we actually don't need them in every case... well, a few bytes of memory wasted
+	filter.currDict = new PDict(InputHash);
+	filter.lastDict = new PDict(InputHash);
+	filter.want_record = ( want_record->InternalInt() == 1 );
+	Unref(want_record); // ref'd by lookupwithdefault
+
+	if ( valfields > 1 ) {
+		assert(info->want_record);
+	}
+	
+	i->filters[id->InternalInt()] = filter;
+
+	// ok, now we have to alert the reader of our new filter with our funky new fields
+	// the id is handled in a ... well, to be honest, a little bit sneaky manner. 
+	// the "problem" is, that we can have several filters in the reader for one filter in the log manager.
+	// this is due to the fact, that a filter can either output it's result as a table, as an event...
+	// ...or as an table _and_ an event. And... if we have a table and an event, we actually need two different sets
+	// of filters in the reader, because the fields for the table and the event may differ and I absolutely do not want
+	// to build a union of these values and figure it out later.
+	// hence -> filter id is multiplicated with 2.
+	// filterId*2 -> results for table
+	// filterId*2+1 -> results for event
+	i->AddFilter( id->InternalInt() * 2, fieldsV.size(), idxfields, fields );
+
+	return true;
+}
+
 
 bool InputMgr::IsCompatibleType(BroType* t, bool atomic_only)
 	{
@@ -258,7 +311,7 @@ bool InputMgr::IsCompatibleType(BroType* t, bool atomic_only)
 }
 
 
-bool InputMgr::RemoveReader(const EnumVal* id) {
+bool InputMgr::RemoveStream(const EnumVal* id) {
 	ReaderInfo *i = 0;
 	for ( vector<ReaderInfo *>::iterator s = readers.begin(); s != readers.end(); ++s )
 		{
@@ -280,42 +333,6 @@ bool InputMgr::RemoveReader(const EnumVal* id) {
 
 	return true;
 }
-
-bool InputMgr::RegisterEvent(const EnumVal* id, string eventName) {
-	ReaderInfo *i = FindReader(id);
-	if ( i == 0 ) {
-		reporter->InternalError("Reader not found");
-		return false;
-	}
-	
-	i->events.push_back(eventName);
-
-	return true;
-}
-
-// remove first event with name eventName
-// (though there shouldn't really be several events with the same name...
-bool InputMgr::UnregisterEvent(const EnumVal* id, string eventName) {
-	ReaderInfo *i = FindReader(id);
-	if ( i == 0 ) {
-		reporter->InternalError("Reader not found");
-		return false;
-	}
-	
-	std::list<string>::iterator it = i->events.begin();
-	while ( it != i->events.end() ) 
-	{
-		if ( *it == eventName ) {
-			it = i->events.erase(it);
-			return true;
-		}
-		else 
-			++it;
-	}
-
-	return false;
-}
-
 
 bool InputMgr::UnrollRecordType(vector<LogField*> *fields, const RecordType *rec, const string& nameprepend) {
 	for ( int i = 0; i < rec->NumFields(); i++ ) 
@@ -363,34 +380,6 @@ bool InputMgr::ForceUpdate(const EnumVal* id)
 	return i->reader->Update();
 }
 
-bool InputMgr::AddFilter(EnumVal *id, RecordVal* fval) {
-	ReaderInfo *i = FindReader(id);
-	if ( i == 0 ) {
-		reporter->Error("Reader not found");
-		return false;
-	}
-
-	RecordType* rtype = fval->Type()->AsRecordType();
-	if ( ! same_type(rtype, BifType::Record::Input::Filter, 0) )
-	{
-		reporter->Error("filter argument not of right type");
-		return false;
-	}
-
-
-	Val* name = fval->Lookup(rtype->FieldOffset("name"));
-	Val* pred = fval->Lookup(rtype->FieldOffset("pred"));
-
-	Filter filter;
-	filter.name = name->AsString()->CheckString();
-	filter.id = id->Ref()->AsEnumVal();
-	filter.pred = pred ? pred->AsFunc() : 0;
-
-	i->filters.push_back(filter);
-
-	return true;
-}
-
 bool InputMgr::RemoveFilter(EnumVal* id, const string &name) {
 	ReaderInfo *i = FindReader(id);
 	if ( i == 0 ) {
@@ -398,7 +387,7 @@ bool InputMgr::RemoveFilter(EnumVal* id, const string &name) {
 		return false;
 	}
 
-
+/*
 	std::list<InputMgr::Filter>::iterator it = i->filters.begin();
 	while ( it != i->filters.end() ) 
 	{
@@ -410,8 +399,15 @@ bool InputMgr::RemoveFilter(EnumVal* id, const string &name) {
 		else 
 			++it;
 	}
+	*/
 
-	return false;;
+	map<int, InputMgr::Filter>::iterator it = i->filters.find(id->InternalInt());
+	if ( it == i->filters.end() ) {
+		return false;
+	}
+
+	it->filters.erase(it);
+	return true;
 }
 
 
@@ -444,7 +440,7 @@ Val* InputMgr::LogValToIndexVal(int num_fields, const RecordType *type, const Lo
 }
 
 
-void InputMgr::SendEntry(const InputReader* reader, const LogVal* const *vals) {
+void InputMgr::SendEntry(const InputReader* reader, int id, const LogVal* const *vals) {
 	ReaderInfo *i = FindReader(reader);
 	if ( i == 0 ) {
 		reporter->InternalError("Unknown reader");
@@ -605,7 +601,7 @@ void InputMgr::SendEntry(const InputReader* reader, const LogVal* const *vals) {
 }
 
 
-void InputMgr::EndCurrentSend(const InputReader* reader) {
+void InputMgr::EndCurrentSend(const InputReader* reader, int id) {
 	ReaderInfo *i = FindReader(reader);
 	if ( i == 0 ) {
 		reporter->InternalError("Unknown reader");
@@ -693,7 +689,7 @@ void InputMgr::EndCurrentSend(const InputReader* reader) {
 	i->currDict = new PDict(InputHash);
 }
 
-void InputMgr::Put(const InputReader* reader, const LogVal* const *vals) {
+void InputMgr::Put(const InputReader* reader, int id, const LogVal* const *vals) {
 	ReaderInfo *i = FindReader(reader);
 	if ( i == 0 ) {
 		reporter->InternalError("Unknown reader");
@@ -733,7 +729,7 @@ void InputMgr::Put(const InputReader* reader, const LogVal* const *vals) {
 	i->tab->Assign(idxval, valval);
 }
 
-void InputMgr::Clear(const InputReader* reader) {
+void InputMgr::Clear(const InputReader* reader, int id) {
 	ReaderInfo *i = FindReader(reader);
 	if ( i == 0 ) {
 		reporter->InternalError("Unknown reader");
@@ -873,7 +869,6 @@ int InputMgr::GetLogValLength(const LogVal* val) {
 	case TYPE_VECTOR: {
 		int j = val->val.vector_val.size;
 		for ( int i = 0; i < j; i++ ) {
-			reporter->Error("size is %d", val->val.vector_val.size);
 			length += GetLogValLength(val->val.vector_val.vals[i]);
 		}
 		break;

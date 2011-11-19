@@ -8,8 +8,13 @@
 ##!
 ##! There's also a custom role to reference any identifier node in
 ##! the Bro Sphinx domain that's good for "see alsos", e.g.
-##! "see also :bro:see:`Example::a_var`, :bro:see:`Example::ONE`, and
-##! :bro:see:`SSH::Info`"
+##!
+##! See also: :bro:see:`Example::a_var`, :bro:see:`Example::ONE`,
+##! :bro:see:`SSH::Info`
+##!
+##! And a custom directive does the equivalent references:
+##!
+##! .. bro:see:: Example::a_var Example::ONE SSH::Info
 
 # Comments that use a single pound sign (#) are not significant to
 # a script's auto-generated documentation, but ones that use a

@@ -17,8 +17,13 @@ these comments are transferred directly into the auto-generated
 
 There's also a custom role to reference any identifier node in
 the Bro Sphinx domain that's good for "see alsos", e.g.
-"see also :bro:see:`Example::a_var`, :bro:see:`Example::ONE`, and
-:bro:see:`SSH::Info`"
+
+See also: :bro:see:`Example::a_var`, :bro:see:`Example::ONE`,
+:bro:see:`SSH::Info`
+
+And a custom directive does the equivalent references:
+
+.. bro:see:: Example::a_var Example::ONE SSH::Info
 
 :Imports: :doc:`policy/frameworks/software/vulnerable </scripts/policy/frameworks/software/vulnerable>`
 

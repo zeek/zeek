@@ -4,6 +4,9 @@
 
 def setup(Sphinx):
     Sphinx.add_domain(BroDomain)
+    Sphinx.add_node(see)
+    Sphinx.add_directive_to_domain('bro', 'see', SeeDirective)
+    Sphinx.connect('doctree-resolved', process_see_nodes)
 
 from sphinx import addnodes
 from sphinx.domains import Domain, ObjType, Index
@@ -17,6 +20,51 @@ from docutils import nodes
 from docutils.parsers.rst import Directive
 from docutils.parsers.rst import directives
 from docutils.parsers.rst.roles import set_classes
+
+class see(nodes.General, nodes.Element):
+    refs = []
+
+class SeeDirective(Directive):
+    has_content = True
+
+    def run(self):
+        n = see('')
+        n.refs = string.split(string.join(self.content))
+        return [n]
+
+def process_see_nodes(app, doctree, fromdocname):
+    for node in doctree.traverse(see):
+        content = []
+        para = nodes.paragraph()
+        para += nodes.Text("See also:", "See also:")
+        for name in node.refs:
+            join_str = " "
+            if name != node.refs[0]:
+                join_str  = ", "
+            link_txt = join_str + name;
+
+            if name not in app.env.domaindata['bro']['idtypes']:
+                # Just create the text and issue warning
+                app.env.warn(fromdocname,
+                             'unknown target for ".. bro:see:: %s"' % (name))
+                para += nodes.Text(link_txt, link_txt)
+            else:
+                # Create a reference
+                typ = app.env.domaindata['bro']['idtypes'][name]
+                todocname = app.env.domaindata['bro']['objects'][(typ, name)]
+
+                newnode = nodes.reference('', '')
+                innernode = nodes.literal(_(name), _(name))
+                newnode['refdocname'] = todocname
+                newnode['refuri'] = app.builder.get_relative_uri(
+                    fromdocname, todocname)
+                newnode['refuri'] += '#' + typ + '-' + name
+                newnode.append(innernode)
+                para += nodes.Text(join_str, join_str)
+                para += newnode
+
+        content.append(para)
+        node.replace_self(content)
 
 class BroGeneric(ObjectDescription):
     def update_type_map(self, idname):
@@ -194,7 +242,7 @@ class BroDomain(Domain):
         if typ == "see":
             if target not in self.data['idtypes']:
                 self.env.warn(fromdocname,
-                              'unknown target for ":bro:see:`%s`' % (target))
+                              'unknown target for ":bro:see:`%s`"' % (target))
                 return []
             objtype = self.data['idtypes'][target]
             return make_refnode(builder, fromdocname,

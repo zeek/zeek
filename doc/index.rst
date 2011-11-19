@@ -57,10 +57,11 @@ Other Bro Components
    components/pysubnettree/README
    components/trace-summary/README
 
-Indices and tables
-------------------
+Other Indices and References
+----------------------------
 
-* :ref:`genindex`
+* :ref:`General Index <genindex>`
+* `Notice Index <bro-noticeindex.html>`_
 * :ref:`search`
 
 Internal References

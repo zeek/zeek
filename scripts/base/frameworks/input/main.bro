@@ -14,9 +14,9 @@ export {
 		name: string; 
 
 		## for tables
-		idx: any &optional;
-		val: any &optional;
-		destination: any &optional;
+		idx: any;
+		val: any;
+		destination: any;
 		want_record: bool &default=T;
 		table_ev: any &optional; # event containing idx, val as values.		
 
@@ -25,13 +25,13 @@ export {
 		pred: function(typ: Input::Event, left: any, right: any): bool &optional;
 
 		## for "normalized" events
-		ev: any &optional;
-		ev_description: any &optional;
+		# ev: any &optional;
+		# ev_description: any &optional;
 	};
 
-	const no_filter: Filter = [$name="<not found>"]; # Sentinel.
+	const no_filter: Filter = [$name="<not found>", $idx="", $val="", $destination=""]; # Sentinel.
 
-	global create_stream: function(id: Log::ID, description: Input::ReaderDescription) : bool;
+	global create_stream: function(id: Log::ID, description: Input::StreamDescription) : bool;
 	global remove_stream: function(id: Log::ID) : bool;
 	global force_update: function(id: Log::ID) : bool;
 	global add_filter: function(id: Log::ID, filter: Input::Filter) : bool;
@@ -47,7 +47,7 @@ module Input;
 
 global filters: table[ID, string] of Filter;
 
-function create_stream(id: Log::ID, description: Input::ReaderDescription) : bool
+function create_stream(id: Log::ID, description: Input::StreamDescription) : bool
 	{
 	return __create_stream(id, description);
 	}

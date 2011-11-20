@@ -35,7 +35,7 @@ protected:
 	void Error(InputReader* reader, const char* msg);
 
 	// for readers to write to input stream in direct mode (reporting new/deleted values directly)
-	void Put(const InputReader* reader, int id. const LogVal* const *vals);
+	void Put(const InputReader* reader, int id, const LogVal* const *vals);
 	void Clear(const InputReader* reader, int id);
 	bool Delete(const InputReader* reader, int id, const LogVal* const *vals);
 

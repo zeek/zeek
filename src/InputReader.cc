@@ -26,17 +26,17 @@ void InputReader::Error(const string &msg)
 
 void InputReader::Put(int id, const LogVal* const *val) 
 {
-	input_mgr->Put(this, int id, val);
+	input_mgr->Put(this, id, val);
 }
 
 void InputReader::Clear(int id) 
 {
-	input_mgr->Clear(this, int id);
+	input_mgr->Clear(this, id);
 }
 
 void InputReader::Delete(int id, const LogVal* const *val) 
 {
-	input_mgr->Delete(this, int id, val);
+	input_mgr->Delete(this, id, val);
 }
 
 
@@ -52,12 +52,12 @@ bool InputReader::Init(string arg_source)
 bool InputReader::AddFilter(int id, int arg_num_fields,
 					   const LogField* const * arg_fields) 
 {
-	return DoAddFilter(int id, arg_num_fields, arg_fields);
+	return DoAddFilter(id, arg_num_fields, arg_fields);
 }
 
 bool InputReader::RemoveFilter(int id) 
 {
-	return DoRemoveFilter(int id);
+	return DoRemoveFilter(id);
 }
 
 void InputReader::Finish() 
@@ -105,10 +105,10 @@ const char* InputReader::Fmt(const char* format, ...)
 
 void InputReader::SendEntry(int id, const LogVal* const *vals)
 {
-	input_mgr->SendEntry(this, int id, vals);
+	input_mgr->SendEntry(this, id, vals);
 }
 
 void InputReader::EndCurrentSend(int id) 
 {
-	input_mgr->EndCurrentSend(this, int id);
+	input_mgr->EndCurrentSend(this, id);
 }

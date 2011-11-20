@@ -28,6 +28,7 @@ FieldMapping FieldMapping::subType() {
 	return FieldMapping(name, subtype, position);
 }
 
+
 InputReaderAscii::InputReaderAscii()
 {
 	file = 0;
@@ -58,7 +59,7 @@ InputReaderAscii::~InputReaderAscii()
 
 void InputReaderAscii::DoFinish()
 {
-	columnMap.empty();
+	filters.empty();
 	if ( file != 0 ) {
 		file->close();
 		delete(file);
@@ -66,7 +67,7 @@ void InputReaderAscii::DoFinish()
 	}
 }
 
-bool InputReaderAscii::DoInit(string path, int num_fields, int idx_fields, const LogField* const * fields)
+bool InputReaderAscii::DoInit(string path)
 {
 	fname = path;
 	
@@ -76,11 +77,39 @@ bool InputReaderAscii::DoInit(string path, int num_fields, int idx_fields, const
 		return false;
 	}
 
+	return true;
+}
 
-	this->num_fields = num_fields;
-	this->idx_fields = idx_fields;
-	this->fields = fields;
+bool InputReaderAscii::DoAddFilter( int id, int arg_num_fields, const LogField* const* fields ) {
+	if ( HasFilter(id) ) {
+		return false; // no, we don't want to add this a second time
+	}
 
+	Filter f;
+	f.num_fields = arg_num_fields;
+	f.fields = fields;
+
+	filters[id] = f;
+
+	return true;
+}
+
+bool InputReaderAscii::DoRemoveFilter ( int id ) {
+	if (!HasFilter(id) ) {
+		return false;
+	}
+
+	assert ( filters.erase(id) == 1 );
+
+	return true;
+}	
+
+
+bool InputReaderAscii::HasFilter(int id) {
+	map<int, Filter>::iterator it = filters.find(id);	
+	if ( it == filters.end() ) {
+		return false;
+	}
 	return true;
 }
 
@@ -93,45 +122,46 @@ bool InputReaderAscii::ReadHeader() {
 		return false;
 	}
 
-	// split on tabs...
-	istringstream splitstream(line);
-	unsigned int currTab = 0;
-	int wantFields = 0;
-	while ( splitstream ) {
-		string s;
-		if ( !getline(splitstream, s, separator[0]))
-			break;
-		
-		// current found heading in s... compare if we want it
-		for ( unsigned int i = 0; i < num_fields; i++ ) {
-			const LogField* field = fields[i];
-			if ( field->name == s ) {
-				// cool, found field. note position
-				FieldMapping f(field->name, field->type, field->subtype, i);
-				columnMap.push_back(f);
-				wantFields++;
-				break; // done with searching
+	for ( map<int, Filter>::iterator it = filters.begin(); it != filters.end(); it++ ) {
+		// split on tabs...
+		istringstream splitstream(line);
+		unsigned int currTab = 0;
+		int wantFields = 0;
+		while ( splitstream ) {
+			string s;
+			if ( !getline(splitstream, s, separator[0]))
+				break;
+			
+			// current found heading in s... compare if we want it
+			for ( unsigned int i = 0; i < (*it).second.num_fields; i++ ) {
+				const LogField* field = (*it).second.fields[i];
+				if ( field->name == s ) {
+					// cool, found field. note position
+					FieldMapping f(field->name, field->type, field->subtype, i);
+					(*it).second.columnMap.push_back(f);
+					wantFields++;
+					break; // done with searching
+				}
 			}
+
+			// look if we did push something...
+			if ( (*it).second.columnMap.size() == currTab ) {
+				// no, we didn't. note that...
+				FieldMapping empty;
+				(*it).second.columnMap.push_back(empty);
+			}
+
+			// done 
+			currTab++;
+		} 
+
+		if ( wantFields != (int) (*it).second.num_fields ) {
+			// we did not find all fields?
+			// :(
+			Error(Fmt("One of the requested fields could not be found in the input data file. Found %d fields, wanted %d. Filternum: %d", wantFields, (*it).second.num_fields, (*it).first));
+			return false;
 		}
-
-		// look if we did push something...
-		if ( columnMap.size() == currTab ) {
-			// no, we didn't. note that...
-			FieldMapping empty;
-			columnMap.push_back(empty);
-		}
-
-		// done 
-		currTab++;
-	} 
-
-	if ( wantFields != (int) num_fields ) {
-		// we did not find all fields?
-		// :(
-		Error(Fmt("One of the requested fields could not be found in the input data file. Found %d fields, wanted %d", wantFields, num_fields));
-		return false;
 	}
-	
 	
 	// well, that seems to have worked...
 	return true;
@@ -314,110 +344,77 @@ bool InputReaderAscii::DoUpdate() {
 		return false;
 	}
 
-	// TODO: all the stuff we need for a second reading.
-	// *cough*
-	//
-	//
-	
-
-	// new keymap
-	//map<string, string> *newKeyMap = new map<string, string>();
-
 	string line;
 	while ( GetLine(line ) ) {
-		// split on tabs
+
+		for ( map<int, Filter>::iterator it = filters.begin(); it != filters.end(); it++ ) {
 		
-		istringstream splitstream(line);
-	
-		LogVal** fields = new LogVal*[num_fields];
-		//string string_fields[num_fields];
-
-		unsigned int currTab = 0;
-		unsigned int currField = 0;
-		while ( splitstream ) {
-
-			string s;
-			if ( !getline(splitstream, s, separator[0]) )
-				break;
-
+			// split on tabs
 			
-			if ( currTab >= columnMap.size() ) {
-				Error("Tabs in heading do not match tabs in data?");
-				//disabled = true;
-				return false;
-			}
-
-			FieldMapping currMapping = columnMap[currTab];
-			currTab++;
-
-			if ( currMapping.IsEmpty() ) {
-				// well, that was easy
-				continue;
-			}
-
-			if ( currField >= num_fields ) {
-				Error("internal error - fieldnum greater as possible");
-				return false;
-			}
-
-			LogVal* val = EntryToVal(s, currMapping);
-			if ( val == 0 ) {
-				return false;
-			}
-			fields[currMapping.position] = val;
-			//string_fields[currMapping.position] = s;
-
-			currField++;
-		}
-
-		if ( currField != num_fields ) {
-			Error("curr_field != num_fields in DoUpdate. Columns in file do not match column definition.");
-			return false;
-		}
-
-
-		SendEntry(fields);
-
-		/* 
-		string indexstring = "";
-		string valstring = "";
-		for ( unsigned int i = 0; i < idx_fields; i++ ) {
-			indexstring.append(string_fields[i]);
-		}
-
-		for ( unsigned int i = idx_fields; i < num_fields; i++ ) {
-			valstring.append(string_fields[i]);
-		}
-
-		string valhash = Hash(valstring);
-		string indexhash = Hash(indexstring);
-
-		if ( keyMap->find(indexhash) == keyMap->end() ) {
-			// new key
-			Put(fields);
-		} else if ( (*keyMap)[indexhash] != valhash ) {
-			// changed key
-			Put(fields);
-			keyMap->erase(indexhash);
-		} else {
-			// field not changed
-			keyMap->erase(indexhash);
-		}
-
-
-		(*newKeyMap)[indexhash] = valhash;
-		 */
+			istringstream splitstream(line);
 		
-		for ( unsigned int i = 0; i < num_fields; i++ ) {
-			delete fields[i];
+			LogVal** fields = new LogVal*[(*it).second.num_fields];
+			//string string_fields[num_fields];
+
+			unsigned int currTab = 0;
+			unsigned int currField = 0;
+			while ( splitstream ) {
+
+				string s;
+				if ( !getline(splitstream, s, separator[0]) )
+					break;
+
+				
+				if ( currTab >= (*it).second.columnMap.size() ) {
+					Error("Tabs in heading do not match tabs in data?");
+					//disabled = true;
+					return false;
+				}
+
+				FieldMapping currMapping = (*it).second.columnMap[currTab];
+				currTab++;
+
+				if ( currMapping.IsEmpty() ) {
+					// well, that was easy
+					continue;
+				}
+
+				if ( currField >= (*it).second.num_fields ) {
+					Error("internal error - fieldnum greater as possible");
+					return false;
+				}
+
+				LogVal* val = EntryToVal(s, currMapping);
+				if ( val == 0 ) {
+					return false;
+				}
+				fields[currMapping.position] = val;
+				//string_fields[currMapping.position] = s;
+
+				currField++;
+			}
+
+			if ( currField != (*it).second.num_fields ) {
+				Error("curr_field != num_fields in DoUpdate. Columns in file do not match column definition.");
+				return false;
+			}
+
+
+			SendEntry((*it).first, fields);
+
+			for ( unsigned int i = 0; i < (*it).second.num_fields; i++ ) {
+				delete fields[i];
+			}
+			delete [] fields;
 		}
-		delete [] fields;
 
 	}
 
 	//file->clear(); // remove end of file evil bits
 	//file->seekg(0, ios::beg); // and seek to start.
 
-	EndCurrentSend();
+	for ( map<int, Filter>::iterator it = filters.begin(); it != filters.end(); it++ ) {
+		EndCurrentSend((*it).first);
+	}
 	return true;
 }

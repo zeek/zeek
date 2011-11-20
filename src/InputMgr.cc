@@ -16,17 +16,19 @@
 #include "CompHash.h"
 
 
-class InputHash {
-public:
+struct InputHash {
 	HashKey* valhash;
 	HashKey* idxkey; // does not need ref or whatever - if it is present here, it is also still present in the TableVal.
 };
 
 declare(PDict, InputHash);
 
-struct InputMgr::Filter {
+class InputMgr::Filter {
+public:
 	EnumVal* id;	
 	string name;
+
+	//int filter_type; // to distinguish between event and table filters
 
 	unsigned int num_idx_fields;
 	unsigned int num_val_fields;
@@ -68,6 +70,8 @@ struct InputMgr::ReaderInfo {
 	//list<string> events; // events we fire when "something" happens
 	map<int, InputMgr::Filter> filters; // filters that can prevent our actions
 
+	bool HasFilter(int id);	
+
 	~ReaderInfo();
 	};
 
@@ -79,6 +83,15 @@ InputMgr::ReaderInfo::~ReaderInfo() {
 
 	delete(reader);	
 }
+
+bool InputMgr::ReaderInfo::HasFilter(int id) {
+	map<int, InputMgr::Filter>::iterator it = filters.find(id);	
+	if ( it == filters.end() ) {
+		return false;
+	}
+	return true;
+}
+
 
 struct InputReaderDefinition {
 	bro_int_t type; // the type
@@ -168,12 +181,12 @@ InputReader* InputMgr::CreateStream(EnumVal* id, RecordVal* description)
 
 	int success = reader_obj->Init(source);
 	if ( success == false ) {
-		assert( RemoveReader(id) );
+		assert( RemoveStream(id) );
 		return 0;
 	}
 	success = reader_obj->Update();
 	if ( success == false ) {
-		assert ( RemoveReader(id) );
+		assert ( RemoveStream(id) );
 		return 0;
 	}
 	
@@ -224,6 +237,7 @@ bool InputMgr::AddFilter(EnumVal *id, RecordVal* fval) {
 		fields[i] = fieldsV[i];
 	}
 	
+	// FIXME: remove those funky 0-tests again as the idea was changed.
 	Filter filter;
 	filter.name = name->AsString()->CheckString();
 	filter.id = id->Ref()->AsEnumVal();
@@ -231,8 +245,8 @@ bool InputMgr::AddFilter(EnumVal *id, RecordVal* fval) {
 	filter.num_idx_fields = idxfields;
 	filter.num_val_fields = valfields;
 	filter.tab = dst ? dst->Ref()->AsTableVal() : 0;
-	filter.rtype = rtype ? val->Ref()->AsRecordType() : 0;
-	filter.itype = itype ? idx->Ref()->AsRecordType() : 0;
+	filter.rtype = val ? val->Ref()->AsRecordType() : 0;
+	filter.itype = idx ? idx->Ref()->AsRecordType() : 0;
 	// ya - well - we actually don't need them in every case... well, a few bytes of memory wasted
 	filter.currDict = new PDict(InputHash);
 	filter.lastDict = new PDict(InputHash);
@@ -240,22 +254,11 @@ bool InputMgr::AddFilter(EnumVal *id, RecordVal* fval) {
 	Unref(want_record); // ref'd by lookupwithdefault
 
 	if ( valfields > 1 ) {
-		assert(info->want_record);
+		assert(filter.want_record);
 	}
 	
 	i->filters[id->InternalInt()] = filter;
-
-	// ok, now we have to alert the reader of our new filter with our funky new fields
-	// the id is handled in a ... well, to be honest, a little bit sneaky manner. 
-	// the "problem" is, that we can have several filters in the reader for one filter in the log manager.
-	// this is due to the fact, that a filter can either output it's result as a table, as an event...
-	// ...or as an table _and_ an event. And... if we have a table and an event, we actually need two different sets
-	// of filters in the reader, because the fields for the table and the event may differ and I absolutely do not want
-	// to build a union of these values and figure it out later.
-	// hence -> filter id is multiplicated with 2.
-	// filterId*2 -> results for table
-	// filterId*2+1 -> results for event
-	i->AddFilter( id->InternalInt() * 2, fieldsV.size(), idxfields, fields );
+	i->reader->AddFilter( id->InternalInt(), fieldsV.size(), fields );
 
 	return true;
 }
@@ -387,30 +390,14 @@ bool InputMgr::RemoveFilter(EnumVal* id, const string &name) {
 		return false;
 	}
 
-/*
-	std::list<InputMgr::Filter>::iterator it = i->filters.begin();
-	while ( it != i->filters.end() ) 
-	{
-		if ( (*it).name == name ) {
-			it = i->filters.erase(it);
-			return true;
-			break;
-		}
-		else 
-			++it;
-	}
-	*/
-
 	map<int, InputMgr::Filter>::iterator it = i->filters.find(id->InternalInt());
 	if ( it == i->filters.end() ) {
 		return false;
 	}
 
-	it->filters.erase(it);
+	i->filters.erase(it);
 	return true;
 }
-
-
 
 Val* InputMgr::LogValToIndexVal(int num_fields, const RecordType *type, const LogVal* const *vals) {
 	Val* idxval;
@@ -449,27 +436,28 @@ void InputMgr::SendEntry(const InputReader* reader, int id, const LogVal* const 
 
 	bool updated = false;
 
+	assert(i->HasFilter(id));
 
 	//reporter->Error("Hashing %d index fields", i->num_idx_fields);
-	HashKey* idxhash = HashLogVals(i->num_idx_fields, vals);
+	HashKey* idxhash = HashLogVals(i->filters[id].num_idx_fields, vals);
 	//reporter->Error("Result: %d", (uint64_t) idxhash->Hash());
 	//reporter->Error("Hashing %d val fields", i->num_val_fields);
-	HashKey* valhash = HashLogVals(i->num_val_fields, vals+i->num_idx_fields);
+	HashKey* valhash = HashLogVals(i->filters[id].num_val_fields, vals+i->filters[id].num_idx_fields);
 	//reporter->Error("Result: %d", (uint64_t) valhash->Hash());
 	
 	//reporter->Error("received entry with idxhash %d and valhash %d", (uint64_t) idxhash->Hash(), (uint64_t) valhash->Hash());
 
-	InputHash *h = i->lastDict->Lookup(idxhash);
+	InputHash *h = i->filters[id].lastDict->Lookup(idxhash);
 	if ( h != 0 ) {
 		// seen before
 		if ( h->valhash->Hash() == valhash->Hash() ) {
 			// ok, double.
-			i->lastDict->Remove(idxhash);
-			i->currDict->Insert(idxhash, h);
+			i->filters[id].lastDict->Remove(idxhash);
+			i->filters[id].currDict->Insert(idxhash, h);
 			return;
 		} else {
 			// updated
-			i->lastDict->Remove(idxhash);
+			i->filters[id].lastDict->Remove(idxhash);
 			delete(h);
 			updated = true;
 			
@@ -477,27 +465,22 @@ void InputMgr::SendEntry(const InputReader* reader, int id, const LogVal* const 
 	}
 
 
-	Val* idxval = LogValToIndexVal(i->num_idx_fields, i->itype, vals);
+	Val* idxval = LogValToIndexVal(i->filters[id].num_idx_fields, i->filters[id].itype, vals);
 	Val* valval;
 	
-	int position = i->num_idx_fields;
-	if ( i->num_val_fields == 1 && !i->want_record ) {
-		valval = LogValToVal(vals[i->num_idx_fields], i->rtype->FieldType(i->num_idx_fields));
+	int position = i->filters[id].num_idx_fields;
+	if ( i->filters[id].num_val_fields == 1 && !i->filters[id].want_record ) {
+		valval = LogValToVal(vals[i->filters[id].num_idx_fields], i->filters[id].rtype->FieldType(i->filters[id].num_idx_fields));
 	} else {
-		RecordVal * r = new RecordVal(i->rtype);
+		RecordVal * r = new RecordVal(i->filters[id].rtype);
 
-		/* if ( i->rtype->NumFields() != (int) i->num_val_fields ) {
-			reporter->InternalError("Type mismatch");
-			return;
-		} */
-
-		for ( int j = 0; j < i->rtype->NumFields(); j++) {
+		for ( int j = 0; j < i->filters[id].rtype->NumFields(); j++) {
 
 			Val* val = 0;
-			if ( i->rtype->FieldType(j)->Tag() == TYPE_RECORD ) {
-				val = LogValToRecordVal(vals, i->rtype->FieldType(j)->AsRecordType(), &position);
+			if ( i->filters[id].rtype->FieldType(j)->Tag() == TYPE_RECORD ) {
+				val = LogValToRecordVal(vals, i->filters[id].rtype->FieldType(j)->AsRecordType(), &position);
 			} else {
-				val =  LogValToVal(vals[position], i->rtype->FieldType(j));
+				val =  LogValToVal(vals[position], i->filters[id].rtype->FieldType(j));
 				position++;
 			}
 			
@@ -516,17 +499,12 @@ void InputMgr::SendEntry(const InputReader* reader, int id, const LogVal* const 
 	Val* oldval = 0;
 	if ( updated == true ) {
 			// in that case, we need the old value to send the event (if we send an event).
-			oldval = i->tab->Lookup(idxval);
+			oldval = i->filters[id].tab->Lookup(idxval);
 	}
 
 
-	// call filters first do determine if we really add / change the entry
-	std::list<InputMgr::Filter>::iterator it = i->filters.begin();
-	while ( it != i->filters.end() ) {
-		if (! (*it).pred ) {
-			continue;
-		}
-
+	// call filter first to determine if we really add / change the entry
+	if ( i->filters[id].pred ) {
 		EnumVal* ev;
 		Ref(idxval);
 		Ref(valval);
@@ -541,44 +519,45 @@ void InputMgr::SendEntry(const InputReader* reader, int id, const LogVal* const 
 		vl.append(ev);
 		vl.append(idxval);
 		vl.append(valval);
-		Val* v = (*it).pred->Call(&vl);
+		Val* v = i->filters[id].pred->Call(&vl);
 		bool result = v->AsBool();
 		Unref(v);
 
 		if ( result == false ) {
 			if ( !updated ) {
 				// throw away. Hence - we quit. And remove the entry from the current dictionary...
-				delete(i->currDict->RemoveEntry(idxhash));
+				delete(i->filters[id].currDict->RemoveEntry(idxhash));
 				return;
 			} else {
 				// keep old one
-				i->currDict->Insert(idxhash, h);
+				i->filters[id].currDict->Insert(idxhash, h);
 				return;
 			}
 		}
 
-		++it;
 	}
 	
 
 	//i->tab->Assign(idxval, valval);
-	HashKey* k = i->tab->ComputeHash(idxval);
+	HashKey* k = i->filters[id].tab->ComputeHash(idxval);
 	if ( !k ) {
 		reporter->InternalError("could not hash");
 		return;
 	}
 
-	i->tab->Assign(idxval, k, valval);
+	i->filters[id].tab->Assign(idxval, k, valval);
 
 	InputHash* ih = new InputHash();
-	k = i->tab->ComputeHash(idxval);
+	k = i->filters[id].tab->ComputeHash(idxval);
 	ih->idxkey = k;
 	ih->valhash = valhash;
 	//i->tab->Delete(k);
 
-	i->currDict->Insert(idxhash, ih);
+	i->filters[id].currDict->Insert(idxhash, ih);
 
 	// send events now that we are kind of finished.
+	
+	/* FIXME: fix me.
 	std::list<string>::iterator filter_iterator = i->events.begin();
 	while ( filter_iterator != i->events.end() ) {
 		EnumVal* ev;
@@ -597,7 +576,7 @@ void InputMgr::SendEntry(const InputReader* reader, int id, const LogVal* const 
 			
 
 		++filter_iterator;
-	}
+	} */
 }
 
 
@@ -607,86 +586,74 @@ void InputMgr::EndCurrentSend(const InputReader* reader, int id) {
 		reporter->InternalError("Unknown reader");
 		return;
 	}
+
+	assert(i->HasFilter(id));
+
 	// lastdict contains all deleted entries and should be empty apart from that
-	IterCookie *c = i->lastDict->InitForIteration();
-	i->lastDict->MakeRobustCookie(c);
+	IterCookie *c = i->filters[id].lastDict->InitForIteration();
+	i->filters[id].lastDict->MakeRobustCookie(c);
 	InputHash* ih;
 	HashKey *lastDictIdxKey;
 	//while ( ( ih = i->lastDict->NextEntry(c) ) ) {
-	while ( ( ih = i->lastDict->NextEntry(lastDictIdxKey, c) ) ) {
-	
-		if ( i->events.size() != 0 || i->filters.size() != 0 )  // we have a filter or an event
-		{
+	while ( ( ih = i->filters[id].lastDict->NextEntry(lastDictIdxKey, c) ) ) {
 
-			ListVal *idx = i->tab->RecoverIndex(ih->idxkey);
+		if ( i->filters[id].pred ) {
+			ListVal *idx = i->filters[id].tab->RecoverIndex(ih->idxkey);
 			assert(idx != 0);
-			Val *val = i->tab->Lookup(idx);
+			Val *val = i->filters[id].tab->Lookup(idx);
 			assert(val != 0);
 
 
-			{	
-				bool doBreak = false;
-				// ask filter, if we want to expire this element...
-				std::list<InputMgr::Filter>::iterator it = i->filters.begin();
-				while ( it != i->filters.end() ) {
-					if (! (*it).pred ) {
-						continue;
-					}
+			bool doBreak = false;
+			// ask predicate, if we want to expire this element...
 
-					EnumVal* ev = new EnumVal(BifEnum::Input::EVENT_REMOVED, BifType::Enum::Input::Event);
-					Ref(idx);
-					Ref(val);
+			EnumVal* ev = new EnumVal(BifEnum::Input::EVENT_REMOVED, BifType::Enum::Input::Event);
+			Ref(idx);
+			Ref(val);
 
-					val_list vl(3);
-					vl.append(ev);
-					vl.append(idx);
-					vl.append(val);
-					Val* v = (*it).pred->Call(&vl);
-					bool result = v->AsBool();
-					Unref(v);
-					
-					++it;
-
-					if ( result == false ) {
-						// Keep it. Hence - we quit and simply go to the next entry of lastDict
-						// ah well - and we have to add the entry to currDict...
-						i->currDict->Insert(lastDictIdxKey, i->lastDict->RemoveEntry(lastDictIdxKey));
-						doBreak = true;
-						continue;
-					}
-
-				}
-
-				if ( doBreak ) {
-					continue;
-				}
+			val_list vl(3);
+			vl.append(ev);
+			vl.append(idx);
+			vl.append(val);
+			Val* v = i->filters[id].pred->Call(&vl);
+			bool result = v->AsBool();
+			Unref(v);
+			
+			if ( result == false ) {
+				// Keep it. Hence - we quit and simply go to the next entry of lastDict
+				// ah well - and we have to add the entry to currDict...
+				i->filters[id].currDict->Insert(lastDictIdxKey, i->filters[id].lastDict->RemoveEntry(lastDictIdxKey));
+				continue;
 			}
-		
+
+
 			// 
 
 			{
-				std::list<string>::iterator it = i->events.begin();
-				while ( it != i->events.end() ) {
+				/* FIXME: events
+				std::list<string>::iterator it = i->filters[id].events.begin();
+				while ( it != i->filters[id].events.end() ) {
 					Ref(idx);
 					Ref(val);
 					EnumVal *ev = new EnumVal(BifEnum::Input::EVENT_REMOVED, BifType::Enum::Input::Event);
 					SendEvent(*it, ev, idx, val);
 					++it;
 				}
+				*/
 			}
 
 		}
 
-		i->tab->Delete(ih->idxkey);
-		i->lastDict->Remove(lastDictIdxKey); // deletex in next line
+		i->filters[id].tab->Delete(ih->idxkey);
+		i->filters[id].lastDict->Remove(lastDictIdxKey); // deletex in next line
 		delete(ih);
 	}
 
-	i->lastDict->Clear(); // should be empty... but... well... who knows...
-	delete(i->lastDict);
+	i->filters[id].lastDict->Clear(); // should be empty... but... well... who knows...
+	delete(i->filters[id].lastDict);
 
-	i->lastDict = i->currDict;	
-	i->currDict = new PDict(InputHash);
+	i->filters[id].lastDict = i->filters[id].currDict;	
+	i->filters[id].currDict = new PDict(InputHash);
 }
 
 void InputMgr::Put(const InputReader* reader, int id, const LogVal* const *vals) {
@@ -696,22 +663,24 @@ void InputMgr::Put(const InputReader* reader, int id, const LogVal* const *vals)
 		return;
 	}
 
-	Val* idxval = LogValToIndexVal(i->num_idx_fields, i->itype, vals);
+	assert(i->HasFilter(id));
+
+	Val* idxval = LogValToIndexVal(i->filters[id].num_idx_fields, i->filters[id].itype, vals);
 	Val* valval;
 	
-	int position = i->num_idx_fields;
-	if ( i->num_val_fields == 1 && !i->want_record ) {
-		valval = LogValToVal(vals[i->num_idx_fields], i->rtype->FieldType(i->num_idx_fields));
+	int position = i->filters[id].num_idx_fields;
+	if ( i->filters[id].num_val_fields == 1 && !i->filters[id].want_record ) {
+		valval = LogValToVal(vals[i->filters[id].num_idx_fields], i->filters[id].rtype->FieldType(i->filters[id].num_idx_fields));
 	} else {
-		RecordVal * r = new RecordVal(i->rtype);
+		RecordVal * r = new RecordVal(i->filters[id].rtype);
 
-		for ( int j = 0; j < i->rtype->NumFields(); j++) {
+		for ( int j = 0; j < i->filters[id].rtype->NumFields(); j++) {
 
 			Val* val = 0;
-			if ( i->rtype->FieldType(j)->Tag() == TYPE_RECORD ) {
-				val = LogValToRecordVal(vals, i->rtype->FieldType(j)->AsRecordType(), &position);
+			if ( i->filters[id].rtype->FieldType(j)->Tag() == TYPE_RECORD ) {
+				val = LogValToRecordVal(vals, i->filters[id].rtype->FieldType(j)->AsRecordType(), &position);
 			} else {
-				val =  LogValToVal(vals[position], i->rtype->FieldType(j));
+				val =  LogValToVal(vals[position], i->filters[id].rtype->FieldType(j));
 				position++;
 			}
 			
@@ -726,7 +695,7 @@ void InputMgr::Put(const InputReader* reader, int id, const LogVal* const *vals)
 		valval = r;
 	}
 
-	i->tab->Assign(idxval, valval);
+	i->filters[id].tab->Assign(idxval, valval);
 }
 
 void InputMgr::Clear(const InputReader* reader, int id) {
@@ -735,20 +704,24 @@ void InputMgr::Clear(const InputReader* reader, int id) {
 		reporter->InternalError("Unknown reader");
 		return;
 	}
-	
-	i->tab->RemoveAll();
+
+	assert(i->HasFilter(id));	
+
+	i->filters[id].tab->RemoveAll();
 }
 
-bool InputMgr::Delete(const InputReader* reader, const LogVal* const *vals) {
+bool InputMgr::Delete(const InputReader* reader, int id, const LogVal* const *vals) {
 	ReaderInfo *i = FindReader(reader);
 	if ( i == 0 ) {
 		reporter->InternalError("Unknown reader");
 		return false;
 	}
-	
-	Val* idxval = LogValToIndexVal(i->num_idx_fields, i->itype, vals);
 
-	return ( i->tab->Delete(idxval) != 0 );
+	assert(i->HasFilter(id));			
+
+	Val* idxval = LogValToIndexVal(i->filters[id].num_idx_fields, i->filters[id].itype, vals);
+
+	return ( i->filters[id].tab->Delete(idxval) != 0 );
 } 
 
 void InputMgr::Error(InputReader* reader, const char* msg)

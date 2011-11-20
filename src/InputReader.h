@@ -30,7 +30,8 @@ protected:
 	virtual bool DoInit(string arg_sources) = 0;
 
 	virtual bool DoAddFilter( int id, int arg_num_fields, const LogField* const* fields ) = 0;
-	virtual bool DoRemoveFilter( int id );
+
+	virtual bool DoRemoveFilter( int id ) = 0;
 
 	virtual void DoFinish() = 0;
 

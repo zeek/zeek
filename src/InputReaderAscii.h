@@ -34,13 +34,30 @@ public:
     
 protected:
 	
-	virtual bool DoInit(string path, int arg_num_fields, int arg_idx_fields,
-						const LogField* const * fields);
+	virtual bool DoInit(string path);
+
+	virtual bool DoAddFilter( int id, int arg_num_fields, const LogField* const* fields );
+
+	virtual bool DoRemoveFilter ( int id );	
+
 	virtual void DoFinish();
 
 	virtual bool DoUpdate();
     
 private:
+
+	struct Filter {
+		unsigned int num_fields;
+
+		const LogField* const * fields; // raw mapping		
+
+		// map columns in the file to columns to send back to the manager
+		vector<FieldMapping> columnMap;		
+
+	};
+
+	bool HasFilter(int id);
+
 	bool ReadHeader();
 	LogVal* EntryToVal(string s, FieldMapping type);
 
@@ -49,15 +66,8 @@ private:
 	ifstream* file;
 	string fname;
 
-	unsigned int num_fields;
-	unsigned int idx_fields;
+	map<int, Filter> filters;
 
-	// map columns in the file to columns to send back to the manager
-	vector<FieldMapping> columnMap;
-	const LogField* const * fields; // raw mapping
-
-	//map<string, string> *keyMap;
-	//
 	// Options set from the script-level.
 	string separator;
 

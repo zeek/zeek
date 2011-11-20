@@ -47,10 +47,50 @@ public:
 	EventHandlerPtr event;		
 	RecordType* event_type;
 
-	~Filter();
+	// ~Filter();
+	// Filter();
+	// Filter(const InputMgr::Filter& filter);
+	
+	void DoCleanup();
 };
 
-InputMgr::Filter::~Filter() {
+/* 
+InputMgr::Filter::Filter() {
+	tab = 0;
+	itype = 0;
+	rtype = 0;
+	event_type = 0;
+}
+
+InputMgr::Filter::Filter(const InputMgr::Filter& f) {
+	id = f.id;
+	id->Ref();
+
+	tab = f.tab;
+	if ( tab ) 
+		tab->Ref();
+
+	itype = f.itype;
+	if ( itype ) 
+		itype->Ref();
+
+	rtype = f.rtype;
+	if ( rtype ) 
+		Ref(rtype);
+
+	event_type = f.event_type;
+	if ( event_type ) 
+		Ref(event_type);
+
+	name = f.name;
+	num_idx_fields = f.num_idx_fields;
+	num_val_fields = f.num_val_fields;
+	want_record = f.want_record;
+
+
+} */
+
+void InputMgr::Filter::DoCleanup() {
 	Unref(id);
 	if ( tab ) 
 		Unref(tab);
@@ -60,7 +100,10 @@ InputMgr::Filter::~Filter() {
 		Unref(rtype);
 	if ( event_type)
 		Unref(event_type);
-}
+
+	delete currDict;
+	delete lastDict;
+} 
 
 struct InputMgr::ReaderInfo {
 	EnumVal* id;
@@ -395,6 +438,8 @@ bool InputMgr::RemoveFilter(EnumVal* id, const string &name) {
 		return false;
 	}
 
+	i->filters[id->InternalInt()].DoCleanup();
+
 	i->filters.erase(it);
 	return true;
 }
@@ -545,6 +590,7 @@ void InputMgr::SendEntry(const InputReader* reader, int id, const LogVal* const 
 		return;
 	}
 
+	reporter->Error("assigning");
 	i->filters[id].tab->Assign(idxval, k, valval);
 
 	InputHash* ih = new InputHash();

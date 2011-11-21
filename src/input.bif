@@ -8,7 +8,7 @@ module Input;
 %%}
 
 type StreamDescription: record;
-type Filter: record;
+type TableFilter: record;
 
 function Input::__create_stream%(id: Log::ID, description: Input::StreamDescription%) : bool
 	%{
@@ -28,15 +28,15 @@ function Input::__force_update%(id: Log::ID%) : bool
 	return new Val( res, TYPE_BOOL );
 	%}
 
-function Input::__add_filter%(id: Log::ID, filter: Input::Filter%) : bool
+function Input::__add_tablefilter%(id: Log::ID, filter: Input::TableFilter%) : bool
 	%{
-	bool res = input_mgr->AddFilter(id->AsEnumVal(), filter->AsRecordVal());
+	bool res = input_mgr->AddTableFilter(id->AsEnumVal(), filter->AsRecordVal());
 	return new Val( res, TYPE_BOOL );
 	%}
 
-function Input::__remove_filter%(id: Log::ID, name: string%) : bool
+function Input::__remove_tablefilter%(id: Log::ID, name: string%) : bool
 	%{
-	bool res = input_mgr->RemoveFilter(id->AsEnumVal(), name->AsString()->CheckString());
+	bool res = input_mgr->RemoveTableFilter(id->AsEnumVal(), name->AsString()->CheckString());
 	return new Val( res, TYPE_BOOL);
 	%}
 

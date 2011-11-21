@@ -24,8 +24,8 @@ public:
 	bool ForceUpdate(const EnumVal* id);
 	bool RemoveStream(const EnumVal* id);	
 
-	bool AddFilter(EnumVal *id, RecordVal* filter);
-	bool RemoveFilter(EnumVal* id, const string &name);
+	bool AddTableFilter(EnumVal *id, RecordVal* filter);
+	bool RemoveTableFilter(EnumVal* id, const string &name);
 
 	
 protected:

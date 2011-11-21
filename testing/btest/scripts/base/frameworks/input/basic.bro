@@ -46,7 +46,7 @@ event bro_init()
 {
 	# first read in the old stuff into the table...
 	Input::create_stream(A::LOG, [$source="input.log"]);
-	Input::add_filter(A::LOG, [$name="ssh", $idx=idx, $val=val, $destination=servers]);
+	Input::add_tablefilter(A::LOG, [$name="ssh", $idx=idx, $val=val, $destination=servers]);
 	Input::force_update(A::LOG);
 	print servers;
 }

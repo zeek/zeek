@@ -9,7 +9,7 @@ export {
 		reader: Reader &default=default_reader;
 	};
 
-	type Filter: record {
+	type TableFilter: record {
 		## descriptive name. for later removal
 		name: string; 
 
@@ -29,14 +29,14 @@ export {
 		# ev_description: any &optional;
 	};
 
-	const no_filter: Filter = [$name="<not found>", $idx="", $val="", $destination=""]; # Sentinel.
+	#const no_filter: Filter = [$name="<not found>", $idx="", $val="", $destination=""]; # Sentinel.
 
 	global create_stream: function(id: Log::ID, description: Input::StreamDescription) : bool;
 	global remove_stream: function(id: Log::ID) : bool;
 	global force_update: function(id: Log::ID) : bool;
-	global add_filter: function(id: Log::ID, filter: Input::Filter) : bool;
-	global remove_filter: function(id: Log::ID, name: string) : bool;
-	global get_filter: function(id: ID, name: string) : Filter;
+	global add_tablefilter: function(id: Log::ID, filter: Input::TableFilter) : bool;
+	global remove_tablefilter: function(id: Log::ID, name: string) : bool;
+	#global get_filter: function(id: ID, name: string) : Filter;
 
 }
 
@@ -45,7 +45,7 @@ export {
 
 module Input;
 
-global filters: table[ID, string] of Filter;
+#global filters: table[ID, string] of Filter;
 
 function create_stream(id: Log::ID, description: Input::StreamDescription) : bool
 	{
@@ -62,22 +62,22 @@ function force_update(id: Log::ID) : bool
 	return __force_update(id);
 	}
 
-function add_filter(id: Log::ID, filter: Input::Filter) : bool
+function add_tablefilter(id: Log::ID, filter: Input::TableFilter) : bool
 	{
-	filters[id, filter$name] = filter;
-	return __add_filter(id, filter);
+#	filters[id, filter$name] = filter;
+	return __add_tablefilter(id, filter);
 	}
 
-function remove_filter(id: Log::ID, name: string) : bool
+function remove_tablefilter(id: Log::ID, name: string) : bool
 	{
-	delete filters[id, name];
-	return __remove_filter(id, name);
+#	delete filters[id, name];
+	return __remove_tablefilter(id, name);
 	}
 
-function get_filter(id: ID, name: string) : Filter
-	{
-	if ( [id, name] in filters )
-		return filters[id, name];
-
-	return no_filter;
-	}
+#function get_filter(id: ID, name: string) : Filter
+#	{
+#	if ( [id, name] in filters )
+#		return filters[id, name];
+#
+#	return no_filter;
+#	}

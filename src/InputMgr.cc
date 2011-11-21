@@ -237,7 +237,7 @@ InputReader* InputMgr::CreateStream(EnumVal* id, RecordVal* description)
 	
 }
 
-bool InputMgr::AddFilter(EnumVal *id, RecordVal* fval) {
+bool InputMgr::AddTableFilter(EnumVal *id, RecordVal* fval) {
 	ReaderInfo *i = FindReader(id);
 	if ( i == 0 ) {
 		reporter->Error("Stream not found");
@@ -245,7 +245,7 @@ bool InputMgr::AddFilter(EnumVal *id, RecordVal* fval) {
 	}
 
 	RecordType* rtype = fval->Type()->AsRecordType();
-	if ( ! same_type(rtype, BifType::Record::Input::Filter, 0) )
+	if ( ! same_type(rtype, BifType::Record::Input::TableFilter, 0) )
 	{
 		reporter->Error("filter argument not of right type");
 		return false;
@@ -426,7 +426,7 @@ bool InputMgr::ForceUpdate(const EnumVal* id)
 	return i->reader->Update();
 }
 
-bool InputMgr::RemoveFilter(EnumVal* id, const string &name) {
+bool InputMgr::RemoveTableFilter(EnumVal* id, const string &name) {
 	ReaderInfo *i = FindReader(id);
 	if ( i == 0 ) {
 		reporter->Error("Reader not found");

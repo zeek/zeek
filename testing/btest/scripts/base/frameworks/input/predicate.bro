@@ -24,22 +24,22 @@ export {
 	redef enum Log::ID += { LOG };
 }
 
-type idx: record {
+type Idx: record {
 	i: int;
 };
 
-type val: record {
+type Val: record {
 	b: bool;
 };
 
-global servers: table[int] of val = table();
+global servers: table[int] of Val = table();
 
 event bro_init()
 {
 	# first read in the old stuff into the table...
 	Input::create_stream(A::LOG, [$source="input.log"]);
-	Input::add_tablefilter(A::LOG, [$name="input", $idx=idx, $val=val, $destination=servers, $want_record=F,
-				$pred(typ: Input::Event, left: idx, right: bool) = { return right; }
+	Input::add_tablefilter(A::LOG, [$name="input", $idx=Idx, $val=Val, $destination=servers, $want_record=F,
+				$pred(typ: Input::Event, left: Idx, right: bool) = { return right; }
 				]);
 	Input::force_update(A::LOG);
 	if ( 1 in servers ) {

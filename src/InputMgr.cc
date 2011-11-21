@@ -515,7 +515,7 @@ void InputMgr::SendEntry(const InputReader* reader, int id, const LogVal* const 
 	
 	int position = i->filters[id].num_idx_fields;
 	if ( i->filters[id].num_val_fields == 1 && !i->filters[id].want_record ) {
-		valval = LogValToVal(vals[i->filters[id].num_idx_fields], i->filters[id].rtype->FieldType(i->filters[id].num_idx_fields));
+		valval = LogValToVal(vals[position], i->filters[id].rtype->FieldType(0));
 	} else {
 		RecordVal * r = new RecordVal(i->filters[id].rtype);
 

@@ -586,9 +586,27 @@ function raw_bytes_to_v4_addr%(b: string%): addr
 	return new AddrVal(htonl(a));
 	%}
 
-function to_port%(num: count, proto: transport_proto%): port
+function to_port%(s: string%): port
 	%{
-	return new PortVal(num, (TransportProto)proto->AsEnum());
+  int port = 0;
+	if ( s->Len() < 10 )
+    {
+    char* slash;
+    port = strtol(s->CheckString(), &slash, 10);
+    if ( port )
+      {
+      ++slash;
+      if ( streq(slash, "tcp") )
+        return new PortVal(port, TRANSPORT_TCP);
+      else if ( streq(slash, "udp") )
+        return new PortVal(port, TRANSPORT_UDP);
+      else if ( streq(slash, "icmp") )
+        return new PortVal(port, TRANSPORT_ICMP);
+      }
+    }
+
+  builtin_error("wrong port format, must be /[0-9]{1,5}\\/(tcp|udp|icmp)/");
+  return new PortVal(port, TRANSPORT_UNKNOWN);
 	%}
 
 function mask_addr%(a: addr, top_bits_to_keep: count%): subnet

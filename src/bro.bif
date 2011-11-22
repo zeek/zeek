@@ -845,9 +845,9 @@ function log10%(d: double%): double
 	return new Val(log10(d), TYPE_DOUBLE);
 	%}
 
-function exit%(%): int
+function exit%(code: int%): any
 	%{
-	exit(0);
+	exit(code);
 	return 0;
 	%}
 

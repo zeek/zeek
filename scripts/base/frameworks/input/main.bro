@@ -18,7 +18,7 @@ export {
 		val: any;
 		destination: any;
 		want_record: bool &default=T;
-		table_ev: any &optional; # event containing idx, val as values.		
+		ev: any &optional; # event containing idx, val as values.		
 
 		## decision function, that decides if an insertion, update or removal should really be executed.
 		## or events should be thought

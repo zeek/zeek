@@ -49,7 +49,7 @@ private:
 	bool IsCompatibleType(BroType* t, bool atomic_only=false);
 
 	bool UnrollRecordType(vector<LogField*> *fields, const RecordType *rec, const string& nameprepend);
-	void SendEvent(const string& name, EnumVal* event, Val* left, Val* right);	
+	void SendEvent(EventHandlerPtr ev, EnumVal* event, Val* left, Val* right);	
 
 	HashKey* HashLogVals(const int num_elements, const LogVal* const *vals);
 	int GetLogValLength(const LogVal* val);

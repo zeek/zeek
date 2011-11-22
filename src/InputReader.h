@@ -48,7 +48,7 @@ protected:
 	// A thread-safe version of fmt(). (stolen from logwriter)
 	const char* Fmt(const char* format, ...);
 
-	//void SendEvent(const string& name, const int num_vals, const LogVal* const *vals);
+	bool SendEvent(const string& name, const int num_vals, const LogVal* const *vals);
 
 	// Content-sendinf-functions (simple mode). Including table-specific stuff that simply is not used if we have no table
 	void Put(int id, const LogVal* const *val);

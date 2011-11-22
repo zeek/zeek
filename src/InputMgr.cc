@@ -810,22 +810,30 @@ void InputMgr::Error(InputReader* reader, const char* msg)
 	reporter->Error("error with input reader for %s: %s", reader->Source().c_str(), msg);
 }
 
-/* Does not work atm, because LogValToVal needs BroType
-void InputMgr::SendEvent(const string& name, const int num_vals, const LogVal* const *vals) 
+bool InputMgr::SendEvent(const string& name, const int num_vals, const LogVal* const *vals) 
 {
 	EventHandler* handler = event_registry->Lookup(name.c_str());
 	if ( handler == 0 ) {
 		reporter->Error("Event %s not found", name.c_str());
-		return;
+		return false;
+	}
+
+	RecordType *type = handler->FType()->Args();
+	int num_event_vals = type->NumFields();
+	if ( num_vals != num_event_vals ) {
+		reporter->Error("Wrong number of values for event %s", name.c_str());
+		return false;
 	}
 
 	val_list* vl = new val_list;
 	for ( int i = 0; i < num_vals; i++) {
-		vl->append(LogValToVal(vals[i]));
+		vl->append(LogValToVal(vals[i], type->FieldType(i)));
 	}
 
 	mgr.Dispatch(new Event(handler, vl));
-} */
+
+	return true;
+} 
 
 void InputMgr::SendEvent(EventHandlerPtr ev, EnumVal* event, Val* left, Val* right) 
 {

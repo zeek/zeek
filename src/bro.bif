@@ -720,12 +720,6 @@ function active_file%(f: file%): bool
 	return new Val(f->IsOpen(), TYPE_BOOL);
 	%}
 
-function active_connection%(id: conn_id%): bool
-	%{
-	Connection* c = sessions->FindConnection(id);
-	return new Val(c ? 1 : 0, TYPE_BOOL);
-	%}
-
 # Note, you *must* first make sure that the connection is active
 # (e.g., by calling active_connection()) before invoking this.
 function connection_record%(cid: conn_id%): connection
@@ -1027,12 +1021,10 @@ static Val* parse_port(const char* line)
 %%}
 
 # Returns true if the given connection exists, false otherwise.
-function connection_exists%(c: conn_id%): bool
+function connection_exists%(id: conn_id%): bool
 	%{
-	if ( sessions->FindConnection(c) )
-		return new Val(1, TYPE_BOOL);
-	else
-		return new Val(0, TYPE_BOOL);
+	Connection* c = sessions->FindConnection(id);
+	return new Val(c ? 1 : 0, TYPE_BOOL);
 	%}
 
 # For a given connection ID, returns the corresponding "connection" record.

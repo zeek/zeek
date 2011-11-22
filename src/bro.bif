@@ -540,9 +540,9 @@ function port_to_count%(p: port%): count
 	return new Val(p->Port(), TYPE_COUNT);
 	%}
 
-function count_to_port%(c: count, t: transport_proto%): port
+function count_to_port%(num: count, proto: transport_proto%): port
 	%{
-	return new PortVal(c, (TransportProto)(t->InternalInt()));
+	return new PortVal(num, (TransportProto)proto->AsEnum());
 	%}
 
 function floor%(d: double%): double

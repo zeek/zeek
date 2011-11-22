@@ -720,22 +720,6 @@ function active_file%(f: file%): bool
 	return new Val(f->IsOpen(), TYPE_BOOL);
 	%}
 
-# Note, you *must* first make sure that the connection is active
-# (e.g., by calling active_connection()) before invoking this.
-function connection_record%(cid: conn_id%): connection
-	%{
-	Connection* c = sessions->FindConnection(cid);
-	if ( c )
-		return c->BuildConnVal();
-	else
-		{
-		// Hard to recover from this until we have union types ...
-		builtin_error("connection ID not a known connection (fatal)", cid);
-		exit(0);
-		return 0;
-		}
-	%}
-
 %%{
 EnumVal* map_conn_type(TransportProto tp)
 	{

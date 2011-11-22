@@ -9,6 +9,7 @@ module Input;
 
 type StreamDescription: record;
 type TableFilter: record;
+type EventFilter: record;
 
 function Input::__create_stream%(id: Log::ID, description: Input::StreamDescription%) : bool
 	%{
@@ -37,6 +38,18 @@ function Input::__add_tablefilter%(id: Log::ID, filter: Input::TableFilter%) : b
 function Input::__remove_tablefilter%(id: Log::ID, name: string%) : bool
 	%{
 	bool res = input_mgr->RemoveTableFilter(id->AsEnumVal(), name->AsString()->CheckString());
+	return new Val( res, TYPE_BOOL);
+	%}
+
+function Input::__add_eventfilter%(id: Log::ID, filter: Input::EventFilter%) : bool
+	%{
+	bool res = input_mgr->AddEventFilter(id->AsEnumVal(), filter->AsRecordVal());
+	return new Val( res, TYPE_BOOL );
+	%}
+
+function Input::__remove_eventfilter%(id: Log::ID, name: string%) : bool
+	%{
+	bool res = input_mgr->RemoveEventFilter(id->AsEnumVal(), name->AsString()->CheckString());
 	return new Val( res, TYPE_BOOL);
 	%}
 

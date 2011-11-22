@@ -28,7 +28,13 @@ public:
 	EnumVal* id;	
 	string name;
 
-	//int filter_type; // to distinguish between event and table filters
+	FilterType filter_type; // to distinguish between event and table filters
+
+	virtual ~Filter();
+};
+
+class InputMgr::TableFilter: public InputMgr::Filter {
+public:
 
 	unsigned int num_idx_fields;
 	unsigned int num_val_fields;
@@ -45,61 +51,42 @@ public:
 	Func* pred;	
 
 	EventHandlerPtr event;		
-	RecordType* event_type;
 
-	// ~Filter();
-	// Filter();
-	// Filter(const InputMgr::Filter& filter);
-	
-	void DoCleanup();
+	TableFilter();
+	~TableFilter();
 };
 
-/* 
-InputMgr::Filter::Filter() {
+class InputMgr::EventFilter: public InputMgr::Filter {
+public:
+	EventHandlerPtr event;
+
+	RecordType* fields;
+	unsigned int num_fields;
+
+	bool want_record;	
+	EventFilter();
+};
+
+InputMgr::TableFilter::TableFilter() {
+	filter_type = TABLE_FILTER;
+	
 	tab = 0;
 	itype = 0;
 	rtype = 0;
-	event_type = 0;
 }
 
-InputMgr::Filter::Filter(const InputMgr::Filter& f) {
-	id = f.id;
-	id->Ref();
+InputMgr::EventFilter::EventFilter() {
+	filter_type = EVENT_FILTER;
+}
 
-	tab = f.tab;
-	if ( tab ) 
-		tab->Ref();
-
-	itype = f.itype;
-	if ( itype ) 
-		itype->Ref();
-
-	rtype = f.rtype;
-	if ( rtype ) 
-		Ref(rtype);
-
-	event_type = f.event_type;
-	if ( event_type ) 
-		Ref(event_type);
-
-	name = f.name;
-	num_idx_fields = f.num_idx_fields;
-	num_val_fields = f.num_val_fields;
-	want_record = f.want_record;
-
-
-} */
-
-void InputMgr::Filter::DoCleanup() {
+InputMgr::Filter::~Filter() {
 	Unref(id);
-	if ( tab ) 
-		Unref(tab);
-	if ( itype ) 
-		Unref(itype);
-	if ( rtype )
-		Unref(rtype);
-	if ( event_type)
-		Unref(event_type);
+}
+
+InputMgr::TableFilter::~TableFilter() {
+	Unref(tab);
+	Unref(itype);
+	Unref(rtype);
 
 	delete currDict;
 	delete lastDict;
@@ -111,7 +98,7 @@ struct InputMgr::ReaderInfo {
 	InputReader* reader;
 
 	//list<string> events; // events we fire when "something" happens
-	map<int, InputMgr::Filter> filters; // filters that can prevent our actions
+	map<int, InputMgr::Filter*> filters; // filters that can prevent our actions
 
 	bool HasFilter(int id);	
 
@@ -119,7 +106,11 @@ struct InputMgr::ReaderInfo {
 	};
 
 InputMgr::ReaderInfo::~ReaderInfo() {
-	// all the contents of filters should delete themselves automatically...
+	map<int, InputMgr::Filter*>::iterator it = filters.begin();
+
+	while ( it != filters.end() ) {
+		delete (*it).second; 
+	}
 
 	Unref(type);
 	Unref(id);
@@ -128,7 +119,7 @@ InputMgr::ReaderInfo::~ReaderInfo() {
 }
 
 bool InputMgr::ReaderInfo::HasFilter(int id) {
-	map<int, InputMgr::Filter>::iterator it = filters.find(id);	
+	map<int, InputMgr::Filter*>::iterator it = filters.find(id);	
 	if ( it == filters.end() ) {
 		return false;
 	}
@@ -236,6 +227,114 @@ InputReader* InputMgr::CreateStream(EnumVal* id, RecordVal* description)
 	
 }
 
+bool InputMgr::AddEventFilter(EnumVal *id, RecordVal* fval) {
+	ReaderInfo *i = FindReader(id);
+	if ( i == 0 ) {
+		reporter->Error("Stream not found");
+		return false;
+	}
+
+	RecordType* rtype = fval->Type()->AsRecordType();
+	if ( ! same_type(rtype, BifType::Record::Input::EventFilter, 0) )
+	{
+		reporter->Error("filter argument not of right type");
+		return false;
+	}
+
+	Val* name = fval->Lookup(rtype->FieldOffset("name"));
+	RecordType *fields = fval->Lookup(rtype->FieldOffset("fields"))->AsType()->AsTypeType()->Type()->AsRecordType();	
+	
+	Val *want_record = fval->LookupWithDefault(rtype->FieldOffset("want_record"));	
+
+	Val* event_val = fval->Lookup(rtype->FieldOffset("ev"));
+	Func* event = event_val->AsFunc();
+
+	{
+		FuncType* etype = event->FType()->AsFuncType();
+		
+		if ( ! etype->IsEvent() ) {
+			reporter->Error("stream event is a function, not an event");
+			return false;
+		}
+
+		const type_list* args = etype->ArgTypes()->Types();
+
+		if ( args->length() < 2 ) {
+			reporter->Error("event takes not enough arguments");
+			return false;
+		}
+
+		if ( ! same_type((*args)[0], BifType::Enum::Input::Event, 0) ) 
+		{
+			reporter->Error("events first attribute must be of type Input::Event");
+			return false;
+		} 				
+
+		if ( want_record->InternalInt() == 0 ) {
+			if ( args->length() != fields->NumFields() + 1 ) {
+				reporter->Error("events has wrong number of arguments");
+				return false;
+			}
+
+			for ( int i = 0; i < fields->NumFields(); i++ ) {
+				if ( !same_type((*args)[i+1], fields->FieldType(i) ) ) {
+					reporter->Error("Incompatible type for event");
+					return false;
+				}
+			}
+
+		} else if ( want_record->InternalInt() == 1 ) {
+			if ( args->length() != 2 ) {
+				reporter->Error("events has wrong number of arguments");
+				return false;
+			}
+
+			if ( !same_type((*args)[1], fields ) ) {
+				reporter->Error("Incompatible type for event");
+				return false;
+			}
+			
+		} else {
+			assert(false);
+		}
+
+	}	
+
+
+	vector<LogField*> fieldsV; // vector, because UnrollRecordType needs it
+
+	bool status = !UnrollRecordType(&fieldsV, fields, "");
+
+	if ( status ) {
+		reporter->Error("Problem unrolling");
+		return false;
+	}
+	
+	
+	LogField** logf = new LogField*[fieldsV.size()];
+	for ( unsigned int i = 0; i < fieldsV.size(); i++ ) {
+		logf[i] = fieldsV[i];
+	}
+
+	EventFilter* filter = new EventFilter();
+	filter->name = name->AsString()->CheckString();
+	filter->id = id->Ref()->AsEnumVal();
+	filter->num_fields = fieldsV.size();
+	filter->fields = fields->Ref()->AsRecordType();
+	filter->event = event_registry->Lookup(event->GetID()->Name());
+	filter->want_record = ( want_record->InternalInt() == 1 );
+	Unref(want_record); // ref'd by lookupwithdefault
+
+	int filterid = 0;
+	if ( i->filters.size() > 0 ) {
+		filterid = i->filters.rbegin()->first + 1; // largest element is at beginning of map-> new id = old id + 1->
+	}
+	i->filters[filterid] = filter;
+	i->reader->AddFilter( filterid, fieldsV.size(), logf );
+
+	return true;
+}
+
 bool InputMgr::AddTableFilter(EnumVal *id, RecordVal* fval) {
 	ReaderInfo *i = FindReader(id);
 	if ( i == 0 ) {
@@ -299,6 +398,7 @@ bool InputMgr::AddTableFilter(EnumVal *id, RecordVal* fval) {
 			reporter->Error("table events value attribute does not match");
 			return false;
 		}
+		assert(want_record->InternalInt() == 1 || want_record->InternalInt() == 0);
 
 	}	
 
@@ -322,28 +422,28 @@ bool InputMgr::AddTableFilter(EnumVal *id, RecordVal* fval) {
 		fields[i] = fieldsV[i];
 	}
 	
-	Filter filter;
-	filter.name = name->AsString()->CheckString();
-	filter.id = id->Ref()->AsEnumVal();
-	filter.pred = pred ? pred->AsFunc() : 0;
-	filter.num_idx_fields = idxfields;
-	filter.num_val_fields = valfields;
-	filter.tab = dst->Ref()->AsTableVal();
-	filter.rtype = val->Ref()->AsRecordType();
-	filter.itype = idx->Ref()->AsRecordType();
-	filter.event = event ? event_registry->Lookup(event->GetID()->Name()) : 0;
-	filter.currDict = new PDict(InputHash);
-	filter.lastDict = new PDict(InputHash);
-	filter.want_record = ( want_record->InternalInt() == 1 );
+	TableFilter* filter = new TableFilter();
+	filter->name = name->AsString()->CheckString();
+	filter->id = id->Ref()->AsEnumVal();
+	filter->pred = pred ? pred->AsFunc() : 0;
+	filter->num_idx_fields = idxfields;
+	filter->num_val_fields = valfields;
+	filter->tab = dst->Ref()->AsTableVal();
+	filter->rtype = val->Ref()->AsRecordType();
+	filter->itype = idx->Ref()->AsRecordType();
+	filter->event = event ? event_registry->Lookup(event->GetID()->Name()) : 0;
+	filter->currDict = new PDict(InputHash);
+	filter->lastDict = new PDict(InputHash);
+	filter->want_record = ( want_record->InternalInt() == 1 );
 	Unref(want_record); // ref'd by lookupwithdefault
 
 	if ( valfields > 1 ) {
-		assert(filter.want_record);
+		assert(filter->want_record);
 	}
 	
 	int filterid = 0;
 	if ( i->filters.size() > 0 ) {
-		filterid = i->filters.rbegin()->first + 1; // largest element is at beginning of map. new id = old id + 1.
+		filterid = i->filters.rbegin()->first + 1; // largest element is at beginning of map-> new id = old id + 1->
 	}
 	i->filters[filterid] = filter;
 	i->reader->AddFilter( filterid, fieldsV.size(), fields );
@@ -478,13 +578,39 @@ bool InputMgr::RemoveTableFilter(EnumVal* id, const string &name) {
 		return false;
 	}
 
-	map<int, InputMgr::Filter>::iterator it = i->filters.find(id->InternalInt());
+	map<int, InputMgr::Filter*>::iterator it = i->filters.find(id->InternalInt());
 	if ( it == i->filters.end() ) {
 		return false;
 	}
 
-	i->filters[id->InternalInt()].DoCleanup();
+	if ( i->filters[id->InternalInt()]->filter_type != TABLE_FILTER ) {
+		// wrong type;
+		return false;
+	}
 
+	delete (*it).second;
+	i->filters.erase(it);
+	return true;
+}
+
+bool InputMgr::RemoveEventFilter(EnumVal* id, const string &name) {
+	ReaderInfo *i = FindReader(id);
+	if ( i == 0 ) {
+		reporter->Error("Reader not found");
+		return false;
+	}
+
+	map<int, InputMgr::Filter*>::iterator it = i->filters.find(id->InternalInt());
+	if ( it == i->filters.end() ) {
+		return false;
+	}
+
+	if ( i->filters[id->InternalInt()]->filter_type != EVENT_FILTER ) {
+		// wrong type;
+		return false;
+	}
+
+	delete (*it).second;
 	i->filters.erase(it);
 	return true;
 }
@@ -524,30 +650,53 @@ void InputMgr::SendEntry(const InputReader* reader, int id, const LogVal* const 
 		return;
 	}
 
+	if ( !i->HasFilter(id) ) {
+		reporter->InternalError("Unknown filter");
+		return;
+	}
+
+	if ( i->filters[id]->filter_type == TABLE_FILTER ) {
+		SendEntryTable(reader, id, vals);
+	} else if ( i->filters[id]->filter_type == EVENT_FILTER ) {
+		EnumVal *type = new EnumVal(BifEnum::Input::EVENT_NEW, BifType::Enum::Input::Event);
+		SendEventFilterEvent(reader, type, id, vals);		
+	} else {
+		assert(false);
+	}
+
+}
+
+void InputMgr::SendEntryTable(const InputReader* reader, int id, const LogVal* const *vals) {
+	ReaderInfo *i = FindReader(reader);
+
 	bool updated = false;
 
+	assert(i);
 	assert(i->HasFilter(id));
 
+	assert(i->filters[id]->filter_type == TABLE_FILTER);
+	TableFilter* filter = (TableFilter*) i->filters[id];
+
 	//reporter->Error("Hashing %d index fields", i->num_idx_fields);
-	HashKey* idxhash = HashLogVals(i->filters[id].num_idx_fields, vals);
+	HashKey* idxhash = HashLogVals(filter->num_idx_fields, vals);
 	//reporter->Error("Result: %d", (uint64_t) idxhash->Hash());
 	//reporter->Error("Hashing %d val fields", i->num_val_fields);
-	HashKey* valhash = HashLogVals(i->filters[id].num_val_fields, vals+i->filters[id].num_idx_fields);
+	HashKey* valhash = HashLogVals(filter->num_val_fields, vals+filter->num_idx_fields);
 	//reporter->Error("Result: %d", (uint64_t) valhash->Hash());
 	
 	//reporter->Error("received entry with idxhash %d and valhash %d", (uint64_t) idxhash->Hash(), (uint64_t) valhash->Hash());
 
-	InputHash *h = i->filters[id].lastDict->Lookup(idxhash);
+	InputHash *h = filter->lastDict->Lookup(idxhash);
 	if ( h != 0 ) {
 		// seen before
 		if ( h->valhash->Hash() == valhash->Hash() ) {
 			// ok, double.
-			i->filters[id].lastDict->Remove(idxhash);
-			i->filters[id].currDict->Insert(idxhash, h);
+			filter->lastDict->Remove(idxhash);
+			filter->currDict->Insert(idxhash, h);
 			return;
 		} else {
 			// updated
-			i->filters[id].lastDict->Remove(idxhash);
+			filter->lastDict->Remove(idxhash);
 			delete(h);
 			updated = true;
 			
@@ -555,30 +704,25 @@ void InputMgr::SendEntry(const InputReader* reader, int id, const LogVal* const 
 	}
 
 
-	Val* idxval = LogValToIndexVal(i->filters[id].num_idx_fields, i->filters[id].itype, vals);
+	Val* idxval = LogValToIndexVal(filter->num_idx_fields, filter->itype, vals);
 	Val* valval;
 	
-	int position = i->filters[id].num_idx_fields;
-	if ( i->filters[id].num_val_fields == 1 && !i->filters[id].want_record ) {
-		valval = LogValToVal(vals[position], i->filters[id].rtype->FieldType(0));
+	int position = filter->num_idx_fields;
+	if ( filter->num_val_fields == 1 && !filter->want_record ) {
+		valval = LogValToVal(vals[position], filter->rtype->FieldType(0));
 	} else {
-		RecordVal * r = new RecordVal(i->filters[id].rtype);
+		RecordVal * r = new RecordVal(filter->rtype);
 
-		for ( int j = 0; j < i->filters[id].rtype->NumFields(); j++) {
+		for ( int j = 0; j < filter->rtype->NumFields(); j++) {
 
 			Val* val = 0;
-			if ( i->filters[id].rtype->FieldType(j)->Tag() == TYPE_RECORD ) {
-				val = LogValToRecordVal(vals, i->filters[id].rtype->FieldType(j)->AsRecordType(), &position);
+			if ( filter->rtype->FieldType(j)->Tag() == TYPE_RECORD ) {
+				val = LogValToRecordVal(vals, filter->rtype->FieldType(j)->AsRecordType(), &position);
 			} else {
-				val =  LogValToVal(vals[position], i->filters[id].rtype->FieldType(j));
+				val =  LogValToVal(vals[position], filter->rtype->FieldType(j));
 				position++;
 			}
 			
-			/* if ( val == 0 ) {
-				reporter->InternalError("conversion error");
-				return;
-			} */
-
 			r->Assign(j,val);
 
 		}
@@ -589,12 +733,12 @@ void InputMgr::SendEntry(const InputReader* reader, int id, const LogVal* const 
 	Val* oldval = 0;
 	if ( updated == true ) {
 			// in that case, we need the old value to send the event (if we send an event).
-			oldval = i->filters[id].tab->Lookup(idxval);
+			oldval = filter->tab->Lookup(idxval);
 	}
 
 
 	// call filter first to determine if we really add / change the entry
-	if ( i->filters[id].pred ) {
+	if ( filter->pred ) {
 		EnumVal* ev;
 		Ref(idxval);
 		Ref(valval);
@@ -609,18 +753,18 @@ void InputMgr::SendEntry(const InputReader* reader, int id, const LogVal* const 
 		vl.append(ev);
 		vl.append(idxval);
 		vl.append(valval);
-		Val* v = i->filters[id].pred->Call(&vl);
+		Val* v = filter->pred->Call(&vl);
 		bool result = v->AsBool();
 		Unref(v);
 
 		if ( result == false ) {
 			if ( !updated ) {
 				// throw away. Hence - we quit. And remove the entry from the current dictionary...
-				delete(i->filters[id].currDict->RemoveEntry(idxhash));
+				delete(filter->currDict->RemoveEntry(idxhash));
 				return;
 			} else {
 				// keep old one
-				i->filters[id].currDict->Insert(idxhash, h);
+				filter->currDict->Insert(idxhash, h);
 				return;
 			}
 		}
@@ -629,24 +773,23 @@ void InputMgr::SendEntry(const InputReader* reader, int id, const LogVal* const 
 	
 
 	//i->tab->Assign(idxval, valval);
-	HashKey* k = i->filters[id].tab->ComputeHash(idxval);
+	HashKey* k = filter->tab->ComputeHash(idxval);
 	if ( !k ) {
 		reporter->InternalError("could not hash");
 		return;
 	}
 
-	reporter->Error("assigning");
-	i->filters[id].tab->Assign(idxval, k, valval);
+	filter->tab->Assign(idxval, k, valval);
 
 	InputHash* ih = new InputHash();
-	k = i->filters[id].tab->ComputeHash(idxval);
+	k = filter->tab->ComputeHash(idxval);
 	ih->idxkey = k;
 	ih->valhash = valhash;
 	//i->tab->Delete(k);
 
-	i->filters[id].currDict->Insert(idxhash, ih);
+	filter->currDict->Insert(idxhash, ih);
 
-	if ( i->filters[id].event ) {
+	if ( filter->event ) {
 		EnumVal* ev;
 		Ref(idxval);
 
@@ -654,11 +797,11 @@ void InputMgr::SendEntry(const InputReader* reader, int id, const LogVal* const 
 			ev = new EnumVal(BifEnum::Input::EVENT_CHANGED, BifType::Enum::Input::Event);
 			assert ( oldval != 0 );
 			Ref(oldval);
-			SendEvent(i->filters[id].event, ev, idxval, oldval);
+			SendEvent(filter->event, 3, ev, idxval, oldval);
 		} else {
 			ev = new EnumVal(BifEnum::Input::EVENT_NEW, BifType::Enum::Input::Event);
 			Ref(valval);
-			SendEvent(i->filters[id].event, ev, idxval, valval);
+			SendEvent(filter->event, 3, ev, idxval, valval);
 		}
 	} 
 }
@@ -673,25 +816,33 @@ void InputMgr::EndCurrentSend(const InputReader* reader, int id) {
 
 	assert(i->HasFilter(id));
 
+	if ( i->filters[id]->filter_type == EVENT_FILTER ) {
+		// nothing to do..
+		return;
+	}
+
+	assert(i->filters[id]->filter_type == TABLE_FILTER);
+	TableFilter* filter = (TableFilter*) i->filters[id];
+
 	// lastdict contains all deleted entries and should be empty apart from that
-	IterCookie *c = i->filters[id].lastDict->InitForIteration();
-	i->filters[id].lastDict->MakeRobustCookie(c);
+	IterCookie *c = filter->lastDict->InitForIteration();
+	filter->lastDict->MakeRobustCookie(c);
 	InputHash* ih;
 	HashKey *lastDictIdxKey;
 	//while ( ( ih = i->lastDict->NextEntry(c) ) ) {
-	while ( ( ih = i->filters[id].lastDict->NextEntry(lastDictIdxKey, c) ) ) {
+	while ( ( ih = filter->lastDict->NextEntry(lastDictIdxKey, c) ) ) {
 
 		ListVal * idx;
 		Val *val;
 
-		if ( i->filters[id].pred || i->filters[id].event ) {
-			idx = i->filters[id].tab->RecoverIndex(ih->idxkey);
+		if ( filter->pred || filter->event ) {
+			idx = filter->tab->RecoverIndex(ih->idxkey);
 			assert(idx != 0);
-			val = i->filters[id].tab->Lookup(idx);
+			val = filter->tab->Lookup(idx);
 			assert(val != 0);
 		}
 
-		if ( i->filters[id].pred ) {
+		if ( filter->pred ) {
 
 			bool doBreak = false;
 			// ask predicate, if we want to expire this element...
@@ -704,37 +855,37 @@ void InputMgr::EndCurrentSend(const InputReader* reader, int id) {
 			vl.append(ev);
 			vl.append(idx);
 			vl.append(val);
-			Val* v = i->filters[id].pred->Call(&vl);
+			Val* v = filter->pred->Call(&vl);
 			bool result = v->AsBool();
 			Unref(v);
 			
 			if ( result == false ) {
 				// Keep it. Hence - we quit and simply go to the next entry of lastDict
 				// ah well - and we have to add the entry to currDict...
-				i->filters[id].currDict->Insert(lastDictIdxKey, i->filters[id].lastDict->RemoveEntry(lastDictIdxKey));
+				filter->currDict->Insert(lastDictIdxKey, filter->lastDict->RemoveEntry(lastDictIdxKey));
 				continue;
 			}
 
 
 		}
 
-		if ( i->filters[id].event ) {
+		if ( filter->event ) {
 			Ref(idx);
 			Ref(val);
 			EnumVal *ev = new EnumVal(BifEnum::Input::EVENT_REMOVED, BifType::Enum::Input::Event);
-			SendEvent(i->filters[id].event, ev, idx, val);
+			SendEvent(filter->event, 3, ev, idx, val);
 		}
 
-		i->filters[id].tab->Delete(ih->idxkey);
-		i->filters[id].lastDict->Remove(lastDictIdxKey); // deletex in next line
+		filter->tab->Delete(ih->idxkey);
+		filter->lastDict->Remove(lastDictIdxKey); // deletex in next line
 		delete(ih);
 	}
 
-	i->filters[id].lastDict->Clear(); // should be empty... but... well... who knows...
-	delete(i->filters[id].lastDict);
+	filter->lastDict->Clear(); // should be empty->->-> but->->-> well->->-> who knows->->->
+	delete(filter->lastDict);
 
-	i->filters[id].lastDict = i->filters[id].currDict;	
-	i->filters[id].currDict = new PDict(InputHash);
+	filter->lastDict = filter->currDict;	
+	filter->currDict = new PDict(InputHash);
 }
 
 void InputMgr::Put(const InputReader* reader, int id, const LogVal* const *vals) {
@@ -744,24 +895,86 @@ void InputMgr::Put(const InputReader* reader, int id, const LogVal* const *vals)
 		return;
 	}
 
+	if ( !i->HasFilter(id) ) {
+		reporter->InternalError("Unknown filter");
+		return;
+	}
+
+	if ( i->filters[id]->filter_type == TABLE_FILTER ) {
+		PutTable(reader, id, vals);
+	} else if ( i->filters[id]->filter_type == EVENT_FILTER ) {
+		EnumVal *type = new EnumVal(BifEnum::Input::EVENT_NEW, BifType::Enum::Input::Event);
+		SendEventFilterEvent(reader, type, id, vals);
+	} else {
+		assert(false);
+	}
+
+}
+
+void InputMgr::SendEventFilterEvent(const InputReader* reader, EnumVal* type, int id, const LogVal* const *vals) {
+	ReaderInfo *i = FindReader(reader);
+
+	bool updated = false;
+
+	assert(i);
 	assert(i->HasFilter(id));
 
-	Val* idxval = LogValToIndexVal(i->filters[id].num_idx_fields, i->filters[id].itype, vals);
+	assert(i->filters[id]->filter_type == EVENT_FILTER);
+	EventFilter* filter = (EventFilter*) i->filters[id];
+
+	Val *val;
+	list<Val*> out_vals;
+	// no tracking, send everything with a new event...
+	//out_vals.push_back(new EnumVal(BifEnum::Input::EVENT_NEW, BifType::Enum::Input::Event));
+	out_vals.push_back(type);
+
+	int position = 0;
+	if ( filter->want_record ) {
+		RecordVal * r = LogValToRecordVal(vals, filter->fields, &position);
+		out_vals.push_back(r);
+
+	} else {
+		for ( int j = 0; j < filter->fields->NumFields(); j++) {
+			Val* val = 0;
+			if ( filter->fields->FieldType(j)->Tag() == TYPE_RECORD ) {
+				val = LogValToRecordVal(vals, filter->fields->FieldType(j)->AsRecordType(), &position);
+			} else {
+				val =  LogValToVal(vals[position], filter->fields->FieldType(j));
+				position++;
+			}
+			out_vals.push_back(val);		
+		}
+	}
+
+	SendEvent(filter->event, out_vals);	
+
+}
+
+void InputMgr::PutTable(const InputReader* reader, int id, const LogVal* const *vals) {
+	ReaderInfo *i = FindReader(reader);
+
+	assert(i);
+	assert(i->HasFilter(id));
+
+	assert(i->filters[id]->filter_type == TABLE_FILTER);
+	TableFilter* filter = (TableFilter*) i->filters[id];	
+
+	Val* idxval = LogValToIndexVal(filter->num_idx_fields, filter->itype, vals);
 	Val* valval;
 	
-	int position = i->filters[id].num_idx_fields;
-	if ( i->filters[id].num_val_fields == 1 && !i->filters[id].want_record ) {
-		valval = LogValToVal(vals[i->filters[id].num_idx_fields], i->filters[id].rtype->FieldType(i->filters[id].num_idx_fields));
+	int position = filter->num_idx_fields;
+	if ( filter->num_val_fields == 1 && !filter->want_record ) {
+		valval = LogValToVal(vals[filter->num_idx_fields], filter->rtype->FieldType(filter->num_idx_fields));
 	} else {
-		RecordVal * r = new RecordVal(i->filters[id].rtype);
+		RecordVal * r = new RecordVal(filter->rtype);
 
-		for ( int j = 0; j < i->filters[id].rtype->NumFields(); j++) {
+		for ( int j = 0; j < filter->rtype->NumFields(); j++) {
 
 			Val* val = 0;
-			if ( i->filters[id].rtype->FieldType(j)->Tag() == TYPE_RECORD ) {
-				val = LogValToRecordVal(vals, i->filters[id].rtype->FieldType(j)->AsRecordType(), &position);
+			if ( filter->rtype->FieldType(j)->Tag() == TYPE_RECORD ) {
+				val = LogValToRecordVal(vals, filter->rtype->FieldType(j)->AsRecordType(), &position);
 			} else {
-				val =  LogValToVal(vals[position], i->filters[id].rtype->FieldType(j));
+				val =  LogValToVal(vals[position], filter->rtype->FieldType(j));
 				position++;
 			}
 			
@@ -776,7 +989,7 @@ void InputMgr::Put(const InputReader* reader, int id, const LogVal* const *vals)
 		valval = r;
 	}
 
-	i->filters[id].tab->Assign(idxval, valval);
+	filter->tab->Assign(idxval, valval);
 }
 
 void InputMgr::Clear(const InputReader* reader, int id) {
@@ -788,7 +1001,10 @@ void InputMgr::Clear(const InputReader* reader, int id) {
 
 	assert(i->HasFilter(id));	
 
-	i->filters[id].tab->RemoveAll();
+	assert(i->filters[id]->filter_type == TABLE_FILTER);
+	TableFilter* filter = (TableFilter*) i->filters[id];	
+
+	filter->tab->RemoveAll();
 }
 
 bool InputMgr::Delete(const InputReader* reader, int id, const LogVal* const *vals) {
@@ -800,9 +1016,18 @@ bool InputMgr::Delete(const InputReader* reader, int id, const LogVal* const *va
 
 	assert(i->HasFilter(id));			
 
-	Val* idxval = LogValToIndexVal(i->filters[id].num_idx_fields, i->filters[id].itype, vals);
-
-	return ( i->filters[id].tab->Delete(idxval) != 0 );
+	if ( i->filters[id]->filter_type == TABLE_FILTER ) {
+		TableFilter* filter = (TableFilter*) i->filters[id];		
+		Val* idxval = LogValToIndexVal(filter->num_idx_fields, filter->itype, vals);
+		return( filter->tab->Delete(idxval) != 0 );
+	} else if ( i->filters[id]->filter_type == EVENT_FILTER  ) {
+		EnumVal *type = new EnumVal(BifEnum::Input::EVENT_REMOVED, BifType::Enum::Input::Event);
+		SendEventFilterEvent(reader, type, id, vals);		
+		return true;
+	} else {
+		assert(false);
+		return false;
+	}
 } 
 
 void InputMgr::Error(InputReader* reader, const char* msg)
@@ -835,25 +1060,35 @@ bool InputMgr::SendEvent(const string& name, const int num_vals, const LogVal* c
 	return true;
 } 
 
-void InputMgr::SendEvent(EventHandlerPtr ev, EnumVal* event, Val* left, Val* right) 
+void InputMgr::SendEvent(EventHandlerPtr ev, const int numvals, ...) 
 {
-	//EventHandler* handler = event_registry->Lookup(name.c_str());
-	//if ( handler == 0 ) {
-	//	reporter->Error("Event %s not found", name.c_str());
-	//	return;
-	//}
-
 	val_list* vl = new val_list;
-	vl->append(event);
-	vl->append(left);
-	vl->append(right);
+	
+	va_list lP;
+	va_start(lP, numvals);
+	for ( int i = 0; i < numvals; i++ ) 
+	{
+		vl->append( va_arg(lP, Val*) );
+	}
+	va_end(lP);
 
-	//mgr.Dispatch(new Event(handler, vl));
+	mgr.QueueEvent(ev, vl, SOURCE_LOCAL);
+}
+
+void InputMgr::SendEvent(EventHandlerPtr ev, list<Val*> events)
+{
+	val_list* vl = new val_list;
+	
+	for ( list<Val*>::iterator i = events.begin(); i != events.end(); i++ ) {
+		vl->append( *i );
+	}
+
 	mgr.QueueEvent(ev, vl, SOURCE_LOCAL);
 }
 
 
-Val* InputMgr::LogValToRecordVal(const LogVal* const *vals, RecordType *request_type, int* position) {
+
+RecordVal* InputMgr::LogValToRecordVal(const LogVal* const *vals, RecordType *request_type, int* position) {
 	if ( position == 0 ) {
 		reporter->InternalError("Need position");
 		return 0;

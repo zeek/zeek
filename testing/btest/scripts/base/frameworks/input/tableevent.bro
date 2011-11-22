@@ -16,6 +16,7 @@
 7	T
 @TEST-END-FILE
 
+redef InputAscii::empty_field = "EMPTY";
 
 module A;
 
@@ -23,20 +24,25 @@ export {
 	redef enum Log::ID += { LOG };
 }
 
-type Val: record {
+type Idx: record {
 	i: int;
+};
+
+type Val: record {
 	b: bool;
 };
 
-event line(tpe: Input::Event, i: int, b: bool) {
+global destination: table[int] of Val = table();
+
+event line(tpe: Input::Event, left: Idx, right: bool) {
 	print tpe;
-	print i;
-	print b;
+	print left;
+	print right;
 }
 
 event bro_init()
 {
 	Input::create_stream(A::LOG, [$source="input.log"]);
-	Input::add_eventfilter(A::LOG, [$name="input", $fields=Val, $ev=line]);
+	Input::add_tablefilter(A::LOG, [$name="input", $idx=Idx, $val=Val, $destination=destination, $want_record=F,$ev=line]);
 	Input::force_update(A::LOG);
 }

@@ -27,6 +27,8 @@ public:
 	bool AddTableFilter(EnumVal *id, RecordVal* filter);
 	bool RemoveTableFilter(EnumVal* id, const string &name);
 
+	bool AddEventFilter(EnumVal *id, RecordVal* filter);
+	bool RemoveEventFilter(EnumVal* id, const string &name);
 	
 protected:
 	friend class InputReader;
@@ -46,10 +48,17 @@ protected:
 private:
 	struct ReaderInfo;
 
+	void SendEntryTable(const InputReader* reader, int id, const LogVal* const *vals);	
+	void PutTable(const InputReader* reader, int id, const LogVal* const *vals);	
+	void SendEventFilterEvent(const InputReader* reader, EnumVal* type, int id, const LogVal* const *vals);
+
 	bool IsCompatibleType(BroType* t, bool atomic_only=false);
 
 	bool UnrollRecordType(vector<LogField*> *fields, const RecordType *rec, const string& nameprepend);
-	void SendEvent(EventHandlerPtr ev, EnumVal* event, Val* left, Val* right);	
+
+	void SendEvent(EventHandlerPtr ev, const int numvals, ...);	
+	void SendEvent(EventHandlerPtr ev, list<Val*> events);	
+	bool SendEvent(const string& name, const int num_vals, const LogVal* const *vals);
 
 	HashKey* HashLogVals(const int num_elements, const LogVal* const *vals);
 	int GetLogValLength(const LogVal* val);
@@ -57,9 +66,8 @@ private:
 
 	Val* LogValToVal(const LogVal* val, BroType* request_type);
 	Val* LogValToIndexVal(int num_fields, const RecordType* type, const LogVal* const *vals);
-	Val* LogValToRecordVal(const LogVal* const *vals, RecordType *request_type, int* position);	
+	RecordVal* LogValToRecordVal(const LogVal* const *vals, RecordType *request_type, int* position);	
 
-	bool SendEvent(const string& name, const int num_vals, const LogVal* const *vals);
 	
 	ReaderInfo* FindReader(const InputReader* reader);
 	ReaderInfo* FindReader(const EnumVal* id);
@@ -68,7 +76,12 @@ private:
 
 	string Hash(const string &input);	
 
-	struct Filter;
+	class Filter;
+	class TableFilter;
+	class EventFilter;
+
+	enum FilterType { TABLE_FILTER, EVENT_FILTER };
+
 
 };
 

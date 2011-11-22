@@ -23,10 +23,19 @@ export {
 		## decision function, that decides if an insertion, update or removal should really be executed.
 		## or events should be thought
 		pred: function(typ: Input::Event, left: any, right: any): bool &optional;
+	};
 
-		## for "normalized" events
-		# ev: any &optional;
-		# ev_description: any &optional;
+	type EventFilter: record {
+		## descriptive name. for later removal
+		name: string;
+
+		# the event
+		ev: any; 
+		# record describing the fields
+		fields: any;
+
+		# does the event want the field unrolled (default) or as a simple record value?
+		want_record: bool &default=F;
 	};
 
 	#const no_filter: Filter = [$name="<not found>", $idx="", $val="", $destination=""]; # Sentinel.
@@ -36,6 +45,8 @@ export {
 	global force_update: function(id: Log::ID) : bool;
 	global add_tablefilter: function(id: Log::ID, filter: Input::TableFilter) : bool;
 	global remove_tablefilter: function(id: Log::ID, name: string) : bool;
+	global add_eventfilter: function(id: Log::ID, filter: Input::EventFilter) : bool;
+	global remove_eventfilter: function(id: Log::ID, name: string) : bool;
 	#global get_filter: function(id: ID, name: string) : Filter;
 
 }
@@ -72,6 +83,18 @@ function remove_tablefilter(id: Log::ID, name: string) : bool
 	{
 #	delete filters[id, name];
 	return __remove_tablefilter(id, name);
+	}
+
+function add_eventfilter(id: Log::ID, filter: Input::EventFilter) : bool
+	{
+#	filters[id, filter$name] = filter;
+	return __add_eventfilter(id, filter);
+	}
+
+function remove_eventfilter(id: Log::ID, name: string) : bool
+	{
+#	delete filters[id, name];
+	return __remove_eventfilter(id, name);
 	}
 
 #function get_filter(id: ID, name: string) : Filter

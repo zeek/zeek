@@ -341,8 +341,12 @@ bool InputMgr::AddTableFilter(EnumVal *id, RecordVal* fval) {
 		assert(filter.want_record);
 	}
 	
-	i->filters[id->InternalInt()] = filter;
-	i->reader->AddFilter( id->InternalInt(), fieldsV.size(), fields );
+	int filterid = 0;
+	if ( i->filters.size() > 0 ) {
+		filterid = i->filters.rbegin()->first + 1; // largest element is at beginning of map. new id = old id + 1.
+	}
+	i->filters[filterid] = filter;
+	i->reader->AddFilter( filterid, fieldsV.size(), fields );
 
 	return true;
 }

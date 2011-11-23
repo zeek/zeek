@@ -138,7 +138,7 @@ refine connection SSL_Conn += {
 		if ( ssl_client_hello )
 			{
 			vector<int>* cipher_suites = new vector<int>();
-			if ( cipher_suites16  )
+			if ( cipher_suites16 )
 				std::copy(cipher_suites16->begin(), cipher_suites16->end(), std::back_inserter(*cipher_suites));
 			else
 				std::transform(cipher_suites24->begin(), cipher_suites24->end(), std::back_inserter(*cipher_suites), to_int());
@@ -197,6 +197,18 @@ refine connection SSL_Conn += {
 			delete ciphers;
 			}
 		
+		return true;
+		%}
+		
+	function proc_session_ticket_handshake(rec: SessionTicketHandshake, is_orig: bool): bool
+		%{
+		if ( ssl_session_ticket_handshake )
+			{
+			BifEvent::generate_ssl_session_ticket_handshake(bro_analyzer(),
+							bro_analyzer()->Conn(),
+							${rec.ticket_lifetime_hint},
+							new StringVal(${rec.data}.length(), (const char*) ${rec.data}.data()));
+			}
 		return true;
 		%}
 
@@ -263,13 +275,14 @@ refine connection SSL_Conn += {
 							der_cert);
 
 				// Are there any X509 extensions?
+				//printf("Number of x509 extensions: %d\n", X509_get_ext_count(pTemp));
 				if ( x509_extension && X509_get_ext_count(pTemp) > 0 )
 					{
 					int num_ext = X509_get_ext_count(pTemp);
 					for ( int k = 0; k < num_ext; ++k )
 						{
 						unsigned char *pBuffer = 0;
-						int length = 0;
+						uint length = 0;
 
 						X509_EXTENSION* ex = X509_get_ext(pTemp, k);
 						if (ex)
@@ -277,7 +290,7 @@ refine connection SSL_Conn += {
 							ASN1_STRING *pString = X509_EXTENSION_get_data(ex);
 							length = ASN1_STRING_to_UTF8(&pBuffer, pString);
 							//i2t_ASN1_OBJECT(&pBuffer, length, obj)
-
+							printf("extension length: %u\n", length);
 							// -1 indicates an error.
 							if ( length < 0 )
 								continue;
@@ -435,6 +448,10 @@ refine typeattr UnknownHandshake += &let {
 refine typeattr Handshake += &let {
 	proc : bool = $context.connection.proc_handshake(this, rec.is_orig);
 };
+
+refine typeattr SessionTicketHandshake += &let {
+	proc : bool = $context.connection.proc_session_ticket_handshake(this, rec.is_orig);
+}
 
 refine typeattr UnknownRecord += &let {
 	proc : bool = $context.connection.proc_unknown_record(rec);

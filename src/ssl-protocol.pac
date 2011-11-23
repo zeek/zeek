@@ -57,22 +57,15 @@ type SSLRecord(is_orig: bool) = record {
 type RecordText(rec: SSLRecord, is_orig: bool) = case $context.connection.state() of {
 	STATE_ABBREV_SERVER_ENCRYPTED, STATE_CLIENT_ENCRYPTED,
 	STATE_COMM_ENCRYPTED, STATE_CONN_ESTABLISHED
-		-> ciphertext : CiphertextRecord(rec, is_orig);
+		-> ciphertext : CiphertextRecord(rec);
 	default
-		-> plaintext : PlaintextRecord(rec, is_orig);
+		-> plaintext : PlaintextRecord(rec);
 };
 
-type PossibleEncryptedHandshake(rec: SSLRecord, is_orig: bool) = case $context.connection.state() of {
-	# Deal with encrypted handshakes before the server cipher spec change.
-	STATE_CLIENT_FINISHED, STATE_CLIENT_ENCRYPTED
-		-> ct : CiphertextRecord(rec, is_orig);
-	default               -> hs : Handshake(rec);
-};
-
-type PlaintextRecord(rec: SSLRecord, is_orig: bool) = case rec.content_type of {
+type PlaintextRecord(rec: SSLRecord) = case rec.content_type of {
 	CHANGE_CIPHER_SPEC	-> ch_cipher : ChangeCipherSpec(rec);
 	ALERT			-> alert : Alert(rec);
-	HANDSHAKE		-> handshake : PossibleEncryptedHandshake(rec, is_orig);
+	HANDSHAKE		-> handshake : Handshake(rec);
 	APPLICATION_DATA	-> app_data : ApplicationData(rec);
 	V2_ERROR		-> v2_error : V2Error(rec);
 	V2_CLIENT_HELLO		-> v2_client_hello : V2ClientHello(rec);
@@ -265,18 +258,19 @@ enum AnalyzerState {
 ######################################################################
 
 enum HandshakeType {
-	HELLO_REQUEST		= 0,
-	CLIENT_HELLO		= 1,
-	SERVER_HELLO		= 2,
-	CERTIFICATE		= 11,
-	SERVER_KEY_EXCHANGE	= 12,
-	CERTIFICATE_REQUEST	= 13,
-	SERVER_HELLO_DONE	= 14,
-	CERTIFICATE_VERIFY	= 15,
-	CLIENT_KEY_EXCHANGE	= 16,
-	FINISHED		= 20,
-	CERTIFICATE_URL		= 21, # RFC 3546
-	CERTIFICATE_STATUS	= 22, # RFC 3546
+	HELLO_REQUEST       = 0,
+	CLIENT_HELLO        = 1,
+	SERVER_HELLO        = 2,
+	SESSION_TICKET      = 4, # RFC 5077
+	CERTIFICATE         = 11,
+	SERVER_KEY_EXCHANGE = 12,
+	CERTIFICATE_REQUEST = 13,
+	SERVER_HELLO_DONE   = 14,
+	CERTIFICATE_VERIFY  = 15,
+	CLIENT_KEY_EXCHANGE = 16,
+	FINISHED            = 20,
+	CERTIFICATE_URL     = 21, # RFC 3546
+	CERTIFICATE_STATUS  = 22, # RFC 3546
 };
 
 %code{
@@ -286,6 +280,7 @@ enum HandshakeType {
 		case HELLO_REQUEST: return string("HELLO_REQUEST");
 		case CLIENT_HELLO: return string("CLIENT_HELLO");
 		case SERVER_HELLO: return string("SERVER_HELLO");
+		case SESSION_TICKET: return string("SESSION_TICKET");
 		case CERTIFICATE: return string("CERTIFICATE");
 		case SERVER_KEY_EXCHANGE: return string("SERVER_KEY_EXCHANGE");
 		case CERTIFICATE_REQUEST: return string("CERTIFICATE_REQUEST");
@@ -457,8 +452,7 @@ type V2ServerHello(rec: SSLRecord) = record {
 	cert_data : bytestring &length = cert_len;
 	ciphers : uint24[ciph_len/3];
 	conn_id_data : bytestring &length = conn_id_len;
-} #&length = 8 + cert_len + ciph_len + conn_id_len,
-&let {
+} &let {
 	state_changed : bool =
 		(session_id_hit > 0 ?
 			$context.connection.transition(STATE_CLIENT_HELLO_RCVD,
@@ -608,7 +602,7 @@ type CertificateVerify(rec: SSLRecord) = record {
 ######################################################################
 
 # The finished messages are always sent after encryption is in effect,
-# so we will not be able to read those message.
+# so we will not be able to read those messages.
 type Finished(rec: SSLRecord) = record {
 	cont : bytestring &restofdata &transient;
 } &let {
@@ -620,13 +614,17 @@ type Finished(rec: SSLRecord) = record {
 		$context.connection.lost_track();
 };
 
+type SessionTicketHandshake(rec: SSLRecord) = record {
+	ticket_lifetime_hint: uint32;
+	data:                 bytestring &restofdata;
+};
 
 ######################################################################
 # V3 Handshake Protocol (7.)
 ######################################################################
 
 type UnknownHandshake(hs: Handshake, is_orig: bool) =  record {
-	cont : bytestring &restofdata &transient;
+	data : bytestring &restofdata &transient;
 } &let {
 	state_changed : bool = $context.connection.lost_track();
 };
@@ -636,19 +634,20 @@ type Handshake(rec: SSLRecord) = record {
 	length : uint24;
 
 	body : case msg_type of {
-		HELLO_REQUEST ->	hello_request : HelloRequest(rec);
-		CLIENT_HELLO ->		client_hello : ClientHello(rec);
-		SERVER_HELLO ->		server_hello : ServerHello(rec);
-		CERTIFICATE ->		certificate : Certificate(rec);
-		SERVER_KEY_EXCHANGE ->	server_key_exchange : ServerKeyExchange(rec);
-		CERTIFICATE_REQUEST ->	certificate_request : CertificateRequest(rec);
-		SERVER_HELLO_DONE ->	server_hello_done : ServerHelloDone(rec);
-		CERTIFICATE_VERIFY ->	certificate_verify : CertificateVerify(rec);
-		CLIENT_KEY_EXCHANGE ->	client_key_exchange : ClientKeyExchange(rec);
-		FINISHED            ->  finished : Finished(rec);
-		CERTIFICATE_URL     ->  certificate_url : bytestring &restofdata &transient;
-		CERTIFICATE_STATUS  ->  certificate_status : bytestring &restofdata &transient;
-		default ->		unknown_handshake : UnknownHandshake(this, rec.is_orig);
+		HELLO_REQUEST       -> hello_request       : HelloRequest(rec);
+		CLIENT_HELLO        -> client_hello        : ClientHello(rec);
+		SERVER_HELLO        -> server_hello        : ServerHello(rec);
+		SESSION_TICKET      -> session_ticket      : SessionTicketHandshake(rec);
+		CERTIFICATE         -> certificate         : Certificate(rec);
+		SERVER_KEY_EXCHANGE -> server_key_exchange : ServerKeyExchange(rec);
+		CERTIFICATE_REQUEST -> certificate_request : CertificateRequest(rec);
+		SERVER_HELLO_DONE   -> server_hello_done   : ServerHelloDone(rec);
+		CERTIFICATE_VERIFY  -> certificate_verify  : CertificateVerify(rec);
+		CLIENT_KEY_EXCHANGE -> client_key_exchange : ClientKeyExchange(rec);
+		FINISHED            -> finished            : Finished(rec);
+		CERTIFICATE_URL     -> certificate_url     : bytestring &restofdata &transient;
+		CERTIFICATE_STATUS  -> certificate_status  : bytestring &restofdata &transient;
+		default             -> unknown_handshake   : UnknownHandshake(this, rec.is_orig);
 	} &length = to_int()(length);
 };
 
@@ -663,7 +662,7 @@ type UnknownRecord(rec: SSLRecord) =  record {
 	state_changed : bool = $context.connection.lost_track();
 };
 
-type CiphertextRecord(rec: SSLRecord, is_orig: bool) = record {
+type CiphertextRecord(rec: SSLRecord) = record {
 	cont : bytestring &restofdata &transient;
 } &let {
 	state_changed : bool =

@@ -53,6 +53,8 @@ FindRequiredPackage(BISON)
 FindRequiredPackage(PCAP)
 FindRequiredPackage(OpenSSL)
 FindRequiredPackage(BIND)
+FindRequiredPackage(LibMagic)
+FindRequiredPackage(ZLIB)
 
 if (NOT BinPAC_ROOT_DIR AND
     EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/aux/binpac/CMakeLists.txt)
@@ -72,25 +74,11 @@ include_directories(BEFORE
                     ${OpenSSL_INCLUDE_DIR}
                     ${BIND_INCLUDE_DIR}
                     ${BinPAC_INCLUDE_DIR}
+                    ${LibMagic_INCLUDE_DIR}
+                    ${ZLIB_INCLUDE_DIR}
 )
 
 # Optional Dependencies
-
-set(HAVE_LIBMAGIC false)
-find_package(LibMagic)
-if (LIBMAGIC_FOUND)
-    set(HAVE_LIBMAGIC true)
-    include_directories(BEFORE ${LibMagic_INCLUDE_DIR})
-    list(APPEND OPTLIBS ${LibMagic_LIBRARY})
-endif ()
-
-set(HAVE_LIBZ false)
-find_package(ZLIB)
-if (ZLIB_FOUND)
-    set(HAVE_LIBZ true)
-    include_directories(BEFORE ${ZLIB_INCLUDE_DIR})
-    list(APPEND OPTLIBS ${ZLIB_LIBRARY})
-endif ()
 
 set(USE_GEOIP false)
 find_package(LibGeoIP)
@@ -109,6 +97,16 @@ if (ENABLE_PERFTOOLS)
         list(APPEND OPTLIBS ${GooglePerftools_LIBRARIES})
     endif ()
 endif ()
+
+set(brodeps
+    ${BinPAC_LIBRARY}
+    ${PCAP_LIBRARY}
+    ${OpenSSL_LIBRARIES}
+    ${BIND_LIBRARY}
+    ${LibMagic_LIBRARY}
+    ${ZLIB_LIBRARY}
+    ${OPTLIBS}
+)
 
 ########################################################################
 ## System Introspection
@@ -184,8 +182,6 @@ message(
     "\nAux. Tools:        ${INSTALL_AUX_TOOLS}"
     "\n"
     "\nGeoIP:             ${USE_GEOIP}"
-    "\nlibz:              ${HAVE_LIBZ}"
-    "\nlibmagic:          ${HAVE_LIBMAGIC}"
     "\nGoogle perftools:  ${USE_PERFTOOLS}"
     "\n"
     "\n================================================================\n"

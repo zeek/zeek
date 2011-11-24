@@ -2,7 +2,6 @@
 # will normalize mime types other than the target type to prevent sensitivity
 # to varying versions of libmagic.
 
-# @TEST-REQUIRES: grep -q '#define HAVE_LIBMAGIC' $BUILD/config.h
 # @TEST-EXEC: bro -r $TRACES/http-pipelined-requests.trace %INPUT > output
 # @TEST-EXEC: btest-diff http.log
 

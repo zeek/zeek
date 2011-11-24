@@ -4,6 +4,9 @@
 
 def setup(Sphinx):
     Sphinx.add_domain(BroDomain)
+    Sphinx.add_node(see)
+    Sphinx.add_directive_to_domain('bro', 'see', SeeDirective)
+    Sphinx.connect('doctree-resolved', process_see_nodes)
 
 from sphinx import addnodes
 from sphinx.domains import Domain, ObjType, Index
@@ -18,7 +21,57 @@ from docutils.parsers.rst import Directive
 from docutils.parsers.rst import directives
 from docutils.parsers.rst.roles import set_classes
 
+class see(nodes.General, nodes.Element):
+    refs = []
+
+class SeeDirective(Directive):
+    has_content = True
+
+    def run(self):
+        n = see('')
+        n.refs = string.split(string.join(self.content))
+        return [n]
+
+def process_see_nodes(app, doctree, fromdocname):
+    for node in doctree.traverse(see):
+        content = []
+        para = nodes.paragraph()
+        para += nodes.Text("See also:", "See also:")
+        for name in node.refs:
+            join_str = " "
+            if name != node.refs[0]:
+                join_str  = ", "
+            link_txt = join_str + name;
+
+            if name not in app.env.domaindata['bro']['idtypes']:
+                # Just create the text and issue warning
+                app.env.warn(fromdocname,
+                             'unknown target for ".. bro:see:: %s"' % (name))
+                para += nodes.Text(link_txt, link_txt)
+            else:
+                # Create a reference
+                typ = app.env.domaindata['bro']['idtypes'][name]
+                todocname = app.env.domaindata['bro']['objects'][(typ, name)]
+
+                newnode = nodes.reference('', '')
+                innernode = nodes.literal(_(name), _(name))
+                newnode['refdocname'] = todocname
+                newnode['refuri'] = app.builder.get_relative_uri(
+                    fromdocname, todocname)
+                newnode['refuri'] += '#' + typ + '-' + name
+                newnode.append(innernode)
+                para += nodes.Text(join_str, join_str)
+                para += newnode
+
+        content.append(para)
+        node.replace_self(content)
+
 class BroGeneric(ObjectDescription):
+    def update_type_map(self, idname):
+        if 'idtypes' not in self.env.domaindata['bro']:
+            self.env.domaindata['bro']['idtypes'] = {}
+        self.env.domaindata['bro']['idtypes'][idname] = self.objtype
+
     def add_target_and_index(self, name, sig, signode):
         targetname = self.objtype + '-' + name
         if targetname not in self.state.document.ids:
@@ -29,9 +82,6 @@ class BroGeneric(ObjectDescription):
 
             objects = self.env.domaindata['bro']['objects']
             key = (self.objtype, name)
-# this is commented out mostly just to avoid having a special directive
-# for events in order to avoid the duplicate warnings in that case
-            """
             if key in objects:
                 self.env.warn(self.env.docname,
                               'duplicate description of %s %s, ' %
@@ -39,8 +89,9 @@ class BroGeneric(ObjectDescription):
                               'other instance in ' +
                               self.env.doc2path(objects[key]),
                               self.lineno)
-            """
             objects[key] = self.env.docname
+            self.update_type_map(name)
+
         indextext = self.get_index_text(self.objtype, name)
         if indextext:
             self.indexnode['entries'].append(('single', indextext,
@@ -65,6 +116,8 @@ class BroNamespace(BroGeneric):
             objects = self.env.domaindata['bro']['objects']
             key = (self.objtype, name)
             objects[key] = self.env.docname
+            self.update_type_map(name)
+
         indextext = self.get_index_text(self.objtype, name)
         self.indexnode['entries'].append(('single', indextext,
                                           targetname, targetname))
@@ -91,10 +144,17 @@ class BroEnum(BroGeneric):
             objects = self.env.domaindata['bro']['objects']
             key = (self.objtype, name)
             objects[key] = self.env.docname
+            self.update_type_map(name)
+
         indextext = self.get_index_text(self.objtype, name)
         #self.indexnode['entries'].append(('single', indextext,
         #                                  targetname, targetname))
         m = sig.split()
+        if m[1] == "Notice::Type":
+            if 'notices' not in self.env.domaindata['bro']:
+                self.env.domaindata['bro']['notices'] = []
+            self.env.domaindata['bro']['notices'].append(
+                                (m[0], self.env.docname, targetname))
         self.indexnode['entries'].append(('single',
                                           "%s (enum values); %s" % (m[1], m[0]),
                                           targetname, targetname))
@@ -112,6 +172,26 @@ class BroIdentifier(BroGeneric):
 class BroAttribute(BroGeneric):
     def get_index_text(self, objectname, name):
         return _('%s (attribute)') % (name)
+
+class BroNotices(Index):
+    """
+    Index subclass to provide the Bro notices index.
+    """
+
+    name = 'noticeindex'
+    localname = l_('Bro Notice Index')
+    shortname = l_('notices')
+
+    def generate(self, docnames=None):
+        content = {}
+        for n in self.domain.env.domaindata['bro']['notices']:
+            modname = n[0].split("::")[0]
+            entries = content.setdefault(modname, [])
+            entries.append([n[0], 0, n[1], n[2], '', '', ''])
+
+        content = sorted(content.iteritems())
+
+        return content, False
 
 class BroDomain(Domain):
     """Bro domain."""
@@ -140,7 +220,12 @@ class BroDomain(Domain):
         'id':               XRefRole(),
         'enum':             XRefRole(),
         'attr':             XRefRole(),
+        'see':              XRefRole(),
     }
+
+    indices = [
+        BroNotices,
+    ]
 
     initial_data = {
         'objects': {},  # fullname -> docname, objtype
@@ -154,13 +239,24 @@ class BroDomain(Domain):
     def resolve_xref(self, env, fromdocname, builder, typ, target, node,
                      contnode):
         objects = self.data['objects']
-        objtypes = self.objtypes_for_role(typ)
-        for objtype in objtypes:
-            if (objtype, target) in objects:
-                return make_refnode(builder, fromdocname,
-                                    objects[objtype, target],
-                                    objtype + '-' + target,
-                                    contnode, target + ' ' + objtype)
+        if typ == "see":
+            if target not in self.data['idtypes']:
+                self.env.warn(fromdocname,
+                              'unknown target for ":bro:see:`%s`"' % (target))
+                return []
+            objtype = self.data['idtypes'][target]
+            return make_refnode(builder, fromdocname,
+                                        objects[objtype, target],
+                                        objtype + '-' + target,
+                                        contnode, target + ' ' + objtype)
+        else:
+            objtypes = self.objtypes_for_role(typ)
+            for objtype in objtypes:
+                if (objtype, target) in objects:
+                    return make_refnode(builder, fromdocname,
+                                        objects[objtype, target],
+                                        objtype + '-' + target,
+                                        contnode, target + ' ' + objtype)
 
     def get_objects(self):
         for (typ, name), docname in self.data['objects'].iteritems():

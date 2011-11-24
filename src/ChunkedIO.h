@@ -287,8 +287,6 @@ private:
 	static SSL_CTX* ctx;
 };
 
-#ifdef HAVE_LIBZ
-
 #include <zlib.h>
 
 // Wrapper class around a another ChunkedIO which the (un-)compresses data.
@@ -334,7 +332,5 @@ protected:
 	unsigned long uncompressed_bytes_read;
 	unsigned long uncompressed_bytes_written;
 };
-
-#endif	/* HAVE_LIBZ */
 
 #endif

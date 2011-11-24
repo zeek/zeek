@@ -2,7 +2,7 @@
 Notice Framework
 ================
 
-.. class:: opening
+.. rst-class:: opening
 
     One of the easiest ways to customize Bro is writing a local notice
     policy. Bro can detect a large number of potentially interesting

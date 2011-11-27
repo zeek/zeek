@@ -281,6 +281,7 @@ set(bro_SRCS
     BPF_Program.cc
     BroDoc.cc
     BroDocObj.cc
+    Brofiler.cc
     BroString.cc
     CCL.cc
     ChunkedIO.cc

@@ -80,10 +80,12 @@
 #include "Reporter.h"
 #include "BroDoc.h"
 #include "BroDocObj.h"
+#include "Brofiler.h"
 
 #include <list>
 #include <string>
 
+extern Brofiler brofiler;
 extern BroDoc* current_reST_doc;
 extern int generate_documentation;
 extern std::list<std::string>* reST_doc_comments;
@@ -1330,93 +1332,111 @@ stmt:
 			{
 			set_location(@1, @3);
 			$$ = new PrintStmt($2);
+			brofiler.stmts.push_back($$);
 			}
 
 	|	TOK_EVENT event ';'
 			{
 			set_location(@1, @3);
 			$$ = new EventStmt($2);
+			brofiler.stmts.push_back($$);
 			}
 
 	|	TOK_IF '(' expr ')' stmt
 			{
 			set_location(@1, @4);
 			$$ = new IfStmt($3, $5, new NullStmt());
+			//brofiler.stmts.push_back($$);
 			}
 
 	|	TOK_IF '(' expr ')' stmt TOK_ELSE stmt
 			{
 			set_location(@1, @4);
 			$$ = new IfStmt($3, $5, $7);
+			//brofiler.stmts.push_back($$);
 			}
 
 	|	TOK_SWITCH expr '{' case_list '}'
 			{
 			set_location(@1, @2);
 			$$ = new SwitchStmt($2, $4);
+			//brofiler.stmts.push_back($$);
 			}
 
 	|	for_head stmt
-			{ $1->AsForStmt()->AddBody($2); }
+			{
+			$1->AsForStmt()->AddBody($2);
+			//brofiler.stmts.push_back($1);
+			}
 
 	|	TOK_NEXT ';'
 			{
 			set_location(@1, @2);
 			$$ = new NextStmt;
+			brofiler.stmts.push_back($$);
 			}
 
 	|	TOK_BREAK ';'
 			{
 			set_location(@1, @2);
 			$$ = new BreakStmt;
+			brofiler.stmts.push_back($$);
 			}
 
 	|	TOK_RETURN ';'
 			{
 			set_location(@1, @2);
 			$$ = new ReturnStmt(0);
+			brofiler.stmts.push_back($$);
 			}
 
 	|	TOK_RETURN expr ';'
 			{
 			set_location(@1, @2);
 			$$ = new ReturnStmt($2);
+			brofiler.stmts.push_back($$);
 			}
 
 	|	TOK_ADD expr ';'
 			{
 			set_location(@1, @3);
 			$$ = new AddStmt($2);
+			brofiler.stmts.push_back($$);
 			}
 
 	|	TOK_DELETE expr ';'
 			{
 			set_location(@1, @3);
 			$$ = new DelStmt($2);
+			brofiler.stmts.push_back($$);
 			}
 
 	|	TOK_LOCAL local_id opt_type init_class opt_init opt_attr ';'
 			{
 			set_location(@1, @7);
 			$$ = add_local($2, $3, $4, $5, $6, VAR_REGULAR);
+			brofiler.stmts.push_back($$);
 			}
 
 	|	TOK_CONST local_id opt_type init_class opt_init opt_attr ';'
 			{
 			set_location(@1, @6);
 			$$ = add_local($2, $3, $4, $5, $6, VAR_CONST);
+			brofiler.stmts.push_back($$);
 			}
 
 	|	TOK_WHEN '(' expr ')' stmt
 			{
 			set_location(@3, @5);
 			$$ = new WhenStmt($3, $5, 0, 0, false);
+			brofiler.stmts.push_back($$);
 			}
 
 	|	TOK_WHEN '(' expr ')' stmt TOK_TIMEOUT expr '{' stmt_list '}'
 			{
 			set_location(@3, @8);
 			$$ = new WhenStmt($3, $5, $9, $7, false);
+			brofiler.stmts.push_back($$);
 			}
 
 
@@ -1424,18 +1444,21 @@ stmt:
 			{
 			set_location(@4, @6);
 			$$ = new WhenStmt($4, $6, 0, 0, true);
+			brofiler.stmts.push_back($$);
 			}
 
 	|	TOK_RETURN TOK_WHEN '(' expr ')' stmt TOK_TIMEOUT expr '{' stmt_list '}'
 			{
 			set_location(@4, @9);
 			$$ = new WhenStmt($4, $6, $10, $8, true);
+			brofiler.stmts.push_back($$);
 			}
 
 	|	expr ';'
 			{
 			set_location(@1, @2);
 			$$ = new ExprStmt($1);
+			brofiler.stmts.push_back($$);
 			}
 
 	|	';'

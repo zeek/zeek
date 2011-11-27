@@ -47,8 +47,11 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "ConnCompressor.h"
 #include "DPM.h"
 #include "BroDoc.h"
+#include "Brofiler.h"
 
 #include "binpac_bro.h"
+
+Brofiler brofiler;
 
 #ifndef HAVE_STRSEP
 extern "C" {
@@ -260,6 +263,8 @@ void terminate_bro()
 
 	terminating = true;
 
+	brofiler.WriteStats();
+
 	EventHandlerPtr bro_done = internal_handler("bro_done");
 	if ( bro_done )
 		mgr.QueueEvent(bro_done, new val_list);
@@ -335,6 +340,7 @@ static void bro_new_handler()
 
 int main(int argc, char** argv)
 	{
+	brofiler.ReadStats();
 	bro_argc = argc;
 	bro_argv = new char* [argc];
 

@@ -2231,12 +2231,12 @@ function send_current_packet%(p: event_peer%) : bool
 	return new Val(remote_serializer->SendPacket(&info, id, pkt), TYPE_BOOL);
 	%}
 
-function do_profiling%(%) : bool
+function do_profiling%(%) : any
 	%{
 	if ( profiling_logger )
 		profiling_logger->Log();
 
-	return new Val(1, TYPE_BOOL);
+	return 0;
 	%}
 
 function get_event_peer%(%) : event_peer
@@ -2279,10 +2279,10 @@ function send_capture_filter%(p: event_peer, s: string%) : bool
 	return new Val(remote_serializer->SendCaptureFilter(id, s->CheckString()), TYPE_BOOL);
 	%}
 
-function make_connection_persistent%(c: connection%) : bool
+function make_connection_persistent%(c: connection%) : any
 	%{
 	c->MakePersistent();
-	return new Val(1, TYPE_BOOL);
+	return 0;
 	%}
 
 function is_local_interface%(ip: addr%) : bool
@@ -2959,11 +2959,11 @@ function continue_processing%(%) : any
 
 # Schedule analyzer for a future connection.
 function expect_connection%(orig: addr, resp: addr, resp_p: port,
-				analyzer: count, tout: interval%) : bool
+				analyzer: count, tout: interval%) : any
 	%{
 	dpm->ExpectConnection(orig, resp, resp_p->Port(), resp_p->PortType(),
 				(AnalyzerTag::Tag) analyzer, tout, 0);
-	return new Val(1, TYPE_BOOL);
+	return 0;
 	%}
 
 # Disables the analyzer which raised the current event (if the analyzer

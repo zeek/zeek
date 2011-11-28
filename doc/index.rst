@@ -3,6 +3,8 @@
 Bro Documentation
 =================
 
+Documentation for version: |version|
+
 .. toctree::
    :maxdepth: 1
 

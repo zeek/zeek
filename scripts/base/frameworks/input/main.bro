@@ -58,28 +58,28 @@ module Input;
 
 #global filters: table[ID, string] of Filter;
 
-function create_stream(id: Log::ID, description: Input::StreamDescription) : bool
+function create_stream(id: Input::ID, description: Input::StreamDescription) : bool
 	{
 	return __create_stream(id, description);
 	}
 
-function remove_stream(id: Log::ID) : bool
+function remove_stream(id: Input::ID) : bool
 	{
 	return __remove_stream(id);
 	}
 
-function force_update(id: Log::ID) : bool
+function force_update(id: Input::ID) : bool
 	{
 	return __force_update(id);
 	}
 
-function add_tablefilter(id: Log::ID, filter: Input::TableFilter) : bool
+function add_tablefilter(id: Input::ID, filter: Input::TableFilter) : bool
 	{
 #	filters[id, filter$name] = filter;
 	return __add_tablefilter(id, filter);
 	}
 
-function remove_tablefilter(id: Log::ID, name: string) : bool
+function remove_tablefilter(id: Input::ID, name: string) : bool
 	{
 #	delete filters[id, name];
 	return __remove_tablefilter(id, name);

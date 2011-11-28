@@ -20,7 +20,7 @@
 module A;
 
 export {
-	redef enum Log::ID += { LOG };
+	redef enum Input::ID += { INPUT };
 }
 
 type Val: record {
@@ -36,7 +36,7 @@ event line(tpe: Input::Event, i: int, b: bool) {
 
 event bro_init()
 {
-	Input::create_stream(A::LOG, [$source="input.log"]);
-	Input::add_eventfilter(A::LOG, [$name="input", $fields=Val, $ev=line]);
-	Input::force_update(A::LOG);
+	Input::create_stream(A::INPUT, [$source="input.log"]);
+	Input::add_eventfilter(A::INPUT, [$name="input", $fields=Val, $ev=line]);
+	Input::force_update(A::INPUT);
 }

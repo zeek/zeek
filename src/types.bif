@@ -180,7 +180,6 @@ enum Event %{
 	EVENT_REMOVED,
 %}
 
-
 enum ID %{
 	Unknown,
 %}

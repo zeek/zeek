@@ -21,7 +21,7 @@ redef InputAscii::empty_field = "EMPTY";
 module A;
 
 export {
-	redef enum Log::ID += { LOG };
+	redef enum Input::ID += { INPUT };
 }
 
 type Idx: record {
@@ -38,13 +38,13 @@ global destination2: table[int] of Val = table();
 event bro_init()
 {
 	# first read in the old stuff into the table...
-	Input::create_stream(A::LOG, [$source="input.log"]);
-	Input::add_tablefilter(A::LOG, [$name="input", $idx=Idx, $val=Val, $destination=destination1, $want_record=F,
+	Input::create_stream(A::INPUT, [$source="input.log"]);
+	Input::add_tablefilter(A::INPUT, [$name="input", $idx=Idx, $val=Val, $destination=destination1, $want_record=F,
 				$pred(typ: Input::Event, left: Idx, right: bool) = { return right; }
 				]);
-	Input::add_tablefilter(A::LOG, [$name="input2",$idx=Idx, $val=Val, $destination=destination2]);
+	Input::add_tablefilter(A::INPUT, [$name="input2",$idx=Idx, $val=Val, $destination=destination2]);
 	
-	Input::force_update(A::LOG);
+	Input::force_update(A::INPUT);
 	if ( 1 in destination1 ) {
 		print "VALID";
 	}

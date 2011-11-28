@@ -46,6 +46,12 @@ Script Reference
 Other Bro Components
 --------------------
 
+The following are snapshots of documentation for components that come
+with this version of Bro (|version|). Since they can also be used
+independently, see the `download page
+<http://bro-ids.org/download/index.html>`_ for documentation of any
+current, independent component releases.
+
 .. toctree::
    :maxdepth: 1
 

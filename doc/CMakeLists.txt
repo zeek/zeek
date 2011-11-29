@@ -51,6 +51,8 @@ add_custom_target(broxygen
                   COMMAND "${CMAKE_COMMAND}" -E create_symlink
                           ${DOC_OUTPUT_DIR}/html
                           ${CMAKE_BINARY_DIR}/html
+                  # copy Broccoli API reference into output dir if it exists
+                  COMMAND test -d ${CMAKE_BINARY_DIR}/aux/broccoli/doc/html && ( rm -rf ${CMAKE_BINARY_DIR}/html/broccoli-api && cp -r ${CMAKE_BINARY_DIR}/aux/broccoli/doc/html ${CMAKE_BINARY_DIR}/html/broccoli-api ) || true
                   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
                   COMMENT "[Sphinx] Generating HTML policy script docs"
                   # SOURCES just adds stuff to IDE projects as a convenience

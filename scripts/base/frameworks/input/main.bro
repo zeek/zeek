@@ -4,6 +4,8 @@
 module Input;
 
 export {
+	redef enum Input::ID += { TABLE_READ };
+	
 	## The default input reader used. Defaults to `READER_ASCII`.
 	const default_reader = READER_ASCII &redef;
 
@@ -27,7 +29,8 @@ export {
 		## Record that defines the values used as the index of the table
 		idx: any;
 		## Record that defines the values used as the values of the table
-		val: any;
+		## If val is undefined, destination has to be a set.
+		val: any &optional;
 		## Defines if the value of the table is a record (default), or a single value.
 		## Val can only contain one element when this is set to false.
 		want_record: bool &default=T;
@@ -102,6 +105,14 @@ export {
 	## name: the name of the filter to be removed.
 	global remove_eventfilter: function(id: Input::ID, name: string) : bool;
 	#global get_filter: function(id: ID, name: string) : Filter;
+	
+	## Convenience function for reading a specific input source exactly once using 
+	## exactly one tablefilter
+	##
+	## id: `Input::ID` enum value identifying the stream
+	## description: `StreamDescription` record describing the source.
+	## filter: the `TableFilter` record describing the filter.	
+	global read_table: function(description: Input::StreamDescription, filter: Input::TableFilter) : bool;
 
 }
 
@@ -150,6 +161,27 @@ function remove_eventfilter(id: Input::ID, name: string) : bool
 #	delete filters[id, name];
 	return __remove_eventfilter(id, name);
 	}
+
+function read_table(description: Input::StreamDescription, filter: Input::TableFilter) : bool {
+	local ok: bool = T;
+	# since we create and delete it ourselves this should be ok... at least for singlethreaded operation
+	local id: Input::ID = Input::TABLE_READ;
+
+	ok = create_stream(id, description);
+	if ( ok ) {
+		ok = add_tablefilter(id, filter);
+	}
+	if ( ok ) {
+		ok = force_update(id);
+	}
+	if ( ok ) {
+		ok = remove_stream(id);
+	} else {
+		remove_stream(id);
+	}
+
+	return ok;
+}
 
 #function get_filter(id: ID, name: string) : Filter
 #	{

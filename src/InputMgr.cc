@@ -86,7 +86,8 @@ InputMgr::Filter::~Filter() {
 InputMgr::TableFilter::~TableFilter() {
 	Unref(tab);
 	Unref(itype);
-	Unref(rtype);
+	if ( rtype ) // can be 0 for sets
+		Unref(rtype);
 
 	delete currDict;
 	delete lastDict;
@@ -110,6 +111,7 @@ InputMgr::ReaderInfo::~ReaderInfo() {
 
 	while ( it != filters.end() ) {
 		delete (*it).second; 
+		++it;
 	}
 
 	Unref(type);
@@ -354,7 +356,10 @@ bool InputMgr::AddTableFilter(EnumVal *id, RecordVal* fval) {
 	Val* pred = fval->Lookup(rtype->FieldOffset("pred"));
 
 	RecordType *idx = fval->Lookup(rtype->FieldOffset("idx"))->AsType()->AsTypeType()->Type()->AsRecordType();
-	RecordType *val = fval->Lookup(rtype->FieldOffset("val"))->AsType()->AsTypeType()->Type()->AsRecordType();
+	RecordType *val = 0;
+	if ( fval->Lookup(rtype->FieldOffset("val")) != 0 ) {
+		val = fval->Lookup(rtype->FieldOffset("val"))->AsType()->AsTypeType()->Type()->AsRecordType();
+	}
 	TableVal *dst = fval->Lookup(rtype->FieldOffset("destination"))->AsTableVal();
 
 	Val *want_record = fval->LookupWithDefault(rtype->FieldOffset("want_record"));
@@ -408,8 +413,13 @@ bool InputMgr::AddTableFilter(EnumVal *id, RecordVal* fval) {
 
 	int idxfields = fieldsV.size();
 	
-	status = status || !UnrollRecordType(&fieldsV, val, "");
+	if ( val ) // if we are not a set
+		status = status || !UnrollRecordType(&fieldsV, val, "");
+
 	int valfields = fieldsV.size() - idxfields;
+
+	if ( !val )
+		assert(valfields == 0);
 
 	if ( status ) {
 		reporter->Error("Problem unrolling");
@@ -429,7 +439,7 @@ bool InputMgr::AddTableFilter(EnumVal *id, RecordVal* fval) {
 	filter->num_idx_fields = idxfields;
 	filter->num_val_fields = valfields;
 	filter->tab = dst->Ref()->AsTableVal();
-	filter->rtype = val->Ref()->AsRecordType();
+	filter->rtype = val ? val->Ref()->AsRecordType() : 0;
 	filter->itype = idx->Ref()->AsRecordType();
 	filter->event = event ? event_registry->Lookup(event->GetID()->Name()) : 0;
 	filter->currDict = new PDict(InputHash);
@@ -681,7 +691,10 @@ void InputMgr::SendEntryTable(const InputReader* reader, int id, const LogVal* c
 	HashKey* idxhash = HashLogVals(filter->num_idx_fields, vals);
 	//reporter->Error("Result: %d", (uint64_t) idxhash->Hash());
 	//reporter->Error("Hashing %d val fields", i->num_val_fields);
-	HashKey* valhash = HashLogVals(filter->num_val_fields, vals+filter->num_idx_fields);
+	HashKey* valhash = 0;
+	if ( filter->num_val_fields > 0 ) 
+		HashLogVals(filter->num_val_fields, vals+filter->num_idx_fields);
+
 	//reporter->Error("Result: %d", (uint64_t) valhash->Hash());
 	
 	//reporter->Error("received entry with idxhash %d and valhash %d", (uint64_t) idxhash->Hash(), (uint64_t) valhash->Hash());
@@ -689,12 +702,13 @@ void InputMgr::SendEntryTable(const InputReader* reader, int id, const LogVal* c
 	InputHash *h = filter->lastDict->Lookup(idxhash);
 	if ( h != 0 ) {
 		// seen before
-		if ( h->valhash->Hash() == valhash->Hash() ) {
-			// ok, double.
+		if ( filter->num_val_fields == 0 || h->valhash->Hash() == valhash->Hash() ) {
+			// ok, exact duplicate
 			filter->lastDict->Remove(idxhash);
 			filter->currDict->Insert(idxhash, h);
 			return;
 		} else {
+			assert( filter->num_val_fields > 0 );
 			// updated
 			filter->lastDict->Remove(idxhash);
 			delete(h);
@@ -708,7 +722,9 @@ void InputMgr::SendEntryTable(const InputReader* reader, int id, const LogVal* c
 	Val* valval;
 	
 	int position = filter->num_idx_fields;
-	if ( filter->num_val_fields == 1 && !filter->want_record ) {
+	if ( filter->num_val_fields == 0 ) {
+		valval = 0;
+	} else if ( filter->num_val_fields == 1 && !filter->want_record ) {
 		valval = LogValToVal(vals[position], filter->rtype->FieldType(0));
 	} else {
 		RecordVal * r = new RecordVal(filter->rtype);
@@ -732,8 +748,9 @@ void InputMgr::SendEntryTable(const InputReader* reader, int id, const LogVal* c
 
 	Val* oldval = 0;
 	if ( updated == true ) {
-			// in that case, we need the old value to send the event (if we send an event).
-			oldval = filter->tab->Lookup(idxval);
+		assert(filter->num_val_fields > 0);
+		// in that case, we need the old value to send the event (if we send an event).
+		oldval = filter->tab->Lookup(idxval);
 	}
 
 
@@ -749,10 +766,12 @@ void InputMgr::SendEntryTable(const InputReader* reader, int id, const LogVal* c
 			ev = new EnumVal(BifEnum::Input::EVENT_NEW, BifType::Enum::Input::Event);
 		}
 		
-		val_list vl(3);
+		val_list vl( 2 + (filter->num_val_fields > 0) ); // 2 if we don't have values, 3 otherwise.
 		vl.append(ev);
 		vl.append(idxval);
-		vl.append(valval);
+		if ( filter->num_val_fields > 0 )
+			vl.append(valval);
+
 		Val* v = filter->pred->Call(&vl);
 		bool result = v->AsBool();
 		Unref(v);
@@ -794,6 +813,7 @@ void InputMgr::SendEntryTable(const InputReader* reader, int id, const LogVal* c
 		Ref(idxval);
 
 		if ( updated ) { // in case of update send back the old value.
+			assert ( filter->num_val_fields > 0 );
 			ev = new EnumVal(BifEnum::Input::EVENT_CHANGED, BifType::Enum::Input::Event);
 			assert ( oldval != 0 );
 			Ref(oldval);
@@ -801,7 +821,11 @@ void InputMgr::SendEntryTable(const InputReader* reader, int id, const LogVal* c
 		} else {
 			ev = new EnumVal(BifEnum::Input::EVENT_NEW, BifType::Enum::Input::Event);
 			Ref(valval);
-			SendEvent(filter->event, 3, ev, idxval, valval);
+			if ( filter->num_val_fields == 0 ) {
+				SendEvent(filter->event, 3, ev, idxval);
+			} else {
+				SendEvent(filter->event, 3, ev, idxval, valval);
+			}
 		}
 	} 
 }
@@ -963,7 +987,9 @@ void InputMgr::PutTable(const InputReader* reader, int id, const LogVal* const *
 	Val* valval;
 	
 	int position = filter->num_idx_fields;
-	if ( filter->num_val_fields == 1 && !filter->want_record ) {
+	if ( filter->num_val_fields == 0 ) {
+		valval = 0;
+	} else if ( filter->num_val_fields == 1 && !filter->want_record ) {
 		valval = LogValToVal(vals[filter->num_idx_fields], filter->rtype->FieldType(filter->num_idx_fields));
 	} else {
 		RecordVal * r = new RecordVal(filter->rtype);

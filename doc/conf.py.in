@@ -99,7 +99,7 @@ html_last_updated_fmt = '%B %d, %Y'
 # documentation.
 html_theme_options = {
 "rightsidebar": "true",
-"stickysidebar": "true",
+"stickysidebar": "false",
 "externalrefs": "false",
 "footerbgcolor": "#333",
 "footertextcolor": "#ddd",

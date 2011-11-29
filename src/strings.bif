@@ -10,6 +10,12 @@ using namespace std;
 %%}
 
 
+## Concates all arguments into a single string. The function takes a variable
+## number of arguments of type string and stiches them together.
+##
+## Returns: The concatenation of all (string) arguments.
+##
+## see:: cat cat_string_array cat_string_array_n fmt join_string_vec join_string_array
 function string_cat%(...%): string
 	%{
 	int n = 0;
@@ -73,18 +79,44 @@ BroString* cat_string_array_n(TableVal* tbl, int start, int end)
 	}
 %%}
 
+## Concatenates all elements in an array of strings.
+##
+## a: The :bro:id:`string_array` (``table[count] of string``).
+##
+## Returns: The concatenation of all elements in *a*.
+##
+## see:: cat string_cat cat_string_array_n fmt join_string_vec join_string_array
 function cat_string_array%(a: string_array%): string
 	%{
 	TableVal* tbl = a->AsTableVal();
 	return new StringVal(cat_string_array_n(tbl, 1, a->AsTable()->Length()));
 	%}
 
+## Concatenates a specific range of elements in an array of strings.
+##
+## a: The :bro:id:`string_array` (``table[count] of string``).
+## start: The array index of the first element of the range.
+## end: The array index of the last element of the range.
+##
+## Returns: The concatenation of the range *[start, end]* in *a*.
+##
+## see:: cat string_cat cat_string_array_n fmt join_string_vec join_string_array
 function cat_string_array_n%(a: string_array, start: count, end: count%): string
 	%{
 	TableVal* tbl = a->AsTableVal();
 	return new StringVal(cat_string_array_n(tbl, start, end));
 	%}
 
+## Joins all values in the given array of strings with a separator placed
+## between each element.
+##
+## sep: The separator to place between each element.
+## a: The :bro:id:`string_array` (``table[count] of string``).
+##
+## Returns: The concatenation of all elements in *a*, with *sep* placed
+##          between each element.
+##
+## see:: cat string_cat cat_string_array_n fmt join_string_vec join_string_array
 function join_string_array%(sep: string, a: string_array%): string
 	%{
 	vector<const BroString*> vs;
@@ -108,6 +140,42 @@ function join_string_array%(sep: string, a: string_array%): string
 	return new StringVal(concatenate(vs));
 	%}
 
+## Joins all values in the given vector of strings with a separator placed
+## between each element.
+##
+## sep: The separator to place between each element.
+## a: The :bro:id:`string_vec` (``vector of string``).
+##
+## Returns: The concatenation of all elements in *a*, with *sep* placed
+##          between each element.
+##
+## see:: cat string_cat cat_string_array_n fmt join_string_vec join_string_array
+function join_string_vec%(vec: string_vec, sep: string%): string
+	%{
+	ODesc d;
+	VectorVal *v = vec->AsVectorVal();
+
+	for ( unsigned i = 0; i < v->Size(); ++i )
+		{
+		if ( i > 0 )
+			d.Add(sep->CheckString(), 0);
+
+		v->Lookup(i+1)->Describe(&d);
+		}
+
+	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
+	s->SetUseFreeToDelete(true);
+
+	return new StringVal(s);
+	%}
+
+## Sorts an array of strings.
+##
+## a: The :bro:id:`string_array` (``table[count] of string``).
+##
+## Returns: A sorted copy of *a*.
+##
+## see:: sort
 function sort_string_array%(a: string_array%): string_array
 	%{
 	TableVal* tbl = a->AsTableVal();
@@ -132,25 +200,6 @@ function sort_string_array%(a: string_array%): string_array
 	TableVal* b = new TableVal(internal_type("string_array")->AsTableType());
 	vs_to_string_array(vs, b, 1, n);
 	return b;
-	%}
-	
-function join_string_vec%(vec: string_vec, sep: string%): string
-	%{
-	ODesc d;
-	VectorVal *v = vec->AsVectorVal();
-
-	for ( unsigned i = 0; i < v->Size(); ++i )
-		{
-		if ( i > 0 )
-			d.Add(sep->CheckString(), 0);
-
-		v->Lookup(i+1)->Describe(&d);
-		}
-
-	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
-	s->SetUseFreeToDelete(true);
-
-	return new StringVal(s);
 	%}
 
 

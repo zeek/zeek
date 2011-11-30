@@ -4222,7 +4222,7 @@ event ssl_alert%(c: connection, level: count, desc: count%);
 ##            of.
 ##
 ## der_cert: The complete cert encoded in `DER
-##           inguished_Encoding_Rules<http://en.wikipedia.org/wiki/Dist>`__ format.
+##           <http://en.wikipedia.org/wiki/Distinguished_Encoding_Rules>`__ format.
 ##
 ## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_extension
 ##    ssl_server_hello  x509_error x509_extension x509_verify

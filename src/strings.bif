@@ -265,7 +265,7 @@ function edit%(arg_s: string, arg_edit_char: string%): string
 	return new StringVal(new BroString(1, byte_vec(new_s), ind));
 	%}
 
-## Returns the number of characters (i.e., bytes) in the given string. The
+## Returns the number of characters (bytes) in the given string. The
 ## length computation includes any embedded NULs, and also a trailing NUL,
 ## if any (which is why the function isn't called ``strlen``; to remind
 ## the user that Bro strings can include NULs).
@@ -517,8 +517,8 @@ function split1%(str: string, re: pattern%): string_array
 ## re: The pattern describing the element separator in *str*.
 ##
 ## Returns: An array of strings where each two successive elements correspond
-## to a substring in *str* of the part not matching *re* (odd-indexed) and the
-## part that matches *re* (even-indexed).
+##          to a substring in *str* of the part not matching *re* (odd-indexed)
+##          and thei part that matches *re* (even-indexed).
 ##
 ## .. bro:see:: split split1 split_n str_split
 function split_all%(str: string, re: pattern%): string_array
@@ -685,7 +685,8 @@ function subst_string%(s: string, from: string, to: string%): string
 ## str: The string to convert to lowercase letters.
 ##
 ## Returns: A copy of the given string with the uppercase letters (as indicated
-## by ``isascii`` and \verb|isupper|``) folded to lowercase (via ``tolower``).
+##          by ``isascii`` and \verb|isupper|``) folded to lowercase
+##          (via ``tolower``).
 ##
 ## .. bro:see:: to_upper is_ascii
 function to_lower%(str: string%): string
@@ -713,7 +714,8 @@ function to_lower%(str: string%): string
 ## str: The string to convert to uppercase letters.
 ##
 ## Returns: A copy of the given string with the lowercase letters (as indicated
-## by ``isascii`` and \verb|islower|``) folded to uppercase (via ``toupper``).
+##          by ``isascii`` and \verb|islower|``) folded to uppercase
+##          (via ``toupper``).
 ##
 ## .. bro:see:: to_lower is_ascii
 function to_upper%(str: string%): string
@@ -829,9 +831,8 @@ function string_to_ascii_hex%(s: string%): string
 	return new StringVal(new BroString(1, (u_char*) x, s->Len() * 2));
 	%}
 
-## Uses the `Smith Waterman algorithm
-## <http://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm>`_ to find
-## similar/overlapping substrings.
+## Uses the Smith Waterman algorithm to find similar/overlapping substrings.
+## See `Wikipedia <http://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm>`_.
 ##
 ## s1: The first string.
 ##

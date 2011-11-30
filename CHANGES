@@ -1,4 +1,9 @@
 
+2.0-beta-69 | 2011-11-29 16:55:31 -0800
+
+  * Fixing ASCII logger to escape the unset-field place holder if
+    written out literally. (Robin Sommer)
+
 2.0-beta-68 | 2011-11-29 15:23:12 -0800
 
   * Lots of documentation polishing. (Jon Siwek)

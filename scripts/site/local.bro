@@ -66,6 +66,7 @@ redef signature_files += "frameworks/signatures/detect-windows-shells.sig";
 # Uncomment this redef if you want to extract SMTP MIME entities for 
 # some file types.  The numbers given indicate how many bytes to extract for
 # the various mime types.
+@load base/protocols/smtp/entities-excerpt
 redef SMTP::entity_excerpt_len += {
 #	["text/plain"] = 1024,
 #	["text/html"] = 1024,

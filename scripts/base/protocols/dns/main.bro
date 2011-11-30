@@ -6,26 +6,26 @@ export {
 	redef enum Log::ID += { LOG };
 	
 	type Info: record {
-		ts:            time            &log;
-		uid:           string          &log;
-		id:            conn_id         &log;
-		proto:         transport_proto &log;
-		trans_id:      count           &log &optional;
-		query:         string          &log &optional;
-		qclass:        count           &log &optional;
-		qclass_name:   string          &log &optional;
-		qtype:         count           &log &optional;
-		qtype_name:    string          &log &optional;
-		rcode:         count           &log &optional;
-		rcode_name:    string          &log &optional;
-		QR:            bool            &log &default=F;
-		AA:            bool            &log &default=F;
-		TC:            bool            &log &default=F;
-		RD:            bool            &log &default=F;
-		RA:            bool            &log &default=F;
-		Z:             count           &log &default=0;
-		TTL:           interval        &log &optional;
-		answers:       set[string]     &log &optional;
+		ts:            time               &log;
+		uid:           string             &log;
+		id:            conn_id            &log;
+		proto:         transport_proto    &log;
+		trans_id:      count              &log &optional;
+		query:         string             &log &optional;
+		qclass:        count              &log &optional;
+		qclass_name:   string             &log &optional;
+		qtype:         count              &log &optional;
+		qtype_name:    string             &log &optional;
+		rcode:         count              &log &optional;
+		rcode_name:    string             &log &optional;
+		QR:            bool               &log &default=F;
+		AA:            bool               &log &default=F;
+		TC:            bool               &log &default=F;
+		RD:            bool               &log &default=F;
+		RA:            bool               &log &default=F;
+		Z:             count              &log &default=0;
+		answers:       vector of string   &log &optional;
+		TTLs:          vector of interval &log &optional;
 		
 		## This value indicates if this request/response pair is ready to be logged.
 		ready:         bool            &default=F;
@@ -102,7 +102,13 @@ function new_session(c: connection, trans_id: count): Info
 function set_session(c: connection, msg: dns_msg, is_query: bool)
 	{
 	if ( ! c?$dns_state || msg$id !in c$dns_state$pending )
+		{
 		c$dns_state$pending[msg$id] = new_session(c, msg$id);
+		# Try deleting this transaction id from the set of finished answers.
+		# Sometimes hosts will reuse ports and transaction ids and this should
+		# be considered to be a legit scenario (although bad practice).
+		delete c$dns_state$finished_answers[msg$id];
+		}
 		
 	c$dns = c$dns_state$pending[msg$id];
 
@@ -136,7 +142,10 @@ event DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string)
 
 	c$dns$AA    = msg$AA;
 	c$dns$RA    = msg$RA;
-	c$dns$TTL   = ans$TTL;
+	
+	if ( ! c$dns?$TTLs )
+		c$dns$TTLs = vector();
+	c$dns$TTLs[|c$dns$TTLs|] = ans$TTL;
 
 	if ( ans$answer_type == DNS_ANS )
 		{
@@ -146,8 +155,8 @@ event DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string)
 		if ( reply != "" )
 			{
 			if ( ! c$dns?$answers )
-				c$dns$answers = set();
-			add c$dns$answers[reply];
+				c$dns$answers = vector();
+			c$dns$answers[|c$dns$answers|] = reply;
 			}
 		
 		if ( c$dns?$answers && |c$dns$answers| == c$dns$total_answers )
@@ -164,7 +173,6 @@ event DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string)
 	if ( c$dns$ready )
 		{
 		Log::write(DNS::LOG, c$dns);
-		add c$dns_state$finished_answers[c$dns$trans_id];
 		# This record is logged and no longer pending.
 		delete c$dns_state$pending[c$dns$trans_id];
 		}

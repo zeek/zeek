@@ -2,6 +2,7 @@
 
 {% block extrahead %}
 <link rel="stylesheet" type="text/css" href="http://www.bro-ids.org/css/bro-ids.css" />
+<link rel="stylesheet" type="text/css" href="http://www.bro-ids.org/css/960.css" />
 <link rel="stylesheet" type="text/css" href="http://www.bro-ids.org/css/pygments.css" />
 <link rel="stylesheet" type="text/css" href="{{ pathto('_static/broxygen-extra.css', 1) }}"></script>
 <script type="text/javascript" src="{{ pathto('_static/download.js', 1) }}"></script>
@@ -14,6 +15,14 @@
 
 {% block relbar2 %}{% endblock %}
 {% block relbar1 %}{% endblock %}
+
+{% block content %}
+<div id="bro-main" class="clearfix">
+    <div class="container_12">
+        {{ super() }}
+    </div>
+</div>
+{% endblock %}
 
 {% block footer %}
 {{ super() }}

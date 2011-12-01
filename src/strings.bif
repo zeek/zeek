@@ -15,7 +15,7 @@ using namespace std;
 ##
 ## Returns: The concatenation of all (string) arguments.
 ##
-## .. bro:see:: cat cat_string_array cat_string_array_n
+## .. bro:see:: cat cat_sep cat_string_array cat_string_array_n
 ##              fmt
 ##              join_string_vec join_string_array
 function string_cat%(...%): string
@@ -87,7 +87,7 @@ BroString* cat_string_array_n(TableVal* tbl, int start, int end)
 ##
 ## Returns: The concatenation of all elements in *a*.
 ##
-## .. bro:see:: cat string_cat cat_string_array_n
+## .. bro:see:: cat cat_sep string_cat cat_string_array_n
 ##              fmt
 ##              join_string_vec join_string_array
 function cat_string_array%(a: string_array%): string
@@ -125,7 +125,7 @@ function cat_string_array_n%(a: string_array, start: count, end: count%): string
 ## Returns: The concatenation of all elements in *a*, with *sep* placed
 ##          between each element.
 ##
-## .. bro:see:: cat string_cat cat_string_array cat_string_array_n
+## .. bro:see:: cat cat_sep string_cat cat_string_array cat_string_array_n
 ##              fmt
 ##              join_string_vec
 function join_string_array%(sep: string, a: string_array%): string
@@ -161,7 +161,7 @@ function join_string_array%(sep: string, a: string_array%): string
 ## Returns: The concatenation of all elements in *a*, with *sep* placed
 ##          between each element.
 ##
-## .. bro:see:: cat string_cat cat_string_array cat_string_array_n
+## .. bro:see:: cat cat_sep string_cat cat_string_array cat_string_array_n
 ##              fmt
 ##              join_string_array
 function join_string_vec%(vec: string_vec, sep: string%): string

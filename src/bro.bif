@@ -317,6 +317,12 @@ static int next_fmt(const char*& fmt, val_list* args, ODesc* d, int& n)
 	}
 %%}
 
+## Returns the number of elements in a container. This function works with all
+## container types, i.e., sets, tables, and vectors.
+##
+## v: The container whose elements are counted.
+##
+## Returns: The number of elements in *v*.
 function length%(v: any%): count
 	%{
 	TableVal* tv = v->Type()->Tag() == TYPE_TABLE ? v->AsTableVal() : 0;
@@ -334,11 +340,25 @@ function length%(v: any%): count
 		}
 	%}
 
+## Checks whether two objects reference the same internal object. This function
+## uses equality comparison of C++ raw pointer values to determine if the two
+## objects are the same.
+##
+## o1: The first object.
+##
+## o2: The second object.
+##
+## Returns: True if *o1* and *o2* are equal.
 function same_object%(o1: any, o2: any%): bool
 	%{
 	return new Val(o1 == o2, TYPE_BOOL);
 	%}
 
+## Removes all elements from a set or table.
+##
+## v: The set or table
+##
+## Returns: The cleared set/table or 0 if *v* is not a set/table type.
 function clear_table%(v: any%): any
 	%{
 	if ( v->Type()->Tag() == TYPE_TABLE )
@@ -349,6 +369,11 @@ function clear_table%(v: any%): any
 	return 0;
 	%}
 
+## Returns the concatenation of the string representation of its arguments. The
+## arguments can be of any type. For example, ``cat("foo", 3, T)`` returns
+## ``"foo3T"``.
+##
+## Returns: A string concatentation of all arguments.
 function cat%(...%): string
 	%{
 	ODesc d;
@@ -361,6 +386,12 @@ function cat%(...%): string
 	return new StringVal(s);
 	%}
 
+## Converts a record type name into a vector of strings, where each element is
+## the name of a record field. Nested records are flattened.
+##
+## rt: The name of the record type.
+##
+## Returns: A string vector with the field names of *rt*.
 function record_type_to_vector%(rt: string%): string_vec
 	%{
 	VectorVal* result =
@@ -380,7 +411,19 @@ function record_type_to_vector%(rt: string%): string_vec
 	return result;
 	%}
 
-
+## Concatenates all arguments, with a separator placed between each one. This
+## function is similar to :bro:id:`cat`, but places a separator between each
+## given argument. If any of the variable arguments is an empty string it is
+## replaced by a given default string instead.
+##
+## sep: The separator to place betwen each argument.
+##
+## def: The default string to use when an argument is the empty string.
+##
+## Returns: A concatenation of all arguments with *sep* between each one and
+##          empty strings replaced with *def*.
+##
+## .. bro:see:: cat string_cat cat_string_array cat_string_array_n
 function cat_sep%(sep: string, def: string, ...%): string
 	%{
 	ODesc d;
@@ -408,6 +451,46 @@ function cat_sep%(sep: string, def: string, ...%): string
 	return new StringVal(s);
 	%}
 
+## Produces a formatted string à la ``printf``. The first argument is the
+## *format string* and specifies how subsequent arguments are converted for
+## output. It is composed of zero or more directives: ordinary characters (not
+## ``%``), which are copied unchanged to the output, and conversion
+## specifications, each of which fetches zero or more subsequent arguments.
+## Conversion specifications begin with ``%`` and the arguments must properly
+## correspond to the specifier. After the ``%``, the following characters
+## may appear in sequence:
+##
+##    - ``%``: Literal ``%``
+##
+##    - ``-``: Left-align field
+##
+##    - ``[0-9]+``: The field width (< 128)
+##
+##    - ``.``: Precision of floating point specifiers ``[efg]`` (< 128)
+##
+##    - ``A``: Escape NUL bytes, i.e., replace ``0`` with ``\0``
+##
+##    - ``[DTdxsefg]``: Format specifier
+##
+##        - ``[DT]``: ISO timestamp with microsecond precision
+##
+##        - ``d``: Signed/Unsigned integer (using C-style ``%lld|``/``%llu``
+##                 for ``int``/``count``)
+##
+##        - ``x``: Unsigned hexadecimal (using C-style ``%llx``);
+##                 addresses/ports are converted to host-byte order
+##
+##        - ``s``: Escaped string
+##
+##        - ``[efg]``: Double
+##
+## Returns: Given no arguments, :bro:id:`fmt` returns an empty string. Given a
+##          non-string first argument, :bro:id:`fmt` returns the concatenation
+##          of all its arguments, per :bro:id:`cat`. Finally, given the wrong
+##          number of additional arguments for the given format specifier,
+##          :bro:id:`fmt` generates a run-time error.
+##
+## .. bro:see:: cat cat_sep string_cat cat_string_array cat_string_array_n
 function fmt%(...%): string
 	%{
 	if ( @ARGC@ == 0 )
@@ -436,6 +519,12 @@ function fmt%(...%): string
 	return new StringVal(s);
 	%}
 
+
+## Returns the type name of an arbitrary Bro variable.
+##
+## t: An arbitrary object.
+##
+## Returns: The type name of *t*.
 function type_name%(t: any%): string
 	%{
 	ODesc d;
@@ -447,6 +536,11 @@ function type_name%(t: any%): string
 	return new StringVal(s);
 	%}
 
+## Converts a string into a (signed) integer.
+##
+## str: The string to convert.
+##
+## Returns: The string *str* as ``int``.
 function to_int%(str: string%): int
 	%{
 	const char* s = str->CheckString();
@@ -465,6 +559,12 @@ function to_int%(str: string%): int
 	return new Val(i, TYPE_INT);
 	%}
 
+
+## Converts a positive integer into a ``count``.
+##
+## n: The integer to convert.
+##
+## Returns: The int *n* as unsigned integer or 0 if *n* < 0.
 function int_to_count%(n: int%): count
 	%{
 	if ( n < 0 )
@@ -791,9 +891,9 @@ function getenv%(var: string%): string
 
 function setenv%(var: string, val: string%): bool
 	%{
-	int result = setenv(var->AsString()->CheckString(), 
+	int result = setenv(var->AsString()->CheckString(),
 	                    val->AsString()->CheckString(), 1);
-	
+
 	if ( result < 0 )
 		return new Val(0, TYPE_BOOL);
 	return new Val(1, TYPE_BOOL);

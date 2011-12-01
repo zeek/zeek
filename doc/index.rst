@@ -41,7 +41,6 @@ Script Reference
 .. toctree::
    :maxdepth: 1
 
-   scripts/common
    scripts/builtins
    scripts/bifs
    scripts/packages

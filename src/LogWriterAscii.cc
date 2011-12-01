@@ -88,7 +88,7 @@ bool LogWriterAscii::DoInit(string path, int num_fields,
 	if ( output_to_stdout )
 		path = "/dev/stdout";
 
-	fname = IsSpecial(path) ? path : path + ".log";
+	fname = IsSpecial(path) ? path : path + "." + LogExt();
 
 	if ( ! (file = fopen(fname.c_str(), "w")) )
 		{
@@ -320,7 +320,7 @@ bool LogWriterAscii::DoRotate(string rotated_path, double open,
 	fclose(file);
 	file = 0;
 
-	string nname = rotated_path + ".log";
+	string nname = rotated_path + "." + LogExt();
 	rename(fname.c_str(), nname.c_str());
 
 	if ( ! FinishedRotation(nname, fname, open, close, terminating) )
@@ -338,4 +338,9 @@ bool LogWriterAscii::DoSetBuf(bool enabled)
 	return true;
 	}
 
-
+string LogWriterAscii::LogExt()
+	{
+	const char* ext = getenv("BRO_LOG_SUFFIX");
+	if ( ! ext ) ext = "log";
+	return ext;
+	}

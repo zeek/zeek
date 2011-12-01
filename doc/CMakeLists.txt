@@ -60,16 +60,16 @@ add_custom_target(broxygen
 
 # The "sphinxclean" target removes just the Sphinx input/output directories
 # from the build directory.
-add_custom_target(broxygen-clean
+add_custom_target(broxygenclean
                   COMMAND "${CMAKE_COMMAND}" -E remove_directory
                           ${DOC_SOURCE_WORKDIR}
                   COMMAND "${CMAKE_COMMAND}" -E remove_directory
                           ${DOC_OUTPUT_DIR}
                   VERBATIM)
 
-add_dependencies(broxygen broxygen-clean restdoc)
+add_dependencies(broxygen broxygenclean restdoc)
 
 add_custom_target(doc)
 add_custom_target(docclean)
 add_dependencies(doc broxygen)
-add_dependencies(docclean broxygen-clean restclean)
+add_dependencies(docclean broxygenclean restclean)

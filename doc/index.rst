@@ -1,9 +1,11 @@
 .. Bro documentation master file
 
+=================
 Bro Documentation
 =================
 
-Documentation for version: |version|
+Guides
+------
 
 .. toctree::
    :maxdepth: 1

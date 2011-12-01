@@ -1,0 +1,5 @@
+#separator \x09
+#path	test
+#fields	x	y	z
+#types	string	string	string
+\x2d	-	-

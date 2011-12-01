@@ -1,4 +1,25 @@
 
+2.0-beta-69 | 2011-11-29 16:55:31 -0800
+
+  * Fixing ASCII logger to escape the unset-field place holder if
+    written out literally. (Robin Sommer)
+
+2.0-beta-68 | 2011-11-29 15:23:12 -0800
+
+  * Lots of documentation polishing. (Jon Siwek)
+
+  * Teach Broxygen the ".. bro:see::" directive. (Jon Siwek)
+
+  * Teach Broxygen :bro:see: role for referencing any identifier in
+    the Bro domain. (Jon Siwek)
+
+  * Teach Broxygen to generate an index of Bro notices. (Jon Siwek)
+
+  * Fix order of include directories. (Jon Siwek)
+
+  * Catch if logged vectors do not contain only atomic types.
+    (Bernhard Amann)
+
 2.0-beta-47 | 2011-11-16 08:24:33 -0800
 
   * Catch if logged sets do not contain only atomic types. (Bernhard

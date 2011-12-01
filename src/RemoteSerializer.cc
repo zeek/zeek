@@ -2923,23 +2923,33 @@ void RemoteSerializer::Log(LogLevel level, const char* msg)
 void RemoteSerializer::Log(LogLevel level, const char* msg, Peer* peer,
 				LogSrc src)
 	{
+	if ( peer )
+		{
+		val_list* vl = new val_list();
+		vl->append(peer->val->Ref());
+		vl->append(new Val(level, TYPE_COUNT));
+		vl->append(new Val(src, TYPE_COUNT));
+		vl->append(new StringVal(msg));
+		mgr.QueueEvent(remote_log_peer, vl);
+		}
+	else
+		{
+		val_list* vl = new val_list();
+		vl->append(new Val(level, TYPE_COUNT));
+		vl->append(new Val(src, TYPE_COUNT));
+		vl->append(new StringVal(msg));
+		mgr.QueueEvent(remote_log, vl);
+		}
+
 	const int BUFSIZE = 1024;
 	char buffer[BUFSIZE];
-
 	int len = 0;
 
 	if ( peer )
-		len += snprintf(buffer + len, sizeof(buffer) - len,
-				"[#%d/%s:%d] ", int(peer->id), ip2a(peer->ip),
-				peer->port);
+		len += snprintf(buffer + len, sizeof(buffer) - len, "[#%d/%s:%d] ",
+		                int(peer->id), ip2a(peer->ip), peer->port);
 
 	len += safe_snprintf(buffer + len, sizeof(buffer) - len, "%s", msg);
-
-	val_list* vl = new val_list();
-	vl->append(new Val(level, TYPE_COUNT));
-	vl->append(new Val(src, TYPE_COUNT));
-	vl->append(new StringVal(buffer));
-	mgr.QueueEvent(remote_log, vl);
 
 	DEBUG_COMM(fmt("parent: %.6f %s", current_time(), buffer));
 	}

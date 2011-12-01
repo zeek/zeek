@@ -385,6 +385,9 @@ inline void RemoteSerializer::SetupSerialInfo(SerialInfo* info, Peer* peer)
 	     peer->phase == Peer::RUNNING )
 		info->new_cache_strategy = true;
 
+	if ( (peer->caps & Peer::BROCCOLI_PEER) )
+		info->broccoli_peer = true;
+
 	info->include_locations = false;
 	}
 
@@ -1457,7 +1460,7 @@ void RemoteSerializer::Finish()
 		Poll(true);
 	while ( io->CanWrite() );
 
-	loop_over_list(peers, i) 
+	loop_over_list(peers, i)
 		{
 		CloseConnection(peers[i]);
 		}
@@ -2113,6 +2116,9 @@ bool RemoteSerializer::HandshakeDone(Peer* peer)
 	if ( (peer->caps & Peer::NEW_CACHE_STRATEGY) )
 		Log(LogInfo, "peer supports keep-in-cache; using that", peer);
 
+	if ( (peer->caps & Peer::BROCCOLI_PEER) )
+		Log(LogInfo, "peer is a Broccoli", peer);
+
 	if ( peer->logs_requested )
 		log_mgr->SendAllWritersTo(peer->id);
 
@@ -2364,6 +2370,9 @@ bool RemoteSerializer::ProcessSerialization()
 	if ( (current_peer->caps & Peer::NEW_CACHE_STRATEGY) &&
 	     current_peer->phase == Peer::RUNNING )
 		info.new_cache_strategy = true;
+
+	if ( current_peer->caps & Peer::BROCCOLI_PEER )
+		info.broccoli_peer = true;
 
 	if ( ! forward_remote_state_changes )
 		ignore_accesses = true;

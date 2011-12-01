@@ -1,4 +1,9 @@
 
+2.0-beta-72 | 2011-11-30 20:16:09 -0800
+
+  * Fine-tuning the Sphinx layout to better match www. (Jon Siwek and
+    Robin Sommer)
+
 2.0-beta-69 | 2011-11-29 16:55:31 -0800
 
   * Fixing ASCII logger to escape the unset-field place holder if

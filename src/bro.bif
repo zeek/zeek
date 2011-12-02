@@ -386,7 +386,7 @@ function cat%(...%): string
 	return new StringVal(s);
 	%}
 
-## Converts a record type name into a vector of strings, where each element is
+## Converts a record type name to a vector of strings, where each element is
 ## the name of a record field. Nested records are flattened.
 ##
 ## rt: The name of the record type.
@@ -536,11 +536,13 @@ function type_name%(t: any%): string
 	return new StringVal(s);
 	%}
 
-## Converts a string into a (signed) integer.
+## Converts a :bro:type:`string` to a :bro:type:`int`.
 ##
-## str: The string to convert.
+## str: The :bro:type:`string` to convert.
 ##
-## Returns: The string *str* as ``int``.
+## Returns: The :bro:type:`string` *str* as :bro:type:`int`.
+##
+## .. bro:see:: to_addr to_port
 function to_int%(str: string%): int
 	%{
 	const char* s = str->CheckString();
@@ -560,11 +562,11 @@ function to_int%(str: string%): int
 	%}
 
 
-## Converts a positive integer into a ``count``.
+## Converts a (positive) :bro:type:`int` to a :bro:type:`count`.
 ##
-## n: The integer to convert.
+## n: The :bro:type:`int` to convert.
 ##
-## Returns: The int *n* as unsigned integer or 0 if *n* < 0.
+## Returns: The :bro:type:`int` *n* as unsigned integer or 0 if *n* < 0.
 function int_to_count%(n: int%): count
 	%{
 	if ( n < 0 )
@@ -575,6 +577,13 @@ function int_to_count%(n: int%): count
 	return new Val(n, TYPE_COUNT);
 	%}
 
+## Converts a :bro:type:`double` to a :bro:type:`count`.
+##
+## d: The :bro:type:`double` to convert.
+##
+## Returns: The :bro:type:`double` *d* as unsigned integer or 0 if *d* < 0.0.
+##
+## .. bro:see:: double_to_time
 function double_to_count%(d: double%): count
 	%{
 	if ( d < 0.0 )
@@ -583,6 +592,14 @@ function double_to_count%(d: double%): count
 	return new Val(bro_uint_t(rint(d)), TYPE_COUNT);
 	%}
 
+## Converts a :bro:type:`string` to a :bro:type:`count`.
+##
+## str: The :bro:type:`string` to convert.
+##
+## Returns: The :bro:type:`string` *str* as unsigned integer or if in invalid
+##          format.
+##
+## .. bro:see:: to_addr to_int to_port
 function to_count%(str: string%): count
 	%{
 	const char* s = str->CheckString();
@@ -599,26 +616,61 @@ function to_count%(str: string%): count
 	return new Val(u, TYPE_COUNT);
 	%}
 
+## Converts an :bro:type:`interval` to a :bro:type:`double`.
+##
+## i: The :bro:type:`interval` to convert.
+##
+## Returns: The :bro:type:`interval` *i* as :bro:type:`double`.
+##
+## .. bro:see:: double_to_interval
 function interval_to_double%(i: interval%): double
 	%{
 	return new Val(i, TYPE_DOUBLE);
 	%}
 
+## Converts a :bro:type:`time` value to a :bro:type:`double`.
+##
+## t: The :bro:type:`interval` to convert.
+##
+## Returns: The :bro:type:`time` value *t* as :bro:type:`double`.
+##
+## .. bro:see:: double_to_time
 function time_to_double%(t: time%): double
 	%{
 	return new Val(t, TYPE_DOUBLE);
 	%}
 
+## Converts a :bro:type:`time` value to a :bro:type:`double`.
+##
+## t: The :bro:type:`interval` to convert.
+##
+## Returns: The :bro:type:`time` value *t* as :bro:type:`double`.
+##
+## .. bro:see:: time_to_double double_to_count
 function double_to_time%(d: double%): time
 	%{
 	return new Val(d, TYPE_TIME);
 	%}
 
+## Converts a :bro:type:`double` to an :bro:type:`interval`.
+##
+## d: The :bro:type:`double` to convert.
+##
+## Returns: The :bro:type:`double` *d* as :bro:type:`interval`.
+##
+## .. bro:see:: interval_to_double
 function double_to_interval%(d: double%): interval
 	%{
 	return new Val(d, TYPE_INTERVAL);
 	%}
 
+## Converts a :bro:type:`addr` to a :bro:type:`count`.
+##
+## a: The :bro:type:`addr` to convert.
+##
+## Returns: The :bro:type:`addr` *a* as :bro:type:`count`.
+##
+## .. bro:see:: addr_to_ptr_name
 function addr_to_count%(a: addr%): count
 	%{
 #ifdef BROv6
@@ -635,21 +687,50 @@ function addr_to_count%(a: addr%): count
 	return new Val(ntohl(addr), TYPE_COUNT);
 	%}
 
+## Converts a :bro:type:`addr` to a :bro:type:`count`.
+##
+## a: The :bro:type:`addr` to convert.
+##
+## Returns: The :bro:type:`addr` *a* as :bro:type:`count`.
+##
+## .. bro:see:: count_to_port
 function port_to_count%(p: port%): count
 	%{
 	return new Val(p->Port(), TYPE_COUNT);
 	%}
 
+## Converts a :bro:type:`count` and ``transport_proto`` to a :bro:type:`port`.
+##
+## a: The :bro:type:`addr` to convert.
+##
+## Returns: The :bro:type:`addr` *a* as :bro:type:`count`.
+##
+## .. bro:see:: port_to_count
 function count_to_port%(c: count, t: transport_proto%): port
 	%{
 	return new PortVal(c, (TransportProto)(t->InternalInt()));
 	%}
 
+## Chops off any decimal digits of the given double, i.e., computes the
+## "floor" of it. For example, ``floor(3.14)`` returns ``3.0``.
+##
+## d: The :bro:type:`double` to manipulate.
+##
+## Returns: The next lowest integer of *d* as :bro:type:`double`.
+##
+## .. bro:see:: sqrt exp ln log10
 function floor%(d: double%): double
 	%{
 	return new Val(floor(d), TYPE_DOUBLE);
 	%}
 
+## Converts a :bro:type:`string` to an :bro:type:`addr`.
+##
+## ip: The :bro:type:`string` to convert.
+##
+## Returns: The :bro:type:`string` *ip* as :bro:type:`addr`.
+##
+## .. bro:see:: to_count to_int to_port count_to_v4_addr raw_bytes_to_v4_addr
 function to_addr%(ip: string%): addr
 	%{
 	char* s = ip->AsString()->Render();
@@ -658,6 +739,13 @@ function to_addr%(ip: string%): addr
 	return ret;
 	%}
 
+## Converts a :bro:type:`count` to an :bro:type:`addr`.
+##
+## ip: The :bro:type:`count` to convert.
+##
+## Returns: The :bro:type:`count` *ip* as :bro:type:`addr`.
+##
+## .. bro:see:: raw_bytes_to_v4_addr to_addr
 function count_to_v4_addr%(ip: count%): addr
 	%{
 	if ( ip > 4294967295LU )
@@ -669,7 +757,15 @@ function count_to_v4_addr%(ip: count%): addr
 	return new AddrVal(htonl(uint32(ip)));
 	%}
 
-# Interprets the first 4 bytes of 'b' as an IPv4 address in network order.
+## Converts a :bro:type:`string` of bytes into an IP address. In particular,
+## this function interprets the first 4 bytes of the string as an IPv4 address
+## in network order.
+##
+## b: The raw bytes (:bro:type:`string`) to convert.
+##
+## Returns: The byte :bro:type:`string` *ip* as :bro:type:`addr`.
+##
+## .. bro:see:: raw_bytes_to_v4_addr to_addr
 function raw_bytes_to_v4_addr%(b: string%): addr
 	%{
 	uint32 a = 0;
@@ -686,20 +782,52 @@ function raw_bytes_to_v4_addr%(b: string%): addr
 	return new AddrVal(htonl(a));
 	%}
 
+## Creates a :bro:type:`port` from a given number and transport protocol.
+##
+## num: The port number.
+##
+## proto: THe transport protocol of the port.
+##
+## Returns: A :bro:type:`port` with number *num* and transport protocol
+##          *proto*.
+## 
+## .. bro:see:: to_addr to_count to_int
 function to_port%(num: count, proto: transport_proto%): port
 	%{
 	return new PortVal(num, (TransportProto)proto->AsEnum());
 	%}
 
+## Masks an address down to the number of given upper bits. For example,
+## ``mask_addr(1.2.3.4, 18)`` returns ``1.2.0.0``.
+## 
+## a: The address to mask.
+## 
+## top_bits_to_keep: The number of top bits to keep in *a*; must be greater
+##                   than 0 and less than 33.
+##
+## Returns: The address *a* masked down to *top_bits_to_keep* bits.
+##
+## .. bro:see:: remask_addr
 function mask_addr%(a: addr, top_bits_to_keep: count%): subnet
 	%{
 	return new SubNetVal(mask_addr(a, top_bits_to_keep), top_bits_to_keep);
 	%}
 
-# Take some top bits (e.g. subnet address) from a1 and the other
-# bits (intra-subnet part) from a2 and merge them to get a new address.
-# This is useful for anonymizing at subnet level while preserving
-# serial scans.
+## Takes some top bits (e.g., subnet address) from one address and the other
+## bits (intra-subnet part) from a second address and merges them to get a new
+## address. This is useful for anonymizing at subnet level while preserving
+## serial scans.
+## 
+## a1: The address to mask with *top_bits_from_a1*.
+## 
+## a2: The address to take the remaining bits from.
+## 
+## top_bits_from_a1: The number of top bits to keep in *a1*; must be greater
+##                   than 0 and less than 33.
+##
+## Returns: The address *a* masked down to *top_bits_to_keep* bits.
+##
+## .. bro:see:: mask_addr
 function remask_addr%(a1: addr, a2: addr, top_bits_from_a1: count%): addr
 	%{
 #ifdef BROv6
@@ -720,31 +848,75 @@ function remask_addr%(a1: addr, a2: addr, top_bits_from_a1: count%): addr
 		(x2 ^ mask_addr(x2, top_bits_from_a1)) );
 	%}
 
+## Checks whether a given :bro:type:`port` has TCP as transport protocol.
+##
+## p: The :bro:type:`port` to check.
+##
+## Returns: True iff *p* is a TCP port.
+##
+## .. bro:see:: is_udp_port is_icmp_port
 function is_tcp_port%(p: port%): bool
 	%{
 	return new Val(p->IsTCP(), TYPE_BOOL);
 	%}
 
+## Checks whether a given :bro:type:`port` has UDP as transport protocol.
+##
+## p: The :bro:type:`port` to check.
+##
+## Returns: True iff *p* is a UDP port.
+##
+## .. bro:see:: is_icmp_port is_tcp_port
 function is_udp_port%(p: port%): bool
 	%{
 	return new Val(p->IsUDP(), TYPE_BOOL);
 	%}
 
+## Checks whether a given :bro:type:`port` has ICMP as transport protocol.
+##
+## p: The :bro:type:`port` to check.
+##
+## Returns: True iff *p* is a ICMP port.
+##
+## .. bro:see:: is_tcp_port is_udp_port
 function is_icmp_port%(p: port%): bool
 	%{
 	return new Val(p->IsICMP(), TYPE_BOOL);
 	%}
 
+## Checks whether Bro reads traffic from one or more network interfaces (as
+## opposed to from a network trace in a file). Note that this function returns
+## true even after Bro has stopped reading network traffic, for example due to
+## receiving a termination signal.
+##
+## Returns: True if reading traffic from a network interface.
+##
+## .. bro:see:: reading_traces
 function reading_live_traffic%(%): bool
 	%{
 	return new Val(reading_live, TYPE_BOOL);
 	%}
 
+## Checks whether Bro reads traffic from a trace file (as opposed to from a
+## network interface).
+##
+## Returns: True if reading traffic from a network trace.
+##
+## .. bro:see:: reading_live_traffic
 function reading_traces%(%): bool
 	%{
 	return new Val(reading_traces, TYPE_BOOL);
 	%}
 
+## Opens a file for writing. If a file with the same name already exists, this
+## function overwrites it (as opposed to :bro:id:`open_for_append`).
+##
+## f: The path to the file.
+##
+##  Returns: A :bro:type:`file` handle for subsequent operations.
+##
+## .. bro:see;: active_file open_for_append close write_file
+##              get_file_name set_buf flush_all mkdir enable_raw_output
 function open%(f: string%): file
 	%{
 	const char* file = f->CheckString();
@@ -755,16 +927,44 @@ function open%(f: string%): file
 		return new Val(new BroFile(file, "w"));
 	%}
 
+## Opens a file for writing or appending. If a file with the same name already
+## exists, this function appends to it (as opposed to :bro:id:`open`).
+##
+## f: The path to the file.
+##
+##  Returns: A :bro:type:`file` handle for subsequent operations.
+##
+## .. bro:see;: active_file open close write_file
+##              get_file_name set_buf flush_all mkdir enable_raw_output
 function open_for_append%(f: string%): file
 	%{
 	return new Val(new BroFile(f->CheckString(), "a"));
 	%}
 
+## Closes an open file and flushes any buffered content.
+## exists, this function appends to it (as opposed to :bro:id:`open`).
+##
+## f: A :bro:type:`file` handle to an open file.
+##
+##  Returns: True on success.
+##
+## .. bro:see;: active_file open open_for_append write_file
+##              get_file_name set_buf flush_all mkdir enable_raw_output
 function close%(f: file%): bool
 	%{
 	return new Val(f->Close(), TYPE_BOOL);
 	%}
 
+## Writes data to an open file.
+##
+## f: A :bro:type:`file` handle to an open file.
+##
+## data: The data to write to *f*.
+##
+##  Returns: True on success.
+##
+## .. bro:see;: active_file open open_for_append close
+##              get_file_name set_buf flush_all mkdir enable_raw_output
 function write_file%(f: file, data: string%): bool
 	%{
 	if ( ! f )
@@ -774,17 +974,43 @@ function write_file%(f: file, data: string%): bool
 			TYPE_BOOL);
 	%}
 
+## Alters the buffering behavior of a file. 
+##
+## f: A :bro:type:`file` handle to an open file.
+##
+## buffered: When true, *f* is fully buffered, i.e., bytes are saved in a
+##           buffered until the block size has been reached. When
+##           false, *f* is line buffered, i.e., bytes are saved up until a
+##           newline occurs.
+##
+## .. bro:see;: active_file open open_for_append close
+##              get_file_name write_file flush_all mkdir enable_raw_output
 function set_buf%(f: file, buffered: bool%): any
 	%{
 	f->SetBuf(buffered);
 	return new Val(0, TYPE_VOID);
 	%}
 
+## Flushes all open files to disk.
+##
+##  Returns: True on success.
+##
+## .. bro:see;: active_file open open_for_append close
+##              get_file_name write_file set_buf mkdir enable_raw_output
 function flush_all%(%): bool
 	%{
 	return new Val(fflush(0) == 0, TYPE_BOOL);
 	%}
 
+## Creates a new directory.
+##
+## f: The directory name.
+##
+##  Returns: Returns true if the operation succeeds and false if the
+##           creation fails or if *f* exists already.
+##
+## .. bro:see;: active_file open_for_append close write_file
+##              get_file_name set_buf flush_all enable_raw_output
 function mkdir%(f: string%): bool
 	%{
 	const char* filename = f->CheckString();
@@ -797,6 +1023,13 @@ function mkdir%(f: string%): bool
 		return new Val(1, TYPE_BOOL);
 	%}
 
+## Checks whether a given file is open.
+##
+## f: The file to check.
+##
+## Returns: True if *f* is an open :bro:type:`file`.
+##
+## .. TODO:: Rename to ``is_open``.
 function active_file%(f: file%): bool
 	%{
 	return new Val(f->IsOpen(), TYPE_BOOL);
@@ -1323,6 +1556,8 @@ function ptr_name_to_addr%(s: string%): addr
 	return new AddrVal(htonl(addr));
 	%}
 
+##
+## .. bro:see:: addr_to_count
 function addr_to_ptr_name%(a: addr%): string
 	%{
 	// ## Question:
@@ -3094,7 +3329,7 @@ function disable_analyzer%(cid: conn_id, aid: count%) : bool
 	return new Val(1, TYPE_BOOL);
 	%}
 
-# Translate analyzer type into an ASCII string.
+# Translate analyzer type to an ASCII string.
 function analyzer_name%(aid: count%) : string
 	%{
 	return new StringVal(Analyzer::GetTagName((AnalyzerTag::Tag) aid));

@@ -13,6 +13,7 @@ public:
 	~LogWriterAscii();
 
 	static LogWriter* Instantiate()	{ return new LogWriterAscii; }
+	static string LogExt();
 
 protected:
 	virtual bool DoInit(string path, int num_fields,

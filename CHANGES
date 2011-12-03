@@ -1,4 +1,9 @@
 
+2.0-beta-94 | 2011-12-03 15:57:19 -0800
+
+  * Adapting attribute serialization when talking to Broccoli. (Robin
+    Sommer)
+
 2.0-beta-92 | 2011-12-03 15:56:03 -0800
 
   * Changes to Broxygen master script package index.  (Jon Siwek)

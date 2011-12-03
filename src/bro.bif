@@ -1035,14 +1035,14 @@ function active_file%(f: file%): bool
 	return new Val(f->IsOpen(), TYPE_BOOL);
 	%}
 
+## Deprecated. Will be removed.
 function active_connection%(id: conn_id%): bool
 	%{
 	Connection* c = sessions->FindConnection(id);
 	return new Val(c ? 1 : 0, TYPE_BOOL);
 	%}
 
-# Note, you *must* first make sure that the connection is active
-# (e.g., by calling active_connection()) before invoking this.
+## Deprecated. Will be removed.
 function connection_record%(cid: conn_id%): connection
 	%{
 	Connection* c = sessions->FindConnection(cid);
@@ -1087,6 +1087,14 @@ EnumVal* map_conn_type(TransportProto tp)
 	}
 %%}
 
+## Extracts the transport protocol from a connection.
+##
+## cid: The connection identifier.
+##
+## Returns: The transport protocol of the connection identified by *id*.
+##
+## .. bro:see:: get_port_transport_proto
+##              get_orig_seq get_resp_seq
 function get_conn_transport_proto%(cid: conn_id%): transport_proto
 	%{
 	Connection* c = sessions->FindConnection(cid);
@@ -1099,21 +1107,55 @@ function get_conn_transport_proto%(cid: conn_id%): transport_proto
 	return map_conn_type(c->ConnTransport());
 	%}
 
+## Extracts the transport protocol from a :bro:type:`port`.
+##
+## p: The port.
+##
+## Returns: The transport protocol of the port *p*.
+##
+## .. bro:see:: get_conn_transport_proto
+##              get_orig_seq get_resp_seq
 function get_port_transport_proto%(p: port%): transport_proto
 	%{
 	return map_conn_type(p->PortType());
 	%}
 
+## Returns the current wall-clock time.
+##
+## In general, you should use :bro:id:`network_time` instead 
+## unless you are using Bro for non-networking uses (such as general
+## scripting; not particularly recommended), because otherwise your script
+## may behave very differently on live traffic versus played-back traffic
+## from a save file.
+##
+## Returns: The wall-clock time.
+##
+## .. bro:see:: network_time
 function current_time%(%): time
 	%{
 	return new Val(current_time(), TYPE_TIME);
 	%}
 
+## Returns the timestamp of the last packet processed. This function returns
+## the timestamp of the most recently read packet, whether read from a
+## live network interface or from a save file. 
+##  
+## Returns: The timestamp of the packet processed.
+##
+## .. bro:see:: current_time
 function network_time%(%): time
 	%{
 	return new Val(network_time, TYPE_TIME);
 	%}
 
+## Returns a system environment variable.
+##
+## var: The name of the variable whose value to request.
+##
+## Returns: The system environment variable identified by *var*, or an empty
+##          string if it is not defined.
+##
+## .. bro:see:: setenv
 function getenv%(var: string%): string
 	%{
 	const char* env_val = getenv(var->CheckString());
@@ -1122,6 +1164,15 @@ function getenv%(var: string%): string
 	return new StringVal(env_val);
 	%}
 
+## Sets a system environment variable.
+##
+## var: The name of the variable.
+##
+## val: The (new) value of the variable *var*.
+##
+## Returns: True on success.
+##
+## .. bro:see:: getenv
 function setenv%(var: string, val: string%): bool
 	%{
 	int result = setenv(var->AsString()->CheckString(),
@@ -1132,6 +1183,14 @@ function setenv%(var: string, val: string%): bool
 	return new Val(1, TYPE_BOOL);
 	%}
 
+
+## Computes the square root of a :bro:type:`double`.
+##
+## x: The number to compute the square root of.
+##
+## Returns: The square root of *x*.
+##
+## .. bro:see:: floor exp ln log10
 function sqrt%(x: double%): double
 	%{
 	if ( x < 0 )
@@ -1143,29 +1202,55 @@ function sqrt%(x: double%): double
 	return new Val(sqrt(x), TYPE_DOUBLE);
 	%}
 
+## Computes the exponential function.
+##
+## d: The argument to the exponential function.
+##
+## Returns: *e* to the power of *d*.
+##
+## .. bro:see:: floor sqrt ln log10
 function exp%(d: double%): double
 	%{
 	return new Val(exp(d), TYPE_DOUBLE);
 	%}
 
-# Natural log.
+## Computes the natural logarithm of a number.
+##
+## d: The argument to the logarithm.
+##
+## Returns: The natural logarithm of *d*.
+##
+## .. bro:see:: exp floor sqrt log10
 function ln%(d: double%): double
 	%{
 	return new Val(log(d), TYPE_DOUBLE);
 	%}
 
-# Common log.
+## Computes the common logarithm of a number.
+##
+## d: The argument to the logarithm.
+##
+## Returns: The common logarithm of *d*.
+##
+## .. bro:see:: exp floor sqrt ln
 function log10%(d: double%): double
 	%{
 	return new Val(log10(d), TYPE_DOUBLE);
 	%}
 
+## Shuts down the Bro process immediately.
+##
+## .. todo: Change function signature to ``exit(code: int): any``.
 function exit%(%): int
 	%{
 	exit(0);
 	return 0;
 	%}
 
+## Gracefully shut down Bro by terminating outstanding processing.
+##
+## Returns: True after successful termination and false when Bro is still in
+##          the process of shutting down.
 function terminate%(%): bool
 	%{
 	if ( terminating )
@@ -1222,12 +1307,39 @@ static int do_system(const char* s)
 	}
 %%}
 
+## Invokes a command via the ``system`` function of the OS.
+## The command runs in the background with ``stdout`` redirecting to
+## ``stderr``. Here is a usage example:
+## ``system(fmt("rm \"%s\"", str_shell_escape(sniffed_data)));``
+##
+## str: The command to execute.
+##
+## Returns: The return value from the OS ``system`` function.
+##
+## .. bro:see:: system_env str_shell_escape piped_exec
+## 
+## .. note:: Note that this corresponds to the status of backgrounding the
+##           given command, not to the exit status of the command itself. A
+##           value of 127 corresponds to a failure to execute ``sh``, and -1
+##           to an internal system failure.
 function system%(str: string%): int
 	%{
 	int result = do_system(str->CheckString());
 	return new Val(result, TYPE_INT);
 	%}
 
+## Invokes a command via the ``system`` function of the OS with a prepared
+## environment. The function is essentially the same as :bro:id:`system`,
+## but changes the environment before invoking the command.
+##
+## str: The command to execute.
+## 
+## env: A :bro:type:`set` or :bro:type:`table` with the environment variables
+##      in the form of key-value pairs (where the value is optional).
+## 
+## Returns: The return value from the OS ``system`` function.
+## 
+## .. bro:see:: system str_shell_escape piped_exec
 function system_env%(str: string, env: any%): int
 	%{
 	if ( env->Type()->Tag() != TYPE_TABLE )
@@ -1341,7 +1453,13 @@ static Val* parse_port(const char* line)
 	}
 %%}
 
-# Returns true if the given connection exists, false otherwise.
+## Checks whether a connection is (still) active.
+##
+## c: The connection id to check.
+##
+## Returns: True if the connection identified by *c* exists.
+##
+## .. bro:see:: lookup_connection
 function connection_exists%(c: conn_id%): bool
 	%{
 	if ( sessions->FindConnection(c) )
@@ -1350,9 +1468,14 @@ function connection_exists%(c: conn_id%): bool
 		return new Val(0, TYPE_BOOL);
 	%}
 
-# For a given connection ID, returns the corresponding "connection" record.
-# Generates a run-time error and returns a dummy value if the connection
-# doesn't exist.
+## Returns the :bro:id:`connection` record for a given connection identifier.
+## 
+## cid: The connection ID.
+## 
+## Returns: The :bro:id:`connection` record for *cid*. If *cid* does not point
+##          to an existing connection, the function generates a run-time error
+##          and returns a dummy value.
+## .. bro:see:: connection_exists
 function lookup_connection%(cid: conn_id%): connection
 	%{
 	Connection* conn = sessions->FindConnection(cid);
@@ -1392,6 +1515,18 @@ function lookup_connection%(cid: conn_id%): connection
 	return c;
 	%}
 
+## Informs Bro that it should skip any further processing of the contents of
+## a given connection. In particular, Bro will refrain from reassembling the
+## TCP byte stream and from generating events relating to any analyzers that
+## have been processing the connection.
+##
+## cid: The connection ID.
+##
+## Returns: False if *id* does not point to an active connection and true
+##          otherwise.
+##
+## .. note:: Bro will still generate connection-oriented events such as
+##           :bro:id:`connection_finished`.
 function skip_further_processing%(cid: conn_id%): bool
 	%{
 	Connection* c = sessions->FindConnection(cid);
@@ -1402,6 +1537,24 @@ function skip_further_processing%(cid: conn_id%): bool
 	return new Val(1, TYPE_BOOL);
 	%}
 
+## Controls whether packet contents belonging to a connection should be
+## recorded (when ``-w out.pcap`` is provided on the command line).
+##
+## cid: The connection identifier.
+##
+## do_record: True to enable packet contens and false to disable for the
+##            connection identified by *cid*.
+##
+## Returns: False if *id* does not point to an active connection and true
+##          otherwise.
+##
+## .. see:: skip_further_processing
+##
+## .. note:: This is independent of whether Bro processes the packets of this
+##           connection, which is controlled separately by
+##           :bro:id:`skip_further_processing`.
+##
+## .. bro:see: get_contents_file set_contents_file
 function set_record_packets%(cid: conn_id, do_record: bool%): bool
 	%{
 	Connection* c = sessions->FindConnection(cid);
@@ -1412,6 +1565,35 @@ function set_record_packets%(cid: conn_id, do_record: bool%): bool
 	return new Val(1, TYPE_BOOL);
 	%}
 
+## Associates a file handle with a connection for writing TCP byte stream
+## contents.
+##
+## cid: The connection ID.
+##
+## direction: Controls what sides of the connection to record. The argument can
+## take one the four values:
+##
+##     - ``CONTENTS_NONE``: Stop recording the connection's content.
+##     - ``CONTENTS_ORIG``: Record the data sent by the connection
+##                          originator (often the client).
+##     - ``CONTENTS_RESP``: Record the data sent by the connection
+##                          responder (often the server).
+##     - ``CONTENTS_BOTH``: Record the data sent in both directions. Results in
+##                          the two directions being intermixed in the file, in
+##                          the order the data was seen by Bro.
+##
+## f: The file handle of the file to write the contents to.
+##
+## Returns: Returns false if *id* does not point to an active connection and
+##          true otherwise.
+##
+## .. note:: The data recorded to the file reflects the byte stream, not the
+##           contents of individual packets. Reordering and duplicates are
+##           removed. If any data is missing, the recording stops at the
+##           missing data; this can happen, e.g., due to an
+##           :bro:id:`ack_above_hole` event.
+##
+## .. bro:see: get_contents_file set_record_packets
 function set_contents_file%(cid: conn_id, direction: count, f: file%): bool
 	%{
 	Connection* c = sessions->FindConnection(cid);
@@ -1422,6 +1604,19 @@ function set_contents_file%(cid: conn_id, direction: count, f: file%): bool
 	return new Val(1, TYPE_BOOL);
 	%}
 
+## Returns the file handle of the contents file of a connection.
+##
+## cid: The connection ID.
+##
+## direction: Controls what sides of the connection to record. SEe
+##            :bro:id:`set_contents_file` for possible values.
+##
+## Returns: The :bro:type:`file` handle for the contentents file of the
+##          connection identified by *cid*. If the connection exists
+##          but no contents file for *direction*, the function generates a
+##          error and returns a file handle to ``stderr``.
+##
+## .. bro:see: set_contents_file set_record_packets
 function get_contents_file%(cid: conn_id, direction: count%): file
 	%{
 	Connection* c = sessions->FindConnection(cid);
@@ -1442,6 +1637,13 @@ function get_contents_file%(cid: conn_id, direction: count%): file
 	return new Val(new BroFile(stderr, "-", "w"));
 	%}
 
+## Gets the filename associated with a file handle.
+##
+## f: The file handle to inquire the name for.
+##
+## Returns: The filename associated with *f*.
+##
+## .. bro:see:: open
 function get_file_name%(f: file%): string
 	%{
 	if ( ! f )
@@ -1450,9 +1652,14 @@ function get_file_name%(f: file%): string
 	return new StringVal(f->Name());
 	%}
 
-# Set an individual inactivity timeout for this connection
-# (overrides the global inactivity_timeout).  Returns previous
-# timeout interval.
+## Sets an individual inactivity timeout for a connection and thus
+## overrides the global inactivity timeout.
+##
+## cid: The connection ID.
+##
+## t: The new inactivity timeout for the connection identified by *cid*.
+##
+## Returns: The previous timeout interval.
 function set_inactivity_timeout%(cid: conn_id, t: interval%): interval
 	%{
 	Connection* c = sessions->FindConnection(cid);
@@ -1465,6 +1672,25 @@ function set_inactivity_timeout%(cid: conn_id, t: interval%): interval
 	return new Val(old_timeout, TYPE_INTERVAL);
 	%}
 
+## Returns the state of the given login (Telnet or Rlogin) connection.
+##
+## cid: The connection ID.
+##
+## Returns: False if the connection is not active or is not tagged as a
+##          login analyzer. Otherwise the function returns the state, which can
+##          be one of:
+##          
+##              - ``LOGIN_STATE_AUTHENTICATE``: The connection is in its
+##                initial authentication dialog.
+##              - ``OGIN_STATE_LOGGED_IN``: The analyzer believes the user has
+##                successfully authenticated.
+##              - ``LOGIN_STATE_SKIP``: The analyzer has skipped any further
+##                processing of the connection.
+##              - ``LOGIN_STATE_CONFUSED``: The analyzer has concluded that it
+##                does not correctly know the state of the connection, and/or
+##                the username associated with it.
+##
+## .. bro:see: set_login_state
 function get_login_state%(cid: conn_id%): count
 	%{
 	Connection* c = sessions->FindConnection(cid);
@@ -1479,6 +1705,17 @@ function get_login_state%(cid: conn_id%): count
 			TYPE_COUNT);
 	%}
 
+## Sets the login state of a connection with a login analyzer.
+##
+## cid: The connection ID.
+##
+## new_state: The new state of the login analyzer. See
+##            :bro:id:`get_login_state` for possible values.
+##
+## Returns: Returns false if *cid* is not an active connection
+##          or does not tagged as login analyzer, and true otherwise.
+##
+## .. bro:see: get_login_state
 function set_login_state%(cid: conn_id, new_state: count%): bool
 	%{
 	Connection* c = sessions->FindConnection(cid);
@@ -1497,6 +1734,16 @@ function set_login_state%(cid: conn_id, new_state: count%): bool
 #include "TCP.h"
 %%}
 
+## Get the originator sequence number of a TCP connection. Sequence numbers
+## are absolute (i.e., they reflect the values seen directly in packet headers;
+## they are not relative to the beginning of the connection).
+##
+## cid: The connection ID.
+## 
+## Returns: The highest sequence number sent by a connection's originator, or 0
+##          if *cid* does not point to an active TCP connection.
+##
+## .. bro:see:: get_resp_seq
 function get_orig_seq%(cid: conn_id%): count
 	%{
 	Connection* c = sessions->FindConnection(cid);
@@ -1517,6 +1764,16 @@ function get_orig_seq%(cid: conn_id%): count
 		}
 	%}
 
+## Get the responder sequence number of a TCP connection. Sequence numbers
+## are absolute (i.e., they reflect the values seen directly in packet headers;
+## they are not relative to the beginning of the connection).
+##
+## cid: The connection ID.
+## 
+## Returns: The highest sequence number sent by a connection's responder, or 0
+##          if *cid* does not point to an active TCP connection.
+##
+## .. bro:see:: get_orig_seq
 function get_resp_seq%(cid: conn_id%): count
 	%{
 	Connection* c = sessions->FindConnection(cid);
@@ -1537,7 +1794,14 @@ function get_resp_seq%(cid: conn_id%): count
 		}
 	%}
 
-# These convert addresses <-> n3.n2.n1.n0.in-addr.arpa
+## Converts a reverse pointer name to an address. For example,
+## ``1.0.168.192.in-addr.arpa`` to ``192.168.0.1``.
+##
+## s: The string with the reverse pointer name.
+##
+## Returns: The IP address corresponding to *s*.
+##
+## .. bro:see:: addr_to_ptr_name parse_dotted_addr
 function ptr_name_to_addr%(s: string%): addr
 	%{
 	int a[4];
@@ -1556,8 +1820,14 @@ function ptr_name_to_addr%(s: string%): addr
 	return new AddrVal(htonl(addr));
 	%}
 
+## Converts an IP address to a reverse pointer name. For example,
+## ``192.168.0.1`` to ``1.0.168.192.in-addr.arpa``.
 ##
-## .. bro:see:: addr_to_count
+## a: The IP address to convert to a reverse pointer name.
+##
+## Returns: The reverse pointer representation of *a*.
+##
+## .. bro:see:: addr_to_count ptr_name_to_addr pase_dotted_addr
 function addr_to_ptr_name%(a: addr%): string
 	%{
 	// ## Question:
@@ -1588,21 +1858,54 @@ function addr_to_ptr_name%(a: addr%): string
 	%}
 
 # Transforms n0.n1.n2.n3 -> addr.
+
+## Converts a decimal dotted IP address in a :bro:type:`string` to an
+## :bro:type:`addr` type.
+##
+## s: The IP address in the form ``n0.n1.n2.n3``.
+##
+## Returns: The IP address as type :bro:type:`addr`.
+##
+## .. bro:see:: addr_to_ptr_name parse_dotted_addr addr_to_count
 function parse_dotted_addr%(s: string%): addr
 	%{
 	return new AddrVal(dotted_to_addr(s->CheckString()));
 	%}
 
+## Converts a string representation of the FTP PORT command to an ``ftp_port``.
+##
+## s: The string of the FTP PORT command, e.g., ``"10,0,0,1,4,31"``.
+##
+## Returns: The FTP PORT, e.g., ``[h=10.0.0.1, p=1055/tcp, valid=T]``
+##
+## .. bro:see:: parse_eftp_port parse_ftp_pasv parse_ftp_epsv fmt_ftp_port
 function parse_ftp_port%(s: string%): ftp_port
 	%{
 	return parse_port(s->CheckString());
 	%}
 
+## Converts a string representation of the FTP EPRT command to an ``ftp_port``.
+## (see `RFC 2428 <http://tools.ietf.org/html/rfc2428>`_).
+## The format is ``EPRT<space><d><net-prt><d><net-addr><d><tcp-port><d>``,
+## where ``<d>`` is a delimiter in the ASCII range 33-126 (usually ``|``).
+##
+## s: The string of the FTP PORT command, e.g., ``"10,0,0,1,4,31"``.
+##
+## Returns: The FTP PORT, e.g., ``[h=10.0.0.1, p=1055/tcp, valid=T]``
+##
+## .. bro:see:: parse_ftp_port parse_ftp_pasv parse_ftp_epsv fmt_ftp_port
 function parse_eftp_port%(s: string%): ftp_port
 	%{
 	return parse_eftp(s->CheckString());
 	%}
 
+## Converts the result of the FTP PASV command to an ``ftp_port``.
+##
+## str: The string containing the result of the FTP PASV command.
+##
+## Returns: The FTP PORT, e.g., ``[h=10.0.0.1, p=1055/tcp, valid=T]``
+##
+## .. bro:see:: parse_ftp_port parse_eftp_port parse_ftp_epsv fmt_ftp_port
 function parse_ftp_pasv%(str: string%): ftp_port
 	%{
 	const char* s = str->CheckString();
@@ -1621,6 +1924,16 @@ function parse_ftp_pasv%(str: string%): ftp_port
 	return parse_port(line);
 	%}
 
+## Converts the result of the FTP EPSV command to an ``ftp_port``
+## (see `RFC 2428 <http://tools.ietf.org/html/rfc2428>`_).
+## The format is ``<text> (<d><d><d><tcp-port><d>)``, where ``<d>`` is a
+## delimiter in the ASCII range 33-126 (usually ``|``).
+##
+## str: The string containing the result of the FTP PASV command.
+##
+## Returns: The FTP PORT, e.g., ``[h=10.0.0.1, p=1055/tcp, valid=T]``
+##
+## .. bro:see:: parse_ftp_port parse_eftp_port parse_ftp_pasv fmt_ftp_port
 function parse_ftp_epsv%(str: string%): ftp_port
 	%{
 	const char* s = str->CheckString();
@@ -1630,6 +1943,16 @@ function parse_ftp_epsv%(str: string%): ftp_port
 	return parse_eftp(line);
 	%}
 
+## Formats an IP address and TCP port as an FTP PORT command. For example,
+## ``10.0.0.1`` and ``1055/tcp`` yields ``"10,0,0,1,4,31"`.
+##
+## a: The IP address.
+## 
+## p: The TCP port.
+##
+## Returns: The FTP PORT string.
+##
+## .. bro:see:: parse_ftp_port parse_eftp_port parse_ftp_pasv parse_ftp_epsv
 function fmt_ftp_port%(a: addr, p: port%): string
 	%{
 #ifdef BROv6
@@ -1648,6 +1971,13 @@ function fmt_ftp_port%(a: addr, p: port%): string
 					pn >> 8, pn & 0xff));
 	%}
 
+## Decode a `NetBIOS name <http://support.microsoft.com/kb/194203>`_.
+## 
+## name: The encoded NetBIOS name, e.g., ``"FEEIEFCAEOEFFEECEJEPFDCAEOEBENEF:``.
+##
+## Returns: The decoded NetBIOS name, e.g., ``"THE NETBIOS NAME"``.
+##
+## .. bro:see:: decode_netbios_name_type
 function decode_netbios_name%(name: string%): string
 	%{
 	char buf[16];
@@ -1676,6 +2006,14 @@ function decode_netbios_name%(name: string%): string
 	return new StringVal(i, result);
 	%}
 
+## Converts a `NetBIOS name type <http://support.microsoft.com/kb/163409>`_ to
+## its corresonding numeric value.
+## 
+## name: The NetBIOS name type.
+##
+## Returns: The numeric value of *name*.
+##
+## .. bro:see:: decode_netbios_name
 function decode_netbios_name_type%(name: string%): count
 	%{
 	const u_char* s = name->Bytes();
@@ -1700,7 +2038,13 @@ const char* conn_id_string(Val* c)
 	}
 %%}
 
-# Skip data of the HTTP entity on the connection
+## Skips the data of the HTTP entity.
+## 
+## c: The HTTP connection.
+##
+## is_orig: If true, the client data is skipped and the server data otherwise.
+##
+## .. bro:see:: skip_smtp_data
 function skip_http_entity_data%(c: connection, is_orig: bool%): any
 	%{
 	AnalyzerID id = mgr.CurrentAnalyzer();
@@ -1725,16 +2069,19 @@ function skip_http_entity_data%(c: connection, is_orig: bool%): any
 	return 0;
 	%}
 
-# Unescape all characters in the URI, i.e. decode every %xx group.
-#
-# Note that unescaping reserved characters may cause loss of
-# information (see below).
-#
-# RFC 2396: A URI is always in an "escaped" form, since escaping or
-# unescaping a completed URI might change its semantics.  Normally,
-# the only time escape encodings can safely be made is when the URI
-# is being created from its component parts.
-
+## Unescapes all characters in a URI, i.e., decodes every ``%xx`` group.
+##
+## URI: The URI to unescape.
+##
+## Returns: The unescaped URI with all ``%xx`` groups decoded.
+## 
+## .. note:: Unescaping reserved characters may cause loss of
+##           information (see below).
+##
+##           RFC 2396: A URI is always in an "escaped" form, since escaping or
+##           unescaping a completed URI might change its semantics.  Normally,
+##           the only time escape encodings can safely be made is when the URI
+##           is being created from its component parts.
 function unescape_URI%(URI: string%): string
 	%{
 	const u_char* line = URI->Bytes();
@@ -1747,7 +2094,11 @@ function unescape_URI%(URI: string%): string
 #include "SMTP.h"
 %%}
 
-# Skip smtp_data till next mail
+## Skips SMTP data until the next email in a connection.
+##
+## c: The SMTP connection.
+##
+## .. bro:see:: skip_http_entity_data
 function skip_smtp_data%(c: connection%): any
 	%{
 	Analyzer* sa = c->FindAnalyzer(AnalyzerTag::SMTP);
@@ -1757,6 +2108,14 @@ function skip_smtp_data%(c: connection%): any
 	%}
 
 
+## Converts a string of bytes into its hexadecimal representation, e.g.,
+## ``"04"`` to ``"3034"``.
+##
+## bytestring: The string of bytes.
+##
+## Returns: The hexadecimal reprsentation of *bytestring*.
+##
+## .. bro:see:: hexdump
 function bytestring_to_hexstr%(bytestring: string%): string
 	%{
 	bro_uint_t len = bytestring->AsString()->Len();
@@ -1774,6 +2133,13 @@ function bytestring_to_hexstr%(bytestring: string%): string
 extern const char* bro_version();
 %%}
 
+## Returns statistics about the number of packets *(i)* received by Bro,
+## *(ii)* dropped, and *(iii)* seen on the link (not always available).
+##
+## Returns: A record of packet statistics.
+##
+## .. bro:see:: resource_usage get_matcher_stats dump_rule_stats
+##              get_gap_summary
 function net_stats%(%): NetStats
 	%{
 	unsigned int recv = 0;
@@ -1799,6 +2165,14 @@ function net_stats%(%): NetStats
 	return ns;
 	%}
 
+## Returns Bro process statistics, such as real/user/sys CPU time, memory
+## usage, page faults, number of TCP/UDP/ICMP connections, timers, and events
+## queued/dispatched.
+##
+## Returns: A record with resource usage statistics.
+##
+## .. bro:see:: net_stats get_matcher_stats dump_rule_stats
+##              get_gap_summary
 function resource_usage%(%): bro_resources
 	%{
 	struct rusage r;
@@ -1865,6 +2239,14 @@ function resource_usage%(%): bro_resources
 	return res;
 	%}
 
+## Returns statistics about the regular expression engine, such as the number
+## of distinct matchers, DFA states, DFA state transitions, memory usage of
+## DFA states, cache hits/misses, and average number of NFA states across all
+## matchers.
+## 
+## Returns: A record with matcher statistics.
+##
+## .. bro:see:: net_stats resource_usage dump_rule_stats get_gap_summary
 function get_matcher_stats%(%): matcher_stats
 	%{
 	RuleMatcher::Stats s;
@@ -1885,6 +2267,11 @@ function get_matcher_stats%(%): matcher_stats
 	return r;
 	%}
 
+## Returns statistics about TCP gaps.
+##
+## Returns: A record with TCP gap statistics.
+##
+## .. bro:see:: net_stats resource_usage dump_rule_stats get_matcher_stats
 function get_gap_summary%(%): gap_info
 	%{
 	RecordVal* r = new RecordVal(gap_info);

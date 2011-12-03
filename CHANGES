@@ -1,4 +1,16 @@
 
+2.0-beta-92 | 2011-12-03 15:56:03 -0800
+
+  * Changes to Broxygen master script package index.  (Jon Siwek)
+
+    - Now only lists packages as those directories in the script hierarchy
+      that contain an __load__.bro file.
+
+    - Script packages (dirs with a __load__.bro file), can now include
+      a README (in reST format) that will automatically be appended
+      under the link to a specific package in the master package
+      index.
+
 2.0-beta-88 | 2011-12-02 17:00:58 -0800
 
   * Teach LogWriterAscii to use BRO_LOG_SUFFIX environemt variable.

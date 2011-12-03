@@ -4,7 +4,7 @@
 # @TEST-EXEC: btest-bg-wait -k 2
 #
 # Don't diff the receiver log just because port is always going to change
-# @TEST-EXEC: grep -v pid sender/communication.log >send.log
+# @TEST-EXEC: egrep -v 'pid|socket buffer size' sender/communication.log >send.log
 # @TEST-EXEC: btest-diff send.log
 
 @TEST-START-FILE sender.bro

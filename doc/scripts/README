@@ -1,6 +1,6 @@
 This directory contains scripts and templates that can be used to automate
 the generation of Bro script documentation.  Several build targets are defined
-by CMake:
+by CMake and available in the top-level Makefile:
 
 ``restdoc``
 

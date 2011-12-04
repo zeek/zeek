@@ -281,7 +281,7 @@ Redefinitions
 
 Port Analysis
 -------------
-:ref:`More Information <common_port_analysis_doc>`
+Loading this script makes the following changes to :bro:see:`dpd_config`.
 
 SSL::
 
@@ -292,7 +292,7 @@ SSL::
 
 Packet Filter
 -------------
-:ref:`More Information <common_packet_filter_doc>`
+Loading this script makes the following changes to :bro:see:`capture_filters`.
 
 Filters added::
 

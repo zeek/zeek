@@ -1,4 +1,51 @@
 
+2.0-beta-88 | 2011-12-02 17:00:58 -0800
+
+  * Teach LogWriterAscii to use BRO_LOG_SUFFIX environemt variable.
+    Addresses #704. (Jon Siwek)
+
+  * Fix double-free of DNS_Mgr_Request object. Addresses #661.
+    
+  * Add a remote_log_peer event which comes with an event_peer record
+    parameter. Addresses #493. (Jon Siwek)
+
+  * Remove example redef of SMTP::entity_excerpt_len from local.bro.
+    Fixes error emitted when loading local.bro in bare mode. (Jon
+    Siwek)
+
+  * Add missing doc targets to top Makefile; remove old doc/Makefile.
+    Fixes #705. (Jon Siwek)
+
+  * Turn some globals into constants. Addresses #633. (Seth Hall)
+    
+  * Rearrange packet filter and DPD documentation. (Jon Siwek)
+    
+2.0-beta-72 | 2011-11-30 20:16:09 -0800
+
+  * Fine-tuning the Sphinx layout to better match www. (Jon Siwek and
+    Robin Sommer)
+
+2.0-beta-69 | 2011-11-29 16:55:31 -0800
+
+  * Fixing ASCII logger to escape the unset-field place holder if
+    written out literally. (Robin Sommer)
+
+2.0-beta-68 | 2011-11-29 15:23:12 -0800
+
+  * Lots of documentation polishing. (Jon Siwek)
+
+  * Teach Broxygen the ".. bro:see::" directive. (Jon Siwek)
+
+  * Teach Broxygen :bro:see: role for referencing any identifier in
+    the Bro domain. (Jon Siwek)
+
+  * Teach Broxygen to generate an index of Bro notices. (Jon Siwek)
+
+  * Fix order of include directories. (Jon Siwek)
+
+  * Catch if logged vectors do not contain only atomic types.
+    (Bernhard Amann)
+
 2.0-beta-47 | 2011-11-16 08:24:33 -0800
 
   * Catch if logged sets do not contain only atomic types. (Bernhard

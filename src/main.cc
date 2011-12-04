@@ -48,6 +48,7 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "ConnCompressor.h"
 #include "DPM.h"
 #include "BroDoc.h"
+#include "LogWriterAscii.h"
 
 #include "binpac_bro.h"
 
@@ -196,6 +197,7 @@ void usage()
 	fprintf(stderr, "    $BRO_PREFIXES                  | prefix list (%s)\n", bro_prefixes());
 	fprintf(stderr, "    $BRO_DNS_FAKE                  | disable DNS lookups (%s)\n", bro_dns_fake());
 	fprintf(stderr, "    $BRO_SEED_FILE                 | file to load seeds from (not set)\n");
+	fprintf(stderr, "    $BRO_LOG_SUFFIX                | ASCII log file extension (.%s)\n", LogWriterAscii::LogExt().c_str());
 
 	exit(1);
 	}

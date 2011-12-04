@@ -41,7 +41,7 @@ redef capture_filters += { ["irc-6668"] = "port 6668" };
 redef capture_filters += { ["irc-6669"] = "port 6669" };
 
 # DPD configuration.
-global irc_ports = { 6666/tcp, 6667/tcp, 6668/tcp, 6669/tcp } &redef;
+const irc_ports = { 6666/tcp, 6667/tcp, 6668/tcp, 6669/tcp };
 redef dpd_config += { [ANALYZER_IRC] = [$ports = irc_ports] };
 
 redef likely_server_ports += { 6666/tcp, 6667/tcp, 6668/tcp, 6669/tcp };

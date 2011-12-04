@@ -159,7 +159,7 @@ bool LogVal::IsCompatibleType(BroType* t, bool atomic_only)
 		if ( atomic_only )
 			return false;
 
-		return IsCompatibleType(t->AsVectorType()->YieldType());
+		return IsCompatibleType(t->AsVectorType()->YieldType(), true);
 		}
 
 	default:

@@ -65,11 +65,11 @@ redef capture_filters += {
 	["netbios-ns"] = "udp port 137", 
 };
 
-global dns_ports = { 53/udp, 53/tcp, 137/udp, 5353/udp, 5355/udp } &redef;
+const dns_ports = { 53/udp, 53/tcp, 137/udp, 5353/udp, 5355/udp };
 redef dpd_config += { [ANALYZER_DNS] = [$ports = dns_ports] };
 
-global dns_udp_ports = { 53/udp, 137/udp, 5353/udp, 5355/udp } &redef;
-global dns_tcp_ports = { 53/tcp } &redef;
+const dns_udp_ports = { 53/udp, 137/udp, 5353/udp, 5355/udp };
+const dns_tcp_ports = { 53/tcp };
 redef dpd_config += { [ANALYZER_DNS_UDP_BINPAC] = [$ports = dns_udp_ports] };
 redef dpd_config += { [ANALYZER_DNS_TCP_BINPAC] = [$ports = dns_tcp_ports] };
 

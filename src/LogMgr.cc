@@ -83,7 +83,8 @@ bool LogField::Read(SerializationFormat* fmt)
 	int t;
 	int it;
 
-	bool success = (fmt->Read(&name, "name") && fmt->Read(&t, "type") && fmt->Read(&it, "subtype") );
+	bool success = (fmt->Read(&name, "name") && fmt->Read(&secondary_name, "secondary_name") && 
+			fmt->Read(&t, "type") && fmt->Read(&it, "subtype") );
 	type = (TypeTag) t;
 	subtype = (TypeTag) it;
 
@@ -92,7 +93,8 @@ bool LogField::Read(SerializationFormat* fmt)
 
 bool LogField::Write(SerializationFormat* fmt) const
 	{
-	return (fmt->Write(name, "name") && fmt->Write((int)type, "type") && fmt->Write((int)subtype, "subtype"));
+	return (fmt->Write(name, "name") && fmt->Write(secondary_name, "secondary_name") && fmt->Write((int)type, "type") && 
+			fmt->Write((int)subtype, "subtype"));
 	}
 
 LogVal::~LogVal()
@@ -151,7 +153,7 @@ bool LogVal::IsCompatibleType(BroType* t, bool atomic_only)
 		if ( ! t->IsSet() )
 			return false;
 
-		return IsCompatibleType(t->AsSetType()->Indices()->PureType(), true);
+		return IsCompatibleType(t->AsSetType()->Indices()->PureType());
 		}
 
 	case TYPE_VECTOR:

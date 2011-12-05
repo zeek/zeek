@@ -561,6 +561,16 @@ bool InputMgr::UnrollRecordType(vector<LogField*> *fields, const RecordType *rec
 				field->subtype = rec->FieldType(i)->AsSetType()->Indices()->PureType()->Tag();
 			} else if ( field->type == TYPE_VECTOR ) {
 				field->subtype = rec->FieldType(i)->AsVectorType()->YieldType()->Tag();
+			} else if ( field->type == TYPE_PORT &&
+					rec->FieldDecl(i)->FindAttr(ATTR_TYPE_COLUMN) ) {
+				// we have an annotation for the second column
+				
+				Val* c = rec->FieldDecl(i)->FindAttr(ATTR_TYPE_COLUMN)->AttrExpr()->Eval(0);
+
+				assert(c);
+				assert(c->Type()->Tag() == TYPE_STRING);
+
+				field->secondary_name = c->AsStringVal()->AsString()->CheckString();
 			}
 
 			fields->push_back(field);

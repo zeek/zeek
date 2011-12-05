@@ -14,13 +14,15 @@ class SerializationFormat;
 // Description of a log field.
 struct LogField {
 	string name;
+	// needed by input framework. port fields have two names (one for the port, one for the type) - this specifies the secondary name.
+	string secondary_name;
 	TypeTag type;
-	// needed by input framework. otherwise it cannot determine the inner type of a set or vector.
+	// needed by input framework. otherwise it cannot determine the inner type of a set.
 	TypeTag subtype;
 
 	LogField()	{ }
 	LogField(const LogField& other)
-		: name(other.name), type(other.type), subtype(other.subtype) { }
+		: name(other.name), secondary_name(other.secondary_name), type(other.type), subtype(other.subtype) { }
 
 	// (Un-)serialize.
 	bool Read(SerializationFormat* fmt);

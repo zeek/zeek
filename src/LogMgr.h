@@ -34,10 +34,12 @@ struct LogVal {
 	// types we can log directly.
 	struct set_t { bro_int_t size; LogVal** vals; };
 	typedef set_t vec_t;
+	struct port_t { bro_uint_t port; string* proto; };
 
 	union _val {
 		bro_int_t int_val;
 		bro_uint_t uint_val;
+		port_t port_val;
 		uint32 addr_val[NUM_ADDR_WORDS];
 		subnet_type subnet_val;
 		double double_val;
@@ -131,6 +133,8 @@ private:
 	void Rotate(WriterInfo* info);
 	Filter* FindFilter(EnumVal* id, StringVal* filter);
 	WriterInfo* FindWriter(LogWriter* writer);
+
+	string TransportProtoToString(TransportProto p);
 
 	vector<Stream *> streams;	// Indexed by stream enum.
 };

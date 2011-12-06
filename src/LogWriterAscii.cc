@@ -169,8 +169,11 @@ bool LogWriterAscii::DoWriteOne(ODesc* desc, LogVal* val, const LogField* field)
 
 	case TYPE_COUNT:
 	case TYPE_COUNTER:
-	case TYPE_PORT:
 		desc->Add(val->val.uint_val);
+		break;
+
+	case TYPE_PORT:
+		desc->Add(val->val.port_val.port);
 		break;
 
 	case TYPE_SUBNET:

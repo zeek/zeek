@@ -5442,8 +5442,31 @@ event remote_state_inconsistency%(operation: string, id: string,
 ## .. bro:see:: remote_capture_filter remote_connection_closed remote_connection_error
 ##    remote_connection_established remote_connection_handshake_done
 ##    remote_event_registered  remote_pong remote_state_access_performed
-##    remote_state_inconsistency print_hook
+##    remote_state_inconsistency print_hook remote_log_peer
 event remote_log%(level: count, src: count, msg: string%);
+
+## Generated for communication log messages. While this event is
+## intended primarily for use by Bro's communication framework, it can also trigger
+## additional code if helpful.  This event is equivalent to
+## :bro:see:`remote_log` except the message is with respect to a certain peer.
+##
+## p: A record describing the remote peer.
+##
+## level: The log level, which is either :bro:enum:`REMOTE_LOG_INFO` or
+##        :bro:enum:`REMOTE_LOG_ERROR`.
+##
+## src: The component of the comminication system that logged the message.
+##      Currently, this will be one of :bro:enum:`REMOTE_SRC_CHILD` (Bro's
+##      child process), :bro:enum:`REMOTE_SRC_PARENT` (Bro's main process), or
+##      :bro:enum:`REMOTE_SRC_SCRIPT` (the script level).
+##
+## msg: The message logged.
+##
+## .. bro:see:: remote_capture_filter remote_connection_closed remote_connection_error
+##    remote_connection_established remote_connection_handshake_done
+##    remote_event_registered  remote_pong remote_state_access_performed
+##    remote_state_inconsistency print_hook remote_log
+event remote_log_peer%(p: event_peer, level: count, src: count, msg: string%);
 
 ## Generated when a remote peer has answered to our ping. This event is part of
 ## Bro's infrastructure for measuring communication latency. One can send a ping

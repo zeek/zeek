@@ -1475,6 +1475,7 @@ function connection_exists%(c: conn_id%): bool
 ## Returns: The :bro:id:`connection` record for *cid*. If *cid* does not point
 ##          to an existing connection, the function generates a run-time error
 ##          and returns a dummy value.
+##
 ## .. bro:see:: connection_exists
 function lookup_connection%(cid: conn_id%): connection
 	%{
@@ -1525,8 +1526,10 @@ function lookup_connection%(cid: conn_id%): connection
 ## Returns: False if *id* does not point to an active connection and true
 ##          otherwise.
 ##
-## .. note:: Bro will still generate connection-oriented events such as
-##           :bro:id:`connection_finished`.
+## .. note::
+##
+##     Bro will still generate connection-oriented events such as
+##     :bro:id:`connection_finished`.
 function skip_further_processing%(cid: conn_id%): bool
 	%{
 	Connection* c = sessions->FindConnection(cid);
@@ -1538,7 +1541,7 @@ function skip_further_processing%(cid: conn_id%): bool
 	%}
 
 ## Controls whether packet contents belonging to a connection should be
-## recorded (when ``-w out.pcap`` is provided on the command line).
+## recorded (when ``-w`` option is provided on the command line).
 ##
 ## cid: The connection identifier.
 ##
@@ -1548,11 +1551,13 @@ function skip_further_processing%(cid: conn_id%): bool
 ## Returns: False if *id* does not point to an active connection and true
 ##          otherwise.
 ##
-## .. see:: skip_further_processing
+## .. bro:see:: skip_further_processing
 ##
-## .. note:: This is independent of whether Bro processes the packets of this
-##           connection, which is controlled separately by
-##           :bro:id:`skip_further_processing`.
+## .. note::
+##
+##     This is independent of whether Bro processes the packets of this
+##     connection, which is controlled separately by
+##     :bro:id:`skip_further_processing`.
 ##
 ## .. bro:see: get_contents_file set_contents_file
 function set_record_packets%(cid: conn_id, do_record: bool%): bool
@@ -1571,27 +1576,30 @@ function set_record_packets%(cid: conn_id, do_record: bool%): bool
 ## cid: The connection ID.
 ##
 ## direction: Controls what sides of the connection to record. The argument can
-## take one the four values:
+##            take one the four values:
 ##
-##     - ``CONTENTS_NONE``: Stop recording the connection's content.
-##     - ``CONTENTS_ORIG``: Record the data sent by the connection
-##                          originator (often the client).
-##     - ``CONTENTS_RESP``: Record the data sent by the connection
-##                          responder (often the server).
-##     - ``CONTENTS_BOTH``: Record the data sent in both directions. Results in
-##                          the two directions being intermixed in the file, in
-##                          the order the data was seen by Bro.
+##            - ``CONTENTS_NONE``: Stop recording the connection's content.
+##            - ``CONTENTS_ORIG``: Record the data sent by the connection
+##                                 originator (often the client).
+##            - ``CONTENTS_RESP``: Record the data sent by the connection
+##                                 responder (often the server).
+##            - ``CONTENTS_BOTH``: Record the data sent in both directions.
+##                                 Results in the two directions being
+##                                 intermixed in the file, in the order the
+##                                 data was seen by Bro.
 ##
 ## f: The file handle of the file to write the contents to.
 ##
 ## Returns: Returns false if *id* does not point to an active connection and
 ##          true otherwise.
 ##
-## .. note:: The data recorded to the file reflects the byte stream, not the
-##           contents of individual packets. Reordering and duplicates are
-##           removed. If any data is missing, the recording stops at the
-##           missing data; this can happen, e.g., due to an
-##           :bro:id:`ack_above_hole` event.
+## .. note::
+##
+##     The data recorded to the file reflects the byte stream, not the
+##     contents of individual packets. Reordering and duplicates are
+##     removed. If any data is missing, the recording stops at the
+##     missing data; this can happen, e.g., due to an
+##     :bro:id:`ack_above_hole` event.
 ##
 ## .. bro:see: get_contents_file set_record_packets
 function set_contents_file%(cid: conn_id, direction: count, f: file%): bool
@@ -1827,7 +1835,7 @@ function ptr_name_to_addr%(s: string%): addr
 ##
 ## Returns: The reverse pointer representation of *a*.
 ##
-## .. bro:see:: addr_to_count ptr_name_to_addr pase_dotted_addr
+## .. bro:see:: addr_to_count ptr_name_to_addr parse_dotted_addr
 function addr_to_ptr_name%(a: addr%): string
 	%{
 	// ## Question:
@@ -1924,8 +1932,8 @@ function parse_ftp_pasv%(str: string%): ftp_port
 	return parse_port(line);
 	%}
 
-## Converts the result of the FTP EPSV command to an ``ftp_port``
-## (see `RFC 2428 <http://tools.ietf.org/html/rfc2428>`_).
+## Converts the result of the FTP EPSV command to an ``ftp_port``.
+## See `RFC 2428 <http://tools.ietf.org/html/rfc2428>`_.
 ## The format is ``<text> (<d><d><d><tcp-port><d>)``, where ``<d>`` is a
 ## delimiter in the ASCII range 33-126 (usually ``|``).
 ##
@@ -1944,7 +1952,7 @@ function parse_ftp_epsv%(str: string%): ftp_port
 	%}
 
 ## Formats an IP address and TCP port as an FTP PORT command. For example,
-## ``10.0.0.1`` and ``1055/tcp`` yields ``"10,0,0,1,4,31"`.
+## ``10.0.0.1`` and ``1055/tcp`` yields ``"10,0,0,1,4,31"``.
 ##
 ## a: The IP address.
 ## 
@@ -1971,7 +1979,7 @@ function fmt_ftp_port%(a: addr, p: port%): string
 					pn >> 8, pn & 0xff));
 	%}
 
-## Decode a `NetBIOS name <http://support.microsoft.com/kb/194203>`_.
+## Decode a NetBIOS name.  See http://support.microsoft.com/kb/194203.
 ## 
 ## name: The encoded NetBIOS name, e.g., ``"FEEIEFCAEOEFFEECEJEPFDCAEOEBENEF:``.
 ##
@@ -2006,8 +2014,8 @@ function decode_netbios_name%(name: string%): string
 	return new StringVal(i, result);
 	%}
 
-## Converts a `NetBIOS name type <http://support.microsoft.com/kb/163409>`_ to
-## its corresonding numeric value.
+## Converts a NetBIOS name type to its corresonding numeric value.
+## See http://support.microsoft.com/kb/163409.
 ## 
 ## name: The NetBIOS name type.
 ##

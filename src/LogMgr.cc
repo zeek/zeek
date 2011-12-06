@@ -119,8 +119,8 @@ LogVal::~LogVal()
 		delete [] val.vector_val.vals;
 		}
 
-//	if ( type == TYPE_PORT && present )
-//		delete val.port_val.proto;
+	if ( type == TYPE_PORT && present )
+		delete val.port_val.proto;
 
 	}
 

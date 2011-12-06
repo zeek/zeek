@@ -89,6 +89,8 @@ void delete_each(T* t)
 		delete *it;
 	}
 
+std::string get_escaped_string(const std::string& str);
+
 extern char* copy_string(const char* s);
 extern int streq(const char* s1, const char* s2);
 

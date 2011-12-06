@@ -6,27 +6,6 @@
 #include "LogWriterAscii.h"
 #include "NetVar.h"
 
-/**
- * Takes a string, escapes each character into its equivalent hex code (\x##), and
- * returns a string containing all escaped values.
- *
- * @param str string to escape
- * @return A std::string containing a list of escaped hex values of the form \x##
- */
-static string get_escaped_string(const std::string& str)
-{
-	char tbuf[16];
-	string esc = "";
-
-	for ( size_t i = 0; i < str.length(); ++i )
-		{
-		snprintf(tbuf, sizeof(tbuf), "\\x%02x", str[i]);
-		esc += tbuf;
-		}
-
-	return esc;
-}
-
 LogWriterAscii::LogWriterAscii()
 	{
 	file = 0;
@@ -59,7 +38,8 @@ LogWriterAscii::LogWriterAscii()
 	memcpy(header_prefix, BifConst::LogAscii::header_prefix->Bytes(),
 	       header_prefix_len);
 
-	desc.SetEscape(separator, separator_len);
+	desc.SetEscape();
+	desc.AddEscapeSequence(separator, separator_len);
 	}
 
 LogWriterAscii::~LogWriterAscii()

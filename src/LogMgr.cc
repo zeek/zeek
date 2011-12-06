@@ -118,6 +118,10 @@ LogVal::~LogVal()
 
 		delete [] val.vector_val.vals;
 		}
+
+//	if ( type == TYPE_PORT && present )
+//		delete val.port_val.proto;
+
 	}
 
 bool LogVal::IsCompatibleType(BroType* t, bool atomic_only)
@@ -190,8 +194,11 @@ bool LogVal::Read(SerializationFormat* fmt)
 
 	case TYPE_COUNT:
 	case TYPE_COUNTER:
-	case TYPE_PORT:
 		return fmt->Read(&val.uint_val, "uint");
+
+	case TYPE_PORT:
+		val.port_val.proto = new string;
+		return fmt->Read(&val.port_val.port, "port") && fmt->Read(val.port_val.proto, "proto");
 
 	case TYPE_SUBNET:
 		{
@@ -305,8 +312,10 @@ bool LogVal::Write(SerializationFormat* fmt) const
 
 	case TYPE_COUNT:
 	case TYPE_COUNTER:
-	case TYPE_PORT:
 		return fmt->Write(val.uint_val, "uint");
+
+	case TYPE_PORT:
+		return fmt->Write(val.port_val.port, "port") && fmt->Write(*val.port_val.proto, "proto");
 
 	case TYPE_SUBNET:
 		{
@@ -1066,6 +1075,22 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 	return true;
 	}
 
+string LogMgr::TransportProtoToString(TransportProto p) {
+	switch ( p ) {
+		case TRANSPORT_UNKNOWN:
+		       return "unknown";
+		case TRANSPORT_TCP:
+			return "tcp";
+		case TRANSPORT_UDP:
+			return "udp";
+		case TRANSPORT_ICMP:
+			return "icmp";
+	}
+
+	assert(false);
+	return "";
+}
+
 LogVal* LogMgr::ValToLogVal(Val* val, BroType* ty)
 	{
 	if ( ! ty )
@@ -1097,7 +1122,8 @@ LogVal* LogMgr::ValToLogVal(Val* val, BroType* ty)
 		break;
 
 	case TYPE_PORT:
-		lval->val.uint_val = val->AsPortVal()->Port();
+		lval->val.port_val.port = val->AsPortVal()->Port();
+		lval->val.port_val.proto = new string(TransportProtoToString(val->AsPortVal()->PortType()));
 		break;
 
 	case TYPE_SUBNET:

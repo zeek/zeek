@@ -10,24 +10,26 @@ FieldMapping::FieldMapping(const string& arg_name, const TypeTag& arg_type, int 
 	: name(arg_name), type(arg_type)
 {
 	position = arg_position;
+	secondary_position = -1;
 }
 
 FieldMapping::FieldMapping(const string& arg_name, const TypeTag& arg_type, const TypeTag& arg_subtype, int arg_position) 
 	: name(arg_name), type(arg_type), subtype(arg_subtype)
 {
 	position = arg_position;
+	secondary_position = -1;
 }
 
 FieldMapping::FieldMapping(const FieldMapping& arg) 
 	: name(arg.name), type(arg.type), subtype(arg.subtype)
 {
 	position = arg.position;
+	secondary_position = arg.secondary_position;
 }
 
 FieldMapping FieldMapping::subType() {
 	return FieldMapping(name, subtype, position);
 }
-
 
 InputReaderAscii::InputReaderAscii()
 {
@@ -122,45 +124,45 @@ bool InputReaderAscii::ReadHeader() {
 		return false;
 	}
 
+	map<string, uint32_t> fields;
+
+	// construcr list of field names.
+	istringstream splitstream(line);
+	int pos=0;
+	while ( splitstream ) {
+		string s;
+		if ( !getline(splitstream, s, separator[0]))
+			break;
+
+		fields[s] = pos;
+		pos++;
+	}
+
+
 	for ( map<int, Filter>::iterator it = filters.begin(); it != filters.end(); it++ ) {
-		// split on tabs...
-		istringstream splitstream(line);
-		unsigned int currTab = 0;
-		int wantFields = 0;
-		while ( splitstream ) {
-			string s;
-			if ( !getline(splitstream, s, separator[0]))
-				break;
 			
-			// current found heading in s... compare if we want it
-			for ( unsigned int i = 0; i < (*it).second.num_fields; i++ ) {
-				const LogField* field = (*it).second.fields[i];
-				if ( field->name == s ) {
-					// cool, found field. note position
-					FieldMapping f(field->name, field->type, field->subtype, i);
-					(*it).second.columnMap.push_back(f);
-					wantFields++;
-					break; // done with searching
+		for ( unsigned int i = 0; i < (*it).second.num_fields; i++ ) {
+			const LogField* field = (*it).second.fields[i];
+			
+			map<string, uint32_t>::iterator fit = fields.find(field->name);	
+			if ( fit == fields.end() ) {
+				Error(Fmt("Did not find requested field %s in input data file.", field->name.c_str()));
+				return false;
+			}
+	
+
+			FieldMapping f(field->name, field->type, field->subtype, fields[field->name]);
+			if ( field->secondary_name != "" ) {
+				map<string, uint32_t>::iterator fit2 = fields.find(field->secondary_name);					
+				if ( fit2 == fields.end() ) {
+					Error(Fmt("Could not find requested port type field %s in input data file.", field->secondary_name.c_str()));
+					return false;
 				}
+				f.secondary_position = fields[field->secondary_name];
 			}
-
-			// look if we did push something...
-			if ( (*it).second.columnMap.size() == currTab ) {
-				// no, we didn't. note that...
-				FieldMapping empty;
-				(*it).second.columnMap.push_back(empty);
-			}
-
-			// done 
-			currTab++;
-		} 
-
-		if ( wantFields != (int) (*it).second.num_fields ) {
-			// we did not find all fields?
-			// :(
-			Error(Fmt("One of the requested fields could not be found in the input data file. Found %d fields, wanted %d. Filternum: %d", wantFields, (*it).second.num_fields, (*it).first));
-			return false;
+			(*it).second.columnMap.push_back(f);
 		}
+
 	}
 	
 	// well, that seems to have worked...
@@ -220,8 +222,12 @@ LogVal* InputReaderAscii::EntryToVal(string s, FieldMapping field) {
 
 	case TYPE_COUNT:
 	case TYPE_COUNTER:
-	case TYPE_PORT:
 		val->val.uint_val = atoi(s.c_str());
+		break;
+
+	case TYPE_PORT:
+		val->val.port_val.port = atoi(s.c_str());
+		val->val.port_val.proto = 0;
 		break;
 
 	case TYPE_SUBNET: {
@@ -346,59 +352,55 @@ bool InputReaderAscii::DoUpdate() {
 
 	string line;
 	while ( GetLine(line ) ) {
+		// split on tabs
+		istringstream splitstream(line);
+
+		map<int, string> stringfields;
+		int pos = 0;
+		while ( splitstream ) {
+			string s;
+			if ( !getline(splitstream, s, separator[0]) )
+				break;
+
+			stringfields[pos] = s;
+			pos++;
+		}
+
+		pos--; // for easy comparisons of max element.
 
 		for ( map<int, Filter>::iterator it = filters.begin(); it != filters.end(); it++ ) {
 		
-			// split on tabs
-			
-			istringstream splitstream(line);
-		
 			LogVal** fields = new LogVal*[(*it).second.num_fields];
-			//string string_fields[num_fields];
 
-			unsigned int currTab = 0;
-			unsigned int currField = 0;
-			while ( splitstream ) {
+			int fpos = 0;
+			for ( vector<FieldMapping>::iterator fit = (*it).second.columnMap.begin();
+				fit != (*it).second.columnMap.end();
+				fit++ ){
 
-				string s;
-				if ( !getline(splitstream, s, separator[0]) )
-					break;
-
-				
-				if ( currTab >= (*it).second.columnMap.size() ) {
-					Error("Tabs in heading do not match tabs in data?");
-					//disabled = true;
+				if ( (*fit).position > pos || (*fit).secondary_position > pos ) {
+					Error(Fmt("Not enough fields in line %s. Found %d fields, want positions %d and %d", line.c_str(), pos,  (*fit).position, (*fit).secondary_position));
 					return false;
 				}
 
-				FieldMapping currMapping = (*it).second.columnMap[currTab];
-				currTab++;
-
-				if ( currMapping.IsEmpty() ) {
-					// well, that was easy
-					continue;
-				}
-
-				if ( currField >= (*it).second.num_fields ) {
-					Error("internal error - fieldnum greater as possible");
-					return false;
-				}
-
-				LogVal* val = EntryToVal(s, currMapping);
+				LogVal* val = EntryToVal(stringfields[(*fit).position], *fit);
 				if ( val == 0 ) {
 					return false;
 				}
-				fields[currMapping.position] = val;
-				//string_fields[currMapping.position] = s;
+				
+				if ( (*fit).secondary_position != -1 ) {
+					// we have a port definition :)
+					assert(val->type == TYPE_PORT ); 
+					//	Error(Fmt("Got type %d != PORT with secondary position!", val->type));
 
-				currField++;
+					val->val.port_val.proto = new string(stringfields[(*fit).secondary_position]);
+				}
+
+				fields[fpos] = val;
+
+				fpos++;
 			}
 
-			if ( currField != (*it).second.num_fields ) {
-				Error("curr_field != num_fields in DoUpdate. Columns in file do not match column definition.");
-				return false;
-			}
-
+			assert ( (unsigned int) fpos == (*it).second.num_fields );
 
 			SendEntry((*it).first, fields);
 

@@ -21,10 +21,10 @@ struct FieldMapping {
 	FieldMapping(const string& arg_name, const TypeTag& arg_type, int arg_position); 
 	FieldMapping(const string& arg_name, const TypeTag& arg_type, const TypeTag& arg_subtype, int arg_position); 
 	FieldMapping(const FieldMapping& arg);
-	FieldMapping() { position = -1; }
+	FieldMapping() { position = -1; secondary_position = -1; }
 
 	FieldMapping subType();
-	bool IsEmpty() { return position == -1; }
+	//bool IsEmpty() { return position == -1; }
 };
 
 

@@ -1167,9 +1167,14 @@ int InputMgr::GetLogValLength(const LogVal* val) {
 
 	case TYPE_COUNT:
 	case TYPE_COUNTER:
-	case TYPE_PORT:
 		length += sizeof(val->val.uint_val);
 	break;
+
+	case TYPE_PORT:
+		length += sizeof(val->val.port_val.port);
+		if ( val->val.port_val.proto != 0 ) 
+			length += val->val.port_val.proto->size();
+		break;
 	
 	case TYPE_DOUBLE:
 	case TYPE_TIME:
@@ -1228,11 +1233,23 @@ int InputMgr::CopyLogVal(char *data, const int startpos, const LogVal* val) {
 
 	case TYPE_COUNT:
 	case TYPE_COUNTER:
-	case TYPE_PORT:
 		//*(data+startpos) = val->val.uint_val;
 		memcpy(data+startpos, (const void*) &(val->val.uint_val), sizeof(val->val.uint_val));
 		return sizeof(val->val.uint_val);
 		break;
+
+	case TYPE_PORT: {
+		int length = 0;
+		memcpy(data+startpos, (const void*) &(val->val.port_val.port), sizeof(val->val.port_val.port));
+		length += sizeof(val->val.port_val.port);
+		if ( val->val.port_val.proto != 0 ) {
+			memcpy(data+startpos, val->val.port_val.proto->c_str(), val->val.port_val.proto->length());
+			length += val->val.port_val.proto->size();
+		}
+		return length;
+		break;
+		}
+		
 
 	case TYPE_DOUBLE:
 	case TYPE_TIME:
@@ -1320,6 +1337,24 @@ HashKey* InputMgr::HashLogVals(const int num_elements, const LogVal* const *vals
 
 }
 
+TransportProto InputMgr::StringToProto(const string &proto) {
+	if ( proto == "unknown" ) {
+		return TRANSPORT_UNKNOWN;
+	} else if ( proto == "tcp" ) {
+		return TRANSPORT_TCP;
+	} else if ( proto == "udp" ) {
+		return TRANSPORT_UDP;
+	} else if ( proto == "icmp" ) {
+		return TRANSPORT_ICMP;
+	}
+
+	//assert(false);
+	
+	reporter->Error("Tried to parse invalid/unknown protocol: %s", proto.c_str());
+
+	return TRANSPORT_UNKNOWN;
+}
+
 Val* InputMgr::LogValToVal(const LogVal* val, BroType* request_type) {
 	
 	if ( request_type->Tag() != TYPE_ANY && request_type->Tag() != val->type ) {
@@ -1357,7 +1392,10 @@ Val* InputMgr::LogValToVal(const LogVal* val, BroType* request_type) {
 		}
 	
 	case TYPE_PORT:
-		return new PortVal(val->val.uint_val);
+		if ( val->val.port_val.proto == 0 ) 
+			return new PortVal(val->val.port_val.port);
+		else
+			return new PortVal(val->val.port_val.port, StringToProto(*val->val.port_val.proto));
 		break;
 
 	case TYPE_ADDR:

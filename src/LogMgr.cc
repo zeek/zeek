@@ -1088,7 +1088,6 @@ string LogMgr::TransportProtoToString(TransportProto p) {
 	}
 
 	assert(false);
-	return "";
 }
 
 LogVal* LogMgr::ValToLogVal(Val* val, BroType* ty)

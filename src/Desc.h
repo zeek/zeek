@@ -54,6 +54,9 @@ public:
 	void AddEscapeSequence(const char* s) { escape_sequences.push_back(s); }
 	void AddEscapeSequence(const char* s, size_t n)
 	    { escape_sequences.push_back(string(s, n)); }
+	void RemEscapeSequence(const char* s) { escape_sequences.remove(s); }
+	void RemEscapeSequence(const char* s, size_t n)
+	    { escape_sequences.remove(string(s, n)); }
 
 	void PushIndent();
 	void PopIndent();

@@ -218,14 +218,19 @@ bool LogWriterAscii::DoWriteOne(ODesc* desc, LogVal* val, const LogField* field)
 			break;
 			}
 
+		desc->AddEscapeSequence(set_separator, set_separator_len);
 		for ( int j = 0; j < val->val.set_val.size; j++ )
 			{
 			if ( j > 0 )
-				desc->AddN(set_separator, set_separator_len);
+				desc->AddRaw(set_separator, set_separator_len);
 
 			if ( ! DoWriteOne(desc, val->val.set_val.vals[j], field) )
+				{
+				desc->RemEscapeSequence(set_separator, set_separator_len);
 				return false;
+				}
 			}
+		desc->RemEscapeSequence(set_separator, set_separator_len);
 
 		break;
 		}
@@ -238,14 +243,19 @@ bool LogWriterAscii::DoWriteOne(ODesc* desc, LogVal* val, const LogField* field)
 			break;
 			}
 
+		desc->AddEscapeSequence(set_separator, set_separator_len);
 		for ( int j = 0; j < val->val.vector_val.size; j++ )
 			{
 			if ( j > 0 )
-				desc->AddN(set_separator, set_separator_len);
+				desc->AddRaw(set_separator, set_separator_len);
 
 			if ( ! DoWriteOne(desc, val->val.vector_val.vals[j], field) )
+				{
+				desc->RemEscapeSequence(set_separator, set_separator_len);
 				return false;
+				}
 			}
+		desc->RemEscapeSequence(set_separator, set_separator_len);
 
 		break;
 		}

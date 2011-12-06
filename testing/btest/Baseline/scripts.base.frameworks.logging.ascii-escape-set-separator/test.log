@@ -1,0 +1,5 @@
+#separator \x09
+#path	test
+#fields	ss
+#types	table
+CC,AA,\x2c,\x2c\x2c

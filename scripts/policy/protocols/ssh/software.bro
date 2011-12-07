@@ -24,6 +24,6 @@ event ssh_server_version(c: connection, version: string) &priority=4
 	{
 	# Get rid of the protocol information when passing to the software framework.
 	local cleaned_version = sub(version, /SSH[0-9\.\-]{2,}/, "");
-	local si = Software::parse(cleaned_version, c$id$resp_h, SERVER);
+	local si = Software::parse_with_port(cleaned_version, c$id$resp_h, c$id$resp_p, SERVER);
 	Software::found(c$id, si);
 	}

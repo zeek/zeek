@@ -25,13 +25,13 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 	else
 		{
 		if ( name == "SERVER" )
-			Software::found(c$id, Software::parse(value, c$id$resp_h, SERVER));
+			Software::found(c$id, Software::parse_with_port(value, c$id$resp_h, c$id$resp_p, SERVER));
 		else if ( name == "X-POWERED-BY" )
-			Software::found(c$id, Software::parse(value, c$id$resp_h, APPSERVER));
+			Software::found(c$id, Software::parse_with_port(value, c$id$resp_h, c$id$resp_p, APPSERVER));
 		else if ( name == "MICROSOFTSHAREPOINTTEAMSERVICES" )
 			{
 			value = cat("SharePoint/", value);
-			Software::found(c$id, Software::parse(value, c$id$resp_h, APPSERVER));
+			Software::found(c$id, Software::parse_with_port(value, c$id$resp_h, c$id$resp_p, APPSERVER));
 			}
 		}
 	}

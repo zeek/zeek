@@ -34,7 +34,11 @@ export {
 		## The time at which the software was first detected.
 		ts:               time &log;
 		## The IP address detected running the software.
-		host:             addr &log;
+		host_a:           addr &log;
+		## The Port on which the software is running. Only sensible for server software.
+		host_p:           port &log &optional;
+		## The transport protocol that is being used. Only sensible for server software.
+		proto:            transport_proto &log &optional;
 		## The type of software detected (e.g. WEB_SERVER)
 		software_type:    Type &log &default=UNKNOWN;
 		## Name of the software (e.g. Apache)
@@ -71,7 +75,13 @@ export {
 	## still many cases where scripts may have to have their own specific 
 	## version parsing though.
 	global parse: function(unparsed_version: string,
-	                       host: addr,
+	                       host_a: addr,
+	                       software_type: Type): Info;
+
+	## This function is the equivalent to parse for software that has a specific
+	## source port (i.e. server software)
+	global parse_with_port: function(unparsed_version: string,
+	                       host_a: addr, host_p: port,
 	                       software_type: Type): Info;
 	
 	## Compare two versions.
@@ -107,7 +117,7 @@ event bro_init()
 	}
 
 function parse_mozilla(unparsed_version: string, 
-	                   host: addr, 
+	                   host_a: addr, 
 	                   software_type: Type): Info
 	{
 	local software_name = "<unknown browser>";
@@ -119,7 +129,7 @@ function parse_mozilla(unparsed_version: string,
 		software_name = "Opera";
 		parts = split_all(unparsed_version, /Opera [0-9\.]*$/);
 		if ( 2 in parts )
-			v = parse(parts[2], host, software_type)$version;
+			v = parse(parts[2], host_a, software_type)$version;
 		}
 	else if ( / MSIE / in unparsed_version )
 		{
@@ -134,7 +144,7 @@ function parse_mozilla(unparsed_version: string,
 			{
 			parts = split_all(unparsed_version, /MSIE [0-9]{1,2}\.*[0-9]*b?[0-9]*/);
 			if ( 2 in parts )
-				v = parse(parts[2], host, software_type)$version;
+				v = parse(parts[2], host_a, software_type)$version;
 			}
 		}
 	else if ( /Version\/.*Safari\// in unparsed_version )
@@ -143,7 +153,7 @@ function parse_mozilla(unparsed_version: string,
 		parts = split_all(unparsed_version, /Version\/[0-9\.]*/);
 		if ( 2 in parts )
 			{
-			v = parse(parts[2], host, software_type)$version;
+			v = parse(parts[2], host_a, software_type)$version;
 			if ( / Mobile\/?.* Safari/ in unparsed_version )
 				v$addl = "Mobile";
 			}
@@ -153,7 +163,7 @@ function parse_mozilla(unparsed_version: string,
 		parts = split_all(unparsed_version, /(Firefox|Netscape|Thunderbird)\/[0-9\.]*/);
 		if ( 2 in parts )
 			{
-			local tmp_s = parse(parts[2], host, software_type);
+			local tmp_s = parse(parts[2], host_a, software_type);
 			software_name = tmp_s$name;
 			v = tmp_s$version;
 			}
@@ -163,7 +173,7 @@ function parse_mozilla(unparsed_version: string,
 		software_name = "Chrome";
 		parts = split_all(unparsed_version, /Chrome\/[0-9\.]*/);
 		if ( 2 in parts )
-			v = parse(parts[2], host, software_type)$version;
+			v = parse(parts[2], host_a, software_type)$version;
 		}
 	else if ( /^Opera\// in unparsed_version )
 		{
@@ -174,12 +184,12 @@ function parse_mozilla(unparsed_version: string,
 				software_name = parts[2];
 			parts = split_all(unparsed_version, /Version\/[0-9\.]*/);
 			if ( 2 in parts )
-				v = parse(parts[2], host, software_type)$version;
+				v = parse(parts[2], host_a, software_type)$version;
 			else
 				{
 				parts = split_all(unparsed_version, /Opera Mini\/[0-9\.]*/);
 				if ( 2 in parts )
-					v = parse(parts[2], host, software_type)$version;
+					v = parse(parts[2], host_a, software_type)$version;
 				}
 			}
 		else
@@ -187,7 +197,7 @@ function parse_mozilla(unparsed_version: string,
 			software_name = "Opera";
 			parts = split_all(unparsed_version, /Version\/[0-9\.]*/);
 			if ( 2 in parts )
-				v = parse(parts[2], host, software_type)$version;
+				v = parse(parts[2], host_a, software_type)$version;
 			}
 		}
 	else if ( /AppleWebKit\/[0-9\.]*/ in unparsed_version )
@@ -195,17 +205,17 @@ function parse_mozilla(unparsed_version: string,
 		software_name = "Unspecified WebKit";
 		parts = split_all(unparsed_version, /AppleWebKit\/[0-9\.]*/);
 		if ( 2 in parts )
-			v = parse(parts[2], host, software_type)$version;
+			v = parse(parts[2], host_a, software_type)$version;
 		}
 
-	return [$ts=network_time(), $host=host, $name=software_name, $version=v,
+	return [$ts=network_time(), $host_a=host_a, $name=software_name, $version=v,
 	        $software_type=software_type, $unparsed_version=unparsed_version];
 	}
 
 # Don't even try to understand this now, just make sure the tests are 
 # working.
 function parse(unparsed_version: string,
-	           host: addr,
+	           host_a: addr,
 	           software_type: Type): Info
 	{
 	local software_name = "<parse error>";
@@ -214,7 +224,7 @@ function parse(unparsed_version: string,
 	# Parse browser-alike versions separately
 	if ( /^(Mozilla|Opera)\/[0-9]\./ in unparsed_version )
 		{
-		return parse_mozilla(unparsed_version, host, software_type);
+		return parse_mozilla(unparsed_version, host_a, software_type);
 		}
 	else
 		{
@@ -276,10 +286,22 @@ function parse(unparsed_version: string,
 				v$major = extract_count(version_numbers[1]);
 			}
 		}
-	return [$ts=network_time(), $host=host, $name=software_name,
+	return [$ts=network_time(), $host_a=host_a, $name=software_name,
 	        $version=v, $unparsed_version=unparsed_version,
 	        $software_type=software_type];
 	}
+
+function parse_with_port(unparsed_version: string,
+	           host_a: addr, host_p: port,
+	           software_type: Type): Info
+{
+	local i: Info;
+	i = parse(unparsed_version, host_a, software_type);
+	i$host_p = host_p;
+	i$proto = get_port_transport_proto(host_p);
+
+	return i;
+}
 
 
 function cmp_versions(v1: Version, v2: Version): int
@@ -340,9 +362,9 @@ function cmp_versions(v1: Version, v2: Version): int
 		}
 	}
 
-function software_endpoint_name(id: conn_id, host: addr): string
+function software_endpoint_name(id: conn_id, host_a: addr): string
 	{
-	return fmt("%s %s", host, (host == id$orig_h ? "client" : "server"));
+	return fmt("%s %s", host_a, (host_a == id$orig_h ? "client" : "server"));
 	}
 
 # Convert a version into a string "a.b.c-x".
@@ -366,10 +388,10 @@ function software_fmt(i: Info): string
 event software_register(id: conn_id, info: Info)
 	{
 	# Host already known?
-	if ( info$host !in tracked )
-		tracked[info$host] = table();
+	if ( info$host_a !in tracked )
+		tracked[info$host_a] = table();
 
-	local ts = tracked[info$host];
+	local ts = tracked[info$host_a];
 	# Software already registered for this host?  We don't want to endlessly
 	# log the same thing.
 	if ( info$name in ts )
@@ -389,7 +411,7 @@ event software_register(id: conn_id, info: Info)
 
 function found(id: conn_id, info: Info): bool
 	{
-	if ( info$force_log || addr_matches_host(info$host, asset_tracking) )
+	if ( info$force_log || addr_matches_host(info$host_a, asset_tracking) )
 		{
 		event software_register(id, info);
 		return T;

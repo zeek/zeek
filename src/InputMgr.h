@@ -68,9 +68,6 @@ private:
 	Val* LogValToIndexVal(int num_fields, const RecordType* type, const LogVal* const *vals);
 	RecordVal* LogValToRecordVal(const LogVal* const *vals, RecordType *request_type, int* position);	
 
-	TransportProto StringToProto(const string &proto);	
-
-	
 	ReaderInfo* FindReader(const InputReader* reader);
 	ReaderInfo* FindReader(const EnumVal* id);
 

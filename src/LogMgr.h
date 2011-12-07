@@ -38,7 +38,7 @@ struct LogVal {
 	// types we can log directly.
 	struct set_t { bro_int_t size; LogVal** vals; };
 	typedef set_t vec_t;
-	struct port_t { bro_uint_t port; string* proto; };
+	struct port_t { bro_uint_t port; TransportProto proto; };
 
 	union _val {
 		bro_int_t int_val;

@@ -184,6 +184,23 @@ bool InputReaderAscii::GetLine(string& str) {
 	return false;
 }
 
+TransportProto InputReaderAscii::StringToProto(const string &proto) {
+	if ( proto == "unknown" ) {
+		return TRANSPORT_UNKNOWN;
+	} else if ( proto == "tcp" ) {
+		return TRANSPORT_TCP;
+	} else if ( proto == "udp" ) {
+		return TRANSPORT_UDP;
+	} else if ( proto == "icmp" ) {
+		return TRANSPORT_ICMP;
+	}
+
+	//assert(false);
+	
+	reporter->Error("Tried to parse invalid/unknown protocol: %s", proto.c_str());
+
+	return TRANSPORT_UNKNOWN;
+}
 
 LogVal* InputReaderAscii::EntryToVal(string s, FieldMapping field) {
 
@@ -227,7 +244,7 @@ LogVal* InputReaderAscii::EntryToVal(string s, FieldMapping field) {
 
 	case TYPE_PORT:
 		val->val.port_val.port = atoi(s.c_str());
-		val->val.port_val.proto = 0;
+		val->val.port_val.proto = TRANSPORT_UNKNOWN;
 		break;
 
 	case TYPE_SUBNET: {
@@ -392,7 +409,7 @@ bool InputReaderAscii::DoUpdate() {
 					assert(val->type == TYPE_PORT ); 
 					//	Error(Fmt("Got type %d != PORT with secondary position!", val->type));
 
-					val->val.port_val.proto = new string(stringfields[(*fit).secondary_position]);
+					val->val.port_val.proto = StringToProto(stringfields[(*fit).secondary_position]);
 				}
 
 				fields[fpos] = val;

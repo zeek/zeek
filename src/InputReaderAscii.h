@@ -61,6 +61,8 @@ private:
 
 	bool HasFilter(int id);
 
+	TransportProto StringToProto(const string &proto);		
+
 	bool ReadHeader();
 	LogVal* EntryToVal(string s, FieldMapping type);
 

@@ -1,4 +1,7 @@
 #separator \x09
+#set_separator	\x2c
+#empty_field	\x2d
+#unset_field	\x2d
 #path	known_services
 #fields	ts	host	port_num	port_proto	service
 #types	time	addr	port	enum	table

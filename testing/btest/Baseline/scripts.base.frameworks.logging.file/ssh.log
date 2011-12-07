@@ -1,5 +1,8 @@
 #separator \x09
+#set_separator	\x2c
+#empty_field	\x2d
+#unset_field	\x2d
 #path	ssh
 #fields	t	f
 #types	time	file
-1315167053.585834	Foo.log
+1323275842.508479	Foo.log

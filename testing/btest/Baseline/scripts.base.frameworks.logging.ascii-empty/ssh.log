@@ -1,9 +1,12 @@
 PREFIX<>separator \x7c
+PREFIX<>set_separator|\x2c
+PREFIX<>empty_field|\x45\x4d\x50\x54\x59
+PREFIX<>unset_field|\x4e\x4f\x54\x2d\x53\x45\x54
 PREFIX<>path|ssh
 PREFIX<>fields|t|id.orig_h|id.orig_p|id.resp_h|id.resp_p|status|country|b
 PREFIX<>types|time|addr|port|addr|port|string|string|bool
-1315167052.828457|1.2.3.4|1234|2.3.4.5|80|success|unknown|NOT-SET
-1315167052.828457|1.2.3.4|1234|2.3.4.5|80|NOT-SET|US|NOT-SET
-1315167052.828457|1.2.3.4|1234|2.3.4.5|80|failure|UK|NOT-SET
-1315167052.828457|1.2.3.4|1234|2.3.4.5|80|NOT-SET|BR|NOT-SET
-1315167052.828457|1.2.3.4|1234|2.3.4.5|80|failure|EMPTY|T
+1323275635.348361|1.2.3.4|1234|2.3.4.5|80|success|unknown|NOT-SET
+1323275635.348361|1.2.3.4|1234|2.3.4.5|80|NOT-SET|US|NOT-SET
+1323275635.348361|1.2.3.4|1234|2.3.4.5|80|failure|UK|NOT-SET
+1323275635.348361|1.2.3.4|1234|2.3.4.5|80|NOT-SET|BR|NOT-SET
+1323275635.348361|1.2.3.4|1234|2.3.4.5|80|failure|EMPTY|T

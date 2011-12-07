@@ -1,4 +1,7 @@
 #separator \x09
+#set_separator	\x2c
+#empty_field	\x2d
+#unset_field	\x2d
 #path	smtp
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	trans_depth	helo	mailfrom	rcptto	date	from	to	reply_to	msg_id	in_reply_to	subject	x_originating_ip	first_received	second_received	last_reply	path	user_agent
 #types	time	string	addr	port	addr	port	count	string	string	table	string	string	table	string	string	string	string	addr	string	string	string	vector	string

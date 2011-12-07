@@ -1,4 +1,7 @@
 #separator \x09
+#set_separator	\x2c
+#empty_field	\x2d
+#unset_field	\x2d
 #path	http
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	trans_depth	method	host	uri	referrer	user_agent	request_body_len	response_body_len	status_code	status_msg	info_code	info_msg	filename	tags	username	password	proxied	mime_type	md5	extraction_file
 #types	time	string	addr	port	addr	port	count	string	string	string	string	string	count	count	count	string	count	string	string	table	string	string	table	string	string	file

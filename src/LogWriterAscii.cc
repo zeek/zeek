@@ -88,7 +88,13 @@ bool LogWriterAscii::DoInit(string path, int num_fields,
 		if( fwrite(str.c_str(), str.length(), 1, file) != 1 )
 			goto write_error;
 
-		if ( ! WriteHeaderField("path", path) )
+		if ( ! (WriteHeaderField("set_separator", get_escaped_string(
+		            string(set_separator, set_separator_len))) &&
+		        WriteHeaderField("empty_field", get_escaped_string(
+		            string(empty_field, empty_field_len))) &&
+		        WriteHeaderField("unset_field", get_escaped_string(
+		            string(unset_field, unset_field_len))) &&
+		        WriteHeaderField("path", path)) )
 			goto write_error;
 
 		string names;

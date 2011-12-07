@@ -217,6 +217,8 @@ Events
 
    Summarize "an_event" here.
    Give more details about "an_event" here.
+   Example::an_event should not be confused as a parameter
+   
    
    :param name: describe the argument here
 

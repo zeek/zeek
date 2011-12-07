@@ -198,6 +198,7 @@ protected:
 		static const int NO_CACHING = 2;
 		static const int PID_64BIT = 4;
 		static const int NEW_CACHE_STRATEGY = 8;
+		static const int BROCCOLI_PEER = 16;
 
 		// Constants to remember to who did something.
 		static const int NONE = 0;

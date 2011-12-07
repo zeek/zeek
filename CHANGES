@@ -1,4 +1,31 @@
 
+2.0-beta-98 | 2011-12-07 08:12:08 -0800
+
+  * Adapting test-suite's diff-all so that it expands globs in both
+    current and baseline directory. Closes #677. (Robin Sommer)
+
+2.0-beta-97 | 2011-12-06 11:49:29 -0800
+
+  * Omit loading local-<node>.bro scripts from base cluster framework.
+    Addresses #663 (Jon Siwek)
+
+2.0-beta-94 | 2011-12-03 15:57:19 -0800
+
+  * Adapting attribute serialization when talking to Broccoli. (Robin
+    Sommer)
+
+2.0-beta-92 | 2011-12-03 15:56:03 -0800
+
+  * Changes to Broxygen master script package index.  (Jon Siwek)
+
+    - Now only lists packages as those directories in the script hierarchy
+      that contain an __load__.bro file.
+
+    - Script packages (dirs with a __load__.bro file), can now include
+      a README (in reST format) that will automatically be appended
+      under the link to a specific package in the master package
+      index.
+
 2.0-beta-88 | 2011-12-02 17:00:58 -0800
 
   * Teach LogWriterAscii to use BRO_LOG_SUFFIX environemt variable.

@@ -10,8 +10,3 @@ script, it supports being loaded in mass as a whole directory for convenience.
 Packages/scripts in the ``base/`` directory are all loaded by default, while
 ones in ``policy/`` provide functionality and customization options that are
 more appropriate for users to decide whether they'd like to load it or not.
-
-.. toctree::
-   :maxdepth: 1
-
-

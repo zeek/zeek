@@ -5575,7 +5575,7 @@ event reporter_info%(t: time, msg: string, location: string%) &error_handler;
 ## location: A (potentially empty) string describing a location associated with the
 ##     warning.  
 ## 
-## .. bro:see:: reporter_warning reporter_error Reporter::info Reporter::warning
+## .. bro:see:: reporter_info reporter_error Reporter::info Reporter::warning
 ##    Reporter::error
 ## 
 ## .. note:: Bro will not call reporter events recursively. If the handler of any
@@ -5594,7 +5594,7 @@ event reporter_warning%(t: time, msg: string, location: string%) &error_handler;
 ## location: A (potentially empty) string describing a location associated with the
 ##     error.  
 ## 
-## .. bro:see:: reporter_error reporter_error Reporter::info Reporter::error
+## .. bro:see:: reporter_info reporter_warning Reporter::info Reporter::warning
 ##    Reporter::error
 ## 
 ## .. note:: Bro will not call reporter events recursively. If the handler of any

@@ -1,5 +1,5 @@
 #separator \x09
 #path	test
 #fields	b	i	e	c	p	sn	a	d	t	iv	s	sc	ss	se	vc	ve
-#types	bool	int	enum	count	port	subnet	addr	double	time	interval	string	table	table	table	vector	vector
-T	-42	Test::LOG	21	123	10.0.0.0/24	1.2.3.4	3.14	1315167054.320958	100.000000	hurz	2,4,1,3	CC,AA,BB	EMPTY	10,20,30	EMPTY
+#types	bool	int	enum	count	port	subnet	addr	double	time	interval	string	table[count]	table[string]	table[string]	vector[count]	vector[string]
+T	-42	Test::LOG	21	123	10.0.0.0/24	1.2.3.4	3.14	1323292199.700588	100.000000	hurz	2,4,1,3	CC,AA,BB	EMPTY	10,20,30	EMPTY

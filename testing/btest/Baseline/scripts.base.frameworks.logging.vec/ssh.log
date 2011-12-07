@@ -1,5 +1,5 @@
 #separator \x09
 #path	ssh
 #fields	vec
-#types	vector
+#types	vector[string]
 -,2,-,-,5

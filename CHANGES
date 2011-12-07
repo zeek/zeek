@@ -1,4 +1,9 @@
 
+2.0-beta-98 | 2011-12-07 08:12:08 -0800
+
+  * Adapting test-suite's diff-all so that it expands globs in both
+    current and baseline directory. Closes #677. (Robin Sommer)
+
 2.0-beta-97 | 2011-12-06 11:49:29 -0800
 
   * Omit loading local-<node>.bro scripts from base cluster framework.

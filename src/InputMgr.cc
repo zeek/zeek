@@ -866,8 +866,8 @@ void InputMgr::EndCurrentSend(const InputReader* reader, int id) {
 	//while ( ( ih = i->lastDict->NextEntry(c) ) ) {
 	while ( ( ih = filter->lastDict->NextEntry(lastDictIdxKey, c) ) ) {
 
-		ListVal * idx;
-		Val *val;
+		ListVal * idx = 0;
+		Val *val = 0;
 
 		if ( filter->pred || filter->event ) {
 			idx = filter->tab->RecoverIndex(ih->idxkey);

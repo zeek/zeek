@@ -27,7 +27,7 @@ export {
 
 event log_software(rec: Info)
 	{
-	local ts = tracked[rec$host_a];
+	local ts = tracked[rec$host];
 	
 	if ( rec$name in ts )
 		{
@@ -40,7 +40,7 @@ event log_software(rec: Info)
 					network_time(), rec$software_type,
 					software_fmt_version(old$version),
 					software_fmt(rec), rec$software_type);
-			NOTICE([$note=Software_Version_Change, $src=rec$host_a,
+			NOTICE([$note=Software_Version_Change, $src=rec$host,
 			        $msg=msg, $sub=software_fmt(rec)]);
 			}
 		}

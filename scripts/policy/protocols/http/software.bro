@@ -20,18 +20,18 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 	if ( is_orig )
 		{
 		if ( name == "USER-AGENT" && ignored_user_agents !in value )
-			Software::found(c$id, Software::parse(value, c$id$orig_h, BROWSER));
+			Software::found([$id=c$id, $banner=value, $host=c$id$orig_h, $sw_type=BROWSER]);
 		}
 	else
 		{
 		if ( name == "SERVER" )
-			Software::found(c$id, Software::parse_with_port(value, c$id$resp_h, c$id$resp_p, SERVER));
+			Software::found([$id=c$id, $banner=value, $host=c$id$resp_h, $host_p=c$id$resp_p, $sw_type=SERVER]);
 		else if ( name == "X-POWERED-BY" )
-			Software::found(c$id, Software::parse_with_port(value, c$id$resp_h, c$id$resp_p, APPSERVER));
+			Software::found([$id=c$id, $banner=value, $host=c$id$resp_h, $host_p=c$id$resp_p, $sw_type=APPSERVER]);
 		else if ( name == "MICROSOFTSHAREPOINTTEAMSERVICES" )
 			{
 			value = cat("SharePoint/", value);
-			Software::found(c$id, Software::parse_with_port(value, c$id$resp_h, c$id$resp_p, APPSERVER));
+			Software::found([$id=c$id, $banner=value, $host=c$id$resp_h, $host_p=c$id$resp_p, $sw_type=APPSERVER]);
 			}
 		}
 	}

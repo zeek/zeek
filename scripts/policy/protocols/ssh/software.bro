@@ -16,14 +16,12 @@ event ssh_client_version(c: connection, version: string) &priority=4
 	{
 	# Get rid of the protocol information when passing to the software framework.
 	local cleaned_version = sub(version, /^SSH[0-9\.\-]+/, "");
-	local si = Software::parse(cleaned_version, c$id$orig_h, CLIENT);
-	Software::found(c$id, si);
+	Software::found([$id=c$id, $banner=cleaned_version, $host=c$id$orig_h, $sw_type=CLIENT]);
 	}
 
 event ssh_server_version(c: connection, version: string) &priority=4
 	{
 	# Get rid of the protocol information when passing to the software framework.
 	local cleaned_version = sub(version, /SSH[0-9\.\-]{2,}/, "");
-	local si = Software::parse_with_port(cleaned_version, c$id$resp_h, c$id$resp_p, SERVER);
-	Software::found(c$id, si);
+	Software::found([$id=c$id, $banner=cleaned_version, $host=c$id$resp_h, $host_p=c$id$resp_p, $sw_type=SERVER]);
 	}

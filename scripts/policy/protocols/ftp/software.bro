@@ -21,7 +21,6 @@ event ftp_request(c: connection, command: string, arg: string) &priority=4
 	{
 	if ( command == "CLNT" )
 		{
-		local si = Software::parse(arg, c$id$orig_h, FTP_CLIENT);
-		Software::found(c$id, si);
+		Software::found([$id=c$id, $banner=arg, $host=c$id$orig_h, $sw_type=FTP_CLIENT]);
 		}
 	}

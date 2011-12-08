@@ -139,16 +139,12 @@ function set_session(c: connection, msg: dns_msg, is_query: bool)
 event DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string) &priority=5
 	{
 	set_session(c, msg, F);
-
-	c$dns$AA    = msg$AA;
-	c$dns$RA    = msg$RA;
 	
-	if ( ! c$dns?$TTLs )
-		c$dns$TTLs = vector();
-	c$dns$TTLs[|c$dns$TTLs|] = ans$TTL;
-
 	if ( ans$answer_type == DNS_ANS )
 		{
+		c$dns$AA    = msg$AA;
+		c$dns$RA    = msg$RA;
+		
 		if ( msg$id in c$dns_state$finished_answers )
 			event conn_weird("dns_reply_seen_after_done", c, "");
 		
@@ -157,6 +153,10 @@ event DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string)
 			if ( ! c$dns?$answers )
 				c$dns$answers = vector();
 			c$dns$answers[|c$dns$answers|] = reply;
+			
+			if ( ! c$dns?$TTLs )
+				c$dns$TTLs = vector();
+			c$dns$TTLs[|c$dns$TTLs|] = ans$TTL;
 			}
 		
 		if ( c$dns?$answers && |c$dns$answers| == c$dns$total_answers )

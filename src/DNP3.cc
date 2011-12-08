@@ -7,6 +7,8 @@
 
 //#define P_TEST
 #define DEBUG 1
+#define COLLECT 1    ///used to collect binaries of DNP3 packets
+#define FILE_NAME "/home/hugo/experiment/dnp3/SampleBinary/hl_test.bin"
 
 DNP3_Analyzer::DNP3_Analyzer(Connection* c)
 //: DNP3TCP_Analyzer(c)
@@ -39,6 +41,7 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	u_char* tran_data = 0;  // so far only one transport segment is considered. So removing first byte will result application level data
 	bool m_orig;   //true -> request; false-> response
 	u_char control_field = 0;
+	FILE* file;
 
 ////used for performance experiment
 	u_char p_data[2048] = {0};
@@ -51,6 +54,29 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 		return;
 	}
+
+/////inject to collect binary if necessary
+	#if COLLECT
+/*	file = fopen(FILE_NAME, "a");
+	if(file == NULL)
+	{
+		printf("file open failed \n");
+		return;
+	}
+	fputs("\n", file);	
+	fclose(file);
+*/
+	file = fopen(FILE_NAME, "ab");
+	if(file == NULL)
+	{
+		printf("file open for binary failed\n");
+		return;
+	}
+	//fwrite("\n", sizeof(char), len, file);
+	fwrite(data, sizeof(char), len , file);
+	fclose(file);
+	#endif
+
 //// double check the orig. in case that the first received traffic is response
 	control_field = data[3];
 	if( (control_field & 0x80) == 0x80 )   //true request

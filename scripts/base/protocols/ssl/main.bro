@@ -16,6 +16,7 @@ export {
 		subject:          string           &log &optional;
 		not_valid_before: time             &log &optional;
 		not_valid_after:  time             &log &optional;
+		last_alert:       string           &log &optional;
 		
 		cert:             string           &optional;
 		cert_chain:       vector of string &optional;
@@ -112,9 +113,12 @@ event ssl_server_hello(c: connection, version: count, possible_ts: time, session
 	c$ssl$cipher = cipher_desc[cipher];
 	}
 
-event x509_certificate(c: connection, cert: X509, is_server: bool, chain_idx: count, chain_len: count, der_cert: string) &priority=5
+event x509_certificate(c: connection, is_orig: bool, cert: X509, chain_idx: count, chain_len: count, der_cert: string) &priority=5
 	{
 	set_session(c);
+	
+	# We aren't doing anything with client certificates yet.
+	if ( is_orig ) return;
 	
 	if ( chain_idx == 0 )
 		{
@@ -133,12 +137,19 @@ event x509_certificate(c: connection, cert: X509, is_server: bool, chain_idx: co
 		}
 	}
 	
-event ssl_extension(c: connection, code: count, val: string) &priority=5
+event ssl_extension(c: connection, is_orig: bool, code: count, val: string) &priority=5
 	{
 	set_session(c);
 	
-	if ( extensions[code] == "server_name" )
+	if ( is_orig && extensions[code] == "server_name" )
 		c$ssl$server_name = sub_bytes(val, 6, |val|);
+	}
+	
+event ssl_alert(c: connection, is_orig: bool, level: count, desc: count) &priority=5
+	{
+	set_session(c);
+	
+	c$ssl$last_alert = alert_descriptions[desc];
 	}
 	
 event ssl_established(c: connection) &priority=5

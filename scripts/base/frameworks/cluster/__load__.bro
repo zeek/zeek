@@ -9,10 +9,10 @@ redef peer_description = Cluster::node;
 # Add a cluster prefix.
 @prefixes += cluster
 
-## If this script isn't found anywhere, the cluster bombs out.
-## Loading the cluster framework requires that a script by this name exists
-## somewhere in the BROPATH.  The only thing in the file should be the
-## cluster definition in the :bro:id:`Cluster::nodes` variable.
+# If this script isn't found anywhere, the cluster bombs out.
+# Loading the cluster framework requires that a script by this name exists
+# somewhere in the BROPATH.  The only thing in the file should be the
+# cluster definition in the :bro:id:`Cluster::nodes` variable.
 @load cluster-layout
 
 @if ( Cluster::node in Cluster::nodes )

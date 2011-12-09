@@ -410,6 +410,10 @@ The Bro scripting language supports the following built-in types.
     Writing to files like this for logging usually isn't recommend, for better
     logging support see :doc:`/logging`.
 
+.. bro:type:: func
+
+    See :bro:type:`function`.
+
 .. bro:type:: function
 
     Function types in Bro are declared using::

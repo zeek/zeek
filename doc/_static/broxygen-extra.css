@@ -1,0 +1,15 @@
+.highlight {
+    background-color: #ffffff;
+}
+
+h1 {
+    font-weight: bold;
+    font-size: 32px;
+	line-height:32px;
+    text-align: center;
+    padding-top: 3px;
+    margin-bottom: 30px;
+    font-family: Palatino,'Palatino Linotype',Georgia,serif;;
+    color: #000;
+    border-bottom: 0px;
+}

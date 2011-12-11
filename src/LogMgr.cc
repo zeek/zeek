@@ -9,6 +9,7 @@
 #include "Net.h"
 
 #include "LogWriterAscii.h"
+#include "LogWriterNone.h"
 
 // Structure describing a log writer type.
 struct LogWriterDefinition {
@@ -20,6 +21,7 @@ struct LogWriterDefinition {
 
 // Static table defining all availabel log writers.
 LogWriterDefinition log_writers[] = {
+	{ BifEnum::Log::WRITER_NONE,  "None", 0, LogWriterNone::Instantiate },
 	{ BifEnum::Log::WRITER_ASCII, "Ascii", 0, LogWriterAscii::Instantiate },
 
 	// End marker, don't touch.
@@ -147,7 +149,7 @@ bool LogVal::IsCompatibleType(BroType* t, bool atomic_only)
 		if ( ! t->IsSet() )
 			return false;
 
-		return IsCompatibleType(t->AsSetType()->Indices()->PureType());
+		return IsCompatibleType(t->AsSetType()->Indices()->PureType(), true);
 		}
 
 	case TYPE_VECTOR:
@@ -155,7 +157,7 @@ bool LogVal::IsCompatibleType(BroType* t, bool atomic_only)
 		if ( atomic_only )
 			return false;
 
-		return IsCompatibleType(t->AsVectorType()->YieldType());
+		return IsCompatibleType(t->AsVectorType()->YieldType(), true);
 		}
 
 	default:
@@ -888,9 +890,18 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 			// to log this record.
 			val_list vl(1);
 			vl.append(columns->Ref());
-			Val* v = filter->pred->Call(&vl);
-			int result = v->AsBool();
-			Unref(v);
+
+			int result = 1;
+
+			try
+				{
+				Val* v = filter->pred->Call(&vl);
+				result = v->AsBool();
+				Unref(v);
+				}
+
+			catch ( InterpreterException& e )
+				{ /* Already reported. */ }
 
 			if ( ! result )
 				continue;
@@ -920,7 +931,17 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 
 			vl.append(rec_arg);
 
-			Val* v = filter->path_func->Call(&vl);
+			Val* v = 0;
+
+			try
+				{
+				v = filter->path_func->Call(&vl);
+				}
+
+			catch ( InterpreterException& e )
+				{
+				return false;
+				}
 
 			if ( ! v->Type()->Tag() == TYPE_STRING )
 				{
@@ -1432,8 +1453,8 @@ bool LogMgr::Flush(EnumVal* id)
 
 void LogMgr::Error(LogWriter* writer, const char* msg)
 	{
-	reporter->Error(fmt("error with writer for %s: %s",
-		     writer->Path().c_str(), msg));
+	reporter->Error("error with writer for %s: %s",
+		     writer->Path().c_str(), msg);
 	}
 
 // Timer which on dispatching rotates the filter.
@@ -1569,9 +1590,19 @@ bool LogMgr::FinishedRotation(LogWriter* writer, string new_name, string old_nam
 	// Call the postprocessor function.
 	val_list vl(1);
 	vl.append(info);
-	Val* v = func->Call(&vl);
-	int result = v->AsBool();
-	Unref(v);
+
+	int result = 0;
+
+	try
+		{
+		Val* v = func->Call(&vl);
+		result = v->AsBool();
+		Unref(v);
+		}
+
+	catch ( InterpreterException& e )
+		{ /* Already reported. */ }
+
 	return result;
 	}
 

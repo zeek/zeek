@@ -1,4 +1,5 @@
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}
+include_directories(BEFORE
+                    ${CMAKE_CURRENT_SOURCE_DIR}
                     ${CMAKE_CURRENT_BINARY_DIR}
 )
 
@@ -335,6 +336,7 @@ set(bro_SRCS
     LogMgr.cc
     LogWriter.cc
     LogWriterAscii.cc
+    LogWriterNone.cc
     Login.cc
     MIME.cc
     NCP.cc
@@ -418,15 +420,7 @@ add_definitions(-DBRO_BUILD_PATH="${CMAKE_CURRENT_BINARY_DIR}")
 
 add_executable(bro ${bro_SRCS} ${bro_HEADERS})
 
-set(brolibs
-    ${BinPAC_LIBRARY}
-    ${PCAP_LIBRARY}
-    ${OpenSSL_LIBRARIES}
-    ${BIND_LIBRARY}
-    ${OPTLIBS}
-)
-
-target_link_libraries(bro ${brolibs})
+target_link_libraries(bro ${brodeps})
 
 install(TARGETS bro DESTINATION bin)
 install(FILES ${INSTALL_BIF_OUTPUTS} DESTINATION ${BRO_SCRIPT_INSTALL_PATH}/base)

@@ -103,25 +103,35 @@ function check_ssh_connection(c: connection, done: bool)
 		return;
 	
 	# Make sure conn_size_analyzer is active by checking 
-	# resp$num_bytes_ip
-	if ( !c$resp?$num_bytes_ip )
+	# resp$num_bytes_ip.  In general it should always be active though.
+	if ( ! c$resp?$num_bytes_ip )
 		return;
 	
-	# If this is still a live connection and the byte count has not
-	# crossed the threshold, just return and let the resheduled check happen later.
-	if ( !done && c$resp$num_bytes_ip < authentication_data_size )
+	# Remove the IP and TCP header length from the total size.
+	# TODO: Fix for IPv6.  This whole approach also seems to break in some 
+	#       cases where there are more header bytes than num_bytes_ip.
+	local header_bytes = c$resp$num_pkts*32 + c$resp$num_pkts*20;
+	local server_bytes = c$resp$num_bytes_ip;
+	if ( server_bytes >= header_bytes )
+		server_bytes = server_bytes - header_bytes;
+	else
+		server_bytes = c$resp$size;
+	
+	# If this is still a live connection and the byte count has not crossed 
+	# the threshold, just return and let the rescheduled check happen later.
+	if ( ! done && server_bytes < authentication_data_size )
 		return;
 
 	# Make sure the server has sent back more than 50 bytes to filter out
 	# hosts that are just port scanning.  Nothing is ever logged if the server
 	# doesn't send back at least 50 bytes.
-	if ( c$resp$num_bytes_ip < 50 )
+	if ( server_bytes < 50 )
 		return;
 
 	c$ssh$direction = Site::is_local_addr(c$id$orig_h) ? OUTBOUND : INBOUND;
-	c$ssh$resp_size = c$resp$num_bytes_ip;
+	c$ssh$resp_size = server_bytes;
 	
-	if ( c$resp$num_bytes_ip < authentication_data_size )
+	if ( server_bytes < authentication_data_size )
 		{
 		c$ssh$status  = "failure";
 		event SSH::heuristic_failed_login(c);

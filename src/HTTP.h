@@ -29,10 +29,8 @@ public:
 			int expect_body);
 	~HTTP_Entity()
 		{
-#ifdef HAVE_LIBZ
 		if ( zip )
 			{ zip->Done(); delete zip; }
-#endif
 		}
 
 	void EndOfData();
@@ -55,9 +53,7 @@ protected:
 	int64_t header_length;
 	int deliver_body;
 	enum { IDENTITY, GZIP, COMPRESS, DEFLATE } encoding;
-#ifdef HAVE_LIBZ
 	ZIP_Analyzer* zip;
-#endif
 
 	MIME_Entity* NewChildEntity() { return new HTTP_Entity(http_message, this, 1); }
 

@@ -1,6 +1,10 @@
 #! /usr/bin/env bash
 #
-# Runs btest-diff on $@ and fails if any fails.
+# Runs btest-diff on $@ and fails if any fails. If $@ contains globs, we expand
+# them relative to *both* the current directory and the test's baseline
+# directory so that we spot missing files. Note that you will need to quote
+# the globals in the TEST-EXEC line as otherwise they will have been expanded relative
+# to the current directory already when this scripts runs.
 
 diag=$TEST_DIAGNOSTICS
 
@@ -14,7 +18,10 @@ fi
 
 rc=0;
 
-for i in $@; do
+files_cwd=`ls $@`
+files_baseline=`cd $TEST_BASELINE && ls $@`
+
+for i in `echo $files_cwd $files_baseline | sort | uniq`; do
     if [[ "$i" != "loaded_scripts.log" && "$i" != "prof.log" ]]; then
         if ! btest-diff $i; then
            echo "" >>$diag

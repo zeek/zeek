@@ -47,6 +47,7 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "ConnCompressor.h"
 #include "DPM.h"
 #include "BroDoc.h"
+#include "LogWriterAscii.h"
 
 #include "binpac_bro.h"
 
@@ -194,6 +195,7 @@ void usage()
 	fprintf(stderr, "    $BRO_PREFIXES                  | prefix list (%s)\n", bro_prefixes());
 	fprintf(stderr, "    $BRO_DNS_FAKE                  | disable DNS lookups (%s)\n", bro_dns_fake());
 	fprintf(stderr, "    $BRO_SEED_FILE                 | file to load seeds from (not set)\n");
+	fprintf(stderr, "    $BRO_LOG_SUFFIX                | ASCII log file extension (.%s)\n", LogWriterAscii::LogExt().c_str());
 
 	exit(1);
 	}
@@ -352,6 +354,7 @@ int main(int argc, char** argv)
 	char* seed_load_file = getenv("BRO_SEED_FILE");
 	char* seed_save_file = 0;
 	char* user_pcap_filter = 0;
+	char* debug_streams = 0;
 	int bare_mode = false;
 	int seed = 0;
 	int dump_cfg = false;
@@ -638,9 +641,7 @@ int main(int argc, char** argv)
 #endif
 
 		case 'B':
-#ifdef DEBUG
-			debug_logger.EnableStreams(optarg);
-#endif
+			debug_streams = optarg;
 			break;
 
 		case 0:
@@ -659,6 +660,11 @@ int main(int argc, char** argv)
 
 	bro_start_time = current_time(true);
 	reporter = new Reporter();
+
+#ifdef DEBUG
+	if ( debug_streams )
+		debug_logger.EnableStreams(debug_streams);
+#endif
 
 	init_random_seed(seed, (seed_load_file && *seed_load_file ? seed_load_file : 0) , seed_save_file);
 	// DEBUG_MSG("HMAC key: %s\n", md5_digest_print(shared_hmac_md5_key));
@@ -951,7 +957,7 @@ int main(int argc, char** argv)
 		{
 		reporter->Info("invoked event handlers:");
 		for ( int i = 0; i < alive_handlers->length(); ++i )
-			reporter->Info((*alive_handlers)[i]);
+			reporter->Info("%s", (*alive_handlers)[i]);
 		}
 
 	delete alive_handlers;

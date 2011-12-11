@@ -2007,7 +2007,16 @@ Val* TableVal::Default(Val* index)
 	else
 		vl->append(index->Ref());
 
-	Val* result = f->Call(vl);
+	Val* result = 0;
+
+	try
+		{
+		result = f->Call(vl);
+		}
+
+	catch ( InterpreterException& e )
+		{ /* Already reported. */ }
+
 	delete vl;
 
 	if ( ! result )
@@ -2118,7 +2127,7 @@ Val* TableVal::Delete(const Val* index)
 	Val* va = v ? (v->Value() ? v->Value() : this->Ref()) : 0;
 
 	if ( subnets && ! subnets->Remove(index) )
-		reporter->InternalError( "index not in prefix table" );
+		reporter->InternalError("index not in prefix table");
 
 	if ( LoggingAccess() )
 		{
@@ -2160,7 +2169,7 @@ Val* TableVal::Delete(const HashKey* k)
 		{
 		Val* index = table_hash->RecoverVals(k);
 		if ( ! subnets->Remove(index) )
-			reporter->InternalError( "index not in prefix table" );
+			reporter->InternalError("index not in prefix table");
 		Unref(index);
 		}
 
@@ -2417,7 +2426,7 @@ void TableVal::DoExpire(double t)
 				{
 				Val* index = RecoverIndex(k);
 				if ( ! subnets->Remove(index) )
-					reporter->InternalError( "index not in prefix table" );
+					reporter->InternalError("index not in prefix table");
 				Unref(index);
 				}
 
@@ -2466,10 +2475,20 @@ double TableVal::CallExpireFunc(Val* idx)
 
 	vl->append(idx);
 
-	Val* vs = expire_expr->Eval(0)->AsFunc()->Call(vl);
-	double secs = vs->AsInterval();
-	Unref(vs);
-	delete vl;
+	double secs;
+
+	try
+		{
+		Val* vs = expire_expr->Eval(0)->AsFunc()->Call(vl);
+		secs = vs->AsInterval();
+		Unref(vs);
+		delete vl;
+		}
+
+	catch ( InterpreterException& e )
+		{
+		secs = 0;
+		}
 
 	return secs;
 	}

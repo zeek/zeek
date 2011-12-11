@@ -15,6 +15,16 @@ these comments are transferred directly into the auto-generated
 
 .. tip:: You can embed directives and roles within ``##``-stylized comments.
 
+There's also a custom role to reference any identifier node in
+the Bro Sphinx domain that's good for "see alsos", e.g.
+
+See also: :bro:see:`Example::a_var`, :bro:see:`Example::ONE`,
+:bro:see:`SSH::Info`
+
+And a custom directive does the equivalent references:
+
+.. bro:see:: Example::a_var Example::ONE SSH::Info
+
 :Imports: :doc:`policy/frameworks/software/vulnerable </scripts/policy/frameworks/software/vulnerable>`
 
 Summary
@@ -271,7 +281,7 @@ Redefinitions
 
 Port Analysis
 -------------
-:ref:`More Information <common_port_analysis_doc>`
+Loading this script makes the following changes to :bro:see:`dpd_config`.
 
 SSL::
 
@@ -282,7 +292,7 @@ SSL::
 
 Packet Filter
 -------------
-:ref:`More Information <common_packet_filter_doc>`
+Loading this script makes the following changes to :bro:see:`capture_filters`.
 
 Filters added::
 

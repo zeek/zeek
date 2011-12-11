@@ -1855,7 +1855,19 @@ function decode_base64%(s: string%): string
 		return new StringVal(t);
 	else
 		{
-		reporter->Error("error in decoding string %s", @ARG@[0]);
+		reporter->Error("error in decoding string %s", s->CheckString());
+		return new StringVal("");
+		}
+	%}
+
+function decode_base64_custom%(s: string, a: string%): string
+	%{
+	BroString* t = decode_base64(s->AsString(), a->AsString());
+	if ( t )
+		return new StringVal(t);
+	else
+		{
+		reporter->Error("error in decoding string %s", s->CheckString());
 		return new StringVal("");
 		}
 	%}
@@ -1987,8 +1999,8 @@ function precompile_pcap_filter%(id: PcapFilterID, s: string%): bool
 		if ( ! pkt_srcs[i]->PrecompileFilter(id->ForceAsInt(),
 							s->CheckString()) )
 			{
-			reporter->Error( "precompile_pcap_filter: %s",
-				pkt_srcs[i]->ErrorMsg() );
+			reporter->Error("precompile_pcap_filter: %s",
+				pkt_srcs[i]->ErrorMsg());
 			success = false;
 			}
 		}
@@ -2181,7 +2193,7 @@ function send_id%(p: event_peer, id: string%) : bool
 	ID* i = global_scope()->Lookup(id->CheckString());
 	if ( ! i )
 		{
-		reporter->Error(fmt("send_id: no global id %s", id->CheckString()));
+		reporter->Error("send_id: no global id %s", id->CheckString());
 		return new Val(0, TYPE_BOOL);
 		}
 
@@ -2250,7 +2262,7 @@ function get_event_peer%(%) : event_peer
 	Val* v = remote_serializer->GetPeerVal(src);
 	if ( ! v )
 		{
-		reporter->Error(fmt("peer %d does not exist anymore", int(src)));
+		reporter->Error("peer %d does not exist anymore", int(src));
 		RecordVal* p = mgr.GetLocalPeerVal();
 		Ref(p);
 		return p;
@@ -3272,18 +3284,15 @@ function enable_raw_output%(f: file%): any
 	%}
 
 %%{
-#ifdef HAVE_LIBMAGIC
 extern "C" {
 #include <magic.h>
 }
-#endif
 %%}
 
 function identify_data%(data: string, return_mime: bool%): string
 	%{
 	const char* descr = "";
 
-#ifdef HAVE_LIBMAGIC
 	static magic_t magic_mime = 0;
 	static magic_t magic_descr = 0;
 
@@ -3295,13 +3304,13 @@ function identify_data%(data: string, return_mime: bool%): string
 
 		if ( ! *magic )
 			{
-			reporter->Error(fmt("can't init libmagic: %s", magic_error(*magic)));
+			reporter->Error("can't init libmagic: %s", magic_error(*magic));
 			return new StringVal("");
 			}
 
 		if ( magic_load(*magic, 0) < 0 )
 			{
-			reporter->Error(fmt("can't load magic file: %s", magic_error(*magic)));
+			reporter->Error("can't load magic file: %s", magic_error(*magic));
 			magic_close(*magic);
 			*magic = 0;
 			return new StringVal("");
@@ -3309,7 +3318,6 @@ function identify_data%(data: string, return_mime: bool%): string
 		}
 
 	descr = magic_buffer(*magic, data->Bytes(), data->Len());
-#endif
 
 	return new StringVal(descr);
 	%}

@@ -200,7 +200,13 @@ void PersistenceSerializer::GotEvent(const char* name, double time,
 void PersistenceSerializer::GotFunctionCall(const char* name, double time,
 					Func* func, val_list* args)
 	{
-	func->Call(args);
+	try
+		{
+		func->Call(args);
+		}
+
+	catch ( InterpreterException& e )
+		{ /* Already reported. */ }
 	}
 
 void PersistenceSerializer::GotStateAccess(StateAccess* s)

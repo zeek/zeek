@@ -2,7 +2,7 @@
 Customizing Bro's Logging
 ==========================
 
-.. class:: opening
+.. rst-class:: opening
 
    Bro comes with a flexible key-value based logging interface that
    allows fine-grained control of what gets logged and how it is

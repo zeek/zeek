@@ -797,7 +797,7 @@ int dbg_handle_debug_input()
 		input_line = (char*) safe_malloc(1024);
 		input_line[1023] = 0;
 		// ### Maybe it's not always stdin.
-		fgets(input_line, 1023, stdin);
+		input_line = fgets(input_line, 1023, stdin);
 #endif
 
 		// ### Maybe not stdin; maybe do better cleanup.

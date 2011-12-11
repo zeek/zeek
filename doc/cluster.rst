@@ -9,11 +9,19 @@ Bro is not multithreaded, so once the limitations of a single processor core are
 Architecture
 ---------------
 
-There are 4 main components to a Bro cluster which are described in detail below.
+The figure below illustrates the main components of a Bro cluster.
+
+.. image:: images/deployment.png
+
+Tap
+***
+This is a mechanism that splits the packet stream in order to make a copy
+available for inspection. Examples include the monitoring port on a switch and
+an optical splitter for fiber networks.
 
 Frontend 
 ********
-This is a discrete hardware device or on-host technique that will split your traffic into many streams or flows.  The Bro binary does not do this job.  There are numerous ways to accomplish this task, some of which are described below in the Frontend <link to that section> section.
+This is a discrete hardware device or on-host technique that will split your traffic into many streams or flows.  The Bro binary does not do this job.  There are numerous ways to accomplish this task, some of which are described below in `Frontend Options`_.
 
 Manager
 *******
@@ -50,7 +58,7 @@ Discrete hardware flow balancers
 cPacket
 ^^^^^^^
 
-If you are monitoring one or more 10G physical interfaces, the recommended solution is to use either a cFlow or cVu device from cPacket (is this too much? i don’t want to recommend gigamon with all of the problems we’ve had various places and i don’t know enough about VSS monitoring’s offerings to make a judgement.  i don’t want to recommend netoptics director hardware either, from what i understand it doesn’t fit the use case very well).  These devices will perform layer-2 load balancing by rewriting the destination ethernet MAC address to cause each packet associated with a particular flow to have the same destination MAC.  The packets can then be passed directly to a monitoring host or onward to a commodity switch to split the traffic out to multiple 1G interfaces for the workers.  This can ultimately greatly reduce costs since workers can use relatively inexpensive 1G interfaces.
+If you are monitoring one or more 10G physical interfaces, the recommended solution is to use either a cFlow or cVu device from cPacket because they are currently being used very successfully at a number of sites.  These devices will perform layer-2 load balancing by rewriting the destination ethernet MAC address to cause each packet associated with a particular flow to have the same destination MAC.  The packets can then be passed directly to a monitoring host where each worker has a BPF filter to limit it's visibility to only that stream of flows or onward to a commodity switch to split the traffic out to multiple 1G interfaces for the workers.  This can ultimately greatly reduce costs since workers can use relatively inexpensive 1G interfaces.
 
 OpenFlow Switches
 ^^^^^^^^^^^^^^^^^

@@ -19,9 +19,9 @@ export {
 		ts:               time    &log;
 		uid:              string  &log;
 		id:               conn_id &log;
-		## Internally generated "message id" that ties back to the particular
-		## message in the SMTP log where this entity was seen.
-		mid:              string  &log;
+		## A count to represent the depth of this message transaction in a 
+		## single connection where multiple messages were transferred.
+		trans_depth:      count  &log;
 		## The filename seen in the Content-Disposition header.
 		filename:         string  &log &optional;
 		## Track how many bytes of the MIME encoded file have been seen.
@@ -90,7 +90,7 @@ function set_session(c: connection, new_entity: bool)
 		info$ts=network_time();
 		info$uid=c$uid;
 		info$id=c$id;
-		info$mid=c$smtp$mid;
+		info$trans_depth=c$smtp$trans_depth;
 		
 		c$smtp$current_entity = info;
 		++c$smtp_state$mime_level;

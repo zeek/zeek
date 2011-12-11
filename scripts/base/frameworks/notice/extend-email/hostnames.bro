@@ -17,25 +17,16 @@ event Notice::notice(n: Notice::Info) &priority=10
 		{
 		when ( local src_name = lookup_addr(n$src) )
 			{
-			output = cat(output, "orig_h/src: ", src_name, "\n");
-			}
-		timeout 5secs
-			{
-			output = cat(output, "orig_h/src: <timeout>\n");
+			output = string_cat("orig_h/src hostname: ", src_name, "\n");
+			n$email_body_sections[|n$email_body_sections|] = output;
 			}
 		}
 	if ( n?$dst )
 		{
 		when ( local dst_name = lookup_addr(n$dst) )
 			{
-			output = cat(output, "resp_h/dst: ", dst_name, "\n");
-			}
-		timeout 5secs
-			{
-			output = cat(output, "resp_h/dst: <timeout>\n");
+			output = string_cat("resp_h/dst hostname: ", dst_name, "\n");
+			n$email_body_sections[|n$email_body_sections|] = output;
 			}
 		}
-	
-	if ( output != "" )
-		n$email_body_sections[|n$email_body_sections|] = output;
 	}

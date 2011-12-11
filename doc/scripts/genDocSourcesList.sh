@@ -11,6 +11,8 @@
 # Specific scripts can be blacklisted below when e.g. they currently aren't
 # parseable or they just aren't meant to be documented.
 
+export LC_ALL=C # Make sorting stable.
+
 blacklist ()
     {
     if [[ "$blacklist" == "" ]]; then

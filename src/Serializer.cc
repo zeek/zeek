@@ -916,7 +916,7 @@ bool FileSerializer::Read(UnserialInfo* info, const char* file, bool header)
 
 void FileSerializer::ReportError(const char* str)
 	{
-	reporter->Error(str);
+	reporter->Error("%s", str);
 	}
 
 void FileSerializer::GotID(ID* id, Val* val)

@@ -3624,7 +3624,7 @@ X509* d2i_X509_(X509** px, const u_char** in, int len)
 %%}
 
 
-## Verifies a X.509 certificate.
+## Verifies a certificate.
 ##
 ## der_cert: The X.509 certificate in DER format.
 ##
@@ -3719,7 +3719,7 @@ function x509_verify%(der_cert: string, cert_stack: string_vec, root_certs: tabl
 	return new Val((uint64) csc.error, TYPE_COUNT);
 	%}
 
-## Converts a X.509 certificate verification error code into an ASCII string.
+## Converts a certificate verification error code into an ASCII string.
 ##
 ## err_num: The error code.
 ##

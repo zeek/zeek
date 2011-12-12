@@ -1070,7 +1070,7 @@ function resize%(aggr: any, newsize: count%) : count
 ##
 ## Returns: True if any element in *v* is true.
 ##
-## :bro:see:: all_set
+## .. bro:see:: all_set
 function any_set%(v: any%) : bool
 	%{
 	if ( v->Type()->Tag() != TYPE_VECTOR ||
@@ -1095,7 +1095,7 @@ function any_set%(v: any%) : bool
 ##
 ## Returns: True iff all elements in *v* are true.
 ##
-## :bro:see:: any_set
+## .. bro:see:: any_set
 ##
 ## .. note::
 ##

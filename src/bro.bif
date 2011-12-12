@@ -5270,6 +5270,104 @@ function match_signatures%(c: connection, pattern_type: int, s: string,
 	return new Val(1, TYPE_BOOL);
 	%}
 
+%%{
+#include "Anon.h"
+%%}
+
+## Preserves the prefix of an IP address in anonymization.
+##
+## a: The address to preserve.
+##
+## width: The number of bits from the top that should remain intact.
+##
+## .. bro:see:: preserve_subnet anonymize_addr
+##
+## .. todo:: Currently dysfunctional.
+function preserve_prefix%(a: addr, width: count%): any
+	%{
+	AnonymizeIPAddr* ip_anon = ip_anonymizer[PREFIX_PRESERVING_A50];
+	if ( ip_anon )
+		{
+#ifdef BROv6
+		if ( ! is_v4_addr(a) )
+			builtin_error("preserve_prefix() not supported for IPv6 addresses");
+		else
+			ip_anon->PreservePrefix(a[3], width);
+#else
+		ip_anon->PreservePrefix(a, width);
+#endif
+		}
+
+
+	return 0;
+	%}
+
+## Preserves the prefix of a subnet in anonymization.
+##
+## a: The subnet to preserve.
+##
+## width: The number of bits from the top that should remain intact.
+##
+## .. bro:see:: preserve_prefix anonymize_addr
+##
+## .. todo:: Currently dysfunctional.
+function preserve_subnet%(a: subnet%): any
+	%{
+	DEBUG_MSG("%s/%d\n", dotted_addr(a->AsAddr()), a->Width());
+	AnonymizeIPAddr* ip_anon = ip_anonymizer[PREFIX_PRESERVING_A50];
+	if ( ip_anon )
+		{
+#ifdef BROv6
+		if ( ! is_v4_addr(a->AsAddr()) )
+			builtin_error("preserve_subnet() not supported for IPv6 addresses");
+		else
+			ip_anon->PreservePrefix(a->AsAddr()[3], a->Width());
+#else
+		ip_anon->PreservePrefix(a->AsAddr(), a->Width());
+#endif
+		}
+
+	return 0;
+	%}
+
+## Anonymizes an IP address.
+##
+## a: The address to anonymize.
+##
+## cl: The anonymization class, which can take on three different values:
+##
+##     - ``ORIG_ADDR``: Tag *a* as an originator address.
+##
+##     - ``RESP_ADDR``: Tag *a* as an responder address.
+##
+##     - ``OTHER_ADDR``: Tag *a* as an arbitrary address.
+##
+## Returns: An anonymized version of *a*.
+##
+## .. bro:see:: preserve_prefix preserve_subnet
+##
+## .. todo:: Currently dysfunctional.
+function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
+	%{
+	int anon_class = cl->InternalInt();
+	if ( anon_class < 0 || anon_class >= NUM_ADDR_ANONYMIZATION_CLASSES )
+		builtin_error("anonymize_addr(): invalid ip addr anonymization class");
+
+#ifdef BROv6
+	if ( ! is_v4_addr(a) )
+		{
+		builtin_error("anonymize_addr() not supported for IPv6 addresses");
+		return 0;
+		}
+	else
+		return new AddrVal(anonymize_ip(a[3],
+			(enum ip_addr_anonymization_class_t) anon_class));
+#else
+	return new AddrVal(anonymize_ip(a,
+		(enum ip_addr_anonymization_class_t) anon_class));
+#endif
+	%}
+
 ## Deprecated. Will be removed.
 function active_connection%(id: conn_id%): bool
 	%{
@@ -5290,74 +5388,6 @@ function connection_record%(cid: conn_id%): connection
 		exit(0);
 		return 0;
 		}
-	%}
-
-%%{
-#include "Anon.h"
-%%}
-
-## Preserve prefix as original one in anonymization.
-## .. todo: Currently broken.
-function preserve_prefix%(a: addr, width: count%): any
-	%{
-	AnonymizeIPAddr* ip_anon = ip_anonymizer[PREFIX_PRESERVING_A50];
-	if ( ip_anon )
-		{
-#ifdef BROv6
-		if ( ! is_v4_addr(a) )
-			builtin_error("preserve_prefix() not supported for IPv6 addresses");
-		else
-			ip_anon->PreservePrefix(a[3], width);
-#else
-		ip_anon->PreservePrefix(a, width);
-#endif
-		}
-
-
-	return 0;
-	%}
-
-## .. todo: Currently broken.
-function preserve_subnet%(a: subnet%): any
-	%{
-	DEBUG_MSG("%s/%d\n", dotted_addr(a->AsAddr()), a->Width());
-	AnonymizeIPAddr* ip_anon = ip_anonymizer[PREFIX_PRESERVING_A50];
-	if ( ip_anon )
-		{
-#ifdef BROv6
-		if ( ! is_v4_addr(a->AsAddr()) )
-			builtin_error("preserve_subnet() not supported for IPv6 addresses");
-		else
-			ip_anon->PreservePrefix(a->AsAddr()[3], a->Width());
-#else
-		ip_anon->PreservePrefix(a->AsAddr(), a->Width());
-#endif
-		}
-
-	return 0;
-	%}
-
-## Anonymize an IP address.
-## .. todo: Currently broken.
-function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
-	%{
-	int anon_class = cl->InternalInt();
-	if ( anon_class < 0 || anon_class >= NUM_ADDR_ANONYMIZATION_CLASSES )
-		builtin_error("anonymize_addr(): invalid ip addr anonymization class");
-
-#ifdef BROv6
-	if ( ! is_v4_addr(a) )
-		{
-		builtin_error("anonymize_addr() not supported for IPv6 addresses");
-		return 0;
-		}
-	else
-		return new AddrVal(anonymize_ip(a[3],
-			(enum ip_addr_anonymization_class_t) anon_class));
-#else
-	return new AddrVal(anonymize_ip(a,
-		(enum ip_addr_anonymization_class_t) anon_class));
-#endif
 	%}
 
 ## Deprecated. Will be removed.

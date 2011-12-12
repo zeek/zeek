@@ -400,7 +400,7 @@ function exit%(%): int
 ## Returns: True after successful termination and false when Bro is still in
 ##          the process of shutting down.
 ##
-## .. bro:see:: is_terminating
+## .. bro:see:: bro_is_terminating
 function terminate%(%): bool
 	%{
 	if ( terminating )
@@ -806,8 +806,8 @@ function identify_data%(data: string, return_mime: bool%): string
 static map<BroString, RandTest*> entropy_states;
 %%}
 
-## Performs an `entropy <http://www.fourmilab.ch/random>`_ test on the given
-## data.
+## Performs an entropy test on the given data.
+## See http://www.fourmilab.ch/random.
 ##
 ## data: The data to compute the entropy for.
 ##
@@ -3170,7 +3170,7 @@ function dump_current_packet%(file_name: string%) : bool
 ## Returns the currently processed PCAP packet.
 ##
 ## Returns: The currently processed packet, which is as a record
-## containing the timestamp, ``snaplen,'' and packet data.
+##          containing the timestamp, ``snaplen``, and packet data.
 ##
 ## .. bro:see:: dump_current_packet dump_packet send_current_packet
 function get_current_packet%(%) : pcap_packet
@@ -4193,7 +4193,7 @@ function skip_smtp_data%(c: connection%): any
 
 ## Enables all event handlers in a given group. One can tag event handlers with
 ## the :bro:attr:`&group` attribute to logically group them together, e.g,
-## `` event foo() &group="bar"``. This function enables all event handlers that
+## ``event foo() &group="bar"``. This function enables all event handlers that
 ## belong to such a group.
 ##
 ## group: The group.
@@ -4918,7 +4918,7 @@ function capture_state_updates%(filename: string%) : bool
 ##              request_remote_sync
 ##              request_remote_logs
 ##              request_remote_events
-##              set_compression_accept_state
+##              set_accept_state
 ##              set_compression_level
 ##              send_state
 ##              send_id

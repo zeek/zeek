@@ -385,6 +385,9 @@ inline void RemoteSerializer::SetupSerialInfo(SerialInfo* info, Peer* peer)
 	     peer->phase == Peer::RUNNING )
 		info->new_cache_strategy = true;
 
+	if ( (peer->caps & Peer::BROCCOLI_PEER) )
+		info->broccoli_peer = true;
+
 	info->include_locations = false;
 	}
 
@@ -1457,7 +1460,7 @@ void RemoteSerializer::Finish()
 		Poll(true);
 	while ( io->CanWrite() );
 
-	loop_over_list(peers, i) 
+	loop_over_list(peers, i)
 		{
 		CloseConnection(peers[i]);
 		}
@@ -2113,6 +2116,9 @@ bool RemoteSerializer::HandshakeDone(Peer* peer)
 	if ( (peer->caps & Peer::NEW_CACHE_STRATEGY) )
 		Log(LogInfo, "peer supports keep-in-cache; using that", peer);
 
+	if ( (peer->caps & Peer::BROCCOLI_PEER) )
+		Log(LogInfo, "peer is a Broccoli", peer);
+
 	if ( peer->logs_requested )
 		log_mgr->SendAllWritersTo(peer->id);
 
@@ -2364,6 +2370,9 @@ bool RemoteSerializer::ProcessSerialization()
 	if ( (current_peer->caps & Peer::NEW_CACHE_STRATEGY) &&
 	     current_peer->phase == Peer::RUNNING )
 		info.new_cache_strategy = true;
+
+	if ( current_peer->caps & Peer::BROCCOLI_PEER )
+		info.broccoli_peer = true;
 
 	if ( ! forward_remote_state_changes )
 		ignore_accesses = true;
@@ -2923,25 +2932,37 @@ void RemoteSerializer::Log(LogLevel level, const char* msg)
 void RemoteSerializer::Log(LogLevel level, const char* msg, Peer* peer,
 				LogSrc src)
 	{
+	if ( peer )
+		{
+		val_list* vl = new val_list();
+		vl->append(peer->val->Ref());
+		vl->append(new Val(level, TYPE_COUNT));
+		vl->append(new Val(src, TYPE_COUNT));
+		vl->append(new StringVal(msg));
+		mgr.QueueEvent(remote_log_peer, vl);
+		}
+	else
+		{
+		val_list* vl = new val_list();
+		vl->append(new Val(level, TYPE_COUNT));
+		vl->append(new Val(src, TYPE_COUNT));
+		vl->append(new StringVal(msg));
+		mgr.QueueEvent(remote_log, vl);
+		}
+
+#ifdef DEBUG
 	const int BUFSIZE = 1024;
 	char buffer[BUFSIZE];
-
 	int len = 0;
 
 	if ( peer )
-		len += snprintf(buffer + len, sizeof(buffer) - len,
-				"[#%d/%s:%d] ", int(peer->id), ip2a(peer->ip),
-				peer->port);
+		len += snprintf(buffer + len, sizeof(buffer) - len, "[#%d/%s:%d] ",
+		                int(peer->id), ip2a(peer->ip), peer->port);
 
 	len += safe_snprintf(buffer + len, sizeof(buffer) - len, "%s", msg);
 
-	val_list* vl = new val_list();
-	vl->append(new Val(level, TYPE_COUNT));
-	vl->append(new Val(src, TYPE_COUNT));
-	vl->append(new StringVal(buffer));
-	mgr.QueueEvent(remote_log, vl);
-
 	DEBUG_COMM(fmt("parent: %.6f %s", current_time(), buffer));
+#endif
 	}
 
 void RemoteSerializer::RaiseEvent(EventHandlerPtr event, Peer* peer,

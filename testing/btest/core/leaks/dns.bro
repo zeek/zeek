@@ -4,6 +4,10 @@
 #
 # @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local bro -m -r $TRACES/wikipedia.trace %INPUT
 
+const foo: set[addr] = {
+     google.com
+};
+
 # Add the state tracking information variable to the connection record
 
 event connection_established(c: connection)

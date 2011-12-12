@@ -15,8 +15,9 @@ which adds some reST directives and roles that aid in generating useful
 index entries and cross-references.  Other extensions can be added in
 a similar fashion.
 
-Either the ``make doc`` or ``make broxygen`` can be used to locally
-render the reST files into HTML.  Those targets depend on:
+Either the ``make doc`` or ``make broxygen`` targets in the top-level
+Makefile can be used to locally render the reST files into HTML.
+Those targets depend on:
 
 * Python interpreter >= 2.5
 * `Sphinx <http://sphinx.pocoo.org/>`_ >= 1.0.1

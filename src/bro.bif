@@ -5252,11 +5252,12 @@ function resume_state_updates%(%) : any
 
 # ===========================================================================
 #
-#                            Deprecated Functions
+#                             Internal Functions
 #
 # ===========================================================================
 
-## .. todo:: document and move to the right spot
+## Manually triggers the signature engine for a given connection.
+## This is an internal function.
 function match_signatures%(c: connection, pattern_type: int, s: string,
 				bol: bool, eol: bool,
 				from_orig: bool, clear: bool%) : bool
@@ -5269,6 +5270,12 @@ function match_signatures%(c: connection, pattern_type: int, s: string,
 
 	return new Val(1, TYPE_BOOL);
 	%}
+
+# ===========================================================================
+#
+#                            Deprecated Functions
+#
+# ===========================================================================
 
 %%{
 #include "Anon.h"

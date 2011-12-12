@@ -3542,7 +3542,7 @@ function x509_err2str%(err_num: count%): string
 	return new StringVal(X509_verify_cert_error_string(err_num));
 	%}
 
-function NFS3::mode2string%(mode: count%): string
+function file_mode%(mode: count%): string
 	%{
 	char str[12];
 	char *p = str;

@@ -857,8 +857,8 @@ event icmp_time_exceeded%(c: connection, icmp: icmp_conn, code: count, context: 
 event icmp_redirect%(c: connection, icmp: icmp_conn, a: addr%);
 
 ## Generated when a TCP connection terminated, passing on statistics about the
-## two endpoints. This event is generated when Bro flushes the internal connection
-## state, independent of how the connection gad terminated.
+## two endpoints. This event is always generated when Bro flushes the internal
+## connection state, independent of how a connection terminates.    
 ##   
 ## c: The connection.
 ##   
@@ -5311,6 +5311,7 @@ event software_unparsed_version_found%(c: connection, host: addr, str: string%);
 ##   
 ## .. bro:see:: passive_fingerprint_file software_parse_error
 ##    software_version_found software_unparsed_version_found
+##    generate_OS_version_event 
 event OS_version_found%(c: connection, host: addr, OS: OS_version%);
 
 ## Generated when a connection to a remote Bro has been established. This event

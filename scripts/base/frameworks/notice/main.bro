@@ -2,8 +2,7 @@
 ##! are odd or potentially bad.  Decisions of the meaning of various notices
 ##! need to be done per site because Bro does not ship with assumptions about
 ##! what is bad activity for sites.  More extensive documetation about using
-##! the notice framework can be found in the documentation section of the
-##! http://www.bro-ids.org/ website.
+##! the notice framework can be found in :doc:`/notice`.
 
 module Notice;
 
@@ -21,10 +20,10 @@ export {
 	## Scripts creating new notices need to redef this enum to add their own 
 	## specific notice types which would then get used when they call the
 	## :bro:id:`NOTICE` function.  The convention is to give a general category
-	## along with the specific notice separating words with underscores and using
-	## leading capitals on each word except for abbreviations which are kept in
-	## all capitals.  For example, SSH::Login is for heuristically guessed 
-	## successful SSH logins.
+	## along with the specific notice separating words with underscores and
+	## using leading capitals on each word except for abbreviations which are
+	## kept in all capitals.  For example, SSH::Login is for heuristically
+	## guessed successful SSH logins.
 	type Type: enum {
 		## Notice reporting a count of how often a notice occurred.
 		Tally,
@@ -49,22 +48,33 @@ export {
 	};
 	
 	## The notice framework is able to do automatic notice supression by 
-	## utilizing the $identifier field in :bro:type:`Info` records.
+	## utilizing the $identifier field in :bro:type:`Notice::Info` records.
 	## Set this to "0secs" to completely disable automated notice suppression.
 	const default_suppression_interval = 1hrs &redef;
 	
 	type Info: record {
+		## An absolute time indicating when the notice occurred, defaults
+		## to the current network time.
 		ts:             time           &log &optional;
+
+		## A connection UID which uniquely identifies the endpoints
+		## concerned with the notice.
 		uid:            string         &log &optional;
+
+		## A connection 4-tuple identifying the endpoints concerned with the
+		## notice.
 		id:             conn_id        &log &optional;
 		
-		## These are shorthand ways of giving the uid and id to a notice.  The
+		## A shorthand way of giving the uid and id to a notice.  The
 		## reference to the actual connection will be deleted after applying
 		## the notice policy.
 		conn:           connection     &optional;
+		## A shorthand way of giving the uid and id to a notice.  The
+		## reference to the actual connection will be deleted after applying
+		## the notice policy.
 		iconn:          icmp_conn      &optional;
 		
-		## The :bro:enum:`Notice::Type` of the notice.
+		## The type of the notice.
 		note:           Type           &log;
 		## The human readable message for the notice.
 		msg:            string         &log &optional;
@@ -141,8 +151,9 @@ export {
 	
 	## This is the record that defines the items that make up the notice policy.
 	type PolicyItem: record {
-		## This is the exact positional order in which the :bro:type:`PolicyItem`
-		## records are checked.  This is set internally by the notice framework.
+		## This is the exact positional order in which the
+		## :bro:type:`Notice::PolicyItem` records are checked.
+		## This is set internally by the notice framework.
 		position: count                            &log &optional;
 		## Define the priority for this check.  Items are checked in ordered
 		## from highest value (10) to lowest value (0).
@@ -163,8 +174,8 @@ export {
 		suppress_for: interval                     &log &optional;
 	};
 	
-	## This is the where the :bro:id:`Notice::policy` is defined.  All notice
-	## processing is done through this variable.
+	## Defines a notice policy that is extensible on a per-site basis.
+	## All notice processing is done through this variable.
 	const policy: set[PolicyItem] = {
 		[$pred(n: Notice::Info) = { return (n$note in Notice::ignored_types); },
 		 $halt=T, $priority = 9],
@@ -193,8 +204,9 @@ export {
 	
 	## Local system sendmail program.
 	const sendmail            = "/usr/sbin/sendmail" &redef;
-	## Email address to send notices with the :bro:enum:`ACTION_EMAIL` action
-	## or to send bulk alarm logs on rotation with :bro:enum:`ACTION_ALARM`.
+	## Email address to send notices with the :bro:enum:`Notice::ACTION_EMAIL`
+	## action or to send bulk alarm logs on rotation with
+	## :bro:enum:`Notice::ACTION_ALARM`.
 	const mail_dest           = ""                   &redef;
 	
 	## Address that emails will be from.
@@ -207,14 +219,20 @@ export {
 	## A log postprocessing function that implements emailing the contents
 	## of a log upon rotation to any configured :bro:id:`Notice::mail_dest`.
 	## The rotated log is removed upon being sent.
+	##
+	## info: A record containing the rotated log file information.
+	##
+	## Returns: True.
 	global log_mailing_postprocessor: function(info: Log::RotationInfo): bool;
 
 	## This is the event that is called as the entry point to the 
 	## notice framework by the global :bro:id:`NOTICE` function.  By the time 
 	## this event is generated, default values have already been filled out in
 	## the :bro:type:`Notice::Info` record and synchronous functions in the 
-	## :bro:id:`Notice:sync_functions` have already been called.  The notice
+	## :bro:id:`Notice::sync_functions` have already been called.  The notice
 	## policy has also been applied.
+	##
+	## n: The record containing notice data.
 	global notice: event(n: Info);
 
 	## This is a set of functions that provide a synchronous way for scripts 
@@ -231,30 +249,55 @@ export {
 	const sync_functions: set[function(n: Notice::Info)] = set() &redef;
 	
 	## This event is generated when a notice begins to be suppressed.
+	##
+	## n: The record containing notice data regarding the notice type
+	##    about to be suppressed.
 	global begin_suppression: event(n: Notice::Info);
+
 	## This event is generated on each occurence of an event being suppressed.
+	##
+	## n: The record containing notice data regarding the notice type
+	##    being suppressed.
 	global suppressed: event(n: Notice::Info);
+
 	## This event is generated when a notice stops being suppressed.
+	##
+	## n: The record containing notice data regarding the notice type
+	##    that was being suppressed.
 	global end_suppression: event(n: Notice::Info);
 	
 	## Call this function to send a notice in an email.  It is already used
-	## by default with the built in :bro:enum:`ACTION_EMAIL` and
-	## :bro:enum:`ACTION_PAGE` actions.
+	## by default with the built in :bro:enum:`Notice::ACTION_EMAIL` and
+	## :bro:enum:`Notice::ACTION_PAGE` actions.
+	##
+	## n: The record of notice data to email.
+	##
+	## dest: The intended recipient of the notice email.
+	##
+	## extend: Whether to extend the email using the ``email_body_sections``
+	##         field of *n*.
 	global email_notice_to: function(n: Info, dest: string, extend: bool);
 
 	## Constructs mail headers to which an email body can be appended for
 	## sending with sendmail.
+	##
 	## subject_desc: a subject string to use for the mail
+	##
 	## dest: recipient string to use for the mail
+	##
 	## Returns: a string of mail headers to which an email body can be appended
 	global email_headers: function(subject_desc: string, dest: string): string;
 	
-	## This event can be handled to access the :bro:type:`Info`
+	## This event can be handled to access the :bro:type:`Notice::Info`
 	## record as it is sent on to the logging framework.
+	##
+	## rec: The record containing notice data before it is logged.
 	global log_notice: event(rec: Info);
 	
-	## This is an internal wrapper for the global NOTICE function.  Please 
+	## This is an internal wrapper for the global :bro:id:`NOTICE` function;
 	## disregard.
+	##
+	## n: The record of notice data.
 	global internal_NOTICE: function(n: Notice::Info);
 }
 
@@ -410,7 +453,8 @@ event notice(n: Notice::Info) &priority=-5
 	}
 	
 ## This determines if a notice is being suppressed.  It is only used 
-## internally as part of the mechanics for the global NOTICE function.
+## internally as part of the mechanics for the global :bro:id:`NOTICE`
+## function.
 function is_being_suppressed(n: Notice::Info): bool
 	{
 	if ( n?$identifier && [n$note, n$identifier] in suppressing )

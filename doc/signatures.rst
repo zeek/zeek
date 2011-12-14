@@ -34,7 +34,7 @@ Let's look at an example signature first:
 
 This signature asks Bro to match the regular expression ``.*root`` on
 all TCP connections going to port 80. When the signature triggers, Bro
-will raise an event ``signature_match`` of the form:
+will raise an event :bro:id:`signature_match` of the form:
 
 .. code:: bro
 
@@ -45,19 +45,19 @@ triggered the match, ``msg`` is the string specified by the
 signature's event statement (``Found root!``), and data is the last
 piece of payload which triggered the pattern match.
 
-To turn such ``signature_match`` events into actual alarms, you can
-load Bro's ``signature.bro`` script. This script contains a default
-event handler that raises ``SensitiveSignature`` :doc:`Notices <notice>`
+To turn such :bro:id:`signature_match` events into actual alarms, you can
+load Bro's :doc:`/scripts/base/frameworks/signatures/main` script.
+This script contains a default event handler that raises
+:bro:enum:`Signatures::Sensitive_Signature` :doc:`Notices <notice>`
 (as well as others; see the beginning of the script).
 
 As signatures are independent of Bro's policy scripts, they are put
 into their own file(s). There are two ways to specify which files
 contain signatures: By using the ``-s`` flag when you invoke Bro, or
-by extending the Bro variable ``signatures_files`` using the ``+=``
+by extending the Bro variable :bro:id:`signature_files` using the ``+=``
 operator. If a signature file is given without a path, it is searched
 along the normal ``BROPATH``. The default extension of the file name
 is ``.sig``, and Bro appends that automatically when neccesary.
-
 
 Signature language
 ==================
@@ -90,7 +90,7 @@ one of ``==``, ``!=``, ``<``, ``<=``, ``>``, ``>=``; and
 against. The following keywords are defined:
 
 ``src-ip``/``dst-ip <cmp> <address-list>``
-    Source and destination address, repectively. Addresses can be
+    Source and destination address, respectively. Addresses can be
     given as IP addresses or CIDR masks.
 
 ``src-port``/``dst-port`` ``<int-list>``
@@ -126,7 +126,7 @@ CIDR notation for netmasks and is translated into a corresponding
 bitmask applied to the packet's value prior to the comparison (similar
 to the optional ``& integer``).
 
-Putting all together, this is an example conditiation that is
+Putting all together, this is an example condition that is
 equivalent to ``dst- ip == 1.2.3.4/16, 5.6.7.8/24``:
 
 .. code:: bro-sig
@@ -134,7 +134,7 @@ equivalent to ``dst- ip == 1.2.3.4/16, 5.6.7.8/24``:
     header ip[16:4] == 1.2.3.4/16, 5.6.7.8/24
 
 Internally, the predefined header conditions are in fact just
-short-cuts and mappend into a generic condition.
+short-cuts and mapped into a generic condition.
 
 Content Conditions
 ~~~~~~~~~~~~~~~~~~
@@ -265,7 +265,7 @@ Actions define what to do if a signature matches. Currently, there are
 two actions defined:
 
 ``event <string>``
-    Raises a ``signature_match`` event. The event handler has the
+    Raises a :bro:id:`signature_match` event. The event handler has the
     following type:
 
     .. code:: bro
@@ -339,10 +339,10 @@ Things to keep in mind when writing signatures
   respectively. Generally, Bro follows `flex's regular expression
   syntax
   <http://www.gnu.org/software/flex/manual/html_chapter/flex_7.html>`_.
-  See the DPD signatures in ``policy/sigs/dpd.bro`` for some examples
+  See the DPD signatures in ``base/frameworks/dpd/dpd.sig`` for some examples
   of fairly complex payload patterns.
 
-* The data argument of the ``signature_match`` handler might not carry
+* The data argument of the :bro:id:`signature_match` handler might not carry
   the full text matched by the regular expression. Bro performs the
   matching incrementally as packets come in; when the signature
   eventually fires, it can only pass on the most recent chunk of data.

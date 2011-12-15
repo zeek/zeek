@@ -1,7 +1,3 @@
-.highlight {
-    background-color: #ffffff;
-}
-
 h1 {
     font-weight: bold;
     font-size: 32px;
@@ -12,4 +8,9 @@ h1 {
     font-family: Palatino,'Palatino Linotype',Georgia,serif;;
     color: #000;
     border-bottom: 0px;
+}
+
+th.field-name
+{
+    white-space:nowrap;
 }

@@ -102,7 +102,7 @@ export {
 		## built-in emailing functionality to delay sending the email until 
 		## either the token has been removed or the email has been delayed
 		## for :bro:id:`max_email_delay`.
-		email_delay_tokens:   set[string] &default=set();
+		email_delay_tokens:   set[string] &optional;
 		
 		## This field is to be provided when a notice is generated for the
 		## purpose of deduplicating notices.  The identifier string should
@@ -503,6 +503,9 @@ function apply_policy(n: Notice::Info)
 	
 	if ( ! n?$actions )
 		n$actions = set();
+		
+	if ( ! n?$email_delay_tokens )
+		n$email_delay_tokens = set();
 	
 	if ( ! n?$policy_items )
 		n$policy_items = set();

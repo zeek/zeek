@@ -25,7 +25,6 @@ event Notice::notice(n: Notice::Info) &priority=10
 			n$email_body_sections[|n$email_body_sections|] = output;
 			delete n$email_delay_tokens["hostnames-src"];
 			}
-		timeout max_email_delay { }
 		}
 	if ( n?$dst )
 		{
@@ -36,6 +35,5 @@ event Notice::notice(n: Notice::Info) &priority=10
 			n$email_body_sections[|n$email_body_sections|] = output;
 			delete n$email_delay_tokens["hostnames-dst"];
 			}
-		timeout max_email_delay { }
 		}
 	}

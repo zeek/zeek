@@ -369,7 +369,7 @@ function email_notice_to(n: Notice::Info, dest: string, extend: bool)
 		{
 		if ( |n$email_delay_tokens| > 0 )
 			{
-			# If we still are within the max_email_delay, keep delaying
+			# If we still are within the max_email_delay, keep delaying.
 			if ( n$ts + max_email_delay > network_time() )
 				schedule 1sec { delay_sending_email(n, dest, extend) };
 			else

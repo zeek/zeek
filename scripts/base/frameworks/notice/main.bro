@@ -96,7 +96,7 @@ export {
 		## expand on notices that are being emailed.  The normal way to add text
 		## is to extend the vector by handling the :bro:id:`Notice::notice`
 		## event and modifying the notice in place.
-		email_body_sections:  vector of string &default=vector();
+		email_body_sections:  vector of string &optional;
 		
 		## Adding a string "token" to this set will cause the notice framework's
 		## built-in emailing functionality to delay sending the email until 
@@ -371,7 +371,10 @@ function email_notice_to(n: Notice::Info, dest: string, extend: bool)
 			{
 			# If we still are within the max_email_delay, keep delaying.
 			if ( n$ts + max_email_delay > network_time() )
+				{
 				schedule 1sec { delay_sending_email(n, dest, extend) };
+				return;
+				}
 			else
 				{
 				event reporter_info(network_time(), 
@@ -503,7 +506,9 @@ function apply_policy(n: Notice::Info)
 	
 	if ( ! n?$actions )
 		n$actions = set();
-		
+	
+	if ( ! n?$email_body_sections )
+		n$email_body_sections = vector();
 	if ( ! n?$email_delay_tokens )
 		n$email_delay_tokens = set();
 	

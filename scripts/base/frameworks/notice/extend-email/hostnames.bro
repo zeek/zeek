@@ -2,6 +2,14 @@
 
 module Notice;
 
+function lookup_addr_wrapper(n: Info, a: addr): string
+	{
+	return when ( local name = lookup_addr(a) )
+		{
+		return name;
+		}
+	}
+
 event Notice::notice(n: Notice::Info) &priority=10
 	{
 	if ( ! n?$src && ! n?$dst )
@@ -19,9 +27,9 @@ event Notice::notice(n: Notice::Info) &priority=10
 	if ( n?$src )
 		{
 		add n$email_delay_tokens["hostnames-src"];
-		when ( local src_name = lookup_addr(n$src) )
+		when ( local src_name = lookup_addr_wrapper(n, n$src) )
 			{
-			output = string_cat("orig_h/src hostname: ", src_name, "\n");
+			output = string_cat("orig/src hostname: ", src_name, "\n");
 			n$email_body_sections[|n$email_body_sections|] = output;
 			delete n$email_delay_tokens["hostnames-src"];
 			}
@@ -29,9 +37,9 @@ event Notice::notice(n: Notice::Info) &priority=10
 	if ( n?$dst )
 		{
 		add n$email_delay_tokens["hostnames-dst"];
-		when ( local dst_name = lookup_addr(n$dst) )
+		when ( local dst_name = lookup_addr_wrapper(n, n$dst) )
 			{
-			output = string_cat("resp_h/dst hostname: ", dst_name, "\n");
+			output = string_cat("resp/dst hostname: ", dst_name, "\n");
 			n$email_body_sections[|n$email_body_sections|] = output;
 			delete n$email_delay_tokens["hostnames-dst"];
 			}

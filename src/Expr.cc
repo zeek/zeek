@@ -4053,7 +4053,14 @@ Val* RecordCoerceExpr::Fold(Val* v) const
 			val->Assign(i, rhs);
 			}
 		else
-			val->Assign(i, 0);
+			{
+			const Attr* def =
+			     Type()->AsRecordType()->FieldDecl(i)->FindAttr(ATTR_DEFAULT);
+			if ( def )
+				val->Assign(i, def->AttrExpr()->Eval(0));
+			else
+				val->Assign(i, 0);
+			}
 		}
 
 	return val;

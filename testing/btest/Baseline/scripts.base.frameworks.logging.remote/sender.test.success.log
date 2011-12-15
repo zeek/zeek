@@ -2,5 +2,5 @@
 #path	test.success
 #fields	t	id.orig_h	id.orig_p	id.resp_h	id.resp_p	status	country
 #types	time	addr	port	addr	port	string	string
-1315167059.502670	1.2.3.4	1234	2.3.4.5	80	success	-
-1315167059.502670	1.2.3.4	1234	2.3.4.5	80	success	BR
+1323970700.744867	1.2.3.4	1234	2.3.4.5	80	success	unknown
+1323970700.744867	1.2.3.4	1234	2.3.4.5	80	success	BR

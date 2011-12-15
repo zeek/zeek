@@ -98,6 +98,12 @@ export {
 		## event and modifying the notice in place.
 		email_body_sections:  vector of string &default=vector();
 		
+		## Adding a string "token" to this set will cause the notice framework's
+		## built-in emailing functionality to delay sending the email until 
+		## either the token has been removed or the email has been delayed
+		## for :bro:id:`max_email_delay`.
+		email_delay_tokens:   set[string] &default=set();
+		
 		## This field is to be provided when a notice is generated for the
 		## purpose of deduplicating notices.  The identifier string should
 		## be unique for a single instance of the notice.  This field should be 
@@ -203,6 +209,8 @@ export {
 	const reply_to            = "" &redef;
 	## Text string prefixed to the subject of all emails sent out.
 	const mail_subject_prefix = "[Bro]" &redef;
+	## The maximum amount of time a plugin can delay email from being sent.
+	const max_email_delay     = 15secs &redef;
 
 	## A log postprocessing function that implements emailing the contents
 	## of a log upon rotation to any configured :bro:id:`Notice::mail_dest`.
@@ -347,10 +355,31 @@ function email_headers(subject_desc: string, dest: string): string
 	return header_text;
 	}
 
+event delay_sending_email(n: Notice::Info, dest: string, extend: bool)
+	{
+	email_notice_to(n, dest, extend);
+	}
+	
 function email_notice_to(n: Notice::Info, dest: string, extend: bool)
 	{
 	if ( reading_traces() || dest == "" )
 		return;
+	
+	if ( extend )
+		{
+		if ( |n$email_delay_tokens| > 0 )
+			{
+			# If we still are within the max_email_delay, keep delaying
+			if ( n$ts + max_email_delay > network_time() )
+				schedule 1sec { delay_sending_email(n, dest, extend) };
+			else
+				{
+				event reporter_info(network_time(), 
+					fmt("Notice email delay tokens weren't released in time (%s).", n$email_delay_tokens), 
+					"");
+				}
+			}
+		}
 		
 	local email_text = email_headers(fmt("%s", n$note), dest);
 		

@@ -321,7 +321,7 @@ type packet: record {
 ## .. todo:: We need this type definition only for declaring builtin functions via
 ##    ``bifcl``. We should extend ``bifcl`` to understand composite types directly and
 ##    then remove this alias.
-type var_sizes: table[string] of count;	##< indexed by var's name, returns size
+type var_sizes: table[string] of count;
 
 ## Meta-information about a script-level identifier.
 ##
@@ -375,8 +375,9 @@ type record_field_table: table[string] of record_field;
 
 ## Set of BPF capture filters to use for capturing, indexed by a user-definable
 ## ID (which must be unique). If Bro is *not* configured to examine
-## :bro:id:`all_packets`, all packets matching at least one of the filters in this
-## table (and all in :bro:id:`restrict_filters`) will be analyzed.
+## :bro:id:`PacketFilter::all_packets`, all packets matching at least
+## one of the filters in this table (and all in :bro:id:`restrict_filters`)
+## will be analyzed.
 ##
 ## .. bro:see:: PacketFilter PacketFilter::all_packets
 ##    PacketFilter::unrestricted_filter restrict_filters
@@ -530,7 +531,7 @@ type geo_location: record {
 
 ## Computed entropy values. The record captures a number of measures that are
 ## computed in parallel. See `A Pseudorandom Number Sequence Test Program
-## <http://www.fourmilab.ch/random>` for more information, Bro uses the same
+## <http://www.fourmilab.ch/random>`_ for more information, Bro uses the same
 ## code.
 ##
 ## .. bro:see:: entropy_test_add entropy_test_finish entropy_test_init find_entropy
@@ -1736,8 +1737,8 @@ type X509: record {
 	not_valid_after: time;	##< Timestamp after when certificate is not valid.
 };
 
-## This is indexed with the CA's name and yields a DER (binary) encoded certificate.
-## todo::Is this still used?
+# This is indexed with the CA's name and yields a DER (binary) encoded certificate.
+# todo::Is this still used?
 # const root_ca_certs: table[string] of string = {} &redef;
 
 ## HTTP session statistics.
@@ -2207,7 +2208,7 @@ const remote_trace_sync_interval = 0 secs &redef;
 ## .. bro:see:: remote_trace_sync_interval
 const remote_trace_sync_peers = 0 &redef;
 
-## Whether for :bro:attr:`synchronized` state to send the old value as a
+## Whether for :bro:attr:`&synchronized` state to send the old value as a
 ## consistency check. 
 const remote_check_sync_consistency = F &redef;
 

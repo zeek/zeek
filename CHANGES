@@ -1,4 +1,38 @@
 
+2.0-beta-116 | 2011-12-16 02:38:27 -0800
+
+  * Cleanup some misc Broxygen css/js stuff. (Jon Siwek)
+
+  * Add search box to Broxygen docs. Fixes #726. (Jon Siwek)
+
+  * Fixed major bug with cluster synchronization, which was not
+    working. (Seth Hall)
+
+  * Fix missing action in notice policy for looking up GeoIP data.
+    (Jon Siwek)
+
+  * Better persistent state configuration warning messages (fixes
+    #433). (Jon Siwek)
+
+  * Renaming HTTP::SQL_Injection_Attack_Against to
+    HTTP::SQL_Injection_Victim. (Seth Hall).
+
+  * Fixed DPD signatures for IRC. Fixes #311. (Seth Hall)
+    
+  * Removing Off_Port_Protocol_Found notice. (Seth Hall)
+
+  * Teach Broxygen to more generally reference attribute values by name. (Jon Siwek)
+
+  * SSH::Interesting_Hostname_Login cleanup.  Fixes #664. (Seth Hall)
+    
+  * Fixed bug that was causing the malware hash registry script to
+    break. (Seth Hall)
+
+  * Fix Broxygen confusing scoped IDs at start of line as function
+    parameter. (Jon Siwek)
+
+  * Remove remnant of libmagic optionality. (Jon Siwek)
+
 2.0-beta-98 | 2011-12-07 08:12:08 -0800
 
   * Adapting test-suite's diff-all so that it expands globs in both

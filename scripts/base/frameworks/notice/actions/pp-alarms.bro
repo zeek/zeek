@@ -1,6 +1,6 @@
-#! Notice extension that mails out a pretty-printed version of alarm.log
-#! in regular intervals, formatted for better human readability. If activated,
-#! that replaces the default summary mail having the raw log output.
+##! Notice extension that mails out a pretty-printed version of alarm.log
+##! in regular intervals, formatted for better human readability. If activated,
+##! that replaces the default summary mail having the raw log output.
 
 @load base/frameworks/cluster
 @load ../main
@@ -15,8 +15,8 @@ export {
 	## :bro:id:`Notice::mail_dest`.
 	const mail_dest_pretty_printed = "" &redef;
 
-        ## If an address from one of these networks is reported, we mark
-	## the entry with an addition quote symbol (i.e., ">"). Many MUAs
+	## If an address from one of these networks is reported, we mark
+	## the entry with an addition quote symbol (that is, ">"). Many MUAs
 	## then highlight such lines differently.
 	global flag_nets: set[subnet] &redef;
 

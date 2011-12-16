@@ -1,4 +1,4 @@
-# Internal functions and types used by the logging framework.
+##! Internal functions and types used by the logging framework.
 
 module Log;
 

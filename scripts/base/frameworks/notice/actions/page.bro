@@ -1,3 +1,5 @@
+##! Allows configuration of a pager email address to which notices can be sent.
+
 @load ../main
 
 module Notice;

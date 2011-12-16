@@ -1,4 +1,6 @@
-##! Implements notice functionality across clusters.
+##! Implements notice functionality across clusters.  Worker nodes
+##! will disable notice/alarm logging streams and forward notice
+##! events to the manager node for logging/processing.
 
 @load ./main
 @load base/frameworks/cluster
@@ -7,10 +9,15 @@ module Notice;
 
 export {
 	## This is the event used to transport notices on the cluster.
+	##
+	## n: The notice information to be sent to the cluster manager for
+	##    further processing.
 	global cluster_notice: event(n: Notice::Info);
 }
 
+## Manager can communicate notice suppression to workers.
 redef Cluster::manager2worker_events += /Notice::begin_suppression/;
+## Workers needs need ability to forward notices to manager.
 redef Cluster::worker2manager_events += /Notice::cluster_notice/;
 
 @if ( Cluster::local_node_type() != Cluster::MANAGER )

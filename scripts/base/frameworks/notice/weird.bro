@@ -1,3 +1,12 @@
+##! This script provides a default set of actions to take for "weird activity"
+##! events generated from Bro's event engine.  Weird activity is defined as
+##! unusual or exceptional activity that can indicate malformed connections,
+##! traffic that doesn't conform to a particular protocol, malfunctioning
+##! or misconfigured hardware, or even an attacker attempting to avoid/confuse
+##! a sensor.  Without context, it's hard to judge whether a particular
+##! category of weird activity is interesting, but this script provides
+##! a starting point for the user.
+
 @load base/utils/conn-ids
 @load base/utils/site
 @load ./main
@@ -5,6 +14,7 @@
 module Weird;
 
 export {
+	## The weird logging stream identifier.
 	redef enum Log::ID += { LOG };
 	
 	redef enum Notice::Type += {
@@ -12,6 +22,7 @@ export {
 		Activity,
 	};
 	
+	## The record type which contains the column fields of the weird log.
 	type Info: record {
 		## The time when the weird occurred.
 		ts:     time    &log;
@@ -32,19 +43,32 @@ export {
 		peer:   string  &log &optional;
 	};
 
+	## Types of actions that may be taken when handling weird activity events.
 	type Action: enum {
+		## A dummy action indicating the user does not care what internal
+		## decision is made regarding a given type of weird.
 		ACTION_UNSPECIFIED,
+		## No action is to be taken.
 		ACTION_IGNORE,
+		## Log the weird event every time it occurs.
 		ACTION_LOG,
+		## Log the weird event only once.
 		ACTION_LOG_ONCE,
+		## Log the weird event once per connection.
 		ACTION_LOG_PER_CONN,
+		## Log the weird event once per originator host.
 		ACTION_LOG_PER_ORIG,
+		## Always generate a notice associated with the weird event.
 		ACTION_NOTICE, 
+		## Generate a notice associated with the weird event only once.
 		ACTION_NOTICE_ONCE,
+		## Generate a notice for the weird event once per connection.
 		ACTION_NOTICE_PER_CONN,
+		## Generate a notice for the weird event once per originator host.
 		ACTION_NOTICE_PER_ORIG, 
 	};
 
+	## A table specifying default/recommended actions per weird type.
 	const actions: table[string] of Action = {
 		["unsolicited_SYN_response"]            = ACTION_IGNORE,
 		["above_hole_data_without_any_acks"]    = ACTION_LOG,
@@ -201,7 +225,7 @@ export {
 		["fragment_overlap"]                    = ACTION_LOG_PER_ORIG,
 		["fragment_protocol_inconsistency"]     = ACTION_LOG,
 		["fragment_size_inconsistency"]         = ACTION_LOG_PER_ORIG,
-		## These do indeed happen!
+		# These do indeed happen!
 		["fragment_with_DF"]                    = ACTION_LOG,
 		["incompletely_captured_fragment"]      = ACTION_LOG,
 		["bad_IP_checksum"]                     = ACTION_LOG_PER_ORIG,
@@ -215,8 +239,8 @@ export {
 	## and weird name into this set.
 	const ignore_hosts: set[addr, string] &redef;
 
-	# But don't ignore these (for the weird file), it's handy keeping
-	# track of clustered checksum errors.
+	## Don't ignore repeats for weirds in this set.  For example,
+	## it's handy keeping track of clustered checksum errors.
 	const weird_do_not_ignore_repeats = {
 		"bad_IP_checksum", "bad_TCP_checksum", "bad_UDP_checksum",
 		"bad_ICMP_checksum",
@@ -236,7 +260,11 @@ export {
 	## A state set which tracks unique weirds solely by the name to reduce
 	## duplicate notices from being raised.
 	global did_notice: set[string, string] &create_expire=1day &redef;
-	
+
+	## Handlers of this event are invoked one per write to the weird
+	## logging stream before the data is actually written.
+	##
+	## rec: The weird columns about to be logged to the weird stream.
 	global log_weird: event(rec: Info);
 }
 

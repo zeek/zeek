@@ -2,13 +2,11 @@
 
 module Notice;
 
-function lookup_addr_wrapper(n: Info, a: addr): string
-	{
-	return when ( local name = lookup_addr(a) )
-		{
-		return name;
-		}
-	}
+# We have to store references to the notices here because the when statement
+# clones the frame which doesn't give us access to modify values outside
+# of it's execution scope. (we get a clone of the notice instead of a 
+# reference to the original notice)
+global tmp_notice_storage: table[string] of Notice::Info &create_expire=max_email_delay+10secs;
 
 event Notice::notice(n: Notice::Info) &priority=10
 	{
@@ -22,26 +20,28 @@ event Notice::notice(n: Notice::Info) &priority=10
 	# I'm not recovering gracefully from the when statements because I want 
 	# the notice framework to detect that something has exceeded the maximum
 	# allowed email delay and tell the user.
+	local uid = unique_id("");
+	tmp_notice_storage[uid] = n;
 	
 	local output = "";
 	if ( n?$src )
 		{
 		add n$email_delay_tokens["hostnames-src"];
-		when ( local src_name = lookup_addr_wrapper(n, n$src) )
+		when ( local src_name = lookup_addr(n$src) )
 			{
 			output = string_cat("orig/src hostname: ", src_name, "\n");
-			n$email_body_sections[|n$email_body_sections|] = output;
-			delete n$email_delay_tokens["hostnames-src"];
+			tmp_notice_storage[uid]$email_body_sections[|tmp_notice_storage[uid]$email_body_sections|] = output;
+			delete tmp_notice_storage[uid]$email_delay_tokens["hostnames-src"];
 			}
 		}
 	if ( n?$dst )
 		{
 		add n$email_delay_tokens["hostnames-dst"];
-		when ( local dst_name = lookup_addr_wrapper(n, n$dst) )
+		when ( local dst_name = lookup_addr(n$dst) )
 			{
 			output = string_cat("resp/dst hostname: ", dst_name, "\n");
-			n$email_body_sections[|n$email_body_sections|] = output;
-			delete n$email_delay_tokens["hostnames-dst"];
+			tmp_notice_storage[uid]$email_body_sections[|tmp_notice_storage[uid]$email_body_sections|] = output;
+			delete tmp_notice_storage[uid]$email_delay_tokens["hostnames-dst"];
 			}
 		}
 	}

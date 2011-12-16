@@ -409,9 +409,10 @@ function email_notice_to(n: Notice::Info, dest: string, extend: bool)
 	# Add the extended information if it's requested.
 	if ( extend )
 		{
+		email_text = string_cat(email_text, "\nEmail Extensions\n");
+		email_text = string_cat(email_text,   "----------------\n");
 		for ( i in n$email_body_sections )
 			{
-			email_text = string_cat(email_text, "******************\n");
 			email_text = string_cat(email_text, n$email_body_sections[i], "\n");
 			}
 		}

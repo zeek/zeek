@@ -36,9 +36,10 @@ export {
 		unparsed_version:	string;
 	};
 
+	## Record that is used to add and log software information.
 	type Info: record {
 		## The time at which the software was first detected.
-		ts:               time &log;
+		ts:               time &log &optional;
 		## The IP address detected running the software.
 		host:           addr &log;
 		## The Port on which the software is running. Only sensible for server software.
@@ -48,27 +49,12 @@ export {
 		## The type of software detected (e.g. WEB_SERVER)
 		software_type:    Type &log &default=UNKNOWN;
 		## Name of the software (e.g. Apache)
-		name:             string &log;
+		name:             string &log &optional;
 		## Version of the software
-		version:          Version &log;
+		version:          Version &log &optional;
 		## The full unparsed version string found because the version parsing 
 		## doesn't work 100% reliably and this acts as a fall back in the logs.
 		unparsed_version: string &log &optional;
-	};
-
-	type AddItem: record {
-		## The connection
-		id:		conn_id;
-		## The unparsed string representing the software version
-		banner:		string;
-		## Pre-parsed version. If this field is present, banner should only contain the name of the software
-		version:	Version &optional;
-		## The IP address detected running the software.
-		host:		addr;
-		## The port on which the software is running (if applicable).
-		host_p:		port &optional;
-		## The type of software detected (e.g. WEB_SERVER)
-		sw_type:	Type;
 		
 		## This can indicate that this software being detected should
 		## definitely be sent onward to the logging framework.  By 
@@ -89,7 +75,7 @@ export {
 	## unparsed_version: This is the full string from which the
 	##                   :bro:type:`Software::Info` was extracted.
 	## Returns: T if the software was logged, F otherwise.
-	global found: function(i: AddItem): bool;
+	global found: function(id: conn_id, info: Info): bool;
 	
 	## This function can take many software version strings and parse them 
 	## into a sensible :bro:type:`Software::Version` record.  There are 
@@ -382,7 +368,7 @@ function software_fmt(i: Info): string
 
 # Insert a mapping into the table
 # Overides old entries for the same software and generates events if needed.
-event software_register(id: conn_id, force_log: bool, info: Info)
+event software_register(id: conn_id, info: Info)
 	{
 	# Host already known?
 	if ( info$host !in tracked )
@@ -398,7 +384,7 @@ event software_register(id: conn_id, force_log: bool, info: Info)
 		# If the version hasn't changed, then we're just redetecting the
 		# same thing, then we don't care.  This results in no extra logging.
 		# But if the $force_log value is set then we'll continue.
-		if ( ! force_log && cmp_versions(old$version, info$version) == 0 )
+		if ( ! info$force_log && cmp_versions(old$version, info$version) == 0 )
 			return;
 		}
 	ts[info$name] = info;
@@ -406,25 +392,38 @@ event software_register(id: conn_id, force_log: bool, info: Info)
 	Log::write(Software::LOG, info);
 	}
 
-function found(i: AddItem): bool
+function found(id: conn_id, info: Info): bool
 	{
-	if ( i$force_log || addr_matches_host(i$host, asset_tracking) )
+	if ( info$force_log || addr_matches_host(info$host, asset_tracking) )
 		{
 
-		local sw: SoftwareDescription;
 
-		if ( i?$version ) # already fully parsed, banner should contain the software name
+		if ( !info?$ts ) 
+			info$ts=network_time();
+
+		if ( info?$version ) # we have a version number and don't have to parse. check if the name is also set...
 			{
-			sw = [$version=i$version, $name=i$banner, $unparsed_version=i$banner];
-			} 
-		else 	
+				if ( !info?$name ) 
+					{
+					Reporter::error("Required field name not present in Software::found");
+					return F;
+					}
+			}
+		else  # no version present, we have to parse...
 			{
-			sw = parse(i$banner);
+			if ( !info?$unparsed_version ) 
+				{
+				Reporter::error("No unparsed version string present in Info record with version in Software::found");
+				return F;
+				} 
+			local sw = parse(info$unparsed_version);
+			info$unparsed_version = sw$unparsed_version;
+			info$name = sw$name;
+			info$version = sw$version;
+
 			}
 
-		event software_register(i$id, i$force_log, [$ts=network_time(), $host=i$host, $host_p=i$host_p, $name=sw$name,
-	        						$version=sw$version, $unparsed_version=sw$unparsed_version,
-	        						$software_type=i$sw_type] );
+		event software_register(id, info);
 
 		return T;
 		}

@@ -75,7 +75,7 @@ event log_smtp(rec: Info)
 		if ( addr_matches_host(rec$id$orig_h,
 		                       detect_clients_in_messages_from) )
 			{
-			Software::found([$id=rec$id, $banner=rec$user_agent, $host=client_ip, $sw_type=s_type]);
+			Software::found(rec$id, [$unparsed_version=rec$user_agent, $host=client_ip, $software_type=s_type]);
 			}
 		}
 	}

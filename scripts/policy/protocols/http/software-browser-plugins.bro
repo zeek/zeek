@@ -26,7 +26,7 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 			# Flash doesn't include it's name so we'll add it here since it 
 			# simplifies the version parsing.
 			value = cat("Flash/", value);
-			Software::found([$id=c$id, $banner=flash_version, $host=c$id$orig_h, $sw_type=BROWSER_PLUGIN]);
+			Software::found(c$id, [$unparsed_version=value, $host=c$id$orig_h, $software_type=BROWSER_PLUGIN]);
 			}
 		}
 	else
@@ -53,7 +53,7 @@ event log_http(rec: Info)
 			local plugins = split(sw, /[[:blank:]]*;[[:blank:]]*/);
 			
 			for ( i in plugins )
-				Software::found([$id=rec$id, $banner=plugins[i], $host=rec$id$orig_h, $sw_type=BROWSER_PLUGIN]);
+				Software::found(rec$id, [$unparsed_version=plugins[i], $host=rec$id$orig_h, $software_type=BROWSER_PLUGIN]);
 			}
 		}
 	}

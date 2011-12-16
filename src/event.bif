@@ -383,7 +383,7 @@ event connection_timeout%(c: connection%);
 event connection_reused%(c: connection%);
 
 ## Generated in regular intervals during the life time of a connection. The
-## events is raised each :bro:id:`connection_status_update_interval` seconds
+## events is raised each ``connection_status_update_interval`` seconds
 ## and can be used to check conditions on a regular basis.
 ##
 ## c: The connection.
@@ -428,7 +428,7 @@ event connection_external%(c: connection, tag: string%);
 ## a: The analyzer that was scheduled for the connection with the
 ##    :bro:id:`expect_connection` call. When the event is raised, that
 ##    analyzer will already have been activated to process the connection. The
-##    ``count`` is one of the ``ANALYZER_*`` constants, e.g., ``ANALYZER_HTTP``. 
+##    ``count`` is one of the ``ANALYZER_*`` constants, e.g., ``ANALYZER_HTTP``.
 ##
 ## .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
 ##    connection_established connection_external connection_finished
@@ -515,8 +515,8 @@ event tcp_option%(c: connection, is_orig: bool, opt: count, optlen: count%);
 ## Generated for each chunk of reassembled TCP payload. When content delivery is
 ## enabled for a TCP connection (via :bro:id:`tcp_content_delivery_ports_orig`,
 ## :bro:id:`tcp_content_delivery_ports_resp`,
-## :bro:id:`tcp_content_delivery_all_orig`,
-## :bro:id:`tcp_content_delivery_all_resp`), this event is raised for each chunk
+## :bro:id:`tcp_content_deliver_all_orig`,
+## :bro:id:`tcp_content_deliver_all_resp`), this event is raised for each chunk
 ## of in-order payload reconstructed from the packet stream. Note that this event
 ## is potentially expensive if many connections carry signficant amounts of data as
 ## then all that needs to be passed on to the scripting layer.
@@ -643,7 +643,7 @@ event gap_report%(dt: interval, info: gap_info%);
 ##
 ## atype: The type of the analyzer confirming that its protocol is in
 ##        use. The value is one of the ``ANALYZER_*`` constants. For example,
-##        :bro:id:`ANALYZER_HTTP` means the HTTP analyzers determined that it's indeed
+##        ``ANALYZER_HTTP`` means the HTTP analyzers determined that it's indeed
 ##        parsing an HTTP connection.
 ##
 ## aid:   A unique integer ID identifying the specific *instance* of the
@@ -656,8 +656,8 @@ event gap_report%(dt: interval, info: gap_info%);
 ## .. note::
 ##
 ##    Bro's default scripts use this event to determine the ``service`` column of
-##    :bro:id:`Conn::Info`: once confirmed, the protocol will be listed there (and
-##    thus in ``conn.log``).
+##    :bro:type:`Conn::Info`: once confirmed, the protocol will be listed there
+##    (and thus in ``conn.log``).
 event protocol_confirmation%(c: connection, atype: count, aid: count%);
 
 ## Generated when a protocol analyzer determines that a connection it is parsing
@@ -671,7 +671,7 @@ event protocol_confirmation%(c: connection, atype: count, aid: count%);
 ##
 ## atype: The type of the analyzer confirming that its protocol is in
 ##        use. The value is one of the ``ANALYZER_*`` constants. For example,
-##        :bro:id:`ANALYZER_HTTP` means the HTTP analyzers determined that it's indeed
+##        ``ANALYZER_HTTP`` means the HTTP analyzers determined that it's indeed
 ##        parsing an HTTP connection.
 ##
 ## aid:   A unique integer ID identifying the specific *instance* of the
@@ -5965,13 +5965,13 @@ event remote_state_inconsistency%(operation: string, id: string,
 ## intended primarily for use by Bro's communication framework, it can also trigger
 ## additional code if helpful.    
 ## 
-## level: The log level, which is either :bro:enum:`REMOTE_LOG_INFO` or
-##        :bro:enum:`REMOTE_LOG_ERROR`. 
+## level: The log level, which is either :bro:id:`REMOTE_LOG_INFO` or
+##        :bro:id:`REMOTE_LOG_ERROR`. 
 ## 
 ## src: The component of the comminication system that logged the message.
-##      Currently, this will be one of :bro:enum:`REMOTE_SRC_CHILD` (Bro's
-##      child process), :bro:enum:`REMOTE_SRC_PARENT` (Bro's main process), or
-##      :bro:enum:`REMOTE_SRC_SCRIPT` (the script level).  
+##      Currently, this will be one of :bro:id:`REMOTE_SRC_CHILD` (Bro's
+##      child process), :bro:id:`REMOTE_SRC_PARENT` (Bro's main process), or
+##      :bro:id:`REMOTE_SRC_SCRIPT` (the script level).  
 ## 
 ## msg: The message logged. 
 ##
@@ -5988,13 +5988,13 @@ event remote_log%(level: count, src: count, msg: string%);
 ##
 ## p: A record describing the remote peer.
 ##
-## level: The log level, which is either :bro:enum:`REMOTE_LOG_INFO` or
-##        :bro:enum:`REMOTE_LOG_ERROR`.
+## level: The log level, which is either :bro:id:`REMOTE_LOG_INFO` or
+##        :bro:id:`REMOTE_LOG_ERROR`.
 ##
 ## src: The component of the comminication system that logged the message.
-##      Currently, this will be one of :bro:enum:`REMOTE_SRC_CHILD` (Bro's
-##      child process), :bro:enum:`REMOTE_SRC_PARENT` (Bro's main process), or
-##      :bro:enum:`REMOTE_SRC_SCRIPT` (the script level).
+##      Currently, this will be one of :bro:id:`REMOTE_SRC_CHILD` (Bro's
+##      child process), :bro:id:`REMOTE_SRC_PARENT` (Bro's main process), or
+##      :bro:id:`REMOTE_SRC_SCRIPT` (the script level).
 ##
 ## msg: The message logged.
 ##
@@ -6051,7 +6051,7 @@ event remote_state_access_performed%(id: string, v: any%);
 ## f: The profiling file.
 ## 
 ## expensive: True if this event corresponds to heavier-weight profiling as
-##            indicated by the :bro:enum:`expensive_profiling_multiple` variable. 
+##            indicated by the :bro:id:`expensive_profiling_multiple` variable. 
 ##   
 ## .. bro:see::  profiling_interval expensive_profiling_multiple 
 event profiling_update%(f: file, expensive: bool%);

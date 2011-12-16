@@ -76,8 +76,8 @@ export {
 		and_tags:    set[string] &optional; 
 		
 		## The predicate can be given when searching for a match.  It will
-		## be tested against every :bro:type:`MetaData` item associated with 
-		## the data being matched on.  If it returns T a single time, the 
+		## be tested against every :bro:type:`Intel::MetaData` item associated
+		## with the data being matched on.  If it returns T a single time, the 
 		## matcher will consider that the item has matched.
 		pred:    function(meta: Intel::MetaData): bool &optional;
 	};

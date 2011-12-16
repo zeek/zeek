@@ -40,12 +40,12 @@ export {
 	global cluster_index_request: event(uid: string, id: ID, filter_name: string, index: Index);
 
 	## This event is sent by nodes in response to a 
-	## :bro:id:`cluster_index_request` event.
+	## :bro:id:`Metrics::cluster_index_request` event.
 	global cluster_index_response: event(uid: string, id: ID, filter_name: string, index: Index, val: count);
 
 	## This is sent by workers to indicate that they crossed the percent of the 
 	## current threshold by the percentage defined globally in 
-	## :bro:id:`cluster_request_global_view_percent`
+	## :bro:id:`Metrics::cluster_request_global_view_percent`
 	global cluster_index_intermediate_response: event(id: Metrics::ID, filter_name: string, index: Metrics::Index, val: count);
 
 	## This event is scheduled internally on workers to send result chunks.

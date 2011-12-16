@@ -86,6 +86,8 @@ export {
 		## threshold in every break interval.
 		notice_freq:       interval                &optional;
 	};
+
+	type MetricTable: table[Index] of count &default=0;
 	
 	global add_filter: function(id: ID, filter: Filter);
 	global add_data: function(id: ID, index: Index, increment: count);
@@ -105,7 +107,6 @@ redef record Notice::Info += {
 global metric_filters: table[ID] of vector of Filter = table();
 global filter_store: table[ID, string] of Filter = table();
 
-type MetricTable: table[Index] of count &default=0;
 # This is indexed by metric ID and stream filter name.
 global store: table[ID, string] of MetricTable = table() &default=table();
 

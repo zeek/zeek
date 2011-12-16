@@ -1,8 +1,8 @@
 ##! This is the script that implements the core IRC analysis support.  It only
 ##! logs a very limited subset of the IRC protocol by default.  The points
 ##! that it logs at are NICK commands, USER commands, and JOIN commands.  It 
-##! log various bits of meta data as indicated in the :bro:type:`Info` record
-##! along with the command at the command arguments.
+##! log various bits of meta data as indicated in the :bro:type:`IRC::Info`
+##! record along with the command at the command arguments.
 
 module IRC;
 

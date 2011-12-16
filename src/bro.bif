@@ -657,7 +657,7 @@ function md5_hash_init%(index: any%): bool
 	%}
 
 ## Update the MD5 value associated with a given index. It is required to
-## call :bro:id:`md5_hash_init(index)` once before calling this
+## call :bro:id:`md5_hash_init` once before calling this
 ## function.
 ##
 ## index: The unique identifier to associate with this hash computation.
@@ -3025,11 +3025,11 @@ function connection_exists%(c: conn_id%): bool
 		return new Val(0, TYPE_BOOL);
 	%}
 
-## Returns the :bro:id:`connection` record for a given connection identifier.
+## Returns the :bro:type:`connection` record for a given connection identifier.
 ##
 ## cid: The connection ID.
 ##
-## Returns: The :bro:id:`connection` record for *cid*. If *cid* does not point
+## Returns: The :bro:type:`connection` record for *cid*. If *cid* does not point
 ##          to an existing connection, the function generates a run-time error
 ##          and returns a dummy value.
 ##
@@ -4833,7 +4833,7 @@ function enable_communication%(%): any
 	return 0;
 	%}
 
-## Flushes in-memory state tagged with the :bro:attr:`&persistence` attribute
+## Flushes in-memory state tagged with the :bro:attr:`&persistent` attribute
 ## to disk. The function writes the state to the file ``.state/state.bst`` in
 ## the directory where Bro was started.
 ##

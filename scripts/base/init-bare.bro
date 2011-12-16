@@ -75,7 +75,7 @@ type conn_id: record {
 } &log;
 
 ## Specifics about an ICMP conversation. ICMP events typically pass this in
-## addition to :bro:id:`conn_id`.
+## addition to :bro:type:`conn_id`.
 ##
 ## .. bro:see:: icmp_echo_reply icmp_echo_request icmp_redirect icmp_sent
 ##    icmp_time_exceeded icmp_unreachable
@@ -331,7 +331,7 @@ type script_id: record {
 	exported: bool;	##< True if the identifier is exported.
 	constant: bool;	##< True if the identifier is a constant.
 	enum_constant: bool;	##< True if the identifier is an enum value.
-	redefinable: bool;	##< True if the identifier is declared with the :bro:attr:`redef` attribute.
+	redefinable: bool;	##< True if the identifier is declared with the :bro:attr:`&redef` attribute.
 	value: any &optional;	##< The current value of the identifier.
 };
 
@@ -350,11 +350,11 @@ type id_table: table[string] of script_id;
 ## .. bro:see:: record_fields record_field_table
 type record_field: record {
 	type_name: string;	##< The name of the field's type.
-	log: bool;	##< True of the field is declared with :bro:attr:`log` attribute.
+	log: bool;	##< True of the field is declared with :bro:attr:`&log` attribute.
 	## The current value of the field in the record instance passed into
 	## :bro:see:`record_fields` (if it has one).
 	value: any &optional;
-	default_val: any &optional;	##< The value of the :bro:attr:`default` attribute if defined.
+	default_val: any &optional;	##< The value of the :bro:attr:`&default` attribute if defined.
 };
 
 ## Table type used to map record field declarations to meta-information describing
@@ -384,9 +384,10 @@ type record_field_table: table[string] of record_field;
 global capture_filters: table[string] of string &redef;
 
 ## Set of BPF filters to restrict capturing, indexed by a user-definable ID (which
-## must be unique). If Bro is *not* configured to examine :bro:id:`all_packets`,
-## only packets matching *all* of the filters in this table (and
-## any in :bro:id:`capture_filters`) will be analyzed.
+## must be unique). If Bro is *not* configured to examine
+## :bro:id:`PacketFilter::all_packets`, only packets matching *all* of the
+## filters in this table (and any in :bro:id:`capture_filters`) will be
+## analyzed.
 ##
 ## .. bro:see:: PacketFilter PacketFilter::all_packets
 ##    PacketFilter::unrestricted_filter capture_filters
@@ -555,7 +556,7 @@ global log_file_name: function(tag: string): string &redef;
 global open_log_file: function(tag: string): file &redef;
 
 ## Specifies a directory for Bro store its persistent state. All globals can
-## be declared persistent via the :bro:attr:`persistent` attribute.
+## be declared persistent via the :bro:attr:`&persistent` attribute.
 const state_dir = ".state" &redef;
 
 ## Length of the delays inserted when storing state incrementally. To avoid

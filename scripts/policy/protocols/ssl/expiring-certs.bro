@@ -29,7 +29,7 @@ export {
 	const notify_certs_expiration = LOCAL_HOSTS &redef;
 	
 	## The time before a certificate is going to expire that you would like to
-	## start receiving :bro:enum:`Certificate_Expires_Soon` notices.
+	## start receiving :bro:enum:`SSL::Certificate_Expires_Soon` notices.
 	const notify_when_cert_expiring_in = 30days &redef;
 }
 

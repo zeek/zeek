@@ -35,9 +35,9 @@ export {
 	## injection attacks.
 	const sqli_requests_threshold = 50 &redef;
 	
-	## Interval at which to watch for the :bro:id:`sqli_requests_threshold`
-	## variable to be crossed.  At the end of each interval the counter is 
-	## reset.
+	## Interval at which to watch for the
+	## :bro:id:`HTTP::sqli_requests_threshold` variable to be crossed.
+	## At the end of each interval the counter is reset.
 	const sqli_requests_interval = 5min &redef;
 
 	## This regular expression is used to match URI based SQL injections

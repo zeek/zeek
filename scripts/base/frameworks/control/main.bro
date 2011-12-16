@@ -1,6 +1,6 @@
 ##! This is a utility script that sends the current values of all &redef'able
-##! consts to a remote Bro then sends the :bro:id:`configuration_update` event
-##! and terminates processing.
+##! consts to a remote Bro then sends the
+##! :bro:id:`Control::configuration_update` event and terminates processing.
 ##!
 ##! Intended to be used from the command line like this when starting a controller::
 ##!
@@ -53,7 +53,8 @@ export {
 
 	## Event for requesting the value of an ID (a variable).
 	global id_value_request: event(id: string);
-	## Event for returning the value of an ID after an :bro:id:`id_request` event.
+	## Event for returning the value of an ID after an
+	## :bro:id:`Control::id_value_request` event.
 	global id_value_response: event(id: string, val: string);
 
 	## Requests the current communication status.
@@ -68,7 +69,8 @@ export {
 
 	## Inform the remote Bro instance that it's configuration may have been updated.
 	global configuration_update_request: event();
-	## This event is a wrapper and alias for the :bro:id:`configuration_update_request` event.
+	## This event is a wrapper and alias for the
+	## :bro:id:`Control::configuration_update_request` event.
 	## This event is also a primary hooking point for the control framework.
 	global configuration_update: event();
 	## Message in response to a configuration update request.

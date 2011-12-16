@@ -81,9 +81,9 @@ export {
 	global cmp_versions: function(v1: Version, v2: Version): int;
 	
 	## This type represents a set of software.  It's used by the 
-	## :bro:id:`tracked` variable to store all known pieces of software
-	## for a particular host.  It's indexed with the name of a piece of 
-	## software such as "Firefox" and it yields a 
+	## :bro:id:`Software::tracked` variable to store all known pieces of
+	## software for a particular host.  It's indexed with the name of a piece
+	## of software such as "Firefox" and it yields a 
 	## :bro:type:`Software::Info` record with more information about the 
 	## software.
 	type SoftwareSet: table[string] of Info;

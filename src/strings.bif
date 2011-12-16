@@ -83,7 +83,7 @@ BroString* cat_string_array_n(TableVal* tbl, int start, int end)
 
 ## Concatenates all elements in an array of strings.
 ##
-## a: The :bro:id:`string_array` (``table[count] of string``).
+## a: The :bro:type:`string_array` (``table[count] of string``).
 ##
 ## Returns: The concatenation of all elements in *a*.
 ##
@@ -98,7 +98,7 @@ function cat_string_array%(a: string_array%): string
 
 ## Concatenates a specific range of elements in an array of strings.
 ##
-## a: The :bro:id:`string_array` (``table[count] of string``).
+## a: The :bro:type:`string_array` (``table[count] of string``).
 ##
 ## start: The array index of the first element of the range.
 ##
@@ -120,7 +120,7 @@ function cat_string_array_n%(a: string_array, start: count, end: count%): string
 ##
 ## sep: The separator to place between each element.
 ##
-## a: The :bro:id:`string_array` (``table[count] of string``).
+## a: The :bro:type:`string_array` (``table[count] of string``).
 ##
 ## Returns: The concatenation of all elements in *a*, with *sep* placed
 ##          between each element.
@@ -156,7 +156,7 @@ function join_string_array%(sep: string, a: string_array%): string
 ##
 ## sep: The separator to place between each element.
 ##
-## a: The :bro:id:`string_vec` (``vector of string``).
+## a: The :bro:type:`string_vec` (``vector of string``).
 ##
 ## Returns: The concatenation of all elements in *a*, with *sep* placed
 ##          between each element.
@@ -185,7 +185,7 @@ function join_string_vec%(vec: string_vec, sep: string%): string
 
 ## Sorts an array of strings.
 ##
-## a: The :bro:id:`string_array` (``table[count] of string``).
+## a: The :bro:type:`string_array` (``table[count] of string``).
 ##
 ## Returns: A sorted copy of *a*.
 ##

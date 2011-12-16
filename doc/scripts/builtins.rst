@@ -6,6 +6,11 @@ Types
 
 The Bro scripting language supports the following built-in types.
 
+.. bro:type:: void
+
+    An internal Bro type representing an absence of a type.  Should
+    most often be seen as a possible function return type.
+
 .. bro:type:: bool
 
     Reflects a value with one of two meanings: true or false.  The two
@@ -620,6 +625,10 @@ scripting language supports the following built-in attributes.
 .. bro:attr:: &log
 
     Writes a record field to the associated log stream.
+
+.. bro:attr:: &error_handler
+
+.. TODO: needs documented
 
 .. bro:attr:: (&tracked)
 

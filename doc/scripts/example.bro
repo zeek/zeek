@@ -183,6 +183,7 @@ export {
 
     ## Summarize "an_event" here.
     ## Give more details about "an_event" here.
+	## Example::an_event should not be confused as a parameter.
     ## name: describe the argument here
     global an_event: event(name: string);
 

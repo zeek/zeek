@@ -17,9 +17,6 @@
 /* We are on a Linux system */
 #cmakedefine HAVE_LINUX
 
-/* Define if you have the <magic.h> header file. */
-#cmakedefine HAVE_MAGIC_H
-
 /* Define if you have the `mallinfo' function. */
 #cmakedefine HAVE_MALLINFO
 

@@ -359,7 +359,7 @@ bool NameExpr::DoUnserialize(UnserialInfo* info)
 		if ( id )
 			::Ref(id);
 		else
-			reporter->Warning("unserialized unknown global name");
+			reporter->Warning("configuration changed: unserialized unknown global name from persistent state");
 
 		delete [] name;
 		}

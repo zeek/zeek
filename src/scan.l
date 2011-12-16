@@ -201,6 +201,11 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 		}
 }
 
+##<.* {
+	if ( generate_documentation && BroDocObj::last )
+		BroDocObj::last->AddDocString(canon_doc_comment(yytext + 3));
+}
+
 ##.* {
 	if ( generate_documentation && (yytext[2] != '#') )
 		{

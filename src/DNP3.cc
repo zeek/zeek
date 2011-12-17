@@ -6,8 +6,8 @@
 #include "TCP_Reassembler.h"
 
 //#define P_TEST
-#define DEBUG 1
-#define COLLECT 1    ///used to collect binaries of DNP3 packets
+#define DEBUG 0
+#define COLLECT 0   ///used to collect binaries of DNP3 packets
 #define FILE_NAME "/home/hugo/experiment/dnp3/SampleBinary/hl_test.bin"
 
 DNP3_Analyzer::DNP3_Analyzer(Connection* c)
@@ -140,9 +140,9 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 ///// original processing 
 	////TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 	#ifndef P_TEST
-	#if DEBUG
-	printf("normal processing\n");
-	#endif
+//	#if DEBUG
+	//printf("normal processing\n");
+//	#endif
 	TCP_ApplicationAnalyzer::DeliverStream(dnp3_length, tran_data, m_orig);
 	////DNP3TCP_Analyzer::DeliverStream(len, data, orig);
 	////interp->NewData(orig, data, data + len);

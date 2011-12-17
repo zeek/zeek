@@ -17,7 +17,7 @@ type Dnp3_Test = record {
 	#blocks: Data_Block[ (header.len - 5) / 16 ];
 	#fc: bytestring &length = 1;
 	#app_header: Dnp3_Application_Request_Header;
-	start: uint16;
+	start: uint16 &check(start == 0x0564);
 	len: uint8;
 	ctrl: bytestring &length = 1;
         dest_addr: uint16;
@@ -127,8 +127,8 @@ type Dnp3_Application_Request_Header = record {
 	#application_control : bytestring &length = 1;
 	application_control : uint8;
 	#function_code       : bytestring &length = 1;
-	function_code       : uint8;
-} &length = 2 ;
+	function_code       : uint8 ;
+} &length = 2 &check(whatisthehell);
 
 type Dnp3_Application_Response_Header = record {
 	empty: bytestring &length = 0;

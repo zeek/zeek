@@ -154,6 +154,30 @@ type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_t
                 0x0c02 -> bocmd_PCB: PCB &check (function_code == SELECT || function_code == OPERATE ||
                                                         function_code == DIRECT_OPERATE || function_code == DIRECT_OPERATE_NR || function_code == WRITE );
 		0x0c03 -> bocmd_PM: uint8;
+	# counter ; g20
+		0x1401 -> counter_32_wflag: Counter32wFlag;
+		0x1402 -> counter_16_wflag: Counter16wFlag;
+		0x1403 -> counter_32_wflag_delta: Debug_Byte &check (0); # obsolete situation; generate warning
+		0x1404 -> counter_16_wflag_delta: Debug_Byte &check (0); # obsolete situations; generate warning
+		0x1405 -> counter_32_woflag: Counter32woFlag;
+		0x1406 -> counter_16_woflag: Counter16woFlag;
+		0x1407 -> counter_32_woflag_delta: Debug_Byte &check (0); # obsolete	
+		0x1408 -> counter_16_woflag_delta: Debug_Byte &check (0); # obsolete		
+	# frozen counter ; g21
+		#0x1500 -> f_counter_default: empty;
+		0x1501 -> f_counter_32_wflag: FrozenCounter32wFlag;
+		0x1502 -> f_counter_16_wflag: FrozenCounter16wFlag;
+		0x1503 -> f_counter_32_wflag_delta: Debug_Byte &check (0); # obsolete situation; generate warning
+		0x1504 -> f_counter_16_wflag_delta: Debug_Byte &check (0); # obsolete situations; generate warning
+		0x1505 -> f_counter_32_wflag_time: FrozenCounter32wFlagTime;
+		0x1506 -> f_counter_16_wflag_time: FrozenCounter16wFlagTime;
+		0x1507 -> f_counter_32_wflag_time_delta: Debug_Byte &check (0); # obsolete	
+		0x1508 -> f_counter_16_wflag_time_delta: Debug_Byte &check (0); # obsolete		
+		0x1509 -> f_counter_32_woflag: FrozenCounter32woFlag &check (f_counter_32_woflag.count_value == 23);
+		0x150a -> f_counter_16_woflag: FrozenCounter16woFlag;
+		0x150b -> f_counter_32_woflag_delta: Debug_Byte &check (0); # obsolete
+		0x150c -> f_counter_16_woflag_delta: Debug_Byte &check (0); # obsolete
+
 		
 		0x1e01 -> ai_32_wflag: AnalogInput32wFlag;
                 0x1e02 -> ai_16_wflag: AnalogInput16wFlag;
@@ -170,6 +194,15 @@ type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_t
 		0x2006 -> aidpwotime: AnalogInputDPwoTime;
 		0x2007 -> aispwtime:  AnalogInputSPwTime;
 		0x2008 -> aidpwtime:  AnalogInputDPwTime;
+	# frozen analog input event
+		0x2101 -> faie_32_wotime: FrozenAnaInputEve32woTime;
+		0x2102 -> faie_16_wotime: FrozenAnaInputEve16woTime;
+		0x2103 -> faie_32_wtime: FrozenAnaInputEve32wTime;
+		0x2104 -> faie_16_wtime: FrozenAnaInputEve16wTime;
+		0x2105 -> faie_sp_wotime: FrozenAnaInputEveSPwoTime;
+		0x2106 -> faie_dp_wotime: FrozenAnaInputEveDPwoTime;
+		0x2107 -> faie_sp_wtime: FrozenAnaInputEveSPwTime;
+		0x2108 -> faie_dp_wtime: FrozenAnaInputEveDPwTime;
 	# file control g70
 		0x4601 -> file_control_id: File_Control_ID &check(0);
 		0x4602 -> file_control_auth: File_Control_Auth &check(file_control_auth.usr_name_size == 0 && file_control_auth.pwd_size == 0);
@@ -177,7 +210,7 @@ type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_t
 							( file_control_cmd.op_mode == 0 || file_control_cmd.op_mode == 1 || 
 							  file_control_cmd.op_mode == 2 || file_control_cmd.op_mode == 3) );
 		0x4604 -> file_control_cmd_status: File_Control_Cmd_Status_Wrap(function_code);
-		default -> unkonwndata: Debug_Byte &check(0); 
+		default -> unkonwndata: Debug_Byte &check( T ); 
 	};
 }
   &let{
@@ -411,6 +444,60 @@ type AnalogInputDPwTime = record{
 	value_low: uint32;
 	value_high: uint32;
 	#time: uint8[6];
+	time48: bytestring &length = 6;
+} &byteorder = littleendian;
+
+# g 33 v1
+type FrozenAnaInputEve32woTime = record{
+	flag: uint8;
+	f_value: int32;
+} &byteorder = littleendian;
+
+# g 33 v2
+type FrozenAnaInputEve16woTime = record{
+	flag: uint8;
+	f_value: int16;
+} &byteorder = littleendian;
+
+# g 33 v3
+type FrozenAnaInputEve32wTime = record{
+	flag: uint8;
+	f_value: int32;
+	time48: bytestring &length = 6;
+} &byteorder = littleendian;
+
+# g 33 v4
+type FrozenAnaInputEve16wTime = record{
+	flag: uint8;
+	f_value: int32;
+	time48: bytestring &length = 6;
+} &byteorder = littleendian;
+
+# g 33 v5
+type FrozenAnaInputEveSPwoTime = record{
+	flag: uint8;
+	f_value: uint32;
+} &byteorder = littleendian;
+
+# g 33 v 6
+type FrozenAnaInputEveDPwoTime = record{
+	flag: uint8;
+	f_value_low: uint32;
+	f_value_high: uint32;
+} &byteorder = littleendian;
+
+# g 33 v 7
+type FrozenAnaInputEveSPwTime = record{
+	flag: uint8;
+	f_value: uint32;
+	time48: bytestring &length = 6;
+} &byteorder = littleendian;
+
+# g 33 v 8
+type FrozenAnaInputEveDPwTime = record{
+	flag: uint8;
+	f_value_low: uint32;
+	f_value_high: uint32;
 	time48: bytestring &length = 6;
 } &byteorder = littleendian;
 

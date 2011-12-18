@@ -1,4 +1,27 @@
 
+2.0-beta-126 | 2011-12-18 15:18:05 -0800
+
+  * DNS updates.  (Seth Hall)
+
+    - Fixed some bugs with capturing data in the base DNS script.
+
+    - Answers and TTLs are now vectors.
+      
+    - A warning that was being generated (dns_reply_seen_after_done)
+      from transaction ID reuse is fixed.
+
+  * SSL updates. (Seth Hall)
+
+    - Added is_orig fields to the SSL events and adapted script.
+      
+    - Added a field named last_alert to the SSL log.
+      
+    - The x509_certificate function has an is_orig field now instead
+      of is_server and its position in the argument list has moved.
+
+    - A bit of reorganization and cleanup in the core analyzer. (Seth
+      Hall)
+
 2.0-beta-121 | 2011-12-18 15:10:15 -0800
 
   * Enable warnings for malformed Broxygen xref roles. (Jon Siwek)

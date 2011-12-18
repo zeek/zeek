@@ -13,6 +13,44 @@ export {
 		[TLSv11] = "TLSv11",
 	} &default="UNKNOWN";
 
+	const alert_levels: table[count] of string = {
+		[1] = "warning",
+		[2] = "fatal",
+	} &default=function(i: count):string { return fmt("unknown-%d", i); };
+
+	const alert_descriptions: table[count] of string = {
+		[0] = "close_notify",
+		[10] = "unexpected_message",
+		[20] = "bad_record_mac",
+		[21] = "decryption_failed",
+		[22] = "record_overflow",
+		[30] = "decompression_failure",
+		[40] = "handshake_failure",
+		[41] = "no_certificate",
+		[42] = "bad_certificate",
+		[43] = "unsupported_certificate",
+		[44] = "certificate_revoked",
+		[45] = "certificate_expired",
+		[46] = "certificate_unknown",
+		[47] = "illegal_parameter",
+		[48] = "unknown_ca",
+		[49] = "access_denied",
+		[50] = "decode_error",
+		[51] = "decrypt_error",
+		[60] = "export_restriction",
+		[70] = "protocol_version",
+		[71] = "insufficient_security",
+		[80] = "internal_error",
+		[90] = "user_canceled",
+		[100] = "no_renegotiation",
+		[110] = "unsupported_extension",
+		[111] = "certificate_unobtainable",
+		[112] = "unrecognized_name",
+		[113] = "bad_certificate_status_response",
+		[114] = "bad_certificate_hash_value",
+		[115] = "unknown_psk_identity",
+	} &default=function(i: count):string { return fmt("unknown-%d", i); };
+
 	# http://www.iana.org/assignments/tls-extensiontype-values/tls-extensiontype-values.xml
 	const extensions: table[count] of string = {
 		[0] = "server_name",
@@ -526,8 +564,7 @@ export {
 		[30] = "akid issuer serial mismatch",
 		[31] = "keyusage no certsign",
 		[32] = "unable to get crl issuer",
-		[33] = "unhandled critical extension"
-		
+		[33] = "unhandled critical extension",
 	};
 
 }

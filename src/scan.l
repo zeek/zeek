@@ -167,7 +167,7 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 	return TOK_POST_DOC;
 }
 
-<DOC>##{OWS}{ID}:[^:].* {
+<DOC>##{OWS}{ID}:{WS}.* {
 	const char* id_start = skip_whitespace(yytext + 2);
 	yylval.str = copy_string(canon_doc_func_param(id_start).c_str());
 	return TOK_DOC;
@@ -181,7 +181,7 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 		}
 }
 
-##{OWS}{ID}:[^:].* {
+##{OWS}{ID}:{WS}.* {
 	if ( generate_documentation )
 		{
 		// Comment is documenting either a function parameter or return type,
@@ -199,6 +199,11 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 		const char* id_start = skip_whitespace(yytext + 2);
 		reST_doc_comments->push_back(canon_doc_func_param(id_start));
 		}
+}
+
+##<.* {
+	if ( generate_documentation && BroDocObj::last )
+		BroDocObj::last->AddDocString(canon_doc_comment(yytext + 3));
 }
 
 ##.* {

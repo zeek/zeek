@@ -12,12 +12,12 @@ export {
 		SQL_Injection_Attacker,
 		## Indicates that a host was seen to have SQL injection attacks against
 		## it.  This is tracked by IP address as opposed to hostname.
-		SQL_Injection_Attack_Against,
+		SQL_Injection_Victim,
 	};
 	
 	redef enum Metrics::ID += {
-		SQL_ATTACKER,
-		SQL_ATTACKS_AGAINST,
+		SQLI_ATTACKER,
+		SQLI_VICTIM,
 	};
 
 	redef enum Tags += {
@@ -56,14 +56,14 @@ event bro_init() &priority=3
 	# determine when it looks like an actual attack and how to respond when
 	# thresholds are crossed.
 	
-	Metrics::add_filter(SQL_ATTACKER, [$log=F,
+	Metrics::add_filter(SQLI_ATTACKER, [$log=F,
 	                                   $notice_threshold=sqli_requests_threshold,
 	                                   $break_interval=sqli_requests_interval,
 	                                   $note=SQL_Injection_Attacker]);
-	Metrics::add_filter(SQL_ATTACKS_AGAINST, [$log=F, 
-	                                          $notice_threshold=sqli_requests_threshold,
-	                                          $break_interval=sqli_requests_interval, 
-	                                          $note=SQL_Injection_Attack_Against]);
+	Metrics::add_filter(SQLI_VICTIM, [$log=F,
+	                                 $notice_threshold=sqli_requests_threshold,
+	                                 $break_interval=sqli_requests_interval,
+	                                 $note=SQL_Injection_Victim]);
 	}
 
 event http_request(c: connection, method: string, original_URI: string,
@@ -73,7 +73,7 @@ event http_request(c: connection, method: string, original_URI: string,
 		{
 		add c$http$tags[URI_SQLI];
 		
-		Metrics::add_data(SQL_ATTACKER, [$host=c$id$orig_h], 1);
-		Metrics::add_data(SQL_ATTACKS_AGAINST, [$host=c$id$resp_h], 1);
+		Metrics::add_data(SQLI_ATTACKER, [$host=c$id$orig_h], 1);
+		Metrics::add_data(SQLI_VICTIM, [$host=c$id$resp_h], 1);
 		}
 	}

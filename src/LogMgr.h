@@ -17,10 +17,10 @@ struct LogField {
 	// needed by input framework. port fields have two names (one for the port, one for the type) - this specifies the secondary name.
 	string secondary_name;
 	TypeTag type;
-	// needed by input framework. otherwise it cannot determine the inner type of a set.
+	// inner type of sets
 	TypeTag subtype;
 
-	LogField()	{ }
+	LogField() 	{ subtype = TYPE_VOID; }
 	LogField(const LogField& other)
 		: name(other.name), secondary_name(other.secondary_name), type(other.type), subtype(other.subtype) { }
 

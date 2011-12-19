@@ -81,12 +81,12 @@ struct LogMgr::Stream {
 bool LogField::Read(SerializationFormat* fmt)
 	{
 	int t;
-	int it;
+	int st;
 
 	bool success = (fmt->Read(&name, "name") && fmt->Read(&secondary_name, "secondary_name") && 
-			fmt->Read(&t, "type") && fmt->Read(&it, "subtype") );
+			fmt->Read(&t, "type") && fmt->Read(&st, "subtype") );
 	type = (TypeTag) t;
-	subtype = (TypeTag) it;
+	subtype = (TypeTag) st;
 
 	return success;
 	}
@@ -738,6 +738,14 @@ bool LogMgr::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 		LogField* field = new LogField();
 		field->name = new_path;
 		field->type = t->Tag();
+		if ( field->type == TYPE_TABLE ) 
+			{
+				field->subtype = t->AsSetType()->Indices()->PureType()->Tag();
+			} 
+		else if ( field->type == TYPE_VECTOR ) 
+			{
+				field->subtype = t->AsVectorType()->YieldType()->Tag();
+			}
 		filter->fields[filter->num_fields - 1] = field;
 		}
 

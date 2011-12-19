@@ -42,6 +42,8 @@ event bro_init ()
 	#add positive_matches["/index.asp?ARF_ID=(1/(1-(asc(mid(now(),18,1))\(2^7) mod 2)))"];
 	#add positive_matches["/index.php' and 1=convert(int,(select top 1 table_name from information_schema.tables))--sp_password"];
 	#add positive_matches["/index.php?id=873 and user=0--"];
+	#add positive_matches["?id=1;+if+(1=1)+waitfor+delay+'00:00:01'--9"];
+	#add positive_matches["?id=1+and+if(1=1,BENCHMARK(728000,MD5(0x41)),0)9"];
 
 	# The positive_matches below are from the mod_security evasion challenge.
 	# All supported attacks are uncommented.
@@ -94,14 +96,6 @@ event bro_init ()
 	#add negative_matches["/search?hl=en&q=ceiling drop tile"];
 	#add negative_matches["/index/hmm.gif?utmdt=Record > Create a Graph"];
 	#add negative_matches["/index.php?test='||\x0aTO_CHAR(foo_bar.Foo_Bar_ID)||"];
-
-	local regex = 
-	      /[\?&][^[:blank:]\x00-\x37\|]+?=[\-[:alnum:]%]+([[:blank:]\x00-\x37]|\/\*.*?\*\/)*['"]?([[:blank:]\x00-\x37]|\/\*.*?\*\/|\)?;)+.*?([hH][aA][vV][iI][nN][gG]|[uU][nN][iI][oO][nN]|[eE][xX][eE][cC]|[sS][eE][lL][eE][cC][tT]|[dD][eE][lL][eE][tT][eE]|[dD][rR][oO][pP]|[dD][eE][cC][lL][aA][rR][eE]|[cC][rR][eE][aA][tT][eE]|[iI][nN][sS][eE][rR][tT])([[:blank:]\x00-\x37]|\/\*.*?\*\/)+/
-	    | /[\?&][^[:blank:]\x00-\x37\|]+?=[\-0-9%]+([[:blank:]\x00-\x37]|\/\*.*?\*\/)*['"]?([[:blank:]\x00-\x37]|\/\*.*?\*\/|\)?;)+([xX]?[oO][rR]|[nN]?[aA][nN][dD])([[:blank:]\x00-\x37]|\/\*.*?\*\/)+['"]?(([^a-zA-Z&]+)?=|[eE][xX][iI][sS][tT][sS])/
-	    | /[\?&][^[:blank:]\x00-\x37]+?=[\-0-9%]*([[:blank:]\x00-\x37]|\/\*.*?\*\/)*['"]([[:blank:]\x00-\x37]|\/\*.*?\*\/)*(-|=|\+|\|\|)([[:blank:]\x00-\x37]|\/\*.*?\*\/)*([0-9]|\(?[cC][oO][nN][vV][eE][rR][tT]|[cC][aA][sS][tT])/
-	    | /[\?&][^[:blank:]\x00-\x37\|]+?=([[:blank:]\x00-\x37]|\/\*.*?\*\/)*['"]([[:blank:]\x00-\x37]|\/\*.*?\*\/|;)*([xX]?[oO][rR]|[nN]?[aA][nN][dD]|[hH][aA][vV][iI][nN][gG]|[uU][nN][iI][oO][nN]|[eE][xX][eE][cC]|[sS][eE][lL][eE][cC][tT]|[dD][eE][lL][eE][tT][eE]|[dD][rR][oO][pP]|[dD][eE][cC][lL][aA][rR][eE]|[cC][rR][eE][aA][tT][eE]|[rR][eE][gG][eE][xX][pP]|[iI][nN][sS][eE][rR][tT])([[:blank:]\x00-\x37]|\/\*.*?\*\/|[\[(])+[a-zA-Z&]{2,}/
-	    | /[\?&][^[:blank:]\x00-\x37]+?=[^\.]*?([cC][hH][aA][rR]|[aA][sS][cC][iI][iI]|[sS][uU][bB][sS][tT][rR][iI][nN][gG]|[tT][rR][uU][nN][cC][aA][tT][eE]|[vV][eE][rR][sS][iI][oO][nN]|[lL][eE][nN][gG][tT][hH])\(/
-	    | /\/\*![[:digit:]]{5}.*?\*\//;
 
 	print "If anything besides this line prints out, there is a problem.";
 	for ( test in positive_matches )

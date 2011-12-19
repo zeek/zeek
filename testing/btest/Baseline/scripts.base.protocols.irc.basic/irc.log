@@ -4,7 +4,7 @@
 #unset_field	\x2d
 #path	irc
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	nick	user	channels	command	value	addl	tags	dcc_file_name	dcc_file_size	extraction_file
-#types	time	string	addr	port	addr	port	string	string	table	string	string	string	table	string	count	file
+#types	time	string	addr	port	addr	port	string	string	table[string]	string	string	string	table[enum]	string	count	file
 1311189164.119437	UWkUyAuUGXf	192.168.1.77	57640	66.198.80.67	6667	-	-	-	NICK	bloed	-	-	-	-	-
 1311189164.119437	UWkUyAuUGXf	192.168.1.77	57640	66.198.80.67	6667	bloed	-	-	USER	sdkfje	sdkfje Montreal.QC.CA.Undernet.org dkdkrwq	-	-	-	-
 1311189174.474127	UWkUyAuUGXf	192.168.1.77	57640	66.198.80.67	6667	bloed	sdkfje	-	JOIN	#easymovies	-	-	-	-	-

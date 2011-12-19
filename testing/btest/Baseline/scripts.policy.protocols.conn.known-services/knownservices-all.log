@@ -4,7 +4,7 @@
 #unset_field	\x2d
 #path	known_services
 #fields	ts	host	port_num	port_proto	service
-#types	time	addr	port	enum	table
+#types	time	addr	port	enum	table[string]
 1308930691.049431	172.16.238.131	22	tcp	SSH
 1308930694.550308	172.16.238.131	80	tcp	HTTP
 1308930716.462556	74.125.225.81	80	tcp	HTTP

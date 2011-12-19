@@ -5,8 +5,8 @@
 #path	test
 #fields	t	id.orig_h	id.orig_p	id.resp_h	id.resp_p	status	country
 #types	time	addr	port	addr	port	string	string
-1323276013.684540	1.2.3.4	1234	2.3.4.5	80	success	-
-1323276013.684540	1.2.3.4	1234	2.3.4.5	80	failure	US
-1323276013.684540	1.2.3.4	1234	2.3.4.5	80	failure	UK
-1323276013.684540	1.2.3.4	1234	2.3.4.5	80	success	BR
-1323276013.684540	1.2.3.4	1234	2.3.4.5	80	failure	MX
+1324308589.020941	1.2.3.4	1234	2.3.4.5	80	success	unknown
+1324308589.020941	1.2.3.4	1234	2.3.4.5	80	failure	US
+1324308589.020941	1.2.3.4	1234	2.3.4.5	80	failure	UK
+1324308589.020941	1.2.3.4	1234	2.3.4.5	80	success	BR
+1324308589.020941	1.2.3.4	1234	2.3.4.5	80	failure	MX

@@ -48,7 +48,7 @@ export {
 	};
 
 	## The notice framework is able to do automatic notice supression by
-	## utilizing the $identifier field in :bro:type:`Info` records.
+	## utilizing the $identifier field in :bro:type:`Notice::Info` records.
 	## Set this to "0secs" to completely disable automated notice suppression.
 	const default_suppression_interval = 1hrs &redef;
 
@@ -111,7 +111,7 @@ export {
 		## Adding a string "token" to this set will cause the notice framework's
 		## built-in emailing functionality to delay sending the email until
 		## either the token has been removed or the email has been delayed
-		## for :bro:id:`max_email_delay`.
+		## for :bro:id:`Notice::max_email_delay`.
 		email_delay_tokens:   set[string] &optional;
 
 		## This field is to be provided when a notice is generated for the

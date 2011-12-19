@@ -1,4 +1,12 @@
 
+2.0-beta-145 | 2011-12-19 11:37:15 -0800
+
+  * Empty fields are now logged as "(empty)" by default. (Robin
+    Sommer)
+
+  * In log headers, only escape information when necessary. (Robin
+    Sommer)
+
 2.0-beta-139 | 2011-12-19 07:06:29 -0800
 
   * The hostname notice email extension works now, plus a general

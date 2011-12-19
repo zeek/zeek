@@ -4,5 +4,5 @@
 #unset_field	\x2d
 #path	ssh
 #fields	vec
-#types	vector
+#types	vector[string]
 -,2,-,-,5

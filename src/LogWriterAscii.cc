@@ -111,6 +111,12 @@ bool LogWriterAscii::DoInit(string path, int num_fields,
 			const LogField* field = fields[i];
 			names += field->name;
 			types += type_name(field->type);
+			if ( (field->type == TYPE_TABLE) || (field->type == TYPE_VECTOR) )
+				{
+					types += "[";
+					types += type_name(field->subtype);
+					types += "]";
+				}
 			}
 
 		if ( ! (WriteHeaderField("fields", names)

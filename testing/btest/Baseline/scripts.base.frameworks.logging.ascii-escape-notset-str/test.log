@@ -1,4 +1,7 @@
 #separator \x09
+#set_separator	\x2c
+#empty_field	\x2d
+#unset_field	\x2d
 #path	test
 #fields	x	y	z
 #types	string	string	string

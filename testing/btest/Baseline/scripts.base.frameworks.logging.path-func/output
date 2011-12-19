@@ -6,37 +6,58 @@ static-prefix-1-US.log
 static-prefix-2-MX2.log
 static-prefix-2-UK.log
 #separator \x09
+#set_separator	\x2c
+#empty_field	\x2d
+#unset_field	\x2d
 #path	static-prefix-0-BR
 #fields	t	id.orig_h	id.orig_p	id.resp_h	id.resp_p	status	country
 #types	time	addr	port	addr	port	string	string
-1315167053.803346	1.2.3.4	1234	2.3.4.5	80	success	BR
+1323275860.153895	1.2.3.4	1234	2.3.4.5	80	success	BR
 #separator \x09
+#set_separator	\x2c
+#empty_field	\x2d
+#unset_field	\x2d
 #path	static-prefix-0-MX3
 #fields	t	id.orig_h	id.orig_p	id.resp_h	id.resp_p	status	country
 #types	time	addr	port	addr	port	string	string
-1315167053.803346	1.2.3.4	1234	2.3.4.5	80	failure	MX3
+1323275860.153895	1.2.3.4	1234	2.3.4.5	80	failure	MX3
 #separator \x09
+#set_separator	\x2c
+#empty_field	\x2d
+#unset_field	\x2d
 #path	static-prefix-0-unknown
 #fields	t	id.orig_h	id.orig_p	id.resp_h	id.resp_p	status	country
 #types	time	addr	port	addr	port	string	string
-1315167053.803346	1.2.3.4	1234	2.3.4.5	80	success	unknown
+1323275860.153895	1.2.3.4	1234	2.3.4.5	80	success	unknown
 #separator \x09
+#set_separator	\x2c
+#empty_field	\x2d
+#unset_field	\x2d
 #path	static-prefix-1-MX
 #fields	t	id.orig_h	id.orig_p	id.resp_h	id.resp_p	status	country
 #types	time	addr	port	addr	port	string	string
-1315167053.803346	1.2.3.4	1234	2.3.4.5	80	failure	MX
+1323275860.153895	1.2.3.4	1234	2.3.4.5	80	failure	MX
 #separator \x09
+#set_separator	\x2c
+#empty_field	\x2d
+#unset_field	\x2d
 #path	static-prefix-1-US
 #fields	t	id.orig_h	id.orig_p	id.resp_h	id.resp_p	status	country
 #types	time	addr	port	addr	port	string	string
-1315167053.803346	1.2.3.4	1234	2.3.4.5	80	failure	US
+1323275860.153895	1.2.3.4	1234	2.3.4.5	80	failure	US
 #separator \x09
+#set_separator	\x2c
+#empty_field	\x2d
+#unset_field	\x2d
 #path	static-prefix-2-MX2
 #fields	t	id.orig_h	id.orig_p	id.resp_h	id.resp_p	status	country
 #types	time	addr	port	addr	port	string	string
-1315167053.803346	1.2.3.4	1234	2.3.4.5	80	failure	MX2
+1323275860.153895	1.2.3.4	1234	2.3.4.5	80	failure	MX2
 #separator \x09
+#set_separator	\x2c
+#empty_field	\x2d
+#unset_field	\x2d
 #path	static-prefix-2-UK
 #fields	t	id.orig_h	id.orig_p	id.resp_h	id.resp_p	status	country
 #types	time	addr	port	addr	port	string	string
-1315167053.803346	1.2.3.4	1234	2.3.4.5	80	failure	UK
+1323275860.153895	1.2.3.4	1234	2.3.4.5	80	failure	UK

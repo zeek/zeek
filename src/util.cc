@@ -41,6 +41,27 @@
 #include "Net.h"
 #include "Reporter.h"
 
+/**
+ * Takes a string, escapes each character into its equivalent hex code (\x##), and
+ * returns a string containing all escaped values.
+ *
+ * @param str string to escape
+ * @return A std::string containing a list of escaped hex values of the form \x##
+ */
+std::string get_escaped_string(const std::string& str)
+{
+    char tbuf[16];
+    string esc = "";
+
+    for ( size_t i = 0; i < str.length(); ++i )
+        {
+        snprintf(tbuf, sizeof(tbuf), "\\x%02x", str[i]);
+        esc += tbuf;
+        }
+
+    return esc;
+}
+
 char* copy_string(const char* s)
 	{
 	char* c = new char[strlen(s)+1];

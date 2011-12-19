@@ -1,4 +1,7 @@
 #separator \x7c
+#set_separator|\x2c
+#empty_field|\x2d
+#unset_field|\x2d
 #path|ssh
 #fields|data|data2
 #types|string|string

@@ -18,11 +18,14 @@ custom rotate, [writer=Log::WRITER_ASCII, fname=test2-11-03-07_11.00.05.log, pat
 custom rotate, [writer=Log::WRITER_ASCII, fname=test2-11-03-07_11.59.55.log, path=test2, open=1299499195.0, close=1299499205.0, terminating=F]
 custom rotate, [writer=Log::WRITER_ASCII, fname=test2-11-03-07_12.00.05.log, path=test2, open=1299499205.0, close=1299502795.0, terminating=F]
 custom rotate, [writer=Log::WRITER_ASCII, fname=test2-11-03-07_12.59.55.log, path=test2, open=1299502795.0, close=1299502795.0, terminating=T]
+#empty_field	\x2d
 #fields	t	id.orig_h	id.orig_p	id.resp_h	id.resp_p
 #path	test
 #path	test2
 #separator \x09
+#set_separator	\x2c
 #types	time	addr	port	addr	port
+#unset_field	\x2d
 1299466805.000000	10.0.0.1	20	10.0.0.2	1024
 1299470395.000000	10.0.0.2	20	10.0.0.3	0
 1299470405.000000	10.0.0.1	20	10.0.0.2	1025

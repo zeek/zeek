@@ -41,8 +41,7 @@ ODesc::ODesc(desc_type t, BroFile* arg_f)
 	do_flush = 1;
 	include_stats = 0;
 	indent_with_spaces = 0;
-	escape = 0;
-	escape_len = 0;
+	escape = false;
 	}
 
 ODesc::~ODesc()
@@ -56,10 +55,9 @@ ODesc::~ODesc()
 		free(base);
 	}
 
-void ODesc::SetEscape(const char* arg_escape, int len)
+void ODesc::EnableEscaping()
 	{
-	escape = arg_escape;
-	escape_len = len;
+	escape = true;
 	}
 
 void ODesc::PushIndent()
@@ -228,6 +226,25 @@ static const char* find_first_unprintable(ODesc* d, const char* bytes, unsigned 
 	return 0;
 	}
 
+pair<const char*, size_t> ODesc::FirstEscapeLoc(const char* bytes, size_t n)
+	{
+	pair<const char*, size_t> p(find_first_unprintable(this, bytes, n), 1);
+
+	string str(bytes, n);
+	list<string>::const_iterator it;
+	for ( it = escape_sequences.begin(); it != escape_sequences.end(); ++it )
+		{
+		size_t pos = str.find(*it);
+		if ( pos != string::npos && (p.first == 0 || bytes + pos < p.first) )
+			{
+			p.first = bytes + pos;
+			p.second = it->size();
+			}
+		}
+
+	return p;
+	}
+
 void ODesc::AddBytes(const void* bytes, unsigned int n)
 	{
 	if ( ! escape )
@@ -241,45 +258,30 @@ void ODesc::AddBytes(const void* bytes, unsigned int n)
 
 	while ( s < e )
 		{
-		const char* t1 = (const char*) memchr(s, escape[0], e - s);
-
-		if ( ! t1 )
-		    t1 = e;
-
-		const char* t2 = find_first_unprintable(this, s, t1 - s);
-
-		if ( t2 && t2 < t1 )
+		pair<const char*, size_t> p = FirstEscapeLoc(s, e - s);
+		if ( p.first )
 			{
-			AddBytesRaw(s, t2 - s);
-
-			char hex[6] = "\\x00";
-			hex[2] = hex_chars[((*t2) & 0xf0) >> 4];
-			hex[3] = hex_chars[(*t2) & 0x0f];
-			AddBytesRaw(hex, 4);
-
-			s = t2 + 1;
-			continue;
+			AddBytesRaw(s, p.first - s);
+			if ( p.second == 1 )
+				{
+				char hex[6] = "\\x00";
+				hex[2] = hex_chars[((*p.first) & 0xf0) >> 4];
+				hex[3] = hex_chars[(*p.first) & 0x0f];
+				AddBytesRaw(hex, 4);
+				}
+			else
+				{
+				string esc_str = get_escaped_string(string(p.first, p.second));
+				AddBytesRaw(esc_str.c_str(), esc_str.size());
+				}
+			s = p.first + p.second;
 			}
-
-		if ( memcmp(t1, escape, escape_len) != 0 )
-		    break;
-
-		AddBytesRaw(s, t1 - s);
-
-		for ( int i = 0; i < escape_len; ++i )
+		else
 			{
-			char hex[5] = "\\x00";
-			hex[2] = hex_chars[((*t1) & 0xf0) >> 4];
-			hex[3] = hex_chars[(*t1) & 0x0f];
-			AddBytesRaw(hex, 4);
-			++t1;
+			AddBytesRaw(s, e - s);
+			break;
 			}
-
-		s = t1;
 		}
-
-	if ( s < e )
-		AddBytesRaw(s, e - s);
 	}
 
 void ODesc::AddBytesRaw(const void* bytes, unsigned int n)

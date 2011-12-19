@@ -1,9 +1,9 @@
 #separator \x09
-#set_separator	\x2c
-#empty_field	\x2d
-#unset_field	\x2d
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
 #path	ssh-new-default
 #fields	t	id.orig_h	id.orig_p	id.resp_h	id.resp_p	status	country
 #types	time	addr	port	addr	port	string	string
-1323275589.577486	1.2.3.4	1234	2.3.4.5	80	success	unknown
-1323275589.577486	1.2.3.4	1234	2.3.4.5	80	failure	US
+1324314313.140603	1.2.3.4	1234	2.3.4.5	80	success	unknown
+1324314313.140603	1.2.3.4	1234	2.3.4.5	80	failure	US

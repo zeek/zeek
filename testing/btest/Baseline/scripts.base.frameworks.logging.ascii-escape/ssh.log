@@ -1,12 +1,12 @@
-#separator \x7c\x7c
-#set_separator||\x2c
-#empty_field||\x2d
-#unset_field||\x2d
+#separator ||
+#set_separator||,
+#empty_field||(empty)
+#unset_field||-
 #path||ssh
 #fields||t||id.orig_h||id.orig_p||id.resp_h||id.resp_p||status||country
 #types||time||addr||port||addr||port||string||string
-1323275761.036351||1.2.3.4||1234||2.3.4.5||80||success||unknown
-1323275761.036351||1.2.3.4||1234||2.3.4.5||80||failure||US
-1323275761.036351||1.2.3.4||1234||2.3.4.5||80||fa\x7c\x7cure||UK
-1323275761.036351||1.2.3.4||1234||2.3.4.5||80||su\x7c\x7cess||BR
-1323275761.036351||1.2.3.4||1234||2.3.4.5||80||failure||MX
+1324314313.899736||1.2.3.4||1234||2.3.4.5||80||success||unknown
+1324314313.899736||1.2.3.4||1234||2.3.4.5||80||failure||US
+1324314313.899736||1.2.3.4||1234||2.3.4.5||80||fa\x7c\x7cure||UK
+1324314313.899736||1.2.3.4||1234||2.3.4.5||80||su\x7c\x7cess||BR
+1324314313.899736||1.2.3.4||1234||2.3.4.5||80||failure||MX

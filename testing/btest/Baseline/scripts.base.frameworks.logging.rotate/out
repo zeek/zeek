@@ -10,9 +10,9 @@ test.2011-03-07-11-00-05.log test 11-03-07_11.00.05 11-03-07_12.00.05 0
 test.2011-03-07-12-00-05.log test 11-03-07_12.00.05 11-03-07_12.59.55 1
 > test.2011-03-07-03-00-05.log
 #separator \x09
-#set_separator	\x2c
-#empty_field	\x2d
-#unset_field	\x2d
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
 #path	test
 #fields	t	id.orig_h	id.orig_p	id.resp_h	id.resp_p
 #types	time	addr	port	addr	port
@@ -20,9 +20,9 @@ test.2011-03-07-12-00-05.log test 11-03-07_12.00.05 11-03-07_12.59.55 1
 1299470395.000000	10.0.0.2	20	10.0.0.3	0
 > test.2011-03-07-04-00-05.log
 #separator \x09
-#set_separator	\x2c
-#empty_field	\x2d
-#unset_field	\x2d
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
 #path	test
 #fields	t	id.orig_h	id.orig_p	id.resp_h	id.resp_p
 #types	time	addr	port	addr	port
@@ -30,9 +30,9 @@ test.2011-03-07-12-00-05.log test 11-03-07_12.00.05 11-03-07_12.59.55 1
 1299473995.000000	10.0.0.2	20	10.0.0.3	1
 > test.2011-03-07-05-00-05.log
 #separator \x09
-#set_separator	\x2c
-#empty_field	\x2d
-#unset_field	\x2d
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
 #path	test
 #fields	t	id.orig_h	id.orig_p	id.resp_h	id.resp_p
 #types	time	addr	port	addr	port
@@ -40,9 +40,9 @@ test.2011-03-07-12-00-05.log test 11-03-07_12.00.05 11-03-07_12.59.55 1
 1299477595.000000	10.0.0.2	20	10.0.0.3	2
 > test.2011-03-07-06-00-05.log
 #separator \x09
-#set_separator	\x2c
-#empty_field	\x2d
-#unset_field	\x2d
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
 #path	test
 #fields	t	id.orig_h	id.orig_p	id.resp_h	id.resp_p
 #types	time	addr	port	addr	port
@@ -50,9 +50,9 @@ test.2011-03-07-12-00-05.log test 11-03-07_12.00.05 11-03-07_12.59.55 1
 1299481195.000000	10.0.0.2	20	10.0.0.3	3
 > test.2011-03-07-07-00-05.log
 #separator \x09
-#set_separator	\x2c
-#empty_field	\x2d
-#unset_field	\x2d
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
 #path	test
 #fields	t	id.orig_h	id.orig_p	id.resp_h	id.resp_p
 #types	time	addr	port	addr	port
@@ -60,9 +60,9 @@ test.2011-03-07-12-00-05.log test 11-03-07_12.00.05 11-03-07_12.59.55 1
 1299484795.000000	10.0.0.2	20	10.0.0.3	4
 > test.2011-03-07-08-00-05.log
 #separator \x09
-#set_separator	\x2c
-#empty_field	\x2d
-#unset_field	\x2d
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
 #path	test
 #fields	t	id.orig_h	id.orig_p	id.resp_h	id.resp_p
 #types	time	addr	port	addr	port
@@ -70,9 +70,9 @@ test.2011-03-07-12-00-05.log test 11-03-07_12.00.05 11-03-07_12.59.55 1
 1299488395.000000	10.0.0.2	20	10.0.0.3	5
 > test.2011-03-07-09-00-05.log
 #separator \x09
-#set_separator	\x2c
-#empty_field	\x2d
-#unset_field	\x2d
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
 #path	test
 #fields	t	id.orig_h	id.orig_p	id.resp_h	id.resp_p
 #types	time	addr	port	addr	port
@@ -80,9 +80,9 @@ test.2011-03-07-12-00-05.log test 11-03-07_12.00.05 11-03-07_12.59.55 1
 1299491995.000000	10.0.0.2	20	10.0.0.3	6
 > test.2011-03-07-10-00-05.log
 #separator \x09
-#set_separator	\x2c
-#empty_field	\x2d
-#unset_field	\x2d
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
 #path	test
 #fields	t	id.orig_h	id.orig_p	id.resp_h	id.resp_p
 #types	time	addr	port	addr	port
@@ -90,9 +90,9 @@ test.2011-03-07-12-00-05.log test 11-03-07_12.00.05 11-03-07_12.59.55 1
 1299495595.000000	10.0.0.2	20	10.0.0.3	7
 > test.2011-03-07-11-00-05.log
 #separator \x09
-#set_separator	\x2c
-#empty_field	\x2d
-#unset_field	\x2d
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
 #path	test
 #fields	t	id.orig_h	id.orig_p	id.resp_h	id.resp_p
 #types	time	addr	port	addr	port
@@ -100,9 +100,9 @@ test.2011-03-07-12-00-05.log test 11-03-07_12.00.05 11-03-07_12.59.55 1
 1299499195.000000	10.0.0.2	20	10.0.0.3	8
 > test.2011-03-07-12-00-05.log
 #separator \x09
-#set_separator	\x2c
-#empty_field	\x2d
-#unset_field	\x2d
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
 #path	test
 #fields	t	id.orig_h	id.orig_p	id.resp_h	id.resp_p
 #types	time	addr	port	addr	port

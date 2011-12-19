@@ -1,10 +1,10 @@
 #separator \x09
-#set_separator	\x2c
-#empty_field	\x2d
-#unset_field	\x2d
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
 #path	metrics
 #fields	ts	metric_id	filter_name	index.host	index.str	index.network	value
 #types	time	enum	string	addr	string	subnet	count
-1323276206.622034	TEST_METRIC	foo-bar	6.5.4.3	-	-	4
-1323276206.622034	TEST_METRIC	foo-bar	1.2.3.4	-	-	6
-1323276206.622034	TEST_METRIC	foo-bar	7.2.1.5	-	-	2
+1324314335.570789	TEST_METRIC	foo-bar	6.5.4.3	-	-	4
+1324314335.570789	TEST_METRIC	foo-bar	1.2.3.4	-	-	6
+1324314335.570789	TEST_METRIC	foo-bar	7.2.1.5	-	-	2

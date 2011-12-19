@@ -1,19 +1,19 @@
 #separator \x09
-#set_separator	\x2c
-#empty_field	\x2d
-#unset_field	\x2d
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
 #path	communication
 #fields	ts	peer	src_name	connected_peer_desc	connected_peer_addr	connected_peer_port	level	message
 #types	time	string	string	string	addr	port	string	string
-1323275566.293849	bro	parent	-	-	-	info	[#1/127.0.0.1:47757] added peer
-1323275566.300180	bro	child	-	-	-	info	[#1/127.0.0.1:47757] connected
-1323275566.300467	bro	parent	-	-	-	info	[#1/127.0.0.1:47757] peer connected
-1323275566.300467	bro	parent	-	-	-	info	[#1/127.0.0.1:47757] phase: version
-1323275566.300936	bro	script	-	-	-	info	connection established
-1323275566.300936	bro	script	-	-	-	info	requesting events matching /^?(NOTHING)$?/
-1323275566.300936	bro	script	-	-	-	info	accepting state
-1323275566.302043	bro	parent	-	-	-	info	[#1/127.0.0.1:47757] phase: handshake
-1323275566.302043	bro	parent	-	-	-	info	warning: no events to request
-1323275566.302043	bro	parent	-	-	-	info	terminating...
-1323275566.302043	bro	parent	-	-	-	info	[#1/127.0.0.1:47757] peer_description is bro
-1323275566.302043	bro	parent	-	-	-	info	[#1/127.0.0.1:47757] closing connection
+1324314302.411344	bro	parent	-	-	-	info	[#1/127.0.0.1:47757] added peer
+1324314302.414978	bro	child	-	-	-	info	[#1/127.0.0.1:47757] connected
+1324314302.415099	bro	parent	-	-	-	info	[#1/127.0.0.1:47757] peer connected
+1324314302.415099	bro	parent	-	-	-	info	[#1/127.0.0.1:47757] phase: version
+1324314302.417446	bro	script	-	-	-	info	connection established
+1324314302.417446	bro	script	-	-	-	info	requesting events matching /^?(NOTHING)$?/
+1324314302.417446	bro	script	-	-	-	info	accepting state
+1324314302.418003	bro	parent	-	-	-	info	[#1/127.0.0.1:47757] phase: handshake
+1324314302.418003	bro	parent	-	-	-	info	warning: no events to request
+1324314302.418003	bro	parent	-	-	-	info	terminating...
+1324314302.418003	bro	parent	-	-	-	info	[#1/127.0.0.1:47757] peer_description is bro
+1324314302.418003	bro	parent	-	-	-	info	[#1/127.0.0.1:47757] closing connection

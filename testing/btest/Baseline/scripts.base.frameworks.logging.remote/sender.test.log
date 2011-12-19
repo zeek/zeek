@@ -1,12 +1,12 @@
 #separator \x09
-#set_separator	\x2c
-#empty_field	\x2d
-#unset_field	\x2d
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
 #path	test
 #fields	t	id.orig_h	id.orig_p	id.resp_h	id.resp_p	status	country
 #types	time	addr	port	addr	port	string	string
-1324308589.020941	1.2.3.4	1234	2.3.4.5	80	success	unknown
-1324308589.020941	1.2.3.4	1234	2.3.4.5	80	failure	US
-1324308589.020941	1.2.3.4	1234	2.3.4.5	80	failure	UK
-1324308589.020941	1.2.3.4	1234	2.3.4.5	80	success	BR
-1324308589.020941	1.2.3.4	1234	2.3.4.5	80	failure	MX
+1324314321.061516	1.2.3.4	1234	2.3.4.5	80	success	unknown
+1324314321.061516	1.2.3.4	1234	2.3.4.5	80	failure	US
+1324314321.061516	1.2.3.4	1234	2.3.4.5	80	failure	UK
+1324314321.061516	1.2.3.4	1234	2.3.4.5	80	success	BR
+1324314321.061516	1.2.3.4	1234	2.3.4.5	80	failure	MX

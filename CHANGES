@@ -1,4 +1,15 @@
 
+2.0-beta-139 | 2011-12-19 07:06:29 -0800
+
+  * The hostname notice email extension works now, plus a general
+    mechanism for adding delayed information to notices. (Seth Hall)
+
+  * Fix &default fields in records not being initialized in coerced
+    assignments. Addresses #722. (Jon Siwek)
+
+  * Make log headers include the type of data stored inside a set or
+    vector ("vector[string]"). (Bernhard Amann)
+
 2.0-beta-126 | 2011-12-18 15:18:05 -0800
 
   * DNS updates.  (Seth Hall)

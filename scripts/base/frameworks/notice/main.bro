@@ -8,9 +8,9 @@
 module Notice;
 
 export {
-	redef enum Log::ID += { 
+	redef enum Log::ID += {
 		## This is the primary logging stream for notices.
-		LOG, 
+		LOG,
 		## This is the notice policy auditing log.  It records what the current
 		## notice policy is at Bro init time.
 		POLICY_LOG,
@@ -18,25 +18,25 @@ export {
 		ALARM_LOG,
 	};
 
-	## Scripts creating new notices need to redef this enum to add their own 
+	## Scripts creating new notices need to redef this enum to add their own
 	## specific notice types which would then get used when they call the
 	## :bro:id:`NOTICE` function.  The convention is to give a general category
 	## along with the specific notice separating words with underscores and using
 	## leading capitals on each word except for abbreviations which are kept in
-	## all capitals.  For example, SSH::Login is for heuristically guessed 
+	## all capitals.  For example, SSH::Login is for heuristically guessed
 	## successful SSH logins.
 	type Type: enum {
 		## Notice reporting a count of how often a notice occurred.
 		Tally,
 	};
-	
+
 	## These are values representing actions that can be taken with notices.
 	type Action: enum {
 		## Indicates that there is no action to be taken.
 		ACTION_NONE,
 		## Indicates that the notice should be sent to the notice logging stream.
 		ACTION_LOG,
-		## Indicates that the notice should be sent to the email address(es) 
+		## Indicates that the notice should be sent to the email address(es)
 		## configured in the :bro:id:`Notice::mail_dest` variable.
 		ACTION_EMAIL,
 		## Indicates that the notice should be alarmed.  A readable ASCII
@@ -47,30 +47,30 @@ export {
 		## duplicate notice suppression that the notice framework does.
 		ACTION_NO_SUPPRESS,
 	};
-	
-	## The notice framework is able to do automatic notice supression by 
+
+	## The notice framework is able to do automatic notice supression by
 	## utilizing the $identifier field in :bro:type:`Info` records.
 	## Set this to "0secs" to completely disable automated notice suppression.
 	const default_suppression_interval = 1hrs &redef;
-	
+
 	type Info: record {
 		ts:             time           &log &optional;
 		uid:            string         &log &optional;
 		id:             conn_id        &log &optional;
-		
+
 		## These are shorthand ways of giving the uid and id to a notice.  The
 		## reference to the actual connection will be deleted after applying
 		## the notice policy.
 		conn:           connection     &optional;
 		iconn:          icmp_conn      &optional;
-		
+
 		## The :bro:enum:`Notice::Type` of the notice.
 		note:           Type           &log;
 		## The human readable message for the notice.
 		msg:            string         &log &optional;
 		## The human readable sub-message.
 		sub:            string         &log &optional;
-		
+
 		## Source address, if we don't have a :bro:type:`conn_id`.
 		src:            addr           &log &optional;
 		## Destination address.
@@ -79,33 +79,39 @@ export {
 		p:              port           &log &optional;
 		## Associated count, or perhaps a status code.
 		n:              count          &log &optional;
-		
+
 		## Peer that raised this notice.
 		src_peer:       event_peer     &optional;
 		## Textual description for the peer that raised this notice.
 		peer_descr:     string         &log &optional;
-		
+
 		## The actions which have been applied to this notice.
 		actions:        set[Notice::Action] &log &optional;
-		
+
 		## These are policy items that returned T and applied their action
 		## to the notice.
 		policy_items:   set[count]     &log &optional;
-		
+
 		## By adding chunks of text into this element, other scripts can
 		## expand on notices that are being emailed.  The normal way to add text
 		## is to extend the vector by handling the :bro:id:`Notice::notice`
 		## event and modifying the notice in place.
-		email_body_sections:  vector of string &default=vector();
-		
+		email_body_sections:  vector of string &optional;
+
+		## Adding a string "token" to this set will cause the notice framework's
+		## built-in emailing functionality to delay sending the email until
+		## either the token has been removed or the email has been delayed
+		## for :bro:id:`max_email_delay`.
+		email_delay_tokens:   set[string] &optional;
+
 		## This field is to be provided when a notice is generated for the
 		## purpose of deduplicating notices.  The identifier string should
-		## be unique for a single instance of the notice.  This field should be 
-		## filled out in almost all cases when generating notices to define 
+		## be unique for a single instance of the notice.  This field should be
+		## filled out in almost all cases when generating notices to define
 		## when a notice is conceptually a duplicate of a previous notice.
-		## 
-		## For example, an SSL certificate that is going to expire soon should 
-		## always have the same identifier no matter the client IP address 
+		##
+		## For example, an SSL certificate that is going to expire soon should
+		## always have the same identifier no matter the client IP address
 		## that connected and resulted in the certificate being exposed.  In
 		## this case, the resp_h, resp_p, and hash of the certificate would be
 		## used to create this value.  The hash of the cert is included
@@ -114,19 +120,19 @@ export {
 		## Another example might be a host downloading a file which triggered
 		## a notice because the MD5 sum of the file it downloaded was known
 		## by some set of intelligence.  In that case, the orig_h (client)
-		## and MD5 sum would be used in this field to dedup because if the 
+		## and MD5 sum would be used in this field to dedup because if the
 		## same file is downloaded over and over again you really only want to
 		## know about it a single time.  This makes it possible to send those
 		## notices to email without worrying so much about sending thousands
 		## of emails.
 		identifier:          string         &optional;
-		
+
 		## This field indicates the length of time that this
-		## unique notice should be suppressed.  This field is automatically 
+		## unique notice should be suppressed.  This field is automatically
 		## filled out and should not be written to by any other script.
 		suppress_for:        interval       &log &optional;
 	};
-	
+
 	## Ignored notice types.
 	const ignored_types: set[Notice::Type] = {} &redef;
 	## Emailed notice types.
@@ -135,10 +141,10 @@ export {
 	const alarmed_types: set[Notice::Type] = {} &redef;
 	## Types that should be suppressed for the default suppression interval.
 	const not_suppressed_types: set[Notice::Type] = {} &redef;
-	## This table can be used as a shorthand way to modify suppression 
+	## This table can be used as a shorthand way to modify suppression
 	## intervals for entire notice types.
 	const type_suppression_intervals: table[Notice::Type] of interval = {} &redef;
-	
+
 	## This is the record that defines the items that make up the notice policy.
 	type PolicyItem: record {
 		## This is the exact positional order in which the :bro:type:`PolicyItem`
@@ -149,20 +155,20 @@ export {
 		priority: count                            &log &default=5;
 		## An action given to the notice if the predicate return true.
 		action:   Notice::Action                   &log &default=ACTION_NONE;
-		## The pred (predicate) field is a function that returns a boolean T 
-		## or F value.  If the predicate function return true, the action in 
-		## this record is applied to the notice that is given as an argument 
-		## to the predicate function.  If no predicate is supplied, it's 
+		## The pred (predicate) field is a function that returns a boolean T
+		## or F value.  If the predicate function return true, the action in
+		## this record is applied to the notice that is given as an argument
+		## to the predicate function.  If no predicate is supplied, it's
 		## assumed that the PolicyItem always applies.
 		pred:     function(n: Notice::Info): bool  &log &optional;
-		## Indicates this item should terminate policy processing if the 
+		## Indicates this item should terminate policy processing if the
 		## predicate returns T.
 		halt:     bool                             &log &default=F;
 		## This defines the length of time that this particular notice should
 		## be supressed.
 		suppress_for: interval                     &log &optional;
 	};
-	
+
 	## This is the where the :bro:id:`Notice::policy` is defined.  All notice
 	## processing is done through this variable.
 	const policy: set[PolicyItem] = {
@@ -177,66 +183,68 @@ export {
 		[$pred(n: Notice::Info) = { return (n$note in Notice::emailed_types); },
 		 $action = ACTION_EMAIL,
 		 $priority = 8],
-		[$pred(n: Notice::Info) = { 
-			if (n$note in Notice::type_suppression_intervals) 
+		[$pred(n: Notice::Info) = {
+			if (n$note in Notice::type_suppression_intervals)
 				{
 				n$suppress_for=Notice::type_suppression_intervals[n$note];
 				return T;
 				}
-			return F; 
+			return F;
 		 },
 		 $action = ACTION_NONE,
 		 $priority = 8],
 		[$action = ACTION_LOG,
 		 $priority = 0],
 	} &redef;
-	
+
 	## Local system sendmail program.
 	const sendmail            = "/usr/sbin/sendmail" &redef;
 	## Email address to send notices with the :bro:enum:`ACTION_EMAIL` action
 	## or to send bulk alarm logs on rotation with :bro:enum:`ACTION_ALARM`.
 	const mail_dest           = ""                   &redef;
-	
+
 	## Address that emails will be from.
 	const mail_from           = "Big Brother <bro@localhost>" &redef;
 	## Reply-to address used in outbound email.
 	const reply_to            = "" &redef;
 	## Text string prefixed to the subject of all emails sent out.
 	const mail_subject_prefix = "[Bro]" &redef;
+	## The maximum amount of time a plugin can delay email from being sent.
+	const max_email_delay     = 15secs &redef;
 
 	## A log postprocessing function that implements emailing the contents
 	## of a log upon rotation to any configured :bro:id:`Notice::mail_dest`.
 	## The rotated log is removed upon being sent.
 	global log_mailing_postprocessor: function(info: Log::RotationInfo): bool;
 
-	## This is the event that is called as the entry point to the 
-	## notice framework by the global :bro:id:`NOTICE` function.  By the time 
+	## This is the event that is called as the entry point to the
+	## notice framework by the global :bro:id:`NOTICE` function.  By the time
 	## this event is generated, default values have already been filled out in
-	## the :bro:type:`Notice::Info` record and synchronous functions in the 
+	## the :bro:type:`Notice::Info` record and synchronous functions in the
 	## :bro:id:`Notice:sync_functions` have already been called.  The notice
 	## policy has also been applied.
 	global notice: event(n: Info);
 
-	## This is a set of functions that provide a synchronous way for scripts 
+	## This is a set of functions that provide a synchronous way for scripts
 	## extending the notice framework to run before the normal event based
 	## notice pathway that most of the notice framework takes.  This is helpful
 	## in cases where an action against a notice needs to happen immediately
 	## and can't wait the short time for the event to bubble up to the top of
-	## the event queue.  An example is the IP address dropping script that 
-	## can block IP addresses that have notices generated because it 
+	## the event queue.  An example is the IP address dropping script that
+	## can block IP addresses that have notices generated because it
 	## needs to operate closer to real time than the event queue allows it to.
-	## Normally the event based extension model using the 
+	## Normally the event based extension model using the
 	## :bro:id:`Notice::notice` event will work fine if there aren't harder
 	## real time constraints.
 	const sync_functions: set[function(n: Notice::Info)] = set() &redef;
-	
+
 	## This event is generated when a notice begins to be suppressed.
 	global begin_suppression: event(n: Notice::Info);
 	## This event is generated on each occurence of an event being suppressed.
 	global suppressed: event(n: Notice::Info);
 	## This event is generated when a notice stops being suppressed.
 	global end_suppression: event(n: Notice::Info);
-	
+
 	## Call this function to send a notice in an email.  It is already used
 	## by default with the built in :bro:enum:`ACTION_EMAIL` and
 	## :bro:enum:`ACTION_PAGE` actions.
@@ -248,12 +256,12 @@ export {
 	## dest: recipient string to use for the mail
 	## Returns: a string of mail headers to which an email body can be appended
 	global email_headers: function(subject_desc: string, dest: string): string;
-	
+
 	## This event can be handled to access the :bro:type:`Info`
 	## record as it is sent on to the logging framework.
 	global log_notice: event(rec: Info);
-	
-	## This is an internal wrapper for the global NOTICE function.  Please 
+
+	## This is an internal wrapper for the global NOTICE function.  Please
 	## disregard.
 	global internal_NOTICE: function(n: Notice::Info);
 }
@@ -264,22 +272,22 @@ function per_notice_suppression_interval(t: table[Notice::Type, string] of Notic
 	local n: Notice::Type;
 	local s: string;
 	[n,s] = idx;
-	
+
 	local suppress_time = t[n,s]$suppress_for - (network_time() - t[n,s]$ts);
 	if ( suppress_time < 0secs )
 		suppress_time = 0secs;
-	
+
 	# If there is no more suppression time left, the notice needs to be sent
 	# to the end_suppression event.
 	if ( suppress_time == 0secs )
 		event Notice::end_suppression(t[n,s]);
-	
+
 	return suppress_time;
 	}
 
-# This is the internally maintained notice suppression table.  It's 
+# This is the internally maintained notice suppression table.  It's
 # indexed on the Notice::Type and the $identifier field from the notice.
-global suppressing: table[Type, string] of Notice::Info = {} 
+global suppressing: table[Type, string] of Notice::Info = {}
 		&create_expire=0secs
 		&expire_func=per_notice_suppression_interval;
 
@@ -306,7 +314,7 @@ function log_mailing_postprocessor(info: Log::RotationInfo): bool
 event bro_init() &priority=5
 	{
 	Log::create_stream(Notice::LOG, [$columns=Info, $ev=log_notice]);
-	
+
 	Log::create_stream(Notice::ALARM_LOG, [$columns=Notice::Info]);
 	# If Bro is configured for mailing notices, set up mailing for alarms.
 	# Make sure that this alarm log is also output as text so that it can
@@ -347,25 +355,49 @@ function email_headers(subject_desc: string, dest: string): string
 	return header_text;
 	}
 
+event delay_sending_email(n: Notice::Info, dest: string, extend: bool)
+	{
+	email_notice_to(n, dest, extend);
+	}
+
 function email_notice_to(n: Notice::Info, dest: string, extend: bool)
 	{
 	if ( reading_traces() || dest == "" )
 		return;
-		
+
+	if ( extend )
+		{
+		if ( |n$email_delay_tokens| > 0 )
+			{
+			# If we still are within the max_email_delay, keep delaying.
+			if ( n$ts + max_email_delay > network_time() )
+				{
+				schedule 1sec { delay_sending_email(n, dest, extend) };
+				return;
+				}
+			else
+				{
+				event reporter_info(network_time(),
+					fmt("Notice email delay tokens weren't released in time (%s).", n$email_delay_tokens),
+					"");
+				}
+			}
+		}
+
 	local email_text = email_headers(fmt("%s", n$note), dest);
-		
+
 	# First off, finish the headers and include the human readable messages
 	# then leave a blank line after the message.
 	email_text = string_cat(email_text, "\nMessage: ", n$msg);
 	if ( n?$sub )
 		email_text = string_cat(email_text, "\nSub-message: ", n$sub);
-	
+
 	email_text = string_cat(email_text, "\n\n");
-	
+
 	# Next, add information about the connection if it exists.
 	if ( n?$id )
 		{
-		email_text = string_cat(email_text, "Connection: ", 
+		email_text = string_cat(email_text, "Connection: ",
 			fmt("%s", n$id$orig_h), ":", fmt("%d", n$id$orig_p), " -> ",
 			fmt("%s", n$id$resp_h), ":", fmt("%d", n$id$resp_p), "\n");
 		if ( n?$uid )
@@ -373,17 +405,18 @@ function email_notice_to(n: Notice::Info, dest: string, extend: bool)
 		}
 	else if ( n?$src )
 		email_text = string_cat(email_text, "Address: ", fmt("%s", n$src), "\n");
-	
+
 	# Add the extended information if it's requested.
 	if ( extend )
 		{
+		email_text = string_cat(email_text, "\nEmail Extensions\n");
+		email_text = string_cat(email_text,   "----------------\n");
 		for ( i in n$email_body_sections )
 			{
-			email_text = string_cat(email_text, "******************\n");
 			email_text = string_cat(email_text, n$email_body_sections[i], "\n");
 			}
 		}
-	
+
 	email_text = string_cat(email_text, "\n\n--\n[Automatically generated]\n\n");
 	piped_exec(fmt("%s -t -oi", sendmail), email_text);
 	}
@@ -396,10 +429,10 @@ event notice(n: Notice::Info) &priority=-5
 		Log::write(Notice::LOG, n);
 	if ( ACTION_ALARM in n$actions )
 		Log::write(Notice::ALARM_LOG, n);
-	
+
 	# Normally suppress further notices like this one unless directed not to.
 	#  n$identifier *must* be specified for suppression to function at all.
-	if ( n?$identifier && 
+	if ( n?$identifier &&
 	     ACTION_NO_SUPPRESS !in n$actions &&
 	     [n$note, n$identifier] !in suppressing &&
 	     n$suppress_for != 0secs )
@@ -408,8 +441,8 @@ event notice(n: Notice::Info) &priority=-5
 		event Notice::begin_suppression(n);
 		}
 	}
-	
-## This determines if a notice is being suppressed.  It is only used 
+
+## This determines if a notice is being suppressed.  It is only used
 ## internally as part of the mechanics for the global NOTICE function.
 function is_being_suppressed(n: Notice::Info): bool
 	{
@@ -421,7 +454,7 @@ function is_being_suppressed(n: Notice::Info): bool
 	else
 		return F;
 	}
-	
+
 # Executes a script with all of the notice fields put into the
 # new process' environment as "BRO_ARG_<field>" variables.
 function execute_with_notice(cmd: string, n: Notice::Info)
@@ -430,9 +463,9 @@ function execute_with_notice(cmd: string, n: Notice::Info)
 	#local tgs = tags(n);
 	#system_env(cmd, tags);
 	}
-	
-# This is run synchronously as a function before all of the other 
-# notice related functions and events.  It also modifies the 
+
+# This is run synchronously as a function before all of the other
+# notice related functions and events.  It also modifies the
 # :bro:type:`Notice::Info` record in place.
 function apply_policy(n: Notice::Info)
 	{
@@ -447,7 +480,7 @@ function apply_policy(n: Notice::Info)
 		if ( ! n?$uid )
 			n$uid = n$conn$uid;
 		}
-	
+
 	if ( n?$id )
 		{
 		if ( ! n?$src  )
@@ -469,15 +502,20 @@ function apply_policy(n: Notice::Info)
 	if ( ! n?$src_peer )
 		n$src_peer = get_event_peer();
 	if ( ! n?$peer_descr )
-		n$peer_descr = n$src_peer?$descr ? 
+		n$peer_descr = n$src_peer?$descr ?
 		                   n$src_peer$descr : fmt("%s", n$src_peer$host);
-	
+
 	if ( ! n?$actions )
 		n$actions = set();
-	
+
+	if ( ! n?$email_body_sections )
+		n$email_body_sections = vector();
+	if ( ! n?$email_delay_tokens )
+		n$email_delay_tokens = set();
+
 	if ( ! n?$policy_items )
 		n$policy_items = set();
-	
+
 	for ( i in ordered_policy )
 		{
 		# If there's no predicate or the predicate returns F.
@@ -485,51 +523,51 @@ function apply_policy(n: Notice::Info)
 			{
 			add n$actions[ordered_policy[i]$action];
 			add n$policy_items[int_to_count(i)];
-			
-			# If the predicate matched and there was a suppression interval, 
+
+			# If the predicate matched and there was a suppression interval,
 			# apply it to the notice now.
 			if ( ordered_policy[i]?$suppress_for )
 				n$suppress_for = ordered_policy[i]$suppress_for;
-			
+
 			# If the policy item wants to halt policy processing, do it now!
 			if ( ordered_policy[i]$halt )
 				break;
 			}
 		}
-	
+
 	# Apply the suppression time after applying the policy so that policy
-	# items can give custom suppression intervals.  If there is no 
+	# items can give custom suppression intervals.  If there is no
 	# suppression interval given yet, the default is applied.
 	if ( ! n?$suppress_for )
 		n$suppress_for = default_suppression_interval;
-	
+
 	# Delete the connection record if it's there so we aren't sending that
-	# to remote machines.  It can cause problems due to the size of the 
+	# to remote machines.  It can cause problems due to the size of the
 	# connection record.
 	if ( n?$conn )
 		delete n$conn;
 	if ( n?$iconn )
 		delete n$iconn;
 	}
-	
-# Create the ordered notice policy automatically which will be used at runtime 
+
+# Create the ordered notice policy automatically which will be used at runtime
 # for prioritized matching of the notice policy.
 event bro_init() &priority=10
 	{
 	# Create the policy log here because it's only written to in this handler.
 	Log::create_stream(Notice::POLICY_LOG, [$columns=PolicyItem]);
-	
+
 	local tmp: table[count] of set[PolicyItem] = table();
 	for ( pi in policy )
 		{
 		if ( pi$priority < 0 || pi$priority > 10 )
 			Reporter::fatal("All Notice::PolicyItem priorities must be within 0 and 10");
-			
+
 		if ( pi$priority !in tmp )
 			tmp[pi$priority] = set();
 		add tmp[pi$priority][pi];
 		}
-	
+
 	local rev_count = vector(10,9,8,7,6,5,4,3,2,1,0);
 	for ( i in rev_count )
 		{
@@ -545,7 +583,7 @@ event bro_init() &priority=10
 			}
 		}
 	}
-	
+
 function internal_NOTICE(n: Notice::Info)
 	{
 	# Suppress this notice if necessary.

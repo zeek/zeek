@@ -82,19 +82,19 @@ bool LogWriterAscii::DoInit(string path, int num_fields,
 		{
 		string str = string(header_prefix, header_prefix_len)
 			+ "separator " // Always use space as separator here.
-			+ get_escaped_string(string(separator, separator_len))
+			+ get_escaped_string(string(separator, separator_len), false)
 			+ "\n";
 
 		if( fwrite(str.c_str(), str.length(), 1, file) != 1 )
 			goto write_error;
 
 		if ( ! (WriteHeaderField("set_separator", get_escaped_string(
-		            string(set_separator, set_separator_len))) &&
+		            string(set_separator, set_separator_len), false)) &&
 		        WriteHeaderField("empty_field", get_escaped_string(
-		            string(empty_field, empty_field_len))) &&
+		            string(empty_field, empty_field_len), false)) &&
 		        WriteHeaderField("unset_field", get_escaped_string(
-		            string(unset_field, unset_field_len))) &&
-		        WriteHeaderField("path", path)) )
+		            string(unset_field, unset_field_len), false)) &&
+		        WriteHeaderField("path", get_escaped_string(path, false))) )
 			goto write_error;
 
 		string names;

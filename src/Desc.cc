@@ -271,7 +271,7 @@ void ODesc::AddBytes(const void* bytes, unsigned int n)
 				}
 			else
 				{
-				string esc_str = get_escaped_string(string(p.first, p.second));
+				string esc_str = get_escaped_string(string(p.first, p.second), true);
 				AddBytesRaw(esc_str.c_str(), esc_str.size());
 				}
 			s = p.first + p.second;

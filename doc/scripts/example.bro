@@ -1,5 +1,5 @@
-##! This is an example script that demonstrates how to document.  Comments
-##! of the form ``##!`` are for the script summary.  The contents of
+##! This is an example script that demonstrates documentation features.
+##! Comments of the form ``##!`` are for the script summary.  The contents of
 ##! these comments are transferred directly into the auto-generated
 ##! `reStructuredText <http://docutils.sourceforge.net/rst.html>`_
 ##! (reST) document's summary section.
@@ -22,8 +22,8 @@
 # field comments, it's necessary to disambiguate the field with
 # which a comment associates: e.g. "##<" can be used on the same line
 # as a field to signify the comment relates to it and not the
-# following field.  "##<" is not meant for general use, just
-# record/enum fields.
+# following field. "##<" can also be used more generally in any
+# variable declarations to associate with the last-declared identifier.
 #
 # Generally, the auto-doc comments (##) are associated with the
 # next declaration/identifier found in the script, but the doc framework
@@ -151,7 +151,7 @@ export {
     const an_option: set[addr, addr, string] &redef;
 
     # default initialization will be self-documenting
-    const option_with_init = 0.01 secs &redef;
+    const option_with_init = 0.01 secs &redef; ##< More docs can be added here.
 
     ############## state variables ############
     # right now, I'm defining this as any global
@@ -183,6 +183,7 @@ export {
 
     ## Summarize "an_event" here.
     ## Give more details about "an_event" here.
+	## Example::an_event should not be confused as a parameter.
     ## name: describe the argument here
     global an_event: event(name: string);
 

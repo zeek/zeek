@@ -36,7 +36,9 @@ event SSH::heuristic_successful_login(c: connection)
 			if ( interesting_hostnames in hostname )
 				{
 				NOTICE([$note=Interesting_Hostname_Login,
-				        $msg=fmt("Interesting login from hostname: %s", hostname),
+				        $msg=fmt("Possible SSH login involving a %s %s with an interesting hostname.",
+				                 Site::is_local_addr(host) ? "local" : "remote",
+				                 host == c$id$orig_h ? "client" : "server"),
 				        $sub=hostname, $conn=c]);
 				}
 			}

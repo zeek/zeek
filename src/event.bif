@@ -4614,6 +4614,8 @@ event ssl_server_hello%(c: connection, version: count, possible_ts: time, sessio
 ##
 ## c: The connection.
 ##
+## is_orig: True if event is raised for originator side of the connection.
+##
 ## code: The numerical code of the extension.  The values are standardized as
 ##       part of the SSL/TLS protocol. The :bro:id:`SSL::extensions` table maps them to
 ##       descriptive names.
@@ -4622,9 +4624,7 @@ event ssl_server_hello%(c: connection, version: count, possible_ts: time, sessio
 ##
 ## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
 ##    x509_certificate x509_error x509_extension
-##
-## .. todo: The event lacks a ``is_orig`` parameter.
-event ssl_extension%(c: connection, code: count, val: string%);
+event ssl_extension%(c: connection, is_orig: bool, code: count, val: string%);
 
 ## Generated at the end of an SSL/TLS handshake. SSL/TLS sessions start with
 ## an  unencrypted handshake, and Bro extracts as much information out of that as
@@ -4652,6 +4652,8 @@ event ssl_established%(c: connection%);
 ##
 ## c: The connection.
 ##
+## is_orig: True if event is raised for originator side of the connection.
+##
 ## level: The severity level, as sent in the *alert*. The values are defined as
 ##        part of the SSL/TLS protocol.
 ##
@@ -4660,9 +4662,7 @@ event ssl_established%(c: connection%);
 ##
 ## .. bro:see::  ssl_client_hello ssl_established ssl_extension ssl_server_hello
 ##    x509_certificate x509_error x509_extension
-##
-## .. todo: The event lacks a ``is_orig`` parameter.
-event ssl_alert%(c: connection, level: count, desc: count%);
+event ssl_alert%(c: connection, is_orig: bool, level: count, desc: count%);
 
 ## Generated for x509 certificates seen in SSL/TLS connections. During the initial
 ## SSL/TLS handshake, certificates are exchanged in the clear. Bro raises this
@@ -4674,9 +4674,9 @@ event ssl_alert%(c: connection, level: count, desc: count%);
 ##
 ## c: The connection.
 ##
-## cert: The parsed certificate.
+## is_orig: True if event is raised for originator side of the connection.
 ##
-## is_server: True if the certificate was sent by the server.
+## cert: The parsed certificate.
 ##
 ## chain_idx: The index in the validation chain that this cert has. Index zero
 ##            indicates an endpoints primary cert, while higher indices
@@ -4691,7 +4691,7 @@ event ssl_alert%(c: connection, level: count, desc: count%);
 ##
 ## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_extension
 ##    ssl_server_hello  x509_error x509_extension x509_verify
-event x509_certificate%(c: connection, cert: X509, is_server: bool, chain_idx: count, chain_len: count, der_cert: string%);
+event x509_certificate%(c: connection, is_orig: bool, cert: X509, chain_idx: count, chain_len: count, der_cert: string%);
 
 ## Generated for X.509 extensions seen in a certificate.
 ##
@@ -4700,13 +4700,13 @@ event x509_certificate%(c: connection, cert: X509, is_server: bool, chain_idx: c
 ##
 ## c: The connection.
 ##
+## is_orig: True if event is raised for originator side of the connection.
+##
 ## data: The raw data associated with the extension.
 ##
 ## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_extension
 ##    ssl_server_hello x509_certificate x509_error  x509_verify
-##
-## .. todo: The event lacks a ``is_orig`` parameter.
-event x509_extension%(c: connection, data: string%);
+event x509_extension%(c: connection, is_orig: bool, data: string%);
 
 ## Generated when errors occur during parsing an X.509 certificate.
 ##
@@ -4715,14 +4715,14 @@ event x509_extension%(c: connection, data: string%);
 ##
 ## c: The connection.
 ##
+## is_orig: True if event is raised for originator side of the connection.
+##
 ## err: An error code describing what went wrong. :bro:id:`SSL::x509_errors` maps
 ##      error codes to a textual description.
 ##
 ## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_extension
 ##    ssl_server_hello x509_certificate  x509_extension x509_err2str x509_verify
-##
-## .. todo: The event lacks a ``is_orig`` parameter.
-event x509_error%(c: connection, err: count%);
+event x509_error%(c: connection, is_orig: bool, err: count%);
 
 ## TODO.
 ##

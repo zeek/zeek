@@ -257,6 +257,9 @@ class BroDomain(Domain):
                                         objects[objtype, target],
                                         objtype + '-' + target,
                                         contnode, target + ' ' + objtype)
+                else:
+                    self.env.warn(fromdocname,
+                        'unknown target for ":bro:%s:`%s`"' % (typ, target))
 
     def get_objects(self):
         for (typ, name), docname in self.data['objects'].iteritems():

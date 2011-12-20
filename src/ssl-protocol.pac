@@ -22,7 +22,6 @@ type uint24 = record {
 	};
 
 	string state_label(int state_nr);
-	string orig_label(bool is_orig);
 	double get_time_from_asn1(const ASN1_TIME * atime);
 	string handshake_type_label(int type);
 %}
@@ -35,7 +34,7 @@ type SSLRecord(is_orig: bool) = record {
 	head2 : uint8;
 	head3 : uint8;
 	head4 : uint8;
-	rec : RecordText(this, is_orig)[] &length=length, &requires(content_type);
+	rec : RecordText(this)[] &length=length, &requires(content_type);
 } &length = length+5, &byteorder=bigendian,
   &let {
 	version : int =
@@ -54,25 +53,25 @@ type SSLRecord(is_orig: bool) = record {
 	};
 };
 
-type RecordText(rec: SSLRecord, is_orig: bool) = case $context.connection.state() of {
+type RecordText(rec: SSLRecord) = case $context.connection.state() of {
 	STATE_ABBREV_SERVER_ENCRYPTED, STATE_CLIENT_ENCRYPTED,
 	STATE_COMM_ENCRYPTED, STATE_CONN_ESTABLISHED
-		-> ciphertext : CiphertextRecord(rec, is_orig);
+		-> ciphertext : CiphertextRecord(rec);
 	default
-		-> plaintext : PlaintextRecord(rec, is_orig);
+		-> plaintext : PlaintextRecord(rec);
 };
 
-type PossibleEncryptedHandshake(rec: SSLRecord, is_orig: bool) = case $context.connection.state() of {
+type PossibleEncryptedHandshake(rec: SSLRecord) = case $context.connection.state() of {
 	# Deal with encrypted handshakes before the server cipher spec change.
 	STATE_CLIENT_FINISHED, STATE_CLIENT_ENCRYPTED
-		-> ct : CiphertextRecord(rec, is_orig);
+		-> ct : CiphertextRecord(rec);
 	default               -> hs : Handshake(rec);
 };
 
-type PlaintextRecord(rec: SSLRecord, is_orig: bool) = case rec.content_type of {
+type PlaintextRecord(rec: SSLRecord) = case rec.content_type of {
 	CHANGE_CIPHER_SPEC	-> ch_cipher : ChangeCipherSpec(rec);
 	ALERT			-> alert : Alert(rec);
-	HANDSHAKE		-> handshake : PossibleEncryptedHandshake(rec, is_orig);
+	HANDSHAKE		-> handshake : PossibleEncryptedHandshake(rec);
 	APPLICATION_DATA	-> app_data : ApplicationData(rec);
 	V2_ERROR		-> v2_error : V2Error(rec);
 	V2_CLIENT_HELLO		-> v2_client_hello : V2ClientHello(rec);
@@ -81,7 +80,7 @@ type PlaintextRecord(rec: SSLRecord, is_orig: bool) = case rec.content_type of {
 	default			-> unknown_record : UnknownRecord(rec);
 };
 
-type SSLExtension = record {
+type SSLExtension(rec: SSLRecord) = record {
 	type: uint16;
 	data_len: uint16;
 	data: bytestring &length=data_len;
@@ -156,10 +155,6 @@ enum AnalyzerState {
 		}
 		}
 
-	string orig_label(bool is_orig)
-		{
-		return string(is_orig ? "originator" :"responder");
-		}
 
 	double get_time_from_asn1(const ASN1_TIME * atime)
 		{
@@ -389,7 +384,7 @@ type ClientHello(rec: SSLRecord) = record {
 	# This weirdness is to deal with the possible existence or absence
 	# of the following fields.
 	ext_len: uint16[] &until($element == 0 || $element != 0);
-	extensions : SSLExtension[] &until($input.length() == 0);
+	extensions : SSLExtension(rec)[] &until($input.length() == 0);
 } &let {
 	state_changed : bool =
 		$context.connection.transition(STATE_INITIAL,
@@ -663,7 +658,7 @@ type UnknownRecord(rec: SSLRecord) =  record {
 	state_changed : bool = $context.connection.lost_track();
 };
 
-type CiphertextRecord(rec: SSLRecord, is_orig: bool) = record {
+type CiphertextRecord(rec: SSLRecord) = record {
 	cont : bytestring &restofdata &transient;
 } &let {
 	state_changed : bool =

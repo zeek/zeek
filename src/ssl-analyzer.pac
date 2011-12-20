@@ -22,11 +22,17 @@
 			}
 	};
 
+	string orig_label(bool is_orig);
 	void free_X509(void *);
 	X509* d2i_X509_binpac(X509** px, const uint8** in, int len);
 	%}
 
 %code{
+string orig_label(bool is_orig)
+		{
+		return string(is_orig ? "originator" :"responder");
+		}
+
 	void free_X509(void* cert)
 		{
 		X509_free((X509*) cert);
@@ -117,14 +123,14 @@ refine connection SSL_Conn += {
 	function proc_alert(rec: SSLRecord, level : int, desc : int) : bool
 		%{
 		BifEvent::generate_ssl_alert(bro_analyzer(), bro_analyzer()->Conn(),
-						level, desc);
+						${rec.is_orig}, level, desc);
 		return true;
 		%}
 
 	function proc_client_hello(rec: SSLRecord,
 					version : uint16, ts : double,
 					session_id : uint8[],
-					cipher_suites16 : uint16[], 
+					cipher_suites16 : uint16[],
 					cipher_suites24 : uint24[]) : bool
 		%{
 		if ( state_ == STATE_TRACK_LOST )
@@ -150,15 +156,15 @@ refine connection SSL_Conn += {
 				cipher_set->Assign(ciph, 0);
 				Unref(ciph);
 				}
-			
+
 			BifEvent::generate_ssl_client_hello(bro_analyzer(), bro_analyzer()->Conn(),
 							version, ts,
 							to_string_val(session_id),
 							cipher_set);
-			
+
 			delete cipher_suites;
 			}
-		
+
 		return true;
 		%}
 
@@ -187,24 +193,24 @@ refine connection SSL_Conn += {
 				std::copy(cipher_suites16->begin(), cipher_suites16->end(), std::back_inserter(*ciphers));
 			else
 				std::transform(cipher_suites24->begin(), cipher_suites24->end(), std::back_inserter(*ciphers), to_int());
-			
+
 			BifEvent::generate_ssl_server_hello(bro_analyzer(),
 							bro_analyzer()->Conn(),
 							version, ts,
 							to_string_val(session_id),
 							ciphers->size()==0 ? 0 : ciphers->at(0), comp_method);
-			
+
 			delete ciphers;
 			}
-		
+
 		return true;
 		%}
 
-	function proc_ssl_extension(type: int, data: bytestring) : bool
+	function proc_ssl_extension(rec: SSLRecord, type: int, data: bytestring) : bool
 		%{
 		if ( ssl_extension )
 			BifEvent::generate_ssl_extension(bro_analyzer(),
-						bro_analyzer()->Conn(), type,
+						bro_analyzer()->Conn(), ${rec.is_orig}, type,
 						new StringVal(data.length(), (const char*) data.data()));
 		return true;
 		%}
@@ -222,7 +228,7 @@ refine connection SSL_Conn += {
 		if ( x509_certificate )
 			{
 			STACK_OF(X509)* untrusted_certs = 0;
-			
+
 			for ( unsigned int i = 0; i < certificates->size(); ++i )
 				{
 				const bytestring& cert = (*certificates)[i];
@@ -231,7 +237,7 @@ refine connection SSL_Conn += {
 				if ( ! pTemp )
 					{
 					BifEvent::generate_x509_error(bro_analyzer(), bro_analyzer()->Conn(),
-					                              ERR_get_error());
+					                              ${rec.is_orig}, ERR_get_error());
 					return false;
 					}
 
@@ -257,8 +263,8 @@ refine connection SSL_Conn += {
 				StringVal* der_cert = new StringVal(cert.length(), (const char*) cert.data());
 
 				BifEvent::generate_x509_certificate(bro_analyzer(), bro_analyzer()->Conn(),
+							${rec.is_orig},
 							pX509Cert,
-							! ${rec.is_orig},
 							i, certificates->size(),
 							der_cert);
 
@@ -284,7 +290,7 @@ refine connection SSL_Conn += {
 
 							StringVal* value = new StringVal(length, (char*)pBuffer);
 							BifEvent::generate_x509_extension(bro_analyzer(),
-										bro_analyzer()->Conn(), value);
+										bro_analyzer()->Conn(), ${rec.is_orig}, value);
 							OPENSSL_free(pBuffer);
 							}
 						}
@@ -445,5 +451,5 @@ refine typeattr CiphertextRecord += &let {
 }
 
 refine typeattr SSLExtension += &let {
-	proc : bool = $context.connection.proc_ssl_extension(type, data);
+	proc : bool = $context.connection.proc_ssl_extension(rec, type, data);
 };

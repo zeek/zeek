@@ -44,10 +44,10 @@ event bro_init() &priority=5
 	Log::create_stream(Known::CERTS_LOG, [$columns=CertsInfo, $ev=log_known_certs]);
 	}
 
-event x509_certificate(c: connection, cert: X509, is_server: bool, chain_idx: count, chain_len: count, der_cert: string) &priority=3
+event x509_certificate(c: connection, is_orig: bool, cert: X509, chain_idx: count, chain_len: count, der_cert: string) &priority=3
 	{
 	# Make sure this is the server cert and we have a hash for it.
-	if ( chain_idx != 0 || ! c$ssl?$cert_hash ) 
+	if ( is_orig || chain_idx != 0 || ! c$ssl?$cert_hash ) 
 		return;
 	
 	local host = c$id$resp_h;

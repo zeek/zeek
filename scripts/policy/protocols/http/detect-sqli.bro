@@ -60,9 +60,9 @@ event bro_init() &priority=3
 	                                   $notice_threshold=sqli_requests_threshold,
 	                                   $break_interval=sqli_requests_interval,
 	                                   $note=SQL_Injection_Attacker]);
-	Metrics::add_filter(SQLI_VICTIM, [$log=F, 
+	Metrics::add_filter(SQLI_VICTIM, [$log=F,
 	                                 $notice_threshold=sqli_requests_threshold,
-	                                 $break_interval=sqli_requests_interval, 
+	                                 $break_interval=sqli_requests_interval,
 	                                 $note=SQL_Injection_Victim]);
 	}
 

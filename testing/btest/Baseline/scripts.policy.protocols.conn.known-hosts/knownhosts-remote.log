@@ -1,4 +1,7 @@
 #separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
 #path	known_hosts
 #fields	ts	host
 #types	time	addr

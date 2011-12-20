@@ -15,10 +15,12 @@ class SerializationFormat;
 struct LogField {
 	string name;
 	TypeTag type;
+	// inner type of sets
+	TypeTag subtype;
 
-	LogField()	{ }
+	LogField() 	{ subtype = TYPE_VOID; }
 	LogField(const LogField& other)
-		: name(other.name), type(other.type)	{ }
+		: name(other.name), type(other.type), subtype(other.subtype) {  }
 
 	// (Un-)serialize.
 	bool Read(SerializationFormat* fmt);

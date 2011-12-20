@@ -1,4 +1,86 @@
 
+2.0-beta-145 | 2011-12-19 11:37:15 -0800
+
+  * Empty fields are now logged as "(empty)" by default. (Robin
+    Sommer)
+
+  * In log headers, only escape information when necessary. (Robin
+    Sommer)
+
+2.0-beta-139 | 2011-12-19 07:06:29 -0800
+
+  * The hostname notice email extension works now, plus a general
+    mechanism for adding delayed information to notices. (Seth Hall)
+
+  * Fix &default fields in records not being initialized in coerced
+    assignments. Addresses #722. (Jon Siwek)
+
+  * Make log headers include the type of data stored inside a set or
+    vector ("vector[string]"). (Bernhard Amann)
+
+2.0-beta-126 | 2011-12-18 15:18:05 -0800
+
+  * DNS updates.  (Seth Hall)
+
+    - Fixed some bugs with capturing data in the base DNS script.
+
+    - Answers and TTLs are now vectors.
+      
+    - A warning that was being generated (dns_reply_seen_after_done)
+      from transaction ID reuse is fixed.
+
+  * SSL updates. (Seth Hall)
+
+    - Added is_orig fields to the SSL events and adapted script.
+      
+    - Added a field named last_alert to the SSL log.
+      
+    - The x509_certificate function has an is_orig field now instead
+      of is_server and its position in the argument list has moved.
+
+    - A bit of reorganization and cleanup in the core analyzer. (Seth
+      Hall)
+
+2.0-beta-121 | 2011-12-18 15:10:15 -0800
+
+  * Enable warnings for malformed Broxygen xref roles. (Jon Siwek)
+
+  * Fix Broxygen confusing scoped IDs at start of line as function
+    parameter. (Jon Siwek)
+
+  * Allow Broxygen markup "##<" for more general use. (Jon Siwek)
+    
+2.0-beta-116 | 2011-12-16 02:38:27 -0800
+
+  * Cleanup some misc Broxygen css/js stuff. (Jon Siwek)
+
+  * Add search box to Broxygen docs. Fixes #726. (Jon Siwek)
+
+  * Fixed major bug with cluster synchronization, which was not
+    working. (Seth Hall)
+
+  * Fix missing action in notice policy for looking up GeoIP data.
+    (Jon Siwek)
+
+  * Better persistent state configuration warning messages (fixes
+    #433). (Jon Siwek)
+
+  * Renaming HTTP::SQL_Injection_Attack_Against to
+    HTTP::SQL_Injection_Victim. (Seth Hall).
+
+  * Fixed DPD signatures for IRC. Fixes #311. (Seth Hall)
+    
+  * Removing Off_Port_Protocol_Found notice. (Seth Hall)
+
+  * Teach Broxygen to more generally reference attribute values by name. (Jon Siwek)
+
+  * SSH::Interesting_Hostname_Login cleanup.  Fixes #664. (Seth Hall)
+    
+  * Fixed bug that was causing the malware hash registry script to
+    break. (Seth Hall)
+
+  * Remove remnant of libmagic optionality. (Jon Siwek)
+
 2.0-beta-98 | 2011-12-07 08:12:08 -0800
 
   * Adapting test-suite's diff-all so that it expands globs in both

@@ -25,16 +25,93 @@ type Request_Data_Object(function_code: uint8, qualifier_field: uint8, object_ty
 	 	default -> unknownprefix: empty;
         };
 	data: case (object_type_field) of {
-	# binary input	
+	# device attributes g0
+		0x00D3 -> attrib211: Attrib_Common;
+		0x00D4 -> attrib212: Attrib_Common;
+		0x00D5 -> attrib213: Attrib_Common;
+		0x00D6 -> attrib214: Attrib_Common;
+		0x00D7 -> attrib215: Attrib_Common;
+		0x00D8 -> attrib216: Attrib_Common;
+		0x00D9 -> attrib217: Attrib_Common;
+		0x00DA -> attrib218: Attrib_Common;
+		0x00DB -> attrib219: Attrib_Common;
+		0x00DC -> attrib220: Attrib_Common;
+		0x00DD -> attrib221: Attrib_Common;
+		0x00DE -> attrib222: Attrib_Common;
+		0x00DF -> attrib223: Attrib_Common;
+		0x00E0 -> attrib224: Attrib_Common;
+		0x00E1 -> attrib225: Attrib_Common;
+		0x00E2 -> attrib226: Attrib_Common;
+		0x00E3 -> attrib227: Attrib_Common;
+		0x00E4 -> attrib228: Attrib_Common;
+		0x00E5 -> attrib229: Attrib_Common;
+		0x00E6 -> attrib230: Attrib_Common;
+		0x00E7 -> attrib231: Attrib_Common;
+		0x00E8 -> attrib232: Attrib_Common;
+		0x00E9 -> attrib233: Attrib_Common;
+		0x00EA -> attrib234: Attrib_Common;
+		0x00EB -> attrib235: Attrib_Common;
+		0x00EC -> attrib236: Attrib_Common;
+		0x00ED -> attrib237: Attrib_Common;
+		0x00EE -> attrib238: Attrib_Common;
+		0x00EF -> attrib239: Attrib_Common;
+		0x00F0 -> attrib240: Attrib_Common;
+		0x00F1 -> attrib241: Attrib_Common;
+		0x00F2 -> attrib242: Attrib_Common;
+		0x00F3 -> attrib243: Attrib_Common;
+		0x00F5 -> attrib245: Attrib_Common;
+		0x00F6 -> attrib246: Attrib_Common;
+		0x00F7 -> attrib247: Attrib_Common;
+		0x00F8 -> attrib248: Attrib_Common;
+		0x00F9 -> attrib249: Attrib_Common;
+		0x00FA -> attrib250: Attrib_Common;
+		0x00FC -> attrib252: Attrib_Common;
+		0x00FE -> attrib254: Attrib_Common;
+		0x00FF -> attrib255: Attrib_Common;
+
+	# binary input g1	
 		0x0100 -> bi_default: empty;
 		0x0101 -> bi_packed: empty;
 		0x0102 -> bi_flag: empty;
-	# binary output command
+
+	# binary input event g2
+		0x0200 -> biedefault: empty;
+		0x0201 -> biewotime: empty;
+		0x0202 -> biewatime: empty;
+		0x0203 -> biewrtime: empty;
+	
+	# double-bit Binary Input g3
+		0x0300 -> dbiDefault: empty;
+		0x0301 -> dbibytes: empty;
+		0x0302 -> dbiflag: empty;	
+	
+	# double-bit Binary Input Event g4
+		0x0400 -> dbieDefault: empty;
+		0x0401 -> dbieatime: empty;
+		0x0402 -> dbiertime: empty;
+	
+	# binary output g10 		
+		0x0a00 -> boDefault: empty;
+		0x0a01 -> bowoflag: empty;  # warning: returning integer index?	
+		0x0a02 -> bowflag: empty;  # warning: only flag?
+
+	# binary output event g11
+		0x0b00 -> bowDefault: empty;
+		0x0b01 -> boewflag: empty;
+		0x0b02 -> boewatime: empty;		
+		
+	# binary output command g12
 		0x0c01 -> bocmd_CROB: CROB &check (function_code == SELECT || function_code == OPERATE ||
                                                         function_code == DIRECT_OPERATE || function_code == DIRECT_OPERATE_NR );
 		0x0c02 -> bocmd_PCB: PCB &check (function_code == SELECT || function_code == OPERATE ||
                                                         function_code == DIRECT_OPERATE || function_code == DIRECT_OPERATE_NR || function_code == WRITE );
 		0x0c03 -> bocmd_PM: uint8;
+
+	# binary output command event g13
+		0x0d00 -> boceDefault: empty;
+		0x0d01 -> boceFlag: empty;
+		0x0d02 -> boceAtime: empty;
+
 	# counter ; g20
 		0x1400 -> counter_default: empty;
 		0x1401 -> counter_32_wflag: empty;
@@ -59,7 +136,30 @@ type Request_Data_Object(function_code: uint8, qualifier_field: uint8, object_ty
 		0x150a -> f_counter_16_woflag: empty;
 		0x150b -> f_counter_32_woflag_delta: empty &check (0); # obsolete
 		0x150c -> f_counter_16_woflag_delta: empty &check (0); # obsolete
-	#analog input
+	
+	# counter event g22
+		0x1600 -> counter_event_default: empty;
+		0x1601 -> counter_event_32_wflag: empty;
+		0x1602 -> counter_event_16_wflag: empty;
+		0x1603 -> counter_event_32_wflag_delta: empty &check(0);
+		0x1604 -> counter_event_16_wflag_delta: empty &check(0);
+		0x1605 -> counter_event_32_wflag_time: empty;
+		0x1606 -> counter_event_16_wflag_time: empty;
+		0x1607 -> counter_event_32_wflag_time_delta: empty &check(0);
+		0x1608 -> counter_event_16_wflag_time_delat: empty &check(0);
+
+	# counter event g23
+		0x1700 -> f_counter_event_default: empty;
+		0x1701 -> f_counter_event_32_wflag: empty;
+		0x1702 -> f_counter_event_16_wflag: empty;
+		0x1703 -> f_counter_event_32_wflag_delta: empty &check(0);
+		0x1704 -> f_counter_event_16_wflag_delta: empty &check(0);
+		0x1705 -> f_counter_event_32_wflag_time: empty;
+		0x1706 -> f_counter_event_16_wflag_time: empty;
+		0x1707 -> f_counter_event_32_wflag_time_delta: empty &check(0);
+		0x1708 -> f_counter_event_16_wflag_time_delat: empty &check(0);
+
+	#analog input g30
 		0x1e00 -> ai_default: empty;
 		0x1e01 -> ai_32_wflag: empty;
                 0x1e02 -> ai_16_wflag: empty;
@@ -67,6 +167,7 @@ type Request_Data_Object(function_code: uint8, qualifier_field: uint8, object_ty
                 0x1e04 -> ai_16_woflag: empty;
                 0x1e05 -> ai_sp_wflag: empty;
                 0x1e06 -> ai_dp_wflag: empty;
+
 	#frozen analog input g31
 		0x1f00 -> f_ai_default: empty;
 		0x1f01 -> f_ai_32_wflag: empty;
@@ -77,7 +178,8 @@ type Request_Data_Object(function_code: uint8, qualifier_field: uint8, object_ty
                 0x1f06 -> f_ai_16_woflag: empty;
                 0x1f07 -> f_ai_sp_wflag: empty;
                 0x1f08 -> f_ai_dp_wflag: empty;
-	#analog input event
+	
+	#analog input event g32
 		0x2000 -> aie_default: empty;
 		0x2001 -> ai32wotime: empty;
 		0x2002 -> ai16wotime: empty;
@@ -87,11 +189,74 @@ type Request_Data_Object(function_code: uint8, qualifier_field: uint8, object_ty
                 0x2006 -> aidpwotime: empty;
                 0x2007 -> aispwtime:  empty;
                 0x2008 -> aidpwtime:  empty;
+
+	#frozen analog input g33
+		0x2100 -> f_aie_default: empty;
+		0x2101 -> f_aie_32_wotime: empty;
+                0x2102 -> f_aie_16_wotime: empty;
+                0x2103 -> f_aie_32_wtime: empty;
+                0x2104 -> f_aie_16_wtime: empty;
+                0x2105 -> f_aie_sp_wotime: empty;
+                0x2106 -> f_aie_dp_wotime: empty;
+                0x2107 -> f_aie_sp_wtime: empty;
+                0x2108 -> f_aie_dp_wtime: empty;
+	
+	# analog input deadband g34
+		0x2200 -> ai_dead: empty;
+		0x2201 -> ai_dead_16: empty;
+		0x2202 -> ai_dead_32: empty;
+		0x2203 -> ai_dead_sp: empty;
+	
+	# analog ouput status g40
+		0x2800 -> aos_default: empty;
+		0x2801 -> aos_32: empty;
+		0x2802 -> aos_16: empty;
+		0x2803 -> aos_sp: empty;
+		0x2804 -> aos_dp: empty;
+	
+	# analog ouput g41
+		0x2901 -> ao_32: AnaOut32;
+		0x2902 -> ao_16: AnaOut16;
+		0x2903 -> ao_sp: AnaOutSP;
+		0x2904 -> ao_dp: AnaOutDP;
+	
+	# analog output event g42
+		0x2a00 -> aoe_default: empty;
+		0x2a01 -> aoe32wotime: empty;
+		0x2a02 -> aoe16wotime: empty;
+		0x2a03 -> aoe32wtime:  empty;
+                0x2a04 -> aoe16wtime:  empty;
+                0x2a05 -> aoespwotime: empty;
+                0x2a06 -> aoedpwotime: empty;
+                0x2a07 -> aoespwtime:  empty;
+                0x2a08 -> aoedpwtime:  empty;
+	
+	# analog output command event g43
+		0x2b00 -> aoce_default: empty;
+		0x2b01 -> aoce32wotime: empty;
+		0x2b02 -> aoce16wotime: empty;
+		0x2b03 -> aoce32wtime:  empty;
+                0x2b04 -> aoce16wtime:  empty;
+                0x2b05 -> aocespwotime: empty;
+                0x2b06 -> aocedpwotime: empty;
+                0x2b07 -> aocespwtime:  empty;
+                0x2b08 -> aocedpwtime:  empty;
+ 
 	# time data interval data object g50
 		0x3200 -> time_default: empty;
-		0x3201 -> time_abs: empty;
+		0x3201 -> time_abs: AbsTime;
 		0x3202 -> time_interval: AbsTimeInterval;  
-		0x3203 -> time_abs_last: empty;
+		0x3203 -> time_abs_last: Last_AbsTime;
+
+	# Time and Date Common Time-of-Occurrence g51
+		0x3301 -> time_abs_sync: AbsTime;
+		0x3302 -> time_abs_unsync: AbsTime;
+	
+	# time delay g52
+		0x3401 -> time_coarse: uint16;
+		0x3402 -> time_fine: uint16;
+
+	# class objects g60
 		0x3C01 -> class0data: empty &check(object_header.qualifier_field == 0x06);
 		#0x3C02 -> class1data: uint8 &check(object_header.qualifier_field == 0x06);
 		0x3C02 -> class1data: empty &check(object_header.qualifier_field == 0x06 || 
@@ -109,8 +274,60 @@ type Request_Data_Object(function_code: uint8, qualifier_field: uint8, object_ty
 		0x4605 -> file_trans: File_Transport;
 		0x4606 -> file_trans_status: File_Transport_Status;	
 		0x4607 -> file_desc: File_Desc_Wrap(function_code);
+	
+	# internal indication g80
+		0x5001 -> iin: uint16;
+
+	# device storage g81
+		0x5101 -> dev_store: empty;
+
+	# device storage g82
+		0x5201 -> dev_profile: empty;	
+
+	# device storage g83
+		0x5301 -> priregobj: PrivRegObj;	
+		0x5302 -> priregobjdesc: PrivRegObjDesc;	
+
+	# private data set g85
+		0x5501 -> desc_ele: DescEle;	
+
+	# data descriptor table g86
+		0x5601 -> desc_ele86: DescEle;	
+		0x5602 -> cha: uint8;	
+		0x5603 -> point_index_attr: Debug_Byte;	
+
+	# Data set g87
+		0x5701 -> present_value: Debug_Byte;
+	
+	# Data set event g88
+		0x5801 -> snapshot: Debug_Byte;
+
+
 	# application identification object g90
 		0x5A01 -> app_id: App_Id(qualifier_field, object_size16);
+	
+	# status of request operation g91
+		0x5b01 -> activate_conf: ActivateConf;
+
+	# bcd value g101
+		0x6501 -> bcd_small: uint16;
+		0x6502 -> bcd_medium: uint32;
+		0x6503 -> bcd_large: BCD_Large;
+	
+	# unsigned integer g102
+		0x6601 -> unsigned_integer: uint8;
+
+	# authentication challenge g120
+		0x7801 -> challenge: AuthChallenge(object_size16); 
+		0x7802 -> reply: AuthRely(object_size16); 
+		0x7803 -> aggrRequest: AuthAggrRequest(object_size16); 
+		0x7804 -> seesionKeyRequest: uint8; 
+		0x7805 -> status: AuthSessionKeyStatus(object_size16); 
+		0x7806 -> keyChange: AuthSessionKeyChange(object_size16); 
+		0x7807 -> error: AuthError(object_size16); 
+
+
+
 	#	default -> unknown: bytestring &restofdata &check(0);
 		default -> unmatched: Default_Wrap(object_type_field);
 	};	
@@ -143,17 +360,86 @@ type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_t
 		default -> unknownprefix: empty;
 	};
 	data: case (object_type_field) of {
+	# device attributes g0
+		0x00D3 -> attrib211: Attrib_Common;
+		0x00D4 -> attrib212: Attrib_Common;
+		0x00D5 -> attrib213: Attrib_Common;
+		0x00D6 -> attrib214: Attrib_Common;
+		0x00D7 -> attrib215: Attrib_Common;
+		0x00D8 -> attrib216: Attrib_Common;
+		0x00D9 -> attrib217: Attrib_Common;
+		0x00DA -> attrib218: Attrib_Common;
+		0x00DB -> attrib219: Attrib_Common;
+		0x00DC -> attrib220: Attrib_Common;
+		0x00DD -> attrib221: Attrib_Common;
+		0x00DE -> attrib222: Attrib_Common;
+		0x00DF -> attrib223: Attrib_Common;
+		0x00E0 -> attrib224: Attrib_Common;
+		0x00E1 -> attrib225: Attrib_Common;
+		0x00E2 -> attrib226: Attrib_Common;
+		0x00E3 -> attrib227: Attrib_Common;
+		0x00E4 -> attrib228: Attrib_Common;
+		0x00E5 -> attrib229: Attrib_Common;
+		0x00E6 -> attrib230: Attrib_Common;
+		0x00E7 -> attrib231: Attrib_Common;
+		0x00E8 -> attrib232: Attrib_Common;
+		0x00E9 -> attrib233: Attrib_Common;
+		0x00EA -> attrib234: Attrib_Common;
+		0x00EB -> attrib235: Attrib_Common;
+		0x00EC -> attrib236: Attrib_Common;
+		0x00ED -> attrib237: Attrib_Common;
+		0x00EE -> attrib238: Attrib_Common;
+		0x00EF -> attrib239: Attrib_Common;
+		0x00F0 -> attrib240: Attrib_Common;
+		0x00F1 -> attrib241: Attrib_Common;
+		0x00F2 -> attrib242: Attrib_Common;
+		0x00F3 -> attrib243: Attrib_Common;
+		0x00F5 -> attrib245: Attrib_Common;
+		0x00F6 -> attrib246: Attrib_Common;
+		0x00F7 -> attrib247: Attrib_Common;
+		0x00F8 -> attrib248: Attrib_Common;
+		0x00F9 -> attrib249: Attrib_Common;
+		0x00FA -> attrib250: Attrib_Common;
+		0x00FC -> attrib252: Attrib_Common;
+		0x00FE -> attrib254: Attrib_Common;
+		0x00FF -> attrib255: Attrib_Common;
+	
+	# binary input g1
 		0x0101 -> biwoflag: uint8;  # warning: returning integer index?
 		0x0102 -> biwflag: uint8;  # warning: only flag?
-		
+	
+	# binary input event g2
+		0x0201 -> biewoflag: uint8;
+		0x0202 -> biewatime: BinInEveAtime;
+		0x0203 -> biewrtime: BinInEveRtime;
+	
+	# double-bit Binary Input g3
+		0x0301 -> dbibytes: bytestring &restofdata; # don;t quit understand specification
+		0x0302 -> dbiflag: uint8;	
+	
+	# double-bit Binary Input Event g4
+		0x0401 -> dbieatime: DoubleInEveAtime;
+		0x0402 -> dbiertime: DoubleInEveRtime;
+	
+	# binary output g10 		
 		0x0a01 -> bowoflag:  uint8;  # warning: returning integer index?	
 		0x0a02 -> bowflag: uint8;  # warning: only flag?
-	# binary output command
+
+	# binary output event g11
+		0x0b01 -> boewflag: uint8;
+		0x0b02 -> boewatime: BinOutEveAtime;		
+	
+	# binary output command g12
                 0x0c01 -> bocmd_CROB: CROB &check (function_code == SELECT || function_code == OPERATE ||
                                                         function_code == DIRECT_OPERATE || function_code == DIRECT_OPERATE_NR );
                 0x0c02 -> bocmd_PCB: PCB &check (function_code == SELECT || function_code == OPERATE ||
                                                         function_code == DIRECT_OPERATE || function_code == DIRECT_OPERATE_NR || function_code == WRITE );
 		0x0c03 -> bocmd_PM: uint8;
+	
+	# binary output command event g13
+		0x0d01 -> boceFlag: uint8;
+		0x0d02 -> boceAtime: BinOutCmdEveAtime;
+
 	# counter ; g20
 		0x1401 -> counter_32_wflag: Counter32wFlag;
 		0x1402 -> counter_16_wflag: Counter16wFlag;
@@ -178,14 +464,45 @@ type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_t
 		0x150b -> f_counter_32_woflag_delta: Debug_Byte &check (0); # obsolete
 		0x150c -> f_counter_16_woflag_delta: Debug_Byte &check (0); # obsolete
 
-		
+	# counter event g22
+		0x1601 -> counter_event_32_wflag: CounterEve32wFlag;
+		0x1602 -> counter_event_16_wflag: CounterEve16wFlag;
+		0x1603 -> counter_event_32_wflag_delta: Debug_Byte &check(0);
+		0x1604 -> counter_event_16_wflag_delta: Debug_Byte &check(0);
+		0x1605 -> counter_event_32_wflag_time: CounterEve32wFlagTime;
+		0x1606 -> counter_event_16_wflag_time: CounterEve16wFlagTime;
+		0x1607 -> counter_event_32_wflag_time_delta: Debug_Byte &check(0);
+		0x1608 -> counter_event_16_wflag_time_delat: Debug_Byte &check(0);
+	
+	# counter event g23
+		0x1701 -> f_counter_event_32_wflag: CounterEve32wFlag;
+		0x1702 -> f_counter_event_16_wflag: CounterEve16wFlag;
+		0x1703 -> f_counter_event_32_wflag_delta: Debug_Byte &check(0);
+		0x1704 -> f_counter_event_16_wflag_delta: Debug_Byte &check(0);
+		0x1705 -> f_counter_event_32_wflag_time: CounterEve32wFlagTime;
+		0x1706 -> f_counter_event_16_wflag_time: CounterEve16wFlagTime;
+		0x1707 -> f_counter_event_32_wflag_time_delta: Debug_Byte &check(0);
+		0x1708 -> f_counter_event_16_wflag_time_delat: Debug_Byte &check(0);
+
+	# analog input g30	
 		0x1e01 -> ai_32_wflag: AnalogInput32wFlag;
                 0x1e02 -> ai_16_wflag: AnalogInput16wFlag;
                 0x1e03 -> ai_32_woflag: AnalogInput32woFlag;
                 0x1e04 -> ai_16_woflag: AnalogInput16woFlag;
                 0x1e05 -> ai_sp_wflag: AnalogInputSPwFlag;
                 0x1e06 -> ai_dp_wflag: AnalogInputDPwFlag;
-		
+	
+	# frozen analog input g31	
+		0x1f01 -> f_ai_32_wflag: FrozenAnalogInput32wFlag;
+                0x1f02 -> f_ai_16_wflag: FrozenAnalogInput16wFlag;
+                0x1f03 -> f_ai_32_wtime: FrozenAnalogInput32wTime;
+                0x1f04 -> f_ai_16_wtime: FrozenAnalogInput16wTime;
+                0x1f05 -> f_ai_32_woflag: AnalogInput32woFlag;
+                0x1f06 -> f_ai_16_woflag: AnalogInput16woFlag;
+                0x1f07 -> f_ai_sp_wflag: AnalogInputSPwFlag;
+                0x1f08 -> f_ai_dp_wflag: AnalogInputDPwFlag;
+
+	# analog input event g32		
 		0x2001 -> ai32wotime: AnalogInput32woTime;
 		0x2002 -> ai16wotime: AnalogInput16woTime;
 		0x2003 -> ai32wtime:  AnalogInput32wTime;
@@ -194,7 +511,8 @@ type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_t
 		0x2006 -> aidpwotime: AnalogInputDPwoTime;
 		0x2007 -> aispwtime:  AnalogInputSPwTime;
 		0x2008 -> aidpwtime:  AnalogInputDPwTime;
-	# frozen analog input event
+
+	# frozen analog input event g33
 		0x2101 -> faie_32_wotime: FrozenAnaInputEve32woTime;
 		0x2102 -> faie_16_wotime: FrozenAnaInputEve16woTime;
 		0x2103 -> faie_32_wtime: FrozenAnaInputEve32wTime;
@@ -203,6 +521,57 @@ type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_t
 		0x2106 -> faie_dp_wotime: FrozenAnaInputEveDPwoTime;
 		0x2107 -> faie_sp_wtime: FrozenAnaInputEveSPwTime;
 		0x2108 -> faie_dp_wtime: FrozenAnaInputEveDPwTime;
+	
+	# analog input deadband g34
+		0x2201 -> ai_dead_16: uint16;
+		0x2202 -> ai_dead_32: uint32;
+		0x2203 -> ai_dead_sp: uint32;
+
+	# analog ouput status g40
+		0x2801 -> aos_32: AnaOutStatus32;
+		0x2802 -> aos_16: AnaOutStatus16;
+		0x2803 -> aos_sp: AnaOutStatusSP;
+		0x2804 -> aos_dp: AnaOutStatusDP;
+
+	# analog ouput g41
+		0x2901 -> ao_32: AnaOut32;
+		0x2902 -> ao_16: AnaOut16;
+		0x2903 -> ao_sp: AnaOutSP;
+		0x2904 -> ao_dp: AnaOutDP;
+	
+	# analog output event g42
+		0x2a01 -> aoe32wotime: AnaOutEve32woTime;
+		0x2a02 -> aoe16wotime: AnaOutEve16woTime;
+		0x2a03 -> aoe32wtime:  AnaOutEve32wTime;
+                0x2a04 -> aoe16wtime:  AnaOutEve16wTime;
+                0x2a05 -> aoespwotime: AnaOutEveSPwoTime;
+                0x2a06 -> aoedpwotime: AnaOutEveDPwoTime;
+                0x2a07 -> aoespwtime:  AnaOutEveSPwTime;
+                0x2a08 -> aoedpwtime:  AnaOutEveDPwTime;
+	
+	# analog output command event g43
+		0x2b01 -> aoce32wotime: AnaOutEve32woTime;
+		0x2b02 -> aoce16wotime: AnaOutEve16woTime;
+		0x2b03 -> aoce32wtime:  AnaOutEve32wTime;
+                0x2b04 -> aoce16wtime:  AnaOutEve16wTime;
+                0x2b05 -> aocespwotime: AnaOutEveSPwoTime;
+                0x2b06 -> aocedpwotime: AnaOutEveDPwoTime;
+                0x2b07 -> aocespwtime:  AnaOutEveSPwTime;
+                0x2b08 -> aocedpwtime:  AnaOutEveDPwTime;
+	
+ 	# time data interval data object g50
+		0x3201 -> time_abs: AbsTime;
+		0x3202 -> time_interval: AbsTimeInterval;  
+		0x3203 -> time_abs_last: Last_AbsTime;
+
+	# Time and Date Common Time-of-Occurrence g51
+		0x3301 -> time_abs_sync: AbsTime;
+		0x3302 -> time_abs_unsync: AbsTime;
+	
+	# time delay g52
+		0x3401 -> time_coarse: uint16;
+		0x3402 -> time_fine: uint16;
+
 	# file control g70
 		0x4601 -> file_control_id: File_Control_ID &check(0);
 		0x4602 -> file_control_auth: File_Control_Auth &check(file_control_auth.usr_name_size == 0 && file_control_auth.pwd_size == 0);
@@ -210,7 +579,55 @@ type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_t
 							( file_control_cmd.op_mode == 0 || file_control_cmd.op_mode == 1 || 
 							  file_control_cmd.op_mode == 2 || file_control_cmd.op_mode == 3) );
 		0x4604 -> file_control_cmd_status: File_Control_Cmd_Status_Wrap(function_code);
-		default -> unkonwndata: Debug_Byte &check( T ); 
+	
+	# internal indication g80
+		0x5001 -> iin: uint16;
+	# device storage g81
+		0x5101 -> dev_store: Dev_Store;
+
+	# device storage g82
+		0x5201 -> dev_profile: Dev_Profile;	
+
+	# device storage g83
+		0x5301 -> priregobj: PrivRegObj;	
+		0x5302 -> priregobjdesc: PrivRegObjDesc;	
+
+	# device storage g85
+		0x5501 -> desc_ele: DescEle;
+
+	# data descriptor table g86
+		0x5601 -> desc_ele86: DescEle;	
+		0x5602 -> cha: uint8;	
+		0x5603 -> point_index_attr: Debug_Byte;	
+
+	# Data set g87
+		0x5701 -> present_value: Debug_Byte;
+
+	# Data set event g88
+		0x5801 -> snapshot: Debug_Byte;
+
+	# status of request operation g91
+		0x5b01 -> activate_conf: ActivateConf;
+
+	# bcd value g101
+		0x6501 -> bcd_small: uint16;
+		0x6502 -> bcd_medium: uint32;
+		0x6503 -> bcd_large: BCD_Large;
+
+	# unsigned integer g102
+		0x6601 -> unsigned_integer: uint8;
+
+	# authentication challenge g120
+		0x7801 -> challenge: AuthChallenge(object_size16); 
+		0x7802 -> reply: AuthRely(object_size16); 
+		0x7803 -> aggrRequest: AuthAggrRequest(object_size16); 
+		0x7804 -> seesionKeyRequest: uint8; 
+		0x7805 -> status: AuthSessionKeyStatus(object_size16); 
+		0x7806 -> keyChange: AuthSessionKeyChange(object_size16); 
+		0x7807 -> error: AuthError(object_size16); 
+
+		#default -> unkonwndata: Debug_Byte &check( T ); 
+		default -> unmatched: Default_Wrap(object_type_field);
 	};
 }
   &let{
@@ -230,12 +647,56 @@ type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_t
 type Default_Wrap(obj_type: uint32) = record {
 	unresolved: case (obj_type & 0xFF00) of {
 		0x6E00 -> oct_str: bytestring &length = (obj_type & 0x00FF) ;
-		default -> unknown: bytestring &restofdata;
+		0x6F00 -> oct_str_eve: bytestring &length = (obj_type & 0x00FF) ;
+		0x7000 -> vir_ter_out_blk: bytestring &length = (obj_type & 0x00FF) ;
+		0x7100 -> vir_ter_eve: bytestring &length = (obj_type & 0x00FF) ;
+
+		#default -> unknown: bytestring &restofdata;
+		default -> unknown: Debug_Byte;
 	};
 };
 
 # contains different objects format
 # corresponding to the DNP3Spec-V6-Part2-Objects 
+
+# g0 including variation 249 255
+type Attrib_Common = record{
+	data_type_code: uint8;
+	leng: uint8;
+	attrib_obj: bytestring &length=leng;
+} &byteorder = littleendian;
+
+
+# g2v2
+type BinInEveAtime = record{
+	flag: uint8;
+	time48: bytestring &length = 6;
+} &byteorder = littleendian;
+# g2v3
+type BinInEveRtime = record{
+	flag: uint8;
+	time16: uint16;
+} &byteorder = littleendian;
+
+
+# g4v2
+type DoubleInEveAtime = record{
+	flag: uint8;
+	time48: bytestring &length = 6;
+} &byteorder = littleendian;
+# g4v3
+type DoubleInEveRtime = record{
+	flag: uint8;
+	time16: uint16;
+} &byteorder = littleendian;
+
+
+# g11v2
+type BinOutEveAtime = record{
+	flag: uint8;
+	time48: bytestring &length = 6;
+} &byteorder = littleendian;
+
 
 # g12v1 group: 12; variation: 1
 type CROB = record{
@@ -254,6 +715,12 @@ type PCB = record{
 	on_time: uint32;
 	off_time: uint32;
 	status_code: uint8;  # contains the reserved bit
+} &byteorder = littleendian;
+
+# g13v2
+type BinOutCmdEveAtime = record{
+	flag: uint8;
+	time48: bytestring &length = 6;
 } &byteorder = littleendian;
 
 # g20v1; group: 20, variation 1
@@ -311,8 +778,60 @@ type FrozenCounter16woFlag = record{
 } &byteorder = littleendian;
 # g21v11 and g21v12 are obsolete
 
+# Conter event g22
+# g22v1
+type CounterEve32wFlag = record{
+	flag: uint8;
+	count_value: uint32;
+} &byteorder = littleendian;
+# g22v2
+type CounterEve16wFlag = record{
+	flag: uint8;
+	count_value: uint16;
+} &byteorder = littleendian;
+# g22v3 and g22v4 obsolete
+# g22v5
+type CounterEve32wFlagTime = record{
+	flag: uint8;
+	count_value: uint32;
+	time48: bytestring &length = 6;
+} &byteorder = littleendian;
+# g22v6
+type CounterEve16wFlagTime = record{
+	flag: uint8;
+	count_value: uint16;
+	time48: bytestring &length = 6;
+} &byteorder = littleendian;
+# g22v7 g22v8 obsolete
 
-# group: 30; variation: 1
+
+# Conter event g23
+# g23v1
+type FrozenCounterEve32wFlag = record{
+	flag: uint8;
+	count_value: uint32;
+} &byteorder = littleendian;
+# g23v2
+type FrozenCounterEve16wFlag = record{
+	flag: uint8;
+	count_value: uint16;
+} &byteorder = littleendian;
+# g23v3 and g23v4 obsolete
+# g23v5
+type FrozenCounterEve32wFlagTime = record{
+	flag: uint8;
+	count_value: uint32;
+	time48: bytestring &length = 6;
+} &byteorder = littleendian;
+# g23v6
+type FrozenCounterEve16wFlagTime = record{
+	flag: uint8;
+	count_value: uint16;
+	time48: bytestring &length = 6;
+} &byteorder = littleendian;
+# g23v7 g23v8 obsolete
+
+# group: 30; variation: 1 g30v1
 type AnalogInput32wFlag = record{
         flag: uint8;
         value: int32;
@@ -389,22 +908,22 @@ type FrozenAnalogInputDPwFlag = record{
         frozen_value_high: uint32;
 } &byteorder = littleendian;
 
-# group: 32; variation: 1
+# group: 32; variation: 1 g32v1
 type AnalogInput32woTime = record{
 	flag: uint8;
-	value: uint32;
+	value: int32;
 } &byteorder = littleendian;
 
 # group: 32; variation: 2
 type AnalogInput16woTime = record{
 	flag: uint8;
-	value: uint16;
+	value: int16;
 } &byteorder = littleendian;
 
 # group: 32; variation: 3
 type AnalogInput32wTime = record{
 	flag: uint8;
-	value: uint32;
+	value: int32;
 	#time: uint8[6];
 	time48: bytestring &length = 6;
 } &byteorder = littleendian;
@@ -412,7 +931,7 @@ type AnalogInput32wTime = record{
 # group: 32; variation: 4
 type AnalogInput16wTime = record{
 	flag: uint8;
-	value: uint16;
+	value: int16;
 	#time: uint8[6];
 	time48: bytestring &length = 6;
 } &byteorder = littleendian;
@@ -501,6 +1020,103 @@ type FrozenAnaInputEveDPwTime = record{
 	time48: bytestring &length = 6;
 } &byteorder = littleendian;
 
+# analog output status g40
+# g40v1
+type AnaOutStatus32 = record{
+	flag: uint8;
+	status: int32;
+} &byteorder = littleendian;
+# g40v2
+type AnaOutStatus16 = record{
+	flag: uint8;
+	status: int16;
+} &byteorder = littleendian;
+# g40v3
+type AnaOutStatusSP = record{
+	flag: uint8;
+	status: uint32;
+} &byteorder = littleendian;
+# g40v4
+type AnaOutStatusDP = record{
+	flag: uint8;
+	status_low: uint32;
+	status_high: uint32;
+} &byteorder = littleendian;
+
+
+# analog output g41
+# g41v1
+type AnaOut32 = record{
+	value: int32;
+	con_status: uint8;
+} &byteorder = littleendian;
+# g41v2
+type AnaOut16 = record{
+	value: int16;
+	con_status: uint8;
+} &byteorder = littleendian;
+# g41v3
+type AnaOutSP = record{
+	value: uint32;
+	con_status: uint8;
+} &byteorder = littleendian;
+# g41v4
+type AnaOutDP = record{
+	value_low: uint32;
+	value_high: uint32;
+	con_status: uint8;
+} &byteorder = littleendian;
+
+# analog output event g42
+# g42v1
+type AnaOutEve32woTime = record{
+	flag: uint8;
+	value: int32;
+} &byteorder = littleendian;
+# g42v2
+type AnaOutEve16woTime = record{
+	flag: uint8;
+	value: int16;
+} &byteorder = littleendian;
+# g42v3
+type AnaOutEve32wTime = record{
+	flag: uint8;
+	value: int32;
+	time48: bytestring &length = 6;
+} &byteorder = littleendian;
+# g42v4
+type AnaOutEve16wTime = record{
+	flag: uint8;
+	value: int16;
+	time48: bytestring &length = 6;
+} &byteorder = littleendian;
+# g42v5
+type AnaOutEveSPwoTime = record{
+	flag: uint8;
+	value: uint32;
+} &byteorder = littleendian;
+# g42v6
+type AnaOutEveDPwoTime = record{
+	flag: uint8;
+	value_low: uint32;
+	value_high: uint32;
+} &byteorder = littleendian;
+# g42v7
+type AnaOutEveSPwTime = record{
+	flag: uint8;
+	value: uint32;
+	time48: bytestring &length = 6;
+} &byteorder = littleendian;
+# g42v8
+type AnaOutEveDPwTime = record{
+	flag: uint8;
+	value_low: uint32;
+	value_high: uint32;
+	time48: bytestring &length = 6;
+} &byteorder = littleendian;
+
+## g43 data format is exacatly same as g42 so use g42 directly
+
 # g50v1
 type AbsTime = record {
 	time48: bytestring &length = 6;
@@ -516,6 +1132,9 @@ type AbsTimeInterval = record {
 type Last_AbsTime = record {
 	time48: bytestring &length = 6;
 } &byteorder = littleendian;
+
+# g51v1 and g51v2 are the same structure of g50v1. so reuse it
+
 # g70v1
 type Record_Obj = record {
 	record_size: uint16;
@@ -627,6 +1246,67 @@ type File_Spec_Str = record {
 	f_spec: bytestring &restofdata;
 } &byteorder = littleendian;
 
+# device storage g81
+# g81v1
+type Dev_Store = record {
+	overflow: uint8;
+	obj_group: uint8;
+	variatiion: uint8;
+} &byteorder = littleendian;
+
+# device profile g82
+# g82v1
+type Dev_Profile = record {
+	fc_support_low: uint32;
+	fc_support_high: uint32;
+	count: uint16;
+	dev_headers: Dev_Profile_OH[count];
+} &byteorder = littleendian;
+type Dev_Profile_OH = record {
+	group: uint8;
+	variation: uint8;
+	qualifier: uint8;
+	range: uint8;
+} &byteorder = littleendian;
+
+# data set g983
+# g83v1
+type PrivRegObj = record {
+	vendor: uint32;
+	obj_id: uint16;
+	len: uint16;
+	data_objs: bytestring &length = len;
+} &byteorder = littleendian;
+# g83v2
+type PrivRegObjDesc = record {
+	vendor: uint32;
+	obj_id: uint16;
+	count: uint16;
+	data_objs: ObjDescSpec[count];
+} &byteorder = littleendian;
+type ObjDescSpec = record {
+	obj_quantity: uint16;
+	obj_group: uint8;
+	obj_variation: uint8;
+} &byteorder = littleendian;
+
+# data set prototype g85
+# g85v1 only one descriptor element is defined. number of n is defined by number-of-item
+type DescEle = record {
+	len: uint8;
+	desc_code: uint8;
+	data_type: uint8;
+	max_len: uint8;
+	ancillary: uint8;
+} &byteorder = littleendian;
+
+# data descriptor element g86
+# g86v1 is the same structure of DescEle
+# g86v3 does not quite understant specification description
+
+# g87 doest not quite understand specfication description
+
+# g88 doest not quite understand specfication description
 
 # g90v1
 type App_Id(qualifier_field: uint8, object_size16: uint16) = record {
@@ -636,3 +1316,61 @@ type App_Id(qualifier_field: uint8, object_size16: uint16) = record {
 		default -> illegal: empty;
 	};
 } &byteorder = littleendian;
+
+# status of request operation g91
+type ActivateConf = record {
+	time_delay: uint32;
+	count: uint8;
+	elements: StatusEle[count];
+} &byteorder = littleendian;
+type StatusEle = record {
+	len: uint8;
+	status_code: uint8;
+	ancillary: bytestring &length = ( len - 1 );
+} &byteorder = littleendian;
+
+# BCD values
+# g101v3
+type BCD_Large = record{
+	value_low: uint32;
+	vlaue_high: uint32;
+} &byteorder = littleendian;
+
+# authentication g120
+# g120v1
+type AuthChallenge(prefix: uint16) = record{	
+	csqUsr: uint32;
+	hal: uint8;
+	reason: uint8;
+	chan_data: bytestring &length = (prefix - 10);
+} &byteorder = littleendian;
+# g120v2
+type AuthRely(prefix: uint16) = record{	
+	csqUsr: uint32;
+	chan_data: bytestring &length = (prefix - 4);
+} &byteorder = littleendian;
+# g120v3
+type AuthAggrRequest(prefix: uint16) = record{	
+	csqUsr: uint32;
+	chan_data: bytestring &length = (prefix - 4);
+} &byteorder = littleendian;
+# g120v5
+type AuthSessionKeyStatus(prefix: uint16) = record{	
+	csqUsr: uint32;
+	key_alg: uint8;
+	key_status: uint8;
+	chan_data: bytestring &length = (prefix - 10);
+} &byteorder = littleendian;
+# g120v6
+type AuthSessionKeyChange(prefix: uint16) = record{	
+	csqUsr: uint32;
+	key_wrap_data: bytestring &length = (prefix - 5);
+} &byteorder = littleendian;
+# g120v7
+type AuthError(prefix: uint16) = record{	
+	csqUsr: uint32;
+	error_code: uint8;
+	key_wrap_data: bytestring &length = (prefix - 6);
+} &byteorder = littleendian;
+
+

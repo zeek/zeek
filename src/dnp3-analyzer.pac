@@ -63,7 +63,7 @@ flow Dnp3_Flow(is_orig: bool) {
                        }
                return true;
                %}
-	function get_dnp3_application_response_header(app_control: uint8, fc: uint8): bool
+	function get_dnp3_application_response_header(app_control: uint8, fc: uint8, iin: uint16): bool
                %{
                if ( ::dnp3_application_response_header )
                        {
@@ -74,7 +74,8 @@ flow Dnp3_Flow(is_orig: bool) {
 				//bytestring_to_val( app_control ), 
 				//bytestring_to_val( fc ) 
 				app_control, 
-				fc
+				fc,
+				iin
 				);
                        }
                return true;
@@ -443,7 +444,7 @@ flow Dnp3_Flow(is_orig: bool) {
                %}
 
 	# g32v1
-	function get_dnp3_analog_input32_woTime(flag: uint8, value: uint32): bool
+	function get_dnp3_analog_input32_woTime(flag: uint8, value: int32): bool
                %{
                if ( ::dnp3_analog_input32_woTime )
                        {
@@ -456,7 +457,7 @@ flow Dnp3_Flow(is_orig: bool) {
                return true;
                %}
 	# g32v2
-	function get_dnp3_analog_input16_woTime(flag: uint8, value: uint16): bool
+	function get_dnp3_analog_input16_woTime(flag: uint8, value: int16): bool
                %{
                if ( ::dnp3_analog_input16_woTime )
                        {
@@ -469,7 +470,7 @@ flow Dnp3_Flow(is_orig: bool) {
                return true;
                %}
 	# g32v3
-	function get_dnp3_analog_input32_wTime(flag: uint8, value: uint32, time48: const_bytestring): bool
+	function get_dnp3_analog_input32_wTime(flag: uint8, value: int32, time48: const_bytestring): bool
                %{
                if ( ::dnp3_analog_input32_wTime )
                        {
@@ -482,7 +483,7 @@ flow Dnp3_Flow(is_orig: bool) {
                return true;
                %}
 	# g32v4
-	function get_dnp3_analog_input16_wTime(flag: uint8, value: uint16, time48: const_bytestring): bool
+	function get_dnp3_analog_input16_wTime(flag: uint8, value: int16, time48: const_bytestring): bool
                %{
                if ( ::dnp3_analog_input16_wTime )
                        {
@@ -686,7 +687,7 @@ refine typeattr Dnp3_Application_Request_Header += &let {
        process_request: bool =  $context.flow.get_dnp3_application_request_header(application_control, function_code);
 };
 refine typeattr Dnp3_Application_Response_Header += &let {
-       process_request: bool =  $context.flow.get_dnp3_application_response_header(application_control, function_code);
+       process_request: bool =  $context.flow.get_dnp3_application_response_header(application_control, function_code, internal_indications);
 };
 
 refine typeattr Object_Header += &let {

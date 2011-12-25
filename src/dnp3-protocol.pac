@@ -134,7 +134,8 @@ type Dnp3_Application_Response_Header = record {
 	empty: bytestring &length = 0;
 	application_control  : uint8;
 	function_code        : uint8;
-	internal_indications : Response_Internal_Indication;
+	#internal_indications : Response_Internal_Indication;
+	internal_indications : uint16;
 } &length = 4;
 
 type Response_Internal_Indication = record {
@@ -167,6 +168,7 @@ type Response_Objects(function_code: uint8) = record {
 	object_header: Object_Header(function_code);
 	data: case (object_header.object_type_field) of {
                 0x0101 -> biwoflag: Response_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ ( object_header.number_of_item / 8 ) + 1 ];  # warning: returning integer index?
+                0x0301 -> diwoflag: Response_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ ( object_header.number_of_item / 8 ) + 1 ];  # warning: returning integer index?
                 0x0a01 -> bowoflag: Response_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ ( object_header.number_of_item / 8 ) + 1 ];  # warning: returning integer index?
 		0x0c03 -> bocmd_PM: Response_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ ( object_header.number_of_item / 8 ) + 1 ];
                 default -> ojbects: Response_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];

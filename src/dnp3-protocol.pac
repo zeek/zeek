@@ -33,7 +33,7 @@ type Dnp3_Test = record {
 type Header_Block = record {
 	start: uint16 &check(start == 0x0564);
 	len: uint8;
-	ctrl: uint8;
+	ctrl: uint8;   #since this ctrl function code is not used here, I use it to store high 8-bit of len, if len > 255
 	dest_addr: uint16;
 	src_addr: uint16;
 #	crc: uint16; 
@@ -99,7 +99,8 @@ type Dnp3_Request = record {
 		default -> unknown: bytestring &restofdata;
 	};
 } &byteorder = bigendian
-  &length= 8 + addin_header.len -5 - 1
+  &length= 8 + addin_header.len + addin_header.ctrl*0x100 -5 - 1
+  #&length= 8 + addin_header.len -5 - 1   # old version
   #&length= 128  # for performance evaluation
 ;
 
@@ -116,10 +117,12 @@ type Dnp3_Response = record {
 		RESPONSE -> response_objects: Response_Objects(app_header.function_code)[];
 		UNSOLICITED_RESPONSE -> unsolicited_response_objects: Response_Objects(app_header.function_code)[];
 		AUTHENTICATE_RESP -> auth_response: Response_Objects(app_header.function_code)[];
-		default -> unknown: bytestring &restofdata;
+		default -> unknown: Debug_Byte;
 	};
+	#whatisthefuck: Debug_Byte;
 } &byteorder = bigendian
-  &length = 8 + addin_header.len - 5 -1  
+  &length= 8 + addin_header.len + addin_header.ctrl*0x100 -5 - 1
+  # &length = 8 + addin_header.len - 5 -1  # old version
 ;
 
 type Dnp3_Application_Request_Header = record {

@@ -1,5 +1,6 @@
 ##### move from dnp3-protocol.pac
-type Request_Data_Object(function_code: uint8, qualifier_field: uint8, object_type_field: uint16) = record {
+
+type Prefix_Type(qualifier_field: uint8) = record {
 	prefix: case ( qualifier_field & 0xf0 ) of {
                 0x00 -> none: empty &check(qualifier_field == 0x01 ||
                                                 qualifier_field == 0x02 ||
@@ -24,6 +25,46 @@ type Request_Data_Object(function_code: uint8, qualifier_field: uint8, object_ty
                 0x60 -> object_size32: uint32 &check(qualifier_field == 0x6B);
 	 	default -> unknownprefix: empty;
         };
+} &let{
+        prefix_value: uint32 = case (qualifier_field & 0xf0) of { 
+                0x00 -> 0;
+                0x10 -> prefix8;
+                0x20 -> prefix16;
+                0x30 -> prefix32;
+		0x40 -> object_size8;
+		0x50 -> object_size16;
+		0x60 -> object_size32;
+                default -> 0x0;
+        };
+  }
+&byteorder = littleendian 
+;
+type Request_Data_Object(function_code: uint8, qualifier_field: uint8, object_type_field: uint16) = record {
+	#prefix: case ( qualifier_field & 0xf0 ) of {
+        #        0x00 -> none: empty &check(qualifier_field == 0x01 ||
+        #                                        qualifier_field == 0x02 ||
+        #                                        qualifier_field == 0x03 ||
+        #                                        qualifier_field == 0x04 ||
+        #                                        qualifier_field == 0x05 ||
+        #                                        qualifier_field == 0x06 ||
+        #                                        qualifier_field == 0x07 ||
+        #                                        qualifier_field == 0x08 ||
+        #                                        qualifier_field == 0x09 );
+        #        0x10 -> prefix8: uint8 &check(qualifier_field == 0x17 ||
+        #                                        qualifier_field == 0x18 ||
+        #                                        qualifier_field == 0x19 );
+        #        0x20 -> prefix16: uint16 &check(qualifier_field == 0x27 ||
+        #                                        qualifier_field == 0x28 ||
+        #                                        qualifier_field == 0x29 );
+        #        0x30 -> prefix32: uint32 &check(qualifier_field == 0x37 ||
+        #                                        qualifier_field == 0x38 ||
+        #                                        qualifier_field == 0x39 );
+        #        0x40 -> object_size8: uint8 &check(qualifier_field == 0x4B);
+        #        0x50 -> object_size16: uint16 &check(qualifier_field == 0x5B);
+        #        0x60 -> object_size32: uint32 &check(qualifier_field == 0x6B);
+	# 	default -> unknownprefix: empty;
+        #};
+	prefix: Prefix_Type(qualifier_field);
 	data: case (object_type_field) of {
 	# device attributes g0
 		0x00D3 -> attrib211: Attrib_Common;
@@ -270,10 +311,12 @@ type Request_Data_Object(function_code: uint8, qualifier_field: uint8, object_ty
 		0x4602 -> file_control_auth: File_Control_Auth_Wrap(function_code); 
 		0x4603 -> file_control_cmd: File_Control_Cmd &check( file_control_cmd.op_mode == 0 || file_control_cmd.op_mode == 1 || 
 							  file_control_cmd.op_mode == 2 || file_control_cmd.op_mode == 3 );
-		0x4604 -> file_control_cmd_status: File_Control_Cmd_Status_Wrap(function_code);  # example shown in P66
-		0x4605 -> file_trans: File_Transport;
-		0x4606 -> file_trans_status: File_Transport_Status;	
-		0x4607 -> file_desc: File_Desc_Wrap(function_code);
+		#0x4604 -> file_control_cmd_status: File_Control_Cmd_Status_Wrap(function_code, prefix.prefix_value);  # example shown in P66
+		0x4604 -> file_control_cmd_status: File_Control_Cmd_Status(prefix.prefix_value);  # example shown in P66
+		0x4605 -> file_trans: File_Transport(prefix.prefix_value);
+		0x4606 -> file_trans_status: File_Transport_Status(prefix.prefix_value);	
+		#0x4607 -> file_desc: File_Desc_Wrap(function_code);
+		0x4607 -> file_desc: File_Desc;
 	
 	# internal indication g80
 		0x5001 -> iin: uint16;
@@ -304,7 +347,8 @@ type Request_Data_Object(function_code: uint8, qualifier_field: uint8, object_ty
 
 
 	# application identification object g90
-		0x5A01 -> app_id: App_Id(qualifier_field, object_size16);
+		#0x5A01 -> app_id: App_Id(qualifier_field, object_size16);
+		#0x5A01 -> app_id: App_Id(qualifier_field, prefix.prefix_value);
 	
 	# status of request operation g91
 		0x5b01 -> activate_conf: ActivateConf;
@@ -318,13 +362,13 @@ type Request_Data_Object(function_code: uint8, qualifier_field: uint8, object_ty
 		0x6601 -> unsigned_integer: uint8;
 
 	# authentication challenge g120
-		0x7801 -> challenge: AuthChallenge(object_size16); 
-		0x7802 -> reply: AuthRely(object_size16); 
-		0x7803 -> aggrRequest: AuthAggrRequest(object_size16); 
+		0x7801 -> challenge: AuthChallenge(prefix.prefix_value); 
+		0x7802 -> reply: AuthRely(prefix.prefix_value); 
+		0x7803 -> aggrRequest: AuthAggrRequest(prefix.prefix_value); 
 		0x7804 -> seesionKeyRequest: uint8; 
-		0x7805 -> status: AuthSessionKeyStatus(object_size16); 
-		0x7806 -> keyChange: AuthSessionKeyChange(object_size16); 
-		0x7807 -> error: AuthError(object_size16); 
+		0x7805 -> status: AuthSessionKeyStatus(prefix.prefix_value); 
+		0x7806 -> keyChange: AuthSessionKeyChange(prefix.prefix_value); 
+		0x7807 -> error: AuthError(prefix.prefix_value); 
 
 
 
@@ -335,30 +379,31 @@ type Request_Data_Object(function_code: uint8, qualifier_field: uint8, object_ty
 
 
 type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_type_field: uint16) = record {
-	prefix: case (qualifier_field & 0xf0 ) of {
-		0x00 -> none: empty &check(qualifier_field == 0x01 ||
-						qualifier_field == 0x02 ||
-						qualifier_field == 0x03 ||
-						qualifier_field == 0x04 ||
-						qualifier_field == 0x05 ||	
-						qualifier_field == 0x06 ||
-						qualifier_field == 0x07 ||
-						qualifier_field == 0x08 ||
-						qualifier_field == 0x09 );
-		0x10 -> prefix8: uint8 &check(qualifier_field == 0x17 || 
-						qualifier_field == 0x18 ||
-						qualifier_field == 0x19 );
-		0x20 -> prefix16: uint16 &check(qualifier_field == 0x27 ||
-                                                qualifier_field == 0x28 ||
-                                                qualifier_field == 0x29 );
-		0x30 -> prefix32: uint32 &check(qualifier_field == 0x37 ||
-                                                qualifier_field == 0x38 ||
-                                                qualifier_field == 0x39 );
-		0x40 -> object_size8: uint8 &check(qualifier_field == 0x4B);
-		0x50 -> object_size16: uint16 &check(qualifier_field == 0x5B);
-		0x60 -> object_size32: uint32 &check(qualifier_field == 0x6B);
-		default -> unknownprefix: empty;
-	};
+	#prefix: case (qualifier_field & 0xf0 ) of {
+	#	0x00 -> none: empty &check(qualifier_field == 0x01 ||
+	#					qualifier_field == 0x02 ||
+	#					qualifier_field == 0x03 ||
+	#					qualifier_field == 0x04 ||
+	#					qualifier_field == 0x05 ||	
+	#					qualifier_field == 0x06 ||
+	#					qualifier_field == 0x07 ||
+	#					qualifier_field == 0x08 ||
+	#					qualifier_field == 0x09 );
+	#	0x10 -> prefix8: uint8 &check(qualifier_field == 0x17 || 
+	#					qualifier_field == 0x18 ||
+	#					qualifier_field == 0x19 );
+	#	0x20 -> prefix16: uint16 &check(qualifier_field == 0x27 ||
+         #                                       qualifier_field == 0x28 ||
+          #                                      qualifier_field == 0x29 );
+	#	0x30 -> prefix32: uint32 &check(qualifier_field == 0x37 ||
+        #                                        qualifier_field == 0x38 ||
+        #                                        qualifier_field == 0x39 );
+	#	0x40 -> object_size8: uint8 &check(qualifier_field == 0x4B);
+	#	0x50 -> object_size16: uint16 &check(qualifier_field == 0x5B);
+	#	0x60 -> object_size32: uint32 &check(qualifier_field == 0x6B);
+	#	default -> unknownprefix: empty;
+	#};
+	prefix: Prefix_Type(qualifier_field);
 	data: case (object_type_field) of {
 	# device attributes g0
 		0x00D3 -> attrib211: Attrib_Common;
@@ -578,8 +623,13 @@ type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_t
 		0x4603 -> file_control_cmd: File_Control_Cmd &check(file_control_cmd.name_size == 0 && 
 							( file_control_cmd.op_mode == 0 || file_control_cmd.op_mode == 1 || 
 							  file_control_cmd.op_mode == 2 || file_control_cmd.op_mode == 3) );
-		0x4604 -> file_control_cmd_status: File_Control_Cmd_Status_Wrap(function_code);
-	
+		#0x4604 -> file_control_cmd_status: File_Control_Cmd_Status_Wrap(function_code, prefix.prefix_value);
+		0x4604 -> file_control_cmd_status: File_Control_Cmd_Status(prefix.prefix_value);
+		0x4605 -> file_trans: File_Transport(prefix.prefix_value);
+		0x4606 -> file_trans_status: File_Transport_Status(prefix.prefix_value);	
+		#0x4607 -> file_desc: File_Desc_Wrap(function_code);
+		0x4607 -> file_desc: File_Desc;
+
 	# internal indication g80
 		0x5001 -> iin: uint16;
 	# device storage g81
@@ -618,13 +668,13 @@ type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_t
 		0x6601 -> unsigned_integer: uint8;
 
 	# authentication challenge g120
-		0x7801 -> challenge: AuthChallenge(object_size16); 
-		0x7802 -> reply: AuthRely(object_size16); 
-		0x7803 -> aggrRequest: AuthAggrRequest(object_size16); 
+		0x7801 -> challenge: AuthChallenge(prefix.prefix_value); 
+		0x7802 -> reply: AuthRely(prefix.prefix_value); 
+		0x7803 -> aggrRequest: AuthAggrRequest(prefix.prefix_value); 
 		0x7804 -> seesionKeyRequest: uint8; 
-		0x7805 -> status: AuthSessionKeyStatus(object_size16); 
-		0x7806 -> keyChange: AuthSessionKeyChange(object_size16); 
-		0x7807 -> error: AuthError(object_size16); 
+		0x7805 -> status: AuthSessionKeyStatus(prefix.prefix_value); 
+		0x7806 -> keyChange: AuthSessionKeyChange(prefix.prefix_value); 
+		0x7807 -> error: AuthError(prefix.prefix_value); 
 
 		#default -> unkonwndata: Debug_Byte &check( T ); 
 		default -> unmatched: Default_Wrap(object_type_field);
@@ -638,7 +688,7 @@ type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_t
 		0x0a02 -> bowflag;
 		default -> 0xff;		
 	};
-  }
+  }	
 ;
 
 
@@ -1195,39 +1245,46 @@ type File_Control_Cmd = record {
 	file_name: bytestring &length = name_size;
 } &byteorder = littleendian;
 # g70v4
-type File_Control_Cmd_Status_Wrap(function_code: uint8) = record{
+type File_Control_Cmd_Status_Wrap(function_code: uint8, obj_size: uint32) = record{
 	data_obj: case (function_code) of {
-		ABORT_FILE -> abort: File_Control_Cmd_Status &check(abort.file_size == 0 && abort.max_block_size ==0 && abort.status_code ==0 );
-		RESPONSE -> fc_cmd_status: File_Control_Cmd_Status;
+		ABORT_FILE -> abort: File_Control_Cmd_Status(obj_size) &check(abort.file_size == 0 && abort.max_block_size ==0 && abort.status_code ==0 );
+		RESPONSE -> fc_cmd_status: File_Control_Cmd_Status(obj_size);
 		default -> null: empty;
 	};
 }; 
-type File_Control_Cmd_Status = record {
+type File_Control_Cmd_Status(obj_size: uint32) = record {
 	file_handle: uint32;
 	file_size: uint32;
 	max_block_size: uint16;
 	req_id: uint16 ; 
 	status_code: uint8;
-	opt_text: bytestring &restofdata;
+	#opt_text: bytestring &restofdata;
+	opt_text: bytestring &length = (obj_size - 8 - 4 - 1);
 } &byteorder = littleendian;
 # g70v5
-type File_Transport = record {
+type File_Transport(obj_size: uint32) = record {
 	file_handle: uint32;
 	block_num: uint32;
-	file_data: bytestring &restofdata;
+	#file_data: bytestring &restofdata;
+	file_data: bytestring &length = (obj_size - 8);
 } &byteorder = littleendian;
 # g70v6
-type File_Transport_Status = record {
+type File_Transport_Status(obj_size: uint32) = record {
 	file_handle: uint32;
 	block_num: uint32;
 	status: uint8;
-	file_data: bytestring &restofdata;
+	#file_data: bytestring &restofdata;
+	opt_text: bytestring &length = (obj_size - 4 - 4 - 1);
 } &byteorder = littleendian;
 # g70v7
 type File_Desc_Wrap(function_code: uint8) = record {
 	data: case(function_code) of {
-		GET_FILE_INFO -> get_file_info: File_Desc &check(get_file_info.type ==0 && get_file_info.f_size == 0 && get_file_info.time_create_low == 0 && get_file_info.time_create_high == 0
-									 && get_file_info.permission == 0);
+		GET_FILE_INFO -> get_file_info: File_Desc &check(get_file_info.type ==0 && 
+								get_file_info.f_size == 0 && 
+								get_file_info.time_create_low == 0 && 
+								get_file_info.time_create_high == 0 && 
+								get_file_info.permission == 0);
+		default -> null: empty;
 	};
 } &byteorder = littleendian;
 type File_Desc = record {

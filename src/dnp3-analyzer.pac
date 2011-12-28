@@ -92,6 +92,18 @@ flow Dnp3_Flow(is_orig: bool) {
 
                return true;
                %}
+	function get_dnp3_object_prefix(prefix_value: uint32): bool
+	       %{
+               if ( ::dnp3_object_prefix )
+                       {
+                       BifEvent::generate_dnp3_object_prefix(
+                               connection()->bro_analyzer(),
+                               connection()->bro_analyzer()->Conn(),
+                               is_orig(), prefix_value);
+                       }
+
+               return true;
+               %}
 	function get_dnp3_response_data_object(data_value: uint8): bool
                %{
                if ( ::dnp3_response_data_object )
@@ -693,6 +705,11 @@ refine typeattr Dnp3_Application_Response_Header += &let {
 refine typeattr Object_Header += &let {
        process_request: bool =  $context.flow.get_dnp3_object_header(object_type_field, qualifier_field, number_of_item, rf_value_low, rf_value_high);
 };
+
+refine typeattr Prefix_Type += &let {
+       prefix_called: bool =  $context.flow.get_dnp3_object_prefix(prefix_value);
+};
+
 refine typeattr Response_Data_Object += &let {
        process_request: bool =  $context.flow.get_dnp3_response_data_object(data_value);
 };

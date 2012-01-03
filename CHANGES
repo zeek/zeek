@@ -1,4 +1,8 @@
 
+2.0-beta-155 | 2012-01-03 15:42:32 -0800
+
+  * Remove dead code related to record type inheritance. (Jon Siwek)
+
 2.0-beta-152 | 2012-01-03 14:51:34 -0800
 
   * Notices now record the transport-layer protocol. (Bernhard Amann)

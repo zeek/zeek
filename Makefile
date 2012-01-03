@@ -14,7 +14,7 @@ HAVE_MODULES=git submodule | grep -v cmake >/dev/null
 all: configured
 	$(MAKE) -C $(BUILD) $@
 
-install: configured
+install: configured all
 	$(MAKE) -C $(BUILD) $@
 
 install-aux: configured

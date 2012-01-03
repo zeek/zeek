@@ -1,4 +1,12 @@
 
+2.0-beta-150 | 2012-01-03 14:42:45 -0800
+
+  * CMake 2.6 top-level 'install' target compat. Fixes #729. (Jon Siwek)
+
+  * Minor fixes to test process. Addresses #298.
+    
+  * Increase timeout interval of communication-related btests. (Jon Siwek)
+
 2.0-beta-145 | 2011-12-19 11:37:15 -0800
 
   * Empty fields are now logged as "(empty)" by default. (Robin

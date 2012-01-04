@@ -14,10 +14,11 @@ before you begin:
 
     * OpenSSL (headers and libraries)   http://www.openssl.org
 
-    * Libmagic  For identifying file types (e.g., in FTP transfers).
+    * SWIG                              http://www.swig.org
 
-    * Libz      For decompressing HTTP bodies by the HTTP analyzer, and for
-                compressed Bro-to-Bro communication.
+    * Libmagic
+
+    * Libz
 
 Bro can make uses of some optional libraries if they are found at
 installation time:
@@ -31,6 +32,7 @@ already come preinstalled:
     * Bison (GNU Parser Generator)
     * Flex  (Fast Lexical Analyzer)
     * Perl  (Used only during the Bro build process)
+
 
 Installation
 ============
@@ -69,8 +71,10 @@ Running Bro
 ===========
 
 Bro is a complex program and it takes a bit of time to get familiar
-with it.  A good place for newcomers to start is the
-:doc:`quick start guide <quickstart>`.
+with it.  A good place for newcomers to start is the Quickstart Guide at
+
+    http://www.bro-ids.org/documentation/quickstart.bro.html
+
 
 For developers that wish to run Bro directly from the ``build/``
 directory (i.e., without performing ``make install``), they will have

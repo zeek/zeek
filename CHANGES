@@ -1,4 +1,13 @@
 
+2.0-beta-169 | 2012-01-04 12:44:39 -0800
+
+  * Tuning the pretty-printed alarm mails, which now include the
+    covered time range into the subject. (Robin Sommer)
+
+  * Adding top-level "test" target to Makefile. (Robin Sommer)
+    
+  * Adding SWIG as dependency to INSTALL. (Robin Sommer)
+    
 2.0-beta-155 | 2012-01-03 15:42:32 -0800
 
   * Remove dead code related to record type inheritance. (Jon Siwek)

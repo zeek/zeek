@@ -279,14 +279,13 @@ event ssh_server_version%(c: connection, version: string%);
 
 event ssl_client_hello%(c: connection, version: count, possible_ts: time, session_id: string, ciphers: count_set%);
 event ssl_server_hello%(c: connection, version: count, possible_ts: time, session_id: string, cipher: count, comp_method: count%);
-event ssl_extension%(c: connection, code: count, val: string%);
-event ssl_session_ticket_handshake%(c: connection, ticket_lifetime_hint: count, ticket: string%);
+event ssl_extension%(c: connection, is_orig: bool, code: count, val: string%);
+event ssl_alert%(c: connection, is_orig: bool, level: count, desc: count%);
 event ssl_established%(c: connection%);
-event ssl_alert%(c: connection, level: count, desc: count%);
 
-event x509_certificate%(c: connection, cert: X509, is_server: bool, chain_idx: count, chain_len: count, der_cert: string%);
-event x509_extension%(c: connection, data: string%);
-event x509_error%(c: connection, err: count%);
+event x509_certificate%(c: connection, is_orig: bool, cert: X509, chain_idx: count, chain_len: count, der_cert: string%);
+event x509_extension%(c: connection, is_orig: bool, data: string%);
+event x509_error%(c: connection, is_orig: bool, err: count%);
 
 event stp_create_endp%(c: connection, e: int, is_orig: bool%);
 event stp_resume_endp%(e: int%);
@@ -444,6 +443,29 @@ event remote_state_inconsistency%(operation: string, id: string,
 
 # Generated for communication log message.
 event remote_log%(level: count, src: count, msg: string%);
+
+## Generated for communication log messages. While this event is
+## intended primarily for use by Bro's communication framework, it can also trigger
+## additional code if helpful.  This event is equivalent to
+## :bro:see:`remote_log` except the message is with respect to a certain peer.
+##
+## p: A record describing the remote peer.
+##
+## level: The log level, which is either :bro:enum:`REMOTE_LOG_INFO` or
+##        :bro:enum:`REMOTE_LOG_ERROR`.
+##
+## src: The component of the comminication system that logged the message.
+##      Currently, this will be one of :bro:enum:`REMOTE_SRC_CHILD` (Bro's
+##      child process), :bro:enum:`REMOTE_SRC_PARENT` (Bro's main process), or
+##      :bro:enum:`REMOTE_SRC_SCRIPT` (the script level).
+##
+## msg: The message logged.
+##
+## .. bro:see:: remote_capture_filter remote_connection_closed remote_connection_error
+##    remote_connection_established remote_connection_handshake_done
+##    remote_event_registered  remote_pong remote_state_access_performed
+##    remote_state_inconsistency print_hook remote_log
+event remote_log_peer%(p: event_peer, level: count, src: count, msg: string%);
 
 # Generated when a remote peer has answered to our ping.
 event remote_pong%(p: event_peer, seq: count,

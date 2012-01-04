@@ -7,8 +7,8 @@ example.bro
 
 Overview
 --------
-This is an example script that demonstrates how to document.  Comments
-of the form ``##!`` are for the script summary.  The contents of
+This is an example script that demonstrates documentation features.
+Comments of the form ``##!`` are for the script summary.  The contents of
 these comments are transferred directly into the auto-generated
 `reStructuredText <http://docutils.sourceforge.net/rst.html>`_
 (reST) document's summary section.
@@ -34,7 +34,7 @@ Options
 ============================================================================ ======================================
 :bro:id:`Example::an_option`: :bro:type:`set` :bro:attr:`&redef`             add documentation for "an_option" here
 
-:bro:id:`Example::option_with_init`: :bro:type:`interval` :bro:attr:`&redef`
+:bro:id:`Example::option_with_init`: :bro:type:`interval` :bro:attr:`&redef` More docs can be added here.
 ============================================================================ ======================================
 
 State Variables
@@ -128,6 +128,8 @@ Options
    :Attributes: :bro:attr:`&redef`
    :Default: ``10.0 msecs``
 
+   More docs can be added here.
+
 State Variables
 ~~~~~~~~~~~~~~~
 .. bro:id:: Example::a_var
@@ -217,6 +219,7 @@ Events
 
    Summarize "an_event" here.
    Give more details about "an_event" here.
+   Example::an_event should not be confused as a parameter.
    
    :param name: describe the argument here
 
@@ -281,7 +284,7 @@ Redefinitions
 
 Port Analysis
 -------------
-:ref:`More Information <common_port_analysis_doc>`
+Loading this script makes the following changes to :bro:see:`dpd_config`.
 
 SSL::
 
@@ -292,7 +295,7 @@ SSL::
 
 Packet Filter
 -------------
-:ref:`More Information <common_packet_filter_doc>`
+Loading this script makes the following changes to :bro:see:`capture_filters`.
 
 Filters added::
 

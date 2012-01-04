@@ -7,9 +7,12 @@
 @load base/frameworks/notice
 @load base/protocols/http
 
+module HTTP;
+
 export {
 	redef enum Notice::Type += { 
-		## If the MD5 sum of a file transferred over HTTP 
+		## The MD5 sum of a file transferred over HTTP matched in the
+		## malware hash registry.
 		Malware_Hash_Registry_Match
 	};
 }

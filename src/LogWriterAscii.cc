@@ -6,27 +6,6 @@
 #include "LogWriterAscii.h"
 #include "NetVar.h"
 
-/**
- * Takes a string, escapes each character into its equivalent hex code (\x##), and
- * returns a string containing all escaped values.
- *
- * @param str string to escape
- * @return A std::string containing a list of escaped hex values of the form \x##
- */
-static string get_escaped_string(const std::string& str)
-{
-	char tbuf[16];
-	string esc = "";
-
-	for ( size_t i = 0; i < str.length(); ++i )
-		{
-		snprintf(tbuf, sizeof(tbuf), "\\x%02x", str[i]);
-		esc += tbuf;
-		}
-
-	return esc;
-}
-
 LogWriterAscii::LogWriterAscii()
 	{
 	file = 0;
@@ -59,7 +38,8 @@ LogWriterAscii::LogWriterAscii()
 	memcpy(header_prefix, BifConst::LogAscii::header_prefix->Bytes(),
 	       header_prefix_len);
 
-	desc.SetEscape(separator, separator_len);
+	desc.EnableEscaping();
+	desc.AddEscapeSequence(separator, separator_len);
 	}
 
 LogWriterAscii::~LogWriterAscii()
@@ -88,7 +68,7 @@ bool LogWriterAscii::DoInit(string path, int num_fields,
 	if ( output_to_stdout )
 		path = "/dev/stdout";
 
-	fname = IsSpecial(path) ? path : path + ".log";
+	fname = IsSpecial(path) ? path : path + "." + LogExt();
 
 	if ( ! (file = fopen(fname.c_str(), "w")) )
 		{
@@ -102,13 +82,19 @@ bool LogWriterAscii::DoInit(string path, int num_fields,
 		{
 		string str = string(header_prefix, header_prefix_len)
 			+ "separator " // Always use space as separator here.
-			+ get_escaped_string(string(separator, separator_len))
+			+ get_escaped_string(string(separator, separator_len), false)
 			+ "\n";
 
 		if( fwrite(str.c_str(), str.length(), 1, file) != 1 )
 			goto write_error;
 
-		if ( ! WriteHeaderField("path", path) )
+		if ( ! (WriteHeaderField("set_separator", get_escaped_string(
+		            string(set_separator, set_separator_len), false)) &&
+		        WriteHeaderField("empty_field", get_escaped_string(
+		            string(empty_field, empty_field_len), false)) &&
+		        WriteHeaderField("unset_field", get_escaped_string(
+		            string(unset_field, unset_field_len), false)) &&
+		        WriteHeaderField("path", get_escaped_string(path, false))) )
 			goto write_error;
 
 		string names;
@@ -125,6 +111,12 @@ bool LogWriterAscii::DoInit(string path, int num_fields,
 			const LogField* field = fields[i];
 			names += field->name;
 			types += type_name(field->type);
+			if ( (field->type == TYPE_TABLE) || (field->type == TYPE_VECTOR) )
+				{
+					types += "[";
+					types += type_name(field->subtype);
+					types += "]";
+				}
 			}
 
 		if ( ! (WriteHeaderField("fields", names)
@@ -200,10 +192,33 @@ bool LogWriterAscii::DoWriteOne(ODesc* desc, LogVal* val, const LogField* field)
 	case TYPE_FUNC:
 		{
 		int size = val->val.string_val->size();
-		if ( size )
-			desc->AddN(val->val.string_val->data(), val->val.string_val->size());
-		else
+		const char* data = val->val.string_val->data();
+
+		if ( ! size )
+			{
 			desc->AddN(empty_field, empty_field_len);
+			break;
+			}
+
+		if ( size == unset_field_len && memcmp(data, unset_field, size) == 0 )
+			{
+			// The value we'd write out would match exactly the
+			// place-holder we use for unset optional fields. We
+			// escape the first character so that the output
+			// won't be ambigious.
+			static const char hex_chars[] = "0123456789abcdef";
+			char hex[6] = "\\x00";
+			hex[2] = hex_chars[((*data) & 0xf0) >> 4];
+			hex[3] = hex_chars[(*data) & 0x0f];
+			desc->AddRaw(hex, 4);
+
+			++data;
+			--size;
+			}
+
+		if ( size )
+			desc->AddN(data, size);
+
 		break;
 		}
 
@@ -215,14 +230,19 @@ bool LogWriterAscii::DoWriteOne(ODesc* desc, LogVal* val, const LogField* field)
 			break;
 			}
 
+		desc->AddEscapeSequence(set_separator, set_separator_len);
 		for ( int j = 0; j < val->val.set_val.size; j++ )
 			{
 			if ( j > 0 )
-				desc->AddN(set_separator, set_separator_len);
+				desc->AddRaw(set_separator, set_separator_len);
 
 			if ( ! DoWriteOne(desc, val->val.set_val.vals[j], field) )
+				{
+				desc->RemoveEscapeSequence(set_separator, set_separator_len);
 				return false;
+				}
 			}
+		desc->RemoveEscapeSequence(set_separator, set_separator_len);
 
 		break;
 		}
@@ -235,14 +255,19 @@ bool LogWriterAscii::DoWriteOne(ODesc* desc, LogVal* val, const LogField* field)
 			break;
 			}
 
+		desc->AddEscapeSequence(set_separator, set_separator_len);
 		for ( int j = 0; j < val->val.vector_val.size; j++ )
 			{
 			if ( j > 0 )
-				desc->AddN(set_separator, set_separator_len);
+				desc->AddRaw(set_separator, set_separator_len);
 
 			if ( ! DoWriteOne(desc, val->val.vector_val.vals[j], field) )
+				{
+				desc->RemoveEscapeSequence(set_separator, set_separator_len);
 				return false;
+				}
 			}
+		desc->RemoveEscapeSequence(set_separator, set_separator_len);
 
 		break;
 		}
@@ -297,7 +322,7 @@ bool LogWriterAscii::DoRotate(string rotated_path, double open,
 	fclose(file);
 	file = 0;
 
-	string nname = rotated_path + ".log";
+	string nname = rotated_path + "." + LogExt();
 	rename(fname.c_str(), nname.c_str());
 
 	if ( ! FinishedRotation(nname, fname, open, close, terminating) )
@@ -315,4 +340,9 @@ bool LogWriterAscii::DoSetBuf(bool enabled)
 	return true;
 	}
 
-
+string LogWriterAscii::LogExt()
+	{
+	const char* ext = getenv("BRO_LOG_SUFFIX");
+	if ( ! ext ) ext = "log";
+	return ext;
+	}

@@ -215,14 +215,16 @@ void BroDoc::WriteDocFile() const
 	if ( ! port_analysis.empty() )
 		{
 		WriteSectionHeading("Port Analysis", '-');
-		WriteToDoc(":ref:`More Information <common_port_analysis_doc>`\n\n");
+		WriteToDoc("Loading this script makes the following changes to "
+		           ":bro:see:`dpd_config`.\n\n");
 		WriteStringList("%s", port_analysis);
 		}
 
 	if ( ! packet_filter.empty() )
 		{
 		WriteSectionHeading("Packet Filter", '-');
-		WriteToDoc(":ref:`More Information <common_packet_filter_doc>`\n\n");
+		WriteToDoc("Loading this script makes the following changes to "
+		           ":bro:see:`capture_filters`.\n\n");
 		WriteToDoc("Filters added::\n\n");
 		WriteToDoc("%s\n", packet_filter.c_str());
 		}

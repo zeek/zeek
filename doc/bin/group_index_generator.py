@@ -49,6 +49,7 @@ with open(group_list, 'r') as f_group_list:
                 if not os.path.exists(os.path.dirname(group_file)):
                     os.makedirs(os.path.dirname(group_file))
                 with open(group_file, 'w') as f_group_file:
+                    f_group_file.write(":orphan:\n\n")
                     title = "Package Index: %s\n" % os.path.dirname(group)
                     f_group_file.write(title);
                     for n in range(len(title)):

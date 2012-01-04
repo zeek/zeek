@@ -130,6 +130,13 @@ event remote_log(level: count, src: count, msg: string)
 	do_script_log_common(level, src, msg);
 	}
 
+# This is a core generated event.
+event remote_log_peer(p: event_peer, level: count, src: count, msg: string)
+	{
+	local rmsg = fmt("[#%d/%s:%d] %s", p$id, p$host, p$p, msg);
+	do_script_log_common(level, src, rmsg);
+	}
+
 function do_script_log(p: event_peer, msg: string)
 	{
 	do_script_log_common(REMOTE_LOG_INFO, REMOTE_SRC_SCRIPT, msg);

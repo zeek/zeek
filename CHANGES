@@ -1,4 +1,14 @@
 
+2.0-beta-174 | 2012-01-04 12:47:10 -0800
+
+  * SSL improvements. (Seth Hall)
+    
+    - Added the ssl_session_ticket_handshake event back.
+
+    - Fixed a few bugs.
+      
+    - Removed the SSLv2.cc file since it's not used.
+      
 2.0-beta-169 | 2012-01-04 12:44:39 -0800
 
   * Tuning the pretty-printed alarm mails, which now include the

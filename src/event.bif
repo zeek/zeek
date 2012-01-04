@@ -279,6 +279,7 @@ event ssh_server_version%(c: connection, version: string%);
 
 event ssl_client_hello%(c: connection, version: count, possible_ts: time, session_id: string, ciphers: count_set%);
 event ssl_server_hello%(c: connection, version: count, possible_ts: time, session_id: string, cipher: count, comp_method: count%);
+event ssl_session_ticket_handshake%(c: connection, ticket_lifetime_hint: count, ticket: string%);
 event ssl_extension%(c: connection, is_orig: bool, code: count, val: string%);
 event ssl_alert%(c: connection, is_orig: bool, level: count, desc: count%);
 event ssl_established%(c: connection%);

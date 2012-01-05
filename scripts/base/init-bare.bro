@@ -1505,6 +1505,9 @@ const skip_http_data = F &redef;
 ## UDP tunnels. See also: udp_tunnel_port, policy/udp-tunnel.bro.
 const parse_udp_tunnels = F &redef;
 
+## Number of bytes per packet to capture from live interfaces.
+const snaplen = 8192 &redef;
+
 # Load the logging framework here because it uses fairly deep integration with 
 # BiFs and script-land defined types.
 @load base/frameworks/logging

@@ -12,7 +12,7 @@ export {
 	const set_separator = "," &redef;
 
 	## String to use for empty fields.
-	const empty_field = "-" &redef;
+	const empty_field = "(empty)" &redef;
 
 	## String to use for an unset &optional field.
 	const unset_field = "-" &redef;

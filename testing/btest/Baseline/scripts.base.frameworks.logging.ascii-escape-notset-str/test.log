@@ -1,5 +1,8 @@
 #separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
 #path	test
 #fields	x	y	z
 #types	string	string	string
-\x2d	-	-
+\x2d	-	(empty)

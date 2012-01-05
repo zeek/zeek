@@ -1,4 +1,7 @@
 #separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
 #path	loaded_scripts
 #fields	name
 #types	string
@@ -15,6 +18,10 @@ scripts/base/init-bare.bro
     scripts/base/frameworks/logging/./postprocessors/__load__.bro
       scripts/base/frameworks/logging/./postprocessors/./scp.bro
     scripts/base/frameworks/logging/./writers/ascii.bro
+  scripts/base/frameworks/input/__load__.bro
+    scripts/base/frameworks/input/./main.bro
+      build/src/base/input.bif.bro
+    scripts/base/frameworks/input/./readers/ascii.bro
 scripts/base/init-default.bro
   scripts/base/utils/site.bro
     scripts/base/utils/./patterns.bro

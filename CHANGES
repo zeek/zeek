@@ -1,4 +1,39 @@
 
+2.0-beta-174 | 2012-01-04 12:47:10 -0800
+
+  * SSL improvements. (Seth Hall)
+    
+    - Added the ssl_session_ticket_handshake event back.
+
+    - Fixed a few bugs.
+      
+    - Removed the SSLv2.cc file since it's not used.
+      
+2.0-beta-169 | 2012-01-04 12:44:39 -0800
+
+  * Tuning the pretty-printed alarm mails, which now include the
+    covered time range into the subject. (Robin Sommer)
+
+  * Adding top-level "test" target to Makefile. (Robin Sommer)
+    
+  * Adding SWIG as dependency to INSTALL. (Robin Sommer)
+    
+2.0-beta-155 | 2012-01-03 15:42:32 -0800
+
+  * Remove dead code related to record type inheritance. (Jon Siwek)
+
+2.0-beta-152 | 2012-01-03 14:51:34 -0800
+
+  * Notices now record the transport-layer protocol. (Bernhard Amann)
+
+2.0-beta-150 | 2012-01-03 14:42:45 -0800
+
+  * CMake 2.6 top-level 'install' target compat. Fixes #729. (Jon Siwek)
+
+  * Minor fixes to test process. Addresses #298.
+    
+  * Increase timeout interval of communication-related btests. (Jon Siwek)
+
 2.0-beta-145 | 2011-12-19 11:37:15 -0800
 
   * Empty fields are now logged as "(empty)" by default. (Robin

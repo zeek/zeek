@@ -64,6 +64,10 @@ export {
 		conn:           connection     &optional;
 		iconn:          icmp_conn      &optional;
 
+		## The transport protocol. Filled automatically when either conn, iconn
+		## or p is specified.
+		proto:          transport_proto &log &optional;
+
 		## The :bro:enum:`Notice::Type` of the notice.
 		note:           Type           &log;
 		## The human readable message for the notice.
@@ -491,8 +495,12 @@ function apply_policy(n: Notice::Info)
 			n$p = n$id$resp_p;
 		}
 
+	if ( n?$p ) 
+		n$proto = get_port_transport_proto(n$p);
+
 	if ( n?$iconn )
 		{
+		n$proto = icmp;
 		if ( ! n?$src )
 			n$src = n$iconn$orig_h;
 		if ( ! n?$dst )

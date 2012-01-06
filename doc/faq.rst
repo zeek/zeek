@@ -28,6 +28,23 @@ Here are some pointers to more information:
   Lothar Braun et. al evaluates packet capture performance on
   commodity hardware
 
+Are there any gotchas regarding interface configuration for live capture?  Or why might I be seeing abnormally large packets much greater than interface MTU?
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Some NICs offload the reassembly of traffic into "superpackets" so that
+fewer packets are then passed up the stack (e.g. "TCP segmentation
+offload", or "generic segmentation offload").  The result is that the
+capturing application will observe packets much larger than the MTU size
+of the interface they were captured from and may also interfere with the
+maximum packet capture length, ``snaplen``, so it's a good idea to disable
+an interface's offloading features.
+
+You can use the ``ethtool`` program on Linux to view and disable
+offloading features of an interface.  See this page for more explicit
+directions:
+
+http://securityonion.blogspot.com/2011/10/when-is-full-packet-capture-not-full.html
+
 What does an error message like ``internal error: NB-DNS error`` mean?
 ---------------------------------------------------------------------------------------------------------------------------------
 

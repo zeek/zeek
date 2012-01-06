@@ -15,6 +15,8 @@
 #include <sys/ethernet.h>
 #elif defined(HAVE_NETINET_IF_ETHER_H)
 #include <netinet/if_ether.h>
+#elif defined(HAVE_NET_ETHERTYPES_H)
+#include <net/ethertypes.h>
 #endif
 
 #ifndef arp_pkthdr

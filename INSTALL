@@ -48,6 +48,12 @@ called ``build/``, using default build options. It then installs all
 required files into ``/usr/local/bro``, including the Bro binary in
 ``/usr/local/bro/bin/bro``.
 
+Note that the top-level Makefile may not work with OpenBSD's default
+make program, in which case you can either install the ``gmake``
+package and use it instead or first change into the ``build/``
+directory before doing either ``make`` or ``make install`` such that
+the CMake-generated Makefile's are used directly.
+
 You can specify a different installation directory with::
 
     ./configure --prefix=<dir>

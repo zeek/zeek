@@ -140,6 +140,9 @@ export {
 	
 	## Event to access metrics records as they are passed to the logging framework.
 	global log_metrics: event(rec: Info);
+	
+	## Type to store a table of metrics values.  Interal use only!
+	type MetricTable: table[Index] of count &default=0;
 }
 
 redef record Notice::Info += {
@@ -148,8 +151,6 @@ redef record Notice::Info += {
 
 global metric_filters: table[ID] of vector of Filter = table();
 global filter_store: table[ID, string] of Filter = table();
-
-type MetricTable: table[Index] of count &default=0;
 
 # This is indexed by metric ID and stream filter name.
 global store: table[ID, string] of MetricTable = table() &default=table();

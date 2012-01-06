@@ -4574,7 +4574,8 @@ event ssh_server_version%(c: connection, version: string%);
 ##          maps them to descriptive names.
 ##
 ## .. bro:see:: ssl_alert  ssl_established ssl_extension ssl_server_hello
-##    x509_certificate x509_error x509_extension ssl_max_cipherspec_size
+##    ssl_session_ticket_handshake x509_certificate x509_error x509_extension
+##    ssl_max_cipherspec_size
 event ssl_client_hello%(c: connection, version: count, possible_ts: time, session_id: string, ciphers: count_set%);
 
 ## Generated for an SSL/TLS servers's initial *hello* message. SSL/TLS sessions
@@ -4604,7 +4605,8 @@ event ssl_client_hello%(c: connection, version: count, possible_ts: time, sessio
 ##              standardized as part of the SSL/TLS protocol.
 ##
 ## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_extension
-##    x509_certificate x509_error x509_extension ssl_max_cipherspec_size
+##    ssl_session_ticket_handshake x509_certificate x509_error x509_extension
+##    ssl_max_cipherspec_size
 event ssl_server_hello%(c: connection, version: count, possible_ts: time, session_id: string, cipher: count, comp_method: count%);
 
 ## Generated for SSL/TLS extensions seen in an initial handshake.  SSL/TLS sessions
@@ -4623,7 +4625,7 @@ event ssl_server_hello%(c: connection, version: count, possible_ts: time, sessio
 ## val: The raw extension value that was sent in the message.
 ##
 ## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
-##    x509_certificate x509_error x509_extension
+##    ssl_session_ticket_handshake x509_certificate x509_error x509_extension
 event ssl_extension%(c: connection, is_orig: bool, code: count, val: string%);
 
 ## Generated at the end of an SSL/TLS handshake. SSL/TLS sessions start with
@@ -4638,7 +4640,7 @@ event ssl_extension%(c: connection, is_orig: bool, code: count, val: string%);
 ## c: The connection.
 ##
 ## .. bro:see:: ssl_alert ssl_client_hello  ssl_extension ssl_server_hello
-##    x509_certificate x509_error x509_extension
+##    ssl_session_ticket_handshake x509_certificate x509_error x509_extension
 event ssl_established%(c: connection%);
 
 ## Generated for SSL/TLS alert records. SSL/TLS sessions start with an  unencrypted
@@ -4661,8 +4663,27 @@ event ssl_established%(c: connection%);
 ##       defined as part of the SSL/TLS protocol.
 ##
 ## .. bro:see::  ssl_client_hello ssl_established ssl_extension ssl_server_hello
-##    x509_certificate x509_error x509_extension
+##    ssl_session_ticket_handshake x509_certificate x509_error x509_extension
 event ssl_alert%(c: connection, is_orig: bool, level: count, desc: count%);
+
+## Generated for SSL/TLS handshake. SSL/TLS sessions start with an  unencrypted
+## handshake, and Bro extracts as much information out of that as it can. This
+## event is raised when an SSL/TLS server passes session ticket to the client that
+## can later be used for resuming the session.
+## 
+## See `Wikipedia <http://en.wikipedia.org/wiki/Transport_Layer_Security>`__ for
+## more information about the SSL/TLS protocol.
+##
+## c: The connection.
+## 
+## ticket_lifetime_hint: A hint to the client indicating how long the ticket should
+##                       be valid. 
+## 
+## ticket: The raw ticket.
+##
+## .. bro:see::  ssl_client_hello ssl_established ssl_extension ssl_server_hello
+##    x509_certificate x509_error x509_extension ssl_alert
+event ssl_session_ticket_handshake%(c: connection, ticket_lifetime_hint: count, ticket: string%);
 
 ## Generated for x509 certificates seen in SSL/TLS connections. During the initial
 ## SSL/TLS handshake, certificates are exchanged in the clear. Bro raises this

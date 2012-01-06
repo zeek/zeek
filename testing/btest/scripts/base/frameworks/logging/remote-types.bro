@@ -1,7 +1,7 @@
 #
 # @TEST-EXEC: btest-bg-run sender bro --pseudo-realtime %INPUT ../sender.bro
 # @TEST-EXEC: btest-bg-run receiver bro --pseudo-realtime %INPUT ../receiver.bro
-# @TEST-EXEC: btest-bg-wait -k 1
+# @TEST-EXEC: btest-bg-wait -k 10
 # @TEST-EXEC: btest-diff receiver/test.log
 # @TEST-EXEC: cmp receiver/test.log sender/test.log
 

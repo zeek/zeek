@@ -121,7 +121,7 @@ protected:
 
 	// This will be increased whenever there is an incompatible change
 	// in the data format.
-	static const uint32 DATA_FORMAT_VERSION = 20;
+	static const uint32 DATA_FORMAT_VERSION = 21;
 
 	ChunkedIO* io;
 

@@ -97,7 +97,7 @@ extern char version[];
 char* command_line_policy = 0;
 vector<string> params;
 char* proc_status_file = 0;
-int snaplen = 65535;	// really want "capture entire packet"
+int snaplen = 0;	// this gets set from the scripting-layer's value
 
 int FLAGS_use_binpac = false;
 
@@ -145,7 +145,6 @@ void usage()
 	fprintf(stderr, "    -g|--dump-config               | dump current config into .state dir\n");
 	fprintf(stderr, "    -h|--help|-?                   | command line help\n");
 	fprintf(stderr, "    -i|--iface <interface>         | read from given interface\n");
-	fprintf(stderr, "    -l|--snaplen <snaplen>         | number of bytes per packet to capture from interfaces (default 65535)\n");
 	fprintf(stderr, "    -p|--prefix <prefix>           | add given prefix to policy file resolution\n");
 	fprintf(stderr, "    -r|--readfile <readfile>       | read from given tcpdump file\n");
 	fprintf(stderr, "    -y|--flowfile <file>[=<ident>] | read from given flow file\n");
@@ -372,7 +371,6 @@ int main(int argc, char** argv)
 		{"filter",		required_argument,	0,	'f'},
 		{"help",		no_argument,		0,	'h'},
 		{"iface",		required_argument,	0,	'i'},
-		{"snaplen",		required_argument,	0,	'l'},
 		{"doc-scripts",		no_argument,		0,	'Z'},
 		{"prefix",		required_argument,	0,	'p'},
 		{"readfile",		required_argument,	0,	'r'},
@@ -479,10 +477,6 @@ int main(int argc, char** argv)
 
 		case 'i':
 			interfaces.append(optarg);
-			break;
-
-		case 'l':
-			snaplen = atoi(optarg);
 			break;
 
 		case 'p':
@@ -832,6 +826,8 @@ int main(int argc, char** argv)
 			delete [] interfaces_str;
 			}
 		}
+
+	snaplen = internal_val("snaplen")->AsCount();
 
 	// Initialize the secondary path, if it's needed.
 	secondary_path = new SecondaryPath();

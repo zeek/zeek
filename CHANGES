@@ -1,4 +1,13 @@
 
+2.0-beta-177 | 2012-01-05 15:01:07 -0800
+
+  * Replace the --snaplen/-l command line option with a
+    scripting-layer option called "snaplen" (which can also be
+    redefined on the command line, e.g. `bro -i eth0 snaplen=65535`).
+
+  * Reduce snaplen default from 65535 to old default of 8192. Fixes
+    #720. (Jon Siwek)
+
 2.0-beta-174 | 2012-01-04 12:47:10 -0800
 
   * SSL improvements. (Seth Hall)

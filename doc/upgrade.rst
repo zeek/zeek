@@ -168,10 +168,6 @@ New Default Settings
   are loaded. See ``PacketFilter::all_packets`` for how to revert to old
   behavior.
 
-- By default, Bro now sets a libpcap snaplen of 65535. Depending on
-  the OS, this may have performance implications and you can use the
-  ``--snaplen`` option to change the value.
-  
 API Changes
 -----------
 

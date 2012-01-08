@@ -1,5 +1,5 @@
-##! This script take advantage of a few ways that installed plugin information
-##! leaks from web browsers.
+##! Detect browser plugins as they leak through requests to Omniture 
+##! advertising servers.
 
 @load base/protocols/http
 @load base/frameworks/software
@@ -13,6 +13,7 @@ export {
 	};
 	
 	redef enum Software::Type += {
+		## Identifier for browser plugins in the software framework.
 		BROWSER_PLUGIN
 	};
 }

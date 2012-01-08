@@ -16,7 +16,9 @@ export {
 	};
 	
 	redef enum Metrics::ID += {
+		## Metric to track SQL injection attackers.
 		SQLI_ATTACKER,
+		## Metrics to track SQL injection victims.
 		SQLI_VICTIM,
 	};
 
@@ -30,7 +32,7 @@ export {
 		COOKIE_SQLI,
 	};
 	
-	## This defines the threshold that determines if an SQL injection attack
+	## Defines the threshold that determines if an SQL injection attack
 	## is ongoing based on the number of requests that appear to be SQL 
 	## injection attacks.
 	const sqli_requests_threshold = 50 &redef;
@@ -40,7 +42,7 @@ export {
 	## At the end of each interval the counter is reset.
 	const sqli_requests_interval = 5min &redef;
 
-	## This regular expression is used to match URI based SQL injections
+	## Regular expression is used to match URI based SQL injections.
 	const match_sql_injection_uri = 
 		  /[\?&][^[:blank:]\x00-\x37\|]+?=[\-[:alnum:]%]+([[:blank:]\x00-\x37]|\/\*.*?\*\/)*['"]?([[:blank:]\x00-\x37]|\/\*.*?\*\/|\)?;)+.*?([hH][aA][vV][iI][nN][gG]|[uU][nN][iI][oO][nN]|[eE][xX][eE][cC]|[sS][eE][lL][eE][cC][tT]|[dD][eE][lL][eE][tT][eE]|[dD][rR][oO][pP]|[dD][eE][cC][lL][aA][rR][eE]|[cC][rR][eE][aA][tT][eE]|[iI][nN][sS][eE][rR][tT])([[:blank:]\x00-\x37]|\/\*.*?\*\/)+/
 		| /[\?&][^[:blank:]\x00-\x37\|]+?=[\-0-9%]+([[:blank:]\x00-\x37]|\/\*.*?\*\/)*['"]?([[:blank:]\x00-\x37]|\/\*.*?\*\/|\)?;)+([xX]?[oO][rR]|[nN]?[aA][nN][dD])([[:blank:]\x00-\x37]|\/\*.*?\*\/)+['"]?(([^a-zA-Z&]+)?=|[eE][xX][iI][sS][tT][sS])/

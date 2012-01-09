@@ -52,6 +52,19 @@ That often means that DNS is not set up correctly on the system
 running Bro. Try verifying from the command line that DNS lookups
 work, e.g., ``host www.google.com``.
 
+I am using OpenBSD and having problems installing Bro?
+------------------------------------------------------
+
+One potential issue is that the top-level Makefile may not work with
+OpenBSD's default make program, in which case you can either install
+the ``gmake`` package and use it instead or first change into the
+``build/`` directory before doing either ``make`` or ``make install``
+such that the CMake-generated Makefile's are used directly.
+
+Generally, please note that we do not regularly test OpenBSD builds.
+We appreciate any patches that improve Bro's support for this
+platform.
+
 
 Usage
 =====

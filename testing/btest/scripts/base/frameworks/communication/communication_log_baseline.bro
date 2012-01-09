@@ -1,7 +1,7 @@
 # 
 # @TEST-EXEC: btest-bg-run receiver bro -b ../receiver.bro
 # @TEST-EXEC: btest-bg-run sender   bro -b ../sender.bro
-# @TEST-EXEC: btest-bg-wait -k 2
+# @TEST-EXEC: btest-bg-wait -k 10
 #
 # Don't diff the receiver log just because port is always going to change
 # @TEST-EXEC: egrep -v 'pid|socket buffer size' sender/communication.log >send.log

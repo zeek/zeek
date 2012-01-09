@@ -2331,6 +2331,9 @@ const ignore_keep_alive_rexmit = F &redef;
 ## .. bro:see:: tunnel_port
 const parse_udp_tunnels = F &redef;
 
-# Load the logging framework here because it uses fairly deep integration with
+## Number of bytes per packet to capture from live interfaces.
+const snaplen = 8192 &redef;
+
+# Load the logging framework here because it uses fairly deep integration with 
 # BiFs and script-land defined types.
 @load base/frameworks/logging

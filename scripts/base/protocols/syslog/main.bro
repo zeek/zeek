@@ -8,6 +8,7 @@ export {
 	redef enum Log::ID += { LOG };
 	
 	type Info: record {
+		## Timestamp of when the syslog message was seen.
 		ts:        time            &log;
 		uid:       string          &log;
 		id:        conn_id         &log;

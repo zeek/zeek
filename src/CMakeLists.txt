@@ -209,6 +209,9 @@ binpac_target(ssl.pac
     ssl-defs.pac ssl-protocol.pac ssl-analyzer.pac)
 binpac_target(syslog.pac
     syslog-protocol.pac syslog-analyzer.pac)
+binpac_target(unified2.pac
+    unified2-file.pac unified2-analyzer.pac)
+
 
 ########################################################################
 ## bro target

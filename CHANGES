@@ -1,4 +1,13 @@
 
+2.0-beta-181 | 2012-01-08 20:49:04 -0800
+
+  * Add SFTP log postprocessor that transfers logs to remote hosts.
+    Addresses #737. (Jon Siwek)
+
+  * Add FAQ entry about disabling NIC offloading features. (Jon Siwek)
+    
+  * Add a file NEWS with release notes. (Robin Sommer)
+
 2.0-beta-177 | 2012-01-05 15:01:07 -0800
 
   * Replace the --snaplen/-l command line option with a

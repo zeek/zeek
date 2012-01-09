@@ -135,7 +135,7 @@ enum createmode_t %{
 	EXCLUSIVE = 2,
 %}
 
-# Decleare record types that we want to access from the event engine. These are
+# Declare record types that we want to access from the event engine. These are
 # defined in init-bare.bro.
 type info_t: record;
 type fattr_t: record;

@@ -1,4 +1,5 @@
-# Definitions of Bro built-in functions related to strings.
+##! Definitions of built-in functions related to string processing and
+##! manipulation.
 
 
 %%{ // C segment

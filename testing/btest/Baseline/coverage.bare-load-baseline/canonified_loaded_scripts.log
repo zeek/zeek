@@ -17,5 +17,6 @@ scripts/base/init-bare.bro
       build/src/base/logging.bif.bro
     scripts/base/frameworks/logging/./postprocessors/__load__.bro
       scripts/base/frameworks/logging/./postprocessors/./scp.bro
+      scripts/base/frameworks/logging/./postprocessors/./sftp.bro
     scripts/base/frameworks/logging/./writers/ascii.bro
 scripts/policy/misc/loaded-scripts.bro

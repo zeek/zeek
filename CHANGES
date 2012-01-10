@@ -1,4 +1,8 @@
 
+2.0-beta-185 | 2012-01-09 18:00:50 -0800
+
+  * Tweaks for OpenBSD support. (Jon Siwek)
+
 2.0-beta-181 | 2012-01-08 20:49:04 -0800
 
   * Add SFTP log postprocessor that transfers logs to remote hosts.

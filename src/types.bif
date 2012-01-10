@@ -1,3 +1,4 @@
+##! Set of predefined types used with built-in functions and events.
 
 enum dce_rpc_ptype %{
 	DCE_RPC_REQUEST,

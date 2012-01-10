@@ -1,4 +1,5 @@
-# Documentation and default values for these are located in policy/bro.init.
+##! Constants of used with built-in functions and events. Documented in
+##! :doc:`/scripts/base/init-bare`. 
 
 const ignore_keep_alive_rexmit: bool;
 const skip_http_data: bool;

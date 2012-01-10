@@ -1,4 +1,4 @@
-# Definitions of Bro built-in functions.
+##! Defines most of the built-in functions accessible to the scripting layer.
 
 %%{ // C segment
 #include <math.h>

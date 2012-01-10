@@ -78,7 +78,7 @@ export {
 		## or p is specified.
 		proto:          transport_proto &log &optional;
 
-		## The :bro:enum:`Notice::Type` of the notice.
+		## The :bro:type:`Notice::Type` of the notice.
 		note:           Type           &log;
 		## The human readable message for the notice.
 		msg:            string         &log &optional;

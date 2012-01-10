@@ -1,3 +1,5 @@
+##! Base SSL analysis script.
+
 @load ./consts
 
 module SSL;
@@ -6,6 +8,7 @@ export {
 	redef enum Log::ID += { LOG };
 
 	type Info: record {
+		## Time when the SSL connection began.
 		ts:               time             &log;
 		uid:              string           &log;
 		id:               conn_id          &log;

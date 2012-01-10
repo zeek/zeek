@@ -8,8 +8,10 @@
 module Known;
 
 export {
+	## The known-hosts logging stream identifier.
 	redef enum Log::ID += { HOSTS_LOG };
-	
+
+	## The record type which contains the column fields of the known-hosts log.
 	type HostsInfo: record {
 		## The timestamp at which the host was detected.
 		ts:      time &log;
@@ -19,7 +21,7 @@ export {
 	};
 	
 	## The hosts whose existence should be logged and tracked.
-	## Choices are: LOCAL_HOSTS, REMOTE_HOSTS, ALL_HOSTS, NO_HOSTS
+	## See :bro:type:`Host` for possible choices.
 	const host_tracking = LOCAL_HOSTS &redef;
 	
 	## The set of all known addresses to store for preventing duplicate 
@@ -28,7 +30,9 @@ export {
 	## Maintain the list of known hosts for 24 hours so that the existence
 	## of each individual address is logged each day.
 	global known_hosts: set[addr] &create_expire=1day &synchronized &redef;
-	
+
+	## An event that can be handled to access the :bro:type:`Known::HostsInfo`
+	## record as it is sent on to the logging framework.
 	global log_known_hosts: event(rec: HostsInfo);
 }
 

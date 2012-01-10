@@ -1,4 +1,11 @@
 
+2.0-beta-188 | 2012-01-10 09:49:29 -0800
+
+  * Change SFTP/SCP log rotators to use 4-digit year in filenames
+    Fixes #745. (Jon Siwek)
+
+  * Adding back the stats.bro file. Addresses #656. (Seth Hall)
+
 2.0-beta-185 | 2012-01-09 18:00:50 -0800
 
   * Tweaks for OpenBSD support. (Jon Siwek)

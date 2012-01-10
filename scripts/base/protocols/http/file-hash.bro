@@ -11,7 +11,8 @@ export {
 	};
 
 	redef record Info += {
-		## The MD5 sum for a file transferred over HTTP will be stored here.
+		## MD5 sum for a file transferred over HTTP calculated from the 
+		## response body.
 		md5:             string   &log &optional;
 		
 		## This value can be set per-transfer to determine per request
@@ -19,8 +20,8 @@ export {
 		## set to T at the time of or before the first chunk of body data.
 		calc_md5:        bool     &default=F;
 		
-		## This boolean value indicates if an MD5 sum is currently being 
-		## calculated for the current file transfer.
+		## Indicates if an MD5 sum is being calculated for the current 
+		## request/response pair.
 		calculating_md5: bool     &default=F;
 	};
 	

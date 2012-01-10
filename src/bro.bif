@@ -1,4 +1,8 @@
-##! Defines most of the built-in functions accessible to the scripting layer.
+##! A collection of built-in functions that implement a variety of things
+##! such as general programming algorithms, string processing, math functions,
+##! introspection, type conversion, file/directory manipulation, packet
+##! filtering, inter-process communication and controlling protocol analyzer
+##! behavior.
 
 %%{ // C segment
 #include <math.h>

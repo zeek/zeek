@@ -1,36 +1,38 @@
-##! This is the script that implements the core IRC analysis support.  It only
-##! logs a very limited subset of the IRC protocol by default.  The points
-##! that it logs at are NICK commands, USER commands, and JOIN commands.  It 
-##! log various bits of meta data as indicated in the :bro:type:`IRC::Info`
-##! record along with the command at the command arguments.
+##! Implements the core IRC analysis support.  The logging model is to log
+##! IRC commands along with the associated response and some additional 
+##! metadata about the connection if it's available.
 
 module IRC;
 
 export {
+	
 	redef enum Log::ID += { LOG };
 
-	type Tag: enum { 
-		EMPTY 
-	};
-
 	type Info: record {
+		## Timestamp when the command was seen.
 		ts:       time        &log;
 		uid:      string      &log;
 		id:       conn_id     &log;
+		## Nick name given for the connection.
 		nick:     string      &log &optional;
+		## User name given for the connection.
 		user:     string      &log &optional;
-		channels: set[string] &log &optional;
-		          
+		
+		## Command given by the client.
 		command:  string      &log &optional;
+		## Value for the command given by the client.
 		value:    string      &log &optional;
+		## Any additional data for the command.
 		addl:     string      &log &optional;
-		tags:     set[Tag]    &log;
 	};
 	
+	## Event that can be handled to access the IRC record as it is sent on 
+	## to the logging framework.
 	global irc_log: event(rec: Info);
 }
 
 redef record connection += {
+	## IRC session information.
 	irc:  Info &optional;
 };
 

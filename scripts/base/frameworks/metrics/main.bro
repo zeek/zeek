@@ -1,13 +1,16 @@
-##! This is the implementation of the metrics framework.
+##! The metrics framework provides a way to count and measure data.  
 
 @load base/frameworks/notice
 
 module Metrics;
 
 export {
+	## The metrics logging stream identifier.
 	redef enum Log::ID += { LOG };
 	
+	## Identifiers for metrics to collect.
 	type ID: enum {
+		## Blank placeholder value.
 		NOTHING,
 	};
 	
@@ -15,10 +18,13 @@ export {
 	## current value to the logging stream.
 	const default_break_interval = 15mins &redef;
 	
-	## This is the interval for how often notices will happen after they have
-	## already fired.
+	## This is the interval for how often threshold based notices will happen 
+	## after they have already fired.
 	const renotice_interval = 1hr &redef;
 	
+	## Represents a thing which is having metrics collected for it.  An instance
+	## of this record type and a :bro:type:`Metrics::ID` together represent a 
+	## single measurement.
 	type Index: record {
 		## Host is the value to which this metric applies.
 		host:         addr &optional;
@@ -37,17 +43,30 @@ export {
 		network:      subnet &optional;
 	} &log;
 	
+	## The record type that is used for logging metrics.
 	type Info: record {
+		## Timestamp at which the metric was "broken".
 		ts:           time   &log;
+		## What measurement the metric represents.
 		metric_id:    ID     &log;
+		## The name of the filter being logged.  :bro:type:`Metrics::ID` values
+		## can have multiple filters which represent different perspectives on
+		## the data so this is necessary to understand the value.
 		filter_name:  string &log;
+		## What the metric value applies to.
 		index:        Index  &log;
+		## The simple numeric value of the metric.
 		value:        count  &log;
 	};
 	
-	# TODO: configure a metrics filter logging stream to log the current
+    # TODO: configure a metrics filter logging stream to log the current
 	#       metrics configuration in case someone is looking through
 	#       old logs and the configuration has changed since then.
+	
+	## Filters define how the data from a metric is aggregated and handled.  
+	## Filters can be used to set how often the measurements are cut or "broken"
+	## and logged or how the data within them is aggregated.  It's also 
+	## possible to disable logging and use filters for thresholding.
 	type Filter: record {
 		## The :bro:type:`Metrics::ID` that this filter applies to.
 		id:                ID                      &optional;
@@ -62,7 +81,7 @@ export {
 		aggregation_mask:  count                   &optional;
 		## This is essentially a mapping table between addresses and subnets.
 		aggregation_table: table[subnet] of subnet &optional;
-		## The interval at which the metric should be "broken" and written
+		## The interval at which this filter should be "broken" and written
 		## to the logging stream.  The counters are also reset to zero at 
 		## this time so any threshold based detection needs to be set to a 
 		## number that should be expected to happen within this period.
@@ -79,25 +98,51 @@ export {
 		notice_threshold:  count                   &optional;
 		## A series of thresholds at which to generate notices.
 		notice_thresholds: vector of count         &optional;
-		## How often this notice should be raised for this metric index.  It 
+		## How often this notice should be raised for this filter.  It 
 		## will be generated everytime it crosses a threshold, but if the 
 		## $break_interval is set to 5mins and this is set to 1hr the notice
 		## only be generated once per hour even if something crosses the
 		## threshold in every break interval.
 		notice_freq:       interval                &optional;
 	};
-
-	type MetricTable: table[Index] of count &default=0;
 	
+	## Function to associate a metric filter with a metric ID.
+	## 
+	## id: The metric ID that the filter should be associated with.
+	##
+	## filter: The record representing the filter configuration.
 	global add_filter: function(id: ID, filter: Filter);
+	
+	## Add data into a :bro:type:`Metrics::ID`.  This should be called when
+	## a script has measured some point value and is ready to increment the
+	## counters.
+	##
+	## id: The metric ID that the data represents.
+	##
+	## index: The metric index that the value is to be added to.
+	##
+	## increment: How much to increment the counter by.
 	global add_data: function(id: ID, index: Index, increment: count);
+	
+	## Helper function to represent a :bro:type:`Metrics::Index` value as 
+	## a simple string
+	## 
+	## index: The metric index that is to be converted into a string.
+	##
+	## Returns: A string reprentation of the metric index.
 	global index2str: function(index: Index): string;
 	
-	# This is the event that is used to "finish" metrics and adapt the metrics
-	# framework for clustered or non-clustered usage.
+	## Event that is used to "finish" metrics and adapt the metrics
+	## framework for clustered or non-clustered usage.
+	##
+	## ..note: This is primarily intended for internal use.
 	global log_it: event(filter: Filter);
 	
+	## Event to access metrics records as they are passed to the logging framework.
 	global log_metrics: event(rec: Info);
+	
+	## Type to store a table of metrics values.  Interal use only!
+	type MetricTable: table[Index] of count &default=0;
 }
 
 redef record Notice::Info += {

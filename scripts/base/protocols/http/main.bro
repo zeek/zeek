@@ -1,3 +1,7 @@
+##! Implements base functionality for HTTP analysis.  The logging model is 
+##! to log request/response pairs and all relevant metadata together in 
+##! a single record.
+
 @load base/utils/numbers
 @load base/utils/files
 
@@ -8,6 +12,7 @@ export {
 
 	## Indicate a type of attack or compromise in the record to be logged.
 	type Tags: enum {
+		## Placeholder.
 		EMPTY
 	};
 	
@@ -15,64 +20,69 @@ export {
 	const default_capture_password = F &redef;
 	
 	type Info: record {
-		ts:                      time     &log;
-		uid:                     string   &log;
-		id:                      conn_id  &log;
-		## This represents the pipelined depth into the connection of this 
+		## Timestamp for when the request happened.
+		ts:                      time      &log;
+		uid:                     string    &log;
+		id:                      conn_id   &log;
+		## Represents the pipelined depth into the connection of this 
 		## request/response transaction.
-		trans_depth:             count    &log;
-		## The verb used in the HTTP request (GET, POST, HEAD, etc.).
-		method:                  string   &log &optional;
-		## The value of the HOST header.
-		host:                    string   &log &optional;
-		## The URI used in the request.
-		uri:                     string   &log &optional;
-		## The value of the "referer" header.  The comment is deliberately
+		trans_depth:             count     &log;
+		## Verb used in the HTTP request (GET, POST, HEAD, etc.).
+		method:                  string    &log &optional;
+		## Value of the HOST header.
+		host:                    string    &log &optional;
+		## URI used in the request.
+		uri:                     string    &log &optional;
+		## Value of the "referer" header.  The comment is deliberately
 		## misspelled like the standard declares, but the name used here is
 		## "referrer" spelled correctly.
-		referrer:                string   &log &optional;
-		## The value of the User-Agent header from the client.
-		user_agent:              string   &log &optional;
-		## The actual uncompressed content size of the data transferred from
+		referrer:                string    &log &optional;
+		## Value of the User-Agent header from the client.
+		user_agent:              string    &log &optional;
+		## Actual uncompressed content size of the data transferred from
 		## the client.
-		request_body_len:        count    &log &default=0;
-		## The actual uncompressed content size of the data transferred from
+		request_body_len:        count     &log &default=0;
+		## Actual uncompressed content size of the data transferred from
 		## the server.
 		response_body_len:       count     &log &default=0;
-		## The status code returned by the server.
+		## Status code returned by the server.
 		status_code:             count     &log &optional;
-		## The status message returned by the server.
+		## Status message returned by the server.
 		status_msg:              string    &log &optional;
-		## The last 1xx informational reply code returned by the server.
+		## Last seen 1xx informational reply code returned by the server.
 		info_code:               count     &log &optional;
-		## The last 1xx informational reply message returned by the server.
+		## Last seen 1xx informational reply message returned by the server.
 		info_msg:                string    &log &optional;
-		## The filename given in the Content-Disposition header
-		## sent by the server.
+		## Filename given in the Content-Disposition header sent by the server.
 		filename:                string    &log &optional;
-		## This is a set of indicators of various attributes discovered and
+		## A set of indicators of various attributes discovered and
 		## related to a particular request/response pair.
 		tags:                    set[Tags] &log;
 		
-		## The username if basic-auth is performed for the request.
+		## Username if basic-auth is performed for the request.
 		username:                string    &log &optional;
-		## The password if basic-auth is performed for the request.
+		## Password if basic-auth is performed for the request.
 		password:                string    &log &optional;
 		
-		## This determines if the password will be captured for this request.
+		## Determines if the password will be captured for this request.
 		capture_password:        bool      &default=default_capture_password;
 		
 		## All of the headers that may indicate if the request was proxied.
 		proxied:                 set[string] &log &optional;
 	};
 	
+	## Structure to maintain state for an HTTP connection with multiple 
+	## requests and responses.
 	type State: record {
+		## Pending requests.
 		pending:          table[count] of Info;
-		current_response: count                &default=0;
+		## Current request in the pending queue.
 		current_request:  count                &default=0;
+		## Current response in the pending queue.
+		current_response: count                &default=0;
 	};
 		
-	## The list of HTTP headers typically used to indicate a proxied request.
+	## A list of HTTP headers typically used to indicate proxied requests.
 	const proxy_headers: set[string] = {
 		"FORWARDED",
 		"X-FORWARDED-FOR",
@@ -83,6 +93,8 @@ export {
 		"PROXY-CONNECTION",
 	} &redef;
 	
+	## Event that can be handled to access the HTTP record as it is sent on 
+	## to the logging framework.
 	global log_http: event(rec: Info);
 }
 

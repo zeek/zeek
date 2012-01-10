@@ -39,6 +39,12 @@ export {
 	const mime_types_extensions: table[string] of pattern = {
 		["application/x-dosexec"] = /\.([eE][xX][eE]|[dD][lL][lL])/,
 	} &redef;
+	
+	## A pattern for filtering out :bro:enum:`HTTP::Incorrect_File_Type` urls
+	## that are not noteworthy before a notice is created.  Each
+	## pattern added should match the complete URL (the matched URLs include
+	## "http://" at the beginning).
+	const ignored_incorrect_file_type_urls = /^$/ &redef;
 }
 
 event signature_match(state: signature_state, msg: string, data: string) &priority=5
@@ -59,6 +65,10 @@ event signature_match(state: signature_state, msg: string, data: string) &priori
 	     c$http?$uri && mime_types_extensions[msg] !in c$http$uri )
 		{
 		local url = build_url_http(c$http);
+		
+		if ( url == ignored_incorrect_file_type_urls )
+			return;
+		
 		local message = fmt("%s %s %s", msg, c$http$method, url);
 		NOTICE([$note=Incorrect_File_Type,
 		        $msg=message,

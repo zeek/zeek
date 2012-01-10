@@ -33,17 +33,17 @@ See the `bro downloads page`_ for currently supported/targeted platforms.
 
 .. console::
 
-   sudo yum localinstall Bro-all*.rpm
+   sudo yum localinstall Bro-*.rpm
 
 * DEB
 
 .. console::
 
-   sudo gdebi Bro-all-*.deb
+   sudo gdebi Bro-*.deb
 
 * MacOS Disk Image with Installer
 
-  Just open the ``Bro-all-*.dmg`` and then run the ``.pkg`` installer.
+  Just open the ``Bro-*.dmg`` and then run the ``.pkg`` installer.
   Everything installed by the package will go into ``/opt/bro``.
 
 The primary install prefix for binary packages is ``/opt/bro``.

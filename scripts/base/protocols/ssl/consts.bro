@@ -5,12 +5,14 @@ export {
 	const SSLv3  = 0x0300;
 	const TLSv10 = 0x0301;
 	const TLSv11 = 0x0302;
+	const TLSv12 = 0x0303;
 	## Mapping between the constants and string values for SSL/TLS versions.
 	const version_strings: table[count] of string = {
 		[SSLv2] = "SSLv2",
 		[SSLv3] = "SSLv3",
 		[TLSv10] = "TLSv10",
 		[TLSv11] = "TLSv11",
+		[TLSv12] = "TLSv12",
 	} &default="UNKNOWN";
 	
 	## Mapping between numeric codes and human readable strings for alert 

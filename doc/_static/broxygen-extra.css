@@ -38,11 +38,15 @@ h2 {
     font-style: normal;
 }
 
+div.section h3 {
+    font-style: normal;
+    }
+
 h3 {
     font-size: 20px;
     margin-top: 40px;
     margin-bottom: 0¡px;
-    font-weight: normal;
+    font-weight: bold;
     font-style: normal;
 }
 
@@ -76,6 +80,10 @@ h6 {
 
 dl.namespace {
     display: none;
+}
+
+dl dt {
+    font-weight: normal;
 }
 
 table.docutils tbody {

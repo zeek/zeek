@@ -1,4 +1,15 @@
 
+2.0-beta-194 | 2012-01-10 10:44:32 -0800
+
+  * Added an option for filtering out URLs before they are turned into
+    HTTP::Incorrect_File_Type notices. (Seth Hall)
+
+  * Fix ref counting bug in BIFs that call internal_type. Addresses
+    #740. (Jon Siwek)
+
+  * Adding back the stats.bro file. (Seth Hall)
+
+
 2.0-beta-188 | 2012-01-10 09:49:29 -0800
 
   * Change SFTP/SCP log rotators to use 4-digit year in filenames

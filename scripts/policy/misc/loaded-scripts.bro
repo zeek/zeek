@@ -1,4 +1,4 @@
-##! 
+##! Log the loaded scripts.
 
 module LoadedScripts;
 

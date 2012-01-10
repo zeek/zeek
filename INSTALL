@@ -66,6 +66,9 @@ except for ``aux/bro-aux`` will also be built and installed by doing
 ``--disable-*`` options that can be given to the configure script to
 turn off unwanted auxiliary projects.
 
+OpenBSD users, please see our `FAQ
+<http://www.bro-ids.org/documentation/faq.html>` if you are having
+problems installing Bro.
 
 Running Bro
 ===========

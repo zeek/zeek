@@ -17,7 +17,7 @@ export {
 	
 	redef enum Notice::Type += {
 		## Report if the detected capture loss exceeds the percentage
-		## threshold 
+		## threshold.
 		Too_Much_Loss
 	};
 	

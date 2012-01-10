@@ -1,6 +1,6 @@
-##! This script can be used to generate notices when X.509 certificates over
-##! SSL/TLS are expired or going to expire based on the date and time values
-##! stored within the certificate.
+##! Generate notices when X.509 certificates over SSL/TLS are expired or 
+##! going to expire soon based on the date and time values stored within the
+##! certificate.
 
 @load base/protocols/ssl
 @load base/frameworks/notice
@@ -24,7 +24,8 @@ export {
 	
 	## The category of hosts you would like to be notified about which have 
 	## certificates that are going to be expiring soon.  By default, these 
-	## notices will be suppressed by the notice framework for 1 day.
+	## notices will be suppressed by the notice framework for 1 day after 
+	## a particular certificate has had a notice generated.
 	## Choices are: LOCAL_HOSTS, REMOTE_HOSTS, ALL_HOSTS, NO_HOSTS
 	const notify_certs_expiration = LOCAL_HOSTS &redef;
 	

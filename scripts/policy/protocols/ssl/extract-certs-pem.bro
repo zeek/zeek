@@ -2,7 +2,7 @@
 ##! after being converted to PEM files.  The certificates will be stored in
 ##! a single file, one for local certificates and one for remote certificates.
 ##!
-##! A couple of things to think about with this script::
+##! ..note::
 ##!
 ##!     - It doesn't work well on a cluster because each worker will write its 
 ##!       own certificate files and no duplicate checking is done across
@@ -20,15 +20,15 @@
 module SSL;
 
 export {
-	## Setting to control if host certificates offered by the defined hosts 
+	## Control if host certificates offered by the defined hosts 
 	## will be written to the PEM certificates file.
 	## Choices are: LOCAL_HOSTS, REMOTE_HOSTS, ALL_HOSTS, NO_HOSTS
 	const extract_certs_pem = LOCAL_HOSTS &redef;
 }
 
-## This is an internally maintained variable to prevent relogging of
-## certificates that have already been seen.  It is indexed on an md5 sum of
-## the certificate.
+# This is an internally maintained variable to prevent relogging of
+# certificates that have already been seen.  It is indexed on an md5 sum of
+# the certificate.
 global extracted_certs: set[string] = set() &read_expire=1hr &redef;
 
 event ssl_established(c: connection) &priority=5

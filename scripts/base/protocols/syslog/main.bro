@@ -1,4 +1,5 @@
-##! Core script support for logging syslog messages.
+##! Core script support for logging syslog messages.  This script represents 
+##! one syslog message as one logged record.
 
 @load ./consts
 
@@ -12,16 +13,19 @@ export {
 		ts:        time            &log;
 		uid:       string          &log;
 		id:        conn_id         &log;
+		## Protocol over which the message was seen.
 		proto:     transport_proto &log;
+		## Syslog facility for the message.
 		facility:  string          &log;
+		## Syslog severity for the message.
 		severity:  string          &log;
+		## The plain text message.
 		message:   string          &log;
 	};
-	
-	const ports = { 514/udp } &redef;
 }
 
 redef capture_filters += { ["syslog"] = "port 514" };
+const ports = { 514/udp } &redef;
 redef dpd_config += { [ANALYZER_SYSLOG_BINPAC] = [$ports = ports] };
 
 redef likely_server_ports += { 514/udp };

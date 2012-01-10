@@ -1,23 +1,27 @@
 module SSL;
 
 export {
-
 	const SSLv2  = 0x0002;
 	const SSLv3  = 0x0300;
 	const TLSv10 = 0x0301;
 	const TLSv11 = 0x0302;
+	## Mapping between the constants and string values for SSL/TLS versions.
 	const version_strings: table[count] of string = {
 		[SSLv2] = "SSLv2",
 		[SSLv3] = "SSLv3",
 		[TLSv10] = "TLSv10",
 		[TLSv11] = "TLSv11",
 	} &default="UNKNOWN";
-
+	
+	## Mapping between numeric codes and human readable strings for alert 
+	## levels.
 	const alert_levels: table[count] of string = {
 		[1] = "warning",
 		[2] = "fatal",
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };
-
+	
+	## Mapping between numeric codes and human readable strings for alert 
+	## descriptions..
 	const alert_descriptions: table[count] of string = {
 		[0] = "close_notify",
 		[10] = "unexpected_message",
@@ -50,8 +54,11 @@ export {
 		[114] = "bad_certificate_hash_value",
 		[115] = "unknown_psk_identity",
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };
-
-	# http://www.iana.org/assignments/tls-extensiontype-values/tls-extensiontype-values.xml
+	
+	## Mapping between numeric codes and human readable strings for SSL/TLS
+	## extensions.
+	## ..note: More information can be found here:
+	##         http://www.iana.org/assignments/tls-extensiontype-values/tls-extensiontype-values.xml
 	const extensions: table[count] of string = {
 		[0] = "server_name",
 		[1] = "max_fragment_length",
@@ -299,11 +306,10 @@ export {
 	const SSL_RSA_WITH_DES_CBC_MD5 = 0xFF82;
 	const SSL_RSA_WITH_3DES_EDE_CBC_MD5 = 0xFF83;
 	const TLS_EMPTY_RENEGOTIATION_INFO_SCSV = 0x00FF;
-
-	# --- This is a table of all known cipher specs.
-	# --- It can be used for detecting unknown ciphers and for
-	# --- converting the cipher spec constants into a human readable format.
-
+	
+	## This is a table of all known cipher specs.  It can be used for 
+	## detecting unknown ciphers and for converting the cipher spec constants 
+	## into a human readable format.
 	const cipher_desc: table[count] of string = {
 		# --- sslv20 ---
 		[SSLv20_CK_RC4_128_EXPORT40_WITH_MD5] =
@@ -530,7 +536,8 @@ export {
 		[SSL_RSA_FIPS_WITH_DES_CBC_SHA_2] = "SSL_RSA_FIPS_WITH_DES_CBC_SHA_2",
 		[SSL_RSA_FIPS_WITH_3DES_EDE_CBC_SHA_2] = "SSL_RSA_FIPS_WITH_3DES_EDE_CBC_SHA_2",
 	} &default="UNKNOWN";
-
+	
+	## Mapping between the constants and string values for SSL/TLS errors.
 	const x509_errors: table[count] of string = {
 		[0]  = "ok",
 		[1]  = "unable to get issuer cert",

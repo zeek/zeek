@@ -1,13 +1,14 @@
 .. Automatically generated.  Do not edit.
 
+:tocdepth: 3
+
 autogen-reST-records.bro
 ========================
 
-:download:`Original Source File <autogen-reST-records.bro>`
 
-Overview
---------
 
+
+:Source File: :download:`autogen-reST-records.bro`
 
 Summary
 ~~~~~~~
@@ -19,10 +20,10 @@ Types
 :bro:type:`TestRecord`: :bro:type:`record`   Here's the ways records and record fields can be documented.
 ============================================ ============================================================
 
-Public Interface
-----------------
+Detailed Interface
+~~~~~~~~~~~~~~~~~~
 Types
-~~~~~
+#####
 .. bro:type:: SimpleRecord
 
    :Type: :bro:type:`record`

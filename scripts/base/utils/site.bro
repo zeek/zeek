@@ -18,7 +18,7 @@ export {
 	const local_nets: set[subnet] &redef;
 	
 	## This is used for retrieving the subnet when you multiple 
-	## :bro:id:`local_nets`.  A membership query can be done with an 
+	## :bro:id:`Site::local_nets`.  A membership query can be done with an 
 	## :bro:type:`addr` and the table will yield the subnet it was found 
 	## within.
 	global local_nets_table: table[subnet] of subnet = {};

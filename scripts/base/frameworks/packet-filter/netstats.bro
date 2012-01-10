@@ -1,4 +1,6 @@
 ##! This script reports on packet loss from the various packet sources.
+##! When Bro is reading input from trace files, this script will not
+##! report any packet loss statistics.
 
 @load base/frameworks/notice
 
@@ -6,7 +8,7 @@ module PacketFilter;
 
 export {
 	redef enum Notice::Type += {
-		## Bro reported packets dropped by the packet filter.
+		## Indicates packets were dropped by the packet filter.
 		Dropped_Packets,
 	};
 	

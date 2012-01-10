@@ -1,4 +1,6 @@
-# Documentation and default values for these are located in policy/bro.init.
+##! Declaration of various scripting-layer constants that the Bro core uses
+##! internally.  Documentation and default values for the scripting-layer
+##! variables themselves are found in :doc:`/scripts/base/init-bare`.
 
 const ignore_keep_alive_rexmit: bool;
 const skip_http_data: bool;

@@ -1,17 +1,33 @@
+##! This script manages the tracking/logging of general information regarding
+##! TCP, UDP, and ICMP traffic.  For UDP and ICMP, "connections" are to
+##! be interpreted using flow semantics (sequence of packets from a source
+##! host/post to a destination host/port).  Further, ICMP "ports" are to
+##! be interpreted as the source port meaning the ICMP message type and
+##! the destination port being the ICMP message code.
+
 @load base/utils/site
 
 module Conn;
 
 export {
+	## The connection logging stream identifier.
 	redef enum Log::ID += { LOG };
 
+	## The record type which contains column fields of the connection log.
 	type Info: record {
 		## This is the time of the first packet.
 		ts:           time            &log;
+		## A unique identifier of a connection.
 		uid:          string          &log;
+		## The connection's 4-tuple of endpoint addresses/ports.
 		id:           conn_id         &log;
+		## The transport layer protocol of the connection.
 		proto:        transport_proto &log;
+		## An identification of an application protocol being sent over the
+		## the connection.
 		service:      string          &log &optional;
+		## How long the connection lasted.  For 3-way or 4-way connection
+		## tear-downs, this will not include the final ACK.
 		duration:     interval        &log &optional;
 		## The number of payload bytes the originator sent. For TCP
 		## this is taken from sequence numbers and might be inaccurate 
@@ -51,8 +67,8 @@ export {
 		## have been completed prior to the packet loss.
 		missed_bytes: count           &log &default=0;
 
-		## Records the state history of (TCP) connections as
-		## a string of letters.
+		## Records the state history of connections as a string of letters.
+		## For TCP connections the meaning of those letters is:
 		##
 		## ======  ====================================================
 		## Letter  Meaning
@@ -71,7 +87,8 @@ export {
 		## originator and lower case then means the responder.
 		## Also, there is compression. We only record one "d" in each direction,
 		## for instance. I.e., we just record that data went in that direction.
-		## This history is not meant to encode how much data that happened to be.
+		## This history is not meant to encode how much data that happened to
+		## be.
 		history:      string          &log &optional;
 		## Number of packets the originator sent.
 		## Only set if :bro:id:`use_conn_size_analyzer` = T
@@ -85,7 +102,9 @@ export {
 		## Number IP level bytes the responder sent. See ``orig_pkts``.
 		resp_ip_bytes: count      &log &optional;
 	};
-	
+
+	## Event that can be handled to access the :bro:type:`Conn::Info`
+	## record as it is sent on to the logging framework.
 	global log_conn: event(rec: Info);
 }
 

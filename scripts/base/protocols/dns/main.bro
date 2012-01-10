@@ -1,38 +1,80 @@
+##! Base DNS analysis script which tracks and logs DNS queries along with
+##! their responses.
+
 @load ./consts
 
 module DNS;
 
 export {
+	## The DNS logging stream identifier.
 	redef enum Log::ID += { LOG };
 
+	## The record type which contains the column fields of the DNS log.
 	type Info: record {
+		## The earliest time at which a DNS protocol message over the
+		## associated connection is observed.
 		ts:            time               &log;
+		## A unique identifier of the connection over which DNS messages
+		## are being transferred.
 		uid:           string             &log;
+		## The connection's 4-tuple of endpoint addresses/ports.
 		id:            conn_id            &log;
+		## The transport layer protocol of the connection.
 		proto:         transport_proto    &log;
+		## A 16 bit identifier assigned by the program that generated the
+		## DNS query.  Also used in responses to match up replies to
+		## outstanding queries.
 		trans_id:      count              &log &optional;
+		## The domain name that is the subject of the DNS query.
 		query:         string             &log &optional;
+		## The QCLASS value specifying the class of the query.
 		qclass:        count              &log &optional;
+		## A descriptive name for the class of the query.
 		qclass_name:   string             &log &optional;
+		## A QTYPE value specifying the type of the query.
 		qtype:         count              &log &optional;
+		## A descriptive name for the type of the query.
 		qtype_name:    string             &log &optional;
+		## The response code value in DNS response messages.
 		rcode:         count              &log &optional;
+		## A descriptive name for the response code value.
 		rcode_name:    string             &log &optional;
+		## Whether the message is a query (F) or response (T).
 		QR:            bool               &log &default=F;
+		## The Authoritative Answer bit for response messages specifies that
+		## the responding name server is an authority for the domain name
+		## in the question section.
 		AA:            bool               &log &default=F;
+		## The Truncation bit specifies that the message was truncated.
 		TC:            bool               &log &default=F;
+		## The Recursion Desired bit indicates to a name server to recursively
+		## purse the query.
 		RD:            bool               &log &default=F;
+		## The Recursion Available bit in a response message indicates if
+		## the name server supports recursive queries.
 		RA:            bool               &log &default=F;
+		## A reserved field that is currently supposed to be zero in all
+		## queries and responses.
 		Z:             count              &log &default=0;
+		## The set of resource descriptions in answer of the query.
 		answers:       vector of string   &log &optional;
+		## The caching intervals of the associated RRs described by the
+		## ``answers`` field.
 		TTLs:          vector of interval &log &optional;
 
-		## This value indicates if this request/response pair is ready to be logged.
+		## This value indicates if this request/response pair is ready to be
+		## logged.
 		ready:         bool            &default=F;
+		## The total number of resource records in a reply message's answer
+		## section.
 		total_answers: count           &optional;
+		## The total number of resource records in a reply message's answer,
+		## authority, and additional sections.
 		total_replies: count           &optional;
 	};
 
+	## A record type which tracks the status of DNS queries for a given
+	## :bro:type:`connection`.
 	type State: record {
 		## Indexed by query id, returns Info record corresponding to
 		## query/response which haven't completed yet.
@@ -44,11 +86,21 @@ export {
 		finished_answers: set[count] &optional;
 	};
 
+	## An event that can be handled to access the :bro:type:`DNS::Info`
+	## record as it is sent to the logging framework.
 	global log_dns: event(rec: Info);
 
 	## This is called by the specific dns_*_reply events with a "reply" which
 	## may not represent the full data available from the resource record, but
 	## it's generally considered a summarization of the response(s).
+	##
+	## c: The connection record for which to fill in DNS reply data.
+	##
+	## msg: The DNS message header information for the response.
+	##
+	## ans: The general information of a RR response.
+	##
+	## reply: The specific response information according to RR type/class.
 	global do_reply: event(c: connection, msg: dns_msg, ans: dns_answer, reply: string);
 }
 

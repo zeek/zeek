@@ -1,3 +1,5 @@
+##! Detect hosts which are doing password guessing attacks and/or password
+##! bruteforcing over SSH.
 
 @load base/protocols/ssh
 @load base/frameworks/metrics
@@ -9,17 +11,17 @@ module SSH;
 export {
 	redef enum Notice::Type += {
 		## Indicates that a host has been identified as crossing the 
-		## :bro:id:`password_guesses_limit` threshold with heuristically
+		## :bro:id:`SSH::password_guesses_limit` threshold with heuristically
 		## determined failed logins.
 		Password_Guessing,
 		## Indicates that a host previously identified as a "password guesser"
-		## has now had a heuristically successful login attempt.
+		## has now had a heuristically successful login attempt.  This is not
+		## currently implemented.
 		Login_By_Password_Guesser,
 	};
 	
 	redef enum Metrics::ID  += {
-		## This metric is to measure failed logins with the hope of detecting
-		## bruteforcing hosts.
+		## Metric is to measure failed logins.
 		FAILED_LOGIN,
 	};
 
@@ -37,7 +39,7 @@ export {
 	## client subnets and the yield value represents server subnets.
 	const ignore_guessers: table[subnet] of subnet &redef;
 
-	## Keeps track of hosts identified as guessing passwords.
+	## Tracks hosts identified as guessing passwords.
 	global password_guessers: set[addr] 
 		&read_expire=guessing_timeout+1hr &synchronized &redef;
 }

@@ -1,8 +1,8 @@
-##! This script takes MD5 sums of files transferred over HTTP and checks them with
-##! Team Cymru's Malware Hash Registry (http://www.team-cymru.org/Services/MHR/).
+##! Detect file downloads over HTTP that have MD5 sums matching files in Team 
+##! Cymru's Malware Hash Registry (http://www.team-cymru.org/Services/MHR/).
 ##! By default, not all file transfers will have MD5 sums calculated.  Read the
-##! documentation for the :doc:base/protocols/http/file-hash.bro script to see how to 
-##! configure which transfers will have hashes calculated.
+##! documentation for the :doc:base/protocols/http/file-hash.bro script to see
+##! how to configure which transfers will have hashes calculated.
 
 @load base/frameworks/notice
 @load base/protocols/http

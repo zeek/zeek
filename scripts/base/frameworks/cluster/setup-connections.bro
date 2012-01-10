@@ -1,3 +1,6 @@
+##! This script establishes communication among all nodes in a cluster
+##! as defined by :bro:id:`Cluster::nodes`.
+
 @load ./main
 @load base/frameworks/communication
 

@@ -4,9 +4,9 @@
 module DNS;
 
 export {
-	const PTR = 12;
-	const EDNS = 41;
-	const ANY = 255;
+	const PTR = 12;  ##< RR TYPE value for a domain name pointer.
+	const EDNS = 41; ##< An OPT RR TYPE value described by EDNS.
+	const ANY = 255; ##< A QTYPE value describing a request for all records.
 
 	## Mapping of DNS query type codes to human readable string representation.
 	const query_types = {
@@ -29,50 +29,43 @@ export {
 		[ANY] = "*",
 	} &default = function(n: count): string { return fmt("query-%d", n); };
 
-	const code_types = {
-		[0] = "X0",
-		[1] = "Xfmt",
-		[2] = "Xsrv",
-		[3] = "Xnam",
-		[4] = "Ximp",
-		[5] = "X[",
-	} &default="?";
-
 	## Errors used for non-TSIG/EDNS types.
 	const base_errors = {
-		[0] = "NOERROR",        ##< No Error
-		[1] = "FORMERR",        ##< Format Error
-		[2] = "SERVFAIL",       ##< Server Failure
-		[3] = "NXDOMAIN",       ##< Non-Existent Domain
-		[4] = "NOTIMP",         ##< Not Implemented
-		[5] = "REFUSED",        ##< Query Refused
-		[6] = "YXDOMAIN",       ##< Name Exists when it should not
-		[7] = "YXRRSET",        ##< RR Set Exists when it should not
-		[8] = "NXRRSet",        ##< RR Set that should exist does not
-		[9] = "NOTAUTH",        ##< Server Not Authoritative for zone
-		[10] = "NOTZONE",       ##< Name not contained in zone
-		[11] = "unassigned-11", ##< available for assignment
-		[12] = "unassigned-12", ##< available for assignment
-		[13] = "unassigned-13", ##< available for assignment
-		[14] = "unassigned-14", ##< available for assignment
-		[15] = "unassigned-15", ##< available for assignment
-		[16] = "BADVERS",       ##< for EDNS, collision w/ TSIG
-		[17] = "BADKEY",        ##< Key not recognized
-		[18] = "BADTIME",       ##< Signature out of time window
-		[19] = "BADMODE",       ##< Bad TKEY Mode
-		[20] = "BADNAME",       ##< Duplicate key name
-		[21] = "BADALG",        ##< Algorithm not supported
-		[22] = "BADTRUNC",      ##< draft-ietf-dnsext-tsig-sha-05.txt
-		[3842] = "BADSIG",      ##< 16 <= number collision with EDNS(16);
-		                        ##< this is a translation from TSIG(16)
+		[0] = "NOERROR",        # No Error
+		[1] = "FORMERR",        # Format Error
+		[2] = "SERVFAIL",       # Server Failure
+		[3] = "NXDOMAIN",       # Non-Existent Domain
+		[4] = "NOTIMP",         # Not Implemented
+		[5] = "REFUSED",        # Query Refused
+		[6] = "YXDOMAIN",       # Name Exists when it should not
+		[7] = "YXRRSET",        # RR Set Exists when it should not
+		[8] = "NXRRSet",        # RR Set that should exist does not
+		[9] = "NOTAUTH",        # Server Not Authoritative for zone
+		[10] = "NOTZONE",       # Name not contained in zone
+		[11] = "unassigned-11", # available for assignment
+		[12] = "unassigned-12", # available for assignment
+		[13] = "unassigned-13", # available for assignment
+		[14] = "unassigned-14", # available for assignment
+		[15] = "unassigned-15", # available for assignment
+		[16] = "BADVERS",       # for EDNS, collision w/ TSIG
+		[17] = "BADKEY",        # Key not recognized
+		[18] = "BADTIME",       # Signature out of time window
+		[19] = "BADMODE",       # Bad TKEY Mode
+		[20] = "BADNAME",       # Duplicate key name
+		[21] = "BADALG",        # Algorithm not supported
+		[22] = "BADTRUNC",      # draft-ietf-dnsext-tsig-sha-05.txt
+		[3842] = "BADSIG",      # 16 <= number collision with EDNS(16);
+		                        # this is a translation from TSIG(16)
 	} &default = function(n: count): string { return fmt("rcode-%d", n); };
 
-	# This deciphers EDNS Z field values.
+	## This deciphers EDNS Z field values.
 	const edns_zfield = {
 		[0]     = "NOVALUE",    # regular entry
 		[32768] = "DNS_SEC_OK", # accepts DNS Sec RRs
 	} &default="?";
 
+	## Possible values of the CLASS field in resource records or QCLASS field
+	## in query messages.
 	const classes = {
 		[1]   = "C_INTERNET",
 		[2]   = "C_CSNET",

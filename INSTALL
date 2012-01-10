@@ -28,6 +28,7 @@ installation time:
 Bro also needs the following tools, but on most systems they will
 already come preinstalled:
 
+    * Bash  (For Bro Control).
     * BIND8 (headers and libraries)
     * Bison (GNU Parser Generator)
     * Flex  (Fast Lexical Analyzer)
@@ -74,10 +75,8 @@ Running Bro
 ===========
 
 Bro is a complex program and it takes a bit of time to get familiar
-with it.  A good place for newcomers to start is the Quickstart Guide at
-
-    http://www.bro-ids.org/documentation/quickstart.bro.html
-
+with it.  A good place for newcomers to start is the Quickstart Guide
+at http://www.bro-ids.org/documentation/quickstart.bro.html.
 
 For developers that wish to run Bro directly from the ``build/``
 directory (i.e., without performing ``make install``), they will have

@@ -1,4 +1,4 @@
-##! This script calculates MD5 sums for server DER formatted certificates.
+##! Calculate MD5 sums for server DER formatted certificates.
 
 @load base/protocols/ssl
 
@@ -6,6 +6,7 @@ module SSL;
 
 export {
 	redef record Info += {
+		## MD5 sum of the raw server certificate.
 		cert_hash: string &log &optional;
 	};
 }

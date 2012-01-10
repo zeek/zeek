@@ -1,6 +1,9 @@
+##! Constants definitions for syslog.
+
 module Syslog;
 
 export {
+	## Mapping between the constants and string values for syslog facilities.
 	const facility_codes: table[count] of string = {
 		[0]  = "KERN",
 		[1]  = "USER",
@@ -27,7 +30,8 @@ export {
 		[22] =  "LOCAL6",
 		[23] =  "LOCAL7",
 	} &default=function(c: count): string { return fmt("?-%d", c); };
-
+	
+	## Mapping between the constants and string values for syslog severities.
 	const severity_codes: table[count] of string = {
 		[0] = "EMERG",
 		[1] = "ALERT",

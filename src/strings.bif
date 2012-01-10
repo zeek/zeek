@@ -129,11 +129,11 @@ function sort_string_array%(a: string_array%): string_array
 		}
 	// sort(vs.begin(), vs.end(), Bstr_cmp);
 
-	TableVal* b = new TableVal(internal_type("string_array")->AsTableType());
+	TableVal* b = new TableVal(string_array);
 	vs_to_string_array(vs, b, 1, n);
 	return b;
 	%}
-	
+
 function join_string_vec%(vec: string_vec, sep: string%): string
 	%{
 	ODesc d;
@@ -216,7 +216,7 @@ static int match_prefix(int s_len, const char* s, int t_len, const char* t)
 Val* do_split(StringVal* str_val, RE_Matcher* re, TableVal* other_sep,
 		int incl_sep, int max_num_sep)
 	{
-	TableVal* a = new TableVal(internal_type("string_array")->AsTableType());
+	TableVal* a = new TableVal(string_array);
 	ListVal* other_strings = 0;
 
 	if ( other_sep && other_sep->Size() > 0 )
@@ -679,7 +679,7 @@ function str_shell_escape%(source: string%): string
 # empty set if none).
 function find_all%(str: string, re: pattern%) : string_set
 	%{
-	TableVal* a = new TableVal(internal_type("string_set")->AsTableType());
+	TableVal* a = new TableVal(string_set);
 
 	const u_char* s = str->Bytes();
 	const u_char* e = s + str->Len();

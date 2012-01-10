@@ -47,6 +47,10 @@ export {
 	## transfer of the rotated-log to each destination in the set.  This
 	## table can be modified at run-time.
 	global sftp_destinations: table[Writer, string] of set[SFTPDestination];
+
+	## Default naming format for timestamps embedded into log filenames
+	## that use the SFTP rotator.
+	const sftp_rotation_date_format = "%Y-%m-%d-%H-%M-%S" &redef;
 }
 
 function sftp_postprocessor(info: Log::RotationInfo): bool
@@ -56,8 +60,12 @@ function sftp_postprocessor(info: Log::RotationInfo): bool
 
 	local command = "";
 	for ( d in sftp_destinations[info$writer, info$path] )
-		command += fmt("echo put %s %s | sftp -b - %s@%s;", info$fname, d$path,
+		{
+		local dst = fmt("%s/%s.%s.log", d$path, info$path,
+		                strftime(Log::sftp_rotation_date_format, info$open));
+		command += fmt("echo put %s %s | sftp -b - %s@%s;", info$fname, dst,
 		               d$user, d$host);
+		}
 
 	command += fmt("/bin/rm %s", info$fname);
 	system(command);

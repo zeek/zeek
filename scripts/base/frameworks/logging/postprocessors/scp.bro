@@ -25,6 +25,10 @@ export {
 	## function queries this table upon log rotation and performs a secure
 	## copy of the rotated-log to each destination in the set.
 	global scp_destinations: table[Writer, string] of set[SCPDestination];
+
+	## Default naming format for timestamps embedded into log filenames
+	## that use the SCP rotator.
+	const scp_rotation_date_format = "%Y-%m-%d-%H-%M-%S" &redef;
 }
 
 function scp_postprocessor(info: Log::RotationInfo): bool
@@ -34,7 +38,11 @@ function scp_postprocessor(info: Log::RotationInfo): bool
 
 	local command = "";
 	for ( d in scp_destinations[info$writer, info$path] )
-		command += fmt("scp %s %s@%s:%s;", info$fname, d$user, d$host, d$path);
+		{
+		local dst = fmt("%s/%s.%s.log", d$path, info$path,
+                        strftime(Log::scp_rotation_date_format, info$open));
+		command += fmt("scp %s %s@%s:%s;", info$fname, d$user, d$host, dst);
+		}
 
 	command += fmt("/bin/rm %s", info$fname);
 	system(command);

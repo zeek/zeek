@@ -363,19 +363,23 @@ function cat%(...%): string
 
 function record_type_to_vector%(rt: string%): string_vec
 	%{
-	VectorVal* result =
-		new VectorVal(internal_type("string_vec")->AsVectorType());
+	VectorVal* result = new VectorVal(string_vec);
 
-	RecordType *type = internal_type(rt->CheckString())->AsRecordType();
+	ID* id = lookup_ID(rt->CheckString(), GLOBAL_MODULE_NAME);
 
-	if ( type )
+	if ( id )
 		{
+		RecordType *type = id->Type()->AsRecordType();
 		for ( int i = 0; i < type->NumFields(); ++i )
 			{
 			StringVal* val = new StringVal(type->FieldName(i));
 			result->Assign(i+1, val, 0);
 			}
+		Unref(id);
 		}
+	else
+		reporter->InternalError("internal record type %s missing",
+		                        rt->CheckString());
 
 	return result;
 	%}

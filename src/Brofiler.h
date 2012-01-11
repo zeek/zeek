@@ -18,15 +18,19 @@ public:
 	/**
 	 * Imports Bro script Stmt usage information from file pointed to by
 	 * environment variable BROFILER_FILE.
+	 *
+	 * @return: true if usage info was read, otherwise false.
 	 */
-	void ReadStats();
+	bool ReadStats();
 
 	/**
 	 * Combines usage stats from current run with any read from ReadStats(),
 	 * then writes information to file pointed to by environment variable
 	 * BROFILER_FILE.
+	 *
+	 * @return: true when usage info is written, otherwise false.
 	 */
-	void WriteStats();
+	bool WriteStats();
 
 	void SetDelim(char d) { delim = d; }
 

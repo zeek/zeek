@@ -13,16 +13,12 @@ Brofiler::~Brofiler()
 	{
 	}
 
-void Brofiler::ReadStats()
+bool Brofiler::ReadStats()
 	{
 	char* bf = getenv("BROFILER_FILE");
-	if ( ! bf ) return;
+	if ( ! bf ) return false;
 	FILE* f = fopen(bf, "r");
-	if ( ! f )
-		{
-		fprintf(stderr, "Failed to open Brofiler file '%s' for reading\n", bf);
-		return;
-		}
+	if ( ! f ) return false;
 
 	char line[16384];
 	string delimiter;
@@ -40,18 +36,19 @@ void Brofiler::ReadStats()
 		}
 
 	fclose(f);
+	return true;
 	}
 
-void Brofiler::WriteStats()
+bool Brofiler::WriteStats()
 	{
 	char* bf = getenv("BROFILER_FILE");
-	if ( ! bf ) return;
+	if ( ! bf ) return false;
 
 	FILE* f = fopen(bf, "w");
 	if ( ! f )
 		{
-		fprintf(stderr, "Failed to open Brofiler file '%s' for writing\n", bf);
-		return;
+		reporter->Error("Failed to open Brofiler file '%s' for writing\n", bf);
+		return false;
 		}
 
 	for ( list<const Stmt*>::const_iterator it = stmts.begin();
@@ -78,5 +75,6 @@ void Brofiler::WriteStats()
 		}
 
 	fclose(f);
+	return true;
 	}
 

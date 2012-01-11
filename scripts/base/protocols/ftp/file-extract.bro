@@ -1,4 +1,4 @@
-##! File extraction for FTP.
+##! File extraction support for FTP.
 
 @load ./main
 @load base/utils/files
@@ -6,7 +6,7 @@
 module FTP;
 
 export {
-	## Pattern of file mime types to extract from FTP entity bodies.
+	## Pattern of file mime types to extract from FTP transfers.
 	const extract_file_types = /NO_DEFAULT/ &redef;
 
 	## The on-disk prefix for files to be extracted from FTP-data transfers.
@@ -14,10 +14,15 @@ export {
 }
 
 redef record Info += {
-	## The file handle for the file to be extracted
+	## On disk file where it was extracted to.
 	extraction_file:       file &log &optional;
 	
+	## Indicates if the current command/response pair should attempt to 
+	## extract the file if a file was transferred.
 	extract_file:          bool &default=F;
+	
+	## Internal tracking of the total number of files extracted during this 
+	## session.
 	num_extracted_files:   count &default=0;
 };
 
@@ -33,7 +38,6 @@ event file_transferred(c: connection, prefix: string, descr: string,
 	if ( extract_file_types in s$mime_type )
 		{
 		s$extract_file = T;
-		add s$tags["extracted_file"];
 		++s$num_extracted_files;
 		}
 	}

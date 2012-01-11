@@ -6,8 +6,11 @@ module HTTP;
 
 export {
 	redef enum Software::Type += {
+		## Identifier for web servers in the software framework.
 		SERVER,
+		## Identifier for app servers in the software framework.
 		APPSERVER,
+		## Identifier for web browsers in the software framework.
 		BROWSER,
 	};
 

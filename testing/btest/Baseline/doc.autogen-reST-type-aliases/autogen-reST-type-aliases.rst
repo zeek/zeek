@@ -1,13 +1,14 @@
 .. Automatically generated.  Do not edit.
 
+:tocdepth: 3
+
 autogen-reST-type-aliases.bro
 =============================
 
-:download:`Original Source File <autogen-reST-type-aliases.bro>`
 
-Overview
---------
 
+
+:Source File: :download:`autogen-reST-type-aliases.bro`
 
 Summary
 ~~~~~~~
@@ -28,10 +29,10 @@ Types
                                              so this type just creates a cross reference to ``bool``.
 ============================================ ==========================================================================
 
-Public Interface
-----------------
+Detailed Interface
+~~~~~~~~~~~~~~~~~~
 State Variables
-~~~~~~~~~~~~~~~
+###############
 .. bro:id:: a
 
    :Type: :bro:type:`TypeAlias`
@@ -45,7 +46,7 @@ State Variables
    And this should reference a type of ``OtherTypeAlias``.
 
 Types
-~~~~~
+#####
 .. bro:type:: TypeAlias
 
    :Type: :bro:type:`bool`

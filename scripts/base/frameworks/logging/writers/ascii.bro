@@ -1,4 +1,5 @@
-##! Interface for the ascii log writer.
+##! Interface for the ASCII log writer.  Redefinable options are available
+##! to tweak the output format of ASCII logs.
 
 module LogAscii;
 
@@ -7,7 +8,8 @@ export {
 	## into files. This is primarily for debugging purposes.
 	const output_to_stdout = F &redef;
 
-	## If true, include a header line with column names.
+	## If true, include a header line with column names and description
+	## of the other ASCII logging options that were used.
 	const include_header = T &redef;
 
 	## Prefix for the header line if included.
@@ -19,8 +21,9 @@ export {
 	## Separator between set elements.
 	const set_separator = "," &redef;
 
-	## String to use for empty fields.
-	const empty_field = "-" &redef;
+	## String to use for empty fields. This should be different from
+        ## *unset_field* to make the output non-ambigious. 
+	const empty_field = "(empty)" &redef;
 
 	## String to use for an unset &optional field.
 	const unset_field = "-" &redef;

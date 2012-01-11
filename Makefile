@@ -14,7 +14,7 @@ HAVE_MODULES=git submodule | grep -v cmake >/dev/null
 all: configured
 	$(MAKE) -C $(BUILD) $@
 
-install: configured
+install: configured all
 	$(MAKE) -C $(BUILD) $@
 
 install-aux: configured
@@ -27,6 +27,18 @@ doc: configured
 	$(MAKE) -C $(BUILD) $@
 
 docclean: configured
+	$(MAKE) -C $(BUILD) $@
+
+restdoc: configured
+	$(MAKE) -C $(BUILD) $@
+
+restclean: configured
+	$(MAKE) -C $(BUILD) $@
+
+broxygen: configured
+	$(MAKE) -C $(BUILD) $@
+
+broxygenclean: configured
 	$(MAKE) -C $(BUILD) $@
 
 dist:
@@ -47,6 +59,9 @@ bindist:
 
 distclean:
 	rm -rf $(BUILD)
+
+test:
+	@(cd testing && make )
 
 configured:
 	@test -d $(BUILD) || ( echo "Error: No build/ directory found. Did you run configure?" && exit 1 )

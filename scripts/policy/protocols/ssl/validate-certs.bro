@@ -14,8 +14,7 @@ export {
 	};
 	
 	redef record Info += {
-		## This stores and logs the result of certificate validation for 
-		## this connection.
+		## Result of certificate validation for this connection.
 		validation_status: string &log &optional;
 	};
 	

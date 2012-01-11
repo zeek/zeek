@@ -595,8 +595,6 @@ void DNS_Mgr::Resolve()
 				}
 			else
 				--num_pending;
-
-			delete dr;
 			}
 		}
 

@@ -1,0 +1,63 @@
+
+Release Notes
+=============
+
+This document summarizes the most important changes in the current Bro
+release. For a complete list of changes, see the ``CHANGES`` file.
+
+Bro 2.0
+-------
+
+As the version number jump suggests, Bro 2.0 is a major upgrade and
+lots of things have changed. We have assembled a separate upprade
+guide with the most important changes compared to Bro 1.5 at
+http://www.bro-ids.org/documentation/upgrade.bro.html. You can find
+the offline version of that document in ``doc/upgrade.rst.``.
+
+Compared to the earlier 2.0 Beta version, the major changes in the
+final release are:
+
+    * The default scripts now come with complete reference
+      documentation. See
+      http://www.bro-ids.org/documentation/index.html.
+
+    * libz and libmagic are now required dependencies.
+
+    * Reduced snaplen default from 65535 to old default of 8192. The
+      large value was introducing performance problems on many
+      systems.
+
+    * Replaced the --snaplen/-l command line option with a
+      scripting-layer option called "snaplen". The new option can also
+      be redefined on the command line, e.g. ``bro -i eth0
+      snaplen=65535``.
+
+    * Reintroduced the BRO_LOG_SUFFIX environment that the ASCII
+      logger now respects to add a suffix to the log files it creates.
+
+    * The ASCII logs now include further header information, and 
+      fields set to an empty value are now logged as ``(empty)`` by
+      default (instead of ``-``, which is already used for fields that
+      are not set at all).
+
+    * Some NOTICES were renamed, and the signatures of some SSL events
+      have changed.
+
+    * bro-cut got some new capabilities:
+
+        - If no field names are given on the command line, we now pass
+          through all fields.
+
+        - New options -u/-U for time output in UTC.
+
+        - New option -F to give output field separator.
+
+    * Broccoli supports more types internally, allowing to send
+      complex records.
+
+    * Many smaller bug fixes, portability improvements, and general
+      polishing across all modules.
+
+
+
+

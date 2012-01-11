@@ -9,17 +9,22 @@
 module PacketFilter;
 
 export {
+	## Add the packet filter logging stream.
 	redef enum Log::ID += { LOG };
-	
+
+	## Add notice types related to packet filter errors.
 	redef enum Notice::Type += {
 		## This notice is generated if a packet filter is unable to be compiled.
 		Compile_Failure,
 	
-		## This notice is generated if a packet filter is unable to be installed.
+		## This notice is generated if a packet filter is fails to install.
 		Install_Failure,
 	};
-	
+
+	## The record type defining columns to be logged in the packet filter
+	## logging stream.
 	type Info: record {
+		## The time at which the packet filter installation attempt was made.
 		ts:     time   &log;
 		
 		## This is a string representation of the node that applied this
@@ -40,7 +45,7 @@ export {
 	## By default, Bro will examine all packets. If this is set to false,
 	## it will dynamically build a BPF filter that only select protocols
 	## for which the user has loaded a corresponding analysis script.
-	## The latter used to be default for Bro versions < 1.6. That has now
+	## The latter used to be default for Bro versions < 2.0. That has now
 	## changed however to enable port-independent protocol analysis.
 	const all_packets = T &redef;
 	

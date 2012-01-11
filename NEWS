@@ -11,7 +11,7 @@ Bro 2.0
 As the version number jump suggests, Bro 2.0 is a major upgrade and
 lots of things have changed. We have assembled a separate upprade
 guide with the most important changes compared to Bro 1.5 at
-http://www.bro-ids.org/documentation/upgrade.bro.html. You can find
+http://www.bro-ids.org/documentation/upgrade.html. You can find
 the offline version of that document in ``doc/upgrade.rst.``.
 
 Compared to the earlier 2.0 Beta version, the major changes in the

@@ -55,6 +55,7 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	u_char* aTempResult = NULL;
 	int aTempFormerLen = 0;
 	FILE* file;
+	bool mEncounterFirst = false;
 
 	//printf("test global %d\n", gTest++);
 ////used for performance experiment
@@ -131,6 +132,7 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 // if this is the first transport segment but not last
 	dnp3_i = 0;
 	if( (aTranFir == 1) && (aTranFin == 0) ){
+		mEncounterFirst = true;
 		#if DEBUG
 		printf("hl debug  reassembled data");
 		#endif
@@ -157,6 +159,10 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 // if fir and fin are all 0; or last segment (fin is 1)
 	dnp3_i = 0;
 	if( aTranFir == 0 ){
+		if(mEncounterFirst == false){
+			printf("ALERT  no first packet is found");
+			return; 
+		}
 		#if DEBUG
 		printf("hl debug  reassembled data %x %x %d\n", gDnp3Data.mData[0], gDnp3Data.mData[1], gDnp3Data.length);
 		#endif
@@ -181,6 +187,7 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		//free(gDnp3Data.mData);
 		gDnp3Data.mData =  aTempResult;
 		if( aTranFin == 1){   // if this is the last segment
+			mEncounterFirst = false;
 			if(gDnp3Data.length >= 65536){ 
 				printf("ALERT  current dont supprt such long segments");
 				free(gDnp3Data.mData);
@@ -220,6 +227,9 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	
 
 // if fir and fin are all 1
+	if(mEncounterFirst == true){
+		printf("ALERT  this should happen");
+	}
 	dnp3_i = 0;
 	for(i = 0; i < 8; i++)
 	{

@@ -319,7 +319,8 @@ type Request_Data_Object(function_code: uint8, qualifier_field: uint8, object_ty
 		0x4607 -> file_desc: File_Desc;
 	
 	# internal indication g80
-		0x5001 -> iin: uint16;
+		#0x5001 -> iin: uint16;
+		0x5001 -> iin: bytestring &restofdata; # confusion from the real traffic
 
 	# device storage g81
 		0x5101 -> dev_store: empty;

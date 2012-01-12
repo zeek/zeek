@@ -2,7 +2,7 @@
 Documentation
 =============
 
-This directory contains Bro documentation in reStructured text format
+This directory contains Bro documentation in reStructuredText format
 (see http://docutils.sourceforge.net/rst.html).
 
 It is the root of a Sphinx source tree and can be modified to add more

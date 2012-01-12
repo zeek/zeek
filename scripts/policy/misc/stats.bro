@@ -1,5 +1,5 @@
-##| Log memory/packet/lag statistics.  Differs from profiling.bro in that this
-##| is lighter-weight (much less info, and less load to generate).
+##! Log memory/packet/lag statistics.  Differs from profiling.bro in that this
+##! is lighter-weight (much less info, and less load to generate).
 
 @load base/frameworks/notice
 

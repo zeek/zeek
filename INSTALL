@@ -76,7 +76,7 @@ Running Bro
 
 Bro is a complex program and it takes a bit of time to get familiar
 with it.  A good place for newcomers to start is the Quickstart Guide
-at http://www.bro-ids.org/documentation/quickstart.bro.html.
+at http://www.bro-ids.org/documentation/quickstart.html.
 
 For developers that wish to run Bro directly from the ``build/``
 directory (i.e., without performing ``make install``), they will have

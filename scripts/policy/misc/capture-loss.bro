@@ -42,9 +42,9 @@ export {
 	const watch_interval = 15mins &redef;
 	
 	## The percentage of missed data that is considered "too much" 
-	## when the :bro:enum:`Too_Much_Loss` notice should be generated.
-	## The value is expressed as a double between 0 and 1 with 1 being
-	## 100%
+	## when the :bro:enum:`CaptureLoss::Too_Much_Loss` notice should be
+	## generated. The value is expressed as a double between 0 and 1 with 1
+	## being 100%
 	const too_much_loss: double = 0.1 &redef;
 }
 

@@ -1,5 +1,4 @@
-##! This script can be used to log information about certificates while 
-##! attempting to avoid duplicate logging.
+##! Log information about certificates while attempting to avoid duplicate logging.
 
 @load base/utils/directions-and-hosts
 @load base/protocols/ssl
@@ -36,6 +35,8 @@ export {
 	## in the set is for storing the DER formatted certificate's MD5 hash.
 	global certs: set[addr, string] &create_expire=1day &synchronized &redef;
 	
+	## Event that can be handled to access the loggable record as it is sent 
+	## on to the logging framework.
 	global log_known_certs: event(rec: CertsInfo);
 }
 

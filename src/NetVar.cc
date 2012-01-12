@@ -16,7 +16,9 @@ RecordType* pcap_packet;
 RecordType* signature_state;
 EnumType* transport_proto;
 TableType* string_set;
+TableType* string_array;
 TableType* count_set;
+VectorType* string_vec;
 
 int watchdog_interval;
 
@@ -330,6 +332,8 @@ void init_net_var()
 	pcap_packet = internal_type("pcap_packet")->AsRecordType();
 	transport_proto = internal_type("transport_proto")->AsEnumType();
 	string_set = internal_type("string_set")->AsTableType();
+	string_array = internal_type("string_array")->AsTableType();
+	string_vec = internal_type("string_vec")->AsVectorType();
 
 	ignore_checksums = opt_internal_int("ignore_checksums");
 	partial_connection_ok = opt_internal_int("partial_connection_ok");

@@ -1,5 +1,4 @@
-##! This implements all of the additional information and geodata detections 
-##! for SSH analysis.
+##! Geodata based detections for SSH analysis.
 
 @load base/frameworks/notice
 @load base/protocols/ssh
@@ -19,8 +18,8 @@ export {
 		remote_location: geo_location &log &optional;
 	};
 	
-	## The set of countries for which you'd like to throw notices upon 
-	## successful login
+	## The set of countries for which you'd like to generate notices upon 
+	## successful login.
 	const watched_countries: set[string] = {"RO"} &redef;
 }
 

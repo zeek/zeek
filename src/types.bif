@@ -1,3 +1,4 @@
+##! Declaration of various types that the Bro core uses internally.
 
 enum dce_rpc_ptype %{
 	DCE_RPC_REQUEST,
@@ -134,8 +135,8 @@ enum createmode_t %{
 	EXCLUSIVE = 2,
 %}
 
-# Decleare record types that we want to access from the even engine. These are
-# defined in bro.init.
+# Declare record types that we want to access from the event engine. These are
+# defined in init-bare.bro.
 type info_t: record;
 type fattr_t: record;
 type diropargs_t: record;

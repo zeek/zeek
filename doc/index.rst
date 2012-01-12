@@ -42,10 +42,10 @@ Script Reference
 .. toctree::
    :maxdepth: 1
 
-   scripts/builtins
-   scripts/bifs
    scripts/packages
    scripts/index
+   scripts/builtins
+   scripts/bifs
 
 Other Bro Components
 --------------------

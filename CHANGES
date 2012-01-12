@@ -1,4 +1,26 @@
 
+2.0 | 2012-01-11 13:52:22 -0800
+
+  * Adding script reference documentation. (The Team).
+
+2.0-beta-194 | 2012-01-10 10:44:32 -0800
+
+  * Added an option for filtering out URLs before they are turned into
+    HTTP::Incorrect_File_Type notices. (Seth Hall)
+
+  * Fix ref counting bug in BIFs that call internal_type. Addresses
+    #740. (Jon Siwek)
+
+  * Adding back the stats.bro file. (Seth Hall)
+
+
+2.0-beta-188 | 2012-01-10 09:49:29 -0800
+
+  * Change SFTP/SCP log rotators to use 4-digit year in filenames
+    Fixes #745. (Jon Siwek)
+
+  * Adding back the stats.bro file. Addresses #656. (Seth Hall)
+
 2.0-beta-185 | 2012-01-09 18:00:50 -0800
 
   * Tweaks for OpenBSD support. (Jon Siwek)

@@ -1,11 +1,7 @@
 ##! The logging this script does is primarily focused on logging FTP commands
 ##! along with metadata.  For example, if files are transferred, the argument
 ##! will take on the full path that the client is at along with the requested 
-##! file name.  
-##! 
-##! TODO:
-##!
-##! * Handle encrypted sessions correctly (get an example?)
+##! file name.
 
 @load ./utils-commands
 @load base/utils/paths
@@ -14,38 +10,64 @@
 module FTP;
 
 export {
+	## The FTP protocol logging stream identifier.
 	redef enum Log::ID += { LOG };
-
+	
+	## List of commands that should have their command/response pairs logged.
+	const logged_commands = {
+		"APPE", "DELE", "RETR", "STOR", "STOU", "ACCT"
+	} &redef;
+	
 	## This setting changes if passwords used in FTP sessions are captured or not.
 	const default_capture_password = F &redef;
 	
+	## User IDs that can be considered "anonymous".
+	const guest_ids = { "anonymous", "ftp", "guest" } &redef;
+	
 	type Info: record {
+		## Time when the command was sent.
 		ts:               time        &log;
 		uid:              string      &log;
 		id:               conn_id     &log;
+		## User name for the current FTP session.
 		user:             string      &log &default="<unknown>";
+		## Password for the current FTP session if captured.
 		password:         string      &log &optional;
+		## Command given by the client.
 		command:          string      &log &optional;
+		## Argument for the command if one is given.
 		arg:              string      &log &optional;
-		                              
+		
+		## Libmagic "sniffed" file type if the command indicates a file transfer.
 		mime_type:        string      &log &optional;
+		## Libmagic "sniffed" file description if the command indicates a file transfer.
 		mime_desc:        string      &log &optional;
+		## Size of the file if the command indicates a file transfer.
 		file_size:        count       &log &optional;
+		
+		## Reply code from the server in response to the command.
 		reply_code:       count       &log &optional;
+		## Reply message from the server in response to the command.
 		reply_msg:        string      &log &optional;
+		## Arbitrary tags that may indicate a particular attribute of this command.
 		tags:             set[string] &log &default=set();
 		
-		## By setting the CWD to '/.', we can indicate that unless something
+		## Current working directory that this session is in.  By making
+		## the default value '/.', we can indicate that unless something
 		## more concrete is discovered that the existing but unknown
 		## directory is ok to use.
 		cwd:                string  &default="/.";
+		
+		## Command that is currently waiting for a response.
 		cmdarg:             CmdArg  &optional;
+		## Queue for commands that have been sent but not yet responded to 
+		## are tracked here.
 		pending_commands:   PendingCmds;
 		
-		## This indicates if the session is in active or passive mode.
+		## Indicates if the session is in active or passive mode.
 		passive:            bool &default=F;
 		
-		## This determines if the password will be captured for this request.
+		## Determines if the password will be captured for this request.
 		capture_password:   bool &default=default_capture_password;
 	};
 
@@ -56,22 +78,12 @@ export {
 		y: count;
 		z: count;
 	};
-
-	# TODO: add this back in some form.  raise a notice again?
-	#const excessive_filename_len = 250 &redef;
-	#const excessive_filename_trunc_len = 32 &redef;
-
-	## These are user IDs that can be considered "anonymous".
-	const guest_ids = { "anonymous", "ftp", "guest" } &redef;
 	
-	## The list of commands that should have their command/response pairs logged.
-	const logged_commands = {
-		"APPE", "DELE", "RETR", "STOR", "STOU", "ACCT"
-	} &redef;
-	
-	## This function splits FTP reply codes into the three constituent 
+	## Parse FTP reply codes into the three constituent single digit values.
 	global parse_ftp_reply_code: function(code: count): ReplyCode;
-
+	
+	## Event that can be handled to access the :bro:type:`FTP::Info`
+	## record as it is sent on to the logging framework.
 	global log_ftp: event(rec: Info);
 }
 

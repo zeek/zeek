@@ -1,5 +1,4 @@
-##! This script is involved in the identification of file types in HTTP
-##! response bodies.
+##! Identification of file types in HTTP response bodies with file content sniffing.
 
 @load base/frameworks/signatures
 @load base/frameworks/notice
@@ -15,27 +14,23 @@ module HTTP;
 
 export {
 	redef enum Notice::Type += {
-		# This notice is thrown when the file extension doesn't 
-		# seem to match the file contents.
+		## Indicates when the file extension doesn't seem to match the file contents.
 		Incorrect_File_Type,
 	};
 
 	redef record Info += {
-		## This will record the mime_type identified.
+		## Mime type of response body identified by content sniffing.
 		mime_type:    string   &log &optional;
 		
-		## This indicates that no data of the current file transfer has been
+		## Indicates that no data of the current file transfer has been
 		## seen yet.  After the first :bro:id:`http_entity_data` event, it 
-		## will be set to T.
+		## will be set to F.
 		first_chunk:     bool &default=T;
 	};
-
-	redef enum Tags += {
-		IDENTIFIED_FILE
-	};
 	
-	# Create regexes that *should* in be in the urls for specifics mime types.
-	# Notices are thrown if the pattern doesn't match the url for the file type.
+	## Mapping between mime types and regular expressions for URLs
+	## The :bro:enum:`HTTP::Incorrect_File_Type` notice is generated if the pattern 
+	## doesn't match the mime type that was discovered.
 	const mime_types_extensions: table[string] of pattern = {
 		["application/x-dosexec"] = /\.([eE][xX][eE]|[dD][lL][lL])/,
 	} &redef;

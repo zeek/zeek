@@ -34,14 +34,24 @@ public:
 
 	void SetDelim(char d) { delim = d; }
 
+	void IncIgnoreDepth() { ignoring++; }
+	void DecIgnoreDepth() { ignoring--; }
+
+	void AddStmt(const Stmt* s) { if ( ignoring == 0 ) stmts.push_back(s); }
+
+private:
 	/**
 	 * The current, global Brofiler instance creates this list at parse-time.
 	 */
 	list<const Stmt*> stmts;
 
-private:
 	/**
-	 *
+	 * Indicates whether new statments will not be considered as part of
+	 * coverage statistics because it was marked with the @no-test tag.
+	 */
+	unsigned int ignoring;
+
+	/**
 	 * This maps Stmt location-desc pairs to the total number of times that
 	 * Stmt has been executed.  The map can be initialized from a file at
 	 * startup time and modified at shutdown time before writing back

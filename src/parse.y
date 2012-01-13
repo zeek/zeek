@@ -29,6 +29,8 @@
 
 %token TOK_DOC TOK_POST_DOC
 
+%token TOK_NO_TEST
+
 %left ',' '|'
 %right '=' TOK_ADD_TO TOK_REMOVE_FROM
 %right '?' ':' TOK_USING
@@ -42,6 +44,7 @@
 %right '!'
 %left '$' '[' ']' '(' ')' TOK_HAS_FIELD TOK_HAS_ATTR
 
+%type <b> opt_no_test opt_no_test_block
 %type <str> TOK_ID TOK_PATTERN_TEXT single_pattern TOK_DOC TOK_POST_DOC
 %type <str_l> opt_doc_list opt_post_doc_list
 %type <id> local_id global_id def_global_id event_id global_or_event_id resolve_id begin_func
@@ -196,6 +199,7 @@ static std::list<std::string>* concat_opt_docs (std::list<std::string>* pre,
 %}
 
 %union {
+	bool b;
 	char* str;
 	std::list<std::string>* str_l;
 	ID* id;
@@ -1315,121 +1319,117 @@ attr:
 	;
 
 stmt:
-		'{' stmt_list '}'
+		'{' opt_no_test_block stmt_list '}'
 			{
-			set_location(@1, @3);
-			$$ = $2;
+			set_location(@1, @4);
+			$$ = $3;
+			if ( $2 ) brofiler.DecIgnoreDepth();
 			}
 
-	|	TOK_PRINT expr_list ';'
+	|	TOK_PRINT expr_list ';' opt_no_test
 			{
 			set_location(@1, @3);
 			$$ = new PrintStmt($2);
-			brofiler.stmts.push_back($$);
+			if ( ! $4 ) brofiler.AddStmt($$);
 			}
 
-	|	TOK_EVENT event ';'
+	|	TOK_EVENT event ';' opt_no_test
 			{
 			set_location(@1, @3);
 			$$ = new EventStmt($2);
-			brofiler.stmts.push_back($$);
+			if ( ! $4 ) brofiler.AddStmt($$);
 			}
 
 	|	TOK_IF '(' expr ')' stmt
 			{
 			set_location(@1, @4);
 			$$ = new IfStmt($3, $5, new NullStmt());
-			//brofiler.stmts.push_back($$);
 			}
 
 	|	TOK_IF '(' expr ')' stmt TOK_ELSE stmt
 			{
 			set_location(@1, @4);
 			$$ = new IfStmt($3, $5, $7);
-			//brofiler.stmts.push_back($$);
 			}
 
 	|	TOK_SWITCH expr '{' case_list '}'
 			{
 			set_location(@1, @2);
 			$$ = new SwitchStmt($2, $4);
-			//brofiler.stmts.push_back($$);
 			}
 
 	|	for_head stmt
 			{
 			$1->AsForStmt()->AddBody($2);
-			//brofiler.stmts.push_back($1);
 			}
 
-	|	TOK_NEXT ';'
+	|	TOK_NEXT ';' opt_no_test
 			{
 			set_location(@1, @2);
 			$$ = new NextStmt;
-			brofiler.stmts.push_back($$);
+			if ( ! $3 ) brofiler.AddStmt($$);
 			}
 
-	|	TOK_BREAK ';'
+	|	TOK_BREAK ';' opt_no_test
 			{
 			set_location(@1, @2);
 			$$ = new BreakStmt;
-			brofiler.stmts.push_back($$);
+			if ( ! $3 ) brofiler.AddStmt($$);
 			}
 
-	|	TOK_RETURN ';'
+	|	TOK_RETURN ';' opt_no_test
 			{
 			set_location(@1, @2);
 			$$ = new ReturnStmt(0);
-			brofiler.stmts.push_back($$);
+			if ( ! $3 ) brofiler.AddStmt($$);
 			}
 
-	|	TOK_RETURN expr ';'
+	|	TOK_RETURN expr ';' opt_no_test
 			{
 			set_location(@1, @2);
 			$$ = new ReturnStmt($2);
-			brofiler.stmts.push_back($$);
+			if ( ! $4 ) brofiler.AddStmt($$);
 			}
 
-	|	TOK_ADD expr ';'
+	|	TOK_ADD expr ';' opt_no_test
 			{
 			set_location(@1, @3);
 			$$ = new AddStmt($2);
-			brofiler.stmts.push_back($$);
+			if ( ! $4 ) brofiler.AddStmt($$);
 			}
 
-	|	TOK_DELETE expr ';'
+	|	TOK_DELETE expr ';' opt_no_test
 			{
 			set_location(@1, @3);
 			$$ = new DelStmt($2);
-			brofiler.stmts.push_back($$);
+			if ( ! $4 ) brofiler.AddStmt($$);
 			}
 
-	|	TOK_LOCAL local_id opt_type init_class opt_init opt_attr ';'
+	|	TOK_LOCAL local_id opt_type init_class opt_init opt_attr ';' opt_no_test
 			{
 			set_location(@1, @7);
 			$$ = add_local($2, $3, $4, $5, $6, VAR_REGULAR);
-			brofiler.stmts.push_back($$);
+			if ( ! $8 ) brofiler.AddStmt($$);
 			}
 
-	|	TOK_CONST local_id opt_type init_class opt_init opt_attr ';'
+	|	TOK_CONST local_id opt_type init_class opt_init opt_attr ';' opt_no_test
 			{
 			set_location(@1, @6);
 			$$ = add_local($2, $3, $4, $5, $6, VAR_CONST);
-			brofiler.stmts.push_back($$);
+			if ( ! $8 ) brofiler.AddStmt($$);
 			}
 
 	|	TOK_WHEN '(' expr ')' stmt
 			{
 			set_location(@3, @5);
 			$$ = new WhenStmt($3, $5, 0, 0, false);
-			brofiler.stmts.push_back($$);
 			}
 
-	|	TOK_WHEN '(' expr ')' stmt TOK_TIMEOUT expr '{' stmt_list '}'
+	|	TOK_WHEN '(' expr ')' stmt TOK_TIMEOUT expr '{' opt_no_test_block stmt_list '}'
 			{
-			set_location(@3, @8);
-			$$ = new WhenStmt($3, $5, $9, $7, false);
-			brofiler.stmts.push_back($$);
+			set_location(@3, @9);
+			$$ = new WhenStmt($3, $5, $10, $7, false);
+			if ( $9 ) brofiler.DecIgnoreDepth();
 			}
 
 
@@ -1437,21 +1437,20 @@ stmt:
 			{
 			set_location(@4, @6);
 			$$ = new WhenStmt($4, $6, 0, 0, true);
-			brofiler.stmts.push_back($$);
 			}
 
-	|	TOK_RETURN TOK_WHEN '(' expr ')' stmt TOK_TIMEOUT expr '{' stmt_list '}'
+	|	TOK_RETURN TOK_WHEN '(' expr ')' stmt TOK_TIMEOUT expr '{' opt_no_test_block stmt_list '}'
 			{
-			set_location(@4, @9);
-			$$ = new WhenStmt($4, $6, $10, $8, true);
-			brofiler.stmts.push_back($$);
+			set_location(@4, @10);
+			$$ = new WhenStmt($4, $6, $11, $8, true);
+			if ( $10 ) brofiler.DecIgnoreDepth();
 			}
 
-	|	expr ';'
+	|	expr ';' opt_no_test
 			{
 			set_location(@1, @2);
 			$$ = new ExprStmt($1);
-			brofiler.stmts.push_back($$);
+			if ( ! $3 ) brofiler.AddStmt($$);
 			}
 
 	|	';'
@@ -1648,6 +1647,18 @@ opt_doc_list:
 	|
 			{ $$ = 0; }
 	;
+
+opt_no_test:
+		TOK_NO_TEST
+			{ $$ = true; }
+	|
+			{ $$ = false; }
+
+opt_no_test_block:
+		TOK_NO_TEST
+			{ $$ = true; brofiler.IncIgnoreDepth(); }
+	|
+			{ $$ = false; }
 
 %%
 

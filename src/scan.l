@@ -216,6 +216,8 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 		}
 }
 
+#{OWS}@no-test.* return TOK_NO_TEST;
+
 #.*	/* eat comments */
 
 {WS}	/* eat whitespace */

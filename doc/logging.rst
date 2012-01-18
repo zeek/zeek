@@ -163,7 +163,7 @@ quickly ...
 .. sidebar:: A More Generic Path Function
 
     The ``split_log`` method has one draw-back: it can be used
-    only with the :bro:enum:`Conn::Log` stream as the record type is hardcoded
+    only with the :bro:enum:`Conn::LOG` stream as the record type is hardcoded
     into its argument list. However, Bro allows to do a more generic
     variant:
 

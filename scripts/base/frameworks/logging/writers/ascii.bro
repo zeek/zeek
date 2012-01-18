@@ -21,8 +21,9 @@ export {
 	## Separator between set elements.
 	const set_separator = "," &redef;
 
-	## String to use for empty fields.
-	const empty_field = "-" &redef;
+	## String to use for empty fields. This should be different from
+        ## *unset_field* to make the output non-ambigious. 
+	const empty_field = "(empty)" &redef;
 
 	## String to use for an unset &optional field.
 	const unset_field = "-" &redef;

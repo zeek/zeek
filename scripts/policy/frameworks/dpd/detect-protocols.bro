@@ -8,7 +8,6 @@ module ProtocolDetector;
 
 export {
 	redef enum Notice::Type += {
-		Off_Port_Protocol_Found, # raised for each connection found
 		Protocol_Found,
 		Server_Found,
 	};
@@ -155,13 +154,10 @@ function report_protocols(c: connection)
 		{
 		if ( [a, c$id$resp_h, c$id$resp_p] in valids )
 			do_notice(c, a, valids[a, c$id$resp_h, c$id$resp_p]);
-
 		else if ( [a, 0.0.0.0, c$id$resp_p] in valids )
 			do_notice(c, a, valids[a, 0.0.0.0, c$id$resp_p]);
 		else
 			do_notice(c, a, NONE);
-
-		append_addl(c, analyzer_name(a));
 		}
 
 	delete conns[c$id];
@@ -216,20 +212,6 @@ event protocol_confirmation(c: connection, atype: count, aid: count)
 		local delay = min_interval(minimum_duration, check_interval);
 		schedule delay { ProtocolDetector::check_connection(c) };
 		}
-	}
-
-# event connection_analyzer_disabled(c: connection, analyzer: count)
-# 	{
-# 	if ( c$id !in conns )
-# 		return;
-# 
-# 	delete conns[c$id][analyzer];
-# 	}
-
-function append_proto_addl(c: connection)
-	{
-	for ( a in conns[c$id] )
-		append_addl(c, fmt_protocol(get_protocol(c, a)));
 	}
 
 function found_protocol(c: connection, analyzer: count, protocol: string)

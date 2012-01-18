@@ -3,7 +3,7 @@
 # @TEST-EXEC: sleep 1
 # @TEST-EXEC: btest-bg-run receiver bro --pseudo-realtime %INPUT ../receiver.bro
 # @TEST-EXEC: sleep 1
-# @TEST-EXEC: btest-bg-wait -k 1
+# @TEST-EXEC: btest-bg-wait -k 10
 # @TEST-EXEC: btest-diff sender/test.log
 # @TEST-EXEC: btest-diff sender/test.failure.log
 # @TEST-EXEC: btest-diff sender/test.success.log

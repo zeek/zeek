@@ -1,4 +1,5 @@
-# Definitions of Bro built-in functions related to strings.
+##! Definitions of built-in functions related to string processing and
+##! manipulation.
 
 
 %%{ // C segment
@@ -83,7 +84,7 @@ BroString* cat_string_array_n(TableVal* tbl, int start, int end)
 
 ## Concatenates all elements in an array of strings.
 ##
-## a: The :bro:id:`string_array` (``table[count] of string``).
+## a: The :bro:type:`string_array` (``table[count] of string``).
 ##
 ## Returns: The concatenation of all elements in *a*.
 ##
@@ -98,7 +99,7 @@ function cat_string_array%(a: string_array%): string
 
 ## Concatenates a specific range of elements in an array of strings.
 ##
-## a: The :bro:id:`string_array` (``table[count] of string``).
+## a: The :bro:type:`string_array` (``table[count] of string``).
 ##
 ## start: The array index of the first element of the range.
 ##
@@ -120,7 +121,7 @@ function cat_string_array_n%(a: string_array, start: count, end: count%): string
 ##
 ## sep: The separator to place between each element.
 ##
-## a: The :bro:id:`string_array` (``table[count] of string``).
+## a: The :bro:type:`string_array` (``table[count] of string``).
 ##
 ## Returns: The concatenation of all elements in *a*, with *sep* placed
 ##          between each element.
@@ -156,7 +157,7 @@ function join_string_array%(sep: string, a: string_array%): string
 ##
 ## sep: The separator to place between each element.
 ##
-## a: The :bro:id:`string_vec` (``vector of string``).
+## a: The :bro:type:`string_vec` (``vector of string``).
 ##
 ## Returns: The concatenation of all elements in *a*, with *sep* placed
 ##          between each element.
@@ -185,7 +186,7 @@ function join_string_vec%(vec: string_vec, sep: string%): string
 
 ## Sorts an array of strings.
 ##
-## a: The :bro:id:`string_array` (``table[count] of string``).
+## a: The :bro:type:`string_array` (``table[count] of string``).
 ##
 ## Returns: A sorted copy of *a*.
 ##
@@ -211,11 +212,10 @@ function sort_string_array%(a: string_array%): string_array
 		}
 	// sort(vs.begin(), vs.end(), Bstr_cmp);
 
-	TableVal* b = new TableVal(internal_type("string_array")->AsTableType());
+	TableVal* b = new TableVal(string_array);
 	vs_to_string_array(vs, b, 1, n);
 	return b;
 	%}
-
 
 ## Returns an edited version of a string that applies a special
 ## "backspace character" (usually ``\x08`` for backspace or ``\x7f`` for DEL).
@@ -314,7 +314,7 @@ static int match_prefix(int s_len, const char* s, int t_len, const char* t)
 Val* do_split(StringVal* str_val, RE_Matcher* re, TableVal* other_sep,
 		int incl_sep, int max_num_sep)
 	{
-	TableVal* a = new TableVal(internal_type("string_array")->AsTableType());
+	TableVal* a = new TableVal(string_array);
 	ListVal* other_strings = 0;
 
 	if ( other_sep && other_sep->Size() > 0 )
@@ -991,7 +991,7 @@ function str_shell_escape%(source: string%): string
 ## .. bro:see: find_last strstr
 function find_all%(str: string, re: pattern%) : string_set
 	%{
-	TableVal* a = new TableVal(internal_type("string_set")->AsTableType());
+	TableVal* a = new TableVal(string_set);
 
 	const u_char* s = str->Bytes();
 	const u_char* e = s + str->Len();

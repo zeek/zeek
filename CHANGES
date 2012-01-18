@@ -1,4 +1,165 @@
 
+2.0 | 2012-01-11 13:52:22 -0800
+
+  * Adding script reference documentation. (The Team).
+
+2.0-beta-194 | 2012-01-10 10:44:32 -0800
+
+  * Added an option for filtering out URLs before they are turned into
+    HTTP::Incorrect_File_Type notices. (Seth Hall)
+
+  * Fix ref counting bug in BIFs that call internal_type. Addresses
+    #740. (Jon Siwek)
+
+  * Adding back the stats.bro file. (Seth Hall)
+
+
+2.0-beta-188 | 2012-01-10 09:49:29 -0800
+
+  * Change SFTP/SCP log rotators to use 4-digit year in filenames
+    Fixes #745. (Jon Siwek)
+
+  * Adding back the stats.bro file. Addresses #656. (Seth Hall)
+
+2.0-beta-185 | 2012-01-09 18:00:50 -0800
+
+  * Tweaks for OpenBSD support. (Jon Siwek)
+
+2.0-beta-181 | 2012-01-08 20:49:04 -0800
+
+  * Add SFTP log postprocessor that transfers logs to remote hosts.
+    Addresses #737. (Jon Siwek)
+
+  * Add FAQ entry about disabling NIC offloading features. (Jon Siwek)
+    
+  * Add a file NEWS with release notes. (Robin Sommer)
+
+2.0-beta-177 | 2012-01-05 15:01:07 -0800
+
+  * Replace the --snaplen/-l command line option with a
+    scripting-layer option called "snaplen" (which can also be
+    redefined on the command line, e.g. `bro -i eth0 snaplen=65535`).
+
+  * Reduce snaplen default from 65535 to old default of 8192. Fixes
+    #720. (Jon Siwek)
+
+2.0-beta-174 | 2012-01-04 12:47:10 -0800
+
+  * SSL improvements. (Seth Hall)
+    
+    - Added the ssl_session_ticket_handshake event back.
+
+    - Fixed a few bugs.
+      
+    - Removed the SSLv2.cc file since it's not used.
+      
+2.0-beta-169 | 2012-01-04 12:44:39 -0800
+
+  * Tuning the pretty-printed alarm mails, which now include the
+    covered time range into the subject. (Robin Sommer)
+
+  * Adding top-level "test" target to Makefile. (Robin Sommer)
+    
+  * Adding SWIG as dependency to INSTALL. (Robin Sommer)
+    
+2.0-beta-155 | 2012-01-03 15:42:32 -0800
+
+  * Remove dead code related to record type inheritance. (Jon Siwek)
+
+2.0-beta-152 | 2012-01-03 14:51:34 -0800
+
+  * Notices now record the transport-layer protocol. (Bernhard Amann)
+
+2.0-beta-150 | 2012-01-03 14:42:45 -0800
+
+  * CMake 2.6 top-level 'install' target compat. Fixes #729. (Jon Siwek)
+
+  * Minor fixes to test process. Addresses #298.
+    
+  * Increase timeout interval of communication-related btests. (Jon Siwek)
+
+2.0-beta-145 | 2011-12-19 11:37:15 -0800
+
+  * Empty fields are now logged as "(empty)" by default. (Robin
+    Sommer)
+
+  * In log headers, only escape information when necessary. (Robin
+    Sommer)
+
+2.0-beta-139 | 2011-12-19 07:06:29 -0800
+
+  * The hostname notice email extension works now, plus a general
+    mechanism for adding delayed information to notices. (Seth Hall)
+
+  * Fix &default fields in records not being initialized in coerced
+    assignments. Addresses #722. (Jon Siwek)
+
+  * Make log headers include the type of data stored inside a set or
+    vector ("vector[string]"). (Bernhard Amann)
+
+2.0-beta-126 | 2011-12-18 15:18:05 -0800
+
+  * DNS updates.  (Seth Hall)
+
+    - Fixed some bugs with capturing data in the base DNS script.
+
+    - Answers and TTLs are now vectors.
+      
+    - A warning that was being generated (dns_reply_seen_after_done)
+      from transaction ID reuse is fixed.
+
+  * SSL updates. (Seth Hall)
+
+    - Added is_orig fields to the SSL events and adapted script.
+      
+    - Added a field named last_alert to the SSL log.
+      
+    - The x509_certificate function has an is_orig field now instead
+      of is_server and its position in the argument list has moved.
+
+    - A bit of reorganization and cleanup in the core analyzer. (Seth
+      Hall)
+
+2.0-beta-121 | 2011-12-18 15:10:15 -0800
+
+  * Enable warnings for malformed Broxygen xref roles. (Jon Siwek)
+
+  * Fix Broxygen confusing scoped IDs at start of line as function
+    parameter. (Jon Siwek)
+
+  * Allow Broxygen markup "##<" for more general use. (Jon Siwek)
+    
+2.0-beta-116 | 2011-12-16 02:38:27 -0800
+
+  * Cleanup some misc Broxygen css/js stuff. (Jon Siwek)
+
+  * Add search box to Broxygen docs. Fixes #726. (Jon Siwek)
+
+  * Fixed major bug with cluster synchronization, which was not
+    working. (Seth Hall)
+
+  * Fix missing action in notice policy for looking up GeoIP data.
+    (Jon Siwek)
+
+  * Better persistent state configuration warning messages (fixes
+    #433). (Jon Siwek)
+
+  * Renaming HTTP::SQL_Injection_Attack_Against to
+    HTTP::SQL_Injection_Victim. (Seth Hall).
+
+  * Fixed DPD signatures for IRC. Fixes #311. (Seth Hall)
+    
+  * Removing Off_Port_Protocol_Found notice. (Seth Hall)
+
+  * Teach Broxygen to more generally reference attribute values by name. (Jon Siwek)
+
+  * SSH::Interesting_Hostname_Login cleanup.  Fixes #664. (Seth Hall)
+    
+  * Fixed bug that was causing the malware hash registry script to
+    break. (Seth Hall)
+
+  * Remove remnant of libmagic optionality. (Jon Siwek)
+
 2.0-beta-98 | 2011-12-07 08:12:08 -0800
 
   * Adapting test-suite's diff-all so that it expands globs in both

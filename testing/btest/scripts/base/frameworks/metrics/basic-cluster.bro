@@ -3,7 +3,7 @@
 # @TEST-EXEC: sleep 1
 # @TEST-EXEC: btest-bg-run worker-1  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-1 bro %INPUT
 # @TEST-EXEC: btest-bg-run worker-2  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-2 bro %INPUT
-# @TEST-EXEC: btest-bg-wait -k 6
+# @TEST-EXEC: btest-bg-wait -k 10
 # @TEST-EXEC: btest-diff manager-1/metrics.log
 
 @TEST-START-FILE cluster-layout.bro

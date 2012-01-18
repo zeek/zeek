@@ -1,4 +1,8 @@
-# Definitions of Bro built-in functions.
+##! A collection of built-in functions that implement a variety of things
+##! such as general programming algorithms, string processing, math functions,
+##! introspection, type conversion, file/directory manipulation, packet
+##! filtering, inter-process communication and controlling protocol analyzer
+##! behavior.
 
 %%{ // C segment
 #include <math.h>
@@ -659,7 +663,7 @@ function md5_hash_init%(index: any%): bool
 	%}
 
 ## Update the MD5 value associated with a given index. It is required to
-## call :bro:id:`md5_hash_init(index)` once before calling this
+## call :bro:id:`md5_hash_init` once before calling this
 ## function.
 ##
 ## index: The unique identifier to associate with this hash computation.
@@ -2199,11 +2203,11 @@ function addr_to_count%(a: addr%): count
 	return new Val(ntohl(addr), TYPE_COUNT);
 	%}
 
-## Converts a :bro:type:`addr` to a :bro:type:`count`.
+## Converts a :bro:type:`port` to a :bro:type:`count`.
 ##
-## a: The :bro:type:`addr` to convert.
+## p: The :bro:type:`port` to convert.
 ##
-## Returns: The :bro:type:`addr` *a* as :bro:type:`count`.
+## Returns: The :bro:type:`port` *p* as :bro:type:`count`.
 ##
 ## .. bro:see:: count_to_port
 function port_to_count%(p: port%): count
@@ -2213,11 +2217,11 @@ function port_to_count%(p: port%): count
 
 ## Converts a :bro:type:`count` and ``transport_proto`` to a :bro:type:`port`.
 ##
-## num: The port number.
+## num: The :bro:type:`port` number.
 ##
 ## proto: The transport protocol.
 ##
-## Returns: The :bro:type:`addr` *a* as :bro:type:`count`.
+## Returns: The :bro:type:`count` *c* as :bro:type:`port`.
 ##
 ## .. bro:see:: port_to_count
 function count_to_port%(num: count, proto: transport_proto%): port
@@ -3044,11 +3048,11 @@ function connection_exists%(c: conn_id%): bool
 		return new Val(0, TYPE_BOOL);
 	%}
 
-## Returns the :bro:id:`connection` record for a given connection identifier.
+## Returns the :bro:type:`connection` record for a given connection identifier.
 ##
 ## cid: The connection ID.
 ##
-## Returns: The :bro:id:`connection` record for *cid*. If *cid* does not point
+## Returns: The :bro:type:`connection` record for *cid*. If *cid* does not point
 ##          to an existing connection, the function generates a run-time error
 ##          and returns a dummy value.
 ##
@@ -4852,7 +4856,7 @@ function enable_communication%(%): any
 	return 0;
 	%}
 
-## Flushes in-memory state tagged with the :bro:attr:`&persistence` attribute
+## Flushes in-memory state tagged with the :bro:attr:`&persistent` attribute
 ## to disk. The function writes the state to the file ``.state/state.bst`` in
 ## the directory where Bro was started.
 ##

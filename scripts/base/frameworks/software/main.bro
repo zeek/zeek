@@ -1,5 +1,5 @@
 ##! This script provides the framework for software version detection and
-##! parsing, but doesn't actually do any detection on it's own.  It relys on
+##! parsing but doesn't actually do any detection on it's own.  It relys on
 ##! other protocol specific scripts to parse out software from the protocols
 ##! that they analyze.  The entry point for providing new software detections
 ##! to this framework is through the :bro:id:`Software::found` function.
@@ -10,39 +10,44 @@
 module Software;
 
 export {
-
+	## The software logging stream identifier.
 	redef enum Log::ID += { LOG };
-
+	
+	## Scripts detecting new types of software need to redef this enum to add
+	## their own specific software types which would then be used when they 
+	## create :bro:type:`Software::Info` records.
 	type Type: enum {
+		## A placeholder type for when the type of software is not known.
 		UNKNOWN,
-		OPERATING_SYSTEM,
-		DATABASE_SERVER,
-		# There are a number of ways to detect printers on the 
-		# network, we just need to codify them in a script and move
-		# this out of here.  It isn't currently used for anything.
-		PRINTER,
 	};
-
+	
+	## A structure to represent the numeric version of software.
 	type Version: record {
-		major:  count  &optional;  ##< Major version number
-		minor:  count  &optional;  ##< Minor version number
-		minor2: count  &optional;  ##< Minor subversion number
-		addl:   string &optional;  ##< Additional version string (e.g. "beta42")
+		## Major version number
+		major:  count  &optional;
+		## Minor version number
+		minor:  count  &optional;
+		## Minor subversion number
+		minor2: count  &optional;
+		## Additional version string (e.g. "beta42")
+		addl:   string &optional;
 	} &log;
-
+	
+	## The record type that is used for representing and logging software.
 	type Info: record {
-		## The time at which the software was first detected.
+		## The time at which the software was detected.
 		ts:               time &log;
 		## The IP address detected running the software.
 		host:             addr &log;
-		## The type of software detected (e.g. WEB_SERVER)
+		## The type of software detected (e.g. :bro:enum:`HTTP::SERVER`).
 		software_type:    Type &log &default=UNKNOWN;
-		## Name of the software (e.g. Apache)
+		## Name of the software (e.g. Apache).
 		name:             string &log;
-		## Version of the software
+		## Version of the software.
 		version:          Version &log;
 		## The full unparsed version string found because the version parsing 
-		## doesn't work 100% reliably and this acts as a fall back in the logs.
+		## doesn't always work reliably in all cases and this acts as a 
+		## fallback in the logs.
 		unparsed_version: string &log &optional;
 		
 		## This can indicate that this software being detected should
@@ -55,37 +60,48 @@ export {
 		force_log:        bool &default=F;
 	};
 	
-	## The hosts whose software should be detected and tracked.
+	## Hosts whose software should be detected and tracked.
 	## Choices are: LOCAL_HOSTS, REMOTE_HOSTS, ALL_HOSTS, NO_HOSTS
 	const asset_tracking = LOCAL_HOSTS &redef;
-	
 	
 	## Other scripts should call this function when they detect software.
 	## unparsed_version: This is the full string from which the
 	##                   :bro:type:`Software::Info` was extracted.
+	##
+	## id: The connection id where the software was discovered.
+	##
+	## info: A record representing the software discovered.
+	## 
 	## Returns: T if the software was logged, F otherwise.
 	global found: function(id: conn_id, info: Software::Info): bool;
 	
-	## This function can take many software version strings and parse them 
+	## Take many common software version strings and parse them 
 	## into a sensible :bro:type:`Software::Version` record.  There are 
 	## still many cases where scripts may have to have their own specific 
 	## version parsing though.
+	##
+	## unparsed_version: The raw version string.
+	##
+	## host: The host where the software was discovered.
+	##
+	## software_type: The type of software.
+	##
+	## Returns: A complete record ready for the :bro:id:`Software::found` function.
 	global parse: function(unparsed_version: string,
 	                       host: addr,
 	                       software_type: Type): Info;
 	
-	## Compare two versions.
+	## Compare two version records.
+	## 
 	## Returns:  -1 for v1 < v2, 0 for v1 == v2, 1 for v1 > v2.
 	##           If the numerical version numbers match, the addl string
 	##           is compared lexicographically.
 	global cmp_versions: function(v1: Version, v2: Version): int;
 	
-	## This type represents a set of software.  It's used by the 
-	## :bro:id:`tracked` variable to store all known pieces of software
-	## for a particular host.  It's indexed with the name of a piece of 
-	## software such as "Firefox" and it yields a 
-	## :bro:type:`Software::Info` record with more information about the 
-	## software.
+	## Type to represent a collection of :bro:type:`Software::Info` records.
+	## It's indexed with the name of a piece of software such as "Firefox" 
+	## and it yields a :bro:type:`Software::Info` record with more information
+	## about the  software.
 	type SoftwareSet: table[string] of Info;
 	
 	## The set of software associated with an address.  Data expires from

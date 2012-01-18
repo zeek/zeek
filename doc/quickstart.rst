@@ -31,19 +31,19 @@ See the `bro downloads page`_ for currently supported/targeted platforms.
 
 * RPM
 
-.. console::
+  .. console::
 
-   sudo yum localinstall Bro-all*.rpm
+      sudo yum localinstall Bro-*.rpm
 
 * DEB
 
-.. console::
+  .. console::
 
-   sudo gdebi Bro-all-*.deb
+      sudo gdebi Bro-*.deb
 
 * MacOS Disk Image with Installer
 
-  Just open the ``Bro-all-*.dmg`` and then run the ``.pkg`` installer.
+  Just open the ``Bro-*.dmg`` and then run the ``.pkg`` installer.
   Everything installed by the package will go into ``/opt/bro``.
 
 The primary install prefix for binary packages is ``/opt/bro``.
@@ -56,26 +56,32 @@ Building From Source
 Required Dependencies
 ~~~~~~~~~~~~~~~~~~~~~
 
+The following dependencies are required to build Bro:
+
 * RPM/RedHat-based Linux:
 
-.. console::
+  .. console::
 
-   sudo yum install cmake make gcc gcc-c++ flex bison libpcap-devel openssl-devel python-devel swig zlib-devel file-devel
+     sudo yum install cmake make gcc gcc-c++ flex bison libpcap-devel openssl-devel python-devel swig zlib-devel file-devel
 
 * DEB/Debian-based Linux:
 
-.. console::
+  .. console::
 
-   sudo apt-get install cmake make gcc g++ flex bison libpcap-dev libssl-dev python-dev swig zlib1g-dev libmagic-dev
+     sudo apt-get install cmake make gcc g++ flex bison libpcap-dev libssl-dev python-dev swig zlib1g-dev libmagic-dev
 
 * FreeBSD
 
   Most required dependencies should come with a minimal FreeBSD install
   except for the following.
 
-.. console::
+  .. console::
 
-   sudo pkg_add -r cmake swig bison python
+      sudo pkg_add -r bash cmake swig bison python
+
+  Note that ``bash`` needs to be in ``PATH``, which by default it is
+  not. The FreeBSD package installs the binary into
+  ``/usr/local/bin``.
 
 * Mac OS X
 
@@ -99,21 +105,21 @@ sending emails.
 
 * RPM/RedHat-based Linux:
 
-.. console::
+  .. console::
 
-   sudo yum install GeoIP-devel sendmail
+      sudo yum install GeoIP-devel sendmail
 
 * DEB/Debian-based Linux:
 
-.. console::
+  .. console::
 
-   sudo apt-get install libgeoip-dev sendmail
+      sudo apt-get install libgeoip-dev sendmail
 
 * Ports-based FreeBSD
 
-.. console::
+  .. console::
 
-   sudo pkg_add -r GeoIP
+      sudo pkg_add -r GeoIP
 
   sendmail is typically already available.
 

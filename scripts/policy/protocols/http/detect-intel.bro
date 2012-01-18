@@ -1,4 +1,4 @@
-##! Intelligence based HTTP detections.
+##! Intelligence based HTTP detections.  Not yet working!
 
 @load base/protocols/http/main
 @load base/protocols/http/utils

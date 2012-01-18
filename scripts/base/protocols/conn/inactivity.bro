@@ -4,7 +4,7 @@
 module Conn;
 
 export {
-	## Define inactivty timeouts by the service detected being used over
+	## Define inactivity timeouts by the service detected being used over
 	## the connection.
 	const analyzer_inactivity_timeouts: table[AnalyzerTag] of interval = {
 		# For interactive services, allow longer periods of inactivity.

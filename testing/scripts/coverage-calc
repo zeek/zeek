@@ -3,10 +3,12 @@
 # This script aggregates many files containing Bro script coverage information
 # into a single file and reports the overall coverage information. Usage:
 #
-#   coverage-calc <quoted glob of filenames> <output file> <ignored script dir>
+#   coverage-calc <quoted glob of filenames> <output file> <script dir>
 #
-# The last argument is used to ignore Bro scripts that are part of the test
-# suite itself as those should not count towards the coverage calculation.
+# The last argument is used to point to a root directory containing all
+# the Bro distribution's scripts.  It's used to cull out test scripts
+# that are not part of the distribution and which should not count towrads
+# the coverage calculation.
 
 import os
 import sys
@@ -15,7 +17,7 @@ import glob
 stats = {}
 inputglob = sys.argv[1]
 outputfile = sys.argv[2]
-ignoredir = os.path.abspath(sys.argv[3])
+scriptdir = os.path.abspath(sys.argv[3])
 
 for filename in glob.glob(inputglob):
     with open(filename, 'r') as f:
@@ -24,10 +26,13 @@ for filename in glob.glob(inputglob):
             exec_count = int(parts[0])
             location = os.path.normpath(parts[1])
             # ignore scripts that don't appear to be part of Bro distribution
-            if location.startswith(ignoredir) or not location.startswith("/"):
+            if not location.startswith(scriptdir):
                 continue
             desc = parts[2]
-            key = location + desc
+            # keying by location + desc may result in duplicate data
+            # as some descs change as a result of differing configurations
+            # producing record (re)definitions
+            key = location
             if key in stats:
                 stats[key][0] += exec_count
             else:

@@ -1,5 +1,3 @@
-// $Id: HTTP.h 6942 2009-11-16 03:54:08Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef http_h
@@ -31,10 +29,8 @@ public:
 			int expect_body);
 	~HTTP_Entity()
 		{
-#ifdef HAVE_LIBZ
 		if ( zip )
 			{ zip->Done(); delete zip; }
-#endif
 		}
 
 	void EndOfData();
@@ -57,9 +53,7 @@ protected:
 	int64_t header_length;
 	int deliver_body;
 	enum { IDENTITY, GZIP, COMPRESS, DEFLATE } encoding;
-#ifdef HAVE_LIBZ
 	ZIP_Analyzer* zip;
-#endif
 
 	MIME_Entity* NewChildEntity() { return new HTTP_Entity(http_message, this, 1); }
 
@@ -165,6 +159,9 @@ public:
 
 	void SkipEntityData(int is_orig);
 
+	int IsConnectionClose()		{ return connection_close; }
+	int HTTP_ReplyCode() const { return reply_code; };
+
 	// Overriden from Analyzer.
 	virtual void Done();
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
@@ -180,9 +177,10 @@ public:
 		{ return new HTTP_Analyzer(conn); }
 
 	static bool Available()
-		{ return (http_request || http_reply) && !FLAGS_use_binpac; }
-
-	int IsConnectionClose()		{ return connection_close; }
+		{ return (http_request || http_reply || http_header ||
+			http_all_headers || http_begin_entity || http_end_entity ||
+			http_content_type || http_entity_data || http_message_done ||
+			http_event || http_stats) && !FLAGS_use_binpac; }
 
 protected:
 	void GenStats();

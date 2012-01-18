@@ -1,5 +1,3 @@
-// $Id: PrefixTable.h 969 2005-01-04 06:36:21Z vern $
-
 #ifndef PREFIXTABLE_H
 #define PREFIXTABLE_H
 

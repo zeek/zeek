@@ -1,4 +1,4 @@
-# Internal functions and types used by the logging framework.
+##! Internal functions and types used by the logging framework.
 
 module Log;
 
@@ -10,9 +10,6 @@ module Log;
 type Filter: record;
 type Stream: record;
 type RotationInfo: record;
-type RotationControl: record;
-
-const Log::rotation_control: RotationControl;
 
 function Log::__create_stream%(id: Log::ID, stream: Log::Stream%) : bool
 	%{

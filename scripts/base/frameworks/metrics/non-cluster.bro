@@ -1,9 +1,6 @@
+@load ./main
 
 module Metrics;
-
-export {
-
-}
 
 event Metrics::log_it(filter: Filter)
 	{
@@ -14,4 +11,11 @@ event Metrics::log_it(filter: Filter)
 	reset(filter);
 	
 	schedule filter$break_interval { Metrics::log_it(filter) };
+	}
+	
+	
+function data_added(filter: Filter, index: Index, val: count)
+	{
+	if ( check_notice(filter, index, val) )
+		do_notice(filter, index, val);
 	}

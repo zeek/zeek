@@ -1,5 +1,3 @@
-// $Id: Scope.cc 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -129,7 +127,7 @@ ID* lookup_ID(const char* name, const char* curr_module, bool no_global,
 		if ( id )
 			{
 			if ( need_export && ! id->IsExport() && ! in_debug )
-				reporter->Error("identifier is not exported:",
+				reporter->Error("identifier is not exported: %s",
 				      fullname.c_str());
 
 			Ref(id);
@@ -219,5 +217,5 @@ Scope* current_scope()
 
 Scope* global_scope()
 	{
-	return scopes[0];
+	return scopes.length() == 0 ? 0 : scopes[0];
 	}

@@ -1,16 +1,27 @@
-// $Id: Base64.cc 6024 2008-07-26 19:20:47Z vern $
-
 #include "config.h"
 #include "Base64.h"
 
-static int base64_table[256];
+int Base64Decoder::default_base64_table[256];
+const string Base64Decoder::default_alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-static void init_base64_table()
+int* Base64Decoder::InitBase64Table(const string& alphabet)
 	{
-	static int table_initialized = 0;
+	assert(alphabet.size() == 64);
 
-	if ( ++table_initialized > 1 )
-		return;
+	static bool default_table_initialized = false;
+
+	if ( alphabet == default_alphabet && default_table_initialized )
+		return default_base64_table;
+
+	int* base64_table = 0;
+
+	if ( alphabet == default_alphabet )
+		{
+		base64_table = default_base64_table;
+		default_table_initialized = true;
+		}
+	else
+		base64_table = new int[256];
 
 	int i;
 	for ( i = 0; i < 256; ++i )
@@ -18,26 +29,34 @@ static void init_base64_table()
 
 	for ( i = 0; i < 26; ++i )
 		{
-		base64_table['A' + i] = i;
-		base64_table['a' + i] = i + 26;
+		base64_table[int(alphabet[0 + i])] = i;
+		base64_table[int(alphabet[26 + i])] = i + 26;
 		}
 
 	for ( i = 0; i < 10; ++i )
-		base64_table['0' + i] = i + 52;
+		base64_table[int(alphabet[52 + i])] = i + 52;
 
 	// Casts to avoid compiler warnings.
-	base64_table[int('+')] = 62;
-	base64_table[int('/')] = 63;
+	base64_table[int(alphabet[62])] = 62;
+	base64_table[int(alphabet[63])] = 63;
 	base64_table[int('=')] = 0;
+
+	return base64_table;
 	}
 
-Base64Decoder::Base64Decoder(Analyzer* arg_analyzer)
+Base64Decoder::Base64Decoder(Analyzer* arg_analyzer, const string& alphabet)
 	{
-	init_base64_table();
+	base64_table = InitBase64Table(alphabet.size() ? alphabet : default_alphabet);
 	base64_group_next = 0;
 	base64_padding = base64_after_padding = 0;
 	errored = 0;
 	analyzer = arg_analyzer;
+	}
+
+Base64Decoder::~Base64Decoder()
+	{
+	if ( base64_table != default_base64_table )
+		delete base64_table;
 	}
 
 int Base64Decoder::Decode(int len, const char* data, int* pblen, char** pbuf)
@@ -144,13 +163,21 @@ int Base64Decoder::Done(int* pblen, char** pbuf)
 	return 0;
 	}
 
-BroString* decode_base64(const BroString* s)
+
+BroString* decode_base64(const BroString* s, const BroString* a)
 	{
+	if ( a && a->Len() != 64 )
+		{
+		reporter->Error("base64 decoding alphabet is not 64 characters: %s",
+		                a->CheckString());
+		return 0;
+		}
+
 	int buf_len = int((s->Len() + 3) / 4) * 3 + 1;
 	int rlen2, rlen = buf_len;
 	char* rbuf2, *rbuf = new char[rlen];
 
-	Base64Decoder dec(0);
+	Base64Decoder dec(0, a ? a->CheckString() : "");
 	if ( dec.Decode(s->Len(), (const char*) s->Bytes(), &rlen, &rbuf) == -1 )
 		goto err;
 

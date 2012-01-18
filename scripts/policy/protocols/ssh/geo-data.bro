@@ -1,5 +1,7 @@
-##! This implements all of the additional information and geodata detections 
-##! for SSH analysis.
+##! Geodata based detections for SSH analysis.
+
+@load base/frameworks/notice
+@load base/protocols/ssh
 
 module SSH;
 
@@ -8,17 +10,17 @@ export {
 		## If an SSH login is seen to or from a "watched" country based on the
 		## :bro:id:`SSH::watched_countries` variable then this notice will
 		## be generated.
-		Login_From_Watched_Country,
+		Watched_Country_Login,
 	};
 	
-	## The set of countries for which you'd like to throw notices upon 
-	## successful login
-	const watched_countries: set[string] = {"RO"} &redef;
-
 	redef record Info += {
 		## Add geographic data related to the "remote" host of the connection.
 		remote_location: geo_location &log &optional;
 	};
+	
+	## The set of countries for which you'd like to generate notices upon 
+	## successful login.
+	const watched_countries: set[string] = {"RO"} &redef;
 }
 
 event SSH::heuristic_successful_login(c: connection) &priority=5
@@ -30,10 +32,12 @@ event SSH::heuristic_successful_login(c: connection) &priority=5
 	# Add the location data to the SSH record.
 	c$ssh$remote_location = location;
 	
-	if ( location$country_code in watched_countries )
+	if ( location?$country_code && location$country_code in watched_countries )
 		{
-		NOTICE([$note=Login_From_Watched_Country,
+		NOTICE([$note=Watched_Country_Login,
 		        $conn=c,
-		        $msg=fmt("SSH login from watched country: %s", location$country_code)]);
+		        $msg=fmt("SSH login %s watched country: %s", 
+		                 (c$ssh$direction == OUTBOUND) ? "to" : "from", 
+		                 location$country_code)]);
 		}
 	}

@@ -1,5 +1,3 @@
-/* @(#) $Id: cq.h 80 2004-07-14 20:15:50Z jason $ (LBL) */
-
 struct cq_handle *cq_init(double, double);
 void cq_destroy(struct cq_handle *);
 int cq_enqueue(struct cq_handle *, double, void *);

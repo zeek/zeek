@@ -1,5 +1,3 @@
-// $Id: RuleMatcher.cc 6724 2009-06-07 09:23:03Z vern $
-
 #include <algorithm>
 
 #include "config.h"
@@ -201,7 +199,7 @@ bool RuleMatcher::ReadFiles(const name_list& files)
 		rules_in = search_for_file(files[i], "sig", 0, false, 0);
 		if ( ! rules_in )
 			{
-			reporter->Error("Can't open signature file", files[i]);
+			reporter->Error("Can't open signature file %s", files[i]);
 			return false;
 			}
 

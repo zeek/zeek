@@ -1,5 +1,3 @@
-// $Id: Reassem.cc 6703 2009-05-13 22:27:44Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include <algorithm>

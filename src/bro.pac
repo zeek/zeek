@@ -1,5 +1,3 @@
-# $Id:$
-
 %extern{
 #include "binpac_bro.h"
 %}

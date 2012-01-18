@@ -1,5 +1,3 @@
-// $Id: RemoteSerializer.cc 6951 2009-12-04 22:23:28Z vern $
-//
 // Processes involved in the communication:
 //
 //	 (Local-Parent) <-> (Local-Child) <-> (Remote-Child) <-> (Remote-Parent)
@@ -387,6 +385,9 @@ inline void RemoteSerializer::SetupSerialInfo(SerialInfo* info, Peer* peer)
 	     peer->phase == Peer::RUNNING )
 		info->new_cache_strategy = true;
 
+	if ( (peer->caps & Peer::BROCCOLI_PEER) )
+		info->broccoli_peer = true;
+
 	info->include_locations = false;
 	}
 
@@ -394,7 +395,7 @@ static bool sendToIO(ChunkedIO* io, ChunkedIO::Chunk* c)
 	{
 	if ( ! io->Write(c) )
 		{
-		reporter->Warning(fmt("can't send chunk: %s", io->Error()));
+		reporter->Warning("can't send chunk: %s", io->Error());
 		return false;
 		}
 
@@ -406,7 +407,7 @@ static bool sendToIO(ChunkedIO* io, char msg_type, RemoteSerializer::PeerID id,
 	{
 	if ( ! sendCMsg(io, msg_type, id) )
 		{
-		reporter->Warning(fmt("can't send message of type %d: %s", msg_type, io->Error()));
+		reporter->Warning("can't send message of type %d: %s", msg_type, io->Error());
 		return false;
 		}
 
@@ -421,7 +422,7 @@ static bool sendToIO(ChunkedIO* io, char msg_type, RemoteSerializer::PeerID id,
 	{
 	if ( ! sendCMsg(io, msg_type, id) )
 		{
-		reporter->Warning(fmt("can't send message of type %d: %s", msg_type, io->Error()));
+		reporter->Warning("can't send message of type %d: %s", msg_type, io->Error());
 		return false;
 		}
 
@@ -528,6 +529,7 @@ RemoteSerializer::RemoteSerializer()
 	closed = false;
 	terminating = false;
 	in_sync = 0;
+	last_flush = 0;
 	}
 
 RemoteSerializer::~RemoteSerializer()
@@ -708,6 +710,21 @@ RemoteSerializer::PeerID RemoteSerializer::Connect(addr_type ip, uint16 port,
 	return p->id;
 	}
 
+bool RemoteSerializer::CloseConnection(PeerID id)
+	{
+	if ( ! using_communication )
+		return true;
+
+	Peer* peer = LookupPeer(id, true);
+	if ( ! peer )
+		{
+		reporter->Error("unknown peer id %d for closing connection", int(id));
+		return false;
+		}
+
+	return CloseConnection(peer);
+	}
+
 bool RemoteSerializer::CloseConnection(Peer* peer)
 	{
 	if ( peer->suspended_processing )
@@ -736,14 +753,14 @@ bool RemoteSerializer::RequestSync(PeerID id, bool auth)
 	Peer* peer = LookupPeer(id, true);
 	if ( ! peer )
 		{
-		reporter->Error(fmt("unknown peer id %d for request sync", int(id)));
+		reporter->Error("unknown peer id %d for request sync", int(id));
 		return false;
 		}
 
 	if ( peer->phase != Peer::HANDSHAKE )
 		{
-		reporter->Error(fmt("can't request sync from peer; wrong phase %d",
-				peer->phase));
+		reporter->Error("can't request sync from peer; wrong phase %d",
+				peer->phase);
 		return false;
 		}
 
@@ -763,14 +780,14 @@ bool RemoteSerializer::RequestLogs(PeerID id)
 	Peer* peer = LookupPeer(id, true);
 	if ( ! peer )
 		{
-		reporter->Error(fmt("unknown peer id %d for request logs", int(id)));
+		reporter->Error("unknown peer id %d for request logs", int(id));
 		return false;
 		}
 
 	if ( peer->phase != Peer::HANDSHAKE )
 		{
-		reporter->Error(fmt("can't request logs from peer; wrong phase %d",
-			     peer->phase));
+		reporter->Error("can't request logs from peer; wrong phase %d",
+			     peer->phase);
 		return false;
 		}
 
@@ -788,14 +805,14 @@ bool RemoteSerializer::RequestEvents(PeerID id, RE_Matcher* pattern)
 	Peer* peer = LookupPeer(id, true);
 	if ( ! peer )
 		{
-		reporter->Error(fmt("unknown peer id %d for request sync", int(id)));
+		reporter->Error("unknown peer id %d for request sync", int(id));
 		return false;
 		}
 
 	if ( peer->phase != Peer::HANDSHAKE )
 		{
-		reporter->Error(fmt("can't request events from peer; wrong phase %d",
-				peer->phase));
+		reporter->Error("can't request events from peer; wrong phase %d",
+				peer->phase);
 		return false;
 		}
 
@@ -855,8 +872,8 @@ bool RemoteSerializer::CompleteHandshake(PeerID id)
 
 	if ( p->phase != Peer::HANDSHAKE )
 		{
-		reporter->Error(fmt("can't complete handshake; wrong phase %d",
-				p->phase));
+		reporter->Error("can't complete handshake; wrong phase %d",
+				p->phase);
 		return false;
 		}
 
@@ -1124,7 +1141,7 @@ bool RemoteSerializer::SendCaptureFilter(PeerID id, const char* filter)
 
 	if ( peer->phase != Peer::HANDSHAKE )
 		{
-		reporter->Error(fmt("can't sent capture filter to peer; wrong phase %d", peer->phase));
+		reporter->Error("can't sent capture filter to peer; wrong phase %d", peer->phase);
 		return false;
 		}
 
@@ -1201,17 +1218,14 @@ bool RemoteSerializer::SendCapabilities(Peer* peer)
 	{
 	if ( peer->phase != Peer::HANDSHAKE )
 		{
-		reporter->Error(fmt("can't sent capabilties to peer; wrong phase %d",
-				peer->phase));
+		reporter->Error("can't sent capabilties to peer; wrong phase %d",
+				peer->phase);
 		return false;
 		}
 
 	uint32 caps = 0;
 
-#ifdef HAVE_LIBZ
 	caps |= Peer::COMPRESSION;
-#endif
-
 	caps |= Peer::PID_64BIT;
 	caps |= Peer::NEW_CACHE_STRATEGY;
 
@@ -1290,7 +1304,14 @@ void RemoteSerializer::SendFinalSyncPoint()
 
 bool RemoteSerializer::Terminate()
 	{
+	loop_over_list(peers, i)
+	    {
+	    FlushPrintBuffer(peers[i]);
+	    FlushLogBuffer(peers[i]);
+	    }
+
 	Log(LogInfo, fmt("terminating..."));
+
 	return terminating = SendToChild(MSG_TERMINATE, 0, 0);
 	}
 
@@ -1440,7 +1461,9 @@ void RemoteSerializer::Finish()
 	while ( io->CanWrite() );
 
 	loop_over_list(peers, i)
+		{
 		CloseConnection(peers[i]);
+		}
 	}
 
 bool RemoteSerializer::Poll(bool may_block)
@@ -1792,7 +1815,7 @@ RemoteSerializer::Peer* RemoteSerializer::AddPeer(uint32 ip, uint16 port,
 	peer->sync_point = 0;
 	peer->print_buffer = 0;
 	peer->print_buffer_used = 0;
-	peer->log_buffer = 0;
+	peer->log_buffer = new char[LOG_BUFFER_SIZE];
 	peer->log_buffer_used = 0;
 
 	peers.append(peer);
@@ -2028,8 +2051,6 @@ bool RemoteSerializer::ProcessRequestLogs()
 	Log(LogInfo, "peer requested logs", current_peer);
 
 	current_peer->logs_requested = true;
-	current_peer->log_buffer = new char[LOG_BUFFER_SIZE];
-	current_peer->log_buffer_used = 0;
 	return true;
 	}
 
@@ -2085,17 +2106,18 @@ bool RemoteSerializer::ProcessPhaseDone()
 
 bool RemoteSerializer::HandshakeDone(Peer* peer)
 	{
-#ifdef HAVE_LIBZ
 	if ( peer->caps & Peer::COMPRESSION && peer->comp_level > 0 )
 		if ( ! SendToChild(MSG_COMPRESS, peer, 1, peer->comp_level) )
 			return false;
-#endif
 
 	if ( ! (peer->caps & Peer::PID_64BIT) )
 		Log(LogInfo, "peer does not support 64bit PIDs; using compatibility mode", peer);
 
 	if ( (peer->caps & Peer::NEW_CACHE_STRATEGY) )
 		Log(LogInfo, "peer supports keep-in-cache; using that", peer);
+
+	if ( (peer->caps & Peer::BROCCOLI_PEER) )
+		Log(LogInfo, "peer is a Broccoli", peer);
 
 	if ( peer->logs_requested )
 		log_mgr->SendAllWritersTo(peer->id);
@@ -2349,6 +2371,9 @@ bool RemoteSerializer::ProcessSerialization()
 	     current_peer->phase == Peer::RUNNING )
 		info.new_cache_strategy = true;
 
+	if ( current_peer->caps & Peer::BROCCOLI_PEER )
+		info.broccoli_peer = true;
+
 	if ( ! forward_remote_state_changes )
 		ignore_accesses = true;
 
@@ -2492,11 +2517,12 @@ bool RemoteSerializer::SendLogCreateWriter(PeerID peer_id, EnumVal* id, EnumVal*
 			goto error;
 		}
 
-	c = new ChunkedIO::Chunk;
-	c->len = fmt.EndWrite(&c->data);
-
 	if ( ! SendToChild(MSG_LOG_CREATE_WRITER, peer, 0) )
 		goto error;
+
+	c = new ChunkedIO::Chunk;
+	c->data = 0;
+	c->len = fmt.EndWrite(&c->data);
 
 	if ( ! SendToChild(c) )
 		goto error;
@@ -2504,6 +2530,12 @@ bool RemoteSerializer::SendLogCreateWriter(PeerID peer_id, EnumVal* id, EnumVal*
 	return true;
 
 error:
+	if ( c )
+		{
+		delete c;
+		delete [] c->data;
+		}
+
 	FatalError(io->Error());
 	return false;
 	}
@@ -2554,8 +2586,11 @@ bool RemoteSerializer::SendLogWrite(Peer* peer, EnumVal* id, EnumVal* writer, st
 
 	len = fmt.EndWrite(&data);
 
-	// Do we have enough space in the buffer? If not, flush first.
-	if ( len > (LOG_BUFFER_SIZE - peer->log_buffer_used) )
+	assert(len > 10);
+
+	// Do we have not enough space in the buffer, or was the last flush a
+	// while ago? If so, flush first.
+	if ( len > (LOG_BUFFER_SIZE - peer->log_buffer_used) || (network_time - last_flush > 1.0) )
 		{
 		if ( ! FlushLogBuffer(peer) )
 			return false;
@@ -2570,7 +2605,8 @@ bool RemoteSerializer::SendLogWrite(Peer* peer, EnumVal* id, EnumVal* writer, st
 	peer->log_buffer_used += len;
 	assert(peer->log_buffer_used <= LOG_BUFFER_SIZE);
 
-	FlushLogBuffer(peer); // FIXME: This should go away, but then the unit test fails. See #498.
+	delete [] data;
+
 	return true;
 
 error:
@@ -2580,15 +2616,18 @@ error:
 
 bool RemoteSerializer::FlushLogBuffer(Peer* p)
 	{
+	last_flush = network_time;
+
 	if ( p->state == Peer::CLOSING )
 		return false;
 
 	if ( ! (p->log_buffer && p->log_buffer_used) )
 		return true;
 
-	SendToChild(MSG_LOG_WRITE, p, p->log_buffer, p->log_buffer_used);
+	char* data = new char[p->log_buffer_used];
+	memcpy(data, p->log_buffer, p->log_buffer_used);
+	SendToChild(MSG_LOG_WRITE, p, data, p->log_buffer_used);
 
-	p->log_buffer = new char[LOG_BUFFER_SIZE];
 	p->log_buffer_used = 0;
 	return true;
 	}
@@ -2774,7 +2813,13 @@ void RemoteSerializer::GotFunctionCall(const char* name, double time,
 		return;
 		}
 
-	function->Call(args);
+	try
+		{
+		function->Call(args);
+		}
+
+	catch ( InterpreterException& e )
+		{ /* Already reported. */ }
 	}
 
 void RemoteSerializer::GotID(ID* id, Val* val)
@@ -2804,6 +2849,11 @@ void RemoteSerializer::GotID(ID* id, Val* val)
 		Log(LogInfo, fmt("peer_description is %s",
 					(desc && *desc) ? desc : "not set"),
 			current_peer);
+
+#ifdef USE_PERFTOOLS
+		// May still be cached, but we don't care.
+		heap_checker->IgnoreObject(id);
+#endif
 
 		Unref(id);
 		return;
@@ -2882,25 +2932,37 @@ void RemoteSerializer::Log(LogLevel level, const char* msg)
 void RemoteSerializer::Log(LogLevel level, const char* msg, Peer* peer,
 				LogSrc src)
 	{
+	if ( peer )
+		{
+		val_list* vl = new val_list();
+		vl->append(peer->val->Ref());
+		vl->append(new Val(level, TYPE_COUNT));
+		vl->append(new Val(src, TYPE_COUNT));
+		vl->append(new StringVal(msg));
+		mgr.QueueEvent(remote_log_peer, vl);
+		}
+	else
+		{
+		val_list* vl = new val_list();
+		vl->append(new Val(level, TYPE_COUNT));
+		vl->append(new Val(src, TYPE_COUNT));
+		vl->append(new StringVal(msg));
+		mgr.QueueEvent(remote_log, vl);
+		}
+
+#ifdef DEBUG
 	const int BUFSIZE = 1024;
 	char buffer[BUFSIZE];
-
 	int len = 0;
 
 	if ( peer )
-		len += snprintf(buffer + len, sizeof(buffer) - len,
-				"[#%d/%s:%d] ", int(peer->id), ip2a(peer->ip),
-				peer->port);
+		len += snprintf(buffer + len, sizeof(buffer) - len, "[#%d/%s:%d] ",
+		                int(peer->id), ip2a(peer->ip), peer->port);
 
 	len += safe_snprintf(buffer + len, sizeof(buffer) - len, "%s", msg);
 
-	val_list* vl = new val_list();
-	vl->append(new Val(level, TYPE_COUNT));
-	vl->append(new Val(src, TYPE_COUNT));
-	vl->append(new StringVal(buffer));
-	mgr.QueueEvent(remote_log, vl);
-
 	DEBUG_COMM(fmt("parent: %.6f %s", current_time(), buffer));
+#endif
 	}
 
 void RemoteSerializer::RaiseEvent(EventHandlerPtr event, Peer* peer,
@@ -2965,8 +3027,8 @@ bool RemoteSerializer::SendCMsgToChild(char msg_type, Peer* peer)
 	{
 	if ( ! sendCMsg(io, msg_type, peer ? peer->id : PEER_NONE) )
 		{
-		reporter->Warning(fmt("can't send message of type %d: %s",
-				msg_type, io->Error()));
+		reporter->Warning("can't send message of type %d: %s",
+				msg_type, io->Error());
 		return false;
 		}
 	return true;
@@ -2976,11 +3038,13 @@ bool RemoteSerializer::SendToChild(char type, Peer* peer, char* str, int len)
 	{
 	DEBUG_COMM(fmt("parent: (->child) %s (#%" PRI_SOURCE_ID ", %s)", msgToStr(type), peer ? peer->id : PEER_NONE, str));
 
+	if ( child_pid && sendToIO(io, type, peer ? peer->id : PEER_NONE, str, len) )
+		return true;
+
+	delete [] str;
+
 	if ( ! child_pid )
 		return false;
-
-	if ( sendToIO(io, type, peer ? peer->id : PEER_NONE, str, len) )
-		return true;
 
 	if ( io->Eof() )
 		ChildDied();
@@ -2993,9 +3057,6 @@ bool RemoteSerializer::SendToChild(char type, Peer* peer, int nargs, ...)
 	{
 	va_list ap;
 
-	if ( ! child_pid )
-		return false;
-
 #ifdef DEBUG
 	va_start(ap, nargs);
 	DEBUG_COMM(fmt("parent: (->child) %s (#%" PRI_SOURCE_ID ",%s)",
@@ -3003,12 +3064,18 @@ bool RemoteSerializer::SendToChild(char type, Peer* peer, int nargs, ...)
 	va_end(ap);
 #endif
 
-	va_start(ap, nargs);
-	bool ret = sendToIO(io, type, peer ? peer->id : PEER_NONE, nargs, ap);
-	va_end(ap);
+	if ( child_pid )
+		{
+		va_start(ap, nargs);
+		bool ret = sendToIO(io, type, peer ? peer->id : PEER_NONE, nargs, ap);
+		va_end(ap);
 
-	if ( ret )
-		return true;
+		if ( ret )
+			return true;
+		}
+
+	if ( ! child_pid )
+		return false;
 
 	if ( io->Eof() )
 		ChildDied();
@@ -3021,11 +3088,13 @@ bool RemoteSerializer::SendToChild(ChunkedIO::Chunk* c)
 	{
 	DEBUG_COMM(fmt("parent: (->child) chunk of size %d", c->len));
 
+	if ( child_pid && sendToIO(io, c) )
+		return true;
+
+	delete [] c->data;
+
 	if ( ! child_pid )
 		return false;
-
-	if ( sendToIO(io, c) )
-		return true;
 
 	if ( io->Eof() )
 		ChildDied();
@@ -3038,13 +3107,22 @@ void RemoteSerializer::FatalError(const char* msg)
 	{
 	msg = fmt("fatal error, shutting down communication: %s", msg);
 	Log(LogError, msg);
-	reporter->Error(msg);
+	reporter->Error("%s", msg);
 
 	closed = true;
 	kill(child_pid, SIGQUIT);
 	child_pid = 0;
 	using_communication = false;
 	io->Clear();
+
+	loop_over_list(peers, i)
+		{
+		// Make perftools happy.
+		Peer* p = peers[i];
+		delete [] p->log_buffer;
+		delete [] p->print_buffer;
+		p->log_buffer = p->print_buffer = 0;
+		}
 	}
 
 bool RemoteSerializer::IsActive()
@@ -3637,11 +3715,6 @@ bool SocketComm::ProcessListen()
 
 bool SocketComm::ProcessParentCompress()
 	{
-#ifndef HAVE_LIBZ
-	InternalError("supposed to enable compression but don't have zlib");
-	return false;
-#else
-
 	assert(parent_args);
 	uint32* args = (uint32*) parent_args->data;
 
@@ -3665,7 +3738,6 @@ bool SocketComm::ProcessParentCompress()
 	Log(fmt("enabling compression (level %d)", level), parent_peer);
 
 	return true;
-#endif
 	}
 
 bool SocketComm::ProcessRemoteMessage(SocketComm::Peer* peer)
@@ -3785,10 +3857,6 @@ bool SocketComm::ProcessPeerCompress(Peer* peer)
 	{
 	peer->state = MSG_NONE;
 
-#ifndef HAVE_LIBZ
-	Error("peer compresses although we do not support it", peer);
-	return false;
-#else
 	if ( ! parent_peer->compressor )
 		{
 		parent_peer->io = new CompressedChunkedIO(parent_peer->io);
@@ -3800,7 +3868,6 @@ bool SocketComm::ProcessPeerCompress(Peer* peer)
 	((CompressedChunkedIO*) peer->io)->EnableDecompression();
 	Log("enabling decompression", peer);
 	return true;
-#endif
 	}
 
 bool SocketComm::Connect(Peer* peer)

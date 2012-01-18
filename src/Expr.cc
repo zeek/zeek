@@ -1,5 +1,3 @@
-// $Id: Expr.cc 6864 2009-08-16 23:30:39Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -223,7 +221,9 @@ bool Expr::DoUnserialize(UnserialInfo* info)
 
 	tag = BroExprTag(c);
 
-	UNSERIALIZE_OPTIONAL(type, BroType::Unserialize(info));
+	BroType* t = 0;
+	UNSERIALIZE_OPTIONAL(t, BroType::Unserialize(info));
+	SetType(t);
 	return true;
 	}
 
@@ -359,7 +359,7 @@ bool NameExpr::DoUnserialize(UnserialInfo* info)
 		if ( id )
 			::Ref(id);
 		else
-			reporter->Warning("unserialized unknown global name");
+			reporter->Warning("configuration changed: unserialized unknown global name from persistent state");
 
 		delete [] name;
 		}
@@ -2046,7 +2046,6 @@ EqExpr::EqExpr(BroExprTag arg_tag, Expr* arg_op1, Expr* arg_op2)
 		case TYPE_STRING:
 		case TYPE_PORT:
 		case TYPE_ADDR:
-		case TYPE_NET:
 		case TYPE_SUBNET:
 		case TYPE_ERROR:
 			break;
@@ -3119,8 +3118,9 @@ Val* FieldExpr::Fold(Val* v) const
 		return def_attr->AttrExpr()->Eval(0);
 	else
 		{
-		Internal("field value missing");
-		return 0;
+		reporter->ExprRuntimeError(this, "field value missing");
+		assert(false);
+		return 0; // Will never get here, but compiler can't tell.
 		}
 	}
 
@@ -3731,6 +3731,7 @@ Val* RecordMatchExpr::Fold(Val* v1, Val* v2) const
 				}
 			}
 
+		// No try/catch here; we pass exceptions upstream.
 		Val* pred_val =
 			match_rec->Lookup(pred_field_index)->AsFunc()->Call(&args);
 		bool is_zero = pred_val->IsZero();
@@ -3972,12 +3973,18 @@ RecordCoerceExpr::RecordCoerceExpr(Expr* op, RecordType* r)
 
 			if ( ! same_type(sup_t_i, sub_t_i) )
 				{
-				char buf[512];
-				safe_snprintf(buf, sizeof(buf),
-					      "type clash for field \"%s\"", sub_r->FieldName(i));
-				Error(buf, sub_t_i);
-				SetError();
-				break;
+				if ( sup_t_i->Tag() != TYPE_RECORD ||
+				     sub_t_i->Tag() != TYPE_RECORD ||
+				     ! record_promotion_compatible(sup_t_i->AsRecordType(),
+				                                   sub_t_i->AsRecordType()) )
+					{
+					char buf[512];
+					safe_snprintf(buf, sizeof(buf),
+						"type clash for field \"%s\"", sub_r->FieldName(i));
+					Error(buf, sub_t_i);
+					SetError();
+					break;
+					}
 				}
 
 			map[t_i] = i;
@@ -4025,10 +4032,36 @@ Val* RecordCoerceExpr::Fold(Val* v) const
 				rhs = rhs->Ref();
 
 			assert(rhs || Type()->AsRecordType()->FieldDecl(i)->FindAttr(ATTR_OPTIONAL));
+
+			BroType* rhs_type = rhs->Type();
+			RecordType* val_type = val->Type()->AsRecordType();
+			BroType* field_type = val_type->FieldType(i);
+
+			if ( rhs_type->Tag() == TYPE_RECORD &&
+			     field_type->Tag() == TYPE_RECORD &&
+			     ! same_type(rhs_type, field_type) )
+				{
+				Val* new_val = rhs->AsRecordVal()->CoerceTo(
+				    field_type->AsRecordType());
+				if ( new_val )
+					{
+					Unref(rhs);
+					rhs = new_val;
+					}
+				}
+
 			val->Assign(i, rhs);
 			}
 		else
-			val->Assign(i, 0);
+			{
+			const Attr* def =
+			     Type()->AsRecordType()->FieldDecl(i)->FindAttr(ATTR_DEFAULT);
+
+			if ( def )
+				val->Assign(i, def->AttrExpr()->Eval(0));
+			else
+				val->Assign(i, 0);
+			}
 		}
 
 	return val;
@@ -4197,7 +4230,7 @@ Val* FlattenExpr::Fold(Val* v) const
 			l->Append(fa->AttrExpr()->Eval(0));
 
 		else
-			Internal("missing field value");
+			reporter->ExprRuntimeError(this, "missing field value");
 		}
 
 	return l;
@@ -4623,7 +4656,7 @@ Val* CallExpr::Eval(Frame* f) const
 
 		if ( f )
 			f->SetCall(this);
-		ret = func->Call(v, f);
+		ret = func->Call(v, f); // No try/catch here; we pass exceptions upstream.
 		if ( f )
 			f->ClearCall();
 		// Don't Unref() the arguments, as Func::Call already did that.
@@ -5022,13 +5055,11 @@ Val* ListExpr::InitVal(const BroType* t, Val* aggr) const
 			Expr* e = exprs[i];
 			check_and_promote_expr(e, vec->Type()->AsVectorType()->YieldType());
 			Val* v = e->Eval(0);
-			if ( ! vec->Assign(i, v->RefCnt() == 1 ? v->Ref() : v, e) )
+			if ( ! vec->Assign(i, v, e) )
 				{
 				e->Error(fmt("type mismatch at index %d", i));
 				return 0;
 				}
-
-			Unref(v);
 			}
 
 		return aggr;

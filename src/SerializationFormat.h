@@ -1,5 +1,3 @@
-// $Id: SerializationFormat.h 5873 2008-06-28 19:25:03Z vern $
-//
 // Implements different data formats for serialization.
 
 #ifndef SERIALIZATION_FORMAT

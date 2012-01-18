@@ -1,5 +1,3 @@
-// $Id: bif_arg.cc 3234 2006-06-08 02:38:11Z vern $
-
 #include "config.h"
 
 #include <set>

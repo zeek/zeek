@@ -1,5 +1,3 @@
-// $Id: Obj.h 6781 2009-06-28 00:50:04Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef obj_h

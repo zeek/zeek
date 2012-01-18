@@ -1,5 +1,3 @@
-// $Id: Type.h 6916 2009-09-24 20:48:36Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef type_h
@@ -23,7 +21,7 @@ typedef enum {
 	TYPE_STRING, TYPE_PATTERN,
 	TYPE_ENUM,
 	TYPE_TIMER,
-	TYPE_PORT, TYPE_ADDR, TYPE_NET, TYPE_SUBNET,
+	TYPE_PORT, TYPE_ADDR, TYPE_SUBNET,
 	TYPE_ANY,
 	TYPE_TABLE,
 	TYPE_UNION,
@@ -428,20 +426,9 @@ public:
 	std::list<std::string>* comments;
 };
 
-class RecordField {
-public:
-	RecordField(int arg_base, int arg_offset, int arg_total_offset);
-
-	int base;	// which base element it belongs to
-	int offset;	// where it is in that base
-	int total_offset;	// where it is in the aggregate record
-};
-declare(PDict,RecordField);
-
 class RecordType : public BroType {
 public:
 	RecordType(type_decl_list* types);
-	RecordType(TypeList* base, type_decl_list* refinements);
 
 	~RecordType();
 
@@ -475,15 +462,11 @@ public:
 	void DescribeFieldsReST(ODesc* d, bool func_args) const;
 
 protected:
-	RecordType() { fields = 0; base = 0; types = 0; }
-
-	void Init(TypeList* arg_base);
+	RecordType() { types = 0; }
 
 	DECLARE_SERIAL(RecordType)
 
 	int num_fields;
-	PDict(RecordField)* fields;
-	TypeList* base;
 	type_decl_list* types;
 };
 
@@ -588,10 +571,6 @@ protected:
 
 	BroType* yield_type;
 };
-
-
-// Returns the given type refinement, or error_type() if it's illegal.
-extern BroType* refine_type(TypeList* base, type_decl_list* refinements);
 
 // Returns the BRO basic (non-parameterized) type with the given type.
 extern BroType* base_type(TypeTag tag);

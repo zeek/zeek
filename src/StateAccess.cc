@@ -1,5 +1,3 @@
-// $Id: StateAccess.cc 6888 2009-08-20 18:23:11Z vern $
-
 #include "Val.h"
 #include "StateAccess.h"
 #include "Serializer.h"
@@ -352,7 +350,7 @@ void StateAccess::Replay()
 				v->AsRecordVal()->Assign(idx, op2 ? op2->Ref() : 0);
 				}
 			else
-				reporter->Error(fmt("access replay: unknown record field %s for assign", field));
+				reporter->Error("access replay: unknown record field %s for assign", field);
 			}
 
 		else if ( t == TYPE_VECTOR )
@@ -413,7 +411,7 @@ void StateAccess::Replay()
 				v->AsRecordVal()->Assign(idx, new_val, OP_INCR);
 				}
 			else
-				reporter->Error(fmt("access replay: unknown record field %s for assign", field));
+				reporter->Error("access replay: unknown record field %s for assign", field);
 			}
 
 		else if ( t == TYPE_VECTOR )

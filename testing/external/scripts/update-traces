@@ -1,0 +1,80 @@
+#! /usr/bin/env bash
+#
+# Downloads all traces as specified in <cwd>/traces.cfg to directory $1.
+#
+# traces.cfg must consist of lines of the form "<url> <md5sum>"
+
+if [ "$1" == "" ]; then
+    echo "usage: `basename $0` <traces-directory>"
+    exit 1
+fi
+
+if [ ! -e $cfg ]; then
+    echo "No $cfg found."
+    exit 1
+fi
+
+cfg=traces.cfg
+
+for p in .proxy ../.proxy; do
+    if [ -e $p ]; then
+        proxy=`cat $p | head -1 | awk '{print $1}'`
+        echo Using proxy $proxy ...
+        proxy="ALL_PROXY=$proxy"
+        break
+    fi
+done
+
+mkdir -p $1
+
+cat $cfg | while read line; do
+
+    if echo $line | grep -q '^[ \t]*$'; then
+        continue
+    fi
+
+    if echo $line | grep -q '^[ \t]*#'; then
+        continue
+    fi
+
+    url=`echo $line | awk '{print $1}'`
+    auth=`echo $line | awk '{print $2}'`
+
+    file=$1/`echo $url | sed 's#^.*/##g'`
+    fp=$file.md5sum
+
+    if [ "$auth" != "" ]; then
+        auth="-u $auth"
+    fi
+
+    # Get the fingerprint file.
+    if ! eval "$proxy curl $auth -fsS --anyauth $url.md5sum -o $fp.tmp"; then
+        echo "Error: Could not get $url.md5sum, skipping download."
+        continue
+    fi
+
+    download=0
+
+    if [ -e $fp ]; then
+        if ! cmp -s $fp $fp.tmp; then
+            download=1
+        fi
+    else
+       download=1
+    fi
+
+    if [ "$download" = "1" ]; then
+        echo Getting $url ...
+        echo
+        eval "$proxy curl $auth -f --anyauth $url -o $file"
+        echo
+        mv $fp.tmp $fp
+    else
+        echo "`basename $file` already available."
+    fi
+
+    rm -f $fp.tmp
+
+done
+
+

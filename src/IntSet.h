@@ -1,5 +1,3 @@
-// $Id: IntSet.h 80 2004-07-14 20:15:50Z jason $
-
 // A simple but fast data structure for sets of integers.
 // Only supported operations are insert, remove and membership test.
 //

@@ -5,12 +5,26 @@
 ##! Requires that :bro:id:`use_conn_size_analyzer` is set to T!  The heuristic
 ##! is not attempted if the connection size analyzer isn't enabled.
 
+@load base/frameworks/notice
+@load base/utils/site
+@load base/utils/thresholds
+@load base/utils/conn-ids
+@load base/utils/directions-and-hosts
+
 module SSH;
 
 export {
-	redef enum Log::ID += { SSH };
+	## The SSH protocol logging stream identifier.
+	redef enum Log::ID += { LOG };
+	
+	redef enum Notice::Type += { 
+		## Indicates that a heuristically detected "successful" SSH 
+		## authentication occurred.
+		Login 
+	};
 
 	type Info: record {
+		## Time when the SSH connection began.
 		ts:              time         &log;
 		uid:             string       &log;
 		id:              conn_id      &log;
@@ -22,11 +36,11 @@ export {
 		## would be set for the opposite situation.
 		# TODO: handle local-local and remote-remote better.
 		direction:       Direction    &log &optional;
-		## The software string given by the client.
+		## Software string given by the client.
 		client:          string       &log &optional;
-		## The software string given by the server.
+		## Software string given by the server.
 		server:          string       &log &optional;
-		## The amount of data returned from the server.  This is currently
+		## Amount of data returned from the server.  This is currently
 		## the only measure of the success heuristic and it is logged to 
 		## assist analysts looking at the logs to make their own determination
 		## about the success on a case-by-case basis.
@@ -36,8 +50,8 @@ export {
 		done:            bool         &default=F;
 	};
 	
-	## The size in bytes at which the SSH connection is presumed to be
-	## successful.
+	## The size in bytes of data sent by the server at which the SSH 
+	## connection is presumed to be successful.
 	const authentication_data_size = 5500 &redef;
 	
 	## If true, we tell the event engine to not look at further data
@@ -46,14 +60,16 @@ export {
 	## kinds of analyses (e.g., tracking connection size).
 	const skip_processing_after_detection = F &redef;
 	
-	## This event is generated when the heuristic thinks that a login
+	## Event that is generated when the heuristic thinks that a login
 	## was successful.
 	global heuristic_successful_login: event(c: connection);
 	
-	## This event is generated when the heuristic thinks that a login
+	## Event that is generated when the heuristic thinks that a login
 	## failed.
 	global heuristic_failed_login: event(c: connection);
 	
+	## Event that can be handled to access the :bro:type:`SSH::Info`
+	## record as it is sent on to the logging framework.
 	global log_ssh: event(rec: Info);
 }
 
@@ -61,13 +77,15 @@ export {
 redef capture_filters += { ["ssh"] = "tcp port 22" };
 redef dpd_config += { [ANALYZER_SSH] = [$ports = set(22/tcp)] };
 
+redef likely_server_ports += { 22/tcp };
+
 redef record connection += {
 	ssh: Info &optional;
 };
 
 event bro_init() &priority=5
 {
-	Log::create_stream(SSH, [$columns=Info, $ev=log_ssh]);
+	Log::create_stream(SSH::LOG, [$columns=Info, $ev=log_ssh]);
 }
 
 function set_session(c: connection)
@@ -88,21 +106,36 @@ function check_ssh_connection(c: connection, done: bool)
 	if ( c$ssh$done )
 		return;
 	
-	# If this is still a live connection and the byte count has not
-	# crossed the threshold, just return and let the resheduled check happen later.
-	if ( !done && c$resp$num_bytes_ip < authentication_data_size )
+	# Make sure conn_size_analyzer is active by checking 
+	# resp$num_bytes_ip.  In general it should always be active though.
+	if ( ! c$resp?$num_bytes_ip )
+		return;
+	
+	# Remove the IP and TCP header length from the total size.
+	# TODO: Fix for IPv6.  This whole approach also seems to break in some 
+	#       cases where there are more header bytes than num_bytes_ip.
+	local header_bytes = c$resp$num_pkts*32 + c$resp$num_pkts*20;
+	local server_bytes = c$resp$num_bytes_ip;
+	if ( server_bytes >= header_bytes )
+		server_bytes = server_bytes - header_bytes;
+	else
+		server_bytes = c$resp$size;
+	
+	# If this is still a live connection and the byte count has not crossed 
+	# the threshold, just return and let the rescheduled check happen later.
+	if ( ! done && server_bytes < authentication_data_size )
 		return;
 
 	# Make sure the server has sent back more than 50 bytes to filter out
 	# hosts that are just port scanning.  Nothing is ever logged if the server
 	# doesn't send back at least 50 bytes.
-	if ( c$resp$num_bytes_ip < 50 )
+	if ( server_bytes < 50 )
 		return;
 
 	c$ssh$direction = Site::is_local_addr(c$id$orig_h) ? OUTBOUND : INBOUND;
-	c$ssh$resp_size = c$resp$num_bytes_ip;
+	c$ssh$resp_size = server_bytes;
 	
-	if ( c$resp$num_bytes_ip < authentication_data_size )
+	if ( server_bytes < authentication_data_size )
 		{
 		c$ssh$status  = "failure";
 		event SSH::heuristic_failed_login(c);
@@ -128,11 +161,15 @@ function check_ssh_connection(c: connection, done: bool)
 
 event SSH::heuristic_successful_login(c: connection) &priority=-5
 	{
-	Log::write(SSH, c$ssh);
+	NOTICE([$note=Login, 
+	        $msg="Heuristically detected successful SSH login.",
+	        $conn=c]);
+	
+	Log::write(SSH::LOG, c$ssh);
 	}
 event SSH::heuristic_failed_login(c: connection) &priority=-5
 	{
-	Log::write(SSH, c$ssh);
+	Log::write(SSH::LOG, c$ssh);
 	}
 
 event connection_state_remove(c: connection) &priority=-5

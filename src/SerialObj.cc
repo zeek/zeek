@@ -1,5 +1,3 @@
-// $Id: SerialObj.cc 7075 2010-09-13 02:39:38Z vern $
-
 #include "SerialObj.h"
 #include "Serializer.h"
 
@@ -21,7 +19,7 @@ SerialObj* SerialObj::Instantiate(SerialType type)
 		return o;
 		}
 
-	reporter->Error(fmt("Unknown object type 0x%08x", type));
+	reporter->Error("Unknown object type 0x%08x", type);
 	return 0;
 	}
 
@@ -31,7 +29,7 @@ const char* SerialObj::ClassName(SerialType type)
 	if ( f != names->end() )
 		return f->second;
 
-	reporter->Error(fmt("Unknown object type 0x%08x", type));
+	reporter->Error("Unknown object type 0x%08x", type);
 	return "<no-class-name>";
 	}
 

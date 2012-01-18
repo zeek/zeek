@@ -1,5 +1,3 @@
-// $Id: Analyzer.cc,v 1.1.4.28 2006/06/01 17:18:10 sommer Exp $
-
 #include <algorithm>
 
 #include "Analyzer.h"
@@ -155,7 +153,7 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 	{ AnalyzerTag::TCPStats, "TCPSTATS",
 		TCPStats_Analyzer::InstantiateAnalyzer,
 		TCPStats_Analyzer::Available, 0, false },
-	{ AnalyzerTag::ConnSize, "CONNSIZE", 
+	{ AnalyzerTag::ConnSize, "CONNSIZE",
 		ConnSize_Analyzer::InstantiateAnalyzer,
 		ConnSize_Analyzer::Available, 0, false },
 
@@ -428,19 +426,7 @@ void Analyzer::ForwardPacket(int len, const u_char* data, bool is_orig,
 		if ( ! (current->finished || current->removing ) )
 			current->NextPacket(len, data, is_orig, seq, ip, caplen);
 		else
-			{
-			if ( removing )
-				{
-				current->Done();
-				removing = false;
-				}
-
-			// Analyzer has already been disabled so delete it.
-			DBG_LOG(DBG_DPD, "%s deleted child %s",
-					fmt_analyzer(this).c_str(), fmt_analyzer(current).c_str());
-			children.erase(--i);
-			delete current;
-			}
+			DeleteChild(--i);
 		}
 
 	AppendNewChildren();
@@ -463,19 +449,7 @@ void Analyzer::ForwardStream(int len, const u_char* data, bool is_orig)
 		if ( ! (current->finished || current->removing ) )
 			current->NextStream(len, data, is_orig);
 		else
-			{
-			// Analyzer has already been disabled so delete it.
-			if ( current->removing )
-				{
-				current->Done();
-				removing = false;
-				}
-
-			DBG_LOG(DBG_DPD, "%s deleted child %s",
-					fmt_analyzer(this).c_str(), fmt_analyzer(current).c_str());
-			children.erase(--i);
-			delete current;
-			}
+			DeleteChild(--i);
 		}
 
 	AppendNewChildren();
@@ -498,19 +472,7 @@ void Analyzer::ForwardUndelivered(int seq, int len, bool is_orig)
 		if ( ! (current->finished || current->removing ) )
 			current->NextUndelivered(seq, len, is_orig);
 		else
-			{
-			if ( current->removing )
-				{
-				current->Done();
-				removing = false;
-				}
-
-			// Analyzer has already been disabled so delete it.
-			DBG_LOG(DBG_DPD, "%s deleted child %s",
-					fmt_analyzer(this).c_str(), fmt_analyzer(current).c_str());
-			children.erase(--i);
-			delete current;
-			}
+			DeleteChild(--i);
 		}
 
 	AppendNewChildren();
@@ -530,19 +492,7 @@ void Analyzer::ForwardEndOfData(bool orig)
 		if ( ! (current->finished || current->removing ) )
 			current->NextEndOfData(orig);
 		else
-			{
-			if ( current->removing )
-				{
-				current->Done();
-				removing = false;
-				}
-
-			// Analyzer has already been disabled so delete it.
-			DBG_LOG(DBG_DPD, "%s deleted child %s",
-					fmt_analyzer(this).c_str(), fmt_analyzer(current).c_str());
-			children.erase(--i);
-			delete current;
-			}
+			DeleteChild(--i);
 		}
 
 	AppendNewChildren();
@@ -608,7 +558,7 @@ void Analyzer::RemoveChildAnalyzer(AnalyzerID id)
 	LOOP_OVER_CHILDREN(i)
 		if ( (*i)->id == id && ! ((*i)->finished || (*i)->removing) )
 			{
-			DBG_LOG(DBG_DPD, "%s  disabled child %s", GetTagName(), id,
+			DBG_LOG(DBG_DPD, "%s  disabling child %s", GetTagName(), id,
 					fmt_analyzer(this).c_str(), fmt_analyzer(*i).c_str());
 			// See comment above.
 			(*i)->removing = true;
@@ -657,6 +607,26 @@ Analyzer* Analyzer::FindChild(AnalyzerTag::Tag arg_tag)
 		}
 
 	return 0;
+	}
+
+void Analyzer::DeleteChild(analyzer_list::iterator i)
+	{
+	Analyzer* child = *i;
+
+	// Analyzer must have already been finished or marked for removal.
+	assert(child->finished || child->removing);
+
+	if ( child->removing )
+		{
+		child->Done();
+		child->removing = false;
+		}
+
+	DBG_LOG(DBG_DPD, "%s deleted child %s 3",
+		fmt_analyzer(this).c_str(), fmt_analyzer(child).c_str());
+
+	children.erase(i);
+	delete child;
 	}
 
 void Analyzer::AddSupportAnalyzer(SupportAnalyzer* analyzer)

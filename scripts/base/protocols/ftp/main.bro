@@ -1,55 +1,76 @@
 ##! The logging this script does is primarily focused on logging FTP commands
 ##! along with metadata.  For example, if files are transferred, the argument
 ##! will take on the full path that the client is at along with the requested 
-##! file name.  
-##! 
-##! TODO:
-##!
-##! * Handle encrypted sessions correctly (get an example?)
+##! file name.
+
+@load ./utils-commands
+@load base/utils/paths
+@load base/utils/numbers
 
 module FTP;
 
 export {
-	redef enum Log::ID += { FTP };
-
+	## The FTP protocol logging stream identifier.
+	redef enum Log::ID += { LOG };
+	
+	## List of commands that should have their command/response pairs logged.
+	const logged_commands = {
+		"APPE", "DELE", "RETR", "STOR", "STOU", "ACCT"
+	} &redef;
+	
 	## This setting changes if passwords used in FTP sessions are captured or not.
 	const default_capture_password = F &redef;
 	
+	## User IDs that can be considered "anonymous".
+	const guest_ids = { "anonymous", "ftp", "guest" } &redef;
+	
 	type Info: record {
+		## Time when the command was sent.
 		ts:               time        &log;
 		uid:              string      &log;
 		id:               conn_id     &log;
+		## User name for the current FTP session.
 		user:             string      &log &default="<unknown>";
+		## Password for the current FTP session if captured.
 		password:         string      &log &optional;
+		## Command given by the client.
 		command:          string      &log &optional;
+		## Argument for the command if one is given.
 		arg:              string      &log &optional;
-		                              
+		
+		## Libmagic "sniffed" file type if the command indicates a file transfer.
 		mime_type:        string      &log &optional;
+		## Libmagic "sniffed" file description if the command indicates a file transfer.
 		mime_desc:        string      &log &optional;
+		## Size of the file if the command indicates a file transfer.
 		file_size:        count       &log &optional;
+		
+		## Reply code from the server in response to the command.
 		reply_code:       count       &log &optional;
+		## Reply message from the server in response to the command.
 		reply_msg:        string      &log &optional;
+		## Arbitrary tags that may indicate a particular attribute of this command.
 		tags:             set[string] &log &default=set();
 		
-		## By setting the CWD to '/.', we can indicate that unless something
+		## Current working directory that this session is in.  By making
+		## the default value '/.', we can indicate that unless something
 		## more concrete is discovered that the existing but unknown
 		## directory is ok to use.
 		cwd:                string  &default="/.";
+		
+		## Command that is currently waiting for a response.
 		cmdarg:             CmdArg  &optional;
+		## Queue for commands that have been sent but not yet responded to 
+		## are tracked here.
 		pending_commands:   PendingCmds;
 		
-		## This indicates if the session is in active or passive mode.
+		## Indicates if the session is in active or passive mode.
 		passive:            bool &default=F;
 		
-		## This determines if the password will be captured for this request.
+		## Determines if the password will be captured for this request.
 		capture_password:   bool &default=default_capture_password;
 	};
-		
-	type ExpectedConn: record {
-		host:    addr;
-		state:   Info;
-	};
-	
+
 	## This record is to hold a parsed FTP reply code.  For example, for the 
 	## 201 status code, the digits would be parsed as: x->2, y->0, z=>1.
 	type ReplyCode: record {
@@ -57,22 +78,12 @@ export {
 		y: count;
 		z: count;
 	};
-
-	# TODO: add this back in some form.  raise a notice again?
-	#const excessive_filename_len = 250 &redef;
-	#const excessive_filename_trunc_len = 32 &redef;
-
-	## These are user IDs that can be considered "anonymous".
-	const guest_ids = { "anonymous", "ftp", "guest" } &redef;
 	
-	## The list of commands that should have their command/response pairs logged.
-	const logged_commands = {
-		"APPE", "DELE", "RETR", "STOR", "STOU", "ACCT"
-	} &redef;
-	
-	## This function splits FTP reply codes into the three constituent 
+	## Parse FTP reply codes into the three constituent single digit values.
 	global parse_ftp_reply_code: function(code: count): ReplyCode;
-
+	
+	## Event that can be handled to access the :bro:type:`FTP::Info`
+	## record as it is sent on to the logging framework.
 	global log_ftp: event(rec: Info);
 }
 
@@ -86,12 +97,14 @@ const ports = { 21/tcp } &redef;
 redef capture_filters += { ["ftp"] = "port 21" };
 redef dpd_config += { [ANALYZER_FTP] = [$ports = ports] };
 
+redef likely_server_ports += { 21/tcp };
+
 # Establish the variable for tracking expected connections.
-global ftp_data_expected: table[addr, port] of ExpectedConn &create_expire=5mins;
+global ftp_data_expected: table[addr, port] of Info &create_expire=5mins;
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(FTP, [$columns=Info, $ev=log_ftp]);
+	Log::create_stream(FTP::LOG, [$columns=Info, $ev=log_ftp]);
 	}
 
 ## A set of commands where the argument can be expected to refer
@@ -161,7 +174,7 @@ function ftp_message(s: Info)
 		else
 			s$arg=arg;
 		
-		Log::write(FTP, s);
+		Log::write(FTP::LOG, s);
 		}
 	
 	# The MIME and file_size fields are specific to file transfer commands 
@@ -207,9 +220,7 @@ event ftp_request(c: connection, command: string, arg: string) &priority=5
 		if ( data$valid )
 			{
 			c$ftp$passive=F;
-			
-			local expected = [$host=id$resp_h, $state=copy(c$ftp)];
-			ftp_data_expected[data$h, data$p] = expected;
+			ftp_data_expected[data$h, data$p] = c$ftp;
 			expect_connection(id$resp_h, data$h, data$p, ANALYZER_FILE, 5mins);
 			}
 		else
@@ -262,8 +273,7 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &prior
 			if ( code == 229 && data$h == 0.0.0.0 )
 				data$h = id$resp_h;
 			
-			local expected = [$host=id$orig_h, $state=c$ftp];
-			ftp_data_expected[data$h, data$p] = expected;
+			ftp_data_expected[data$h, data$p] = c$ftp;
 			expect_connection(id$orig_h, data$h, data$p, ANALYZER_FILE, 5mins);
 			}
 		else
@@ -308,9 +318,8 @@ event file_transferred(c: connection, prefix: string, descr: string,
 	local id = c$id;
 	if ( [id$resp_h, id$resp_p] in ftp_data_expected )
 		{
-		local expected = ftp_data_expected[id$resp_h, id$resp_p];
-		local s = expected$state;
-		s$mime_type = mime_type;
+		local s = ftp_data_expected[id$resp_h, id$resp_p];
+		s$mime_type = split1(mime_type, /;/)[1];
 		s$mime_desc = descr;
 		}
 	}

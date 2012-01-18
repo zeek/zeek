@@ -1,5 +1,3 @@
-// $Id: net_util.cc 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -252,14 +250,14 @@ uint32 dotted_to_addr(const char* addr_text)
 	if ( sscanf(addr_text,
 		    "%d.%d.%d.%d", addr+0, addr+1, addr+2, addr+3) != 4 )
 		{
-		reporter->Error("bad dotted address:", addr_text );
+		reporter->Error("bad dotted address: %s", addr_text );
 		return 0;
 		}
 
 	if ( addr[0] < 0 || addr[1] < 0 || addr[2] < 0 || addr[3] < 0 ||
 	     addr[0] > 255 || addr[1] > 255 || addr[2] > 255 || addr[3] > 255 )
 		{
-		reporter->Error("bad dotted address:", addr_text);
+		reporter->Error("bad dotted address: %s", addr_text);
 		return 0;
 		}
 
@@ -276,7 +274,7 @@ uint32* dotted_to_addr6(const char* addr_text)
 	uint32* addr = new uint32[4];
 	if ( inet_pton(AF_INET6, addr_text, addr) <= 0 )
 		{
-		reporter->Error("bad IPv6 address:", addr_text );
+		reporter->Error("bad IPv6 address: %s", addr_text );
 		addr[0] = addr[1] = addr[2] = addr[3] = 0;
 		}
 
@@ -307,7 +305,7 @@ uint32 mask_addr(uint32 a, uint32 top_bits_to_keep)
 	{
 	if ( top_bits_to_keep > 32 )
 		{
-		reporter->Error("bad address mask value", top_bits_to_keep);
+		reporter->Error("bad address mask value %d", top_bits_to_keep);
 		return a;
 		}
 
@@ -346,7 +344,7 @@ const uint32* mask_addr(const uint32* a, uint32 top_bits_to_keep)
 
 	if ( top_bits_to_keep == 0 || top_bits_to_keep > max_bits )
 		{
-		reporter->Error("bad address mask value", top_bits_to_keep);
+		reporter->Error("bad address mask value %s", top_bits_to_keep);
 		return addr;
 		}
 

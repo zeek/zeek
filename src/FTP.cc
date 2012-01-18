@@ -1,5 +1,3 @@
-// $Id: FTP.cc 6782 2009-06-28 02:19:03Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"

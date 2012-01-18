@@ -79,7 +79,6 @@ private:
 	void UpdateWriters(Stream* stream);
 	void InstallRotationTimer(WriterInfo* winfo);
 	void Rotate(WriterInfo* info);
-	RecordVal* LookupRotationControl(EnumVal* writer, string path);
 	Filter* FindFilter(EnumVal* id, StringVal* filter);
 	WriterInfo* FindWriter(LogEmissary* writer);
 

@@ -1,3 +1,3 @@
-/da/home/robin/bro/master/testing/btest/.tmp/core.reporter/reporter.bro, line 52: pre test-info
-warning in /da/home/robin/bro/master/testing/btest/.tmp/core.reporter/reporter.bro, line 53: pre test-warning
-error in /da/home/robin/bro/master/testing/btest/.tmp/core.reporter/reporter.bro, line 54: pre test-error
+/Users/robin/bro/master/testing/btest/.tmp/core.reporter/reporter.bro, line 52: pre test-info
+warning in /Users/robin/bro/master/testing/btest/.tmp/core.reporter/reporter.bro, line 53: pre test-warning
+error in /Users/robin/bro/master/testing/btest/.tmp/core.reporter/reporter.bro, line 54: pre test-error

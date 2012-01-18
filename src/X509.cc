@@ -1,5 +1,3 @@
-// $Id: X509.cc 6724 2009-06-07 09:23:03Z vern $
-
 #include <openssl/err.h>
 
 #include "X509.h"

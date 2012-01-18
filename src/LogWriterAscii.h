@@ -13,6 +13,7 @@ public:
 	~LogWriterAscii();
 
 	static LogWriter* Instantiate(LogEmissary& parent, QueueInterface<MessageEvent *>& in_queue, QueueInterface<MessageEvent *>& out_queue);	
+	static string LogExt();
 
 protected:
 	virtual bool DoInit(string path, int num_fields,
@@ -28,9 +29,11 @@ protected:
 private:
 	bool IsSpecial(string path) 	{ return path.find("/dev/") == 0; }
 	bool DoWriteOne(ODesc* desc, LogVal* val, const LogField* field);
+	bool WriteHeaderField(const string& key, const string& value);
 
 	FILE* file;
 	string fname;
+	ODesc desc;
 
 	// Options set from the script-level.
 	bool output_to_stdout;

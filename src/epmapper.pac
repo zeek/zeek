@@ -1,5 +1,3 @@
-# $Id:$
-
 type epmapper_lookup_req = record {
 	inquiry_type	: uint32;
 	# object	: uuid_p_t;

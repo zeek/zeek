@@ -1,5 +1,3 @@
-// $Id:$
-
 #ifndef dns_binpac_h
 #define dns_binpac_h
 

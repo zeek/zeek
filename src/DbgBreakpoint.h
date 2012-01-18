@@ -1,5 +1,3 @@
-// $Id: DbgBreakpoint.h 80 2004-07-14 20:15:50Z jason $
-
 // Structures and methods for implementing breakpoints in the Bro debugger.
 
 #ifndef DbgBreakpoint_h

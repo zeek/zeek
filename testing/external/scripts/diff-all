@@ -1,0 +1,45 @@
+#! /usr/bin/env bash
+#
+# Runs btest-diff on $@ and fails if any fails. If $@ contains globs, we expand
+# them relative to *both* the current directory and the test's baseline
+# directory so that we spot missing files. Note that you will need to quote
+# the globals in the TEST-EXEC line as otherwise they will have been expanded relative
+# to the current directory already when this scripts runs.
+
+diag=$TEST_DIAGNOSTICS
+
+export TEST_DIAGNOSTICS=$diag.tmp
+
+if [ "$diag" = "" ]; then
+    diag=/dev/stdout
+else
+    rm -f $diag
+fi
+
+rc=0;
+
+files_cwd=`ls $@`
+files_baseline=`cd $TEST_BASELINE && ls $@`
+
+for i in `echo $files_cwd $files_baseline | sort | uniq`; do
+    if [[ "$i" != "loaded_scripts.log" && "$i" != "prof.log" && "$i" != "debug.log" && "$i" != "stats.log" ]]; then
+
+        if [[ "$i" == "reporter.log" ]]; then
+            # Do not diff the reporter.log if it only complains about missing
+            # GeoIP support.
+            if ! egrep -v "^#|Bro was not configured for GeoIP support" $i; then
+                continue
+            fi
+        fi
+
+        if ! btest-diff $i; then
+           echo "" >>$diag
+           echo "#### btest-diff $i" >>$diag
+           echo "" >>$diag
+           cat $diag.tmp >>$diag
+           rc=1
+        fi
+    fi
+done
+
+exit $rc

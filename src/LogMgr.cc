@@ -18,6 +18,8 @@ struct LogMgr::Filter {
 	EnumVal* writer;
 	bool local;
 	bool remote;
+	double interval;
+	Func* postprocessor;
 
 	int num_fields;
 	LogField** fields;
@@ -34,12 +36,13 @@ struct LogMgr::WriterInfo {
 	EnumVal* type;
 	double open_time;
 	Timer* rotation_timer;
+	double interval;
+	Func* postprocessor;
 	LogEmissary *writer;
 	
 	WriterInfo()
 	: type(NULL), open_time(0), rotation_timer(NULL), 
 	writer(NULL) { }
-	
 	};
 
 struct LogMgr::Stream {
@@ -129,7 +132,7 @@ LogMgr::WriterInfo* LogMgr::FindWriter(LogEmissary* writer)
 			{
 			WriterInfo* winfo = i->second;
 
-			if ( winfo->writer == writer )
+			if ( winfo && winfo->writer == writer )
 				return winfo;
 			}
 		}
@@ -395,6 +398,14 @@ bool LogMgr::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 		LogField* field = new LogField();
 		field->name = new_path;
 		field->type = t->Tag();
+		if ( field->type == TYPE_TABLE ) 
+			{
+				field->subtype = t->AsSetType()->Indices()->PureType()->Tag();
+			} 
+		else if ( field->type == TYPE_VECTOR ) 
+			{
+				field->subtype = t->AsVectorType()->YieldType()->Tag();
+			}
 		filter->fields[filter->num_fields - 1] = field;
 		}
 
@@ -426,6 +437,8 @@ bool LogMgr::AddFilter(EnumVal* id, RecordVal* fval)
 	Val* path_func = fval->LookupWithDefault(rtype->FieldOffset("path_func"));
 	Val* log_local = fval->LookupWithDefault(rtype->FieldOffset("log_local"));
 	Val* log_remote = fval->LookupWithDefault(rtype->FieldOffset("log_remote"));
+	Val* interv = fval->LookupWithDefault(rtype->FieldOffset("interv"));
+	Val* postprocessor = fval->LookupWithDefault(rtype->FieldOffset("postprocessor"));
 
 	Filter* filter = new Filter;
 	filter->name = name->AsString()->CheckString();
@@ -435,12 +448,16 @@ bool LogMgr::AddFilter(EnumVal* id, RecordVal* fval)
 	filter->writer = writer->Ref()->AsEnumVal();
 	filter->local = log_local->AsBool();
 	filter->remote = log_remote->AsBool();
+	filter->interval = interv->AsInterval();
+	filter->postprocessor = postprocessor ? postprocessor->AsFunc() : 0;
 
 	Unref(name);
 	Unref(pred);
 	Unref(path_func);
 	Unref(log_local);
 	Unref(log_remote);
+	Unref(interv);
+	Unref(postprocessor);
 
 	// Build the list of fields that the filter wants included, including
 	// potentially rolling out fields.
@@ -466,20 +483,9 @@ bool LogMgr::AddFilter(EnumVal* id, RecordVal* fval)
 
 	else
 		{
-		// If no path is given, use the Stream ID as the default but
-		// strip the namespace.
-		const char* s = stream->name.c_str();
-		const char* e = s + strlen(s);
-
-		const char* t = strstr(s, "::");
-		if ( t )
-			s = t + 2;
-
-		string path(s, e);
-		std::transform(path.begin(), path.end(), path.begin(), ::tolower);
-
-		filter->path = path;
-		filter->path_val = new StringVal(path.c_str());
+		// If no path is given, it's derived based upon the value returned by
+		// the first call to the filter's path_func (during first write).
+		filter->path_val = 0;
 		}
 
 	// Remove any filter with the same name we might already have.
@@ -588,9 +594,18 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 			// to log this record.
 			val_list vl(1);
 			vl.append(columns->Ref());
-			Val* v = filter->pred->Call(&vl);
-			int result = v->AsBool();
-			Unref(v);
+
+			int result = 1;
+
+			try
+				{
+				Val* v = filter->pred->Call(&vl);
+				result = v->AsBool();
+				Unref(v);
+				}
+
+			catch ( InterpreterException& e )
+				{ /* Already reported. */ }
 
 			if ( ! result )
 				continue;
@@ -600,15 +615,50 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 			{
 			val_list vl(3);
 			vl.append(id->Ref());
-			vl.append(filter->path_val->Ref());
-			vl.append(columns->Ref());
-			Val* v = filter->path_func->Call(&vl);
+
+			Val* path_arg;
+			if ( filter->path_val )
+				path_arg = filter->path_val;
+			else
+				path_arg = new StringVal("");
+
+			vl.append(path_arg->Ref());
+
+			Val* rec_arg;
+			BroType* rt = filter->path_func->FType()->Args()->FieldType("rec");
+
+			if ( rt->Tag() == TYPE_RECORD )
+				rec_arg = columns->CoerceTo(rt->AsRecordType(), true);
+			else
+				// Can be TYPE_ANY here.
+				rec_arg = columns->Ref();
+
+			vl.append(rec_arg);
+
+			Val* v = 0;
+
+			try
+				{
+				v = filter->path_func->Call(&vl);
+				}
+
+			catch ( InterpreterException& e )
+				{
+				return false;
+				}
 
 			if ( ! v->Type()->Tag() == TYPE_STRING )
 				{
 				reporter->Error("path_func did not return string");
 				Unref(v);
 				return false;
+				}
+
+			if ( ! filter->path_val )
+				{
+				Unref(path_arg);
+				filter->path = v->AsString()->CheckString();
+				filter->path_val = v->Ref();
 				}
 
 			path = v->AsString()->CheckString();
@@ -641,6 +691,13 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 			for ( int j = 0; j < filter->num_fields; ++j )
 				arg_fields[j] = new LogField(*filter->fields[j]);
 
+			if ( filter->remote )
+				remote_serializer->SendLogCreateWriter(stream->id,
+								       filter->writer,
+								       path,
+								       filter->num_fields,
+								       arg_fields);
+
 			if ( filter->local )
 				{
 				writer = CreateWriter(stream->id, filter->writer,
@@ -654,17 +711,17 @@ bool LogMgr::Write(EnumVal* id, RecordVal* columns)
 					}
 				}
 			else
+				{
 				// Insert a null pointer into the map to make
 				// sure we don't try creating it again.
 				stream->writers.insert(Stream::WriterMap::value_type(
 				Stream::WriterPathPair(filter->writer->AsEnum(), path), 0));
 
-			if ( filter->remote )
-				remote_serializer->SendLogCreateWriter(stream->id,
-								       filter->writer,
-								       path,
-								       filter->num_fields,
-								       arg_fields);
+				for( int i = 0; i < filter->num_fields; ++i)
+					delete arg_fields[i];
+
+				delete [] arg_fields;
+				}
 			}
 
 		// Alright, can do the write now.
@@ -747,7 +804,6 @@ LogVal* LogMgr::ValToLogVal(Val* val, BroType* ty)
 		lval->val.subnet_val = *val->AsSubNet();
 		break;
 
-	case TYPE_NET:
 	case TYPE_ADDR:
 		{
 		addr_type t = val->AsAddr();
@@ -890,6 +946,35 @@ LogEmissary* LogMgr::CreateWriter(EnumVal* id, EnumVal* writer, string path,
 	winfo->writer = emissary;
 	winfo->open_time = network_time;
 	winfo->rotation_timer = 0;
+	winfo->interval = 0;
+	winfo->postprocessor = 0;
+
+	// Search for a corresponding filter for the writer/path pair and use its
+	// rotation settings.  If no matching filter is found, fall back on
+	// looking up the logging framework's default rotation interval.
+	bool found_filter_match = false;
+	list<Filter*>::const_iterator it;
+
+	for ( it = stream->filters.begin(); it != stream->filters.end(); ++it )
+		{
+		Filter* f = *it;
+		if ( f->writer->AsEnum() == writer->AsEnum() &&
+		     f->path == winfo->writer->Path() )
+			{
+			found_filter_match = true;
+			winfo->interval = f->interval;
+			winfo->postprocessor = f->postprocessor;
+			break;
+			}
+		}
+
+	if ( ! found_filter_match )
+		{
+		ID* id = global_scope()->Lookup("Log::default_rotation_interval");
+		assert(id);
+		winfo->interval = id->ID_Val()->AsInterval();
+		}
+
 	InstallRotationTimer(winfo);
 
 	stream->writers.insert(
@@ -1055,8 +1140,8 @@ bool LogMgr::Flush(EnumVal* id)
 
 void LogMgr::Error(LogEmissary* writer, const char* msg)
 	{
-	reporter->Error(fmt("error with writer for %s: %s",
-		     writer->Path().c_str(), msg));
+	reporter->Error("error with writer for %s: %s",
+		     writer->Path().c_str(), msg);
 	}
 
 // Timer which on dispatching rotates the filter.
@@ -1100,22 +1185,6 @@ void RotationTimer::Dispatch(double t, int is_expire)
 		}
 	}
 
-RecordVal* LogMgr::LookupRotationControl(EnumVal* writer, string path)
-	{
-	TableVal* rc = BifConst::Log::rotation_control->AsTableVal();
-
-	ListVal* index = new ListVal(TYPE_ANY);
-	index->Append(writer->Ref());
-	index->Append(new StringVal(path.c_str()));
-
-	Val* r = rc->Lookup(index);
-	assert(r);
-
-	Unref(index);
-
-	return r->AsRecordVal();
-	}
-
 void LogMgr::InstallRotationTimer(WriterInfo* winfo)
 	{
 	if ( terminating )
@@ -1127,13 +1196,7 @@ void LogMgr::InstallRotationTimer(WriterInfo* winfo)
 		winfo->rotation_timer = 0;
 		}
 
-	RecordVal* rc =
-		LookupRotationControl(winfo->type, winfo->writer->Path());
-
-	assert(rc);
-
-	int idx = rc->Type()->AsRecordType()->FieldOffset("interv");
-	double rotation_interval = rc->LookupWithDefault(idx)->AsInterval();
+	double rotation_interval = winfo->interval;
 
 	if ( rotation_interval )
 		{
@@ -1192,12 +1255,8 @@ bool LogMgr::FinishedRotation(LogEmissary* writer, string new_name, string old_n
 		writer->Path().c_str(), network_time, new_name.c_str());
 
 	WriterInfo* winfo = FindWriter(writer);
-	assert(winfo);
-
-	RecordVal* rc =
-		LookupRotationControl(winfo->type, winfo->writer->Path());
-
-	assert(rc);
+	if ( ! winfo )
+		return true;
 
 	// Create the RotationInfo record.
 	RecordVal* info = new RecordVal(BifType::Record::Log::RotationInfo);
@@ -1208,15 +1267,12 @@ bool LogMgr::FinishedRotation(LogEmissary* writer, string new_name, string old_n
 	info->Assign(4, new Val(close, TYPE_TIME));
 	info->Assign(5, new Val(terminating, TYPE_BOOL));
 
-	int idx = rc->Type()->AsRecordType()->FieldOffset("postprocessor");
-	assert(idx >= 0);
-
-	Val* func = rc->Lookup(idx);
+	Func* func = winfo->postprocessor;
 	if ( ! func )
 		{
 		ID* id = global_scope()->Lookup("Log::__default_rotation_postprocessor");
 		assert(id);
-		func = id->ID_Val();
+		func = id->ID_Val()->AsFunc();
 		}
 
 	assert(func);
@@ -1224,9 +1280,19 @@ bool LogMgr::FinishedRotation(LogEmissary* writer, string new_name, string old_n
 	// Call the postprocessor function.
 	val_list vl(1);
 	vl.append(info);
-	Val* v = func->AsFunc()->Call(&vl);
-	int result = v->AsBool();
-	Unref(v);
+
+	int result = 0;
+
+	try
+		{
+		Val* v = func->Call(&vl);
+		result = v->AsBool();
+		Unref(v);
+		}
+
+	catch ( InterpreterException& e )
+		{ /* Already reported. */ }
+
 	return result;
 	}
 

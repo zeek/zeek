@@ -1,5 +1,3 @@
-// $Id: ChunkedIO.h 6888 2009-08-20 18:23:11Z vern $
-//
 // Implements non-blocking chunk-wise I/O.
 
 #ifndef CHUNKEDIO_H
@@ -289,8 +287,6 @@ private:
 	static SSL_CTX* ctx;
 };
 
-#ifdef HAVE_LIBZ
-
 #include <zlib.h>
 
 // Wrapper class around a another ChunkedIO which the (un-)compresses data.
@@ -336,7 +332,5 @@ protected:
 	unsigned long uncompressed_bytes_read;
 	unsigned long uncompressed_bytes_written;
 };
-
-#endif	/* HAVE_LIBZ */
 
 #endif

@@ -1,5 +1,3 @@
-// $Id: Type.cc 6916 2009-09-24 20:48:36Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -28,7 +26,7 @@ const char* type_name(TypeTag t)
 		"string", "pattern",
 		"enum",
 		"timer",
-		"port", "addr", "net", "subnet",
+		"port", "addr", "subnet",
 		"any",
 		"table", "union", "record", "types",
 		"func",
@@ -86,7 +84,6 @@ BroType::BroType(TypeTag t, bool arg_base_type)
 		break;
 
 	case TYPE_ADDR:
-	case TYPE_NET:
 		internal_tag = TYPE_INTERNAL_ADDR;
 		break;
 
@@ -879,72 +876,10 @@ void CommentedTypeDecl::DescribeReST(ODesc* d) const
 		}
 	}
 
-RecordField::RecordField(int arg_base, int arg_offset, int arg_total_offset)
-	{
-	base = arg_base;
-	offset = arg_offset;
-	total_offset = arg_total_offset;
-	}
-
 RecordType::RecordType(type_decl_list* arg_types) : BroType(TYPE_RECORD)
 	{
 	types = arg_types;
-	base = 0;
-	fields = 0;
 	num_fields = types ? types->length() : 0;
-	}
-
-RecordType::RecordType(TypeList* arg_base, type_decl_list* refinements)
-	: BroType(TYPE_RECORD)
-	{
-	if ( refinements )
-		arg_base->Append(new RecordType(refinements));
-
-	Init(arg_base);
-	}
-
-void RecordType::Init(TypeList* arg_base)
-	{
-	assert(false);  // Is this ever used?
-
-	base = arg_base;
-
-	if ( ! base )
-		Internal("empty RecordType");
-
-	fields = new PDict(RecordField)(ORDERED);
-	types = 0;
-
-	type_list* t = base->Types();
-
-	loop_over_list(*t, i)
-		{
-		BroType* ti = (*t)[i];
-
-		if ( ti->Tag() != TYPE_RECORD )
-			(*t)[i]->Error("non-record in base type list");
-
-		RecordType* rti = ti->AsRecordType();
-		int n = rti->NumFields();
-
-		for ( int j = 0; j < n; ++j )
-			{
-			const TypeDecl* tdij = rti->FieldDecl(j);
-
-			if ( fields->Lookup(tdij->id) )
-				{
-				reporter->Error("duplicate field", tdij->id);
-				continue;
-				}
-
-			RecordField* rf = new RecordField(i, j, fields->Length());
-
-			if ( fields->Insert(tdij->id, rf) )
-				Internal("duplicate field when constructing record");
-			}
-		}
-
-	num_fields = fields->Length();
 	}
 
 RecordType::~RecordType()
@@ -956,9 +891,6 @@ RecordType::~RecordType()
 
 		delete types;
 		}
-
-	delete fields;
-	Unref(base);
 	}
 
 int RecordType::HasField(const char* field) const
@@ -974,17 +906,7 @@ BroType* RecordType::FieldType(const char* field) const
 
 BroType* RecordType::FieldType(int field) const
 	{
-	if ( types )
-		return (*types)[field]->type;
-	else
-		{
-		RecordField* rf = fields->NthEntry(field);
-		if ( ! rf )
-			Internal("missing field in RecordType::FieldType");
-		BroType* bt = (*base->Types())[rf->base];
-		RecordType* rbt = bt->AsRecordType();
-		return rbt->FieldType(rf->offset);
-		}
+	return (*types)[field]->type;
 	}
 
 Val* RecordType::FieldDefault(int field) const
@@ -1001,26 +923,14 @@ Val* RecordType::FieldDefault(int field) const
 
 int RecordType::FieldOffset(const char* field) const
 	{
-	if ( types )
+	loop_over_list(*types, i)
 		{
-		loop_over_list(*types, i)
-			{
-			TypeDecl* td = (*types)[i];
-			if ( streq(td->id, field) )
-				return i;
-			}
-
-		return -1;
+		TypeDecl* td = (*types)[i];
+		if ( streq(td->id, field) )
+			return i;
 		}
 
-	else
-		{
-		RecordField* rf = fields->Lookup(field);
-		if ( ! rf )
-			return -1;
-		else
-			return rf->total_offset;
-		}
+	return -1;
 	}
 
 const char* RecordType::FieldName(int field) const
@@ -1030,33 +940,12 @@ const char* RecordType::FieldName(int field) const
 
 const TypeDecl* RecordType::FieldDecl(int field) const
 	{
-	if ( types )
-		return (*types)[field];
-	else
-		{
-		RecordField* rf = fields->NthEntry(field);
-		if ( ! rf )
-			reporter->InternalError("missing field in RecordType::FieldDecl");
-
-		BroType* bt = (*base->Types())[rf->base];
-		RecordType* rbt = bt->AsRecordType();
-		return rbt->FieldDecl(rf->offset);
-		}
+	return (*types)[field];
 	}
 
 TypeDecl* RecordType::FieldDecl(int field)
 	{
-	if ( types )
-		return (*types)[field];
-	else
-		{
-		RecordField* rf = fields->NthEntry(field);
-		if ( ! rf )
-			Internal("missing field in RecordType::FieldDecl");
-		BroType* bt = (*base->Types())[rf->base];
-		RecordType* rbt = bt->AsRecordType();
-		return rbt->FieldDecl(rf->offset);
-		}
+	return (*types)[field];
 	}
 
 void RecordType::Describe(ODesc* d) const
@@ -1154,11 +1043,6 @@ void RecordType::DescribeFields(ODesc* d) const
 				d->SP();
 				}
 			}
-		else
-			{
-			d->AddCount(1);
-			base->Describe(d);
-			}
 		}
 	}
 
@@ -1211,9 +1095,6 @@ bool RecordType::DoSerialize(SerialInfo* info) const
 	else if ( ! SERIALIZE(false) )
 		return false;
 
-	SERIALIZE_OPTIONAL(base);
-
-	// We don't serialize the fields as we can reconstruct them.
 	return true;
 	}
 
@@ -1247,13 +1128,6 @@ bool RecordType::DoUnserialize(UnserialInfo* info)
 		}
 	else
 		types = 0;
-
-	BroType* type;
-	UNSERIALIZE_OPTIONAL(type, BroType::Unserialize(info, TYPE_LIST));
-	base = (TypeList*) type;
-
-	if ( base )
-		Init(base);
 
 	return true;
 	}
@@ -1597,21 +1471,6 @@ bool VectorType::DoUnserialize(UnserialInfo* info)
 	return yield_type != 0;
 	}
 
-BroType* refine_type(TypeList* base, type_decl_list* refinements)
-	{
-	type_list* t = base->Types();
-
-	if ( t->length() == 1 && ! refinements )
-		{ // Just a direct reference to a single type.
-		BroType* rt = (*t)[0]->Ref();
-		Unref(base);
-		return rt;
-		}
-
-	return new RecordType(base, refinements);
-	}
-
-
 BroType* base_type(TypeTag tag)
 	{
 	static BroType* base_types[NUM_TYPES];
@@ -1687,7 +1546,6 @@ int same_type(const BroType* t1, const BroType* t2, int is_init)
 	case TYPE_TIMER:
 	case TYPE_PORT:
 	case TYPE_ADDR:
-	case TYPE_NET:
 	case TYPE_SUBNET:
 	case TYPE_ANY:
 	case TYPE_ERROR:
@@ -1863,7 +1721,6 @@ int is_assignable(BroType* t)
 	case TYPE_TIMER:
 	case TYPE_PORT:
 	case TYPE_ADDR:
-	case TYPE_NET:
 	case TYPE_SUBNET:
 	case TYPE_RECORD:
 	case TYPE_FUNC:
@@ -1941,7 +1798,6 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 	case TYPE_TIMER:
 	case TYPE_PORT:
 	case TYPE_ADDR:
-	case TYPE_NET:
 	case TYPE_SUBNET:
 	case TYPE_BOOL:
 	case TYPE_ANY:

@@ -168,6 +168,18 @@ public:
 		}
 
 	/**
+	 * Schedules documentation of an event handler declared by the script.
+	 * @param o A pointer to a BroDocObj which contains the internal
+	 *        Bro language representation of the script event handler and
+	 *        also any associated comments about it.
+	 */
+	void AddEventHandler(const BroDocObj* o)
+		{
+		event_handlers.push_back(o);
+		all.push_back(o);
+		}
+
+	/**
 	 * Schedules documentation of a function declared by the script.
 	 * @param o A pointer to a BroDocObj which contains the internal
 	 *        Bro language representation of the script function and
@@ -228,6 +240,7 @@ protected:
 	BroDocObjList types;
 	BroDocObjList notices;
 	BroDocObjList events;
+	BroDocObjList event_handlers;
 	BroDocObjMap functions;
 	BroDocObjList redefs;
 

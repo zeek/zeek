@@ -1,5 +1,3 @@
-// $Id: NetVar.h 6887 2009-08-20 05:17:33Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef netvar_h
@@ -21,7 +19,9 @@ extern RecordType* SYN_packet;
 extern RecordType* pcap_packet;
 extern EnumType* transport_proto;
 extern TableType* string_set;
+extern TableType* string_array;
 extern TableType* count_set;
+extern VectorType* string_vec;
 
 extern int watchdog_interval;
 

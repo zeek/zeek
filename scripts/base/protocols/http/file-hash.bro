@@ -1,5 +1,7 @@
 ##! Calculate hashes for HTTP body transfers.
 
+@load ./file-ident
+
 module HTTP;
 
 export {
@@ -9,7 +11,8 @@ export {
 	};
 
 	redef record Info += {
-		## The MD5 sum for a file transferred over HTTP will be stored here.
+		## MD5 sum for a file transferred over HTTP calculated from the 
+		## response body.
 		md5:             string   &log &optional;
 		
 		## This value can be set per-transfer to determine per request
@@ -17,8 +20,8 @@ export {
 		## set to T at the time of or before the first chunk of body data.
 		calc_md5:        bool     &default=F;
 		
-		## This boolean value indicates if an MD5 sum is currently being 
-		## calculated for the current file transfer.
+		## Indicates if an MD5 sum is being calculated for the current 
+		## request/response pair.
 		calculating_md5: bool     &default=F;
 	};
 	
@@ -52,14 +55,11 @@ event http_entity_data(c: connection, is_orig: bool, length: count, data: string
 ## incorrect anyway.
 event content_gap(c: connection, is_orig: bool, seq: count, length: count) &priority=5
 	{
-	if ( is_orig || ! c?$http ) return;
-		
+	if ( is_orig || ! c?$http || ! c$http$calculating_md5 ) return;
+	
 	set_state(c, F, is_orig);
-	if ( c$http$calculating_md5 )
-		{
-		c$http$calculating_md5 = F;
-		md5_hash_finish(c$id);
-		}
+	c$http$calculating_md5 = F;
+	md5_hash_finish(c$id);
 	}
 
 ## When the file finishes downloading, finish the hash and generate a notice.

@@ -1,3 +1,8 @@
+##! Detect and log web applications through the software framework.
+
+@load base/frameworks/signatures
+@load base/frameworks/software
+@load base/protocols/http
 
 module HTTP;
 
@@ -7,10 +12,12 @@ redef Signatures::ignored_ids += /^webapp-/;
 
 export {
 	redef enum Software::Type += {
+		## Identifier for web applications in the software framework.
 		WEB_APPLICATION,
 	};
 
 	redef record Software::Info += {
+		## Most root URL where the software was discovered.
 		url:   string &optional &log;
 	};
 }

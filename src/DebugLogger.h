@@ -1,5 +1,3 @@
-// $Id: DebugLogger.h 4771 2007-08-11 05:50:24Z vern $
-//
 // A logger for (selective) debugging output. Only compiled in if DEBUG is
 // defined.
 

@@ -24,10 +24,9 @@ public:
 	 * If the filename doesn't end in ".bro", then ".rst" is just appended.
 	 * Any '/' characters in the reST file name that result from choice of
 	 * the 'rel' parameter are replaced with '^'.
-	 * @param subpath A string representing a subpath of BROPATH's policy/
-	 *        directory in which the source file is located.  It can
-	 *        also be full path to the file or a full path that's in BROPATH,
-	 *        but in either of those cases, the parameter is essentially
+	 * @param rel A string representing a subpath of the root Bro script
+	 *        source/install directory in which the source file is located.
+	 *        It can also be an absolute path, but then the parameter is
 	 *        ignored and the document title is just derived from file name
 	 * @param abs The absolute path to the Bro script for which to generate
 	 *        documentation.
@@ -169,6 +168,18 @@ public:
 		}
 
 	/**
+	 * Schedules documentation of an event handler declared by the script.
+	 * @param o A pointer to a BroDocObj which contains the internal
+	 *        Bro language representation of the script event handler and
+	 *        also any associated comments about it.
+	 */
+	void AddEventHandler(const BroDocObj* o)
+		{
+		event_handlers.push_back(o);
+		all.push_back(o);
+		}
+
+	/**
 	 * Schedules documentation of a function declared by the script.
 	 * @param o A pointer to a BroDocObj which contains the internal
 	 *        Bro language representation of the script function and
@@ -211,6 +222,7 @@ protected:
 	FILE* reST_file;
 	std::string reST_filename;
 	std::string source_filename;	// points to the basename of source file
+	std::string downloadable_filename; // file that will be linked for download
 	std::string doc_title;
 	std::string packet_filter;
 
@@ -228,6 +240,7 @@ protected:
 	BroDocObjList types;
 	BroDocObjList notices;
 	BroDocObjList events;
+	BroDocObjList event_handlers;
 	BroDocObjMap functions;
 	BroDocObjList redefs;
 

@@ -1,48 +1,21 @@
 project(Bro C CXX)
-
-if (NOT CMAKE_C_COMPILER)
-    message(FATAL_ERROR "Could not find prerequisite C compiler")
-endif ()
-
-if (NOT CMAKE_CXX_COMPILER)
-    message(FATAL_ERROR "Could not find prerequisite C++ compiler")
-endif ()
-
-########################################################################
-## CMake Configuration
 cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
-
-# Prohibit in-source builds.
-if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
-    message(FATAL_ERROR "In-source builds are not allowed. Please use "
-                        "./configure to choose a build directory and "
-                        "initialize the build configuration.")
-endif ()
-
-set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-
-if ("${PROJECT_SOURCE_DIR}" STREQUAL "${CMAKE_SOURCE_DIR}")
-    # uninstall target
-    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in"
-                   "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
-                    @ONLY)
-
-    add_custom_target(uninstall COMMAND
-        ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
-endif ()
+include(cmake/CommonCMakeConfig.cmake)
 
 ########################################################################
 ## Project/Build Configuration
 
 set(BRO_ROOT_DIR ${CMAKE_INSTALL_PREFIX})
-if (NOT POLICYDIR)
-    # set the default policy installation path (user did not specify one)
-    set(POLICYDIR ${BRO_ROOT_DIR}/share/bro)
+if (NOT BRO_SCRIPT_INSTALL_PATH)
+    # set the default Bro script installation path (user did not specify one)
+    set(BRO_SCRIPT_INSTALL_PATH ${BRO_ROOT_DIR}/share/bro)
 endif ()
+set(BRO_SCRIPT_SOURCE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/scripts)
 
-# sanitize the policy install directory into an absolute path
+# sanitize the Bro script install directory into an absolute path
 # (CMake is confused by ~ as a representation of home directory)
-get_filename_component(POLICYDIR ${POLICYDIR} ABSOLUTE)
+get_filename_component(BRO_SCRIPT_INSTALL_PATH ${BRO_SCRIPT_INSTALL_PATH}
+    ABSOLUTE)
 
 configure_file(bro-path-dev.in ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev)
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev.sh
@@ -59,24 +32,9 @@ list(GET version_numbers 0 VERSION_MAJOR)
 list(GET version_numbers 1 VERSION_MINOR)
 set(VERSION_MAJ_MIN "${VERSION_MAJOR}.${VERSION_MINOR}")
 
-set(EXTRA_COMPILE_FLAGS "-Wall -Wno-unused")
-
-if (ENABLE_DEBUG)
-    set(CMAKE_BUILD_TYPE Debug)
-    set(EXTRA_COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS} -DDEBUG")
-else ()
-    set(CMAKE_BUILD_TYPE RelWithDebInfo)
-endif ()
-
-# Compiler flags may already exist in CMake cache (e.g. when specifying
-# CFLAGS environment variable before running cmake for the the first time)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EXTRA_COMPILE_FLAGS}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EXTRA_COMPILE_FLAGS}")
-
 ########################################################################
 ## Dependency Configuration
 
-include(MacDependencyPaths)
 include(FindRequiredPackage)
 
 # Check cache value first to avoid displaying "Found sed" messages everytime
@@ -95,6 +53,8 @@ FindRequiredPackage(BISON)
 FindRequiredPackage(PCAP)
 FindRequiredPackage(OpenSSL)
 FindRequiredPackage(BIND)
+FindRequiredPackage(LibMagic)
+FindRequiredPackage(ZLIB)
 
 if (NOT BinPAC_ROOT_DIR AND
     EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/aux/binpac/CMakeLists.txt)
@@ -114,25 +74,11 @@ include_directories(BEFORE
                     ${OpenSSL_INCLUDE_DIR}
                     ${BIND_INCLUDE_DIR}
                     ${BinPAC_INCLUDE_DIR}
+                    ${LibMagic_INCLUDE_DIR}
+                    ${ZLIB_INCLUDE_DIR}
 )
 
 # Optional Dependencies
-
-set(HAVE_LIBMAGIC false)
-find_package(LibMagic)
-if (LIBMAGIC_FOUND)
-    set(HAVE_LIBMAGIC true)
-    include_directories(BEFORE ${LibMagic_INCLUDE_DIR})
-    list(APPEND OPTLIBS ${LibMagic_LIBRARY})
-endif ()
-
-set(HAVE_LIBZ false)
-find_package(ZLIB)
-if (ZLIB_FOUND)
-    set(HAVE_LIBZ true)
-    include_directories(BEFORE ${ZLIB_INCLUDE_DIR})
-    list(APPEND OPTLIBS ${ZLIB_LIBRARY})
-endif ()
 
 set(USE_GEOIP false)
 find_package(LibGeoIP)
@@ -151,6 +97,16 @@ if (ENABLE_PERFTOOLS)
         list(APPEND OPTLIBS ${GooglePerftools_LIBRARIES})
     endif ()
 endif ()
+
+set(brodeps
+    ${BinPAC_LIBRARY}
+    ${PCAP_LIBRARY}
+    ${OpenSSL_LIBRARIES}
+    ${BIND_LIBRARY}
+    ${LibMagic_LIBRARY}
+    ${ZLIB_LIBRARY}
+    ${OPTLIBS}
+)
 
 ########################################################################
 ## System Introspection
@@ -212,7 +168,7 @@ message(
     "\n====================|  Bro Build Summary  |====================="
     "\n"
     "\nInstall prefix:    ${CMAKE_INSTALL_PREFIX}"
-    "\nPolicy dir:        ${POLICYDIR}"
+    "\nBro Script Path:   ${BRO_SCRIPT_INSTALL_PATH}"
     "\nDebug mode:        ${ENABLE_DEBUG}"
     "\n"
     "\nCC:                ${CMAKE_C_COMPILER}"
@@ -226,23 +182,9 @@ message(
     "\nAux. Tools:        ${INSTALL_AUX_TOOLS}"
     "\n"
     "\nGeoIP:             ${USE_GEOIP}"
-    "\nlibz:              ${HAVE_LIBZ}"
-    "\nlibmagic:          ${HAVE_LIBMAGIC}"
     "\nGoogle perftools:  ${USE_PERFTOOLS}"
     "\n"
     "\n================================================================\n"
 )
 
-########################################################################
-## Show warning when installing user is different from the one that configured
-
-install(CODE "
-    if (NOT $ENV{USER} STREQUAL \$ENV{USER})
-        message(STATUS \"ATTENTION: Install is being performed by user \"
-                \"'\$ENV{USER}', but the build directory was configured by \"
-                \"user '$ENV{USER}'. This may result in a permissions error \"
-                \"when writing the install manifest, but you can ignore it \"
-                \"and consider the installation as successful if you don't \"
-                \"care about the install manifest.\")
-    endif ()
-")
+include(UserChangedWarning)

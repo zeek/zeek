@@ -1,27 +1,34 @@
-##! Core script support for logging syslog messages.
+##! Core script support for logging syslog messages.  This script represents 
+##! one syslog message as one logged record.
 
 @load ./consts
 
 module Syslog;
 
 export {
-	redef enum Log::ID += { SYSLOG };
+	redef enum Log::ID += { LOG };
 	
 	type Info: record {
+		## Timestamp of when the syslog message was seen.
 		ts:        time            &log;
 		uid:       string          &log;
 		id:        conn_id         &log;
+		## Protocol over which the message was seen.
 		proto:     transport_proto &log;
+		## Syslog facility for the message.
 		facility:  string          &log;
+		## Syslog severity for the message.
 		severity:  string          &log;
+		## The plain text message.
 		message:   string          &log;
 	};
-	
-	const ports = { 514/udp } &redef;
 }
 
 redef capture_filters += { ["syslog"] = "port 514" };
+const ports = { 514/udp } &redef;
 redef dpd_config += { [ANALYZER_SYSLOG_BINPAC] = [$ports = ports] };
+
+redef likely_server_ports += { 514/udp };
 
 redef record connection += {
 	syslog: Info &optional;
@@ -29,7 +36,7 @@ redef record connection += {
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(SYSLOG, [$columns=Info]);
+	Log::create_stream(Syslog::LOG, [$columns=Info]);
 	}
 
 event syslog_message(c: connection, facility: count, severity: count, msg: string) &priority=5
@@ -48,5 +55,5 @@ event syslog_message(c: connection, facility: count, severity: count, msg: strin
 
 event syslog_message(c: connection, facility: count, severity: count, msg: string) &priority=-5
 	{
-	Log::write(SYSLOG, c$syslog);
+	Log::write(Syslog::LOG, c$syslog);
 	}

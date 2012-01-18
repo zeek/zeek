@@ -1,5 +1,3 @@
-// $Id: Obj.cc 6752 2009-06-14 04:24:52Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -127,6 +125,7 @@ void BroObj::BadTag(const char* msg, const char* t1, const char* t2) const
 	ODesc d;
 	DoMsg(&d, out);
 	reporter->FatalError("%s", d.Description());
+	reporter->PopLocation();
 	}
 
 void BroObj::Internal(const char* msg) const
@@ -134,6 +133,7 @@ void BroObj::Internal(const char* msg) const
 	ODesc d;
 	DoMsg(&d, msg);
 	reporter->InternalError("%s", d.Description());
+	reporter->PopLocation();
 	}
 
 void BroObj::InternalWarning(const char* msg) const
@@ -141,6 +141,7 @@ void BroObj::InternalWarning(const char* msg) const
 	ODesc d;
 	DoMsg(&d, msg);
 	reporter->InternalWarning("%s", d.Description());
+	reporter->PopLocation();
 	}
 
 void BroObj::AddLocation(ODesc* d) const
@@ -229,6 +230,8 @@ bool BroObj::DoSerialize(SerialInfo* info) const
 bool BroObj::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(SerialObj);
+
+	delete location;
 
 	UNSERIALIZE_OPTIONAL(location, Location::Unserialize(info));
 	return true;

@@ -1,5 +1,3 @@
-// $Id: Val.h 6916 2009-09-24 20:48:36Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef val_h
@@ -30,7 +28,6 @@ class SerialInfo;
 
 class PortVal;
 class AddrVal;
-class NetVal;
 class SubNetVal;
 
 class IntervalVal;
@@ -244,7 +241,7 @@ public:
 	// ... in network byte order
 	const addr_type AsAddr() const
 		{
-		if ( type->Tag() != TYPE_ADDR && type->Tag() != TYPE_NET )
+		if ( type->Tag() != TYPE_ADDR )
 			BadTag("Val::AsAddr", type_name(type->Tag()));
 		return val.addr_val;
 		}
@@ -284,7 +281,6 @@ public:
 
 	CONVERTER(TYPE_PATTERN, PatternVal*, AsPatternVal)
 	CONVERTER(TYPE_PORT, PortVal*, AsPortVal)
-	CONVERTER(TYPE_NET, NetVal*, AsNetVal)
 	CONVERTER(TYPE_SUBNET, SubNetVal*, AsSubNetVal)
 	CONVERTER(TYPE_TABLE, TableVal*, AsTableVal)
 	CONVERTER(TYPE_RECORD, RecordVal*, AsRecordVal)
@@ -302,7 +298,6 @@ public:
 
 	CONST_CONVERTER(TYPE_PATTERN, PatternVal*, AsPatternVal)
 	CONST_CONVERTER(TYPE_PORT, PortVal*, AsPortVal)
-	CONST_CONVERTER(TYPE_NET, NetVal*, AsNetVal)
 	CONST_CONVERTER(TYPE_SUBNET, SubNetVal*, AsSubNetVal)
 	CONST_CONVERTER(TYPE_TABLE, TableVal*, AsTableVal)
 	CONST_CONVERTER(TYPE_RECORD, RecordVal*, AsRecordVal)
@@ -573,23 +568,6 @@ protected:
 	void Init(const uint32* addr);
 
 	DECLARE_SERIAL(AddrVal);
-};
-
-class NetVal : public AddrVal {
-public:
-	NetVal(const char* text);
-	NetVal(uint32 addr);
-	NetVal(const uint32* addr);
-
-	Val* SizeVal() const;
-
-protected:
-	friend class Val;
-	NetVal()	{}
-
-	void ValDescribe(ODesc* d) const;
-
-	DECLARE_SERIAL(NetVal);
 };
 
 class SubNetVal : public Val {
@@ -891,7 +869,7 @@ protected:
 
 	DECLARE_SERIAL(TableVal);
 
-	const TableType* table_type;
+	TableType* table_type;
 	CompositeHash* table_hash;
 	Attributes* attrs;
 	double expire_time;
@@ -929,8 +907,11 @@ public:
 	// *aggr* is optional; if non-zero, we add to it. See
 	// Expr::InitVal(). We leave it out in the non-const version to make
 	// the choice unambigious.
-	RecordVal* CoerceTo(const RecordType* other, Val* aggr) const;
-	RecordVal* CoerceTo(RecordType* other);
+	//
+	// The *allow_orphaning* parameter allows for a record to be demoted
+	// down to a record type that contains less fields.
+	RecordVal* CoerceTo(const RecordType* other, Val* aggr, bool allow_orphaning = false) const;
+	RecordVal* CoerceTo(RecordType* other, bool allow_orphaning = false);
 
 	unsigned int MemoryAllocation() const;
 	void DescribeReST(ODesc* d) const;

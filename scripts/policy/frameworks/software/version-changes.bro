@@ -1,26 +1,25 @@
+##! Provides the possibly to define software names that are interesting to 
+##! watch for changes.  A notice is generated if software versions change on a
+##! host.
+
+@load base/frameworks/notice
+@load base/frameworks/software
 
 module Software;
 
 export {
 	redef enum Notice::Type += { 
-		## For certain softwares, a version changing may matter.  In that case, 
+		## For certain software, a version changing may matter.  In that case, 
 		## this notice will be generated.  Software that matters if the version
 		## changes can be configured with the 
 		## :bro:id:`Software::interesting_version_changes` variable.
 		Software_Version_Change,
 	};
 	
-	## Some software is more interesting when the version changes and this
+	## Some software is more interesting when the version changes and this is
 	## a set of all software that should raise a notice when a different 
 	## version is seen on a host.
-	const interesting_version_changes: set[string] = {
-		"SSH"
-	} &redef;
-	
-	## Some software is more interesting when the version changes and this
-	## a set of all software that should raise a notice when a different 
-	## version is seen on a host.
-	const interesting_type_changes: set[string] = {};
+	const interesting_version_changes: set[string] = { } &redef;
 }
 
 event log_software(rec: Info)

@@ -1,5 +1,3 @@
-# $Id:$
-
 %include bro.pac
 
 analyzer DHCP withcontext {

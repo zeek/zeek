@@ -1,5 +1,3 @@
-// $Id:$
-//
 // An analyzer for application-layer protocol-detection.
 
 #ifndef PIA_H

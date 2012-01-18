@@ -1,5 +1,3 @@
-# $Id:$
-
 # DCE/RPC protocol data unit.
 
 type DCE_RPC_PDU = record {

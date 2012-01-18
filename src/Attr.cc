@@ -1,5 +1,3 @@
-// $Id: Attr.cc 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -62,14 +60,17 @@ void Attr::DescribeReST(ODesc* d) const
 		d->Add("=");
 		d->SP();
 
-		if ( expr->Type()->Tag() == TYPE_FUNC )
-			d->Add(":bro:type:`func`");
 
-		else if ( expr->Type()->Tag() == TYPE_ENUM )
+		if ( expr->Tag() == EXPR_NAME )
 			{
-			d->Add(":bro:enum:`");
+			d->Add(":bro:see:`");
 			expr->Describe(d);
 			d->Add("`");
+			}
+
+		else if ( expr->Type()->Tag() == TYPE_FUNC )
+			{
+			d->Add(":bro:type:`func`");
 			}
 
 		else
@@ -483,7 +484,11 @@ bool Attributes::DoSerialize(SerialInfo* info) const
 	loop_over_list((*attrs), i)
 		{
 		Attr* a = (*attrs)[i];
-		SERIALIZE_OPTIONAL(a->AttrExpr())
+
+		// Broccoli doesn't support expressions.
+		Expr* e = (! info->broccoli_peer) ? a->AttrExpr() : 0;
+		SERIALIZE_OPTIONAL(e);
+
 		if ( ! SERIALIZE(char(a->Tag())) )
 			return false;
 		}

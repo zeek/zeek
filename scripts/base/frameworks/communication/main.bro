@@ -1,26 +1,47 @@
-##! Connect to remote Bro or Broccoli instances to share state and/or transfer
-##! events.
+##! Facilitates connecting to remote Bro or Broccoli instances to share state
+##! and/or transfer events.
+
+@load base/frameworks/packet-filter
 
 module Communication;
 
 export {
-	redef enum Log::ID += { COMMUNICATION };
+
+	## The communication logging stream identifier.
+	redef enum Log::ID += { LOG };
 	
-	const default_port_ssl = 47756/tcp &redef;
-	const default_port_clear = 47757/tcp &redef;
+	## Which interface to listen on (0.0.0.0 for any interface).
+	const listen_interface = 0.0.0.0 &redef;
+	
+	## Which port to listen on.
+	const listen_port = 47757/tcp &redef;
+	
+	## This defines if a listening socket should use SSL.
+	const listen_ssl = F &redef;
 
 	## Default compression level.  Compression level is 0-9, with 0 = no 
 	## compression.
-	global default_compression = 0 &redef;
+	global compression_level = 0 &redef;
 
+	## A record type containing the column fields of the communication log.
 	type Info: record {
+		## The network time at which a communication event occurred.
 		ts:                  time   &log;
+		## The peer name (if any) for which a communication event is concerned.
 		peer:                string &log &optional;
+		## Where the communication event message originated from, that is,
+		## either from the scripting layer or inside the Bro process.
 		src_name:            string &log &optional;
+		## .. todo:: currently unused.
 		connected_peer_desc: string &log &optional;
+		## .. todo:: currently unused.
 		connected_peer_addr: addr   &log &optional;
+		## .. todo:: currently unused.
 		connected_peer_port: port   &log &optional;
+		## The severity of the communication event message.
 		level:               string &log &optional;
+		## A message describing the communication event between Bro or
+		## Broccoli instances.
 		message:             string &log;
 	};
 
@@ -69,17 +90,14 @@ export {
 		auth: bool &default = F;
 
 		## If not set, no capture filter is sent.
-		## If set to "", the default cature filter is sent.
+		## If set to "", the default capture filter is sent.
 		capture_filter: string &optional;
 
 		## Whether to use SSL-based communication.
 		ssl: bool &default = F;
 
-		## Take-over state from this host (activated by loading hand-over.bro)
-		hand_over: bool &default = F;
-
 		## Compression level is 0-9, with 0 = no compression.
-		compression: count &default = default_compression;
+		compression: count &default = compression_level;
 
 		## The remote peer.
 		peer: event_peer &optional;
@@ -91,11 +109,25 @@ export {
 	## The table of Bro or Broccoli nodes that Bro will initiate connections
 	## to or respond to connections from.
 	global nodes: table[string] of Node &redef;
-	
+
+	## A table of peer nodes for which this node issued a
+	## :bro:id:`Communication::connect_peer` call but with which a connection
+	## has not yet been established or with which a connection has been
+	## closed and is currently in the process of retrying to establish.
+	## When a connection is successfully established, the peer is removed
+	## from the table.
 	global pending_peers: table[peer_id] of Node;
+
+	## A table of peer nodes for which this node has an established connection.
+	## Peers are automatically removed if their connection is closed and
+	## automatically added back if a connection is re-established later.
 	global connected_peers: table[peer_id] of Node;
 
-	## Connect to nodes[node], independent of its "connect" flag.
+	## Connect to a node in :bro:id:`Communication::nodes` independent
+	## of its "connect" flag.
+	##
+	## peer: the string used to index a particular node within the
+	##      :bro:id:`Communication::nodes` table.
 	global connect_peer: function(peer: string);
 }
 
@@ -105,27 +137,31 @@ const src_names = {
 	[REMOTE_SRC_SCRIPT] = "script",
 };
 
-event bro_init()
+event bro_init() &priority=5
 	{
-	Log::create_stream(COMMUNICATION, [$columns=Info]);
-
-	if ( |nodes| > 0 )
-		enable_communication();
+	Log::create_stream(Communication::LOG, [$columns=Info]);
 	}
 
 function do_script_log_common(level: count, src: count, msg: string)
 	{
-	Log::write(COMMUNICATION, [$ts = network_time(), 
-	                           $level = (level == REMOTE_LOG_INFO ? "info" : "error"),
-	                           $src_name = src_names[src],
-	                           $peer = get_event_peer()$descr,
-	                           $message = msg]);
+	Log::write(Communication::LOG, [$ts = network_time(), 
+	                                $level = (level == REMOTE_LOG_INFO ? "info" : "error"),
+	                                $src_name = src_names[src],
+	                                $peer = get_event_peer()$descr,
+	                                $message = msg]);
 	}
 
 # This is a core generated event.
 event remote_log(level: count, src: count, msg: string)
 	{
 	do_script_log_common(level, src, msg);
+	}
+
+# This is a core generated event.
+event remote_log_peer(p: event_peer, level: count, src: count, msg: string)
+	{
+	local rmsg = fmt("[#%d/%s:%d] %s", p$id, p$host, p$p, msg);
+	do_script_log_common(level, src, rmsg);
 	}
 
 function do_script_log(p: event_peer, msg: string)
@@ -136,7 +172,7 @@ function do_script_log(p: event_peer, msg: string)
 function connect_peer(peer: string)
 	{
 	local node = nodes[peer];
-	local p = node$ssl ? default_port_ssl : default_port_clear;
+	local p = listen_port;
 
 	if ( node?$p )
 		p = node$p;
@@ -145,9 +181,9 @@ function connect_peer(peer: string)
 	local id = connect(node$host, p, class, node$retry, node$ssl);
     
 	if ( id == PEER_ID_NONE )
-		Log::write(COMMUNICATION, [$ts = network_time(), 
-		                           $peer = get_event_peer()$descr,
-		                           $message = "can't trigger connect"]);
+		Log::write(Communication::LOG, [$ts = network_time(), 
+		                                $peer = get_event_peer()$descr,
+		                                $message = "can't trigger connect"]);
 	pending_peers[id] = node;
 	}
 
@@ -239,7 +275,7 @@ event remote_connection_established(p: event_peer)
 			}
 
 		if ( ! found )
-			set_compression_level(p, default_compression);
+			set_compression_level(p, compression_level);
 		}
 
 	complete_handshake(p);
@@ -273,15 +309,18 @@ event remote_state_inconsistency(operation: string, id: string,
 
 	local msg = fmt("state inconsistency: %s should be %s but is %s before %s",
 	                id, expected_old, real_old, operation);
-	Log::write(COMMUNICATION, [$ts = network_time(),
-	                           $peer = get_event_peer()$descr,
-	                           $message = msg]);
+	Log::write(Communication::LOG, [$ts = network_time(),
+	                                $peer = get_event_peer()$descr,
+	                                $message = msg]);
 	}
 
 
 # Actually initiate the connections that need to be established.
 event bro_init() &priority = -10 # let others modify nodes
 	{
+	if ( |nodes| > 0 )
+		enable_communication();
+	
 	for ( tag in nodes )
 		{
 		if ( ! nodes[tag]$connect )

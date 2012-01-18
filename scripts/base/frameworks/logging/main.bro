@@ -1,16 +1,16 @@
 ##! The Bro logging interface.
 ##!
-##! See XXX for a introduction to Bro's logging framework.
+##! See :doc:`/logging` for a introduction to Bro's logging framework.
 
 module Log;
 
-# Log::ID and Log::Writer are defined in bro.init due to circular dependencies.
+# Log::ID and Log::Writer are defined in types.bif due to circular dependencies.
 
 export {
-	## If true, is local logging is by default enabled for all filters.
+	## If true, local logging is by default enabled for all filters.
 	const enable_local_logging = T &redef;
 
-	## If true, is remote logging is by default enabled for all filters.
+	## If true, remote logging is by default enabled for all filters.
 	const enable_remote_logging = T &redef;
 
 	## Default writer to use if a filter does not specify
@@ -23,34 +23,67 @@ export {
 		columns: any;
 
 		## Event that will be raised once for each log entry.
-		## The event receives a single same parameter, an instance of type ``columns``.
+		## The event receives a single same parameter, an instance of type
+		## ``columns``.
 		ev: any &optional;
 	};
 
-	## Default function for building the path values for log filters if not
-	## speficied otherwise by a filter. The default implementation uses ``id``
+	## Builds the default path values for log filters if not otherwise
+	## specified by a filter. The default implementation uses *id*
 	## to derive a name.
 	##
-	## id: The log stream.
-	## path: A suggested path value, which may be either the filter's ``path``
-	## if defined or a fall-back generated internally.
+	## id: The ID associated with the log stream.
+	##
+	## path: A suggested path value, which may be either the filter's
+	##       ``path`` if defined, else a previous result from the function.
+	##       If no ``path`` is defined for the filter, then the first call
+	##       to the function will contain an empty string.
+	##
+	## rec: An instance of the streams's ``columns`` type with its
+	##      fields set to the values to be logged.
 	##
 	## Returns: The path to be used for the filter.
-	global default_path_func: function(id: ID, path: string) : string &redef;
+	global default_path_func: function(id: ID, path: string, rec: any) : string &redef;
 
-	## Filter customizing logging.
+	# Log rotation support.
+
+	## Information passed into rotation callback functions.
+	type RotationInfo: record {
+		writer: Writer;		##< The :bro:type:`Log::Writer` being used.
+		fname: string;		##< Full name of the rotated file.
+		path: string;		##< Original path value.
+		open: time;		##< Time when opened.
+		close: time;		##< Time when closed.
+		terminating: bool;	##< True if rotation occured due to Bro shutting down.
+	};
+
+	## Default rotation interval. Zero disables rotation.
+	const default_rotation_interval = 0secs &redef;
+
+	## Default naming format for timestamps embedded into filenames.
+	## Uses a ``strftime()`` style.
+	const default_rotation_date_format = "%Y-%m-%d-%H-%M-%S" &redef;
+
+	## Default shell command to run on rotated files. Empty for none.
+	const default_rotation_postprocessor_cmd = "" &redef;
+
+	## Specifies the default postprocessor function per writer type.
+	## Entries in this table are initialized by each writer type.
+	const default_rotation_postprocessors: table[Writer] of function(info: RotationInfo) : bool &redef;
+
+	## A filter type describes how to customize logging streams.
 	type Filter: record {
 		## Descriptive name to reference this filter.
 		name: string;
 
-		## The writer to use.
+		## The logging writer implementation to use.
 		writer: Writer &default=default_writer;
 
-		## Predicate indicating whether a log entry should be recorded.
+		## Indicates whether a log entry should be recorded.
 		## If not given, all entries are recorded.
 		##
 		## rec: An instance of the streams's ``columns`` type with its
-		## fields set to the values to logged.
+		##      fields set to the values to logged.
 		##
 		## Returns: True if the entry is to be recorded.
 		pred: function(rec: any): bool &optional;
@@ -71,7 +104,19 @@ export {
 		## different strings for separate calls, but be careful: it's
 		## easy to flood the disk by returning a new string for each
 		## connection ...
-		path_func: function(id: ID, path: string): string &optional;
+		##
+		## id: The ID associated with the log stream.
+		##
+		## path: A suggested path value, which may be either the filter's
+		##       ``path`` if defined, else a previous result from the function.
+		##       If no ``path`` is defined for the filter, then the first call
+		##       to the function will contain an empty string.
+		##
+		## rec: An instance of the streams's ``columns`` type with its
+		##      fields set to the values to be logged.
+		##
+		## Returns: The path to be used for the filter.
+		path_func: function(id: ID, path: string, rec: any): string &optional;
 
 		## Subset of column names to record. If not given, all
 		## columns are recorded.
@@ -86,70 +131,194 @@ export {
 
 		## If true, entries are passed on to remote peers.
 		log_remote: bool &default=enable_remote_logging;
-	};
 
-	# Log rotation support.
-
-	## Information passed into rotation callback functions.
-	type RotationInfo: record {
-		writer: Writer;		##< Writer.
-		fname: string;		##< Full name of the rotated file.
-		path: string;		##< Original path value.
-		open: time;			##< Time when opened.
-		close: time;		##< Time when closed.
-		terminating: bool;	##< True if rotation occured due to Bro shutting down.
-	};
-
-	## Default rotation interval. Zero disables rotation.
-	const default_rotation_interval = 0secs &redef;
-
-	## Default naming format for timestamps embedded into filenames. Uses a strftime() style.
-	const default_rotation_date_format = "%Y-%m-%d-%H-%M-%S" &redef;
-
-	## Default shell command to run on rotated files. Empty for none.
-	const default_rotation_postprocessor_cmd = "" &redef;
-
-	## Specifies the default postprocessor function per writer type. Entries in this
-	## table are initialized by each writer type.
-	const default_rotation_postprocessors: table[Writer] of function(info: RotationInfo) : bool &redef;
-
-	## Type for controlling file rotation.
-	type RotationControl: record  {
 		## Rotation interval.
 		interv: interval &default=default_rotation_interval;
-		## Callback function to trigger for rotated files. If not set, the default
-		## comes out of default_rotation_postprocessors.
+
+		## Callback function to trigger for rotated files. If not set, the
+		## default comes out of :bro:id:`Log::default_rotation_postprocessors`.
 		postprocessor: function(info: RotationInfo) : bool &optional;
 	};
 
-	## Specifies rotation parameters per ``(id, path)`` tuple.
-	## If a pair is not found in this table, default values defined in
-	## ``RotationControl`` are used.
-	const rotation_control: table[Writer, string] of RotationControl &default=[] &redef;
-
 	## Sentinel value for indicating that a filter was not found when looked up.
-	const no_filter: Filter = [$name="<not found>"]; # Sentinel.
+	const no_filter: Filter = [$name="<not found>"];
 
-	# TODO: Document.
+	## Creates a new logging stream with the default filter.
+	##
+	## id: The ID enum to be associated with the new logging stream.
+	##
+	## stream: A record defining the content that the new stream will log.
+	##
+	## Returns: True if a new logging stream was successfully created and
+	##          a default filter added to it.
+	##
+	## .. bro:see:: Log::add_default_filter Log::remove_default_filter
 	global create_stream: function(id: ID, stream: Stream) : bool;
+
+	## Enables a previously disabled logging stream.  Disabled streams
+	## will not be written to until they are enabled again.  New streams
+	## are enabled by default.
+	##
+	## id: The ID associated with the logging stream to enable.
+	##
+	## Returns: True if the stream is re-enabled or was not previously disabled.
+	##
+	## .. bro:see:: Log::disable_stream
 	global enable_stream: function(id: ID) : bool;
+
+	## Disables a currently enabled logging stream.  Disabled streams
+	## will not be written to until they are enabled again.  New streams
+	## are enabled by default.
+	##
+	## id: The ID associated with the logging stream to disable.
+	##
+	## Returns: True if the stream is now disabled or was already disabled.
+	##
+	## .. bro:see:: Log::enable_stream
 	global disable_stream: function(id: ID) : bool;
+
+	## Adds a custom filter to an existing logging stream.  If a filter
+	## with a matching ``name`` field already exists for the stream, it
+	## is removed when the new filter is successfully added.
+	##
+	## id: The ID associated with the logging stream to filter.
+	##
+	## filter: A record describing the desired logging parameters.
+	##
+	## Returns: True if the filter was sucessfully added, false if
+	##          the filter was not added or the *filter* argument was not
+	##          the correct type.
+	##
+	## .. bro:see:: Log::remove_filter Log::add_default_filter
+	##    Log::remove_default_filter
 	global add_filter: function(id: ID, filter: Filter) : bool;
+
+	## Removes a filter from an existing logging stream.
+	##
+	## id: The ID associated with the logging stream from which to
+	##     remove a filter.
+	##
+	## name: A string to match against the ``name`` field of a
+	##       :bro:type:`Log::Filter` for identification purposes.
+	##
+	## Returns: True if the logging stream's filter was removed or
+	##          if no filter associated with *name* was found.
+	##
+	## .. bro:see:: Log::remove_filter Log::add_default_filter
+	##    Log::remove_default_filter
 	global remove_filter: function(id: ID, name: string) : bool;
-	global get_filter: function(id: ID, name: string) : Filter; # Returns no_filter if not found.
+
+	## Gets a filter associated with an existing logging stream.
+	##
+	## id: The ID associated with a logging stream from which to
+	##     obtain one of its filters.
+	##
+	## name: A string to match against the ``name`` field of a
+	##       :bro:type:`Log::Filter` for identification purposes.
+	##
+	## Returns: A filter attached to the logging stream *id* matching
+	##          *name* or, if no matches are found returns the
+	##          :bro:id:`Log::no_filter` sentinel value.
+	##
+	## .. bro:see:: Log::add_filter Log::remove_filter Log::add_default_filter
+	##              Log::remove_default_filter
+	global get_filter: function(id: ID, name: string) : Filter;
+
+	## Writes a new log line/entry to a logging stream.
+	##
+	## id: The ID associated with a logging stream to be written to.
+	##
+	## columns: A record value describing the values of each field/column
+	##          to write to the log stream.
+	##
+	## Returns: True if the stream was found and no error occurred in writing
+	##          to it or if the stream was disabled and nothing was written.
+	##          False if the stream was was not found, or the *columns*
+	##          argument did not match what the stream was initially defined
+	##          to handle, or one of the stream's filters has an invalid
+	##          ``path_func``.
+	##
+	## .. bro:see: Log::enable_stream Log::disable_stream
 	global write: function(id: ID, columns: any) : bool;
+
+	## Sets the buffering status for all the writers of a given logging stream.
+	## A given writer implementation may or may not support buffering and if it
+	## doesn't then toggling buffering with this function has no effect.
+	##
+	## id: The ID associated with a logging stream for which to
+	##     enable/disable buffering.
+	##
+	## buffered: Whether to enable or disable log buffering.
+	##
+	## Returns: True if buffering status was set, false if the logging stream
+	##          does not exist.
+	##
+	## .. bro:see:: Log::flush
 	global set_buf: function(id: ID, buffered: bool): bool;
+
+	## Flushes any currently buffered output for all the writers of a given
+	## logging stream.
+	##
+	## id: The ID associated with a logging stream for which to flush buffered
+	##     data.
+	##
+	## Returns: True if all writers of a log stream were signalled to flush
+	##          buffered data or if the logging stream is disabled,
+	##          false if the logging stream does not exist.
+	##
+	## .. bro:see:: Log::set_buf Log::enable_stream Log::disable_stream
 	global flush: function(id: ID): bool;
+
+	## Adds a default :bro:type:`Log::Filter` record with ``name`` field
+	## set as "default" to a given logging stream.
+	##
+	## id: The ID associated with a logging stream for which to add a default
+	##     filter.
+	##
+	## Returns: The status of a call to :bro:id:`Log::add_filter` using a
+	##          default :bro:type:`Log::Filter` argument with ``name`` field
+	##          set to "default".
+	##
+	## .. bro:see:: Log::add_filter Log::remove_filter
+	##    Log::remove_default_filter
 	global add_default_filter: function(id: ID) : bool;
+
+	## Removes the :bro:type:`Log::Filter` with ``name`` field equal to
+	## "default".
+	##
+	## id: The ID associated with a logging stream from which to remove the
+	##     default filter.
+	##
+	## Returns: The status of a call to :bro:id:`Log::remove_filter` using
+	##          "default" as the argument.
+	##
+	## .. bro:see:: Log::add_filter Log::remove_filter Log::add_default_filter
 	global remove_default_filter: function(id: ID) : bool;
 
+	## Runs a command given by :bro:id:`Log::default_rotation_postprocessor_cmd`
+	## on a rotated file.  Meant to be called from postprocessor functions
+	## that are added to :bro:id:`Log::default_rotation_postprocessors`.
+	##
+	## info: A record holding meta-information about the log being rotated.
+	##
+	## npath: The new path of the file (after already being rotated/processed
+	##        by writer-specific postprocessor as defined in
+	##        :bro:id:`Log::default_rotation_postprocessors`.
+	##
+	## Returns: True when :bro:id:`Log::default_rotation_postprocessor_cmd`
+	##          is empty or the system command given by it has been invoked
+	##          to postprocess a rotated log file.
+	##
+	## .. bro:see:: Log::default_rotation_date_format
+	##    Log::default_rotation_postprocessor_cmd
+	##    Log::default_rotation_postprocessors
 	global run_rotation_postprocessor_cmd: function(info: RotationInfo, npath: string) : bool;
 }
 
 # We keep a script-level copy of all filters so that we can manipulate them.
 global filters: table[ID, string] of Filter;
 
-@load logging.bif.bro # Needs Filter and Stream defined.
+@load base/logging.bif # Needs Filter and Stream defined.
 
 module Log;
 
@@ -160,10 +329,42 @@ function __default_rotation_postprocessor(info: RotationInfo) : bool
 		return default_rotation_postprocessors[info$writer](info);
 	}
 
-function default_path_func(id: ID, path: string) : string
+function default_path_func(id: ID, path: string, rec: any) : string
 	{
-	# TODO for Seth: Do what you want. :)
-	return path;
+	local id_str = fmt("%s", id);
+	
+	local parts = split1(id_str, /::/);
+	if ( |parts| == 2 )
+		{
+		# The suggested path value is a previous result of this function
+		# or a filter path explicitly set by the user, so continue using it.
+		if ( path != "" )
+			return path;
+		
+		# Example: Notice::LOG -> "notice"
+		if ( parts[2] == "LOG" )
+			{
+			local module_parts = split_n(parts[1], /[^A-Z][A-Z][a-z]*/, T, 4);
+			local output = "";
+			if ( 1 in module_parts )
+				output = module_parts[1];
+			if ( 2 in module_parts && module_parts[2] != "" )
+				output = cat(output, sub_bytes(module_parts[2],1,1), "_", sub_bytes(module_parts[2], 2, |module_parts[2]|));
+			if ( 3 in module_parts && module_parts[3] != "" )
+				output = cat(output, "_", module_parts[3]);
+			if ( 4 in module_parts && module_parts[4] != "" )
+				output = cat(output, sub_bytes(module_parts[4],1,1), "_", sub_bytes(module_parts[4], 2, |module_parts[4]|));
+			return to_lower(output);
+			}
+		
+		# Example: Notice::POLICY_LOG -> "notice_policy"
+		if ( /_LOG$/ in parts[2] )
+			parts[2] = sub(parts[2], /_LOG$/, "");
+		
+		return cat(to_lower(parts[1]),"_",to_lower(parts[2]));
+		}
+	else
+		return to_lower(id_str);
 	}
 
 # Run post-processor on file. If there isn't any postprocessor defined,
@@ -196,8 +397,7 @@ function create_stream(id: ID, stream: Stream) : bool
 
 function disable_stream(id: ID) : bool
 	{
-	if ( ! __disable_stream(id) )
-		return F;
+	return __disable_stream(id);
 	}
 
 function add_filter(id: ID, filter: Filter) : bool
@@ -207,7 +407,7 @@ function add_filter(id: ID, filter: Filter) : bool
 	# definition.
 	if ( ! filter?$path_func )
 		filter$path_func = default_path_func;
-
+	
 	filters[id, filter$name] = filter;
 	return __add_filter(id, filter);
 	}

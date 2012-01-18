@@ -1,5 +1,3 @@
-// $Id:$
-
 #include "HTTP-binpac.h"
 #include "TCP_Reassembler.h"
 

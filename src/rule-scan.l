@@ -1,5 +1,3 @@
-/* $Id: rule-scan.l 6914 2009-09-22 00:35:24Z vern $ */
-
 %{
 typedef unsigned int uint32;
 

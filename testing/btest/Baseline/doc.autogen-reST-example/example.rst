@@ -1,35 +1,32 @@
 .. Automatically generated.  Do not edit.
 
+:tocdepth: 3
+
 example.bro
 ===========
+.. bro:namespace:: Example
 
-:download:`Original Source File <example.bro>`
-
-Overview
---------
-This is an example script that demonstrates how to document.  Comments
-of the form ``##!`` are for the script summary.  The contents of
+This is an example script that demonstrates documentation features.
+Comments of the form ``##!`` are for the script summary.  The contents of
 these comments are transferred directly into the auto-generated
 `reStructuredText <http://docutils.sourceforge.net/rst.html>`_
 (reST) document's summary section.
 
 .. tip:: You can embed directives and roles within ``##``-stylized comments.
 
-A script's logging information has to be documented manually as minimally
-shown below.  Note that references may not always be possible (e.g.
-anonymous filter functions) and a script may not need to document
-each of "columns", "event", "filter" depending on exactly what it's doing.
+There's also a custom role to reference any identifier node in
+the Bro Sphinx domain that's good for "see alsos", e.g.
 
-**Logging Stream ID:** :bro:enum:`Example::EXAMPLE`
-    :Columns:    :bro:type:`Example::Info`
-    :Event:      :bro:id:`Example::log_example`
-    :Filter:     ``example-filter``
-        uses :bro:id:`Example::filter_func` to determine whether to
-        exclude the ``ts`` field
+See also: :bro:see:`Example::a_var`, :bro:see:`Example::ONE`,
+:bro:see:`SSH::Info`
 
-:Author: Jon Siwek <jsiwek@ncsa.illinois.edu>
+And a custom directive does the equivalent references:
 
-:Imports: :doc:`frameworks/notice </policy/frameworks/notice/index>`
+.. bro:see:: Example::a_var Example::ONE SSH::Info
+
+:Namespace: ``Example``
+:Imports: :doc:`policy/frameworks/software/vulnerable </scripts/policy/frameworks/software/vulnerable>`
+:Source File: :download:`example.bro`
 
 Summary
 ~~~~~~~
@@ -38,7 +35,7 @@ Options
 ============================================================================ ======================================
 :bro:id:`Example::an_option`: :bro:type:`set` :bro:attr:`&redef`             add documentation for "an_option" here
 
-:bro:id:`Example::option_with_init`: :bro:type:`interval` :bro:attr:`&redef`
+:bro:id:`Example::option_with_init`: :bro:type:`interval` :bro:attr:`&redef` More docs can be added here.
 ============================================================================ ======================================
 
 State Variables
@@ -72,8 +69,6 @@ Events
 
 :bro:id:`Example::log_example`: :bro:type:`event` This is a declaration of an example event that can be used in
                                                   logging streams and is raised once for each log entry.
-
-:bro:id:`bro_init`: :bro:type:`event`
 ================================================= =============================================================
 
 Functions
@@ -92,12 +87,8 @@ Redefinitions
 :bro:type:`Example::SimpleRecord`: :bro:type:`record` document the record extension redef here
 ===================================================== ========================================
 
-Namespaces
-~~~~~~~~~~
-.. bro:namespace:: Example
-
 Notices
-~~~~~~~
+#######
 :bro:type:`Notice::Type`
 
    :Type: :bro:type:`enum`
@@ -116,10 +107,32 @@ Notices
 
       .. bro:enum:: Example::Notice_Four Notice::Type
 
-Public Interface
-----------------
+Configuration Changes
+#####################
+Port Analysis
+^^^^^^^^^^^^^
+Loading this script makes the following changes to :bro:see:`dpd_config`.
+
+SSL::
+
+    [ports={
+        443/tcp,
+        562/tcp
+    }]
+
+Packet Filter
+^^^^^^^^^^^^^
+Loading this script makes the following changes to :bro:see:`capture_filters`.
+
+Filters added::
+
+    [ssl] = tcp port 443,
+    [nntps] = tcp port 562
+
+Detailed Interface
+~~~~~~~~~~~~~~~~~~
 Options
-~~~~~~~
+#######
 .. bro:id:: Example::an_option
 
    :Type: :bro:type:`set` [:bro:type:`addr`, :bro:type:`addr`, :bro:type:`string`]
@@ -134,8 +147,10 @@ Options
    :Attributes: :bro:attr:`&redef`
    :Default: ``10.0 msecs``
 
+   More docs can be added here.
+
 State Variables
-~~~~~~~~~~~~~~~
+###############
 .. bro:id:: Example::a_var
 
    :Type: :bro:type:`bool`
@@ -153,7 +168,7 @@ State Variables
    :Default: ``"this works"``
 
 Types
-~~~~~
+#####
 .. bro:type:: Example::SimpleEnum
 
    :Type: :bro:type:`enum`
@@ -216,13 +231,14 @@ Types
    An example record to be used with a logging stream.
 
 Events
-~~~~~~
+######
 .. bro:id:: Example::an_event
 
    :Type: :bro:type:`event` (name: :bro:type:`string`)
 
    Summarize "an_event" here.
    Give more details about "an_event" here.
+   Example::an_event should not be confused as a parameter.
    
    :param name: describe the argument here
 
@@ -233,12 +249,8 @@ Events
    This is a declaration of an example event that can be used in
    logging streams and is raised once for each log entry.
 
-.. bro:id:: bro_init
-
-   :Type: :bro:type:`event` ()
-
 Functions
-~~~~~~~~~
+#########
 .. bro:id:: Example::a_function
 
    :Type: :bro:type:`function` (tag: :bro:type:`string`, msg: :bro:type:`string`) : :bro:type:`string`
@@ -258,12 +270,12 @@ Functions
    :returns: describe the return type here
 
 Redefinitions
-~~~~~~~~~~~~~
+#############
 :bro:type:`Log::ID`
 
    :Type: :bro:type:`enum`
 
-      .. bro:enum:: Example::EXAMPLE Log::ID
+      .. bro:enum:: Example::LOG Log::ID
 
 :bro:type:`Example::SimpleEnum`
 
@@ -288,61 +300,4 @@ Redefinitions
          (or here)
 
    document the record extension redef here
-
-Port Analysis
--------------
-:ref:`More Information <common_port_analysis_doc>`
-
-SSL::
-
-    [ports={
-        443/tcp,
-        562/tcp
-    }]
-
-Packet Filter
--------------
-:ref:`More Information <common_packet_filter_doc>`
-
-Filters added::
-
-    [ssl] = tcp port 443,
-    [nntps] = tcp port 562
-
-Private Interface
------------------
-State Variables
-~~~~~~~~~~~~~~~
-.. bro:id:: Example::example_ports
-
-   :Type: :bro:type:`set` [:bro:type:`port`]
-   :Attributes: :bro:attr:`&redef`
-   :Default:
-
-   ::
-
-      {
-         443/tcp,
-         562/tcp
-      }
-
-Types
-~~~~~
-.. bro:type:: Example::PrivateRecord
-
-   :Type: :bro:type:`record`
-
-      field1: :bro:type:`bool`
-
-      field2: :bro:type:`count`
-
-Functions
-~~~~~~~~~
-.. bro:id:: Example::filter_func
-
-   :Type: :bro:type:`function` (rec: :bro:type:`Example::Info`) : :bro:type:`bool`
-
-.. bro:id:: Example::function_without_proto
-
-   :Type: :bro:type:`function` (tag: :bro:type:`string`) : :bro:type:`string`
 

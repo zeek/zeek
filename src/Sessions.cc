@@ -1,5 +1,3 @@
-// $Id: Sessions.cc 7075 2010-09-13 02:39:38Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 
@@ -333,7 +331,14 @@ void NetSessions::NextPacketSecondary(double /* t */, const struct pcap_pkthdr* 
 			args->append(cmd_val);
 			args->append(BuildHeader(ip));
 			// ### Need to queue event here.
-			sp->Event()->Event()->Call(args);
+			try
+				{
+				sp->Event()->Event()->Call(args);
+				}
+
+			catch ( InterpreterException& e )
+				{ /* Already reported. */ }
+
 			delete args;
 			}
 		}
@@ -1054,7 +1059,7 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 	int flags = 0;
 
 	// Hmm... This is not great.
-	TransportProto tproto;
+	TransportProto tproto = TRANSPORT_UNKNOWN;
 	switch ( proto ) {
 		case IPPROTO_ICMP:
 			tproto = TRANSPORT_ICMP;

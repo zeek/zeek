@@ -1,13 +1,9 @@
-// $Id: ZIP.h,v 1.1.4.2 2006/05/31 21:49:29 sommer Exp $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef zip_h
 #define zip_h
 
 #include "config.h"
-
-#ifdef HAVE_LIBZ
 
 #include "zlib.h"
 #include "TCP.h"
@@ -30,5 +26,4 @@ protected:
 	Method method;
 };
 
-#endif
 #endif

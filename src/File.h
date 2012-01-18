@@ -1,5 +1,3 @@
-// $Id: File.h 6888 2009-08-20 18:23:11Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef file_h

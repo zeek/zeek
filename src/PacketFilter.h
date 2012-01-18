@@ -1,5 +1,3 @@
-// $Id: PacketFilter.h 80 2004-07-14 20:15:50Z jason $
-//
 // Provides some very limited but fast packet filter mechanisms
 
 #ifndef PACKETFILTER_H

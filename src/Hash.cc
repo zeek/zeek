@@ -1,5 +1,3 @@
-// $Id: Hash.cc 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 // The hash function works as follows:
@@ -168,13 +166,12 @@ hash_t HashKey::HashBytes(const void* bytes, int size)
 	{
 	if ( size <= UHASH_KEY_SIZE )
 		{
-		const uint8* b = reinterpret_cast<const uint8*>(bytes);
 		// H3 doesn't check if size is zero
 		return ( size == 0 ) ? 0 : (*h3)(bytes, size);
 		}
 
 	// Fall back to HMAC/MD5 for longer data (which is usually rare).
 	hash_t digest[16];
-	hmac_md5(size, (unsigned char*) bytes, (unsigned char*) digest);
+	hmac_md5(size, (const unsigned char*) bytes, (unsigned char*) digest);
 	return digest[0];
 	}

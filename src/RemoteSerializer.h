@@ -1,5 +1,3 @@
-// $Id: RemoteSerializer.h 6951 2009-12-04 22:23:28Z vern $
-//
 // Communication between two Bro's.
 
 #ifndef REMOTE_SERIALIZER
@@ -35,6 +33,9 @@ public:
 
 	// Connect to host (returns PEER_NONE on error).
 	PeerID Connect(addr_type ip, uint16 port, const char* our_class, double retry, bool use_ssl);
+
+	// Close connection to host.
+	bool CloseConnection(PeerID peer);
 
 	// Request all events matching pattern from remote side.
 	bool RequestEvents(PeerID peer, RE_Matcher* pattern);
@@ -197,6 +198,7 @@ protected:
 		static const int NO_CACHING = 2;
 		static const int PID_64BIT = 4;
 		static const int NEW_CACHE_STRATEGY = 8;
+		static const int BROCCOLI_PEER = 16;
 
 		// Constants to remember to who did something.
 		static const int NONE = 0;
@@ -323,6 +325,7 @@ private:
 	PeerID current_id;
 	char current_msgtype;
 	ChunkedIO::Chunk* current_args;
+	double last_flush;
 
 	id_list sync_ids;
 

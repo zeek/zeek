@@ -1,5 +1,3 @@
-# $Id:$
-
 enum ExpectBody {
 	BODY_EXPECTED,
 	BODY_NOT_EXPECTED,

@@ -1,4 +1,5 @@
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}
+include_directories(BEFORE
+                    ${CMAKE_CURRENT_SOURCE_DIR}
                     ${CMAKE_CURRENT_BINARY_DIR}
 )
 
@@ -107,20 +108,28 @@ macro(BIF_TARGET bifInput)
     add_custom_command(OUTPUT ${bifOutputs}
                        COMMAND bifcl
                        ARGS ${CMAKE_CURRENT_SOURCE_DIR}/${bifInput} || (rm -f ${bifOutputs} && exit 1)
+                       # In order be able to run bro from the build directory,
+                       # the generated bro script needs to be inside a
+                       # a directory tree named the same way it will be
+                       # referenced from an @load.
+                       COMMAND "${CMAKE_COMMAND}"
+                       ARGS -E copy ${bifInput}.bro base/${bifInput}.bro
+                       COMMAND "${CMAKE_COMMAND}"
+                       ARGS -E remove -f ${bifInput}.bro
                        DEPENDS ${bifInput}
                        DEPENDS bifcl
                        COMMENT "[BIFCL] Processing ${bifInput}"
     )
     list(APPEND ALL_BIF_OUTPUTS ${bifOutputs})
     list(APPEND INSTALL_BIF_OUTPUTS
-         ${CMAKE_CURRENT_BINARY_DIR}/${bifInput}.bro)
+         ${CMAKE_CURRENT_BINARY_DIR}/base/${bifInput}.bro)
 endmacro(BIF_TARGET)
 
 # returns a list of output files that bifcl will produce
 # for given input file in ${outputFileVar}
 macro(GET_BIF_OUTPUT_FILES inputFile outputFileVar)
     set(${outputFileVar}
-        ${inputFile}.bro
+        base/${inputFile}.bro
         ${inputFile}.func_def
         ${inputFile}.func_h
         ${inputFile}.func_init
@@ -240,10 +249,6 @@ set(dns_SRCS nb_dns.c)
 set_source_files_properties(nb_dns.c PROPERTIES COMPILE_FLAGS
                             -fno-strict-aliasing)
 
-if (USE_NMALLOC)
-    set(malloc_SRCS malloc.c)
-endif ()
-
 set(bro_SRCS
     ${CMAKE_CURRENT_BINARY_DIR}/version.c
     ${BIF_SRCS}
@@ -331,6 +336,7 @@ set(bro_SRCS
     LogMgr.cc
     LogWriter.cc
     LogWriterAscii.cc
+    LogWriterNone.cc
     Login.cc
     MIME.cc
     NCP.cc
@@ -401,29 +407,23 @@ set(bro_SRCS
     setsignal.c
     PacketDumper.cc
     strsep.c
+    modp_numtoa.c
     ${dns_SRCS}
-    ${malloc_SRCS}
     ${openssl_SRCS}
 )
 
 collect_headers(bro_HEADERS ${bro_SRCS})
 
-add_definitions(-DPOLICYDEST="${POLICYDIR}")
+add_definitions(-DBRO_SCRIPT_INSTALL_PATH="${BRO_SCRIPT_INSTALL_PATH}")
+add_definitions(-DBRO_SCRIPT_SOURCE_PATH="${BRO_SCRIPT_SOURCE_PATH}")
+add_definitions(-DBRO_BUILD_PATH="${CMAKE_CURRENT_BINARY_DIR}")
 
 add_executable(bro ${bro_SRCS} ${bro_HEADERS})
 
-set(brolibs
-    ${BinPAC_LIBRARY}
-    ${PCAP_LIBRARY}
-    ${OpenSSL_LIBRARIES}
-    ${BIND_LIBRARY}
-    ${OPTLIBS}
-)
-
-target_link_libraries(bro ${brolibs})
+target_link_libraries(bro ${brodeps})
 
 install(TARGETS bro DESTINATION bin)
-install(FILES ${INSTALL_BIF_OUTPUTS} DESTINATION ${POLICYDIR})
+install(FILES ${INSTALL_BIF_OUTPUTS} DESTINATION ${BRO_SCRIPT_INSTALL_PATH}/base)
 
 set(BRO_EXE bro
     CACHE STRING "Bro executable binary" FORCE)

@@ -38,6 +38,8 @@ LogWriterAscii::LogWriterAscii()
 	memcpy(header_prefix, BifConst::LogAscii::header_prefix->Bytes(),
 	       header_prefix_len);
 
+	desc.EnableEscaping();
+	desc.AddEscapeSequence(separator, separator_len);
 	}
 
 LogWriterAscii::~LogWriterAscii()
@@ -52,13 +54,21 @@ LogWriterAscii::~LogWriterAscii()
 	delete [] header_prefix;
 	}
 
+bool LogWriterAscii::WriteHeaderField(const string& key, const string& val)
+	{
+	string str = string(header_prefix, header_prefix_len) +
+		key + string(separator, separator_len) + val + "\n";
+
+	return (fwrite(str.c_str(), str.length(), 1, file) == 1);
+	}
+
 bool LogWriterAscii::DoInit(string path, int num_fields,
 			    const LogField* const * fields)
 	{
 	if ( output_to_stdout )
 		path = "/dev/stdout";
 
-	fname = IsSpecial(path) ? path : path + ".log";
+	fname = IsSpecial(path) ? path : path + "." + LogExt();
 
 	if ( ! (file = fopen(fname.c_str(), "w")) )
 		{
@@ -70,22 +80,47 @@ bool LogWriterAscii::DoInit(string path, int num_fields,
 
 	if ( include_header )
 		{
-		if ( fwrite(header_prefix, header_prefix_len, 1, file) != 1 )
+		string str = string(header_prefix, header_prefix_len)
+			+ "separator " // Always use space as separator here.
+			+ get_escaped_string(string(separator, separator_len), false)
+			+ "\n";
+
+		if( fwrite(str.c_str(), str.length(), 1, file) != 1 )
 			goto write_error;
 
-		for ( int i = 0; i < num_fields; i++ )
+		if ( ! (WriteHeaderField("set_separator", get_escaped_string(
+		            string(set_separator, set_separator_len), false)) &&
+		        WriteHeaderField("empty_field", get_escaped_string(
+		            string(empty_field, empty_field_len), false)) &&
+		        WriteHeaderField("unset_field", get_escaped_string(
+		            string(unset_field, unset_field_len), false)) &&
+		        WriteHeaderField("path", get_escaped_string(path, false))) )
+			goto write_error;
+
+		string names;
+		string types;
+
+		for ( int i = 0; i < num_fields; ++i )
 			{
-			if ( i > 0 &&
-			     fwrite(separator, separator_len, 1, file) != 1 )
-				goto write_error;
+			if ( i > 0 )
+				{
+				names += string(separator, separator_len);
+				types += string(separator, separator_len);
+				}
 
 			const LogField* field = fields[i];
-
-			if ( fputs(field->name.c_str(), file) == EOF )
-				goto write_error;
+			names += field->name;
+			types += type_name(field->type);
+			if ( (field->type == TYPE_TABLE) || (field->type == TYPE_VECTOR) )
+				{
+					types += "[";
+					types += type_name(field->subtype);
+					types += "]";
+				}
 			}
 
-		if ( fputc('\n', file) == EOF )
+		if ( ! (WriteHeaderField("fields", names)
+			&& WriteHeaderField("types", types)) )
 			goto write_error;
 		}
 
@@ -136,31 +171,54 @@ bool LogWriterAscii::DoWriteOne(ODesc* desc, LogVal* val, const LogField* field)
 		desc->Add(val->val.subnet_val.width);
 		break;
 
-	case TYPE_NET:
 	case TYPE_ADDR:
 		desc->Add(dotted_addr(val->val.addr_val));
 		break;
 
 	case TYPE_TIME:
-		char buf[32];
-		snprintf(buf, sizeof(buf), "%.6f", val->val.double_val);
+	case TYPE_INTERVAL:
+		char buf[256];
+		modp_dtoa(val->val.double_val, buf, 6);
 		desc->Add(buf);
 		break;
 
 	case TYPE_DOUBLE:
-	case TYPE_INTERVAL:
 		desc->Add(val->val.double_val);
 	break;
 
 	case TYPE_ENUM:
 	case TYPE_STRING:
 	case TYPE_FILE:
+	case TYPE_FUNC:
 		{
 		int size = val->val.string_val->size();
-		if ( size )
-			desc->AddN(val->val.string_val->data(), val->val.string_val->size());
-		else
+		const char* data = val->val.string_val->data();
+
+		if ( ! size )
+			{
 			desc->AddN(empty_field, empty_field_len);
+			break;
+			}
+
+		if ( size == unset_field_len && memcmp(data, unset_field, size) == 0 )
+			{
+			// The value we'd write out would match exactly the
+			// place-holder we use for unset optional fields. We
+			// escape the first character so that the output
+			// won't be ambigious.
+			static const char hex_chars[] = "0123456789abcdef";
+			char hex[6] = "\\x00";
+			hex[2] = hex_chars[((*data) & 0xf0) >> 4];
+			hex[3] = hex_chars[(*data) & 0x0f];
+			desc->AddRaw(hex, 4);
+
+			++data;
+			--size;
+			}
+
+		if ( size )
+			desc->AddN(data, size);
+
 		break;
 		}
 
@@ -172,14 +230,19 @@ bool LogWriterAscii::DoWriteOne(ODesc* desc, LogVal* val, const LogField* field)
 			break;
 			}
 
+		desc->AddEscapeSequence(set_separator, set_separator_len);
 		for ( int j = 0; j < val->val.set_val.size; j++ )
 			{
 			if ( j > 0 )
-				desc->AddN(set_separator, set_separator_len);
+				desc->AddRaw(set_separator, set_separator_len);
 
 			if ( ! DoWriteOne(desc, val->val.set_val.vals[j], field) )
+				{
+				desc->RemoveEscapeSequence(set_separator, set_separator_len);
 				return false;
+				}
 			}
+		desc->RemoveEscapeSequence(set_separator, set_separator_len);
 
 		break;
 		}
@@ -192,14 +255,19 @@ bool LogWriterAscii::DoWriteOne(ODesc* desc, LogVal* val, const LogField* field)
 			break;
 			}
 
+		desc->AddEscapeSequence(set_separator, set_separator_len);
 		for ( int j = 0; j < val->val.vector_val.size; j++ )
 			{
 			if ( j > 0 )
-				desc->AddN(set_separator, set_separator_len);
+				desc->AddRaw(set_separator, set_separator_len);
 
 			if ( ! DoWriteOne(desc, val->val.vector_val.vals[j], field) )
+				{
+				desc->RemoveEscapeSequence(set_separator, set_separator_len);
 				return false;
+				}
 			}
+		desc->RemoveEscapeSequence(set_separator, set_separator_len);
 
 		break;
 		}
@@ -216,8 +284,10 @@ bool LogWriterAscii::DoWriteOne(ODesc* desc, LogVal* val, const LogField* field)
 bool LogWriterAscii::DoWrite(int num_fields, const LogField* const * fields,
 			     LogVal** vals)
 	{
-	ODesc desc(DESC_READABLE);
-	desc.SetEscape(separator, separator_len);
+	if ( ! file )
+		DoInit(Path(), NumFields(), Fields());
+
+	desc.Clear();
 
 	for ( int i = 0; i < num_fields; i++ )
 		{
@@ -245,19 +315,23 @@ bool LogWriterAscii::DoWrite(int num_fields, const LogField* const * fields,
 bool LogWriterAscii::DoRotate(string rotated_path, double open,
 			      double close, bool terminating)
 	{
-	if ( IsSpecial(Path()) )
-		// Don't rotate special files.
+	// Don't rotate special files or if there's not one currently open.
+	if ( ! file || IsSpecial(Path()) )
 		return true;
 
 	fclose(file);
+	file = 0;
 
-	string nname = rotated_path + ".log";
+	string nname = rotated_path + "." + LogExt();
 	rename(fname.c_str(), nname.c_str());
 
 	if ( ! FinishedRotation(nname, fname, open, close, terminating) )
+		{
 		Error(Fmt("error rotating %s to %s", fname.c_str(), nname.c_str()));
+		return false;
+		}
 
-	return DoInit(Path(), NumFields(), Fields());
+	return true;
 	}
 
 bool LogWriterAscii::DoSetBuf(bool enabled)
@@ -266,4 +340,9 @@ bool LogWriterAscii::DoSetBuf(bool enabled)
 	return true;
 	}
 
-
+string LogWriterAscii::LogExt()
+	{
+	const char* ext = getenv("BRO_LOG_SUFFIX");
+	if ( ! ext ) ext = "log";
+	return ext;
+	}

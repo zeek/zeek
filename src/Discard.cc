@@ -1,5 +1,3 @@
-// $Id: Discard.cc 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include <algorithm>
@@ -44,7 +42,17 @@ int Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 		{
 		val_list* args = new val_list;
 		args->append(BuildHeader(ip4));
-		discard_packet = check_ip->Call(args)->AsBool();
+
+		try
+			{
+			discard_packet = check_ip->Call(args)->AsBool();
+			}
+
+		catch ( InterpreterException& e )
+			{
+			discard_packet = false;
+			}
+
 		delete args;
 
 		if ( discard_packet )
@@ -92,7 +100,17 @@ int Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 			args->append(BuildHeader(ip4));
 			args->append(BuildHeader(tp, len));
 			args->append(BuildData(data, th_len, len, caplen));
-			discard_packet = check_tcp->Call(args)->AsBool();
+
+			try
+				{
+				discard_packet = check_tcp->Call(args)->AsBool();
+				}
+
+			catch ( InterpreterException& e )
+				{
+				discard_packet = false;
+				}
+
 			delete args;
 			}
 		}
@@ -108,7 +126,17 @@ int Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 			args->append(BuildHeader(ip4));
 			args->append(BuildHeader(up));
 			args->append(BuildData(data, uh_len, len, caplen));
-			discard_packet = check_udp->Call(args)->AsBool();
+
+			try
+				{
+				discard_packet = check_udp->Call(args)->AsBool();
+				}
+
+			catch ( InterpreterException& e )
+				{
+				discard_packet = false;
+				}
+
 			delete args;
 			}
 		}
@@ -122,7 +150,17 @@ int Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 			val_list* args = new val_list;
 			args->append(BuildHeader(ip4));
 			args->append(BuildHeader(ih));
-			discard_packet = check_icmp->Call(args)->AsBool();
+
+			try
+				{
+				discard_packet = check_icmp->Call(args)->AsBool();
+				}
+
+			catch ( InterpreterException& e )
+				{
+				discard_packet = false;
+				}
+
 			delete args;
 			}
 		}

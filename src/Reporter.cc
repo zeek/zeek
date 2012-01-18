@@ -39,7 +39,7 @@ void Reporter::Info(const char* fmt, ...)
 	{
 	va_list ap;
 	va_start(ap, fmt);
-	DoLog("", reporter_info, stderr, 0, 0, true, true, fmt, ap);
+	DoLog("", reporter_info, stderr, 0, 0, true, true, 0, fmt, ap);
 	va_end(ap);
 	}
 
@@ -47,7 +47,7 @@ void Reporter::Warning(const char* fmt, ...)
 	{
 	va_list ap;
 	va_start(ap, fmt);
-	DoLog("warning", reporter_warning, stderr, 0, 0, true, true, fmt, ap);
+	DoLog("warning", reporter_warning, stderr, 0, 0, true, true, 0, fmt, ap);
 	va_end(ap);
 	}
 
@@ -56,7 +56,7 @@ void Reporter::Error(const char* fmt, ...)
 	++errors;
 	va_list ap;
 	va_start(ap, fmt);
-	DoLog("error", reporter_error, stderr, 0, 0, true, true, fmt, ap);
+	DoLog("error", reporter_error, stderr, 0, 0, true, true, 0, fmt, ap);
 	va_end(ap);
 	}
 
@@ -66,7 +66,7 @@ void Reporter::FatalError(const char* fmt, ...)
 	va_start(ap, fmt);
 
 	// Always log to stderr.
-	DoLog("fatal error", 0, stderr, 0, 0, true, false, fmt, ap);
+	DoLog("fatal error", 0, stderr, 0, 0, true, false, 0, fmt, ap);
 
 	va_end(ap);
 
@@ -80,12 +80,28 @@ void Reporter::FatalErrorWithCore(const char* fmt, ...)
 	va_start(ap, fmt);
 
 	// Always log to stderr.
-	DoLog("fatal error", 0, stderr, 0, 0, true, false, fmt, ap);
+	DoLog("fatal error", 0, stderr, 0, 0, true, false, 0, fmt, ap);
 
 	va_end(ap);
 
 	set_processing_status("TERMINATED", "fatal_error");
 	abort();
+	}
+
+void Reporter::ExprRuntimeError(const Expr* expr, const char* fmt, ...)
+	{
+	++errors;
+
+	ODesc d;
+	expr->Describe(&d);
+
+	PushLocation(expr->GetLocationInfo());
+	va_list ap;
+	va_start(ap, fmt);
+	DoLog("expression error", reporter_error, stderr, 0, 0, true, true, d.Description(), fmt, ap);
+	va_end(ap);
+	PopLocation();
+	throw InterpreterException();
 	}
 
 void Reporter::InternalError(const char* fmt, ...)
@@ -94,7 +110,7 @@ void Reporter::InternalError(const char* fmt, ...)
 	va_start(ap, fmt);
 
 	// Always log to stderr.
-	DoLog("internal error", 0, stderr, 0, 0, true, false, fmt, ap);
+	DoLog("internal error", 0, stderr, 0, 0, true, false, 0, fmt, ap);
 
 	va_end(ap);
 
@@ -106,7 +122,7 @@ void Reporter::InternalWarning(const char* fmt, ...)
 	{
 	va_list ap;
 	va_start(ap, fmt);
-	DoLog("internal warning", reporter_warning, stderr, 0, 0, true, true, fmt, ap);
+	DoLog("internal warning", reporter_warning, stderr, 0, 0, true, true, 0, fmt, ap);
 	va_end(ap);
 	}
 
@@ -121,7 +137,7 @@ void Reporter::Syslog(const char* fmt, ...)
 	va_end(ap);
 	}
 
-void Reporter::WeirdHelper(EventHandlerPtr event, Val* conn_val, const char* name, const char* addl, ...)
+void Reporter::WeirdHelper(EventHandlerPtr event, Val* conn_val, const char* addl, const char* fmt_name, ...)
 	{
 	val_list* vl = new val_list(1);
 
@@ -132,22 +148,22 @@ void Reporter::WeirdHelper(EventHandlerPtr event, Val* conn_val, const char* nam
 		vl->append(new StringVal(addl));
 
 	va_list ap;
-	va_start(ap, addl);
-	DoLog("weird", event, stderr, 0, vl, false, false, name, ap);
+	va_start(ap, fmt_name);
+	DoLog("weird", event, stderr, 0, vl, false, false, 0, fmt_name, ap);
 	va_end(ap);
 
 	delete vl;
 	}
 
-void Reporter::WeirdFlowHelper(const uint32* orig, const uint32* resp, const char* name, ...)
+void Reporter::WeirdFlowHelper(const uint32* orig, const uint32* resp, const char* fmt_name, ...)
 	{
 	val_list* vl = new val_list(2);
 	vl->append(new AddrVal(orig));
 	vl->append(new AddrVal(resp));
 
 	va_list ap;
-	va_start(ap, name);
-	DoLog("weird", flow_weird, stderr, 0, vl, false, false, name, ap);
+	va_start(ap, fmt_name);
+	DoLog("weird", flow_weird, stderr, 0, vl, false, false, 0, fmt_name, ap);
 	va_end(ap);
 
 	delete vl;
@@ -155,25 +171,25 @@ void Reporter::WeirdFlowHelper(const uint32* orig, const uint32* resp, const cha
 
 void Reporter::Weird(const char* name)
 	{
-	WeirdHelper(net_weird, 0, name, 0);
+	WeirdHelper(net_weird, 0, 0, name);
 	}
 
 void Reporter::Weird(Connection* conn, const char* name, const char* addl)
 	{
-	WeirdHelper(conn_weird, conn->BuildConnVal(), name, addl);
+	WeirdHelper(conn_weird, conn->BuildConnVal(), addl, "%s", name);
 	}
 
 void Reporter::Weird(Val* conn_val, const char* name, const char* addl)
 	{
-	WeirdHelper(conn_weird, conn_val, name, addl);
+	WeirdHelper(conn_weird, conn_val, addl, "%s", name);
 	}
 
 void Reporter::Weird(const uint32* orig, const uint32* resp, const char* name)
 	{
-	WeirdFlowHelper(orig, resp, name);
+	WeirdFlowHelper(orig, resp, "%s", name);
 	}
 
-void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Connection* conn, val_list* addl, bool location, bool time, const char* fmt, va_list ap)
+void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Connection* conn, val_list* addl, bool location, bool time, const char* postfix, const char* fmt, va_list ap)
 	{
 	static char tmp[512];
 
@@ -235,6 +251,9 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Conne
 		int n = vsnprintf(buffer, size, fmt, aq);
 		va_end(aq);
 
+		if ( postfix )
+			n += strlen(postfix) + 10; // Add a bit of slack.
+
 		if ( n > -1 && n < size )
 			// We had enough space;
 			break;
@@ -246,6 +265,11 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Conne
 		if ( ! buffer )
 			FatalError("out of memory in Reporter");
 		}
+
+	if ( postfix )
+		// Note, if you change this fmt string, adjust the additional
+		// buffer size above.
+		sprintf(buffer + strlen(buffer), " [%s]", postfix);
 
 	if ( event && via_events && ! in_error_handler )
 		{
@@ -302,7 +326,13 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Conne
 		s += buffer;
 		s += "\n";
 
-		fprintf(out, s.c_str());
+		fprintf(out, "%s", s.c_str());
+
+		if ( addl )
+			{
+			loop_over_list(*addl, i)
+				Unref((*addl)[i]);
+			}
 		}
 
 	if ( alloced )

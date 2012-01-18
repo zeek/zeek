@@ -1,5 +1,3 @@
-// $Id: util.cc 6916 2009-09-24 20:48:36Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -42,6 +40,37 @@
 #include "NetVar.h"
 #include "Net.h"
 #include "Reporter.h"
+
+/**
+ * Takes a string, escapes characters into equivalent hex codes (\x##), and
+ * returns a string containing all escaped values.
+ *
+ * @param str string to escape
+ * @param escape_all If true, all characters are escaped. If false, only
+ * characters are escaped that are either whitespace or not printable in
+ * ASCII.
+ * @return A std::string containing a list of escaped hex values of the form
+ * \x## */
+std::string get_escaped_string(const std::string& str, bool escape_all)
+{
+    char tbuf[16];
+    string esc = "";
+
+    for ( size_t i = 0; i < str.length(); ++i )
+        {
+	char c = str[i];
+
+	if ( escape_all || isspace(c) || ! isascii(c) || ! isprint(c) )
+		{
+		snprintf(tbuf, sizeof(tbuf), "\\x%02x", str[i]);
+		esc += tbuf;
+		}
+	else
+		esc += c;
+	}
+
+    return esc;
+}
 
 char* copy_string(const char* s)
 	{
@@ -87,7 +116,7 @@ int expand_escape(const char*& s)
 		int result;
 		if ( sscanf(start, "%3o", &result) != 1 )
 			{
-			reporter->Warning("bad octal escape: ", start);
+			reporter->Warning("bad octal escape: %s ", start);
 			result = 0;
 			}
 
@@ -106,7 +135,7 @@ int expand_escape(const char*& s)
 		int result;
 		if ( sscanf(start, "%2x", &result) != 1 )
 			{
-			reporter->Warning("bad hexadecimal escape: ", start);
+			reporter->Warning("bad hexadecimal escape: %s", start);
 			result = 0;
 			}
 
@@ -359,7 +388,7 @@ char* uitoa_n(uint64 value, char* str, int n, int base, const char* prefix)
 	char* p, *q;
 	char c;
 
-	if ( prefix ) 
+	if ( prefix )
 		{
 		strncpy(str, prefix, n);
 		str[n-1] = '\0';
@@ -480,22 +509,22 @@ bool ensure_dir(const char *dirname)
 		{
 		if ( errno != ENOENT )
 			{
-			reporter->Warning(fmt("can't stat directory %s: %s",
-				dirname, strerror(errno)));
+			reporter->Warning("can't stat directory %s: %s",
+				dirname, strerror(errno));
 			return false;
 			}
 
 		if ( mkdir(dirname, 0700) < 0 )
 			{
-			reporter->Warning(fmt("can't create directory %s: %s",
-				dirname, strerror(errno)));
+			reporter->Warning("can't create directory %s: %s",
+				dirname, strerror(errno));
 			return false;
 			}
 		}
 
 	else if ( ! S_ISDIR(st.st_mode) )
 		{
-		reporter->Warning(fmt("%s exists but is not a directory", dirname));
+		reporter->Warning("%s exists but is not a directory", dirname);
 		return false;
 		}
 
@@ -508,7 +537,7 @@ bool is_dir(const char* path)
 	if ( stat(path, &st) < 0 )
 		{
 		if ( errno != ENOENT )
-			reporter->Warning(fmt("can't stat %s: %s", path, strerror(errno)));
+			reporter->Warning("can't stat %s: %s", path, strerror(errno));
 
 		return false;
 		}
@@ -558,15 +587,15 @@ static bool read_random_seeds(const char* read_file, uint32* seed,
 
 	if ( stat(read_file, &st) < 0 )
 		{
-		reporter->Warning(fmt("Seed file '%s' does not exist: %s",
-				read_file, strerror(errno)));
+		reporter->Warning("Seed file '%s' does not exist: %s",
+				read_file, strerror(errno));
 		return false;
 		}
 
 	if ( ! (f = fopen(read_file, "r")) )
 		{
-		reporter->Warning(fmt("Could not open seed file '%s': %s",
-				read_file, strerror(errno)));
+		reporter->Warning("Could not open seed file '%s': %s",
+				read_file, strerror(errno));
 		return false;
 		}
 
@@ -601,8 +630,8 @@ static bool write_random_seeds(const char* write_file, uint32 seed,
 
 	if ( ! (f = fopen(write_file, "w+")) )
 		{
-		reporter->Warning(fmt("Could not create seed file '%s': %s",
-				write_file, strerror(errno)));
+		reporter->Warning("Could not create seed file '%s': %s",
+				write_file, strerror(errno));
 		return false;
 		}
 
@@ -757,9 +786,9 @@ const char* bro_path()
 	const char* path = getenv("BROPATH");
 	if ( ! path )
 		path = ".:"
-			POLICYDEST ":"
-			POLICYDEST "/policy" ":"
-			POLICYDEST "/site";
+			BRO_SCRIPT_INSTALL_PATH ":"
+			BRO_SCRIPT_INSTALL_PATH "/policy" ":"
+			BRO_SCRIPT_INSTALL_PATH "/site";
 
 	return path;
 	}
@@ -839,7 +868,7 @@ string dot_canon(string path, string file, string prefix)
 		}
 	delete [] tmp;
 	size_t n;
-	while ( (n = dottedform.find("/")) != string::npos ) 
+	while ( (n = dottedform.find("/")) != string::npos )
 		dottedform.replace(n, 1, ".");
 	return dottedform;
 	}
@@ -891,60 +920,40 @@ const char* normalize_path(const char* path)
 	return copy_string(new_path.c_str());
 	}
 
-// Returns the subpath of BROPATH's policy/ directory in which the loaded
-// file in located.  If it's not under a subpath of policy/ then the full
-// path is returned, else the subpath of policy/ concatentated with any
-// directory prefix of the file is returned.
-void get_policy_subpath(const char* dir, const char* file, const char** subpath)
+// Returns the subpath of the root Bro script install/source/build directory in
+// which the loaded file is located.  If it's not under a subpath of that
+// directory (e.g. cwd or custom path) then the full path is returned.
+void get_script_subpath(const std::string& full_filename, const char** subpath)
 	{
-	// first figure out if this is a subpath of policy/
-	const char* ploc = strstr(dir, "policy");
-	if ( ploc )
-		if ( ploc[6] == '\0' )
-			*subpath = copy_string(ploc + 6);
-		else if ( ploc[6] == '/' )
-			*subpath = copy_string(ploc + 7);
-		else
-			*subpath = copy_string(dir);
-	else
-		*subpath = copy_string(dir);
+	size_t p;
+	std::string my_subpath(full_filename);
 
-	// and now add any directory parts of the filename
-	char full_filename_buf[1024];
-	safe_snprintf(full_filename_buf, sizeof(full_filename_buf),
-			"%s/%s", dir, file);
-	char* tmp = copy_string(file);
-	const char* fdir = 0;
-
-	if ( is_dir(full_filename_buf) )
-		fdir = file;
-
-	if ( ! fdir )
-		fdir = dirname(tmp);
-
-	if ( ! streq(fdir, ".") )
+	// get the parent directory of file (if not already a directory)
+	if ( ! is_dir(full_filename.c_str()) )
 		{
-		size_t full_subpath_len = strlen(*subpath) + strlen(fdir) + 1;
-		bool needslash = false;
-		if ( strlen(*subpath) != 0 && (*subpath)[strlen(*subpath) - 1] != '/' )
-			{
-			++full_subpath_len;
-			needslash = true;
-			}
-
-		char* full_subpath = new char[full_subpath_len];
-		strcpy(full_subpath, *subpath);
-		if ( needslash )
-			strcat(full_subpath, "/");
-		strcat(full_subpath, fdir);
-		delete [] *subpath;
-		*subpath = full_subpath;
+		char* tmp = copy_string(full_filename.c_str());
+		my_subpath = dirname(tmp);
+		delete [] tmp;
 		}
 
-	const char* normalized_subpath = normalize_path(*subpath);
-	delete [] tmp;
-	delete [] *subpath;
-	*subpath = normalized_subpath;
+	// first check if this is some subpath of the installed scripts root path,
+	// if not check if it's a subpath of the script source root path,
+	// then check if it's a subpath of the build directory (where BIF scripts
+	// will get generated).
+	// If none of those, will just use the given directory.
+	if ( (p = my_subpath.find(BRO_SCRIPT_INSTALL_PATH)) != std::string::npos )
+		my_subpath.erase(0, strlen(BRO_SCRIPT_INSTALL_PATH));
+	else if ( (p = my_subpath.find(BRO_SCRIPT_SOURCE_PATH)) != std::string::npos )
+		my_subpath.erase(0, strlen(BRO_SCRIPT_SOURCE_PATH));
+	else if ( (p = my_subpath.find(BRO_BUILD_PATH)) != std::string::npos )
+		my_subpath.erase(0, strlen(BRO_BUILD_PATH));
+
+	// if root path found, remove path separators until next path component
+	if ( p != std::string::npos )
+		while ( my_subpath.size() && my_subpath[0] == '/' )
+			my_subpath.erase(0, 1);
+
+	*subpath = normalize_path(my_subpath.c_str());
 	}
 
 extern string current_scanned_file_path;
@@ -1001,7 +1010,7 @@ FILE* search_for_file(const char* filename, const char* ext,
 		     ! is_dir(full_filename_buf) )
 			{
 			if ( bropath_subpath )
-				get_policy_subpath(dir_beginning, filename, bropath_subpath);
+				get_script_subpath(full_filename_buf, bropath_subpath);
 			return open_file(full_filename_buf, full_filename, load_pkgs);
 			}
 
@@ -1010,7 +1019,7 @@ FILE* search_for_file(const char* filename, const char* ext,
 		if ( access(full_filename_buf, R_OK) == 0 )
 			{
 			if ( bropath_subpath )
-				get_policy_subpath(dir_beginning, filename, bropath_subpath);
+				get_script_subpath(full_filename_buf, bropath_subpath);
 			return open_file(full_filename_buf, full_filename, load_pkgs);
 			}
 
@@ -1046,7 +1055,7 @@ FILE* rotate_file(const char* name, RecordVal* rotate_info)
 	FILE* newf = fopen(tmpname, "w");
 	if ( ! newf )
 		{
-		reporter->Error(fmt("rotate_file: can't open %s: %s", tmpname, strerror(errno)));
+		reporter->Error("rotate_file: can't open %s: %s", tmpname, strerror(errno));
 		return 0;
 		}
 
@@ -1055,7 +1064,7 @@ FILE* rotate_file(const char* name, RecordVal* rotate_info)
 	struct stat dummy;
 	if ( link(name, newname) < 0 || stat(newname, &dummy) < 0 )
 		{
-		reporter->Error(fmt("rotate_file: can't move %s to %s: %s", name, newname, strerror(errno)));
+		reporter->Error("rotate_file: can't move %s to %s: %s", name, newname, strerror(errno));
 		fclose(newf);
 		unlink(newname);
 		unlink(tmpname);
@@ -1065,7 +1074,7 @@ FILE* rotate_file(const char* name, RecordVal* rotate_info)
 	// Close current file, and move the tmp to its place.
 	if ( unlink(name) < 0 || link(tmpname, name) < 0 || unlink(tmpname) < 0 )
 		{
-		reporter->Error(fmt("rotate_file: can't move %s to %s: %s", tmpname, name, strerror(errno)));
+		reporter->Error("rotate_file: can't move %s to %s: %s", tmpname, name, strerror(errno));
 		exit(1);	// hard to fix, but shouldn't happen anyway...
 		}
 
@@ -1206,15 +1215,44 @@ int time_compare(struct timeval* tv_a, struct timeval* tv_b)
 		return tv_a->tv_sec - tv_b->tv_sec;
 	}
 
-static uint64 uid_counter;	// Counter for unique IDs.
-static uint64 uid_instance;	// Instance ID, computed once.
+struct UIDEntry {
+	UIDEntry() : key(0, 0), needs_init(true) { }
+	UIDEntry(const uint64 i) : key(i, 0), needs_init(false) { }
+
+	struct UIDKey {
+		UIDKey(uint64 i, uint64 c) : instance(i), counter(c) { }
+		uint64 instance;
+		uint64 counter;
+	} key;
+
+	bool needs_init;
+};
+
+static std::vector<UIDEntry> uid_pool;
 
 uint64 calculate_unique_id()
 	{
-	if ( uid_instance == 0 )
-		{
-		// This is the first time we need a UID.
+	return calculate_unique_id(UID_POOL_DEFAULT_INTERNAL);
+	}
 
+uint64 calculate_unique_id(size_t pool)
+	{
+	uint64 uid_instance = 0;
+
+	if( pool >= uid_pool.size() )
+		{
+		if ( pool < 10000 )
+			uid_pool.resize(pool + 1);
+		else
+			{
+			reporter->Warning("pool passed to calculate_unique_id() too large, using default");
+			pool = UID_POOL_DEFAULT_INTERNAL;
+			}
+		}
+
+	if ( uid_pool[pool].needs_init )
+		{
+		// This is the first time we need a UID for this pool.
 		if ( ! have_random_seed() )
 			{
 			// If we don't need deterministic output (as
@@ -1222,39 +1260,37 @@ uint64 calculate_unique_id()
 			// instance ID by hashing something likely to be
 			// globally unique.
 			struct {
-				char hostname[128];
+				char hostname[120];
+				uint64 pool;
 				struct timeval time;
 				pid_t pid;
 				int rnd;
 			} unique;
 
 			memset(&unique, 0, sizeof(unique)); // Make valgrind happy.
-			gethostname(unique.hostname, 128);
+			gethostname(unique.hostname, 120);
 			unique.hostname[sizeof(unique.hostname)-1] = '\0';
 			gettimeofday(&unique.time, 0);
+			unique.pool = (uint64) pool;
 			unique.pid = getpid();
 			unique.rnd = bro_random();
 
 			uid_instance = HashKey::HashBytes(&unique, sizeof(unique));
 			++uid_instance; // Now it's larger than zero.
 			}
-
 		else
-			// Generate determistic UIDs.
-			uid_instance = 1;
+			// Generate determistic UIDs for each individual pool.
+			uid_instance = pool;
+
+		// Our instance is unique.  Huzzah.
+		uid_pool[pool] = UIDEntry(uid_instance);
 		}
 
-	// Now calculate the unique ID.
-	struct {
-		uint64 counter;
-		hash_t instance;
-	} key;
+	assert(!uid_pool[pool].needs_init);
+	assert(uid_pool[pool].key.instance != 0);
 
-	key.counter = ++uid_counter;
-	key.instance = uid_instance;
-
-	uint64_t h = HashKey::HashBytes(&key, sizeof(key));
-	return h;
+	++uid_pool[pool].key.counter;
+	return HashKey::HashBytes(&(uid_pool[pool].key), sizeof(uid_pool[pool].key));
 	}
 
 void out_of_memory(const char* where)

@@ -1,4 +1,3 @@
-/* $Id: scan.l 6510 2009-01-08 14:51:04Z vern $ */
 %{
 // See the file "COPYING" in the main distribution directory for copyright.
 
@@ -51,7 +50,7 @@ char last_tok[128];
 // a read fails.
 #define YY_INPUT(buf,result,max_size) \
 	if ( ((result = fread(buf, 1, max_size, yyin)) == 0) && ferror(yyin) ) \
-		reporter->Error(fmt("read failed with \"%s\"", strerror(errno)));
+		reporter->Error("read failed with \"%s\"", strerror(errno));
 
 // reST documents that we've created (or have at least opened so far).
 std::list<BroDoc*> docs_generated;
@@ -78,6 +77,19 @@ static const char* canon_doc_comment(const char* comment)
 	// signify an indentation level for all the text when using
 	// the "## Text" style.
 	return ( comment[0] == ' ' ) ? comment + 1 : comment;
+	}
+
+static std::string canon_doc_func_param(const char* id_start)
+	{
+	std::string id_name(id_start, strcspn(id_start, ":"));
+	const char* comment = id_start + id_name.size() + 1;
+	std::string doc;
+
+	if ( id_name == "Returns" )
+		doc.append(":returns:").append(comment);
+	else
+		doc.append(":param ").append(id_name).append(":").append(comment);
+	return doc;
 	}
 
 static ino_t get_inode_num(FILE* f, const char* filename)
@@ -155,6 +167,12 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 	return TOK_POST_DOC;
 }
 
+<DOC>##{OWS}{ID}:{WS}.* {
+	const char* id_start = skip_whitespace(yytext + 2);
+	yylval.str = copy_string(canon_doc_func_param(id_start).c_str());
+	return TOK_DOC;
+}
+
 <DOC>##.* {
 	if ( yytext[2] != '#' )
 		{
@@ -163,26 +181,12 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 		}
 }
 
-##{OWS}{ID}:.* {
+##{OWS}{ID}:{WS}.* {
 	if ( generate_documentation )
 		{
 		// Comment is documenting either a function parameter or return type,
 		// so appropriate reST markup substitutions are automatically made
 		// in order to distinguish them from other comments.
-		const char* id_start = skip_whitespace(yytext + 2);
-		size_t id_len = strcspn(id_start, ":");
-		char* id_name = new char[id_len + 1];
-		strncpy(id_name, id_start, id_len);
-		id_name[id_len] = '\0';
-		const char* comment = id_start + id_len + 1;
-
-		std::string doc;
-
-		if ( streq(id_name, "Returns") )
-			doc.append(":returns:").append(comment);
-		else
-			doc.append(":param ").append(id_name).append(":").append(comment);
-
 		if ( ! reST_doc_comments )
 			reST_doc_comments = new std::list<std::string>();
 
@@ -192,10 +196,14 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 		// 2) has a blank line between it and non-field-list reST markup,
 		//    which is required for correct HTML rendering by Sphinx
 		reST_doc_comments->push_back("");
-		reST_doc_comments->push_back(doc);
-
-		delete [] id_name;
+		const char* id_start = skip_whitespace(yytext + 2);
+		reST_doc_comments->push_back(canon_doc_func_param(id_start));
 		}
+}
+
+##<.* {
+	if ( generate_documentation && BroDocObj::last )
+		BroDocObj::last->AddDocString(canon_doc_comment(yytext + 3));
 }
 
 ##.* {
@@ -265,7 +273,6 @@ list	return TOK_LIST;
 local	return TOK_LOCAL;
 match	return TOK_MATCH;
 module	return TOK_MODULE;
-net	return TOK_NET;
 next	return TOK_NEXT;
 of	return TOK_OF;
 pattern	return TOK_PATTERN;
@@ -406,7 +413,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 		uint32 p = atoi(yytext);
 		if ( p > 65535 )
 			{
-			reporter->Error("bad port number -", yytext);
+			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
 		RET_CONST(new PortVal(p, TRANSPORT_TCP))
@@ -415,7 +422,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 		uint32 p = atoi(yytext);
 		if ( p > 65535 )
 			{
-			reporter->Error("bad port number -", yytext);
+			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
 		RET_CONST(new PortVal(p, TRANSPORT_UDP))
@@ -424,7 +431,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 		uint32 p = atoi(yytext);
 		if ( p > 255 )
 			{
-			reporter->Error("bad port number -", yytext);
+			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
 		RET_CONST(new PortVal(p, TRANSPORT_ICMP))
@@ -433,14 +440,12 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 		uint32 p = atoi(yytext);
 		if ( p > 255 )
 			{
-			reporter->Error("bad port number -", yytext);
+			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
 		RET_CONST(new PortVal(p, TRANSPORT_UNKNOWN))
 		}
 
-{D}"."{D}"."		RET_CONST(new NetVal(yytext))
-({D}"."){2}{D}		RET_CONST(new NetVal(yytext))
 ({D}"."){3}{D}		RET_CONST(new AddrVal(yytext))
 
 ({HEX}:){7}{HEX}	RET_CONST(new AddrVal(yytext))
@@ -499,7 +504,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 
 <RE>[/\\\n]	return yytext[0];
 
-<*>.	reporter->Error("unrecognized character -", yytext);
+<*>.	reporter->Error("unrecognized character - %s", yytext);
 
 <<EOF>>	last_tok[0] = '\0'; return EOF;
 
@@ -1030,7 +1035,7 @@ void clear_reST_doc_comments()
 	if ( ! reST_doc_comments )
 		return;
 
-	fprintf(stderr, "Warning: %lu unconsumed reST comments:\n",
+	fprintf(stderr, "Warning: %zu unconsumed reST comments:\n",
 			reST_doc_comments->size());
 
 	print_current_reST_doc_comments();

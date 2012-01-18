@@ -1,0 +1,22 @@
+#! /usr/bin/awk -f
+#
+# A diff canonifier that removes all MIME types because libmagic output
+# can differ between installations.
+
+BEGIN { FS="\t"; OFS="\t"; column = -1; }
+
+/^#fields/ {
+    for ( i = 2; i < NF; ++i )
+        if ( $i == "mime_type" )
+            column = i-1;
+}
+
+column >= 0 {
+    if ( $column != "-" )
+        # Mark that it's set, but ignore content.
+        $column = "+";
+}
+
+{
+    print;
+}

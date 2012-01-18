@@ -1,5 +1,3 @@
-// $Id: NCP.cc 6916 2009-09-24 20:48:36Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"

@@ -8,98 +8,85 @@ Prerequisites
 Bro relies on the following libraries and tools, which need to be installed
 before you begin:
 
-    * A C/C++ compiler
+    * CMake 2.6 or greater              http://www.cmake.org
 
-    * Libpcap headers and libraries
-       Network traffic capture library
+    * Libpcap (headers and libraries)   http://www.tcpdump.org
 
-    * Flex (Fast Lexical Analyzer)
-       Flex is already installed on most systems, so with luck you can
-       skip having to install it yourself.
+    * OpenSSL (headers and libraries)   http://www.openssl.org
 
-    * Bison (GNU Parser Generator)
-       This comes with many systems, but if you get errors compiling
-       parse.y, you will need to install it.
-
-    * Perl
-       Used only during the Bro build process
-
-    * sed
-       Used only during the Bro build process
-
-    * BIND8 headers and libraries
-       These are usually already installed as well.
-
-    * OpenSSL headers and libraries
-        For analysis of SSL certificates by the HTTP analyzer, and
-        for encrypted Bro-to-Bro communication. These are likely installed,
-        though some platforms may require installation of a 'devel' package
-         for the headers.
-
-    * CMake 2.6 or greater
-       CMake is a cross-platform, open-source build system, typically
-       not installed by default.  See http://www.cmake.org for more
-       information regarding CMake and the installation steps below for
-       how to use it to build this distribution.  CMake generates native
-       Makefiles that depend on GNU Make by default.
-
-Bro can also make uses of some optional libraries if they are found at
-installation time:
+    * SWIG                              http://www.swig.org
 
     * Libmagic
-      For identifying file types (e.g., in FTP transfers).
-
-    * LibGeoIP
-       For geo-locating IP addresses.
 
     * Libz
-       For decompressing HTTP bodies by the HTTP analyzer, and for
-       compressed Bro-to-Bro communication.
+
+Bro can make uses of some optional libraries if they are found at
+installation time:
+
+    * LibGeoIP  For geo-locating IP addresses.
+
+Bro also needs the following tools, but on most systems they will
+already come preinstalled:
+
+    * Bash  (For Bro Control).
+    * BIND8 (headers and libraries)
+    * Bison (GNU Parser Generator)
+    * Flex  (Fast Lexical Analyzer)
+    * Perl  (Used only during the Bro build process)
+
 
 Installation
 ============
 
-To build and install into /usr/local/bro:
+To build and install into ``/usr/local/bro``::
 
-    > ./configure
-    > cd build
-    > make
-    > make install
+    ./configure
+    make
+    make install
 
-This will perform an out-of-source build into a directory called
-build/, using default build options. It then installs the Bro binary
-into /usr/local/bro/bin. Depending on the Bro package you
-downloaded, there may be auxiliary tools and libraries available in
-the aux/ directory. If so, they will be installed by default as well
-if not explicitly disabled via configure options and may also have
-additional installation/configuration instructions that you can
-find in their source directories.
+This will first build Bro into a directory inside the distribution
+called ``build/``, using default build options. It then installs all
+required files into ``/usr/local/bro``, including the Bro binary in
+``/usr/local/bro/bin/bro``.
 
-You can specify a different installation directory with
+You can specify a different installation directory with::
 
-    > ./configure --prefix=<dir>
+    ./configure --prefix=<dir>
 
-Note that "/usr" and "/opt/bro" are standard prefixes for binary
-packages to be installed, so those are typically not good choices
-unless you are creating such a package.
+Note that ``/usr`` and ``/opt/bro`` are the standard prefixes for
+binary Bro packages to be installed, so those are typically not good
+choices unless you are creating such a package.
 
-Run "./configure --help" for more options.
+Run ``./configure --help`` for more options.
+
+Depending on the Bro package you downloaded, there may be auxiliary
+tools and libraries available in the ``aux/`` directory. All of them
+except for ``aux/bro-aux`` will also be built and installed by doing
+``make install``.  To install the programs that come in the
+``aux/bro-aux`` directory, use ``make install-aux``. There are
+``--disable-*`` options that can be given to the configure script to
+turn off unwanted auxiliary projects.
+
+OpenBSD users, please see our `FAQ
+<http://www.bro-ids.org/documentation/faq.html>` if you are having
+problems installing Bro.
 
 Running Bro
 ===========
 
 Bro is a complex program and it takes a bit of time to get familiar
-with it. In the following we give a few simple examples.  See the
-quickstart guide at http://www.bro-ids.org for more information; you
-can the source that in doc/quick-start.
+with it.  A good place for newcomers to start is the Quickstart Guide
+at http://www.bro-ids.org/documentation/quickstart.html.
 
-For developers that wish to run Bro from the the build/ directory
-after performing "make", but without performing "make install", they
-will have to first set BROPATH to look for scripts inside the build
-directory.  Sourcing either build/bro-path-dev.sh or build/bro-path-dev.csh
-as appropriate for the current shell accomplishes this. e.g.:
+For developers that wish to run Bro directly from the ``build/``
+directory (i.e., without performing ``make install``), they will have
+to first adjust ``BROPATH`` to look for scripts inside the build
+directory.  Sourcing either ``build/bro-path-dev.sh`` or
+``build/bro-path-dev.csh`` as appropriate for the current shell
+accomplishes this and also augments your ``PATH`` so you can use the
+Bro binary directly::
 
-    > ./configure
-    > make
-    > source build/bro-path-dev.sh
-    > ./build/src/bro
+    ./configure
+    make
+    source build/bro-path-dev.sh
+    bro <options>

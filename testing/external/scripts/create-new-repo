@@ -27,7 +27,7 @@ git clone $repo $name
 
 cd $name
 
-for dir in Traces tests Baseline; do
+for dir in tests Baseline; do
     mkdir $dir
     touch $dir/.gitignore
 done
@@ -35,6 +35,7 @@ done
 ln -s ../subdir-btest.cfg ./btest.cfg
 
 cp $cwd/`dirname $0`/skel/test.skeleton tests
+cp $cwd/`dirname $0`/skel/traces.cfg .
 cp $cwd/`dirname $0`/skel/Makefile .
 cp $cwd/`dirname $0`/skel/.gitignore .
 

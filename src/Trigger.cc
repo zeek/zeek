@@ -1,5 +1,3 @@
-// $Id: Trigger.cc 2359 2005-12-21 23:55:32Z vern $
-
 #include <algorithm>
 
 #include "Trigger.h"
@@ -112,6 +110,8 @@ Trigger::Trigger(Expr* arg_cond, Stmt* arg_body, Stmt* arg_timeout_stmts,
 	is_return = arg_is_return;
 	location = arg_location;
 
+	++total_triggers;
+
 	DBG_LOG(DBG_NOTIFIERS, "%s: instantiating", Name());
 
 	if ( is_return )
@@ -167,6 +167,7 @@ void Trigger::Init()
 	}
 
 Trigger::TriggerList* Trigger::pending = 0;
+unsigned long Trigger::total_triggers = 0;
 
 bool Trigger::Eval()
 	{
@@ -414,4 +415,10 @@ const char* Trigger::Name()
 	assert(location);
 	return fmt("%s:%d-%d", location->filename,
 			location->first_line, location->last_line);
+	}
+
+void Trigger::GetStats(Stats* stats)
+	{
+	stats->total = total_triggers;
+	stats->pending = pending ? pending->size() : 0;
 	}

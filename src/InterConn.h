@@ -1,5 +1,3 @@
-// $Id: InterConn.h 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef interconn_h

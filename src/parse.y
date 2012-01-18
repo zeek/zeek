@@ -1,9 +1,8 @@
 %{
-// $Id: parse.in 6688 2009-04-16 22:44:55Z vern $
 // See the file "COPYING" in the main distribution directory for copyright.
 %}
 
-%expect 88
+%expect 87
 
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ANY
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
@@ -11,7 +10,7 @@
 %token TOK_CONSTANT TOK_COPY TOK_COUNT TOK_COUNTER TOK_DEFAULT TOK_DELETE
 %token TOK_DOUBLE TOK_ELSE TOK_ENUM TOK_EVENT TOK_EXPORT TOK_FILE TOK_FOR
 %token TOK_FUNCTION TOK_GLOBAL TOK_ID TOK_IF TOK_INT
-%token TOK_INTERVAL TOK_LIST TOK_LOCAL TOK_MODULE TOK_MATCH TOK_NET
+%token TOK_INTERVAL TOK_LIST TOK_LOCAL TOK_MODULE TOK_MATCH
 %token TOK_NEXT TOK_OF TOK_PATTERN TOK_PATTERN_TEXT
 %token TOK_PORT TOK_PRINT TOK_RECORD TOK_REDEF
 %token TOK_REMOVE_FROM TOK_RETURN TOK_SCHEDULE TOK_SET
@@ -54,7 +53,7 @@
 %type <expr> expr init anonymous_function
 %type <event_expr> event
 %type <stmt> stmt stmt_list func_body for_head
-%type <type> type opt_type refined_type enum_body
+%type <type> type opt_type enum_body
 %type <func_type> func_hdr func_params
 %type <type_l> type_list
 %type <type_decl> type_decl formal_args_decl
@@ -166,7 +165,7 @@ static ID* create_dummy_id (ID* id, BroType* type)
 	ID* fake_id = new ID(copy_string(id->Name()), (IDScope) id->Scope(),
 	                     is_export);
 
-	fake_id->SetType(type);
+	fake_id->SetType(type->Ref());
 
 	if ( id->AsType() )
 		{
@@ -787,11 +786,6 @@ type:
 				$$ = base_type(TYPE_ADDR);
 				}
 
-	|	TOK_NET		{
-				set_location(@1);
-				$$ = base_type(TYPE_NET);
-				}
-
 	|	TOK_SUBNET	{
 				set_location(@1);
 				$$ = base_type(TYPE_SUBNET);
@@ -1070,10 +1064,10 @@ decl:
 			}
 
 	|	TOK_REDEF TOK_RECORD global_id TOK_ADD_TO
-			'{' { do_doc_token_start(); } type_decl_list '}' opt_attr ';'
+			'{' { ++in_record; do_doc_token_start(); }
+			type_decl_list
+			{ --in_record; do_doc_token_stop(); } '}' opt_attr ';'
 			{
-			do_doc_token_stop();
-
 			if ( ! $3->Type() )
 				$3->Error("unknown identifier");
 			else
@@ -1083,7 +1077,7 @@ decl:
 					$3->Error("not a record type");
 				else
 					{
-					const char* error = add_to->AddFields($7, $9);
+					const char* error = add_to->AddFields($7, $10);
 					if ( error )
 						$3->Error(error);
 					else if ( generate_documentation )
@@ -1110,7 +1104,7 @@ decl:
 				}
 			}
 
-	|	TOK_TYPE global_id ':' refined_type opt_attr ';'
+	|	TOK_TYPE global_id ':' type opt_attr ';'
 			{
 			add_type($2, $4, $5, 0);
 
@@ -1140,7 +1134,7 @@ decl:
 				}
 			}
 
-	|	TOK_EVENT event_id ':' refined_type opt_attr ';'
+	|	TOK_EVENT event_id ':' type_list opt_attr ';'
 			{
 			add_type($2, $4, $5, 1);
 
@@ -1184,7 +1178,7 @@ func_hdr:
 				   FUNC_FLAVOR_EVENT, 0, $3);
 			$$ = $3;
 			if ( generate_documentation )
-				current_reST_doc->AddEvent(
+				current_reST_doc->AddEventHandler(
 					new BroDocObj($2, reST_doc_comments));
 			}
 	|	TOK_REDEF TOK_EVENT event_id func_params
@@ -1224,13 +1218,6 @@ func_params:
 			{ $$ = new FuncType($2, $5, 0); }
 	|	'(' formal_args ')'
 			{ $$ = new FuncType($2, base_type(TYPE_VOID), 0); }
-	;
-
-refined_type:
-		type_list '{' type_decl_list '}'
-			{ $$ = refine_type($1, $3); }
-	|	type_list
-			{ $$ = refine_type($1, 0); }
 	;
 
 opt_type:
@@ -1599,7 +1586,7 @@ resolve_id:
 			$$ = lookup_ID($1, current_module.c_str());
 
 			if ( ! $$ )
-				reporter->Error("identifier not defined:", $1);
+				reporter->Error("identifier not defined: %s", $1);
 
 			delete [] $1;
 			}
@@ -1656,7 +1643,7 @@ int yyerror(const char msg[])
 		strcat(msgbuf, "\nDocumentation mode is enabled: "
 		       "remember to check syntax of ## style comments\n");
 
-	reporter->Error(msgbuf);
+	reporter->Error("%s", msgbuf);
 
 	return 0;
 	}

@@ -1,3 +1,11 @@
+##! This script establishes communication among all nodes in a cluster
+##! as defined by :bro:id:`Cluster::nodes`.
+
+@load ./main
+@load base/frameworks/communication
+
+@if ( Cluster::node in Cluster::nodes )
+
 module Cluster;
 
 event bro_init() &priority=9
@@ -19,23 +27,24 @@ event bro_init() &priority=9
 			if ( n$node_type == WORKER && n$manager == node )
 				Communication::nodes[i] =
 				    [$host=n$ip, $connect=F,
-				     $class=i, $events=worker_events, $request_logs=T];
+				     $class=i, $events=worker2manager_events, $request_logs=T];
 			
 			if ( n$node_type == PROXY && n$manager == node )
 				Communication::nodes[i] =
 				    [$host=n$ip, $connect=F,
-				     $class=i, $events=proxy_events, $request_logs=T];
+				     $class=i, $events=proxy2manager_events, $request_logs=T];
 				
 			if ( n$node_type == TIME_MACHINE && me?$time_machine && me$time_machine == i )
 				Communication::nodes["time-machine"] = [$host=nodes[i]$ip, $p=nodes[i]$p,
-				                                        $connect=T, $retry=1min];
+				                                        $connect=T, $retry=1min,
+				                                        $events=tm2manager_events];
 			}
 		
 		else if ( me$node_type == PROXY )
 			{
 			if ( n$node_type == WORKER && n$proxy == node )
 				Communication::nodes[i] =
-				    [$host=n$ip, $connect=F, $class=i, $events=worker_events];
+					[$host=n$ip, $connect=F, $class=i, $sync=T, $auth=T, $events=worker2proxy_events];
 			
 			# accepts connections from the previous one. 
 			# (This is not ideal for setups with many proxies)
@@ -53,27 +62,38 @@ event bro_init() &priority=9
 			
 			# Finally the manager, to send it status updates.
 			if ( n$node_type == MANAGER && me$manager == i )
-				Communication::nodes["manager"] = [$host=nodes[i]$ip, $p=nodes[i]$p, 
+				Communication::nodes["manager"] = [$host=nodes[i]$ip, 
+				                                   $p=nodes[i]$p, 
 				                                   $connect=T, $retry=1mins, 
-				                                   $class=node];
+				                                   $class=node,
+				                                   $events=manager2proxy_events];
 			}
-		
 		else if ( me$node_type == WORKER )
 			{
 			if ( n$node_type == MANAGER && me$manager == i )
-				Communication::nodes["manager"] = [$host=nodes[i]$ip, $p=nodes[i]$p,
+				Communication::nodes["manager"] = [$host=nodes[i]$ip, 
+				                                   $p=nodes[i]$p,
 				                                   $connect=T, $retry=1mins, 
-				                                   $class=node];
+				                                   $class=node, 
+				                                   $events=manager2worker_events];
 			
 			if ( n$node_type == PROXY && me$proxy == i )
-				Communication::nodes["proxy"] = [$host=nodes[i]$ip, $p=nodes[i]$p,
-				                                 $connect=T, $retry=1mins, $sync=T,
-				                                 $class=node];
+				Communication::nodes["proxy"] = [$host=nodes[i]$ip, 
+				                                 $p=nodes[i]$p,
+				                                 $connect=T, $retry=1mins, 
+				                                 $sync=T, $class=node, 
+				                                 $events=proxy2worker_events];
 			
-			if ( n$node_type == TIME_MACHINE && me?$time_machine && me$time_machine == i )
-				Communication::nodes["time-machine"] = [$host=nodes[i]$ip, $p=nodes[i]$p,
-				                                        $connect=T, $retry=1min];
+			if ( n$node_type == TIME_MACHINE && 
+			     me?$time_machine && me$time_machine == i )
+				Communication::nodes["time-machine"] = [$host=nodes[i]$ip, 
+				                                        $p=nodes[i]$p,
+				                                        $connect=T, 
+				                                        $retry=1min,
+				                                        $events=tm2worker_events];
 			
 			}
 		}
 	}
+
+@endif

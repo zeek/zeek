@@ -1,5 +1,3 @@
-// $Id: Val.cc 6945 2009-11-27 19:25:10Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -638,14 +636,16 @@ MutableVal::~MutableVal()
 	{
 	for ( list<ID*>::iterator i = aliases.begin(); i != aliases.end(); ++i )
 		{
-		global_scope()->Remove((*i)->Name());
+		if ( global_scope() )
+			global_scope()->Remove((*i)->Name());
 		(*i)->ClearVal();	// just to make sure.
 		Unref((*i));
 		}
 
 	if ( id )
 		{
-		global_scope()->Remove(id->Name());
+		if ( global_scope() )
+			global_scope()->Remove(id->Name());
 		id->ClearVal(); // just to make sure.
 		Unref(id);
 		}
@@ -1091,90 +1091,12 @@ static uint32 parse_dotted(const char* text, int& dots)
 		{
 		if ( addr[i] < 0 || addr[i] > 255 )
 			{
-			reporter->Error("bad dotted address", text);
+			reporter->Error("bad dotted address %s", text);
 			break;
 			}
 		}
 
 	return a;
-	}
-
-NetVal::NetVal(const char* text) : AddrVal(TYPE_NET)
-	{
-	int dots;
-	uint32 a = parse_dotted(text, dots);
-
-	if ( addr_to_net(a) != a )
-		reporter->Error("bad net address", text);
-
-	Init(uint32(htonl(a)));
-	}
-
-NetVal::NetVal(uint32 addr) : AddrVal(TYPE_NET)
-	{
-	Init(addr);
-	}
-
-#ifdef BROv6
-NetVal::NetVal(const uint32* addr) : AddrVal(TYPE_NET)
-	{
-	Init(addr);
-	}
-#endif
-
-Val* NetVal::SizeVal() const
-	{
-	uint32 addr;
-
-#ifdef BROv6
-	if ( ! is_v4_addr(val.addr_val) )
-		{
-		Error("|net| for IPv6 addresses not supported");
-		return new Val(0.0, TYPE_DOUBLE);
-		}
-
-	addr = to_v4_addr(val.addr_val);
-#else
-	addr = val.addr_val;
-#endif
-	addr = ntohl(addr);
-
-	if ( (addr & 0xFFFFFFFF) == 0L )
-		return new Val(4294967296.0, TYPE_DOUBLE);
-
-	if ( (addr & 0x00FFFFFF) == 0L )
-		return new Val(double(0xFFFFFF + 1), TYPE_DOUBLE);
-
-	if ( (addr & 0x0000FFFF) == 0L )
-		return new Val(double(0xFFFF + 1), TYPE_DOUBLE);
-
-	if ( (addr & 0x000000FF) == 0L )
-		return new Val(double(0xFF + 1), TYPE_DOUBLE);
-
-	return new Val(1.0, TYPE_DOUBLE);
-	}
-
-void NetVal::ValDescribe(ODesc* d) const
-	{
-#ifdef BROv6
-	d->Add(dotted_net6(val.addr_val));
-#else
-	d->Add(dotted_net(val.addr_val));
-#endif
-	}
-
-IMPLEMENT_SERIAL(NetVal, SER_NET_VAL);
-
-bool NetVal::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_NET_VAL, AddrVal);
-	return true;
-	}
-
-bool NetVal::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(AddrVal);
-	return true;
 	}
 
 SubNetVal::SubNetVal(const char* text) : Val(TYPE_SUBNET)
@@ -1541,6 +1463,7 @@ TableVal* ListVal::ConvertToSet() const
 	loop_over_list(vals, i)
 		t->Assign(vals[i], 0);
 
+	Unref(s);
 	return t;
 	}
 
@@ -1660,6 +1583,7 @@ TableVal::TableVal(TableType* t, Attributes* a) : MutableVal(t)
 
 void TableVal::Init(TableType* t)
 	{
+	::Ref(t);
 	table_type = t;
 	expire_expr = 0;
 	expire_time = 0;
@@ -1682,6 +1606,7 @@ TableVal::~TableVal()
 	if ( timer )
 		timer_mgr->Cancel(timer);
 
+	Unref(table_type);
 	delete table_hash;
 	delete AsTable();
 	delete subnets;
@@ -2082,7 +2007,16 @@ Val* TableVal::Default(Val* index)
 	else
 		vl->append(index->Ref());
 
-	Val* result = f->Call(vl);
+	Val* result = 0;
+
+	try
+		{
+		result = f->Call(vl);
+		}
+
+	catch ( InterpreterException& e )
+		{ /* Already reported. */ }
+
 	delete vl;
 
 	if ( ! result )
@@ -2193,7 +2127,7 @@ Val* TableVal::Delete(const Val* index)
 	Val* va = v ? (v->Value() ? v->Value() : this->Ref()) : 0;
 
 	if ( subnets && ! subnets->Remove(index) )
-		reporter->InternalError( "index not in prefix table" );
+		reporter->InternalError("index not in prefix table");
 
 	if ( LoggingAccess() )
 		{
@@ -2235,7 +2169,7 @@ Val* TableVal::Delete(const HashKey* k)
 		{
 		Val* index = table_hash->RecoverVals(k);
 		if ( ! subnets->Remove(index) )
-			reporter->InternalError( "index not in prefix table" );
+			reporter->InternalError("index not in prefix table");
 		Unref(index);
 		}
 
@@ -2492,7 +2426,7 @@ void TableVal::DoExpire(double t)
 				{
 				Val* index = RecoverIndex(k);
 				if ( ! subnets->Remove(index) )
-					reporter->InternalError( "index not in prefix table" );
+					reporter->InternalError("index not in prefix table");
 				Unref(index);
 				}
 
@@ -2541,10 +2475,20 @@ double TableVal::CallExpireFunc(Val* idx)
 
 	vl->append(idx);
 
-	Val* vs = expire_expr->Eval(0)->AsFunc()->Call(vl);
-	double secs = vs->AsInterval();
-	Unref(vs);
-	delete vl;
+	double secs;
+
+	try
+		{
+		Val* vs = expire_expr->Eval(0)->AsFunc()->Call(vl);
+		secs = vs->AsInterval();
+		Unref(vs);
+		delete vl;
+		}
+
+	catch ( InterpreterException& e )
+		{
+		secs = 0;
+		}
 
 	return secs;
 	}
@@ -2575,7 +2519,7 @@ bool TableVal::DoSerialize(SerialInfo* info) const
 		IterCookie* c;
 		TableEntryVal* v;	// current value
 		bool did_index;	// already wrote the val's index
-	}* state;
+	}* state = 0;
 
 	PDict(TableEntryVal)* tbl =
 		const_cast<TableVal*>(this)->AsNonConstTable();
@@ -2941,7 +2885,7 @@ Val* RecordVal::LookupWithDefault(int field) const
 	return record_type->FieldDefault(field);
 	}
 
-RecordVal* RecordVal::CoerceTo(const RecordType* t, Val* aggr) const
+RecordVal* RecordVal::CoerceTo(const RecordType* t, Val* aggr, bool allow_orphaning) const
 	{
 	if ( ! record_promotion_compatible(t->AsRecordType(), Type()->AsRecordType()) )
 		return 0;
@@ -2961,6 +2905,9 @@ RecordVal* RecordVal::CoerceTo(const RecordType* t, Val* aggr) const
 
 		if ( t_i < 0 )
 			{
+			if ( allow_orphaning )
+				continue;
+
 			char buf[512];
 			safe_snprintf(buf, sizeof(buf),
 					"orphan field \"%s\" in initialization",
@@ -2994,7 +2941,7 @@ RecordVal* RecordVal::CoerceTo(const RecordType* t, Val* aggr) const
 	return ar;
 	}
 
-RecordVal* RecordVal::CoerceTo(RecordType* t)
+RecordVal* RecordVal::CoerceTo(RecordType* t, bool allow_orphaning)
 	{
 	if ( same_type(Type(), t) )
 		{
@@ -3002,7 +2949,7 @@ RecordVal* RecordVal::CoerceTo(RecordType* t)
 		return this;
 		}
 
-	return CoerceTo(t, 0);
+	return CoerceTo(t, 0, allow_orphaning);
 	}
 
 void RecordVal::Describe(ODesc* d) const
@@ -3181,10 +3128,6 @@ void EnumVal::ValDescribe(ODesc* d) const
 
 	if ( ! ename )
 		ename = "<undefined>";
-
-	const char* module_offset = strstr(ename, "::");
-	if ( module_offset )
-		ename = module_offset + 2;
 
 	d->Add(ename);
 	}

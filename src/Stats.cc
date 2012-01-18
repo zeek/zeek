@@ -1,5 +1,3 @@
-// $Id: Stats.cc 7008 2010-03-25 02:42:20Z vern $
-
 #include "Conn.h"
 #include "File.h"
 #include "Event.h"
@@ -9,6 +7,8 @@
 #include "Scope.h"
 #include "cq.h"
 #include "ConnCompressor.h"
+#include "DNS_Mgr.h"
+#include "Trigger.h"
 
 
 int killed_by_inactivity = 0;
@@ -194,6 +194,19 @@ void ProfileLogger::Log()
 		int(cq_memory_allocation() +
 		    (timer_mgr->Size() * padded_sizeof(ConnectionTimer))) / 1024,
 		network_time - timer_mgr->LastTimestamp()));
+
+	DNS_Mgr::Stats dstats;
+	dns_mgr->GetStats(&dstats);
+
+	file->Write(fmt("%.06f DNS_Mgr: requests=%lu succesful=%lu failed=%lu pending=%lu cached_hosts=%lu cached_addrs=%lu\n",
+					network_time,
+					dstats.requests, dstats.successful, dstats.failed, dstats.pending,
+					dstats.cached_hosts, dstats.cached_addresses));
+
+	Trigger::Stats tstats;
+	Trigger::GetStats(&tstats);
+
+	file->Write(fmt("%.06f Triggers: total=%lu pending=%lu\n", network_time, tstats.total, tstats.pending));
 
 	unsigned int* current_timers = TimerMgr::CurrentTimers();
 	for ( int i = 0; i < NUM_TIMER_TYPES; ++i )

@@ -1,5 +1,3 @@
-// $Id: Func.cc 6703 2009-05-13 22:27:44Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -55,6 +53,19 @@ extern	RETSIGTYPE sig_handler(int signo);
 const Expr* calling_expr = 0;
 bool did_builtin_init = false;
 
+vector<Func*> Func::unique_ids;
+
+Func::Func() : scope(0), id(0), return_value(0)
+	{
+	unique_id = unique_ids.size();
+	unique_ids.push_back(this);
+	}
+
+Func::Func(Kind arg_kind) : scope(0), kind(arg_kind), id(0), return_value(0)
+	{
+	unique_id = unique_ids.size();
+	unique_ids.push_back(this);
+	}
 
 Func::~Func()
 	{
@@ -276,6 +287,8 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 		{
 		// Can only happen for events.
 		assert(IsEvent());
+		loop_over_list(*args, i)
+			Unref((*args)[i]);
 		return 0 ;
 		}
 
@@ -334,7 +347,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 	     (flow != FLOW_RETURN /* we fell off the end */ ||
 	      ! result /* explicit return with no result */) &&
 	     ! f->HasDelayed() )
-		reporter->Warning("non-void function returns without a value:", id->Name());
+		reporter->Warning("non-void function returns without a value: %s", id->Name());
 
 	if ( result && g_trace_state.DoTrace() )
 		{

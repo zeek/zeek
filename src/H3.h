@@ -1,5 +1,3 @@
-// $Id: H3.h 3230 2006-06-08 02:19:25Z vern $
-
 // Copyright 2004, 2005
 // The Regents of the University of California
 // All Rights Reserved
@@ -59,8 +57,13 @@
 #ifndef H3_H
 #define H3_H
 
+#include <climits>
+
+// The number of values representable by a byte.
+#define H3_BYTE_RANGE (UCHAR_MAX+1)
+
 template<class T, int N> class H3 {
-    T byte_lookup[N][256];
+    T byte_lookup[N][H3_BYTE_RANGE];
 public:
     H3();
     ~H3() { free(byte_lookup); }
@@ -90,9 +93,9 @@ public:
 template<class T, int N>
 H3<T,N>::H3()
 {
-    T bit_lookup[N * 8];
+    T bit_lookup[N * CHAR_BIT];
 
-    for (size_t bit = 0; bit < N * 8; bit++) {
+    for (size_t bit = 0; bit < N * CHAR_BIT; bit++) {
 	bit_lookup[bit] = 0;
 	for (size_t i = 0; i < sizeof(T)/2; i++) {
 	    // assume random() returns at least 16 random bits
@@ -101,12 +104,12 @@ H3<T,N>::H3()
     }
 
     for (size_t byte = 0; byte < N; byte++) {
-        for (unsigned val = 0; val < 256; val++) {
+        for (unsigned val = 0; val < H3_BYTE_RANGE; val++) {
             byte_lookup[byte][val] = 0;
-            for (size_t bit = 0; bit < 8; bit++) {
+            for (size_t bit = 0; bit < CHAR_BIT; bit++) {
 		// Does this mean byte_lookup[*][0] == 0? -RP
 	        if (val & (1 << bit))
-		    byte_lookup[byte][val] ^= bit_lookup[byte*8+bit];
+		    byte_lookup[byte][val] ^= bit_lookup[byte*CHAR_BIT+bit];
             }
         }
     }

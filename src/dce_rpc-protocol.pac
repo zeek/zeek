@@ -1,5 +1,3 @@
-# $Id: dce_rpc-protocol.pac,v 1.1.4.2 2006/06/02 15:13:09 rpang Exp $
-#
 # Definitions for DCE RPC.
 
 enum dce_rpc_ptype {

@@ -1,3 +1,8 @@
+##! An example of using the metrics framework to collect connection metrics 
+##! aggregated into /24 CIDR ranges.
+
+@load base/frameworks/metrics
+@load base/utils/site
 
 redef enum Metrics::ID += { 
 	CONNS_ORIGINATED, 
@@ -14,7 +19,7 @@ event bro_init()
 
 event connection_established(c: connection)
 	{
-	Metrics::add_data(CONNS_ORIGINATED, [$host=c$id$orig_h]);
-	Metrics::add_data(CONNS_RESPONDED,  [$host=c$id$resp_h]);
+	Metrics::add_data(CONNS_ORIGINATED, [$host=c$id$orig_h], 1);
+	Metrics::add_data(CONNS_RESPONDED,  [$host=c$id$resp_h], 1);
 	}
 	

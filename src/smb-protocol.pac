@@ -1,5 +1,3 @@
-# $Id$
-#
 # CIFS/SMB
 
 # TODO:

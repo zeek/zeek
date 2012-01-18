@@ -1,6 +1,0 @@
-# id.orig_p	id.resp_h	id.resp_p	status	country
-1234	2.3.4.5	80	success	unknown
-1234	2.3.4.5	80	failure	US
-1234	2.3.4.5	80	failure	UK
-1234	2.3.4.5	80	success	BR
-1234	2.3.4.5	80	failure	MX

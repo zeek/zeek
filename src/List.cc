@@ -1,5 +1,3 @@
-// $Id: List.cc 1905 2005-12-14 03:27:33Z vern $
-
 #include "config.h"
 
 #include <stdio.h>

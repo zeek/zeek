@@ -1,5 +1,3 @@
-// $Id: main.cc 6829 2009-07-09 09:12:59Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -49,6 +47,7 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "ConnCompressor.h"
 #include "DPM.h"
 #include "BroDoc.h"
+#include "LogWriterAscii.h"
 
 #include "binpac_bro.h"
 
@@ -98,6 +97,7 @@ extern char version[];
 char* command_line_policy = 0;
 vector<string> params;
 char* proc_status_file = 0;
+int snaplen = 0;	// this gets set from the scripting-layer's value
 
 int FLAGS_use_binpac = false;
 
@@ -145,7 +145,6 @@ void usage()
 	fprintf(stderr, "    -g|--dump-config               | dump current config into .state dir\n");
 	fprintf(stderr, "    -h|--help|-?                   | command line help\n");
 	fprintf(stderr, "    -i|--iface <interface>         | read from given interface\n");
-	fprintf(stderr, "    -Z|--doc-scripts               | generate documentation for all loaded scripts\n");
 	fprintf(stderr, "    -p|--prefix <prefix>           | add given prefix to policy file resolution\n");
 	fprintf(stderr, "    -r|--readfile <readfile>       | read from given tcpdump file\n");
 	fprintf(stderr, "    -y|--flowfile <file>[=<ident>] | read from given flow file\n");
@@ -172,6 +171,7 @@ void usage()
 	fprintf(stderr, "    -T|--re-level <level>          | set 'RE_level' for rules\n");
 	fprintf(stderr, "    -U|--status-file <file>        | Record process status in file\n");
 	fprintf(stderr, "    -W|--watchdog                  | activate watchdog timer\n");
+	fprintf(stderr, "    -Z|--doc-scripts               | generate documentation for all loaded scripts\n");
 
 #ifdef USE_PERFTOOLS
 	fprintf(stderr, "    -m|--mem-leaks                 | show leaks  [perftools]\n");
@@ -194,6 +194,7 @@ void usage()
 	fprintf(stderr, "    $BRO_PREFIXES                  | prefix list (%s)\n", bro_prefixes());
 	fprintf(stderr, "    $BRO_DNS_FAKE                  | disable DNS lookups (%s)\n", bro_dns_fake());
 	fprintf(stderr, "    $BRO_SEED_FILE                 | file to load seeds from (not set)\n");
+	fprintf(stderr, "    $BRO_LOG_SUFFIX                | ASCII log file extension (.%s)\n", LogWriterAscii::LogExt().c_str());
 
 	exit(1);
 	}
@@ -229,6 +230,8 @@ void done_with_network()
 
 	dpm->Done();
 	timer_mgr->Expire();
+	dns_mgr->Flush();
+	mgr.Drain();
 	mgr.Drain();
 
 	if ( remote_serializer )
@@ -350,6 +353,7 @@ int main(int argc, char** argv)
 	char* seed_load_file = getenv("BRO_SEED_FILE");
 	char* seed_save_file = 0;
 	char* user_pcap_filter = 0;
+	char* debug_streams = 0;
 	int bare_mode = false;
 	int seed = 0;
 	int dump_cfg = false;
@@ -367,7 +371,6 @@ int main(int argc, char** argv)
 		{"filter",		required_argument,	0,	'f'},
 		{"help",		no_argument,		0,	'h'},
 		{"iface",		required_argument,	0,	'i'},
-		{"print-scripts",	no_argument,		0,	'l'},
 		{"doc-scripts",		no_argument,		0,	'Z'},
 		{"prefix",		required_argument,	0,	'p'},
 		{"readfile",		required_argument,	0,	'r'},
@@ -441,7 +444,7 @@ int main(int argc, char** argv)
 	opterr = 0;
 
 	char opts[256];
-	safe_strncpy(opts, "B:D:e:f:I:i:K:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGLOPSWbdghvZ",
+	safe_strncpy(opts, "B:D:e:f:I:i:K:l:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGLOPSWbdghvZ",
 		     sizeof(opts));
 
 #ifdef USE_PERFTOOLS
@@ -454,7 +457,7 @@ int main(int argc, char** argv)
 		case 'b':
 			bare_mode = true;
 			break;
-			
+
 		case 'd':
 			fprintf(stderr, "Policy file debugging ON.\n");
 			g_policy_debug = true;
@@ -632,9 +635,7 @@ int main(int argc, char** argv)
 #endif
 
 		case 'B':
-#ifdef DEBUG
-			debug_logger.EnableStreams(optarg);
-#endif
+			debug_streams = optarg;
 			break;
 
 		case 0:
@@ -653,6 +654,11 @@ int main(int argc, char** argv)
 
 	bro_start_time = current_time(true);
 	reporter = new Reporter();
+
+#ifdef DEBUG
+	if ( debug_streams )
+		debug_logger.EnableStreams(debug_streams);
+#endif
 
 	init_random_seed(seed, (seed_load_file && *seed_load_file ? seed_load_file : 0) , seed_save_file);
 	// DEBUG_MSG("HMAC key: %s\n", md5_digest_print(shared_hmac_md5_key));
@@ -688,6 +694,7 @@ int main(int argc, char** argv)
 
 	if ( optind == argc &&
 	     read_files.length() == 0 && flow_files.length() == 0 &&
+	     interfaces.length() == 0 &&
 	     ! (id_name || bst_file) && ! command_line_policy )
 		add_input_file("-");
 
@@ -820,6 +827,8 @@ int main(int argc, char** argv)
 			}
 		}
 
+	snaplen = internal_val("snaplen")->AsCount();
+
 	// Initialize the secondary path, if it's needed.
 	secondary_path = new SecondaryPath();
 
@@ -931,9 +940,8 @@ int main(int argc, char** argv)
 
 	if ( dead_handlers->length() > 0 && check_for_unused_event_handlers )
 		{
-		reporter->Warning("event handlers never invoked:");
 		for ( int i = 0; i < dead_handlers->length(); ++i )
-			reporter->Warning("\t", (*dead_handlers)[i]);
+			reporter->Warning("event handler never invoked: %s", (*dead_handlers)[i]);
 		}
 
 	delete dead_handlers;
@@ -945,7 +953,7 @@ int main(int argc, char** argv)
 		{
 		reporter->Info("invoked event handlers:");
 		for ( int i = 0; i < alive_handlers->length(); ++i )
-			reporter->Info((*alive_handlers)[i]);
+			reporter->Info("%s", (*alive_handlers)[i]);
 		}
 
 	delete alive_handlers;

@@ -1,75 +1,75 @@
+##! Base SSH analysis script.  The heuristic to blindly determine success or 
+##! failure for SSH connections is implemented here.  At this time, it only
+##! uses the size of the data being returned from the server to make the
+##! heuristic determination about success of the connection.  
+##! Requires that :bro:id:`use_conn_size_analyzer` is set to T!  The heuristic
+##! is not attempted if the connection size analyzer isn't enabled.
+
+@load base/frameworks/notice
+@load base/utils/site
+@load base/utils/thresholds
+@load base/utils/conn-ids
+@load base/utils/directions-and-hosts
 
 module SSH;
 
 export {
-	redef enum Log::ID += { SSH };
-
-	redef enum Notice::Type += {
-		Login,
-		Password_Guessing,
-		Login_By_Password_Guesser,
-		Login_From_Interesting_Hostname,
-		Bytecount_Inconsistency,
+	## The SSH protocol logging stream identifier.
+	redef enum Log::ID += { LOG };
+	
+	redef enum Notice::Type += { 
+		## Indicates that a heuristically detected "successful" SSH 
+		## authentication occurred.
+		Login 
 	};
 
 	type Info: record {
+		## Time when the SSH connection began.
 		ts:              time         &log;
 		uid:             string       &log;
 		id:              conn_id      &log;
+		## Indicates if the login was heuristically guessed to be "success"
+		## or "failure".
 		status:          string       &log &optional;
-		direction:       string       &log &optional;
-		remote_location: geo_location &log &optional;
+		## Direction of the connection.  If the client was a local host 
+		## logging into an external host, this would be OUTBOUD.  INBOUND
+		## would be set for the opposite situation.
+		# TODO: handle local-local and remote-remote better.
+		direction:       Direction    &log &optional;
+		## Software string given by the client.
 		client:          string       &log &optional;
+		## Software string given by the server.
 		server:          string       &log &optional;
+		## Amount of data returned from the server.  This is currently
+		## the only measure of the success heuristic and it is logged to 
+		## assist analysts looking at the logs to make their own determination
+		## about the success on a case-by-case basis.
 		resp_size:       count        &log &default=0;
 		
 		## Indicate if the SSH session is done being watched.
 		done:            bool         &default=F;
 	};
-
-	const password_guesses_limit = 30 &redef;
 	
-	# The size in bytes at which the SSH connection is presumed to be
-	# successful.
+	## The size in bytes of data sent by the server at which the SSH 
+	## connection is presumed to be successful.
 	const authentication_data_size = 5500 &redef;
 	
-	# The amount of time to remember presumed non-successful logins to build
-	# model of a password guesser.
-	const guessing_timeout = 30 mins &redef;
-
-	# The set of countries for which you'd like to throw notices upon successful login
-	#   requires Bro compiled with libGeoIP support
-	const watched_countries: set[string] = {"RO"} &redef;
-
-	# Strange/bad host names to originate successful SSH logins
-	const interesting_hostnames =
-			/^d?ns[0-9]*\./ |
-			/^smtp[0-9]*\./ |
-			/^mail[0-9]*\./ |
-			/^pop[0-9]*\./  |
-			/^imap[0-9]*\./ |
-			/^www[0-9]*\./  |
-			/^ftp[0-9]*\./  &redef;
-
-	# This is a table with orig subnet as the key, and subnet as the value.
-	const ignore_guessers: table[subnet] of subnet &redef;
-	
-	# If true, we tell the event engine to not look at further data
-	# packets after the initial SSH handshake. Helps with performance
-	# (especially with large file transfers) but precludes some
-	# kinds of analyses (e.g., tracking connection size).
+	## If true, we tell the event engine to not look at further data
+	## packets after the initial SSH handshake. Helps with performance
+	## (especially with large file transfers) but precludes some
+	## kinds of analyses (e.g., tracking connection size).
 	const skip_processing_after_detection = F &redef;
 	
-	# Keeps count of how many rejections a host has had
-	global password_rejections: table[addr] of TrackCount 
-		&write_expire=guessing_timeout
-		&synchronized;
-
-	# Keeps track of hosts identified as guessing passwords
-	# TODO: guessing_timeout doesn't work correctly here.  If a user redefs
-	#       the variable, it won't take effect.
-	global password_guessers: set[addr] &read_expire=guessing_timeout+1hr &synchronized;
+	## Event that is generated when the heuristic thinks that a login
+	## was successful.
+	global heuristic_successful_login: event(c: connection);
 	
+	## Event that is generated when the heuristic thinks that a login
+	## failed.
+	global heuristic_failed_login: event(c: connection);
+	
+	## Event that can be handled to access the :bro:type:`SSH::Info`
+	## record as it is sent on to the logging framework.
 	global log_ssh: event(rec: Info);
 }
 
@@ -77,13 +77,15 @@ export {
 redef capture_filters += { ["ssh"] = "tcp port 22" };
 redef dpd_config += { [ANALYZER_SSH] = [$ports = set(22/tcp)] };
 
+redef likely_server_ports += { 22/tcp };
+
 redef record connection += {
 	ssh: Info &optional;
 };
 
 event bro_init() &priority=5
 {
-	Log::create_stream(SSH, [$columns=Info, $ev=log_ssh]);
+	Log::create_stream(SSH::LOG, [$columns=Info, $ev=log_ssh]);
 }
 
 function set_session(c: connection)
@@ -104,116 +106,70 @@ function check_ssh_connection(c: connection, done: bool)
 	if ( c$ssh$done )
 		return;
 	
-	# If this is still a live connection and the byte count has not
-	# crossed the threshold, just return and let the resheduled check happen later.
-	if ( !done && c$resp$size < authentication_data_size )
+	# Make sure conn_size_analyzer is active by checking 
+	# resp$num_bytes_ip.  In general it should always be active though.
+	if ( ! c$resp?$num_bytes_ip )
+		return;
+	
+	# Remove the IP and TCP header length from the total size.
+	# TODO: Fix for IPv6.  This whole approach also seems to break in some 
+	#       cases where there are more header bytes than num_bytes_ip.
+	local header_bytes = c$resp$num_pkts*32 + c$resp$num_pkts*20;
+	local server_bytes = c$resp$num_bytes_ip;
+	if ( server_bytes >= header_bytes )
+		server_bytes = server_bytes - header_bytes;
+	else
+		server_bytes = c$resp$size;
+	
+	# If this is still a live connection and the byte count has not crossed 
+	# the threshold, just return and let the rescheduled check happen later.
+	if ( ! done && server_bytes < authentication_data_size )
 		return;
 
 	# Make sure the server has sent back more than 50 bytes to filter out
 	# hosts that are just port scanning.  Nothing is ever logged if the server
 	# doesn't send back at least 50 bytes.
-	if ( c$resp$size < 50 )
+	if ( server_bytes < 50 )
 		return;
 
-	local status = "failure";
-	local direction = Site::is_local_addr(c$id$orig_h) ? "to" : "from";
-	local location: geo_location;
-	location = (direction == "to") ? lookup_location(c$id$resp_h) : lookup_location(c$id$orig_h);
+	c$ssh$direction = Site::is_local_addr(c$id$orig_h) ? OUTBOUND : INBOUND;
+	c$ssh$resp_size = server_bytes;
 	
-	if ( done && c$resp$size < authentication_data_size )
+	if ( server_bytes < authentication_data_size )
 		{
-		# presumed failure
-		if ( c$id$orig_h !in password_rejections )
-			password_rejections[c$id$orig_h] = new_track_count();
-			
-		# Track the number of rejections
-		if ( !(c$id$orig_h in ignore_guessers &&
-		       c$id$resp_h in ignore_guessers[c$id$orig_h]) )
-			++password_rejections[c$id$orig_h]$n;
-			
-		if ( default_check_threshold(password_rejections[c$id$orig_h]) )
-			{
-			add password_guessers[c$id$orig_h];
-			NOTICE([$note=Password_Guessing,
-			        $conn=c,
-			        $msg=fmt("SSH password guessing by %s", c$id$orig_h),
-			        $sub=fmt("%d failed logins", password_rejections[c$id$orig_h]$n),
-			        $n=password_rejections[c$id$orig_h]$n]);
-			}
-		} 
-	# TODO: This is to work around a quasi-bug in Bro which occasionally 
-	#       causes the byte count to be oversized.
-	#   Watch for Gregors work that adds an actual counter of bytes transferred.
-	else if ( c$resp$size < 20000000 ) 
+		c$ssh$status  = "failure";
+		event SSH::heuristic_failed_login(c);
+		}
+	else
 		{ 
 		# presumed successful login
-		status = "success";
-		c$ssh$done = T;
-
-		if ( c$id$orig_h in password_rejections &&
-		     password_rejections[c$id$orig_h]$n > password_guesses_limit &&
-		     c$id$orig_h !in password_guessers )
-			{
-			add password_guessers[c$id$orig_h];
-			NOTICE([$note=Login_By_Password_Guesser,
-			        $conn=c,
-			        $n=password_rejections[c$id$orig_h]$n,
-			        $msg=fmt("Successful SSH login by password guesser %s", c$id$orig_h),
-			        $sub=fmt("%d failed logins", password_rejections[c$id$orig_h]$n)]);
-			}
-		
-		local message = fmt("SSH login %s %s \"%s\" \"%s\" %f %f %s (triggered with %d bytes)",
-		              direction, location$country_code, location$region, location$city,
-		              location$latitude, location$longitude,
-		              id_string(c$id), c$resp$size);
-		NOTICE([$note=Login,
-		        $conn=c,
-		        $msg=message,
-		        $sub=location$country_code]);
-		
-		# Check to see if this login came from an interesting hostname
-		when ( local hostname = lookup_addr(c$id$orig_h) )
-			{
-			if ( interesting_hostnames in hostname )
-				{
-				NOTICE([$note=Login_From_Interesting_Hostname,
-				        $conn=c,
-				        $msg=fmt("Strange login from %s", hostname),
-				        $sub=hostname]);
-				}
-			}
-			
-		if ( location$country_code in watched_countries )
-			{
-			
-			}
-			
+		c$ssh$status = "success";
+		event SSH::heuristic_successful_login(c);
 		}
-	else if ( c$resp$size >= 200000000 ) 
-		{
-		NOTICE([$note=Bytecount_Inconsistency,
-		        $conn=c,
-		        $msg="During byte counting in SSH analysis, an overly large value was seen.",
-		        $sub=fmt("%d",c$resp$size)]);
-		}
-
-	c$ssh$remote_location = location;
-	c$ssh$status = status;
-	c$ssh$direction = direction;
-	c$ssh$resp_size = c$resp$size;
-	
-	Log::write(SSH, c$ssh);
 	
 	# Set the "done" flag to prevent the watching event from rescheduling
 	# after detection is done.
-	c$ssh$done;
+	c$ssh$done=T;
 	
-	# Stop watching this connection, we don't care about it anymore.
 	if ( skip_processing_after_detection )
 		{
+		# Stop watching this connection, we don't care about it anymore.
 		skip_further_processing(c$id);
 		set_record_packets(c$id, F);
 		}
+	}
+
+event SSH::heuristic_successful_login(c: connection) &priority=-5
+	{
+	NOTICE([$note=Login, 
+	        $msg="Heuristically detected successful SSH login.",
+	        $conn=c]);
+	
+	Log::write(SSH::LOG, c$ssh);
+	}
+event SSH::heuristic_failed_login(c: connection) &priority=-5
+	{
+	Log::write(SSH::LOG, c$ssh);
 	}
 
 event connection_state_remove(c: connection) &priority=-5
@@ -226,7 +182,7 @@ event ssh_watcher(c: connection)
 	{
 	local id = c$id;
 	# don't go any further if this connection is gone already!
-	if ( !connection_exists(id) )
+	if ( ! connection_exists(id) )
 		return;
 
 	check_ssh_connection(c, F);
@@ -244,5 +200,9 @@ event ssh_client_version(c: connection, version: string) &priority=5
 	{
 	set_session(c);
 	c$ssh$client = version;
-	schedule +15secs { ssh_watcher(c) };
+	
+	# The heuristic detection for SSH relies on the ConnSize analyzer.
+	# Don't do the heuristics if it's disabled.
+	if ( use_conn_size_analyzer )
+		schedule +15secs { ssh_watcher(c) };
 	}

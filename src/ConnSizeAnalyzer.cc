@@ -1,5 +1,3 @@
-// $Id$
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 //
 // See ConnSize.h for more extensive comments.

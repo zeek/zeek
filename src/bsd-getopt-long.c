@@ -1,5 +1,3 @@
-/* $Id: bsd-getopt-long.c 1362 2005-09-12 19:49:08Z vern $ */
-
 /*    $OpenBSD: getopt_long.c,v 1.17 2004/06/03 18:46:52 millert Exp $    */
 /*    $NetBSD: getopt_long.c,v 1.15 2002/01/31 22:43:40 tv Exp $    */
 

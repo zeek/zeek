@@ -1,5 +1,3 @@
-// $Id: POP3.cc 6782 2009-06-28 02:19:03Z vern $
-
 // This code contributed to Bro by Florian Schimandl, Hugh Dollman and
 // Robin Sommer.
 

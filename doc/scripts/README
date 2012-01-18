@@ -1,6 +1,6 @@
 This directory contains scripts and templates that can be used to automate
 the generation of Bro script documentation.  Several build targets are defined
-by CMake:
+by CMake and available in the top-level Makefile:
 
 ``restdoc``
 
@@ -15,28 +15,9 @@ by CMake:
     ``build/`` directory inside ``reST`` (a symlink to
     ``doc/scripts/rest_output``).
 
-``doc``
-
-    This target depends on a Python interpreter (>=2.5) and
-    `Sphinx <http://sphinx.pocoo.org/>`_ being installed.  Sphinx can be
-    installed like::
-
-        > sudo easy_install sphinx
-
-    This target will first build ``restdoc`` target and then copy the
-    resulting reST files as an input directory to Sphinx.
-
-    After completion, HTML documentation can be located in the CMake
-    ``build/`` directory inside ``html`` (a symlink to
-    ``doc/scripts/out/html``)
-
 ``restclean``
 
     This target removes any reST documentation that has been generated so far.
-
-``docclean``
-
-    This target removes Sphinx inputs and outputs from the CMake ``build/`` dir.
 
 The ``genDocSourcesList.sh`` script can be run to automatically generate
 ``DocSourcesList.cmake``, which is the file CMake uses to define the list
@@ -44,7 +25,7 @@ of documentation targets.  This script should be run after adding new
 Bro script source files, and the changes commited to git.
 
 If a script shouldn't have documentation generated for it, there's also a
-blacklist variable that can be maintained in the ``genDocSourcesList.sh``
+blacklist manifest that can be maintained in the ``genDocSourcesList.sh``
 script.
 
 The blacklist can also be used if you want to define a certain grouping for
@@ -54,18 +35,10 @@ script's name to the blacklist, then append a ``rest_target()`` to the
 ``statictext`` variable where the first argument is the source directory
 containing the policy script to document, the second argument is the file
 name of the policy script, and the third argument is the path/name of a
-pre-created reST document in the ``source/`` directory to which the
+pre-created reST document in the ``../`` source directory to which the
 ``make doc`` process can append script documentation references.  This
 pre-created reST document should also then be linked to from the TOC tree
-in ``source/index.rst``.
-
-The Sphinx source tree template in ``source/`` can be modified to add more
-common/general documentation, style sheets, JavaScript, etc.  The Sphinx
-config file is produced from ``conf.py.in``, so that can be edited to change
-various Sphinx options, like setting the default HTML rendering theme.
-There is also a custom Sphinx domain implemented in ``source/ext/bro.py``
-which adds some reST directives and roles that aid in generating useful
-index entries and cross-references.
+in ``../index.rst``.
 
 See ``example.bro`` for an example of how to document a Bro script such that
 ``make doc`` will be able to produce reST/HTML documentation for it.

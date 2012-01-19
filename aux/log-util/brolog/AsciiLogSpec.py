@@ -87,6 +87,10 @@ class AsciiLogSpec(BroLogSpec):
             return False
         self._separator = match.group(1)
         self._separator = self._separator.decode('string_escape')
+        # skip over a few unused lines in log file
+        ascii_file.readline()
+        ascii_file.readline()
+        ascii_file.readline()
         # and the path...
         match = AsciiLogSpec.RE_PATHSPEC.match(ascii_file.readline())
         if not match:

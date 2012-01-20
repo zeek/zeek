@@ -338,7 +338,7 @@ Things to keep in mind when writing signatures
   signature engine and can be matched with ``\r`` and ``\n``,
   respectively. Generally, Bro follows `flex's regular expression
   syntax
-  <http://www.gnu.org/software/flex/manual/html_chapter/flex_7.html>`_.
+  <http://flex.sourceforge.net/manual/Patterns.html>`_.
   See the DPD signatures in ``base/frameworks/dpd/dpd.sig`` for some examples
   of fairly complex payload patterns.
 

@@ -29,7 +29,7 @@ following:
 * The output you're seeing along with a description what you'd expect
   Bro to do instead.
 
-* A *small* trace in `libpcap format <http://tcpdump.org>`__
+* A *small* trace in `libpcap format <http://www.tcpdump.org>`__
   demonstrating the effect (assuming the problem doesn't happen right
   at startup already).
 

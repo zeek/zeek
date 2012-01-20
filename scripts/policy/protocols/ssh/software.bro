@@ -1,4 +1,4 @@
-##! This script extracts SSH client and server information from SSH 
+##! Extracts SSH client and server information from SSH 
 ##! connections and forwards it to the software framework.
 
 @load base/frameworks/software
@@ -7,7 +7,9 @@ module SSH;
 
 export {
 	redef enum Software::Type += {
+		## Identifier for SSH clients in the software framework.
 		SERVER,
+		## Identifier for SSH servers in the software framework.
 		CLIENT,
 	};
 }

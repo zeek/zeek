@@ -1,11 +1,12 @@
 {% extends "!layout.html" %}
 
 {% block extrahead %}
-<link rel="stylesheet" type="text/css" href="http://www.bro-ids.org/css/bro-ids.css" />
-<link rel="stylesheet" type="text/css" href="http://www.bro-ids.org/css/960.css" />
-<link rel="stylesheet" type="text/css" href="http://www.bro-ids.org/css/pygments.css" />
+<link rel="stylesheet" type="text/css" href="{{ pathto('_static/broxygen.css', 1) }}"></script>
+<link rel="stylesheet" type="text/css" href="{{ pathto('_static/960.css', 1) }}"></script>
+<link rel="stylesheet" type="text/css" href="{{ pathto('_static/pygments.css', 1) }}"></script>
 <link rel="stylesheet" type="text/css" href="{{ pathto('_static/broxygen-extra.css', 1) }}"></script>
-<script type="text/javascript" src="{{ pathto('_static/download.js', 1) }}"></script>
+
+<script type="text/javascript" src="{{ pathto('_static/broxygen-extra.js', 1) }}"></script>
 {% endblock %}
 
 {% block header %}
@@ -47,6 +48,7 @@
                             Table of Contents
                         </h3>
                         <p>
+                            <!-- <ul id="sidebar-toc"></ul> -->
                             <ul>{{toc}}</ul>
                         </p>
                     </div>

@@ -1,11 +1,13 @@
-##! Connect to remote Bro or Broccoli instances to share state and/or transfer
-##! events.
+##! Facilitates connecting to remote Bro or Broccoli instances to share state
+##! and/or transfer events.
 
 @load base/frameworks/packet-filter
 
 module Communication;
 
 export {
+
+	## The communication logging stream identifier.
 	redef enum Log::ID += { LOG };
 	
 	## Which interface to listen on (0.0.0.0 for any interface).
@@ -21,14 +23,25 @@ export {
 	## compression.
 	global compression_level = 0 &redef;
 
+	## A record type containing the column fields of the communication log.
 	type Info: record {
+		## The network time at which a communication event occurred.
 		ts:                  time   &log;
+		## The peer name (if any) for which a communication event is concerned.
 		peer:                string &log &optional;
+		## Where the communication event message originated from, that is,
+		## either from the scripting layer or inside the Bro process.
 		src_name:            string &log &optional;
+		## .. todo:: currently unused.
 		connected_peer_desc: string &log &optional;
+		## .. todo:: currently unused.
 		connected_peer_addr: addr   &log &optional;
+		## .. todo:: currently unused.
 		connected_peer_port: port   &log &optional;
+		## The severity of the communication event message.
 		level:               string &log &optional;
+		## A message describing the communication event between Bro or
+		## Broccoli instances.
 		message:             string &log;
 	};
 
@@ -77,7 +90,7 @@ export {
 		auth: bool &default = F;
 
 		## If not set, no capture filter is sent.
-		## If set to "", the default cature filter is sent.
+		## If set to "", the default capture filter is sent.
 		capture_filter: string &optional;
 
 		## Whether to use SSL-based communication.
@@ -96,11 +109,25 @@ export {
 	## The table of Bro or Broccoli nodes that Bro will initiate connections
 	## to or respond to connections from.
 	global nodes: table[string] of Node &redef;
-	
+
+	## A table of peer nodes for which this node issued a
+	## :bro:id:`Communication::connect_peer` call but with which a connection
+	## has not yet been established or with which a connection has been
+	## closed and is currently in the process of retrying to establish.
+	## When a connection is successfully established, the peer is removed
+	## from the table.
 	global pending_peers: table[peer_id] of Node;
+
+	## A table of peer nodes for which this node has an established connection.
+	## Peers are automatically removed if their connection is closed and
+	## automatically added back if a connection is re-established later.
 	global connected_peers: table[peer_id] of Node;
 
-	## Connect to nodes[node], independent of its "connect" flag.
+	## Connect to a node in :bro:id:`Communication::nodes` independent
+	## of its "connect" flag.
+	##
+	## peer: the string used to index a particular node within the
+	##      :bro:id:`Communication::nodes` table.
 	global connect_peer: function(peer: string);
 }
 

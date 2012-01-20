@@ -103,6 +103,20 @@ public:
 	 */
 	int LongestShortDescLen() const;
 
+	/**
+	 * Adds a reST documentation string to this BroDocObj's list.
+	 * @param s the documentation string to append.
+	 */
+	void AddDocString(const std::string& s)
+		{
+		if ( ! reST_doc_strings )
+			reST_doc_strings = new std::list<std::string>();
+		reST_doc_strings->push_back(s);
+		FormulateShortDesc();
+		}
+
+	static BroDocObj* last;
+
 protected:
 	std::list<std::string>* reST_doc_strings;
 	std::list<std::string> short_desc;

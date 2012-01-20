@@ -1,18 +1,65 @@
 module SSL;
 
 export {
-
 	const SSLv2  = 0x0002;
 	const SSLv3  = 0x0300;
 	const TLSv10 = 0x0301;
 	const TLSv11 = 0x0302;
+	const TLSv12 = 0x0303;
+	## Mapping between the constants and string values for SSL/TLS versions.
 	const version_strings: table[count] of string = {
 		[SSLv2] = "SSLv2",
 		[SSLv3] = "SSLv3",
 		[TLSv10] = "TLSv10",
 		[TLSv11] = "TLSv11",
+		[TLSv12] = "TLSv12",
 	} &default="UNKNOWN";
-
+	
+	## Mapping between numeric codes and human readable strings for alert 
+	## levels.
+	const alert_levels: table[count] of string = {
+		[1] = "warning",
+		[2] = "fatal",
+	} &default=function(i: count):string { return fmt("unknown-%d", i); };
+	
+	## Mapping between numeric codes and human readable strings for alert 
+	## descriptions..
+	const alert_descriptions: table[count] of string = {
+		[0] = "close_notify",
+		[10] = "unexpected_message",
+		[20] = "bad_record_mac",
+		[21] = "decryption_failed",
+		[22] = "record_overflow",
+		[30] = "decompression_failure",
+		[40] = "handshake_failure",
+		[41] = "no_certificate",
+		[42] = "bad_certificate",
+		[43] = "unsupported_certificate",
+		[44] = "certificate_revoked",
+		[45] = "certificate_expired",
+		[46] = "certificate_unknown",
+		[47] = "illegal_parameter",
+		[48] = "unknown_ca",
+		[49] = "access_denied",
+		[50] = "decode_error",
+		[51] = "decrypt_error",
+		[60] = "export_restriction",
+		[70] = "protocol_version",
+		[71] = "insufficient_security",
+		[80] = "internal_error",
+		[90] = "user_canceled",
+		[100] = "no_renegotiation",
+		[110] = "unsupported_extension",
+		[111] = "certificate_unobtainable",
+		[112] = "unrecognized_name",
+		[113] = "bad_certificate_status_response",
+		[114] = "bad_certificate_hash_value",
+		[115] = "unknown_psk_identity",
+	} &default=function(i: count):string { return fmt("unknown-%d", i); };
+	
+	## Mapping between numeric codes and human readable strings for SSL/TLS
+	## extensions.
+	# More information can be found here:
 	# http://www.iana.org/assignments/tls-extensiontype-values/tls-extensiontype-values.xml
 	const extensions: table[count] of string = {
 		[0] = "server_name",
@@ -31,10 +78,11 @@ export {
 		[13] = "signature_algorithms",
 		[14] = "use_srtp",
 		[35] = "SessionTicket TLS",
+		[13172] = "next_protocol_negotiation",
 		[65281] = "renegotiation_info"
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };
 	
-	## SSLv2
+	# SSLv2
 	const SSLv20_CK_RC4_128_WITH_MD5 = 0x010080;
 	const SSLv20_CK_RC4_128_EXPORT40_WITH_MD5 = 0x020080;
 	const SSLv20_CK_RC2_128_CBC_WITH_MD5 = 0x030080;
@@ -43,7 +91,7 @@ export {
 	const SSLv20_CK_DES_64_CBC_WITH_MD5 = 0x060040;
 	const SSLv20_CK_DES_192_EDE3_CBC_WITH_MD5 = 0x0700C0;
 
-	## TLS
+	# TLS
 	const TLS_NULL_WITH_NULL_NULL = 0x0000;
 	const TLS_RSA_WITH_NULL_MD5 = 0x0001;
 	const TLS_RSA_WITH_NULL_SHA = 0x0002;
@@ -260,13 +308,11 @@ export {
 	const SSL_RSA_WITH_DES_CBC_MD5 = 0xFF82;
 	const SSL_RSA_WITH_3DES_EDE_CBC_MD5 = 0xFF83;
 	const TLS_EMPTY_RENEGOTIATION_INFO_SCSV = 0x00FF;
-
-	# --- This is a table of all known cipher specs.
-	# --- It can be used for detecting unknown ciphers and for
-	# --- converting the cipher spec constants into a human readable format.
-
+	
+	## This is a table of all known cipher specs.  It can be used for 
+	## detecting unknown ciphers and for converting the cipher spec constants 
+	## into a human readable format.
 	const cipher_desc: table[count] of string = {
-		# --- sslv20 ---
 		[SSLv20_CK_RC4_128_EXPORT40_WITH_MD5] =
 			"SSLv20_CK_RC4_128_EXPORT40_WITH_MD5",
 		[SSLv20_CK_RC4_128_WITH_MD5] = "SSLv20_CK_RC4_128_WITH_MD5",
@@ -278,7 +324,6 @@ export {
 			"SSLv20_CK_DES_192_EDE3_CBC_WITH_MD5",
 		[SSLv20_CK_DES_64_CBC_WITH_MD5] = "SSLv20_CK_DES_64_CBC_WITH_MD5",
 
-		# --- TLS ---
 		[TLS_NULL_WITH_NULL_NULL] = "TLS_NULL_WITH_NULL_NULL",
 		[TLS_RSA_WITH_NULL_MD5] = "TLS_RSA_WITH_NULL_MD5",
 		[TLS_RSA_WITH_NULL_SHA] = "TLS_RSA_WITH_NULL_SHA",
@@ -491,7 +536,8 @@ export {
 		[SSL_RSA_FIPS_WITH_DES_CBC_SHA_2] = "SSL_RSA_FIPS_WITH_DES_CBC_SHA_2",
 		[SSL_RSA_FIPS_WITH_3DES_EDE_CBC_SHA_2] = "SSL_RSA_FIPS_WITH_3DES_EDE_CBC_SHA_2",
 	} &default="UNKNOWN";
-
+	
+	## Mapping between the constants and string values for SSL/TLS errors.
 	const x509_errors: table[count] of string = {
 		[0]  = "ok",
 		[1]  = "unable to get issuer cert",
@@ -526,8 +572,7 @@ export {
 		[30] = "akid issuer serial mismatch",
 		[31] = "keyusage no certsign",
 		[32] = "unable to get crl issuer",
-		[33] = "unhandled critical extension"
-		
+		[33] = "unhandled critical extension",
 	};
 
 }

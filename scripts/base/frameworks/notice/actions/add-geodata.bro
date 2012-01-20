@@ -31,6 +31,7 @@ export {
 	## Add a helper to the notice policy for looking up GeoIP data.
 	redef Notice::policy += {
 		[$pred(n: Notice::Info) = { return (n$note in Notice::lookup_location_types); },
+		 $action = ACTION_ADD_GEODATA,
 		 $priority = 10],
 	};
 }

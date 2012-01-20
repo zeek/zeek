@@ -4,9 +4,12 @@
 #include "ID.h"
 #include "BroDocObj.h"
 
+BroDocObj* BroDocObj::last = 0;
+
 BroDocObj::BroDocObj(const ID* id, std::list<std::string>*& reST,
 			bool is_fake)
 	{
+	last = this;
 	broID = id;
 	reST_doc_strings = reST;
 	reST = 0;

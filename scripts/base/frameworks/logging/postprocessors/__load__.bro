@@ -1,1 +1,2 @@
 @load ./scp
+@load ./sftp

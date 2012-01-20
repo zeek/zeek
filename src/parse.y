@@ -2,7 +2,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 %}
 
-%expect 88
+%expect 87
 
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ANY
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
@@ -53,7 +53,7 @@
 %type <expr> expr init anonymous_function
 %type <event_expr> event
 %type <stmt> stmt stmt_list func_body for_head
-%type <type> type opt_type refined_type enum_body
+%type <type> type opt_type enum_body
 %type <func_type> func_hdr func_params
 %type <type_l> type_list
 %type <type_decl> type_decl formal_args_decl
@@ -1104,7 +1104,7 @@ decl:
 				}
 			}
 
-	|	TOK_TYPE global_id ':' refined_type opt_attr ';'
+	|	TOK_TYPE global_id ':' type opt_attr ';'
 			{
 			add_type($2, $4, $5, 0);
 
@@ -1134,7 +1134,7 @@ decl:
 				}
 			}
 
-	|	TOK_EVENT event_id ':' refined_type opt_attr ';'
+	|	TOK_EVENT event_id ':' type_list opt_attr ';'
 			{
 			add_type($2, $4, $5, 1);
 
@@ -1218,13 +1218,6 @@ func_params:
 			{ $$ = new FuncType($2, $5, 0); }
 	|	'(' formal_args ')'
 			{ $$ = new FuncType($2, base_type(TYPE_VOID), 0); }
-	;
-
-refined_type:
-		type_list '{' type_decl_list '}'
-			{ $$ = refine_type($1, $3); }
-	|	type_list
-			{ $$ = refine_type($1, 0); }
 	;
 
 opt_type:

@@ -80,15 +80,15 @@ signature irc_server_reply {
   tcp-state responder
 }
 
-signature irc_sig3 {
+signature irc_server_to_server1 {
   ip-proto == tcp
-  payload /(.*\x0a)*(\x20)*[Ss][Ee][Rr][Vv][Ee][Rr](\x20)+.+\x0a/
+  payload /(|.*[\r\n]) *[Ss][Ee][Rr][Vv][Ee][Rr] +[^ ]+ +[0-9]+ +:.+[\r\n]/
 }
 
-signature irc_sig4 {
+signature irc_server_to_server2 {
   ip-proto == tcp
-  payload /(.*\x0a)*(\x20)*[Ss][Ee][Rr][Vv][Ee][Rr](\x20)+.+\x0a/
-  requires-reverse-signature irc_sig3
+  payload /(|.*[\r\n]) *[Ss][Ee][Rr][Vv][Ee][Rr] +[^ ]+ +[0-9]+ +:.+[\r\n]/
+  requires-reverse-signature irc_server_to_server1
   enable "irc"
 }
 

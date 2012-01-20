@@ -1,0 +1,8 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	test
+#fields	ss
+#types	table[string]
+CC,AA,\x2c,\x2c\x2c

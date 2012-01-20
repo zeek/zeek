@@ -1,4 +1,5 @@
-# Definitions of Bro built-in functions related to strings.
+##! Definitions of built-in functions related to string processing and
+##! manipulation.
 
 
 %%{ // C segment
@@ -10,6 +11,14 @@ using namespace std;
 %%}
 
 
+## Concates all arguments into a single string. The function takes a variable
+## number of arguments of type string and stiches them together.
+##
+## Returns: The concatenation of all (string) arguments.
+##
+## .. bro:see:: cat cat_sep cat_string_array cat_string_array_n
+##              fmt
+##              join_string_vec join_string_array
 function string_cat%(...%): string
 	%{
 	int n = 0;
@@ -73,18 +82,53 @@ BroString* cat_string_array_n(TableVal* tbl, int start, int end)
 	}
 %%}
 
+## Concatenates all elements in an array of strings.
+##
+## a: The :bro:type:`string_array` (``table[count] of string``).
+##
+## Returns: The concatenation of all elements in *a*.
+##
+## .. bro:see:: cat cat_sep string_cat cat_string_array_n
+##              fmt
+##              join_string_vec join_string_array
 function cat_string_array%(a: string_array%): string
 	%{
 	TableVal* tbl = a->AsTableVal();
 	return new StringVal(cat_string_array_n(tbl, 1, a->AsTable()->Length()));
 	%}
 
+## Concatenates a specific range of elements in an array of strings.
+##
+## a: The :bro:type:`string_array` (``table[count] of string``).
+##
+## start: The array index of the first element of the range.
+##
+## end: The array index of the last element of the range.
+##
+## Returns: The concatenation of the range *[start, end]* in *a*.
+##
+## .. bro:see:: cat string_cat cat_string_array
+##              fmt
+##              join_string_vec join_string_array
 function cat_string_array_n%(a: string_array, start: count, end: count%): string
 	%{
 	TableVal* tbl = a->AsTableVal();
 	return new StringVal(cat_string_array_n(tbl, start, end));
 	%}
 
+## Joins all values in the given array of strings with a separator placed
+## between each element.
+##
+## sep: The separator to place between each element.
+##
+## a: The :bro:type:`string_array` (``table[count] of string``).
+##
+## Returns: The concatenation of all elements in *a*, with *sep* placed
+##          between each element.
+##
+## .. bro:see:: cat cat_sep string_cat cat_string_array cat_string_array_n
+##              fmt
+##              join_string_vec
 function join_string_array%(sep: string, a: string_array%): string
 	%{
 	vector<const BroString*> vs;
@@ -108,6 +152,45 @@ function join_string_array%(sep: string, a: string_array%): string
 	return new StringVal(concatenate(vs));
 	%}
 
+## Joins all values in the given vector of strings with a separator placed
+## between each element.
+##
+## sep: The separator to place between each element.
+##
+## a: The :bro:type:`string_vec` (``vector of string``).
+##
+## Returns: The concatenation of all elements in *a*, with *sep* placed
+##          between each element.
+##
+## .. bro:see:: cat cat_sep string_cat cat_string_array cat_string_array_n
+##              fmt
+##              join_string_array
+function join_string_vec%(vec: string_vec, sep: string%): string
+	%{
+	ODesc d;
+	VectorVal *v = vec->AsVectorVal();
+
+	for ( unsigned i = 0; i < v->Size(); ++i )
+		{
+		if ( i > 0 )
+			d.Add(sep->CheckString(), 0);
+
+		v->Lookup(i+1)->Describe(&d);
+		}
+
+	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
+	s->SetUseFreeToDelete(true);
+
+	return new StringVal(s);
+	%}
+
+## Sorts an array of strings.
+##
+## a: The :bro:type:`string_array` (``table[count] of string``).
+##
+## Returns: A sorted copy of *a*.
+##
+## .. bro:see:: sort
 function sort_string_array%(a: string_array%): string_array
 	%{
 	TableVal* tbl = a->AsTableVal();
@@ -129,31 +212,29 @@ function sort_string_array%(a: string_array%): string_array
 		}
 	// sort(vs.begin(), vs.end(), Bstr_cmp);
 
-	TableVal* b = new TableVal(internal_type("string_array")->AsTableType());
+	TableVal* b = new TableVal(string_array);
 	vs_to_string_array(vs, b, 1, n);
 	return b;
 	%}
-	
-function join_string_vec%(vec: string_vec, sep: string%): string
-	%{
-	ODesc d;
-	VectorVal *v = vec->AsVectorVal();
 
-	for ( unsigned i = 0; i < v->Size(); ++i )
-		{
-		if ( i > 0 )
-			d.Add(sep->CheckString(), 0);
-
-		v->Lookup(i+1)->Describe(&d);
-		}
-
-	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
-	s->SetUseFreeToDelete(true);
-
-	return new StringVal(s);
-	%}
-
-
+## Returns an edited version of a string that applies a special
+## "backspace character" (usually ``\x08`` for backspace or ``\x7f`` for DEL).
+## For ## example, ``edit("hello there", "e")`` returns ``"llo t"``.
+##
+## arg_s: The string to edit.
+##
+## arg_edit_char: A string of exactly one character that represents the
+##                "backspace character". If it is longer than one character Bro
+##                generates a run-time error and uses the first character in
+##                the string.
+##
+## Returns: An edited version of *arg_s* where *arg_edit_char* triggers the
+##          deletetion of the last character.
+##
+## .. bro:see:: clean
+##              to_string_literal
+##              escape_string
+##              strip
 function edit%(arg_s: string, arg_edit_char: string%): string
 	%{
 	if ( arg_edit_char->Len() != 1 )
@@ -184,11 +265,28 @@ function edit%(arg_s: string, arg_edit_char: string%): string
 	return new StringVal(new BroString(1, byte_vec(new_s), ind));
 	%}
 
+## Returns the number of characters (bytes) in the given string. The
+## length computation includes any embedded NULs, and also a trailing NUL,
+## if any (which is why the function isn't called ``strlen``; to remind
+## the user that Bro strings can include NULs).
+##
+## s: The string to compute the length for.
+##
+## Returns: The number of characters in *s*.
 function byte_len%(s: string%): count
 	%{
 	return new Val(s->Len(), TYPE_COUNT);
 	%}
 
+## Get a substring of from a string, given a starting position length.
+##
+## s: The string to obtain a substring from.
+##
+## start: The starting position of the substring in *s*
+##
+## n: The number of characters to extract, beginning at *start*.
+##
+## Returns: A substring of *s* of length *n* from position *start*.
 function sub_bytes%(s: string, start: count, n: int%): string
 	%{
 	if ( start > 0 )
@@ -216,7 +314,7 @@ static int match_prefix(int s_len, const char* s, int t_len, const char* t)
 Val* do_split(StringVal* str_val, RE_Matcher* re, TableVal* other_sep,
 		int incl_sep, int max_num_sep)
 	{
-	TableVal* a = new TableVal(internal_type("string_array")->AsTableType());
+	TableVal* a = new TableVal(string_array);
 	ListVal* other_strings = 0;
 
 	if ( other_sep && other_sep->Size() > 0 )
@@ -368,42 +466,94 @@ Val* do_sub(StringVal* str_val, RE_Matcher* re, StringVal* repl, int do_all)
 	}
 %%}
 
-# Similar to split in awk.
-
+## Splits a string into an array of strings according to a pattern.
+##
+## str: The string to split.
+##
+## re: The pattern describing the element separator in *str*.
+##
+## Returns: An array of strings where each element corresponds to a substring
+##          in *str* separated by *re*.
+##
+## .. bro:see:: split1 split_all split_n str_split
+##
+## .. note:: The returned table starts at index 1. Note that conceptually the
+##           return value is meant to be a vector and this might change in the
+##           future.
+##
 function split%(str: string, re: pattern%): string_array
 	%{
 	return do_split(str, re, 0, 0, 0);
 	%}
 
-# split1(str, pattern, include_separator): table[count] of string
-#
-# Same as split, except that str is only split (if possible) at the
-# earliest position and an array of two strings is returned.
-# An array of one string is returned when str cannot be splitted.
-
+## Splits a string *once* into a a two-element array of strings according to a
+## pattern. This function is the same as :bro:id:`split`, but * is only split
+## once (if possible) at the earliest position and an array of two strings is
+## returned.
+##
+## str: The string to split.
+##
+## re: The pattern describing the separator to split *str* in two pieces.
+##
+## Returns: An array of strings with two elements in which the first represents
+##          the substring in *str* up to the first occurence of *re*, and the
+##          second everything after *re*. An array of one string is returned
+##          when *s* cannot be split.
+##
+## .. bro:see:: split split_all split_n str_split
 function split1%(str: string, re: pattern%): string_array
 	%{
 	return do_split(str, re, 0, 0, 1);
 	%}
 
-# Same as split, except that the array returned by split_all also
-# includes parts of string that match the pattern in the array.
-
-# For example, split_all("a-b--cd", /(\-)+/) returns {"a", "-", "b",
-# "--", "cd"}: odd-indexed elements do not match the pattern
-# and even-indexed ones do.
-
+## Splits a string into an array of strings according to a pattern. This
+## function is the same as :bro:id:`split`, except that the separators are
+## returned as well. For example, ``split_all("a-b--cd", /(\-)+/)`` returns
+## ``{"a", "-", "b", "--", "cd"}``: odd-indexed elements do not match the
+## pattern and even-indexed ones do.
+##
+## str: The string to split.
+##
+## re: The pattern describing the element separator in *str*.
+##
+## Returns: An array of strings where each two successive elements correspond
+##          to a substring in *str* of the part not matching *re* (odd-indexed)
+##          and thei part that matches *re* (even-indexed).
+##
+## .. bro:see:: split split1 split_n str_split
 function split_all%(str: string, re: pattern%): string_array
 	%{
 	return do_split(str, re, 0, 1, 0);
 	%}
 
+## Splits a string a given number of times into an array of strings according
+## to a pattern. This function is similar to :bro:id:`split1` and
+## :bro:id:`split_all`, but with customizable behavior with respect to
+## including separators in the result and the number of times to split.
+##
+## str: The string to split.
+##
+## re: The pattern describing the element separator in *str*.
+##
+## incl_sep: A flag indicating whether to include the separator matches in the
+##           result (as in :bro:id:`split_all`).
+##
+## max_num_sep: The number of times to split *str*.
+##
+## Returns: An array of strings where, if *incl_sep* is true, each two
+##          successive elements correspond to a substring in *str* of the part
+##          not matching *re* (odd-indexed) and the part that matches *re*
+##          (even-indexed).
+##
+## .. bro:see:: split split1 split_all str_split
 function split_n%(str: string, re: pattern,
 		incl_sep: bool, max_num_sep: count%): string_array
 	%{
 	return do_split(str, re, 0, incl_sep, max_num_sep);
 	%}
 
+## Deprecated. Will be removed.
+# Reason: the parameter ``other`` does nothing.
 function split_complete%(str: string,
 		re: pattern, other: string_set,
 		incl_sep: bool, max_num_sep: count%): string_array
@@ -411,22 +561,65 @@ function split_complete%(str: string,
 	return do_split(str, re, other->AsTableVal(), incl_sep, max_num_sep);
 	%}
 
+## Substitutes a given replacement string for the first occurrence of a pattern
+## in a given string.
+##
+## str: The string to perform the substitution in.
+##
+## re: The pattern being replaced with *repl*.
+##
+## repl: The string that replacs *re*.
+##
+## Returns: A copy of *str* with the first occurence of *re* replaced with
+##          *repl*.
+##
+## .. bro:see:: gsub subst_string
 function sub%(str: string, re: pattern, repl: string%): string
 	%{
 	return do_sub(str, re, repl, 0);
 	%}
 
+## Substitutes a given replacement string for the all occurrences of a pattern
+## in a given string.
+##
+## str: The string to perform the substitution in.
+##
+## re: The pattern being replaced with *repl*.
+##
+## repl: The string that replacs *re*.
+##
+## Returns: A copy of *str* with all occurences of *re* replaced with *repl*.
+##
+## .. bro:see:: sub subst_string
 function gsub%(str: string, re: pattern, repl: string%): string
 	%{
 	return do_sub(str, re, repl, 1);
 	%}
 
+
+## Lexicographically compares two string.
+##
+## s1: The first string.
+##
+## s2: The second string.
+##
+## Returns: An integer greater than, equal to, or less than 0 according as
+##          *s1* is greater than, equal to, or less than *s2*.
 function strcmp%(s1: string, s2: string%): int
 	%{
 	return new Val(Bstr_cmp(s1->AsString(), s2->AsString()), TYPE_INT);
 	%}
 
-# Returns 0 if $little is not found in $big.
+## Locates the first occurrence of one string in another.
+##
+## big: The string to look in.
+##
+## little: The (smaller) string to find inside *big*.
+##
+## Returns: The location of *little* in *big* or 0 if *little* is not found in
+##          *big*.
+##
+## .. bro:see:: find_all find_last
 function strstr%(big: string, little: string%): count
 	%{
 	return new Val(
@@ -434,8 +627,17 @@ function strstr%(big: string, little: string%): count
 		TYPE_COUNT);
 	%}
 
-# Substitute each (non-overlapping) appearance of $from in $s to $to,
-# and return the resulting string.
+## Substitutes each (non-overlapping) appearance of a string in another.
+##
+## s: The string in which to perform the substitution.
+##
+## from: The string to look for which is replaced with *to*.
+##
+## to: The string that replaces all occurrences of *from* in *s*.
+##
+## Returns: A copy of *s* where each occurrence of *from* is replaced with *to*.
+##
+## .. bro:see:: sub gsub
 function subst_string%(s: string, from: string, to: string%): string
 	%{
 	const int little_len = from->Len();
@@ -478,6 +680,15 @@ function subst_string%(s: string, from: string, to: string%): string
 	return new StringVal(concatenate(vs));
 	%}
 
+## Replaces all uppercase letters in a string with their lowercase counterpart.
+##
+## str: The string to convert to lowercase letters.
+##
+## Returns: A copy of the given string with the uppercase letters (as indicated
+##          by ``isascii`` and \verb|isupper|``) folded to lowercase
+##          (via ``tolower``).
+##
+## .. bro:see:: to_upper is_ascii
 function to_lower%(str: string%): string
 	%{
 	const u_char* s = str->Bytes();
@@ -498,6 +709,15 @@ function to_lower%(str: string%): string
 	return new StringVal(new BroString(1, lower_s, n));
 	%}
 
+## Replaces all lowercase letters in a string with their uppercase counterpart.
+##
+## str: The string to convert to uppercase letters.
+##
+## Returns: A copy of the given string with the lowercase letters (as indicated
+##          by ``isascii`` and \verb|islower|``) folded to uppercase
+##          (via ``toupper``).
+##
+## .. bro:see:: to_lower is_ascii
 function to_upper%(str: string%): string
 	%{
 	const u_char* s = str->Bytes();
@@ -518,18 +738,54 @@ function to_upper%(str: string%): string
 	return new StringVal(new BroString(1, upper_s, n));
 	%}
 
+## Replaces non-printable characters in a string with escaped sequences. The
+## mappings are:
+##
+##     - ``NUL`` to ``\0``
+##     - ``DEL`` to ``^?``
+##     - values <= 26 to ``^[A-Z]``
+##     - values not in *[32, 126]** to ``%XX``
+##
+## If the string does not yet have a trailing NUL, one is added.
+##
+## str: The string to escape.
+##
+## Returns: The escaped string.
+##
+## .. bro:see:: to_string_literal escape_string
 function clean%(str: string%): string
 	%{
 	char* s = str->AsString()->Render();
 	return new StringVal(new BroString(1, byte_vec(s), strlen(s)));
 	%}
 
+## Replaces non-printable characters in a string with escaped sequences. The
+## mappings are:
+##
+##     - ``NUL`` to ``\0``
+##     - ``DEL`` to ``^?``
+##     - values <= 26 to ``^[A-Z]``
+##     - values not in *[32, 126]** to ``%XX``
+##
+## str: The string to escape.
+##
+## Returns: The escaped string.
+##
+## .. bro:see:: clean escape_string
 function to_string_literal%(str: string%): string
 	%{
 	char* s = str->AsString()->Render(BroString::BRO_STRING_LITERAL);
 	return new StringVal(new BroString(1, byte_vec(s), strlen(s)));
 	%}
 
+## Determines whether a given string contains only ASCII characters.
+##
+## str: The string to examine.
+##
+## Returns: False if any byte value of *str* is greater than 127, and true
+##          otherwise.
+##
+## .. bro:see:: to_upper to_lower
 function is_ascii%(str: string%): bool
 	%{
 	int n = str->Len();
@@ -542,7 +798,14 @@ function is_ascii%(str: string%): bool
 	return new Val(1, TYPE_BOOL);
 	%}
 
-# Make printable version of string.
+## Creates a printable version of a string. This function is the same as
+## :bro:id:`clean` except that non-printable characters are removed.
+##
+## s: The string to escape.
+##
+## Returns: The escaped string.
+##
+## .. bro:see:: clean to_string_literal
 function escape_string%(s: string%): string
 	%{
 	char* escstr = s->AsString()->Render();
@@ -551,7 +814,12 @@ function escape_string%(s: string%): string
 	return val;
 	%}
 
-# Returns an ASCII hexadecimal representation of a string.
+## Returns an ASCII hexadecimal representation of a string.
+##
+## s: The string to convert to hex.
+##
+## Returns: A copy of *s* where each byte is replaced with the corresponding
+##          hex nibble.
 function string_to_ascii_hex%(s: string%): string
 	%{
 	char* x = new char[s->Len() * 2 + 1];
@@ -563,8 +831,15 @@ function string_to_ascii_hex%(s: string%): string
 	return new StringVal(new BroString(1, (u_char*) x, s->Len() * 2));
 	%}
 
-function str_smith_waterman%(s1: string, s2: string, params: sw_params%)
-: sw_substring_vec
+## Uses the Smith Waterman algorithm to find similar/overlapping substrings.
+## See `Wikipedia <http://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm>`_.
+##
+## s1: The first string.
+##
+## s2: The second string.
+##
+## Returns: The result of the Smit Waterman algorithm calculation.
+function str_smith_waterman%(s1: string, s2: string, params: sw_params%) : sw_substring_vec
 	%{
 	SWParams sw_params(params->AsRecordVal()->Lookup(0)->AsCount(),
 			   SWVariant(params->AsRecordVal()->Lookup(1)->AsCount()));
@@ -578,6 +853,16 @@ function str_smith_waterman%(s1: string, s2: string, params: sw_params%)
 	return result;
 	%}
 
+## Splits a string into substrings with the help of an index vector of cutting
+## points.
+##
+## s: The string to split.
+##
+## idx: The index vector (``vector of count``) with the cutting points.
+##
+## Returns: A vector of strings.
+##
+## .. bro:see:: split split1 split_all split_n
 function str_split%(s: string, idx: index_vec%): string_vec
 	%{
 	vector<Val*>* idx_v = idx->AsVector();
@@ -606,6 +891,13 @@ function str_split%(s: string, idx: index_vec%): string_vec
 	return result_v;
 	%}
 
+## Strips whitespace at both ends of a string.
+##
+## str: The string to strip the whitespace from.
+##
+## Returns: A copy of *str* with leading and trailing whitespace removed.
+##
+## .. bro:see:: sub gsub
 function strip%(str: string%): string
 	%{
 	const u_char* s = str->Bytes();
@@ -629,6 +921,14 @@ function strip%(str: string%): string
 	return new StringVal(new BroString(sp, (e - sp + 1), 1));
 	%}
 
+## Generates a string of a given size and fills it with repetitions of a source
+## string.
+##
+## len: The length of the output string.
+##
+## source: The string to concatenate repeatedly until *len* has been reached.
+##
+## Returns: A string of length *len* filled with *source*.
 function string_fill%(len: int, source: string%): string
 	%{
 	const u_char* src = source->Bytes();
@@ -643,10 +943,15 @@ function string_fill%(len: int, source: string%): string
 	return new StringVal(new BroString(1, byte_vec(dst), len));
 	%}
 
-# Takes a string and escapes characters that would allow execution of commands
-# at the shell level.  Must be used before including strings in system() or
-# similar calls.
-#
+## Takes a string and escapes characters that would allow execution of
+## commands at the shell level. Must be used before including strings in
+## :bro:id:`system` or similar calls.
+##
+## source: The string to escape.
+##
+## Returns: A shell-escaped version of *source*.
+##
+## .. bro:see:: system
 function str_shell_escape%(source: string%): string
 	%{
 	unsigned j = 0;
@@ -675,11 +980,18 @@ function str_shell_escape%(source: string%): string
 	return new StringVal(new BroString(1, dst, j));
 	%}
 
-# Returns all occurrences of the given pattern in the given string (an empty
-# empty set if none).
+## Finds all occurrences of a pattern in a string.
+##
+## str: The string to inspect.
+##
+## re: The pattern to look for in *str*.
+##
+## Returns: The set of strings in *str* that match *re*, or the empty set.
+##
+## .. bro:see: find_last strstr
 function find_all%(str: string, re: pattern%) : string_set
 	%{
-	TableVal* a = new TableVal(internal_type("string_set")->AsTableType());
+	TableVal* a = new TableVal(string_set);
 
 	const u_char* s = str->Bytes();
 	const u_char* e = s + str->Len();
@@ -697,11 +1009,18 @@ function find_all%(str: string, re: pattern%) : string_set
 	return a;
 	%}
 
-# Returns the last occurrence of the given pattern in the given string.
-# If not found, returns an empty string.  Note that this function returns
-# the match that starts at the largest index in the string, which is
-# not necessarily the longest match.  For example, a pattern of /.*/
-# will return the final character in the string.
+## Finds the last occurrence of a pattern in a string. This function returns
+## the match that starts at the largest index in the string, which is not
+## necessarily the longest match.  For example, a pattern of ``/.*/`` will
+## return the final character in the string.
+##
+## str: The string to inspect.
+##
+## re: The pattern to look for in *str*.
+##
+## Returns: The last string in *str* that matches *re*, or the empty string.
+##
+## .. bro:see: find_all strstr
 function find_last%(str: string, re: pattern%) : string
 	%{
 	const u_char* s = str->Bytes();
@@ -717,10 +1036,16 @@ function find_last%(str: string, re: pattern%) : string
 	return new StringVal("");
 	%}
 
-# Returns a hex dump for given input data.  The hex dump renders
-# 16 bytes per line, with hex on the left and ASCII (where printable)
-# on the right.  Based on Netdude's hex editor code.
-#
+## Returns a hex dump for given input data. The hex dump renders 16 bytes per
+## line, with hex on the left and ASCII (where printable)
+## on the right.
+##
+## data_str: The string to dump in hex format.
+##
+## .. bro:see:: string_to_ascii_hex bytestring_to_hexstr
+##
+## .. note:: Based on Netdude's hex editor code.
+##
 function hexdump%(data_str: string%) : string
 	%{
 

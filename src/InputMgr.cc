@@ -955,7 +955,6 @@ void InputMgr::SendEventFilterEvent(const InputReader* reader, EnumVal* type, in
 	if ( filter->want_record ) {
 		RecordVal * r = LogValToRecordVal(vals, filter->fields, &position);
 		out_vals.push_back(r);
-
 	} else {
 		for ( int j = 0; j < filter->fields->NumFields(); j++) {
 			Val* val = 0;
@@ -991,27 +990,7 @@ void InputMgr::PutTable(const InputReader* reader, int id, const LogVal* const *
 	} else if ( filter->num_val_fields == 1 && !filter->want_record ) {
 		valval = LogValToVal(vals[filter->num_idx_fields], filter->rtype->FieldType(filter->num_idx_fields));
 	} else {
-		RecordVal * r = new RecordVal(filter->rtype);
-
-		for ( int j = 0; j < filter->rtype->NumFields(); j++) {
-
-			Val* val = 0;
-			if ( filter->rtype->FieldType(j)->Tag() == TYPE_RECORD ) {
-				val = LogValToRecordVal(vals, filter->rtype->FieldType(j)->AsRecordType(), &position);
-			} else {
-				val =  LogValToVal(vals[position], filter->rtype->FieldType(j));
-				position++;
-			}
-			
-			if ( val == 0 ) {
-				reporter->InternalError("conversion error");
-				return;
-			}
-
-			r->Assign(j,val);
-
-		}
-		valval = r;
+		valval = LogValToRecordVal(vals, filter->rtype, &position);
 	}
 
 	filter->tab->Assign(idxval, valval);

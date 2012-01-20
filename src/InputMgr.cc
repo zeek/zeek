@@ -737,22 +737,7 @@ void InputMgr::SendEntryTable(const InputReader* reader, int id, const LogVal* c
 	} else if ( filter->num_val_fields == 1 && !filter->want_record ) {
 		valval = LogValToVal(vals[position], filter->rtype->FieldType(0));
 	} else {
-		RecordVal * r = new RecordVal(filter->rtype);
-
-		for ( int j = 0; j < filter->rtype->NumFields(); j++) {
-
-			Val* val = 0;
-			if ( filter->rtype->FieldType(j)->Tag() == TYPE_RECORD ) {
-				val = LogValToRecordVal(vals, filter->rtype->FieldType(j)->AsRecordType(), &position);
-			} else {
-				val =  LogValToVal(vals[position], filter->rtype->FieldType(j));
-				position++;
-			}
-			
-			r->Assign(j,val);
-
-		}
-		valval = r;
+		valval = LogValToRecordVal(vals, filter->rtype, &position);
 	}
 
 
@@ -767,7 +752,9 @@ void InputMgr::SendEntryTable(const InputReader* reader, int id, const LogVal* c
 	// call filter first to determine if we really add / change the entry
 	if ( filter->pred ) {
 		EnumVal* ev;
-		Ref(idxval);
+		//Ref(idxval);
+		int startpos = 0;
+		Val* predidx = LogValToRecordVal(vals, filter->itype, &startpos);
 		Ref(valval);
 
 		if ( updated ) {
@@ -778,7 +765,7 @@ void InputMgr::SendEntryTable(const InputReader* reader, int id, const LogVal* c
 		
 		val_list vl( 2 + (filter->num_val_fields > 0) ); // 2 if we don't have values, 3 otherwise.
 		vl.append(ev);
-		vl.append(idxval);
+		vl.append(predidx);
 		if ( filter->num_val_fields > 0 )
 			vl.append(valval);
 
@@ -882,12 +869,14 @@ void InputMgr::EndCurrentSend(const InputReader* reader, int id) {
 			// ask predicate, if we want to expire this element...
 
 			EnumVal* ev = new EnumVal(BifEnum::Input::EVENT_REMOVED, BifType::Enum::Input::Event);
-			Ref(idx);
+			//Ref(idx);
+			int startpos = 0;
+			Val* predidx = ListValToRecordVal(idx, filter->itype, &startpos);
 			Ref(val);
 
 			val_list vl(3);
 			vl.append(ev);
-			vl.append(idx);
+			vl.append(predidx);
 			vl.append(val);
 			Val* v = filter->pred->Call(&vl);
 			bool result = v->AsBool();
@@ -1120,6 +1109,29 @@ void InputMgr::SendEvent(EventHandlerPtr ev, list<Val*> events)
 	}
 
 	mgr.QueueEvent(ev, vl, SOURCE_LOCAL);
+}
+
+
+RecordVal* InputMgr::ListValToRecordVal(ListVal* list, RecordType *request_type, int* position) {
+	RecordVal* rec = new RecordVal(request_type->AsRecordType());
+
+	int maxpos = list->Length();
+
+	for ( int i = 0; i < request_type->NumFields(); i++ ) {
+		assert ( (*position) <= maxpos );
+
+		Val* fieldVal = 0;
+		if ( request_type->FieldType(i)->Tag() == TYPE_RECORD ) {
+			fieldVal = ListValToRecordVal(list, request_type->FieldType(i)->AsRecordType(), position);	
+		} else {
+			fieldVal = list->Index(*position);
+			(*position)++;
+		}
+
+		rec->Assign(i, fieldVal);
+	}
+
+	return rec;
 }
 
 

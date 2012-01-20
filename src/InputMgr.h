@@ -67,6 +67,7 @@ private:
 	Val* LogValToVal(const LogVal* val, BroType* request_type);
 	Val* LogValToIndexVal(int num_fields, const RecordType* type, const LogVal* const *vals);
 	RecordVal* LogValToRecordVal(const LogVal* const *vals, RecordType *request_type, int* position);	
+	RecordVal* ListValToRecordVal(ListVal* list, RecordType *request_type, int* position);
 
 	ReaderInfo* FindReader(const InputReader* reader);
 	ReaderInfo* FindReader(const EnumVal* id);

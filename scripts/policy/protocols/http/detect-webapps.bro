@@ -36,7 +36,8 @@ event signature_match(state: signature_state, msg: string, data: string) &priori
 		# use that as the new url for the software.
 		# PROBLEM: different version of the same software on the same server with a shared root path
 		local is_substring = 0;
-		if ( Software::tracked[c$id$resp_h][si$name]?$url )
+		if ( Software::tracked[c$id$resp_h][si$name]?$url &&
+			 |si$url| < |Software::tracked[c$id$resp_h][si$name]$url| )
 			is_substring = strstr(Software::tracked[c$id$resp_h][si$name]$url, si$url);
 		
 		if ( is_substring == 1 )

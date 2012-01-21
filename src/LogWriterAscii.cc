@@ -29,8 +29,6 @@ static string _GetBroTypeString(const LogField *field)
 		return "double"; 
 	case TYPE_SUBNET:
 		return "subnet";
-	case TYPE_NET:
-		return "net";
 	case TYPE_ADDR:
 		return "addr";
 	case TYPE_ENUM:
@@ -355,7 +353,7 @@ bool LogWriterAscii::DoWrite(int num_fields, const LogField* const * fields,
 			     LogVal** vals)
 	{
 	if ( ! file )
-		DoInit(Path(), NumFields(), Fields());
+		DoInit(parent.Path(), parent.NumFields(), parent.Fields());
 
 	desc.Clear();
 

@@ -5,16 +5,18 @@
 bool LogField::Read(SerializationFormat* fmt)
 	{
 	int t;
+	int st;
 
-	bool success = (fmt->Read(&name, "name") && fmt->Read(&t, "type"));
+	bool success = (fmt->Read(&name, "name") && fmt->Read(&t, "type") && fmt->Read(&st, "subtype") );
 	type = (TypeTag) t;
+	subtype = (TypeTag) st;
 
 	return success;
 	}
 
 bool LogField::Write(SerializationFormat* fmt) const
 	{
-	return (fmt->Write(name, "name") && fmt->Write((int)type, "type"));
+	return (fmt->Write(name, "name") && fmt->Write((int)type, "type") && fmt->Write((int)subtype, "subtype"));
 	}
 
 LogVal::~LogVal()
@@ -52,7 +54,6 @@ bool LogVal::IsCompatibleType(BroType* t, bool atomic_only)
 	case TYPE_COUNTER:
 	case TYPE_PORT:
 	case TYPE_SUBNET:
-	case TYPE_NET:
 	case TYPE_ADDR:
 	case TYPE_DOUBLE:
 	case TYPE_TIME:
@@ -74,7 +75,7 @@ bool LogVal::IsCompatibleType(BroType* t, bool atomic_only)
 		if ( ! t->IsSet() )
 			return false;
 
-		return IsCompatibleType(t->AsSetType()->Indices()->PureType());
+		return IsCompatibleType(t->AsSetType()->Indices()->PureType(), true);
 		}
 
 	case TYPE_VECTOR:
@@ -82,7 +83,7 @@ bool LogVal::IsCompatibleType(BroType* t, bool atomic_only)
 		if ( atomic_only )
 			return false;
 
-		return IsCompatibleType(t->AsVectorType()->YieldType());
+		return IsCompatibleType(t->AsVectorType()->YieldType(), true);
 		}
 
 	default:
@@ -135,7 +136,6 @@ bool LogVal::Read(SerializationFormat* fmt)
 		return true;
 		}
 
-	case TYPE_NET:
 	case TYPE_ADDR:
 		{
 		uint32 addr[4];
@@ -249,7 +249,6 @@ bool LogVal::Write(SerializationFormat* fmt) const
 			fmt->Write(val.subnet_val.width, "width");
 		}
 
-	case TYPE_NET:
 	case TYPE_ADDR:
 		{
 		uint32 addr[4];

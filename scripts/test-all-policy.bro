@@ -51,6 +51,7 @@
 @load protocols/ssh/geo-data.bro
 @load protocols/ssh/interesting-hostnames.bro
 @load protocols/ssh/software.bro
+@load protocols/ssl/cert-checks.bro
 @load protocols/ssl/cert-hash.bro
 @load protocols/ssl/expiring-certs.bro
 @load protocols/ssl/extract-certs-pem.bro

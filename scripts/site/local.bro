@@ -56,6 +56,9 @@ redef signature_files += "frameworks/signatures/detect-windows-shells.sig";
 # This script enables SSL/TLS certificate validation.
 @load protocols/ssl/validate-certs
 
+# Various SSL certificate checks.
+@load protocols/ssl/cert-checks
+
 # If you have libGeoIP support built in, do some geographic detections and 
 # logging for SSH traffic.
 @load protocols/ssh/geo-data

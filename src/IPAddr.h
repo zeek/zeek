@@ -7,10 +7,10 @@ class IPAddr
 {
 public:
 	/// Address family.
-	enum { IPv4, IPv6 } Family;
+	enum Family { IPv4, IPv6 };
 
 	/// Byte order.
-	enum { Host, Network } ByteOrder;
+	enum ByteOrder { Host, Network };
 
 	/// Constructs an address instance from an IPv4 address.
 	///

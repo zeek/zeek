@@ -1,4 +1,12 @@
 
+2.0-5 | 2012-01-25 13:25:19 -0800
+
+  * Fixed a bug resulting in over-logging of detected webapps. (Seth Hall)
+
+  * Make communication log baseline test more reliable. (Jon Siwek)
+    
+  * Fixed some broken links in documentation. (Daniel Thayer)
+    
 2.0 | 2012-01-11 13:52:22 -0800
 
   * Adding script reference documentation. (The Team).

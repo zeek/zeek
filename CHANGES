@@ -1,4 +1,9 @@
 
+2.0-9 | 2012-01-25 13:47:13 -0800
+
+  * Allow local table variables to be initialized with {} list
+    expressions. (Jon Siwek)
+
 2.0-7 | 2012-01-25 13:38:09 -0800
 
   * Teach CompHash to allow indexing by records with vector/table/set

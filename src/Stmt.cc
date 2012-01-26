@@ -258,6 +258,8 @@ static BroFile* print_stdout = 0;
 
 Val* PrintStmt::DoExec(val_list* vals, stmt_flow_type& /* flow */) const
 	{
+	RegisterAccess();
+
 	if ( ! print_stdout )
 		print_stdout = new BroFile(stdout);
 

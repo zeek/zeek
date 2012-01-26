@@ -16,7 +16,7 @@
 #     - Order:
 #
 #         - Short initial sentence  (which doesn't need to be a sentence),
-#           starting with "Generated ..." 
+#           starting with "Generated ..."
 #
 #         - Description
 #
@@ -61,9 +61,9 @@ event bro_done%(%);
 ## Generated when an internal DNS lookup reduces the same result as last time.
 ## Bro keeps an internal DNS cache for host names and IP addresses it has
 ## already resolved. This event is generated when subsequent lookup returns
-## the same result as stored in the cache.  
-## 
-## dm: A record describing the new resolver result (which matches the old one).   
+## the same result as stored in the cache.
+##
+## dm: A record describing the new resolver result (which matches the old one).
 ##
 ## .. bro:see:: dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
 ##    dns_mapping_unverified
@@ -73,7 +73,7 @@ event dns_mapping_valid%(dm: dns_mapping%);
 ## past. Bro keeps an internal DNS cache for host names and IP addresses it has
 ## already resolved. This event is generated when a subsequent lookup does not
 ## produce an answer even though we have already stored a result in the cache.
-## 
+##
 ## dm: A record describing the old resolver result.
 ##
 ## .. bro:see:: dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -83,10 +83,10 @@ event dns_mapping_unverified%(dm: dns_mapping%);
 ## Generated when an internal DNS lookup succeeed but an earlier attempt not. had
 ## had succeeded he past. Bro keeps an internal DNS cache for host names and IP
 ## addresses it has already resolved. This event is generated when a subsequent
-## lookup produces an answer for a query that was marked as failed in the cache. 
-## 
+## lookup produces an answer for a query that was marked as failed in the cache.
+##
 ## dm: A record describing the new resolver result.
-##    
+##
 ## .. bro:see:: dns_mapping_altered dns_mapping_lost_name dns_mapping_unverified
 ##    dns_mapping_valid
 event dns_mapping_new_name%(dm: dns_mapping%);
@@ -95,8 +95,8 @@ event dns_mapping_new_name%(dm: dns_mapping%);
 ## had succeeded he past. Bro keeps an internal DNS cache for host names and IP
 ## addresses it has already resolved. This event is generated when for a subsequent
 ## lookup we received answer that however was empty even though we have
-## already stored a result in the cache.  
-## 
+## already stored a result in the cache.
+##
 ## dm: A record describing the old resolver result.
 ##
 ## .. bro:see:: dns_mapping_altered dns_mapping_new_name dns_mapping_unverified
@@ -107,15 +107,15 @@ event dns_mapping_lost_name%(dm: dns_mapping%);
 ## past.  Bro keeps an internal DNS cache for host names and IP addresses it has
 ## already resolved. This event is generated when a subsequent lookup returns
 ## a different answer than we have stored in the cache.
-## 
+##
 ## dm: A record describing the new resolver result.
-## 
+##
 ## old_addrs: Addresses that used to be part of the returned set for the query
 ##            described by *dm*, but are not anymore.
-## 
+##
 ## new_addrs: Addresses that did not use to be part of the returned set for the
 ##            query described by *dm*, but now are.
-##    
+##
 ## .. bro:see:: dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
 ##    dns_mapping_valid
 event dns_mapping_altered%(dm: dns_mapping, old_addrs: addr_set, new_addrs: addr_set%);
@@ -203,8 +203,8 @@ event partial_connection%(c: connection%);
 ## via a normal FIN handshake or an abort RST sequence. When the endpoint sent
 ## one of these packets, Bro waits :bro:id:`tcp_partial_close_delay` prior
 ## to generating the event, to give the other endpoint a chance to close the
-## connection normally. 
-## 
+## connection normally.
+##
 ## c: The connection.
 ##
 ## .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
@@ -230,8 +230,8 @@ event connection_finished%(c: connection%);
 
 ## Generated when one endpoint of a TCP connection attempted to gracefully close
 ## the connection, but the other endpoint is in the TCP_INACTIVE state. This can
-## happen due to split routing, in which Bro only sees one side of a connection. 
-## 
+## happen due to split routing, in which Bro only sees one side of a connection.
+##
 ## c: The connection.
 ##
 ## .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
@@ -279,7 +279,7 @@ event connection_rejected%(c: connection%);
 event connection_reset%(c: connection%);
 
 ## Generated for each still-open connection when Bro terminates.
-## 
+##
 ## c: The connection.
 ##
 ## .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
@@ -441,9 +441,9 @@ event connection_external%(c: connection, tag: string%);
 ##    connection_pending connection_rejected connection_reset connection_reused
 ##    connection_state_remove connection_status_update connection_timeout
 ##    new_connection new_connection_contents partial_connection
-##   
+##
 ## .. todo: We don't have a good way to document the automatically generated
-##    ``ANALYZER_*`` constants right now. 
+##    ``ANALYZER_*`` constants right now.
 event expected_connection_seen%(c: connection, a: count%);
 
 ## Generated for every packet Bro sees. This is a very low-level and expensive
@@ -456,7 +456,7 @@ event expected_connection_seen%(c: connection, a: count%);
 ##
 ## p: Informattion from the header of the packet that triggered the event.
 ##
-## .. bro:see:: tcp_packet packet_contents 
+## .. bro:see:: tcp_packet packet_contents
 event new_packet%(c: connection, p: pkt_hdr%);
 
 ## Generated for every packet that has non-empty transport-layer payload. This is a
@@ -470,7 +470,7 @@ event new_packet%(c: connection, p: pkt_hdr%);
 ##
 ## contants: The raw transport-layer payload.
 ##
-## .. bro:see:: new_packet tcp_packet 
+## .. bro:see:: new_packet tcp_packet
 event packet_contents%(c: connection, contents: string%);
 
 ## Generated for every TCP packet. This is a very low-level and expensive event
@@ -486,7 +486,7 @@ event packet_contents%(c: connection, contents: string%);
 ##
 ## flags: A string with the packet's TCP flags. In the string, each character
 ##        corresponds to one set flag, as follows: ``S`` -> SYN; ``F`` -> FIN;
-##        ``R`` -> RST; ``A`` -> ACK; ``P`` -> PUSH.       
+##        ``R`` -> RST; ``A`` -> ACK; ``P`` -> PUSH.
 ##
 ## seq: The packet's TCP sequence number.
 ##
@@ -497,7 +497,7 @@ event packet_contents%(c: connection, contents: string%);
 ## payload: The raw TCP payload. Note that this may less than *len* if the packet
 ##          was not fully captured.
 ##
-## .. bro:see:: new_packet packet_contents tcp_option tcp_contents tcp_rexmit 
+## .. bro:see:: new_packet packet_contents tcp_option tcp_contents tcp_rexmit
 event tcp_packet%(c: connection, is_orig: bool, flags: string, seq: count, ack: count, len: count, payload: string%);
 
 ## Generated for each option found in a TCP header. Like many of the ``tcp_*``
@@ -512,7 +512,7 @@ event tcp_packet%(c: connection, is_orig: bool, flags: string, seq: count, ack: 
 ##
 ## optlen: The length of the options value.
 ##
-## .. bro:see:: tcp_packet tcp_contents tcp_rexmit 
+## .. bro:see:: tcp_packet tcp_contents tcp_rexmit
 ##
 ## .. note:: There is currently no way to get the actual option value, if any.
 event tcp_option%(c: connection, is_orig: bool, opt: count, optlen: count%);
@@ -536,9 +536,9 @@ event tcp_option%(c: connection, is_orig: bool, opt: count, optlen: count%);
 ## payload: The raw payload, which will be non-empty.
 ##
 ## .. bro:see:: tcp_packet tcp_option tcp_rexmit
-##    tcp_content_delivery_ports_orig tcp_content_delivery_ports_resp  
-##    tcp_content_deliver_all_resp tcp_content_deliver_all_orig 
-##    
+##    tcp_content_delivery_ports_orig tcp_content_delivery_ports_resp
+##    tcp_content_deliver_all_resp tcp_content_deliver_all_orig
+##
 ## .. note::
 ##
 ##    The payload received by this event is the same that is also passed into
@@ -546,7 +546,7 @@ event tcp_option%(c: connection, is_orig: bool, opt: count, optlen: count%);
 ##    this event for the same connection receive non-overlapping in-order chunks
 ##    of its TCP payload stream. It is however undefined what size each chunk
 ##    has; while Bro passes the data on as soon as possible, specifics depend on
-##    network-level effects such as latency, acknowledgements, reordering, etc.  
+##    network-level effects such as latency, acknowledgements, reordering, etc.
 event tcp_contents%(c: connection, is_orig: bool, seq: count, contents: string%);
 
 ## Generated
@@ -863,14 +863,14 @@ event icmp_redirect%(c: connection, icmp: icmp_conn, a: addr%);
 
 ## Generated when a TCP connection terminated, passing on statistics about the
 ## two endpoints. This event is always generated when Bro flushes the internal
-## connection state, independent of how a connection terminates.    
-##   
+## connection state, independent of how a connection terminates.
+##
 ## c: The connection.
-##   
+##
 ## os: Statistics for the originator endpoint.
-##     
+##
 ## rs: Statistics for the responder endpoint.
-##   
+##
 ## .. bro:see:: connection_state_remove
 event conn_stats%(c: connection, os: endpoint_stats, rs: endpoint_stats%);
 
@@ -1014,9 +1014,9 @@ event arp_reply%(mac_src: string, mac_dst: string, SPA: addr, SHA: string,
 event bad_arp%(SPA: addr, SHA: string, TPA: addr, THA: string, explanation: string%);
 
 ## TODO.
-## 
+##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for more
-## information about the BitTorrent protocol. 
+## information about the BitTorrent protocol.
 ##
 ## .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
 ##    bittorrent_peer_have bittorrent_peer_interested bittorrent_peer_keep_alive
@@ -1027,9 +1027,9 @@ event bittorrent_peer_handshake%(c: connection, is_orig: bool,
 			reserved: string, info_hash: string, peer_id: string%);
 
 ## TODO.
-## 
+##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for more
-## information about the BitTorrent protocol. 
+## information about the BitTorrent protocol.
 ##
 ## .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
 ##    bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
@@ -1039,9 +1039,9 @@ event bittorrent_peer_handshake%(c: connection, is_orig: bool,
 event bittorrent_peer_keep_alive%(c: connection, is_orig: bool%);
 
 ## TODO.
-## 
+##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for more
-## information about the BitTorrent protocol. 
+## information about the BitTorrent protocol.
 ##
 ## .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel
 ##    bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
@@ -1051,9 +1051,9 @@ event bittorrent_peer_keep_alive%(c: connection, is_orig: bool%);
 event bittorrent_peer_choke%(c: connection, is_orig: bool%);
 
 ## TODO.
-## 
+##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for more
-## information about the BitTorrent protocol. 
+## information about the BitTorrent protocol.
 ##
 ## .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
 ##    bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
@@ -1063,9 +1063,9 @@ event bittorrent_peer_choke%(c: connection, is_orig: bool%);
 event bittorrent_peer_unchoke%(c: connection, is_orig: bool%);
 
 ## TODO.
-## 
+##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for more
-## information about the BitTorrent protocol. 
+## information about the BitTorrent protocol.
 ##
 ## .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
 ##    bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_keep_alive
@@ -1075,9 +1075,9 @@ event bittorrent_peer_unchoke%(c: connection, is_orig: bool%);
 event bittorrent_peer_interested%(c: connection, is_orig: bool%);
 
 ## TODO.
-## 
+##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for more
-## information about the BitTorrent protocol. 
+## information about the BitTorrent protocol.
 ##
 ## .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
 ##    bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
@@ -1087,9 +1087,9 @@ event bittorrent_peer_interested%(c: connection, is_orig: bool%);
 event bittorrent_peer_not_interested%(c: connection, is_orig: bool%);
 
 ## TODO.
-## 
+##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for more
-## information about the BitTorrent protocol. 
+## information about the BitTorrent protocol.
 ##
 ## .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
 ##    bittorrent_peer_handshake  bittorrent_peer_interested bittorrent_peer_keep_alive
@@ -1099,9 +1099,9 @@ event bittorrent_peer_not_interested%(c: connection, is_orig: bool%);
 event bittorrent_peer_have%(c: connection, is_orig: bool, piece_index: count%);
 
 ## TODO.
-## 
+##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for more
-## information about the BitTorrent protocol. 
+## information about the BitTorrent protocol.
 ##
 ## .. bro:see::  bittorrent_peer_cancel bittorrent_peer_choke bittorrent_peer_handshake
 ##    bittorrent_peer_have bittorrent_peer_interested bittorrent_peer_keep_alive
@@ -1111,9 +1111,9 @@ event bittorrent_peer_have%(c: connection, is_orig: bool, piece_index: count%);
 event bittorrent_peer_bitfield%(c: connection, is_orig: bool, bitfield: string%);
 
 ## TODO.
-## 
+##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for more
-## information about the BitTorrent protocol. 
+## information about the BitTorrent protocol.
 ##
 ## .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
 ##    bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
@@ -1124,9 +1124,9 @@ event bittorrent_peer_request%(c: connection, is_orig: bool, index: count,
 				begin: count, length: count%);
 
 ## TODO.
-## 
+##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for more
-## information about the BitTorrent protocol. 
+## information about the BitTorrent protocol.
 ##
 ## .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
 ##    bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
@@ -1137,9 +1137,9 @@ event bittorrent_peer_piece%(c: connection, is_orig: bool, index: count,
 				begin: count, piece_length: count%);
 
 ## TODO.
-## 
+##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for more
-## information about the BitTorrent protocol. 
+## information about the BitTorrent protocol.
 ##
 ## .. bro:see:: bittorrent_peer_bitfield  bittorrent_peer_choke
 ##    bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
@@ -1150,9 +1150,9 @@ event bittorrent_peer_cancel%(c: connection, is_orig: bool, index: count,
 				begin: count, length: count%);
 
 ## TODO.
-## 
+##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for more
-## information about the BitTorrent protocol. 
+## information about the BitTorrent protocol.
 ##
 ## .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
 ##    bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
@@ -1162,9 +1162,9 @@ event bittorrent_peer_cancel%(c: connection, is_orig: bool, index: count,
 event bittorrent_peer_port%(c: connection, is_orig: bool, listen_port: port%);
 
 ## TODO.
-## 
+##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for more
-## information about the BitTorrent protocol. 
+## information about the BitTorrent protocol.
 ##
 ## .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
 ##    bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
@@ -1175,9 +1175,9 @@ event bittorrent_peer_unknown%(c: connection, is_orig: bool, message_id: count,
 				data: string%);
 
 ## TODO.
-## 
+##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for more
-## information about the BitTorrent protocol. 
+## information about the BitTorrent protocol.
 ##
 ## .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
 ##    bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
@@ -1187,9 +1187,9 @@ event bittorrent_peer_unknown%(c: connection, is_orig: bool, message_id: count,
 event bittorrent_peer_weird%(c: connection, is_orig: bool, msg: string%);
 
 ## TODO.
-## 
+##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for more
-## information about the BitTorrent protocol. 
+## information about the BitTorrent protocol.
 ##
 ## .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
 ##    bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
@@ -1200,9 +1200,9 @@ event bt_tracker_request%(c: connection, uri: string,
 				headers: bt_tracker_headers%);
 
 ## TODO.
-## 
+##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for more
-## information about the BitTorrent protocol. 
+## information about the BitTorrent protocol.
 ##
 ## .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
 ##    bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
@@ -1215,9 +1215,9 @@ event bt_tracker_response%(c: connection, status: count,
 					benc: bittorrent_benc_dir%);
 
 ## TODO.
-## 
+##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for more
-## information about the BitTorrent protocol. 
+## information about the BitTorrent protocol.
 ##
 ## .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
 ##    bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
@@ -1228,9 +1228,9 @@ event bt_tracker_response_not_ok%(c: connection, status: count,
 					headers: bt_tracker_headers%);
 
 ## TODO.
-## 
+##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for more
-## information about the BitTorrent protocol. 
+## information about the BitTorrent protocol.
 ##
 ## .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
 ##    bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
@@ -1252,7 +1252,7 @@ event bt_tracker_weird%(c: connection, is_orig: bool, msg: string%);
 ##
 ## hostname: The request's host name.
 ##
-## .. bro:see:: finger_reply 
+## .. bro:see:: finger_reply
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
@@ -1269,7 +1269,7 @@ event finger_request%(c: connection, full: bool, username: string, hostname: str
 ##
 ## reply_line: The reply as returned by the server
 ##
-## .. bro:see:: finger_request 
+## .. bro:see:: finger_request
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
@@ -1279,9 +1279,9 @@ event finger_reply%(c: connection, reply_line: string%);
 
 
 ## TODO.
-## 
+##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/Gnutella>`__ for more
-## information about the Gnutella protocol. 
+## information about the Gnutella protocol.
 ##
 ## .. bro:see::  gnutella_binary_msg gnutella_establish gnutella_http_notify
 ##    gnutella_not_establish gnutella_partial_binary_msg gnutella_signature_found
@@ -1294,9 +1294,9 @@ event finger_reply%(c: connection, reply_line: string%);
 event gnutella_text_msg%(c: connection, orig: bool, headers: string%);
 
 ## TODO.
-## 
+##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/Gnutella>`__ for more
-## information about the Gnutella protocol. 
+## information about the Gnutella protocol.
 ##
 ## .. bro:see:: gnutella_establish gnutella_http_notify gnutella_not_establish
 ##    gnutella_partial_binary_msg gnutella_signature_found gnutella_text_msg
@@ -1311,9 +1311,9 @@ event gnutella_binary_msg%(c: connection, orig: bool, msg_type: count,
 				trunc: bool, complete: bool%);
 
 ## TODO.
-## 
+##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/Gnutella>`__ for more
-## information about the Gnutella protocol. 
+## information about the Gnutella protocol.
 ##
 ## .. bro:see:: gnutella_binary_msg gnutella_establish gnutella_http_notify
 ##    gnutella_not_establish  gnutella_signature_found gnutella_text_msg
@@ -1326,9 +1326,9 @@ event gnutella_partial_binary_msg%(c: connection, orig: bool,
 					msg: string, len: count%);
 
 ## TODO.
-## 
+##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/Gnutella>`__ for more
-## information about the Gnutella protocol. 
+## information about the Gnutella protocol.
 ##
 ## .. bro:see:: gnutella_binary_msg  gnutella_http_notify gnutella_not_establish
 ##    gnutella_partial_binary_msg gnutella_signature_found gnutella_text_msg
@@ -1340,9 +1340,9 @@ event gnutella_partial_binary_msg%(c: connection, orig: bool,
 event gnutella_establish%(c: connection%);
 
 ## TODO.
-## 
+##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/Gnutella>`__ for more
-## information about the Gnutella protocol. 
+## information about the Gnutella protocol.
 ##
 ## .. bro:see:: gnutella_binary_msg gnutella_establish gnutella_http_notify
 ##    gnutella_partial_binary_msg gnutella_signature_found gnutella_text_msg
@@ -1354,9 +1354,9 @@ event gnutella_establish%(c: connection%);
 event gnutella_not_establish%(c: connection%);
 
 ## TODO.
-## 
+##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/Gnutella>`__ for more
-## information about the Gnutella protocol. 
+## information about the Gnutella protocol.
 ##
 ## .. bro:see:: gnutella_binary_msg gnutella_establish gnutella_not_establish
 ##    gnutella_partial_binary_msg gnutella_signature_found gnutella_text_msg
@@ -1422,7 +1422,7 @@ event ident_reply%(c: connection, lport: port, rport: port, user_id: string, sys
 ##
 ## line: The error description returned by the reply.
 ##
-## .. bro:see:: ident_reply ident_request 
+## .. bro:see:: ident_reply ident_request
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
@@ -1461,7 +1461,7 @@ event ident_error%(c: connection, lport: port, rport: port, line: string%);
 ## .. todo: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
 ##    been ported to Bro 2.x. To still enable this event, one needs to add a
-##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature. 
+##    corresponding entry to :bro:see:`dpd_config` or a DPD payload signature.
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
@@ -1616,9 +1616,9 @@ event login_display%(c: connection, display: string%);
 ## includes options for negotiating authentication. When such an option is sent
 ## from client to server and the server replies that it accepts the authentication,
 ## then the event engine generates this event.
-## 
+##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/Telnet>`__ for more information
-## about the Telnet protocol. 
+## about the Telnet protocol.
 ##
 ## name: The authenticated name.
 ##
@@ -1626,7 +1626,7 @@ event login_display%(c: connection, display: string%);
 ##
 ## .. bro:see::  authentication_rejected authentication_skipped login_success
 ##
-## .. note::  This event inspects the corresponding Telnet option while :bro:id:`login_success` 
+## .. note::  This event inspects the corresponding Telnet option while :bro:id:`login_success`
 ##    heuristically determines success by watching session data.
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
@@ -1639,9 +1639,9 @@ event authentication_accepted%(name: string, c: connection%);
 ## protocol includes options for negotiating authentication. When such an option
 ## is sent from client to server and the server replies that it did not accept the
 ## authentication, then the event engine generates this event.
-## 
+##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/Telnet>`__ for more information
-## about the Telnet protocol. 
+## about the Telnet protocol.
 ##
 ## name: The attempted authentication name.
 ##
@@ -1649,7 +1649,7 @@ event authentication_accepted%(name: string, c: connection%);
 ##
 ## .. bro:see:: authentication_accepted authentication_skipped login_failure
 ##
-## .. note::  This event inspects the corresponding Telnet option while :bro:id:`login_success` 
+## .. note::  This event inspects the corresponding Telnet option while :bro:id:`login_success`
 ##    heuristically determines failure by watching session
 ##    data.
 ##
@@ -1661,9 +1661,9 @@ event authentication_rejected%(name: string, c: connection%);
 
 ## Generated when for Telnet/Rlogin sessions when a pattern match indicates
 ## that no authentication is performed.
-## 
+##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/Telnet>`__ for more information
-## about the Telnet protocol. 
+## about the Telnet protocol.
 ##
 ## c: The connection.
 ##
@@ -1684,9 +1684,9 @@ event authentication_skipped%(c: connection%);
 
 ## Generated for clients transmitting a terminal prompt in a Telnet session. This
 ## information is extracted out of environment variables sent as Telnet options.
-## 
+##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/Telnet>`__ for more information
-## about the Telnet protocol. 
+## about the Telnet protocol.
 ##
 ## c: The connection.
 ##
@@ -1704,9 +1704,9 @@ event login_prompt%(c: connection, prompt: string%);
 ## Generated for Telnet sessions when encryption is activated. The Telnet protoco;
 ## includes options for negotiating encryption. When such a series of options is
 ## successfully negotiated, the event engine generates this event.
-## 
+##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/Telnet>`__ for more information
-## about the Telnet protocol. 
+## about the Telnet protocol.
 ##
 ## c: The connection.
 ##
@@ -1722,10 +1722,10 @@ event activating_encryption%(c: connection%);
 ## a peer violate either what the other peer has instructed it to do, or what it
 ## itself offered in terms of options in the past, then the engine generates an
 ## inconsistent_option event.
-## 
+##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/Telnet>`__ for more information
-## about the Telnet protocol. 
-## 
+## about the Telnet protocol.
+##
 ## c: The connection.
 ##
 ## .. bro:see:: bad_option bad_option_termination  authentication_accepted
@@ -1734,11 +1734,11 @@ event activating_encryption%(c: connection%);
 ##    login_output_line login_prompt login_success login_terminal
 event inconsistent_option%(c: connection%);
 
-## Generated for an ill-formed or unrecognized Telnet option. 
-## 
+## Generated for an ill-formed or unrecognized Telnet option.
+##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/Telnet>`__ for more information
-## about the Telnet protocol. 
-##    
+## about the Telnet protocol.
+##
 ## c: The connection.
 ##
 ## .. bro:see:: inconsistent_option bad_option_termination authentication_accepted
@@ -1753,9 +1753,9 @@ event inconsistent_option%(c: connection%);
 event bad_option%(c: connection%);
 
 ## Generated for a Telnet option that's incorrectly terminated.
-## 
+##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/Telnet>`__ for more information
-## about the Telnet protocol. 
+## about the Telnet protocol.
 ##
 ## .. bro:see:: inconsistent_option bad_option authentication_accepted
 ##    authentication_rejected authentication_skipped login_confused
@@ -1910,7 +1910,7 @@ event smtp_request%(c: connection, is_orig: bool, command: string, arg: string%)
 ##
 ## .. bro:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
 ##    mime_end_entity mime_entity_data mime_event mime_one_header mime_segment_data
-##    smtp_data  smtp_request 
+##    smtp_data  smtp_request
 ##
 ## .. note:: Bro doesn't support the newer ETRN extension yet.
 event smtp_reply%(c: connection, is_orig: bool, code: count, cmd: string, msg: string, cont_resp: bool%) &group="smtp";
@@ -1957,7 +1957,7 @@ event smtp_data%(c: connection, is_orig: bool, data: string%) &group="smtp";
 ##
 ## detail: The actual SMTP line triggering the event.
 ##
-## .. bro:see:: smtp_data  smtp_request smtp_reply  
+## .. bro:see:: smtp_data  smtp_request smtp_reply
 event smtp_unexpected%(c: connection, is_orig: bool, msg: string, detail: string%) &group="smtp";
 
 ## Generated  when starting to parse a email MIME entity. MIME is a
@@ -1973,7 +1973,7 @@ event smtp_unexpected%(c: connection, is_orig: bool, msg: string, detail: string
 ##
 ## .. bro:see:: mime_all_data mime_all_headers  mime_content_hash mime_end_entity
 ##    mime_entity_data mime_event mime_one_header mime_segment_data smtp_data
-##    http_begin_entity 
+##    http_begin_entity
 ##
 ## .. note:: Bro also extracts MIME entities from HTTP session. For those, however,
 ##    it raises :bro:id:`http_begin_entity` instead.
@@ -2061,7 +2061,7 @@ event mime_all_headers%(c: connection, hlist: mime_header_list%);
 ##
 ## .. bro:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
 ##    mime_end_entity mime_entity_data mime_event mime_one_header http_entity_data
-##    mime_segment_length mime_segment_overlap_length 
+##    mime_segment_length mime_segment_overlap_length
 ##
 ## .. note:: Bro also extracts MIME data from HTTP sessions. For those, however, it
 ##    raises :bro:id:`http_entity_data` (sic!) instead.
@@ -2574,7 +2574,7 @@ event nfs_proc_null%(c: connection, info: NFS3::info_t%);
 ## .. bro:see:: nfs_proc_create  nfs_proc_lookup nfs_proc_mkdir
 ##    nfs_proc_not_implemented nfs_proc_null nfs_proc_read nfs_proc_readdir
 ##    nfs_proc_readlink nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status
-##    rpc_call rpc_dialogue rpc_reply NFS3::mode2string
+##    rpc_call rpc_dialogue rpc_reply file_mode
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
@@ -2887,7 +2887,7 @@ event nfs_reply_status%(n: connection, info: NFS3::info_t%);
 ## excess: The raw bytes of any optional parts of the NTP packet. Bro does not
 ##         further parse any optional fields.
 ##
-## .. bro:see:: ntp_session_timeout 
+## .. bro:see:: ntp_session_timeout
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
@@ -3868,7 +3868,7 @@ event dns_PTR_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: string%
 ##    dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
 ##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
 ##    dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
-##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth 
+##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 event dns_SOA_reply%(c: connection, msg: dns_msg, ans: dns_answer, soa: dns_soa%) &group="dns";
 
 ## Generated for DNS replies of type *WKS*. For replies with multiple answers, an
@@ -4530,7 +4530,7 @@ event http_stats%(c: connection, stats: http_stats_rec%);
 ##
 ## version: The version string the client sent (e.g., `SSH-2.0-libssh-0.11`).
 ##
-## .. bro:see:: ssh_server_version 
+## .. bro:see:: ssh_server_version
 ##
 ## .. note:: As everything after the initial version handshake proceeds encrypted,
 ##    Bro cannot further analyze SSH sessions.
@@ -4549,7 +4549,7 @@ event ssh_client_version%(c: connection, version: string%);
 ## version: The version string the server sent (e.g.,
 ##          ``SSH-1.99-OpenSSH_3.9p1``).
 ##
-## .. bro:see:: ssh_client_version 
+## .. bro:see:: ssh_client_version
 ##
 ## .. note:: As everything coming after the initial version handshake proceeds
 ##    encrypted, Bro cannot further analyze SSH sessions.
@@ -4676,16 +4676,16 @@ event ssl_alert%(c: connection, is_orig: bool, level: count, desc: count%);
 ## handshake, and Bro extracts as much information out of that as it can. This
 ## event is raised when an SSL/TLS server passes session ticket to the client that
 ## can later be used for resuming the session. The mechanism is described in
-## :rfc:`4507` 
-## 
+## :rfc:`4507`
+##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/Transport_Layer_Security>`__ for
 ## more information about the SSL/TLS protocol.
 ##
 ## c: The connection.
-## 
+##
 ## ticket_lifetime_hint: A hint from the server about how long the ticket
 ##                       should be stored by the client.
-## 
+##
 ## ticket: The raw ticket data.
 ##
 ## .. bro:see::  ssl_client_hello ssl_established ssl_extension ssl_server_hello
@@ -4755,7 +4755,7 @@ event x509_error%(c: connection, is_orig: bool, err: count%);
 ## TODO.
 ##
 ## .. bro:see:: rpc_call rpc_dialogue rpc_reply dce_rpc_bind dce_rpc_request
-##    dce_rpc_response rpc_timeout 
+##    dce_rpc_response rpc_timeout
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
@@ -4820,7 +4820,7 @@ event epm_map_response%(c: connection, uuid: string, p: port, h: addr%);
 ##
 ## func: The requested function, as  specified by the protocol.
 ##
-## .. bro:see:: ncp_reply 
+## .. bro:see:: ncp_reply
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
@@ -4845,7 +4845,7 @@ event ncp_request%(c: connection, frame_type: count, length: count, func: count%
 ##
 ## completion_code: The replie's completion code, as specified by the protocol.
 ##
-## .. bro:see:: ncp_request 
+## .. bro:see:: ncp_request
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
@@ -5101,8 +5101,8 @@ event irc_reply%(c: connection, is_orig: bool, prefix: string,
 ##    irc_nick_message irc_notice_message irc_oper_message irc_oper_response
 ##    irc_part_message irc_password_message
 ##
-## .. note:: 
-##    
+## .. note::
+##
 ##    This event is generated only for messages that are forwarded by the server
 ##    to the client. Commands coming from client trigger the :bro:id:`irc_request`
 ##    event instead.
@@ -5771,7 +5771,7 @@ event irc_user_message%(c: connection, is_orig: bool, user: string, host: string
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message irc_oper_message irc_oper_response
-##    irc_part_message 
+##    irc_part_message
 event irc_password_message%(c: connection, is_orig: bool, password: string%);
 
 ## TODO.
@@ -5779,19 +5779,19 @@ event irc_password_message%(c: connection, is_orig: bool, password: string%);
 ## .. bro:see::
 event file_transferred%(c: connection, prefix: string, descr: string, mime_type: string%);
 
-## Generated for monitored Syslog messages. 
-##   
+## Generated for monitored Syslog messages.
+##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/Syslog>`__ for more
 ## information about the Syslog protocol.
-##   
+##
 ## c: The connection record for the underlying transport-layer session/flow.
-##   
+##
 ## facility: The "facility" included in the message.
 ##
-## severity: The "severity" included in the message. 
-##   
-## msg: The message logged. 
-##   
+## severity: The "severity" included in the message.
+##
+## msg: The message logged.
+##
 ## .. note:: Bro currently parses only UDP syslog traffic. Support for TCP syslog
 ##    will be added soon.
 event syslog_message%(c: connection, facility: count, severity: count, msg: string%);
@@ -5799,15 +5799,15 @@ event syslog_message%(c: connection, facility: count, severity: count, msg: stri
 ## Generated when a signature matches. Bro's signature engine provide
 ## high-performance pattern matching separately from the normal script processing.
 ## If a signature with an ``event`` action matches, this event is raised.
-## 
+##
 ## See the :doc:`user manual </signatures>` for more information about Bro's
-## signature engine. 
-##       
+## signature engine.
+##
 ## state: Context about the match, including which signatures triggered the
 ##        event and the connection for which the match was found.
-##       
+##
 ## msg: The message passed to the ``event`` signature action.
-##       
+##
 ## data; The last chunk of input that triggered the match. Note that the specifics
 ## here are no well-defined as Bro does not buffer any input. If a match is split
 ## across packet boundaries, only the last chunk triggering the will be passed on
@@ -5818,16 +5818,16 @@ event signature_match%(state: signature_state, msg: string, data: string%);
 ## used on a system. This is a protocol-independent event that is fed by
 ## different analyzers. For example, the HTTP analyzer reports user-agent and
 ## server software by raising this event, assuming it can parse it (if not,
-## :bro:id:`software_parse_error` will be generated instead).   
-## 
+## :bro:id:`software_parse_error` will be generated instead).
+##
 ## c: The connection.
-## 
+##
 ## host: The host running the reported software.
-## 
+##
 ## s: A description of the software found.
-## 
+##
 ## descr: The raw (unparsed) software identification string as extracted from the
-##        protocol.   
+##        protocol.
 ##
 ## .. bro:see:: software_parse_error software_unparsed_version_found OS_version_found
 event software_version_found%(c: connection, host: addr,
@@ -5837,17 +5837,17 @@ event software_version_found%(c: connection, host: addr,
 ## a system but cannot parse it. This is a protocol-independent event that is fed
 ## by different analyzers. For example, the HTTP analyzer reports user-agent and
 ## server software by raising this event if it cannot parse them directly (if canit
-## :bro:id:`software_version_found` will be generated instead).     
-## 
+## :bro:id:`software_version_found` will be generated instead).
+##
 ## c: The connection.
-## 
+##
 ## host: The host running the reported software.
-## 
+##
 ## descr: The raw (unparsed) software identification string as extracted from the
-##        protocol.   
+##        protocol.
 ##
 ## .. bro:see:: software_version_found software_unparsed_version_found
-##    OS_version_found 
+##    OS_version_found
 event software_parse_error%(c: connection, host: addr, descr: string%);
 
 ## Generated when a protocol analyzer finds an identification of a software
@@ -5856,13 +5856,13 @@ event software_parse_error%(c: connection, host: addr, descr: string%);
 ## server software by raising this event. Different from
 ## :bro:id:`software_version_found`  and :bro:id:`software_parse_error`, this
 ## event is always raised, independent of whether Bro can parse the version
-## string. 
-## 
+## string.
+##
 ## c: The connection.
-## 
+##
 ## host: The host running the reported software.
-## 
-## descr: The software identification string as extracted from the protocol.   
+##
+## descr: The software identification string as extracted from the protocol.
 ##
 ## .. bro:see:: software_parse_error software_version_found OS_version_found
 event software_unparsed_version_found%(c: connection, host: addr, str: string%);
@@ -5870,18 +5870,18 @@ event software_unparsed_version_found%(c: connection, host: addr, str: string%);
 ## Generated when an operating system has been fingerprinted. Bro uses `p0f
 ## <http://lcamtuf.coredump.cx/p0f.shtml>`__ to fingerprint endpoints passively,
 ## and it raises this event for each system identified. The p0f fingerprints are
-## defined by :bro:id:`passive_fingerprint_file`.  
-##   
+## defined by :bro:id:`passive_fingerprint_file`.
+##
 ## .. bro:see:: passive_fingerprint_file software_parse_error
 ##    software_version_found software_unparsed_version_found
-##    generate_OS_version_event 
+##    generate_OS_version_event
 event OS_version_found%(c: connection, host: addr, OS: OS_version%);
 
 ## Generated when a connection to a remote Bro has been established. This event
 ## is intended primarily for use by Bro's communication framework, but it can also
-## trigger additional code if helpful.  
-## 
-## p: A record describing the peer. 
+## trigger additional code if helpful.
+##
+## p: A record describing the peer.
 ##
 ## .. bro:see:: remote_capture_filter remote_connection_closed remote_connection_error
 ##    remote_connection_handshake_done remote_event_registered remote_log remote_pong
@@ -5890,8 +5890,8 @@ event remote_connection_established%(p: event_peer%);
 
 ## Generated when a connection to a remote Bro has been closed. This event is
 ## intended primarily for use by Bro's communication framework, but it can
-## also trigger additional code if helpful.  
-## 
+## also trigger additional code if helpful.
+##
 ## p: A record describing the peer.
 ##
 ## .. bro:see:: remote_capture_filter  remote_connection_error
@@ -5903,9 +5903,9 @@ event remote_connection_closed%(p: event_peer%);
 ## Generated when a remote connection's initial handshake has been completed. This
 ## event is intended primarily for use by Bro's communication framework, but it can
 ## also trigger additional code if helpful.
-## 
-## p: A record describing the peer. 
-## 
+##
+## p: A record describing the peer.
+##
 ## .. bro:see:: remote_capture_filter remote_connection_closed remote_connection_error
 ##    remote_connection_established remote_event_registered remote_log remote_pong
 ##    remote_state_access_performed remote_state_inconsistency print_hook
@@ -5913,9 +5913,9 @@ event remote_connection_handshake_done%(p: event_peer%);
 
 ## Generated for each event registered by a remote peer. This event is intended
 ## primarily for use by Bro's communication framework, but it can also trigger
-## additional code if helpful.  
-## 
-## p: A record describing the peer. 
+## additional code if helpful.
+##
+## p: A record describing the peer.
 ##
 ## .. bro:see:: remote_capture_filter remote_connection_closed
 ##    remote_connection_error remote_connection_established
@@ -5925,11 +5925,11 @@ event remote_event_registered%(p: event_peer, name: string%);
 
 ## Generated when a connection to a remote Bro encountered an error. This event
 ## is intended primarily for use by Bro's communication framework, but it can also
-## trigger additional code if helpful.  
-## 
-## p: A record describing the peer. 
-## 
-## reason: A textual description of the error. 
+## trigger additional code if helpful.
+##
+## p: A record describing the peer.
+##
+## reason: A textual description of the error.
 ##
 ## .. bro:see:: remote_capture_filter remote_connection_closed
 ##    remote_connection_established remote_connection_handshake_done
@@ -5941,10 +5941,10 @@ event remote_connection_error%(p: event_peer, reason: string%);
 
 ## Generated when a remote peer sent us a capture filter. While this event is
 ## intended primarily for use by Bro's communication framework, it can also trigger
-## additional code if helpful.   
-## 
-## p: A record describing the peer.  
-## 
+## additional code if helpful.
+##
+## p: A record describing the peer.
+##
 ## filter: The filter string sent by the peer.
 ##
 ## .. bro:see::  remote_connection_closed remote_connection_error
@@ -5956,9 +5956,9 @@ event remote_capture_filter%(p: event_peer, filter: string%);
 ## Generated after a call to :bro:id:`send_state` when all data has been
 ## successfully sent to the remote side. While this event is
 ## intended primarily for use by Bro's communication framework, it can also trigger
-## additional code if helpful.   
-## 
-## p: A record describing the remote peer.    
+## additional code if helpful.
+##
+## p: A record describing the remote peer.
 ##
 ## .. bro:see:: remote_capture_filter remote_connection_closed
 ##    remote_connection_error remote_connection_established
@@ -5970,17 +5970,17 @@ event finished_send_state%(p: event_peer%);
 ## is intended primarily for use by Bro's communication framework, it can also
 ## trigger additional code if helpful. This event is only raised if
 ## :bro:id:`remote_check_sync_consistency` is false.
-## 
+##
 ## operation: The textual description of the state operation performed.
-## 
+##
 ## id: The name of the Bro script identifier that was operated on.
-## 
+##
 ## expected_old: A textual representation of the value of *id* that was expected to
 ##               be found before the operation was carried out.
-## 
+##
 ## real_old: A textual representation of the value of *id* that was actually found
 ##           before the operation was carried out. The difference between
-##           *real_old* and *expected_old* is the inconsistency being reported. 
+##           *real_old* and *expected_old* is the inconsistency being reported.
 ##
 ## .. bro:see:: remote_capture_filter remote_connection_closed
 ##    remote_connection_error remote_connection_established
@@ -5991,17 +5991,17 @@ event remote_state_inconsistency%(operation: string, id: string,
 
 ## Generated for communication log messages. While this event is
 ## intended primarily for use by Bro's communication framework, it can also trigger
-## additional code if helpful.    
-## 
+## additional code if helpful.
+##
 ## level: The log level, which is either :bro:id:`REMOTE_LOG_INFO` or
-##        :bro:id:`REMOTE_LOG_ERROR`. 
-## 
+##        :bro:id:`REMOTE_LOG_ERROR`.
+##
 ## src: The component of the comminication system that logged the message.
 ##      Currently, this will be one of :bro:id:`REMOTE_SRC_CHILD` (Bro's
 ##      child process), :bro:id:`REMOTE_SRC_PARENT` (Bro's main process), or
-##      :bro:id:`REMOTE_SRC_SCRIPT` (the script level).  
-## 
-## msg: The message logged. 
+##      :bro:id:`REMOTE_SRC_SCRIPT` (the script level).
+##
+## msg: The message logged.
 ##
 ## .. bro:see:: remote_capture_filter remote_connection_closed remote_connection_error
 ##    remote_connection_established remote_connection_handshake_done
@@ -6035,22 +6035,22 @@ event remote_log_peer%(p: event_peer, level: count, src: count, msg: string%);
 ## Generated when a remote peer has answered to our ping. This event is part of
 ## Bro's infrastructure for measuring communication latency. One can send a ping
 ## by calling :bro:id:`send_ping` and when a corresponding reply is received, this
-## event will be raised.  
-## 
+## event will be raised.
+##
 ## p: The peer sending us the pong.
-## 
+##
 ## seq: The sequence number passed to the original :bro:id:`send_ping`  call.
 ##      The number is sent back by the peer in its response.
-## 
+##
 ## d1: The time interval between sending the ping and receiving the pong. This
-##     is the latency of the complete path. 
-## 
+##     is the latency of the complete path.
+##
 ## d2: The time interval between sending out the ping to the network and its
-##     reception at the peer. This is the network latency. 
-## 
+##     reception at the peer. This is the network latency.
+##
 ## d3: The time interval between when the peer's child process received the
 ##     ping and when its parent process sent the pong. This is the
-##     processing latency at the the peer.  
+##     processing latency at the the peer.
 ##
 ## .. bro:see:: remote_capture_filter remote_connection_closed remote_connection_error
 ##    remote_connection_established remote_connection_handshake_done
@@ -6060,12 +6060,12 @@ event remote_pong%(p: event_peer, seq: count,
 			d1: interval, d2: interval, d3: interval%);
 
 ## Generated each time a remote state access has been replayed locally. This event
-## is primarily intended for debugging. measurments. 
-## 
+## is primarily intended for debugging. measurments.
+##
 ## id: The name of the Bro script variable that's being operated on.
-## 
-## v: The new value of the variable. 
-## 
+##
+## v: The new value of the variable.
+##
 ## .. bro:see:: remote_capture_filter remote_connection_closed remote_connection_error
 ##    remote_connection_established remote_connection_handshake_done
 ##    remote_event_registered remote_log remote_pong remote_state_inconsistency
@@ -6075,54 +6075,54 @@ event remote_state_access_performed%(id: string, v: any%);
 ## Generated each time Bro's internal profiling log is updated. The file is
 ## defined by :bro:id:`profiling_file`, and its update frequency by
 ## :bro:id:`profiling_interval`  and :bro:id:`expensive_profiling_multiple`.
-## 
+##
 ## f: The profiling file.
-## 
+##
 ## expensive: True if this event corresponds to heavier-weight profiling as
-##            indicated by the :bro:id:`expensive_profiling_multiple` variable. 
-##   
-## .. bro:see::  profiling_interval expensive_profiling_multiple 
+##            indicated by the :bro:id:`expensive_profiling_multiple` variable.
+##
+## .. bro:see::  profiling_interval expensive_profiling_multiple
 event profiling_update%(f: file, expensive: bool%);
 
 ## Generated each time Bro's script interpreter opens a file. This event is
 ## triggered only for files opened via :bro:id:`open`, and in particular not for
 ## normal log files as created by a  log writers.
-##   
+##
 ## f: The opened file.
 event file_opened%(f: file%);
 
 ## Generated for a received NetFlow v5 header.  Bro's NetFlow processor raises this
 ## event whenever it either receives a NetFlow header on the port it's listening
-## on, or reads one from a trace file. 
-## 
+## on, or reads one from a trace file.
+##
 ## h: The parsed NetFlow header.
 ##
-## .. bro:see:: netflow_v5_record 
+## .. bro:see:: netflow_v5_record
 event netflow_v5_header%(h: nf_v5_header%);
 
 ## Generated for a received NetFlow v5 record.  Bro's NetFlow processor raises this
 ## event whenever it either receives a NetFlow record on the port it's listening
-## on, or reads one from a trace file. 
-## 
+## on, or reads one from a trace file.
+##
 ## h: The parsed NetFlow header.
 ##
-## .. bro:see:: netflow_v5_record 
+## .. bro:see:: netflow_v5_record
 event netflow_v5_record%(r: nf_v5_record%);
 
 ## Raised for informational messages reported via Bro's reporter framework. Such
 ## messages may be generated internally by the event engine and also by other
-## scripts calling :bro:id:`Reporter::info`.  
-## 
-## t: The time the message was passed to the reporter. 
-## 
+## scripts calling :bro:id:`Reporter::info`.
+##
+## t: The time the message was passed to the reporter.
+##
 ## msg: The message itself.
-## 
+##
 ## location: A (potentially empty) string describing a location associated with the
-##           message. 
-## 
+##           message.
+##
 ## .. bro:see:: reporter_warning reporter_error Reporter::info Reporter::warning
 ##    Reporter::error
-## 
+##
 ## .. note:: Bro will not call reporter events recursively. If the handler of any
 ##    reporter event triggers a new reporter message itself, the output will go to
 ##    ``stderr`` instead.
@@ -6130,18 +6130,18 @@ event reporter_info%(t: time, msg: string, location: string%) &error_handler;
 
 ## Raised for warnings reported via Bro's reporter framework. Such messages may
 ## be generated internally by the event engine and also by other scripts calling
-## :bro:id:`Reporter::warning`.  
-## 
-## t: The time the warning was passed to the reporter.  
-## 
+## :bro:id:`Reporter::warning`.
+##
+## t: The time the warning was passed to the reporter.
+##
 ## msg: The warning message.
-## 
+##
 ## location: A (potentially empty) string describing a location associated with the
-##     warning.  
-## 
+##     warning.
+##
 ## .. bro:see:: reporter_info reporter_error Reporter::info Reporter::warning
 ##    Reporter::error
-## 
+##
 ## .. note:: Bro will not call reporter events recursively. If the handler of any
 ##    reporter event triggers a new reporter message itself, the output will go to
 ##    ``stderr`` instead.
@@ -6149,27 +6149,27 @@ event reporter_warning%(t: time, msg: string, location: string%) &error_handler;
 
 ## Raised for errors reported via Bro's reporter framework. Such messages may
 ## be generated internally by the event engine and also by other scripts calling
-## :bro:id:`Reporter::error`.  
-## 
-## t: The time the error was passed to the reporter.  
-## 
+## :bro:id:`Reporter::error`.
+##
+## t: The time the error was passed to the reporter.
+##
 ## msg: The error message.
-## 
+##
 ## location: A (potentially empty) string describing a location associated with the
-##     error.  
-## 
+##     error.
+##
 ## .. bro:see:: reporter_info reporter_warning Reporter::info Reporter::warning
 ##    Reporter::error
-## 
+##
 ## .. note:: Bro will not call reporter events recursively. If the handler of any
 ##    reporter event triggers a new reporter message itself, the output will go to
 ##    ``stderr`` instead.
 event reporter_error%(t: time, msg: string, location: string%) &error_handler;
 
 ## Raised for each policy script loaded by the script interpreter.
-##      
+##
 ## path: The full path to the script loaded.
-##      
+##
 ## level: The "nesting level": zero for a top-level Bro script and incremented
 ##        recursively for each ``@load``.
 event bro_script_loaded%(path: string, level: count%);

@@ -1,4 +1,25 @@
 
+2.0-20 | 2012-01-25 16:34:51 -0800
+
+  * BiF cleanup (Matthias Vallentin)
+
+      - Rename NFS3::mode2string to a more generic file_mode().
+
+      - Unify do_profiling()/make_connection_persistent()/expect_connection()
+        to return any (i.e., nothing) instead of bools.
+
+      - Perform type checking on count-to-port conversion. Related to #684.
+
+      - Remove redundant connection_record() BiF. The same
+        functionality is provided by lookup_connection().
+
+      - Remove redundant active_connection() BiF. The same
+        functionality is provided by connection_exists().
+
+      - exit() now takes the exit code as argument.
+
+      - to_port() now received a string instead of a count.
+        
 2.0-9 | 2012-01-25 13:47:13 -0800
 
   * Allow local table variables to be initialized with {} list

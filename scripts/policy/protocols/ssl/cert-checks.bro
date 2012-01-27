@@ -8,10 +8,14 @@ module SSL;
 
 export {
 	redef enum Notice::Type += {
-		## Indicates that the common name (CN) in the subject field contains a
-		## NUL byte.
+        ## Indicates that the subject CN value contains a NUL byte.
 		Cert_Contains_NUL_byte,
+		## Indicates that the subject CN value is localhost.
 		Cert_issued_for_localhost,
+		## Indicates that the subject contains default values.
+        Cert_with_default_subject_value,
+		## Indicates that the connection's SNI value does not match the
+		## certificate's subject CN or SNA value.
 		Cert_SNI_Mismatch
 	};
 }
@@ -29,22 +33,30 @@ event x509_certificate(c: connection, is_orig: bool, cert: X509,
 	if ( ! c$ssl?$subject )
 		return;
 
-    local cn = extract_asn1_value(c$ssl$subject, "CN");
+    local subject = c$ssl$subject;
+    local cn = extract_asn1_value(subject, "CN");
 
 	if ( /\x00/ in cn )
 	    {
 		local msg = fmt("SSL certificate with NUL byte in subject CN (%s)", cn);
 		NOTICE([$note=Cert_Contains_NUL_byte, $msg=msg,
-		        $sub=c$ssl$subject, $conn=c,
+		        $sub=subject, $conn=c,
 		        $identifier=cat(c$id$resp_h, c$id$resp_p, c$ssl$cert_hash)]);
 		}
 
+    # Check for abnormal subject values.
     if ( /localhost/ in cn && Site::is_local_addr(c$id$resp_h) )
 		NOTICE([$note=Cert_issued_for_localhost,
 		        $msg="SSL certificate issued for localhost",
-		        $sub=c$ssl$subject, $conn=c,
+		        $sub=subject, $conn=c,
 		        $identifier=cat(c$id$resp_h, c$id$resp_p, c$ssl$cert_hash)]);
 
+    if ( /Internet Widgits Pty Ltd|Some-State/ in subject && 
+         Site::is_local_addr(c$id$resp_h) )
+		NOTICE([$note=Cert_with_default_subject_value,
+		        $msg="SSL certificate with default subject value",
+		        $sub=subject, $conn=c,
+		        $identifier=cat(c$id$resp_h, c$id$resp_p, c$ssl$cert_hash)]);
 
     # Check for wildcards in SNI.
     # TODO: we also need to compare the SNI value against the certificate's

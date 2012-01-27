@@ -25,11 +25,11 @@ export {
 
 function extract_asn1_value(str: string, attr: string): string
     {
-    local rdns = split(str, /[^\\],/);
+    local rdns = split_esc(str, /,/, "\\");
     for ( i in rdns )
         {
         # Multi-valued RDN are separated by the '+' character.
-        local mv_rdns = split(strip(rdns[i]), /[^\\]\+/);
+        local mv_rdns = split_esc(strip(rdns[i]), /\+/, "\\");
         for ( j in mv_rdns )
             {
             local pair = split(mv_rdns[j], /=/);
@@ -40,4 +40,3 @@ function extract_asn1_value(str: string, attr: string): string
 
     return "";
     }
-

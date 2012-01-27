@@ -52,3 +52,64 @@ function cut_tail(s: string, tail_len: count): string
 		tail_len = |s|;
 	return sub_bytes(s, 1, int_to_count(|s| - tail_len));
 	}
+
+## Split a string where the delimiter may be escaped. This function is useful
+## when splitting strings of the form ``foo,bar\,baz,qux`` with the
+## :bro:type:`pattern` ``/,``. While the other split functions would return
+## four elements,  ``[foo, bar\, baz, qux]``, this function would respect the
+## escape character ``\`` and return only 3 fragments, ``[foo, bar\,baz,
+## qux]``, where ``bar\,baz`` represents a single fragment.
+##
+## str: The input string to split.
+##
+## delim: The split expression.
+##
+## esc: The escape sequence.
+##
+## Returns: A vector of strings where each element is delimited by *delim* in
+##          *str*.
+##
+## .. bro:see:: split split1 split_all split_n str_split
+function split_esc(str: string, delim: pattern, esc: pattern): vector of string
+    {
+    local result: vector of string;
+
+    local s = split_all(str, delim);
+    local j = 0;     # Index of the result vector.
+
+    # Tracks whether the previous element was escaped.
+    # FIXME: As soon as &default attributes work for vectors, we can get rid of
+    # this flag entirely and always use += in the loop below.
+    local escaped = F;
+
+    # FIXME: The split* functions should actually return a vector of string,
+    # and not a table[count] of string. Once this is fixed, this loop can be
+    # rewritten in a more natural way. Now we use the variable ``i`` as actual
+    # loop variable.
+    local i = 1;
+    for ( dummy in s )
+        {
+        if ( i % 2 != 0 )
+            {
+            if ( escaped )
+                result[j] += s[i];
+            else
+                result[j] = s[i];
+
+            if ( find_last(s[i], esc && /$/) != "" && i < |s| )
+                {
+                result[j] += s[i + 1];
+                escaped = T;
+                }
+            else
+                {
+                ++j;
+                if ( escaped )
+                    escaped = F;
+                }
+            }
+        ++i;
+        }
+
+    return result;
+    }

@@ -2,24 +2,28 @@
 //
 // A class managing log writers and filters.
 
-#ifndef LOGMGR_H
-#define LOGMGR_H
+#ifndef LOGGING_MANAGER_H
+#define LOGGING_MANAGER_H
 
-#include "Val.h"
-#include "EventHandler.h"
-#include "RemoteSerializer.h"
+#include "../Val.h"
+#include "../EventHandler.h"
+#include "../RemoteSerializer.h"
 
 class SerializationFormat;
+class RemoteSerializer;
+class RotationTimer;
+
+namespace logging {
 
 // Description of a log field.
-struct LogField {
+struct Field {
 	string name;
 	TypeTag type;
 	// inner type of sets
 	TypeTag subtype;
 
-	LogField() 	{ subtype = TYPE_VOID; }
-	LogField(const LogField& other)
+	Field() 	{ subtype = TYPE_VOID; }
+	Field(const Field& other)
 		: name(other.name), type(other.type), subtype(other.subtype) {  }
 
 	// (Un-)serialize.
@@ -28,13 +32,13 @@ struct LogField {
 };
 
 // Values as logged by a writer.
-struct LogVal {
+struct Value {
 	TypeTag type;
 	bool present; // False for unset fields.
 
 	// The following union is a subset of BroValUnion, including only the
 	// types we can log directly.
-	struct set_t { bro_int_t size; LogVal** vals; };
+	struct set_t { bro_int_t size; Value** vals; };
 	typedef set_t vec_t;
 
 	union _val {
@@ -48,9 +52,9 @@ struct LogVal {
 		vec_t vector_val;
 	} val;
 
-	LogVal(TypeTag arg_type = TYPE_ERROR, bool arg_present = true)
+	Value(TypeTag arg_type = TYPE_ERROR, bool arg_present = true)
 		: type(arg_type), present(arg_present)	{}
-	~LogVal();
+	~Value();
 
 	// (Un-)serialize.
 	bool Read(SerializationFormat* fmt);
@@ -61,17 +65,17 @@ struct LogVal {
 	static bool IsCompatibleType(BroType* t, bool atomic_only=false);
 
 private:
-	LogVal(const LogVal& other)	{ }
+	Value(const Value& other)	{ }
 };
 
-class LogWriter;
-class RemoteSerializer;
-class RotationTimer;
+class WriterBackend;
+class WriterFrontend;
+class RotationFinishedMessage;
 
-class LogMgr {
+class Manager {
 public:
-	LogMgr();
-	~LogMgr();
+	Manager();
+	~Manager();
 
 	// These correspond to the BiFs visible on the scripting layer. The
 	// actual BiFs just forward here.
@@ -86,19 +90,24 @@ public:
 	bool Flush(EnumVal* id);		// Flushes all writers..
 
 protected:
-	friend class LogWriter;
-	friend class RemoteSerializer;
-	friend class RotationTimer;
+	friend class WriterFrontend;
+	friend class RotationFinishedMessage;
+	friend class ::RemoteSerializer;
+	friend class ::RotationTimer;
+
+	// Instantiates a new WriterBackend of the given type (note that
+	// doing so creates a new thread!). 
+	WriterBackend* CreateBackend(bro_int_t type);
 
 	//// Function also used by the RemoteSerializer.
 
 	// Takes ownership of fields.
-	LogWriter* CreateWriter(EnumVal* id, EnumVal* writer, string path,
-				int num_fields, LogField** fields);
+	WriterFrontend* CreateWriter(EnumVal* id, EnumVal* writer, string path,
+				int num_fields, Field** fields);
 
 	// Takes ownership of values..
 	bool Write(EnumVal* id, EnumVal* writer, string path,
-		   int num_fields, LogVal** vals);
+		   int num_fields, Value** vals);
 
 	// Announces all instantiated writers to peer.
 	void SendAllWritersTo(RemoteSerializer::PeerID peer);
@@ -106,14 +115,14 @@ protected:
 	//// Functions safe to use by writers.
 
 	// Signals that a file has been rotated.
-	bool FinishedRotation(LogWriter* writer, string new_name, string old_name,
+	bool FinishedRotation(WriterFrontend* writer, string new_name, string old_name,
 			      double open, double close, bool terminating);
 
 	// Reports an error for the given writer.
-	void Error(LogWriter* writer, const char* msg);
+	void Error(WriterFrontend* writer, const char* msg);
 
 	// Deletes the values as passed into Write().
-	void DeleteVals(int num_fields, LogVal** vals);
+	void DeleteVals(int num_fields, Value** vals);
 
 private:
 	struct Filter;
@@ -123,20 +132,22 @@ private:
 	bool TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 			    TableVal* include, TableVal* exclude, string path, list<int> indices);
 
-	LogVal** RecordToFilterVals(Stream* stream, Filter* filter,
+	Value** RecordToFilterVals(Stream* stream, Filter* filter,
 				    RecordVal* columns);
 
-	LogVal* ValToLogVal(Val* val, BroType* ty = 0);
+	Value* ValToLogVal(Val* val, BroType* ty = 0);
 	Stream* FindStream(EnumVal* id);
 	void RemoveDisabledWriters(Stream* stream);
 	void InstallRotationTimer(WriterInfo* winfo);
 	void Rotate(WriterInfo* info);
 	Filter* FindFilter(EnumVal* id, StringVal* filter);
-	WriterInfo* FindWriter(LogWriter* writer);
+	WriterInfo* FindWriter(WriterFrontend* writer);
 
 	vector<Stream *> streams;	// Indexed by stream enum.
 };
 
-extern LogMgr* log_mgr;
+}
+
+extern logging::Manager* log_mgr;
 
 #endif

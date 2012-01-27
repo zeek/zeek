@@ -29,7 +29,6 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "Event.h"
 #include "File.h"
 #include "Reporter.h"
-#include "LogMgr.h"
 #include "Net.h"
 #include "NetVar.h"
 #include "Var.h"
@@ -48,7 +47,10 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "DPM.h"
 #include "BroDoc.h"
 #include "Brofiler.h"
-#include "LogWriterAscii.h"
+
+#include "threading/Manager.h"
+#include "logging/Manager.h"
+#include "logging/writers/Ascii.h"
 
 #include "binpac_bro.h"
 
@@ -75,7 +77,8 @@ char* writefile = 0;
 name_list prefixes;
 DNS_Mgr* dns_mgr;
 TimerMgr* timer_mgr;
-LogMgr* log_mgr;
+logging::Manager* log_mgr = 0;
+threading::Manager* thread_mgr = 0;
 Stmt* stmts;
 EventHandlerPtr net_done = 0;
 RuleMatcher* rule_matcher = 0;
@@ -197,7 +200,7 @@ void usage()
 	fprintf(stderr, "    $BRO_PREFIXES                  | prefix list (%s)\n", bro_prefixes());
 	fprintf(stderr, "    $BRO_DNS_FAKE                  | disable DNS lookups (%s)\n", bro_dns_fake());
 	fprintf(stderr, "    $BRO_SEED_FILE                 | file to load seeds from (not set)\n");
-	fprintf(stderr, "    $BRO_LOG_SUFFIX                | ASCII log file extension (.%s)\n", LogWriterAscii::LogExt().c_str());
+	fprintf(stderr, "    $BRO_LOG_SUFFIX                | ASCII log file extension (.%s)\n", logging::writer::Ascii::LogExt().c_str());
 	fprintf(stderr, "    $BRO_PROFILER_FILE             | Output file for script execution statistics (not set)\n");
 
 	exit(1);
@@ -287,6 +290,8 @@ void terminate_bro()
 	if ( remote_serializer )
 		remote_serializer->LogStats();
 
+	thread_mgr->Terminate();
+
 	delete timer_mgr;
 	delete dns_mgr;
 	delete persistence_serializer;
@@ -299,6 +304,7 @@ void terminate_bro()
 	delete remote_serializer;
 	delete dpm;
 	delete log_mgr;
+	delete thread_mgr;
 	delete reporter;
 	}
 
@@ -661,7 +667,9 @@ int main(int argc, char** argv)
 	set_processing_status("INITIALIZING", "main");
 
 	bro_start_time = current_time(true);
+
 	reporter = new Reporter();
+	thread_mgr = new threading::Manager();
 
 #ifdef DEBUG
 	if ( debug_streams )
@@ -727,7 +735,7 @@ int main(int argc, char** argv)
 	persistence_serializer = new PersistenceSerializer();
 	remote_serializer = new RemoteSerializer();
 	event_registry = new EventRegistry();
-	log_mgr = new LogMgr();
+	log_mgr = new logging::Manager();
 
 	if ( events_file )
 		event_player = new EventPlayer(events_file);
@@ -1000,6 +1008,8 @@ int main(int argc, char** argv)
 	mgr.Drain();
 
 	have_pending_timers = ! reading_traces && timer_mgr->Size() > 0;
+
+	io_sources.Register(thread_mgr, true);
 
 	if ( io_sources.Size() > 0 || have_pending_timers )
 		{

@@ -2,33 +2,35 @@
 //
 // Log writer for delimiter-separated ASCII logs.
 
-#ifndef LOGWRITERASCII_H
-#define LOGWRITERASCII_H
+#ifndef LOGGING_WRITER_ASCII_H
+#define LOGGING_WRITER_ASCII_H
 
-#include "LogWriter.h"
+#include "../WriterBackend.h"
 
-class LogWriterAscii : public LogWriter {
+namespace logging { namespace writer {
+
+class Ascii : public WriterBackend {
 public:
-	LogWriterAscii();
-	~LogWriterAscii();
+	Ascii();
+	~Ascii();
 
-	static LogWriter* Instantiate()	{ return new LogWriterAscii; }
+	static WriterBackend* Instantiate()	{ return new Ascii; }
 	static string LogExt();
 
 protected:
 	virtual bool DoInit(string path, int num_fields,
-			    const LogField* const * fields);
-	virtual bool DoWrite(int num_fields, const LogField* const * fields,
-			     LogVal** vals);
+			    const Field* const * fields);
+	virtual bool DoWrite(int num_fields, const Field* const * fields,
+			     Value** vals);
 	virtual bool DoSetBuf(bool enabled);
-	virtual bool DoRotate(string rotated_path, double open, double close,
-			      bool terminating);
+	virtual bool DoRotate(WriterFrontend* writer, string rotated_path,
+			      double open, double close, bool terminating);
 	virtual bool DoFlush();
-	virtual void DoFinish();
+	virtual bool DoFinish();
 
 private:
 	bool IsSpecial(string path) 	{ return path.find("/dev/") == 0; }
-	bool DoWriteOne(ODesc* desc, LogVal* val, const LogField* field);
+	bool DoWriteOne(ODesc* desc, Value* val, const Field* field);
 	bool WriteHeaderField(const string& key, const string& value);
 
 	FILE* file;
@@ -54,5 +56,9 @@ private:
 	char* header_prefix;
 	int header_prefix_len;
 };
+
+}
+}
+
 
 #endif

@@ -14,8 +14,11 @@
 // FIXME: Change this to network byte order
 
 class IncrementalSendTimer;
-class LogField;
-class LogVal;
+
+namespace logging {
+	class Field;
+	class Value;
+}
 
 // This class handles the communication done in Bro's main loop.
 class RemoteSerializer : public Serializer, public IOSource {
@@ -99,13 +102,13 @@ public:
 	bool SendPrintHookEvent(BroFile* f, const char* txt, size_t len);
 
 	// Send a request to create a writer on a remote side.
-	bool SendLogCreateWriter(PeerID peer, EnumVal* id, EnumVal* writer, string path, int num_fields, const LogField* const * fields);
+	bool SendLogCreateWriter(PeerID peer, EnumVal* id, EnumVal* writer, string path, int num_fields, const logging::Field* const * fields);
 
 	// Broadcasts a request to create a writer.
-	bool SendLogCreateWriter(EnumVal* id, EnumVal* writer, string path, int num_fields, const LogField* const * fields);
+	bool SendLogCreateWriter(EnumVal* id, EnumVal* writer, string path, int num_fields, const logging::Field* const * fields);
 
 	// Broadcast a log entry to everybody interested.
-	bool SendLogWrite(EnumVal* id, EnumVal* writer, string path, int num_fields, const LogVal* const * vals);
+	bool SendLogWrite(EnumVal* id, EnumVal* writer, string path, int num_fields, const logging::Value* const * vals);
 
 	// Synchronzizes time with all connected peers. Returns number of
 	// current sync-point, or -1 on error.
@@ -300,7 +303,7 @@ protected:
 	bool SendID(SerialInfo* info, Peer* peer, const ID& id);
 	bool SendCapabilities(Peer* peer);
 	bool SendPacket(SerialInfo* info, Peer* peer, const Packet& p);
-	bool SendLogWrite(Peer* peer, EnumVal* id, EnumVal* writer, string path, int num_fields, const LogVal* const * vals);
+	bool SendLogWrite(Peer* peer, EnumVal* id, EnumVal* writer, string path, int num_fields, const logging::Value* const * vals);
 
 	void UnregisterHandlers(Peer* peer);
 	void RaiseEvent(EventHandlerPtr event, Peer* peer, const char* arg = 0);

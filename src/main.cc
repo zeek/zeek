@@ -47,9 +47,12 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "ConnCompressor.h"
 #include "DPM.h"
 #include "BroDoc.h"
+#include "Brofiler.h"
 #include "LogWriterAscii.h"
 
 #include "binpac_bro.h"
+
+Brofiler brofiler;
 
 #ifndef HAVE_STRSEP
 extern "C" {
@@ -195,6 +198,7 @@ void usage()
 	fprintf(stderr, "    $BRO_DNS_FAKE                  | disable DNS lookups (%s)\n", bro_dns_fake());
 	fprintf(stderr, "    $BRO_SEED_FILE                 | file to load seeds from (not set)\n");
 	fprintf(stderr, "    $BRO_LOG_SUFFIX                | ASCII log file extension (.%s)\n", LogWriterAscii::LogExt().c_str());
+	fprintf(stderr, "    $BRO_PROFILER_FILE             | Output file for script execution statistics (not set)\n");
 
 	exit(1);
 	}
@@ -260,6 +264,8 @@ void terminate_bro()
 	set_processing_status("TERMINATING", "terminate_bro");
 
 	terminating = true;
+
+	brofiler.WriteStats();
 
 	EventHandlerPtr bro_done = internal_handler("bro_done");
 	if ( bro_done )
@@ -336,6 +342,8 @@ static void bro_new_handler()
 
 int main(int argc, char** argv)
 	{
+	brofiler.ReadStats();
+
 	bro_argc = argc;
 	bro_argv = new char* [argc];
 

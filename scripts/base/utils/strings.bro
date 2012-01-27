@@ -70,7 +70,7 @@ function cut_tail(s: string, tail_len: count): string
 ##          *str*.
 ##
 ## .. bro:see:: split split1 split_all split_n str_split
-function split_esc(str: string, delim: pattern, esc: pattern): vector of string
+function split_esc(str: string, delim: pattern, esc: string): vector of string
     {
     local result: vector of string;
 
@@ -96,7 +96,8 @@ function split_esc(str: string, delim: pattern, esc: pattern): vector of string
             else
                 result[j] = s[i];
 
-            if ( find_last(s[i], esc && /$/) != "" && i < |s| )
+            local pos = strstr(s[i], esc);
+            if ( pos > 0 && |s[i]| - |esc| + 1 == pos )
                 {
                 result[j] += s[i + 1];
                 escaped = T;

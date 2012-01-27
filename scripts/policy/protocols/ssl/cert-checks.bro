@@ -44,12 +44,17 @@ event x509_certificate(c: connection, is_orig: bool, cert: X509,
     # Check for wildcards in SNI.
     # TODO: we also need to compare the SNI value against the certificate's
     # Server Alternate Names field, Otherwise we get too many false positivies.
+    if ( ! c$ssl?$server_name )
+        return;
+
+    local sni = c$ssl$server_name;
+
     if ( /^\*\./ in cn )
         {
         local suffix = sub(cn, /^\*\./, "");
-        if ( strstr(c$ssl$server_name, suffix) == 0 )
-            report_sni_mismatch(c, cn, c$ssl$server_name);
+        if ( strstr(sni, suffix) == 0 )
+            report_sni_mismatch(c, cn, sni);
         }
-    else if ( cn != c$ssl$server_name )
-            report_sni_mismatch(c, cn, c$ssl$server_name);
+    else if ( cn != sni )
+            report_sni_mismatch(c, cn, sni);
 	}

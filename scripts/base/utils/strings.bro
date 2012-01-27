@@ -74,7 +74,25 @@ function split_esc(str: string, delim: pattern, esc: string): vector of string
     {
     local result: vector of string;
 
-    local s = split_all(str, delim);
+    # If the escape string is empty, the function degenerates to split.
+    if ( esc == "" )
+        {
+        local s = split(str, delim);
+        # FIXME: The split* functions should actually return a vector of
+        # string, and not a table[count] of string. Once this is fixed, this
+        # loop can be rewritten in a more natural way. Now we use the variable
+        # ``i`` as actual loop variable.
+        local i = 0;
+        for ( dummy in s )
+            {
+            result[i] = s[i + 1];
+            ++i;
+            }
+
+        return result;
+        }
+
+    s = split_all(str, delim);
     local j = 0;     # Index of the result vector.
 
     # Tracks whether the previous element was escaped.
@@ -82,11 +100,7 @@ function split_esc(str: string, delim: pattern, esc: string): vector of string
     # this flag entirely and always use += in the loop below.
     local escaped = F;
 
-    # FIXME: The split* functions should actually return a vector of string,
-    # and not a table[count] of string. Once this is fixed, this loop can be
-    # rewritten in a more natural way. Now we use the variable ``i`` as actual
-    # loop variable.
-    local i = 1;
+    i = 1;
     for ( dummy in s )
         {
         if ( i % 2 != 0 )

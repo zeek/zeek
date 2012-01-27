@@ -28,3 +28,9 @@ print cut_tail("hello world", 1);
 print cut_tail("hello world", 6);
 print cut_tail("hello world", 11);
 print cut_tail("hello world", 12);
+
+print split_esc("#fo\\#o\#bar#baz\\#qux#", /#/, "\\");
+print split_esc("fo\\#o\#bar#baz\\#qux", /#/, "\\");
+print split_esc("fo\\#o\#bar#baz\\#qux", /#/, "bar");
+print split_esc("#fo\\#o\#bar#baz\\#qux#", /#/, "");
+print split_esc("#fo\\#o\#bar#baz\\#qux#", /\\/, "#");

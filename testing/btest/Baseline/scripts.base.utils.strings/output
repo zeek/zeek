@@ -11,3 +11,8 @@ hello worl
 hello
 
 
+[, fo\#o, bar, baz\#qux, ]
+[fo\#o, bar, baz\#qux]
+[fo\, o, bar#baz\, qux]
+[, fo\, o, bar, baz\, qux, ]
+[#fo, #o#bar#baz, #qux#]

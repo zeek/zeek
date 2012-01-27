@@ -11,7 +11,8 @@ export {
 		## Indicates that the common name (CN) in the subject field contains a
 		## NUL byte.
 		Cert_Contains_NUL_byte,
-		Cert_SNI_Mismatch,
+		Cert_issued_for_localhost,
+		Cert_SNI_Mismatch
 	};
 }
 
@@ -38,8 +39,12 @@ event x509_certificate(c: connection, is_orig: bool, cert: X509,
 		        $identifier=cat(c$id$resp_h, c$id$resp_p, c$ssl$cert_hash)]);
 		}
 
-    if ( ! c$ssl?$server_name )
-        return;
+    if ( /localhost/ in cn && Site::is_local_addr(c$id$resp_h) )
+		NOTICE([$note=Cert_issued_for_localhost,
+		        $msg="SSL certificate issued for localhost",
+		        $sub=c$ssl$subject, $conn=c,
+		        $identifier=cat(c$id$resp_h, c$id$resp_p, c$ssl$cert_hash)]);
+
 
     # Check for wildcards in SNI.
     # TODO: we also need to compare the SNI value against the certificate's

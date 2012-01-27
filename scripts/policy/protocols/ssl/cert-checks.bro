@@ -10,9 +10,17 @@ export {
 	redef enum Notice::Type += {
 		## Indicates that the common name (CN) in the subject field contains a
 		## NUL byte.
-		Cert_Contains_NUL_byte
+		Cert_Contains_NUL_byte,
+		Cert_SNI_Mismatch,
 	};
 }
+
+function report_sni_mismatch(c: connection, cn: string, sni: string)
+    {
+    local msg = fmt("SNI value does not match certificate subject CN or SAN");
+    NOTICE([$note=Cert_SNI_Mismatch, $msg=msg, $sub=c$ssl$subject, $conn=c,
+		    $identifier=cat(c$id$resp_h, c$id$resp_p, c$ssl$cert_hash)]);
+    }
 
 event x509_certificate(c: connection, is_orig: bool, cert: X509, 
     chain_idx: count, chain_len: count, der_cert: string) &priority=3
@@ -27,7 +35,21 @@ event x509_certificate(c: connection, is_orig: bool, cert: X509,
 		local msg = fmt("SSL certificate with NUL byte in subject CN (%s)", cn);
 		NOTICE([$note=Cert_Contains_NUL_byte, $msg=msg,
 		        $sub=c$ssl$subject, $conn=c,
-		        $identifier=cat(c$id$resp_h, c$id$resp_p, c$ssl$validation_status,
-		            c$ssl$cert_hash)]);
+		        $identifier=cat(c$id$resp_h, c$id$resp_p, c$ssl$cert_hash)]);
 		}
+
+    if ( ! c$ssl?$server_name )
+        return;
+
+    # Check for wildcards in SNI.
+    # TODO: we also need to compare the SNI value against the certificate's
+    # Server Alternate Names field, Otherwise we get too many false positivies.
+    if ( /^\*\./ in cn )
+        {
+        local suffix = sub(cn, /^\*\./, "");
+        if ( strstr(c$ssl$server_name, suffix) == 0 )
+            report_sni_mismatch(c, cn, c$ssl$server_name);
+        }
+    else if ( cn != c$ssl$server_name )
+            report_sni_mismatch(c, cn, c$ssl$server_name);
 	}

@@ -68,9 +68,13 @@ void insert_basictype_defs(Output* out)
 	out->println("typedef char int8;");
 	out->println("typedef short int16;");
 	out->println("typedef long int32;");
+	out->println("typedef long long int64;");
+	
 	out->println("typedef unsigned char uint8;");
 	out->println("typedef unsigned short uint16;");
 	out->println("typedef unsigned long uint32;");
+	out->println("typedef unsigned long long uint64;");
+	
 	out->println("");
 	out->println("#endif /* pac_type_defs */");
 	out->println("");
@@ -80,6 +84,7 @@ void insert_byteorder_macros(Output* out)
 	{
 	out->println("#define FixByteOrder16(x)	(byteorder == HOST_BYTEORDER ? (x) : pac_swap16(x))");
 	out->println("#define FixByteOrder32(x)	(byteorder == HOST_BYTEORDER ? (x) : pac_swap32(x))");
+	out->println("#define FixByteOrder64(x)	(byteorder == HOST_BYTEORDER ? (x) : pac_swap64(x))");
 	out->println("");
 	}
 

@@ -35,9 +35,11 @@ const int unspecified_byteorder = -1;
 typedef char 		int8;
 typedef short 		int16;
 typedef long 		int32;
-typedef unsigned char 	uint8;
-typedef unsigned short 	uint16;
-typedef unsigned int 	uint32;
+typedef long long	int64;
+typedef unsigned char 		uint8;
+typedef unsigned short 		uint16;
+typedef unsigned int		uint32;
+typedef unsigned long long	uint64;
 typedef void		*nullptr;
 typedef void		*voidptr;
 typedef uint8		*byteptr;
@@ -79,6 +81,31 @@ inline uint32 pac_swap(uint32 x)
 		((x & 0xff00) << 8) | 
 		((x & 0xff) << 24);
 	}
+
+inline int64 pac_swap(int64 x)
+	{
+	return 	(x >> 56) | 
+		((x & 0xff000000000000) >> 40) | 
+		((x & 0xff0000000000) >> 24) | 
+		((x & 0xff00000000) >> 8) | 
+		((x & 0xff000000) << 8) | 
+		((x & 0xff0000) << 24) | 
+		((x & 0xff00) << 40) | 
+		((x & 0xff) << 56);
+	}
+
+inline uint64 pac_swap(uint64 x)
+	{
+	return 	(x >> 56) | 
+		((x & 0xff000000000000) >> 40) | 
+		((x & 0xff0000000000) >> 24) | 
+		((x & 0xff00000000) >> 8) | 
+		((x & 0xff000000) << 8) | 
+		((x & 0xff0000) << 24) | 
+		((x & 0xff00) << 40) | 
+		((x & 0xff) << 56);
+	}
+
 
 #define FixByteOrder(byteorder, x)	(byteorder == HOST_BYTEORDER ? (x) : pac_swap(x))
 

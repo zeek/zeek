@@ -11,8 +11,8 @@ Type *BuiltInType::DoClone() const
 bool BuiltInType::IsNumericType() const
 	{
 	BITType t = bit_type();
-	return (t == INT8 || t == INT16 || t == INT32 ||
-	        t == UINT8 || t == UINT16 || t == UINT32);
+	return (t == INT8 || t == INT16 || t == INT32 || t == INT64 || 
+	        t == UINT8 || t == UINT16 || t == UINT32 || t == UINT64);
 	}
 
 bool BuiltInType::CompatibleBuiltInTypes(BuiltInType *type1, 
@@ -125,6 +125,8 @@ void BuiltInType::DoGenParseCode(Output* out_cc, Env* env,
 		case UINT16:
 		case INT32:
 		case UINT32:
+		case INT64:
+		case UINT64:
 #if 0
 			out_cc->println("%s = UnMarshall<%s>(%s, %s);",
 				lvalue(), 

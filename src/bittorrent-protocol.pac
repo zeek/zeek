@@ -22,8 +22,8 @@ type BitTorrent_Handshake = record {
 
 } &length = 68, &let {
 	validate: bool = $context.flow.validate_handshake(pstrlen, pstr);
-	incoffsetffset: bool =
-		$context.flow.increment_next_message_offset(true, 68);
+	#incoffsetffset: bool =
+	#	$context.flow.increment_next_message_offset(true, 68);
 	deliver: bool =
 		$context.flow.deliver_handshake(reserved, info_hash, peer_id);
 };
@@ -72,8 +72,8 @@ type BitTorrent_PieceHeader(len: uint32) = record {
 	index: uint32;
 	begin: uint32;
 } &let {
-	incoffset: bool =
-		$context.flow.increment_next_message_offset(true, len + 5);
+	#incoffset: bool =
+	#	$context.flow.increment_next_message_offset(true, len + 5);
 };
 
 type BitTorrent_Piece(len: uint32) = record {
@@ -134,9 +134,9 @@ type BitTorrent_Message = record {
 		default -> message_id: BitTorrent_MessageID(len.len);
 	};
 } &length = 4 + len.len, &let {
-	incoffset: bool = $context.flow.increment_next_message_offset(
-				len.len == 0 || message_id.id != TYPE_PIECE,
-				4 + len.len);
+	#incoffset: bool = $context.flow.increment_next_message_offset(
+	#			len.len == 0 || message_id.id != TYPE_PIECE,
+	#			4 + len.len);
 };
 
 type BitTorrent_PDU = case $context.flow.is_handshake_delivered() of {

@@ -1,4 +1,25 @@
 
+2.0-36 | 2012-01-27 10:38:14 -0800
+
+  * New "Brofiler" mode that tracks and records script statements
+    executed during runtime. (Jon Siwek)
+
+    Use the BROFILER_FILE environment variable to point to a file in
+    which statement usage statistics from Bro script-layer can be
+    output.
+
+    Script statements that should be ignored can be marked with a "#
+    @no-test" comment. For example:
+
+        print "don't cover"; # @no-test
+
+        if ( F )
+            { # @no-test
+            ...
+            }
+
+  * Integrated coverage measurement into test-suite. (Jon Siwek)
+
 2.0-20 | 2012-01-25 16:34:51 -0800
 
   * BiF cleanup (Matthias Vallentin)

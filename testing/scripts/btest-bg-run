@@ -4,4 +4,4 @@
 # when collecting Bro script coverage statistics so that two independent
 # Bro processing don't try to write those usage statistics to the same file.
 
-BROFILER_FILE=`mktemp -t script-coverage` $BTEST_PATH/btest-bg-run $@
+BRO_PROFILER_FILE=`mktemp $TMPDIR/script-coverage.XXXX` $BTEST_PATH/btest-bg-run $@

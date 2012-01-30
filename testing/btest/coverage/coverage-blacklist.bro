@@ -1,6 +1,6 @@
-# @TEST-EXEC: BROFILER_FILE=coverage bro -b %INPUT
+# @TEST-EXEC: BRO_PROFILER_FILE=coverage bro -b %INPUT
 # @TEST-EXEC: grep %INPUT coverage | sort -k2 >output
-# @TEST-EXEC: btest-diff output
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff output
 
 print "first";
 

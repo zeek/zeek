@@ -2,29 +2,33 @@
 module SSL;
 
 export {
-    ## Extracts the attribute value of an ASN.1 string. The format of *str* is
-    ## specified in RFC 2253. This function correctly parses multi-valued
-    ## relative distinguished names (RDNs).
+    ## Splits a ASN.1 Distinguished Name string into attribute-value pairs. The
+    ## format of *str* is ## specified in RFC 2253. This function parses
+    ## multi-valued relative distinguished names (RDNs) by associating a single
+    ## key with each RDN. For example, parsing the the string:
     ##
-    ## For example, one may use this function to extract the CN value of the
-    ## SSL certificate subject.
+    ##    OU=Sales+CN=J. Smith,O=Widget Inc.,C=US
     ##
-    ## str: The ASN.1 string.
+    ## would result in a table with the keys ``OU``,``CN``,``O``, and ``C``.
     ##
-    ## attr: The attribute to extract.
+    ## One may use this function to extract the CN value of the SSL
+    ## certificate subject or issuer.
     ##
-    ## Returns: The value associated with *attr* or the empty string if *attr*
-    ##          does not exist in *str*.
+    ## str: The ASN.1 distinguished name.
+    ##
+    ## Returns: A table that maps the DN attributes to their corresponding
+    ##          values.
     ##
     ## .. note::
     ##
     ##      This function does not consider the variations of RFC 1779 and
     ##      LDAPv2 discussed in section 4 of RFC 2253.
-    global extract_asn1_value: function(str: string, attr: string): string;
+    global split_dn: function(str: string): table[string] of string;
 }
 
-function extract_asn1_value(str: string, attr: string): string
+function split_dn(str: string): table[string] of string
     {
+    local result: table[string] of string;
     local rdns = split_esc(str, /,/, "\\");
     for ( i in rdns )
         {
@@ -33,10 +37,9 @@ function extract_asn1_value(str: string, attr: string): string
         for ( j in mv_rdns )
             {
             local pair = split(mv_rdns[j], /=/);
-            if ( attr == pair[1] )
-                return pair[2];
+            result[pair[1]] = pair[2];
             }
         }
 
-    return "";
+    return result;
     }

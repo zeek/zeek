@@ -33,14 +33,14 @@ event x509_certificate(c: connection, is_orig: bool, cert: X509,
 	if ( ! c$ssl?$subject )
 		return;
 
-    local subject = c$ssl$subject;
-    local cn = extract_asn1_value(subject, "CN");
+    local subject = split_dn(c$ssl$subject);
+    local cn = subject["CN"];
 
 	if ( /\x00/ in cn )
 	    {
 		local msg = fmt("SSL certificate with NUL byte in subject CN (%s)", cn);
 		NOTICE([$note=Cert_Contains_NUL_byte, $msg=msg,
-		        $sub=subject, $conn=c,
+		        $sub=c$ssl$subject, $conn=c,
 		        $identifier=cat(c$id$resp_h, c$id$resp_p, c$ssl$cert_hash)]);
 		}
 
@@ -48,14 +48,14 @@ event x509_certificate(c: connection, is_orig: bool, cert: X509,
     if ( /localhost/ in cn && Site::is_local_addr(c$id$resp_h) )
 		NOTICE([$note=Cert_issued_for_localhost,
 		        $msg="SSL certificate issued for localhost",
-		        $sub=subject, $conn=c,
+		        $sub=c$ssl$subject, $conn=c,
 		        $identifier=cat(c$id$resp_h, c$id$resp_p, c$ssl$cert_hash)]);
 
-    if ( /Internet Widgits Pty Ltd|Some-State/ in subject && 
-         Site::is_local_addr(c$id$resp_h) )
+    if ( (/Internet Widgits Pty Ltd/ in subject["O"] ||
+          /Some-State/ in subject["ST"]) && Site::is_local_addr(c$id$resp_h) )
 		NOTICE([$note=Cert_with_default_subject_value,
 		        $msg="SSL certificate with default subject value",
-		        $sub=subject, $conn=c,
+		        $sub=c$ssl$subject, $conn=c,
 		        $identifier=cat(c$id$resp_h, c$id$resp_p, c$ssl$cert_hash)]);
 
     # Check for wildcards in SNI.

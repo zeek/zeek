@@ -322,7 +322,7 @@ const uint32* mask_addr(const uint32* a, uint32 top_bits_to_keep)
 
 	if ( top_bits_to_keep == 0 || top_bits_to_keep > max_bits )
 		{
-		reporter->Error("bad address mask value %s", top_bits_to_keep);
+		reporter->Error("bad address mask value %u", top_bits_to_keep);
 		return addr;
 		}
 

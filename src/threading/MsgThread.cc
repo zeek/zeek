@@ -28,7 +28,7 @@ namespace threading  {
 class TerminateMessage : public InputMessage<MsgThread>
 {
 public:
-	TerminateMessage(MsgThread* thread) : InputMessage("Terminate", thread)	{ }
+	TerminateMessage(MsgThread* thread) : InputMessage<MsgThread>("Terminate", thread)	{ }
 
 	virtual bool Process()	{ return true; }
 };
@@ -56,7 +56,7 @@ class HeartbeatMessage : public InputMessage<MsgThread>
 {
 public:
 	HeartbeatMessage(MsgThread* thread, double arg_network_time, double arg_current_time)
-		: InputMessage("Heartbeat", thread)
+		: InputMessage<MsgThread>("Heartbeat", thread)
 		{ network_time = arg_network_time; current_time = arg_current_time; }
 
 	virtual bool Process()	{ return Object()->DoHeartbeat(network_time, current_time); }
@@ -98,38 +98,36 @@ Message::~Message()
 bool ReporterMessage::Process()
 	{
 	string s = Object()->Name() + ": " + msg;
-	strreplace(s, "%", "%%");
-
 	const char* cmsg = s.c_str();
 
 	switch ( type ) {
 
 	case INFO:
-		reporter->Info(cmsg);
+		reporter->Info("%s", cmsg);
 		break;
 
 	case WARNING:
-		reporter->Warning(cmsg);
+		reporter->Warning("%s", cmsg);
 		break;
 
 	case ERROR:
-		reporter->Error(cmsg);
+		reporter->Error("%s", cmsg);
 		break;
 
 	case FATAL_ERROR:
-		reporter->FatalError(cmsg);
+		reporter->FatalError("%s", cmsg);
 		break;
 
 	case FATAL_ERROR_WITH_CORE:
-		reporter->FatalErrorWithCore(cmsg);
+		reporter->FatalErrorWithCore("%s", cmsg);
 		break;
 
 	case INTERNAL_WARNING:
-		reporter->InternalWarning(cmsg);
+		reporter->InternalWarning("%s", cmsg);
 		break;
 
 	case INTERNAL_ERROR :
-		reporter->InternalError(cmsg);
+		reporter->InternalError("%s", cmsg);
 		break;
 
 	default:

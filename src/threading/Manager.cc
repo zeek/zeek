@@ -90,7 +90,7 @@ void Manager::Process()
 		else
 			{
 			string s = msg->Name() + " failed, terminating thread";
-			reporter->Error(s.c_str());
+			reporter->Error("%s", s.c_str());
 			t->Stop();
 			}
 

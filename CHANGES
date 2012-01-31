@@ -1,4 +1,9 @@
 
+2.0-38 | 2012-01-31 11:50:53 -0800
+
+  * Canonify sorting of lines in Brofiler coverage.log. (Daniel
+    Thayer)
+
 2.0-36 | 2012-01-27 10:38:14 -0800
 
   * New "Brofiler" mode that tracks and records script statements

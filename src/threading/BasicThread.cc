@@ -7,6 +7,8 @@
 
 using namespace threading;
 
+uint64_t BasicThread::thread_counter = 0;
+
 BasicThread::BasicThread(const string& arg_name)
 	{
 	started = false;
@@ -16,9 +18,7 @@ BasicThread::BasicThread(const string& arg_name)
 	buf = 0;
 	buf_len = 1024;
 
-	char tmp[128];
-	snprintf(tmp, sizeof(tmp), "%s@%p", arg_name.c_str(), this);
-	name = string(tmp);
+	name = Fmt("%s@%d", arg_name.c_str(), ++thread_counter);
 
 	thread_mgr->AddThread(this);
 	}
@@ -53,8 +53,15 @@ const char* BasicThread::Fmt(const char* format, ...)
 
 void BasicThread::Start()
 	{
-	if ( sem_init(&terminate, 0, 0) != 0  )
-		reporter->FatalError("Cannot create terminate semaphore for thread %s", name.c_str());
+	if ( started )
+		return;
+
+	if ( pthread_mutex_init(&terminate, 0) != 0  )
+		reporter->FatalError("Cannot create terminate mutex for thread %s", name.c_str());
+
+	// We use this like a binary semaphore and acquire it immediately.
+	if ( pthread_mutex_lock(&terminate) != 0 )
+		reporter->FatalError("Cannot aquire terminate mutex for thread %s", name.c_str());
 
 	if ( pthread_create(&pthread, 0, BasicThread::launcher, this) != 0 )
 		reporter->FatalError("Cannot create thread %s", name.c_str());
@@ -76,8 +83,9 @@ void BasicThread::Stop()
 
 	DBG_LOG(DBG_THREADING, "Signaling thread %s to terminate ...", name.c_str());
 
-	// Signal that it's ok for the thread to exit now.
-	if ( sem_post(&terminate) != 0 )
+	// Signal that it's ok for the thread to exit now by unlocking the
+	// mutex.
+	if ( pthread_mutex_unlock(&terminate) != 0 )
 		reporter->FatalError("Failure flagging terminate condition for thread %s", name.c_str());
 
 	terminating = true;
@@ -98,7 +106,7 @@ void BasicThread::Join()
 	if ( pthread_join(pthread, 0) != 0  )
 		reporter->FatalError("Failure joining thread %s", name.c_str());
 
-	sem_destroy(&terminate);
+	pthread_mutex_destroy(&terminate);
 
 	DBG_LOG(DBG_THREADING, "Done with thread %s", name.c_str());
 
@@ -120,9 +128,8 @@ void* BasicThread::launcher(void *arg)
 	thread->Run();
 
 	// Wait until somebody actually wants us to terminate.
-
-	if ( sem_wait(&thread->terminate) != 0 )
-		reporter->FatalError("Failure flagging terminate condition for thread %s", thread->Name().c_str());
+	if ( pthread_mutex_lock(&thread->terminate) != 0 )
+		reporter->FatalError("Failure acquiring terminate mutex at end of thread %s", thread->Name().c_str());
 
 	return 0;
 	}

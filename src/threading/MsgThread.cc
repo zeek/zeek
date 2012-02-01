@@ -6,25 +6,13 @@
 
 using namespace threading;
 
-static void strreplace(const string& s, const string& o, const string& n)
-	{
-	string r = s;
-
-	while ( true )
-		{
-		size_t i = r.find(o);
-
-		if ( i == std::string::npos )
-			break;
-
-		r.replace(i, o.size(), n);
-		}
-	}
-
 namespace threading  {
 
-// Standard messages.
+////// Messages.
 
+// Signals child thread to terminate. This is actually a no-op; its only
+// purpose is unblock the current read operation so that the child's Run()
+// methods can check the termination status.
 class TerminateMessage : public InputMessage<MsgThread>
 {
 public:
@@ -33,6 +21,22 @@ public:
 	virtual bool Process()	{ return true; }
 };
 
+/// Sends a heartbeat to the child thread.
+class HeartbeatMessage : public InputMessage<MsgThread>
+{
+public:
+	HeartbeatMessage(MsgThread* thread, double arg_network_time, double arg_current_time)
+		: InputMessage<MsgThread>("Heartbeat", thread)
+		{ network_time = arg_network_time; current_time = arg_current_time; }
+
+	virtual bool Process()	{ return Object()->DoHeartbeat(network_time, current_time); }
+
+private:
+	double network_time;
+	double current_time;
+};
+
+// A message from the child to be passed on to the Reporter.
 class ReporterMessage : public OutputMessage<MsgThread>
 {
 public:
@@ -52,21 +56,8 @@ private:
 	Type type;
 };
 
-class HeartbeatMessage : public InputMessage<MsgThread>
-{
-public:
-	HeartbeatMessage(MsgThread* thread, double arg_network_time, double arg_current_time)
-		: InputMessage<MsgThread>("Heartbeat", thread)
-		{ network_time = arg_network_time; current_time = arg_current_time; }
-
-	virtual bool Process()	{ return Object()->DoHeartbeat(network_time, current_time); }
-
-private:
-	double network_time;
-	double current_time;
-};
-
 #ifdef DEBUG
+// A debug message from the child to be passed on to the DebugLogger.
 class DebugMessage : public OutputMessage<MsgThread>
 {
 public:
@@ -77,8 +68,7 @@ public:
 	virtual bool Process()
 		{
 		string s = Object()->Name() + ": " + msg;
-		strreplace(s, "%", "%%");
-		debug_logger.Log(stream, s.c_str());
+		debug_logger.Log(stream, "%s", s.c_str());
 		return true;
 		}
 private:
@@ -89,7 +79,7 @@ private:
 
 }
 
-// Methods.
+////// Methods.
 
 Message::~Message()
 	{

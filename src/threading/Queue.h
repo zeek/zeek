@@ -9,23 +9,53 @@
 
 #include "Reporter.h"
 
+#undef Queue // Defined elsewhere unfortunately.
+
 namespace threading {
 
 /**
- *  Just a simple threaded queue wrapper class.  Uses multiple queues and reads / writes in rotary fashion in an attempt to limit contention.
- *  Due to locking granularity, bulk put / get is no faster than single put / get as long as FIFO guarantee is required.
+ * A thread-safe single-reader single-writer queue.
+ *
+ * The implementation uses multiple queues and reads/writes in rotary fashion
+ * in an attempt to limit contention.
+ *
+ * All Queue instances must be instantiated by Bro's main thread.
+ *
+ * TODO: Unclear how critical performance is for this qeueue. We could like;y
+ * optimize it further if helpful.
  */
-
 template<typename T>
-class Queue_
+class Queue
 {
 public:
-	Queue_();
-	~Queue_();
+	/**
+	 * Constructor.
+	 */
+	Queue();
 
+	/**
+	 * Destructor.
+	 */
+	~Queue();
+
+	/**
+	 * Retrieves one elment.
+	 */
 	T Get();
+
+	/**
+	 * Queues one element.
+	 */
 	void Put(T data);
+
+	/**
+	 * Returns true if the next Get() operation will succeed.
+	 */
 	bool Ready();
+
+	/**
+	 * Returns the number of queued items not yet retrieved.
+	 */
 	uint64_t Size();
 
 private:
@@ -37,7 +67,7 @@ private:
 
 	int read_ptr;	// Where the next operation will read from
 	int write_ptr;	// Where the next operation will write to
-	uint64_t size;
+	uint64_t size;	// Current queue size.
 };
 
 inline static void safe_lock(pthread_mutex_t* mutex)
@@ -53,7 +83,7 @@ inline static void safe_unlock(pthread_mutex_t* mutex)
 	}
 
 template<typename T>
-inline Queue_<T>::Queue_()
+inline Queue<T>::Queue()
 	{
 	read_ptr = 0;
 	write_ptr = 0;
@@ -69,7 +99,7 @@ inline Queue_<T>::Queue_()
 	}
 
 template<typename T>
-inline Queue_<T>::~Queue_()
+inline Queue<T>::~Queue()
 	{
 	for( int i = 0; i < NUM_QUEUES; ++i )
 		{
@@ -79,7 +109,7 @@ inline Queue_<T>::~Queue_()
 	}
 
 template<typename T>
-inline T Queue_<T>::Get()
+inline T Queue<T>::Get()
 	{
 	safe_lock(&mutex[read_ptr]);
 
@@ -100,7 +130,7 @@ inline T Queue_<T>::Get()
 	}
 
 template<typename T>
-inline void Queue_<T>::Put(T data)
+inline void Queue<T>::Put(T data)
 	{
 	safe_lock(&mutex[write_ptr]);
 
@@ -121,7 +151,7 @@ inline void Queue_<T>::Put(T data)
 
 
 template<typename T>
-inline bool Queue_<T>::Ready()
+inline bool Queue<T>::Ready()
 	{
 	safe_lock(&mutex[read_ptr]);
 
@@ -133,7 +163,7 @@ inline bool Queue_<T>::Ready()
 	}
 
 template<typename T>
-inline uint64_t Queue_<T>::Size()
+inline uint64_t Queue<T>::Size()
 	{
 	safe_lock(&mutex[read_ptr]);
 

@@ -43,6 +43,25 @@ public:
 	 */
 	void Terminate();
 
+	typedef std::list<std::pair<string, MsgThread::Stats> > msg_stats_list;
+
+	/**
+	 * Returns statistics from all current MsgThread instances.
+	 *
+	 * @return A list of statistics, with one entry for each MsgThread.
+	 * Each entry is a tuple of thread name and statistics. The list
+	 * reference remains valid until the next call to this method (or
+	 * termination of the manager).
+	 */
+	const msg_stats_list& GetMsgThreadStats();
+
+	/**
+	 * Returns the number of currently active threads. This counts all
+	 * threads that are not yet joined, includingt any potentially in
+	 * Terminating() state.
+	 */
+	int NumThreads() const { return all_threads.size(); }
+
 protected:
 	friend class BasicThread;
 	friend class MsgThread;
@@ -96,6 +115,8 @@ private:
 
 	bool did_process;	// True if the last Process() found some work to do.
 	double next_beat;	// Timestamp when the next heartbeat will be sent.
+
+	msg_stats_list stats;
 };
 
 }

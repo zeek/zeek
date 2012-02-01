@@ -101,4 +101,21 @@ void Manager::Process()
 		next_beat = network_time + HEART_BEAT_INTERVAL;
 	}
 
+const threading::Manager::msg_stats_list& threading::Manager::GetMsgThreadStats()
+	{
+	stats.clear();
+
+	for ( msg_thread_list::iterator i = msg_threads.begin(); i != msg_threads.end(); i++ ) 
+		{
+		MsgThread* t = *i;
+
+		MsgThread::Stats s;
+		t->GetStats(&s);
+
+		stats.push_back(std::make_pair(t->Name(),s));
+		}
+
+	return stats;
+	}
+
 

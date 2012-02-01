@@ -9,7 +9,7 @@
 #include "ConnCompressor.h"
 #include "DNS_Mgr.h"
 #include "Trigger.h"
-
+#include "threading/Manager.h"
 
 int killed_by_inactivity = 0;
 
@@ -215,6 +215,19 @@ void ProfileLogger::Log()
 			file->Write(fmt("%.06f         %s = %d\n", network_time,
 					timer_type_to_string((TimerType) i),
 					current_timers[i]));
+		}
+
+	file->Write(fmt("%0.6f Threads: current=%d\n", network_time, thread_mgr->NumThreads()));
+
+	const threading::Manager::msg_stats_list& thread_stats = thread_mgr->GetMsgThreadStats();
+	for ( threading::Manager::msg_stats_list::const_iterator i = thread_stats.begin();
+	      i != thread_stats.end(); ++i ) 
+		{
+		threading::MsgThread::Stats s = i->second;
+		file->Write(fmt("    %20s in=%" PRIu64 " out=%" PRIu64 " pending=%" PRIu64 "/%" PRIu64 "\n",
+			    i->first.c_str(),
+			    s.sent_in, s.sent_out,
+			    s.pending_in, s.pending_out));
 		}
 
 	// Script-level state.

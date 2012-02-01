@@ -40,6 +40,15 @@ public:
 	virtual bool Process()	{ Object()->FlushWriteBuffer(); return true; }
 };
 
+class DisableMessage : public threading::OutputMessage<WriterFrontend>
+{
+public:
+        DisableMessage(WriterFrontend* writer)
+		: threading::OutputMessage<WriterFrontend>("Disable", writer)	{}
+
+	virtual bool Process()	{ Object()->SetDisable(); return true; }
+};
+
 }
 
 // Backend methods.
@@ -86,8 +95,13 @@ bool WriterBackend::FinishedRotation(string new_name, string old_name,
 	return true;
 	}
 
+void WriterBackend::DisableFrontend()
+	{
+	SendOut(new DisableMessage(frontend));
+	}
+
 bool WriterBackend::Init(WriterFrontend* arg_frontend, string arg_path, int arg_num_fields,
-			 const Field* const * arg_fields)
+			 const Field* const*  arg_fields)
 	{
 	frontend = arg_frontend;
 	path = arg_path;
@@ -95,7 +109,10 @@ bool WriterBackend::Init(WriterFrontend* arg_frontend, string arg_path, int arg_
 	fields = arg_fields;
 
 	if ( ! DoInit(arg_path, arg_num_fields, arg_fields) )
+		{
+		DisableFrontend();
 		return false;
+		}
 
 	return true;
 	}
@@ -114,6 +131,7 @@ bool WriterBackend::Write(int arg_num_fields, int num_writes, Value*** vals)
 #endif
 
 		DeleteVals(num_writes, vals);
+		DisableFrontend();
 		return false;
 		}
 
@@ -129,6 +147,7 @@ bool WriterBackend::Write(int arg_num_fields, int num_writes, Value*** vals)
 						      vals[j][i]->type, fields[i]->type);
 				Debug(DBG_LOGGING, msg);
 
+				DisableFrontend();
 				DeleteVals(num_writes, vals);
 				return false;
 				}
@@ -148,6 +167,9 @@ bool WriterBackend::Write(int arg_num_fields, int num_writes, Value*** vals)
 
 	DeleteVals(num_writes, vals);
 
+	if ( ! success )
+		DisableFrontend();
+
 	return success;
 	}
 
@@ -159,23 +181,47 @@ bool WriterBackend::SetBuf(bool enabled)
 
 	buffering = enabled;
 
-	return DoSetBuf(enabled);
+	if ( ! DoSetBuf(enabled) )
+		{
+		DisableFrontend();
+		return false;
+		}
+
+	return true;
 	}
 
 bool WriterBackend::Rotate(string rotated_path, double open,
 			   double close, bool terminating)
 	{
-	return DoRotate(rotated_path, open, close, terminating);
+	if ( ! DoRotate(rotated_path, open, close, terminating) )
+		{
+		DisableFrontend();
+		return false;
+		}
+
+	return true;
 	}
 
 bool WriterBackend::Flush()
 	{
-	return DoFlush();
+	if ( ! DoFlush() )
+		{
+		DisableFrontend();
+		return false;
+		}
+
+	return true;
 	}
 
 bool WriterBackend::Finish()
 	{
-	return DoFinish();
+	if ( ! DoFlush() )
+		{
+		DisableFrontend();
+		return false;
+		}
+
+	return true;
 	}
 
 bool WriterBackend::DoHeartbeat(double network_time, double current_time)

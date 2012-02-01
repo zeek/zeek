@@ -1279,7 +1279,7 @@ Value** Manager::RecordToFilterVals(Stream* stream, Filter* filter,
 	}
 
 WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, string path,
-				int num_fields, Field** fields)
+				int num_fields, const Field* const*  fields)
 	{
 	Stream* stream = FindStream(id);
 

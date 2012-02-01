@@ -20,7 +20,7 @@ protected:
 	virtual bool DoInit(string path, int num_fields,
 			    const Field* const * fields)	{ return true; }
 
-	virtual bool DoWrite(int num_fields, const Field* const * fields,
+	virtual bool DoWrite(int num_fields, const Field* const* fields,
 			     Value** vals)	{ return true; }
 	virtual bool DoSetBuf(bool enabled)	{ return true; }
 	virtual bool DoRotate(string rotated_path, double open,

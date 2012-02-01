@@ -9,7 +9,7 @@ namespace logging  {
 class InitMessage : public threading::InputMessage<WriterBackend>
 {
 public:
-	InitMessage(WriterBackend* backend, WriterFrontend* frontend, const string path, const int num_fields, const Field* const *fields)
+	InitMessage(WriterBackend* backend, WriterFrontend* frontend, const string path, const int num_fields, const Field* const* fields)
 		: threading::InputMessage<WriterBackend>("Init", backend),
 		path(path), num_fields(num_fields), fields(fields) { }
 

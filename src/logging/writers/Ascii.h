@@ -19,8 +19,8 @@ public:
 
 protected:
 	virtual bool DoInit(string path, int num_fields,
-			    const Field* const * fields);
-	virtual bool DoWrite(int num_fields, const Field* const * fields,
+			    const Field* const* fields);
+	virtual bool DoWrite(int num_fields, const Field* const* fields,
 			     Value** vals);
 	virtual bool DoSetBuf(bool enabled);
 	virtual bool DoRotate(string rotated_path, double open,

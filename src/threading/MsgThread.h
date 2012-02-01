@@ -184,8 +184,11 @@ protected:
 	 * Triggers a heartbeat message being sent to the client thread.
 	 *
 	 * This is method is called regularly by the threading::Manager.
+	 *
+	 * Can be overriden in derived classed to hook into the heart beat,
+	 * but must call the parent implementation.
 	 */
-	void Heartbeat();
+	virtual void Heartbeat();
 
 	/**
 	 * Overriden from BasicThread.
@@ -194,6 +197,17 @@ protected:
 	virtual void Run();
 	virtual void OnStop();
 
+	/**
+	 * Regulatly triggered for execution in the child thread.
+	 *
+	 * When overriding, one must call the parent class' implementation.
+	 *
+	 * network_time: The network_time when the heartbeat was trigger by
+	 * the main thread.
+	 *
+	 * current_time: Wall clock when the heartbeat was trigger by the
+	 * main thread.
+	 */
 	virtual bool DoHeartbeat(double network_time, double current_time)	{ return true; }
 
 private:

@@ -34,6 +34,7 @@ public:
 	void Write(int num_fields, Value** vals);
 	void SetBuf(bool enabled);
 	void Flush();
+	void FlushWriteBuffer();
 	void Rotate(string rotated_path, double open, double close, bool terminating);
 	void Finish();
 
@@ -49,18 +50,22 @@ public:
 protected:
 	friend class Manager;
 
-
 	WriterBackend* backend;
 	bool disabled;
 	bool initialized;
+	bool buf;
 
 	string path;
 	int num_fields;
 	const Field* const * fields;
+
+	// Buffer for bulk writes.
+	static const int WRITER_BUFFER_SIZE = 50;
+
+	int write_buffer_pos;
+	Value*** write_buffer;
 };
 
 }
-
-
 
 #endif

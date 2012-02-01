@@ -19,6 +19,12 @@ public:
 	virtual ~WriterBackend();
 
 	// One-time initialization of the writer to define the logged fields.
+	//
+	// "frontend" is the frontend writer that created this backend. The
+	// *only* purpose of this value is to be passed back via messages as
+	// a argument to callbacks. One must not otherwise access the
+	// frontend, it's running in a different thread.
+	//
 	// Interpretation of "path" is left to the writer, and will be
 	// corresponding the value configured on the script-level.
 	// 
@@ -27,7 +33,7 @@ public:
 	//
 	// The new instance takes ownership of "fields", and will delete them
 	// when done.
-	bool Init(string path, int num_fields, const Field* const * fields);
+	bool Init(WriterFrontend* frontend, string path, int num_fields, const Field* const * fields);
 
 	// Writes one log entry. The method takes ownership of "vals" and
 	// will return immediately after queueing the write request, which is
@@ -38,7 +44,7 @@ public:
 	//
 	// Returns false if an error occured, in which case the writer must
 	// not be used any further.
-	bool Write(int num_fields, Value** vals);
+	bool Write(int num_fields, int num_writes, Value*** vals);
 
 	// Sets the buffering status for the writer, if the writer supports
 	// that. (If not, it will be ignored).
@@ -50,7 +56,7 @@ public:
 
 	// Triggers rotation, if the writer supports that. (If not, it will
 	// be ignored).
-	bool Rotate(WriterFrontend* writer, string rotated_path, double open, double close, bool terminating);
+	bool Rotate(string rotated_path, double open, double close, bool terminating);
 
 	// Finishes writing to this logger regularly. Must not be called if
 	// an error has been indicated earlier. After calling this, no
@@ -81,8 +87,9 @@ public:
 	//
 	// terminating: True if rotation request occured due to the main Bro
 	// process shutting down.
-	bool FinishedRotation(WriterFrontend* writer, string new_name, string old_name,
+	bool FinishedRotation(string new_name, string old_name,
 			      double open, double close, bool terminating);
+
 
 protected:
 	// Methods for writers to override. If any of these returs false, it
@@ -128,11 +135,6 @@ protected:
 	// RotationDone() to signal the log manager that potential
 	// postprocessors can now run.
 	//
-	// "writer" is the frontend writer that triggered the rotation. The
-	// *only* purpose of this value is to be passed into
-	// FinishedRotation() once done. You must not otherwise access the
-	// frontend, it's running in a different thread.
-	//
 	// "rotate_path" reflects the path to where the rotated output is to
 	// be moved, with specifics depending on the writer. It should
 	// generally be interpreted in a way consistent with that of "path"
@@ -149,8 +151,8 @@ protected:
 	//
 	// A writer may ignore rotation requests if it doesn't fit with its
 	// semantics (but must still return true in that case).
-	virtual bool DoRotate(WriterFrontend* writer, string rotated_path,
-			      double open, double close, bool terminating) = 0;
+	virtual bool DoRotate(string rotated_path, double open, double close,
+			      bool terminating) = 0;
 
 	// Called once on termination. Not called when any of the other
 	// methods has previously signaled an error, i.e., executing this
@@ -158,7 +160,9 @@ protected:
 	virtual bool DoFinish() = 0;
 
 	// Triggered by regular heartbeat messages from the main process.
-	virtual bool DoHeartbeat(double network_time, double current_time)	{ return true; };
+	//
+	// Note when overriding, you must call WriterBackend::DoHeartbeat().
+	virtual bool DoHeartbeat(double network_time, double current_time);
 
 private:
 	friend class Manager;
@@ -169,8 +173,9 @@ private:
 	bool Disabled()	{ return disabled; }
 
 	// Deletes the values as passed into Write().
-	void DeleteVals(Value** vals);
+	void DeleteVals(int num_writes, Value*** vals);
 
+	WriterFrontend* frontend;
 	string path;
 	int num_fields;
 	const Field* const * fields;

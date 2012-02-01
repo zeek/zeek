@@ -9,13 +9,14 @@ namespace logging  {
 class InitMessage : public threading::InputMessage<WriterBackend>
 {
 public:
-	InitMessage(WriterBackend* backend, const string path, const int num_fields, const Field* const *fields)
+	InitMessage(WriterBackend* backend, WriterFrontend* frontend, const string path, const int num_fields, const Field* const *fields)
 		: threading::InputMessage<WriterBackend>("Init", backend),
 		path(path), num_fields(num_fields), fields(fields) { }
 
-	virtual bool Process() { return Object()->Init(path, num_fields, fields); }
+	virtual bool Process() { return Object()->Init(frontend, path, num_fields, fields); }
 
 private:
+	WriterFrontend* frontend;
 	const string path;
 	const int num_fields;
 	const Field * const* fields;
@@ -31,7 +32,7 @@ public:
 		rotated_path(rotated_path), open(open),
 		close(close), terminating(terminating) { }
 
-	virtual bool Process() { return Object()->Rotate(frontend, rotated_path, open, close, terminating); }
+	virtual bool Process() { return Object()->Rotate(rotated_path, open, close, terminating); }
 
 private:
 	WriterFrontend* frontend;
@@ -44,16 +45,16 @@ private:
 class WriteMessage : public threading::InputMessage<WriterBackend>
 {
 public:
-	WriteMessage(WriterBackend* backend, const int num_fields, Value **vals)
+	WriteMessage(WriterBackend* backend, int num_fields, int num_writes, Value*** vals)
 		: threading::InputMessage<WriterBackend>("Write", backend),
-		num_fields(num_fields), fields(fields), vals(vals)	{}
+		num_fields(num_fields), vals(vals)	{}
 
-	virtual bool Process() { return Object()->Write(num_fields, vals); }
+	virtual bool Process() { return Object()->Write(num_fields, num_writes, vals); }
 
 private:
 	int num_fields;
-	Field* const* fields;
-	Value **vals;
+	int num_writes;
+	Value ***vals;
 };
 
 class SetBufMessage : public threading::InputMessage<WriterBackend>
@@ -96,6 +97,8 @@ using namespace logging;
 WriterFrontend::WriterFrontend(bro_int_t type)
 	{
 	disabled = initialized = false;
+	buf = true;
+	write_buffer_pos = 0;
 	backend = log_mgr->CreateBackend(type);
 
 	assert(backend);
@@ -108,6 +111,7 @@ WriterFrontend::~WriterFrontend()
 
 void WriterFrontend::Stop()
 	{
+	FlushWriteBuffer();
 	SetDisable();
 	backend->Stop();
 	}
@@ -125,7 +129,7 @@ void WriterFrontend::Init(string arg_path, int arg_num_fields, const Field* cons
 	fields = arg_fields;
 
 	initialized = true;
-	backend->SendIn(new InitMessage(backend, arg_path, arg_num_fields, arg_fields));
+	backend->SendIn(new InitMessage(backend, this, arg_path, arg_num_fields, arg_fields));
 	}
 
 void WriterFrontend::Write(int num_fields, Value** vals)
@@ -133,7 +137,34 @@ void WriterFrontend::Write(int num_fields, Value** vals)
 	if ( disabled )
 		return;
 
-	backend->SendIn(new WriteMessage(backend, num_fields, vals));
+	if ( ! write_buffer )
+		{
+		// Need new buffer.
+		write_buffer = new Value**[WRITER_BUFFER_SIZE];
+		write_buffer_pos = 0;
+		}
+
+	if ( write_buffer_pos >= WRITER_BUFFER_SIZE )
+		// Buffer full.
+		FlushWriteBuffer();
+
+	write_buffer[write_buffer_pos++] = vals;
+
+	if ( ! buf )
+		// Send out immediately if we don't want buffering.
+		FlushWriteBuffer();
+	}
+
+void WriterFrontend::FlushWriteBuffer()
+	{
+	if ( ! write_buffer_pos )
+		// Nothing to do.
+		return;
+
+	backend->SendIn(new WriteMessage(backend, num_fields, write_buffer_pos, write_buffer));
+
+	// Clear buffer (no delete, we pass ownership to child thread.)
+	write_buffer = 0;
 	}
 
 void WriterFrontend::SetBuf(bool enabled)
@@ -141,7 +172,13 @@ void WriterFrontend::SetBuf(bool enabled)
 	if ( disabled )
 		return;
 
+	buf = enabled;
+
 	backend->SendIn(new SetBufMessage(backend, enabled));
+
+	if ( ! buf )
+		// Make sure no longer buffer any still queued data.
+		FlushWriteBuffer();
 	}
 
 void WriterFrontend::Flush()
@@ -149,6 +186,7 @@ void WriterFrontend::Flush()
 	if ( disabled )
 		return;
 
+	FlushWriteBuffer();
 	backend->SendIn(new FlushMessage(backend));
 	}
 
@@ -157,6 +195,7 @@ void WriterFrontend::Rotate(string rotated_path, double open, double close, bool
 	if ( disabled )
 		return;
 
+	FlushWriteBuffer();
 	backend->SendIn(new RotateMessage(backend, this, rotated_path, open, close, terminating));
 	}
 
@@ -165,6 +204,7 @@ void WriterFrontend::Finish()
 	if ( disabled )
 		return;
 
+	FlushWriteBuffer();
 	backend->SendIn(new FinishMessage(backend));
 	}
 

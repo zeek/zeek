@@ -31,13 +31,13 @@ private:
         bool terminating;
 };
 
-class DisableMessage : public threading::OutputMessage<WriterFrontend>
+class FlushWriteBufferMessage : public threading::OutputMessage<WriterFrontend>
 {
 public:
-        DisableMessage(WriterFrontend* writer)
-		: threading::OutputMessage<WriterFrontend>("Disable", writer)	{}
+        FlushWriteBufferMessage(WriterFrontend* writer)
+		: threading::OutputMessage<WriterFrontend>("FlushWriteBuffer", writer)	{}
 
-	virtual bool Process()	{ Object()->SetDisable(); return true; }
+	virtual bool Process()	{ Object()->FlushWriteBuffer(); return true; }
 };
 
 }
@@ -65,25 +65,31 @@ WriterBackend::~WriterBackend()
 		}
 	}
 
-void WriterBackend::DeleteVals(Value** vals)
+void WriterBackend::DeleteVals(int num_writes, Value*** vals)
 	{
-	// Note this code is duplicated in Manager::DeleteVals().
-	for ( int i = 0; i < num_fields; i++ )
-		delete vals[i];
+	for ( int j = 0; j < num_writes; ++j )
+		{
+		// Note this code is duplicated in Manager::DeleteVals().
+		for ( int i = 0; i < num_fields; i++ )
+			delete vals[j][i];
+
+		delete [] vals[j];
+		}
 
 	delete [] vals;
 	}
 
-bool WriterBackend::FinishedRotation(WriterFrontend* writer, string new_name, string old_name,
+bool WriterBackend::FinishedRotation(string new_name, string old_name,
 				     double open, double close, bool terminating)
 	{
-	SendOut(new RotationFinishedMessage(writer, new_name, old_name, open, close, terminating));
+	SendOut(new RotationFinishedMessage(frontend, new_name, old_name, open, close, terminating));
 	return true;
 	}
 
-bool WriterBackend::Init(string arg_path, int arg_num_fields,
-		     const Field* const * arg_fields)
+bool WriterBackend::Init(WriterFrontend* arg_frontend, string arg_path, int arg_num_fields,
+			 const Field* const * arg_fields)
 	{
+	frontend = arg_frontend;
 	path = arg_path;
 	num_fields = arg_num_fields;
 	fields = arg_fields;
@@ -94,7 +100,7 @@ bool WriterBackend::Init(string arg_path, int arg_num_fields,
 	return true;
 	}
 
-bool WriterBackend::Write(int arg_num_fields, Value** vals)
+bool WriterBackend::Write(int arg_num_fields, int num_writes, Value*** vals)
 	{
 	// Double-check that the arguments match. If we get this from remote,
 	// something might be mixed up.
@@ -107,30 +113,42 @@ bool WriterBackend::Write(int arg_num_fields, Value** vals)
 		Debug(DBG_LOGGING, msg);
 #endif
 
-		DeleteVals(vals);
+		DeleteVals(num_writes, vals);
 		return false;
 		}
 
-	for ( int i = 0; i < num_fields; ++i )
-		{
-		if ( vals[i]->type != fields[i]->type )
-			{
 #ifdef DEBUG
-			const char* msg = Fmt("Field type doesn't match in WriterBackend::Write() (%d vs. %d)",
-					      vals[i]->type, fields[i]->type);
-			Debug(DBG_LOGGING, msg);
-#endif
+	// Double-check all the types match.
+	for ( int j = 0; j < num_writes; j++ )
+		{
+		for ( int i = 0; i < num_fields; ++i )
+			{
+			if ( vals[j][i]->type != fields[i]->type )
+				{
+				const char* msg = Fmt("Field type doesn't match in WriterBackend::Write() (%d vs. %d)",
+						      vals[j][i]->type, fields[i]->type);
+				Debug(DBG_LOGGING, msg);
 
-			DeleteVals(vals);
-			return false;
+				DeleteVals(num_writes, vals);
+				return false;
+				}
 			}
 		}
+#endif
 
-	bool result = DoWrite(num_fields, fields, vals);
+	bool success = true;
 
-	DeleteVals(vals);
+	for ( int j = 0; j < num_writes; j++ )
+		{
+		success = DoWrite(num_fields, fields, vals[j]);
 
-	return result;
+		if ( ! success )
+			break;
+		}
+
+	DeleteVals(num_writes, vals);
+
+	return success;
 	}
 
 bool WriterBackend::SetBuf(bool enabled)
@@ -144,10 +162,10 @@ bool WriterBackend::SetBuf(bool enabled)
 	return DoSetBuf(enabled);
 	}
 
-bool WriterBackend::Rotate(WriterFrontend* writer, string rotated_path,
-			   double open, double close, bool terminating)
+bool WriterBackend::Rotate(string rotated_path, double open,
+			   double close, bool terminating)
 	{
-	return DoRotate(writer, rotated_path, open, close, terminating);
+	return DoRotate(rotated_path, open, close, terminating);
 	}
 
 bool WriterBackend::Flush()
@@ -159,3 +177,11 @@ bool WriterBackend::Finish()
 	{
 	return DoFinish();
 	}
+
+bool WriterBackend::DoHeartbeat(double network_time, double current_time)
+	{
+	SendOut(new FlushWriteBufferMessage(frontend));
+	return true;
+	}
+
+

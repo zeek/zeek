@@ -23,8 +23,8 @@ protected:
 	virtual bool DoWrite(int num_fields, const Field* const * fields,
 			     Value** vals)	{ return true; }
 	virtual bool DoSetBuf(bool enabled)	{ return true; }
-	virtual bool DoRotate(WriterFrontend* writer, string rotated_path,
-			      double open, double close, bool terminating);
+	virtual bool DoRotate(string rotated_path, double open,
+			      double close, bool terminating);
 	virtual bool DoFlush()	{ return true; }
 	virtual bool DoFinish()	{ return true; }
 };

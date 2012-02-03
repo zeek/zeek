@@ -411,6 +411,7 @@ set(bro_SRCS
     threading/BasicThread.cc
     threading/Manager.cc
     threading/MsgThread.cc
+    threading/SerializationTypes.cc
 
     logging/Manager.cc
     logging/WriterBackend.cc

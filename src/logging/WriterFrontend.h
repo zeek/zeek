@@ -64,7 +64,7 @@ public:
 	 *
 	 * This method must only be called from the main thread.
 	 */
-	void Init(string path, int num_fields, const Field* const*  fields);
+	void Init(string path, int num_fields, const threading::Field* const*  fields);
 
 	/**
 	 * Write out a record.
@@ -86,7 +86,7 @@ public:
 	 *
 	 * This method must only be called from the main thread.
 	 */
-	void Write(int num_fields, Value** vals);
+	void Write(int num_fields, threading::Value** vals);
 
 	/**
 	 * Sets the buffering state.
@@ -185,7 +185,7 @@ public:
 	/**
 	 * Returns the log fields as passed into the constructor.
 	 */
-	const Field* const * Fields() const	{ return fields; }
+	const threading::Field* const * Fields() const	{ return fields; }
 
 protected:
 	friend class Manager;
@@ -198,12 +198,12 @@ protected:
 	string ty_name;	// Name of the backend type. Set by the manager.
 	string path;	// The log path.
 	int num_fields;	// The number of log fields.
-	const Field* const*  fields;	// The log fields.
+	const threading::Field* const*  fields;	// The log fields.
 
 	// Buffer for bulk writes.
 	static const int WRITER_BUFFER_SIZE = 50;
 	int write_buffer_pos;	// Position of next write in buffer.
-	Value*** write_buffer;	// Buffer of size WRITER_BUFFER_SIZE.
+	threading::Value*** write_buffer;	// Buffer of size WRITER_BUFFER_SIZE.
 };
 
 }

@@ -184,6 +184,7 @@
 #include "File.h"
 #include "Conn.h"
 #include "Reporter.h"
+#include "threading/SerializationTypes.h"
 #include "logging/Manager.h"
 
 extern "C" {
@@ -2476,7 +2477,7 @@ bool RemoteSerializer::ProcessRemotePrint()
 	return true;
 	}
 
-bool RemoteSerializer::SendLogCreateWriter(EnumVal* id, EnumVal* writer, string path, int num_fields, const logging::Field* const * fields)
+bool RemoteSerializer::SendLogCreateWriter(EnumVal* id, EnumVal* writer, string path, int num_fields, const threading::Field* const * fields)
 	{
 	loop_over_list(peers, i)
 		{
@@ -2486,7 +2487,7 @@ bool RemoteSerializer::SendLogCreateWriter(EnumVal* id, EnumVal* writer, string 
 	return true;
 	}
 
-bool RemoteSerializer::SendLogCreateWriter(PeerID peer_id, EnumVal* id, EnumVal* writer, string path, int num_fields, const logging::Field* const * fields)
+bool RemoteSerializer::SendLogCreateWriter(PeerID peer_id, EnumVal* id, EnumVal* writer, string path, int num_fields, const threading::Field* const * fields)
 	{
 	SetErrorDescr("logging");
 
@@ -2540,7 +2541,7 @@ error:
 	return false;
 	}
 
-bool RemoteSerializer::SendLogWrite(EnumVal* id, EnumVal* writer, string path, int num_fields, const logging::Value* const * vals)
+bool RemoteSerializer::SendLogWrite(EnumVal* id, EnumVal* writer, string path, int num_fields, const threading::Value* const * vals)
 	{
 	loop_over_list(peers, i)
 		{
@@ -2550,7 +2551,7 @@ bool RemoteSerializer::SendLogWrite(EnumVal* id, EnumVal* writer, string path, i
 	return true;
 	}
 
-bool RemoteSerializer::SendLogWrite(Peer* peer, EnumVal* id, EnumVal* writer, string path, int num_fields, const logging::Value* const * vals)
+bool RemoteSerializer::SendLogWrite(Peer* peer, EnumVal* id, EnumVal* writer, string path, int num_fields, const threading::Value* const * vals)
 	{
 	if ( peer->phase != Peer::HANDSHAKE && peer->phase != Peer::RUNNING )
 		return false;
@@ -2641,7 +2642,7 @@ bool RemoteSerializer::ProcessLogCreateWriter()
 
 	EnumVal* id_val = 0;
 	EnumVal* writer_val = 0;
-	logging::Field** fields = 0;
+	threading::Field** fields = 0;
 
 	BinarySerializationFormat fmt;
 	fmt.StartRead(current_args->data, current_args->len);
@@ -2658,11 +2659,11 @@ bool RemoteSerializer::ProcessLogCreateWriter()
 	if ( ! success )
 		goto error;
 
-	fields = new logging::Field* [num_fields];
+	fields = new threading::Field* [num_fields];
 
 	for ( int i = 0; i < num_fields; i++ )
 		{
-		fields[i] = new logging::Field;
+		fields[i] = new threading::Field;
 		if ( ! fields[i]->Read(&fmt) )
 			goto error;
 		}
@@ -2703,7 +2704,7 @@ bool RemoteSerializer::ProcessLogWrite()
 		// Unserialize one entry.
 		EnumVal* id_val = 0;
 		EnumVal* writer_val = 0;
-		logging::Value** vals = 0;
+		threading::Value** vals = 0;
 
 		int id, writer;
 		string path;
@@ -2717,11 +2718,11 @@ bool RemoteSerializer::ProcessLogWrite()
 		if ( ! success )
 			goto error;
 
-		vals = new logging::Value* [num_fields];
+		vals = new threading::Value* [num_fields];
 
 		for ( int i = 0; i < num_fields; i++ )
 			{
-			vals[i] = new logging::Value;
+			vals[i] = new threading::Value;
 			if ( ! vals[i]->Read(&fmt) )
 				goto error;
 			}

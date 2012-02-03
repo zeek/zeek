@@ -4,8 +4,12 @@
 
 #include "WriterBackend.h"
 #include "WriterFrontend.h"
+#include "../threading/SerializationTypes.h"
 
 // Messages sent from backend to frontend (i.e., "OutputMessages").
+
+using threading::Value;
+using threading::Field;
 
 namespace logging  {
 

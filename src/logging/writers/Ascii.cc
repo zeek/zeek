@@ -6,9 +6,12 @@
 #include "../../NetVar.h"
 
 #include "Ascii.h"
+#include "../../threading/SerializationTypes.h"
 
 using namespace logging;
 using namespace writer;
+using threading::Value;
+using threading::Field;
 
 Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
 	{

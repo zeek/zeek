@@ -15,118 +15,6 @@ class RotationTimer;
 
 namespace logging {
 
-/**
- * Definition of a log file, i.e., one column of a log stream.
- */
-struct Field {
-	string name;	//! Name of the field.
-	TypeTag type;	//! Type of the field.
-	TypeTag subtype;	//! Inner type for sets.
-
-	/**
-	 * Constructor.
-	 */
-	Field() 	{ subtype = TYPE_VOID; }
-
-	/**
-	 * Copy constructor.
-	 */
-	Field(const Field& other)
-		: name(other.name), type(other.type), subtype(other.subtype) {  }
-
-	/**
-	 * Unserializes a field.
-	 *
-	 * @param fmt The serialization format to use. The format handles
-	 * low-level I/O.
-	 *
-	 * @return False if an error occured.
-	 */
-	bool Read(SerializationFormat* fmt);
-
-	/**
-	 * Serializes a field.
-	 *
-	 * @param fmt The serialization format to use. The format handles
-	 * low-level I/O.
-	 *
-	 * @return False if an error occured.
-	 */
-	bool Write(SerializationFormat* fmt) const;
-};
-
-/**
- * Definition of a log value, i.e., a entry logged by a stream.
- *
- * This struct essentialy represents a serialization of a Val instance (for
- * those Vals supported).
- */
-struct Value {
-	TypeTag type;	//! The type of the value.
-	bool present;	//! False for optional record fields that are not set.
-
-	struct set_t { bro_int_t size; Value** vals; };
-	typedef set_t vec_t;
-
-	/**
-	 * This union is a subset of BroValUnion, including only the types we
-	 * can log directly. See IsCompatibleType().
-	 */
-	union _val {
-		bro_int_t int_val;
-		bro_uint_t uint_val;
-		uint32 addr_val[NUM_ADDR_WORDS];
-		subnet_type subnet_val;
-		double double_val;
-		string* string_val;
-		set_t set_val;
-		vec_t vector_val;
-	} val;
-
-	/**
-	* Constructor.
-	*
-	* arg_type: The type of the value.
-	*
-	* arg_present: False if the value represents an optional record field
-	* that is not set.
-	 */
-	Value(TypeTag arg_type = TYPE_ERROR, bool arg_present = true)
-		: type(arg_type), present(arg_present)	{}
-
-	/**
-	 * Destructor.
-	 */
-	~Value();
-
-	/**
-	 * Unserializes a value.
-	 *
-	 * @param fmt The serialization format to use. The format handles low-level I/O.
-	 *
-	 * @return False if an error occured.
-	 */
-	bool Read(SerializationFormat* fmt);
-
-	/**
-	 * Serializes a value.
-	 *
-	 * @param fmt The serialization format to use. The format handles
-	 * low-level I/O.
-	 *
-	 * @return False if an error occured.
-	 */
-	bool Write(SerializationFormat* fmt) const;
-
-	/**
-	 * Returns true if the type can be represented by a Value. If
-	 * `atomic_only` is true, will not permit composite types.
-	 */
-	static bool IsCompatibleType(BroType* t, bool atomic_only=false);
-
-private:
-	Value(const Value& other)	{ } // Disabled.
-};
 
 class WriterBackend;
 class WriterFrontend;
@@ -168,7 +56,7 @@ public:
 	 * logging.bif, which just forwards here.
 	 */
 	bool EnableStream(EnumVal* id);
-
+	
 	/**
 	 * Disables a log stream.
 	 *
@@ -265,11 +153,11 @@ protected:
 
 	// Takes ownership of fields.
 	WriterFrontend* CreateWriter(EnumVal* id, EnumVal* writer, string path,
-				int num_fields, const Field* const*  fields);
+				int num_fields, const threading::Field* const* fields);
 
 	// Takes ownership of values..
 	bool Write(EnumVal* id, EnumVal* writer, string path,
-		   int num_fields, Value** vals);
+		   int num_fields, threading::Value** vals);
 
 	// Announces all instantiated writers to peer.
 	void SendAllWritersTo(RemoteSerializer::PeerID peer);
@@ -282,7 +170,7 @@ protected:
 	void Error(WriterFrontend* writer, const char* msg);
 
 	// Deletes the values as passed into Write().
-	void DeleteVals(int num_fields, Value** vals);
+	void DeleteVals(int num_fields, threading::Value** vals);
 
 private:
 	struct Filter;
@@ -292,10 +180,10 @@ private:
 	bool TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 			    TableVal* include, TableVal* exclude, string path, list<int> indices);
 
-	Value** RecordToFilterVals(Stream* stream, Filter* filter,
+	threading::Value** RecordToFilterVals(Stream* stream, Filter* filter,
 				    RecordVal* columns);
 
-	Value* ValToLogVal(Val* val, BroType* ty = 0);
+	threading::Value* ValToLogVal(Val* val, BroType* ty = 0);
 	Stream* FindStream(EnumVal* id);
 	void RemoveDisabledWriters(Stream* stream);
 	void InstallRotationTimer(WriterInfo* winfo);

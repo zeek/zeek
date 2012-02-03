@@ -1,5 +1,3 @@
-# @TEST-REQUIRES: bro -e 'print bro_has_ipv6()' | grep -q F
-#
 # @TEST-EXEC: bro -r $TRACES/empty.trace -e '' >output
 # @TEST-EXEC: cat packet_filter.log >>output
 # @TEST-EXEC: bro -r $TRACES/empty.trace PacketFilter::all_packets=F >>output

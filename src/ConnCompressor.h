@@ -105,9 +105,9 @@ public:
 private:
 	// Helpers to extract addrs/ports from PendingConn.
 
-	const uint32* SrcAddr(const PendingConn* c)
+	const IPAddr& SrcAddr(const PendingConn* c)
 		{ return c->ip1_is_src ? c->key.ip1 : c->key.ip2; }
-	const uint32* DstAddr(const PendingConn* c)
+	const IPAddr& DstAddr(const PendingConn* c)
 		{ return c->ip1_is_src ? c->key.ip2 : c->key.ip1; }
 
 	uint16 SrcPort(const PendingConn* c)

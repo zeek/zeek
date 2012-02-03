@@ -66,7 +66,7 @@ void SSH_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 		{
 		if ( length >= i )
 			{
-			const uint32* dst;
+			IPAddr dst;
 			if ( is_orig )
 				dst = TCP()->Orig()->dst_addr;
 			else

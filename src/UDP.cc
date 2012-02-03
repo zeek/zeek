@@ -61,11 +61,9 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 		     udp_checksum(ip->IP4_Hdr(), up, len) != 0xffff )
 			bad = true;
 
-#ifdef BROv6
 		if ( ip->IP6_Hdr() && /* checksum is not optional for IPv6 */
 		     udp6_checksum(ip->IP6_Hdr(), up, len) != 0xffff )
 			bad = true;
-#endif
 
 		if ( bad )
 			{

@@ -284,13 +284,8 @@ void NetSessions::NextPacket(double t, const struct pcap_pkthdr* hdr,
 
 		else
 			{
-#ifdef BROv6
 			IP_Hdr ip_hdr((const struct ip6_hdr*) (pkt + hdr_size));
 			DoNextPacket(t, hdr, &ip_hdr, pkt, hdr_size);
-#else
-			Weird("non_IPv4_packet", hdr, pkt);
-			return;
-#endif
 			}
 		}
 
@@ -604,7 +599,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 	int record_packet = 1;	// whether to record the packet at all
 	int record_content = 1;	// whether to record its data
 
-	int is_orig = addr_eq(id.src_addr, conn->OrigAddr()) &&
+	int is_orig = id.src_addr == conn->OrigAddr() &&
 			id.src_port == conn->OrigPort();
 
 	if ( new_packet && ip4 )
@@ -731,13 +726,11 @@ Val* NetSessions::BuildHeader(const struct ip* ip)
 FragReassembler* NetSessions::NextFragment(double t, const IP_Hdr* ip,
 					const u_char* pkt, uint32 frag_field)
 	{
-	uint32 src_addr = uint32(ip->SrcAddr4());
-	uint32 dst_addr = uint32(ip->DstAddr4());
 	uint32 frag_id = ntohs(ip->ID4());	// we actually could skip conv.
 
 	ListVal* key = new ListVal(TYPE_ANY);
-	key->Append(new Val(src_addr, TYPE_COUNT));
-	key->Append(new Val(dst_addr, TYPE_COUNT));
+	key->Append(new AddrVal(ip->SrcAddr()));
+	key->Append(new AddrVal(ip->DstAddr()));
 	key->Append(new Val(frag_id, TYPE_COUNT));
 
 	HashKey* h = ch->ComputeHash(key, 1);
@@ -772,7 +765,7 @@ int NetSessions::Get_OS_From_SYN(struct os_type* retval,
 				quirks, ECN) : 0;
 	}
 
-bool NetSessions::CompareWithPreviousOSMatch(uint32 addr, int id) const
+bool NetSessions::CompareWithPreviousOSMatch(const IPAddr& addr, int id) const
 	{
 	return SYN_OS_Fingerprinter ?
 		SYN_OS_Fingerprinter->CacheMatch(addr, id) : 0;
@@ -813,21 +806,16 @@ Connection* NetSessions::FindConnection(Val* v)
 		// types, too.
 		}
 
-	addr_type orig_addr = (*vl)[orig_h]->AsAddr();
-	addr_type resp_addr = (*vl)[resp_h]->AsAddr();
+	IPAddr* orig_addr = (*vl)[orig_h]->AsAddr();
+	IPAddr* resp_addr = (*vl)[resp_h]->AsAddr();
 
 	PortVal* orig_portv = (*vl)[orig_p]->AsPortVal();
 	PortVal* resp_portv = (*vl)[resp_p]->AsPortVal();
 
 	ConnID id;
 
-#ifdef BROv6
-	id.src_addr = orig_addr;
-	id.dst_addr = resp_addr;
-#else
-	id.src_addr = &orig_addr;
-	id.dst_addr = &resp_addr;
-#endif
+	id.src_addr = *orig_addr;
+	id.dst_addr = *resp_addr;
 
 	id.src_port = htons((unsigned short) orig_portv->Port());
 	id.dst_port = htons((unsigned short) resp_portv->Port());
@@ -1092,7 +1080,7 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 		// an analyzable connection.
 		ConnID flip_id = *id;
 
-		const uint32* ta = flip_id.src_addr;
+		const IPAddr ta = flip_id.src_addr;
 		flip_id.src_addr = flip_id.dst_addr;
 		flip_id.dst_addr = ta;
 

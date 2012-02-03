@@ -25,7 +25,7 @@
 #include "PrefixTable.h"
 #include "Conn.h"
 #include "Reporter.h"
-
+#include "IPAddr.h"
 
 Val::Val(Func* f)
 	{
@@ -205,29 +205,31 @@ bool Val::DoSerialize(SerialInfo* info) const
 				val.string_val->Len());
 
 	case TYPE_INTERNAL_ADDR:
-		return SERIALIZE(NUM_ADDR_WORDS)
-#ifdef BROv6
-			&& SERIALIZE(uint32(ntohl(val.addr_val[0])))
-			&& SERIALIZE(uint32(ntohl(val.addr_val[1])))
-			&& SERIALIZE(uint32(ntohl(val.addr_val[2])))
-			&& SERIALIZE(uint32(ntohl(val.addr_val[3])));
-#else
-			&& SERIALIZE(uint32(ntohl(val.addr_val)));
-#endif
+		{
+		const uint32* addrp;
+		int words = val.addr_val->GetBytes(&addrp);
+		if ( ! SERIALIZE(words) )
+			return false;
+		for ( int i = 0; i < words; ++i )
+			if ( ! SERIALIZE(ntohl(addrp[i])) )
+				return false;
+		return true;
+		}
 
 	case TYPE_INTERNAL_SUBNET:
-		return info->s->WriteOpenTag("subnet")
-			&& SERIALIZE(NUM_ADDR_WORDS)
-#ifdef BROv6
-			&& SERIALIZE(uint32(ntohl(val.subnet_val.net[0])))
-			&& SERIALIZE(uint32(ntohl(val.subnet_val.net[1])))
-			&& SERIALIZE(uint32(ntohl(val.subnet_val.net[2])))
-			&& SERIALIZE(uint32(ntohl(val.subnet_val.net[3])))
-#else
-			&& SERIALIZE(uint32(ntohl(val.subnet_val.net)))
-#endif
-			&& SERIALIZE(val.subnet_val.width)
-			&& info->s->WriteCloseTag("subnet");
+		{
+		const uint32* addrp;
+		int words = val.subnet_val->Prefix().GetBytes(&addrp);
+		if ( ! (info->s->WriteOpenTag("subnet") && SERIALIZE(words)) )
+			return false;
+		for ( int i = 0; i < words; ++i )
+			if ( ! SERIALIZE(ntohl(addrp[i])) )
+				return false;
+		if ( ! (SERIALIZE(val.subnet_val->Length()) &&
+				info->s->WriteCloseTag("subnet")) )
+			return false;
+		return true;
+		}
 
 	case TYPE_INTERNAL_OTHER:
 		// Derived classes are responsible for this.
@@ -314,21 +316,10 @@ bool Val::DoUnserialize(UnserialInfo* info)
 			a[i] = htonl(a[i]);
 			}
 
-#ifndef BROv6
-		if ( num_words == 4 )
-			{
-			if ( a[0] || a[1] || a[2] )
-				info->s->Warning("received IPv6 address, ignoring");
-			((AddrVal*) this)->Init(a[3]);
-			}
+		if ( num_words == 1)
+			val.addr_val = new IPAddr(IPAddr::IPv4, a, IPAddr::Network);
 		else
-			((AddrVal*) this)->Init(a[0]);
-#else
-		if ( num_words == 1 )
-			((AddrVal*) this)->Init(a[0]);
-		else
-			((AddrVal*) this)->Init(a);
-#endif
+			val.addr_val = new IPAddr(IPAddr::IPv6, a, IPAddr::Network);
 		}
 		return true;
 
@@ -358,28 +349,16 @@ bool Val::DoUnserialize(UnserialInfo* info)
 		if ( ! UNSERIALIZE(&width) )
 			return false;
 
-#ifdef BROv6
 		if ( num_words == 1 )
 			{
-			a[3] = a[0];
-			a[0] = a[1] = a[2] = 0;
+			IPAddr tmp(IPAddr::IPv4, a, IPAddr::Network);
+			val.subnet_val = new IPPrefix(tmp, width);
 			}
-
-		((SubNetVal*) this)->Init(a, width);
-
-#else
-		if ( num_words == 4 )
+		else
 			{
-			if ( a[0] || a[1] || a[2] )
-				info->s->Warning("received IPv6 subnet, ignoring");
-			a[0] = a[3];
-
-			if ( width > 32 )
-				width -= 96;
+			IPAddr tmp(IPAddr::IPv6, a, IPAddr::Network);
+			val.subnet_val = new IPPrefix(tmp, width);
 			}
-
-		((SubNetVal*) this)->Init(a[0], width);
-#endif
 		}
 		return true;
 
@@ -590,12 +569,10 @@ void Val::ValDescribe(ODesc* d) const
 	case TYPE_INTERNAL_UNSIGNED:	d->Add(val.uint_val); break;
 	case TYPE_INTERNAL_DOUBLE:	d->Add(val.double_val); break;
 	case TYPE_INTERNAL_STRING:	d->AddBytes(val.string_val); break;
-	case TYPE_INTERNAL_ADDR:	d->Add(dotted_addr(val.addr_val)); break;
+	case TYPE_INTERNAL_ADDR:	d->Add(string(*val.addr_val).c_str()); break;
 
 	case TYPE_INTERNAL_SUBNET:
-		d->Add(dotted_addr(val.subnet_val.net));
-		d->Add("/");
-		d->Add(val.subnet_val.width);
+		d->Add(string(*val.subnet_val).c_str());
 		break;
 
 	case TYPE_INTERNAL_ERROR:	d->AddCS("error"); break;
@@ -706,7 +683,8 @@ ID* MutableVal::Bind() const
 			ip = htonl(0x7f000001);	// 127.0.0.1
 
 		safe_snprintf(name, MAX_NAME_SIZE, "#%s#%d#",
-			      dotted_addr(ip), getpid());
+		          string(IPAddr(IPAddr::IPv4, &ip, IPAddr::Network)).c_str(),
+			      getpid());
 #else
 		safe_snprintf(name, MAX_NAME_SIZE, "#%s#%d#", host, getpid());
 #endif
@@ -957,92 +935,41 @@ bool PortVal::DoUnserialize(UnserialInfo* info)
 
 AddrVal::AddrVal(const char* text) : Val(TYPE_ADDR)
 	{
-	const char* colon = strchr(text, ':');
-
-	if ( colon )
-		{
-#ifdef BROv6
-		Init(dotted_to_addr6(text));
-#else
-		reporter->Error("bro wasn't compiled with IPv6 support");
-		Init(uint32(0));
-#endif
-		}
-
-	else
-		Init(dotted_to_addr(text));
+	val.addr_val = new IPAddr(string(text));
 	}
 
 AddrVal::AddrVal(uint32 addr) : Val(TYPE_ADDR)
 	{
 	// ### perhaps do gethostbyaddr here?
-	Init(addr);
+	val.addr_val = new IPAddr(IPAddr::IPv4, &addr, IPAddr::Network);
 	}
 
 AddrVal::AddrVal(const uint32* addr) : Val(TYPE_ADDR)
 	{
-	Init(addr);
+	val.addr_val = new IPAddr(IPAddr::IPv6, addr, IPAddr::Network);
+	}
+
+AddrVal::AddrVal(const IPAddr& addr) : Val(TYPE_ADDR)
+	{
+	val.addr_val = new IPAddr(addr);
 	}
 
 AddrVal::~AddrVal()
 	{
-#ifdef BROv6
-	delete [] val.addr_val;
-#endif
-	}
-
-Val* AddrVal::SizeVal() const
-	{
-	uint32 addr;
-
-#ifdef BROv6
-	if ( ! is_v4_addr(val.addr_val) )
-		{
-		Error("|addr| for IPv6 addresses not supported");
-		return new Val(0, TYPE_COUNT);
-		}
-
-	addr = to_v4_addr(val.addr_val);
-#else
-	addr = val.addr_val;
-#endif
-
-	addr = ntohl(addr);
-
-	return new Val(addr, TYPE_COUNT);
-	}
-
-void AddrVal::Init(uint32 addr)
-	{
-#ifdef BROv6
-	val.addr_val = new uint32[4];
-	val.addr_val[0] = val.addr_val[1] = val.addr_val[2] = 0;
-	val.addr_val[3] = addr;
-#else
-	val.addr_val = addr;
-#endif
-	}
-
-void AddrVal::Init(const uint32* addr)
-	{
-#ifdef BROv6
-	val.addr_val = new uint32[4];
-	val.addr_val[0] = addr[0];
-	val.addr_val[1] = addr[1];
-	val.addr_val[2] = addr[2];
-	val.addr_val[3] = addr[3];
-#else
-	val.addr_val = addr[0];
-#endif
+	delete val.addr_val;
 	}
 
 unsigned int AddrVal::MemoryAllocation() const
 	{
-#ifdef BROv6
-		return padded_sizeof(*this) + pad_size(4 * sizeof(uint32));
-#else
-		return padded_sizeof(*this);
-#endif
+	return padded_sizeof(*this) + val.addr_val->MemoryAllocation();
+	}
+
+Val* AddrVal::SizeVal() const
+	{
+	if ( val.addr_val->family() == IPAddr::IPv4 )
+		return new Val(32, TYPE_COUNT);
+	else
+		return new Val(128, TYPE_COUNT);
 	}
 
 IMPLEMENT_SERIAL(AddrVal, SER_ADDR_VAL);
@@ -1059,209 +986,105 @@ bool AddrVal::DoUnserialize(UnserialInfo* info)
 	return true;
 	}
 
-static uint32 parse_dotted(const char* text, int& dots)
-	{
-	int addr[4];
-	uint32 a = 0;
-	dots = 0;
-
-	if ( sscanf(text, "%d.%d.%d.%d", addr+0, addr+1, addr+2, addr+3) == 4 )
-		{
-		a = (addr[0] << 24) | (addr[1] << 16) |
-			(addr[2] << 8) | addr[3];
-		dots = 3;
-		}
-
-	else if ( sscanf(text, "%d.%d.%d", addr+0, addr+1, addr+2) == 3 )
-		{
-		a = (addr[0] << 24) | (addr[1] << 16) | (addr[2] << 8);
-		dots = 2;
-		}
-
-	else if ( sscanf(text, "%d.%d", addr+0, addr+1) == 2 )
-		{
-		a = (addr[0] << 24) | (addr[1] << 16);
-		dots = 1;
-		}
-
-	else
-		reporter->InternalError("scanf failed in parse_dotted()");
-
-	for ( int i = 0; i <= dots; ++i )
-		{
-		if ( addr[i] < 0 || addr[i] > 255 )
-			{
-			reporter->Error("bad dotted address %s", text);
-			break;
-			}
-		}
-
-	return a;
-	}
-
 SubNetVal::SubNetVal(const char* text) : Val(TYPE_SUBNET)
 	{
 	const char* sep = strchr(text, '/');
 	if ( ! sep )
 		Internal("separator missing in SubNetVal::SubNetVal");
-
-	Init(text, atoi(sep+1));
+	val.subnet_val = new IPPrefix(text, atoi(sep+1));
 	}
 
 SubNetVal::SubNetVal(const char* text, int width) : Val(TYPE_SUBNET)
 	{
-	Init(text, width);
+	val.subnet_val = new IPPrefix(text, width);
 	}
 
 SubNetVal::SubNetVal(uint32 addr, int width) : Val(TYPE_SUBNET)
 	{
-	Init(addr, width);
+	IPAddr a(IPAddr::IPv4, &addr, IPAddr::Network);
+	val.subnet_val = new IPPrefix(a, width);
 	}
 
-#ifdef BROv6
 SubNetVal::SubNetVal(const uint32* addr, int width) : Val(TYPE_SUBNET)
 	{
-	Init(addr, width);
-	}
-#endif
-
-void SubNetVal::Init(const char* text, int width)
-	{
-#ifdef BROv6
-	if ( width <= 0 || width > 128 )
-#else
-	if ( width <= 0 || width > 32 )
-#endif
-		Error("bad subnet width");
-
-	int dots;
-	uint32 a = parse_dotted(text, dots);
-
-	Init(uint32(htonl(a)), width);
+	IPAddr a(IPAddr::IPv6, addr, IPAddr::Network);
+	val.subnet_val = new IPPrefix(a, width);
 	}
 
-
-void SubNetVal::Init(uint32 addr, int width)
+SubNetVal::SubNetVal(const IPAddr& addr, int width) : Val(TYPE_SUBNET)
 	{
-#ifdef BROv6
-	Internal("SubNetVal::Init called on 4-byte address w/ BROv6");
-#else
-	val.subnet_val.net = mask_addr(addr, uint32(width));
-	val.subnet_val.width = width;
-#endif
+	val.subnet_val = new IPPrefix(addr, width);
 	}
 
-void SubNetVal::Init(const uint32* addr, int width)
+SubNetVal::~SubNetVal()
 	{
-#ifdef BROv6
-	const uint32* a = mask_addr(addr, uint32(width));
+	delete val.subnet_val;
+	}
 
-	val.subnet_val.net[0] = a[0];
-	val.subnet_val.net[1] = a[1];
-	val.subnet_val.net[2] = a[2];
-	val.subnet_val.net[3] = a[3];
-
-	if ( is_v4_addr(addr) && width <= 32 )
-		val.subnet_val.width = width + 96;
-	else
-		val.subnet_val.width = width;
-#else
-	Internal("SubNetVal::Init called on 16-byte address w/o BROv6");
-#endif
+unsigned int SubNetVal::MemoryAllocation() const
+	{
+	return padded_sizeof(*this) + val.subnet_val->MemoryAllocation();
 	}
 
 Val* SubNetVal::SizeVal() const
 	{
-	int retained;
-#ifdef BROv6
-	retained = 128 - Width();
-#else
-	retained = 32 - Width();
-#endif
-
+	int retained = 128 - val.subnet_val->LengthIPv6();
 	return new Val(pow(2.0, double(retained)), TYPE_DOUBLE);
 	}
 
 void SubNetVal::ValDescribe(ODesc* d) const
 	{
-	d->Add(dotted_addr(val.subnet_val.net, d->Style() == ALTERNATIVE_STYLE));
-	d->Add("/");
-#ifdef BROv6
-	if ( is_v4_addr(val.subnet_val.net) )
-		d->Add(val.subnet_val.width - 96);
-	else
-#endif
-	d->Add(val.subnet_val.width);
+	d->Add(string(*val.subnet_val).c_str());
 	}
 
-addr_type SubNetVal::Mask() const
+IPAddr SubNetVal::Mask() const
 	{
-	if ( val.subnet_val.width == 0 )
+	if ( val.subnet_val->Length() == 0 )
 		{
 		// We need to special-case a mask width of zero, since
 		// the compiler doesn't guarantee that 1 << 32 yields 0.
-#ifdef BROv6
-		uint32* m = new uint32[4];
-		for ( int i = 0; i < 4; ++i )
+		uint32 m[4];
+		for ( unsigned int i = 0; i < 4; ++i )
 			m[i] = 0;
-
-		return m;
-#else
-		return 0;
-#endif
+		IPAddr rval(IPAddr::IPv6, m, IPAddr::Host);
+		return rval;
 		}
 
-#ifdef BROv6
-	uint32* m = new uint32[4];
+	uint32 m[4];
 	uint32* mp = m;
 
 	uint32 w;
-	for ( w = val.subnet_val.width; w >= 32; w -= 32 )
-		*(mp++) = 0xffffffff;
+	for ( w = val.subnet_val->Length(); w >= 32; w -= 32 )
+		   *(mp++) = 0xffffffff;
 
 	*mp = ~((1 << (32 - w)) - 1);
 
 	while ( ++mp < m + 4 )
-		*mp = 0;
+		   *mp = 0;
 
-	return m;
-
-#else
-	return ~((1 << (32 - val.subnet_val.width)) - 1);
-#endif
+	IPAddr rval(IPAddr::IPv6, m, IPAddr::Host);
+	return rval;
 	}
 
 bool SubNetVal::Contains(const uint32 addr) const
 	{
-#ifdef BROv6
-	Internal("SubNetVal::Contains called on 4-byte address w/ BROv6");
-	return false;
-#else
-	return ntohl(val.subnet_val.net) == (ntohl(addr) & Mask());
-#endif
+	IPAddr a(IPAddr::IPv4, &addr, IPAddr::Network);
+	a.Mask(val.subnet_val->Length());
+	return a == val.subnet_val->Prefix();
 	}
 
 bool SubNetVal::Contains(const uint32* addr) const
 	{
-#ifdef BROv6
-	const uint32* net = val.subnet_val.net;
-	const uint32* a = addr;
-	uint32 m;
+	IPAddr a(IPAddr::IPv6, addr, IPAddr::Network);
+	a.Mask(val.subnet_val->Length());
+	return a == val.subnet_val->Prefix();
+	}
 
-	for ( m = val.subnet_val.width; m > 32; m -= 32 )
-		{
-		if ( *net != *a )
-			return false;
-
-		++net;
-		++a;
-		}
-
-	uint32 mask = ~((1 << (32 - m)) - 1);
-	return ntohl(*net) == (ntohl(*a) & mask);
-#else
-	return Contains(addr[3]);
-#endif
+bool SubNetVal::Contains(const IPAddr& addr) const
+	{
+	IPAddr a(addr);
+	a.Mask(val.subnet_val->Length());
+	return a == val.subnet_val->Prefix();
 	}
 
 IMPLEMENT_SERIAL(SubNetVal, SER_SUBNET_VAL);
@@ -3476,20 +3299,10 @@ int same_atomic_val(const Val* v1, const Val* v2)
 		return v1->InternalDouble() == v2->InternalDouble();
 	case TYPE_INTERNAL_STRING:
 		return Bstr_eq(v1->AsString(), v2->AsString());
-
 	case TYPE_INTERNAL_ADDR:
-		{
-		const addr_type& a1 = v1->AsAddr();
-		const addr_type& a2 = v2->AsAddr();
-#ifdef BROv6
-		return addr_eq(a1, a2);
-#else
-		return addr_eq(&a1, &a2);
-#endif
-		}
-
+		return *v1->AsAddr() == *v2->AsAddr();
 	case TYPE_INTERNAL_SUBNET:
-		return subnet_eq(v1->AsSubNet(), v2->AsSubNet());
+		return *v1->AsSubNet() == *v2->AsSubNet();
 
 	default:
 		reporter->InternalError("same_atomic_val called for non-atomic value");

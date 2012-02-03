@@ -14,6 +14,7 @@
 #include <cstdio>
 
 #include "Reporter.h"
+#include "IPAddr.h"
 
 using namespace std;
 
@@ -178,35 +179,37 @@ static void do_fmt(const char*& fmt, Val* v, ODesc* d)
 			// This makes only a very slight difference, so not
 			// clear it would e worth the hassle.
 
-			addr_type u = v->AsAddr();
-#ifdef BROv6
-			// We explicitly convert the address to host order
-			// in a copy, because if we just call ntohl() for
-			// our invocation on snprintf() below, on some systems
-			// it turns a 32-bit value (Linux), whereas on
-			// others it returns a long (FreeBSD); the latter
-			// gets us in trouble if we have longs > 32 bits,
-			// because then the format specifier needs to be %lx
-			// rather than %x ....... what a pain!
-			//
-			// Also note that we don't change u in-place because
-			// that would alter the byte order of the underlying
-			// value.  (Speaking of which, I'm not clear on why
-			// we're allowed to assign a const addr_type to an
-			// addr_type above, both g++ allows it.)
-			uint32 host_order_u[4];
-			host_order_u[0] = ntohl(u[0]);
-			host_order_u[1] = ntohl(u[1]);
-			host_order_u[2] = ntohl(u[2]);
-			host_order_u[3] = ntohl(u[3]);
+			const IPAddr* u = v->AsAddr();
+			const uint32* net_order_u;
+			int len = u->GetBytes(&net_order_u);
+			if ( len == 4 )
+				{
+				// We explicitly convert the address to host order
+				// in a copy, because if we just call ntohl() for
+				// our invocation on snprintf() below, on some systems
+				// it turns a 32-bit value (Linux), whereas on
+				// others it returns a long (FreeBSD); the latter
+				// gets us in trouble if we have longs > 32 bits,
+				// because then the format specifier needs to be %lx
+				// rather than %x ....... what a pain!
+				//
+				// Also note that we don't change u in-place because
+				// that would alter the byte order of the underlying
+				// value.
+				uint32 host_order_u[4];
+				host_order_u[0] = ntohl(net_order_u[0]);
+				host_order_u[1] = ntohl(net_order_u[1]);
+				host_order_u[2] = ntohl(net_order_u[2]);
+				host_order_u[3] = ntohl(net_order_u[3]);
 
-			snprintf(out_buf, sizeof(out_buf), "%08x%08x%08x%08x",
-					host_order_u[0], host_order_u[1],
-					host_order_u[2], host_order_u[3]);
-#else
-			u = ntohl(u);
-			snprintf(out_buf, sizeof(out_buf), "%08x", u);
-#endif
+				snprintf(out_buf, sizeof(out_buf), "%08x%08x%08x%08x",
+						host_order_u[0], host_order_u[1],
+						host_order_u[2], host_order_u[3]);
+				}
+			else
+				{
+				snprintf(out_buf, sizeof(out_buf), "%08x", ntohl(net_order_u[0]));
+				}
 			}
 
 		else if ( ! check_fmt_type(t, ok_d_fmt) )
@@ -1957,43 +1960,32 @@ function do_profiling%(%) : bool
 ## Returns: True if *ip* belongs to a local interface.
 function is_local_interface%(ip: addr%) : bool
 	%{
-	static uint32* addrs;
-	static int len = -1;
+	if ( ip->AsAddr()->IsLoopback() )
+		return new Val(1, TYPE_BOOL);
 
-	if ( len < 0 )
-		{
-		char host[MAXHOSTNAMELEN];
+	list<IPAddr> addrs;
 
-		strcpy(host, "localhost");
-		gethostname(host, MAXHOSTNAMELEN);
-		host[MAXHOSTNAMELEN-1] = '\0';
+	char host[MAXHOSTNAMELEN];
 
-		struct hostent* ent = gethostbyname(host);
+	strcpy(host, "localhost");
+	gethostname(host, MAXHOSTNAMELEN);
+	host[MAXHOSTNAMELEN-1] = '\0';
 
-		for ( len = 0; ent->h_addr_list[len]; ++len )
-			;
+	struct hostent* ent = gethostbyname2(host, AF_INET);
+	if ( ent )
+		for ( unsigned int len = 0; ent->h_addr_list[len]; ++len )
+			addrs.push_back(IPAddr(IPAddr::IPv4, (uint32*)ent->h_addr_list[len],
+			                       IPAddr::Network));
 
-		addrs = new uint32[len + 1];
-		for ( int i = 0; i < len; i++ )
-			addrs[i] = *(uint32*) ent->h_addr_list[i];
+	ent = gethostbyname2(host, AF_INET6);
+	if ( ent )
+		for ( unsigned int len = 0; ent->h_addr_list[len]; ++len )
+			addrs.push_back(IPAddr(IPAddr::IPv6, (uint32*)ent->h_addr_list[len],
+			                       IPAddr::Network));
 
-		addrs[len++] = 0x0100007f; // 127.0.0.1
-		}
-
-#ifdef BROv6
-	if ( ! is_v4_addr(ip) )
-		{
-		builtin_error("is_local_interface() only supports IPv4 addresses");
-		return new Val(0, TYPE_BOOL);
-		}
-
-	uint32 ip4 = to_v4_addr(ip);
-#else
-	uint32 ip4 = ip;
-#endif
-
-	for ( int i = 0; i < len; i++ )
-		if ( addrs[i] == ip4 )
+	list<IPAddr>::const_iterator it;
+	for ( it = addrs.begin(); it != addrs.end(); ++it )
+		if ( *it == *ip->AsAddr() )
 			return new Val(1, TYPE_BOOL);
 
 	return new Val(0, TYPE_BOOL);
@@ -2042,6 +2034,32 @@ function gethostname%(%) : string
 
 	buffer[MAXHOSTNAMELEN-1] = '\0';
 	return new StringVal(buffer);
+	%}
+
+## Returns whether an address is IPv4 or not.
+##
+## a: the address to check.
+##
+## Returns: true if *a* is an IPv4 address, else false.
+function is_v4_addr%(a: addr%): bool
+	%{
+	if ( a->AsAddr()->family() == IPAddr::IPv4 )
+		return new Val(1, TYPE_BOOL);
+	else
+		return new Val(0, TYPE_BOOL);
+	%}
+
+## Returns whether an address is IPv6 or not.
+##
+## a: the address to check.
+##
+## Returns: true if *a* is an IPv6 address, else false.
+function is_v6_addr%(a: addr%): bool
+	%{
+	if ( a->AsAddr()->family() == IPAddr::IPv6 )
+		return new Val(1, TYPE_BOOL);
+	else
+		return new Val(0, TYPE_BOOL);
 	%}
 
 # ===========================================================================
@@ -2178,29 +2196,6 @@ function double_to_interval%(d: double%): interval
 	return new Val(d, TYPE_INTERVAL);
 	%}
 
-## Converts a :bro:type:`addr` to a :bro:type:`count`.
-##
-## a: The :bro:type:`addr` to convert.
-##
-## Returns: The :bro:type:`addr` *a* as :bro:type:`count`.
-##
-## .. bro:see:: addr_to_ptr_name
-function addr_to_count%(a: addr%): count
-	%{
-#ifdef BROv6
-	if ( ! is_v4_addr(a) )
-		{
-		builtin_error("conversion of non-IPv4 address to count", @ARG@[0]);
-		return new Val(0, TYPE_COUNT);
-		}
-
-	uint32 addr = to_v4_addr(a);
-#else
-	uint32 addr = a;
-#endif
-	return new Val(ntohl(addr), TYPE_COUNT);
-	%}
-
 ## Converts a :bro:type:`port` to a :bro:type:`count`.
 ##
 ## p: The :bro:type:`port` to convert.
@@ -2331,34 +2326,38 @@ function ptr_name_to_addr%(s: string%): addr
 ##
 ## Returns: The reverse pointer representation of *a*.
 ##
-## .. bro:see:: addr_to_count ptr_name_to_addr parse_dotted_addr
+## .. bro:see:: ptr_name_to_addr parse_dotted_addr
 function addr_to_ptr_name%(a: addr%): string
 	%{
-	// ## Question:
-	// uint32 addr = ntohl((*args)[0]->InternalUnsigned());
-	uint32 addr;
-#ifdef BROv6
-	if ( is_v4_addr(a) )
-		addr = a[3];
+	const uint32* addr;
+	int len = a->AsAddr()->GetBytes(&addr);
+
+	if ( len == 1 )
+		{
+		char buf[256];
+		uint32 a = ntohl(addr[0]);
+		uint32 a3 = (a >> 24) & 0xff;
+		uint32 a2 = (a >> 16) & 0xff;
+		uint32 a1 = (a >> 8) & 0xff;
+		uint32 a0 = a & 0xff;
+		sprintf(buf, "%u.%u.%u.%u.in-addr.arpa", a0, a1, a2, a3);
+		return new StringVal(buf);
+		}
 	else
 		{
-		builtin_error("conversion of non-IPv4 address to net", @ARG@[0]);
-		addr = 0;
+		static const char hex_digit[] = "0123456789abcdef";
+		string ptr_name("ip6.arpa");
+		for ( unsigned int i = 0; i < 4; ++i )
+			{
+			uint32 a = ntohl(addr[i]);
+			for ( unsigned int j = 1; j <=8; ++j )
+				{
+				ptr_name.insert(0, 1, '.');
+				ptr_name.insert(0, 1, hex_digit[(a >> (32-j*4)) & 0x0f]);
+				}
+			}
+		return new StringVal(ptr_name.c_str());
 		}
-#else
-	addr = a;
-#endif
-
-	addr = ntohl(addr);
-	uint32 a3 = (addr >> 24) & 0xff;
-	uint32 a2 = (addr >> 16) & 0xff;
-	uint32 a1 = (addr >> 8) & 0xff;
-	uint32 a0 = addr & 0xff;
-
-	char buf[256];
-	sprintf(buf, "%u.%u.%u.%u.in-addr.arpa", a0, a1, a2, a3);
-
-	return new StringVal(buf);
 	%}
 
 # Transforms n0.n1.n2.n3 -> addr.
@@ -2370,10 +2369,11 @@ function addr_to_ptr_name%(a: addr%): string
 ##
 ## Returns: The IP address as type :bro:type:`addr`.
 ##
-## .. bro:see:: addr_to_ptr_name parse_dotted_addr addr_to_count
+## .. bro:see:: addr_to_ptr_name parse_dotted_addr
 function parse_dotted_addr%(s: string%): addr
 	%{
-	return new AddrVal(dotted_to_addr(s->CheckString()));
+	IPAddr a(string(s->CheckString()));
+	return new AddrVal(a);
 	%}
 
 %%{
@@ -2446,7 +2446,11 @@ static Val* parse_eftp(const char* line)
 		line = next_delim + 1;
 		if ( *line != delimiter )	// default of 0 is ok
 			{
-			addr = dotted_to_addr(line);
+			string s(line);
+			IPAddr tmp(s);
+			uint32* bytes;
+			tmp.GetBytes(&bytes);
+			addr = *bytes;
 			if ( addr == 0 )
 				good = 0;
 			}
@@ -2551,20 +2555,23 @@ function parse_ftp_epsv%(str: string%): ftp_port
 ## .. bro:see:: parse_ftp_port parse_eftp_port parse_ftp_pasv parse_ftp_epsv
 function fmt_ftp_port%(a: addr, p: port%): string
 	%{
-#ifdef BROv6
-	if ( ! is_v4_addr(a) )
-		builtin_error("conversion of non-IPv4 address to net", @ARG@[0]);
-
-	uint32 addr = to_v4_addr(a);
-#else
-	uint32 addr = a;
-#endif
-	addr = ntohl(addr);
-	uint32 pn = p->Port();
-	return new StringVal(fmt("%d,%d,%d,%d,%d,%d",
-					addr >> 24, (addr >> 16) & 0xff,
-					(addr >> 8) & 0xff, addr & 0xff,
-					pn >> 8, pn & 0xff));
+	const uint32* addr;
+	int len = a->AsAddr()->GetBytes(&addr);
+	if ( len == 1 )
+		{
+		uint32 a = ntohl(addr[0]);
+		uint32 pn = p->Port();
+		return new StringVal(fmt("%d,%d,%d,%d,%d,%d",
+						a >> 24, (a >> 16) & 0xff,
+						(a >> 8) & 0xff, a & 0xff,
+						pn >> 8, pn & 0xff));
+		}
+	else
+		{
+		builtin_error("conversion of non-IPv4 address in fmt_ftp_port",
+		              @ARG@[0]);
+		return new StringVal("");
+		}
 	%}
 
 ## Decode a NetBIOS name.  See http://support.microsoft.com/kb/194203.
@@ -2877,7 +2884,7 @@ function strftime%(fmt: string, d: time%) : string
 ## .. bro:see:: remask_addr
 function mask_addr%(a: addr, top_bits_to_keep: count%): subnet
 	%{
-	return new SubNetVal(mask_addr(a, top_bits_to_keep), top_bits_to_keep);
+	return new SubNetVal(*a->AsAddr(), top_bits_to_keep);
 	%}
 
 ## Takes some top bits (e.g., subnet address) from one address and the other
@@ -2890,29 +2897,26 @@ function mask_addr%(a: addr, top_bits_to_keep: count%): subnet
 ## a2: The address to take the remaining bits from.
 ##
 ## top_bits_from_a1: The number of top bits to keep in *a1*; must be greater
-##                   than 0 and less than 33.
+##                   than 0 and less than 129.  This value is always interpreted
+##                   relative to the IPv6 bit width (v4-mapped addresses start
+##                   at bit number 96).
 ##
 ## Returns: The address *a* masked down to *top_bits_to_keep* bits.
 ##
 ## .. bro:see:: mask_addr
 function remask_addr%(a1: addr, a2: addr, top_bits_from_a1: count%): addr
 	%{
-#ifdef BROv6
-	if ( ! is_v4_addr(a1) || ! is_v4_addr(a2) )
-		{
-		builtin_error("cannot use remask_addr on IPv6 addresses");
-		return new AddrVal(a1);
-		}
-
-	uint32 x1 = to_v4_addr(a1);
-	uint32 x2 = to_v4_addr(a2);
-#else
-	uint32 x1 = a1;
-	uint32 x2 = a2;
-#endif
-	return new AddrVal(
-		mask_addr(x1, top_bits_from_a1) |
-		(x2 ^ mask_addr(x2, top_bits_from_a1)) );
+	IPAddr addr1(*a1->AsAddr());
+	addr1.Mask(top_bits_from_a1);
+	IPAddr addr2(*a2->AsAddr());
+	addr1.ReverseMask(top_bits_from_a1);
+	uint32 x1[4];
+	uint32 x2[4];
+	addr1.CopyIPv6(x1);
+	addr2.CopyIPv6(x2);
+	for ( unsigned int i = 0; i < 4; ++i )
+		x1[i] = x1[i] | x2[i];
+	return new AddrVal(x1);
 	%}
 
 ## Checks whether a given :bro:type:`port` has TCP as transport protocol.
@@ -3085,12 +3089,13 @@ const char* conn_id_string(Val* c)
 	Val* id = (*(c->AsRecord()))[0];
 	const val_list* vl = id->AsRecord();
 
-	addr_type orig_h = (*vl)[0]->AsAddr();
+	const IPAddr* orig_h = (*vl)[0]->AsAddr();
 	uint32 orig_p = (*vl)[1]->AsPortVal()->Port();
-	addr_type resp_h = (*vl)[2]->AsAddr();
+	const IPAddr* resp_h = (*vl)[2]->AsAddr();
 	uint32 resp_p = (*vl)[3]->AsPortVal()->Port();
 
-	return fmt("%s/%u -> %s/%u\n", dotted_addr(orig_h), orig_p, dotted_addr(resp_h), resp_p);
+	return fmt("%s/%u -> %s/%u\n", string(*orig_h).c_str(), orig_p,
+	                               string(*resp_h).c_str(), resp_p);
 	}
 %%}
 
@@ -3320,8 +3325,7 @@ function lookup_addr%(host: addr%) : string
 	frame->SetDelayed();
 	trigger->Hold();
 
-#ifdef BROv6
-	if ( ! is_v4_addr(host) )
+	if ( host->AsAddr()->family() != IPAddr::IPv4 )
 		{
 		// FIXME: This is a temporary work-around until we get this
 		// fixed. We warn the user once, and always trigger a timeout.
@@ -3337,12 +3341,10 @@ function lookup_addr%(host: addr%) : string
 		return 0;
 		}
 
-	dns_mgr->AsyncLookupAddr(to_v4_addr(host),
+	const uint32* bytes;
+	host->AsAddr()->GetBytes(&bytes);
+	dns_mgr->AsyncLookupAddr(*bytes,
 			new LookupHostCallback(trigger, frame->GetCall(), true));
-#else
-	dns_mgr->AsyncLookupAddr(host,
-			new LookupHostCallback(trigger, frame->GetCall(), true));
-#endif
 	return 0;
 	%}
 
@@ -3434,8 +3436,6 @@ function lookup_location%(a: addr%) : geo_location
 		else
 			have_city_db = true;
 
-#ifdef BROv6
-
 #ifdef HAVE_GEOIP_CITY_EDITION_REV0_V6
 		geoip_v6 = open_geoip_db(GEOIP_CITY_EDITION_REV0_V6);
 		if ( geoip_v6 )
@@ -3448,16 +3448,15 @@ function lookup_location%(a: addr%) : geo_location
 #endif
 		if ( ! geoip_v6 )
 			builtin_error("Can't initialize GeoIPv6 City/Country database");
-#endif
 		}
 
-#ifdef BROv6
-
 #ifdef HAVE_GEOIP_COUNTRY_EDITION_V6
-	if ( geoip_v6 && ! is_v4_addr(a) )
+	if ( geoip_v6 && a->AsAddr()->family() == IPAddr::IPv6 )
 		{
+		const uint32* bytes;
+		a->AsAddr()->GetBytes(&bytes);
 		geoipv6_t ga;
-		memcpy(&ga, a, 16);
+		memcpy(&ga, bytes, 16);
 		if ( have_cityv6_db )
 			gir = GeoIP_record_by_ipnum_v6(geoip_v6, ga);
 		else
@@ -3466,24 +3465,15 @@ function lookup_location%(a: addr%) : geo_location
 	else
 #endif
 
-	if ( geoip && is_v4_addr(a) )
+	if ( geoip && a->AsAddr()->family() == IPAddr::IPv4 )
 		{
-		uint32 addr = to_v4_addr(a);
+		const uint32* bytes;
+		a->AsAddr()->GetBytes(&bytes);
 		if ( have_city_db )
-			gir = GeoIP_record_by_ipnum(geoip, ntohl(addr));
+			gir = GeoIP_record_by_ipnum(geoip, ntohl(*bytes));
 		else
-			cc = GeoIP_country_code_by_ipnum(geoip, ntohl(addr));
+			cc = GeoIP_country_code_by_ipnum(geoip, ntohl(*bytes));
 		}
-
-#else // not BROv6
-	if ( geoip )
-		{
-		if ( have_city_db )
-			gir = GeoIP_record_by_ipnum(geoip, ntohl(a));
-		else
-			cc = GeoIP_country_code_by_ipnum(geoip, ntohl(a));
-		}
-#endif
 
 	if ( gir )
 		{
@@ -3556,28 +3546,25 @@ function lookup_asn%(a: addr%) : count
 
 	if ( geoip_asn )
 		{
-#ifdef BROv6
-
 // IPv6 support showed up in 1.4.5.
 #ifdef HAVE_GEOIP_COUNTRY_EDITION_V6
-		if ( ! is_v4_addr(a) )
+		if ( a->AsAddr()->family() == IPAddr::IPv6 )
 			{
+			const uint32* bytes;
+			a->AsAddr()->GetBytes(&bytes);
 			geoipv6_t ga;
-			memcpy(&ga, a, 16);
+			memcpy(&ga, bytes, 16);
 			gir = GeoIP_name_by_ipnum_v6(geoip_asn, ga);
 			}
 		else
 #endif
 
-		if ( is_v4_addr(a) )
+		if ( a->AsAddr()->family() == IPAddr::IPv4 )
 			{
-			uint32 addr = to_v4_addr(a);
-			gir = GeoIP_name_by_ipnum(geoip_asn, ntohl(addr));
+			const uint32* bytes;
+			a->AsAddr()->GetBytes(&bytes);
+			gir = GeoIP_name_by_ipnum(geoip_asn, ntohl(*bytes));
 			}
-
-#else // not BROv6
-		gir = GeoIP_name_by_ipnum(geoip_asn, ntohl(a));
-#endif
 		}
 
 	if ( gir )
@@ -3859,8 +3846,8 @@ function NFS3::mode2string%(mode: count%): string
 function expect_connection%(orig: addr, resp: addr, resp_p: port,
 				analyzer: count, tout: interval%) : bool
 	%{
-	dpm->ExpectConnection(orig, resp, resp_p->Port(), resp_p->PortType(),
-				(AnalyzerTag::Tag) analyzer, tout, 0);
+	dpm->ExpectConnection(*orig->AsAddr(), *resp->AsAddr(), resp_p->Port(),
+				 resp_p->PortType(), (AnalyzerTag::Tag) analyzer, tout, 0);
 	return new Val(1, TYPE_BOOL);
 	%}
 
@@ -4633,7 +4620,7 @@ function pcap_error%(%): string
 ## .. todo:: The return value should be changed to any.
 function install_src_addr_filter%(ip: addr, tcp_flags: count, prob: double%) : bool
 	%{
-	sessions->GetPacketFilter()->AddSrc(ip, tcp_flags, prob);
+	sessions->GetPacketFilter()->AddSrc(*ip->AsAddr(), tcp_flags, prob);
 	return new Val(1, TYPE_BOOL);
 	%}
 
@@ -4685,7 +4672,7 @@ function install_src_net_filter%(snet: subnet, tcp_flags: count, prob: double%) 
 ##              pcap_error
 function uninstall_src_addr_filter%(ip: addr%) : bool
 	%{
-	return new Val(sessions->GetPacketFilter()->RemoveSrc(ip), TYPE_BOOL);
+	return new Val(sessions->GetPacketFilter()->RemoveSrc(*ip->AsAddr()), TYPE_BOOL);
 	%}
 
 ## Removes a source subnet filter.
@@ -4735,7 +4722,7 @@ function uninstall_src_net_filter%(snet: subnet%) : bool
 ## .. todo:: The return value should be changed to any.
 function install_dst_addr_filter%(ip: addr, tcp_flags: count, prob: double%) : bool
 	%{
-	sessions->GetPacketFilter()->AddDst(ip, tcp_flags, prob);
+	sessions->GetPacketFilter()->AddDst(*ip->AsAddr(), tcp_flags, prob);
 	return new Val(1, TYPE_BOOL);
 	%}
 
@@ -4787,7 +4774,7 @@ function install_dst_net_filter%(snet: subnet, tcp_flags: count, prob: double%) 
 ##              pcap_error
 function uninstall_dst_addr_filter%(ip: addr%) : bool
 	%{
-	return new Val(sessions->GetPacketFilter()->RemoveDst(ip), TYPE_BOOL);
+	return new Val(sessions->GetPacketFilter()->RemoveDst(*ip->AsAddr()), TYPE_BOOL);
 	%}
 
 ## Removes a destination subnet filter.
@@ -4928,7 +4915,7 @@ function capture_state_updates%(filename: string%) : bool
 ##              send_id
 function connect%(ip: addr, p: port, our_class: string, retry: interval, ssl: bool%) : count
 	%{
-	return new Val(uint32(remote_serializer->Connect(ip, p->Port(),
+	return new Val(uint32(remote_serializer->Connect(*ip->AsAddr(), p->Port(),
 				our_class->CheckString(), retry, ssl)),
 			TYPE_COUNT);
 	%}
@@ -5043,7 +5030,7 @@ function set_compression_level%(p: event_peer, level: count%) : bool
 ## .. bro:see:: connect disconnect
 function listen%(ip: addr, p: port, ssl: bool %) : bool
 	%{
-	return new Val(remote_serializer->Listen(ip, p->Port(), ssl), TYPE_BOOL);
+	return new Val(remote_serializer->Listen(*ip->AsAddr(), p->Port(), ssl), TYPE_BOOL);
 	%}
 
 ## Checks whether the last raised event came from a remote peer.
@@ -5299,14 +5286,14 @@ function preserve_prefix%(a: addr, width: count%): any
 	AnonymizeIPAddr* ip_anon = ip_anonymizer[PREFIX_PRESERVING_A50];
 	if ( ip_anon )
 		{
-#ifdef BROv6
-		if ( ! is_v4_addr(a) )
+		if ( a->AsAddr()->family() == IPAddr::IPv6 )
 			builtin_error("preserve_prefix() not supported for IPv6 addresses");
 		else
-			ip_anon->PreservePrefix(a[3], width);
-#else
-		ip_anon->PreservePrefix(a, width);
-#endif
+			{
+			const uint32* bytes;
+			a->AsAddr()->GetBytes(&bytes);
+			ip_anon->PreservePrefix(*bytes, width);
+			}
 		}
 
 
@@ -5324,18 +5311,18 @@ function preserve_prefix%(a: addr, width: count%): any
 ## .. todo:: Currently dysfunctional.
 function preserve_subnet%(a: subnet%): any
 	%{
-	DEBUG_MSG("%s/%d\n", dotted_addr(a->AsAddr()), a->Width());
+	DEBUG_MSG("%s/%d\n", string(a->Prefix()).c_str(), a->Width());
 	AnonymizeIPAddr* ip_anon = ip_anonymizer[PREFIX_PRESERVING_A50];
 	if ( ip_anon )
 		{
-#ifdef BROv6
-		if ( ! is_v4_addr(a->AsAddr()) )
+		if ( a->AsSubNet()->Prefix().family() == IPAddr::IPv6 )
 			builtin_error("preserve_subnet() not supported for IPv6 addresses");
 		else
-			ip_anon->PreservePrefix(a->AsAddr()[3], a->Width());
-#else
-		ip_anon->PreservePrefix(a->AsAddr(), a->Width());
-#endif
+			{
+			const uint32* bytes;
+			a->AsSubNet()->Prefix().GetBytes(&bytes);
+			ip_anon->PreservePrefix(*bytes, a->AsSubNet()->Length());
+			}
 		}
 
 	return 0;
@@ -5364,19 +5351,18 @@ function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
 	if ( anon_class < 0 || anon_class >= NUM_ADDR_ANONYMIZATION_CLASSES )
 		builtin_error("anonymize_addr(): invalid ip addr anonymization class");
 
-#ifdef BROv6
-	if ( ! is_v4_addr(a) )
+	if ( a->AsAddr()->family() == IPAddr::IPv6 )
 		{
 		builtin_error("anonymize_addr() not supported for IPv6 addresses");
 		return 0;
 		}
 	else
-		return new AddrVal(anonymize_ip(a[3],
+		{
+		const uint32* bytes;
+		a->AsAddr()->GetBytes(&bytes);
+		return new AddrVal(anonymize_ip(*bytes,
 			(enum ip_addr_anonymization_class_t) anon_class));
-#else
-	return new AddrVal(anonymize_ip(a,
-		(enum ip_addr_anonymization_class_t) anon_class));
-#endif
+		}
 	%}
 
 ## Deprecated. Will be removed.
@@ -5448,7 +5434,7 @@ function generate_idmef%(src_ip: addr, src_port: port,
 				newNode(newAddress(
 					newAttribute("category","ipv4-addr"),
 					newSimpleElement("address",
-					copy_string(dotted_addr(src_ip))),
+					copy_string(string(*src_ip->AsAddr()).c_str())),
 					NULL), NULL),
 				newService(
 					newSimpleElement("port",
@@ -5458,7 +5444,7 @@ function generate_idmef%(src_ip: addr, src_port: port,
 				newNode(newAddress(
 					newAttribute("category","ipv4-addr"),
 					newSimpleElement("address",
-					copy_string(dotted_addr(dst_ip))),
+					copy_string(string(*dst_ip->AsAddr()).c_str())),
 					NULL), NULL),
 				newService(
 					newSimpleElement("port",
@@ -5473,13 +5459,3 @@ function generate_idmef%(src_ip: addr, src_port: port,
 	return new Val(0, TYPE_BOOL);
 #endif
 	%}
-
-## Deprecated. Will be removed.
-function bro_has_ipv6%(%) : bool
-    %{
-#ifdef BROv6
-	return new Val(1, TYPE_BOOL);
-#else
-	return new Val(0, TYPE_BOOL);
-#endif
-    %}

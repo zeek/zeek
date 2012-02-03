@@ -12,6 +12,7 @@
 #include "Dict.h"
 #include "EventHandler.h"
 #include "IOSource.h"
+#include "IPAddr.h"
 
 class Val;
 class ListVal;

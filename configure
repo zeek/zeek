@@ -92,7 +92,6 @@ append_cache_entry BRO_ROOT_DIR         PATH   /usr/local/bro
 append_cache_entry PY_MOD_INSTALL_DIR   PATH   /usr/local/bro/lib/broctl
 append_cache_entry BRO_SCRIPT_INSTALL_PATH STRING /usr/local/bro/share/bro
 append_cache_entry ENABLE_DEBUG         BOOL   false
-append_cache_entry BROv6                BOOL   false
 append_cache_entry ENABLE_PERFTOOLS     BOOL   false
 append_cache_entry BinPAC_SKIP_INSTALL  BOOL   true
 append_cache_entry BUILD_SHARED_LIBS    BOOL   true
@@ -133,9 +132,6 @@ while [ $# -ne 0 ]; do
             ;;
         --enable-debug)
             append_cache_entry ENABLE_DEBUG         BOOL   true
-            ;;
-        --enable-brov6)
-            append_cache_entry BROv6                BOOL   true
             ;;
         --enable-perftools)
             append_cache_entry ENABLE_PERFTOOLS     BOOL   true

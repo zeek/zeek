@@ -1,34 +1,21 @@
 #include "PrefixTable.h"
 #include "Reporter.h"
 
-// IPv4 version.
-inline static prefix_t* make_prefix(const uint32 addr, int width)
+inline static prefix_t* make_prefix(const IPAddr& addr, int width)
 	{
 	prefix_t* prefix = (prefix_t*) safe_malloc(sizeof(prefix_t));
 
-	memcpy(&prefix->add.sin, &addr, sizeof(prefix->add.sin)) ;
-	prefix->family = AF_INET;
-	prefix->bitlen = width;
-	prefix->ref_count = 1;
-
-	return prefix;
-	}
-
-#ifdef BROv6
-inline static prefix_t* make_prefix(const uint32* addr, int width)
-	{
-	prefix_t* prefix = (prefix_t*) safe_malloc(sizeof(prefix_t));
-
-	memcpy(&prefix->add.sin6, addr, 4 * sizeof(uint32));
+	uint32 bytes[4];
+	addr.CopyIPv6(bytes);
+	memcpy(&prefix->add.sin6, bytes, 4 * sizeof(uint32));
 	prefix->family = AF_INET6;
 	prefix->bitlen = width;
 	prefix->ref_count = 1;
 
 	return prefix;
 	}
-#endif
 
-void* PrefixTable::Insert(const_addr_type addr, int width, void* data)
+void* PrefixTable::Insert(const IPAddr& addr, int width, void* data)
 	{
 	prefix_t* prefix = make_prefix(addr, width);
 	patricia_node_t* node = patricia_lookup(tree, prefix);
@@ -55,12 +42,12 @@ void* PrefixTable::Insert(const Val* value, void* data)
 
 	switch ( value->Type()->Tag() ) {
 	case TYPE_ADDR:
-		return Insert(value->AsAddr(), NUM_ADDR_WORDS * 32, data);
+		return Insert(*value->AsAddr(), 128, data);
 		break;
 
 	case TYPE_SUBNET:
-		return Insert(value->AsSubNet()->net,
-				value->AsSubNet()->width, data);
+		return Insert(value->AsSubNet()->Prefix(),
+				value->AsSubNet()->LengthIPv6(), data);
 		break;
 
 	default:
@@ -69,7 +56,7 @@ void* PrefixTable::Insert(const Val* value, void* data)
 	}
 	}
 
-void* PrefixTable::Lookup(const_addr_type addr, int width, bool exact) const
+void* PrefixTable::Lookup(const IPAddr& addr, int width, bool exact) const
 	{
 	prefix_t* prefix = make_prefix(addr, width);
 	patricia_node_t* node =
@@ -89,12 +76,12 @@ void* PrefixTable::Lookup(const Val* value, bool exact) const
 
 	switch ( value->Type()->Tag() ) {
 	case TYPE_ADDR:
-		return Lookup(value->AsAddr(), NUM_ADDR_WORDS * 32, exact);
+		return Lookup(*value->AsAddr(), 128, exact);
 		break;
 
 	case TYPE_SUBNET:
-		return Lookup(value->AsSubNet()->net,
-				value->AsSubNet()->width, exact);
+		return Lookup(value->AsSubNet()->Prefix(),
+				value->AsSubNet()->LengthIPv6(), exact);
 		break;
 
 	default:
@@ -104,7 +91,7 @@ void* PrefixTable::Lookup(const Val* value, bool exact) const
 	}
 	}
 
-void* PrefixTable::Remove(const_addr_type addr, int width)
+void* PrefixTable::Remove(const IPAddr& addr, int width)
 	{
 	prefix_t* prefix = make_prefix(addr, width);
 	patricia_node_t* node = patricia_search_exact(tree, prefix);
@@ -128,11 +115,12 @@ void* PrefixTable::Remove(const Val* value)
 
 	switch ( value->Type()->Tag() ) {
 	case TYPE_ADDR:
-		return Remove(value->AsAddr(), NUM_ADDR_WORDS * 32);
+		return Remove(*value->AsAddr(), 128);
 		break;
 
 	case TYPE_SUBNET:
-		return Remove(value->AsSubNet()->net, value->AsSubNet()->width);
+		return Remove(value->AsSubNet()->Prefix(),
+				value->AsSubNet()->LengthIPv6());
 		break;
 
 	default:

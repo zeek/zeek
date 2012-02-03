@@ -110,37 +110,27 @@ char* CompositeHash::SingleValHash(int type_check, char* kp0,
 		// Use uint32 instead of int, because 'int' is not
 		// guaranteed to be 32-bit.
 		uint32* kp = AlignAndPadType<uint32>(kp0);
-#ifdef BROv6
-		const addr_type av = v->AsAddr();
-		kp[0] = av[0];
-		kp[1] = av[1];
-		kp[2] = av[2];
-		kp[3] = av[3];
+		uint32 bytes[4];
+		v->AsAddr()->CopyIPv6(bytes);
+		kp[0] = bytes[0];
+		kp[1] = bytes[1];
+		kp[2] = bytes[2];
+		kp[3] = bytes[3];
 		kp1 = reinterpret_cast<char*>(kp+4);
-#else
-		*kp = v->AsAddr();
-		kp1 = reinterpret_cast<char*>(kp+1);
-#endif
 		}
 		break;
 
 	case TYPE_INTERNAL_SUBNET:
 		{
 		uint32* kp = AlignAndPadType<uint32>(kp0);
-#ifdef BROv6
-		const subnet_type* sv = v->AsSubNet();
-		kp[0] = sv->net[0];
-		kp[1] = sv->net[1];
-		kp[2] = sv->net[2];
-		kp[3] = sv->net[3];
-		kp[4] = sv->width;
+		uint32 bytes[4];
+		v->AsSubNet()->Prefix().CopyIPv6(bytes);
+		kp[0] = bytes[0];
+		kp[1] = bytes[1];
+		kp[2] = bytes[2];
+		kp[3] = bytes[3];
+		kp[4] = v->AsSubNet()->Length();
 		kp1 = reinterpret_cast<char*>(kp+5);
-#else
-		const subnet_type* sv = v->AsSubNet();
-		kp[0] = sv->net;
-		kp[1] = sv->width;
-		kp1 = reinterpret_cast<char*>(kp+2);
-#endif
 		}
 		break;
 
@@ -283,26 +273,25 @@ HashKey* CompositeHash::ComputeSingletonHash(const Val* v, int type_check) const
 	if ( type_check && v->Type()->InternalType() != singleton_tag )
 		return 0;
 
-	uint32 tmp_addr;
 	switch ( singleton_tag ) {
 	case TYPE_INTERNAL_INT:
 	case TYPE_INTERNAL_UNSIGNED:
 		return new HashKey(v->ForceAsInt());
 
 	case TYPE_INTERNAL_ADDR:
-#ifdef BROv6
-		return new HashKey(v->AsAddr(), 4);
-#else
-		return new HashKey(v->AsAddr());
-#endif
+		{
+		uint32 bytes[4];
+		v->AsAddr()->CopyIPv6(bytes);
+		return new HashKey((void*)bytes, 4 * sizeof(uint32));
+		}
 
 	case TYPE_INTERNAL_SUBNET:
-#ifdef BROv6
-		return new HashKey((const uint32*) v->AsSubNet(), 5);
-#else
-		return new HashKey((const uint32*) v->AsSubNet(), 2);
-
-#endif
+		{
+		uint32 bytes[5];
+		v->AsSubNet()->Prefix().CopyIPv6(bytes);
+		bytes[4] = v->AsSubNet()->Length();
+		return new HashKey((void*)bytes, 5 * sizeof(uint32));
+		}
 
 	case TYPE_INTERNAL_DOUBLE:
 		return new HashKey(v->InternalDouble());
@@ -350,22 +339,13 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 		break;
 
 	case TYPE_INTERNAL_ADDR:
-#ifdef BROv6
 		sz = SizeAlign(sz, sizeof(uint32));
 		sz += sizeof(uint32) * 3;	// to make a total of 4 words
-#else
-		sz = SizeAlign(sz, sizeof(uint32));
-#endif
 		break;
 
 	case TYPE_INTERNAL_SUBNET:
-#ifdef BROv6
 		sz = SizeAlign(sz, sizeof(uint32));
 		sz += sizeof(uint32) * 4;	// to make a total of 5 words
-#else
-		sz = SizeAlign(sz, sizeof(uint32));
-		sz += sizeof(uint32);	// make room for width
-#endif
 		break;
 
 	case TYPE_INTERNAL_DOUBLE:
@@ -602,16 +582,11 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 	case TYPE_INTERNAL_ADDR:
 		{
 		const uint32* const kp = AlignType<uint32>(kp0);
-#ifdef BROv6
-		const_addr_type addr_val = kp;
 		kp1 = reinterpret_cast<const char*>(kp+4);
-#else
-		const_addr_type addr_val = *kp;
-		kp1 = reinterpret_cast<const char*>(kp+1);
-#endif
+		IPAddr addr(IPAddr::IPv6, kp, IPAddr::Network);
 		switch ( tag ) {
 		case TYPE_ADDR:
-			pval = new AddrVal(addr_val);
+			pval = new AddrVal(addr);
 			break;
 
 		default:
@@ -624,12 +599,9 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 
 	case TYPE_INTERNAL_SUBNET:
 		{
-		const subnet_type* const kp =
-			reinterpret_cast<const subnet_type*>(
-				AlignType<uint32>(kp0));
-		kp1 = reinterpret_cast<const char*>(kp+1);
-
-		pval = new SubNetVal(kp->net, kp->width);
+		const uint32* const kp = AlignType<uint32>(kp0);
+		kp1 = reinterpret_cast<const char*>(kp+5);
+		pval = new SubNetVal(kp, kp[4]);
 		}
 		break;
 

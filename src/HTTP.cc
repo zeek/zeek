@@ -1543,7 +1543,7 @@ void HTTP_Analyzer::HTTP_Header(int is_orig, MIME_Header* h)
 		}
 	}
 
-void HTTP_Analyzer::ParseVersion(data_chunk_t ver, const uint32* host,
+void HTTP_Analyzer::ParseVersion(data_chunk_t ver, const IPAddr& host,
 				bool user_agent)
 	{
 	int len = ver.length;

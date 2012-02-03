@@ -95,7 +95,10 @@ public:
 	const char* ReqHost() const	{ return req_host; }
 	uint32 ReqAddr() const		{ return req_addr; }
 	const char* ReqStr() const
-		{ return req_host ? req_host : dotted_addr(ReqAddr());  }
+		{
+		return req_host ? req_host :
+		    string(IPAddr(IPAddr::IPv4, &req_addr, IPAddr::Network)).c_str();
+		}
 
 	ListVal* Addrs();
 	TableVal* AddrsSet();	// addresses returned as a set
@@ -195,7 +198,13 @@ DNS_Mapping::DNS_Mapping(FILE* f)
 	if ( is_req_host )
 		req_host = copy_string(req_buf);
 	else
-		req_addr = dotted_to_addr(req_buf);
+		{
+		string s(req_buf);
+		IPAddr addr(s);
+		const uint32* bytes;
+		addr.GetBytes(&bytes);
+		req_addr = *bytes; //FIXME: IPv6 support
+		}
 
 	num_names = 1;
 	names = new char*[num_names];
@@ -217,7 +226,11 @@ DNS_Mapping::DNS_Mapping(FILE* f)
 			if ( newline )
 				*newline = '\0';
 
-			addrs[i] = dotted_to_addr(buf);
+			string s(buf);
+			IPAddr addr(s);
+			const uint32* bytes;
+			addr.GetBytes(&bytes);
+			addrs[i] = *bytes; //FIXME IPv6 support
 			}
 		}
 	else
@@ -336,12 +349,14 @@ void DNS_Mapping::Clear()
 void DNS_Mapping::Save(FILE* f) const
 	{
 	fprintf(f, "%.0f %d %s %d %s %d\n", creation_time, req_host != 0,
-		req_host ? req_host : dotted_addr(req_addr),
+		req_host ? req_host :
+			string(IPAddr(IPAddr::IPv4, &req_addr, IPAddr::Network)).c_str(),
 		failed, (names && names[0]) ? names[0] : "*",
 		num_addrs);
 
 	for ( int i = 0; i < num_addrs; ++i )
-		fprintf(f, "%s\n", dotted_addr(addrs[i]));
+		fprintf(f, "%s\n",
+		    string(IPAddr(IPAddr::IPv4, &addrs[i], IPAddr::Network)).c_str());
 	}
 
 
@@ -491,8 +506,9 @@ Val* DNS_Mgr::LookupAddr(uint32 addr)
 				return d->Host();
 			else
 				{
-				reporter->Warning("can't resolve IP address: %s", dotted_addr(addr));
-				return new StringVal(dotted_addr(addr));
+				string s = IPAddr(IPAddr::IPv4, &addr, IPAddr::Network);
+				reporter->Warning("can't resolve IP address: %s", s.c_str());
+				return new StringVal(s.c_str());
 				}
 			}
 		}
@@ -505,7 +521,7 @@ Val* DNS_Mgr::LookupAddr(uint32 addr)
 
 	case DNS_FORCE:
 		reporter->FatalError("can't find DNS entry for %s in cache",
-				dotted_addr(addr));
+		    string(IPAddr(IPAddr::IPv4, &addr, IPAddr::Network)).c_str());
 		return 0;
 
 	case DNS_DEFAULT:
@@ -774,17 +790,13 @@ ListVal* DNS_Mgr::AddrListDelta(ListVal* al1, ListVal* al2)
 
 	for ( int i = 0; i < al1->Length(); ++i )
 		{
-		addr_type al1_i = al1->Index(i)->AsAddr();
+		const IPAddr* al1_i = al1->Index(i)->AsAddr();
 
 		int j;
 		for ( j = 0; j < al2->Length(); ++j )
 			{
-			addr_type al2_j = al2->Index(j)->AsAddr();
-#ifdef BROv6
-			if ( addr_eq(al1_i, al2_j) )
-#else
-			if ( al1_i == al2_j )
-#endif
+			const IPAddr* al2_j = al2->Index(j)->AsAddr();
+			if ( *al1_i == *al2_j )
 				break;
 			}
 
@@ -800,8 +812,8 @@ void DNS_Mgr::DumpAddrList(FILE* f, ListVal* al)
 	{
 	for ( int i = 0; i < al->Length(); ++i )
 		{
-		addr_type al_i = al->Index(i)->AsAddr();
-		fprintf(f, "%s%s", i > 0 ? "," : "", dotted_addr(al_i));
+		const IPAddr* al_i = al->Index(i)->AsAddr();
+		fprintf(f, "%s%s", i > 0 ? "," : "", string(*al_i).c_str());
 		}
 	}
 

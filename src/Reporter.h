@@ -11,6 +11,7 @@
 #include "util.h"
 #include "net_util.h"
 #include "EventHandler.h"
+#include "IPAddr.h"
 
 class Connection;
 class Location;
@@ -75,6 +76,7 @@ public:
 	void Weird(Connection* conn, const char* name, const char* addl = "");	// Raises conn_weird().
 	void Weird(Val* conn_val, const char* name, const char* addl = "");	// Raises conn_weird().
 	void Weird(const uint32* orig, const uint32* resp, const char* name);	// Raises flow_weird().
+	void Weird(const IPAddr& orig, const IPAddr& resp, const char* name);	// Raises flow_weird().
 
 	// Syslog a message. This methods does nothing if we're running
 	// offline from a trace.
@@ -122,6 +124,7 @@ private:
 	// contain format specifiers
 	void WeirdHelper(EventHandlerPtr event, Val* conn_val, const char* addl, const char* fmt_name, ...);
 	void WeirdFlowHelper(const uint32* orig, const uint32* resp, const char* fmt_name, ...);
+	void WeirdFlowHelper(const IPAddr& orig, const IPAddr& resp, const char* fmt_name, ...);
 
 	int errors;
 	bool via_events;

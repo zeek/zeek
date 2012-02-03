@@ -8,6 +8,7 @@
 #include "Val.h"
 #include "EventHandler.h"
 #include "RemoteSerializer.h"
+#include "IPAddr.h"
 
 class SerializationFormat;
 
@@ -40,8 +41,8 @@ struct LogVal {
 	union _val {
 		bro_int_t int_val;
 		bro_uint_t uint_val;
-		uint32 addr_val[NUM_ADDR_WORDS];
-		subnet_type subnet_val;
+		IPAddr* addr_val;
+		IPPrefix* subnet_val;
 		double double_val;
 		string* string_val;
 		set_t set_val;

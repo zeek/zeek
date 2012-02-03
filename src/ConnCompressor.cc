@@ -235,7 +235,7 @@ Connection* ConnCompressor::NextPacket(double t, HashKey* key, const IP_Hdr* ip,
 			tc = FirstFromOrig(t, key, ip, tp);
 		}
 
-	else if ( addr_eq(ip->SrcAddr(), SrcAddr(pending)) &&
+	else if ( ip->SrcAddr() == SrcAddr(pending) &&
 		  tp->th_sport == SrcPort(pending) )
 		// Another packet from originator.
 		tc = NextFromOrig(pending, t, key, ip, tp);
@@ -541,7 +541,7 @@ Connection* ConnCompressor::Instantiate(HashKey* key, PendingConn* pending)
 				sessions->BuildHeader(faked_pkt->IP4_Hdr()));
 
 	// NewConn() may have swapped originator and responder.
-	int is_orig = addr_eq(conn_id.src_addr, new_conn->OrigAddr()) &&
+	int is_orig = conn_id.src_addr == new_conn->OrigAddr() &&
 			conn_id.src_port == new_conn->OrigPort();
 
 	// Pass the faked packet to the connection.
@@ -607,7 +607,7 @@ void ConnCompressor::PktHdrToPendingConn(double time, const HashKey* key,
 	memcpy(&c->key, key->Key(), key->Size());
 
 	c->hash = key->Hash();
-	c->ip1_is_src = addr_eq(c->key.ip1, ip->SrcAddr()) &&
+	c->ip1_is_src = c->key.ip1 == ip->SrcAddr() &&
 			c->key.port1 == tp->th_sport;
 	c->time = time;
 	c->window = tp->th_win;
@@ -659,14 +659,26 @@ const IP_Hdr* ConnCompressor::PendingConnToPacket(const PendingConn* c)
 	// Note, do *not* use copy_addr() here.  This is because we're
 	// copying to an IPv4 header, which has room for exactly and
 	// only an IPv4 address.
-#ifdef BROv6
-	if ( ! is_v4_addr(c->key.ip1) || ! is_v4_addr(c->key.ip2) )
+	if ( c->key.ip1.family() == IPAddr::IPv6 ||
+	     c->key.ip2.family() == IPAddr::IPv6 )
 		reporter->InternalError("IPv6 snuck into connection compressor");
-#endif
-	*(uint32*) &ip->ip_src =
-			to_v4_addr(c->ip1_is_src ? c->key.ip1 : c->key.ip2);
-	*(uint32*) &ip->ip_dst =
-			to_v4_addr(c->ip1_is_src ? c->key.ip2 : c->key.ip1);
+	else
+		{
+		const uint32* src_bytes;
+		const uint32* dst_bytes;
+		if ( c->ip1_is_src )
+			{
+			c->key.ip1.GetBytes(&src_bytes);
+			c->key.ip2.GetBytes(&dst_bytes);
+			}
+		else
+			{
+			c->key.ip2.GetBytes(&src_bytes);
+			c->key.ip1.GetBytes(&dst_bytes);
+			}
+		memcpy(&ip->ip_src, src_bytes, sizeof(ip->ip_src));
+		memcpy(&ip->ip_dst, dst_bytes, sizeof(ip->ip_dst));
+		}
 
 	if ( c->ip1_is_src )
 		{

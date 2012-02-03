@@ -14,6 +14,7 @@
 #include "Net.h"
 #include "Traverse.h"
 #include "Trigger.h"
+#include "IPAddr.h"
 
 const char* expr_name(BroExprTag t)
 	{
@@ -834,23 +835,15 @@ Val* BinaryExpr::StringFold(Val* v1, Val* v2) const
 
 Val* BinaryExpr::AddrFold(Val* v1, Val* v2) const
 	{
-	addr_type a1 = v1->AsAddr();
-	addr_type a2 = v2->AsAddr();
+	uint32 a1[4];
+	uint32 a2[4];
+	v1->AsAddr()->CopyIPv6(a1);
+	v2->AsAddr()->CopyIPv6(a2);
 	int result = 0;
 
 	switch ( tag ) {
 #undef DO_FOLD
-#ifdef BROv6
 #define DO_FOLD(sense) { result = memcmp(a1, a2, 16) sense 0; break; }
-#else
-#define DO_FOLD(sense)	\
-	{ \
-	a1 = ntohl(a1); \
-	a2 = ntohl(a2); \
-	result = (a1 < a2 ? -1 : (a1 == a2 ? 0 : 1)) sense 0; \
-	break; \
-	}
-#endif
 
 	case EXPR_LT:		DO_FOLD(<)
 	case EXPR_LE:		DO_FOLD(<=)
@@ -868,20 +861,13 @@ Val* BinaryExpr::AddrFold(Val* v1, Val* v2) const
 
 Val* BinaryExpr::SubNetFold(Val* v1, Val* v2) const
 	{
-	subnet_type* n1 = v1->AsSubNet();
-	subnet_type* n2 = v2->AsSubNet();
+	const IPPrefix* n1 = v1->AsSubNet();
+	const IPPrefix* n2 = v2->AsSubNet();
 
-	if ( n1->width != n2->width )
+	if ( *n1 == *n2 )
+		return new Val(1, TYPE_BOOL);
+	else
 		return new Val(0, TYPE_BOOL);
-
-#ifdef BROv6
-	if ( memcmp(n1->net, n2->net, 16) )
-#else
-	if ( n1->net != n2->net )
-#endif
-		return new Val(0, TYPE_BOOL);
-
-	return new Val(1, TYPE_BOOL);
 	}
 
 void BinaryExpr::SwapOps()
@@ -1681,15 +1667,13 @@ DivideExpr::DivideExpr(Expr* arg_op1, Expr* arg_op2)
 
 Val* DivideExpr::AddrFold(Val* v1, Val* v2) const
 	{
-	addr_type a1 = v1->AsAddr();
-
 	uint32 mask;
 	if ( v2->Type()->Tag() == TYPE_COUNT )
 		mask = static_cast<uint32>(v2->InternalUnsigned());
 	else
 		mask = static_cast<uint32>(v2->InternalInt());
 
-	return new SubNetVal(a1, mask);
+	return new SubNetVal(*v1->AsAddr(), mask);
 	}
 
 Expr* DivideExpr::DoSimplify()
@@ -4494,7 +4478,7 @@ Val* InExpr::Fold(Val* v1, Val* v2) const
 
 	if ( v1->Type()->Tag() == TYPE_ADDR &&
 	     v2->Type()->Tag() == TYPE_SUBNET )
-		return new Val(v2->AsSubNetVal()->Contains(v1->AsAddr()), TYPE_BOOL);
+		return new Val(v2->AsSubNetVal()->Contains(*v1->AsAddr()), TYPE_BOOL);
 
 	TableVal* vt = v2->AsTableVal();
 	if ( vt->Lookup(v1, false) )

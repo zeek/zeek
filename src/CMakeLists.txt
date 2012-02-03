@@ -330,6 +330,7 @@ set(bro_SRCS
     IntSet.cc
     InterConn.cc
     IOSource.cc
+    IPAddr.cc
     IRC.cc
     List.cc
     Reporter.cc

@@ -3732,19 +3732,13 @@ event non_dns_request%(c: connection, msg: string%) &group="dns";
 ##
 ## a: The address returned by the reply.
 ##
-## .. bro:see:: dns_AAAA_reply  dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply
+## .. bro:see:: dns_AAAA_reply dns_A6_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply
 ##    dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply
 ##    dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end dns_full_request
 ##    dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
 ##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
 ##    dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
 ##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
-##
-## .. note: This event is currently also raised for ``AAAA`` records. In that
-##    case, the address *a* will correspond to the lower-order 4 bytes of the
-##    IPv6 address. This will go away once IPv6 support is improved.
-##
-## .. todo: IPv6 handling is obviously very broken here ...
 event dns_A_reply%(c: connection, msg: dns_msg, ans: dns_answer, a: addr%) &group="dns";
 
 ## Generated for DNS replies of type *AAAA*. For replies with multiple answers, an
@@ -3762,18 +3756,38 @@ event dns_A_reply%(c: connection, msg: dns_msg, ans: dns_answer, a: addr%) &grou
 ##
 ## a: The address returned by the reply.
 ##
-## .. bro:see::  dns_A_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply dns_MX_reply
+## .. bro:see::  dns_A_reply dns_A6_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply dns_MX_reply
 ##    dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
 ##    dns_TXT_reply dns_WKS_reply dns_end dns_full_request dns_mapping_altered
 ##    dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
 ##    dns_mapping_valid dns_message dns_query_reply dns_rejected dns_request
 ##    non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
 ##    dns_skip_all_addl dns_skip_all_auth dns_skip_auth
+event dns_AAAA_reply%(c: connection, msg: dns_msg, ans: dns_answer, a: addr%) &group="dns";
+
+## Generated for DNS replies of type *A6*. For replies with multiple answers, an
+## individual event of the corresponding type is raised for each.
 ##
-## .. todo: Raising this event is not implemented currently, not even when
-##    Bro's compiled IPv6 support. ``AAAA`` are currently always turned into
-##    :bro:id:`dns_A_reply` events.
-event dns_AAAA_reply%(c: connection, msg: dns_msg, ans: dns_answer, a: addr, astr: string%) &group="dns";
+## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## information about the DNS protocol. Bro analyzes both UDP and TCP DNS sessions.
+##
+## c: The connection, which may be UDP or TCP depending on the type of the
+##    transport-layer session being analyzed.
+##
+## msg: The parsed DNS message header.
+##
+## ans: The type-independent part of the parsed answer record.
+##
+## a: The address returned by the reply.
+##
+## .. bro:see::  dns_A_reply dns_AAAA_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply dns_MX_reply
+##    dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
+##    dns_TXT_reply dns_WKS_reply dns_end dns_full_request dns_mapping_altered
+##    dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
+##    dns_mapping_valid dns_message dns_query_reply dns_rejected dns_request
+##    non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
+##    dns_skip_all_addl dns_skip_all_auth dns_skip_auth
+event dns_A6_reply%(c: connection, msg: dns_msg, ans: dns_answer, a: addr%) &group="dns";
 
 ## Generated for DNS replies of type *NS*. For replies with multiple answers, an
 ## individual event of the corresponding type is raised for each.

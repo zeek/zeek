@@ -758,17 +758,11 @@ int DNS_Interpreter::ParseRR_A(DNS_MsgInfo* msg,
 int DNS_Interpreter::ParseRR_AAAA(DNS_MsgInfo* msg,
 				const u_char*& data, int& len, int rdlength)
 	{
-	// We need to parse an IPv6 address, high-order byte first.
-	// ### Currently, we fake an A reply rather than an AAAA reply,
-	// since for the latter we won't be able to express the full
-	// address (unless Bro was compiled for IPv6 addresses).  We do
-	// this fake by using just the bottom 4 bytes of the IPv6 address.
 	uint32 addr[4];
-	int i;
 
-	for ( i = 0; i < 4; ++i )
+	for ( int i = 0; i < 4; ++i )
 		{
-		addr[i] = ntohl(ExtractLong(data, len));
+		addr[i] = htonl(ExtractLong(data, len));
 
 		if ( len < 0 )
 			{
@@ -777,23 +771,6 @@ int DNS_Interpreter::ParseRR_AAAA(DNS_MsgInfo* msg,
 			}
 		}
 
-	// Currently, dns_AAAA_reply is treated like dns_A_reply, since
-	// IPv6 addresses are not generally processed.  This needs to be
-	// fixed. ###
-	if ( dns_A_reply && ! msg->skip_event )
-		{
-		val_list* vl = new val_list;
-
-		vl->append(analyzer->BuildConnVal());
-		vl->append(msg->BuildHdrVal());
-		vl->append(msg->BuildAnswerVal());
-		vl->append(new AddrVal(htonl(addr[3])));
-
-		analyzer->ConnectionEvent(dns_A_reply, vl);
-		}
-
-#if 0
-alternative AAAA code from Chris
 	if ( dns_AAAA_reply && ! msg->skip_event )
 		{
 		val_list* vl = new val_list;
@@ -801,19 +778,9 @@ alternative AAAA code from Chris
 		vl->append(analyzer->BuildConnVal());
 		vl->append(msg->BuildHdrVal());
 		vl->append(msg->BuildAnswerVal());
-#ifdef BROv6
-		// FIXME: might need to htonl the addr first
 		vl->append(new AddrVal(addr));
-#else
-		vl->append(new AddrVal((uint32)0x0000));
-#endif
-		char addrstr[INET6_ADDRSTRLEN];
-		inet_ntop(AF_INET6, addr, addrstr, INET6_ADDRSTRLEN);
-		vl->append(new StringVal(addrstr));
-
 		analyzer->ConnectionEvent(dns_AAAA_reply, vl);
 		}
-#endif
 
 	return 1;
 	}

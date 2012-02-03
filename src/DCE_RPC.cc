@@ -137,12 +137,10 @@ static bool is_mapped_dce_rpc_endpoint(const dce_rpc_endpoint_addr& addr)
 
 bool is_mapped_dce_rpc_endpoint(const ConnID* id, TransportProto proto)
 	{
-#ifdef BROv6
-	if ( ! is_v4_addr(id->dst_addr) )
+	if ( id->dst_addr.family() == IPAddr::IPv6 )
 		return false;
-#endif
 	dce_rpc_endpoint_addr addr;
-	addr.addr = ntohl(to_v4_addr(id->dst_addr));
+	addr.addr = id->dst_addr;
 	addr.port = ntohs(id->dst_port);
 	addr.proto = proto;
 
@@ -160,12 +158,7 @@ static void add_dce_rpc_endpoint(const dce_rpc_endpoint_addr& addr,
 	// of the dce_rpc_endpoints table.
 	// FIXME: Don't hard-code the timeout.
 
-	// Convert the address to a v4/v6 address (depending on how
-	// Bro was configured).  This is all based on the address currently
-	// being a 32-bit host-order v4 address.
-	AddrVal a(htonl(addr.addr));
-	const addr_type at = a.AsAddr();
-	dpm->ExpectConnection(0, at, addr.port, addr.proto,
+	dpm->ExpectConnection(IPAddr(), addr.addr, addr.port, addr.proto,
 				AnalyzerTag::DCE_RPC, 5 * 60, 0);
 	}
 
@@ -418,8 +411,8 @@ void DCE_RPC_Session::DeliverEpmapperMapResponse(
 					break;
 
 				case binpac::DCE_RPC_Simple::EPM_PROTOCOL_IP:
-					mapped.addr.addr =
-						floor->rhs()->data()->ip();
+					uint32 hostip = floor->rhs()->data()->ip();
+					mapped.addr.addr = IPAddr(IPAddr::IPv4, &hostip, IPAddr::Host);
 					break;
 				}
 				}
@@ -433,7 +426,7 @@ void DCE_RPC_Session::DeliverEpmapperMapResponse(
 				vl->append(analyzer->BuildConnVal());
 				vl->append(new StringVal(mapped.uuid.to_string()));
 				vl->append(new PortVal(mapped.addr.port, mapped.addr.proto));
-				vl->append(new AddrVal(htonl(mapped.addr.addr)));
+				vl->append(new AddrVal(mapped.addr.addr));
 
 				analyzer->ConnectionEvent(epm_map_response, vl);
 				}

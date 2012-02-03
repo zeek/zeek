@@ -101,6 +101,12 @@ LogVal::~LogVal()
 	     && present )
 		delete val.string_val;
 
+	if ( type == TYPE_ADDR && present )
+		delete val.addr_val;
+
+	if ( type == TYPE_SUBNET && present )
+		delete val.subnet_val;
+
 	if ( type == TYPE_TABLE && present )
 		{
 		for ( int i = 0; i < val.set_val.size; i++ )
@@ -193,22 +199,15 @@ bool LogVal::Read(SerializationFormat* fmt)
 
 	case TYPE_SUBNET:
 		{
-		uint32 net[4];
+		uint32 net[5];
 		if ( ! (fmt->Read(&net[0], "net0") &&
 			fmt->Read(&net[1], "net1") &&
 			fmt->Read(&net[2], "net2") &&
 			fmt->Read(&net[3], "net3") &&
-			fmt->Read(&val.subnet_val.width, "width")) )
+			fmt->Read(&net[4], "width")) )
 			return false;
-
-#ifdef BROv6
-		val.subnet_val.net[0] = net[0];
-		val.subnet_val.net[1] = net[1];
-		val.subnet_val.net[2] = net[2];
-		val.subnet_val.net[3] = net[3];
-#else
-		val.subnet_val.net = net[0];
-#endif
+		val.subnet_val = new IPPrefix(IPAddr(IPAddr::IPv6, net,
+		                              IPAddr::Network), net[4]);
 		return true;
 		}
 
@@ -221,12 +220,7 @@ bool LogVal::Read(SerializationFormat* fmt)
 			fmt->Read(&addr[3], "addr3")) )
 			return false;
 
-		val.addr_val[0] = addr[0];
-#ifdef BROv6
-		val.addr_val[1] = addr[1];
-		val.addr_val[2] = addr[2];
-		val.addr_val[3] = addr[3];
-#endif
+		val.addr_val = new IPAddr(IPAddr::IPv6, addr, IPAddr::Network);
 		return true;
 		}
 
@@ -309,33 +303,18 @@ bool LogVal::Write(SerializationFormat* fmt) const
 	case TYPE_SUBNET:
 		{
 		uint32 net[4];
-#ifdef BROv6
-		net[0] = val.subnet_val.net[0];
-		net[1] = val.subnet_val.net[1];
-		net[2] = val.subnet_val.net[2];
-		net[3] = val.subnet_val.net[3];
-#else
-		net[0] = val.subnet_val.net;
-		net[1] = net[2] = net[3] = 0;
-#endif
+		val.subnet_val->Prefix().CopyIPv6(net);
 		return fmt->Write(net[0], "net0") &&
 			fmt->Write(net[1], "net1") &&
 			fmt->Write(net[2], "net2") &&
 			fmt->Write(net[3], "net3") &&
-			fmt->Write(val.subnet_val.width, "width");
+			fmt->Write((uint32)val.subnet_val->Length(), "width");
 		}
 
 	case TYPE_ADDR:
 		{
 		uint32 addr[4];
-		addr[0] = val.addr_val[0];
-#ifdef BROv6
-		addr[1] = val.addr_val[1];
-		addr[2] = val.addr_val[2];
-		addr[3] = val.addr_val[3];
-#else
-		addr[1] = addr[2] = addr[3] = 0;
-#endif
+		val.addr_val->CopyIPv6(addr);
 		return fmt->Write(addr[0], "addr0") &&
 			fmt->Write(addr[1], "addr1") &&
 			fmt->Write(addr[2], "addr2") &&
@@ -1107,17 +1086,12 @@ LogVal* LogMgr::ValToLogVal(Val* val, BroType* ty)
 		break;
 
 	case TYPE_SUBNET:
-		lval->val.subnet_val = *val->AsSubNet();
+		lval->val.subnet_val = new IPPrefix(*val->AsSubNet());
 		break;
 
 	case TYPE_ADDR:
 		{
-		addr_type t = val->AsAddr();
-#ifdef BROv6
-		copy_addr(t, lval->val.addr_val);
-#else
-		copy_addr(&t, lval->val.addr_val);
-#endif
+		lval->val.addr_val = new IPAddr(*val->AsAddr());
 		break;
 		}
 

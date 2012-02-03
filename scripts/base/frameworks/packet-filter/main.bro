@@ -85,13 +85,8 @@ function build_default_filter(): string
 		return cmd_line_bpf_filter;
 
 	if ( all_packets )
-		{
 		# Return an "always true" filter.
-		if ( bro_has_ipv6() )
-			return "ip or not ip";
-		else
-			return "not ip6";
-		}
+		return "ip or not ip";
 
 	# Build filter dynamically.
 	
@@ -109,10 +104,6 @@ function build_default_filter(): string
 	local filter = combine_filters(rfilter, cfilter, "and");
 	if ( unrestricted_filter != "" )
 		filter = combine_filters(unrestricted_filter, filter, "or");
-	
-	# Exclude IPv6 if we don't support it.
-	if ( ! bro_has_ipv6() )
-		filter = combine_filters(filter, "not ip6", "and");
 	
 	return filter;
 	}

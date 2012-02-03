@@ -11,48 +11,24 @@
 #include "ConnSizeAnalyzer.h"
 
 
-ExpectedConn::ExpectedConn(const uint32* _orig, const uint32* _resp,
+ExpectedConn::ExpectedConn(const IPAddr& _orig, const IPAddr& _resp,
 				uint16 _resp_p, uint16 _proto)
 	{
-	if ( orig )
-		copy_addr(_orig, orig);
+	if ( _orig == IPAddr(string("0.0.0.0")) )
+		// don't use the IPv4 mapping, use the literal unspecified address
+		// to indicate a wildcard
+		orig[0] = orig[1] = orig[2] = orig[3] = 0;
 	else
-		{
-		for ( int i = 0; i < NUM_ADDR_WORDS; ++i )
-			orig[i] = 0;
-		}
-
-	copy_addr(_resp, resp);
-
-	resp_p = _resp_p;
-	proto = _proto;
-	}
-
-ExpectedConn::ExpectedConn(uint32 _orig, uint32 _resp,
-				uint16 _resp_p, uint16 _proto)
-	{
-#ifdef BROv6
-	// Use the IPv4-within-IPv6 convention, as this is what's
-	// needed when we mix uint32's (like in this construction)
-	// with addr_type's (for example, when looking up expected
-	// connections).
-
-	orig[0] = orig[1] = orig[2] = 0;
-	resp[0] = resp[1] = resp[2] = 0;
-	orig[3] = _orig;
-	resp[3] = _resp;
-#else
-	orig[0] = _orig;
-	resp[0] = _resp;
-#endif
+		_orig.CopyIPv6(orig);
+	_resp.CopyIPv6(resp);
 	resp_p = _resp_p;
 	proto = _proto;
 	}
 
 ExpectedConn::ExpectedConn(const ExpectedConn& c)
 	{
-	copy_addr(c.orig, orig);
-	copy_addr(c.resp, resp);
+	memcpy(orig, c.orig, sizeof(orig));
+	memcpy(resp, c.resp, sizeof(resp));
 	resp_p = c.resp_p;
 	proto = c.proto;
 	}
@@ -168,7 +144,7 @@ AnalyzerTag::Tag DPM::GetExpected(int proto, const Connection* conn)
 	if ( ! a )
 		{
 		// Wildcard for originator.
-		for ( int i = 0; i < NUM_ADDR_WORDS; ++i )
+		for ( int i = 0; i < 4; ++i )
 			c.orig[i] = 0;
 
 		HashKey key(&c, sizeof(c.orig) + sizeof(c.resp) +
@@ -404,7 +380,8 @@ bool DPM::BuildInitialAnalyzerTree(TransportProto proto, Connection* conn,
 	return true;
 	}
 
-void DPM::ExpectConnection(addr_type orig, addr_type resp, uint16 resp_p,
+void DPM::ExpectConnection(const IPAddr& orig, const IPAddr& resp,
+			uint16 resp_p,
 			TransportProto proto, AnalyzerTag::Tag analyzer,
 			double timeout, void* cookie)
 	{

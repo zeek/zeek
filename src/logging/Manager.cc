@@ -21,7 +21,7 @@ struct WriterDefinition {
 	bro_int_t type;			// The type.
 	const char *name;		// Descriptive name for error messages.
 	bool (*init)();			// An optional one-time initialization function.
-	WriterBackend* (*factory)();	// A factory function creating instances.
+	WriterBackend* (*factory)(WriterFrontend* frontend);	// A factory function creating instances.
 };
 
 // Static table defining all availabel log writers.
@@ -30,7 +30,7 @@ WriterDefinition log_writers[] = {
 	{ BifEnum::Log::WRITER_ASCII, "Ascii", 0, writer::Ascii::Instantiate },
 
 	// End marker, don't touch.
-	{ BifEnum::Log::WRITER_DEFAULT, "None", 0, (WriterBackend* (*)())0 }
+	{ BifEnum::Log::WRITER_DEFAULT, "None", 0, (WriterBackend* (*)(WriterFrontend* frontend))0 }
 };
 
 struct Manager::Filter {
@@ -436,7 +436,7 @@ Manager::~Manager()
 		delete *s;
 	}
 
-WriterBackend* Manager::CreateBackend(bro_int_t type)
+WriterBackend* Manager::CreateBackend(WriterFrontend* frontend, bro_int_t type)
 	{
 	WriterDefinition* ld = log_writers;
 
@@ -478,7 +478,7 @@ WriterBackend* Manager::CreateBackend(bro_int_t type)
 
 	assert(ld->factory);
 
-	WriterBackend* backend = (*ld->factory)();
+	WriterBackend* backend = (*ld->factory)(frontend);
 	assert(backend);
 	return backend;
 	}

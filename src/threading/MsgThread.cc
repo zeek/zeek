@@ -214,13 +214,7 @@ BasicOutputMessage* MsgThread::RetrieveOut()
 	BasicOutputMessage* msg = queue_out.Get();
 	assert(msg);
 
-#ifdef DEBUG
-	if ( msg->Name() != "DebugMessage" ) // Avoid recursion.
-		{
-		string s = Fmt("Retrieved '%s' from %s",  msg->Name().c_str(), Name().c_str());
-		Debug(DBG_THREADING, s.c_str());
-		}
-#endif
+	DBG_LOG(DBG_THREADING, "Retrieved '%s' from %s",  msg->Name().c_str(), Name().c_str());
 
 	return msg;
 	}

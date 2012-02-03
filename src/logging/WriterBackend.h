@@ -26,9 +26,15 @@ public:
 	/**
 	 * Constructor.
 	 *
+	 * @param frontend The frontend writer that created this backend. The
+	 * *only* purpose of this value is to be passed back via messages as
+	 * a argument to callbacks. One must not otherwise access the
+	 * frontend, it's running in a different thread.
+	 *
 	 * @param name A descriptive name for writer's type (e.g., \c Ascii).
+	 *
 	 */
-	WriterBackend(const string& name);
+	WriterBackend(WriterFrontend* frontend, const string& name);
 
 	/**
 	 * Destructor.
@@ -37,11 +43,6 @@ public:
 
 	/**
 	 * One-time initialization of the writer to define the logged fields.
-	 *
-	 * @param frontend The frontend writer that created this backend. The
-	 * *only* purpose of this value is to be passed back via messages as
-	 * a argument to callbacks. One must not otherwise access the
-	 * frontend, it's running in a different thread.
 	 *
 	 * @param path A string left to the interpretation of the writer
 	 * implementation; it corresponds to the value configured on the
@@ -54,7 +55,7 @@ public:
 	 * 
 	 * @return False if an error occured.
 	 */
-	bool Init(WriterFrontend* frontend, string path, int num_fields, const Field* const*  fields);
+	bool Init(string path, int num_fields, const Field* const*  fields);
 
 	/**
 	 * Writes one log entry.

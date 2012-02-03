@@ -10,7 +10,7 @@
 using namespace logging;
 using namespace writer;
 
-Ascii::Ascii() : WriterBackend("Ascii")
+Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend, "Ascii")
 	{
 	file = 0;
 

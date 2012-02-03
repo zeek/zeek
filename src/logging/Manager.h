@@ -259,7 +259,7 @@ protected:
 
 	// Instantiates a new WriterBackend of the given type (note that
 	// doing so creates a new thread!). 
-	WriterBackend* CreateBackend(bro_int_t type);
+	WriterBackend* CreateBackend(WriterFrontend* frontend, bro_int_t type);
 
 	//// Function also used by the RemoteSerializer.
 

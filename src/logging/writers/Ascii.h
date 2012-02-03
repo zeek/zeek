@@ -11,10 +11,11 @@ namespace logging { namespace writer {
 
 class Ascii : public WriterBackend {
 public:
-	Ascii();
+	Ascii(WriterFrontend* frontend);
 	~Ascii();
 
-	static WriterBackend* Instantiate()	{ return new Ascii; }
+	static WriterBackend* Instantiate(WriterFrontend* frontend)
+		{ return new Ascii(frontend); }
 	static string LogExt();
 
 protected:

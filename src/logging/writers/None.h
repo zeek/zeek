@@ -11,10 +11,11 @@ namespace logging { namespace writer {
 
 class None : public WriterBackend {
 public:
-	None() : WriterBackend("None")	{}
+	None(WriterFrontend* frontend) : WriterBackend(frontend, "None")	{}
 	~None()	{};
 
-	static WriterBackend* Instantiate()	{ return new None; }
+	static WriterBackend* Instantiate(WriterFrontend* frontend)
+		{ return new None(frontend); }
 
 protected:
 	virtual bool DoInit(string path, int num_fields,

@@ -9,14 +9,13 @@ namespace logging  {
 class InitMessage : public threading::InputMessage<WriterBackend>
 {
 public:
-	InitMessage(WriterBackend* backend, WriterFrontend* frontend, const string path, const int num_fields, const Field* const* fields)
+	InitMessage(WriterBackend* backend, const string path, const int num_fields, const Field* const* fields)
 		: threading::InputMessage<WriterBackend>("Init", backend),
 		path(path), num_fields(num_fields), fields(fields) { }
 
-	virtual bool Process() { return Object()->Init(frontend, path, num_fields, fields); }
+	virtual bool Process() { return Object()->Init(path, num_fields, fields); }
 
 private:
-	WriterFrontend* frontend;
 	const string path;
 	const int num_fields;
 	const Field * const* fields;
@@ -47,7 +46,7 @@ class WriteMessage : public threading::InputMessage<WriterBackend>
 public:
 	WriteMessage(WriterBackend* backend, int num_fields, int num_writes, Value*** vals)
 		: threading::InputMessage<WriterBackend>("Write", backend),
-		num_fields(num_fields), vals(vals)	{}
+		num_fields(num_fields), num_writes(num_writes), vals(vals)	{}
 
 	virtual bool Process() { return Object()->Write(num_fields, num_writes, vals); }
 
@@ -98,8 +97,9 @@ WriterFrontend::WriterFrontend(bro_int_t type)
 	{
 	disabled = initialized = false;
 	buf = true;
+	write_buffer = 0;
 	write_buffer_pos = 0;
-	backend = log_mgr->CreateBackend(type);
+	backend = log_mgr->CreateBackend(this, type);
 
 	assert(backend);
 	backend->Start();
@@ -129,7 +129,7 @@ void WriterFrontend::Init(string arg_path, int arg_num_fields, const Field* cons
 	fields = arg_fields;
 
 	initialized = true;
-	backend->SendIn(new InitMessage(backend, this, arg_path, arg_num_fields, arg_fields));
+	backend->SendIn(new InitMessage(backend, arg_path, arg_num_fields, arg_fields));
 	}
 
 void WriterFrontend::Write(int num_fields, Value** vals)
@@ -144,15 +144,12 @@ void WriterFrontend::Write(int num_fields, Value** vals)
 		write_buffer_pos = 0;
 		}
 
-	if ( write_buffer_pos >= WRITER_BUFFER_SIZE )
-		// Buffer full.
-		FlushWriteBuffer();
-
 	write_buffer[write_buffer_pos++] = vals;
 
-	if ( ! buf )
-		// Send out immediately if we don't want buffering.
+	if ( write_buffer_pos >= WRITER_BUFFER_SIZE || ! buf )
+		// Buffer full (or no bufferin desired).
 		FlushWriteBuffer();
+
 	}
 
 void WriterFrontend::FlushWriteBuffer()
@@ -165,6 +162,7 @@ void WriterFrontend::FlushWriteBuffer()
 
 	// Clear buffer (no delete, we pass ownership to child thread.)
 	write_buffer = 0;
+	write_buffer_pos = 0;
 	}
 
 void WriterFrontend::SetBuf(bool enabled)

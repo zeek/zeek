@@ -113,6 +113,17 @@ void BasicThread::Join()
 	pthread = 0;
 	}
 
+void BasicThread::Kill()
+	{
+	if ( ! (started && pthread) )
+		return;
+
+	// I believe this is safe to call from a signal handler ... Not error
+	// checking so that killing doesn't bail out if we have already
+	// terminated.
+	pthread_kill(pthread, SIGKILL);
+	}
+
 void* BasicThread::launcher(void *arg)
 	{
 	BasicThread* thread = (BasicThread *)arg;

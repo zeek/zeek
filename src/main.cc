@@ -333,6 +333,13 @@ RETSIGTYPE sig_handler(int signo)
 	{
 	set_processing_status("TERMINATING", "sig_handler");
 	signal_val = signo;
+
+	if ( thread_mgr->Terminating() && (signal_val == SIGTERM || signal_val == SIGINT) )
+		// If the thread manager is already terminating (i.e.,
+		// waiting for child threads to exit), another term signal
+		// will send the threads a kill.
+		thread_mgr->KillThreads();
+
 	return RETSIGVAL;
 	}
 

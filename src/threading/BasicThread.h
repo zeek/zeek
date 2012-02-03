@@ -121,6 +121,15 @@ protected:
 	 */
 	void Join();
 
+	/**
+	 * Kills the thread immediately. One still needs to call Join()
+	 * afterwards.
+	 *
+	 * This is called from the threading::Manager and safe to execute
+	 * during a signal handler.
+	 */
+	void Kill();
+
 private:
 	// pthread entry function.
 	static void* launcher(void *arg);

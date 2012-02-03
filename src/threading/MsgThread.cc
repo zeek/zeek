@@ -206,6 +206,7 @@ void MsgThread::SendOut(BasicOutputMessage* msg, bool force)
 		return;
 
 	queue_out.Put(msg);
+
 	++cnt_sent_out;
 	}
 

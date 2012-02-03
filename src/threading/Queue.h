@@ -67,7 +67,6 @@ private:
 
 	int read_ptr;	// Where the next operation will read from
 	int write_ptr;	// Where the next operation will write to
-	uint64_t size;	// Current queue size.
 };
 
 inline static void safe_lock(pthread_mutex_t* mutex)
@@ -120,7 +119,6 @@ inline T Queue<T>::Get()
 
 	T data = messages[read_ptr].front();
 	messages[read_ptr].pop();
-	--size;
 
 	read_ptr = (read_ptr + 1) % NUM_QUEUES;
 
@@ -139,7 +137,6 @@ inline void Queue<T>::Put(T data)
 	bool need_signal = messages[write_ptr].empty();
 
 	messages[write_ptr].push(data);
-	++size;
 
 	if ( need_signal )
 		pthread_cond_signal(&has_data[write_ptr]);
@@ -165,13 +162,19 @@ inline bool Queue<T>::Ready()
 template<typename T>
 inline uint64_t Queue<T>::Size()
 	{
-	safe_lock(&mutex[read_ptr]);
+	// Need to lock all queues.
+	for ( int i = 0; i < NUM_QUEUES; i++ )
+		safe_lock(&mutex[i]);
 
-	uint64_t s = size;
+	uint64_t size = 0;
 
-	safe_unlock(&mutex[read_ptr]);
+	for ( int i = 0; i < NUM_QUEUES; i++ )
+		size += messages[i].size();
 
-	return s;
+	for ( int i = 0; i < NUM_QUEUES; i++ )
+		safe_unlock(&mutex[i]);
+
+	return size;
 	}
 
 }

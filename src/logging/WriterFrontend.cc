@@ -99,6 +99,7 @@ WriterFrontend::WriterFrontend(bro_int_t type)
 	buf = true;
 	write_buffer = 0;
 	write_buffer_pos = 0;
+	ty_name = "<not set>";
 	backend = log_mgr->CreateBackend(this, type);
 
 	assert(backend);
@@ -107,6 +108,14 @@ WriterFrontend::WriterFrontend(bro_int_t type)
 
 WriterFrontend::~WriterFrontend()
 	{
+	}
+
+string WriterFrontend::Name() const
+	{
+	if ( path.size() )
+		return ty_name;
+
+	return ty_name + "/" + path;
 	}
 
 void WriterFrontend::Stop()

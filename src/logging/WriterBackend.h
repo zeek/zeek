@@ -34,7 +34,7 @@ public:
 	 * @param name A descriptive name for writer's type (e.g., \c Ascii).
 	 *
 	 */
-	WriterBackend(WriterFrontend* frontend, const string& name);
+	WriterBackend(WriterFrontend* frontend);
 
 	/**
 	 * Destructor.

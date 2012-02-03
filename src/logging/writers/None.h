@@ -11,7 +11,7 @@ namespace logging { namespace writer {
 
 class None : public WriterBackend {
 public:
-	None(WriterFrontend* frontend) : WriterBackend(frontend, "None")	{}
+	None(WriterFrontend* frontend) : WriterBackend(frontend)	{}
 	~None()	{};
 
 	static WriterBackend* Instantiate(WriterFrontend* frontend)

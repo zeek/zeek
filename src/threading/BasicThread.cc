@@ -9,7 +9,7 @@ using namespace threading;
 
 uint64_t BasicThread::thread_counter = 0;
 
-BasicThread::BasicThread(const string& arg_name)
+BasicThread::BasicThread()
 	{
 	started = false;
 	terminating = false;
@@ -18,13 +18,34 @@ BasicThread::BasicThread(const string& arg_name)
 	buf = 0;
 	buf_len = 1024;
 
-	name = Fmt("%s@%d", arg_name.c_str(), ++thread_counter);
+	name = Fmt("thread-%d", ++thread_counter);
 
 	thread_mgr->AddThread(this);
 	}
 
 BasicThread::~BasicThread()
 	{
+	}
+
+void BasicThread::SetName(const string& arg_name)
+	{
+	// Slight race condition here with reader threads, but shouldn't matter.
+	name = arg_name;
+	}
+
+void BasicThread::SetOSName(const string& name)
+	{
+#ifdef LINUX
+	pthread_setname_np(pthread_self(), name.c_str());
+#endif
+
+#ifdef __APPLE__
+	pthread_setname_np(name.c_str());
+#endif
+
+#ifdef FREEBSD
+	pthread_set_name_np(pthread_self(), name, name.c_str());
+#endif
 	}
 
 const char* BasicThread::Fmt(const char* format, ...)

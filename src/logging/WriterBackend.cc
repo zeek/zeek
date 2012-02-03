@@ -55,13 +55,15 @@ public:
 
 using namespace logging;
 
-WriterBackend::WriterBackend(WriterFrontend* arg_frontend, const string& name) : MsgThread(name)
+WriterBackend::WriterBackend(WriterFrontend* arg_frontend) : MsgThread()
 	{
 	path = "<not set>";
 	num_fields = 0;
 	fields = 0;
 	buffering = true;
 	frontend = arg_frontend;
+
+	SetName(frontend->Name());
 	}
 
 WriterBackend::~WriterBackend()
@@ -106,6 +108,8 @@ bool WriterBackend::Init(string arg_path, int arg_num_fields, const Field* const
 	path = arg_path;
 	num_fields = arg_num_fields;
 	fields = arg_fields;
+
+	SetName(frontend->Name());
 
 	if ( ! DoInit(arg_path, arg_num_fields, arg_fields) )
 		{

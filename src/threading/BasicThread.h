@@ -34,15 +34,30 @@ public:
 	 * @param name A descriptive name for thread the thread. This may
 	 * show up in messages to the user.
 	 */
-	BasicThread(const string& name); // Managed by manager, must not delete otherwise.
+	BasicThread();
 
 	/**
-	 * Returns a descriptive name for the thread. This is the name passed
-	 * into the constructor.
+	 * Returns a descriptive name for the thread. If not set via
+	 * SetName(). If not set, a default name is choosen automatically.
 	 *
 	 * This method is safe to call from any thread.
 	 */
 	const string& Name() const { return name; }
+
+	/**
+	* Sets a descriptive name for the thread. This should be a string
+	* that's useful in output presented to the user and uniquely
+	* identifies the thread.
+	*
+	* This method must be called only from the thread itself.
+	*/
+	void SetName(const string& name);
+
+	/**
+	 * Set the name shown by the OS as the thread's description. Not
+	 * supported on all OSs.
+	 */
+	void SetOSName(const string& name);
 
 	/**
 	 * Starts the thread. Calling this methods will spawn a new OS thread

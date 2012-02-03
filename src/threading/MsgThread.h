@@ -34,10 +34,8 @@ public:
 	 * threading::Manager.
 	 *
 	 * Only Bro's main thread may instantiate a new thread.
-	 *
-	 * @param name A descriptive name. This is passed on to BasicThread().
 	 */
-	MsgThread(const string& name);
+	MsgThread();
 
 	/**
 	 * Sends a message to the child thread. The message will be proceesed

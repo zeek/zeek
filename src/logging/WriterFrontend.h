@@ -30,6 +30,9 @@ public:
 	 * frontend will internally instantiate a WriterBackend of the
 	 * corresponding type.
 	 *
+	 * name: A descriptive name for the backend wroter type (e.g., \c
+	 * Ascii).
+	 *
 	 * Frontends must only be instantiated by the main thread.
 	 */
 	WriterFrontend(bro_int_t type);
@@ -172,6 +175,14 @@ public:
 	int NumFields() const	{ return num_fields; }
 
 	/**
+	 * Returns a descriptive name for the writer, including the type of
+	 * the backend and the path used.
+	 *
+	 * This method is safe to call from any thread.
+	 */
+	string Name() const;
+
+	/**
 	 * Returns the log fields as passed into the constructor.
 	 */
 	const Field* const * Fields() const	{ return fields; }
@@ -184,6 +195,7 @@ protected:
 	bool initialized;	// True if initialized.
 	bool buf;	// True if buffering is enabled (default).
 
+	string ty_name;	// Name of the backend type. Set by the manager.
 	string path;	// The log path.
 	int num_fields;	// The number of log fields.
 	const Field* const*  fields;	// The log fields.

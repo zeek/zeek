@@ -127,7 +127,7 @@ bool ReporterMessage::Process()
 	return true;
 	}
 
-MsgThread::MsgThread(const string& name) : BasicThread(name)
+MsgThread::MsgThread() : BasicThread()
 	{
 	cnt_sent_in = cnt_sent_out = 0;
 	thread_mgr->AddMsgThread(this);
@@ -142,6 +142,12 @@ void MsgThread::OnStop()
 void MsgThread::Heartbeat()
 	{
 	SendIn(new HeartbeatMessage(this, network_time, current_time()));
+
+	string name = Fmt("%s (%d/%d)", name.c_str(),
+			  cnt_sent_in - queue_in.Size(),
+			  cnt_sent_out - queue_out.Size());
+
+	SetOSName(name.c_str());
 	}
 
 void MsgThread::Info(const char* msg)

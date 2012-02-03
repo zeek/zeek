@@ -1,4 +1,10 @@
 
+2.0-40 | 2012-02-03 01:55:27 -0800
+
+ * Fix typos in documentation. (Daniel Thayer)
+
+ * Fix sorting of lines in Brofiler coverage.log. (Daniel Thayer)
+   
 2.0-38 | 2012-01-31 11:50:53 -0800
 
   * Canonify sorting of lines in Brofiler coverage.log. (Daniel

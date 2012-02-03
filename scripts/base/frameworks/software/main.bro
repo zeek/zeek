@@ -366,7 +366,7 @@ function software_fmt(i: Info): string
 
 # Insert a mapping into the table
 # Overides old entries for the same software and generates events if needed.
-event software_register(id: conn_id, info: Info)
+event register(id: conn_id, info: Info)
 	{
 	# Host already known?
 	if ( info$host !in tracked )
@@ -418,7 +418,7 @@ function found(id: conn_id, info: Info): bool
 			info$version = sw$version;
 			}
 		
-		event software_register(id, info);
+		event register(id, info);
 		return T;
 		}
 	else

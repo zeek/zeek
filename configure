@@ -27,7 +27,6 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
 
   Optional Features:
     --enable-debug         compile in debugging mode
-    --enable-brov6         enable IPv6 processing
     --enable-perftools     use Google's perftools
     --disable-broccoli     don't build or install the Broccoli library
     --disable-broctl       don't install Broctl

@@ -117,8 +117,33 @@ bool Value::Read(SerializationFormat* fmt)
 
 	case TYPE_COUNT:
 	case TYPE_COUNTER:
-	case TYPE_PORT:
 		return fmt->Read(&val.uint_val, "uint");
+
+	case TYPE_PORT: {
+		int proto;
+		if ( ! (fmt->Read(&val.port_val.port, "port") && fmt->Read(&proto, "proto") ) ) {
+			return false;
+		}
+		
+		switch (proto) {
+			case 0:
+				val.port_val.proto = TRANSPORT_UNKNOWN;
+				break;
+			case 1:
+				val.port_val.proto = TRANSPORT_TCP;
+				break;
+			case 2:
+				val.port_val.proto = TRANSPORT_UDP;
+				break;
+			case 3:
+				val.port_val.proto = TRANSPORT_ICMP;
+				break;
+			default:
+				return false;
+		}
+		return true;
+		}
+
 
 	case TYPE_SUBNET:
 		{
@@ -232,8 +257,10 @@ bool Value::Write(SerializationFormat* fmt) const
 
 	case TYPE_COUNT:
 	case TYPE_COUNTER:
-	case TYPE_PORT:
 		return fmt->Write(val.uint_val, "uint");
+
+	case TYPE_PORT:
+		return fmt->Write(val.port_val.port, "port") && fmt->Write(val.port_val.proto, "proto");	
 
 	case TYPE_SUBNET:
 		{

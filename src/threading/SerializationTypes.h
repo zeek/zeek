@@ -60,6 +60,7 @@ struct Value {
 
 	struct set_t { bro_int_t size; Value** vals; };
 	typedef set_t vec_t;
+	struct port_t { bro_uint_t port; TransportProto proto; };
 
 	/**
 	 * This union is a subset of BroValUnion, including only the types we
@@ -68,6 +69,7 @@ struct Value {
 	union _val {
 		bro_int_t int_val;
 		bro_uint_t uint_val;
+		port_t port_val;
 		uint32 addr_val[NUM_ADDR_WORDS];
 		subnet_type subnet_val;
 		double double_val;

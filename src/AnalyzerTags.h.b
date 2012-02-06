@@ -35,9 +35,6 @@ namespace AnalyzerTag {
 		DHCP_BINPAC, DNS_TCP_BINPAC, DNS_UDP_BINPAC,
 		HTTP_BINPAC, SSL, SYSLOG_BINPAC,
 
-		//Hui Lin
-                ModbusTCP,
-		Dnp3,
 		// Other
 		File, Backdoor, InterConn, SteppingStone, TCPStats,
 		ConnSize,

@@ -10,8 +10,6 @@
 #include "SteppingStone.h"
 #include "ConnSizeAnalyzer.h"
 
-#include "MODBUS.h"
-#include "DNP3.h"
 
 ExpectedConn::ExpectedConn(const uint32* _orig, const uint32* _resp,
 				uint16 _resp_p, uint16 _proto)
@@ -378,20 +376,6 @@ bool DPM::BuildInitialAnalyzerTree(TransportProto proto, Connection* conn,
 		// Add ConnSize analyzer. Needs to see packets, not stream.
 		if ( ConnSize_Analyzer::Available() )
 			tcp->AddChildPacketAnalyzer(new ConnSize_Analyzer(conn));
-
-		//Hui Lin Test Adding MODBUS analyzer here
-                if ( Modbus_Analyzer::Available() )
-                        {
-                        Modbus_Analyzer* bd = new Modbus_Analyzer(conn);
-                        tcp->AddChildAnalyzer(bd, false);
-                        }
-		if ( DNP3_Analyzer::Available() )
-                        {
-                        DNP3_Analyzer*bd = new DNP3_Analyzer(conn);
-                        tcp->AddChildAnalyzer(bd, false);
-                        }
-
-
 		}
 
 	else

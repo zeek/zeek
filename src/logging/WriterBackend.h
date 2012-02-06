@@ -282,8 +282,6 @@ protected:
 	virtual bool DoHeartbeat(double network_time, double current_time);
 
 private:
-	friend class Manager;
-
 	/**
 	 * Deletes the values as passed into Write().
 	 */

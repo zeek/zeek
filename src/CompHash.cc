@@ -107,8 +107,6 @@ char* CompositeHash::SingleValHash(int type_check, char* kp0,
 
 	case TYPE_INTERNAL_ADDR:
 		{
-		// Use uint32 instead of int, because 'int' is not
-		// guaranteed to be 32-bit.
 		uint32* kp = AlignAndPadType<uint32>(kp0);
 		uint32 bytes[4];
 		v->AsAddr()->CopyIPv6(bytes);

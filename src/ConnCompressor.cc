@@ -235,7 +235,8 @@ Connection* ConnCompressor::NextPacket(double t, HashKey* key, const IP_Hdr* ip,
 			tc = FirstFromOrig(t, key, ip, tp);
 		}
 
-	else if ( ip->SrcAddr() == SrcAddr(pending) &&
+	else if ( ip->SrcAddr() ==
+			IPAddr(IPAddr::IPv6, SrcAddr(pending), IPAddr::Network) &&
 		  tp->th_sport == SrcPort(pending) )
 		// Another packet from originator.
 		tc = NextFromOrig(pending, t, key, ip, tp);
@@ -507,8 +508,8 @@ Connection* ConnCompressor::Instantiate(HashKey* key, PendingConn* pending)
 	{
 	// Instantantiate a Connection.
 	ConnID conn_id;
-	conn_id.src_addr = SrcAddr(pending);
-	conn_id.dst_addr = DstAddr(pending);
+	conn_id.src_addr = IPAddr(IPAddr::IPv6, SrcAddr(pending), IPAddr::Network);
+	conn_id.dst_addr = IPAddr(IPAddr::IPv6, DstAddr(pending), IPAddr::Network);
 	conn_id.src_port = SrcPort(pending);
 	conn_id.dst_port = DstPort(pending);
 
@@ -607,7 +608,8 @@ void ConnCompressor::PktHdrToPendingConn(double time, const HashKey* key,
 	memcpy(&c->key, key->Key(), key->Size());
 
 	c->hash = key->Hash();
-	c->ip1_is_src = c->key.ip1 == ip->SrcAddr() &&
+	IPAddr ip1(IPAddr::IPv6, c->key.ip1, IPAddr::Network);
+	c->ip1_is_src = ip1 == ip->SrcAddr() &&
 			c->key.port1 == tp->th_sport;
 	c->time = time;
 	c->window = tp->th_win;
@@ -656,11 +658,10 @@ const IP_Hdr* ConnCompressor::PendingConnToPacket(const PendingConn* c)
 		tp->th_urp = 0;
 		}
 
-	// Note, do *not* use copy_addr() here.  This is because we're
-	// copying to an IPv4 header, which has room for exactly and
-	// only an IPv4 address.
-	if ( c->key.ip1.family() == IPAddr::IPv6 ||
-	     c->key.ip2.family() == IPAddr::IPv6 )
+	IPAddr ip1(IPAddr::IPv6, c->key.ip1, IPAddr::Network);
+	IPAddr ip2(IPAddr::IPv6, c->key.ip2, IPAddr::Network);
+	if ( ip1.family() == IPAddr::IPv6 ||
+	     ip2.family() == IPAddr::IPv6 )
 		reporter->InternalError("IPv6 snuck into connection compressor");
 	else
 		{
@@ -668,13 +669,13 @@ const IP_Hdr* ConnCompressor::PendingConnToPacket(const PendingConn* c)
 		const uint32* dst_bytes;
 		if ( c->ip1_is_src )
 			{
-			c->key.ip1.GetBytes(&src_bytes);
-			c->key.ip2.GetBytes(&dst_bytes);
+			ip1.GetBytes(&src_bytes);
+			ip2.GetBytes(&dst_bytes);
 			}
 		else
 			{
-			c->key.ip2.GetBytes(&src_bytes);
-			c->key.ip1.GetBytes(&dst_bytes);
+			ip2.GetBytes(&src_bytes);
+			ip1.GetBytes(&dst_bytes);
 			}
 		memcpy(&ip->ip_src, src_bytes, sizeof(ip->ip_src));
 		memcpy(&ip->ip_dst, dst_bytes, sizeof(ip->ip_dst));

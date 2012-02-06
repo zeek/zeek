@@ -50,8 +50,8 @@ struct ConnID {
 
 	// The structure used internally for hashing.
 	struct Key {
-		IPAddr ip1;
-		IPAddr ip2;
+		uint32 ip1[4];
+		uint32 ip2[4];
 		uint16 port1;
 		uint16 port2;
 	};

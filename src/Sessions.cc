@@ -71,8 +71,8 @@ void TimerMgrExpireTimer::Dispatch(double t, int is_expire)
 NetSessions::NetSessions()
 	{
 	TypeList* t = new TypeList();
-	t->Append(base_type(TYPE_COUNT));	// source IP address
-	t->Append(base_type(TYPE_COUNT));	// dest IP address
+	t->Append(base_type(TYPE_ADDR));	// source IP address
+	t->Append(base_type(TYPE_ADDR));	// dest IP address
 	t->Append(base_type(TYPE_COUNT));	// source and dest ports
 
 	ch = new CompositeHash(t);

@@ -24,15 +24,15 @@ HashKey* ConnID::BuildConnKey() const
 	if ( is_one_way ||
 	     addr_port_canon_lt(src_addr, src_port, dst_addr, dst_port) )
 		{
-		key.ip1 = src_addr;
-		key.ip2 = dst_addr;
+		src_addr.CopyIPv6(key.ip1);
+		dst_addr.CopyIPv6(key.ip2);
 		key.port1 = src_port;
 		key.port2 = dst_port;
 		}
 	else
 		{
-		key.ip1 = dst_addr;
-		key.ip2 = src_addr;
+		dst_addr.CopyIPv6(key.ip1);
+		src_addr.CopyIPv6(key.ip2);
 		key.port1 = dst_port;
 		key.port2 = src_port;
 		}

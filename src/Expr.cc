@@ -2419,7 +2419,7 @@ bool RefExpr::DoUnserialize(UnserialInfo* info)
 	}
 
 AssignExpr::AssignExpr(Expr* arg_op1, Expr* arg_op2, int arg_is_init,
-			Val* arg_val)
+		       Val* arg_val, attr_list* arg_attrs)
 : BinaryExpr(EXPR_ASSIGN,
 		arg_is_init ? arg_op1 : arg_op1->MakeLvalue(), arg_op2)
 	{
@@ -2439,14 +2439,14 @@ AssignExpr::AssignExpr(Expr* arg_op1, Expr* arg_op2, int arg_is_init,
 
 	// We discard the status from TypeCheck since it has already
 	// generated error messages.
-	(void) TypeCheck();
+	(void) TypeCheck(arg_attrs);
 
 	val = arg_val ? arg_val->Ref() : 0;
 
 	SetLocationInfo(arg_op1->GetLocationInfo(), arg_op2->GetLocationInfo());
 	}
 
-bool AssignExpr::TypeCheck()
+bool AssignExpr::TypeCheck(attr_list* attrs)
 	{
 	TypeTag bt1 = op1->Type()->Tag();
 	TypeTag bt2 = op2->Type()->Tag();
@@ -2475,6 +2475,21 @@ bool AssignExpr::TypeCheck()
 	     op2->Type()->AsTableType()->IsUnspecifiedTable() )
 		{
 		op2 = new TableCoerceExpr(op2, op1->Type()->AsTableType());
+		return true;
+		}
+
+	if ( bt1 == TYPE_TABLE && op2->Tag() == EXPR_LIST )
+		{
+		attr_list* attr_copy = 0;
+
+		if ( attrs )
+			{
+			attr_copy = new attr_list;
+			loop_over_list(*attrs, i)
+				attr_copy->append((*attrs)[i]);
+			}
+
+		op2 = new TableConstructorExpr(op2->AsListExpr(), attr_copy);
 		return true;
 		}
 

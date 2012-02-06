@@ -1,0 +1,59 @@
+#! /usr/bin/env python
+
+# This script aggregates many files containing Bro script coverage information
+# into a single file and reports the overall coverage information. Usage:
+#
+#   coverage-calc <quoted glob of filenames> <output file> <script dir>
+#
+# The last argument is used to point to a root directory containing all
+# the Bro distribution's scripts.  It's used to cull out test scripts
+# that are not part of the distribution and which should not count towards
+# the coverage calculation.
+
+import os
+import sys
+import glob
+
+stats = {}
+inputglob = sys.argv[1]
+outputfile = sys.argv[2]
+scriptdir = os.path.abspath(sys.argv[3])
+
+for filename in glob.glob(inputglob):
+    with open(filename, 'r') as f:
+        for line in f.read().splitlines():
+            parts = line.split("\t")
+            exec_count = int(parts[0])
+            # grab file path and line numbers separately
+            filepath, srclines = parts[1].rsplit(",", 1)
+            filepath = os.path.normpath(filepath)
+            # ignore scripts that don't appear to be part of Bro distribution
+            if not filepath.startswith(scriptdir):
+                continue
+            # keep only the line number (or line number range)
+            srclines = srclines.split()[1]
+            # For sorting purposes (so that line numbers get sorted correctly),
+            # construct a specially-formatted key string.
+            sortkey = filepath + ", line " + ("%6s" % srclines.split("-")[0])
+            location = filepath + ", line " + srclines
+            desc = parts[2]
+            # Keying by location + desc may result in duplicate data
+            # as some descs change as a result of differing configurations
+            # producing record (re)definitions
+            key = location
+            if key in stats:
+                stats[key][0] += exec_count
+            else:
+                stats[key] = [exec_count, location, desc, sortkey]
+
+with open(outputfile, 'w') as f:
+    for k in sorted(stats, key=lambda i: stats[i][3]):
+        f.write("%s\t%s\t%s\n" % (stats[k][0], stats[k][1], stats[k][2]))
+
+num_covered = 0
+for k in stats:
+    if stats[k][0] > 0:
+        num_covered += 1
+
+if len(stats) > 0:
+    print "%s/%s (%.1f%%) Bro script statements covered." % (num_covered, len(stats), float(num_covered)/len(stats)*100)

@@ -4,7 +4,7 @@ Reporting Problems
 
 .. rst-class:: opening
 
-    Here we summarizes some steps to follow when you see Bro doing
+    Here we summarize some steps to follow when you see Bro doing
     something it shouldn't. To provide help, it is often crucial for
     us to have a way of reliably reproducing the effect you're seeing.
     Unfortunately, reproducing problems can be rather tricky with Bro
@@ -20,16 +20,16 @@ Reporting Problems
 Generally, when you encounter a problem with Bro, the best thing to do
 is opening a new ticket in `Bro's issue tracker
 <http://tracker.bro-ids.org/>`__ and include information on how to
-reproduce the issue. Ideallt, your ticket should come with the
+reproduce the issue. Ideally, your ticket should come with the
 following:
 
 * The Bro version you're using (if working directly from the git
   repository, the branch and revision number.)
 
-* The output you're seeing along with a description what you'd expect
+* The output you're seeing along with a description of what you'd expect
   Bro to do instead.
 
-* A *small* trace in `libpcap format <http://tcpdump.org>`__
+* A *small* trace in `libpcap format <http://www.tcpdump.org>`__
   demonstrating the effect (assuming the problem doesn't happen right
   at startup already).
 
@@ -39,7 +39,7 @@ following:
 
 * Any non-standard scripts you're using (but please only those really
   necessary; just a small code snippet triggering the problem would
-  perfect).
+  be perfect).
 
 * If you encounter a crash, information from the core dump, such as
   the stack backtrace, can be very helpful. See below for more on
@@ -51,10 +51,10 @@ How Do I Get a Trace File?
 
 As Bro is usually running live, coming up with a small trace file that
 reproduces a problem can turn out to be quite a challenge. Often it
-works to best to start with a large trace that triggers the problem,
-and then successively thin it out as much a possible.
+works best to start with a large trace that triggers the problem,
+and then successively thin it out as much as possible.
 
-To get to the initial large trace, here are few things you can try:
+To get to the initial large trace, here are a few things you can try:
 
 * Capture a trace with `tcpdump <http://www.tcpdump.org/>`__, either
   on the same interface Bro is running on, or on another host where
@@ -66,14 +66,14 @@ To get to the initial large trace, here are few things you can try:
   (e.g., for HTTP only, try ``port 80``). 
 
 * Bro's command-line option ``-w <trace>`` records all packets it
-  processes into the given the file. You can then later run Bro
+  processes into the given file. You can then later run Bro
   offline on this trace and it will process the packets in the same
   way as it did live. This is particularly helpful with problems that
   only occur after Bro has already been running for some time. For
   example, sometimes a crash may be triggered by a particular kind of
   traffic only occurring rarely. Running Bro live with ``-w`` and
   then, after the crash, offline on the recorded trace might, with a
-  little bit of luck, reproduce the the problem reliably. However, be
+  little bit of luck, reproduce the problem reliably. However, be
   careful with ``-w``: it can result in huge trace files, quickly
   filling up your disk. (One way to mitigate the space issues is to
   periodically delete the trace file by configuring
@@ -96,7 +96,7 @@ much as possible. Here are a few things you can try to this end:
 * Very often, a single connection is able to demonstrate the problem.
   If you can identify which one it is (e.g., from one of Bro's
   ``*.log`` files) you can extract the connection's packets from the
-  trace usong tcpdump by filtering for the corresponding 4-tuple of
+  trace using tcpdump by filtering for the corresponding 4-tuple of
   addresses and ports:
 
   .. console::
@@ -131,8 +131,8 @@ First, you should configure Bro with the option ``--enable-debug`` and
 recompile; this will disable all compiler optimizations and thus make
 the core dump more useful (don't expect great performance with this
 version though; compiling Bro without optimization has a noticeable
-impact on its CPU usage.). Then enable core dumps if you don't have
-already (e.g., ``ulimit -c unlimited`` if you're using a bash).
+impact on its CPU usage.). Then enable core dumps if you haven't
+already (e.g., ``ulimit -c unlimited`` if you're using bash).
 
 Once Bro has crashed, start gdb with the Bro binary and the file
 containing the core dump. (Alternatively, you can also run Bro
@@ -188,7 +188,7 @@ belonging to the ``Connection`` class. That class has members
 
 Note that these values are stored in `network byte order
 <http://en.wikipedia.org/wiki/Endianness#Endianness_in_networking>`__
-so you will need flip the bytes around if you are on a low-endian
+so you will need to flip the bytes around if you are on a low-endian
 machine (which is why the above example prints them in hex). For
 example, if an IP address prints as ``0100007f`` , that's 127.0.0.1 .
 

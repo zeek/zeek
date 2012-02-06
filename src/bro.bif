@@ -395,10 +395,12 @@ function setenv%(var: string, val: string%): bool
 
 ## Shuts down the Bro process immediately.
 ##
-## .. todo: Change function signature to ``exit(code: int): any``.
-function exit%(%): int
+## code: The exit code to return with.
+##
+## .. bro:see:: terminate
+function exit%(code: int%): any
 	%{
-	exit(0);
+	exit(code);
 	return 0;
 	%}
 
@@ -407,7 +409,7 @@ function exit%(%): int
 ## Returns: True after successful termination and false when Bro is still in
 ##          the process of shutting down.
 ##
-## .. bro:see:: bro_is_terminating
+## .. bro:see:: exit bro_is_terminating
 function terminate%(%): bool
 	%{
 	if ( terminating )
@@ -1945,12 +1947,12 @@ function record_fields%(rec: any%): record_field_table
 ##              get_matcher_stats
 ##              dump_rule_stats
 ##              get_gap_summary
-function do_profiling%(%) : bool
+function do_profiling%(%) : any
 	%{
 	if ( profiling_logger )
 		profiling_logger->Log();
 
-	return new Val(1, TYPE_BOOL);
+	return 0;
 	%}
 
 ## Checks whether a given IP address belongs to a local interface.
@@ -2210,14 +2212,16 @@ function port_to_count%(p: port%): count
 
 ## Converts a :bro:type:`count` and ``transport_proto`` to a :bro:type:`port`.
 ##
-## c: The :bro:type:`count` to convert.
+## num: The :bro:type:`port` number.
+##
+## proto: The transport protocol.
 ##
 ## Returns: The :bro:type:`count` *c* as :bro:type:`port`.
 ##
 ## .. bro:see:: port_to_count
-function count_to_port%(c: count, t: transport_proto%): port
+function count_to_port%(num: count, proto: transport_proto%): port
 	%{
-	return new PortVal(c, (TransportProto)(t->InternalInt()));
+	return new PortVal(num, (TransportProto)proto->AsEnum());
 	%}
 
 ## Converts a :bro:type:`string` to an :bro:type:`addr`.
@@ -2278,19 +2282,34 @@ function raw_bytes_to_v4_addr%(b: string%): addr
 	return new AddrVal(htonl(a));
 	%}
 
-## Creates a :bro:type:`port` from a given number and transport protocol.
+## Converts a :bro:type:`string` to an :bro:type:`port`.
 ##
-## num: The port number.
+## s: The :bro:type:`string` to convert.
 ##
-## proto: THe transport protocol of the port.
-##
-## Returns: A :bro:type:`port` with number *num* and transport protocol
-##          *proto*.
+## Returns: A :bro:type:`port` converted from *s*.
 ##
 ## .. bro:see:: to_addr to_count to_int
-function to_port%(num: count, proto: transport_proto%): port
-	%{
-	return new PortVal(num, (TransportProto)proto->AsEnum());
+function to_port%(s: string%): port
+    %{
+    int port = 0;
+    if ( s->Len() < 10 )
+        {
+        char* slash;
+        port = strtol(s->CheckString(), &slash, 10);
+        if ( port )
+            {
+            ++slash;
+            if ( streq(slash, "tcp") )
+                return new PortVal(port, TRANSPORT_TCP);
+            else if ( streq(slash, "udp") )
+                return new PortVal(port, TRANSPORT_UDP);
+            else if ( streq(slash, "icmp") )
+                return new PortVal(port, TRANSPORT_ICMP);
+            }
+        }
+
+    builtin_error("wrong port format, must be /[0-9]{1,5}\\/(tcp|udp|icmp)/");
+    return new PortVal(port, TRANSPORT_UNKNOWN);
 	%}
 
 ## Converts a reverse pointer name to an address. For example,
@@ -3728,7 +3747,7 @@ function x509_err2str%(err_num: count%): string
 ##
 ## Returns: A string representation of *mode* in the format
 ##          ``rw[xsS]rw[xsS]rw[xtT]``.
-function NFS3::mode2string%(mode: count%): string
+function file_mode%(mode: count%): string
 	%{
 	char str[12];
 	char *p = str;
@@ -3844,7 +3863,7 @@ function NFS3::mode2string%(mode: count%): string
 ##
 ## .. todo:: The return value should be changed to any.
 function expect_connection%(orig: addr, resp: addr, resp_p: port,
-				analyzer: count, tout: interval%) : bool
+				analyzer: count, tout: interval%) : any
 	%{
 	dpm->ExpectConnection(*orig->AsAddr(), *resp->AsAddr(), resp_p->Port(),
 				 resp_p->PortType(), (AnalyzerTag::Tag) analyzer, tout, 0);
@@ -5366,38 +5385,16 @@ function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
 	%}
 
 ## Deprecated. Will be removed.
-function active_connection%(id: conn_id%): bool
-	%{
-	Connection* c = sessions->FindConnection(id);
-	return new Val(c ? 1 : 0, TYPE_BOOL);
-	%}
-
-## Deprecated. Will be removed.
-function connection_record%(cid: conn_id%): connection
-	%{
-	Connection* c = sessions->FindConnection(cid);
-	if ( c )
-		return c->BuildConnVal();
-	else
-		{
-		// Hard to recover from this until we have union types ...
-		builtin_error("connection ID not a known connection (fatal)", cid);
-		exit(0);
-		return 0;
-		}
-	%}
-
-## Deprecated. Will be removed.
 function dump_config%(%) : bool
 	%{
 	return new Val(persistence_serializer->WriteConfig(true), TYPE_BOOL);
 	%}
 
 ## Deprecated. Will be removed.
-function make_connection_persistent%(c: connection%) : bool
+function make_connection_persistent%(c: connection%) : any
 	%{
 	c->MakePersistent();
-	return new Val(1, TYPE_BOOL);
+	return 0;
 	%}
 
 %%{

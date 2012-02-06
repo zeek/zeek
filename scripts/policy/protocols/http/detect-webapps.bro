@@ -27,7 +27,8 @@ event signature_match(state: signature_state, msg: string, data: string) &priori
 	if ( /^webapp-/ !in state$sig_id ) return;
 	
 	local c = state$conn;
-	local si = Software::parse(msg, c$id$resp_h, WEB_APPLICATION);
+	local si = Software::Info;
+	si = [$unparsed_version=msg, $host=c$id$resp_h, $host_p=c$id$resp_p, $software_type=WEB_APPLICATION];
 	si$url = build_url_http(c$http);
 	if ( c$id$resp_h in Software::tracked &&
 	     si$name in Software::tracked[c$id$resp_h] )
@@ -36,7 +37,8 @@ event signature_match(state: signature_state, msg: string, data: string) &priori
 		# use that as the new url for the software.
 		# PROBLEM: different version of the same software on the same server with a shared root path
 		local is_substring = 0;
-		if ( Software::tracked[c$id$resp_h][si$name]?$url )
+		if ( Software::tracked[c$id$resp_h][si$name]?$url &&
+		     |si$url| <= |Software::tracked[c$id$resp_h][si$name]$url| )
 			is_substring = strstr(Software::tracked[c$id$resp_h][si$name]$url, si$url);
 		
 		if ( is_substring == 1 )

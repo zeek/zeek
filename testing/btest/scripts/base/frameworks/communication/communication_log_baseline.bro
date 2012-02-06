@@ -15,7 +15,7 @@ redef Communication::nodes += {
     ["foo"] = [$host = 127.0.0.1, $events = /NOTHING/, $connect=T]
 };
 
-event remote_connection_established(p: event_peer)
+event remote_connection_handshake_done(p: event_peer)
 	{
 	terminate_communication();
 	terminate();
@@ -29,8 +29,9 @@ event remote_connection_established(p: event_peer)
 
 @load frameworks/communication/listen
 
-event remote_connection_closed(p: event_peer)
+event remote_connection_handshake_done(p: event_peer)
 	{
+	terminate_communication();
 	terminate();
 	}
 

@@ -57,7 +57,7 @@ contain signatures: By using the ``-s`` flag when you invoke Bro, or
 by extending the Bro variable :bro:id:`signature_files` using the ``+=``
 operator. If a signature file is given without a path, it is searched
 along the normal ``BROPATH``. The default extension of the file name
-is ``.sig``, and Bro appends that automatically when neccesary.
+is ``.sig``, and Bro appends that automatically when necessary.
 
 Signature language
 ==================
@@ -94,7 +94,7 @@ against. The following keywords are defined:
     given as IP addresses or CIDR masks.
 
 ``src-port``/``dst-port`` ``<int-list>``
-    Source and destination port, repectively.
+    Source and destination port, respectively.
 
 ``ip-proto tcp|udp|icmp``
     IP protocol.
@@ -126,8 +126,8 @@ CIDR notation for netmasks and is translated into a corresponding
 bitmask applied to the packet's value prior to the comparison (similar
 to the optional ``& integer``).
 
-Putting all together, this is an example condition that is
-equivalent to ``dst- ip == 1.2.3.4/16, 5.6.7.8/24``:
+Putting it all together, this is an example condition that is
+equivalent to ``dst-ip == 1.2.3.4/16, 5.6.7.8/24``:
 
 .. code:: bro-sig
 
@@ -143,7 +143,7 @@ Content conditions are defined by regular expressions. We
 differentiate two kinds of content conditions: first, the expression
 may be declared with the ``payload`` statement, in which case it is
 matched against the raw payload of a connection (for reassembled TCP
-streams) or of a each packet (for ICMP, UDP, and non-reassembled TCP).
+streams) or of each packet (for ICMP, UDP, and non-reassembled TCP).
 Second, it may be prefixed with an analyzer-specific label, in which
 case the expression is matched against the data as extracted by the
 corresponding analyzer.
@@ -208,7 +208,7 @@ To define dependencies between signatures, there are two conditions:
 
 ``requires-reverse-signature [!] <id>``
     Similar to ``requires-signature``, but ``id`` has to match for the
-    opposite direction of the same connection, compared the current
+    opposite direction of the same connection, compared to the current
     signature. This allows to model the notion of requests and
     replies.
 
@@ -338,7 +338,7 @@ Things to keep in mind when writing signatures
   signature engine and can be matched with ``\r`` and ``\n``,
   respectively. Generally, Bro follows `flex's regular expression
   syntax
-  <http://www.gnu.org/software/flex/manual/html_chapter/flex_7.html>`_.
+  <http://flex.sourceforge.net/manual/Patterns.html>`_.
   See the DPD signatures in ``base/frameworks/dpd/dpd.sig`` for some examples
   of fairly complex payload patterns.
 

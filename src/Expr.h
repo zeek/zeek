@@ -623,7 +623,7 @@ class AssignExpr : public BinaryExpr {
 public:
 	// If val is given, evaluating this expression will always yield the val
 	// yet still perform the assignment.  Used for triggers.
-	AssignExpr(Expr* op1, Expr* op2, int is_init, Val* val = 0);
+	AssignExpr(Expr* op1, Expr* op2, int is_init, Val* val = 0, attr_list* attrs = 0);
 	virtual ~AssignExpr()	{ Unref(val); }
 
 	Expr* Simplify(SimplifyType simp_type);
@@ -638,7 +638,7 @@ protected:
 	friend class Expr;
 	AssignExpr()	{ }
 
-	bool TypeCheck();
+	bool TypeCheck(attr_list* attrs = 0);
 	bool TypeCheckArithmetics(TypeTag bt1, TypeTag bt2);
 
 	DECLARE_SERIAL(AssignExpr);

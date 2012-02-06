@@ -1,0 +1,10 @@
+{
+[2] = two,
+[1] = one
+}
+global table default
+{
+[4] = four,
+[3] = three
+}
+local table default

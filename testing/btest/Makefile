@@ -2,12 +2,16 @@
 DIAG=diag.log
 BTEST=../../aux/btest/btest
 
-all:
+all: cleanup
     # Showing all tests.
-	@rm -f $(DIAG)
 	@$(BTEST) -f $(DIAG)
+	@../scripts/coverage-calc ".tmp/script-coverage*" coverage.log `pwd`/../../scripts
 
-brief:
+brief: cleanup
     # Brief output showing only failed tests.
-	@rm -f $(DIAG)
 	@$(BTEST) -b -f $(DIAG)
+	@../scripts/coverage-calc ".tmp/script-coverage*" coverage.log `pwd`/../../scripts
+
+cleanup:
+	@rm -f $(DIAG)
+	@rm -f .tmp/script-coverage*

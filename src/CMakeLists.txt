@@ -142,6 +142,7 @@ endmacro(GET_BIF_OUTPUT_FILES)
 set(BIF_SRCS
     bro.bif
     logging.bif
+    input.bif
     event.bif
     const.bif
     types.bif
@@ -418,6 +419,12 @@ set(bro_SRCS
     logging/WriterFrontend.cc
     logging/writers/Ascii.cc
     logging/writers/None.cc
+
+    input/Manager.cc
+    input/ReaderBackend.cc
+    input/ReaderFrontend.cc
+    input/readers/Ascii.cc
+
 
     ${dns_SRCS}
     ${openssl_SRCS}

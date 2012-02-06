@@ -24,6 +24,7 @@ Frameworks
 
    notice
    logging
+   input
    cluster
    signatures
 

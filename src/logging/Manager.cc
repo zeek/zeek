@@ -850,7 +850,8 @@ threading::Value* Manager::ValToLogVal(Val* val, BroType* ty)
 		break;
 
 	case TYPE_PORT:
-		lval->val.uint_val = val->AsPortVal()->Port();
+		lval->val.port_val.port = val->AsPortVal()->Port();
+		lval->val.port_val.proto = val->AsPortVal()->PortType();
 		break;
 
 	case TYPE_SUBNET:

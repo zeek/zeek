@@ -315,6 +315,7 @@ when	return TOK_WHEN;
 &optional	return TOK_ATTR_OPTIONAL;
 &persistent	return TOK_ATTR_PERSISTENT;
 &priority	return TOK_ATTR_PRIORITY;
+&type_column	return TOK_ATTR_TYPE_COLUMN;
 &read_expire	return TOK_ATTR_EXPIRE_READ;
 &redef		return TOK_ATTR_REDEF;
 &rotate_interval	return TOK_ATTR_ROTATE_INTERVAL;

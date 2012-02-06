@@ -841,6 +841,9 @@ public:
 			timer = 0;
 		}
 
+	HashKey* ComputeHash(const Val* index) const
+		{ return table_hash->ComputeHash(index, 1); }
+
 protected:
 	friend class Val;
 	friend class StateAccess;
@@ -851,8 +854,6 @@ protected:
 	void CheckExpireAttr(attr_tag at);
 	int ExpandCompoundAndInit(val_list* vl, int k, Val* new_val);
 	int CheckAndAssign(Val* index, Val* new_val, Opcode op = OP_ASSIGN);
-	HashKey* ComputeHash(const Val* index) const
-		{ return table_hash->ComputeHash(index, 1); }
 
 	bool AddProperties(Properties arg_state);
 	bool RemoveProperties(Properties arg_state);

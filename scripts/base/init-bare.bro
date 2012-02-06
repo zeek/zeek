@@ -2337,3 +2337,6 @@ const snaplen = 8192 &redef;
 # Load the logging framework here because it uses fairly deep integration with 
 # BiFs and script-land defined types.
 @load base/frameworks/logging
+
+@load base/frameworks/input
+

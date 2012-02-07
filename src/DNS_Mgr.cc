@@ -1072,9 +1072,6 @@ void DNS_Mgr::Flush()
 	{
 	DoProcess(false);
 
-	IterCookie* cookie = addr_mappings.InitForIteration();
-	DNS_Mapping* dm;
-
 	host_mappings.Clear();
 	addr_mappings.Clear();
 	}

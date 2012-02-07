@@ -680,7 +680,7 @@ Val* Manager::ValueToIndexVal(int num_fields, const RecordType *type, const Valu
 }
 
 
-void Manager::SendEntry(const ReaderFrontend* reader, int id, const Value* const *vals) {
+void Manager::SendEntry(const ReaderFrontend* reader, const int id, const Value* const *vals) {
 	ReaderInfo *i = FindReader(reader);
 	if ( i == 0 ) {
 		reporter->InternalError("Unknown reader");
@@ -703,7 +703,7 @@ void Manager::SendEntry(const ReaderFrontend* reader, int id, const Value* const
 
 }
 
-void Manager::SendEntryTable(const ReaderFrontend* reader, int id, const Value* const *vals) {
+void Manager::SendEntryTable(const ReaderFrontend* reader, const int id, const Value* const *vals) {
 	ReaderInfo *i = FindReader(reader);
 
 	bool updated = false;

@@ -14,7 +14,7 @@
 namespace input {
 
 class ReaderFrontend;
-class ReaderBackend;
+class ReaderBackend; 
 
 class Manager {
 public:
@@ -32,6 +32,13 @@ public:
 	
 protected:
 	friend class ReaderFrontend;
+	friend class ErrorMessage;
+	friend class PutMessage;
+	friend class DeleteMessage;
+	friend class ClearMessage;
+	friend class SendEventMessage;
+	friend class SendEntryMessage;
+	friend class EndCurrentSendMessage;
 
 	// Reports an error for the given reader.
 	void Error(ReaderFrontend* reader, const char* msg);
@@ -42,10 +49,13 @@ protected:
 	bool Delete(const ReaderFrontend* reader, int id, const threading::Value* const *vals);
 
 	// for readers to write to input stream in indirect mode (manager is monitoring new/deleted values)
-	void SendEntry(const ReaderFrontend* reader, int id, const threading::Value* const *vals);
-	void EndCurrentSend(const ReaderFrontend* reader, int id);
+	void SendEntry(const ReaderFrontend* reader, const int id, const threading::Value* const *vals);
+	void EndCurrentSend(const ReaderFrontend* reader, const int id);
+	
+	bool SendEvent(const string& name, const int num_vals, const threading::Value* const *vals);
 
 	ReaderBackend* CreateBackend(ReaderFrontend* frontend, bro_int_t type);	
+	
 	
 private:
 	struct ReaderInfo;
@@ -60,7 +70,6 @@ private:
 
 	void SendEvent(EventHandlerPtr ev, const int numvals, ...);	
 	void SendEvent(EventHandlerPtr ev, list<Val*> events);	
-	bool SendEvent(const string& name, const int num_vals, const threading::Value* const *vals);
 
 	HashKey* HashValues(const int num_elements, const threading::Value* const *vals);
 	int GetValueLength(const threading::Value* val);

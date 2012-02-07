@@ -42,7 +42,7 @@ protected:
 	
 	// Reports an error to the user.
 	void Error(const string &msg);
-	void Error(const char *msg);
+	//void Error(const char *msg);
 	
 	// The following methods return the information as passed to Init().
 	const string Source() const	{ return source; }
@@ -50,7 +50,7 @@ protected:
 	// A thread-safe version of fmt(). (stolen from logwriter)
 	const char* Fmt(const char* format, ...);
 
-	bool SendEvent(const string& name, const int num_vals, const threading::Value* const *vals);
+	void SendEvent(const string& name, const int num_vals, const threading::Value* const *vals);
 
 	// Content-sendinf-functions (simple mode). Including table-specific stuff that simply is not used if we have no table
 	void Put(int id, const threading::Value* const *val);

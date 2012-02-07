@@ -3,13 +3,12 @@
 #ifndef INPUT_READERFRONTEND_H
 #define INPUT_READERFRONTEND_H
 
-#include "Manager.h"
+#include "../threading/MsgThread.h"
+#include "../threading/SerializationTypes.h"
 
-#include "threading/MsgThread.h"
+namespace input {
 
-namespace input  {
-
-class ReaderBackend;
+class Manager;
 
 class ReaderFrontend {
 public:
@@ -21,7 +20,7 @@ public:
 
 	void Update();
 
-	void AddFilter( int id, int arg_num_fields, const threading::Field* const* fields );
+	void AddFilter( const int id, const int arg_num_fields, const threading::Field* const* fields );
 
 	void Finish();
 
@@ -32,17 +31,19 @@ public:
 	 * This method is safe to call from any thread.
 	 */
 	string Name() const;
-	
 
 protected:
 	friend class Manager;
 
-	const string Source() const	{ return source; }	
+	const string Source() const	{ return source; };	
 
 	string ty_name;	// Name of the backend type. Set by the manager.
 
 private:
+	ReaderBackend* backend;	// The backend we have instanatiated.	
 	string source;
+	bool disabled;		// True if disabled.
+	bool initialized;	// True if initialized.	
 
 };
 

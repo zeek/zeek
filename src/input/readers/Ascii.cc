@@ -1,10 +1,16 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "InputReaderAscii.h"
-#include "DebugLogger.h"
+#include "Ascii.h"
 #include "NetVar.h"
 
+#include <fstream>
 #include <sstream>
+
+#include "../../threading/SerializationTypes.h"
+
+using namespace input::reader;
+using threading::Value;
+using threading::Field;
 
 FieldMapping::FieldMapping(const string& arg_name, const TypeTag& arg_type, int arg_position) 
 	: name(arg_name), type(arg_type)
@@ -31,7 +37,7 @@ FieldMapping FieldMapping::subType() {
 	return FieldMapping(name, subtype, position);
 }
 
-InputReaderAscii::InputReaderAscii()
+Ascii::Ascii(ReaderFrontend *frontend) : ReaderBackend(frontend)
 {
 	file = 0;
 
@@ -53,13 +59,13 @@ InputReaderAscii::InputReaderAscii()
 	
 }
 
-InputReaderAscii::~InputReaderAscii()
+Ascii::~Ascii()
 {
 	DoFinish();
 
 }
 
-void InputReaderAscii::DoFinish()
+void Ascii::DoFinish()
 {
 	filters.empty();
 	if ( file != 0 ) {
@@ -69,7 +75,7 @@ void InputReaderAscii::DoFinish()
 	}
 }
 
-bool InputReaderAscii::DoInit(string path)
+bool Ascii::DoInit(string path)
 {
 	fname = path;
 	
@@ -82,7 +88,7 @@ bool InputReaderAscii::DoInit(string path)
 	return true;
 }
 
-bool InputReaderAscii::DoAddFilter( int id, int arg_num_fields, const LogField* const* fields ) {
+bool Ascii::DoAddFilter( int id, int arg_num_fields, const Field* const* fields ) {
 	if ( HasFilter(id) ) {
 		return false; // no, we don't want to add this a second time
 	}
@@ -96,7 +102,7 @@ bool InputReaderAscii::DoAddFilter( int id, int arg_num_fields, const LogField* 
 	return true;
 }
 
-bool InputReaderAscii::DoRemoveFilter ( int id ) {
+bool Ascii::DoRemoveFilter ( int id ) {
 	if (!HasFilter(id) ) {
 		return false;
 	}
@@ -107,7 +113,7 @@ bool InputReaderAscii::DoRemoveFilter ( int id ) {
 }	
 
 
-bool InputReaderAscii::HasFilter(int id) {
+bool Ascii::HasFilter(int id) {
 	map<int, Filter>::iterator it = filters.find(id);	
 	if ( it == filters.end() ) {
 		return false;
@@ -116,7 +122,7 @@ bool InputReaderAscii::HasFilter(int id) {
 }
 
 
-bool InputReaderAscii::ReadHeader() {	 
+bool Ascii::ReadHeader() {	 
 	// try to read the header line...
 	string line;
 	if ( !GetLine(line) ) {
@@ -142,7 +148,7 @@ bool InputReaderAscii::ReadHeader() {
 	for ( map<int, Filter>::iterator it = filters.begin(); it != filters.end(); it++ ) {
 			
 		for ( unsigned int i = 0; i < (*it).second.num_fields; i++ ) {
-			const LogField* field = (*it).second.fields[i];
+			const Field* field = (*it).second.fields[i];
 			
 			map<string, uint32_t>::iterator fit = fields.find(field->name);	
 			if ( fit == fields.end() ) {
@@ -169,7 +175,7 @@ bool InputReaderAscii::ReadHeader() {
 	return true;
 }
 
-bool InputReaderAscii::GetLine(string& str) {
+bool Ascii::GetLine(string& str) {
 	while ( getline(*file, str) ) {
 		if ( str[0] != '#' ) {
 			return true;
@@ -184,7 +190,7 @@ bool InputReaderAscii::GetLine(string& str) {
 	return false;
 }
 
-TransportProto InputReaderAscii::StringToProto(const string &proto) {
+TransportProto Ascii::StringToProto(const string &proto) {
 	if ( proto == "unknown" ) {
 		return TRANSPORT_UNKNOWN;
 	} else if ( proto == "tcp" ) {
@@ -202,12 +208,12 @@ TransportProto InputReaderAscii::StringToProto(const string &proto) {
 	return TRANSPORT_UNKNOWN;
 }
 
-LogVal* InputReaderAscii::EntryToVal(string s, FieldMapping field) {
+Value* Ascii::EntryToVal(string s, FieldMapping field) {
 
-	LogVal* val = new LogVal(field.type, true);
+	Value* val = new Value(field.type, true);
 
 	if ( s.compare(unset_field) == 0 ) { // field is not set...
-		return new LogVal(field.type, false);
+		return new Value(field.type, false);
 	}
 
 	switch ( field.type ) {
@@ -306,7 +312,7 @@ LogVal* InputReaderAscii::EntryToVal(string s, FieldMapping field) {
 		if ( s.compare(empty_field) == 0 ) 
 			length = 0;
 
-		LogVal** lvals = new LogVal* [length];
+		Value** lvals = new Value* [length];
 
 		if ( field.type == TYPE_TABLE ) {
 			val->val.set_val.vals = lvals;
@@ -333,7 +339,7 @@ LogVal* InputReaderAscii::EntryToVal(string s, FieldMapping field) {
 				break;
 			}
 
-			LogVal* newval = EntryToVal(element, field.subType());
+			Value* newval = EntryToVal(element, field.subType());
 			if ( newval == 0 ) {
 				Error("Error while reading set");
 				return 0;
@@ -365,7 +371,7 @@ LogVal* InputReaderAscii::EntryToVal(string s, FieldMapping field) {
 }
 
 // read the entire file and send appropriate thingies back to InputMgr
-bool InputReaderAscii::DoUpdate() {
+bool Ascii::DoUpdate() {
 	 
 	// dirty, fix me. (well, apparently after trying seeking, etc - this is not that bad)
 	if ( file && file->is_open() ) {
@@ -405,7 +411,7 @@ bool InputReaderAscii::DoUpdate() {
 
 		for ( map<int, Filter>::iterator it = filters.begin(); it != filters.end(); it++ ) {
 		
-			LogVal** fields = new LogVal*[(*it).second.num_fields];
+			Value** fields = new Value*[(*it).second.num_fields];
 
 			int fpos = 0;
 			for ( vector<FieldMapping>::iterator fit = (*it).second.columnMap.begin();
@@ -417,7 +423,7 @@ bool InputReaderAscii::DoUpdate() {
 					return false;
 				}
 
-				LogVal* val = EntryToVal(stringfields[(*fit).position], *fit);
+				Value* val = EntryToVal(stringfields[(*fit).position], *fit);
 				if ( val == 0 ) {
 					return false;
 				}

@@ -2322,20 +2322,58 @@ function to_port%(s: string%): port
 ## .. bro:see:: addr_to_ptr_name parse_dotted_addr
 function ptr_name_to_addr%(s: string%): addr
 	%{
-	int a[4];
-	uint32 addr;
-
-	if ( sscanf(s->CheckString(),
-			"%d.%d.%d.%d.in-addr.arpa",
-			a, a+1, a+2, a+3) != 4 )
+	if ( s->Len() != 72 )
 		{
-		builtin_error("bad PTR name", @ARG@[0]);
-		addr = 0;
+		int a[4];
+		uint32 addr;
+		char ss[13]; // this will contain "in-addr.arpa"
+
+		if ( sscanf(s->CheckString(),
+			"%d.%d.%d.%d.%12s",
+			a, a+1, a+2, a+3, ss) != 5
+			|| strcmp(ss, "in-addr.arpa") != 0 )
+			{
+			builtin_error("bad PTR name", @ARG@[0]);
+			addr = 0;
+			}
+		else
+			addr = (a[3] << 24) | (a[2] << 16) | (a[1] << 8) | a[0];
+
+		return new AddrVal(htonl(addr));
 		}
 	else
-		addr = (a[3] << 24) | (a[2] << 16) | (a[1] << 8) | a[0];
+		{
+		uint32 addr6[4];
+		uint32 b[32];
+		char ss[9]; // this will contain "ip6.arpa"
+		if ( sscanf(s->CheckString(),
+			"%1x.%1x.%1x.%1x.%1x.%1x.%1x.%1x."
+			"%1x.%1x.%1x.%1x.%1x.%1x.%1x.%1x."
+			"%1x.%1x.%1x.%1x.%1x.%1x.%1x.%1x."
+			"%1x.%1x.%1x.%1x.%1x.%1x.%1x.%1x.%8s",
+			b+31, b+30, b+29, b+28, b+27, b+26, b+25, b+24,
+			b+23, b+22, b+21, b+20, b+19, b+18, b+17, b+16,
+			b+15, b+14, b+13, b+12, b+11, b+10, b+9, b+8,
+			b+7, b+6, b+5, b+4, b+3, b+2, b+1, b, ss) != 33
+			|| strcmp(ss, "ip6.arpa") != 0 )
+			{
+			builtin_error("bad PTR name", @ARG@[0]);
+			memset(addr6, 0, sizeof addr6);
+			}
+		else
+			{
+			for ( unsigned int i = 0; i < 4; ++i )
+				{
+				uint32 a = 0;
+				for ( unsigned int j = 1; j <= 8; ++j )
+					a |= b[8*i+j-1] << (32-j*4);
 
-	return new AddrVal(htonl(addr));
+				addr6[i] = htonl(a);
+				}
+			}
+
+		return new AddrVal(addr6);
+		}
 	%}
 
 ## Converts an IP address to a reverse pointer name. For example,

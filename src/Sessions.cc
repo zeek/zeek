@@ -282,10 +282,15 @@ void NetSessions::NextPacket(double t, const struct pcap_pkthdr* hdr,
 		else if ( arp_analyzer && arp_analyzer->IsARP(pkt, hdr_size) )
 			arp_analyzer->NextPacket(t, hdr, pkt, hdr_size);
 
-		else
+		else if ( ip->ip_v == 6 )
 			{
 			IP_Hdr ip_hdr((const struct ip6_hdr*) (pkt + hdr_size));
 			DoNextPacket(t, hdr, &ip_hdr, pkt, hdr_size);
+			}
+		else
+			{
+			Weird("unknown_packet_type", hdr, pkt);
+			return;
 			}
 		}
 

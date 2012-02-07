@@ -142,12 +142,12 @@ WriterBackend* Manager::CreateBackend(WriterFrontend* frontend, bro_int_t type)
 			return 0;
 			}
 
-		if ( ld->type == type )
-			break;
-
-		if ( ! ld->factory )
-			// Oops, we can't instantiate this guy.
-			return 0;
+		if ( ld->type != type ) 
+			{
+			// no, didn't find the right one...
+			++ld;
+			continue;
+			}
 
 		// If the writer has an init function, call it.
 		if ( ld->init )
@@ -157,17 +157,24 @@ WriterBackend* Manager::CreateBackend(WriterFrontend* frontend, bro_int_t type)
 				// call it again later.
 				ld->init = 0;
 			else
+				{
 				// Init failed, disable by deleting factory
 				// function.
 				ld->factory = 0;
 
-			DBG_LOG(DBG_LOGGING, "failed to init writer class %s",
-				ld->name);
+				DBG_LOG(DBG_LOGGING, "failed to init writer class %s",
+					ld->name);
 
-			return false;
+				return false;
+				}
 			}
 
-		++ld;
+		if ( ! ld->factory )
+			// Oops, we can't instantiate this guy.
+			return 0;
+
+		// all done. break.
+		break;
 		}
 
 	assert(ld->factory);

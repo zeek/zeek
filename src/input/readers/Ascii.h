@@ -1,12 +1,14 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef INPUTREADERASCII_H
-#define INPUTREADERASCII_H
+#ifndef INPUT_READERS_ASCII_H
+#define INPUT_READERS_ASCII_H
 
-#include "InputReader.h"
-#include <fstream>
 #include <iostream>
 #include <vector>
+
+#include "../ReaderBackend.h"
+
+namespace input { namespace reader {
 
 // Description for input field mapping
 struct FieldMapping {
@@ -28,18 +30,18 @@ struct FieldMapping {
 };
 
 
-class InputReaderAscii : public InputReader {
+class Ascii : public ReaderBackend {
 public:
-    InputReaderAscii();
-    ~InputReaderAscii();
+    Ascii(ReaderFrontend* frontend);
+    ~Ascii();
     
-    static InputReader* Instantiate() { return new InputReaderAscii; }
+    static ReaderBackend* Instantiate(ReaderFrontend* frontend) { return new Ascii(frontend); }
     
 protected:
 	
 	virtual bool DoInit(string path);
 
-	virtual bool DoAddFilter( int id, int arg_num_fields, const LogField* const* fields );
+	virtual bool DoAddFilter( int id, int arg_num_fields, const threading::Field* const* fields );
 
 	virtual bool DoRemoveFilter ( int id );	
 
@@ -52,7 +54,7 @@ private:
 	struct Filter {
 		unsigned int num_fields;
 
-		const LogField* const * fields; // raw mapping		
+		const threading::Field* const * fields; // raw mapping		
 
 		// map columns in the file to columns to send back to the manager
 		vector<FieldMapping> columnMap;		
@@ -64,7 +66,7 @@ private:
 	TransportProto StringToProto(const string &proto);		
 
 	bool ReadHeader();
-	LogVal* EntryToVal(string s, FieldMapping type);
+	threading::Value* EntryToVal(string s, FieldMapping type);
 
 	bool GetLine(string& str);
 	
@@ -85,4 +87,7 @@ private:
 };
 
 
-#endif /* INPUTREADERASCII_H */
+}
+}
+
+#endif /* INPUT_READERS_ASCII_H */

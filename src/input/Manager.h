@@ -14,6 +14,7 @@
 namespace input {
 
 class ReaderFrontend;
+class ReaderBackend;
 
 class Manager {
 public:
@@ -30,7 +31,8 @@ public:
 	bool RemoveEventFilter(EnumVal* id, const string &name);
 	
 protected:
-	
+	friend class ReaderFrontend;
+
 	// Reports an error for the given reader.
 	void Error(ReaderFrontend* reader, const char* msg);
 
@@ -42,6 +44,8 @@ protected:
 	// for readers to write to input stream in indirect mode (manager is monitoring new/deleted values)
 	void SendEntry(const ReaderFrontend* reader, int id, const threading::Value* const *vals);
 	void EndCurrentSend(const ReaderFrontend* reader, int id);
+
+	ReaderBackend* CreateBackend(ReaderFrontend* frontend, bro_int_t type);	
 	
 private:
 	struct ReaderInfo;

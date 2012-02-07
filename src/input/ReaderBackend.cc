@@ -1,13 +1,44 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "InputReader.h"
+#include "ReaderBackend.h"
+#include "ReaderFrontend.h"
 
 using threading::Value;
 using threading::Field;
 
-namespace logging {
+namespace input {
 
-InputReader::InputReader(ReaderFrontend *arg_frontend) :MsgThread()
+class ErrorMessage : public threading::OutputMessage<ReaderFrontend> {
+public:
+	ErrorMessage(ReaderFrontend* reader, string message)
+		: threading::OutputMessage<ReaderFrontend>("Error", reader),
+		message(message) {}
+
+	virtual bool Process() {
+		input_mgr->Error(object, message.c_str());
+		return true;
+	}
+
+private:
+	string message;
+}
+
+class PutMessage : public threading::OutputMessage<ReaderFrontend> {
+public:
+	PutMessage(ReaderFrontend* reader, int id, const Value* const *val)
+		: threading::OutputMessage<ReaderFrontend>("Error", reader),
+		id(id), val(val) {}
+
+	virtual bool Process() {
+		return input_mgr->Put(object, id, val);
+	}
+
+private:
+	int id;
+	Value* val;
+}
+
+ReaderBackend::ReaderBackend(ReaderFrontend* arg_frontend) : MsgThread()
 {
 	buf = 0;
 	buf_len = 1024;
@@ -18,38 +49,47 @@ InputReader::InputReader(ReaderFrontend *arg_frontend) :MsgThread()
 	SetName(frontend->Name());
 }
 
-InputReader::~InputReader() 
+ReaderBackend::~ReaderBackend() 
 {
 	
 }
 
-void InputReader::Error(const char *msg)
+void ReaderBackend::Error(const string &msg)
 {
-	input_mgr->Error(this, msg);
+	SendOut(new ErrorMessage(frontend, msg);
 }
 
-void InputReader::Error(const string &msg)
+void ReaderBackend::Put(int id, const Value* const *val) 
 {
-	input_mgr->Error(this, msg.c_str());
+	SendOut(new PutMessage(frontend, id, val);
 }
 
-void InputReader::Put(int id, const LogVal* const *val) 
+void ReaderBackend::Delete(int id, const Value* const *val) 
 {
-	input_mgr->Put(this, id, val);
+	SendOut(new DeleteMessage(frontend, id, val);
 }
 
-void InputReader::Clear(int id) 
+void ReaderBackend::Clear(int id) 
 {
-	input_mgr->Clear(this, id);
+	SendOut(new ClearMessage(frontend, id);
 }
 
-void InputReader::Delete(int id, const LogVal* const *val) 
+bool ReaderBackend::SendEvent(const string& name, const int num_vals, const Value* const *vals) 
 {
-	input_mgr->Delete(this, id, val);
+	SendOut(new SendEventMessage(frontend, name, num_vals, vals);
+} 
+
+void ReaderBackend::EndCurrentSend(int id) 
+{
+	SendOut(new EndCurrentSendMessage(frontent, id);
 }
 
+void ReaderBackend::SendEntry(int id, const Value* const *vals)
+{
+	SendOut(new SendEntryMessage(frontend, id, vals);
+}
 
-bool InputReader::Init(string arg_source) 
+bool ReaderBackend::Init(string arg_source) 
 {
 	source = arg_source;
 
@@ -58,35 +98,31 @@ bool InputReader::Init(string arg_source)
 	return !disabled;
 }
 
-bool InputReader::AddFilter(int id, int arg_num_fields,
-					   const LogField* const * arg_fields) 
+bool ReaderBackend::AddFilter(int id, int arg_num_fields,
+					   const Field* const * arg_fields) 
 {
 	return DoAddFilter(id, arg_num_fields, arg_fields);
 }
 
-bool InputReader::RemoveFilter(int id) 
+bool ReaderBackend::RemoveFilter(int id) 
 {
 	return DoRemoveFilter(id);
 }
 
-void InputReader::Finish() 
+void ReaderBackend::Finish() 
 {
 	DoFinish();
 	disabled = true;
 }
 
-bool InputReader::Update() 
+bool ReaderBackend::Update() 
 {
 	return DoUpdate();
 }
 
-bool InputReader::SendEvent(const string& name, const int num_vals, const LogVal* const *vals) 
-{
-	return input_mgr->SendEvent(name, num_vals, vals);
-} 
 
 // stolen from logwriter
-const char* InputReader::Fmt(const char* format, ...)
+const char* ReaderBackend::Fmt(const char* format, ...)
 	{
 	if ( ! buf )
 		buf = (char*) malloc(buf_len);
@@ -111,14 +147,5 @@ const char* InputReader::Fmt(const char* format, ...)
 	}
 
 
-void InputReader::SendEntry(int id, const LogVal* const *vals)
-{
-	input_mgr->SendEntry(this, id, vals);
-}
-
-void InputReader::EndCurrentSend(int id) 
-{
-	input_mgr->EndCurrentSend(this, id);
-}
 
 }

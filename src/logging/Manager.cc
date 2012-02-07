@@ -14,7 +14,7 @@
 #include "writers/Ascii.h"
 #include "writers/None.h"
 
-#include "threading/SerializationTypes.h"
+#include "../threading/SerializationTypes.h"
 
 using namespace logging;
 using threading::Value;

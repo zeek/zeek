@@ -13,6 +13,8 @@ namespace threading {
  */
 struct Field {
 	string name;	//! Name of the field.
+	// needed by input framework. port fields have two names (one for the port, one for the type) - this specifies the secondary name.
+	string secondary_name;	
 	TypeTag type;	//! Type of the field.
 	TypeTag subtype;	//! Inner type for sets.
 

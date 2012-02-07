@@ -1,26 +1,25 @@
 // See the file "COPYING" in the main distribution directory for copyright.
-// 
-// Same notes about thread safety as in LogWriter.h apply.
-
 
 #ifndef INPUT_READERBACKEND_H
 #define INPUT_READERBACKEND_H
 
-#include "InputMgr.h"
 #include "BroString.h"
-#include "LogMgr.h"
+#include "../threading/SerializationTypes.h"
+#include "threading/MsgThread.h"
 
 namespace input {
 
+class ReaderFrontend;
+
 class ReaderBackend : public threading::MsgThread {
 public:
-	ReaderBackend(ReaderFrontend *frontend);
+	ReaderBackend(ReaderFrontend* frontend);
     	
 	virtual ~ReaderBackend();
 	
 	bool Init(string arg_source);
 
-	bool AddFilter( int id, int arg_num_fields, const LogField* const* fields );
+	bool AddFilter( int id, int arg_num_fields, const threading::Field* const* fields );
 
 	bool RemoveFilter ( int id );
     
@@ -32,7 +31,7 @@ protected:
     // Methods that have to be overwritten by the individual readers
 	virtual bool DoInit(string arg_sources) = 0;
 
-	virtual bool DoAddFilter( int id, int arg_num_fields, const LogField* const* fields ) = 0;
+	virtual bool DoAddFilter( int id, int arg_num_fields, const threading::Field* const* fields ) = 0;
 
 	virtual bool DoRemoveFilter( int id ) = 0;
 
@@ -51,15 +50,15 @@ protected:
 	// A thread-safe version of fmt(). (stolen from logwriter)
 	const char* Fmt(const char* format, ...);
 
-	bool SendEvent(const string& name, const int num_vals, const LogVal* const *vals);
+	bool SendEvent(const string& name, const int num_vals, const threading::Value* const *vals);
 
 	// Content-sendinf-functions (simple mode). Including table-specific stuff that simply is not used if we have no table
-	void Put(int id, const LogVal* const *val);
-	void Delete(int id, const LogVal* const *val);
+	void Put(int id, const threading::Value* const *val);
+	void Delete(int id, const threading::Value* const *val);
 	void Clear(int id);
 
 	// Table-functions (tracking mode): Only changed lines are propagated.
-	void SendEntry(int id, const LogVal* const *vals);
+	void SendEntry(int id, const threading::Value* const *vals);
 	void EndCurrentSend(int id);
 	
 

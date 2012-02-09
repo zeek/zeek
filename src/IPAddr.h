@@ -3,6 +3,7 @@
 #define IPADDR_H
 
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <string>
 
 #include "BroString.h"
@@ -21,29 +22,42 @@ public:
 	enum ByteOrder { Host, Network };
 
 	/// Constructs the unspecified IPv6 address (all 128 bits zeroed).
-	IPAddr();
+	IPAddr()
+		{
+		memset(in6.s6_addr, 0, sizeof(in6.s6_addr));
+		}
 
 	/// Constructs an address instance from an IPv4 address.
 	///
 	/// @param in6 The IPv6 address.
-	IPAddr(const in4_addr& in4);
+	IPAddr(const in4_addr& in4)
+		{
+		memcpy(in6.s6_addr, v4_mapped_prefix, sizeof(v4_mapped_prefix));
+		memcpy(&in6.s6_addr[12], &in4.s_addr, sizeof(in4.s_addr));
+		}
 
 	/// Constructs an address instance from an IPv6 address.
 	///
 	/// @param in6 The IPv6 address.
-	IPAddr(const in6_addr& in6);
+	IPAddr(const in6_addr& arg_in6) : in6(arg_in6) { }
 
 	/// Constructs an address instance from a string representation.
 	///
 	/// @param s String containing an IP address as either a dotted IPv4
 	/// address or a hex IPv6 address.
-	IPAddr(const std::string& s);
+	IPAddr(const std::string& s)
+		{
+		Init(s);
+		}
 
 	/// Constructs an address instance from a string representation.
 	///
 	/// @param s String containing an IP address as either a dotted IPv4
 	/// address or a hex IPv6 address.
-	IPAddr(const BroString& s);
+	IPAddr(const BroString& s)
+		{
+		Init(s.CheckString());
+		}
 
 	/// Constructs an address instance from a raw byte representation.
 	///
@@ -55,25 +69,81 @@ public:
 	///
 	/// @param order Indicates whether the raw representation pointed to
 	/// by \a bytes is stored in network or host order.
-	IPAddr(Family family, const uint32_t* bytes, ByteOrder order);
+	IPAddr(Family family, const uint32_t* bytes, ByteOrder order)
+		{
+		if ( family == IPv4 )
+			{
+			memcpy(in6.s6_addr, v4_mapped_prefix, sizeof(v4_mapped_prefix));
+			memcpy(&in6.s6_addr[12], bytes, sizeof(uint32_t));
+			if ( order == Host )
+				{
+				uint32_t* p = (uint32_t*) &in6.s6_addr[12];
+				*p = htonl(*p);
+				}
+			}
+		else
+			{
+			memcpy(in6.s6_addr, bytes, sizeof(in6.s6_addr));
+			if ( order == Host )
+				{
+				for ( unsigned int i = 0; i < 4; ++ i)
+					{
+					uint32_t* p = (uint32_t*) &in6.s6_addr[i*4];
+					*p = htonl(*p);
+					}
+				}
+			}
+		}
 
 	/// Copy constructor.
-	IPAddr(const IPAddr& other);
+	IPAddr(const IPAddr& other) : in6(other.in6) { };
 
 	/// Destructor.
-	~IPAddr();
+	~IPAddr() { };
 
 	/// Returns the address' family.
-	Family family() const;
+	Family family() const
+		{
+		if ( memcmp(in6.s6_addr, v4_mapped_prefix, 12) == 0 )
+			return IPv4;
+		else
+			return IPv6;
+		}
 
 	/// Returns true if the address represents a loopback device.
-	bool IsLoopback() const;
+	bool IsLoopback() const
+		{
+		if ( family() == IPv4 )
+			return in6.s6_addr[12] == 127;
+		else
+			return ((in6.s6_addr[0] == 0) && (in6.s6_addr[1] == 0)
+				 && (in6.s6_addr[2] == 0) && (in6.s6_addr[3] == 0)
+				 && (in6.s6_addr[4] == 0) && (in6.s6_addr[5] == 0)
+				 && (in6.s6_addr[6] == 0) && (in6.s6_addr[7] == 0)
+				 && (in6.s6_addr[8] == 0) && (in6.s6_addr[9] == 0)
+				 && (in6.s6_addr[10] == 0) && (in6.s6_addr[11] == 0)
+				 && (in6.s6_addr[12] == 0) && (in6.s6_addr[13] == 0)
+				 && (in6.s6_addr[14] == 0) && (in6.s6_addr[15] == 1));
+		}
 
 	/// Returns true if the address represents a multicast address.
-	bool IsMulticast() const;
+	bool IsMulticast() const
+		{
+		if ( family() == IPv4 )
+			return in6.s6_addr[12] == 224;
+		else
+			return in6.s6_addr[0] == 0xff;
+		}
 
 	/// Returns true if the address represents a broadcast address.
-	bool IsBroadcast() const;
+	bool IsBroadcast() const
+		{
+		if ( family() == IPv4 )
+			return ((in6.s6_addr[12] == 0xff) && (in6.s6_addr[13] == 0xff)
+				 && (in6.s6_addr[14] == 0xff) && (in6.s6_addr[15] == 0xff));
+		else
+			return false;
+		}
 
 	/// Retrieves the raw byte representation of the address.
 	///
@@ -85,8 +155,33 @@ public:
 	///
 	/// @return The number of 32-bit words the raw representation uses. This
 	/// will be 1 for an IPv4 address and 4 for an IPv6 address.
-	int GetBytes(uint32_t** bytes);
-	int GetBytes(const uint32_t** bytes) const;
+	int GetBytes(uint32_t** bytes)
+		{
+		if ( family() == IPv4 )
+			{
+			*bytes = (uint32_t*) &in6.s6_addr[12];
+			return 1;
+			}
+		else
+			{
+			*bytes = (uint32_t*) in6.s6_addr;
+			return 4;
+			}
+		}
+
+	int GetBytes(const uint32_t** bytes) const
+		{
+		if ( family() == IPv4 )
+			{
+			*bytes = (uint32_t*) &in6.s6_addr[12];
+			return 1;
+			}
+		else
+			{
+			*bytes = (uint32_t*) in6.s6_addr;
+			return 4;
+			}
+		}
 
 	/// Retrieves a copy of the IPv6 raw byte representation of the address.
 	/// If the internal address is IPv4, then the copied bytes use the
@@ -94,7 +189,10 @@ public:
 	///
 	/// @param bytes The pointer to a memory location in which the
 	/// raw bytes of the address are to be copied in network byte-order.
-	void CopyIPv6(uint32_t* bytes) const;
+	void CopyIPv6(uint32_t* bytes) const
+		{
+		memcpy(bytes, in6.s6_addr, sizeof(in6.s6_addr));
+		}
 
 	/// Masks out lower bits of the address.
 	///
@@ -116,21 +214,55 @@ public:
 	void ReverseMask(int top_bits_to_chop);
 
 	/// Assignment operator.
-	IPAddr& operator=(const IPAddr& other);
+	IPAddr& operator=(const IPAddr& other)
+		{
+		// No self-assignment check here because it's correct without it and
+		// makes the common case faster.
+		in6 = other.in6;
+		return *this;
+		}
 
 	/// Returns a string representation of the address. IPv4 addresses
 	/// will be returned in dotted representation, IPv6 addresses in
 	/// compressed hex.
-	operator std::string() const;
+	operator std::string() const
+		{
+		if ( family() == IPv4 )
+			{
+			char s[INET_ADDRSTRLEN];
+			if ( inet_ntop(AF_INET, &in6.s6_addr[12], s, INET_ADDRSTRLEN) == NULL )
+				return "<bad IPv4 address conversion";
+			else
+				return s;
+			}
+		else
+			{
+			char s[INET6_ADDRSTRLEN];
+			if ( inet_ntop(AF_INET6, in6.s6_addr, s, INET6_ADDRSTRLEN) == NULL )
+				return "<bad IPv64 address conversion";
+			else
+				return s;
+			}
+		}
 
 	/// Comparison operator for IP address.
-	friend bool operator==(const IPAddr& addr1, const IPAddr& addr2);
-	friend bool operator!=(const IPAddr& addr1, const IPAddr& addr2);
+	friend bool operator==(const IPAddr& addr1, const IPAddr& addr2)
+		{
+		return memcmp(&addr1.in6, &addr2.in6, sizeof(in6_addr)) == 0;
+		}
+
+	friend bool operator!=(const IPAddr& addr1, const IPAddr& addr2)
+		{
+		return ! (addr1 == addr2);
+		}
 
 	/// Comparison operator IP addresses. This defines a well-defined order for
 	/// IP addresses. However, the order does not necessarily correspond to
 	/// their numerical values.
-	friend bool operator<(const IPAddr& addr1, const IPAddr& addr2);
+	friend bool operator<(const IPAddr& addr1, const IPAddr& addr2)
+		{
+		return memcmp(&addr1.in6, &addr2.in6, sizeof(in6_addr)) < 0;
+		}
 
 	unsigned int MemoryAllocation() const { return padded_sizeof(*this); }
 
@@ -182,30 +314,49 @@ public:
 	IPPrefix(const std::string& s, uint8_t length);
 
 	/// Copy constructor.
-	IPPrefix(const IPPrefix& other);
+	IPPrefix(const IPPrefix& other)
+		: prefix(other.prefix), length(other.length) { }
 
 	/// Destructor.
-	~IPPrefix();
+	~IPPrefix() { }
 
 	/// Returns the prefix in the form of an IP address. The address will
 	/// have all bits not part of the prefixed set to zero.
-	const IPAddr& Prefix() const;
+	const IPAddr& Prefix() const { return prefix; }
 
 	/// Returns the bit length of the prefix, relative to the 32 bits
 	/// of an IPv4 prefix or relative to the 128 bits of an IPv6 prefix.
-	uint8_t Length() const;
+	uint8_t Length() const
+		{
+		return prefix.family() == IPAddr::IPv4 ? length - 96 : length;
+		}
 
 	/// Returns the bit length of the prefix always relative to a full
 	/// 128 bits of an IPv6 prefix (or IPv4 mapped to IPv6).
-	uint8_t LengthIPv6() const;
+	uint8_t LengthIPv6() const { return length; }
 
 	/// Assignment operator.
-	IPPrefix& operator=(const IPPrefix& other);
+	IPPrefix& operator=(const IPPrefix& other)
+		{
+		// No self-assignment check here because it's correct without it and
+		// makes the common case faster.
+		prefix = other.Prefix();
+		length = other.Length();
+		return *this;
+		}
 
 	/// Returns a string representation of the prefix. IPv4 addresses
 	/// will be returned in dotted representation, IPv6 addresses in
 	/// compressed hex.
-	operator std::string() const;
+	operator std::string() const
+		{
+		char l[16];
+		if ( prefix.family() == IPAddr::IPv4 )
+			modp_uitoa10(length - 96, l);
+		else
+			modp_uitoa10(length, l);
+		return std::string(prefix).append("/").append(l);
+		}
 
 	unsigned int MemoryAllocation() const { return padded_sizeof(*this); }
 
@@ -215,11 +366,22 @@ private:
 };
 
 /// Comparison operator for IP prefix.
-extern bool operator==(const IPPrefix& net1, const IPPrefix& net2);
+inline bool operator==(const IPPrefix& net1, const IPPrefix& net2)
+	{
+	return net1.Prefix() == net2.Prefix() && net1.Length() == net2.Length();
+	}
 
 /// Comparison operator IP prefixes. This defines a well-defined order for
 /// IP prefix. However, the order does not necessarily corresponding to their
 /// numerical values.
-extern bool operator<(const IPPrefix& net1, const IPPrefix& net2);
+inline bool operator<(const IPPrefix& net1, const IPPrefix& net2)
+	{
+	if ( net1.Prefix() < net2.Prefix() )
+		return true;
+	else if ( net1.Prefix() == net2.Prefix() )
+		return net1.Length() < net2.Length();
+	else
+		return false;
+	}
 
 #endif

@@ -2070,6 +2070,56 @@ function is_v6_addr%(a: addr%): bool
 #
 # ===========================================================================
 
+## Converts a :bro:type:`addr` to a :bro:type:`index_vec`.
+##
+## a: The address to convert into a vector of counts.
+##
+## Returns: A vector containing the host-order address representation,
+##          four elements in size for IPv6 addresses, or one element for IPv4.
+##
+## .. bro:see:: counts_to_addr
+function addr_to_counts%(a: addr%): index_vec
+	%{
+	VectorVal* rval = new VectorVal(new VectorType(base_type(TYPE_COUNT)));
+	const uint32* bytes;
+	int len = a->AsAddr()->GetBytes(&bytes);
+
+	for ( int i = 0; i < len; ++i )
+		rval->Assign(i, new Val(ntohl(bytes[i]), TYPE_COUNT), 0);
+
+	return rval;
+	%}
+
+## Converts a :bro:type:`index_vec` to a :bro:type:`addr`.
+##
+## v: The vector containing host-order address IP address representation,
+##    one element for IPv4 addresses, four elements for IPv6 addresses.
+##
+## Returns: An IP address.
+##
+## .. bro:see:: addr_to_counts
+function counts_to_addr%(v: index_vec%): addr
+	%{
+	if ( v->AsVector()->size() == 1 )
+		{
+		return new AddrVal(htonl((*v->AsVector())[0]->AsCount()));
+		}
+	else if ( v->AsVector()->size() == 4 )
+		{
+		uint32 bytes[4];
+		for ( int i = 0; i < 4; ++i )
+			bytes[i] = htonl((*v->AsVector())[i]->AsCount());
+		return new AddrVal(bytes);
+		}
+	else
+		{
+		builtin_error("invalid vector size", @ARG@[0]);
+		uint32 bytes[4];
+		memset(bytes, 0, sizeof(bytes));
+		return new AddrVal(bytes);
+		}
+	%}
+
 ## Converts a :bro:type:`string` to a :bro:type:`int`.
 ##
 ## str: The :bro:type:`string` to convert.

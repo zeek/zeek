@@ -2613,7 +2613,7 @@ function parse_ftp_port%(s: string%): ftp_port
 ## The format is ``EPRT<space><d><net-prt><d><net-addr><d><tcp-port><d>``,
 ## where ``<d>`` is a delimiter in the ASCII range 33-126 (usually ``|``).
 ##
-## s: The string of the FTP PORT command, e.g., ``"10,0,0,1,4,31"``.
+## s: The string of the FTP EPRT command, e.g., ``"|1|10.0.0.1|1055|"``.
 ##
 ## Returns: The FTP PORT, e.g., ``[h=10.0.0.1, p=1055/tcp, valid=T]``
 ##
@@ -2653,7 +2653,7 @@ function parse_ftp_pasv%(str: string%): ftp_port
 ## The format is ``<text> (<d><d><d><tcp-port><d>)``, where ``<d>`` is a
 ## delimiter in the ASCII range 33-126 (usually ``|``).
 ##
-## str: The string containing the result of the FTP PASV command.
+## str: The string containing the result of the FTP EPSV command.
 ##
 ## Returns: The FTP PORT, e.g., ``[h=10.0.0.1, p=1055/tcp, valid=T]``
 ##

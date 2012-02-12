@@ -171,14 +171,34 @@ bool Ascii::DoWriteOne(ODesc* desc, Value* val, const Field* field)
 		break;
 
 	case TYPE_SUBNET:
-		desc->Add(dotted_addr(val->val.subnet_val.net));
+		{
+		// FIXME: This will be replaced with string(addr) once the
+		// IPV6 branch is merged in.
+		uint32_t addr = ntohl(val->val.subnet_val.net);
+		char buf[32];
+		snprintf(buf, sizeof(buf), "%d.%d.%d.%d",
+			 addr >> 24, (addr >> 16) & 0xff,
+			 (addr >> 8) & 0xff, addr & 0xff);
+
+		desc->Add(buf);
 		desc->Add("/");
 		desc->Add(val->val.subnet_val.width);
 		break;
+		}
 
 	case TYPE_ADDR:
-		desc->Add(dotted_addr(val->val.addr_val));
+		{
+		// FIXME: This will be replaced with string(addr) once the
+		// IPV6 branch is merged in.
+		uint32_t addr = ntohl(*val->val.addr_val);
+		char buf[32];
+		snprintf(buf, sizeof(buf), "%d.%d.%d.%d",
+			 addr >> 24, (addr >> 16) & 0xff,
+			 (addr >> 8) & 0xff, addr & 0xff);
+
+		desc->Add(buf);
 		break;
+		}
 
 	case TYPE_TIME:
 	case TYPE_INTERVAL:

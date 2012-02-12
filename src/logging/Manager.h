@@ -251,6 +251,12 @@ public:
 	 */
 	bool Flush(EnumVal* id);
 
+	/**
+	 * Prepares the log manager to terminate. This will flush all log
+	 * stream.
+	 */
+	void Terminate();
+
 protected:
 	friend class WriterFrontend;
 	friend class RotationFinishedMessage;
@@ -258,7 +264,7 @@ protected:
 	friend class ::RotationTimer;
 
 	// Instantiates a new WriterBackend of the given type (note that
-	// doing so creates a new thread!). 
+	// doing so creates a new thread!).
 	WriterBackend* CreateBackend(WriterFrontend* frontend, bro_int_t type);
 
 	//// Function also used by the RemoteSerializer.

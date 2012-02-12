@@ -1470,6 +1470,15 @@ bool Manager::Flush(EnumVal* id)
 	return true;
 	}
 
+void Manager::Terminate()
+	{
+	for ( vector<Stream *>::iterator s = streams.begin(); s != streams.end(); ++s )
+		{
+		if ( *s )
+			Flush((*s)->id);
+		}
+	}
+
 void Manager::Error(WriterFrontend* writer, const char* msg)
 	{
 	reporter->Error("error with writer for %s: %s",

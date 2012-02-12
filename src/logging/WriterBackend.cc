@@ -57,7 +57,7 @@ using namespace logging;
 
 WriterBackend::WriterBackend(WriterFrontend* arg_frontend) : MsgThread()
 	{
-	path = "<not set>";
+	path = "<path not yet set>";
 	num_fields = 0;
 	fields = 0;
 	buffering = true;
@@ -109,7 +109,9 @@ bool WriterBackend::Init(string arg_path, int arg_num_fields, const Field* const
 	num_fields = arg_num_fields;
 	fields = arg_fields;
 
-	SetName(frontend->Name());
+	string name = Fmt("%s/%s", path.c_str(), frontend->Name().c_str());
+
+	SetName(name);
 
 	if ( ! DoInit(arg_path, arg_num_fields, arg_fields) )
 		{
@@ -229,6 +231,8 @@ bool WriterBackend::Finish()
 
 bool WriterBackend::DoHeartbeat(double network_time, double current_time)
 	{
+	MsgThread::DoHeartbeat(network_time, current_time);
+
 	SendOut(new FlushWriteBufferMessage(frontend));
 
 	return true;

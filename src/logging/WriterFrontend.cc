@@ -1,4 +1,6 @@
 
+#include "Net.h"
+
 #include "WriterFrontend.h"
 #include "WriterBackend.h"
 
@@ -155,8 +157,8 @@ void WriterFrontend::Write(int num_fields, Value** vals)
 
 	write_buffer[write_buffer_pos++] = vals;
 
-	if ( write_buffer_pos >= WRITER_BUFFER_SIZE || ! buf )
-		// Buffer full (or no bufferin desired).
+	if ( write_buffer_pos >= WRITER_BUFFER_SIZE || ! buf || terminating )
+		// Buffer full (or no bufferin desired or termiating).
 		FlushWriteBuffer();
 
 	}

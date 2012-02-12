@@ -30,9 +30,6 @@ public:
 	 * frontend will internally instantiate a WriterBackend of the
 	 * corresponding type.
 	 *
-	 * name: A descriptive name for the backend wroter type (e.g., \c
-	 * Ascii).
-	 *
 	 * Frontends must only be instantiated by the main thread.
 	 */
 	WriterFrontend(bro_int_t type);

@@ -1,4 +1,28 @@
 
+2.0-57 | 2012-02-10 00:02:35 -0800
+
+  * Fix typos in the documentation. (Daniel Thayer)
+
+  * Fix compiler warning about Brofiler ctor init list order. (Jon Siwek)
+
+  * Fix missing optional field access in webapp signature_match handler. (Jon Siwek)
+
+2.0-41 | 2012-02-03 04:10:53 -0500
+
+  * Updates to the Software framework to simplify the API. (Bernhard
+    Amann)
+
+2.0-40 | 2012-02-03 01:55:27 -0800
+
+  * Fix typos in documentation. (Daniel Thayer)
+    
+  * Fix sorting of lines in Brofiler coverage.log. (Daniel Thayer)
+    
+2.0-38 | 2012-01-31 11:50:53 -0800
+
+  * Canonify sorting of lines in Brofiler coverage.log. (Daniel
+    Thayer)
+
 2.0-36 | 2012-01-27 10:38:14 -0800
 
   * New "Brofiler" mode that tracks and records script statements

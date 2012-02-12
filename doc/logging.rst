@@ -63,7 +63,7 @@ to work with.
 Filtering
 ---------
 
-To create new a new output file for an existing stream, you can add a
+To create a new output file for an existing stream, you can add a
 new filter. A filter can, e.g., restrict the set of fields being
 logged:
 
@@ -195,7 +195,7 @@ predicate that will be called for each log record:
         Log::add_filter(Conn::LOG, filter);
         }
 
-This will results in a log file ``conn-http.log`` that contains only
+This will result in a log file ``conn-http.log`` that contains only
 traffic detected and analyzed as HTTP traffic.
 
 Extending
@@ -254,7 +254,7 @@ being logged. For these cases, a stream can specify an event that will
 be generated every time a log record is written to it. All of Bro's
 default log streams define such an event. For example, the connection
 log stream raises the event :bro:id:`Conn::log_conn`. You
-could use that for example for flagging when a connection to
+could use that for example for flagging when a connection to a
 specific destination exceeds a certain duration:
 
 .. code:: bro
@@ -269,7 +269,7 @@ specific destination exceeds a certain duration:
         {
         if ( rec$duration > 5mins )
             NOTICE([$note=Long_Conn_Found, 
-                    $msg=fmt("unsually long conn to %s", rec$id$resp_h), 
+                    $msg=fmt("unusually long conn to %s", rec$id$resp_h), 
                     $id=rec$id]);
         }
 
@@ -319,7 +319,7 @@ example for the ``Foo`` module:
     module Foo;
 
     export {
-        # Create an ID for the our new stream. By convention, this is
+        # Create an ID for our new stream. By convention, this is
         # called "LOG".
         redef enum Log::ID += { LOG };
 

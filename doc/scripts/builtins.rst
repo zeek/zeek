@@ -22,7 +22,7 @@ The Bro scripting language supports the following built-in types.
     is a string of digits preceded by a ``+`` or ``-`` sign, e.g.
     ``-42`` or ``+5``.  When using type inferencing use care so that the
     intended type is inferred, e.g. ``local size_difference = 0`` will
-    infer the :bro:type:`count` while ``local size_difference = +0``
+    infer :bro:type:`count`, while ``local size_difference = +0``
     will infer :bro:type:`int`.
 
 .. bro:type:: count
@@ -32,7 +32,7 @@ The Bro scripting language supports the following built-in types.
 
 .. bro:type:: counter
 
-    An alias to :bro:type:`count`
+    An alias to :bro:type:`count`.
 
 .. TODO: is there anything special about this type?
 
@@ -70,7 +70,7 @@ The Bro scripting language supports the following built-in types.
 
     A type used to hold character-string values which represent text.
     String constants are created by enclosing text in double quotes (")
-    and the backslash character (\) introduces escape sequences.
+    and the backslash character (\\) introduces escape sequences.
 
     Note that Bro represents strings internally as a count and vector of
     bytes rather than a NUL-terminated byte string (although string
@@ -135,7 +135,7 @@ The Bro scripting language supports the following built-in types.
 
         type color: enum { Red, White, Blue, };
 
-    The last comma is after ``Blue`` is optional.
+    The last comma after ``Blue`` is optional.
 
 .. bro:type:: timer
 
@@ -150,8 +150,8 @@ The Bro scripting language supports the following built-in types.
     followed by one of ``/tcp``, ``/udp``, ``/icmp``, or ``/unknown``.
 
     Ports can be compared for equality and also for ordering.  When
-    comparing order across transport-level protocols, ``/unknown`` <
-    ``/tcp`` < ``/udp`` < ``icmp``, for example ``65535/tcp`` is smaller
+    comparing order across transport-level protocols, ``unknown`` <
+    ``tcp`` < ``udp`` < ``icmp``, for example ``65535/tcp`` is smaller
     than ``0/udp``.
 
 .. bro:type:: addr
@@ -228,7 +228,7 @@ The Bro scripting language supports the following built-in types.
 
         global a: table[count] of table[addr, port] of string;
 
-    which declared a table indexed by :bro:type:`count` and yielding
+    which declares a table indexed by :bro:type:`count` and yielding
     another :bro:type:`table` which is indexed by an :bro:type:`addr`
     and :bro:type:`port` to yield a :bro:type:`string`.
 
@@ -390,7 +390,7 @@ The Bro scripting language supports the following built-in types.
     :bro:attr:`&optional` or have a :bro:attr:`&default` attribute must
     be specified.
 
-    To test for existence of field that is :bro:attr:`&optional`, use the
+    To test for existence of a field that is :bro:attr:`&optional`, use the
     ``?$`` operator:
 
     .. code:: bro
@@ -410,7 +410,7 @@ The Bro scripting language supports the following built-in types.
         print f, "hello, world";
         close(f);
 
-    Writing to files like this for logging usually isn't recommend, for better
+    Writing to files like this for logging usually isn't recommended, for better
     logging support see :doc:`/logging`.
 
 .. bro:type:: func
@@ -510,22 +510,22 @@ scripting language supports the following built-in attributes.
 
 .. bro:attr:: &optional
 
-    Allows record field to be missing. For example the type ``record {
+    Allows a record field to be missing. For example the type ``record {
     a: int, b: port &optional }`` could be instantiated both as
     singleton ``[$a=127.0.0.1]`` or pair ``[$a=127.0.0.1, $b=80/tcp]``.
 
 .. bro:attr:: &default
 
     Uses a default value for a record field or container elements. For
-    example, ``table[int] of string &default="foo" }`` would create
-    table that returns The :bro:type:`string` ``"foo"`` for any
+    example, ``table[int] of string &default="foo" }`` would create a
+    table that returns the :bro:type:`string` ``"foo"`` for any
     non-existing index.
 
 .. bro:attr:: &redef
 
     Allows for redefinition of initial object values. This is typically
     used with constants, for example, ``const clever = T &redef;`` would
-    allow the constant to be redifined at some later point during script
+    allow the constant to be redefined at some later point during script
     execution.
 
 .. bro:attr:: &rotate_interval
@@ -534,7 +534,7 @@ scripting language supports the following built-in attributes.
 
 .. bro:attr:: &rotate_size
 
-    Rotates af file after it has reached a given size in bytes.
+    Rotates a file after it has reached a given size in bytes.
 
 .. bro:attr:: &add_func
 

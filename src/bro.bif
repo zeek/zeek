@@ -2092,7 +2092,7 @@ function addr_to_counts%(a: addr%): index_vec
 
 ## Converts a :bro:type:`index_vec` to a :bro:type:`addr`.
 ##
-## v: The vector containing host-order address IP address representation,
+## v: The vector containing host-order IP address representation,
 ##    one element for IPv4 addresses, four elements for IPv6 addresses.
 ##
 ## Returns: An IP address.

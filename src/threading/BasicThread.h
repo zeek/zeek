@@ -82,7 +82,7 @@ public:
 	void Stop();
 
 	/**
-	 * Returns true if Terminate() has been called.
+	 * Returns true if Stop() has been called.
 	 *
 	 * This method is safe to call from any thread.
 	 */

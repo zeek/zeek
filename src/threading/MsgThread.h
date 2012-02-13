@@ -184,7 +184,10 @@ protected:
 	 * This is method is called regularly by the threading::Manager.
 	 *
 	 * Can be overriden in derived classed to hook into the heart beat,
-	 * but must call the parent implementation.
+	 * but must call the parent implementation. Note that this method is
+	 * always called by the main thread and must not access data of the
+	 * child thread directly. See DoHeartbeat() if you want to do
+	 * something on the child-side.
 	 */
 	virtual void Heartbeat();
 
@@ -206,7 +209,7 @@ protected:
 	 * current_time: Wall clock when the heartbeat was trigger by the
 	 * main thread.
 	 */
-	virtual bool DoHeartbeat(double network_time, double current_time)	{ return true; }
+	virtual bool DoHeartbeat(double network_time, double current_time);
 
 private:
 	/**

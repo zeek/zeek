@@ -55,13 +55,13 @@ renamed to ``scripts/`` and contains major subdirectories ``base/``,
 further.
 
 The contents of the new ``scripts/`` directory, like the old/flat
-``policy/`` still gets installed under under the ``share/bro``
+``policy/`` still gets installed under the ``share/bro``
 subdirectory of the installation prefix path just like previous
 versions.  For example, if Bro was compiled like ``./configure
 --prefix=/usr/local/bro && make && make install``, then the script
 hierarchy can be found in ``/usr/local/bro/share/bro``.
 
-THe main
+The main
 subdirectories of that hierarchy are as follows:
 
 - ``base/`` contains all scripts that are loaded by Bro by default
@@ -132,7 +132,7 @@ Logging Framework
 
 - The new logging framework makes it possible to extend, customize,
   and filter logs very easily. See the :doc:`logging framework <logging>`
-  more information on usage.
+  for more information on usage.
 
 - A common pattern found in the new scripts is to store logging stream
   records for protocols inside the ``connection`` records so that
@@ -209,8 +209,8 @@ live analysis.
 BroControl now has an extensive plugin interface for adding new
 commands and options. Note that this is still considered experimental.
 
-We have remove the ``analysis`` command, and BroControl does currently
-not not send daily alarm summaries anymore (this may be restored
+We have removed the ``analysis`` command, and BroControl currently
+does not send daily alarm summaries anymore (this may be restored
 later).
 
 Removed Functionality
@@ -233,11 +233,11 @@ Development Infrastructure
 ==========================
 
 Bro development has moved from using SVN to Git for revision control.
-Users that like to use the latest Bro developments by checking it out
+Users that want to use the latest Bro development snapshot by checking it out
 from the source repositories should see the `development process
 <http://www.bro-ids.org/development/process.html>`_. Note that all the various
-sub-components now reside on their own repositories. However, the
-top-level Bro repository includes them as git submodules so it's easu
+sub-components now reside in their own repositories. However, the
+top-level Bro repository includes them as git submodules so it's easy
 to check them all out simultaneously.
 
 Bro now uses `CMake <http://www.cmake.org>`_ for its build system so

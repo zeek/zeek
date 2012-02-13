@@ -601,10 +601,10 @@ function add_signature_file(sold: string, snew: string): string
 	}
 
 ## Signature files to read. Use ``redef signature_files  += "foo.sig"`` to
-## extend. Signature files will be searched relative to ``BRO_PATH``.
+## extend. Signature files will be searched relative to ``BROPATH``.
 global signature_files = "" &add_func = add_signature_file;
 
-## ``p0f`` fingerprint file to use. Will be searched relative to ``BRO_PATH``.
+## ``p0f`` fingerprint file to use. Will be searched relative to ``BROPATH``.
 const passive_fingerprint_file = "base/misc/p0f.fp" &redef;
 
 # todo::testing to see if I can remove these without causing problems.

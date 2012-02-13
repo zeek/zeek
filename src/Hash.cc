@@ -103,6 +103,16 @@ HashKey::HashKey(const BroString* s)
 	is_our_dynamic = 0;
 	}
 
+HashKey::HashKey(const IPAddr& addr)
+	{
+	const uint32* bytes;
+	int len = addr.GetBytes(&bytes);
+	size = len * sizeof(uint32);
+	key = CopyKey(bytes, size);
+	is_our_dynamic = 1;
+	hash = HashBytes(key, size);
+	}
+
 HashKey::HashKey(int copy_key, void* arg_key, int arg_size)
 	{
 	size = arg_size;

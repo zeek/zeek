@@ -3432,25 +3432,7 @@ function lookup_addr%(host: addr%) : string
 	frame->SetDelayed();
 	trigger->Hold();
 
-	if ( host->AsAddr()->family() != IPAddr::IPv4 )
-		{
-		// FIXME: This is a temporary work-around until we get this
-		// fixed. We warn the user once, and always trigger a timeout.
-		// Ticket #355 records the problem.
-		static bool warned = false;
-		if ( ! warned )
-			{
-			reporter->Warning("lookup_addr() only supports IPv4 addresses currently");
-			warned = true;
-			}
-
-		trigger->Timeout();
-		return 0;
-		}
-
-	const uint32* bytes;
-	host->AsAddr()->GetBytes(&bytes);
-	dns_mgr->AsyncLookupAddr(*bytes,
+	dns_mgr->AsyncLookupAddr(*host->AsAddr(),
 			new LookupHostCallback(trigger, frame->GetCall(), true));
 	return 0;
 	%}

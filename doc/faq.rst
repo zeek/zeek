@@ -156,8 +156,8 @@ alteration tools.
 Bro has two options to workaround such situations and ignore bad checksums:
 
 1) The ``-C`` command line option to ``bro``.
-2) An option called ``ignore_checksums`` that can be redefined at the policy
-   policy script layer (e.g. in your ``$PREFIX/share/bro/site/local/bro``):
+2) An option called ``ignore_checksums`` that can be redefined at the
+   policy script layer (e.g. in your ``$PREFIX/share/bro/site/local.bro``):
 
     .. code:: bro
 

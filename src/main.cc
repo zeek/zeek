@@ -290,6 +290,7 @@ void terminate_bro()
 	if ( remote_serializer )
 		remote_serializer->LogStats();
 
+	log_mgr->Terminate();
 	thread_mgr->Terminate();
 
 	delete timer_mgr;

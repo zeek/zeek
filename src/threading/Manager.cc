@@ -7,9 +7,10 @@ Manager::Manager()
 	{
 	DBG_LOG(DBG_THREADING, "Creating thread manager ...");
 
-	did_process = false;
+	did_process = true;
 	next_beat = 0;
 	terminating = false;
+	idle = false;
 	}
 
 Manager::~Manager()
@@ -41,6 +42,7 @@ void Manager::Terminate()
 	all_threads.clear();
 	msg_threads.clear();
 
+	idle = true;
 	terminating = false;
 	}
 
@@ -70,18 +72,22 @@ void Manager::GetFds(int* read, int* write, int* except)
 
 double Manager::NextTimestamp(double* network_time)
 	{
-	if ( did_process || ! next_beat == 0 )
-		// If we had something to process last time (or haven't had a
-		// chance to check yet), we want to check for more asap.
+	if ( ::network_time && ! next_beat )
+		next_beat = ::network_time + HEART_BEAT_INTERVAL;
+
+//	fprintf(stderr, "N %.6f %.6f did_process=%d next_next=%.6f\n", ::network_time, timer_mgr->Time(), (int)did_process, next_beat);
+
+	if ( did_process || ::network_time > next_beat )
+		// If we had something to process last time (or out heartbeat
+		// is due), we want to check for more asap.
 		return timer_mgr->Time();
 
-	// Else we assume we don't have much to do at all and wait for the next heart beat.
-	return next_beat;
+	return -1.0;
 	}
 
 void Manager::Process()
 	{
-	bool do_beat = (next_beat == 0 || network_time >= next_beat);
+	bool do_beat = (next_beat && network_time > next_beat);
 
 	did_process = false;
 
@@ -90,14 +96,17 @@ void Manager::Process()
 		MsgThread* t = *i;
 
 		if ( do_beat )
+			{
 			t->Heartbeat();
+			next_beat = 0;
+			}
 
 		if ( ! t->HasOut() )
 			continue;
 
 		Message* msg = t->RetrieveOut();
 
-		if ( msg->Process() )
+		if ( msg->Process() && network_time )
 			did_process = true;
 
 		else
@@ -110,15 +119,14 @@ void Manager::Process()
 		delete msg;
 		}
 
-	if ( do_beat )
-		next_beat = network_time + HEART_BEAT_INTERVAL;
+//	fprintf(stderr, "P %.6f %.6f do_beat=%d did_process=%d next_next=%.6f\n", network_time, timer_mgr->Time(), do_beat, (int)did_process, next_beat);
 	}
 
 const threading::Manager::msg_stats_list& threading::Manager::GetMsgThreadStats()
 	{
 	stats.clear();
 
-	for ( msg_thread_list::iterator i = msg_threads.begin(); i != msg_threads.end(); i++ ) 
+	for ( msg_thread_list::iterator i = msg_threads.begin(); i != msg_threads.end(); i++ )
 		{
 		MsgThread* t = *i;
 

@@ -142,12 +142,19 @@ void MsgThread::OnStop()
 void MsgThread::Heartbeat()
 	{
 	SendIn(new HeartbeatMessage(this, network_time, current_time()));
+	}
 
-	string name = Fmt("%s (%d/%d)", name.c_str(),
-			  cnt_sent_in - queue_in.Size(),
-			  cnt_sent_out - queue_out.Size());
+bool MsgThread::DoHeartbeat(double network_time, double current_time)
+	{
+	string n = Name();
 
-	SetOSName(name.c_str());
+	n = Fmt("bro: %s (%" PRIu64 "/%" PRIu64 ")", n.c_str(),
+		cnt_sent_in - queue_in.Size(),
+		cnt_sent_out - queue_out.Size());
+
+	SetOSName(n.c_str());
+
+	return true;
 	}
 
 void MsgThread::Info(const char* msg)
@@ -197,7 +204,10 @@ void MsgThread::Debug(DebugStream stream, const char* msg)
 void MsgThread::SendIn(BasicInputMessage* msg, bool force)
 	{
 	if ( Terminating() && ! force )
+		{
+		delete msg;
 		return;
+		}
 
 	DBG_LOG(DBG_THREADING, "Sending '%s' to %s ...", msg->Name().c_str(), Name().c_str());
 
@@ -209,7 +219,10 @@ void MsgThread::SendIn(BasicInputMessage* msg, bool force)
 void MsgThread::SendOut(BasicOutputMessage* msg, bool force)
 	{
 	if ( Terminating() && ! force )
+		{
+		delete msg;
 		return;
+		}
 
 	queue_out.Put(msg);
 

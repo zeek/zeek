@@ -2,8 +2,13 @@
 #include <sys/signal.h>
 #include <signal.h>
 
+#include "config.h"
 #include "BasicThread.h"
 #include "Manager.h"
+
+#ifdef HAVE_LINUX
+#include <sys/prctl.h>
+#endif
 
 using namespace threading;
 
@@ -25,6 +30,8 @@ BasicThread::BasicThread()
 
 BasicThread::~BasicThread()
 	{
+        if ( buf )
+		free(buf);
 	}
 
 void BasicThread::SetName(const string& arg_name)
@@ -35,8 +42,8 @@ void BasicThread::SetName(const string& arg_name)
 
 void BasicThread::SetOSName(const string& name)
 	{
-#ifdef LINUX
-	pthread_setname_np(pthread_self(), name.c_str());
+#ifdef HAVE_LINUX
+	prctl(PR_SET_NAME, name.c_str(), 0, 0, 0);
 #endif
 
 #ifdef __APPLE__

@@ -5,7 +5,7 @@
 #include "util.h"
 
 Brofiler::Brofiler()
-	: delim('\t'), ignoring(0)
+	: ignoring(0), delim('\t')
 	{
 	}
 

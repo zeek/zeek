@@ -21,7 +21,7 @@ Let's start with a little bit of background on Bro's philosophy on reporting
 things. Bro ships with a large number of policy scripts which perform a wide
 variety of analyses. Most of these scripts monitor for activity which might be
 of interest for the user. However, none of these scripts determines the
-importance of what it finds itself. Instead, the scripts only flags situations
+importance of what it finds itself. Instead, the scripts only flag situations
 as *potentially* interesting, leaving it to the local configuration to define
 which of them are in fact actionable. This decoupling of detection and
 reporting allows Bro to address the different needs that sites have:
@@ -221,7 +221,7 @@ framework.
 
     * - :bro:see:`Notice::not_suppressed_types`
       - Adding a :bro:see:`Notice::Type` to this set results in that notice
-        no longer undergoes the normal notice suppression that would
+        no longer undergoing the normal notice suppression that would
         take place. Be careful when using this in production it could
         result in a dramatic increase in the number of notices being
         processed.
@@ -270,21 +270,21 @@ fields used when raising notices are described in the following table:
         information about this particular instance of the notice type.
 
     * - ``$sub``
-      - This is a sub-message which meant for human readability but will
+      - This is a sub-message meant for human readability but will
         frequently also be used to contain data meant to be matched with the
         ``Notice::policy``.
 
     * - ``$conn``
       - If a connection record is available when the notice is being raised
-        and the notice represents some attribute of the connection the
+        and the notice represents some attribute of the connection, then the
         connection record can be given here. Other fields such as ``$id`` and
         ``$src`` will automatically be populated from this value.
 
     * - ``$id``
       - If a conn_id record is available when the notice is being raised and
-        the notice represents some attribute of the connection, the connection
-        be given here. Other fields such as ``$src`` will automatically be
-        populated from this value.
+        the notice represents some attribute of the connection, then the
+        connection can be given here. Other fields such as ``$src`` will
+        automatically be populated from this value.
 
     * - ``$src``
       - If the notice represents an attribute of a single host then it's
@@ -313,7 +313,7 @@ of the notice the best information about the notice. If the notice is
 representative of many connections and is an attribute of a host (e.g. a
 scanning host) it probably makes most sense to fill out the ``$src`` field and
 not give a connection or conn_id. If a notice is representative of a
-connection attribute (e.g. an apparent SSH login) the it makes sense to fill
+connection attribute (e.g. an apparent SSH login) then it makes sense to fill
 out either ``$conn`` or ``$id`` based on the data that is available when the
 notice is raised. Using care when inserting data into a notice will make later
 analysis easier when only the data to fully represent the occurrence that

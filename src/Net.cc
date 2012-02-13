@@ -454,6 +454,7 @@ void net_run()
 				// date on timers and events.
 				network_time = ct;
 				expire_timers();
+				usleep(1); // Just yield.
 				}
 			}
 

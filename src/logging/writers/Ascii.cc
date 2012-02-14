@@ -3,10 +3,10 @@
 #include <string>
 #include <errno.h>
 
-#include "../../NetVar.h"
+#include "NetVar.h"
+#include "threading/SerialTypes.h"
 
 #include "Ascii.h"
-#include "../../threading/SerializationTypes.h"
 
 using namespace logging;
 using namespace writer;

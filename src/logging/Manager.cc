@@ -7,14 +7,14 @@
 #include "../NetVar.h"
 #include "../Net.h"
 
+#include "threading/SerialTypes.h"
+
 #include "Manager.h"
 #include "WriterFrontend.h"
 #include "WriterBackend.h"
 
 #include "writers/Ascii.h"
 #include "writers/None.h"
-
-#include "threading/SerializationTypes.h"
 
 using namespace logging;
 using threading::Value;

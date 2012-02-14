@@ -184,7 +184,7 @@
 #include "File.h"
 #include "Conn.h"
 #include "Reporter.h"
-#include "threading/SerializationTypes.h"
+#include "threading/SerialTypes.h"
 #include "logging/Manager.h"
 
 extern "C" {

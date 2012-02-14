@@ -215,7 +215,7 @@ ReaderFrontend* Manager::CreateStream(EnumVal* id, RecordVal* description)
 
 	EnumVal* reader = description->LookupWithDefault(rtype->FieldOffset("reader"))->AsEnumVal();
 	
-	ReaderFrontend* reader_obj = new ReaderFrontend(id->AsEnum());
+	ReaderFrontend* reader_obj = new ReaderFrontend(reader->InternalInt());
 	assert(reader_obj);
 	
 	// get the source...
@@ -680,7 +680,7 @@ Val* Manager::ValueToIndexVal(int num_fields, const RecordType *type, const Valu
 }
 
 
-void Manager::SendEntry(const ReaderFrontend* reader, const int id, const Value* const *vals) {
+void Manager::SendEntry(const ReaderFrontend* reader, const int id, Value* *vals) {
 	ReaderInfo *i = FindReader(reader);
 	if ( i == 0 ) {
 		reporter->InternalError("Unknown reader");
@@ -692,18 +692,25 @@ void Manager::SendEntry(const ReaderFrontend* reader, const int id, const Value*
 		return;
 	}
 
+	int readFields;
 	if ( i->filters[id]->filter_type == TABLE_FILTER ) {
-		SendEntryTable(reader, id, vals);
+		readFields = SendEntryTable(reader, id, vals);
 	} else if ( i->filters[id]->filter_type == EVENT_FILTER ) {
 		EnumVal *type = new EnumVal(BifEnum::Input::EVENT_NEW, BifType::Enum::Input::Event);
-		SendEventFilterEvent(reader, type, id, vals);		
+		readFields = SendEventFilterEvent(reader, type, id, vals);		
 	} else {
 		assert(false);
 	}
 
+	for ( int i = 0; i < readFields; i++ ) {
+		delete vals[i];
+	}
+	delete [] vals;	
+	
+
 }
 
-void Manager::SendEntryTable(const ReaderFrontend* reader, const int id, const Value* const *vals) {
+int Manager::SendEntryTable(const ReaderFrontend* reader, const int id, const Value* const *vals) {
 	ReaderInfo *i = FindReader(reader);
 
 	bool updated = false;
@@ -733,7 +740,7 @@ void Manager::SendEntryTable(const ReaderFrontend* reader, const int id, const V
 			// ok, exact duplicate
 			filter->lastDict->Remove(idxhash);
 			filter->currDict->Insert(idxhash, h);
-			return;
+			return filter->num_val_fields + filter->num_idx_fields;
 		} else {
 			assert( filter->num_val_fields > 0 );
 			// updated
@@ -794,11 +801,11 @@ void Manager::SendEntryTable(const ReaderFrontend* reader, const int id, const V
 			if ( !updated ) {
 				// throw away. Hence - we quit. And remove the entry from the current dictionary...
 				delete(filter->currDict->RemoveEntry(idxhash));
-				return;
+				return filter->num_val_fields + filter->num_idx_fields;
 			} else {
 				// keep old one
 				filter->currDict->Insert(idxhash, h);
-				return;
+				return filter->num_val_fields + filter->num_idx_fields;
 			}
 		}
 
@@ -809,7 +816,7 @@ void Manager::SendEntryTable(const ReaderFrontend* reader, const int id, const V
 	HashKey* k = filter->tab->ComputeHash(idxval);
 	if ( !k ) {
 		reporter->InternalError("could not hash");
-		return;
+		return filter->num_val_fields + filter->num_idx_fields;
 	}
 
 	filter->tab->Assign(idxval, k, valval);
@@ -842,6 +849,9 @@ void Manager::SendEntryTable(const ReaderFrontend* reader, const int id, const V
 			}
 		}
 	} 
+
+
+	return filter->num_val_fields + filter->num_idx_fields;	
 }
 
 
@@ -926,9 +936,21 @@ void Manager::EndCurrentSend(const ReaderFrontend* reader, int id) {
 
 	filter->lastDict = filter->currDict;	
 	filter->currDict = new PDict(InputHash);
+
+	// Send event that the current update is indeed finished.
+	
+
+	EventHandler* handler = event_registry->Lookup("Input::update_finished");
+	if ( handler == 0 ) {
+		reporter->InternalError("Input::update_finished not found!");
+	}	
+
+
+	Ref(i->id);
+	SendEvent(handler, 1, i->id);
 }
 
-void Manager::Put(const ReaderFrontend* reader, int id, const Value* const *vals) {
+void Manager::Put(const ReaderFrontend* reader, int id, Value* *vals) {
 	ReaderInfo *i = FindReader(reader);
 	if ( i == 0 ) {
 		reporter->InternalError("Unknown reader");
@@ -951,7 +973,7 @@ void Manager::Put(const ReaderFrontend* reader, int id, const Value* const *vals
 
 }
 
-void Manager::SendEventFilterEvent(const ReaderFrontend* reader, EnumVal* type, int id, const Value* const *vals) {
+int Manager::SendEventFilterEvent(const ReaderFrontend* reader, EnumVal* type, int id, const Value* const *vals) {
 	ReaderInfo *i = FindReader(reader);
 
 	bool updated = false;
@@ -985,11 +1007,13 @@ void Manager::SendEventFilterEvent(const ReaderFrontend* reader, EnumVal* type, 
 		}
 	}
 
-	SendEvent(filter->event, out_vals);	
+	SendEvent(filter->event, out_vals);
+
+	return filter->fields->NumFields();
 
 }
 
-void Manager::PutTable(const ReaderFrontend* reader, int id, const Value* const *vals) {
+int Manager::PutTable(const ReaderFrontend* reader, int id, const Value* const *vals) {
 	ReaderInfo *i = FindReader(reader);
 
 	assert(i);
@@ -1011,6 +1035,8 @@ void Manager::PutTable(const ReaderFrontend* reader, int id, const Value* const 
 	}
 
 	filter->tab->Assign(idxval, valval);
+
+	return filter->num_idx_fields + filter->num_val_fields;
 }
 
 void Manager::Clear(const ReaderFrontend* reader, int id) {
@@ -1028,7 +1054,7 @@ void Manager::Clear(const ReaderFrontend* reader, int id) {
 	filter->tab->RemoveAll();
 }
 
-bool Manager::Delete(const ReaderFrontend* reader, int id, const Value* const *vals) {
+bool Manager::Delete(const ReaderFrontend* reader, int id, Value* *vals) {
 	ReaderInfo *i = FindReader(reader);
 	if ( i == 0 ) {
 		reporter->InternalError("Unknown reader");
@@ -1037,18 +1063,29 @@ bool Manager::Delete(const ReaderFrontend* reader, int id, const Value* const *v
 
 	assert(i->HasFilter(id));			
 
+	bool success = false;
+	int readVals = 0;
+
 	if ( i->filters[id]->filter_type == TABLE_FILTER ) {
 		TableFilter* filter = (TableFilter*) i->filters[id];		
 		Val* idxval = ValueToIndexVal(filter->num_idx_fields, filter->itype, vals);
-		return( filter->tab->Delete(idxval) != 0 );
+		readVals = filter->num_idx_fields + filter->num_val_fields;
+		success = ( filter->tab->Delete(idxval) != 0 );
 	} else if ( i->filters[id]->filter_type == EVENT_FILTER  ) {
 		EnumVal *type = new EnumVal(BifEnum::Input::EVENT_REMOVED, BifType::Enum::Input::Event);
-		SendEventFilterEvent(reader, type, id, vals);		
-		return true;
+		readVals = SendEventFilterEvent(reader, type, id, vals);		
+		success = true;
 	} else {
 		assert(false);
 		return false;
 	}
+
+	for ( int i = 0; i < readVals; i++ ) {
+		delete vals[i];
+	}
+	delete [] vals;		
+
+	return success;
 } 
 
 void Manager::Error(ReaderFrontend* reader, const char* msg)
@@ -1056,7 +1093,7 @@ void Manager::Error(ReaderFrontend* reader, const char* msg)
 	reporter->Error("error with input reader for %s: %s", reader->Source().c_str(), msg);
 }
 
-bool Manager::SendEvent(const string& name, const int num_vals, const Value* const *vals) 
+bool Manager::SendEvent(const string& name, const int num_vals, Value* *vals) 
 {
 	EventHandler* handler = event_registry->Lookup(name.c_str());
 	if ( handler == 0 ) {
@@ -1077,6 +1114,11 @@ bool Manager::SendEvent(const string& name, const int num_vals, const Value* con
 	}
 
 	mgr.Dispatch(new Event(handler, vl));
+
+	for ( int i = 0; i < num_vals; i++ ) {
+		delete vals[i];
+	}
+	delete [] vals;			
 
 	return true;
 } 

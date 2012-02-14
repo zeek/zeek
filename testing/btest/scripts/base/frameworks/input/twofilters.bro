@@ -35,6 +35,8 @@ type Val: record {
 global destination1: table[int] of Val = table();
 global destination2: table[int] of Val = table();
 
+global done: bool = F;
+
 event bro_init()
 {
 	# first read in the old stuff into the table...
@@ -45,6 +47,15 @@ event bro_init()
 	Input::add_tablefilter(A::INPUT, [$name="input2",$idx=Idx, $val=Val, $destination=destination2]);
 	
 	Input::force_update(A::INPUT);
+}
+
+event Input::update_finished(id: Input::ID) {
+        if ( done == T ) {
+                return;
+        }
+
+        done = T;
+
 	if ( 1 in destination1 ) {
 		print "VALID";
 	}
@@ -90,6 +101,4 @@ event bro_init()
 	if ( 7 in destination2 ) {
 		print "VALID";
 	}
-
-
 }

@@ -48,7 +48,10 @@ event bro_init()
 	Input::create_stream(A::INPUT, [$source="input.log"]);
 	Input::add_tablefilter(A::INPUT, [$name="ssh", $idx=Idx, $val=Val, $destination=servers]);
 	Input::force_update(A::INPUT);
-	print servers;
 	Input::remove_tablefilter(A::INPUT, "ssh");
 	Input::remove_stream(A::INPUT);
+}
+
+event Input::update_finished(id: Input::ID) {
+	print servers;
 }

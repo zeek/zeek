@@ -42,6 +42,9 @@ event bro_init()
 				$pred(typ: Input::Event, left: Idx, right: bool) = { return right; }
 				]);
 	Input::force_update(A::INPUT);
+}
+
+event Input::update_finished(id: Input::ID) {
 	if ( 1 in servers ) {
 		print "VALID";
 	}

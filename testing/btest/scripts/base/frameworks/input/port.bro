@@ -39,3 +39,10 @@ event bro_init()
 	Input::remove_tablefilter(A::INPUT, "input");
 	Input::remove_stream(A::INPUT);
 }
+
+event Input::update_finished(id: Input::ID) {
+	print servers[1.2.3.4];
+	print servers[1.2.3.5];
+	print servers[1.2.3.6];
+}
+

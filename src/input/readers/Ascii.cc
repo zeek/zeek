@@ -445,10 +445,12 @@ bool Ascii::DoUpdate() {
 
 			SendEntry((*it).first, fields);
 
-			for ( unsigned int i = 0; i < (*it).second.num_fields; i++ ) {
+			/* Do not do this, ownership changes to other thread 
+			 * for ( unsigned int i = 0; i < (*it).second.num_fields; i++ ) {
 				delete fields[i];
 			}
 			delete [] fields;
+			*/
 		}
 
 	}

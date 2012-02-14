@@ -114,6 +114,8 @@ export {
 	## filter: the `TableFilter` record describing the filter.	
 	global read_table: function(description: Input::StreamDescription, filter: Input::TableFilter) : bool;
 
+	global update_finished: event(id: Input::ID);
+
 }
 
 @load base/input.bif

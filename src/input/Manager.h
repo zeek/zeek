@@ -44,15 +44,15 @@ protected:
 	void Error(ReaderFrontend* reader, const char* msg);
 
 	// for readers to write to input stream in direct mode (reporting new/deleted values directly)
-	void Put(const ReaderFrontend* reader, int id, const threading::Value* const *vals);
+	void Put(const ReaderFrontend* reader, int id, threading::Value* *vals);
 	void Clear(const ReaderFrontend* reader, int id);
-	bool Delete(const ReaderFrontend* reader, int id, const threading::Value* const *vals);
+	bool Delete(const ReaderFrontend* reader, int id, threading::Value* *vals);
 
 	// for readers to write to input stream in indirect mode (manager is monitoring new/deleted values)
-	void SendEntry(const ReaderFrontend* reader, const int id, const threading::Value* const *vals);
+	void SendEntry(const ReaderFrontend* reader, const int id, threading::Value* *vals);
 	void EndCurrentSend(const ReaderFrontend* reader, const int id);
 	
-	bool SendEvent(const string& name, const int num_vals, const threading::Value* const *vals);
+	bool SendEvent(const string& name, const int num_vals, threading::Value* *vals);
 
 	ReaderBackend* CreateBackend(ReaderFrontend* frontend, bro_int_t type);	
 	
@@ -60,9 +60,9 @@ protected:
 private:
 	struct ReaderInfo;
 
-	void SendEntryTable(const ReaderFrontend* reader, int id, const threading::Value* const *vals);	
-	void PutTable(const ReaderFrontend* reader, int id, const threading::Value* const *vals);	
-	void SendEventFilterEvent(const ReaderFrontend* reader, EnumVal* type, int id, const threading::Value* const *vals);
+	int SendEntryTable(const ReaderFrontend* reader, int id, const threading::Value* const *vals);	
+	int PutTable(const ReaderFrontend* reader, int id, const threading::Value* const *vals);	
+	int SendEventFilterEvent(const ReaderFrontend* reader, EnumVal* type, int id, const threading::Value* const *vals);
 
 	bool IsCompatibleType(BroType* t, bool atomic_only=false);
 

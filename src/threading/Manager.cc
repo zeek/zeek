@@ -111,7 +111,7 @@ void Manager::Process()
 
 		else
 			{
-			string s = msg->Name() + " failed, terminating thread";
+			string s = msg->Name() + " failed, terminating thread " + t->Name() + " (in ThreadManager)";
 			reporter->Error("%s", s.c_str());
 			t->Stop();
 			}

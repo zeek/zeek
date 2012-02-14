@@ -50,15 +50,15 @@ protected:
 	// A thread-safe version of fmt(). (stolen from logwriter)
 	const char* Fmt(const char* format, ...);
 
-	void SendEvent(const string& name, const int num_vals, const threading::Value* const *vals);
+	void SendEvent(const string& name, const int num_vals, threading::Value* *vals);
 
 	// Content-sendinf-functions (simple mode). Including table-specific stuff that simply is not used if we have no table
-	void Put(int id, const threading::Value* const *val);
-	void Delete(int id, const threading::Value* const *val);
+	void Put(int id, threading::Value* *val);
+	void Delete(int id, threading::Value* *val);
 	void Clear(int id);
 
 	// Table-functions (tracking mode): Only changed lines are propagated.
-	void SendEntry(int id, const threading::Value* const *vals);
+	void SendEntry(int id, threading::Value*  *vals);
 	void EndCurrentSend(int id);
 	
 

@@ -26,7 +26,7 @@ private:
 
 class PutMessage : public threading::OutputMessage<ReaderFrontend> {
 public:
-	PutMessage(ReaderFrontend* reader, int id, const Value* const *val)
+	PutMessage(ReaderFrontend* reader, int id, Value* *val)
 		: threading::OutputMessage<ReaderFrontend>("Put", reader),
 		id(id), val(val) {}
 
@@ -37,12 +37,12 @@ public:
 
 private:
 	int id;
-	const Value* const *val;
+	Value* *val;
 };
 
 class DeleteMessage : public threading::OutputMessage<ReaderFrontend> {
 public:
-	DeleteMessage(ReaderFrontend* reader, int id, const Value* const *val)
+	DeleteMessage(ReaderFrontend* reader, int id, Value* *val)
 		: threading::OutputMessage<ReaderFrontend>("Delete", reader),
 		id(id), val(val) {}
 
@@ -52,7 +52,7 @@ public:
 
 private:
 	int id;
-	const Value* const *val;
+	Value* *val;
 };
 
 class ClearMessage : public threading::OutputMessage<ReaderFrontend> {
@@ -72,7 +72,7 @@ private:
 
 class SendEventMessage : public threading::OutputMessage<ReaderFrontend> {
 public:
-	SendEventMessage(ReaderFrontend* reader, const string& name, const int num_vals, const Value* const *val)
+	SendEventMessage(ReaderFrontend* reader, const string& name, const int num_vals, Value* *val)
 		: threading::OutputMessage<ReaderFrontend>("SendEvent", reader),
 		name(name), num_vals(num_vals), val(val) {}
 
@@ -83,14 +83,14 @@ public:
 private:
 	const string name;
 	const int num_vals;
-	const Value* const *val;
+	Value* *val;
 };
 
 class SendEntryMessage : public threading::OutputMessage<ReaderFrontend> {
 public:
-	SendEntryMessage(ReaderFrontend* reader, const int id, const Value* const *val)
+	SendEntryMessage(ReaderFrontend* reader, const int id, Value* *val)
 		: threading::OutputMessage<ReaderFrontend>("SendEntry", reader),
-		id(id), val(val) {}
+		id(id), val(val) { }
 
 	virtual bool Process() {
 		input_mgr->SendEntry(Object(), id, val);
@@ -99,13 +99,13 @@ public:
 
 private:
 	const int id;
-	const Value* const *val;
+	Value* *val;
 };
 
 class EndCurrentSendMessage : public threading::OutputMessage<ReaderFrontend> {
 public:
 	EndCurrentSendMessage(ReaderFrontend* reader, int id)
-		: threading::OutputMessage<ReaderFrontend>("SendEntry", reader),
+		: threading::OutputMessage<ReaderFrontend>("EndCurrentSend", reader),
 		id(id) {}
 
 	virtual bool Process() {
@@ -145,12 +145,12 @@ void ReaderBackend::Error(const char *msg)
 } */
 
 
-void ReaderBackend::Put(int id, const Value* const *val) 
+void ReaderBackend::Put(int id, Value* *val) 
 {
 	SendOut(new PutMessage(frontend, id, val));
 }
 
-void ReaderBackend::Delete(int id, const Value* const *val) 
+void ReaderBackend::Delete(int id, Value* *val) 
 {
 	SendOut(new DeleteMessage(frontend, id, val));
 }
@@ -160,7 +160,7 @@ void ReaderBackend::Clear(int id)
 	SendOut(new ClearMessage(frontend, id));
 }
 
-void ReaderBackend::SendEvent(const string& name, const int num_vals, const Value* const *vals) 
+void ReaderBackend::SendEvent(const string& name, const int num_vals, Value* *vals) 
 {
 	SendOut(new SendEventMessage(frontend, name, num_vals, vals));
 } 
@@ -170,7 +170,7 @@ void ReaderBackend::EndCurrentSend(int id)
 	SendOut(new EndCurrentSendMessage(frontend, id));
 }
 
-void ReaderBackend::SendEntry(int id, const Value* const *vals)
+void ReaderBackend::SendEntry(int id, Value* *vals)
 {
 	SendOut(new SendEntryMessage(frontend, id, vals));
 }

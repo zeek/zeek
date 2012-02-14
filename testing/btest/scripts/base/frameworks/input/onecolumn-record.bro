@@ -34,5 +34,9 @@ event bro_init()
 	Input::create_stream(A::INPUT, [$source="input.log"]);
 	Input::add_tablefilter(A::INPUT, [$name="input", $idx=Idx, $val=Val, $destination=servers]);
 	Input::force_update(A::INPUT);
+}
+
+event Input::update_finished(id: Input::ID) {
 	print servers;
 }
+

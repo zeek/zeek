@@ -56,6 +56,7 @@ private:
        	const threading::Field* const* fields;
 };
 
+
 ReaderFrontend::ReaderFrontend(bro_int_t type) {
 	disabled = initialized = false;
 	ty_name = "<not set>";

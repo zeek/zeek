@@ -295,6 +295,7 @@ void terminate_bro()
 
 	log_mgr->Terminate();
 	thread_mgr->Terminate();
+	mgr.Drain();
 
 	delete timer_mgr;
 	delete dns_mgr;

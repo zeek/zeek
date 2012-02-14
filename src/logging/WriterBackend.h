@@ -52,10 +52,10 @@ public:
 	 *
 	 * @param fields An array of size \a num_fields with the log fields.
 	 * The methods takes ownership of the array.
-	 * 
+	 *
 	 * @return False if an error occured.
 	 */
-	bool Init(string path, int num_fields, const Field* const*  fields);
+	bool Init(string path, int num_fields, const threading::Field* const*  fields);
 
 	/**
 	 * Writes one log entry.
@@ -72,7 +72,7 @@ public:
 	 *
 	 * @return False if an error occured.
 	 */
-	bool Write(int num_fields, int num_writes, Value*** vals);
+	bool Write(int num_fields, int num_writes, threading::Value*** vals);
 
 	/**
 	 * Sets the buffering status for the writer, assuming the writer
@@ -129,7 +129,7 @@ public:
 	/**
 	 * Returns the log fields as passed into the constructor.
 	 */
-	const Field* const * Fields() const	{ return fields; }
+	const threading::Field* const * Fields() const	{ return fields; }
 
 	/**
 	 * Returns the current buffering state.
@@ -170,7 +170,7 @@ protected:
 	 * implementation should also call Error() to indicate what happened.
 	 */
 	virtual bool DoInit(string path, int num_fields,
-			    const Field* const*  fields) = 0;
+			    const threading::Field* const*  fields) = 0;
 
 	/**
 	 * Writer-specific output method implementing recording of fone log
@@ -182,8 +182,8 @@ protected:
 	 * disabled and eventually deleted. When returning false, an
 	 * implementation should also call Error() to indicate what happened.
 	 */
-	virtual bool DoWrite(int num_fields, const Field* const*  fields,
-			     Value** vals) = 0;
+	virtual bool DoWrite(int num_fields, const threading::Field* const*  fields,
+			     threading::Value** vals) = 0;
 
 	/**
 	 * Writer-specific method implementing a change of fthe buffering
@@ -193,7 +193,7 @@ protected:
 	 * may buffer data as helpful and write it out later in a way
 	 * optimized for performance. The current buffering state can be
 	 * queried via IsBuf().
-	 * 
+	 *
 	 * A writer implementation must override this method but it can just
 	 * ignore calls if buffering doesn't align with its semantics.
 	 *
@@ -244,7 +244,7 @@ protected:
 	 * as passed into DoInit(). As an example, for file-based output, \c
 	 * rotate_path could be the original filename extended with a
 	 * timestamp indicating the time of the rotation.
-	 * 
+	 *
 	 * @param open The network time when the *current* file was opened.
 	 *
 	 * @param close The network time when the *current* file was closed.
@@ -282,12 +282,10 @@ protected:
 	virtual bool DoHeartbeat(double network_time, double current_time);
 
 private:
-	friend class Manager;
-
 	/**
 	 * Deletes the values as passed into Write().
 	 */
-	void DeleteVals(int num_writes, Value*** vals);
+	void DeleteVals(int num_writes, threading::Value*** vals);
 
 	// Frontend that instantiated us. This object must not be access from
 	// this class, it's running in a different thread!
@@ -295,7 +293,7 @@ private:
 
 	string path;	// Log path.
 	int num_fields;	// Number of log fields.
-	const Field* const*  fields;	// Log fields.
+	const threading::Field* const*  fields;	// Log fields.
 	bool buffering;	// True if buffering is enabled.
 };
 

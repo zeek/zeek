@@ -32,13 +32,14 @@ public:
 	
 protected:
 	friend class ReaderFrontend;
-	friend class ErrorMessage;
 	friend class PutMessage;
 	friend class DeleteMessage;
 	friend class ClearMessage;
 	friend class SendEventMessage;
 	friend class SendEntryMessage;
 	friend class EndCurrentSendMessage;
+	friend class FilterRemovedMessage;
+	friend class ReaderFinishedMessage;
 
 	// Reports an error for the given reader.
 	void Error(ReaderFrontend* reader, const char* msg);
@@ -56,6 +57,8 @@ protected:
 
 	ReaderBackend* CreateBackend(ReaderFrontend* frontend, bro_int_t type);	
 	
+	bool RemoveFilterContinuation(const ReaderFrontend* reader, const int filterId);
+	bool RemoveStreamContinuation(const ReaderFrontend* reader);
 	
 private:
 	struct ReaderInfo;

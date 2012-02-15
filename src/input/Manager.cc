@@ -534,7 +534,6 @@ bool Manager::RemoveStream(const EnumVal* id) {
 			if ( (*s)->id == id ) 
 			{
 				i = (*s);
-				readers.erase(s); // remove from vector
 				break;	
 			}
 		}
@@ -545,9 +544,27 @@ bool Manager::RemoveStream(const EnumVal* id) {
 
 	i->reader->Finish();
 
-	delete(i);
-
 	return true;
+}
+
+bool Manager::RemoveStreamContinuation(const ReaderFrontend* reader) {
+	ReaderInfo *i = 0;
+
+
+	for ( vector<ReaderInfo *>::iterator s = readers.begin(); s != readers.end(); ++s )
+	{
+		if ( (*s)->reader && (*s)->reader == reader ) 
+		{
+			i = *s;
+			delete(i);
+			readers.erase(s);
+			return true;
+		}
+	}
+	
+	reporter->Error("Stream not found in RemoveStreamContinuation");
+	return false;
+
 }
 
 bool Manager::UnrollRecordType(vector<Field*> *fields, const RecordType *rec, const string& nameprepend) {
@@ -615,20 +632,51 @@ bool Manager::RemoveTableFilter(EnumVal* id, const string &name) {
 		return false;
 	}
 
-	map<int, Manager::Filter*>::iterator it = i->filters.find(id->InternalInt());
-	if ( it == i->filters.end() ) {
+	bool found = false;
+	int filterId;
+
+	for ( map<int, Manager::Filter*>::iterator it = i->filters.begin(); it != i->filters.end(); ++it ) {
+		if ( (*it).second->name == name ) {
+			found = true;
+			filterId = (*it).first;
+
+			if ( (*it).second->filter_type != TABLE_FILTER ) {
+				reporter->Error("Trying to remove filter %s of wrong type", name.c_str());
+				return false;
+			}
+
+			break;
+		}
+	}
+
+	if ( !found ) {
+		reporter->Error("Trying to remove nonexisting filter %s", name.c_str());
 		return false;
 	}
 
-	if ( i->filters[id->InternalInt()]->filter_type != TABLE_FILTER ) {
-		// wrong type;
+	i->reader->RemoveFilter(filterId);
+
+	return true;
+}
+
+bool Manager::RemoveFilterContinuation(const ReaderFrontend* reader, const int filterId) {
+	ReaderInfo *i = FindReader(reader);
+	if ( i == 0 ) {
+		reporter->Error("Reader not found");
+		return false;
+	}
+
+	map<int, Manager::Filter*>::iterator it = i->filters.find(filterId);
+	if ( it == i->filters.end() ) {
+		reporter->Error("Got RemoveFilterContinuation where filter nonexistant for %d", filterId);
 		return false;
 	}
 
 	delete (*it).second;
 	i->filters.erase(it);
+
 	return true;
-}
+} 
 
 bool Manager::RemoveEventFilter(EnumVal* id, const string &name) {
 	ReaderInfo *i = FindReader(id);

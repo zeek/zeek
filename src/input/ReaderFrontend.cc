@@ -5,8 +5,9 @@
 #include "ReaderBackend.h"
 #include "threading/MsgThread.h"
 
-namespace input {
+// FIXME: cleanup of disabled inputreaders is missing. we need this, because stuff can e.g. fail in init and might never be removed afterwards.
 
+namespace input {
 
 class InitMessage : public threading::InputMessage<ReaderBackend>
 {
@@ -56,6 +57,19 @@ private:
        	const threading::Field* const* fields;
 };
 
+class RemoveFilterMessage : public threading::InputMessage<ReaderBackend>
+{
+public:
+	RemoveFilterMessage(ReaderBackend* backend, const int id)
+		: threading::InputMessage<ReaderBackend>("RemoveFilter", backend),
+		id(id) { }
+
+	virtual bool Process() { return Object()->RemoveFilter(id); }
+
+private:
+	const int id;
+};
+
 
 ReaderFrontend::ReaderFrontend(bro_int_t type) {
 	disabled = initialized = false;
@@ -103,15 +117,20 @@ void ReaderFrontend::AddFilter(const int id, const int arg_num_fields, const thr
 	backend->SendIn(new AddFilterMessage(backend, id, arg_num_fields, fields));
 }
 
+void ReaderFrontend::RemoveFilter(const int id) {
+	if ( disabled ) 
+		return;
+
+	backend->SendIn(new RemoveFilterMessage(backend, id));
+}
+
 string ReaderFrontend::Name() const
-	{
+{
 	if ( source.size() )
 		return ty_name;
 
 	return ty_name + "/" + source;
-	}
-
-
+}
 
 }
 

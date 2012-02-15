@@ -26,6 +26,12 @@ public:
 	void Finish();
 
 	bool Update();
+
+	/**
+	 * Disables the frontend that has instantiated this backend. Once
+	 * disabled,the frontend will not send any further message over.
+	 */
+	void DisableFrontend();	
 	
 protected:
     // Methods that have to be overwritten by the individual readers
@@ -40,15 +46,8 @@ protected:
 	// update file contents to logmgr
 	virtual bool DoUpdate() = 0;
 	
-	// Reports an error to the user.
-	void Error(const string &msg);
-	//void Error(const char *msg);
-	
 	// The following methods return the information as passed to Init().
 	const string Source() const	{ return source; }
-
-	// A thread-safe version of fmt(). (stolen from logwriter)
-	const char* Fmt(const char* format, ...);
 
 	void SendEvent(const string& name, const int num_vals, threading::Value* *vals);
 

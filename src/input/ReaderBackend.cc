@@ -9,21 +9,6 @@ using threading::Field;
 
 namespace input {
 
-class ErrorMessage : public threading::OutputMessage<ReaderFrontend> {
-public:
-	ErrorMessage(ReaderFrontend* reader, string message)
-		: threading::OutputMessage<ReaderFrontend>("Error", reader),
-		message(message) {}
-
-	virtual bool Process() {
-		input_mgr->Error(Object(), message.c_str());
-		return true;
-	}
-
-private:
-	string message;
-};
-
 class PutMessage : public threading::OutputMessage<ReaderFrontend> {
 public:
 	PutMessage(ReaderFrontend* reader, int id, Value* *val)
@@ -104,7 +89,7 @@ private:
 
 class EndCurrentSendMessage : public threading::OutputMessage<ReaderFrontend> {
 public:
-	EndCurrentSendMessage(ReaderFrontend* reader, int id)
+	EndCurrentSendMessage(ReaderFrontend* reader, const int id)
 		: threading::OutputMessage<ReaderFrontend>("EndCurrentSend", reader),
 		id(id) {}
 
@@ -114,8 +99,45 @@ public:
 	}
 
 private:
-	int id;
+	const int id;
 };
+
+class FilterRemovedMessage : public threading::OutputMessage<ReaderFrontend> {
+public:
+	FilterRemovedMessage(ReaderFrontend* reader, const int id)
+		: threading::OutputMessage<ReaderFrontend>("FilterRemoved", reader),
+		id(id) {}
+
+	virtual bool Process() {
+		return input_mgr->RemoveFilterContinuation(Object(), id);
+	}
+
+private:
+	const int id;
+};
+
+class ReaderFinishedMessage : public threading::OutputMessage<ReaderFrontend> {
+public:
+	ReaderFinishedMessage(ReaderFrontend* reader)
+		: threading::OutputMessage<ReaderFrontend>("ReaderFinished", reader) {}
+
+	virtual bool Process() {
+		return input_mgr->RemoveStreamContinuation(Object());
+	}
+
+private:
+};
+
+
+class DisableMessage : public threading::OutputMessage<ReaderFrontend>
+{
+public:
+        DisableMessage(ReaderFrontend* writer)
+		: threading::OutputMessage<ReaderFrontend>("Disable", writer)	{}
+
+	virtual bool Process()	{ Object()->SetDisable(); return true; }
+};
+
 
 ReaderBackend::ReaderBackend(ReaderFrontend* arg_frontend) : MsgThread()
 {
@@ -132,18 +154,6 @@ ReaderBackend::~ReaderBackend()
 {
 	
 }
-
-void ReaderBackend::Error(const string &msg)
-{
-	SendOut(new ErrorMessage(frontend, msg));
-}
-
-/*
-void ReaderBackend::Error(const char *msg)
-{
-	SendOut(new ErrorMessage(frontend, string(msg)));
-} */
-
 
 void ReaderBackend::Put(int id, Value* *val) 
 {
@@ -181,6 +191,11 @@ bool ReaderBackend::Init(string arg_source)
 
 	// disable if DoInit returns error.
 	disabled = !DoInit(arg_source);
+
+	if ( disabled ) {
+		DisableFrontend();
+	}
+
 	return !disabled;
 }
 
@@ -192,13 +207,17 @@ bool ReaderBackend::AddFilter(int id, int arg_num_fields,
 
 bool ReaderBackend::RemoveFilter(int id) 
 {
-	return DoRemoveFilter(id);
+	bool success = DoRemoveFilter(id);
+	SendOut(new FilterRemovedMessage(frontend, id));
+	return success; // yes, I know, noone reads this.
 }
 
 void ReaderBackend::Finish() 
 {
 	DoFinish();
 	disabled = true;
+	DisableFrontend();
+	SendOut(new ReaderFinishedMessage(frontend));
 }
 
 bool ReaderBackend::Update() 
@@ -206,32 +225,9 @@ bool ReaderBackend::Update()
 	return DoUpdate();
 }
 
-
-// stolen from logwriter
-const char* ReaderBackend::Fmt(const char* format, ...)
-	{
-	if ( ! buf )
-		buf = (char*) malloc(buf_len);
-
-	va_list al;
-	va_start(al, format);
-	int n = safe_vsnprintf(buf, buf_len, format, al);
-	va_end(al);
-
-	if ( (unsigned int) n >= buf_len )
-		{ // Not enough room, grow the buffer.
-		buf_len = n + 32;
-		buf = (char*) realloc(buf, buf_len);
-
-		// Is it portable to restart?
-		va_start(al, format);
-		n = safe_vsnprintf(buf, buf_len, format, al);
-		va_end(al);
-		}
-
-	return buf;
-	}
-
-
+void ReaderBackend::DisableFrontend()
+{
+	SendOut(new DisableMessage(frontend));
+}
 
 }

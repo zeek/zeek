@@ -1,5 +1,3 @@
-// $Id: Finger.cc 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -9,7 +7,6 @@
 #include "NetVar.h"
 #include "Finger.h"
 #include "Event.h"
-#include "TCP_Rewriter.h"
 #include "ContentLine.h"
 
 Finger_Analyzer::Finger_Analyzer(Connection* conn)
@@ -42,7 +39,7 @@ void Finger_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig
 
 	if ( is_orig )
 		{
-		
+
 		if ( ! finger_request )
 			return;
 
@@ -87,5 +84,3 @@ void Finger_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig
 		ConnectionEvent(finger_reply, vl);
 		}
 	}
-
-#include "finger-rw.bif.func_def"

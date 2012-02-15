@@ -1,5 +1,3 @@
-// $Id: Anon.h 416 2004-09-17 03:52:28Z vern $
-
 // The prefix-preserving IP address anonymization code is largely
 // based on (and sometimes directly copied from) Eddie Kohler's
 // ipsumdump-1.20 code, per:
@@ -18,6 +16,7 @@
 #include <map>
 using namespace std;
 
+#include "Reporter.h"
 #include "net_util.h"
 
 // TODO: Anon.h may not be the right place to put these functions ...
@@ -52,7 +51,7 @@ public:
 	// Keep the specified prefix unchanged.
 	virtual int PreservePrefix(ipaddr32_t /* input */, int /* num_bits */)
 		{
-		internal_error("prefix preserving is not supported for the anonymizer");
+		reporter->InternalError("prefix preserving is not supported for the anonymizer");
 		return 0;
 		}
 

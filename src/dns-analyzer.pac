@@ -1,5 +1,3 @@
-# $Id:$
-
 %extern{
 #include <set>
 %}
@@ -124,7 +122,7 @@ flow DNS_Flow
 
 		if ( msg->header()->qr() == 0 )
 			{
-			bro_event_dns_request(
+			BifEvent::generate_dns_request(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				dns_msg_val_->Ref(),
@@ -137,7 +135,7 @@ flow DNS_Flow
 		          msg->header()->nscount() == 0 &&
 		          msg->header()->arcount() == 0 )
 			{
-			bro_event_dns_rejected(
+			BifEvent::generate_dns_rejected(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				dns_msg_val_->Ref(),
@@ -253,7 +251,7 @@ flow DNS_Flow
 			// above fixes for BROv6, we can probably now introduce
 			// their own events.  (It's not clear A6 is needed -
 			// do we actually encounter it in practice?)
-			bro_event_dns_A_reply(connection()->bro_analyzer(),
+			BifEvent::generate_dns_A_reply(connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				dns_msg_val_->Ref(), build_dns_answer(rr), addr);
 			break;
@@ -261,7 +259,7 @@ flow DNS_Flow
 		case TYPE_NS:
 			if ( dns_NS_reply )
 				{
-				bro_event_dns_NS_reply(connection()->bro_analyzer(),
+				BifEvent::generate_dns_NS_reply(connection()->bro_analyzer(),
 					connection()->bro_analyzer()->Conn(),
 					dns_msg_val_->Ref(),
 					build_dns_answer(rr),
@@ -272,7 +270,7 @@ flow DNS_Flow
 		case TYPE_CNAME:
 			if ( dns_CNAME_reply )
 				{
-				bro_event_dns_CNAME_reply(
+				BifEvent::generate_dns_CNAME_reply(
 					connection()->bro_analyzer(),
 					connection()->bro_analyzer()->Conn(),
 					dns_msg_val_->Ref(),
@@ -284,7 +282,7 @@ flow DNS_Flow
 		case TYPE_SOA:
 			if ( dns_SOA_reply )
 				{
-				bro_event_dns_SOA_reply(
+				BifEvent::generate_dns_SOA_reply(
 					connection()->bro_analyzer(),
 					connection()->bro_analyzer()->Conn(),
 					dns_msg_val_->Ref(),
@@ -296,7 +294,7 @@ flow DNS_Flow
 		case TYPE_PTR:
 			if ( dns_PTR_reply )
 				{
-				bro_event_dns_PTR_reply(
+				BifEvent::generate_dns_PTR_reply(
 					connection()->bro_analyzer(),
 					connection()->bro_analyzer()->Conn(),
 					dns_msg_val_->Ref(),
@@ -308,7 +306,7 @@ flow DNS_Flow
 		case TYPE_MX:
 			if ( dns_MX_reply )
 				{
-				bro_event_dns_MX_reply(
+				BifEvent::generate_dns_MX_reply(
 					connection()->bro_analyzer(),
 					connection()->bro_analyzer()->Conn(),
 					dns_msg_val_->Ref(),
@@ -321,7 +319,7 @@ flow DNS_Flow
 		case TYPE_EDNS:
 			if ( dns_EDNS_addl )
 				{
-				bro_event_dns_EDNS_addl(
+				BifEvent::generate_dns_EDNS_addl(
 					connection()->bro_analyzer(),
 					connection()->bro_analyzer()->Conn(),
 					dns_msg_val_->Ref(),

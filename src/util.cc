@@ -1,5 +1,3 @@
-// $Id: util.cc 6916 2009-09-24 20:48:36Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -15,6 +13,8 @@
 # endif
 #endif
 
+#include <string>
+#include <vector>
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,6 +26,7 @@
 #include <stdarg.h>
 #include <errno.h>
 #include <signal.h>
+#include <libgen.h>
 
 #ifdef HAVE_MALLINFO
 # include <malloc.h>
@@ -38,6 +39,38 @@
 #include "Val.h"
 #include "NetVar.h"
 #include "Net.h"
+#include "Reporter.h"
+
+/**
+ * Takes a string, escapes characters into equivalent hex codes (\x##), and
+ * returns a string containing all escaped values.
+ *
+ * @param str string to escape
+ * @param escape_all If true, all characters are escaped. If false, only
+ * characters are escaped that are either whitespace or not printable in
+ * ASCII.
+ * @return A std::string containing a list of escaped hex values of the form
+ * \x## */
+std::string get_escaped_string(const std::string& str, bool escape_all)
+{
+    char tbuf[16];
+    string esc = "";
+
+    for ( size_t i = 0; i < str.length(); ++i )
+        {
+	char c = str[i];
+
+	if ( escape_all || isspace(c) || ! isascii(c) || ! isprint(c) )
+		{
+		snprintf(tbuf, sizeof(tbuf), "\\x%02x", str[i]);
+		esc += tbuf;
+		}
+	else
+		esc += c;
+	}
+
+    return esc;
+}
 
 char* copy_string(const char* s)
 	{
@@ -83,7 +116,7 @@ int expand_escape(const char*& s)
 		int result;
 		if ( sscanf(start, "%3o", &result) != 1 )
 			{
-			warn("bad octal escape: ", start);
+			reporter->Warning("bad octal escape: %s ", start);
 			result = 0;
 			}
 
@@ -102,7 +135,7 @@ int expand_escape(const char*& s)
 		int result;
 		if ( sscanf(start, "%2x", &result) != 1 )
 			{
-			warn("bad hexadecimal escape: ", start);
+			reporter->Warning("bad hexadecimal escape: %s", start);
 			result = 0;
 			}
 
@@ -229,7 +262,7 @@ unsigned char encode_hex(int h)
 
 	if  ( h < 0 || h >= 16 )
 		{
-		internal_error("illegal value for encode_hex: %d", h);
+		reporter->InternalError("illegal value for encode_hex: %d", h);
 		return 'X';
 		}
 
@@ -295,9 +328,9 @@ char* strcasestr(const char* s, const char* find)
 	}
 #endif
 
-int atoi_n(int len, const char* s, const char** end, int base, int& result)
+template<class T> int atoi_n(int len, const char* s, const char** end, int base, T& result)
 	{
-	int n = 0;
+	T n = 0;
 	int neg = 0;
 
 	if ( len > 0 && *s == '-' )
@@ -339,6 +372,45 @@ int atoi_n(int len, const char* s, const char** end, int base, int& result)
 
 	return 1;
 	}
+
+// Instantiate the ones we need.
+template int atoi_n<int>(int len, const char* s, const char** end, int base, int& result);
+template int atoi_n<int64_t>(int len, const char* s, const char** end, int base, int64_t& result);
+template int atoi_n<uint64_t>(int len, const char* s, const char** end, int base, uint64_t& result);
+
+char* uitoa_n(uint64 value, char* str, int n, int base, const char* prefix)
+	{
+	static char dig[] = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+	assert(n);
+
+	int i = 0;
+	uint64 v;
+	char* p, *q;
+	char c;
+
+	if ( prefix )
+		{
+		strncpy(str, prefix, n);
+		str[n-1] = '\0';
+		i += strlen(prefix);
+		}
+
+	if ( i >= n - 1 )
+		return str;
+
+	v = value;
+
+	do {
+		str[i++] = dig[v % base];
+		v /= base;
+	} while ( v && i < n - 1 );
+
+	str[i] = '\0';
+
+	return str;
+	}
+
 
 int strstr_n(const int big_len, const u_char* big,
 		const int little_len, const u_char* little)
@@ -417,7 +489,7 @@ const char* fmt(const char* format, ...)
 		va_end(al);
 
 		if ( (unsigned int) n >= buf_len )
-			internal_error("confusion reformatting in fmt()");
+			reporter->InternalError("confusion reformatting in fmt()");
 		}
 
 	return buf;
@@ -438,22 +510,22 @@ bool ensure_dir(const char *dirname)
 		{
 		if ( errno != ENOENT )
 			{
-			warn(fmt("can't stat directory %s: %s",
-				dirname, strerror(errno)));
+			reporter->Warning("can't stat directory %s: %s",
+				dirname, strerror(errno));
 			return false;
 			}
 
 		if ( mkdir(dirname, 0700) < 0 )
 			{
-			warn(fmt("can't create directory %s: %s",
-				dirname, strerror(errno)));
+			reporter->Warning("can't create directory %s: %s",
+				dirname, strerror(errno));
 			return false;
 			}
 		}
 
 	else if ( ! S_ISDIR(st.st_mode) )
 		{
-		warn(fmt("%s exists but is not a directory", dirname));
+		reporter->Warning("%s exists but is not a directory", dirname);
 		return false;
 		}
 
@@ -466,7 +538,7 @@ bool is_dir(const char* path)
 	if ( stat(path, &st) < 0 )
 		{
 		if ( errno != ENOENT )
-			warn(fmt("can't stat %s: %s", path, strerror(errno)));
+			reporter->Warning("can't stat %s: %s", path, strerror(errno));
 
 		return false;
 		}
@@ -498,7 +570,7 @@ uint8 shared_hmac_md5_key[16];
 void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16])
 	{
 	if ( ! hmac_key_set )
-		internal_error("HMAC-MD5 invoked before the HMAC key is set");
+		reporter->InternalError("HMAC-MD5 invoked before the HMAC key is set");
 
 	hash_md5(size, bytes, digest);
 
@@ -516,15 +588,15 @@ static bool read_random_seeds(const char* read_file, uint32* seed,
 
 	if ( stat(read_file, &st) < 0 )
 		{
-		warn(fmt("Seed file '%s' does not exist: %s",
-				read_file, strerror(errno)));
+		reporter->Warning("Seed file '%s' does not exist: %s",
+				read_file, strerror(errno));
 		return false;
 		}
 
 	if ( ! (f = fopen(read_file, "r")) )
 		{
-		warn(fmt("Could not open seed file '%s': %s",
-				read_file, strerror(errno)));
+		reporter->Warning("Could not open seed file '%s': %s",
+				read_file, strerror(errno));
 		return false;
 		}
 
@@ -559,8 +631,8 @@ static bool write_random_seeds(const char* write_file, uint32 seed,
 
 	if ( ! (f = fopen(write_file, "w+")) )
 		{
-		warn(fmt("Could not create seed file '%s': %s",
-				write_file, strerror(errno)));
+		reporter->Warning("Could not create seed file '%s': %s",
+				write_file, strerror(errno));
 		return false;
 		}
 
@@ -573,6 +645,17 @@ static bool write_random_seeds(const char* write_file, uint32 seed,
 	return true;
 	}
 
+static bool bro_rand_determistic = false;
+static unsigned int bro_rand_state = 0;
+
+static void bro_srand(unsigned int seed, bool deterministic)
+	{
+	bro_rand_state = seed;
+	bro_rand_determistic = deterministic;
+
+	srand(seed);
+	}
+
 void init_random_seed(uint32 seed, const char* read_file, const char* write_file)
 	{
 	static const int bufsiz = 16;
@@ -583,7 +666,7 @@ void init_random_seed(uint32 seed, const char* read_file, const char* write_file
 	if ( read_file )
 		{
 		if ( ! read_random_seeds(read_file, &seed, buf, bufsiz) )
-			fprintf(stderr, "Could not load seeds from file '%s'.\n",
+			reporter->Error("Could not load seeds from file '%s'.\n",
 					read_file);
 		else
 			seeds_done = true;
@@ -633,9 +716,11 @@ void init_random_seed(uint32 seed, const char* read_file, const char* write_file
 				seed = (seed << 1) | (seed >> 31);
 				}
 			}
+		else
+			seeds_done = true;
 		}
 
-	srandom(seed);
+	bro_srand(seed, seeds_done);
 
 	if ( ! hmac_key_set )
 		{
@@ -644,10 +729,34 @@ void init_random_seed(uint32 seed, const char* read_file, const char* write_file
 		}
 
 	if ( write_file && ! write_random_seeds(write_file, seed, buf, bufsiz) )
-		fprintf(stderr, "Could not write seeds to file '%s'.\n",
+		reporter->Error("Could not write seeds to file '%s'.\n",
 				write_file);
 	}
 
+bool have_random_seed()
+	{
+	return bro_rand_determistic;
+	}
+
+long int bro_random()
+	{
+	if ( ! bro_rand_determistic )
+		return random(); // Use system PRNG.
+
+	// Use our own simple linear congruence PRNG to make sure we are
+	// predictable across platforms.
+	const long int m = 2147483647;
+	const long int a = 16807;
+	const long int q = m / a;
+	const long int r = m % a;
+
+	bro_rand_state = a * ( bro_rand_state % q ) - r * ( bro_rand_state / q );
+
+	if ( bro_rand_state <= 0 )
+		bro_rand_state += m;
+
+	return bro_rand_state;
+	}
 
 // Returns a 64-bit random string.
 uint64 rand64bit()
@@ -656,107 +765,8 @@ uint64 rand64bit()
 	int i;
 
 	for ( i = 1; i <= 4; ++i )
-		base = (base<<16) | random();
+		base = (base<<16) | bro_random();
 	return base;
-	}
-
-void message(const char* msg)
-	{
-	pinpoint();
-	fprintf(stderr, "%s\n", msg);
-	}
-
-void warn(const char* msg)
-	{
-	pinpoint();
-	fprintf(stderr, "warning: %s\n", msg);
-	++nwarn;
-	}
-
-void warn(const char* msg, const char* addl)
-	{
-	pinpoint();
-	fprintf(stderr, "warning: %s %s\n", msg, addl);
-	++nwarn;
-	}
-
-void error(const char* msg)
-	{
-	pinpoint();
-	fprintf(stderr, "error: %s\n", msg);
-	++nerr;
-	}
-
-void error(const char* msg, const char* addl)
-	{
-	pinpoint();
-	fprintf(stderr, "error: %s %s\n", msg, addl);
-	++nerr;
-	}
-
-void error(const char* msg, uint32 addl)
-	{
-	pinpoint();
-	fprintf(stderr, "error: %s - %u\n", msg, addl);
-	++nerr;
-	}
-
-void run_time(const char* msg)
-	{
-	pinpoint();
-	fprintf(stderr, "run-time error: %s\n", msg);
-	++nruntime;
-	}
-
-void run_time(const char* fmt, BroObj* obj)
-	{
-	ODesc d;
-	obj->Describe(&d);
-	run_time(fmt, d.Description());
-	}
-
-void run_time(const char* fmt, const char* arg)
-	{
-	pinpoint();
-	fprintf(stderr, "run-time error: ");
-	fprintf(stderr, fmt, arg);
-	fprintf(stderr, "\n");
-	++nruntime;
-	}
-
-void run_time(const char* fmt, const char* arg1, const char* arg2)
-	{
-	pinpoint();
-	fprintf(stderr, "run-time error: ");
-	fprintf(stderr, fmt, arg1, arg2);
-	fprintf(stderr, "\n");
-	++nruntime;
-	}
-
-void internal_error(const char* fmt, ...)
-	{
-	va_list al;
-
-	pinpoint();
-	fprintf(stderr, "internal error: ");
-	va_start(al, fmt);
-	vfprintf(stderr, fmt, al);
-	va_end(al);
-	fprintf(stderr, "\n");
-	set_processing_status("TERMINATED", "internal_error");
-	abort();
-	}
-
-void pinpoint()
-	{
-	if ( network_time > 0.0 )
-		fprintf(stderr, "%.6f ", network_time);
-	else
-		{
-		if ( filename )
-			fprintf(stderr, "%s, ", filename);
-		fprintf(stderr, "line %d: ", line_number);
-		}
 	}
 
 int int_list_cmp(const void* v1, const void* v2)
@@ -777,10 +787,9 @@ const char* bro_path()
 	const char* path = getenv("BROPATH");
 	if ( ! path )
 		path = ".:"
-			POLICYDEST ":"
-			POLICYDEST "/sigs:" 
-			POLICYDEST "/time-machine:"
-			POLICYDEST "/site";
+			BRO_SCRIPT_INSTALL_PATH ":"
+			BRO_SCRIPT_INSTALL_PATH "/policy" ":"
+			BRO_SCRIPT_INSTALL_PATH "/site";
 
 	return path;
 	}
@@ -805,24 +814,182 @@ const char* bro_prefixes()
 	return p;
 	}
 
-FILE* open_file(const char* filename, const char** full_filename)
+const char* PACKAGE_LOADER = "__load__.bro";
+
+// If filename is pointing to a directory that contains a file called
+// PACKAGE_LOADER, returns the files path. Otherwise returns filename itself.
+// In both cases, the returned string is newly allocated.
+static const char* check_for_dir(const char* filename, bool load_pkgs)
 	{
+	if ( load_pkgs && is_dir(filename) )
+		{
+		char init_filename_buf[1024];
+		safe_snprintf(init_filename_buf, sizeof(init_filename_buf),
+			      "%s/%s", filename, PACKAGE_LOADER);
+
+		if ( access(init_filename_buf, R_OK) == 0 )
+			return copy_string(init_filename_buf);
+		}
+
+	return copy_string(filename);
+	}
+
+FILE* open_file(const char* filename, const char** full_filename, bool load_pkgs)
+	{
+	filename = check_for_dir(filename, load_pkgs);
+
 	if ( full_filename )
 		*full_filename = copy_string(filename);
 
 	FILE* f = fopen(filename, "r");
 
+	delete [] filename;
+
 	return f;
 	}
 
-FILE* search_for_file(const char* filename, const char* ext,
-			const char** full_filename)
+// Canonicalizes a given 'file' that lives in 'path' into a flattened,
+// dotted format.  If the optional 'prefix' argument is given, it is
+// prepended to the dotted-format, separated by another dot.
+// If 'file' is __load__.bro, that part is discarded when constructing
+// the final dotted-format.
+string dot_canon(string path, string file, string prefix)
 	{
-	if ( filename[0] == '/' || filename[0] == '.' )
-		return open_file(filename, full_filename);
+	string dottedform(prefix);
+	if ( prefix != "" )
+		dottedform.append(".");
+	dottedform.append(path);
+	char* tmp = copy_string(file.c_str());
+	char* bname = basename(tmp);
+	if ( ! streq(bname, PACKAGE_LOADER) )
+		{
+		if ( path != "" )
+			dottedform.append(".");
+		dottedform.append(bname);
+		}
+	delete [] tmp;
+	size_t n;
+	while ( (n = dottedform.find("/")) != string::npos )
+		dottedform.replace(n, 1, ".");
+	return dottedform;
+	}
+
+// returns a normalized version of a path, removing duplicate slashes,
+// extraneous dots that refer to the current directory, and pops as many
+// parent directories referred to by "../" as possible
+const char* normalize_path(const char* path)
+	{
+	size_t n;
+	string p(path);
+	vector<string> components, final_components;
+	string new_path;
+
+	if ( p[0] == '/' )
+		new_path = "/";
+
+	while ( (n = p.find("/")) != string::npos )
+		{
+		components.push_back(p.substr(0, n));
+		p.erase(0, n + 1);
+		}
+	components.push_back(p);
+
+	vector<string>::const_iterator it;
+	for ( it = components.begin(); it != components.end(); ++it )
+		{
+		if ( *it == "" ) continue;
+		final_components.push_back(*it);
+
+		if ( *it == "." && it != components.begin() )
+			final_components.pop_back();
+		else if ( *it == ".." && final_components[0] != ".." )
+			{
+			final_components.pop_back();
+			final_components.pop_back();
+			}
+		}
+
+	for ( it = final_components.begin(); it != final_components.end(); ++it )
+		{
+		new_path.append(*it);
+		new_path.append("/");
+		}
+
+	if ( new_path.size() > 1 && new_path[new_path.size() - 1] == '/' )
+		new_path.erase(new_path.size() - 1);
+
+	return copy_string(new_path.c_str());
+	}
+
+// Returns the subpath of the root Bro script install/source/build directory in
+// which the loaded file is located.  If it's not under a subpath of that
+// directory (e.g. cwd or custom path) then the full path is returned.
+void get_script_subpath(const std::string& full_filename, const char** subpath)
+	{
+	size_t p;
+	std::string my_subpath(full_filename);
+
+	// get the parent directory of file (if not already a directory)
+	if ( ! is_dir(full_filename.c_str()) )
+		{
+		char* tmp = copy_string(full_filename.c_str());
+		my_subpath = dirname(tmp);
+		delete [] tmp;
+		}
+
+	// first check if this is some subpath of the installed scripts root path,
+	// if not check if it's a subpath of the script source root path,
+	// then check if it's a subpath of the build directory (where BIF scripts
+	// will get generated).
+	// If none of those, will just use the given directory.
+	if ( (p = my_subpath.find(BRO_SCRIPT_INSTALL_PATH)) != std::string::npos )
+		my_subpath.erase(0, strlen(BRO_SCRIPT_INSTALL_PATH));
+	else if ( (p = my_subpath.find(BRO_SCRIPT_SOURCE_PATH)) != std::string::npos )
+		my_subpath.erase(0, strlen(BRO_SCRIPT_SOURCE_PATH));
+	else if ( (p = my_subpath.find(BRO_BUILD_PATH)) != std::string::npos )
+		my_subpath.erase(0, strlen(BRO_BUILD_PATH));
+
+	// if root path found, remove path separators until next path component
+	if ( p != std::string::npos )
+		while ( my_subpath.size() && my_subpath[0] == '/' )
+			my_subpath.erase(0, 1);
+
+	*subpath = normalize_path(my_subpath.c_str());
+	}
+
+extern string current_scanned_file_path;
+
+FILE* search_for_file(const char* filename, const char* ext,
+			const char** full_filename, bool load_pkgs,
+			const char** bropath_subpath)
+	{
+	// If the file is a literal absolute path we don't have to search,
+	// just return the result of trying to open it.  If the file is
+	// might be a relative path, check first if it's a real file that
+	// can be referenced from cwd, else we'll try to search for it based
+	// on what path the currently-loading script is in as well as the
+	// standard BROPATH paths.
+	if ( filename[0] == '/' ||
+	    (filename[0] == '.' && access(filename, R_OK) == 0) )
+		{
+		if ( bropath_subpath )
+			{
+			char* tmp = copy_string(filename);
+			*bropath_subpath = copy_string(dirname(tmp));
+			delete [] tmp;
+			}
+		return open_file(filename, full_filename, load_pkgs);
+		}
 
 	char path[1024], full_filename_buf[1024];
-	safe_strncpy(path, bro_path(), sizeof(path));
+
+	// Prepend the currently loading script's path to BROPATH so that
+	// @loads can be referenced relatively.
+	if ( current_scanned_file_path != "" && filename[0] == '.' )
+		safe_snprintf(path, sizeof(path), "%s:%s",
+		              current_scanned_file_path.c_str(), bro_path());
+	else
+		safe_strncpy(path, bro_path(), sizeof(path));
 
 	char* dir_beginning = path;
 	char* dir_ending = path;
@@ -842,19 +1009,32 @@ FILE* search_for_file(const char* filename, const char* ext,
 				"%s/%s.%s", dir_beginning, filename, ext);
 		if ( access(full_filename_buf, R_OK) == 0 &&
 		     ! is_dir(full_filename_buf) )
-			return open_file(full_filename_buf, full_filename);
+			{
+			if ( bropath_subpath )
+				get_script_subpath(full_filename_buf, bropath_subpath);
+			return open_file(full_filename_buf, full_filename, load_pkgs);
+			}
 
 		safe_snprintf(full_filename_buf, sizeof(full_filename_buf),
 				"%s/%s", dir_beginning, filename);
-		if ( access(full_filename_buf, R_OK) == 0 &&
-		      ! is_dir(full_filename_buf) )
-			return open_file(full_filename_buf, full_filename);
+		if ( access(full_filename_buf, R_OK) == 0 )
+			{
+			if ( bropath_subpath )
+				get_script_subpath(full_filename_buf, bropath_subpath);
+			return open_file(full_filename_buf, full_filename, load_pkgs);
+			}
 
 		dir_beginning = ++dir_ending;
 		}
 
 	if ( full_filename )
 		*full_filename = copy_string(filename);
+	if ( bropath_subpath )
+			{
+			char* tmp = copy_string(filename);
+			*bropath_subpath = copy_string(dirname(tmp));
+			delete [] tmp;
+			}
 
 	return 0;
 	}
@@ -876,7 +1056,7 @@ FILE* rotate_file(const char* name, RecordVal* rotate_info)
 	FILE* newf = fopen(tmpname, "w");
 	if ( ! newf )
 		{
-		run_time(fmt("rotate_file: can't open %s: %s", tmpname, strerror(errno)));
+		reporter->Error("rotate_file: can't open %s: %s", tmpname, strerror(errno));
 		return 0;
 		}
 
@@ -885,7 +1065,7 @@ FILE* rotate_file(const char* name, RecordVal* rotate_info)
 	struct stat dummy;
 	if ( link(name, newname) < 0 || stat(newname, &dummy) < 0 )
 		{
-		run_time(fmt("rotate_file: can't move %s to %s: %s", name, newname, strerror(errno)));
+		reporter->Error("rotate_file: can't move %s to %s: %s", name, newname, strerror(errno));
 		fclose(newf);
 		unlink(newname);
 		unlink(tmpname);
@@ -895,7 +1075,7 @@ FILE* rotate_file(const char* name, RecordVal* rotate_info)
 	// Close current file, and move the tmp to its place.
 	if ( unlink(name) < 0 || link(tmpname, name) < 0 || unlink(tmpname) < 0 )
 		{
-		run_time(fmt("rotate_file: can't move %s to %s: %s", tmpname, name, strerror(errno)));
+		reporter->Error("rotate_file: can't move %s to %s: %s", tmpname, name, strerror(errno));
 		exit(1);	// hard to fix, but shouldn't happen anyway...
 		}
 
@@ -935,7 +1115,7 @@ double calc_next_rotate(double interval, const char* rotate_base_time)
 		{
 		struct tm t;
 		if ( ! strptime(rotate_base_time, "%H:%M", &t) )
-			run_time("calc_next_rotate(): can't parse rotation base time");
+			reporter->Error("calc_next_rotate(): can't parse rotation base time");
 		else
 			base = t.tm_min * 60 + t.tm_hour * 60 * 60;
 		}
@@ -998,7 +1178,7 @@ double current_time(bool real)
 	{
 	struct timeval tv;
 	if ( gettimeofday(&tv, 0) < 0 )
-		internal_error("gettimeofday failed in current_time()");
+		reporter->InternalError("gettimeofday failed in current_time()");
 
 	double t = double(tv.tv_sec) + double(tv.tv_usec) / 1e6;
 
@@ -1036,10 +1216,87 @@ int time_compare(struct timeval* tv_a, struct timeval* tv_b)
 		return tv_a->tv_sec - tv_b->tv_sec;
 	}
 
+struct UIDEntry {
+	UIDEntry() : key(0, 0), needs_init(true) { }
+	UIDEntry(const uint64 i) : key(i, 0), needs_init(false) { }
+
+	struct UIDKey {
+		UIDKey(uint64 i, uint64 c) : instance(i), counter(c) { }
+		uint64 instance;
+		uint64 counter;
+	} key;
+
+	bool needs_init;
+};
+
+static std::vector<UIDEntry> uid_pool;
+
+uint64 calculate_unique_id()
+	{
+	return calculate_unique_id(UID_POOL_DEFAULT_INTERNAL);
+	}
+
+uint64 calculate_unique_id(size_t pool)
+	{
+	uint64 uid_instance = 0;
+
+	if( pool >= uid_pool.size() )
+		{
+		if ( pool < 10000 )
+			uid_pool.resize(pool + 1);
+		else
+			{
+			reporter->Warning("pool passed to calculate_unique_id() too large, using default");
+			pool = UID_POOL_DEFAULT_INTERNAL;
+			}
+		}
+
+	if ( uid_pool[pool].needs_init )
+		{
+		// This is the first time we need a UID for this pool.
+		if ( ! have_random_seed() )
+			{
+			// If we don't need deterministic output (as
+			// indicated by a set seed), we calculate the
+			// instance ID by hashing something likely to be
+			// globally unique.
+			struct {
+				char hostname[120];
+				uint64 pool;
+				struct timeval time;
+				pid_t pid;
+				int rnd;
+			} unique;
+
+			memset(&unique, 0, sizeof(unique)); // Make valgrind happy.
+			gethostname(unique.hostname, 120);
+			unique.hostname[sizeof(unique.hostname)-1] = '\0';
+			gettimeofday(&unique.time, 0);
+			unique.pool = (uint64) pool;
+			unique.pid = getpid();
+			unique.rnd = bro_random();
+
+			uid_instance = HashKey::HashBytes(&unique, sizeof(unique));
+			++uid_instance; // Now it's larger than zero.
+			}
+		else
+			// Generate determistic UIDs for each individual pool.
+			uid_instance = pool;
+
+		// Our instance is unique.  Huzzah.
+		uid_pool[pool] = UIDEntry(uid_instance);
+		}
+
+	assert(!uid_pool[pool].needs_init);
+	assert(uid_pool[pool].key.instance != 0);
+
+	++uid_pool[pool].key.counter;
+	return HashKey::HashBytes(&(uid_pool[pool].key), sizeof(uid_pool[pool].key));
+	}
+
 void out_of_memory(const char* where)
 	{
-	fprintf( stderr, "bro: out of memory in %s.\n", where );
-	abort();
+	reporter->FatalError("out of memory in %s.\n", where);
 	}
 
 void get_memory_usage(unsigned int* total, unsigned int* malloced)

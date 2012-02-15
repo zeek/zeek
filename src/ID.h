@@ -1,5 +1,3 @@
-// $Id: ID.h 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef id_h
@@ -84,6 +82,9 @@ public:
 	void Describe(ODesc* d) const;
 	// Adds type and value to description.
 	void DescribeExtended(ODesc* d) const;
+	// Produces a description that's reST-ready.
+	void DescribeReST(ODesc* d, bool is_role=false) const;
+	void DescribeReSTShort(ODesc* d) const;
 
 	bool Serialize(SerialInfo* info) const;
 	static ID* Unserialize(UnserialInfo* info);

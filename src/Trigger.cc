@@ -1,5 +1,3 @@
-// $Id: Trigger.cc 2359 2005-12-21 23:55:32Z vern $
-
 #include <algorithm>
 
 #include "Trigger.h"
@@ -43,7 +41,7 @@ TraversalCode TriggerTraversalCallback::PreExpr(const Expr* expr)
 	case EXPR_INDEX:
 		{
 		const IndexExpr* e = static_cast<const IndexExpr*>(expr);
-		BroObj::SuppressRunTimeErrors no_errors;
+		BroObj::SuppressErrors no_errors;
 		Val* v = e->Eval(trigger->frame);
 		if ( v )
 			trigger->Register(v);
@@ -112,6 +110,8 @@ Trigger::Trigger(Expr* arg_cond, Stmt* arg_body, Stmt* arg_timeout_stmts,
 	is_return = arg_is_return;
 	location = arg_location;
 
+	++total_triggers;
+
 	DBG_LOG(DBG_NOTIFIERS, "%s: instantiating", Name());
 
 	if ( is_return )
@@ -119,7 +119,7 @@ Trigger::Trigger(Expr* arg_cond, Stmt* arg_body, Stmt* arg_timeout_stmts,
 		Trigger* parent = frame->GetTrigger();
 		if ( ! parent )
 			{
-			run_time("return trigger in context which does not allow delaying result");
+			reporter->Error("return trigger in context which does not allow delaying result");
 			Unref(this);
 			return;
 			}
@@ -130,11 +130,17 @@ Trigger::Trigger(Expr* arg_cond, Stmt* arg_body, Stmt* arg_timeout_stmts,
 
 	Val* timeout = arg_timeout ? arg_timeout->ExprVal() : 0;
 
+	// Make sure we don't get deleted if somebody calls a method like
+	// Timeout() while evaluating the trigger. 
+	Ref(this);
+
 	if ( ! Eval() && timeout )
 		{
 		timer = new TriggerTimer(timeout->AsInterval(), this);
 		timer_mgr->Add(timer);
 		}
+
+	Unref(this);
 	}
 
 Trigger::~Trigger()
@@ -161,6 +167,7 @@ void Trigger::Init()
 	}
 
 Trigger::TriggerList* Trigger::pending = 0;
+unsigned long Trigger::total_triggers = 0;
 
 bool Trigger::Eval()
 	{
@@ -408,4 +415,10 @@ const char* Trigger::Name()
 	assert(location);
 	return fmt("%s:%d-%d", location->filename,
 			location->first_line, location->last_line);
+	}
+
+void Trigger::GetStats(Stats* stats)
+	{
+	stats->total = total_triggers;
+	stats->pending = pending ? pending->size() : 0;
 	}

@@ -1,5 +1,3 @@
-// $Id: HTTP.h 6942 2009-11-16 03:54:08Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef http_h
@@ -31,17 +29,15 @@ public:
 			int expect_body);
 	~HTTP_Entity()
 		{
-#ifdef HAVE_LIBZ
 		if ( zip )
 			{ zip->Done(); delete zip; }
-#endif
 		}
 
 	void EndOfData();
 	void Deliver(int len, const char* data, int trailing_CRLF);
-	int Undelivered(int len);
-	int BodyLength() const 		{ return body_length; }
-	int HeaderLength() const 	{ return header_length; }
+	int Undelivered(int64_t len);
+	int64_t BodyLength() const 		{ return body_length; }
+	int64_t HeaderLength() const 	{ return header_length; }
 	void SkipBody() 		{ deliver_body = 0; }
 
 protected:
@@ -50,16 +46,14 @@ protected:
 
 	HTTP_Message* http_message;
 	int chunked_transfer_state;
-	int content_length;
-	int expect_data_length;
+	int64_t content_length;
+	int64_t expect_data_length;
 	int expect_body;
-	int body_length;
-	int header_length;
+	int64_t body_length;
+	int64_t header_length;
 	int deliver_body;
 	enum { IDENTITY, GZIP, COMPRESS, DEFLATE } encoding;
-#ifdef HAVE_LIBZ
 	ZIP_Analyzer* zip;
-#endif
 
 	MIME_Entity* NewChildEntity() { return new HTTP_Entity(http_message, this, 1); }
 
@@ -68,7 +62,7 @@ protected:
 
 	void SubmitData(int len, const char* buf);
 
-	void SetPlainDelivery(int length);
+	void SetPlainDelivery(int64_t length);
 
 	void SubmitHeader(MIME_Header* h);
 	void SubmitAllHeaders();
@@ -94,12 +88,12 @@ enum {
 class HTTP_Message : public MIME_Message {
 public:
 	HTTP_Message(HTTP_Analyzer* analyzer, ContentLine_Analyzer* cl,
-			 bool is_orig, int expect_body, int init_header_length);
+			 bool is_orig, int expect_body, int64_t init_header_length);
 	~HTTP_Message();
 	void Done(const int interrupted, const char* msg);
 	void Done() { Done(0, "message ends normally"); }
 
-	int Undelivered(int len);
+	int Undelivered(int64_t len);
 
 	void BeginEntity(MIME_Entity* /* entity */);
 	void EndEntity(MIME_Entity* entity);
@@ -111,7 +105,7 @@ public:
 	void SubmitEvent(int event_type, const char* detail);
 
 	void SubmitTrailingHeaders(MIME_HeaderList& /* hlist */);
-	void SetPlainDelivery(int length);
+	void SetPlainDelivery(int64_t length);
 	void SkipEntityData();
 
 	HTTP_Analyzer* MyHTTP_Analyzer() const
@@ -135,16 +129,16 @@ protected:
 
 	double start_time;
 
-	int body_length;	// total length of entity bodies
-	int header_length;	// total length of headers, including the request/reply line
+	int64_t body_length;	// total length of entity bodies
+	int64_t header_length;	// total length of headers, including the request/reply line
 
 	// Total length of content gaps that are "successfully" skipped.
 	// Note: this might NOT include all content gaps!
-	int content_gap_length;
+	int64_t content_gap_length;
 
 	HTTP_Entity* current_entity;
 
-	int InitBuffer(int length);
+	int InitBuffer(int64_t length);
 	void DeliverEntityData();
 
 	Val* BuildMessageStat(const int interrupted, const char* msg);
@@ -165,12 +159,13 @@ public:
 
 	void SkipEntityData(int is_orig);
 
+	int IsConnectionClose()		{ return connection_close; }
+	int HTTP_ReplyCode() const { return reply_code; };
+
 	// Overriden from Analyzer.
 	virtual void Done();
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
 	virtual void Undelivered(int seq, int len, bool orig);
-	virtual int RewritingTrace()
-		{ return rewriting_http_trace || TCP_ApplicationAnalyzer::RewritingTrace(); }
 
 	// Overriden from TCP_ApplicationAnalyzer
 	virtual void EndpointEOF(bool is_orig);
@@ -182,9 +177,10 @@ public:
 		{ return new HTTP_Analyzer(conn); }
 
 	static bool Available()
-		{ return (http_request || http_reply) && !FLAGS_use_binpac; }
-
-	int IsConnectionClose()		{ return connection_close; }
+		{ return (http_request || http_reply || http_header ||
+			http_all_headers || http_begin_entity || http_end_entity ||
+			http_content_type || http_entity_data || http_message_done ||
+			http_event || http_stats) && !FLAGS_use_binpac; }
 
 protected:
 	void GenStats();
@@ -193,7 +189,7 @@ protected:
 	int HTTP_ReplyLine(const char* line, const char* end_of_line);
 
 	void InitHTTPMessage(ContentLine_Analyzer* cl, HTTP_Message*& message, bool is_orig,
-				int expect_body, int init_header_length);
+				int expect_body, int64_t init_header_length);
 
 	const char* PrefixMatch(const char* line, const char* end_of_line,
 				const char* prefix);

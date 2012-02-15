@@ -14,17 +14,8 @@
 /* Define if you have the `getopt_long' function. */
 #cmakedefine HAVE_GETOPT_LONG
 
-/* Define if you have the `magic' library (-lmagic). */
-#cmakedefine HAVE_LIBMAGIC
-
-/* Define if you have the `z' library (-lz). */
-#cmakedefine HAVE_LIBZ
-
 /* We are on a Linux system */
 #cmakedefine HAVE_LINUX
-
-/* Define if you have the <magic.h> header file. */
-#cmakedefine HAVE_MAGIC_H
 
 /* Define if you have the `mallinfo' function. */
 #cmakedefine HAVE_MALLINFO
@@ -41,8 +32,8 @@
 /* Define if you have the <net/ethernet.h> header file. */
 #cmakedefine HAVE_NET_ETHERNET_H
 
-/* We are on a OpenBSD system */
-#cmakedefine HAVE_OPENBSD
+/* Define if you have the <net/ethertypes.h> header file. */
+#cmakedefine HAVE_NET_ETHERTYPES_H
 
 /* have os-proto.h */
 #cmakedefine HAVE_OS_PROTO_H
@@ -114,6 +105,12 @@
 /* GeoIP geographic lookup functionality */
 #cmakedefine USE_GEOIP
 
+/* Whether the found GeoIP API supports IPv6 Country Edition */
+#cmakedefine HAVE_GEOIP_COUNTRY_EDITION_V6
+
+/* Whether the found GeoIP API supports IPv6 City Edition */
+#cmakedefine HAVE_GEOIP_CITY_EDITION_REV0_V6
+
 /* Use Google's perftools */
 #cmakedefine USE_PERFTOOLS
 
@@ -130,19 +127,28 @@
 #endif
 
 /* Define int32_t */
-#define int32_t @INT32_T@
+#cmakedefine int32_t @int32_t@
 
 /* use sigset() instead of signal() */
-#define signal @SIG_FUNC@
+#ifdef HAVE_SIGSET
+#define signal sigset
+#endif
 
 /* define to int if socklen_t not available */
-#define socklen_t @SOCKLEN_T@
+#cmakedefine socklen_t @socklen_t@
 
 /* Define u_int16_t */
-#define u_int16_t @U_INT16_T@
+#cmakedefine u_int16_t @u_int16_t@
 
 /* Define u_int32_t */
-#define u_int32_t @U_INT32_T@
+#cmakedefine u_int32_t @u_int32_t@
 
 /* Define u_int8_t */
-#define u_int8_t @U_INT8_T@
+#cmakedefine u_int8_t @u_int8_t@
+
+/* OpenBSD's bpf.h may not declare this data link type, but it's supposed to be
+   used consistently for the same purpose on all platforms. */
+#cmakedefine HAVE_DLT_PPP_SERIAL
+#ifndef HAVE_DLT_PPP_SERIAL
+#define DLT_PPP_SERIAL @DLT_PPP_SERIAL@
+#endif

@@ -1,5 +1,3 @@
-// $Id: Dict.cc 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -9,6 +7,7 @@
 #endif
 
 #include "Dict.h"
+#include "Reporter.h"
 
 // If the mean bucket length exceeds the following then Insert() will
 // increase the size of the hash table.
@@ -69,6 +68,19 @@ Dictionary::Dictionary(dict_order ordering, int initial_size)
 
 Dictionary::~Dictionary()
 	{
+	DeInit();
+	delete order;
+	}
+
+void Dictionary::Clear()
+	{
+	DeInit();
+	Init(2);
+	tbl2 = 0;
+	}
+
+void Dictionary::DeInit()
+	{
 	for ( int i = 0; i < num_buckets; ++i )
 		if ( tbl[i] )
 			{
@@ -85,7 +97,6 @@ Dictionary::~Dictionary()
 			}
 
 	delete [] tbl;
-	delete order;
 
 	if ( tbl2 == 0 )
 		return;
@@ -104,7 +115,9 @@ Dictionary::~Dictionary()
 
 			delete chain;
 			}
+
 	delete [] tbl2;
+	tbl2 = 0;
 	}
 
 void* Dictionary::Lookup(const void* key, int key_size, hash_t hash) const
@@ -474,7 +487,7 @@ void Dictionary::StartChangeSize(int new_size)
 		return;
 
 	if ( tbl2 )
-		internal_error("Dictionary::StartChangeSize() tbl2 not NULL");
+		reporter->InternalError("Dictionary::StartChangeSize() tbl2 not NULL");
 
 	Init2(new_size);
 
@@ -521,7 +534,7 @@ void Dictionary::FinishChangeSize()
 	{
 	// Cheap safety check.
 	if ( num_entries != 0 )
-		internal_error(
+		reporter->InternalError(
 		    "Dictionary::FinishChangeSize: num_entries is %d\n",
 		    num_entries);
 

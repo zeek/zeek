@@ -1,10 +1,9 @@
-// $Id: SerializationFormat.cc 5873 2008-06-28 19:25:03Z vern $
-
 #include <ctype.h>
 
 #include "net_util.h"
 #include "SerializationFormat.h"
 #include "Serializer.h"
+#include "Reporter.h"
 
 SerializationFormat::SerializationFormat()
 	{
@@ -21,6 +20,7 @@ void SerializationFormat::StartRead(char* data, uint32 arg_len)
 	input = data;
 	input_len = arg_len;
 	input_pos = 0;
+	bytes_read = 0;
 	}
 
 void SerializationFormat::EndRead()
@@ -57,13 +57,15 @@ bool SerializationFormat::ReadData(void* b, size_t count)
 	{
 	if ( input_pos + count > input_len )
 		{
-		error("data underflow during read in binary format");
+		reporter->Error("data underflow during read in binary format");
 		abort();
 		return false;
 		}
 
 	memcpy(b, input + input_pos, count);
 	input_pos += count;
+	bytes_read += count;
+
 	return true;
 	}
 
@@ -201,7 +203,7 @@ bool BinarySerializationFormat::Read(char** str, int* len, const char* tag)
 		for ( int i = 0; i < l; i++ )
 			if ( ! s[i] )
 				{
-				error("binary Format: string contains null; replaced by '_'");
+				reporter->Error("binary Format: string contains null; replaced by '_'");
 				s[i] = '_';
 				}
 		}
@@ -211,6 +213,20 @@ bool BinarySerializationFormat::Read(char** str, int* len, const char* tag)
 	*str = s;
 
 	DBG_LOG(DBG_SERIAL, "Read %d bytes |%s| [%s]", l, fmt_bytes(*str, l), tag);
+	return true;
+	}
+
+bool BinarySerializationFormat::Read(string* v, const char* tag)
+	{
+	char* buffer;
+	int len;
+
+	if ( ! Read(&buffer, &len, tag) )
+		return false;
+
+	*v = string(buffer, len);
+
+	delete [] buffer;
 	return true;
 	}
 
@@ -278,6 +294,11 @@ bool BinarySerializationFormat::Write(const char* s, const char* tag)
 	return Write(s, strlen(s), tag);
 	}
 
+bool BinarySerializationFormat::Write(const string& s, const char* tag)
+	{
+	return Write(s.data(), s.size(), tag);
+	}
+
 bool BinarySerializationFormat::WriteOpenTag(const char* tag)
 	{
 	return true;
@@ -310,55 +331,61 @@ XMLSerializationFormat::~XMLSerializationFormat()
 
 bool XMLSerializationFormat::Read(int* v, const char* tag)
 	{
-	internal_error("no reading of xml");
+	reporter->InternalError("no reading of xml");
 	return false;
 	}
 
 bool XMLSerializationFormat::Read(uint16* v, const char* tag)
 	{
-	internal_error("no reading of xml");
+	reporter->InternalError("no reading of xml");
 	return false;
 	}
 
 bool XMLSerializationFormat::Read(uint32* v, const char* tag)
 	{
-	internal_error("no reading of xml");
+	reporter->InternalError("no reading of xml");
 	return false;
 	}
 
 bool XMLSerializationFormat::Read(int64* v, const char* tag)
 	{
-	internal_error("no reading of xml");
+	reporter->InternalError("no reading of xml");
 	return false;
 	}
 
 bool XMLSerializationFormat::Read(uint64* v, const char* tag)
 	{
-	internal_error("no reading of xml");
+	reporter->InternalError("no reading of xml");
 	return false;
 	}
 
 bool XMLSerializationFormat::Read(bool* v, const char* tag)
 	{
-	internal_error("no reading of xml");
+	reporter->InternalError("no reading of xml");
 	return false;
 	}
 
 bool XMLSerializationFormat::Read(double* d, const char* tag)
 	{
-	internal_error("no reading of xml");
+	reporter->InternalError("no reading of xml");
 	return false;
 	}
 
 bool XMLSerializationFormat::Read(char* v, const char* tag)
 	{
-	internal_error("no reading of xml");
+	reporter->InternalError("no reading of xml");
 	return false;
 	}
 
 bool XMLSerializationFormat::Read(char** str, int* len, const char* tag)
 	{
-	internal_error("no reading of xml");
+	reporter->InternalError("no reading of xml");
+	return false;
+	}
+
+bool XMLSerializationFormat::Read(string* s, const char* tag)
+	{
+	reporter->InternalError("no reading of xml");
 	return false;
 	}
 
@@ -369,25 +396,25 @@ bool XMLSerializationFormat::Write(char v, const char* tag)
 
 bool XMLSerializationFormat::Write(uint16 v, const char* tag)
 	{
-	const char* tmp = fmt("%u", v);
+	const char* tmp = fmt("%" PRIu16, v);
 	return WriteElem(tag, "uint16", tmp, strlen(tmp));
 	}
 
 bool XMLSerializationFormat::Write(uint32 v, const char* tag)
 	{
-	const char* tmp = fmt("%u", v);
+	const char* tmp = fmt("%"PRIu32, v);
 	return WriteElem(tag, "uint32", tmp, strlen(tmp));
 	}
 
 bool XMLSerializationFormat::Write(uint64 v, const char* tag)
 	{
-	const char* tmp = fmt("%llu", v);
+	const char* tmp = fmt("%"PRIu64, v);
 	return WriteElem(tag, "uint64", tmp, strlen(tmp));
 	}
 
 bool XMLSerializationFormat::Write(int64 v, const char* tag)
 	{
-	const char* tmp = fmt("%lld", v);
+	const char* tmp = fmt("%"PRId64, v);
 	return WriteElem(tag, "int64", tmp, strlen(tmp));
 	}
 
@@ -414,6 +441,11 @@ bool XMLSerializationFormat::Write(bool v, const char* tag)
 bool XMLSerializationFormat::Write(const char* s, const char* tag)
 	{
 	return WriteElem(tag, "string", s, strlen(s));
+	}
+
+bool XMLSerializationFormat::Write(const string& s, const char* tag)
+	{
+	return WriteElem(tag, "string", s.data(), s.size());
 	}
 
 bool XMLSerializationFormat::WriteOpenTag(const char* tag)

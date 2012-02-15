@@ -1,11 +1,11 @@
-// $Id: Desc.h 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef descriptor_h
 #define descriptor_h
 
 #include <stdio.h>
+#include <list>
+#include <utility>
 #include "BroString.h"
 
 typedef enum {
@@ -17,6 +17,7 @@ typedef enum {
 typedef enum {
 	STANDARD_STYLE,
 	ALTERNATIVE_STYLE,
+	RAW_STYLE,
 } desc_style;
 
 class BroFile;
@@ -49,9 +50,21 @@ public:
 
 	void SetFlush(int arg_do_flush)	{ do_flush = arg_do_flush; }
 
+	void EnableEscaping();
+	void AddEscapeSequence(const char* s) { escape_sequences.push_back(s); }
+	void AddEscapeSequence(const char* s, size_t n)
+	    { escape_sequences.push_back(string(s, n)); }
+	void RemoveEscapeSequence(const char* s) { escape_sequences.remove(s); }
+	void RemoveEscapeSequence(const char* s, size_t n)
+	    { escape_sequences.remove(string(s, n)); }
+
 	void PushIndent();
 	void PopIndent();
+	void PopIndentNoNL();
 	int GetIndentLevel() const	{ return indent_level; }
+
+	int IndentSpaces() const	{ return indent_with_spaces; }
+	void SetIndentSpaces(int i)	{ indent_with_spaces = i; }
 
 	void Add(const char* s, int do_indent=1);
 	void AddN(const char* s, int len)	{ AddBytes(s, len); }
@@ -93,6 +106,9 @@ public:
 				Add("\n", 0);
 			}
 
+	// Bypasses the escaping enabled via SetEscape().
+	void AddRaw(const char* s, int len)	{ AddBytesRaw(s, len); }
+
 	// Returns the description as a string.
 	const char* Description() const		{ return (const char*) base; }
 
@@ -111,15 +127,31 @@ public:
 
 	int Len() const		{ return offset; }
 
+	void Clear();
+
 protected:
 	void Indent();
 
 	void AddBytes(const void* bytes, unsigned int n);
+	void AddBytesRaw(const void* bytes, unsigned int n);
 
 	// Make buffer big enough for n bytes beyond bufp.
 	void Grow(unsigned int n);
 
 	void OutOfMemory();
+
+	/**
+	 * Returns the location of the first place in the bytes to be hex-escaped.
+	 *
+	 * @param bytes the starting memory address to start searching for
+	 *        escapable character.
+	 * @param n the maximum number of bytes to search.
+	 * @return a pair whose first element represents a starting memory address
+	 *         to be escaped up to the number of characters indicated by the
+	 *         second element.  The first element may be 0 if nothing is
+	 *         to be escaped.
+	 */
+	pair<const char*, size_t> FirstEscapeLoc(const char* bytes, size_t n);
 
 	desc_type type;
 	desc_style style;
@@ -128,6 +160,9 @@ protected:
 	unsigned int offset;	// where we are in the buffer
 	unsigned int size;	// size of buffer in bytes
 
+	bool escape;	// escape unprintable characters in output?
+	list<string> escape_sequences; // additional sequences of chars to escape
+
 	BroFile* f;	// or the file we're using.
 
 	int indent_level;
@@ -135,6 +170,7 @@ protected:
 	int want_quotes;
 	int do_flush;
 	int include_stats;
+	int indent_with_spaces;
 };
 
 #endif

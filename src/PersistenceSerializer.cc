@@ -1,5 +1,3 @@
-// $Id: PersistenceSerializer.cc 6752 2009-06-14 04:24:52Z vern $
-
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
@@ -13,7 +11,7 @@
 #include "RemoteSerializer.h"
 #include "Conn.h"
 #include "Event.h"
-#include "Logger.h"
+#include "Reporter.h"
 #include "Net.h"
 
 class IncrementalWriteTimer : public Timer {
@@ -189,7 +187,7 @@ void PersistenceSerializer::RaiseFinishedSendState()
 	vl->append(new PortVal(remote_port));
 
 	mgr.QueueEvent(finished_send_state, vl);
-	bro_logger->Log("Serialization done.");
+	reporter->Log("Serialization done.");
 	}
 #endif
 
@@ -202,7 +200,13 @@ void PersistenceSerializer::GotEvent(const char* name, double time,
 void PersistenceSerializer::GotFunctionCall(const char* name, double time,
 					Func* func, val_list* args)
 	{
-	func->Call(args);
+	try
+		{
+		func->Call(args);
+		}
+
+	catch ( InterpreterException& e )
+		{ /* Already reported. */ }
 	}
 
 void PersistenceSerializer::GotStateAccess(StateAccess* s)
@@ -213,7 +217,7 @@ void PersistenceSerializer::GotStateAccess(StateAccess* s)
 
 void PersistenceSerializer::GotTimer(Timer* s)
 	{
-	run_time("PersistenceSerializer::GotTimer not implemented");
+	reporter->Error("PersistenceSerializer::GotTimer not implemented");
 	}
 
 void PersistenceSerializer::GotConnection(Connection* c)
@@ -228,7 +232,7 @@ void PersistenceSerializer::GotID(ID* id, Val* /* val */)
 
 void PersistenceSerializer::GotPacket(Packet* p)
 	{
-	run_time("PersistenceSerializer::GotPacket not implemented");
+	reporter->Error("PersistenceSerializer::GotPacket not implemented");
 	}
 
 bool PersistenceSerializer::LogAccess(const StateAccess& s)
@@ -286,7 +290,7 @@ bool PersistenceSerializer::SendState(SourceID peer, bool may_suspend)
 	status->conns = &persistent_conns;
 	status->peer = peer;
 
-	bro_logger->Log("Sending state...");
+	reporter->Info("Sending state...");
 
 	return RunSerialization(status);
 	}
@@ -301,7 +305,7 @@ bool PersistenceSerializer::SendConfig(SourceID peer, bool may_suspend)
 	status->ids = global_scope()->GetIDs();
 	status->peer = peer;
 
-	bro_logger->Log("Sending config...");
+	reporter->Info("Sending config...");
 
 	return RunSerialization(status);
 	}
@@ -319,8 +323,7 @@ bool PersistenceSerializer::RunSerialization(SerialStatus* status)
 			{
 			if ( running[i]->type == status->type )
 				{
-				// ### We don't report this anymore as it would go to stderr.
-				// Warning(fmt("Serialization of type %d already running.", status->type));
+				reporter->Warning("Serialization of type %d already running.", status->type);
 				return false;
 				}
 			}
@@ -348,9 +351,6 @@ bool PersistenceSerializer::RunSerialization(SerialStatus* status)
 			status->conn_cookie = status->conns->InitForIteration();
 			status->conns->MakeRobustCookie(status->conn_cookie);
 			}
-
-		if ( status->info.may_suspend )
-			bro_logger->Log("Starting incremental serialization...");
 		}
 
 	else if ( cont->ChildSuspended() )
@@ -385,14 +385,14 @@ bool PersistenceSerializer::RunSerialization(SerialStatus* status)
 			}
 
 		else
-			internal_error("unknown suspend state");
+			reporter->InternalError("unknown suspend state");
 		}
 
 	else if ( cont->Resuming() )
 		cont->Resume();
 
 	else
-		internal_error("unknown continuation state");
+		reporter->InternalError("unknown continuation state");
 
 	if ( status->id_cookie )
 		{
@@ -480,9 +480,6 @@ bool PersistenceSerializer::RunSerialization(SerialStatus* status)
 			}
 		}
 
-	if ( status->info.may_suspend )
-		bro_logger->Log("Finished incremental serialization.");
-
 	delete status;
 	return ret;
 	}
@@ -511,7 +508,7 @@ bool PersistenceSerializer::DoIDSerialization(SerialStatus* status, ID* id)
 		break;
 
 	default:
-		internal_error("unknown serialization type");
+		reporter->InternalError("unknown serialization type");
 	}
 
 	return success;
@@ -542,7 +539,7 @@ bool PersistenceSerializer::DoConnSerialization(SerialStatus* status,
 		break;
 
 	default:
-		internal_error("unknown serialization type");
+		reporter->InternalError("unknown serialization type");
 	}
 
 	return success;
@@ -567,7 +564,7 @@ bool PersistenceSerializer::DoAccessSerialization(SerialStatus* status,
 		break;
 
 	default:
-		internal_error("unknown serialization type");
+		reporter->InternalError("unknown serialization type");
 	}
 
 	return success;

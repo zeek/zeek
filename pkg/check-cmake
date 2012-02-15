@@ -1,0 +1,14 @@
+#!/bin/sh
+
+# CMake/CPack versions before 2.8.3 have bugs that can create bad packages
+# Since packages will be built on several different systems, a single
+# version of CMake is required to obtain consistency, but can be increased
+# as new versions of CMake come out that also produce working packages.
+
+CMAKE_PACK_REQ="cmake version 2.8.6"
+CMAKE_VER=`cmake -version`
+
+if [ "${CMAKE_VER}" != "${CMAKE_PACK_REQ}" ]; then
+    echo "Package creation requires ${CMAKE_PACK_REQ}" >&2
+    exit 1
+fi

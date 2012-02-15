@@ -1,5 +1,3 @@
-// $Id: Ident.h 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef ident_h
@@ -14,11 +12,6 @@ public:
 	virtual void Done();
 
 	virtual void DeliverStream(int length, const u_char* data, bool is_orig);
-	virtual int RewritingTrace()
-		{
-		return rewriting_ident_trace ||
-			TCP_ApplicationAnalyzer::RewritingTrace();
-		}
 
 	static Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new Ident_Analyzer(conn); }

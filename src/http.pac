@@ -1,5 +1,3 @@
-# $Id:$
-
 %include binpac.pac
 %include bro.pac
 

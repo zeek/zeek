@@ -1,0 +1,40 @@
+#!/bin/sh
+
+# This script generates binary RPM packages.
+# They can be found in ../build/ after running.
+
+./check-cmake || { exit 1; }
+
+# The RPM CPack generator depends on `rpmbuild` to create packages
+type rpmbuild > /dev/null 2>&1 || {
+    echo "\
+Creating RPM packages requires the "rpmbuild" command, usually provided by
+the 'rpm-build' package, please install it first.
+" >&2;
+    exit 1;
+}
+
+prefix=/opt/bro
+
+cd ..
+
+# Minimum Bro
+./configure --prefix=${prefix} --disable-broccoli --disable-broctl \
+            --pkg-name-prefix=Bro-minimal --binary-package
+( cd build && make package )
+
+# Full Bro package
+./configure --prefix=${prefix} --pkg-name-prefix=Bro --binary-package
+( cd build && make package )
+
+# Broccoli
+cd aux/broccoli
+./configure --prefix=${prefix} --binary-package
+( cd build && make package && mv *.rpm ../../../build/ )
+cd ../..
+
+# Broctl
+cd aux/broctl
+./configure --prefix=${prefix} --binary-package
+( cd build && make package && mv *.rpm ../../../build/ )
+cd ../..

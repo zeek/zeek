@@ -1,11 +1,8 @@
-// $Id: TCP_Endpoint.cc 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "Net.h"
 #include "NetVar.h"
 #include "TCP.h"
-#include "TCP_Rewriter.h"
 #include "TCP_Reassembler.h"
 #include "Sessions.h"
 #include "Event.h"
@@ -209,7 +206,7 @@ int TCP_Endpoint::DataSent(double t, int seq, int len, int caplen,
 
 		if ( fwrite(data, 1, len, f) < unsigned(len) )
 			// ### this should really generate an event
-			internal_error("contents write failed");
+			reporter->InternalError("contents write failed");
 		}
 
 	return status;

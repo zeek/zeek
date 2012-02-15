@@ -1,5 +1,3 @@
-// $Id: input.h 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef input_h
@@ -30,6 +28,8 @@ extern void do_atifdef(const char* id);
 extern void do_atifndef(const char* id);
 extern void do_atelse();
 extern void do_atendif();
+extern void do_doc_token_start();
+extern void do_doc_token_stop();
 
 extern int line_number;
 extern const char* filename;
@@ -46,9 +46,5 @@ class Stmt;
 extern Stmt* stmts;	// global statements
 
 extern int optimize;
-
-extern int nwarn;
-extern int nerr;
-extern int nruntime;
 
 #endif

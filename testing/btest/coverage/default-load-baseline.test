@@ -1,0 +1,14 @@
+# This test is meant to cover whether the set of scripts that get loaded by
+# default matches a baseline of known defaults.  When new scripts are
+# added to the scripts/base/ directory, the baseline will usually just need
+# to be updated.
+#
+# As the output has absolute paths in it, we need to remove the common
+# prefix to make the test work everywhere. That's what the sed magic
+# below does. Don't ask. :-)
+
+# @TEST-EXEC: bro misc/loaded-scripts
+# @TEST-EXEC: test -e loaded_scripts.log
+# @TEST-EXEC: cat loaded_scripts.log | egrep -v '#' | sed 's/ //g' | sed -e ':a' -e '$!N' -e 's/^\(.*\).*\n\1.*/\1/' -e 'ta' >prefix
+# @TEST-EXEC: cat loaded_scripts.log | sed "s#`cat prefix`##g" >canonified_loaded_scripts.log
+# @TEST-EXEC: btest-diff canonified_loaded_scripts.log

@@ -1,5 +1,3 @@
-// $Id: Var.h 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef var_h
@@ -27,6 +25,7 @@ extern void begin_func(ID* id, const char* module_name, function_flavor flavor,
 extern void end_func(Stmt* body, attr_list* attrs = 0);
 
 extern Val* internal_val(const char* name);
+extern Val* internal_const_val(const char* name); // internal error if not const
 extern Val* opt_internal_val(const char* name);	// returns nil if not defined
 extern double opt_internal_double(const char* name);
 extern bro_int_t opt_internal_int(const char* name);
@@ -38,7 +37,6 @@ extern BroType* internal_type(const char* name);
 extern Func* internal_func(const char* name);
 extern EventHandlerPtr internal_handler(const char* name);
 
-extern EventHandlerPtr bro_signal;
 extern int signal_val;	// 0 if no signal pending
 
 #endif

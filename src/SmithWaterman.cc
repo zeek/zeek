@@ -1,5 +1,3 @@
-// $Id: SmithWaterman.cc 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -10,6 +8,7 @@
 #include "SmithWaterman.h"
 #include "Var.h"
 #include "util.h"
+#include "Reporter.h"
 
 BroSubstring::BroSubstring(const BroSubstring& bst)
 : BroString((const BroString&) bst), _new(bst._new)
@@ -185,7 +184,7 @@ bool BroSubstringCmp::operator()(const BroSubstring* bst1,
 	if ( _index >= bst1->GetNumAlignments() ||
 	     _index >= bst2->GetNumAlignments() )
 		{
-		warn("BroSubstringCmp::operator(): invalid index for input strings.\n");
+		reporter->Warning("BroSubstringCmp::operator(): invalid index for input strings.\n");
 		return false;
 		}
 

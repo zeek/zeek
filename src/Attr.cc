@@ -1,5 +1,3 @@
-// $Id: Attr.cc 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -7,6 +5,7 @@
 #include "Attr.h"
 #include "Expr.h"
 #include "Serializer.h"
+#include "LogMgr.h"
 
 const char* attr_name(attr_tag t)
 	{
@@ -18,7 +17,7 @@ const char* attr_name(attr_tag t)
 		"&persistent", "&synchronized", "&postprocessor",
 		"&encrypt", "&match", "&disable_print_hook",
 		"&raw_output", "&mergeable", "&priority",
-		"&group", "(&tracked)",
+		"&group", "&log", "&error_handler", "(&tracked)",
 	};
 
 	return attr_names[int(t)];
@@ -49,6 +48,40 @@ void Attr::Describe(ODesc* d) const
 		}
 	}
 
+void Attr::DescribeReST(ODesc* d) const
+	{
+	d->Add(":bro:attr:`");
+	AddTag(d);
+	d->Add("`");
+
+	if ( expr )
+		{
+		d->SP();
+		d->Add("=");
+		d->SP();
+
+
+		if ( expr->Tag() == EXPR_NAME )
+			{
+			d->Add(":bro:see:`");
+			expr->Describe(d);
+			d->Add("`");
+			}
+
+		else if ( expr->Type()->Tag() == TYPE_FUNC )
+			{
+			d->Add(":bro:type:`func`");
+			}
+
+		else
+			{
+			d->Add("``");
+			expr->Describe(d);
+			d-> Add("``");
+			}
+		}
+	}
+
 void Attr::AddTag(ODesc* d) const
 	{
 	if ( d->IsBinary() )
@@ -57,10 +90,11 @@ void Attr::AddTag(ODesc* d) const
 		d->Add(attr_name(Tag()));
 	}
 
-Attributes::Attributes(attr_list* a, BroType* t)
+Attributes::Attributes(attr_list* a, BroType* t, bool arg_in_record)
 	{
 	attrs = new attr_list(a->length());
 	type = t->Ref();
+	in_record = arg_in_record;
 
 	SetLocationInfo(&start_location, &end_location);
 
@@ -161,6 +195,17 @@ void Attributes::Describe(ODesc* d) const
 		}
 	}
 
+void Attributes::DescribeReST(ODesc* d) const
+	{
+	loop_over_list(*attrs, i)
+		{
+		if ( i > 0 )
+			d->Add(" ");
+
+		(*attrs)[i]->DescribeReST(d);
+		}
+	}
+
 void Attributes::CheckAttr(Attr* a)
 	{
 	switch ( a->Tag() ) {
@@ -199,27 +244,72 @@ void Attributes::CheckAttr(Attr* a)
 		{
 		BroType* atype = a->AttrExpr()->Type();
 
-		if ( type->Tag() != TYPE_TABLE || type->IsSet() )
+		if ( type->Tag() != TYPE_TABLE || (type->IsSet() && ! in_record) )
 			{
-			if ( ! same_type(atype, type) )
-				a->AttrExpr()->Error("&default value has inconsistent type", type);
-			break;
+			if ( same_type(atype, type) )
+				// Ok.
+				break;
+
+			// Record defaults may be promotable.
+			if ( (type->Tag() == TYPE_RECORD && atype->Tag() == TYPE_RECORD &&
+			      record_promotion_compatible(atype->AsRecordType(),
+							  type->AsRecordType())) )
+				// Ok.
+				break;
+
+			a->AttrExpr()->Error("&default value has inconsistent type", type);
 			}
 
 		TableType* tt = type->AsTableType();
+		BroType* ytype = tt->YieldType();
 
-		if ( ! same_type(atype, tt->YieldType()) )
+		if ( ! in_record )
 			{
-			// It can still be a default function.
-			if ( atype->Tag() == TYPE_FUNC )
+			// &default applies to the type itself.
+			if ( ! same_type(atype, ytype) )
 				{
-				FuncType* f = atype->AsFuncType();
-				if ( ! f->CheckArgs(tt->IndexTypes()) ||
-				     ! same_type(f->YieldType(), tt->YieldType()) )
-					Error("&default function type clash");
+				// It can still be a default function.
+				if ( atype->Tag() == TYPE_FUNC )
+					{
+					FuncType* f = atype->AsFuncType();
+					if ( ! f->CheckArgs(tt->IndexTypes()) ||
+					     ! same_type(f->YieldType(), ytype) )
+						Error("&default function type clash");
+
+					// Ok.
+					break;
+					}
+
+				// Table defaults may be promotable.
+				if ( (ytype->Tag() == TYPE_RECORD && atype->Tag() == TYPE_RECORD &&
+				      record_promotion_compatible(atype->AsRecordType(),
+								  ytype->AsRecordType())) )
+					// Ok.
+					break;
+
+				Error("&default value has inconsistent type 2");
 				}
-			else
-				Error("&default value has inconsistent type");
+
+			// Ok.
+			break;
+			}
+
+		else
+			{
+			// &default applies to record field.
+
+			if ( same_type(atype, type) ||
+			     (atype->Tag() == TYPE_TABLE && atype->AsTableType()->IsUnspecifiedTable()) )
+				// Ok.
+				break;
+
+			// Table defaults may be promotable.
+			if ( (ytype->Tag() == TYPE_RECORD && atype->Tag() == TYPE_RECORD &&
+			      record_promotion_compatible(atype->AsRecordType(), ytype->AsRecordType())) )
+				// Ok.
+				break;
+
+			Error("&default value has inconsistent type");
 			}
 		}
 		break;
@@ -316,15 +406,58 @@ void Attributes::CheckAttr(Attr* a)
 	case ATTR_GROUP:
 		if ( type->Tag() != TYPE_FUNC ||
 		     ! type->AsFuncType()->IsEvent() )
-			{
 			Error("&group only applicable to events");
-			break;
-			}
+		break;
+
+	case ATTR_ERROR_HANDLER:
+		if ( type->Tag() != TYPE_FUNC ||
+		     ! type->AsFuncType()->IsEvent() )
+			Error("&error_handler only applicable to events");
+		break;
+
+	case ATTR_LOG:
+		if ( ! LogVal::IsCompatibleType(type) )
+			Error("&log applied to a type that cannot be logged");
 		break;
 
 	default:
 		BadTag("Attributes::CheckAttr", attr_name(a->Tag()));
 	}
+	}
+
+bool Attributes::operator==(const Attributes& other) const
+	{
+	if ( ! attrs )
+		return other.attrs;
+
+	if ( ! other.attrs )
+		return false;
+
+	loop_over_list(*attrs, i)
+		{
+		Attr* a = (*attrs)[i];
+		Attr* o = other.FindAttr(a->Tag());
+
+		if ( ! o )
+			return false;
+
+		if ( ! (*a == *o) )
+			return false;
+		}
+
+	loop_over_list(*other.attrs, j)
+		{
+		Attr* o = (*other.attrs)[j];
+		Attr* a = FindAttr(o->Tag());
+
+		if ( ! a )
+			return false;
+
+		if ( ! (*a == *o) )
+			return false;
+		}
+
+	return true;
 	}
 
 bool Attributes::Serialize(SerialInfo* info) const
@@ -351,7 +484,11 @@ bool Attributes::DoSerialize(SerialInfo* info) const
 	loop_over_list((*attrs), i)
 		{
 		Attr* a = (*attrs)[i];
-		SERIALIZE_OPTIONAL(a->AttrExpr())
+
+		// Broccoli doesn't support expressions.
+		Expr* e = (! info->broccoli_peer) ? a->AttrExpr() : 0;
+		SERIALIZE_OPTIONAL(e);
+
 		if ( ! SERIALIZE(char(a->Tag())) )
 			return false;
 		}

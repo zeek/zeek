@@ -1,0 +1,85 @@
+This a test suite of small "unit tests" that verify individual pieces of Bro
+functionality.  They all utilize BTest, a simple framework/driver for
+writing unit tests.  More information about BTest can be found at
+http://www.bro-ids.org/development/btest.html
+
+The test suite's BTest configuration is handled through the
+``btest.cfg`` file.  Of particular interest is the "TestDirs" settings,
+which specifies which directories BTest will recursively search for
+test files.
+
+Significant Subdirectories
+==========================
+
+* Baseline/
+	Validated baselines for comparison against the output of each
+	test on future runs. If the new output differs from the Baseline
+	output, then the test fails.
+
+* Traces/
+	Packet captures utilized by the various BTest tests.
+
+* scripts/
+    This hierarchy of tests emulates the hierarchy of the Bro scripts/
+    directory.
+
+* coverage/
+    This collection of tests relates to checking whether we're covering
+    everything we want to in terms of tests, documentation, and which
+    scripts get loaded in different Bro configurations.  These tests are
+    more prone to fail as new Bro scripts are developed and added to the
+    distribution -- checking the individual test's comments is the best
+    place to check for more details on what exactly the test is checking
+    and hints on how to fix it when it fails.
+
+Running Tests
+=============
+
+Either use the ``make all`` or ``make brief`` ``Makefile`` targets, or
+run ``btest`` directly with desired options/arguments.  Examples:
+
+* btest <no arguments>
+	If you simply execute btest in this directory with no arguments,
+	then all directories listed as "TestDirs" in btest.cfg will be
+	searched recursively for test files.
+
+
+* btest <btest options> test_directory
+	You can specify a directory on the command line to run just the
+	tests contained in that directory. This is useful if you wish to
+	run all of a given type of test, without running all the tests
+	there are. For example, "btest scripts" will run all of the Bro
+	script unit tests.
+
+
+* btest <btest options> test_directory/test_file
+	You can specify a single test file to run just that test. This
+	is useful when testing a single failing test or when developing
+	a new test.
+
+Adding Tests
+=============
+
+See either the `BTest documentation
+<http://www.bro-ids.org/development/btest.html>`_ or the existing unit
+tests for examples of what they actually look like.  The essential
+components of a new test include:
+
+* A test file in one of the subdirectories listed in the ``TestDirs``
+  of the ``btest.cfg`` file.
+
+* If the unit test requires a known-good baseline output against which
+  future tests will be compared (via ``btest-diff``), then that baseline
+  output will need to live in the ``Baseline`` directory.  Manually
+  adding that is possible, but it's easier to just use the ``-u`` or
+  ``-U`` options of ``btest`` to do it for you (using ``btest -d`` on a
+  test for which no baseline exists will show you the output so it can
+  be verified first before adding/updating the baseline output).
+
+If you create a new top-level testing directory for collecting related
+tests, then you'll need to add it to the list of ``TestDirs`` in
+``btest.cfg``. Do this only if your test really doesn't fit logically in
+any of the extant directories.
+
+Note that any new test you add this way will automatically be included
+in the testing done in the NMI automated build & test environment.

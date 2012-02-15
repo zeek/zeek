@@ -1,5 +1,3 @@
-// $Id: POP3.h 3526 2006-09-12 07:32:21Z vern $
-
 // This code contributed to Bro by Florian Schimandl and Hugh Dollman.
 //
 // An analyser for the POP3 protocol.

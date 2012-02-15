@@ -1,5 +1,3 @@
-// $Id: Gnutella.h 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef gnutella_h
@@ -29,7 +27,7 @@ public:
 	u_char msg_type;
 	u_char msg_ttl;
 	char payload[GNUTELLA_MAX_PAYLOAD];
-	int payload_len;
+	unsigned int payload_len;
 	unsigned int payload_left;
 };
 

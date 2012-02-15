@@ -1,5 +1,3 @@
-# $Id:$
-
 %extern{
 #include <ctype.h>
 
@@ -84,7 +82,7 @@ flow HTTP_Flow(is_orig: bool) {
 		if ( ::http_request )
 			{
 			bytestring unescaped_uri = unescape_uri(uri);
-			bro_event_http_request(connection()->bro_analyzer(),
+			BifEvent::generate_http_request(connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				bytestring_to_val(method),
 				bytestring_to_val(uri),
@@ -103,7 +101,7 @@ flow HTTP_Flow(is_orig: bool) {
 		%{
 		if ( ::http_reply )
 			{
-			bro_event_http_reply(connection()->bro_analyzer(),
+			BifEvent::generate_http_reply(connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				bytestring_to_val(${vers.vers_str}), code,
 				bytestring_to_val(reason));
@@ -205,7 +203,7 @@ flow HTTP_Flow(is_orig: bool) {
 
 		if ( ::http_header )
 			{
-			bro_event_http_header(connection()->bro_analyzer(),
+			BifEvent::generate_http_header(connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(),
 				bytestring_to_val(name)->ToUpper(),
@@ -236,7 +234,7 @@ flow HTTP_Flow(is_orig: bool) {
 		%{
 		if ( ::http_all_headers )
 			{
-			bro_event_http_all_headers(connection()->bro_analyzer(),
+			BifEvent::generate_http_all_headers(connection()->bro_analyzer(),
 						connection()->bro_analyzer()->Conn(),
 						is_orig(),
 						build_http_headers_val());
@@ -263,7 +261,7 @@ flow HTTP_Flow(is_orig: bool) {
 		msg_start_time_ = network_time();
 		if ( ::http_begin_entity )
 			{
-			bro_event_http_begin_entity(connection()->bro_analyzer(),
+			BifEvent::generate_http_begin_entity(connection()->bro_analyzer(),
 							connection()->bro_analyzer()->Conn(), is_orig());
 			}
 		%}
@@ -295,13 +293,13 @@ flow HTTP_Flow(is_orig: bool) {
 
 		if ( ::http_end_entity )
 			{
-			bro_event_http_end_entity(connection()->bro_analyzer(),
+			BifEvent::generate_http_end_entity(connection()->bro_analyzer(),
 							connection()->bro_analyzer()->Conn(), is_orig());
 			}
 
 		if ( ::http_message_done )
 			{
-			bro_event_http_message_done(connection()->bro_analyzer(),
+			BifEvent::generate_http_message_done(connection()->bro_analyzer(),
 					connection()->bro_analyzer()->Conn(),
 					is_orig(), build_http_message_stat());
 			}

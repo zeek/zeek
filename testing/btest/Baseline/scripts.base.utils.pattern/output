@@ -1,0 +1,6 @@
+/^?((blarg|blah|bleh))$?/
+T
+/^?(foo(blarg|blah|bleh)bar)$?/
+T
+[matched=T, str=blah, off=4]
+[matched=F, str=, off=0]

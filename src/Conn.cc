@@ -1,5 +1,3 @@
-// $Id: Conn.cc 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -11,7 +9,7 @@
 #include "Conn.h"
 #include "Event.h"
 #include "Sessions.h"
-#include "Logger.h"
+#include "Reporter.h"
 #include "Timer.h"
 #include "PIA.h"
 #include "binpac.h"
@@ -54,7 +52,7 @@ void ConnectionTimer::Init(Connection* arg_conn, timer_func arg_timer,
 ConnectionTimer::~ConnectionTimer()
 	{
 	if ( conn->RefCnt() < 1 )
-		internal_error("reference count inconsistency in ~ConnectionTimer");
+		reporter->InternalError("reference count inconsistency in ~ConnectionTimer");
 
 	conn->RemoveTimer(this);
 	Unref(conn);
@@ -72,7 +70,7 @@ void ConnectionTimer::Dispatch(double t, int is_expire)
 	(conn->*timer)(t);
 
 	if ( conn->RefCnt() < 1 )
-		internal_error("reference count inconsistency in ConnectionTimer::Dispatch");
+		reporter->InternalError("reference count inconsistency in ConnectionTimer::Dispatch");
 	}
 
 IMPLEMENT_SERIAL(ConnectionTimer, SER_CONNECTION_TIMER);
@@ -94,7 +92,7 @@ bool ConnectionTimer::DoSerialize(SerialInfo* info) const
 	else if ( timer == timer_func(&Connection::RemoveConnectionTimer) )
 		type = 4;
 	else
-		internal_error("unknown function in ConnectionTimer::DoSerialize()");
+		reporter->InternalError("unknown function in ConnectionTimer::DoSerialize()");
 
 	return conn->Serialize(info) && SERIALIZE(type) && SERIALIZE(do_expire);
 	}
@@ -152,7 +150,6 @@ Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id)
 	proto = TRANSPORT_UNKNOWN;
 
 	conn_val = 0;
-	orig_endp = resp_endp = 0;
 	login_conn = 0;
 
 	is_active = 1;
@@ -182,6 +179,8 @@ Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id)
 	TimerMgr::Tag* tag = current_iosrc->GetCurrentTag();
 	conn_timer_mgr = tag ? new TimerMgr::Tag(*tag) : 0;
 
+	uid = 0; // Will set later.
+
 	if ( conn_timer_mgr )
 		{
 		++external_connections;
@@ -196,7 +195,7 @@ Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id)
 Connection::~Connection()
 	{
 	if ( ! finished )
-		internal_error("Done() not called before destruction of Connection");
+		reporter->InternalError("Done() not called before destruction of Connection");
 
 	CancelTimers();
 
@@ -346,30 +345,33 @@ RecordVal* Connection::BuildConnVal()
 		id_val->Assign(1, new PortVal(ntohs(orig_port), prot_type));
 		id_val->Assign(2, new AddrVal(resp_addr));
 		id_val->Assign(3, new PortVal(ntohs(resp_port), prot_type));
-		conn_val->Assign(0, id_val);
 
-		orig_endp = new RecordVal(endpoint);
+		RecordVal *orig_endp = new RecordVal(endpoint);
 		orig_endp->Assign(0, new Val(0, TYPE_COUNT));
 		orig_endp->Assign(1, new Val(0, TYPE_COUNT));
-		conn_val->Assign(1, orig_endp);
 
-		resp_endp = new RecordVal(endpoint);
+		RecordVal *resp_endp = new RecordVal(endpoint);
 		resp_endp->Assign(0, new Val(0, TYPE_COUNT));
 		resp_endp->Assign(1, new Val(0, TYPE_COUNT));
-		conn_val->Assign(2, resp_endp);
 
-		// conn_val->Assign(3, new Val(start_time, TYPE_TIME));	// ###
+		conn_val->Assign(0, id_val);
+		conn_val->Assign(1, orig_endp);
+		conn_val->Assign(2, resp_endp);
+		// 3 and 4 are set below.
 		conn_val->Assign(5, new TableVal(string_set));	// service
 		conn_val->Assign(6, new StringVal(""));	// addl
 		conn_val->Assign(7, new Val(0, TYPE_COUNT));	// hot
 		conn_val->Assign(8, new StringVal(""));	// history
+
+		if ( ! uid )
+			uid = calculate_unique_id();
+
+		char tmp[20];
+		conn_val->Assign(9, new StringVal(uitoa_n(uid, tmp, sizeof(tmp), 62)));
 		}
 
 	if ( root_analyzer )
-		{
-		root_analyzer->UpdateEndpointVal(orig_endp, 1);
-		root_analyzer->UpdateEndpointVal(resp_endp, 0);
-		}
+		root_analyzer->UpdateConnVal(conn_val);
 
 	conn_val->Assign(3, new Val(start_time, TYPE_TIME));	// ###
 	conn_val->Assign(4, new Val(last_time - start_time, TYPE_INTERVAL));
@@ -631,54 +633,10 @@ void Connection::ConnectionEvent(EventHandlerPtr f, Analyzer* a, val_list* vl)
 			a ? a->GetID() : 0, GetTimerMgr(), this);
 	}
 
-void Connection::Weird(const char* name)
-	{
-	weird = 1;
-	if ( conn_weird )
-		Event(conn_weird, 0, name);
-	else
-		fprintf(stderr, "%.06f weird: %s\n", network_time, name);
-	}
-
 void Connection::Weird(const char* name, const char* addl)
 	{
 	weird = 1;
-	if ( conn_weird_addl )
-		{
-		val_list* vl = new val_list(3);
-
-		vl->append(new StringVal(name));
-		vl->append(BuildConnVal());
-		vl->append(new StringVal(addl));
-
-		ConnectionEvent(conn_weird_addl, 0, vl);
-		}
-
-	else
-		fprintf(stderr, "%.06f weird: %s (%s)\n", network_time, name, addl);
-	}
-
-void Connection::Weird(const char* name, int addl_len, const char* addl)
-	{
-	weird = 1;
-	if ( conn_weird_addl )
-		{
-		val_list* vl = new val_list(3);
-
-		vl->append(new StringVal(name));
-		vl->append(BuildConnVal());
-		vl->append(new StringVal(addl_len, addl));
-
-		ConnectionEvent(conn_weird_addl, 0, vl);
-		}
-
-	else
-		{
-		fprintf(stderr, "%.06f weird: %s (", network_time, name);
-		for ( int i = 0; i < addl_len; ++i )
-			fputc(addl[i], stderr);
-		fprintf(stderr, ")\n");
-		}
+	reporter->Weird(this, name, addl ? addl : "");
 	}
 
 void Connection::AddTimer(timer_func timer, double t, int do_expire,
@@ -744,25 +702,11 @@ void Connection::FlipRoles()
 	resp_port = orig_port;
 	orig_port = tmp_port;
 
-	RecordVal* tmp_rc = resp_endp;
-	resp_endp = orig_endp;
-	orig_endp = tmp_rc;
-
 	Unref(conn_val);
 	conn_val = 0;
 
 	if ( root_analyzer )
 		root_analyzer->FlipRoles();
-	}
-
-int Connection::RewritingTrace()
-	{
-	return root_analyzer ? root_analyzer->RewritingTrace() : 0;
-	}
-
-Rewriter* Connection::TraceRewriter() const
-	{
-	return root_analyzer ? root_analyzer->TraceRewriter() : 0;
 	}
 
 unsigned int Connection::MemoryAllocation() const
@@ -803,7 +747,7 @@ void Connection::Describe(ODesc* d) const
 			break;
 
 		case TRANSPORT_UNKNOWN:
-			internal_error("unknown transport in Connction::Describe()");
+			reporter->InternalError("unknown transport in Connction::Describe()");
 			break;
 		}
 
@@ -853,8 +797,6 @@ bool Connection::DoSerialize(SerialInfo* info) const
 			return false;
 
 	SERIALIZE_OPTIONAL(conn_val);
-	SERIALIZE_OPTIONAL(orig_endp);
-	SERIALIZE_OPTIONAL(resp_endp);
 
 	// FIXME: RuleEndpointState not yet serializable.
 	// FIXME: Analyzers not yet serializable.
@@ -918,10 +860,6 @@ bool Connection::DoUnserialize(UnserialInfo* info)
 
 	UNSERIALIZE_OPTIONAL(conn_val,
 			(RecordVal*) Val::Unserialize(info, connection_type));
-	UNSERIALIZE_OPTIONAL(orig_endp,
-			(RecordVal*) Val::Unserialize(info, endpoint));
-	UNSERIALIZE_OPTIONAL(resp_endp,
-			(RecordVal*) Val::Unserialize(info, endpoint));
 
 	int iproto;
 

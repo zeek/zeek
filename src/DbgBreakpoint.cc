@@ -1,5 +1,3 @@
-// $Id: DbgBreakpoint.cc 1345 2005-09-08 07:42:11Z vern $
-
 // Implementation of breakpoints.
 
 #include "config.h"
@@ -204,7 +202,10 @@ bool DbgBreakpoint::Reset()
 		break;
 	}
 
-	internal_error("DbgBreakpoint::Reset function incomplete.");
+	reporter->InternalError("DbgBreakpoint::Reset function incomplete.");
+
+	// Cannot be reached.
+	return false;
 	}
 
 bool DbgBreakpoint::SetCondition(const string& new_condition)
@@ -292,7 +293,7 @@ BreakCode DbgBreakpoint::ShouldBreak(Stmt* s)
 		assert(false);
 
 	default:
-		internal_error("Invalid breakpoint type in DbgBreakpoint::ShouldBreak");
+		reporter->InternalError("Invalid breakpoint type in DbgBreakpoint::ShouldBreak");
 	}
 
 	// If we got here, that means that the breakpoint could hit,
@@ -309,7 +310,7 @@ BreakCode DbgBreakpoint::ShouldBreak(Stmt* s)
 BreakCode DbgBreakpoint::ShouldBreak(double t)
 	{
 	if ( kind != BP_TIME )
-		internal_error("Calling ShouldBreak(time) on a non-time breakpoint");
+		reporter->InternalError("Calling ShouldBreak(time) on a non-time breakpoint");
 
 	if ( t < at_time )
 		return bcNoHit;
@@ -350,6 +351,6 @@ void DbgBreakpoint::PrintHitMsg()
 		assert(false);
 
 	default:
-		internal_error("Missed a case in DbgBreakpoint::PrintHitMsg\n");
+		reporter->InternalError("Missed a case in DbgBreakpoint::PrintHitMsg\n");
 	}
 	}

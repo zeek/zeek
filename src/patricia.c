@@ -1,5 +1,4 @@
 /*
- * $Id: patricia.c 80 2004-07-14 20:15:50Z jason $
  * Dave Plonka <plonka@doit.wisc.edu>
  *
  * This product includes software developed by the University of Michigan,
@@ -1027,7 +1026,7 @@ lookup_then_remove (patricia_tree_t *tree, char *string)
 {
     patricia_node_t *node;
 
-    if (node = try_search_exact (tree, string))
+    if ( (node = try_search_exact(tree, string)) )
         patricia_remove (tree, node);
 }
 

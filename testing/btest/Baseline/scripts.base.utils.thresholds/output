@@ -1,0 +1,45 @@
+Iteration: 0, threshold check: F
+[n=0, index=0]
+Iteration: 1, threshold check: F
+[n=1, index=0]
+Iteration: 2, threshold check: T
+[n=2, index=1]
+Iteration: 3, threshold check: F
+[n=3, index=1]
+Iteration: 4, threshold check: T
+[n=4, index=2]
+Iteration: 5, threshold check: F
+[n=5, index=2]
+Iteration: 6, threshold check: T
+[n=6, index=3]
+Iteration: 7, threshold check: F
+[n=7, index=3]
+Iteration: 8, threshold check: T
+[n=8, index=4]
+Iteration: 9, threshold check: F
+[n=9, index=4]
+Iteration: 10, threshold check: T
+[n=10, index=5]
+====================================
+Iteration: 0, threshold check: F
+[n=0, index=0]
+Iteration: 1, threshold check: F
+[n=1, index=0]
+Iteration: 2, threshold check: T
+[n=2, index=1]
+Iteration: 3, threshold check: F
+[n=3, index=1]
+Iteration: 4, threshold check: T
+[n=4, index=2]
+Iteration: 5, threshold check: F
+[n=5, index=2]
+Iteration: 6, threshold check: T
+[n=6, index=3]
+Iteration: 7, threshold check: F
+[n=7, index=3]
+Iteration: 8, threshold check: T
+[n=8, index=4]
+Iteration: 9, threshold check: F
+[n=9, index=4]
+Iteration: 10, threshold check: T
+[n=10, index=5]

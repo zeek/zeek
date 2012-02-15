@@ -1,9 +1,9 @@
-// $Id: IOSource.cc 4771 2007-08-11 05:50:24Z vern $
-
 #include <sys/types.h>
 #include <sys/time.h>
 #include <unistd.h>
 #include <assert.h>
+
+#include <algorithm>
 
 #include "util.h"
 #include "IOSource.h"

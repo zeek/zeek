@@ -1,5 +1,3 @@
-// $Id: ContentLine.h,v 1.1.2.9 2006/06/01 01:55:42 sommer Exp $
-//
 // Support-analyzer to split a reassembled stream into lines.
 
 #ifndef CONTENTLINE_H
@@ -44,16 +42,16 @@ public:
 	// mode for next <length> bytes.  Plain-delivery data is also passed
 	// via DeliverStream() and can differentiated by calling
 	// IsPlainDelivery().
-	void SetPlainDelivery(int length);
-	int GetPlainDeliveryLength() const	{ return plain_delivery_length; }
+	void SetPlainDelivery(int64_t length);
+	int64_t GetPlainDeliveryLength() const	{ return plain_delivery_length; }
 	bool IsPlainDelivery()			{ return is_plain; }
 
 	// Skip <length> bytes after this line.
 	// Can be used to skip HTTP data for performance considerations.
-	void SkipBytesAfterThisLine(int length);
-	void SkipBytes(int length);
+	void SkipBytesAfterThisLine(int64_t length);
+	void SkipBytes(int64_t length);
 
-	bool IsSkippedContents(int seq, int length)
+	bool IsSkippedContents(int64_t seq, int64_t length)
 		{ return seq + length <= seq_to_skip; }
 
 protected:
@@ -71,26 +69,26 @@ protected:
 	void CheckNUL();
 
 	// Returns the sequence number delivered so far.
-	int SeqDelivered() const	{ return seq_delivered_in_lines; }
+	int64_t SeqDelivered() const	{ return seq_delivered_in_lines; }
 
 	u_char* buf;	// where we build up the body of the request
 	int offset;	// where we are in buf
 	int buf_len;	// how big buf is, total
 	unsigned int last_char;	// last (non-option) character scanned
 
-	int seq;	// last seq number
-	int seq_to_skip;
+	int64_t seq;	// last seq number
+	int64_t seq_to_skip;
 
 	// Seq delivered up to through NewLine() -- it is adjusted
 	// *before* NewLine() is called.
-	int seq_delivered_in_lines;
+	int64_t seq_delivered_in_lines;
 
 	// Number of bytes to be skipped after this line. See
 	// comments in SkipBytesAfterThisLine().
-	int skip_pending;
+	int64_t skip_pending;
 
 	// Remaining bytes to deliver plain.
-	int plain_delivery_length;
+	int64_t plain_delivery_length;
 	int is_plain;
 
 	// Don't deliver further data.

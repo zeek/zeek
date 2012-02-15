@@ -1,5 +1,3 @@
-// $Id: Sessions.h 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef sessions_h
@@ -75,7 +73,7 @@ public:
 	void DispatchPacket(double t, const struct pcap_pkthdr* hdr,
 			const u_char* const pkt, int hdr_size,
 			PktSrc* src_ps, PacketSortElement* pkt_elem);
-	
+
 	void Done();	// call to drain events before destructing
 
 	// Returns a reassembled packet, or nil if there are still
@@ -104,9 +102,6 @@ public:
 	// Generating connection_pending events for all connections
 	// that are still active.
 	void Drain();
-
-	// Called periodically to generate statistics reports.
-	void HeartBeat(double t);
 
 	void GetStats(SessionStats& s) const;
 
@@ -177,7 +172,7 @@ protected:
 	void NextPacket(double t, const struct pcap_pkthdr* hdr,
 			const u_char* const pkt, int hdr_size,
 			PacketSortElement* pkt_elem);
-		
+
 	void DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 			const IP_Hdr* ip_hdr, const u_char* const pkt,
 			int hdr_size);
@@ -185,7 +180,7 @@ protected:
 	void NextPacketSecondary(double t, const struct pcap_pkthdr* hdr,
 			const u_char* const pkt, int hdr_size,
 			const PktSrc* src_ps);
-	
+
 	// Record the given packet (if a dumper is active).  If len=0
 	// then the whole packet is recorded, otherwise just the first
 	// len bytes.

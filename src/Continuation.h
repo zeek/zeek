@@ -1,5 +1,3 @@
-// $Id: Continuation.h 2698 2006-04-03 05:50:52Z vern $
-//
 // Helper class to implement continuation-like mechanisms for
 // suspending/resuming tasks for incremental operation.
 //

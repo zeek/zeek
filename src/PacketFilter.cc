@@ -1,5 +1,3 @@
-// $Id: PacketFilter.cc 967 2005-01-03 07:19:06Z vern $
-
 #include "PacketFilter.h"
 
 void PacketFilter::AddSrc(addr_type src, uint32 tcp_flags, double probability)
@@ -102,5 +100,5 @@ bool PacketFilter::MatchFilter(const Filter& f, const IP_Hdr& ip,
 			return false;
 		}
 
-	return uint32(random()) < f.probability;
+	return uint32(bro_random()) < f.probability;
 	}

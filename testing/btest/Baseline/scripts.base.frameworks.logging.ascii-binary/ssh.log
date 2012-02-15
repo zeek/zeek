@@ -1,0 +1,10 @@
+#separator |
+#set_separator|,
+#empty_field|(empty)
+#unset_field|-
+#path|ssh
+#fields|data|data2
+#types|string|string
+abc\x0a\xffdef|DATA2
+abc\x7c\xffdef|DATA2
+abc\xff\x7cdef|DATA2

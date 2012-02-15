@@ -1,5 +1,3 @@
-// $Id: net_util.cc 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -13,6 +11,7 @@
 #include <arpa/inet.h>
 #endif
 
+#include "Reporter.h"
 #include "net_util.h"
 
 // - adapted from tcpdump
@@ -37,8 +36,7 @@ int tcp_checksum(const struct ip* ip, const struct tcphdr* tp, int len)
 	{
 	// ### Note, this is only correct for IPv4.  This routine is only
 	// used by the connection compressor (which we turn off for IPv6
-	// traffic) and trace rewriting (which currently doesn't support
-	// IPv6 either).
+	// traffic).
 
 	int tcp_len = tp->th_off * 4 + len;
 	uint32 sum;
@@ -101,6 +99,7 @@ int udp6_checksum(const struct ip6_hdr* ip6, const struct udphdr* up, int len)
 
 	uint32 l = htonl(len);
 	sum = ones_complement_checksum((void*) &l, 4, sum);
+
 	uint32 addl_pseudo = htons(IPPROTO_UDP);
 
 	sum = ones_complement_checksum((void*) &addl_pseudo, 4, sum);
@@ -258,14 +257,14 @@ uint32 dotted_to_addr(const char* addr_text)
 	if ( sscanf(addr_text,
 		    "%d.%d.%d.%d", addr+0, addr+1, addr+2, addr+3) != 4 )
 		{
-		error("bad dotted address:", addr_text );
+		reporter->Error("bad dotted address: %s", addr_text );
 		return 0;
 		}
 
 	if ( addr[0] < 0 || addr[1] < 0 || addr[2] < 0 || addr[3] < 0 ||
 	     addr[0] > 255 || addr[1] > 255 || addr[2] > 255 || addr[3] > 255 )
 		{
-		error("bad dotted address:", addr_text);
+		reporter->Error("bad dotted address: %s", addr_text);
 		return 0;
 		}
 
@@ -282,7 +281,7 @@ uint32* dotted_to_addr6(const char* addr_text)
 	uint32* addr = new uint32[4];
 	if ( inet_pton(AF_INET6, addr_text, addr) <= 0 )
 		{
-		error("bad IPv6 address:", addr_text );
+		reporter->Error("bad IPv6 address: %s", addr_text );
 		addr[0] = addr[1] = addr[2] = addr[3] = 0;
 		}
 
@@ -302,7 +301,7 @@ uint32 to_v4_addr(const uint32* addr)
 	{
 #ifdef BROv6
 	if ( ! is_v4_addr(addr) )
-		internal_error("conversion of non-IPv4 address to IPv4 address");
+		reporter->InternalError("conversion of non-IPv4 address to IPv4 address");
 	return addr[3];
 #else
 	return addr[0];
@@ -313,7 +312,7 @@ uint32 mask_addr(uint32 a, uint32 top_bits_to_keep)
 	{
 	if ( top_bits_to_keep > 32 )
 		{
-		error("bad address mask value", top_bits_to_keep);
+		reporter->Error("bad address mask value %d", top_bits_to_keep);
 		return a;
 		}
 
@@ -352,7 +351,7 @@ const uint32* mask_addr(const uint32* a, uint32 top_bits_to_keep)
 
 	if ( top_bits_to_keep == 0 || top_bits_to_keep > max_bits )
 		{
-		error("bad address mask value", top_bits_to_keep);
+		reporter->Error("bad address mask value %s", top_bits_to_keep);
 		return addr;
 		}
 

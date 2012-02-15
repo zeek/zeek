@@ -1,5 +1,3 @@
-// $Id: HTTP.cc 7073 2010-09-13 00:45:02Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -7,25 +5,30 @@
 #include <ctype.h>
 #include <math.h>
 #include <stdlib.h>
+#include <string>
+#include <algorithm>
 
 #include "NetVar.h"
 #include "HTTP.h"
 #include "Event.h"
 #include "MIME.h"
-#include "TCP_Rewriter.h"
 
 const bool DEBUG_http = false;
 
+// The EXPECT_*_NOTHING states are used to prevent further parsing. Used if a
+// message was interrupted.
 enum {
 	EXPECT_REQUEST_LINE,
 	EXPECT_REQUEST_MESSAGE,
 	EXPECT_REQUEST_TRAILER,
+	EXPECT_REQUEST_NOTHING,
 };
 
 enum {
 	EXPECT_REPLY_LINE,
 	EXPECT_REPLY_MESSAGE,
 	EXPECT_REPLY_TRAILER,
+	EXPECT_REPLY_NOTHING,
 };
 
 HTTP_Entity::HTTP_Entity(HTTP_Message *arg_message, MIME_Entity* parent_entity, int arg_expect_body)
@@ -40,9 +43,7 @@ HTTP_Entity::HTTP_Entity(HTTP_Message *arg_message, MIME_Entity* parent_entity, 
 	header_length = 0;
 	deliver_body = (http_entity_data != 0);
 	encoding = IDENTITY;
-#ifdef HAVE_LIBZ
 	zip = 0;
-#endif
 	}
 
 void HTTP_Entity::EndOfData()
@@ -50,7 +51,6 @@ void HTTP_Entity::EndOfData()
 	if ( DEBUG_http )
 		DEBUG_MSG("%.6f: end of data\n", network_time);
 
-#ifdef HAVE_LIBZ
 	if ( zip )
 		{
 		zip->Done();
@@ -58,7 +58,6 @@ void HTTP_Entity::EndOfData()
 		zip = 0;
 		encoding = IDENTITY;
 		}
-#endif
 
 	if ( body_length )
 		http_message->MyHTTP_Analyzer()->
@@ -85,7 +84,9 @@ void HTTP_Entity::Deliver(int len, const char* data, int trailing_CRLF)
 
 	if ( in_header )
 		{
-		ASSERT(trailing_CRLF);
+		if ( ! trailing_CRLF )
+			http_message->MyHTTP_Analyzer()->Weird("http_no_crlf_in_header_list");
+
 		header_length += len;
 		MIME_Entity::Deliver(len, data, trailing_CRLF);
 		return;
@@ -174,7 +175,6 @@ private:
 
 void HTTP_Entity::DeliverBody(int len, const char* data, int trailing_CRLF)
 	{
-#ifdef HAVE_LIBZ
 	if ( encoding == GZIP || encoding == DEFLATE )
 		{
 		ZIP_Analyzer::Method method =
@@ -193,7 +193,6 @@ void HTTP_Entity::DeliverBody(int len, const char* data, int trailing_CRLF)
 		zip->NextStream(len, (const u_char*) data, false);
 		}
 	else
-#endif
 		DeliverBodyClear(len, data, trailing_CRLF);
 	}
 
@@ -223,11 +222,11 @@ void HTTP_Entity::DeliverBodyClear(int len, const char* data, int trailing_CRLF)
 
 // Returns 1 if the undelivered bytes are completely within the body,
 // otherwise returns 0.
-int HTTP_Entity::Undelivered(int len)
+int HTTP_Entity::Undelivered(int64_t len)
 	{
 	if ( DEBUG_http )
 		{
-		DEBUG_MSG("Content gap %d, expect_data_length %d\n",
+		DEBUG_MSG("Content gap %" PRId64", expect_data_length %" PRId64 "\n",
 			  len, expect_data_length);
 		}
 
@@ -280,7 +279,7 @@ void HTTP_Entity::SubmitData(int len, const char* buf)
 		MIME_Entity::SubmitData(len, buf);
 	}
 
-void HTTP_Entity::SetPlainDelivery(int length)
+void HTTP_Entity::SetPlainDelivery(int64_t length)
 	{
 	ASSERT(length >= 0);
 	ASSERT(length == 0 || ! in_header);
@@ -299,11 +298,72 @@ void HTTP_Entity::SubmitHeader(MIME_Header* h)
 		data_chunk_t vt = h->get_value_token();
 		if ( ! is_null_data_chunk(vt) )
 			{
-			int n;
+			int64_t n;
 			if ( atoi_n(vt.length, vt.data, 0, 10, n) )
 				content_length = n;
 			else
 				content_length = 0;
+			}
+		}
+
+	// Figure out content-length for HTTP 206 Partial Content response
+	// that uses multipart/byteranges content-type.
+	else if ( strcasecmp_n(h->get_name(), "content-range") == 0 && Parent() &&
+	          Parent()->MIMEContentType() == CONTENT_TYPE_MULTIPART &&
+		      http_message->MyHTTP_Analyzer()->HTTP_ReplyCode() == 206 )
+		{
+		data_chunk_t vt = h->get_value_token();
+		string byte_unit(vt.data, vt.length);
+		vt = h->get_value_after_token();
+		string byte_range(vt.data, vt.length);
+		byte_range.erase(remove(byte_range.begin(), byte_range.end(), ' '),
+		                 byte_range.end());
+
+		if ( byte_unit != "bytes" )
+			{
+			http_message->Weird("HTTP_content_range_unknown_byte_unit");
+			return;
+			}
+
+		size_t p = byte_range.find("/");
+		if ( p == string::npos )
+			{
+			http_message->Weird("HTTP_content_range_cannot_parse");
+			return;
+			}
+
+		string byte_range_resp_spec = byte_range.substr(0, p);
+		string instance_length = byte_range.substr(p + 1);
+
+		p = byte_range_resp_spec.find("-");
+		if ( p == string::npos )
+			{
+			http_message->Weird("HTTP_content_range_cannot_parse");
+			return;
+			}
+
+		string first_byte_pos = byte_range_resp_spec.substr(0, p);
+		string last_byte_pos = byte_range_resp_spec.substr(p + 1);
+
+		if ( DEBUG_http )
+			DEBUG_MSG("Parsed Content-Range: %s %s-%s/%s\n", byte_unit.c_str(),
+		              first_byte_pos.c_str(), last_byte_pos.c_str(),
+		              instance_length.c_str());
+
+		int64_t f, l;
+		atoi_n(first_byte_pos.size(), first_byte_pos.c_str(), 0, 10, f);
+		atoi_n(last_byte_pos.size(), last_byte_pos.c_str(), 0, 10, l);
+		int64_t len = l - f + 1;
+
+		if ( DEBUG_http )
+			DEBUG_MSG("Content-Range length = %"PRId64"\n", len);
+
+		if ( len > 0 )
+			content_length = len;
+		else
+			{
+			http_message->Weird("HTTP_non_positive_content_range");
+			return;
 			}
 		}
 
@@ -384,9 +444,7 @@ void HTTP_Entity::SubmitAllHeaders()
 	// content-length headers or if connection is to be closed afterwards
 	// anyway.
 	else if ( http_message->MyHTTP_Analyzer()->IsConnectionClose ()
-#ifdef HAVE_LIBZ
 		  || encoding == GZIP || encoding == DEFLATE
-#endif
 		 )
 		{
 		// FIXME: Using INT_MAX is kind of a hack here.  Better
@@ -406,7 +464,7 @@ void HTTP_Entity::SubmitAllHeaders()
 
 HTTP_Message::HTTP_Message(HTTP_Analyzer* arg_analyzer,
 				ContentLine_Analyzer* arg_cl, bool arg_is_orig,
-				int expect_body, int init_header_length)
+				int expect_body, int64_t init_header_length)
 : MIME_Message (arg_analyzer)
 	{
 	analyzer = arg_analyzer;
@@ -474,7 +532,7 @@ void HTTP_Message::Done(const int interrupted, const char* detail)
 		}
 	}
 
-int HTTP_Message::Undelivered(int len)
+int HTTP_Message::Undelivered(int64_t len)
 	{
 	if ( ! top_level )
 		return 0;
@@ -571,7 +629,7 @@ void HTTP_Message::SubmitData(int len, const char* buf)
 	{
 	if ( buf != (const char*) data_buffer->Bytes() + buffer_offset ||
 	     buffer_offset + len > buffer_size )
-		internal_error("buffer misalignment");
+		reporter->InternalError("buffer misalignment");
 
 	buffer_offset += len;
 	if ( buffer_offset >= buffer_size )
@@ -619,17 +677,17 @@ void HTTP_Message::SubmitEvent(int event_type, const char* detail)
 		break;
 
 	default:
-		internal_error("unrecognized HTTP message event");
+		reporter->InternalError("unrecognized HTTP message event");
 	}
 
 	MyHTTP_Analyzer()->HTTP_Event(category, detail);
 	}
 
-void HTTP_Message::SetPlainDelivery(int length)
+void HTTP_Message::SetPlainDelivery(int64_t length)
 	{
 	content_line->SetPlainDelivery(length);
 
-	if ( length > 0 && skip_http_data )
+	if ( length > 0 && BifConst::skip_http_data )
 		content_line->SkipBytesAfterThisLine(length);
 
 	if ( ! data_buffer )
@@ -698,7 +756,7 @@ void HTTP_Message::DeliverEntityData()
 	total_buffer_size = 0;
 	}
 
-int HTTP_Message::InitBuffer(int length)
+int HTTP_Message::InitBuffer(int64_t length)
 	{
 	if ( length <= 0 )
 		return 0;
@@ -851,7 +909,23 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 					HTTP_Event("crud_trailing_HTTP_request",
 						   new_string_val(line, end_of_line));
 				else
-					ProtocolViolation("not a http request line");
+					{
+					// We do see HTTP requests with a
+					// trailing EOL that's not accounted
+					// for by the content-length. This
+					// will lead to a call to this method
+					// with len==0 while we are expecting
+					// a new request. Since HTTP servers
+					// handle such requests gracefully,
+					// we should do so as well.
+					if ( len == 0 )
+					    Weird("empty_http_request");
+					else
+						{
+						ProtocolViolation("not a http request line");
+						request_state = EXPECT_REQUEST_NOTHING;
+						}
+					}
 				}
 			break;
 
@@ -860,6 +934,9 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 			break;
 
 		case EXPECT_REQUEST_TRAILER:
+			break;
+
+		case EXPECT_REQUEST_NOTHING:
 			break;
 		}
 		}
@@ -873,6 +950,8 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 
 				if ( unanswered_requests.empty() )
 					Weird("unmatched_HTTP_reply");
+				else
+					ProtocolConfirmation();
 
 				reply_state = EXPECT_REPLY_MESSAGE;
 				reply_ongoing = 1;
@@ -884,8 +963,11 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 						ExpectReplyMessageBody(),
 						len);
 				}
-		    else
+			else
+				{
 				ProtocolViolation("not a http reply line");
+				reply_state = EXPECT_REPLY_NOTHING;
+				}
 
 			break;
 
@@ -894,6 +976,9 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 			break;
 
 		case EXPECT_REPLY_TRAILER:
+			break;
+
+		case EXPECT_REPLY_NOTHING:
 			break;
 		}
 		}
@@ -1042,6 +1127,7 @@ int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 		// HTTP methods for distributed authoring.
 		"PROPFIND", "PROPPATCH", "MKCOL", "DELETE", "PUT",
 		"COPY", "MOVE", "LOCK", "UNLOCK",
+		"POLL", "REPORT", "SUBSCRIBE", "BMOVE",
 
 		"SEARCH",
 
@@ -1064,7 +1150,7 @@ int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 	request_method = new StringVal(http_methods[i]);
 
 	if ( ! ParseRequest(rest, end_of_line) )
-		internal_error("HTTP ParseRequest failed");
+		reporter->InternalError("HTTP ParseRequest failed");
 
 	Conn()->Match(Rule::HTTP_REQUEST,
 			(const u_char*) unescaped_URI->AsString()->Bytes(),
@@ -1256,7 +1342,10 @@ void HTTP_Analyzer::RequestMade(const int interrupted, const char* msg)
 
 	num_request_lines = 0;
 
-	request_state = EXPECT_REQUEST_LINE;
+	if ( interrupted )
+		request_state = EXPECT_REQUEST_NOTHING;
+	else
+		request_state = EXPECT_REQUEST_LINE;
 	}
 
 void HTTP_Analyzer::ReplyMade(const int interrupted, const char* msg)
@@ -1271,7 +1360,9 @@ void HTTP_Analyzer::ReplyMade(const int interrupted, const char* msg)
 	if ( reply_message )
 		reply_message->Done(interrupted, msg);
 
-	if ( ! unanswered_requests.empty() )
+	// 1xx replies do not indicate the final response to a request,
+	// so don't pop an unanswered request in that case.
+	if ( (reply_code < 100 || reply_code >= 200) && ! unanswered_requests.empty() )
 		{
 		Unref(unanswered_requests.front());
 		unanswered_requests.pop();
@@ -1285,7 +1376,10 @@ void HTTP_Analyzer::ReplyMade(const int interrupted, const char* msg)
 		reply_reason_phrase = 0;
 		}
 
-	reply_state = EXPECT_REPLY_LINE;
+	if ( interrupted )
+		reply_state = EXPECT_REPLY_NOTHING;
+	else
+		reply_state = EXPECT_REPLY_LINE;
 	}
 
 void HTTP_Analyzer::RequestClash(Val* /* clash_val */)
@@ -1596,7 +1690,7 @@ void HTTP_Analyzer::HTTP_MessageDone(int is_orig, HTTP_Message* /* message */)
 	}
 
 void HTTP_Analyzer::InitHTTPMessage(ContentLine_Analyzer* cl, HTTP_Message*& message,
-		bool is_orig, int expect_body, int init_header_length)
+		bool is_orig, int expect_body, int64_t init_header_length)
 	{
 	if ( message )
 		{
@@ -1718,5 +1812,3 @@ BroString* unescape_URI(const u_char* line, const u_char* line_end,
 
 	return new BroString(1, decoded_URI, URI_p - decoded_URI);
 	}
-
-#include "http-rw.bif.func_def"

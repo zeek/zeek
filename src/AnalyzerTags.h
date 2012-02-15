@@ -1,5 +1,3 @@
-// $Id: AnalyzerTags.h,v 1.1.2.5 2006/06/01 01:55:42 sommer Exp $
-
 #ifndef ANALYZERTAGS_H
 #define ANALYZERTAGS_H
 
@@ -22,28 +20,29 @@ namespace AnalyzerTag {
 		PIA_TCP, PIA_UDP,
 
 		// Transport-layer analyzers.
-		ICMP, TCP, UDP,
+		ICMP,
+		TCP, UDP,
 
 		// Application-layer analyzers (hand-written).
 		BitTorrent, BitTorrentTracker,
 		DCE_RPC, DNS, Finger, FTP, Gnutella, HTTP, Ident, IRC,
 		Login, NCP, NetbiosSSN, NFS, NTP, POP3, Portmapper, Rlogin,
 		RPC, Rsh, SMB, SMTP, SSH,
-		SSL,
 		Telnet,
 
 		// Application-layer analyzers, binpac-generated.
 		DHCP_BINPAC, DNS_TCP_BINPAC, DNS_UDP_BINPAC,
-		HTTP_BINPAC, RPC_UDP_BINPAC, SSL_BINPAC,
+		HTTP_BINPAC, SSL, SYSLOG_BINPAC,
 
 		// Other
 		File, Backdoor, InterConn, SteppingStone, TCPStats,
+		ConnSize,
+
 
 		// Support-analyzers
 		Contents, ContentLine, NVT, Zip, Contents_DNS, Contents_NCP,
 		Contents_NetbiosSSN, Contents_Rlogin, Contents_Rsh,
 		Contents_DCE_RPC, Contents_SMB, Contents_RPC, Contents_NFS,
-		Contents_SSL,
 		// End-marker.
 		LastAnalyzer
 	};

@@ -1,5 +1,3 @@
-// $Id: RSH.cc 6219 2008-10-01 05:39:07Z vern $
-
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -15,7 +13,7 @@ Contents_Rsh_Analyzer::Contents_Rsh_Analyzer(Connection* conn, bool orig,
 						Rsh_Analyzer* arg_analyzer)
 : ContentLine_Analyzer(AnalyzerTag::Contents_Rsh, conn, orig)
 	{
-	num_bytes_to_scan = num_bytes_to_scan = 0;
+	num_bytes_to_scan = 0;
 	analyzer = arg_analyzer;
 
 	if ( orig )
@@ -127,7 +125,7 @@ void Contents_Rsh_Analyzer::DoDeliver(int len, const u_char* data)
 			break;
 
 		default:
-			internal_error("bad state in Contents_Rsh_Analyzer::DoDeliver");
+			reporter->InternalError("bad state in Contents_Rsh_Analyzer::DoDeliver");
 			break;
 		}
 		}
@@ -179,7 +177,7 @@ void Rsh_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 void Rsh_Analyzer::ClientUserName(const char* s)
 	{
 	if ( client_name )
-		internal_error("multiple rsh client names");
+		reporter->InternalError("multiple rsh client names");
 
 	client_name = new StringVal(s);
 	}
@@ -187,7 +185,7 @@ void Rsh_Analyzer::ClientUserName(const char* s)
 void Rsh_Analyzer::ServerUserName(const char* s)
 	{
 	if ( username )
-		internal_error("multiple rsh initial client names");
+		reporter->InternalError("multiple rsh initial client names");
 
 	username = new StringVal(s);
 	}

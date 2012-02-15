@@ -1,5 +1,3 @@
-// $Id: NetVar.cc 6887 2009-08-20 05:17:33Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -18,11 +16,11 @@ RecordType* pcap_packet;
 RecordType* signature_state;
 EnumType* transport_proto;
 TableType* string_set;
-
-RecordType* net_stats;
+TableType* string_array;
+TableType* count_set;
+VectorType* string_vec;
 
 int watchdog_interval;
-double heartbeat_interval;
 
 int max_timer_expires;
 int max_remote_events_processed;
@@ -109,12 +107,6 @@ TableType* pm_mappings;
 RecordType* pm_port_request;
 RecordType* pm_callit_request;
 
-RecordType* nfs3_attrs;
-RecordType* nfs3_opt_attrs;
-RecordType* nfs3_lookup_args;
-RecordType* nfs3_lookup_reply;
-RecordType* nfs3_fsstat;
-
 RecordType* ntp_msg;
 
 TableVal* samba_cmds;
@@ -125,6 +117,8 @@ RecordType* smb_tree_connect;
 TableType* smb_negotiate;
 
 RecordType* geo_location;
+
+RecordType* entropy_test_result;
 
 TableType* dhcp_router_list;
 RecordType* dhcp_msg;
@@ -199,8 +193,6 @@ StringVal* ssl_private_key;
 StringVal* ssl_passphrase;
 
 StringVal* x509_crl_file;
-TableType* x509_extension;
-TableType* SSL_sessionID;
 
 Val* profiling_file;
 double profiling_interval;
@@ -247,7 +239,6 @@ int dump_used_event_handlers;
 int suppress_local_output;
 
 double timer_mgr_inactivity_timeout;
-double expected_connection_timeout;
 
 int time_machine_profiling;
 
@@ -257,9 +248,16 @@ int record_all_packets;
 
 RecordType* script_id;
 TableType* id_table;
+RecordType* record_field;
+TableType* record_field_table;
+
+StringVal* cmd_line_bpf_filter;
 
 #include "const.bif.netvar_def"
+#include "types.bif.netvar_def"
 #include "event.bif.netvar_def"
+#include "logging.bif.netvar_def"
+#include "reporter.bif.netvar_def"
 
 void init_event_handlers()
 	{
@@ -295,7 +293,7 @@ void init_general_global_var()
 	ssl_passphrase = internal_val("ssl_passphrase")->AsStringVal();
 
 	packet_filter_default = opt_internal_int("packet_filter_default");
-	
+
 	sig_max_group_size = opt_internal_int("sig_max_group_size");
 	enable_syslog = opt_internal_int("enable_syslog");
 
@@ -309,11 +307,17 @@ void init_general_global_var()
 	trace_output_file = internal_val("trace_output_file")->AsStringVal();
 
 	record_all_packets = opt_internal_int("record_all_packets");
+
+	cmd_line_bpf_filter =
+		internal_val("cmd_line_bpf_filter")->AsStringVal();
 	}
 
 void init_net_var()
 	{
 #include "const.bif.netvar_init"
+#include "types.bif.netvar_init"
+#include "logging.bif.netvar_init"
+#include "reporter.bif.netvar_init"
 
 	conn_id = internal_type("conn_id")->AsRecordType();
 	endpoint = internal_type("endpoint")->AsRecordType();
@@ -326,6 +330,8 @@ void init_net_var()
 	pcap_packet = internal_type("pcap_packet")->AsRecordType();
 	transport_proto = internal_type("transport_proto")->AsEnumType();
 	string_set = internal_type("string_set")->AsTableType();
+	string_array = internal_type("string_array")->AsTableType();
+	string_vec = internal_type("string_vec")->AsVectorType();
 
 	ignore_checksums = opt_internal_int("ignore_checksums");
 	partial_connection_ok = opt_internal_int("partial_connection_ok");
@@ -362,10 +368,7 @@ void init_net_var()
 	x509_trusted_cert_path = opt_internal_string("X509_trusted_cert_path");
 	ssl_store_cert_path = opt_internal_string("ssl_store_cert_path");
 	x509_type = internal_type("X509")->AsRecordType();
-	cipher_suites_list = internal_type("cipher_suites_list")->AsTableType();
 	x509_crl_file = opt_internal_string("X509_crl_file");
-	x509_extension = internal_type("X509_extension")->AsTableType();
-	SSL_sessionID = internal_type("SSL_sessionID")->AsTableType();
 
 	non_analyzed_lifetime = opt_internal_double("non_analyzed_lifetime");
 	tcp_inactivity_timeout = opt_internal_double("tcp_inactivity_timeout");
@@ -403,10 +406,7 @@ void init_net_var()
 	ntp_session_timeout = opt_internal_double("ntp_session_timeout");
 	rpc_timeout = opt_internal_double("rpc_timeout");
 
-	net_stats = internal_type("net_stats")->AsRecordType();
-
 	watchdog_interval = int(opt_internal_double("watchdog_interval"));
-	heartbeat_interval = opt_internal_double("heartbeat_interval");
 
 	max_timer_expires = opt_internal_int("max_timer_expires");
 	max_remote_events_processed =
@@ -443,12 +443,6 @@ void init_net_var()
 	pm_port_request = internal_type("pm_port_request")->AsRecordType();
 	pm_callit_request = internal_type("pm_callit_request")->AsRecordType();
 
-	nfs3_attrs = internal_type("nfs3_attrs")->AsRecordType();
-	nfs3_opt_attrs = internal_type("nfs3_opt_attrs")->AsRecordType();
-	nfs3_lookup_args = internal_type("nfs3_lookup_args")->AsRecordType();
-	nfs3_lookup_reply = internal_type("nfs3_lookup_reply")->AsRecordType();
-	nfs3_fsstat = internal_type("nfs3_fsstat")->AsRecordType();
-
 	ntp_msg = internal_type("ntp_msg")->AsRecordType();
 
 	samba_cmds = internal_val("samba_cmds")->AsTableVal();
@@ -459,6 +453,8 @@ void init_net_var()
 	smb_negotiate = internal_type("smb_negotiate")->AsTableType();
 
 	geo_location = internal_type("geo_location")->AsRecordType();
+
+	entropy_test_result = internal_type("entropy_test_result")->AsRecordType();
 
 	dhcp_router_list = internal_type("dhcp_router_list")->AsTableType();
 	dhcp_msg = internal_type("dhcp_msg")->AsRecordType();
@@ -554,10 +550,10 @@ void init_net_var()
 
 	timer_mgr_inactivity_timeout =
 		opt_internal_double("timer_mgr_inactivity_timeout");
-	expected_connection_timeout =
-		opt_internal_double("expected_connection_timeout");
 	time_machine_profiling = opt_internal_int("time_machine_profiling");
 
 	script_id = internal_type("script_id")->AsRecordType();
 	id_table = internal_type("id_table")->AsTableType();
+	record_field = internal_type("record_field")->AsRecordType();
+	record_field_table = internal_type("record_field_table")->AsTableType();
 	}

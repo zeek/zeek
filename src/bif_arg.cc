@@ -1,5 +1,3 @@
-// $Id: bif_arg.cc 3234 2006-06-08 02:38:11Z vern $
-
 #include "config.h"
 
 #include <set>
@@ -24,7 +22,6 @@ static struct {
 };
 
 extern const char* arg_list_name;
-extern set<string> enum_types;
 
 BuiltinFuncArg::BuiltinFuncArg(const char* arg_name, int arg_type)
 	{
@@ -45,9 +42,6 @@ BuiltinFuncArg::BuiltinFuncArg(const char* arg_name, const char* arg_type_str)
 			type = i;
 			type_str = "";
 			}
-
-	if ( enum_types.find(type_str) != enum_types.end() )
-		type = TYPE_ENUM;
 	}
 
 void BuiltinFuncArg::PrintBro(FILE* fp)
@@ -75,21 +69,11 @@ void BuiltinFuncArg::PrintCArg(FILE* fp, int n)
 	{
 	const char* ctype = builtin_func_arg_type[type].c_type;
 	char buf[1024];
-	if ( type == TYPE_ENUM )
-		{
-		snprintf(buf, sizeof(buf),
-			builtin_func_arg_type[type].c_type, type_str);
-		ctype = buf;
-		}
 
 	fprintf(fp, "%s %s", ctype, name);
 	}
 
 void BuiltinFuncArg::PrintBroValConstructor(FILE* fp)
 	{
-	if ( type == TYPE_ENUM )
-		fprintf(fp, builtin_func_arg_type[type].constructor,
-			name, type_str);
-	else
-		fprintf(fp, builtin_func_arg_type[type].constructor, name);
+	fprintf(fp, builtin_func_arg_type[type].constructor, name);
 	}

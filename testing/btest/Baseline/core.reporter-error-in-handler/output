@@ -1,0 +1,2 @@
+error in /Users/robin/bro/master/testing/btest/.tmp/core.reporter-error-in-handler/reporter-error-in-handler.bro, line 22: no such index (a[2])
+1st error printed on script level

@@ -1,5 +1,3 @@
-// $Id: NVT.cc 6916 2009-09-24 20:48:36Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -38,7 +36,7 @@ void TelnetOption::RecvOption(unsigned int type)
 	{
 	TelnetOption* peer = endp->FindPeerOption(code);
 	if ( ! peer )
-		internal_error("option peer missing in TelnetOption::RecvOption");
+		reporter->InternalError("option peer missing in TelnetOption::RecvOption");
 
 	// WILL/WONT/DO/DONT are messages we've *received* from our peer.
 	switch ( type ) {
@@ -83,7 +81,7 @@ void TelnetOption::RecvOption(unsigned int type)
 		break;
 
 	default:
-		internal_error("bad option type in TelnetOption::RecvOption");
+		reporter->InternalError("bad option type in TelnetOption::RecvOption");
 	}
 	}
 
@@ -163,7 +161,7 @@ void TelnetEncryptOption::RecvSubOption(u_char* data, int len)
 			(TelnetEncryptOption*) endp->FindPeerOption(code);
 
 		if ( ! peer )
-			internal_error("option peer missing in TelnetEncryptOption::RecvSubOption");
+			reporter->InternalError("option peer missing in TelnetEncryptOption::RecvSubOption");
 
 		if ( peer->DidRequest() || peer->DoingEncryption() ||
 		     peer->Endpoint()->AuthenticationHasBeenAccepted() )
@@ -199,7 +197,7 @@ void TelnetAuthenticateOption::RecvSubOption(u_char* data, int len)
 			(TelnetAuthenticateOption*) endp->FindPeerOption(code);
 
 		if ( ! peer )
-			internal_error("option peer missing in TelnetAuthenticateOption::RecvSubOption");
+			reporter->InternalError("option peer missing in TelnetAuthenticateOption::RecvSubOption");
 
 		if ( ! peer->DidRequestAuthentication() )
 			InconsistentOption(0);

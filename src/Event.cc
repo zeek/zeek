@@ -1,5 +1,3 @@
-// $Id: Event.cc 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -93,7 +91,7 @@ void EventMgr::QueueEvent(Event* event)
 void EventMgr::Dispatch()
 	{
 	if ( ! head )
-		internal_error("EventMgr underflow");
+		reporter->InternalError("EventMgr underflow");
 
 	Event* current = head;
 
@@ -120,9 +118,6 @@ void EventMgr::Drain()
 
 	// Note: we might eventually need a general way to specify things to
 	// do after draining events.
-	extern void flush_rewriter_packet();
-	flush_rewriter_packet();
-
 	draining = false;
 
 	// We evaluate Triggers here. While this is somewhat unrelated to event

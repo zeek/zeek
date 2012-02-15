@@ -1,5 +1,3 @@
-// $Id: DCE_RPC.cc 6916 2009-09-24 20:48:36Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -60,7 +58,7 @@ UUID::UUID(const u_char d[16])
 UUID::UUID(const binpac::bytestring& uuid)
 	{
 	if ( uuid.length() != 16 )
-		internal_error("UUID length error");
+		reporter->InternalError("UUID length error");
 	memcpy(data, uuid.begin(), 16);
 	s = uuid_to_string(data);
 	}
@@ -82,10 +80,10 @@ UUID::UUID(const char* str)
 		}
 
 	if ( i != 16 )
-		internal_error(fmt("invalid UUID string: %s", str));
+		reporter->InternalError("invalid UUID string: %s", str);
 	}
 
-typedef map<UUID, BroEnum::dce_rpc_if_id> uuid_map_t;
+typedef map<UUID, BifEnum::dce_rpc_if_id> uuid_map_t;
 
 static uuid_map_t& well_known_uuid_map()
 	{
@@ -95,7 +93,7 @@ static uuid_map_t& well_known_uuid_map()
 	if ( initialized )
 		return the_map;
 
-	using namespace BroEnum;
+	using namespace BifEnum;
 
 	the_map[UUID("e1af8308-5d1f-11c9-91a4-08002b14a0fa")] = DCE_RPC_epmapper;
 
@@ -186,14 +184,14 @@ DCE_RPC_Header::DCE_RPC_Header(Analyzer* a, const u_char* b)
 	else
 		fragmented = 0;
 
-	ptype = (BroEnum::dce_rpc_ptype) bytes[2];
+	ptype = (BifEnum::dce_rpc_ptype) bytes[2];
 	frag_len = extract_uint16(LittleEndian(), bytes + 8);
 	}
 
 DCE_RPC_Session::DCE_RPC_Session(Analyzer* a)
 : analyzer(a),
   if_uuid("00000000-0000-0000-0000-000000000000"),
-  if_id(BroEnum::DCE_RPC_unknown_if)
+  if_id(BifEnum::DCE_RPC_unknown_if)
 	{
 	opnum = -1;
 	}
@@ -234,7 +232,7 @@ void DCE_RPC_Session::DeliverPDU(int is_orig, int len, const u_char* data)
 		val_list* vl = new val_list;
 		vl->append(analyzer->BuildConnVal());
 		vl->append(new Val(is_orig, TYPE_BOOL));
-		vl->append(new EnumVal(data[2], enum_dce_rpc_ptype));
+		vl->append(new EnumVal(data[2], BifType::Enum::dce_rpc_ptype));
 		vl->append(new StringVal(len, (const char*) data));
 
 		analyzer->ConnectionEvent(dce_rpc_message, vl);
@@ -286,7 +284,7 @@ void DCE_RPC_Session::DeliverBind(const binpac::DCE_RPC_Simple::DCE_RPC_PDU* pdu
 			// conn->Weird(fmt("Unknown DCE_RPC interface %s",
 			// 		if_uuid.to_string()));
 #endif
-			if_id = BroEnum::DCE_RPC_unknown_if;
+			if_id = BifEnum::DCE_RPC_unknown_if;
 			}
 		else
 			if_id = uuid_it->second;
@@ -296,7 +294,7 @@ void DCE_RPC_Session::DeliverBind(const binpac::DCE_RPC_Simple::DCE_RPC_PDU* pdu
 			val_list* vl = new val_list;
 			vl->append(analyzer->BuildConnVal());
 			vl->append(new StringVal(if_uuid.to_string()));
-			// vl->append(new EnumVal(if_id, enum_dce_rpc_if_id));
+			// vl->append(new EnumVal(if_id, BifType::Enum::dce_rpc_if_id));
 
 			analyzer->ConnectionEvent(dce_rpc_bind, vl);
 			}
@@ -321,7 +319,7 @@ void DCE_RPC_Session::DeliverRequest(const binpac::DCE_RPC_Simple::DCE_RPC_PDU* 
 		}
 
 	switch ( if_id ) {
-	case BroEnum::DCE_RPC_epmapper:
+	case BifEnum::DCE_RPC_epmapper:
 		DeliverEpmapperRequest(pdu, req);
 		break;
 
@@ -345,7 +343,7 @@ void DCE_RPC_Session::DeliverResponse(const binpac::DCE_RPC_Simple::DCE_RPC_PDU*
 		}
 
 	switch ( if_id ) {
-	case BroEnum::DCE_RPC_epmapper:
+	case BifEnum::DCE_RPC_epmapper:
 		DeliverEpmapperResponse(pdu, resp);
 		break;
 

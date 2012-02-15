@@ -1,0 +1,63 @@
+static-prefix-0-BR.log
+static-prefix-0-MX3.log
+static-prefix-0-unknown.log
+static-prefix-1-MX.log
+static-prefix-1-US.log
+static-prefix-2-MX2.log
+static-prefix-2-UK.log
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	static-prefix-0-BR
+#fields	t	id.orig_h	id.orig_p	id.resp_h	id.resp_p	status	country
+#types	time	addr	port	addr	port	string	string
+1324314315.385189	1.2.3.4	1234	2.3.4.5	80	success	BR
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	static-prefix-0-MX3
+#fields	t	id.orig_h	id.orig_p	id.resp_h	id.resp_p	status	country
+#types	time	addr	port	addr	port	string	string
+1324314315.385189	1.2.3.4	1234	2.3.4.5	80	failure	MX3
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	static-prefix-0-unknown
+#fields	t	id.orig_h	id.orig_p	id.resp_h	id.resp_p	status	country
+#types	time	addr	port	addr	port	string	string
+1324314315.385189	1.2.3.4	1234	2.3.4.5	80	success	unknown
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	static-prefix-1-MX
+#fields	t	id.orig_h	id.orig_p	id.resp_h	id.resp_p	status	country
+#types	time	addr	port	addr	port	string	string
+1324314315.385189	1.2.3.4	1234	2.3.4.5	80	failure	MX
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	static-prefix-1-US
+#fields	t	id.orig_h	id.orig_p	id.resp_h	id.resp_p	status	country
+#types	time	addr	port	addr	port	string	string
+1324314315.385189	1.2.3.4	1234	2.3.4.5	80	failure	US
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	static-prefix-2-MX2
+#fields	t	id.orig_h	id.orig_p	id.resp_h	id.resp_p	status	country
+#types	time	addr	port	addr	port	string	string
+1324314315.385189	1.2.3.4	1234	2.3.4.5	80	failure	MX2
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	static-prefix-2-UK
+#fields	t	id.orig_h	id.orig_p	id.resp_h	id.resp_p	status	country
+#types	time	addr	port	addr	port	string	string
+1324314315.385189	1.2.3.4	1234	2.3.4.5	80	failure	UK

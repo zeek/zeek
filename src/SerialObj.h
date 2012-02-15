@@ -1,5 +1,3 @@
-// $Id: SerialObj.h 6752 2009-06-14 04:24:52Z vern $
-//
 // Infrastructure for serializable objects.
 //
 // How to make objects of class Foo serializable:
@@ -324,6 +322,29 @@ public:
 		info->s->Read(&dst, 0, "has_" #dst);	\
 		if ( ! dst )	\
 			return false;	\
+		}	\
+	\
+	else	\
+		dst = 0;	\
+	}
+
+#define UNSERIALIZE_OPTIONAL_STR_DEL(dst, del)	\
+	{	\
+	bool has_it;	\
+	if ( ! info->s->Read(&has_it, "has_" #dst) )	\
+		{	\
+		delete del;	\
+		return 0;	\
+		}	\
+	\
+	if ( has_it )	\
+		{	\
+		info->s->Read(&dst, 0, "has_" #dst);	\
+		if ( ! dst )	\
+			{	\
+			delete del;	\
+			return 0;	\
+			}	\
 		}	\
 	\
 	else	\

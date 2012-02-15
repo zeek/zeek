@@ -1,0 +1,45 @@
+#! /usr/bin/env bash
+
+cwd=`pwd`
+
+if [ $# != 2 ]; then
+    echo "usage: $0 <name> <dst-repo-dir>"
+    exit 1
+fi
+
+name=`pwd`/$1
+repo=$2
+
+if [ -e $repo ]; then
+    echo "$repo already exists, aborting."
+    exit 1
+fi
+
+if [ -e $name ]; then
+    echo "$name already exists, aborting."
+    exit 1
+fi
+
+mkdir $repo
+( cd $repo && git init --bare )
+
+git clone $repo $name
+
+cd $name
+
+for dir in tests Baseline; do
+    mkdir $dir
+    touch $dir/.gitignore
+done
+
+ln -s ../subdir-btest.cfg ./btest.cfg
+
+cp $cwd/`dirname $0`/skel/test.skeleton tests
+cp $cwd/`dirname $0`/skel/traces.cfg .
+cp $cwd/`dirname $0`/skel/Makefile .
+cp $cwd/`dirname $0`/skel/.gitignore .
+
+git add * .gitignore
+
+git commit -m "Repository initialized."
+git push origin master

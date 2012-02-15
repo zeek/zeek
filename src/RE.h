@@ -1,5 +1,3 @@
-// $Id: RE.h 6781 2009-06-28 00:50:04Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef re_h
@@ -19,6 +17,7 @@ class NFA_Machine;
 class DFA_Machine;
 class Specific_RE_Matcher;
 class RE_Matcher;
+class DFA_State;
 
 declare(PDict,char);
 declare(PDict,CCL);
@@ -126,13 +125,6 @@ protected:
 	AcceptingSet* accepted;
 };
 
-#ifdef EXPIRE_DFA_STATES
-	class DFA_State_Handle;
-#else
-	class DFA_State;
-	typedef DFA_State DFA_State_Handle;
-#endif
-
 class RE_Match_State {
 public:
 	RE_Match_State(Specific_RE_Matcher* matcher)
@@ -142,8 +134,6 @@ public:
 		current_pos = -1;
 		current_state = 0;
 		}
-
-	~RE_Match_State();
 
 	const AcceptingSet* Accepted() const	{ return &accepted; }
 	const int_list* MatchPositions() const	{ return &match_pos; }
@@ -169,7 +159,7 @@ protected:
 
 	AcceptingSet accepted;
 	int_list match_pos;
-	DFA_State_Handle* current_state;
+	DFA_State* current_state;
 	int current_pos;
 };
 

@@ -1,17 +1,16 @@
-// $Id: Gnutella.cc 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
 
 #include <ctype.h>
 
+#include <algorithm>
+
 #include "NetVar.h"
 #include "HTTP.h"
 #include "Gnutella.h"
 #include "Event.h"
 #include "PIA.h"
-
 
 GnutellaMsgState::GnutellaMsgState()
 	{
@@ -238,7 +237,7 @@ void Gnutella_Analyzer::SendEvents(GnutellaMsgState* p, bool is_orig)
 		vl->append(new StringVal(p->payload));
 		vl->append(new Val(p->payload_len, TYPE_COUNT));
 		vl->append(new Val((p->payload_len <
-				    min(p->msg_len, GNUTELLA_MAX_PAYLOAD)),
+				    min(p->msg_len, (unsigned int)GNUTELLA_MAX_PAYLOAD)),
 				   TYPE_BOOL));
 		vl->append(new Val((p->payload_left == 0), TYPE_BOOL));
 

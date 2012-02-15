@@ -1,8 +1,14 @@
-/* $Id: scan.l 6510 2009-01-08 14:51:04Z vern $ */
 %{
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include <errno.h>
+
+#include <stack>
+#include <list>
+#include <string>
+#include <algorithm>
+#include <sys/stat.h>
+#include <libgen.h>
 
 #include "input.h"
 #include "util.h"
@@ -15,26 +21,25 @@
 #include "Debug.h"
 #include "PolicyFile.h"
 #include "broparse.h"
-
-#include <stack>
+#include "BroDoc.h"
+#include "Analyzer.h"
+#include "AnalyzerTags.h"
+#include "Reporter.h"
 
 extern YYLTYPE yylloc;	// holds start line and column of token
 extern int print_loaded_scripts;
-
-int nwarn = 0;
-int nerr = 0;
-int nruntime = 0;
+extern int generate_documentation;
 
 // Track the @if... depth.
 ptr_compat_int current_depth = 0;
 
-declare(List,ptr_compat_int);
-typedef List(ptr_compat_int) int_list;
 int_list if_stack;
 
 int line_number = 1;
-int include_level = 0;
 const char* filename = 0;
+BroDoc* current_reST_doc = 0;
+static BroDoc* last_reST_doc = 0;
+string current_scanned_file_path;
 
 char last_tok[128];
 
@@ -45,10 +50,60 @@ char last_tok[128];
 // a read fails.
 #define YY_INPUT(buf,result,max_size) \
 	if ( ((result = fread(buf, 1, max_size, yyin)) == 0) && ferror(yyin) ) \
-		error(fmt("read failed with \"%s\"", strerror(errno)));
+		reporter->Error("read failed with \"%s\"", strerror(errno));
 
-// Files we have already scanned (or are in the process of scanning).
-static PList(char) files_scanned;
+// reST documents that we've created (or have at least opened so far).
+std::list<BroDoc*> docs_generated;
+
+// reST comments (those starting with ##) seen so far.
+std::list<std::string>* reST_doc_comments = 0;
+
+// Print current contents of reST_doc_comments list to stderr.
+void print_current_reST_doc_comments();
+
+// Delete the reST_doc_comments list object.
+void clear_reST_doc_comments();
+
+// Adds changes to capture_filter to the current script's reST documentation.
+static void check_capture_filter_changes();
+
+// Adds changes to dpd_config to the current script's reST documentation.
+static void check_dpd_config_changes();
+
+static const char* canon_doc_comment(const char* comment)
+	{
+	// "##Text" and "## Text" are treated the same in order to be able
+	// to still preserve indentation level, but not unintentionally
+	// signify an indentation level for all the text when using
+	// the "## Text" style.
+	return ( comment[0] == ' ' ) ? comment + 1 : comment;
+	}
+
+static std::string canon_doc_func_param(const char* id_start)
+	{
+	std::string id_name(id_start, strcspn(id_start, ":"));
+	const char* comment = id_start + id_name.size() + 1;
+	std::string doc;
+
+	if ( id_name == "Returns" )
+		doc.append(":returns:").append(comment);
+	else
+		doc.append(":param ").append(id_name).append(":").append(comment);
+	return doc;
+	}
+
+static ino_t get_inode_num(FILE* f, const char* filename)
+	{
+	struct stat b;
+
+	if ( fstat(fileno(f), &b) )
+		{
+		reporter->Error("failed to fstat fd of %s\n", filename);
+		exit(1);
+		}
+
+	return b.st_ino;
+	}
 
 class FileInfo {
 public:
@@ -60,6 +115,8 @@ public:
 	const char* name;
 	int line;
 	int level;
+	BroDoc* doc;
+	string path;
 };
 
 // A stack of input buffers we're scanning.  file_stack[len-1] is the
@@ -74,11 +131,7 @@ static PList(FileInfo) file_stack;
 	}
 
 // Returns true if the file is new, false if it's already been scanned.
-static int load_files_with_prefix(const char* file);
-
-// If print_loaded_files is true, print current filename if we haven't
-// reported it already.
-static void report_file();
+static int load_files(const char* file);
 
 // ### TODO: columns too - use yyless with '.' action?
 %}
@@ -87,6 +140,7 @@ static void report_file();
 
 %x RE
 %x IGNORE
+%s DOC
 
 OWS	[ \t]*
 WS	[ \t]+
@@ -102,12 +156,73 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 
 %%
 
+##!.* {
+	// Add this format of comments to the script documentation's "summary".
+	if ( generate_documentation )
+		current_reST_doc->AddSummary(canon_doc_comment(yytext + 3));
+	}
+
+<DOC>##<.* {
+	yylval.str = copy_string(canon_doc_comment(yytext + 3));
+	return TOK_POST_DOC;
+}
+
+<DOC>##{OWS}{ID}:{WS}.* {
+	const char* id_start = skip_whitespace(yytext + 2);
+	yylval.str = copy_string(canon_doc_func_param(id_start).c_str());
+	return TOK_DOC;
+}
+
+<DOC>##.* {
+	if ( yytext[2] != '#' )
+		{
+		yylval.str = copy_string(canon_doc_comment(yytext + 2));
+		return TOK_DOC;
+		}
+}
+
+##{OWS}{ID}:{WS}.* {
+	if ( generate_documentation )
+		{
+		// Comment is documenting either a function parameter or return type,
+		// so appropriate reST markup substitutions are automatically made
+		// in order to distinguish them from other comments.
+		if ( ! reST_doc_comments )
+			reST_doc_comments = new std::list<std::string>();
+
+		// always insert a blank line so that this param/return markup
+		// 1) doesn't show up in the summary section in the case that it's
+		//    the first comment for the function/event
+		// 2) has a blank line between it and non-field-list reST markup,
+		//    which is required for correct HTML rendering by Sphinx
+		reST_doc_comments->push_back("");
+		const char* id_start = skip_whitespace(yytext + 2);
+		reST_doc_comments->push_back(canon_doc_func_param(id_start));
+		}
+}
+
+##<.* {
+	if ( generate_documentation && BroDocObj::last )
+		BroDocObj::last->AddDocString(canon_doc_comment(yytext + 3));
+}
+
+##.* {
+	if ( generate_documentation && (yytext[2] != '#') )
+		{
+		if ( ! reST_doc_comments )
+			reST_doc_comments = new std::list<std::string>();
+
+		reST_doc_comments->push_back(canon_doc_comment(yytext + 2));
+		}
+}
+
+#{OWS}@no-test.* return TOK_NO_TEST;
+
 #.*	/* eat comments */
 
 {WS}	/* eat whitespace */
 
-<INITIAL,IGNORE>\n	{
-			report_file();
+<INITIAL,IGNORE,DOC>\n	{
 			++line_number;
 			++yylloc.first_line;
 			++yylloc.last_line;
@@ -131,7 +246,6 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 
 add	return TOK_ADD;
 addr	return TOK_ADDR;
-alarm	return TOK_ALARM;
 any	return TOK_ANY;
 bool	return TOK_BOOL;
 break	return TOK_BREAK;
@@ -151,9 +265,7 @@ file	return TOK_FILE;
 for	return TOK_FOR;
 function	return TOK_FUNCTION;
 global	return TOK_GLOBAL;
-global_attr	return TOK_GLOBAL_ATTR;
 "?$"	return TOK_HAS_FIELD;
-"?$$"	return TOK_HAS_ATTR;
 if	return TOK_IF;
 in	return TOK_IN;
 "!"{OWS}in/[^A-Za-z0-9]	return TOK_NOT_IN;	/* don't confuse w "! infoo"! */
@@ -163,7 +275,6 @@ list	return TOK_LIST;
 local	return TOK_LOCAL;
 match	return TOK_MATCH;
 module	return TOK_MODULE;
-net	return TOK_NET;
 next	return TOK_NEXT;
 of	return TOK_OF;
 pattern	return TOK_PATTERN;
@@ -196,8 +307,10 @@ when	return TOK_WHEN;
 &disable_print_hook	return TOK_ATTR_DISABLE_PRINT_HOOK;
 &raw_output return TOK_ATTR_RAW_OUTPUT;
 &encrypt	return TOK_ATTR_ENCRYPT;
+&error_handler	return TOK_ATTR_ERROR_HANDLER;
 &expire_func	return TOK_ATTR_EXPIRE_FUNC;
 &group		return TOK_ATTR_GROUP;
+&log		return TOK_ATTR_LOG;
 &mergeable	return TOK_ATTR_MERGEABLE;
 &optional	return TOK_ATTR_OPTIONAL;
 &persistent	return TOK_ATTR_PERSISTENT;
@@ -213,7 +326,19 @@ when	return TOK_WHEN;
 
 @load{WS}{FILE}	{
 	const char* new_file = skip_whitespace(yytext + 5);	// Skip "@load".
-	(void) load_files_with_prefix(new_file);
+	if ( generate_documentation )
+		{
+		current_reST_doc->AddImport(new_file);
+
+		if ( reST_doc_comments )
+			{
+			fprintf(stderr, "Warning: unconsumed reST documentation is being "
+					"discarded before doing '@load %s' in %s:\n",
+					 new_file, current_reST_doc->GetSourceFileName());
+			clear_reST_doc_comments();
+			}
+		}
+	(void) load_files(new_file);
 	}
 
 @unload{WS}{FILE}	{
@@ -221,7 +346,20 @@ when	return TOK_WHEN;
 	const char* new_file = skip_whitespace(yytext + 7);
 
 	// All we have to do is pretend we've already scanned it.
-	files_scanned.append(copy_string(new_file));
+	const char* full_filename;
+	FILE* f = search_for_file(new_file, "bro", &full_filename, true, 0);
+
+	if ( f )
+		{
+		ScannedFile sf(get_inode_num(f, full_filename), file_stack.length(), full_filename, "", true);
+		files_scanned.push_back(sf);
+
+		fclose(f);
+		delete [] full_filename;
+		}
+
+	else
+		reporter->Error("failed find file associated with @unload %s", new_file);
 	}
 
 @prefixes{WS}("+"?)={WS}{PREFIX}	{
@@ -266,10 +404,10 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 	}
 
 {D}		{
- 		// TODO: check if we can use strtoull instead of atol, 
+ 		// TODO: check if we can use strtoull instead of atol,
 		// and similarly for {HEX}.
-		RET_CONST(new Val(static_cast<unsigned int>(atol(yytext)), 
-			  TYPE_COUNT))		
+		RET_CONST(new Val(static_cast<unsigned int>(atol(yytext)),
+			  TYPE_COUNT))
 		}
 {FLOAT}		RET_CONST(new Val(atof(yytext), TYPE_DOUBLE))
 
@@ -277,7 +415,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 		uint32 p = atoi(yytext);
 		if ( p > 65535 )
 			{
-			error("bad port number -", yytext);
+			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
 		RET_CONST(new PortVal(p, TRANSPORT_TCP))
@@ -286,7 +424,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 		uint32 p = atoi(yytext);
 		if ( p > 65535 )
 			{
-			error("bad port number -", yytext);
+			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
 		RET_CONST(new PortVal(p, TRANSPORT_UDP))
@@ -295,7 +433,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 		uint32 p = atoi(yytext);
 		if ( p > 255 )
 			{
-			error("bad port number -", yytext);
+			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
 		RET_CONST(new PortVal(p, TRANSPORT_ICMP))
@@ -304,14 +442,12 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 		uint32 p = atoi(yytext);
 		if ( p > 255 )
 			{
-			error("bad port number -", yytext);
+			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
 		RET_CONST(new PortVal(p, TRANSPORT_UNKNOWN))
 		}
 
-{D}"."{D}"."		RET_CONST(new NetVal(yytext))
-({D}"."){2}{D}		RET_CONST(new NetVal(yytext))
 ({D}"."){3}{D}		RET_CONST(new AddrVal(yytext))
 
 ({HEX}:){7}{HEX}	RET_CONST(new AddrVal(yytext))
@@ -350,13 +486,13 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 			{
 			s[i++] = *text;
 			if ( i >= len )
-				internal_error("bad string length computation");
+				reporter->InternalError("bad string length computation");
 			}
 		}
 
 	// Get rid of trailing quote.
 	if ( s[i-1] != '"' )
-		internal_error("string scanning confused");
+		reporter->InternalError("string scanning confused");
 
 	s[i-1] = '\0';
 
@@ -370,7 +506,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 
 <RE>[/\\\n]	return yytext[0];
 
-<*>.	error("unrecognized character -", yytext);
+<*>.	reporter->Error("unrecognized character - %s", yytext);
 
 <<EOF>>	last_tok[0] = '\0'; return EOF;
 
@@ -386,128 +522,119 @@ YYLTYPE GetCurrentLocation()
 	return currloc;
 	}
 
-static int load_files_with_prefix(const char* orig_file)
+static int load_files(const char* orig_file)
 	{
-	loop_over_list(files_scanned, j)
-		{
-		if ( streq(files_scanned[j], orig_file) )
-			return 0;
-		}
-
-	// Be sure to copy "orig_file", since it could be an alias
-	// for yytext, which is ephemeral and will be zapped
-	// if we do a yy_switch_to_buffer() below.
-	char* file = copy_string(orig_file);
-
 	// Whether we pushed on a FileInfo that will restore the
 	// current module after the final file has been scanned. 
 	bool did_module_restore = false;
 
-	files_scanned.append(file);
+	const char* full_filename = "<internal error>";
+	const char* bropath_subpath = "<internal error>";
+	const char* bropath_subpath_delete = 0;
+	FILE* f;
 
-	// If the file has a .bro extension, add a second version to the list
-	// of known files which has it stripped.
-	char* ext = strrchr(file, '.');
-	if ( ext && streq(ext, ".bro") )
+	if ( streq(orig_file, "-") )
 		{
-		char* s = copy_string(file);
-		s[ext - file] = '\0';
-		files_scanned.append(s);
+		f = stdin;
+		full_filename = "<stdin>";
+		bropath_subpath = "";
+
+		if ( g_policy_debug )
+			{
+			debug_msg("Warning: can't use debugger while reading policy from stdin; turning off debugging.\n");
+			g_policy_debug = false;
+			}
 		}
 
-	// Note, we need to loop through the prefixes backwards, since
-	// we push them onto a stack, with the last one we push on the
-	// stack being the first one we will scan.
-	for ( int i = prefixes.length() - 1; i >= 0; --i )
+	else
 		{
-		const char* prefix = prefixes[i];
+		f = search_for_file(orig_file, "bro", &full_filename, true, &bropath_subpath);
+		bropath_subpath_delete = bropath_subpath; // This will be deleted.
+		}
 
-		const char* full_filename = "<internal error>";
-		FILE* f;
+	if ( f )
+		{
+		ino_t i = get_inode_num(f, full_filename);
+		std::list<ScannedFile>::const_iterator it;
 
-		if ( streq(file, "-") )
+		for ( it = files_scanned.begin(); it != files_scanned.end(); ++it )
 			{
-			f = stdin;
-			full_filename = "<stdin>";
-
-			if ( g_policy_debug )
+			if ( it->inode == i )
 				{
-				debug_msg("Warning: can't use debugger while reading policy from stdin; turning off debugging.\n");
-				g_policy_debug = false;
+				fclose(f);
+				delete [] full_filename;
+				delete [] bropath_subpath_delete;
+				return 0;
 				}
 			}
 
-		else
+		ScannedFile sf(i, file_stack.length(), full_filename, bropath_subpath);
+		files_scanned.push_back(sf);
+
+		if ( g_policy_debug )
 			{
-			int n = strlen(prefix) + strlen(file) + 2;
-			char* new_filename = new char[n];
+			// Add the filename to the file mapping
+			// table (Debug.h).
+			Filemap* map = new Filemap;
 
-			if ( prefix[0] )
-				sprintf(new_filename, "%s.%s", prefix, file);
-			else
-				strcpy(new_filename, file);
-
-			f = search_for_file(new_filename, "bro", &full_filename);
-
-			delete [] new_filename;
-			}
-
-		if ( f )
-			{
-			if ( g_policy_debug )
+			// Make sure it wasn't already read in.
+			HashKey* key = new HashKey(full_filename);
+			if ( g_dbgfilemaps.Lookup(key) )
 				{
-				// Add the filename to the file mapping
-				// table (Debug.h).
-				Filemap* map = new Filemap;
-
-				// Make sure it wasn't already read in.
-				HashKey* key = new HashKey(full_filename);
-				if ( g_dbgfilemaps.Lookup(key) )
-					{
-					// warn("Not re-reading policy file; check BRO_PREFIXES:", full_filename);
-					fclose(f);
-					delete key;
-					continue;
-					}
-				else
-					{
-					g_dbgfilemaps.Insert(key, map);
-					}
-
-				if ( full_filename )
-					LoadPolicyFileText(full_filename);
-				}
-
-			// Remember where we were.  If this is the first
-			// file being pushed on the stack, i.e., the *last*
-			// one that will be processed, then we want to
-			// restore the module scope in which this @load
-			// was done when we're finished processing it.
-			if ( ! did_module_restore )
-				{
-				file_stack.append(new FileInfo(current_module));
-				did_module_restore = true;
+				// reporter->Warning("Not re-reading policy file; check BRO_PREFIXES:", full_filename);
+				fclose(f);
+				delete key;
+				return 0;
 				}
 			else
-				file_stack.append(new FileInfo);
-
-			yy_switch_to_buffer(yy_create_buffer(f, YY_BUF_SIZE));
-
-			yylloc.first_line = yylloc.last_line = line_number = 1;
-
-			// Don't delete the old filename - it's pointed to by
-			// every BroObj created when parsing it.
-			yylloc.filename = filename = full_filename;
-			}
-
-		else
-			{
-			if ( streq(prefixes[i], "") )
 				{
-				error("can't open", full_filename);
-				exit(1);
+				g_dbgfilemaps.Insert(key, map);
 				}
+
+			if ( full_filename )
+				LoadPolicyFileText(full_filename);
 			}
+
+		// Remember where we were.  If this is the first
+		// file being pushed on the stack, i.e., the *last*
+		// one that will be processed, then we want to
+		// restore the module scope in which this @load
+		// was done when we're finished processing it.
+		if ( ! did_module_restore )
+			{
+			file_stack.append(new FileInfo(current_module));
+			did_module_restore = true;
+			}
+		else
+			file_stack.append(new FileInfo);
+
+		char* tmp = copy_string(full_filename);
+		current_scanned_file_path = dirname(tmp);
+		delete [] tmp;
+
+		if ( generate_documentation )
+			{
+			current_reST_doc = new BroDoc(bropath_subpath, full_filename);
+			docs_generated.push_back(current_reST_doc);
+			}
+
+		delete [] bropath_subpath_delete;
+
+		// "orig_file", could be an alias for yytext, which is ephemeral
+		//  and will be zapped after the yy_switch_to_buffer() below.
+		yy_switch_to_buffer(yy_create_buffer(f, YY_BUF_SIZE));
+
+		yylloc.first_line = yylloc.last_line = line_number = 1;
+
+		// Don't delete the old filename - it's pointed to by
+		// every BroObj created when parsing it.
+		yylloc.filename = filename = full_filename;
+		}
+
+	else
+		{
+		reporter->Error("can't open %s", full_filename);
+		exit(1);
 		}
 
 	return 1;
@@ -560,7 +687,7 @@ void do_atifndef(const char *id)
 void do_atelse()
 	{
 	if ( current_depth == 0 )
-		error("@else without @if...");
+		reporter->Error("@else without @if...");
 
 	if ( if_stack.length() && current_depth > if_stack.last() )
 		return;
@@ -580,7 +707,7 @@ void do_atelse()
 void do_atendif()
 	{
 	if ( current_depth == 0 )
-		error("unbalanced @if... @endif");
+		reporter->Error("unbalanced @if... @endif");
 
 	if ( current_depth == if_stack.last() )
 		{
@@ -589,6 +716,18 @@ void do_atendif()
 		}
 
 	--current_depth;
+	}
+
+void do_doc_token_start()
+	{
+	if ( generate_documentation )
+	    BEGIN(DOC);
+	}
+
+void do_doc_token_stop()
+	{
+	if ( generate_documentation )
+	    BEGIN(INITIAL);
 	}
 
 // Be careful to never delete things from this list, as the strings
@@ -604,10 +743,10 @@ const char* get_current_input_filename()
 void add_input_file(const char* file)
 	{
 	if ( ! file )
-		internal_error("empty filename");
+		reporter->InternalError("empty filename");
 
 	if ( ! filename )
-		(void) load_files_with_prefix(file);
+		(void) load_files(file);
 	else
 		input_files.append(copy_string(file));
 	}
@@ -631,10 +770,8 @@ void add_to_name_list(char* s, char delim, name_list& nl)
 
 int yywrap()
 	{
-	if ( nerr > 0 )
+	if ( reporter->Errors() > 0 )
 		return 1;
-
-	--include_level;
 
 	if ( ! did_builtin_init && file_stack.length() == 1 )
 		{
@@ -657,7 +794,10 @@ int yywrap()
 	// Stack is now empty.
 	while ( input_files.length() > 0 )
 		{
-		if ( load_files_with_prefix(input_files[0]) )
+		check_capture_filter_changes();
+		check_dpd_config_changes();
+
+		if ( load_files(input_files[0]) )
 			{
 			// Don't delete the filename - it's pointed to by
 			// every BroObj created when parsing it.
@@ -669,6 +809,54 @@ int yywrap()
 		// if any.
 		(void) input_files.remove_nth(0);
 		}
+
+	check_capture_filter_changes();
+	check_dpd_config_changes();
+
+	// For each file scanned so far, and for each @prefix, look for a
+	// prefixed and flattened version of the loaded file in BROPATH. The
+	// flattening involves taking the path in BROPATH in which the
+	// scanned file lives and replacing '/' path separators with a '.' If
+	// the scanned file is "__load__.bro", that part of the flattened
+	// file name is discarded. If the prefix is non-empty, it gets placed
+	// in front of the flattened path, separated with another '.'
+	std::list<ScannedFile>::iterator it;
+	bool found_prefixed_files = false;
+	for ( it = files_scanned.begin(); it != files_scanned.end(); ++it )
+		{
+		if ( it->skipped || it->prefixes_checked )
+			continue;
+
+		it->prefixes_checked = true;
+		// Prefixes are pushed onto a stack, so iterate backwards.
+		for ( int i = prefixes.length() - 1; i >= 0; --i )
+			{
+			// Don't look at empty prefixes.
+			if ( ! prefixes[i][0] )
+				continue;
+
+			string s;
+			s = dot_canon(it->subpath.c_str(), it->name.c_str(), prefixes[i]);
+			FILE* f = search_for_file(s.c_str(), "bro", 0, false, 0);
+
+			//printf("====== prefix search ======\n");
+			//printf("File  : %s\n", it->name.c_str());
+			//printf("Path  : %s\n", it->subpath.c_str());
+			//printf("Dotted: %s\n", s.c_str());
+			//printf("Found : %s\n", f ? "T" : "F");
+			//printf("===========================\n");
+
+			if ( f )
+				{
+				add_input_file(s.c_str());
+				found_prefixed_files = true;
+				fclose(f);
+				}
+			}
+		}
+
+	if ( found_prefixed_files )
+		return 0;
 
 	// Add redef statements for any X=Y command line parameters.
 	if ( params.size() > 0 )
@@ -733,6 +921,9 @@ int yywrap()
 		return 0;
 		}
 
+	if ( generate_documentation )
+		clear_reST_doc_comments();
+
 	// Otherwise, we are done.
 	return 1;
 	}
@@ -743,7 +934,8 @@ FileInfo::FileInfo(string arg_restore_module)
 	restore_module = arg_restore_module;
 	name = ::filename;
 	line = ::line_number;
-	level = ::include_level;
+	doc = ::current_reST_doc;
+	path = current_scanned_file_path;
 	}
 
 FileInfo::~FileInfo()
@@ -754,30 +946,101 @@ FileInfo::~FileInfo()
 	yy_switch_to_buffer(buffer_state);
 	yylloc.filename = filename = name;
 	yylloc.first_line = yylloc.last_line = line_number = line;
-	include_level = level;
+	last_reST_doc = current_reST_doc;
+	current_reST_doc = doc;
+	current_scanned_file_path = path;
 
 	if ( restore_module != "" )
 		current_module = restore_module;
 	}
 
-static void report_file()
+static void check_capture_filter_changes()
 	{
-	if ( ! print_loaded_scripts || ! filename )
-		return;
+	if ( ! generate_documentation )
+	    return;
 
-	static PList(char) files_reported;
+	// Lookup the "capture_filters" identifier, if it has any defined
+	// value, add it to the script's reST documentation, and finally
+	// clear the table so it doesn't taint the documentation for
+	// subsequent scripts.
 
-	loop_over_list(files_reported, i)
+	ID* capture_filters = global_scope()->Lookup("capture_filters");
+
+	if ( capture_filters )
 		{
-		if ( streq(files_reported[i], filename) )
-			return;
+		ODesc desc;
+		desc.SetIndentSpaces(4);
+		capture_filters->ID_Val()->Describe(&desc);
+		last_reST_doc->SetPacketFilter(desc.Description());
+		capture_filters->ID_Val()->AsTableVal()->RemoveAll();
 		}
-
-	for ( int i = include_level - 1; i >= 0; --i )
-		fprintf(stderr, "   ");
-	fprintf(stderr, "loading %s\n", filename);
-
-	++include_level;
-	files_reported.append(copy_string(filename));
 	}
 
+static void check_dpd_config_changes()
+	{
+	if ( ! generate_documentation )
+		return;
+
+	// Lookup the "dpd_config" identifier, if it has any defined value,
+	// add it to the script's documentation, and clear the table so that
+	// it doesn't taint the documentation for subsequent scripts.
+	ID* dpd_config = global_scope()->Lookup("dpd_config");
+	if ( ! dpd_config )
+		return;
+
+	TableVal* dpd_table = dpd_config->ID_Val()->AsTableVal();
+	ListVal* dpd_list = dpd_table->ConvertToList();
+
+	for ( int i = 0; i < dpd_list->Length(); ++i )
+		{
+		Val* key = dpd_list->Index(i);
+		if ( ! key )
+			continue;
+
+		Val* v = dpd_table->Lookup(key);
+		if ( ! v )
+			continue;
+
+		int tag = key->AsListVal()->Index(0)->AsCount();
+		ODesc valdesc;
+		valdesc.SetIndentSpaces(4);
+		valdesc.PushIndent();
+		v->Describe(&valdesc);
+
+		if ( tag < AnalyzerTag::Error || tag > AnalyzerTag::LastAnalyzer )
+			{
+			fprintf(stderr, "Warning: skipped bad analyzer tag: %i\n", tag);
+			continue;
+			}
+
+		last_reST_doc->AddPortAnalysis(
+			Analyzer::GetTagName((AnalyzerTag::Tag)tag),
+			valdesc.Description());
+		}
+
+	dpd_table->RemoveAll();
+	}
+
+void print_current_reST_doc_comments()
+	{
+	if ( ! reST_doc_comments )
+		return;
+
+	std::list<std::string>::iterator it;
+
+	for ( it = reST_doc_comments->begin(); it != reST_doc_comments->end(); ++it )
+		fprintf(stderr, "##%s\n", it->c_str());
+	}
+
+void clear_reST_doc_comments()
+	{
+	if ( ! reST_doc_comments )
+		return;
+
+	fprintf(stderr, "Warning: %zu unconsumed reST comments:\n",
+			reST_doc_comments->size());
+
+	print_current_reST_doc_comments();
+	delete reST_doc_comments;
+	reST_doc_comments = 0;
+	}

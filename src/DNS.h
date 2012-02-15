@@ -1,5 +1,3 @@
-// $Id: DNS.h 6885 2009-08-20 04:37:55Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef dns_h
@@ -265,11 +263,6 @@ public:
 	virtual void Done();
 	virtual void ConnectionClosed(TCP_Endpoint* endpoint,
 					TCP_Endpoint* peer, int gen_event);
-	virtual int RewritingTrace()
-		{
-		return rewriting_dns_trace ||
-			TCP_ApplicationAnalyzer::RewritingTrace();
-		}
 
 	void ExpireTimer(double t);
 

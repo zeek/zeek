@@ -1,5 +1,3 @@
-// $Id: MIME.h 3526 2006-09-12 07:32:21Z vern $
-
 #ifndef mime_h
 #define mime_h
 
@@ -97,6 +95,7 @@ public:
 	virtual void EndOfData();
 
 	MIME_Entity* Parent() const { return parent; }
+	int MIMEContentType() const { return content_type; }
 	StringVal* ContentType() const { return content_type_str; }
 	StringVal* ContentSubType() const { return content_subtype_str; }
 	int ContentTransferEncoding() const { return content_encoding; }
@@ -193,7 +192,7 @@ public:
 	virtual ~MIME_Message()
 		{
 		if ( ! finished )
-			internal_error("Done() must be called before destruction");
+			reporter->InternalError("Done() must be called before destruction");
 		}
 
 	virtual void Done()	{ finished = 1; }

@@ -1,5 +1,3 @@
-// $Id: DNS.cc 6885 2009-08-20 04:37:55Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -13,8 +11,6 @@
 #include "DNS.h"
 #include "Sessions.h"
 #include "Event.h"
-#include "DNS_Rewriter.h"
-#include "TCP_Rewriter.h"
 
 DNS_Interpreter::DNS_Interpreter(Analyzer* arg_analyzer)
 	{
@@ -48,6 +44,7 @@ int DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query)
 	// This should weed out most of it.
 	if ( dns_max_queries > 0 && msg.qdcount > dns_max_queries )
 		{
+		analyzer->ProtocolViolation("DNS_Conn_count_too_large");
 		analyzer->Weird("DNS_Conn_count_too_large");
 		EndMessage(&msg);
 		return 0;
@@ -70,6 +67,8 @@ int DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query)
 		EndMessage(&msg);
 		return 0;
 		}
+
+	analyzer->ProtocolConfirmation();
 
 	AddrVal server(analyzer->Conn()->RespAddr());
 
@@ -1030,7 +1029,7 @@ Contents_DNS::Contents_DNS(Connection* conn, bool orig,
 
 Contents_DNS::~Contents_DNS()
 	{
-	delete msg_buf;
+	free(msg_buf);
 	}
 
 void Contents_DNS::Flush()
@@ -1134,11 +1133,6 @@ DNS_Analyzer::~DNS_Analyzer()
 
 void DNS_Analyzer::Init()
 	{
-	if ( transformed_pkt_dump && RewritingTrace() &&
-	     Conn()->ConnTransport() == TRANSPORT_UDP )
-		Conn()->GetRootAnalyzer()->SetTraceRewriter(
-			new DNS_Rewriter(this, transformed_pkt_dump_MTU,
-			transformed_pkt_dump));
 	}
 
 void DNS_Analyzer::Done()
@@ -1196,5 +1190,3 @@ void DNS_Analyzer::ExpireTimer(double t)
 		ADD_ANALYZER_TIMER(&DNS_Analyzer::ExpireTimer,
 				t + dns_session_timeout, 1, TIMER_DNS_EXPIRE);
 	}
-
-#include "dns-rw.bif.func_def"

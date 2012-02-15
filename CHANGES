@@ -1,6 +1,1746 @@
-@(#) $Id: CHANGES 7076 2010-09-13 02:42:27Z vern $
 
--+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+2.0-57 | 2012-02-10 00:02:35 -0800
+
+  * Fix typos in the documentation. (Daniel Thayer)
+
+  * Fix compiler warning about Brofiler ctor init list order. (Jon Siwek)
+
+  * Fix missing optional field access in webapp signature_match handler. (Jon Siwek)
+
+2.0-41 | 2012-02-03 04:10:53 -0500
+
+  * Updates to the Software framework to simplify the API. (Bernhard
+    Amann)
+
+2.0-40 | 2012-02-03 01:55:27 -0800
+
+  * Fix typos in documentation. (Daniel Thayer)
+    
+  * Fix sorting of lines in Brofiler coverage.log. (Daniel Thayer)
+    
+2.0-38 | 2012-01-31 11:50:53 -0800
+
+  * Canonify sorting of lines in Brofiler coverage.log. (Daniel
+    Thayer)
+
+2.0-36 | 2012-01-27 10:38:14 -0800
+
+  * New "Brofiler" mode that tracks and records script statements
+    executed during runtime. (Jon Siwek)
+
+    Use the BROFILER_FILE environment variable to point to a file in
+    which statement usage statistics from Bro script-layer can be
+    output.
+
+    Script statements that should be ignored can be marked with a "#
+    @no-test" comment. For example:
+
+        print "don't cover"; # @no-test
+
+        if ( F )
+            { # @no-test
+            ...
+            }
+
+  * Integrated coverage measurement into test-suite. (Jon Siwek)
+
+2.0-20 | 2012-01-25 16:34:51 -0800
+
+  * BiF cleanup (Matthias Vallentin)
+
+      - Rename NFS3::mode2string to a more generic file_mode().
+
+      - Unify do_profiling()/make_connection_persistent()/expect_connection()
+        to return any (i.e., nothing) instead of bools.
+
+      - Perform type checking on count-to-port conversion. Related to #684.
+
+      - Remove redundant connection_record() BiF. The same
+        functionality is provided by lookup_connection().
+
+      - Remove redundant active_connection() BiF. The same
+        functionality is provided by connection_exists().
+
+      - exit() now takes the exit code as argument.
+
+      - to_port() now received a string instead of a count.
+        
+2.0-9 | 2012-01-25 13:47:13 -0800
+
+  * Allow local table variables to be initialized with {} list
+    expressions. (Jon Siwek)
+
+2.0-7 | 2012-01-25 13:38:09 -0800
+
+  * Teach CompHash to allow indexing by records with vector/table/set
+    fields. Addresses #464. (Jon Siwek)
+
+2.0-5 | 2012-01-25 13:25:19 -0800
+
+  * Fixed a bug resulting in over-logging of detected webapps. (Seth Hall)
+
+  * Make communication log baseline test more reliable. (Jon Siwek)
+    
+  * Fixed some broken links in documentation. (Daniel Thayer)
+    
+2.0 | 2012-01-11 13:52:22 -0800
+
+  * Adding script reference documentation. (The Team).
+
+2.0-beta-194 | 2012-01-10 10:44:32 -0800
+
+  * Added an option for filtering out URLs before they are turned into
+    HTTP::Incorrect_File_Type notices. (Seth Hall)
+
+  * Fix ref counting bug in BIFs that call internal_type. Addresses
+    #740. (Jon Siwek)
+
+  * Adding back the stats.bro file. (Seth Hall)
+
+
+2.0-beta-188 | 2012-01-10 09:49:29 -0800
+
+  * Change SFTP/SCP log rotators to use 4-digit year in filenames
+    Fixes #745. (Jon Siwek)
+
+  * Adding back the stats.bro file. Addresses #656. (Seth Hall)
+
+2.0-beta-185 | 2012-01-09 18:00:50 -0800
+
+  * Tweaks for OpenBSD support. (Jon Siwek)
+
+2.0-beta-181 | 2012-01-08 20:49:04 -0800
+
+  * Add SFTP log postprocessor that transfers logs to remote hosts.
+    Addresses #737. (Jon Siwek)
+
+  * Add FAQ entry about disabling NIC offloading features. (Jon Siwek)
+    
+  * Add a file NEWS with release notes. (Robin Sommer)
+
+2.0-beta-177 | 2012-01-05 15:01:07 -0800
+
+  * Replace the --snaplen/-l command line option with a
+    scripting-layer option called "snaplen" (which can also be
+    redefined on the command line, e.g. `bro -i eth0 snaplen=65535`).
+
+  * Reduce snaplen default from 65535 to old default of 8192. Fixes
+    #720. (Jon Siwek)
+
+2.0-beta-174 | 2012-01-04 12:47:10 -0800
+
+  * SSL improvements. (Seth Hall)
+    
+    - Added the ssl_session_ticket_handshake event back.
+
+    - Fixed a few bugs.
+      
+    - Removed the SSLv2.cc file since it's not used.
+      
+2.0-beta-169 | 2012-01-04 12:44:39 -0800
+
+  * Tuning the pretty-printed alarm mails, which now include the
+    covered time range into the subject. (Robin Sommer)
+
+  * Adding top-level "test" target to Makefile. (Robin Sommer)
+    
+  * Adding SWIG as dependency to INSTALL. (Robin Sommer)
+    
+2.0-beta-155 | 2012-01-03 15:42:32 -0800
+
+  * Remove dead code related to record type inheritance. (Jon Siwek)
+
+2.0-beta-152 | 2012-01-03 14:51:34 -0800
+
+  * Notices now record the transport-layer protocol. (Bernhard Amann)
+
+2.0-beta-150 | 2012-01-03 14:42:45 -0800
+
+  * CMake 2.6 top-level 'install' target compat. Fixes #729. (Jon Siwek)
+
+  * Minor fixes to test process. Addresses #298.
+    
+  * Increase timeout interval of communication-related btests. (Jon Siwek)
+
+2.0-beta-145 | 2011-12-19 11:37:15 -0800
+
+  * Empty fields are now logged as "(empty)" by default. (Robin
+    Sommer)
+
+  * In log headers, only escape information when necessary. (Robin
+    Sommer)
+
+2.0-beta-139 | 2011-12-19 07:06:29 -0800
+
+  * The hostname notice email extension works now, plus a general
+    mechanism for adding delayed information to notices. (Seth Hall)
+
+  * Fix &default fields in records not being initialized in coerced
+    assignments. Addresses #722. (Jon Siwek)
+
+  * Make log headers include the type of data stored inside a set or
+    vector ("vector[string]"). (Bernhard Amann)
+
+2.0-beta-126 | 2011-12-18 15:18:05 -0800
+
+  * DNS updates.  (Seth Hall)
+
+    - Fixed some bugs with capturing data in the base DNS script.
+
+    - Answers and TTLs are now vectors.
+      
+    - A warning that was being generated (dns_reply_seen_after_done)
+      from transaction ID reuse is fixed.
+
+  * SSL updates. (Seth Hall)
+
+    - Added is_orig fields to the SSL events and adapted script.
+      
+    - Added a field named last_alert to the SSL log.
+      
+    - The x509_certificate function has an is_orig field now instead
+      of is_server and its position in the argument list has moved.
+
+    - A bit of reorganization and cleanup in the core analyzer. (Seth
+      Hall)
+
+2.0-beta-121 | 2011-12-18 15:10:15 -0800
+
+  * Enable warnings for malformed Broxygen xref roles. (Jon Siwek)
+
+  * Fix Broxygen confusing scoped IDs at start of line as function
+    parameter. (Jon Siwek)
+
+  * Allow Broxygen markup "##<" for more general use. (Jon Siwek)
+    
+2.0-beta-116 | 2011-12-16 02:38:27 -0800
+
+  * Cleanup some misc Broxygen css/js stuff. (Jon Siwek)
+
+  * Add search box to Broxygen docs. Fixes #726. (Jon Siwek)
+
+  * Fixed major bug with cluster synchronization, which was not
+    working. (Seth Hall)
+
+  * Fix missing action in notice policy for looking up GeoIP data.
+    (Jon Siwek)
+
+  * Better persistent state configuration warning messages (fixes
+    #433). (Jon Siwek)
+
+  * Renaming HTTP::SQL_Injection_Attack_Against to
+    HTTP::SQL_Injection_Victim. (Seth Hall).
+
+  * Fixed DPD signatures for IRC. Fixes #311. (Seth Hall)
+    
+  * Removing Off_Port_Protocol_Found notice. (Seth Hall)
+
+  * Teach Broxygen to more generally reference attribute values by name. (Jon Siwek)
+
+  * SSH::Interesting_Hostname_Login cleanup.  Fixes #664. (Seth Hall)
+    
+  * Fixed bug that was causing the malware hash registry script to
+    break. (Seth Hall)
+
+  * Remove remnant of libmagic optionality. (Jon Siwek)
+
+2.0-beta-98 | 2011-12-07 08:12:08 -0800
+
+  * Adapting test-suite's diff-all so that it expands globs in both
+    current and baseline directory. Closes #677. (Robin Sommer)
+
+2.0-beta-97 | 2011-12-06 11:49:29 -0800
+
+  * Omit loading local-<node>.bro scripts from base cluster framework.
+    Addresses #663 (Jon Siwek)
+
+2.0-beta-94 | 2011-12-03 15:57:19 -0800
+
+  * Adapting attribute serialization when talking to Broccoli. (Robin
+    Sommer)
+
+2.0-beta-92 | 2011-12-03 15:56:03 -0800
+
+  * Changes to Broxygen master script package index.  (Jon Siwek)
+
+    - Now only lists packages as those directories in the script hierarchy
+      that contain an __load__.bro file.
+
+    - Script packages (dirs with a __load__.bro file), can now include
+      a README (in reST format) that will automatically be appended
+      under the link to a specific package in the master package
+      index.
+
+2.0-beta-88 | 2011-12-02 17:00:58 -0800
+
+  * Teach LogWriterAscii to use BRO_LOG_SUFFIX environemt variable.
+    Addresses #704. (Jon Siwek)
+
+  * Fix double-free of DNS_Mgr_Request object. Addresses #661.
+    
+  * Add a remote_log_peer event which comes with an event_peer record
+    parameter. Addresses #493. (Jon Siwek)
+
+  * Remove example redef of SMTP::entity_excerpt_len from local.bro.
+    Fixes error emitted when loading local.bro in bare mode. (Jon
+    Siwek)
+
+  * Add missing doc targets to top Makefile; remove old doc/Makefile.
+    Fixes #705. (Jon Siwek)
+
+  * Turn some globals into constants. Addresses #633. (Seth Hall)
+    
+  * Rearrange packet filter and DPD documentation. (Jon Siwek)
+    
+2.0-beta-72 | 2011-11-30 20:16:09 -0800
+
+  * Fine-tuning the Sphinx layout to better match www. (Jon Siwek and
+    Robin Sommer)
+
+2.0-beta-69 | 2011-11-29 16:55:31 -0800
+
+  * Fixing ASCII logger to escape the unset-field place holder if
+    written out literally. (Robin Sommer)
+
+2.0-beta-68 | 2011-11-29 15:23:12 -0800
+
+  * Lots of documentation polishing. (Jon Siwek)
+
+  * Teach Broxygen the ".. bro:see::" directive. (Jon Siwek)
+
+  * Teach Broxygen :bro:see: role for referencing any identifier in
+    the Bro domain. (Jon Siwek)
+
+  * Teach Broxygen to generate an index of Bro notices. (Jon Siwek)
+
+  * Fix order of include directories. (Jon Siwek)
+
+  * Catch if logged vectors do not contain only atomic types.
+    (Bernhard Amann)
+
+2.0-beta-47 | 2011-11-16 08:24:33 -0800
+
+  * Catch if logged sets do not contain only atomic types. (Bernhard
+    Amann)
+
+  * Promote libz and libmagic to required dependencies. (Jon Siwek)
+    
+  * Fix parallel make from top-level to work on more platforms. (Jon
+    Siwek)
+
+  * Add decode_base64_custom(). Addresses #670 (Jon Siwek)
+    
+  * A bunch of Sphinx-doc reorgs and polishing. (Jon Siwek)
+    
+2.0-beta-28 | 2011-11-14 20:09:28 -0800
+
+  * Binary packaging script tweaks. We now require CMake 2.8.6. (Jon Siwek)
+
+  * More default "weird" tuning for the "SYN_with_data" notice. (Seth
+    Hall)
+
+  * Tiny bugfix for http file extraction along with test. (Seth Hall)
+    
+2.0-beta-21 | 2011-11-06 19:27:22 -0800
+
+  * Quickstart doc fixes. (Jon Siwek)
+
+2.0-beta-19 | 2011-11-03 17:41:00 -0700
+
+  * Fixing packet filter test. (Robin Sommer)
+
+2.0-beta-12 | 2011-11-03 15:21:08 -0700
+
+  * No longer write to the PacketFilter::LOG stream if not reading
+    traffic. (Seth Hall)
+
+2.0-beta-10 | 2011-11-03 15:17:08 -0700
+
+  * Notice framework documentation update. (Seth Hall)
+
+  * Fixing compiler warnings (addresses #388) (Jon Siwek)
+
+2.0-beta | 2011-10-27 17:46:28 -0700
+
+  * Preliminary fix for SSH login detection: we need a counted measure
+    of payload bytes (not ack tracking and not with the IP header
+    which is what we have now). (Seth Hall)
+
+  * Fixing send_id() problem. We no longer update &redef functions.
+    Updating code on the fly isn't fully supported. (Robin Sommer)
+
+  * Tuning the format of the pretty-printed alarm summaries. (Robin
+    Sommer)
+
+1.6-dev-1508 | 2011-10-26 17:24:50 -0700
+
+  * Updating submodule(s). (Robin Sommer)
+
+1.6-dev-1507 | 2011-10-26 15:10:18 -0700
+
+  * Baseline updates. (Robin Sommer)
+
+1.6-dev-1506 | 2011-10-26 14:48:43 -0700
+
+  * Updating submodule(s). (Robin Sommer)
+
+1.6-dev-1505 | 2011-10-26 14:43:58 -0700
+
+  * A new base script that pretty-prints alarms in the regular
+    summary. (Robin Sommer)
+
+  * Adding a dummy log writer WRITER_NONE that just discards
+    everything. (Robin Sommer)
+
+1.6-dev-1498 | 2011-10-26 14:30:15 -0700
+
+  * Adding instructions to local.bro how to do ACTION_ALARM by
+  default. (Seth Hall)
+
+1.6-dev-1495 | 2011-10-26 10:15:58 -0500
+
+  * Updated unit test baselines. (Seth Hall)
+
+1.6-dev-1491 | 2011-10-25 20:22:56 -0700
+
+  * Updating submodule(s). (Robin Sommer)
+
+1.6-dev-1482 | 2011-10-25 19:08:32 -0700
+
+  * Fixing bug in log managers predicate evaluation. (Robin Sommer)
+
+1.6-dev-1481 | 2011-10-25 18:17:03 -0700
+
+  * Fix a problem with DNS servers being logged that aren't actually
+    servers. (Seth Hall)
+
+  * Changed generated root cert DN format for RFC2253 compliance. (Jon
+    Siwek)
+
+  * Removed :bro doc directives from notice documentation. (Seth Hall)
+
+  * New notice framework docs. (Seth Hall)
+
+  * Adding sub messages to emails. (Seth Hall)
+
+  * Adding extra fields to smtp and http to track transaction depth.
+    (Seth Hall)
+
+  * Fix for SSH login detection heuristic. (Seth Hall)
+
+  * Removed some fields from http analysis that weren't commonly
+    needed or were wrong. (Seth Hall)
+
+  * Updated/fixed MSIE version parsing in the software framework.
+    (Seth Hall)
+
+  * Update Mozilla trust roots to index certs by subject distinguished
+    name. (Jon Siwek)
+
+  * weird.bro rewrite. (Seth Hall)
+
+  * More notice email tuning. (Seth Hall)
+
+  * Slightly restructured http file hashing to fix a bug. (Seth Hall)
+
+  * Changed the notice name for interesting ssh logins to correctly
+    reflect semantics of the notice.  (Seth Hall)
+
+  * Field name change to notice framwork.  $result -> $action
+
+    - $result is renamed to $action to reflect changes to the notice
+      framework since there is already another result-like field
+      ($suppress_for) and there may be more in the future.
+
+    - Slipped in a change to add connection information to notice
+      emails too. (Seth Hall)
+
+  * Small script refinements and documentation updates. (Seth Hall)
+
+  * Pass over upgrade guide. (Robin Sommer)
+
+
+1.6-dev-1430 | 2011-10-21 10:39:09 -0700
+
+  * Fixing crash with unknown debug streams. Closes #643. (Robin
+    Sommer)
+
+  * Code to better handle interpreter errors, which can now be turned
+    into non-fatal runtime errors rather than immediate aborts. (Robin
+    Sommer).
+
+  * Remove old make-src-packages script. (Jon Siwek)
+
+  * Fixing a bunch of format strings. Closes #567. (Robin Sommer)
+
+  * Cleaning up some distribution files. (Robin Sommer)
+
+  * Various test, doc, and installation fixes/tweaks. (Seth Hall, Jon
+    Siwek and Robin Sommer).
+
+  * Varios smaller policy fixes and tweaks (Seth Hall).
+
+  * Moving docs from web server into distribution. (Robin Sommer)
+
+  * Fixing more (small) memory leaks. (Robin Sommer)
+
+  * Profiling support for DNS_Mgr and triggers. With
+    misc/profiling.bro, both now report a line in prof.log with some
+    counters on usage. (Robin Sommer)
+
+  * Fixing DNS memory leaks. Closes #534. (Robin Sommer)
+
+  * Fix code for disabling analyzers. Closes #577. (Robin Sommer)
+
+  * Changed communication option from listen_encrypted to listen_ssl.
+    (Seth Hall)
+
+  * Modification to the Communication framework API. (Seth Hall)
+
+    - Simplified the communication API and made it easier to change
+      to encrypted connections by not having separate variables to
+      define encrypted and unencrypted ports.
+
+    - Now, to enable listening without configuring nodes just
+      load the frameworks/communication/listen script.
+
+    - If encrypted listening is desired set the following:
+    	redef Communication::listen_encrypted=T;
+
+  * Connection compressor now disabled by default. Addresses #559.
+    (Robin Sommer)
+
+
+1.6-dev-1372 | 2011-10-06 18:09:17 -0700
+
+  * Filtering some potentially high-volume DNS weirds. (Robin Sommer)
+
+  * DNS now raises DPD events. Closes #577. (Robin Sommer)
+
+  * Fixing a bunch of compiler warnings. (Robin Sommer)
+
+  * Remote logs are auto-flushed if the last write was longer than a
+    second ago. Addresses #498. (Robin Sommer)
+
+  * Fix missing from previous MIME commit. (Robin Sommer)
+
+1.6-dev-1366 | 2011-10-06 17:05:21 -0700
+
+  * Make CompHash computation/recovery for functions deterministic.
+    Closes #636. (Jon Siwek)
+
+  * Removing unnecessary @load in local.bro. (Robin Sommer)
+
+  * Optimizing some MIME code. (Robin Sommer)
+
+  * Speed improvements in logging code. (Robin Sommer)
+
+  * Consolidating some node-specific functionality from scripts in
+    broctl repo. (Jon Siwek)
+
+  * Another fix the for 1xx script code. (Robin Sommer)
+
+1.6-dev-1352 | 2011-10-05 16:20:51 -0700
+
+  * Fix for optional HTTP::Info status_code. (Jon Siwek)
+
+  * Teaking some external testing scripts. (Jon Siwek)
+
+  * HTTP bug fix reported by Martin Holste. (Seth Hall)
+
+  * More script tuning. (Seth Hall)
+
+    - Moved some of the weird events back to the base/ directory.
+
+    - SSL fixes, updates, and performance optimization.
+
+  * More adjustment to reduce Weird volumes. (Seth Hall)
+
+  * Fixed an error when calculating x509 certificate hashes (reported
+    by Martin Holste). (Seth Hall)
+
+  * Clean up to cluster framework to make event handling clearer.
+    (Seth Hall)
+
+  * Fixed a bug in the notice framework. (Seth Hall)
+
+  * Bug fix for FTP analysis script. (Seth Hall)
+
+1.6-dev-1333 | 2011-09-29 22:29:51 -0700
+
+  * Fixing a number of memory leaks. (Robin Sommer)
+
+  * Loaded_scripts.log is indented with spaces now and makes more
+     sense to look at. (Seth Hall)
+
+  * Teach HTTP parser to derive content length of multipart/byteranges
+     bodies. Addresses #488. (Jon Siwek)
+
+  * Change logging of HTTP 1xx responses to occur in their own
+    columns. Addresses #411. (Jon Siwek)
+
+  * Fix handling of HTTP 1xx response codes. Addresses #411).
+
+  * Taking advantage of yet another trick to get installed browser
+  plugins. (Seth Hall)
+
+    - With the software-browser-plugins script you can watch for Omniture
+      advertising servers to grab the list of installed plugins.
+
+    - I reorganized the plugin detection a bit too to abstract it better.
+
+    - Removed the WEB_ prefix from all of the Software::Type HTTP enums.
+      They were essentially redundant due to the full name already being
+      HTTP::SERVER (for example).
+
+1.6-dev-1316 | 2011-09-28 16:50:05 -0700
+
+  * Unit test cleanup. Updated README and collected coverage-related
+    tests in a common dir. (Jon Siwek)
+
+  * Fixes for known-services. (Seth Hall)
+
+  * Ported and 2.0ized the capture-loss script. (Seth Hall)
+
+  * Communication fix and extension.(Robin Sommer)
+
+    - Removing unnecessary log flushing. Closes #498.
+
+    - Adding new BiF disconnect() that shuts a connection to a peer down.
+
+    - terminate_connection() now first flushes any still buffered log
+      messages.
+
+  * Fix for high SSL memory usage by adding &transient attribute to
+    top-level SSL pac array type. Closes #574. (Robin Sommer)
+
+  * Fix a small bug in the metrics framework. (Seth Hall)
+
+  * Temporarily removing scripts that aren't ready to be included.
+    Will return before next release.  (Seth Hall)
+
+  * New SSL policy scripts.  (Seth Hall)
+
+    - protocols/ssl/expiring-certs uses time based information from
+      certificates to determine if they will expire soon, have already
+      expired, or haven't yet become valid.
+
+    - protocols/ssl/extract-certs-pem is a script for taking certs off
+      the line and converting them to PEM certificates with the openssl
+      command line tool then dumping them to a file.
+
+  * Notice::type_suppression_intervals: table[Notice::Type] of
+    interval can be used to modify the suppression intervals for
+    entire types of notices. (Seth Hall)
+
+  * EOF SSL protocol violations are only generated a single time now.
+    (Seth Hall)
+
+  * Script level fixes.  (Seth Hall)
+
+    - Fixed a type name conflict in the Known namespace.
+
+    - Fixed a DPD framework bug that was causing Reporter messages.
+
+    - Fixed the notice_policy log.
+
+    - Predicate functions are now logged.
+
+    - Predicate functions are now optional.  If not given, it's assumed that
+      the result should always apply. (Seth Hall)
+
+    - Fix a problem with accidental and mistaken HTTP log lines.
+
+1.6-dev-1293 | 2011-09-22 19:44:37 -0700
+
+  * Smaller script tweaks. (Seth Hall)
+
+  * Duplicate notice suppression. (Seth Hall)
+
+    - Duplicate notices are discovered with the new Notice::Info
+      field $identifier.  It's a string that is left up to the
+      notice implementor to define which would indicate a
+      fundamentally duplicate notice.  The field is optional and
+      if it's not included it's not possible for notice
+      suppression to take place.
+
+    - Duplicate notices are suppressed by default for the interval
+      defined by the Notice::default_suppression_interval variable
+      (1 hour by default).
+
+    - A new notice action was defined ACTION_NO_SUPPRESS to prevent
+      suppression for a specific notice instance.  A convenience set
+      named not_suppressed_types was also created to not suppress
+      entire notice types.
+
+    - A new field was added to the PolicyItem type to modify the length
+      of time a notice should be suppressed if the predicate matches.
+      The field is named $suppress_for.  This name makes the code more
+      readable like this: $suppress_for = 1day
+
+    - New events were created to give visibility into the notice
+      framework's suppression activity.
+      - event Notice::begin_suppression(n: Notice::Info)
+      - event Notice::suppressed(n: Notice::Info)
+      - event Notice::end_suppression(n: Notice::Info)
+
+    - The suppression.bro script doesn't have a baseline because
+      it is causing a segfault in Bro.  This one test is the
+      reason that this is being integrated into a branch instead
+      of master. (Seth Hall)
+
+  * Fix crash on exit. Addresses #607. (Jon Siwek)
+
+  * Fix PktSrc setting next_timestamp even when no packet available.
+    (Jon Siwek)
+
+  * Fix lack of NUL-termination in to_upper/to_lower BIF's return val.
+    (Jon Siwek)
+
+  * Fixing unit tests and some minor bugs. (Jon Siwek)
+
+  * Fix broctl cluster log rotation. Addresses #619. (Jon Siwek)
+
+  * Added session ID to the SSL logging. (Seth Hall)
+
+  * Adding "install-aux" target + updating bro-aux submodule. (Jon
+    Siwek)
+
+  * Cleaning up INSTALL and README. (Jon Siwek)
+
+  * Remove $Id$ tags. (Jon Siwek)
+
+  * Remove policy.old directory. Addresses #511. (Jon Siwek)
+
+  * Small rework with ssl base script to reduce memory usage. (Seth
+    Hall)
+
+  * Updated the mozilla root certs. (Seth Hall)
+
+1.6-dev-1261 | 2011-09-15 17:13:55 -0700
+
+  * Memory leak fixes. Addresses #574 (Jon Siwek)
+
+  * Add configure options for ruby/bindings integration. (Jon Siwek)
+
+  * Fix filter path_func to allow record argument as a subset of
+    stream's columns. Addresses #600. (Jon Siwek)
+
+  * Log rotation is now controlled directly through Filter records. (Jon Siwek)
+
+  * Fix indexing for record types with optional fields. Addresses #378
+    (Jon Siwek)
+
+1.6-dev-1248 | 2011-09-15 16:01:32 -0700
+
+  * Removed custom malloc() implementation for FreeBSD. Closes #557.
+    (Jon Siwek)
+
+  * Testing/external scripts no longer compute MD5 checksums for SMTP
+    entities. (Robin Sommer)
+
+  * External tests no longer include the full content of mismatching
+    files in the diagnostics output. (Robin Sommer)
+
+1.6-dev-1241 | 2011-09-14 22:51:52 -0400
+
+  * Fixing a major memory utilization issues with SSL analysis. (Seth
+    Hall)
+
+  * Enhancements to HTTP analysis: (Seth Hall)
+
+      - More options for the header-names.bro script.
+
+      - New script for logging header names and values. Closes #519.
+        (Seth Hall)
+
+      - HTTP body size measurement added to http.log.
+
+      - The value of the content-length headers has now been removed
+        in the default output but it could be added back locally at an
+        installation by a user.
+
+      - Added fields to indicate if some parsing interruption happened
+        during the body transfer. Closes #581 (Seth Hall)
+
+  * Misc smaller usability and correctness updates: (Seth Hall)
+
+    - Removed an notice definition from the base SSL scripts.
+
+    - Moved a logging stream ID into the export section for known-services
+      and bumped priority for creating the stream.
+
+    - Adding configuration knobs for the SQL injection attack detection
+      script and renaming the HTTP::SQL_Injection_Attack notice to
+      HTTP::SQL_Injection_Attack_Against
+
+    - Bumped priority when creating Known::CERTS_LOG.
+
+    - Fixing a warning from the cluster framework. (Seth Hall)
+
+  * Bugfix for log writer, which didn't escape binary stuff in some
+    situations. Closes #585. (Robin Sommer)
+
+  * A larget set of changes to the testing/external infrastructure.
+    The traces for external test-suites are no longer kept inside the
+    repositories themselves but downloaded separately via curl. This
+    is because git is pretty bad at dealing with large files. See the
+    README for more information. (Robin Sommer)
+
+1.6-dev-1221 | 2011-09-08 08:41:17 -0700
+
+  * Updates for documentation framework and script docs. (Jon Siwek)
+
+  * The script level PF_RING support isn't working so removing it.
+    (Seth Hall)
+
+  * Delete SSL certificates from memory after ssl_established event.
+    (Seth Hall)
+
+  * Small fixes for SSL analysis. (Seth Hall)
+
+1.6-dev-1212 | 2011-09-07 16:15:28 -0700
+
+  * Internally, the UID generation can now return values from
+    different pool for better reproducability in testing mode.
+    (Gilbert Clark).
+
+  * Added new BiF unique_id_from(pool: string, prefix: string) that
+    allows the user to specify a randomness pool. (Gilbert Clark)
+
+1.6-dev-1198 | 2011-09-07 11:03:36 -0700
+
+  * Extended header for ASCII log that make it easier for scripts to
+    parse Bro log files. (Gilbert Clark)
+
+  * Potential fix for rotation crashes. Addresses #588. (Robin Sommer)
+
+  * Added PF_RING load balancing support to the scripting layer,
+    enabled by loading the misc/pf-ring-load-balancing script. (Seth
+    Hall)
+
+  * Added a BiF setenv() for setting environment variables. (Seth
+    Hall)
+
+1.6-dev-1184 | 2011-09-04 09:34:50 -0700
+
+  * FindPCAP now links against thread library when necessary (e.g.
+    PF_RING's libpcap). (Jon Siwek)
+
+  * Install binaries with an RPATH. (Jon Siwek)
+
+  * Fix for a case where nested records weren't coerced even though
+    possible. (Jon Siwek)
+
+  * Changed ASCII writer to delay creation of log after rotation until
+    next write.
+
+  * Changed default snaplen to 65535 and added a -l/--snaplen command
+    line option to set it explicitly. Addresses #447. (Jon Siwek)
+
+  * Various updates to logging framework. (Seth Hall)
+
+  * Changed presentation of enum labels to include namespace. (Jon
+    Siwek)
+
+  * HTTP analyzer is now enabled with any of the HTTP events. (Seth
+    Hall)
+
+  * Fixed missing format string that caused some segfaults. (Gregor
+    Maier)
+
+  * ASCII writer nows prints time interval with 6 decimal places.
+    (Gregor Maier)
+
+  * Added a Reporter::fatal BIF. (Jon Siwek)
+
+  * Fixes for GeoIP support. Addresses #538. (Jon Siwek)
+
+  * Fixed excessive memory usage of SSL analyzer on connections with
+    gaps. (Gregor Maier)
+
+  * Added a log postprocessing function that can SCP rotated logs to
+    remote hosts. (Jon Siwek)
+
+  * Added a BiF for getting the current Bro version string. (Jon
+    Siwek)
+
+  * Misc. doc/script/test cleanup. (Jon Siwek)
+
+  * Fixed bare-mode @load dependency problems. (Jon Siwek)
+
+  * Fixed check_for_unused_event_handlers option. (Jon Siwek)
+
+  * Fixing some more bare-mode @load dependency issues (Jon Siwek)
+
+  * Reorganizing btest/policy directory to match new scripts/
+    organization. Addresses #545 (Jon Siwek)
+
+  * bro scripts generated from bifs now install to
+    $prefix/share/bro/base. Addresses #545 (Jon Siwek)
+
+  * Changeed/fixed some cluster script error reporting. (Jon Siwek)
+
+  * Various script normalization. (Jon Siwek)
+
+  * Add a test that checks each individual script can be loaded in
+    bare-mode. Adressess #545. (Jon Siwek)
+
+  * Tune when c$conn is set. Addresses #554. (Gregor Maier)
+
+  * Add ConnSize_Analyzer's fields to conn.log. (Gregor Maier)
+
+  * Fixing bug in "interesting hostnames" detection. (Seth Hall)
+
+  * Adding metrics framework intermediate updates. (Seth Hall)
+
+1.6-dev-1120 | 2011-08-19 19:00:15 -0700
+
+  * Fix for the CompHash fix. (Robin Sommer)
+
+1.6-dev-1118 | 2011-08-18 14:11:55 -0700
+
+  * Fixing key size calculation in composite hash code. (Robin Sommer)
+
+1.6-dev-1116 | 2011-08-18 10:05:07 -0700
+
+  * Remove the 'net' type from Bro (addresses #535).
+
+  * Fix H3 assumption of an 8-bit byte/char. (Jon Siwek)
+
+  * Allow reading from interface without additional script arguments.
+    Explicitly passing in '-' as an additional command line argument
+    still allows reading a script from stdin. (Jon Siwek)
+
+  * SSH bruteforcing detection now done with metrics framework. (Seth
+    Hall)
+
+  * Updates for SQL injection attack detection to match the metrics
+    framework updates. (Seth Hall)
+
+  * Metrics framework now works on cluster setups. (Seth Hall)
+
+  * Reclassifying more DNS manager errors as non-fatal errors. (Robin
+    Sommer)
+
+  * Fix ConnSize_Analyzer when used in conjunction with connection
+    compressor. (Gregor Maier)
+
+  * Fix reporter using part of the actual message as a format string.
+    (Jon Siwek)
+
+1.6-dev-1095 | 2011-08-13 11:59:07 -0700
+
+  * A larger number of script documentation updates. Closes #543. (Jon
+    Siwek)
+
+  * Workaround for FreeBSD CMake port missing debug flags. (Jon Siwek)
+
+  * piped_exec() can now deal with null bytes. (Seth Hall)
+
+  * Fix vector initialization for lists of records with optional
+    types. Closes #485. (Jon Siwek)
+
+  * Fix redef'ing records with &default empty set fields. Closes #460.
+    (Jon Siwek)
+
+  * Fix ConnSize_Analyzer when used in conjunction with the connection
+    compressor. (Gregor Maier)
+
+  * Fix reporter using part of the actual message as a format string.
+    (Jon Siwek)
+
+  * Fixing reporter's location tracking. Closes #492. (Robin Sommer)
+
+  * Turning DNS errors into warnings. Closes #255. (Robin Sommer)
+
+  * Logging's path_func now receives the log record as argument.
+    Closes #555. (Robin Sommer)
+
+  * Functions can now be logged; their full body gets recorded.
+    Closes #506. (Robin Sommer)
+
+  * Bugfix for hostname notice email extension. (Seth Hall)
+
+  * Updates for notice framework. (Seth Hall)
+
+    - New ACTION_ADD_GEODATA to add geodata to notices in an extension
+      field named remote_location.
+
+    - Loading extend-email/hostnames by default now that it only does
+      anything when the ACTION_EMAIL action is applied (finally).
+
+  * Updates to local.bro (Seth Hall)
+
+  * Added the profiling script. (Seth Hall)
+
+  * Updates for SSH scripts. (Seth Hall)
+
+  * ConnSize analyzer is turned on by default now. (Seth Hall)
+
+  * Updates for the build system and site local scripts for cluster.
+    (Seth Hall)
+
+  * HTTP now uses the extract_filename_from_content_disposition function. (Seth Hall)
+
+  * Major SMTP script refactor. Closes #509. (Jon Siwek and Seth Hall)
+
+  * New variable Site::local_nets_table in utils/site for mapping
+    address to defined local subnet.
+
+  * Metrics framework updates, more to come. (Seth Hall)
+
+
+1.6-dev-1061 | 2011-08-08 18:25:27 -0700
+
+  * A set of new/changed tests regarding the new policy script
+    organisation. (Robin Sommer)
+
+1.6-dev-1058 | 2011-08-08 16:15:18 -0700
+
+  * Reorganisation of the scripts that Bro loads by default. (Seth
+    Hall)
+
+    - policy/ renamed to scripts/
+
+    - By default BROPATH now contains:
+    	- scripts/
+    	- scripts/policy
+    	- scripts/site
+
+    - The scripts in scripts/base/protocols/ only do logging and state
+      building.
+
+    - All of scripts/base/ is loaded by by default. This can however
+      be disabled by switching Bro into "bare mode" using the new
+      command-line option --bare-mode (or -b). The cripts in
+      scripts/base/ don't use relative path loading to ease use of
+      bare mode (to copy and paste that script).
+
+    - The scripts in scripts/base/frameworks/ add functionality
+      without causing any additional overhead.
+
+    - All "detection" activity happens through scripts in
+      scripts/policy/.
+
+    - bro.init was renamed to base/init-bare.bro, and base/all.bro was
+      renamed to init-default.bro.
+
+    - local.bro now loads more functionality from policy/ and adds
+      more documentation. (Seth Hall)
+
+  * Adding default_path_func() to the logging framework that makes the
+    default naming scheme script-level controlled. (Robin Sommer)
+
+  * Reworking logging's postprocessor logic so that postprocessor
+    commands are no longer run by the log writers themselves, but
+    instead by a script level function. (Robin Sommer)
+
+  * The communication subsystem is now by default off and must be
+    enabled explicitly with a new BiF, enable_communication(). Closes
+    #540. (Robin Sommer)
+
+  * The hostname notice email extension now only add hostnames for
+    emailed noticed. (Seth Hall)
+
+  * Cleaning up doc generation. (Seth Hall)
+
+1.6-dev-1044 | 2011-08-05 19:07:32 -0700
+
+  * Fixing memory (and CPU) leak in log writer.
+
+  * Fixing crash in memory profiling. (Robin Sommer)
+
+  * Fix compiler warning. (Robin Sommer)
+
+  * Fixing missing sync in cluster setup. (Robin Sommer)
+
+
+1.6-dev-1038 | 2011-08-05 18:25:44 -0700
+
+  * Smaller updates to script docs and their generation. (Jon Siwek)
+
+  * When using a `print` statement to write to a file that has raw output
+    enabled, NUL characters in string are no longer interpreted into "\0",
+    no newline is appended afterwards, and each argument to `print` is
+    written to the file without any additional separation. (Jon Siwek)
+
+  * Test portatibility tweaks. (Jon Siwek)
+
+  * Fixing PktSrc::Statistics() which retured bogus information
+    offline mode. Closes #500. (Jon Siwek)
+
+  * --with-perftools configure option now assumes --enable-perftools.
+    Closes #527. (Jon Siwek)
+
+1.6-dev-1018 | 2011-07-31 21:30:31 -0700
+
+  * Updating CHANGES. (Robin Sommer)
+
+1.6-dev-1016 | 2011-07-30 18:34:28 -0700
+
+  * Install example config files dynamically. They'll only get
+    installed when the distribution version differs from existing
+    version on disk. (Jon Siwek)
+
+  * Fixed memory leak in SSL analyzer. (Seth Hall)
+
+  * Beginning rework of metrics interface. (Seth Hall)
+
+  * New/updated unit tests for scripts. (Jon Siwek)
+
+  * New/updated documentstion for scripts. (Jon Siwek)
+
+  * A number of fixes for scripts in utils/. (Jon Siwek)
+
+1.6-dev.244 Thu Jul 28 17:08:21 PDT 2011
+
+- mask_addr() now returns subnet (addresses #512). (Jon Siwek)
+
+- Normalize Notice::Type identifiers per convention (closes #484).
+  (Jon Siwek)
+
+- Fixing default-loaded-scripts test for BSD systems. (Jon Siwek)
+
+- New piped_exec() BiF for pipeing data into an external command. (Jon
+  Siwek)
+
+1.6-dev.242 Mon Jul 25 21:42:39 PDT 2011
+
+- Adding a documentation coverage test. (Jon Siwek)
+
+- The CMake targets for generating reST docs from policy scripts are
+  now automatically generated via the genDocSourcesList.sh script.
+  (Jon Siwek)
+
+- Fixed a number of script error. (Jon Siwek)
+
+- Fixes to relative @load'ing.  (Jon Siwek)
+
+- Fixes to tests. (Robin Sommer)
+
+1.6-dev.240 Sun Jul 24 15:14:26 PDT 2011
+
+- Updated tests and test baselines. (Jon Siwek)
+
+- ASCII log writer now prints time values w/ constant 6 digit
+  precision. (Jon Siwek)
+
+- Many policy script updates acrsso the board (Seth Hall).
+
+- Moving devel-tools to bro-aux. (Robin Sommer)
+
+- BugFix for disable_analyzer(), which could cause crashes with some
+  analyzers. (Robin Sommer)
+
+- Bugfix for potential segfault in DebugLogger. (Robin Sommer)
+
+1.6-dev.226 Thu Jul 21 15:23:39 PDT 2011
+
+- Extensions to the @load and @unload process. (Jon Siwek)
+
+    * Make @load statements recognize relative paths. For example a
+      script can do "@load ./foo" to load a script named foo.bro that
+      lives in the same directory or "@load ../bar" to load a script
+      named bar.bro in the parent directory, even if those directories
+      are not contained in BROPATH.
+
+    * Reimplementation of the @prefixes statement. (Closes #486)
+
+      Any added prefixes are now used *after* all input files have
+      been parsed to look for a prefixed, flattened version of the
+      input file somewhere in BROPATH and, if found, load it. For
+      example, if "lcl" is in @prefixes, and site.bro is loaded, then
+      a file named "lcl.site.bro" that's in BROPATH would end up being
+      automatically loaded as well. Packages work similarly, e.g.
+      loading "protocols/http" means a file named
+      "lcl.protocols.http.bro" in BROPATH gets loaded automatically.
+
+    * Fix @unload'd files from generating bro_script_loaded event.
+
+    * Updates to tests.
+
+1.6-dev.225 Wed Jul 20 17:10:41 PDT 2011
+
+- IRC improvements (Jon Siwek). Including:
+
+    * Shorten what's displayed in the IRC's log mime_type column for
+      DCC transfers.
+
+    * Add IRC unit tests.
+
+    * Fix IRC analyzer supplying wrong type to irc_dcc_message event.
+
+    * Removed irc_client and irc_server events.
+
+    * Added is_orig arguments to all other irc events.
+
+    * Fix analyzer not recognizing Turbo DCC extension message format.
+
+    * Fix analyzer not generating irc_dcc_message event when irc_privmsg_message
+      event doesn't have a handler registered.
+
+- Fixing tests that need a diff canonifier. (Jon Siwek)
+
+1.6-dev.223 Tue Jul 19 19:10:36 PDT 2011
+
+- Adding a script to update CHANGES and VERSION. (Robin Sommer)
+
+1.6-dev.218 Tue Jul 19 18:16:44 PDT 2011
+
+- Comprehensive policy script overhaul/rewrite. (Seth Hall)
+
+  Changes are too extensive to list individually.
+
+- Removing undocumented -H command line flag. (Robin Sommer)
+
+- Fixing many tests. (Everybody)
+
+- Fixing 0-chunk bug in remote logging. (Robin Sommer)
+
+- $PATH is now appropriately set by the bro-path-dev.(sh|csh) scripts.
+  (Seth Hall)
+
+- Making valgrind a bit more happy. (Robin Sommer)
+
+- New BiF record_field_vals() that returns the fields of a record in a
+  table with meta-information. (Robin Sommer)
+
+- Adding a script in aux/devel-tools that extracts a connection from a
+  trace based on uid. (Robin Sommer)
+
+- Fixing bug causing crash when running without arguments. (Robin Sommer)
+
+- A new event bro_script_loaded() raised for each policy script
+  loaded. Also removing the -l command-line option as that can now be
+  done at the script-level. (Robin Sommer)
+
+- Fixing memory leaks. (Gilbert Clark, Seth Hall, Robin Sommer)
+
+- Many SSL analysis improvements and fixes. (Seth Hall)
+
+- Fixing bug with event priorities potentially being ignored for the
+  handler. (Robin Sommer)
+
+- Overhauling the internal reporting of messages to the user. The new
+  Reporter class is now in charge of reporting all errors, warnings,
+  informational messages, weirds, and syslogs; and it passes
+  everything through the script layer. (Robin Sommer)
+
+* Removed the alarm statement and the alarm_hook event. (Robin Sommer)
+
+- Adding new policy file test-all.bro that loads all other policies.
+  This is for testing only. (Robin Sommer)
+
+- A new framework for doing regression testing with larger traces and
+  more complex Bro configurations in testing/external. (Robin Sommer)
+
+- Many updates to script doc generation.  (Jon Siwek)
+
+1.6-dev.146 Sat Jun 25 18:12:27 PDT 2011
+
+- DNS mapping are now becoming invalid when an entry's TTL expires.
+  (Thomas Other)
+
+- Reworking how Bro tracks which scripts are already loaded. Rather
+  than paths, Bro now tracks inode numbers. (Jon Siwek)
+
+- New BiF netstats() to query packet capture statistics. The netstats
+  script now uses the new BiF to periocally report packets drops. The
+  net_stats_update() event and the heartbeat_interval global went
+  away. (Seth Hall)
+
+- Fixing bug with logging &optional records. Closes #476. (Robin
+  Sommer)
+
+- Fixing istate.events-ssl test failing because of expired cert. (Jon
+  Siwek)
+
+- A large number of improvements and fixes for Bro's doc mode. (Jon
+  Siwek)
+
+- Significant updates for RPC and NFS analyzers (Gregor Maier)
+
+    * Unify semantics for UDP and TCP connections.
+
+    * RPC can now log to a log file if desired.
+
+    * Portmapper can now log general activity to a log file and also log
+      actual port mappings.
+
+    * NFS analyzer now supports significantly more procedure calls as
+      as file name tracking and file content extraction.
+
+- NetBIOS fixes. (Jon Siwek)
+
+- A number of unit tests are more robust and portable.  (Jon Siwek)
+
+- A new BiF unique_id() that returns a string that's unique across Bro
+  instaces with high probablity.  (Robin Sommer)
+
+- Complete rewrite of the BinPAC SSL analyzer. (Seth Hall)
+
+    * DER certificates are extracted as strings to be used with
+      corresponding BiFs.
+
+    * x509_verify function to verify single certs and/or full
+      certificate chains.
+
+    * Removed hand written SSL analyzer.
+
+    * The ssl.bro script is just a place-holder for now. New version
+      will come with the other new scripts.
+
+- New syslog analyzer. (Seth Hall)
+
+- @load now supports loading a directory. With a directory "foo"
+  somewhere in BROPATH, "@load foo" now checks if there's a file
+  "foo/__load__.bro". If so, it reads that file in. (Robin Sommer)
+
+- ASCII logger now escapes non-printable characters. Closes #450.
+  (Robin Sommer)
+
+- Packaging tweaks and rewrite of 'dist' target. (Jon Siwek)
+
+- Changes to allow DEB packaging via CPack, addresses #458. (Jon
+  Siwek)
+
+- An extension to the ICMP analyzer to handle redirects. Julien
+  Sentier
+
+- Removing old istate test-suite. (Robin Sommer)
+
+- A hack to report missing GeoIP support only once. This closes #357,
+  but #455 captures the need for a more general solution. (Robin
+  Sommer)
+
+- Bugfix: vectors in records were not initalized. Closes #421. (Robin
+  Sommer)
+
+- If IPv6 default is not compiled in, the default BPF filters now
+  excludes IPv6 packets. (Robin Sommer)
+
+- New bif bro_has_ipv6() to check whether IPv6 support is compiled in.
+  (Robin Sommer)
+
+- Updating btests and a Makefile. "make" now runs all the tests.
+  (Robin Sommer)
+
+- Moving the test-scripts from the old test-suite over to btest.
+  (Robin Sommer)
+
+- Fix for major bug in POP3 analyzer, which didn't recognize '.'
+  terminators in multi-line replies if the terminator was bare (no
+  newline). This caused it to ignore the rest of the session that it's
+  analyzing. (Vern Paxson)
+
+- Fix compiler warning with gcc-4.4.4 (Gregor Maier)
+
+- Adding example documentation for a script's use of logging features.
+  (Jon Siwek)
+
+- Adding &log attribute to static attr_names array. (Jon Siwek)
+
+- Bro can now track packet and byte counts per connection. (Gregor
+  Maier)
+
+    * If 'use_conn_size_analyzer' is true, the event engine tracks
+      number of packets and raw IP bytes per connection. If
+      report_conn_size_analyzer is true, these values are included as
+      four new columns into conn.log
+
+    * I changed conn.bro so that the value of
+      report_conn_size_analyzer follows that of
+      use_conn_size_analyzer. For the new conn.log, we probably want
+      to get rid of report_conn_size_analyzer anyway.
+
+- Fixing numerous compiler warnings and portability issues. (All)
+
+- Switching vectors from being 1-based to 0-based. Note that this is a
+  change that break backwards-compatibility. (Robin Sommer)
+
+- Increasing serialization format version for the recent 64-bit
+  changes. (Robin Sommer)
+
+- Support for (mixed) MPLS and VLAN traffic, and a new default BPF
+  filter. (Seth Hall and Robin Sommer)
+
+    * Merging in the patch from #264, which provides support for mixed
+      VLAN and MPLS traffic.
+
+    * Changing Bro's default filter from being built dynamically to
+      being a static "ip or not ip". To get the old behaviour back
+      (i.e., the dynamically built filter), redef "all_packets" to
+      false.
+
+    * print-filter.bro now always prints the filter that Bro is
+      actually using, even if overriden from the command line. (Robin
+      Sommer)
+
+- Changing the HTTP's analyzers internals to use 64-bit integers.
+  (Gregor Maier).
+
+- Fixing bug with deleting still unset record fields of table type.
+  (Robin Sommer)
+
+1.6-dev.99 Fri Apr 22 22:10:03 PDT 2011
+
+- Extending the connection record with a unique identifier. (Robin
+  Sommer)
+
+    type connection: record {
+        [...]
+        id: string;
+   };
+
+  These identifiers very likely unique even across independent Bro
+  runs.
+
+- Delete operator for record fields. (Robin Sommer)
+
+  "delete x$y" now resets record field "x" back to its original state
+  if it is either &optional or has a &default. "delete" may not be
+  used with non-optional/default fields.
+
+- Fixing bug with nested record coercions. (Robin Sommer)
+
+- Fixing a do_split() bug. (Seth Hall)
+
+
+1.6-dev.94 Thu Apr 21 19:51:38 PDT 2011
+
+- Fixing generation of config.h. (Jon Siwek)
+
+- Updates and tests for NetBIOS name BiF. (Seth Hall)
+
+- Fixing do_split bug(), and adding a test. (Seth Hall)
+
+- When Bro is given a PRNG seed, it now uses its own internal random
+  number generator that produces consistent results across sytems.
+  Note that this internal generator isn't very good, so it should only
+  be used for testing purpses. (Robin Sommer)
+
+- The BTest configuration now sets the environemnt variables TZ=UTC
+  and LANG=C to ensure consistent results. (Robin Sommer)
+
+- Logging fixes. (Robin Sommer)
+
+1.6-dev.88 Wed Apr 20 20:43:48 PDT 2011
+
+- Implementation of Bro's new logging framework. We will document this
+  separately. (Robin Sommer)
+
+- Already defined record types can now be further extended via the
+  '+=' operator. The added fields must be either &optional or have a
+  &default value. (Robin Sommer)
+
+  Example:
+
+        type Foo: record {
+            a: count;
+            b: count &optional;
+        };
+
+        redef record Foo += {
+            c: count &default=42;
+            d: count &optional;
+        };
+
+        global f: Foo = [$a=21];
+
+        print f;
+
+  Output:
+
+        [a=21, b=<uninitialized>, c=42, d=<uninitialized>]
+
+- Enabling assignment of empty vectors ("vector()"). (Robin Sommer)
+
+- Fixing attributes to allow &default attributes to be associated with
+  records fields of type tables/sets/vector. (Robin Sommer)
+
+- '[]' is now a valid record constructor. (Robin Sommer)
+
+- A instance of a record type A is now coercable into one of type B if
+  the fields of type A are a subset of those of type B. (Robin Sommer)
+
+- A number of bug fixes and enhancements for record/set/table/vector
+  coercion. (Robin Sommer)
+
+- Fixing a problem with records that have optional fields when used as
+  table/set indices. Addresses #367. (Robin Sommer)
+
+- Fixing an off-by-one error in join_string_vec(). (Seth Hall)
+
+- Updating to_count() to cope with 64bit ints. (Seth Hall)
+
+- A new BiF count_to_v4_addr() to turn a count into an IPv4 address.
+  (Seth Hall)
+
+1.6-dev.80 Mon Apr 18 14:50:54 PDT 2011
+
+- New framework for generating documentation from Bro scripts. (Jon
+  Siwek)
+
+  This includes:
+
+    * Changes to Bro's scanner/parser to facilitate automatic
+      generation of Bro policy script documentation in
+      reStructuredText format.
+
+    * New command line flags -Z/--doc-scripts to enable the new doc
+      generation mode.
+
+    * Changes to bifcl to pass comments starting with "##" through
+      into the generated .bro script.
+
+    * A "doc" build target for the top-level Makefile to first
+      generate reStructuredText for a defined set of Bro policy
+      scripts, and then run that through Sphinx to create HTML
+      documentation.
+
+1.6-dev.78 Mon Apr 18 12:52:55 PDT 2011
+
+- Adding files to CMake build targets so they show up in generated IDE
+  projects. This addresses #413. (Jon Siwek)
+
+- Fix unnecessary config.h preprocessor (re)definitions. This
+  addresses #414. (Jon Siwek)
+
+- Updating istate tests. (Robin Sommer)
+
+- Adding files to CMake build targets so they show up in generated IDE
+  projects.
+
+- Adding new environment variable BRO_SEED_FILE to set the seed file
+  for the random number generator. (Robin Sommer)
+
+1.6-dev.71 Fri Apr  1 16:06:33 PDT 2011
+
+- Removing code for the following no longer supported functionality.
+
+    * Trace rewriting.
+    * DFA state expiration in regexp engine.
+    * Active mapping.
+    * Unused hash functions.
+
+  (Robin Sommer)
+
+- Fixing crashes when SSL is not configured correctly. (Robin Sommer)
+
+1.6-dev.66 Tue Mar 29 21:52:01 PDT 2011
+
+- Initial btest setup (Don Appleman and Robin Sommer)
+
+- Porting the istate tests to btest (not finished) (Robin Sommer)
+
+1.6-dev.63 Mon Mar 21 16:31:15 PDT 2011
+
+- Changes to the way user-modifiable config files are installed  (Jon Siwek)
+
+    * Duplicates of the distribution's configuration files are now
+      always installed with a .example suffix
+
+    * Added --binary-package configure option to toggle configure
+      logic specific to the creation of binary packages.
+
+    * When not in binary packaging mode, `make install` never
+      overwrites existing configure files in case they've been
+      modified. The previous behavior (CMake's default) would only
+      avoid overwriting modified files if one consistently uses the
+      same build directory and doesn't reconfigure.
+
+- Fixed an issue with Mac package's pre-install script not preserving
+  ACLs. (Jon Siwek)
+
+- Minor cleanup/refactor of the make-mac/rpm-packages scripts. (Jon
+  Siwek)
+
+- Add explicit CMake check for compiler. (Jon Siwek)
+
+- Add alternative way to set BROPATH for running bro from build/ dir.
+  (Jon Siwek)
+
+- Fixing compiler warnings (Gregor Maier)
+
+- Remvoing leftover local variables that caused compile error on Mac
+  OS X. (Gregor Maier)
+
+1.6-dev.53 Fri Feb 25 17:03:05 PST 2011
+
+- Fixing file detector leak in remote communication module. (Scott
+  Campbell)
+
+- Updating independent-state tests to work with new setup. (Robin
+  Sommer)
+
+1.6-dev.49 Fri Feb 25 15:37:28 PST 2011
+
+- Enum IDs can have explicitly defined values. (Gregor Maier)
+
+- Extensions for the built-in function compiler, bifcl. (Gregor Maier)
+
+    * Support for policy-layer namespaces.
+    * Support for type declarations in bif files (with access them
+      from C++)
+    * Extended const declarations in bif files.
+
+  See http://bro.icir.org/devel/bif-doc for more information.
+
+1.6-dev.48 Fri Feb 25 10:53:04 PST 2011
+
+- Preliminary TCP Reassembler fix: deliver data after 2GB by disabling
+  the unused seq_to_skip feature. (Gregor Maier)
+
+1.6-dev.47 Fri Feb 25 10:40:22 PST 2011
+
+- Fixing endianess error in XDR when data is not 4-byte aligned.
+  (Gregor Maier)
+
+- Fix for Val constructor with new int64 typedefs. (Gregor Maier)
+
+- Updated fix for OS X 10.5 compile error wrt llabs(). (Gregor Maier)
+
+- Fix more compiler warning wrt printf format strings.  (Gregor Maier)
+
+1.6-dev.45 Tue Feb  8 21:28:01 PST 2011
+
+- Fixing a number of compiler warnings. (Seth Hall and Robin Sommer)
+
+1.6-dev.44 Tue Feb  8 20:11:44 PST 2011
+
+- A number of updates to the SSL analyzer, including support for new
+  ciphers; SSL extensions; and bug fixes. The analyzer does not longer
+  throw weird for exceeding a predefined cipherspec_size anymore.
+  (Seth Hall and Rmkml).
+
+- The various split*() BiFs now handle strings containing null bytes
+  correctly. (Seth Hall)
+
+- Adding new aux/btest submodule. This is a framework we will use in
+  the future for doing unit tests. (Robin Sommer)
+
+1.6-dev.41 Mon Feb  7 13:43:56 PST 2011
+
+- Smarter way to increase the parent/child pipe's socket buffer.
+  (Craig Leres).
+
+- Fixing bug with defining bro_int_t and bro_uint_t to be 64 bits wide
+  on some platforms. (Robin Sommer)
+
+1.6-dev.39 Mon Jan 31 16:42:23 PST 2011
+
+- Login's confused messages now go through weird.bro. (Robin Sommer)
+
+1.6-dev.36 Mon Jan 31 08:45:35 PST 2011
+
+- Adding more configure options for finding dependencies, (Jon Siwek)
+
+    --with-flex=PATH       path to flex executable
+    --with-bison=PATH      path to bison executable
+    --with-perl=PATH       path to perl executable
+    --with-python=PATH     path to Python interpreter
+    --with-python-lib=PATH path to libpython
+    --with-python-inc=PATH path to Python headers
+    --with-swig=PATH       path to SWIG executable
+
+- Fixing typo in PCAPTests.cmake  (Jon Siwek)
+
+
+1.6-dev.33 Mon Jan 24 15:29:04 PST 2011
+
+- Fixing bug in SMB analyzer. (Robin Sommer)
+
+- Configure wrapper now deletes previous CMake cache (Jon Siwek)
+
+- Fix for the --with-binpac configure option. (Jon Siwek)
+
+1.6-dev.30 Thu Jan 20 16:32:43 PST 2011
+
+- Changed configure wrapper to create config.status. (Jon Siwek)
+
+1.6-dev.29 Thu Jan 20 16:29:56 PST 2011
+
+- Fixing little problem with initialization of Bro-to-Bro event
+  communication. (Christian Kreibich)
+
+
+1.6-dev.27 Thu Jan 20 13:52:25 PST 2011
+
+- Fine-tuning of the HTTP analyzer in terms of raising protocol
+  violations and interrupted transfers. (Gregor Maier)
+
+
+1.6-dev.21 Wed Jan 19 17:36:02 PST 2011
+
+- Added 4 new BiFs and a new record type for testing the entropy of
+  strings. (Seth Hall)
+
+    find_entropy(data: string): entropy_test_result
+        This is a one shot function that accepts a string and
+        returns the result of the entropy calculations.
+
+    entropy_test_init(index: any): bool
+        This and the next two functions are for calculating entropy
+        piece-wise. It only needs an index which can be any type of
+        variable. It needs to be something that uniquely identifies
+        the data stream that is currently having it's entropy
+        calculated.
+
+    entropy_test_add(index: any, data: string): bool
+        This function is used to add data into the entropy
+        calculation. It takes the index used in the function above
+        and the data that you are adding and returns true if
+        everything seemed to work, false otherwise.
+
+     entropy_test_finish(index: any): entropy_test_result
+        Calling this function indicates that all of the desired data
+        has been inserted into the entropy_test_add function and the
+        entropy should be calculated. This function *must* be called
+        in order to clean up an internal state tracking variable.
+        If this is never called on an index, it will result in a
+        memory leak.
+
+  The entropy_test_result values have several measures of the
+  entropy, but a good one to work with is the "entropy" attribute.
+  It's a double and as the value approaches 8.0 it can be considered
+  more and more random.  For example, a value of 7.832 would be
+  quite random but a value of 4.671 is not very random.
+
+1.6-dev.20 Wed Jan 19 17:30:11 PST 2011
+
+- BRO_DNS_FAKE is now listed in the --help output. (Seth Hall)
+
+
+1.6-dev.18 Wed Jan 19 16:37:13 PST 2011
+
+- Removing unnecessary expire timer from http_sessions. (Gregor
+  Maier)
+
+
+1.6-dev.16 Sat Jan 15 14:14:21 PST 2011
+
+- Updates to the build system. (Jonathan Siwek)
+
+    * ``make dist`` is now available to be used with the top-level
+      Makefile for creating source packages according to #344.
+
+    * ``make-rpm-packages`` and ``make-mac-packages`` scripts can
+      now generate binary packages according to #295.
+
+    * Additional configure options to change packaging behavior.
+
+    * OS X builds will now prefer to link static libraries of
+      optional dependencies that don't come with the vanilla
+      operating system.
+
+    * Fix for OS X 10.5 compile error dealing with the llabs()
+      function from stdlib.
+
+    * Installing as a different user than the one that
+      configured/built now works (although, a harmless error message
+      about not being able to write the install manifest may occur).
+
 
 1.6-dev.3 Wed Dec  8 04:09:38 PST 2010
 
@@ -31,7 +1771,7 @@
 
 - The Bro source code is now developed in the new git repositories.
   See the developer pages at http://www.bro-ids.org for more
-  information on the new development process. 
+  information on the new development process.
 
 - Bro's build and installation setup has been moved from GNU
   autotools to CMake. As a result of that, layout and specifics of
@@ -54,7 +1794,7 @@
   and can no longer be disabled.
 
 - ClamAV support has been removed, which has been non-functional for
-  a while already. 
+  a while already.
 
 1.5.2.7 Sun Sep 12 19:39:49 PDT 2010
 
@@ -432,7 +2172,7 @@
  (1) Remote communication now no longer includes location information for
  serialized objects; that removes quite a bit of redundacy from the network
  traffic.
- 
+
  (2) The new option 'remote_check_sync_consistency" disables the cross-check
  on the receiving side of &synchronized state of whether the current value
  of a variable has the value expected by the sender. Transmitting the
@@ -449,7 +2189,7 @@
  we maintain *two* caches independently for these types of objects; one
  with a low turn-over one and another with a high one.  This should reduce
  CPU load on both sender and receiver sides.
- 
+
  The new scheme is only used if both communicating Bros support it; with
  older Bros, as well as with Broccoli, we continue using the old scheme.
 
@@ -643,12 +2383,12 @@
 		      bro -Y 0.0.0.0:5555 netflow
 		      bro -i eth0 -Y 10.0.0.1:1234=src1 brolite netflow
 
-	  -y|--flowfile <file>[=<ident>] 
+	  -y|--flowfile <file>[=<ident>]
 
 	    Used to read from a file. You can optionally include an
 	    identifier for the source.
 
-	    Examples: 
+	    Examples:
 		      bro -y myflowfile netflow
 		      bro -y myflowfile=src1 otherflowfile=src2 netflow
 
@@ -817,7 +2557,7 @@
 
   So, to drop all sources triggering a specific notice, one can now, e.g.,
   write:
-  
+
 	redef notice_action_filters += { [Hot::SSH_Overflow] = drop_source };
 
   Related to this change, notice_info has a new field $dropped, set to
@@ -848,8 +2588,8 @@
 	   before starting the main packet loop and another one when
 	   finished. These snapshots can then be analyzed with pprof.
 
-  For more information about the perftools see 
-  
+  For more information about the perftools see
+
 	http://code.google.com/p/google-perftools
 
 - Notice tags are now generated in a pseudo-unique fashion that, with high
@@ -923,7 +2663,7 @@
 	detector tables.
 
 - When Bro serializes functions, it now does so by default using only
-  their name, rather than their full value (Robin Sommer).  This prevents 
+  their name, rather than their full value (Robin Sommer).  This prevents
   propagation of expiration functions associated with tables and sets.
   Note, currently there is no mechanism provided to switch from the
   default behavior, but the internal hooks are in place to do so.
@@ -1188,7 +2928,7 @@
 - An arbitrary tag can now be past to post-processors for log rotation
   (Robin Sommer).
 
-- Default inactivity timeouts for interactive services shortened to 
+- Default inactivity timeouts for interactive services shortened to
   1 hour (Robin Sommer).
 
 - The scanning variables distinct_{peers,ports,low_ports} are now
@@ -1501,7 +3241,7 @@
   This fixes a long-standing problem of sometimes $addl fields not showing
   up in connection summaries.
 
-- The new expressions record(...), table(...), set(...) and vector(...) 
+- The new expressions record(...), table(...), set(...) and vector(...)
   are constructors for the corresponding aggregate types (Vern Paxson).
   For example,
 
@@ -1655,7 +3395,7 @@
 - A new notice_action_filter, tally_notice_type_and_ignore, works the same
   as tally_notice_type but returns IGNORE (Robin Sommer)
 
-- Setting summary_interval == 0 disables the creation of irc-bots.summary.log 
+- Setting summary_interval == 0 disables the creation of irc-bots.summary.log
   (Robin Sommer).
 
 - If you @load foo and a directory "foo" is in your path, Bro no longer
@@ -1772,9 +3512,9 @@
 
 - Fixed using "time" values as table indices.
 
-- Added ssh to default brolite DPD configuration. 
+- Added ssh to default brolite DPD configuration.
 
-- Fixed catching up to real-time in case of lull. 
+- Fixed catching up to real-time in case of lull.
 
 - Fixed Broccoli "BRO_DATA_FORMAT_VERSION" to match version in Bro.
 
@@ -1784,11 +3524,11 @@
 
 - Added Linux tuning to brolite install script.
 
-- Modified Makefile to include broccoli/contrib. 
+- Modified Makefile to include broccoli/contrib.
 
-- Adding missing initialization to remote serializer. 
+- Adding missing initialization to remote serializer.
 
-- Minor documentation updates for reference manual and Broccoli. 
+- Minor documentation updates for reference manual and Broccoli.
 
 
 1.2 Tue Oct 17 12:09:49 PDT 2006
@@ -2007,7 +3747,7 @@
 
 	- notice_action_filters now reside in the new script
 	  notice-action-filter.bro (automatically loaded by notice.bro).
-        
+
 	- The notice actions NOTICE_ALARM_PER_CONN, NOTICE_ALARM_PER_ORIG,
 	  and NOTICE_ALARM_ONCE have been removed, as they were never
 	  actually implemented.
@@ -2027,7 +3767,7 @@
 
 - TRW analysis now skips UDP traffic because it currently treats
   all UDP connections as failures (Robin Sommer).
-     
+
 - trw.bro has been split into trw-impl.bro (the algorithm) and
   trw.bro (which simply activates the analysis), to facilitate writing
   scripts that have hooks into TRW analysis but don't presume it's
@@ -2160,7 +3900,7 @@
   (Robin Sommer).  This appears to still need some work, as now
   it generates redundant events.
 
-- Fix for initial exchange of &sync state which could lead to 
+- Fix for initial exchange of &sync state which could lead to
   referencing unknown IDs (Robin Sommer).
 
 - Fix to scan detection for differing semantics of connection compressor
@@ -2469,7 +4209,7 @@
 
 	- the new variable dump_backdoor_packets (default F) if set causes
 	  the packet that triggered the backdoor detection to be written to
-	  backdoor-packets/<tag>:<time> 
+	  backdoor-packets/<tag>:<time>
 
 	- the new variable backdoor_ignore_host_port_pairs is a set[addr, port]
 	  specify host/port combinations to ignore
@@ -2623,7 +4363,7 @@
 	- Now can ignore specific connections dynamically.
 
 	- TCP content gaps are now recognized and ADU delivery is for now
-	  stopped for such flows, unless explicitly requested. 
+	  stopped for such flows, unless explicitly requested.
 
 	- No longer logs to file in test mode.
 
@@ -2634,7 +4374,7 @@
 - Bro now performs serialization (such as when checkpointing &persistent
   tables or communicating them between Bro's) in an incremental fashion,
   intermingling transfers of large tables with ongoing packet processing
-  (Robin Sommer).  Doing so helps avoid packet drops for large items. 
+  (Robin Sommer).  Doing so helps avoid packet drops for large items.
   This has not yet been implemented for the initial handshake done
   for &synchronized items.
 
@@ -2697,7 +4437,7 @@
 
 - Notices now report current time for remotely-received notices rather
   than network time (Brian Tierney).
-  
+
 - Notices now include a tag es=<peer_description> any time a peer
   description is defined, not just for remote notices (Robin Sommer).
 
@@ -2901,9 +4641,9 @@
 
 - Bug fix for exchanging peer descriptions (Robin Sommer).
 
-- Bug fix for processing multipart-MIME HTTP messages with content-length 
+- Bug fix for processing multipart-MIME HTTP messages with content-length
   headers (Ruoming Pang).
-  
+
 - Bug fix for failing to escape "'s in HTTP server replies (Robin Sommer).
 
 - Bug fix for propagating increment operations on tables (Robin Sommer).
@@ -2917,7 +4657,7 @@
 - Bug fix for printing enum's (Christian Kreibich).
 
 - When not configured with --enable debug, Bro now still accepts (yet ignores)
-  option -B (Robin Sommer). 
+  option -B (Robin Sommer).
 
 - Serialization enhancements and fixes, including a change of the
   protocol version number (Robin Sommer).
@@ -2958,7 +4698,7 @@
 
 - Fix for connection compressor bug in tracking connection history
   (Robin Sommer).
-  
+
 - Bug fix for potential floating point exception in signature engine's
   resource-profiling code (Robin Sommer).
 
@@ -3084,7 +4824,7 @@
 	smb_get_dfs_referral(c: connection, max_referral_level: count,
 				file_name: string)
 		generated for SMB DFS referal requests
- 
+
 	dns_message(c: connection, is_orig: bool, msg: dns_msg, len: count)
 		low-level event generated for each DNS request/reponse
 
@@ -3158,7 +4898,7 @@
 - The "bif" compiler for compiling Bro built-in functions now supports
   an "enum" type (Ruoming Pang).  The syntax is:
 
-	enum dce_rpc_ptype 
+	enum dce_rpc_ptype
 	%{
 		DCE_RPC_REQUEST,
 		DCE_RPC_PING,
@@ -3167,7 +4907,7 @@
 
   which is translated to an enum declaration of "dce_rpc_ptype" in
   Bro, an EnumType* enum_dce_rpc_ptype in NetVar.{h,cc} and a C++ enum
-  BroEnum::dce_rpc_ptype {...}. 
+  BroEnum::dce_rpc_ptype {...}.
 
   One limitation is that redef's on enum types cannot be taken into
   account because the bif is parsed at compile time.
@@ -3311,7 +5051,7 @@
   specify whether to broadcast events/state received from one peer to other
   peers (Robin Sommer).  Both default to F.  Note, these options are temporary;
   they will disappear when we add a more sophisticated script-level
-  communication framework. 
+  communication framework.
 
 - Vectors can now be initialized using the syntax such as
 
@@ -3353,11 +5093,11 @@
     //      VERSION messages must be exchanged.
     //      Ends when both peers have sent VERSION.
     //  Handshake:
-    //      REQUEST_EVENTS/REQUEST_SYNC/CAPTURE_FILTER/CAPS/selected SERIALs 
+    //      REQUEST_EVENTS/REQUEST_SYNC/CAPTURE_FILTER/CAPS/selected SERIALs
     //        may be exchanged.
     //      Phase ends when both peers have sent PHASE_DONE.
     //  State synchronization:
-    //      Entered iff at least one of the peers has sent REQUEST_SYNC.    
+    //      Entered iff at least one of the peers has sent REQUEST_SYNC.
     //      The peer with the smallest runtime (incl. in VERSION msg) sends
     //        SERIAL messages comprising all of its state.
     //      Phase ends when peer sends another PHASE_DONE.
@@ -4245,7 +5985,7 @@
 - A new flag, -e, lets you specify Bro code to execute via the command
   line (Christian Kreibich).  So, for example,
 
-	bro -r mytrace.tcpdump -e 'redef traditional_conn_format = T' tcp 
+	bro -r mytrace.tcpdump -e 'redef traditional_conn_format = T' tcp
 
   will run tcp.bro on the trace "mytrace.tcpdump", but with
   traditional_conn_format redefined to be true.  Note that statements
@@ -4342,7 +6082,7 @@
 - The new "weird" type "base64_illegal_encoding" takes the place of
   some previously unstructured Base64 "weird" errors.
 
-- A tweak to ftp.bro will give it slightly more consistent results 
+- A tweak to ftp.bro will give it slightly more consistent results
   for some forms of unusual traffic.
 
 
@@ -4419,7 +6159,7 @@
 
 - The new built-ins any_set() and all_set() return true if for a given
   boolean vector any element is true or all of the elements is true
-  (Umesh Shankar).  So, for example, "any_set(x < 0)" returns T if 
+  (Umesh Shankar).  So, for example, "any_set(x < 0)" returns T if
   an element of x is less than zero.
 
 - The new built-in sort() takes a vector as an argument and sorts it
@@ -4790,7 +6530,7 @@
   current CPU load. If the load is below cpu_lower_limit (default 40%),
   the load-level is decreased.  If it's above cpu_upper_limit (default
   90%), it's increased.  (Robin Sommer)
- 
+
 - The new policy script hand-over.bro can be used for a new running
   instance of Bro to smoothly take over operation from an old instance,
   i.e., it implements hand-over of state between two Bro instances when
@@ -4976,7 +6716,7 @@
 	$priority - type must be arithmetic (count, int, double).  This
 		  is the priority associated with the match of EXPR1
 		  if $pred returns true.
-  
+
   The way the expression works is that EXPR1 is evaluated yielding a
   value V.  EXPR2 is then evaluated yielding a set of records whose
   type includes the above fields.  Bro then spins through each of the
@@ -5311,8 +7051,8 @@
   Sommer).  The format is simple, just "include" or "ignore" followed
   by the SID number:
 
-	# sid-526 BAD TRAFFIC data in TCP SYN packet 
-	ignore	526 
+	# sid-526 BAD TRAFFIC data in TCP SYN packet
+	ignore	526
 
 	# sid-623 matches a null-flags stealth scan.  Include it even
 	# if we build with -p, since it doesn't tend to generate any
@@ -5465,7 +7205,7 @@
   A new function, get_event_source(), returns a record event_source
   describing the source that raised the last event.
 
-  See doc/ssl.txt for an explanation of how to create the keys/certificates.   
+  See doc/ssl.txt for an explanation of how to create the keys/certificates.
 
 - A fledgling Gnutella analyzer has been contributed (Mark Allman).
   It generates the following events:
@@ -5493,7 +7233,7 @@
 	  redef secondary_filters += {
 		  ["tcp[13] & 7 != 0"] = rst_syn_fin_flag,
 	  }
-  
+
   will invoke rst_syn_fin_flag() anytime a TCP packet is seen for
   which the SYN/FIN/RST bits are non-zero.  The event handler will
   be passed the string "tcp[13] & 7 != 0" (so it can tell which
@@ -5551,7 +7291,7 @@
   public key; it's used to then embed a Blowfish session key.  (Robin Sommer)
 
   A new utility, aux/bdcat/bdcat ("Bro decrypt cat") can be used to decrypt
-  the files. 
+  the files.
 
 - The internal structure of TCP analysis has been significantly altered.
   Previously, TCP_Endpoint tracked endpoint state and TCP_EndpointContents
@@ -5628,7 +7368,7 @@
     const remote_peers_ssl : table[addr, port] of Peer &redef;
     [...]
     for ( [ip, p] in remote_peers_ssl )
-        connect_ssl(ip, p, remote_peers_ssl[ip, p]$retry); 
+        connect_ssl(ip, p, remote_peers_ssl[ip, p]$retry);
 
 - Checkpointing of persistent state on SIGHUP now happens via bro.init
   (Robin Sommer).  Not tested.

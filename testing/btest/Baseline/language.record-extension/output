@@ -1,0 +1,10 @@
+[a=21, b=<uninitialized>, myset={
+
+}, c=42, d=<uninitialized>, anotherset={
+
+}]
+[a=21, b=<uninitialized>, myset={
+
+}, c=42, d=XXX, anotherset={
+
+}]

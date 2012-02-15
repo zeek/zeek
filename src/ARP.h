@@ -1,5 +1,3 @@
-// $Id: ARP.h 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef arp_h
@@ -17,6 +15,8 @@
 #include <sys/ethernet.h>
 #elif defined(HAVE_NETINET_IF_ETHER_H)
 #include <netinet/if_ether.h>
+#elif defined(HAVE_NET_ETHERTYPES_H)
+#include <net/ethertypes.h>
 #endif
 
 #ifndef arp_pkthdr

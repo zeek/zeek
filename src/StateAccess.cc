@@ -1,5 +1,3 @@
-// $Id: StateAccess.cc 6888 2009-08-20 18:23:11Z vern $
-
 #include "Val.h"
 #include "StateAccess.h"
 #include "Serializer.h"
@@ -235,7 +233,7 @@ bool StateAccess::MergeTables(TableVal* dst, Val* src)
 	{
 	if ( ! src->Type()->Tag() == TYPE_TABLE )
 		{
-		run_time("type mismatch while merging tables");
+		reporter->Error("type mismatch while merging tables");
 		return false;
 		}
 
@@ -269,8 +267,8 @@ void StateAccess::Replay()
 		{
 		// FIXME: I think this warrants an internal error,
 		// but let's check that first ...
-		// internal_error("replay id lacking a value");
-		run_time("replay id lacks a value");
+		// reporter->InternalError("replay id lacking a value");
+		reporter->Error("replay id lacks a value");
 		return;
 		}
 
@@ -352,7 +350,7 @@ void StateAccess::Replay()
 				v->AsRecordVal()->Assign(idx, op2 ? op2->Ref() : 0);
 				}
 			else
-				run_time(fmt("access replay: unknown record field %s for assign", field));
+				reporter->Error("access replay: unknown record field %s for assign", field);
 			}
 
 		else if ( t == TYPE_VECTOR )
@@ -377,7 +375,7 @@ void StateAccess::Replay()
 			}
 
 		else
-			internal_error("unknown type in replaying index assign");
+			reporter->InternalError("unknown type in replaying index assign");
 
 		break;
 
@@ -413,7 +411,7 @@ void StateAccess::Replay()
 				v->AsRecordVal()->Assign(idx, new_val, OP_INCR);
 				}
 			else
-				run_time(fmt("access replay: unknown record field %s for assign", field));
+				reporter->Error("access replay: unknown record field %s for assign", field);
 			}
 
 		else if ( t == TYPE_VECTOR )
@@ -427,7 +425,7 @@ void StateAccess::Replay()
 			}
 
 		else
-			internal_error("unknown type in replaying index increment");
+			reporter->InternalError("unknown type in replaying index increment");
 
 		break;
 		}
@@ -489,7 +487,7 @@ void StateAccess::Replay()
 
 	case OP_PRINT:
 		assert(op1.val);
-		internal_error("access replay for print not implemented");
+		reporter->InternalError("access replay for print not implemented");
 		break;
 
 	case OP_READ_IDX:
@@ -518,11 +516,11 @@ void StateAccess::Replay()
 				}
 			}
 		else
-			run_time("read for non-table");
+			reporter->Error("read for non-table");
 		break;
 
 	default:
-		internal_error("access replay: unknown opcode for StateAccess");
+		reporter->InternalError("access replay: unknown opcode for StateAccess");
 		break;
 		}
 
@@ -630,7 +628,7 @@ bool StateAccess::DoSerialize(SerialInfo* info) const
 			break;
 
 		default:
-			internal_error("StateAccess::DoSerialize: unknown opcode");
+			reporter->InternalError("StateAccess::DoSerialize: unknown opcode");
 		}
 		}
 
@@ -854,7 +852,7 @@ void StateAccess::Describe(ODesc* d) const
 		break;
 
 	default:
-		internal_error("unknown opcode for StateAccess");
+		reporter->InternalError("unknown opcode for StateAccess");
 		break;
 		}
 
@@ -935,7 +933,7 @@ void NotifierRegistry::Register(ID* id, NotifierRegistry::Notifier* notifier)
 		attr_list* a = new attr_list;
 		Attr* attr = new Attr(ATTR_TRACKED);
 		a->append(attr);
-		id->SetAttrs(new Attributes(a, id->Type()));
+		id->SetAttrs(new Attributes(a, id->Type(), false));
 		Unref(attr);
 		}
 

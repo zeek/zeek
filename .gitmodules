@@ -1,12 +1,18 @@
 [submodule "aux/bro-aux"]
 	path = aux/bro-aux
-	url = git://git.icir.org/bro-aux
+	url = git://git.bro-ids.org/bro-aux
 [submodule "aux/binpac"]
 	path = aux/binpac
-	url = git://git.icir.org/binpac
+	url = git://git.bro-ids.org/binpac
 [submodule "aux/broccoli"]
 	path = aux/broccoli
-	url = git://git.icir.org/broccoli
+	url = git://git.bro-ids.org/broccoli
 [submodule "aux/broctl"]
 	path = aux/broctl
-	url = git://git.icir.org/broctl
+	url = git://git.bro-ids.org/broctl
+[submodule "aux/btest"]
+	path = aux/btest
+	url = git://git.bro-ids.org/btest
+[submodule "cmake"]
+	path = cmake
+	url = git://git.bro-ids.org/cmake

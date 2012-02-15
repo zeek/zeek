@@ -1,6 +1,6 @@
-// $Id: ICMP.cc 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
+
+#include <algorithm>
 
 #include "config.h"
 
@@ -53,7 +53,7 @@ void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
 
 	if ( ! ignore_checksums )
 	    {
-	    int chksum;
+	    int chksum = 0;
 
 #ifdef BROv6
 	    switch ( ip->NextProto() )
@@ -67,10 +67,10 @@ void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
 			break;
 
 		default:
-		     internal_error("unexpected IP proto in ICMP analyzer");
+			reporter->InternalError("unexpected IP proto in ICMP analyzer");
 		}
 #else
-	    # Classic v4 version.
+	    // Classic v4 version.
 	    chksum = icmp_checksum(icmpp, len);
 #endif
 
@@ -96,9 +96,14 @@ void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
 
 	if ( ip->NextProto() == IPPROTO_ICMP )
 		NextICMP4(current_timestamp, icmpp, len, caplen, data, ip);
+#ifdef BROv6
 	else
 		NextICMP6(current_timestamp, icmpp, len, caplen, data, ip);
+#endif
 
+
+	if ( caplen >= len )
+		ForwardPacket(len, data, is_orig, seq, ip, caplen);
 
 	if ( rule_matcher )
 		matcher_state.Match(Rule::PAYLOAD, data, len, is_orig,
@@ -337,6 +342,7 @@ RecordVal* ICMP_Analyzer::ExtractICMP4Context(int len, const u_char*& data)
 	return iprec;
 	}
 
+#ifdef BROv6
 RecordVal* ICMP_Analyzer::ExtractICMP6Context(int len, const u_char*& data)
 	{
 	const IP_Hdr ip_hdr_data((const struct ip6_hdr*) data);
@@ -407,6 +413,7 @@ RecordVal* ICMP_Analyzer::ExtractICMP6Context(int len, const u_char*& data)
 
 	return iprec;
 	}
+#endif
 
 
 bool ICMP_Analyzer::IsReuse(double /* t */, const u_char* /* pkt */)
@@ -433,6 +440,20 @@ void ICMP_Analyzer::Describe(ODesc* d) const
 	d->AddSP("->");
 
 	d->Add(dotted_addr(Conn()->RespAddr()));
+	}
+
+void ICMP_Analyzer::UpdateConnVal(RecordVal *conn_val)
+	{
+	int orig_endp_idx = connection_type->FieldOffset("orig");
+	int resp_endp_idx = connection_type->FieldOffset("resp");
+	RecordVal *orig_endp = conn_val->Lookup(orig_endp_idx)->AsRecordVal();
+	RecordVal *resp_endp = conn_val->Lookup(resp_endp_idx)->AsRecordVal();
+
+	UpdateEndpointVal(orig_endp, 1);
+	UpdateEndpointVal(resp_endp, 0);
+
+	// Call children's UpdateConnVal
+	Analyzer::UpdateConnVal(conn_val);
 	}
 
 void ICMP_Analyzer::UpdateEndpointVal(RecordVal* endp, int is_orig)

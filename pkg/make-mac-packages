@@ -1,0 +1,59 @@
+#!/bin/sh
+
+# This script creates binary packages for Mac OS X.
+# They can be found in ../build/ after running.
+
+./check-cmake || { exit 1; }
+
+type sw_vers > /dev/null 2>&1 || {
+    echo "Unable to get Mac OS X version" >&2;
+    exit 1;
+}
+
+# Get the OS X minor version
+# 5 = Leopard, 6 = Snow Leopard, 7 = Lion ...
+osx_ver=`sw_vers | sed -n 's/ProductVersion://p' | cut -d . -f 2`
+
+if [ ${osx_ver} -lt 5 ]; then
+    echo "Packages for OS X < 10.5 are not supported" >&2
+    exit 1
+elif [ ${osx_ver} -eq 5 ]; then
+    # On OS X 10.5, the x86_64 version of libresolv is broken,
+    # so we build for i386 as the easiest solution
+    arch=i386
+else
+    # Currently it's just easiest to build the 10.5 package on
+    # on 10.5, but if it weren't for the libresolv issue, we could
+    # potentially build packages for older OS X version by using the
+    # --osx-sysroot and --osx-min-version options
+    arch=x86_64
+fi
+
+prefix=/opt/bro
+
+cd ..
+
+# Minimum Bro
+CMAKE_OSX_ARCHITECTURES=${arch} ./configure --prefix=${prefix} \
+    --disable-broccoli --disable-broctl --pkg-name-prefix=Bro-minimal \
+    --binary-package
+( cd build && make package )
+
+# Full Bro package
+CMAKE_OSX_ARCHITECTURES=${arch} ./configure --prefix=${prefix} \
+    --pkg-name-prefix=Bro --binary-package
+( cd build && make package )
+
+# Broccoli
+cd aux/broccoli
+CMAKE_OSX_ARCHITECTURES=${arch} ./configure --prefix=${prefix} \
+    --binary-package
+( cd build && make package && mv *.dmg ../../../build/ )
+cd ../..
+
+# Broctl
+cd aux/broctl
+CMAKE_OSX_ARCHITECTURES=${arch} ./configure --prefix=${prefix} \
+    --binary-package
+( cd build && make package && mv *.dmg ../../../build/ )
+cd ../..

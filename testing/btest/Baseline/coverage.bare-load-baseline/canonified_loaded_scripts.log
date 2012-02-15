@@ -1,0 +1,22 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	loaded_scripts
+#fields	name
+#types	string
+scripts/base/init-bare.bro
+  build/src/base/const.bif.bro
+  build/src/base/types.bif.bro
+  build/src/base/strings.bif.bro
+  build/src/base/bro.bif.bro
+  build/src/base/reporter.bif.bro
+  build/src/base/event.bif.bro
+  scripts/base/frameworks/logging/__load__.bro
+    scripts/base/frameworks/logging/./main.bro
+      build/src/base/logging.bif.bro
+    scripts/base/frameworks/logging/./postprocessors/__load__.bro
+      scripts/base/frameworks/logging/./postprocessors/./scp.bro
+      scripts/base/frameworks/logging/./postprocessors/./sftp.bro
+    scripts/base/frameworks/logging/./writers/ascii.bro
+scripts/policy/misc/loaded-scripts.bro

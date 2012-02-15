@@ -1,5 +1,3 @@
-// $Id: RemoteSerializer.h 6951 2009-12-04 22:23:28Z vern $
-//
 // Communication between two Bro's.
 
 #ifndef REMOTE_SERIALIZER
@@ -16,6 +14,8 @@
 // FIXME: Change this to network byte order
 
 class IncrementalSendTimer;
+class LogField;
+class LogVal;
 
 // This class handles the communication done in Bro's main loop.
 class RemoteSerializer : public Serializer, public IOSource {
@@ -34,6 +34,9 @@ public:
 	// Connect to host (returns PEER_NONE on error).
 	PeerID Connect(addr_type ip, uint16 port, const char* our_class, double retry, bool use_ssl);
 
+	// Close connection to host.
+	bool CloseConnection(PeerID peer);
+
 	// Request all events matching pattern from remote side.
 	bool RequestEvents(PeerID peer, RE_Matcher* pattern);
 
@@ -41,6 +44,9 @@ public:
 	// we consider our current state to authoritative and send it to
 	// the peer right after the handshake.
 	bool RequestSync(PeerID peer, bool auth);
+
+	// Requests logs from the remote side.
+	bool RequestLogs(PeerID id);
 
 	// Sets flag whether we're accepting state from this peer
 	// (default: yes).
@@ -90,7 +96,16 @@ public:
 	bool SendPing(PeerID peer, uint32 seq);
 
 	// Broadcast remote print.
-	bool SendPrintHookEvent(BroFile* f, const char* txt);
+	bool SendPrintHookEvent(BroFile* f, const char* txt, size_t len);
+
+	// Send a request to create a writer on a remote side.
+	bool SendLogCreateWriter(PeerID peer, EnumVal* id, EnumVal* writer, string path, int num_fields, const LogField* const * fields);
+
+	// Broadcasts a request to create a writer.
+	bool SendLogCreateWriter(EnumVal* id, EnumVal* writer, string path, int num_fields, const LogField* const * fields);
+
+	// Broadcast a log entry to everybody interested.
+	bool SendLogWrite(EnumVal* id, EnumVal* writer, string path, int num_fields, const LogVal* const * vals);
 
 	// Synchronzizes time with all connected peers. Returns number of
 	// current sync-point, or -1 on error.
@@ -113,10 +128,6 @@ public:
 
 	// Log some statistics.
 	void LogStats();
-
-	// Return a 0-terminated array of built-in functions which,
-	// when referenced, trigger the remote serializer's initialization.
-	const char* const* GetBuiltins() const;
 
 	// Tries to sent out all remaining data.
 	// FIXME: Do we still need this?
@@ -187,6 +198,7 @@ protected:
 		static const int NO_CACHING = 2;
 		static const int PID_64BIT = 4;
 		static const int NEW_CACHE_STRATEGY = 8;
+		static const int BROCCOLI_PEER = 16;
 
 		// Constants to remember to who did something.
 		static const int NONE = 0;
@@ -205,6 +217,7 @@ protected:
 		bool accept_state;	// True if we accept state from peer.
 		bool send_state; // True if we're supposed to initially sent our state.
 		int comp_level; // Compression level.
+		bool logs_requested; // True if the peer has requested logs.
 
 		// True if this peer triggered a net_suspend_processing().
 		bool suspended_processing;
@@ -217,6 +230,8 @@ protected:
 		uint32 sync_point;	// Highest sync-point received so far
 		char* print_buffer;	// Buffer for remote print or null.
 		int print_buffer_used;	// Number of bytes used in buffer.
+		char* log_buffer;	// Buffer for remote log or null.
+		int log_buffer_used;	// Number of bytes used in buffer.
 	};
 
 	// Shuts down remote serializer.
@@ -255,6 +270,9 @@ protected:
 	bool ProcessCapsMsg();
 	bool ProcessSyncPointMsg();
 	bool ProcessRemotePrint();
+	bool ProcessLogCreateWriter();
+	bool ProcessLogWrite();
+	bool ProcessRequestLogs();
 
 	Peer* AddPeer(uint32 ip, uint16 port, PeerID id = PEER_NONE);
 	Peer* LookupPeer(PeerID id, bool only_if_connected);
@@ -282,11 +300,13 @@ protected:
 	bool SendID(SerialInfo* info, Peer* peer, const ID& id);
 	bool SendCapabilities(Peer* peer);
 	bool SendPacket(SerialInfo* info, Peer* peer, const Packet& p);
+	bool SendLogWrite(Peer* peer, EnumVal* id, EnumVal* writer, string path, int num_fields, const LogVal* const * vals);
 
 	void UnregisterHandlers(Peer* peer);
 	void RaiseEvent(EventHandlerPtr event, Peer* peer, const char* arg = 0);
 	bool EnterPhaseRunning(Peer* peer);
 	bool FlushPrintBuffer(Peer* p);
+	bool FlushLogBuffer(Peer* p);
 
 	void ChildDied();
 	void InternalCommError(const char* msg);
@@ -297,12 +317,15 @@ protected:
 	bool SendToChild(char type, Peer* peer, int nargs, ...); // can send uints32 only
 	bool SendToChild(ChunkedIO::Chunk* c);
 
+	void SetSocketBufferSize(int fd, int opt, const char *what, int size, int verbose);
+
 private:
 	enum { TYPE, ARGS } msgstate;	// current state of reading comm.
 	Peer* current_peer;
 	PeerID current_id;
 	char current_msgtype;
 	ChunkedIO::Chunk* current_args;
+	double last_flush;
 
 	id_list sync_ids;
 
@@ -438,6 +461,9 @@ protected:
 
 	// Check whether everything has been sent out.
 	void CheckFinished();
+
+	// Reports the error and terminates the process.
+	void InternalError(const char* msg);
 
 	// Communication helpers.
 	bool SendToParent(char type, Peer* peer, const char* str, int len = -1);

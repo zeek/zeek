@@ -1,5 +1,3 @@
-// $Id:$
-//
 // This code contributed by Nadi Sarrar.
 
 #ifndef bittorrenttracker_h

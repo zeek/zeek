@@ -1,5 +1,3 @@
-// $Id: DNS_Mgr.cc 7073 2010-09-13 00:45:02Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -29,10 +27,13 @@
 #endif
 #include <stdlib.h>
 
+#include <algorithm>
+
 #include "DNS_Mgr.h"
 #include "Event.h"
 #include "Net.h"
 #include "Var.h"
+#include "Reporter.h"
 
 extern "C" {
 extern int select(int, fd_set *, fd_set *, fd_set *, struct timeval *);
@@ -61,6 +62,7 @@ public:
 protected:
 	char* host;	// if non-nil, this is a host request
 	uint32 addr;
+	uint32 ttl;
 	int request_pending;
 };
 
@@ -80,8 +82,8 @@ int DNS_Mgr_Request::MakeRequest(nb_dns_info* nb_dns)
 
 class DNS_Mapping {
 public:
-	DNS_Mapping(const char* host, struct hostent* h);
-	DNS_Mapping(uint32 addr, struct hostent* h);
+	DNS_Mapping(const char* host, struct hostent* h, uint32 ttl);
+	DNS_Mapping(uint32 addr, struct hostent* h, uint32 ttl);
 	DNS_Mapping(FILE* f);
 
 	int NoMapping() const		{ return no_mapping; }
@@ -106,6 +108,9 @@ public:
 	int Failed() const		{ return failed; }
 	int Valid() const		{ return ! failed; }
 
+	bool Expired() const
+		{ return current_time() > (creation_time + req_ttl); }
+
 protected:
 	friend class DNS_Mgr;
 
@@ -117,6 +122,7 @@ protected:
 
 	char* req_host;
 	uint32 req_addr;
+	uint32 req_ttl;
 
 	int num_names;
 	char** names;
@@ -144,21 +150,23 @@ static TableVal* empty_addr_set()
 	return new TableVal(s);
 	}
 
-DNS_Mapping::DNS_Mapping(const char* host, struct hostent* h)
+DNS_Mapping::DNS_Mapping(const char* host, struct hostent* h, uint32 ttl)
 	{
 	Init(h);
 	req_host = copy_string(host);
 	req_addr = 0;
+	req_ttl = ttl;
 
 	if ( names && ! names[0] )
 		names[0] = copy_string(host);
 	}
 
-DNS_Mapping::DNS_Mapping(uint32 addr, struct hostent* h)
+DNS_Mapping::DNS_Mapping(uint32 addr, struct hostent* h, uint32 ttl)
 	{
 	Init(h);
 	req_addr = addr;
 	req_host = 0;
+	req_ttl = ttl;
 	}
 
 DNS_Mapping::DNS_Mapping(FILE* f)
@@ -350,7 +358,7 @@ DNS_Mgr::DNS_Mgr(DNS_MgrMode arg_mode)
 	nb_dns = nb_dns_init(err);
 
 	if ( ! nb_dns )
-		warn(fmt("problem initializing NB-DNS: %s", err));
+		reporter->Warning("problem initializing NB-DNS: %s", err);
 
 	dns_mapping_valid = dns_mapping_unverified = dns_mapping_new_name =
 		dns_mapping_lost_name = dns_mapping_name_changed =
@@ -362,6 +370,9 @@ DNS_Mgr::DNS_Mgr(DNS_MgrMode arg_mode)
 	cache_name = dir = 0;
 
 	asyncs_pending = 0;
+	num_requests = 0;
+	successful = 0;
+	failed = 0;
 	}
 
 DNS_Mgr::~DNS_Mgr()
@@ -437,7 +448,7 @@ TableVal* DNS_Mgr::LookupHost(const char* name)
 				return d->Addrs()->ConvertToSet();
 			else
 				{
-				warn("no such host:", name);
+				reporter->Warning("no such host: %s", name);
 				return empty_addr_set();
 				}
 			}
@@ -450,7 +461,7 @@ TableVal* DNS_Mgr::LookupHost(const char* name)
 		return empty_addr_set();
 
 	case DNS_FORCE:
-		internal_error("can't find DNS entry for %s in cache", name);
+		reporter->FatalError("can't find DNS entry for %s in cache", name);
 		return 0;
 
 	case DNS_DEFAULT:
@@ -459,7 +470,7 @@ TableVal* DNS_Mgr::LookupHost(const char* name)
 		return LookupHost(name);
 
 	default:
-		internal_error("bad mode in DNS_Mgr::LookupHost");
+		reporter->InternalError("bad mode in DNS_Mgr::LookupHost");
 		return 0;
 	}
 	}
@@ -480,7 +491,7 @@ Val* DNS_Mgr::LookupAddr(uint32 addr)
 				return d->Host();
 			else
 				{
-				warn("can't resolve IP address:", dotted_addr(addr));
+				reporter->Warning("can't resolve IP address: %s", dotted_addr(addr));
 				return new StringVal(dotted_addr(addr));
 				}
 			}
@@ -493,7 +504,7 @@ Val* DNS_Mgr::LookupAddr(uint32 addr)
 		return new StringVal("<none>");
 
 	case DNS_FORCE:
-		internal_error("can't find DNS entry for %s in cache",
+		reporter->FatalError("can't find DNS entry for %s in cache",
 				dotted_addr(addr));
 		return 0;
 
@@ -503,7 +514,7 @@ Val* DNS_Mgr::LookupAddr(uint32 addr)
 		return LookupAddr(addr);
 
 	default:
-		internal_error("bad mode in DNS_Mgr::LookupHost");
+		reporter->InternalError("bad mode in DNS_Mgr::LookupHost");
 		return 0;
 	}
 	}
@@ -564,7 +575,7 @@ void DNS_Mgr::Resolve()
 		struct nb_dns_result r;
 		status = nb_dns_activity(nb_dns, &r, err);
 		if ( status < 0 )
-			internal_error(
+			reporter->Warning(
 			    "NB-DNS error in DNS_Mgr::WaitForReplies (%s)",
 			    err);
 		else if ( status > 0 )
@@ -661,6 +672,7 @@ Val* DNS_Mgr::BuildMappingVal(DNS_Mapping* dm)
 void DNS_Mgr::AddResult(DNS_Mgr_Request* dr, struct nb_dns_result* r)
 	{
 	struct hostent* h = (r && r->host_errno == 0) ? r->hostent : 0;
+	u_int32_t ttl = r->ttl;
 
 	DNS_Mapping* new_dm;
 	DNS_Mapping* prev_dm;
@@ -668,7 +680,7 @@ void DNS_Mgr::AddResult(DNS_Mgr_Request* dr, struct nb_dns_result* r)
 
 	if ( dr->ReqHost() )
 		{
-		new_dm = new DNS_Mapping(dr->ReqHost(), h);
+		new_dm = new DNS_Mapping(dr->ReqHost(), h, ttl);
 		prev_dm = host_mappings.Insert(dr->ReqHost(), new_dm);
 
 		if ( new_dm->Failed() && prev_dm && prev_dm->Valid() )
@@ -681,7 +693,7 @@ void DNS_Mgr::AddResult(DNS_Mgr_Request* dr, struct nb_dns_result* r)
 		}
 	else
 		{
-		new_dm = new DNS_Mapping(dr->ReqAddr(), h);
+		new_dm = new DNS_Mapping(dr->ReqAddr(), h, ttl);
 		uint32 tmp_addr = dr->ReqAddr();
 		HashKey k(&tmp_addr, 1);
 		prev_dm = addr_mappings.Insert(&k, new_dm);
@@ -742,7 +754,7 @@ void DNS_Mgr::CompareMappings(DNS_Mapping* prev_dm, DNS_Mapping* new_dm)
 	ListVal* new_a = new_dm->Addrs();
 
 	if ( ! prev_a || ! new_a )
-		internal_error("confused in DNS_Mgr::CompareMappings");
+		reporter->InternalError("confused in DNS_Mgr::CompareMappings");
 
 	ListVal* prev_delta = AddrListDelta(prev_a, new_a);
 	ListVal* new_delta = AddrListDelta(new_a, prev_a);
@@ -812,7 +824,7 @@ void DNS_Mgr::LoadCache(FILE* f)
 		}
 
 	if ( ! m->NoMapping() )
-		internal_error("DNS cache corrupted");
+		reporter->FatalError("DNS cache corrupted");
 
 	delete m;
 	fclose(f);
@@ -831,8 +843,16 @@ const char* DNS_Mgr::LookupAddrInCache(dns_mgr_addr_type addr)
 	{
 	HashKey h(&addr, 1);
 	DNS_Mapping* d = dns_mgr->addr_mappings.Lookup(&h);
+
 	if ( ! d )
 		return 0;
+
+	if ( d->Expired() )
+		{
+		dns_mgr->addr_mappings.Remove(&h);
+		delete d;
+		return 0;
+		}
 
 	// The escapes in the following strings are to avoid having it
 	// interpreted as a trigraph sequence.
@@ -842,8 +862,17 @@ const char* DNS_Mgr::LookupAddrInCache(dns_mgr_addr_type addr)
 TableVal* DNS_Mgr::LookupNameInCache(string name)
 	{
 	DNS_Mapping* d = dns_mgr->host_mappings.Lookup(name.c_str());
+
 	if ( ! d || ! d->names )
 		return 0;
+
+	if ( d->Expired() )
+		{
+		HashKey h(name.c_str());
+		dns_mgr->host_mappings.Remove(&h);
+		delete d;
+		return 0;
+		}
 
 	return d->AddrsSet();
 	}
@@ -924,6 +953,8 @@ void DNS_Mgr::IssueAsyncRequests()
 		AsyncRequest* req = asyncs_queued.front();
 		asyncs_queued.pop_front();
 
+		++num_requests;
+
 		DNS_Mgr_Request* dr;
 		if ( req->IsAddrReq() )
 			dr = new DNS_Mgr_Request(req->host);
@@ -932,7 +963,8 @@ void DNS_Mgr::IssueAsyncRequests()
 
 		if ( ! dr->MakeRequest(nb_dns) )
 			{
-			run_time("can't issue DNS request");
+			reporter->Warning("can't issue DNS request");
+			++failed;
 			req->Timeout();
 			continue;
 			}
@@ -967,10 +999,16 @@ void DNS_Mgr::CheckAsyncAddrRequest(dns_mgr_addr_type addr, bool timeout)
 		{
 		const char* name = LookupAddrInCache(addr);
 		if ( name )
+			{
+			++successful;
 			i->second->Resolved(name);
+			}
 
 		else if ( timeout )
+			{
+			++failed;
 			i->second->Timeout();
+			}
 
 		else
 			return;
@@ -996,12 +1034,16 @@ void DNS_Mgr::CheckAsyncHostRequest(const char* host, bool timeout)
 
 		if ( addrs )
 			{
+			++successful;
 			i->second->Resolved(addrs);
 			Unref(addrs);
 			}
 
 		else if ( timeout )
+			{
+			++failed;
 			i->second->Timeout();
+			}
 
 		else
 			return;
@@ -1014,14 +1056,29 @@ void DNS_Mgr::CheckAsyncHostRequest(const char* host, bool timeout)
 		}
 	}
 
-void  DNS_Mgr::Process()
+void DNS_Mgr::Flush()
 	{
+	DoProcess(false);
 
+	IterCookie* cookie = addr_mappings.InitForIteration();
+	DNS_Mapping* dm;
+
+	host_mappings.Clear();
+	addr_mappings.Clear();
+	}
+
+void DNS_Mgr::Process()
+	{
+	DoProcess(false);
+	}
+
+void DNS_Mgr::DoProcess(bool flush)
+	{
 	while ( asyncs_timeouts.size() > 0 )
 		{
 		AsyncRequest* req = asyncs_timeouts.top();
 
-		if ( req->time + DNS_TIMEOUT > current_time() )
+		if ( req->time + DNS_TIMEOUT > current_time() || flush )
 			break;
 
 		if ( req->IsAddrReq() )
@@ -1045,7 +1102,7 @@ void  DNS_Mgr::Process()
 	int status = nb_dns_activity(nb_dns, &r, err);
 
 	if ( status < 0 )
-		internal_error("NB-DNS error in DNS_Mgr::Process (%s)", err);
+		reporter->Warning("NB-DNS error in DNS_Mgr::Process (%s)", err);
 
 	else if ( status > 0 )
 		{
@@ -1062,6 +1119,8 @@ void  DNS_Mgr::Process()
 			CheckAsyncHostRequest(dr->ReqHost(), true);
 
 		IssueAsyncRequests();
+
+		delete dr;
 		}
 	}
 
@@ -1069,7 +1128,10 @@ int DNS_Mgr::AnswerAvailable(int timeout)
 	{
 	int fd = nb_dns_fd(nb_dns);
 	if ( fd < 0 )
-		internal_error("nb_dns_fd() failed in DNS_Mgr::WaitForReplies");
+		{
+		reporter->Warning("nb_dns_fd() failed in DNS_Mgr::WaitForReplies");
+		return -1;
+		}
 
 	fd_set read_fds;
 
@@ -1084,13 +1146,28 @@ int DNS_Mgr::AnswerAvailable(int timeout)
 
 	if ( status < 0 )
 		{
-		if ( errno == EINTR )
-			return -1;
-		internal_error("problem with DNS select");
+		if ( errno != EINTR )
+			reporter->Warning("problem with DNS select");
+
+		return -1;
 		}
 
 	if ( status > 1 )
-		internal_error("strange return from DNS select");
+		{
+		reporter->Warning("strange return from DNS select");
+		return -1;
+		}
 
 	return status;
 	}
+
+void DNS_Mgr::GetStats(Stats* stats)
+	{
+	stats->requests = num_requests;
+	stats->successful = successful;
+	stats->failed = failed;
+	stats->pending = asyncs_pending;
+	stats->cached_hosts = host_mappings.Length();
+	stats->cached_addresses = addr_mappings.Length();
+	}
+

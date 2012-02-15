@@ -1,5 +1,3 @@
-// $Id: Net.cc 6915 2009-09-22 05:04:17Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -26,9 +24,8 @@
 #include "Event.h"
 #include "Timer.h"
 #include "Var.h"
-#include "Logger.h"
+#include "Reporter.h"
 #include "Net.h"
-#include "TCP_Rewriter.h"
 #include "Anon.h"
 #include "PacketSort.h"
 #include "Serializer.h"
@@ -47,19 +44,11 @@ PList(PktSrc) pkt_srcs;
 // FIXME: We should really merge PktDumper and PacketDumper.
 // It's on my to-do [Robin].
 PktDumper* pkt_dumper = 0;
-PktDumper* pkt_transformed_dumper = 0;
-
-// For trace of rewritten packets
-PacketDumper* transformed_pkt_dump = 0;
-// For trace of original packets from selected connections
-PacketDumper* source_pkt_dump = 0;
-int transformed_pkt_dump_MTU = 1514;
 
 int reading_live = 0;
 int reading_traces = 0;
 int have_pending_timers = 0;
 double pseudo_realtime = 0.0;
-char* user_pcap_filter = 0;
 bool using_communication = false;
 
 double network_time = 0.0;	// time according to last packet timestamp
@@ -80,6 +69,7 @@ double current_timestamp = 0.0;
 PktSrc* current_pktsrc = 0;
 IOSource* current_iosrc;
 
+std::list<ScannedFile> files_scanned;
 
 RETSIGTYPE watchdog(int /* signo */)
 	{
@@ -117,15 +107,6 @@ RETSIGTYPE watchdog(int /* signo */)
 			int frac_pst =
 				int((processing_start_time - int_pst) * 1e6);
 
-			char msg[512];
-			safe_snprintf(msg, sizeof(msg),
-				      "**watchdog timer expired, t = %d.%06d, start = %d.%06d, dispatched = %d",
-				      int_ct, frac_ct, int_pst, frac_pst,
-				      current_dispatched);
-
-			bro_logger->Log(msg);
-			run_time("watchdog timer expired");
-
 			if ( current_hdr )
 				{
 				if ( ! pkt_dumper )
@@ -137,7 +118,7 @@ RETSIGTYPE watchdog(int /* signo */)
 					pkt_dumper = new PktDumper("watchdog-pkt.pcap");
 					if ( pkt_dumper->IsError() )
 						{
-						fprintf(stderr, "watchdog: can't open watchdog-pkt.pcap for writing\n");
+						reporter->Error("watchdog: can't open watchdog-pkt.pcap for writing\n");
 						pkt_dumper = 0;
 						}
 					}
@@ -149,8 +130,10 @@ RETSIGTYPE watchdog(int /* signo */)
 			net_get_final_stats();
 			net_finish(0);
 
-			abort();
-			exit(1);
+			reporter->FatalErrorWithCore(
+			          "**watchdog timer expired, t = %d.%06d, start = %d.%06d, dispatched = %d",
+				      int_ct, frac_ct, int_pst, frac_pst,
+					  current_dispatched);
 			}
 		}
 
@@ -162,9 +145,8 @@ RETSIGTYPE watchdog(int /* signo */)
 
 void net_init(name_list& interfaces, name_list& readfiles, 
 	      name_list& netflows, name_list& flowfiles,
-	        const char* writefile, const char* transformed_writefile,
-	        const char* filter, const char* secondary_filter,
-		int do_watchdog)
+	        const char* writefile, const char* filter,
+			const char* secondary_filter, int do_watchdog)
 	{
 	init_net_var();
 
@@ -178,11 +160,8 @@ void net_init(name_list& interfaces, name_list& readfiles,
 			PktFileSrc* ps = new PktFileSrc(readfiles[i], filter);
 
 			if ( ! ps->IsOpen() )
-				{
-				fprintf(stderr, "%s: problem with trace file %s - %s\n",
+				reporter->FatalError("%s: problem with trace file %s - %s\n",
 					prog, readfiles[i], ps->ErrorMsg());
-				exit(1);
-				}
 			else
 				{
 				pkt_srcs.append(ps);
@@ -198,12 +177,9 @@ void net_init(name_list& interfaces, name_list& readfiles,
 							TYPE_FILTER_SECONDARY);
 
 				if ( ! ps->IsOpen() )
-					{
-					fprintf(stderr, "%s: problem with trace file %s - %s\n",
+					reporter->FatalError("%s: problem with trace file %s - %s\n",
 						prog, readfiles[i],
 						ps->ErrorMsg());
-					exit(1);
-					}
 				else
 					{
 					pkt_srcs.append(ps);
@@ -219,11 +195,8 @@ void net_init(name_list& interfaces, name_list& readfiles,
 			FlowFileSrc* fs = new FlowFileSrc(flowfiles[i]);
 
 			if ( ! fs->IsOpen() )
-				{
-				fprintf(stderr, "%s: problem with netflow file %s - %s\n",
+				reporter->FatalError("%s: problem with netflow file %s - %s\n",
 					prog, flowfiles[i], fs->ErrorMsg());
-				exit(1);
-				}
 			else
 				{
 				io_sources.Register(fs);
@@ -242,11 +215,8 @@ void net_init(name_list& interfaces, name_list& readfiles,
 			ps = new PktInterfaceSrc(interfaces[i], filter);
 
 			if ( ! ps->IsOpen() )
-				{
-				fprintf(stderr, "%s: problem with interface %s - %s\n",
+				reporter->FatalError("%s: problem with interface %s - %s\n",
 					prog, interfaces[i], ps->ErrorMsg());
-				exit(1);
-				}
 			else
 				{
 				pkt_srcs.append(ps);
@@ -260,12 +230,9 @@ void net_init(name_list& interfaces, name_list& readfiles,
 					filter, TYPE_FILTER_SECONDARY);
 
 				if ( ! ps->IsOpen() )
-					{
-					fprintf(stderr, "%s: problem with interface %s - %s\n",
+					reporter->Error("%s: problem with interface %s - %s\n",
 						prog, interfaces[i],
 						ps->ErrorMsg());
-					exit(1);
-					}
 				else
 					{
 					pkt_srcs.append(ps);
@@ -281,11 +248,8 @@ void net_init(name_list& interfaces, name_list& readfiles,
 			FlowSocketSrc* fs = new FlowSocketSrc(netflows[i]);
 
 			if ( ! fs->IsOpen() )
-				{
-				fprintf(stderr, "%s: problem with netflow socket %s - %s\n",
+				reporter->Error("%s: problem with netflow socket %s - %s\n",
 					prog, netflows[i], fs->ErrorMsg());
-				exit(1);
-				}
 			else
 				{
 				io_sources.Register(fs);
@@ -307,50 +271,17 @@ void net_init(name_list& interfaces, name_list& readfiles,
 		// interfaces with different-lengthed media.
 		pkt_dumper = new PktDumper(writefile);
 		if ( pkt_dumper->IsError() )
-			{
-			fprintf(stderr, "%s: can't open write file \"%s\" - %s\n",
+			reporter->FatalError("%s: can't open write file \"%s\" - %s\n",
 				prog, writefile, pkt_dumper->ErrorMsg());
-			exit(1);
-			}
 
 		ID* id = global_scope()->Lookup("trace_output_file");
 		if ( ! id )
-			run_time("trace_output_file not defined in bro.init");
+			reporter->Error("trace_output_file not defined in bro.init");
 		else
 			id->SetVal(new StringVal(writefile));
 		}
 
-	if ( transformed_writefile )
-		{
-		pkt_transformed_dumper = new PktDumper(transformed_writefile);
-		if ( pkt_transformed_dumper->IsError() )
-			{
-			fprintf(stderr, "%s: can't open trace transformation write file \"%s\" - %s\n",
-				prog, writefile,
-				pkt_transformed_dumper->ErrorMsg());
-			exit(1);
-			}
-
-		transformed_pkt_dump =
-			new PacketDumper(pkt_transformed_dumper->PcapDumper());
-
-		// If both -A and -w are specified, -A will be the transformed
-		// trace file and -w will be the source packet trace file.
-		// Otherwise the packets will go to the same file.
-		if ( pkt_dumper )
-			source_pkt_dump =
-				new PacketDumper(pkt_dumper->PcapDumper());
-		}
-
-	else if ( pkt_dumper )
-		transformed_pkt_dump =
-			new PacketDumper(pkt_dumper->PcapDumper());
-
-	if ( anonymize_ip_addr )
-		init_ip_addr_anonymizers();
-	else
-		for ( int i = 0; i < NUM_ADDR_ANONYMIZATION_METHODS; ++i )
-			ip_anonymizer[i] = 0;
+	init_ip_addr_anonymizers();
 
 	if ( packet_sort_window > 0 )
 		packet_sorter = new PacketSortGlobalPQ();
@@ -406,7 +337,7 @@ void net_packet_dispatch(double t, const struct pcap_pkthdr* hdr,
 		if ( load_freq == 0 )
 			load_freq = uint32(0xffffffff) / uint32(load_sample_freq);
 
-		if ( uint32(random() & 0xffffffff) < load_freq )
+		if ( uint32(bro_random() & 0xffffffff) < load_freq )
 			{
 			// Drain the queued timer events so they're not
 			// charged against this sample.
@@ -605,7 +536,7 @@ void net_get_final_stats()
 			{
 			struct PktSrc::Stats s;
 			ps->Statistics(&s);
-			fprintf(stderr, "%d packets received on interface %s, %d dropped\n",
+			reporter->Info("%d packets received on interface %s, %d dropped\n",
 					s.received, ps->Interface(), s.dropped);
 			}
 		}
@@ -627,9 +558,6 @@ void net_finish(int drain_events)
 		}
 
 	delete pkt_dumper;
-	delete pkt_transformed_dumper;
-
-	// fprintf(stderr, "uhash: %d/%d\n", hash_cnt_uhash, hash_cnt_all);
 
 #ifdef DEBUG
 	extern int reassem_seen_bytes, reassem_copied_bytes;
@@ -647,11 +575,6 @@ void net_delete()
 
 	delete sessions;
 	delete packet_sorter;
-
-	// Can't put this in net_finish() because packets might be
-	// dumped when connections are deleted.
-	if ( transformed_pkt_dump )
-		delete transformed_pkt_dump;
 
 	for ( int i = 0; i < NUM_ADDR_ANONYMIZATION_METHODS; ++i )
 		delete ip_anonymizer[i];
@@ -687,7 +610,7 @@ static double suspend_start = 0;
 void net_suspend_processing()
 	{
 	if ( _processing_suspended == 0 )
-		bro_logger->Log("processing suspended");
+		reporter->Info("processing suspended");
 
 	++_processing_suspended;
 	}
@@ -696,7 +619,7 @@ void net_continue_processing()
 	{
 	if ( _processing_suspended == 1 )
 		{
-		bro_logger->Log("processing continued");
+		reporter->Info("processing continued");
 		loop_over_list(pkt_srcs, i)
 			pkt_srcs[i]->ContinueAfterSuspend();
 		}

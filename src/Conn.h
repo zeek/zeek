@@ -1,5 +1,3 @@
-// $Id: Conn.h 6916 2009-09-24 20:48:36Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef conn_h
@@ -23,7 +21,6 @@ class RuleHdrTest;
 class Specific_RE_Matcher;
 class TransportLayerAnalyzer;
 class RuleEndpointState;
-class Rewriter;
 
 typedef enum {
 	NUL_IN_LINE,
@@ -135,17 +132,6 @@ public:
 
 	TransportProto ConnTransport() const { return proto; }
 
-	// If we are rewriting the trace of the connection, then we do
-	// not record original packets. We are rewriting if at least one,
-	// then the analyzer is rewriting.
-	int RewritingTrace();
-
-	// If we are rewriting trace, we need a handle to the rewriter.
-	// Returns 0 if not rewriting.  (Note that if multiple analyzers
-	// want to rewrite, only one of them is returned.  It's undefined
-	// which one.)
-	Rewriter* TraceRewriter() const;
-
 	// True if we should record subsequent packets (either headers or
 	// in their entirety, depending on record_contents).  We still
 	// record subsequent SYN/FIN/RST, regardless of how this is set.
@@ -205,15 +191,13 @@ public:
 	// Raises a software_unparsed_version_found event.
 	int UnparsedVersionFoundEvent(const uint32* addr,
 			const char* full_descr, int len, Analyzer* analyzer);
-	
+
 	void Event(EventHandlerPtr f, Analyzer* analyzer, const char* name = 0);
 	void Event(EventHandlerPtr f, Analyzer* analyzer, Val* v1, Val* v2 = 0);
 	void ConnectionEvent(EventHandlerPtr f, Analyzer* analyzer,
 				val_list* vl);
 
-	void Weird(const char* name);
-	void Weird(const char* name, const char* addl);
-	void Weird(const char* name, int addl_len, const char* addl);
+	void Weird(const char* name, const char* addl = "");
 	bool DidWeird() const	{ return weird != 0; }
 
 	// Cancel all associated timers.
@@ -313,7 +297,10 @@ public:
 			::operator delete(((char*) ptr) - 4);
 		}
 
+	void SetUID(uint64 arg_uid)	 { uid = arg_uid; }
+
 protected:
+
 	Connection()	{ persistent = 0; }
 
 	// Add the given timer to expire at time t.  If do_expire
@@ -345,8 +332,6 @@ protected:
 	double start_time, last_time;
 	double inactivity_timeout;
 	RecordVal* conn_val;
-	RecordVal* orig_endp;
-	RecordVal* resp_endp;
 	LoginConn* login_conn;	// either nil, or this
 	int suppress_event;	// suppress certain events to once per conn.
 
@@ -370,6 +355,8 @@ protected:
 
 	TransportLayerAnalyzer* root_analyzer;
 	PIA* primary_PIA;
+
+	uint64 uid;	// Globally unique connection ID.
 };
 
 class ConnectionTimer : public Timer {

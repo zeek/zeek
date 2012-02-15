@@ -1,5 +1,3 @@
-# $Id:$
-
 # DCE/RPC protocol data unit.
 
 type DCE_RPC_PDU = record {
@@ -88,7 +86,7 @@ flow DCE_RPC_Flow(is_orig: bool) {
 					bind_elems.p_cont_elem[i].abstract_syntax.if_uuid};
 
 				// Queue the event
-				bro_event_dce_rpc_bind(
+				BifEvent::generate_dce_rpc_bind(
 					${connection.bro_analyzer},
 					${connection.bro_analyzer}->Conn(),
 					bytestring_to_val(${if_uuid}));
@@ -106,7 +104,7 @@ flow DCE_RPC_Flow(is_orig: bool) {
 		%{
 		if ( dce_rpc_request )
 			{
-			bro_event_dce_rpc_request(
+			BifEvent::generate_dce_rpc_request(
 				${connection.bro_analyzer},
 				${connection.bro_analyzer}->Conn(),
 				${req.opnum},
@@ -124,7 +122,7 @@ flow DCE_RPC_Flow(is_orig: bool) {
 		%{
 		if ( dce_rpc_response )
 			{
-			bro_event_dce_rpc_response(
+			BifEvent::generate_dce_rpc_response(
 				${connection.bro_analyzer},
 				${connection.bro_analyzer}->Conn(),
 				${connection}->get_cont_id_opnum_map(${resp.p_cont_id}),

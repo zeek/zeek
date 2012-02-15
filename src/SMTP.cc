@@ -1,5 +1,3 @@
-// $Id: SMTP.cc 6782 2009-06-28 02:19:03Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -10,7 +8,7 @@
 #include "SMTP.h"
 #include "Event.h"
 #include "ContentLine.h"
-#include "TCP_Rewriter.h"
+#include "Reporter.h"
 
 #undef SMTP_CMD_DEF
 #define SMTP_CMD_DEF(cmd)	#cmd,
@@ -866,7 +864,7 @@ void SMTP_Analyzer::BeginData()
 	skip_data = 0; // reset the flag at the beginning of the mail
 	if ( mail != 0 )
 		{
-		warn("nested mail transaction");
+		reporter->Warning("nested mail transaction");
 		mail->Done();
 		delete mail;
 		}
@@ -877,7 +875,7 @@ void SMTP_Analyzer::BeginData()
 void SMTP_Analyzer::EndData()
 	{
 	if ( ! mail )
-		warn("Unmatched end of data");
+		reporter->Warning("Unmatched end of data");
 	else
 		{
 		mail->Done();
@@ -885,5 +883,3 @@ void SMTP_Analyzer::EndData()
 		mail = 0;
 		}
 	}
-
-#include "smtp-rw.bif.func_def"

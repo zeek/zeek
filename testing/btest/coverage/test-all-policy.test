@@ -1,0 +1,12 @@
+# Makes sure that all policy/* scripts are loaded in
+# scripts/test-all-policy.bro and that all scripts loaded there actually exist.
+#
+# This test will fail if new bro scripts are added to the scripts/policy/
+# directory.  Correcting that just involves updating scripts/test-all-policy.bro
+# to @load the new bro scripts.
+
+@TEST-EXEC: test -e $DIST/scripts/test-all-policy.bro
+@TEST-EXEC: test -d $DIST/scripts
+@TEST-EXEC: ( cd $DIST/scripts/policy && find . -name '*.bro' ) | sort >"all scripts found"
+@TEST-EXEC: cat $DIST/scripts/test-all-policy.bro | grep '@load' | sed 'sm^\( *# *\)\{0,\}@load *m./mg' | sort >test-all-policy.bro
+@TEST-EXEC: diff -u "all scripts found" test-all-policy.bro 1>&2

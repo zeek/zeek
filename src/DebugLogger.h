@@ -1,5 +1,3 @@
-// $Id: DebugLogger.h 4771 2007-08-11 05:50:24Z vern $
-//
 // A logger for (selective) debugging output. Only compiled in if DEBUG is
 // defined.
 
@@ -20,11 +18,12 @@ enum DebugStream {
 	DBG_STATE,	// StateAccess logging
 	DBG_CHUNKEDIO,	// ChunkedIO logging
 	DBG_COMPRESSOR,	// Connection compressor
-	DBG_STRING,     // String code
-	DBG_NOTIFIERS,   // Notifiers (see StateAccess.h)
+	DBG_STRING,	// String code
+	DBG_NOTIFIERS,	// Notifiers (see StateAccess.h)
 	DBG_MAINLOOP,	// Main IOSource loop
 	DBG_DPD,	// Dynamic application detection framework
-	DBG_TM,	// Time-machine packet input via Brocolli
+	DBG_TM,		// Time-machine packet input via Brocolli
+	DBG_LOGGING,	// Logging streams
 
 	NUM_DBGS // Has to be last
 };

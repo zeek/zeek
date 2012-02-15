@@ -1,0 +1,4 @@
+*.git
+diag.log
+bro-testing*
+.proxy

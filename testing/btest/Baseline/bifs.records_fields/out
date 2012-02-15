@@ -1,0 +1,8 @@
+[a=42, b=Foo, c=<uninitialized>, d=Bar]
+{
+[b] = [type_name=record, log=F, value=Foo, default_val=Foo],
+[d] = [type_name=record, log=T, value=Bar, default_val=<uninitialized>],
+[c] = [type_name=record, log=F, value=<uninitialized>, default_val=<uninitialized>],
+[a] = [type_name=record, log=F, value=42, default_val=<uninitialized>]
+}
+F

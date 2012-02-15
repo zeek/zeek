@@ -1,5 +1,3 @@
-// $Id: DebugLogger.cc 4771 2007-08-11 05:50:24Z vern $
-
 #ifdef DEBUG
 
 #include <stdlib.h>
@@ -17,6 +15,7 @@ DebugLogger::Stream DebugLogger::streams[NUM_DBGS] = {
 	{ "compressor", 0, false }, {"string", 0, false },
 	{ "notifiers", 0, false },  { "main-loop", 0, false },
 	{ "dpd", 0, false }, { "tm", 0, false },
+	{ "logging", 0, false }
 };
 
 DebugLogger::DebugLogger(const char* filename)
@@ -24,12 +23,18 @@ DebugLogger::DebugLogger(const char* filename)
 	if ( filename )
 		{
 		filename = log_file_name(filename);
-		
+
 		file = fopen(filename, "w");
 		if ( ! file )
 			{
-			fprintf(stderr, "Can't open '%s' for debugging output.", filename);
-			exit(1);
+			// The reporter may not be initialized here yet.
+			if ( reporter )
+				reporter->FatalError("can't open '%s' for debugging output", filename);
+			else
+				{
+				fprintf(stderr, "can't open '%s' for debugging output\n", filename);
+				exit(1);
+				}
 			}
 
 		setvbuf(file, NULL, _IOLBF, 0);
@@ -67,7 +72,7 @@ void DebugLogger::EnableStreams(const char* s)
 			if ( strcasecmp("verbose", tok) == 0 )
 				verbose = true;
 			else
-				internal_error("unknown debug stream %s\n", tok);
+				reporter->FatalError("unknown debug stream %s\n", tok);
 			}
 
 		tok = strtok(0, ",");

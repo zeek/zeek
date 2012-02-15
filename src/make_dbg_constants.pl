@@ -1,5 +1,3 @@
-# $Id: make_dbg_constants.pl 80 2004-07-14 20:15:50Z jason $
-#
 # Build the DebugCmdConstants.h and DebugCmdInfoConstants.h files from the
 # DebugCmdInfoConstants.in file.
 #

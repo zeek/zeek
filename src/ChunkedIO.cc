@@ -1,5 +1,3 @@
-// $Id: ChunkedIO.cc 6888 2009-08-20 18:23:11Z vern $
-
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -8,6 +6,8 @@
 #include <netinet/in.h>
 #include <assert.h>
 #include <openssl/ssl.h>
+
+#include <algorithm>
 
 #include "config.h"
 #include "ChunkedIO.h"
@@ -140,7 +140,7 @@ bool ChunkedIOFd::Write(Chunk* chunk)
 	{
 #ifdef DEBUG
 	DBG_LOG(DBG_CHUNKEDIO, "write of size %d [%s]",
-		chunk->len, fmt_bytes(chunk->data, min(20, chunk->len)));
+		chunk->len, fmt_bytes(chunk->data, min((uint32)20, chunk->len)));
 #endif
 
 	// Reject if our queue of pending chunks is way too large. Otherwise,
@@ -166,13 +166,13 @@ bool ChunkedIOFd::Write(Chunk* chunk)
 
 	// We have to split it up.
 	char* p = chunk->data;
-	unsigned long left = chunk->len;
+	uint32 left = chunk->len;
 
 	while ( left )
 		{
 		Chunk* part = new Chunk;
 
-		part->len = min(BUFFER_SIZE - sizeof(uint32), left);
+		part->len = min<uint32>(BUFFER_SIZE - sizeof(uint32), left);
 		part->data = new char[part->len];
 		memcpy(part->data, p, part->len);
 		left -= part->len;
@@ -193,7 +193,7 @@ bool ChunkedIOFd::WriteChunk(Chunk* chunk, bool partial)
 	assert(chunk->len <= BUFFER_SIZE - sizeof(uint32) );
 
 	if ( chunk->len == 0 )
-		internal_error( "attempt to write 0 bytes chunk");
+		InternalError("attempt to write 0 bytes chunk");
 
 	if ( partial )
 		chunk->len |= FLAG_PARTIAL;
@@ -283,7 +283,7 @@ bool ChunkedIOFd::FlushWriteBuffer()
 			}
 
 		if ( written == 0 )
-			internal_error("written==0");
+			InternalError("written==0");
 
 		// Short write.
 		write_pos += written;
@@ -427,7 +427,7 @@ bool ChunkedIOFd::Read(Chunk** chunk, bool may_block)
 				(*chunk)->len & ~FLAG_PARTIAL,
 				(*chunk)->len & FLAG_PARTIAL ? "(P) " : "",
 				fmt_bytes((*chunk)->data,
-						min(20, (*chunk)->len)));
+						min((uint32)20, (*chunk)->len)));
 #endif
 
 	if ( ! ((*chunk)->len & FLAG_PARTIAL) )
@@ -904,7 +904,7 @@ bool ChunkedIOSSL::WriteData(char* p, uint32 len, bool* error)
 			return false;
 	}
 
-	internal_error("can't be reached");
+	InternalError("can't be reached");
 	return false;
 	}
 
@@ -1024,7 +1024,7 @@ bool ChunkedIOSSL::ReadData(char* p, uint32 len, bool* error)
 		}
 
 	// Can't be reached.
-	internal_error("can't be reached");
+	InternalError("can't be reached");
 	return false;
 	}
 
@@ -1169,8 +1169,6 @@ void ChunkedIOSSL::Stats(char* buffer, int length)
 	int i = safe_snprintf(buffer, length, "pending=%ld ", stats.pending);
 	ChunkedIO::Stats(buffer + i, length - i);
 	}
-
-#ifdef HAVE_LIBZ
 
 bool CompressedChunkedIO::Init()
 	{
@@ -1348,5 +1346,3 @@ void CompressedChunkedIO::Stats(char* buffer, int length)
 	io->Stats(buffer + i, length - i);
 	buffer[length-1] = '\0';
 	}
-
-#endif	/* HAVE_LIBZ */

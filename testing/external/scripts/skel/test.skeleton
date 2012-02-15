@@ -1,0 +1,6 @@
+# @TEST-EXEC: zcat $TRACES/trace.gz | bro -r - %INPUT
+# @TEST-EXEC: $SCRIPTS/diff-all '*.log'
+
+@load testing-setup
+@load test-all-policy
+

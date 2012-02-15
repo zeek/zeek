@@ -1,5 +1,3 @@
-// $Id: FTP.h 6782 2009-06-28 02:19:03Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef ftp_h
@@ -14,11 +12,6 @@ public:
 
 	virtual void Done();
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
-	virtual int RewritingTrace()
-		{
-		return rewriting_ftp_trace ||
-			TCP_ApplicationAnalyzer::RewritingTrace();
-		}
 
 	static Analyzer* InstantiateAnalyzer(Connection* conn)
 		{

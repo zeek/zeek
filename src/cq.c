@@ -2,11 +2,6 @@
  * See the file "COPYING" in the main distribution directory for copyright.
  */
 
-#ifndef lint
-static const char rcsid[] =
-    "@(#) $Id: cq.c 6219 2008-10-01 05:39:07Z vern $ (LBL)";
-#endif
-
 #include <sys/types.h>
 
 #include <errno.h>
@@ -570,8 +565,8 @@ cq_debugbucket(register struct cq_handle *hp,
 			bp2 = hp->buckets + PRI2BUCKET(hp, bp->pri);
 			if (bp2 != buckets) {
 				fprintf(stderr,
-				    "%f in wrong bucket! (off by %d)\n",
-				    bp->pri, bp2 - buckets);
+				    "%f in wrong bucket! (off by %ld)\n",
+				    bp->pri, (long)(bp2 - buckets));
 				cq_dump(hp);
 				abort();
 			}

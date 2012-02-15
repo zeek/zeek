@@ -54,7 +54,7 @@ DebuggerState::~DebuggerState()
 bool StmtLocMapping::StartsAfter(const StmtLocMapping* m2)
 	{
 	if ( ! m2  )
-		internal_error("Assertion failed: %s", "m2 != 0");
+		reporter->InternalError("Assertion failed: m2 != 0");
 
 	return loc.first_line > m2->loc.first_line ||
 		(loc.first_line == m2->loc.first_line &&
@@ -343,7 +343,7 @@ vector<ParseLocationRec> parse_location_string(const string& s)
 				plr.type = plrUnknown;
 
 			FILE* throwaway = search_for_file(filename.c_str(), "bro",
-								&full_filename);
+								&full_filename, true, 0);
 			if ( ! throwaway )
 				{
 				debug_msg("No such policy file: %s.\n", filename.c_str());
@@ -362,7 +362,7 @@ vector<ParseLocationRec> parse_location_string(const string& s)
 		{
 		Filemap* map = g_dbgfilemaps.Lookup(loc_filename);
 		if ( ! map )
-			internal_error("Policy file %s should have been loaded\n",
+			reporter->InternalError("Policy file %s should have been loaded\n",
 					loc_filename);
 
 		if ( plr.line > how_many_lines_in(loc_filename) )
@@ -603,7 +603,7 @@ int dbg_execute_command(const char* cmd)
 #endif
 
 	if ( int(cmd_code) >= num_debug_cmds() )
-		internal_error("Assertion failed: %s", "int(cmd_code) < num_debug_cmds()");
+		reporter->InternalError("Assertion failed: int(cmd_code) < num_debug_cmds()");
 
 	// Dispatch to the op-specific handler (with args).
 	int retcode = dbg_dispatch_cmd(cmd_code, arguments);
@@ -612,7 +612,7 @@ int dbg_execute_command(const char* cmd)
 
 	const DebugCmdInfo* info = get_debug_cmd_info(cmd_code);
 	if ( ! info  )
-		internal_error("Assertion failed: %s", "info");
+		reporter->InternalError("Assertion failed: info");
 
 	if ( ! info )
 		return -2;	// ### yuck, why -2?
@@ -766,7 +766,7 @@ int dbg_handle_debug_input()
 
 	const Stmt* stmt = curr_frame->GetNextStmt();
 	if ( ! stmt )
-		internal_error("Assertion failed: %s", "stmt != 0");
+		reporter->InternalError("Assertion failed: stmt != 0");
 
 	const Location loc = *stmt->GetLocationInfo();
 
@@ -797,7 +797,7 @@ int dbg_handle_debug_input()
 		input_line = (char*) safe_malloc(1024);
 		input_line[1023] = 0;
 		// ### Maybe it's not always stdin.
-		fgets(input_line, 1023, stdin);
+		input_line = fgets(input_line, 1023, stdin);
 #endif
 
 		// ### Maybe not stdin; maybe do better cleanup.
@@ -872,7 +872,7 @@ bool pre_execute_stmt(Stmt* stmt, Frame* f)
 		p = g_debugger_state.breakpoint_map.equal_range(stmt);
 
 		if ( p.first == p.second )
-			internal_error("Breakpoint count nonzero, but no matching breakpoints");
+			reporter->InternalError("Breakpoint count nonzero, but no matching breakpoints");
 
 		for ( BPMapType::iterator i = p.first; i != p.second; ++i )
 			{
@@ -943,11 +943,11 @@ Val* dbg_eval_expr(const char* expr)
 		(g_frame_stack.size() - 1) - g_debugger_state.curr_frame_idx;
 
 	if ( ! (frame_idx >= 0 && (unsigned) frame_idx < g_frame_stack.size())  )
-		internal_error("Assertion failed: %s", "frame_idx >= 0 && (unsigned) frame_idx < g_frame_stack.size()");
+		reporter->InternalError("Assertion failed: frame_idx >= 0 && (unsigned) frame_idx < g_frame_stack.size()");
 
 	Frame* frame = g_frame_stack[frame_idx];
 	if ( ! (frame)  )
-		internal_error("Assertion failed: %s", "frame");
+		reporter->InternalError("Assertion failed: frame");
 
 	const BroFunc* func = frame->GetFunction();
 	if ( func )

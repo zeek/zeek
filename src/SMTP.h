@@ -1,5 +1,3 @@
-// $Id: SMTP.h 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef smtp_h
@@ -46,8 +44,6 @@ public:
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
 	virtual void ConnectionFinished(int half_finished);
 	virtual void Undelivered(int seq, int len, bool orig);
-	virtual int RewritingTrace()
-		{ return rewriting_smtp_trace || TCP_ApplicationAnalyzer::RewritingTrace(); }
 
 	void SkipData()	{ skip_data = 1; }	// skip delivery of data lines
 

@@ -1,5 +1,3 @@
-// $Id: SMB.h 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef smb_h
@@ -205,8 +203,6 @@ public:
 		return SMB_Session::any_smb_event() ||
 			DCE_RPC_Session::any_dce_rpc_event();
 		}
-
-	int RewritingTrace()	{ return rewriting_smb_trace; }
 
 protected:
 	SMB_Session* smb_session;

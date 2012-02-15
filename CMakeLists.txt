@@ -1,58 +1,36 @@
-project(Bro)
-
-########################################################################
-## CMake Configuration
+project(Bro C CXX)
 cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
-
-# Prohibit in-source builds.
-if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
-    message(FATAL_ERROR "In-source builds are not allowed. Please use "
-                        "./configure to choose a build directory and "
-                        "initialize the build configuration.")
-endif ()
-
-set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-
-if ("${PROJECT_SOURCE_DIR}" STREQUAL "${CMAKE_SOURCE_DIR}")
-    # uninstall target
-    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in"
-                   "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
-                    @ONLY)
-
-    add_custom_target(uninstall COMMAND
-        ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
-endif ()
+include(cmake/CommonCMakeConfig.cmake)
 
 ########################################################################
 ## Project/Build Configuration
 
 set(BRO_ROOT_DIR ${CMAKE_INSTALL_PREFIX})
-if (NOT POLICYDIR)
-    # set the default policy installation path (user did not specify one)
-    set(POLICYDIR ${BRO_ROOT_DIR}/share/bro)
+if (NOT BRO_SCRIPT_INSTALL_PATH)
+    # set the default Bro script installation path (user did not specify one)
+    set(BRO_SCRIPT_INSTALL_PATH ${BRO_ROOT_DIR}/share/bro)
 endif ()
+set(BRO_SCRIPT_SOURCE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/scripts)
 
-# sanitize the policy install directory into an absolute path
+# sanitize the Bro script install directory into an absolute path
 # (CMake is confused by ~ as a representation of home directory)
-get_filename_component(POLICYDIR ${POLICYDIR} ABSOLUTE)
+get_filename_component(BRO_SCRIPT_INSTALL_PATH ${BRO_SCRIPT_INSTALL_PATH}
+    ABSOLUTE)
 
 configure_file(bro-path-dev.in ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev)
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev.sh
+     "export BROPATH=`${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev`\n"
+     "export PATH=\"${CMAKE_CURRENT_BINARY_DIR}/src\":$PATH\n")
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev.csh
+     "setenv BROPATH `${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev`\n"
+     "setenv PATH \"${CMAKE_CURRENT_BINARY_DIR}/src\":$PATH\n")
 
 file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" VERSION LIMIT_COUNT 1)
-
-set(EXTRA_COMPILE_FLAGS "-Wall -Wno-unused")
-
-if (ENABLE_DEBUG)
-    set(CMAKE_BUILD_TYPE Debug)
-    set(EXTRA_COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS} -DDEBUG")
-else ()
-    set(CMAKE_BUILD_TYPE RelWithDebInfo)
-endif ()
-
-# Compiler flags may already exist in CMake cache (e.g. when specifying
-# CFLAGS environment variable before running cmake for the the first time)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EXTRA_COMPILE_FLAGS}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EXTRA_COMPILE_FLAGS}")
+string(REPLACE "." " " version_numbers ${VERSION})
+separate_arguments(version_numbers)
+list(GET version_numbers 0 VERSION_MAJOR)
+list(GET version_numbers 1 VERSION_MINOR)
+set(VERSION_MAJ_MIN "${VERSION_MAJOR}.${VERSION_MINOR}")
 
 ########################################################################
 ## Dependency Configuration
@@ -75,8 +53,11 @@ FindRequiredPackage(BISON)
 FindRequiredPackage(PCAP)
 FindRequiredPackage(OpenSSL)
 FindRequiredPackage(BIND)
+FindRequiredPackage(LibMagic)
+FindRequiredPackage(ZLIB)
 
-if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/aux/binpac/CMakeLists.txt)
+if (NOT BinPAC_ROOT_DIR AND
+    EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/aux/binpac/CMakeLists.txt)
     add_subdirectory(aux/binpac)
 endif ()
 FindRequiredPackage(BinPAC)
@@ -93,25 +74,11 @@ include_directories(BEFORE
                     ${OpenSSL_INCLUDE_DIR}
                     ${BIND_INCLUDE_DIR}
                     ${BinPAC_INCLUDE_DIR}
+                    ${LibMagic_INCLUDE_DIR}
+                    ${ZLIB_INCLUDE_DIR}
 )
 
 # Optional Dependencies
-
-set(HAVE_LIBMAGIC false)
-find_package(LibMagic)
-if (LIBMAGIC_FOUND)
-    set(HAVE_LIBMAGIC true)
-    include_directories(BEFORE ${LibMagic_INCLUDE_DIR})
-    list(APPEND OPTLIBS ${LibMagic_LIBRARY})
-endif ()
-
-set(HAVE_LIBZ false)
-find_package(ZLIB)
-if (ZLIB_FOUND)
-    set(HAVE_LIBZ true)
-    include_directories(BEFORE ${ZLIB_INCLUDE_DIR})
-    list(APPEND OPTLIBS ${ZLIB_LIBRARY})
-endif ()
 
 set(USE_GEOIP false)
 find_package(LibGeoIP)
@@ -130,6 +97,16 @@ if (ENABLE_PERFTOOLS)
         list(APPEND OPTLIBS ${GooglePerftools_LIBRARIES})
     endif ()
 endif ()
+
+set(brodeps
+    ${BinPAC_LIBRARY}
+    ${PCAP_LIBRARY}
+    ${OpenSSL_LIBRARIES}
+    ${BIND_LIBRARY}
+    ${LibMagic_LIBRARY}
+    ${ZLIB_LIBRARY}
+    ${OPTLIBS}
+)
 
 ########################################################################
 ## System Introspection
@@ -155,85 +132,30 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 ## Recurse on sub-directories
 
 add_subdirectory(src)
-add_subdirectory(policy)
-#add_subdirectory(scripts)
-#add_subdirectory(doc)
+add_subdirectory(scripts)
+add_subdirectory(doc)
 
-if (INSTALL_BROCCOLI)
-    if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/aux/broccoli/CMakeLists.txt)
-        add_subdirectory(aux/broccoli)
-    else ()
-        message(FATAL_ERROR "Broccoli selected for installation, "
-                            "but the source code does not exist in "
-                            "${CMAKE_CURRENT_SOURCE_DIR}/aux/broccoli")
-    endif ()
-endif ()
+include(CheckOptionalBuildSources)
 
-if (INSTALL_BROCTL)
-    if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/aux/broctl/CMakeLists.txt)
-        add_subdirectory(aux/broctl)
-    else ()
-        message(FATAL_ERROR "Broctl selected for installation, "
-                            "but the source code does not exist in "
-                            "${CMAKE_CURRENT_SOURCE_DIR}/aux/broctl")
-    endif ()
-endif ()
-
-if (INSTALL_AUX_TOOLS)
-    if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/aux/bro-aux/CMakeLists.txt)
-        add_subdirectory(aux/bro-aux)
-    else ()
-        message(FATAL_ERROR "Bro auxilliary tools selected for installation, "
-                            "but the source code does not exist in "
-                            "${CMAKE_CURRENT_SOURCE_DIR}/aux/bro-aux")
-    endif ()
-endif ()
+CheckOptionalBuildSources(aux/broctl   Broctl   INSTALL_BROCTL)
+CheckOptionalBuildSources(aux/bro-aux  Bro-Aux  INSTALL_AUX_TOOLS)
+CheckOptionalBuildSources(aux/broccoli Broccoli INSTALL_BROCCOLI)
 
 ########################################################################
 ## Packaging Setup
 
-include(SetPackageVersion)
-SetPackageVersion(${VERSION})
-include(SetPackageGenerators)
-include(SetPackageFileName)
-
-set(CPACK_PACKAGE_VENDOR "Lawrence Berkeley National Laboratory")
-set(CPACK_PACKAGE_CONTACT "info@bro-ids.org")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY
-    "The Bro Network Intrusion Detection System")
-
-# CPack may enforce file name extensions for certain package generators
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/README
-               ${CMAKE_CURRENT_BINARY_DIR}/README.txt
-                COPYONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/COPYING
-               ${CMAKE_CURRENT_BINARY_DIR}/COPYING.txt
-                COPYONLY)
-
-set(CPACK_PACKAGE_DESCRIPTION_FILE ${CMAKE_CURRENT_BINARY_DIR}/README.txt)
-set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_BINARY_DIR}/COPYING.txt)
-set(CPACK_RESOURCE_FILE_README ${CMAKE_CURRENT_BINARY_DIR}/README.txt)
-set(CPACK_RESOURCE_FILE_WELCOME ${CMAKE_CURRENT_BINARY_DIR}/README.txt)
-
-if (APPLE)
-    # /usr prefix is hardcoded for PackageMaker generator, but that
-    # directory may not be ideal for OS X (it's tricky to remove
-    # packages installed there).  So instead we rely on CMAKE_INSTALL_PREFIX
-    # and set the following variable to workaround the hardcoded /usr prefix
-    set(CPACK_PACKAGING_INSTALL_PREFIX "/")
-    set(CPACK_PACKAGE_DEFAULT_LOCATION ${CMAKE_INSTALL_PREFIX})
-elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    # A prefix of /usr would follow Filesystem Hierarchy Standard.
-    # For RPM packaging by CPack, /usr should be a default, but
-    # CMAKE_INSTALL_PREFIX also needs to be set to /usr so that
-    # the default BROPATH is set right at build time
-    set(CPACK_RPM_PACKAGE_LICENSE "BSD")
+if (INSTALL_BROCTL)
+    # CPack RPM Generator may not automatically detect this
+    set(CPACK_RPM_PACKAGE_REQUIRES "python >= 2.4.0")
 endif ()
 
-# Ignore the build directory
-set(CPACK_SOURCE_IGNORE_FILES ${CMAKE_BINARY_DIR} ".git")
-
-include(CPack)
+# If this CMake project is a sub-project of another, we will not
+# configure the generic packaging because CPack will fail in the case
+# that the parent project has already configured packaging
+if ("${PROJECT_SOURCE_DIR}" STREQUAL "${CMAKE_SOURCE_DIR}")
+    include(ConfigurePackaging)
+    ConfigurePackaging(${VERSION})
+endif ()
 
 ########################################################################
 ## Build Summary
@@ -242,21 +164,11 @@ if (CMAKE_BUILD_TYPE)
     string(TOUPPER ${CMAKE_BUILD_TYPE} BuildType)
 endif ()
 
-if (INSTALL_BROCTL)
-    if (STANDALONE)
-        set(BROCTL_INSTALL_MODE "standalone")
-    else ()
-        set(BROCTL_INSTALL_MODE "cluster")
-    endif ()
-else ()
-    set(BROCTL_INSTALL_MODE "false")
-endif ()
-
 message(
     "\n====================|  Bro Build Summary  |====================="
     "\n"
     "\nInstall prefix:    ${CMAKE_INSTALL_PREFIX}"
-    "\nPolicy dir:        ${POLICYDIR}"
+    "\nBro Script Path:   ${BRO_SCRIPT_INSTALL_PATH}"
     "\nDebug mode:        ${ENABLE_DEBUG}"
     "\n"
     "\nCC:                ${CMAKE_C_COMPILER}"
@@ -266,13 +178,13 @@ message(
     "\nCPP:               ${CMAKE_CXX_COMPILER}"
     "\n"
     "\nBroccoli:          ${INSTALL_BROCCOLI}"
-    "\nBroctl:            ${BROCTL_INSTALL_MODE}"
+    "\nBroctl:            ${INSTALL_BROCTL}"
     "\nAux. Tools:        ${INSTALL_AUX_TOOLS}"
     "\n"
     "\nGeoIP:             ${USE_GEOIP}"
-    "\nlibz:              ${HAVE_LIBZ}"
-    "\nlibmagic:          ${HAVE_LIBMAGIC}"
     "\nGoogle perftools:  ${USE_PERFTOOLS}"
     "\n"
     "\n================================================================\n"
 )
+
+include(UserChangedWarning)

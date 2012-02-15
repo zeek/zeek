@@ -1,5 +1,3 @@
-// $Id: Hash.h 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef hash_h
@@ -11,7 +9,7 @@
 
 #define UHASH_KEY_SIZE 32
 
-typedef unsigned int hash_t;
+typedef uint64 hash_t;
 
 typedef enum {
 	HASH_KEY_INT,
@@ -86,7 +84,6 @@ protected:
 	int size, hash;
 };
 
-extern int hash_cnt_all, hash_cnt_uhash;
 extern void init_hash_function();
 
 #endif

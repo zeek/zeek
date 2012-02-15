@@ -1,5 +1,3 @@
-// $Id: EventHandler.cc 5911 2008-07-03 22:59:01Z vern $
-
 #include "Event.h"
 #include "EventHandler.h"
 #include "Func.h"
@@ -13,6 +11,7 @@ EventHandler::EventHandler(const char* arg_name)
 	local = 0;
 	type = 0;
 	group = 0;
+	error_handler = false;
 	enabled = true;
 	}
 
@@ -21,6 +20,11 @@ EventHandler::~EventHandler()
 	Unref(local);
 	delete [] name;
 	delete [] group;
+	}
+
+EventHandler::operator bool() const
+	{
+	return enabled && ((local && local->HasBodies()) || receivers.length());
 	}
 
 FuncType* EventHandler::FType()
@@ -64,6 +68,7 @@ void EventHandler::Call(val_list* vl, bool no_remote)
 		}
 
 	if ( local )
+		// No try/catch here; we pass exceptions upstream.
 		Unref(local->Call(vl));
 	else
 		{

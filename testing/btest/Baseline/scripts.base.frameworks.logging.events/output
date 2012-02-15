@@ -1,0 +1,2 @@
+[t=1324314314.738385, id=[orig_h=1.2.3.4, orig_p=1234/tcp, resp_h=2.3.4.5, resp_p=80/tcp], status=success, country=unknown]
+[t=1324314314.738385, id=[orig_h=1.2.3.4, orig_p=1234/tcp, resp_h=2.3.4.5, resp_p=80/tcp], status=failure, country=US]

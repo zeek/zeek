@@ -1,5 +1,3 @@
-// $Id: Net.h 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef net_h
@@ -15,9 +13,8 @@
 
 extern void net_init(name_list& interfaces, name_list& readfiles,
 		name_list& netflows, name_list& flowfiles,
-		const char* writefile, const char* transformed_writefile,
-		const char* filter, const char* secondary_filter,
-		int do_watchdog);
+		const char* writefile, const char* filter,
+		const char* secondary_filter, int do_watchdog);
 extern void net_run();
 extern void net_get_final_stats();
 extern void net_finish(int drain_events);
@@ -59,9 +56,6 @@ extern int have_pending_timers;
 // is the speedup (1 = real-time, 0.5 = half real-time, etc.).
 extern double pseudo_realtime;
 
-// Pcap filter supplied by the user on the command line (if any).
-extern char* user_pcap_filter;
-
 // When we started processing the current packet and corresponding event
 // queue.
 extern double processing_start_time;
@@ -79,6 +73,9 @@ extern bool terminating;
 // True if the remote serializer is to be activated.
 extern bool using_communication;
 
+// Snaplen passed to libpcap.
+extern int snaplen;
+
 extern const struct pcap_pkthdr* current_hdr;
 extern const u_char* current_pkt;
 extern int current_dispatched;
@@ -91,8 +88,28 @@ declare(PList,PktSrc);
 extern PList(PktSrc) pkt_srcs;
 
 extern PktDumper* pkt_dumper;	// where to save packets
-extern PktDumper* pkt_transformed_dumper;
 
 extern char* writefile;
+
+// Script file we have already scanned (or are in the process of scanning).
+// They are identified by inode number.
+struct ScannedFile {
+	ino_t inode;
+	int include_level;
+	string name;
+	string subpath;		// Path in BROPATH's policy/ containing the file.
+	bool skipped;		// This ScannedFile was @unload'd.
+	bool prefixes_checked;	// If loading prefixes for this file has been tried.
+
+	ScannedFile(ino_t arg_inode, int arg_include_level, string arg_name,
+		    string arg_subpath = "", bool arg_skipped = false,
+		    bool arg_prefixes_checked = false)
+			: inode(arg_inode), include_level(arg_include_level),
+			name(arg_name), subpath(arg_subpath), skipped(arg_skipped),
+			prefixes_checked(arg_prefixes_checked)
+		{ }
+};
+
+extern std::list<ScannedFile> files_scanned;
 
 #endif

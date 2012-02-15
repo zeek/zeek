@@ -1,5 +1,3 @@
-// $Id: BroString.cc 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -7,8 +5,11 @@
 #include <algorithm>
 #include <ctype.h>
 
+#include <algorithm>
+
 #include "BroString.h"
 #include "Var.h"
+#include "Reporter.h"
 
 #ifdef DEBUG
 #define DEBUG_STR(msg) DBG_LOG(DBG_STRING, msg)
@@ -173,9 +174,9 @@ const char* BroString::CheckString() const
 		// Either an embedded NUL, or no final NUL.
 		char* exp_s = Render();
 		if ( b[n-1] != '\0' )
-			run_time("string without NUL terminator: \"%s\"", exp_s);
+			reporter->Error("string without NUL terminator: \"%s\"", exp_s);
 		else
-			run_time("string with embedded NUL: \"%s\"", exp_s);
+			reporter->Error("string with embedded NUL: \"%s\"", exp_s);
 
 		delete [] exp_s;
 		return "<string-with-NUL>";

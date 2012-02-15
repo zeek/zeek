@@ -1,5 +1,3 @@
-// $Id: SerialObj.cc 7075 2010-09-13 02:39:38Z vern $
-
 #include "SerialObj.h"
 #include "Serializer.h"
 
@@ -21,7 +19,7 @@ SerialObj* SerialObj::Instantiate(SerialType type)
 		return o;
 		}
 
-	run_time(fmt("Unknown object type 0x%08x", type));
+	reporter->Error("Unknown object type 0x%08x", type);
 	return 0;
 	}
 
@@ -31,7 +29,7 @@ const char* SerialObj::ClassName(SerialType type)
 	if ( f != names->end() )
 		return f->second;
 
-	run_time(fmt("Unknown object type 0x%08x", type));
+	reporter->Error("Unknown object type 0x%08x", type);
 	return "<no-class-name>";
 	}
 
@@ -47,7 +45,7 @@ void SerialObj::Register(SerialType type, FactoryFunc f, const char* name)
 
 	FactoryMap::iterator i = factories->find(type);
 	if ( i != factories->end() )
-		internal_error("SerialType 0x%08x registered twice", type);
+		reporter->InternalError("SerialType 0x%08x registered twice", type);
 
 	(*factories)[type] = f;
 	(*names)[type] = name;
@@ -77,7 +75,7 @@ bool SerialObj::Serialize(SerialInfo* info) const
 		const TransientID* tid = GetTID();
 
 		if ( ! tid )
-			internal_error("no tid - missing DECLARE_SERIAL?");
+			reporter->InternalError("no tid - missing DECLARE_SERIAL?");
 
 		if ( info->cache )
 			pid = info->s->Cache()->Lookup(*tid);
@@ -211,7 +209,7 @@ SerialObj* SerialObj::Unserialize(UnserialInfo* info, SerialType type)
 
 	const TransientID* tid = obj->GetTID();
 	if ( ! tid )
-		internal_error("no tid - missing DECLARE_SERIAL?");
+		reporter->InternalError("no tid - missing DECLARE_SERIAL?");
 
 	if ( info->cache )
 		info->s->Cache()->Register(obj, pid, info->new_cache_strategy);

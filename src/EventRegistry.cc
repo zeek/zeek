@@ -1,5 +1,3 @@
-// $Id: EventRegistry.cc 6829 2009-07-09 09:12:59Z vern $
-
 #include "EventRegistry.h"
 #include "RE.h"
 #include "RemoteSerializer.h"
@@ -91,9 +89,18 @@ void EventRegistry::SetGroup(const char* name, const char* group)
 	{
 	EventHandler* eh = Lookup(name);
 	if ( ! eh )
-		internal_error("unknown event handler in SetGroup()");
+		reporter->InternalError("unknown event handler in SetGroup()");
 
 	eh->SetGroup(group);
+	}
+
+void EventRegistry::SetErrorHandler(const char* name)
+	{
+	EventHandler* eh = Lookup(name);
+	if ( ! eh )
+		reporter->InternalError("unknown event handler in SetErrorHandler()");
+
+	eh->SetErrorHandler();
 	}
 
 void EventRegistry::EnableGroup(const char* group, bool enable)

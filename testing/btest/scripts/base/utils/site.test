@@ -1,0 +1,19 @@
+# @TEST-EXEC: bro %INPUT > output
+# @TEST-EXEC: btest-diff output
+
+# This is loaded by default.
+#@load base/utils/site
+
+global a = { "site-admin@example.com", "other-site-admin@example.com" };
+global b = { "net-admin@example.com" };
+
+redef Site::local_admins += {
+    [141.142.0.0/16] = a,
+    [141.142.100.0/24] = b,
+};
+
+event bro_init()
+    {
+    print Site::get_emails(141.142.1.1);
+    print Site::get_emails(141.142.100.100);
+    }

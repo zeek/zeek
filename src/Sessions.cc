@@ -1,5 +1,3 @@
-// $Id: Sessions.cc 7075 2010-09-13 02:39:38Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 
@@ -15,7 +13,7 @@
 #include "Timer.h"
 #include "NetVar.h"
 #include "Sessions.h"
-#include "Active.h"
+#include "Reporter.h"
 #include "OSFinger.h"
 
 #include "ICMP.h"
@@ -43,27 +41,6 @@ enum NetBIOS_Service {
 };
 
 NetSessions* sessions;
-
-
-class NetworkTimer : public Timer {
-public:
-	NetworkTimer(NetSessions* arg_sess, double arg_t)
-		: Timer(arg_t, TIMER_NETWORK)
-		{ sess = arg_sess; }
-
-	void Dispatch(double t, int is_expire);
-
-protected:
-	NetSessions* sess;
-};
-
-void NetworkTimer::Dispatch(double t, int is_expire)
-	{
-	if ( is_expire )
-		return;
-
-	sess->HeartBeat(t);
-	}
 
 void TimerMgrExpireTimer::Dispatch(double t, int is_expire)
 	{
@@ -105,9 +82,6 @@ NetSessions::NetSessions()
 	tcp_conns.SetDeleteFunc(bro_obj_delete_func);
 	udp_conns.SetDeleteFunc(bro_obj_delete_func);
 	fragments.SetDeleteFunc(bro_obj_delete_func);
-
-	if ( (reading_live || pseudo_realtime) && net_stats_update )
-		timer_mgr->Add(new NetworkTimer(this, 1.0));
 
 	if ( stp_correlate_pair )
 		stp_manager = new SteppingStoneManager();
@@ -201,7 +175,7 @@ void NetSessions::DispatchPacket(double t, const struct pcap_pkthdr* hdr,
 		//
 		// Should we discourage the use of encap_hdr_size for UDP
 		// tunnneling?  It is probably better handled by enabling
-		// parse_udp_tunnels instead of specifying a fixed
+		// BifConst::parse_udp_tunnels instead of specifying a fixed
 		// encap_hdr_size.
 		if ( udp_tunnel_port > 0 )
 			{
@@ -221,14 +195,14 @@ void NetSessions::DispatchPacket(double t, const struct pcap_pkthdr* hdr,
 			}
 
 		else
-			// Blanket encapsulation (e.g., for VLAN).
+			// Blanket encapsulation
 			hdr_size += encap_hdr_size;
 		}
 
 	// Check IP packets encapsulated through UDP tunnels.
 	// Specifying a udp_tunnel_port is optional but recommended (to avoid
 	// the cost of checking every UDP packet).
-	else if ( parse_udp_tunnels && ip_data && ip_hdr->ip_p == IPPROTO_UDP )
+	else if ( BifConst::parse_udp_tunnels && ip_data && ip_hdr->ip_p == IPPROTO_UDP )
 		{
 		const struct udphdr* udp_hdr =
 			reinterpret_cast<const struct udphdr*>(ip_data);
@@ -360,7 +334,14 @@ void NetSessions::NextPacketSecondary(double /* t */, const struct pcap_pkthdr* 
 			args->append(cmd_val);
 			args->append(BuildHeader(ip));
 			// ### Need to queue event here.
-			sp->Event()->Event()->Call(args);
+			try
+				{
+				sp->Event()->Event()->Call(args);
+				}
+
+			catch ( InterpreterException& e )
+				{ /* Already reported. */ }
+
 			delete args;
 			}
 		}
@@ -468,36 +449,8 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		return;
 		}
 
-	// Check for TTL/MTU problems from Active Mapping
-#ifdef ACTIVE_MAPPING
-	const NumericData* numeric = 0;
-	if ( ip4 )
-		{
-		get_map_result(ip4->ip_dst.s_addr, numeric);
-
-		if ( numeric->hops && ip4->ip_ttl < numeric->hops )
-			{
-			debug_msg("Packet destined for %s had ttl %d but there are %d hops to host.\n",
-			inet_ntoa(ip4->ip_dst), ip4->ip_ttl, numeric->hops);
-			return;
-			}
-		}
-#endif
-
 	FragReassembler* f = 0;
 	uint32 frag_field = ip_hdr->FragField();
-
-#ifdef ACTIVE_MAPPING
-	if ( ip4 && numeric && numeric->path_MTU && (frag_field & IP_DF) )
-		{
-		if ( htons(ip4->ip_len) > numeric->path_MTU )
-			{
-			debug_msg("Packet destined for %s has DF flag but its size %d is greater than pmtu of %d\n",
-			inet_ntoa(ip4->ip_dst), htons(ip4->ip_len), numeric->path_MTU);
-			return;
-			}
-		}
-#endif
 
 	if ( (frag_field & 0x3fff) != 0 )
 		{
@@ -620,7 +573,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 
 	HashKey* h = id.BuildConnKey();
 	if ( ! h )
-		internal_error("hash computation failed");
+		reporter->InternalError("hash computation failed");
 
 	Connection* conn = 0;
 
@@ -686,13 +639,6 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 				record_packet, record_content,
 			        hdr, pkt, hdr_size);
 
-	// Override content record setting according to
-	// flags set by the policy script.
-	if ( dump_original_packets_if_not_rewriting )
-		record_packet = record_content = 1;
-	if ( dump_selected_source_packets )
-		record_packet = record_content = 0;
-
 	if ( f )
 		{
 		// Above we already recorded the fragment in its entirety.
@@ -700,7 +646,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		Remove(f);	// ###
 		}
 
-	else if ( record_packet && ! conn->RewritingTrace() )
+	else if ( record_packet )
 		{
 		if ( record_content )
 			dump_this_packet = 1;	// save the whole thing
@@ -834,7 +780,7 @@ FragReassembler* NetSessions::NextFragment(double t, const IP_Hdr* ip,
 
 	HashKey* h = ch->ComputeHash(key, 1);
 	if ( ! h )
-		internal_error("hash computation failed");
+		reporter->InternalError("hash computation failed");
 
 	FragReassembler* f = fragments.Lookup(h);
 	if ( ! f )
@@ -928,7 +874,7 @@ Connection* NetSessions::FindConnection(Val* v)
 
 	HashKey* h = id.BuildConnKey();
 	if ( ! h )
-		internal_error("hash computation failed");
+		reporter->InternalError("hash computation failed");
 
 	Dictionary* d;
 
@@ -1006,21 +952,21 @@ void NetSessions::Remove(Connection* c)
 				;
 
 			else if ( ! tcp_conns.RemoveEntry(k) )
-				internal_error(fmt("connection missing"));
+				reporter->InternalError("connection missing");
 			break;
 
 		case TRANSPORT_UDP:
 			if ( ! udp_conns.RemoveEntry(k) )
-				internal_error("connection missing");
+				reporter->InternalError("connection missing");
 			break;
 
 		case TRANSPORT_ICMP:
 			if ( ! icmp_conns.RemoveEntry(k) )
-				internal_error("connection missing");
+				reporter->InternalError("connection missing");
 			break;
 
 		case TRANSPORT_UNKNOWN:
-			internal_error("unknown transport when removing connection");
+			reporter->InternalError("unknown transport when removing connection");
 			break;
 		}
 
@@ -1033,10 +979,10 @@ void NetSessions::Remove(FragReassembler* f)
 	{
 	HashKey* k = f->Key();
 	if ( ! k )
-		internal_error("fragment block not in dictionary");
+		reporter->InternalError("fragment block not in dictionary");
 
 	if ( ! fragments.RemoveEntry(k) )
-		internal_error("fragment block missing");
+		reporter->InternalError("fragment block missing");
 
 	Unref(f);
 	}
@@ -1072,7 +1018,7 @@ void NetSessions::Insert(Connection* c)
 		break;
 
 	default:
-		internal_error("unknown connection type");
+		reporter->InternalError("unknown connection type");
 	}
 
 	if ( old && old != c )
@@ -1123,39 +1069,6 @@ void NetSessions::Drain()
 	ExpireTimerMgrs();
 	}
 
-void NetSessions::HeartBeat(double t)
-	{
-	unsigned int recv = 0;
-	unsigned int drop = 0;
-	unsigned int link = 0;
-
-	loop_over_list(pkt_srcs, i)
-		{
-		PktSrc* ps = pkt_srcs[i];
-
-		struct PktSrc::Stats stat;
-		ps->Statistics(&stat);
-		recv += stat.received;
-		drop += stat.dropped;
-		link += stat.link;
-		}
-
-	val_list* vl = new val_list;
-
-	vl->append(new Val(t, TYPE_TIME));
-
-	RecordVal* ns = new RecordVal(net_stats);
-	ns->Assign(0, new Val(recv, TYPE_COUNT));
-	ns->Assign(1, new Val(drop, TYPE_COUNT));
-	ns->Assign(2, new Val(link, TYPE_COUNT));
-
-	vl->append(ns);
-
-	mgr.QueueEvent(net_stats_update, vl);
-
-	timer_mgr->Add(new NetworkTimer(this, t + heartbeat_interval));
-	}
-
 void NetSessions::GetStats(SessionStats& s) const
 	{
 	s.num_TCP_conns = tcp_conns.Length();
@@ -1184,7 +1097,7 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 	int flags = 0;
 
 	// Hmm... This is not great.
-	TransportProto tproto;
+	TransportProto tproto = TRANSPORT_UNKNOWN;
 	switch ( proto ) {
 		case IPPROTO_ICMP:
 			tproto = TRANSPORT_ICMP;
@@ -1199,7 +1112,7 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 			tproto = TRANSPORT_ICMP;
 			break;
 		default:
-			internal_error("unknown transport protocol");
+			reporter->InternalError("unknown transport protocol");
 			break;
 	};
 
@@ -1385,7 +1298,7 @@ void NetSessions::DumpPacket(const struct pcap_pkthdr* hdr,
 		struct pcap_pkthdr h = *hdr;
 		h.caplen = len;
 		if ( h.caplen > hdr->caplen )
-			internal_error("bad modified caplen");
+			reporter->InternalError("bad modified caplen");
 		pkt_dumper->Dump(&h, pkt);
 		}
 	}
@@ -1394,7 +1307,7 @@ void NetSessions::Internal(const char* msg, const struct pcap_pkthdr* hdr,
 				const u_char* pkt)
 	{
 	DumpPacket(hdr, pkt);
-	internal_error(msg);
+	reporter->InternalError("%s", msg);
 	}
 
 void NetSessions::Weird(const char* name,
@@ -1403,28 +1316,12 @@ void NetSessions::Weird(const char* name,
 	if ( hdr )
 		dump_this_packet = 1;
 
-	if ( net_weird )
-		{
-		val_list* vl = new val_list;
-		vl->append(new StringVal(name));
-		mgr.QueueEvent(net_weird, vl);
-		}
-	else
-		fprintf(stderr, "weird: %.06f %s\n", network_time, name);
+	reporter->Weird(name);
 	}
 
 void NetSessions::Weird(const char* name, const IP_Hdr* ip)
 	{
-	if ( flow_weird )
-		{
-		val_list* vl = new val_list;
-		vl->append(new StringVal(name));
-		vl->append(new AddrVal(ip->SrcAddr4()));
-		vl->append(new AddrVal(ip->DstAddr4()));
-		mgr.QueueEvent(flow_weird, vl);
-		}
-	else
-		fprintf(stderr, "weird: %.06f %s\n", network_time, name);
+	reporter->Weird(ip->SrcAddr(), ip->DstAddr(), name);
 	}
 
 unsigned int NetSessions::ConnectionMemoryUsage()

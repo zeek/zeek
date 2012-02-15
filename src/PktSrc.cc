@@ -1,5 +1,3 @@
-// $Id: PktSrc.cc 6951 2009-12-04 22:23:28Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include <errno.h>
@@ -19,13 +17,11 @@
 #include <pcap-int.h>
 #endif
 
-int snaplen = 8192;	// really want "capture entire packet"
-
-
 PktSrc::PktSrc()
 	{
 	interface = readfile = 0;
 	data = last_data = 0;
+	memset(&hdr, 0, sizeof(hdr));
 	hdr_size = 0;
 	datalink = 0;
 	netmask = 0xffffff00;
@@ -80,7 +76,9 @@ int PktSrc::ExtractNextPacket()
 		}
 
 	data = last_data = pcap_next(pd, &hdr);
-	next_timestamp = hdr.ts.tv_sec + double(hdr.ts.tv_usec) / 1e6;
+
+	if ( data )
+		next_timestamp = hdr.ts.tv_sec + double(hdr.ts.tv_usec) / 1e6;
 
 	if ( pseudo_realtime )
 		current_wallclock = current_time(true);
@@ -181,16 +179,98 @@ void PktSrc::Process()
 
 	current_timestamp = next_timestamp;
 
+	int pkt_hdr_size = hdr_size;
+
+	// Unfortunately some packets on the link might have MPLS labels
+	// while others don't. That means we need to ask the link-layer if
+	// labels are in place.
+	bool have_mpls = false;
+
+	int protocol = 0;
+
+	switch ( datalink ) {
+	case DLT_NULL:
+		{
+		protocol = (data[3] << 24) + (data[2] << 16) + (data[1] << 8) + data[0];
+
+		if ( protocol != AF_INET && protocol != AF_INET6 )
+			{
+			sessions->Weird("non_ip_packet_in_null_transport", &hdr, data);
+			data = 0;
+			return;
+			}
+
+		break;
+		}
+
+	case DLT_EN10MB:
+		{
+		// Get protocol being carried from the ethernet frame.
+		protocol = (data[12] << 8) + data[13];
+
+		// MPLS carried over the ethernet frame.
+		if ( protocol == 0x8847 )
+			have_mpls = true;
+
+		// VLAN carried over ethernet frame.
+		else if ( protocol == 0x8100 )
+			{
+			data += get_link_header_size(datalink);
+			data += 4; // Skip the vlan header
+			pkt_hdr_size = 0;
+			}
+
+		break;
+		}
+
+	case DLT_PPP_SERIAL:
+		{
+		// Get PPP protocol.
+		protocol = (data[2] << 8) + data[3];
+
+		if ( protocol == 0x0281 )
+			// MPLS Unicast
+			have_mpls = true;
+
+		else if ( protocol != 0x0021 && protocol != 0x0057 )
+			{
+			// Neither IPv4 nor IPv6.
+			sessions->Weird("non_ip_packet_in_ppp_encapsulation", &hdr, data);
+			data = 0;
+			return;
+			}
+		break;
+		}
+	}
+
+	if ( have_mpls )
+		{
+		// Remove the data link layer
+		data += get_link_header_size(datalink);
+
+		// Denote a header size of zero before the IP header
+		pkt_hdr_size = 0;
+
+		// Skip the MPLS label stack.
+		bool end_of_stack = false;
+
+		while ( ! end_of_stack )
+			{
+			end_of_stack = *(data + 2) & 0x01;
+			data += 4;
+			}
+		}
+
 	if ( pseudo_realtime )
 		{
 		current_pseudo = CheckPseudoTime();
-		net_packet_arrival(current_pseudo, &hdr, data, hdr_size, this);
+		net_packet_arrival(current_pseudo, &hdr, data, pkt_hdr_size, this);
 		if ( ! first_wallclock )
 			first_wallclock = current_time(true);
 		}
 
 	else
-		net_packet_arrival(current_timestamp, &hdr, data, hdr_size, this);
+		net_packet_arrival(current_timestamp, &hdr, data, pkt_hdr_size, this);
 
 	data = 0;
 	}
@@ -311,21 +391,27 @@ void PktSrc::AddSecondaryTablePrograms()
 
 void PktSrc::Statistics(Stats* s)
 	{
-	struct pcap_stat pstat;
-
 	if ( reading_traces )
 		s->received = s->dropped = s->link = 0;
 
-	else if ( pcap_stats(pd, &pstat) < 0 )
+	else
 		{
-		run_time("problem getting packet filter statistics: %s",
-				ErrorMsg());
-		s->received = s->dropped = s->link = 0;
+		struct pcap_stat pstat;
+		if ( pcap_stats(pd, &pstat) < 0 )
+			{
+			reporter->Error("problem getting packet filter statistics: %s",
+					ErrorMsg());
+			s->received = s->dropped = s->link = 0;
+			}
+
+		else
+			{
+			s->dropped = pstat.ps_drop;
+			s->link = pstat.ps_recv;
+			}
 		}
 
 	s->received = stats.received;
-	s->dropped = pstat.ps_drop;
-	s->link = pstat.ps_recv;
 
 	if ( pseudo_realtime )
 		s->dropped = 0;
@@ -381,7 +467,7 @@ PktInterfaceSrc::PktInterfaceSrc(const char* arg_interface, const char* filter,
 
 	// ### This needs autoconf'ing.
 #ifdef HAVE_PCAP_INT_H
-	fprintf(stderr, "pcap bufsize = %d\n", ((struct pcap *) pd)->bufsize);
+	reporter->Info("pcap bufsize = %d\n", ((struct pcap *) pd)->bufsize);
 #endif
 
 #ifdef HAVE_LINUX
@@ -399,7 +485,12 @@ PktInterfaceSrc::PktInterfaceSrc(const char* arg_interface, const char* filter,
 	if ( PrecompileFilter(0, filter) && SetFilter(0) )
 		{
 		SetHdrSize();
-		fprintf(stderr, "listening on %s\n", interface);
+
+		if ( closed )
+			// Couldn't get header size.
+			return;
+
+		reporter->Info("listening on %s, capture length %d bytes\n", interface, snaplen);
 		}
 	else
 		closed = true;
@@ -425,13 +516,12 @@ PktFileSrc::PktFileSrc(const char* arg_readfile, const char* filter,
 			return;
 
 		// We don't put file sources into non-blocking mode as
-		// otherwise we would not be able to identify the EOF
-		// via next_packet().
+		// otherwise we would not be able to identify the EOF.
 
 		selectable_fd = fileno(pcap_file(pd));
 
 		if ( selectable_fd < 0 )
-			internal_error("OS does not support selectable pcap fd");
+			reporter->InternalError("OS does not support selectable pcap fd");
 		}
 	else
 		closed = true;
@@ -646,6 +736,9 @@ int get_link_header_size(int dl)
 	case DLT_LINUX_SLL:
 		return 16;
 #endif
+
+	case DLT_PPP_SERIAL:	// PPP_SERIAL
+		return 4;
 
 	case DLT_RAW:
 		return 0;

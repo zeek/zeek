@@ -1,5 +1,3 @@
-// $Id: Event.h 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef event_h
@@ -40,10 +38,25 @@ protected:
 			event_serializer->Serialize(&info, handler->Name(), args);
 			}
 
-		handler->Call(args, no_remote);
+		if ( handler->ErrorHandler() )
+			reporter->BeginErrorHandler();
+
+		try
+			{
+			handler->Call(args, no_remote);
+			}
+
+		catch ( InterpreterException& e )
+			{
+			// Already reported.
+			}
+
 		if ( obj )
 			// obj->EventDone();
 			Unref(obj);
+
+		if ( handler->ErrorHandler() )
+			reporter->EndErrorHandler();
 		}
 
 	EventHandlerPtr handler;

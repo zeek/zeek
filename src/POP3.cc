@@ -1,5 +1,3 @@
-// $Id: POP3.cc 6782 2009-06-28 02:19:03Z vern $
-
 // This code contributed to Bro by Florian Schimandl, Hugh Dollman and
 // Robin Sommer.
 
@@ -15,6 +13,7 @@
 #include "POP3.h"
 #include "Event.h"
 #include "NVT.h"
+#include "Reporter.h"
 
 #undef POP3_CMD_DEF
 #define POP3_CMD_DEF(cmd)	#cmd,
@@ -199,7 +198,7 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line)
 			break;
 
 		default:
-			internal_error("unexpected authorization state");
+			reporter->InternalError("unexpected authorization state");
 		}
 
 		delete decoded;
@@ -555,7 +554,7 @@ void POP3_Analyzer::ProcessClientCmd()
 		break;
 
 	default: 
-		internal_error("command not known");
+		reporter->InternalError("command not known");
 	}
 	}
 
@@ -576,9 +575,11 @@ void POP3_Analyzer::ProcessReply(int length, const char* line)
 	if ( multiLine == true )
 		{
 		bool terminator =
-			length > 1 && line[0] == '.' &&
-			(line[1] == '\n' ||
-			 (length > 2 && line[1] == '\r' && line[2] == '\n'));
+			line[0] == '.' &&
+			(length == 1 ||
+			 (length > 1 &&
+			  (line[1] == '\n' ||
+			  (length > 2 && line[1] == '\r' && line[2] == '\n'))));
 
 		if ( terminator )
 			{
@@ -805,7 +806,7 @@ void POP3_Analyzer::BeginData()
 void POP3_Analyzer::EndData()
 	{
 	if ( ! mail )
-		warn("unmatched end of data");
+		reporter->Warning("unmatched end of data");
 	else
 		{
 		mail->Done();

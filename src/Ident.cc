@@ -1,5 +1,3 @@
-// $Id: Ident.cc 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -9,7 +7,6 @@
 #include "NetVar.h"
 #include "Ident.h"
 #include "Event.h"
-#include "TCP_Rewriter.h"
 
 Ident_Analyzer::Ident_Analyzer(Connection* conn)
 : TCP_ApplicationAnalyzer(AnalyzerTag::Ident, conn)
@@ -74,7 +71,10 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 			}
 
 		if ( line != end_of_line )
-			Weird("ident_request_addendum", length, orig_line);
+			{
+			BroString s((const u_char*)orig_line, length, true);
+			Weird("ident_request_addendum", s.CheckString());
+			}
 
 		val_list* vl = new val_list;
 		vl->append(BuildConnVal());
@@ -234,17 +234,16 @@ const char* Ident_Analyzer::ParsePort(const char* line, const char* end_of_line,
 
 void Ident_Analyzer::BadRequest(int length, const char* line)
 	{
-	Weird("bad_ident_request", length, line);
+	BroString s((const u_char*)line, length, true);
+	Weird("bad_ident_request", s.CheckString());
 	}
 
 void Ident_Analyzer::BadReply(int length, const char* line)
 	{
 	if ( ! did_bad_reply )
 		{
-		Weird("bad_ident_reply", length, line);
+		BroString s((const u_char*)line, length, true);
+		Weird("bad_ident_reply", s.CheckString());
 		did_bad_reply = 1;
 		}
 	}
-
-#include "ident-rw.bif.func_def"
-

@@ -1,5 +1,3 @@
-// $Id: Func.h 6916 2009-09-24 20:48:36Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef func_h
@@ -15,14 +13,14 @@ class FuncType;
 class Stmt;
 class Frame;
 class ID;
+class CallExpr;
 
 class Func : public BroObj {
 public:
 
 	enum Kind { BRO_FUNC, BUILTIN_FUNC };
 
-	Func(Kind arg_kind)
-		{ scope = 0; kind = arg_kind; id = 0; return_value = 0; }
+	Func(Kind arg_kind);
 
 	virtual ~Func();
 
@@ -36,7 +34,8 @@ public:
 			{ return priority > other.priority; } // reverse sort
 	};
 
-	virtual const vector<Body>& GetBodies() const	{ return bodies; }
+	const vector<Body>& GetBodies() const	{ return bodies; }
+	bool HasBodies() const	{ return bodies.size(); }
 
 	// virtual Val* Call(ListExpr* args) const = 0;
 	virtual Val* Call(val_list* args, Frame* parent = 0) const = 0;
@@ -68,8 +67,12 @@ public:
 	ID* GetReturnValueID() const;
 	virtual TraversalCode Traverse(TraversalCallback* cb) const;
 
+	uint32 GetUniqueFuncID() const { return unique_id; }
+	static Func* GetFuncPtrByID(uint32 id)
+		{ return id >= unique_ids.size() ? 0 : unique_ids[id]; }
+
 protected:
-	Func()	{ scope = 0; id = 0; return_value = 0; }
+	Func();
 
 	DECLARE_ABSTRACT_SERIAL(Func);
 
@@ -78,12 +81,14 @@ protected:
 	Kind kind;
 	ID* id;
 	ID* return_value;
+	uint32 unique_id;
+	static vector<Func*> unique_ids;
 };
 
 
 class BroFunc : public Func {
 public:
-	BroFunc(ID* id, Stmt* body, id_list* inits, int frame_size);
+	BroFunc(ID* id, Stmt* body, id_list* inits, int frame_size, int priority);
 	~BroFunc();
 
 	int IsPure() const;
@@ -130,7 +135,7 @@ protected:
 };
 
 
-extern void builtin_run_time(const char* msg, BroObj* arg = 0);
+extern void builtin_error(const char* msg, BroObj* arg = 0);
 extern void init_builtin_funcs();
 
 extern bool check_built_in_call(BuiltinFunc* f, CallExpr* call);

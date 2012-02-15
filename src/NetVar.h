@@ -1,5 +1,3 @@
-// $Id: NetVar.h 6887 2009-08-20 05:17:33Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef netvar_h
@@ -21,11 +19,11 @@ extern RecordType* SYN_packet;
 extern RecordType* pcap_packet;
 extern EnumType* transport_proto;
 extern TableType* string_set;
-
-extern RecordType* net_stats;
+extern TableType* string_array;
+extern TableType* count_set;
+extern VectorType* string_vec;
 
 extern int watchdog_interval;
-extern double heartbeat_interval;
 
 extern int max_timer_expires;
 extern int max_remote_events_processed;
@@ -61,11 +59,8 @@ extern int ssl_store_key_material;
 extern int ssl_max_cipherspec_size;
 extern StringVal* ssl_store_cert_path;
 extern StringVal* x509_trusted_cert_path;
-extern TableType* cipher_suites_list;
 extern RecordType* x509_type;
 extern StringVal* x509_crl_file;
-extern TableType* x509_extension;
-extern TableType* SSL_sessionID;
 
 extern double non_analyzed_lifetime;
 extern double tcp_inactivity_timeout;
@@ -116,12 +111,6 @@ extern TableType* pm_mappings;
 extern RecordType* pm_port_request;
 extern RecordType* pm_callit_request;
 
-extern RecordType* nfs3_attrs;
-extern RecordType* nfs3_opt_attrs;
-extern RecordType* nfs3_lookup_args;
-extern RecordType* nfs3_lookup_reply;
-extern RecordType* nfs3_fsstat;
-
 extern RecordType* ntp_msg;
 
 extern TableVal* samba_cmds;
@@ -132,6 +121,8 @@ extern RecordType* smb_tree_connect;
 extern TableType* smb_negotiate;
 
 extern RecordType* geo_location;
+
+extern RecordType* entropy_test_result;
 
 extern TableType* dhcp_router_list;
 extern RecordType* dhcp_msg;
@@ -251,7 +242,6 @@ extern int dump_used_event_handlers;
 extern int suppress_local_output;
 
 extern double timer_mgr_inactivity_timeout;
-extern double expected_connection_timeout;
 
 extern int time_machine_profiling;
 
@@ -261,6 +251,10 @@ extern int record_all_packets;
 
 extern RecordType* script_id;
 extern TableType* id_table;
+extern RecordType* record_field;
+extern TableType* record_field_table;
+
+extern StringVal* cmd_line_bpf_filter;
 
 // Initializes globals that don't pertain to network/event analysis.
 extern void init_general_global_var();
@@ -269,6 +263,9 @@ extern void init_event_handlers();
 extern void init_net_var();
 
 #include "const.bif.netvar_h"
+#include "types.bif.netvar_h"
 #include "event.bif.netvar_h"
+#include "logging.bif.netvar_h"
+#include "reporter.bif.netvar_h"
 
 #endif

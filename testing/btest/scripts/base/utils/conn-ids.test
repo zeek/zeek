@@ -1,0 +1,15 @@
+# @TEST-EXEC: bro %INPUT >output
+# @TEST-EXEC: btest-diff output
+
+# This is loaded by default.
+#@load base/utils/conn-ids
+
+global c: conn_id = [ $orig_h = 10.0.0.100, $orig_p = 10000,
+                      $resp_h = 10.0.0.200, $resp_p = 20000 ];
+
+print id_string(c);
+print reverse_id_string(c);
+print directed_id_string(c, T);
+print directed_id_string(c, F);
+print id_string(c) == directed_id_string(c, T);
+print reverse_id_string(c) == directed_id_string(c, F);

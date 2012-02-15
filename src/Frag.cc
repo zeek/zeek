@@ -1,5 +1,3 @@
-// $Id: Frag.cc 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -24,7 +22,7 @@ void FragTimer::Dispatch(double t, int /* is_expire */)
 	if ( f )
 		f->Expire(t);
 	else
-		internal_error("fragment timer dispatched w/o reassembler");
+		reporter->InternalError("fragment timer dispatched w/o reassembler");
 	}
 
 FragReassembler::FragReassembler(NetSessions* arg_s,
@@ -209,7 +207,7 @@ void FragReassembler::BlockInserted(DataBlock* /* start_block */)
 			break;
 
 		if ( b->upper > n )
-			internal_error("bad fragment reassembly");
+			reporter->InternalError("bad fragment reassembly");
 
 		memcpy((void*) &pkt[b->seq], (const void*) b->block,
 			b->upper - b->seq);

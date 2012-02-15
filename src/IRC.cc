@@ -1,5 +1,3 @@
-// $Id: IRC.cc 4582 2007-07-04 01:14:09Z vern $
-
 // An IRC analyzer contributed by Roland Gruber.
 
 #include <iostream>
@@ -33,8 +31,8 @@ bool IRC_Analyzer::Available()
 		{
 		// It's a lot of events, but for consistency with other
 		// analyzers we need to check for all of them.
-		avail = irc_client || irc_server || irc_request || irc_reply ||
-			irc_message || irc_enter_message || irc_quit_message ||
+		avail = irc_request || irc_reply ||
+			irc_message || irc_quit_message ||
 			irc_privmsg_message || irc_notice_message ||
 			irc_squery_message || irc_join_message ||
 			irc_part_message || irc_nick_message ||
@@ -97,28 +95,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 
 	if ( orig )
-		{
 		ProtocolConfirmation();
-		if ( irc_client )
-			{
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(new StringVal(prefix.c_str()));
-			vl->append(new StringVal(myline.c_str()));
-			ConnectionEvent(irc_client, vl);
-			}
-		}
-	else
-		{
-		if ( irc_server )
-			{
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(new StringVal(prefix.c_str()));
-			vl->append(new StringVal(myline.c_str()));
-			ConnectionEvent(irc_server, vl);
-			}
-		}
 
 	int code = 0;
 	string command = "";
@@ -260,6 +237,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 			val_list* vl = new val_list;
 			vl->append(BuildConnVal());
+			vl->append(new Val(orig, TYPE_BOOL));
 			vl->append(new Val(users, TYPE_INT));
 			vl->append(new Val(services, TYPE_INT));
 			vl->append(new Val(servers, TYPE_INT));
@@ -296,6 +274,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 			val_list* vl = new val_list;
 			vl->append(BuildConnVal());
+			vl->append(new Val(orig, TYPE_BOOL));
 			vl->append(new StringVal(type.c_str()));
 			vl->append(new StringVal(channel.c_str()));
 
@@ -338,6 +317,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 			val_list* vl = new val_list;
 			vl->append(BuildConnVal());
+			vl->append(new Val(orig, TYPE_BOOL));
 			vl->append(new Val(users, TYPE_INT));
 			vl->append(new Val(services, TYPE_INT));
 			vl->append(new Val(servers, TYPE_INT));
@@ -360,6 +340,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 			val_list* vl = new val_list;
 			vl->append(BuildConnVal());
+			vl->append(new Val(orig, TYPE_BOOL));
 			vl->append(new Val(channels, TYPE_INT));
 
 			ConnectionEvent(irc_channel_info, vl);
@@ -392,6 +373,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 			val_list* vl = new val_list;
 			vl->append(BuildConnVal());
+			vl->append(new Val(orig, TYPE_BOOL));
 			vl->append(new StringVal(eop - prefix, prefix));
 			vl->append(new StringVal(++msg));
 			ConnectionEvent(irc_global_users, vl);
@@ -416,6 +398,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 			val_list* vl = new val_list;
 			vl->append(BuildConnVal());
+			vl->append(new Val(orig, TYPE_BOOL));
 			vl->append(new StringVal(parts[0].c_str()));
 			vl->append(new StringVal(parts[1].c_str()));
 			vl->append(new StringVal(parts[2].c_str()));
@@ -454,6 +437,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 			val_list* vl = new val_list;
 			vl->append(BuildConnVal());
+			vl->append(new Val(orig, TYPE_BOOL));
 			vl->append(new StringVal(parts[0].c_str()));
 
 			ConnectionEvent(irc_whois_operator_line, vl);
@@ -484,6 +468,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 			val_list* vl = new val_list;
 			vl->append(BuildConnVal());
+			vl->append(new Val(orig, TYPE_BOOL));
 			vl->append(new StringVal(nick.c_str()));
 			TableVal* set = new TableVal(string_set);
 			for ( unsigned int i = 0; i < parts.size(); ++i )
@@ -519,6 +504,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				val_list* vl = new val_list;
 
 				vl->append(BuildConnVal());
+				vl->append(new Val(orig, TYPE_BOOL));
 				vl->append(new StringVal(parts[1].c_str()));
 
 				const char* t = topic.c_str();
@@ -552,6 +538,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 			val_list* vl = new val_list;
 			vl->append(BuildConnVal());
+			vl->append(new Val(orig, TYPE_BOOL));
 			vl->append(new StringVal(parts[0].c_str()));
 			vl->append(new StringVal(parts[1].c_str()));
 			if ( parts[2][0] == '~' )
@@ -579,6 +566,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				{
 				val_list* vl = new val_list;
 				vl->append(BuildConnVal());
+				vl->append(new Val(orig, TYPE_BOOL));
 				ConnectionEvent(irc_invalid_nick, vl);
 				}
 			break;
@@ -590,6 +578,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				{
 				val_list* vl = new val_list;
 				vl->append(BuildConnVal());
+				vl->append(new Val(orig, TYPE_BOOL));
 				vl->append(new Val(code == 381, TYPE_BOOL));
 				ConnectionEvent(irc_oper_response, vl);
 				}
@@ -599,6 +588,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		default:
 			val_list* vl = new val_list;
 			vl->append(BuildConnVal());
+			vl->append(new Val(orig, TYPE_BOOL));
 			vl->append(new StringVal(prefix.c_str()));
 			vl->append(new Val(code, TYPE_COUNT));
 			vl->append(new StringVal(params.c_str()));
@@ -622,7 +612,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		return;
 		}
 
-	else if ( irc_privmsg_message && command == "PRIVMSG")
+	else if ( irc_privmsg_message || (irc_dcc_message && command == "PRIVMSG") )
 		{
 		unsigned int pos = params.find(' ');
 		if ( pos >= params.size() )
@@ -649,8 +639,12 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			vector<string> parts = SplitWords(message, ' ');
 			if ( parts.size() < 5 || parts.size() > 6 )
 				{
-				Weird("irc_invalid_dcc_message_format");
-				return;
+				// Turbo DCC extension appends a "T" at the end of handshake.
+				if ( ! (parts.size() == 7 && parts[6] == "T") )
+					{
+					Weird("irc_invalid_dcc_message_format");
+					return;
+					}
 				}
 
 			// Calculate IP address.
@@ -663,17 +657,18 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 			val_list* vl = new val_list;
 			vl->append(BuildConnVal());
+			vl->append(new Val(orig, TYPE_BOOL));
 			vl->append(new StringVal(prefix.c_str()));
 			vl->append(new StringVal(target.c_str()));
 			vl->append(new StringVal(parts[1].c_str()));
 			vl->append(new StringVal(parts[2].c_str()));
 			vl->append(new AddrVal(htonl(raw_ip)));
-			vl->append(new Val(atoi(parts[4].c_str()), TYPE_INT));
-			if ( parts.size() == 6 )
+			vl->append(new Val(atoi(parts[4].c_str()), TYPE_COUNT));
+			if ( parts.size() >= 6 )
 				vl->append(new Val(atoi(parts[5].c_str()),
-							TYPE_INT));
+							TYPE_COUNT));
 			else
-				vl->append(new Val(0, TYPE_INT));
+				vl->append(new Val(0, TYPE_COUNT));
 
 			ConnectionEvent(irc_dcc_message, vl);
 			}
@@ -682,6 +677,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			{
 			val_list* vl = new val_list;
 			vl->append(BuildConnVal());
+			vl->append(new Val(orig, TYPE_BOOL));
 			vl->append(new StringVal(prefix.c_str()));
 			vl->append(new StringVal(target.c_str()));
 			vl->append(new StringVal(message.c_str()));
@@ -706,6 +702,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 		val_list* vl = new val_list;
 		vl->append(BuildConnVal());
+		vl->append(new Val(orig, TYPE_BOOL));
 		vl->append(new StringVal(prefix.c_str()));
 		vl->append(new StringVal(target.c_str()));
 		vl->append(new StringVal(message.c_str()));
@@ -729,6 +726,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 		val_list* vl = new val_list;
 		vl->append(BuildConnVal());
+		vl->append(new Val(orig, TYPE_BOOL));
 		vl->append(new StringVal(prefix.c_str()));
 		vl->append(new StringVal(target.c_str()));
 		vl->append(new StringVal(message.c_str()));
@@ -742,6 +740,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		vector<string> parts = SplitWords(params, ' ');
 		val_list* vl = new val_list;
 		vl->append(BuildConnVal());
+		vl->append(new Val(orig, TYPE_BOOL));
 
 		if ( parts.size() > 0 )
 			vl->append(new StringVal(parts[0].c_str()));
@@ -777,6 +776,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			{
 			val_list* vl = new val_list;
 			vl->append(BuildConnVal());
+			vl->append(new Val(orig, TYPE_BOOL));
 			vl->append(new StringVal(parts[0].c_str()));
 			vl->append(new StringVal(parts[1].c_str()));
 
@@ -799,6 +799,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 		val_list* vl = new val_list;
 		vl->append(BuildConnVal());
+		vl->append(new Val(orig, TYPE_BOOL));
 		vl->append(new StringVal(prefix.c_str()));
 		vl->append(new StringVal(parts[0].c_str()));
 		vl->append(new StringVal(parts[1].c_str()));
@@ -842,6 +843,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 		val_list* vl = new val_list;
 		vl->append(BuildConnVal());
+		vl->append(new Val(orig, TYPE_BOOL));
 
 		TableVal* list = new TableVal(irc_join_list);
 		vector<string> channels = SplitWords(parts[0], ',');
@@ -888,6 +890,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 		val_list* vl = new val_list;
 		vl->append(BuildConnVal());
+		vl->append(new Val(orig, TYPE_BOOL));
 
 		TableVal* list = new TableVal(irc_join_list);
 		string empty_string = "";
@@ -965,6 +968,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 		val_list* vl = new val_list;
 		vl->append(BuildConnVal());
+		vl->append(new Val(orig, TYPE_BOOL));
 		vl->append(new StringVal(nick.c_str()));
 		vl->append(set);
 		vl->append(new StringVal(message.c_str()));
@@ -988,6 +992,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 		val_list* vl = new val_list;
 		vl->append(BuildConnVal());
+		vl->append(new Val(orig, TYPE_BOOL));
+		vl->append(new Val(orig, TYPE_BOOL));
 		vl->append(new StringVal(nickname.c_str()));
 		vl->append(new StringVal(message.c_str()));
 
@@ -1002,6 +1008,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 		val_list* vl = new val_list;
 		vl->append(BuildConnVal());
+		vl->append(new Val(orig, TYPE_BOOL));
 		vl->append(new StringVal(prefix.c_str()));
 		vl->append(new StringVal(nick.c_str()));
 
@@ -1027,6 +1034,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 		val_list* vl = new val_list;
 		vl->append(BuildConnVal());
+		vl->append(new Val(orig, TYPE_BOOL));
 		vl->append(new StringVal(parts[0].c_str()));
 		vl->append(new Val(oper, TYPE_BOOL));
 
@@ -1055,6 +1063,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 		val_list* vl = new val_list;
 		vl->append(BuildConnVal());
+		vl->append(new Val(orig, TYPE_BOOL));
 		vl->append(new StringVal(server.c_str()));
 		vl->append(new StringVal(users.c_str()));
 
@@ -1065,6 +1074,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		{
 		val_list* vl = new val_list;
 		vl->append(BuildConnVal());
+		vl->append(new Val(orig, TYPE_BOOL));
 		vl->append(new StringVal(prefix.c_str()));
 		if ( params[0] == ':' )
 			params = params.substr(1);
@@ -1083,6 +1093,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 			val_list* vl = new val_list;
 			vl->append(BuildConnVal());
+			vl->append(new Val(orig, TYPE_BOOL));
 			vl->append(new StringVal(prefix.c_str()));
 			vl->append(new StringVal(parts[0].c_str()));
 			vl->append(new StringVal(parts[1].c_str()));
@@ -1099,6 +1110,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			{
 			val_list* vl = new val_list;
 			vl->append(BuildConnVal());
+			vl->append(new Val(orig, TYPE_BOOL));
 			vl->append(new StringVal(prefix.c_str()));
 			vl->append(new StringVal(params.c_str()));
 
@@ -1113,6 +1125,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		{
 		val_list* vl = new val_list;
 		vl->append(BuildConnVal());
+		vl->append(new Val(orig, TYPE_BOOL));
 		vl->append(new StringVal(params.c_str()));
 		ConnectionEvent(irc_password_message, vl);
 		}
@@ -1133,6 +1146,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 		val_list* vl = new val_list;
 		vl->append(BuildConnVal());
+		vl->append(new Val(orig, TYPE_BOOL));
 		vl->append(new StringVal(prefix.c_str()));
 		vl->append(new StringVal(server.c_str()));
 		vl->append(new StringVal(message.c_str()));
@@ -1147,6 +1161,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			{
 			val_list* vl = new val_list;
 			vl->append(BuildConnVal());
+			vl->append(new Val(orig, TYPE_BOOL));
 			vl->append(new StringVal(prefix.c_str()));
 			vl->append(new StringVal(command.c_str()));
 			vl->append(new StringVal(params.c_str()));
@@ -1161,6 +1176,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			{
 			val_list* vl = new val_list;
 			vl->append(BuildConnVal());
+			vl->append(new Val(orig, TYPE_BOOL));
 			vl->append(new StringVal(prefix.c_str()));
 			vl->append(new StringVal(command.c_str()));
 			vl->append(new StringVal(params.c_str()));
@@ -1172,15 +1188,10 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 	if ( orig_status == REGISTERED && resp_status == REGISTERED &&
 	     orig_zip_status == ACCEPT_ZIP && resp_zip_status == ACCEPT_ZIP )
 		{
-#ifdef HAVE_LIBZ
 		orig_zip_status = ZIP_LOADED;
 		resp_zip_status = ZIP_LOADED;
 		AddSupportAnalyzer(new ZIP_Analyzer(Conn(), true));
 		AddSupportAnalyzer(new ZIP_Analyzer(Conn(), false));
-#else
-		run_time("IRC analyzer lacking libz support");
-		Remove();
-#endif
 		}
 
 	return;

@@ -1,5 +1,3 @@
-// $Id: PIA.cc,v 1.1.2.14 2006/05/31 23:19:07 sommer Exp $
-
 #include "PIA.h"
 #include "RuleMatcher.h"
 #include "TCP_Reassembler.h"
@@ -153,7 +151,7 @@ void PIA_UDP::ActivateAnalyzer(AnalyzerTag::Tag tag, const Rule* rule)
 
 void PIA_UDP::DeactivateAnalyzer(AnalyzerTag::Tag tag)
 	{
-	internal_error("PIA_UDP::Deact not implemented yet");
+	reporter->InternalError("PIA_UDP::Deact not implemented yet");
 	}
 
 //// TCP PIA
@@ -375,7 +373,7 @@ void PIA_TCP::ActivateAnalyzer(AnalyzerTag::Tag tag, const Rule* rule)
 
 void PIA_TCP::DeactivateAnalyzer(AnalyzerTag::Tag tag)
 	{
-	internal_error("PIA_TCP::Deact not implemented yet");
+	reporter->InternalError("PIA_TCP::Deact not implemented yet");
 	}
 
 void PIA_TCP::ReplayStreamBuffer(Analyzer* analyzer)

@@ -1,5 +1,3 @@
-// $Id: Serializer.h 6752 2009-06-14 04:24:52Z vern $
-
 #ifndef SERIALIZER_H
 #define SERIALIZER_H
 
@@ -18,6 +16,7 @@
 #include "IP.h"
 #include "Timer.h"
 #include "IOSource.h"
+#include "Reporter.h"
 
 class SerializationCache;
 class SerialInfo;
@@ -122,7 +121,7 @@ protected:
 
 	// This will be increased whenever there is an incompatible change
 	// in the data format.
-	static const uint32 DATA_FORMAT_VERSION = 18;
+	static const uint32 DATA_FORMAT_VERSION = 21;
 
 	ChunkedIO* io;
 
@@ -262,7 +261,7 @@ public:
 	virtual ~CloneSerializer()	{ }
 
 protected:
-	virtual void ReportError(const char* msg)	{ run_time(msg); }
+	virtual void ReportError(const char* msg)	{ reporter->Error("%s", msg); }
 	virtual void GotID(ID* id, Val* val)	{ }
 	virtual void GotEvent(const char* name, double time,
 				EventHandlerPtr event, val_list* args)	{ }

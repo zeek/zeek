@@ -1,5 +1,3 @@
-// $Id: TCP.h 6782 2009-06-28 02:19:03Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef TCP_H
@@ -7,7 +5,6 @@
 
 #include "Analyzer.h"
 #include "TCP.h"
-#include "Rewriter.h"
 #include "PacketDumper.h"
 
 // We define two classes here:
@@ -18,8 +15,6 @@
 class PIA_TCP;
 class TCP_ApplicationAnalyzer;
 class TCP_Reassembler;
-class TCP_Rewriter;
-class TCP_SourcePacketWriter;
 
 class TCP_Flags {
 public:
@@ -75,13 +70,13 @@ public:
 	virtual void SetContentsFile(unsigned int direction, BroFile* f);
 	virtual BroFile* GetContentsFile(unsigned int direction) const;
 
-	TCP_SourcePacketWriter* SourcePacketWriter() const
-		{ return src_pkt_writer; }
-
 	// Callback to process a TCP option.
 	typedef int (*proc_tcp_option_t)(unsigned int opt, unsigned int optlen,
 			const u_char* option, TCP_Analyzer* analyzer,
 			bool is_orig, void* cookie);
+
+	// From Analyzer.h
+	virtual void UpdateConnVal(RecordVal *conn_val);
 
 	// Needs to be static because it's passed as a pointer-to-function
 	// rather than pointer-to-member-function.
@@ -106,7 +101,6 @@ protected:
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
 	virtual void Undelivered(int seq, int len, bool orig);
 	virtual void FlipRoles();
-	virtual void UpdateEndpointVal(RecordVal* endp, int is_orig);
 	virtual bool IsReuse(double t, const u_char* pkt);
 
 	// Returns the TCP header pointed to by data (which we assume is
@@ -220,7 +214,6 @@ protected:
 	void ConnDeleteTimer(double t)	{ Conn()->DeleteTimer(t); }
 
 	void EndpointEOF(TCP_Reassembler* endp);
-	void TraceRewriterEOF(TCP_Reassembler* endp);
 	void ConnectionClosed(TCP_Endpoint* endpoint,
 					TCP_Endpoint* peer, int gen_event);
 	void ConnectionFinished(int half_finished);
@@ -246,8 +239,6 @@ private:
 	TCP_Endpoint* resp;
 
 	analyzer_list packet_children;
-
-	TCP_SourcePacketWriter* src_pkt_writer;
 
 	unsigned int first_packet_seen: 2;
 	unsigned int reassembling: 1;
@@ -288,7 +279,6 @@ public:
 
 	// The given endpoint's data delivery is complete.
 	virtual void EndpointEOF(bool is_orig);
-	virtual void TraceRewriterEOF(bool is_orig);
 
 	// Called whenever an end enters TCP_ENDPOINT_CLOSED or
 	// TCP_ENDPOINT_RESET.  If gen_event is true and the connection
@@ -332,7 +322,6 @@ public:
 
 	// These are passed on from TCP_Analyzer.
 	virtual void EndpointEOF(bool is_orig)	{ }
-	virtual void TraceRewriterEOF(bool is_orig)	{ }
 	virtual void ConnectionClosed(TCP_Endpoint* endpoint,
 					TCP_Endpoint* peer, int gen_event) 	{ }
 	virtual void ConnectionFinished(int half_finished)	{ }

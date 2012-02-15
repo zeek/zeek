@@ -1,5 +1,3 @@
-/// $Id: FlowSrc.cc 4621 2007-07-10 13:37:13Z bager $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 //
 // Written by Bernhard Ager, TU Berlin (2006/2007).
@@ -77,7 +75,7 @@ int FlowSocketSrc::ExtractNextPDU()
 				(struct sockaddr*) &from, &fromlen);
 	if ( pdu_len < 0 )
 		{
-		run_time("problem reading NetFlow data from socket");
+		reporter->Error("problem reading NetFlow data from socket");
 		data = 0;
 		next_timestamp = -1.0;
 		closed = 1;
@@ -86,7 +84,7 @@ int FlowSocketSrc::ExtractNextPDU()
 
 	if ( fromlen != sizeof(from) )
 		{
-		run_time("malformed NetFlow PDU");
+		reporter->Error("malformed NetFlow PDU");
 		return 0;
 		}
 
@@ -171,7 +169,7 @@ int FlowFileSrc::ExtractNextPDU()
 
 	if ( pdu_header.pdu_length > NF_MAX_PKT_SIZE )
 		{
-		run_time("NetFlow packet too long");
+		reporter->Error("NetFlow packet too long");
 
 		// Safely skip over the too-long PDU.
 		if ( lseek(selectable_fd, pdu_header.pdu_length, SEEK_CUR) < 0 )

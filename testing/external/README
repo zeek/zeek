@@ -1,0 +1,99 @@
+
+Test Suite for Large Trace Files
+================================
+
+This test-suite runs more complex Bro configurations on larger trace
+files, and compares the results to a pre-established baseline. Due to
+their size, both traces and baseline are not part of the main Bro
+repository but kept externally. In addition to the publically provided
+files, one can also add a local set to the test-suite for running on
+private traces.
+
+Initialization
+--------------
+
+Before the test-suite can be run, one needs to download the necessary
+files. Test and baselines are kept in git repositories, while any
+traces are download directly. A ``Makefile`` is provided to get
+everything that's needed initially:
+
+.. console:
+
+    > make init
+
+If you need a proxy to download the traces, enter it into a file
+``.proxy`` either in the top-level directory or inside one of the
+repositories.
+
+To later update to upstream changes:
+
+.. console:
+
+    > make pull
+
+This updates the tests and the traces as necessary.
+
+
+Running Tests
+-------------
+
+The easiest way to run all tests is simply typing ``make``. Doing so
+will iterate through all git repositories found in the current
+directory and run the tests in there. Output for failed tests will be
+in files ``diag.log`` in the top-level repository directories.
+
+Alternatively, one can also manually run all tests inside a single
+test repository:
+
+.. console:
+
+    > cd bro-testing
+    > btest
+
+All the standard ``btest`` options can be used to run individual
+tests, get diagnostic output, etc.
+
+Updating Baseline
+-----------------
+
+To update a test's baseline, first run ``btest`` in update mode:
+
+.. console:
+
+    > cd bro-testing
+    > btest -u tests/test-you-want-to-update
+
+Then use ``git`` to commit the changes and push the changes upstream
+as usual.
+
+Adding a Local Repository
+-------------------------
+
+One can add local non-public set of tests (potentially using private
+traces) by creating a git repository of a similar structure as the
+public one.
+
+If you already have such a private test repository that you want to
+include into the test suite, clone it directly into ``<repo-name>``.
+
+If you want to create a new private repository, there's a helper
+script to set that up:
+
+.. console:
+
+    > ./scripts/create-new-repo <repo-name> <repo-url>
+
+The first argument is the local name of the repository (it will be
+cloned into ``<repo-name>``); and the second is the URL of the git
+repository. The repository will be initialized with a few standard
+directories as well as a skeleton test in ``<name>/tests``. You can
+then edit files as needed. You add trace files by editing
+``Traces/traces.cfg``; see the comments in there. For each trace, you
+also need to calculate a checksum with ``md5sum`` and put it into
+``<url>.md5sum``. The scripts use this to decide if they need to
+redownload the trace. Accordingly, if you update a trace, make sure to
+also recalculate its checksum. Note that the traces will be downloaded
+to ``Traces/`` but must not be added to the git repostiory; there's a
+``.gitignore`` installed to prevent that.
+
+

@@ -1,4 +1,5 @@
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}
+include_directories(BEFORE
+                    ${CMAKE_CURRENT_SOURCE_DIR}
                     ${CMAKE_CURRENT_BINARY_DIR}
 )
 
@@ -81,9 +82,14 @@ flex_target(Scanner scan.l ${CMAKE_CURRENT_BINARY_DIR}/scan.cc
 ## bifcl (BIF compiler) target
 
 set(bifcl_SRCS
+   ${BISON_BIFParser_INPUT}
+   ${FLEX_BIFScanner_INPUT}
    ${BISON_BIFParser_OUTPUTS}
    ${FLEX_BIFScanner_OUTPUTS}
    bif_arg.cc
+   module_util.cc
+   bif_arg.h
+   module_util.h
 )
 
 add_executable(bifcl ${bifcl_SRCS})
@@ -101,20 +107,29 @@ macro(BIF_TARGET bifInput)
     get_bif_output_files(${bifInput} bifOutputs)
     add_custom_command(OUTPUT ${bifOutputs}
                        COMMAND bifcl
-                       ARGS ${CMAKE_CURRENT_SOURCE_DIR}/${bifInput} 
+                       ARGS ${CMAKE_CURRENT_SOURCE_DIR}/${bifInput} || (rm -f ${bifOutputs} && exit 1)
+                       # In order be able to run bro from the build directory,
+                       # the generated bro script needs to be inside a
+                       # a directory tree named the same way it will be
+                       # referenced from an @load.
+                       COMMAND "${CMAKE_COMMAND}"
+                       ARGS -E copy ${bifInput}.bro base/${bifInput}.bro
+                       COMMAND "${CMAKE_COMMAND}"
+                       ARGS -E remove -f ${bifInput}.bro
                        DEPENDS ${bifInput}
+                       DEPENDS bifcl
                        COMMENT "[BIFCL] Processing ${bifInput}"
     )
     list(APPEND ALL_BIF_OUTPUTS ${bifOutputs})
     list(APPEND INSTALL_BIF_OUTPUTS
-         ${CMAKE_CURRENT_BINARY_DIR}/${bifInput}.bro)
+         ${CMAKE_CURRENT_BINARY_DIR}/base/${bifInput}.bro)
 endmacro(BIF_TARGET)
 
 # returns a list of output files that bifcl will produce
 # for given input file in ${outputFileVar}
 macro(GET_BIF_OUTPUT_FILES inputFile outputFileVar)
     set(${outputFileVar}
-        ${inputFile}.bro
+        base/${inputFile}.bro
         ${inputFile}.func_def
         ${inputFile}.func_h
         ${inputFile}.func_init
@@ -126,17 +141,12 @@ endmacro(GET_BIF_OUTPUT_FILES)
 
 set(BIF_SRCS
     bro.bif
+    logging.bif
     event.bif
     const.bif
-    common-rw.bif
-    finger-rw.bif
-    ident-rw.bif
-    dns-rw.bif
-    ftp-rw.bif
-    smtp-rw.bif
-    http-rw.bif
+    types.bif
     strings.bif
-    smb-rw.bif
+    reporter.bif
 )
 
 foreach (bift ${BIF_SRCS})
@@ -155,18 +165,20 @@ set(BINPAC_AUXSRC
 # A macro to define a command that uses the BinPac compiler to
 # produce C++ code that implements a protocol parser/analyzer
 # The outputs of the command are appended to list ALL_BINPAC_OUTPUTS
+# All arguments to this macro are appended to list ALL_BINPAC_INPUTS
 macro(BINPAC_TARGET pacFile)
     get_filename_component(basename ${pacFile} NAME_WE)
     add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${basename}_pac.h
                               ${CMAKE_CURRENT_BINARY_DIR}/${basename}_pac.cc
                        COMMAND ${BinPAC_EXE}
-                       ARGS -d ${CMAKE_CURRENT_BINARY_DIR}
+                       ARGS -q -d ${CMAKE_CURRENT_BINARY_DIR}
                             -I ${CMAKE_CURRENT_SOURCE_DIR}
                             ${CMAKE_CURRENT_SOURCE_DIR}/${pacFile}
                        DEPENDS ${BinPAC_EXE} ${pacFile}
                                ${BINPAC_AUXSRC} ${ARGN}
                        COMMENT "[BINPAC] Processing ${pacFile}"
     )
+    list(APPEND ALL_BINPAC_INPUTS ${ARGV})
     list(APPEND ALL_BINPAC_OUTPUTS
          ${CMAKE_CURRENT_BINARY_DIR}/${basename}_pac.h
          ${CMAKE_CURRENT_BINARY_DIR}/${basename}_pac.cc) 
@@ -177,9 +189,9 @@ binpac_target(binpac_bro-lib.pac)
 binpac_target(bittorrent.pac
     bittorrent-protocol.pac bittorrent-analyzer.pac)
 binpac_target(dce_rpc.pac
-    dce_rpc-protocol.pac dce_rpc-analyzer.pac)
+    dce_rpc-protocol.pac dce_rpc-analyzer.pac epmapper.pac)
 binpac_target(dce_rpc_simple.pac
-    dce_rpc-protocol.pac)
+    dce_rpc-protocol.pac epmapper.pac)
 binpac_target(dhcp.pac
     dhcp-protocol.pac dhcp-analyzer.pac)
 binpac_target(dns.pac
@@ -191,17 +203,34 @@ binpac_target(http.pac
 binpac_target(ncp.pac)
 binpac_target(netflow.pac
     netflow-protocol.pac netflow-analyzer.pac)
-binpac_target(rpc.pac
-    rpc-analyzer.pac portmap-analyzer.pac)
 binpac_target(smb.pac
     smb-protocol.pac smb-pipe.pac smb-mailslot.pac)
 binpac_target(ssl.pac
     ssl-defs.pac ssl-protocol.pac ssl-analyzer.pac)
-binpac_target(ssl-record-layer.pac
-    ssl-defs.pac ssl.pac)
+binpac_target(syslog.pac
+    syslog-protocol.pac syslog-analyzer.pac)
 
 ########################################################################
 ## bro target
+
+# This macro stores associated headers for any C/C++ source files given
+# as arguments (past _var) as a list in the CMake variable named "_var".
+macro(COLLECT_HEADERS _var)
+    foreach (src ${ARGN})
+        get_filename_component(ext ${src} EXT)
+        if (${ext} STREQUAL ".cc" OR ${ext} STREQUAL ".c")
+            get_filename_component(base ${src} NAME_WE)
+            get_filename_component(dir ${src} PATH)
+            if (NOT "${dir}")
+                set(dir ${CMAKE_CURRENT_SOURCE_DIR})
+            endif ()
+            set(header "${dir}/${base}.h")
+            if (EXISTS ${header})
+                list(APPEND ${_var} ${header})
+            endif ()
+        endif ()
+    endforeach ()
+endmacro(COLLECT_HEADERS _var)
 
 # define a command that's used to run the make_dbg_constants.pl script
 # building the bro binary depends on the outputs of this script
@@ -216,28 +245,32 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
                    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
 
-set(dns_SRCS nb_dns.c nb_dns.h)
-
-set(openssl_SRCS X509.cc SSLCiphers.cc SSLInterpreter.cc SSLProxy.cc
-                 SSLv2.cc SSLv3.cc SSLv3Automaton.cc)
-
-if (USE_NMALLOC)
-    set(malloc_SRCS malloc.c)
-endif ()
+set(dns_SRCS nb_dns.c)
+set_source_files_properties(nb_dns.c PROPERTIES COMPILE_FLAGS
+                            -fno-strict-aliasing)
 
 set(bro_SRCS
     ${CMAKE_CURRENT_BINARY_DIR}/version.c
+    ${BIF_SRCS}
     ${ALL_BIF_OUTPUTS}
+    ${BINPAC_AUXSRC}
+    ${ALL_BINPAC_INPUTS}
     ${ALL_BINPAC_OUTPUTS}
     ${TRANSFORMED_BISON_OUTPUTS}
     ${FLEX_RuleScanner_OUTPUTS}
+    ${FLEX_RuleScanner_INPUT}
+    ${BISON_RuleParser_INPUT}
     ${FLEX_REScanner_OUTPUTS}
+    ${FLEX_REScanner_INPUT}
+    ${BISON_REParser_INPUT}
     ${FLEX_Scanner_OUTPUTS}
+    ${FLEX_Scanner_INPUT}
+    ${BISON_Parser_INPUT}
     ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
     main.cc
     net_util.cc
     util.cc
-    Active.cc
+    module_util.cc
     Analyzer.cc
     Anon.cc
     ARP.cc
@@ -247,12 +280,16 @@ set(bro_SRCS
     BitTorrent.cc
     BitTorrentTracker.cc
     BPF_Program.cc
+    BroDoc.cc
+    BroDocObj.cc
+    Brofiler.cc
     BroString.cc
     CCL.cc
     ChunkedIO.cc
     CompHash.cc
     Conn.cc
     ConnCompressor.cc
+    ConnSizeAnalyzer.cc
     ContentLine.cc
     DCE_RPC.cc
     DFA.cc
@@ -296,7 +333,11 @@ set(bro_SRCS
     IOSource.cc
     IRC.cc
     List.cc
-    Logger.cc
+    Reporter.cc
+    LogMgr.cc
+    LogWriter.cc
+    LogWriterAscii.cc
+    LogWriterNone.cc
     Login.cc
     MIME.cc
     NCP.cc
@@ -320,6 +361,7 @@ set(bro_SRCS
     PrefixTable.cc
     PriorityQueue.cc
     Queue.cc
+    RandTest.cc
     RE.cc
     RPC.cc
     Reassem.cc
@@ -345,15 +387,14 @@ set(bro_SRCS
     Stats.cc
     SteppingStone.cc
     Stmt.cc
+    Syslog-binpac.cc
     TCP.cc
     TCP_Endpoint.cc
     TCP_Reassembler.cc
-    TCP_Rewriter.cc
     Telnet.cc
     Timer.cc
     Traverse.cc
     Trigger.cc
-    TwoWise.cc
     Type.cc
     UDP.cc
     Val.cc
@@ -365,32 +406,25 @@ set(bro_SRCS
     md5.c
     patricia.c
     setsignal.c
-    UDP_Rewriter.cc
-    DNS_Rewriter.cc
     PacketDumper.cc
-    Rewriter.cc
     strsep.c
+    modp_numtoa.c
     ${dns_SRCS}
-    ${malloc_SRCS}
     ${openssl_SRCS}
 )
 
-add_definitions(-DPOLICYDEST="${POLICYDIR}")
+collect_headers(bro_HEADERS ${bro_SRCS})
 
-add_executable(bro ${bro_SRCS})
+add_definitions(-DBRO_SCRIPT_INSTALL_PATH="${BRO_SCRIPT_INSTALL_PATH}")
+add_definitions(-DBRO_SCRIPT_SOURCE_PATH="${BRO_SCRIPT_SOURCE_PATH}")
+add_definitions(-DBRO_BUILD_PATH="${CMAKE_CURRENT_BINARY_DIR}")
 
-set(brolibs
-    ${BinPAC_LIBRARY}
-    ${PCAP_LIBRARY}
-    ${OpenSSL_LIBRARIES}
-    ${BIND_LIBRARY}
-    ${OPTLIBS}
-)
+add_executable(bro ${bro_SRCS} ${bro_HEADERS})
 
-target_link_libraries(bro ${brolibs})
+target_link_libraries(bro ${brodeps})
 
 install(TARGETS bro DESTINATION bin)
-install(FILES ${INSTALL_BIF_OUTPUTS} DESTINATION ${POLICYDIR})
+install(FILES ${INSTALL_BIF_OUTPUTS} DESTINATION ${BRO_SCRIPT_INSTALL_PATH}/base)
 
 set(BRO_EXE bro
     CACHE STRING "Bro executable binary" FORCE)

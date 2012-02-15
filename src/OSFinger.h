@@ -1,5 +1,3 @@
-// $Id: OSFinger.h 5857 2008-06-26 23:00:03Z vern $
-
 // Taken with permission from:
 //
 // p0f - passive OS fingerprinting (GNU LESSER GENERAL PUBLIC LICENSE)
@@ -15,7 +13,7 @@
 
 #include "util.h"
 #include "Dict.h"
-
+#include "Reporter.h"
 
 // Size limit for size wildcards.
 #define PACKET_BIG 100
@@ -105,19 +103,19 @@ protected:
 
 	void Error(const char* msg)
 		{
-		error(msg);
+		reporter->Error("%s", msg);
 		err = true;
 		}
 
 	void Error(const char* msg, int n)
 		{
-		error(msg, n);
+		reporter->Error(msg, n);
 		err = true;
 		}
 
 	void Error(const char* msg, const char* s)
 		{
-		error(msg, s);
+		reporter->Error(msg, s);
 		err = true;
 		}
 

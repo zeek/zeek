@@ -1,5 +1,3 @@
-# $Id:$
-
 %extern{
 #include "dns_pac.h"	// for DNS_Conn
 %}

@@ -1,0 +1,5 @@
+#! /usr/bin/env bash
+#
+# Default canonifier used with the tests in testing/btest/*.
+
+`dirname $0`/diff-remove-timestamps

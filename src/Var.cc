@@ -1,5 +1,3 @@
-// $Id: Var.cc 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -11,6 +9,8 @@
 #include "Serializer.h"
 #include "RemoteSerializer.h"
 #include "EventRegistry.h"
+
+extern int generate_documentation;
 
 static Val* init_val(Expr* init, const BroType* t, Val* aggr)
 	{
@@ -107,7 +107,7 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 	id->SetType(t);
 
 	if ( attr )
-		id->AddAttrs(new Attributes(attr, t));
+		id->AddAttrs(new Attributes(attr, t, false));
 
 	if ( id->FindAttr(ATTR_PERSISTENT) || id->FindAttr(ATTR_SYNCHRONIZED) )
 		{
@@ -170,6 +170,16 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 		}
 
 	id->UpdateValAttrs();
+
+	if ( t && t->Tag() == TYPE_FUNC && t->AsFuncType()->IsEvent() )
+		{
+		// For events, add a function value (without any body) here so that
+		// we can later access the ID even if no implementations have been
+		// defined.
+		Func* f = new BroFunc(id, 0, 0, 0, 0);
+		id->SetVal(new Val(f));
+		id->SetConst();
+		}
 	}
 
 
@@ -192,7 +202,8 @@ Stmt* add_local(ID* id, BroType* t, init_class c, Expr* init,
 		Ref(id);
 
 		Stmt* stmt =
-			new ExprStmt(new AssignExpr(new NameExpr(id), init, 0));
+		    new ExprStmt(new AssignExpr(new NameExpr(id), init, 0, 0,
+		        id->Attrs() ? id->Attrs()->Attrs() : 0 ));
 		stmt->SetLocationInfo(init->GetLocationInfo());
 
 		return stmt;
@@ -217,11 +228,65 @@ extern Expr* add_and_assign_local(ID* id, Expr* init, Val* val)
 
 void add_type(ID* id, BroType* t, attr_list* attr, int /* is_event */)
 	{
-	id->SetType(t);
+	BroType* tnew = t;
+
+	// In "documentation mode", we'd like to to be able to associate
+	// an identifier name with a declared type.  Dealing with declared
+	// types that are "aliases" to a builtin type requires that the BroType
+	// is cloned before setting the identifier name that resolves to it.
+	// And still this is not enough to document cases where the declared type
+	// is an alias for another declared type -- but that's not a natural/common
+	// practice.  If documenting that corner case is desired, one way
+	// is to add an ID* to class ID that tracks aliases and set it here if
+	// t->GetTypeID() is true.
+	if ( generate_documentation )
+		{
+		switch ( t->Tag() ) {
+		// Only "shallow" copy types that may contain records because
+		// we want to be able to see additions to the original record type's
+		// list of fields
+		case TYPE_RECORD:
+			tnew = new RecordType(t->AsRecordType()->Types());
+			break;
+		case TYPE_TABLE:
+			tnew = new TableType(t->AsTableType()->Indices(),
+			                     t->AsTableType()->YieldType());
+			break;
+		case TYPE_VECTOR:
+			tnew = new VectorType(t->AsVectorType()->YieldType());
+			break;
+		case TYPE_FUNC:
+			tnew = new FuncType(t->AsFuncType()->Args(),
+			                    t->AsFuncType()->YieldType(),
+			                    t->AsFuncType()->IsEvent());
+			break;
+		default:
+			SerializationFormat* form = new BinarySerializationFormat();
+			form->StartWrite();
+			CloneSerializer ss(form);
+			SerialInfo sinfo(&ss);
+			sinfo.cache = false;
+
+			t->Serialize(&sinfo);
+			char* data;
+			uint32 len = form->EndWrite(&data);
+			form->StartRead(data, len);
+
+			UnserialInfo uinfo(&ss);
+			uinfo.cache = false;
+			tnew = t->Unserialize(&uinfo);
+
+			delete [] data;
+		}
+
+		tnew->SetTypeID(copy_string(id->Name()));
+		}
+
+	id->SetType(tnew);
 	id->MakeType();
 
 	if ( attr )
-		id->SetAttrs(new Attributes(attr, t));
+		id->SetAttrs(new Attributes(attr, tnew, false));
 	}
 
 void begin_func(ID* id, const char* module_name, function_flavor flavor,
@@ -326,7 +391,7 @@ void end_func(Stmt* body, attr_list* attrs)
 		id->ID_Val()->AsFunc()->AddBody(body, inits, frame_size, priority);
 	else
 		{
-		Func* f = new BroFunc(id, body, inits, frame_size);
+		Func* f = new BroFunc(id, body, inits, frame_size, priority);
 		id->SetVal(new Val(f));
 		id->SetConst();
 		}
@@ -338,7 +403,19 @@ Val* internal_val(const char* name)
 	{
 	ID* id = lookup_ID(name, GLOBAL_MODULE_NAME);
 	if ( ! id )
-		internal_error("internal variable %s missing", name);
+		reporter->InternalError("internal variable %s missing", name);
+
+	return id->ID_Val();
+	}
+
+Val* internal_const_val(const char* name)
+	{
+	ID* id = lookup_ID(name, GLOBAL_MODULE_NAME);
+	if ( ! id )
+		reporter->InternalError("internal variable %s missing", name);
+
+	if ( ! id->IsConst() )
+		reporter->InternalError("internal variable %s is not constant", name);
 
 	return id->ID_Val();
 	}
@@ -399,7 +476,7 @@ ListVal* internal_list_val(const char* name)
 			}
 
 		else
-			internal_error("internal variable %s is not a list", name);
+			reporter->InternalError("internal variable %s is not a list", name);
 		}
 
 	return 0;
@@ -409,7 +486,7 @@ BroType* internal_type(const char* name)
 	{
 	ID* id = lookup_ID(name, GLOBAL_MODULE_NAME);
 	if ( ! id )
-		internal_error("internal type %s missing", name);
+		reporter->InternalError("internal type %s missing", name);
 
 	return id->Type();
 	}

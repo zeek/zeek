@@ -1,10 +1,6 @@
 /*
  * See the file "COPYING" in the main distribution directory for copyright.
  */
-#ifndef lint
-static const char rcsid[] =
-    "@(#) $Id: nb_dns.c 6219 2008-10-01 05:39:07Z vern $ (LBL)";
-#endif
 /*
  * nb_dns - non-blocking dns routines
  *
@@ -438,6 +434,7 @@ nb_dns_activity(struct nb_dns_info *nd, struct nb_dns_result *nr, char *errstr)
 	register char **ap, **hap;
 	register u_int16_t id;
 	register const u_char *rdata;
+	register u_int32_t rttl = 0;	// make compiler happy.
 	register struct hostent *he;
 	register size_t rdlen;
 	ns_msg handle;
@@ -557,6 +554,7 @@ nb_dns_activity(struct nb_dns_info *nd, struct nb_dns_result *nr, char *errstr)
 
 		rdata = ns_rr_rdata(rr);
 		rdlen = ns_rr_rdlen(rr);
+		rttl = ns_rr_ttl(rr);
 		switch (atype) {
 
 		case T_A:
@@ -603,10 +601,12 @@ nb_dns_activity(struct nb_dns_info *nd, struct nb_dns_result *nr, char *errstr)
 
 			/* "Find first satisfactory answer" */
 			nr->hostent = he;
+			nr->ttl = rttl;
 			return (1);
 		}
 	}
 
 	nr->hostent = he;
+	nr->ttl = rttl;
 	return (1);
 }

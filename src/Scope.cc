@@ -1,5 +1,3 @@
-// $Id: Scope.cc 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -7,49 +5,11 @@
 #include "ID.h"
 #include "Val.h"
 #include "Scope.h"
+#include "Reporter.h"
 
 static scope_list scopes;
 static Scope* top_scope;
 
-extern const char* GLOBAL_MODULE_NAME = "GLOBAL";
-
-
-// Returns it without trailing "::".
-string extract_module_name(const char* name)
-	{
-	string module_name = name;
-	string::size_type pos = module_name.rfind("::");
-
-	if ( pos == string::npos )
-		return string(GLOBAL_MODULE_NAME);
-
-	module_name.erase(pos);
-
-	return module_name;
-	}
-
-string normalized_module_name(const char* module_name)
-	{
-	int mod_len;
-	if ( (mod_len = strlen(module_name)) >= 2 &&
-	     ! strcmp(module_name + mod_len - 2, "::") )
-		mod_len -= 2;
-
-	return string(module_name, mod_len);
-	}
-
-string make_full_var_name(const char* module_name, const char* var_name)
-	{
-	if ( ! module_name || streq(module_name, GLOBAL_MODULE_NAME) ||
-	     strstr(var_name, "::") )
-		return string(var_name);
-
-	string full_name = normalized_module_name(module_name);
-	full_name += "::";
-	full_name += var_name;
-
-	return full_name;
-	}
 
 Scope::Scope(ID* id)
 	{
@@ -66,7 +26,7 @@ Scope::Scope(ID* id)
 		if ( id_type->Tag() == TYPE_ERROR )
 			return;
 		else if ( id_type->Tag() != TYPE_FUNC )
-			internal_error("bad scope id");
+			reporter->InternalError("bad scope id");
 
 		Ref(id);
 
@@ -152,9 +112,11 @@ TraversalCode Scope::Traverse(TraversalCallback* cb) const
 	}
 
 
-ID* lookup_ID(const char* name, const char* curr_module, bool no_global)
+ID* lookup_ID(const char* name, const char* curr_module, bool no_global,
+	      bool same_module_only)
 	{
 	string fullname = make_full_var_name(curr_module, name);
+
 	string ID_module = extract_module_name(fullname.c_str());
 	bool need_export = ID_module != GLOBAL_MODULE_NAME &&
 				ID_module != curr_module;
@@ -165,7 +127,7 @@ ID* lookup_ID(const char* name, const char* curr_module, bool no_global)
 		if ( id )
 			{
 			if ( need_export && ! id->IsExport() && ! in_debug )
-				error("identifier is not exported:",
+				reporter->Error("identifier is not exported: %s",
 				      fullname.c_str());
 
 			Ref(id);
@@ -173,7 +135,8 @@ ID* lookup_ID(const char* name, const char* curr_module, bool no_global)
 			}
 		}
 
-	if ( ! no_global )
+	if ( ! no_global && (strcmp(GLOBAL_MODULE_NAME, curr_module) == 0 ||
+			     ! same_module_only) )
 		{
 		string globalname = make_full_var_name(GLOBAL_MODULE_NAME, name);
 		ID* id = global_scope()->Lookup(globalname.c_str());
@@ -191,7 +154,7 @@ ID* install_ID(const char* name, const char* module_name,
 		bool is_global, bool is_export)
 	{
 	if ( scopes.length() == 0 && ! is_global )
-		internal_error("local identifier in global scope");
+		reporter->InternalError("local identifier in global scope");
 
 	IDScope scope;
 	if ( is_export || ! module_name ||
@@ -233,7 +196,7 @@ Scope* pop_scope()
 	{
 	int n = scopes.length() - 1;
 	if ( n < 0 )
-		internal_error("scope underflow");
+		reporter->InternalError("scope underflow");
 	scopes.remove_nth(n);
 
 	Scope* old_top = top_scope;
@@ -254,5 +217,5 @@ Scope* current_scope()
 
 Scope* global_scope()
 	{
-	return scopes[0];
+	return scopes.length() == 0 ? 0 : scopes[0];
 	}

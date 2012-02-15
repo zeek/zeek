@@ -1,0 +1,73 @@
+##! The reporter built-in functions allow for the scripting layer to
+##! generate messages of varying severity.  If no event handlers
+##! exist for reporter messages, the messages are output to stderr.
+##! If event handlers do exist, it's assumed they take care of determining
+##! how/where to output the messages.
+##!
+##! See :doc:`/scripts/base/frameworks/reporter/main` for a convenient
+##! reporter message logging framework.
+
+module Reporter;
+
+%%{
+#include "NetVar.h"
+%%}
+
+## Generates an informational message.
+##
+## msg: The informational message to report.
+##
+## Returns: Always true.
+##
+## .. bro:see:: reporter_info
+function Reporter::info%(msg: string%): bool
+	%{
+	reporter->PushLocation(frame->GetCall()->GetLocationInfo());
+	reporter->Info("%s", msg->CheckString());
+	reporter->PopLocation();
+	return new Val(1, TYPE_BOOL);
+	%}
+
+## Generates a message that warns of a potential problem.
+##
+## msg: The warning message to report.
+##
+## Returns: Always true.
+##
+## .. bro:see:: reporter_warning
+function Reporter::warning%(msg: string%): bool
+	%{
+	reporter->PushLocation(frame->GetCall()->GetLocationInfo());
+	reporter->Warning("%s", msg->CheckString());
+	reporter->PopLocation();
+	return new Val(1, TYPE_BOOL);
+	%}
+
+## Generates a non-fatal error indicative of a definite problem that should
+## be addressed. Program execution does not terminate.
+##
+## msg: The error message to report.
+##
+## Returns: Always true.
+##
+## .. bro:see:: reporter_error
+function Reporter::error%(msg: string%): bool
+	%{
+	reporter->PushLocation(frame->GetCall()->GetLocationInfo());
+	reporter->Error("%s", msg->CheckString());
+	reporter->PopLocation();
+	return new Val(1, TYPE_BOOL);
+	%}
+
+## Generates a fatal error on stderr and terminates program execution.
+##
+## msg: The error message to report.
+##
+## Returns: Always true.
+function Reporter::fatal%(msg: string%): bool
+	%{
+	reporter->PushLocation(frame->GetCall()->GetLocationInfo());
+	reporter->FatalError("%s", msg->CheckString());
+	reporter->PopLocation();
+	return new Val(1, TYPE_BOOL);
+	%}

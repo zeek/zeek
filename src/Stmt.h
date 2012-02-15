@@ -1,5 +1,3 @@
-// $Id: Stmt.h 6916 2009-09-24 20:48:36Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef stmt_h
@@ -10,6 +8,7 @@
 #include "BroList.h"
 #include "Obj.h"
 #include "Expr.h"
+#include "Reporter.h"
 
 #include "StmtEnums.h"
 
@@ -53,6 +52,7 @@ public:
 
 	void RegisterAccess() const	{ last_access = network_time; access_count++; }
 	void AccessStats(ODesc* d) const;
+	uint32 GetAccessCount() const { return access_count; }
 
 	virtual void Describe(ODesc* d) const;
 
@@ -62,7 +62,7 @@ public:
 		if ( breakpoint_count )
 			--breakpoint_count;
 		else
-			internal_error("breakpoint count decremented below 0");
+			reporter->InternalError("breakpoint count decremented below 0");
 		}
 
 	virtual unsigned int BPCount() const	{ return breakpoint_count; }
@@ -113,19 +113,6 @@ protected:
 	DECLARE_ABSTRACT_SERIAL(ExprListStmt);
 
 	ListExpr* l;
-};
-
-class AlarmStmt : public ExprListStmt {
-public:
-	AlarmStmt(ListExpr* l) : ExprListStmt(STMT_ALARM, l)	{ }
-
-protected:
-	friend class Stmt;
-	AlarmStmt()	{}
-
-	Val* DoExec(val_list* vals, stmt_flow_type& flow) const;
-
-	DECLARE_SERIAL(AlarmStmt);
 };
 
 class PrintStmt : public ExprListStmt {

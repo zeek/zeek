@@ -1,5 +1,3 @@
-// $Id: Func.cc 6703 2009-05-13 22:27:44Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -48,12 +46,26 @@
 #include "RemoteSerializer.h"
 #include "Event.h"
 #include "Traverse.h"
+#include "Reporter.h"
 
 extern	RETSIGTYPE sig_handler(int signo);
 
 const Expr* calling_expr = 0;
 bool did_builtin_init = false;
 
+vector<Func*> Func::unique_ids;
+
+Func::Func() : scope(0), id(0), return_value(0)
+	{
+	unique_id = unique_ids.size();
+	unique_ids.push_back(this);
+	}
+
+Func::Func(Kind arg_kind) : scope(0), kind(arg_kind), id(0), return_value(0)
+	{
+	unique_id = unique_ids.size();
+	unique_ids.push_back(this);
+	}
 
 Func::~Func()
 	{
@@ -235,15 +247,19 @@ TraversalCode Func::Traverse(TraversalCallback* cb) const
 	}
 
 BroFunc::BroFunc(ID* arg_id, Stmt* arg_body, id_list* aggr_inits,
-		int arg_frame_size)
+		int arg_frame_size, int priority)
 : Func(BRO_FUNC)
 	{
 	id = arg_id;
-	Body b;
-	b.stmts = AddInits(arg_body, aggr_inits);
-	b.priority = 0;
-	bodies.push_back(b);
 	frame_size = arg_frame_size;
+
+	if ( arg_body )
+		{
+		Body b;
+		b.stmts = AddInits(arg_body, aggr_inits);
+		b.priority = priority;
+		bodies.push_back(b);
+		}
 	}
 
 BroFunc::~BroFunc()
@@ -267,6 +283,15 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 #ifdef PROFILE_BRO_FUNCTIONS
 	DEBUG_MSG("Function: %s\n", id->Name());
 #endif
+	if ( ! bodies.size() ) 
+		{
+		// Can only happen for events.
+		assert(IsEvent());
+		loop_over_list(*args, i)
+			Unref((*args)[i]);
+		return 0 ;
+		}
+
 	SegmentProfiler(segment_logger, location);
 	Frame* f = new Frame(frame_size, this, args);
 
@@ -322,7 +347,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 	     (flow != FLOW_RETURN /* we fell off the end */ ||
 	      ! result /* explicit return with no result */) &&
 	     ! f->HasDelayed() )
-		warn("non-void function returns without a value:", id->Name());
+		reporter->Warning("non-void function returns without a value: %s", id->Name());
 
 	if ( result && g_trace_state.DoTrace() )
 		{
@@ -414,9 +439,9 @@ BuiltinFunc::BuiltinFunc(built_in_func arg_func, const char* arg_name,
 
 	id = lookup_ID(name, GLOBAL_MODULE_NAME, false);
 	if ( ! id )
-		internal_error("built-in function %s missing", name);
+		reporter->InternalError("built-in function %s missing", name);
 	if ( id->HasVal() )
-		internal_error("built-in function %s multiply defined", name);
+		reporter->InternalError("built-in function %s multiply defined", name);
 
 	id->SetVal(new Val(this));
 	}
@@ -488,42 +513,44 @@ bool BuiltinFunc::DoUnserialize(UnserialInfo* info)
 	return UNSERIALIZE_STR(&name, 0);
 	}
 
-void builtin_run_time(const char* msg, BroObj* arg)
+void builtin_error(const char* msg, BroObj* arg)
 	{
 	if ( calling_expr )
-		calling_expr->RunTime(msg, arg);
+		calling_expr->Error(msg, arg);
 	else
-		run_time(msg, arg);
+		reporter->Error(msg, arg);
 	}
 
+#include "bro.bif.func_h"
+#include "logging.bif.func_h"
+#include "reporter.bif.func_h"
+#include "strings.bif.func_h"
+
 #include "bro.bif.func_def"
+#include "logging.bif.func_def"
+#include "reporter.bif.func_def"
 #include "strings.bif.func_def"
 
 void init_builtin_funcs()
 	{
 	ftp_port = internal_type("ftp_port")->AsRecordType();
 	bro_resources = internal_type("bro_resources")->AsRecordType();
+	net_stats = internal_type("NetStats")->AsRecordType();
 	matcher_stats = internal_type("matcher_stats")->AsRecordType();
 	var_sizes = internal_type("var_sizes")->AsTableType();
 	gap_info = internal_type("gap_info")->AsRecordType();
 
 #include "bro.bif.func_init"
-
-#include "common-rw.bif.func_init"
-#include "finger-rw.bif.func_init"
-#include "ftp-rw.bif.func_init"
-#include "http-rw.bif.func_init"
-#include "ident-rw.bif.func_init"
-#include "smtp-rw.bif.func_init"
+#include "logging.bif.func_init"
+#include "reporter.bif.func_init"
 #include "strings.bif.func_init"
-#include "dns-rw.bif.func_init"
 
 	did_builtin_init = true;
 	}
 
 bool check_built_in_call(BuiltinFunc* f, CallExpr* call)
 	{
-	if ( f->TheFunc() != bro_fmt )
+	if ( f->TheFunc() != BifFunc::bro_fmt )
 		return true;
 
 	const expr_list& args = call->Args()->Exprs();

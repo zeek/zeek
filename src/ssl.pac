@@ -1,5 +1,3 @@
-# $Id:$
-
 # binpac file for SSL analyzer
 
 # split in three parts:
@@ -11,12 +9,20 @@
 %include bro.pac
 
 analyzer SSL withcontext {
-	analyzer : SSLAnalyzer;
-	flow : SSLFlow;
+	connection: SSL_Conn;
+	flow:       SSL_Flow;
 };
 
-
-%include ssl-defs.pac
+connection SSL_Conn(bro_analyzer: BroAnalyzer) {
+	upflow = SSL_Flow(true);
+	downflow = SSL_Flow(false);
+};
 
 %include ssl-protocol.pac
+
+flow SSL_Flow(is_orig: bool) {
+	flowunit = SSLPDU(is_orig) withcontext(connection, this);
+}
+
 %include ssl-analyzer.pac
+%include ssl-defs.pac

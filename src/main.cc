@@ -1,5 +1,3 @@
-// $Id: main.cc 6829 2009-07-09 09:12:59Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -8,6 +6,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
+#include <string.h>
+#include <list>
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
@@ -22,14 +22,14 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 
 #include "bsd-getopt-long.h"
 #include "input.h"
-#include "Active.h"
 #include "ScriptAnaly.h"
 #include "DNS_Mgr.h"
 #include "Frame.h"
 #include "Scope.h"
 #include "Event.h"
 #include "File.h"
-#include "Logger.h"
+#include "Reporter.h"
+#include "LogMgr.h"
 #include "Net.h"
 #include "NetVar.h"
 #include "Var.h"
@@ -46,8 +46,13 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "Stats.h"
 #include "ConnCompressor.h"
 #include "DPM.h"
+#include "BroDoc.h"
+#include "Brofiler.h"
+#include "LogWriterAscii.h"
 
 #include "binpac_bro.h"
+
+Brofiler brofiler;
 
 #ifndef HAVE_STRSEP
 extern "C" {
@@ -70,10 +75,8 @@ char* writefile = 0;
 name_list prefixes;
 DNS_Mgr* dns_mgr;
 TimerMgr* timer_mgr;
-Logger* bro_logger;
-Func* alarm_hook = 0;
+LogMgr* log_mgr;
 Stmt* stmts;
-EventHandlerPtr bro_signal = 0;
 EventHandlerPtr net_done = 0;
 RuleMatcher* rule_matcher = 0;
 PersistenceSerializer* persistence_serializer = 0;
@@ -90,15 +93,18 @@ DPM* dpm = 0;
 int optimize = 0;
 int do_notice_analysis = 0;
 int rule_bench = 0;
-int print_loaded_scripts = 0;
+int generate_documentation = 0;
 SecondaryPath* secondary_path = 0;
 ConnCompressor* conn_compressor = 0;
 extern char version[];
 char* command_line_policy = 0;
 vector<string> params;
 char* proc_status_file = 0;
+int snaplen = 0;	// this gets set from the scripting-layer's value
 
 int FLAGS_use_binpac = false;
+
+extern std::list<BroDoc*> docs_generated;
 
 // Keep copy of command line
 int bro_argc;
@@ -122,21 +128,26 @@ const char* bro_version()
 #endif
 	}
 
+const char* bro_dns_fake()
+	{
+	if ( ! getenv("BRO_DNS_FAKE") )
+		return "off";
+	else
+		return "on";
+	}
+
 void usage()
 	{
 	fprintf(stderr, "bro version %s\n", bro_version());
 	fprintf(stderr, "usage: %s [options] [file ...]\n", prog);
 	fprintf(stderr, "    <file>                         | policy file, or read stdin\n");
-#ifdef ACTIVE_MAPPING
-	fprintf(stderr, "    -a|--active-mapping <mapfile>  | use active mapping results\n");
-#endif
+	fprintf(stderr, "    -b|--bare-mode                 | don't load scripts from the base/ directory\n");
 	fprintf(stderr, "    -d|--debug-policy              | activate policy file debugging\n");
 	fprintf(stderr, "    -e|--exec <bro code>           | augment loaded policies by given code\n");
 	fprintf(stderr, "    -f|--filter <filter>           | tcpdump filter\n");
 	fprintf(stderr, "    -g|--dump-config               | dump current config into .state dir\n");
 	fprintf(stderr, "    -h|--help|-?                   | command line help\n");
 	fprintf(stderr, "    -i|--iface <interface>         | read from given interface\n");
-	fprintf(stderr, "    -l|--print-scripts             | print all loaded scripts\n");
 	fprintf(stderr, "    -p|--prefix <prefix>           | add given prefix to policy file resolution\n");
 	fprintf(stderr, "    -r|--readfile <readfile>       | read from given tcpdump file\n");
 	fprintf(stderr, "    -y|--flowfile <file>[=<ident>] | read from given flow file\n");
@@ -147,7 +158,6 @@ void usage()
 	fprintf(stderr, "    -v|--version                   | print version and exit\n");
 	fprintf(stderr, "    -x|--print-state <file.bst>    | print contents of state file\n");
 	fprintf(stderr, "    -z|--analyze <analysis>        | run the specified policy file analysis\n");
-	fprintf(stderr, "    -A|--transfile <writefile>     | write transformed trace to given tcpdump file\n");
 #ifdef DEBUG
 	fprintf(stderr, "    -B|--debug <dbgstreams>        | Enable debugging output for selected streams\n");
 #endif
@@ -164,6 +174,7 @@ void usage()
 	fprintf(stderr, "    -T|--re-level <level>          | set 'RE_level' for rules\n");
 	fprintf(stderr, "    -U|--status-file <file>        | Record process status in file\n");
 	fprintf(stderr, "    -W|--watchdog                  | activate watchdog timer\n");
+	fprintf(stderr, "    -Z|--doc-scripts               | generate documentation for all loaded scripts\n");
 
 #ifdef USE_PERFTOOLS
 	fprintf(stderr, "    -m|--mem-leaks                 | show leaks  [perftools]\n");
@@ -184,6 +195,10 @@ void usage()
 
 	fprintf(stderr, "    $BROPATH                       | file search path (%s)\n", bro_path());
 	fprintf(stderr, "    $BRO_PREFIXES                  | prefix list (%s)\n", bro_prefixes());
+	fprintf(stderr, "    $BRO_DNS_FAKE                  | disable DNS lookups (%s)\n", bro_dns_fake());
+	fprintf(stderr, "    $BRO_SEED_FILE                 | file to load seeds from (not set)\n");
+	fprintf(stderr, "    $BRO_LOG_SUFFIX                | ASCII log file extension (.%s)\n", LogWriterAscii::LogExt().c_str());
+	fprintf(stderr, "    $BRO_PROFILER_FILE             | Output file for script execution statistics (not set)\n");
 
 	exit(1);
 	}
@@ -219,6 +234,8 @@ void done_with_network()
 
 	dpm->Done();
 	timer_mgr->Expire();
+	dns_mgr->Flush();
+	mgr.Drain();
 	mgr.Drain();
 
 	if ( remote_serializer )
@@ -248,6 +265,8 @@ void terminate_bro()
 
 	terminating = true;
 
+	brofiler.WriteStats();
+
 	EventHandlerPtr bro_done = internal_handler("bro_done");
 	if ( bro_done )
 		mgr.QueueEvent(bro_done, new val_list);
@@ -269,7 +288,6 @@ void terminate_bro()
 		remote_serializer->LogStats();
 
 	delete timer_mgr;
-	delete bro_logger;
 	delete dns_mgr;
 	delete persistence_serializer;
 	delete event_player;
@@ -280,6 +298,8 @@ void terminate_bro()
 	delete conn_compressor;
 	delete remote_serializer;
 	delete dpm;
+	delete log_mgr;
+	delete reporter;
 	}
 
 void termination_signal()
@@ -287,7 +307,7 @@ void termination_signal()
 	set_processing_status("TERMINATING", "termination_signal");
 
 	Val sval(signal_val, TYPE_COUNT);
-	message("received termination signal");
+	reporter->Info("received termination signal");
 	net_get_final_stats();
 	done_with_network();
 	net_delete();
@@ -322,6 +342,8 @@ static void bro_new_handler()
 
 int main(int argc, char** argv)
 	{
+	brofiler.ReadStats();
+
 	bro_argc = argc;
 	bro_argv = new char* [argc];
 
@@ -333,12 +355,14 @@ int main(int argc, char** argv)
 	name_list netflows;
 	name_list flow_files;
 	name_list rule_files;
-	char* transformed_writefile = 0;
 	char* bst_file = 0;
 	char* id_name = 0;
 	char* events_file = 0;
-	char* seed_load_file = 0;
+	char* seed_load_file = getenv("BRO_SEED_FILE");
 	char* seed_save_file = 0;
+	char* user_pcap_filter = 0;
+	char* debug_streams = 0;
+	int bare_mode = false;
 	int seed = 0;
 	int dump_cfg = false;
 	int to_xml = 0;
@@ -348,13 +372,14 @@ int main(int argc, char** argv)
 	int RE_level = 4;
 
 	static struct option long_opts[] = {
+		{"bare-mode",	no_argument,		0,	'b'},
 		{"debug-policy",	no_argument,		0,	'd'},
 		{"dump-config",		no_argument,		0,	'g'},
 		{"exec",		required_argument,	0,	'e'},
 		{"filter",		required_argument,	0,	'f'},
 		{"help",		no_argument,		0,	'h'},
 		{"iface",		required_argument,	0,	'i'},
-		{"print-scripts",	no_argument,		0,	'l'},
+		{"doc-scripts",		no_argument,		0,	'Z'},
 		{"prefix",		required_argument,	0,	'p'},
 		{"readfile",		required_argument,	0,	'r'},
 		{"flowfile",		required_argument,	0,	'y'},
@@ -365,7 +390,6 @@ int main(int argc, char** argv)
 		{"version",		no_argument,		0,	'v'},
 		{"print-state",		required_argument,	0,	'x'},
 		{"analyze",		required_argument,	0,	'z'},
-		{"transfile",		required_argument,	0,	'A'},
 		{"no-checksums",	no_argument,		0,	'C'},
 		{"dfa-cache",		required_argument,	0,	'D'},
 		{"force-dns",		no_argument,		0,	'F'},
@@ -383,9 +407,6 @@ int main(int argc, char** argv)
 		{"print-id",		required_argument,	0,	'I'},
 		{"status-file",		required_argument,	0,	'U'},
 
-#ifdef	ACTIVE_MAPPING
-		{"active-mapping",	no_argument,		0,	'a'},
-#endif
 #ifdef	DEBUG
 		{"debug",		required_argument,	0,	'B'},
 #endif
@@ -412,7 +433,7 @@ int main(int argc, char** argv)
 
 	prog = argv[0];
 
-	prefixes.append("");	// "" = "no prefix"
+	prefixes.append(strdup(""));	// "" = "no prefix"
 
 	char* p = getenv("BRO_PREFIXES");
 	if ( p )
@@ -431,7 +452,7 @@ int main(int argc, char** argv)
 	opterr = 0;
 
 	char opts[256];
-	safe_strncpy(opts, "A:a:B:D:e:f:I:i:K:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGHLOPSWdghlv",
+	safe_strncpy(opts, "B:D:e:f:I:i:K:l:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGLOPSWbdghvZ",
 		     sizeof(opts));
 
 #ifdef USE_PERFTOOLS
@@ -441,14 +462,8 @@ int main(int argc, char** argv)
 	int op;
 	while ( (op = getopt_long(argc, argv, opts, long_opts, &long_optsind)) != EOF )
 		switch ( op ) {
-		case 'a':
-#ifdef ACTIVE_MAPPING
-			fprintf(stderr, "Using active mapping file %s.\n", optarg);
-			active_file = optarg;
-#else
-			fprintf(stderr, "Bro not compiled for active mapping.\n");
-			exit(1);
-#endif
+		case 'b':
+			bare_mode = true;
 			break;
 
 		case 'd':
@@ -470,10 +485,6 @@ int main(int argc, char** argv)
 
 		case 'i':
 			interfaces.append(optarg);
-			break;
-
-		case 'l':
-			print_loaded_scripts = 1;
 			break;
 
 		case 'p':
@@ -509,10 +520,6 @@ int main(int argc, char** argv)
 				fprintf(stderr, "Unknown analysis type: %s\n", optarg);
 				exit(1);
 				}
-			break;
-
-		case 'A':
-			transformed_writefile = optarg;
 			break;
 
 		case 'C':
@@ -624,6 +631,10 @@ int main(int argc, char** argv)
 			break;
 #endif
 
+		case 'Z':
+			generate_documentation = 1;
+			break;
+
 #ifdef USE_IDMEF
 		case 'n':
 			fprintf(stderr, "Using IDMEF XML DTD from %s\n", optarg);
@@ -632,9 +643,7 @@ int main(int argc, char** argv)
 #endif
 
 		case 'B':
-#ifdef DEBUG
-			debug_logger.EnableStreams(optarg);
-#endif
+			debug_streams = optarg;
 			break;
 
 		case 0:
@@ -652,8 +661,14 @@ int main(int argc, char** argv)
 	set_processing_status("INITIALIZING", "main");
 
 	bro_start_time = current_time(true);
+	reporter = new Reporter();
 
-	init_random_seed(seed, seed_load_file, seed_save_file);
+#ifdef DEBUG
+	if ( debug_streams )
+		debug_logger.EnableStreams(debug_streams);
+#endif
+
+	init_random_seed(seed, (seed_load_file && *seed_load_file ? seed_load_file : 0) , seed_save_file);
 	// DEBUG_MSG("HMAC key: %s\n", md5_digest_print(shared_hmac_md5_key));
 	init_hash_function();
 
@@ -666,7 +681,7 @@ int main(int argc, char** argv)
 	// seed the PRNG. We should do this here (but at least Linux, FreeBSD
 	// and Solaris provide /dev/urandom).
 
-	if ( (interfaces.length() > 0 || netflows.length() > 0) && 
+	if ( (interfaces.length() > 0 || netflows.length() > 0) &&
 	     (read_files.length() > 0 || flow_files.length() > 0 ))
 		usage();
 
@@ -681,10 +696,13 @@ int main(int argc, char** argv)
 	timer_mgr = new PQ_TimerMgr("<GLOBAL>");
 	// timer_mgr = new CQ_TimerMgr();
 
-	add_input_file("bro.init");
+	add_input_file("base/init-bare.bro");
+	if ( ! bare_mode )
+		add_input_file("base/init-default.bro");
 
 	if ( optind == argc &&
 	     read_files.length() == 0 && flow_files.length() == 0 &&
+	     interfaces.length() == 0 &&
 	     ! (id_name || bst_file) && ! command_line_policy )
 		add_input_file("-");
 
@@ -699,13 +717,6 @@ int main(int argc, char** argv)
 			add_input_file(argv[optind++]);
 		}
 
-	if ( ! load_mapping_table(active_file.c_str()) )
-		{
-		fprintf(stderr, "Could not load active mapping file %s\n",
-			active_file.c_str());
-		exit(1);
-		}
-
 	dns_mgr = new DNS_Mgr(dns_type);
 
 	// It would nice if this were configurable.  This is similar to the
@@ -715,7 +726,8 @@ int main(int argc, char** argv)
 
 	persistence_serializer = new PersistenceSerializer();
 	remote_serializer = new RemoteSerializer();
-	event_registry = new EventRegistry;
+	event_registry = new EventRegistry();
+	log_mgr = new LogMgr();
 
 	if ( events_file )
 		event_player = new EventPlayer(events_file);
@@ -744,13 +756,37 @@ int main(int argc, char** argv)
 	}
 #endif
 
-	if ( nerr > 0 )
+	if ( generate_documentation )
+		{
+		std::list<BroDoc*>::iterator it;
+
+		for ( it = docs_generated.begin(); it != docs_generated.end(); ++it )
+			(*it)->WriteDocFile();
+
+		for ( it = docs_generated.begin(); it != docs_generated.end(); ++it )
+			delete *it;
+
+		terminate_bro();
+		return 0;
+		}
+
+	if ( reporter->Errors() > 0 )
 		{
 		delete dns_mgr;
 		exit(1);
 		}
 
 	init_general_global_var();
+
+	if ( user_pcap_filter )
+		{
+		ID* id = global_scope()->Lookup("cmd_line_bpf_filter");
+
+		if ( ! id )
+			reporter->InternalError("global cmd_line_bpf_filter not defined");
+
+		id->SetVal(new StringVal(user_pcap_filter));
+		}
 
 	// Parse rule files defined on the script level.
 	char* script_rule_files =
@@ -783,12 +819,7 @@ int main(int argc, char** argv)
 		// ### Add support for debug command file.
 		dbg_init_debugger(0);
 
-	Val* bro_alarm_file = internal_val("bro_alarm_file");
-	bro_logger = new Logger("bro",
-			bro_alarm_file ?
-				bro_alarm_file->AsFile() : new BroFile(stderr));
-
-	if ( (flow_files.length() == 0 || read_files.length() == 0) && 
+	if ( (flow_files.length() == 0 || read_files.length() == 0) &&
 	     (netflows.length() == 0 || interfaces.length() == 0) )
 		{
 		Val* interfaces_val = internal_val("interfaces");
@@ -804,25 +835,18 @@ int main(int argc, char** argv)
 			}
 		}
 
+	snaplen = internal_val("snaplen")->AsCount();
+
 	// Initialize the secondary path, if it's needed.
 	secondary_path = new SecondaryPath();
 
 	if ( dns_type != DNS_PRIME )
 		net_init(interfaces, read_files, netflows, flow_files,
-			writefile, transformed_writefile,
-			user_pcap_filter ? user_pcap_filter : "tcp or udp",
+			writefile, "tcp or udp or icmp",
 			secondary_path->Filter(), do_watchdog);
-
-	if ( ! reading_traces )
-		// Only enable actual syslog'ing for live input.
-		bro_logger->SetEnabled(enable_syslog);
-	else
-		bro_logger->SetEnabled(0);
 
 	BroFile::SetDefaultRotation(log_rotate_interval, log_max_size);
 
-	alarm_hook = internal_func("alarm_hook");
-	bro_signal = internal_handler("bro_signal");
 	net_done = internal_handler("net_done");
 
 	if ( ! g_policy_debug )
@@ -842,10 +866,7 @@ int main(int argc, char** argv)
 		dns_mgr->Resolve();
 
 		if ( ! dns_mgr->Save() )
-			{
-			bro_logger->Log("**Can't update DNS cache");
-			exit(1);
-			}
+			reporter->FatalError("can't update DNS cache");
 
 		mgr.Drain();
 		delete dns_mgr;
@@ -869,14 +890,12 @@ int main(int argc, char** argv)
 			UnserialInfo info(&s);
 			info.print = stdout;
 			info.install_uniques = true;
-			s.Read(&info, bst_file);
+			if ( ! s.Read(&info, bst_file) )
+				reporter->Error("Failed to read events from %s\n", bst_file);
 			}
 
 		exit(0);
 		}
-
-	if ( using_communication )
-		remote_serializer->Init();
 
 	persistence_serializer->SetDir((const char *)state_dir->AsString()->CheckString());
 
@@ -887,10 +906,7 @@ int main(int argc, char** argv)
 
 		ID* id = global_scope()->Lookup(id_name);
 		if ( ! id )
-			{
-			fprintf(stderr, "No such ID: %s\n", id_name);
-			exit(1);
-			}
+			reporter->FatalError("No such ID: %s\n", id_name);
 
 		ODesc desc;
 		desc.SetQuotes(true);
@@ -932,9 +948,8 @@ int main(int argc, char** argv)
 
 	if ( dead_handlers->length() > 0 && check_for_unused_event_handlers )
 		{
-		warn("event handlers never invoked:");
 		for ( int i = 0; i < dead_handlers->length(); ++i )
-			warn("\t", (*dead_handlers)[i]);
+			reporter->Warning("event handler never invoked: %s", (*dead_handlers)[i]);
 		}
 
 	delete dead_handlers;
@@ -944,9 +959,9 @@ int main(int argc, char** argv)
 
 	if ( alive_handlers->length() > 0 && dump_used_event_handlers )
 		{
-		message("invoked event handlers:");
+		reporter->Info("invoked event handlers:");
 		for ( int i = 0; i < alive_handlers->length(); ++i )
-			message((*alive_handlers)[i]);
+			reporter->Info("%s", (*alive_handlers)[i]);
 		}
 
 	delete alive_handlers;
@@ -966,7 +981,21 @@ int main(int argc, char** argv)
 	if ( override_ignore_checksums )
 		ignore_checksums = 1;
 
+	// Queue events reporting loaded scripts.
+	for ( std::list<ScannedFile>::iterator i = files_scanned.begin(); i != files_scanned.end(); i++ )
+		{
+		if ( i->skipped )
+			continue;
+
+		val_list* vl = new val_list;
+		vl->append(new StringVal(i->name.c_str()));
+		vl->append(new Val(i->include_level, TYPE_COUNT));
+		mgr.QueueEvent(bro_script_loaded, vl);
+		}
+
 	dpm->PostScriptInit();
+
+	reporter->ReportViaEvents(true);
 
 	mgr.Drain();
 
@@ -988,6 +1017,7 @@ int main(int argc, char** argv)
 			}
 
 #endif
+
 		net_run();
 		done_with_network();
 		net_delete();

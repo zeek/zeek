@@ -1,0 +1,30 @@
+# @TEST-EXEC: bro %INPUT >output
+# @TEST-EXEC: btest-diff output
+
+# This is loaded by default.
+#@load base/utils/strings
+
+function test_binary_string(s: string)
+	{
+	if ( is_string_binary(s) )
+		print fmt("'%s' IS considered binary", s);
+	else
+		print fmt("'%s' is NOT considered binary", s);
+	}
+
+test_binary_string("\x68\x65\x6C\x6C\x6F");
+test_binary_string("\xFF\xFF\xFF\x00");
+test_binary_string("\x00\x00\xFF\x00");
+test_binary_string("\x00\x00\x00\x00");
+
+print join_string_set(set("one", "two", "three"), ", ");
+print join_string_set(set("one"), ", ");
+
+print string_escape("hello world", "od");
+print string_escape("\\hello world\\", "");
+
+print cut_tail("hello world", 0);
+print cut_tail("hello world", 1);
+print cut_tail("hello world", 6);
+print cut_tail("hello world", 11);
+print cut_tail("hello world", 12);

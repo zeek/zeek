@@ -1,5 +1,3 @@
-// $Id: Expr.h 6916 2009-09-24 20:48:36Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef expr_h
@@ -40,7 +38,10 @@ typedef enum {
 	EXPR_CALL,
 	EXPR_EVENT,
 	EXPR_SCHEDULE,
-	EXPR_ARITH_COERCE, EXPR_RECORD_COERCE, EXPR_TABLE_COERCE,
+	EXPR_ARITH_COERCE,
+	EXPR_RECORD_COERCE,
+	EXPR_TABLE_COERCE,
+	EXPR_VECTOR_COERCE,
 	EXPR_SIZE,
 	EXPR_FLATTEN,
 #define NUM_EXPRS (int(EXPR_FLATTEN) + 1)
@@ -214,7 +215,6 @@ protected:
 	friend class Expr;
 	NameExpr()	{ id = 0; }
 
-	void ReferenceID();
 	void ExprDescribe(ODesc* d) const;
 
 	DECLARE_SERIAL(NameExpr);
@@ -623,7 +623,7 @@ class AssignExpr : public BinaryExpr {
 public:
 	// If val is given, evaluating this expression will always yield the val
 	// yet still perform the assignment.  Used for triggers.
-	AssignExpr(Expr* op1, Expr* op2, int is_init, Val* val = 0);
+	AssignExpr(Expr* op1, Expr* op2, int is_init, Val* val = 0, attr_list* attrs = 0);
 	virtual ~AssignExpr()	{ Unref(val); }
 
 	Expr* Simplify(SimplifyType simp_type);
@@ -638,7 +638,7 @@ protected:
 	friend class Expr;
 	AssignExpr()	{ }
 
-	bool TypeCheck();
+	bool TypeCheck(attr_list* attrs = 0);
 	bool TypeCheckArithmetics(TypeTag bt1, TypeTag bt2);
 
 	DECLARE_SERIAL(AssignExpr);
@@ -685,8 +685,11 @@ public:
 
 	int Field() const	{ return field; }
 
+	int CanDel() const;
+
 	Expr* Simplify(SimplifyType simp_type);
 	void Assign(Frame* f, Val* v, Opcode op = OP_ASSIGN);
+	void Delete(Frame* f);
 
 	Expr* MakeLvalue();
 
@@ -709,7 +712,7 @@ protected:
 // "rec?$$attrname" is true if the attribute attrname is not nil.
 class HasFieldExpr : public UnaryExpr {
 public:
-	HasFieldExpr(Expr* op, const char* field_name, bool is_attr);
+	HasFieldExpr(Expr* op, const char* field_name);
 	~HasFieldExpr();
 
 protected:
@@ -893,6 +896,20 @@ protected:
 	Val* Fold(Val* v) const;
 
 	DECLARE_SERIAL(TableCoerceExpr);
+};
+
+class VectorCoerceExpr : public UnaryExpr {
+public:
+	VectorCoerceExpr(Expr* op, VectorType* v);
+	~VectorCoerceExpr();
+
+protected:
+	friend class Expr;
+	VectorCoerceExpr()	{ }
+
+	Val* Fold(Val* v) const;
+
+	DECLARE_SERIAL(VectorCoerceExpr);
 };
 
 // An internal operator for flattening array indices that are records

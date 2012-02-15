@@ -1,0 +1,29 @@
+# @TEST-EXEC: bro %INPUT >output
+# @TEST-EXEC: btest-diff output
+
+# This is loaded by default.
+#@load base/utils/thresholds
+
+redef default_notice_thresholds = { 2, 4, 6, 8, 10 };
+const my_thresholds: vector of count = { 2, 4, 6, 8, 10 };
+const loop_v: vector of count = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+global track_count: TrackCount;
+
+for ( i in loop_v )
+	{
+	print fmt("Iteration: %s, threshold check: %s", i,
+	          check_threshold(my_thresholds, track_count));
+	print track_count;
+	++track_count$n;
+	}
+
+track_count$n = 0; track_count$index = 0;
+
+print "====================================";
+for ( i in loop_v )
+	{
+	print fmt("Iteration: %s, threshold check: %s", i,
+	          default_check_threshold(track_count));
+	print track_count;
+	++track_count$n;
+	}

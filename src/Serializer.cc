@@ -1103,9 +1103,9 @@ void EventPlayer::Process()
 void Packet::Describe(ODesc* d) const
 	{
 	const IP_Hdr ip = IP();
-	d->Add(string(ip.SrcAddr()).c_str());
+	d->Add(ip.SrcAddr());
 	d->Add("->");
-	d->Add(string(ip.DstAddr()).c_str());
+	d->Add(ip.DstAddr());
 	}
 
 bool Packet::Serialize(SerialInfo* info) const

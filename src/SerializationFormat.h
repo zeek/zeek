@@ -28,6 +28,8 @@ public:
 	virtual bool Read(bool* v, const char* tag) = 0;
 	virtual bool Read(double* d, const char* tag) = 0;
 	virtual bool Read(string* s, const char* tag) = 0;
+	virtual bool Read(IPAddr* addr, const char* tag) = 0;
+	virtual bool Read(IPPrefix* prefix, const char* tag) = 0;
 
 	// Returns number of raw bytes read since last call to StartRead().
 	int BytesRead() const	{ return bytes_read; }
@@ -50,6 +52,8 @@ public:
 	virtual bool Write(const char* s, const char* tag) = 0;
 	virtual bool Write(const char* buf, int len, const char* tag) = 0;
 	virtual bool Write(const string& s, const char* tag) = 0;
+	virtual bool Write(const IPAddr& addr, const char* tag) = 0;
+	virtual bool Write(const IPPrefix& prefix, const char* tag) = 0;
 
 	virtual bool WriteOpenTag(const char* tag) = 0;
 	virtual bool WriteCloseTag(const char* tag) = 0;

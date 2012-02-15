@@ -35,9 +35,9 @@ TCP_Endpoint::TCP_Endpoint(TCP_Analyzer* arg_analyzer, int arg_is_orig)
 	const uint32* src_bytes;
 	const uint32* dst_bytes;
 	int n = src_addr.GetBytes(&src_bytes);
-	dst_addr.GetBytes(&dst_bytes);
+	int m = dst_addr.GetBytes(&dst_bytes);
 	checksum_base = ones_complement_checksum((void*) src_bytes, n*4, 0);
-	checksum_base = ones_complement_checksum((void*) dst_bytes, n*4, checksum_base);
+	checksum_base = ones_complement_checksum((void*) dst_bytes, m*4, checksum_base);
 	// Note, for IPv6, strictly speaking this field is 32 bits
 	// rather than 16 bits.  But because the upper bits are all zero,
 	// we get the same checksum either way.  The same applies to

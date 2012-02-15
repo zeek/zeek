@@ -157,6 +157,18 @@ void ODesc::Add(double d)
 		}
 	}
 
+void ODesc::Add(const IPAddr& addr)
+	{
+	string s = addr->AsString();
+	AddBytes(s.c_str());
+	}
+
+void ODesc::Add(const IPPrefix& prefix)
+	{
+	string s = prefix->AsString();
+	AddBytes(s.c_str());
+	}
+
 void ODesc::AddCS(const char* s)
 	{
 	int n = strlen(s);

@@ -199,28 +199,21 @@ bool LogVal::Read(SerializationFormat* fmt)
 
 	case TYPE_SUBNET:
 		{
-		uint32 net[5];
-		if ( ! (fmt->Read(&net[0], "net0") &&
-			fmt->Read(&net[1], "net1") &&
-			fmt->Read(&net[2], "net2") &&
-			fmt->Read(&net[3], "net3") &&
-			fmt->Read(&net[4], "width")) )
+		IPPrefix prefix;
+		if ( ! fmt->Read(&prefix), "subnet" )
 			return false;
-		val.subnet_val = new IPPrefix(IPAddr(IPAddr::IPv6, net,
-		                              IPAddr::Network), net[4]);
+
+		val.subnet_val = new IPPrefix(prefix);
 		return true;
 		}
 
 	case TYPE_ADDR:
 		{
-		uint32 addr[4];
-		if ( ! (fmt->Read(&addr[0], "addr0") &&
-			fmt->Read(&addr[1], "addr1") &&
-			fmt->Read(&addr[2], "addr2") &&
-			fmt->Read(&addr[3], "addr3")) )
+		IPAddr addr;
+		if ( ! fmt->Read(&addr), "net" )
 			return false;
 
-		val.addr_val = new IPAddr(IPAddr::IPv6, addr, IPAddr::Network);
+		val.addr_val = new IPAddr(prefix);
 		return true;
 		}
 
@@ -301,25 +294,11 @@ bool LogVal::Write(SerializationFormat* fmt) const
 		return fmt->Write(val.uint_val, "uint");
 
 	case TYPE_SUBNET:
-		{
-		uint32 net[4];
-		val.subnet_val->Prefix().CopyIPv6(net);
-		return fmt->Write(net[0], "net0") &&
-			fmt->Write(net[1], "net1") &&
-			fmt->Write(net[2], "net2") &&
-			fmt->Write(net[3], "net3") &&
-			fmt->Write((uint32)val.subnet_val->Length(), "width");
-		}
+		return fmt->Write(*val.subnet_val, "subnet");
+
 
 	case TYPE_ADDR:
-		{
-		uint32 addr[4];
-		val.addr_val->CopyIPv6(addr);
-		return fmt->Write(addr[0], "addr0") &&
-			fmt->Write(addr[1], "addr1") &&
-			fmt->Write(addr[2], "addr2") &&
-			fmt->Write(addr[3], "addr3");
-		}
+		return fmt->Write(*val.addr_val, "addr");
 
 	case TYPE_DOUBLE:
 	case TYPE_TIME:
@@ -1086,12 +1065,12 @@ LogVal* LogMgr::ValToLogVal(Val* val, BroType* ty)
 		break;
 
 	case TYPE_SUBNET:
-		lval->val.subnet_val = new IPPrefix(*val->AsSubNet());
+		lval->val.subnet_val = new IPPrefix(val->AsSubNet());
 		break;
 
 	case TYPE_ADDR:
 		{
-		lval->val.addr_val = new IPAddr(*val->AsAddr());
+		lval->val.addr_val = new IPAddr(val->AsAddr());
 		break;
 		}
 

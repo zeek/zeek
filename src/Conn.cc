@@ -751,14 +751,14 @@ void Connection::Describe(ODesc* d) const
 		}
 
 	d->SP();
-	d->Add(string(orig_addr).c_str());
+	d->Add(orig_addr);
 	d->Add(":");
 	d->Add(ntohs(orig_port));
 
 	d->SP();
 	d->AddSP("->");
 
-	d->Add(string(resp_addr).c_str());
+	d->Add(resp_addr);
 	d->Add(":");
 	d->Add(ntohs(resp_port));
 
@@ -781,13 +781,8 @@ bool Connection::DoSerialize(SerialInfo* info) const
 
 	// First we write the members which are needed to
 	// create the HashKey.
-	uint32 orig_a[4];
-	uint32 resp_a[4];
-	orig_addr.CopyIPv6(orig_a);
-	resp_addr.CopyIPv6(resp_a);
-	for ( int j = 0; j < 4; ++j )
-		if ( ! SERIALIZE(orig_a[j]) || ! SERIALIZE(resp_a[j]) )
-			return false;
+	if ( ! SERIALIZE(orig_addr) || ! SERIALIZE(resp_addr) )
+		return false;
 
 	if ( ! SERIALIZE(orig_port) || ! SERIALIZE(resp_port) )
 		return false;
@@ -834,14 +829,9 @@ bool Connection::DoUnserialize(UnserialInfo* info)
 	// Build the hash key first. Some of the recursive *::Unserialize()
 	// functions may need it.
 	ConnID id;
-	uint32 orig_a[4];
-	uint32 resp_a[4];
-	for ( int i = 0; i < 4; ++i )
-		if ( ! UNSERIALIZE(&orig_a[i]) || ! UNSERIALIZE(&resp_a[i]) )
-			goto error;
 
-	orig_addr = IPAddr(IPAddr::IPv6, orig_a, IPAddr::Network);
-	resp_addr = IPAddr(IPAddr::IPv6, resp_a, IPAddr::Network);
+	if ( ! UNSERIALIZE(&orig_addr) || ! UNSERIALIZE(&resp_addr) )
+		goto error;
 
 	if ( ! UNSERIALIZE(&orig_port) || ! UNSERIALIZE(&resp_port) )
 		goto error;

@@ -727,7 +727,9 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 		{
 		const uint32* const kp = AlignType<uint32>(kp0);
 		kp1 = reinterpret_cast<const char*>(kp+4);
+
 		IPAddr addr(IPAddr::IPv6, kp, IPAddr::Network);
+
 		switch ( tag ) {
 		case TYPE_ADDR:
 			pval = new AddrVal(addr);

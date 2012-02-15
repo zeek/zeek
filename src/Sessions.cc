@@ -287,6 +287,7 @@ void NetSessions::NextPacket(double t, const struct pcap_pkthdr* hdr,
 			IP_Hdr ip_hdr((const struct ip6_hdr*) (pkt + hdr_size));
 			DoNextPacket(t, hdr, &ip_hdr, pkt, hdr_size);
 			}
+
 		else
 			{
 			Weird("unknown_packet_type", hdr, pkt);
@@ -604,8 +605,8 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 	int record_packet = 1;	// whether to record the packet at all
 	int record_content = 1;	// whether to record its data
 
-	int is_orig = id.src_addr == conn->OrigAddr() &&
-			id.src_port == conn->OrigPort();
+	int is_orig = (id.src_addr == conn->OrigAddr()) &&
+			(id.src_port == conn->OrigPort());
 
 	if ( new_packet && ip4 )
 		conn->Event(new_packet, 0, BuildHeader(ip4));
@@ -811,16 +812,16 @@ Connection* NetSessions::FindConnection(Val* v)
 		// types, too.
 		}
 
-	IPAddr* orig_addr = (*vl)[orig_h]->AsAddr();
-	IPAddr* resp_addr = (*vl)[resp_h]->AsAddr();
+	const IPAddr& orig_addr = (*vl)[orig_h]->AsAddr();
+	const IPAddr& resp_addr = (*vl)[resp_h]->AsAddr();
 
 	PortVal* orig_portv = (*vl)[orig_p]->AsPortVal();
 	PortVal* resp_portv = (*vl)[resp_p]->AsPortVal();
 
 	ConnID id;
 
-	id.src_addr = *orig_addr;
-	id.dst_addr = *resp_addr;
+	id.src_addr = orig_addr;
+	id.dst_addr = resp_addr;
 
 	id.src_port = htons((unsigned short) orig_portv->Port());
 	id.dst_port = htons((unsigned short) resp_portv->Port());

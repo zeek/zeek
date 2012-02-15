@@ -139,6 +139,7 @@ bool is_mapped_dce_rpc_endpoint(const ConnID* id, TransportProto proto)
 	{
 	if ( id->dst_addr.family() == IPAddr::IPv6 )
 		return false;
+
 	dce_rpc_endpoint_addr addr;
 	addr.addr = id->dst_addr;
 	addr.port = ntohs(id->dst_port);

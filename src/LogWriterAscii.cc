@@ -166,11 +166,11 @@ bool LogWriterAscii::DoWriteOne(ODesc* desc, LogVal* val, const LogField* field)
 		break;
 
 	case TYPE_SUBNET:
-		desc->Add(string(*val->val.subnet_val).c_str());
+		desc->Add(*val->val.subnet_val);
 		break;
 
 	case TYPE_ADDR:
-		desc->Add(string(*val->val.addr_val).c_str());
+		desc->Add(*val->val.addr_val);
 		break;
 
 	case TYPE_TIME:

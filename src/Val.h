@@ -227,10 +227,10 @@ public:
 	CONST_ACCESSOR(TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
 	CONST_ACCESSOR(TYPE_VECTOR, vector<Val*>*, vector_val, AsVector)
 
-	const IPPrefix* AsSubNet() const
+	const IPPrefix& AsSubNet() const
 		{
 		CHECK_TAG(type->Tag(), TYPE_SUBNET, "Val::SubNet", type_name)
-		return val.subnet_val;
+		return *val.subnet_val;
 		}
 
 	BroType* AsType() const
@@ -239,11 +239,11 @@ public:
 		return type;
 		}
 
-	const IPAddr* AsAddr() const
+	const IPAddr& AsAddr() const
 		{
 		if ( type->Tag() != TYPE_ADDR )
 			BadTag("Val::AsAddr", type_name(type->Tag()));
-		return val.addr_val;
+		return *val.addr_val;
 		}
 
 #define ACCESSOR(tag, ctype, accessor, name) \
@@ -562,8 +562,10 @@ public:
 	Val* SizeVal() const;
 
 	// Constructor for address already in network order.
+#if 0
 	AddrVal(uint32 addr);
 	AddrVal(const uint32* addr);
+#endif
 	AddrVal(const IPAddr& addr);
 
 	unsigned int MemoryAllocation() const;
@@ -581,8 +583,10 @@ class SubNetVal : public Val {
 public:
 	SubNetVal(const char* text);
 	SubNetVal(const char* text, int width);
+#if 0
 	SubNetVal(uint32 addr, int width);
 	SubNetVal(const uint32* addr, int width);
+#endif
 	SubNetVal(const IPAddr& addr, int width);
 	~SubNetVal();
 
@@ -590,10 +594,12 @@ public:
 
 	const IPAddr& Prefix() const { return val.subnet_val->Prefix(); }
 	int Width() const	{ return val.subnet_val->Length(); }
+#if 0
 	IPAddr Mask() const;
-
 	bool Contains(const uint32 addr) const;
 	bool Contains(const uint32* addr) const;
+#endif
+
 	bool Contains(const IPAddr& addr) const;
 
 	unsigned int MemoryAllocation() const;

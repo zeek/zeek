@@ -34,7 +34,7 @@ protected:
 const char* uuid_to_string(const u_char* uuid_data);
 
 struct dce_rpc_endpoint_addr {
-	// All fields except addr are in host byteorder.
+	// All fields are in host byteorder.
 	IPAddr addr;
 	u_short port;
 	TransportProto proto;
@@ -65,7 +65,7 @@ struct dce_rpc_endpoint_addr {
 		{
 		static char buf[128];
 		snprintf(buf, sizeof(buf), "%s/%d/%s",
-			string(addr).c_str(), port,
+			addr->AsString().c_str(), port,
 			proto == TRANSPORT_TCP ? "tcp" :
 			(proto == TRANSPORT_UDP ? "udp" : "?"));
 

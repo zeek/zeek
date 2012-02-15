@@ -42,12 +42,12 @@ void* PrefixTable::Insert(const Val* value, void* data)
 
 	switch ( value->Type()->Tag() ) {
 	case TYPE_ADDR:
-		return Insert(*value->AsAddr(), 128, data);
+		return Insert(value->AsAddr(), 128, data);
 		break;
 
 	case TYPE_SUBNET:
-		return Insert(value->AsSubNet()->Prefix(),
-				value->AsSubNet()->LengthIPv6(), data);
+		return Insert(value->AsSubNet().Prefix(),
+				value->AsSubNet().LengthIPv6(), data);
 		break;
 
 	default:
@@ -76,12 +76,12 @@ void* PrefixTable::Lookup(const Val* value, bool exact) const
 
 	switch ( value->Type()->Tag() ) {
 	case TYPE_ADDR:
-		return Lookup(*value->AsAddr(), 128, exact);
+		return Lookup(value->AsAddr(), 128, exact);
 		break;
 
 	case TYPE_SUBNET:
-		return Lookup(value->AsSubNet()->Prefix(),
-				value->AsSubNet()->LengthIPv6(), exact);
+		return Lookup(value->AsSubNet().Prefix(),
+				value->AsSubNet().LengthIPv6(), exact);
 		break;
 
 	default:
@@ -115,12 +115,12 @@ void* PrefixTable::Remove(const Val* value)
 
 	switch ( value->Type()->Tag() ) {
 	case TYPE_ADDR:
-		return Remove(*value->AsAddr(), 128);
+		return Remove(value->AsAddr(), 128);
 		break;
 
 	case TYPE_SUBNET:
-		return Remove(value->AsSubNet()->Prefix(),
-				value->AsSubNet()->LengthIPv6());
+		return Remove(value->AsSubNet().Prefix(),
+				value->AsSubNet().LengthIPv6());
 		break;
 
 	default:

@@ -230,6 +230,28 @@ bool BinarySerializationFormat::Read(string* v, const char* tag)
 	return true;
 	}
 
+bool BinarySerializationFormat::Read(IPAddr* addr, const char* tag)
+	{
+	string s;
+	if ( ! Read(&s, tag) )
+		return false;
+
+	*addr = IPAddr(s);
+	return true;
+	}
+
+bool BinarySerializationFormat::Read(IPPrefix* prefix, const char* tag)
+	{
+	string s;
+	int len;
+
+	if ( ! (Read(&s, tag) && Read(&len, tag)) )
+		return false;
+
+	*prefix = IPPrefix(IPAddr(s), len);
+	return true;
+	}
+
 bool BinarySerializationFormat::Write(char v, const char* tag)
 	{
 	DBG_LOG(DBG_SERIAL, "Write char %s [%s]", fmt_bytes(&v, 1), tag);
@@ -297,6 +319,16 @@ bool BinarySerializationFormat::Write(const char* s, const char* tag)
 bool BinarySerializationFormat::Write(const string& s, const char* tag)
 	{
 	return Write(s.data(), s.size(), tag);
+	}
+
+bool BinarySerializationFormat::Write(const IPAddr& addr, const char* tag)
+	{
+	return Write(addr.AsString());
+	}
+
+bool BinarySerializationFormat::Write(const IPPrefix& prefix, const char* tag)
+	{
+	return Write(addr.AsString(), tag) && Write(prefix->Length(), tag);
 	}
 
 bool BinarySerializationFormat::WriteOpenTag(const char* tag)

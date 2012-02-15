@@ -75,7 +75,6 @@ public:
 	void Weird(const char* name);	// Raises net_weird().
 	void Weird(Connection* conn, const char* name, const char* addl = "");	// Raises conn_weird().
 	void Weird(Val* conn_val, const char* name, const char* addl = "");	// Raises conn_weird().
-	void Weird(const uint32* orig, const uint32* resp, const char* name);	// Raises flow_weird().
 	void Weird(const IPAddr& orig, const IPAddr& resp, const char* name);	// Raises flow_weird().
 
 	// Syslog a message. This methods does nothing if we're running
@@ -123,7 +122,6 @@ private:
 	// The order if addl, name needs to be like that since fmt_name can
 	// contain format specifiers
 	void WeirdHelper(EventHandlerPtr event, Val* conn_val, const char* addl, const char* fmt_name, ...);
-	void WeirdFlowHelper(const uint32* orig, const uint32* resp, const char* fmt_name, ...);
 	void WeirdFlowHelper(const IPAddr& orig, const IPAddr& resp, const char* fmt_name, ...);
 
 	int errors;

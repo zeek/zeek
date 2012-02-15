@@ -205,31 +205,10 @@ bool Val::DoSerialize(SerialInfo* info) const
 				val.string_val->Len());
 
 	case TYPE_INTERNAL_ADDR:
-		{
-		const uint32* addrp;
-		int words = val.addr_val->GetBytes(&addrp);
-		if ( ! SERIALIZE(words) )
-			return false;
-		for ( int i = 0; i < words; ++i )
-			if ( ! SERIALIZE(ntohl(addrp[i])) )
-				return false;
-		return true;
-		}
+		return SERIALIZE(*val.addr_val);
 
 	case TYPE_INTERNAL_SUBNET:
-		{
-		const uint32* addrp;
-		int words = val.subnet_val->Prefix().GetBytes(&addrp);
-		if ( ! (info->s->WriteOpenTag("subnet") && SERIALIZE(words)) )
-			return false;
-		for ( int i = 0; i < words; ++i )
-			if ( ! SERIALIZE(ntohl(addrp[i])) )
-				return false;
-		if ( ! (SERIALIZE(val.subnet_val->Length()) &&
-				info->s->WriteCloseTag("subnet")) )
-			return false;
-		return true;
-		}
+		return SERIALIZE(*val.subnet_val);
 
 	case TYPE_INTERNAL_OTHER:
 		// Derived classes are responsible for this.
@@ -296,71 +275,15 @@ bool Val::DoUnserialize(UnserialInfo* info)
 
 	case TYPE_INTERNAL_ADDR:
 		{
-		int num_words;
-		if ( ! UNSERIALIZE(&num_words) )
-			return false;
-
-		if ( num_words != 1 && num_words != 4 )
-			{
-			info->s->Error("bad address type");
-			return false;
-			}
-
-		uint32 a[4];	// big enough to hold either
-
-		for ( int i = 0; i < num_words; ++i )
-			{
-			if ( ! UNSERIALIZE(&a[i]) )
-				return false;
-
-			a[i] = htonl(a[i]);
-			}
-
-		if ( num_words == 1)
-			val.addr_val = new IPAddr(IPAddr::IPv4, a, IPAddr::Network);
-		else
-			val.addr_val = new IPAddr(IPAddr::IPv6, a, IPAddr::Network);
+		val.addr_val = new IPAddr();
+		return UNSERIALIZE(val.addr_val);
 		}
-		return true;
 
 	case TYPE_INTERNAL_SUBNET:
 		{
-		int num_words;
-		if ( ! UNSERIALIZE(&num_words) )
-			return false;
-
-		if ( num_words != 1 && num_words != 4 )
-			{
-			info->s->Error("bad subnet type");
-			return false;
-			}
-
-		uint32 a[4];	// big enough to hold either
-
-		for ( int i = 0; i < num_words; ++i )
-			{
-			if ( ! UNSERIALIZE(&a[i]) )
-				return false;
-
-			a[i] = htonl(a[i]);
-			}
-
-		int width;
-		if ( ! UNSERIALIZE(&width) )
-			return false;
-
-		if ( num_words == 1 )
-			{
-			IPAddr tmp(IPAddr::IPv4, a, IPAddr::Network);
-			val.subnet_val = new IPPrefix(tmp, width);
-			}
-		else
-			{
-			IPAddr tmp(IPAddr::IPv6, a, IPAddr::Network);
-			val.subnet_val = new IPPrefix(tmp, width);
-			}
+		val.subnet_val = new IPPrefix();
+		return UNSERIALIZE(val.subnet_val);
 		}
-		return true;
 
 	case TYPE_INTERNAL_OTHER:
 		// Derived classes are responsible for this.
@@ -569,10 +492,10 @@ void Val::ValDescribe(ODesc* d) const
 	case TYPE_INTERNAL_UNSIGNED:	d->Add(val.uint_val); break;
 	case TYPE_INTERNAL_DOUBLE:	d->Add(val.double_val); break;
 	case TYPE_INTERNAL_STRING:	d->AddBytes(val.string_val); break;
-	case TYPE_INTERNAL_ADDR:	d->Add(string(*val.addr_val).c_str()); break;
+	case TYPE_INTERNAL_ADDR:	d->Add(val.addr_val->AsString().c_str()); break;
 
 	case TYPE_INTERNAL_SUBNET:
-		d->Add(string(*val.subnet_val).c_str());
+		d->Add(val.subnet_val->AsString().c_str());
 		break;
 
 	case TYPE_INTERNAL_ERROR:	d->AddCS("error"); break;
@@ -683,7 +606,7 @@ ID* MutableVal::Bind() const
 			ip = htonl(0x7f000001);	// 127.0.0.1
 
 		safe_snprintf(name, MAX_NAME_SIZE, "#%s#%d#",
-		          string(IPAddr(IPAddr::IPv4, &ip, IPAddr::Network)).c_str(),
+			      IPAddr(IPAddr::IPv4, &ip, IPAddr::Network)->AsString().c_str(),
 			      getpid());
 #else
 		safe_snprintf(name, MAX_NAME_SIZE, "#%s#%d#", host, getpid());
@@ -935,9 +858,10 @@ bool PortVal::DoUnserialize(UnserialInfo* info)
 
 AddrVal::AddrVal(const char* text) : Val(TYPE_ADDR)
 	{
-	val.addr_val = new IPAddr(string(text));
+	val.addr_val = new IPAddr(text);
 	}
 
+#if 0
 AddrVal::AddrVal(uint32 addr) : Val(TYPE_ADDR)
 	{
 	// ### perhaps do gethostbyaddr here?
@@ -948,6 +872,7 @@ AddrVal::AddrVal(const uint32* addr) : Val(TYPE_ADDR)
 	{
 	val.addr_val = new IPAddr(IPAddr::IPv6, addr, IPAddr::Network);
 	}
+#endif
 
 AddrVal::AddrVal(const IPAddr& addr) : Val(TYPE_ADDR)
 	{
@@ -991,6 +916,7 @@ SubNetVal::SubNetVal(const char* text) : Val(TYPE_SUBNET)
 	const char* sep = strchr(text, '/');
 	if ( ! sep )
 		Internal("separator missing in SubNetVal::SubNetVal");
+
 	val.subnet_val = new IPPrefix(text, atoi(sep+1));
 	}
 
@@ -999,6 +925,7 @@ SubNetVal::SubNetVal(const char* text, int width) : Val(TYPE_SUBNET)
 	val.subnet_val = new IPPrefix(text, width);
 	}
 
+#if 0
 SubNetVal::SubNetVal(uint32 addr, int width) : Val(TYPE_SUBNET)
 	{
 	IPAddr a(IPAddr::IPv4, &addr, IPAddr::Network);
@@ -1010,6 +937,7 @@ SubNetVal::SubNetVal(const uint32* addr, int width) : Val(TYPE_SUBNET)
 	IPAddr a(IPAddr::IPv6, addr, IPAddr::Network);
 	val.subnet_val = new IPPrefix(a, width);
 	}
+#endif
 
 SubNetVal::SubNetVal(const IPAddr& addr, int width) : Val(TYPE_SUBNET)
 	{
@@ -1037,6 +965,7 @@ void SubNetVal::ValDescribe(ODesc* d) const
 	d->Add(string(*val.subnet_val).c_str());
 	}
 
+#if 0
 IPAddr SubNetVal::Mask() const
 	{
 	if ( val.subnet_val->Length() == 0 )
@@ -1069,22 +998,20 @@ IPAddr SubNetVal::Mask() const
 bool SubNetVal::Contains(const uint32 addr) const
 	{
 	IPAddr a(IPAddr::IPv4, &addr, IPAddr::Network);
-	a.Mask(val.subnet_val->Length());
-	return a == val.subnet_val->Prefix();
+	return val.subnet_val->Contains(a);
 	}
 
 bool SubNetVal::Contains(const uint32* addr) const
 	{
 	IPAddr a(IPAddr::IPv6, addr, IPAddr::Network);
-	a.Mask(val.subnet_val->Length());
-	return a == val.subnet_val->Prefix();
+	return val.subnet_val->Contains(a);
 	}
+#endif
 
 bool SubNetVal::Contains(const IPAddr& addr) const
 	{
 	IPAddr a(addr);
-	a.Mask(val.subnet_val->Length());
-	return a == val.subnet_val->Prefix();
+	return val.subnet_val->Contains(a);
 	}
 
 IMPLEMENT_SERIAL(SubNetVal, SER_SUBNET_VAL);
@@ -3300,9 +3227,9 @@ int same_atomic_val(const Val* v1, const Val* v2)
 	case TYPE_INTERNAL_STRING:
 		return Bstr_eq(v1->AsString(), v2->AsString());
 	case TYPE_INTERNAL_ADDR:
-		return *v1->AsAddr() == *v2->AsAddr();
+		return v1->AsAddr() == v2->AsAddr();
 	case TYPE_INTERNAL_SUBNET:
-		return *v1->AsSubNet() == *v2->AsSubNet();
+		return v1->AsSubNet() == v2->AsSubNet();
 
 	default:
 		reporter->InternalError("same_atomic_val called for non-atomic value");

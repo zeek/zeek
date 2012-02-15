@@ -837,8 +837,8 @@ Val* BinaryExpr::AddrFold(Val* v1, Val* v2) const
 	{
 	uint32 a1[4];
 	uint32 a2[4];
-	v1->AsAddr()->CopyIPv6(a1);
-	v2->AsAddr()->CopyIPv6(a2);
+	v1->AsAddr().CopyIPv6(a1);
+	v2->AsAddr().CopyIPv6(a2);
 	int result = 0;
 
 	switch ( tag ) {
@@ -861,10 +861,10 @@ Val* BinaryExpr::AddrFold(Val* v1, Val* v2) const
 
 Val* BinaryExpr::SubNetFold(Val* v1, Val* v2) const
 	{
-	const IPPrefix* n1 = v1->AsSubNet();
-	const IPPrefix* n2 = v2->AsSubNet();
+	const IPPrefix& n1 = v1->AsSubNet();
+	const IPPrefix& n2 = v2->AsSubNet();
 
-	if ( *n1 == *n2 )
+	if ( n1 == n2 )
 		return new Val(1, TYPE_BOOL);
 	else
 		return new Val(0, TYPE_BOOL);
@@ -1673,7 +1673,7 @@ Val* DivideExpr::AddrFold(Val* v1, Val* v2) const
 	else
 		mask = static_cast<uint32>(v2->InternalInt());
 
-	return new SubNetVal(*v1->AsAddr(), mask);
+	return new SubNetVal(v1->AsAddr(), mask);
 	}
 
 Expr* DivideExpr::DoSimplify()
@@ -4493,7 +4493,7 @@ Val* InExpr::Fold(Val* v1, Val* v2) const
 
 	if ( v1->Type()->Tag() == TYPE_ADDR &&
 	     v2->Type()->Tag() == TYPE_SUBNET )
-		return new Val(v2->AsSubNetVal()->Contains(*v1->AsAddr()), TYPE_BOOL);
+		return new Val(v2->AsSubNetVal().Contains(v1->AsAddr()), TYPE_BOOL);
 
 	TableVal* vt = v2->AsTableVal();
 	if ( vt->Lookup(v1, false) )

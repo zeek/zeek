@@ -179,9 +179,10 @@ static void do_fmt(const char*& fmt, Val* v, ODesc* d)
 			// This makes only a very slight difference, so not
 			// clear it would e worth the hassle.
 
-			const IPAddr* u = v->AsAddr();
+			const IPAddr& u = v->AsAddr();
 			const uint32* net_order_u;
 			int len = u->GetBytes(&net_order_u);
+
 			if ( len == 4 )
 				{
 				// We explicitly convert the address to host order
@@ -1974,21 +1975,29 @@ function is_local_interface%(ip: addr%) : bool
 	host[MAXHOSTNAMELEN-1] = '\0';
 
 	struct hostent* ent = gethostbyname2(host, AF_INET);
+
 	if ( ent )
+		{
 		for ( unsigned int len = 0; ent->h_addr_list[len]; ++len )
 			addrs.push_back(IPAddr(IPAddr::IPv4, (uint32*)ent->h_addr_list[len],
 			                       IPAddr::Network));
+		}
 
 	ent = gethostbyname2(host, AF_INET6);
+
 	if ( ent )
+		{
 		for ( unsigned int len = 0; ent->h_addr_list[len]; ++len )
 			addrs.push_back(IPAddr(IPAddr::IPv6, (uint32*)ent->h_addr_list[len],
 			                       IPAddr::Network));
+		}
 
 	list<IPAddr>::const_iterator it;
 	for ( it = addrs.begin(); it != addrs.end(); ++it )
-		if ( *it == *ip->AsAddr() )
+		{
+		if ( *it == ip->AsAddr() )
 			return new Val(1, TYPE_BOOL);
+		}
 
 	return new Val(0, TYPE_BOOL);
 	%}
@@ -2058,7 +2067,7 @@ function is_v4_addr%(a: addr%): bool
 ## Returns: true if *a* is an IPv6 address, else false.
 function is_v6_addr%(a: addr%): bool
 	%{
-	if ( a->AsAddr()->family() == IPAddr::IPv6 )
+	if ( a->AsAddr().Family() == IPAddr::IPv6 )
 		return new Val(1, TYPE_BOOL);
 	else
 		return new Val(0, TYPE_BOOL);
@@ -2479,7 +2488,7 @@ function addr_to_ptr_name%(a: addr%): string
 ## .. bro:see:: addr_to_ptr_name parse_dotted_addr
 function parse_dotted_addr%(s: string%): addr
 	%{
-	IPAddr a(string(s->CheckString()));
+	IPAddr a(s->CheckString());
 	return new AddrVal(a);
 	%}
 
@@ -2991,7 +3000,7 @@ function strftime%(fmt: string, d: time%) : string
 ## .. bro:see:: remask_addr
 function mask_addr%(a: addr, top_bits_to_keep: count%): subnet
 	%{
-	return new SubNetVal(*a->AsAddr(), top_bits_to_keep);
+	return new SubNetVal(a->AsAddr(), top_bits_to_keep);
 	%}
 
 ## Takes some top bits (e.g., subnet address) from one address and the other
@@ -3013,9 +3022,9 @@ function mask_addr%(a: addr, top_bits_to_keep: count%): subnet
 ## .. bro:see:: mask_addr
 function remask_addr%(a1: addr, a2: addr, top_bits_from_a1: count%): addr
 	%{
-	IPAddr addr1(*a1->AsAddr());
+	IPAddr addr1(a1->AsAddr());
 	addr1.Mask(top_bits_from_a1);
-	IPAddr addr2(*a2->AsAddr());
+	IPAddr addr2(a2->AsAddr());
 	addr1.ReverseMask(top_bits_from_a1);
 	uint32 x1[4];
 	uint32 x2[4];
@@ -3196,13 +3205,13 @@ const char* conn_id_string(Val* c)
 	Val* id = (*(c->AsRecord()))[0];
 	const val_list* vl = id->AsRecord();
 
-	const IPAddr* orig_h = (*vl)[0]->AsAddr();
+	const IPAddr& orig_h = (*vl)[0]->AsAddr();
 	uint32 orig_p = (*vl)[1]->AsPortVal()->Port();
-	const IPAddr* resp_h = (*vl)[2]->AsAddr();
+	const IPAddr& resp_h = (*vl)[2]->AsAddr();
 	uint32 resp_p = (*vl)[3]->AsPortVal()->Port();
 
-	return fmt("%s/%u -> %s/%u\n", string(*orig_h).c_str(), orig_p,
-	                               string(*resp_h).c_str(), resp_p);
+	return fmt("%s/%u -> %s/%u\n", orig_h.AsString().c_str(), orig_p,
+	                               resp_h.AsString().c_str(), resp_p);
 	}
 %%}
 
@@ -3432,7 +3441,7 @@ function lookup_addr%(host: addr%) : string
 	frame->SetDelayed();
 	trigger->Hold();
 
-	if ( host->AsAddr()->family() != IPAddr::IPv4 )
+	if ( host->AsAddr().Family() != IPAddr::IPv4 )
 		{
 		// FIXME: This is a temporary work-around until we get this
 		// fixed. We warn the user once, and always trigger a timeout.
@@ -3449,7 +3458,7 @@ function lookup_addr%(host: addr%) : string
 		}
 
 	const uint32* bytes;
-	host->AsAddr()->GetBytes(&bytes);
+	host->AsAddr().GetBytes(&bytes);
 	dns_mgr->AsyncLookupAddr(*bytes,
 			new LookupHostCallback(trigger, frame->GetCall(), true));
 	return 0;
@@ -3558,10 +3567,10 @@ function lookup_location%(a: addr%) : geo_location
 		}
 
 #ifdef HAVE_GEOIP_COUNTRY_EDITION_V6
-	if ( geoip_v6 && a->AsAddr()->family() == IPAddr::IPv6 )
+	if ( geoip_v6 && a->AsAddr().Family() == IPAddr::IPv6 )
 		{
 		const uint32* bytes;
-		a->AsAddr()->GetBytes(&bytes);
+		a->AsAddr().GetBytes(&bytes);
 		geoipv6_t ga;
 		memcpy(&ga, bytes, 16);
 		if ( have_cityv6_db )
@@ -3572,10 +3581,10 @@ function lookup_location%(a: addr%) : geo_location
 	else
 #endif
 
-	if ( geoip && a->AsAddr()->family() == IPAddr::IPv4 )
+	if ( geoip && a->AsAddr().Family() == IPAddr::IPv4 )
 		{
 		const uint32* bytes;
-		a->AsAddr()->GetBytes(&bytes);
+		a->AsAddr().GetBytes(&bytes);
 		if ( have_city_db )
 			gir = GeoIP_record_by_ipnum(geoip, ntohl(*bytes));
 		else
@@ -3658,7 +3667,7 @@ function lookup_asn%(a: addr%) : count
 		if ( a->AsAddr()->family() == IPAddr::IPv6 )
 			{
 			const uint32* bytes;
-			a->AsAddr()->GetBytes(&bytes);
+			a->AsAddr().GetBytes(&bytes);
 			geoipv6_t ga;
 			memcpy(&ga, bytes, 16);
 			gir = GeoIP_name_by_ipnum_v6(geoip_asn, ga);
@@ -3666,10 +3675,10 @@ function lookup_asn%(a: addr%) : count
 		else
 #endif
 
-		if ( a->AsAddr()->family() == IPAddr::IPv4 )
+		if ( a->AsAddr().Family() == IPAddr::IPv4 )
 			{
 			const uint32* bytes;
-			a->AsAddr()->GetBytes(&bytes);
+			a->AsAddr().GetBytes(&bytes);
 			gir = GeoIP_name_by_ipnum(geoip_asn, ntohl(*bytes));
 			}
 		}
@@ -3953,7 +3962,7 @@ function file_mode%(mode: count%): string
 function expect_connection%(orig: addr, resp: addr, resp_p: port,
 				analyzer: count, tout: interval%) : any
 	%{
-	dpm->ExpectConnection(*orig->AsAddr(), *resp->AsAddr(), resp_p->Port(),
+	dpm->ExpectConnection(orig->AsAddr(), resp->AsAddr(), resp_p->Port(),
 				 resp_p->PortType(), (AnalyzerTag::Tag) analyzer, tout, 0);
 	return new Val(1, TYPE_BOOL);
 	%}
@@ -4727,7 +4736,7 @@ function pcap_error%(%): string
 ## .. todo:: The return value should be changed to any.
 function install_src_addr_filter%(ip: addr, tcp_flags: count, prob: double%) : bool
 	%{
-	sessions->GetPacketFilter()->AddSrc(*ip->AsAddr(), tcp_flags, prob);
+	sessions->GetPacketFilter()->AddSrc(ip->AsAddr(), tcp_flags, prob);
 	return new Val(1, TYPE_BOOL);
 	%}
 
@@ -4779,7 +4788,7 @@ function install_src_net_filter%(snet: subnet, tcp_flags: count, prob: double%) 
 ##              pcap_error
 function uninstall_src_addr_filter%(ip: addr%) : bool
 	%{
-	return new Val(sessions->GetPacketFilter()->RemoveSrc(*ip->AsAddr()), TYPE_BOOL);
+	return new Val(sessions->GetPacketFilter()->RemoveSrc(ip->AsAddr()), TYPE_BOOL);
 	%}
 
 ## Removes a source subnet filter.
@@ -4829,7 +4838,7 @@ function uninstall_src_net_filter%(snet: subnet%) : bool
 ## .. todo:: The return value should be changed to any.
 function install_dst_addr_filter%(ip: addr, tcp_flags: count, prob: double%) : bool
 	%{
-	sessions->GetPacketFilter()->AddDst(*ip->AsAddr(), tcp_flags, prob);
+	sessions->GetPacketFilter()->AddDst(ip->AsAddr(), tcp_flags, prob);
 	return new Val(1, TYPE_BOOL);
 	%}
 
@@ -4881,7 +4890,7 @@ function install_dst_net_filter%(snet: subnet, tcp_flags: count, prob: double%) 
 ##              pcap_error
 function uninstall_dst_addr_filter%(ip: addr%) : bool
 	%{
-	return new Val(sessions->GetPacketFilter()->RemoveDst(*ip->AsAddr()), TYPE_BOOL);
+	return new Val(sessions->GetPacketFilter()->RemoveDst(ip->AsAddr()), TYPE_BOOL);
 	%}
 
 ## Removes a destination subnet filter.
@@ -5022,7 +5031,7 @@ function capture_state_updates%(filename: string%) : bool
 ##              send_id
 function connect%(ip: addr, p: port, our_class: string, retry: interval, ssl: bool%) : count
 	%{
-	return new Val(uint32(remote_serializer->Connect(*ip->AsAddr(), p->Port(),
+	return new Val(uint32(remote_serializer->Connect(ip->AsAddr(), p->Port(),
 				our_class->CheckString(), retry, ssl)),
 			TYPE_COUNT);
 	%}
@@ -5137,7 +5146,7 @@ function set_compression_level%(p: event_peer, level: count%) : bool
 ## .. bro:see:: connect disconnect
 function listen%(ip: addr, p: port, ssl: bool %) : bool
 	%{
-	return new Val(remote_serializer->Listen(*ip->AsAddr(), p->Port(), ssl), TYPE_BOOL);
+	return new Val(remote_serializer->Listen(ip->AsAddr(), p->Port(), ssl), TYPE_BOOL);
 	%}
 
 ## Checks whether the last raised event came from a remote peer.
@@ -5393,12 +5402,12 @@ function preserve_prefix%(a: addr, width: count%): any
 	AnonymizeIPAddr* ip_anon = ip_anonymizer[PREFIX_PRESERVING_A50];
 	if ( ip_anon )
 		{
-		if ( a->AsAddr()->family() == IPAddr::IPv6 )
+		if ( a->AsAddr().Family() == IPAddr::IPv6 )
 			builtin_error("preserve_prefix() not supported for IPv6 addresses");
 		else
 			{
 			const uint32* bytes;
-			a->AsAddr()->GetBytes(&bytes);
+			a->AsAddr().GetBytes(&bytes);
 			ip_anon->PreservePrefix(*bytes, width);
 			}
 		}
@@ -5418,16 +5427,16 @@ function preserve_prefix%(a: addr, width: count%): any
 ## .. todo:: Currently dysfunctional.
 function preserve_subnet%(a: subnet%): any
 	%{
-	DEBUG_MSG("%s/%d\n", string(a->Prefix()).c_str(), a->Width());
+	DEBUG_MSG("%s/%d\n", a->Prefix().AsString().c_str(), a->Width());
 	AnonymizeIPAddr* ip_anon = ip_anonymizer[PREFIX_PRESERVING_A50];
 	if ( ip_anon )
 		{
-		if ( a->AsSubNet()->Prefix().family() == IPAddr::IPv6 )
+		if ( a->AsSubNet()->Prefix().Family() == IPAddr::IPv6 )
 			builtin_error("preserve_subnet() not supported for IPv6 addresses");
 		else
 			{
 			const uint32* bytes;
-			a->AsSubNet()->Prefix().GetBytes(&bytes);
+			a->AsSubNet().Prefix().GetBytes(&bytes);
 			ip_anon->PreservePrefix(*bytes, a->AsSubNet()->Length());
 			}
 		}
@@ -5458,7 +5467,7 @@ function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
 	if ( anon_class < 0 || anon_class >= NUM_ADDR_ANONYMIZATION_CLASSES )
 		builtin_error("anonymize_addr(): invalid ip addr anonymization class");
 
-	if ( a->AsAddr()->family() == IPAddr::IPv6 )
+	if ( a->AsAddr().Family() == IPAddr::IPv6 )
 		{
 		builtin_error("anonymize_addr() not supported for IPv6 addresses");
 		return 0;
@@ -5466,7 +5475,7 @@ function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
 	else
 		{
 		const uint32* bytes;
-		a->AsAddr()->GetBytes(&bytes);
+		a->AsAddr().GetBytes(&bytes);
 		return new AddrVal(anonymize_ip(*bytes,
 			(enum ip_addr_anonymization_class_t) anon_class));
 		}
@@ -5519,7 +5528,7 @@ function generate_idmef%(src_ip: addr, src_port: port,
 				newNode(newAddress(
 					newAttribute("category","ipv4-addr"),
 					newSimpleElement("address",
-					copy_string(string(*src_ip->AsAddr()).c_str())),
+					copy_string(src_ip->AsAddr().AsString().c_str())),
 					NULL), NULL),
 				newService(
 					newSimpleElement("port",
@@ -5529,7 +5538,7 @@ function generate_idmef%(src_ip: addr, src_port: port,
 				newNode(newAddress(
 					newAttribute("category","ipv4-addr"),
 					newSimpleElement("address",
-					copy_string(string(*dst_ip->AsAddr()).c_str())),
+					copy_string(dst_ip->AsAddr().AsString().c_str())),
 					NULL), NULL),
 				newService(
 					newSimpleElement("port",

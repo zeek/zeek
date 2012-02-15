@@ -154,7 +154,7 @@ void AnonymizeIPAddr_A50::init()
 int AnonymizeIPAddr_A50::PreservePrefix(ipaddr32_t input, int num_bits)
 	{
 	DEBUG_MSG("%s/%d\n",
-			string(IPAddr(IPAddr::IPv4, &input, IPAddr::Network)).c_str(),
+			IPAddr(IPAddr::IPv4, &input, IPAddr::Network)->AsString().c_str(),
 			num_bits);
 
 	if ( ! before_anonymization )

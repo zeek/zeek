@@ -222,6 +222,15 @@ ent BaseList::is_member(ent e) const
 	return (i == length()) ? 0 : e;
 	}
 
+ent BaseList::is_member(ent e, list_cmp_func cmp_func) const
+{
+  int i;
+  for ( i = 0; i < length() && cmp_func(e, entry[i]) != 0; ++i )
+	;
+
+  return (i == length()) ? 0 : e;
+}
+
 int BaseList::member_pos(ent e) const
 	{
 	int i;

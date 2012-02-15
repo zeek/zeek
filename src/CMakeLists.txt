@@ -391,6 +391,7 @@ set(bro_SRCS
     TCP.cc
     TCP_Endpoint.cc
     TCP_Reassembler.cc
+	TCPStats_Endpoint.cc
     Telnet.cc
     Timer.cc
     Traverse.cc

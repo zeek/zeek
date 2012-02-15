@@ -549,7 +549,8 @@ void TCP_Analyzer::ProcessACK(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 			peer->UpdateAckSeq(ack_seq);
 		}
 
-	peer->AckReceived(ack_seq - peer->StartSeq());
+	uint32 normalized_ack_seq = ack_seq - peer->StartSeq();
+	peer->AckReceived(normalized_ack_seq);
 	}
 
 void TCP_Analyzer::UpdateInactiveState(double t,
@@ -972,8 +973,18 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	TCP_Endpoint* endpoint = is_orig ? orig : resp;
 	TCP_Endpoint* peer = endpoint->peer;
 
-	if ( ! ValidateChecksum(tp, endpoint, len, caplen) )
-		return;
+	if (!ValidateChecksum(tp, endpoint, len, caplen) && !ignore_tcp_events) {
+
+	  val_list *vl = new val_list();
+
+	  vl->append(BuildConnVal());
+	  vl->append(new Val(current_timestamp, TYPE_DOUBLE));
+	  vl->append(new Val(is_orig, TYPE_BOOL));
+
+	  ConnectionEvent(tcp_bad_checksum, vl);
+	  return;
+	}
+
 
 	TCP_Flags flags(tp);
 
@@ -1918,28 +1929,17 @@ void TCP_ApplicationAnalyzer::PacketWithRST()
 		static_cast<TCP_SupportAnalyzer*>(sa)->PacketWithRST();
 	}
 
-TCPStats_Endpoint::TCPStats_Endpoint(TCP_Endpoint* e)
-	{
-	endp = e;
-	num_pkts = 0;
-	num_rxmit = 0;
-	num_rxmit_bytes = 0;
-	num_in_order = 0;
-	num_OO = 0;
-	num_repl = 0;
-	max_top_seq = 0;
-	last_id = 0;
-	endian_type = ENDIAN_UNKNOWN;
-	}
-
 int endian_flip(int n)
 	{
 	return ((n & 0xff) << 8) | ((n & 0xff00) >> 8);
 	}
 
-int TCPStats_Endpoint::DataSent(double /* t */, int seq, int len, int caplen,
-			const u_char* /* data */,
-			const IP_Hdr* ip, const struct tcphdr* /* tp */)
+
+// TODO: Need to figure out where this belongs
+/*
+int TCPStats_Endpoint::DataSent(double t , int seq, int len, int caplen,
+			const u_char* data ,
+			const IP_Hdr* ip, const struct tcphdr* tp)
 	{
 	if ( ++num_pkts == 1 )
 		{ // First packet.
@@ -2033,21 +2033,7 @@ int TCPStats_Endpoint::DataSent(double /* t */, int seq, int len, int caplen,
 
 	return 0;
 	}
-
-RecordVal* TCPStats_Endpoint::BuildStats()
-	{
-	RecordVal* stats = new RecordVal(endpoint_stats);
-
-	stats->Assign(0, new Val(num_pkts,TYPE_COUNT));
-	stats->Assign(1, new Val(num_rxmit,TYPE_COUNT));
-	stats->Assign(2, new Val(num_rxmit_bytes,TYPE_COUNT));
-	stats->Assign(3, new Val(num_in_order,TYPE_COUNT));
-	stats->Assign(4, new Val(num_OO,TYPE_COUNT));
-	stats->Assign(5, new Val(num_repl,TYPE_COUNT));
-	stats->Assign(6, new Val(endian_type,TYPE_COUNT));
-
-	return stats;
-	}
+*/
 
 TCPStats_Analyzer::TCPStats_Analyzer(Connection* c)
 : TCP_ApplicationAnalyzer(AnalyzerTag::TCPStats, c)
@@ -2056,35 +2042,572 @@ TCPStats_Analyzer::TCPStats_Analyzer(Connection* c)
 
 TCPStats_Analyzer::~TCPStats_Analyzer()
 	{
-	delete orig_stats;
-	delete resp_stats;
+	  delete orig;
+	  delete resp;
 	}
 
 void TCPStats_Analyzer::Init()
 	{
 	TCP_ApplicationAnalyzer::Init();
 
-	orig_stats = new TCPStats_Endpoint(TCP()->Orig());
-	resp_stats = new TCPStats_Endpoint(TCP()->Resp());
+	orig = new TCPStats_Endpoint(TCP()->Orig(), this);
+	resp = new TCPStats_Endpoint(TCP()->Resp(), this);
+
+	orig->SetIsOrig(true);
+	resp->SetIsOrig(false);
+
+    // TODO: These need better names, or should be their own data structure, or something.
+	syn_time = HANDSHAKE_TIME_UNKNOWN;
+	ack_time = HANDSHAKE_TIME_UNKNOWN;
+	syn_ack_time_1 = HANDSHAKE_TIME_UNKNOWN;
+	syn_ack_time_2 = HANDSHAKE_TIME_UNKNOWN;
+
+	measurement_location = NO_LOCATION_DATA;
+
 	}
 
 void TCPStats_Analyzer::Done()
 	{
 	TCP_ApplicationAnalyzer::Done();
 
-	val_list* vl = new val_list;
-	vl->append(BuildConnVal());
-	vl->append(orig_stats->BuildStats());
-	vl->append(resp_stats->BuildStats());
-	ConnectionEvent(conn_stats, vl);
+	RTTSummary();
+	WindowSummary();
+	FlightSizeSummary();
+
+	if (!ignore_tcp_events) {
+	  val_list* vl = new val_list;
+	  vl->append(BuildConnVal());
+	  vl->append(new Val(network_time, TYPE_DOUBLE));
+	  vl->append(orig->BuildStats());
+	  vl->append(resp->BuildStats());
+	  ConnectionEvent(conn_stats, vl);
+	}
 	}
 
-void TCPStats_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, int seq, const IP_Hdr* ip, int caplen)
+/*void TCPStats_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, int seq, const IP_Hdr* ip, int caplen)
 	{
 	TCP_ApplicationAnalyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
 
 	if ( is_orig )
-		orig_stats->DataSent(network_time, seq, len, caplen, data, ip, 0);
+		orig->DataSent(network_time, seq, len, caplen, data, ip, 0);
 	else
-		resp_stats->DataSent(network_time, seq, len, caplen, data, ip, 0);
+		resp->DataSent(network_time, seq, len, caplen, data, ip, 0);
 	}
+*/
+void TCPStats_Analyzer::FlightSizeSummary()
+{
+  if (ignore_window_events)
+	return;
+
+  RecordVal *orig_stats = orig->GetFlightSummary();
+  RecordVal *resp_stats = resp->GetFlightSummary();
+
+  if (orig_stats && resp_stats) {
+
+	val_list *vl = new val_list;
+	vl->append(BuildConnVal());
+	vl->append(new Val(network_time, TYPE_DOUBLE));
+	vl->append(orig_stats);
+	vl->append(resp_stats);
+
+	ConnectionEvent(conn_flight_size_summary, vl);
+  }
+
+  // if we didn't throw the event, need to explicitly delete ourselves
+  if (orig_stats && !resp_stats)
+	delete orig_stats;
+  else if (resp_stats && !orig_stats)
+	delete resp_stats;
+}
+
+void TCPStats_Analyzer::WindowSummary()
+{
+
+  if (ignore_window_events)
+	return;
+
+  RecordVal *orig_stats = orig->GetWindowSummary();
+  RecordVal *resp_stats = resp->GetWindowSummary();
+
+  if (orig_stats && resp_stats) {
+
+	val_list* vl = new val_list;
+	vl->append(BuildConnVal());
+	vl->append(new Val(network_time, TYPE_DOUBLE));
+	vl->append(orig_stats);
+	vl->append(resp_stats);
+
+	ConnectionEvent(conn_window_summary, vl);
+  }
+
+  if (orig_stats && !resp_stats)
+	delete orig_stats;
+  else if (resp_stats && !orig_stats)
+	delete resp_stats;
+}
+
+void TCPStats_Analyzer::RTTSummary()
+{
+
+  // TODO: this will need to change when we figure out what to do for the confused cases
+  if (measurement_location != NEAR_SRC && measurement_location != NEAR_DST)
+	return;
+
+  if (ignore_rtt_events)
+	return;
+
+  if (measurement_location == NEAR_SRC && orig->HasRTTEstimates()) {
+
+	val_list* vl = new val_list;
+	vl->append(BuildConnVal());
+	vl->append(new Val(network_time, TYPE_DOUBLE));
+	vl->append(orig->GetRTTSummary());
+	vl->append(new Val(true, TYPE_BOOL));
+	ConnectionEvent(conn_rtt_summary, vl);
+
+	if (resp->HasRTTEstimates()) {
+	  val_list *vl2 = new val_list;
+	  vl2->append(BuildConnVal());
+	  vl2->append(new Val(network_time, TYPE_DOUBLE));
+	  vl2->append(resp->GetRTTSummary());
+	  ConnectionEvent(conn_secondary_rtt_summary, vl2);
+	}
+  }
+
+  else if (measurement_location == NEAR_DST && resp->HasRTTEstimates()) {
+
+	val_list* vl = new val_list;
+	vl->append(BuildConnVal());
+	vl->append(new Val(network_time, TYPE_DOUBLE));
+	vl->append(resp->GetRTTSummary());
+	vl->append(new Val(false, TYPE_BOOL));
+	ConnectionEvent(conn_rtt_summary, vl);
+
+	if (orig->HasRTTEstimates()) {
+	  val_list *vl2 = new val_list;
+	  vl2->append(BuildConnVal());
+	  vl2->append(new Val(network_time, TYPE_DOUBLE));
+	  vl2->append(orig->GetRTTSummary());
+	  ConnectionEvent(conn_secondary_rtt_summary, vl2);
+	}
+  } else {
+	// TODO: not sure what to do on else case.  i think throw an event
+	// with our best guess, but indicate that it's shaky
+  }
+}
+
+void TCPStats_Analyzer::EstimateMeasurementLocation(double rtt1, double rtt2)
+{
+  double uncertainty_threshold = 1.0/2.0; // TODO: still a little bit arbitrary
+  double uncertainty = (rtt2 - rtt1)/rtt1;
+  if (uncertainty < 0)
+	uncertainty = -uncertainty;
+
+  // TODO: there is no way to reach the CONFUSED state.  we
+  // should either remove it, or figure out what would cause
+  // confusion
+  if (uncertainty < uncertainty_threshold ||
+	  rtt1 < .001 && rtt2 < .001) // two very small RTTs
+	measurement_location = LOCATION_UNCERTAIN;
+  else if (rtt1 > rtt2)
+	measurement_location = NEAR_SRC;
+  else
+	measurement_location = NEAR_DST;
+
+  // based on the diff in the handshake, we couldn't determine the
+  // location.  let's use the TTL instead.
+  if (measurement_location == LOCATION_UNCERTAIN) {
+
+	int orig_diff = GetLikelyTTLDiff(orig->TTL());
+	int resp_diff = GetLikelyTTLDiff(resp->TTL());
+
+	// TODO: threshold?
+	if (orig_diff < resp_diff)
+	  measurement_location = NEAR_SRC;
+	else
+	  measurement_location = NEAR_DST;
+  }
+
+  // we have an RTT; set it as the handshake RTT
+  // NOTE: this is no longer the handshake, RTT.  It's the RTT from
+  // the first time we saw data from both sides.
+  if (measurement_location == NEAR_SRC)
+	SetInitialRTT(rtt1);
+  else if (measurement_location == NEAR_DST)
+	SetInitialRTT(rtt2);
+}
+
+int TCPStats_Analyzer::GetLikelyTTLDiff(int ttl)
+{
+  // common default TTLs are 64, 128, 255.  if we start using more
+  // than three default TTLs, i'll fix this method to use a proper list
+  if (ttl <= 64)
+	return 64 - ttl;
+  else if (ttl <= 128)
+	return 128 - ttl;
+  else if (ttl <= 255)
+	return 255 - ttl;
+	
+  return -1;
+}
+
+void TCPStats_Analyzer::ProcessACK(TCPStats_Endpoint* endpoint,
+								   TCPStats_Endpoint* peer,
+								   uint32 ack_seq, bool is_orig,
+								   uint32 packet_size)
+{
+  uint32 normalized_ack_seq = ack_seq - peer->StartSeq();
+
+  // this is the syn-ack.  the normalized syn-ack seq# is always 1
+  bool is_syn_ack = (!endpoint->DoneSYNACK() && normalized_ack_seq == 1);
+
+  // our initial vantage point estimate comes from the handshake, if
+  // it exists.  it's a little annoying, but we keep this separately
+  // because we don't *actually* want to use this as an RTT estimate
+  // (it's not totally reliable)
+  if (is_syn_ack) {
+
+	endpoint->SetDoneSYNACK(true);
+	endpoint->SetSYNACKSize(packet_size);
+
+	if (is_orig) {
+
+	  if (ack_time == HANDSHAKE_TIME_UNKNOWN)
+		ack_time = network_time;
+
+	  if (ack_time != HANDSHAKE_TIME_UNKNOWN &&
+		  syn_time != HANDSHAKE_TIME_UNKNOWN) {
+
+		if (!ignore_rtt_events) {
+		  val_list *vl = new val_list;
+		  vl->append(BuildConnVal());
+		  vl->append(new Val(current_timestamp, TYPE_DOUBLE));
+		  vl->append(new Val(ack_time - syn_time, TYPE_DOUBLE));
+		  vl->append(new Val(endpoint->SYNSize(), TYPE_COUNT));
+		  // endpoint sent the syn => peer sent the syn-ack
+		  vl->append(new Val(peer->SYNACKSize(), TYPE_COUNT));
+		  
+		  ConnectionEvent(tcp_handshake_sa_estimate, vl);
+		}
+	  }
+
+	  if (syn_time != HANDSHAKE_TIME_UNKNOWN &&
+		  ack_time != HANDSHAKE_TIME_UNKNOWN &&
+		  syn_ack_time_1 != HANDSHAKE_TIME_UNKNOWN &&
+		  syn_ack_time_2 != HANDSHAKE_TIME_UNKNOWN) {
+
+		// it's possible that, at some point, we'll need a measurement
+		// location estimate even if we're ignoring rtt events.  so
+		// let's leave this out of the if statement.
+		double d1 = syn_ack_time_1 - syn_time;
+		double d2 = ack_time - syn_ack_time_2;
+		EstimateMeasurementLocation(d1, d2);
+
+		if (!ignore_rtt_events) {
+		  val_list *vl = new val_list;
+		  vl->append(BuildConnVal());
+		  vl->append(new Val(current_timestamp, TYPE_DOUBLE));
+		  vl->append(new Val(d1+d2, TYPE_DOUBLE));
+		  vl->append(new Val(d1, TYPE_DOUBLE));
+		  vl->append(new Val(d2, TYPE_DOUBLE));
+		  vl->append(new Val(endpoint->SYNSize(), TYPE_COUNT));
+		  vl->append(new Val(peer->SYNACKSize(), TYPE_COUNT));
+
+		  ConnectionEvent(tcp_handshake_sum_estimate, vl);
+		}
+	  }
+	}
+  }
+
+  // we don't have an initial vantage point estimate yet, but we do
+  // have RTT estimates (likely cause: we didn't see the handshake in
+  // our trace)
+  if (endpoint->HasRTTEstimates() && peer->HasRTTEstimates() &&
+	  measurement_location != NEAR_SRC && measurement_location != NEAR_DST) {
+
+	// use the median RTT for each peer (for at least one of the
+	// peers, we're probably only taking the median over one RTT
+	// sample)
+	double rtt1 = endpoint->MedianRTT();
+	double rtt2 = peer->MedianRTT();
+	
+	EstimateMeasurementLocation(rtt1, rtt2);
+  }
+
+  // get some info about the packet we are acking
+  Packet_Statistics *packet_statistics = peer->SetPacketACKTimeAndGetSummary(normalized_ack_seq, network_time);
+
+  // update the vantage point location, if necessary
+  if (packet_statistics) {
+
+	double rtt = packet_statistics->RTT();
+
+	if ((!is_orig && measurement_location == NEAR_SRC) ||
+		(is_orig && measurement_location == NEAR_DST)) {
+
+	  // TODO: should maybe look at the median RTT instead of just the handshake RTT.  Though that may be slower..
+	  double prop_diff = (InitialRTT() - rtt)/rtt;
+	  if (prop_diff < 0) prop_diff = -prop_diff;
+
+	  // we see a very small rtt, when we estimated that the rtt
+	  // should be significantly larger.  switch the measurement
+	  // location (if we're seeing super small rtts, we're close to
+	  // that end)
+	  if (rtt < .01 && prop_diff > 20) {  // TODO: both are arbitrary
+		// TODO: should throw an event, or use a confused state
+		if (measurement_location == NEAR_SRC)
+		  measurement_location = NEAR_DST;
+		else measurement_location = NEAR_SRC;
+	  }
+	}
+	
+	delete packet_statistics;
+  }
+
+  int previous_ack = peer->MaxAckSeqForGapCheck();
+  // as long as this ack sequence is greater than the previous,
+  // update.  one might expect this to always be true.  however,
+  // without this, out-of-order packets can cause false gap events.
+  if (Sequence_number_comparison(ack_seq, previous_ack) == 1){
+	peer->UpdateMaxAckSeqForGapCheck(ack_seq);
+  }
+}
+
+void TCPStats_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
+									  int seq, const IP_Hdr* ip, int caplen)
+{
+
+  // endpoint sent the packet.  peer received it.
+  TCPStats_Endpoint* endpoint = is_orig ? orig : resp;
+  TCPStats_Endpoint* peer = is_orig ? resp : orig;
+  
+  TCP_ApplicationAnalyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
+
+  // get header.  TODO: this is a hack.
+  const struct tcphdr* tp = (const struct tcphdr*) ip->Payload();
+
+  if (! tp) return;
+
+  TCP_Flags flags(tp);
+
+  // we can set the syn and syn-ack times here, because we can
+  // recognize those just from the flags.  the ack (for the syn-ack)
+  // we need to do elsewhere
+  if (flags.SYN() and !flags.ACK() && syn_ack_time_1 == HANDSHAKE_TIME_UNKNOWN)
+	  syn_time = current_timestamp;
+  else if (flags.SYN() and flags.ACK()) {
+	if (syn_ack_time_1 == HANDSHAKE_TIME_UNKNOWN)
+	  syn_ack_time_1 = current_timestamp;
+	syn_ack_time_2 = current_timestamp;
+  }
+
+  // get MSS
+  // TODO: maybe this and TTL should be attributes of TCP_Endpoint, not TCPStats_Endpoint?
+  if (flags.SYN()) {
+
+	const u_char* options = (const u_char*) tp + sizeof(struct tcphdr);
+
+	// MSS is option 2.  length should be 4.
+	if (options[0] == 2 && options[1] == 4)
+	  endpoint->SetMSS((options[2] << 8) + options[3]);
+  }
+
+  uint32 normalized_seq = ntohl(tp->th_seq) + len - endpoint->StartSeq(); // "nice" sequence number
+  uint32 ack_seq = ntohl(tp->th_ack);
+  uint32 normalized_ack_seq = ack_seq - peer->StartSeq();
+
+  // TTLs from the initial SYN are unreliable; ignore those
+  // an endpoint's TTL is the TTL of packets from the endpoint, when they arrive at the measurement point
+  if (!(flags.SYN() && !flags.ACK()))
+	endpoint->SetTTL(ip->TTL());
+
+  if (flags.ACK())
+	// ProcessACK now needs the ack size, but only for the syn-acks.
+	// TODO: Maybe set the size here, instead of passing it to ProcessACK().  After all, it's useless almost all of the time.
+	ProcessACK(endpoint, peer, ack_seq, is_orig, ip->TotalLen());
+
+  if (flags.SYN())
+	// TCPStats_Endpoints keep track of the syn size, which is why we
+	// set that here instead of in ProcessSYN
+	endpoint->SetSYNSize(ip->TotalLen());
+
+  uint32 seq_to_insert = normalized_seq;
+  // the sequence number we want ACKed is different for FINs and SYNs
+  if (flags.FIN() || flags.SYN())
+  	seq_to_insert++;
+
+  endpoint->IncrementPacketCount();
+
+  // out-of-order.  don't check ACKs
+  // TODO: for now, don't check resets (should find a better solution)
+  // TODO: is this only for IPv4?
+  if (!(flags.ACK() && len == 0) && !flags.RST())
+	endpoint->CheckOutOfOrder(ntohs(ip->ID4()), seq_to_insert, flags.SYN(), flags.FIN());
+
+  endpoint->SetLastID(ntohs(ip->ID4()));
+
+  // reset packet.  see if there is any outstanding data.
+  if (flags.RST()) {
+	endpoint->CheckOutstandingData();
+	peer->CheckOutstandingData();
+  }
+
+  bool is_window_probe = false;
+  // if the *other* endpoint has a zero window, we're probing.
+  if (peer->GetLastWindowSize() == 0) {
+
+	is_window_probe = true;
+
+	if (!ignore_window_events) {
+	  val_list *vl = new val_list;
+	  vl->append(BuildConnVal());
+	  vl->append(new Val(current_timestamp, TYPE_DOUBLE));
+	  vl->append(new Val(endpoint->IsOrig(), TYPE_BOOL));
+	  ConnectionEvent(tcp_window_probe, vl);
+	}
+  }
+
+  // if the packet contained data or was a syn or fin, we're expecting an ACK
+  if (len > 0 || flags.SYN() || flags.FIN()) {
+
+	// deletion of seq_range happens in TCPStats_Endpoint::InsertSequenceNumber, if needed
+	Seq_Range *seq_range = new Seq_Range;
+	seq_range->min = normalized_seq - len;
+	seq_range->max = normalized_seq;
+	seq_range->to_ack = seq_to_insert;
+
+	// this is the value we're building to insert
+	Packet_Statistics *value = new Packet_Statistics(current_timestamp, len, seq_to_insert);
+	// set new packet as SYN or FIN, if appropriate
+	if (flags.FIN())
+	  value->SetAsFIN();
+	if (flags.SYN())
+	  value->SetAsSYN();
+	
+	endpoint->InsertSequenceNumber(seq_range, value, is_window_probe);
+  }
+
+  endpoint->UpdateLastSeqSent(seq_to_insert);
+  // check is necessary in case we're retransmitting
+  if (seq_to_insert > endpoint->MaxSeqSent())
+	endpoint->UpdateMaxSeqSent(seq_to_insert);
+  endpoint->UpdateLastPacketTimestamp(current_timestamp);
+
+  // TODO: TEST
+  if (!ignore_window_events)
+	// pass window size *unscaled*.  ProcessWindow will take care of scaling
+	ProcessWindow(endpoint, ntohs(tp->th_win), flags.RST(), flags.SYN());
+
+}
+
+void TCPStats_Analyzer::ProcessWindow(TCPStats_Endpoint* endpoint, int window, bool is_rst, bool is_syn)
+{
+
+  // note: in this function we check ignore_window_events before
+  // throwing things.  right now, this actually won't get called at
+  // all if ignore_window_events is true, in order to save state.  but
+  // i'm going to keep the checks here, in case that changes (i.e., we
+  // want to keep the state and just not throw the events)
+
+  // scale
+  window = window << endpoint->WindowScale();
+
+  // zero windows are interesting as long as they're not on resets.
+  // check the last window size so that we don't throw this event for
+  // consecutive packets with zero windows
+  if (window == 0 && endpoint->GetLastWindowSize() != 0 && !is_rst && !ignore_window_events) {
+
+	val_list *vl = new val_list;
+	vl->append(BuildConnVal());
+	vl->append(new Val(current_timestamp, TYPE_DOUBLE));
+	vl->append(new Val(endpoint->IsOrig(), TYPE_BOOL));
+	ConnectionEvent(tcp_zero_window, vl);
+  }
+
+  // record window size.  this needs to happen *after* the zero-window
+  // check, otherwise GetLastWindowSize() will be incorrect
+  if (!is_rst)
+	endpoint->RecordWindowSize(window);
+
+  // throw event if window is small
+  if (window <= 2*endpoint->MSS() && !is_rst && !is_syn && !ignore_window_events) {
+
+	val_list* vl = new val_list;
+	vl->append(BuildConnVal());
+	vl->append(new Val(current_timestamp, TYPE_DOUBLE));
+	vl->append(new Val(window, TYPE_INT));
+	vl->append(new Val(endpoint->MSS(), TYPE_INT));
+	vl->append(new Val(endpoint->IsOrig(), TYPE_BOOL));
+	ConnectionEvent(tcp_small_window, vl);
+  }
+
+  // data in flight
+  int d = endpoint->LastSeq() - endpoint->AckSeq();
+  if ( d < 0 ) d = 0;
+
+  // don't throw flight events if there isn't any data in flight
+  if (d > 0) {
+
+	// new max flight size
+	if (d > endpoint->MaxDataInFlight() && !ignore_window_events) {
+
+	  val_list *vl = new val_list;
+	  vl->append(BuildConnVal());
+	  vl->append(new Val(current_timestamp, TYPE_DOUBLE));
+	  vl->append(new Val(d, TYPE_INT));
+	  vl->append(new Val(endpoint->MaxDataInFlight(), TYPE_INT));
+	  vl->append(new Val(endpoint->IsOrig(), TYPE_BOOL));
+
+	  ConnectionEvent(tcp_new_flight_max, vl);
+	}
+
+	// have to do this after max flight check
+	double *data_in_flight_p = new double;
+	*data_in_flight_p = d;
+	endpoint->RecordDataInFlight(data_in_flight_p);
+
+	// throw generic event
+	if (!ignore_window_events) {
+	  val_list *vl = new val_list;
+	  vl->append(BuildConnVal());
+	  vl->append(new Val(current_timestamp, TYPE_DOUBLE));
+	  vl->append(new Val(d, TYPE_INT));
+	  vl->append(new Val(endpoint->numOutstandingPackets(), TYPE_INT));
+	  vl->append(new Val(endpoint->IsOrig(), TYPE_BOOL));
+	  ConnectionEvent(tcp_data_in_flight, vl);
+	}
+
+	// flight size = window size
+	if (window == d && !ignore_window_events) {
+
+	  val_list *vl = new val_list;
+	  vl->append(BuildConnVal());
+	  vl->append(new Val(current_timestamp, TYPE_DOUBLE));
+	  vl->append(new Val(d, TYPE_INT));
+	  vl->append(new Val(endpoint->IsOrig(), TYPE_BOOL));
+	  
+	  ConnectionEvent(tcp_window_limited, vl);
+	}
+  }
+}
+
+int Sequence_number_comparison(const uint32 s1, const uint32 s2) {
+
+  int to_return = 0;
+  uint32 diff = s1 - s2;
+
+  // s1 is greater than s2 if:
+  //   * s2 - s1 > seq_space_threshold
+  // s1 is less than s2 if:
+  //   * s1 - s2 > seq_space_threshold
+
+  if (s2 - s1 > SEQ_SPACE_THRESHOLD) // seq space wrap
+  	to_return = 1;
+  else if (s1 < s2)
+	to_return = -1;
+  else if (s1 > s2)
+  	to_return = 1;
+
+  return to_return;
+}
+

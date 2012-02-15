@@ -59,6 +59,8 @@ protected:
 
 	// Return 0 if ent is not in the list, ent otherwise.
 	ent is_member(ent) const;
+	ent is_member(ent, list_cmp_func cmp_func) const;
+
 
 	// Returns -1 if ent is not in the list, otherwise its position.
 	int member_pos(ent) const;
@@ -122,6 +124,8 @@ struct List(type) : BaseList						\
 		{ return type(BaseList::replace(i,ent(new_type))); }	\
 	type is_member(type e) const					\
 		{ return type(BaseList::is_member(ent(e))); }		\
+	type is_member(type e, list_cmp_func cmp_func) const							\
+	{ return type(BaseList::is_member(ent(e), cmp_func)); }						\
 	int member_pos(type e) const					\
 		{ return BaseList::member_pos(ent(e)); }		\
 									\
@@ -164,6 +168,8 @@ struct PList(type) : BaseList						\
 		{ return (type*)BaseList::replace(i,ent(new_type)); }	\
 	type* is_member(type* e)					\
 		{ return (type*)BaseList::is_member(ent(e)); }		\
+	type* is_member(type* e, list_cmp_func cmp_func) \
+     	{ return (type*)BaseList::is_member(ent(e), cmp_func); } \
 	int member_pos(type* e)						\
 		{ return BaseList::member_pos(ent(e)); }		\
 	};								\

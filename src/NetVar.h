@@ -28,6 +28,10 @@ extern int watchdog_interval;
 extern int max_timer_expires;
 extern int max_remote_events_processed;
 
+extern int ignore_rtt_events;
+extern int ignore_window_events;
+extern int ignore_tcp_events;
+
 extern int ignore_checksums;
 extern int partial_connection_ok;
 extern int tcp_SYN_ack_ok;
@@ -255,6 +259,10 @@ extern RecordType* record_field;
 extern TableType* record_field_table;
 
 extern StringVal* cmd_line_bpf_filter;
+
+extern RecordType* flight_stats;
+extern RecordType* rtt_stats;
+extern RecordType* window_stats;
 
 // Initializes globals that don't pertain to network/event analysis.
 extern void init_general_global_var();

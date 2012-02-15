@@ -872,7 +872,7 @@ event icmp_redirect%(c: connection, icmp: icmp_conn, a: addr%);
 ## rs: Statistics for the responder endpoint.
 ##
 ## .. bro:see:: connection_state_remove
-event conn_stats%(c: connection, os: endpoint_stats, rs: endpoint_stats%);
+event conn_stats%(c: connection, timestamp: double, os: endpoint_stats, rs: endpoint_stats%);
 
 ## Generated for unexpected activity related to a specific connection.  When
 ## Bro's packet analysis encounters activity that does not conform to a protocol's
@@ -6173,6 +6173,28 @@ event reporter_error%(t: time, msg: string, location: string%) &error_handler;
 ## level: The "nesting level": zero for a top-level Bro script and incremented
 ##        recursively for each ``@load``.
 event bro_script_loaded%(path: string, level: count%);
+
+## TODO: Documentation
+event conn_rtt%(c: connection, timestamp: double, rtt: double, seq: count, packet_size: int, is_syn: bool, is_orig: bool%);
+event conn_rtt_summary%(c: connection, timestamp: double, stats: rtt_stats, is_src: bool%);
+event conn_secondary_rtt_summary%(c: connection, timestamp: double, stats: rtt_stats%);
+event conn_window_summary%(c: connection, timestamp: double, orig_stats: window_stats, resp_stats: window_stats%);
+event conn_flight_size_summary%(c: connection, timestamp: double, orig_stats: flight_stats, resp_stats: flight_stats%);
+event tcp_ack_above_gap%(c: connection, timestamp: double, ack_seq: count, gap_min: count, gap_max: count, is_orig: bool%);
+event tcp_bad_checksum%(c: connection, timestamp: double, is_orig: bool%);
+event tcp_data_in_flight%(c: connection, timestamp: double, bytes: int, packets: int, is_orig: bool%);
+event tcp_new_flight_max%(c: connection, timestamp: double, max: int, prev_max: int, is_orig: bool%);
+event tcp_handshake_sa_estimate%(c: connection, timestamp: double, rtt: double, syn_size: count, syn_ack_size: count%);
+event tcp_handshake_sum_estimate%(c: connection, timestamp: double, rtt: double, rtt1: double, rtt2: double, syn_size: count, syn_ack_size: count%);
+event tcp_out_of_order%(c: connection, timestamp: double, seq: count, is_orig: bool%);
+event tcp_outstanding_data%(c: connection, timestamp: double, bytes: int, is_orig: bool%);
+event tcp_replay%(c: connection, timestamp: double, seq: count, is_orig: bool%);
+event tcp_retransmission%(c: connection, timestamp: double, seq: count, delay_time: double, is_orig: bool, is_syn: bool%);
+event tcp_small_window%(c: connection, timestamp: double, window: int, mss: int, is_orig: bool%);
+event tcp_zero_window%(c: connection, timestamp: double, is_orig: bool%);
+event tcp_window_probe%(c: connection, timestamp: double, is_orig: bool%);
+event tcp_window_limited%(c: connection, timestamp: double, window: int, is_orig: bool%);
+
 
 ## Deprecated. Will be removed.
 event stp_create_endp%(c: connection, e: int, is_orig: bool%);

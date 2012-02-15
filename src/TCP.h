@@ -6,6 +6,7 @@
 #include "Analyzer.h"
 #include "TCP.h"
 #include "PacketDumper.h"
+#include "TCPStats_Endpoint.h"
 
 // We define two classes here:
 // - TCP_Analyzer is the analyzer for the TCP protocol itself.
@@ -329,28 +330,22 @@ public:
 	virtual void PacketWithRST()	{ }
 };
 
+#define CONNECTION_RTT_UNKNOWN -1.0
+#define SEQ_SPACE_THRESHOLD 4294900000  // ~2^{32} - 1
+#define HANDSHAKE_TIME_UNKNOWN -1
+#define HANDSHAKE_RTX -2
 
-class TCPStats_Endpoint {
-public:
-	TCPStats_Endpoint(TCP_Endpoint* endp);
+enum LocationType { NO_LOCATION_DATA, NEAR_SRC, NEAR_DST, LOCATION_UNCERTAIN, LOCATION_CONFUSED};
+// NO_DATA - no data yet to estimate measurement location
+// NEAR_SRC - near the source
+// NEAR_DST - far from the source (and hence near the destination)
+// CONFUSED - evidence that we're both near and far from the source.
+//  TODO: currently not used
+// UNCERTAIN - have the data, but can't tell if we're near or
+//  far. generally this would happen if we were beneath the threshold for
+//  being close to the source, but above the threshold for being close to
+//  the dst.  see TCP.cc for more info.
 
-	int DataSent(double t, int seq, int len, int caplen, const u_char* data,
-			const IP_Hdr* ip, const struct tcphdr* tp);
-
-	RecordVal* BuildStats();
-
-protected:
-	TCP_Endpoint* endp;
-	int num_pkts;
-	int num_rxmit;
-	int num_rxmit_bytes;
-	int num_in_order;
-	int num_OO;
-	int num_repl;
-	int max_top_seq;
-	int last_id;
-	int endian_type;
-};
 
 class TCPStats_Analyzer : public TCP_ApplicationAnalyzer {
 public:
@@ -366,11 +361,53 @@ public:
 	static bool Available()	{ return conn_stats || tcp_rexmit; }
 
 protected:
+
+	friend class TCPStats_Endpoint;
+
+	// 1. process window events
+	// 2. call ProcessACK() if appropriate
+	// 3. process out-of-order events
+	// 4. check for outstanding data
+	// 5. insert packet into dict if it contains data
 	virtual void DeliverPacket(int len, const u_char* data, bool is_orig,
 					int seq, const IP_Hdr* ip, int caplen);
 
-	TCPStats_Endpoint* orig_stats;
-	TCPStats_Endpoint* resp_stats;
+	// 1. uses the ACK to update our vantage point estimate
+	// 2. also throws a variety of events, by way of TCPStats_Endpoint (calls TCPStats_Endpoint::SetPacketAckTimeAndGetSummary)
+	void ProcessACK(TCPStats_Endpoint* endpoint, TCPStats_Endpoint* peer, uint32 ack_seq, bool is_orig, uint32 packet_size);
+
+	void EstimateMeasurementLocation(double rtt1, double rtt2);
+	int GetLikelyTTLDiff(int ttl);
+
+	// need to send is_rst so that we don't throw window events on rst packets (window = 0 in this case)
+	void ProcessWindow(TCPStats_Endpoint* endpoint, int window, bool is_rst, bool is_syn);
+
+	void SetInitialRTT(double rtt) { initial_rtt = rtt; }
+	double InitialRTT() { return initial_rtt; }
+
+	void RTTSummary();
+	void WindowSummary();
+	void FlightSizeSummary();
+
+	double initial_rtt;
+
+	double syn_time; 	// time we saw the *last* syn
+	double syn_ack_time_1; 	// time we saw the *first* syn-ack
+	double syn_ack_time_2; 	// time we saw the *last* syn-ack
+	double ack_time; 	// time we saw the *first* ack
+
+	// if there are no rtx's, syn_time will be the time we see the
+	// syn, syn_ack_time_1 will equal syn_ack_time_2, and will both be the
+	// time we saw the syn-ack, and ack_time will be the time we saw the ack
+	LocationType measurement_location;
+
+	TCPStats_Endpoint* orig;
+	TCPStats_Endpoint* resp;
 };
+
+// TODO: Really?  We need both of these?
+extern int Sequence_number_comparison(const uint32 s1, const uint32 s2);
+extern int Reverse_sequence_range_comparison(const void *v1, const void *v2);
+int endian_flip(int n);
 
 #endif

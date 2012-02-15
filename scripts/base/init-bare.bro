@@ -147,14 +147,50 @@ type endpoint_stats: record {
 	num_pkts: count;	##< Number of packets.
 	num_rxmit: count;	##< Number of retransmission.
 	num_rxmit_bytes: count;	##< Number of retransmitted bytes.
-	num_in_order: count;	##< Number of in-order packets.
+#	num_in_order: count;	##< Number of in-order packets.
 	num_OO: count;	##< Number out-of-order packets.
 	num_repl: count;	##< Number of replicated packets (last packet was sent again).
+	num_gap_events: count;
+	num_gap_bytes: count;
+	max_data_in_flight: count;
 	## Endian type used by the endpoint, if it it could be determined from the sequence
 	## numbers used. This is one of :bro:see:`ENDIAN_UNKNOWN`, :bro:see:`ENDIAN_BIG`,
 	## :bro:see:`ENDIAN_LITTLE`, and :bro:see:`ENDIAN_CONFUSED`.
-	endian_type: count;
+	##
+	## TODO: Re-include this?
+#	endian_type: count;
 };
+
+## TODO: Documentation
+## TODO: Put this somewhere more appropriate
+type rtt_stats: record {
+	 mean: double;
+	 median: double;
+	 lower_quartile: double;
+	 upper_quartile: double;
+	 min: double;
+	 min_time: double;
+	 max: double;
+	 max_time: double;
+};
+
+
+type window_stats: record {
+	 median: int; # median as int -- yes, on purpose
+	 min: int;
+	 max: int;
+};
+
+
+type flight_stats: record {
+	 mean: double;
+	 median: int; # yes, really
+	 lower_quartile: int;
+	 upper_quartile: int;
+	 min: int;
+	 max: int;
+};
+
 
 ## A unique analyzer instance ID. Each time instantiates a protocol analyzers
 ## for a connection, it assigns it a unique ID that can be used to reference
@@ -2333,6 +2369,7 @@ const parse_udp_tunnels = F &redef;
 
 ## Number of bytes per packet to capture from live interfaces.
 const snaplen = 8192 &redef;
+
 
 # Load the logging framework here because it uses fairly deep integration with 
 # BiFs and script-land defined types.

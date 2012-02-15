@@ -25,6 +25,10 @@ int watchdog_interval;
 int max_timer_expires;
 int max_remote_events_processed;
 
+int ignore_rtt_events;
+int ignore_window_events;
+int ignore_tcp_events;
+
 int ignore_checksums;
 int partial_connection_ok;
 int tcp_SYN_ack_ok;
@@ -252,6 +256,10 @@ RecordType* record_field;
 TableType* record_field_table;
 
 StringVal* cmd_line_bpf_filter;
+
+RecordType* flight_stats;
+RecordType* rtt_stats;
+RecordType* window_stats;
 
 #include "const.bif.netvar_def"
 #include "types.bif.netvar_def"
@@ -556,4 +564,8 @@ void init_net_var()
 	id_table = internal_type("id_table")->AsTableType();
 	record_field = internal_type("record_field")->AsRecordType();
 	record_field_table = internal_type("record_field_table")->AsTableType();
+
+	flight_stats = internal_type("flight_stats")->AsRecordType();
+	rtt_stats = internal_type("rtt_stats")->AsRecordType();
+	window_stats = internal_type("window_stats")->AsRecordType();
 	}

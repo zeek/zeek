@@ -140,7 +140,7 @@ void TCP_Endpoint::SetState(EndpointState new_state)
 		// Activate inactivity timer if this transition finishes the
 		// handshake.
 		if ( ! is_handshake(new_state) )
-			if ( is_handshake(state) && is_handshake(peer->state) )
+			if ( is_handshake(state) && is_handshake(peer->state) ) 
 				tcp_analyzer->Conn()->SetInactivityTimeout(tcp_inactivity_timeout);
 
 		prev_state = state;

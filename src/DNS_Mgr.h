@@ -6,6 +6,7 @@
 #include <list>
 #include <map>
 #include <queue>
+#include <utility>
 
 #include "util.h"
 #include "BroList.h"
@@ -106,6 +107,8 @@ protected:
 
 	void LoadCache(FILE* f);
 	void Save(FILE* f, PDict(DNS_Mapping)& m);
+	typedef map<string, pair<DNS_Mapping*, DNS_Mapping*> > HostMap;
+	void Save(FILE* f, const HostMap& m);
 
 	// Selects on the fd to see if there is an answer available (timeout
 	// is secs). Returns 0 on timeout, -1 on EINTR or other error, and 1
@@ -133,7 +136,7 @@ protected:
 
 	PDict(ListVal) services;
 
-	PDict(DNS_Mapping) host_mappings;
+	HostMap host_mappings;
 	PDict(DNS_Mapping) addr_mappings;
 
 	DNS_mgr_request_list requests;

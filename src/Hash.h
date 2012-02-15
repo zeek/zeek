@@ -6,6 +6,7 @@
 #include <stdlib.h>
 
 #include "BroString.h"
+#include "IPAddr.h"
 
 #define UHASH_KEY_SIZE 36
 
@@ -28,6 +29,7 @@ public:
 	HashKey(const void* p);
 	HashKey(const char* s);
 	HashKey(const BroString* s);
+	HashKey(const IPAddr& addr);
 	~HashKey()
 		{
 		if ( is_our_dynamic )

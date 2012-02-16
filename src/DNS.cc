@@ -766,12 +766,20 @@ int DNS_Interpreter::ParseRR_AAAA(DNS_MsgInfo* msg,
 
 		if ( len < 0 )
 			{
-			analyzer->Weird("DNS_AAAA_neg_length");
+			if ( msg->atype == TYPE_AAAA )
+				analyzer->Weird("DNS_AAAA_neg_length");
+			else
+				analyzer->Weird("DNS_A6_neg_length");
 			return 0;
 			}
 		}
 
-	if ( dns_AAAA_reply && ! msg->skip_event )
+	EventHandlerPtr event;
+	if ( msg->atype == TYPE_AAAA )
+		event = dns_AAAA_reply;
+	else
+		event = dns_A6_reply;
+	if ( event && ! msg->skip_event )
 		{
 		val_list* vl = new val_list;
 
@@ -779,7 +787,7 @@ int DNS_Interpreter::ParseRR_AAAA(DNS_MsgInfo* msg,
 		vl->append(msg->BuildHdrVal());
 		vl->append(msg->BuildAnswerVal());
 		vl->append(new AddrVal(addr));
-		analyzer->ConnectionEvent(dns_AAAA_reply, vl);
+		analyzer->ConnectionEvent(event, vl);
 		}
 
 	return 1;

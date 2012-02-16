@@ -789,13 +789,6 @@ int Manager::SendEntryTable(const ReaderFrontend* reader, const int id, const Va
 	InputHash *h = filter->lastDict->Lookup(idxhash);
 	if ( h != 0 ) {
 		// seen before
-		
-		valhash->Hash();
-		
-		h->valhash->Hash();
-		
-
-
 		if ( filter->num_val_fields == 0 || h->valhash->Hash() == valhash->Hash() ) {
 			// ok, exact duplicate
 			filter->lastDict->Remove(idxhash);

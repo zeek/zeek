@@ -91,6 +91,7 @@ private:
 	int mode;
 
 	bool started;
+	time_t mtime;
 
 };
 

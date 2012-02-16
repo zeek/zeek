@@ -185,4 +185,10 @@ enum ID %{
 	Unknown,
 %}
 
+enum Mode %{
+	MANUAL,
+	REREAD,
+	STREAM,
+%}
+
 module GLOBAL;

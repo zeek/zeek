@@ -685,18 +685,28 @@ bool Manager::RemoveEventFilter(EnumVal* id, const string &name) {
 		return false;
 	}
 
-	map<int, Manager::Filter*>::iterator it = i->filters.find(id->InternalInt());
-	if ( it == i->filters.end() ) {
+	bool found = false;
+	int filterId;
+	for ( map<int, Manager::Filter*>::iterator it = i->filters.begin(); it != i->filters.end(); ++it ) {
+		if ( (*it).second->name == name ) {
+			found = true;
+			filterId = (*it).first;
+
+			if ( (*it).second->filter_type != EVENT_FILTER ) {
+				reporter->Error("Trying to remove filter %s of wrong type", name.c_str());
+				return false;
+			}
+
+			break;
+		}
+	}
+	
+	if ( !found ) {
+		reporter->Error("Trying to remove nonexisting filter %s", name.c_str());
 		return false;
 	}
 
-	if ( i->filters[id->InternalInt()]->filter_type != EVENT_FILTER ) {
-		// wrong type;
-		return false;
-	}
-
-	delete (*it).second;
-	i->filters.erase(it);
+	i->reader->RemoveFilter(filterId);
 	return true;
 }
 
@@ -1135,11 +1145,6 @@ bool Manager::Delete(const ReaderFrontend* reader, int id, Value* *vals) {
 
 	return success;
 } 
-
-void Manager::Error(ReaderFrontend* reader, const char* msg)
-{
-	reporter->Error("error with input reader for %s: %s", reader->Source().c_str(), msg);
-}
 
 bool Manager::SendEvent(const string& name, const int num_vals, Value* *vals) 
 {

@@ -4,10 +4,13 @@
 module Input;
 
 export {
+         
 	redef enum Input::ID += { TABLE_READ };
-	
+
 	## The default input reader used. Defaults to `READER_ASCII`.
 	const default_reader = READER_ASCII &redef;
+
+	const default_mode = MANUAL &redef;
 
 	## Stream decription type used for the `create_stream` method
 	type StreamDescription: record {
@@ -17,6 +20,9 @@ export {
 		
 		## Reader to use for this steam
 		reader: Reader &default=default_reader;
+
+		## Read mode to use for this stream
+		mode: Mode &default=default_mode;
 	};
 
 	## TableFilter description type used for the `add_tablefilter` method.

@@ -51,15 +51,37 @@ public:
 	 */	
 	void Init(string arg_source);
 
+	/**
+	 * Force an update of the current input source. Actual action depends on
+	 * the opening mode and on the input source.
+	 *
+	 * This method generates a message to the backend reader and triggers
+	 * the corresponding message there.
+	 * This method must only be called from the main thread.
+	 */
 	void Update();
 
-	/* * The method takes
-	 * ownership of \a fields. */
-
+	/**
+	 * Add a filter to the current input source.
+	 *
+	 * See ReaderBackend::AddFilter for arguments.
+	 *
+	 * The method takes ownership of \a fields
+	 */
 	void AddFilter( const int id, const int arg_num_fields, const threading::Field* const* fields );
 
+	/**
+	 * Removes a filter to the current input source.
+	 */
 	void RemoveFilter ( const int id );
 
+	/**
+	 * Finalizes writing to this tream.
+	 *
+	 * This method generates a message to the backend reader and triggers
+	 * the corresponding message there.
+	 * This method must only be called from the main thread.
+	 */	
 	void Finish();
 
 	/**
@@ -92,6 +114,9 @@ public:
 protected:
 	friend class Manager;
 
+	/**
+	 * Returns the source as passed into the constructor
+	 */
 	const string Source() const	{ return source; };	
 
 	string ty_name;	// Name of the backend type. Set by the manager.

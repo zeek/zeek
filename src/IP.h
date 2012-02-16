@@ -10,26 +10,22 @@
 class IP_Hdr {
 public:
 	IP_Hdr(struct ip* arg_ip4)
-		: ip4(arg_ip4), ip6(0),
-		  src_addr(arg_ip4->ip_src), dst_addr(arg_ip4->ip_dst), del(1)
+		: ip4(arg_ip4), ip6(0), del(1)
 		{
 		}
 
 	IP_Hdr(const struct ip* arg_ip4)
-		: ip4(arg_ip4), ip6(0),
-		  src_addr(arg_ip4->ip_src), dst_addr(arg_ip4->ip_dst), del(0)
+		: ip4(arg_ip4), ip6(0), del(0)
 		{
 		}
 
 	IP_Hdr(struct ip6_hdr* arg_ip6)
-		: ip4(0), ip6(arg_ip6),
-		  src_addr(arg_ip6->ip6_src), dst_addr(arg_ip6->ip6_dst), del(1)
+		: ip4(0), ip6(arg_ip6), del(1)
 		{
 		}
 
 	IP_Hdr(const struct ip6_hdr* arg_ip6)
-		: ip4(0), ip6(arg_ip6),
-		  src_addr(arg_ip6->ip6_src), dst_addr(arg_ip6->ip6_dst), del(0)
+		: ip4(0), ip6(arg_ip6), del(0)
 		{
 		}
 
@@ -47,8 +43,10 @@ public:
 	const struct ip* IP4_Hdr() const	{ return ip4; }
 	const struct ip6_hdr* IP6_Hdr() const	{ return ip6; }
 
-	const IPAddr& SrcAddr() const	{ return src_addr; }
-	const IPAddr& DstAddr() const	{ return dst_addr; }
+	IPAddr SrcAddr() const
+		{ return ip4 ? IPAddr(ip4->ip_src) : IPAddr(ip6->ip6_src); }
+	IPAddr DstAddr() const
+		{ return ip4 ? IPAddr(ip4->ip_dst) : IPAddr(ip6->ip6_dst); }
 
 	//TODO: needs adapting/replacement for IPv6 support
 	uint16 ID4() const	{ return ip4 ? ip4->ip_id : 0; }
@@ -92,8 +90,6 @@ public:
 private:
 	const struct ip* ip4;
 	const struct ip6_hdr* ip6;
-	IPAddr src_addr;
-	IPAddr dst_addr;
 	int del;
 };
 

@@ -6,6 +6,7 @@
 ##! is not attempted if the connection size analyzer isn't enabled.
 
 @load base/frameworks/notice
+@load base/frameworks/protocols
 @load base/utils/site
 @load base/utils/thresholds
 @load base/utils/conn-ids
@@ -73,11 +74,10 @@ export {
 	global log_ssh: event(rec: Info);
 }
 
-# Configure DPD and the packet filter
-redef capture_filters += { ["ssh"] = "tcp port 22" };
-redef dpd_config += { [ANALYZER_SSH] = [$ports = set(22/tcp)] };
-
-redef likely_server_ports += { 22/tcp };
+global analyzers = { ANALYZER_SSH };
+redef Protocols::analyzer_map["SSH"] = analyzers;
+global ports = { 22/tcp };
+redef Protocols::common_ports["SSH"] = ports;
 
 redef record connection += {
 	ssh: Info &optional;

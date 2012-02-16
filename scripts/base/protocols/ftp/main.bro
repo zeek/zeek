@@ -3,9 +3,11 @@
 ##! will take on the full path that the client is at along with the requested 
 ##! file name.
 
+@load base/frameworks/protocols
 @load ./utils-commands
 @load base/utils/paths
 @load base/utils/numbers
+
 
 module FTP;
 
@@ -92,12 +94,10 @@ redef record connection += {
 	ftp: Info &optional;
 };
 
-# Configure DPD
-const ports = { 21/tcp } &redef;
-redef capture_filters += { ["ftp"] = "port 21" };
-redef dpd_config += { [ANALYZER_FTP] = [$ports = ports] };
-
-redef likely_server_ports += { 21/tcp };
+global analyzers = { ANALYZER_FTP };
+redef Protocols::analyzer_map["FTP"] = analyzers;
+global ports = { 21/tcp };
+redef Protocols::common_ports["FTP"] = ports;
 
 # Establish the variable for tracking expected connections.
 global ftp_data_expected: table[addr, port] of Info &create_expire=5mins;

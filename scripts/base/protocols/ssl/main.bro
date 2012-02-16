@@ -1,6 +1,7 @@
 ##! Base SSL analysis script.  This script logs information about the SSL/TLS
 ##! handshaking and encryption establishment process.
 
+@load base/frameworks/protocols
 @load ./consts
 
 module SSL;
@@ -70,35 +71,13 @@ event bro_init() &priority=5
 	{
 	Log::create_stream(SSL::LOG, [$columns=Info, $ev=log_ssl]);
 	}
+	
+global analyzers = { ANALYZER_SSL };
+redef Protocols::analyzer_map["SSL"] = analyzers;
+global ports = { 443/tcp, 563/tcp, 585/tcp, 614/tcp, 636/tcp,
+                 989/tcp, 990/tcp, 992/tcp, 993/tcp, 995/tcp, 5223/tcp };
+redef Protocols::common_ports["SSL"] = ports;
 
-redef capture_filters += {
-	["ssl"] = "tcp port 443",
-	["nntps"] = "tcp port 563",
-	["imap4-ssl"] = "tcp port 585",
-	["sshell"] = "tcp port 614",
-	["ldaps"] = "tcp port 636",
-	["ftps-data"] = "tcp port 989",
-	["ftps"] = "tcp port 990",
-	["telnets"] = "tcp port 992",
-	["imaps"] = "tcp port 993",
-	["ircs"] = "tcp port 994",
-	["pop3s"] = "tcp port 995",
-	["xmpps"] = "tcp port 5223",
-};
-
-const ports = {
-	443/tcp, 563/tcp, 585/tcp, 614/tcp, 636/tcp,
-	989/tcp, 990/tcp, 992/tcp, 993/tcp, 995/tcp, 5223/tcp
-};
-
-redef dpd_config += {
-	[[ANALYZER_SSL]] = [$ports = ports]
-};
-
-redef likely_server_ports += {
-	443/tcp, 563/tcp, 585/tcp, 614/tcp, 636/tcp,
-	989/tcp, 990/tcp, 992/tcp, 993/tcp, 995/tcp, 5223/tcp
-};
 
 function set_session(c: connection)
 	{

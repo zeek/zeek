@@ -1,6 +1,7 @@
 ##! Core script support for logging syslog messages.  This script represents 
 ##! one syslog message as one logged record.
 
+@load base/frameworks/protocols
 @load ./consts
 
 module Syslog;
@@ -24,11 +25,10 @@ export {
 	};
 }
 
-redef capture_filters += { ["syslog"] = "port 514" };
-const ports = { 514/udp } &redef;
-redef dpd_config += { [ANALYZER_SYSLOG_BINPAC] = [$ports = ports] };
-
-redef likely_server_ports += { 514/udp };
+global analyzers = { ANALYZER_SYSLOG_BINPAC };
+redef Protocols::analyzer_map["SYSLOG"] = analyzers;
+global ports = { 514/udp };
+redef Protocols::common_ports["SYSLOG"] = ports;
 
 redef record connection += {
 	syslog: Info &optional;

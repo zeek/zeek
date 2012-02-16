@@ -196,12 +196,9 @@ function setup_peer(p: event_peer, node: Node)
 		request_remote_events(p, node$events);
 		}
 
-	if ( node?$capture_filter )
+	if ( node?$capture_filter && node$capture_filter != "" )
 		{
 		local filter = node$capture_filter;
-		if ( filter == "" )
-			filter = PacketFilter::default_filter;
-
 		do_script_log(p, fmt("sending capture_filter: %s", filter));
 		send_capture_filter(p, filter);
 		}

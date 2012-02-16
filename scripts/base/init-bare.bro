@@ -607,19 +607,6 @@ global signature_files = "" &add_func = add_signature_file;
 ## ``p0f`` fingerprint file to use. Will be searched relative to ``BRO_PATH``.
 const passive_fingerprint_file = "base/misc/p0f.fp" &redef;
 
-# todo::testing to see if I can remove these without causing problems.
-#const ftp = 21/tcp;
-#const ssh = 22/tcp;
-#const telnet = 23/tcp;
-#const smtp = 25/tcp;
-#const domain = 53/tcp;	# note, doesn't include UDP version
-#const gopher = 70/tcp;
-#const finger = 79/tcp;
-#const http = 80/tcp;
-#const ident = 113/tcp;
-#const bgp = 179/tcp;
-#const rlogin = 513/tcp;
-
 # TCP values for :bro:see:`endpoint` *state* field.
 # todo::these should go into an enum to make them autodoc'able.
 const TCP_INACTIVE = 0;	##< Endpoint is still inactive.

@@ -2,6 +2,7 @@
 ##! to log request/response pairs and all relevant metadata together in 
 ##! a single record.
 
+@load base/frameworks/protocols
 @load base/utils/numbers
 @load base/utils/files
 
@@ -110,17 +111,15 @@ event bro_init() &priority=5
 	Log::create_stream(HTTP::LOG, [$columns=Info, $ev=log_http]);
 	}
 
-# DPD configuration.
-const ports = {
-	80/tcp, 81/tcp, 631/tcp, 1080/tcp, 3138/tcp,
-	8000/tcp, 8080/tcp, 8888/tcp,
-};
-redef dpd_config += { 
-	[[ANALYZER_HTTP, ANALYZER_HTTP_BINPAC]] = [$ports = ports],
-};
-redef capture_filters +=  {
-	["http"] = "tcp and port (80 or 81 or 631 or 1080 or 3138 or 8000 or 8080 or 8888)"
-};
+
+global analyzers = { ANALYZER_HTTP, ANALYZER_HTTP_BINPAC };
+redef Protocols::analyzer_map["HTTP"] = analyzers;
+global ports = { 80/tcp, 81/tcp, 631/tcp, 1080/tcp, 3138/tcp, 8000/tcp, 8080/tcp, 8888/tcp };
+redef Protocols::common_ports["HTTP"] = ports;
+
+#redef dpd_config += {
+#	[[ANALYZER_HTTP, ANALYZER_HTTP_BINPAC]] = [$ports = Protocols::common_ports["HTTP"]],
+#};
 
 redef likely_server_ports += { 
 	80/tcp, 81/tcp, 631/tcp, 1080/tcp, 3138/tcp,

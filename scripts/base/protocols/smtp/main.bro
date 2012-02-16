@@ -1,4 +1,5 @@
 @load base/frameworks/notice
+@load base/frameworks/protocols
 @load base/utils/addrs
 @load base/utils/directions-and-hosts
 
@@ -66,11 +67,9 @@ redef record connection += {
 	smtp_state: State &optional;
 };
 
-# Configure DPD
-redef capture_filters += { ["smtp"] = "tcp port 25 or tcp port 587" };
-redef dpd_config += { [ANALYZER_SMTP] = [$ports = ports] };
-
-redef likely_server_ports += { 25/tcp, 587/tcp };
+global analyzers = { ANALYZER_SMTP };
+redef Protocols::analyzer_map["SMTP"] = analyzers;
+redef Protocols::common_ports["SMTP"] = ports;
 
 event bro_init() &priority=5
 	{

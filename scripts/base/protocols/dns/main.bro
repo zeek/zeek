@@ -1,6 +1,7 @@
 ##! Base DNS analysis script which tracks and logs DNS queries along with
 ##! their responses.
 
+@load base/frameworks/protocols
 @load ./consts
 
 module DNS;
@@ -109,23 +110,11 @@ redef record connection += {
 	dns_state: State &optional;
 };
 
-# DPD configuration.
-redef capture_filters += {
-	["dns"] = "port 53",
-	["mdns"] = "udp and port 5353",
-	["llmns"] = "udp and port 5355",
-	["netbios-ns"] = "udp port 137",
-};
-
-const dns_ports = { 53/udp, 53/tcp, 137/udp, 5353/udp, 5355/udp };
-redef dpd_config += { [ANALYZER_DNS] = [$ports = dns_ports] };
-
-const dns_udp_ports = { 53/udp, 137/udp, 5353/udp, 5355/udp };
-const dns_tcp_ports = { 53/tcp };
-redef dpd_config += { [ANALYZER_DNS_UDP_BINPAC] = [$ports = dns_udp_ports] };
-redef dpd_config += { [ANALYZER_DNS_TCP_BINPAC] = [$ports = dns_tcp_ports] };
-
-redef likely_server_ports += { 53/udp, 53/tcp, 137/udp, 5353/udp, 5355/udp };
+# Not attaching ANALYZER_DNS_UDP_BINPAC and ANALYZER_DNS_TCP_BINPAC right now.
+global analyzers = { ANALYZER_DNS };
+redef Protocols::analyzer_map["DNS"] = analyzers;
+global ports = { 53/udp, 53/tcp, 137/udp, 5353/udp, 5355/udp };
+redef Protocols::common_ports["DNS"] = ports;
 
 event bro_init() &priority=5
 	{

@@ -186,9 +186,9 @@ enum ID %{
 %}
 
 enum Mode %{
-	MANUAL,
-	REREAD,
-	STREAM,
+	MANUAL = 0,
+	REREAD = 1,
+	STREAM = 2,
 %}
 
 module GLOBAL;

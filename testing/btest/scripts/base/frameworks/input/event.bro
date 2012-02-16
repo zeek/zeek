@@ -38,5 +38,4 @@ event bro_init()
 {
 	Input::create_stream(A::INPUT, [$source="input.log"]);
 	Input::add_eventfilter(A::INPUT, [$name="input", $fields=Val, $ev=line]);
-	Input::force_update(A::INPUT);
 }

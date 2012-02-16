@@ -8,9 +8,13 @@
 
 #include "../../threading/SerializationTypes.h"
 
+#define MANUAL 0
+#define REREAD 1
+
 using namespace input::reader;
 using threading::Value;
 using threading::Field;
+
 
 FieldMapping::FieldMapping(const string& arg_name, const TypeTag& arg_type, int arg_position) 
 	: name(arg_name), type(arg_type)
@@ -75,14 +79,39 @@ void Ascii::DoFinish()
 	}
 }
 
-bool Ascii::DoInit(string path)
+bool Ascii::DoInit(string path, int arg_mode)
 {
+	started = false;
 	fname = path;
+	mode = arg_mode;
 	
 	file = new ifstream(path.c_str());
 	if ( !file->is_open() ) {
-		Error(Fmt("cannot open %s", fname.c_str()));
+		Error(Fmt("Init: cannot open %s", fname.c_str()));
 		return false;
+	}
+
+	if ( ( mode != MANUAL ) && (mode != REREAD) ) {
+		Error(Fmt("Unsupported read mode %d for source %s", mode, path.c_str()));
+		return false;
+	} 	
+
+	return true;
+}
+
+bool Ascii::DoStartReading() {
+	if ( started == true ) {
+		Error("Started twice");
+		return false;
+	}	
+
+	started = true;
+	switch ( mode ) {
+		case MANUAL:
+			DoUpdate();
+			break;
+		default:
+			assert(false);
 	}
 
 	return true;
@@ -132,7 +161,7 @@ bool Ascii::ReadHeader() {
 
 	map<string, uint32_t> fields;
 
-	// construcr list of field names.
+	// construct list of field names.
 	istringstream splitstream(line);
 	int pos=0;
 	while ( splitstream ) {
@@ -146,6 +175,7 @@ bool Ascii::ReadHeader() {
 
 
 	for ( map<int, Filter>::iterator it = filters.begin(); it != filters.end(); it++ ) {
+		(*it).second.columnMap.clear();
 			
 		for ( unsigned int i = 0; i < (*it).second.num_fields; i++ ) {
 			const Field* field = (*it).second.fields[i];
@@ -372,7 +402,6 @@ Value* Ascii::EntryToVal(string s, FieldMapping field) {
 
 // read the entire file and send appropriate thingies back to InputMgr
 bool Ascii::DoUpdate() {
-	 
 	// dirty, fix me. (well, apparently after trying seeking, etc - this is not that bad)
 	if ( file && file->is_open() ) {
 		file->close();
@@ -418,6 +447,7 @@ bool Ascii::DoUpdate() {
 				fit != (*it).second.columnMap.end();
 				fit++ ){
 
+
 				if ( (*fit).position > pos || (*fit).secondary_position > pos ) {
 					Error(Fmt("Not enough fields in line %s. Found %d fields, want positions %d and %d", line.c_str(), pos,  (*fit).position, (*fit).secondary_position));
 					return false;
@@ -455,6 +485,7 @@ bool Ascii::DoUpdate() {
 
 	}
 
+
 	//file->clear(); // remove end of file evil bits
 	//file->seekg(0, ios::beg); // and seek to start.
 
@@ -463,3 +494,22 @@ bool Ascii::DoUpdate() {
 	}
 	return true;
 }
+
+bool Ascii::DoHeartbeat(double network_time, double current_time)
+{
+	ReaderBackend::DoHeartbeat(network_time, current_time);
+
+	switch ( mode ) {
+		case MANUAL:
+			// yay, we do nothing :)
+			break;
+		case REREAD:
+
+
+		default:
+			assert(false);
+	}
+
+	return true;
+}
+

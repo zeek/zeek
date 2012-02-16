@@ -23,6 +23,9 @@ export {
 
 		## Read mode to use for this stream
 		mode: Mode &default=default_mode;
+
+		## Automatically start the input stream after the first filter has been added
+		autostart: bool &default=T;
 	};
 
 	## TableFilter description type used for the `add_tablefilter` method.

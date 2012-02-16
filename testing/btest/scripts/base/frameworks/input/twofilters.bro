@@ -40,7 +40,7 @@ global done: bool = F;
 event bro_init()
 {
 	# first read in the old stuff into the table...
-	Input::create_stream(A::INPUT, [$source="input.log"]);
+	Input::create_stream(A::INPUT, [$source="input.log", $autostart=F]);
 	Input::add_tablefilter(A::INPUT, [$name="input", $idx=Idx, $val=Val, $destination=destination1, $want_record=F,
 				$pred(typ: Input::Event, left: Idx, right: bool) = { return right; }
 				]);

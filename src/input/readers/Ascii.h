@@ -39,7 +39,7 @@ public:
     
 protected:
 	
-	virtual bool DoInit(string path);
+	virtual bool DoInit(string path, int mode);
 
 	virtual bool DoAddFilter( int id, int arg_num_fields, const threading::Field* const* fields );
 
@@ -48,8 +48,12 @@ protected:
 	virtual void DoFinish();
 
 	virtual bool DoUpdate();
+
+	virtual bool DoStartReading();
     
 private:
+
+	virtual bool DoHeartbeat(double network_time, double current_time);
 
 	struct Filter {
 		unsigned int num_fields;
@@ -83,6 +87,10 @@ private:
 	string empty_field;
 
 	string unset_field;
+
+	int mode;
+
+	bool started;
 
 };
 

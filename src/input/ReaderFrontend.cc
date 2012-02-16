@@ -12,14 +12,16 @@ namespace input {
 class InitMessage : public threading::InputMessage<ReaderBackend>
 {
 public:
-	InitMessage(ReaderBackend* backend, const string source)
+	InitMessage(ReaderBackend* backend, const string source, const int mode, const bool autostart)
 		: threading::InputMessage<ReaderBackend>("Init", backend),
-		source(source) { }
+		source(source), mode(mode), autostart(autostart) { }
 
-	virtual bool Process() { return Object()->Init(source); }
+	virtual bool Process() { return Object()->Init(source, mode, autostart); }
 
 private:
 	const string source;
+	const int mode;
+	const bool autostart;
 };
 
 class UpdateMessage : public threading::InputMessage<ReaderBackend>
@@ -40,6 +42,16 @@ public:
 		 { }
 
 	virtual bool Process() { Object()->Finish(); return true; }
+};
+
+class StartReadingMessage : public threading::InputMessage<ReaderBackend>
+{
+public:
+	StartReadingMessage(ReaderBackend* backend)
+		: threading::InputMessage<ReaderBackend>("StartReading", backend)
+		 { }
+
+	virtual bool Process() { Object()->StartReading(); return true; }
 };
 
 class AddFilterMessage : public threading::InputMessage<ReaderBackend>
@@ -83,17 +95,17 @@ ReaderFrontend::ReaderFrontend(bro_int_t type) {
 ReaderFrontend::~ReaderFrontend() {
 }
 
-void ReaderFrontend::Init(string arg_source) {
+void ReaderFrontend::Init(string arg_source, int mode, bool autostart) {
 	if ( disabled )
 		return;
 
 	if ( initialized )
-		reporter->InternalError("writer initialize twice");
+		reporter->InternalError("reader initialize twice");
 
 	source = arg_source;
 	initialized = true;
 
-	backend->SendIn(new InitMessage(backend, arg_source));
+	backend->SendIn(new InitMessage(backend, arg_source, mode, autostart));
 } 
 
 void ReaderFrontend::Update() {
@@ -130,6 +142,13 @@ string ReaderFrontend::Name() const
 		return ty_name;
 
 	return ty_name + "/" + source;
+}
+
+void ReaderFrontend::StartReading() {
+	if ( disabled ) 
+		return;
+
+	backend->SendIn(new StartReadingMessage(backend));
 }
 
 }

@@ -185,24 +185,42 @@ void ReaderBackend::SendEntry(int id, Value* *vals)
 	SendOut(new SendEntryMessage(frontend, id, vals));
 }
 
-bool ReaderBackend::Init(string arg_source) 
+bool ReaderBackend::Init(string arg_source, int mode, bool arg_autostart) 
 {
 	source = arg_source;
+	autostart = arg_autostart;
+	SetName("InputReader/"+source);
 
 	// disable if DoInit returns error.
-	disabled = !DoInit(arg_source);
+	disabled = !DoInit(arg_source, mode);
 
 	if ( disabled ) {
+		Error("Init failed");
 		DisableFrontend();
 	}
 
 	return !disabled;
 }
 
+bool ReaderBackend::StartReading() {
+	int success = DoStartReading();
+	
+	if ( success == false ) {
+		DisableFrontend();
+	} 
+
+	return success;
+}
+
 bool ReaderBackend::AddFilter(int id, int arg_num_fields,
 					   const Field* const * arg_fields) 
 {
-	return DoAddFilter(id, arg_num_fields, arg_fields);
+	bool success = DoAddFilter(id, arg_num_fields, arg_fields);
+	if ( success && autostart) {
+		autostart = false;
+		return StartReading();
+	}
+	return success;
 }
 
 bool ReaderBackend::RemoveFilter(int id) 
@@ -229,5 +247,13 @@ void ReaderBackend::DisableFrontend()
 {
 	SendOut(new DisableMessage(frontend));
 }
+
+bool ReaderBackend::DoHeartbeat(double network_time, double current_time)
+{
+	MsgThread::DoHeartbeat(network_time, current_time);
+
+	return true;
+}
+
 
 }

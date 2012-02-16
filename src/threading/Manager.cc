@@ -106,7 +106,7 @@ void Manager::Process()
 
 		Message* msg = t->RetrieveOut();
 
-		if ( msg->Process() && network_time )
+		if ( msg->Process() ) //&& network_time ) // FIXME: ask robin again if he needs this. makes input interface not work in bro_init.
 			did_process = true;
 
 		else

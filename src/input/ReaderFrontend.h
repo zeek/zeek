@@ -49,7 +49,18 @@ public:
 	 * See ReaderBackend::Init() for arguments.
 	 * This method must only be called from the main thread.
 	 */	
-	void Init(string arg_source);
+	void Init(string arg_source, int mode, bool autostart);
+
+	/**
+	 * Start the reader.
+	 *
+	 * This methods starts the reader, after all necessary filters have been added.
+	 * It is not necessary to call this function, if autostart has been set.
+	 * If autostart has been set, the reader will be initialized automatically after the first filter has been added
+	 *
+	 * This method must only be called from the main thread.
+	 */
+	void StartReading();
 
 	/**
 	 * Force an update of the current input source. Actual action depends on

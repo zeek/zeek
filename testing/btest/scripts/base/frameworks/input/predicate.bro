@@ -41,7 +41,6 @@ event bro_init()
 	Input::add_tablefilter(A::INPUT, [$name="input", $idx=Idx, $val=Val, $destination=servers, $want_record=F,
 				$pred(typ: Input::Event, left: Idx, right: bool) = { return right; }
 				]);
-	Input::force_update(A::INPUT);
 }
 
 event Input::update_finished(id: Input::ID) {

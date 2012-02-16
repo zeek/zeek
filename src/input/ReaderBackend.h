@@ -51,9 +51,24 @@ public:
 	 * @param fields An array of size \a num_fields with the log fields.
 	 * The methods takes ownership of the array.
 	 * 
+	 * @param mode the opening mode for the input source
+	 *
+	 * @param autostart automatically start the input source after the first filter has been added
+	 *
 	 * @return False if an error occured.
 	 */
-	bool Init(string arg_source);
+	bool Init(string arg_source, int mode, bool autostart);
+
+	/**
+	 * One-time start method of the reader.
+	 *
+	 * This method is called from the scripting layer, after all filters have been added.
+	 * No data should be read before this method is called.
+	 *
+	 * If autostart in Init is set to true, this method is called automatically by the backend after
+	 * the first filter has been added.
+	 */
+	bool StartReading();
 
 	/**
 	 * Add an input filter to the input stream
@@ -107,7 +122,8 @@ protected:
     	// Methods that have to be overwritten by the individual readers
 	
 	/**
-	 * Reader-specific intialization method.
+	 * Reader-specific intialization method. Note that data may only be read from the input source
+	 * after the Start function has been called.
 	 *
 	 * A reader implementation must override this method. If it returns
 	 * false, it will be assumed that a fatal error has occured that
@@ -115,7 +131,19 @@ protected:
 	 * disabled and eventually deleted. When returning false, an
 	 * implementation should also call Error() to indicate what happened.
 	 */
-	virtual bool DoInit(string arg_sources) = 0;
+	virtual bool DoInit(string arg_sources, int mode) = 0;
+
+	/**
+	 * Reader-specific start method. After this function has been called, data may be read from
+	 * the input source and be sent to the specified filters
+	 *
+	 * A reader implementation must override this method.
+	 * If it returns false, it will be assumed that a fatal error has occured
+	 * that prevents the reader from further operation; it will then be
+	 * disabled and eventually deleted. When returning false, an implementation
+	 * should also call Error to indicate what happened.
+	 */
+	virtual bool DoStartReading() = 0;
 
 	/**
 	 * Reader-specific method to add a filter.
@@ -225,7 +253,14 @@ protected:
 	 * @param id the input filter id for which the values are sent
 	 */
 	void EndCurrentSend(int id);
-	
+
+	/**
+	 * Triggered by regular heartbeat messages from the main thread.
+	 *
+	 * This method can be overridden but once must call
+	 * ReaderBackend::DoHeartbeat().
+	 */
+	virtual bool DoHeartbeat(double network_time, double current_time);	
 
 private:
 	// Frontend that instantiated us. This object must not be access from
@@ -238,7 +273,8 @@ private:
 
 	// For implementing Fmt().
 	char* buf;
-	unsigned int buf_len;    
+	unsigned int buf_len;
+	bool autostart;
 };
 
 }

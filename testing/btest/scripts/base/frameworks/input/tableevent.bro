@@ -44,5 +44,4 @@ event bro_init()
 {
 	Input::create_stream(A::LOG, [$source="input.log"]);
 	Input::add_tablefilter(A::LOG, [$name="input", $idx=Idx, $val=Val, $destination=destination, $want_record=F,$ev=line]);
-	Input::force_update(A::LOG);
 }

@@ -214,6 +214,10 @@ ReaderFrontend* Manager::CreateStream(EnumVal* id, RecordVal* description)
 	}
 
 	EnumVal* reader = description->LookupWithDefault(rtype->FieldOffset("reader"))->AsEnumVal();
+	EnumVal* mode = description->LookupWithDefault(rtype->FieldOffset("mode"))->AsEnumVal();
+	Val *autostart = description->LookupWithDefault(rtype->FieldOffset("autostart"));	
+	bool do_autostart = ( autostart->InternalInt() == 1 );
+	Unref(autostart); // Ref'd by LookupWithDefault
 	
 	ReaderFrontend* reader_obj = new ReaderFrontend(reader->InternalInt());
 	assert(reader_obj);
@@ -229,16 +233,7 @@ ReaderFrontend* Manager::CreateStream(EnumVal* id, RecordVal* description)
 
 	readers.push_back(info);
 
-	reader_obj->Init(source);
-	/* if ( success == false ) {
-		assert( RemoveStream(id) );
-		return 0;
-	} */
-	reader_obj->Update();
-	/* if ( success == false ) {
-		assert ( RemoveStream(id) );
-		return 0;
-	} */
+	reader_obj->Init(source, mode->InternalInt(), do_autostart);
 	
 	return reader_obj;
 	
@@ -785,7 +780,7 @@ int Manager::SendEntryTable(const ReaderFrontend* reader, const int id, const Va
 	//reporter->Error("Hashing %d val fields", i->num_val_fields);
 	HashKey* valhash = 0;
 	if ( filter->num_val_fields > 0 ) 
-		HashValues(filter->num_val_fields, vals+filter->num_idx_fields);
+		valhash = HashValues(filter->num_val_fields, vals+filter->num_idx_fields);
 
 	//reporter->Error("Result: %d", (uint64_t) valhash->Hash());
 	
@@ -794,6 +789,13 @@ int Manager::SendEntryTable(const ReaderFrontend* reader, const int id, const Va
 	InputHash *h = filter->lastDict->Lookup(idxhash);
 	if ( h != 0 ) {
 		// seen before
+		
+		valhash->Hash();
+		
+		h->valhash->Hash();
+		
+
+
 		if ( filter->num_val_fields == 0 || h->valhash->Hash() == valhash->Hash() ) {
 			// ok, exact duplicate
 			filter->lastDict->Remove(idxhash);

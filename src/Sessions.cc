@@ -279,13 +279,16 @@ void NetSessions::NextPacket(double t, const struct pcap_pkthdr* hdr,
 			DoNextPacket(t, hdr, &ip_hdr, pkt, hdr_size);
 			}
 
-		else if ( arp_analyzer && arp_analyzer->IsARP(pkt, hdr_size) )
-			arp_analyzer->NextPacket(t, hdr, pkt, hdr_size);
-
 		else if ( ip->ip_v == 6 )
 			{
 			IP_Hdr ip_hdr((const struct ip6_hdr*) (pkt + hdr_size));
 			DoNextPacket(t, hdr, &ip_hdr, pkt, hdr_size);
+			}
+
+		else if ( ARP_Analyzer::IsARP(pkt, hdr_size) )
+			{
+			if ( arp_analyzer )
+				arp_analyzer->NextPacket(t, hdr, pkt, hdr_size);
 			}
 
 		else

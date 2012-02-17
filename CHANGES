@@ -1,5 +1,5 @@
 
-2.0-85 | 2012-02-17 15:36:12 -0800
+2.0-86 | 2012-02-17 15:41:06 -0800
 
   * Changing ARP detection to always kick in even if no analyzer is
     activated. (Robin Sommer)

@@ -161,36 +161,34 @@ type endpoint_stats: record {
 #	endian_type: count;
 };
 
-## TODO: Documentation
-## TODO: Put this somewhere more appropriate
+## Statistics for TCP round-trip times for a connection
 type rtt_stats: record {
-	 mean: double;
-	 median: double;
-	 lower_quartile: double;
-	 upper_quartile: double;
-	 min: double;
-	 min_time: double;
-	 max: double;
-	 max_time: double;
+	 mean: double;	   ##< Mean RTT
+	 median: double;   ##< Median RTT
+	 lower_quartile: double;	  ##< Lower quartile (25th percentile) RTT
+	 upper_quartile: double;	  ##< Upper quartile (75th percentile) RTT
+	 min: double;	 ## Min RTT
+	 min_time: double;	## Time at which min RTT occurred
+	 max: double;		## Max RTT
+	 max_time: double;	## Time at which max RTT occurred
 };
 
-
+## Statistics about the TCP window size for a connection
 type window_stats: record {
-	 median: int; # median as int -- yes, on purpose
-	 min: int;
-	 max: int;
+	 median: int;  ##< Median window size
+	 min: int;	   ##< Min window size
+	 max: int;	   ##< Max window size
 };
 
-
+## Statistics about the number of packets in flight for a TCP connection.
 type flight_stats: record {
-	 mean: double;
-	 median: int; # yes, really
-	 lower_quartile: int;
-	 upper_quartile: int;
-	 min: int;
-	 max: int;
+	 mean: double; ##< Mean number of packets in flight
+	 median: int;  ##< Median number of packets in flight
+	 lower_quartile: int;	  ##< Lower quartile (25th percentile) of packets in flight
+	 upper_quartile: int;	  ##< Upper quartile (75th percentile) of packets in flight
+	 min: int;		 ##< Min number of packets in flight
+	 max: int;		 ##< Max number of packets in flight
 };
-
 
 ## A unique analyzer instance ID. Each time instantiates a protocol analyzers
 ## for a connection, it assigns it a unique ID that can be used to reference

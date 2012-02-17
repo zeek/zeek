@@ -200,7 +200,7 @@ bool LogVal::Read(SerializationFormat* fmt)
 	case TYPE_SUBNET:
 		{
 		IPPrefix prefix;
-		if ( ! fmt->Read(&prefix), "subnet" )
+		if ( ! fmt->Read(&prefix, "subnet") )
 			return false;
 
 		val.subnet_val = new IPPrefix(prefix);
@@ -210,10 +210,10 @@ bool LogVal::Read(SerializationFormat* fmt)
 	case TYPE_ADDR:
 		{
 		IPAddr addr;
-		if ( ! fmt->Read(&addr), "net" )
+		if ( ! fmt->Read(&addr, "net") )
 			return false;
 
-		val.addr_val = new IPAddr(prefix);
+		val.addr_val = new IPAddr(addr);
 		return true;
 		}
 

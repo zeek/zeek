@@ -232,11 +232,29 @@ bool BinarySerializationFormat::Read(string* v, const char* tag)
 
 bool BinarySerializationFormat::Read(IPAddr* addr, const char* tag)
 	{
-	string s;
-	if ( ! Read(&s, tag) )
+	int n = 0;
+	if ( ! Read(&n, "addr-len") )
 		return false;
 
-	*addr = IPAddr(s);
+	if ( n != 1 && n != 4 )
+		return false;
+
+	uint32_t raw[4];
+
+	for ( int i = 0; i < n; ++i )
+		{
+		uint32_t i = 0;
+		if ( ! Read(&i, "addr-part") )
+			return false;
+
+		raw[n] = htonl(i);
+		}
+
+	if ( n == 1 )
+		*addr = IPAddr(IPAddr::IPv4, raw, IPAddr::Network);
+	else
+		*addr = IPAddr(IPAddr::IPv6, raw, IPAddr::Network);
+
 	return true;
 	}
 
@@ -323,12 +341,26 @@ bool BinarySerializationFormat::Write(const string& s, const char* tag)
 
 bool BinarySerializationFormat::Write(const IPAddr& addr, const char* tag)
 	{
-	return Write(addr.AsString());
+	const uint32_t* raw;
+	int n = addr.GetBytes(&raw);
+
+	assert(n == 1 || n == 4);
+
+	if ( ! Write(n, "addr-len") )
+		return false;
+
+	for ( int i = 0; i < n; ++i )
+		{
+		if ( ! Write(ntohl(raw[i]), "addr-part") )
+			return false;
+		}
+
+	return true;
 	}
 
 bool BinarySerializationFormat::Write(const IPPrefix& prefix, const char* tag)
 	{
-	return Write(addr.AsString(), tag) && Write(prefix->Length(), tag);
+	return Write(prefix.Prefix(), "prefix") && Write(prefix.Length(), "width");
 	}
 
 bool BinarySerializationFormat::WriteOpenTag(const char* tag)
@@ -421,6 +453,18 @@ bool XMLSerializationFormat::Read(string* s, const char* tag)
 	return false;
 	}
 
+bool XMLSerializationFormat::Read(IPAddr* addr, const char* tag)
+	{
+	reporter->InternalError("no reading of xml");
+	return false;
+	}
+
+bool XMLSerializationFormat::Read(IPPrefix* prefix, const char* tag)
+	{
+	reporter->InternalError("no reading of xml");
+	return false;
+	}
+
 bool XMLSerializationFormat::Write(char v, const char* tag)
 	{
 	return WriteElem(tag, "char", &v, 1);
@@ -499,6 +543,18 @@ bool XMLSerializationFormat::WriteSeparator()
 bool XMLSerializationFormat::Write(const char* buf, int len, const char* tag)
 	{
 	return WriteElem(tag, "string", buf, len);
+	}
+
+bool XMLSerializationFormat::Write(const IPAddr& addr, const char* tag)
+	{
+	reporter->InternalError("XML output of addresses not implemented");
+	return false;
+	}
+
+bool XMLSerializationFormat::Write(const IPPrefix& prefix, const char* tag)
+	{
+	reporter->InternalError("XML output of prefixes not implemented");
+	return false;
 	}
 
 bool XMLSerializationFormat::WriteEncodedString(const char* s, int len)

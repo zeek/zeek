@@ -4493,7 +4493,7 @@ Val* InExpr::Fold(Val* v1, Val* v2) const
 
 	if ( v1->Type()->Tag() == TYPE_ADDR &&
 	     v2->Type()->Tag() == TYPE_SUBNET )
-		return new Val(v2->AsSubNetVal().Contains(v1->AsAddr()), TYPE_BOOL);
+		return new Val(v2->AsSubNetVal()->Contains(v1->AsAddr()), TYPE_BOOL);
 
 	TableVal* vt = v2->AsTableVal();
 	if ( vt->Lookup(v1, false) )

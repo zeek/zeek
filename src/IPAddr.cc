@@ -90,7 +90,7 @@ void IPAddr::Init(const std::string& s)
 
 string IPAddr::AsString() const
 	{
-	if ( family() == IPv4 )
+	if ( GetFamily() == IPv4 )
 		{
 		char s[INET_ADDRSTRLEN];
 
@@ -131,7 +131,7 @@ IPPrefix::IPPrefix(const in6_addr& in6, uint8_t length)
 IPPrefix::IPPrefix(const IPAddr& addr, uint8_t length)
 	: prefix(addr)
 	{
-	if ( prefix.family() == IPAddr::IPv4 )
+	if ( prefix.GetFamily() == IPAddr::IPv4 )
 		{
 		if ( length > 32 )
 			reporter->InternalError("Bad IPAddr(v4) IPPrefix length : %d",
@@ -152,27 +152,15 @@ IPPrefix::IPPrefix(const IPAddr& addr, uint8_t length)
 	prefix.Mask(this->length);
 	}
 
-IPPrefix::IPPrefix(const std::string& s, uint8_t length)
-	: prefix(s), length(length)
-	{
-	if ( prefix.family() == IPAddr::IPv4 && length > 32 )
-		reporter->InternalError("Bad string IPPrefix length : %d", length);
-
-	else if ( prefix.family() == IPAddr::IPv6 && length > 128 )
-		reporter->InternalError("Bad string IPPrefix length : %d", length);
-
-	prefix.Mask(this->length);
-	}
-
 string IPPrefix::AsString() const
 	{
 	char l[16];
 
-	if ( prefix.family() == IPAddr::IPv4 )
+	if ( prefix.GetFamily() == IPAddr::IPv4 )
 		modp_uitoa10(length - 96, l);
 	else
 		modp_uitoa10(length, l);
 
-	return prefix->AsString() +"/" + l;
+	return prefix.AsString() +"/" + l;
 	}
 

@@ -137,7 +137,8 @@ static bool is_mapped_dce_rpc_endpoint(const dce_rpc_endpoint_addr& addr)
 
 bool is_mapped_dce_rpc_endpoint(const ConnID* id, TransportProto proto)
 	{
-	if ( id->dst_addr.family() == IPAddr::IPv6 )
+	if ( id->dst_addr.GetFamily() == IPAddr::IPv6 )
+		// TODO: Does the protocol support v6 addresses? #773
 		return false;
 
 	dce_rpc_endpoint_addr addr;

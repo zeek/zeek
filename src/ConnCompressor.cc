@@ -660,8 +660,8 @@ const IP_Hdr* ConnCompressor::PendingConnToPacket(const PendingConn* c)
 
 	IPAddr ip1(IPAddr::IPv6, c->key.ip1, IPAddr::Network);
 	IPAddr ip2(IPAddr::IPv6, c->key.ip2, IPAddr::Network);
-	if ( ip1.family() == IPAddr::IPv6 ||
-	     ip2.family() == IPAddr::IPv6 )
+	if ( ip1.GetFamily() == IPAddr::IPv6 ||
+	     ip2.GetFamily() == IPAddr::IPv6 )
 		reporter->InternalError("IPv6 snuck into connection compressor");
 	else
 		{

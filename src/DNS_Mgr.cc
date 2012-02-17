@@ -347,13 +347,13 @@ void DNS_Mapping::Save(FILE* f) const
 	{
 	fprintf(f, "%.0f %d %s %d %s %d\n", creation_time, req_host != 0,
 		req_host ? req_host :
-			IPAddr(IPAddr::IPv4, &req_addr, IPAddr::Network)->AsString()->c_str(),
+			IPAddr(IPAddr::IPv4, &req_addr, IPAddr::Network).AsString().c_str(),
 		failed, (names && names[0]) ? names[0] : "*",
 		num_addrs);
 
 	for ( int i = 0; i < num_addrs; ++i )
 		fprintf(f, "%s\n",
-			IPAddr(IPAddr::IPv4, &addrs[i], IPAddr::Network)->AsString().c_str());
+			IPAddr(IPAddr::IPv4, &addrs[i], IPAddr::Network).AsString().c_str());
 	}
 
 
@@ -518,7 +518,7 @@ Val* DNS_Mgr::LookupAddr(uint32 addr)
 
 	case DNS_FORCE:
 		reporter->FatalError("can't find DNS entry for %s in cache",
-		    IPAddr(IPAddr::IPv4, &addr, IPAddr::Network)->AsString().c_str());
+		    IPAddr(IPAddr::IPv4, &addr, IPAddr::Network).AsString().c_str());
 		return 0;
 
 	case DNS_DEFAULT:
@@ -787,13 +787,13 @@ ListVal* DNS_Mgr::AddrListDelta(ListVal* al1, ListVal* al2)
 
 	for ( int i = 0; i < al1->Length(); ++i )
 		{
-		const IPAddr* al1_i = al1->Index(i)->AsAddr();
+		const IPAddr& al1_i = al1->Index(i)->AsAddr();
 
 		int j;
 		for ( j = 0; j < al2->Length(); ++j )
 			{
-			const IPAddr* al2_j = al2->Index(j)->AsAddr();
-			if ( *al1_i == *al2_j )
+			const IPAddr& al2_j = al2->Index(j)->AsAddr();
+			if ( al1_i == al2_j )
 				break;
 			}
 
@@ -809,8 +809,8 @@ void DNS_Mgr::DumpAddrList(FILE* f, ListVal* al)
 	{
 	for ( int i = 0; i < al->Length(); ++i )
 		{
-		const IPAddr* al_i = al->Index(i)->AsAddr();
-		fprintf(f, "%s%s", i > 0 ? "," : "", al_i->AsString().c_str());
+		const IPAddr& al_i = al->Index(i)->AsAddr();
+		fprintf(f, "%s%s", i > 0 ? "," : "", al_i.AsString().c_str());
 		}
 	}
 

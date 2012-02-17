@@ -69,6 +69,8 @@ public:
 		{ return format->Read(const_cast<char**>(str), len, tag); }
 
 	bool Read(string* s, const char* tag);
+	bool Read(IPAddr* a, const char* tag)	{ return format->Read(a, tag); }
+	bool Read(IPPrefix* p, const char* tag)	{ return format->Read(p, tag); }
 
 	bool Write(const char* s, const char* tag)
 		{ return format->Write(s, tag); }
@@ -76,6 +78,8 @@ public:
 		{ return format->Write(buf, len, tag); }
 	bool Write(const string& s, const char* tag)
 		{ return format->Write(s.data(), s.size(), tag); }
+	bool Write(const IPAddr& a, const char* tag)	{ return format->Write(a, tag); }
+	bool Write(const IPPrefix& p, const char* tag)	{ return format->Write(p, tag); }
 
 	bool WriteOpenTag(const char* tag)
 		{ return format->WriteOpenTag(tag); }

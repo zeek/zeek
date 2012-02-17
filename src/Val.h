@@ -261,17 +261,17 @@ public:
 	ACCESSOR(TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
 	ACCESSOR(TYPE_VECTOR, vector<Val*>*, vector_val, AsVector)
 
-	IPPrefix* AsSubNet()
+	const IPPrefix& AsSubNet()
 		{
 		CHECK_TAG(type->Tag(), TYPE_SUBNET, "Val::SubNet", type_name)
-		return val.subnet_val;
+		return *val.subnet_val;
 		}
 
-	IPAddr* AsAddr()
+	const IPAddr& AsAddr()
 		{
 		if ( type->Tag() != TYPE_ADDR )
 			BadTag("Val::AsAddr", type_name(type->Tag()));
-		return val.addr_val;
+		return *val.addr_val;
 		}
 
 	// Gives fast access to the bits of something that is one of
@@ -562,10 +562,8 @@ public:
 	Val* SizeVal() const;
 
 	// Constructor for address already in network order.
-#if 0
-	AddrVal(uint32 addr);
-	AddrVal(const uint32* addr);
-#endif
+	AddrVal(uint32 addr);          // IPv4.
+	AddrVal(const uint32 addr[4]); // IPv6.
 	AddrVal(const IPAddr& addr);
 
 	unsigned int MemoryAllocation() const;
@@ -583,10 +581,8 @@ class SubNetVal : public Val {
 public:
 	SubNetVal(const char* text);
 	SubNetVal(const char* text, int width);
-#if 0
-	SubNetVal(uint32 addr, int width);
-	SubNetVal(const uint32* addr, int width);
-#endif
+	SubNetVal(uint32 addr, int width); // IPv4.
+	SubNetVal(const uint32 addr[4], int width); // IPv6.
 	SubNetVal(const IPAddr& addr, int width);
 	~SubNetVal();
 
@@ -594,11 +590,7 @@ public:
 
 	const IPAddr& Prefix() const { return val.subnet_val->Prefix(); }
 	int Width() const	{ return val.subnet_val->Length(); }
-#if 0
 	IPAddr Mask() const;
-	bool Contains(const uint32 addr) const;
-	bool Contains(const uint32* addr) const;
-#endif
 
 	bool Contains(const IPAddr& addr) const;
 

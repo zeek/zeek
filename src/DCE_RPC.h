@@ -65,7 +65,7 @@ struct dce_rpc_endpoint_addr {
 		{
 		static char buf[128];
 		snprintf(buf, sizeof(buf), "%s/%d/%s",
-			addr->AsString().c_str(), port,
+			addr.AsString().c_str(), port,
 			proto == TRANSPORT_TCP ? "tcp" :
 			(proto == TRANSPORT_UDP ? "udp" : "?"));
 

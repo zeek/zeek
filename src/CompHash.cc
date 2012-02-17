@@ -109,7 +109,7 @@ char* CompositeHash::SingleValHash(int type_check, char* kp0,
 		{
 		uint32* kp = AlignAndPadType<uint32>(kp0);
 		uint32 bytes[4];
-		v->AsAddr()->CopyIPv6(bytes);
+		v->AsAddr().CopyIPv6(bytes);
 		kp[0] = bytes[0];
 		kp[1] = bytes[1];
 		kp[2] = bytes[2];
@@ -122,12 +122,12 @@ char* CompositeHash::SingleValHash(int type_check, char* kp0,
 		{
 		uint32* kp = AlignAndPadType<uint32>(kp0);
 		uint32 bytes[4];
-		v->AsSubNet()->Prefix().CopyIPv6(bytes);
+		v->AsSubNet().Prefix().CopyIPv6(bytes);
 		kp[0] = bytes[0];
 		kp[1] = bytes[1];
 		kp[2] = bytes[2];
 		kp[3] = bytes[3];
-		kp[4] = v->AsSubNet()->Length();
+		kp[4] = v->AsSubNet().Length();
 		kp1 = reinterpret_cast<char*>(kp+5);
 		}
 		break;
@@ -354,15 +354,15 @@ HashKey* CompositeHash::ComputeSingletonHash(const Val* v, int type_check) const
 	case TYPE_INTERNAL_ADDR:
 		{
 		uint32 bytes[4];
-		v->AsAddr()->CopyIPv6(bytes);
+		v->AsAddr().CopyIPv6(bytes);
 		return new HashKey((void*)bytes, 4 * sizeof(uint32));
 		}
 
 	case TYPE_INTERNAL_SUBNET:
 		{
 		uint32 bytes[5];
-		v->AsSubNet()->Prefix().CopyIPv6(bytes);
-		bytes[4] = v->AsSubNet()->Length();
+		v->AsSubNet().Prefix().CopyIPv6(bytes);
+		bytes[4] = v->AsSubNet().Length();
 		return new HashKey((void*)bytes, 5 * sizeof(uint32));
 		}
 

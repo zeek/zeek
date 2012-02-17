@@ -114,7 +114,7 @@ public:
 	/**
 	 * Returns the address' family.
 	 */
-	Family family() const
+	Family GetFamily() const
 		{
 		if ( memcmp(in6.s6_addr, v4_mapped_prefix, 12) == 0 )
 			return IPv4;
@@ -132,7 +132,7 @@ public:
 	 */
 	bool IsMulticast() const
 		{
-		if ( family() == IPv4 )
+		if ( GetFamily() == IPv4 )
 			return in6.s6_addr[12] == 224;
 		else
 			return in6.s6_addr[0] == 0xff;
@@ -143,7 +143,7 @@ public:
 	 */
 	bool IsBroadcast() const
 		{
-		if ( family() == IPv4 )
+		if ( GetFamily() == IPv4 )
 			return ((in6.s6_addr[12] == 0xff) && (in6.s6_addr[13] == 0xff)
 				&& (in6.s6_addr[14] == 0xff) && (in6.s6_addr[15] == 0xff));
 		else
@@ -162,9 +162,9 @@ public:
 	 * @return The number of 32-bit words the raw representation uses. This
 	 * will be 1 for an IPv4 address and 4 for an IPv6 address.
 	 */
-	int GetBytes(const uint32_t* const * bytes) const
+	int GetBytes(const uint32_t** bytes) const
 		{
-		if ( family() == IPv4 )
+		if ( GetFamily() == IPv4 )
 			{
 			*bytes = (uint32_t*) &in6.s6_addr[12];
 			return 1;
@@ -306,7 +306,7 @@ inline IPAddr::IPAddr(Family family, const uint32_t* bytes, ByteOrder order)
 
 inline bool IPAddr::IsLoopback() const
 	{
-	if ( family() == IPv4 )
+	if ( GetFamily() == IPv4 )
 		return in6.s6_addr[12] == 127;
 
 	else
@@ -327,6 +327,12 @@ inline bool IPAddr::IsLoopback() const
 class IPPrefix
 {
 public:
+
+	/**
+	 * Constructs a prefix 0/0.
+	 */
+	IPPrefix() : length(0)	{}
+
 	/**
 	 * Constructs a prefix instance from an IPv4 address and a prefix
 	 * length.
@@ -357,16 +363,6 @@ public:
 	IPPrefix(const IPAddr& addr, uint8_t length);
 
 	/**
-	 * Constructs a prefix instance from IP string representation and length.
-	 *
-	 * @param s String containing an IP address as either a dotted IPv4
-	 * address or a hex IPv6 address.
-	 *
-	 * @param length The prefix length in the range from 0 to 128
-	 */
-	IPPrefix(const std::string& s, uint8_t length);
-
-	/**
 	 * Copy constructor.
 	 */
 	IPPrefix(const IPPrefix& other)
@@ -389,7 +385,7 @@ public:
 	 */
 	uint8_t Length() const
 		{
-		return prefix.family() == IPAddr::IPv4 ? length - 96 : length;
+		return prefix.GetFamily() == IPAddr::IPv4 ? length - 96 : length;
 		}
 
 	/**
@@ -398,6 +394,16 @@ public:
 	 */
 	uint8_t LengthIPv6() const { return length; }
 
+	/** Returns true if the given address is part of the prefix.
+	 *
+	 * @param addr The address to test.
+	 */
+	bool Contains(const IPAddr& addr) const
+		{
+		IPAddr p(addr);
+		p.Mask(length);
+		return p  == prefix;
+		}
 	/**
 	 * Assignment operator.
 	 */

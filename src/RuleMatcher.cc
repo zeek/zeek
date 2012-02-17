@@ -1071,7 +1071,7 @@ static bool val_to_maskedval(Val* v, maskedvalue_list* append_to)
 			const uint32* n;
 			uint32 m[4];
 			v->AsSubNet().Prefix().GetBytes(&n);
-			v->AsSubNetVal().Mask().CopyIPv6(m);
+			v->AsSubNetVal()->Mask().CopyIPv6(m);
 
 			for ( unsigned int i = 0; i < 4; ++i )
 				m[i] = ntohl(m[i]);
@@ -1079,7 +1079,7 @@ static bool val_to_maskedval(Val* v, maskedvalue_list* append_to)
 			bool is_v4_mask = m[0] == 0xffffffff &&
 						m[1] == m[0] && m[2] == m[0];
 
-			if ( v->AsSubNet().Prefix().family() == IPAddr::IPv4 &&
+			if ( v->AsSubNet().Prefix().GetFamily() == IPAddr::IPv4 &&
 			     is_v4_mask )
 				{
 				mval->val = ntohl(*n);

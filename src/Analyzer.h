@@ -1,3 +1,4 @@
+// Main analyzer interface.
 
 #ifndef ANALYZER_H
 #define ANALYZER_H

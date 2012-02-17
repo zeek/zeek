@@ -861,18 +861,16 @@ AddrVal::AddrVal(const char* text) : Val(TYPE_ADDR)
 	val.addr_val = new IPAddr(text);
 	}
 
-#if 0
 AddrVal::AddrVal(uint32 addr) : Val(TYPE_ADDR)
 	{
 	// ### perhaps do gethostbyaddr here?
 	val.addr_val = new IPAddr(IPAddr::IPv4, &addr, IPAddr::Network);
 	}
 
-AddrVal::AddrVal(const uint32* addr) : Val(TYPE_ADDR)
+AddrVal::AddrVal(const uint32 addr[4]) : Val(TYPE_ADDR)
 	{
 	val.addr_val = new IPAddr(IPAddr::IPv6, addr, IPAddr::Network);
 	}
-#endif
 
 AddrVal::AddrVal(const IPAddr& addr) : Val(TYPE_ADDR)
 	{
@@ -891,7 +889,7 @@ unsigned int AddrVal::MemoryAllocation() const
 
 Val* AddrVal::SizeVal() const
 	{
-	if ( val.addr_val->family() == IPAddr::IPv4 )
+	if ( val.addr_val->GetFamily() == IPAddr::IPv4 )
 		return new Val(32, TYPE_COUNT);
 	else
 		return new Val(128, TYPE_COUNT);
@@ -965,7 +963,6 @@ void SubNetVal::ValDescribe(ODesc* d) const
 	d->Add(string(*val.subnet_val).c_str());
 	}
 
-#if 0
 IPAddr SubNetVal::Mask() const
 	{
 	if ( val.subnet_val->Length() == 0 )
@@ -994,19 +991,6 @@ IPAddr SubNetVal::Mask() const
 	IPAddr rval(IPAddr::IPv6, m, IPAddr::Host);
 	return rval;
 	}
-
-bool SubNetVal::Contains(const uint32 addr) const
-	{
-	IPAddr a(IPAddr::IPv4, &addr, IPAddr::Network);
-	return val.subnet_val->Contains(a);
-	}
-
-bool SubNetVal::Contains(const uint32* addr) const
-	{
-	IPAddr a(IPAddr::IPv6, addr, IPAddr::Network);
-	return val.subnet_val->Contains(a);
-	}
-#endif
 
 bool SubNetVal::Contains(const IPAddr& addr) const
 	{

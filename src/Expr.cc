@@ -835,22 +835,30 @@ Val* BinaryExpr::StringFold(Val* v1, Val* v2) const
 
 Val* BinaryExpr::AddrFold(Val* v1, Val* v2) const
 	{
-	uint32 a1[4];
-	uint32 a2[4];
-	v1->AsAddr().CopyIPv6(a1);
-	v2->AsAddr().CopyIPv6(a2);
+	IPAddr a1 = v1->AsAddr();
+	IPAddr a2 = v2->AsAddr();
 	int result = 0;
 
 	switch ( tag ) {
-#undef DO_FOLD
-#define DO_FOLD(sense) { result = memcmp(a1, a2, 16) sense 0; break; }
 
-	case EXPR_LT:		DO_FOLD(<)
-	case EXPR_LE:		DO_FOLD(<=)
-	case EXPR_EQ:		DO_FOLD(==)
-	case EXPR_NE:		DO_FOLD(!=)
-	case EXPR_GE:		DO_FOLD(>=)
-	case EXPR_GT:		DO_FOLD(>)
+	case EXPR_LT:
+		result = a1 < a2;
+		break;
+	case EXPR_LE:
+		result = a1 < a2 || a1 == a2;
+		break;
+	case EXPR_EQ:
+		result = a1 == a2;
+		break;
+	case EXPR_NE:
+		result = a1 != a2;
+		break;
+	case EXPR_GE:
+		result = ! ( a1 < a2 );
+		break;
+	case EXPR_GT:
+		result = ( ! ( a1 < a2 ) ) && ( a1 != a2 );
+		break;
 
 	default:
 		BadTag("BinaryExpr::AddrFold", expr_name(tag));

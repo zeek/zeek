@@ -923,7 +923,6 @@ SubNetVal::SubNetVal(const char* text, int width) : Val(TYPE_SUBNET)
 	val.subnet_val = new IPPrefix(text, width);
 	}
 
-#if 0
 SubNetVal::SubNetVal(uint32 addr, int width) : Val(TYPE_SUBNET)
 	{
 	IPAddr a(IPAddr::IPv4, &addr, IPAddr::Network);
@@ -935,7 +934,6 @@ SubNetVal::SubNetVal(const uint32* addr, int width) : Val(TYPE_SUBNET)
 	IPAddr a(IPAddr::IPv6, addr, IPAddr::Network);
 	val.subnet_val = new IPPrefix(a, width);
 	}
-#endif
 
 SubNetVal::SubNetVal(const IPAddr& addr, int width) : Val(TYPE_SUBNET)
 	{

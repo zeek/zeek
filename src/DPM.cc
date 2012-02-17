@@ -17,22 +17,37 @@ ExpectedConn::ExpectedConn(const IPAddr& _orig, const IPAddr& _resp,
 	if ( _orig == IPAddr(string("0.0.0.0")) )
 		// don't use the IPv4 mapping, use the literal unspecified address
 		// to indicate a wildcard
-		orig[0] = orig[1] = orig[2] = orig[3] = 0;
+		orig = IPAddr(string("::"));
 	else
-		_orig.CopyIPv6(orig);
-	_resp.CopyIPv6(resp);
+		orig = _orig;
+	resp = _resp;
 	resp_p = _resp_p;
 	proto = _proto;
 	}
 
 ExpectedConn::ExpectedConn(const ExpectedConn& c)
 	{
-	memcpy(orig, c.orig, sizeof(orig));
-	memcpy(resp, c.resp, sizeof(resp));
+	orig = c.orig;
+	resp = c.resp;
 	resp_p = c.resp_p;
 	proto = c.proto;
 	}
 
+HashKey* ExpectedConn::GetKey() const
+	{
+	struct Key {
+		uint32 orig[4];
+		uint32 resp[4];
+		uint16 resp_p;
+		uint16 proto;
+	};
+	Key k;
+	orig.CopyIPv6(k.orig);
+	resp.CopyIPv6(k.resp);
+	k.resp_p = resp_p;
+	k.proto = proto;
+	return new HashKey(&k, sizeof(k));
+	}
 
 DPM::DPM()
 : expected_conns_queue(AssignedAnalyzer::compare)
@@ -134,23 +149,18 @@ AnalyzerTag::Tag DPM::GetExpected(int proto, const Connection* conn)
 	ExpectedConn c(conn->OrigAddr(), conn->RespAddr(),
 			ntohs(conn->RespPort()), proto);
 
-	// Can't use sizeof(c) due to potential alignment issues.
-	// FIXME: I guess this is still not portable ...
-	HashKey key(&c, sizeof(c.orig) + sizeof(c.resp) +
-				sizeof(c.resp_p) + sizeof(c.proto));
-
-	AssignedAnalyzer* a = expected_conns.Lookup(&key);
+	HashKey* key = c.GetKey();
+	AssignedAnalyzer* a = expected_conns.Lookup(key);
+	delete key;
 
 	if ( ! a )
 		{
 		// Wildcard for originator.
-		for ( int i = 0; i < 4; ++i )
-			c.orig[i] = 0;
+		c.orig = IPAddr(string("::"));
 
-		HashKey key(&c, sizeof(c.orig) + sizeof(c.resp) +
-				sizeof(c.resp_p) + sizeof(c.proto));
-
-		a = expected_conns.Lookup(&key);
+		HashKey* key = c.GetKey();
+		a = expected_conns.Lookup(key);
+		delete key;
 		}
 
 	if ( ! a )
@@ -393,11 +403,7 @@ void DPM::ExpectConnection(const IPAddr& orig, const IPAddr& resp,
 			{
 			if ( ! a->deleted )
 				{
-				HashKey* key = new HashKey(&a->conn,
-							sizeof(a->conn.orig) +
-							sizeof(a->conn.resp) +
-							sizeof(a->conn.resp_p) +
-							sizeof(a->conn.proto));
+				HashKey* key = a->conn.GetKey();
 				expected_conns.Remove(key);
 				delete key;
 				}
@@ -416,10 +422,9 @@ void DPM::ExpectConnection(const IPAddr& orig, const IPAddr& resp,
 
 	ExpectedConn c(orig, resp, resp_p, proto);
 
-	HashKey key(&c, sizeof(c.orig) + sizeof(c.resp) +
-			sizeof(c.resp_p) + sizeof(c.proto));
+	HashKey* key = c.GetKey();
 
-	AssignedAnalyzer* a = expected_conns.Lookup(&key);
+	AssignedAnalyzer* a = expected_conns.Lookup(key);
 
 	if ( a )
 		a->deleted = true;
@@ -431,8 +436,9 @@ void DPM::ExpectConnection(const IPAddr& orig, const IPAddr& resp,
 	a->timeout = network_time + timeout;
 	a->deleted = false;
 
-	expected_conns.Insert(&key, a);
+	expected_conns.Insert(key, a);
 	expected_conns_queue.push(a);
+	delete key;
 	}
 
 void DPM::Done()
@@ -443,11 +449,7 @@ void DPM::Done()
 		AssignedAnalyzer* a = expected_conns_queue.top();
 		if ( ! a->deleted )
 			{
-			HashKey* key = new HashKey(&a->conn,
-					sizeof(a->conn.orig) +
-					sizeof(a->conn.resp) +
-					sizeof(a->conn.resp_p) +
-					sizeof(a->conn.proto));
+			HashKey* key = a->conn.GetKey();
 			expected_conns.Remove(key);
 			delete key;
 			}

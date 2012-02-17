@@ -46,13 +46,13 @@ extern int select(int, fd_set *, fd_set *, fd_set *, struct timeval *);
 
 class DNS_Mgr_Request {
 public:
-	DNS_Mgr_Request(const char* h)	{ host = copy_string(h); addr = 0; }
-	DNS_Mgr_Request(uint32 a)		{ addr = a; host = 0; }
+	DNS_Mgr_Request(const char* h)	{ host = copy_string(h); }
+	DNS_Mgr_Request(const IPAddr& a)		{ addr = a; host = 0; }
 	~DNS_Mgr_Request()			{ delete [] host; }
 
 	// Returns nil if this was an address request.
 	const char* ReqHost() const	{ return host; }
-	uint32 ReqAddr() const		{ return addr; }
+	const IPAddr& ReqAddr() const		{ return addr; }
 
 	int MakeRequest(nb_dns_info* nb_dns);
 	int RequestPending() const	{ return request_pending; }
@@ -61,7 +61,7 @@ public:
 
 protected:
 	char* host;	// if non-nil, this is a host request
-	uint32 addr;
+	IPAddr addr;
 	uint32 ttl;
 	int request_pending;
 };
@@ -77,13 +77,18 @@ int DNS_Mgr_Request::MakeRequest(nb_dns_info* nb_dns)
 	if ( host )
 		return nb_dns_host_request(nb_dns, host, (void*) this, err) >= 0;
 	else
-		return nb_dns_addr_request(nb_dns, addr, (void*) this, err) >= 0;
+		{
+		const uint32* bytes;
+		int len = addr.GetBytes(&bytes);
+		return nb_dns_addr_request2(nb_dns, (char*) bytes,
+				len == 1 ? AF_INET : AF_INET6, (void*) this, err) >= 0;
+		}
 	}
 
 class DNS_Mapping {
 public:
 	DNS_Mapping(const char* host, struct hostent* h, uint32 ttl);
-	DNS_Mapping(uint32 addr, struct hostent* h, uint32 ttl);
+	DNS_Mapping(const IPAddr& addr, struct hostent* h, uint32 ttl);
 	DNS_Mapping(FILE* f);
 
 	int NoMapping() const		{ return no_mapping; }
@@ -93,10 +98,10 @@ public:
 
 	// Returns nil if this was an address request.
 	const char* ReqHost() const	{ return req_host; }
-	uint32 ReqAddr() const		{ return req_addr; }
+	IPAddr ReqAddr() const		{ return req_addr; }
 	string ReqStr() const
 		{
-		return req_host ? req_host : IPAddr(IPAddr::IPv4, &req_addr, IPAddr::Network);
+		return req_host ? req_host : req_addr;
 		}
 
 	ListVal* Addrs();
@@ -123,7 +128,7 @@ protected:
 	int init_failed;
 
 	char* req_host;
-	uint32 req_addr;
+	IPAddr req_addr;
 	uint32 req_ttl;
 
 	int num_names;
@@ -131,7 +136,7 @@ protected:
 	StringVal* host_val;
 
 	int num_addrs;
-	uint32* addrs;
+	IPAddr* addrs;
 	ListVal* addrs_val;
 
 	int failed;
@@ -156,14 +161,13 @@ DNS_Mapping::DNS_Mapping(const char* host, struct hostent* h, uint32 ttl)
 	{
 	Init(h);
 	req_host = copy_string(host);
-	req_addr = 0;
 	req_ttl = ttl;
 
 	if ( names && ! names[0] )
 		names[0] = copy_string(host);
 	}
 
-DNS_Mapping::DNS_Mapping(uint32 addr, struct hostent* h, uint32 ttl)
+DNS_Mapping::DNS_Mapping(const IPAddr& addr, struct hostent* h, uint32 ttl)
 	{
 	Init(h);
 	req_addr = addr;
@@ -177,7 +181,6 @@ DNS_Mapping::DNS_Mapping(FILE* f)
 	init_failed = 1;
 
 	req_host = 0;
-	req_addr = 0;
 
 	char buf[512];
 
@@ -197,12 +200,7 @@ DNS_Mapping::DNS_Mapping(FILE* f)
 	if ( is_req_host )
 		req_host = copy_string(req_buf);
 	else
-		{
-		IPAddr addr(req_buf);
-		const uint32* bytes;
-		addr.GetBytes(&bytes);
-		req_addr = *bytes; //FIXME: IPv6 support
-		}
+		req_addr = IPAddr(req_buf);
 
 	num_names = 1;
 	names = new char*[num_names];
@@ -210,7 +208,7 @@ DNS_Mapping::DNS_Mapping(FILE* f)
 
 	if ( num_addrs > 0 )
 		{
-		addrs = new uint32[num_addrs];
+		addrs = new IPAddr[num_addrs];
 
 		for ( int i = 0; i < num_addrs; ++i )
 			{
@@ -224,10 +222,7 @@ DNS_Mapping::DNS_Mapping(FILE* f)
 			if ( newline )
 				*newline = '\0';
 
-			IPAddr addr(buf);
-			const uint32* bytes;
-			addr.GetBytes(&bytes);
-			addrs[i] = *bytes; //FIXME IPv6 support
+			addrs[i] = IPAddr(buf);
 			}
 		}
 	else
@@ -290,14 +285,6 @@ StringVal* DNS_Mapping::Host()
 	return host_val;
 	}
 
-// Converts an array of 4 bytes in network order to the corresponding
-// 32-bit network long.
-static uint32 raw_bytes_to_addr(const unsigned char b[4])
-	{
-	uint32 l = (b[0] << 24) | (b[1] << 16) | (b[2] << 8) | b[3];
-	return uint32(htonl(l));
-	}
-
 void DNS_Mapping::Init(struct hostent* h)
 	{
 	no_mapping = 0;
@@ -306,7 +293,7 @@ void DNS_Mapping::Init(struct hostent* h)
 	host_val = 0;
 	addrs_val = 0;
 
-	if ( ! h || h->h_addrtype != AF_INET || h->h_length != 4 )
+	if ( ! h )
 		{
 		Clear();
 		return;
@@ -321,10 +308,14 @@ void DNS_Mapping::Init(struct hostent* h)
 
 	if ( num_addrs > 0 )
 		{
-		addrs = new uint32[num_addrs];
+		addrs = new IPAddr[num_addrs];
 		for ( int i = 0; i < num_addrs; ++i )
-			addrs[i] = raw_bytes_to_addr(
-					(unsigned char*)h->h_addr_list[i]);
+			if ( h->h_addrtype == AF_INET )
+				addrs[i] = IPAddr(IPAddr::IPv4, (uint32*)h->h_addr_list[i],
+				                  IPAddr::Network);
+			else if ( h->h_addrtype == AF_INET6 )
+				addrs[i] = IPAddr(IPAddr::IPv6, (uint32*)h->h_addr_list[i],
+				                  IPAddr::Network);
 		}
 	else
 		addrs = 0;
@@ -346,14 +337,12 @@ void DNS_Mapping::Clear()
 void DNS_Mapping::Save(FILE* f) const
 	{
 	fprintf(f, "%.0f %d %s %d %s %d\n", creation_time, req_host != 0,
-		req_host ? req_host :
-			IPAddr(IPAddr::IPv4, &req_addr, IPAddr::Network).AsString().c_str(),
+		req_host ? req_host : req_addr.AsString().c_str(),
 		failed, (names && names[0]) ? names[0] : "*",
 		num_addrs);
 
 	for ( int i = 0; i < num_addrs; ++i )
-		fprintf(f, "%s\n",
-			IPAddr(IPAddr::IPv4, &addrs[i], IPAddr::Network).AsString().c_str());
+		fprintf(f, "%s\n", addrs[i].AsString().c_str());
 	}
 
 
@@ -487,14 +476,14 @@ TableVal* DNS_Mgr::LookupHost(const char* name)
 	}
 	}
 
-Val* DNS_Mgr::LookupAddr(uint32 addr)
+Val* DNS_Mgr::LookupAddr(const IPAddr& addr)
 	{
 	if ( ! did_init )
 		Init();
 
 	if ( mode != DNS_PRIME )
 		{
-		HashKey h(&addr, 1);
+		HashKey h(addr);
 		DNS_Mapping* d = addr_mappings.Lookup(&h);
 
 		if ( d )
@@ -503,7 +492,7 @@ Val* DNS_Mgr::LookupAddr(uint32 addr)
 				return d->Host();
 			else
 				{
-				string s = IPAddr(IPAddr::IPv4, &addr, IPAddr::Network);
+				string s(addr);
 				reporter->Warning("can't resolve IP address: %s", s.c_str());
 				return new StringVal(s.c_str());
 				}
@@ -518,7 +507,7 @@ Val* DNS_Mgr::LookupAddr(uint32 addr)
 
 	case DNS_FORCE:
 		reporter->FatalError("can't find DNS entry for %s in cache",
-		    IPAddr(IPAddr::IPv4, &addr, IPAddr::Network).AsString().c_str());
+		    addr.AsString().c_str());
 		return 0;
 
 	case DNS_DEFAULT:
@@ -707,14 +696,12 @@ void DNS_Mgr::AddResult(DNS_Mgr_Request* dr, struct nb_dns_result* r)
 	else
 		{
 		new_dm = new DNS_Mapping(dr->ReqAddr(), h, ttl);
-		uint32 tmp_addr = dr->ReqAddr();
-		HashKey k(&tmp_addr, 1);
+		HashKey k(dr->ReqAddr());
 		prev_dm = addr_mappings.Insert(&k, new_dm);
 
 		if ( new_dm->Failed() && prev_dm && prev_dm->Valid() )
 			{
-			uint32 tmp_addr = dr->ReqAddr();
-			HashKey k2(&tmp_addr, 1);
+			HashKey k2(dr->ReqAddr());
 			(void) addr_mappings.Insert(&k2, prev_dm);
 			++keep_prev;
 			}
@@ -826,8 +813,7 @@ void DNS_Mgr::LoadCache(FILE* f)
 			host_mappings.Insert(m->ReqHost(), m);
 		else
 			{
-			uint32 tmp_addr = m->ReqAddr();
-			HashKey h(&tmp_addr, 1);
+			HashKey h(m->ReqAddr());
 			addr_mappings.Insert(&h, m);
 			}
 		}
@@ -848,9 +834,9 @@ void DNS_Mgr::Save(FILE* f, PDict(DNS_Mapping)& m)
 		dm->Save(f);
 	}
 
-const char* DNS_Mgr::LookupAddrInCache(dns_mgr_addr_type addr)
+const char* DNS_Mgr::LookupAddrInCache(const IPAddr& addr)
 	{
-	HashKey h(&addr, 1);
+	HashKey h(addr);
 	DNS_Mapping* d = dns_mgr->addr_mappings.Lookup(&h);
 
 	if ( ! d )
@@ -886,7 +872,7 @@ TableVal* DNS_Mgr::LookupNameInCache(string name)
 	return d->AddrsSet();
 	}
 
-void DNS_Mgr::AsyncLookupAddr(dns_mgr_addr_type host, LookupCallback* callback)
+void DNS_Mgr::AsyncLookupAddr(const IPAddr& host, LookupCallback* callback)
 	{
 	if ( ! did_init )
 		Init();
@@ -996,7 +982,7 @@ double DNS_Mgr::NextTimestamp(double* network_time)
 	return asyncs_timeouts.size() ? timer_mgr->Time() : -1.0;
 	}
 
-void DNS_Mgr::CheckAsyncAddrRequest(dns_mgr_addr_type addr, bool timeout)
+void DNS_Mgr::CheckAsyncAddrRequest(const IPAddr& addr, bool timeout)
 	{
 	// Note that this code is a mirror of that for CheckAsyncHostRequest.
 

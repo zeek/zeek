@@ -243,11 +243,10 @@ bool BinarySerializationFormat::Read(IPAddr* addr, const char* tag)
 
 	for ( int i = 0; i < n; ++i )
 		{
-		uint32_t i = 0;
-		if ( ! Read(&i, "addr-part") )
+		if ( ! Read(&raw[i], "addr-part") )
 			return false;
 
-		raw[n] = htonl(i);
+		raw[i] = htonl(raw[i]);
 		}
 
 	if ( n == 1 )
@@ -260,13 +259,13 @@ bool BinarySerializationFormat::Read(IPAddr* addr, const char* tag)
 
 bool BinarySerializationFormat::Read(IPPrefix* prefix, const char* tag)
 	{
-	string s;
+	IPAddr addr;
 	int len;
 
-	if ( ! (Read(&s, tag) && Read(&len, tag)) )
+	if ( ! (Read(&addr, "prefix") && Read(&len, "width")) )
 		return false;
 
-	*prefix = IPPrefix(IPAddr(s), len);
+	*prefix = IPPrefix(addr, len);
 	return true;
 	}
 

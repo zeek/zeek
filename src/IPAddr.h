@@ -411,8 +411,8 @@ public:
 		{
 		// No self-assignment check here because it's correct without it and
 		// makes the common case faster.
-		prefix = other.Prefix();
-		length = other.Length();
+		prefix = other.prefix;
+		length = other.length;
 		return *this;
 		}
 

@@ -1,4 +1,52 @@
 
+2.0-85 | 2012-02-17 15:36:12 -0800
+
+  * Changing ARP detection to always kick in even if no analyzer is
+    activated. (Robin Sommer)
+
+  * DNS name lookups performed by Bro now also query AAAA records.
+    DNS_Mgr handles combining the results of the A and AAAA queries
+    for a given hostname such that at the scripting layer, the name
+    resolution can yield a set with both IPv4 and IPv6 addresses. (Jon
+    Siwek)
+
+  * Add counts_to_addr and addr_to_counts conversion BIFs. (Jon Siwek)
+
+  * Change HashKey threshold for using H3 to 36 bytes. (Jon Siwek)
+
+  * Remove mention of --enable-brov6 in docs. (Daniel Thayer)
+
+  * Remove --enable-brov6 from configure usage text (Daniel Thayer)
+
+  * Add a test and baseline for addr_to_ptr_name BiF. (Daniel Thayer)
+
+  * Adding a test and baseline for ptr_name_to_addr BiF. (Seth Hall)
+
+  * Fix the ptr_name_to_addr BiF to work with IPv6 (Daniel Thayer)
+
+  * Fix a memory leak that perftools now complains about. (Jon Siwek)
+
+  * Remove --enable-brov6 flag, IPv6 now supported by default. (Jon Siwek)
+
+    Some script-layer changes of note:
+
+    - dns_AAAA_reply event signature changed: the string representation
+      of an IPv6 addr is easily derived from the addr value, it doesn't
+      need to be another parameter.  This event also now generated directly
+      by the DNS analyzer instead of being "faked" into a dns_A_reply event.
+
+    - Removed addr_to_count BIF.  It used to return the host-order
+      count representation of IPv4 addresses only.  To make it more
+      generic, we might later add a BIF to return a vector of counts
+      in order to support IPv6.
+
+    - Changed the result of enclosing addr variables in vertical pipes
+      (e.g. |my_addr|) to return the bit-width of the address type which
+      is 128 for IPv6 and 32 for IPv4.  It used to function the same
+      way as addr_to_count mentioned above.
+
+    - Remove bro_has_ipv6 BIF
+
 2.0-57 | 2012-02-10 00:02:35 -0800
 
   * Fix typos in the documentation. (Daniel Thayer)

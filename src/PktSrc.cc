@@ -191,7 +191,7 @@ void PktSrc::Process()
 	switch ( datalink ) {
 	case DLT_NULL:
 		{
-		protocol = (data[0] << 24) + (data[1] << 16) + (data[2] << 8) + data[3];
+		protocol = (data[3] << 24) + (data[2] << 16) + (data[1] << 8) + data[0];
 
 		if ( protocol != AF_INET && protocol != AF_INET6 )
 			{

@@ -104,7 +104,7 @@ string IPAddr::AsString() const
 		char s[INET6_ADDRSTRLEN];
 
 		if ( inet_ntop(AF_INET6, in6.s6_addr, s, INET6_ADDRSTRLEN) == NULL )
-			return "<bad IPv64 address conversion";
+			return "<bad IPv6 address conversion";
 		else
 			return s;
 		}

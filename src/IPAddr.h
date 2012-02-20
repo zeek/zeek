@@ -261,6 +261,14 @@ public:
 
 	unsigned int MemoryAllocation() const { return padded_sizeof(*this); }
 
+	/**
+	 * Returns a canonicalized IPv4 dotted-decimal string such that
+	 * leading zeroes of each decimal part are removed.
+	 *
+	 * @param s String containing an IPv4 address in dotted-decimal notation.
+	 */
+	static std::string CanonIPv4(const std::string& s);
+
 private:
 	/**
 	 * Initializes an address instance from a string representation.

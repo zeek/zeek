@@ -22,7 +22,7 @@ using threading::Value;
 using threading::Field;
 
 struct InputHash {
-	HashKey* valhash;
+	hash_t valhash;
 	HashKey* idxkey; // does not need ref or whatever - if it is present here, it is also still present in the TableVal.
 };
 
@@ -776,11 +776,15 @@ int Manager::SendEntryTable(const ReaderFrontend* reader, const int id, const Va
 
 	//reporter->Error("Hashing %d index fields", i->num_idx_fields);
 	HashKey* idxhash = HashValues(filter->num_idx_fields, vals);
-	//reporter->Error("Result: %d", (uint64_t) idxhash->Hash());
+	//reporter->Error("Result: %d\n", (uint64_t) idxhash->Hash());
 	//reporter->Error("Hashing %d val fields", i->num_val_fields);
-	HashKey* valhash = 0;
-	if ( filter->num_val_fields > 0 ) 
-		valhash = HashValues(filter->num_val_fields, vals+filter->num_idx_fields);
+	
+	hash_t valhash = 0;
+	if ( filter->num_val_fields > 0 ) {
+		HashKey* valhashkey = HashValues(filter->num_val_fields, vals+filter->num_idx_fields);
+		valhash = valhashkey->Hash();
+		delete(valhashkey);
+	}
 
 	//reporter->Error("Result: %d", (uint64_t) valhash->Hash());
 	
@@ -789,7 +793,7 @@ int Manager::SendEntryTable(const ReaderFrontend* reader, const int id, const Va
 	InputHash *h = filter->lastDict->Lookup(idxhash);
 	if ( h != 0 ) {
 		// seen before
-		if ( filter->num_val_fields == 0 || h->valhash->Hash() == valhash->Hash() ) {
+		if ( filter->num_val_fields == 0 || h->valhash == valhash ) {
 			// ok, exact duplicate
 			filter->lastDict->Remove(idxhash);
 			filter->currDict->Insert(idxhash, h);
@@ -862,7 +866,7 @@ int Manager::SendEntryTable(const ReaderFrontend* reader, const int id, const Va
 	if ( updated == true ) {
 		assert(filter->num_val_fields > 0);
 		// in that case, we need the old value to send the event (if we send an event).
-		oldval = filter->tab->Lookup(idxval);
+		oldval = filter->tab->Lookup(idxval, false);
 	}
 
 	//i->tab->Assign(idxval, valval);
@@ -872,6 +876,8 @@ int Manager::SendEntryTable(const ReaderFrontend* reader, const int id, const Va
 		return filter->num_val_fields + filter->num_idx_fields;
 	}
 
+	if ( filter->event && updated )
+		Ref(oldval); // otherwise it is no longer accessible after the assignment
 	filter->tab->Assign(idxval, k, valval);
 
 	InputHash* ih = new InputHash();
@@ -891,7 +897,6 @@ int Manager::SendEntryTable(const ReaderFrontend* reader, const int id, const Va
 			assert ( filter->num_val_fields > 0 );
 			ev = new EnumVal(BifEnum::Input::EVENT_CHANGED, BifType::Enum::Input::Event);
 			assert ( oldval != 0 );
-			Ref(oldval);
 			SendEvent(filter->event, 3, ev, predidx, oldval);
 		} else {
 			ev = new EnumVal(BifEnum::Input::EVENT_NEW, BifType::Enum::Input::Event);
@@ -1468,7 +1473,7 @@ int Manager::CopyValue(char *data, const int startpos, const Value* val) {
 		int length = 0;
 		memcpy(data+startpos, (const void*) &(val->val.port_val.port), sizeof(val->val.port_val.port));
 		length += sizeof(val->val.port_val.port);
-		memcpy(data+startpos, (const void*) &(val->val.port_val.proto), sizeof(val->val.port_val.proto));
+		memcpy(data+startpos+length, (const void*) &(val->val.port_val.proto), sizeof(val->val.port_val.proto));
 		length += sizeof(val->val.port_val.proto);
 		return length;
 		break;
@@ -1500,7 +1505,7 @@ int Manager::CopyValue(char *data, const int startpos, const Value* val) {
 		int length = 0;
 		memcpy(data+startpos,(const char*)  &(val->val.subnet_val.width), sizeof(val->val.subnet_val.width) );
 		length += sizeof(val->val.subnet_val.width);
-		memcpy(data+startpos, (const char*) &(val->val.subnet_val.net), sizeof(val->val.subnet_val.net) );
+		memcpy(data+startpos+length, (const char*) &(val->val.subnet_val.net), sizeof(val->val.subnet_val.net) );
 		length += sizeof(val->val.subnet_val.net);		
 		return length;
 		break;
@@ -1508,7 +1513,8 @@ int Manager::CopyValue(char *data, const int startpos, const Value* val) {
 
 	case TYPE_TABLE: {
 		int length = 0;
-		for ( int i = 0; i < val->val.set_val.size; i++ ) {
+		int j = val->val.set_val.size;
+		for ( int i = 0; i < j; i++ ) {
 			length += CopyValue(data, startpos+length, val->val.set_val.vals[i]);
 		}
 		return length;
@@ -1531,6 +1537,7 @@ int Manager::CopyValue(char *data, const int startpos, const Value* val) {
 	}
 	
 	reporter->InternalError("internal error");
+	assert(false);
 	return 0;
 
 }
@@ -1550,13 +1557,16 @@ HashKey* Manager::HashValues(const int num_elements, const Value* const *vals) {
 	if ( data == 0 ) {
 		reporter->InternalError("Could not malloc?");
 	}
+	memset(data, 0, length);
 	for ( int i = 0; i < num_elements; i++ ) {
 		const Value* val = vals[i];
 		position += CopyValue(data, position, val);
 	}
 
+	hash_t key = HashKey::HashBytes(data, length);
+
 	assert(position == length);
-	return new HashKey(data, length);
+	return new HashKey(data, length, key, true);
 
 
 }

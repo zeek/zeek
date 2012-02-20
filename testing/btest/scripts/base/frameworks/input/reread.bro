@@ -70,16 +70,25 @@ global outfile: file;
 
 global try: count;
 
+event line(tpe: Input::Event, left: Idx, right: Val) {
+	print outfile, "============EVENT============";
+	print outfile, tpe;
+	print outfile, left;
+	print outfile, right;
+}
+
 event bro_init()
 {
 	outfile = open ("../out");
 	try = 0;
 	# first read in the old stuff into the table...
 	Input::create_stream(A::INPUT, [$source="../input.log", $mode=Input::REREAD]);
-	Input::add_tablefilter(A::INPUT, [$name="ssh", $idx=Idx, $val=Val, $destination=servers]);
+	Input::add_tablefilter(A::INPUT, [$name="ssh", $idx=Idx, $val=Val, $destination=servers, $ev=line]);
 }
 
+
 event Input::update_finished(id: Input::ID) {
+	print outfile, "==========SERVERS============";
 	print outfile, servers;
 	
 	try = try + 1;

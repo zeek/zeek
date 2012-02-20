@@ -268,7 +268,7 @@ Value* Ascii::EntryToVal(string s, FieldMapping field) {
 	if ( s.compare(unset_field) == 0 ) { // field is not set...
 		return new Value(field.type, false);
 	}
-
+	
 	switch ( field.type ) {
 	case TYPE_ENUM:
 	case TYPE_STRING:
@@ -302,6 +302,7 @@ Value* Ascii::EntryToVal(string s, FieldMapping field) {
 		break;
 
 	case TYPE_PORT:
+		val->val.port_val.port = 0;
 		val->val.port_val.port = atoi(s.c_str());
 		val->val.port_val.proto = TRANSPORT_UNKNOWN;
 		break;
@@ -312,19 +313,27 @@ Value* Ascii::EntryToVal(string s, FieldMapping field) {
 		val->val.subnet_val.width = atoi(width.c_str());
 		string addr = s.substr(0, pos);
 		s = addr;
-		// NOTE: dotted_to_addr BREAKS THREAD SAFETY! it uses reporter.
-		// Solve this some other time....
 #ifdef BROv6
 		if ( s.find(':') != s.npos ) {
-			uint32* addr = dotted_to_addr6(s.c_str());
+			uint32* addr = new uint32[4];
+			if ( inet_pton(AF_INET6, s.c_str(), addr) <= 0 ) {
+				Error(Fmt("Bad IPv6 address: %s", s.c_str()));
+				val->val.subnet_val.net[0] = val->val.subnet_val.net[1] = val->val.subnet_val.net[2] = val->val.subnet_val.net[3] = 0;
+			}
 			copy_addr(val->val.subnet_val.net, addr);
 			delete addr;
 		} else {
 			val->val.subnet_val.net[0] = val->val.subnet_val.net[1] = val->val.subnet_val.net[2] = 0;
-		       	val->val.subnet_val.net[3] = dotted_to_addr(s.c_str());
+			if ( inet_aton(s.c_str(), &(val->val.subnet_val.net[3])) <= 0 ) {
+				Error(Fmt("Bad addres: %s", s.c_str()));
+		       		val->val.subnet_val.net[3] = 0;
+			}
 		}
 #else
-		val->val.subnet_val.net = dotted_to_addr(s.c_str());
+		if ( inet_aton(s.c_str(), (in_addr*) &(val->val.subnet_val.net)) <= 0 ) {
+			Error(Fmt("Bad addres: %s", s.c_str()));
+			val->val.subnet_val.net = 0;
+		}
 #endif
 		break;
 

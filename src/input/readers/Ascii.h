@@ -69,7 +69,7 @@ private:
 
 	TransportProto StringToProto(const string &proto);		
 
-	bool ReadHeader();
+	bool ReadHeader(bool useCached);
 	threading::Value* EntryToVal(string s, FieldMapping type);
 
 	bool GetLine(string& str);
@@ -87,6 +87,9 @@ private:
 	string empty_field;
 
 	string unset_field;
+	
+	// keep a copy of the headerline to determine field locations when filters change
+	string headerline;
 
 	int mode;
 

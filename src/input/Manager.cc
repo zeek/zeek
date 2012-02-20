@@ -818,13 +818,6 @@ int Manager::SendEntryTable(const ReaderFrontend* reader, const int id, const Va
 	}
 
 
-	Val* oldval = 0;
-	if ( updated == true ) {
-		assert(filter->num_val_fields > 0);
-		// in that case, we need the old value to send the event (if we send an event).
-		oldval = filter->tab->Lookup(idxval);
-	}
-
 
 	// call filter first to determine if we really add / change the entry
 	if ( filter->pred ) {
@@ -865,6 +858,13 @@ int Manager::SendEntryTable(const ReaderFrontend* reader, const int id, const Va
 	}
 	
 
+	Val* oldval = 0;
+	if ( updated == true ) {
+		assert(filter->num_val_fields > 0);
+		// in that case, we need the old value to send the event (if we send an event).
+		oldval = filter->tab->Lookup(idxval);
+	}
+
 	//i->tab->Assign(idxval, valval);
 	HashKey* k = filter->tab->ComputeHash(idxval);
 	if ( !k ) {
@@ -884,21 +884,22 @@ int Manager::SendEntryTable(const ReaderFrontend* reader, const int id, const Va
 
 	if ( filter->event ) {
 		EnumVal* ev;
-		Ref(idxval);
+		int startpos = 0;
+		Val* predidx = ValueToRecordVal(vals, filter->itype, &startpos);
 
 		if ( updated ) { // in case of update send back the old value.
 			assert ( filter->num_val_fields > 0 );
 			ev = new EnumVal(BifEnum::Input::EVENT_CHANGED, BifType::Enum::Input::Event);
 			assert ( oldval != 0 );
 			Ref(oldval);
-			SendEvent(filter->event, 3, ev, idxval, oldval);
+			SendEvent(filter->event, 3, ev, predidx, oldval);
 		} else {
 			ev = new EnumVal(BifEnum::Input::EVENT_NEW, BifType::Enum::Input::Event);
 			Ref(valval);
 			if ( filter->num_val_fields == 0 ) {
-				SendEvent(filter->event, 3, ev, idxval);
+				SendEvent(filter->event, 3, ev, predidx);
 			} else {
-				SendEvent(filter->event, 3, ev, idxval, valval);
+				SendEvent(filter->event, 3, ev, predidx, valval);
 			}
 		}
 	} 
@@ -973,10 +974,11 @@ void Manager::EndCurrentSend(const ReaderFrontend* reader, int id) {
 		}
 
 		if ( filter->event ) {
-			Ref(idx);
+			int startpos = 0;
+			Val* predidx = ListValToRecordVal(idx, filter->itype, &startpos);
 			Ref(val);
 			EnumVal *ev = new EnumVal(BifEnum::Input::EVENT_REMOVED, BifType::Enum::Input::Event);
-			SendEvent(filter->event, 3, ev, idx, val);
+			SendEvent(filter->event, 3, ev, predidx, val);
 		}
 
 		filter->tab->Delete(ih->idxkey);
@@ -991,8 +993,6 @@ void Manager::EndCurrentSend(const ReaderFrontend* reader, int id) {
 	filter->currDict = new PDict(InputHash);
 
 	// Send event that the current update is indeed finished.
-	
-
 	EventHandler* handler = event_registry->Lookup("Input::update_finished");
 	if ( handler == 0 ) {
 		reporter->InternalError("Input::update_finished not found!");
@@ -1077,6 +1077,7 @@ int Manager::PutTable(const ReaderFrontend* reader, int id, const Value* const *
 
 	Val* idxval = ValueToIndexVal(filter->num_idx_fields, filter->itype, vals);
 	Val* valval;
+
 	
 	int position = filter->num_idx_fields;
 	if ( filter->num_val_fields == 0 ) {
@@ -1087,7 +1088,91 @@ int Manager::PutTable(const ReaderFrontend* reader, int id, const Value* const *
 		valval = ValueToRecordVal(vals, filter->rtype, &position);
 	}
 
-	filter->tab->Assign(idxval, valval);
+	// if we have a subscribed event, we need to figure out, if this is an update or not
+	// same for predicates
+	if ( filter->pred || filter->event ) {
+		bool updated = false;
+		Val* oldval = 0;
+		
+		if ( filter->num_val_fields > 0 ) {
+			// in that case, we need the old value to send the event (if we send an event).
+			oldval = filter->tab->Lookup(idxval, false);
+		}
+
+		if ( oldval != 0 ) {
+			// it is an update
+			updated = true;
+			Ref(oldval); // have to do that, otherwise it may disappear in assign
+		}
+
+
+		// predicate if we want the update or not
+		if ( filter->pred ) {
+			EnumVal* ev;
+			int startpos = 0;
+			Val* predidx = ValueToRecordVal(vals, filter->itype, &startpos);
+			Ref(valval);
+
+			if ( updated ) {
+				ev = new EnumVal(BifEnum::Input::EVENT_CHANGED, BifType::Enum::Input::Event);
+			} else {
+				ev = new EnumVal(BifEnum::Input::EVENT_NEW, BifType::Enum::Input::Event);
+			}
+			
+			val_list vl( 2 + (filter->num_val_fields > 0) ); // 2 if we don't have values, 3 otherwise.
+			vl.append(ev);
+			vl.append(predidx);
+			if ( filter->num_val_fields > 0 )
+				vl.append(valval);
+
+			Val* v = filter->pred->Call(&vl);
+			bool result = v->AsBool();
+			Unref(v);
+
+			if ( result == false ) {
+				// do nothing
+				Unref(idxval);
+				Unref(valval);
+				Unref(oldval);
+				return filter->num_val_fields + filter->num_idx_fields;
+			}
+
+		}
+
+
+		filter->tab->Assign(idxval, valval);		
+
+		if ( filter->event ) {	
+			EnumVal* ev;
+			int startpos = 0;
+			Val* predidx = ValueToRecordVal(vals, filter->itype, &startpos);
+
+			if ( updated ) { // in case of update send back the old value.
+				assert ( filter->num_val_fields > 0 );
+				ev = new EnumVal(BifEnum::Input::EVENT_CHANGED, BifType::Enum::Input::Event);
+				assert ( oldval != 0 );
+				SendEvent(filter->event, 3, ev, predidx, oldval);
+			} else {
+				ev = new EnumVal(BifEnum::Input::EVENT_NEW, BifType::Enum::Input::Event);
+				Ref(valval);
+				if ( filter->num_val_fields == 0 ) {
+					SendEvent(filter->event, 3, ev, predidx);
+				} else {
+					SendEvent(filter->event, 3, ev, predidx, valval);
+				}
+			}
+			
+		}
+
+
+
+
+
+	} else {
+		// no predicates or other stuff
+
+		filter->tab->Assign(idxval, valval);
+	}
 
 	return filter->num_idx_fields + filter->num_val_fields;
 }
@@ -1122,8 +1207,52 @@ bool Manager::Delete(const ReaderFrontend* reader, int id, Value* *vals) {
 	if ( i->filters[id]->filter_type == TABLE_FILTER ) {
 		TableFilter* filter = (TableFilter*) i->filters[id];		
 		Val* idxval = ValueToIndexVal(filter->num_idx_fields, filter->itype, vals);
+		assert(idxval != 0);
 		readVals = filter->num_idx_fields + filter->num_val_fields;
-		success = ( filter->tab->Delete(idxval) != 0 );
+		bool filterresult = true;
+
+		if ( filter->pred || filter->event ) {
+			Val *val = filter->tab->Lookup(idxval);
+
+			if ( filter->pred ) {
+				Ref(val);
+				EnumVal *ev = new EnumVal(BifEnum::Input::EVENT_REMOVED, BifType::Enum::Input::Event);
+				int startpos = 0;
+				Val* predidx = ValueToRecordVal(vals, filter->itype, &startpos);
+
+				val_list vl(3);
+				vl.append(ev);
+				vl.append(predidx);
+				vl.append(val);
+				Val* v = filter->pred->Call(&vl);
+				filterresult = v->AsBool();
+				Unref(v);
+
+				if ( filterresult == false ) {
+					// keep it.
+					Unref(idxval);
+					success = true;
+				}
+
+			}
+
+			// only if filter = true -> no filtering
+			if ( filterresult && filter->event ) {
+				Ref(idxval);
+				assert(val != 0);
+				Ref(val); 
+				EnumVal *ev = new EnumVal(BifEnum::Input::EVENT_REMOVED, BifType::Enum::Input::Event);
+				SendEvent(filter->event, 3, ev, idxval, val);
+			}
+		}
+
+		// only if filter = true -> no filtering
+		if ( filterresult ) {
+			success = ( filter->tab->Delete(idxval) != 0 );
+			if ( !success ) {
+				reporter->Error("Internal error while deleting values from input table");
+			}
+		}
 	} else if ( i->filters[id]->filter_type == EVENT_FILTER  ) {
 		EnumVal *type = new EnumVal(BifEnum::Input::EVENT_REMOVED, BifType::Enum::Input::Event);
 		readVals = SendEventFilterEvent(reader, type, id, vals);		

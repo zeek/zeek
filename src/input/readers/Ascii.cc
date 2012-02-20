@@ -91,16 +91,22 @@ bool Ascii::DoInit(string path, int arg_mode)
 	mode = arg_mode;
 	mtime = 0;
 	
+	if ( ( mode != MANUAL ) && (mode != REREAD) && ( mode != STREAM ) ) {
+		Error(Fmt("Unsupported read mode %d for source %s", mode, path.c_str()));
+		return false;
+	} 	
+
 	file = new ifstream(path.c_str());
 	if ( !file->is_open() ) {
 		Error(Fmt("Init: cannot open %s", fname.c_str()));
 		return false;
 	}
-
-	if ( ( mode != MANUAL ) && (mode != REREAD) && ( mode != STREAM ) ) {
-		Error(Fmt("Unsupported read mode %d for source %s", mode, path.c_str()));
+	
+	if ( ReadHeader(false) == false ) {
+		Error(Fmt("Init: cannot open %s; headers are incorrect", fname.c_str()));
+		file->close();
 		return false;
-	} 	
+	}
 
 	return true;
 }
@@ -114,6 +120,8 @@ bool Ascii::DoStartReading() {
 	started = true;
 	switch ( mode ) {
 		case MANUAL:
+		case REREAD:
+		case STREAM:
 			DoUpdate();
 			break;
 		default:
@@ -157,16 +165,25 @@ bool Ascii::HasFilter(int id) {
 }
 
 
-bool Ascii::ReadHeader() {	 
+bool Ascii::ReadHeader(bool useCached) {
 	// try to read the header line...
 	string line;
-	if ( !GetLine(line) ) {
-		Error("could not read first line");
-		return false;
-	}
-
 	map<string, uint32_t> fields;
 
+	if ( !useCached ) {
+		if ( !GetLine(line) ) {
+			Error("could not read first line");
+			return false;
+		}
+
+
+
+		headerline = line;
+
+	} else {
+		line = headerline;
+	}
+	
 	// construct list of field names.
 	istringstream splitstream(line);
 	int pos=0;
@@ -179,7 +196,7 @@ bool Ascii::ReadHeader() {
 		pos++;
 	}
 
-
+	//printf("Updating fields from description %s\n", line.c_str());
 	for ( map<int, Filter>::iterator it = filters.begin(); it != filters.end(); it++ ) {
 		(*it).second.columnMap.clear();
 			
@@ -433,6 +450,7 @@ bool Ascii::DoUpdate() {
 			if ( file && file->is_open() ) {
 				if ( mode == STREAM ) {
 					file->clear(); // remove end of file evil bits
+					ReadHeader(true); // in case filters changed
 					break;
 				}
 				file->close();
@@ -444,7 +462,7 @@ bool Ascii::DoUpdate() {
 			}
 
 
-			if ( ReadHeader() == false ) {
+			if ( ReadHeader(false) == false ) {
 				return false;
 			}
 
@@ -512,9 +530,14 @@ bool Ascii::DoUpdate() {
 				fpos++;
 			}
 
+			//printf("fpos: %d, second.num_fields: %d\n", fpos, (*it).second.num_fields);
 			assert ( (unsigned int) fpos == (*it).second.num_fields );
 
-			SendEntry((*it).first, fields);
+			if ( mode == STREAM ) {
+				Put((*it).first, fields);
+			} else {
+				SendEntry((*it).first, fields);
+			}
 
 			/* Do not do this, ownership changes to other thread 
 			 * for ( unsigned int i = 0; i < (*it).second.num_fields; i++ ) {
@@ -530,9 +553,12 @@ bool Ascii::DoUpdate() {
 	//file->clear(); // remove end of file evil bits
 	//file->seekg(0, ios::beg); // and seek to start.
 
-	for ( map<int, Filter>::iterator it = filters.begin(); it != filters.end(); it++ ) {
-		EndCurrentSend((*it).first);
+	if ( mode != STREAM ) {
+		for ( map<int, Filter>::iterator it = filters.begin(); it != filters.end(); it++ ) {
+			EndCurrentSend((*it).first);
+		}
 	}
+
 	return true;
 }
 

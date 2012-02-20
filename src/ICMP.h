@@ -57,7 +57,6 @@ protected:
 	TransportProto GetContextProtocol(const IP_Hdr* ip_hdr, uint32* src_port,
 			uint32* dst_port);
 
-#ifdef BROv6
 	void NextICMP6(double t, const struct icmp* icmpp, int len, int caplen,
 			const u_char*& data, const IP_Hdr* ip_hdr );
 
@@ -65,9 +64,10 @@ protected:
 
 	void Context6(double t, const struct icmp* icmpp, int len, int caplen,
 			const u_char*& data, const IP_Hdr* ip_hdr);
-#endif
 
 	RecordVal* icmp_conn_val;
+	int type;
+	int code;
 	int request_len, reply_len;
 
 	RuleMatcherState matcher_state;

@@ -259,7 +259,7 @@ New_Prefix2 (int family, void *dest, int bitlen, prefix_t *prefix)
     if (family == AF_INET6) {
         default_bitlen = 128;
 	if (prefix == NULL) {
-            prefix = calloc(1, sizeof (prefix6_t));
+            prefix = calloc(1, sizeof (prefix_t));
 	    dynamic_allocated++;
 	}
 	memcpy (&prefix->add.sin6, dest, 16);

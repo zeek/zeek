@@ -32,7 +32,7 @@ public:
 	static const PeerID PEER_NONE = SOURCE_LOCAL;
 
 	// Connect to host (returns PEER_NONE on error).
-	PeerID Connect(addr_type ip, uint16 port, const char* our_class, double retry, bool use_ssl);
+	PeerID Connect(const IPAddr& ip, uint16 port, const char* our_class, double retry, bool use_ssl);
 
 	// Close connection to host.
 	bool CloseConnection(PeerID peer);
@@ -60,7 +60,7 @@ public:
 	bool CompleteHandshake(PeerID peer);
 
 	// Start to listen.
-	bool Listen(addr_type ip, uint16 port, bool expect_ssl);
+	bool Listen(const IPAddr& ip, uint16 port, bool expect_ssl);
 
 	// Stop it.
 	bool StopListening();

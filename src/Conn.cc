@@ -24,15 +24,15 @@ HashKey* ConnID::BuildConnKey() const
 	if ( is_one_way ||
 	     addr_port_canon_lt(src_addr, src_port, dst_addr, dst_port) )
 		{
-		copy_addr(src_addr, key.ip1);
-		copy_addr(dst_addr, key.ip2);
+		src_addr.CopyIPv6(key.ip1);
+		dst_addr.CopyIPv6(key.ip2);
 		key.port1 = src_port;
 		key.port2 = dst_port;
 		}
 	else
 		{
-		copy_addr(dst_addr, key.ip1);
-		copy_addr(src_addr, key.ip2);
+		dst_addr.CopyIPv6(key.ip1);
+		src_addr.CopyIPv6(key.ip2);
 		key.port1 = dst_port;
 		key.port2 = src_port;
 		}
@@ -143,8 +143,8 @@ Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id)
 	key = k;
 	start_time = last_time = t;
 
-	copy_addr(id->src_addr, orig_addr);
-	copy_addr(id->dst_addr, resp_addr);
+	orig_addr = id->src_addr;
+	resp_addr = id->dst_addr;
 	orig_port = id->src_port;
 	resp_port = id->dst_port;
 	proto = TRANSPORT_UNKNOWN;
@@ -521,7 +521,7 @@ Val* Connection::BuildVersionVal(const char* s, int len)
 	return sw;
 	}
 
-int Connection::VersionFoundEvent(const uint32* addr, const char* s, int len,
+int Connection::VersionFoundEvent(const IPAddr& addr, const char* s, int len,
 					Analyzer* analyzer)
 	{
 	if ( ! software_version_found && ! software_parse_error )
@@ -559,7 +559,7 @@ int Connection::VersionFoundEvent(const uint32* addr, const char* s, int len,
 	return 1;
 	}
 
-int Connection::UnparsedVersionFoundEvent(const uint32* addr,
+int Connection::UnparsedVersionFoundEvent(const IPAddr& addr,
 					const char* full, int len, Analyzer* analyzer)
 	{
 	// Skip leading white space.
@@ -693,10 +693,9 @@ TimerMgr* Connection::GetTimerMgr() const
 
 void Connection::FlipRoles()
 	{
-	uint32 tmp_addr[NUM_ADDR_WORDS];
-	copy_addr(resp_addr, tmp_addr);
-	copy_addr(orig_addr, resp_addr);
-	copy_addr(tmp_addr, orig_addr);
+	IPAddr tmp_addr = resp_addr;
+	orig_addr = resp_addr;
+	resp_addr = tmp_addr;
 
 	uint32 tmp_port = resp_port;
 	resp_port = orig_port;
@@ -752,14 +751,14 @@ void Connection::Describe(ODesc* d) const
 		}
 
 	d->SP();
-	d->Add(dotted_addr(orig_addr));
+	d->Add(orig_addr);
 	d->Add(":");
 	d->Add(ntohs(orig_port));
 
 	d->SP();
 	d->AddSP("->");
 
-	d->Add(dotted_addr(resp_addr));
+	d->Add(resp_addr);
 	d->Add(":");
 	d->Add(ntohs(resp_port));
 
@@ -782,9 +781,8 @@ bool Connection::DoSerialize(SerialInfo* info) const
 
 	// First we write the members which are needed to
 	// create the HashKey.
-	for ( int j = 0; j < NUM_ADDR_WORDS; ++j )
-		if ( ! SERIALIZE(orig_addr[j]) || ! SERIALIZE(resp_addr[j]) )
-			return false;
+	if ( ! SERIALIZE(orig_addr) || ! SERIALIZE(resp_addr) )
+		return false;
 
 	if ( ! SERIALIZE(orig_port) || ! SERIALIZE(resp_port) )
 		return false;
@@ -830,14 +828,14 @@ bool Connection::DoUnserialize(UnserialInfo* info)
 
 	// Build the hash key first. Some of the recursive *::Unserialize()
 	// functions may need it.
-	for ( int i = 0; i < NUM_ADDR_WORDS; ++i )
-		if ( ! UNSERIALIZE(&orig_addr[i]) || ! UNSERIALIZE(&resp_addr[i]) )
-			goto error;
+	ConnID id;
+
+	if ( ! UNSERIALIZE(&orig_addr) || ! UNSERIALIZE(&resp_addr) )
+		goto error;
 
 	if ( ! UNSERIALIZE(&orig_port) || ! UNSERIALIZE(&resp_port) )
 		goto error;
 
-	ConnID id;
 	id.src_addr = orig_addr;
 	id.dst_addr = resp_addr;
 	// This doesn't work for ICMP. But I guess this is not really important.

@@ -1,11 +1,11 @@
 #include "PacketFilter.h"
 
-void PacketFilter::AddSrc(addr_type src, uint32 tcp_flags, double probability)
+void PacketFilter::AddSrc(const IPAddr& src, uint32 tcp_flags, double probability)
 	{
 	Filter* f = new Filter;
 	f->tcp_flags = tcp_flags;
 	f->probability = uint32(probability * RAND_MAX);
-	src_filter.Insert(src, NUM_ADDR_WORDS * 32, f);
+	src_filter.Insert(src, 128, f);
 	}
 
 void PacketFilter::AddSrc(Val* src, uint32 tcp_flags, double probability)
@@ -16,12 +16,12 @@ void PacketFilter::AddSrc(Val* src, uint32 tcp_flags, double probability)
 	src_filter.Insert(src, f);
 	}
 
-void PacketFilter::AddDst(addr_type dst, uint32 tcp_flags, double probability)
+void PacketFilter::AddDst(const IPAddr& dst, uint32 tcp_flags, double probability)
 	{
 	Filter* f = new Filter;
 	f->tcp_flags = tcp_flags;
 	f->probability = uint32(probability * RAND_MAX);
-	dst_filter.Insert(dst, NUM_ADDR_WORDS * 32, f);
+	dst_filter.Insert(dst, 128, f);
 	}
 
 void PacketFilter::AddDst(Val* dst, uint32 tcp_flags, double probability)
@@ -32,9 +32,9 @@ void PacketFilter::AddDst(Val* dst, uint32 tcp_flags, double probability)
 	dst_filter.Insert(dst, f);
 	}
 
-bool PacketFilter::RemoveSrc(addr_type src)
+bool PacketFilter::RemoveSrc(const IPAddr& src)
 	{
-	return src_filter.Remove(src, NUM_ADDR_WORDS * 32) != 0;
+	return src_filter.Remove(src, 128) != 0;
 	}
 
 bool PacketFilter::RemoveSrc(Val* src)
@@ -42,9 +42,9 @@ bool PacketFilter::RemoveSrc(Val* src)
 	return src_filter.Remove(src) != NULL;
 	}
 
-bool PacketFilter::RemoveDst(addr_type dst)
+bool PacketFilter::RemoveDst(const IPAddr& dst)
 	{
-	return dst_filter.Remove(dst, NUM_ADDR_WORDS * 32) != NULL;
+	return dst_filter.Remove(dst, 128) != NULL;
 	}
 
 bool PacketFilter::RemoveDst(Val* dst)
@@ -54,21 +54,11 @@ bool PacketFilter::RemoveDst(Val* dst)
 
 bool PacketFilter::Match(const IP_Hdr* ip, int len, int caplen)
 	{
-#ifdef BROv6
-	Filter* f = (Filter*) src_filter.Lookup(ip->SrcAddr(),
-						NUM_ADDR_WORDS * 32);
-#else
-	Filter* f = (Filter*) src_filter.Lookup(*ip->SrcAddr(),
-						NUM_ADDR_WORDS * 32);
-#endif
+	Filter* f = (Filter*) src_filter.Lookup(ip->SrcAddr(), 128);
 	if ( f )
 		return MatchFilter(*f, *ip, len, caplen);
 
-#ifdef BROv6
-	f = (Filter*) dst_filter.Lookup(ip->DstAddr(), NUM_ADDR_WORDS * 32);
-#else
-	f = (Filter*) dst_filter.Lookup(*ip->DstAddr(), NUM_ADDR_WORDS * 32);
-#endif
+	f = (Filter*) dst_filter.Lookup(ip->DstAddr(), 128);
 	if ( f )
 		return MatchFilter(*f, *ip, len, caplen);
 

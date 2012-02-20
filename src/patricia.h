@@ -53,10 +53,8 @@
 #include <sys/types.h>
 
 
-#ifdef BROv6
 #ifndef HAVE_IPV6
 #define HAVE_IPV6
-#endif
 #endif
 
 /* typedef unsigned int u_int; */

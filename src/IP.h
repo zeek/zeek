@@ -4,63 +4,29 @@
 #define ip_h
 
 #include "config.h"
-
+#include "IPAddr.h"
 #include <net_util.h>
 
 class IP_Hdr {
 public:
 	IP_Hdr(struct ip* arg_ip4)
+		: ip4(arg_ip4), ip6(0), del(1)
 		{
-		ip4 = arg_ip4;
-		ip6 = 0;
-		del = 1;
-
-#ifdef BROv6
-		src_addr[0] = src_addr[1] = src_addr[2] = 0;
-		dst_addr[0] = dst_addr[1] = dst_addr[2] = 0;
-
-		src_addr[3] = ip4->ip_src.s_addr;
-		dst_addr[3] = ip4->ip_dst.s_addr;
-#endif
 		}
 
 	IP_Hdr(const struct ip* arg_ip4)
+		: ip4(arg_ip4), ip6(0), del(0)
 		{
-		ip4 = arg_ip4;
-		ip6 = 0;
-		del = 0;
-
-#ifdef BROv6
-		src_addr[0] = src_addr[1] = src_addr[2] = 0;
-		dst_addr[0] = dst_addr[1] = dst_addr[2] = 0;
-
-		src_addr[3] = ip4->ip_src.s_addr;
-		dst_addr[3] = ip4->ip_dst.s_addr;
-#endif
 		}
 
 	IP_Hdr(struct ip6_hdr* arg_ip6)
+		: ip4(0), ip6(arg_ip6), del(1)
 		{
-		ip4 = 0;
-		ip6 = arg_ip6;
-		del = 1;
-
-#ifdef BROv6
-		memcpy(src_addr, ip6->ip6_src.s6_addr, 16);
-		memcpy(dst_addr, ip6->ip6_dst.s6_addr, 16);
-#endif
 		}
 
 	IP_Hdr(const struct ip6_hdr* arg_ip6)
+		: ip4(0), ip6(arg_ip6), del(0)
 		{
-		ip4 = 0;
-		ip6 = arg_ip6;
-		del = 0;
-
-#ifdef BROv6
-		memcpy(src_addr, ip6->ip6_src.s6_addr, 16);
-		memcpy(dst_addr, ip6->ip6_dst.s6_addr, 16);
-#endif
 		}
 
 	~IP_Hdr()
@@ -77,19 +43,12 @@ public:
 	const struct ip* IP4_Hdr() const	{ return ip4; }
 	const struct ip6_hdr* IP6_Hdr() const	{ return ip6; }
 
-#ifdef BROv6
-	const uint32* SrcAddr() const	{ return src_addr; }
-	const uint32* DstAddr() const	{ return dst_addr; }
-#else
-	const uint32* SrcAddr() const
-		{ return ip4 ? &(ip4->ip_src.s_addr) : 0; }
-	const uint32* DstAddr() const
-		{ return ip4 ? &(ip4->ip_dst.s_addr) : 0; }
-#endif
+	IPAddr SrcAddr() const
+		{ return ip4 ? IPAddr(ip4->ip_src) : IPAddr(ip6->ip6_src); }
+	IPAddr DstAddr() const
+		{ return ip4 ? IPAddr(ip4->ip_dst) : IPAddr(ip6->ip6_dst); }
 
-	uint32 SrcAddr4() const	{ return ip4->ip_src.s_addr; }
-	uint32 DstAddr4() const	{ return ip4->ip_dst.s_addr; }
-
+	//TODO: needs adapting/replacement for IPv6 support
 	uint16 ID4() const	{ return ip4 ? ip4->ip_id : 0; }
 
 	const u_char* Payload() const
@@ -131,10 +90,6 @@ public:
 private:
 	const struct ip* ip4;
 	const struct ip6_hdr* ip6;
-#ifdef BROv6
-	uint32 src_addr[NUM_ADDR_WORDS];
-	uint32 dst_addr[NUM_ADDR_WORDS];
-#endif
 	int del;
 };
 

@@ -55,7 +55,6 @@ void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
 	    {
 	    int chksum = 0;
 
-#ifdef BROv6
 	    switch ( ip->NextProto() )
 		{
 		case IPPROTO_ICMP:
@@ -69,10 +68,6 @@ void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
 		default:
 			reporter->InternalError("unexpected IP proto in ICMP analyzer");
 		}
-#else
-	    // Classic v4 version.
-	    chksum = icmp_checksum(icmpp, len);
-#endif
 
 	    if ( chksum != 0xffff )
 		    {
@@ -89,6 +84,9 @@ void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
 			matcher_state.InitEndpointMatcher(this, ip, len, is_orig, 0);
 		}
 
+	type = icmpp->icmp_type;
+	code = icmpp->icmp_code;
+
 	// Move past common portion of ICMP header.
 	data += 8;
 	caplen -= 8;
@@ -96,10 +94,8 @@ void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
 
 	if ( ip->NextProto() == IPPROTO_ICMP )
 		NextICMP4(current_timestamp, icmpp, len, caplen, data, ip);
-#ifdef BROv6
 	else
 		NextICMP6(current_timestamp, icmpp, len, caplen, data, ip);
-#endif
 
 
 	if ( caplen >= len )
@@ -130,7 +126,6 @@ void ICMP_Analyzer::NextICMP4(double t, const struct icmp* icmpp, int len, int c
 		}
 	}
 
-#ifdef BROv6
 void ICMP_Analyzer::NextICMP6(double t, const struct icmp* icmpp, int len, int caplen,
 							  const u_char*& data, const IP_Hdr* ip_hdr )
 	{
@@ -178,7 +173,6 @@ void ICMP_Analyzer::NextICMP6(double t, const struct icmp* icmpp, int len, int c
 			break;
 		}
 	}
-#endif
 
 void ICMP_Analyzer::ICMPEvent(EventHandlerPtr f, const struct icmp* icmpp, int len, int icmpv6)
     {
@@ -284,7 +278,7 @@ RecordVal* ICMP_Analyzer::ExtractICMP4Context(int len, const u_char*& data)
 	uint32 ip_len, frag_offset;
 	TransportProto proto = TRANSPORT_UNKNOWN;
 	int DF, MF, bad_hdr_len, bad_checksum;
-	uint32 src_addr, dst_addr,src_addr2, dst_addr2;
+	IPAddr src_addr, dst_addr;
 	uint32 src_port, dst_port;
 
 	if ( ip_hdr_len < sizeof(struct ip) || ip_hdr_len > uint32(len) )
@@ -303,8 +297,8 @@ RecordVal* ICMP_Analyzer::ExtractICMP4Context(int len, const u_char*& data)
 		ip_len = ip_hdr->TotalLen();
 		bad_checksum = ones_complement_checksum((void*) ip_hdr->IP4_Hdr(), ip_hdr_len, 0) != 0xffff;
 
-		src_addr = ip_hdr->SrcAddr4();
-		dst_addr = ip_hdr->DstAddr4();
+		src_addr = ip_hdr->SrcAddr();
+		dst_addr = ip_hdr->DstAddr();
 
 		uint32 frag_field = ip_hdr->FragField();
 		DF = ip_hdr->DF();
@@ -342,7 +336,6 @@ RecordVal* ICMP_Analyzer::ExtractICMP4Context(int len, const u_char*& data)
 	return iprec;
 	}
 
-#ifdef BROv6
 RecordVal* ICMP_Analyzer::ExtractICMP6Context(int len, const u_char*& data)
 	{
 	const IP_Hdr ip_hdr_data((const struct ip6_hdr*) data);
@@ -351,8 +344,8 @@ RecordVal* ICMP_Analyzer::ExtractICMP6Context(int len, const u_char*& data)
 	TransportProto proto = TRANSPORT_UNKNOWN;
 
 	uint32 ip_hdr_len = ip_hdr->HdrLen(); //should always be 40
-	uint32* src_addr;
-	uint32* dst_addr;
+	IPAddr src_addr;
+	IPAddr dst_addr;
 	uint32 ip_len, frag_offset = 0;
 	uint32 src_port, dst_port;
 
@@ -368,8 +361,8 @@ RecordVal* ICMP_Analyzer::ExtractICMP6Context(int len, const u_char*& data)
 		{
 		ip_len = ip_hdr->TotalLen();
 
-		src_addr = (uint32 *) ip_hdr->SrcAddr();
-		dst_addr = (uint32 *) ip_hdr->DstAddr();
+		src_addr = ip_hdr->SrcAddr();
+		dst_addr = ip_hdr->DstAddr();
 
 		if ( uint32(len) >= ip_hdr_len + 4 )
 			proto = GetContextProtocol(ip_hdr, &src_port, &dst_port);
@@ -413,7 +406,6 @@ RecordVal* ICMP_Analyzer::ExtractICMP6Context(int len, const u_char*& data)
 
 	return iprec;
 	}
-#endif
 
 
 bool ICMP_Analyzer::IsReuse(double /* t */, const u_char* /* pkt */)
@@ -428,18 +420,16 @@ void ICMP_Analyzer::Describe(ODesc* d) const
 	d->Add(Conn()->LastTime());
 	d->AddSP(")");
 
-	d->Add(dotted_addr(Conn()->OrigAddr()));
-#if 0
+	d->Add(Conn()->OrigAddr());
 	d->Add(".");
 	d->Add(type);
 	d->Add(".");
 	d->Add(code);
-#endif
 
 	d->SP();
 	d->AddSP("->");
 
-	d->Add(dotted_addr(Conn()->RespAddr()));
+	d->Add(Conn()->RespAddr());
 	}
 
 void ICMP_Analyzer::UpdateConnVal(RecordVal *conn_val)
@@ -488,11 +478,9 @@ void ICMP_Analyzer::Echo(double t, const struct icmp* icmpp, int len,
 	// For handling all Echo related ICMP messages
 	EventHandlerPtr f = 0;
 
-#ifdef BROv6
 	if ( ip_hdr->NextProto() == IPPROTO_ICMPV6 )
 		f = (icmpp->icmp_type == ICMP6_ECHO_REQUEST) ? icmp_echo_request : icmp_echo_reply;
 	else
-#endif
 		f = (icmpp->icmp_type == ICMP_ECHO) ? icmp_echo_request : icmp_echo_reply;
 
 	if ( ! f )
@@ -569,7 +557,6 @@ void ICMP_Analyzer::Context4(double t, const struct icmp* icmpp,
 	}
 
 
-#ifdef BROv6
 void ICMP_Analyzer::Context6(double t, const struct icmp* icmpp,
 		int len, int caplen, const u_char*& data, const IP_Hdr* ip_hdr)
 	{
@@ -598,7 +585,6 @@ void ICMP_Analyzer::Context6(double t, const struct icmp* icmpp,
 		ConnectionEvent(f, vl);
 		}
 	}
-#endif
 
 int ICMP4_counterpart(int icmp_type, int icmp_code, bool& is_one_way)
 	{

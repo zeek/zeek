@@ -156,9 +156,7 @@ The Bro scripting language supports the following built-in types.
 
 .. bro:type:: addr
 
-    A type representing an IP address.  Currently, Bro defaults to only
-    supporting IPv4 addresses unless configured/built with
-    ``--enable-brov6``, in which case, IPv6 addresses are supported.
+    A type representing an IP address.
 
     IPv4 address constants are written in "dotted quad" format,
     ``A1.A2.A3.A4``, where Ai all lie between 0 and 255.

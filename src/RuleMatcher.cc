@@ -1067,16 +1067,22 @@ static bool val_to_maskedval(Val* v, maskedvalue_list* append_to)
 			break;
 
 		case TYPE_SUBNET:
-#ifdef BROv6
 			{
-			uint32* n = v->AsSubNet()->net;
-			uint32* m = v->AsSubNetVal()->Mask();
+			const uint32* n;
+			uint32 m[4];
+			v->AsSubNet().Prefix().GetBytes(&n);
+			v->AsSubNetVal()->Mask().CopyIPv6(m);
+
+			for ( unsigned int i = 0; i < 4; ++i )
+				m[i] = ntohl(m[i]);
+
 			bool is_v4_mask = m[0] == 0xffffffff &&
 						m[1] == m[0] && m[2] == m[0];
 
-			if ( is_v4_addr(n) && is_v4_mask )
+			if ( v->AsSubNet().Prefix().GetFamily() == IPAddr::IPv4 &&
+			     is_v4_mask )
 				{
-				mval->val = ntohl(to_v4_addr(n));
+				mval->val = ntohl(*n);
 				mval->mask = m[3];
 				}
 
@@ -1087,10 +1093,6 @@ static bool val_to_maskedval(Val* v, maskedvalue_list* append_to)
 				mval->mask = 0;
 				}
 			}
-#else
-			mval->val = ntohl(v->AsSubNet()->net);
-			mval->mask = v->AsSubNetVal()->Mask();
-#endif
 			break;
 
 		default:

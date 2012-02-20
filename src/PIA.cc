@@ -199,17 +199,21 @@ void PIA_TCP::FirstPacket(bool is_orig, const IP_Hdr* ip)
 			ip4_hdr = new IP_Hdr((const struct ip*) ip4);
 			}
 
+		const uint32* obytes;
+		const uint32* rbytes;
+		Conn()->OrigAddr().GetBytes(&obytes);
+		Conn()->RespAddr().GetBytes(&rbytes);
 		if ( is_orig )
 			{
-			copy_addr(Conn()->OrigAddr(), &ip4->ip_src.s_addr);
-			copy_addr(Conn()->RespAddr(), &ip4->ip_dst.s_addr);
+			memcpy(&ip4->ip_src.s_addr, obytes, sizeof(uint32));
+			memcpy(&ip4->ip_dst.s_addr, rbytes, sizeof(uint32));
 			tcp4->th_sport = htons(Conn()->OrigPort());
 			tcp4->th_dport = htons(Conn()->RespPort());
 			}
 		else
 			{
-			copy_addr(Conn()->RespAddr(), &ip4->ip_src.s_addr);
-			copy_addr(Conn()->OrigAddr(), &ip4->ip_dst.s_addr);
+			memcpy(&ip4->ip_src.s_addr, rbytes, sizeof(uint32));
+			memcpy(&ip4->ip_dst.s_addr, obytes, sizeof(uint32));
 			tcp4->th_sport = htons(Conn()->RespPort());
 			tcp4->th_dport = htons(Conn()->OrigPort());
 			}

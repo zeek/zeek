@@ -1,6 +1,3 @@
-/* enable IPV6 processing */
-#cmakedefine BROv6
-
 /* Old libpcap versions (< 0.6.1) need defining pcap_freecode and
    pcap_compile_nopcap */
 #cmakedefine DONT_HAVE_LIBPCAP_PCAP_FREECODE

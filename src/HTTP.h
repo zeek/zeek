@@ -8,6 +8,7 @@
 #include "MIME.h"
 #include "binpac_bro.h"
 #include "ZIP.h"
+#include "IPAddr.h"
 
 enum CHUNKED_TRANSFER_STATE {
 	NON_CHUNKED_TRANSFER,
@@ -212,7 +213,7 @@ protected:
 
 	const BroString* UnansweredRequestMethod();
 
-	void ParseVersion(data_chunk_t ver, const uint32* host, bool user_agent);
+	void ParseVersion(data_chunk_t ver, const IPAddr& host, bool user_agent);
 	int HTTP_ReplyCode(const char* code_str);
 	int ExpectReplyMessageBody();
 

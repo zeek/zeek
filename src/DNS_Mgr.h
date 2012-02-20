@@ -6,12 +6,14 @@
 #include <list>
 #include <map>
 #include <queue>
+#include <utility>
 
 #include "util.h"
 #include "BroList.h"
 #include "Dict.h"
 #include "EventHandler.h"
 #include "IOSource.h"
+#include "IPAddr.h"
 
 class Val;
 class ListVal;
@@ -39,10 +41,6 @@ enum DNS_MgrMode {
 // Number of seconds we'll wait for a reply.
 #define DNS_TIMEOUT 5
 
-// ### For now, we don't support IPv6 lookups.  When we do, this
-// should become addr_type.
-typedef uint32 dns_mgr_addr_type;
-
 class DNS_Mgr : public IOSource {
 public:
 	DNS_Mgr(DNS_MgrMode mode);
@@ -55,7 +53,7 @@ public:
 	// a set of addr.
 	TableVal* LookupHost(const char* host);
 
-	Val* LookupAddr(uint32 addr);
+	Val* LookupAddr(const IPAddr& addr);
 
 	// Define the directory where to store the data.
 	void SetDir(const char* arg_dir)	{ dir = copy_string(arg_dir); }
@@ -64,7 +62,7 @@ public:
 	void Resolve();
 	int Save();
 
-	const char* LookupAddrInCache(dns_mgr_addr_type addr);
+	const char* LookupAddrInCache(const IPAddr& addr);
 	TableVal* LookupNameInCache(string name);
 
 	// Support for async lookups.
@@ -78,7 +76,7 @@ public:
 		virtual void Timeout() = 0;
 	};
 
-	void AsyncLookupAddr(dns_mgr_addr_type host, LookupCallback* callback);
+	void AsyncLookupAddr(const IPAddr& host, LookupCallback* callback);
 	void AsyncLookupName(string name, LookupCallback* callback);
 
 	struct Stats {
@@ -107,8 +105,10 @@ protected:
 	ListVal* AddrListDelta(ListVal* al1, ListVal* al2);
 	void DumpAddrList(FILE* f, ListVal* al);
 
+	typedef map<string, pair<DNS_Mapping*, DNS_Mapping*> > HostMap;
 	void LoadCache(FILE* f);
 	void Save(FILE* f, PDict(DNS_Mapping)& m);
+	void Save(FILE* f, const HostMap& m);
 
 	// Selects on the fd to see if there is an answer available (timeout
 	// is secs). Returns 0 on timeout, -1 on EINTR or other error, and 1
@@ -120,7 +120,7 @@ protected:
 
 	// Finish the request if we have a result.  If not, time it out if
 	// requested.
-	void CheckAsyncAddrRequest(dns_mgr_addr_type addr, bool timeout);
+	void CheckAsyncAddrRequest(const IPAddr& addr, bool timeout);
 	void CheckAsyncHostRequest(const char* host, bool timeout);
 
 	// Process outstanding requests.
@@ -136,7 +136,7 @@ protected:
 
 	PDict(ListVal) services;
 
-	PDict(DNS_Mapping) host_mappings;
+	HostMap host_mappings;
 	PDict(DNS_Mapping) addr_mappings;
 
 	DNS_mgr_request_list requests;
@@ -163,7 +163,7 @@ protected:
 
 	struct AsyncRequest {
 		double time;
-		dns_mgr_addr_type host;
+		IPAddr host;
 		string name;
 		CallbackList callbacks;
 
@@ -204,7 +204,7 @@ protected:
 
 	};
 
-	typedef map<dns_mgr_addr_type, AsyncRequest*> AsyncRequestAddrMap;
+	typedef map<IPAddr, AsyncRequest*> AsyncRequestAddrMap;
 	AsyncRequestAddrMap asyncs_addrs;
 
 	typedef map<string, AsyncRequest*> AsyncRequestNameMap;

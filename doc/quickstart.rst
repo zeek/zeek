@@ -103,10 +103,16 @@ Optional Dependencies
 Bro can use libGeoIP for geo-locating IP addresses, and sendmail for
 sending emails.
 
-* RPM/RedHat-based Linux:
+* RedHat Enterprise Linux:
 
   .. console::
 
+      sudo yum install geoip-devel sendmail
+
+* CentOS Linux:
+
+  .. console::
+  
       sudo yum install GeoIP-devel sendmail
 
 * DEB/Debian-based Linux:

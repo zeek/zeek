@@ -202,8 +202,6 @@ private:
 
 	vector<ReaderInfo*> readers;
 
-	string Hash(const string &input);	
-
 	class Filter;
 	class TableFilter;
 	class EventFilter;

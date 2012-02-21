@@ -302,7 +302,6 @@ Value* Ascii::EntryToVal(string s, FieldMapping field) {
 		break;
 
 	case TYPE_PORT:
-		val->val.port_val.port = 0;
 		val->val.port_val.port = atoi(s.c_str());
 		val->val.port_val.proto = TRANSPORT_UNKNOWN;
 		break;

@@ -782,8 +782,8 @@ int Manager::SendEntryTable(const ReaderFrontend* reader, const int id, const Va
 	hash_t valhash = 0;
 	if ( filter->num_val_fields > 0 ) {
 		HashKey* valhashkey = HashValues(filter->num_val_fields, vals+filter->num_idx_fields);
-		valhash = valhashkey->Hash();
-		delete(valhashkey);
+	     	valhash = valhashkey->Hash();
+	      	delete(valhashkey);
 	}
 
 	//reporter->Error("Result: %d", (uint64_t) valhash->Hash());
@@ -873,18 +873,16 @@ int Manager::SendEntryTable(const ReaderFrontend* reader, const int id, const Va
 	HashKey* k = filter->tab->ComputeHash(idxval);
 	if ( !k ) {
 		reporter->InternalError("could not hash");
-		return filter->num_val_fields + filter->num_idx_fields;
+		assert(false);
 	}
+
+	InputHash* ih = new InputHash();
+	ih->idxkey = new HashKey(k->Key(), k->Size(), k->Hash());
+	ih->valhash = valhash;
 
 	if ( filter->event && updated )
 		Ref(oldval); // otherwise it is no longer accessible after the assignment
 	filter->tab->Assign(idxval, k, valval);
-
-	InputHash* ih = new InputHash();
-	k = filter->tab->ComputeHash(idxval);
-	ih->idxkey = k;
-	ih->valhash = valhash;
-	//i->tab->Delete(k);
 
 	filter->currDict->Insert(idxhash, ih);
 
@@ -1557,7 +1555,7 @@ HashKey* Manager::HashValues(const int num_elements, const Value* const *vals) {
 	if ( data == 0 ) {
 		reporter->InternalError("Could not malloc?");
 	}
-	memset(data, 0, length);
+	//memset(data, 0, length);
 	for ( int i = 0; i < num_elements; i++ ) {
 		const Value* val = vals[i];
 		position += CopyValue(data, position, val);
@@ -1694,12 +1692,4 @@ Manager::ReaderInfo* Manager::FindReader(const EnumVal* id)
 
 	return 0;
 	}
-
-
-string Manager::Hash(const string &input) {
-	unsigned char digest[16];
-	hash_md5(input.length(), (const unsigned char*) input.c_str(), digest);
-	string out((const char*) digest, 16);
-	return out;
-}
 

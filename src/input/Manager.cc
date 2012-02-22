@@ -1083,12 +1083,11 @@ int Manager::PutTable(const ReaderFrontend* reader, int id, const Value* const *
 	Val* idxval = ValueToIndexVal(filter->num_idx_fields, filter->itype, vals);
 	Val* valval;
 
-	
 	int position = filter->num_idx_fields;
 	if ( filter->num_val_fields == 0 ) {
 		valval = 0;
-	} else if ( filter->num_val_fields == 1 && !filter->want_record ) {
-		valval = ValueToVal(vals[filter->num_idx_fields], filter->rtype->FieldType(filter->num_idx_fields));
+	} else if ( filter->num_val_fields == 1 && filter->want_record == 0 ) {
+		valval = ValueToVal(vals[position], filter->rtype->FieldType(0));
 	} else {
 		valval = ValueToRecordVal(vals, filter->rtype, &position);
 	}
@@ -1129,6 +1128,7 @@ int Manager::PutTable(const ReaderFrontend* reader, int id, const Value* const *
 			vl.append(predidx);
 			if ( filter->num_val_fields > 0 )
 				vl.append(valval);
+
 
 			Val* v = filter->pred->Call(&vl);
 			bool result = v->AsBool();

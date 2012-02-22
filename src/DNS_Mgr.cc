@@ -704,6 +704,7 @@ void DNS_Mgr::AddResult(DNS_Mgr_Request* dr, struct nb_dns_result* r)
 	if ( dr->ReqHost() )
 		{
 		new_dm = new DNS_Mapping(dr->ReqHost(), h, ttl);
+		prev_dm = 0;
 
 		HostMap::iterator it = host_mappings.find(dr->ReqHost());
 		if ( it == host_mappings.end() )
@@ -711,15 +712,11 @@ void DNS_Mgr::AddResult(DNS_Mgr_Request* dr, struct nb_dns_result* r)
 			host_mappings[dr->ReqHost()].first =
 					new_dm->Type() == AF_INET ? new_dm : 0;
 			host_mappings[dr->ReqHost()].second =
-					new_dm->Type() == AF_INET6 ? new_dm : 0;
-
-			prev_dm = 0;
+					new_dm->Type() == AF_INET ? 0 : new_dm;
 			}
 
 		else
 			{
-			prev_dm = 0;
-
 			if ( new_dm->Type() == AF_INET )
 				{
 				prev_dm = it->second.first;

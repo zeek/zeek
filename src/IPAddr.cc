@@ -1,5 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include <string>
+#include <vector>
 #include "IPAddr.h"
 #include "Reporter.h"
 
@@ -65,13 +67,48 @@ void IPAddr::ReverseMask(int top_bits_to_chop)
 	memcpy(in6.s6_addr, tmp, sizeof(in6.s6_addr));
 	}
 
+std::string IPAddr::CanonIPv4(const std::string& input)
+	{
+	vector<string> parts;
+	string output;
+	size_t start = 0;
+	size_t end;
+
+	do
+		{
+		end = input.find('.', start);
+		string p;
+		bool in_leading_zeroes = true;
+		for ( size_t i = start; i != end && i < input.size(); ++i )
+			{
+			if ( in_leading_zeroes && input[i] == '0' ) continue;
+			in_leading_zeroes = false;
+			p.push_back(input[i]);
+			}
+
+		if ( p.size() == 0 )
+			p.push_back('0');
+		parts.push_back(p);
+		start = end + 1;
+		} while ( end != string::npos );
+
+	for ( size_t i = 0; i < parts.size(); ++i )
+		{
+		if ( i > 0 )
+			output += '.';
+		output += parts[i];
+		}
+
+	return output;
+	}
+
 void IPAddr::Init(const std::string& s)
 	{
 	if ( s.find(':') == std::string::npos ) // IPv4.
 		{
 		memcpy(in6.s6_addr, v4_mapped_prefix, sizeof(v4_mapped_prefix));
 
-		if ( inet_pton(AF_INET, s.c_str(), &in6.s6_addr[12]) <=0 )
+		if ( inet_pton(AF_INET, CanonIPv4(s).c_str(), &in6.s6_addr[12]) <=0 )
 			{
 			reporter->Error("Bad IP address: %s", s.c_str());
 			memset(in6.s6_addr, 0, sizeof(in6.s6_addr));

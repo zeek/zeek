@@ -1,4 +1,16 @@
 
+2.0-95 | 2012-02-22 05:27:34 -0800
+
+  * GeoIP installation documentation update. (Seth Hall)
+
+  * Decrease strictness of parsing IPv4 strings into addrs. Fixes #775. (Jon Siwek)
+
+  * Fix memory leak in DNS manager. Fixes #777. (Jon Siwek)
+    
+  * Fix IPAddr/IPPrefix serialization bugs. (Jon Siwek)
+    
+  * Fix compile error. (Jon Siwek)
+
 2.0-86 | 2012-02-17 15:41:06 -0800
 
   * Changing ARP detection to always kick in even if no analyzer is

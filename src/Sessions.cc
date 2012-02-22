@@ -555,7 +555,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		return;
 	}
 
-	HashKey* h = id.BuildConnKey();
+	HashKey* h = BuildConnIDHashKey(id);
 	if ( ! h )
 		reporter->InternalError("hash computation failed");
 
@@ -831,7 +831,7 @@ Connection* NetSessions::FindConnection(Val* v)
 
 	id.is_one_way = 0;	// ### incorrect for ICMP connections
 
-	HashKey* h = id.BuildConnKey();
+	HashKey* h = BuildConnIDHashKey(id);
 	if ( ! h )
 		reporter->InternalError("hash computation failed");
 

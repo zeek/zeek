@@ -5,9 +5,7 @@ inline static prefix_t* make_prefix(const IPAddr& addr, int width)
 	{
 	prefix_t* prefix = (prefix_t*) safe_malloc(sizeof(prefix_t));
 
-	uint32 bytes[4];
-	addr.CopyIPv6(bytes);
-	memcpy(&prefix->add.sin6, bytes, 4 * sizeof(uint32));
+	addr.CopyIPv6(&prefix->add.sin6);
 	prefix->family = AF_INET6;
 	prefix->bitlen = width;
 	prefix->ref_count = 1;

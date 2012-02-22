@@ -38,47 +38,12 @@ struct ConnID {
 	uint32 src_port;
 	uint32 dst_port;
 	bool is_one_way;	// if true, don't canonicalize
-
-	// Returns a ListVal suitable for looking up a connection in
-	// a hash table.  addr/ports are expected to be in network order.
-	// Unless is_one_way is true, the lookup sorts src and dst,
-	// so src_addr/src_port and dst_addr/dst_port just have to
-	// reflect the two different sides of the connection,
-	// neither has to be the particular source/destination
-	// or originator/responder.
-	HashKey* BuildConnKey() const;
-
-	// The structure used internally for hashing.
-	struct Key {
-		uint32 ip1[4];
-		uint32 ip2[4];
-		uint16 port1;
-		uint16 port2;
-	};
 };
 
 static inline int addr_port_canon_lt(const IPAddr& addr1, uint32 p1,
 					const IPAddr& addr2, uint32 p2)
 	{
-	uint32 a1[4];
-	uint32 a2[4];
-	addr1.CopyIPv6(a1);
-	addr2.CopyIPv6(a2);
-	// Because it's a canonical ordering, not a strict ordering,
-	// we can choose to give more weight to the least significant
-	// word than to the most significant word.  This matters
-	// because for the common case of IPv4 addresses embedded in
-	// a IPv6 address, the top three words are identical, so we can
-	// save a few cycles by first testing the bottom word.
-	return a1[3] < a2[3] ||
-		(a1[3] == a2[3] &&
-		 (a1[2] < a2[2] ||
-		  (a1[2] == a2[2] &&
-		   (a1[1] < a2[1] ||
-		    (a1[1] == a2[1] &&
-		     (a1[0] < a2[0] ||
-		      (a1[0] == a2[0] &&
-		       p1 < p2)))))));
+	return addr1 < addr2 || (addr1 == addr2 && p1 < p2);
 	}
 
 class Analyzer;

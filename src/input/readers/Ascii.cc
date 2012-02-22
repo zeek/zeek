@@ -458,7 +458,10 @@ bool Ascii::DoUpdate() {
 			if ( file && file->is_open() ) {
 				if ( mode == STREAM ) {
 					file->clear(); // remove end of file evil bits
-					ReadHeader(true); // in case filters changed
+					if ( !ReadHeader(true) )  // in case filters changed
+					{
+						return false; // header reading failed
+					}
 					break;
 				}
 				file->close();
@@ -522,6 +525,7 @@ bool Ascii::DoUpdate() {
 
 				Value* val = EntryToVal(stringfields[(*fit).position], *fit);
 				if ( val == 0 ) {
+					Error("Could not convert String value to Val");
 					return false;
 				}
 				
@@ -580,7 +584,7 @@ bool Ascii::DoHeartbeat(double network_time, double current_time)
 			break;
 		case REREAD:
 		case STREAM:
-			DoUpdate();
+			Update(); // call update and not DoUpdate, because update actually checks disabled.
 			break;
 		default:
 			assert(false);

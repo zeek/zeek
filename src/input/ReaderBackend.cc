@@ -203,6 +203,9 @@ bool ReaderBackend::Init(string arg_source, int mode, bool arg_autostart)
 }
 
 bool ReaderBackend::StartReading() {
+	if ( disabled ) 
+		return false;
+
 	int success = DoStartReading();
 	
 	if ( success == false ) {
@@ -215,6 +218,9 @@ bool ReaderBackend::StartReading() {
 bool ReaderBackend::AddFilter(int id, int arg_num_fields,
 					   const Field* const * arg_fields) 
 {
+	if ( disabled ) 
+		return false;
+
 	bool success = DoAddFilter(id, arg_num_fields, arg_fields);
 	if ( success && autostart) {
 		autostart = false;
@@ -225,6 +231,9 @@ bool ReaderBackend::AddFilter(int id, int arg_num_fields,
 
 bool ReaderBackend::RemoveFilter(int id) 
 {
+	if ( disabled ) 
+		return false;
+
 	bool success = DoRemoveFilter(id);
 	SendOut(new FilterRemovedMessage(frontend, id));
 	return success; // yes, I know, noone reads this.
@@ -240,11 +249,20 @@ void ReaderBackend::Finish()
 
 bool ReaderBackend::Update() 
 {
-	return DoUpdate();
+	if ( disabled ) 
+		return false;
+
+	bool success = DoUpdate();
+	if ( !success ) {
+		DisableFrontend();
+	}
+
+	return success;
 }
 
 void ReaderBackend::DisableFrontend()
 {
+	disabled = true; // we also set disabled here, because there still may be other messages queued and we will dutifully ignore these from now
 	SendOut(new DisableMessage(frontend));
 }
 

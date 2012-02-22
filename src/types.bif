@@ -173,6 +173,7 @@ module Input;
 enum Reader %{
 	READER_DEFAULT,
 	READER_ASCII,
+	READER_RAW,
 %}
 
 enum Event %{

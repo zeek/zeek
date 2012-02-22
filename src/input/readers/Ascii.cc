@@ -133,6 +133,7 @@ bool Ascii::DoStartReading() {
 
 bool Ascii::DoAddFilter( int id, int arg_num_fields, const Field* const* fields ) {
 	if ( HasFilter(id) ) {
+		Error("Filter was added twice, ignoring.");		
 		return false; // no, we don't want to add this a second time
 	}
 
@@ -147,6 +148,7 @@ bool Ascii::DoAddFilter( int id, int arg_num_fields, const Field* const* fields 
 
 bool Ascii::DoRemoveFilter ( int id ) {
 	if (!HasFilter(id) ) {
+		Error("Filter removal of nonexisting filter requested.");		
 		return false;
 	}
 
@@ -263,11 +265,11 @@ TransportProto Ascii::StringToProto(const string &proto) {
 
 Value* Ascii::EntryToVal(string s, FieldMapping field) {
 
-	Value* val = new Value(field.type, true);
-
 	if ( s.compare(unset_field) == 0 ) { // field is not set...
 		return new Value(field.type, false);
 	}
+
+	Value* val = new Value(field.type, true);
 	
 	switch ( field.type ) {
 	case TYPE_ENUM:

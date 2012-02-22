@@ -62,3 +62,5 @@ const set_separator: string;
 const empty_field: string;
 const unset_field: string;
 
+module InputRaw;
+const record_separator: string;

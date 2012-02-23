@@ -131,6 +131,9 @@ int NetbiosSSN_Interpreter::ParseBroadcast(const u_char* data, int len,
 		return 0;
 		}
 
+	delete srcname;
+	delete dstname;
+
 	return 0;
 	}
 

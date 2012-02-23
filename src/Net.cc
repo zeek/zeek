@@ -254,6 +254,7 @@ void net_init(name_list& interfaces, name_list& readfiles,
 				{
 				io_sources.Register(fs);
 				}
+			delete fs;
 			}
 
 		}

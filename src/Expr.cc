@@ -4910,6 +4910,7 @@ Val* ListExpr::Eval(Frame* f) const
 		if ( ! ev )
 			{
 			Error("uninitialized list value");
+			delete v;
 			return 0;
 			}
 

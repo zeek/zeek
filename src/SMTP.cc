@@ -353,7 +353,6 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 			int ext_len;
 
 			get_word(end_of_line - line, line, ext_len, ext);
-			line = skip_whitespace(line + ext_len, end_of_line);
 			ProcessExtension(ext_len, ext);
 			}
 		}

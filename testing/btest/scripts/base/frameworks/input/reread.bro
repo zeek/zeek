@@ -107,7 +107,15 @@ event bro_init()
 	try = 0;
 	# first read in the old stuff into the table...
 	Input::create_stream(A::INPUT, [$source="../input.log", $mode=Input::REREAD]);
-	Input::add_tablefilter(A::INPUT, [$name="ssh", $idx=Idx, $val=Val, $destination=servers, $ev=line]);
+	Input::add_tablefilter(A::INPUT, [$name="ssh", $idx=Idx, $val=Val, $destination=servers, $ev=line,
+	$pred(typ: Input::Event, left: Idx, right: Val) = { 
+	print outfile, "============PREDICATE============";
+	print outfile, typ;
+	print outfile, left;
+	print outfile, right;
+	return T;
+	}
+	]);
 }
 
 

@@ -364,20 +364,21 @@ bool Manager::AddTableFilter(EnumVal *id, RecordVal* fval) {
 	}
 
 
-	Val* name = fval->Lookup(rtype->FieldOffset("name"));
-	Val* pred = fval->Lookup(rtype->FieldOffset("pred"));
+	Val* name = fval->LookupWithDefault(rtype->FieldOffset("name"));
+	Val* pred = fval->LookupWithDefault(rtype->FieldOffset("pred"));
 
-	RecordType *idx = fval->Lookup(rtype->FieldOffset("idx"))->AsType()->AsTypeType()->Type()->AsRecordType();
+	RecordType *idx = fval->LookupWithDefault(rtype->FieldOffset("idx"))->AsType()->AsTypeType()->Type()->AsRecordType();
 	RecordType *val = 0;
 	if ( fval->Lookup(rtype->FieldOffset("val")) != 0 ) {
-		val = fval->Lookup(rtype->FieldOffset("val"))->AsType()->AsTypeType()->Type()->AsRecordType();
+		val = fval->LookupWithDefault(rtype->FieldOffset("val"))->AsType()->AsTypeType()->Type()->AsRecordType();
 	}
-	TableVal *dst = fval->Lookup(rtype->FieldOffset("destination"))->AsTableVal();
+	TableVal *dst = fval->LookupWithDefault(rtype->FieldOffset("destination"))->AsTableVal();
 
 	Val *want_record = fval->LookupWithDefault(rtype->FieldOffset("want_record"));
 
-	Val* event_val = fval->Lookup(rtype->FieldOffset("ev"));
+	Val* event_val = fval->LookupWithDefault(rtype->FieldOffset("ev"));
 	Func* event = event_val ? event_val->AsFunc() : 0;
+	Unref(event_val);
 	
 	if ( event ) {
 		FuncType* etype = event->FType()->AsFuncType();
@@ -450,14 +451,17 @@ bool Manager::AddTableFilter(EnumVal *id, RecordVal* fval) {
 	filter->pred = pred ? pred->AsFunc() : 0;
 	filter->num_idx_fields = idxfields;
 	filter->num_val_fields = valfields;
-	filter->tab = dst->Ref()->AsTableVal();
-	filter->rtype = val ? val->Ref()->AsRecordType() : 0;
-	filter->itype = idx->Ref()->AsRecordType();
+	filter->tab = dst->AsTableVal();
+	filter->rtype = val ? val->AsRecordType() : 0;
+	filter->itype = idx->AsRecordType();
 	filter->event = event ? event_registry->Lookup(event->GetID()->Name()) : 0;
 	filter->currDict = new PDict(InputHash);
 	filter->lastDict = new PDict(InputHash);
 	filter->want_record = ( want_record->InternalInt() == 1 );
+
 	Unref(want_record); // ref'd by lookupwithdefault
+	Unref(name);
+	Unref(pred);
 
 	if ( valfields > 1 ) {
 		assert(filter->want_record);
@@ -861,7 +865,7 @@ int Manager::SendEntryTable(const ReaderFrontend* reader, const int id, const Va
 			}
 		}
 
-	}
+	} 
 	
 
 	Val* oldval = 0;
@@ -948,16 +952,16 @@ void Manager::EndCurrentSend(const ReaderFrontend* reader, int id) {
 			val = filter->tab->Lookup(idx);
 			assert(val != 0);
 		}
+		int startpos = 0;
+		Val* predidx = ListValToRecordVal(idx, filter->itype, &startpos);
+		EnumVal* ev = new EnumVal(BifEnum::Input::EVENT_REMOVED, BifType::Enum::Input::Event);
 
+		
 		if ( filter->pred ) {
-
-			bool doBreak = false;
 			// ask predicate, if we want to expire this element...
 
-			EnumVal* ev = new EnumVal(BifEnum::Input::EVENT_REMOVED, BifType::Enum::Input::Event);
-			//Ref(idx);
-			int startpos = 0;
-			Val* predidx = ListValToRecordVal(idx, filter->itype, &startpos);
+			Ref(ev);
+			Ref(predidx);
 			Ref(val);
 
 			val_list vl(3);
@@ -971,20 +975,22 @@ void Manager::EndCurrentSend(const ReaderFrontend* reader, int id) {
 			if ( result == false ) {
 				// Keep it. Hence - we quit and simply go to the next entry of lastDict
 				// ah well - and we have to add the entry to currDict...
+				Unref(predidx);
+				Unref(ev);
 				filter->currDict->Insert(lastDictIdxKey, filter->lastDict->RemoveEntry(lastDictIdxKey));
 				continue;
-			}
-
-
-		}
+			} 
+		} 
 
 		if ( filter->event ) {
-			int startpos = 0;
-			Val* predidx = ListValToRecordVal(idx, filter->itype, &startpos);
+			Ref(predidx);
 			Ref(val);
-			EnumVal *ev = new EnumVal(BifEnum::Input::EVENT_REMOVED, BifType::Enum::Input::Event);
+			Ref(ev);
 			SendEvent(filter->event, 3, ev, predidx, val);
 		}
+
+		Unref(predidx);
+		Unref(ev);
 
 		filter->tab->Delete(ih->idxkey);
 		filter->lastDict->Remove(lastDictIdxKey); // deletex in next line

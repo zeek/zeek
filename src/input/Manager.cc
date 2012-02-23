@@ -1547,7 +1547,8 @@ HashKey* Manager::HashValues(const int num_elements, const Value* const *vals) {
 
 	for ( int i = 0; i < num_elements; i++ ) {
 		const Value* val = vals[i];
-		length += GetValueLength(val);
+		if ( val->present )
+			length += GetValueLength(val);
 	}
 
 	//reporter->Error("Length: %d", length);
@@ -1560,7 +1561,8 @@ HashKey* Manager::HashValues(const int num_elements, const Value* const *vals) {
 	//memset(data, 0, length);
 	for ( int i = 0; i < num_elements; i++ ) {
 		const Value* val = vals[i];
-		position += CopyValue(data, position, val);
+		if ( val->present )
+			position += CopyValue(data, position, val);
 	}
 
 	hash_t key = HashKey::HashBytes(data, length);

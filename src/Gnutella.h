@@ -35,6 +35,7 @@ public:
 class Gnutella_Analyzer : public TCP_ApplicationAnalyzer {
 public:
 	Gnutella_Analyzer(Connection* conn);
+	~Gnutella_Analyzer();
 
 	virtual void Done ();
 	virtual void DeliverStream(int len, const u_char* data, bool orig);

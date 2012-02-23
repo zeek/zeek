@@ -135,6 +135,10 @@ NetSessions::~NetSessions()
 	delete SYN_OS_Fingerprinter;
 	delete pkt_profiler;
 	Unref(arp_analyzer);
+	if (discarder)
+		delete discarder;
+	if (stp_manager)
+		delete stp_manager;
 	}
 
 void NetSessions::Done()

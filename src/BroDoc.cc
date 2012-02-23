@@ -85,8 +85,8 @@ void BroDoc::AddImport(const std::string& s)
 	if ( ext_pos != std::string::npos )
 		lname = lname.substr(0, ext_pos);
 
-	const char* full_filename = "<error>";
-	const char* subpath = "<error>";
+	const char* full_filename = NULL;
+	const char* subpath = NULL;
 	FILE* f = search_for_file(lname.c_str(), "bro", &full_filename, true,
 	                          &subpath);
 

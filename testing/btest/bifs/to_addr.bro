@@ -1,5 +1,6 @@
-# @TEST-EXEC: bro %INPUT >output
+# @TEST-EXEC: bro -b %INPUT >output 2>error
 # @TEST-EXEC: btest-diff output
+# @TEST-EXEC: btest-diff error
 
 function test_to_addr(ip: string, expect: addr)
 	{
@@ -16,3 +17,4 @@ test_to_addr("10.20.30.40", 10.20.30.40);
 test_to_addr("100.200.30.40", 100.200.30.40);
 test_to_addr("10.0.0.0", 10.0.0.0);
 test_to_addr("10.00.00.000", 10.0.0.0);
+test_to_addr("not an IP", ::);

@@ -1,4 +1,8 @@
 
+2.0-106 | 2012-02-24 15:02:20 -0800
+
+  * Raise minimum required CMake version to 2.6.3. (Jon Siwek)
+
 2.0-104 | 2012-02-24 14:59:12 -0800
 
   * Add test case for FTP over IPv4. (Daniel Thayer)

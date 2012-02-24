@@ -2135,7 +2135,7 @@ function counts_to_addr%(v: index_vec%): addr
 ##
 ## Returns: The :bro:type:`string` *str* as :bro:type:`int`.
 ##
-## .. bro:see:: to_addr to_port
+## .. bro:see:: to_addr to_port to_subnet
 function to_int%(str: string%): int
 	%{
 	const char* s = str->CheckString();
@@ -2192,7 +2192,7 @@ function double_to_count%(d: double%): count
 ## Returns: The :bro:type:`string` *str* as unsigned integer or if in invalid
 ##          format.
 ##
-## .. bro:see:: to_addr to_int to_port
+## .. bro:see:: to_addr to_int to_port to_subnet
 function to_count%(str: string%): count
 	%{
 	const char* s = str->CheckString();
@@ -2287,13 +2287,32 @@ function count_to_port%(num: count, proto: transport_proto%): port
 ##
 ## ip: The :bro:type:`string` to convert.
 ##
-## Returns: The :bro:type:`string` *ip* as :bro:type:`addr`.
+## Returns: The :bro:type:`string` *ip* as :bro:type:`addr` or the unspecified
+##          address ``::`` if the input string does not parse correctly.
 ##
 ## .. bro:see:: to_count to_int to_port count_to_v4_addr raw_bytes_to_v4_addr
+##    to_subnet
 function to_addr%(ip: string%): addr
 	%{
 	char* s = ip->AsString()->Render();
 	Val* ret = new AddrVal(s);
+	delete [] s;
+	return ret;
+	%}
+
+## Converts a :bro:type:`string` to a :bro:type:`subnet`.
+##
+## sn: The subnet to convert.
+##
+## Returns: The *sn* string as a :bro:type:`subnet` or the unspecified subnet
+##          ``::/0`` if the input string does not parse correctly.
+##
+## .. bro:see:: to_count to_int to_port count_to_v4_addr raw_bytes_to_v4_addr
+##    to_addr
+function to_subnet%(sn: string%): subnet
+	%{
+	char* s = sn->AsString()->Render();
+	Val* ret = new SubNetVal(s);
 	delete [] s;
 	return ret;
 	%}
@@ -2304,7 +2323,7 @@ function to_addr%(ip: string%): addr
 ##
 ## Returns: The :bro:type:`count` *ip* as :bro:type:`addr`.
 ##
-## .. bro:see:: raw_bytes_to_v4_addr to_addr
+## .. bro:see:: raw_bytes_to_v4_addr to_addr to_subnet
 function count_to_v4_addr%(ip: count%): addr
 	%{
 	if ( ip > 4294967295LU )
@@ -2324,7 +2343,7 @@ function count_to_v4_addr%(ip: count%): addr
 ##
 ## Returns: The byte :bro:type:`string` *ip* as :bro:type:`addr`.
 ##
-## .. bro:see:: raw_bytes_to_v4_addr to_addr
+## .. bro:see:: raw_bytes_to_v4_addr to_addr to_subnet
 function raw_bytes_to_v4_addr%(b: string%): addr
 	%{
 	uint32 a = 0;
@@ -2347,7 +2366,7 @@ function raw_bytes_to_v4_addr%(b: string%): addr
 ##
 ## Returns: A :bro:type:`port` converted from *s*.
 ##
-## .. bro:see:: to_addr to_count to_int
+## .. bro:see:: to_addr to_count to_int to_subnet
 function to_port%(s: string%): port
     %{
     int port = 0;

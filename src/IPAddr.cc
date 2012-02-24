@@ -11,7 +11,7 @@ const uint8_t IPAddr::v4_mapped_prefix[12] = { 0, 0, 0, 0,
 
 void IPAddr::Mask(int top_bits_to_keep)
 	{
-	if ( top_bits_to_keep <= 0 || top_bits_to_keep > 128 )
+	if ( top_bits_to_keep < 0 || top_bits_to_keep > 128 )
 		{
 		reporter->Error("Bad IPAddr::Mask value %d", top_bits_to_keep);
 		return;
@@ -40,7 +40,7 @@ void IPAddr::Mask(int top_bits_to_keep)
 
 void IPAddr::ReverseMask(int top_bits_to_chop)
 	{
-	if ( top_bits_to_chop <= 0 || top_bits_to_chop > 128 )
+	if ( top_bits_to_chop < 0 || top_bits_to_chop > 128 )
 		{
 		reporter->Error("Bad IPAddr::ReverseMask value %d", top_bits_to_chop);
 		return;

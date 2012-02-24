@@ -2516,10 +2516,11 @@ static Val* parse_eftp(const char* line)
 
 		if ( *line )
 			{
-			string s(line);
-			addr = IPAddr(s);
+			good = 1;
+			++line;	// skip delimiter
 
-			if ( addr == IPAddr("0.0.0.0") )
+			net_proto = strtol(line, &next_delim, 10);
+			if ( *next_delim != delimiter )
 				good = 0;
 
 			line = next_delim;

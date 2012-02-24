@@ -665,20 +665,8 @@ const IP_Hdr* ConnCompressor::PendingConnToPacket(const PendingConn* c)
 		reporter->InternalError("IPv6 snuck into connection compressor");
 	else
 		{
-		const uint32* src_bytes;
-		const uint32* dst_bytes;
-		if ( c->ip1_is_src )
-			{
-			ip1.GetBytes(&src_bytes);
-			ip2.GetBytes(&dst_bytes);
-			}
-		else
-			{
-			ip2.GetBytes(&src_bytes);
-			ip1.GetBytes(&dst_bytes);
-			}
-		memcpy(&ip->ip_src, src_bytes, sizeof(ip->ip_src));
-		memcpy(&ip->ip_dst, dst_bytes, sizeof(ip->ip_dst));
+		ip1.CopyIPv4(c->ip1_is_src ? &ip->ip_src : &ip->ip_dst);
+		ip2.CopyIPv4(c->ip1_is_src ? &ip->ip_dst : &ip->ip_dst);
 		}
 
 	if ( c->ip1_is_src )

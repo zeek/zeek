@@ -32,8 +32,6 @@ public:
 
 	ExpectedConn(const ExpectedConn& c);
 
-	HashKey* GetKey() const;
-
 	IPAddr orig;
 	IPAddr resp;
 	uint16 resp_p;

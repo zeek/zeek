@@ -179,38 +179,8 @@ static void do_fmt(const char*& fmt, Val* v, ODesc* d)
 			// This makes only a very slight difference, so not
 			// clear it would e worth the hassle.
 
-			const IPAddr& u = v->AsAddr();
-			const uint32* net_order_u;
-			int len = u.GetBytes(&net_order_u);
-
-			if ( len == 4 )
-				{
-				// We explicitly convert the address to host order
-				// in a copy, because if we just call ntohl() for
-				// our invocation on snprintf() below, on some systems
-				// it turns a 32-bit value (Linux), whereas on
-				// others it returns a long (FreeBSD); the latter
-				// gets us in trouble if we have longs > 32 bits,
-				// because then the format specifier needs to be %lx
-				// rather than %x ....... what a pain!
-				//
-				// Also note that we don't change u in-place because
-				// that would alter the byte order of the underlying
-				// value.
-				uint32 host_order_u[4];
-				host_order_u[0] = ntohl(net_order_u[0]);
-				host_order_u[1] = ntohl(net_order_u[1]);
-				host_order_u[2] = ntohl(net_order_u[2]);
-				host_order_u[3] = ntohl(net_order_u[3]);
-
-				snprintf(out_buf, sizeof(out_buf), "%08x%08x%08x%08x",
-						host_order_u[0], host_order_u[1],
-						host_order_u[2], host_order_u[3]);
-				}
-			else
-				{
-				snprintf(out_buf, sizeof(out_buf), "%08x", ntohl(net_order_u[0]));
-				}
+			snprintf(out_buf, sizeof(out_buf), "%s",
+			         v->AsAddr().AsHexString().c_str());
 			}
 
 		else if ( ! check_fmt_type(t, ok_d_fmt) )
@@ -2445,35 +2415,7 @@ function ptr_name_to_addr%(s: string%): addr
 ## .. bro:see:: ptr_name_to_addr parse_dotted_addr
 function addr_to_ptr_name%(a: addr%): string
 	%{
-	const uint32* addr;
-	int len = a->AsAddr().GetBytes(&addr);
-
-	if ( len == 1 )
-		{
-		char buf[256];
-		uint32 a = ntohl(addr[0]);
-		uint32 a3 = (a >> 24) & 0xff;
-		uint32 a2 = (a >> 16) & 0xff;
-		uint32 a1 = (a >> 8) & 0xff;
-		uint32 a0 = a & 0xff;
-		sprintf(buf, "%u.%u.%u.%u.in-addr.arpa", a0, a1, a2, a3);
-		return new StringVal(buf);
-		}
-	else
-		{
-		static const char hex_digit[] = "0123456789abcdef";
-		string ptr_name("ip6.arpa");
-		for ( unsigned int i = 0; i < 4; ++i )
-			{
-			uint32 a = ntohl(addr[i]);
-			for ( unsigned int j = 1; j <=8; ++j )
-				{
-				ptr_name.insert(0, 1, '.');
-				ptr_name.insert(0, 1, hex_digit[(a >> (32-j*4)) & 0x0f]);
-				}
-			}
-		return new StringVal(ptr_name.c_str());
-		}
+	return new StringVal(a->AsAddr().PtrName().c_str());
 	%}
 
 # Transforms n0.n1.n2.n3 -> addr.
@@ -2555,11 +2497,10 @@ static Val* parse_eftp(const char* line)
 
 		if ( *line )
 			{
-			good = 1;
-			++line;	// skip delimiter
+			string s(line);
+			addr = IPAddr(s);
 
-			net_proto = strtol(line, &next_delim, 10);
-			if ( *next_delim != delimiter )
+			if ( addr == IPAddr("0.0.0.0") )
 				good = 0;
 
 			line = next_delim;
@@ -3043,14 +2984,8 @@ function remask_addr%(a1: addr, a2: addr, top_bits_from_a1: count%): addr
 	IPAddr addr1(a1->AsAddr());
 	addr1.Mask(top_bits_from_a1);
 	IPAddr addr2(a2->AsAddr());
-	addr1.ReverseMask(top_bits_from_a1);
-	uint32 x1[4];
-	uint32 x2[4];
-	addr1.CopyIPv6(x1);
-	addr2.CopyIPv6(x2);
-	for ( unsigned int i = 0; i < 4; ++i )
-		x1[i] = x1[i] | x2[i];
-	return new AddrVal(x1);
+	addr2.ReverseMask(top_bits_from_a1);
+	return new AddrVal(addr1|addr2);
 	%}
 
 ## Checks whether a given :bro:type:`port` has TCP as transport protocol.
@@ -3569,10 +3504,8 @@ function lookup_location%(a: addr%) : geo_location
 #ifdef HAVE_GEOIP_COUNTRY_EDITION_V6
 	if ( geoip_v6 && a->AsAddr().GetFamily() == IPAddr::IPv6 )
 		{
-		const uint32* bytes;
-		a->AsAddr().GetBytes(&bytes);
 		geoipv6_t ga;
-		memcpy(&ga, bytes, 16);
+		a->AsAddr().CopyIPv6(&ga);
 		if ( have_cityv6_db )
 			gir = GeoIP_record_by_ipnum_v6(geoip_v6, ga);
 		else
@@ -3666,10 +3599,8 @@ function lookup_asn%(a: addr%) : count
 #ifdef HAVE_GEOIP_COUNTRY_EDITION_V6
 		if ( a->AsAddr().GetFamily() == IPAddr::IPv6 )
 			{
-			const uint32* bytes;
-			a->AsAddr().GetBytes(&bytes);
 			geoipv6_t ga;
-			memcpy(&ga, bytes, 16);
+			a->AsAddr().CopyIPv6(&ga);
 			gir = GeoIP_name_by_ipnum_v6(geoip_asn, ga);
 			}
 		else

@@ -1,4 +1,10 @@
 
+2.0-108 | 2012-02-24 15:21:07 -0800
+
+  * Refactoring a number of usages of new IPAddr class. (Jon Siwek)
+
+  * Fixed a bug in remask_addr bif. (Jon Siwek)
+
 2.0-106 | 2012-02-24 15:02:20 -0800
 
   * Raise minimum required CMake version to 2.6.3. (Jon Siwek)

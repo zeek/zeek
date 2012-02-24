@@ -1,4 +1,14 @@
 
+2.0-104 | 2012-02-24 14:59:12 -0800
+
+  * Add test case for FTP over IPv4. (Daniel Thayer)
+
+  * Fix IPv6 URLs in ftp.log. (Daniel Thayer)
+
+  * Add a test for FTP over IPv6 (Daniel Thayer)
+
+  * Fix parsing of FTP EPRT command and EPSV response. (Daniel Thayer)
+
 2.0-95 | 2012-02-22 05:27:34 -0800
 
   * GeoIP installation documentation update. (Seth Hall)

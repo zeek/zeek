@@ -440,7 +440,7 @@ Connection* ConnCompressor::NextFromOrig(PendingConn* pending, double t,
 
 		else if ( tp->th_flags & TH_SYN )
 			{
-			if ( ! tp->th_flags & TH_ACK )
+			if ( ! (tp->th_flags & TH_ACK) )
 				{
 				Weird(pending, t, "SYN_after_partial");
 				pending->SYN = 1;

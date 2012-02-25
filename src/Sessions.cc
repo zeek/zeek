@@ -135,12 +135,12 @@ NetSessions::~NetSessions()
 	delete SYN_OS_Fingerprinter;
 	delete pkt_profiler;
 	Unref(arp_analyzer);
+	delete discarder;
+	delete stp_manager;
 	}
 
 void NetSessions::Done()
 	{
-	delete stp_manager;
-	delete discarder;
 	}
 
 namespace	// private namespace

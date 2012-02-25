@@ -1,4 +1,20 @@
 
+2.0-121 | 2012-02-24 16:34:17 -0800
+
+  * A number of smaller memory fixes and code cleanups. (Julien
+    Sentier)
+
+  * Add to_subnet bif. Fixes #782). (Jon Siwek)
+
+  * Fix IPAddr::Mask/ReverseMask not allowing argument of 0. (Jon
+    Siwek)
+
+  * Refactor IPAddr v4 initialization from string. Fixes #775. (Jon Siwek)
+
+  * Parse the dotted address string directly instead of canonicalizing
+    and passing to inet_pton. (Jon Siwek)
+
+
 2.0-108 | 2012-02-24 15:21:07 -0800
 
   * Refactoring a number of usages of new IPAddr class. (Jon Siwek)

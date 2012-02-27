@@ -6,7 +6,6 @@
 #include "Stats.h"
 #include "Scope.h"
 #include "cq.h"
-#include "ConnCompressor.h"
 #include "DNS_Mgr.h"
 #include "Trigger.h"
 
@@ -127,19 +126,6 @@ void ProfileLogger::Log()
 		expensive ? (conn_mem_use / double(sessions->CurrentConnections())) : 0,
 		expensive ? sessions->MemoryAllocation() / 1024 : 0,
 		expensive ? sessions->ConnectionMemoryUsageConnVals() / 1024 : 0
-		));
-
-	const ConnCompressor::Sizes& cs = conn_compressor->Size();
-
-	file->Write(fmt("%.6f ConnCompressor: pending=%d pending_in_mem=%d full_conns=%d pending+real=%d mem=%dK avg=%.1f/%.1f\n",
-		network_time,
-		cs.pending_valid,
-		cs.pending_in_mem,
-		cs.connections,
-		cs.hash_table_size,
-		cs.memory / 1024,
-		cs.memory / double(cs.pending_valid),
-		cs.memory / double(cs.pending_in_mem)
 		));
 
 	SessionStats s;

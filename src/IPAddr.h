@@ -8,7 +8,11 @@
 #include <string>
 
 #include "BroString.h"
+#include "Hash.h"
 #include "util.h"
+
+struct ConnID;
+class ExpectedConn;
 
 typedef in_addr in4_addr;
 
@@ -190,6 +194,37 @@ public:
 		}
 
 	/**
+	 * Retrieves a copy of the IPv6 raw byte representation of the address.
+	 * @see CopyIPv6(uint32_t)
+	 */
+	void CopyIPv6(in6_addr* arg_in6) const
+		{
+		memcpy(arg_in6->s6_addr, in6.s6_addr, sizeof(in6.s6_addr));
+		}
+
+	/**
+	 * Retrieves a copy of the IPv4 raw byte representation of the address.
+	 * The caller should verify the address is of the IPv4 family type
+	 * beforehand.  @see GetFamily().
+	 *
+	 * @param in4 The pointer to a memory location in which the raw bytes
+	 * of the address are to be copied in network byte-order.
+	 */
+	void CopyIPv4(in4_addr* in4) const
+		{
+		memcpy(&in4->s_addr, &in6.s6_addr[12], sizeof(in4->s_addr));
+		}
+
+	/**
+	 * Returns a key that can be used to lookup the IP Address in a hash
+	 * table. Passes ownership to caller.
+	 */
+	HashKey* GetHashKey() const
+		{
+		return new HashKey((void*)in6.s6_addr, sizeof(in6.s6_addr));
+		}
+
+	/**
 	 * Masks out lower bits of the address.
 	 *
 	 * @param top_bits_to_keep The number of bits \a not to mask out,
@@ -224,6 +259,19 @@ public:
 		}
 
 	/**
+	 * Bitwise OR operator returns the IP address resulting from the bitwise
+	 * OR operation on the raw bytes of this address with another.
+	 */
+	IPAddr operator|(const IPAddr& other)
+		{
+		in6_addr result;
+		for ( int i = 0; i < 16; ++i )
+			result.s6_addr[i] = this->in6.s6_addr[i] | other.in6.s6_addr[i];
+
+		return IPAddr(result);
+		}
+
+	/**
 	 * Returns a string representation of the address. IPv4 addresses
 	 * will be returned in dotted representation, IPv6 addresses in
 	 * compressed hex.
@@ -231,10 +279,21 @@ public:
 	string AsString() const;
 
 	/**
+	 * Returns a host-order, plain hex string representation of the address.
+	 */
+	string AsHexString() const;
+
+	/**
 	 * Returns a string representation of the address. This returns the
 	 * same as AsString().
 	 */
 	operator std::string() const { return AsString(); }
+
+	/**
+	 * Returns a reverse pointer name associated with the IP address.
+	 * For example, 192.168.0.1's reverse pointer is 1.0.168.192.in-addr.arpa.
+	 */
+	string PtrName() const;
 
 	/**
 	 * Comparison operator for IP address.
@@ -258,6 +317,11 @@ public:
 		{
 		return memcmp(&addr1.in6, &addr2.in6, sizeof(in6_addr)) < 0;
 		}
+
+	friend HashKey* BuildConnIDHashKey(const ConnID& id);
+	friend HashKey* BuildExpectedConnHashKey(const ExpectedConn& c);
+
+	friend class IPPrefix;
 
 	unsigned int MemoryAllocation() const { return padded_sizeof(*this); }
 
@@ -319,6 +383,16 @@ inline bool IPAddr::IsLoopback() const
 			&& (in6.s6_addr[12] == 0) && (in6.s6_addr[13] == 0)
 			&& (in6.s6_addr[14] == 0) && (in6.s6_addr[15] == 1));
 	}
+
+/**
+  * Returns a hash key for a given ConnID. Passes ownership to caller.
+  */
+HashKey* BuildConnIDHashKey(const ConnID& id);
+
+/**
+  * Returns a hash key for a given ExpectedConn instance. Passes ownership to caller.
+  */
+HashKey* BuildExpectedConnHashKey(const ExpectedConn& c);
 
 /**
  * Class storing both IPv4 and IPv6 prefixes
@@ -424,6 +498,23 @@ public:
 	string AsString() const;
 
 	operator std::string() const	{ return AsString(); }
+
+	/**
+	 * Returns a key that can be used to lookup the IP Prefix in a hash
+	 * table. Passes ownership to caller.
+	 */
+	HashKey* GetHashKey() const
+		{
+		struct {
+			in6_addr ip;
+			uint32 len;
+		} key;
+
+		key.ip = prefix.in6;
+		key.len = Length();
+
+		return new HashKey(&key, sizeof(key));
+		}
 
 	unsigned int MemoryAllocation() const { return padded_sizeof(*this); }
 

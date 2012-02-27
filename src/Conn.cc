@@ -14,32 +14,6 @@
 #include "PIA.h"
 #include "binpac.h"
 
-HashKey* ConnID::BuildConnKey() const
-	{
-	Key key;
-
-	// Lookup up connection based on canonical ordering, which is
-	// the smaller of <src addr, src port> and <dst addr, dst port>
-	// followed by the other.
-	if ( is_one_way ||
-	     addr_port_canon_lt(src_addr, src_port, dst_addr, dst_port) )
-		{
-		src_addr.CopyIPv6(key.ip1);
-		dst_addr.CopyIPv6(key.ip2);
-		key.port1 = src_port;
-		key.port2 = dst_port;
-		}
-	else
-		{
-		dst_addr.CopyIPv6(key.ip1);
-		src_addr.CopyIPv6(key.ip2);
-		key.port1 = dst_port;
-		key.port2 = src_port;
-		}
-
-	return new HashKey(&key, sizeof(key));
-	}
-
 void ConnectionTimer::Init(Connection* arg_conn, timer_func arg_timer,
 				int arg_do_expire)
 	{
@@ -842,7 +816,7 @@ bool Connection::DoUnserialize(UnserialInfo* info)
 	id.src_port = orig_port;
 	id.dst_port = resp_port;
 	id.is_one_way = 0;	// ### incorrect for ICMP
-	key = id.BuildConnKey();
+	key = BuildConnIDHashKey(id);
 
 	int len;
 	if ( ! UNSERIALIZE(&len) )

@@ -179,38 +179,8 @@ static void do_fmt(const char*& fmt, Val* v, ODesc* d)
 			// This makes only a very slight difference, so not
 			// clear it would e worth the hassle.
 
-			const IPAddr& u = v->AsAddr();
-			const uint32* net_order_u;
-			int len = u.GetBytes(&net_order_u);
-
-			if ( len == 4 )
-				{
-				// We explicitly convert the address to host order
-				// in a copy, because if we just call ntohl() for
-				// our invocation on snprintf() below, on some systems
-				// it turns a 32-bit value (Linux), whereas on
-				// others it returns a long (FreeBSD); the latter
-				// gets us in trouble if we have longs > 32 bits,
-				// because then the format specifier needs to be %lx
-				// rather than %x ....... what a pain!
-				//
-				// Also note that we don't change u in-place because
-				// that would alter the byte order of the underlying
-				// value.
-				uint32 host_order_u[4];
-				host_order_u[0] = ntohl(net_order_u[0]);
-				host_order_u[1] = ntohl(net_order_u[1]);
-				host_order_u[2] = ntohl(net_order_u[2]);
-				host_order_u[3] = ntohl(net_order_u[3]);
-
-				snprintf(out_buf, sizeof(out_buf), "%08x%08x%08x%08x",
-						host_order_u[0], host_order_u[1],
-						host_order_u[2], host_order_u[3]);
-				}
-			else
-				{
-				snprintf(out_buf, sizeof(out_buf), "%08x", ntohl(net_order_u[0]));
-				}
+			snprintf(out_buf, sizeof(out_buf), "%s",
+			         v->AsAddr().AsHexString().c_str());
 			}
 
 		else if ( ! check_fmt_type(t, ok_d_fmt) )
@@ -2135,7 +2105,7 @@ function counts_to_addr%(v: index_vec%): addr
 ##
 ## Returns: The :bro:type:`string` *str* as :bro:type:`int`.
 ##
-## .. bro:see:: to_addr to_port
+## .. bro:see:: to_addr to_port to_subnet
 function to_int%(str: string%): int
 	%{
 	const char* s = str->CheckString();
@@ -2192,7 +2162,7 @@ function double_to_count%(d: double%): count
 ## Returns: The :bro:type:`string` *str* as unsigned integer or if in invalid
 ##          format.
 ##
-## .. bro:see:: to_addr to_int to_port
+## .. bro:see:: to_addr to_int to_port to_subnet
 function to_count%(str: string%): count
 	%{
 	const char* s = str->CheckString();
@@ -2287,13 +2257,32 @@ function count_to_port%(num: count, proto: transport_proto%): port
 ##
 ## ip: The :bro:type:`string` to convert.
 ##
-## Returns: The :bro:type:`string` *ip* as :bro:type:`addr`.
+## Returns: The :bro:type:`string` *ip* as :bro:type:`addr` or the unspecified
+##          address ``::`` if the input string does not parse correctly.
 ##
 ## .. bro:see:: to_count to_int to_port count_to_v4_addr raw_bytes_to_v4_addr
+##    to_subnet
 function to_addr%(ip: string%): addr
 	%{
 	char* s = ip->AsString()->Render();
 	Val* ret = new AddrVal(s);
+	delete [] s;
+	return ret;
+	%}
+
+## Converts a :bro:type:`string` to a :bro:type:`subnet`.
+##
+## sn: The subnet to convert.
+##
+## Returns: The *sn* string as a :bro:type:`subnet` or the unspecified subnet
+##          ``::/0`` if the input string does not parse correctly.
+##
+## .. bro:see:: to_count to_int to_port count_to_v4_addr raw_bytes_to_v4_addr
+##    to_addr
+function to_subnet%(sn: string%): subnet
+	%{
+	char* s = sn->AsString()->Render();
+	Val* ret = new SubNetVal(s);
 	delete [] s;
 	return ret;
 	%}
@@ -2304,7 +2293,7 @@ function to_addr%(ip: string%): addr
 ##
 ## Returns: The :bro:type:`count` *ip* as :bro:type:`addr`.
 ##
-## .. bro:see:: raw_bytes_to_v4_addr to_addr
+## .. bro:see:: raw_bytes_to_v4_addr to_addr to_subnet
 function count_to_v4_addr%(ip: count%): addr
 	%{
 	if ( ip > 4294967295LU )
@@ -2324,7 +2313,7 @@ function count_to_v4_addr%(ip: count%): addr
 ##
 ## Returns: The byte :bro:type:`string` *ip* as :bro:type:`addr`.
 ##
-## .. bro:see:: raw_bytes_to_v4_addr to_addr
+## .. bro:see:: raw_bytes_to_v4_addr to_addr to_subnet
 function raw_bytes_to_v4_addr%(b: string%): addr
 	%{
 	uint32 a = 0;
@@ -2347,7 +2336,7 @@ function raw_bytes_to_v4_addr%(b: string%): addr
 ##
 ## Returns: A :bro:type:`port` converted from *s*.
 ##
-## .. bro:see:: to_addr to_count to_int
+## .. bro:see:: to_addr to_count to_int to_subnet
 function to_port%(s: string%): port
     %{
     int port = 0;
@@ -2445,35 +2434,7 @@ function ptr_name_to_addr%(s: string%): addr
 ## .. bro:see:: ptr_name_to_addr parse_dotted_addr
 function addr_to_ptr_name%(a: addr%): string
 	%{
-	const uint32* addr;
-	int len = a->AsAddr().GetBytes(&addr);
-
-	if ( len == 1 )
-		{
-		char buf[256];
-		uint32 a = ntohl(addr[0]);
-		uint32 a3 = (a >> 24) & 0xff;
-		uint32 a2 = (a >> 16) & 0xff;
-		uint32 a1 = (a >> 8) & 0xff;
-		uint32 a0 = a & 0xff;
-		sprintf(buf, "%u.%u.%u.%u.in-addr.arpa", a0, a1, a2, a3);
-		return new StringVal(buf);
-		}
-	else
-		{
-		static const char hex_digit[] = "0123456789abcdef";
-		string ptr_name("ip6.arpa");
-		for ( unsigned int i = 0; i < 4; ++i )
-			{
-			uint32 a = ntohl(addr[i]);
-			for ( unsigned int j = 1; j <=8; ++j )
-				{
-				ptr_name.insert(0, 1, '.');
-				ptr_name.insert(0, 1, hex_digit[(a >> (32-j*4)) & 0x0f]);
-				}
-			}
-		return new StringVal(ptr_name.c_str());
-		}
+	return new StringVal(a->AsAddr().PtrName().c_str());
 	%}
 
 # Transforms n0.n1.n2.n3 -> addr.
@@ -2541,7 +2502,7 @@ static Val* parse_eftp(const char* line)
 	RecordVal* r = new RecordVal(ftp_port);
 
 	int net_proto = 0;	// currently not used
-	uint32 addr = 0;
+	IPAddr addr;	// unspecified IPv6 address (all 128 bits zero)
 	int port = 0;
 	int good = 0;
 
@@ -2551,33 +2512,51 @@ static Val* parse_eftp(const char* line)
 			++line;
 
 		char delimiter = *line;
-		good = 1;
 		char* next_delim;
 
-		++line;	// cut off delimiter
-		net_proto = strtol(line, &next_delim, 10);	// currently ignored
-		if ( *next_delim != delimiter )
-			good = 0;
-
-		line = next_delim + 1;
-		if ( *line != delimiter )	// default of 0 is ok
+		if ( *line )
 			{
-			string s(line);
-			IPAddr tmp(s);
-			const uint32* bytes;
-			tmp.GetBytes(&bytes);
-			addr = *bytes;
-			if ( addr == 0 )
+			good = 1;
+			++line;	// skip delimiter
+
+			net_proto = strtol(line, &next_delim, 10);
+			if ( *next_delim != delimiter )
 				good = 0;
+
+			line = next_delim;
+			if ( *line )
+				++line;
+
+			if ( *line && *line != delimiter )
+				{
+				const char* nptr = strchr(line, delimiter);
+				if ( nptr == NULL )
+					{
+					nptr = line + strlen(line);
+					good = 0;
+					}
+
+				string s(line, nptr-line); // extract IP address
+				IPAddr tmp(s);
+				// on error, "tmp" will have all 128 bits zero
+				if ( tmp == addr )
+					good = 0;
+
+				addr = tmp;
+				}
+
+			line = strchr(line, delimiter);
+
+			if ( line != NULL )
+				{
+				++line;	// now the port
+				port = strtol(line, &next_delim, 10);
+				if ( *next_delim != delimiter )
+					good = 0;
+				}
+
 			}
 
-		// FIXME: check for garbage between IP and delimiter.
-		line = strchr(line, delimiter);
-
-		++line;	// now the port
-		port = strtol(line, &next_delim, 10);
-		if ( *next_delim != delimiter )
-			good = 0;
 		}
 
 	r->Assign(0, new AddrVal(addr));
@@ -2605,7 +2584,7 @@ function parse_ftp_port%(s: string%): ftp_port
 ## The format is ``EPRT<space><d><net-prt><d><net-addr><d><tcp-port><d>``,
 ## where ``<d>`` is a delimiter in the ASCII range 33-126 (usually ``|``).
 ##
-## s: The string of the FTP PORT command, e.g., ``"10,0,0,1,4,31"``.
+## s: The string of the FTP EPRT command, e.g., ``"|1|10.0.0.1|1055|"``.
 ##
 ## Returns: The FTP PORT, e.g., ``[h=10.0.0.1, p=1055/tcp, valid=T]``
 ##
@@ -2645,7 +2624,7 @@ function parse_ftp_pasv%(str: string%): ftp_port
 ## The format is ``<text> (<d><d><d><tcp-port><d>)``, where ``<d>`` is a
 ## delimiter in the ASCII range 33-126 (usually ``|``).
 ##
-## str: The string containing the result of the FTP PASV command.
+## str: The string containing the result of the FTP EPSV command.
 ##
 ## Returns: The FTP PORT, e.g., ``[h=10.0.0.1, p=1055/tcp, valid=T]``
 ##
@@ -3025,14 +3004,8 @@ function remask_addr%(a1: addr, a2: addr, top_bits_from_a1: count%): addr
 	IPAddr addr1(a1->AsAddr());
 	addr1.Mask(top_bits_from_a1);
 	IPAddr addr2(a2->AsAddr());
-	addr1.ReverseMask(top_bits_from_a1);
-	uint32 x1[4];
-	uint32 x2[4];
-	addr1.CopyIPv6(x1);
-	addr2.CopyIPv6(x2);
-	for ( unsigned int i = 0; i < 4; ++i )
-		x1[i] = x1[i] | x2[i];
-	return new AddrVal(x1);
+	addr2.ReverseMask(top_bits_from_a1);
+	return new AddrVal(addr1|addr2);
 	%}
 
 ## Checks whether a given :bro:type:`port` has TCP as transport protocol.
@@ -3551,10 +3524,8 @@ function lookup_location%(a: addr%) : geo_location
 #ifdef HAVE_GEOIP_COUNTRY_EDITION_V6
 	if ( geoip_v6 && a->AsAddr().GetFamily() == IPAddr::IPv6 )
 		{
-		const uint32* bytes;
-		a->AsAddr().GetBytes(&bytes);
 		geoipv6_t ga;
-		memcpy(&ga, bytes, 16);
+		a->AsAddr().CopyIPv6(&ga);
 		if ( have_cityv6_db )
 			gir = GeoIP_record_by_ipnum_v6(geoip_v6, ga);
 		else
@@ -3648,10 +3619,8 @@ function lookup_asn%(a: addr%) : count
 #ifdef HAVE_GEOIP_COUNTRY_EDITION_V6
 		if ( a->AsAddr().GetFamily() == IPAddr::IPv6 )
 			{
-			const uint32* bytes;
-			a->AsAddr().GetBytes(&bytes);
 			geoipv6_t ga;
-			memcpy(&ga, bytes, 16);
+			a->AsAddr().CopyIPv6(&ga);
 			gir = GeoIP_name_by_ipnum_v6(geoip_asn, ga);
 			}
 		else

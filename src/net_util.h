@@ -60,6 +60,7 @@ inline int seq_delta(uint32 a, uint32 b)
 
 // Returns the ones-complement checksum of a chunk of b short-aligned bytes.
 extern int ones_complement_checksum(const void* p, int b, uint32 sum);
+extern int ones_complement_checksum(const IPAddr& a, uint32 sum);
 
 extern int tcp_checksum(const struct ip* ip, const struct tcphdr* tp, int len);
 extern int udp_checksum(const struct ip* ip, const struct udphdr* up, int len);

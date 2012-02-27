@@ -73,6 +73,9 @@ RuleHdrTest::RuleHdrTest(RuleHdrTest& h)
 			copied_set->ids = orig_set->ids;
 			loop_over_list(orig_set->patterns, l)
 				copied_set->patterns.append(copy_string(orig_set->patterns[l]));
+			delete copied_set;
+			// TODO: Why do we create copied_set only to then
+			// never use it?
 			}
 		}
 
@@ -1116,7 +1119,12 @@ void id_to_maskedvallist(const char* id, maskedvalue_list* append_to)
 		val_list* vals = v->AsTableVal()->ConvertToPureList()->Vals();
 		loop_over_list(*vals, i )
 			if ( ! val_to_maskedval((*vals)[i], append_to) )
+			{
+				delete_vals(vals);
 				return;
+			}
+
+		delete_vals(vals);
 		}
 
 	else

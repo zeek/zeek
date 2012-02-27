@@ -1,4 +1,52 @@
 
+2.0-121 | 2012-02-24 16:34:17 -0800
+
+  * A number of smaller memory fixes and code cleanups. (Julien
+    Sentier)
+
+  * Add to_subnet bif. Fixes #782). (Jon Siwek)
+
+  * Fix IPAddr::Mask/ReverseMask not allowing argument of 0. (Jon
+    Siwek)
+
+  * Refactor IPAddr v4 initialization from string. Fixes #775. (Jon Siwek)
+
+  * Parse the dotted address string directly instead of canonicalizing
+    and passing to inet_pton. (Jon Siwek)
+
+
+2.0-108 | 2012-02-24 15:21:07 -0800
+
+  * Refactoring a number of usages of new IPAddr class. (Jon Siwek)
+
+  * Fixed a bug in remask_addr bif. (Jon Siwek)
+
+2.0-106 | 2012-02-24 15:02:20 -0800
+
+  * Raise minimum required CMake version to 2.6.3. (Jon Siwek)
+
+2.0-104 | 2012-02-24 14:59:12 -0800
+
+  * Add test case for FTP over IPv4. (Daniel Thayer)
+
+  * Fix IPv6 URLs in ftp.log. (Daniel Thayer)
+
+  * Add a test for FTP over IPv6 (Daniel Thayer)
+
+  * Fix parsing of FTP EPRT command and EPSV response. (Daniel Thayer)
+
+2.0-95 | 2012-02-22 05:27:34 -0800
+
+  * GeoIP installation documentation update. (Seth Hall)
+
+  * Decrease strictness of parsing IPv4 strings into addrs. Fixes #775. (Jon Siwek)
+
+  * Fix memory leak in DNS manager. Fixes #777. (Jon Siwek)
+    
+  * Fix IPAddr/IPPrefix serialization bugs. (Jon Siwek)
+    
+  * Fix compile error. (Jon Siwek)
+
 2.0-86 | 2012-02-17 15:41:06 -0800
 
   * Changing ARP detection to always kick in even if no analyzer is

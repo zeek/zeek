@@ -2664,8 +2664,6 @@ void AssignExpr::EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const
 		Error("bad table insertion");
 
 	TableVal* tv = aggr->AsTableVal();
-	const TableType* tt = tv->Type()->AsTableType();
-	const BroType* yt = tv->Type()->YieldType();
 
 	Val* index = op1->Eval(f);
 	Val* v = op2->Eval(f);
@@ -4910,6 +4908,7 @@ Val* ListExpr::Eval(Frame* f) const
 		if ( ! ev )
 			{
 			Error("uninitialized list value");
+			Unref(v);
 			return 0;
 			}
 

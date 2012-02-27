@@ -65,15 +65,14 @@ OSFingerprint::OSFingerprint(FingerprintMode arg_mode)
 
 bool OSFingerprint::CacheMatch(const IPAddr& addr, int id)
   {
-  uint32 bytes[4];
-  addr.CopyIPv6(bytes);
-  HashKey key = HashKey(bytes, 4);
+  HashKey* key = addr.GetHashKey();
   int* pid = new int;
   *pid=id;
-  int* prev = os_matches.Insert(&key, pid);
+  int* prev = os_matches.Insert(key, pid);
   bool ret = (prev ? *prev != id : 1);
   if (prev)
     delete prev;
+  delete key;
   return ret;
   }
 

@@ -90,7 +90,12 @@ public:
 		unsigned int ACK:1;
 
 		double time;
-		ConnID::Key key;
+		struct Key {
+			uint32 ip1[4];
+			uint32 ip2[4];
+			uint16 port1;
+			uint16 port2;
+		} key;
 		uint32 seq;
 		uint32 ack;
 		hash_t hash;

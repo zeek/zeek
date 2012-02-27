@@ -135,12 +135,12 @@ NetSessions::~NetSessions()
 	delete SYN_OS_Fingerprinter;
 	delete pkt_profiler;
 	Unref(arp_analyzer);
+	delete discarder;
+	delete stp_manager;
 	}
 
 void NetSessions::Done()
 	{
-	delete stp_manager;
-	delete discarder;
 	}
 
 namespace	// private namespace
@@ -575,7 +575,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		return;
 	}
 
-	HashKey* h = id.BuildConnKey();
+	HashKey* h = BuildConnIDHashKey(id);
 	if ( ! h )
 		reporter->InternalError("hash computation failed");
 
@@ -869,7 +869,7 @@ Connection* NetSessions::FindConnection(Val* v)
 
 	id.is_one_way = 0;	// ### incorrect for ICMP connections
 
-	HashKey* h = id.BuildConnKey();
+	HashKey* h = BuildConnIDHashKey(id);
 	if ( ! h )
 		reporter->InternalError("hash computation failed");
 

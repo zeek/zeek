@@ -29,7 +29,6 @@ struct nb_dns_result;
 declare(PDict,ListVal);
 
 class DNS_Mapping;
-declare(PDict,DNS_Mapping);
 
 enum DNS_MgrMode {
 	DNS_PRIME,	// used to prime the cache
@@ -106,8 +105,9 @@ protected:
 	void DumpAddrList(FILE* f, ListVal* al);
 
 	typedef map<string, pair<DNS_Mapping*, DNS_Mapping*> > HostMap;
+	typedef map<IPAddr, DNS_Mapping*> AddrMap;
 	void LoadCache(FILE* f);
-	void Save(FILE* f, PDict(DNS_Mapping)& m);
+	void Save(FILE* f, const AddrMap& m);
 	void Save(FILE* f, const HostMap& m);
 
 	// Selects on the fd to see if there is an answer available (timeout
@@ -137,7 +137,7 @@ protected:
 	PDict(ListVal) services;
 
 	HostMap host_mappings;
-	PDict(DNS_Mapping) addr_mappings;
+	AddrMap addr_mappings;
 
 	DNS_mgr_request_list requests;
 

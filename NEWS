@@ -9,6 +9,10 @@ release. For a complete list of changes, see the ``CHANGES`` file.
 Bro 2.1
 -------
 
+- Dependencies:
+
+    * Bro now requires CMake >= 2.6.3.
+
 - Bro now supports IPv6 out of the box; the configure switch
   --enable-brov6 is gone.
 

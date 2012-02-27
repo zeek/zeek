@@ -31,6 +31,13 @@ int ones_complement_checksum(const void* p, int b, uint32 sum)
 	return sum;
 	}
 
+int ones_complement_checksum(const IPAddr& a, uint32 sum)
+	{
+	const uint32* bytes;
+	int len = a.GetBytes(&bytes);
+	return ones_complement_checksum(bytes, len*4, sum);
+	}
+
 int tcp_checksum(const struct ip* ip, const struct tcphdr* tp, int len)
 	{
 	// ### Note, this is only correct for IPv4.  This routine is only

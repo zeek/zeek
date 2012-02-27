@@ -990,7 +990,6 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 		Conn()->SetLastTime(t);
 
 	const IPAddr orig_addr = Conn()->OrigAddr();
-	const IPAddr resp_addr = Conn()->RespAddr();
 
 	uint32 tcp_hdr_len = data - (const u_char*) tp;
 

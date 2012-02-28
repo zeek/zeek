@@ -172,9 +172,6 @@ protected:
 	bool FinishedRotation(WriterFrontend* writer, string new_name, string old_name,
 			      double open, double close, bool terminating);
 
-	// Reports an error for the given writer.
-	void Error(WriterFrontend* writer, const char* msg);
-
 	// Deletes the values as passed into Write().
 	void DeleteVals(int num_fields, threading::Value** vals);
 

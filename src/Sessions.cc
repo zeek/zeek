@@ -275,13 +275,13 @@ void NetSessions::NextPacket(double t, const struct pcap_pkthdr* hdr,
 		const struct ip* ip = (const struct ip*) (pkt + hdr_size);
 		if ( ip->ip_v == 4 )
 			{
-			IP_Hdr ip_hdr(ip);
+			IP_Hdr ip_hdr(ip, false);
 			DoNextPacket(t, hdr, &ip_hdr, pkt, hdr_size);
 			}
 
 		else if ( ip->ip_v == 6 )
 			{
-			IP_Hdr ip_hdr((const struct ip6_hdr*) (pkt + hdr_size));
+			IP_Hdr ip_hdr((const struct ip6_hdr*) (pkt + hdr_size), false);
 			DoNextPacket(t, hdr, &ip_hdr, pkt, hdr_size);
 			}
 

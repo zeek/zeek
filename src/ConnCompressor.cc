@@ -641,7 +641,7 @@ const IP_Hdr* ConnCompressor::PendingConnToPacket(const PendingConn* c)
 		int packet_length = sizeof(*ip) + sizeof(*tp);
 		ip = (struct ip*) new char[packet_length];
 		tp = (struct tcphdr*) (((char*) ip) + sizeof(*ip));
-		ip_hdr = new IP_Hdr(ip);
+		ip_hdr = new IP_Hdr(ip, true);
 
 		// Constant fields.
 		ip->ip_v = 4;

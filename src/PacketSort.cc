@@ -27,9 +27,9 @@ PacketSortElement::PacketSortElement(PktSrc* arg_src,
 		{
 		const struct ip* ip = (const struct ip*) (pkt + hdr_size);
 		if ( ip->ip_v == 4 )
-			ip_hdr = new IP_Hdr(ip);
+			ip_hdr = new IP_Hdr(ip, false);
 		else
-			ip_hdr = new IP_Hdr((const struct ip6_hdr*) ip);
+			ip_hdr = new IP_Hdr((const struct ip6_hdr*) ip, false);
 
 		if ( ip_hdr->NextProto() == IPPROTO_TCP &&
 		      // Note: can't sort fragmented packets

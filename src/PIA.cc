@@ -196,7 +196,7 @@ void PIA_TCP::FirstPacket(bool is_orig, const IP_Hdr* ip)
 			ip4->ip_p = IPPROTO_TCP;
 
 			// Cast to const so that it doesn't delete it.
-			ip4_hdr = new IP_Hdr((const struct ip*) ip4);
+			ip4_hdr = new IP_Hdr(ip4, false);
 			}
 
 		if ( is_orig )

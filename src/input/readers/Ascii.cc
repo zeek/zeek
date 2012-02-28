@@ -6,7 +6,7 @@
 #include <fstream>
 #include <sstream>
 
-#include "../../threading/SerializationTypes.h"
+#include "../../threading/SerialTypes.h"
 
 #define MANUAL 0
 #define REREAD 1
@@ -310,51 +310,17 @@ Value* Ascii::EntryToVal(string s, FieldMapping field) {
 
 	case TYPE_SUBNET: {
 		int pos = s.find("/");
-		string width = s.substr(pos+1);
-		val->val.subnet_val.width = atoi(width.c_str());
+		int width = atoi(s.substr(pos+1).c_str());
 		string addr = s.substr(0, pos);
-		s = addr;
-#ifdef BROv6
-		if ( s.find(':') != s.npos ) {
-			uint32* addr = new uint32[4];
-			if ( inet_pton(AF_INET6, s.c_str(), addr) <= 0 ) {
-				Error(Fmt("Bad IPv6 address: %s", s.c_str()));
-				val->val.subnet_val.net[0] = val->val.subnet_val.net[1] = val->val.subnet_val.net[2] = val->val.subnet_val.net[3] = 0;
-			}
-			copy_addr(val->val.subnet_val.net, addr);
-			delete addr;
-		} else {
-			val->val.subnet_val.net[0] = val->val.subnet_val.net[1] = val->val.subnet_val.net[2] = 0;
-			if ( inet_aton(s.c_str(), &(val->val.subnet_val.net[3])) <= 0 ) {
-				Error(Fmt("Bad addres: %s", s.c_str()));
-		       		val->val.subnet_val.net[3] = 0;
-			}
-		}
-#else
-		if ( inet_aton(s.c_str(), (in_addr*) &(val->val.subnet_val.net)) <= 0 ) {
-			Error(Fmt("Bad addres: %s", s.c_str()));
-			val->val.subnet_val.net = 0;
-		}
-#endif
+
+		IPAddr a(addr);
+		val->val.subnet_val = new IPPrefix(a, width);
+
 		break;
 
 		}
 	case TYPE_ADDR: {
-		// NOTE: dottet_to_addr BREAKS THREAD SAFETY! it uses reporter.
-		// Solve this some other time....
-#ifdef BROv6
-		if ( s.find(':') != s.npos ) {
-			uint32* addr = dotted_to_addr6(s.c_str());
-			copy_addr(val->val.addr_val, addr);
-			delete addr;
-		} else {
-			val->val.addr_val[0] = val->val.addr_val[1] = val->val.addr_val[2] = 0;
-		       	val->val.addr_val[3] = dotted_to_addr(s.c_str());
-		}
-#else
-		uint32 t = dotted_to_addr(s.c_str());
-		copy_addr(&t, val->val.addr_val);
-#endif
+		val->val.addr_val = new IPAddr(s);
 		break;
 		}
 

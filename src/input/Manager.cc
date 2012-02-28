@@ -16,7 +16,7 @@
 
 #include "CompHash.h"
 
-#include "../threading/SerializationTypes.h"
+#include "../threading/SerialTypes.h"
 
 using namespace input;
 using threading::Value;
@@ -1427,12 +1427,35 @@ int Manager::GetValueLength(const Value* val) {
 		}
 
 	case TYPE_ADDR:
-		length += NUM_ADDR_WORDS*sizeof(uint32_t);
+		{
+			switch ( val->val.addr_val->GetFamily() ) {
+			case IPAddr::IPv4:
+				length += 1*sizeof(uint32_t);
+				break;
+			case IPAddr::IPv6:
+				length += 4*sizeof(uint32_t);
+				break;
+			default:
+				assert(false);
+			}
+
+		}
 		break;
 
 	case TYPE_SUBNET:
-		length += sizeof(val->val.subnet_val.width);
-		length += sizeof(val->val.subnet_val.net);
+		{
+			switch ( val->val.addr_val->GetFamily() ) {
+			case IPAddr::IPv4:
+				length += 1*sizeof(uint32_t)+sizeof(uint8_t);
+				break;
+			case IPAddr::IPv6:
+				length += 4*sizeof(uint32_t)+sizeof(uint8_t);
+				break;
+			default:
+				assert(false);
+			}
+
+		}
 		break;
 
 	case TYPE_TABLE: {
@@ -1503,17 +1526,22 @@ int Manager::CopyValue(char *data, const int startpos, const Value* val) {
 		}
 
 	case TYPE_ADDR:
-		memcpy(data+startpos, val->val.addr_val, NUM_ADDR_WORDS*sizeof(uint32_t));
-		return NUM_ADDR_WORDS*sizeof(uint32_t);
+		{
+		const uint32_t* bytes;
+		int len = val->val.addr_val->GetBytes(&bytes) * sizeof(uint32_t);
+		memcpy(data+startpos, (const char*) bytes, len);
+		return len;
 		break;
+		}
 
 	case TYPE_SUBNET: {
-		int length = 0;
-		memcpy(data+startpos,(const char*)  &(val->val.subnet_val.width), sizeof(val->val.subnet_val.width) );
-		length += sizeof(val->val.subnet_val.width);
-		memcpy(data+startpos+length, (const char*) &(val->val.subnet_val.net), sizeof(val->val.subnet_val.net) );
-		length += sizeof(val->val.subnet_val.net);		
-		return length;
+		const uint32_t* bytes;
+		int len = val->val.subnet_val->Prefix().GetBytes(&bytes) * sizeof(uint32_t);
+		memcpy(data+startpos, (const char*) bytes, len);
+		uint8_t prefixlen = val->val.subnet_val->Length();
+		memcpy(data+startpos+len, (const char*) &(prefixlen), sizeof(uint8_t) );
+		len += sizeof(uint8_t);		
+		return len;
 		break;
 		}
 
@@ -1620,11 +1648,11 @@ Val* Manager::ValueToVal(const Value* val, BroType* request_type) {
 		break;
 
 	case TYPE_ADDR:
-		return new AddrVal(val->val.addr_val);
+		return new AddrVal(*(val->val.addr_val));
 		break;
 
 	case TYPE_SUBNET:
-		return new SubNetVal(val->val.subnet_val.net, val->val.subnet_val.width);
+		return new SubNetVal(*(val->val.subnet_val));
 		break;
 
 	case TYPE_TABLE: {

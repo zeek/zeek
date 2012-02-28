@@ -143,7 +143,7 @@ RETSIGTYPE watchdog(int /* signo */)
 	return RETSIGVAL;
 	}
 
-void net_init(name_list& interfaces, name_list& readfiles, 
+void net_init(name_list& interfaces, name_list& readfiles,
 	      name_list& netflows, name_list& flowfiles,
 	        const char* writefile, const char* filter,
 			const char* secondary_filter, int do_watchdog)
@@ -248,12 +248,14 @@ void net_init(name_list& interfaces, name_list& readfiles,
 			FlowSocketSrc* fs = new FlowSocketSrc(netflows[i]);
 
 			if ( ! fs->IsOpen() )
+				{
 				reporter->Error("%s: problem with netflow socket %s - %s\n",
 					prog, netflows[i], fs->ErrorMsg());
-			else
-				{
-				io_sources.Register(fs);
+				delete fs;
 				}
+
+			else
+				io_sources.Register(fs);
 			}
 
 		}

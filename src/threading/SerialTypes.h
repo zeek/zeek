@@ -72,12 +72,12 @@ struct Value {
 		bro_int_t int_val;
 		bro_uint_t uint_val;
 		port_t port_val;
-		uint32 addr_val[NUM_ADDR_WORDS];
-		subnet_type subnet_val;
 		double double_val;
-		string* string_val;
 		set_t set_val;
 		vec_t vector_val;
+		IPAddr* addr_val;
+		IPPrefix* subnet_val;
+		string* string_val;
 	} val;
 
 	/**

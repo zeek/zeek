@@ -6,7 +6,7 @@
 #include <fstream>
 #include <sstream>
 
-#include "../../threading/SerializationTypes.h"
+#include "../../threading/SerialTypes.h"
 
 #define MANUAL 0
 #define REREAD 1

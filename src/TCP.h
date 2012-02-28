@@ -6,6 +6,7 @@
 #include "Analyzer.h"
 #include "TCP.h"
 #include "PacketDumper.h"
+#include "IPAddr.h"
 
 // We define two classes here:
 // - TCP_Analyzer is the analyzer for the TCP protocol itself.
@@ -128,7 +129,7 @@ protected:
 			uint32 tcp_hdr_len, int& seq_len,
 			TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 			uint32 base_seq, uint32 ack_seq,
-			const uint32* orig_addr,
+			const IPAddr& orig_addr,
 			int is_orig, TCP_Flags flags);
 
 	void ProcessFIN(double t, TCP_Endpoint* endpoint, int& seq_len,
@@ -144,7 +145,7 @@ protected:
 			uint32 tcp_hdr_len, int len, int& seq_len,
 			TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 			uint32 base_seq, uint32 ack_seq,
-			const uint32* orig_addr,
+			const IPAddr& orig_addr,
 			int is_orig, TCP_Flags flags);
 
 	void TransitionFromInactive(double t, TCP_Endpoint* endpoint,

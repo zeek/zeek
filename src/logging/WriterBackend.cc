@@ -1,10 +1,10 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "util.h"
+#include "threading/SerialTypes.h"
 
 #include "WriterBackend.h"
 #include "WriterFrontend.h"
-#include "../threading/SerializationTypes.h"
 
 // Messages sent from backend to frontend (i.e., "OutputMessages").
 

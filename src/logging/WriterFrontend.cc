@@ -1,9 +1,9 @@
 
 #include "Net.h"
+#include "threading/SerialTypes.h"
 
 #include "WriterFrontend.h"
 #include "WriterBackend.h"
-#include "../threading/SerializationTypes.h"
 
 using threading::Value;
 using threading::Field;

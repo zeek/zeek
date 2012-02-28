@@ -1,4 +1,3 @@
-# @TEST-REQUIRES: grep -vq '#define BROv6' $BUILD/config.h
 # @TEST-REQUIRES: test -e $BUILD/aux/broccoli/src/libbroccoli.so || test -e $BUILD/aux/broccoli/src/libbroccoli.dylib
 # @TEST-REQUIRES: test -e $BUILD/aux/broccoli/bindings/broccoli-python/_broccoli_intern.so
 #

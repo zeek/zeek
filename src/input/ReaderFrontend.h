@@ -4,7 +4,7 @@
 #define INPUT_READERFRONTEND_H
 
 #include "../threading/MsgThread.h"
-#include "../threading/SerializationTypes.h"
+#include "../threading/SerialTypes.h"
 
 namespace input {
 

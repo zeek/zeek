@@ -382,6 +382,7 @@ void PktSrc::AddSecondaryTablePrograms()
 			{
 			delete program;
 			Close();
+			return;
 			}
 
 		SecondaryProgram* sp = new SecondaryProgram(program, se);

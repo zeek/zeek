@@ -231,7 +231,7 @@ bool StateAccess::CheckOldSet(const char* op, ID* id, Val* index,
 
 bool StateAccess::MergeTables(TableVal* dst, Val* src)
 	{
-	if ( ! src->Type()->Tag() == TYPE_TABLE )
+	if ( src->Type()->Tag() != TYPE_TABLE )
 		{
 		reporter->Error("type mismatch while merging tables");
 		return false;

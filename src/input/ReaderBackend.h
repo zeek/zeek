@@ -4,7 +4,7 @@
 #define INPUT_READERBACKEND_H
 
 #include "BroString.h"
-#include "../threading/SerializationTypes.h"
+#include "../threading/SerialTypes.h"
 #include "threading/MsgThread.h"
 
 namespace input {

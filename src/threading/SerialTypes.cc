@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 
-#include "SerializationTypes.h"
+#include "SerialTypes.h"
 #include "../RemoteSerializer.h"
 
 
@@ -31,6 +31,12 @@ Value::~Value()
 	if ( (type == TYPE_ENUM || type == TYPE_STRING || type == TYPE_FILE || type == TYPE_FUNC)
 	     && present )
 		delete val.string_val;
+
+	if ( type == TYPE_ADDR && present )
+		delete val.addr_val;
+
+	if ( type == TYPE_SUBNET && present )
+		delete val.subnet_val;
 
 	if ( type == TYPE_TABLE && present )
 		{
@@ -149,41 +155,14 @@ bool Value::Read(SerializationFormat* fmt)
 
 	case TYPE_SUBNET:
 		{
-		uint32 net[4];
-		if ( ! (fmt->Read(&net[0], "net0") &&
-			fmt->Read(&net[1], "net1") &&
-			fmt->Read(&net[2], "net2") &&
-			fmt->Read(&net[3], "net3") &&
-			fmt->Read(&val.subnet_val.width, "width")) )
-			return false;
-
-#ifdef BROv6
-		val.subnet_val.net[0] = net[0];
-		val.subnet_val.net[1] = net[1];
-		val.subnet_val.net[2] = net[2];
-		val.subnet_val.net[3] = net[3];
-#else
-		val.subnet_val.net = net[0];
-#endif
-		return true;
+		val.subnet_val = new IPPrefix;
+		return fmt->Read(val.subnet_val, "subnet");
 		}
 
 	case TYPE_ADDR:
 		{
-		uint32 addr[4];
-		if ( ! (fmt->Read(&addr[0], "addr0") &&
-			fmt->Read(&addr[1], "addr1") &&
-			fmt->Read(&addr[2], "addr2") &&
-			fmt->Read(&addr[3], "addr3")) )
-			return false;
-
-		val.addr_val[0] = addr[0];
-#ifdef BROv6
-		val.addr_val[1] = addr[1];
-		val.addr_val[2] = addr[2];
-		val.addr_val[3] = addr[3];
-#endif
-		return true;
+		val.addr_val = new IPAddr;
+		return fmt->Read(val.addr_val, "addr");
 		}
 
 	case TYPE_DOUBLE:
@@ -265,40 +244,10 @@ bool Value::Write(SerializationFormat* fmt) const
 		return fmt->Write(val.port_val.port, "port") && fmt->Write(val.port_val.proto, "proto");	
 
 	case TYPE_SUBNET:
-		{
-		uint32 net[4];
-#ifdef BROv6
-		net[0] = val.subnet_val.net[0];
-		net[1] = val.subnet_val.net[1];
-		net[2] = val.subnet_val.net[2];
-		net[3] = val.subnet_val.net[3];
-#else
-		net[0] = val.subnet_val.net;
-		net[1] = net[2] = net[3] = 0;
-#endif
-		return fmt->Write(net[0], "net0") &&
-			fmt->Write(net[1], "net1") &&
-			fmt->Write(net[2], "net2") &&
-			fmt->Write(net[3], "net3") &&
-			fmt->Write(val.subnet_val.width, "width");
-		}
+		return fmt->Write(*val.subnet_val, "subnet");
 
 	case TYPE_ADDR:
-		{
-		uint32 addr[4];
-		addr[0] = val.addr_val[0];
-#ifdef BROv6
-		addr[1] = val.addr_val[1];
-		addr[2] = val.addr_val[2];
-		addr[3] = val.addr_val[3];
-#else
-		addr[1] = addr[2] = addr[3] = 0;
-#endif
-		return fmt->Write(addr[0], "addr0") &&
-			fmt->Write(addr[1], "addr1") &&
-			fmt->Write(addr[2], "addr2") &&
-			fmt->Write(addr[3], "addr3");
-		}
+		return fmt->Write(*val.addr_val, "addr");
 
 	case TYPE_DOUBLE:
 	case TYPE_TIME:

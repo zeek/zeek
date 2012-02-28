@@ -155,7 +155,7 @@ void Reporter::WeirdHelper(EventHandlerPtr event, Val* conn_val, const char* add
 	delete vl;
 	}
 
-void Reporter::WeirdFlowHelper(const uint32* orig, const uint32* resp, const char* fmt_name, ...)
+void Reporter::WeirdFlowHelper(const IPAddr& orig, const IPAddr& resp, const char* fmt_name, ...)
 	{
 	val_list* vl = new val_list(2);
 	vl->append(new AddrVal(orig));
@@ -184,7 +184,7 @@ void Reporter::Weird(Val* conn_val, const char* name, const char* addl)
 	WeirdHelper(conn_weird, conn_val, addl, "%s", name);
 	}
 
-void Reporter::Weird(const uint32* orig, const uint32* resp, const char* name)
+void Reporter::Weird(const IPAddr& orig, const IPAddr& resp, const char* name)
 	{
 	WeirdFlowHelper(orig, resp, "%s", name);
 	}

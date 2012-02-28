@@ -52,7 +52,7 @@ public:
 	 *
 	 * @param fields An array of size \a num_fields with the log fields.
 	 * The methods takes ownership of the array.
-	 * 
+	 *
 	 * @return False if an error occured.
 	 */
 	bool Init(string path, int num_fields, const threading::Field* const*  fields);
@@ -193,7 +193,7 @@ protected:
 	 * may buffer data as helpful and write it out later in a way
 	 * optimized for performance. The current buffering state can be
 	 * queried via IsBuf().
-	 * 
+	 *
 	 * A writer implementation must override this method but it can just
 	 * ignore calls if buffering doesn't align with its semantics.
 	 *
@@ -244,7 +244,7 @@ protected:
 	 * as passed into DoInit(). As an example, for file-based output, \c
 	 * rotate_path could be the original filename extended with a
 	 * timestamp indicating the time of the rotation.
-	 * 
+	 *
 	 * @param open The network time when the *current* file was opened.
 	 *
 	 * @param close The network time when the *current* file was closed.

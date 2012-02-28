@@ -184,8 +184,9 @@
 #include "File.h"
 #include "Conn.h"
 #include "Reporter.h"
-#include "threading/SerializationTypes.h"
+#include "threading/SerialTypes.h"
 #include "logging/Manager.h"
+#include "IPAddr.h"
 
 extern "C" {
 #include "setsignal.h"
@@ -671,8 +672,8 @@ void RemoteSerializer::Fork()
 		}
 	}
 
-RemoteSerializer::PeerID RemoteSerializer::Connect(addr_type ip, uint16 port,
-			const char* our_class, double retry, bool use_ssl)
+RemoteSerializer::PeerID RemoteSerializer::Connect(const IPAddr& ip,
+			uint16 port, const char* our_class, double retry, bool use_ssl)
 	{
 	if ( ! using_communication )
 		return true;
@@ -680,16 +681,12 @@ RemoteSerializer::PeerID RemoteSerializer::Connect(addr_type ip, uint16 port,
 	if ( ! initialized )
 		reporter->InternalError("remote serializer not initialized");
 
-#ifdef BROv6
-	if ( ! is_v4_addr(ip) )
+	if ( ip.GetFamily() == IPAddr::IPv6 )
 		Error("inter-Bro communication not supported over IPv6");
 
-	uint32 ip4 = to_v4_addr(ip);
-#else
-	uint32 ip4 = ip;
-#endif
-
-	ip4 = ntohl(ip4);
+	const uint32* bytes;
+	ip.GetBytes(&bytes);
+	uint32 ip4 = ntohl(*bytes);
 
 	if ( ! child_pid )
 		Fork();
@@ -1233,7 +1230,7 @@ bool RemoteSerializer::SendCapabilities(Peer* peer)
 	return caps ? SendToChild(MSG_CAPS, peer, 3, caps, 0, 0) : true;
 	}
 
-bool RemoteSerializer::Listen(addr_type ip, uint16 port, bool expect_ssl)
+bool RemoteSerializer::Listen(const IPAddr& ip, uint16 port, bool expect_ssl)
 	{
 	if ( ! using_communication )
 		return true;
@@ -1241,16 +1238,12 @@ bool RemoteSerializer::Listen(addr_type ip, uint16 port, bool expect_ssl)
 	if ( ! initialized )
 		reporter->InternalError("remote serializer not initialized");
 
-#ifdef BROv6
-	if ( ! is_v4_addr(ip) )
+	if ( ip.GetFamily() == IPAddr::IPv6 )
 		Error("inter-Bro communication not supported over IPv6");
 
-	uint32 ip4 = to_v4_addr(ip);
-#else
-	uint32 ip4 = ip;
-#endif
-
-	ip4 = ntohl(ip4);
+	const uint32* bytes;
+	ip.GetBytes(&bytes);
+	uint32 ip4 = ntohl(*bytes);
 
 	if ( ! SendToChild(MSG_LISTEN, 0, 3, ip4, port, expect_ssl) )
 		return false;

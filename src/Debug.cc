@@ -142,7 +142,7 @@ int TraceState::LogTrace(const char* fmt, ...)
 
 	if ( ! loc.filename )
 		{
-		loc.filename = "<no filename>";
+		loc.filename = copy_string("<no filename>");
 		loc.last_line = 0;
 		}
 
@@ -735,7 +735,7 @@ string get_context_description(const Stmt* stmt, const Frame* frame)
 		loc = *stmt->GetLocationInfo();
 	else
 		{
-		loc.filename = "<no filename>";
+		loc.filename = copy_string("<no filename>");
 		loc.last_line = 0;
 		}
 

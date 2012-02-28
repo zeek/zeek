@@ -12,6 +12,7 @@
 #include "PersistenceSerializer.h"
 #include "RuleMatcher.h"
 #include "AnalyzerTags.h"
+#include "IPAddr.h"
 
 class Connection;
 class ConnectionTimer;
@@ -32,52 +33,17 @@ typedef enum {
 typedef void (Connection::*timer_func)(double t);
 
 struct ConnID {
-	const uint32* src_addr;
-	const uint32* dst_addr;
+	IPAddr src_addr;
+	IPAddr dst_addr;
 	uint32 src_port;
 	uint32 dst_port;
-	bool is_one_way;	// if true, don't canonicalize
-
-	// Returns a ListVal suitable for looking up a connection in
-	// a hash table.  addr/ports are expected to be in network order.
-	// Unless is_one_way is true, the lookup sorts src and dst,
-	// so src_addr/src_port and dst_addr/dst_port just have to
-	// reflect the two different sides of the connection,
-	// neither has to be the particular source/destination
-	// or originator/responder.
-	HashKey* BuildConnKey() const;
-
-	// The structure used internally for hashing.
-	struct Key {
-		uint32 ip1[NUM_ADDR_WORDS];
-		uint32 ip2[NUM_ADDR_WORDS];
-		uint16 port1;
-		uint16 port2;
-	};
+	bool is_one_way;	// if true, don't canonicalize order
 };
 
-static inline int addr_port_canon_lt(const uint32* a1, uint32 p1,
-					const uint32* a2, uint32 p2)
+static inline int addr_port_canon_lt(const IPAddr& addr1, uint32 p1,
+					const IPAddr& addr2, uint32 p2)
 	{
-#ifdef BROv6
-	// Because it's a canonical ordering, not a strict ordering,
-	// we can choose to give more weight to the least significant
-	// word than to the most significant word.  This matters
-	// because for the common case of IPv4 addresses embedded in
-	// a IPv6 address, the top three words are identical, so we can
-	// save a few cycles by first testing the bottom word.
-	return a1[3] < a2[3] ||
-		(a1[3] == a2[3] &&
-		 (a1[2] < a2[2] ||
-		  (a1[2] == a2[2] &&
-		   (a1[1] < a2[1] ||
-		    (a1[1] == a2[1] &&
-		     (a1[0] < a2[0] ||
-		      (a1[0] == a2[0] &&
-		       p1 < p2)))))));
-#else
-	return *a1 < *a2 || (*a1 == *a2 && p1 < p2);
-#endif
+	return addr1 < addr2 || (addr1 == addr2 && p1 < p2);
 	}
 
 class Analyzer;
@@ -119,8 +85,8 @@ public:
 	double LastTime() const			{ return last_time; }
 	void SetLastTime(double t) 		{ last_time = t; }
 
-	const uint32* OrigAddr() const		{ return orig_addr; }
-	const uint32* RespAddr() const		{ return resp_addr; }
+	const IPAddr& OrigAddr() const		{ return orig_addr; }
+	const IPAddr& RespAddr() const		{ return resp_addr; }
 
 	uint32 OrigPort() const			{ return orig_port; }
 	uint32 RespPort() const			{ return resp_port; }
@@ -185,11 +151,11 @@ public:
 
 	// Raises a software_version_found event based on the
 	// given string (returns false if it's not parseable).
-	int VersionFoundEvent(const uint32* addr, const char* s, int len,
+	int VersionFoundEvent(const IPAddr& addr, const char* s, int len,
 				Analyzer* analyzer = 0);
 
 	// Raises a software_unparsed_version_found event.
-	int UnparsedVersionFoundEvent(const uint32* addr,
+	int UnparsedVersionFoundEvent(const IPAddr& addr,
 			const char* full_descr, int len, Analyzer* analyzer);
 
 	void Event(EventHandlerPtr f, Analyzer* analyzer, const char* name = 0);
@@ -325,8 +291,8 @@ protected:
 	TimerMgr::Tag* conn_timer_mgr;
 	timer_list timers;
 
-	uint32 orig_addr[NUM_ADDR_WORDS];	// in network order
-	uint32 resp_addr[NUM_ADDR_WORDS];	// in network order
+	IPAddr orig_addr;
+	IPAddr resp_addr;
 	uint32 orig_port, resp_port;	// in network order
 	TransportProto proto;
 	double start_time, last_time;

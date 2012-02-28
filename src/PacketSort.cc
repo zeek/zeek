@@ -65,7 +65,7 @@ PacketSortElement::PacketSortElement(PktSrc* arg_src,
 
 				payload_length = ip_hdr->PayloadLen() - tp->th_off * 4;
 
-				key = id.BuildConnKey();
+				key = BuildConnIDHashKey(id);
 
 				is_tcp = 1;
 				}

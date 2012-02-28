@@ -862,19 +862,12 @@ threading::Value* Manager::ValToLogVal(Val* val, BroType* ty)
 		break;
 
 	case TYPE_SUBNET:
-		lval->val.subnet_val = *val->AsSubNet();
+		lval->val.subnet_val = new IPPrefix(val->AsSubNet());
 		break;
 
 	case TYPE_ADDR:
-		{
-		addr_type t = val->AsAddr();
-#ifdef BROv6
-		copy_addr(t, lval->val.addr_val);
-#else
-		copy_addr(&t, lval->val.addr_val);
-#endif
+		lval->val.addr_val = new IPAddr(val->AsAddr());
 		break;
-		}
 
 	case TYPE_DOUBLE:
 	case TYPE_TIME:

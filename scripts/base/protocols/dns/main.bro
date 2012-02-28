@@ -261,10 +261,13 @@ event dns_TXT_reply(c: connection, msg: dns_msg, ans: dns_answer, str: string) &
 	event DNS::do_reply(c, msg, ans, str);
 	}
 
-event dns_AAAA_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr,
-                     astr: string) &priority=5
+event dns_AAAA_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr) &priority=5
 	{
-	# TODO: What should we do with astr?
+	event DNS::do_reply(c, msg, ans, fmt("%s", a));
+	}
+
+event dns_A6_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr) &priority=5
+	{
 	event DNS::do_reply(c, msg, ans, fmt("%s", a));
 	}
 

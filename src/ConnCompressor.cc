@@ -236,7 +236,7 @@ Connection* ConnCompressor::NextPacket(double t, HashKey* key, const IP_Hdr* ip,
 		}
 
 	else if ( ip->SrcAddr() ==
-			IPAddr(IPAddr::IPv6, SrcAddr(pending), IPAddr::Network) &&
+			IPAddr(IPv6, SrcAddr(pending), IPAddr::Network) &&
 		  tp->th_sport == SrcPort(pending) )
 		// Another packet from originator.
 		tc = NextFromOrig(pending, t, key, ip, tp);
@@ -508,8 +508,8 @@ Connection* ConnCompressor::Instantiate(HashKey* key, PendingConn* pending)
 	{
 	// Instantantiate a Connection.
 	ConnID conn_id;
-	conn_id.src_addr = IPAddr(IPAddr::IPv6, SrcAddr(pending), IPAddr::Network);
-	conn_id.dst_addr = IPAddr(IPAddr::IPv6, DstAddr(pending), IPAddr::Network);
+	conn_id.src_addr = IPAddr(IPv6, SrcAddr(pending), IPAddr::Network);
+	conn_id.dst_addr = IPAddr(IPv6, DstAddr(pending), IPAddr::Network);
 	conn_id.src_port = SrcPort(pending);
 	conn_id.dst_port = DstPort(pending);
 
@@ -608,7 +608,7 @@ void ConnCompressor::PktHdrToPendingConn(double time, const HashKey* key,
 	memcpy(&c->key, key->Key(), key->Size());
 
 	c->hash = key->Hash();
-	IPAddr ip1(IPAddr::IPv6, c->key.ip1, IPAddr::Network);
+	IPAddr ip1(IPv6, c->key.ip1, IPAddr::Network);
 	c->ip1_is_src = ip1 == ip->SrcAddr() &&
 			c->key.port1 == tp->th_sport;
 	c->time = time;
@@ -658,10 +658,10 @@ const IP_Hdr* ConnCompressor::PendingConnToPacket(const PendingConn* c)
 		tp->th_urp = 0;
 		}
 
-	IPAddr ip1(IPAddr::IPv6, c->key.ip1, IPAddr::Network);
-	IPAddr ip2(IPAddr::IPv6, c->key.ip2, IPAddr::Network);
-	if ( ip1.GetFamily() == IPAddr::IPv6 ||
-	     ip2.GetFamily() == IPAddr::IPv6 )
+	IPAddr ip1(IPv6, c->key.ip1, IPAddr::Network);
+	IPAddr ip2(IPv6, c->key.ip2, IPAddr::Network);
+	if ( ip1.GetFamily() == IPv6 ||
+	     ip2.GetFamily() == IPv6 )
 		reporter->InternalError("IPv6 snuck into connection compressor");
 	else
 		{

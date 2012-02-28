@@ -681,7 +681,7 @@ RemoteSerializer::PeerID RemoteSerializer::Connect(const IPAddr& ip,
 	if ( ! initialized )
 		reporter->InternalError("remote serializer not initialized");
 
-	if ( ip.GetFamily() == IPAddr::IPv6 )
+	if ( ip.GetFamily() == IPv6 )
 		Error("inter-Bro communication not supported over IPv6");
 
 	const uint32* bytes;
@@ -1238,7 +1238,7 @@ bool RemoteSerializer::Listen(const IPAddr& ip, uint16 port, bool expect_ssl)
 	if ( ! initialized )
 		reporter->InternalError("remote serializer not initialized");
 
-	if ( ip.GetFamily() == IPAddr::IPv6 )
+	if ( ip.GetFamily() == IPv6 )
 		Error("inter-Bro communication not supported over IPv6");
 
 	const uint32* bytes;

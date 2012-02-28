@@ -862,11 +862,11 @@ threading::Value* Manager::ValToLogVal(Val* val, BroType* ty)
 		break;
 
 	case TYPE_SUBNET:
-		lval->val.subnet_val = new IPPrefix(val->AsSubNet());
+		val->AsSubNet().ConvertToThreadingValue(&lval->val.subnet_val);
 		break;
 
 	case TYPE_ADDR:
-		lval->val.addr_val = new IPAddr(val->AsAddr());
+		val->AsAddr().ConvertToThreadingValue(&lval->val.addr_val);
 		break;
 
 	case TYPE_DOUBLE:

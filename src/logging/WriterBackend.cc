@@ -242,4 +242,40 @@ bool WriterBackend::DoHeartbeat(double network_time, double current_time)
 	return true;
 	}
 
+string WriterBackend::Render(const threading::Value::addr_t& addr) const
+	{
+	if ( addr.family == IPv4 )
+		{
+		char s[INET_ADDRSTRLEN];
+
+		if ( inet_ntop(AF_INET, &addr.in.in4, s, INET_ADDRSTRLEN) == NULL )
+			return "<bad IPv4 address conversion>";
+		else
+			return s;
+		}
+	else
+		{
+		char s[INET6_ADDRSTRLEN];
+
+		if ( inet_ntop(AF_INET6, &addr.in.in6, s, INET6_ADDRSTRLEN) == NULL )
+			return "<bad IPv6 address conversion>";
+		else
+			return s;
+		}
+	}
+
+string WriterBackend::Render(const threading::Value::subnet_t& subnet) const
+	{
+	char l[16];
+
+	if ( subnet.prefix.family == IPv4 )
+		modp_uitoa10(subnet.length - 96, l);
+	else
+		modp_uitoa10(subnet.length, l);
+
+	string s = Render(subnet.prefix) + "/" + l;
+
+	return s;
+	}
+
 

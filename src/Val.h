@@ -513,10 +513,6 @@ protected:
 #define UDP_PORT_MASK  0x20000
 #define ICMP_PORT_MASK 0x30000
 
-typedef enum {
-	TRANSPORT_UNKNOWN, TRANSPORT_TCP, TRANSPORT_UDP, TRANSPORT_ICMP,
-} TransportProto;
-
 class PortVal : public Val {
 public:
 	// Constructors - both take the port number in host order.
@@ -588,8 +584,8 @@ public:
 
 	Val* SizeVal() const;
 
-	const IPAddr& Prefix() const { return val.subnet_val->Prefix(); }
-	int Width() const	{ return val.subnet_val->Length(); }
+	const IPAddr& Prefix() const;
+	int Width() const;
 	IPAddr Mask() const;
 
 	bool Contains(const IPAddr& addr) const;

@@ -250,7 +250,7 @@ IPPrefix::IPPrefix(const in6_addr& in6, uint8_t length)
 IPPrefix::IPPrefix(const IPAddr& addr, uint8_t length)
 	: prefix(addr)
 	{
-	if ( prefix.GetFamily() == IPAddr::IPv4 )
+	if ( prefix.GetFamily() == IPv4 )
 		{
 		if ( length > 32 )
 			reporter->InternalError("Bad IPAddr(v4) IPPrefix length : %d",
@@ -275,7 +275,7 @@ string IPPrefix::AsString() const
 	{
 	char l[16];
 
-	if ( prefix.GetFamily() == IPAddr::IPv4 )
+	if ( prefix.GetFamily() == IPv4 )
 		modp_uitoa10(length - 96, l);
 	else
 		modp_uitoa10(length, l);

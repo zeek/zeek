@@ -2162,26 +2162,6 @@ const forward_remote_state_changes = F &redef;
 ## Place-holder constant indicating "no peer".
 const PEER_ID_NONE = 0;
 
-## Deprecated.
-## 
-## .. todo:: The connection compressor is scheduled to be removed from Bro.
-const use_connection_compressor = F &redef;
-
-## Deprecated.
-## 
-## .. todo:: The connection compressor is scheduled to be removed from Bro.
-const cc_handle_resets = F &redef;
-
-## Deprecated.
-## 
-## .. todo:: The connection compressor is scheduled to be removed from Bro.
-const cc_handle_only_syns = T &redef;
-
-## Deprecated.
-## 
-## .. todo:: The connection compressor is scheduled to be removed from Bro.
-const cc_instantiate_on_data = F &redef;
-
 # Signature payload pattern types.
 # todo::use enum to help autodoc
 # todo::Still used?

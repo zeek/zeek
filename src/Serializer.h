@@ -415,7 +415,7 @@ public:
 		}
 
 	const IP_Hdr IP() const
-		{ return IP_Hdr((struct ip *) (pkt + hdr_size)); }
+		{ return IP_Hdr((struct ip *) (pkt + hdr_size), true); }
 
 	void Describe(ODesc* d) const;
 

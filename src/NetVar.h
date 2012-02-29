@@ -216,11 +216,6 @@ extern int sig_max_group_size;
 
 extern int enable_syslog;
 
-extern int use_connection_compressor;
-extern int cc_handle_resets;
-extern int cc_handle_only_syns;
-extern int cc_instantiate_on_data;
-
 extern TableType* irc_join_list;
 extern RecordType* irc_join_info;
 extern TableVal* irc_servers;

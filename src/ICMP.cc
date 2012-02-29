@@ -270,7 +270,7 @@ TransportProto ICMP_Analyzer::GetContextProtocol(const IP_Hdr* ip_hdr, uint32* s
 
 RecordVal* ICMP_Analyzer::ExtractICMP4Context(int len, const u_char*& data)
 	{
-	const IP_Hdr ip_hdr_data((const struct ip*) data);
+	const IP_Hdr ip_hdr_data((const struct ip*) data, false);
 	const IP_Hdr* ip_hdr = &ip_hdr_data;
 
 	uint32 ip_hdr_len = ip_hdr->HdrLen();
@@ -338,7 +338,7 @@ RecordVal* ICMP_Analyzer::ExtractICMP4Context(int len, const u_char*& data)
 
 RecordVal* ICMP_Analyzer::ExtractICMP6Context(int len, const u_char*& data)
 	{
-	const IP_Hdr ip_hdr_data((const struct ip6_hdr*) data);
+	const IP_Hdr ip_hdr_data((const struct ip6_hdr*) data, false);
 	const IP_Hdr* ip_hdr = &ip_hdr_data;
 	int DF = 0, MF = 0, bad_hdr_len = 0, bad_checksum = 0;
 	TransportProto proto = TRANSPORT_UNKNOWN;

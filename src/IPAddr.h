@@ -47,7 +47,7 @@ public:
 	 *
 	 * @param in6 The IPv6 address.
 	 */
-	IPAddr(const in4_addr& in4)
+	explicit IPAddr(const in4_addr& in4)
 		{
 		memcpy(in6.s6_addr, v4_mapped_prefix, sizeof(v4_mapped_prefix));
 		memcpy(&in6.s6_addr[12], &in4.s_addr, sizeof(in4.s_addr));
@@ -58,7 +58,7 @@ public:
 	 *
 	 * @param in6 The IPv6 address.
 	 */
-	IPAddr(const in6_addr& arg_in6) : in6(arg_in6) { }
+	explicit IPAddr(const in6_addr& arg_in6) : in6(arg_in6) { }
 
 	/**
 	 * Constructs an address instance from a string representation.
@@ -523,8 +523,6 @@ public:
 	 */
 	string AsString() const;
 
-	/** Converts the address into the type used internally by the inter-thread communicastion.
-	*/
 	operator std::string() const	{ return AsString(); }
 
 	/**

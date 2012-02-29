@@ -147,7 +147,7 @@ bool Value::Read(SerializationFormat* fmt)
 
 	case TYPE_ADDR:
 		{
-		int family;
+		char family;
 
 		if ( ! fmt->Read(&family, "addr-family") )
 			return false;
@@ -169,7 +169,27 @@ bool Value::Read(SerializationFormat* fmt)
 
 	case TYPE_SUBNET:
 		{
-		// FIXME.
+		char length;
+		char family;
+
+		if ( ! (fmt->Read(&length, "subnet-len") && fmt->Read(&family, "subnet-family")) ) 
+			return false;
+
+		switch ( family ) {
+		case 4:
+			val.subnet_val.length = (uint8_t)length;
+			val.subnet_val.prefix.family = IPv4;
+			return fmt->Read(&val.subnet_val.prefix.in.in4, "subnet-in4");
+
+		case 6:
+			val.subnet_val.length = (uint8_t)length;
+			val.subnet_val.prefix.family = IPv6;
+			return fmt->Read(&val.subnet_val.prefix.in.in6, "subnet-in6");
+
+		}
+
+		// Can't be reached.
+		abort();
 		}
 
 	case TYPE_DOUBLE:
@@ -250,19 +270,36 @@ bool Value::Write(SerializationFormat* fmt) const
 	case TYPE_PORT:
 		return fmt->Write(val.port_val.port, "port") && fmt->Write(val.port_val.proto, "proto");
 
-	case TYPE_SUBNET:
-		return false; // FIXME.
-
 	case TYPE_ADDR:
 		{
 		switch ( val.addr_val.family ) {
 		case IPv4:
-			return fmt->Write((int)4, "addr-family")
+			return fmt->Write((char)4, "addr-family")
 				&& fmt->Write(val.addr_val.in.in4, "addr-in4");
 
 		case IPv6:
-			return fmt->Write((int)6, "addr-family")
+			return fmt->Write((char)6, "addr-family")
 				&& fmt->Write(val.addr_val.in.in6, "addr-in6");
+			break;
+		}
+
+		// Can't be reached.
+		abort();
+		}
+
+	case TYPE_SUBNET:
+		{
+		if ( ! fmt->Write((char)val.subnet_val.length, "subnet-length") )
+			return false;
+
+		switch ( val.subnet_val.prefix.family ) {
+		case IPv4:
+			return fmt->Write((char)4, "subnet-family")
+				&& fmt->Write(val.subnet_val.prefix.in.in4, "subnet-in4");
+
+		case IPv6:
+			return fmt->Write((char)6, "subnet-family")
+				&& fmt->Write(val.subnet_val.prefix.in.in6, "subnet-in6");
 			break;
 		}
 

@@ -106,8 +106,11 @@ void Manager::Process()
 
 		Message* msg = t->RetrieveOut();
 
-		if ( msg->Process() && network_time )
-			did_process = true;
+		if ( msg->Process() )
+			{
+			if ( network_time )
+				did_process = true;
+			}
 
 		else
 			{

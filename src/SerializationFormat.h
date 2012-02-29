@@ -59,8 +59,8 @@ public:
 	virtual bool Write(const string& s, const char* tag) = 0;
 	virtual bool Write(const IPAddr& addr, const char* tag) = 0;
 	virtual bool Write(const IPPrefix& prefix, const char* tag) = 0;
-	virtual bool Write(struct in_addr& addr, const char* tag) = 0;
-	virtual bool Write(struct in6_addr& addr, const char* tag) = 0;
+	virtual bool Write(const struct in_addr& addr, const char* tag) = 0;
+	virtual bool Write(const struct in6_addr& addr, const char* tag) = 0;
 
 	virtual bool WriteOpenTag(const char* tag) = 0;
 	virtual bool WriteCloseTag(const char* tag) = 0;
@@ -118,8 +118,8 @@ public:
 	virtual bool Write(const string& s, const char* tag);
 	virtual bool Write(const IPAddr& addr, const char* tag);
 	virtual bool Write(const IPPrefix& prefix, const char* tag);
-	virtual bool Write(struct in_addr& addr, const char* tag);
-	virtual bool Write(struct in6_addr& addr, const char* tag);
+	virtual bool Write(const struct in_addr& addr, const char* tag);
+	virtual bool Write(const struct in6_addr& addr, const char* tag);
 	virtual bool WriteOpenTag(const char* tag);
 	virtual bool WriteCloseTag(const char* tag);
 	virtual bool WriteSeparator();
@@ -144,8 +144,8 @@ public:
 	virtual bool Write(const string& s, const char* tag);
 	virtual bool Write(const IPAddr& addr, const char* tag);
 	virtual bool Write(const IPPrefix& prefix, const char* tag);
-	virtual bool Write(struct in_addr& addr, const char* tag);
-	virtual bool Write(struct in6_addr& addr, const char* tag);
+	virtual bool Write(const struct in_addr& addr, const char* tag);
+	virtual bool Write(const struct in6_addr& addr, const char* tag);
 	virtual bool WriteOpenTag(const char* tag);
 	virtual bool WriteCloseTag(const char* tag);
 	virtual bool WriteSeparator();

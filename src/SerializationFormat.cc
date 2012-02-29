@@ -295,7 +295,6 @@ bool BinarySerializationFormat::Read(struct in6_addr* addr, const char* tag)
 	return true;
 	}
 
-
 bool BinarySerializationFormat::Write(char v, const char* tag)
 	{
 	DBG_LOG(DBG_SERIAL, "Write char %s [%s]", fmt_bytes(&v, 1), tag);
@@ -389,10 +388,9 @@ bool BinarySerializationFormat::Write(const IPPrefix& prefix, const char* tag)
 	return Write(prefix.Prefix(), "prefix") && Write(prefix.Length(), "width");
 	}
 
-bool BinarySerializationFormat::Write(struct in_addr& addr, const char* tag)
+bool BinarySerializationFormat::Write(const struct in_addr& addr, const char* tag)
 	{
-	const uint32_t* bytes;
-	bytes = (uint32_t*) &addr.s_addr;
+	const uint32_t* bytes = (uint32_t*) &addr.s_addr;
 
 	if ( ! Write(ntohl(bytes[0]), "addr4") )
 		return false;
@@ -400,10 +398,9 @@ bool BinarySerializationFormat::Write(struct in_addr& addr, const char* tag)
 	return true;
 	}
 
-bool BinarySerializationFormat::Write(struct in6_addr& addr, const char* tag)
+bool BinarySerializationFormat::Write(const struct in6_addr& addr, const char* tag)
 	{
-	const uint32_t* bytes;
-	bytes = (uint32_t*) &addr.s6_addr;
+	const uint32_t* bytes = (uint32_t*) &addr.s6_addr;
 
 	for ( int i = 0; i < 4; ++i )
 		{
@@ -620,13 +617,13 @@ bool XMLSerializationFormat::Write(const IPPrefix& prefix, const char* tag)
 	return false;
 	}
 
-bool XMLSerializationFormat::Write(struct in_addr& addr, const char* tag)
+bool XMLSerializationFormat::Write(const struct in_addr& addr, const char* tag)
 	{
 	reporter->InternalError("XML output of in_addr not implemented");
 	return false;
 	}
 
-bool XMLSerializationFormat::Write(struct in6_addr& addr, const char* tag)
+bool XMLSerializationFormat::Write(const struct in6_addr& addr, const char* tag)
 	{
 	reporter->InternalError("XML output of in6_addr not implemented");
 	return false;

@@ -47,15 +47,6 @@ int tcp_max_initial_window;
 int tcp_max_above_hole_without_any_acks;
 int tcp_excessive_data_without_further_acks;
 
-int ssl_compare_cipherspecs;
-int ssl_analyze_certificates;
-int ssl_store_certificates;
-int ssl_verify_certificates;
-int ssl_store_key_material;
-int ssl_max_cipherspec_size;
-StringVal* ssl_store_cert_path;
-StringVal* x509_trusted_cert_path;
-TableType* cipher_suites_list;
 RecordType* x509_type;
 
 double non_analyzed_lifetime;
@@ -191,8 +182,6 @@ int remote_check_sync_consistency;
 StringVal* ssl_ca_certificate;
 StringVal* ssl_private_key;
 StringVal* ssl_passphrase;
-
-StringVal* x509_crl_file;
 
 Val* profiling_file;
 double profiling_interval;
@@ -353,17 +342,7 @@ void init_net_var()
 	tcp_excessive_data_without_further_acks =
 		opt_internal_int("tcp_excessive_data_without_further_acks");
 
-	ssl_compare_cipherspecs  = opt_internal_int("ssl_compare_cipherspecs");
-	ssl_analyze_certificates = opt_internal_int("ssl_analyze_certificates");
-	ssl_store_certificates   = opt_internal_int("ssl_store_certificates");
-	ssl_verify_certificates  = opt_internal_int("ssl_verify_certificates");
-	ssl_store_key_material = opt_internal_int("ssl_store_key_material");
-	ssl_max_cipherspec_size  = opt_internal_int("ssl_max_cipherspec_size");
-
-	x509_trusted_cert_path = opt_internal_string("X509_trusted_cert_path");
-	ssl_store_cert_path = opt_internal_string("ssl_store_cert_path");
 	x509_type = internal_type("X509")->AsRecordType();
-	x509_crl_file = opt_internal_string("X509_crl_file");
 
 	non_analyzed_lifetime = opt_internal_double("non_analyzed_lifetime");
 	tcp_inactivity_timeout = opt_internal_double("tcp_inactivity_timeout");

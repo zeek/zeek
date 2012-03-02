@@ -10,7 +10,7 @@ Manager::Manager()
 	did_process = true;
 	next_beat = 0;
 	terminating = false;
-	idle = false;
+	idle = true;
 	}
 
 Manager::~Manager()
@@ -58,6 +58,7 @@ void Manager::AddThread(BasicThread* thread)
 	{
 	DBG_LOG(DBG_THREADING, "Adding thread %s ...", thread->Name().c_str());
 	all_threads.push_back(thread);
+	idle = false;
 	}
 
 void Manager::AddMsgThread(MsgThread* thread)

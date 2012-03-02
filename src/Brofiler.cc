@@ -49,29 +49,15 @@ bool Brofiler::WriteStats()
 	char* bf = getenv("BRO_PROFILER_FILE");
 	if ( ! bf ) return false;
 
-	bool gen_unique = false;
-	const char* p = strstr(bf, ".X");
-	if ( p )
-		{
-		gen_unique = true;
-		while ( *(++p) )
-			{
-			if ( *p != 'X' )
-				{
-				gen_unique = false;
-				break;
-				}
-			}
-		}
-
 	FILE* f;
+	const char* p = strstr(bf, ".XXXXXX");
 
-	if ( gen_unique )
+	if ( p && ! p[7] )
 		{
 		int fd = mkstemp(bf);
 		if ( fd == -1 )
 			{
-			reporter->Error("Failed to generate unique file name from BRO_PROFILER_FILE: %s\n", bf);
+			reporter->Error("Failed to generate unique file name from BRO_PROFILER_FILE: %s", bf);
 			return false;
 			}
 		f = fdopen(fd, "w");
@@ -83,7 +69,7 @@ bool Brofiler::WriteStats()
 
 	if ( ! f )
 		{
-		reporter->Error("Failed to open BRO_PROFILER_FILE destination '%s' for writing\n", bf);
+		reporter->Error("Failed to open BRO_PROFILER_FILE destination '%s' for writing", bf);
 		return false;
 		}
 

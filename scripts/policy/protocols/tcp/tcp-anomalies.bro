@@ -2,7 +2,6 @@
 
 module TCP_Perf;
 
-
 # log level.  either:
 # 1. Summaries - only summaries (e.g., RTT summary for a connection)
 # 2. InterestingEvents - summaries, as well as when interesting things
@@ -19,7 +18,7 @@ global log_lev_all = T;
 global log_lev_interesting = T;
 global log_lev_summary = T;
 
-redef use_connection_compressor = F;
+#redef use_connection_compressor = F;
 
 # these redefs have now replaced the "log_rtt", etc., variables.
 # ignoring a particular type of event will prevent any of those events

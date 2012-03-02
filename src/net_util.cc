@@ -90,7 +90,7 @@ int udp_checksum(const struct ip* ip, const struct udphdr* up, int len)
 int udp6_checksum(const struct ip6_hdr* ip6, const struct udphdr* up, int len)
 	{
 	// UDP over IPv6 uses the same checksum function as over IPv4 but a
-	// different pseuod-header over which it is computed.
+	// different pseudo-header over which it is computed.
 	uint32 sum;
 
 	if ( len % 2 == 1 )
@@ -116,8 +116,8 @@ int udp6_checksum(const struct ip6_hdr* ip6, const struct udphdr* up, int len)
 
 int icmp6_checksum(const struct icmp* icmpp, const struct ip6_hdr* ip6, int len)
 	{
-	// ICMP6 uses the same checksum function as over ICMP4 but a different
-	// pseuod-header over which it is computed.
+	// ICMP6 uses the same checksum function as ICMP4 but a different
+	// pseudo-header over which it is computed.
 	uint32 sum;
 
 	if ( len % 2 == 1 )

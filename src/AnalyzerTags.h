@@ -20,8 +20,7 @@ namespace AnalyzerTag {
 		PIA_TCP, PIA_UDP,
 
 		// Transport-layer analyzers.
-		ICMP,
-		TCP, UDP,
+		ICMP, TCP, UDP,
 
 		// Application-layer analyzers (hand-written).
 		BitTorrent, BitTorrentTracker,

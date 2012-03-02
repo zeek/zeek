@@ -52,10 +52,10 @@ void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
 	assert(caplen >= len); // Should have been caught earlier already.
 
 	if ( ! ignore_checksums )
-	    {
-	    int chksum = 0;
+		{
+		int chksum = 0;
 
-	    switch ( ip->NextProto() )
+		switch ( ip->NextProto() )
 		{
 		case IPPROTO_ICMP:
 			chksum = icmp_checksum(icmpp, len);
@@ -69,11 +69,11 @@ void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
 			reporter->InternalError("unexpected IP proto in ICMP analyzer");
 		}
 
-	    if ( chksum != 0xffff )
-		    {
-		    Weird("bad_ICMP6_checksum");
-		    return;
-		    }
+		if ( chksum != 0xffff )
+			{
+			Weird("bad_ICMP_checksum");
+			return;
+			}
 		}
 
 	Conn()->SetLastTime(current_timestamp);
@@ -147,6 +147,8 @@ void ICMP_Analyzer::NextICMP6(double t, const struct icmp* icmpp, int len, int c
 			break;
 
 		// Router related messages.
+		case ND_NEIGHBOR_SOLICIT:
+		case ND_NEIGHBOR_ADVERT:
 		case ND_REDIRECT:
 		case ND_ROUTER_SOLICIT:
 		case ICMP6_ROUTER_RENUMBERING:
@@ -156,17 +158,9 @@ void ICMP_Analyzer::NextICMP6(double t, const struct icmp* icmpp, int len, int c
 
 #if 0
 		// Currently not specifically implemented.
-		case ICMP6_PARAM_PROB:
 		case MLD_LISTENER_QUERY:
 		case MLD_LISTENER_REPORT:
 		case MLD_LISTENER_REDUCTION:
-		case ND_NEIGHBOR_SOLICIT:
-		case ND_NEIGHBOR_ADVERT:
-		case ND_REDIRECT:
-		case ICMP6_ROUTER_RENUMBERING:
-		case ND_NEIGHBOR_SOLICIT:
-		case ND_NEIGHBOR_ADVERT:
-		case ICMP6_TIME_EXCEEDED:
 #endif
 		default:
 			ICMPEvent(icmp_sent, icmpp, len, 1);
@@ -221,7 +215,7 @@ TransportProto ICMP_Analyzer::GetContextProtocol(const IP_Hdr* ip_hdr, uint32* s
 	case 1:		proto = TRANSPORT_ICMP; break;
 	case 6:		proto = TRANSPORT_TCP; break;
 	case 17:	proto = TRANSPORT_UDP; break;
-	case 58:	proto = TRANSPORT_ICMP; //TransportProto Hack  // XXX What's this?
+	case 58:	proto = TRANSPORT_ICMP; break;
 	default:	proto = TRANSPORT_UNKNOWN; break;
 	}
 
@@ -386,15 +380,8 @@ RecordVal* ICMP_Analyzer::ExtractICMP6Context(int len, const u_char*& data)
 	iprec->Assign(0, id_val);
 	iprec->Assign(1, new Val(ip_len, TYPE_COUNT));
 
-	//TransportProto Hack // XXX Likewise.
-	if ( ip_hdr->NextProto() == 58 || 17 ) //if the encap packet is ICMPv6 we force this... (cause there is no IGMP (by that name) for ICMPv6), rather ugly hack once more
-		{
-		iprec->Assign(2, new Val(58, TYPE_COUNT));
-		}
-	else
-		{
-		iprec->Assign(2, new Val(proto, TYPE_COUNT));
-		}
+	//if the encap packet is ICMPv6 we force this... (cause there is no IGMP (by that name) for ICMPv6), rather ugly hack once more
+	iprec->Assign(2, new Val(58, TYPE_COUNT));
 
 	iprec->Assign(3, new Val(bad_hdr_len, TYPE_BOOL));
 
@@ -509,12 +496,21 @@ void ICMP_Analyzer::Router(double t, const struct icmp* icmpp, int len,
 
 	switch ( icmpp->icmp_type )
 		{
+		case ND_NEIGHBOR_ADVERT:
+			f = icmp_neighbor_advertisement;
+			break;
+		case ND_NEIGHBOR_SOLICIT:
+			f = icmp_neighbor_solicitation;
+			break;
 		case ND_ROUTER_ADVERT:
 			f = icmp_router_advertisement;
 			break;
-
-		case ND_REDIRECT:
 		case ND_ROUTER_SOLICIT:
+			f = icmp_router_solicitation;
+			break;
+		case ND_REDIRECT:
+			f = icmp_redirect;
+			break;
 		case ICMP6_ROUTER_RENUMBERING:
 		default:
 			ICMPEvent(icmp_sent, icmpp, len, 1);
@@ -567,11 +563,14 @@ void ICMP_Analyzer::Context6(double t, const struct icmp* icmpp,
 		case ICMP6_DST_UNREACH:
 			f = icmp_unreachable;
 			break;
-
 		case ICMP6_PARAM_PROB:
+			f = icmp_parameter_problem;
+			break;
 		case ICMP6_TIME_EXCEEDED:
+			f = icmp_time_exceeded;
+			break;
 		case ICMP6_PACKET_TOO_BIG:
-			f = icmp_error_message;
+			f = icmp_packet_too_big;
 			break;
 		}
 

@@ -310,8 +310,6 @@ void NetSessions::NextPacketSecondary(double /* t */, const struct pcap_pkthdr* 
 
 	++num_packets_processed;
 
-
-
 	uint32 caplen = hdr->caplen - hdr_size;
 	if ( caplen < sizeof(struct ip) )
 		{
@@ -446,7 +444,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 
 	int proto = ip_hdr->NextProto();
 	if ( proto != IPPROTO_TCP && proto != IPPROTO_UDP &&
-	     proto != IPPROTO_ICMP && proto != IPPROTO_ICMPV6) // Added ICMPV6, Matti
+	     proto != IPPROTO_ICMP && proto != IPPROTO_ICMPV6)
 		{
 		dump_this_packet = 1;
 		return;
@@ -489,7 +487,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 	caplen -= ip_hdr_len;
 
 	uint32 min_hdr_len = (proto == IPPROTO_TCP) ?  sizeof(struct tcphdr) :
-		(proto == IPPROTO_UDP ? sizeof(struct udphdr) : ICMP_MINLEN); //needs checking for ICMPV6?, Matti
+		(proto == IPPROTO_UDP ? sizeof(struct udphdr) : ICMP_MINLEN);
 
 	if ( len < min_hdr_len )
 		{
@@ -550,12 +548,11 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		break;
 		}
 
-	case IPPROTO_ICMPV6: // new case, identical to ICMP, is this correct?? Matti
+	case IPPROTO_ICMPV6:
 		{
 		const struct icmp* icmpp = (const struct icmp *) data;
 
 		id.src_port = icmpp->icmp_type;
-			//printf("TYPE: %d\n", id.src_port); //testing, Matti
 		id.dst_port = ICMP6_counterpart(icmpp->icmp_type,
 						icmpp->icmp_code,
 						id.is_one_way);
@@ -565,8 +562,8 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 
 		d = &icmp_conns;
 		break;
-
 		}
+
 	default:
 		Weird(fmt("unknown_protocol %d", proto), hdr, pkt);
 		return;
@@ -735,12 +732,10 @@ Val* NetSessions::BuildHeader(const struct ip* ip)
 		break;
 		}
 
-	case IPPROTO_ICMPV6: //Added, Matti
+	case IPPROTO_ICMPV6:
 		{
 		const struct icmp* icmpp = (const struct icmp *) data;
 		RecordVal* icmp_hdr = new RecordVal(icmp_hdr_type);
-
-		//printf("datalen:%d",data_len); //Testing, Matti
 
 		icmp_hdr->Assign(0, new Val(icmpp->icmp_type, TYPE_COUNT));
 
@@ -1065,7 +1060,7 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 		case IPPROTO_UDP:
 			tproto = TRANSPORT_UDP;
 			break;
-		case IPPROTO_ICMPV6: //TransportProto Hack
+		case IPPROTO_ICMPV6:
 			tproto = TRANSPORT_ICMP;
 			break;
 		default:
@@ -1150,6 +1145,7 @@ bool NetSessions::IsLikelyServerPort(uint32 port, TransportProto proto) const
 		port |= UDP_PORT_MASK;
 	else if ( proto == TRANSPORT_ICMP )
 		port |= ICMP_PORT_MASK;
+
 	return port_cache.find(port) != port_cache.end();
 	}
 

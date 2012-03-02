@@ -534,7 +534,6 @@ public:
 	int IsUDP() const;
 	int IsICMP() const;
 
-
 	TransportProto PortType() const
 		{
 		if ( IsTCP() )

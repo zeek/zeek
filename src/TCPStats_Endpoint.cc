@@ -552,7 +552,7 @@ double GetPercentile(PList(double) list, int p)
 double GetNthElement(int n, PList(double) list_arg)
 {
   // pick a pivot element
-  double pivot = *(list_arg[0]);
+  double pivot = *(list_arg[int(list_arg.length()/2)]);
 
   // lists to keep track of elements < pivot, > pivot
   PList(double) bottom_half;
@@ -581,6 +581,9 @@ double GetNthElement(int n, PList(double) list_arg)
 	to_return = GetNthElement(n - (list_arg.length() - n2), top_half);
   else
 	to_return = GetNthElement(n, bottom_half);
+
+  top_half.clear();
+  bottom_half.clear();
 	
   return to_return;
 }

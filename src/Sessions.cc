@@ -27,7 +27,6 @@
 #include "InterConn.h"
 #include "Discard.h"
 #include "RuleMatcher.h"
-#include "ConnCompressor.h"
 #include "DPM.h"
 
 #include "PacketSort.h"
@@ -71,8 +70,8 @@ void TimerMgrExpireTimer::Dispatch(double t, int is_expire)
 NetSessions::NetSessions()
 	{
 	TypeList* t = new TypeList();
-	t->Append(base_type(TYPE_COUNT));	// source IP address
-	t->Append(base_type(TYPE_COUNT));	// dest IP address
+	t->Append(base_type(TYPE_ADDR));	// source IP address
+	t->Append(base_type(TYPE_ADDR));	// dest IP address
 	t->Append(base_type(TYPE_COUNT));	// source and dest ports
 
 	ch = new CompositeHash(t);
@@ -135,12 +134,12 @@ NetSessions::~NetSessions()
 	delete SYN_OS_Fingerprinter;
 	delete pkt_profiler;
 	Unref(arp_analyzer);
+	delete discarder;
+	delete stp_manager;
 	}
 
 void NetSessions::Done()
 	{
-	delete stp_manager;
-	delete discarder;
 	}
 
 namespace	// private namespace
@@ -275,22 +274,26 @@ void NetSessions::NextPacket(double t, const struct pcap_pkthdr* hdr,
 		const struct ip* ip = (const struct ip*) (pkt + hdr_size);
 		if ( ip->ip_v == 4 )
 			{
-			IP_Hdr ip_hdr(ip);
+			IP_Hdr ip_hdr(ip, false);
 			DoNextPacket(t, hdr, &ip_hdr, pkt, hdr_size);
 			}
 
-		else if ( arp_analyzer && arp_analyzer->IsARP(pkt, hdr_size) )
-			arp_analyzer->NextPacket(t, hdr, pkt, hdr_size);
+		else if ( ip->ip_v == 6 )
+			{
+			IP_Hdr ip_hdr((const struct ip6_hdr*) (pkt + hdr_size), false);
+			DoNextPacket(t, hdr, &ip_hdr, pkt, hdr_size);
+			}
+
+		else if ( ARP_Analyzer::IsARP(pkt, hdr_size) )
+			{
+			if ( arp_analyzer )
+				arp_analyzer->NextPacket(t, hdr, pkt, hdr_size);
+			}
 
 		else
 			{
-#ifdef BROv6
-			IP_Hdr ip_hdr((const struct ip6_hdr*) (pkt + hdr_size));
-			DoNextPacket(t, hdr, &ip_hdr, pkt, hdr_size);
-#else
-			Weird("non_IPv4_packet", hdr, pkt);
+			Weird("unknown_packet_type", hdr, pkt);
 			return;
-#endif
 			}
 		}
 
@@ -506,7 +509,6 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 	id.src_addr = ip_hdr->SrcAddr();
 	id.dst_addr = ip_hdr->DstAddr();
 	Dictionary* d = 0;
-	bool pass_to_conn_compressor = false;
 
 	switch ( proto ) {
 	case IPPROTO_TCP:
@@ -516,7 +518,6 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		id.dst_port = tp->th_dport;
 		id.is_one_way = 0;
 		d = &tcp_conns;
-		pass_to_conn_compressor = ip4 && use_connection_compressor;
 		break;
 		}
 
@@ -551,7 +552,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		return;
 	}
 
-	HashKey* h = id.BuildConnKey();
+	HashKey* h = BuildConnIDHashKey(id);
 	if ( ! h )
 		reporter->InternalError("hash computation failed");
 
@@ -559,44 +560,39 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 
 	// FIXME: The following is getting pretty complex. Need to split up
 	// into separate functions.
-	if ( pass_to_conn_compressor )
-		conn = conn_compressor->NextPacket(t, h, ip_hdr, hdr, pkt);
+	conn = (Connection*) d->Lookup(h);
+	if ( ! conn )
+		{
+		conn = NewConn(h, t, &id, data, proto);
+		if ( conn )
+			d->Insert(h, conn);
+		}
 	else
 		{
-		conn = (Connection*) d->Lookup(h);
-		if ( ! conn )
+		// We already know that connection.
+		int consistent = CheckConnectionTag(conn);
+		if ( consistent < 0 )
 			{
+			delete h;
+			return;
+			}
+
+		if ( ! consistent || conn->IsReuse(t, data) )
+			{
+			if ( consistent )
+				conn->Event(connection_reused, 0);
+
+			Remove(conn);
 			conn = NewConn(h, t, &id, data, proto);
 			if ( conn )
 				d->Insert(h, conn);
 			}
 		else
-			{
-			// We already know that connection.
-			int consistent = CheckConnectionTag(conn);
-			if ( consistent < 0 )
-				{
-				delete h;
-				return;
-				}
-
-			if ( ! consistent || conn->IsReuse(t, data) )
-				{
-				if ( consistent )
-					conn->Event(connection_reused, 0);
-
-				Remove(conn);
-				conn = NewConn(h, t, &id, data, proto);
-				if ( conn )
-					d->Insert(h, conn);
-				}
-			else
-				delete h;
-			}
-
-		if ( ! conn )
 			delete h;
 		}
+
+	if ( ! conn )
+		delete h;
 
 	if ( ! conn )
 		return;
@@ -604,8 +600,8 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 	int record_packet = 1;	// whether to record the packet at all
 	int record_content = 1;	// whether to record its data
 
-	int is_orig = addr_eq(id.src_addr, conn->OrigAddr()) &&
-			id.src_port == conn->OrigPort();
+	int is_orig = (id.src_addr == conn->OrigAddr()) &&
+			(id.src_port == conn->OrigPort());
 
 	if ( new_packet && ip4 )
 		conn->Event(new_packet, 0, BuildHeader(ip4));
@@ -731,13 +727,11 @@ Val* NetSessions::BuildHeader(const struct ip* ip)
 FragReassembler* NetSessions::NextFragment(double t, const IP_Hdr* ip,
 					const u_char* pkt, uint32 frag_field)
 	{
-	uint32 src_addr = uint32(ip->SrcAddr4());
-	uint32 dst_addr = uint32(ip->DstAddr4());
 	uint32 frag_id = ntohs(ip->ID4());	// we actually could skip conv.
 
 	ListVal* key = new ListVal(TYPE_ANY);
-	key->Append(new Val(src_addr, TYPE_COUNT));
-	key->Append(new Val(dst_addr, TYPE_COUNT));
+	key->Append(new AddrVal(ip->SrcAddr()));
+	key->Append(new AddrVal(ip->DstAddr()));
 	key->Append(new Val(frag_id, TYPE_COUNT));
 
 	HashKey* h = ch->ComputeHash(key, 1);
@@ -772,7 +766,7 @@ int NetSessions::Get_OS_From_SYN(struct os_type* retval,
 				quirks, ECN) : 0;
 	}
 
-bool NetSessions::CompareWithPreviousOSMatch(uint32 addr, int id) const
+bool NetSessions::CompareWithPreviousOSMatch(const IPAddr& addr, int id) const
 	{
 	return SYN_OS_Fingerprinter ?
 		SYN_OS_Fingerprinter->CacheMatch(addr, id) : 0;
@@ -813,44 +807,30 @@ Connection* NetSessions::FindConnection(Val* v)
 		// types, too.
 		}
 
-	addr_type orig_addr = (*vl)[orig_h]->AsAddr();
-	addr_type resp_addr = (*vl)[resp_h]->AsAddr();
+	const IPAddr& orig_addr = (*vl)[orig_h]->AsAddr();
+	const IPAddr& resp_addr = (*vl)[resp_h]->AsAddr();
 
 	PortVal* orig_portv = (*vl)[orig_p]->AsPortVal();
 	PortVal* resp_portv = (*vl)[resp_p]->AsPortVal();
 
 	ConnID id;
 
-#ifdef BROv6
 	id.src_addr = orig_addr;
 	id.dst_addr = resp_addr;
-#else
-	id.src_addr = &orig_addr;
-	id.dst_addr = &resp_addr;
-#endif
 
 	id.src_port = htons((unsigned short) orig_portv->Port());
 	id.dst_port = htons((unsigned short) resp_portv->Port());
 
 	id.is_one_way = 0;	// ### incorrect for ICMP connections
 
-	HashKey* h = id.BuildConnKey();
+	HashKey* h = BuildConnIDHashKey(id);
 	if ( ! h )
 		reporter->InternalError("hash computation failed");
 
 	Dictionary* d;
 
 	if ( orig_portv->IsTCP() )
-		{
-		if ( use_connection_compressor )
-			{
-			Connection* conn = conn_compressor->Lookup(h);
-			delete h;
-			return conn;
-			}
-		else
-			d = &tcp_conns;
-		}
+		d = &tcp_conns;
 	else if ( orig_portv->IsUDP() )
 		d = &udp_conns;
 	else if ( orig_portv->IsICMP() )
@@ -903,17 +883,7 @@ void NetSessions::Remove(Connection* c)
 
 		switch ( c->ConnTransport() ) {
 		case TRANSPORT_TCP:
-			if ( use_connection_compressor &&
-			     conn_compressor->Remove(k) )
-				// Note, if the Remove() returned false
-				// then the compressor doesn't know about
-				// this connection, which *should* mean that
-				// we never gave it the connection in the
-				// first place, and thus we should check
-				// the regular TCP table instead.
-				;
-
-			else if ( ! tcp_conns.RemoveEntry(k) )
+			if ( ! tcp_conns.RemoveEntry(k) )
 				reporter->InternalError("connection missing");
 			break;
 
@@ -960,13 +930,8 @@ void NetSessions::Insert(Connection* c)
 	// reference the old key for already existing connections.
 
 	case TRANSPORT_TCP:
-		if ( use_connection_compressor )
-			old = conn_compressor->Insert(c);
-		else
-			{
-			old = (Connection*) tcp_conns.Remove(c->Key());
-			tcp_conns.Insert(c->Key(), c);
-			}
+		old = (Connection*) tcp_conns.Remove(c->Key());
+		tcp_conns.Insert(c->Key(), c);
 		break;
 
 	case TRANSPORT_UDP:
@@ -998,9 +963,6 @@ void NetSessions::Insert(Connection* c)
 
 void NetSessions::Drain()
 	{
-	if ( use_connection_compressor )
-		conn_compressor->Drain();
-
 	IterCookie* cookie = tcp_conns.InitForIteration();
 	Connection* tc;
 
@@ -1092,7 +1054,7 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 		// an analyzable connection.
 		ConnID flip_id = *id;
 
-		const uint32* ta = flip_id.src_addr;
+		const IPAddr ta = flip_id.src_addr;
 		flip_id.src_addr = flip_id.dst_addr;
 		flip_id.dst_addr = ta;
 
@@ -1113,10 +1075,7 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 		conn->AppendAddl(fmt("tag=%s",
 					conn->GetTimerMgr()->GetTag().c_str()));
 
-	// If the connection compressor is active, it takes care of the
-	// new_connection/connection_external events for TCP connections.
-	if ( new_connection &&
-	     (tproto != TRANSPORT_TCP || ! use_connection_compressor) )
+	if ( new_connection )
 		{
 		conn->Event(new_connection, 0);
 

@@ -1,4 +1,5 @@
-# 
+# @TEST-GROUP: comm
+#
 # @TEST-EXEC: btest-bg-run receiver bro -b ../receiver.bro
 # @TEST-EXEC: btest-bg-run sender   bro -b ../sender.bro
 # @TEST-EXEC: btest-bg-wait -k 10

@@ -87,7 +87,7 @@ public:
 			uint32 tstamp, /* uint8 TOS, */ uint32 quirks,
 			uint8 ECN) const;
 
-	bool CompareWithPreviousOSMatch(uint32 addr, int id) const;
+	bool CompareWithPreviousOSMatch(const IPAddr& addr, int id) const;
 
 	// Looks up the connection referred to by the given Val,
 	// which should be a conn_id record.  Returns nil if there's

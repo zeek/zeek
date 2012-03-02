@@ -5,6 +5,24 @@ Release Notes
 This document summarizes the most important changes in the current Bro
 release. For a complete list of changes, see the ``CHANGES`` file.
 
+
+Bro 2.1
+-------
+
+- Dependencies:
+
+    * Bro now requires CMake >= 2.6.3.
+
+- Bro now supports IPv6 out of the box; the configure switch
+  --enable-brov6 is gone.
+
+- DNS name lookups performed by Bro now also query AAAA records. The
+  results of the A and AAAA queries for a given hostname are combined
+  such that at the scripting layer, the name resolution can yield a
+  set with both IPv4 and IPv6 addresses.
+
+TODO: Extend.
+
 Bro 2.0
 -------
 
@@ -58,7 +76,6 @@ final release are:
 
     * Many smaller bug fixes, portability improvements, and general
       polishing across all modules.
-
 
 
 

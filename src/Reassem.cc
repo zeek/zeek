@@ -43,7 +43,7 @@ DataBlock::DataBlock(const u_char* data, int size, int arg_seq,
 
 unsigned int Reassembler::total_size = 0;
 
-Reassembler::Reassembler(int init_seq, const uint32* ip_addr,
+Reassembler::Reassembler(int init_seq, const IPAddr& ip_addr,
 			ReassemblerType arg_type)
 	{
 	blocks = last_block = 0;

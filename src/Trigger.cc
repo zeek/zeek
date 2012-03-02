@@ -410,7 +410,7 @@ Val* Trigger::Lookup(const CallExpr* expr)
 	return (i != cache.end()) ? i->second : 0;
 	}
 
-const char* Trigger::Name()
+const char* Trigger::Name() const
 	{
 	assert(location);
 	return fmt("%s:%d-%d", location->filename,

@@ -635,10 +635,10 @@ function add_signature_file(sold: string, snew: string): string
 	}
 
 ## Signature files to read. Use ``redef signature_files  += "foo.sig"`` to
-## extend. Signature files will be searched relative to ``BRO_PATH``.
+## extend. Signature files will be searched relative to ``BROPATH``.
 global signature_files = "" &add_func = add_signature_file;
 
-## ``p0f`` fingerprint file to use. Will be searched relative to ``BRO_PATH``.
+## ``p0f`` fingerprint file to use. Will be searched relative to ``BROPATH``.
 const passive_fingerprint_file = "base/misc/p0f.fp" &redef;
 
 # todo::testing to see if I can remove these without causing problems.
@@ -1753,13 +1753,6 @@ global dns_skip_all_addl = T &redef;
 ## traffic and do not process it.  Set to 0 to turn off this functionality. 
 global dns_max_queries = 5;
 
-## The maxiumum size in bytes for an SSL cipher specifcation.  If we see a packet
-## that has bigger cipherspecs, we won't do a comparisons of cipherspecs.
-const ssl_max_cipherspec_size = 68 &redef;
-
-# todo::Is this still used?
-# type X509_extensions: table[count] of string;
-
 ## An X509 certificate.
 ##
 ## .. bro:see:: x509_certificate 
@@ -1771,10 +1764,6 @@ type X509: record {
 	not_valid_before: time;	##< Timestamp before when certificate is not valid.
 	not_valid_after: time;	##< Timestamp after when certificate is not valid.
 };
-
-# This is indexed with the CA's name and yields a DER (binary) encoded certificate.
-# todo::Is this still used?
-# const root_ca_certs: table[string] of string = {} &redef;
 
 ## HTTP session statistics.
 ##
@@ -2192,26 +2181,6 @@ const forward_remote_state_changes = F &redef;
 
 ## Place-holder constant indicating "no peer".
 const PEER_ID_NONE = 0;
-
-## Deprecated.
-## 
-## .. todo:: The connection compressor is scheduled to be removed from Bro.
-const use_connection_compressor = F &redef;
-
-## Deprecated.
-## 
-## .. todo:: The connection compressor is scheduled to be removed from Bro.
-const cc_handle_resets = F &redef;
-
-## Deprecated.
-## 
-## .. todo:: The connection compressor is scheduled to be removed from Bro.
-const cc_handle_only_syns = T &redef;
-
-## Deprecated.
-## 
-## .. todo:: The connection compressor is scheduled to be removed from Bro.
-const cc_instantiate_on_data = F &redef;
 
 # Signature payload pattern types.
 # todo::use enum to help autodoc

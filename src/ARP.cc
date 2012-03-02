@@ -17,7 +17,7 @@ ARP_Analyzer::~ARP_Analyzer()
 	{
 	}
 
-bool ARP_Analyzer::IsARP(const u_char* pkt, int hdr_size) const
+bool ARP_Analyzer::IsARP(const u_char* pkt, int hdr_size)
 	{
 	unsigned short network_protocol =
 		*(unsigned short*) (pkt + hdr_size - 2);

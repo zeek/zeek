@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <cstring>
 #include <utility>
 #include <algorithm>
 #include "Brofiler.h"
@@ -48,7 +49,38 @@ bool Brofiler::WriteStats()
 	char* bf = getenv("BRO_PROFILER_FILE");
 	if ( ! bf ) return false;
 
-	FILE* f = fopen(bf, "w");
+	bool gen_unique = false;
+	const char* p = strstr(bf, ".X");
+	if ( p )
+		{
+		gen_unique = true;
+		while ( *(++p) )
+			{
+			if ( *p != 'X' )
+				{
+				gen_unique = false;
+				break;
+				}
+			}
+		}
+
+	FILE* f;
+
+	if ( gen_unique )
+		{
+		int fd = mkstemp(bf);
+		if ( fd == -1 )
+			{
+			reporter->Error("Failed to generate unique file name from BRO_PROFILER_FILE: %s\n", bf);
+			return false;
+			}
+		f = fdopen(fd, "w");
+		}
+	else
+		{
+		f = fopen(bf, "w");
+		}
+
 	if ( ! f )
 		{
 		reporter->Error("Failed to open BRO_PROFILER_FILE destination '%s' for writing\n", bf);

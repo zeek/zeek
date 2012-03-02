@@ -67,6 +67,7 @@ void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
 
 		default:
 			reporter->InternalError("unexpected IP proto in ICMP analyzer");
+			break;
 		}
 
 		if ( chksum != 0xffff )
@@ -108,7 +109,7 @@ void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
 
 void ICMP_Analyzer::NextICMP4(double t, const struct icmp* icmpp, int len, int caplen,
 		const u_char*& data, const IP_Hdr* ip_hdr )
-    {
+	{
 	switch ( icmpp->icmp_type )
 		{
 		case ICMP_ECHO:
@@ -119,10 +120,11 @@ void ICMP_Analyzer::NextICMP4(double t, const struct icmp* icmpp, int len, int c
 		case ICMP_UNREACH:
 		case ICMP_TIMXCEED:
 			Context4(t, icmpp, len, caplen, data, ip_hdr);
-	   		break;
+			break;
 
 		default:
-			ICMPEvent(icmp_sent, icmpp, len, 0); break;
+			ICMPEvent(icmp_sent, icmpp, len, 0);
+			break;
 		}
 	}
 
@@ -257,6 +259,7 @@ TransportProto ICMP_Analyzer::GetContextProtocol(const IP_Hdr* ip_hdr, uint32* s
 
 	default:
 		*src_port = *dst_port = ntohs(0);
+		break;
 	}
 
 	return proto;
@@ -350,7 +353,6 @@ RecordVal* ICMP_Analyzer::ExtractICMP6Context(int len, const u_char*& data)
 		src_addr = dst_addr = 0;
 		src_port = dst_port = 0;
 		}
-
 	else
 		{
 		ip_len = ip_hdr->TotalLen();
@@ -393,7 +395,6 @@ RecordVal* ICMP_Analyzer::ExtractICMP6Context(int len, const u_char*& data)
 
 	return iprec;
 	}
-
 
 bool ICMP_Analyzer::IsReuse(double /* t */, const u_char* /* pkt */)
 	{
@@ -534,11 +535,11 @@ void ICMP_Analyzer::Context4(double t, const struct icmp* icmpp,
 		{
 		case ICMP_UNREACH:
 			f = icmp_unreachable;
-		break;
+			break;
 
 		case ICMP_TIMXCEED:
 			f = icmp_error_message;
-		break;
+			break;
 		}
 
 	if ( f )

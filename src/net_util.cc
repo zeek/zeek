@@ -122,7 +122,7 @@ int icmp6_checksum(const struct icmp* icmpp, const struct ip6_hdr* ip6, int len)
 
 	if ( len % 2 == 1 )
 		// Add in pad byte.
-		sum += htons(((const u_char*) icmpp)[len - 1] << 8);
+		sum = htons(((const u_char*) icmpp)[len - 1] << 8);
 	else
 		sum = 0;
 

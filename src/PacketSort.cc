@@ -33,7 +33,7 @@ PacketSortElement::PacketSortElement(PktSrc* arg_src,
 
 		if ( ip_hdr->NextProto() == IPPROTO_TCP &&
 		      // Note: can't sort fragmented packets
-		     (ip_hdr->FragField() & 0x3fff) == 0 )
+		     ( ! ip_hdr->IsFragment() ) )
 			{
 			tcp_offset = hdr_size + ip_hdr->HdrLen();
 			if ( caplen >= tcp_offset + sizeof(struct tcphdr) )

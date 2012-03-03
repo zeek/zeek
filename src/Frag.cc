@@ -27,7 +27,7 @@ void FragTimer::Dispatch(double t, int /* is_expire */)
 
 FragReassembler::FragReassembler(NetSessions* arg_s,
 			const IP_Hdr* ip, const u_char* pkt,
-			uint32 frag_field, HashKey* k, double t)
+			HashKey* k, double t)
 : Reassembler(0, ip->DstAddr(), REASSEM_IP)
 	{
 	s = arg_s;
@@ -41,7 +41,7 @@ FragReassembler::FragReassembler(NetSessions* arg_s,
 	reassembled_pkt = 0;
 	frag_size = 0;	// flag meaning "not known"
 
-	AddFragment(t, ip, pkt, frag_field);
+	AddFragment(t, ip, pkt);
 
 	if ( frag_timeout != 0.0 )
 		{
@@ -60,8 +60,7 @@ FragReassembler::~FragReassembler()
 	delete key;
 	}
 
-void FragReassembler::AddFragment(double t, const IP_Hdr* ip, const u_char* pkt,
-				uint32 frag_field)
+void FragReassembler::AddFragment(double t, const IP_Hdr* ip, const u_char* pkt)
 	{
 	const struct ip* ip4 = ip->IP4_Hdr();
 
@@ -72,16 +71,16 @@ void FragReassembler::AddFragment(double t, const IP_Hdr* ip, const u_char* pkt,
 		// attack.
 		s->Weird("fragment_protocol_inconsistency", ip);
 
-	if ( frag_field & 0x4000 )
+	if ( ip->DF() )
 		// Linux MTU discovery for UDP can do this, for example.
 		s->Weird("fragment_with_DF", ip);
 
-	int offset = (ntohs(ip4->ip_off) & 0x1fff) * 8;
+	int offset = ip->FragOffset();
 	int len = ntohs(ip4->ip_len);
 	int hdr_len = proto_hdr->ip_hl * 4;
 	int upper_seq = offset + len - hdr_len;
 
-	if ( (frag_field & 0x2000) == 0 )
+	if ( ! ip->MF() )
 		{
 		// Last fragment.
 		if ( frag_size == 0 )

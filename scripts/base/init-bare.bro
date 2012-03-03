@@ -939,11 +939,154 @@ const IPPROTO_IGMP = 2;			##< Group management protocol.
 const IPPROTO_IPIP = 4;			##< IP encapsulation in IP.
 const IPPROTO_TCP = 6;			##< TCP.
 const IPPROTO_UDP = 17;			##< User datagram protocol.
+const IPPROTO_IPV6 = 41;		##< IPv6 header.
 const IPPROTO_RAW = 255;		##< Raw IP packet.
 
-## Values extracted from an IP header.
+# Definitions for IPv6 extension headers.
+const IPPROTO_HOPOPTS = 0;		##< IPv6 hop-by-hop-options header.
+const IPPROTO_ROUTING = 43;		##< IPv6 routing header.
+const IPPROTO_FRAGMENT = 44;	##< IPv6 fragment header.
+const IPPROTO_ESP = 50;			##< IPv6 encapsulating security payload header.
+const IPPROTO_AH = 51;			##< IPv6 authentication header.
+const IPPROTO_NONE = 59;		##< IPv6 no next header.
+const IPPROTO_DSTOPTS = 60;		##< IPv6 destination options header.
+
+## Values extracted from an IPv6 header.
 ##
-## .. bro:see:: pkt_hdr discarder_check_ip
+## .. bro:see:: pkt_hdr ip_hdr ip6_hdr_chain ip6_hopopts ip6_dstopts ip6_routing
+##    ip6_fragment ip6_ah ip6_esp
+type ip6_hdr: record {
+	class: count;		##< Traffic class.
+	flow: count;		##< Flow label.
+	len: count;			##< Payload length.
+	nxt: count;			##< Next header (RFC 1700 assigned number).
+	hlim: count;		##< Hop limit.
+	src: addr;			##< Source address.
+	dst: addr;			##< Destination address.
+};
+
+## Values extracted from an IPv6 extension header's (e.g. hop-by-hop or
+## destination option headers) option field.
+##
+## .. bro:see:: ip6_hdr ip6_hdr_chain ip6_hopopts ip6_dstopts
+type ip6_option: record {
+	otype: count;	##< Option type.
+	len: count;		##< Option data length.
+	data: string;	##< Option data.
+};
+
+## Values extracted from an IPv6 Hop-by-Hop options extension header.
+##
+## .. bro:see:: pkt_hdr ip_hdr ip6_hdr ip6_hdr_chain ip6_option
+type ip6_hopopts: record {
+	## Next header (RFC 1700 assigned number).
+	nxt: count;
+	## Length of header in 8-octet units, excluding first unit.
+	len: count;
+	## The TLV encoded options;
+	options: vector of ip6_option;
+};
+
+## Values extracted from an IPv6 Destination options extension header.
+##
+## .. bro:see:: pkt_hdr ip_hdr ip6_hdr ip6_hdr_chain ip6_option
+type ip6_dstopts: record {
+	## Next header (RFC 1700 assigned number).
+	nxt: count;
+	## Length of header in 8-octet units, excluding first unit.
+	len: count;
+	## The TLV encoded options;
+	options: vector of ip6_option;
+};
+
+## Values extracted from an IPv6 Routing extension header.
+##
+## .. bro:see:: pkt_hdr ip_hdr ip6_hdr ip6_hdr_chain
+type ip6_routing: record {
+	## Next header (RFC 1700 assigned number).
+	nxt: count;
+	## Length of header in 8-octet units, excluding first unit.
+	len: count;
+	## Routing type.
+	rtype: count;
+	## Segments left.
+	segleft: count;
+	## Type-specific data.
+	data: string;
+};
+
+## Values extracted from an IPv6 Fragment extension header.
+##
+## .. bro:see:: pkt_hdr ip_hdr ip6_hdr ip6_hdr_chain
+type ip6_fragment: record {
+	## Next header (RFC 1700 assigned number).
+	nxt: count;
+	## 8-bit reserved field.
+	rsv1: count;
+	## Fragmentation offset.
+	offset: count;
+	## 2-bit reserved field.
+	rsv2: count;
+	## More fragments.
+	more: bool;
+	## Fragment identification.
+	id: count;
+};
+
+## Values extracted from an IPv6 Authentication extension header.
+##
+## .. bro:see:: pkt_hdr ip_hdr ip6_hdr ip6_hdr_chain
+type ip6_ah: record {
+	## Next header (RFC 1700 assigned number).
+	nxt: count;
+	## Length of header in 4-octet units, excluding first two units.
+	len: count;
+	## Reserved field.
+	rsv: count;
+	## Security Parameter Index.
+	spi: count;
+	## Sequence number.
+	seq: count;
+	## Authentication data.
+	data: string;
+};
+
+## Values extracted from an IPv6 ESP extension header.
+##
+## .. bro:see:: pkt_hdr ip_hdr ip6_hdr ip6_hdr_chain
+type ip6_esp: record {
+	## Security Parameters Index.
+	spi: count;
+	## Sequence number.
+	seq: count;
+};
+
+## An IPv6 header chain.
+##
+## .. bro:see:: pkt_hdr ip_hdr
+type ip6_hdr_chain: record {
+	## The main IPv6 header.
+	hdr: ip6_hdr;
+	## Hop-by-hop option extension header.
+	hopopts: vector of ip6_hopopts;
+	## Destination option extension headers.
+	dstopts: vector of ip6_dstopts;
+	## Routing extension headers.
+	routing: vector of ip6_routing;
+	## Fragment headers.
+	fragment: vector of ip6_fragment;
+	## Authentication extension headers.
+	ah: vector of ip6_ah;
+	## Encapsulating security payload headers.
+	esp: vector of ip6_esp;
+
+	## Order of extension headers identified by RFC 1700 assigned numbers.
+	ext_order: vector of count;
+};
+
+## Values extracted from an IPv4 header.
+##
+## .. bro:see:: pkt_hdr ip6_hdr discarder_check_ip
 type ip_hdr: record {
 	hl: count;		##< Header length in bytes.
 	tos: count;		##< Type of service.
@@ -1000,10 +1143,11 @@ type icmp_hdr: record {
 ##
 ## .. bro:see:: new_packet
 type pkt_hdr: record {
-	ip: ip_hdr;	##< The IP header.
-	tcp: tcp_hdr &optional;	##< The TCP header if a TCP packet.
-	udp: udp_hdr &optional;	##< The UDP header if a UDP packet.
-	icmp: icmp_hdr &optional;	##< The ICMP header if an ICMP packet.
+	ip: ip_hdr &optional;			##< The IPv4 header if an IPv4 packet.
+	ip6: ip6_hdr_chain &optional;	##< The IPv6 header chain if an IPv6 packet.
+	tcp: tcp_hdr &optional;			##< The TCP header if a TCP packet.
+	udp: udp_hdr &optional;			##< The UDP header if a UDP packet.
+	icmp: icmp_hdr &optional;		##< The ICMP header if an ICMP packet.
 };
 
 ## Definition of "secondary filters". A secondary filter is a BPF filter given as

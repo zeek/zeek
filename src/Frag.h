@@ -20,11 +20,10 @@ typedef void (FragReassembler::*frag_timer_func)(double t);
 class FragReassembler : public Reassembler {
 public:
 	FragReassembler(NetSessions* s, const IP_Hdr* ip, const u_char* pkt,
-			uint32 frag_field, HashKey* k, double t);
+			HashKey* k, double t);
 	~FragReassembler();
 
-	void AddFragment(double t, const IP_Hdr* ip, const u_char* pkt,
-				uint32 frag_field);
+	void AddFragment(double t, const IP_Hdr* ip, const u_char* pkt);
 
 	void Expire(double t);
 	void DeleteTimer();

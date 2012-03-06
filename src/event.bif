@@ -4594,7 +4594,6 @@ event ssh_server_version%(c: connection, version: string%);
 ##
 ## .. bro:see:: ssl_alert  ssl_established ssl_extension ssl_server_hello
 ##    ssl_session_ticket_handshake x509_certificate x509_error x509_extension
-##    ssl_max_cipherspec_size
 event ssl_client_hello%(c: connection, version: count, possible_ts: time, session_id: string, ciphers: count_set%);
 
 ## Generated for an SSL/TLS servers's initial *hello* message. SSL/TLS sessions
@@ -4625,7 +4624,6 @@ event ssl_client_hello%(c: connection, version: count, possible_ts: time, sessio
 ##
 ## .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_extension
 ##    ssl_session_ticket_handshake x509_certificate x509_error x509_extension
-##    ssl_max_cipherspec_size
 event ssl_server_hello%(c: connection, version: count, possible_ts: time, session_id: string, cipher: count, comp_method: count%);
 
 ## Generated for SSL/TLS extensions seen in an initial handshake.  SSL/TLS sessions

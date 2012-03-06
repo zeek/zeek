@@ -26,7 +26,7 @@ RecordVal* IPv6_Hdr::BuildRecordVal() const
 	{
 	RecordVal* rv = new RecordVal(hdrType(ip6_hdr_type, "ip6_hdr"));
 	const struct ip6_hdr* ip6 = (const struct ip6_hdr*)data;
-	rv->Assign(0, new Val(ntohl(ip6->ip6_flow) & 0x0ff00000, TYPE_COUNT));
+	rv->Assign(0, new Val((ntohl(ip6->ip6_flow) & 0x0ff00000)>>20, TYPE_COUNT));
 	rv->Assign(1, new Val(ntohl(ip6->ip6_flow) & 0x000fffff, TYPE_COUNT));
 	rv->Assign(2, new Val(ntohs(ip6->ip6_plen), TYPE_COUNT));
 	rv->Assign(3, new Val(ip6->ip6_nxt, TYPE_COUNT));
@@ -96,8 +96,8 @@ RecordVal* IPv6_Fragment::BuildRecordVal() const
 	const struct ip6_frag* frag = (const struct ip6_frag*)data;
 	rv->Assign(0, new Val(frag->ip6f_nxt, TYPE_COUNT));
 	rv->Assign(1, new Val(frag->ip6f_reserved, TYPE_COUNT));
-	rv->Assign(2, new Val(ntohs(frag->ip6f_offlg) & 0xfff8, TYPE_COUNT));
-	rv->Assign(3, new Val(ntohs(frag->ip6f_offlg) & 0x0006, TYPE_COUNT));
+	rv->Assign(2, new Val((ntohs(frag->ip6f_offlg) & 0xfff8)>>3, TYPE_COUNT));
+	rv->Assign(3, new Val((ntohs(frag->ip6f_offlg) & 0x0006)>>1, TYPE_COUNT));
 	rv->Assign(4, new Val(ntohs(frag->ip6f_offlg) & 0x0001, TYPE_BOOL));
 	rv->Assign(5, new Val(ntohl(frag->ip6f_ident), TYPE_COUNT));
 	return rv;
@@ -210,23 +210,24 @@ RecordVal* IP_Hdr::BuildRecordVal() const
 	return rval;
 	}
 
-static inline IPv6_Hdr* getIPv6Header(uint8 type, const u_char* d)
+static inline IPv6_Hdr* getIPv6Header(uint8 type, const u_char* d,
+                                      bool set_next = false, uint16 nxt = 0)
 	{
 	switch (type) {
 	case IPPROTO_IPV6:
-		return new IPv6_Hdr(d);
+		return set_next ? new IPv6_Hdr(d, nxt) : new IPv6_Hdr(d);
 	case IPPROTO_HOPOPTS:
-		return new IPv6_HopOpts(d);
+		return set_next ? new IPv6_HopOpts(d, nxt) : new IPv6_HopOpts(d);
 	case IPPROTO_ROUTING:
-		return new IPv6_Routing(d);
+		return set_next ? new IPv6_Routing(d, nxt) : new IPv6_Routing(d);
 	case IPPROTO_DSTOPTS:
-		return new IPv6_DstOpts(d);
+		return set_next ? new IPv6_DstOpts(d, nxt) : new IPv6_DstOpts(d);
 	case IPPROTO_FRAGMENT:
-		return new IPv6_Fragment(d);
+		return set_next ? new IPv6_Fragment(d, nxt) : new IPv6_Fragment(d);
 	case IPPROTO_AH:
-		return new IPv6_AH(d);
+		return set_next ? new IPv6_AH(d, nxt) : new IPv6_AH(d);
 	case IPPROTO_ESP:
-		return new IPv6_ESP(d);
+		return new IPv6_ESP(d); // never able to set ESP header's next
 	default:
 		// should never get here if calls are protected by isIPv6ExtHeader()
 		reporter->InternalError("Unknown IPv6 header type: %d", type);
@@ -252,7 +253,7 @@ static inline bool isIPv6ExtHeader(uint8 type)
 	}
 	}
 
-IPv6_Hdr_Chain::IPv6_Hdr_Chain(const struct ip6_hdr* ip6)
+void IPv6_Hdr_Chain::Init(const struct ip6_hdr* ip6, bool set_next, uint16 next)
 	{
 	length = 0;
 	uint8 current_type, next_type;
@@ -262,7 +263,7 @@ IPv6_Hdr_Chain::IPv6_Hdr_Chain(const struct ip6_hdr* ip6)
 	do
 		{
 		current_type = next_type;
-		chain.push_back(getIPv6Header(current_type, hdrs));
+		chain.push_back(getIPv6Header(current_type, hdrs, set_next, next));
 		next_type = chain[chain.size()-1]->NextHdr();
 		uint16 len = chain[chain.size()-1]->Length();
 		hdrs += len;

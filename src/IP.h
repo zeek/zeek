@@ -260,6 +260,10 @@ public:
 	IPAddr DstAddr() const
 		{ return ip4 ? IPAddr(ip4->ip_dst) : IPAddr(ip6->ip6_dst); }
 
+	/**
+	 * Returns a pointer to the payload of the IP packet, usually an
+	 * upper-layer protocol.
+	 */
 	const u_char* Payload() const
 		{
 		if ( ip4 )
@@ -268,6 +272,10 @@ public:
 			return ((const u_char*) ip6) + ip6_hdrs->TotalLength();
 		}
 
+	/**
+	 * Returns the length of the IP packet's payload (length of packet minus
+	 * header length or, for IPv6, also minus length of all extension headers).
+	 */
 	uint16 PayloadLen() const
 		{
 		if ( ip4 )
@@ -276,16 +284,30 @@ public:
 			return ntohs(ip6->ip6_plen) + 40 - ip6_hdrs->TotalLength();
 		}
 
+	/**
+	 * Returns the length of the IP packet (length of headers and payload).
+	 */
 	uint32 TotalLen() const
 		{ return ip4 ? ntohs(ip4->ip_len) : ntohs(ip6->ip6_plen) + 40; }
 
+	/**
+	 * Returns length of IP packet header (includes extension headers for IPv6).
+	 */
 	uint16 HdrLen() const
 		{ return ip4 ? ip4->ip_hl * 4 : ip6_hdrs->TotalLength(); }
 
+	/**
+	 * For IPv6 header chains, returns the type of the last header in the chain.
+	 */
 	uint8 LastHeader() const
 		{ return ip4 ? IPPROTO_RAW :
 				((*ip6_hdrs)[ip6_hdrs->Size()-1])->Type(); }
 
+	/**
+	 * Returns the protocol type of the IP packet's payload, usually an
+	 * upper-layer protocol.  For IPv6, this returns the last (extension)
+	 * header's Next Header value.
+	 */
 	unsigned char NextProto() const
 		{ return ip4 ? ip4->ip_p :
 				((*ip6_hdrs)[ip6_hdrs->Size()-1])->NextHdr(); }
@@ -297,23 +319,42 @@ public:
 		{ return ip4 ? (ntohs(ip4->ip_off) & 0x3fff) != 0 :
 				ip6_hdrs->IsFragment(); }
 
+	/**
+	 * Returns the fragment packet's offset in relation to the original
+	 * packet in bytes.
+	 */
 	uint16 FragOffset() const
 		{ return ip4 ? (ntohs(ip4->ip_off) & 0x1fff) * 8 :
 				ip6_hdrs->FragOffset(); }
 
+	/**
+	 * Returns the fragment packet's identification field.
+	 */
 	uint32 ID() const
 		{ return ip4 ? ntohs(ip4->ip_id) : ip6_hdrs->ID(); }
 
+	/**
+	 * Returns whether a fragment packet's "More Fragments" field is set.
+	 */
 	int MF() const
 		{ return ip4 ? (ntohs(ip4->ip_off) & 0x2000) != 0 : ip6_hdrs->MF(); }
 
-	// IPv6 has no "Don't Fragment" flag.
+	/**
+	 * Returns whether a fragment packet's "Don't Fragment" field is set.
+	 * Note that IPv6 has no such field.
+	 */
 	int DF() const
 		{ return ip4 ? ((ntohs(ip4->ip_off) & 0x4000) != 0) : 0; }
 
+	/**
+	 * Returns number of IP headers in packet (includes IPv6 extension headers).
+	 */
 	size_t NumHeaders() const
 		{ return ip4 ? 1 : ip6_hdrs->Size(); }
 
+	/**
+	 * Returns an ip_hdr or ip6_hdr_chain RecordVal.
+	 */
 	RecordVal* BuildRecordVal() const;
 
 private:

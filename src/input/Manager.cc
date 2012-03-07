@@ -1428,12 +1428,12 @@ int Manager::GetValueLength(const Value* val) {
 
 	case TYPE_ADDR:
 		{
-			switch ( val->val.addr_val->GetFamily() ) {
-			case IPAddr::IPv4:
-				length += 1*sizeof(uint32_t);
+			switch ( val->val.addr_val.family ) {
+			case IPv4:
+				length += sizeof(val->val.addr_val.in.in4);
 				break;
-			case IPAddr::IPv6:
-				length += 4*sizeof(uint32_t);
+			case IPv6:
+				length += sizeof(val->val.addr_val.in.in6);
 				break;
 			default:
 				assert(false);
@@ -1444,12 +1444,12 @@ int Manager::GetValueLength(const Value* val) {
 
 	case TYPE_SUBNET:
 		{
-			switch ( val->val.addr_val->GetFamily() ) {
-			case IPAddr::IPv4:
-				length += 1*sizeof(uint32_t)+sizeof(uint8_t);
+			switch ( val->val.subnet_val.prefix.family ) {
+			case IPv4:
+				length += sizeof(val->val.subnet_val.prefix.in.in4)+sizeof(val->val.subnet_val.length);
 				break;
-			case IPAddr::IPv6:
-				length += 4*sizeof(uint32_t)+sizeof(uint8_t);
+			case IPv6:
+				length += sizeof(val->val.subnet_val.prefix.in.in6)+sizeof(val->val.subnet_val.length);
 				break;
 			default:
 				assert(false);
@@ -1527,23 +1527,47 @@ int Manager::CopyValue(char *data, const int startpos, const Value* val) {
 
 	case TYPE_ADDR:
 		{
-		const uint32_t* bytes;
-		int len = val->val.addr_val->GetBytes(&bytes) * sizeof(uint32_t);
-		memcpy(data+startpos, (const char*) bytes, len);
-		return len;
-		break;
-		}
+			int length;
+			switch ( val->val.addr_val.family ) {
+			case IPv4:
+				length = sizeof(val->val.addr_val.in.in4);
+				memcpy(data + startpos, (const char*) &(val->val.addr_val.in.in4), length);
+				break;
+			case IPv6:
+				length = sizeof(val->val.addr_val.in.in6);
+				memcpy(data + startpos, (const char*) &(val->val.addr_val.in.in6), length);
+				break;
+			default:
+				assert(false);
+			}
 
-	case TYPE_SUBNET: {
-		const uint32_t* bytes;
-		int len = val->val.subnet_val->Prefix().GetBytes(&bytes) * sizeof(uint32_t);
-		memcpy(data+startpos, (const char*) bytes, len);
-		uint8_t prefixlen = val->val.subnet_val->Length();
-		memcpy(data+startpos+len, (const char*) &(prefixlen), sizeof(uint8_t) );
-		len += sizeof(uint8_t);		
-		return len;
-		break;
+			return length;
+
 		}
+		break;
+	
+	case TYPE_SUBNET: 
+		{
+			int length;
+			switch ( val->val.subnet_val.prefix.family ) {
+			case IPv4:
+				length = sizeof(val->val.addr_val.in.in4);
+				memcpy(data + startpos, (const char*) &(val->val.subnet_val.prefix.in.in4), length);
+				break;
+			case IPv6:
+				length += sizeof(val->val.addr_val.in.in6);
+				memcpy(data + startpos, (const char*) &(val->val.subnet_val.prefix.in.in4), length);
+				break;
+			default:
+				assert(false);
+			}
+			int lengthlength = sizeof(val->val.subnet_val.length);
+			memcpy(data + startpos + length , (const char*) &(val->val.subnet_val.length), lengthlength);
+			length += lengthlength;
+			return length;
+
+		}
+		break;
 
 	case TYPE_TABLE: {
 		int length = 0;
@@ -1648,11 +1672,42 @@ Val* Manager::ValueToVal(const Value* val, BroType* request_type) {
 		break;
 
 	case TYPE_ADDR:
-		return new AddrVal(*(val->val.addr_val));
-		break;
+		{
+			IPAddr* addr;
+			switch ( val->val.addr_val.family ) {
+			case IPv4:
+				addr = new IPAddr(val->val.addr_val.in.in4);
+				break;
+			case IPv6:
+				addr = new IPAddr(val->val.addr_val.in.in6);
+				break;
+			default:
+				assert(false);
+			}
+			AddrVal* addrval = new AddrVal(*addr);
+			delete addr;
+			return addrval;
+
+		}
 
 	case TYPE_SUBNET:
-		return new SubNetVal(*(val->val.subnet_val));
+		{
+			IPAddr* addr;
+			switch ( val->val.subnet_val.prefix.family ) {
+			case IPv4:
+				addr = new IPAddr(val->val.subnet_val.prefix.in.in4);
+				break;
+			case IPv6:
+				addr = new IPAddr(val->val.subnet_val.prefix.in.in6);
+				break;
+			default:
+				assert(false);
+			}
+			SubNetVal* subnetval = new SubNetVal(*addr, val->val.subnet_val.length);
+			delete addr;
+			return subnetval;
+
+		}
 		break;
 
 	case TYPE_TABLE: {

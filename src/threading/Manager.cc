@@ -106,9 +106,12 @@ void Manager::Process()
 
 		Message* msg = t->RetrieveOut();
 
-		if ( msg->Process() ) //&& network_time ) // FIXME: ask robin again if he needs this. makes input interface not work in bro_init.
-			did_process = true;
+		if ( msg->Process() ) 
+			{
+			//if ( network_time ) //&& network_time ) // FIXME: ask robin again if he needs this. makes input interface not work in bro_init.
 
+				did_process = true;
+			}
 		else
 			{
 			string s = msg->Name() + " failed, terminating thread " + t->Name() + " (in ThreadManager)";

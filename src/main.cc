@@ -43,7 +43,6 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "PersistenceSerializer.h"
 #include "EventRegistry.h"
 #include "Stats.h"
-#include "ConnCompressor.h"
 #include "DPM.h"
 #include "BroDoc.h"
 #include "Brofiler.h"
@@ -101,7 +100,6 @@ int do_notice_analysis = 0;
 int rule_bench = 0;
 int generate_documentation = 0;
 SecondaryPath* secondary_path = 0;
-ConnCompressor* conn_compressor = 0;
 extern char version[];
 char* command_line_policy = 0;
 vector<string> params;
@@ -305,7 +303,6 @@ void terminate_bro()
 	delete state_serializer;
 	delete event_registry;
 	delete secondary_path;
-	delete conn_compressor;
 	delete remote_serializer;
 	delete dpm;
 	delete log_mgr;
@@ -833,8 +830,6 @@ int main(int argc, char** argv)
 		}
 
 	delete [] script_rule_files;
-
-	conn_compressor = new ConnCompressor();
 
 	if ( g_policy_debug )
 		// ### Add support for debug command file.

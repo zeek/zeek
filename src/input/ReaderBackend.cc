@@ -273,5 +273,49 @@ bool ReaderBackend::DoHeartbeat(double network_time, double current_time)
 	return true;
 }
 
+TransportProto ReaderBackend::StringToProto(const string &proto) {
+	if ( proto == "unknown" ) {
+		return TRANSPORT_UNKNOWN;
+	} else if ( proto == "tcp" ) {
+		return TRANSPORT_TCP;
+	} else if ( proto == "udp" ) {
+		return TRANSPORT_UDP;
+	} else if ( proto == "icmp" ) {
+		return TRANSPORT_ICMP;
+	}
+
+	Error(Fmt("Tried to parse invalid/unknown protocol: %s", proto.c_str()));
+
+	return TRANSPORT_UNKNOWN;
+}
+
+
+// more or less verbose copy from IPAddr.cc -- which uses reporter
+Value::addr_t ReaderBackend::StringToAddr(const string &s) {
+	Value::addr_t val;
+
+	if ( s.find(':') == std::string::npos ) // IPv4.
+		{
+		val.family = IPv4;
+
+		if ( inet_aton(s.c_str(), &(val.in.in4)) <= 0 ) {
+			Error(Fmt("Bad addres: %s", s.c_str()));
+			memset(&val.in.in4.s_addr, 0, sizeof(val.in.in4.s_addr));
+		}
+
+
+		}
+	else
+		{
+		val.family = IPv6;
+		if ( inet_pton(AF_INET6, s.c_str(), val.in.in6.s6_addr) <=0 )
+			{
+			Error(Fmt("Bad IP address: %s", s.c_str()));
+			memset(val.in.in6.s6_addr, 0, sizeof(val.in.in6.s6_addr));
+			}
+		}
+
+	return val;
+}
 
 }

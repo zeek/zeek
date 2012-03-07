@@ -32,12 +32,6 @@ Value::~Value()
 	     && present )
 		delete val.string_val;
 
-	if ( type == TYPE_ADDR && present )
-		delete val.addr_val;
-
-	if ( type == TYPE_SUBNET && present )
-		delete val.subnet_val;
-
 	if ( type == TYPE_TABLE && present )
 		{
 		for ( int i = 0; i < val.set_val.size; i++ )
@@ -132,8 +126,8 @@ bool Value::Read(SerializationFormat* fmt)
 		if ( ! (fmt->Read(&val.port_val.port, "port") && fmt->Read(&proto, "proto") ) ) {
 			return false;
 		}
-		
-		switch (proto) {
+
+		switch ( proto ) {
 			case 0:
 				val.port_val.proto = TRANSPORT_UNKNOWN;
 				break;
@@ -149,20 +143,55 @@ bool Value::Read(SerializationFormat* fmt)
 			default:
 				return false;
 		}
+
 		return true;
-		}
-
-
-	case TYPE_SUBNET:
-		{
-		val.subnet_val = new IPPrefix;
-		return fmt->Read(val.subnet_val, "subnet");
 		}
 
 	case TYPE_ADDR:
 		{
-		val.addr_val = new IPAddr;
-		return fmt->Read(val.addr_val, "addr");
+		char family;
+
+		if ( ! fmt->Read(&family, "addr-family") )
+			return false;
+
+		switch ( family ) {
+		case 4:
+			val.addr_val.family = IPv4;
+			return fmt->Read(&val.addr_val.in.in4, "addr-in4");
+
+		case 6:
+			val.addr_val.family = IPv6;
+			return fmt->Read(&val.addr_val.in.in6, "addr-in6");
+
+		}
+
+		// Can't be reached.
+		abort();
+		}
+
+	case TYPE_SUBNET:
+		{
+		char length;
+		char family;
+
+		if ( ! (fmt->Read(&length, "subnet-len") && fmt->Read(&family, "subnet-family")) ) 
+			return false;
+
+		switch ( family ) {
+		case 4:
+			val.subnet_val.length = (uint8_t)length;
+			val.subnet_val.prefix.family = IPv4;
+			return fmt->Read(&val.subnet_val.prefix.in.in4, "subnet-in4");
+
+		case 6:
+			val.subnet_val.length = (uint8_t)length;
+			val.subnet_val.prefix.family = IPv6;
+			return fmt->Read(&val.subnet_val.prefix.in.in6, "subnet-in6");
+
+		}
+
+		// Can't be reached.
+		abort();
 		}
 
 	case TYPE_DOUBLE:
@@ -241,13 +270,44 @@ bool Value::Write(SerializationFormat* fmt) const
 		return fmt->Write(val.uint_val, "uint");
 
 	case TYPE_PORT:
-		return fmt->Write(val.port_val.port, "port") && fmt->Write(val.port_val.proto, "proto");	
-
-	case TYPE_SUBNET:
-		return fmt->Write(*val.subnet_val, "subnet");
+		return fmt->Write(val.port_val.port, "port") && fmt->Write(val.port_val.proto, "proto");
 
 	case TYPE_ADDR:
-		return fmt->Write(*val.addr_val, "addr");
+		{
+		switch ( val.addr_val.family ) {
+		case IPv4:
+			return fmt->Write((char)4, "addr-family")
+				&& fmt->Write(val.addr_val.in.in4, "addr-in4");
+
+		case IPv6:
+			return fmt->Write((char)6, "addr-family")
+				&& fmt->Write(val.addr_val.in.in6, "addr-in6");
+			break;
+		}
+
+		// Can't be reached.
+		abort();
+		}
+
+	case TYPE_SUBNET:
+		{
+		if ( ! fmt->Write((char)val.subnet_val.length, "subnet-length") )
+			return false;
+
+		switch ( val.subnet_val.prefix.family ) {
+		case IPv4:
+			return fmt->Write((char)4, "subnet-family")
+				&& fmt->Write(val.subnet_val.prefix.in.in4, "subnet-in4");
+
+		case IPv6:
+			return fmt->Write((char)6, "subnet-family")
+				&& fmt->Write(val.subnet_val.prefix.in.in6, "subnet-in6");
+			break;
+		}
+
+		// Can't be reached.
+		abort();
+		}
 
 	case TYPE_DOUBLE:
 	case TYPE_TIME:

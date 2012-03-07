@@ -239,30 +239,6 @@ public:
 	// Sets the transport protocol in use.
 	void SetTransport(TransportProto arg_proto)	{ proto = arg_proto; }
 
-	// If the connection compressor is activated, we need a special memory
-	// layout for connections. (See ConnCompressor.h)
-	void* operator new(size_t size)
-		{
-		if ( ! use_connection_compressor )
-			return ::operator new(size);
-
-		void* c = ::operator new(size + 4);
-
-		// We have to turn off the is_pending bit.  By setting the
-		// first four bytes to zero, we'll achieve this.
-		*((uint32*) c) = 0;
-
-		return ((char *) c) + 4;
-		}
-
-	void operator delete(void* ptr)
-		{
-		if ( ! use_connection_compressor )
-			::operator delete(ptr);
-		else
-			::operator delete(((char*) ptr) - 4);
-		}
-
 	void SetUID(uint64 arg_uid)	 { uid = arg_uid; }
 
 protected:

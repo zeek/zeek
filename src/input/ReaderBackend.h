@@ -267,6 +267,20 @@ protected:
 	 */
 	virtual bool DoHeartbeat(double network_time, double current_time);	
 
+	/**
+	 * Utility function for Readers - convert a string into a TransportProto
+	 *
+	 * @param proto the transport protocol
+	 */
+	TransportProto StringToProto(const string &proto);		
+
+	/**
+	 * Utility function for Readers - convert a string into a Value::addr_t
+	 *
+	 * @param addr containing an ipv4 or ipv6 address
+	 */
+	threading::Value::addr_t StringToAddr(const string &addr);
+
 private:
 	// Frontend that instantiated us. This object must not be access from
 	// this class, it's running in a different thread!

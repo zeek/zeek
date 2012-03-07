@@ -213,11 +213,6 @@ int sig_max_group_size;
 
 int enable_syslog;
 
-int use_connection_compressor;
-int cc_handle_resets;
-int cc_handle_only_syns;
-int cc_instantiate_on_data;
-
 TableType* irc_join_list;
 RecordType* irc_join_info;
 TableVal* irc_servers;
@@ -526,12 +521,6 @@ void init_net_var()
 	load_sample_freq = opt_internal_int("load_sample_freq");
 
 	gap_report_freq = opt_internal_double("gap_report_freq");
-
-	use_connection_compressor =
-		opt_internal_int("use_connection_compressor");
-	cc_handle_resets = opt_internal_int("cc_handle_resets");
-	cc_handle_only_syns = opt_internal_int("cc_handle_only_syns");
-	cc_instantiate_on_data = opt_internal_int("cc_instantiate_on_data");
 
 	irc_join_info = internal_type("irc_join_info")->AsRecordType();
 	irc_join_list = internal_type("irc_join_list")->AsTableType();

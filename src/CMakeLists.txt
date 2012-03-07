@@ -291,7 +291,6 @@ set(bro_SRCS
     ChunkedIO.cc
     CompHash.cc
     Conn.cc
-    ConnCompressor.cc
     ConnSizeAnalyzer.cc
     ContentLine.cc
     DCE_RPC.cc

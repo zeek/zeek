@@ -245,23 +245,6 @@ bool Ascii::GetLine(string& str) {
 	return false;
 }
 
-TransportProto Ascii::StringToProto(const string &proto) {
-	if ( proto == "unknown" ) {
-		return TRANSPORT_UNKNOWN;
-	} else if ( proto == "tcp" ) {
-		return TRANSPORT_TCP;
-	} else if ( proto == "udp" ) {
-		return TRANSPORT_UDP;
-	} else if ( proto == "icmp" ) {
-		return TRANSPORT_ICMP;
-	}
-
-	//assert(false);
-	
-	reporter->Error("Tried to parse invalid/unknown protocol: %s", proto.c_str());
-
-	return TRANSPORT_UNKNOWN;
-}
 
 Value* Ascii::EntryToVal(string s, FieldMapping field) {
 
@@ -309,20 +292,22 @@ Value* Ascii::EntryToVal(string s, FieldMapping field) {
 		break;
 
 	case TYPE_SUBNET: {
-		int pos = s.find("/");
+		size_t pos = s.find("/");
+		if ( pos == s.npos ) {
+			Error(Fmt("Invalid value for subnet: %s", s.c_str()));
+			return false;
+		}
 		int width = atoi(s.substr(pos+1).c_str());
 		string addr = s.substr(0, pos);
 
-		IPAddr a(addr);
-		val->val.subnet_val = new IPPrefix(a, width);
-
+		val->val.subnet_val.prefix = StringToAddr(addr);
+		val->val.subnet_val.length = width;
+		}
 		break;
 
-		}
-	case TYPE_ADDR: {
-		val->val.addr_val = new IPAddr(s);
+	case TYPE_ADDR: 
+		val->val.addr_val = StringToAddr(s);
 		break;
-		}
 
 	case TYPE_TABLE:
 	case TYPE_VECTOR:

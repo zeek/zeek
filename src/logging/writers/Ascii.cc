@@ -177,11 +177,11 @@ bool Ascii::DoWriteOne(ODesc* desc, Value* val, const Field* field)
 		break;
 
 	case TYPE_SUBNET:
-		desc->Add(*val->val.subnet_val);
+		desc->Add(Render(val->val.subnet_val));
 		break;
 
 	case TYPE_ADDR:
-		desc->Add(*val->val.addr_val);
+		desc->Add(Render(val->val.addr_val));
 		break;
 
 	case TYPE_TIME:

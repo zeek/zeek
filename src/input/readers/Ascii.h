@@ -67,8 +67,6 @@ private:
 
 	bool HasFilter(int id);
 
-	TransportProto StringToProto(const string &proto);		
-
 	bool ReadHeader(bool useCached);
 	threading::Value* EntryToVal(string s, FieldMapping type);
 

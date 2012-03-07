@@ -9,23 +9,13 @@
 
 class IP_Hdr {
 public:
-	IP_Hdr(struct ip* arg_ip4)
-		: ip4(arg_ip4), ip6(0), del(1)
+	IP_Hdr(const struct ip* arg_ip4, bool arg_del)
+		: ip4(arg_ip4), ip6(0), del(arg_del)
 		{
 		}
 
-	IP_Hdr(const struct ip* arg_ip4)
-		: ip4(arg_ip4), ip6(0), del(0)
-		{
-		}
-
-	IP_Hdr(struct ip6_hdr* arg_ip6)
-		: ip4(0), ip6(arg_ip6), del(1)
-		{
-		}
-
-	IP_Hdr(const struct ip6_hdr* arg_ip6)
-		: ip4(0), ip6(arg_ip6), del(0)
+	IP_Hdr(const struct ip6_hdr* arg_ip6, bool arg_del)
+		: ip4(0), ip6(arg_ip6), del(arg_del)
 		{
 		}
 
@@ -90,7 +80,7 @@ public:
 private:
 	const struct ip* ip4;
 	const struct ip6_hdr* ip6;
-	int del;
+	bool del;
 };
 
 #endif

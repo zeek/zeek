@@ -26,7 +26,9 @@ public:
 	/**
 	 * Combines usage stats from current run with any read from ReadStats(),
 	 * then writes information to file pointed to by environment variable
-	 * BRO_PROFILER_FILE.
+	 * BRO_PROFILER_FILE.  If the value of that env. variable ends with
+	 * ".XXXXXX" (exactly 6 X's), then it is first passed through mkstemp
+	 * to get a unique file.
 	 *
 	 * @return: true when usage info is written, otherwise false.
 	 */

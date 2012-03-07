@@ -21,6 +21,9 @@ Bro 2.1
   such that at the scripting layer, the name resolution can yield a
   set with both IPv4 and IPv6 addresses.
 
+- The connection compressor was already deprecated in 2.0 and has now
+  been removed from the code base.
+
 TODO: Extend.
 
 Bro 2.0

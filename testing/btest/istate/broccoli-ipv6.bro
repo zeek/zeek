@@ -1,3 +1,5 @@
+# @TEST-GROUP: comm
+#
 # @TEST-REQUIRES: test -e $BUILD/aux/broccoli/src/libbroccoli.so || test -e $BUILD/aux/broccoli/src/libbroccoli.dylib
 #
 # @TEST-EXEC: btest-bg-run bro bro %INPUT $DIST/aux/broccoli/test/broccoli-v6addrs.bro

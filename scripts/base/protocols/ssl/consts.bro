@@ -13,7 +13,7 @@ export {
 		[TLSv10] = "TLSv10",
 		[TLSv11] = "TLSv11",
 		[TLSv12] = "TLSv12",
-	} &default="UNKNOWN";
+	} &default=function(i: count):string { return fmt("unknown-%d", i); };
 	
 	## Mapping between numeric codes and human readable strings for alert 
 	## levels.
@@ -535,7 +535,7 @@ export {
 		[SSL_RSA_FIPS_WITH_3DES_EDE_CBC_SHA] = "SSL_RSA_FIPS_WITH_3DES_EDE_CBC_SHA",
 		[SSL_RSA_FIPS_WITH_DES_CBC_SHA_2] = "SSL_RSA_FIPS_WITH_DES_CBC_SHA_2",
 		[SSL_RSA_FIPS_WITH_3DES_EDE_CBC_SHA_2] = "SSL_RSA_FIPS_WITH_3DES_EDE_CBC_SHA_2",
-	} &default="UNKNOWN";
+	} &default=function(i: count):string { return fmt("unknown-%d", i); };
 	
 	## Mapping between the constants and string values for SSL/TLS errors.
 	const x509_errors: table[count] of string = {
@@ -573,6 +573,6 @@ export {
 		[31] = "keyusage no certsign",
 		[32] = "unable to get crl issuer",
 		[33] = "unhandled critical extension",
-	};
+	} &default=function(i: count):string { return fmt("unknown-%d", i); };
 
 }

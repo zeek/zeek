@@ -273,7 +273,7 @@ public:
 		if ( ip4 )
 			return ntohs(ip4->ip_len) - ip4->ip_hl * 4;
 		else
-			return ntohs(ip6->ip6_plen) - ip6_hdrs->TotalLength();
+			return ntohs(ip6->ip6_plen) + 40 - ip6_hdrs->TotalLength();
 		}
 
 	uint32 TotalLen() const

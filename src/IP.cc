@@ -38,18 +38,34 @@ RecordVal* IPv6_Hdr::BuildRecordVal() const
 
 static VectorVal* BuildOptionsVal(const u_char* data, uint16 len)
 	{
-	VectorVal* vv = new VectorVal(new VectorType(ip6_option_type->Ref()));
+	VectorVal* vv = new VectorVal(new VectorType(
+	        hdrType(ip6_option_type, "ip6_option")->Ref()));
+
 	while ( len > 0 )
 		{
 		const struct ip6_opt* opt = (const struct ip6_opt*) data;
-		RecordVal* rv = new RecordVal(hdrType(ip6_option_type, "ip6_option"));
+		RecordVal* rv = new RecordVal(ip6_option_type);
 		rv->Assign(0, new Val(opt->ip6o_type, TYPE_COUNT));
-		rv->Assign(1, new Val(opt->ip6o_len, TYPE_COUNT));
-		uint16 off = 2 * sizeof(uint8);
-		rv->Assign(2, new StringVal(
-		        new BroString(data + off, opt->ip6o_len - off, 1)));
-		data += opt->ip6o_len + off;
-		len -= opt->ip6o_len + off;
+
+		if ( opt->ip6o_type == 0 )
+			{
+			// Pad1 option
+			rv->Assign(1, new Val(0, TYPE_COUNT));
+			rv->Assign(2, new StringVal(""));
+			data += sizeof(uint8);
+			len -= sizeof(uint8);
+			}
+		else
+			{
+			// PadN or other option
+			uint16 off = 2 * sizeof(uint8);
+			rv->Assign(1, new Val(opt->ip6o_len, TYPE_COUNT));
+			rv->Assign(2, new StringVal(
+			        new BroString(data + off, opt->ip6o_len, 1)));
+			data += opt->ip6o_len + off;
+			len -= opt->ip6o_len + off;
+			}
+
 		vv->Assign(vv->Size(), rv, 0);
 		}
 	return vv;
@@ -194,7 +210,7 @@ RecordVal* IP_Hdr::BuildRecordVal() const
 				reporter->InternalError("pkt_hdr assigned bad header %d", type);
 				break;
 			}
-			order->Assign(i, new Val(type, TYPE_COUNT), 0);
+			order->Assign(i-1, new Val(type, TYPE_COUNT), 0);
 			}
 
 		rval->Assign(0, ((*ip6_hdrs)[0])->BuildRecordVal());

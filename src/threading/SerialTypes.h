@@ -4,6 +4,10 @@
 
 using namespace std;
 
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
 #include "Type.h"
 #include "net_util.h"
 

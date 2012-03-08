@@ -333,7 +333,7 @@ void NetSessions::NextPacketSecondary(double /* t */, const struct pcap_pkthdr* 
 				new StringVal(sp->Event()->Filter());
 			args->append(cmd_val);
 			IP_Hdr ip_hdr(ip, false);
-			args->append(BuildHeader(&ip_hdr));
+			args->append(ip_hdr.BuildPktHdrVal());
 			// ### Need to queue event here.
 			try
 				{
@@ -470,7 +470,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		if ( esp_packet )
 			{
 			val_list* vl = new val_list();
-			vl->append(ip_hdr->BuildRecordVal());
+			vl->append(ip_hdr->BuildPktHdrVal());
 			mgr.QueueEvent(esp_packet, vl);
 			}
 		Remove(f);
@@ -593,13 +593,13 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 
 	if ( ipv6_ext_headers && ip_hdr->NumHeaders() > 1 )
 		{
-		pkt_hdr_val = BuildHeader(ip_hdr);
+		pkt_hdr_val = ip_hdr->BuildPktHdrVal();
 		conn->Event(new_packet, 0, pkt_hdr_val);
 		}
 
 	if ( new_packet )
 		conn->Event(new_packet, 0,
-		        pkt_hdr_val ? pkt_hdr_val->Ref() : BuildHeader(ip_hdr));
+		        pkt_hdr_val ? pkt_hdr_val->Ref() : ip_hdr->BuildPktHdrVal());
 
 	conn->NextPacket(t, is_orig, ip_hdr, len, caplen, data,
 				record_packet, record_content,
@@ -652,88 +652,6 @@ bool NetSessions::CheckHeaderTrunc(int proto, uint32 len, uint32 caplen,
 		return true;
 		}
 	return false;
-	}
-
-
-Val* NetSessions::BuildHeader(const IP_Hdr* ip)
-	{
-	static RecordType* pkt_hdr_type = 0;
-	static RecordType* tcp_hdr_type = 0;
-	static RecordType* udp_hdr_type = 0;
-	static RecordType* icmp_hdr_type;
-
-	if ( ! pkt_hdr_type )
-		{
-		pkt_hdr_type = internal_type("pkt_hdr")->AsRecordType();
-		tcp_hdr_type = internal_type("tcp_hdr")->AsRecordType();
-		udp_hdr_type = internal_type("udp_hdr")->AsRecordType();
-		icmp_hdr_type = internal_type("icmp_hdr")->AsRecordType();
-		}
-
-	RecordVal* pkt_hdr = new RecordVal(pkt_hdr_type);
-
-	if ( ip->IP4_Hdr() )
-		pkt_hdr->Assign(0, ip->BuildRecordVal());
-	else
-		pkt_hdr->Assign(1, ip->BuildRecordVal());
-
-	// L4 header.
-	const u_char* data = ip->Payload();
-
-	int proto = ip->NextProto();
-	switch ( proto ) {
-	case IPPROTO_TCP:
-		{
-		const struct tcphdr* tp = (const struct tcphdr*) data;
-		RecordVal* tcp_hdr = new RecordVal(tcp_hdr_type);
-
-		int tcp_hdr_len = tp->th_off * 4;
-		int data_len = ip->PayloadLen() - tcp_hdr_len;
-
-		tcp_hdr->Assign(0, new PortVal(ntohs(tp->th_sport), TRANSPORT_TCP));
-		tcp_hdr->Assign(1, new PortVal(ntohs(tp->th_dport), TRANSPORT_TCP));
-		tcp_hdr->Assign(2, new Val(uint32(ntohl(tp->th_seq)), TYPE_COUNT));
-		tcp_hdr->Assign(3, new Val(uint32(ntohl(tp->th_ack)), TYPE_COUNT));
-		tcp_hdr->Assign(4, new Val(tcp_hdr_len, TYPE_COUNT));
-		tcp_hdr->Assign(5, new Val(data_len, TYPE_COUNT));
-		tcp_hdr->Assign(6, new Val(tp->th_flags, TYPE_COUNT));
-		tcp_hdr->Assign(7, new Val(ntohs(tp->th_win), TYPE_COUNT));
-
-		pkt_hdr->Assign(2, tcp_hdr);
-		break;
-		}
-
-	case IPPROTO_UDP:
-		{
-		const struct udphdr* up = (const struct udphdr*) data;
-		RecordVal* udp_hdr = new RecordVal(udp_hdr_type);
-
-		udp_hdr->Assign(0, new PortVal(ntohs(up->uh_sport), TRANSPORT_UDP));
-		udp_hdr->Assign(1, new PortVal(ntohs(up->uh_dport), TRANSPORT_UDP));
-		udp_hdr->Assign(2, new Val(ntohs(up->uh_ulen), TYPE_COUNT));
-
-		pkt_hdr->Assign(3, udp_hdr);
-		break;
-		}
-
-	case IPPROTO_ICMP:
-		{
-		const struct icmp* icmpp = (const struct icmp *) data;
-		RecordVal* icmp_hdr = new RecordVal(icmp_hdr_type);
-
-		icmp_hdr->Assign(0, new Val(icmpp->icmp_type, TYPE_COUNT));
-
-		pkt_hdr->Assign(4, icmp_hdr);
-		break;
-		}
-
-	default:
-		{
-		// This is not a protocol we understand.
-		}
-	}
-
-	return pkt_hdr;
 	}
 
 FragReassembler* NetSessions::NextFragment(double t, const IP_Hdr* ip,

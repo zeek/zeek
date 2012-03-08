@@ -141,7 +141,7 @@ RecordVal* IPv6_ESP::BuildRecordVal() const
 	return rv;
 	}
 
-RecordVal* IP_Hdr::BuildRecordVal() const
+RecordVal* IP_Hdr::BuildIPHdrVal() const
 	{
 	RecordVal* rval = 0;
 
@@ -224,6 +224,88 @@ RecordVal* IP_Hdr::BuildRecordVal() const
 		}
 
 	return rval;
+	}
+
+RecordVal* IP_Hdr::BuildPktHdrVal() const
+	{
+	static RecordType* pkt_hdr_type = 0;
+	static RecordType* tcp_hdr_type = 0;
+	static RecordType* udp_hdr_type = 0;
+	static RecordType* icmp_hdr_type = 0;
+
+	if ( ! pkt_hdr_type )
+		{
+		pkt_hdr_type = internal_type("pkt_hdr")->AsRecordType();
+		tcp_hdr_type = internal_type("tcp_hdr")->AsRecordType();
+		udp_hdr_type = internal_type("udp_hdr")->AsRecordType();
+		icmp_hdr_type = internal_type("icmp_hdr")->AsRecordType();
+		}
+
+	RecordVal* pkt_hdr = new RecordVal(pkt_hdr_type);
+
+	if ( ip4 )
+		pkt_hdr->Assign(0, BuildIPHdrVal());
+	else
+		pkt_hdr->Assign(1, BuildIPHdrVal());
+
+	// L4 header.
+	const u_char* data = Payload();
+
+	int proto = NextProto();
+	switch ( proto ) {
+	case IPPROTO_TCP:
+		{
+		const struct tcphdr* tp = (const struct tcphdr*) data;
+		RecordVal* tcp_hdr = new RecordVal(tcp_hdr_type);
+
+		int tcp_hdr_len = tp->th_off * 4;
+		int data_len = PayloadLen() - tcp_hdr_len;
+
+		tcp_hdr->Assign(0, new PortVal(ntohs(tp->th_sport), TRANSPORT_TCP));
+		tcp_hdr->Assign(1, new PortVal(ntohs(tp->th_dport), TRANSPORT_TCP));
+		tcp_hdr->Assign(2, new Val(uint32(ntohl(tp->th_seq)), TYPE_COUNT));
+		tcp_hdr->Assign(3, new Val(uint32(ntohl(tp->th_ack)), TYPE_COUNT));
+		tcp_hdr->Assign(4, new Val(tcp_hdr_len, TYPE_COUNT));
+		tcp_hdr->Assign(5, new Val(data_len, TYPE_COUNT));
+		tcp_hdr->Assign(6, new Val(tp->th_flags, TYPE_COUNT));
+		tcp_hdr->Assign(7, new Val(ntohs(tp->th_win), TYPE_COUNT));
+
+		pkt_hdr->Assign(2, tcp_hdr);
+		break;
+		}
+
+	case IPPROTO_UDP:
+		{
+		const struct udphdr* up = (const struct udphdr*) data;
+		RecordVal* udp_hdr = new RecordVal(udp_hdr_type);
+
+		udp_hdr->Assign(0, new PortVal(ntohs(up->uh_sport), TRANSPORT_UDP));
+		udp_hdr->Assign(1, new PortVal(ntohs(up->uh_dport), TRANSPORT_UDP));
+		udp_hdr->Assign(2, new Val(ntohs(up->uh_ulen), TYPE_COUNT));
+
+		pkt_hdr->Assign(3, udp_hdr);
+		break;
+		}
+
+	case IPPROTO_ICMP:
+		{
+		const struct icmp* icmpp = (const struct icmp *) data;
+		RecordVal* icmp_hdr = new RecordVal(icmp_hdr_type);
+
+		icmp_hdr->Assign(0, new Val(icmpp->icmp_type, TYPE_COUNT));
+
+		pkt_hdr->Assign(4, icmp_hdr);
+		break;
+		}
+
+	default:
+		{
+		// This is not a protocol we understand.
+		break;
+		}
+	}
+
+	return pkt_hdr;
 	}
 
 static inline IPv6_Hdr* getIPv6Header(uint8 type, const u_char* d,

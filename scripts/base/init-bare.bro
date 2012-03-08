@@ -1167,7 +1167,7 @@ global discarder_maxlen = 128 &redef;
 ## analysis. If the function signals to discard a packet, no further processing
 ## will be performed on it.
 ##
-## i: The IP header of the considered packet.
+## p: The IP header of the considered packet.
 ##
 ## Returns: True if the packet should not be analyzed any further.
 ##
@@ -1176,15 +1176,15 @@ global discarder_maxlen = 128 &redef;
 ##
 ## .. note:: This is very low-level functionality and potentially expensive.
 ##    Avoid using it.
-global discarder_check_ip: function(i: ip_hdr): bool;
+global discarder_check_ip: function(p: pkt_hdr): bool;
 
 ## Function for skipping packets based on their TCP header. If defined, this
 ## function will be called for all TCP packets before Bro performs any further
 ## analysis. If the function signals to discard a packet, no further processing
 ## will be performed on it.
 ##
-## i: The IP header of the considered packet.
-## t: The TCP header.
+## p: The IP and TCP headers of the considered packet.
+##
 ## d: Up to :bro:see:`discarder_maxlen` bytes of the TCP payload.
 ##
 ## Returns: True if the packet should not be analyzed any further.
@@ -1194,15 +1194,15 @@ global discarder_check_ip: function(i: ip_hdr): bool;
 ##
 ## .. note:: This is very low-level functionality and potentially expensive.
 ##    Avoid using it.
-global discarder_check_tcp: function(i: ip_hdr, t: tcp_hdr, d: string): bool;
+global discarder_check_tcp: function(p: pkt_hdr, d: string): bool;
 
 ## Function for skipping packets based on their UDP header. If defined, this
 ## function will be called for all UDP packets before Bro performs any further
 ## analysis. If the function signals to discard a packet, no further processing
 ## will be performed on it.
 ##
-## i: The IP header of the considered packet.
-## t: The UDP header.
+## p: The IP and UDP headers of the considered packet.
+##
 ## d: Up to :bro:see:`discarder_maxlen` bytes of the UDP payload.
 ##
 ## Returns: True if the packet should not be analyzed any further.
@@ -1212,15 +1212,14 @@ global discarder_check_tcp: function(i: ip_hdr, t: tcp_hdr, d: string): bool;
 ##
 ## .. note:: This is very low-level functionality and potentially expensive.
 ##    Avoid using it.
-global discarder_check_udp: function(i: ip_hdr, u: udp_hdr, d: string): bool;
+global discarder_check_udp: function(p: pkt_hdr, d: string): bool;
 
 ## Function for skipping packets based on their ICMP header. If defined, this
 ## function will be called for all ICMP packets before Bro performs any further
 ## analysis. If the function signals to discard a packet, no further processing
 ## will be performed on it.
 ##
-## i: The IP header of the considered packet.
-## ih: The ICMP header.
+## p: The IP and ICMP headers of the considered packet.
 ##
 ## Returns: True if the packet should not be analyzed any further.
 ##
@@ -1229,7 +1228,7 @@ global discarder_check_udp: function(i: ip_hdr, u: udp_hdr, d: string): bool;
 ##
 ## .. note:: This is very low-level functionality and potentially expensive.
 ##    Avoid using it.
-global discarder_check_icmp: function(i: ip_hdr, ih: icmp_hdr): bool;
+global discarder_check_icmp: function(p: pkt_hdr): bool;
 
 ## Bro's watchdog interval.
 const watchdog_interval = 10 sec &redef;

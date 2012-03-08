@@ -249,7 +249,6 @@ public:
 			}
 		}
 
-	//TODO: audit usages of this for correct IPv6 support or IPv4 assumptions
 	const struct ip* IP4_Hdr() const	{ return ip4; }
 
 	const struct ip6_hdr* IP6_Hdr() const	{ return ip6; }
@@ -355,7 +354,13 @@ public:
 	/**
 	 * Returns an ip_hdr or ip6_hdr_chain RecordVal.
 	 */
-	RecordVal* BuildRecordVal() const;
+	RecordVal* BuildIPHdrVal() const;
+
+	/**
+	 * Returns a pkt_hdr RecordVal, which includes not only the IP header, but
+	 * also upper-layer (tcp/udp/icmp) headers.
+	 */
+	RecordVal* BuildPktHdrVal() const;
 
 private:
 	const struct ip* ip4;

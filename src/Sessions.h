@@ -190,11 +190,6 @@ protected:
 	void Internal(const char* msg, const struct pcap_pkthdr* hdr,
 			const u_char* pkt);
 
-	// Builds a record encapsulating a packet.  This should be more
-	// general, including the equivalent of a union of tcp/udp/icmp
-	// headers .
-	Val* BuildHeader(const IP_Hdr* ip);
-
 	// For a given protocol, checks whether the header's length as derived
 	// from lower-level headers or the length actually captured is less
 	// than that protocol's minimum header size.

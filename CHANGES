@@ -1,4 +1,9 @@
 
+2.0-145 | 2012-03-09 15:10:35 -0800
+
+  * Remove the match expression. 'match' and 'using' are no longer
+    keywords. Addressed #753. (Jon Siwek)
+
 2.0-143 | 2012-03-09 15:07:42 -0800
 
   * Fix a BRO_PROFILER_FILE/mkstemp portability issue. Addresses #794.

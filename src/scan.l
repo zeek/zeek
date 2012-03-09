@@ -273,7 +273,6 @@ int	return TOK_INT;
 interval	return TOK_INTERVAL;
 list	return TOK_LIST;
 local	return TOK_LOCAL;
-match	return TOK_MATCH;
 module	return TOK_MODULE;
 next	return TOK_NEXT;
 of	return TOK_OF;
@@ -295,7 +294,6 @@ timeout	return TOK_TIMEOUT;
 timer	return TOK_TIMER;
 type	return TOK_TYPE;
 union	return TOK_UNION;
-using	return TOK_USING;
 vector	return TOK_VECTOR;
 when	return TOK_WHEN;
 

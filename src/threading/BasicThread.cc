@@ -20,8 +20,8 @@ BasicThread::BasicThread()
 	terminating = false;
 	pthread = 0;
 
-	buf = 0;
-	buf_len = 1024;
+	buf_len = 2048;
+	buf = (char*) malloc(buf_len);
 
 	name = Fmt("thread-%d", ++thread_counter);
 
@@ -57,9 +57,6 @@ void BasicThread::SetOSName(const string& name)
 
 const char* BasicThread::Fmt(const char* format, ...)
 	{
-	if ( ! buf )
-		buf = (char*) malloc(buf_len);
-
 	va_list al;
 	va_start(al, format);
 	int n = safe_vsnprintf(buf, buf_len, format, al);
@@ -67,13 +64,15 @@ const char* BasicThread::Fmt(const char* format, ...)
 
 	if ( (unsigned int) n >= buf_len )
 		{ // Not enough room, grow the buffer.
-		buf_len = n + 32;
-		buf = (char*) realloc(buf, buf_len);
+		int tmp_len = n + 32;
+		char* tmp = (char*) malloc(tmp_len);
 
 		// Is it portable to restart?
 		va_start(al, format);
-		n = safe_vsnprintf(buf, buf_len, format, al);
+		n = safe_vsnprintf(tmp, tmp_len, format, al);
 		va_end(al);
+
+		free(tmp);
 		}
 
 	return buf;

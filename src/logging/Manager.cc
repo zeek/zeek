@@ -753,64 +753,25 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 			for ( int j = 0; j < filter->num_fields; ++j )
 				arg_fields[j] = new Field(*filter->fields[j]);
 
-			if ( filter->remote )
-				remote_serializer->SendLogCreateWriter(stream->id,
-								       filter->writer,
-								       path,
-								       filter->num_fields,
-								       arg_fields);
+			writer = CreateWriter(stream->id, filter->writer,
+					      path, filter->num_fields,
+					      arg_fields, filter->local, filter->remote);
 
-			if ( filter->local )
+			if ( ! writer )
 				{
-				writer = CreateWriter(stream->id, filter->writer,
-						      path, filter->num_fields,
-						      arg_fields);
-
-				if ( ! writer )
-					{
-					Unref(columns);
-					return false;
-					}
+				Unref(columns);
+				return false;
 				}
-			else
-				{
-				// Insert a null pointer into the map to make
-				// sure we don't try creating it again.
-				stream->writers.insert(Stream::WriterMap::value_type(
-				Stream::WriterPathPair(filter->writer->AsEnum(), path), 0));
 
-				for( int i = 0; i < filter->num_fields; ++i)
-					delete arg_fields[i];
-
-				delete [] arg_fields;
-				}
 			}
 
 		// Alright, can do the write now.
 
-		if ( filter->local || filter->remote )
-			{
-				threading::Value** vals = RecordToFilterVals(stream, filter, columns);
+		threading::Value** vals = RecordToFilterVals(stream, filter, columns);
 
-			if ( filter->remote )
-				remote_serializer->SendLogWrite(stream->id,
-								filter->writer,
-								path,
-								filter->num_fields,
-								vals);
-
-			if ( filter->local )
-				{
-				// Write takes ownership of vals.
-				assert(writer);
-				writer->Write(filter->num_fields, vals);
-				}
-
-			else
-				DeleteVals(filter->num_fields, vals);
-
-			}
-
+		// Write takes ownership of vals.
+		assert(writer);
+		writer->Write(filter->num_fields, vals);
 
 #ifdef DEBUG
 		DBG_LOG(DBG_LOGGING, "Wrote record to filter '%s' on stream '%s'",
@@ -976,7 +937,7 @@ Value** Manager::RecordToFilterVals(Stream* stream, Filter* filter,
 	}
 
 WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, string path,
-				int num_fields, const Field* const*  fields)
+				int num_fields, const Field* const*  fields, bool local, bool remote)
 	{
 	Stream* stream = FindStream(id);
 
@@ -992,7 +953,7 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, string path,
 		// return it.
 		return w->second->writer;
 
-	WriterFrontend* writer_obj = new WriterFrontend(writer->AsEnum());
+	WriterFrontend* writer_obj = new WriterFrontend(id, writer, local, remote);
 	assert(writer_obj);
 
 	writer_obj->Init(path, num_fields, fields);

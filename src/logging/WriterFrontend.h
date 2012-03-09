@@ -25,14 +25,21 @@ public:
 	/**
 	 * Constructor.
 	 *
-	 * type: The backend writer type, with the value corresponding to the
+	 * stream: The logging stream.
+	 *
+	 * writer: The backend writer type, with the value corresponding to the
 	 * script-level \c Log::Writer enum (e.g., \a WRITER_ASCII). The
 	 * frontend will internally instantiate a WriterBackend of the
 	 * corresponding type.
+	 * 
+	 * local: If true, the writer will instantiate a local backend.
+	 *
+	 * remote: If true, the writer will forward all data to remote
+	 * clients.
 	 *
 	 * Frontends must only be instantiated by the main thread.
 	 */
-	WriterFrontend(bro_int_t type);
+	WriterFrontend(EnumVal* stream, EnumVal* writer, bool local, bool remote);
 
 	/**
 	 * Destructor.
@@ -187,10 +194,17 @@ public:
 protected:
 	friend class Manager;
 
+	void DeleteVals(threading::Value** vals);
+
+	EnumVal* stream;
+	EnumVal* writer;
+
 	WriterBackend* backend;	// The backend we have instanatiated.
 	bool disabled;	// True if disabled.
 	bool initialized;	// True if initialized.
 	bool buf;	// True if buffering is enabled (default).
+	bool local;	// True if logging locally.
+	bool remote;	// True if loggin remotely.
 
 	string ty_name;	// Name of the backend type. Set by the manager.
 	string path;	// The log path.

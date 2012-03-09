@@ -234,7 +234,7 @@ static const int PRINT_BUFFER_SIZE = 10 * 1024;
 static const int SOCKBUF_SIZE = 1024 * 1024;
 
 // Buffer size for remote-log data.
-static const int LOG_BUFFER_SIZE = 50 * 1024;
+static const int LOG_BUFFER_SIZE = 512;
 
 struct ping_args {
 	uint32 seq;
@@ -2587,7 +2587,10 @@ bool RemoteSerializer::SendLogWrite(Peer* peer, EnumVal* id, EnumVal* writer, st
 	if ( len > (LOG_BUFFER_SIZE - peer->log_buffer_used) || (network_time - last_flush > 1.0) )
 		{
 		if ( ! FlushLogBuffer(peer) )
+			{
+			delete [] data;
 			return false;
+			}
 		}
 
 	// If the data is actually larger than our complete buffer, just send it out.
@@ -2631,6 +2634,12 @@ bool RemoteSerializer::ProcessLogCreateWriter()
 	if ( current_peer->state == Peer::CLOSING )
 		return false;
 
+#ifdef USE_PERFTOOLS
+	// Don't track allocations here, they'll be released only after the
+	// main loop exists. And it's just a tiny amount anyway.
+	HeapLeakChecker::Disabler disabler;
+#endif
+
 	assert(current_args);
 
 	EnumVal* id_val = 0;
@@ -2666,7 +2675,7 @@ bool RemoteSerializer::ProcessLogCreateWriter()
 	id_val = new EnumVal(id, BifType::Enum::Log::ID);
 	writer_val = new EnumVal(writer, BifType::Enum::Log::Writer);
 
-	if ( ! log_mgr->CreateWriter(id_val, writer_val, path, num_fields, fields) )
+	if ( ! log_mgr->CreateWriter(id_val, writer_val, path, num_fields, fields, true, false) )
 		goto error;
 
 	Unref(id_val);

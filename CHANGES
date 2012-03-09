@@ -1,4 +1,9 @@
 
+2.0-143 | 2012-03-09 15:07:42 -0800
+
+  * Fix a BRO_PROFILER_FILE/mkstemp portability issue. Addresses #794.
+    (Jon Siwek)
+
 2.0-139 | 2012-03-02 09:33:04 -0800
 
   * Changes to how script coverage integrates with test suites. (Jon Siwek)

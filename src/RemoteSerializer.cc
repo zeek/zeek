@@ -2561,7 +2561,9 @@ bool RemoteSerializer::SendLogWrite(Peer* peer, EnumVal* id, EnumVal* writer, st
 	if ( ! peer->logs_requested )
 		return false;
 
-	assert(peer->log_buffer);
+	if ( ! peer->log_buffer )
+		// Peer shutting down.
+		return false;
 
 	// Serialize the log record entry.
 

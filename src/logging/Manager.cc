@@ -105,9 +105,6 @@ Manager::Stream::~Stream()
 		{
 		WriterInfo* winfo = i->second;
 
-		if ( ! winfo )
-			continue;
-
 		if ( winfo->rotation_timer )
 			timer_mgr->Cancel(winfo->rotation_timer);
 
@@ -207,7 +204,7 @@ Manager::WriterInfo* Manager::FindWriter(WriterFrontend* writer)
 			{
 			WriterInfo* winfo = i->second;
 
-			if ( winfo && winfo->writer == writer )
+			if ( winfo->writer == writer )
 				return winfo;
 			}
 		}
@@ -221,7 +218,7 @@ void Manager::RemoveDisabledWriters(Stream* stream)
 
 	for ( Stream::WriterMap::iterator j = stream->writers.begin(); j != stream->writers.end(); j++ )
 		{
-		if ( j->second && j->second->writer->Disabled() )
+		if ( j->second->writer->Disabled() )
 			{
 			j->second->writer->Stop();
 			delete j->second;
@@ -740,7 +737,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 
 		if ( w != stream->writers.end() )
 			// We know this writer already.
-			writer = w->second ? w->second->writer : 0;
+			writer = w->second->writer;
 
 		else
 			{
@@ -948,7 +945,7 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, string path,
 	Stream::WriterMap::iterator w =
 		stream->writers.find(Stream::WriterPathPair(writer->AsEnum(), path));
 
-	if ( w != stream->writers.end() && w->second )
+	if ( w != stream->writers.end() )
 		// If we already have a writer for this. That's fine, we just
 		// return it.
 		return w->second->writer;
@@ -1050,8 +1047,7 @@ bool Manager::Write(EnumVal* id, EnumVal* writer, string path, int num_fields,
 		return false;
 		}
 
-	if ( w->second )
-		w->second->writer->Write(num_fields, vals);
+	w->second->writer->Write(num_fields, vals);
 
 	DBG_LOG(DBG_LOGGING,
 		"Wrote pre-filtered record to path '%s' on stream '%s'",
@@ -1072,9 +1068,6 @@ void Manager::SendAllWritersTo(RemoteSerializer::PeerID peer)
 		for ( Stream::WriterMap::iterator i = stream->writers.begin();
 		      i != stream->writers.end(); i++ )
 			{
-			if ( ! i->second )
-				continue;
-
 			WriterFrontend* writer = i->second->writer;
 
 			EnumVal writer_val(i->first.first, BifType::Enum::Log::Writer);
@@ -1095,10 +1088,7 @@ bool Manager::SetBuf(EnumVal* id, bool enabled)
 
 	for ( Stream::WriterMap::iterator i = stream->writers.begin();
 	      i != stream->writers.end(); i++ )
-		{
-		if ( i->second )
-			i->second->writer->SetBuf(enabled);
-		}
+		i->second->writer->SetBuf(enabled);
 
 	RemoveDisabledWriters(stream);
 
@@ -1116,10 +1106,7 @@ bool Manager::Flush(EnumVal* id)
 
 	for ( Stream::WriterMap::iterator i = stream->writers.begin();
 	      i != stream->writers.end(); i++ )
-		{
-		if ( i->second )
-			i->second->writer->Flush();
-		}
+		i->second->writer->Flush();
 
 	RemoveDisabledWriters(stream);
 

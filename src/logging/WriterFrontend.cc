@@ -99,21 +99,36 @@ public:
 
 using namespace logging;
 
-WriterFrontend::WriterFrontend(bro_int_t type)
+WriterFrontend::WriterFrontend(EnumVal* arg_stream, EnumVal* arg_writer, bool arg_local, bool arg_remote)
 	{
+	stream = arg_stream;
+	writer = arg_writer;
+	Ref(stream);
+	Ref(writer);
+
 	disabled = initialized = false;
 	buf = true;
+	local = arg_local;
+	remote = arg_remote;
 	write_buffer = 0;
 	write_buffer_pos = 0;
 	ty_name = "<not set>";
-	backend = log_mgr->CreateBackend(this, type);
 
-	assert(backend);
-	backend->Start();
+	if ( local )
+		{
+		backend = log_mgr->CreateBackend(this, writer->AsEnum());
+		assert(backend);
+		backend->Start();
+		}
+
+	else
+		backend = 0;
 	}
 
 WriterFrontend::~WriterFrontend()
 	{
+	Unref(stream);
+	Unref(writer);
 	}
 
 string WriterFrontend::Name() const
@@ -128,7 +143,9 @@ void WriterFrontend::Stop()
 	{
 	FlushWriteBuffer();
 	SetDisable();
-	backend->Stop();
+
+	if ( backend )
+		backend->Stop();
 	}
 
 void WriterFrontend::Init(string arg_path, int arg_num_fields, const Field* const * arg_fields)
@@ -144,13 +161,36 @@ void WriterFrontend::Init(string arg_path, int arg_num_fields, const Field* cons
 	fields = arg_fields;
 
 	initialized = true;
-	backend->SendIn(new InitMessage(backend, arg_path, arg_num_fields, arg_fields));
+
+	if ( backend )
+		backend->SendIn(new InitMessage(backend, arg_path, arg_num_fields, arg_fields));
+
+	if ( remote )
+		remote_serializer->SendLogCreateWriter(stream,
+						       writer,
+						       arg_path,
+						       arg_num_fields,
+						       arg_fields);
+
 	}
 
 void WriterFrontend::Write(int num_fields, Value** vals)
 	{
 	if ( disabled )
 		return;
+
+	if ( remote )
+		remote_serializer->SendLogWrite(stream,
+						writer,
+						path,
+						num_fields,
+						vals);
+
+	if ( ! backend )
+		{
+		DeleteVals(vals);
+		return;
+		}
 
 	if ( ! write_buffer )
 		{
@@ -173,7 +213,8 @@ void WriterFrontend::FlushWriteBuffer()
 		// Nothing to do.
 		return;
 
-	backend->SendIn(new WriteMessage(backend, num_fields, write_buffer_pos, write_buffer));
+	if ( backend )
+		backend->SendIn(new WriteMessage(backend, num_fields, write_buffer_pos, write_buffer));
 
 	// Clear buffer (no delete, we pass ownership to child thread.)
 	write_buffer = 0;
@@ -187,7 +228,8 @@ void WriterFrontend::SetBuf(bool enabled)
 
 	buf = enabled;
 
-	backend->SendIn(new SetBufMessage(backend, enabled));
+	if ( backend )
+		backend->SendIn(new SetBufMessage(backend, enabled));
 
 	if ( ! buf )
 		// Make sure no longer buffer any still queued data.
@@ -200,7 +242,9 @@ void WriterFrontend::Flush()
 		return;
 
 	FlushWriteBuffer();
-	backend->SendIn(new FlushMessage(backend));
+
+	if ( backend )
+		backend->SendIn(new FlushMessage(backend));
 	}
 
 void WriterFrontend::Rotate(string rotated_path, double open, double close, bool terminating)
@@ -209,7 +253,9 @@ void WriterFrontend::Rotate(string rotated_path, double open, double close, bool
 		return;
 
 	FlushWriteBuffer();
-	backend->SendIn(new RotateMessage(backend, this, rotated_path, open, close, terminating));
+
+	if ( backend )
+		backend->SendIn(new RotateMessage(backend, this, rotated_path, open, close, terminating));
 	}
 
 void WriterFrontend::Finish()
@@ -218,7 +264,18 @@ void WriterFrontend::Finish()
 		return;
 
 	FlushWriteBuffer();
-	backend->SendIn(new FinishMessage(backend));
+
+	if ( backend )
+		backend->SendIn(new FinishMessage(backend));
+	}
+
+void WriterFrontend::DeleteVals(Value** vals)
+	{
+	// Note this code is duplicated in Manager::DeleteVals().
+	for ( int i = 0; i < num_fields; i++ )
+		delete vals[i];
+
+	delete [] vals;
 	}
 
 

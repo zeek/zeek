@@ -338,6 +338,7 @@ private:
 	int propagate_accesses;
 	bool ignore_accesses;
 	bool terminating;
+	int received_logs;
 	Peer* source_peer;
 	PeerID id_counter;	// Keeps track of assigned IDs.
 	uint32 current_sync_point;

@@ -532,6 +532,7 @@ RemoteSerializer::RemoteSerializer()
 	terminating = false;
 	in_sync = 0;
 	last_flush = 0;
+	received_logs = 0;
 	}
 
 RemoteSerializer::~RemoteSerializer()
@@ -1352,6 +1353,14 @@ void RemoteSerializer::GetFds(int* read, int* write, int* except)
 double RemoteSerializer::NextTimestamp(double* local_network_time)
 	{
 	Poll(false);
+
+	if ( received_logs > 0 )
+		{
+		// If we processed logs last time, assume there's more.
+		idle = false;
+		received_logs = 0;
+		return timer_mgr->Time();
+		}
 
 	double et = events.length() ? events[0]->time : -1;
 	double pt = packets.length() ? packets[0]->time : -1;
@@ -2744,6 +2753,8 @@ bool RemoteSerializer::ProcessLogWrite()
 
 	fmt.EndRead();
 
+	++received_logs;
+
 	return true;
 
 error:
@@ -3384,6 +3395,9 @@ void SocketComm::Run()
 		small_timeout.tv_sec = 0;
 		small_timeout.tv_usec =
 			io->CanWrite() || io->CanRead() ? 1 : 10;
+
+		if ( ! io->CanWrite() )
+			usleep(10);
 
 		int a = select(max_fd + 1, &fd_read, &fd_write, &fd_except,
 				&small_timeout);

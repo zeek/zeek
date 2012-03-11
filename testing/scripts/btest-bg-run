@@ -1,7 +1,0 @@
-#! /usr/bin/env bash
-
-# This is a wrapper script to btest's real btest-bg-run.  It's used
-# when collecting Bro script coverage statistics so that two independent
-# Bro processing don't try to write those usage statistics to the same file.
-
-BRO_PROFILER_FILE=`mktemp $TMPDIR/script-coverage.XXXX` $BTEST_PATH/btest-bg-run $@

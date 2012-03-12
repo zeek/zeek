@@ -177,6 +177,9 @@ private:
 	void SendEvent(EventHandlerPtr ev, const int numvals, ...);	
 	void SendEvent(EventHandlerPtr ev, list<Val*> events);	
 
+	// Call predicate function and return result
+	bool CallPred(Func* pred_func, const int numvals, ...);
+
 	// get a hashkey for a set of threading::Values
 	HashKey* HashValues(const int num_elements, const threading::Value* const *vals);
 

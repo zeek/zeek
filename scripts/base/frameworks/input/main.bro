@@ -183,9 +183,6 @@ function read_table(description: Input::StreamDescription, filter: Input::TableF
 		ok = add_tablefilter(id, filter);
 	}
 	if ( ok ) {
-		ok = force_update(id);
-	}
-	if ( ok ) {
 		ok = remove_stream(id);
 	} else {
 		remove_stream(id);

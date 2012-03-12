@@ -104,7 +104,6 @@ struct Manager::ReaderInfo {
 	EnumVal* type;
 	ReaderFrontend* reader;
 
-	//list<string> events; // events we fire when "something" happens
 	map<int, Manager::Filter*> filters; // filters that can prevent our actions
 
 	bool HasFilter(int id);	
@@ -160,7 +159,7 @@ ReaderBackend* Manager::CreateBackend(ReaderFrontend* frontend, bro_int_t type) 
 	while ( true ) {
 		if ( ir->type == BifEnum::Input::READER_DEFAULT ) 
 		{
-			reporter->Error("unknown reader when creating reader");
+			reporter->Error("The reader that was requested was not found and could not be initialized.");
 			return 0;
 		}
 
@@ -181,7 +180,7 @@ ReaderBackend* Manager::CreateBackend(ReaderFrontend* frontend, bro_int_t type) 
 				} else {
 					// ohok. init failed, kill factory for all eternity
 					ir->factory = 0;
-					DBG_LOG(DBG_LOGGING, "failed to init input class %s", ir->name);
+					DBG_LOG(DBG_LOGGING, "Failed to init input class %s", ir->name);
 					return 0;
 				}
 				
@@ -225,8 +224,11 @@ ReaderFrontend* Manager::CreateStream(EnumVal* id, RecordVal* description)
 	assert(reader_obj);
 	
 	// get the source...
-	const BroString* bsource = description->Lookup(rtype->FieldOffset("source"))->AsString();
+	Val* sourceval = description->LookupWithDefault(rtype->FieldOffset("source"));
+	assert ( sourceval != 0 );
+	const BroString* bsource = sourceval->AsString();
 	string source((const char*) bsource->Bytes(), bsource->Len());
+	Unref(sourceval);
 
 	ReaderInfo* info = new ReaderInfo;
 	info->reader = reader_obj;
@@ -255,13 +257,14 @@ bool Manager::AddEventFilter(EnumVal *id, RecordVal* fval) {
 		return false;
 	}
 
-	Val* name = fval->Lookup(rtype->FieldOffset("name"));
-	RecordType *fields = fval->Lookup(rtype->FieldOffset("fields"))->AsType()->AsTypeType()->Type()->AsRecordType();	
+	Val* name = fval->LookupWithDefault(rtype->FieldOffset("name"));
+	RecordType *fields = fval->LookupWithDefault(rtype->FieldOffset("fields"))->AsType()->AsTypeType()->Type()->AsRecordType();	
 	
 	Val *want_record = fval->LookupWithDefault(rtype->FieldOffset("want_record"));	
 
-	Val* event_val = fval->Lookup(rtype->FieldOffset("ev"));
+	Val* event_val = fval->LookupWithDefault(rtype->FieldOffset("ev"));
 	Func* event = event_val->AsFunc();
+	Unref(event_val);
 
 	{
 		FuncType* etype = event->FType()->AsFuncType();
@@ -330,8 +333,10 @@ bool Manager::AddEventFilter(EnumVal *id, RecordVal* fval) {
 		logf[i] = fieldsV[i];
 	}
 
+	Unref(fields); // ref'd by lookupwithdefault
 	EventFilter* filter = new EventFilter();
 	filter->name = name->AsString()->CheckString();
+	Unref(name); // ref'd by lookupwithdefault
 	filter->id = id->Ref()->AsEnumVal();
 	filter->num_fields = fieldsV.size();
 	filter->fields = fields->Ref()->AsRecordType();
@@ -369,8 +374,9 @@ bool Manager::AddTableFilter(EnumVal *id, RecordVal* fval) {
 
 	RecordType *idx = fval->LookupWithDefault(rtype->FieldOffset("idx"))->AsType()->AsTypeType()->Type()->AsRecordType();
 	RecordType *val = 0;
-	if ( fval->Lookup(rtype->FieldOffset("val")) != 0 ) {
+	if ( fval->LookupWithDefault(rtype->FieldOffset("val")) != 0 ) {
 		val = fval->LookupWithDefault(rtype->FieldOffset("val"))->AsType()->AsTypeType()->Type()->AsRecordType();
+		Unref(val); // The lookupwithdefault in the if-clause ref'ed val.
 	}
 	TableVal *dst = fval->LookupWithDefault(rtype->FieldOffset("destination"))->AsTableVal();
 
@@ -780,10 +786,12 @@ int Manager::SendEntryTable(const ReaderFrontend* reader, const int id, const Va
 	assert(i->filters[id]->filter_type == TABLE_FILTER);
 	TableFilter* filter = (TableFilter*) i->filters[id];
 
-	//reporter->Error("Hashing %d index fields", i->num_idx_fields);
 	HashKey* idxhash = HashValues(filter->num_idx_fields, vals);
-	//reporter->Error("Result: %d\n", (uint64_t) idxhash->Hash());
-	//reporter->Error("Hashing %d val fields", i->num_val_fields);
+	
+	if ( idxhash == 0 ) {
+		reporter->Error("Could not hash line. Ignoring");
+		return filter->num_val_fields + filter->num_idx_fields;
+	}	
 	
 	hash_t valhash = 0;
 	if ( filter->num_val_fields > 0 ) {
@@ -791,10 +799,6 @@ int Manager::SendEntryTable(const ReaderFrontend* reader, const int id, const Va
 	     	valhash = valhashkey->Hash();
 	      	delete(valhashkey);
 	}
-
-	//reporter->Error("Result: %d", (uint64_t) valhash->Hash());
-	
-	//reporter->Error("received entry with idxhash %d and valhash %d", (uint64_t) idxhash->Hash(), (uint64_t) valhash->Hash());
 
 	InputHash *h = filter->lastDict->Lookup(idxhash);
 	if ( h != 0 ) {
@@ -1609,14 +1613,16 @@ HashKey* Manager::HashValues(const int num_elements, const Value* const *vals) {
 			length += GetValueLength(val);
 	}
 
-	//reporter->Error("Length: %d", length);
+	if ( length == 0 ) {
+		reporter->Error("Input reader sent line where all elements are null values. Ignoring line");
+		return NULL;
+	}
 
 	int position = 0;
 	char *data = (char*) malloc(length);
 	if ( data == 0 ) {
 		reporter->InternalError("Could not malloc?");
 	}
-	//memset(data, 0, length);
 	for ( int i = 0; i < num_elements; i++ ) {
 		const Value* val = vals[i];
 		if ( val->present )

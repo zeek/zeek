@@ -32,10 +32,12 @@ FragReassembler::FragReassembler(NetSessions* arg_s,
 	{
 	s = arg_s;
 	key = k;
+
+	// [Robin] Can't we merge these two cases now?
 	const struct ip* ip4 = ip->IP4_Hdr();
 	if ( ip4 )
 		{
-		proto_hdr_len = ip4->ip_hl * 4;
+		proto_hdr_len = ip4->ip_hl * 4; // [Robin] HdrLen?
 		proto_hdr = new u_char[64];	// max IP header + slop
 		// Don't do a structure copy - need to pick up options, too.
 		memcpy((void*) proto_hdr, (const void*) ip4, proto_hdr_len);
@@ -244,6 +246,12 @@ void FragReassembler::BlockInserted(DataBlock* /* start_block */)
 		reassem4->ip_len = htons(frag_size + proto_hdr_len);
 		reassembled_pkt = new IP_Hdr(reassem4, true);
 		}
+
+	// [Robin] Please always check for IP version explicitly, like here
+	// do "if ... ip_v == 6", and then catch other values via
+	// weird/errors. Even of it shouldn't happen (because of earlier
+	// checks), it's better to be safe. I believe there are more places
+	// like this elsewhere, please check.
 	else
 		{
 		struct ip6_hdr* reassem6 = (struct ip6_hdr*) pkt_start;

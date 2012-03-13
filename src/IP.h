@@ -14,6 +14,15 @@
 #include <netinet/ip.h>
 #include <netinet/ip6.h>
 
+// [Robin] I'm concerced about the virtual methods here. These methods will
+// be called *a lot* and that may add to some significant overhead I'm afraid
+// (at least eventually as IPv6 is picking up).
+//
+// [Robin] Similar concern for the vector<IPv6_Hdr*> and ip6_hdrs data
+// members: we're creating/allocating those for every IPv6 packet, right?
+//
+// Any idea how to avoid these?
+
 /**
  * Base class for IPv6 header/extensions.
  */
@@ -32,6 +41,13 @@ public:
 	 */
 	IPv6_Hdr(const u_char* d, uint16 nxt) : type(IPPROTO_IPV6), data(d)
 		{
+		// [Robin]. This looks potentially dangerous as it's changing
+		// the data passed in, which the caller may not realize. From
+		// quick look, it's only used from Frag.cc, so that may be
+		// ok. But could we guard against accidental use somehome?
+		// Like making this protected and then declare a friend; or a
+		// seperate method ChangeNext(). (I saw it's used by derived
+		// classes so not sure wehat works best.)
 		if ( ((ip6_hdr*)data)->ip6_nxt == IPPROTO_FRAGMENT )
 			((ip6_hdr*)data)->ip6_nxt = nxt;
 		}

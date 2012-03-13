@@ -430,6 +430,8 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 	if ( discarder && discarder->NextPacket(ip_hdr, len, caplen) )
 		return;
 
+	// [Robin] dump_this_packet = 1 for non-ICMP/UDP/TCP removed here. Why?
+
 	FragReassembler* f = 0;
 
 	if ( ip_hdr->IsFragment() )
@@ -465,6 +467,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 	len -= ip_hdr_len;	// remove IP header
 	caplen -= ip_hdr_len;
 
+	// [Robin] Does ESP need to be the last header?
 	if ( ip_hdr->LastHeader() == IPPROTO_ESP )
 		{
 		if ( esp_packet )
@@ -474,7 +477,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 			mgr.QueueEvent(esp_packet, vl);
 			}
 		Remove(f);
-		// Can't do more since upper-layer payloads are going to be encrypted
+		// Can't do more since upper-layer payloads are going to be encrypted.
 		return;
 		}
 
@@ -485,6 +488,9 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		Remove(f);
 		return;
 		}
+
+	// [Robin] The Remove(f) used to be here, while it's now before every
+	// return statement. I'm not seeing why?
 
 	const u_char* data = ip_hdr->Payload();
 
@@ -594,6 +600,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 	if ( ipv6_ext_headers && ip_hdr->NumHeaders() > 1 )
 		{
 		pkt_hdr_val = ip_hdr->BuildPktHdrVal();
+		// [Robin] This should be ipv6_ext_headers, right?
 		conn->Event(new_packet, 0, pkt_hdr_val);
 		}
 

@@ -20,7 +20,7 @@ type example_record: record {
 };
 
 global a:  addr = 1.2.3.4;
-global a6: addr = ::1;
+global a6: addr = [::1];
 global b:  bool = T;
 global c:  count = 10;
 global d:  double = -1.23;

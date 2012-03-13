@@ -24,3 +24,7 @@ push:
 status:
 	@for repo in $(REPOS); do ( cd $$repo && echo '>>' $$repo && git status -bs && echo ); done
 
+coverage:
+	@for repo in $(REPOS); do (cd $$repo && echo "Coverage for '$$repo' repo:" && make coverage); done
+
+.PHONY: all brief init pull push status coverage

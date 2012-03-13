@@ -1,5 +1,5 @@
 ::1
-::0.0.255.255
+::ffff
 ::255.255.255.255
 ::10.10.255.255
 1::1
@@ -19,4 +19,4 @@ ffff::c0a8:164
 aaaa::bbbb
 aaaa:bbbb:cccc:dddd:eeee:ffff:1111:2222
 aaaa:bbbb:cccc:dddd:eeee:ffff:1:2222
-aaaa:bbbb:cccc:dddd:eeee:ffff::2222
+aaaa:bbbb:cccc:dddd:eeee:ffff:0:2222

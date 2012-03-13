@@ -228,6 +228,24 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 			++yylloc.last_line;
 			}
 
+	/* IPv6 literal constant patterns */
+"["({HEX}:){7}{HEX}"]" {
+	string s(yytext+1);
+	RET_CONST(new AddrVal(s.erase(s.size()-1)))
+}
+"["0x{HEX}({HEX}|:)*"::"({HEX}|:)*"]" {
+	string s(yytext+3);
+	RET_CONST(new AddrVal(s.erase(s.size()-1)))
+}
+"["({HEX}|:)*"::"({HEX}|:)*"]" {
+	string s(yytext+1);
+	RET_CONST(new AddrVal(s.erase(s.size()-1)))
+}
+"["({HEX}|:)*"::"({HEX}|:)*({D}"."){3}{D}"]" {
+	string s(yytext+1);
+	RET_CONST(new AddrVal(s.erase(s.size()-1)))
+}
+
 [!%*/+\-,:;<=>?()\[\]{}~$|]	return yytext[0];
 
 "--"	return TOK_DECR;
@@ -449,11 +467,6 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 		}
 
 ({D}"."){3}{D}		RET_CONST(new AddrVal(yytext))
-
-({HEX}:){7}{HEX}	RET_CONST(new AddrVal(yytext))
-
-0x{HEX}({HEX}|:)*"::"({HEX}|:)*	RET_CONST(new AddrVal(yytext+2))
-(({D}|:)({HEX}|:)*)?"::"({HEX}|:)*	RET_CONST(new AddrVal(yytext))
 
 "0x"{HEX}+	RET_CONST(new Val(static_cast<bro_uint_t>(strtol(yytext, 0, 16)), TYPE_COUNT))
 

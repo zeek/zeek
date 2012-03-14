@@ -1,4 +1,61 @@
 
+2.0-150 | 2012-03-13 16:16:22 -0700
+
+  * Changing the regular expression to allow Site::local_nets in
+    signatures. (Julien Sentier)
+
+  * Removing a line of dead code. Found by . Closes #786. (Julien
+    Sentier)
+
+2.0-146 | 2012-03-13 15:39:38 -0700
+
+  * Change IPv6 literal constant syntax to require encasing square
+    brackets. (Jon Siwek)
+
+2.0-145 | 2012-03-09 15:10:35 -0800
+
+  * Remove the match expression. 'match' and 'using' are no longer
+    keywords. Addressed #753. (Jon Siwek)
+
+2.0-143 | 2012-03-09 15:07:42 -0800
+
+  * Fix a BRO_PROFILER_FILE/mkstemp portability issue. Addresses #794.
+    (Jon Siwek)
+
+2.0-139 | 2012-03-02 09:33:04 -0800
+
+  * Changes to how script coverage integrates with test suites. (Jon Siwek)
+
+    - BRO_PROFILER_FILE now passes .X* templated filenames to mkstemp
+      for generating unique coverage state files.
+
+    - Rearranging Makefile targets.  The general rule is that if the
+      all/brief target fails out due to a test failure, then the dependent
+      coverage target won't run, but can still be invoked directly later.
+      (e.g. make brief || make coverage) 
+
+  * Standardized on the &default function for SSL constants. (Seth
+    Hall)
+
+  * Adding btest group "leaks" to leak tests. (Robin Sommer)
+    
+  * Adding btest group "comm" to communication tests for parallelizing
+    execution with new btest version. (Robin Sommer)
+
+  * Sorting all output for diffing in the external tests. (Robin
+    Sommer)
+
+  * Cleaned up dead code from the old SSL analyzers. Reported by
+    Julien Sentier. (Seth Hall)
+
+  * Update/add tests for broccoli IPv6 addr/subnet support. Addresses
+    #448. (Jon Siwek)
+
+  * Remove connection compressor. Addresses #559. (Jon Siwek)
+    
+  * Refactor IP_Hdr class ctors. Addresses #532. (Jon Siwek)
+    
+
 2.0-121 | 2012-02-24 16:34:17 -0800
 
   * A number of smaller memory fixes and code cleanups. (Julien

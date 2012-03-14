@@ -275,7 +275,7 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &prior
 			{
 			c$ftp$passive=T;
 			
-			if ( code == 229 && data$h == :: )
+			if ( code == 229 && data$h == [::] )
 				data$h = id$resp_h;
 			
 			ftp_data_expected[data$h, data$p] = c$ftp;

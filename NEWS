@@ -21,6 +21,16 @@ Bro 2.1
   such that at the scripting layer, the name resolution can yield a
   set with both IPv4 and IPv6 addresses.
 
+- The connection compressor was already deprecated in 2.0 and has now
+  been removed from the code base.
+
+- We removed the "match" statement, which was no longer used by any of
+  the default scripts, nor was it likely to be used by anybody anytime
+  soon. With that, "match" and "using" are no longer reserved keywords.
+
+- The syntax for IPv6 literals changed from "2607:f8b0:4009:802::1012"
+  to "[2607:f8b0:4009:802::1012]".
+
 TODO: Extend.
 
 Bro 2.0

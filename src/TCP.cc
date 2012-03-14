@@ -2255,6 +2255,7 @@ void TCPStats_Analyzer::ProcessACK(TCPStats_Endpoint* endpoint,
 								   uint32 ack_seq, bool is_orig,
 								   uint32 packet_size)
 {
+
   uint32 normalized_ack_seq = ack_seq - peer->StartSeq();
 
   // this is the syn-ack.  the normalized syn-ack seq# is always 1
@@ -2384,7 +2385,6 @@ void TCPStats_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
   // get header.  TODO: this is a hack.
   const struct tcphdr* tp = (const struct tcphdr*) ip->Payload();
-
   if (! tp) return;
 
   TCP_Flags flags(tp);
@@ -2556,7 +2556,6 @@ void TCPStats_Analyzer::ProcessWindow(TCPStats_Endpoint* endpoint, int window, b
 	  vl->append(new Val(d, TYPE_INT));
 	  vl->append(new Val(endpoint->MaxDataInFlight(), TYPE_INT));
 	  vl->append(new Val(endpoint->IsOrig(), TYPE_BOOL));
-
 	  ConnectionEvent(tcp_new_flight_max, vl);
 	}
 

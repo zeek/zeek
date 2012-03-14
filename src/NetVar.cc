@@ -325,6 +325,10 @@ void init_net_var()
 	string_array = internal_type("string_array")->AsTableType();
 	string_vec = internal_type("string_vec")->AsVectorType();
 
+	ignore_rtt_events = opt_internal_int("ignore_rtt_events");
+	ignore_window_events = opt_internal_int("ignore_window_events");
+	ignore_tcp_events = opt_internal_int("ignore_tcp_events");
+
 	ignore_checksums = opt_internal_int("ignore_checksums");
 	partial_connection_ok = opt_internal_int("partial_connection_ok");
 	tcp_SYN_ack_ok = opt_internal_int("tcp_SYN_ack_ok");

@@ -190,6 +190,12 @@ type flight_stats: record {
 	 max: int;		 ##< Max number of packets in flight
 };
 
+## Options for the TCP analyzer, to ignore certain types of events
+const ignore_window_events = F &redef;
+const ignore_rtt_events = F &redef;
+const ignore_tcp_events = F &redef;
+
+
 ## A unique analyzer instance ID. Each time instantiates a protocol analyzers
 ## for a connection, it assigns it a unique ID that can be used to reference
 ## that instance.

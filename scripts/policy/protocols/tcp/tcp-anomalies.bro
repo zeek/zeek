@@ -18,8 +18,6 @@ global log_lev_all = T;
 global log_lev_interesting = T;
 global log_lev_summary = T;
 
-#redef use_connection_compressor = F;
-
 # these redefs have now replaced the "log_rtt", etc., variables.
 # ignoring a particular type of event will prevent any of those events
 # from getting thrown in BRO, so there is not a need to use @ifdefs

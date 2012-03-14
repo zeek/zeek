@@ -117,7 +117,6 @@ void TCPStats_Endpoint::CheckOutOfOrder(uint32 ip_id, uint32 seq, bool is_syn, b
 	// a replay packet
 	if (iat < min_rtt) {
 
-	  printf("iat was %f min rtt was %f\n", iat, min_rtt);
 	  RecordReplay();
 	  
 	  if (!ignore_tcp_events) {
@@ -203,9 +202,7 @@ float TCPStats_Endpoint::GetIAT(uint32 seq)
 
   if (t != 0.0)
 	iat = current_timestamp - t;
-  //  else // TODO: TEST this needs to go
-  //	iat = current_timestamp - LastInOrderPacketSequenceTimestamp();
-  
+
   return iat;
 }
 
@@ -263,11 +260,10 @@ void TCPStats_Endpoint::InsertSequenceNumber(Seq_Range *seq, Packet_Statistics *
   delete h; // TODO: this shouldn't work..
 
   // ..and into our pseudo keyset
-  if (!outstanding_data.is_member(seq, Reverse_sequence_range_comparison)) { // want a set, not a list
-	outstanding_data.sortedinsert(seq, Reverse_sequence_range_comparison);
-  } else {
+  if (!outstanding_data.is_member(seq, Reverse_sequence_range_comparison)) // want a set, not a list
+  	outstanding_data.sortedinsert(seq, Reverse_sequence_range_comparison);
+  else
   	delete seq;
-  }
 }
 
 // second real method.  removes packet from our dictionary, while also throwing some events (perhaps)
@@ -373,6 +369,7 @@ Packet_Statistics* TCPStats_Endpoint::SetPacketACKTimeAndGetSummary(uint32 seq, 
 	delete range_key;
 
   return packet;
+
 }
 
 // actual remove function for dict (gets its own function because we have to make a hashkey out of a sequence number)

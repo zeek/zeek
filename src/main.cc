@@ -837,7 +837,7 @@ int main(int argc, char** argv)
 
 	if ( dns_type != DNS_PRIME )
 		net_init(interfaces, read_files, netflows, flow_files,
-			writefile, "tcp or udp or icmp",
+			writefile, "",
 			secondary_path->Filter(), do_watchdog);
 
 	BroFile::SetDefaultRotation(log_rotate_interval, log_max_size);

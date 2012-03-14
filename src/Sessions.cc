@@ -600,8 +600,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 	if ( ipv6_ext_headers && ip_hdr->NumHeaders() > 1 )
 		{
 		pkt_hdr_val = ip_hdr->BuildPktHdrVal();
-		// [Robin] This should be ipv6_ext_headers, right?
-		conn->Event(new_packet, 0, pkt_hdr_val);
+		conn->Event(ipv6_ext_headers, 0, pkt_hdr_val);
 		}
 
 	if ( new_packet )

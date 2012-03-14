@@ -205,12 +205,24 @@ ReaderBackend* Manager::CreateBackend(ReaderFrontend* frontend, bro_int_t type) 
 // create a new input reader object to be used at whomevers leisure lateron.
 ReaderFrontend* Manager::CreateStream(EnumVal* id, RecordVal* description) 
 {
+	{
+		ReaderInfo *i = FindReader(id);
+		if ( i != 0 ) {
+			ODesc desc;
+			id->Describe(&desc);
+			reporter->Error("Trying create already existing input stream %s", desc.Description());
+			return 0;
+		}
+	}
+
 	ReaderDefinition* ir = input_readers;
 	
 	RecordType* rtype = description->Type()->AsRecordType();
 	if ( ! same_type(rtype, BifType::Record::Input::StreamDescription, 0) )
 	{
-		reporter->Error("Streamdescription argument not of right type");
+		ODesc desc;
+		id->Describe(&desc);
+		reporter->Error("Streamdescription argument not of right type for new input stream %s", desc.Description());
 		return 0;
 	}
 
@@ -238,6 +250,13 @@ ReaderFrontend* Manager::CreateStream(EnumVal* id, RecordVal* description)
 	readers.push_back(info);
 
 	reader_obj->Init(source, mode->InternalInt(), do_autostart);
+	
+#ifdef DEBUG
+		ODesc desc;
+		id->Describe(&desc);
+		DBG_LOG(DBG_INPUT, "Successfully created new input stream %s",
+			desc.Description());
+#endif
 	
 	return reader_obj;
 	
@@ -503,6 +522,13 @@ bool Manager::AddTableFilter(EnumVal *id, RecordVal* fval) {
 	i->filters[filterid] = filter;
 	i->reader->AddFilter( filterid, fieldsV.size(), fields );
 
+#ifdef DEBUG
+		ODesc desc;
+		id->Describe(&desc);
+		DBG_LOG(DBG_INPUT, "Successfully created new table filter %s for stream",
+			filter->name.c_str(), desc.Description());
+#endif
+
 	return true;
 }
 
@@ -574,6 +600,13 @@ bool Manager::RemoveStream(const EnumVal* id) {
 
 	i->reader->Finish();
 
+#ifdef DEBUG
+		ODesc desc;
+		id->Describe(&desc);
+		DBG_LOG(DBG_INPUT, "Successfully queued removal of stream %s",
+			desc.Description());
+#endif
+
 	return true;
 }
 
@@ -586,6 +619,12 @@ bool Manager::RemoveStreamContinuation(const ReaderFrontend* reader) {
 		if ( (*s)->reader && (*s)->reader == reader ) 
 		{
 			i = *s;
+#ifdef DEBUG
+				ODesc desc;
+				i->id->Describe(&desc);
+				DBG_LOG(DBG_INPUT, "Successfully executed removal of stream %s",
+				desc.Description());
+#endif
 			delete(i);
 			readers.erase(s);
 			return true;
@@ -651,6 +690,13 @@ bool Manager::ForceUpdate(const EnumVal* id)
  
 	i->reader->Update();
 
+#ifdef DEBUG
+		ODesc desc;
+		id->Describe(&desc);
+		DBG_LOG(DBG_INPUT, "Forcing update of stream %s",
+			desc.Description());
+#endif
+
 	return true; // update is async :(
 }
 
@@ -685,6 +731,13 @@ bool Manager::RemoveTableFilter(EnumVal* id, const string &name) {
 
 	i->reader->RemoveFilter(filterId);
 
+#ifdef DEBUG
+		ODesc desc;
+		id->Describe(&desc);
+		DBG_LOG(DBG_INPUT, "Queued removal of tablefilter %s for stream %s",
+			name.c_str(), desc.Description());
+#endif
+
 	return true;
 }
 
@@ -700,6 +753,13 @@ bool Manager::RemoveFilterContinuation(const ReaderFrontend* reader, const int f
 		reporter->Error("Got RemoveFilterContinuation where filter nonexistant for %d", filterId);
 		return false;
 	}
+
+#ifdef DEBUG
+		ODesc desc;
+		i->id->Describe(&desc);
+		DBG_LOG(DBG_INPUT, "Executed removal of (table|event)-filter %s for stream %s",
+			(*it).second->name.c_str(), desc.Description());
+#endif
 
 	delete (*it).second;
 	i->filters.erase(it);
@@ -736,6 +796,13 @@ bool Manager::RemoveEventFilter(EnumVal* id, const string &name) {
 	}
 
 	i->reader->RemoveFilter(filterId);
+
+#ifdef DEBUG
+		ODesc desc;
+		id->Describe(&desc);
+		DBG_LOG(DBG_INPUT, "Queued removal of eventfilter %s for stream %s",
+			name.c_str(), desc.Description());
+#endif
 	return true;
 }
 
@@ -948,6 +1015,13 @@ void Manager::EndCurrentSend(const ReaderFrontend* reader, int id) {
 
 	assert(i->HasFilter(id));
 
+#ifdef DEBUG
+		ODesc desc;
+		i->id->Describe(&desc);
+		DBG_LOG(DBG_INPUT, "Got EndCurrentSend for filter %d and stream %s",
+			id, desc.Description());
+#endif
+
 	if ( i->filters[id]->filter_type == EVENT_FILTER ) {
 		// nothing to do..
 		return;
@@ -1017,6 +1091,11 @@ void Manager::EndCurrentSend(const ReaderFrontend* reader, int id) {
 
 	filter->lastDict = filter->currDict;	
 	filter->currDict = new PDict(InputHash);
+
+#ifdef DEBUG
+		DBG_LOG(DBG_INPUT, "EndCurrentSend complete for filter %d and stream %s, queueing update_finished event",
+			id, desc.Description());
+#endif
 
 	// Send event that the current update is indeed finished.
 	EventHandler* handler = event_registry->Lookup("Input::update_finished");
@@ -1201,6 +1280,13 @@ void Manager::Clear(const ReaderFrontend* reader, int id) {
 		reporter->InternalError("Unknown reader");
 		return;
 	}
+
+#ifdef DEBUG
+		ODesc desc;
+		i->id->Describe(&desc);
+		DBG_LOG(DBG_INPUT, "Got Clear for filter %d and stream %s",
+			id, desc.Description());
+#endif
 
 	assert(i->HasFilter(id));	
 

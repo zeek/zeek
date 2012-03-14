@@ -5,7 +5,7 @@ module Input;
 
 export {
          
-	redef enum Input::ID += { TABLE_READ };
+	redef enum Input::ID += { TABLE_READ, EVENT_READ };
 
 	## The default input reader used. Defaults to `READER_ASCII`.
 	const default_reader = READER_ASCII &redef;
@@ -123,6 +123,8 @@ export {
 	## filter: the `TableFilter` record describing the filter.	
 	global read_table: function(description: Input::StreamDescription, filter: Input::TableFilter) : bool;
 
+	global read_event: function(description: Input::StreamDescription, filter: Input::EventFilter) : bool;
+
 	global update_finished: event(id: Input::ID);
 
 }
@@ -181,6 +183,27 @@ function read_table(description: Input::StreamDescription, filter: Input::TableF
 	ok = create_stream(id, description);
 	if ( ok ) {
 		ok = add_tablefilter(id, filter);
+	}
+	if ( ok ) {
+		ok = remove_tablefilter(id, filter$name);
+	}
+	if ( ok ) {
+		ok = remove_stream(id);
+	} else {
+		remove_stream(id);
+	}
+
+	return ok;
+}
+
+function read_event(description: Input::StreamDescription, filter: Input::EventFilter) : bool {
+	local ok: bool = T;
+	# since we create and delete it ourselves this should be ok... at least for singlethreaded operation
+	local id: Input::ID = Input::EVENT_READ;
+
+	ok = create_stream(id, description);
+	if ( ok ) {
+		ok = add_eventfilter(id, filter);
 	}
 	if ( ok ) {
 		ok = remove_stream(id);

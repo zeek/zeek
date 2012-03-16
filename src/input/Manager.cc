@@ -220,11 +220,8 @@ bool Manager::CreateStream(Filter* info, RecordVal* description)
 	info->name = name;
 	info->source = source;
 
-	
-#ifdef DEBUG
-		DBG_LOG(DBG_INPUT, "Successfully created new input stream %s",
-			name.c_str());
-#endif
+	DBG_LOG(DBG_INPUT, "Successfully created new input stream %s",
+		name.c_str());
 	
 	return true;
 	
@@ -334,6 +331,10 @@ bool Manager::CreateEventStream(RecordVal* fval) {
 	filter->reader->Init(filter->source, filter->mode, filter->num_fields, logf );
 
 	readers[filter->reader] = filter;
+
+	DBG_LOG(DBG_INPUT, "Successfully created event stream %s",
+		filter->name.c_str());
+
 	return true;
 }
 
@@ -482,12 +483,9 @@ bool Manager::CreateTableStream(RecordVal* fval) {
 	filter->reader->Init(filter->source, filter->mode, fieldsV.size(), fields );
 
 	readers[filter->reader] = filter;
-	
 
-#ifdef DEBUG
-		DBG_LOG(DBG_INPUT, "Successfully created table stream %s",
-			filter->name.c_str());
-#endif
+	DBG_LOG(DBG_INPUT, "Successfully created table stream %s",
+		filter->name.c_str());
 
 	return true;
 }

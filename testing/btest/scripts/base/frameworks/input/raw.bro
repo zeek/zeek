@@ -1,5 +1,5 @@
 #
-# @TEST-EXEC: bro %INPUT >out
+# @TEST-EXEC: bro -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 @TEST-START-FILE input.log
@@ -16,10 +16,6 @@ sdf
 
 module A;
 
-export {
-	redef enum Input::ID += { INPUT };
-}
-
 type Val: record {
 	s: string;
 };
@@ -30,6 +26,5 @@ event line(tpe: Input::Event, s: string) {
 
 event bro_init()
 {
-	Input::create_stream(A::INPUT, [$source="input.log", $reader=Input::READER_RAW, $mode=Input::STREAM]);
-	Input::add_eventfilter(A::INPUT, [$name="input", $fields=Val, $ev=line]);
+	Input::add_event([$source="input.log", $reader=Input::READER_RAW, $mode=Input::STREAM, $name="input", $fields=Val, $ev=line]);
 }

@@ -63,6 +63,9 @@ bool Raw::DoInit(string path, int arg_mode, int arg_num_fields, const Field* con
 		Error(Fmt("Init: cannot open %s", fname.c_str()));
 		return false;
 	}
+	
+	num_fields = arg_num_fields;
+	fields = arg_fields;
 
 	if ( arg_num_fields != 1 ) {
 		Error("Filter for raw reader contains more than one field. Filters for the raw reader may only contain exactly one string field. Filter ignored.");
@@ -74,8 +77,9 @@ bool Raw::DoInit(string path, int arg_mode, int arg_num_fields, const Field* con
 		return false;
 	}
 
-	num_fields = arg_num_fields;
-	fields = arg_fields;
+#ifdef DEBUG
+	Debug(DBG_INPUT, "Raw reader created, will perform first update");
+#endif
 
 	switch ( mode ) {
 		case MANUAL:
@@ -86,6 +90,7 @@ bool Raw::DoInit(string path, int arg_mode, int arg_num_fields, const Field* con
 		default:
 			assert(false);
 	}
+
 
 	return true;
 }

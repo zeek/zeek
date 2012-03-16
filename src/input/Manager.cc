@@ -274,15 +274,15 @@ bool Manager::CreateEventStream(RecordVal* fval) {
 			return false;
 		}
 
-		if ( ! same_type((*args)[0], BifType::Enum::Input::Event, 0) ) 
+		if ( ! same_type((*args)[1], BifType::Enum::Input::Event, 0) ) 
 		{
-			reporter->Error("events first attribute must be of type Input::Event");
+			reporter->Error("events second attribute must be of type Input::Event");
 			return false;
 		} 				
 		
-		if ( ! same_type((*args)[1], BifType::Record::Input::EventDescription, 0) ) 
+		if ( ! same_type((*args)[0], BifType::Record::Input::EventDescription, 0) ) 
 		{
-			reporter->Error("events second attribute must be of type Input::EventDescription");
+			reporter->Error("events first attribute must be of type Input::EventDescription");
 			return false;
 		} 			
 
@@ -973,11 +973,11 @@ int Manager::SendEventFilterEvent(Filter* i, EnumVal* type, const Value* const *
 
 	Val *val;
 	list<Val*> out_vals;
+	Ref(filter->description);
+	out_vals.push_back(filter->description);
 	// no tracking, send everything with a new event...
 	//out_vals.push_back(new EnumVal(BifEnum::Input::EVENT_NEW, BifType::Enum::Input::Event));
 	out_vals.push_back(type);
-	Ref(filter->description);
-	out_vals.push_back(filter->description);
 
 	int position = 0;
 	if ( filter->want_record ) {

@@ -20,7 +20,8 @@ type Val: record {
 	s: string;
 };
 
-event line(tpe: Input::Event, s: string) {
+event line(tpe: Input::Event, description: Input::EventDescription, s: string) {
+	print description;
 	print s;
 }
 

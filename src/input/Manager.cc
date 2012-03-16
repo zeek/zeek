@@ -41,11 +41,14 @@ public:
 	EnumVal* type;
 	ReaderFrontend* reader;
 
+	RecordVal* description;
+
 	virtual ~Filter();
 };
 
 Manager::Filter::~Filter() {
 	Unref(type);
+	Unref(description);
 
 	delete(reader);	
 }
@@ -219,6 +222,8 @@ bool Manager::CreateStream(Filter* info, RecordVal* description)
 	info->type = reader->AsEnumVal(); // ref'd by lookupwithdefault
 	info->name = name;
 	info->source = source;
+	Ref(description);
+	info->description = description;
 
 	DBG_LOG(DBG_INPUT, "Successfully created new input stream %s",
 		name.c_str());
@@ -274,27 +279,33 @@ bool Manager::CreateEventStream(RecordVal* fval) {
 			reporter->Error("events first attribute must be of type Input::Event");
 			return false;
 		} 				
+		
+		if ( ! same_type((*args)[1], BifType::Record::Input::EventDescription, 0) ) 
+		{
+			reporter->Error("events second attribute must be of type Input::EventDescription");
+			return false;
+		} 			
 
 		if ( want_record->InternalInt() == 0 ) {
-			if ( args->length() != fields->NumFields() + 1 ) {
-				reporter->Error("events has wrong number of arguments");
+			if ( args->length() != fields->NumFields() + 2 ) {
+				reporter->Error("event has wrong number of arguments");
 				return false;
 			}
 
 			for ( int i = 0; i < fields->NumFields(); i++ ) {
-				if ( !same_type((*args)[i+1], fields->FieldType(i) ) ) {
+				if ( !same_type((*args)[i+2], fields->FieldType(i) ) ) {
 					reporter->Error("Incompatible type for event");
 					return false;
 				}
 			}
 
 		} else if ( want_record->InternalInt() == 1 ) {
-			if ( args->length() != 2 ) {
-				reporter->Error("events has wrong number of arguments");
+			if ( args->length() != 3 ) {
+				reporter->Error("event has wrong number of arguments");
 				return false;
 			}
 
-			if ( !same_type((*args)[1], fields ) ) {
+			if ( !same_type((*args)[2], fields ) ) {
 				reporter->Error("Incompatible type for event");
 				return false;
 			}
@@ -965,6 +976,8 @@ int Manager::SendEventFilterEvent(Filter* i, EnumVal* type, const Value* const *
 	// no tracking, send everything with a new event...
 	//out_vals.push_back(new EnumVal(BifEnum::Input::EVENT_NEW, BifType::Enum::Input::Event));
 	out_vals.push_back(type);
+	Ref(filter->description);
+	out_vals.push_back(filter->description);
 
 	int position = 0;
 	if ( filter->want_record ) {

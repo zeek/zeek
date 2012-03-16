@@ -102,25 +102,25 @@ void Manager::Process()
 			next_beat = 0;
 			}
 
-		if ( ! t->HasOut() )
-			continue;
-
-		Message* msg = t->RetrieveOut();
-
-		if ( msg->Process() )
+		while ( t->HasOut() )
 			{
-			if ( network_time )
-				did_process = true;
+			Message* msg = t->RetrieveOut();
+
+			if ( msg->Process() )
+				{
+				if ( network_time )
+					did_process = true;
+				}
+
+			else
+				{
+				string s = msg->Name() + " failed, terminating thread";
+				reporter->Error("%s", s.c_str());
+				t->Stop();
 			}
 
-		else
-			{
-			string s = msg->Name() + " failed, terminating thread";
-			reporter->Error("%s", s.c_str());
-			t->Stop();
+			delete msg;
 			}
-
-		delete msg;
 		}
 
 //	fprintf(stderr, "P %.6f %.6f do_beat=%d did_process=%d next_next=%.6f\n", network_time, timer_mgr->Time(), do_beat, (int)did_process, next_beat);

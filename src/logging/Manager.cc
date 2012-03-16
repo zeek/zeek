@@ -677,11 +677,11 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 
 			Val* path_arg;
 			if ( filter->path_val )
-				path_arg = filter->path_val;
+				path_arg = filter->path_val->Ref();
 			else
 				path_arg = new StringVal("");
 
-			vl.append(path_arg->Ref());
+			vl.append(path_arg);
 
 			Val* rec_arg;
 			BroType* rt = filter->path_func->FType()->Args()->FieldType("rec");
@@ -715,7 +715,6 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 
 			if ( ! filter->path_val )
 				{
-				Unref(path_arg);
 				filter->path = v->AsString()->CheckString();
 				filter->path_val = v->Ref();
 				}

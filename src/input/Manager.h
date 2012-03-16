@@ -11,7 +11,7 @@
 #include "../EventHandler.h"
 #include "../RemoteSerializer.h"
 
-#include <vector>
+#include <map>
 
 namespace input {
 
@@ -35,6 +35,9 @@ public:
     
 	/**
 	 * Creates a new input stream.
+	 * Add a filter to an input source, which will write the data from the data source into 
+	 * a Bro table.
+	 * Add a filter to an input source, which sends events for read input data.
 	 *
 	 * @param id  The enum value corresponding the input stream.
 	 *
@@ -43,7 +46,9 @@ public:
 	 * This method corresponds directly to the internal BiF defined in
 	 * input.bif, which just forwards here.
 	 */	
-    	ReaderFrontend* CreateStream(EnumVal* id, RecordVal* description);
+    	bool CreateTableStream(RecordVal* description);
+    	bool CreateEventStream(RecordVal* description);
+
 
 	/**
 	 * Force update on a input stream.
@@ -57,7 +62,7 @@ public:
 	 * This method corresponds directly to the internal BiF defined in
 	 * input.bif, which just forwards here.
 	 */
-	bool ForceUpdate(const EnumVal* id);
+	bool ForceUpdate(const string &id);
 	
 	/**
 	 * Deletes an existing input stream
@@ -67,53 +72,8 @@ public:
 	 * This method corresponds directly to the internal BiF defined in
 	 * input.bif, which just forwards here.
 	 */
-	bool RemoveStream(const EnumVal* id);	
+	bool RemoveStream(const string &id);	
 
-	/** 
-	 * Add a filter to an input source, which will write the data from the data source into 
-	 * a Bro table.
-	 *
-	 * @param id  The enum value corresponding the input stream.
-	 * 
-	 * @param description A record of script type \c Input:TableFilter.
-	 *
-	 * This method corresponds directly to the internal BiF defined in
-	 * input.bif, which just forwards here.
-	 */
-	bool AddTableFilter(EnumVal *id, RecordVal* filter);
-
-	/**
-	 * Removes a tablefilter from the log stream
-	 *
-	 * @param id  The enum value corresponding the input stream.
-	 *
-	 * This method corresponds directly to the internal BiF defined in
-	 * input.bif, which just forwards here.
-	 */
-	bool RemoveTableFilter(EnumVal* id, const string &name);
-
-	/** 
-	 * Add a filter to an input source, which sends events for read input data.
-	 *
-	 * @param id  The enum value corresponding the input stream.
-	 * 
-	 * @param description A record of script type \c Input:EventFilter.
-	 *
-	 * This method corresponds directly to the internal BiF defined in
-	 * input.bif, which just forwards here.
-	 */
-	bool AddEventFilter(EnumVal *id, RecordVal* filter);
-
-	/**
-	 * Removes a eventfilter from the log stream
-	 *
-	 * @param id  The enum value corresponding the input stream.
-	 *
-	 * This method corresponds directly to the internal BiF defined in
-	 * input.bif, which just forwards here.
-	 */
-	bool RemoveEventFilter(EnumVal* id, const string &name);
-	
 protected:
 	friend class ReaderFrontend;
 	friend class PutMessage;
@@ -122,19 +82,18 @@ protected:
 	friend class SendEventMessage;
 	friend class SendEntryMessage;
 	friend class EndCurrentSendMessage;
-	friend class FilterRemovedMessage;
 	friend class ReaderFinishedMessage;
 
 	// For readers to write to input stream in direct mode (reporting new/deleted values directly)
 	// Functions take ownership of threading::Value fields
-	void Put(const ReaderFrontend* reader, int id, threading::Value* *vals);
-	void Clear(const ReaderFrontend* reader, int id);
-	bool Delete(const ReaderFrontend* reader, int id, threading::Value* *vals);
+	void Put(ReaderFrontend* reader, threading::Value* *vals);
+	void Clear(ReaderFrontend* reader);
+	bool Delete(ReaderFrontend* reader, threading::Value* *vals);
 
 	// for readers to write to input stream in indirect mode (manager is monitoring new/deleted values)
 	// Functions take ownership of threading::Value fields
-	void SendEntry(const ReaderFrontend* reader, const int id, threading::Value* *vals);
-	void EndCurrentSend(const ReaderFrontend* reader, const int id);
+	void SendEntry(ReaderFrontend* reader, threading::Value* *vals);
+	void EndCurrentSend(ReaderFrontend* reader);
 	
 	// Allows readers to directly send Bro events.
 	// The num_vals and vals must be the same the named event expects.
@@ -150,20 +109,23 @@ protected:
 	// Used to prevent race conditions where data for a specific filter is still in the queue when the 
 	// RemoveFilter directive is executed by the main thread.
 	// This makes sure all data that has ben queued for a filter is still received.
-	bool RemoveFilterContinuation(const ReaderFrontend* reader, const int filterId);
-	bool RemoveStreamContinuation(const ReaderFrontend* reader);
+	bool RemoveStreamContinuation(ReaderFrontend* reader);
 	
 private:
-	struct ReaderInfo;
+	class Filter;
+	class TableFilter;
+	class EventFilter;
+	
+    	bool CreateStream(Filter*, RecordVal* description);
 
 	// SendEntry implementation for Tablefilter
-	int SendEntryTable(const ReaderFrontend* reader, int id, const threading::Value* const *vals);	
+	int SendEntryTable(Filter* i, const threading::Value* const *vals);	
 
 	// Put implementation for Tablefilter
-	int PutTable(const ReaderFrontend* reader, int id, const threading::Value* const *vals);	
+	int PutTable(Filter* i, const threading::Value* const *vals);	
 
 	// SendEntry and Put implementation for Eventfilter
-	int SendEventFilterEvent(const ReaderFrontend* reader, EnumVal* type, int id, const threading::Value* const *vals);
+	int SendEventFilterEvent(Filter* i, EnumVal* type, const threading::Value* const *vals);
 
 	// Checks is a bro type can be used for data reading. The equivalend in threading cannot be used, because we have support different types 
 	// from the log framework
@@ -200,16 +162,12 @@ private:
 	// Converts a Bro ListVal to a RecordVal given the record type
 	RecordVal* ListValToRecordVal(ListVal* list, RecordType *request_type, int* position);
 
-	ReaderInfo* FindReader(const ReaderFrontend* reader);
-	ReaderInfo* FindReader(const EnumVal* id);
-
-	vector<ReaderInfo*> readers;
-
-	class Filter;
-	class TableFilter;
-	class EventFilter;
+	Filter* FindFilter(const string &name);
+	Filter* FindFilter(ReaderFrontend* reader);
 
 	enum FilterType { TABLE_FILTER, EVENT_FILTER };
+	
+	map<ReaderFrontend*, Filter*> readers;
 };
 
 

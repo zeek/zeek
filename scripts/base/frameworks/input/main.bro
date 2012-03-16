@@ -5,15 +5,15 @@ module Input;
 
 export {
          
-	redef enum Input::ID += { TABLE_READ, EVENT_READ };
-
 	## The default input reader used. Defaults to `READER_ASCII`.
 	const default_reader = READER_ASCII &redef;
 
 	const default_mode = MANUAL &redef;
 
-	## Stream decription type used for the `create_stream` method
-	type StreamDescription: record {
+	## TableFilter description type used for the `table` method.
+	type TableDescription: record {
+		## Common definitions for tables and events
+		
 		## String that allows the reader to find the source.
 		## For `READER_ASCII`, this is the filename.
 		source: string;
@@ -26,12 +26,11 @@ export {
 
 		## Automatically start the input stream after the first filter has been added
 		autostart: bool &default=T;
-	};
 
-	## TableFilter description type used for the `add_tablefilter` method.
-	type TableFilter: record {
 		## Descriptive name. Used to remove a filter at a later time
 		name: string; 
+
+		## Special definitions for tables
 
 		## Table which will contain the data read by the input framework
 		destination: any;
@@ -55,11 +54,28 @@ export {
 		pred: function(typ: Input::Event, left: any, right: any): bool &optional;
 	};
 
-	## EventFilter description type used for the `add_eventfilter` method.
-	type EventFilter: record {
-		## Descriptive name. Used to remove a filter at a later time
-		name: string;
+	## EventFilter description type used for the `event` method.
+	type EventDescription: record {
+		## Common definitions for tables and events
+		
+		## String that allows the reader to find the source.
+		## For `READER_ASCII`, this is the filename.
+		source: string;
+		
+		## Reader to use for this steam
+		reader: Reader &default=default_reader;
 
+		## Read mode to use for this stream
+		mode: Mode &default=default_mode;
+
+		## Automatically start the input stream after the first filter has been added
+		autostart: bool &default=T;
+
+		## Descriptive name. Used to remove a filter at a later time
+		name: string; 
+
+		## Special definitions for events
+	
 		## Record describing the fields to be retrieved from the source input.
 		fields: any;
 		## If want_record if false (default), the event receives each value in fields as a seperate argument.
@@ -72,61 +88,29 @@ export {
 
 	};
 
-	#const no_filter: Filter = [$name="<not found>", $idx="", $val="", $destination=""]; # Sentinel.
-
-	## Create a new input stream from a given source. Returns true on success.
+	## Create a new table input from a given source. Returns true on success.
 	##
-	## id: `Input::ID` enum value identifying this stream
-	## description: `StreamDescription` record describing the source.
-	global create_stream: function(id: Input::ID, description: Input::StreamDescription) : bool;
-
-	## Remove a current input stream. Returns true on success.
+	## description: `TableDescription` record describing the source.
+	global add_table: function(description: Input::TableDescription) : bool;
+	
+	## Create a new event input from a given source. Returns true on success.
 	##
-	## id: `Input::ID` enum value identifying the stream to be removed
-	global remove_stream: function(id: Input::ID) : bool;
+	## description: `TableDescription` record describing the source.
+	global add_event: function(description: Input::EventDescription) : bool;
+
+	## Remove a input stream. Returns true on success and false if the named stream was not found.
+	##
+	## id: string value identifying the stream to be removed
+	global remove: function(id: string) : bool;
 
 	## Forces the current input to be checked for changes.
+	## Returns true on success and false if the named stream was not found
 	##
-	## id: `Input::ID` enum value identifying the stream
-	global force_update: function(id: Input::ID) : bool;
+	## id: string value identifying the stream
+	global force_update: function(id: string) : bool;
 
-	## Adds a table filter to a specific input stream. Returns true on success.
-	##
-	## id: `Input::ID` enum value identifying the stream
-	## filter: the `TableFilter` record describing the filter.
-	global add_tablefilter: function(id: Input::ID, filter: Input::TableFilter) : bool;
-
-	## Removes a named table filter to a specific input stream. Returns true on success.
-	##
-	## id: `Input::ID` enum value identifying the stream
-	## name: the name of the filter to be removed.
-	global remove_tablefilter: function(id: Input::ID, name: string) : bool;
-
-	## Adds an event filter to a specific input stream. Returns true on success.
-	##
-	## id: `Input::ID` enum value identifying the stream
-	## filter: the `EventFilter` record describing the filter.
-	global add_eventfilter: function(id: Input::ID, filter: Input::EventFilter) : bool;
-
-	## Removes a named event filter to a specific input stream. Returns true on success.
-	##
-	## id: `Input::ID` enum value identifying the stream
-	## name: the name of the filter to be removed.
-	global remove_eventfilter: function(id: Input::ID, name: string) : bool;
-	#global get_filter: function(id: ID, name: string) : Filter;
-	
-	## Convenience function for reading a specific input source exactly once using 
-	## exactly one tablefilter
-	##
-	## id: `Input::ID` enum value identifying the stream
-	## description: `StreamDescription` record describing the source.
-	## filter: the `TableFilter` record describing the filter.	
-	global read_table: function(description: Input::StreamDescription, filter: Input::TableFilter) : bool;
-
-	global read_event: function(description: Input::StreamDescription, filter: Input::EventFilter) : bool;
-
-	global update_finished: event(id: Input::ID);
-
+	## Event that is called, when the update of a specific source is finished
+	global update_finished: event(id: string);
 }
 
 @load base/input.bif
@@ -134,90 +118,26 @@ export {
 
 module Input;
 
-#global filters: table[ID, string] of Filter;
+#global streams: table[string] of Filter;
+# ^ change to set containing the names
 
-function create_stream(id: Input::ID, description: Input::StreamDescription) : bool
+function add_table(description: Input::TableDescription) : bool
 	{
-	return __create_stream(id, description);
+	return __create_table_stream(description);
 	}
 
-function remove_stream(id: Input::ID) : bool
+function add_event(description: Input::EventDescription) : bool
+	{
+	return __create_event_stream(description);
+	}
+
+function remove(id: string) : bool
 	{
 	return __remove_stream(id);
 	}
 
-function force_update(id: Input::ID) : bool
+function force_update(id: string) : bool
 	{
 	return __force_update(id);
 	}
 
-function add_tablefilter(id: Input::ID, filter: Input::TableFilter) : bool
-	{
-#	filters[id, filter$name] = filter;
-	return __add_tablefilter(id, filter);
-	}
-
-function remove_tablefilter(id: Input::ID, name: string) : bool
-	{
-#	delete filters[id, name];
-	return __remove_tablefilter(id, name);
-	}
-
-function add_eventfilter(id: Input::ID, filter: Input::EventFilter) : bool
-	{
-#	filters[id, filter$name] = filter;
-	return __add_eventfilter(id, filter);
-	}
-
-function remove_eventfilter(id: Input::ID, name: string) : bool
-	{
-#	delete filters[id, name];
-	return __remove_eventfilter(id, name);
-	}
-
-function read_table(description: Input::StreamDescription, filter: Input::TableFilter) : bool {
-	local ok: bool = T;
-	# since we create and delete it ourselves this should be ok... at least for singlethreaded operation
-	local id: Input::ID = Input::TABLE_READ;
-
-	ok = create_stream(id, description);
-	if ( ok ) {
-		ok = add_tablefilter(id, filter);
-	}
-	if ( ok ) {
-		ok = remove_tablefilter(id, filter$name);
-	}
-	if ( ok ) {
-		ok = remove_stream(id);
-	} else {
-		remove_stream(id);
-	}
-
-	return ok;
-}
-
-function read_event(description: Input::StreamDescription, filter: Input::EventFilter) : bool {
-	local ok: bool = T;
-	# since we create and delete it ourselves this should be ok... at least for singlethreaded operation
-	local id: Input::ID = Input::EVENT_READ;
-
-	ok = create_stream(id, description);
-	if ( ok ) {
-		ok = add_eventfilter(id, filter);
-	}
-	if ( ok ) {
-		ok = remove_stream(id);
-	} else {
-		remove_stream(id);
-	}
-
-	return ok;
-}
-
-#function get_filter(id: ID, name: string) : Filter
-#	{
-#	if ( [id, name] in filters )
-#		return filters[id, name];
-#
-#	return no_filter;
-#	}

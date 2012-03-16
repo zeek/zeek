@@ -7,50 +7,31 @@ module Input;
 #include "NetVar.h"
 %%}
 
-type StreamDescription: record;
-type TableFilter: record;
-type EventFilter: record;
+type TableDescription: record;
+type EventDescription: record;
 
-function Input::__create_stream%(id: Input::ID, description: Input::StreamDescription%) : bool
+function Input::__create_table_stream%(description: Input::TableDescription%) : bool
 	%{
-	input::ReaderFrontend *the_reader = input_mgr->CreateStream(id->AsEnumVal(), description->AsRecordVal());
-	return new Val( the_reader != 0, TYPE_BOOL );
-	%}
-
-function Input::__remove_stream%(id: Input::ID%) : bool
-	%{
-	bool res = input_mgr->RemoveStream(id->AsEnumVal());
+	bool res = input_mgr->CreateTableStream(description->AsRecordVal());
 	return new Val( res, TYPE_BOOL );
 	%}
 
-function Input::__force_update%(id: Input::ID%) : bool
+function Input::__create_event_stream%(description: Input::EventDescription%) : bool
 	%{
-	bool res = input_mgr->ForceUpdate(id->AsEnumVal());
+	bool res = input_mgr->CreateEventStream(description->AsRecordVal());
 	return new Val( res, TYPE_BOOL );
 	%}
 
-function Input::__add_tablefilter%(id: Input::ID, filter: Input::TableFilter%) : bool
+function Input::__remove_stream%(id: string%) : bool
 	%{
-	bool res = input_mgr->AddTableFilter(id->AsEnumVal(), filter->AsRecordVal());
+	bool res = input_mgr->RemoveStream(id->AsString()->CheckString());
 	return new Val( res, TYPE_BOOL );
 	%}
 
-function Input::__remove_tablefilter%(id: Input::ID, name: string%) : bool
+function Input::__force_update%(id: string%) : bool
 	%{
-	bool res = input_mgr->RemoveTableFilter(id->AsEnumVal(), name->AsString()->CheckString());
-	return new Val( res, TYPE_BOOL);
-	%}
-
-function Input::__add_eventfilter%(id: Log::ID, filter: Input::EventFilter%) : bool
-	%{
-	bool res = input_mgr->AddEventFilter(id->AsEnumVal(), filter->AsRecordVal());
+	bool res = input_mgr->ForceUpdate(id->AsString()->CheckString());
 	return new Val( res, TYPE_BOOL );
-	%}
-
-function Input::__remove_eventfilter%(id: Log::ID, name: string%) : bool
-	%{
-	bool res = input_mgr->RemoveEventFilter(id->AsEnumVal(), name->AsString()->CheckString());
-	return new Val( res, TYPE_BOOL);
 	%}
 
 # Options for Ascii Reader

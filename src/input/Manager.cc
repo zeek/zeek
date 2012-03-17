@@ -376,7 +376,7 @@ bool Manager::CreateTableStream(RecordVal* fval) {
 	}
 	TableVal *dst = fval->LookupWithDefault(rtype->FieldOffset("destination"))->AsTableVal();
 
-	// check if index fields match tabla description
+	// check if index fields match table description
 	{
 		int num = idx->NumFields();
 		const type_list* tl = dst->Type()->AsTableType()->IndexTypes();
@@ -416,29 +416,35 @@ bool Manager::CreateTableStream(RecordVal* fval) {
 
 		const type_list* args = etype->ArgTypes()->Types();
 
-		if ( args->length() != 3 ) 
+		if ( args->length() != 4 ) 
 		{
-			reporter->Error("Table event must take 3 arguments");
+			reporter->Error("Table event must take 4 arguments");
 			return false;
 		}
 
-		if ( ! same_type((*args)[0], BifType::Enum::Input::Event, 0) ) 
+		if ( ! same_type((*args)[0], BifType::Record::Input::TableDescription, 0) ) 
 		{
-			reporter->Error("table events first attribute must be of type Input::Event");
+			reporter->Error("table events first attribute must be of type Input::TableDescription");
 			return false;
 		} 		
 
-		if ( ! same_type((*args)[1], idx) ) 
+		if ( ! same_type((*args)[1], BifType::Enum::Input::Event, 0) ) 
+		{
+			reporter->Error("table events second attribute must be of type Input::Event");
+			return false;
+		} 		
+
+		if ( ! same_type((*args)[2], idx) ) 
 		{
 			reporter->Error("table events index attributes do not match");
 			return false;
 		} 
 		
-		if ( want_record->InternalInt() == 1 && ! same_type((*args)[2], val) ) 
+		if ( want_record->InternalInt() == 1 && ! same_type((*args)[3], val) ) 
 		{
 			reporter->Error("table events value attributes do not match");
 			return false;
-		} else if (  want_record->InternalInt() == 0 && !same_type((*args)[2], val->FieldType(0) ) ) {
+		} else if (  want_record->InternalInt() == 0 && !same_type((*args)[3], val->FieldType(0) ) ) {
 			reporter->Error("table events value attribute does not match");
 			return false;
 		}
@@ -825,14 +831,15 @@ int Manager::SendEntryTable(Filter* i, const Value* const *vals) {
 			assert ( filter->num_val_fields > 0 );
 			ev = new EnumVal(BifEnum::Input::EVENT_CHANGED, BifType::Enum::Input::Event);
 			assert ( oldval != 0 );
-			SendEvent(filter->event, 3, ev, predidx, oldval);
+			SendEvent(filter->event, 4, filter->description->Ref(), ev, predidx, oldval);
 		} else {
 			ev = new EnumVal(BifEnum::Input::EVENT_NEW, BifType::Enum::Input::Event);
 			Ref(valval);
 			if ( filter->num_val_fields == 0 ) {
-				SendEvent(filter->event, 3, ev, predidx);
+				Ref(filter->description);
+				SendEvent(filter->event, 4, filter->description->Ref(), ev, predidx);
 			} else {
-				SendEvent(filter->event, 3, ev, predidx, valval);
+				SendEvent(filter->event, 4, filter->description->Ref(), ev, predidx, valval);
 			}
 		}
 	} 
@@ -936,7 +943,7 @@ void Manager::EndCurrentSend(ReaderFrontend* reader) {
 	}	
 
 
-	SendEvent(handler, 1, new BroString(i->name));
+	SendEvent(handler, 2, new BroString(i->name), new BroString(i->source));
 }
 
 void Manager::Put(ReaderFrontend* reader, Value* *vals) {
@@ -1080,14 +1087,13 @@ int Manager::PutTable(Filter* i, const Value* const *vals) {
 				assert ( filter->num_val_fields > 0 );
 				ev = new EnumVal(BifEnum::Input::EVENT_CHANGED, BifType::Enum::Input::Event);
 				assert ( oldval != 0 );
-				SendEvent(filter->event, 3, ev, predidx, oldval);
+				SendEvent(filter->event, 4, filter->description->Ref(), ev, predidx, oldval);
 			} else {
 				ev = new EnumVal(BifEnum::Input::EVENT_NEW, BifType::Enum::Input::Event);
-				Ref(valval);
 				if ( filter->num_val_fields == 0 ) {
-					SendEvent(filter->event, 3, ev, predidx);
+					SendEvent(filter->event, 4, filter->description->Ref(), ev, predidx);
 				} else {
-					SendEvent(filter->event, 3, ev, predidx, valval);
+					SendEvent(filter->event, 4, filter->description->Ref(), ev, predidx, valval->Ref());
 				}
 			}
 		}

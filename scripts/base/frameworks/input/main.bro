@@ -110,7 +110,7 @@ export {
 	global force_update: function(id: string) : bool;
 
 	## Event that is called, when the update of a specific source is finished
-	global update_finished: event(id: string);
+	global update_finished: event(name: string, source:string);
 }
 
 @load base/input.bif

@@ -22,10 +22,12 @@ type Val: record {
 
 event line(description: Input::EventDescription, tpe: Input::Event, s: string) {
 	print description;
+	print tpe;
 	print s;
 }
 
 event bro_init()
 {
 	Input::add_event([$source="input.log", $reader=Input::READER_RAW, $mode=Input::STREAM, $name="input", $fields=Val, $ev=line]);
+	Input::remove("input");
 }

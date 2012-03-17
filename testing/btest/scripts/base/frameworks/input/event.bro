@@ -1,5 +1,5 @@
 #
-# @TEST-EXEC: bro %INPUT >out
+# @TEST-EXEC: bro -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 @TEST-START-FILE input.log
@@ -19,16 +19,13 @@
 
 module A;
 
-export {
-	redef enum Input::ID += { INPUT };
-}
-
 type Val: record {
 	i: int;
 	b: bool;
 };
 
-event line(tpe: Input::Event, i: int, b: bool) {
+event line(description: Input::EventDescription, tpe: Input::Event, i: int, b: bool) {
+	print description;
 	print tpe;
 	print i;
 	print b;
@@ -36,6 +33,6 @@ event line(tpe: Input::Event, i: int, b: bool) {
 
 event bro_init()
 {
-	Input::create_stream(A::INPUT, [$source="input.log"]);
-	Input::add_eventfilter(A::INPUT, [$name="input", $fields=Val, $ev=line]);
+	Input::add_event([$source="input.log", $name="input", $fields=Val, $ev=line]);
+	Input::remove("input");
 }

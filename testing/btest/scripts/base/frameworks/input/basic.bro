@@ -45,6 +45,6 @@ event bro_init()
 	Input::remove("ssh");
 }
 
-event Input::update_finished(id: string) {
+event Input::update_finished(name: string, source:string) {
 	print servers;
 }

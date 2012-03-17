@@ -20,10 +20,6 @@ redef InputAscii::empty_field = "EMPTY";
 
 module A;
 
-export {
-	redef enum Input::ID += { INPUT };
-}
-
 type Idx: record {
 	i: int;
 };
@@ -49,7 +45,7 @@ event bro_init()
 	Input::force_update(A::INPUT);
 }
 
-event Input::update_finished(id: Input::ID) {
+event Input::update_finished(name: string, source: string) {
         if ( done == T ) {
                 return;
         }

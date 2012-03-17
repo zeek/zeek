@@ -23,10 +23,6 @@ redef InputAscii::empty_field = "EMPTY";
 
 module A;
 
-export {
-	redef enum Input::ID += { INPUT };
-}
-
 type Idx: record {
 	i: int;
 };
@@ -38,7 +34,7 @@ type Val: record {
 global servers: table[int] of Val = table();
 global ct: int;
 
-event line(tpe: Input::Event, left: Idx, right: bool) {
+event line(description: Input::TableDescription, tpe: Input::Event, left: Idx, right: bool) {
 	ct = ct + 1;
 	if ( ct < 3 ) {
 		return;
@@ -75,9 +71,10 @@ event bro_init()
 {
 	ct = 0;
 	# first read in the old stuff into the table...
-	Input::create_stream(A::INPUT, [$source="input.log", $mode=Input::STREAM]);
-	Input::add_tablefilter(A::INPUT, [$name="input", $idx=Idx, $val=Val, $destination=servers, $want_record=F, $ev=line,
+	Input::add_table([$source="input.log", $mode=Input::STREAM, $name="input", $idx=Idx, $val=Val, $destination=servers, $want_record=F, $ev=line,
 				$pred(typ: Input::Event, left: Idx, right: bool) = { return right; }
 				]);
+	Input::remove("input");
+
 }
 

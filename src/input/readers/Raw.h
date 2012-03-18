@@ -31,7 +31,11 @@ private:
 
 	bool GetLine(string& str);
 	
+	istream* in;
 	ifstream* file;
+
+	FILE* pfile;
+	
 	string fname;
 
 	// Options set from the script-level.

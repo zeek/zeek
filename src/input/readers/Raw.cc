@@ -7,10 +7,12 @@
 #include <sstream>
 
 #include "../../threading/SerialTypes.h"
+#include "../fdstream.h"
 
 #define MANUAL 0
 #define REREAD 1
 #define STREAM 2
+#define EXECUTE 3
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -23,6 +25,7 @@ using threading::Field;
 Raw::Raw(ReaderFrontend *frontend) : ReaderBackend(frontend)
 {
 	file = 0;
+	in = 0;
 
 	//keyMap = new map<string, string>();
 	
@@ -41,9 +44,15 @@ Raw::~Raw()
 void Raw::DoFinish()
 {
 	if ( file != 0 ) {
-		file->close();
-		delete(file);
+		if ( mode != EXECUTE ) {
+			file->close();
+			delete(file);
+		} else { // mode == EXECUTE
+			delete(in);
+			pclose(pfile);
+		}
 		file = 0;
+		in = 0;
 	}
 }
 
@@ -53,15 +62,29 @@ bool Raw::DoInit(string path, int arg_mode, int arg_num_fields, const Field* con
 	mode = arg_mode;
 	mtime = 0;
 	
-	if ( ( mode != MANUAL ) && (mode != REREAD) && ( mode != STREAM ) ) {
+	if ( ( mode != MANUAL ) && (mode != REREAD) && ( mode != STREAM ) && ( mode != EXECUTE ) ) {
 		Error(Fmt("Unsupported read mode %d for source %s", mode, path.c_str()));
 		return false;
 	} 	
 
-	file = new ifstream(path.c_str());
-	if ( !file->is_open() ) {
-		Error(Fmt("Init: cannot open %s", fname.c_str()));
-		return false;
+	if ( mode != EXECUTE ) {
+
+		file = new ifstream(path.c_str());
+		if ( !file->is_open() ) {
+			Error(Fmt("Init: cannot open %s", fname.c_str()));
+			return false;
+		}
+		in = file;
+
+	} else { // mode == EXECUTE
+
+		pfile = popen(path.c_str(), "r");
+		if ( pfile == NULL ) {
+			Error(Fmt("Could not execute command %s", path.c_str()));
+			return false;
+		}
+
+		in = new boost::fdistream(fileno(pfile));
 	}
 	
 	num_fields = arg_num_fields;
@@ -81,23 +104,14 @@ bool Raw::DoInit(string path, int arg_mode, int arg_num_fields, const Field* con
 	Debug(DBG_INPUT, "Raw reader created, will perform first update");
 #endif
 
-	switch ( mode ) {
-		case MANUAL:
-		case REREAD:
-		case STREAM:
-			DoUpdate();
-			break;
-		default:
-			assert(false);
-	}
-
+	DoUpdate();
 
 	return true;
 }
 
 
 bool Raw::GetLine(string& str) {
-	while ( getline(*file, str, separator[0]) ) {
+	while ( getline(*in, str, separator[0]) ) {
 		return true;
 	}
 
@@ -142,6 +156,18 @@ bool Raw::DoUpdate() {
 			}
 
 			break;
+		case EXECUTE:
+			// re-execute it...
+			pclose(pfile);
+
+			pfile = popen(fname.c_str(), "r");
+			if ( pfile == NULL ) {
+				Error(Fmt("Could not execute command %s", fname.c_str()));
+				return false;
+			}
+
+			in = new boost::fdistream(fileno(pfile));
+			break;
 		default:
 			assert(false);
 
@@ -171,6 +197,7 @@ bool Raw::DoHeartbeat(double network_time, double current_time)
 
 	switch ( mode ) {
 		case MANUAL:
+		case EXECUTE:
 			// yay, we do nothing :)
 			break;
 		case REREAD:

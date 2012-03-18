@@ -898,7 +898,7 @@ void Manager::EndCurrentSend(ReaderFrontend* reader) {
 			Ref(predidx);
 			Ref(val);
 
-			bool result = CallPred(filter->pred, 4, filter->description->Ref(), ev, predidx, val);
+			bool result = CallPred(filter->pred, 3, ev, predidx, val);
 
 			if ( result == false ) {
 				// Keep it. Hence - we quit and simply go to the next entry of lastDict
@@ -1154,7 +1154,7 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals) {
 				int startpos = 0;
 				Val* predidx = ValueToRecordVal(vals, filter->itype, &startpos);
 
-				filterresult = CallPred(filter->pred, 4, filter->description->Ref(), ev, predidx, val);
+				filterresult = CallPred(filter->pred, 3, ev, predidx, val);
 
 				if ( filterresult == false ) {
 					// keep it.

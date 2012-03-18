@@ -89,6 +89,9 @@ bool Ascii::DoInit(string path, int arg_mode, int arg_num_fields, const Field* c
 	mode = arg_mode;
 	mtime = 0;
 	
+	num_fields = arg_num_fields;
+	fields = arg_fields;
+
 	if ( ( mode != MANUAL ) && (mode != REREAD) && ( mode != STREAM ) ) {
 		Error(Fmt("Unsupported read mode %d for source %s", mode, path.c_str()));
 		return false;
@@ -106,9 +109,6 @@ bool Ascii::DoInit(string path, int arg_mode, int arg_num_fields, const Field* c
 		return false;
 	}
 	
-	num_fields = arg_num_fields;
-	fields = arg_fields;
-
 	switch ( mode ) {
 		case MANUAL:
 		case REREAD:
@@ -480,7 +480,7 @@ bool Ascii::DoUpdate() {
 bool Ascii::DoHeartbeat(double network_time, double current_time)
 {
 	ReaderBackend::DoHeartbeat(network_time, current_time);
-
+	
 	switch ( mode ) {
 		case MANUAL:
 			// yay, we do nothing :)

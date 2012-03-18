@@ -92,9 +92,13 @@ global try: count;
 
 event line(description: Input::TableDescription, tpe: Input::Event, left: Idx, right: Val) {
 	print outfile, "============EVENT============";
-	#print outfile, description;
+	print outfile, "Description";
+	print outfile, description;
+	print outfile, "Type";
 	print outfile, tpe;
+	print outfile, "Left";
 	print outfile, left;
+	print outfile, "Right";
 	print outfile, right;
 }
 

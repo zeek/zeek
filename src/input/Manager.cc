@@ -837,7 +837,7 @@ int Manager::SendEntryTable(Filter* i, const Value* const *vals) {
 			Ref(valval);
 			if ( filter->num_val_fields == 0 ) {
 				Ref(filter->description);
-				SendEvent(filter->event, 4, filter->description->Ref(), ev, predidx);
+				SendEvent(filter->event, 3, filter->description->Ref(), ev, predidx);
 			} else {
 				SendEvent(filter->event, 4, filter->description->Ref(), ev, predidx, valval);
 			}
@@ -898,7 +898,7 @@ void Manager::EndCurrentSend(ReaderFrontend* reader) {
 			Ref(predidx);
 			Ref(val);
 
-			bool result = CallPred(filter->pred, 3, ev, predidx, val);
+			bool result = CallPred(filter->pred, 4, filter->description->Ref(), ev, predidx, val);
 
 			if ( result == false ) {
 				// Keep it. Hence - we quit and simply go to the next entry of lastDict
@@ -943,7 +943,7 @@ void Manager::EndCurrentSend(ReaderFrontend* reader) {
 	}	
 
 
-	SendEvent(handler, 2, new BroString(i->name), new BroString(i->source));
+	SendEvent(handler, 2, new StringVal(i->name.c_str()), new StringVal(i->source.c_str()));
 }
 
 void Manager::Put(ReaderFrontend* reader, Value* *vals) {
@@ -1154,7 +1154,7 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals) {
 				int startpos = 0;
 				Val* predidx = ValueToRecordVal(vals, filter->itype, &startpos);
 
-				filterresult = CallPred(filter->pred, 3, ev, predidx, val);
+				filterresult = CallPred(filter->pred, 4, filter->description->Ref(), ev, predidx, val);
 
 				if ( filterresult == false ) {
 					// keep it.
@@ -1170,7 +1170,7 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals) {
 				assert(val != 0);
 				Ref(val); 
 				EnumVal *ev = new EnumVal(BifEnum::Input::EVENT_REMOVED, BifType::Enum::Input::Event);
-				SendEvent(filter->event, 3, ev, idxval, val);
+				SendEvent(filter->event, 4, filter->description->Ref(), ev, idxval, val);
 			}
 		}
 

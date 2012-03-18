@@ -177,6 +177,8 @@ bool ReaderBackend::Init(string arg_source, int mode, const int arg_num_fields, 
 		DisableFrontend();
 	}
 
+	disabled = !success;
+
 	return success;
 }
 

@@ -6,6 +6,7 @@
 #include "Reporter.h"
 #include "Conn.h"
 #include "DPM.h"
+#include "bro_inet_ntop.h"
 
 const uint8_t IPAddr::v4_mapped_prefix[12] = { 0, 0, 0, 0,
                                                0, 0, 0, 0,
@@ -159,7 +160,7 @@ string IPAddr::AsString() const
 		{
 		char s[INET_ADDRSTRLEN];
 
-		if ( inet_ntop(AF_INET, &in6.s6_addr[12], s, INET_ADDRSTRLEN) == NULL )
+		if ( ! bro_inet_ntop(AF_INET, &in6.s6_addr[12], s, INET_ADDRSTRLEN) )
 			return "<bad IPv4 address conversion";
 		else
 			return s;
@@ -168,7 +169,7 @@ string IPAddr::AsString() const
 		{
 		char s[INET6_ADDRSTRLEN];
 
-		if ( inet_ntop(AF_INET6, in6.s6_addr, s, INET6_ADDRSTRLEN) == NULL )
+		if ( ! bro_inet_ntop(AF_INET6, in6.s6_addr, s, INET6_ADDRSTRLEN) )
 			return "<bad IPv6 address conversion";
 		else
 			return s;

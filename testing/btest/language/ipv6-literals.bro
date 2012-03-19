@@ -20,11 +20,13 @@ v[|v|] = [aaaa:0::ffff];
 v[|v|] = [::ffff:192.168.1.100];
 v[|v|] = [ffff::192.168.1.100];
 v[|v|] = [::192.168.1.100];
+v[|v|] = [::ffff:0:192.168.1.100];
 v[|v|] = [805B:2D9D:DC28::FC57:212.200.31.255];
 v[|v|] = [0xaaaa::bbbb];
 v[|v|] = [aaaa:bbbb:cccc:dddd:eeee:ffff:1111:2222];
 v[|v|] = [aaaa:bbbb:cccc:dddd:eeee:ffff:1:2222];
 v[|v|] = [aaaa:bbbb:cccc:dddd:eeee:ffff:0:2222];
+v[|v|] = [aaaa:bbbb:cccc:dddd:eeee:0:0:2222];
 
 for (i in v)
     print v[i];

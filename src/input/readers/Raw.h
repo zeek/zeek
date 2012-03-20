@@ -28,13 +28,14 @@ protected:
 private:
 
 	virtual bool DoHeartbeat(double network_time, double current_time);
+	bool Open();
+	bool Close();
 
 	bool GetLine(string& str);
 	
 	istream* in;
-	ifstream* file;
 
-	FILE* pfile;
+	FILE* file;
 	
 	string fname;
 
@@ -45,6 +46,8 @@ private:
 	string headerline;
 
 	int mode;
+	bool execute;
+	bool firstrun;
 
 	time_t mtime;
 	

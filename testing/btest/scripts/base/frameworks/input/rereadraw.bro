@@ -28,6 +28,7 @@ event line(description: Input::EventDescription, tpe: Input::Event, s: string) {
 
 event bro_init()
 {
-	Input::add_event([$source="wc input.log |", $reader=Input::READER_RAW, $name="input", $fields=Val, $ev=line]);
+	Input::add_event([$source="input.log", $reader=Input::READER_RAW, $mode=Input::REREAD, $name="input", $fields=Val, $ev=line]);
+	Input::force_update("input");
 	Input::remove("input");
 }

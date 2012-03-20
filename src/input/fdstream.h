@@ -35,10 +35,12 @@
 #include <cstring>
 
 
+
 // low-level read and write functions
 #ifdef _MSC_VER
 # include <io.h>
 #else
+# include <sys/errno.h>
 # include <unistd.h>
 //extern "C" {
 //    int write (int fd, const char* buf, int num);
@@ -154,6 +156,9 @@ class fdinbuf : public std::streambuf {
         // read at most bufSize new characters
         int num;
         num = read (fd, buffer+pbSize, bufSize);
+	if ( num == EAGAIN ) {
+		return 0;
+	}
         if (num <= 0) {
             // ERROR or EOF
             return EOF;

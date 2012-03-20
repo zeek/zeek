@@ -304,6 +304,66 @@ BB
 }, se={
 
 }, vc=[10, 20, 30], ve=[]]
+============PREDICATE============
+Input::EVENT_NEW
+[i=-45]
+[b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
+2,
+4,
+1,
+3
+}, ss={
+CC,
+AA,
+BB
+}, se={
+
+}, vc=[10, 20, 30], ve=[]]
+============PREDICATE============
+Input::EVENT_NEW
+[i=-46]
+[b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
+2,
+4,
+1,
+3
+}, ss={
+CC,
+AA,
+BB
+}, se={
+
+}, vc=[10, 20, 30], ve=[]]
+============PREDICATE============
+Input::EVENT_NEW
+[i=-47]
+[b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
+2,
+4,
+1,
+3
+}, ss={
+CC,
+AA,
+BB
+}, se={
+
+}, vc=[10, 20, 30], ve=[]]
+============PREDICATE============
+Input::EVENT_NEW
+[i=-48]
+[b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
+2,
+4,
+1,
+3
+}, ss={
+CC,
+AA,
+BB
+}, se={
+
+}, vc=[10, 20, 30], ve=[]]
 ============EVENT============
 Description
 [source=../input.log, reader=Input::READER_ASCII, mode=Input::REREAD, autostart=T, name=ssh, destination={
@@ -319,7 +379,55 @@ BB
 }, se={
 
 }, vc=[10, 20, 30], ve=[]],
+[-46] = [b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
+2,
+4,
+1,
+3
+}, ss={
+CC,
+AA,
+BB
+}, se={
+
+}, vc=[10, 20, 30], ve=[]],
+[-48] = [b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
+2,
+4,
+1,
+3
+}, ss={
+CC,
+AA,
+BB
+}, se={
+
+}, vc=[10, 20, 30], ve=[]],
 [-44] = [b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
+2,
+4,
+1,
+3
+}, ss={
+CC,
+AA,
+BB
+}, se={
+
+}, vc=[10, 20, 30], ve=[]],
+[-47] = [b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
+2,
+4,
+1,
+3
+}, ss={
+CC,
+AA,
+BB
+}, se={
+
+}, vc=[10, 20, 30], ve=[]],
+[-45] = [b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
 2,
 4,
 1,
@@ -379,21 +487,6 @@ BB
 }, se={
 
 }, vc=[10, 20, 30], ve=[]]
-============PREDICATE============
-Input::EVENT_NEW
-[i=-45]
-[b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
-2,
-4,
-1,
-3
-}, ss={
-CC,
-AA,
-BB
-}, se={
-
-}, vc=[10, 20, 30], ve=[]]
 ============EVENT============
 Description
 [source=../input.log, reader=Input::READER_ASCII, mode=Input::REREAD, autostart=T, name=ssh, destination={
@@ -409,7 +502,43 @@ BB
 }, se={
 
 }, vc=[10, 20, 30], ve=[]],
+[-46] = [b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
+2,
+4,
+1,
+3
+}, ss={
+CC,
+AA,
+BB
+}, se={
+
+}, vc=[10, 20, 30], ve=[]],
+[-48] = [b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
+2,
+4,
+1,
+3
+}, ss={
+CC,
+AA,
+BB
+}, se={
+
+}, vc=[10, 20, 30], ve=[]],
 [-44] = [b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
+2,
+4,
+1,
+3
+}, ss={
+CC,
+AA,
+BB
+}, se={
+
+}, vc=[10, 20, 30], ve=[]],
+[-47] = [b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
 2,
 4,
 1,
@@ -481,21 +610,6 @@ BB
 }, se={
 
 }, vc=[10, 20, 30], ve=[]]
-============PREDICATE============
-Input::EVENT_NEW
-[i=-46]
-[b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
-2,
-4,
-1,
-3
-}, ss={
-CC,
-AA,
-BB
-}, se={
-
-}, vc=[10, 20, 30], ve=[]]
 ============EVENT============
 Description
 [source=../input.log, reader=Input::READER_ASCII, mode=Input::REREAD, autostart=T, name=ssh, destination={
@@ -523,7 +637,31 @@ BB
 }, se={
 
 }, vc=[10, 20, 30], ve=[]],
+[-48] = [b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
+2,
+4,
+1,
+3
+}, ss={
+CC,
+AA,
+BB
+}, se={
+
+}, vc=[10, 20, 30], ve=[]],
 [-44] = [b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
+2,
+4,
+1,
+3
+}, ss={
+CC,
+AA,
+BB
+}, se={
+
+}, vc=[10, 20, 30], ve=[]],
+[-47] = [b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
 2,
 4,
 1,
@@ -595,21 +733,6 @@ BB
 }, se={
 
 }, vc=[10, 20, 30], ve=[]]
-============PREDICATE============
-Input::EVENT_NEW
-[i=-47]
-[b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
-2,
-4,
-1,
-3
-}, ss={
-CC,
-AA,
-BB
-}, se={
-
-}, vc=[10, 20, 30], ve=[]]
 ============EVENT============
 Description
 [source=../input.log, reader=Input::READER_ASCII, mode=Input::REREAD, autostart=T, name=ssh, destination={
@@ -626,6 +749,18 @@ BB
 
 }, vc=[10, 20, 30], ve=[]],
 [-46] = [b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
+2,
+4,
+1,
+3
+}, ss={
+CC,
+AA,
+BB
+}, se={
+
+}, vc=[10, 20, 30], ve=[]],
+[-48] = [b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
 2,
 4,
 1,
@@ -709,21 +844,6 @@ Input::EVENT_NEW
 Left
 [i=-47]
 Right
-[b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
-2,
-4,
-1,
-3
-}, ss={
-CC,
-AA,
-BB
-}, se={
-
-}, vc=[10, 20, 30], ve=[]]
-============PREDICATE============
-Input::EVENT_NEW
-[i=-48]
 [b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
 2,
 4,
@@ -873,4 +993,296 @@ BB
 }, se={
 
 }, vc=[10, 20, 30], ve=[]],
-[-46] = [b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, 
+[-46] = [b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
+2,
+4,
+1,
+3
+}, ss={
+CC,
+AA,
+BB
+}, se={
+
+}, vc=[10, 20, 30], ve=[]],
+[-48] = [b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
+2,
+4,
+1,
+3
+}, ss={
+CC,
+AA,
+BB
+}, se={
+
+}, vc=[10, 20, 30], ve=[]],
+[-44] = [b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
+2,
+4,
+1,
+3
+}, ss={
+CC,
+AA,
+BB
+}, se={
+
+}, vc=[10, 20, 30], ve=[]],
+[-47] = [b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
+2,
+4,
+1,
+3
+}, ss={
+CC,
+AA,
+BB
+}, se={
+
+}, vc=[10, 20, 30], ve=[]],
+[-45] = [b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
+2,
+4,
+1,
+3
+}, ss={
+CC,
+AA,
+BB
+}, se={
+
+}, vc=[10, 20, 30], ve=[]],
+[-42] = [b=T, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
+2,
+4,
+1,
+3
+}, ss={
+CC,
+AA,
+BB
+}, se={
+
+}, vc=[10, 20, 30], ve=[]]
+}
+============PREDICATE============
+Input::EVENT_REMOVED
+[i=-43]
+[b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
+2,
+4,
+1,
+3
+}, ss={
+CC,
+AA,
+BB
+}, se={
+
+}, vc=[10, 20, 30], ve=[]]
+============PREDICATE============
+Input::EVENT_REMOVED
+[i=-46]
+[b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
+2,
+4,
+1,
+3
+}, ss={
+CC,
+AA,
+BB
+}, se={
+
+}, vc=[10, 20, 30], ve=[]]
+============PREDICATE============
+Input::EVENT_REMOVED
+[i=-44]
+[b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
+2,
+4,
+1,
+3
+}, ss={
+CC,
+AA,
+BB
+}, se={
+
+}, vc=[10, 20, 30], ve=[]]
+============PREDICATE============
+Input::EVENT_REMOVED
+[i=-47]
+[b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
+2,
+4,
+1,
+3
+}, ss={
+CC,
+AA,
+BB
+}, se={
+
+}, vc=[10, 20, 30], ve=[]]
+============PREDICATE============
+Input::EVENT_REMOVED
+[i=-45]
+[b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
+2,
+4,
+1,
+3
+}, ss={
+CC,
+AA,
+BB
+}, se={
+
+}, vc=[10, 20, 30], ve=[]]
+============PREDICATE============
+Input::EVENT_REMOVED
+[i=-42]
+[b=T, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
+2,
+4,
+1,
+3
+}, ss={
+CC,
+AA,
+BB
+}, se={
+
+}, vc=[10, 20, 30], ve=[]]
+============EVENT============
+Description
+Input::EVENT_REMOVED
+Type
+[i=-43]
+Left
+[b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
+2,
+4,
+1,
+3
+}, ss={
+CC,
+AA,
+BB
+}, se={
+
+}, vc=[10, 20, 30], ve=[]]
+Right
+============EVENT============
+Description
+Input::EVENT_REMOVED
+Type
+[i=-46]
+Left
+[b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
+2,
+4,
+1,
+3
+}, ss={
+CC,
+AA,
+BB
+}, se={
+
+}, vc=[10, 20, 30], ve=[]]
+Right
+============EVENT============
+Description
+Input::EVENT_REMOVED
+Type
+[i=-44]
+Left
+[b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
+2,
+4,
+1,
+3
+}, ss={
+CC,
+AA,
+BB
+}, se={
+
+}, vc=[10, 20, 30], ve=[]]
+Right
+============EVENT============
+Description
+Input::EVENT_REMOVED
+Type
+[i=-47]
+Left
+[b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
+2,
+4,
+1,
+3
+}, ss={
+CC,
+AA,
+BB
+}, se={
+
+}, vc=[10, 20, 30], ve=[]]
+Right
+============EVENT============
+Description
+Input::EVENT_REMOVED
+Type
+[i=-45]
+Left
+[b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
+2,
+4,
+1,
+3
+}, ss={
+CC,
+AA,
+BB
+}, se={
+
+}, vc=[10, 20, 30], ve=[]]
+Right
+============EVENT============
+Description
+Input::EVENT_REMOVED
+Type
+[i=-42]
+Left
+[b=T, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
+2,
+4,
+1,
+3
+}, ss={
+CC,
+AA,
+BB
+}, se={
+
+}, vc=[10, 20, 30], ve=[]]
+Right
+==========SERVERS============
+{
+[-48] = [b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1315801931.273616, iv=100.0, s=hurz, sc={
+2,
+4,
+1,
+3
+}, ss={
+CC,
+AA,
+BB
+}, se={
+
+}, vc=[10, 20, 30], ve=[]]
+}
+done

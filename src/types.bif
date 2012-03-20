@@ -186,7 +186,6 @@ enum Mode %{
 	MANUAL = 0,
 	REREAD = 1,
 	STREAM = 2,
-	EXECUTE = 3,
 %}
 
 module GLOBAL;

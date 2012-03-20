@@ -3,7 +3,7 @@
 
 event ipv6_ext_headers(c: connection, p: pkt_hdr)
 	{
-	for ( h in p$ip6$routing )
-		if ( p$ip6$routing[h]$rtype == 0 )
-			print routing0_data_to_addrs(p$ip6$routing[h]$data);
+	for ( h in p$ip6$exts$routing )
+		if ( p$ip6$exts$routing[h]$rtype == 0 )
+			print routing0_data_to_addrs(p$ip6$exts$routing[h]$data);
 	}

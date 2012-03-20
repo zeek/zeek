@@ -22,56 +22,94 @@
 // members: we're creating/allocating those for every IPv6 packet, right?
 //
 // Any idea how to avoid these?
+//
+// [Jon] Seems fair enough to just remove the virtual method concern at this
+//       point by replacing the class hierarchy with some inline functions that
+//       do switch statements.  I don't know what to do about the
+//       vector<IPv6_hdr*> and ip6_hdrs data members being allocated for every
+//       IPv6 packet, maybe it's too early to try to optimize before we know
+//       the frequency at which extension headers appear in real IPv6 traffic?
 
 /**
  * Base class for IPv6 header/extensions.
  */
 class IPv6_Hdr {
 public:
-	IPv6_Hdr() : type(0), data(0) {}
-
-	/**
-	 * Construct the main IPv6 header.
-	 */
-	IPv6_Hdr(const u_char* d) : type(IPPROTO_IPV6), data(d) {}
-
-	/**
-	 * Construct the main IPv6 header, but replace the next protocol field
-	 * if it points to a fragment.
-	 */
-	IPv6_Hdr(const u_char* d, uint16 nxt) : type(IPPROTO_IPV6), data(d)
-		{
-		// [Robin]. This looks potentially dangerous as it's changing
-		// the data passed in, which the caller may not realize. From
-		// quick look, it's only used from Frag.cc, so that may be
-		// ok. But could we guard against accidental use somehome?
-		// Like making this protected and then declare a friend; or a
-		// seperate method ChangeNext(). (I saw it's used by derived
-		// classes so not sure wehat works best.)
-		if ( ((ip6_hdr*)data)->ip6_nxt == IPPROTO_FRAGMENT )
-			((ip6_hdr*)data)->ip6_nxt = nxt;
-		}
-
 	/**
 	 * Construct an IPv6 header or extension header from assigned type number.
 	 */
 	IPv6_Hdr(uint8 t, const u_char* d) : type(t), data(d) {}
 
-	virtual ~IPv6_Hdr() {}
+	/**
+	 * Replace the value of the next protocol field.
+	 */
+	void ChangeNext(uint8 next_type)
+		{
+		switch ( type ) {
+		case IPPROTO_IPV6:
+			((ip6_hdr*)data)->ip6_nxt = next_type;
+			break;
+		case IPPROTO_HOPOPTS:
+		case IPPROTO_DSTOPTS:
+		case IPPROTO_ROUTING:
+		case IPPROTO_FRAGMENT:
+		case IPPROTO_AH:
+			((ip6_ext*)data)->ip6e_nxt = next_type;
+			break;
+		case IPPROTO_ESP:
+		default:
+			break;
+		}
+		}
+
+	~IPv6_Hdr() {}
 
 	/**
 	 * Returns the assigned IPv6 extension header type number of the header
 	 * that immediately follows this one.
 	 */
-	virtual uint8 NextHdr() const { return ((ip6_hdr*)data)->ip6_nxt; }
+	uint8 NextHdr() const
+		{
+		switch ( type ) {
+		case IPPROTO_IPV6:
+			return ((ip6_hdr*)data)->ip6_nxt;
+		case IPPROTO_HOPOPTS:
+		case IPPROTO_DSTOPTS:
+		case IPPROTO_ROUTING:
+		case IPPROTO_FRAGMENT:
+		case IPPROTO_AH:
+			return ((ip6_ext*)data)->ip6e_nxt;
+		case IPPROTO_ESP:
+		default:
+			return IPPROTO_NONE;
+		}
+		}
 
 	/**
 	 * Returns the length of the header in bytes.
 	 */
-	virtual uint16 Length() const { return 40; }
+	uint16 Length() const
+		{
+		switch ( type ) {
+		case IPPROTO_IPV6:
+			return 40;
+		case IPPROTO_HOPOPTS:
+		case IPPROTO_DSTOPTS:
+		case IPPROTO_ROUTING:
+			return 8 + 8 * ((ip6_ext*)data)->ip6e_len;
+		case IPPROTO_FRAGMENT:
+			return 8;
+		case IPPROTO_AH:
+			return 8 + 4 * ((ip6_ext*)data)->ip6e_len;
+		case IPPROTO_ESP:
+			return 8; //encrypted payload begins after 8 bytes
+		default:
+			return 0;
+		}
+		}
 
 	/**
-	 * Returns the RFC 1700 assigned number indicating the header type.
+	 * Returns the RFC 1700 et seq. IANA assigned number for the header.
 	 */
 	uint8 Type() const { return type; }
 
@@ -83,73 +121,11 @@ public:
 	/**
 	 * Returns the script-layer record representation of the header.
 	 */
-	virtual RecordVal* BuildRecordVal() const;
+	RecordVal* BuildRecordVal() const;
 
 protected:
 	uint8 type;
 	const u_char* data;
-};
-
-class IPv6_Ext : public IPv6_Hdr {
-public:
-	IPv6_Ext(uint16 type, const u_char* d) : IPv6_Hdr(type, d) {}
-	IPv6_Ext(uint16 type, const u_char* d, uint16 nxt) : IPv6_Hdr(type, d)
-		{
-		if ( ((ip6_ext*)data)->ip6e_nxt == IPPROTO_FRAGMENT )
-			((ip6_ext*)data)->ip6e_nxt = nxt;
-		}
-	uint8 NextHdr() const { return ((ip6_ext*)data)->ip6e_nxt; }
-	virtual uint16 Length() const = 0;
-	virtual RecordVal* BuildRecordVal() const = 0;
-};
-
-class IPv6_HopOpts : public IPv6_Ext {
-public:
-	IPv6_HopOpts(const u_char* d) : IPv6_Ext(IPPROTO_HOPOPTS, d) {}
-	IPv6_HopOpts(const u_char* d, uint16 n) : IPv6_Ext(IPPROTO_HOPOPTS, d, n) {}
-	uint16 Length() const { return 8 + 8 * ((ip6_ext*)data)->ip6e_len; }
-	RecordVal* BuildRecordVal() const;
-};
-
-class IPv6_DstOpts : public IPv6_Ext {
-public:
-	IPv6_DstOpts(const u_char* d) : IPv6_Ext(IPPROTO_DSTOPTS, d) {}
-	IPv6_DstOpts(const u_char* d, uint16 n) : IPv6_Ext(IPPROTO_DSTOPTS, d, n) {}
-	uint16 Length() const { return 8 + 8 * ((ip6_ext*)data)->ip6e_len; }
-	RecordVal* BuildRecordVal() const;
-};
-
-class IPv6_Routing : public IPv6_Ext {
-public:
-	IPv6_Routing(const u_char* d) : IPv6_Ext(IPPROTO_ROUTING, d) {}
-	IPv6_Routing(const u_char* d, uint16 n) : IPv6_Ext(IPPROTO_ROUTING, d, n) {}
-	uint16 Length() const { return 8 + 8 * ((ip6_ext*)data)->ip6e_len; }
-	RecordVal* BuildRecordVal() const;
-};
-
-class IPv6_Fragment : public IPv6_Ext {
-public:
-	IPv6_Fragment(const u_char* d) : IPv6_Ext(IPPROTO_FRAGMENT, d) {}
-	IPv6_Fragment(const u_char* d, uint16 n) : IPv6_Ext(IPPROTO_FRAGMENT, d, n)
-		{}
-	uint16 Length() const { return 8; }
-	RecordVal* BuildRecordVal() const;
-};
-
-class IPv6_AH : public IPv6_Ext {
-public:
-	IPv6_AH(const u_char* d) : IPv6_Ext(IPPROTO_AH, d) {}
-	IPv6_AH(const u_char* d, uint16 n) : IPv6_Ext(IPPROTO_AH, d, n) {}
-	uint16 Length() const { return 8 + 4 * ((ip6_ext*)data)->ip6e_len; }
-	RecordVal* BuildRecordVal() const;
-};
-
-class IPv6_ESP : public IPv6_Ext {
-public:
-	IPv6_ESP(const u_char* d) : IPv6_Ext(IPPROTO_ESP, d) {}
-	// encrypted payload begins after 8 bytes
-	uint16 Length() const { return 8; }
-	RecordVal* BuildRecordVal() const;
 };
 
 class IPv6_Hdr_Chain {
@@ -158,13 +134,6 @@ public:
 	 * Initializes the header chain from an IPv6 header structure.
 	 */
 	IPv6_Hdr_Chain(const struct ip6_hdr* ip6) { Init(ip6, false); }
-
-	/**
-	 * Initializes the header chain from an IPv6 header structure, and replaces
-	 * the first next protocol pointer field that points to a fragment header.
-	 */
-	IPv6_Hdr_Chain(const struct ip6_hdr* ip6, uint16 next)
-		{ Init(ip6, true, next); }
 
 	~IPv6_Hdr_Chain()
 		{ for ( size_t i = 0; i < chain.size(); ++i ) delete chain[i]; }
@@ -218,7 +187,24 @@ public:
 		{ return IsFragment() ?
 				(ntohs(GetFragHdr()->ip6f_offlg) & 0x0001) != 0 : 0; }
 
+	/**
+	 * Returns an ip6_hdr_chain RecordVal that includes script-layer
+	 * representation of all extension headers in the chain.
+	 */
+	RecordVal* BuildRecordVal() const;
+
 protected:
+	// for access to protected ctor that changes next header values that
+	// point to a fragment
+	friend class FragReassembler;
+
+	/**
+	 * Initializes the header chain from an IPv6 header structure, and replaces
+	 * the first next protocol pointer field that points to a fragment header.
+	 */
+	IPv6_Hdr_Chain(const struct ip6_hdr* ip6, uint16 next)
+		{ Init(ip6, true, next); }
+
 	void Init(const struct ip6_hdr* ip6, bool set_next, uint16 next = 0);
 
 	vector<IPv6_Hdr*> chain;
@@ -237,8 +223,12 @@ public:
 			ip6 = (const struct ip6_hdr*)p;
 			ip6_hdrs = new IPv6_Hdr_Chain(ip6);
 			}
-		else if ( arg_del )
-			delete [] p;
+		else
+			{
+			if ( arg_del )
+				delete [] p;
+			reporter->InternalError("bad IP version in IP_Hdr ctor");
+			}
 		}
 
 	IP_Hdr(const struct ip* arg_ip4, bool arg_del)

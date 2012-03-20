@@ -34,10 +34,13 @@ FragReassembler::FragReassembler(NetSessions* arg_s,
 	key = k;
 
 	// [Robin] Can't we merge these two cases now?
+	// [Jon] I think we'll always have to check v4 versus v6 to get the correct
+	// proto_hdr_len unless IP_Hdr::HdrLen itself makes a special case for
+	// IPv6 fragments (but that seems more confusing to me)
 	const struct ip* ip4 = ip->IP4_Hdr();
 	if ( ip4 )
 		{
-		proto_hdr_len = ip4->ip_hl * 4; // [Robin] HdrLen?
+		proto_hdr_len = ip->HdrLen();
 		proto_hdr = new u_char[64];	// max IP header + slop
 		// Don't do a structure copy - need to pick up options, too.
 		memcpy((void*) proto_hdr, (const void*) ip4, proto_hdr_len);
@@ -247,18 +250,19 @@ void FragReassembler::BlockInserted(DataBlock* /* start_block */)
 		reassembled_pkt = new IP_Hdr(reassem4, true);
 		}
 
-	// [Robin] Please always check for IP version explicitly, like here
-	// do "if ... ip_v == 6", and then catch other values via
-	// weird/errors. Even of it shouldn't happen (because of earlier
-	// checks), it's better to be safe. I believe there are more places
-	// like this elsewhere, please check.
-	else
+	else if ( ((const struct ip*)pkt_start)->ip_v == 6 )
 		{
 		struct ip6_hdr* reassem6 = (struct ip6_hdr*) pkt_start;
 		reassem6->ip6_plen = htons(frag_size + proto_hdr_len - 40);
 		const IPv6_Hdr_Chain* chain = new IPv6_Hdr_Chain(reassem6, next_proto);
 		reassembled_pkt = new IP_Hdr(reassem6, true, chain);
 		}
+
+	else
+		{
+		reporter->InternalError("bad IP version in fragment reassembly");
+		}
+
 
 	DeleteTimer();
 	}

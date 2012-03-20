@@ -934,6 +934,10 @@ const ICMP_UNREACH_ADMIN_PROHIB = 13;	##< Adminstratively prohibited.
 # discarders.
 # todo::these should go into an enum to make them autodoc'able
 const IPPROTO_IP = 0;			##< Dummy for IP.   [Robin] Rename to IPPROTO_IP4?
+# [Jon] I'd say leave it be or remove it because from <netinet/in.h>
+#       IPPROTO_IPV4 can actually be the same as IPPROTO_IPIP (4)...
+#       IPPROTO_IP seems to be just for use with the socket API and not
+#       actually identifying protocol numbers in packet headers
 const IPPROTO_ICMP = 1;			##< Control message protocol.
 const IPPROTO_IGMP = 2;			##< Group management protocol.
 const IPPROTO_IPIP = 4;			##< IP encapsulation in IP.
@@ -944,6 +948,13 @@ const IPPROTO_RAW = 255;		##< Raw IP packet.
 
 # Definitions for IPv6 extension headers.
 # [Robin] Do we need a constant for unknown extensions?
+# [Jon] I don't think so, these constants are just conveniences to improve
+#       script readability, but they also identify the actual assigned protocol
+#       number of the header type.  If the core were to actually pass to the
+#       script-layer a next-header value of something we don't know about yet,
+#       that value would be the actual value seen in the packet, not something
+#       we should make up.  We could provide a "KNOWN_PROTOCOLS" set for
+#       convenience that one could check membership against.
 const IPPROTO_HOPOPTS = 0;		##< IPv6 hop-by-hop-options header.
 const IPPROTO_ROUTING = 43;		##< IPv6 routing header.
 const IPPROTO_FRAGMENT = 44;	##< IPv6 fragment header.
@@ -951,20 +962,6 @@ const IPPROTO_ESP = 50;			##< IPv6 encapsulating security payload header.
 const IPPROTO_AH = 51;			##< IPv6 authentication header.
 const IPPROTO_NONE = 59;		##< IPv6 no next header.
 const IPPROTO_DSTOPTS = 60;		##< IPv6 destination options header.
-
-## Values extracted from an IPv6 header.
-##
-## .. bro:see:: pkt_hdr ip_hdr ip6_hdr_chain ip6_hopopts ip6_dstopts ip6_routing
-##    ip6_fragment ip6_ah ip6_esp
-type ip6_hdr: record {
-	class: count;		##< Traffic class.
-	flow: count;		##< Flow label.
-	len: count;			##< Payload length.
-	nxt: count;			##< Next header (RFC 1700 assigned number). # [Robin] That's just the IPPROTO_* constant right. Then we should refer to them. 
-	hlim: count;		##< Hop limit.
-	src: addr;			##< Source address.
-	dst: addr;			##< Destination address.
-};
 
 ## Values extracted from an IPv6 extension header's (e.g. hop-by-hop or
 ## destination option headers) option field.
@@ -978,9 +975,10 @@ type ip6_option: record {
 
 ## Values extracted from an IPv6 Hop-by-Hop options extension header.
 ##
-## .. bro:see:: pkt_hdr ip_hdr ip6_hdr ip6_hdr_chain ip6_option
+## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_hdr_chain ip6_option
 type ip6_hopopts: record {
-	## Next header (RFC 1700 assigned number).
+	## Protocol number of the next header (RFC 1700 et seq., IANA assigned
+	## number), e.g. :bro:id:`IPPROTO_ICMP`.
 	nxt: count;
 	## Length of header in 8-octet units, excluding first unit.
 	len: count;
@@ -990,9 +988,10 @@ type ip6_hopopts: record {
 
 ## Values extracted from an IPv6 Destination options extension header.
 ##
-## .. bro:see:: pkt_hdr ip_hdr ip6_hdr ip6_hdr_chain ip6_option
+## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_hdr_chain ip6_option
 type ip6_dstopts: record {
-	## Next header (RFC 1700 assigned number).
+	## Protocol number of the next header (RFC 1700 et seq., IANA assigned
+	## number), e.g. :bro:id:`IPPROTO_ICMP`.
 	nxt: count;
 	## Length of header in 8-octet units, excluding first unit.
 	len: count;
@@ -1002,9 +1001,10 @@ type ip6_dstopts: record {
 
 ## Values extracted from an IPv6 Routing extension header.
 ##
-## .. bro:see:: pkt_hdr ip_hdr ip6_hdr ip6_hdr_chain
+## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_hdr_chain
 type ip6_routing: record {
-	## Next header (RFC 1700 assigned number).
+	## Protocol number of the next header (RFC 1700 et seq., IANA assigned
+	## number), e.g. :bro:id:`IPPROTO_ICMP`.
 	nxt: count;
 	## Length of header in 8-octet units, excluding first unit.
 	len: count;
@@ -1018,9 +1018,10 @@ type ip6_routing: record {
 
 ## Values extracted from an IPv6 Fragment extension header.
 ##
-## .. bro:see:: pkt_hdr ip_hdr ip6_hdr ip6_hdr_chain
+## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_hdr_chain
 type ip6_fragment: record {
-	## Next header (RFC 1700 assigned number).
+	## Protocol number of the next header (RFC 1700 et seq., IANA assigned
+	## number), e.g. :bro:id:`IPPROTO_ICMP`.
 	nxt: count;
 	## 8-bit reserved field.
 	rsv1: count;
@@ -1036,9 +1037,10 @@ type ip6_fragment: record {
 
 ## Values extracted from an IPv6 Authentication extension header.
 ##
-## .. bro:see:: pkt_hdr ip_hdr ip6_hdr ip6_hdr_chain
+## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_hdr_chain
 type ip6_ah: record {
-	## Next header (RFC 1700 assigned number). # [Robin] Same as above.
+	## Protocol number of the next header (RFC 1700 et seq., IANA assigned
+	## number), e.g. :bro:id:`IPPROTO_ICMP`.
 	nxt: count;
 	## Length of header in 4-octet units, excluding first two units.
 	len: count;
@@ -1054,7 +1056,7 @@ type ip6_ah: record {
 
 ## Values extracted from an IPv6 ESP extension header.
 ##
-## .. bro:see:: pkt_hdr ip_hdr ip6_hdr ip6_hdr_chain
+## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_hdr_chain
 type ip6_esp: record {
 	## Security Parameters Index.
 	spi: count;
@@ -1064,20 +1066,24 @@ type ip6_esp: record {
 
 ## An IPv6 header chain.
 ##
-## .. bro:see:: pkt_hdr ip_hdr
-#
-# [Robin] How about turning  ip6_hdr_chain and ip6_hdr around, making the latter
-# the top-level record that then contains an ip6_hdr_chain instance. That way, the
-# pkt_hdr record would have ip4_hdr and ip6_hdr members, which seems more natural.
+## .. bro:see:: pkt_hdr ip4_hdr
 #
 # [Robin] What happens to unknown extension headers? We should keep them too so that
 # one can at least identify what one can't analyze.
+# [Jon] Currently, they show up as "unknown_protocol" weirds and those packets
+#       are skipped before any "new_packet" or "ipv6_ext_headers" events are
+#       raised as those depend on a connection parameter which can't be
+#       created since we can't parse past unknown extension headers to get
+#       at the upper layer protocol.  Does that seem reasonable for at
+#       being able to identify things that couldn't be analyzed?
 type ip6_hdr_chain: record {
 	# [Robin] This looses the order of the headers (partially at least, even with ext_order I believe).
 	# Not sure how to do it differently, but can order be important for us?
+	# [Jon] I do think order can be interesting as RFC 2460 specifies some
+	#       ordering constraints, and I think I provide enough info in this
+	#       record for one to reconstruct the order.  Reread my new comments
+	#       for the "ext_order" field below and see if you change your mind.
 	
-	## The main IPv6 header.
-	hdr: ip6_hdr;
 	## Hop-by-hop option extension header.
 	hopopts: vector of ip6_hopopts;
 	## Destination option extension headers.
@@ -1091,17 +1097,39 @@ type ip6_hdr_chain: record {
 	## Encapsulating security payload headers.
 	esp: vector of ip6_esp;
 
-	## Order of extension headers identified by RFC 1700 assigned numbers.
-	# [Robin] I don't understand how this works.
+	## Order of extension headers as seen in the packet header.
+	## The value at an index indicates the protocol number (RFC 1700 et seq.,
+	## IANA assigned number) of the header at that same position in the chain.
+	## e.g. if :bro:id:`IPPROTO_DSTOPTS` is at index 0 and index 2 and
+	## :bro:id:`IPPROTO_ROUTING` is at index 1, then the order of the headers
+	## in the chain is the header at index 0 of *dstopts* followed by
+	## the header at index 0 of *routing* and then the header at index 1 of
+	## *dstopts* (tracking of duplicate header types to know where to
+	## index into each vector would be up to the script following the chain).
 	ext_order: vector of count;
+};
+
+## Values extracted from an IPv6 header.
+##
+## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr_chain ip6_hopopts ip6_dstopts
+##    ip6_routing ip6_fragment ip6_ah ip6_esp
+type ip6_hdr: record {
+	class: count;		##< Traffic class.
+	flow: count;		##< Flow label.
+	len: count;			##< Payload length.
+	nxt: count;			##< Protocol number of the next header
+						##< (RFC 1700 et seq., IANA assigned number), e.g.
+						##< :bro:id:`IPPROTO_ICMP`.
+	hlim: count;		##< Hop limit.
+	src: addr;			##< Source address.
+	dst: addr;			##< Destination address.
+	exts: ip6_hdr_chain;##< Extension header chain.
 };
 
 ## Values extracted from an IPv4 header.
 ##
 ## .. bro:see:: pkt_hdr ip6_hdr discarder_check_ip
-##
-# [Robin] Rename to ip4_hdr?
-type ip_hdr: record {
+type ip4_hdr: record {
 	hl: count;		##< Header length in bytes.
 	tos: count;		##< Type of service.
 	len: count;		##< Total length.
@@ -1159,9 +1187,11 @@ type icmp_hdr: record {
 #
 # [Robin] Add flags saying whether it's v4/v6, tcp/udp/icmp? The day will come where
 # we can't infer that from the connection anymore (tunnels). 
+# [Jon] I'm not sure what you mean, doesn't checking result of ?$ operator
+#       always work for finding out protocols involved?
 type pkt_hdr: record {
-	ip: ip_hdr &optional;			##< The IPv4 header if an IPv4 packet.
-	ip6: ip6_hdr_chain &optional;	##< The IPv6 header chain if an IPv6 packet.
+	ip: ip4_hdr &optional;			##< The IPv4 header if an IPv4 packet.
+	ip6: ip6_hdr &optional;			##< The IPv6 header if an IPv6 packet.
 	tcp: tcp_hdr &optional;			##< The TCP header if a TCP packet.
 	udp: udp_hdr &optional;			##< The UDP header if a UDP packet.
 	icmp: icmp_hdr &optional;		##< The ICMP header if an ICMP packet.

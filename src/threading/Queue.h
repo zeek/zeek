@@ -44,9 +44,19 @@ public:
 	T Get();
 
 	/**
-	 * Queues one element.
+	* Queues one element.
+	* 
+	* @param reliable true if the message *MUST* be delivered (ignore max queue size).
+	* @return true if the message was inserted successfully, and false if the message was dropped.
+	*/
+	bool Put(T data, const bool reliable);
+
+	/**
+	 * Unreliably queues one element.
+	 *
+	 * @return true if the message was inserted successfully, and false if the message was dropped.
 	 */
-	void Put(T data);
+	bool Put(T data);
 
 	/**
 	 * Returns true if the next Get() operation will succeed.
@@ -60,6 +70,7 @@ public:
 
 private:
 	static const int NUM_QUEUES = 8;
+	static const int QUEUE_HIGH_WM = 100000;
 
 	pthread_mutex_t mutex[NUM_QUEUES];	// Mutex protected shared accesses.
 	pthread_cond_t has_data[NUM_QUEUES];	// Signals when data becomes available
@@ -128,9 +139,15 @@ inline T Queue<T>::Get()
 	}
 
 template<typename T>
-inline void Queue<T>::Put(T data)
+inline bool Queue<T>::Put(T data, const bool reliable)
 	{
 	safe_lock(&mutex[write_ptr]);
+
+	if(!reliable && (messages[write_ptr].size() * NUM_QUEUES > QUEUE_HIGH_WM))
+		{
+		safe_unlock(&mutex[write_ptr]);
+		return false;
+		}
 
 	int old_write_ptr = write_ptr;
 
@@ -144,6 +161,13 @@ inline void Queue<T>::Put(T data)
 	write_ptr = (write_ptr + 1) % NUM_QUEUES;
 
 	safe_unlock(&mutex[old_write_ptr]);
+	return true;
+	}
+
+template<typename T>
+inline bool Queue<T>::Put(T data)
+	{
+	Put(data, false);
 	}
 
 

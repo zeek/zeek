@@ -19,6 +19,7 @@ struct FieldMapping {
 	int position;
 	// for ports: pos of the second field
 	int secondary_position;
+	bool present;
 
 	FieldMapping(const string& arg_name, const TypeTag& arg_type, int arg_position); 
 	FieldMapping(const string& arg_name, const TypeTag& arg_type, const TypeTag& arg_subtype, int arg_position); 

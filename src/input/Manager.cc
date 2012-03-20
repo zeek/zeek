@@ -492,7 +492,11 @@ bool Manager::CreateTableStream(RecordVal* fval) {
 	Unref(pred);
 
 	if ( valfields > 1 ) {
-		assert(filter->want_record);
+		if ( ! filter->want_record ) {
+			reporter->Error("Stream %s does not want a record (want_record=F), but has more then one value field. Aborting", filter->name.c_str());
+			delete filter;
+			return false;
+		}
 	}
 
 
@@ -629,6 +633,10 @@ bool Manager::UnrollRecordType(vector<Field*> *fields, const RecordType *rec, co
 				assert(c->Type()->Tag() == TYPE_STRING);
 
 				field->secondary_name = c->AsStringVal()->AsString()->CheckString();
+			}
+
+			if ( rec->FieldDecl(i)->FindAttr(ATTR_OPTIONAL ) ) {
+				field->optional = true;
 			}
 
 			fields->push_back(field);

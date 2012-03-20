@@ -26,6 +26,7 @@ FieldMapping::FieldMapping(const string& arg_name, const TypeTag& arg_type, int 
 {
 	position = arg_position;
 	secondary_position = -1;
+	present = true;
 }
 
 FieldMapping::FieldMapping(const string& arg_name, const TypeTag& arg_type, const TypeTag& arg_subtype, int arg_position) 
@@ -33,10 +34,11 @@ FieldMapping::FieldMapping(const string& arg_name, const TypeTag& arg_type, cons
 {
 	position = arg_position;
 	secondary_position = -1;
+	present = true;
 }
 
 FieldMapping::FieldMapping(const FieldMapping& arg) 
-	: name(arg.name), type(arg.type), subtype(arg.subtype)
+	: name(arg.name), type(arg.type), subtype(arg.subtype), present(arg.present)
 {
 	position = arg.position;
 	secondary_position = arg.secondary_position;
@@ -162,7 +164,15 @@ bool Ascii::ReadHeader(bool useCached) {
 		
 		map<string, uint32_t>::iterator fit = ifields.find(field->name);	
 		if ( fit == ifields.end() ) {
-			Error(Fmt("Did not find requested field %s in input data file.", field->name.c_str()));
+			if ( field->optional ) {
+				// we do not really need this field. mark it as not present and always send an undef back.
+				FieldMapping f(field->name, field->type, field->subtype, -1);
+				f.present = false;
+				columnMap.push_back(f);
+				continue;
+			}
+
+			Error(Fmt("Did not find requested field %s in input data file %s.", field->name.c_str(), fname.c_str()));
 			return false;
 		}
 
@@ -220,7 +230,7 @@ Value* Ascii::EntryToVal(string s, FieldMapping field) {
 		} else if ( s == "F" ) {
 			val->val.int_val = 0;
 		} else {
-			Error(Fmt("Invalid value for boolean: %s", s.c_str()));
+			Error(Fmt("Field: %s Invalid value for boolean: %s", field.name.c_str(), s.c_str()));
 			return false;
 		}
 		break;
@@ -423,6 +433,14 @@ bool Ascii::DoUpdate() {
 			fit != columnMap.end();
 			fit++ ){
 
+			if ( ! fit->present ) {
+				// add non-present field
+				fields[fpos] =  new Value((*fit).type, false);
+				fpos++;
+				continue;
+			}
+			
+			assert(fit->position >= 0 );
 
 			if ( (*fit).position > pos || (*fit).secondary_position > pos ) {
 				Error(Fmt("Not enough fields in line %s. Found %d fields, want positions %d and %d", line.c_str(), pos,  (*fit).position, (*fit).secondary_position));

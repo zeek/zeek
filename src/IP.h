@@ -121,7 +121,7 @@ public:
 	/**
 	 * Returns the script-layer record representation of the header.
 	 */
-	RecordVal* BuildRecordVal() const;
+	RecordVal* BuildRecordVal(VectorVal* chain = 0) const;
 
 protected:
 	uint8 type;
@@ -188,10 +188,10 @@ public:
 				(ntohs(GetFragHdr()->ip6f_offlg) & 0x0001) != 0 : 0; }
 
 	/**
-	 * Returns an ip6_hdr_chain RecordVal that includes script-layer
+	 * Returns a vector of ip6_ext_hdr RecordVals that includes script-layer
 	 * representation of all extension headers in the chain.
 	 */
-	RecordVal* BuildRecordVal() const;
+	VectorVal* BuildVal() const;
 
 protected:
 	// for access to protected ctor that changes next header values that

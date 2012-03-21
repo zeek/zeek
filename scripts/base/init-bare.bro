@@ -1064,9 +1064,10 @@ type ip6_esp: record {
 	seq: count;
 };
 
-## An IPv6 header chain.
+## A general container for a more specific IPv6 extension header.
 ##
-## .. bro:see:: pkt_hdr ip4_hdr
+## .. bro:see:: pkt_hdr ip4_hdr ip6_hopopts ip6_dstopts ip6_routing ip6_fragment
+##    ip6_ah ip6_esp
 #
 # [Robin] What happens to unknown extension headers? We should keep them too so that
 # one can at least identify what one can't analyze.
@@ -1076,37 +1077,22 @@ type ip6_esp: record {
 #       created since we can't parse past unknown extension headers to get
 #       at the upper layer protocol.  Does that seem reasonable for at
 #       being able to identify things that couldn't be analyzed?
-type ip6_hdr_chain: record {
-	# [Robin] This looses the order of the headers (partially at least, even with ext_order I believe).
-	# Not sure how to do it differently, but can order be important for us?
-	# [Jon] I do think order can be interesting as RFC 2460 specifies some
-	#       ordering constraints, and I think I provide enough info in this
-	#       record for one to reconstruct the order.  Reread my new comments
-	#       for the "ext_order" field below and see if you change your mind.
-	
+type ip6_ext_hdr: record {
+	## The RFC 1700 et seq. IANA assigned number identifying the type of
+	## the extension header.
+	id: count;
 	## Hop-by-hop option extension header.
-	hopopts: vector of ip6_hopopts;
-	## Destination option extension headers.
-	dstopts: vector of ip6_dstopts;
-	## Routing extension headers.
-	routing: vector of ip6_routing;
-	## Fragment headers.
-	fragment: vector of ip6_fragment;
-	## Authentication extension headers.
-	ah: vector of ip6_ah;
-	## Encapsulating security payload headers.
-	esp: vector of ip6_esp;
-
-	## Order of extension headers as seen in the packet header.
-	## The value at an index indicates the protocol number (RFC 1700 et seq.,
-	## IANA assigned number) of the header at that same position in the chain.
-	## e.g. if :bro:id:`IPPROTO_DSTOPTS` is at index 0 and index 2 and
-	## :bro:id:`IPPROTO_ROUTING` is at index 1, then the order of the headers
-	## in the chain is the header at index 0 of *dstopts* followed by
-	## the header at index 0 of *routing* and then the header at index 1 of
-	## *dstopts* (tracking of duplicate header types to know where to
-	## index into each vector would be up to the script following the chain).
-	ext_order: vector of count;
+	hopopts: ip6_hopopts &optional;
+	## Destination option extension header.
+	dstopts: ip6_dstopts &optional;
+	## Routing extension header.
+	routing: ip6_routing &optional;
+	## Fragment header.
+	fragment: ip6_fragment &optional;
+	## Authentication extension header.
+	ah: ip6_ah &optional;
+	## Encapsulating security payload header.
+	esp: ip6_esp &optional;
 };
 
 ## Values extracted from an IPv6 header.
@@ -1114,16 +1100,16 @@ type ip6_hdr_chain: record {
 ## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr_chain ip6_hopopts ip6_dstopts
 ##    ip6_routing ip6_fragment ip6_ah ip6_esp
 type ip6_hdr: record {
-	class: count;		##< Traffic class.
-	flow: count;		##< Flow label.
-	len: count;			##< Payload length.
-	nxt: count;			##< Protocol number of the next header
-						##< (RFC 1700 et seq., IANA assigned number), e.g.
-						##< :bro:id:`IPPROTO_ICMP`.
-	hlim: count;		##< Hop limit.
-	src: addr;			##< Source address.
-	dst: addr;			##< Destination address.
-	exts: ip6_hdr_chain;##< Extension header chain.
+	class: count;					##< Traffic class.
+	flow: count;					##< Flow label.
+	len: count;						##< Payload length.
+	nxt: count;						##< Protocol number of the next header
+									##< (RFC 1700 et seq., IANA assigned number)
+									##< e.g. :bro:id:`IPPROTO_ICMP`.
+	hlim: count;					##< Hop limit.
+	src: addr;						##< Source address.
+	dst: addr;						##< Destination address.
+	exts: vector of ip6_ext_hdr;	##< Extension header chain.
 };
 
 ## Values extracted from an IPv4 header.

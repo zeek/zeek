@@ -7,7 +7,7 @@
 
 static RecordType* ip4_hdr_type = 0;
 static RecordType* ip6_hdr_type = 0;
-static RecordType* ip6_hdr_chain_type = 0;
+static RecordType* ip6_ext_hdr_type = 0;
 static RecordType* ip6_option_type = 0;
 static RecordType* ip6_hopopts_type = 0;
 static RecordType* ip6_dstopts_type = 0;
@@ -57,7 +57,7 @@ static VectorVal* BuildOptionsVal(const u_char* data, uint16 len)
 	return vv;
 	}
 
-RecordVal* IPv6_Hdr::BuildRecordVal() const
+RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 	{
 	RecordVal* rv = 0;
 
@@ -73,6 +73,10 @@ RecordVal* IPv6_Hdr::BuildRecordVal() const
 		rv->Assign(4, new Val(ip6->ip6_hlim, TYPE_COUNT));
 		rv->Assign(5, new AddrVal(ip6->ip6_src));
 		rv->Assign(6, new AddrVal(ip6->ip6_dst));
+		if ( ! chain )
+			chain = new VectorVal(new VectorType(
+			        hdrType(ip6_ext_hdr_type, "ip6_ext_hdr")->Ref()));
+		rv->Assign(7, chain);
 		}
 		break;
 
@@ -172,8 +176,7 @@ RecordVal* IP_Hdr::BuildIPHdrVal() const
 		}
 	else
 		{
-		rval = ((*ip6_hdrs)[0])->BuildRecordVal();
-		rval->Assign(7, ip6_hdrs->BuildRecordVal());
+		rval = ((*ip6_hdrs)[0])->BuildRecordVal(ip6_hdrs->BuildVal());
 		}
 
 	return rval;
@@ -306,11 +309,11 @@ void IPv6_Hdr_Chain::Init(const struct ip6_hdr* ip6, bool set_next, uint16 next)
 				  isIPv6ExtHeader(next_type) );
 	}
 
-RecordVal* IPv6_Hdr_Chain::BuildRecordVal() const
+VectorVal* IPv6_Hdr_Chain::BuildVal() const
 	{
-	if ( ! ip6_hdr_chain_type )
+	if ( ! ip6_ext_hdr_type )
 		{
-		ip6_hdr_chain_type = internal_type("ip6_hdr_chain")->AsRecordType();
+		ip6_ext_hdr_type = internal_type("ip6_ext_hdr")->AsRecordType();
 		ip6_hopopts_type = internal_type("ip6_hopopts")->AsRecordType();
 		ip6_dstopts_type = internal_type("ip6_dstopts")->AsRecordType();
 		ip6_routing_type = internal_type("ip6_routing")->AsRecordType();
@@ -319,53 +322,40 @@ RecordVal* IPv6_Hdr_Chain::BuildRecordVal() const
 		ip6_esp_type = internal_type("ip6_esp")->AsRecordType();
 		}
 
-	RecordVal* rval = new RecordVal(ip6_hdr_chain_type);
-
-	VectorVal* hopopts = new VectorVal(new VectorType(ip6_hopopts_type->Ref()));
-	VectorVal* dstopts = new VectorVal(new VectorType(ip6_dstopts_type->Ref()));
-	VectorVal* routing = new VectorVal(new VectorType(ip6_routing_type->Ref()));
-	VectorVal* fragment = new VectorVal(new VectorType(ip6_fragment_type->Ref()));
-	VectorVal* ah = new VectorVal(new VectorType(ip6_ah_type->Ref()));
-	VectorVal* esp = new VectorVal(new VectorType(ip6_esp_type->Ref()));
-	VectorVal* order = new VectorVal(new VectorType(base_type(TYPE_COUNT)));
+	VectorVal* rval = new VectorVal(new VectorType(ip6_ext_hdr_type->Ref()));
 
 	for ( size_t i = 1; i < chain.size(); ++i )
 		{
 		RecordVal* v = chain[i]->BuildRecordVal();
+		RecordVal* ext_hdr = new RecordVal(ip6_ext_hdr_type);
 		uint8 type = chain[i]->Type();
+		ext_hdr->Assign(0, new Val(type, TYPE_COUNT));
+
 		switch (type) {
 		case IPPROTO_HOPOPTS:
-			hopopts->Assign(hopopts->Size(), v, 0);
-			break;
-		case IPPROTO_ROUTING:
-			routing->Assign(routing->Size(), v, 0);
+			ext_hdr->Assign(1, v);
 			break;
 		case IPPROTO_DSTOPTS:
-			dstopts->Assign(dstopts->Size(), v, 0);
+			ext_hdr->Assign(2, v);
+			break;
+		case IPPROTO_ROUTING:
+			ext_hdr->Assign(3, v);
 			break;
 		case IPPROTO_FRAGMENT:
-			fragment->Assign(fragment->Size(), v, 0);
+			ext_hdr->Assign(4, v);
 			break;
 		case IPPROTO_AH:
-			ah->Assign(ah->Size(), v, 0);
+			ext_hdr->Assign(5, v);
 			break;
 		case IPPROTO_ESP:
-			esp->Assign(esp->Size(), v, 0);
+			ext_hdr->Assign(6, v);
 			break;
-		case IPPROTO_IPV6:
 		default:
-			reporter->InternalError("pkt_hdr assigned bad header %d", type);
+			reporter->InternalError("IPv6_Hdr_Chain bad header %d", type);
 			break;
 		}
-		order->Assign(i-1, new Val(type, TYPE_COUNT), 0);
+		rval->Assign(rval->Size(), ext_hdr, 0);
 		}
 
-	rval->Assign(0, hopopts);
-	rval->Assign(1, dstopts);
-	rval->Assign(2, routing);
-	rval->Assign(3, fragment);
-	rval->Assign(4, ah);
-	rval->Assign(5, esp);
-	rval->Assign(6, order);
 	return rval;
 	}

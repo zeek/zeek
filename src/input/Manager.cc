@@ -43,14 +43,24 @@ public:
 
 	RecordVal* description;
 
+        Filter();
 	virtual ~Filter();
 };
 
-Manager::Filter::~Filter() {
-	Unref(type);
-	Unref(description);
+Manager::Filter::Filter() {
+        type = 0;
+        reader = 0;
+        description = 0;
+}
 
-	delete(reader);	
+Manager::Filter::~Filter() {
+        if ( type )
+	        Unref(type);
+        if ( description )
+	        Unref(description);
+
+        if ( reader )
+	        delete(reader);	
 }
 
 class Manager::TableFilter: public Manager::Filter {
@@ -85,28 +95,46 @@ public:
 
 	bool want_record;	
 	EventFilter();
+        ~EventFilter();
 };
 
-Manager::TableFilter::TableFilter() {
+Manager::TableFilter::TableFilter() : Manager::Filter::Filter() {
 	filter_type = TABLE_FILTER;
 	
 	tab = 0;
 	itype = 0;
 	rtype = 0;
+
+        currDict = 0;
+        lastDict = 0;
+
+        pred = 0;
 }
 
-Manager::EventFilter::EventFilter() {
+Manager::EventFilter::EventFilter() : Manager::Filter::Filter() {
+        fields = 0;
 	filter_type = EVENT_FILTER;
 }
 
+Manager::EventFilter::~EventFilter() {
+        if ( fields ) {
+                Unref(fields);
+        }
+}
+
 Manager::TableFilter::~TableFilter() {
-	Unref(tab);
-	Unref(itype);
+        if ( tab )
+	        Unref(tab);
+        if ( itype ) 
+	        Unref(itype);
 	if ( rtype ) // can be 0 for sets
 		Unref(rtype);
 
-	delete currDict;
-	delete lastDict;
+        if ( currDict != 0 )
+	        delete currDict;
+
+        if ( lastDict != 0 ) 
+	        delete lastDict;
 } 
 
 struct ReaderDefinition {

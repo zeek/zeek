@@ -915,18 +915,20 @@ void Manager::EndCurrentSend(ReaderFrontend* reader) {
 
 		ListVal * idx = 0;
 		Val *val = 0;
+		
+		Val* predidx = 0;
+		EnumVal* ev = 0;
+		int startpos = 0;
 
 		if ( filter->pred || filter->event ) {
 			idx = filter->tab->RecoverIndex(ih->idxkey);
 			assert(idx != 0);
 			val = filter->tab->Lookup(idx);
 			assert(val != 0);
+			predidx = ListValToRecordVal(idx, filter->itype, &startpos);
+			ev = new EnumVal(BifEnum::Input::EVENT_REMOVED, BifType::Enum::Input::Event);
 		}
-		int startpos = 0;
-		Val* predidx = ListValToRecordVal(idx, filter->itype, &startpos);
-		EnumVal* ev = new EnumVal(BifEnum::Input::EVENT_REMOVED, BifType::Enum::Input::Event);
 
-		
 		if ( filter->pred ) {
 			// ask predicate, if we want to expire this element...
 
@@ -953,8 +955,10 @@ void Manager::EndCurrentSend(ReaderFrontend* reader) {
 			SendEvent(filter->event, 3, ev, predidx, val);
 		}
 
-		Unref(predidx);
-		Unref(ev);
+		if ( predidx )  // if we have a filter or an event...
+			Unref(predidx);
+		if ( ev ) 
+			Unref(ev);
 
 		filter->tab->Delete(ih->idxkey);
 		filter->lastDict->Remove(lastDictIdxKey); // deletex in next line
@@ -1321,6 +1325,7 @@ RecordVal* Manager::ListValToRecordVal(ListVal* list, RecordType *request_type, 
 
 	RecordVal* rec = new RecordVal(request_type->AsRecordType());
 
+	assert(list != 0);
 	int maxpos = list->Length();
 
 	for ( int i = 0; i < request_type->NumFields(); i++ ) {

@@ -1540,7 +1540,7 @@ int Manager::CopyValue(char *data, const int startpos, const Value* val) {
 				memcpy(data + startpos, (const char*) &(val->val.subnet_val.prefix.in.in4), length);
 				break;
 			case IPv6:
-				length += sizeof(val->val.addr_val.in.in6);
+				length = sizeof(val->val.addr_val.in.in6);
 				memcpy(data + startpos, (const char*) &(val->val.subnet_val.prefix.in.in4), length);
 				break;
 			default:

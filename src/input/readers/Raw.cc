@@ -17,6 +17,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <fcntl.h>
 
 using namespace input::reader;
 using threading::Value;
@@ -199,7 +200,7 @@ bool Raw::DoUpdate() {
 			case MANUAL:
 			case STREAM:
 				if ( mode == STREAM && file != NULL && in != NULL ) {
-					fpurge(file);
+					//fpurge(file);
 					in->clear(); // remove end of file evil bits
 					break;
 				}

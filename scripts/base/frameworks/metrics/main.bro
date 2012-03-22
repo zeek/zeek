@@ -8,12 +8,6 @@ export {
 	## The metrics logging stream identifier.
 	redef enum Log::ID += { LOG };
 	
-	## Identifiers for metrics to collect.
-	type ID: enum {
-		## Blank placeholder value.
-		NOTHING,
-	};
-	
 	## The default interval used for "breaking" metrics and writing the 
 	## current value to the logging stream.
 	const default_break_interval = 15mins &redef;
@@ -23,12 +17,8 @@ export {
 	const renotice_interval = 1hr &redef;
 	
 	## Represents a thing which is having metrics collected for it.  An instance
-	## of this record type and a :bro:type:`Metrics::ID` together represent a 
-	## single measurement.
+	## of this record type and an id together represent a single measurement.
 	type Index: record {
-		## Host is the value to which this metric applies.
-		host:         addr &optional;
-		
 		## A non-address related metric or a sub-key for an address based metric.
 		## An example might be successful SSH connections by client IP address
 		## where the client string would be the index value.
@@ -36,7 +26,10 @@ export {
 		## value in a Host header.  This is an example of a non-host based
 		## metric since multiple IP addresses could respond for the same Host
 		## header value.
-		str:        string &optional;
+		str:          string &optional;
+	
+		## Host is the value to which this metric applies.
+		host:         addr &optional;
 		
 		## The CIDR block that this metric applies to.  This is typically
 		## only used internally for host based aggregation.
@@ -46,17 +39,19 @@ export {
 	## The record type that is used for logging metrics.
 	type Info: record {
 		## Timestamp at which the metric was "broken".
-		ts:           time   &log;
-		## What measurement the metric represents.
-		metric_id:    ID     &log;
-		## The name of the filter being logged.  :bro:type:`Metrics::ID` values
+		ts:           time     &log;
+		## Interval between logging of this filter and the last time it was logged.
+		ts_delta:     interval &log;
+		## The name of the filter being logged.  Values
 		## can have multiple filters which represent different perspectives on
 		## the data so this is necessary to understand the value.
-		filter_name:  string &log;
+		filter_name:  string   &log;
+		## What measurement the metric represents.
+		metric_id:    string   &log;
 		## What the metric value applies to.
-		index:        Index  &log;
+		index:        Index    &log;
 		## The simple numeric value of the metric.
-		value:        count  &log;
+		value:        count    &log;
 	};
 	
     # TODO: configure a metrics filter logging stream to log the current
@@ -68,15 +63,19 @@ export {
 	## and logged or how the data within them is aggregated.  It's also 
 	## possible to disable logging and use filters for thresholding.
 	type Filter: record {
-		## The :bro:type:`Metrics::ID` that this filter applies to.
-		id:                ID                      &optional;
 		## The name for this filter so that multiple filters can be
 		## applied to a single metrics to get a different view of the same
 		## metric data being collected (different aggregation, break, etc).
 		name:              string                  &default="default";
+		## The :bro:type:`Metrics::ID` that this filter applies to.
+		id:                string                  &optional;
 		## A predicate so that you can decide per index if you would like
 		## to accept the data being inserted.
 		pred:              function(index: Index): bool &optional;
+		## A function to normalize the index.  This can be used to normalize
+		## any field in the index and is likely most useful to normalize
+		## the $str field.
+		normalize_func:    function(index: Index): Index &optional;
 		## Global mask by which you'd like to aggregate traffic.
 		aggregation_mask:  count                   &optional;
 		## This is essentially a mapping table between addresses and subnets.
@@ -111,7 +110,7 @@ export {
 	## id: The metric ID that the filter should be associated with.
 	##
 	## filter: The record representing the filter configuration.
-	global add_filter: function(id: ID, filter: Filter);
+	global add_filter: function(id: string, filter: Filter);
 	
 	## Add data into a :bro:type:`Metrics::ID`.  This should be called when
 	## a script has measured some point value and is ready to increment the
@@ -122,7 +121,9 @@ export {
 	## index: The metric index that the value is to be added to.
 	##
 	## increment: How much to increment the counter by.
-	global add_data: function(id: ID, index: Index, increment: count);
+	global add_data: function(id: string, index: Index, increment: count);
+	
+	global add_unique: function(id: string, index: Index, data: string);
 	
 	## Helper function to represent a :bro:type:`Metrics::Index` value as 
 	## a simple string
@@ -141,19 +142,24 @@ export {
 	## Event to access metrics records as they are passed to the logging framework.
 	global log_metrics: event(rec: Info);
 	
+	## Internal use only
+	type MetricMeasurement: record {
+		num:        count       &optional;
+		unique_vals: set[string] &optional;
+	};
 	## Type to store a table of metrics values.  Interal use only!
-	type MetricTable: table[Index] of count &default=0;
+	type MetricTable: table[Index] of MetricMeasurement;
 }
 
 redef record Notice::Info += {
 	metric_index: Index &log &optional;
 };
 
-global metric_filters: table[ID] of vector of Filter = table();
-global filter_store: table[ID, string] of Filter = table();
+global metric_filters: table[string] of vector of Filter = table();
+global filter_store: table[string, string] of Filter = table();
 
 # This is indexed by metric ID and stream filter name.
-global store: table[ID, string] of MetricTable = table() &default=table();
+global store: table[string, string] of MetricTable = table() &default=table();
 
 # This function checks if a threshold has been crossed and generates a 
 # notice if it has.  It is also used as a method to implement 
@@ -166,7 +172,7 @@ global data_added: function(filter: Filter, index: Index, val: count);
 
 # This stores the current threshold index for filters using the
 # $notice_threshold and $notice_thresholds elements.
-global thresholds: table[ID, string, Index] of count = {} &create_expire=renotice_interval &default=0;
+global thresholds: table[string, string, Index] of count = {} &create_expire=renotice_interval &default=0;
 
 event bro_init() &priority=5
 	{
@@ -189,8 +195,13 @@ function write_log(ts: time, filter: Filter, data: MetricTable)
 	{
 	for ( index in data )
 		{
-		local val = data[index];
+		local val = 0;
+		if ( data[index]?$unique_vals )
+			val = |data[index]$unique_vals|;
+		else
+			val = data[index]$num;
 		local m: Info = [$ts=ts,
+		                 $ts_delta=filter$break_interval,
 		                 $metric_id=filter$id,
 		                 $filter_name=filter$name,
 		                 $index=index,
@@ -207,7 +218,7 @@ function reset(filter: Filter)
 	store[filter$id, filter$name] = table();
 	}
 
-function add_filter(id: ID, filter: Filter)
+function add_filter(id: string, filter: Filter)
 	{
 	if ( filter?$aggregation_table && filter?$aggregation_mask )
 		{
@@ -237,8 +248,8 @@ function add_filter(id: ID, filter: Filter)
 	
 	schedule filter$break_interval { Metrics::log_it(filter) };
 	}
-	
-function add_data(id: ID, index: Index, increment: count)
+
+function add_it(id: string, index: Index, integer_value: bool, num: count, str: string)
 	{
 	if ( id !in metric_filters )
 		return;
@@ -257,6 +268,11 @@ function add_data(id: ID, index: Index, increment: count)
 		
 		if ( index?$host )
 			{
+			if ( filter?$normalize_func )
+				{
+				index = filter$normalize_func(copy(index));
+				}
+			
 			if ( filter?$aggregation_mask )
 				{
 				index$network = mask_addr(index$host, filter$aggregation_mask);
@@ -274,14 +290,36 @@ function add_data(id: ID, index: Index, increment: count)
 			}
 		
 		local metric_tbl = store[id, filter$name];
-		if ( index !in metric_tbl )
-			metric_tbl[index] = 0;
-		metric_tbl[index] += increment;
-		
-		data_added(filter, index, metric_tbl[index]);
+		if ( integer_value )
+			{
+			if ( index !in metric_tbl )
+				metric_tbl[index] = [$num=0];
+			metric_tbl[index]$num += num;
+			data_added(filter, index, metric_tbl[index]$num);
+			}
+		else
+			{
+			if ( index !in metric_tbl )
+				{
+				local empty_ss: set[string] = set();
+				metric_tbl[index] = [$unique_vals=empty_ss];
+				}
+			add metric_tbl[index]$unique_vals[str];
+			data_added(filter, index, |metric_tbl[index]$unique_vals|);
+			}
 		}
 	}
 
+function add_data(id: string, index: Index, increment: count)
+	{
+	add_it(id, index, T, increment, "");
+	}
+	
+function add_unique(id: string, index: Index, data: string)
+	{
+	add_it(id, index, F, 0, data);
+	}
+	
 function check_notice(filter: Filter, index: Index, val: count): bool
 	{
 	if ( (filter?$notice_threshold &&

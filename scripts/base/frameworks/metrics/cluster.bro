@@ -27,29 +27,29 @@ export {
 	
 	## Event sent by the manager in a cluster to initiate the 
 	## collection of metrics values for a filter.
-	global cluster_filter_request: event(uid: string, id: ID, filter_name: string);
+	global cluster_filter_request: event(uid: string, id: string, filter_name: string);
 
 	## Event sent by nodes that are collecting metrics after receiving
 	## a request for the metric filter from the manager.
-	global cluster_filter_response: event(uid: string, id: ID, filter_name: string, data: MetricTable, done: bool);
+	global cluster_filter_response: event(uid: string, id: string, filter_name: string, data: MetricTable, done: bool);
 
 	## This event is sent by the manager in a cluster to initiate the
 	## collection of a single index value from a filter.  It's typically
 	## used to get intermediate updates before the break interval triggers
 	## to speed detection of a value crossing a threshold.
-	global cluster_index_request: event(uid: string, id: ID, filter_name: string, index: Index);
+	global cluster_index_request: event(uid: string, id: string, filter_name: string, index: Index);
 
 	## This event is sent by nodes in response to a 
 	## :bro:id:`Metrics::cluster_index_request` event.
-	global cluster_index_response: event(uid: string, id: ID, filter_name: string, index: Index, val: count);
+	global cluster_index_response: event(uid: string, id: string, filter_name: string, index: Index, val: count);
 
 	## This is sent by workers to indicate that they crossed the percent of the 
 	## current threshold by the percentage defined globally in 
 	## :bro:id:`Metrics::cluster_request_global_view_percent`
-	global cluster_index_intermediate_response: event(id: Metrics::ID, filter_name: string, index: Metrics::Index, val: count);
+	global cluster_index_intermediate_response: event(id: string, filter_name: string, index: Metrics::Index, val: count);
 
 	## This event is scheduled internally on workers to send result chunks.
-	global send_data: event(uid: string, id: ID, filter_name: string, data: MetricTable);
+	global send_data: event(uid: string, id: string, filter_name: string, data: MetricTable);
 	
 }
 
@@ -65,7 +65,7 @@ global requested_results: table[string] of time = table() &create_expire=5mins;
 
 # This variable is maintained by manager nodes as they collect and aggregate 
 # results.
-global filter_results: table[string, ID, string] of MetricTable &create_expire=5mins;
+global filter_results: table[string, string, string] of MetricTable &create_expire=5mins;
 
 # This variable is maintained by manager nodes to track how many "dones" they
 # collected per collection unique id.  Once the number of results for a uid 
@@ -76,7 +76,7 @@ global done_with: table[string] of count &create_expire=5mins &default=0;
 
 # This variable is maintained by managers to track intermediate responses as 
 # they are getting a global view for a certain index.
-global index_requests: table[string, ID, string, Index] of count &create_expire=5mins &default=0;
+global index_requests: table[string, string, string, Index] of count &create_expire=5mins &default=0;
 
 # This variable is maintained by all hosts for different purposes. Non-managers
 # maintain it to know what indexes they have recently sent as intermediate
@@ -86,7 +86,7 @@ global index_requests: table[string, ID, string, Index] of count &create_expire=
 # an intermediate result has been received. The manager may optionally request
 # the index again before data expires from here if too many workers are crossing
 # the percentage threshold (not implemented yet!).
-global recent_global_view_indexes: table[ID, string, Index] of count &create_expire=5mins &default=0;
+global recent_global_view_indexes: table[string, string, Index] of count &create_expire=5mins &default=0;
 
 # Add events to the cluster framework to make this work.
 redef Cluster::manager2worker_events += /Metrics::cluster_(filter_request|index_request)/;
@@ -116,7 +116,7 @@ function data_added(filter: Filter, index: Index, val: count)
 		}
 	}
 
-event Metrics::send_data(uid: string, id: ID, filter_name: string, data: MetricTable)
+event Metrics::send_data(uid: string, id: string, filter_name: string, data: MetricTable)
 	{
 	#print fmt("WORKER %s: sending data for uid %s...", Cluster::node, uid);
 	
@@ -143,7 +143,7 @@ event Metrics::send_data(uid: string, id: ID, filter_name: string, data: MetricT
 		event Metrics::send_data(uid, id, filter_name, data);
 	}
 
-event Metrics::cluster_filter_request(uid: string, id: ID, filter_name: string)
+event Metrics::cluster_filter_request(uid: string, id: string, filter_name: string)
 	{
 	#print fmt("WORKER %s: received the cluster_filter_request event.", Cluster::node);
 	
@@ -155,7 +155,7 @@ event Metrics::cluster_filter_request(uid: string, id: ID, filter_name: string)
 	reset(filter_store[id, filter_name]);
 	}
 	
-event Metrics::cluster_index_request(uid: string, id: ID, filter_name: string, index: Index)
+event Metrics::cluster_index_request(uid: string, id: string, filter_name: string, index: Index)
 	{
 	local val=0;
 	if ( index in store[id, filter_name] )
@@ -195,7 +195,7 @@ function data_added(filter: Filter, index: Index, val: count)
 		do_notice(filter, index, val);
 	}
 	
-event Metrics::cluster_index_response(uid: string, id: ID, filter_name: string, index: Index, val: count)
+event Metrics::cluster_index_response(uid: string, id: string, filter_name: string, index: Index, val: count)
 	{
 	#print fmt("%0.6f MANAGER: receiving index data from %s", network_time(), get_event_peer()$descr);
 
@@ -216,7 +216,7 @@ event Metrics::cluster_index_response(uid: string, id: ID, filter_name: string, 
 	}
 
 # Managers handle intermediate updates here.
-event Metrics::cluster_index_intermediate_response(id: ID, filter_name: string, index: Index, val: count)
+event Metrics::cluster_index_intermediate_response(id: string, filter_name: string, index: Index, val: count)
 	{
 	#print fmt("MANAGER: receiving intermediate index data from %s", get_event_peer()$descr);
 	#print fmt("MANAGER: requesting index data for %s", index2str(index));
@@ -226,7 +226,7 @@ event Metrics::cluster_index_intermediate_response(id: ID, filter_name: string, 
 	++recent_global_view_indexes[id, filter_name, index];
 	}
 
-event Metrics::cluster_filter_response(uid: string, id: ID, filter_name: string, data: MetricTable, done: bool)
+event Metrics::cluster_filter_response(uid: string, id: string, filter_name: string, data: MetricTable, done: bool)
 	{
 	#print fmt("MANAGER: receiving results from %s", get_event_peer()$descr);
 	

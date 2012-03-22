@@ -228,6 +228,9 @@ private:
 	char* buf;
 	unsigned int buf_len;
 	bool autostart;
+
+	unsigned int num_fields;
+	const threading::Field* const * fields; // raw mapping		
 };
 
 }

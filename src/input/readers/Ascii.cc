@@ -73,7 +73,6 @@ Ascii::Ascii(ReaderFrontend *frontend) : ReaderBackend(frontend)
 Ascii::~Ascii()
 {
 	DoFinish();
-
 }
 
 void Ascii::DoFinish()

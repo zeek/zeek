@@ -169,6 +169,9 @@ bool ReaderBackend::Init(string arg_source, int mode, const int arg_num_fields, 
 	source = arg_source;
 	SetName("InputReader/"+source);
 
+	num_fields = arg_num_fields;
+	fields = arg_fields;	
+
 	// disable if DoInit returns error.
 	int success = DoInit(arg_source, mode, arg_num_fields, arg_fields);
 
@@ -188,6 +191,16 @@ void ReaderBackend::Finish()
 	disabled = true;
 	DisableFrontend();
 	SendOut(new ReaderFinishedMessage(frontend));
+
+	if ( fields != 0 ) {
+
+		for ( unsigned int i = 0; i < num_fields; i++ ) {
+			delete(fields[i]);
+		}
+
+		delete[] (fields);
+		fields = 0;
+	}
 }
 
 bool ReaderBackend::Update() 

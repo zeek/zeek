@@ -760,8 +760,13 @@ int Manager::SendEntryTable(Filter* i, const Value* const *vals) {
 	hash_t valhash = 0;
 	if ( filter->num_val_fields > 0 ) {
 		HashKey* valhashkey = HashValues(filter->num_val_fields, vals+filter->num_idx_fields);
-	     	valhash = valhashkey->Hash();
-	      	delete(valhashkey);
+		if ( valhashkey == 0 ) {
+			// empty line. index, but no values.
+			// hence we also have no hash value...
+		} else {
+	     		valhash = valhashkey->Hash();
+	      		delete(valhashkey);
+		}
 	}
 
 	InputHash *h = filter->lastDict->Lookup(idxhash);

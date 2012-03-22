@@ -159,7 +159,8 @@ protected:
 
 	// Takes ownership of fields.
 	WriterFrontend* CreateWriter(EnumVal* id, EnumVal* writer, string path,
-				int num_fields, const threading::Field* const* fields);
+				int num_fields, const threading::Field* const* fields,
+				bool local, bool remote);
 
 	// Takes ownership of values..
 	bool Write(EnumVal* id, EnumVal* writer, string path,

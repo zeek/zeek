@@ -24,17 +24,18 @@ struct Field {
 	string secondary_name;	
 	TypeTag type;	//! Type of the field.
 	TypeTag subtype;	//! Inner type for sets.
+	bool optional; //! needed by input framework. Is the field optional or does it have to be present in the input data
 
 	/**
 	 * Constructor.
 	 */
-	Field() 	{ subtype = TYPE_VOID; }
+	Field() 	{ subtype = TYPE_VOID; optional = false; }
 
 	/**
 	 * Copy constructor.
 	 */
 	Field(const Field& other)
-		: name(other.name), type(other.type), subtype(other.subtype) {  }
+		: name(other.name), type(other.type), subtype(other.subtype), optional(other.optional) {  }
 
 	/**
 	 * Unserializes a field.

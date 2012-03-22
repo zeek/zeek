@@ -49,18 +49,7 @@ public:
 	 * See ReaderBackend::Init() for arguments.
 	 * This method must only be called from the main thread.
 	 */	
-	void Init(string arg_source, int mode, bool autostart);
-
-	/**
-	 * Start the reader.
-	 *
-	 * This methods starts the reader, after all necessary filters have been added.
-	 * It is not necessary to call this function, if autostart has been set.
-	 * If autostart has been set, the reader will be initialized automatically after the first filter has been added
-	 *
-	 * This method must only be called from the main thread.
-	 */
-	void StartReading();
+	void Init(string arg_source, int mode, const int arg_num_fields, const threading::Field* const* fields);
 
 	/**
 	 * Force an update of the current input source. Actual action depends on
@@ -71,20 +60,6 @@ public:
 	 * This method must only be called from the main thread.
 	 */
 	void Update();
-
-	/**
-	 * Add a filter to the current input source.
-	 *
-	 * See ReaderBackend::AddFilter for arguments.
-	 *
-	 * The method takes ownership of \a fields
-	 */
-	void AddFilter( const int id, const int arg_num_fields, const threading::Field* const* fields );
-
-	/**
-	 * Removes a filter to the current input source.
-	 */
-	void RemoveFilter ( const int id );
 
 	/**
 	 * Finalizes writing to this tream.

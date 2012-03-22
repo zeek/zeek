@@ -105,9 +105,6 @@ Manager::Stream::~Stream()
 		{
 		WriterInfo* winfo = i->second;
 
-		if ( ! winfo )
-			continue;
-
 		if ( winfo->rotation_timer )
 			timer_mgr->Cancel(winfo->rotation_timer);
 
@@ -207,7 +204,7 @@ Manager::WriterInfo* Manager::FindWriter(WriterFrontend* writer)
 			{
 			WriterInfo* winfo = i->second;
 
-			if ( winfo && winfo->writer == writer )
+			if ( winfo->writer == writer )
 				return winfo;
 			}
 		}
@@ -221,7 +218,7 @@ void Manager::RemoveDisabledWriters(Stream* stream)
 
 	for ( Stream::WriterMap::iterator j = stream->writers.begin(); j != stream->writers.end(); j++ )
 		{
-		if ( j->second && j->second->writer->Disabled() )
+		if ( j->second->writer->Disabled() )
 			{
 			j->second->writer->Stop();
 			delete j->second;
@@ -680,11 +677,11 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 
 			Val* path_arg;
 			if ( filter->path_val )
-				path_arg = filter->path_val;
+				path_arg = filter->path_val->Ref();
 			else
 				path_arg = new StringVal("");
 
-			vl.append(path_arg->Ref());
+			vl.append(path_arg);
 
 			Val* rec_arg;
 			BroType* rt = filter->path_func->FType()->Args()->FieldType("rec");
@@ -718,7 +715,6 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 
 			if ( ! filter->path_val )
 				{
-				Unref(path_arg);
 				filter->path = v->AsString()->CheckString();
 				filter->path_val = v->Ref();
 				}
@@ -740,7 +736,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 
 		if ( w != stream->writers.end() )
 			// We know this writer already.
-			writer = w->second ? w->second->writer : 0;
+			writer = w->second->writer;
 
 		else
 			{
@@ -753,64 +749,25 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 			for ( int j = 0; j < filter->num_fields; ++j )
 				arg_fields[j] = new Field(*filter->fields[j]);
 
-			if ( filter->remote )
-				remote_serializer->SendLogCreateWriter(stream->id,
-								       filter->writer,
-								       path,
-								       filter->num_fields,
-								       arg_fields);
+			writer = CreateWriter(stream->id, filter->writer,
+					      path, filter->num_fields,
+					      arg_fields, filter->local, filter->remote);
 
-			if ( filter->local )
+			if ( ! writer )
 				{
-				writer = CreateWriter(stream->id, filter->writer,
-						      path, filter->num_fields,
-						      arg_fields);
-
-				if ( ! writer )
-					{
-					Unref(columns);
-					return false;
-					}
+				Unref(columns);
+				return false;
 				}
-			else
-				{
-				// Insert a null pointer into the map to make
-				// sure we don't try creating it again.
-				stream->writers.insert(Stream::WriterMap::value_type(
-				Stream::WriterPathPair(filter->writer->AsEnum(), path), 0));
 
-				for( int i = 0; i < filter->num_fields; ++i)
-					delete arg_fields[i];
-
-				delete [] arg_fields;
-				}
 			}
 
 		// Alright, can do the write now.
 
-		if ( filter->local || filter->remote )
-			{
-				threading::Value** vals = RecordToFilterVals(stream, filter, columns);
+		threading::Value** vals = RecordToFilterVals(stream, filter, columns);
 
-			if ( filter->remote )
-				remote_serializer->SendLogWrite(stream->id,
-								filter->writer,
-								path,
-								filter->num_fields,
-								vals);
-
-			if ( filter->local )
-				{
-				// Write takes ownership of vals.
-				assert(writer);
-				writer->Write(filter->num_fields, vals);
-				}
-
-			else
-				DeleteVals(filter->num_fields, vals);
-
-			}
-
+		// Write takes ownership of vals.
+		assert(writer);
+		writer->Write(filter->num_fields, vals);
 
 #ifdef DEBUG
 		DBG_LOG(DBG_LOGGING, "Wrote record to filter '%s' on stream '%s'",
@@ -976,7 +933,7 @@ Value** Manager::RecordToFilterVals(Stream* stream, Filter* filter,
 	}
 
 WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, string path,
-				int num_fields, const Field* const*  fields)
+				int num_fields, const Field* const*  fields, bool local, bool remote)
 	{
 	Stream* stream = FindStream(id);
 
@@ -987,12 +944,12 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, string path,
 	Stream::WriterMap::iterator w =
 		stream->writers.find(Stream::WriterPathPair(writer->AsEnum(), path));
 
-	if ( w != stream->writers.end() && w->second )
+	if ( w != stream->writers.end() )
 		// If we already have a writer for this. That's fine, we just
 		// return it.
 		return w->second->writer;
 
-	WriterFrontend* writer_obj = new WriterFrontend(writer->AsEnum());
+	WriterFrontend* writer_obj = new WriterFrontend(id, writer, local, remote);
 	assert(writer_obj);
 
 	writer_obj->Init(path, num_fields, fields);
@@ -1089,8 +1046,7 @@ bool Manager::Write(EnumVal* id, EnumVal* writer, string path, int num_fields,
 		return false;
 		}
 
-	if ( w->second )
-		w->second->writer->Write(num_fields, vals);
+	w->second->writer->Write(num_fields, vals);
 
 	DBG_LOG(DBG_LOGGING,
 		"Wrote pre-filtered record to path '%s' on stream '%s'",
@@ -1111,9 +1067,6 @@ void Manager::SendAllWritersTo(RemoteSerializer::PeerID peer)
 		for ( Stream::WriterMap::iterator i = stream->writers.begin();
 		      i != stream->writers.end(); i++ )
 			{
-			if ( ! i->second )
-				continue;
-
 			WriterFrontend* writer = i->second->writer;
 
 			EnumVal writer_val(i->first.first, BifType::Enum::Log::Writer);
@@ -1134,10 +1087,7 @@ bool Manager::SetBuf(EnumVal* id, bool enabled)
 
 	for ( Stream::WriterMap::iterator i = stream->writers.begin();
 	      i != stream->writers.end(); i++ )
-		{
-		if ( i->second )
-			i->second->writer->SetBuf(enabled);
-		}
+		i->second->writer->SetBuf(enabled);
 
 	RemoveDisabledWriters(stream);
 
@@ -1155,10 +1105,7 @@ bool Manager::Flush(EnumVal* id)
 
 	for ( Stream::WriterMap::iterator i = stream->writers.begin();
 	      i != stream->writers.end(); i++ )
-		{
-		if ( i->second )
-			i->second->writer->Flush();
-		}
+		i->second->writer->Flush();
 
 	RemoveDisabledWriters(stream);
 

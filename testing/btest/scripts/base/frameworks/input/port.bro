@@ -1,5 +1,5 @@
 #
-# @TEST-EXEC: bro %INPUT >out
+# @TEST-EXEC: bro -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 @TEST-START-FILE input.log
@@ -13,10 +13,6 @@ redef InputAscii::empty_field = "EMPTY";
 
 module A;
 
-export {
-	redef enum Input::ID += { INPUT };
-}
-
 type Idx: record {
 	i: addr;
 };
@@ -29,17 +25,14 @@ global servers: table[addr] of Val = table();
 
 event bro_init()
 {
-	# first read in the old stuff into the table...
-	Input::create_stream(A::INPUT, [$source="input.log"]);
-	Input::add_tablefilter(A::INPUT, [$name="input", $idx=Idx, $val=Val, $destination=servers]);
+	Input::add_table([$source="input.log", $name="input", $idx=Idx, $val=Val, $destination=servers]);
 	print servers[1.2.3.4];
 	print servers[1.2.3.5];
 	print servers[1.2.3.6];
-	Input::remove_tablefilter(A::INPUT, "input");
-	Input::remove_stream(A::INPUT);
+	Input::remove("input");
 }
 
-event Input::update_finished(id: Input::ID) {
+event Input::update_finished(name: string, source: string) {
 	print servers[1.2.3.4];
 	print servers[1.2.3.5];
 	print servers[1.2.3.6];

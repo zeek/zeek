@@ -28,10 +28,6 @@ redef InputAscii::empty_field = "EMPTY";
 
 module A;
 
-export {
-	redef enum Input::ID += { INPUT };
-}
-
 type Idx: record {
 	i: int;
 };
@@ -60,7 +56,7 @@ global outfile: file;
 
 global try: count;
 
-event line(tpe: Input::Event, left: Idx, right: Val) {
+event line(description: Input::TableDescription, tpe: Input::Event, left: Idx, right: Val) {
 	print outfile, "============EVENT============";
 	print outfile, tpe;
 	print outfile, left;
@@ -73,8 +69,7 @@ event line(tpe: Input::Event, left: Idx, right: Val) {
 	if ( try == 3 ) {
 		print outfile, "done";
 		close(outfile);
-		Input::remove_tablefilter(A::INPUT, "ssh");
-		Input::remove_stream(A::INPUT);
+		Input::remove("input");
 	}
 }
 
@@ -83,7 +78,6 @@ event bro_init()
 	outfile = open ("../out");
 	try = 0;
 	# first read in the old stuff into the table...
-	Input::create_stream(A::INPUT, [$source="../input.log", $mode=Input::STREAM]);
-	Input::add_tablefilter(A::INPUT, [$name="ssh", $idx=Idx, $val=Val, $destination=servers, $ev=line]);
+	Input::add_table([$source="../input.log", $mode=Input::STREAM, $name="ssh", $idx=Idx, $val=Val, $destination=servers, $ev=line]);
 }
 

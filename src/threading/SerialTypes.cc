@@ -13,7 +13,7 @@ bool Field::Read(SerializationFormat* fmt)
 	int st;
 
 	bool success = (fmt->Read(&name, "name") && fmt->Read(&secondary_name, "secondary_name") && 
-			fmt->Read(&t, "type") && fmt->Read(&st, "subtype") );
+			fmt->Read(&t, "type") && fmt->Read(&st, "subtype") && fmt->Read(&optional, "optional"));
 	type = (TypeTag) t;
 	subtype = (TypeTag) st;
 
@@ -23,7 +23,7 @@ bool Field::Read(SerializationFormat* fmt)
 bool Field::Write(SerializationFormat* fmt) const
 	{
 	return (fmt->Write(name, "name") && fmt->Write(secondary_name, "secondary_name") && fmt->Write((int)type, "type") && 
-			fmt->Write((int)subtype, "subtype"));
+			fmt->Write((int)subtype, "subtype"), fmt->Write(optional, "optional"));
 	}
 
 Value::~Value()

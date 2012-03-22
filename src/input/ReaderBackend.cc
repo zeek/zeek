@@ -11,48 +11,44 @@ namespace input {
 
 class PutMessage : public threading::OutputMessage<ReaderFrontend> {
 public:
-	PutMessage(ReaderFrontend* reader, int id, Value* *val)
+	PutMessage(ReaderFrontend* reader, Value* *val)
 		: threading::OutputMessage<ReaderFrontend>("Put", reader),
-		id(id), val(val) {}
+		val(val) {}
 
 	virtual bool Process() {
-		input_mgr->Put(Object(), id, val);
+		input_mgr->Put(Object(), val);
 		return true;
 	}
 
 private:
-	int id;
 	Value* *val;
 };
 
 class DeleteMessage : public threading::OutputMessage<ReaderFrontend> {
 public:
-	DeleteMessage(ReaderFrontend* reader, int id, Value* *val)
+	DeleteMessage(ReaderFrontend* reader, Value* *val)
 		: threading::OutputMessage<ReaderFrontend>("Delete", reader),
-		id(id), val(val) {}
+		val(val) {}
 
 	virtual bool Process() {
-		return input_mgr->Delete(Object(), id, val);
+		return input_mgr->Delete(Object(), val);
 	}
 
 private:
-	int id;
 	Value* *val;
 };
 
 class ClearMessage : public threading::OutputMessage<ReaderFrontend> {
 public:
-	ClearMessage(ReaderFrontend* reader, int id)
-		: threading::OutputMessage<ReaderFrontend>("Clear", reader),
-		id(id) {}
+	ClearMessage(ReaderFrontend* reader)
+		: threading::OutputMessage<ReaderFrontend>("Clear", reader) {}
 
 	virtual bool Process() {
-		input_mgr->Clear(Object(), id);
+		input_mgr->Clear(Object());
 		return true;
 	}
 
 private:
-	int id;
 };
 
 class SendEventMessage : public threading::OutputMessage<ReaderFrontend> {
@@ -73,47 +69,30 @@ private:
 
 class SendEntryMessage : public threading::OutputMessage<ReaderFrontend> {
 public:
-	SendEntryMessage(ReaderFrontend* reader, const int id, Value* *val)
+	SendEntryMessage(ReaderFrontend* reader, Value* *val)
 		: threading::OutputMessage<ReaderFrontend>("SendEntry", reader),
-		id(id), val(val) { }
+		val(val) { }
 
 	virtual bool Process() {
-		input_mgr->SendEntry(Object(), id, val);
+		input_mgr->SendEntry(Object(), val);
 		return true;
 	}
 
 private:
-	const int id;
 	Value* *val;
 };
 
 class EndCurrentSendMessage : public threading::OutputMessage<ReaderFrontend> {
 public:
-	EndCurrentSendMessage(ReaderFrontend* reader, const int id)
-		: threading::OutputMessage<ReaderFrontend>("EndCurrentSend", reader),
-		id(id) {}
+	EndCurrentSendMessage(ReaderFrontend* reader)
+		: threading::OutputMessage<ReaderFrontend>("EndCurrentSend", reader) {}
 
 	virtual bool Process() {
-		input_mgr->EndCurrentSend(Object(), id);
+		input_mgr->EndCurrentSend(Object());
 		return true;
 	}
 
 private:
-	const int id;
-};
-
-class FilterRemovedMessage : public threading::OutputMessage<ReaderFrontend> {
-public:
-	FilterRemovedMessage(ReaderFrontend* reader, const int id)
-		: threading::OutputMessage<ReaderFrontend>("FilterRemoved", reader),
-		id(id) {}
-
-	virtual bool Process() {
-		return input_mgr->RemoveFilterContinuation(Object(), id);
-	}
-
-private:
-	const int id;
 };
 
 class ReaderFinishedMessage : public threading::OutputMessage<ReaderFrontend> {
@@ -155,19 +134,19 @@ ReaderBackend::~ReaderBackend()
 	
 }
 
-void ReaderBackend::Put(int id, Value* *val) 
+void ReaderBackend::Put(Value* *val) 
 {
-	SendOut(new PutMessage(frontend, id, val));
+	SendOut(new PutMessage(frontend, val));
 }
 
-void ReaderBackend::Delete(int id, Value* *val) 
+void ReaderBackend::Delete(Value* *val) 
 {
-	SendOut(new DeleteMessage(frontend, id, val));
+	SendOut(new DeleteMessage(frontend, val));
 }
 
-void ReaderBackend::Clear(int id) 
+void ReaderBackend::Clear() 
 {
-	SendOut(new ClearMessage(frontend, id));
+	SendOut(new ClearMessage(frontend));
 }
 
 void ReaderBackend::SendEvent(const string& name, const int num_vals, Value* *vals) 
@@ -175,68 +154,32 @@ void ReaderBackend::SendEvent(const string& name, const int num_vals, Value* *va
 	SendOut(new SendEventMessage(frontend, name, num_vals, vals));
 } 
 
-void ReaderBackend::EndCurrentSend(int id) 
+void ReaderBackend::EndCurrentSend() 
 {
-	SendOut(new EndCurrentSendMessage(frontend, id));
+	SendOut(new EndCurrentSendMessage(frontend));
 }
 
-void ReaderBackend::SendEntry(int id, Value* *vals)
+void ReaderBackend::SendEntry(Value* *vals)
 {
-	SendOut(new SendEntryMessage(frontend, id, vals));
+	SendOut(new SendEntryMessage(frontend, vals));
 }
 
-bool ReaderBackend::Init(string arg_source, int mode, bool arg_autostart) 
+bool ReaderBackend::Init(string arg_source, int mode, const int arg_num_fields, const threading::Field* const* arg_fields) 
 {
 	source = arg_source;
-	autostart = arg_autostart;
 	SetName("InputReader/"+source);
 
 	// disable if DoInit returns error.
-	disabled = !DoInit(arg_source, mode);
+	int success = DoInit(arg_source, mode, arg_num_fields, arg_fields);
 
-	if ( disabled ) {
+	if ( !success ) {
 		Error("Init failed");
 		DisableFrontend();
 	}
 
-	return !disabled;
-}
-
-bool ReaderBackend::StartReading() {
-	if ( disabled ) 
-		return false;
-
-	int success = DoStartReading();
-	
-	if ( success == false ) {
-		DisableFrontend();
-	} 
+	disabled = !success;
 
 	return success;
-}
-
-bool ReaderBackend::AddFilter(int id, int arg_num_fields,
-					   const Field* const * arg_fields) 
-{
-	if ( disabled ) 
-		return false;
-
-	bool success = DoAddFilter(id, arg_num_fields, arg_fields);
-	if ( success && autostart) {
-		autostart = false;
-		return StartReading();
-	}
-	return success;
-}
-
-bool ReaderBackend::RemoveFilter(int id) 
-{
-	if ( disabled ) 
-		return false;
-
-	bool success = DoRemoveFilter(id);
-	SendOut(new FilterRemovedMessage(frontend, id));
-	return success; // yes, I know, noone reads this.
 }
 
 void ReaderBackend::Finish() 

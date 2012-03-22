@@ -14,10 +14,6 @@ redef InputAscii::empty_field = "EMPTY";
 
 module A;
 
-export {
-	redef enum Input::ID += { INPUT };
-}
-
 type Idx: record {
 	i: int;
 };
@@ -30,12 +26,11 @@ global servers: table[int] of Val = table();
 
 event bro_init()
 {
-	# first read in the old stuff into the table...
-	Input::create_stream(A::INPUT, [$source="input.log"]);
-	Input::add_tablefilter(A::INPUT, [$name="input", $idx=Idx, $val=Val, $destination=servers]);
+	Input::add_table([$name="input", $source="input.log", $idx=Idx, $val=Val, $destination=servers]);
+	Input::remove("input");
 }
 
-event Input::update_finished(id: Input::ID) {
+event Input::update_finished(name: string, source: string) {
 	print servers;
 }
 

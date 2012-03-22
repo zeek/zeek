@@ -62,10 +62,6 @@ redef InputAscii::empty_field = "EMPTY";
 
 module A;
 
-export {
-	redef enum Input::ID += { INPUT };
-}
-
 type Idx: record {
 	i: int;
 };
@@ -94,10 +90,15 @@ global outfile: file;
 
 global try: count;
 
-event line(tpe: Input::Event, left: Idx, right: Val) {
+event line(description: Input::TableDescription, tpe: Input::Event, left: Idx, right: Val) {
 	print outfile, "============EVENT============";
+	print outfile, "Description";
+	print outfile, description;
+	print outfile, "Type";
 	print outfile, tpe;
+	print outfile, "Left";
 	print outfile, left;
+	print outfile, "Right";
 	print outfile, right;
 }
 
@@ -106,8 +107,7 @@ event bro_init()
 	outfile = open ("../out");
 	try = 0;
 	# first read in the old stuff into the table...
-	Input::create_stream(A::INPUT, [$source="../input.log", $mode=Input::REREAD]);
-	Input::add_tablefilter(A::INPUT, [$name="ssh", $idx=Idx, $val=Val, $destination=servers, $ev=line,
+	Input::add_table([$source="../input.log", $mode=Input::REREAD, $name="ssh", $idx=Idx, $val=Val, $destination=servers, $ev=line,
 	$pred(typ: Input::Event, left: Idx, right: Val) = { 
 	print outfile, "============PREDICATE============";
 	print outfile, typ;
@@ -119,7 +119,7 @@ event bro_init()
 }
 
 
-event Input::update_finished(id: Input::ID) {
+event Input::update_finished(name: string, source: string) {
 	print outfile, "==========SERVERS============";
 	print outfile, servers;
 	
@@ -127,7 +127,6 @@ event Input::update_finished(id: Input::ID) {
 	if ( try == 5 ) {
 		print outfile, "done";
 		close(outfile);
-		Input::remove_tablefilter(A::INPUT, "ssh");
-		Input::remove_stream(A::INPUT);
+		Input::remove("input");
 	}
 }

@@ -26,6 +26,7 @@ FieldMapping::FieldMapping(const string& arg_name, const TypeTag& arg_type, int 
 {
 	position = arg_position;
 	secondary_position = -1;
+	present = true;
 }
 
 FieldMapping::FieldMapping(const string& arg_name, const TypeTag& arg_type, const TypeTag& arg_subtype, int arg_position) 
@@ -33,10 +34,11 @@ FieldMapping::FieldMapping(const string& arg_name, const TypeTag& arg_type, cons
 {
 	position = arg_position;
 	secondary_position = -1;
+	present = true;
 }
 
 FieldMapping::FieldMapping(const FieldMapping& arg) 
-	: name(arg.name), type(arg.type), subtype(arg.subtype)
+	: name(arg.name), type(arg.type), subtype(arg.subtype), present(arg.present)
 {
 	position = arg.position;
 	secondary_position = arg.secondary_position;
@@ -76,7 +78,6 @@ Ascii::~Ascii()
 
 void Ascii::DoFinish()
 {
-	filters.empty();
 	if ( file != 0 ) {
 		file->close();
 		delete(file);
@@ -84,13 +85,15 @@ void Ascii::DoFinish()
 	}
 }
 
-bool Ascii::DoInit(string path, int arg_mode)
+bool Ascii::DoInit(string path, int arg_mode, int arg_num_fields, const Field* const* arg_fields)
 {
-	started = false;
 	fname = path;
 	mode = arg_mode;
 	mtime = 0;
 	
+	num_fields = arg_num_fields;
+	fields = arg_fields;
+
 	if ( ( mode != MANUAL ) && (mode != REREAD) && ( mode != STREAM ) ) {
 		Error(Fmt("Unsupported read mode %d for source %s", mode, path.c_str()));
 		return false;
@@ -107,17 +110,7 @@ bool Ascii::DoInit(string path, int arg_mode)
 		file->close();
 		return false;
 	}
-
-	return true;
-}
-
-bool Ascii::DoStartReading() {
-	if ( started == true ) {
-		Error("Started twice");
-		return false;
-	}	
-
-	started = true;
+	
 	switch ( mode ) {
 		case MANUAL:
 		case REREAD:
@@ -131,46 +124,11 @@ bool Ascii::DoStartReading() {
 	return true;
 }
 
-bool Ascii::DoAddFilter( int id, int arg_num_fields, const Field* const* fields ) {
-	if ( HasFilter(id) ) {
-		Error("Filter was added twice, ignoring.");		
-		return false; // no, we don't want to add this a second time
-	}
-
-	Filter f;
-	f.num_fields = arg_num_fields;
-	f.fields = fields;
-
-	filters[id] = f;
-
-	return true;
-}
-
-bool Ascii::DoRemoveFilter ( int id ) {
-	if (!HasFilter(id) ) {
-		Error("Filter removal of nonexisting filter requested.");		
-		return false;
-	}
-
-	assert ( filters.erase(id) == 1 );
-
-	return true;
-}	
-
-
-bool Ascii::HasFilter(int id) {
-	map<int, Filter>::iterator it = filters.find(id);	
-	if ( it == filters.end() ) {
-		return false;
-	}
-	return true;
-}
-
 
 bool Ascii::ReadHeader(bool useCached) {
 	// try to read the header line...
 	string line;
-	map<string, uint32_t> fields;
+	map<string, uint32_t> ifields;
 
 	if ( !useCached ) {
 		if ( !GetLine(line) ) {
@@ -194,37 +152,43 @@ bool Ascii::ReadHeader(bool useCached) {
 		if ( !getline(splitstream, s, separator[0]))
 			break;
 
-		fields[s] = pos;
+		ifields[s] = pos;
 		pos++;
 	}
 
 	//printf("Updating fields from description %s\n", line.c_str());
-	for ( map<int, Filter>::iterator it = filters.begin(); it != filters.end(); it++ ) {
-		(*it).second.columnMap.clear();
-			
-		for ( unsigned int i = 0; i < (*it).second.num_fields; i++ ) {
-			const Field* field = (*it).second.fields[i];
-			
-			map<string, uint32_t>::iterator fit = fields.find(field->name);	
-			if ( fit == fields.end() ) {
-				Error(Fmt("Did not find requested field %s in input data file.", field->name.c_str()));
-				return false;
+	columnMap.clear();
+		
+	for ( unsigned int i = 0; i < num_fields; i++ ) {
+		const Field* field = fields[i];
+		
+		map<string, uint32_t>::iterator fit = ifields.find(field->name);	
+		if ( fit == ifields.end() ) {
+			if ( field->optional ) {
+				// we do not really need this field. mark it as not present and always send an undef back.
+				FieldMapping f(field->name, field->type, field->subtype, -1);
+				f.present = false;
+				columnMap.push_back(f);
+				continue;
 			}
-	
 
-			FieldMapping f(field->name, field->type, field->subtype, fields[field->name]);
-			if ( field->secondary_name != "" ) {
-				map<string, uint32_t>::iterator fit2 = fields.find(field->secondary_name);					
-				if ( fit2 == fields.end() ) {
-					Error(Fmt("Could not find requested port type field %s in input data file.", field->secondary_name.c_str()));
-					return false;
-				}
-				f.secondary_position = fields[field->secondary_name];
-			}
-			(*it).second.columnMap.push_back(f);
+			Error(Fmt("Did not find requested field %s in input data file %s.", field->name.c_str(), fname.c_str()));
+			return false;
 		}
 
+
+		FieldMapping f(field->name, field->type, field->subtype, ifields[field->name]);
+		if ( field->secondary_name != "" ) {
+			map<string, uint32_t>::iterator fit2 = ifields.find(field->secondary_name);					
+			if ( fit2 == ifields.end() ) {
+				Error(Fmt("Could not find requested port type field %s in input data file.", field->secondary_name.c_str()));
+				return false;
+			}
+			f.secondary_position = ifields[field->secondary_name];
+		}
+		columnMap.push_back(f);
 	}
+
 	
 	// well, that seems to have worked...
 	return true;
@@ -266,7 +230,7 @@ Value* Ascii::EntryToVal(string s, FieldMapping field) {
 		} else if ( s == "F" ) {
 			val->val.int_val = 0;
 		} else {
-			Error(Fmt("Invalid value for boolean: %s", s.c_str()));
+			Error(Fmt("Field: %s Invalid value for boolean: %s", field.name.c_str(), s.c_str()));
 			return false;
 		}
 		break;
@@ -461,56 +425,62 @@ bool Ascii::DoUpdate() {
 
 		pos--; // for easy comparisons of max element.
 
-		for ( map<int, Filter>::iterator it = filters.begin(); it != filters.end(); it++ ) {
 		
-			Value** fields = new Value*[(*it).second.num_fields];
+		Value** fields = new Value*[num_fields];
 
-			int fpos = 0;
-			for ( vector<FieldMapping>::iterator fit = (*it).second.columnMap.begin();
-				fit != (*it).second.columnMap.end();
-				fit++ ){
+		int fpos = 0;
+		for ( vector<FieldMapping>::iterator fit = columnMap.begin();
+			fit != columnMap.end();
+			fit++ ){
 
-
-				if ( (*fit).position > pos || (*fit).secondary_position > pos ) {
-					Error(Fmt("Not enough fields in line %s. Found %d fields, want positions %d and %d", line.c_str(), pos,  (*fit).position, (*fit).secondary_position));
-					return false;
-				}
-
-				Value* val = EntryToVal(stringfields[(*fit).position], *fit);
-				if ( val == 0 ) {
-					Error("Could not convert String value to Val");
-					return false;
-				}
-				
-				if ( (*fit).secondary_position != -1 ) {
-					// we have a port definition :)
-					assert(val->type == TYPE_PORT ); 
-					//	Error(Fmt("Got type %d != PORT with secondary position!", val->type));
-
-					val->val.port_val.proto = StringToProto(stringfields[(*fit).secondary_position]);
-				}
-
-				fields[fpos] = val;
-
+			if ( ! fit->present ) {
+				// add non-present field
+				fields[fpos] =  new Value((*fit).type, false);
 				fpos++;
+				continue;
+			}
+			
+			assert(fit->position >= 0 );
+
+			if ( (*fit).position > pos || (*fit).secondary_position > pos ) {
+				Error(Fmt("Not enough fields in line %s. Found %d fields, want positions %d and %d", line.c_str(), pos,  (*fit).position, (*fit).secondary_position));
+				return false;
 			}
 
-			//printf("fpos: %d, second.num_fields: %d\n", fpos, (*it).second.num_fields);
-			assert ( (unsigned int) fpos == (*it).second.num_fields );
+			Value* val = EntryToVal(stringfields[(*fit).position], *fit);
+			if ( val == 0 ) {
+				Error("Could not convert String value to Val");
+				return false;
+			}
+			
+			if ( (*fit).secondary_position != -1 ) {
+				// we have a port definition :)
+				assert(val->type == TYPE_PORT ); 
+				//	Error(Fmt("Got type %d != PORT with secondary position!", val->type));
 
-			if ( mode == STREAM ) {
-				Put((*it).first, fields);
-			} else {
-				SendEntry((*it).first, fields);
+				val->val.port_val.proto = StringToProto(stringfields[(*fit).secondary_position]);
 			}
 
-			/* Do not do this, ownership changes to other thread 
-			 * for ( unsigned int i = 0; i < (*it).second.num_fields; i++ ) {
-				delete fields[i];
-			}
-			delete [] fields;
-			*/
+			fields[fpos] = val;
+
+			fpos++;
 		}
+
+		//printf("fpos: %d, second.num_fields: %d\n", fpos, (*it).second.num_fields);
+		assert ( (unsigned int) fpos == num_fields );
+
+		if ( mode == STREAM ) {
+			Put(fields);
+		} else {
+			SendEntry(fields);
+		}
+
+		/* Do not do this, ownership changes to other thread 
+		 * for ( unsigned int i = 0; i < (*it).second.num_fields; i++ ) {
+			delete fields[i];
+		}
+		delete [] fields;
+		*/
 
 	}
 
@@ -519,9 +489,7 @@ bool Ascii::DoUpdate() {
 	//file->seekg(0, ios::beg); // and seek to start.
 
 	if ( mode != STREAM ) {
-		for ( map<int, Filter>::iterator it = filters.begin(); it != filters.end(); it++ ) {
-			EndCurrentSend((*it).first);
-		}
+		EndCurrentSend();
 	}
 
 	return true;
@@ -530,7 +498,7 @@ bool Ascii::DoUpdate() {
 bool Ascii::DoHeartbeat(double network_time, double current_time)
 {
 	ReaderBackend::DoHeartbeat(network_time, current_time);
-
+	
 	switch ( mode ) {
 		case MANUAL:
 			// yay, we do nothing :)

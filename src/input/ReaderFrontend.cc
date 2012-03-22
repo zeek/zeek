@@ -12,16 +12,17 @@ namespace input {
 class InitMessage : public threading::InputMessage<ReaderBackend>
 {
 public:
-	InitMessage(ReaderBackend* backend, const string source, const int mode, const bool autostart)
+	InitMessage(ReaderBackend* backend, const string source, const int mode, const int num_fields, const threading::Field* const* fields)
 		: threading::InputMessage<ReaderBackend>("Init", backend),
-		source(source), mode(mode), autostart(autostart) { }
+		source(source), mode(mode), num_fields(num_fields), fields(fields) { }
 
-	virtual bool Process() { return Object()->Init(source, mode, autostart); }
+	virtual bool Process() { return Object()->Init(source, mode, num_fields, fields); }
 
 private:
 	const string source;
 	const int mode;
-	const bool autostart;
+	const int num_fields;
+       	const threading::Field* const* fields;
 };
 
 class UpdateMessage : public threading::InputMessage<ReaderBackend>
@@ -44,44 +45,6 @@ public:
 	virtual bool Process() { Object()->Finish(); return true; }
 };
 
-class StartReadingMessage : public threading::InputMessage<ReaderBackend>
-{
-public:
-	StartReadingMessage(ReaderBackend* backend)
-		: threading::InputMessage<ReaderBackend>("StartReading", backend)
-		 { }
-
-	virtual bool Process() { Object()->StartReading(); return true; }
-};
-
-class AddFilterMessage : public threading::InputMessage<ReaderBackend>
-{
-public:
-	AddFilterMessage(ReaderBackend* backend, const int id, const int num_fields, const threading::Field* const* fields)
-		: threading::InputMessage<ReaderBackend>("AddFilter", backend),
-		id(id), num_fields(num_fields), fields(fields) { }
-
-	virtual bool Process() { return Object()->AddFilter(id, num_fields, fields); }
-
-private:
-	const int id;
-	const int num_fields;
-       	const threading::Field* const* fields;
-};
-
-class RemoveFilterMessage : public threading::InputMessage<ReaderBackend>
-{
-public:
-	RemoveFilterMessage(ReaderBackend* backend, const int id)
-		: threading::InputMessage<ReaderBackend>("RemoveFilter", backend),
-		id(id) { }
-
-	virtual bool Process() { return Object()->RemoveFilter(id); }
-
-private:
-	const int id;
-};
-
 
 ReaderFrontend::ReaderFrontend(bro_int_t type) {
 	disabled = initialized = false;
@@ -95,7 +58,7 @@ ReaderFrontend::ReaderFrontend(bro_int_t type) {
 ReaderFrontend::~ReaderFrontend() {
 }
 
-void ReaderFrontend::Init(string arg_source, int mode, bool autostart) {
+void ReaderFrontend::Init(string arg_source, int mode, const int num_fields, const threading::Field* const* fields) {
 	if ( disabled )
 		return;
 
@@ -105,12 +68,17 @@ void ReaderFrontend::Init(string arg_source, int mode, bool autostart) {
 	source = arg_source;
 	initialized = true;
 
-	backend->SendIn(new InitMessage(backend, arg_source, mode, autostart));
+	backend->SendIn(new InitMessage(backend, arg_source, mode, num_fields, fields));
 } 
 
 void ReaderFrontend::Update() {
 	if ( disabled ) 
 		return;
+
+	if ( !initialized ) {
+		reporter->Error("Tried to call update on uninitialized reader");
+		return;
+	}
 
 	backend->SendIn(new UpdateMessage(backend));
 }
@@ -118,22 +86,13 @@ void ReaderFrontend::Update() {
 void ReaderFrontend::Finish() {
 	if ( disabled ) 
 		return;
+	
+	if ( !initialized ) {
+		reporter->Error("Tried to call finish on uninitialized reader");
+		return;
+	}
 
 	backend->SendIn(new FinishMessage(backend));
-}
-
-void ReaderFrontend::AddFilter(const int id, const int arg_num_fields, const threading::Field* const* fields) {
-	if ( disabled ) 
-		return;
-
-	backend->SendIn(new AddFilterMessage(backend, id, arg_num_fields, fields));
-}
-
-void ReaderFrontend::RemoveFilter(const int id) {
-	if ( disabled ) 
-		return;
-
-	backend->SendIn(new RemoveFilterMessage(backend, id));
 }
 
 string ReaderFrontend::Name() const
@@ -144,13 +103,5 @@ string ReaderFrontend::Name() const
 	return ty_name + "/" + source;
 }
 
-void ReaderFrontend::StartReading() {
-	if ( disabled ) 
-		return;
-
-	backend->SendIn(new StartReadingMessage(backend));
 }
-
-}
-
 

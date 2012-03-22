@@ -1,5 +1,5 @@
 #
-# @TEST-EXEC: bro %INPUT >out
+# @TEST-EXEC: bro -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 @TEST-START-FILE input.log
@@ -18,12 +18,6 @@
 
 redef InputAscii::empty_field = "EMPTY";
 
-module A;
-
-export {
-	redef enum Log::ID += { LOG };
-}
-
 type Idx: record {
 	i: int;
 };
@@ -34,7 +28,8 @@ type Val: record {
 
 global destination: table[int] of Val = table();
 
-event line(tpe: Input::Event, left: Idx, right: bool) {
+event line(description: Input::TableDescription, tpe: Input::Event, left: Idx, right: bool) {
+	print description;
 	print tpe;
 	print left;
 	print right;
@@ -42,6 +37,6 @@ event line(tpe: Input::Event, left: Idx, right: bool) {
 
 event bro_init()
 {
-	Input::create_stream(A::LOG, [$source="input.log"]);
-	Input::add_tablefilter(A::LOG, [$name="input", $idx=Idx, $val=Val, $destination=destination, $want_record=F,$ev=line]);
+	Input::add_table([$source="input.log", $name="input", $idx=Idx, $val=Val, $destination=destination, $want_record=F,$ev=line]);
+	Input::remove("input");
 }

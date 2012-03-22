@@ -19,6 +19,7 @@ struct FieldMapping {
 	int position;
 	// for ports: pos of the second field
 	int secondary_position;
+	bool present;
 
 	FieldMapping(const string& arg_name, const TypeTag& arg_type, int arg_position); 
 	FieldMapping(const string& arg_name, const TypeTag& arg_type, const TypeTag& arg_subtype, int arg_position); 
@@ -39,33 +40,22 @@ public:
     
 protected:
 	
-	virtual bool DoInit(string path, int mode);
-
-	virtual bool DoAddFilter( int id, int arg_num_fields, const threading::Field* const* fields );
-
-	virtual bool DoRemoveFilter ( int id );	
+	virtual bool DoInit(string path, int mode, int arg_num_fields, const threading::Field* const* fields);
 
 	virtual void DoFinish();
 
 	virtual bool DoUpdate();
 
-	virtual bool DoStartReading();
-    
 private:
 
 	virtual bool DoHeartbeat(double network_time, double current_time);
 
-	struct Filter {
-		unsigned int num_fields;
+	unsigned int num_fields;
 
-		const threading::Field* const * fields; // raw mapping		
+	const threading::Field* const * fields; // raw mapping		
 
-		// map columns in the file to columns to send back to the manager
-		vector<FieldMapping> columnMap;		
-
-	};
-
-	bool HasFilter(int id);
+	// map columns in the file to columns to send back to the manager
+	vector<FieldMapping> columnMap;		
 
 	bool ReadHeader(bool useCached);
 	threading::Value* EntryToVal(string s, FieldMapping type);
@@ -74,8 +64,6 @@ private:
 	
 	ifstream* file;
 	string fname;
-
-	map<int, Filter> filters;
 
 	// Options set from the script-level.
 	string separator;
@@ -91,7 +79,6 @@ private:
 
 	int mode;
 
-	bool started;
 	time_t mtime;
 
 };

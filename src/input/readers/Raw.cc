@@ -198,7 +198,6 @@ bool Raw::DoUpdate() {
 				// fallthrough
 			case MANUAL:
 			case STREAM:
-				Debug(DBG_INPUT, "Updating");
 				if ( mode == STREAM && file != NULL && in != NULL ) {
 					fpurge(file);
 					in->clear(); // remove end of file evil bits
@@ -237,8 +236,6 @@ bool Raw::DoUpdate() {
 bool Raw::DoHeartbeat(double network_time, double current_time)
 {
 	ReaderBackend::DoHeartbeat(network_time, current_time);
-
-	Debug(DBG_INPUT, "Heartbeat");
 
 	switch ( mode ) {
 		case MANUAL:

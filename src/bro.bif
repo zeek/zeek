@@ -2067,6 +2067,7 @@ function routing0_data_to_addrs%(s: string%): addr_set
 	const u_char* bytes = s->Bytes();
 	bytes += 4; // go past 32-bit reserved field
 	len -= 4;
+
 	if ( ( len % 16 ) != 0 )
 		reporter->Warning("Bad ip6_routing data length: %d", s->Len());
 

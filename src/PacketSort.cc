@@ -31,7 +31,7 @@ PacketSortElement::PacketSortElement(PktSrc* arg_src,
 		else if ( ip->ip_v == 6 )
 			ip_hdr = new IP_Hdr((const struct ip6_hdr*) ip, false);
 		else
-			// weird will be generated later in NetSessions::NextPacket
+			// Weird will be generated later in NetSessions::NextPacket.
 			return;
 
 		if ( ip_hdr->NextProto() == IPPROTO_TCP &&

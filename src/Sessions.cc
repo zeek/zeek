@@ -640,20 +640,24 @@ bool NetSessions::CheckHeaderTrunc(int proto, uint32 len, uint32 caplen,
 		min_hdr_len = sizeof(struct udphdr);
 		break;
 	case IPPROTO_ICMP:
-	default:
 		min_hdr_len = ICMP_MINLEN;
 		break;
+	default:
+		internal_error("unknown protocol");
 	}
+
 	if ( len < min_hdr_len )
 		{
 		Weird("truncated_header", h, p);
 		return true;
 		}
+
 	if ( caplen < min_hdr_len )
 		{
 		Weird("internally_truncated_header", h, p);
 		return true;
 		}
+
 	return false;
 	}
 

@@ -18,7 +18,9 @@ static RecordType* ip6_esp_type = 0;
 
 static inline RecordType* hdrType(RecordType*& type, const char* name)
 	{
-	if ( ! type ) type = internal_type(name)->AsRecordType();
+	if ( ! type )
+		type = internal_type(name)->AsRecordType();
+
 	return type;
 	}
 
@@ -54,6 +56,7 @@ static VectorVal* BuildOptionsVal(const u_char* data, uint16 len)
 
 		vv->Assign(vv->Size(), rv, 0);
 		}
+
 	return vv;
 	}
 

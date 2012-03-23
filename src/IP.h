@@ -229,7 +229,9 @@ public:
 
 	~IP_Hdr()
 		{
-		if ( ip6 ) delete ip6_hdrs;
+		if ( ip6 )
+			delete ip6_hdrs;
+
 		if ( del )
 			{
 			if ( ip4 )

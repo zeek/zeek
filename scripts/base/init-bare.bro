@@ -945,7 +945,7 @@ const IPPROTO_RAW = 255;		##< Raw IP packet.
 # Definitions for IPv6 extension headers.
 const IPPROTO_HOPOPTS = 0;		##< IPv6 hop-by-hop-options header.
 const IPPROTO_ROUTING = 43;		##< IPv6 routing header.
-const IPPROTO_FRAGMENT = 44;	##< IPv6 fragment header.
+const IPPROTO_FRAGMENT = 44;		##< IPv6 fragment header.
 const IPPROTO_ESP = 50;			##< IPv6 encapsulating security payload header.
 const IPPROTO_AH = 51;			##< IPv6 authentication header.
 const IPPROTO_NONE = 59;		##< IPv6 no next header.
@@ -1081,14 +1081,14 @@ type ip6_ext_hdr: record {
 type ip6_hdr: record {
 	class: count;					##< Traffic class.
 	flow: count;					##< Flow label.
-	len: count;						##< Payload length.
-	nxt: count;						##< Protocol number of the next header
-									##< (RFC 1700 et seq., IANA assigned number)
-									##< e.g. :bro:id:`IPPROTO_ICMP`.
+	len: count;					##< Payload length.
+	nxt: count;					##< Protocol number of the next header
+								##< (RFC 1700 et seq., IANA assigned number)
+								##< e.g. :bro:id:`IPPROTO_ICMP`.
 	hlim: count;					##< Hop limit.
-	src: addr;						##< Source address.
-	dst: addr;						##< Destination address.
-	exts: vector of ip6_ext_hdr;	##< Extension header chain.
+	src: addr;					##< Source address.
+	dst: addr;					##< Destination address.
+	exts: vector of ip6_ext_hdr;			##< Extension header chain.
 };
 
 ## Values extracted from an IPv4 header.

@@ -90,7 +90,7 @@ void FragReassembler::AddFragment(double t, const IP_Hdr* ip, const u_char* pkt)
 		if ( ip->NextProto() != next_proto ||
 		     ip->HdrLen() - 8 != proto_hdr_len )
 			s->Weird("fragment_protocol_inconsistency", ip);
-		//TODO: more detailed unfrag header consistency checks?
+		// TODO: more detailed unfrag header consistency checks?
 		}
 
 	if ( ip->DF() )

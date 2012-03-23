@@ -33,10 +33,6 @@ FragReassembler::FragReassembler(NetSessions* arg_s,
 	s = arg_s;
 	key = k;
 
-	// [Robin] Can't we merge these two cases now?
-	// [Jon] I think we'll always have to check v4 versus v6 to get the correct
-	// proto_hdr_len unless IP_Hdr::HdrLen itself makes a special case for
-	// IPv6 fragments (but that seems more confusing to me)
 	const struct ip* ip4 = ip->IP4_Hdr();
 	if ( ip4 )
 		{

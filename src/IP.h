@@ -14,22 +14,6 @@
 #include <netinet/ip.h>
 #include <netinet/ip6.h>
 
-// [Robin] I'm concerced about the virtual methods here. These methods will
-// be called *a lot* and that may add to some significant overhead I'm afraid
-// (at least eventually as IPv6 is picking up).
-//
-// [Robin] Similar concern for the vector<IPv6_Hdr*> and ip6_hdrs data
-// members: we're creating/allocating those for every IPv6 packet, right?
-//
-// Any idea how to avoid these?
-//
-// [Jon] Seems fair enough to just remove the virtual method concern at this
-//       point by replacing the class hierarchy with some inline functions that
-//       do switch statements.  I don't know what to do about the
-//       vector<IPv6_hdr*> and ip6_hdrs data members being allocated for every
-//       IPv6 packet, maybe it's too early to try to optimize before we know
-//       the frequency at which extension headers appear in real IPv6 traffic?
-
 /**
  * Base class for IPv6 header/extensions.
  */

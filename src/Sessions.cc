@@ -430,13 +430,6 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 	if ( discarder && discarder->NextPacket(ip_hdr, len, caplen) )
 		return;
 
-	// [Robin] dump_this_packet = 1 for non-ICMP/UDP/TCP removed here. Why?
-	// [Jon] The default case of the "switch ( proto )" calls Weird() which
-	//       should set dump_this_packet = 1.  The old code also returned
-	//       at this point for non-ICMP/UDP/TCP, but for IPv6 fragments
-	//       we need to do the reassembly first before knowing for sure what
-	//       upper-layer protocol it is.
-
 	FragReassembler* f = 0;
 
 	if ( ip_hdr->IsFragment() )
@@ -472,10 +465,8 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 	len -= ip_hdr_len;	// remove IP header
 	caplen -= ip_hdr_len;
 
-	// [Robin] Does ESP need to be the last header?
-	// [Jon] In terms of what we try to parse, yes, we can't go any further
-	//       in parsing a header chain once we reach an ESP one since
-	//       encrypted payload immediately follows.
+	// We stop building the chain when seeing IPPROTO_ESP so if it's 
+	// there, it's always the last.
 	if ( ip_hdr->LastHeader() == IPPROTO_ESP )
 		{
 		dump_this_packet = 1;
@@ -497,16 +488,6 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		Remove(f);
 		return;
 		}
-
-	// [Robin] The Remove(f) used to be here, while it's now before every
-	// return statement. I'm not seeing why?
-	// [Jon] That Remove(f) is still here above in the CheckHeaderTrunc()
-	//       conditional that's just a refactoring of the old code.
-	//       The reason why it's not done unconditionally after the reassembly
-	//       is because doing that could cause the object that ip_hdr points
-	//       to to be freed when we still need to use that below.
-	//       I added Remove(f)'s before other "abnormal" return points that
-	//       looked like they'd otherwise leak the memory.
 
 	const u_char* data = ip_hdr->Payload();
 
@@ -553,7 +534,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		}
 
 	default:
-		Weird(fmt("unknown_protocol %d", proto), hdr, pkt);
+		Weird(fmt("unknown_protocol_%d", proto), hdr, pkt);
 		Remove(f);
 		return;
 	}

@@ -933,11 +933,7 @@ const ICMP_UNREACH_ADMIN_PROHIB = 13;	##< Adminstratively prohibited.
 # Definitions for access to packet headers.  Currently only used for
 # discarders.
 # todo::these should go into an enum to make them autodoc'able
-const IPPROTO_IP = 0;			##< Dummy for IP.   [Robin] Rename to IPPROTO_IP4?
-# [Jon] I'd say leave it be or remove it because from <netinet/in.h>
-#       IPPROTO_IPV4 can actually be the same as IPPROTO_IPIP (4)...
-#       IPPROTO_IP seems to be just for use with the socket API and not
-#       actually identifying protocol numbers in packet headers
+const IPPROTO_IP = 0;			##< Dummy for IP.
 const IPPROTO_ICMP = 1;			##< Control message protocol.
 const IPPROTO_IGMP = 2;			##< Group management protocol.
 const IPPROTO_IPIP = 4;			##< IP encapsulation in IP.
@@ -947,14 +943,6 @@ const IPPROTO_IPV6 = 41;		##< IPv6 header.
 const IPPROTO_RAW = 255;		##< Raw IP packet.
 
 # Definitions for IPv6 extension headers.
-# [Robin] Do we need a constant for unknown extensions?
-# [Jon] I don't think so, these constants are just conveniences to improve
-#       script readability, but they also identify the actual assigned protocol
-#       number of the header type.  If the core were to actually pass to the
-#       script-layer a next-header value of something we don't know about yet,
-#       that value would be the actual value seen in the packet, not something
-#       we should make up.  We could provide a "KNOWN_PROTOCOLS" set for
-#       convenience that one could check membership against.
 const IPPROTO_HOPOPTS = 0;		##< IPv6 hop-by-hop-options header.
 const IPPROTO_ROUTING = 43;		##< IPv6 routing header.
 const IPPROTO_FRAGMENT = 44;	##< IPv6 fragment header.
@@ -1068,15 +1056,6 @@ type ip6_esp: record {
 ##
 ## .. bro:see:: pkt_hdr ip4_hdr ip6_hopopts ip6_dstopts ip6_routing ip6_fragment
 ##    ip6_ah ip6_esp
-#
-# [Robin] What happens to unknown extension headers? We should keep them too so that
-# one can at least identify what one can't analyze.
-# [Jon] Currently, they show up as "unknown_protocol" weirds and those packets
-#       are skipped before any "new_packet" or "ipv6_ext_headers" events are
-#       raised as those depend on a connection parameter which can't be
-#       created since we can't parse past unknown extension headers to get
-#       at the upper layer protocol.  Does that seem reasonable for at
-#       being able to identify things that couldn't be analyzed?
 type ip6_ext_hdr: record {
 	## The RFC 1700 et seq. IANA assigned number identifying the type of
 	## the extension header.
@@ -1170,11 +1149,6 @@ type icmp_hdr: record {
 ## A packet header, consisting of an IP header and transport-layer header.
 ##
 ## .. bro:see:: new_packet
-#
-# [Robin] Add flags saying whether it's v4/v6, tcp/udp/icmp? The day will come where
-# we can't infer that from the connection anymore (tunnels). 
-# [Jon] I'm not sure what you mean, doesn't checking result of ?$ operator
-#       always work for finding out protocols involved?
 type pkt_hdr: record {
 	ip: ip4_hdr &optional;			##< The IPv4 header if an IPv4 packet.
 	ip6: ip6_hdr &optional;			##< The IPv6 header if an IPv6 packet.

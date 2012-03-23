@@ -158,6 +158,7 @@ private:
 
 	// Converts a threading::value to a record type. mostly used by ValueToVal
 	RecordVal* ValueToRecordVal(const threading::Value* const *vals, RecordType *request_type, int* position);	
+	Val* RecordValToIndexVal(RecordVal *r);
 	
 	// Converts a Bro ListVal to a RecordVal given the record type
 	RecordVal* ListValToRecordVal(ListVal* list, RecordType *request_type, int* position);

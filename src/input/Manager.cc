@@ -692,6 +692,31 @@ bool Manager::ForceUpdate(const string &name)
 	return true; // update is async :(
 }
 
+
+Val* Manager::RecordValToIndexVal(RecordVal *r) {
+	Val* idxval;
+
+	RecordType *type = r->Type()->AsRecordType();
+
+	int num_fields = type->NumFields();
+
+	if ( num_fields == 1 && type->FieldDecl(0)->type->Tag() != TYPE_RECORD  ) {
+		idxval = r->Lookup(0);
+	} else {
+		ListVal *l = new ListVal(TYPE_ANY);
+		for ( int j = 0 ; j < num_fields; j++ ) {
+			Val* rval = r->Lookup(j);
+			assert(rval != 0);
+			l->Append(r->LookupWithDefault(j));
+		}
+		idxval = l;
+	}
+
+
+	return idxval;
+}
+
+
 Val* Manager::ValueToIndexVal(int num_fields, const RecordType *type, const Value* const *vals) {
 	Val* idxval;
 	int position = 0;
@@ -788,8 +813,8 @@ int Manager::SendEntryTable(Filter* i, const Value* const *vals) {
 	}
 
 
-	Val* idxval = ValueToIndexVal(filter->num_idx_fields, filter->itype, vals);
 	Val* valval;
+	RecordVal* predidx = 0;
 	
 	int position = filter->num_idx_fields;
 	if ( filter->num_val_fields == 0 ) {
@@ -806,8 +831,10 @@ int Manager::SendEntryTable(Filter* i, const Value* const *vals) {
 	if ( filter->pred ) {
 		EnumVal* ev;
 		//Ref(idxval);
-		int startpos = 0;
-		Val* predidx = ValueToRecordVal(vals, filter->itype, &startpos);
+		int startpos = 0; 
+		//Val* predidx = ListValToRecordVal(idxval->AsListVal(), filter->itype, &startpos);
+		predidx = ValueToRecordVal(vals, filter->itype, &startpos);
+		//ValueToRecordVal(vals, filter->itype, &startpos);
 		Ref(valval);
 
 		if ( updated ) {
@@ -818,13 +845,14 @@ int Manager::SendEntryTable(Filter* i, const Value* const *vals) {
 
 		bool result;
 		if ( filter->num_val_fields > 0 ) { // we have values
-			result = CallPred(filter->pred, 3, ev, predidx, valval);
+			result = CallPred(filter->pred, 3, ev, predidx->Ref(), valval);
 		} else {
 			// no values
-			result = CallPred(filter->pred, 2, ev, predidx);
+			result = CallPred(filter->pred, 2, ev, predidx->Ref());
 		}
 		
 		if ( result == false ) {
+			Unref(predidx);
 			if ( !updated ) {
 				// throw away. Hence - we quit. And remove the entry from the current dictionary...
 				delete(filter->currDict->RemoveEntry(idxhash));
@@ -839,6 +867,13 @@ int Manager::SendEntryTable(Filter* i, const Value* const *vals) {
 	} 
 	
 
+	Val* idxval;
+        if ( predidx != 0 ) {
+		idxval = RecordValToIndexVal(predidx);
+		Unref(predidx);
+	} else {
+		idxval = ValueToIndexVal(filter->num_idx_fields, filter->itype, vals);
+	}
 	Val* oldval = 0;
 	if ( updated == true ) {
 		assert(filter->num_val_fields > 0);

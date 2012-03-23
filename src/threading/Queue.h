@@ -58,6 +58,22 @@ public:
 	 */
 	uint64_t Size();
 
+	/**
+	 * Statistics about inter-thread communication.
+	 */
+	struct Stats
+		{
+		uint64_t num_reads;	//! Number of messages read from the queue.
+		uint64_t num_writes;	//! Number of messages written to the queue.
+		};
+
+	/**
+	 * Returns statistics about the queue's usage.
+	 *
+	 * @param stats A pointer to a structure that will be filled with
+	 * current numbers. */
+	void GetStats(Stats* stats);
+
 private:
 	static const int NUM_QUEUES = 8;
 
@@ -67,6 +83,10 @@ private:
 
 	int read_ptr;	// Where the next operation will read from
 	int write_ptr;	// Where the next operation will write to
+
+	// Statistics.
+	uint64_t num_reads;
+	uint64_t num_writes;
 };
 
 inline static void safe_lock(pthread_mutex_t* mutex)
@@ -86,6 +106,7 @@ inline Queue<T>::Queue()
 	{
 	read_ptr = 0;
 	write_ptr = 0;
+	num_reads = num_writes = 0;
 
 	for( int i = 0; i < NUM_QUEUES; ++i )
 		{
@@ -121,6 +142,7 @@ inline T Queue<T>::Get()
 	messages[read_ptr].pop();
 
 	read_ptr = (read_ptr + 1) % NUM_QUEUES;
+	++num_reads;
 
 	safe_unlock(&mutex[old_read_ptr]);
 
@@ -142,6 +164,7 @@ inline void Queue<T>::Put(T data)
 		pthread_cond_signal(&has_data[write_ptr]);
 
 	write_ptr = (write_ptr + 1) % NUM_QUEUES;
+	++num_writes;
 
 	safe_unlock(&mutex[old_write_ptr]);
 	}
@@ -177,7 +200,23 @@ inline uint64_t Queue<T>::Size()
 	return size;
 	}
 
+template<typename T>
+inline void Queue<T>::GetStats(Stats* stats)
+	{
+	// To be safe, we look all queues. That's probably unneccessary, but
+	// doesn't really hurt.
+	for ( int i = 0; i < NUM_QUEUES; i++ )
+		safe_lock(&mutex[i]);
+
+	stats->num_reads = num_reads;
+	stats->num_writes = num_writes;
+
+	for ( int i = 0; i < NUM_QUEUES; i++ )
+		safe_unlock(&mutex[i]);
+	}
+
 }
+
 
 #endif
 

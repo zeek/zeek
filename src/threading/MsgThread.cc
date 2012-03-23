@@ -283,5 +283,7 @@ void MsgThread::GetStats(Stats* stats)
 	stats->sent_out = cnt_sent_out;
 	stats->pending_in = queue_in.Size();
 	stats->pending_out = queue_out.Size();
+	queue_in.GetStats(&stats->queue_in_stats);
+	queue_out.GetStats(&stats->queue_out_stats);
 	}
 

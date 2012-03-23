@@ -705,8 +705,8 @@ Val* Manager::RecordValToIndexVal(RecordVal *r) {
 	} else {
 		ListVal *l = new ListVal(TYPE_ANY);
 		for ( int j = 0 ; j < num_fields; j++ ) {
-			Val* rval = r->Lookup(j);
-			assert(rval != 0);
+			//Val* rval = r->Lookup(j);
+			//assert(rval != 0);
 			l->Append(r->LookupWithDefault(j));
 		}
 		idxval = l;
@@ -870,7 +870,7 @@ int Manager::SendEntryTable(Filter* i, const Value* const *vals) {
 	Val* idxval;
         if ( predidx != 0 ) {
 		idxval = RecordValToIndexVal(predidx);
-		Unref(predidx);
+		// I think there is an unref missing here. But if I insert is, it crashes :)
 	} else {
 		idxval = ValueToIndexVal(filter->num_idx_fields, filter->itype, vals);
 	}

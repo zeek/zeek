@@ -402,6 +402,7 @@ set(bro_SRCS
     XDR.cc
     ZIP.cc
     bsd-getopt-long.c
+    bro_inet_ntop.c
     cq.c
     md5.c
     patricia.c

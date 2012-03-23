@@ -33,6 +33,7 @@ class Manager::Filter {
 public:
 	string name;
 	string source;
+	bool removed;
 	
 	int mode;
 
@@ -51,6 +52,7 @@ Manager::Filter::Filter() {
         type = 0;
         reader = 0;
         description = 0;
+	removed = false;
 }
 
 Manager::Filter::~Filter() {
@@ -596,6 +598,13 @@ bool Manager::RemoveStream(const string &name) {
 	if ( i == 0 ) {
 		return false; // not found
 	}
+
+	if ( i->removed ) {
+		reporter->Error("Stream %s is already queued for removal. Ignoring", name.c_str());
+		return false;
+	}
+
+	i->removed = true;
 
 	i->reader->Finish();
 

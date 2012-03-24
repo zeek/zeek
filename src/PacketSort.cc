@@ -28,12 +28,15 @@ PacketSortElement::PacketSortElement(PktSrc* arg_src,
 		const struct ip* ip = (const struct ip*) (pkt + hdr_size);
 		if ( ip->ip_v == 4 )
 			ip_hdr = new IP_Hdr(ip, false);
-		else
+		else if ( ip->ip_v == 6 )
 			ip_hdr = new IP_Hdr((const struct ip6_hdr*) ip, false);
+		else
+			// Weird will be generated later in NetSessions::NextPacket.
+			return;
 
 		if ( ip_hdr->NextProto() == IPPROTO_TCP &&
 		      // Note: can't sort fragmented packets
-		     (ip_hdr->FragField() & 0x3fff) == 0 )
+		     ( ! ip_hdr->IsFragment() ) )
 			{
 			tcp_offset = hdr_size + ip_hdr->HdrLen();
 			if ( caplen >= tcp_offset + sizeof(struct tcphdr) )

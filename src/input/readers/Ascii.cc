@@ -110,15 +110,7 @@ bool Ascii::DoInit(string path, int arg_mode, int arg_num_fields, const Field* c
 		return false;
 	}
 	
-	switch ( mode ) {
-		case MANUAL:
-		case REREAD:
-		case STREAM:
-			DoUpdate();
-			break;
-		default:
-			assert(false);
-	}
+	DoUpdate();
 
 	return true;
 }

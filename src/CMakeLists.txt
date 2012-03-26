@@ -425,7 +425,7 @@ set(bro_SRCS
     input/ReaderFrontend.cc
     input/readers/Ascii.cc
     input/readers/Raw.cc
-
+    input/readers/Benchmark.cc
 
     ${dns_SRCS}
     ${openssl_SRCS}

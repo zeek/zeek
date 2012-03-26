@@ -51,9 +51,7 @@ bool Benchmark::DoInit(string path, int arg_mode, int arg_num_fields, const Fiel
 }
 
 string Benchmark::RandomString(const int len) {
-	string s;
-
-	s.reserve(len);
+	string s(len, ' ');
 
 	static const char values[] =
 	"0123456789!@#$%^&*()-_=+{}[]\\|"
@@ -74,10 +72,19 @@ bool Benchmark::DoUpdate() {
 		for  (unsigned int j = 0; j < num_fields; j++ ) {
 			field[j] = EntryToVal(fields[j]->type, fields[j]->subtype);
 		}
-		SendEntry(field);
+
+		if ( mode == STREAM ) {
+			// do not do tracking, spread out elements over the second that we have...
+			Put(field);
+			usleep(900000/num_lines);
+		} else {
+			SendEntry(field);
+		}
 	}
 
-	EndCurrentSend();
+	//if ( mode != STREAM ) { // well, does not really make sense in the streaming sense - but I like getting the event.
+		EndCurrentSend();
+	//}
 
 	return true;
 }

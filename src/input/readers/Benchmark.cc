@@ -65,6 +65,14 @@ string Benchmark::RandomString(const int len) {
 	return s;
 }
 
+double Benchmark::CurrTime() {
+	struct timeval tv;
+	assert ( gettimeofday(&tv, 0) >= 0 );
+
+	return double(tv.tv_sec) + double(tv.tv_usec) / 1e6;
+}
+
+
 // read the entire file and send appropriate thingies back to InputMgr
 bool Benchmark::DoUpdate() {
 	for ( int i = 0; i < num_lines; i++ ) {
@@ -109,8 +117,11 @@ threading::Value* Benchmark::EntryToVal(TypeTag type, TypeTag subtype) {
 		val->val.int_val = rand();
 		break;
 
-	case TYPE_DOUBLE:
 	case TYPE_TIME:
+		val->val.double_val = CurrTime();
+		break;
+
+	case TYPE_DOUBLE:
 	case TYPE_INTERVAL:
 		val->val.double_val = random();
 		break;

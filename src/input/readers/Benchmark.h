@@ -29,6 +29,8 @@ private:
 
 	unsigned int num_fields;
 
+	double CurrTime();
+
 	const threading::Field* const * fields; // raw mapping		
 	
 	threading::Value* EntryToVal(TypeTag Type, TypeTag subtype);

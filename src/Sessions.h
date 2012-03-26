@@ -79,7 +79,7 @@ public:
 	// Returns a reassembled packet, or nil if there are still
 	// some missing fragments.
 	FragReassembler* NextFragment(double t, const IP_Hdr* ip,
-				const u_char* pkt, uint32 frag_field);
+				const u_char* pkt);
 
 	int Get_OS_From_SYN(struct os_type* retval,
 			uint16 tot, uint8 DF_flag, uint8 TTL, uint16 WSS,
@@ -190,10 +190,11 @@ protected:
 	void Internal(const char* msg, const struct pcap_pkthdr* hdr,
 			const u_char* pkt);
 
-	// Builds a record encapsulating a packet.  This should be more
-	// general, including the equivalent of a union of tcp/udp/icmp
-	// headers .
-	Val* BuildHeader(const struct ip* ip);
+	// For a given protocol, checks whether the header's length as derived
+	// from lower-level headers or the length actually captured is less
+	// than that protocol's minimum header size.
+	bool CheckHeaderTrunc(int proto, uint32 len, uint32 caplen,
+	                      const struct pcap_pkthdr* hdr, const u_char* pkt);
 
 	CompositeHash* ch;
 	PDict(Connection) tcp_conns;

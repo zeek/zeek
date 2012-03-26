@@ -297,10 +297,9 @@ RecordVal* ICMP_Analyzer::ExtractICMP4Context(int len, const u_char*& data)
 		src_addr = ip_hdr->SrcAddr();
 		dst_addr = ip_hdr->DstAddr();
 
-		uint32 frag_field = ip_hdr->FragField();
 		DF = ip_hdr->DF();
-		MF = frag_field & 0x2000;
-		frag_offset = frag_field & /* IP_OFFMASK not portable */ 0x1fff;
+		MF = ip_hdr->MF();
+		frag_offset = ip_hdr->FragOffset();
 
 		if ( uint32(len) >= ip_hdr_len + 4 )
 			proto = GetContextProtocol(ip_hdr, &src_port, &dst_port);

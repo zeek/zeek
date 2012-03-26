@@ -6,13 +6,13 @@ all: cleanup btest-verbose coverage
 
 # Showing all tests.
 btest-verbose:
-	@$(BTEST) -f $(DIAG)
+	@$(BTEST) -j 5 -f $(DIAG)
 
 brief: cleanup btest-brief coverage
 
 # Brief output showing only failed tests.
 btest-brief:
-	@$(BTEST) -b -f $(DIAG)
+	@$(BTEST) -j 5 -b -f $(DIAG)
 
 coverage:
 	@../scripts/coverage-calc ".tmp/script-coverage*" coverage.log `pwd`/../../scripts

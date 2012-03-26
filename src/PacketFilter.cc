@@ -71,9 +71,7 @@ bool PacketFilter::MatchFilter(const Filter& f, const IP_Hdr& ip,
 	if ( ip.NextProto() == IPPROTO_TCP && f.tcp_flags )
 		{
 		// Caution! The packet sanity checks have not been performed yet
-		const struct ip* ip4 = ip.IP4_Hdr();
-
-		int ip_hdr_len = ip4->ip_hl * 4;
+		int ip_hdr_len = ip.HdrLen();
 		len -= ip_hdr_len;	// remove IP header
 		caplen -= ip_hdr_len;
 
@@ -82,8 +80,7 @@ bool PacketFilter::MatchFilter(const Filter& f, const IP_Hdr& ip,
 			// Packet too short, will be dropped anyway.
 			return false;
 
-		const struct tcphdr* tp =
-			(const struct tcphdr*) ((u_char*) ip4 + ip_hdr_len);
+		const struct tcphdr* tp = (const struct tcphdr*) ip.Payload();
 
 		if ( tp->th_flags & f.tcp_flags )
 			 // At least one of the flags is set, so don't drop

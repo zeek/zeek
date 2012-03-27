@@ -21,7 +21,11 @@ using threading::Field;
 
 Benchmark::Benchmark(ReaderFrontend *frontend) : ReaderBackend(frontend)
 {
-	multiplication_factor = int(BifConst::InputBenchmark::factor);	
+	multiplication_factor = double(BifConst::InputBenchmark::factor);	
+	autospread = double(BifConst::InputBenchmark::autospread);	
+	spread = int(BifConst::InputBenchmark::spread);
+	autospread_time = 0;
+
 }
 
 Benchmark::~Benchmark()
@@ -40,6 +44,9 @@ bool Benchmark::DoInit(string path, int arg_mode, int arg_num_fields, const Fiel
 	num_fields = arg_num_fields;
 	fields = arg_fields;
 	num_lines = atoi(path.c_str());
+	
+	if ( autospread != 0.0 )
+		autospread_time = (int) ( (double) 1000000 / (autospread * (double) num_lines) );
 
 	if ( ( mode != MANUAL ) && (mode != REREAD) && ( mode != STREAM ) ) {
 		Error(Fmt("Unsupported read mode %d for source %s", mode, path.c_str()));
@@ -85,15 +92,21 @@ bool Benchmark::DoUpdate() {
 		if ( mode == STREAM ) {
 			// do not do tracking, spread out elements over the second that we have...
 			Put(field);
-			usleep(900000/num_lines);
 		} else {
 			SendEntry(field);
 		}
+		
+		if ( spread != 0 ) 
+			usleep(spread);
+
+		if ( autospread_time != 0 ) {
+			usleep( autospread_time );
+		}
 	}
 
-	//if ( mode != STREAM ) { // well, does not really make sense in the streaming sense - but I like getting the event.
+	if ( mode != STREAM ) { 
 		EndCurrentSend();
-	//}
+	}
 
 	return true;
 }
@@ -199,7 +212,7 @@ threading::Value* Benchmark::EntryToVal(TypeTag type, TypeTag subtype) {
 bool Benchmark::DoHeartbeat(double network_time, double current_time)
 {
 	ReaderBackend::DoHeartbeat(network_time, current_time);
-	num_lines = num_lines*multiplication_factor;
+	num_lines = (int) ( (double) num_lines*multiplication_factor);
 
 	switch ( mode ) {
 		case MANUAL:
@@ -217,8 +230,15 @@ bool Benchmark::DoHeartbeat(double network_time, double current_time)
 
 				SendEvent("lines_changed", 2, v);
 			}
+			
+			if ( autospread != 0.0 ) {
+				autospread_time = (int) ( (double) 1000000 / (autospread * (double) num_lines) );
+				// because executing this in every loop is apparently too expensive.
+			}
 	
 			Update(); // call update and not DoUpdate, because update actually checks disabled.
+
+			SendEvent("HeartbeatDone", 0, 0);
 			break;
 		default:
 			assert(false);

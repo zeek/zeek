@@ -47,4 +47,6 @@ module InputRaw;
 const record_separator: string;
 
 module InputBenchmark;
-const factor: count;
+const factor: double;
+const spread: count;
+const autospread: double;

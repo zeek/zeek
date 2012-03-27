@@ -38,7 +38,10 @@ private:
 	int mode;
 	int num_lines;
 
-	int multiplication_factor;
+	double multiplication_factor;
+	int spread;
+	double autospread;
+	int autospread_time;
 
 	string RandomString(const int len);
 

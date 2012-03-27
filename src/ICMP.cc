@@ -149,12 +149,20 @@ void ICMP_Analyzer::NextICMP6(double t, const struct icmp* icmpp, int len, int c
 			break;
 
 		// Router related messages.
-		case ND_NEIGHBOR_SOLICIT:
-		case ND_NEIGHBOR_ADVERT:
 		case ND_REDIRECT:
+			Redirect(t, icmpp, len, caplen, data, ip_hdr);
+			break;
+		case ND_ROUTER_ADVERT:
+			RouterAdvert(t, icmpp, len, caplen, data, ip_hdr);
+			break;
+		case ND_NEIGHBOR_ADVERT:
+			NeighborAdvert(t, icmpp, len, caplen, data, ip_hdr);
+			break;
+		case ND_NEIGHBOR_SOLICIT:
+			NeighborSolicit(t, icmpp, len, caplen, data, ip_hdr);
+			break;
 		case ND_ROUTER_SOLICIT:
 		case ICMP6_ROUTER_RENUMBERING:
-		case ND_ROUTER_ADVERT:
 			Router(t, icmpp, len, caplen, data, ip_hdr);
 			break;
 
@@ -489,6 +497,81 @@ void ICMP_Analyzer::Echo(double t, const struct icmp* icmpp, int len,
 	}
 
 
+void ICMP_Analyzer::RouterAdvert(double t, const struct icmp* icmpp, int len,
+			 int caplen, const u_char*& data, const IP_Hdr* /*ip_hdr*/)
+	{
+	EventHandlerPtr f = icmp_router_advertisement;
+	uint32 reachable, retrans;
+
+	memcpy(&reachable, data, sizeof(reachable));
+	memcpy(&retrans, data + sizeof(reachable), sizeof(retrans));
+
+	val_list* vl = new val_list;
+	vl->append(BuildConnVal());
+	vl->append(BuildICMPVal(icmpp, len, 1));
+	vl->append(new Val(icmpp->icmp_num_addrs, TYPE_COUNT));
+	vl->append(new Val(icmpp->icmp_wpa & 0x80, TYPE_BOOL));
+	vl->append(new Val(htons(icmpp->icmp_lifetime), TYPE_COUNT));
+	vl->append(new Val(reachable, TYPE_INTERVAL));
+	vl->append(new Val(retrans, TYPE_INTERVAL));
+
+	ConnectionEvent(f, vl);
+	}
+
+
+void ICMP_Analyzer::NeighborAdvert(double t, const struct icmp* icmpp, int len,
+			 int caplen, const u_char*& data, const IP_Hdr* /*ip_hdr*/)
+	{
+	EventHandlerPtr f = icmp_neighbor_advertisement;
+	in6_addr tgtaddr;
+
+	memcpy(&tgtaddr.s6_addr, data, sizeof(tgtaddr.s6_addr));
+
+	val_list* vl = new val_list;
+	vl->append(BuildConnVal());
+	vl->append(BuildICMPVal(icmpp, len, 1));
+	vl->append(new AddrVal(IPAddr(tgtaddr)));
+
+	ConnectionEvent(f, vl);
+	}
+
+
+void ICMP_Analyzer::NeighborSolicit(double t, const struct icmp* icmpp, int len,
+			 int caplen, const u_char*& data, const IP_Hdr* /*ip_hdr*/)
+	{
+	EventHandlerPtr f = icmp_neighbor_solicitation;
+	in6_addr tgtaddr;
+
+	memcpy(&tgtaddr.s6_addr, data, sizeof(tgtaddr.s6_addr));
+
+	val_list* vl = new val_list;
+	vl->append(BuildConnVal());
+	vl->append(BuildICMPVal(icmpp, len, 1));
+	vl->append(new AddrVal(IPAddr(tgtaddr)));
+
+	ConnectionEvent(f, vl);
+	}
+
+
+void ICMP_Analyzer::Redirect(double t, const struct icmp* icmpp, int len,
+			 int caplen, const u_char*& data, const IP_Hdr* /*ip_hdr*/)
+	{
+	EventHandlerPtr f = icmp_redirect;
+	in6_addr tgtaddr, dstaddr;
+
+	memcpy(&tgtaddr.s6_addr, data, sizeof(tgtaddr.s6_addr));
+	memcpy(&dstaddr.s6_addr, data + sizeof(tgtaddr.s6_addr), sizeof(dstaddr.s6_addr));
+
+	val_list* vl = new val_list;
+	vl->append(BuildConnVal());
+	vl->append(BuildICMPVal(icmpp, len, 1));
+	vl->append(new AddrVal(IPAddr(tgtaddr)));
+	vl->append(new AddrVal(IPAddr(dstaddr)));
+
+	ConnectionEvent(f, vl);
+	}
+
+
 void ICMP_Analyzer::Router(double t, const struct icmp* icmpp, int len,
 			 int caplen, const u_char*& data, const IP_Hdr* /*ip_hdr*/)
 	{
@@ -496,20 +579,8 @@ void ICMP_Analyzer::Router(double t, const struct icmp* icmpp, int len,
 
 	switch ( icmpp->icmp_type )
 		{
-		case ND_NEIGHBOR_ADVERT:
-			f = icmp_neighbor_advertisement;
-			break;
-		case ND_NEIGHBOR_SOLICIT:
-			f = icmp_neighbor_solicitation;
-			break;
-		case ND_ROUTER_ADVERT:
-			f = icmp_router_advertisement;
-			break;
 		case ND_ROUTER_SOLICIT:
 			f = icmp_router_solicitation;
-			break;
-		case ND_REDIRECT:
-			f = icmp_redirect;
 			break;
 		case ICMP6_ROUTER_RENUMBERING:
 		default:

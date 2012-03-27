@@ -39,6 +39,14 @@ protected:
 			 int caplen, const u_char*& data, const IP_Hdr* ip_hdr);
 	void Context(double t, const struct icmp* icmpp, int len,
 			 int caplen, const u_char*& data, const IP_Hdr* ip_hdr);
+	void Redirect(double t, const struct icmp* icmpp, int len,
+			 int caplen, const u_char*& data, const IP_Hdr* ip_hdr);
+	void RouterAdvert(double t, const struct icmp* icmpp, int len,
+			 int caplen, const u_char*& data, const IP_Hdr* ip_hdr);
+	void NeighborAdvert(double t, const struct icmp* icmpp, int len,
+			 int caplen, const u_char*& data, const IP_Hdr* ip_hdr);
+	void NeighborSolicit(double t, const struct icmp* icmpp, int len,
+			 int caplen, const u_char*& data, const IP_Hdr* ip_hdr);
 	void Router(double t, const struct icmp* icmpp, int len,
 			 int caplen, const u_char*& data, const IP_Hdr* ip_hdr);
 

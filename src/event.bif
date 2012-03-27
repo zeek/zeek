@@ -955,7 +955,7 @@ event icmp_router_solicitation%(c: connection, icmp: icmp_conn%);
 ##
 ## .. bro:see:: icmp_echo_reply icmp_echo_request  icmp_sent
 ##    icmp_time_exceeded icmp_unreachable
-event icmp_router_advertisement%(c: connection, icmp: icmp_conn%);
+event icmp_router_advertisement%(c: connection, icmp: icmp_conn, hop_limit: count, managed: bool, router_lifetime: count, reachable_time: interval, retrans_timer: interval%);
 
 ## Generated for ICMP *neighbor solicitation* messages.
 ##
@@ -970,7 +970,7 @@ event icmp_router_advertisement%(c: connection, icmp: icmp_conn%);
 ##
 ## .. bro:see:: icmp_echo_reply icmp_echo_request  icmp_sent
 ##    icmp_time_exceeded icmp_unreachable
-event icmp_neighbor_solicitation%(c: connection, icmp: icmp_conn%);
+event icmp_neighbor_solicitation%(c: connection, icmp: icmp_conn, tgt:addr%);
 
 ## Generated for ICMP *neighbor advertisement* messages.
 ##
@@ -985,7 +985,7 @@ event icmp_neighbor_solicitation%(c: connection, icmp: icmp_conn%);
 ##
 ## .. bro:see:: icmp_echo_reply icmp_echo_request  icmp_sent
 ##    icmp_time_exceeded icmp_unreachable
-event icmp_neighbor_advertisement%(c: connection, icmp: icmp_conn%);
+event icmp_neighbor_advertisement%(c: connection, icmp: icmp_conn, tgt:addr%);
 
 ## Generated for ICMP *redirect* messages.
 ##
@@ -1002,7 +1002,7 @@ event icmp_neighbor_advertisement%(c: connection, icmp: icmp_conn%);
 ##
 ## .. bro:see:: icmp_echo_reply icmp_echo_request  icmp_sent
 ##    icmp_time_exceeded icmp_unreachable
-event icmp_redirect%(c: connection, icmp: icmp_conn, a: addr%);
+event icmp_redirect%(c: connection, icmp: icmp_conn, tgt: addr, dest: addr%);
 
 ## Generated when a TCP connection terminated, passing on statistics about the
 ## two endpoints. This event is always generated when Bro flushes the internal

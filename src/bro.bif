@@ -4798,6 +4798,9 @@ function uninstall_src_net_filter%(snet: subnet%) : bool
 
 ## Installs a filter to drop packets destined to a given IP address with
 ## a certain probability if none of a given set of TCP flags are set.
+## Note that for IPv6 packets with a routing type 0 header and non-zero
+## segments left, this filters out against the final destination of the
+## packet according to the routing extension header.
 ##
 ## ip: Drop packets to this IP address.
 ##

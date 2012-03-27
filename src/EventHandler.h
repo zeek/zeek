@@ -7,7 +7,6 @@
 
 #include "List.h"
 #include "BroList.h"
-#include "net_util.h"
 
 class Func;
 class FuncType;

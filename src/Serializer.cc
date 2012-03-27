@@ -1105,7 +1105,7 @@ void Packet::Describe(ODesc* d) const
 	const IP_Hdr ip = IP();
 	d->Add(ip.SrcAddr());
 	d->Add("->");
-	d->Add(ip.DstAddr());
+	d->Add(ip.FinalDstAddr());
 	}
 
 bool Packet::Serialize(SerialInfo* info) const

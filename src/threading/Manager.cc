@@ -82,6 +82,12 @@ double Manager::NextTimestamp(double* network_time)
 		// If we had something to process last time (or out heartbeat
 		// is due), we want to check for more asap.
 		return timer_mgr->Time();
+	
+	for ( msg_thread_list::iterator i = msg_threads.begin(); i != msg_threads.end(); i++ )
+		{
+			if ( (*i)->MightHaveOut() ) 
+				return timer_mgr->Time();
+		}
 
 	return -1.0;
 	}

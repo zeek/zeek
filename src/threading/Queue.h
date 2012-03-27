@@ -54,6 +54,11 @@ public:
 	bool Ready();
 
 	/**
+	 * Returns true if the next Get() operation might succeed.
+	 */
+	bool MaybeReady() { return ( ( read_ptr - write_ptr) != 0 ); }
+
+	/**
 	 * Returns the number of queued items not yet retrieved.
 	 */
 	uint64_t Size();

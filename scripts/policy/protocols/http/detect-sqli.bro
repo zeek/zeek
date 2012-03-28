@@ -15,13 +15,6 @@ export {
 		SQL_Injection_Victim,
 	};
 	
-	redef enum Metrics::ID += {
-		## Metric to track SQL injection attackers.
-		SQLI_ATTACKER,
-		## Metrics to track SQL injection victims.
-		SQLI_VICTIM,
-	};
-
 	redef enum Tags += {
 		## Indicator of a URI based SQL injection attack.
 		URI_SQLI,
@@ -58,14 +51,14 @@ event bro_init() &priority=3
 	# determine when it looks like an actual attack and how to respond when
 	# thresholds are crossed.
 	
-	Metrics::add_filter(SQLI_ATTACKER, [$log=F,
-	                                   $notice_threshold=sqli_requests_threshold,
-	                                   $break_interval=sqli_requests_interval,
-	                                   $note=SQL_Injection_Attacker]);
-	Metrics::add_filter(SQLI_VICTIM, [$log=F,
-	                                 $notice_threshold=sqli_requests_threshold,
-	                                 $break_interval=sqli_requests_interval,
-	                                 $note=SQL_Injection_Victim]);
+	Metrics::add_filter("http.sqli.attacker", [$log=F,
+	                                           $notice_threshold=sqli_requests_threshold,
+	                                           $break_interval=sqli_requests_interval,
+	                                           $note=SQL_Injection_Attacker]);
+	Metrics::add_filter("http.sqli.victim", [$log=F,
+	                                         $notice_threshold=sqli_requests_threshold,
+	                                         $break_interval=sqli_requests_interval,
+	                                         $note=SQL_Injection_Victim]);
 	}
 
 event http_request(c: connection, method: string, original_URI: string,
@@ -75,7 +68,7 @@ event http_request(c: connection, method: string, original_URI: string,
 		{
 		add c$http$tags[URI_SQLI];
 		
-		Metrics::add_data(SQLI_ATTACKER, [$host=c$id$orig_h], 1);
-		Metrics::add_data(SQLI_VICTIM, [$host=c$id$resp_h], 1);
+		Metrics::add_data("http.sqli.attacker", [$host=c$id$orig_h], 1);
+		Metrics::add_data("http.sqli.victim", [$host=c$id$resp_h], 1);
 		}
 	}

@@ -36,6 +36,12 @@ export {
 		network:      subnet &optional;
 	} &log;
 	
+	## Represents data being added for a single metric data point.  Used internally.
+	type DataPoint: record {
+		num:        count       &optional;
+		unique_vals: set[string] &optional;
+	};
+	
 	## The record type that is used for logging metrics.
 	type Info: record {
 		## Timestamp at which the metric was "broken".
@@ -142,13 +148,8 @@ export {
 	## Event to access metrics records as they are passed to the logging framework.
 	global log_metrics: event(rec: Info);
 	
-	## Internal use only
-	type MetricMeasurement: record {
-		num:        count       &optional;
-		unique_vals: set[string] &optional;
-	};
 	## Type to store a table of metrics values.  Interal use only!
-	type MetricTable: table[Index] of MetricMeasurement;
+	type MetricTable: table[Index] of DataPoint;
 }
 
 redef record Notice::Info += {

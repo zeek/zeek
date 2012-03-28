@@ -20,11 +20,6 @@ export {
 		Login_By_Password_Guesser,
 	};
 	
-	redef enum Metrics::ID  += {
-		## Metric is to measure failed logins.
-		FAILED_LOGIN,
-	};
-
 	## The number of failed SSH connections before a host is designated as
 	## guessing passwords.
 	const password_guesses_limit = 30 &redef;
@@ -46,11 +41,11 @@ export {
 
 event bro_init()
 	{
-	Metrics::add_filter(FAILED_LOGIN, [$name="detect-bruteforcing", $log=F,
-	                                   $note=Password_Guessing,
-	                                   $notice_threshold=password_guesses_limit,
-	                                   $notice_freq=1hr,
-	                                   $break_interval=guessing_timeout]);
+	Metrics::add_filter("ssh.login.failure", [$name="detect-bruteforcing", $log=F,
+	                                          $note=Password_Guessing,
+	                                          $notice_threshold=password_guesses_limit,
+	                                          $notice_freq=1hr,
+	                                          $break_interval=guessing_timeout]);
 	}
 
 event SSH::heuristic_successful_login(c: connection)
@@ -75,5 +70,5 @@ event SSH::heuristic_failed_login(c: connection)
 	# be ignored.
 	if ( ! (id$orig_h in ignore_guessers &&
 	        id$resp_h in ignore_guessers[id$orig_h]) )
-		Metrics::add_data(FAILED_LOGIN, [$host=id$orig_h], 1);
+		Metrics::add_data("ssh.login.failure", [$host=id$orig_h], 1);
 	}

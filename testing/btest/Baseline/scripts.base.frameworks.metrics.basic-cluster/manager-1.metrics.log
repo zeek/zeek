@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	metrics
-#fields	ts	metric_id	filter_name	index.host	index.str	index.network	value
-#types	time	enum	string	addr	string	subnet	count
-1328303679.867377	TEST_METRIC	foo-bar	6.5.4.3	-	-	4
-1328303679.867377	TEST_METRIC	foo-bar	7.2.1.5	-	-	2
-1328303679.867377	TEST_METRIC	foo-bar	1.2.3.4	-	-	6
+#fields	ts	ts_delta	filter_name	metric_id	index.str	index.host	index.network	value
+#types	time	interval	string	string	string	addr	subnet	count
+1332957065.172883	3.000000	foo-bar	test.metric	-	6.5.4.3	-	4
+1332957065.172883	3.000000	foo-bar	test.metric	-	1.2.3.4	-	6
+1332957065.172883	3.000000	foo-bar	test.metric	-	7.2.1.5	-	2

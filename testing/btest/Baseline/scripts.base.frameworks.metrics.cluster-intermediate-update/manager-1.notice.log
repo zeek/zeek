@@ -3,6 +3,6 @@
 #empty_field	(empty)
 #unset_field	-
 #path	notice
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	note	msg	sub	src	dst	p	n	peer_descr	actions	policy_items	suppress_for	dropped	remote_location.country_code	remote_location.region	remote_location.city	remote_location.latitude	remote_location.longitude	metric_index.host	metric_index.str	metric_index.network
-#types	time	string	addr	port	addr	port	enum	enum	string	string	addr	addr	port	count	string	table[enum]	table[count]	interval	bool	string	string	string	double	double	addr	string	subnet
-1325633225.777902	-	-	-	-	-	-	Test_Notice	Threshold crossed by metric_index(host=1.2.3.4) 100/100	-	1.2.3.4	-	-	100	manager-1	Notice::ACTION_LOG	6	3600.000000	F	-	-	-	-	-	1.2.3.4	-	-
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	note	msg	sub	src	dst	p	n	peer_descr	actions	policy_items	suppress_for	dropped	remote_location.country_code	remote_location.region	remote_location.city	remote_location.latitude	remote_location.longitude	metric_index.str	metric_index.host	metric_index.network
+#types	time	string	addr	port	addr	port	enum	enum	string	string	addr	addr	port	count	string	table[enum]	table[count]	interval	bool	string	string	string	double	double	string	addr	subnet
+1332957572.934499	-	-	-	-	-	-	Test_Notice	Threshold crossed by metric_index(host=1.2.3.4) 100/100	-	1.2.3.4	-	-	100	manager-1	Notice::ACTION_LOG	6	3600.000000	F	-	-	-	-	-	-	1.2.3.4	-

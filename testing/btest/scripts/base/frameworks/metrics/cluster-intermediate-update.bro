@@ -10,8 +10,8 @@
 
 @TEST-START-FILE cluster-layout.bro
 redef Cluster::nodes = {
-	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=37757/tcp, $workers=set("worker-1")],
-	["proxy-1"] = [$node_type=Cluster::PROXY,     $ip=127.0.0.1, $p=37758/tcp, $manager="manager-1", $workers=set("worker-1")],
+	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=37757/tcp, $workers=set("worker-1", "worker-2")],
+	["proxy-1"] = [$node_type=Cluster::PROXY,     $ip=127.0.0.1, $p=37758/tcp, $manager="manager-1", $workers=set("worker-1", "worker-2")],
 	["worker-1"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=37760/tcp, $manager="manager-1", $proxy="proxy-1", $interface="eth0"],
 	["worker-2"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=37761/tcp, $manager="manager-1", $proxy="proxy-1", $interface="eth1"],
 };
@@ -23,13 +23,9 @@ redef enum Notice::Type += {
 	Test_Notice,
 };
 
-redef enum Metrics::ID += {
-	TEST_METRIC,
-};
-
 event bro_init() &priority=5
 	{
-	Metrics::add_filter(TEST_METRIC,
+	Metrics::add_filter("test.metric",
 		[$name="foo-bar",
 		 $break_interval=1hr,
 		 $note=Test_Notice,
@@ -44,7 +40,7 @@ event do_metrics(i: count)
 	# Worker-1 will trigger an intermediate update and then if everything
 	# works correctly, the data from worker-2 will hit the threshold and
 	# should trigger the notice.
-	Metrics::add_data(TEST_METRIC, [$host=1.2.3.4], i);
+	Metrics::add_data("test.metric", [$host=1.2.3.4], i);
 	}
 
 event bro_init()

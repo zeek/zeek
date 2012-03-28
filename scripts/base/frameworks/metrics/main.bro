@@ -192,6 +192,32 @@ function index2str(index: Index): string
 	return fmt("metric_index(%s)", out);
 	}
 	
+function merge_data_points(dp1: DataPoint, dp2: DataPoint): DataPoint
+	{
+	local result: DataPoint;
+	if ( dp1?$num || dp2?$num )
+		{
+		result$num = 0;
+		if ( dp1?$num )
+			result$num += dp1$num;
+		if ( dp2?$num )
+			result$num += dp2$num;
+		}
+		
+	if ( dp1?$unique_vals || dp2?$unique_vals )
+		{
+		result$unique_vals = set();
+		if ( dp1?$unique_vals )
+			for ( val1 in dp1$unique_vals )
+				add result$unique_vals[val1];
+		if ( dp2?$unique_vals )
+			for ( val2 in dp2$unique_vals )
+				add result$unique_vals[val2];
+			}
+			
+	return result;
+	}
+	
 function write_log(ts: time, filter: Filter, data: MetricTable)
 	{
 	for ( index in data )

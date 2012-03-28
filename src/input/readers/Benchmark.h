@@ -42,6 +42,7 @@ private:
 	int spread;
 	double autospread;
 	int autospread_time;
+	int add;
 
 	string RandomString(const int len);
 

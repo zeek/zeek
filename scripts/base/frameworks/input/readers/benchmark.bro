@@ -11,4 +11,7 @@ export {
 
 	## spreading where usleep = 1000000 / autospread * num_lines
 	const autospread = 0.0 &redef;
+
+	## addition factor for each heartbeat
+	const addfactor = 0 &redef;
 }

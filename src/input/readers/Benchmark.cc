@@ -24,6 +24,7 @@ Benchmark::Benchmark(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	multiplication_factor = double(BifConst::InputBenchmark::factor);	
 	autospread = double(BifConst::InputBenchmark::autospread);	
 	spread = int(BifConst::InputBenchmark::spread);
+	add = int(BifConst::InputBenchmark::addfactor);
 	autospread_time = 0;
 
 }
@@ -213,6 +214,7 @@ bool Benchmark::DoHeartbeat(double network_time, double current_time)
 {
 	ReaderBackend::DoHeartbeat(network_time, current_time);
 	num_lines = (int) ( (double) num_lines*multiplication_factor);
+	num_lines += add;
 
 	switch ( mode ) {
 		case MANUAL:
@@ -221,6 +223,17 @@ bool Benchmark::DoHeartbeat(double network_time, double current_time)
 		case REREAD:
 		case STREAM:
 			if ( multiplication_factor != 1 ) {
+				// we have to document at what time we changed the factor to what value.
+				Value** v = new Value*[2];
+				v[0] = new Value(TYPE_COUNT, true);
+				v[0]->val.uint_val = num_lines;
+				v[1] = new Value(TYPE_TIME, true);
+				v[1]->val.double_val = CurrTime();
+
+				SendEvent("lines_changed", 2, v);
+			}
+
+			if ( add != 0 ) {
 				// we have to document at what time we changed the factor to what value.
 				Value** v = new Value*[2];
 				v[0] = new Value(TYPE_COUNT, true);

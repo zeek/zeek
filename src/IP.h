@@ -172,6 +172,20 @@ public:
 				(ntohs(GetFragHdr()->ip6f_offlg) & 0x0001) != 0 : 0; }
 
 	/**
+	 * Returns whether the chain contains a routing type 0 extension header
+	 * with nonzero segments left.
+	 */
+	bool RH0SegLeft() const
+		{
+		for ( size_t i = 0; i < chain.size(); ++i )
+			if ( chain[i]->Type() == IPPROTO_ROUTING  &&
+			     ((const struct ip6_rthdr*)chain[i]->Data())->ip6r_type == 0 &&
+			     ((const struct ip6_rthdr*)chain[i]->Data())->ip6r_segleft > 0 )
+				return true;
+		return false;
+		}
+
+	/**
 	 * Returns a vector of ip6_ext_hdr RecordVals that includes script-layer
 	 * representation of all extension headers in the chain.
 	 */
@@ -342,6 +356,13 @@ public:
 	 */
 	size_t NumHeaders() const
 		{ return ip4 ? 1 : ip6_hdrs->Size(); }
+
+	/**
+	 * Returns true if this is an IPv6 header containing a routing type 0
+	 * extension with nonzero segments left, else returns false.
+	 */
+	bool RH0SegLeft() const
+		{ return ip4 ? false : ip6_hdrs->RH0SegLeft(); }
 
 	/**
 	 * Returns an ip_hdr or ip6_hdr_chain RecordVal.

@@ -2645,7 +2645,7 @@ bool RemoteSerializer::ProcessLogCreateWriter()
 	if ( current_peer->state == Peer::CLOSING )
 		return false;
 
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 	// Don't track allocations here, they'll be released only after the
 	// main loop exists. And it's just a tiny amount anyway.
 	HeapLeakChecker::Disabler disabler;
@@ -2866,7 +2866,7 @@ void RemoteSerializer::GotID(ID* id, Val* val)
 					(desc && *desc) ? desc : "not set"),
 			current_peer);
 
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 		// May still be cached, but we don't care.
 		heap_checker->IgnoreObject(id);
 #endif

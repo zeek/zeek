@@ -74,7 +74,7 @@ void DPM::PostScriptInit()
 
 void DPM::AddConfig(const Analyzer::Config& cfg)
 	{
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 	HeapLeakChecker::Disabler disabler;
 #endif
 

@@ -27,7 +27,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
 
   Optional Features:
     --enable-debug         compile in debugging mode
-    --enable-perftools     use Google's perftools
+    --enable-perftools-debug use Google's perftools for debugging
     --disable-broccoli     don't build or install the Broccoli library
     --disable-broctl       don't install Broctl
     --disable-auxtools     don't build or install auxilliary tools
@@ -91,7 +91,7 @@ append_cache_entry BRO_ROOT_DIR         PATH   /usr/local/bro
 append_cache_entry PY_MOD_INSTALL_DIR   PATH   /usr/local/bro/lib/broctl
 append_cache_entry BRO_SCRIPT_INSTALL_PATH STRING /usr/local/bro/share/bro
 append_cache_entry ENABLE_DEBUG         BOOL   false
-append_cache_entry ENABLE_PERFTOOLS     BOOL   false
+append_cache_entry ENABLE_PERFTOOLS_DEBUG BOOL   false
 append_cache_entry BinPAC_SKIP_INSTALL  BOOL   true
 append_cache_entry BUILD_SHARED_LIBS    BOOL   true
 append_cache_entry INSTALL_AUX_TOOLS    BOOL   true
@@ -132,8 +132,8 @@ while [ $# -ne 0 ]; do
         --enable-debug)
             append_cache_entry ENABLE_DEBUG         BOOL   true
             ;;
-        --enable-perftools)
-            append_cache_entry ENABLE_PERFTOOLS     BOOL   true
+        --enable-perftools-debug)
+            append_cache_entry ENABLE_PERFTOOLS_DEBUG BOOL   true
             ;;
         --disable-broccoli)
             append_cache_entry INSTALL_BROCCOLI     BOOL   false
@@ -178,7 +178,6 @@ while [ $# -ne 0 ]; do
             append_cache_entry LibGeoIP_ROOT_DIR PATH $optarg
             ;;
         --with-perftools=*)
-            append_cache_entry ENABLE_PERFTOOLS     BOOL   true
             append_cache_entry GooglePerftools_ROOT_DIR PATH $optarg
             ;;
         --with-python=*)

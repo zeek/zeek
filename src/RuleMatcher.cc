@@ -191,7 +191,7 @@ void RuleMatcher::Delete(RuleHdrTest* node)
 
 bool RuleMatcher::ReadFiles(const name_list& files)
 	{
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 	HeapLeakChecker::Disabler disabler;
 #endif
 

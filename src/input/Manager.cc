@@ -1663,10 +1663,11 @@ HashKey* Manager::HashValues(const int num_elements, const Value* const *vals) {
 			position += CopyValue(data, position, val);
 	}
 
-	hash_t key = HashKey::HashBytes(data, length);
+	HashKey *key = new HashKey(data, length);
+	delete data;
 
 	assert(position == length);
-	return new HashKey(data, length, key, true);
+	return key;
 }
 
 // convert threading value to Bro value

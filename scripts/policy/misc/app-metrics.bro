@@ -5,11 +5,16 @@
 
 module AppMetrics;
 
+export {
+	## The metric break interval for the default stats collected by this script.
+	const break_interval = 1hr &redef;
+}
+
 event bro_init() &priority=3
 	{
-	Metrics::add_filter("apps.bytes", [$break_interval=1hr]);
-	Metrics::add_filter("apps.views", [$break_interval=1hr]);
-	Metrics::add_filter("apps.users", [$break_interval=1hr]);
+	Metrics::add_filter("apps.bytes", [$break_interval=break_interval]);
+	Metrics::add_filter("apps.views", [$break_interval=break_interval]);
+	Metrics::add_filter("apps.users", [$break_interval=break_interval]);
 	}
 
 function do_metric(id: conn_id, hostname: string, size: count)

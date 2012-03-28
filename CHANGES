@@ -1,4 +1,13 @@
 
+2.0-182 | 2012-03-28 15:01:57 -0700
+
+  * Remove dead tcp_checksum function from net_util. (Jon Siwek)
+
+  * Change routing0_data_to_addrs BIF to return vector of addresses.
+    The order of addresses in type 0 routing headers is
+    interesting/important. (Jon Siwek)
+
+
 2.0-179 | 2012-03-23 17:43:31 -0700
 
   * Remove the default "tcp or udp or icmp" filter. In default mode,

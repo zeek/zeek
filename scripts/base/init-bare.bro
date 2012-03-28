@@ -46,6 +46,13 @@ type index_vec: vector of count;
 ##    then remove this alias.
 type string_vec: vector of string;
 
+## A vector of addresses.
+##
+## .. todo:: We need this type definition only for declaring builtin functions via
+##    ``bifcl``. We should extend ``bifcl`` to understand composite types directly and
+##    then remove this alias.
+type addr_vec: vector of addr;
+
 ## A table of strings indexed by strings.
 ##
 ## .. todo:: We need this type definition only for declaring builtin functions via

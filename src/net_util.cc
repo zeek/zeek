@@ -38,33 +38,6 @@ int ones_complement_checksum(const IPAddr& a, uint32 sum)
 	return ones_complement_checksum(bytes, len*4, sum);
 	}
 
-int tcp_checksum(const struct ip* ip, const struct tcphdr* tp, int len)
-	{
-	// ### Note, this is only correct for IPv4.  This routine is only
-	// used by the connection compressor (which we turn off for IPv6
-	// traffic).
-
-	int tcp_len = tp->th_off * 4 + len;
-	uint32 sum;
-
-	if ( len % 2 == 1 )
-		// Add in pad byte.
-		sum = htons(((const u_char*) tp)[tcp_len - 1] << 8);
-	else
-		sum = 0;
-
-	sum = ones_complement_checksum((void*) &ip->ip_src.s_addr, 4, sum);
-	sum = ones_complement_checksum((void*) &ip->ip_dst.s_addr, 4, sum);
-
-	uint32 addl_pseudo =
-		(htons(IPPROTO_TCP) << 16) | htons((unsigned short) tcp_len);
-
-	sum = ones_complement_checksum((void*) &addl_pseudo, 4, sum);
-	sum = ones_complement_checksum((void*) tp, tcp_len, sum);
-
-	return sum;
-	}
-
 int udp_checksum(const struct ip* ip, const struct udphdr* up, int len)
 	{
 	uint32 sum;

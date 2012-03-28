@@ -62,7 +62,6 @@ inline int seq_delta(uint32 a, uint32 b)
 extern int ones_complement_checksum(const void* p, int b, uint32 sum);
 extern int ones_complement_checksum(const IPAddr& a, uint32 sum);
 
-extern int tcp_checksum(const struct ip* ip, const struct tcphdr* tp, int len);
 extern int udp_checksum(const struct ip* ip, const struct udphdr* up, int len);
 extern int udp6_checksum(const struct ip6_hdr* ip, const struct udphdr* up,
 				int len);

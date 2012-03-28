@@ -1,4 +1,21 @@
 
+2.0-184 | 2012-03-28 15:11:11 -0700
+
+  * Improve handling of IPv6 Routing Type 0 headers.  (Jon Siwek)
+
+    - For RH0 headers with non-zero segments left, a
+      "routing0_segleft" flow_weird event is raised (with a
+      destination indicating the last address in the routing header),
+      and an "rh0_segleft" event can also be handled if the other
+      contents of the packet header are of interest. No further
+      analysis is done as the complexity required to correctly
+      identify destination endpoints of connections doesn't seem worth
+      it as RH0 has been deprecated by RFC 5095.
+
+    - For RH0 headers without any segments left, a "routing0_header"
+      flow_weird event is raised, but further analysis still occurs as
+      normal.
+
 2.0-182 | 2012-03-28 15:01:57 -0700
 
   * Remove dead tcp_checksum function from net_util. (Jon Siwek)

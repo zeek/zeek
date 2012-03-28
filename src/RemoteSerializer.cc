@@ -234,7 +234,7 @@ static const int PRINT_BUFFER_SIZE = 10 * 1024;
 static const int SOCKBUF_SIZE = 1024 * 1024;
 
 // Buffer size for remote-log data.
-static const int LOG_BUFFER_SIZE = 512;
+static const int LOG_BUFFER_SIZE = 50 * 1024;
 
 struct ping_args {
 	uint32 seq;

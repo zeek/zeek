@@ -9,6 +9,10 @@
 #include "BasicThread.h"
 #include "MsgThread.h"
 
+namespace input { namespace reader {
+	class Benchmark;
+}}
+
 namespace threading {
 
 /**
@@ -80,6 +84,7 @@ public:
 protected:
 	friend class BasicThread;
 	friend class MsgThread;
+	friend class input::reader::Benchmark; // needs heartbeat
 
 	/**
 	 * Registers a new basic thread with the manager. This is
@@ -118,9 +123,10 @@ protected:
 	 * Part of the IOSource interface.
 	 */
 	virtual const char* Tag()	{ return "threading::Manager"; }
+	
+	static const int HEART_BEAT_INTERVAL = 10;
 
 private:
-	static const int HEART_BEAT_INTERVAL = 1;
 
 	typedef std::list<BasicThread*> all_thread_list;
 	all_thread_list all_threads;

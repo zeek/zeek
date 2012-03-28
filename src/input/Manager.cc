@@ -133,11 +133,15 @@ Manager::TableFilter::~TableFilter() {
 	if ( rtype ) // can be 0 for sets
 		Unref(rtype);
 
-        if ( currDict != 0 )
+        if ( currDict != 0 ) {
+		currDict->Clear();
 	        delete currDict;
+	}
 
-        if ( lastDict != 0 ) 
+        if ( lastDict != 0 ) {
+		lastDict->Clear();;
 	        delete lastDict;
+	}
 } 
 
 struct ReaderDefinition {
@@ -898,6 +902,7 @@ int Manager::SendEntryTable(Filter* i, const Value* const *vals) {
 	}
 
 	//i->tab->Assign(idxval, valval);
+	assert(idxval);
 	HashKey* k = filter->tab->ComputeHash(idxval);
 	if ( !k ) {
 		reporter->InternalError("could not hash");
@@ -1067,8 +1072,6 @@ void Manager::Put(ReaderFrontend* reader, Value* *vals) {
 }
 
 int Manager::SendEventFilterEvent(Filter* i, EnumVal* type, const Value* const *vals) {
-	bool updated = false;
-
 	assert(i);
 
 	assert(i->filter_type == EVENT_FILTER);

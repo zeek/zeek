@@ -45,7 +45,7 @@ private:
 	int add;
 	int stopspreadat;
 	double heartbeatstarttime;
-	int timedspread;
+	double timedspread;
 
 	string RandomString(const int len);
 

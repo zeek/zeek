@@ -19,5 +19,5 @@ export {
 	const stopspreadat = 0 &redef;
 
 	## 1 -> enable timed spreading
-	const timedspread = 0 &redef;
+	const timedspread = 0.0 &redef;
 }

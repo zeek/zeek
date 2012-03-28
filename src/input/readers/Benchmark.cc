@@ -13,6 +13,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include "../../threading/Manager.h"
+
 using namespace input::reader;
 using threading::Value;
 using threading::Field;
@@ -27,7 +29,7 @@ Benchmark::Benchmark(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	add = int(BifConst::InputBenchmark::addfactor);
 	autospread_time = 0;
 	stopspreadat = int(BifConst::InputBenchmark::stopspreadat);
-	timedspread = int(BifConst::InputBenchmark::timedspread);
+	timedspread = double(BifConst::InputBenchmark::timedspread);
 
 }
 
@@ -87,7 +89,8 @@ double Benchmark::CurrTime() {
 
 // read the entire file and send appropriate thingies back to InputMgr
 bool Benchmark::DoUpdate() {
-	for ( int i = 0; i < num_lines; i++ ) {
+	int linestosend = num_lines * threading::Manager::HEART_BEAT_INTERVAL;
+	for ( int i = 0; i < linestosend; i++ ) {
 		Value** field = new Value*[num_fields];
 		for  (unsigned int j = 0; j < num_fields; j++ ) {
 			field[j] = EntryToVal(fields[j]->type, fields[j]->subtype);
@@ -108,12 +111,13 @@ bool Benchmark::DoUpdate() {
 				usleep( autospread_time );
 		}
 
-		if ( timedspread == 1 ) {
+		if ( timedspread != 0.0 ) {
 			double diff;
 			do {
 				diff = CurrTime() - heartbeatstarttime;
 				//printf("%d %f\n", i, diff);
-			} while ( diff < i/(num_lines + (num_lines * 0.15) ) );
+			//} while ( diff < i/threading::Manager::HEART_BEAT_INTERVAL*(num_lines + (num_lines * timedspread) ) );
+			} while ( diff/threading::Manager::HEART_BEAT_INTERVAL < i/(linestosend + (linestosend * timedspread) ) );
 			//} while ( diff < 0.8); 
 		}
 
@@ -226,6 +230,15 @@ threading::Value* Benchmark::EntryToVal(TypeTag type, TypeTag subtype) {
 
 bool Benchmark::DoHeartbeat(double network_time, double current_time)
 {
+	/* 
+	 * This does not work the way I envisioned it, because the queueing is the problem.
+	  printf("%f\n", CurrTime() - current_time);
+	if ( CurrTime() - current_time > 0.25 ) {
+		// event has hung for a time. refuse.
+		SendEvent("EndBenchmark", 0, 0);
+		return true;
+	} */
+
 	ReaderBackend::DoHeartbeat(network_time, current_time);
 	num_lines = (int) ( (double) num_lines*multiplication_factor);
 	num_lines += add;

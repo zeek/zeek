@@ -158,6 +158,21 @@ public:
 	bool FinishedRotation(string new_name, string old_name,
 			      double open, double close, bool terminating);
 
+	/** Helper method to render an IP address as a string.
+	  *
+	  * @param addr The address.
+	  *
+	  * @return An ASCII representation of the address.
+	  */
+	string Render(const threading::Value::addr_t& addr) const;
+
+	/** Helper method to render an subnet value as a string.
+	  *
+	  * @param addr The address.
+	  *
+	  * @return An ASCII representation of the address.
+	  */
+	string Render(const threading::Value::subnet_t& subnet) const;
 
 protected:
 	/**

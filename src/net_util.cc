@@ -147,6 +147,26 @@ char addr_to_class(uint32 addr)
 		return 'A';
 	}
 
+const char* fmt_conn_id(const IPAddr& src_addr, uint32 src_port,
+			const IPAddr& dst_addr, uint32 dst_port)
+	{
+	static char buffer[512];
+
+	safe_snprintf(buffer, sizeof(buffer), "%s:%d > %s:%d",
+			string(src_addr).c_str(), src_port,
+			string(dst_addr).c_str(), dst_port);
+
+	return buffer;
+	}
+
+const char* fmt_conn_id(const uint32* src_addr, uint32 src_port,
+			const uint32* dst_addr, uint32 dst_port)
+	{
+	IPAddr src(IPv6, src_addr, IPAddr::Network);
+	IPAddr dst(IPv6, dst_addr, IPAddr::Network);
+	return fmt_conn_id(src, src_port, dst, dst_port);
+	}
+
 uint32 extract_uint32(const u_char* data)
 	{
 	uint32 val;

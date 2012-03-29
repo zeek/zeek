@@ -486,6 +486,8 @@ void net_run()
 			// since Bro timers are not high-precision anyway.)
 			if ( ! using_communication )
 				usleep(100000);
+			else
+				usleep(1000);
 
 			// Flawfinder says about usleep:
 			//

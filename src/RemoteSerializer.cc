@@ -234,7 +234,7 @@ static const int PRINT_BUFFER_SIZE = 10 * 1024;
 static const int SOCKBUF_SIZE = 1024 * 1024;
 
 // Buffer size for remote-log data.
-static const int LOG_BUFFER_SIZE = 50 * 1024;
+static const int LOG_BUFFER_SIZE = 512;
 
 struct ping_args {
 	uint32 seq;
@@ -532,6 +532,7 @@ RemoteSerializer::RemoteSerializer()
 	terminating = false;
 	in_sync = 0;
 	last_flush = 0;
+	received_logs = 0;
 	}
 
 RemoteSerializer::~RemoteSerializer()
@@ -681,7 +682,7 @@ RemoteSerializer::PeerID RemoteSerializer::Connect(const IPAddr& ip,
 	if ( ! initialized )
 		reporter->InternalError("remote serializer not initialized");
 
-	if ( ip.GetFamily() == IPAddr::IPv6 )
+	if ( ip.GetFamily() == IPv6 )
 		Error("inter-Bro communication not supported over IPv6");
 
 	const uint32* bytes;
@@ -1238,7 +1239,7 @@ bool RemoteSerializer::Listen(const IPAddr& ip, uint16 port, bool expect_ssl)
 	if ( ! initialized )
 		reporter->InternalError("remote serializer not initialized");
 
-	if ( ip.GetFamily() == IPAddr::IPv6 )
+	if ( ip.GetFamily() == IPv6 )
 		Error("inter-Bro communication not supported over IPv6");
 
 	const uint32* bytes;
@@ -1352,6 +1353,14 @@ void RemoteSerializer::GetFds(int* read, int* write, int* except)
 double RemoteSerializer::NextTimestamp(double* local_network_time)
 	{
 	Poll(false);
+
+	if ( received_logs > 0 )
+		{
+		// If we processed logs last time, assume there's more.
+		idle = false;
+		received_logs = 0;
+		return timer_mgr->Time();
+		}
 
 	double et = events.length() ? events[0]->time : -1;
 	double pt = packets.length() ? packets[0]->time : -1;
@@ -2552,7 +2561,9 @@ bool RemoteSerializer::SendLogWrite(Peer* peer, EnumVal* id, EnumVal* writer, st
 	if ( ! peer->logs_requested )
 		return false;
 
-	assert(peer->log_buffer);
+	if ( ! peer->log_buffer )
+		// Peer shutting down.
+		return false;
 
 	// Serialize the log record entry.
 
@@ -2587,7 +2598,10 @@ bool RemoteSerializer::SendLogWrite(Peer* peer, EnumVal* id, EnumVal* writer, st
 	if ( len > (LOG_BUFFER_SIZE - peer->log_buffer_used) || (network_time - last_flush > 1.0) )
 		{
 		if ( ! FlushLogBuffer(peer) )
+			{
+			delete [] data;
 			return false;
+			}
 		}
 
 	// If the data is actually larger than our complete buffer, just send it out.
@@ -2631,6 +2645,12 @@ bool RemoteSerializer::ProcessLogCreateWriter()
 	if ( current_peer->state == Peer::CLOSING )
 		return false;
 
+#ifdef USE_PERFTOOLS
+	// Don't track allocations here, they'll be released only after the
+	// main loop exists. And it's just a tiny amount anyway.
+	HeapLeakChecker::Disabler disabler;
+#endif
+
 	assert(current_args);
 
 	EnumVal* id_val = 0;
@@ -2666,7 +2686,7 @@ bool RemoteSerializer::ProcessLogCreateWriter()
 	id_val = new EnumVal(id, BifType::Enum::Log::ID);
 	writer_val = new EnumVal(writer, BifType::Enum::Log::Writer);
 
-	if ( ! log_mgr->CreateWriter(id_val, writer_val, path, num_fields, fields) )
+	if ( ! log_mgr->CreateWriter(id_val, writer_val, path, num_fields, fields, true, false) )
 		goto error;
 
 	Unref(id_val);
@@ -2734,6 +2754,8 @@ bool RemoteSerializer::ProcessLogWrite()
 		}
 
 	fmt.EndRead();
+
+	++received_logs;
 
 	return true;
 
@@ -3375,6 +3397,9 @@ void SocketComm::Run()
 		small_timeout.tv_sec = 0;
 		small_timeout.tv_usec =
 			io->CanWrite() || io->CanRead() ? 1 : 10;
+
+		if ( ! io->CanWrite() )
+			usleep(10);
 
 		int a = select(max_fd + 1, &fd_read, &fd_write, &fd_except,
 				&small_timeout);

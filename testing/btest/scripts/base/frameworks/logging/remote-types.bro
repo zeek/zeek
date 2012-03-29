@@ -1,3 +1,4 @@
+# @TEST-GROUP: comm
 #
 # @TEST-EXEC: btest-bg-run sender bro --pseudo-realtime %INPUT ../sender.bro
 # @TEST-EXEC: btest-bg-run receiver bro --pseudo-realtime %INPUT ../receiver.bro

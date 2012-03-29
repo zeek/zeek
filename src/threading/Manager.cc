@@ -11,7 +11,7 @@ Manager::Manager()
 	did_process = true;
 	next_beat = 0;
 	terminating = false;
-	idle = false;
+	idle = true;
 
 	heart_beat_interval = double(BifConst::Threading::heart_beat_interval);
 	DBG_LOG(DBG_THREADING, "Heart beat interval set to %f", heart_beat_interval);
@@ -62,6 +62,7 @@ void Manager::AddThread(BasicThread* thread)
 	{
 	DBG_LOG(DBG_THREADING, "Adding thread %s ...", thread->Name().c_str());
 	all_threads.push_back(thread);
+	idle = false;
 	}
 
 void Manager::AddMsgThread(MsgThread* thread)
@@ -105,22 +106,25 @@ void Manager::Process()
 			next_beat = 0;
 			}
 
-		if ( ! t->HasOut() )
-			continue;
-
-		Message* msg = t->RetrieveOut();
-
-		if ( msg->Process() && network_time )
-			did_process = true;
-
-		else
+		while ( t->HasOut() )
 			{
-			string s = msg->Name() + " failed, terminating thread";
-			reporter->Error("%s", s.c_str());
-			t->Stop();
+			Message* msg = t->RetrieveOut();
+
+			if ( msg->Process() )
+				{
+				if ( network_time )
+					did_process = true;
+				}
+
+			else
+				{
+				string s = msg->Name() + " failed, terminating thread";
+				reporter->Error("%s", s.c_str());
+				t->Stop();
 			}
 
-		delete msg;
+			delete msg;
+			}
 		}
 
 //	fprintf(stderr, "P %.6f %.6f do_beat=%d did_process=%d next_next=%.6f\n", network_time, timer_mgr->Time(), do_beat, (int)did_process, next_beat);

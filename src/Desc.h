@@ -8,7 +8,6 @@
 #include <utility>
 
 #include "BroString.h"
-#include "IPAddr.h"
 
 typedef enum {
 	DESC_READABLE,
@@ -23,6 +22,8 @@ typedef enum {
 } desc_style;
 
 class BroFile;
+class IPAddr;
+class IPPrefix;
 
 class ODesc {
 public:
@@ -76,8 +77,8 @@ public:
 	void Add(int64 i);
 	void Add(uint64 u);
 	void Add(double d);
-	void Add(const IPAddr& addr)	{ Add(addr.AsString()); }
-	void Add(const IPPrefix& prefix)	{ Add(prefix.AsString()); }
+	void Add(const IPAddr& addr);
+	void Add(const IPPrefix& prefix);
 
 	// Add s as a counted string.
 	void AddCS(const char* s);

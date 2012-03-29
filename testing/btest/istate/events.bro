@@ -1,4 +1,5 @@
-# 
+# @TEST-GROUP: comm
+#
 # @TEST-EXEC: btest-bg-run sender   bro -C -r $TRACES/web.trace --pseudo-realtime ../sender.bro
 # @TEST-EXEC: btest-bg-run receiver bro ../receiver.bro
 # @TEST-EXEC: btest-bg-wait -k 20

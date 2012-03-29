@@ -2,9 +2,16 @@
 #ifndef THREADING_SERIALIZATIONTYPES_H
 #define THREADING_SERIALIZATIONTYPES_H
 
-#include "../RemoteSerializer.h"
-
 using namespace std;
+
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
+#include "Type.h"
+#include "net_util.h"
+
+class SerializationFormat;
 
 namespace threading {
 
@@ -62,6 +69,16 @@ struct Value {
 	typedef set_t vec_t;
 	struct port_t { bro_uint_t port; TransportProto proto; };
 
+        struct addr_t {
+		IPFamily family;
+		union {
+			struct in_addr in4;
+			struct in6_addr in6;
+		} in;
+	};
+
+	struct subnet_t { addr_t prefix; uint8_t length; };
+
 	/**
 	 * This union is a subset of BroValUnion, including only the types we
 	 * can log directly. See IsCompatibleType().
@@ -73,8 +90,8 @@ struct Value {
 		double double_val;
 		set_t set_val;
 		vec_t vector_val;
-		IPAddr* addr_val;
-		IPPrefix* subnet_val;
+		addr_t addr_val;
+		subnet_t subnet_val;
 		string* string_val;
 	} val;
 
@@ -120,6 +137,7 @@ struct Value {
 	static bool IsCompatibleType(BroType* t, bool atomic_only=false);
 
 private:
+friend class ::IPAddr;
 	Value(const Value& other)	{ } // Disabled.
 };
 

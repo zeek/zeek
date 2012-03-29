@@ -1,3 +1,4 @@
+# @TEST-GROUP: comm
 #
 # @TEST-EXEC: btest-bg-run sender   bro %INPUT ../sender.bro
 # @TEST-EXEC: btest-bg-run receiver bro %INPUT ../receiver.bro

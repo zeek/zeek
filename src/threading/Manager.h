@@ -120,7 +120,7 @@ protected:
 	virtual const char* Tag()	{ return "threading::Manager"; }
 
 private:
-	static const int HEART_BEAT_INTERVAL = 1;
+	int heart_beat_interval;
 
 	typedef std::list<BasicThread*> all_thread_list;
 	all_thread_list all_threads;

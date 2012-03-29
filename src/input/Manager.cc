@@ -34,6 +34,11 @@ InputHash::~InputHash() {
 		delete idxkey;
 } 
 
+static void input_hash_delete_func(void* val) {
+	InputHash* h = (InputHash*) val;
+	delete h;
+}
+
 declare(PDict, InputHash);
 
 class Manager::Filter {
@@ -168,6 +173,14 @@ ReaderDefinition input_readers[] = {
 
 Manager::Manager()
 {
+}
+
+Manager::~Manager() {
+	for ( map<ReaderFrontend*, Filter*>::iterator s = readers.begin(); s != readers.end(); ++s ) {
+		delete s->second;
+		delete s->first;
+	}
+
 }
 
 ReaderBackend* Manager::CreateBackend(ReaderFrontend* frontend, bro_int_t type) {
@@ -527,7 +540,9 @@ bool Manager::CreateTableStream(RecordVal* fval) {
 	filter->itype = idx->AsRecordType();
 	filter->event = event ? event_registry->Lookup(event->GetID()->Name()) : 0;
 	filter->currDict = new PDict(InputHash);
+	filter->currDict->SetDeleteFunc(input_hash_delete_func);
 	filter->lastDict = new PDict(InputHash);
+	filter->lastDict->SetDeleteFunc(input_hash_delete_func);
 	filter->want_record = ( want_record->InternalInt() == 1 );
 
 	Unref(want_record); // ref'd by lookupwithdefault
@@ -820,20 +835,20 @@ int Manager::SendEntryTable(Filter* i, const Value* const *vals) {
 		}
 	}
 
-	InputHash *h = filter->lastDict->Lookup(idxhash);
+	InputHash *h = filter->lastDict->Lookup(idxhash); 
 	if ( h != 0 ) {
 		// seen before
 		if ( filter->num_val_fields == 0 || h->valhash == valhash ) {
-			// ok, exact duplicate
+			// ok, exact duplicate, move entry to new dicrionary and do nothing else.
 			filter->lastDict->Remove(idxhash);
 			filter->currDict->Insert(idxhash, h);
 			delete idxhash;
 			return filter->num_val_fields + filter->num_idx_fields;
 		} else {
 			assert( filter->num_val_fields > 0 );
-			// updated
+			// entry was updated in some way
 			filter->lastDict->Remove(idxhash);
-			delete(h);
+			// keep h for predicates
 			updated = true;
 			
 		}
@@ -881,8 +896,10 @@ int Manager::SendEntryTable(Filter* i, const Value* const *vals) {
 			Unref(predidx);
 			if ( !updated ) {
 				// throw away. Hence - we quit. And remove the entry from the current dictionary...
-				delete(filter->currDict->RemoveEntry(idxhash));
+				// (but why should it be in there? assert this).
+				assert ( filter->currDict->RemoveEntry(idxhash) == 0 );
 				delete idxhash;
+				delete h;
 				return filter->num_val_fields + filter->num_idx_fields;
 			} else {
 				// keep old one
@@ -893,6 +910,12 @@ int Manager::SendEntryTable(Filter* i, const Value* const *vals) {
 		}
 
 	} 
+
+	// now we don't need h anymore - if we are here, the entry is updated and a new h is created.
+	if ( h ) {
+		delete h;
+		h = 0;
+	}
 	
 
 	Val* idxval;
@@ -1014,6 +1037,7 @@ void Manager::EndCurrentSend(ReaderFrontend* reader) {
 				Unref(predidx);
 				Unref(ev);
 				filter->currDict->Insert(lastDictIdxKey, filter->lastDict->RemoveEntry(lastDictIdxKey));
+				delete lastDictIdxKey;
 				continue;
 			} 
 		} 
@@ -1030,8 +1054,9 @@ void Manager::EndCurrentSend(ReaderFrontend* reader) {
 		if ( ev ) 
 			Unref(ev);
 
-		filter->tab->Delete(ih->idxkey);
-		filter->lastDict->Remove(lastDictIdxKey); // deletex in next line
+		Unref(filter->tab->Delete(ih->idxkey));
+		filter->lastDict->Remove(lastDictIdxKey); // delete in next line
+		delete lastDictIdxKey;
 		delete(ih);
 	}
 
@@ -1040,6 +1065,7 @@ void Manager::EndCurrentSend(ReaderFrontend* reader) {
 
 	filter->lastDict = filter->currDict;	
 	filter->currDict = new PDict(InputHash);
+	filter->currDict->SetDeleteFunc(input_hash_delete_func);
 
 #ifdef DEBUG
 		DBG_LOG(DBG_INPUT, "EndCurrentSend complete for  stream %s, queueing update_finished event",
@@ -1284,9 +1310,12 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals) {
 
 		// only if filter = true -> no filtering
 		if ( filterresult ) {
-			success = ( filter->tab->Delete(idxval) != 0 );
+			Val* retptr = filter->tab->Delete(idxval);
+			success = ( retptr != 0 );
 			if ( !success ) {
 				reporter->Error("Internal error while deleting values from input table");
+			} else {
+				Unref(retptr);
 			}
 		}
 	} else if ( i->filter_type == EVENT_FILTER  ) {

@@ -305,24 +305,6 @@ void IPv6_Hdr_Chain::Init(const struct ip6_hdr* ip6, bool set_next, uint16 next)
 
 		chain.push_back(p);
 
-		// RFC 5095 deprecates routing type 0 headers, so raise weirds for that.
-		if ( current_type == IPPROTO_ROUTING &&
-		     ((const struct ip6_rthdr*)hdrs)->ip6r_type == 0 )
-			{
-			IPAddr src(((const struct ip6_hdr*)(chain[0]->Data()))->ip6_src);
-
-			if ( ((const struct ip6_rthdr*)hdrs)->ip6r_segleft > 0 )
-				{
-				const in6_addr* a = (const in6_addr*)(hdrs+len-16);
-				reporter->Weird(src, *a, "routing0_segleft");
-				}
-			else
-				{
-				IPAddr dst(((const struct ip6_hdr*)(chain[0]->Data()))->ip6_dst);
-				reporter->Weird(src, dst, "routing0_header");
-				}
-			}
-
 		hdrs += len;
 		length += len;
 		} while ( current_type != IPPROTO_FRAGMENT &&

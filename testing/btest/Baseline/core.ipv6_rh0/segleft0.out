@@ -1,2 +1,0 @@
-flow_weird routing0_header from 2001:4f8:4:7:2e0:81ff:fe52:ffff to 2001:4f8:4:7:2e0:81ff:fe52:9a6b
-new_connection: [orig_h=2001:4f8:4:7:2e0:81ff:fe52:ffff, orig_p=30000/tcp, resp_h=2001:4f8:4:7:2e0:81ff:fe52:9a6b, resp_p=80/tcp]

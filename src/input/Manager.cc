@@ -25,8 +25,14 @@ using threading::Field;
 
 struct InputHash {
 	hash_t valhash;
-	HashKey* idxkey; // does not need ref or whatever - if it is present here, it is also still present in the TableVal.
+	HashKey* idxkey; 
+	~InputHash();
 };
+
+InputHash::~InputHash() {
+	if ( idxkey )
+		delete idxkey;
+} 
 
 declare(PDict, InputHash);
 
@@ -821,6 +827,7 @@ int Manager::SendEntryTable(Filter* i, const Value* const *vals) {
 			// ok, exact duplicate
 			filter->lastDict->Remove(idxhash);
 			filter->currDict->Insert(idxhash, h);
+			delete idxhash;
 			return filter->num_val_fields + filter->num_idx_fields;
 		} else {
 			assert( filter->num_val_fields > 0 );
@@ -855,7 +862,6 @@ int Manager::SendEntryTable(Filter* i, const Value* const *vals) {
 		//Val* predidx = ListValToRecordVal(idxval->AsListVal(), filter->itype, &startpos);
 		predidx = ValueToRecordVal(vals, filter->itype, &startpos);
 		//ValueToRecordVal(vals, filter->itype, &startpos);
-		Ref(valval);
 
 		if ( updated ) {
 			ev = new EnumVal(BifEnum::Input::EVENT_CHANGED, BifType::Enum::Input::Event);
@@ -865,7 +871,7 @@ int Manager::SendEntryTable(Filter* i, const Value* const *vals) {
 
 		bool result;
 		if ( filter->num_val_fields > 0 ) { // we have values
-			result = CallPred(filter->pred, 3, ev, predidx->Ref(), valval);
+			result = CallPred(filter->pred, 3, ev, predidx->Ref(), valval->Ref());
 		} else {
 			// no values
 			result = CallPred(filter->pred, 2, ev, predidx->Ref());
@@ -876,10 +882,12 @@ int Manager::SendEntryTable(Filter* i, const Value* const *vals) {
 			if ( !updated ) {
 				// throw away. Hence - we quit. And remove the entry from the current dictionary...
 				delete(filter->currDict->RemoveEntry(idxhash));
+				delete idxhash;
 				return filter->num_val_fields + filter->num_idx_fields;
 			} else {
 				// keep old one
 				filter->currDict->Insert(idxhash, h);
+				delete idxhash;
 				return filter->num_val_fields + filter->num_idx_fields;
 			}
 		}
@@ -916,8 +924,10 @@ int Manager::SendEntryTable(Filter* i, const Value* const *vals) {
 	if ( filter->event && updated )
 		Ref(oldval); // otherwise it is no longer accessible after the assignment
 	filter->tab->Assign(idxval, k, valval);
+	Unref(idxval); // asssign does not consume idxval.
 
 	filter->currDict->Insert(idxhash, ih);
+	delete idxhash;
 
 	if ( filter->event ) {
 		EnumVal* ev;
@@ -931,12 +941,11 @@ int Manager::SendEntryTable(Filter* i, const Value* const *vals) {
 			SendEvent(filter->event, 4, filter->description->Ref(), ev, predidx, oldval);
 		} else {
 			ev = new EnumVal(BifEnum::Input::EVENT_NEW, BifType::Enum::Input::Event);
-			Ref(valval);
 			if ( filter->num_val_fields == 0 ) {
 				Ref(filter->description);
 				SendEvent(filter->event, 3, filter->description->Ref(), ev, predidx);
 			} else {
-				SendEvent(filter->event, 4, filter->description->Ref(), ev, predidx, valval);
+				SendEvent(filter->event, 4, filter->description->Ref(), ev, predidx, valval->Ref());
 			}
 		}
 	} 

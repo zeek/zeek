@@ -31,58 +31,6 @@ int ones_complement_checksum(const void* p, int b, uint32 sum)
 	return sum;
 	}
 
-int ones_complement_checksum(const IPAddr& a, uint32 sum)
-	{
-	const uint32* bytes;
-	int len = a.GetBytes(&bytes);
-	return ones_complement_checksum(bytes, len*4, sum);
-	}
-
-int udp_checksum(const struct ip* ip, const struct udphdr* up, int len)
-	{
-	uint32 sum;
-
-	if ( len % 2 == 1 )
-		// Add in pad byte.
-		sum = htons(((const u_char*) up)[len - 1] << 8);
-	else
-		sum = 0;
-
-	sum = ones_complement_checksum((void*) &ip->ip_src.s_addr, 4, sum);
-	sum = ones_complement_checksum((void*) &ip->ip_dst.s_addr, 4, sum);
-
-	uint32 addl_pseudo =
-		(htons(IPPROTO_UDP) << 16) | htons((unsigned short) len);
-
-	sum = ones_complement_checksum((void*) &addl_pseudo, 4, sum);
-	sum = ones_complement_checksum((void*) up, len, sum);
-
-	return sum;
-	}
-
-int udp6_checksum(const struct ip6_hdr* ip6, const struct udphdr* up, int len)
-	{
-	uint32 sum;
-
-	if ( len % 2 == 1 )
-		// Add in pad byte.
-		sum = htons(((const u_char*) up)[len - 1] << 8);
-	else
-		sum = 0;
-
-	sum = ones_complement_checksum((void*) ip6->ip6_src.s6_addr, 16, sum);
-	sum = ones_complement_checksum((void*) ip6->ip6_dst.s6_addr, 16, sum);
-
-	uint32 l = htonl(len);
-	sum = ones_complement_checksum((void*) &l, 4, sum);
-
-	uint32 addl_pseudo = htons(IPPROTO_UDP);
-	sum = ones_complement_checksum((void*) &addl_pseudo, 4, sum);
-	sum = ones_complement_checksum((void*) up, len, sum);
-
-	return sum;
-	}
-
 int icmp_checksum(const struct icmp* icmpp, int len)
 	{
 	uint32 sum;

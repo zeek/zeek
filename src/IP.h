@@ -117,7 +117,8 @@ public:
 	/**
 	 * Initializes the header chain from an IPv6 header structure.
 	 */
-	IPv6_Hdr_Chain(const struct ip6_hdr* ip6) { Init(ip6, false); }
+	IPv6_Hdr_Chain(const struct ip6_hdr* ip6) : route0_hdr_idx(0)
+		{ Init(ip6, false); }
 
 	~IPv6_Hdr_Chain()
 		{ for ( size_t i = 0; i < chain.size(); ++i ) delete chain[i]; }
@@ -172,6 +173,27 @@ public:
 				(ntohs(GetFragHdr()->ip6f_offlg) & 0x0001) != 0 : 0; }
 
 	/**
+	 * Returns the final destination of the packet this chain belongs to.
+	 * If the chain doesn't contain any routing type 0 header with non-zero
+	 * segments left, this is the destination in the main IP header, else
+	 * it's the last address in the routing header.  (If there were to be
+	 * more than one routing type 0 header with non-zero segments left, the
+	 * last one would be the one referenced).
+	 */
+	IPAddr FinalDst() const
+		{
+		if ( route0_hdr_idx )
+			{
+			const struct in6_addr* a = (const struct in6_addr*)
+			        (chain[route0_hdr_idx]->Data() +
+			         chain[route0_hdr_idx]->Length() - 16);
+			return IPAddr(*a);
+			}
+		else
+			return IPAddr(((const struct ip6_hdr*)(chain[0]->Data()))->ip6_dst);
+		}
+
+	/**
 	 * Returns a vector of ip6_ext_hdr RecordVals that includes script-layer
 	 * representation of all extension headers in the chain.
 	 */
@@ -186,13 +208,24 @@ protected:
 	 * Initializes the header chain from an IPv6 header structure, and replaces
 	 * the first next protocol pointer field that points to a fragment header.
 	 */
-	IPv6_Hdr_Chain(const struct ip6_hdr* ip6, uint16 next)
+	IPv6_Hdr_Chain(const struct ip6_hdr* ip6, uint16 next) : route0_hdr_idx(0)
 		{ Init(ip6, true, next); }
 
 	void Init(const struct ip6_hdr* ip6, bool set_next, uint16 next = 0);
 
 	vector<IPv6_Hdr*> chain;
-	uint16 length; // The summation of all header lengths in the chain in bytes.
+
+	/**
+	 * The summation of all header lengths in the chain in bytes.
+	 */
+	uint16 length;
+
+	/**
+	 * Index of routing type 0 header with non-zero segments left in the header
+	 * chain or zero if none exists (it's fine since the main IP header must
+	 * always be at index zero).
+	 */
+	uint8 route0_hdr_idx;
 };
 
 class IP_Hdr {
@@ -248,7 +281,22 @@ public:
 	IPAddr SrcAddr() const
 		{ return ip4 ? IPAddr(ip4->ip_src) : IPAddr(ip6->ip6_src); }
 
-	IPAddr DstAddr() const
+	/**
+	 * Returns the final destination address of the header's packet, which
+	 * for IPv6 packets without a routing type 0 extension header and IPv4
+	 * packets is the destination address in the IP header.  For IPv6 packets
+	 * with a routing type 0 extension header and a non-zero number of
+	 * segments left, the final destination is the last address in the routing
+	 * header.  If the segments left of a routing type 0 header were zero,
+	 * then the final destination is in the IP header itself.
+	 */
+	IPAddr FinalDstAddr() const
+		{ return ip4 ? IPAddr(ip4->ip_dst) : ip6_hdrs->FinalDst(); }
+
+	/**
+	 * Returns the destination address held in the IP header.
+	 */
+	IPAddr IPHeaderDstAddr() const
 		{ return ip4 ? IPAddr(ip4->ip_dst) : IPAddr(ip6->ip6_dst); }
 
 	/**

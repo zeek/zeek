@@ -127,7 +127,6 @@ public:
 	TCP_Reassembler* contents_processor;
 	TCP_Analyzer* tcp_analyzer;
 	BroFile* contents_file;
-	uint32 checksum_base;
 
 	double start_time, last_time;
 	IPAddr src_addr; // the other endpoint

@@ -60,11 +60,14 @@ inline int seq_delta(uint32 a, uint32 b)
 
 // Returns the ones-complement checksum of a chunk of b short-aligned bytes.
 extern int ones_complement_checksum(const void* p, int b, uint32 sum);
-extern int ones_complement_checksum(const IPAddr& a, uint32 sum);
 
-extern int udp_checksum(const struct ip* ip, const struct udphdr* up, int len);
-extern int udp6_checksum(const struct ip6_hdr* ip, const struct udphdr* up,
-				int len);
+inline int ones_complement_checksum(const IPAddr& a, uint32 sum)
+	{
+	const uint32* bytes;
+	int len = a.GetBytes(&bytes);
+	return ones_complement_checksum(bytes, len*4, sum);
+	}
+
 extern int icmp_checksum(const struct icmp* icmpp, int len);
 
 // Returns 'A', 'B', 'C' or 'D'

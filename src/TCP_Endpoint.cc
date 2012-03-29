@@ -31,14 +31,6 @@ TCP_Endpoint::TCP_Endpoint(TCP_Analyzer* arg_analyzer, int arg_is_orig)
 				tcp_analyzer->Conn()->OrigAddr();
 	dst_addr = is_orig ? tcp_analyzer->Conn()->OrigAddr() :
 				tcp_analyzer->Conn()->RespAddr();
-
-	checksum_base = ones_complement_checksum(src_addr, 0);
-	checksum_base = ones_complement_checksum(dst_addr, checksum_base);
-	// Note, for IPv6, strictly speaking this field is 32 bits
-	// rather than 16 bits.  But because the upper bits are all zero,
-	// we get the same checksum either way.  The same applies to
-	// later when we add in the data length in ValidChecksum().
-	checksum_base += htons(IPPROTO_TCP);
 	}
 
 TCP_Endpoint::~TCP_Endpoint()
@@ -108,13 +100,21 @@ void TCP_Endpoint::SizeBufferedData(int& waiting_on_hole, int& waiting_on_ack)
 
 int TCP_Endpoint::ValidChecksum(const struct tcphdr* tp, int len) const
 	{
-	uint32 sum = checksum_base;
+	uint32 sum;
 	int tcp_len = tp->th_off * 4 + len;
 
 	if ( len % 2 == 1 )
 		// Add in pad byte.
-		sum += htons(((const u_char*) tp)[tcp_len - 1] << 8);
+		sum = htons(((const u_char*) tp)[tcp_len - 1] << 8);
+	else
+		sum = 0;
 
+	sum = ones_complement_checksum(src_addr, sum);
+	sum = ones_complement_checksum(dst_addr, sum);
+	// Note, for IPv6, strictly speaking the protocol and length fields are
+	// 32 bits rather than 16 bits.  But because the upper bits are all zero,
+	// we get the same checksum either way.
+	sum += htons(IPPROTO_TCP);
 	sum += htons((unsigned short) tcp_len);	// fill out pseudo header
 	sum = ones_complement_checksum((void*) tp, tcp_len, sum);
 

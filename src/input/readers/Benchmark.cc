@@ -89,7 +89,7 @@ double Benchmark::CurrTime() {
 
 // read the entire file and send appropriate thingies back to InputMgr
 bool Benchmark::DoUpdate() {
-	int linestosend = num_lines * threading::Manager::HEART_BEAT_INTERVAL;
+        int linestosend = num_lines * heart_beat_interval;
 	for ( int i = 0; i < linestosend; i++ ) {
 		Value** field = new Value*[num_fields];
 		for  (unsigned int j = 0; j < num_fields; j++ ) {
@@ -117,7 +117,7 @@ bool Benchmark::DoUpdate() {
 				diff = CurrTime() - heartbeatstarttime;
 				//printf("%d %f\n", i, diff);
 			//} while ( diff < i/threading::Manager::HEART_BEAT_INTERVAL*(num_lines + (num_lines * timedspread) ) );
-			} while ( diff/threading::Manager::HEART_BEAT_INTERVAL < i/(linestosend + (linestosend * timedspread) ) );
+                        } while ( diff/heart_beat_interval < i/(linestosend + (linestosend * timedspread) ) );
 			//} while ( diff < 0.8); 
 		}
 

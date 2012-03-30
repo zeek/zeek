@@ -46,6 +46,7 @@ private:
 	int stopspreadat;
 	double heartbeatstarttime;
 	double timedspread;
+	double heart_beat_interval;
 
 	string RandomString(const int len);
 

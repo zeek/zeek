@@ -43,6 +43,9 @@ private:
 	double autospread;
 	int autospread_time;
 	int add;
+	int stopspreadat;
+	double heartbeatstarttime;
+	int timedspread;
 
 	string RandomString(const int len);
 

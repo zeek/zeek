@@ -14,4 +14,10 @@ export {
 
 	## addition factor for each heartbeat
 	const addfactor = 0 &redef;
+
+	## stop spreading at x lines per heartbeat
+	const stopspreadat = 0 &redef;
+
+	## 1 -> enable timed spreading
+	const timedspread = 0 &redef;
 }

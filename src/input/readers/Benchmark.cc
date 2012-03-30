@@ -26,6 +26,8 @@ Benchmark::Benchmark(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	spread = int(BifConst::InputBenchmark::spread);
 	add = int(BifConst::InputBenchmark::addfactor);
 	autospread_time = 0;
+	stopspreadat = int(BifConst::InputBenchmark::stopspreadat);
+	timedspread = int(BifConst::InputBenchmark::timedspread);
 
 }
 
@@ -54,6 +56,7 @@ bool Benchmark::DoInit(string path, int arg_mode, int arg_num_fields, const Fiel
 		return false;
 	} 	
 
+	heartbeatstarttime = CurrTime();
 	DoUpdate();
 
 	return true;
@@ -97,12 +100,23 @@ bool Benchmark::DoUpdate() {
 			SendEntry(field);
 		}
 		
-		if ( spread != 0 ) 
-			usleep(spread);
+		if ( stopspreadat == 0 || num_lines < stopspreadat ) {
+			if ( spread != 0 ) 
+				usleep(spread);
 
-		if ( autospread_time != 0 ) {
-			usleep( autospread_time );
+			if ( autospread_time != 0 ) 
+				usleep( autospread_time );
 		}
+
+		if ( timedspread == 1 ) {
+			double diff;
+			do {
+				diff = CurrTime() - heartbeatstarttime;
+				//printf("%d %f\n", i, diff);
+			} while ( diff < i/(num_lines + (num_lines * 0.15) ) );
+			//} while ( diff < 0.8); 
+		}
+
 	}
 
 	if ( mode != STREAM ) { 
@@ -215,6 +229,7 @@ bool Benchmark::DoHeartbeat(double network_time, double current_time)
 	ReaderBackend::DoHeartbeat(network_time, current_time);
 	num_lines = (int) ( (double) num_lines*multiplication_factor);
 	num_lines += add;
+	heartbeatstarttime = CurrTime();
 
 	switch ( mode ) {
 		case MANUAL:

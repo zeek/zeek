@@ -38,7 +38,7 @@ Login_Analyzer::Login_Analyzer(AnalyzerTag::Tag tag, Connection* conn)
 
 	if ( ! re_skip_authentication )
 		{
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 		HeapLeakChecker::Disabler disabler;
 #endif
 		re_skip_authentication = init_RE(skip_authentication);

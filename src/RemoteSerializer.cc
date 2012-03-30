@@ -187,6 +187,7 @@
 #include "threading/SerialTypes.h"
 #include "logging/Manager.h"
 #include "IPAddr.h"
+#include "bro_inet_ntop.h"
 
 extern "C" {
 #include "setsignal.h"
@@ -234,7 +235,7 @@ static const int PRINT_BUFFER_SIZE = 10 * 1024;
 static const int SOCKBUF_SIZE = 1024 * 1024;
 
 // Buffer size for remote-log data.
-static const int LOG_BUFFER_SIZE = 512;
+static const int LOG_BUFFER_SIZE = 50 * 1024;
 
 struct ping_args {
 	uint32 seq;
@@ -465,7 +466,7 @@ static inline const char* ip2a(uint32 ip)
 
 	addr.s_addr = htonl(ip);
 
-	return inet_ntop(AF_INET, &addr, buffer, 32);
+	return bro_inet_ntop(AF_INET, &addr, buffer, 32);
 	}
 
 static pid_t child_pid = 0;
@@ -2645,7 +2646,7 @@ bool RemoteSerializer::ProcessLogCreateWriter()
 	if ( current_peer->state == Peer::CLOSING )
 		return false;
 
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 	// Don't track allocations here, they'll be released only after the
 	// main loop exists. And it's just a tiny amount anyway.
 	HeapLeakChecker::Disabler disabler;
@@ -2866,7 +2867,7 @@ void RemoteSerializer::GotID(ID* id, Val* val)
 					(desc && *desc) ? desc : "not set"),
 			current_peer);
 
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 		// May still be cached, but we don't care.
 		heap_checker->IgnoreObject(id);
 #endif

@@ -162,7 +162,11 @@ The Bro scripting language supports the following built-in types.
     ``A1.A2.A3.A4``, where Ai all lie between 0 and 255.
 
     IPv6 address constants are written as colon-separated hexadecimal form
-    as described by :rfc:`2373`.
+    as described by :rfc:`2373`, but additionally encased in square brackets.
+    The mixed notation with embedded IPv4 addresses as dotted-quads in the
+    lower 32 bits is also allowed.
+    Some examples: ``[2001:db8::1]``, ``[::ffff:192.168.1.100]``, or
+    ``[aaaa:bbbb:cccc:dddd:eeee:ffff:1111:2222]``.
 
     Hostname constants can also be used, but since a hostname can
     correspond to multiple IP addresses, the type of such variable is a
@@ -196,7 +200,7 @@ The Bro scripting language supports the following built-in types.
     A type representing a block of IP addresses in CIDR notation.  A
     ``subnet`` constant is written as an :bro:type:`addr` followed by a
     slash (/) and then the network prefix size specified as a decimal
-    number.  For example, ``192.168.0.0/16``.
+    number.  For example, ``192.168.0.0/16`` or ``[fe80::]/64``.
 
 .. bro:type:: any
 

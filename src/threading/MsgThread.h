@@ -154,6 +154,10 @@ public:
 		uint64_t sent_out;	//! Number of messages sent from the child thread to the main thread
 		uint64_t pending_in;	//! Number of messages sent to the child but not yet processed.
 		uint64_t pending_out;	//! Number of messages sent from the child but not yet processed by the main thread.
+
+		/// Statistics from our queues.
+		Queue<BasicInputMessage *>::Stats  queue_in_stats;
+		Queue<BasicOutputMessage *>::Stats queue_out_stats;
 		};
 
 	/**

@@ -67,7 +67,7 @@ extern "C" {
 #include "setsignal.h"
 };
 
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 HeapLeakChecker* heap_checker = 0;
 int perftools_leaks = 0;
 int perftools_profile = 0;
@@ -180,7 +180,7 @@ void usage()
 	fprintf(stderr, "    -W|--watchdog                  | activate watchdog timer\n");
 	fprintf(stderr, "    -Z|--doc-scripts               | generate documentation for all loaded scripts\n");
 
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 	fprintf(stderr, "    -m|--mem-leaks                 | show leaks  [perftools]\n");
 	fprintf(stderr, "    -M|--mem-profile               | record heap [perftools]\n");
 #endif
@@ -247,7 +247,7 @@ void done_with_network()
 
 	net_finish(1);
 
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 
 		if ( perftools_profile )
 			{
@@ -428,7 +428,7 @@ int main(int argc, char** argv)
 #ifdef	USE_IDMEF
 		{"idmef-dtd",		required_argument,	0,	'n'},
 #endif
-#ifdef	USE_PERFTOOLS
+#ifdef	USE_PERFTOOLS_DEBUG
 		{"mem-leaks",	no_argument,		0,	'm'},
 		{"mem-profile",	no_argument,		0,	'M'},
 #endif
@@ -470,7 +470,7 @@ int main(int argc, char** argv)
 	safe_strncpy(opts, "B:D:e:f:I:i:K:l:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGLOPSWbdghvZ",
 		     sizeof(opts));
 
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 	strncat(opts, "mM", 2);
 #endif
 
@@ -626,7 +626,7 @@ int main(int argc, char** argv)
 			exit(0);
 			break;
 
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 		case 'm':
 			perftools_leaks = 1;
 			break;
@@ -763,14 +763,14 @@ int main(int argc, char** argv)
 	// nevertheless reported; see perftools docs), thus
 	// we suppress some messages here.
 
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 	{
 	HeapLeakChecker::Disabler disabler;
 #endif
 
 	yyparse();
 
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 	}
 #endif
 
@@ -858,7 +858,7 @@ int main(int argc, char** argv)
 
 	if ( dns_type != DNS_PRIME )
 		net_init(interfaces, read_files, netflows, flow_files,
-			writefile, "tcp or udp or icmp",
+			writefile, "",
 			secondary_path->Filter(), do_watchdog);
 
 	BroFile::SetDefaultRotation(log_rotate_interval, log_max_size);
@@ -1024,7 +1024,7 @@ int main(int argc, char** argv)
 		if ( profiling_logger )
 			profiling_logger->Log();
 
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 		if ( perftools_leaks )
 			heap_checker = new HeapLeakChecker("net_run");
 

@@ -1,4 +1,76 @@
 
+2.0-184 | 2012-03-28 15:11:11 -0700
+
+  * Improve handling of IPv6 Routing Type 0 headers.  (Jon Siwek)
+
+    - For RH0 headers with non-zero segments left, a
+      "routing0_segleft" flow_weird event is raised (with a
+      destination indicating the last address in the routing header),
+      and an "rh0_segleft" event can also be handled if the other
+      contents of the packet header are of interest. No further
+      analysis is done as the complexity required to correctly
+      identify destination endpoints of connections doesn't seem worth
+      it as RH0 has been deprecated by RFC 5095.
+
+    - For RH0 headers without any segments left, a "routing0_header"
+      flow_weird event is raised, but further analysis still occurs as
+      normal.
+
+2.0-182 | 2012-03-28 15:01:57 -0700
+
+  * Remove dead tcp_checksum function from net_util. (Jon Siwek)
+
+  * Change routing0_data_to_addrs BIF to return vector of addresses.
+    The order of addresses in type 0 routing headers is
+    interesting/important. (Jon Siwek)
+
+
+2.0-179 | 2012-03-23 17:43:31 -0700
+
+  * Remove the default "tcp or udp or icmp" filter. In default mode,
+    Bro would load the packet filter script framework which installs a
+    filter that allows all packets, but in bare mode (the -b option),
+    this old filter would not follow IPv6 protocol chains and thus
+    filter out packets with extension headers. (Jon Siwek)
+
+  * Update PacketFilter/Discarder code for IP version independence.
+    (Jon Siwek)
+
+  * Fix some IPv6 header related bugs. (Jon Siwek)
+    
+  * Add IPv6 fragment reassembly. (Jon Siwek)
+    
+  * Add handling for IPv6 extension header chains. Addresses #531.
+    (Jon Siwek)
+    
+    - The script-layer 'pkt_hdr' type is extended with a new 'ip6' field
+      representing the full IPv6 header chain.
+
+    - The 'new_packet' event is now raised for IPv6 packets. Addresses
+      #523.
+
+    - A new event called 'ipv6_ext_header' is raised for any IPv6
+      packet containing extension headers.
+
+    - A new event called 'esp_packet' is raised for any packets using
+      ESP ('new_packet' and 'ipv6_ext_header' events provide
+      connection info, but that info can't be provided here since the
+      upper-layer payload is encrypted).
+
+    - The 'unknown_protocol' weird is now raised more reliably when
+      Bro sees a transport protocol or IPv6 extension header it can't
+      handle. Addresses #522.
+
+  * Add unit tests for IPv6 fragment reassembly, ipv6_ext_headers and
+    esp_packet events. (Jon Siwek)
+
+  * Adapt FreeBSD's inet_ntop implementation for internal use. Now we
+    get consistent text representations of IPv6 addresses across
+    platforms. (Jon Siwek)
+
+  * Update documentation for new syntax of IPv6 literals. (Jon Siwek)
+    
+
 2.0-150 | 2012-03-13 16:16:22 -0700
 
   * Changing the regular expression to allow Site::local_nets in

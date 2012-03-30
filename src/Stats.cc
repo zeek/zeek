@@ -210,11 +210,16 @@ void ProfileLogger::Log()
 	      i != thread_stats.end(); ++i ) 
 		{
 		threading::MsgThread::Stats s = i->second;
-		file->Write(fmt("%0.6f   %-25s in=%" PRIu64 " out=%" PRIu64 " pending=%" PRIu64 "/%" PRIu64 "\n",
+		file->Write(fmt("%0.6f   %-25s in=%" PRIu64 " out=%" PRIu64 " pending=%" PRIu64 "/%" PRIu64
+				" (#queue r/w: in=%" PRIu64 "/%" PRIu64 " out=%" PRIu64 "/%" PRIu64 ")"
+			        "\n",
 			    network_time,
 			    i->first.c_str(),
 			    s.sent_in, s.sent_out,
-			    s.pending_in, s.pending_out));
+			    s.pending_in, s.pending_out,
+			    s.queue_in_stats.num_reads, s.queue_in_stats.num_writes,
+			    s.queue_out_stats.num_reads, s.queue_out_stats.num_writes
+			    ));
 		}
 
 	// Script-level state.

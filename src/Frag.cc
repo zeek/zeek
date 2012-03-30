@@ -27,21 +27,32 @@ void FragTimer::Dispatch(double t, int /* is_expire */)
 
 FragReassembler::FragReassembler(NetSessions* arg_s,
 			const IP_Hdr* ip, const u_char* pkt,
-			uint32 frag_field, HashKey* k, double t)
+			HashKey* k, double t)
 : Reassembler(0, ip->DstAddr(), REASSEM_IP)
 	{
 	s = arg_s;
 	key = k;
+
 	const struct ip* ip4 = ip->IP4_Hdr();
-	proto_hdr_len = ip4->ip_hl * 4;
-	proto_hdr = (struct ip*) new u_char[64];	// max IP header + slop
-	// Don't do a structure copy - need to pick up options, too.
-	memcpy((void*) proto_hdr, (const void*) ip4, proto_hdr_len);
+	if ( ip4 )
+		{
+		proto_hdr_len = ip->HdrLen();
+		proto_hdr = new u_char[64];	// max IP header + slop
+		// Don't do a structure copy - need to pick up options, too.
+		memcpy((void*) proto_hdr, (const void*) ip4, proto_hdr_len);
+		}
+	else
+		{
+		proto_hdr_len = ip->HdrLen() - 8; // minus length of fragment header
+		proto_hdr = new u_char[proto_hdr_len];
+		memcpy(proto_hdr, ip->IP6_Hdr(), proto_hdr_len);
+		}
 
 	reassembled_pkt = 0;
 	frag_size = 0;	// flag meaning "not known"
+	next_proto = ip->NextProto();
 
-	AddFragment(t, ip, pkt, frag_field);
+	AddFragment(t, ip, pkt);
 
 	if ( frag_timeout != 0.0 )
 		{
@@ -60,28 +71,42 @@ FragReassembler::~FragReassembler()
 	delete key;
 	}
 
-void FragReassembler::AddFragment(double t, const IP_Hdr* ip, const u_char* pkt,
-				uint32 frag_field)
+void FragReassembler::AddFragment(double t, const IP_Hdr* ip, const u_char* pkt)
 	{
 	const struct ip* ip4 = ip->IP4_Hdr();
 
-	if ( ip4->ip_p != proto_hdr->ip_p || ip4->ip_hl != proto_hdr->ip_hl )
+	if ( ip4 )
+		{
+		if ( ip4->ip_p != ((const struct ip*)proto_hdr)->ip_p ||
+		     ip4->ip_hl != ((const struct ip*)proto_hdr)->ip_hl )
 		// || ip4->ip_tos != proto_hdr->ip_tos
 		// don't check TOS, there's at least one stack that actually
 		// uses different values, and it's hard to see an associated
 		// attack.
 		s->Weird("fragment_protocol_inconsistency", ip);
+		}
+	else
+		{
+		if ( ip->NextProto() != next_proto ||
+		     ip->HdrLen() - 8 != proto_hdr_len )
+			s->Weird("fragment_protocol_inconsistency", ip);
+		// TODO: more detailed unfrag header consistency checks?
+		}
 
-	if ( frag_field & 0x4000 )
+	if ( ip->DF() )
 		// Linux MTU discovery for UDP can do this, for example.
 		s->Weird("fragment_with_DF", ip);
 
-	int offset = (ntohs(ip4->ip_off) & 0x1fff) * 8;
-	int len = ntohs(ip4->ip_len);
-	int hdr_len = proto_hdr->ip_hl * 4;
+	int offset = ip->FragOffset();
+	int len = ip->TotalLen();
+	int hdr_len = ip->HdrLen();
 	int upper_seq = offset + len - hdr_len;
 
-	if ( (frag_field & 0x2000) == 0 )
+	if ( ! offset )
+		// Make sure to use the first fragment header's next field.
+		next_proto = ip->NextProto();
+
+	if ( ! ip->MF() )
 		{
 		// Last fragment.
 		if ( frag_size == 0 )
@@ -193,8 +218,7 @@ void FragReassembler::BlockInserted(DataBlock* /* start_block */)
 	u_char* pkt = new u_char[n];
 	memcpy((void*) pkt, (const void*) proto_hdr, proto_hdr_len);
 
-	struct ip* reassem4 = (struct ip*) pkt;
-	reassem4->ip_len = htons(frag_size + proto_hdr_len);
+	u_char* pkt_start = pkt;
 
 	pkt += proto_hdr_len;
 
@@ -214,7 +238,27 @@ void FragReassembler::BlockInserted(DataBlock* /* start_block */)
 		}
 
 	delete reassembled_pkt;
-	reassembled_pkt = new IP_Hdr(reassem4, true);
+
+	if ( ((const struct ip*)pkt_start)->ip_v == 4 )
+		{
+		struct ip* reassem4 = (struct ip*) pkt_start;
+		reassem4->ip_len = htons(frag_size + proto_hdr_len);
+		reassembled_pkt = new IP_Hdr(reassem4, true);
+		}
+
+	else if ( ((const struct ip*)pkt_start)->ip_v == 6 )
+		{
+		struct ip6_hdr* reassem6 = (struct ip6_hdr*) pkt_start;
+		reassem6->ip6_plen = htons(frag_size + proto_hdr_len - 40);
+		const IPv6_Hdr_Chain* chain = new IPv6_Hdr_Chain(reassem6, next_proto);
+		reassembled_pkt = new IP_Hdr(reassem6, true, chain);
+		}
+
+	else
+		{
+		reporter->InternalError("bad IP version in fragment reassembly");
+		}
+
 
 	DeleteTimer();
 	}

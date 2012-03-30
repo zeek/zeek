@@ -454,10 +454,37 @@ event expected_connection_seen%(c: connection, a: count%);
 ##
 ## c: The connection the packet is part of.
 ##
-## p: Informattion from the header of the packet that triggered the event.
+## p: Information from the header of the packet that triggered the event.
 ##
 ## .. bro:see:: tcp_packet packet_contents
 event new_packet%(c: connection, p: pkt_hdr%);
+
+## Generated for every IPv6 packet that contains extension headers.
+## This is potentially an expensive event to handle if analysiing IPv6 traffic
+## that happens to utilize extension headers frequently.
+##
+## c: The connection the packet is part of.
+##
+## p: Information from the header of the packet that triggered the event.
+##
+## .. bro:see:: new_packet tcp_packet packet_contents esp_packet
+event ipv6_ext_headers%(c: connection, p: pkt_hdr%);
+
+## Generated for any packets using the IPv6 Encapsulating Security Payload (ESP)
+## extension header.
+##
+## p: Information from the header of the packet that triggered the event.
+##
+## .. bro:see:: new_packet tcp_packet ipv6_ext_headers
+event esp_packet%(p: pkt_hdr%);
+
+## Generated for any packets using an IPv6 Routing Type 0 extension header
+## with non-zero segments left.
+##
+## p: Information from the header of the packet that triggered the event.
+##
+## .. bro:see:: new_packet tcp_packet ipv6_ext_headers
+event rh0_segleft%(p: pkt_hdr%);
 
 ## Generated for every packet that has non-empty transport-layer payload. This is a
 ## very low-level and expensive event that should be avoided when at all possible.

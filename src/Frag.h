@@ -20,11 +20,10 @@ typedef void (FragReassembler::*frag_timer_func)(double t);
 class FragReassembler : public Reassembler {
 public:
 	FragReassembler(NetSessions* s, const IP_Hdr* ip, const u_char* pkt,
-			uint32 frag_field, HashKey* k, double t);
+			HashKey* k, double t);
 	~FragReassembler();
 
-	void AddFragment(double t, const IP_Hdr* ip, const u_char* pkt,
-				uint32 frag_field);
+	void AddFragment(double t, const IP_Hdr* ip, const u_char* pkt);
 
 	void Expire(double t);
 	void DeleteTimer();
@@ -37,11 +36,12 @@ protected:
 	void BlockInserted(DataBlock* start_block);
 	void Overlap(const u_char* b1, const u_char* b2, int n);
 
-	struct ip* proto_hdr;
+	u_char* proto_hdr;
 	IP_Hdr* reassembled_pkt;
 	int proto_hdr_len;
 	NetSessions* s;
 	int frag_size;	// size of fully reassembled fragment
+	uint16 next_proto; // first IPv6 fragment header's next proto field
 	HashKey* key;
 
 	FragTimer* expire_timer;

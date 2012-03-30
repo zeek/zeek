@@ -332,6 +332,7 @@ set(bro_SRCS
     IntSet.cc
     InterConn.cc
     IOSource.cc
+    IP.cc
     IPAddr.cc
     IRC.cc
     List.cc
@@ -400,6 +401,7 @@ set(bro_SRCS
     XDR.cc
     ZIP.cc
     bsd-getopt-long.c
+    bro_inet_ntop.c
     cq.c
     md5.c
     patricia.c

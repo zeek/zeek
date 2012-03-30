@@ -2049,6 +2049,36 @@ function is_v6_addr%(a: addr%): bool
 #
 # ===========================================================================
 
+## Converts the *data* field of :bro:type:`ip6_routing` records that have
+## *rtype* of 0 into a vector of addresses.
+##
+## s: The *data* field of an :bro:type:`ip6_routing` record that has
+##    an *rtype* of 0.
+##
+## Returns: The vector of addresses contained in the routing header data.
+function routing0_data_to_addrs%(s: string%): addr_vec
+	%{
+	VectorVal* rval = new VectorVal(new VectorType(base_type(TYPE_ADDR)));
+
+	int len = s->Len();
+	const u_char* bytes = s->Bytes();
+	bytes += 4; // go past 32-bit reserved field
+	len -= 4;
+
+	if ( ( len % 16 ) != 0 )
+		reporter->Warning("Bad ip6_routing data length: %d", s->Len());
+
+	while ( len > 0 )
+		{
+		IPAddr a(IPAddr::IPv6, (const uint32*) bytes, IPAddr::Network);
+		rval->Assign(rval->Size(), new AddrVal(a), 0);
+		bytes += 16;
+		len -= 16;
+		}
+
+	return rval;
+	%}
+
 ## Converts a :bro:type:`addr` to a :bro:type:`index_vec`.
 ##
 ## a: The address to convert into a vector of counts.

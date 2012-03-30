@@ -42,7 +42,6 @@ extern int select(int, fd_set *, fd_set *, fd_set *, struct timeval *);
 PList(PktSrc) pkt_srcs;
 
 // FIXME: We should really merge PktDumper and PacketDumper.
-// It's on my to-do [Robin].
 PktDumper* pkt_dumper = 0;
 
 int reading_live = 0;

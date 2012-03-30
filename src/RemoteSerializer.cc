@@ -187,6 +187,7 @@
 #include "threading/SerialTypes.h"
 #include "logging/Manager.h"
 #include "IPAddr.h"
+#include "bro_inet_ntop.h"
 
 extern "C" {
 #include "setsignal.h"
@@ -465,7 +466,7 @@ static inline const char* ip2a(uint32 ip)
 
 	addr.s_addr = htonl(ip);
 
-	return inet_ntop(AF_INET, &addr, buffer, 32);
+	return bro_inet_ntop(AF_INET, &addr, buffer, 32);
 	}
 
 static pid_t child_pid = 0;

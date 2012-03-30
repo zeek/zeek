@@ -74,8 +74,8 @@ RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 		rv->Assign(2, new Val(ntohs(ip6->ip6_plen), TYPE_COUNT));
 		rv->Assign(3, new Val(ip6->ip6_nxt, TYPE_COUNT));
 		rv->Assign(4, new Val(ip6->ip6_hlim, TYPE_COUNT));
-		rv->Assign(5, new AddrVal(ip6->ip6_src));
-		rv->Assign(6, new AddrVal(ip6->ip6_dst));
+		rv->Assign(5, new AddrVal(IPAddr(ip6->ip6_src)));
+		rv->Assign(6, new AddrVal(IPAddr(ip6->ip6_dst)));
 		if ( ! chain )
 			chain = new VectorVal(new VectorType(
 			        hdrType(ip6_ext_hdr_type, "ip6_ext_hdr")->Ref()));
@@ -314,7 +314,7 @@ void IPv6_Hdr_Chain::Init(const struct ip6_hdr* ip6, bool set_next, uint16 next)
 			if ( ((const struct ip6_rthdr*)hdrs)->ip6r_segleft > 0 )
 				{
 				const in6_addr* a = (const in6_addr*)(hdrs+len-16);
-				reporter->Weird(src, *a, "routing0_segleft");
+				reporter->Weird(src, IPAddr(*a), "routing0_segleft");
 				}
 			else
 				{

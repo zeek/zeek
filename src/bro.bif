@@ -2070,7 +2070,7 @@ function routing0_data_to_addrs%(s: string%): addr_vec
 
 	while ( len > 0 )
 		{
-		IPAddr a(IPAddr::IPv6, (const uint32*) bytes, IPAddr::Network);
+		IPAddr a(IPv6, (const uint32*) bytes, IPAddr::Network);
 		rval->Assign(rval->Size(), new AddrVal(a), 0);
 		bytes += 16;
 		len -= 16;

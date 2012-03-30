@@ -1489,7 +1489,7 @@ module Threading;
 export {
 	## The heart beat interval used by the threading framework.
 	## Changing this should usually not be neccessary and will break several tests.
-	const heart_beat_interval = 1.0 &redef;
+	const heart_beat_interval = 1.0 secs &redef;
 }
 
 module GLOBAL;

@@ -38,6 +38,8 @@ private:
 	int mode;
 	int num_lines;
 
+	int multiplication_factor;
+
 	string RandomString(const int len);
 
 };

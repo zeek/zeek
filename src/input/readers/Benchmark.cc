@@ -21,6 +21,7 @@ using threading::Field;
 
 Benchmark::Benchmark(ReaderFrontend *frontend) : ReaderBackend(frontend)
 {
+	multiplication_factor = int(BifConst::InputBenchmark::factor);	
 }
 
 Benchmark::~Benchmark()
@@ -198,13 +199,25 @@ threading::Value* Benchmark::EntryToVal(TypeTag type, TypeTag subtype) {
 bool Benchmark::DoHeartbeat(double network_time, double current_time)
 {
 	ReaderBackend::DoHeartbeat(network_time, current_time);
-	
+	num_lines = num_lines*multiplication_factor;
+
 	switch ( mode ) {
 		case MANUAL:
 			// yay, we do nothing :)
 			break;
 		case REREAD:
 		case STREAM:
+			if ( multiplication_factor != 1 ) {
+				// we have to document at what time we changed the factor to what value.
+				Value** v = new Value*[2];
+				v[0] = new Value(TYPE_COUNT, true);
+				v[0]->val.uint_val = num_lines;
+				v[1] = new Value(TYPE_TIME, true);
+				v[1]->val.double_val = CurrTime();
+
+				SendEvent("lines_changed", 2, v);
+			}
+	
 			Update(); // call update and not DoUpdate, because update actually checks disabled.
 			break;
 		default:

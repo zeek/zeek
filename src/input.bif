@@ -45,3 +45,6 @@ const unset_field: string;
 
 module InputRaw;
 const record_separator: string;
+
+module InputBenchmark;
+const factor: count;

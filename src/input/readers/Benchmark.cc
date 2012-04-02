@@ -30,6 +30,7 @@ Benchmark::Benchmark(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	autospread_time = 0;
 	stopspreadat = int(BifConst::InputBenchmark::stopspreadat);
 	timedspread = double(BifConst::InputBenchmark::timedspread);
+	heart_beat_interval = double(BifConst::Threading::heart_beat_interval);
 
 }
 

@@ -60,6 +60,12 @@ void Manager::KillThreads()
 
 void Manager::AddThread(BasicThread* thread)
 	{
+	if ( heart_beat_interval == 0 ) {
+		// sometimes initialization does not seem to work from constructor
+		heart_beat_interval = double(BifConst::Threading::heart_beat_interval);
+		DBG_LOG(DBG_THREADING, "Heart beat interval set to %f", heart_beat_interval);
+	}
+	
 	DBG_LOG(DBG_THREADING, "Adding thread %s ...", thread->Name().c_str());
 	all_threads.push_back(thread);
 	idle = false;

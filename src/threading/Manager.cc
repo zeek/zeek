@@ -43,6 +43,7 @@ void Manager::Terminate()
 	msg_threads.clear();
 
 	idle = true;
+	closed = true;
 	terminating = false;
 	}
 
@@ -75,7 +76,7 @@ double Manager::NextTimestamp(double* network_time)
 	{
 //	fprintf(stderr, "N %.6f %.6f did_process=%d next_next=%.6f\n", ::network_time, timer_mgr->Time(), (int)did_process, next_beat);
 
-	if ( did_process || ::network_time > next_beat || ! next_beat )
+	if ( ::network_time && (did_process || ::network_time > next_beat || ! next_beat) )
 		// If we had something to process last time (or out heartbeat
 		// is due or not set yet), we want to check for more asap.
 		return timer_mgr->Time();

@@ -46,6 +46,13 @@ type index_vec: vector of count;
 ##    then remove this alias.
 type string_vec: vector of string;
 
+## A vector of addresses.
+##
+## .. todo:: We need this type definition only for declaring builtin functions via
+##    ``bifcl``. We should extend ``bifcl`` to understand composite types directly and
+##    then remove this alias.
+type addr_vec: vector of addr;
+
 ## A table of strings indexed by strings.
 ##
 ## .. todo:: We need this type definition only for declaring builtin functions via
@@ -303,10 +310,10 @@ type gap_info: record {
 	gap_bytes: count;	##< How many bytes were missing in the gaps.
 };
 
-## Deprecated. 
-## 
+## Deprecated.
+##
 ## .. todo:: Remove. It's still declared internally but doesn't seem  used anywhere
-##    else.  
+##    else.
 type packet: record {
 	conn: connection;
 	is_orig: bool;
@@ -939,12 +946,162 @@ const IPPROTO_IGMP = 2;			##< Group management protocol.
 const IPPROTO_IPIP = 4;			##< IP encapsulation in IP.
 const IPPROTO_TCP = 6;			##< TCP.
 const IPPROTO_UDP = 17;			##< User datagram protocol.
+const IPPROTO_IPV6 = 41;		##< IPv6 header.
 const IPPROTO_RAW = 255;		##< Raw IP packet.
 
-## Values extracted from an IP header.
+# Definitions for IPv6 extension headers.
+const IPPROTO_HOPOPTS = 0;		##< IPv6 hop-by-hop-options header.
+const IPPROTO_ROUTING = 43;		##< IPv6 routing header.
+const IPPROTO_FRAGMENT = 44;		##< IPv6 fragment header.
+const IPPROTO_ESP = 50;			##< IPv6 encapsulating security payload header.
+const IPPROTO_AH = 51;			##< IPv6 authentication header.
+const IPPROTO_NONE = 59;		##< IPv6 no next header.
+const IPPROTO_DSTOPTS = 60;		##< IPv6 destination options header.
+
+## Values extracted from an IPv6 extension header's (e.g. hop-by-hop or
+## destination option headers) option field.
 ##
-## .. bro:see:: pkt_hdr discarder_check_ip
-type ip_hdr: record {
+## .. bro:see:: ip6_hdr ip6_hdr_chain ip6_hopopts ip6_dstopts
+type ip6_option: record {
+	otype: count;	##< Option type.
+	len: count;		##< Option data length.
+	data: string;	##< Option data.
+};
+
+## Values extracted from an IPv6 Hop-by-Hop options extension header.
+##
+## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_hdr_chain ip6_option
+type ip6_hopopts: record {
+	## Protocol number of the next header (RFC 1700 et seq., IANA assigned
+	## number), e.g. :bro:id:`IPPROTO_ICMP`.
+	nxt: count;
+	## Length of header in 8-octet units, excluding first unit.
+	len: count;
+	## The TLV encoded options;
+	options: vector of ip6_option;
+};
+
+## Values extracted from an IPv6 Destination options extension header.
+##
+## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_hdr_chain ip6_option
+type ip6_dstopts: record {
+	## Protocol number of the next header (RFC 1700 et seq., IANA assigned
+	## number), e.g. :bro:id:`IPPROTO_ICMP`.
+	nxt: count;
+	## Length of header in 8-octet units, excluding first unit.
+	len: count;
+	## The TLV encoded options;
+	options: vector of ip6_option;
+};
+
+## Values extracted from an IPv6 Routing extension header.
+##
+## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_hdr_chain
+type ip6_routing: record {
+	## Protocol number of the next header (RFC 1700 et seq., IANA assigned
+	## number), e.g. :bro:id:`IPPROTO_ICMP`.
+	nxt: count;
+	## Length of header in 8-octet units, excluding first unit.
+	len: count;
+	## Routing type.
+	rtype: count;
+	## Segments left.
+	segleft: count;
+	## Type-specific data.
+	data: string;
+};
+
+## Values extracted from an IPv6 Fragment extension header.
+##
+## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_hdr_chain
+type ip6_fragment: record {
+	## Protocol number of the next header (RFC 1700 et seq., IANA assigned
+	## number), e.g. :bro:id:`IPPROTO_ICMP`.
+	nxt: count;
+	## 8-bit reserved field.
+	rsv1: count;
+	## Fragmentation offset.
+	offset: count;
+	## 2-bit reserved field.
+	rsv2: count;
+	## More fragments.
+	more: bool;
+	## Fragment identification.
+	id: count;
+};
+
+## Values extracted from an IPv6 Authentication extension header.
+##
+## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_hdr_chain
+type ip6_ah: record {
+	## Protocol number of the next header (RFC 1700 et seq., IANA assigned
+	## number), e.g. :bro:id:`IPPROTO_ICMP`.
+	nxt: count;
+	## Length of header in 4-octet units, excluding first two units.
+	len: count;
+	## Reserved field.
+	rsv: count;
+	## Security Parameter Index.
+	spi: count;
+	## Sequence number.
+	seq: count;
+	## Authentication data.
+	data: string;
+};
+
+## Values extracted from an IPv6 ESP extension header.
+##
+## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_hdr_chain
+type ip6_esp: record {
+	## Security Parameters Index.
+	spi: count;
+	## Sequence number.
+	seq: count;
+};
+
+## A general container for a more specific IPv6 extension header.
+##
+## .. bro:see:: pkt_hdr ip4_hdr ip6_hopopts ip6_dstopts ip6_routing ip6_fragment
+##    ip6_ah ip6_esp
+type ip6_ext_hdr: record {
+	## The RFC 1700 et seq. IANA assigned number identifying the type of
+	## the extension header.
+	id: count;
+	## Hop-by-hop option extension header.
+	hopopts: ip6_hopopts &optional;
+	## Destination option extension header.
+	dstopts: ip6_dstopts &optional;
+	## Routing extension header.
+	routing: ip6_routing &optional;
+	## Fragment header.
+	fragment: ip6_fragment &optional;
+	## Authentication extension header.
+	ah: ip6_ah &optional;
+	## Encapsulating security payload header.
+	esp: ip6_esp &optional;
+};
+
+## Values extracted from an IPv6 header.
+##
+## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr_chain ip6_hopopts ip6_dstopts
+##    ip6_routing ip6_fragment ip6_ah ip6_esp
+type ip6_hdr: record {
+	class: count;					##< Traffic class.
+	flow: count;					##< Flow label.
+	len: count;					##< Payload length.
+	nxt: count;					##< Protocol number of the next header
+								##< (RFC 1700 et seq., IANA assigned number)
+								##< e.g. :bro:id:`IPPROTO_ICMP`.
+	hlim: count;					##< Hop limit.
+	src: addr;					##< Source address.
+	dst: addr;					##< Destination address.
+	exts: vector of ip6_ext_hdr;			##< Extension header chain.
+};
+
+## Values extracted from an IPv4 header.
+##
+## .. bro:see:: pkt_hdr ip6_hdr discarder_check_ip
+type ip4_hdr: record {
 	hl: count;		##< Header length in bytes.
 	tos: count;		##< Type of service.
 	len: count;		##< Total length.
@@ -1000,10 +1157,11 @@ type icmp_hdr: record {
 ##
 ## .. bro:see:: new_packet
 type pkt_hdr: record {
-	ip: ip_hdr;	##< The IP header.
-	tcp: tcp_hdr &optional;	##< The TCP header if a TCP packet.
-	udp: udp_hdr &optional;	##< The UDP header if a UDP packet.
-	icmp: icmp_hdr &optional;	##< The ICMP header if an ICMP packet.
+	ip: ip4_hdr &optional;			##< The IPv4 header if an IPv4 packet.
+	ip6: ip6_hdr &optional;			##< The IPv6 header if an IPv6 packet.
+	tcp: tcp_hdr &optional;			##< The TCP header if a TCP packet.
+	udp: udp_hdr &optional;			##< The UDP header if a UDP packet.
+	icmp: icmp_hdr &optional;		##< The ICMP header if an ICMP packet.
 };
 
 ## Definition of "secondary filters". A secondary filter is a BPF filter given as
@@ -1023,7 +1181,7 @@ global discarder_maxlen = 128 &redef;
 ## analysis. If the function signals to discard a packet, no further processing
 ## will be performed on it.
 ##
-## i: The IP header of the considered packet.
+## p: The IP header of the considered packet.
 ##
 ## Returns: True if the packet should not be analyzed any further.
 ##
@@ -1032,15 +1190,15 @@ global discarder_maxlen = 128 &redef;
 ##
 ## .. note:: This is very low-level functionality and potentially expensive.
 ##    Avoid using it.
-global discarder_check_ip: function(i: ip_hdr): bool;
+global discarder_check_ip: function(p: pkt_hdr): bool;
 
 ## Function for skipping packets based on their TCP header. If defined, this
 ## function will be called for all TCP packets before Bro performs any further
 ## analysis. If the function signals to discard a packet, no further processing
 ## will be performed on it.
 ##
-## i: The IP header of the considered packet.
-## t: The TCP header.
+## p: The IP and TCP headers of the considered packet.
+##
 ## d: Up to :bro:see:`discarder_maxlen` bytes of the TCP payload.
 ##
 ## Returns: True if the packet should not be analyzed any further.
@@ -1050,15 +1208,15 @@ global discarder_check_ip: function(i: ip_hdr): bool;
 ##
 ## .. note:: This is very low-level functionality and potentially expensive.
 ##    Avoid using it.
-global discarder_check_tcp: function(i: ip_hdr, t: tcp_hdr, d: string): bool;
+global discarder_check_tcp: function(p: pkt_hdr, d: string): bool;
 
 ## Function for skipping packets based on their UDP header. If defined, this
 ## function will be called for all UDP packets before Bro performs any further
 ## analysis. If the function signals to discard a packet, no further processing
 ## will be performed on it.
 ##
-## i: The IP header of the considered packet.
-## t: The UDP header.
+## p: The IP and UDP headers of the considered packet.
+##
 ## d: Up to :bro:see:`discarder_maxlen` bytes of the UDP payload.
 ##
 ## Returns: True if the packet should not be analyzed any further.
@@ -1068,15 +1226,14 @@ global discarder_check_tcp: function(i: ip_hdr, t: tcp_hdr, d: string): bool;
 ##
 ## .. note:: This is very low-level functionality and potentially expensive.
 ##    Avoid using it.
-global discarder_check_udp: function(i: ip_hdr, u: udp_hdr, d: string): bool;
+global discarder_check_udp: function(p: pkt_hdr, d: string): bool;
 
 ## Function for skipping packets based on their ICMP header. If defined, this
 ## function will be called for all ICMP packets before Bro performs any further
 ## analysis. If the function signals to discard a packet, no further processing
 ## will be performed on it.
 ##
-## i: The IP header of the considered packet.
-## ih: The ICMP header.
+## p: The IP and ICMP headers of the considered packet.
 ##
 ## Returns: True if the packet should not be analyzed any further.
 ##
@@ -1085,7 +1242,7 @@ global discarder_check_udp: function(i: ip_hdr, u: udp_hdr, d: string): bool;
 ##
 ## .. note:: This is very low-level functionality and potentially expensive.
 ##    Avoid using it.
-global discarder_check_icmp: function(i: ip_hdr, ih: icmp_hdr): bool;
+global discarder_check_icmp: function(p: pkt_hdr): bool;
 
 ## Bro's watchdog interval.
 const watchdog_interval = 10 sec &redef;
@@ -1316,7 +1473,7 @@ export {
 
 	## NFS file attributes. Field names are based on RFC 1813.
 	##
-	## .. bro:see:: nfs_proc_getattr 
+	## .. bro:see:: nfs_proc_getattr
 	type fattr_t: record {
 		ftype: file_type_t;	##< File type.
 		mode: count;	##< Mode
@@ -1335,8 +1492,8 @@ export {
 	};
 
 	## NFS *readdir* arguments.
-	## 
-	## .. bro:see:: nfs_proc_readdir 
+	##
+	## .. bro:see:: nfs_proc_readdir
 	type diropargs_t : record {
 		dirfh: string;	##< The file handle of the directory.
 		fname: string;	##< The name of the file we are interested in.
@@ -1345,7 +1502,7 @@ export {
 	## NFS lookup reply. If the lookup failed, *dir_attr* may be set. If the lookup
 	## succeeded, *fh* is always set and *obj_attr* and *dir_attr* may be set.
 	##
-	## .. bro:see:: nfs_proc_lookup 
+	## .. bro:see:: nfs_proc_lookup
 	type lookup_reply_t: record {
 		fh: string &optional;	##< File handle of object looked up.
 		obj_attr: fattr_t &optional;	##< Optional attributes associated w/ file
@@ -1362,7 +1519,7 @@ export {
 	};
 
 	## NFS *read* reply. If the lookup fails, *attr* may be set. If the lookup succeeds,
-	## *attr* may be set and all other fields are set. 
+	## *attr* may be set and all other fields are set.
 	type read_reply_t: record {
 		attr: fattr_t &optional;	##< Attributes.
 		size: count &optional;	##< Number of bytes read.
@@ -1371,7 +1528,7 @@ export {
 	};
 
 	## NFS *readline* reply. If the request fails, *attr* may be set. If the request
-	## succeeds, *attr* may be set and all other fields are set.  
+	## succeeds, *attr* may be set and all other fields are set.
 	##
 	## .. bro:see:: nfs_proc_readlink
 	type readlink_reply_t: record {
@@ -1381,7 +1538,7 @@ export {
 
 	## NFS *write* arguments.
 	##
-	## .. bro:see:: nfs_proc_write 
+	## .. bro:see:: nfs_proc_write
 	type writeargs_t: record {
 		fh: string;	##< File handle to write to.
 		offset: count;	##< Offset in file.
@@ -1391,18 +1548,18 @@ export {
 	};
 
 	## NFS *wcc* attributes.
-	## 
+	##
 	## .. bro:see:: NFS3::write_reply_t
 	type wcc_attr_t: record {
-		size: count;	##< The dize. 
+		size: count;	##< The dize.
 		atime: time;	##< Access time.
 		mtime: time;	##< Modification time.
 	};
 
 	## NFS *write* reply. If the request fails, *pre|post* attr may be set. If the
-	## request succeeds, *pre|post* attr may be set and all other fields are set. 
+	## request succeeds, *pre|post* attr may be set and all other fields are set.
 	##
-	## .. bro:see:: nfs_proc_write 
+	## .. bro:see:: nfs_proc_write
 	type write_reply_t: record {
 		preattr: wcc_attr_t &optional;	##< Pre operation attributes.
 		postattr: fattr_t &optional;	##< Post operation attributes.
@@ -1413,9 +1570,9 @@ export {
 
 	## NFS reply for *create*, *mkdir*, and *symlink*. If the proc
 	## failed, *dir_\*_attr* may be set. If the proc succeeded, *fh* and the *attr*'s
-	## may be set. Note: no guarantee that *fh* is set after success. 
+	## may be set. Note: no guarantee that *fh* is set after success.
 	##
-	## .. bro:see:: nfs_proc_create nfs_proc_mkdir 
+	## .. bro:see:: nfs_proc_create nfs_proc_mkdir
 	type newobj_reply_t: record {
 		fh: string &optional;	##< File handle of object created.
 		obj_attr: fattr_t &optional;	##< Optional attributes associated w/ new object.
@@ -1423,17 +1580,17 @@ export {
 		dir_post_attr: fattr_t &optional;	##< Optional attributes associated w/ dir.
 	};
 
-	## NFS reply for *remove*, *rmdir*. Corresponds to *wcc_data* in the spec. 
+	## NFS reply for *remove*, *rmdir*. Corresponds to *wcc_data* in the spec.
 	##
-	## .. bro:see:: nfs_proc_remove nfs_proc_rmdir 
+	## .. bro:see:: nfs_proc_remove nfs_proc_rmdir
 	type delobj_reply_t: record {
 		dir_pre_attr: wcc_attr_t &optional;	##< Optional attributes associated w/ dir.
 		dir_post_attr: fattr_t &optional;	##< Optional attributes associated w/ dir.
 	};
 
 	## NFS *readdir* arguments. Used for both *readdir* and *readdirplus*.
-	## 
-	## .. bro:see:: nfs_proc_readdir 
+	##
+	## .. bro:see:: nfs_proc_readdir
 	type readdirargs_t: record {
 		isplus: bool;	##< Is this a readdirplus request?
 		dirfh: string;	##< The directory filehandle.
@@ -1446,7 +1603,7 @@ export {
 	## NFS *direntry*.  *fh* and *attr* are used for *readdirplus*. However, even
 	## for *readdirplus* they may not be filled out.
 	##
-	## .. bro:see:: NFS3::direntry_vec_t NFS3::readdir_reply_t 
+	## .. bro:see:: NFS3::direntry_vec_t NFS3::readdir_reply_t
 	type direntry_t: record {
 		fileid: count;	##< E.g., inode number.
 		fname:  string;	##< Filename.
@@ -1457,7 +1614,7 @@ export {
 
 	## Vector of NFS *direntry*.
 	##
-	## .. bro:see:: NFS3::readdir_reply_t 
+	## .. bro:see:: NFS3::readdir_reply_t
 	type direntry_vec_t: vector of direntry_t;
 
 	## NFS *readdir* reply. Used for *readdir* and *readdirplus*. If an is
@@ -1488,7 +1645,7 @@ module GLOBAL;
 
 ## An NTP message.
 ##
-## .. bro:see:: ntp_message 
+## .. bro:see:: ntp_message
 type ntp_msg: record {
 	id: count;	##< Message ID.
 	code: count;	##< Message code.
@@ -1510,7 +1667,7 @@ global samba_cmds: table[count] of string &redef
 				{ return fmt("samba-unknown-%d", c); };
 
 ## An SMB command header.
-## 
+##
 ## .. bro:see:: smb_com_close smb_com_generic_andx smb_com_logoff_andx
 ##    smb_com_negotiate smb_com_negotiate_response smb_com_nt_create_andx
 ##    smb_com_read_andx smb_com_setup_andx smb_com_trans_mailslot
@@ -1529,9 +1686,9 @@ type smb_hdr : record {
 };
 
 ## An SMB transaction.
-## 
+##
 ## .. bro:see:: smb_com_trans_mailslot smb_com_trans_pipe smb_com_trans_rap
-##    smb_com_transaction smb_com_transaction2 
+##    smb_com_transaction smb_com_transaction2
 type smb_trans : record {
 	word_count: count;	##< TODO.
 	total_param_count: count;	##< TODO.
@@ -1545,7 +1702,7 @@ type smb_trans : record {
 	param_offset: count;	##< TODO.
 	data_count: count;	##< TODO.
 	data_offset: count;	##< TODO.
-	setup_count: count;	##< TODO. 
+	setup_count: count;	##< TODO.
 	setup0: count;	##< TODO.
 	setup1: count;	##< TODO.
 	setup2: count;	##< TODO.
@@ -1556,19 +1713,19 @@ type smb_trans : record {
 
 
 ## SMB transaction data.
-## 
+##
 ## .. bro:see:: smb_com_trans_mailslot smb_com_trans_pipe smb_com_trans_rap
-##    smb_com_transaction smb_com_transaction2 
-##    
+##    smb_com_transaction smb_com_transaction2
+##
 ## .. todo:: Should this really be a record type?
 type smb_trans_data : record {
 	data : string;	##< The transaction's data.
 };
 
-## Deprecated. 
-## 
+## Deprecated.
+##
 ## .. todo:: Remove. It's still declared internally but doesn't seem  used anywhere
-##    else.  
+##    else.
 type smb_tree_connect : record {
 	flags: count;
 	password: string;
@@ -1576,21 +1733,21 @@ type smb_tree_connect : record {
 	service: string;
 };
 
-## Deprecated. 
-## 
+## Deprecated.
+##
 ## .. todo:: Remove. It's still declared internally but doesn't seem  used anywhere
-##    else.  
+##    else.
 type smb_negotiate : table[count] of string;
 
 ## A list of router addresses offered by a DHCP server.
 ##
-## .. bro:see:: dhcp_ack dhcp_offer 
+## .. bro:see:: dhcp_ack dhcp_offer
 type dhcp_router_list: table[count] of addr;
 
 ## A DHCP message.
 ##
 ## .. bro:see:: dhcp_ack dhcp_decline dhcp_discover dhcp_inform dhcp_nak
-##    dhcp_offer dhcp_release dhcp_request 
+##    dhcp_offer dhcp_release dhcp_request
 type dhcp_msg: record {
 	op: count;	##< Message OP code. 1 = BOOTREQUEST, 2 = BOOTREPLY
 	m_type: count;	##< The type of DHCP message.
@@ -1627,7 +1784,7 @@ type dns_msg: record {
 
 ## A DNS SOA record.
 ##
-## .. bro:see:: dns_SOA_reply 
+## .. bro:see:: dns_SOA_reply
 type dns_soa: record {
 	mname: string;	##< Primary source of data for zone.
 	rname: string;	##< Mailbox for responsible person.
@@ -1640,7 +1797,7 @@ type dns_soa: record {
 
 ## An additional DNS EDNS record.
 ##
-## .. bro:see:: dns_EDNS_addl 
+## .. bro:see:: dns_EDNS_addl
 type dns_edns_additional: record {
 	query: string;	##< Query.
 	qtype: count;	##< Query type.
@@ -1655,7 +1812,7 @@ type dns_edns_additional: record {
 
 ## An additional DNS TSIG record.
 ##
-## bro:see:: dns_TSIG_addl 
+## bro:see:: dns_TSIG_addl
 type dns_tsig_additional: record {
 	query: string;	##< Query.
 	qtype: count;	##< Query type.
@@ -1669,9 +1826,9 @@ type dns_tsig_additional: record {
 };
 
 # DNS answer types.
-# 
+#
 # .. .. bro:see:: dns_answerr
-# 
+#
 # todo::use enum to make them autodoc'able
 const DNS_QUERY = 0;	##< A query. This shouldn't occur, just for completeness.
 const DNS_ANS = 1;	##< An answer record.
@@ -1685,7 +1842,7 @@ const DNS_ADDL = 3;	##< An additional record.
 ##    dns_TXT_reply dns_WKS_reply
 type dns_answer: record {
 	## Answer type. One of :bro:see:`DNS_QUERY`, :bro:see:`DNS_ANS`,
-	## :bro:see:`DNS_AUTH` and :bro:see:`DNS_ADDL`. 
+	## :bro:see:`DNS_AUTH` and :bro:see:`DNS_ADDL`.
 	answer_type: count;
 	query: string;	##< Query.
 	qtype: count;	##< Query type.
@@ -1705,27 +1862,27 @@ global dns_skip_auth: set[addr] &redef;
 ## .. bro:see:: dns_skip_all_addl dns_skip_auth
 global dns_skip_addl: set[addr] &redef;
 
-## If true, all DNS AUTH records are skipped.  
+## If true, all DNS AUTH records are skipped.
 ##
 ## .. bro:see:: dns_skip_all_addl dns_skip_auth
 global dns_skip_all_auth = T &redef;
 
-## If true, all DNS ADDL records are skipped. 
+## If true, all DNS ADDL records are skipped.
 ##
 ## .. bro:see:: dns_skip_all_auth dns_skip_addl
 global dns_skip_all_addl = T &redef;
 
 ## If a DNS request includes more than this many queries, assume it's non-DNS
-## traffic and do not process it.  Set to 0 to turn off this functionality. 
+## traffic and do not process it.  Set to 0 to turn off this functionality.
 global dns_max_queries = 5;
 
 ## An X509 certificate.
 ##
-## .. bro:see:: x509_certificate 
+## .. bro:see:: x509_certificate
 type X509: record {
 	version: count;	##< Version number.
 	serial: string;	##< Serial number.
-	subject: string;	##< Subject. 
+	subject: string;	##< Subject.
 	issuer: string;	##< Issuer.
 	not_valid_before: time;	##< Timestamp before when certificate is not valid.
 	not_valid_after: time;	##< Timestamp after when certificate is not valid.
@@ -1733,7 +1890,7 @@ type X509: record {
 
 ## HTTP session statistics.
 ##
-## .. bro:see:: http_stats 
+## .. bro:see:: http_stats
 type http_stats_rec: record {
 	num_requests: count;	##< Number of requests.
 	num_replies: count;	##< Number of replies.
@@ -1743,7 +1900,7 @@ type http_stats_rec: record {
 
 ## HTTP message statistics.
 ##
-## .. bro:see:: http_message_done 
+## .. bro:see:: http_message_done
 type http_message_stat: record {
 	## When the request/reply line was complete.
 	start: time;
@@ -1760,26 +1917,26 @@ type http_message_stat: record {
 };
 
 ## Maximum number of HTTP entity data delivered to events. The amount of data
-## can be limited for better performance, zero disables truncation.  
-## 
+## can be limited for better performance, zero disables truncation.
+##
 ## .. bro:see:: http_entity_data skip_http_entity_data skip_http_data
 global http_entity_data_delivery_size = 1500 &redef;
 
 ## Skip HTTP data for performance considerations. The skipped
-## portion will not go through TCP reassembly. 
-## 
+## portion will not go through TCP reassembly.
+##
 ## .. bro:see:: http_entity_data skip_http_entity_data http_entity_data_delivery_size
 const skip_http_data = F &redef;
 
 ## Maximum length of HTTP URIs passed to events. Longer ones will be truncated
 ## to prevent over-long URIs (usually sent by worms) from slowing down event
 ## processing.  A value of -1 means "do not truncate".
-## 
+##
 ## .. bro:see:: http_request
 const truncate_http_URI = -1 &redef;
 
-## IRC join information. 
-## 
+## IRC join information.
+##
 ## .. bro:see:: irc_join_list
 type irc_join_info: record {
 	nick: string;
@@ -1790,13 +1947,13 @@ type irc_join_info: record {
 
 ## Set of IRC join information.
 ##
-## .. bro:see:: irc_join_message 
+## .. bro:see:: irc_join_message
 type irc_join_list: set[irc_join_info];
 
-## Deprecated. 
-## 
+## Deprecated.
+##
 ## .. todo:: Remove. It's still declared internally but doesn't seem  used anywhere
-##    else.  
+##    else.
 global irc_servers : set[addr] &redef;
 
 ## Internal to the stepping stone detector.
@@ -1860,7 +2017,7 @@ type backdoor_endp_stats: record {
 
 ## Description of a signature match.
 ##
-## .. bro:see:: signature_match 
+## .. bro:see:: signature_match
 type signature_state: record {
 	sig_id:       string;	##< ID of the matching signature.
 	conn:         connection;	##< Matching connection.
@@ -1868,10 +2025,10 @@ type signature_state: record {
 	payload_size: count;	##< Payload size of the first matching packet of current endpoint.
 };
 
-# Deprecated. 
-# 
+# Deprecated.
+#
 # .. todo:: This type is no longer used. Remove any reference of this from the
-#    core. 
+#    core.
 type software_version: record {
 	major: int;
 	minor: int;
@@ -1879,10 +2036,10 @@ type software_version: record {
 	addl: string;
 };
 
-# Deprecated. 
-# 
+# Deprecated.
+#
 # .. todo:: This type is no longer used. Remove any reference of this from the
-#    core. 
+#    core.
 type software: record {
 	name: string;
 	version: software_version;
@@ -1899,7 +2056,7 @@ type OS_version_inference: enum {
 
 ## Passive fingerprinting match.
 ##
-## .. bro:see:: OS_version_found 
+## .. bro:see:: OS_version_found
 type OS_version: record {
 	genre: string;	##< Linux, Windows, AIX, ...
 	detail: string;	##< Lernel version or such.
@@ -1909,20 +2066,20 @@ type OS_version: record {
 
 ## Defines for which subnets we should do passive fingerprinting.
 ##
-## .. bro:see:: OS_version_found 
+## .. bro:see:: OS_version_found
 global generate_OS_version_event: set[subnet] &redef;
 
 # Type used to report load samples via :bro:see:`load_sample`. For now, it's a
 # set of names (event names, source file names, and perhaps ``<source file, line
-# number>``, which were seen during the sample. 
+# number>``, which were seen during the sample.
 type load_sample_info: set[string];
 
 ## ID for NetFlow header. This is primarily a means to sort together NetFlow
-## headers and flow records at the script level.  
+## headers and flow records at the script level.
 type nfheader_id: record {
 	## Name of the NetFlow file (e.g., ``netflow.dat``) or the receiving socket address
 	## (e.g., ``127.0.0.1:5555``), or an explicit name if specified to
-	## ``-y`` or ``-Y``.  
+	## ``-y`` or ``-Y``.
 	rcvr_id: string;
 	## A serial number, ignoring any overflows.
 	pdu_id: count;
@@ -1930,7 +2087,7 @@ type nfheader_id: record {
 
 ## A NetFlow v5 header.
 ##
-## .. bro:see:: netflow_v5_header 
+## .. bro:see:: netflow_v5_header
 type nf_v5_header: record {
 	h_id: nfheader_id;	##< ID for sorting.
 	cnt: count;	##< TODO.
@@ -1946,7 +2103,7 @@ type nf_v5_header: record {
 ## A NetFlow v5 record.
 ##
 ## .. bro:see:: netflow_v5_record
-type nf_v5_record: record {     
+type nf_v5_record: record {
 	h_id: nfheader_id;	##< ID for sorting.
 	id: conn_id;	##< Connection ID.
 	nexthop: addr;	##< Address of next hop.
@@ -1980,7 +2137,7 @@ type bittorrent_peer: record {
 };
 
 ## A set of BitTorrent peers.
-##    
+##
 ## .. bro:see:: bt_tracker_response
 type bittorrent_peer_set: set[bittorrent_peer];
 
@@ -2003,12 +2160,12 @@ type bittorrent_benc_dir: table[string] of bittorrent_benc_value;
 ## Header table type used by BitTorrent analyzer.
 ##
 ## .. bro:see:: bt_tracker_request bt_tracker_response
-##    bt_tracker_response_not_ok 
+##    bt_tracker_response_not_ok
 type bt_tracker_headers: table[string] of string;
 
 @load base/event.bif
 
-## BPF filter the user has set via the -f command line options. Empty if none.   
+## BPF filter the user has set via the -f command line options. Empty if none.
 const cmd_line_bpf_filter = "" &redef;
 
 ## Deprecated.
@@ -2026,24 +2183,24 @@ const log_encryption_key = "<undefined>" &redef;
 ## Write profiling info into this file in regular intervals. The easiest way to
 ## activate profiling is loading  :doc:`/scripts/policy/misc/profiling`.
 ##
-## .. bro:see:: profiling_interval expensive_profiling_multiple segment_profiling 
+## .. bro:see:: profiling_interval expensive_profiling_multiple segment_profiling
 global profiling_file: file &redef;
 
 ## Update interval for profiling (0 disables).  The easiest way to activate
 ## profiling is loading  :doc:`/scripts/policy/misc/profiling`.
 ##
-## .. bro:see:: profiling_file expensive_profiling_multiple segment_profiling  
+## .. bro:see:: profiling_file expensive_profiling_multiple segment_profiling
 const profiling_interval = 0 secs &redef;
 
 ## Multiples of profiling_interval at which (more expensive) memory profiling is
 ## done (0 disables).
 ##
-## .. bro:see:: profiling_interval profiling_file segment_profiling 
+## .. bro:see:: profiling_interval profiling_file segment_profiling
 const expensive_profiling_multiple = 0 &redef;
 
 ## If true, then write segment profiling information (very high volume!)
 ## in addition to profiling statistics.
-## 
+##
 ## .. bro:see:: profiling_interval expensive_profiling_multiple profiling_file
 const segment_profiling = F &redef;
 
@@ -2082,42 +2239,42 @@ global load_sample_freq = 20 &redef;
 
 ## Rate at which to generate :bro:see:`gap_report`  events assessing to what degree
 ## the measurement process appears to exhibit loss.
-## 
+##
 ## .. bro:see:: gap_report
 const gap_report_freq = 1.0 sec &redef;
 
 ## Whether we want :bro:see:`content_gap`  and :bro:see:`gap_report`  for partial
 ## connections. A connection is partial if it is missing a full handshake. Note
 ## that gap reports for partial connections might not be reliable.
-## 
+##
 ## .. bro:see:: content_gap gap_report partial_connection
 const report_gaps_for_partial = F &redef;
 
 ## The CA certificate file to authorize remote Bros/Broccolis.
-## 
+##
 ## .. bro:see:: ssl_private_key ssl_passphrase
 const ssl_ca_certificate = "<undefined>" &redef;
 
 ## File containing our private key and our certificate.
-## 
+##
 ## .. bro:see:: ssl_ca_certificate ssl_passphrase
 const ssl_private_key = "<undefined>" &redef;
 
 ## The passphrase for our private key. Keeping this undefined
 ## causes Bro to prompt for the passphrase.
-## 
+##
 ## .. bro:see:: ssl_private_key ssl_ca_certificate
 const ssl_passphrase = "<undefined>" &redef;
 
 ## Default mode for Bro's user-space dynamic packet filter. If true, packets that
-## aren't explicitly allowed through, are dropped from any further processing. 
-## 
+## aren't explicitly allowed through, are dropped from any further processing.
+##
 ## .. note:: This is not the BPF packet filter but an additional dynamic filter
-##    that Bro optionally applies just before normal processing starts. 
-##    
-## .. bro:see:: install_dst_addr_filter install_dst_net_filter 
+##    that Bro optionally applies just before normal processing starts.
+##
+## .. bro:see:: install_dst_addr_filter install_dst_net_filter
 ##    install_src_addr_filter install_src_net_filter  uninstall_dst_addr_filter
-##    uninstall_dst_net_filter uninstall_src_addr_filter uninstall_src_net_filter 
+##    uninstall_dst_net_filter uninstall_src_addr_filter uninstall_src_net_filter
 const packet_filter_default = F &redef;
 
 ## Maximum size of regular expression groups for signature matching.
@@ -2129,17 +2286,17 @@ const enable_syslog = F &redef;
 ## Description transmitted to remote communication peers for identification.
 const peer_description = "bro" &redef;
 
-## If true, broadcast events received from one peer to all other peers.  
-## 
+## If true, broadcast events received from one peer to all other peers.
+##
 ## .. bro:see:: forward_remote_state_changes
 ##
 ## .. note:: This option is only temporary and  will disappear once we get a more
 ##    sophisticated script-level communication framework.
 const forward_remote_events = F &redef;
 
-## If true, broadcast state updates received from one peer to all other peers.  
-## 
-## .. bro:see:: forward_remote_events 
+## If true, broadcast state updates received from one peer to all other peers.
+##
+## .. bro:see:: forward_remote_events
 ##
 ## .. note:: This option is only temporary and  will disappear once we get a more
 ##    sophisticated script-level communication framework.
@@ -2168,23 +2325,23 @@ const REMOTE_SRC_PARENT = 2;	##< Message from the parent process.
 const REMOTE_SRC_SCRIPT = 3;	##< Message from a policy script.
 
 ## Synchronize trace processing at a regular basis in pseudo-realtime mode.
-## 
+##
 ## .. bro:see:: remote_trace_sync_peers
 const remote_trace_sync_interval = 0 secs &redef;
 
 ## Number of peers across which to synchronize trace processing in
-## pseudo-realtime mode. 
-## 
+## pseudo-realtime mode.
+##
 ## .. bro:see:: remote_trace_sync_interval
 const remote_trace_sync_peers = 0 &redef;
 
 ## Whether for :bro:attr:`&synchronized` state to send the old value as a
-## consistency check. 
+## consistency check.
 const remote_check_sync_consistency = F &redef;
 
 ## Analyzer tags. The core automatically defines constants
 ## ``ANALYZER_<analyzer-name>*``, e.g., ``ANALYZER_HTTP``.
-## 
+##
 ## .. bro:see:: dpd_config
 ##
 ## .. todo::We should autodoc these automaticallty generated constants.
@@ -2202,7 +2359,7 @@ type dpd_protocol_config: record {
 ## This table defines the ports.
 ##
 ## .. bro:see:: dpd_reassemble_first_packets dpd_buffer_size
-##    dpd_match_only_beginning dpd_ignore_ports 
+##    dpd_match_only_beginning dpd_ignore_ports
 const dpd_config: table[AnalyzerTag] of dpd_protocol_config = {} &redef;
 
 ## Reassemble the beginning of all TCP connections before doing
@@ -2210,10 +2367,10 @@ const dpd_config: table[AnalyzerTag] of dpd_protocol_config = {} &redef;
 ## expensive of CPU cycles.
 ##
 ## .. bro:see:: dpd_config dpd_buffer_size
-##    dpd_match_only_beginning dpd_ignore_ports 
-## 
+##    dpd_match_only_beginning dpd_ignore_ports
+##
 ## .. note:: Despite the name, this option affects *all* signature matching, not
-##    only signatures used for dynamic protocol detection. 
+##    only signatures used for dynamic protocol detection.
 const dpd_reassemble_first_packets = T &redef;
 
 ## Size of per-connection buffer used for dynamic protocol detection. For each
@@ -2222,23 +2379,23 @@ const dpd_reassemble_first_packets = T &redef;
 ## already passed through (i.e., when a DPD signature matches only later).
 ## However, once the buffer is full, data is deleted and lost to analyzers that are
 ## activated afterwards. Then only analyzers that can deal with partial
-## connections will be able to analyze the session. 
+## connections will be able to analyze the session.
 ##
 ## .. bro:see:: dpd_reassemble_first_packets dpd_config dpd_match_only_beginning
-##    dpd_ignore_ports 
+##    dpd_ignore_ports
 const dpd_buffer_size = 1024 &redef;
 
 ## If true, stops signature matching if dpd_buffer_size has been reached.
 ##
 ## .. bro:see:: dpd_reassemble_first_packets dpd_buffer_size
-##    dpd_config dpd_ignore_ports 
-## 
+##    dpd_config dpd_ignore_ports
+##
 ## .. note:: Despite the name, this option affects *all* signature matching, not
-##    only signatures used for dynamic protocol detection. 
+##    only signatures used for dynamic protocol detection.
 const dpd_match_only_beginning = T &redef;
 
 ## If true, don't consider any ports for deciding which protocol analyzer to
-## use. If so, the value of :bro:see:`dpd_config` is ignored. 
+## use. If so, the value of :bro:see:`dpd_config` is ignored.
 ##
 ## .. bro:see:: dpd_reassemble_first_packets dpd_buffer_size
 ##    dpd_match_only_beginning dpd_config
@@ -2246,14 +2403,14 @@ const dpd_ignore_ports = F &redef;
 
 ## Ports which the core considers being likely used by servers. For ports in
 ## this set, is may heuristically decide to flip the direction of the
-## connection if it misses the initial handshake. 
+## connection if it misses the initial handshake.
 const likely_server_ports: set[port] &redef;
 
 ## Deprated. Set of all ports for which we know an analyzer, built by
-## :doc:`/scripts/base/frameworks/dpd/main`. 
+## :doc:`/scripts/base/frameworks/dpd/main`.
 ##
 ## .. todo::This should be defined by :doc:`/scripts/base/frameworks/dpd/main`
-##    itself we still need it. 
+##    itself we still need it.
 global dpd_analyzer_ports: table[port] of set[AnalyzerTag];
 
 ## Per-incident timer managers are drained after this amount of inactivity.
@@ -2266,7 +2423,7 @@ const time_machine_profiling = F &redef;
 const check_for_unused_event_handlers = F &redef;
 
 # If true, dumps all invoked event handlers at startup.
-# todo::Still used? 
+# todo::Still used?
 # const dump_used_event_handlers = F &redef;
 
 ## Deprecated.
@@ -2282,7 +2439,7 @@ const trace_output_file = "";
 ## of setting this to true is that we can write the packets out before we actually
 ## process them, which can be helpful for debugging in case the analysis triggers a
 ## crash.
-## 
+##
 ## .. bro:see:: trace_output_file
 const record_all_packets = F &redef;
 
@@ -2295,7 +2452,7 @@ const record_all_packets = F &redef;
 const ignore_keep_alive_rexmit = F &redef;
 
 ## Whether the analysis engine parses IP packets encapsulated in
-## UDP tunnels. 
+## UDP tunnels.
 ##
 ## .. bro:see:: tunnel_port
 const parse_udp_tunnels = F &redef;
@@ -2303,6 +2460,6 @@ const parse_udp_tunnels = F &redef;
 ## Number of bytes per packet to capture from live interfaces.
 const snaplen = 8192 &redef;
 
-# Load the logging framework here because it uses fairly deep integration with 
+# Load the logging framework here because it uses fairly deep integration with
 # BiFs and script-land defined types.
 @load base/frameworks/logging

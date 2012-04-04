@@ -1,0 +1,5 @@
+ip6=[class=0, flow=0, len=81, nxt=17, hlim=64, src=2001:470:1f11:81f:d138:5f55:6d4:1fe2, dst=2607:f740:b::f93, exts=[]], udp = [sport=51850/udp, dport=53/udp, ulen=81]
+ip6=[class=0, flow=0, len=331, nxt=17, hlim=53, src=2607:f740:b::f93, dst=2001:470:1f11:81f:d138:5f55:6d4:1fe2, exts=[]], udp = [sport=53/udp, dport=51850/udp, ulen=331]
+ip6=[class=0, flow=0, len=82, nxt=17, hlim=64, src=2001:470:1f11:81f:d138:5f55:6d4:1fe2, dst=2607:f740:b::f93, exts=[]], udp = [sport=51851/udp, dport=53/udp, ulen=82]
+ip6=[class=0, flow=0, len=82, nxt=17, hlim=64, src=2001:470:1f11:81f:d138:5f55:6d4:1fe2, dst=2607:f740:b::f93, exts=[]], udp = [sport=51851/udp, dport=53/udp, ulen=82]
+ip6=[class=0, flow=0, len=3238, nxt=17, hlim=53, src=2607:f740:b::f93, dst=2001:470:1f11:81f:d138:5f55:6d4:1fe2, exts=[]], udp = [sport=53/udp, dport=51851/udp, ulen=3238]

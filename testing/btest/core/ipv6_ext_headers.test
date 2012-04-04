@@ -1,0 +1,10 @@
+# @TEST-EXEC: bro -b -r $TRACES/ipv6-hbh-rh0-segleft0.trace %INPUT >output
+# @TEST-EXEC: btest-diff output
+
+# Just check that the event is raised correctly for a packet containing
+# extension headers.
+
+event ipv6_ext_headers(c: connection, p: pkt_hdr)
+	{
+	print p;
+	}

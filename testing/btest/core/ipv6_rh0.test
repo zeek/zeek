@@ -1,0 +1,22 @@
+# @TEST-EXEC: bro -b -r $TRACES/ipv6-hbh-rh0-segleft0.trace %INPUT >segleft0.out
+# @TEST-EXEC: btest-diff segleft0.out
+# @TEST-EXEC: bro -b -r $TRACES/ipv6-hbh-rh0-segleft.trace %INPUT >segleft.out
+# @TEST-EXEC: btest-diff segleft.out
+
+# This will be raised only by the packet with RH0 and segments left.
+event rh0_segleft(p: pkt_hdr)
+	{
+	print fmt("rh0 w/ segments left from %s to %s", p$ip6$src, p$ip6$dst);
+	}
+
+# This will be raised only by the packet with RH0 and no segments left.
+event new_connection(c: connection)
+	{
+	print fmt("new_connection: %s", c$id);
+	}
+
+# This will be raised by any packet with RH0 regardless of segments left.
+event flow_weird(name: string, src: addr, dst: addr)
+	{
+	print fmt("flow_weird %s from %s to %s", name, src, dst);
+	}

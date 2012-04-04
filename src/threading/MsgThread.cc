@@ -10,13 +10,21 @@ namespace threading  {
 
 ////// Messages.
 
-// Signals child thread to terminate. This is actually a no-op; its only
-// purpose is unblock the current read operation so that the child's Run()
-// methods can check the termination status.
-class TerminateMessage : public InputMessage<MsgThread>
+// Signals child thread to shutdown operation.
+class FinishMessage : public InputMessage<MsgThread>
 {
 public:
-	TerminateMessage(MsgThread* thread) : InputMessage<MsgThread>("Terminate", thread)	{ }
+	FinishMessage(MsgThread* thread) : InputMessage<MsgThread>("Finish", thread)	{ }
+
+	virtual bool Process()	{ return Object()->DoFinish(); }
+};
+
+// A dummy message that's only purpose is unblock the current read operation
+// so that the child's Run() methods can check the termination status.
+class UnblockMessage : public InputMessage<MsgThread>
+{
+public:
+	UnblockMessage(MsgThread* thread) : InputMessage<MsgThread>("Unblock", thread)	{ }
 
 	virtual bool Process()	{ return true; }
 };
@@ -130,13 +138,30 @@ bool ReporterMessage::Process()
 MsgThread::MsgThread() : BasicThread()
 	{
 	cnt_sent_in = cnt_sent_out = 0;
+	finished = false;
 	thread_mgr->AddMsgThread(this);
 	}
 
 void MsgThread::OnStop()
 	{
-	// This is to unblock the current queue read operation.
-	SendIn(new TerminateMessage(this), true);
+	// Signal thread to terminate and wait until it has acknowledged.
+	SendIn(new FinishMessage(this), true);
+
+	int cnt = 0;
+	while ( ! finished )
+		{
+		if ( ++cnt > 1000 ) // Insurance against broken threads ...
+			{
+			abort();
+			reporter->Warning("thread %s didn't finish in time", Name().c_str());
+			break;
+			}
+
+		usleep(1000);
+		}
+
+	// One more message to make sure the current queue read operation unblocks.
+	SendIn(new UnblockMessage(this), true);
 	}
 
 void MsgThread::Heartbeat()
@@ -154,6 +179,14 @@ bool MsgThread::DoHeartbeat(double network_time, double current_time)
 
 	SetOSName(n.c_str());
 
+	return true;
+	}
+
+bool MsgThread::DoFinish()
+	{
+	// This is thread-safe "enough", we're the only one ever writing
+	// there.
+	finished = true;
 	return true;
 	}
 

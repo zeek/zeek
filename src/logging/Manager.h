@@ -15,7 +15,6 @@ class RotationTimer;
 
 namespace logging {
 
-
 class WriterBackend;
 class WriterFrontend;
 class RotationFinishedMessage;
@@ -56,7 +55,7 @@ public:
 	 * logging.bif, which just forwards here.
 	 */
 	bool EnableStream(EnumVal* id);
-	
+
 	/**
 	 * Disables a log stream.
 	 *
@@ -144,6 +143,11 @@ public:
 	 * stream.
 	 */
 	void Terminate();
+
+	/**
+	 * Returns a list of supported output formats.
+	 */
+	static list<string> SupportedFormats();
 
 protected:
 	friend class WriterFrontend;

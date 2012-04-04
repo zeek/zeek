@@ -69,8 +69,7 @@ bool Ascii::WriteHeaderField(const string& key, const string& val)
 	return (fwrite(str.c_str(), str.length(), 1, file) == 1);
 	}
 
-bool Ascii::DoInit(string path, int num_fields,
-			    const Field* const * fields)
+bool Ascii::DoInit(string path, int num_fields, const Field* const * fields)
 	{
 	if ( output_to_stdout )
 		path = "/dev/stdout";
@@ -146,7 +145,7 @@ bool Ascii::DoFlush()
 
 bool Ascii::DoFinish()
 	{
-	return true;
+	return WriterBackend::DoFinish();
 	}
 
 bool Ascii::DoWriteOne(ODesc* desc, Value* val, const Field* field)

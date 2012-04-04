@@ -90,7 +90,7 @@ public:
 	FinishMessage(WriterBackend* backend)
 		: threading::InputMessage<WriterBackend>("Finish", backend)	{}
 
-	virtual bool Process() { return Object()->Finish(); }
+	virtual bool Process() { return Object()->DoFinish(); }
 };
 
 }
@@ -117,8 +117,9 @@ WriterFrontend::WriterFrontend(EnumVal* arg_stream, EnumVal* arg_writer, bool ar
 	if ( local )
 		{
 		backend = log_mgr->CreateBackend(this, writer->AsEnum());
-		assert(backend);
-		backend->Start();
+
+		if ( backend )
+			backend->Start();
 		}
 
 	else

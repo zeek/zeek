@@ -222,17 +222,6 @@ bool WriterBackend::Flush()
 	return true;
 	}
 
-bool WriterBackend::Finish()
-	{
-	if ( ! DoFlush() )
-		{
-		DisableFrontend();
-		return false;
-		}
-
-	return true;
-	}
-
 bool WriterBackend::DoHeartbeat(double network_time, double current_time)
 	{
 	MsgThread::DoHeartbeat(network_time, current_time);

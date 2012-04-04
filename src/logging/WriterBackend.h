@@ -102,15 +102,6 @@ public:
 	bool Rotate(string rotated_path, double open, double close, bool terminating);
 
 	/**
-	 * Finishes writing to this logger in a regularl fashion. Must not be
-	 * called if an error has been indicated earlier. After calling this,
-	 * no further writing must be performed.
-	 *
-	 * @return False if an error occured.
-	 */
-	bool Finish();
-
-	/**
 	 * Disables the frontend that has instantiated this backend. Once
 	 * disabled,the frontend will not send any further message over.
 	 */
@@ -175,6 +166,8 @@ public:
 	string Render(const threading::Value::subnet_t& subnet) const;
 
 protected:
+	friend class FinishMessage;
+
 	/**
 	 * Writer-specific intialization method.
 	 *
@@ -272,26 +265,18 @@ protected:
 			      bool terminating) = 0;
 
 	/**
-	 * Writer-specific method implementing log output finalization at
-	 * termination. Not called when any of the other methods has
-	 * previously signaled an error, i.e., executing this method signals
-	 * a regular shutdown of the writer.
-	 *
-	 * A writer implementation must override this method but it can just
-	 * ignore calls if flushing doesn't align with its semantics.
-	 *
-	 * If the method returns false, it will be assumed that a fatal error
-	 * has occured that prevents the writer from further operation; it
-	 * will then be disabled and eventually deleted. When returning
-	 * false, an implementation should also call Error() to indicate what
-	 * happened.
+	 * Writer-specific method called just before the threading system is
+	 * going to shutdown.
+	 * 
+	 * This method can be overridden but one must call
+	 * WriterBackend::DoFinish().
 	 */
-	virtual bool DoFinish() = 0;
+	virtual bool DoFinish() { return MsgThread::DoFinish(); }
 
 	/**
 	 * Triggered by regular heartbeat messages from the main thread.
 	 *
-	 * This method can be overridden but once must call
+	 * This method can be overridden but one must call
 	 * WriterBackend::DoHeartbeat().
 	 */
 	virtual bool DoHeartbeat(double network_time, double current_time);

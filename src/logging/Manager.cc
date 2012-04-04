@@ -16,9 +16,11 @@
 #include "writers/Ascii.h"
 #include "writers/None.h"
 
+#ifdef USE_DATASERIES
+#include "writers/DataSeries.h"
+#endif
+
 using namespace logging;
-using threading::Value;
-using threading::Field;
 
 // Structure describing a log writer type.
 struct WriterDefinition {
@@ -32,6 +34,9 @@ struct WriterDefinition {
 WriterDefinition log_writers[] = {
 	{ BifEnum::Log::WRITER_NONE,  "None", 0, writer::None::Instantiate },
 	{ BifEnum::Log::WRITER_ASCII, "Ascii", 0, writer::Ascii::Instantiate },
+#ifdef USE_DATASERIES
+	{ BifEnum::Log::WRITER_DATASERIES, "DataSeries", 0, writer::DataSeries::Instantiate },
+#endif
 
 	// End marker, don't touch.
 	{ BifEnum::Log::WRITER_DEFAULT, "None", 0, (WriterBackend* (*)(WriterFrontend* frontend))0 }
@@ -51,7 +56,7 @@ struct Manager::Filter {
 	Func* postprocessor;
 
 	int num_fields;
-	Field** fields;
+	threading::Field** fields;
 
 	// Vector indexed by field number. Each element is a list of record
 	// indices defining a path leading to the value across potential
@@ -127,6 +132,17 @@ Manager::~Manager()
 		delete *s;
 	}
 
+list<string> Manager::SupportedFormats()
+	{
+	list<string> formats;
+
+	for ( WriterDefinition* ld = log_writers; ld->type != BifEnum::Log::WRITER_DEFAULT; ++ld ) 
+		formats.push_back(ld->name);
+
+	return formats;
+	}
+
+
 WriterBackend* Manager::CreateBackend(WriterFrontend* frontend, bro_int_t type)
 	{
 	WriterDefinition* ld = log_writers;
@@ -135,7 +151,7 @@ WriterBackend* Manager::CreateBackend(WriterFrontend* frontend, bro_int_t type)
 		{
 		if ( ld->type == BifEnum::Log::WRITER_DEFAULT )
 			{
-			reporter->Error("unknow writer when creating writer");
+			reporter->Error("unknown writer type requested");
 			return 0;
 			}
 
@@ -159,10 +175,8 @@ WriterBackend* Manager::CreateBackend(WriterFrontend* frontend, bro_int_t type)
 				// function.
 				ld->factory = 0;
 
-				DBG_LOG(DBG_LOGGING, "failed to init writer class %s",
-					ld->name);
-
-				return false;
+				reporter->Error("initialization of writer %s failed", ld->name);
+				return 0;
 				}
 			}
 
@@ -449,7 +463,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 
 		filter->indices.push_back(new_indices);
 
-		filter->fields = (Field**)
+		filter->fields = (threading::Field**)
 			realloc(filter->fields,
 				sizeof(Field) * ++filter->num_fields);
 
@@ -459,7 +473,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 			return false;
 			}
 
-		Field* field = new Field();
+		threading::Field* field = new threading::Field();
 		field->name = new_path;
 		field->type = t->Tag();
 		if ( field->type == TYPE_TABLE )
@@ -572,7 +586,7 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 
 	for ( int i = 0; i < filter->num_fields; i++ )
 		{
-		Field* field = filter->fields[i];
+		threading::Field* field = filter->fields[i];
 		DBG_LOG(DBG_LOGGING, "   field %10s: %s",
 			field->name.c_str(), type_name(field->type));
 		}
@@ -744,10 +758,10 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 
 			// Copy the fields for WriterFrontend::Init() as it
 			// will take ownership.
-			Field** arg_fields = new Field*[filter->num_fields];
+			threading::Field** arg_fields = new threading::Field*[filter->num_fields];
 
 			for ( int j = 0; j < filter->num_fields; ++j )
-				arg_fields[j] = new Field(*filter->fields[j]);
+				arg_fields[j] = new threading::Field(*filter->fields[j]);
 
 			writer = CreateWriter(stream->id, filter->writer,
 					      path, filter->num_fields,
@@ -898,10 +912,10 @@ threading::Value* Manager::ValToLogVal(Val* val, BroType* ty)
 	return lval;
 	}
 
-Value** Manager::RecordToFilterVals(Stream* stream, Filter* filter,
+threading::Value** Manager::RecordToFilterVals(Stream* stream, Filter* filter,
 				    RecordVal* columns)
 	{
-	Value** vals = new Value*[filter->num_fields];
+	threading::Value** vals = new threading::Value*[filter->num_fields];
 
 	for ( int i = 0; i < filter->num_fields; ++i )
 		{
@@ -920,7 +934,7 @@ Value** Manager::RecordToFilterVals(Stream* stream, Filter* filter,
 			if ( ! val )
 				{
 				// Value, or any of its parents, is not set.
-				vals[i] = new Value(filter->fields[i]->type, false);
+				vals[i] = new threading::Value(filter->fields[i]->type, false);
 				break;
 				}
 			}
@@ -933,7 +947,7 @@ Value** Manager::RecordToFilterVals(Stream* stream, Filter* filter,
 	}
 
 WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, string path,
-				int num_fields, const Field* const*  fields, bool local, bool remote)
+				int num_fields, const threading::Field* const*  fields, bool local, bool remote)
 	{
 	Stream* stream = FindStream(id);
 
@@ -997,7 +1011,7 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, string path,
 	return writer_obj;
 	}
 
-void Manager::DeleteVals(int num_fields, Value** vals)
+void Manager::DeleteVals(int num_fields, threading::Value** vals)
 	{
 	// Note this code is duplicated in WriterBackend::DeleteVals().
 	for ( int i = 0; i < num_fields; i++ )
@@ -1007,7 +1021,7 @@ void Manager::DeleteVals(int num_fields, Value** vals)
 	}
 
 bool Manager::Write(EnumVal* id, EnumVal* writer, string path, int num_fields,
-		   Value** vals)
+		   threading::Value** vals)
 	{
 	Stream* stream = FindStream(id);
 
@@ -1116,8 +1130,10 @@ void Manager::Terminate()
 	{
 	for ( vector<Stream *>::iterator s = streams.begin(); s != streams.end(); ++s )
 		{
-		if ( *s )
-			Flush((*s)->id);
+		if ( ! *s )
+			continue;
+
+		Flush((*s)->id);
 		}
 	}
 

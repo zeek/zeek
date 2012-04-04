@@ -111,6 +111,9 @@
 /* Use Google's perftools */
 #cmakedefine USE_PERFTOOLS
 
+/* Use the DataSeries writer. */
+#cmakedefine USE_DATASERIES
+
 /* Version number of package */
 #define VERSION "@VERSION@"
 

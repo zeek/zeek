@@ -1,4 +1,21 @@
 
+2.0-257 | 2012-04-05 15:32:43 -0700
+
+  * Fix CMake from warning about unused ENABLE_PERFTOOLS_DEBUG
+    variable. (Jon Siwek)
+
+  * Fix handling of IPv6 atomic fragments. (Jon Siwek)
+    
+  * Fix that prevents Bro processes that do neither local logging nor
+    request remote logs from spawning threads. (Robin Sommer)
+
+  * Fixing perftools-debug support. (Robin Sommer)
+
+  * Reverting SocketComm change tuning I/O behaviour. (Robin Sommer)
+    
+  * Adding notice_policy.log canonification for external tests. (Robin Sommer)
+
+
 2.0-245 | 2012-04-04 17:25:20 -0700
 
   * Internal restructuring of the logging framework: we now spawn

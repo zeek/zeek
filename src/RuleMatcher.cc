@@ -191,7 +191,7 @@ void RuleMatcher::Delete(RuleHdrTest* node)
 
 bool RuleMatcher::ReadFiles(const name_list& files)
 	{
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 	HeapLeakChecker::Disabler disabler;
 #endif
 
@@ -1082,7 +1082,7 @@ static bool val_to_maskedval(Val* v, maskedvalue_list* append_to)
 			bool is_v4_mask = m[0] == 0xffffffff &&
 						m[1] == m[0] && m[2] == m[0];
 
-			if ( v->AsSubNet().Prefix().GetFamily() == IPAddr::IPv4 &&
+			if ( v->AsSubNet().Prefix().GetFamily() == IPv4 &&
 			     is_v4_mask )
 				{
 				mval->val = ntohl(*n);

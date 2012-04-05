@@ -1,4 +1,20 @@
 
+2.0-245 | 2012-04-04 17:25:20 -0700
+
+  * Internal restructuring of the logging framework: we now spawn
+    threads doing the I/O. From a user's perspective not much should
+    change, except that the OS may now show a bunch of Bro threads.
+    (Gilbert Clark and Robin Sommer).
+
+  * When building Bro, we now always link in tcmalloc if it's found at
+    configure time. If it's installed but not picked up,
+    --with-perftools may help. (Robin Sommer)
+
+  * Renaming the configure option --enable-perftools to
+    --enable-perftool-debug to indicate that the switch is only
+    relevant for debugging the heap. It's not needed to pick up
+    tcmalloc for better performance. (Robin Sommer)
+
 2.0-184 | 2012-03-28 15:11:11 -0700
 
   * Improve handling of IPv6 Routing Type 0 headers.  (Jon Siwek)

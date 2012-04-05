@@ -1949,7 +1949,7 @@ function is_local_interface%(ip: addr%) : bool
 	if ( ent )
 		{
 		for ( unsigned int len = 0; ent->h_addr_list[len]; ++len )
-			addrs.push_back(IPAddr(IPAddr::IPv4, (uint32*)ent->h_addr_list[len],
+			addrs.push_back(IPAddr(IPv4, (uint32*)ent->h_addr_list[len],
 			                       IPAddr::Network));
 		}
 
@@ -1958,7 +1958,7 @@ function is_local_interface%(ip: addr%) : bool
 	if ( ent )
 		{
 		for ( unsigned int len = 0; ent->h_addr_list[len]; ++len )
-			addrs.push_back(IPAddr(IPAddr::IPv6, (uint32*)ent->h_addr_list[len],
+			addrs.push_back(IPAddr(IPv6, (uint32*)ent->h_addr_list[len],
 			                       IPAddr::Network));
 		}
 
@@ -2024,7 +2024,7 @@ function gethostname%(%) : string
 ## Returns: true if *a* is an IPv4 address, else false.
 function is_v4_addr%(a: addr%): bool
 	%{
-	if ( a->AsAddr().GetFamily() == IPAddr::IPv4 )
+	if ( a->AsAddr().GetFamily() == IPv4 )
 		return new Val(1, TYPE_BOOL);
 	else
 		return new Val(0, TYPE_BOOL);
@@ -2037,7 +2037,7 @@ function is_v4_addr%(a: addr%): bool
 ## Returns: true if *a* is an IPv6 address, else false.
 function is_v6_addr%(a: addr%): bool
 	%{
-	if ( a->AsAddr().GetFamily() == IPAddr::IPv6 )
+	if ( a->AsAddr().GetFamily() == IPv6 )
 		return new Val(1, TYPE_BOOL);
 	else
 		return new Val(0, TYPE_BOOL);
@@ -2070,7 +2070,7 @@ function routing0_data_to_addrs%(s: string%): addr_vec
 
 	while ( len > 0 )
 		{
-		IPAddr a(IPAddr::IPv6, (const uint32*) bytes, IPAddr::Network);
+		IPAddr a(IPv6, (const uint32*) bytes, IPAddr::Network);
 		rval->Assign(rval->Size(), new AddrVal(a), 0);
 		bytes += 16;
 		len -= 16;
@@ -3552,7 +3552,7 @@ function lookup_location%(a: addr%) : geo_location
 		}
 
 #ifdef HAVE_GEOIP_COUNTRY_EDITION_V6
-	if ( geoip_v6 && a->AsAddr().GetFamily() == IPAddr::IPv6 )
+	if ( geoip_v6 && a->AsAddr().GetFamily() == IPv6 )
 		{
 		geoipv6_t ga;
 		a->AsAddr().CopyIPv6(&ga);
@@ -3564,7 +3564,7 @@ function lookup_location%(a: addr%) : geo_location
 	else
 #endif
 
-	if ( geoip && a->AsAddr().GetFamily() == IPAddr::IPv4 )
+	if ( geoip && a->AsAddr().GetFamily() == IPv4 )
 		{
 		const uint32* bytes;
 		a->AsAddr().GetBytes(&bytes);
@@ -3647,7 +3647,7 @@ function lookup_asn%(a: addr%) : count
 		{
 // IPv6 support showed up in 1.4.5.
 #ifdef HAVE_GEOIP_COUNTRY_EDITION_V6
-		if ( a->AsAddr().GetFamily() == IPAddr::IPv6 )
+		if ( a->AsAddr().GetFamily() == IPv6 )
 			{
 			geoipv6_t ga;
 			a->AsAddr().CopyIPv6(&ga);
@@ -3656,7 +3656,7 @@ function lookup_asn%(a: addr%) : count
 		else
 #endif
 
-		if ( a->AsAddr().GetFamily() == IPAddr::IPv4 )
+		if ( a->AsAddr().GetFamily() == IPv4 )
 			{
 			const uint32* bytes;
 			a->AsAddr().GetBytes(&bytes);
@@ -5383,7 +5383,7 @@ function preserve_prefix%(a: addr, width: count%): any
 	AnonymizeIPAddr* ip_anon = ip_anonymizer[PREFIX_PRESERVING_A50];
 	if ( ip_anon )
 		{
-		if ( a->AsAddr().GetFamily() == IPAddr::IPv6 )
+		if ( a->AsAddr().GetFamily() == IPv6 )
 			builtin_error("preserve_prefix() not supported for IPv6 addresses");
 		else
 			{
@@ -5412,7 +5412,7 @@ function preserve_subnet%(a: subnet%): any
 	AnonymizeIPAddr* ip_anon = ip_anonymizer[PREFIX_PRESERVING_A50];
 	if ( ip_anon )
 		{
-		if ( a->AsSubNet().Prefix().GetFamily() == IPAddr::IPv6 )
+		if ( a->AsSubNet().Prefix().GetFamily() == IPv6 )
 			builtin_error("preserve_subnet() not supported for IPv6 addresses");
 		else
 			{
@@ -5448,7 +5448,7 @@ function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
 	if ( anon_class < 0 || anon_class >= NUM_ADDR_ANONYMIZATION_CLASSES )
 		builtin_error("anonymize_addr(): invalid ip addr anonymization class");
 
-	if ( a->AsAddr().GetFamily() == IPAddr::IPv6 )
+	if ( a->AsAddr().GetFamily() == IPv6 )
 		{
 		builtin_error("anonymize_addr() not supported for IPv6 addresses");
 		return 0;

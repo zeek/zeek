@@ -3399,8 +3399,10 @@ void SocketComm::Run()
 		small_timeout.tv_usec =
 			io->CanWrite() || io->CanRead() ? 1 : 10;
 
+#if 0
 		if ( ! io->CanWrite() )
 			usleep(10);
+#endif
 
 		int a = select(max_fd + 1, &fd_read, &fd_write, &fd_except,
 				&small_timeout);

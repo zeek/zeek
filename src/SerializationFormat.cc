@@ -250,9 +250,9 @@ bool BinarySerializationFormat::Read(IPAddr* addr, const char* tag)
 		}
 
 	if ( n == 1 )
-		*addr = IPAddr(IPAddr::IPv4, raw, IPAddr::Network);
+		*addr = IPAddr(IPv4, raw, IPAddr::Network);
 	else
-		*addr = IPAddr(IPAddr::IPv6, raw, IPAddr::Network);
+		*addr = IPAddr(IPv6, raw, IPAddr::Network);
 
 	return true;
 	}
@@ -266,6 +266,32 @@ bool BinarySerializationFormat::Read(IPPrefix* prefix, const char* tag)
 		return false;
 
 	*prefix = IPPrefix(addr, len);
+	return true;
+	}
+
+bool BinarySerializationFormat::Read(struct in_addr* addr, const char* tag)
+	{
+	uint32_t* bytes = (uint32_t*) &addr->s_addr;
+
+	if ( ! Read(&bytes[0], "addr4") )
+		return false;
+
+	bytes[0] = htonl(bytes[0]);
+	return true;
+	}
+
+bool BinarySerializationFormat::Read(struct in6_addr* addr, const char* tag)
+	{
+	uint32_t* bytes = (uint32_t*) &addr->s6_addr;
+
+	for ( int i = 0; i < 4; ++i )
+		{
+		if ( ! Read(&bytes[i], "addr6-part") )
+			return false;
+
+		bytes[i] = htonl(bytes[i]);
+		}
+
 	return true;
 	}
 
@@ -360,6 +386,29 @@ bool BinarySerializationFormat::Write(const IPAddr& addr, const char* tag)
 bool BinarySerializationFormat::Write(const IPPrefix& prefix, const char* tag)
 	{
 	return Write(prefix.Prefix(), "prefix") && Write(prefix.Length(), "width");
+	}
+
+bool BinarySerializationFormat::Write(const struct in_addr& addr, const char* tag)
+	{
+	const uint32_t* bytes = (uint32_t*) &addr.s_addr;
+
+	if ( ! Write(ntohl(bytes[0]), "addr4") )
+		return false;
+
+	return true;
+	}
+
+bool BinarySerializationFormat::Write(const struct in6_addr& addr, const char* tag)
+	{
+	const uint32_t* bytes = (uint32_t*) &addr.s6_addr;
+
+	for ( int i = 0; i < 4; ++i )
+		{
+		if ( ! Write(ntohl(bytes[i]), "addr6-part") )
+			return false;
+		}
+
+	return true;
 	}
 
 bool BinarySerializationFormat::WriteOpenTag(const char* tag)
@@ -464,6 +513,18 @@ bool XMLSerializationFormat::Read(IPPrefix* prefix, const char* tag)
 	return false;
 	}
 
+bool XMLSerializationFormat::Read(struct in_addr* addr, const char* tag)
+	{
+	reporter->InternalError("no reading of xml");
+	return false;
+	}
+
+bool XMLSerializationFormat::Read(struct in6_addr* addr, const char* tag)
+	{
+	reporter->InternalError("no reading of xml");
+	return false;
+	}
+
 bool XMLSerializationFormat::Write(char v, const char* tag)
 	{
 	return WriteElem(tag, "char", &v, 1);
@@ -553,6 +614,18 @@ bool XMLSerializationFormat::Write(const IPAddr& addr, const char* tag)
 bool XMLSerializationFormat::Write(const IPPrefix& prefix, const char* tag)
 	{
 	reporter->InternalError("XML output of prefixes not implemented");
+	return false;
+	}
+
+bool XMLSerializationFormat::Write(const struct in_addr& addr, const char* tag)
+	{
+	reporter->InternalError("XML output of in_addr not implemented");
+	return false;
+	}
+
+bool XMLSerializationFormat::Write(const struct in6_addr& addr, const char* tag)
+	{
+	reporter->InternalError("XML output of in6_addr not implemented");
 	return false;
 	}
 

@@ -1,8 +1,10 @@
 
-#include "LogWriterNone.h"
+#include "None.h"
 
-bool LogWriterNone::DoRotate(string rotated_path, double open,
-			      double close, bool terminating)
+using namespace logging;
+using namespace writer;
+
+bool None::DoRotate(string rotated_path, double open, double close, bool terminating)
 	{
 	if ( ! FinishedRotation(string("/dev/null"), Path(), open, close, terminating))
 		{

@@ -37,7 +37,7 @@
 
 #endif
 
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 #include <google/heap-checker.h>
 #include <google/heap-profiler.h>
 extern HeapLeakChecker* heap_checker;

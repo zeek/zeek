@@ -15,7 +15,7 @@ DebugLogger::Stream DebugLogger::streams[NUM_DBGS] = {
 	{ "compressor", 0, false }, {"string", 0, false },
 	{ "notifiers", 0, false },  { "main-loop", 0, false },
 	{ "dpd", 0, false }, { "tm", 0, false },
-	{ "logging", 0, false }
+	{ "logging", 0, false }, { "threading", 0, false }
 };
 
 DebugLogger::DebugLogger(const char* filename)

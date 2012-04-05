@@ -232,7 +232,7 @@ BroFile::~BroFile()
 	delete [] access;
 	delete [] cipher_buffer;
 
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 	heap_checker->UnIgnoreObject(this);
 #endif
 	}
@@ -255,7 +255,7 @@ void BroFile::Init()
 	cipher_ctx = 0;
 	cipher_buffer = 0;
 
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 	heap_checker->IgnoreObject(this);
 #endif
 	}

@@ -109,7 +109,7 @@
 #cmakedefine HAVE_GEOIP_CITY_EDITION_REV0_V6
 
 /* Use Google's perftools */
-#cmakedefine USE_PERFTOOLS
+#cmakedefine USE_PERFTOOLS_DEBUG
 
 /* Version number of package */
 #define VERSION "@VERSION@"

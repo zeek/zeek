@@ -606,7 +606,7 @@ ID* MutableVal::Bind() const
 			ip = htonl(0x7f000001);	// 127.0.0.1
 
 		safe_snprintf(name, MAX_NAME_SIZE, "#%s#%d#",
-			      IPAddr(IPAddr::IPv4, &ip, IPAddr::Network)->AsString().c_str(),
+			      IPAddr(IPv4, &ip, IPAddr::Network)->AsString().c_str(),
 			      getpid());
 #else
 		safe_snprintf(name, MAX_NAME_SIZE, "#%s#%d#", host, getpid());
@@ -864,12 +864,12 @@ AddrVal::AddrVal(const char* text) : Val(TYPE_ADDR)
 AddrVal::AddrVal(uint32 addr) : Val(TYPE_ADDR)
 	{
 	// ### perhaps do gethostbyaddr here?
-	val.addr_val = new IPAddr(IPAddr::IPv4, &addr, IPAddr::Network);
+	val.addr_val = new IPAddr(IPv4, &addr, IPAddr::Network);
 	}
 
 AddrVal::AddrVal(const uint32 addr[4]) : Val(TYPE_ADDR)
 	{
-	val.addr_val = new IPAddr(IPAddr::IPv6, addr, IPAddr::Network);
+	val.addr_val = new IPAddr(IPv6, addr, IPAddr::Network);
 	}
 
 AddrVal::AddrVal(const IPAddr& addr) : Val(TYPE_ADDR)
@@ -889,7 +889,7 @@ unsigned int AddrVal::MemoryAllocation() const
 
 Val* AddrVal::SizeVal() const
 	{
-	if ( val.addr_val->GetFamily() == IPAddr::IPv4 )
+	if ( val.addr_val->GetFamily() == IPv4 )
 		return new Val(32, TYPE_COUNT);
 	else
 		return new Val(128, TYPE_COUNT);
@@ -933,13 +933,13 @@ SubNetVal::SubNetVal(const char* text, int width) : Val(TYPE_SUBNET)
 
 SubNetVal::SubNetVal(uint32 addr, int width) : Val(TYPE_SUBNET)
 	{
-	IPAddr a(IPAddr::IPv4, &addr, IPAddr::Network);
+	IPAddr a(IPv4, &addr, IPAddr::Network);
 	val.subnet_val = new IPPrefix(a, width);
 	}
 
 SubNetVal::SubNetVal(const uint32* addr, int width) : Val(TYPE_SUBNET)
 	{
-	IPAddr a(IPAddr::IPv6, addr, IPAddr::Network);
+	IPAddr a(IPv6, addr, IPAddr::Network);
 	val.subnet_val = new IPPrefix(a, width);
 	}
 
@@ -951,6 +951,16 @@ SubNetVal::SubNetVal(const IPAddr& addr, int width) : Val(TYPE_SUBNET)
 SubNetVal::~SubNetVal()
 	{
 	delete val.subnet_val;
+	}
+
+const IPAddr& SubNetVal::Prefix() const
+	{
+	return val.subnet_val->Prefix();
+	}
+
+int SubNetVal::Width() const
+	{
+	return val.subnet_val->Length();
 	}
 
 unsigned int SubNetVal::MemoryAllocation() const
@@ -978,7 +988,7 @@ IPAddr SubNetVal::Mask() const
 		uint32 m[4];
 		for ( unsigned int i = 0; i < 4; ++i )
 			m[i] = 0;
-		IPAddr rval(IPAddr::IPv6, m, IPAddr::Host);
+		IPAddr rval(IPv6, m, IPAddr::Host);
 		return rval;
 		}
 
@@ -994,7 +1004,7 @@ IPAddr SubNetVal::Mask() const
 	while ( ++mp < m + 4 )
 		   *mp = 0;
 
-	IPAddr rval(IPAddr::IPv6, m, IPAddr::Host);
+	IPAddr rval(IPv6, m, IPAddr::Host);
 	return rval;
 	}
 

@@ -3,8 +3,9 @@
 module Log;
 
 %%{
-#include "LogMgr.h"
 #include "NetVar.h"
+
+#include "logging/Manager.h"
 %%}
 
 type Filter: record;

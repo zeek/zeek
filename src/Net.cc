@@ -455,6 +455,7 @@ void net_run()
 				// date on timers and events.
 				network_time = ct;
 				expire_timers();
+				usleep(1); // Just yield.
 				}
 			}
 
@@ -484,6 +485,8 @@ void net_run()
 			// since Bro timers are not high-precision anyway.)
 			if ( ! using_communication )
 				usleep(100000);
+			else
+				usleep(1000);
 
 			// Flawfinder says about usleep:
 			//

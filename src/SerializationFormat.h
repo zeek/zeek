@@ -9,6 +9,9 @@ using namespace std;
 
 #include "util.h"
 
+class IPAddr;
+class IPPrefix;
+
 // Abstract base class.
 class SerializationFormat {
 public:
@@ -30,6 +33,8 @@ public:
 	virtual bool Read(string* s, const char* tag) = 0;
 	virtual bool Read(IPAddr* addr, const char* tag) = 0;
 	virtual bool Read(IPPrefix* prefix, const char* tag) = 0;
+	virtual bool Read(struct in_addr* addr, const char* tag) = 0;
+	virtual bool Read(struct in6_addr* addr, const char* tag) = 0;
 
 	// Returns number of raw bytes read since last call to StartRead().
 	int BytesRead() const	{ return bytes_read; }
@@ -54,6 +59,8 @@ public:
 	virtual bool Write(const string& s, const char* tag) = 0;
 	virtual bool Write(const IPAddr& addr, const char* tag) = 0;
 	virtual bool Write(const IPPrefix& prefix, const char* tag) = 0;
+	virtual bool Write(const struct in_addr& addr, const char* tag) = 0;
+	virtual bool Write(const struct in6_addr& addr, const char* tag) = 0;
 
 	virtual bool WriteOpenTag(const char* tag) = 0;
 	virtual bool WriteCloseTag(const char* tag) = 0;
@@ -96,6 +103,8 @@ public:
 	virtual bool Read(string* s, const char* tag);
 	virtual bool Read(IPAddr* addr, const char* tag);
 	virtual bool Read(IPPrefix* prefix, const char* tag);
+	virtual bool Read(struct in_addr* addr, const char* tag);
+	virtual bool Read(struct in6_addr* addr, const char* tag);
 	virtual bool Write(int v, const char* tag);
 	virtual bool Write(uint16 v, const char* tag);
 	virtual bool Write(uint32 v, const char* tag);
@@ -109,6 +118,8 @@ public:
 	virtual bool Write(const string& s, const char* tag);
 	virtual bool Write(const IPAddr& addr, const char* tag);
 	virtual bool Write(const IPPrefix& prefix, const char* tag);
+	virtual bool Write(const struct in_addr& addr, const char* tag);
+	virtual bool Write(const struct in6_addr& addr, const char* tag);
 	virtual bool WriteOpenTag(const char* tag);
 	virtual bool WriteCloseTag(const char* tag);
 	virtual bool WriteSeparator();
@@ -133,6 +144,8 @@ public:
 	virtual bool Write(const string& s, const char* tag);
 	virtual bool Write(const IPAddr& addr, const char* tag);
 	virtual bool Write(const IPPrefix& prefix, const char* tag);
+	virtual bool Write(const struct in_addr& addr, const char* tag);
+	virtual bool Write(const struct in6_addr& addr, const char* tag);
 	virtual bool WriteOpenTag(const char* tag);
 	virtual bool WriteCloseTag(const char* tag);
 	virtual bool WriteSeparator();
@@ -150,6 +163,8 @@ public:
 	virtual bool Read(string* s, const char* tag);
 	virtual bool Read(IPAddr* addr, const char* tag);
 	virtual bool Read(IPPrefix* prefix, const char* tag);
+	virtual bool Read(struct in_addr* addr, const char* tag);
+	virtual bool Read(struct in6_addr* addr, const char* tag);
 
 private:
 	// Encodes non-printable characters.

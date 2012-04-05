@@ -135,11 +135,10 @@ const char* fmt_conn_id(const IPAddr& src_addr, uint32 src_port,
 const char* fmt_conn_id(const uint32* src_addr, uint32 src_port,
 			const uint32* dst_addr, uint32 dst_port)
 	{
-	IPAddr src(IPAddr::IPv6, src_addr, IPAddr::Network);
-	IPAddr dst(IPAddr::IPv6, dst_addr, IPAddr::Network);
+	IPAddr src(IPv6, src_addr, IPAddr::Network);
+	IPAddr dst(IPv6, dst_addr, IPAddr::Network);
 	return fmt_conn_id(src, src_port, dst, dst_port);
 	}
-
 
 uint32 extract_uint32(const u_char* data)
 	{

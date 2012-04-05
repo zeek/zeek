@@ -3,12 +3,16 @@
 # @TEST-EXEC: bro -b -r $TRACES/chksums/ip4-udp-bad-chksum.pcap >>bad.out 2>&1
 # @TEST-EXEC: bro -b -r $TRACES/chksums/ip6-route0-tcp-bad-chksum.pcap >>bad.out 2>&1
 # @TEST-EXEC: bro -b -r $TRACES/chksums/ip6-route0-udp-bad-chksum.pcap >>bad.out 2>&1
+# @TEST-EXEC: bro -b -r $TRACES/chksums/ip6-hoa-tcp-bad-chksum.pcap >>bad.out 2>&1
+# @TEST-EXEC: bro -b -r $TRACES/chksums/ip6-hoa-udp-bad-chksum.pcap >>bad.out 2>&1
 # @TEST-EXEC: bro -b -r $TRACES/chksums/ip6-tcp-bad-chksum.pcap >>bad.out 2>&1
 # @TEST-EXEC: bro -b -r $TRACES/chksums/ip6-udp-bad-chksum.pcap >>bad.out 2>&1
 # @TEST-EXEC: bro -b -r $TRACES/chksums/ip4-tcp-good-chksum.pcap >>good.out 2>&1
 # @TEST-EXEC: bro -b -r $TRACES/chksums/ip4-udp-good-chksum.pcap >>good.out 2>&1
 # @TEST-EXEC: bro -b -r $TRACES/chksums/ip6-route0-tcp-good-chksum.pcap >>good.out 2>&1
 # @TEST-EXEC: bro -b -r $TRACES/chksums/ip6-route0-udp-good-chksum.pcap >>good.out 2>&1
+# @TEST-EXEC: bro -b -r $TRACES/chksums/ip6-hoa-tcp-good-chksum.pcap >>good.out 2>&1
+# @TEST-EXEC: bro -b -r $TRACES/chksums/ip6-hoa-udp-good-chksum.pcap >>good.out 2>&1
 # @TEST-EXEC: bro -b -r $TRACES/chksums/ip6-tcp-good-chksum.pcap >>good.out 2>&1
 # @TEST-EXEC: bro -b -r $TRACES/chksums/ip6-udp-good-chksum.pcap >>good.out 2>&1
 # @TEST-EXEC: btest-diff bad.out

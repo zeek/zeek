@@ -45,7 +45,7 @@ PacketSortElement::PacketSortElement(PktSrc* arg_src,
 							(pkt + tcp_offset);
 
 				id.src_addr = ip_hdr->SrcAddr();
-				id.dst_addr = ip_hdr->FinalDstAddr();
+				id.dst_addr = ip_hdr->DstAddr();
 				id.src_port = tp->th_sport;
 				id.dst_port = tp->th_dport;
 				id.is_one_way = 0;

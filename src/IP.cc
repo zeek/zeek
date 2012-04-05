@@ -305,25 +305,103 @@ void IPv6_Hdr_Chain::Init(const struct ip6_hdr* ip6, bool set_next, uint16 next)
 
 		chain.push_back(p);
 
-		// Check for routing type 0 header.
-		if ( current_type == IPPROTO_ROUTING &&
-		     ((const struct ip6_rthdr*)hdrs)->ip6r_type == 0 )
-			{
-			if ( ((const struct ip6_rthdr*)hdrs)->ip6r_segleft > 0 )
-				// Remember the index for later so we can determine the final
-				// destination of the packet.
-				route0_hdr_idx = chain.size() - 1;
+		// Check for routing headers and remember final destination address.
+		if ( current_type == IPPROTO_ROUTING )
+			ProcessRoutingHeader((const struct ip6_rthdr*) hdrs, len);
 
-			// RFC 5095 deprecates routing type 0 headers, so raise weirds
-			IPAddr src(((const struct ip6_hdr*)(chain[0]->Data()))->ip6_src);
-			reporter->Weird(src, FinalDst(), "routing0_hdr");
-			}
+		if ( current_type == IPPROTO_DSTOPTS )
+			ProcessDstOpts((const struct ip6_dest*) hdrs, len);
 
 		hdrs += len;
 		length += len;
 		} while ( current_type != IPPROTO_FRAGMENT &&
 				  current_type != IPPROTO_ESP &&
 				  isIPv6ExtHeader(next_type) );
+	}
+
+void IPv6_Hdr_Chain::ProcessRoutingHeader(const struct ip6_rthdr* r, uint16 len)
+	{
+	if ( finalDst )
+		{
+		// RFC 2460 section 4.1 says Routing should occur at most once
+		reporter->Weird(SrcAddr(), DstAddr(), "multiple_routing_headers");
+		return;
+		}
+
+	// Last 16 bytes of header (for all known types) is the address we want
+	const in6_addr* addr = (const in6_addr*)(((const u_char*)r) + len - 16);
+
+	switch ( r->ip6r_type ) {
+	case 0: // Defined by RFC 2460, deprecated by RFC 5095
+		{
+		if ( r->ip6r_segleft > 0 && r->ip6r_len >= 2 )
+			{
+			if ( r->ip6r_len % 2 == 0 )
+				finalDst = new IPAddr(*addr);
+			else
+				reporter->Weird(SrcAddr(), DstAddr(), "odd_routing0_len");
+			}
+
+		// Always raise a weird since this type is deprecated
+		reporter->Weird(SrcAddr(), DstAddr(), "routing0_hdr");
+		}
+		break;
+
+	case 2: // Defined by Mobile IPv6 RFC 6275
+		{
+		if ( r->ip6r_segleft > 0 )
+			{
+			if ( r->ip6r_len == 2 )
+				finalDst = new IPAddr(*addr);
+			else
+				reporter->Weird(SrcAddr(), DstAddr(), "bad_routing2_len");
+			}
+		}
+		break;
+
+	default:
+		reporter->Weird(fmt("unknown_routing_type_%d", r->ip6r_type));
+		break;
+	}
+	}
+
+void IPv6_Hdr_Chain::ProcessDstOpts(const struct ip6_dest* d, uint16 len)
+	{
+	const u_char* data = (const u_char*) d;
+	len -= 2 * sizeof(uint8);
+	data += 2* sizeof(uint8);
+
+	while ( len > 0 )
+		{
+		const struct ip6_opt* opt = (const struct ip6_opt*) data;
+		switch ( opt->ip6o_type ) {
+		case 201: // Home Address Option, Mobile IPv6 RFC 6275 section 6.3
+			{
+			if ( opt->ip6o_len == 16 )
+				if ( homeAddr )
+					reporter->Weird(SrcAddr(), DstAddr(), "multiple_home_addr_opts");
+				else
+					homeAddr = new IPAddr(*((const in6_addr*)(data + 2)));
+			else
+				reporter->Weird(SrcAddr(), DstAddr(), "bad_home_addr_len");
+			}
+			break;
+
+		default:
+			break;
+		}
+
+		if ( opt->ip6o_type == 0 )
+			{
+			data += sizeof(uint8);
+			len -= sizeof(uint8);
+			}
+		else
+			{
+			data += 2 * sizeof(uint8) + opt->ip6o_len;
+			len -= 2 * sizeof(uint8) + opt->ip6o_len;
+			}
+		}
 	}
 
 VectorVal* IPv6_Hdr_Chain::BuildVal() const

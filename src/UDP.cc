@@ -217,7 +217,7 @@ bool UDP_Analyzer::ValidateChecksum(const IP_Hdr* ip, const udphdr* up, int len)
 		sum = 0;
 
 	sum = ones_complement_checksum(ip->SrcAddr(), sum);
-	sum = ones_complement_checksum(ip->FinalDstAddr(), sum);
+	sum = ones_complement_checksum(ip->DstAddr(), sum);
 	// Note, for IPv6, strictly speaking the protocol and length fields are
 	// 32 bits rather than 16 bits.  But because the upper bits are all zero,
 	// we get the same checksum either way.

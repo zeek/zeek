@@ -117,11 +117,15 @@ public:
 	/**
 	 * Initializes the header chain from an IPv6 header structure.
 	 */
-	IPv6_Hdr_Chain(const struct ip6_hdr* ip6) : route0_hdr_idx(0)
+	IPv6_Hdr_Chain(const struct ip6_hdr* ip6) : homeAddr(0), finalDst(0)
 		{ Init(ip6, false); }
 
 	~IPv6_Hdr_Chain()
-		{ for ( size_t i = 0; i < chain.size(); ++i ) delete chain[i]; }
+		{
+		for ( size_t i = 0; i < chain.size(); ++i ) delete chain[i];
+		delete homeAddr;
+		delete finalDst;
+		}
 
 	/**
 	 * Returns the number of headers in the chain.
@@ -173,22 +177,27 @@ public:
 				(ntohs(GetFragHdr()->ip6f_offlg) & 0x0001) != 0 : 0; }
 
 	/**
-	 * Returns the final destination of the packet this chain belongs to.
-	 * If the chain doesn't contain any routing type 0 header with non-zero
-	 * segments left, this is the destination in the main IP header, else
-	 * it's the last address in the routing header.  (If there were to be
-	 * more than one routing type 0 header with non-zero segments left, the
-	 * last one would be the one referenced).
+	 * If the chain contains a Destination Options header with a Home Address
+	 * option as defined by Mobile IPv6 (RFC 6275), then return it, else
+	 * return the source address in the main IPv6 header.
 	 */
-	IPAddr FinalDst() const
+	IPAddr SrcAddr() const
 		{
-		if ( route0_hdr_idx )
-			{
-			const struct in6_addr* a = (const struct in6_addr*)
-			        (chain[route0_hdr_idx]->Data() +
-			         chain[route0_hdr_idx]->Length() - 16);
-			return IPAddr(*a);
-			}
+		if ( homeAddr )
+			return IPAddr(*homeAddr);
+		else
+			return IPAddr(((const struct ip6_hdr*)(chain[0]->Data()))->ip6_src);
+		}
+
+	/**
+	 * If the chain contains a Routing header with non-zero segments left,
+	 * then return the last address of the first such header, else return
+	 * the destination address of the main IPv6 header.
+	 */
+	IPAddr DstAddr() const
+		{
+		if ( finalDst )
+			return IPAddr(*finalDst);
 		else
 			return IPAddr(((const struct ip6_hdr*)(chain[0]->Data()))->ip6_dst);
 		}
@@ -208,10 +217,23 @@ protected:
 	 * Initializes the header chain from an IPv6 header structure, and replaces
 	 * the first next protocol pointer field that points to a fragment header.
 	 */
-	IPv6_Hdr_Chain(const struct ip6_hdr* ip6, uint16 next) : route0_hdr_idx(0)
+	IPv6_Hdr_Chain(const struct ip6_hdr* ip6, uint16 next)
+		: homeAddr(0), finalDst(0)
 		{ Init(ip6, true, next); }
 
 	void Init(const struct ip6_hdr* ip6, bool set_next, uint16 next = 0);
+
+	/**
+	 * Process a routing header and allocate/remember the final destination
+	 * address if it has segments left and is a valid routing header.
+	 */
+	void ProcessRoutingHeader(const struct ip6_rthdr* r, uint16 len);
+
+	/**
+	 * Inspect a Destination Option header's options for things we need to
+	 * remember, such as the Home Address option from Mobile IPv6.
+	 */
+	void ProcessDstOpts(const struct ip6_dest* d, uint16 len);
 
 	vector<IPv6_Hdr*> chain;
 
@@ -221,11 +243,15 @@ protected:
 	uint16 length;
 
 	/**
-	 * Index of routing type 0 header with non-zero segments left in the header
-	 * chain or zero if none exists (it's fine since the main IP header must
-	 * always be at index zero).
+	 * Home Address of the packet's source as defined by Mobile IPv6 (RFC 6275).
 	 */
-	uint8 route0_hdr_idx;
+	IPAddr* homeAddr;
+
+	/**
+	 * The final destination address in chain's first Routing header that has
+	 * non-zero segments left.
+	 */
+	IPAddr* finalDst;
 };
 
 class IP_Hdr {
@@ -278,26 +304,34 @@ public:
 
 	const struct ip6_hdr* IP6_Hdr() const	{ return ip6; }
 
-	IPAddr SrcAddr() const
-		{ return ip4 ? IPAddr(ip4->ip_src) : IPAddr(ip6->ip6_src); }
-
 	/**
-	 * Returns the final destination address of the header's packet, which
-	 * for IPv6 packets without a routing type 0 extension header and IPv4
-	 * packets is the destination address in the IP header.  For IPv6 packets
-	 * with a routing type 0 extension header and a non-zero number of
-	 * segments left, the final destination is the last address in the routing
-	 * header.  If the segments left of a routing type 0 header were zero,
-	 * then the final destination is in the IP header itself.
+	 * Returns the source address held in the IP header.
 	 */
-	IPAddr FinalDstAddr() const
-		{ return ip4 ? IPAddr(ip4->ip_dst) : ip6_hdrs->FinalDst(); }
+	IPAddr IPheaderSrcAddr() const
+		{ return ip4 ? IPAddr(ip4->ip_src) : IPAddr(ip6->ip6_src); }
 
 	/**
 	 * Returns the destination address held in the IP header.
 	 */
 	IPAddr IPHeaderDstAddr() const
 		{ return ip4 ? IPAddr(ip4->ip_dst) : IPAddr(ip6->ip6_dst); }
+
+	/**
+	 * For IPv4 or IPv6 headers that don't contain a Home Address option
+	 * (Mobile IPv6, RFC 6275), return source address held in the IP header.
+	 * For IPv6 headers that contain a Home Address option, return that address.
+	 */
+	IPAddr SrcAddr() const
+		{ return ip4 ? IPAddr(ip4->ip_src) : ip6_hdrs->SrcAddr(); }
+
+	/**
+	 * For IPv4 or IPv6 headers that don't contain a Routing header with
+	 * non-zero segments left, return destination address held in the IP header.
+	 * For IPv6 headers with a Routing header that has non-zero segments left,
+	 * return the last address in the first such Routing header.
+	 */
+	IPAddr DstAddr() const
+		{ return ip4 ? IPAddr(ip4->ip_dst) : ip6_hdrs->DstAddr(); }
 
 	/**
 	 * Returns a pointer to the payload of the IP packet, usually an

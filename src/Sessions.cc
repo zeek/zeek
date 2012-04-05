@@ -493,7 +493,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 
 	ConnID id;
 	id.src_addr = ip_hdr->SrcAddr();
-	id.dst_addr = ip_hdr->FinalDstAddr();
+	id.dst_addr = ip_hdr->DstAddr();
 	Dictionary* d = 0;
 
 	switch ( proto ) {
@@ -667,7 +667,7 @@ FragReassembler* NetSessions::NextFragment(double t, const IP_Hdr* ip,
 
 	ListVal* key = new ListVal(TYPE_ANY);
 	key->Append(new AddrVal(ip->SrcAddr()));
-	key->Append(new AddrVal(ip->FinalDstAddr()));
+	key->Append(new AddrVal(ip->DstAddr()));
 	key->Append(new Val(frag_id, TYPE_COUNT));
 
 	HashKey* h = ch->ComputeHash(key, 1);
@@ -1177,7 +1177,7 @@ void NetSessions::Weird(const char* name,
 
 void NetSessions::Weird(const char* name, const IP_Hdr* ip)
 	{
-	reporter->Weird(ip->SrcAddr(), ip->FinalDstAddr(), name);
+	reporter->Weird(ip->SrcAddr(), ip->DstAddr(), name);
 	}
 
 unsigned int NetSessions::ConnectionMemoryUsage()

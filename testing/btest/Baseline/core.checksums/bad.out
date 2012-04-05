@@ -5,5 +5,7 @@
 1332785210.013051 weird: bad_TCP_checksum
 1332782580.798420 weird: routing0_hdr
 1332782580.798420 weird: bad_UDP_checksum
+1333640536.489921 weird: bad_TCP_checksum
+1333640468.146461 weird: bad_UDP_checksum
 1332785250.469132 weird: bad_TCP_checksum
 1332781342.923813 weird: bad_UDP_checksum

@@ -58,7 +58,7 @@ bool PacketFilter::Match(const IP_Hdr* ip, int len, int caplen)
 	if ( f )
 		return MatchFilter(*f, *ip, len, caplen);
 
-	f = (Filter*) dst_filter.Lookup(ip->FinalDstAddr(), 128);
+	f = (Filter*) dst_filter.Lookup(ip->DstAddr(), 128);
 	if ( f )
 		return MatchFilter(*f, *ip, len, caplen);
 

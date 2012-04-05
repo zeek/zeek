@@ -107,6 +107,11 @@ if (GOOGLEPERFTOOLS_FOUND)
     endif ()
 endif ()
 
+if (ENABLE_PERFTOOLS_DEBUG)
+    # Just a no op to prevent CMake from complaining about manually-specified
+    # ENABLE_PERFTOOLS_DEBUG not being used if google perftools weren't found
+endif ()
+
 set(brodeps
     ${BinPAC_LIBRARY}
     ${PCAP_LIBRARY}

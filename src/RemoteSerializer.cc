@@ -2503,6 +2503,9 @@ bool RemoteSerializer::SendLogCreateWriter(PeerID peer_id, EnumVal* id, EnumVal*
 	if ( peer->phase != Peer::HANDSHAKE && peer->phase != Peer::RUNNING )
 		return false;
 
+	if ( ! peer->logs_requested )
+		return false;
+
 	BinarySerializationFormat fmt;
 
 	fmt.StartWrite();
@@ -2625,6 +2628,9 @@ error:
 
 bool RemoteSerializer::FlushLogBuffer(Peer* p)
 	{
+	if ( ! p->logs_requested )
+		return false;
+
 	last_flush = network_time;
 
 	if ( p->state == Peer::CLOSING )

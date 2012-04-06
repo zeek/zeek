@@ -13,6 +13,10 @@ Bro 2.1
 
     * Bro now requires CMake >= 2.6.3.
 
+    * Bro now links in tcmalloc (part of Google perftools) if found at
+      configure time. Doing so can significantly improve memory and
+      CPU use.
+
 - Bro now supports IPv6 out of the box; the configure switch
   --enable-brov6 is gone.
 
@@ -30,6 +34,14 @@ Bro 2.1
 
 - The syntax for IPv6 literals changed from "2607:f8b0:4009:802::1012"
   to "[2607:f8b0:4009:802::1012]".
+
+- Bro now spawn threads for doing its logging. From a user's
+  perspective not much should change, except that the OS may now show
+  a bunch of Bro threads.
+
+- We renamed the configure option --enable-perftools to
+  --enable-perftool-debug to indicate that the switch is only relevant
+  for debugging the heap.
 
 TODO: Extend.
 

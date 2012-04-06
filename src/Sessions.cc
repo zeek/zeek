@@ -482,6 +482,22 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		return;
 		}
 
+	// Stop analyzing IPv6 packets that use routing type 0 headers with segments
+	// left since RH0 headers are deprecated by RFC 5095 and we'd have to make
+	// extra effort to get the destination in the connection/flow endpoint right.
+	if ( ip_hdr->RH0SegLeft() )
+		{
+		dump_this_packet = 1;
+		if ( rh0_segleft )
+			{
+			val_list* vl = new val_list();
+			vl->append(ip_hdr->BuildPktHdrVal());
+			mgr.QueueEvent(rh0_segleft, vl);
+			}
+		Remove(f);
+		return;
+		}
+
 	int proto = ip_hdr->NextProto();
 
 	if ( CheckHeaderTrunc(proto, len, caplen, hdr, pkt) )

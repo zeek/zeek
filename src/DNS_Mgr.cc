@@ -321,10 +321,10 @@ void DNS_Mapping::Init(struct hostent* h)
 		addrs = new IPAddr[num_addrs];
 		for ( int i = 0; i < num_addrs; ++i )
 			if ( h->h_addrtype == AF_INET )
-				addrs[i] = IPAddr(IPAddr::IPv4, (uint32*)h->h_addr_list[i],
+				addrs[i] = IPAddr(IPv4, (uint32*)h->h_addr_list[i],
 				                  IPAddr::Network);
 			else if ( h->h_addrtype == AF_INET6 )
-				addrs[i] = IPAddr(IPAddr::IPv6, (uint32*)h->h_addr_list[i],
+				addrs[i] = IPAddr(IPv6, (uint32*)h->h_addr_list[i],
 				                  IPAddr::Network);
 		}
 	else

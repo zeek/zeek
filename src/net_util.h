@@ -5,6 +5,13 @@
 
 #include "config.h"
 
+// Define first.
+typedef enum {
+	TRANSPORT_UNKNOWN, TRANSPORT_TCP, TRANSPORT_UDP, TRANSPORT_ICMP,
+} TransportProto;
+
+typedef enum { IPv4, IPv6 } IPFamily;
+
 #include <assert.h>
 #include <sys/types.h>
 
@@ -21,7 +28,6 @@
 #include <netinet/ip_icmp.h>
 
 #include "util.h"
-#include "IPAddr.h"
 
 #ifdef HAVE_NETINET_IP6_H
 #include <netinet/ip6.h>
@@ -58,11 +64,12 @@ inline int seq_delta(uint32 a, uint32 b)
 	return int(a-b);
 	}
 
+class IPAddr;
+
 // Returns the ones-complement checksum of a chunk of b short-aligned bytes.
 extern int ones_complement_checksum(const void* p, int b, uint32 sum);
 extern int ones_complement_checksum(const IPAddr& a, uint32 sum);
 
-extern int tcp_checksum(const struct ip* ip, const struct tcphdr* tp, int len);
 extern int udp_checksum(const struct ip* ip, const struct udphdr* up, int len);
 extern int udp6_checksum(const struct ip6_hdr* ip, const struct udphdr* up,
 				int len);

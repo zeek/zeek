@@ -3,10 +3,17 @@
 #include <string>
 #include <errno.h>
 
-#include "LogWriterAscii.h"
 #include "NetVar.h"
+#include "threading/SerialTypes.h"
 
-LogWriterAscii::LogWriterAscii()
+#include "Ascii.h"
+
+using namespace logging;
+using namespace writer;
+using threading::Value;
+using threading::Field;
+
+Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
 	{
 	file = 0;
 
@@ -42,7 +49,7 @@ LogWriterAscii::LogWriterAscii()
 	desc.AddEscapeSequence(separator, separator_len);
 	}
 
-LogWriterAscii::~LogWriterAscii()
+Ascii::~Ascii()
 	{
 	if ( file )
 		fclose(file);
@@ -54,7 +61,7 @@ LogWriterAscii::~LogWriterAscii()
 	delete [] header_prefix;
 	}
 
-bool LogWriterAscii::WriteHeaderField(const string& key, const string& val)
+bool Ascii::WriteHeaderField(const string& key, const string& val)
 	{
 	string str = string(header_prefix, header_prefix_len) +
 		key + string(separator, separator_len) + val + "\n";
@@ -62,8 +69,8 @@ bool LogWriterAscii::WriteHeaderField(const string& key, const string& val)
 	return (fwrite(str.c_str(), str.length(), 1, file) == 1);
 	}
 
-bool LogWriterAscii::DoInit(string path, int num_fields,
-			    const LogField* const * fields)
+bool Ascii::DoInit(string path, int num_fields,
+			    const Field* const * fields)
 	{
 	if ( output_to_stdout )
 		path = "/dev/stdout";
@@ -108,7 +115,7 @@ bool LogWriterAscii::DoInit(string path, int num_fields,
 				types += string(separator, separator_len);
 				}
 
-			const LogField* field = fields[i];
+			const Field* field = fields[i];
 			names += field->name;
 			types += type_name(field->type);
 			if ( (field->type == TYPE_TABLE) || (field->type == TYPE_VECTOR) )
@@ -131,17 +138,18 @@ write_error:
 	return false;
 	}
 
-bool LogWriterAscii::DoFlush()
+bool Ascii::DoFlush()
 	{
 	fflush(file);
 	return true;
 	}
 
-void LogWriterAscii::DoFinish()
+bool Ascii::DoFinish()
 	{
+	return true;
 	}
 
-bool LogWriterAscii::DoWriteOne(ODesc* desc, LogVal* val, const LogField* field)
+bool Ascii::DoWriteOne(ODesc* desc, Value* val, const Field* field)
 	{
 	if ( ! val->present )
 		{
@@ -161,16 +169,19 @@ bool LogWriterAscii::DoWriteOne(ODesc* desc, LogVal* val, const LogField* field)
 
 	case TYPE_COUNT:
 	case TYPE_COUNTER:
-	case TYPE_PORT:
 		desc->Add(val->val.uint_val);
 		break;
 
+	case TYPE_PORT:
+		desc->Add(val->val.port_val.port);
+		break;
+
 	case TYPE_SUBNET:
-		desc->Add(*val->val.subnet_val);
+		desc->Add(Render(val->val.subnet_val));
 		break;
 
 	case TYPE_ADDR:
-		desc->Add(*val->val.addr_val);
+		desc->Add(Render(val->val.addr_val));
 		break;
 
 	case TYPE_TIME:
@@ -182,7 +193,7 @@ bool LogWriterAscii::DoWriteOne(ODesc* desc, LogVal* val, const LogField* field)
 
 	case TYPE_DOUBLE:
 		desc->Add(val->val.double_val);
-	break;
+		break;
 
 	case TYPE_ENUM:
 	case TYPE_STRING:
@@ -279,8 +290,8 @@ bool LogWriterAscii::DoWriteOne(ODesc* desc, LogVal* val, const LogField* field)
 	return true;
 	}
 
-bool LogWriterAscii::DoWrite(int num_fields, const LogField* const * fields,
-			     LogVal** vals)
+bool Ascii::DoWrite(int num_fields, const Field* const * fields,
+			     Value** vals)
 	{
 	if ( ! file )
 		DoInit(Path(), NumFields(), Fields());
@@ -310,8 +321,7 @@ bool LogWriterAscii::DoWrite(int num_fields, const LogField* const * fields,
 	return true;
 	}
 
-bool LogWriterAscii::DoRotate(string rotated_path, double open,
-			      double close, bool terminating)
+bool Ascii::DoRotate(string rotated_path, double open, double close, bool terminating)
 	{
 	// Don't rotate special files or if there's not one currently open.
 	if ( ! file || IsSpecial(Path()) )
@@ -332,13 +342,13 @@ bool LogWriterAscii::DoRotate(string rotated_path, double open,
 	return true;
 	}
 
-bool LogWriterAscii::DoSetBuf(bool enabled)
+bool Ascii::DoSetBuf(bool enabled)
 	{
 	// Nothing to do.
 	return true;
 	}
 
-string LogWriterAscii::LogExt()
+string Ascii::LogExt()
 	{
 	const char* ext = getenv("BRO_LOG_SUFFIX");
 	if ( ! ext ) ext = "log";

@@ -52,8 +52,6 @@ FragReassembler::FragReassembler(NetSessions* arg_s,
 	frag_size = 0;	// flag meaning "not known"
 	next_proto = ip->NextProto();
 
-	AddFragment(t, ip, pkt);
-
 	if ( frag_timeout != 0.0 )
 		{
 		expire_timer = new FragTimer(this, t + frag_timeout);
@@ -61,6 +59,8 @@ FragReassembler::FragReassembler(NetSessions* arg_s,
 		}
 	else
 		expire_timer = 0;
+
+	AddFragment(t, ip, pkt);
 	}
 
 FragReassembler::~FragReassembler()

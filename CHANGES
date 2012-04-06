@@ -1,4 +1,63 @@
 
+2.0-257 | 2012-04-05 15:32:43 -0700
+
+  * Fix CMake from warning about unused ENABLE_PERFTOOLS_DEBUG
+    variable. (Jon Siwek)
+
+  * Fix handling of IPv6 atomic fragments. (Jon Siwek)
+    
+  * Fix that prevents Bro processes that do neither local logging nor
+    request remote logs from spawning threads. (Robin Sommer)
+
+  * Fixing perftools-debug support. (Robin Sommer)
+
+  * Reverting SocketComm change tuning I/O behaviour. (Robin Sommer)
+    
+  * Adding notice_policy.log canonification for external tests. (Robin Sommer)
+
+
+2.0-245 | 2012-04-04 17:25:20 -0700
+
+  * Internal restructuring of the logging framework: we now spawn
+    threads doing the I/O. From a user's perspective not much should
+    change, except that the OS may now show a bunch of Bro threads.
+    (Gilbert Clark and Robin Sommer).
+
+  * When building Bro, we now always link in tcmalloc if it's found at
+    configure time. If it's installed but not picked up,
+    --with-perftools may help. (Robin Sommer)
+
+  * Renaming the configure option --enable-perftools to
+    --enable-perftool-debug to indicate that the switch is only
+    relevant for debugging the heap. It's not needed to pick up
+    tcmalloc for better performance. (Robin Sommer)
+
+2.0-184 | 2012-03-28 15:11:11 -0700
+
+  * Improve handling of IPv6 Routing Type 0 headers.  (Jon Siwek)
+
+    - For RH0 headers with non-zero segments left, a
+      "routing0_segleft" flow_weird event is raised (with a
+      destination indicating the last address in the routing header),
+      and an "rh0_segleft" event can also be handled if the other
+      contents of the packet header are of interest. No further
+      analysis is done as the complexity required to correctly
+      identify destination endpoints of connections doesn't seem worth
+      it as RH0 has been deprecated by RFC 5095.
+
+    - For RH0 headers without any segments left, a "routing0_header"
+      flow_weird event is raised, but further analysis still occurs as
+      normal.
+
+2.0-182 | 2012-03-28 15:01:57 -0700
+
+  * Remove dead tcp_checksum function from net_util. (Jon Siwek)
+
+  * Change routing0_data_to_addrs BIF to return vector of addresses.
+    The order of addresses in type 0 routing headers is
+    interesting/important. (Jon Siwek)
+
+
 2.0-179 | 2012-03-23 17:43:31 -0700
 
   * Remove the default "tcp or udp or icmp" filter. In default mode,

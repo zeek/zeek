@@ -89,13 +89,27 @@ if (LIBGEOIP_FOUND)
 endif ()
 
 set(USE_PERFTOOLS false)
-if (ENABLE_PERFTOOLS)
-    find_package(GooglePerftools)
-    if (GOOGLEPERFTOOLS_FOUND)
-        set(USE_PERFTOOLS true)
-        include_directories(BEFORE ${GooglePerftools_INCLUDE_DIR})
+set(USE_PERFTOOLS_DEBUG false)
+
+find_package(GooglePerftools)
+
+if (GOOGLEPERFTOOLS_FOUND)
+    include_directories(BEFORE ${GooglePerftools_INCLUDE_DIR})
+    set(USE_PERFTOOLS true)
+
+    if (ENABLE_PERFTOOLS_DEBUG)
+        # Enable heap debugging with perftools.
+        set(USE_PERFTOOLS_DEBUG true)
+        list(APPEND OPTLIBS ${GooglePerftools_LIBRARIES_DEBUG})
+    else ()
+        # Link in tcmalloc for better performance.
         list(APPEND OPTLIBS ${GooglePerftools_LIBRARIES})
     endif ()
+endif ()
+
+if (ENABLE_PERFTOOLS_DEBUG)
+    # Just a no op to prevent CMake from complaining about manually-specified
+    # ENABLE_PERFTOOLS_DEBUG not being used if google perftools weren't found
 endif ()
 
 set(brodeps
@@ -183,6 +197,7 @@ message(
     "\n"
     "\nGeoIP:             ${USE_GEOIP}"
     "\nGoogle perftools:  ${USE_PERFTOOLS}"
+    "\n       debugging:  ${USE_PERFTOOLS_DEBUG}"
     "\n"
     "\n================================================================\n"
 )

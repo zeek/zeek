@@ -1,7 +1,7 @@
-# @TEST-EXEC: bro -C -b -r $TRACES/ext_hdr_hbh_routing.trace %INPUT >output
+# @TEST-EXEC: bro -b -r $TRACES/ipv6-hbh-rh0-segleft.trace %INPUT >output
 # @TEST-EXEC: btest-diff output
 
-event ipv6_ext_headers(c: connection, p: pkt_hdr)
+event rh0_segleft(p: pkt_hdr)
 	{
 	for ( h in p$ip6$exts )
 		if ( p$ip6$exts[h]$id == IPPROTO_ROUTING )

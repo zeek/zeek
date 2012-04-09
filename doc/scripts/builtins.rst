@@ -550,7 +550,12 @@ scripting language supports the following built-in attributes.
 
 .. bro:attr:: &expire_func
 
-    Called right before a container element expires.
+    Called right before a container element expires.  The function's
+    first parameter is of the same type of the container and the second
+    parameter the same type of the container's index.  The return
+    value is a :bro:type:`interval` indicating the amount of additional
+    time to wait before expiring the container element at the given
+    index (which will trigger another execution of this function).
 
 .. bro:attr:: &read_expire
 

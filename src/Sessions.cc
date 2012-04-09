@@ -481,6 +481,35 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		return;
 		}
 
+#ifdef ENABLE_MOBILE_IPV6
+	// We stop building the chain when seeing IPPROTO_MOBILITY so it's always
+	// last if present
+	if ( ip_hdr->LastHeader() == IPPROTO_MOBILITY )
+		{
+		dump_this_packet = 1;
+
+		if ( ! ignore_checksums && mobility_header_checksum(ip_hdr) != 0xffff )
+			{
+				Weird("bad_MH_checksum", hdr, pkt);
+				Remove(f);
+				return;
+			}
+
+		if ( mobile_ipv6_message )
+			{
+			val_list* vl = new val_list();
+			vl->append(ip_hdr->BuildPktHdrVal());
+			mgr.QueueEvent(mobile_ipv6_message, vl);
+			}
+
+		if ( ip_hdr->NextProto() != IPPROTO_NONE )
+			Weird("mobility_piggyback", hdr, pkt);
+
+		Remove(f);
+		return;
+		}
+#endif
+
 	int proto = ip_hdr->NextProto();
 
 	if ( CheckHeaderTrunc(proto, len, caplen, hdr, pkt) )

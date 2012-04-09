@@ -73,6 +73,11 @@ extern int ones_complement_checksum(const IPAddr& a, uint32 sum);
 
 extern int icmp_checksum(const struct icmp* icmpp, int len);
 
+#ifdef ENABLE_MOBILE_IPV6
+class IP_Hdr;
+extern int mobility_header_checksum(const IP_Hdr* ip);
+#endif
+
 // Returns 'A', 'B', 'C' or 'D'
 extern char addr_to_class(uint32 addr);
 
@@ -93,6 +98,8 @@ extern uint32 extract_uint32(const u_char* data);
 
 inline double ntohd(double d)	{ return d; }
 inline double htond(double d)	{ return d; }
+inline uint64 ntohll(uint64 i)	{ return i; }
+inline uint64 htonll(uint64 i)	{ return i; }
 
 #else
 
@@ -117,6 +124,24 @@ inline double ntohd(double d)
 	}
 
 inline double htond(double d) { return ntohd(d); }
+
+inline uint64 ntohll(uint64 i)
+	{
+	u_char c;
+	union {
+		uint64 i;
+		u_char c[8];
+	} x;
+
+	x.i = i;
+	c = x.c[0]; x.c[0] = x.c[7]; x.c[7] = c;
+	c = x.c[1]; x.c[1] = x.c[6]; x.c[6] = c;
+	c = x.c[2]; x.c[2] = x.c[5]; x.c[5] = c;
+	c = x.c[3]; x.c[3] = x.c[4]; x.c[4] = c;
+	return x.i;
+	}
+
+inline uint64 htonll(uint64 i) { return ntohll(i); }
 
 #endif
 

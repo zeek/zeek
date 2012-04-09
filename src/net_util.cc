@@ -12,6 +12,7 @@
 #include "Reporter.h"
 #include "net_util.h"
 #include "IPAddr.h"
+#include "IP.h"
 
 // - adapted from tcpdump
 // Returns the ones-complement checksum of a chunk of b short-aligned bytes.
@@ -53,6 +54,31 @@ int icmp_checksum(const struct icmp* icmpp, int len)
 	return sum;
 	}
 
+#ifdef ENABLE_MOBILE_IPV6
+int mobility_header_checksum(const IP_Hdr* ip)
+	{
+	const ip6_mobility* mh = ip->MobilityHeader();
+
+	if ( ! mh ) return 0;
+
+	uint32 sum = 0;
+	uint8 mh_len = 8 + 8 * mh->ip6mob_len;
+
+	if ( mh_len % 2 == 1 )
+		reporter->Weird(ip->SrcAddr(), ip->DstAddr(), "odd_mobility_hdr_len");
+
+	sum = ones_complement_checksum(ip->SrcAddr(), sum);
+	sum = ones_complement_checksum(ip->DstAddr(), sum);
+	// Note, for IPv6, strictly speaking the protocol and length fields are
+	// 32 bits rather than 16 bits.  But because the upper bits are all zero,
+	// we get the same checksum either way.
+	sum += htons(IPPROTO_MOBILITY);
+	sum += htons(mh_len);
+	sum = ones_complement_checksum(mh, mh_len, sum);
+
+	return sum;
+	}
+#endif
 
 #define CLASS_A 0x00000000
 #define CLASS_B 0x80000000

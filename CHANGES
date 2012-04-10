@@ -1,4 +1,72 @@
 
+2.0-267 | 2012-04-09 17:47:28 -0700
+
+  * Add support for mobile IPv6 Mobility Header (RFC 6275).  (Jon
+    Siwek)
+
+    - Enabled through a new --enable-mobile-ipv6 configure-time
+      option. If not enabled, the mobility header (routing type 2) and
+      Home Address Destination option are ignored.
+
+    - Accessible at script-layer through 'mobile_ipv6_message' event.
+      
+  * Refactor IP_Hdr routing header handling, add MobileIPv6 Home
+    Address handling. Packets that use the Home Address Destination
+    option use that option's address as the connection's originator.
+    (Jon Siwek)
+
+  * Revert TCP checksumming to cache common data, like it did before.
+    (Jon Siwek)
+
+  * Improve handling of IPv6 routing type 0 extension headers. (Jon
+    Siwek)
+    
+    - flow_weird event with name argument value of "routing0_hdr" is raised
+      for packets containing an IPv6 routing type 0 header because this
+      type of header is now deprecated according to RFC 5095.
+
+    - Packets with a routing type 0 header and non-zero segments left
+      now use the last address in that header in order to associate
+      with a connection/flow and for calculating TCP/UDP checksums.
+
+    - Added a set of IPv4/IPv6 TCP/UDP checksum unit tests (Jon Siwek)
+
+  * Fix table expiry for values assigned in bro_init() when reading
+    live. (Jon Siwek)
+
+2.0-257 | 2012-04-05 15:32:43 -0700
+
+  * Fix CMake from warning about unused ENABLE_PERFTOOLS_DEBUG
+    variable. (Jon Siwek)
+
+  * Fix handling of IPv6 atomic fragments. (Jon Siwek)
+    
+  * Fix that prevents Bro processes that do neither local logging nor
+    request remote logs from spawning threads. (Robin Sommer)
+
+  * Fixing perftools-debug support. (Robin Sommer)
+
+  * Reverting SocketComm change tuning I/O behaviour. (Robin Sommer)
+    
+  * Adding notice_policy.log canonification for external tests. (Robin Sommer)
+
+
+2.0-245 | 2012-04-04 17:25:20 -0700
+
+  * Internal restructuring of the logging framework: we now spawn
+    threads doing the I/O. From a user's perspective not much should
+    change, except that the OS may now show a bunch of Bro threads.
+    (Gilbert Clark and Robin Sommer).
+
+  * When building Bro, we now always link in tcmalloc if it's found at
+    configure time. If it's installed but not picked up,
+    --with-perftools may help. (Robin Sommer)
+
+  * Renaming the configure option --enable-perftools to
+    --enable-perftool-debug to indicate that the switch is only
+    relevant for debugging the heap. It's not needed to pick up
+    tcmalloc for better performance. (Robin Sommer)
+
 2.0-184 | 2012-03-28 15:11:11 -0700
 
   * Improve handling of IPv6 Routing Type 0 headers.  (Jon Siwek)

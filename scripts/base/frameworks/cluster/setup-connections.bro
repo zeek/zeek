@@ -44,7 +44,7 @@ event bro_init() &priority=9
 			{
 			if ( n$node_type == WORKER && n$proxy == node )
 				Communication::nodes[i] =
-					[$host=n$ip, $connect=F, $class=i, $sync=F, $auth=T, $events=worker2proxy_events];
+					[$host=n$ip, $connect=F, $class=i, $sync=T, $auth=T, $events=worker2proxy_events];
 			
 			# accepts connections from the previous one. 
 			# (This is not ideal for setups with many proxies)

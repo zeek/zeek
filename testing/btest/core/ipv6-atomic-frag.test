@@ -1,0 +1,7 @@
+# @TEST-EXEC: bro -r $TRACES/ipv6-http-atomic-frag.trace %INPUT >output
+# @TEST-EXEC: btest-diff output
+
+event new_connection(c: connection)
+	{
+	print c$id;
+	}

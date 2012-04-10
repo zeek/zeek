@@ -16,7 +16,7 @@ class WriterBackend;
  * Manager instantiates one \a WriterFrontend for each open logging filter.
  * Each frontend in turns instantiates a WriterBackend-derived class
  * internally that's specific to the particular output format. That backend
- * spawns a new thread, and it receives messages from the frontend that
+ * runs in a new thread, and it receives messages from the frontend that
  * correspond to method called by the manager.
  *
  */

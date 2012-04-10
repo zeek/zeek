@@ -15,10 +15,10 @@ namespace logging  {
  * Base class for writer implementation. When the logging::Manager creates a
  * new logging filter, it instantiates a WriterFrontend. That then in turn
  * creates a WriterBackend of the right type. The frontend then forwards
- * message over the backend as its methods are called.
+ * messages over the backend as its methods are called.
  *
  * All of this methods must be called only from the corresponding child
- * thread (the constructor is the one exception.)
+ * thread (the constructor and destructor are the exceptions.)
  */
 class WriterBackend : public threading::MsgThread
 {

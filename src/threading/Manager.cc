@@ -47,6 +47,7 @@ void Manager::Terminate()
 	msg_threads.clear();
 
 	idle = true;
+	closed = true;
 	terminating = false;
 	}
 
@@ -83,14 +84,11 @@ void Manager::GetFds(int* read, int* write, int* except)
 
 double Manager::NextTimestamp(double* network_time)
 	{
-	if ( ::network_time && ! next_beat )
-		next_beat = ::network_time + heart_beat_interval;
-
 //	fprintf(stderr, "N %.6f %.6f did_process=%d next_next=%.6f\n", ::network_time, timer_mgr->Time(), (int)did_process, next_beat);
 
-	if ( did_process || ::network_time > next_beat )
+	if ( ::network_time && (did_process || ::network_time > next_beat || ! next_beat) )
 		// If we had something to process last time (or out heartbeat
-		// is due), we want to check for more asap.
+		// is due or not set yet), we want to check for more asap.
 		return timer_mgr->Time();
 	
 	for ( msg_thread_list::iterator i = msg_threads.begin(); i != msg_threads.end(); i++ )
@@ -104,7 +102,13 @@ double Manager::NextTimestamp(double* network_time)
 
 void Manager::Process()
 	{
-	bool do_beat = (next_beat && network_time > next_beat);
+	bool do_beat = false;
+
+	if ( network_time && (network_time > next_beat || ! next_beat) )
+		{
+		do_beat = true;
+		next_beat = ::network_time + heart_beat_interval;
+		}
 
 	did_process = false;
 
@@ -113,10 +117,7 @@ void Manager::Process()
 		MsgThread* t = *i;
 
 		if ( do_beat )
-			{
 			t->Heartbeat();
-			next_beat = 0;
-			}
 
 		while ( t->HasOut() )
 			{

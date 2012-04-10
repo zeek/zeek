@@ -76,7 +76,8 @@ const unset_field: string;
 
 module LogDataSeries;
 
-const ds_compression: string;
-const ds_extent_size: count;
-const ds_dump_schema: bool;
-const ds_num_threads: count;
+const compression: string;
+const extent_size: count;
+const dump_schema: bool;
+const use_integer_for_time: bool;
+const num_threads: count;

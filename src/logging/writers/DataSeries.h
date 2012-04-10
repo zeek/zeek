@@ -42,24 +42,83 @@ private:
 	static const size_t THREAD_MAX = 128;                    // Maximum number of compression threads that DataSeries may spawn.
 	static const size_t TIME_SCALE = 1000000;                // Fixed-point multiplier for time values when converted to integers.
 
+	struct SchemaValue
+		{
+		string ds_type;
+		string bro_type;
+		string field_name;
+		string field_options;
+		};
+
+	/**
+	 *  Turns a log value into a std::string.  Uses an ostringstream to do the
+	 *  heavy lifting, but still need to switch on the type to know which value
+	 *  in the union to give to the string string for processing.
+	 *
+	 *  @param val The value we wish to convert to a string
+	 *  @return the string value of val
+	 */
 	std::string LogValueToString(threading::Value *val);
+
+	/**
+	 *  Takes a field type and converts it to a relevant DataSeries type.
+	 *
+	 *  @param field We extract the type from this and convert it into a relevant DS type.
+	 *  @return String representation of type that DataSeries can understand.
+	 */
+	string GetDSFieldType(const threading::Field *field);
+
+	/**
+	 *  Are there any options we should put into the XML schema?
+	 *
+	 *  @param field We extract the type from this and return any options that make sense for that type.
+	 *  @return Options that can be added directly to the XML (e.g. "pack_relative=\"yes\"")
+	 */
+	std::string GetDSOptionsForType(const threading::Field *field);
+
+	/**
+	 *  Takes a list of types, a list of names, and a title, and uses it to construct a valid DataSeries XML schema
+	 *  thing, which is then returned as a std::string
+	 *
+	 *  @param opts std::vector of strings containing a list of options to be appended to each field (e.g. "pack_relative=yes")
+	 *  @param sTitle Name of this schema.  Ideally, these schemas would be aggregated and re-used.
+	 */
+	string BuildDSSchemaFromFieldTypes(const vector<SchemaValue>& vals, string sTitle);
+
+	/**
+	 *  Takes a field type and converts it to a readable string.
+	 *
+	 *  @param field We extract the type from this and convert it into a readable string.
+	 *  @return String representation of the field's type
+	 */
+	string GetBroTypeString(const threading::Field *field);
+
+	/** Closes the currently open file. */
+	void CloseLog();
+
+	/** XXX */
+	bool OpenLog(string path);
 
 	typedef std::map<string, GeneralField *> ExtentMap;
 	typedef ExtentMap::iterator ExtentIterator;
 
 	// Internal DataSeries structures we need to keep track of.
-	DataSeriesSink* log_file;
+	vector<SchemaValue> schema_list;
 	ExtentTypeLibrary log_types;
 	ExtentType *log_type;
 	ExtentSeries log_series;
-	OutputModule* log_output;
 	ExtentMap extents;
+	int compress_type;
+
+	DataSeriesSink* log_file;
+	OutputModule* log_output;
 
 	// Options set from the script-level.
 	uint64 ds_extent_size;
 	uint64 ds_num_threads;
 	string ds_compression;
 	bool ds_dump_schema;
+	bool ds_use_integer_for_time;
 };
 
 }

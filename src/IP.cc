@@ -15,6 +15,16 @@ static RecordType* ip6_routing_type = 0;
 static RecordType* ip6_fragment_type = 0;
 static RecordType* ip6_ah_type = 0;
 static RecordType* ip6_esp_type = 0;
+static RecordType* ip6_mob_type = 0;
+static RecordType* ip6_mob_msg_type = 0;
+static RecordType* ip6_mob_brr_type = 0;
+static RecordType* ip6_mob_hoti_type = 0;
+static RecordType* ip6_mob_coti_type = 0;
+static RecordType* ip6_mob_hot_type = 0;
+static RecordType* ip6_mob_cot_type = 0;
+static RecordType* ip6_mob_bu_type = 0;
+static RecordType* ip6_mob_back_type = 0;
+static RecordType* ip6_mob_be_type = 0;
 
 static inline RecordType* hdrType(RecordType*& type, const char* name)
 	{
@@ -24,7 +34,7 @@ static inline RecordType* hdrType(RecordType*& type, const char* name)
 	return type;
 	}
 
-static VectorVal* BuildOptionsVal(const u_char* data, uint16 len)
+static VectorVal* BuildOptionsVal(const u_char* data, int len)
 	{
 	VectorVal* vv = new VectorVal(new VectorType(
 	        hdrType(ip6_option_type, "ip6_option")->Ref()));
@@ -154,6 +164,130 @@ RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 		}
 		break;
 
+#ifdef ENABLE_MOBILE_IPV6
+	case IPPROTO_MOBILITY:
+		{
+		rv = new RecordVal(hdrType(ip6_mob_type, "ip6_mobility_hdr"));
+		const struct ip6_mobility* mob = (const struct ip6_mobility*) data;
+		rv->Assign(0, new Val(mob->ip6mob_payload, TYPE_COUNT));
+		rv->Assign(1, new Val(mob->ip6mob_len, TYPE_COUNT));
+		rv->Assign(2, new Val(mob->ip6mob_type, TYPE_COUNT));
+		rv->Assign(3, new Val(mob->ip6mob_rsv, TYPE_COUNT));
+		rv->Assign(4, new Val(ntohs(mob->ip6mob_chksum), TYPE_COUNT));
+
+		RecordVal* msg = new RecordVal(hdrType(ip6_mob_msg_type, "ip6_mobility_msg"));
+		msg->Assign(0, new Val(mob->ip6mob_type, TYPE_COUNT));
+
+		uint16 off = sizeof(ip6_mobility);
+		const u_char* msg_data = data + off;
+
+		switch ( mob->ip6mob_type ) {
+		case 0:
+			{
+			RecordVal* m = new RecordVal(hdrType(ip6_mob_brr_type, "ip6_mobility_brr"));
+			m->Assign(0, new Val(ntohs(*((uint16*)msg_data)), TYPE_COUNT));
+			off += sizeof(uint16);
+			m->Assign(1, BuildOptionsVal(data + off, Length() - off));
+			msg->Assign(1, m);
+			}
+			break;
+
+		case 1:
+			{
+			RecordVal* m = new RecordVal(hdrType(ip6_mob_brr_type, "ip6_mobility_hoti"));
+			m->Assign(0, new Val(ntohs(*((uint16*)msg_data)), TYPE_COUNT));
+			m->Assign(1, new Val(ntohll(*((uint64*)(msg_data + sizeof(uint16)))), TYPE_COUNT));
+			off += sizeof(uint16) + sizeof(uint64);
+			m->Assign(2, BuildOptionsVal(data + off, Length() - off));
+			msg->Assign(2, m);
+			break;
+			}
+
+		case 2:
+			{
+			RecordVal* m = new RecordVal(hdrType(ip6_mob_brr_type, "ip6_mobility_coti"));
+			m->Assign(0, new Val(ntohs(*((uint16*)msg_data)), TYPE_COUNT));
+			m->Assign(1, new Val(ntohll(*((uint64*)(msg_data + sizeof(uint16)))), TYPE_COUNT));
+			off += sizeof(uint16) + sizeof(uint64);
+			m->Assign(2, BuildOptionsVal(data + off, Length() - off));
+			msg->Assign(3, m);
+			break;
+			}
+
+		case 3:
+			{
+			RecordVal* m = new RecordVal(hdrType(ip6_mob_brr_type, "ip6_mobility_hot"));
+			m->Assign(0, new Val(ntohs(*((uint16*)msg_data)), TYPE_COUNT));
+			m->Assign(1, new Val(ntohll(*((uint64*)(msg_data + sizeof(uint16)))), TYPE_COUNT));
+			m->Assign(2, new Val(ntohll(*((uint64*)(msg_data + sizeof(uint16) + sizeof(uint64)))), TYPE_COUNT));
+			off += sizeof(uint16) + 2 * sizeof(uint64);
+			m->Assign(3, BuildOptionsVal(data + off, Length() - off));
+			msg->Assign(4, m);
+			break;
+			}
+
+		case 4:
+			{
+			RecordVal* m = new RecordVal(hdrType(ip6_mob_brr_type, "ip6_mobility_cot"));
+			m->Assign(0, new Val(ntohs(*((uint16*)msg_data)), TYPE_COUNT));
+			m->Assign(1, new Val(ntohll(*((uint64*)(msg_data + sizeof(uint16)))), TYPE_COUNT));
+			m->Assign(2, new Val(ntohll(*((uint64*)(msg_data + sizeof(uint16) + sizeof(uint64)))), TYPE_COUNT));
+			off += sizeof(uint16) + 2 * sizeof(uint64);
+			m->Assign(3, BuildOptionsVal(data + off, Length() - off));
+			msg->Assign(5, m);
+			break;
+			}
+
+		case 5:
+			{
+			RecordVal* m = new RecordVal(hdrType(ip6_mob_brr_type, "ip6_mobility_bu"));
+			m->Assign(0, new Val(ntohs(*((uint16*)msg_data)), TYPE_COUNT));
+			m->Assign(1, new Val(ntohs(*((uint16*)(msg_data + sizeof(uint16)))) & 0x8000, TYPE_BOOL));
+			m->Assign(2, new Val(ntohs(*((uint16*)(msg_data + sizeof(uint16)))) & 0x4000, TYPE_BOOL));
+			m->Assign(3, new Val(ntohs(*((uint16*)(msg_data + sizeof(uint16)))) & 0x2000, TYPE_BOOL));
+			m->Assign(4, new Val(ntohs(*((uint16*)(msg_data + sizeof(uint16)))) & 0x1000, TYPE_BOOL));
+			m->Assign(5, new Val(ntohs(*((uint16*)(msg_data + 2*sizeof(uint16)))), TYPE_COUNT));
+			off += 3 * sizeof(uint16);
+			m->Assign(6, BuildOptionsVal(data + off, Length() - off));
+			msg->Assign(6, m);
+			break;
+			}
+
+		case 6:
+			{
+			RecordVal* m = new RecordVal(hdrType(ip6_mob_brr_type, "ip6_mobility_back"));
+			m->Assign(0, new Val(*((uint8*)msg_data), TYPE_COUNT));
+			m->Assign(1, new Val(*((uint8*)(msg_data + sizeof(uint8))) & 0x80, TYPE_BOOL));
+			m->Assign(2, new Val(ntohs(*((uint16*)(msg_data + sizeof(uint16)))), TYPE_COUNT));
+			m->Assign(3, new Val(ntohs(*((uint16*)(msg_data + 2*sizeof(uint16)))), TYPE_COUNT));
+			off += 3 * sizeof(uint16);
+			m->Assign(4, BuildOptionsVal(data + off, Length() - off));
+			msg->Assign(7, m);
+			break;
+			}
+
+		case 7:
+			{
+			RecordVal* m = new RecordVal(hdrType(ip6_mob_brr_type, "ip6_mobility_be"));
+			m->Assign(0, new Val(*((uint8*)msg_data), TYPE_COUNT));
+			const in6_addr* hoa = (const in6_addr*)(msg_data + sizeof(uint16));
+			m->Assign(1, new AddrVal(IPAddr(*hoa)));
+			off += sizeof(uint16) + sizeof(in6_addr);
+			m->Assign(2, BuildOptionsVal(data + off, Length() - off));
+			msg->Assign(8, m);
+			break;
+			}
+
+		default:
+			reporter->Weird(fmt("unknown_mobility_type_%d", mob->ip6mob_type));
+			break;
+		}
+
+		rv->Assign(5, msg);
+		}
+		break;
+#endif //ENABLE_MOBILE_IPV6
+
 	default:
 		break;
 	}
@@ -276,6 +410,9 @@ static inline bool isIPv6ExtHeader(uint8 type)
 	case IPPROTO_FRAGMENT:
 	case IPPROTO_AH:
 	case IPPROTO_ESP:
+#ifdef ENABLE_MOBILE_IPV6
+	case IPPROTO_MOBILITY:
+#endif
 		return true;
 	default:
 		return false;
@@ -305,30 +442,114 @@ void IPv6_Hdr_Chain::Init(const struct ip6_hdr* ip6, bool set_next, uint16 next)
 
 		chain.push_back(p);
 
-		// RFC 5095 deprecates routing type 0 headers, so raise weirds for that.
-		if ( current_type == IPPROTO_ROUTING &&
-		     ((const struct ip6_rthdr*)hdrs)->ip6r_type == 0 )
-			{
-			IPAddr src(((const struct ip6_hdr*)(chain[0]->Data()))->ip6_src);
+		// Check for routing headers and remember final destination address.
+		if ( current_type == IPPROTO_ROUTING )
+			ProcessRoutingHeader((const struct ip6_rthdr*) hdrs, len);
 
-			if ( ((const struct ip6_rthdr*)hdrs)->ip6r_segleft > 0 )
-				{
-				const in6_addr* a = (const in6_addr*)(hdrs+len-16);
-				reporter->Weird(src, IPAddr(*a), "routing0_segleft");
-				}
-			else
-				{
-				IPAddr dst(((const struct ip6_hdr*)(chain[0]->Data()))->ip6_dst);
-				reporter->Weird(src, dst, "routing0_header");
-				}
-			}
+#ifdef ENABLE_MOBILE_IPV6
+		// Only Mobile IPv6 has a destination option we care about right now.
+		if ( current_type == IPPROTO_DSTOPTS )
+			ProcessDstOpts((const struct ip6_dest*) hdrs, len);
+#endif
 
 		hdrs += len;
 		length += len;
 		} while ( current_type != IPPROTO_FRAGMENT &&
 				  current_type != IPPROTO_ESP &&
+#ifdef ENABLE_MOBILE_IPV6
+				  current_type != IPPROTO_MOBILITY &&
+#endif
 				  isIPv6ExtHeader(next_type) );
 	}
+
+void IPv6_Hdr_Chain::ProcessRoutingHeader(const struct ip6_rthdr* r, uint16 len)
+	{
+	if ( finalDst )
+		{
+		// RFC 2460 section 4.1 says Routing should occur at most once.
+		reporter->Weird(SrcAddr(), DstAddr(), "multiple_routing_headers");
+		return;
+		}
+
+	// Last 16 bytes of header (for all known types) is the address we want.
+	const in6_addr* addr = (const in6_addr*)(((const u_char*)r) + len - 16);
+
+	switch ( r->ip6r_type ) {
+	case 0: // Defined by RFC 2460, deprecated by RFC 5095
+		{
+		if ( r->ip6r_segleft > 0 && r->ip6r_len >= 2 )
+			{
+			if ( r->ip6r_len % 2 == 0 )
+				finalDst = new IPAddr(*addr);
+			else
+				reporter->Weird(SrcAddr(), DstAddr(), "odd_routing0_len");
+			}
+
+		// Always raise a weird since this type is deprecated.
+		reporter->Weird(SrcAddr(), DstAddr(), "routing0_hdr");
+		}
+		break;
+
+#ifdef ENABLE_MOBILE_IPV6
+	case 2: // Defined by Mobile IPv6 RFC 6275.
+		{
+		if ( r->ip6r_segleft > 0 )
+			{
+			if ( r->ip6r_len == 2 )
+				finalDst = new IPAddr(*addr);
+			else
+				reporter->Weird(SrcAddr(), DstAddr(), "bad_routing2_len");
+			}
+		}
+		break;
+#endif
+
+	default:
+		reporter->Weird(fmt("unknown_routing_type_%d", r->ip6r_type));
+		break;
+	}
+	}
+
+#ifdef ENABLE_MOBILE_IPV6
+void IPv6_Hdr_Chain::ProcessDstOpts(const struct ip6_dest* d, uint16 len)
+	{
+	const u_char* data = (const u_char*) d;
+	len -= 2 * sizeof(uint8);
+	data += 2* sizeof(uint8);
+
+	while ( len > 0 )
+		{
+		const struct ip6_opt* opt = (const struct ip6_opt*) data;
+		switch ( opt->ip6o_type ) {
+		case 201: // Home Address Option, Mobile IPv6 RFC 6275 section 6.3
+			{
+			if ( opt->ip6o_len == 16 )
+				if ( homeAddr )
+					reporter->Weird(SrcAddr(), DstAddr(), "multiple_home_addr_opts");
+				else
+					homeAddr = new IPAddr(*((const in6_addr*)(data + 2)));
+			else
+				reporter->Weird(SrcAddr(), DstAddr(), "bad_home_addr_len");
+			}
+			break;
+
+		default:
+			break;
+		}
+
+		if ( opt->ip6o_type == 0 )
+			{
+			data += sizeof(uint8);
+			len -= sizeof(uint8);
+			}
+		else
+			{
+			data += 2 * sizeof(uint8) + opt->ip6o_len;
+			len -= 2 * sizeof(uint8) + opt->ip6o_len;
+			}
+		}
+	}
+#endif
 
 VectorVal* IPv6_Hdr_Chain::BuildVal() const
 	{
@@ -341,6 +562,7 @@ VectorVal* IPv6_Hdr_Chain::BuildVal() const
 		ip6_fragment_type = internal_type("ip6_fragment")->AsRecordType();
 		ip6_ah_type = internal_type("ip6_ah")->AsRecordType();
 		ip6_esp_type = internal_type("ip6_esp")->AsRecordType();
+		ip6_mob_type = internal_type("ip6_mobility_hdr")->AsRecordType();
 		}
 
 	VectorVal* rval = new VectorVal(new VectorType(ip6_ext_hdr_type->Ref()));
@@ -371,6 +593,11 @@ VectorVal* IPv6_Hdr_Chain::BuildVal() const
 		case IPPROTO_ESP:
 			ext_hdr->Assign(6, v);
 			break;
+#ifdef ENABLE_MOBILE_IPV6
+		case IPPROTO_MOBILITY:
+			ext_hdr->Assign(7, v);
+			break;
+#endif
 		default:
 			reporter->InternalError("IPv6_Hdr_Chain bad header %d", type);
 			break;

@@ -12,6 +12,7 @@
 #include "Reporter.h"
 #include "net_util.h"
 #include "IPAddr.h"
+#include "IP.h"
 
 // - adapted from tcpdump
 // Returns the ones-complement checksum of a chunk of b short-aligned bytes.
@@ -38,54 +39,46 @@ int ones_complement_checksum(const IPAddr& a, uint32 sum)
 	return ones_complement_checksum(bytes, len*4, sum);
 	}
 
-int udp_checksum(const struct ip* ip, const struct udphdr* up, int len)
+int icmp_checksum(const struct icmp* icmpp, int len)
 	{
 	uint32 sum;
 
 	if ( len % 2 == 1 )
 		// Add in pad byte.
-		sum = htons(((const u_char*) up)[len - 1] << 8);
+		sum = htons(((const u_char*) icmpp)[len - 1] << 8);
 	else
 		sum = 0;
 
-	sum = ones_complement_checksum((void*) &ip->ip_src.s_addr, 4, sum);
-	sum = ones_complement_checksum((void*) &ip->ip_dst.s_addr, 4, sum);
-
-	uint32 addl_pseudo =
-		(htons(IPPROTO_UDP) << 16) | htons((unsigned short) len);
-
-	sum = ones_complement_checksum((void*) &addl_pseudo, 4, sum);
-	sum = ones_complement_checksum((void*) up, len, sum);
+	sum = ones_complement_checksum((void*) icmpp, len, sum);
 
 	return sum;
 	}
 
-int udp6_checksum(const struct ip6_hdr* ip6, const struct udphdr* up, int len)
+#ifdef ENABLE_MOBILE_IPV6
+int mobility_header_checksum(const IP_Hdr* ip)
 	{
-	// UDP over IPv6 uses the same checksum function as over IPv4 but a
-	// different pseudo-header over which it is computed.
-	uint32 sum;
+	const ip6_mobility* mh = ip->MobilityHeader();
 
-	if ( len % 2 == 1 )
-		// Add in pad byte.
-		sum = htons(((const u_char*) up)[len - 1] << 8);
-	else
-		sum = 0;
+	if ( ! mh ) return 0;
 
-	sum = ones_complement_checksum((void*) ip6->ip6_src.s6_addr, 16, sum);
-	sum = ones_complement_checksum((void*) ip6->ip6_dst.s6_addr, 16, sum);
+	uint32 sum = 0;
+	uint8 mh_len = 8 + 8 * mh->ip6mob_len;
 
-	uint32 l = htonl(len);
-	sum = ones_complement_checksum((void*) &l, 4, sum);
+	if ( mh_len % 2 == 1 )
+		reporter->Weird(ip->SrcAddr(), ip->DstAddr(), "odd_mobility_hdr_len");
 
-	uint32 addl_pseudo = htons(IPPROTO_UDP);
-
-	sum = ones_complement_checksum((void*) &addl_pseudo, 4, sum);
-	sum = ones_complement_checksum((void*) up, len, sum);
+	sum = ones_complement_checksum(ip->SrcAddr(), sum);
+	sum = ones_complement_checksum(ip->DstAddr(), sum);
+	// Note, for IPv6, strictly speaking the protocol and length fields are
+	// 32 bits rather than 16 bits.  But because the upper bits are all zero,
+	// we get the same checksum either way.
+	sum += htons(IPPROTO_MOBILITY);
+	sum += htons(mh_len);
+	sum = ones_complement_checksum(mh, mh_len, sum);
 
 	return sum;
 	}
-
+#endif
 
 int icmp6_checksum(const struct icmp* icmpp, const struct ip6_hdr* ip6, int len)
 	{
@@ -113,20 +106,6 @@ int icmp6_checksum(const struct icmp* icmpp, const struct ip6_hdr* ip6, int len)
 	return sum;
 	}
 
-
-int icmp_checksum(const struct icmp* icmpp, int len)
-	{
-	uint32 sum;
-	if ( len % 2 == 1 )
-		// Add in pad byte.
-		sum = htons(((const u_char*) icmpp)[len - 1] << 8);
-	else
-		sum = 0;
-
-	sum = ones_complement_checksum((void*) icmpp, len, sum);
-
-	return sum;
-	}
 
 #define CLASS_A 0x00000000
 #define CLASS_B 0x80000000

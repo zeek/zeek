@@ -1,4 +1,39 @@
 
+2.0-267 | 2012-04-09 17:47:28 -0700
+
+  * Add support for mobile IPv6 Mobility Header (RFC 6275).  (Jon
+    Siwek)
+
+    - Enabled through a new --enable-mobile-ipv6 configure-time
+      option. If not enabled, the mobility header (routing type 2) and
+      Home Address Destination option are ignored.
+
+    - Accessible at script-layer through 'mobile_ipv6_message' event.
+      
+  * Refactor IP_Hdr routing header handling, add MobileIPv6 Home
+    Address handling. Packets that use the Home Address Destination
+    option use that option's address as the connection's originator.
+    (Jon Siwek)
+
+  * Revert TCP checksumming to cache common data, like it did before.
+    (Jon Siwek)
+
+  * Improve handling of IPv6 routing type 0 extension headers. (Jon
+    Siwek)
+    
+    - flow_weird event with name argument value of "routing0_hdr" is raised
+      for packets containing an IPv6 routing type 0 header because this
+      type of header is now deprecated according to RFC 5095.
+
+    - Packets with a routing type 0 header and non-zero segments left
+      now use the last address in that header in order to associate
+      with a connection/flow and for calculating TCP/UDP checksums.
+
+    - Added a set of IPv4/IPv6 TCP/UDP checksum unit tests (Jon Siwek)
+
+  * Fix table expiry for values assigned in bro_init() when reading
+    live. (Jon Siwek)
+
 2.0-257 | 2012-04-05 15:32:43 -0700
 
   * Fix CMake from warning about unused ENABLE_PERFTOOLS_DEBUG

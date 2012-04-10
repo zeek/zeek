@@ -14,6 +14,22 @@
 #include <netinet/ip.h>
 #include <netinet/ip6.h>
 
+#ifdef ENABLE_MOBILE_IPV6
+
+#ifndef IPPROTO_MOBILITY
+#define IPPROTO_MOBILITY 135
+#endif
+
+struct ip6_mobility {
+	uint8 ip6mob_payload;
+	uint8 ip6mob_len;
+	uint8 ip6mob_type;
+	uint8 ip6mob_rsv;
+	uint16 ip6mob_chksum;
+};
+
+#endif //ENABLE_MOBILE_IPV6
+
 /**
  * Base class for IPv6 header/extensions.
  */
@@ -38,6 +54,9 @@ public:
 		case IPPROTO_ROUTING:
 		case IPPROTO_FRAGMENT:
 		case IPPROTO_AH:
+#ifdef ENABLE_MOBILE_IPV6
+		case IPPROTO_MOBILITY:
+#endif
 			((ip6_ext*)data)->ip6e_nxt = next_type;
 			break;
 		case IPPROTO_ESP:
@@ -62,6 +81,9 @@ public:
 		case IPPROTO_ROUTING:
 		case IPPROTO_FRAGMENT:
 		case IPPROTO_AH:
+#ifdef ENABLE_MOBILE_IPV6
+		case IPPROTO_MOBILITY:
+#endif
 			return ((ip6_ext*)data)->ip6e_nxt;
 		case IPPROTO_ESP:
 		default:
@@ -80,6 +102,9 @@ public:
 		case IPPROTO_HOPOPTS:
 		case IPPROTO_DSTOPTS:
 		case IPPROTO_ROUTING:
+#ifdef ENABLE_MOBILE_IPV6
+		case IPPROTO_MOBILITY:
+#endif
 			return 8 + 8 * ((ip6_ext*)data)->ip6e_len;
 		case IPPROTO_FRAGMENT:
 			return 8;
@@ -117,10 +142,21 @@ public:
 	/**
 	 * Initializes the header chain from an IPv6 header structure.
 	 */
-	IPv6_Hdr_Chain(const struct ip6_hdr* ip6) { Init(ip6, false); }
+	IPv6_Hdr_Chain(const struct ip6_hdr* ip6) :
+#ifdef ENABLE_MOBILE_IPV6
+		homeAddr(0),
+#endif
+		finalDst(0)
+		{ Init(ip6, false); }
 
 	~IPv6_Hdr_Chain()
-		{ for ( size_t i = 0; i < chain.size(); ++i ) delete chain[i]; }
+		{
+		for ( size_t i = 0; i < chain.size(); ++i ) delete chain[i];
+#ifdef ENABLE_MOBILE_IPV6
+		delete homeAddr;
+#endif
+		delete finalDst;
+		}
 
 	/**
 	 * Returns the number of headers in the chain.
@@ -172,17 +208,31 @@ public:
 				(ntohs(GetFragHdr()->ip6f_offlg) & 0x0001) != 0 : 0; }
 
 	/**
-	 * Returns whether the chain contains a routing type 0 extension header
-	 * with nonzero segments left.
+	 * If the chain contains a Destination Options header with a Home Address
+	 * option as defined by Mobile IPv6 (RFC 6275), then return it, else
+	 * return the source address in the main IPv6 header.
 	 */
-	bool RH0SegLeft() const
+	IPAddr SrcAddr() const
 		{
-		for ( size_t i = 0; i < chain.size(); ++i )
-			if ( chain[i]->Type() == IPPROTO_ROUTING  &&
-			     ((const struct ip6_rthdr*)chain[i]->Data())->ip6r_type == 0 &&
-			     ((const struct ip6_rthdr*)chain[i]->Data())->ip6r_segleft > 0 )
-				return true;
-		return false;
+#ifdef ENABLE_MOBILE_IPV6
+		if ( homeAddr )
+			return IPAddr(*homeAddr);
+		else
+#endif
+			return IPAddr(((const struct ip6_hdr*)(chain[0]->Data()))->ip6_src);
+		}
+
+	/**
+	 * If the chain contains a Routing header with non-zero segments left,
+	 * then return the last address of the first such header, else return
+	 * the destination address of the main IPv6 header.
+	 */
+	IPAddr DstAddr() const
+		{
+		if ( finalDst )
+			return IPAddr(*finalDst);
+		else
+			return IPAddr(((const struct ip6_hdr*)(chain[0]->Data()))->ip6_dst);
 		}
 
 	/**
@@ -200,13 +250,48 @@ protected:
 	 * Initializes the header chain from an IPv6 header structure, and replaces
 	 * the first next protocol pointer field that points to a fragment header.
 	 */
-	IPv6_Hdr_Chain(const struct ip6_hdr* ip6, uint16 next)
+	IPv6_Hdr_Chain(const struct ip6_hdr* ip6, uint16 next) :
+#ifdef ENABLE_MOBILE_IPV6
+		homeAddr(0),
+#endif
+		finalDst(0)
 		{ Init(ip6, true, next); }
 
 	void Init(const struct ip6_hdr* ip6, bool set_next, uint16 next = 0);
 
+	/**
+	 * Process a routing header and allocate/remember the final destination
+	 * address if it has segments left and is a valid routing header.
+	 */
+	void ProcessRoutingHeader(const struct ip6_rthdr* r, uint16 len);
+
+#ifdef ENABLE_MOBILE_IPV6
+	/**
+	 * Inspect a Destination Option header's options for things we need to
+	 * remember, such as the Home Address option from Mobile IPv6.
+	 */
+	void ProcessDstOpts(const struct ip6_dest* d, uint16 len);
+#endif
+
 	vector<IPv6_Hdr*> chain;
-	uint16 length; // The summation of all header lengths in the chain in bytes.
+
+	/**
+	 * The summation of all header lengths in the chain in bytes.
+	 */
+	uint16 length;
+
+#ifdef ENABLE_MOBILE_IPV6
+	/**
+	 * Home Address of the packet's source as defined by Mobile IPv6 (RFC 6275).
+	 */
+	IPAddr* homeAddr;
+#endif
+
+	/**
+	 * The final destination address in chain's first Routing header that has
+	 * non-zero segments left.
+	 */
+	IPAddr* finalDst;
 };
 
 class IP_Hdr {
@@ -259,11 +344,34 @@ public:
 
 	const struct ip6_hdr* IP6_Hdr() const	{ return ip6; }
 
-	IPAddr SrcAddr() const
+	/**
+	 * Returns the source address held in the IP header.
+	 */
+	IPAddr IPHeaderSrcAddr() const
 		{ return ip4 ? IPAddr(ip4->ip_src) : IPAddr(ip6->ip6_src); }
 
-	IPAddr DstAddr() const
+	/**
+	 * Returns the destination address held in the IP header.
+	 */
+	IPAddr IPHeaderDstAddr() const
 		{ return ip4 ? IPAddr(ip4->ip_dst) : IPAddr(ip6->ip6_dst); }
+
+	/**
+	 * For IPv4 or IPv6 headers that don't contain a Home Address option
+	 * (Mobile IPv6, RFC 6275), return source address held in the IP header.
+	 * For IPv6 headers that contain a Home Address option, return that address.
+	 */
+	IPAddr SrcAddr() const
+		{ return ip4 ? IPAddr(ip4->ip_src) : ip6_hdrs->SrcAddr(); }
+
+	/**
+	 * For IPv4 or IPv6 headers that don't contain a Routing header with
+	 * non-zero segments left, return destination address held in the IP header.
+	 * For IPv6 headers with a Routing header that has non-zero segments left,
+	 * return the last address in the first such Routing header.
+	 */
+	IPAddr DstAddr() const
+		{ return ip4 ? IPAddr(ip4->ip_dst) : ip6_hdrs->DstAddr(); }
 
 	/**
 	 * Returns a pointer to the payload of the IP packet, usually an
@@ -276,6 +384,22 @@ public:
 		else
 			return ((const u_char*) ip6) + ip6_hdrs->TotalLength();
 		}
+
+#ifdef ENABLE_MOBILE_IPV6
+	/**
+	 * Returns a pointer to the mobility header of the IP packet, if present,
+	 * else a null pointer.
+	 */
+	const ip6_mobility* MobilityHeader() const
+		{
+		if ( ip4 )
+			return 0;
+		else if ( (*ip6_hdrs)[ip6_hdrs->Size()-1]->Type() != IPPROTO_MOBILITY )
+			return 0;
+		else
+			return (const ip6_mobility*)(*ip6_hdrs)[ip6_hdrs->Size()-1]->Data();
+		}
+#endif
 
 	/**
 	 * Returns the length of the IP packet's payload (length of packet minus
@@ -356,13 +480,6 @@ public:
 	 */
 	size_t NumHeaders() const
 		{ return ip4 ? 1 : ip6_hdrs->Size(); }
-
-	/**
-	 * Returns true if this is an IPv6 header containing a routing type 0
-	 * extension with nonzero segments left, else returns false.
-	 */
-	bool RH0SegLeft() const
-		{ return ip4 ? false : ip6_hdrs->RH0SegLeft(); }
 
 	/**
 	 * Returns an ip_hdr or ip6_hdr_chain RecordVal.

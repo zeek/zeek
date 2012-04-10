@@ -1,11 +1,14 @@
 # Needs perftools support.
 #
+# @TEST-GROUP: leaks
+
 # @TEST-REQUIRES: bro  --help 2>&1 | grep -q mem-leaks
+
 # @TEST-EXEC: btest-bg-run manager-1 HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local BROPATH=$BROPATH:.. CLUSTER_NODE=manager-1 bro -m %INPUT
-# @TEST-EXEC: btest-bg-run proxy-1   BROPATH=$BROPATH:.. CLUSTER_NODE=proxy-1 bro %INPUT
+# @TEST-EXEC: btest-bg-run proxy-1   HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local BROPATH=$BROPATH:.. CLUSTER_NODE=proxy-1   bro -m %INPUT
 # @TEST-EXEC: sleep 1
-# @TEST-EXEC: btest-bg-run worker-1  HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local BROPATH=$BROPATH:.. CLUSTER_NODE=worker-1 bro -m -r $TRACES/web.trace --pseudo-realtime %INPUT
-# @TEST-EXEC: btest-bg-run worker-2  HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local BROPATH=$BROPATH:.. CLUSTER_NODE=worker-2 bro -m -r $TRACES/web.trace --pseudo-realtime %INPUT
+# @TEST-EXEC: btest-bg-run worker-1  HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local BROPATH=$BROPATH:.. CLUSTER_NODE=worker-1  bro -m -r $TRACES/web.trace --pseudo-realtime %INPUT
+# @TEST-EXEC: btest-bg-run worker-2  HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local BROPATH=$BROPATH:.. CLUSTER_NODE=worker-2  bro -m -r $TRACES/web.trace --pseudo-realtime %INPUT
 # @TEST-EXEC: btest-bg-wait -k 30
 # @TEST-EXEC: btest-diff manager-1/metrics.log
 

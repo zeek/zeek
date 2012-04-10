@@ -80,7 +80,7 @@ int mobility_header_checksum(const IP_Hdr* ip)
 	}
 #endif
 
-int icmp6_checksum(const struct icmp* icmpp, const struct ip6_hdr* ip6, int len)
+int icmp6_checksum(const struct icmp* icmpp, const IP_Hdr* ip, int len)
 	{
 	// ICMP6 uses the same checksum function as ICMP4 but a different
 	// pseudo-header over which it is computed.
@@ -93,8 +93,8 @@ int icmp6_checksum(const struct icmp* icmpp, const struct ip6_hdr* ip6, int len)
 		sum = 0;
 
 	// Pseudo-header as for UDP over IPv6 above.
-	sum = ones_complement_checksum((void*) ip6->ip6_src.s6_addr, 16, sum);
-	sum = ones_complement_checksum((void*) ip6->ip6_dst.s6_addr, 16, sum);
+	sum = ones_complement_checksum(ip->SrcAddr(), sum);
+	sum = ones_complement_checksum(ip->DstAddr(), sum);
 	uint32 l = htonl(len);
 	sum = ones_complement_checksum((void*) &l, 4, sum);
 

@@ -62,7 +62,7 @@ void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
 			break;
 
 		case IPPROTO_ICMPV6:
-			chksum = icmp6_checksum(icmpp, ip->IP6_Hdr(), len);
+			chksum = icmp6_checksum(icmpp, ip, len);
 			break;
 
 		default:

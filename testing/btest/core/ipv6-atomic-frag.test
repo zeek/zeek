@@ -3,5 +3,6 @@
 
 event new_connection(c: connection)
 	{
-	print c$id;
+	if ( c$id$resp_p == 80/tcp )
+		print c$id;
 	}

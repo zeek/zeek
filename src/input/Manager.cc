@@ -1795,8 +1795,12 @@ Val* Manager::ValueToVal(const Value* val, BroType* request_type) {
 		SetType* s = new SetType(set_index, 0);
 		TableVal* t = new TableVal(s);
 		for ( int i = 0; i < val->val.set_val.size; i++ ) {
-			t->Assign(ValueToVal( val->val.set_val.vals[i], type ), 0);
+			Val* assignval = ValueToVal( val->val.set_val.vals[i], type );
+			t->Assign(assignval, 0);
+			Unref(assignval); // idex is not consumed by assign.
 		}
+
+		Unref(s);
 		return t;
 		break;
 		}
@@ -1809,6 +1813,7 @@ Val* Manager::ValueToVal(const Value* val, BroType* request_type) {
 		for (  int i = 0; i < val->val.vector_val.size; i++ ) {
 			v->Assign(i, ValueToVal( val->val.set_val.vals[i], type ), 0);
 		}
+		Unref(vt);
 		return v;
 
 		}

@@ -102,11 +102,13 @@ type icmp_conn: record {
 ## .. bro:see:: icmp_time_exceeded icmp_unreachable
 type icmp_context: record {
 	id: conn_id;	##< The packet's 4-tuple.
-	len: count;	##< The lenght of the packet's IP header.
+	len: count;	##< The length of the IP packet (headers + payload).
 	proto: count;	##< The packet's transport-layer protocol.
 	frag_offset: count;	##< The packet's fragementation offset.
-	## True if the packet's IP header is fully included in the context. If that is not
-	## the case, the other fields will all be set to null values.
+	## True if the packet's IP header is not fully included in the context
+	## or if there is not enough of the transport header to determine source
+	## and destination ports. If that is the cast, the appropriate fields
+	## of this record will be set to null values.
 	bad_hdr_len: bool;
 	bad_checksum: bool;	##< True if the packet's IP checksum is not correct.
 	MF: bool;	##< True if the packets *more fragements* flag is set.

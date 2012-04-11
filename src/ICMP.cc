@@ -93,6 +93,12 @@ void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
 	caplen -= 8;
 	len -= 8;
 
+	int& len_stat = is_orig ? request_len : reply_len;
+	if ( len_stat < 0 )
+		len_stat = len;
+	else
+		len_stat += len;
+
 	if ( ip->NextProto() == IPPROTO_ICMP )
 		NextICMP4(current_timestamp, icmpp, len, caplen, data, ip);
 	else
@@ -286,13 +292,12 @@ RecordVal* ICMP_Analyzer::ExtractICMP4Context(int len, const u_char*& data)
 	IPAddr src_addr, dst_addr;
 	uint32 src_port, dst_port;
 
-	if ( ip_hdr_len < sizeof(struct ip) || ip_hdr_len > uint32(len) )
+	if ( len < (int)sizeof(struct ip) || ip_hdr_len > uint32(len) )
 		{
 		// We don't have an entire IP header.
 		bad_hdr_len = 1;
 		ip_len = frag_offset = 0;
 		DF = MF = bad_checksum = 0;
-		src_addr = dst_addr = 0;
 		src_port = dst_port = 0;
 		}
 
@@ -331,9 +336,9 @@ RecordVal* ICMP_Analyzer::ExtractICMP4Context(int len, const u_char*& data)
 	iprec->Assign(0, id_val);
 	iprec->Assign(1, new Val(ip_len, TYPE_COUNT));
 	iprec->Assign(2, new Val(proto, TYPE_COUNT));
-	iprec->Assign(3, new Val(bad_hdr_len, TYPE_BOOL));
-	iprec->Assign(4, new Val(bad_checksum, TYPE_BOOL));
-	iprec->Assign(5, new Val(frag_offset, TYPE_COUNT));
+	iprec->Assign(3, new Val(frag_offset, TYPE_COUNT));
+	iprec->Assign(4, new Val(bad_hdr_len, TYPE_BOOL));
+	iprec->Assign(5, new Val(bad_checksum, TYPE_BOOL));
 	iprec->Assign(6, new Val(MF, TYPE_BOOL));
 	iprec->Assign(7, new Val(DF, TYPE_BOOL));
 
@@ -342,32 +347,33 @@ RecordVal* ICMP_Analyzer::ExtractICMP4Context(int len, const u_char*& data)
 
 RecordVal* ICMP_Analyzer::ExtractICMP6Context(int len, const u_char*& data)
 	{
-	const IP_Hdr ip_hdr_data((const struct ip6_hdr*) data, false);
-	const IP_Hdr* ip_hdr = &ip_hdr_data;
-	int DF = 0, MF = 0, bad_hdr_len = 0, bad_checksum = 0;
+	int DF = 0, MF = 0, bad_hdr_len = 0;
 	TransportProto proto = TRANSPORT_UNKNOWN;
 
-	uint32 ip_hdr_len = ip_hdr->HdrLen(); //should always be 40
 	IPAddr src_addr;
 	IPAddr dst_addr;
 	uint32 ip_len, frag_offset = 0;
 	uint32 src_port, dst_port;
 
-	if ( ip_hdr_len < sizeof(struct ip6_hdr) || ip_hdr_len != 40 ) // XXX What's the 2nd part doing?
+	if ( len < (int)sizeof(struct ip6_hdr) )
 		{
 		bad_hdr_len = 1;
 		ip_len = 0;
-		src_addr = dst_addr = 0;
 		src_port = dst_port = 0;
 		}
 	else
 		{
-		ip_len = ip_hdr->TotalLen();
+		const IP_Hdr ip_hdr_data((const struct ip6_hdr*) data, false, len);
+		const IP_Hdr* ip_hdr = &ip_hdr_data;
 
+		ip_len = ip_hdr->TotalLen();
 		src_addr = ip_hdr->SrcAddr();
 		dst_addr = ip_hdr->DstAddr();
+		frag_offset = ip_hdr->FragOffset();
+		MF = ip_hdr->MF();
+		DF = ip_hdr->DF();
 
-		if ( uint32(len) >= ip_hdr_len + 4 )
+		if ( uint32(len) >= uint32(ip_hdr->HdrLen() + 4) )
 			proto = GetContextProtocol(ip_hdr, &src_port, &dst_port);
 		else
 			{
@@ -388,17 +394,13 @@ RecordVal* ICMP_Analyzer::ExtractICMP6Context(int len, const u_char*& data)
 
 	iprec->Assign(0, id_val);
 	iprec->Assign(1, new Val(ip_len, TYPE_COUNT));
-
-	//if the encap packet is ICMPv6 we force this... (cause there is no IGMP (by that name) for ICMPv6), rather ugly hack once more
-	iprec->Assign(2, new Val(58, TYPE_COUNT));
-
-	iprec->Assign(3, new Val(bad_hdr_len, TYPE_BOOL));
-
-	// The following are not available for IPv6.
-	iprec->Assign(4, new Val(0, TYPE_BOOL));	// bad_checksum
-	iprec->Assign(5, new Val(frag_offset, TYPE_COUNT));	// frag_offset
-	iprec->Assign(6, new Val(0, TYPE_BOOL));	// MF
-	iprec->Assign(7, new Val(1, TYPE_BOOL));	// DF
+	iprec->Assign(2, new Val(proto, TYPE_COUNT));
+	iprec->Assign(3, new Val(frag_offset, TYPE_COUNT));
+	iprec->Assign(4, new Val(bad_hdr_len, TYPE_BOOL));
+	// bad_checksum is always false since IPv6 layer doesn't have a checksum
+	iprec->Assign(5, new Val(0, TYPE_BOOL));
+	iprec->Assign(6, new Val(MF, TYPE_BOOL));
+	iprec->Assign(7, new Val(DF, TYPE_BOOL));
 
 	return iprec;
 	}
@@ -608,7 +610,7 @@ void ICMP_Analyzer::Context4(double t, const struct icmp* icmpp,
 			break;
 
 		case ICMP_TIMXCEED:
-			f = icmp_error_message;
+			f = icmp_time_exceeded;
 			break;
 		}
 

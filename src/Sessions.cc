@@ -281,7 +281,12 @@ void NetSessions::NextPacket(double t, const struct pcap_pkthdr* hdr,
 
 		else if ( ip->ip_v == 6 )
 			{
-			IP_Hdr ip_hdr((const struct ip6_hdr*) (pkt + hdr_size), false);
+			if ( caplen < sizeof(struct ip6_hdr) )
+				{
+				Weird("truncated_IP", hdr, pkt);
+				return;
+				}
+			IP_Hdr ip_hdr((const struct ip6_hdr*) (pkt + hdr_size), false, caplen);
 			DoNextPacket(t, hdr, &ip_hdr, pkt, hdr_size);
 			}
 

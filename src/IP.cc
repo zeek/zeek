@@ -419,20 +419,35 @@ static inline bool isIPv6ExtHeader(uint8 type)
 	}
 	}
 
-void IPv6_Hdr_Chain::Init(const struct ip6_hdr* ip6, bool set_next, uint16 next)
+void IPv6_Hdr_Chain::Init(const struct ip6_hdr* ip6, int total_len,
+                          bool set_next, uint16 next)
 	{
 	length = 0;
 	uint8 current_type, next_type;
 	next_type = IPPROTO_IPV6;
 	const u_char* hdrs = (const u_char*) ip6;
 
+	if ( total_len < (int)sizeof(struct ip6_hdr) )
+		reporter->InternalError("IPv6_HdrChain::Init with truncated IP header");
+
 	do
 		{
+		// We can't determine a given header's length if there's less than
+		// two bytes of data available (2nd byte of extension headers is length)
+		if ( total_len < 2 ) return;
+
 		current_type = next_type;
 		IPv6_Hdr* p = new IPv6_Hdr(current_type, hdrs);
 
 		next_type = p->NextHdr();
-		uint16 len = p->Length();
+		uint16 cur_len = p->Length();
+
+		// If this header is truncated, don't add it to chain, don't go further
+		if ( cur_len > total_len )
+			{
+			delete p;
+			return;
+			}
 
 		if ( set_next && next_type == IPPROTO_FRAGMENT )
 			{
@@ -444,16 +459,17 @@ void IPv6_Hdr_Chain::Init(const struct ip6_hdr* ip6, bool set_next, uint16 next)
 
 		// Check for routing headers and remember final destination address.
 		if ( current_type == IPPROTO_ROUTING )
-			ProcessRoutingHeader((const struct ip6_rthdr*) hdrs, len);
+			ProcessRoutingHeader((const struct ip6_rthdr*) hdrs, cur_len);
 
 #ifdef ENABLE_MOBILE_IPV6
 		// Only Mobile IPv6 has a destination option we care about right now.
 		if ( current_type == IPPROTO_DSTOPTS )
-			ProcessDstOpts((const struct ip6_dest*) hdrs, len);
+			ProcessDstOpts((const struct ip6_dest*) hdrs, cur_len);
 #endif
 
-		hdrs += len;
-		length += len;
+		hdrs += cur_len;
+		length += cur_len;
+		total_len -= cur_len;
 		} while ( current_type != IPPROTO_FRAGMENT &&
 				  current_type != IPPROTO_ESP &&
 #ifdef ENABLE_MOBILE_IPV6

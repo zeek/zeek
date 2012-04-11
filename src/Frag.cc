@@ -150,7 +150,7 @@ void FragReassembler::AddFragment(double t, const IP_Hdr* ip, const u_char* pkt)
 
 void FragReassembler::Overlap(const u_char* b1, const u_char* b2, int n)
 	{
-	IP_Hdr proto_h(proto_hdr, false);
+	IP_Hdr proto_h(proto_hdr, false, proto_hdr_len);
 
 	if ( memcmp((const void*) b1, (const void*) b2, n) )
 		s->Weird("fragment_inconsistency", &proto_h);
@@ -182,7 +182,7 @@ void FragReassembler::BlockInserted(DataBlock* /* start_block */)
 			// can happen for benign reasons when we're
 			// intermingling parts of two fragmented packets.
 
-			IP_Hdr proto_h(proto_hdr, false);
+			IP_Hdr proto_h(proto_hdr, false, proto_hdr_len);
 			s->Weird("fragment_size_inconsistency", &proto_h);
 
 			// We decide to analyze the contiguous portion now.
@@ -196,7 +196,7 @@ void FragReassembler::BlockInserted(DataBlock* /* start_block */)
 
 	else if ( last_block->upper > frag_size )
 		{
-		IP_Hdr proto_h(proto_hdr, false);
+		IP_Hdr proto_h(proto_hdr, false, proto_hdr_len);
 		s->Weird("fragment_size_inconsistency", &proto_h);
 		frag_size = last_block->upper;
 		}
@@ -250,8 +250,8 @@ void FragReassembler::BlockInserted(DataBlock* /* start_block */)
 		{
 		struct ip6_hdr* reassem6 = (struct ip6_hdr*) pkt_start;
 		reassem6->ip6_plen = htons(frag_size + proto_hdr_len - 40);
-		const IPv6_Hdr_Chain* chain = new IPv6_Hdr_Chain(reassem6, next_proto);
-		reassembled_pkt = new IP_Hdr(reassem6, true, chain);
+		const IPv6_Hdr_Chain* chain = new IPv6_Hdr_Chain(reassem6, next_proto, n);
+		reassembled_pkt = new IP_Hdr(reassem6, true, n, chain);
 		}
 
 	else

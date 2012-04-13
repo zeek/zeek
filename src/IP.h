@@ -12,7 +12,6 @@
 #include <vector>
 #include <netinet/in.h>
 #include <netinet/ip.h>
-#include <netinet/ip6.h>
 
 #ifdef ENABLE_MOBILE_IPV6
 

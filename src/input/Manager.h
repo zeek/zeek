@@ -107,25 +107,25 @@ protected:
 	// Functions are called from the ReaderBackend to notify the manager, that a filter has been removed
 	// or a stream has been closed.
 	// Used to prevent race conditions where data for a specific filter is still in the queue when the 
-	// RemoveFilter directive is executed by the main thread.
+	// RemoveStream directive is executed by the main thread.
 	// This makes sure all data that has ben queued for a filter is still received.
 	bool RemoveStreamContinuation(ReaderFrontend* reader);
 	
 private:
-	class Filter;
-	class TableFilter;
-	class EventFilter;
+	class Stream;
+	class TableStream;
+	class EventStream;
 	
-    	bool CreateStream(Filter*, RecordVal* description);
+    	bool CreateStream(Stream*, RecordVal* description);
 
 	// SendEntry implementation for Tablefilter
-	int SendEntryTable(Filter* i, const threading::Value* const *vals);	
+	int SendEntryTable(Stream* i, const threading::Value* const *vals);	
 
 	// Put implementation for Tablefilter
-	int PutTable(Filter* i, const threading::Value* const *vals);	
+	int PutTable(Stream* i, const threading::Value* const *vals);	
 
 	// SendEntry and Put implementation for Eventfilter
-	int SendEventFilterEvent(Filter* i, EnumVal* type, const threading::Value* const *vals);
+	int SendEventStreamEvent(Stream* i, EnumVal* type, const threading::Value* const *vals);
 
 	// Checks is a bro type can be used for data reading. The equivalend in threading cannot be used, because we have support different types 
 	// from the log framework
@@ -163,12 +163,12 @@ private:
 	// Converts a Bro ListVal to a RecordVal given the record type
 	RecordVal* ListValToRecordVal(ListVal* list, RecordType *request_type, int* position);
 
-	Filter* FindFilter(const string &name);
-	Filter* FindFilter(ReaderFrontend* reader);
+	Stream* FindStream(const string &name);
+	Stream* FindStream(ReaderFrontend* reader);
 
-	enum FilterType { TABLE_FILTER, EVENT_FILTER };
+	enum StreamType { TABLE_FILTER, EVENT_FILTER };
 	
-	map<ReaderFrontend*, Filter*> readers;
+	map<ReaderFrontend*, Stream*> readers;
 };
 
 

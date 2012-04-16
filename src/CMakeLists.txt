@@ -213,6 +213,8 @@ binpac_target(syslog.pac
 ########################################################################
 ## bro target
 
+find_package (Threads)
+
 # This macro stores associated headers for any C/C++ source files given
 # as arguments (past _var) as a list in the CMake variable named "_var".
 macro(COLLECT_HEADERS _var)
@@ -288,7 +290,6 @@ set(bro_SRCS
     ChunkedIO.cc
     CompHash.cc
     Conn.cc
-    ConnCompressor.cc
     ConnSizeAnalyzer.cc
     ContentLine.cc
     DCE_RPC.cc
@@ -331,13 +332,11 @@ set(bro_SRCS
     IntSet.cc
     InterConn.cc
     IOSource.cc
+    IP.cc
+    IPAddr.cc
     IRC.cc
     List.cc
     Reporter.cc
-    LogMgr.cc
-    LogWriter.cc
-    LogWriterAscii.cc
-    LogWriterNone.cc
     Login.cc
     MIME.cc
     NCP.cc
@@ -402,6 +401,7 @@ set(bro_SRCS
     XDR.cc
     ZIP.cc
     bsd-getopt-long.c
+    bro_inet_ntop.c
     cq.c
     md5.c
     patricia.c
@@ -409,6 +409,18 @@ set(bro_SRCS
     PacketDumper.cc
     strsep.c
     modp_numtoa.c
+
+    threading/BasicThread.cc
+    threading/Manager.cc
+    threading/MsgThread.cc
+    threading/SerialTypes.cc
+
+    logging/Manager.cc
+    logging/WriterBackend.cc
+    logging/WriterFrontend.cc
+    logging/writers/Ascii.cc
+    logging/writers/None.cc
+
     ${dns_SRCS}
     ${openssl_SRCS}
 )
@@ -421,7 +433,7 @@ add_definitions(-DBRO_BUILD_PATH="${CMAKE_CURRENT_BINARY_DIR}")
 
 add_executable(bro ${bro_SRCS} ${bro_HEADERS})
 
-target_link_libraries(bro ${brodeps})
+target_link_libraries(bro ${brodeps} ${CMAKE_THREAD_LIBS_INIT})
 
 install(TARGETS bro DESTINATION bin)
 install(FILES ${INSTALL_BIF_OUTPUTS} DESTINATION ${BRO_SCRIPT_INSTALL_PATH}/base)

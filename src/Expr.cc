@@ -14,6 +14,7 @@
 #include "Net.h"
 #include "Traverse.h"
 #include "Trigger.h"
+#include "IPAddr.h"
 
 const char* expr_name(BroExprTag t)
 	{
@@ -834,30 +835,30 @@ Val* BinaryExpr::StringFold(Val* v1, Val* v2) const
 
 Val* BinaryExpr::AddrFold(Val* v1, Val* v2) const
 	{
-	addr_type a1 = v1->AsAddr();
-	addr_type a2 = v2->AsAddr();
+	IPAddr a1 = v1->AsAddr();
+	IPAddr a2 = v2->AsAddr();
 	int result = 0;
 
 	switch ( tag ) {
-#undef DO_FOLD
-#ifdef BROv6
-#define DO_FOLD(sense) { result = memcmp(a1, a2, 16) sense 0; break; }
-#else
-#define DO_FOLD(sense)	\
-	{ \
-	a1 = ntohl(a1); \
-	a2 = ntohl(a2); \
-	result = (a1 < a2 ? -1 : (a1 == a2 ? 0 : 1)) sense 0; \
-	break; \
-	}
-#endif
 
-	case EXPR_LT:		DO_FOLD(<)
-	case EXPR_LE:		DO_FOLD(<=)
-	case EXPR_EQ:		DO_FOLD(==)
-	case EXPR_NE:		DO_FOLD(!=)
-	case EXPR_GE:		DO_FOLD(>=)
-	case EXPR_GT:		DO_FOLD(>)
+	case EXPR_LT:
+		result = a1 < a2;
+		break;
+	case EXPR_LE:
+		result = a1 < a2 || a1 == a2;
+		break;
+	case EXPR_EQ:
+		result = a1 == a2;
+		break;
+	case EXPR_NE:
+		result = a1 != a2;
+		break;
+	case EXPR_GE:
+		result = ! ( a1 < a2 );
+		break;
+	case EXPR_GT:
+		result = ( ! ( a1 < a2 ) ) && ( a1 != a2 );
+		break;
 
 	default:
 		BadTag("BinaryExpr::AddrFold", expr_name(tag));
@@ -868,20 +869,13 @@ Val* BinaryExpr::AddrFold(Val* v1, Val* v2) const
 
 Val* BinaryExpr::SubNetFold(Val* v1, Val* v2) const
 	{
-	subnet_type* n1 = v1->AsSubNet();
-	subnet_type* n2 = v2->AsSubNet();
+	const IPPrefix& n1 = v1->AsSubNet();
+	const IPPrefix& n2 = v2->AsSubNet();
 
-	if ( n1->width != n2->width )
+	if ( n1 == n2 )
+		return new Val(1, TYPE_BOOL);
+	else
 		return new Val(0, TYPE_BOOL);
-
-#ifdef BROv6
-	if ( memcmp(n1->net, n2->net, 16) )
-#else
-	if ( n1->net != n2->net )
-#endif
-		return new Val(0, TYPE_BOOL);
-
-	return new Val(1, TYPE_BOOL);
 	}
 
 void BinaryExpr::SwapOps()
@@ -1681,15 +1675,13 @@ DivideExpr::DivideExpr(Expr* arg_op1, Expr* arg_op2)
 
 Val* DivideExpr::AddrFold(Val* v1, Val* v2) const
 	{
-	addr_type a1 = v1->AsAddr();
-
 	uint32 mask;
 	if ( v2->Type()->Tag() == TYPE_COUNT )
 		mask = static_cast<uint32>(v2->InternalUnsigned());
 	else
 		mask = static_cast<uint32>(v2->InternalInt());
 
-	return new SubNetVal(a1, mask);
+	return new SubNetVal(v1->AsAddr(), mask);
 	}
 
 Expr* DivideExpr::DoSimplify()
@@ -2672,8 +2664,6 @@ void AssignExpr::EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const
 		Error("bad table insertion");
 
 	TableVal* tv = aggr->AsTableVal();
-	const TableType* tt = tv->Type()->AsTableType();
-	const BroType* yt = tv->Type()->YieldType();
 
 	Val* index = op1->Eval(f);
 	Val* v = op2->Eval(f);
@@ -3641,151 +3631,6 @@ bool FieldAssignExpr::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(UnaryExpr);
 	return true;
-	}
-
-RecordMatchExpr::RecordMatchExpr(Expr* op1 /* record to match */,
-					Expr* op2 /* cases to match against */)
-: BinaryExpr(EXPR_MATCH, op1, op2)
-	{
-	BroType* result_type = 0;
-
-	// Make sure the second argument is of a suitable type.
-	if ( ! op2->Type()->IsSet() )
-		{
-		ExprError("matching must be done against a set of match records");
-		return;
-		}
-
-	type_list* elt_types = op2->Type()->AsSetType()->Indices()->Types();
-
-	if ( ! elt_types->length() ||
-	     (*elt_types)[0]->Tag() != TYPE_RECORD )
-		{
-		ExprError("matching must be done against a set of match records");
-		return;
-		}
-
-	RecordType* case_rec_type = (*elt_types)[0]->AsRecordType();
-
-	// NOTE: The "result" and "pred" field names are hardcoded here.
-	result_field_index = case_rec_type->FieldOffset("result");
-
-	if ( result_field_index < 0 )
-		{
-		ExprError("match records must have a $result field");
-		return;
-		}
-
-	result_type = case_rec_type->FieldType("result")->Ref();
-
-	// Check that pred exists, and that the first argument matches it.
-	if ( (pred_field_index = case_rec_type->FieldOffset("pred")) < 0 ||
-	     case_rec_type->FieldType("pred")->Tag() != TYPE_FUNC )
-		{
-		ExprError("match records must have a $pred' field of function type");
-		return;
-		}
-
-	FuncType* pred_type = case_rec_type->FieldType("pred")->AsFuncType();
-	type_list* pred_arg_types = pred_type->ArgTypes()->Types();
-	if ( pred_arg_types->length() != 1 ||
-	     ! check_and_promote_expr(op1, (*pred_arg_types)[0]) )
-		ExprError("record to match does not have the same type as predicate argument");
-
-	// NOTE: The "priority" field name is hardcoded here.
-	if ( (priority_field_index = case_rec_type->FieldOffset("priority")) >= 0 &&
-	     ! IsArithmetic(case_rec_type->FieldType("priority")->Tag()) )
-		ExprError("$priority field must have a numeric type");
-
-	SetType(result_type);
-	}
-
-void RecordMatchExpr::ExprDescribe(ODesc* d) const
-	{
-	if ( d->IsReadable() )
-		{
-		d->Add("match ");
-		op1->Describe(d);
-		d->Add(" using ");
-		op2->Describe(d);
-		}
-	}
-
-Val* RecordMatchExpr::Fold(Val* v1, Val* v2) const
-	{
-	TableVal* match_set = v2->AsTableVal();
-	if ( ! match_set )
-		Internal("non-table in RecordMatchExpr");
-
-	Val* return_val = 0;
-	double highest_priority = -1e100;
-
-	ListVal* match_recs = match_set->ConvertToList(TYPE_ANY);
-	for ( int i = 0; i < match_recs->Length(); ++i )
-		{
-		val_list args(1);
-		args.append(v1->Ref());
-
-		double this_priority = 0;
-
-		// ### Get rid of the double Index if TYPE_ANY->TYPE_RECORD.
-		Val* v = match_recs->Index(i)->AsListVal()->Index(0);
-
-		const RecordVal* match_rec = v->AsRecordVal();
-		if ( ! match_rec )
-			Internal("Element of match set is not a record");
-
-		if ( priority_field_index >= 0 )
-			{
-			this_priority =
-				match_rec->Lookup(priority_field_index)->CoerceToDouble();
-			if ( this_priority <= highest_priority )
-				{
-				Unref(v1);
-				continue;
-				}
-			}
-
-		// No try/catch here; we pass exceptions upstream.
-		Val* pred_val =
-			match_rec->Lookup(pred_field_index)->AsFunc()->Call(&args);
-		bool is_zero = pred_val->IsZero();
-		Unref(pred_val);
-
-		if ( ! is_zero )
-			{
-			Val* new_return_val =
-				match_rec->Lookup(result_field_index);
-
-			Unref(return_val);
-			return_val = new_return_val->Ref();
-
-			if ( priority_field_index >= 0 )
-				highest_priority = this_priority;
-			else
-				break;
-			}
-		}
-
-	Unref(match_recs);
-
-	return return_val;
-	}
-
-IMPLEMENT_SERIAL(RecordMatchExpr, SER_RECORD_MATCH_EXPR);
-
-bool RecordMatchExpr::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_RECORD_MATCH_EXPR, BinaryExpr);
-	return SERIALIZE(pred_field_index) && SERIALIZE(result_field_index) &&
-		SERIALIZE(priority_field_index);
-	}
-
-bool RecordMatchExpr::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(BinaryExpr);
-	return UNSERIALIZE(&pred_field_index) && UNSERIALIZE(&result_field_index) &&
-		UNSERIALIZE(&priority_field_index);
 	}
 
 ArithCoerceExpr::ArithCoerceExpr(Expr* arg_op, TypeTag t)
@@ -4918,6 +4763,7 @@ Val* ListExpr::Eval(Frame* f) const
 		if ( ! ev )
 			{
 			Error("uninitialized list value");
+			Unref(v);
 			return 0;
 			}
 

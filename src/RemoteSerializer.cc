@@ -183,8 +183,11 @@
 #include "Sessions.h"
 #include "File.h"
 #include "Conn.h"
-#include "LogMgr.h"
 #include "Reporter.h"
+#include "threading/SerialTypes.h"
+#include "logging/Manager.h"
+#include "IPAddr.h"
+#include "bro_inet_ntop.h"
 
 extern "C" {
 #include "setsignal.h"
@@ -463,7 +466,7 @@ static inline const char* ip2a(uint32 ip)
 
 	addr.s_addr = htonl(ip);
 
-	return inet_ntop(AF_INET, &addr, buffer, 32);
+	return bro_inet_ntop(AF_INET, &addr, buffer, 32);
 	}
 
 static pid_t child_pid = 0;
@@ -530,6 +533,7 @@ RemoteSerializer::RemoteSerializer()
 	terminating = false;
 	in_sync = 0;
 	last_flush = 0;
+	received_logs = 0;
 	}
 
 RemoteSerializer::~RemoteSerializer()
@@ -670,8 +674,8 @@ void RemoteSerializer::Fork()
 		}
 	}
 
-RemoteSerializer::PeerID RemoteSerializer::Connect(addr_type ip, uint16 port,
-			const char* our_class, double retry, bool use_ssl)
+RemoteSerializer::PeerID RemoteSerializer::Connect(const IPAddr& ip,
+			uint16 port, const char* our_class, double retry, bool use_ssl)
 	{
 	if ( ! using_communication )
 		return true;
@@ -679,16 +683,12 @@ RemoteSerializer::PeerID RemoteSerializer::Connect(addr_type ip, uint16 port,
 	if ( ! initialized )
 		reporter->InternalError("remote serializer not initialized");
 
-#ifdef BROv6
-	if ( ! is_v4_addr(ip) )
+	if ( ip.GetFamily() == IPv6 )
 		Error("inter-Bro communication not supported over IPv6");
 
-	uint32 ip4 = to_v4_addr(ip);
-#else
-	uint32 ip4 = ip;
-#endif
-
-	ip4 = ntohl(ip4);
+	const uint32* bytes;
+	ip.GetBytes(&bytes);
+	uint32 ip4 = ntohl(*bytes);
 
 	if ( ! child_pid )
 		Fork();
@@ -1232,7 +1232,7 @@ bool RemoteSerializer::SendCapabilities(Peer* peer)
 	return caps ? SendToChild(MSG_CAPS, peer, 3, caps, 0, 0) : true;
 	}
 
-bool RemoteSerializer::Listen(addr_type ip, uint16 port, bool expect_ssl)
+bool RemoteSerializer::Listen(const IPAddr& ip, uint16 port, bool expect_ssl)
 	{
 	if ( ! using_communication )
 		return true;
@@ -1240,16 +1240,12 @@ bool RemoteSerializer::Listen(addr_type ip, uint16 port, bool expect_ssl)
 	if ( ! initialized )
 		reporter->InternalError("remote serializer not initialized");
 
-#ifdef BROv6
-	if ( ! is_v4_addr(ip) )
+	if ( ip.GetFamily() == IPv6 )
 		Error("inter-Bro communication not supported over IPv6");
 
-	uint32 ip4 = to_v4_addr(ip);
-#else
-	uint32 ip4 = ip;
-#endif
-
-	ip4 = ntohl(ip4);
+	const uint32* bytes;
+	ip.GetBytes(&bytes);
+	uint32 ip4 = ntohl(*bytes);
 
 	if ( ! SendToChild(MSG_LISTEN, 0, 3, ip4, port, expect_ssl) )
 		return false;
@@ -1358,6 +1354,14 @@ void RemoteSerializer::GetFds(int* read, int* write, int* except)
 double RemoteSerializer::NextTimestamp(double* local_network_time)
 	{
 	Poll(false);
+
+	if ( received_logs > 0 )
+		{
+		// If we processed logs last time, assume there's more.
+		idle = false;
+		received_logs = 0;
+		return timer_mgr->Time();
+		}
 
 	double et = events.length() ? events[0]->time : -1;
 	double pt = packets.length() ? packets[0]->time : -1;
@@ -2476,7 +2480,7 @@ bool RemoteSerializer::ProcessRemotePrint()
 	return true;
 	}
 
-bool RemoteSerializer::SendLogCreateWriter(EnumVal* id, EnumVal* writer, string path, int num_fields, const LogField* const * fields)
+bool RemoteSerializer::SendLogCreateWriter(EnumVal* id, EnumVal* writer, string path, int num_fields, const threading::Field* const * fields)
 	{
 	loop_over_list(peers, i)
 		{
@@ -2486,7 +2490,7 @@ bool RemoteSerializer::SendLogCreateWriter(EnumVal* id, EnumVal* writer, string 
 	return true;
 	}
 
-bool RemoteSerializer::SendLogCreateWriter(PeerID peer_id, EnumVal* id, EnumVal* writer, string path, int num_fields, const LogField* const * fields)
+bool RemoteSerializer::SendLogCreateWriter(PeerID peer_id, EnumVal* id, EnumVal* writer, string path, int num_fields, const threading::Field* const * fields)
 	{
 	SetErrorDescr("logging");
 
@@ -2497,6 +2501,9 @@ bool RemoteSerializer::SendLogCreateWriter(PeerID peer_id, EnumVal* id, EnumVal*
 		return false;
 
 	if ( peer->phase != Peer::HANDSHAKE && peer->phase != Peer::RUNNING )
+		return false;
+
+	if ( ! peer->logs_requested )
 		return false;
 
 	BinarySerializationFormat fmt;
@@ -2540,7 +2547,7 @@ error:
 	return false;
 	}
 
-bool RemoteSerializer::SendLogWrite(EnumVal* id, EnumVal* writer, string path, int num_fields, const LogVal* const * vals)
+bool RemoteSerializer::SendLogWrite(EnumVal* id, EnumVal* writer, string path, int num_fields, const threading::Value* const * vals)
 	{
 	loop_over_list(peers, i)
 		{
@@ -2550,7 +2557,7 @@ bool RemoteSerializer::SendLogWrite(EnumVal* id, EnumVal* writer, string path, i
 	return true;
 	}
 
-bool RemoteSerializer::SendLogWrite(Peer* peer, EnumVal* id, EnumVal* writer, string path, int num_fields, const LogVal* const * vals)
+bool RemoteSerializer::SendLogWrite(Peer* peer, EnumVal* id, EnumVal* writer, string path, int num_fields, const threading::Value* const * vals)
 	{
 	if ( peer->phase != Peer::HANDSHAKE && peer->phase != Peer::RUNNING )
 		return false;
@@ -2558,7 +2565,9 @@ bool RemoteSerializer::SendLogWrite(Peer* peer, EnumVal* id, EnumVal* writer, st
 	if ( ! peer->logs_requested )
 		return false;
 
-	assert(peer->log_buffer);
+	if ( ! peer->log_buffer )
+		// Peer shutting down.
+		return false;
 
 	// Serialize the log record entry.
 
@@ -2593,7 +2602,10 @@ bool RemoteSerializer::SendLogWrite(Peer* peer, EnumVal* id, EnumVal* writer, st
 	if ( len > (LOG_BUFFER_SIZE - peer->log_buffer_used) || (network_time - last_flush > 1.0) )
 		{
 		if ( ! FlushLogBuffer(peer) )
+			{
+			delete [] data;
 			return false;
+			}
 		}
 
 	// If the data is actually larger than our complete buffer, just send it out.
@@ -2616,6 +2628,9 @@ error:
 
 bool RemoteSerializer::FlushLogBuffer(Peer* p)
 	{
+	if ( ! p->logs_requested )
+		return false;
+
 	last_flush = network_time;
 
 	if ( p->state == Peer::CLOSING )
@@ -2637,11 +2652,17 @@ bool RemoteSerializer::ProcessLogCreateWriter()
 	if ( current_peer->state == Peer::CLOSING )
 		return false;
 
+#ifdef USE_PERFTOOLS_DEBUG
+	// Don't track allocations here, they'll be released only after the
+	// main loop exists. And it's just a tiny amount anyway.
+	HeapLeakChecker::Disabler disabler;
+#endif
+
 	assert(current_args);
 
 	EnumVal* id_val = 0;
 	EnumVal* writer_val = 0;
-	LogField** fields = 0;
+	threading::Field** fields = 0;
 
 	BinarySerializationFormat fmt;
 	fmt.StartRead(current_args->data, current_args->len);
@@ -2658,11 +2679,11 @@ bool RemoteSerializer::ProcessLogCreateWriter()
 	if ( ! success )
 		goto error;
 
-	fields = new LogField* [num_fields];
+	fields = new threading::Field* [num_fields];
 
 	for ( int i = 0; i < num_fields; i++ )
 		{
-		fields[i] = new LogField;
+		fields[i] = new threading::Field;
 		if ( ! fields[i]->Read(&fmt) )
 			goto error;
 		}
@@ -2672,7 +2693,7 @@ bool RemoteSerializer::ProcessLogCreateWriter()
 	id_val = new EnumVal(id, BifType::Enum::Log::ID);
 	writer_val = new EnumVal(writer, BifType::Enum::Log::Writer);
 
-	if ( ! log_mgr->CreateWriter(id_val, writer_val, path, num_fields, fields) )
+	if ( ! log_mgr->CreateWriter(id_val, writer_val, path, num_fields, fields, true, false) )
 		goto error;
 
 	Unref(id_val);
@@ -2703,7 +2724,7 @@ bool RemoteSerializer::ProcessLogWrite()
 		// Unserialize one entry.
 		EnumVal* id_val = 0;
 		EnumVal* writer_val = 0;
-		LogVal** vals = 0;
+		threading::Value** vals = 0;
 
 		int id, writer;
 		string path;
@@ -2717,11 +2738,11 @@ bool RemoteSerializer::ProcessLogWrite()
 		if ( ! success )
 			goto error;
 
-		vals = new LogVal* [num_fields];
+		vals = new threading::Value* [num_fields];
 
 		for ( int i = 0; i < num_fields; i++ )
 			{
-			vals[i] = new LogVal;
+			vals[i] = new threading::Value;
 			if ( ! vals[i]->Read(&fmt) )
 				goto error;
 			}
@@ -2740,6 +2761,8 @@ bool RemoteSerializer::ProcessLogWrite()
 		}
 
 	fmt.EndRead();
+
+	++received_logs;
 
 	return true;
 
@@ -2850,7 +2873,7 @@ void RemoteSerializer::GotID(ID* id, Val* val)
 					(desc && *desc) ? desc : "not set"),
 			current_peer);
 
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 		// May still be cached, but we don't care.
 		heap_checker->IgnoreObject(id);
 #endif
@@ -3381,6 +3404,11 @@ void SocketComm::Run()
 		small_timeout.tv_sec = 0;
 		small_timeout.tv_usec =
 			io->CanWrite() || io->CanRead() ? 1 : 10;
+
+#if 0
+		if ( ! io->CanWrite() )
+			usleep(10);
+#endif
 
 		int a = select(max_fd + 1, &fd_read, &fd_write, &fd_except,
 				&small_timeout);

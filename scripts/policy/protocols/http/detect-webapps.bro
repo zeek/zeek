@@ -27,7 +27,8 @@ event signature_match(state: signature_state, msg: string, data: string) &priori
 	if ( /^webapp-/ !in state$sig_id ) return;
 	
 	local c = state$conn;
-	local si = Software::parse(msg, c$id$resp_h, WEB_APPLICATION);
+	local si = Software::Info;
+	si = [$name=msg, $unparsed_version=msg, $host=c$id$resp_h, $host_p=c$id$resp_p, $software_type=WEB_APPLICATION];
 	si$url = build_url_http(c$http);
 	if ( c$id$resp_h in Software::tracked &&
 	     si$name in Software::tracked[c$id$resp_h] )

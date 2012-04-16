@@ -165,7 +165,12 @@ function ftp_message(s: Info)
 		
 		local arg = s$cmdarg$arg;
 		if ( s$cmdarg$cmd in file_cmds )
-			arg = fmt("ftp://%s%s", s$id$resp_h, build_path_compressed(s$cwd, arg));
+			{
+			if ( is_v4_addr(s$id$resp_h) )
+				arg = fmt("ftp://%s%s", s$id$resp_h, build_path_compressed(s$cwd, arg));
+			else
+				arg = fmt("ftp://[%s]%s", s$id$resp_h, build_path_compressed(s$cwd, arg));
+			}
 		
 		s$ts=s$cmdarg$ts;
 		s$command=s$cmdarg$cmd;
@@ -270,7 +275,7 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &prior
 			{
 			c$ftp$passive=T;
 			
-			if ( code == 229 && data$h == 0.0.0.0 )
+			if ( code == 229 && data$h == [::] )
 				data$h = id$resp_h;
 			
 			ftp_data_expected[data$h, data$p] = c$ftp;

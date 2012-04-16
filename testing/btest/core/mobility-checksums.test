@@ -1,0 +1,9 @@
+# @TEST-REQUIRES: grep -q "#define ENABLE_MOBILE_IPV6" $BUILD/config.h
+# @TEST-EXEC: bro -b -r $TRACES/chksums/mip6-bad-mh-chksum.pcap >>bad.out 2>&1
+# @TEST-EXEC: bro -b -r $TRACES/chksums/ip6-hoa-tcp-bad-chksum.pcap >>bad.out 2>&1
+# @TEST-EXEC: bro -b -r $TRACES/chksums/ip6-hoa-udp-bad-chksum.pcap >>bad.out 2>&1
+# @TEST-EXEC: bro -b -r $TRACES/chksums/mip6-good-mh-chksum.pcap >>good.out 2>&1
+# @TEST-EXEC: bro -b -r $TRACES/chksums/ip6-hoa-tcp-good-chksum.pcap >>bad.out 2>&1
+# @TEST-EXEC: bro -b -r $TRACES/chksums/ip6-hoa-udp-good-chksum.pcap >>bad.out 2>&1
+# @TEST-EXEC: btest-diff bad.out
+# @TEST-EXEC: btest-diff good.out

@@ -100,13 +100,19 @@ The following dependencies are required to build Bro:
 Optional Dependencies
 ~~~~~~~~~~~~~~~~~~~~~
 
-Bro can use libGeoIP for geo-locating IP addresses and sendmail for
+Bro can use libGeoIP for geo-locating IP addresses, and sendmail for
 sending emails.
 
-* RPM/RedHat-based Linux:
+* RedHat Enterprise Linux:
 
   .. console::
 
+      sudo yum install geoip-devel sendmail
+
+* CentOS Linux:
+
+  .. console::
+  
       sudo yum install GeoIP-devel sendmail
 
 * DEB/Debian-based Linux:
@@ -127,7 +133,7 @@ sending emails.
 
   Vanilla OS X installations don't ship with libmagic or libGeoIP, but
   if installed from your preferred package management system (e.g. MacPorts,
-  Fink Homebrew), they should be automatically detected and Bro will compile
+  Fink, or Homebrew), they should be automatically detected and Bro will compile
   against them.
 
 Additional steps may be needed to :doc:`get the right GeoIP database <geoip>`
@@ -151,8 +157,8 @@ for downloading the full source code experience for Bro via git is:
 
 .. note:: If you choose to clone the ``bro`` repository non-recursively for
    a "minimal Bro experience", be aware that compiling it depends on
-   BinPAC, which has it's own ``binpac`` repository.  Either install it
-   first or initizalize/update the cloned ``bro`` repository's
+   BinPAC, which has its own ``binpac`` repository.  Either install it
+   first or initialize/update the cloned ``bro`` repository's
    ``aux/binpac`` submodule.
 
 See the ``INSTALL`` file included with the source code for more information
@@ -196,7 +202,7 @@ BroControl is an interactive shell for easily operating/managing Bro
 installations on a single system or even across multiple systems in a
 traffic-monitoring cluster.
 
-.. note:: Below, ``$PREFIX``, is used to reference the Bro installation
+.. note:: Below, ``$PREFIX`` is used to reference the Bro installation
    root directory.
 
 A Minimal Starting Configuration
@@ -449,7 +455,7 @@ that only takes the email action for SSH logins to a defined set of servers:
         ]
     };
 
-You'll just have to trust the syntax for now, but what we've done is first
+You'll just have to trust the syntax for now, but what we've done is
 first declare our own variable to hold a set of watched addresses,
 ``watched_servers``; then added a record to the policy that will generate
 an email on the condition that the predicate function evaluates to true, which

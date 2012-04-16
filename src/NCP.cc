@@ -225,5 +225,7 @@ NCP_Analyzer::NCP_Analyzer(Connection* conn)
 NCP_Analyzer::~NCP_Analyzer()
 	{
 	delete session;
+	delete o_ncp;
+	delete r_ncp;
 	}
 

@@ -243,7 +243,7 @@ void ICMP_Analyzer::Describe(ODesc* d) const
 	d->Add(Conn()->LastTime());
 	d->AddSP(")");
 
-	d->Add(dotted_addr(Conn()->OrigAddr()));
+	d->Add(Conn()->OrigAddr());
 	d->Add(".");
 	d->Add(type);
 	d->Add(".");
@@ -252,7 +252,7 @@ void ICMP_Analyzer::Describe(ODesc* d) const
 	d->SP();
 	d->AddSP("->");
 
-	d->Add(dotted_addr(Conn()->RespAddr()));
+	d->Add(Conn()->RespAddr());
 	}
 
 void ICMP_Analyzer::UpdateConnVal(RecordVal *conn_val)

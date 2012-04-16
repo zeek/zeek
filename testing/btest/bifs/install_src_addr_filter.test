@@ -1,0 +1,13 @@
+# @TEST-EXEC: bro -C -r $TRACES/wikipedia.trace %INPUT >output
+# @TEST-EXEC: btest-diff output
+
+event bro_init()
+    {
+    install_src_addr_filter(141.142.220.118, TH_SYN, 100.0);
+    }
+
+event new_packet(c: connection, p: pkt_hdr)
+    {
+    if ( p?$tcp && p$ip$src == 141.142.220.118 )
+            print c$id;
+    }

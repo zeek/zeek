@@ -1,6 +1,3 @@
-/* enable IPV6 processing */
-#cmakedefine BROv6
-
 /* Old libpcap versions (< 0.6.1) need defining pcap_freecode and
    pcap_compile_nopcap */
 #cmakedefine DONT_HAVE_LIBPCAP_PCAP_FREECODE
@@ -112,7 +109,10 @@
 #cmakedefine HAVE_GEOIP_CITY_EDITION_REV0_V6
 
 /* Use Google's perftools */
-#cmakedefine USE_PERFTOOLS
+#cmakedefine USE_PERFTOOLS_DEBUG
+
+/* Analyze Mobile IPv6 traffic */
+#cmakedefine ENABLE_MOBILE_IPV6
 
 /* Version number of package */
 #define VERSION "@VERSION@"

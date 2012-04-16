@@ -8,7 +8,7 @@ Prerequisites
 Bro relies on the following libraries and tools, which need to be installed
 before you begin:
 
-    * CMake 2.6 or greater              http://www.cmake.org
+    * CMake 2.6.3 or greater            http://www.cmake.org
 
     * Libpcap (headers and libraries)   http://www.tcpdump.org
 

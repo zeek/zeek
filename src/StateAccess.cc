@@ -231,7 +231,7 @@ bool StateAccess::CheckOldSet(const char* op, ID* id, Val* index,
 
 bool StateAccess::MergeTables(TableVal* dst, Val* src)
 	{
-	if ( ! src->Type()->Tag() == TYPE_TABLE )
+	if ( src->Type()->Tag() != TYPE_TABLE )
 		{
 		reporter->Error("type mismatch while merging tables");
 		return false;
@@ -678,7 +678,7 @@ bool StateAccess::DoUnserialize(UnserialInfo* info)
 			target.id = new ID(name, SCOPE_GLOBAL, true);
 			Ref(target.id);
 			global_scope()->Insert(name, target.id);
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 			heap_checker->IgnoreObject(target.id);
 #endif
 			}

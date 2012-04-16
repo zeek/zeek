@@ -42,6 +42,12 @@ Gnutella_Analyzer::Gnutella_Analyzer(Connection* conn)
 	resp_msg_state = new GnutellaMsgState();
 	}
 
+Gnutella_Analyzer::~Gnutella_Analyzer()
+	{
+	delete orig_msg_state;
+	delete resp_msg_state;
+	}
+
 void Gnutella_Analyzer::Done()
 	{
 	TCP_ApplicationAnalyzer::Done();

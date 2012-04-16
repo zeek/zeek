@@ -14,6 +14,7 @@
 #include "util.h"
 #include "Dict.h"
 #include "Reporter.h"
+#include "IPAddr.h"
 
 // Size limit for size wildcards.
 #define PACKET_BIG 100
@@ -88,7 +89,7 @@ public:
 	int FindMatch(struct os_type* retval, uint16 tot, uint8 DF_flag,
 		uint8 TTL, uint16 WSS, uint8 ocnt, uint8* op, uint16 MSS,
 		uint8 win_scale, uint32 tstamp, uint32 quirks, uint8 ECN) const;
-	bool CacheMatch(uint32 addr, int id);
+	bool CacheMatch(const IPAddr& addr, int id);
 
 	int Get_OS_From_SYN(struct os_type* retval,
 			uint16 tot, uint8 DF_flag, uint8 TTL, uint16 WSS,

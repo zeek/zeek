@@ -55,18 +55,18 @@
 <!-- info_code : count -->
 <!-- info_msg : string -->
 <!-- filename : string -->
-<!-- tags : table -->
+<!-- tags : table[enum] -->
 <!-- username : string -->
 <!-- password : string -->
-<!-- proxied : table -->
+<!-- proxied : table[string] -->
 <!-- mime_type : string -->
 <!-- md5 : string -->
 <!-- extraction_file : file -->
 
 extent offset  ExtentType
 40             DataSeries: XmlType
-756            http
-1144           DataSeries: ExtentIndex
+768            http
+1156           DataSeries: ExtentIndex
 # Extent, type='http'
 ts uid id.orig_h id.orig_p id.resp_h id.resp_p trans_depth method host uri referrer user_agent request_body_len response_body_len status_code status_msg info_code info_msg filename tags username password proxied mime_type md5 extraction_file
 1.3e+09 j4u32Pc5bif 141.142.220.118 48649 208.80.152.118 80 0      0 0 304 Not Modified 0         
@@ -86,5 +86,5 @@ ts uid id.orig_h id.orig_p id.resp_h id.resp_p trans_depth method host uri refer
 # Extent, type='DataSeries: ExtentIndex'
 offset extenttype
 40 DataSeries: XmlType
-756 http
-1144 DataSeries: ExtentIndex
+768 http
+1156 DataSeries: ExtentIndex

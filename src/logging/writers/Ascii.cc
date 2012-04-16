@@ -86,6 +86,9 @@ bool Ascii::DoInit(string path, int num_fields, const Field* const * fields)
 
 	if ( include_header )
 		{
+		string names;
+		string types;
+
 		string str = string(header_prefix, header_prefix_len)
 			+ "separator " // Always use space as separator here.
 			+ get_escaped_string(string(separator, separator_len), false)
@@ -103,9 +106,6 @@ bool Ascii::DoInit(string path, int num_fields, const Field* const * fields)
 		        WriteHeaderField("path", get_escaped_string(path, false))) )
 			goto write_error;
 
-		string names;
-		string types;
-
 		for ( int i = 0; i < num_fields; ++i )
 			{
 			if ( i > 0 )
@@ -114,15 +114,8 @@ bool Ascii::DoInit(string path, int num_fields, const Field* const * fields)
 				types += string(separator, separator_len);
 				}
 
-			const Field* field = fields[i];
-			names += field->name;
-			types += type_name(field->type);
-			if ( (field->type == TYPE_TABLE) || (field->type == TYPE_VECTOR) )
-				{
-					types += "[";
-					types += type_name(field->subtype);
-					types += "]";
-				}
+			names += fields[i]->name;
+			types += fields[i]->TypeName();
 			}
 
 		if ( ! (WriteHeaderField("fields", names)

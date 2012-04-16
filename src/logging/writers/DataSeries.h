@@ -6,12 +6,12 @@
 #ifndef LOGGING_WRITER_DATA_SERIES_H
 #define LOGGING_WRITER_DATA_SERIES_H
 
-#include "../WriterBackend.h"
-
 #include <DataSeries/ExtentType.hpp>
 #include <DataSeries/DataSeriesFile.hpp>
 #include <DataSeries/DataSeriesModule.hpp>
 #include <DataSeries/GeneralField.hpp>
+
+#include "../WriterBackend.h"
 
 namespace logging { namespace writer {
 
@@ -24,6 +24,8 @@ public:
 		{ return new DataSeries(frontend); }
 
 protected:
+	// Overidden from WriterBackend.
+
 	virtual bool DoInit(string path, int num_fields,
 			    const threading::Field* const * fields);
 
@@ -36,11 +38,11 @@ protected:
 	virtual bool DoFinish();
 
 private:
-	static const size_t ROW_MIN = 2048;                      // Minimum extent size.
-	static const size_t ROW_MAX = (1024 * 1024 * 100);       // Maximum extent size.
-	static const size_t THREAD_MIN = 1;                      // Minimum number of compression threads that DataSeries may spawn.
-	static const size_t THREAD_MAX = 128;                    // Maximum number of compression threads that DataSeries may spawn.
-	static const size_t TIME_SCALE = 1000000;                // Fixed-point multiplier for time values when converted to integers.
+	static const size_t ROW_MIN = 2048;			// Minimum extent size.
+	static const size_t ROW_MAX = (1024 * 1024 * 100);	// Maximum extent size.
+	static const size_t THREAD_MIN = 1;			// Minimum number of compression threads that DataSeries may spawn.
+	static const size_t THREAD_MAX = 128;			// Maximum number of compression threads that DataSeries may spawn.
+	static const size_t TIME_SCALE = 1000000;		// Fixed-point multiplier for time values when converted to integers.
 
 	struct SchemaValue
 		{
@@ -85,18 +87,10 @@ private:
 	 */
 	string BuildDSSchemaFromFieldTypes(const vector<SchemaValue>& vals, string sTitle);
 
-	/**
-	 *  Takes a field type and converts it to a readable string.
-	 *
-	 *  @param field We extract the type from this and convert it into a readable string.
-	 *  @return String representation of the field's type
-	 */
-	string GetBroTypeString(const threading::Field *field);
-
 	/** Closes the currently open file. */
 	void CloseLog();
 
-	/** XXX */
+	/** Opens a new file. */
 	bool OpenLog(string path);
 
 	typedef std::map<string, GeneralField *> ExtentMap;
@@ -119,6 +113,7 @@ private:
 	string ds_compression;
 	bool ds_dump_schema;
 	bool ds_use_integer_for_time;
+	string ds_set_separator;
 };
 
 }

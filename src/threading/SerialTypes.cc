@@ -24,6 +24,20 @@ bool Field::Write(SerializationFormat* fmt) const
 	return (fmt->Write(name, "name") && fmt->Write((int)type, "type") && fmt->Write((int)subtype, "subtype"));
 	}
 
+string Field::TypeName() const
+	{
+	string n = type_name(type);
+
+	if ( (type == TYPE_TABLE) || (type == TYPE_VECTOR) )
+		{
+		n += "[";
+		n += type_name(subtype);
+		n += "]";
+		}
+
+	return n;
+	}
+
 Value::~Value()
 	{
 	if ( (type == TYPE_ENUM || type == TYPE_STRING || type == TYPE_FILE || type == TYPE_FUNC)

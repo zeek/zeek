@@ -222,7 +222,9 @@ void MsgThread::InternalWarning(const char* msg)
 
 void MsgThread::InternalError(const char* msg)
 	{
-	SendOut(new ReporterMessage(ReporterMessage::INTERNAL_ERROR, this, msg));
+	// This one aborts immediately.
+	fprintf(stderr, "internal error in thread: %s\n", msg);
+	abort();
 	}
 
 #ifdef DEBUG

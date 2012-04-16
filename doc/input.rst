@@ -20,11 +20,9 @@ very similar to the abstracts used in the logging framework:
         Input Streams
                 An input stream corresponds to a single input source 
                 (usually a textfile). It defined the information necessary
-                to find the source (e.g. the filename)
-
-        Filters
-                Each input stream has a set of filters attached to it, that
-                determine exaclty what kind of information is read.
+                to find the source (e.g. the filename), the reader that it used
+                to get data from it (see below). 
+                It also defines exactly what data is read from the input source.
                 There are two different kind of streams, event streams and table 
                 streams.
                 By default, event streams generate an event for each line read
@@ -41,28 +39,37 @@ very similar to the abstracts used in the logging framework:
                 one event per line.
 
 
-Basics
-======
+Event Streams
+=============
 
 For examples, please look at the unit tests in
 ``testing/btest/scripts/base/frameworks/input/``.
 
-A very basic example to open an input stream is:
+Event Streams are streams that generate an event for each line in of the input source.
+
+For example, a simple stream retrieving the fields ``i`` and ``b`` from an inputSource
+could be defined as follows:
 
 .. code:: bro
+
+        type Val: record {
+	        i: int;
+                b: bool;
+        };
+
+        event line(description: Input::EventDescription, tpe: Input::Event, i: int, b: bool) {
+                # work with event data
+        }
         
-        module Foo;
-
-        export {
-                # Create an ID for our new stream
-                redef enum Input::ID += { INPUT };
+        event bro_init {
+                Input::add_event([$source="input.log", $name="input", $fields=Val, $ev=line]);
         }
 
-        event bro_init() {
-                Input::create_stream(FOO::INPUT, [$source="input.log"]);
-        }
+The fields that can be set for an event stream are:
 
-The fields that can be set when creating a stream are:
+        ``want_record``
+                Boolean value, that defines if the event wants to receive the fields inside of
+                a single record value, or individually (default).
 
         ``source``
                 A mandatory string identifying the source of the data.
@@ -81,49 +88,9 @@ The fields that can be set when creating a stream are:
                 ``STREAM`` means that the data from the file is streamed. Events / table entries will be generated as new
                 data is added to the file.
 
-        ``autostart``
-                If set to yes, the first update operation is triggered automatically after the first filter has been added to the stream.
-                This has to be set to false if several filters are added to the input source.
-                In this case Input::force_update has to be called manually once after all filters have been added.       
-
-Filters
-=======
-
-Each filter defines the data fields that it wants to receive from the respective 
-input file. Depending on the type of filter, events or a table are created from 
-the data in the source file.
-
-Event Filters
--------------
-
-Event filters are filters that generate an event for each line in of the input source.
-
-For example, a simple filter retrieving the fields ``i`` and ``b`` from an inputSource
-could be defined as follows:
-
-.. code:: bro
-
-        type Val: record {
-	        i: int;
-                b: bool;
-        };
-
-        event line(tpe: Input::Event, i: int, b: bool) {
-                # work with event data
-        }
-        
-        event bro_init {
-                # Input stream definition, etc
-                ...
-
-                Input::add_eventfilter(Foo::INPUT, [$name="input", $fields=Val, $ev=line]);
-        }
-
-The fields that can be set for an event filter are:
-
         ``name``
-                A mandatory name for the filter that can later be used
-                to manipulate it further.
+                A mandatory name for the stream that can later be used
+                to remove it.
 
         ``fields``
                 Name of a record type containing the fields, which should be retrieved from
@@ -138,16 +105,14 @@ The fields that can be set for an event filter are:
                 been ``CHANGED`` or ``DELETED``. Singe the ascii reader cannot track this information
                 for event filters, the value is always ``NEW`` at the moment.
 
-        ``want_record``
-                Boolean value, that defines if the event wants to receive the fields inside of
-                a single record value, or individually (default).
 
-Table Filters
--------------
 
-Table filters are the second, more complex type of filter.
+Table Streams
+=============
 
-Table filters store the information they read from an input source in a bro table. For example,
+Table streams are the second, more complex type of input streams.
+
+Table streams store the information they read from an input source in a bro table. For example,
 when reading a file that contains ip addresses and connection attemt information one could use
 an approach similar to this:
 
@@ -164,18 +129,33 @@ an approach similar to this:
         global conn_attempts: table[addr] of count = table();
 
         event bro_init {
-                # Input stream definitions, etc.
-                ...
-
-                Input::add_tablefilter(Foo::INPUT, [$name="ssh", $idx=Idx, $val=Val, $destination=conn_attempts]);
-
-                # read the file after all filters have been set (only needed if autostart is set to false)
-                Input::force_update(Foo::INPUT);
+                Input::add_table([$source="input.txt", $name="input", $idx=Idx, $val=Val, $destination=conn_attempts]);
         }
 
 The table conn_attempts will then contain the information about connection attemps.
 
-The possible fields that can be set for an table filter are:
+The possible fields that can be set for an table stream are:
+
+        ``want_record``
+                Boolean value, that defines if the event wants to receive the fields inside of
+                a single record value, or individually (default).
+
+        ``source``
+                A mandatory string identifying the source of the data.
+                For the ASCII reader this is the filename.
+
+        ``reader``
+                The reader used for this stream. Default is ``READER_ASCII``.
+
+        ``mode``
+                The mode in which the stream is opened. Possible values are ``MANUAL``, ``REREAD`` and ``STREAM``.
+                Default is ``MANUAL``.
+                ``MANUAL`` means, that the files is not updated after it has been read. Changes to the file will not
+                be reflected in the data bro knows.
+                ``REREAD`` means that the whole file is read again each time a change is found. This should be used for 
+                files that are mapped to a table where individual lines can change.
+                ``STREAM`` means that the data from the file is streamed. Events / table entries will be generated as new
+                data is added to the file.
 
         ``name``
                 A mandatory name for the filter that can later be used

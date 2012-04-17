@@ -1,0 +1,11 @@
+# @TEST-REQUIRES: grep -q "#define ENABLE_MOBILE_IPV6" $BUILD/config.h
+# @TEST-EXEC: bro -b -r $TRACES/mobile-ipv6/ipv6-mobile-routing.trace %INPUT >output
+# @TEST-EXEC: btest-diff output
+
+# Just check that the responder of the connection is the final routing
+# address, but the destination in the header is the actual destination address.
+event new_packet(c: connection, p: pkt_hdr)
+	{
+	print c$id;
+	print p;
+	}

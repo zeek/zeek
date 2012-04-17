@@ -28,7 +28,7 @@ void FragTimer::Dispatch(double t, int /* is_expire */)
 FragReassembler::FragReassembler(NetSessions* arg_s,
 			const IP_Hdr* ip, const u_char* pkt,
 			HashKey* k, double t)
-: Reassembler(0, ip->DstAddr(), REASSEM_IP)
+	: Reassembler(0, REASSEM_IP)
 	{
 	s = arg_s;
 	key = k;
@@ -52,8 +52,6 @@ FragReassembler::FragReassembler(NetSessions* arg_s,
 	frag_size = 0;	// flag meaning "not known"
 	next_proto = ip->NextProto();
 
-	AddFragment(t, ip, pkt);
-
 	if ( frag_timeout != 0.0 )
 		{
 		expire_timer = new FragTimer(this, t + frag_timeout);
@@ -61,6 +59,8 @@ FragReassembler::FragReassembler(NetSessions* arg_s,
 		}
 	else
 		expire_timer = 0;
+
+	AddFragment(t, ip, pkt);
 	}
 
 FragReassembler::~FragReassembler()

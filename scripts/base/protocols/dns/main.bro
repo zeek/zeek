@@ -39,8 +39,6 @@ export {
 		rcode:         count              &log &optional;
 		## A descriptive name for the response code value.
 		rcode_name:    string             &log &optional;
-		## Whether the message is a query (F) or response (T).
-		QR:            bool               &log &default=F;
 		## The Authoritative Answer bit for response messages specifies that
 		## the responding name server is an authority for the domain name
 		## in the question section.

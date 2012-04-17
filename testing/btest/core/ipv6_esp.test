@@ -6,5 +6,6 @@
 
 event esp_packet(p: pkt_hdr)
 	{
-	print p;
+	if ( p?$ip6 )
+		print p$ip6;
 	}

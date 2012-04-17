@@ -122,6 +122,11 @@ if (LINTEL_FOUND AND DATASERIES_FOUND AND LIBXML2_FOUND)
 	list(APPEND OPTLIBS ${LibXML2_LIBRARIES})
 endif()
 
+if (ENABLE_PERFTOOLS_DEBUG)
+    # Just a no op to prevent CMake from complaining about manually-specified
+    # ENABLE_PERFTOOLS_DEBUG not being used if google perftools weren't found
+endif ()
+
 set(brodeps
     ${BinPAC_LIBRARY}
     ${PCAP_LIBRARY}

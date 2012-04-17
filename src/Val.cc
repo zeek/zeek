@@ -2136,10 +2136,13 @@ void TableVal::DoExpire(double t)
 			 (v = tbl->NextEntry(k, expire_cookie)); ++i )
 		{
 		if ( v->ExpireAccessTime() == 0 )
+			{
 			// This happens when we insert val while network_time
-			// hasn't been initialized yet (e.g. in bro_init()).
-			// We correct the timestamp now.
-			v->SetExpireAccess(network_time);
+			// hasn't been initialized yet (e.g. in bro_init()), and
+			// also when bro_start_network_time hasn't been initialized
+			// (e.g. before first packet).  The expire_access_time is
+			// correct, so we just need to wait.
+			}
 
 		else if ( v->ExpireAccessTime() + expire_time < t )
 			{

@@ -9,7 +9,6 @@
 #include <utility>
 
 #include "util.h"
-#include "net_util.h"
 #include "EventHandler.h"
 #include "IPAddr.h"
 

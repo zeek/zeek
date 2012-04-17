@@ -278,9 +278,3 @@ void WriterFrontend::DeleteVals(Value** vals)
 
 	delete [] vals;
 	}
-
-
-
-
-
-

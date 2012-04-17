@@ -99,4 +99,32 @@ with the output files.
 
 TODO.
 
+TODO
+====
+
+* I'm seeing lots of warning on stderr::
+
+    Warning, while packing field ts of record 1, error was > 10%:
+        (1334620000 / 1000000 = 1334.62, round() = 1335)
+    Warning, while packing field not_valid_after of record 11, error was > 10%:
+        (1346460000 / 1000000 = 1346.46, round() = 1346)
+
+* The compiler warn about a depracated method and I'm not immediately
+  seeing how to avoid using that.
+
+* For testing our script-level options:
+
+    - Can we get the extentsize from a ``.ds`` file?
+    - Can we get the compressio level from a ``.ds`` file?
+
+* ds2txt can apparently not read a file that is currently being
+  written. That's not good for the spool directory::
+
+    # ds2txt http.ds
+    **** Assertion failure in file
+    /DataSeriesSink.cpp, line 301
+    **** Failed expression: tail[i] == 0xFF
+    **** Details: bad header for the tail of http.ds!
+
+  Can that be worked around?
 

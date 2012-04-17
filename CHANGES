@@ -1,4 +1,14 @@
 
+2.0-273 | 2012-04-16 18:08:56 -0700
+
+  * Removing QR flag from DNS log in response, which should not have
+    been there in the first place. (Seth Hall)
+
+  * Sync up patricia.c/h with pysubnettree repo. (Daniel Thayer)
+    
+  * Adding missing leak groups to a couple tests. Also activating leak
+    checking for proxy in basic-cluster test. (Robin Sommer)
+
 2.0-267 | 2012-04-09 17:47:28 -0700
 
   * Add support for mobile IPv6 Mobility Header (RFC 6275).  (Jon

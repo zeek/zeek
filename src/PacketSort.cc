@@ -28,8 +28,8 @@ PacketSortElement::PacketSortElement(PktSrc* arg_src,
 		const struct ip* ip = (const struct ip*) (pkt + hdr_size);
 		if ( ip->ip_v == 4 )
 			ip_hdr = new IP_Hdr(ip, false);
-		else if ( ip->ip_v == 6 )
-			ip_hdr = new IP_Hdr((const struct ip6_hdr*) ip, false);
+		else if ( ip->ip_v == 6 && (caplen >= sizeof(struct ip6_hdr) + hdr_size) )
+			ip_hdr = new IP_Hdr((const struct ip6_hdr*) ip, false, caplen - hdr_size);
 		else
 			// Weird will be generated later in NetSessions::NextPacket.
 			return;

@@ -66,39 +66,44 @@ void BitTorrent_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 
 void BitTorrent_Analyzer::Undelivered(int seq, int len, bool orig)
 	{
-	uint64 entry_offset = orig ?
-		*interp->upflow()->next_message_offset() :
-		*interp->downflow()->next_message_offset();
-	uint64& this_stream_len = orig ? stream_len_orig : stream_len_resp;
-	bool& this_stop = orig ? stop_orig : stop_resp;
-
 	TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 
-	this_stream_len += len;
+	// TODO: Code commented out for now. I think that shoving data that
+	// is definitely wrong into the parser seems like a really bad idea.
+	// The way it's currently tracking the next message offset isn't
+	// compatible with new 64bit int support in binpac either.
 
-	if ( entry_offset < this_stream_len )
-		{ // entry point is somewhere in the gap
-		DeliverWeird("Stopping BitTorrent analysis: cannot recover from content gap", orig);
-		this_stop = true;
-		if ( stop_orig && stop_resp )
-			ProtocolViolation("BitTorrent: content gap and/or protocol violation");
-		}
-	else
-		{ // fill the gap
-		try
-			{
-			u_char gap[len];
-			memset(gap, 0, len);
-			interp->NewData(orig, gap, gap + len);
-			}
-		catch ( binpac::Exception const &e )
-			{
-			DeliverWeird("Stopping BitTorrent analysis: filling content gap failed", orig);
-			this_stop = true;
-			if ( stop_orig && stop_resp )
-				ProtocolViolation("BitTorrent: content gap and/or protocol violation");
-			}
-		}
+	//uint64 entry_offset = orig ?
+	//	*interp->upflow()->next_message_offset() :
+	//	*interp->downflow()->next_message_offset();
+	//uint64& this_stream_len = orig ? stream_len_orig : stream_len_resp;
+	//bool& this_stop = orig ? stop_orig : stop_resp;
+	//
+	//this_stream_len += len;
+	//
+	//if ( entry_offset < this_stream_len )
+	//	{ // entry point is somewhere in the gap
+	//	DeliverWeird("Stopping BitTorrent analysis: cannot recover from content gap", orig);
+	//	this_stop = true;
+	//	if ( stop_orig && stop_resp )
+	//		ProtocolViolation("BitTorrent: content gap and/or protocol violation");
+	//	}
+	//else
+	//	{ // fill the gap
+	//	try
+	//		{
+	//		u_char gap[len];
+	//		memset(gap, 0, len);
+	//		interp->NewData(orig, gap, gap + len);
+	//		}
+	//	catch ( binpac::Exception const &e )
+	//		{
+	//		DeliverWeird("Stopping BitTorrent analysis: filling content gap failed", orig);
+	//		this_stop = true;
+	//		if ( stop_orig && stop_resp )
+	//			ProtocolViolation("BitTorrent: content gap and/or protocol violation");
+	//		}
+	//	}
 	}
 
 void BitTorrent_Analyzer::EndpointEOF(TCP_Reassembler* endp)

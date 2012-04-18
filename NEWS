@@ -43,6 +43,11 @@ Bro 2.1
   --enable-perftool-debug to indicate that the switch is only relevant
   for debugging the heap.
 
+- Bro's ICMP analyzer now handles both IPv4 and IPv6 messages with a
+  joint set of events.  The `icmp_conn` record got a new boolean field
+  'v6' that indicates whether the ICMP message is v4 or v6.
+
+
 TODO: Extend.
 
 Bro 2.0

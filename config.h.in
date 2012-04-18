@@ -152,3 +152,47 @@
 #ifndef HAVE_DLT_PPP_SERIAL
 #define DLT_PPP_SERIAL @DLT_PPP_SERIAL@
 #endif
+
+/* IPv6 Next Header values defined by RFC 3542 */
+#cmakedefine HAVE_IPPROTO_HOPOPTS
+#ifndef HAVE_IPPROTO_HOPOPTS
+#define IPPROTO_HOPOPTS 0
+#endif
+#cmakedefine HAVE_IPPROTO_IPV6
+#ifndef HAVE_IPPROTO_IPV6
+#define IPPROTO_IPV6 41
+#endif
+#cmakedefine HAVE_IPPROTO_ROUTING
+#ifndef HAVE_IPPROTO_ROUTING
+#define IPPROTO_ROUTING 43
+#endif
+#cmakedefine HAVE_IPPROTO_FRAGMENT
+#ifndef HAVE_IPPROTO_FRAGMENT
+#define IPPROTO_FRAGMENT 44
+#endif
+#cmakedefine HAVE_IPPROTO_ESP
+#ifndef HAVE_IPPROTO_ESP
+#define IPPROTO_ESP 50
+#endif
+#cmakedefine HAVE_IPPROTO_AH
+#ifndef HAVE_IPPROTO_AH
+#define IPPROTO_AH 51
+#endif
+#cmakedefine HAVE_IPPROTO_ICMPV6
+#ifndef HAVE_IPPROTO_ICMPV6
+#define IPPROTO_ICMPV6 58
+#endif
+#cmakedefine HAVE_IPPROTO_NONE
+#ifndef HAVE_IPPROTO_NONE
+#define IPPROTO_NONE 59
+#endif
+#cmakedefine HAVE_IPPROTO_DSTOPTS
+#ifndef HAVE_IPPROTO_DSTOPTS
+#define IPPROTO_DSTOPTS 60
+#endif
+
+/* IPv6 options structure defined by RFC 3542 */
+#cmakedefine HAVE_IP6_OPT
+
+/* Common IPv6 extension structure */
+#cmakedefine HAVE_IP6_EXT

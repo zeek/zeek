@@ -1,4 +1,9 @@
 
+2.0-276 | 2012-04-17 17:35:56 -0700
+
+  * Add more support for <netinet/ip6.h>'s that lack some structure
+    definitions. (Jon Siwek)
+
 2.0-273 | 2012-04-16 18:08:56 -0700
 
   * Removing QR flag from DNS log in response, which should not have

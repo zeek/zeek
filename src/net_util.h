@@ -31,13 +31,82 @@ typedef enum { IPv4, IPv6 } IPFamily;
 
 #ifdef HAVE_NETINET_IP6_H
 #include <netinet/ip6.h>
-#else
-struct ip6_hdr {
-	uint16		ip6_plen;
-	uint8		ip6_nxt;
-	uint8		ip6_hlim;
+
+#ifndef HAVE_IP6_OPT
+struct ip6_opt {
+	uint8  ip6o_type;
+	uint8  ip6o_len;
 };
-#endif
+#endif // HAVE_IP6_OPT
+
+#ifndef HAVE_IP6_EXT
+struct ip6_ext {
+	uint8 ip6e_nxt;
+	uint8 ip6e_len;
+};
+#endif // HAVE_IP6_EXT
+
+#else
+
+struct ip6_hdr {
+	union {
+		struct ip6_hdrctl {
+			uint32 ip6_un1_flow; /* 4 bits version, 8 bits TC, 20 bits
+                                      flow-ID */
+			uint16 ip6_un1_plen; /* payload length */
+			uint8  ip6_un1_nxt;  /* next header */
+			uint8  ip6_un1_hlim; /* hop limit */
+		} ip6_un1;
+		uint8 ip6_un2_vfc;     /* 4 bits version, top 4 bits tclass */
+	} ip6_ctlun;
+	struct in6_addr ip6_src;   /* source address */
+	struct in6_addr ip6_dst;   /* destination address */
+};
+
+#define ip6_vfc   ip6_ctlun.ip6_un2_vfc
+#define ip6_flow  ip6_ctlun.ip6_un1.ip6_un1_flow
+#define ip6_plen  ip6_ctlun.ip6_un1.ip6_un1_plen
+#define ip6_nxt   ip6_ctlun.ip6_un1.ip6_un1_nxt
+#define ip6_hlim  ip6_ctlun.ip6_un1.ip6_un1_hlim
+#define ip6_hops  ip6_ctlun.ip6_un1.ip6_un1_hlim
+
+struct ip6_opt {
+	uint8  ip6o_type;
+	uint8  ip6o_len;
+};
+
+struct ip6_ext {
+	uint8 ip6e_nxt;
+	uint8 ip6e_len;
+};
+
+struct ip6_frag {
+	uint8   ip6f_nxt;       /* next header */
+	uint8   ip6f_reserved;  /* reserved field */
+	uint16  ip6f_offlg;     /* offset, reserved, and flag */
+	uint32  ip6f_ident;     /* identification */
+};
+
+struct ip6_hbh {
+	uint8  ip6h_nxt;        /* next header */
+	uint8  ip6h_len;        /* length in units of 8 octets */
+	/* followed by options */
+};
+
+struct ip6_dest {
+	uint8  ip6d_nxt;        /* next header */
+	uint8  ip6d_len;        /* length in units of 8 octets */
+	/* followed by options */
+};
+
+struct ip6_rthdr {
+	uint8  ip6r_nxt;        /* next header */
+	uint8  ip6r_len;        /* length in units of 8 octets */
+	uint8  ip6r_type;       /* routing type */
+	uint8  ip6r_segleft;    /* segments left */
+	/* followed by routing type specific data */
+};
+#endif // HAVE_NETINET_IP6_H
 
 // For Solaris.
 #if !defined(TCPOPT_WINDOW) && defined(TCPOPT_WSCALE)

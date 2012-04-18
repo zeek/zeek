@@ -1,4 +1,11 @@
 
+2.0-281 | 2012-04-17 17:40:39 -0700
+
+  * Small updates for the bittorrent analyzer to support 64bit types
+    in binpac. (Seth Hall)
+
+  * Removed the attempt at bittorrent resynchronization. (Seth Hall)
+    
 2.0-276 | 2012-04-17 17:35:56 -0700
 
   * Add more support for <netinet/ip6.h>'s that lack some structure

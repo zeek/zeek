@@ -99,7 +99,7 @@ private:
 	// Internal DataSeries structures we need to keep track of.
 	vector<SchemaValue> schema_list;
 	ExtentTypeLibrary log_types;
-	ExtentType *log_type;
+	const ExtentType *log_type;
 	ExtentSeries log_series;
 	ExtentMap extents;
 	int compress_type;

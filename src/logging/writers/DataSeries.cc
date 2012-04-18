@@ -212,8 +212,6 @@ std::string DataSeries::GetDSOptionsForType(const threading::Field *field)
 	}
 }
 
-// ************************ CLASS IMPL *********************************
-
 DataSeries::DataSeries(WriterFrontend* frontend) : WriterBackend(frontend)
 {
 	ds_compression = string((const char *)BifConst::LogDataSeries::compression->Bytes(),
@@ -329,7 +327,7 @@ bool DataSeries::DoInit(string path, int num_fields, const threading::Field* con
 	else
 		Warning(Fmt("%s is not a valid compression type. Valid types are: 'lzf', 'lzo', 'gz', 'bz2', 'none', 'any'. Defaulting to 'any'", ds_compression.c_str()));
 
-	log_type = const_cast<ExtentType *>(log_types.registerType(schema));
+	log_type = log_types.registerType(schema);
 	log_series.setType(*log_type);
 
 	return OpenLog(path);

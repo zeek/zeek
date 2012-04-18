@@ -131,7 +131,7 @@ void ICMP_Analyzer::NextICMP4(double t, const struct icmp* icmpp, int len, int c
 			break;
 
 		default:
-			ICMPEvent(icmp_sent, icmpp, len, 0);
+			ICMPEvent(icmp_sent, icmpp, len, 0, ip_hdr);
 			break;
 		}
 	}
@@ -181,23 +181,25 @@ void ICMP_Analyzer::NextICMP6(double t, const struct icmp* icmpp, int len, int c
 		case MLD_LISTENER_REDUCTION:
 #endif
 		default:
-			ICMPEvent(icmp_sent, icmpp, len, 1);
+			ICMPEvent(icmp_sent, icmpp, len, 1, ip_hdr);
 			break;
 		}
 	}
 
-void ICMP_Analyzer::ICMPEvent(EventHandlerPtr f, const struct icmp* icmpp, int len, int icmpv6)
+void ICMP_Analyzer::ICMPEvent(EventHandlerPtr f, const struct icmp* icmpp,
+                              int len, int icmpv6, const IP_Hdr* ip_hdr)
     {
 	if ( ! f )
 		return;
 
 	val_list* vl = new val_list;
 	vl->append(BuildConnVal());
-	vl->append(BuildICMPVal(icmpp, len, icmpv6));
+	vl->append(BuildICMPVal(icmpp, len, icmpv6, ip_hdr));
 	ConnectionEvent(f, vl);
 	}
 
-RecordVal* ICMP_Analyzer::BuildICMPVal(const struct icmp* icmpp, int len, int icmpv6)
+RecordVal* ICMP_Analyzer::BuildICMPVal(const struct icmp* icmpp, int len,
+                                       int icmpv6, const IP_Hdr* ip_hdr)
 	{
 	if ( ! icmp_conn_val )
 		{
@@ -208,7 +210,8 @@ RecordVal* ICMP_Analyzer::BuildICMPVal(const struct icmp* icmpp, int len, int ic
 		icmp_conn_val->Assign(2, new Val(icmpp->icmp_type, TYPE_COUNT));
 		icmp_conn_val->Assign(3, new Val(icmpp->icmp_code, TYPE_COUNT));
 		icmp_conn_val->Assign(4, new Val(len, TYPE_COUNT));
-		icmp_conn_val->Assign(5, new Val(icmpv6, TYPE_BOOL));
+		icmp_conn_val->Assign(5, new Val(ip_hdr->TTL(), TYPE_COUNT));
+		icmp_conn_val->Assign(6, new Val(icmpv6, TYPE_BOOL));
 		}
 
 	Ref(icmp_conn_val);
@@ -494,7 +497,7 @@ void ICMP_Analyzer::Echo(double t, const struct icmp* icmpp, int len,
 
 	val_list* vl = new val_list;
 	vl->append(BuildConnVal());
-	vl->append(BuildICMPVal(icmpp, len, ip_hdr->NextProto() != IPPROTO_ICMP));
+	vl->append(BuildICMPVal(icmpp, len, ip_hdr->NextProto() != IPPROTO_ICMP, ip_hdr));
 	vl->append(new Val(iid, TYPE_COUNT));
 	vl->append(new Val(iseq, TYPE_COUNT));
 	vl->append(new StringVal(payload));
@@ -504,7 +507,7 @@ void ICMP_Analyzer::Echo(double t, const struct icmp* icmpp, int len,
 
 
 void ICMP_Analyzer::RouterAdvert(double t, const struct icmp* icmpp, int len,
-			 int caplen, const u_char*& data, const IP_Hdr* /*ip_hdr*/)
+			 int caplen, const u_char*& data, const IP_Hdr* ip_hdr)
 	{
 	EventHandlerPtr f = icmp_router_advertisement;
 	uint32 reachable, retrans;
@@ -514,19 +517,24 @@ void ICMP_Analyzer::RouterAdvert(double t, const struct icmp* icmpp, int len,
 
 	val_list* vl = new val_list;
 	vl->append(BuildConnVal());
-	vl->append(BuildICMPVal(icmpp, len, 1));
-	vl->append(new Val(icmpp->icmp_num_addrs, TYPE_COUNT));
-	vl->append(new Val(icmpp->icmp_wpa & 0x80, TYPE_BOOL));
-	vl->append(new Val(htons(icmpp->icmp_lifetime), TYPE_COUNT));
-	vl->append(new Val(reachable, TYPE_INTERVAL));
-	vl->append(new Val(retrans, TYPE_INTERVAL));
+	vl->append(BuildICMPVal(icmpp, len, 1, ip_hdr));
+	vl->append(new Val(icmpp->icmp_num_addrs, TYPE_COUNT)); // Cur Hop Limit
+	vl->append(new Val(icmpp->icmp_wpa & 0x80, TYPE_BOOL)); // Managed
+	vl->append(new Val(icmpp->icmp_wpa & 0x40, TYPE_BOOL)); // Other
+	vl->append(new Val(icmpp->icmp_wpa & 0x20, TYPE_BOOL)); // Home Agent
+	vl->append(new Val((icmpp->icmp_wpa & 0x18)>>3, TYPE_COUNT)); // Pref
+	vl->append(new Val(icmpp->icmp_wpa & 0x04, TYPE_BOOL)); // Proxy
+	vl->append(new Val(icmpp->icmp_wpa & 0x02, TYPE_COUNT)); // Reserved
+	vl->append(new IntervalVal((double)ntohs(icmpp->icmp_lifetime), Seconds));
+	vl->append(new IntervalVal((double)ntohl(reachable), Milliseconds));
+	vl->append(new IntervalVal((double)ntohl(retrans), Milliseconds));
 
 	ConnectionEvent(f, vl);
 	}
 
 
 void ICMP_Analyzer::NeighborAdvert(double t, const struct icmp* icmpp, int len,
-			 int caplen, const u_char*& data, const IP_Hdr* /*ip_hdr*/)
+			 int caplen, const u_char*& data, const IP_Hdr* ip_hdr)
 	{
 	EventHandlerPtr f = icmp_neighbor_advertisement;
 	in6_addr tgtaddr;
@@ -535,7 +543,10 @@ void ICMP_Analyzer::NeighborAdvert(double t, const struct icmp* icmpp, int len,
 
 	val_list* vl = new val_list;
 	vl->append(BuildConnVal());
-	vl->append(BuildICMPVal(icmpp, len, 1));
+	vl->append(BuildICMPVal(icmpp, len, 1, ip_hdr));
+	vl->append(new Val(icmpp->icmp_num_addrs & 0x80, TYPE_BOOL)); // Router
+	vl->append(new Val(icmpp->icmp_num_addrs & 0x40, TYPE_BOOL)); // Solicited
+	vl->append(new Val(icmpp->icmp_num_addrs & 0x20, TYPE_BOOL)); // Override
 	vl->append(new AddrVal(IPAddr(tgtaddr)));
 
 	ConnectionEvent(f, vl);
@@ -543,7 +554,7 @@ void ICMP_Analyzer::NeighborAdvert(double t, const struct icmp* icmpp, int len,
 
 
 void ICMP_Analyzer::NeighborSolicit(double t, const struct icmp* icmpp, int len,
-			 int caplen, const u_char*& data, const IP_Hdr* /*ip_hdr*/)
+			 int caplen, const u_char*& data, const IP_Hdr* ip_hdr)
 	{
 	EventHandlerPtr f = icmp_neighbor_solicitation;
 	in6_addr tgtaddr;
@@ -552,7 +563,7 @@ void ICMP_Analyzer::NeighborSolicit(double t, const struct icmp* icmpp, int len,
 
 	val_list* vl = new val_list;
 	vl->append(BuildConnVal());
-	vl->append(BuildICMPVal(icmpp, len, 1));
+	vl->append(BuildICMPVal(icmpp, len, 1, ip_hdr));
 	vl->append(new AddrVal(IPAddr(tgtaddr)));
 
 	ConnectionEvent(f, vl);
@@ -560,7 +571,7 @@ void ICMP_Analyzer::NeighborSolicit(double t, const struct icmp* icmpp, int len,
 
 
 void ICMP_Analyzer::Redirect(double t, const struct icmp* icmpp, int len,
-			 int caplen, const u_char*& data, const IP_Hdr* /*ip_hdr*/)
+			 int caplen, const u_char*& data, const IP_Hdr* ip_hdr)
 	{
 	EventHandlerPtr f = icmp_redirect;
 	in6_addr tgtaddr, dstaddr;
@@ -570,7 +581,7 @@ void ICMP_Analyzer::Redirect(double t, const struct icmp* icmpp, int len,
 
 	val_list* vl = new val_list;
 	vl->append(BuildConnVal());
-	vl->append(BuildICMPVal(icmpp, len, 1));
+	vl->append(BuildICMPVal(icmpp, len, 1, ip_hdr));
 	vl->append(new AddrVal(IPAddr(tgtaddr)));
 	vl->append(new AddrVal(IPAddr(dstaddr)));
 
@@ -579,7 +590,7 @@ void ICMP_Analyzer::Redirect(double t, const struct icmp* icmpp, int len,
 
 
 void ICMP_Analyzer::Router(double t, const struct icmp* icmpp, int len,
-			 int caplen, const u_char*& data, const IP_Hdr* /*ip_hdr*/)
+			 int caplen, const u_char*& data, const IP_Hdr* ip_hdr)
 	{
 	EventHandlerPtr f = 0;
 
@@ -590,13 +601,13 @@ void ICMP_Analyzer::Router(double t, const struct icmp* icmpp, int len,
 			break;
 		case ICMP6_ROUTER_RENUMBERING:
 		default:
-			ICMPEvent(icmp_sent, icmpp, len, 1);
+			ICMPEvent(icmp_sent, icmpp, len, 1, ip_hdr);
 			return;
 		}
 
 	val_list* vl = new val_list;
 	vl->append(BuildConnVal());
-	vl->append(BuildICMPVal(icmpp, len, 1));
+	vl->append(BuildICMPVal(icmpp, len, 1, ip_hdr));
 
 	ConnectionEvent(f, vl);
 	}
@@ -622,7 +633,7 @@ void ICMP_Analyzer::Context4(double t, const struct icmp* icmpp,
 		{
 		val_list* vl = new val_list;
 		vl->append(BuildConnVal());
-		vl->append(BuildICMPVal(icmpp, len, 0));
+		vl->append(BuildICMPVal(icmpp, len, 0, ip_hdr));
 		vl->append(new Val(icmpp->icmp_code, TYPE_COUNT));
 		vl->append(ExtractICMP4Context(caplen, data));
 		ConnectionEvent(f, vl);
@@ -658,7 +669,7 @@ void ICMP_Analyzer::Context6(double t, const struct icmp* icmpp,
 		{
 		val_list* vl = new val_list;
 		vl->append(BuildConnVal());
-		vl->append(BuildICMPVal(icmpp, len, 1));
+		vl->append(BuildICMPVal(icmpp, len, 1, ip_hdr));
 		vl->append(new Val(icmpp->icmp_code, TYPE_COUNT));
 		vl->append(ExtractICMP6Context(caplen, data));
 		ConnectionEvent(f, vl);

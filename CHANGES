@@ -1,4 +1,33 @@
 
+2.0-301 | 2012-04-17 17:58:55 -0700
+
+  * Bro now support ICMPv6. (Matti Mantere, Jon Siwek, Robin Sommer,
+	Daniel Thayer).
+
+	Overall, Bro now raises the following ICMP events for v4 and v6 as
+	appropiate:
+
+        event icmp_sent(c: connection, icmp: icmp_conn);
+        event icmp_echo_request(c: connection, icmp: icmp_conn, id: count, seq: count, payload: string);
+        event icmp_echo_reply(c: connection, icmp: icmp_conn, id: count, seq: count, payload: string);
+        event icmp_error_message(c: connection, icmp: icmp_conn, code: count, context: icmp_context);
+        event icmp_unreachable(c: connection, icmp: icmp_conn, code: count, context: icmp_context);
+        event icmp_packet_too_big(c: connection, icmp: icmp_conn, code: count, context: icmp_context);
+        event icmp_time_exceeded(c: connection, icmp: icmp_conn, code: count, context: icmp_context);
+        event icmp_parameter_problem(c: connection, icmp: icmp_conn, code: count, context: icmp_context);
+        event icmp_router_solicitation(c: connection, icmp: icmp_conn);
+        event icmp_router_advertisement(c: connection, icmp: icmp_conn, hop_limit: count, managed: bool, router_lifetime: count, reachable_time: interval, retrans_timer: interval);
+        event icmp_neighbor_solicitation(c: connection, icmp: icmp_conn, tgt:addr);
+        event icmp_neighbor_advertisement(c: connection, icmp: icmp_conn, tgt:addr);
+        event icmp_redirect(c: connection, icmp: icmp_conn, tgt: addr, dest: addr);
+
+    The `icmp_conn` record got a new boolean field 'v6' that indicates
+    whether the ICMP message is v4 or v6.
+
+    This change also includes further low-level work on existing IP
+	and ICMP code, including a reorganization of how ICMPv4 is
+	handled.
+
 2.0-281 | 2012-04-17 17:40:39 -0700
 
   * Small updates for the bittorrent analyzer to support 64bit types

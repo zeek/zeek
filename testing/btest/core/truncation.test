@@ -1,0 +1,6 @@
+# Truncated IP packet's should not be analyzed, and generate truncated_IP weird
+
+# @TEST-EXEC: bro -b -r $TRACES/trunc/ip4-trunc.pcap >>output 2>&1
+# @TEST-EXEC: bro -b -r $TRACES/trunc/ip6-trunc.pcap >>output 2>&1
+# @TEST-EXEC: bro -b -r $TRACES/trunc/ip6-ext-trunc.pcap >>output 2>&1
+# @TEST-EXEC: btest-diff output

@@ -141,12 +141,12 @@ public:
 	/**
 	 * Initializes the header chain from an IPv6 header structure.
 	 */
-	IPv6_Hdr_Chain(const struct ip6_hdr* ip6) :
+	IPv6_Hdr_Chain(const struct ip6_hdr* ip6, int len) :
 #ifdef ENABLE_MOBILE_IPV6
 		homeAddr(0),
 #endif
 		finalDst(0)
-		{ Init(ip6, false); }
+		{ Init(ip6, len, false); }
 
 	~IPv6_Hdr_Chain()
 		{
@@ -249,14 +249,20 @@ protected:
 	 * Initializes the header chain from an IPv6 header structure, and replaces
 	 * the first next protocol pointer field that points to a fragment header.
 	 */
-	IPv6_Hdr_Chain(const struct ip6_hdr* ip6, uint16 next) :
+	IPv6_Hdr_Chain(const struct ip6_hdr* ip6, uint16 next, int len) :
 #ifdef ENABLE_MOBILE_IPV6
 		homeAddr(0),
 #endif
 		finalDst(0)
-		{ Init(ip6, true, next); }
+		{ Init(ip6, len, true, next); }
 
-	void Init(const struct ip6_hdr* ip6, bool set_next, uint16 next = 0);
+	/**
+	 * Initializes the header chain from an IPv6 header structure of a given
+	 * length, possibly setting the first next protocol pointer field that
+	 * points to a fragment header.
+	 */
+	void Init(const struct ip6_hdr* ip6, int total_len, bool set_next,
+	          uint16 next = 0);
 
 	/**
 	 * Process a routing header and allocate/remember the final destination
@@ -293,9 +299,21 @@ protected:
 	IPAddr* finalDst;
 };
 
+/**
+ * A class that wraps either an IPv4 or IPv6 packet and abstracts methods
+ * for inquiring about common features between the two.
+ */
 class IP_Hdr {
 public:
-	IP_Hdr(const u_char* p, bool arg_del)
+	/**
+	 * Attempts to construct the header from some blob of data based on IP
+	 * version number.  Caller must have already checked that the header
+	 * is not truncated.
+	 * @param p pointer to memory containing an IPv4 or IPv6 packet.
+	 * @param arg_del whether to take ownership of \a p pointer's memory.
+	 * @param len the length of data, in bytes, pointed to by \a p.
+	 */
+	IP_Hdr(const u_char* p, bool arg_del, int len)
 		: ip4(0), ip6(0), del(arg_del), ip6_hdrs(0)
 		{
 		if ( ((const struct ip*)p)->ip_v == 4 )
@@ -303,7 +321,7 @@ public:
 		else if ( ((const struct ip*)p)->ip_v == 6 )
 			{
 			ip6 = (const struct ip6_hdr*)p;
-			ip6_hdrs = new IPv6_Hdr_Chain(ip6);
+			ip6_hdrs = new IPv6_Hdr_Chain(ip6, len);
 			}
 		else
 			{
@@ -313,18 +331,38 @@ public:
 			}
 		}
 
+	/**
+	 * Construct the header wrapper from an IPv4 packet.  Caller must have
+	 * already checked that the header is not truncated.
+	 * @param arg_ip4 pointer to memory containing an IPv4 packet.
+	 * @param arg_del whether to take ownership of \a arg_ip4 pointer's memory.
+	 */
 	IP_Hdr(const struct ip* arg_ip4, bool arg_del)
 		: ip4(arg_ip4), ip6(0), del(arg_del), ip6_hdrs(0)
 		{
 		}
 
-	IP_Hdr(const struct ip6_hdr* arg_ip6, bool arg_del,
+	/**
+	 * Construct the header wrapper from an IPv6 packet.  Caller must have
+	 * already checked that the static IPv6 header is not truncated.  If
+	 * the packet contains extension headers and they are truncated, that can
+	 * be checked afterwards by comparing \a len with \a TotalLen.  E.g.
+	 * NetSessions::DoNextPacket does this to skip truncated packets.
+	 * @param arg_ip6 pointer to memory containing an IPv6 packet.
+	 * @param arg_del whether to take ownership of \a arg_ip6 pointer's memory.
+	 * @param len the packet's length in bytes.
+	 * @param c an already-constructed header chain to take ownership of.
+	 */
+	IP_Hdr(const struct ip6_hdr* arg_ip6, bool arg_del, int len,
 	       const IPv6_Hdr_Chain* c = 0)
 		: ip4(0), ip6(arg_ip6), del(arg_del),
-		  ip6_hdrs(c ? c : new IPv6_Hdr_Chain(ip6))
+		  ip6_hdrs(c ? c : new IPv6_Hdr_Chain(ip6, len))
 		{
 		}
 
+	/**
+	 * Destructor.
+	 */
 	~IP_Hdr()
 		{
 		if ( ip6 )
@@ -339,8 +377,14 @@ public:
 			}
 		}
 
+	/**
+	 * If an IPv4 packet is wrapped, return a pointer to it, else null.
+	 */
 	const struct ip* IP4_Hdr() const	{ return ip4; }
 
+	/**
+	 * If an IPv6 packet is wrapped, return a pointer to it, else null.
+	 */
 	const struct ip6_hdr* IP6_Hdr() const	{ return ip6; }
 
 	/**
@@ -440,9 +484,15 @@ public:
 		{ return ip4 ? ip4->ip_p :
 				((*ip6_hdrs)[ip6_hdrs->Size()-1])->NextHdr(); }
 
+	/**
+	 * Returns the IPv4 Time to Live or IPv6 Hop Limit field.
+	 */
 	unsigned char TTL() const
 		{ return ip4 ? ip4->ip_ttl : ip6->ip6_hlim; }
 
+	/**
+	 * Returns whether the IP header indicates this packet is a fragment.
+	 */
 	bool IsFragment() const
 		{ return ip4 ? (ntohs(ip4->ip_off) & 0x3fff) != 0 :
 				ip6_hdrs->IsFragment(); }

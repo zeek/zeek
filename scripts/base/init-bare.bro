@@ -92,6 +92,7 @@ type icmp_conn: record {
 	itype: count;	##< The ICMP type of the packet that triggered the instantiation of the record.
 	icode: count;	##< The ICMP code of the packet that triggered the instantiation of the record.
 	len: count;	##< The length of the ICMP payload of the packet that triggered the instantiation of the record.
+	v6: bool;	##< True if it's an ICMPv6 packet.
 };
 
 ## Packet context part of an ICMP message. The fields of this record reflect the
@@ -100,11 +101,13 @@ type icmp_conn: record {
 ## .. bro:see:: icmp_time_exceeded icmp_unreachable
 type icmp_context: record {
 	id: conn_id;	##< The packet's 4-tuple.
-	len: count;	##< The lenght of the packet's IP header.
+	len: count;	##< The length of the IP packet (headers + payload).
 	proto: count;	##< The packet's transport-layer protocol.
 	frag_offset: count;	##< The packet's fragementation offset.
-	## True if the packet's IP header is fully included in the context. If that is not
-	## the case, the other fields will all be set to null values.
+	## True if the packet's IP header is not fully included in the context
+	## or if there is not enough of the transport header to determine source
+	## and destination ports. If that is the cast, the appropriate fields
+	## of this record will be set to null values.
 	bad_hdr_len: bool;
 	bad_checksum: bool;	##< True if the packet's IP checksum is not correct.
 	MF: bool;	##< True if the packets *more fragements* flag is set.
@@ -947,6 +950,7 @@ const IPPROTO_IPIP = 4;			##< IP encapsulation in IP.
 const IPPROTO_TCP = 6;			##< TCP.
 const IPPROTO_UDP = 17;			##< User datagram protocol.
 const IPPROTO_IPV6 = 41;		##< IPv6 header.
+const IPPROTO_ICMPV6 = 58;		##< ICMP for IPv6.
 const IPPROTO_RAW = 255;		##< Raw IP packet.
 
 # Definitions for IPv6 extension headers.

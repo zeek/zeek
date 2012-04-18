@@ -134,16 +134,17 @@ inline int seq_delta(uint32 a, uint32 b)
 	}
 
 class IPAddr;
+class IP_Hdr;
 
 // Returns the ones-complement checksum of a chunk of b short-aligned bytes.
 extern int ones_complement_checksum(const void* p, int b, uint32 sum);
 
 extern int ones_complement_checksum(const IPAddr& a, uint32 sum);
 
+extern int icmp6_checksum(const struct icmp* icmpp, const IP_Hdr* ip, int len);
 extern int icmp_checksum(const struct icmp* icmpp, int len);
 
 #ifdef ENABLE_MOBILE_IPV6
-class IP_Hdr;
 extern int mobility_header_checksum(const IP_Hdr* ip);
 #endif
 

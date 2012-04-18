@@ -2,11 +2,6 @@
  * See the file "COPYING" in the main distribution directory for copyright.
  */
 
-#ifndef lint
-static const char rcsid[] =
-    "@(#) $Id: cq.c 6219 2008-10-01 05:39:07Z vern $ (LBL)";
-#endif
-
 #include <sys/types.h>
 
 #include <errno.h>

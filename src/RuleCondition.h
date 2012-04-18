@@ -1,5 +1,3 @@
-// $Id: RuleCondition.h 80 2004-07-14 20:15:50Z jason $
-
 #ifndef rulecondition_h
 #define rulecondition_h
 

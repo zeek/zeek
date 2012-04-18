@@ -1,18 +1,39 @@
+##! This script manages the tracking/logging of general information regarding
+##! TCP, UDP, and ICMP traffic.  For UDP and ICMP, "connections" are to
+##! be interpreted using flow semantics (sequence of packets from a source
+##! host/post to a destination host/port).  Further, ICMP "ports" are to
+##! be interpreted as the source port meaning the ICMP message type and
+##! the destination port being the ICMP message code.
+
+@load base/utils/site
 
 module Conn;
 
 export {
-	redef enum Log::ID += { CONN };
+	## The connection logging stream identifier.
+	redef enum Log::ID += { LOG };
 
+	## The record type which contains column fields of the connection log.
 	type Info: record {
 		## This is the time of the first packet.
 		ts:           time            &log;
+		## A unique identifier of a connection.
 		uid:          string          &log;
+		## The connection's 4-tuple of endpoint addresses/ports.
 		id:           conn_id         &log;
+		## The transport layer protocol of the connection.
 		proto:        transport_proto &log;
+		## An identification of an application protocol being sent over the
+		## the connection.
 		service:      string          &log &optional;
+		## How long the connection lasted.  For 3-way or 4-way connection
+		## tear-downs, this will not include the final ACK.
 		duration:     interval        &log &optional;
+		## The number of payload bytes the originator sent. For TCP
+		## this is taken from sequence numbers and might be inaccurate 
+		## (e.g., due to large connections)
 		orig_bytes:   count           &log &optional;
+		## The number of payload bytes the responder sent. See ``orig_bytes``.
 		resp_bytes:   count           &log &optional;
 
 		## ==========   ===============================================
@@ -46,8 +67,8 @@ export {
 		## have been completed prior to the packet loss.
 		missed_bytes: count           &log &default=0;
 
-		## Records the state history of (TCP) connections as
-		## a string of letters.
+		## Records the state history of connections as a string of letters.
+		## For TCP connections the meaning of those letters is:
 		##
 		## ======  ====================================================
 		## Letter  Meaning
@@ -66,10 +87,24 @@ export {
 		## originator and lower case then means the responder.
 		## Also, there is compression. We only record one "d" in each direction,
 		## for instance. I.e., we just record that data went in that direction.
-		## This history is not meant to encode how much data that happened to be.
+		## This history is not meant to encode how much data that happened to
+		## be.
 		history:      string          &log &optional;
+		## Number of packets the originator sent.
+		## Only set if :bro:id:`use_conn_size_analyzer` = T
+		orig_pkts:     count      &log &optional;
+		## Number IP level bytes the originator sent (as seen on the wire,
+		## taken from IP total_length header field).
+		## Only set if :bro:id:`use_conn_size_analyzer` = T
+		orig_ip_bytes: count      &log &optional;
+		## Number of packets the responder sent. See ``orig_pkts``.
+		resp_pkts:     count      &log &optional;
+		## Number IP level bytes the responder sent. See ``orig_pkts``.
+		resp_ip_bytes: count      &log &optional;
 	};
-	
+
+	## Event that can be handled to access the :bro:type:`Conn::Info`
+	## record as it is sent on to the logging framework.
 	global log_conn: event(rec: Info);
 }
 
@@ -79,7 +114,7 @@ redef record connection += {
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(CONN, [$columns=Info, $ev=log_conn]);
+	Log::create_stream(Conn::LOG, [$columns=Info, $ev=log_conn]);
 	}
 
 function conn_state(c: connection, trans: transport_proto): string
@@ -143,30 +178,38 @@ function determine_service(c: connection): string
 	return to_lower(service);
 	}
 
+## Fill out the c$conn record for logging
 function set_conn(c: connection, eoc: bool)
 	{
 	if ( ! c?$conn )
 		{
-		local id = c$id;
 		local tmp: Info;
-		tmp$ts=c$start_time;
-		tmp$uid=c$uid;
-		tmp$id=id;
-		tmp$proto=get_port_transport_proto(id$resp_p);
-		if( |Site::local_nets| > 0 )
-			tmp$local_orig=Site::is_local_addr(id$orig_h);
 		c$conn = tmp;
 		}
+
+	c$conn$ts=c$start_time;
+	c$conn$uid=c$uid;
+	c$conn$id=c$id;
+	c$conn$proto=get_port_transport_proto(c$id$resp_p);
+	if( |Site::local_nets| > 0 )
+		c$conn$local_orig=Site::is_local_addr(c$id$orig_h);
 	
 	if ( eoc )
 		{
 		if ( c$duration > 0secs ) 
 			{
 			c$conn$duration=c$duration;
-			# TODO: these should optionally use Gregor's new
-			#       actual byte counting code if it's enabled.
 			c$conn$orig_bytes=c$orig$size;
 			c$conn$resp_bytes=c$resp$size;
+			}
+		if ( c$orig?$num_pkts )
+			{
+			# these are set if use_conn_size_analyzer=T
+			# we can have counts in here even without duration>0
+			c$conn$orig_pkts = c$orig$num_pkts;
+			c$conn$orig_ip_bytes = c$orig$num_bytes_ip;
+			c$conn$resp_pkts = c$resp$num_pkts;
+			c$conn$resp_ip_bytes = c$resp$num_bytes_ip;
 			}
 		local service = determine_service(c);
 		if ( service != "" ) 
@@ -178,11 +221,6 @@ function set_conn(c: connection, eoc: bool)
 		}
 	}
 
-event connection_established(c: connection) &priority=5
-	{
-	set_conn(c, F);
-	}
-	
 event content_gap(c: connection, is_orig: bool, seq: count, length: count) &priority=5
 	{
 	set_conn(c, F);
@@ -190,9 +228,13 @@ event content_gap(c: connection, is_orig: bool, seq: count, length: count) &prio
 	c$conn$missed_bytes = c$conn$missed_bytes + length;
 	}
 	
-event connection_state_remove(c: connection) &priority=-5
+event connection_state_remove(c: connection) &priority=5
 	{
 	set_conn(c, T);
-	Log::write(CONN, c$conn);
+	}
+
+event connection_state_remove(c: connection) &priority=-5
+	{
+	Log::write(Conn::LOG, c$conn);
 	}
 

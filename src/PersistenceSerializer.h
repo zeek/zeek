@@ -1,5 +1,3 @@
-// $Id: PersistenceSerializer.h 2698 2006-04-03 05:50:52Z vern $
-//
 // Implements persistance for Bro's data structures.
 
 #ifndef persistence_serializer_h

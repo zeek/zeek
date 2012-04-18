@@ -1,5 +1,3 @@
-// $Id: Func.h 6916 2009-09-24 20:48:36Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef func_h
@@ -22,8 +20,7 @@ public:
 
 	enum Kind { BRO_FUNC, BUILTIN_FUNC };
 
-	Func(Kind arg_kind)
-		{ scope = 0; kind = arg_kind; id = 0; return_value = 0; }
+	Func(Kind arg_kind);
 
 	virtual ~Func();
 
@@ -70,8 +67,12 @@ public:
 	ID* GetReturnValueID() const;
 	virtual TraversalCode Traverse(TraversalCallback* cb) const;
 
+	uint32 GetUniqueFuncID() const { return unique_id; }
+	static Func* GetFuncPtrByID(uint32 id)
+		{ return id >= unique_ids.size() ? 0 : unique_ids[id]; }
+
 protected:
-	Func()	{ scope = 0; id = 0; return_value = 0; }
+	Func();
 
 	DECLARE_ABSTRACT_SERIAL(Func);
 
@@ -80,6 +81,8 @@ protected:
 	Kind kind;
 	ID* id;
 	ID* return_value;
+	uint32 unique_id;
+	static vector<Func*> unique_ids;
 };
 
 

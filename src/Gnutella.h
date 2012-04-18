@@ -1,5 +1,3 @@
-// $Id: Gnutella.h 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef gnutella_h
@@ -37,6 +35,7 @@ public:
 class Gnutella_Analyzer : public TCP_ApplicationAnalyzer {
 public:
 	Gnutella_Analyzer(Connection* conn);
+	~Gnutella_Analyzer();
 
 	virtual void Done ();
 	virtual void DeliverStream(int len, const u_char* data, bool orig);

@@ -1,5 +1,3 @@
-// $Id: Desc.cc 6245 2008-10-07 00:56:59Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -43,8 +41,7 @@ ODesc::ODesc(desc_type t, BroFile* arg_f)
 	do_flush = 1;
 	include_stats = 0;
 	indent_with_spaces = 0;
-	escape = 0;
-	escape_len = 0;
+	escape = false;
 	}
 
 ODesc::~ODesc()
@@ -58,10 +55,9 @@ ODesc::~ODesc()
 		free(base);
 	}
 
-void ODesc::SetEscape(const char* arg_escape, int len)
+void ODesc::EnableEscaping()
 	{
-	escape = arg_escape;
-	escape_len = len;
+	escape = true;
 	}
 
 void ODesc::PushIndent()
@@ -104,7 +100,7 @@ void ODesc::Add(int i)
 	else
 		{
 		char tmp[256];
-		sprintf(tmp, "%d", i);
+		modp_litoa10(i, tmp);
 		Add(tmp);
 		}
 	}
@@ -116,7 +112,7 @@ void ODesc::Add(uint32 u)
 	else
 		{
 		char tmp[256];
-		sprintf(tmp, "%u", u);
+		modp_ulitoa10(u, tmp);
 		Add(tmp);
 		}
 	}
@@ -128,7 +124,7 @@ void ODesc::Add(int64 i)
 	else
 		{
 		char tmp[256];
-		sprintf(tmp, "%" PRId64, i);
+		modp_litoa10(i, tmp);
 		Add(tmp);
 		}
 	}
@@ -140,7 +136,7 @@ void ODesc::Add(uint64 u)
 	else
 		{
 		char tmp[256];
-		sprintf(tmp, "%" PRIu64, u);
+		modp_ulitoa10(u, tmp);
 		Add(tmp);
 		}
 	}
@@ -152,13 +148,23 @@ void ODesc::Add(double d)
 	else
 		{
 		char tmp[256];
-		sprintf(tmp, IsReadable() ? "%.15g" : "%.17g", d);
+		modp_dtoa2(d, tmp, IsReadable() ? 6 : 8);
 		Add(tmp);
 
 		if ( d == double(int(d)) )
 			// disambiguate from integer
 			Add(".0");
 		}
+	}
+
+void ODesc::Add(const IPAddr& addr)
+	{
+	Add(addr.AsString());
+	}
+
+void ODesc::Add(const IPPrefix& prefix)
+	{
+	Add(prefix.AsString());
 	}
 
 void ODesc::AddCS(const char* s)
@@ -230,54 +236,62 @@ static const char* find_first_unprintable(ODesc* d, const char* bytes, unsigned 
 	return 0;
 	}
 
+pair<const char*, size_t> ODesc::FirstEscapeLoc(const char* bytes, size_t n)
+	{
+	pair<const char*, size_t> p(find_first_unprintable(this, bytes, n), 1);
+
+	string str(bytes, n);
+	list<string>::const_iterator it;
+	for ( it = escape_sequences.begin(); it != escape_sequences.end(); ++it )
+		{
+		size_t pos = str.find(*it);
+		if ( pos != string::npos && (p.first == 0 || bytes + pos < p.first) )
+			{
+			p.first = bytes + pos;
+			p.second = it->size();
+			}
+		}
+
+	return p;
+	}
+
 void ODesc::AddBytes(const void* bytes, unsigned int n)
 	{
+	if ( ! escape )
+	    {
+	    AddBytesRaw(bytes, n);
+	    return;
+	    }
+
 	const char* s = (const char*) bytes;
 	const char* e = (const char*) bytes + n;
 
 	while ( s < e )
 		{
-		const char* t1 = escape ? (const char*) memchr(s, escape[0], e - s) : e;
-		const char* t2 = find_first_unprintable(this, s, t1 ? e - t1 : e - s);
-
-		if ( t2 && (t2 < t1 || ! t1) )
+		pair<const char*, size_t> p = FirstEscapeLoc(s, e - s);
+		if ( p.first )
 			{
-			AddBytesRaw(s, t2 - s);
-
-			char hex[6] = "\\x00";
-			hex[2] = hex_chars[((*t2) & 0xf0) >> 4];
-			hex[3] = hex_chars[(*t2) & 0x0f];
-			AddBytesRaw(hex, sizeof(hex));
-
-			s = t2 + 1;
-			continue;
+			AddBytesRaw(s, p.first - s);
+			if ( p.second == 1 )
+				{
+				char hex[6] = "\\x00";
+				hex[2] = hex_chars[((*p.first) & 0xf0) >> 4];
+				hex[3] = hex_chars[(*p.first) & 0x0f];
+				AddBytesRaw(hex, 4);
+				}
+			else
+				{
+				string esc_str = get_escaped_string(string(p.first, p.second), true);
+				AddBytesRaw(esc_str.c_str(), esc_str.size());
+				}
+			s = p.first + p.second;
 			}
-
-		if ( ! escape )
-			break;
-
-		if ( ! t1 )
-			break;
-
-		if ( memcmp(t1, escape, escape_len) != 0 )
-			break;
-
-		AddBytesRaw(s, t1 - s);
-
-		for ( int i = 0; i < escape_len; ++i )
+		else
 			{
-			char hex[5] = "\\x00";
-			hex[2] = hex_chars[((*t1) & 0xf0) >> 4];
-			hex[3] = hex_chars[(*t1) & 0x0f];
-			AddBytesRaw(hex, sizeof(hex));
-			++t1;
+			AddBytesRaw(s, e - s);
+			break;
 			}
-
-		s = t1;
 		}
-
-	if ( s < e )
-		AddBytesRaw(s, e - s);
 	}
 
 void ODesc::AddBytesRaw(const void* bytes, unsigned int n)
@@ -294,7 +308,7 @@ void ODesc::AddBytesRaw(const void* bytes, unsigned int n)
 			if ( ! write_failed )
 				// Most likely it's a "disk full" so report
 				// subsequent failures only once.
-				reporter->Error(fmt("error writing to %s: %s", f->Name(), strerror(errno)));
+				reporter->Error("error writing to %s: %s", f->Name(), strerror(errno));
 
 			write_failed = true;
 			return;
@@ -332,3 +346,18 @@ void ODesc::OutOfMemory()
 	{
 	reporter->InternalError("out of memory");
 	}
+
+void ODesc::Clear()
+	{
+	offset = 0;
+
+	// If we've allocated an exceedingly large amount of space, free it.
+	if ( size > 10 * 1024 * 1024 )
+		{
+		free(base);
+		size = DEFAULT_SIZE;
+		base = safe_malloc(size);
+		((char*) base)[0] = '\0';
+		}
+	}
+

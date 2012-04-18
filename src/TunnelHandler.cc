@@ -22,15 +22,13 @@ TunnelHandler::TunnelHandler(NetSessions *arg_s)
 	TableVal *udp_tunnel_ports = BifConst::Tunnel::udp_tunnel_ports->AsTableVal();
 	// Find UDP ports we want to analyze. Store them in an array for faster
 	// lookup. 
-	for (int i=0; i< 65536; i++)
+	for ( int i = 0; i< 65536; i++ )
 		{
-		if (pv)
+		if ( pv )
 			Unref(pv);
 		pv = new PortVal(i, TRANSPORT_UDP);
-		if (udp_tunnel_ports->Lookup(pv, false)) 
-			{
+		if ( udp_tunnel_ports->Lookup(pv, false) )
 			udp_ports[i] = 1;
-			}
 		else 
 			udp_ports[i] = 0;
 		}
@@ -42,35 +40,33 @@ TunnelInfo* TunnelHandler::DecapsulateTunnel(const IP_Hdr *ip_hdr, int len, int 
 	{
 	TunnelInfo *tunnel_info = 0;
 	
-	switch (ip_hdr->NextProto()) {
-#ifdef BROv6
+	switch ( ip_hdr->NextProto() ) {
 	case IPPROTO_IPV6: /* 6in4  and  6to4 */
 		if ( BifConst::Tunnel::decapsulate_ip )
 			{
-			if (len < (int)sizeof(struct ip6_hdr) || caplen < (int)sizeof(struct ip6_hdr))
+			if ( len < (int)sizeof(struct ip6_hdr) ||
+			     caplen < (int)sizeof(struct ip6_hdr) )
 				{
 				s->Weird("truncated_header", hdr, pkt);
 				return 0;
 				}
 			// TODO: check if IP6 header makes sense
 			tunnel_info = new TunnelInfo();
-			tunnel_info->child = new IP_Hdr((const struct ip6_hdr*)ip_hdr->Payload());
+			tunnel_info->child = new IP_Hdr((const struct ip6_hdr*)ip_hdr->Payload(), false, caplen);
 			tunnel_info->parent.tunneltype = BifEnum::Tunnel::IP6_IN_IP;
 			tunnel_info->hdr_len = tunnel_info->child->HdrLen();
 			tunnel_info->SetParentIPs(ip_hdr);
 			return tunnel_info;
 			}
 		break;
-#endif
 	// TODO: IP in IP. Find test traces first. IP proto 0 and/or 4
 	case IPPROTO_UDP:
 		if ( BifConst::Tunnel::decapsulate_udp )
 			{
-			if (len < (int)sizeof(struct udphdr) || caplen < (int)sizeof(struct udphdr))
-				{
+			if ( len < (int)sizeof(struct udphdr) ||
+			    caplen < (int)sizeof(struct udphdr) )
 				// No weird here. Main packet processing will raise it. 
 				return 0;
-				}
 			return HandleUDP(ip_hdr, len, caplen); 
 			}
 
@@ -101,13 +97,13 @@ TunnelInfo* TunnelHandler::HandleUDP(const IP_Hdr *ip_hdr, int len, int caplen)
 			udp_ports[ntohs(uh->uh_dport)] )
 		{
 		cand_ip_hdr = LookForIPHdr(data, datalen);
-		if (cand_ip_hdr)
+		if ( cand_ip_hdr )
 			{
 			// Found and IP hdr directly in the UDP payload
 			tunneltype =  (cand_ip_hdr->IP4_Hdr()) ? 
 					BifEnum::Tunnel::IP4_IN_UDP : BifEnum::Tunnel::IP6_IN_UDP;
 			}
-		else if (datalen >= 8)
+		else if ( datalen >= 8 )
 			{
 			// Look for AYIAY tunnels
 			u_char id_byte = data[0];
@@ -124,17 +120,17 @@ TunnelInfo* TunnelHandler::HandleUDP(const IP_Hdr *ip_hdr, int len, int caplen)
 
 			datalen -= 8 + id_len + sig_len;
 			data += 8 + id_len + sig_len;
-			if (datalen <= 0) 
+			if ( datalen <= 0 )
 				return 0;
 			cand_ip_hdr = LookForIPHdr(data, datalen);
-			if (cand_ip_hdr)
+			if ( cand_ip_hdr )
 				{
 				hdr_len += 8 + id_len + sig_len;
 				tunneltype =  (cand_ip_hdr->IP4_Hdr()) ? 
 						BifEnum::Tunnel::IP4_IN_AYIAY : BifEnum::Tunnel::IP6_IN_AYIAY;
 				}
 			}
-		if (cand_ip_hdr)
+		if ( cand_ip_hdr )
 			{
 			TunnelInfo *tunnel_info = new TunnelInfo();
 			tunnel_info->child = cand_ip_hdr;
@@ -155,20 +151,18 @@ IP_Hdr* TunnelHandler::LookForIPHdr(const u_char *data, int datalen)
 		return 0;
 
 	const struct ip *ip4 = (const struct ip*)(data);
-	if (ip4->ip_v == 4)
-		cand_ip_hdr = new IP_Hdr((const struct ip*)ip4);
-#ifdef BROv6
-	else if (ip4->ip_v == 6 && (datalen > (int)sizeof(struct ip6_hdr)))
-		cand_ip_hdr = new IP_Hdr((const struct ip6_hdr*)data);
-#endif
+	if ( ip4->ip_v == 4 )
+		cand_ip_hdr = new IP_Hdr((const struct ip*)ip4, false);
+	else if ( ip4->ip_v == 6 && (datalen > (int)sizeof(struct ip6_hdr)) )
+		cand_ip_hdr = new IP_Hdr((const struct ip6_hdr*)data, false, datalen);
 
-	if (cand_ip_hdr) 
+	if ( cand_ip_hdr )
 		{
-		switch (cand_ip_hdr->NextProto()) {
+		switch ( cand_ip_hdr->NextProto() ) {
 		case IPPROTO_UDP:
 		case IPPROTO_TCP:
 		case IPPROTO_ICMP:
-			if ((int)cand_ip_hdr->TotalLen() != datalen)
+			if ( (int)cand_ip_hdr->TotalLen() != datalen )
 				{
 				delete cand_ip_hdr;
 				cand_ip_hdr = 0;

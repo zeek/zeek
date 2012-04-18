@@ -1,3 +1,4 @@
+# @TEST-GROUP: comm
 #
 # @TEST-EXEC: btest-bg-run sender   bro %INPUT ../sender.bro
 # @TEST-EXEC: btest-bg-run receiver bro %INPUT ../receiver.bro
@@ -129,7 +130,7 @@ function modify()
 	foo2 = 1234567;
 }
 
-@load frameworks/communication/listen-clear
+@load frameworks/communication/listen
 
 event remote_connection_handshake_done(p: event_peer)
 	{

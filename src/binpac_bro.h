@@ -1,5 +1,3 @@
-// $Id:$
-
 #ifndef binpac_bro_h
 #define binpac_bro_h
 

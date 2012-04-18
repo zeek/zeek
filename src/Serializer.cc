@@ -1,5 +1,3 @@
-// $Id: Serializer.cc 6752 2009-06-14 04:24:52Z vern $
-
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
@@ -911,7 +909,7 @@ bool FileSerializer::Read(UnserialInfo* info, const char* file, bool header)
 
 void FileSerializer::ReportError(const char* str)
 	{
-	reporter->Error(str);
+	reporter->Error("%s", str);
 	}
 
 void FileSerializer::GotID(ID* id, Val* val)
@@ -1105,9 +1103,9 @@ void EventPlayer::Process()
 void Packet::Describe(ODesc* d) const
 	{
 	const IP_Hdr ip = IP();
-	d->Add(dotted_addr(ip.SrcAddr()));
+	d->Add(ip.SrcAddr());
 	d->Add("->");
-	d->Add(dotted_addr(ip.DstAddr()));
+	d->Add(ip.DstAddr());
 	}
 
 bool Packet::Serialize(SerialInfo* info) const
@@ -1147,7 +1145,7 @@ Packet* Packet::Unserialize(UnserialInfo* info)
 	if ( ! info->s->Read((char**) &tag, 0, "tag") )
 		return 0;
 
-	u_char* pkt;
+	char* pkt;
 	int caplen;
 	if ( ! info->s->Read((char**) &pkt, &caplen, "data") )
 		{
@@ -1157,7 +1155,7 @@ Packet* Packet::Unserialize(UnserialInfo* info)
 
 	hdr->caplen = uint32(caplen);
 	p->hdr = hdr;
-	p->pkt = pkt;
+	p->pkt = (u_char*) pkt;
 	p->tag = tag;
 	p->hdr_size = get_link_header_size(p->link_type);
 

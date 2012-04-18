@@ -1,45 +1,55 @@
 ##! This script provides the framework for software version detection and
-##! parsing, but doesn't actually do any detection on it's own.  It relys on
+##! parsing but doesn't actually do any detection on it's own.  It relys on
 ##! other protocol specific scripts to parse out software from the protocols
 ##! that they analyze.  The entry point for providing new software detections
 ##! to this framework is through the :bro:id:`Software::found` function.
 
+@load base/utils/directions-and-hosts
+@load base/utils/numbers
+
 module Software;
 
 export {
-
-	redef enum Log::ID += { SOFTWARE };
-
+	## The software logging stream identifier.
+	redef enum Log::ID += { LOG };
+	
+	## Scripts detecting new types of software need to redef this enum to add
+	## their own specific software types which would then be used when they 
+	## create :bro:type:`Software::Info` records.
 	type Type: enum {
+		## A placeholder type for when the type of software is not known.
 		UNKNOWN,
-		OPERATING_SYSTEM,
-		DATABASE_SERVER,
-		# There are a number of ways to detect printers on the 
-		# network, we just need to codify them in a script and move
-		# this out of here.  It isn't currently used for anything.
-		PRINTER,
 	};
-
+	
+	## A structure to represent the numeric version of software.
 	type Version: record {
-		major:  count  &optional;  ##< Major version number
-		minor:  count  &optional;  ##< Minor version number
-		minor2: count  &optional;  ##< Minor subversion number
-		addl:   string &optional;  ##< Additional version string (e.g. "beta42")
+		## Major version number
+		major:  count  &optional;
+		## Minor version number
+		minor:  count  &optional;
+		## Minor subversion number
+		minor2: count  &optional;
+		## Additional version string (e.g. "beta42")
+		addl:   string &optional;
 	} &log;
-
+	
+	## The record type that is used for representing and logging software.
 	type Info: record {
-		## The time at which the software was first detected.
-		ts:               time &log;
+		## The time at which the software was detected.
+		ts:               time &log &optional;
 		## The IP address detected running the software.
 		host:             addr &log;
-		## The type of software detected (e.g. WEB_SERVER)
+		## The Port on which the software is running. Only sensible for server software.
+		host_p:           port &log &optional;
+		## The type of software detected (e.g. :bro:enum:`HTTP::SERVER`).
 		software_type:    Type &log &default=UNKNOWN;
-		## Name of the software (e.g. Apache)
-		name:             string &log;
-		## Version of the software
-		version:          Version &log;
+		## Name of the software (e.g. Apache).
+		name:             string &log &optional;
+		## Version of the software.
+		version:          Version &log &optional;
 		## The full unparsed version string found because the version parsing 
-		## doesn't work 100% reliably and this acts as a fall back in the logs.
+		## doesn't always work reliably in all cases and this acts as a 
+		## fallback in the logs.
 		unparsed_version: string &log &optional;
 		
 		## This can indicate that this software being detected should
@@ -52,37 +62,29 @@ export {
 		force_log:        bool &default=F;
 	};
 	
-	## The hosts whose software should be detected and tracked.
+	## Hosts whose software should be detected and tracked.
 	## Choices are: LOCAL_HOSTS, REMOTE_HOSTS, ALL_HOSTS, NO_HOSTS
 	const asset_tracking = LOCAL_HOSTS &redef;
 	
-	
 	## Other scripts should call this function when they detect software.
-	## unparsed_version: This is the full string from which the
-	##                   :bro:type:`Software::Info` was extracted.
+	## id: The connection id where the software was discovered.
+	##
+	## info: A record representing the software discovered.
+	## 
 	## Returns: T if the software was logged, F otherwise.
-	global found: function(id: conn_id, info: Software::Info): bool;
+	global found: function(id: conn_id, info: Info): bool;
 	
-	## This function can take many software version strings and parse them 
-	## into a sensible :bro:type:`Software::Version` record.  There are 
-	## still many cases where scripts may have to have their own specific 
-	## version parsing though.
-	global parse: function(unparsed_version: string,
-	                       host: addr,
-	                       software_type: Type): Info;
-	
-	## Compare two versions.
+	## Compare two version records.
+	## 
 	## Returns:  -1 for v1 < v2, 0 for v1 == v2, 1 for v1 > v2.
 	##           If the numerical version numbers match, the addl string
 	##           is compared lexicographically.
 	global cmp_versions: function(v1: Version, v2: Version): int;
 	
-	## This type represents a set of software.  It's used by the 
-	## :bro:id:`tracked` variable to store all known pieces of software
-	## for a particular host.  It's indexed with the name of a piece of 
-	## software such as "Firefox" and it yields a 
-	## :bro:type:`Software::Info` record with more information about the 
-	## software.
+	## Type to represent a collection of :bro:type:`Software::Info` records.
+	## It's indexed with the name of a piece of software such as "Firefox" 
+	## and it yields a :bro:type:`Software::Info` record with more information
+	## about the  software.
 	type SoftwareSet: table[string] of Info;
 	
 	## The set of software associated with an address.  Data expires from
@@ -98,108 +100,23 @@ export {
 	global log_software: event(rec: Info);
 }
 
-event bro_init()
+event bro_init() &priority=5
 	{
-	Log::create_stream(SOFTWARE, [$columns=Info, $ev=log_software]);
+	Log::create_stream(Software::LOG, [$columns=Info, $ev=log_software]);
 	}
-
-function parse_mozilla(unparsed_version: string, 
-	                   host: addr, 
-	                   software_type: Type): Info
-	{
-	local software_name = "<unknown browser>";
-	local v: Version;
-	local parts: table[count] of string;
 	
-	if ( /Opera [0-9\.]*$/ in unparsed_version )
-		{
-		software_name = "Opera";
-		parts = split_all(unparsed_version, /Opera [0-9\.]*$/);
-		if ( 2 in parts )
-			v = parse(parts[2], host, software_type)$version;
-		}
-	else if ( /MSIE 7.*Trident\/4\.0/ in unparsed_version )
-		{
-		software_name = "MSIE"; 
-		v = [$major=8,$minor=0];
-		}
-	else if ( / MSIE [0-9\.]*b?[0-9]*;/ in unparsed_version )
-		{
-		software_name = "MSIE";
-		parts = split_all(unparsed_version, /MSIE [0-9\.]*b?[0-9]*/);
-		if ( 2 in parts )
-			v = parse(parts[2], host, software_type)$version;
-		}
-	else if ( /Version\/.*Safari\// in unparsed_version )
-		{
-		software_name = "Safari";
-		parts = split_all(unparsed_version, /Version\/[0-9\.]*/);
-		if ( 2 in parts )
-			{
-			v = parse(parts[2], host, software_type)$version;
-			if ( / Mobile\/?.* Safari/ in unparsed_version )
-				v$addl = "Mobile";
-			}
-		}
-	else if ( /(Firefox|Netscape|Thunderbird)\/[0-9\.]*/ in unparsed_version )
-		{
-		parts = split_all(unparsed_version, /(Firefox|Netscape|Thunderbird)\/[0-9\.]*/);
-		if ( 2 in parts )
-			{
-			local tmp_s = parse(parts[2], host, software_type);
-			software_name = tmp_s$name;
-			v = tmp_s$version;
-			}
-		}
-	else if ( /Chrome\/.*Safari\// in unparsed_version )
-		{
-		software_name = "Chrome";
-		parts = split_all(unparsed_version, /Chrome\/[0-9\.]*/);
-		if ( 2 in parts )
-			v = parse(parts[2], host, software_type)$version;
-		}
-	else if ( /^Opera\// in unparsed_version )
-		{
-		if ( /Opera M(ini|obi)\// in unparsed_version )
-			{
-			parts = split_all(unparsed_version, /Opera M(ini|obi)/);
-			if ( 2 in parts )
-				software_name = parts[2];
-			parts = split_all(unparsed_version, /Version\/[0-9\.]*/);
-			if ( 2 in parts )
-				v = parse(parts[2], host, software_type)$version;
-			else
-				{
-				parts = split_all(unparsed_version, /Opera Mini\/[0-9\.]*/);
-				if ( 2 in parts )
-					v = parse(parts[2], host, software_type)$version;
-				}
-			}
-		else
-			{
-			software_name = "Opera";
-			parts = split_all(unparsed_version, /Version\/[0-9\.]*/);
-			if ( 2 in parts )
-				v = parse(parts[2], host, software_type)$version;
-			}
-		}
-	else if ( /AppleWebKit\/[0-9\.]*/ in unparsed_version )
-		{
-		software_name = "Unspecified WebKit";
-		parts = split_all(unparsed_version, /AppleWebKit\/[0-9\.]*/);
-		if ( 2 in parts )
-			v = parse(parts[2], host, software_type)$version;
-		}
+type Description: record {
+	name:             string;
+	version:          Version;
+	unparsed_version: string;
+};
 
-	return [$ts=network_time(), $host=host, $name=software_name, $version=v,
-	        $software_type=software_type, $unparsed_version=unparsed_version];
-	}
+# Defining this here because of a circular dependency between two functions.
+global parse_mozilla: function(unparsed_version: string): Description;
 
 # Don't even try to understand this now, just make sure the tests are 
 # working.
-function parse(unparsed_version: string,
-	           host: addr,
-	           software_type: Type): Info
+function parse(unparsed_version: string): Description
 	{
 	local software_name = "<parse error>";
 	local v: Version;
@@ -207,7 +124,7 @@ function parse(unparsed_version: string,
 	# Parse browser-alike versions separately
 	if ( /^(Mozilla|Opera)\/[0-9]\./ in unparsed_version )
 		{
-		return parse_mozilla(unparsed_version, host, software_type);
+		return parse_mozilla(unparsed_version);
 		}
 	else
 		{
@@ -232,7 +149,7 @@ function parse(unparsed_version: string,
 			if ( 4 in version_numbers && version_numbers[4] != "" )
 				v$addl = strip(version_numbers[4]);
 			else if ( 3 in version_parts && version_parts[3] != "" &&
-			          version_parts[3] != ")" )
+				  version_parts[3] != ")" )
 				{
 				if ( /^[[:blank:]]*\([a-zA-Z0-9\-\._[:blank:]]*\)/ in version_parts[3] )
 					{
@@ -269,9 +186,102 @@ function parse(unparsed_version: string,
 				v$major = extract_count(version_numbers[1]);
 			}
 		}
-	return [$ts=network_time(), $host=host, $name=software_name,
-	        $version=v, $unparsed_version=unparsed_version,
-	        $software_type=software_type];
+	
+	return [$version=v, $unparsed_version=unparsed_version, $name=software_name];
+	}
+
+
+function parse_mozilla(unparsed_version: string): Description
+	{
+	local software_name = "<unknown browser>";
+	local v: Version;
+	local parts: table[count] of string;
+	
+	if ( /Opera [0-9\.]*$/ in unparsed_version )
+		{
+		software_name = "Opera";
+		parts = split_all(unparsed_version, /Opera [0-9\.]*$/);
+		if ( 2 in parts )
+			v = parse(parts[2])$version;
+		}
+	else if ( / MSIE / in unparsed_version )
+		{
+		software_name = "MSIE";
+		if ( /Trident\/4\.0/ in unparsed_version )
+			v = [$major=8,$minor=0];
+		else if ( /Trident\/5\.0/ in unparsed_version )
+			v = [$major=9,$minor=0];
+		else if ( /Trident\/6\.0/ in unparsed_version )
+			v = [$major=10,$minor=0];
+		else
+			{
+			parts = split_all(unparsed_version, /MSIE [0-9]{1,2}\.*[0-9]*b?[0-9]*/);
+			if ( 2 in parts )
+				v = parse(parts[2])$version;
+			}
+		}
+	else if ( /Version\/.*Safari\// in unparsed_version )
+		{
+		software_name = "Safari";
+		parts = split_all(unparsed_version, /Version\/[0-9\.]*/);
+		if ( 2 in parts )
+			{
+			v = parse(parts[2])$version;
+			if ( / Mobile\/?.* Safari/ in unparsed_version )
+				v$addl = "Mobile";
+			}
+		}
+	else if ( /(Firefox|Netscape|Thunderbird)\/[0-9\.]*/ in unparsed_version )
+		{
+		parts = split_all(unparsed_version, /(Firefox|Netscape|Thunderbird)\/[0-9\.]*/);
+		if ( 2 in parts )
+			{
+			local tmp_s = parse(parts[2]);
+			software_name = tmp_s$name;
+			v = tmp_s$version;
+			}
+		}
+	else if ( /Chrome\/.*Safari\// in unparsed_version )
+		{
+		software_name = "Chrome";
+		parts = split_all(unparsed_version, /Chrome\/[0-9\.]*/);
+		if ( 2 in parts )
+			v = parse(parts[2])$version;
+		}
+	else if ( /^Opera\// in unparsed_version )
+		{
+		if ( /Opera M(ini|obi)\// in unparsed_version )
+			{
+			parts = split_all(unparsed_version, /Opera M(ini|obi)/);
+			if ( 2 in parts )
+				software_name = parts[2];
+			parts = split_all(unparsed_version, /Version\/[0-9\.]*/);
+			if ( 2 in parts )
+				v = parse(parts[2])$version;
+			else
+				{
+				parts = split_all(unparsed_version, /Opera Mini\/[0-9\.]*/);
+				if ( 2 in parts )
+					v = parse(parts[2])$version;
+				}
+			}
+		else
+			{
+			software_name = "Opera";
+			parts = split_all(unparsed_version, /Version\/[0-9\.]*/);
+			if ( 2 in parts )
+				v = parse(parts[2])$version;
+			}
+		}
+	else if ( /AppleWebKit\/[0-9\.]*/ in unparsed_version )
+		{
+		software_name = "Unspecified WebKit";
+		parts = split_all(unparsed_version, /AppleWebKit\/[0-9\.]*/);
+		if ( 2 in parts )
+			v = parse(parts[2])$version;
+		}
+
+	return [$version=v, $unparsed_version=unparsed_version, $name=software_name];
 	}
 
 
@@ -356,7 +366,7 @@ function software_fmt(i: Info): string
 
 # Insert a mapping into the table
 # Overides old entries for the same software and generates events if needed.
-event software_register(id: conn_id, info: Info)
+event register(id: conn_id, info: Info)
 	{
 	# Host already known?
 	if ( info$host !in tracked )
@@ -375,16 +385,40 @@ event software_register(id: conn_id, info: Info)
 		if ( ! info$force_log && cmp_versions(old$version, info$version) == 0 )
 			return;
 		}
-	
-	Log::write(SOFTWARE, info);
 	ts[info$name] = info;
+	
+	Log::write(Software::LOG, info);
 	}
 
 function found(id: conn_id, info: Info): bool
 	{
 	if ( info$force_log || addr_matches_host(info$host, asset_tracking) )
 		{
-		event software_register(id, info);
+		if ( !info?$ts ) 
+			info$ts=network_time();
+		
+		if ( info?$version ) # we have a version number and don't have to parse. check if the name is also set...
+			{
+				if ( ! info?$name ) 
+					{
+					Reporter::error("Required field name not present in Software::found");
+					return F;
+					}
+			}
+		else  # no version present, we have to parse...
+			{
+			if ( !info?$unparsed_version ) 
+				{
+				Reporter::error("No unparsed version string present in Info record with version in Software::found");
+				return F;
+				} 
+			local sw = parse(info$unparsed_version);
+			info$unparsed_version = sw$unparsed_version;
+			info$name = sw$name;
+			info$version = sw$version;
+			}
+		
+		event register(id, info);
 		return T;
 		}
 	else

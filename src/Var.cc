@@ -1,5 +1,3 @@
-// $Id: Var.cc 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -204,7 +202,8 @@ Stmt* add_local(ID* id, BroType* t, init_class c, Expr* init,
 		Ref(id);
 
 		Stmt* stmt =
-			new ExprStmt(new AssignExpr(new NameExpr(id), init, 0));
+		    new ExprStmt(new AssignExpr(new NameExpr(id), init, 0, 0,
+		        id->Attrs() ? id->Attrs()->Attrs() : 0 ));
 		stmt->SetLocationInfo(init->GetLocationInfo());
 
 		return stmt;

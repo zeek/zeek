@@ -6,6 +6,7 @@
 #include <netinet/udp.h>
 #include "net_util.h"
 #include "IP.h"
+#include "IPAddr.h"
 #include "Conn.h"
 #include "Sessions.h"
 #include "Val.h"
@@ -16,15 +17,13 @@ public:
 		{
 		tunneltype = BifEnum::Tunnel::NONE;
 		src_port = dst_port = 0;
-		for (int i=0; i<NUM_ADDR_WORDS; i++)
-			src_addr[i] = dst_addr[i] = 0;
 		}
 
-	TunnelParent (TunnelParent *other)
+	TunnelParent(TunnelParent *other)
 		{
 		tunneltype = other->tunneltype;
-		copy_addr(other->src_addr, src_addr);
-		copy_addr(other->dst_addr, dst_addr);
+		src_addr = other->src_addr;
+		dst_addr = other->dst_addr;
 		src_port = other->src_port;
 		dst_port = other->dst_port;
 		}
@@ -33,7 +32,7 @@ public:
 		{
 		RecordVal *rv = new RecordVal(BifType::Record::Tunnel::Parent);
 		TransportProto tproto;
-		switch(tunneltype) {
+		switch ( tunneltype ) {
 		case BifEnum::Tunnel::IP6_IN_IP:
 		case BifEnum::Tunnel::IP4_IN_IP:
 			tproto = TRANSPORT_UNKNOWN;
@@ -52,8 +51,8 @@ public:
 		return rv;
 		}
 
-	uint32 src_addr[NUM_ADDR_WORDS];
-	uint32 dst_addr[NUM_ADDR_WORDS];
+	IPAddr src_addr;
+	IPAddr dst_addr;
 	uint16 src_port;
 	uint16 dst_port;
 	BifEnum::Tunnel::Tunneltype tunneltype;
@@ -73,8 +72,8 @@ public:
 
 	void SetParentIPs(const IP_Hdr *ip_hdr)
 		{
-		copy_addr(ip_hdr->SrcAddr(), parent.src_addr);
-		copy_addr(ip_hdr->DstAddr(), parent.dst_addr);
+		parent.src_addr = ip_hdr->SrcAddr();
+		parent.dst_addr = ip_hdr->DstAddr();
 		}
 	void SetParentPorts(const struct udphdr *uh)
 		{

@@ -1,5 +1,3 @@
-// $Id: Serializer.h 6752 2009-06-14 04:24:52Z vern $
-
 #ifndef SERIALIZER_H
 #define SERIALIZER_H
 
@@ -71,6 +69,8 @@ public:
 		{ return format->Read(const_cast<char**>(str), len, tag); }
 
 	bool Read(string* s, const char* tag);
+	bool Read(IPAddr* a, const char* tag)	{ return format->Read(a, tag); }
+	bool Read(IPPrefix* p, const char* tag)	{ return format->Read(p, tag); }
 
 	bool Write(const char* s, const char* tag)
 		{ return format->Write(s, tag); }
@@ -78,6 +78,8 @@ public:
 		{ return format->Write(buf, len, tag); }
 	bool Write(const string& s, const char* tag)
 		{ return format->Write(s.data(), s.size(), tag); }
+	bool Write(const IPAddr& a, const char* tag)	{ return format->Write(a, tag); }
+	bool Write(const IPPrefix& p, const char* tag)	{ return format->Write(p, tag); }
 
 	bool WriteOpenTag(const char* tag)
 		{ return format->WriteOpenTag(tag); }
@@ -123,7 +125,7 @@ protected:
 
 	// This will be increased whenever there is an incompatible change
 	// in the data format.
-	static const uint32 DATA_FORMAT_VERSION = 20;
+	static const uint32 DATA_FORMAT_VERSION = 22;
 
 	ChunkedIO* io;
 
@@ -263,7 +265,7 @@ public:
 	virtual ~CloneSerializer()	{ }
 
 protected:
-	virtual void ReportError(const char* msg)	{ reporter->Error(msg); }
+	virtual void ReportError(const char* msg)	{ reporter->Error("%s", msg); }
 	virtual void GotID(ID* id, Val* val)	{ }
 	virtual void GotEvent(const char* name, double time,
 				EventHandlerPtr event, val_list* args)	{ }
@@ -413,7 +415,7 @@ public:
 		}
 
 	const IP_Hdr IP() const
-		{ return IP_Hdr((struct ip *) (pkt + hdr_size)); }
+		{ return IP_Hdr((struct ip *) (pkt + hdr_size), true); }
 
 	void Describe(ODesc* d) const;
 

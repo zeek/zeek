@@ -1,13 +1,14 @@
 .. Automatically generated.  Do not edit.
 
+:tocdepth: 3
+
 autogen-reST-enums.bro
 ======================
 
-:download:`Original Source File <autogen-reST-enums.bro>`
 
-Overview
---------
 
+
+:Source File: :download:`autogen-reST-enums.bro`
 
 Summary
 ~~~~~~~
@@ -27,10 +28,10 @@ Redefinitions
 :bro:type:`TestEnum1`: :bro:type:`enum` now with a comma
 ======================================= =======================
 
-Public Interface
-----------------
+Detailed Interface
+~~~~~~~~~~~~~~~~~~
 Types
-~~~~~
+#####
 .. bro:type:: TestEnum1
 
    :Type: :bro:type:`enum`
@@ -74,7 +75,7 @@ Types
    The final comma is optional
 
 Redefinitions
-~~~~~~~~~~~~~
+#############
 :bro:type:`TestEnum1`
 
    :Type: :bro:type:`enum`

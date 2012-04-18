@@ -1,5 +1,3 @@
-// $Id: ICMP.cc 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include <algorithm>
@@ -10,6 +8,8 @@
 #include "NetVar.h"
 #include "Event.h"
 #include "ICMP.h"
+
+#include <netinet/icmp6.h>
 
 ICMP_Analyzer::ICMP_Analyzer(Connection* c)
 : TransportLayerAnalyzer(AnalyzerTag::ICMP, c)
@@ -34,7 +34,7 @@ void ICMP_Analyzer::Done()
 	matcher_state.FinishEndpointMatcher();
 	}
 
-void ICMP_Analyzer::DeliverPacket(int arg_len, const u_char* data,
+void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
 			bool is_orig, int seq, const IP_Hdr* ip, int caplen)
 	{
 	assert(ip);
@@ -48,13 +48,33 @@ void ICMP_Analyzer::DeliverPacket(int arg_len, const u_char* data,
 		PacketContents(data + 8, min(len, caplen) - 8);
 
 	const struct icmp* icmpp = (const struct icmp*) data;
-	len = arg_len;
 
-	if ( ! ignore_checksums && caplen >= len &&
-	     icmp_checksum(icmpp, len) != 0xffff )
+	assert(caplen >= len); // Should have been caught earlier already.
+
+	if ( ! ignore_checksums )
 		{
-		Weird("bad_ICMP_checksum");
-		return;
+		int chksum = 0;
+
+		switch ( ip->NextProto() )
+		{
+		case IPPROTO_ICMP:
+			chksum = icmp_checksum(icmpp, len);
+			break;
+
+		case IPPROTO_ICMPV6:
+			chksum = icmp6_checksum(icmpp, ip, len);
+			break;
+
+		default:
+			reporter->InternalError("unexpected IP proto in ICMP analyzer");
+			break;
+		}
+
+		if ( chksum != 0xffff )
+			{
+			Weird("bad_ICMP_checksum");
+			return;
+			}
 		}
 
 	Conn()->SetLastTime(current_timestamp);
@@ -79,7 +99,13 @@ void ICMP_Analyzer::DeliverPacket(int arg_len, const u_char* data,
 	else
 		len_stat += len;
 
-	NextICMP(current_timestamp, icmpp, len, caplen, data);
+	if ( ip->NextProto() == IPPROTO_ICMP )
+		NextICMP4(current_timestamp, icmpp, len, caplen, data, ip);
+	else if ( ip->NextProto() == IPPROTO_ICMPV6 )
+		NextICMP6(current_timestamp, icmpp, len, caplen, data, ip);
+	else
+		reporter->InternalError("unexpected next protocol in ICMP::DeliverPacket()");
+
 
 	if ( caplen >= len )
 		ForwardPacket(len, data, is_orig, seq, ip, caplen);
@@ -89,26 +115,89 @@ void ICMP_Analyzer::DeliverPacket(int arg_len, const u_char* data,
 					false, false, true);
 	}
 
-void ICMP_Analyzer::NextICMP(double /* t */, const struct icmp* /* icmpp */,
-				int /* len */, int /* caplen */,
-				const u_char*& /* data */)
+void ICMP_Analyzer::NextICMP4(double t, const struct icmp* icmpp, int len, int caplen,
+		const u_char*& data, const IP_Hdr* ip_hdr )
 	{
-	ICMPEvent(icmp_sent);
+	switch ( icmpp->icmp_type )
+		{
+		case ICMP_ECHO:
+		case ICMP_ECHOREPLY:
+			Echo(t, icmpp, len, caplen, data, ip_hdr);
+			break;
+
+		case ICMP_UNREACH:
+		case ICMP_TIMXCEED:
+			Context4(t, icmpp, len, caplen, data, ip_hdr);
+			break;
+
+		default:
+			ICMPEvent(icmp_sent, icmpp, len, 0);
+			break;
+		}
 	}
 
-void ICMP_Analyzer::ICMPEvent(EventHandlerPtr f)
+void ICMP_Analyzer::NextICMP6(double t, const struct icmp* icmpp, int len, int caplen,
+							  const u_char*& data, const IP_Hdr* ip_hdr )
 	{
+	switch ( icmpp->icmp_type )
+		{
+		// Echo types.
+		case ICMP6_ECHO_REQUEST:
+		case ICMP6_ECHO_REPLY:
+			Echo(t, icmpp, len, caplen, data, ip_hdr);
+			break;
+
+		// Error messages all have the same structure for their context,
+		// and are handled by the same function.
+		case ICMP6_PARAM_PROB:
+		case ICMP6_TIME_EXCEEDED:
+		case ICMP6_PACKET_TOO_BIG:
+		case ICMP6_DST_UNREACH:
+			Context6(t, icmpp, len, caplen, data, ip_hdr);
+			break;
+
+		// Router related messages.
+		case ND_REDIRECT:
+			Redirect(t, icmpp, len, caplen, data, ip_hdr);
+			break;
+		case ND_ROUTER_ADVERT:
+			RouterAdvert(t, icmpp, len, caplen, data, ip_hdr);
+			break;
+		case ND_NEIGHBOR_ADVERT:
+			NeighborAdvert(t, icmpp, len, caplen, data, ip_hdr);
+			break;
+		case ND_NEIGHBOR_SOLICIT:
+			NeighborSolicit(t, icmpp, len, caplen, data, ip_hdr);
+			break;
+		case ND_ROUTER_SOLICIT:
+		case ICMP6_ROUTER_RENUMBERING:
+			Router(t, icmpp, len, caplen, data, ip_hdr);
+			break;
+
+#if 0
+		// Currently not specifically implemented.
+		case MLD_LISTENER_QUERY:
+		case MLD_LISTENER_REPORT:
+		case MLD_LISTENER_REDUCTION:
+#endif
+		default:
+			ICMPEvent(icmp_sent, icmpp, len, 1);
+			break;
+		}
+	}
+
+void ICMP_Analyzer::ICMPEvent(EventHandlerPtr f, const struct icmp* icmpp, int len, int icmpv6)
+    {
 	if ( ! f )
 		return;
 
 	val_list* vl = new val_list;
 	vl->append(BuildConnVal());
-	vl->append(BuildICMPVal());
-
+	vl->append(BuildICMPVal(icmpp, len, icmpv6));
 	ConnectionEvent(f, vl);
 	}
 
-RecordVal* ICMP_Analyzer::BuildICMPVal()
+RecordVal* ICMP_Analyzer::BuildICMPVal(const struct icmp* icmpp, int len, int icmpv6)
 	{
 	if ( ! icmp_conn_val )
 		{
@@ -116,9 +205,10 @@ RecordVal* ICMP_Analyzer::BuildICMPVal()
 
 		icmp_conn_val->Assign(0, new AddrVal(Conn()->OrigAddr()));
 		icmp_conn_val->Assign(1, new AddrVal(Conn()->RespAddr()));
-		icmp_conn_val->Assign(2, new Val(type, TYPE_COUNT));
-		icmp_conn_val->Assign(3, new Val(code, TYPE_COUNT));
+		icmp_conn_val->Assign(2, new Val(icmpp->icmp_type, TYPE_COUNT));
+		icmp_conn_val->Assign(3, new Val(icmpp->icmp_code, TYPE_COUNT));
 		icmp_conn_val->Assign(4, new Val(len, TYPE_COUNT));
+		icmp_conn_val->Assign(5, new Val(icmpv6, TYPE_BOOL));
 		}
 
 	Ref(icmp_conn_val);
@@ -126,91 +216,115 @@ RecordVal* ICMP_Analyzer::BuildICMPVal()
 	return icmp_conn_val;
 	}
 
-RecordVal* ICMP_Analyzer::ExtractICMPContext(int len, const u_char*& data)
+TransportProto ICMP_Analyzer::GetContextProtocol(const IP_Hdr* ip_hdr, uint32* src_port, uint32* dst_port)
 	{
-	const struct ip* ip = (const struct ip *) data;
-	uint32 ip_hdr_len = ip->ip_hl * 4;
+	const u_char* transport_hdr;
+	uint32 ip_hdr_len = ip_hdr->HdrLen();
+	bool ip4 = ip_hdr->IP4_Hdr();
+
+	if ( ip4 )
+		transport_hdr = ((u_char *) ip_hdr->IP4_Hdr() + ip_hdr_len);
+	else
+		transport_hdr = ((u_char *) ip_hdr->IP6_Hdr() + ip_hdr_len);
+
+	TransportProto proto;
+
+	switch ( ip_hdr->NextProto() ) {
+	case 1:		proto = TRANSPORT_ICMP; break;
+	case 6:		proto = TRANSPORT_TCP; break;
+	case 17:	proto = TRANSPORT_UDP; break;
+	case 58:	proto = TRANSPORT_ICMP; break;
+	default:	proto = TRANSPORT_UNKNOWN; break;
+	}
+
+	switch ( proto ) {
+	case TRANSPORT_ICMP:
+		{
+		const struct icmp* icmpp =
+			(const struct icmp *) transport_hdr;
+		bool is_one_way;	// dummy
+		*src_port = ntohs(icmpp->icmp_type);
+
+		if ( ip4 )
+			*dst_port = ntohs(ICMP4_counterpart(icmpp->icmp_type,
+					icmpp->icmp_code, is_one_way));
+		else
+			*dst_port = ntohs(ICMP6_counterpart(icmpp->icmp_type,
+					icmpp->icmp_code, is_one_way));
+
+		break;
+		}
+
+	case TRANSPORT_TCP:
+		{
+		const struct tcphdr* tp =
+			(const struct tcphdr *) transport_hdr;
+		*src_port = ntohs(tp->th_sport);
+		*dst_port = ntohs(tp->th_dport);
+		break;
+		}
+
+	case TRANSPORT_UDP:
+		{
+		const struct udphdr* up =
+			(const struct udphdr *) transport_hdr;
+		*src_port = ntohs(up->uh_sport);
+		*dst_port = ntohs(up->uh_dport);
+		break;
+		}
+
+	default:
+		*src_port = *dst_port = ntohs(0);
+		break;
+	}
+
+	return proto;
+	}
+
+RecordVal* ICMP_Analyzer::ExtractICMP4Context(int len, const u_char*& data)
+	{
+	const IP_Hdr ip_hdr_data((const struct ip*) data, false);
+	const IP_Hdr* ip_hdr = &ip_hdr_data;
+
+	uint32 ip_hdr_len = ip_hdr->HdrLen();
 
 	uint32 ip_len, frag_offset;
 	TransportProto proto = TRANSPORT_UNKNOWN;
 	int DF, MF, bad_hdr_len, bad_checksum;
-	uint32 src_addr, dst_addr;
+	IPAddr src_addr, dst_addr;
 	uint32 src_port, dst_port;
 
-	if ( ip_hdr_len < sizeof(struct ip) || ip_hdr_len > uint32(len) )
-		{ // We don't have an entire IP header.
+	if ( len < (int)sizeof(struct ip) || ip_hdr_len > uint32(len) )
+		{
+		// We don't have an entire IP header.
 		bad_hdr_len = 1;
 		ip_len = frag_offset = 0;
 		DF = MF = bad_checksum = 0;
-		src_addr = dst_addr = 0;
 		src_port = dst_port = 0;
 		}
 
 	else
 		{
 		bad_hdr_len = 0;
-		ip_len = ntohs(ip->ip_len);
-		bad_checksum = ones_complement_checksum((void*) ip, ip_hdr_len, 0) != 0xffff;
+		ip_len = ip_hdr->TotalLen();
+		bad_checksum = (ones_complement_checksum((void*) ip_hdr->IP4_Hdr(), ip_hdr_len, 0) != 0xffff);
 
-		src_addr = uint32(ip->ip_src.s_addr);
-		dst_addr = uint32(ip->ip_dst.s_addr);
+		src_addr = ip_hdr->SrcAddr();
+		dst_addr = ip_hdr->DstAddr();
 
-		switch ( ip->ip_p ) {
-		case 1:		proto = TRANSPORT_ICMP; break;
-		case 6:		proto = TRANSPORT_TCP; break;
-		case 17:	proto = TRANSPORT_UDP; break;
+		DF = ip_hdr->DF();
+		MF = ip_hdr->MF();
+		frag_offset = ip_hdr->FragOffset();
 
-		// Default uses TRANSPORT_UNKNOWN, per initialization above.
-		}
-
-		uint32 frag_field = ntohs(ip->ip_off);
-		DF = frag_field & 0x4000;
-		MF = frag_field & 0x2000;
-		frag_offset = frag_field & /* IP_OFFMASK not portable */ 0x1fff;
-		const u_char* transport_hdr = ((u_char *) ip + ip_hdr_len);
-
-		if ( uint32(len) < ip_hdr_len + 4 )
+		if ( uint32(len) >= ip_hdr_len + 4 )
+			proto = GetContextProtocol(ip_hdr, &src_port, &dst_port);
+		else
 			{
 			// 4 above is the magic number meaning that both
 			// port numbers are included in the ICMP.
-			bad_hdr_len = 1;
 			src_port = dst_port = 0;
+			bad_hdr_len = 1;
 			}
-
-		switch ( proto ) {
-		case TRANSPORT_ICMP:
-			{
-			const struct icmp* icmpp =
-				(const struct icmp *) transport_hdr;
-			bool is_one_way;	// dummy
-			src_port = ntohs(icmpp->icmp_type);
-			dst_port = ntohs(ICMP_counterpart(icmpp->icmp_type,
-							icmpp->icmp_code,
-							is_one_way));
-			}
-			break;
-
-		case TRANSPORT_TCP:
-			{
-			const struct tcphdr* tp =
-				(const struct tcphdr *) transport_hdr;
-			src_port = ntohs(tp->th_sport);
-			dst_port = ntohs(tp->th_dport);
-			}
-			break;
-
-		case TRANSPORT_UDP:
-			{
-			const struct udphdr* up =
-				(const struct udphdr *) transport_hdr;
-			src_port = ntohs(up->uh_sport);
-			dst_port = ntohs(up->uh_dport);
-			}
-			break;
-
-		default:
-			src_port = dst_port = ntohs(0);
-		}
 		}
 
 	RecordVal* iprec = new RecordVal(icmp_context);
@@ -220,13 +334,73 @@ RecordVal* ICMP_Analyzer::ExtractICMPContext(int len, const u_char*& data)
 	id_val->Assign(1, new PortVal(src_port, proto));
 	id_val->Assign(2, new AddrVal(dst_addr));
 	id_val->Assign(3, new PortVal(dst_port, proto));
-	iprec->Assign(0, id_val);
 
+	iprec->Assign(0, id_val);
 	iprec->Assign(1, new Val(ip_len, TYPE_COUNT));
 	iprec->Assign(2, new Val(proto, TYPE_COUNT));
 	iprec->Assign(3, new Val(frag_offset, TYPE_COUNT));
 	iprec->Assign(4, new Val(bad_hdr_len, TYPE_BOOL));
 	iprec->Assign(5, new Val(bad_checksum, TYPE_BOOL));
+	iprec->Assign(6, new Val(MF, TYPE_BOOL));
+	iprec->Assign(7, new Val(DF, TYPE_BOOL));
+
+	return iprec;
+	}
+
+RecordVal* ICMP_Analyzer::ExtractICMP6Context(int len, const u_char*& data)
+	{
+	int DF = 0, MF = 0, bad_hdr_len = 0;
+	TransportProto proto = TRANSPORT_UNKNOWN;
+
+	IPAddr src_addr;
+	IPAddr dst_addr;
+	uint32 ip_len, frag_offset = 0;
+	uint32 src_port, dst_port;
+
+	if ( len < (int)sizeof(struct ip6_hdr) )
+		{
+		bad_hdr_len = 1;
+		ip_len = 0;
+		src_port = dst_port = 0;
+		}
+	else
+		{
+		const IP_Hdr ip_hdr_data((const struct ip6_hdr*) data, false, len);
+		const IP_Hdr* ip_hdr = &ip_hdr_data;
+
+		ip_len = ip_hdr->TotalLen();
+		src_addr = ip_hdr->SrcAddr();
+		dst_addr = ip_hdr->DstAddr();
+		frag_offset = ip_hdr->FragOffset();
+		MF = ip_hdr->MF();
+		DF = ip_hdr->DF();
+
+		if ( uint32(len) >= uint32(ip_hdr->HdrLen() + 4) )
+			proto = GetContextProtocol(ip_hdr, &src_port, &dst_port);
+		else
+			{
+			// 4 above is the magic number meaning that both
+			// port numbers are included in the ICMP.
+			src_port = dst_port = 0;
+			bad_hdr_len = 1;
+			}
+		}
+
+	RecordVal* iprec = new RecordVal(icmp_context);
+	RecordVal* id_val = new RecordVal(conn_id);
+
+	id_val->Assign(0, new AddrVal(src_addr));
+	id_val->Assign(1, new PortVal(src_port, proto));
+	id_val->Assign(2, new AddrVal(dst_addr));
+	id_val->Assign(3, new PortVal(dst_port, proto));
+
+	iprec->Assign(0, id_val);
+	iprec->Assign(1, new Val(ip_len, TYPE_COUNT));
+	iprec->Assign(2, new Val(proto, TYPE_COUNT));
+	iprec->Assign(3, new Val(frag_offset, TYPE_COUNT));
+	iprec->Assign(4, new Val(bad_hdr_len, TYPE_BOOL));
+	// bad_checksum is always false since IPv6 layer doesn't have a checksum.
+	iprec->Assign(5, new Val(0, TYPE_BOOL));
 	iprec->Assign(6, new Val(MF, TYPE_BOOL));
 	iprec->Assign(7, new Val(DF, TYPE_BOOL));
 
@@ -245,7 +419,7 @@ void ICMP_Analyzer::Describe(ODesc* d) const
 	d->Add(Conn()->LastTime());
 	d->AddSP(")");
 
-	d->Add(dotted_addr(Conn()->OrigAddr()));
+	d->Add(Conn()->OrigAddr());
 	d->Add(".");
 	d->Add(type);
 	d->Add(".");
@@ -254,7 +428,7 @@ void ICMP_Analyzer::Describe(ODesc* d) const
 	d->SP();
 	d->AddSP("->");
 
-	d->Add(dotted_addr(Conn()->RespAddr()));
+	d->Add(Conn()->RespAddr());
 	}
 
 void ICMP_Analyzer::UpdateConnVal(RecordVal *conn_val)
@@ -296,15 +470,20 @@ unsigned int ICMP_Analyzer::MemoryAllocation() const
 		+ (icmp_conn_val ? icmp_conn_val->MemoryAllocation() : 0);
 	}
 
-ICMP_Echo_Analyzer::ICMP_Echo_Analyzer(Connection* c)
-: ICMP_Analyzer(AnalyzerTag::ICMP_Echo, c)
-	{
-	}
 
-void ICMP_Echo_Analyzer::NextICMP(double t, const struct icmp* icmpp, int len,
-					 int caplen, const u_char*& data)
+void ICMP_Analyzer::Echo(double t, const struct icmp* icmpp, int len,
+					 int caplen, const u_char*& data, const IP_Hdr* ip_hdr)
 	{
-	EventHandlerPtr f = type == ICMP_ECHO ? icmp_echo_request : icmp_echo_reply;
+	// For handling all Echo related ICMP messages
+	EventHandlerPtr f = 0;
+
+	if ( ip_hdr->NextProto() == IPPROTO_ICMPV6 )
+		f = (icmpp->icmp_type == ICMP6_ECHO_REQUEST)
+			? icmp_echo_request : icmp_echo_reply;
+	else
+		f = (icmpp->icmp_type == ICMP_ECHO)
+			? icmp_echo_request : icmp_echo_reply;
+
 	if ( ! f )
 		return;
 
@@ -315,7 +494,7 @@ void ICMP_Echo_Analyzer::NextICMP(double t, const struct icmp* icmpp, int len,
 
 	val_list* vl = new val_list;
 	vl->append(BuildConnVal());
-	vl->append(BuildICMPVal());
+	vl->append(BuildICMPVal(icmpp, len, ip_hdr->NextProto() != IPPROTO_ICMP));
 	vl->append(new Val(iid, TYPE_COUNT));
 	vl->append(new Val(iseq, TYPE_COUNT));
 	vl->append(new StringVal(payload));
@@ -323,65 +502,223 @@ void ICMP_Echo_Analyzer::NextICMP(double t, const struct icmp* icmpp, int len,
 	ConnectionEvent(f, vl);
 	}
 
-ICMP_Redir_Analyzer::ICMP_Redir_Analyzer(Connection* c)
-: ICMP_Analyzer(AnalyzerTag::ICMP_Redir, c)
-	{
-	}
 
-void ICMP_Redir_Analyzer::NextICMP(double t, const struct icmp* icmpp, int len,
-					 int caplen, const u_char*& data)
+void ICMP_Analyzer::RouterAdvert(double t, const struct icmp* icmpp, int len,
+			 int caplen, const u_char*& data, const IP_Hdr* /*ip_hdr*/)
 	{
-	uint32 addr = ntohl(icmpp->icmp_hun.ih_void);
+	EventHandlerPtr f = icmp_router_advertisement;
+	uint32 reachable, retrans;
+
+	memcpy(&reachable, data, sizeof(reachable));
+	memcpy(&retrans, data + sizeof(reachable), sizeof(retrans));
 
 	val_list* vl = new val_list;
 	vl->append(BuildConnVal());
-	vl->append(BuildICMPVal());
-	vl->append(new AddrVal(htonl(addr)));
+	vl->append(BuildICMPVal(icmpp, len, 1));
+	vl->append(new Val(icmpp->icmp_num_addrs, TYPE_COUNT));
+	vl->append(new Val(icmpp->icmp_wpa & 0x80, TYPE_BOOL));
+	vl->append(new Val(htons(icmpp->icmp_lifetime), TYPE_COUNT));
+	vl->append(new Val(reachable, TYPE_INTERVAL));
+	vl->append(new Val(retrans, TYPE_INTERVAL));
 
-	ConnectionEvent(icmp_redirect, vl);
+	ConnectionEvent(f, vl);
 	}
 
 
-void ICMP_Context_Analyzer::NextICMP(double t, const struct icmp* icmpp,
-				int len, int caplen, const u_char*& data)
+void ICMP_Analyzer::NeighborAdvert(double t, const struct icmp* icmpp, int len,
+			 int caplen, const u_char*& data, const IP_Hdr* /*ip_hdr*/)
+	{
+	EventHandlerPtr f = icmp_neighbor_advertisement;
+	in6_addr tgtaddr;
+
+	memcpy(&tgtaddr.s6_addr, data, sizeof(tgtaddr.s6_addr));
+
+	val_list* vl = new val_list;
+	vl->append(BuildConnVal());
+	vl->append(BuildICMPVal(icmpp, len, 1));
+	vl->append(new AddrVal(IPAddr(tgtaddr)));
+
+	ConnectionEvent(f, vl);
+	}
+
+
+void ICMP_Analyzer::NeighborSolicit(double t, const struct icmp* icmpp, int len,
+			 int caplen, const u_char*& data, const IP_Hdr* /*ip_hdr*/)
+	{
+	EventHandlerPtr f = icmp_neighbor_solicitation;
+	in6_addr tgtaddr;
+
+	memcpy(&tgtaddr.s6_addr, data, sizeof(tgtaddr.s6_addr));
+
+	val_list* vl = new val_list;
+	vl->append(BuildConnVal());
+	vl->append(BuildICMPVal(icmpp, len, 1));
+	vl->append(new AddrVal(IPAddr(tgtaddr)));
+
+	ConnectionEvent(f, vl);
+	}
+
+
+void ICMP_Analyzer::Redirect(double t, const struct icmp* icmpp, int len,
+			 int caplen, const u_char*& data, const IP_Hdr* /*ip_hdr*/)
+	{
+	EventHandlerPtr f = icmp_redirect;
+	in6_addr tgtaddr, dstaddr;
+
+	memcpy(&tgtaddr.s6_addr, data, sizeof(tgtaddr.s6_addr));
+	memcpy(&dstaddr.s6_addr, data + sizeof(tgtaddr.s6_addr), sizeof(dstaddr.s6_addr));
+
+	val_list* vl = new val_list;
+	vl->append(BuildConnVal());
+	vl->append(BuildICMPVal(icmpp, len, 1));
+	vl->append(new AddrVal(IPAddr(tgtaddr)));
+	vl->append(new AddrVal(IPAddr(dstaddr)));
+
+	ConnectionEvent(f, vl);
+	}
+
+
+void ICMP_Analyzer::Router(double t, const struct icmp* icmpp, int len,
+			 int caplen, const u_char*& data, const IP_Hdr* /*ip_hdr*/)
 	{
 	EventHandlerPtr f = 0;
-	switch ( type ) {
-	case ICMP_UNREACH: f = icmp_unreachable; break;
-	case ICMP_TIMXCEED: f = icmp_time_exceeded; break;
+
+	switch ( icmpp->icmp_type )
+		{
+		case ND_ROUTER_SOLICIT:
+			f = icmp_router_solicitation;
+			break;
+		case ICMP6_ROUTER_RENUMBERING:
+		default:
+			ICMPEvent(icmp_sent, icmpp, len, 1);
+			return;
+		}
+
+	val_list* vl = new val_list;
+	vl->append(BuildConnVal());
+	vl->append(BuildICMPVal(icmpp, len, 1));
+
+	ConnectionEvent(f, vl);
 	}
+
+
+void ICMP_Analyzer::Context4(double t, const struct icmp* icmpp,
+		int len, int caplen, const u_char*& data, const IP_Hdr* ip_hdr)
+	{
+	EventHandlerPtr f = 0;
+
+	switch ( icmpp->icmp_type )
+		{
+		case ICMP_UNREACH:
+			f = icmp_unreachable;
+			break;
+
+		case ICMP_TIMXCEED:
+			f = icmp_time_exceeded;
+			break;
+		}
 
 	if ( f )
 		{
 		val_list* vl = new val_list;
 		vl->append(BuildConnVal());
-		vl->append(BuildICMPVal());
-		vl->append(new Val(code, TYPE_COUNT));
-		vl->append(ExtractICMPContext(caplen, data));
-
+		vl->append(BuildICMPVal(icmpp, len, 0));
+		vl->append(new Val(icmpp->icmp_code, TYPE_COUNT));
+		vl->append(ExtractICMP4Context(caplen, data));
 		ConnectionEvent(f, vl);
 		}
 	}
 
 
-int ICMP_counterpart(int icmp_type, int icmp_code, bool& is_one_way)
+void ICMP_Analyzer::Context6(double t, const struct icmp* icmpp,
+		int len, int caplen, const u_char*& data, const IP_Hdr* ip_hdr)
+	{
+	EventHandlerPtr f = 0;
+
+	switch ( icmpp->icmp_type )
+		{
+		case ICMP6_DST_UNREACH:
+			f = icmp_unreachable;
+			break;
+
+		case ICMP6_PARAM_PROB:
+			f = icmp_parameter_problem;
+			break;
+
+		case ICMP6_TIME_EXCEEDED:
+			f = icmp_time_exceeded;
+			break;
+
+		case ICMP6_PACKET_TOO_BIG:
+			f = icmp_packet_too_big;
+			break;
+		}
+
+	if ( f )
+		{
+		val_list* vl = new val_list;
+		vl->append(BuildConnVal());
+		vl->append(BuildICMPVal(icmpp, len, 1));
+		vl->append(new Val(icmpp->icmp_code, TYPE_COUNT));
+		vl->append(ExtractICMP6Context(caplen, data));
+		ConnectionEvent(f, vl);
+		}
+	}
+
+int ICMP4_counterpart(int icmp_type, int icmp_code, bool& is_one_way)
 	{
 	is_one_way = false;
 
-	// return the counterpart type if one exists.  This allows us
+	// Return the counterpart type if one exists.  This allows us
 	// to track corresponding ICMP requests/replies.
 	// Note that for the two-way ICMP messages, icmp_code is
 	// always 0 (RFC 792).
 	switch ( icmp_type ) {
 	case ICMP_ECHO:			return ICMP_ECHOREPLY;
 	case ICMP_ECHOREPLY:		return ICMP_ECHO;
+
 	case ICMP_TSTAMP:		return ICMP_TSTAMPREPLY;
 	case ICMP_TSTAMPREPLY:		return ICMP_TSTAMP;
+
 	case ICMP_IREQ:			return ICMP_IREQREPLY;
 	case ICMP_IREQREPLY:		return ICMP_IREQ;
+
 	case ICMP_ROUTERSOLICIT:	return ICMP_ROUTERADVERT;
+
 	case ICMP_MASKREQ:		return ICMP_MASKREPLY;
 	case ICMP_MASKREPLY:		return ICMP_MASKREQ;
+
+	default:			is_one_way = true; return icmp_code;
+	}
+	}
+
+int ICMP6_counterpart(int icmp_type, int icmp_code, bool& is_one_way)
+	{
+	is_one_way = false;
+
+	switch ( icmp_type ) {
+	case ICMP6_ECHO_REQUEST:		return ICMP6_ECHO_REPLY;
+	case ICMP6_ECHO_REPLY:			return ICMP6_ECHO_REQUEST;
+
+	case ND_ROUTER_SOLICIT:			return ND_ROUTER_ADVERT;
+	case ND_ROUTER_ADVERT:			return ND_ROUTER_SOLICIT;
+
+	case ND_NEIGHBOR_SOLICIT:		return ND_NEIGHBOR_ADVERT;
+	case ND_NEIGHBOR_ADVERT:		return ND_NEIGHBOR_SOLICIT;
+
+	case MLD_LISTENER_QUERY: 		return MLD_LISTENER_REPORT;
+	case MLD_LISTENER_REPORT:		return MLD_LISTENER_QUERY;
+
+	// ICMP node information query and response respectively (not defined in
+	// icmp6.h)
+	case 139:						return 140;
+	case 140:						return 139;
+
+	// Home Agent Address Discovery Request Message and reply
+	case 144:							return 145;
+	case 145:							return 144;
+
+	// TODO: Add further counterparts.
 
 	default:			is_one_way = true; return icmp_code;
 	}

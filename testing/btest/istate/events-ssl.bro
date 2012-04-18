@@ -1,4 +1,5 @@
-# 
+# @TEST-GROUP: comm
+#
 # @TEST-EXEC: btest-bg-run sender   bro -C -r $TRACES/web.trace --pseudo-realtime ../sender.bro
 # @TEST-EXEC: btest-bg-run receiver bro ../receiver.bro
 # @TEST-EXEC: btest-bg-wait -k 20
@@ -16,7 +17,8 @@
 
 @TEST-START-FILE sender.bro
 
-@load frameworks/communication/listen-ssl
+@load frameworks/communication/listen
+redef Communication::listen_ssl=T;
 
 event bro_init()
     {

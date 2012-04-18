@@ -1,5 +1,3 @@
-// $Id: NetbiosSSN.cc 6916 2009-09-24 20:48:36Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -112,7 +110,7 @@ int NetbiosSSN_Interpreter::ParseDatagram(const u_char* data, int len,
 
 	return 0;
  	}
- 
+
 int NetbiosSSN_Interpreter::ParseBroadcast(const u_char* data, int len,
 						int is_query)
  	{
@@ -132,6 +130,9 @@ int NetbiosSSN_Interpreter::ParseBroadcast(const u_char* data, int len,
 		smb_session->Deliver(is_query, len, data);
 		return 0;
 		}
+
+	delete srcname;
+	delete dstname;
 
 	return 0;
 	}

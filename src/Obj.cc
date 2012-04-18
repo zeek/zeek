@@ -1,5 +1,3 @@
-// $Id: Obj.cc 6752 2009-06-14 04:24:52Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -232,6 +230,8 @@ bool BroObj::DoSerialize(SerialInfo* info) const
 bool BroObj::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(SerialObj);
+
+	delete location;
 
 	UNSERIALIZE_OPTIONAL(location, Location::Unserialize(info));
 	return true;

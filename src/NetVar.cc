@@ -1,5 +1,3 @@
-// $Id: NetVar.cc 6887 2009-08-20 05:17:33Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -18,7 +16,9 @@ RecordType* pcap_packet;
 RecordType* signature_state;
 EnumType* transport_proto;
 TableType* string_set;
+TableType* string_array;
 TableType* count_set;
+VectorType* string_vec;
 
 int watchdog_interval;
 
@@ -47,15 +47,6 @@ int tcp_max_initial_window;
 int tcp_max_above_hole_without_any_acks;
 int tcp_excessive_data_without_further_acks;
 
-int ssl_compare_cipherspecs;
-int ssl_analyze_certificates;
-int ssl_store_certificates;
-int ssl_verify_certificates;
-int ssl_store_key_material;
-int ssl_max_cipherspec_size;
-StringVal* ssl_store_cert_path;
-StringVal* x509_trusted_cert_path;
-TableType* cipher_suites_list;
 RecordType* x509_type;
 
 double non_analyzed_lifetime;
@@ -192,8 +183,6 @@ StringVal* ssl_ca_certificate;
 StringVal* ssl_private_key;
 StringVal* ssl_passphrase;
 
-StringVal* x509_crl_file;
-
 Val* profiling_file;
 double profiling_interval;
 int expensive_profiling_multiple;
@@ -212,11 +201,6 @@ int packet_filter_default;
 int sig_max_group_size;
 
 int enable_syslog;
-
-int use_connection_compressor;
-int cc_handle_resets;
-int cc_handle_only_syns;
-int cc_instantiate_on_data;
 
 TableType* irc_join_list;
 RecordType* irc_join_info;
@@ -330,6 +314,8 @@ void init_net_var()
 	pcap_packet = internal_type("pcap_packet")->AsRecordType();
 	transport_proto = internal_type("transport_proto")->AsEnumType();
 	string_set = internal_type("string_set")->AsTableType();
+	string_array = internal_type("string_array")->AsTableType();
+	string_vec = internal_type("string_vec")->AsVectorType();
 
 	ignore_checksums = opt_internal_int("ignore_checksums");
 	partial_connection_ok = opt_internal_int("partial_connection_ok");
@@ -356,17 +342,7 @@ void init_net_var()
 	tcp_excessive_data_without_further_acks =
 		opt_internal_int("tcp_excessive_data_without_further_acks");
 
-	ssl_compare_cipherspecs  = opt_internal_int("ssl_compare_cipherspecs");
-	ssl_analyze_certificates = opt_internal_int("ssl_analyze_certificates");
-	ssl_store_certificates   = opt_internal_int("ssl_store_certificates");
-	ssl_verify_certificates  = opt_internal_int("ssl_verify_certificates");
-	ssl_store_key_material = opt_internal_int("ssl_store_key_material");
-	ssl_max_cipherspec_size  = opt_internal_int("ssl_max_cipherspec_size");
-
-	x509_trusted_cert_path = opt_internal_string("X509_trusted_cert_path");
-	ssl_store_cert_path = opt_internal_string("ssl_store_cert_path");
 	x509_type = internal_type("X509")->AsRecordType();
-	x509_crl_file = opt_internal_string("X509_crl_file");
 
 	non_analyzed_lifetime = opt_internal_double("non_analyzed_lifetime");
 	tcp_inactivity_timeout = opt_internal_double("tcp_inactivity_timeout");
@@ -522,12 +498,6 @@ void init_net_var()
 	load_sample_freq = opt_internal_int("load_sample_freq");
 
 	gap_report_freq = opt_internal_double("gap_report_freq");
-
-	use_connection_compressor =
-		opt_internal_int("use_connection_compressor");
-	cc_handle_resets = opt_internal_int("cc_handle_resets");
-	cc_handle_only_syns = opt_internal_int("cc_handle_only_syns");
-	cc_instantiate_on_data = opt_internal_int("cc_instantiate_on_data");
 
 	irc_join_info = internal_type("irc_join_info")->AsRecordType();
 	irc_join_list = internal_type("irc_join_list")->AsTableType();

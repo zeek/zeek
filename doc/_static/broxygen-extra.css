@@ -1,0 +1,160 @@
+
+a.toc-backref {
+    color: #333;
+}
+
+h1, h2, h3, h4, h5, h6,
+h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
+	padding:0 0 0px 0;
+}
+
+ul {
+    padding-bottom: 0px;
+}    
+
+h1 {
+    font-weight: bold;
+    font-size: 32px;
+	line-height:32px;
+    text-align: center;
+    padding-top: 3px;
+    margin-bottom: 30px;
+    font-family: Palatino,'Palatino Linotype',Georgia,serif;;
+    color: #000;
+    border-bottom: 0px;
+}
+
+th.field-name
+{
+    white-space:nowrap;
+}
+
+h2 {
+    margin-top: 50px;
+    padding-bottom: 5px;
+    margin-bottom: 30px;
+    border-bottom: 1px solid;
+    border-color: #aaa;
+    font-style: normal;
+}
+
+div.section h3 {
+    font-style: normal;
+    }
+
+h3 {
+    font-size: 20px;
+    margin-top: 40px;
+    margin-bottom: 0¡px;
+    font-weight: bold;
+    font-style: normal;
+}
+
+h3.widgettitle {
+    font-style: normal;
+}    
+
+h4 {
+    font-size:18px;
+    font-style: normal;
+    margin-bottom: 0em;
+    margin-top: 40px;
+    font-style: italic;
+}
+
+h5 {
+    font-size:16px;
+}
+
+h6 {
+    font-size:15px;
+}
+
+.toc-backref {
+    color: #333;
+}
+
+.contents ul {
+   padding-bottom: 1em;
+}
+
+dl.namespace {
+    display: none;
+}
+
+dl dt {
+    font-weight: normal;
+}
+
+table.docutils tbody {
+    margin: 1em 1em 1em 1em;
+}
+
+table.docutils td {
+    padding: 5pt 5pt 5pt 5pt;
+    font-size: 14px;
+    border-left: 0;
+    border-right: 0;
+}
+
+dl pre {
+    font-size: 14px;
+}
+
+table.docutils th {
+    padding: 5pt 5pt 5pt 5pt;
+    font-size: 14px;
+    font-style: normal;
+    border-left: 0;
+    border-right: 0;
+}
+
+table.docutils tr:first-child td {
+    #border-top: 1px solid #aaa;
+}
+
+.download {
+    font-family:"Courier New", Courier, mono;
+    font-weight: normal;
+}
+
+dt:target, .highlighted {
+    background-color: #ccc;
+}
+
+p {
+    padding-bottom: 0px;
+}
+
+p.last {
+    margin-bottom: 0px;
+}
+
+dl {
+    padding: 1em 1em 1em 1em;
+    background: #fffff0;
+    border: 1px solid #aaa;
+
+}
+
+dl {
+   margin-bottom: 10px;
+}
+
+
+table.docutils {
+    background: #fffff0;
+    border-collapse: collapse;
+    border: 1px solid #ddd;
+}
+
+dl table.docutils {
+    border: 0;
+}
+
+table.docutils dl {
+    border: 1px dashed #666;
+}
+
+
+

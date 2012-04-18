@@ -1,5 +1,3 @@
-// $Id: AnalyzerTags.h,v 1.1.2.5 2006/06/01 01:55:42 sommer Exp $
-
 #ifndef ANALYZERTAGS_H
 #define ANALYZERTAGS_H
 
@@ -22,9 +20,7 @@ namespace AnalyzerTag {
 		PIA_TCP, PIA_UDP,
 
 		// Transport-layer analyzers.
-		ICMP,
-		ICMP_TimeExceeded, ICMP_Unreachable, ICMP_Echo, ICMP_Redir,
-		TCP, UDP,
+		ICMP, TCP, UDP,
 
 		// Application-layer analyzers (hand-written).
 		BitTorrent, BitTorrentTracker,

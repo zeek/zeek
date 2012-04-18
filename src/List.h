@@ -1,5 +1,3 @@
-// $Id: List.h 463 2004-09-26 21:04:20Z vern $
-
 #ifndef list_h
 #define list_h
 

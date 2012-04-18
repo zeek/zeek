@@ -1,5 +1,3 @@
-# $Id:$
-
 # Some common definitions for the SSL and SSL record-layer analyzers.
 
 %extern{

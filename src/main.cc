@@ -1,5 +1,3 @@
-// $Id: main.cc 6829 2009-07-09 09:12:59Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -31,7 +29,6 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "Event.h"
 #include "File.h"
 #include "Reporter.h"
-#include "LogMgr.h"
 #include "Net.h"
 #include "NetVar.h"
 #include "Var.h"
@@ -46,11 +43,17 @@ extern "C" void OPENSSL_add_all_algorithms_conf(void);
 #include "PersistenceSerializer.h"
 #include "EventRegistry.h"
 #include "Stats.h"
-#include "ConnCompressor.h"
 #include "DPM.h"
 #include "BroDoc.h"
+#include "Brofiler.h"
+
+#include "threading/Manager.h"
+#include "logging/Manager.h"
+#include "logging/writers/Ascii.h"
 
 #include "binpac_bro.h"
+
+Brofiler brofiler;
 
 #ifndef HAVE_STRSEP
 extern "C" {
@@ -62,7 +65,7 @@ extern "C" {
 #include "setsignal.h"
 };
 
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 HeapLeakChecker* heap_checker = 0;
 int perftools_leaks = 0;
 int perftools_profile = 0;
@@ -73,7 +76,8 @@ char* writefile = 0;
 name_list prefixes;
 DNS_Mgr* dns_mgr;
 TimerMgr* timer_mgr;
-LogMgr* log_mgr;
+logging::Manager* log_mgr = 0;
+threading::Manager* thread_mgr = 0;
 Stmt* stmts;
 EventHandlerPtr net_done = 0;
 RuleMatcher* rule_matcher = 0;
@@ -93,11 +97,11 @@ int do_notice_analysis = 0;
 int rule_bench = 0;
 int generate_documentation = 0;
 SecondaryPath* secondary_path = 0;
-ConnCompressor* conn_compressor = 0;
 extern char version[];
 char* command_line_policy = 0;
 vector<string> params;
 char* proc_status_file = 0;
+int snaplen = 0;	// this gets set from the scripting-layer's value
 
 int FLAGS_use_binpac = false;
 
@@ -145,7 +149,6 @@ void usage()
 	fprintf(stderr, "    -g|--dump-config               | dump current config into .state dir\n");
 	fprintf(stderr, "    -h|--help|-?                   | command line help\n");
 	fprintf(stderr, "    -i|--iface <interface>         | read from given interface\n");
-	fprintf(stderr, "    -Z|--doc-scripts               | generate documentation for all loaded scripts\n");
 	fprintf(stderr, "    -p|--prefix <prefix>           | add given prefix to policy file resolution\n");
 	fprintf(stderr, "    -r|--readfile <readfile>       | read from given tcpdump file\n");
 	fprintf(stderr, "    -y|--flowfile <file>[=<ident>] | read from given flow file\n");
@@ -172,8 +175,9 @@ void usage()
 	fprintf(stderr, "    -T|--re-level <level>          | set 'RE_level' for rules\n");
 	fprintf(stderr, "    -U|--status-file <file>        | Record process status in file\n");
 	fprintf(stderr, "    -W|--watchdog                  | activate watchdog timer\n");
+	fprintf(stderr, "    -Z|--doc-scripts               | generate documentation for all loaded scripts\n");
 
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 	fprintf(stderr, "    -m|--mem-leaks                 | show leaks  [perftools]\n");
 	fprintf(stderr, "    -M|--mem-profile               | record heap [perftools]\n");
 #endif
@@ -194,6 +198,8 @@ void usage()
 	fprintf(stderr, "    $BRO_PREFIXES                  | prefix list (%s)\n", bro_prefixes());
 	fprintf(stderr, "    $BRO_DNS_FAKE                  | disable DNS lookups (%s)\n", bro_dns_fake());
 	fprintf(stderr, "    $BRO_SEED_FILE                 | file to load seeds from (not set)\n");
+	fprintf(stderr, "    $BRO_LOG_SUFFIX                | ASCII log file extension (.%s)\n", logging::writer::Ascii::LogExt().c_str());
+	fprintf(stderr, "    $BRO_PROFILER_FILE             | Output file for script execution statistics (not set)\n");
 
 	exit(1);
 	}
@@ -229,6 +235,8 @@ void done_with_network()
 
 	dpm->Done();
 	timer_mgr->Expire();
+	dns_mgr->Flush();
+	mgr.Drain();
 	mgr.Drain();
 
 	if ( remote_serializer )
@@ -236,7 +244,7 @@ void done_with_network()
 
 	net_finish(1);
 
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 
 		if ( perftools_profile )
 			{
@@ -258,6 +266,8 @@ void terminate_bro()
 
 	terminating = true;
 
+	brofiler.WriteStats();
+
 	EventHandlerPtr bro_done = internal_handler("bro_done");
 	if ( bro_done )
 		mgr.QueueEvent(bro_done, new val_list);
@@ -278,6 +288,9 @@ void terminate_bro()
 	if ( remote_serializer )
 		remote_serializer->LogStats();
 
+	log_mgr->Terminate();
+	thread_mgr->Terminate();
+
 	delete timer_mgr;
 	delete dns_mgr;
 	delete persistence_serializer;
@@ -286,10 +299,10 @@ void terminate_bro()
 	delete state_serializer;
 	delete event_registry;
 	delete secondary_path;
-	delete conn_compressor;
 	delete remote_serializer;
 	delete dpm;
 	delete log_mgr;
+	delete thread_mgr;
 	delete reporter;
 	}
 
@@ -318,6 +331,13 @@ RETSIGTYPE sig_handler(int signo)
 	{
 	set_processing_status("TERMINATING", "sig_handler");
 	signal_val = signo;
+
+	if ( thread_mgr->Terminating() && (signal_val == SIGTERM || signal_val == SIGINT) )
+		// If the thread manager is already terminating (i.e.,
+		// waiting for child threads to exit), another term signal
+		// will send the threads a kill.
+		thread_mgr->KillThreads();
+
 	return RETSIGVAL;
 	}
 
@@ -333,6 +353,8 @@ static void bro_new_handler()
 
 int main(int argc, char** argv)
 	{
+	brofiler.ReadStats();
+
 	bro_argc = argc;
 	bro_argv = new char* [argc];
 
@@ -350,6 +372,7 @@ int main(int argc, char** argv)
 	char* seed_load_file = getenv("BRO_SEED_FILE");
 	char* seed_save_file = 0;
 	char* user_pcap_filter = 0;
+	char* debug_streams = 0;
 	int bare_mode = false;
 	int seed = 0;
 	int dump_cfg = false;
@@ -367,7 +390,6 @@ int main(int argc, char** argv)
 		{"filter",		required_argument,	0,	'f'},
 		{"help",		no_argument,		0,	'h'},
 		{"iface",		required_argument,	0,	'i'},
-		{"print-scripts",	no_argument,		0,	'l'},
 		{"doc-scripts",		no_argument,		0,	'Z'},
 		{"prefix",		required_argument,	0,	'p'},
 		{"readfile",		required_argument,	0,	'r'},
@@ -402,7 +424,7 @@ int main(int argc, char** argv)
 #ifdef	USE_IDMEF
 		{"idmef-dtd",		required_argument,	0,	'n'},
 #endif
-#ifdef	USE_PERFTOOLS
+#ifdef	USE_PERFTOOLS_DEBUG
 		{"mem-leaks",	no_argument,		0,	'm'},
 		{"mem-profile",	no_argument,		0,	'M'},
 #endif
@@ -441,10 +463,10 @@ int main(int argc, char** argv)
 	opterr = 0;
 
 	char opts[256];
-	safe_strncpy(opts, "B:D:e:f:I:i:K:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGLOPSWbdghvZ",
+	safe_strncpy(opts, "B:D:e:f:I:i:K:l:n:p:R:r:s:T:t:U:w:x:X:y:Y:z:CFGLOPSWbdghvZ",
 		     sizeof(opts));
 
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 	strncat(opts, "mM", 2);
 #endif
 
@@ -454,7 +476,7 @@ int main(int argc, char** argv)
 		case 'b':
 			bare_mode = true;
 			break;
-			
+
 		case 'd':
 			fprintf(stderr, "Policy file debugging ON.\n");
 			g_policy_debug = true;
@@ -600,7 +622,7 @@ int main(int argc, char** argv)
 			exit(0);
 			break;
 
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 		case 'm':
 			perftools_leaks = 1;
 			break;
@@ -632,9 +654,7 @@ int main(int argc, char** argv)
 #endif
 
 		case 'B':
-#ifdef DEBUG
-			debug_logger.EnableStreams(optarg);
-#endif
+			debug_streams = optarg;
 			break;
 
 		case 0:
@@ -652,7 +672,14 @@ int main(int argc, char** argv)
 	set_processing_status("INITIALIZING", "main");
 
 	bro_start_time = current_time(true);
+
 	reporter = new Reporter();
+	thread_mgr = new threading::Manager();
+
+#ifdef DEBUG
+	if ( debug_streams )
+		debug_logger.EnableStreams(debug_streams);
+#endif
 
 	init_random_seed(seed, (seed_load_file && *seed_load_file ? seed_load_file : 0) , seed_save_file);
 	// DEBUG_MSG("HMAC key: %s\n", md5_digest_print(shared_hmac_md5_key));
@@ -713,7 +740,7 @@ int main(int argc, char** argv)
 	persistence_serializer = new PersistenceSerializer();
 	remote_serializer = new RemoteSerializer();
 	event_registry = new EventRegistry();
-	log_mgr = new LogMgr();
+	log_mgr = new logging::Manager();
 
 	if ( events_file )
 		event_player = new EventPlayer(events_file);
@@ -731,14 +758,14 @@ int main(int argc, char** argv)
 	// nevertheless reported; see perftools docs), thus
 	// we suppress some messages here.
 
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 	{
 	HeapLeakChecker::Disabler disabler;
 #endif
 
 	yyparse();
 
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 	}
 #endif
 
@@ -799,8 +826,6 @@ int main(int argc, char** argv)
 
 	delete [] script_rule_files;
 
-	conn_compressor = new ConnCompressor();
-
 	if ( g_policy_debug )
 		// ### Add support for debug command file.
 		dbg_init_debugger(0);
@@ -821,12 +846,14 @@ int main(int argc, char** argv)
 			}
 		}
 
+	snaplen = internal_val("snaplen")->AsCount();
+
 	// Initialize the secondary path, if it's needed.
 	secondary_path = new SecondaryPath();
 
 	if ( dns_type != DNS_PRIME )
 		net_init(interfaces, read_files, netflows, flow_files,
-			writefile, "tcp or udp or icmp",
+			writefile, "",
 			secondary_path->Filter(), do_watchdog);
 
 	BroFile::SetDefaultRotation(log_rotate_interval, log_max_size);
@@ -932,9 +959,8 @@ int main(int argc, char** argv)
 
 	if ( dead_handlers->length() > 0 && check_for_unused_event_handlers )
 		{
-		reporter->Warning("event handlers never invoked:");
 		for ( int i = 0; i < dead_handlers->length(); ++i )
-			reporter->Warning("\t", (*dead_handlers)[i]);
+			reporter->Warning("event handler never invoked: %s", (*dead_handlers)[i]);
 		}
 
 	delete dead_handlers;
@@ -946,7 +972,7 @@ int main(int argc, char** argv)
 		{
 		reporter->Info("invoked event handlers:");
 		for ( int i = 0; i < alive_handlers->length(); ++i )
-			reporter->Info((*alive_handlers)[i]);
+			reporter->Info("%s", (*alive_handlers)[i]);
 		}
 
 	delete alive_handlers;
@@ -986,12 +1012,14 @@ int main(int argc, char** argv)
 
 	have_pending_timers = ! reading_traces && timer_mgr->Size() > 0;
 
+	io_sources.Register(thread_mgr, true);
+
 	if ( io_sources.Size() > 0 || have_pending_timers )
 		{
 		if ( profiling_logger )
 			profiling_logger->Log();
 
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 		if ( perftools_leaks )
 			heap_checker = new HeapLeakChecker("net_run");
 

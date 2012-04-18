@@ -1,5 +1,3 @@
-// $Id: DebugLogger.cc 4771 2007-08-11 05:50:24Z vern $
-
 #ifdef DEBUG
 
 #include <stdlib.h>
@@ -17,7 +15,7 @@ DebugLogger::Stream DebugLogger::streams[NUM_DBGS] = {
 	{ "compressor", 0, false }, {"string", 0, false },
 	{ "notifiers", 0, false },  { "main-loop", 0, false },
 	{ "dpd", 0, false }, { "tm", 0, false },
-	{ "logging", 0, false }
+	{ "logging", 0, false }, { "threading", 0, false }
 };
 
 DebugLogger::DebugLogger(const char* filename)
@@ -74,7 +72,7 @@ void DebugLogger::EnableStreams(const char* s)
 			if ( strcasecmp("verbose", tok) == 0 )
 				verbose = true;
 			else
-				reporter->InternalError("unknown debug stream %s\n", tok);
+				reporter->FatalError("unknown debug stream %s\n", tok);
 			}
 
 		tok = strtok(0, ",");

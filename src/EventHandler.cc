@@ -1,5 +1,3 @@
-// $Id: EventHandler.cc 5911 2008-07-03 22:59:01Z vern $
-
 #include "Event.h"
 #include "EventHandler.h"
 #include "Func.h"
@@ -70,6 +68,7 @@ void EventHandler::Call(val_list* vl, bool no_remote)
 		}
 
 	if ( local )
+		// No try/catch here; we pass exceptions upstream.
 		Unref(local->Call(vl));
 	else
 		{

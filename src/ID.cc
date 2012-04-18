@@ -1,5 +1,3 @@
-// $Id: ID.cc 6724 2009-06-07 09:23:03Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -374,7 +372,7 @@ ID* ID::Unserialize(UnserialInfo* info)
 
 		Ref(id);
 		global_scope()->Insert(id->Name(), id);
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 		heap_checker->IgnoreObject(id);
 #endif
 		}

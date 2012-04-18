@@ -1,20 +1,18 @@
-// $Id: net_util.cc 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
 
-#ifdef BROv6
 #include <sys/types.h>
 #include <sys/socket.h>
 
 #include <netinet/in.h>
 
 #include <arpa/inet.h>
-#endif
 
 #include "Reporter.h"
 #include "net_util.h"
+#include "IPAddr.h"
+#include "IP.h"
 
 // - adapted from tcpdump
 // Returns the ones-complement checksum of a chunk of b short-aligned bytes.
@@ -34,79 +32,12 @@ int ones_complement_checksum(const void* p, int b, uint32 sum)
 	return sum;
 	}
 
-int tcp_checksum(const struct ip* ip, const struct tcphdr* tp, int len)
+int ones_complement_checksum(const IPAddr& a, uint32 sum)
 	{
-	// ### Note, this is only correct for IPv4.  This routine is only
-	// used by the connection compressor (which we turn off for IPv6
-	// traffic).
-
-	int tcp_len = tp->th_off * 4 + len;
-	uint32 sum;
-
-	if ( len % 2 == 1 )
-		// Add in pad byte.
-		sum = htons(((const u_char*) tp)[tcp_len - 1] << 8);
-	else
-		sum = 0;
-
-	sum = ones_complement_checksum((void*) &ip->ip_src.s_addr, 4, sum);
-	sum = ones_complement_checksum((void*) &ip->ip_dst.s_addr, 4, sum);
-
-	uint32 addl_pseudo =
-		(htons(IPPROTO_TCP) << 16) | htons((unsigned short) tcp_len);
-
-	sum = ones_complement_checksum((void*) &addl_pseudo, 4, sum);
-	sum = ones_complement_checksum((void*) tp, tcp_len, sum);
-
-	return sum;
+	const uint32* bytes;
+	int len = a.GetBytes(&bytes);
+	return ones_complement_checksum(bytes, len*4, sum);
 	}
-
-int udp_checksum(const struct ip* ip, const struct udphdr* up, int len)
-	{
-	uint32 sum;
-
-	if ( len % 2 == 1 )
-		// Add in pad byte.
-		sum = htons(((const u_char*) up)[len - 1] << 8);
-	else
-		sum = 0;
-
-	sum = ones_complement_checksum((void*) &ip->ip_src.s_addr, 4, sum);
-	sum = ones_complement_checksum((void*) &ip->ip_dst.s_addr, 4, sum);
-
-	uint32 addl_pseudo =
-		(htons(IPPROTO_UDP) << 16) | htons((unsigned short) len);
-
-	sum = ones_complement_checksum((void*) &addl_pseudo, 4, sum);
-	sum = ones_complement_checksum((void*) up, len, sum);
-
-	return sum;
-	}
-
-#ifdef BROv6
-int udp6_checksum(const struct ip6_hdr* ip6, const struct udphdr* up, int len)
-	{
-	uint32 sum;
-
-	if ( len % 2 == 1 )
-		// Add in pad byte.
-		sum = htons(((const u_char*) up)[len - 1] << 8);
-	else
-		sum = 0;
-
-	sum = ones_complement_checksum((void*) ip6->ip6_src.s6_addr, 16, sum);
-	sum = ones_complement_checksum((void*) ip6->ip6_dst.s6_addr, 16, sum);
-
-	uint32 l = htonl(len);
-	sum = ones_complement_checksum((void*) &l, 4, sum);
-
-	uint32 addl_pseudo = htons(IPPROTO_UDP);
-	sum = ones_complement_checksum((void*) &addl_pseudo, 4, sum);
-	sum = ones_complement_checksum((void*) up, len, sum);
-
-	return sum;
-	}
-#endif
 
 int icmp_checksum(const struct icmp* icmpp, int len)
 	{
@@ -117,6 +48,58 @@ int icmp_checksum(const struct icmp* icmpp, int len)
 		sum = htons(((const u_char*) icmpp)[len - 1] << 8);
 	else
 		sum = 0;
+
+	sum = ones_complement_checksum((void*) icmpp, len, sum);
+
+	return sum;
+	}
+
+#ifdef ENABLE_MOBILE_IPV6
+int mobility_header_checksum(const IP_Hdr* ip)
+	{
+	const ip6_mobility* mh = ip->MobilityHeader();
+
+	if ( ! mh ) return 0;
+
+	uint32 sum = 0;
+	uint8 mh_len = 8 + 8 * mh->ip6mob_len;
+
+	if ( mh_len % 2 == 1 )
+		reporter->Weird(ip->SrcAddr(), ip->DstAddr(), "odd_mobility_hdr_len");
+
+	sum = ones_complement_checksum(ip->SrcAddr(), sum);
+	sum = ones_complement_checksum(ip->DstAddr(), sum);
+	// Note, for IPv6, strictly speaking the protocol and length fields are
+	// 32 bits rather than 16 bits.  But because the upper bits are all zero,
+	// we get the same checksum either way.
+	sum += htons(IPPROTO_MOBILITY);
+	sum += htons(mh_len);
+	sum = ones_complement_checksum(mh, mh_len, sum);
+
+	return sum;
+	}
+#endif
+
+int icmp6_checksum(const struct icmp* icmpp, const IP_Hdr* ip, int len)
+	{
+	// ICMP6 uses the same checksum function as ICMP4 but a different
+	// pseudo-header over which it is computed.
+	uint32 sum;
+
+	if ( len % 2 == 1 )
+		// Add in pad byte.
+		sum = htons(((const u_char*) icmpp)[len - 1] << 8);
+	else
+		sum = 0;
+
+	// Pseudo-header as for UDP over IPv6 above.
+	sum = ones_complement_checksum(ip->SrcAddr(), sum);
+	sum = ones_complement_checksum(ip->DstAddr(), sum);
+	uint32 l = htonl(len);
+	sum = ones_complement_checksum((void*) &l, 4, sum);
+
+	uint32 addl_pseudo = htons(IPPROTO_ICMPV6);
+	sum = ones_complement_checksum((void*) &addl_pseudo, 4, sum);
 
 	sum = ones_complement_checksum((void*) icmpp, len, sum);
 
@@ -145,223 +128,24 @@ char addr_to_class(uint32 addr)
 		return 'A';
 	}
 
-uint32 addr_to_net(uint32 addr)
+const char* fmt_conn_id(const IPAddr& src_addr, uint32 src_port,
+			const IPAddr& dst_addr, uint32 dst_port)
 	{
-	if ( CHECK_CLASS(addr, CLASS_D) )
-		; // class D's are left alone ###
-	else if ( CHECK_CLASS(addr, CLASS_C) )
-		addr = addr & 0xffffff00;
-	else if ( CHECK_CLASS(addr, CLASS_B) )
-		addr = addr & 0xffff0000;
-	else
-		addr = addr & 0xff000000;
+	static char buffer[512];
 
-	return addr;
-	}
+	safe_snprintf(buffer, sizeof(buffer), "%s:%d > %s:%d",
+			string(src_addr).c_str(), src_port,
+			string(dst_addr).c_str(), dst_port);
 
-const char* dotted_addr(uint32 addr, int alternative)
-	{
-	addr = ntohl(addr);
-	const char* fmt = alternative ? "%d,%d.%d.%d" : "%d.%d.%d.%d";
-
-	static char buf[32];
-	snprintf(buf, sizeof(buf), fmt,
-		addr >> 24, (addr >> 16) & 0xff,
-		(addr >> 8) & 0xff, addr & 0xff);
-
-	return buf;
-	}
-
-const char* dotted_addr(const uint32* addr, int alternative)
-	{
-#ifdef BROv6
-	if ( is_v4_addr(addr) )
-		return dotted_addr(addr[3], alternative);
-
-	static char buf[256];
-
-	if ( inet_ntop(AF_INET6, addr, buf, sizeof buf) == NULL )
-		return "<bad IPv6 address conversion>";
-
-	return buf;
-
-#else
-	return dotted_addr(to_v4_addr(addr), alternative);
-#endif
-	}
-
-const char* dotted_net(uint32 addr)
-	{
-	addr = ntohl(addr);
-
-	static char buf[32];
-
-	if ( CHECK_CLASS(addr, CLASS_D) )
-		sprintf(buf, "%d.%d.%d.%d",
-			addr >> 24, (addr >> 16) & 0xff,
-			(addr >> 8) & 0xff, addr & 0xff);
-
-	else if ( CHECK_CLASS(addr, CLASS_C) )
-		sprintf(buf, "%d.%d.%d",
-			addr >> 24, (addr >> 16) & 0xff, (addr >> 8) & 0xff);
-
-	else
-		// Same for class A's and B's.
-		sprintf(buf, "%d.%d", addr >> 24, (addr >> 16) & 0xff);
-
-	return buf;
-	}
-
-#ifdef BROv6
-const char* dotted_net6(const uint32* addr)
-	{
-	if ( is_v4_addr(addr) )
-		return dotted_net(to_v4_addr(addr));
-	else
-		// ### this isn't right, but net's should go away eventually ...
-		return dotted_addr(addr);
-	}
-#endif
-
-uint32 dotted_to_addr(const char* addr_text)
-	{
-	int addr[4];
-
-	if ( sscanf(addr_text,
-		    "%d.%d.%d.%d", addr+0, addr+1, addr+2, addr+3) != 4 )
-		{
-		reporter->Error("bad dotted address:", addr_text );
-		return 0;
-		}
-
-	if ( addr[0] < 0 || addr[1] < 0 || addr[2] < 0 || addr[3] < 0 ||
-	     addr[0] > 255 || addr[1] > 255 || addr[2] > 255 || addr[3] > 255 )
-		{
-		reporter->Error("bad dotted address:", addr_text);
-		return 0;
-		}
-
-	uint32 a = (addr[0] << 24) | (addr[1] << 16) | (addr[2] << 8) | addr[3];
-
-	// ### perhaps do gethostbyaddr here?
-
-	return uint32(htonl(a));
-	}
-
-#ifdef BROv6
-uint32* dotted_to_addr6(const char* addr_text)
-	{
-	uint32* addr = new uint32[4];
-	if ( inet_pton(AF_INET6, addr_text, addr) <= 0 )
-		{
-		reporter->Error("bad IPv6 address:", addr_text );
-		addr[0] = addr[1] = addr[2] = addr[3] = 0;
-		}
-
-	return addr;
-	}
-
-#endif
-
-#ifdef BROv6
-int is_v4_addr(const uint32 addr[4])
-	{
-	return addr[0] == 0 && addr[1] == 0 && addr[2] == 0;
-	}
-#endif
-
-uint32 to_v4_addr(const uint32* addr)
-	{
-#ifdef BROv6
-	if ( ! is_v4_addr(addr) )
-		reporter->InternalError("conversion of non-IPv4 address to IPv4 address");
-	return addr[3];
-#else
-	return addr[0];
-#endif
-	}
-
-uint32 mask_addr(uint32 a, uint32 top_bits_to_keep)
-	{
-	if ( top_bits_to_keep > 32 )
-		{
-		reporter->Error("bad address mask value", top_bits_to_keep);
-		return a;
-		}
-
-	if ( top_bits_to_keep == 0 )
-		// The shifts below don't have any effect with 0, i.e.,
-		// 1 << 32 does not yield 0; either due to compiler
-		// misoptimization or language semantics.
-		return 0;
-
-	uint32 addr = ntohl(a);
-
-	int shift = 32 - top_bits_to_keep;
-	addr >>= shift;
-	addr <<= shift;
-
-	return htonl(addr);
-	}
-
-const uint32* mask_addr(const uint32* a, uint32 top_bits_to_keep)
-	{
-#ifdef BROv6
-	static uint32 addr[4];
-
-	addr[0] = a[0];
-	addr[1] = a[1];
-	addr[2] = a[2];
-	addr[3] = a[3];
-
-	// This is a bit dicey: if it's a v4 address, then we interpret
-	// the mask as being with respect to 32 bits total, even though
-	// strictly speaking, the v4 address comprises the least-significant
-	// bits out of 128, rather than the most significant.  However,
-	// we only do this if the mask itself is consistent for a 32-bit
-	// address.
-	uint32 max_bits = (is_v4_addr(a) && top_bits_to_keep <= 32) ? 32 : 128;
-
-	if ( top_bits_to_keep == 0 || top_bits_to_keep > max_bits )
-		{
-		reporter->Error("bad address mask value", top_bits_to_keep);
-		return addr;
-		}
-
-	int word = 3;	// start zeroing out with word #3
-	int bits_to_chop = max_bits - top_bits_to_keep;	// bits to discard
-	while ( bits_to_chop >= 32 )
-		{ // there's an entire word to discard
-		addr[word] = 0;
-		--word;	// move on to next, more significant word
-		bits_to_chop -= 32;	// we just go rid of 32 bits
-		}
-
-	// All that's left to work with now is the word pointed to by "word".
-	uint32 addr32 = ntohl(addr[word]);
-	addr32 >>= bits_to_chop;
-	addr32 <<= bits_to_chop;
-	addr[word] = htonl(addr32);
-
-	return addr;
-#else
-	return a;
-#endif
+	return buffer;
 	}
 
 const char* fmt_conn_id(const uint32* src_addr, uint32 src_port,
 			const uint32* dst_addr, uint32 dst_port)
 	{
-	char addr1[128], addr2[128];
-	static char buffer[512];
-
-	strcpy(addr1, dotted_addr(src_addr));
-	strcpy(addr2, dotted_addr(dst_addr));
-
-	safe_snprintf(buffer, sizeof(buffer), "%s:%d > %s:%d",
-			addr1, src_port, addr2, dst_port);
-
-	return buffer;
+	IPAddr src(IPv6, src_addr, IPAddr::Network);
+	IPAddr dst(IPv6, dst_addr, IPAddr::Network);
+	return fmt_conn_id(src, src_port, dst, dst_port);
 	}
 
 uint32 extract_uint32(const u_char* data)

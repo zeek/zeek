@@ -1,5 +1,3 @@
-// $Id: RemoteSerializer.h 6951 2009-12-04 22:23:28Z vern $
-//
 // Communication between two Bro's.
 
 #ifndef REMOTE_SERIALIZER
@@ -16,8 +14,11 @@
 // FIXME: Change this to network byte order
 
 class IncrementalSendTimer;
-class LogField;
-class LogVal;
+
+namespace threading {
+	class Field;
+	class Value;
+}
 
 // This class handles the communication done in Bro's main loop.
 class RemoteSerializer : public Serializer, public IOSource {
@@ -34,7 +35,10 @@ public:
 	static const PeerID PEER_NONE = SOURCE_LOCAL;
 
 	// Connect to host (returns PEER_NONE on error).
-	PeerID Connect(addr_type ip, uint16 port, const char* our_class, double retry, bool use_ssl);
+	PeerID Connect(const IPAddr& ip, uint16 port, const char* our_class, double retry, bool use_ssl);
+
+	// Close connection to host.
+	bool CloseConnection(PeerID peer);
 
 	// Request all events matching pattern from remote side.
 	bool RequestEvents(PeerID peer, RE_Matcher* pattern);
@@ -59,7 +63,7 @@ public:
 	bool CompleteHandshake(PeerID peer);
 
 	// Start to listen.
-	bool Listen(addr_type ip, uint16 port, bool expect_ssl);
+	bool Listen(const IPAddr& ip, uint16 port, bool expect_ssl);
 
 	// Stop it.
 	bool StopListening();
@@ -98,13 +102,13 @@ public:
 	bool SendPrintHookEvent(BroFile* f, const char* txt, size_t len);
 
 	// Send a request to create a writer on a remote side.
-	bool SendLogCreateWriter(PeerID peer, EnumVal* id, EnumVal* writer, string path, int num_fields, const LogField* const * fields);
+	bool SendLogCreateWriter(PeerID peer, EnumVal* id, EnumVal* writer, string path, int num_fields, const threading::Field* const * fields);
 
 	// Broadcasts a request to create a writer.
-	bool SendLogCreateWriter(EnumVal* id, EnumVal* writer, string path, int num_fields, const LogField* const * fields);
+	bool SendLogCreateWriter(EnumVal* id, EnumVal* writer, string path, int num_fields, const threading::Field* const * fields);
 
 	// Broadcast a log entry to everybody interested.
-	bool SendLogWrite(EnumVal* id, EnumVal* writer, string path, int num_fields, const LogVal* const * vals);
+	bool SendLogWrite(EnumVal* id, EnumVal* writer, string path, int num_fields, const threading::Value* const * vals);
 
 	// Synchronzizes time with all connected peers. Returns number of
 	// current sync-point, or -1 on error.
@@ -197,6 +201,7 @@ protected:
 		static const int NO_CACHING = 2;
 		static const int PID_64BIT = 4;
 		static const int NEW_CACHE_STRATEGY = 8;
+		static const int BROCCOLI_PEER = 16;
 
 		// Constants to remember to who did something.
 		static const int NONE = 0;
@@ -298,7 +303,7 @@ protected:
 	bool SendID(SerialInfo* info, Peer* peer, const ID& id);
 	bool SendCapabilities(Peer* peer);
 	bool SendPacket(SerialInfo* info, Peer* peer, const Packet& p);
-	bool SendLogWrite(Peer* peer, EnumVal* id, EnumVal* writer, string path, int num_fields, const LogVal* const * vals);
+	bool SendLogWrite(Peer* peer, EnumVal* id, EnumVal* writer, string path, int num_fields, const threading::Value* const * vals);
 
 	void UnregisterHandlers(Peer* peer);
 	void RaiseEvent(EventHandlerPtr event, Peer* peer, const char* arg = 0);
@@ -323,6 +328,7 @@ private:
 	PeerID current_id;
 	char current_msgtype;
 	ChunkedIO::Chunk* current_args;
+	double last_flush;
 
 	id_list sync_ids;
 
@@ -332,6 +338,7 @@ private:
 	int propagate_accesses;
 	bool ignore_accesses;
 	bool terminating;
+	int received_logs;
 	Peer* source_peer;
 	PeerID id_counter;	// Keeps track of assigned IDs.
 	uint32 current_sync_point;

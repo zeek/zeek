@@ -1,5 +1,3 @@
-// $Id: util.h 6782 2009-06-28 02:19:03Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef util_h
@@ -39,7 +37,7 @@
 
 #endif
 
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 #include <google/heap-checker.h>
 #include <google/heap-profiler.h>
 extern HeapLeakChecker* heap_checker;
@@ -78,6 +76,11 @@ typedef int32 ptr_compat_int;
 # error "Unusual pointer size. Please report to bro@bro-ids.org."
 #endif
 
+extern "C"
+	{
+	#include "modp_numtoa.h"
+	}
+
 template <class T>
 void delete_each(T* t)
 	{
@@ -85,6 +88,8 @@ void delete_each(T* t)
 	for ( iterator it = t->begin(); it != t->end(); ++it )
 		delete *it;
 	}
+
+std::string get_escaped_string(const std::string& str, bool escape_all);
 
 extern char* copy_string(const char* s);
 extern int streq(const char* s1, const char* s2);
@@ -225,8 +230,14 @@ extern struct timeval double_to_timeval(double t);
 extern int time_compare(struct timeval* tv_a, struct timeval* tv_b);
 
 // Returns an integer that's very likely to be unique, even across Bro
-// instances.
+// instances. The integer can be drawn from different pools, which is helpful
+// when the randon number generator is seeded to be deterministic. In that
+// case, the same sequence of integers is generated per pool.
+#define UID_POOL_DEFAULT_INTERNAL 1
+#define UID_POOL_DEFAULT_SCRIPT   2
+#define UID_POOL_CUSTOM_SCRIPT    10 // First available custom script level pool.
 extern uint64 calculate_unique_id();
+extern uint64 calculate_unique_id(const size_t pool);
 
 // For now, don't use hash_maps - they're not fully portable.
 #if 0

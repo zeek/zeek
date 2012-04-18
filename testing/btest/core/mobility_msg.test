@@ -1,0 +1,44 @@
+# @TEST-REQUIRES: grep -q "#define ENABLE_MOBILE_IPV6" $BUILD/config.h
+# @TEST-EXEC: bro -b -r $TRACES/mobile-ipv6/mip6_back.trace %INPUT >output
+# @TEST-EXEC: bro -b -r $TRACES/mobile-ipv6/mip6_be.trace %INPUT >>output
+# @TEST-EXEC: bro -b -r $TRACES/mobile-ipv6/mip6_brr.trace %INPUT >>output
+# @TEST-EXEC: bro -b -r $TRACES/mobile-ipv6/mip6_bu.trace %INPUT >>output
+# @TEST-EXEC: bro -b -r $TRACES/mobile-ipv6/mip6_cot.trace %INPUT >>output
+# @TEST-EXEC: bro -b -r $TRACES/mobile-ipv6/mip6_coti.trace %INPUT >>output
+# @TEST-EXEC: bro -b -r $TRACES/mobile-ipv6/mip6_hot.trace %INPUT >>output
+# @TEST-EXEC: bro -b -r $TRACES/mobile-ipv6/mip6_hoti.trace %INPUT >>output
+# @TEST-EXEC: btest-diff output
+
+event mobile_ipv6_message(p: pkt_hdr)
+	{
+	if ( ! p?$ip6 ) return;
+
+	for ( i in p$ip6$exts )
+		{
+		if ( p$ip6$exts[i]$id == IPPROTO_MOBILITY )
+			{
+			if ( ! p$ip6$exts[i]?$mobility )
+				print "ERROR: Mobility extension header uninitialized";
+
+			if ( p$ip6$exts[i]$mobility$mh_type == 0 )
+				print "Binding Refresh Request:";
+			else if ( p$ip6$exts[i]$mobility$mh_type == 1 )
+				print "Home Test Init:";
+			else if ( p$ip6$exts[i]$mobility$mh_type == 2 )
+				print "Care-of Test Init:";
+			else if ( p$ip6$exts[i]$mobility$mh_type == 3 )
+				print "Home Test:";
+			else if ( p$ip6$exts[i]$mobility$mh_type == 4 )
+				print "Care-of Test:";
+			else if ( p$ip6$exts[i]$mobility$mh_type == 5 )
+				print "Binding Update:";
+			else if ( p$ip6$exts[i]$mobility$mh_type == 6 )
+				print "Binding ACK:";
+			else if ( p$ip6$exts[i]$mobility$mh_type == 7 )
+				print "Binding Error:";
+			else
+				print "Unknown Mobility Header:";
+			print p$ip6;
+			}
+		}
+	}

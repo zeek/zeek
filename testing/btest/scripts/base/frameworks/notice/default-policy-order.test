@@ -1,0 +1,10 @@
+# This test checks that the default notice policy ordering does not
+# change from run to run.
+# @TEST-EXEC: bro -e ''
+# @TEST-EXEC: mv notice_policy.log notice_policy.log.1
+# @TEST-EXEC: bro -e ''
+# @TEST-EXEC: mv notice_policy.log notice_policy.log.2
+# @TEST-EXEC: bro -e ''
+# @TEST-EXEC: mv notice_policy.log notice_policy.log.3
+# @TEST-EXEC: diff notice_policy.log.1 notice_policy.log.2
+# @TEST-EXEC: diff notice_policy.log.1 notice_policy.log.3

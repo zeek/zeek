@@ -11,6 +11,8 @@
 # Specific scripts can be blacklisted below when e.g. they currently aren't
 # parseable or they just aren't meant to be documented.
 
+export LC_ALL=C # Make sorting stable.
+
 blacklist ()
     {
     if [[ "$blacklist" == "" ]]; then
@@ -33,9 +35,6 @@ blacklist test-all.bro
 blacklist all.bro
 blacklist init-default.bro
 blacklist init-bare.bro
-
-tmp_blacklist hot.conn.bro
-tmp_blacklist scan.bro
 
 statictext="\
 # DO NOT EDIT
@@ -68,12 +67,12 @@ sourcedir=${thisdir}/../..
 
 echo "$statictext" > $outfile
 
-bifs=`( cd ${sourcedir}/build/src && find . -name \*\.bro | sort )`
+bifs=`( cd ${sourcedir}/src && find . -name \*\.bif | sort )`
 
 for file in $bifs
 do
-    f=${file:2}
-    echo "rest_target(\${CMAKE_BINARY_DIR}/src $f)" >> $outfile
+    f=${file:2}.bro
+    echo "rest_target(\${CMAKE_BINARY_DIR}/src base/$f)" >> $outfile
 done
 
 scriptfiles=`( cd ${sourcedir}/scripts && find . -name \*\.bro | sort )`

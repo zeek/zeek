@@ -1,5 +1,3 @@
-// $Id: RuleAction.h 5880 2008-06-30 17:42:45Z vern $
-
 #ifndef ruleaction_h
 #define ruleaction_h
 

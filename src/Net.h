@@ -1,5 +1,3 @@
-// $Id: Net.h 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef net_h
@@ -74,6 +72,9 @@ extern bool terminating;
 
 // True if the remote serializer is to be activated.
 extern bool using_communication;
+
+// Snaplen passed to libpcap.
+extern int snaplen;
 
 extern const struct pcap_pkthdr* current_hdr;
 extern const u_char* current_pkt;

@@ -1,5 +1,3 @@
-// $Id: Stmt.cc 6916 2009-09-24 20:48:36Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "config.h"
@@ -260,6 +258,8 @@ static BroFile* print_stdout = 0;
 
 Val* PrintStmt::DoExec(val_list* vals, stmt_flow_type& /* flow */) const
 	{
+	RegisterAccess();
+
 	if ( ! print_stdout )
 		print_stdout = new BroFile(stdout);
 

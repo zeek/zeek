@@ -1,5 +1,3 @@
-// $Id: POP3.cc 6782 2009-06-28 02:19:03Z vern $
-
 // This code contributed to Bro by Florian Schimandl, Hugh Dollman and
 // Robin Sommer.
 
@@ -160,6 +158,7 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line)
 			if ( e >= end )
 				{
 				Weird("pop3_malformed_auth_plain");
+				delete decoded;
 				return;
 				}
 
@@ -169,6 +168,7 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line)
 			if ( s >= end )
 				{
 				Weird("pop3_malformed_auth_plain");
+				delete decoded;
 				return;
 				}
 

@@ -1,0 +1,41 @@
+#
+# @TEST-EXEC: bro -b -B logging %INPUT
+# @TEST-EXEC: btest-diff ssh.log
+# @TEST-EXEC: btest-diff ssh.failure.log
+
+module SSH;
+
+export {
+	# Create a new ID for our log stream
+	redef enum Log::ID += { LOG };
+
+	# Define a record with all the columns the log file can have.
+	# (I'm using a subset of fields from ssh-ext for demonstration.)
+	type Log: record {
+		t: time;
+		id: conn_id; # Will be rolled out into individual columns.
+		status: string &optional;
+		country: string &default="unknown";
+	} &log;
+}
+
+event bro_init()
+{
+	Log::create_stream(SSH::LOG, [$columns=Log]);
+	Log::add_filter(SSH::LOG, [$name="f1", $path="ssh.failure", $pred=function(rec: Log): bool { return rec$status == "failure"; }]);
+
+    local cid = [$orig_h=1.2.3.4, $orig_p=1234/tcp, $resp_h=2.3.4.5, $resp_p=80/tcp];
+
+	# Log something.
+	Log::write(SSH::LOG, [$t=network_time(), $id=cid, $status="failure", $country="US"]);
+	Log::write(SSH::LOG, [$t=network_time(), $id=cid, $status="failure", $country="UK"]);
+
+	Log::remove_filter(SSH::LOG, "f1");
+	Log::write(SSH::LOG, [$t=network_time(), $id=cid, $status="failure", $country="BR"]);
+
+	Log::remove_filter(SSH::LOG, "default");
+	Log::write(SSH::LOG, [$t=network_time(), $id=cid, $status="failure", $country="MX"]);
+
+	Log::remove_filter(SSH::LOG, "doesn-not-exist");
+}
+

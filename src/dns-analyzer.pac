@@ -1,5 +1,3 @@
-# $Id:$
-
 %extern{
 #include <set>
 %}
@@ -218,44 +216,42 @@ flow DNS_Flow
 
 		switch ( rr->rr_type() ) {
 		case TYPE_A:
+			if ( dns_A_reply )
+				{
+				::uint32 addr = rd->type_a();
+				BifEvent::generate_dns_A_reply(connection()->bro_analyzer(),
+					connection()->bro_analyzer()->Conn(),
+					dns_msg_val_->Ref(), build_dns_answer(rr),
+					new AddrVal(htonl(addr)));
+				}
+			break;
+
 		case TYPE_A6:
-		case TYPE_AAAA:
-			if ( ! dns_A_reply )
-				break;
-
-#ifdef BROv6
-			::uint32 addr[4];
-#else
-			addr_type addr;
-#endif
-
-			if ( rr->rr_type() == TYPE_A )
+			if ( dns_A6_reply )
 				{
-#ifdef BROv6
-				addr[0] = addr[1] = addr[2] = 0;
-				addr[3] = htonl(rd->type_a());
-#else
-				addr = htonl(rd->type_a());
-#endif
-				}
-
-			else
-				{
-#ifdef BROv6
-				for ( int i = 0; i < 4; ++i )
+				::uint32 addr[4];
+				for ( unsigned int i = 0; i < 4; ++i )
 					addr[i] = htonl((*rd->type_aaaa())[i]);
-#else
-				addr = htonl((*rd->type_aaaa())[3]);
-#endif
-				}
 
-			// For now, we treat A6 and AAAA as A's.  Given the
-			// above fixes for BROv6, we can probably now introduce
-			// their own events.  (It's not clear A6 is needed -
-			// do we actually encounter it in practice?)
-			BifEvent::generate_dns_A_reply(connection()->bro_analyzer(),
-				connection()->bro_analyzer()->Conn(),
-				dns_msg_val_->Ref(), build_dns_answer(rr), addr);
+				BifEvent::generate_dns_A6_reply(connection()->bro_analyzer(),
+					connection()->bro_analyzer()->Conn(),
+					dns_msg_val_->Ref(), build_dns_answer(rr),
+					new AddrVal(addr));
+				}
+			break;
+
+		case TYPE_AAAA:
+			if ( dns_AAAA_reply )
+				{
+				::uint32 addr[4];
+				for ( unsigned int i = 0; i < 4; ++i )
+					addr[i] = htonl((*rd->type_aaaa())[i]);
+
+				BifEvent::generate_dns_AAAA_reply(connection()->bro_analyzer(),
+					connection()->bro_analyzer()->Conn(),
+					dns_msg_val_->Ref(), build_dns_answer(rr),
+					new AddrVal(addr));
+				}
 			break;
 
 		case TYPE_NS:

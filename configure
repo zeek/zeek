@@ -27,11 +27,13 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
 
   Optional Features:
     --enable-debug         compile in debugging mode
-    --enable-brov6         enable IPv6 processing
-    --enable-perftools     use Google's perftools
+    --enable-mobile-ipv6   analyze mobile IPv6 features defined by RFC 6275
+    --enable-perftools-debug use Google's perftools for debugging
     --disable-broccoli     don't build or install the Broccoli library
     --disable-broctl       don't install Broctl
     --disable-auxtools     don't build or install auxilliary tools
+    --disable-python       don't try to build python bindings for broccoli
+    --disable-ruby         don't try to build ruby bindings for broccoli
 
   Required Packages in Non-Standard Locations:
     --with-openssl=PATH    path to OpenSSL install root
@@ -49,6 +51,9 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-python=PATH     path to Python interpreter
     --with-python-lib=PATH path to libpython
     --with-python-inc=PATH path to Python headers
+    --with-ruby=PATH       path to ruby interpreter
+    --with-ruby-lib=PATH   path to ruby library
+    --with-ruby-inc=PATH   path to ruby headers
     --with-swig=PATH       path to SWIG executable
 
   Packaging Options (for developers):
@@ -87,14 +92,14 @@ append_cache_entry BRO_ROOT_DIR         PATH   /usr/local/bro
 append_cache_entry PY_MOD_INSTALL_DIR   PATH   /usr/local/bro/lib/broctl
 append_cache_entry BRO_SCRIPT_INSTALL_PATH STRING /usr/local/bro/share/bro
 append_cache_entry ENABLE_DEBUG         BOOL   false
-append_cache_entry BROv6                BOOL   false
-append_cache_entry ENABLE_PERFTOOLS     BOOL   false
+append_cache_entry ENABLE_PERFTOOLS_DEBUG BOOL   false
 append_cache_entry BinPAC_SKIP_INSTALL  BOOL   true
 append_cache_entry BUILD_SHARED_LIBS    BOOL   true
 append_cache_entry INSTALL_AUX_TOOLS    BOOL   true
 append_cache_entry INSTALL_BROCCOLI     BOOL   true
 append_cache_entry INSTALL_BROCTL       BOOL   true
 append_cache_entry CPACK_SOURCE_IGNORE_FILES STRING
+append_cache_entry ENABLE_MOBILE_IPV6   BOOL   false
 
 # parse arguments
 while [ $# -ne 0 ]; do
@@ -129,11 +134,11 @@ while [ $# -ne 0 ]; do
         --enable-debug)
             append_cache_entry ENABLE_DEBUG         BOOL   true
             ;;
-        --enable-brov6)
-            append_cache_entry BROv6                BOOL   true
+        --enable-mobile-ipv6)
+            append_cache_entry ENABLE_MOBILE_IPV6         BOOL   true
             ;;
-        --enable-perftools)
-            append_cache_entry ENABLE_PERFTOOLS     BOOL   true
+        --enable-perftools-debug)
+            append_cache_entry ENABLE_PERFTOOLS_DEBUG BOOL   true
             ;;
         --disable-broccoli)
             append_cache_entry INSTALL_BROCCOLI     BOOL   false
@@ -143,6 +148,12 @@ while [ $# -ne 0 ]; do
             ;;
         --disable-auxtools)
             append_cache_entry INSTALL_AUX_TOOLS    BOOL   false
+            ;;
+        --disable-python)
+            append_cache_entry DISABLE_PYTHON_BINDINGS     BOOL   true
+            ;;
+        --disable-ruby)
+            append_cache_entry DISABLE_RUBY_BINDINGS     BOOL   true
             ;;
         --with-openssl=*)
             append_cache_entry OpenSSL_ROOT_DIR PATH $optarg
@@ -172,7 +183,6 @@ while [ $# -ne 0 ]; do
             append_cache_entry LibGeoIP_ROOT_DIR PATH $optarg
             ;;
         --with-perftools=*)
-            append_cache_entry ENABLE_PERFTOOLS     BOOL   true
             append_cache_entry GooglePerftools_ROOT_DIR PATH $optarg
             ;;
         --with-python=*)
@@ -184,6 +194,16 @@ while [ $# -ne 0 ]; do
         --with-python-inc=*)
             append_cache_entry PYTHON_INCLUDE_DIR   PATH    $optarg
             append_cache_entry PYTHON_INCLUDE_PATH  PATH    $optarg
+            ;;
+        --with-ruby=*)
+            append_cache_entry RUBY_EXECUTABLE    PATH    $optarg
+            ;;
+        --with-ruby-lib=*)
+            append_cache_entry RUBY_LIBRARY       PATH    $optarg
+            ;;
+        --with-ruby-inc=*)
+            append_cache_entry RUBY_INCLUDE_DIRS  PATH    $optarg
+            append_cache_entry RUBY_INCLUDE_PATH  PATH    $optarg
             ;;
         --with-swig=*)
             append_cache_entry SWIG_EXECUTABLE      PATH    $optarg

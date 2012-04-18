@@ -27,23 +27,20 @@
 ##! *Limitation:* The decapsulated packets are not fed through the 
 ##! defragmenter again and decapsulation happens only on the primary
 ##! path, i.e., it's not available for the secondary path. 
-##! 
-##! 
 
 @load base/protocols/conn
 
 module Tunnel; 
 
-#redef use_connection_compressor = F;
-## enab
 redef Tunnel::decapsulate_ip = T;
 redef Tunnel::decapsulate_udp = T;
 redef Tunnel::udp_tunnel_allports = T;
 
 export {
-	redef enum Log::ID += { TUNNEL };
+	## The Tunnel logging stream identifier.
+	redef enum Log::ID += { LOG };
 
-	## This record will be logged 
+	## This record describing a tunneled connection will be logged.
 	type Info : record {
 		## This is the time of the first record
 		ts:       time            &log;
@@ -56,17 +53,20 @@ export {
 		## The parent connection of IP-pair
 		parent:   Parent          &log;
 	};
+
+	## Event that can be handled to access the :bro:type:`Tunnel::Info`
+	## record as it is sent on to the logging framework.
 	global log_tunnel: event(rec: Info);
 
 	redef record Conn::Info += {
-		## If the connection is tunneled the type of tunnel 
+		## If the connection is tunneled, the type of tunnel.
 		tunnel_type: Tunneltype   &log &optional;
 	};
 }
 
 event bro_init()
 	{
-	Log::create_stream(TUNNEL, [$columns=Info, $ev=log_tunnel]);
+	Log::create_stream(Tunnel::LOG, [$columns=Info, $ev=log_tunnel]);
 	}
 
 event new_connection(c: connection)
@@ -79,6 +79,6 @@ event new_connection(c: connection)
 		info$id = c$id;
 		info$proto = get_port_transport_proto(c$id$resp_p);
 		info$parent = c$tunnel_parent;
-		Log::write(TUNNEL, info);
+		Log::write(Tunnel::LOG, info);
 		}
 	}

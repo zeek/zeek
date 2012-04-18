@@ -1,11 +1,16 @@
-// $Id: net_util.h 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef netutil_h
 #define netutil_h
 
 #include "config.h"
+
+// Define first.
+typedef enum {
+	TRANSPORT_UNKNOWN, TRANSPORT_TCP, TRANSPORT_UDP, TRANSPORT_ICMP,
+} TransportProto;
+
+typedef enum { IPv4, IPv6 } IPFamily;
 
 #include <assert.h>
 #include <sys/types.h>
@@ -26,37 +31,82 @@
 
 #ifdef HAVE_NETINET_IP6_H
 #include <netinet/ip6.h>
-#else
-struct ip6_hdr {
-	uint16		ip6_plen;
-	uint8		ip6_nxt;
-	uint8		ip6_hlim;
+
+#ifndef HAVE_IP6_OPT
+struct ip6_opt {
+	uint8  ip6o_type;
+	uint8  ip6o_len;
 };
-#endif
+#endif // HAVE_IP6_OPT
 
-#include "util.h"
-
-#ifdef BROv6
-typedef uint32* addr_type;	// a pointer to 4 uint32's
-typedef const uint32* const_addr_type;
-#define NUM_ADDR_WORDS 4
-
-typedef struct {
-	uint32 net[4];
-	uint32 width;
-} subnet_type;
+#ifndef HAVE_IP6_EXT
+struct ip6_ext {
+	uint8 ip6e_nxt;
+	uint8 ip6e_len;
+};
+#endif // HAVE_IP6_EXT
 
 #else
-typedef uint32 addr_type;
-typedef const uint32 const_addr_type;
-#define NUM_ADDR_WORDS 1
 
-typedef struct {
-	uint32 net;
-	uint32 width;
-} subnet_type;
+struct ip6_hdr {
+	union {
+		struct ip6_hdrctl {
+			uint32 ip6_un1_flow; /* 4 bits version, 8 bits TC, 20 bits
+                                      flow-ID */
+			uint16 ip6_un1_plen; /* payload length */
+			uint8  ip6_un1_nxt;  /* next header */
+			uint8  ip6_un1_hlim; /* hop limit */
+		} ip6_un1;
+		uint8 ip6_un2_vfc;     /* 4 bits version, top 4 bits tclass */
+	} ip6_ctlun;
+	struct in6_addr ip6_src;   /* source address */
+	struct in6_addr ip6_dst;   /* destination address */
+};
 
-#endif
+#define ip6_vfc   ip6_ctlun.ip6_un2_vfc
+#define ip6_flow  ip6_ctlun.ip6_un1.ip6_un1_flow
+#define ip6_plen  ip6_ctlun.ip6_un1.ip6_un1_plen
+#define ip6_nxt   ip6_ctlun.ip6_un1.ip6_un1_nxt
+#define ip6_hlim  ip6_ctlun.ip6_un1.ip6_un1_hlim
+#define ip6_hops  ip6_ctlun.ip6_un1.ip6_un1_hlim
+
+struct ip6_opt {
+	uint8  ip6o_type;
+	uint8  ip6o_len;
+};
+
+struct ip6_ext {
+	uint8 ip6e_nxt;
+	uint8 ip6e_len;
+};
+
+struct ip6_frag {
+	uint8   ip6f_nxt;       /* next header */
+	uint8   ip6f_reserved;  /* reserved field */
+	uint16  ip6f_offlg;     /* offset, reserved, and flag */
+	uint32  ip6f_ident;     /* identification */
+};
+
+struct ip6_hbh {
+	uint8  ip6h_nxt;        /* next header */
+	uint8  ip6h_len;        /* length in units of 8 octets */
+	/* followed by options */
+};
+
+struct ip6_dest {
+	uint8  ip6d_nxt;        /* next header */
+	uint8  ip6d_len;        /* length in units of 8 octets */
+	/* followed by options */
+};
+
+struct ip6_rthdr {
+	uint8  ip6r_nxt;        /* next header */
+	uint8  ip6r_len;        /* length in units of 8 octets */
+	uint8  ip6r_type;       /* routing type */
+	uint8  ip6r_segleft;    /* segments left */
+	/* followed by routing type specific data */
+};
+#endif // HAVE_NETINET_IP6_H
 
 // For Solaris.
 #if !defined(TCPOPT_WINDOW) && defined(TCPOPT_WSCALE)
@@ -83,82 +133,28 @@ inline int seq_delta(uint32 a, uint32 b)
 	return int(a-b);
 	}
 
+class IPAddr;
+class IP_Hdr;
+
 // Returns the ones-complement checksum of a chunk of b short-aligned bytes.
 extern int ones_complement_checksum(const void* p, int b, uint32 sum);
 
-extern int tcp_checksum(const struct ip* ip, const struct tcphdr* tp, int len);
-extern int udp_checksum(const struct ip* ip, const struct udphdr* up, int len);
-#ifdef BROv6
-extern int udp6_checksum(const struct ip6_hdr* ip, const struct udphdr* up,
-				int len);
-#endif
+extern int ones_complement_checksum(const IPAddr& a, uint32 sum);
+
+extern int icmp6_checksum(const struct icmp* icmpp, const IP_Hdr* ip, int len);
 extern int icmp_checksum(const struct icmp* icmpp, int len);
 
-// Given an address in host order, returns its "classical network prefix",
-// also in host order.
-extern uint32 addr_to_net(uint32 addr);
+#ifdef ENABLE_MOBILE_IPV6
+extern int mobility_header_checksum(const IP_Hdr* ip);
+#endif
+
 // Returns 'A', 'B', 'C' or 'D'
 extern char addr_to_class(uint32 addr);
 
-// Returns a pointer to static storage giving the ASCII dotted representation
-// of the given address, which should be passed in network order.
-extern const char* dotted_addr(uint32 addr, int alternative=0);
-extern const char* dotted_addr(const uint32* addr, int alternative=0);
-
-// Same, but for the network prefix.
-extern const char* dotted_net(uint32 addr);
-extern const char* dotted_net6(const uint32* addr);
-
-// Given an ASCII dotted representation, returns the corresponding address
-// in network order.
-extern uint32 dotted_to_addr(const char* addr_text);
-extern uint32* dotted_to_addr6(const char* addr_text);
-
-extern int is_v4_addr(const uint32 addr[4]);
-extern uint32 to_v4_addr(const uint32* addr);
-
-extern uint32 mask_addr(uint32 a, uint32 top_bits_to_keep);
-extern const uint32* mask_addr(const uint32* a, uint32 top_bits_to_keep);
-
+extern const char* fmt_conn_id(const IPAddr& src_addr, uint32 src_port,
+				const IPAddr& dst_addr, uint32 dst_port);
 extern const char* fmt_conn_id(const uint32* src_addr, uint32 src_port,
 				const uint32* dst_addr, uint32 dst_port);
-
-inline void copy_addr(const uint32* src_a, uint32* dst_a)
-	{
-#ifdef BROv6
-	dst_a[0] = src_a[0];
-	dst_a[1] = src_a[1];
-	dst_a[2] = src_a[2];
-	dst_a[3] = src_a[3];
-#else
-	dst_a[0] = src_a[0];
-#endif
-	}
-
-inline int addr_eq(const uint32* a1, const uint32* a2)
-	{
-#ifdef BROv6
-	return a1[0] == a2[0] &&
-		a1[1] == a2[1] &&
-		a1[2] == a2[2] &&
-		a1[3] == a2[3];
-#else
-	return a1[0] == a2[0];
-#endif
-	}
-
-inline int subnet_eq(const subnet_type* s1, const subnet_type* s2)
-	{
-#ifdef BROv6
-	return s1->net[0] == s2->net[0] &&
-		s1->net[1] == s2->net[1] &&
-		s1->net[2] == s2->net[2] &&
-		s1->net[3] == s2->net[3] &&
-		s1->width == s2->width;
-#else
-	return s1->net == s2->net && s1->width == s2->width;
-#endif
-	}
 
 // Read 4 bytes from data and return in network order.
 extern uint32 extract_uint32(const u_char* data);
@@ -172,6 +168,8 @@ extern uint32 extract_uint32(const u_char* data);
 
 inline double ntohd(double d)	{ return d; }
 inline double htond(double d)	{ return d; }
+inline uint64 ntohll(uint64 i)	{ return i; }
+inline uint64 htonll(uint64 i)	{ return i; }
 
 #else
 
@@ -196,6 +194,24 @@ inline double ntohd(double d)
 	}
 
 inline double htond(double d) { return ntohd(d); }
+
+inline uint64 ntohll(uint64 i)
+	{
+	u_char c;
+	union {
+		uint64 i;
+		u_char c[8];
+	} x;
+
+	x.i = i;
+	c = x.c[0]; x.c[0] = x.c[7]; x.c[7] = c;
+	c = x.c[1]; x.c[1] = x.c[6]; x.c[6] = c;
+	c = x.c[2]; x.c[2] = x.c[5]; x.c[5] = c;
+	c = x.c[3]; x.c[3] = x.c[4]; x.c[4] = c;
+	return x.i;
+	}
+
+inline uint64 htonll(uint64 i) { return ntohll(i); }
 
 #endif
 

@@ -1,5 +1,3 @@
-// $Id: Trigger.h 2359 2005-12-21 23:55:32Z vern $
-
 #ifndef TRIGGER_H
 #define TRIGGER_H
 
@@ -62,12 +60,19 @@ public:
 	virtual void Access(Val* val, const StateAccess& sa)
 		{ QueueTrigger(this); }
 
-	virtual const char* Name();
+	virtual const char* Name() const;
 
 	static void QueueTrigger(Trigger* trigger);
 
 	// Evaluates all queued Triggers.
 	static void EvaluatePending();
+
+	struct Stats {
+		unsigned long total;
+		unsigned long pending;
+	};
+
+	static void GetStats(Stats* stats);
 
 private:
 	friend class TriggerTraversalCallback;
@@ -101,6 +106,8 @@ private:
 
 	typedef list<Trigger*> TriggerList;
 	static TriggerList* pending;
+
+	static unsigned long total_triggers;
 };
 
 #endif

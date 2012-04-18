@@ -1,35 +1,6 @@
 project(Bro C CXX)
-
-if (NOT CMAKE_C_COMPILER)
-    message(FATAL_ERROR "Could not find prerequisite C compiler")
-endif ()
-
-if (NOT CMAKE_CXX_COMPILER)
-    message(FATAL_ERROR "Could not find prerequisite C++ compiler")
-endif ()
-
-########################################################################
-## CMake Configuration
-cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
-
-# Prohibit in-source builds.
-if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
-    message(FATAL_ERROR "In-source builds are not allowed. Please use "
-                        "./configure to choose a build directory and "
-                        "initialize the build configuration.")
-endif ()
-
-set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-
-if ("${PROJECT_SOURCE_DIR}" STREQUAL "${CMAKE_SOURCE_DIR}")
-    # uninstall target
-    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in"
-                   "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
-                    @ONLY)
-
-    add_custom_target(uninstall COMMAND
-        ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
-endif ()
+cmake_minimum_required(VERSION 2.6.3 FATAL_ERROR)
+include(cmake/CommonCMakeConfig.cmake)
 
 ########################################################################
 ## Project/Build Configuration
@@ -61,25 +32,9 @@ list(GET version_numbers 0 VERSION_MAJOR)
 list(GET version_numbers 1 VERSION_MINOR)
 set(VERSION_MAJ_MIN "${VERSION_MAJOR}.${VERSION_MINOR}")
 
-set(EXTRA_COMPILE_FLAGS "-Wall -Wno-unused")
-
-if (ENABLE_DEBUG)
-    set(CMAKE_BUILD_TYPE Debug)
-    # manual add of -g works around its omission in FreeBSD's CMake port
-    set(EXTRA_COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS} -g -DDEBUG")
-else ()
-    set(CMAKE_BUILD_TYPE RelWithDebInfo)
-endif ()
-
-# Compiler flags may already exist in CMake cache (e.g. when specifying
-# CFLAGS environment variable before running cmake for the the first time)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EXTRA_COMPILE_FLAGS}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EXTRA_COMPILE_FLAGS}")
-
 ########################################################################
 ## Dependency Configuration
 
-include(MacDependencyPaths)
 include(FindRequiredPackage)
 
 # Check cache value first to avoid displaying "Found sed" messages everytime
@@ -98,6 +53,8 @@ FindRequiredPackage(BISON)
 FindRequiredPackage(PCAP)
 FindRequiredPackage(OpenSSL)
 FindRequiredPackage(BIND)
+FindRequiredPackage(LibMagic)
+FindRequiredPackage(ZLIB)
 
 if (NOT BinPAC_ROOT_DIR AND
     EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/aux/binpac/CMakeLists.txt)
@@ -117,25 +74,11 @@ include_directories(BEFORE
                     ${OpenSSL_INCLUDE_DIR}
                     ${BIND_INCLUDE_DIR}
                     ${BinPAC_INCLUDE_DIR}
+                    ${LibMagic_INCLUDE_DIR}
+                    ${ZLIB_INCLUDE_DIR}
 )
 
 # Optional Dependencies
-
-set(HAVE_LIBMAGIC false)
-find_package(LibMagic)
-if (LIBMAGIC_FOUND)
-    set(HAVE_LIBMAGIC true)
-    include_directories(BEFORE ${LibMagic_INCLUDE_DIR})
-    list(APPEND OPTLIBS ${LibMagic_LIBRARY})
-endif ()
-
-set(HAVE_LIBZ false)
-find_package(ZLIB)
-if (ZLIB_FOUND)
-    set(HAVE_LIBZ true)
-    include_directories(BEFORE ${ZLIB_INCLUDE_DIR})
-    list(APPEND OPTLIBS ${ZLIB_LIBRARY})
-endif ()
 
 set(USE_GEOIP false)
 find_package(LibGeoIP)
@@ -146,14 +89,38 @@ if (LIBGEOIP_FOUND)
 endif ()
 
 set(USE_PERFTOOLS false)
-if (ENABLE_PERFTOOLS)
-    find_package(GooglePerftools)
-    if (GOOGLEPERFTOOLS_FOUND)
-        set(USE_PERFTOOLS true)
-        include_directories(BEFORE ${GooglePerftools_INCLUDE_DIR})
+set(USE_PERFTOOLS_DEBUG false)
+
+find_package(GooglePerftools)
+
+if (GOOGLEPERFTOOLS_FOUND)
+    include_directories(BEFORE ${GooglePerftools_INCLUDE_DIR})
+    set(USE_PERFTOOLS true)
+
+    if (ENABLE_PERFTOOLS_DEBUG)
+        # Enable heap debugging with perftools.
+        set(USE_PERFTOOLS_DEBUG true)
+        list(APPEND OPTLIBS ${GooglePerftools_LIBRARIES_DEBUG})
+    else ()
+        # Link in tcmalloc for better performance.
         list(APPEND OPTLIBS ${GooglePerftools_LIBRARIES})
     endif ()
 endif ()
+
+if (ENABLE_PERFTOOLS_DEBUG)
+    # Just a no op to prevent CMake from complaining about manually-specified
+    # ENABLE_PERFTOOLS_DEBUG not being used if google perftools weren't found
+endif ()
+
+set(brodeps
+    ${BinPAC_LIBRARY}
+    ${PCAP_LIBRARY}
+    ${OpenSSL_LIBRARIES}
+    ${BIND_LIBRARY}
+    ${LibMagic_LIBRARY}
+    ${ZLIB_LIBRARY}
+    ${OPTLIBS}
+)
 
 ########################################################################
 ## System Introspection
@@ -229,23 +196,10 @@ message(
     "\nAux. Tools:        ${INSTALL_AUX_TOOLS}"
     "\n"
     "\nGeoIP:             ${USE_GEOIP}"
-    "\nlibz:              ${HAVE_LIBZ}"
-    "\nlibmagic:          ${HAVE_LIBMAGIC}"
     "\nGoogle perftools:  ${USE_PERFTOOLS}"
+    "\n       debugging:  ${USE_PERFTOOLS_DEBUG}"
     "\n"
     "\n================================================================\n"
 )
 
-########################################################################
-## Show warning when installing user is different from the one that configured
-
-install(CODE "
-    if (NOT $ENV{USER} STREQUAL \$ENV{USER})
-        message(STATUS \"ATTENTION: Install is being performed by user \"
-                \"'\$ENV{USER}', but the build directory was configured by \"
-                \"user '$ENV{USER}'. This may result in a permissions error \"
-                \"when writing the install manifest, but you can ignore it \"
-                \"and consider the installation as successful if you don't \"
-                \"care about the install manifest.\")
-    endif ()
-")
+include(UserChangedWarning)

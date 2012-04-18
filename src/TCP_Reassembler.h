@@ -1,5 +1,3 @@
-// $Id: TCP_Reassembler.h,v 1.1.2.8 2006/05/31 01:52:02 sommer Exp $
-
 #ifndef TCP_REASSEMBLER_H
 #define TCP_REASSEMBLER_H
 

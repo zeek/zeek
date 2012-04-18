@@ -1,5 +1,3 @@
-// $Id: PktSrc.cc 6951 2009-12-04 22:23:28Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include <errno.h>
@@ -19,13 +17,11 @@
 #include <pcap-int.h>
 #endif
 
-int snaplen = 8192;	// really want "capture entire packet"
-
-
 PktSrc::PktSrc()
 	{
 	interface = readfile = 0;
 	data = last_data = 0;
+	memset(&hdr, 0, sizeof(hdr));
 	hdr_size = 0;
 	datalink = 0;
 	netmask = 0xffffff00;
@@ -80,7 +76,9 @@ int PktSrc::ExtractNextPacket()
 		}
 
 	data = last_data = pcap_next(pd, &hdr);
-	next_timestamp = hdr.ts.tv_sec + double(hdr.ts.tv_usec) / 1e6;
+
+	if ( data )
+		next_timestamp = hdr.ts.tv_sec + double(hdr.ts.tv_usec) / 1e6;
 
 	if ( pseudo_realtime )
 		current_wallclock = current_time(true);
@@ -384,6 +382,7 @@ void PktSrc::AddSecondaryTablePrograms()
 			{
 			delete program;
 			Close();
+			return;
 			}
 
 		SecondaryProgram* sp = new SecondaryProgram(program, se);
@@ -492,7 +491,7 @@ PktInterfaceSrc::PktInterfaceSrc(const char* arg_interface, const char* filter,
 			// Couldn't get header size.
 			return;
 
-		reporter->Info("listening on %s\n", interface);
+		reporter->Info("listening on %s, capture length %d bytes\n", interface, snaplen);
 		}
 	else
 		closed = true;

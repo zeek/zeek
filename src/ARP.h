@@ -1,5 +1,3 @@
-// $Id: ARP.h 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef arp_h
@@ -17,6 +15,8 @@
 #include <sys/ethernet.h>
 #elif defined(HAVE_NETINET_IF_ETHER_H)
 #include <netinet/if_ether.h>
+#elif defined(HAVE_NET_ETHERTYPES_H)
+#include <net/ethertypes.h>
 #endif
 
 #ifndef arp_pkthdr
@@ -31,9 +31,6 @@ public:
 	ARP_Analyzer();
 	virtual ~ARP_Analyzer();
 
-	// Whether a packet is of interest for ARP analysis.
-	bool IsARP(const u_char* pkt, int hdr_size) const;
-
 	void NextPacket(double t, const struct pcap_pkthdr* hdr,
 			const u_char* const pkt, int hdr_size);
 
@@ -41,6 +38,10 @@ public:
 	void RREvent(EventHandlerPtr e, const u_char* src, const u_char* dst,
 			const char* spa, const char* sha,
 			const char* tpa, const char* tha);
+
+	// Whether a packet is of interest for ARP analysis.
+	static bool IsARP(const u_char* pkt, int hdr_size);
+
 protected:
 	AddrVal* ConstructAddrVal(const void* addr);
 	StringVal* EthAddrToStr(const u_char* addr);

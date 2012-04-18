@@ -1,5 +1,3 @@
-// $Id: DebugCmds.h 80 2004-07-14 20:15:50Z jason $
-//
 // Support routines to help deal with Bro debugging commands and
 // implementation of most commands.
 

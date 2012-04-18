@@ -1,4 +1,0 @@
-# ts	metric_id	filter_name	index.host	index.str	index.network	value
-1313430544.678529	TEST_METRIC	foo-bar	6.5.4.3	-	-	2
-1313430544.678529	TEST_METRIC	foo-bar	1.2.3.4	-	-	3
-1313430544.678529	TEST_METRIC	foo-bar	7.2.1.5	-	-	1

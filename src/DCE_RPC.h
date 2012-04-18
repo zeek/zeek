@@ -1,5 +1,3 @@
-// $Id: DCE_RPC.h 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef dce_rpc_h
@@ -10,6 +8,7 @@
 
 #include "NetVar.h"
 #include "TCP.h"
+#include "IPAddr.h"
 
 #include "dce_rpc_simple_pac.h"
 
@@ -36,19 +35,19 @@ const char* uuid_to_string(const u_char* uuid_data);
 
 struct dce_rpc_endpoint_addr {
 	// All fields are in host byteorder.
-	uint32 addr;
+	IPAddr addr;
 	u_short port;
 	TransportProto proto;
 
 	dce_rpc_endpoint_addr()
 		{
-		addr = 0;
+		addr = IPAddr();
 		port = 0;
 		proto = TRANSPORT_UNKNOWN;
 		}
 
 	bool is_valid_addr() const
-		{ return addr != 0 && port != 0 && proto != TRANSPORT_UNKNOWN; }
+		{ return addr != IPAddr() && port != 0 && proto != TRANSPORT_UNKNOWN; }
 
 	bool operator<(dce_rpc_endpoint_addr const &e) const
 		{
@@ -66,7 +65,7 @@ struct dce_rpc_endpoint_addr {
 		{
 		static char buf[128];
 		snprintf(buf, sizeof(buf), "%s/%d/%s",
-			dotted_addr(htonl(addr)), port,
+			addr.AsString().c_str(), port,
 			proto == TRANSPORT_TCP ? "tcp" :
 			(proto == TRANSPORT_UDP ? "udp" : "?"));
 

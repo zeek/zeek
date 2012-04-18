@@ -1,5 +1,3 @@
-// $Id: TCP_Endpoint.cc 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "Net.h"
@@ -34,13 +32,8 @@ TCP_Endpoint::TCP_Endpoint(TCP_Analyzer* arg_analyzer, int arg_is_orig)
 	dst_addr = is_orig ? tcp_analyzer->Conn()->OrigAddr() :
 				tcp_analyzer->Conn()->RespAddr();
 
-#ifdef BROv6
-	checksum_base = ones_complement_checksum((void*) src_addr, 16, 0);
-	checksum_base = ones_complement_checksum((void*) dst_addr, 16, checksum_base);
-#else
-	checksum_base = ones_complement_checksum((void*) src_addr, 4, 0);
-	checksum_base = ones_complement_checksum((void*) dst_addr, 4, checksum_base);
-#endif
+	checksum_base = ones_complement_checksum(src_addr, 0);
+	checksum_base = ones_complement_checksum(dst_addr, checksum_base);
 	// Note, for IPv6, strictly speaking this field is 32 bits
 	// rather than 16 bits.  But because the upper bits are all zero,
 	// we get the same checksum either way.  The same applies to

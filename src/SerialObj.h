@@ -1,5 +1,3 @@
-// $Id: SerialObj.h 6752 2009-06-14 04:24:52Z vern $
-//
 // Infrastructure for serializable objects.
 //
 // How to make objects of class Foo serializable:

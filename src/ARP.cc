@@ -1,5 +1,3 @@
-// $Id: ARP.cc 6219 2008-10-01 05:39:07Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 
@@ -19,7 +17,7 @@ ARP_Analyzer::~ARP_Analyzer()
 	{
 	}
 
-bool ARP_Analyzer::IsARP(const u_char* pkt, int hdr_size) const
+bool ARP_Analyzer::IsARP(const u_char* pkt, int hdr_size)
 	{
 	unsigned short network_protocol =
 		*(unsigned short*) (pkt + hdr_size - 2);

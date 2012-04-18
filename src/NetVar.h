@@ -1,5 +1,3 @@
-// $Id: NetVar.h 6887 2009-08-20 05:17:33Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #ifndef netvar_h
@@ -21,7 +19,9 @@ extern RecordType* SYN_packet;
 extern RecordType* pcap_packet;
 extern EnumType* transport_proto;
 extern TableType* string_set;
+extern TableType* string_array;
 extern TableType* count_set;
+extern VectorType* string_vec;
 
 extern int watchdog_interval;
 
@@ -50,17 +50,7 @@ extern int tcp_max_initial_window;
 extern int tcp_max_above_hole_without_any_acks;
 extern int tcp_excessive_data_without_further_acks;
 
-// see policy/ssl.bro for details
-extern int ssl_compare_cipherspecs;
-extern int ssl_analyze_certificates;
-extern int ssl_store_certificates;
-extern int ssl_verify_certificates;
-extern int ssl_store_key_material;
-extern int ssl_max_cipherspec_size;
-extern StringVal* ssl_store_cert_path;
-extern StringVal* x509_trusted_cert_path;
 extern RecordType* x509_type;
-extern StringVal* x509_crl_file;
 
 extern double non_analyzed_lifetime;
 extern double tcp_inactivity_timeout;
@@ -215,11 +205,6 @@ extern int packet_filter_default;
 extern int sig_max_group_size;
 
 extern int enable_syslog;
-
-extern int use_connection_compressor;
-extern int cc_handle_resets;
-extern int cc_handle_only_syns;
-extern int cc_instantiate_on_data;
 
 extern TableType* irc_join_list;
 extern RecordType* irc_join_info;

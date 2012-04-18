@@ -1,0 +1,6 @@
+-./frameworks/cluster/nodes/manager.bro
+-./frameworks/cluster/nodes/proxy.bro
+-./frameworks/cluster/nodes/worker.bro
+-./frameworks/cluster/setup-connections.bro
+-./frameworks/metrics/cluster.bro
+-./frameworks/notice/cluster.bro

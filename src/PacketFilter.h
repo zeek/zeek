@@ -1,5 +1,3 @@
-// $Id: PacketFilter.h 80 2004-07-14 20:15:50Z jason $
-//
 // Provides some very limited but fast packet filter mechanisms
 
 #ifndef PACKETFILTER_H
@@ -16,16 +14,16 @@ public:
 	// Drops all packets from a particular source (which may be given
 	// as an AddrVal or a SubnetVal) which hasn't any of TCP flags set
 	// (TH_*) with the given probability (from 0..MAX_PROB).
-	void AddSrc(addr_type src, uint32 tcp_flags, double probability);
+	void AddSrc(const IPAddr& src, uint32 tcp_flags, double probability);
 	void AddSrc(Val* src, uint32 tcp_flags, double probability);
-	void AddDst(addr_type src, uint32 tcp_flags, double probability);
+	void AddDst(const IPAddr& src, uint32 tcp_flags, double probability);
 	void AddDst(Val* src, uint32 tcp_flags, double probability);
 
 	// Removes the filter entry for the given src/dst
 	// Returns false if filter doesn not exist.
-	bool RemoveSrc(addr_type src);
+	bool RemoveSrc(const IPAddr& src);
 	bool RemoveSrc(Val* dst);
-	bool RemoveDst(addr_type dst);
+	bool RemoveDst(const IPAddr& dst);
 	bool RemoveDst(Val* dst);
 
 	// Returns true if packet matches a drop filter

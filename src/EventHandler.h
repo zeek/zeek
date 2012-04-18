@@ -1,5 +1,3 @@
-// $Id: EventHandler.h 5911 2008-07-03 22:59:01Z vern $
-//
 // Capsulates local and remote event handlers.
 
 #ifndef EVENTHANDLER
@@ -9,7 +7,6 @@
 
 #include "List.h"
 #include "BroList.h"
-#include "net_util.h"
 
 class Func;
 class FuncType;

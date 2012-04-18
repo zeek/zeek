@@ -1,0 +1,12 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	ssh
+#fields	t	id.orig_h
+#types	time	addr
+1324314315.040480	1.2.3.4
+1324314315.040480	1.2.3.4
+1324314315.040480	1.2.3.4
+1324314315.040480	1.2.3.4
+1324314315.040480	1.2.3.4

@@ -1,10 +1,6 @@
 /*
  * See the file "COPYING" in the main distribution directory for copyright.
  */
-#ifndef lint
-static const char rcsid[] =
-    "@(#) $Id: nb_dns.c 6219 2008-10-01 05:39:07Z vern $ (LBL)";
-#endif
 /*
  * nb_dns - non-blocking dns routines
  *
@@ -190,7 +186,7 @@ _nb_dns_cmpsockaddr(register struct sockaddr *sa1,
 #endif
 	static const char serr[] = "answer from wrong nameserver (%d)";
 
-	if (sa1->sa_family != sa1->sa_family) {
+	if (sa1->sa_family != sa2->sa_family) {
 		snprintf(errstr, NB_DNS_ERRSIZE, serr, 1);
 		return (-1);
 	}
@@ -385,7 +381,7 @@ nb_dns_addr_request2(register struct nb_dns_info *nd, char *addrp,
 			size -= i;
 			cp += i;
 		}
-		snprintf(cp, size, "ip6.int");
+		snprintf(cp, size, "ip6.arpa");
 		break;
 #endif
 
@@ -438,7 +434,7 @@ nb_dns_activity(struct nb_dns_info *nd, struct nb_dns_result *nr, char *errstr)
 	register char **ap, **hap;
 	register u_int16_t id;
 	register const u_char *rdata;
-	register u_int32_t rttl;
+	register u_int32_t rttl = 0;	// make compiler happy.
 	register struct hostent *he;
 	register size_t rdlen;
 	ns_msg handle;

@@ -1,5 +1,3 @@
-/* $Id: rule-scan.l 6914 2009-09-22 00:35:24Z vern $ */
-
 %{
 typedef unsigned int uint32;
 
@@ -20,7 +18,7 @@ WS	[ \t]+
 D	[0-9]+
 H	[0-9a-fA-F]+
 STRING	\"([^\n\"]|\\\")*\"
-ID	[0-9a-zA-Z_-]+
+ID	([0-9a-zA-Z_-]+::)*[0-9a-zA-Z_-]+
 RE	\/(\\\/)?([^/]|[^\\]\\\/)*\/
 META	\.[^ \t]+{WS}[^\n]+
 PID	([0-9a-zA-Z_-]|"::")+

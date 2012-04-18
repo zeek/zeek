@@ -1,5 +1,3 @@
-// $Id: PersistenceSerializer.cc 6752 2009-06-14 04:24:52Z vern $
-
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
@@ -139,7 +137,7 @@ bool PersistenceSerializer::CheckForFile(UnserialInfo* info, const char* file,
 
 bool PersistenceSerializer::ReadAll(bool is_init, bool delete_files)
 	{
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 	HeapLeakChecker::Disabler disabler;
 #endif
 
@@ -202,7 +200,13 @@ void PersistenceSerializer::GotEvent(const char* name, double time,
 void PersistenceSerializer::GotFunctionCall(const char* name, double time,
 					Func* func, val_list* args)
 	{
-	func->Call(args);
+	try
+		{
+		func->Call(args);
+		}
+
+	catch ( InterpreterException& e )
+		{ /* Already reported. */ }
 	}
 
 void PersistenceSerializer::GotStateAccess(StateAccess* s)

@@ -1,0 +1,13 @@
+1332784981.078396 weird: bad_IP_checksum
+1332784885.686428 weird: bad_TCP_checksum
+1332784933.501023 weird: bad_UDP_checksum
+1334075363.536871 weird: bad_ICMP_checksum
+1332785210.013051 weird: routing0_hdr
+1332785210.013051 weird: bad_TCP_checksum
+1332782580.798420 weird: routing0_hdr
+1332782580.798420 weird: bad_UDP_checksum
+1334075111.800086 weird: routing0_hdr
+1334075111.800086 weird: bad_ICMP_checksum
+1332785250.469132 weird: bad_TCP_checksum
+1332781342.923813 weird: bad_UDP_checksum
+1334074939.467194 weird: bad_ICMP_checksum

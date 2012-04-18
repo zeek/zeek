@@ -1,5 +1,3 @@
-// $Id: Reassem.cc 6703 2009-05-13 22:27:44Z vern $
-//
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include <algorithm>
@@ -45,8 +43,7 @@ DataBlock::DataBlock(const u_char* data, int size, int arg_seq,
 
 unsigned int Reassembler::total_size = 0;
 
-Reassembler::Reassembler(int init_seq, const uint32* ip_addr,
-			ReassemblerType arg_type)
+Reassembler::Reassembler(int init_seq, ReassemblerType arg_type)
 	{
 	blocks = last_block = 0;
 	trim_seq = last_reassem_seq = init_seq;

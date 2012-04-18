@@ -1,5 +1,4 @@
 /*
- * $Id: patricia.h 967 2005-01-03 07:19:06Z vern $
  * Dave Plonka <plonka@doit.wisc.edu>
  *
  * This product includes software developed by the University of Michigan,
@@ -53,13 +52,6 @@
 
 #include <sys/types.h>
 
-
-#ifdef BROv6
-#ifndef HAVE_IPV6
-#define HAVE_IPV6
-#endif
-#endif
-
 /* typedef unsigned int u_int; */
 typedef void (*void_fn_t)();
 /* { from defs.h */
@@ -89,9 +81,7 @@ typedef struct _prefix_t {
     int ref_count;		/* reference count */
     union {
 		struct in_addr sin;
-#ifdef HAVE_IPV6
 		struct in6_addr sin6;
-#endif /* IPV6 */
     } add;
 } prefix_t;
 

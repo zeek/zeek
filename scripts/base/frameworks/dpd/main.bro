@@ -7,14 +7,16 @@ module DPD;
 redef signature_files += "base/frameworks/dpd/dpd.sig";
 
 export {
-	redef enum Log::ID += { DPD };
+	## Add the DPD logging stream identifier.
+	redef enum Log::ID += { LOG };
 
+	## The record type defining the columns to log in the DPD logging stream.
 	type Info: record {
 		## Timestamp for when protocol analysis failed.
 		ts:             time            &log;
 		## Connection unique ID.
 		uid:            string          &log;
-		## Connection ID.
+		## Connection ID containing the 4-tuple which identifies endpoints.
 		id:             conn_id         &log;
 		## Transport protocol for the violation.
 		proto:          transport_proto &log;
@@ -25,8 +27,7 @@ export {
 		
 		## Disabled analyzer IDs.  This is only for internal tracking 
 		## so as to not attempt to disable analyzers multiple times.
-		# TODO: This is waiting on ticket #460 to remove the '0'.
-		disabled_aids:  set[count]      &default=set(0);
+		disabled_aids:  set[count];
 	};
 	
 	## Ignore violations which go this many bytes into the connection.
@@ -38,9 +39,9 @@ redef record connection += {
 	dpd: Info &optional;
 };
 
-event bro_init()
+event bro_init() &priority=5
 	{
-	Log::create_stream(DPD, [$columns=Info]);
+	Log::create_stream(DPD::LOG, [$columns=Info]);
 	
 	# Populate the internal DPD analysis variable.
 	for ( a in dpd_config )
@@ -104,5 +105,5 @@ event protocol_violation(c: connection, atype: count, aid: count,
 				reason: string) &priority=-5
 	{
 	if ( c?$dpd )
-		Log::write(DPD, c$dpd);
+		Log::write(DPD::LOG, c$dpd);
 	}

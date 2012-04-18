@@ -1,5 +1,3 @@
-// $Id: Anon.cc 7075 2010-09-13 02:39:38Z vern $
-
 #include <stdlib.h>
 #include <unistd.h>
 #include <assert.h>
@@ -155,7 +153,9 @@ void AnonymizeIPAddr_A50::init()
 
 int AnonymizeIPAddr_A50::PreservePrefix(ipaddr32_t input, int num_bits)
 	{
-	DEBUG_MSG("%s/%d\n", dotted_addr(input), num_bits);
+	DEBUG_MSG("%s/%d\n",
+			IPAddr(IPv4, &input, IPAddr::Network).AsString().c_str(),
+			num_bits);
 
 	if ( ! before_anonymization )
 		{

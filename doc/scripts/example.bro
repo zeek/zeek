@@ -1,24 +1,20 @@
-##! This is an example script that demonstrates how to document.  Comments
-##! of the form ``##!`` are for the script summary.  The contents of
+##! This is an example script that demonstrates documentation features.
+##! Comments of the form ``##!`` are for the script summary.  The contents of
 ##! these comments are transferred directly into the auto-generated
 ##! `reStructuredText <http://docutils.sourceforge.net/rst.html>`_
 ##! (reST) document's summary section.
 ##!
 ##! .. tip:: You can embed directives and roles within ``##``-stylized comments.
 ##!
-##! A script's logging information has to be documented manually as minimally
-##! shown below.  Note that references may not always be possible (e.g.
-##! anonymous filter functions) and a script may not need to document
-##! each of "columns", "event", "filter" depending on exactly what it's doing.
+##! There's also a custom role to reference any identifier node in
+##! the Bro Sphinx domain that's good for "see alsos", e.g.
 ##!
-##! **Logging Stream ID:** :bro:enum:`Example::EXAMPLE`
-##!     :Columns:    :bro:type:`Example::Info`
-##!     :Event:      :bro:id:`Example::log_example`
-##!     :Filter:     ``example-filter``
-##!         uses :bro:id:`Example::filter_func` to determine whether to
-##!         exclude the ``ts`` field
+##! See also: :bro:see:`Example::a_var`, :bro:see:`Example::ONE`,
+##! :bro:see:`SSH::Info`
 ##!
-##! :Author: Jon Siwek <jsiwek@ncsa.illinois.edu>
+##! And a custom directive does the equivalent references:
+##!
+##! .. bro:see:: Example::a_var Example::ONE SSH::Info
 
 # Comments that use a single pound sign (#) are not significant to
 # a script's auto-generated documentation, but ones that use a
@@ -26,8 +22,8 @@
 # field comments, it's necessary to disambiguate the field with
 # which a comment associates: e.g. "##<" can be used on the same line
 # as a field to signify the comment relates to it and not the
-# following field.  "##<" is not meant for general use, just
-# record/enum fields.
+# following field. "##<" can also be used more generally in any
+# variable declarations to associate with the last-declared identifier.
 #
 # Generally, the auto-doc comments (##) are associated with the
 # next declaration/identifier found in the script, but the doc framework
@@ -80,7 +76,7 @@ redef enum Notice::Type += {
 # Comments of the "##" form can be use to further document it, but it's
 # better to do all documentation related to logging in the summary section
 # as is shown above.
-redef enum Log::ID += { EXAMPLE };
+redef enum Log::ID += { LOG };
 
 # Anything declared in the export section will show up in the rendered
 # documentation's "public interface" section
@@ -155,7 +151,7 @@ export {
     const an_option: set[addr, addr, string] &redef;
 
     # default initialization will be self-documenting
-    const option_with_init = 0.01 secs &redef;
+    const option_with_init = 0.01 secs &redef; ##< More docs can be added here.
 
     ############## state variables ############
     # right now, I'm defining this as any global
@@ -187,6 +183,7 @@ export {
 
     ## Summarize "an_event" here.
     ## Give more details about "an_event" here.
+	## Example::an_event should not be confused as a parameter.
     ## name: describe the argument here
     global an_event: event(name: string);
 
@@ -218,8 +215,8 @@ type PrivateRecord: record {
 
 event bro_init()
     {
-    Log::create_stream(EXAMPLE, [$columns=Info, $ev=log_example]);
-    Log::add_filter(EXAMPLE, [
+    Log::create_stream(Example::LOG, [$columns=Info, $ev=log_example]);
+    Log::add_filter(Example::LOG, [
         $name="example-filter",
         $path="example-filter",
         $pred=filter_func,

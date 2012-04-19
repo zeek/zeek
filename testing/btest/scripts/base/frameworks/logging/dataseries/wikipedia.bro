@@ -1,5 +1,6 @@
 #
 # @TEST-REQUIRES: has-writer DataSeries && which ds2txt
+# @TEST-GROUP: dataseries
 #
 # @TEST-EXEC: bro -r $TRACES/wikipedia.trace Log::default_writer=Log::WRITER_DATASERIES
 # @TEST-EXEC: ds2txt conn.ds >conn.ds.txt

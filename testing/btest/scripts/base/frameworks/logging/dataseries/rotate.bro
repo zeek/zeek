@@ -1,5 +1,6 @@
 #
 # @TEST-REQUIRES: has-writer DataSeries && which ds2txt
+# @TEST-GROUP: dataseries
 #
 # @TEST-EXEC: bro -b -r %DIR/../rotation.trace %INPUT 2>&1 Log::default_writer=Log::WRITER_DATASERIES | grep "test" >out
 # @TEST-EXEC: for i in test.*.ds; do printf '> %s\n' $i; ds2txt $i; done >>out

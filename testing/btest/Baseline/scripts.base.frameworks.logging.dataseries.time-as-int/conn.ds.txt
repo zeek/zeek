@@ -9,7 +9,7 @@
 </ExtentType>
 
 <ExtentType name="conn" version="1.0" namespace="bro-ids.org">
-	<field type="int64" name="ts" pack_relative="ts"/>
+	<field type="int64" name="ts" pack_relative="ts" units="microseconds" epoch="unix"/>
 	<field type="variable32" name="uid" pack_unique="yes"/>
 	<field type="variable32" name="id.orig_h" pack_unique="yes"/>
 	<field type="int64" name="id.orig_p" />
@@ -17,7 +17,7 @@
 	<field type="int64" name="id.resp_p" />
 	<field type="variable32" name="proto" pack_unique="yes"/>
 	<field type="variable32" name="service" pack_unique="yes"/>
-	<field type="int64" name="duration" pack_relative="duration"/>
+	<field type="int64" name="duration" pack_relative="duration" units="microseconds" epoch="unix"/>
 	<field type="int64" name="orig_bytes" />
 	<field type="int64" name="resp_bytes" />
 	<field type="variable32" name="conn_state" pack_unique="yes"/>
@@ -51,8 +51,8 @@
 
 extent offset  ExtentType
 40             DataSeries: XmlType
-636            conn
-2912           DataSeries: ExtentIndex
+672            conn
+2948           DataSeries: ExtentIndex
 # Extent, type='conn'
 ts uid id.orig_h id.orig_p id.resp_h id.resp_p proto service duration orig_bytes resp_bytes conn_state local_orig missed_bytes history orig_pkts orig_ip_bytes resp_pkts resp_ip_bytes
 1300475167096535 UWkUyAuUGXf 141.142.220.202 5353 224.0.0.251 5353 udp dns 0 0 0 S0 F 0 D 1 73 0 0
@@ -92,5 +92,5 @@ ts uid id.orig_h id.orig_p id.resp_h id.resp_p proto service duration orig_bytes
 # Extent, type='DataSeries: ExtentIndex'
 offset extenttype
 40 DataSeries: XmlType
-636 conn
-2912 DataSeries: ExtentIndex
+672 conn
+2948 DataSeries: ExtentIndex

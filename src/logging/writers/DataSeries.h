@@ -43,6 +43,7 @@ private:
 	static const size_t THREAD_MIN = 1;			// Minimum number of compression threads that DataSeries may spawn.
 	static const size_t THREAD_MAX = 128;			// Maximum number of compression threads that DataSeries may spawn.
 	static const size_t TIME_SCALE = 1000000;		// Fixed-point multiplier for time values when converted to integers.
+	const char* TIME_UNIT() { return "microseconds"; }      // DS name for time resolution when converted to integers. Must match TIME_SCALE.
 
 	struct SchemaValue
 		{

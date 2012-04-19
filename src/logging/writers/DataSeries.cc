@@ -194,6 +194,8 @@ std::string DataSeries::GetDSOptionsForType(const threading::Field *field)
 
 		if ( ! ds_use_integer_for_time )
 			s += " pack_scale=\"1000000\"";
+		else
+			s += string(" units=\"") + TIME_UNIT() + "\" epoch=\"unix\"";
 
 		return s;
 		}
@@ -327,7 +329,13 @@ bool DataSeries::DoInit(string path, int num_fields, const threading::Field* con
 	else
 		Warning(Fmt("%s is not a valid compression type. Valid types are: 'lzf', 'lzo', 'gz', 'bz2', 'none', 'any'. Defaulting to 'any'", ds_compression.c_str()));
 
-	log_type = log_types.registerType(schema);
+	const ExtentType& type = log_types.registerTypeR(schema);
+
+	// Note: This is a bit dicey as it depends on the implementation of
+	// registerTypeR(), but its what the DataSeries guys recommended
+	// given that we function we originally used has been deprecated.
+	log_type = &type;
+
 	log_series.setType(*log_type);
 
 	return OpenLog(path);

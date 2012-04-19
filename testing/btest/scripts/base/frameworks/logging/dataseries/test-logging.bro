@@ -1,5 +1,6 @@
 #
 # @TEST-REQUIRES: has-writer DataSeries && which ds2txt
+# @TEST-GROUP: dataseries
 #
 # @TEST-EXEC: bro -b %INPUT Log::default_writer=Log::WRITER_DATASERIES
 # @TEST-EXEC: ds2txt ssh.ds | ${SCRIPTS}/diff-remove-timestamps-dataseries >ssh.ds.txt

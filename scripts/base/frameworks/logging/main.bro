@@ -376,13 +376,16 @@ function run_rotation_postprocessor_cmd(info: RotationInfo, npath: string) : boo
 	if ( pp_cmd == "" )
 		return T;
 
+	# Turn, e.g., Log::WRITER_ASCII into "ascii".
+	local writer = subst_string(to_lower(fmt("%s", info$writer)), "log::writer_", "");
+	
 	# The date format is hard-coded here to provide a standardized
 	# script interface.
-	system(fmt("%s %s %s %s %s %d",
+	system(fmt("%s %s %s %s %s %d %s",
                pp_cmd, npath, info$path,
                strftime("%y-%m-%d_%H.%M.%S", info$open),
                strftime("%y-%m-%d_%H.%M.%S", info$close),
-               info$terminating));
+               info$terminating, writer));
 
 	return T;
 	}

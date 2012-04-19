@@ -1,4 +1,17 @@
 
+2.0-303 | 2012-04-19 10:01:06 -0700
+
+  * Changes related to ICMPv6 Neighbor Discovery messages. (Jon Siwek)
+    
+    - The 'icmp_conn' record now contains an 'hlim' field since hop limit
+      in the IP header is an interesting field for at least these ND
+      messages.
+
+    - Fixed and extended 'icmp_router_advertisement' event parameters.
+
+    - Changed 'icmp_neighbor_advertisement' event parameters to add
+      more of the known boolean flags.
+
 2.0-301 | 2012-04-17 17:58:55 -0700
 
   * Bro now support ICMPv6. (Matti Mantere, Jon Siwek, Robin Sommer,

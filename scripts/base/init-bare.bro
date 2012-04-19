@@ -92,6 +92,7 @@ type icmp_conn: record {
 	itype: count;	##< The ICMP type of the packet that triggered the instantiation of the record.
 	icode: count;	##< The ICMP code of the packet that triggered the instantiation of the record.
 	len: count;	##< The length of the ICMP payload of the packet that triggered the instantiation of the record.
+	hlim: count;	##< The encapsulating IP header's Hop Limit value.
 	v6: bool;	##< True if it's an ICMPv6 packet.
 };
 

@@ -186,6 +186,9 @@ endmacro(BINPAC_TARGET)
 
 binpac_target(binpac-lib.pac)
 binpac_target(binpac_bro-lib.pac)
+
+binpac_target(ayiya.pac
+    ayiya-protocol.pac ayiya-analyzer.pac)
 binpac_target(bittorrent.pac
     bittorrent-protocol.pac bittorrent-analyzer.pac)
 binpac_target(dce_rpc.pac
@@ -277,6 +280,7 @@ set(bro_SRCS
     Anon.cc
     ARP.cc
     Attr.cc
+    AYIYA.cc
     BackDoor.cc
     Base64.cc
     BitTorrent.cc

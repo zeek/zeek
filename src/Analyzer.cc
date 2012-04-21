@@ -4,6 +4,7 @@
 #include "PIA.h"
 #include "Event.h"
 
+#include "AYIYA.h"
 #include "BackDoor.h"
 #include "BitTorrent.h"
 #include "BitTorrentTracker.h"
@@ -126,6 +127,16 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 	{ AnalyzerTag::SYSLOG_BINPAC, "SYSLOG_BINPAC",
 		Syslog_Analyzer_binpac::InstantiateAnalyzer,
 		Syslog_Analyzer_binpac::Available, 0, false },
+
+	//{ AnalyzerTag::6to4, "6to4",
+	//	6to4_Analyzer::InstantiateAnalyzer,
+	//	6to4_Anylzer::Available, 0, false },
+	{ AnalyzerTag::AYIYA, "AYIYA",
+		AYIYA_Analyzer::InstantiateAnalyzer,
+		AYIYA_Analyzer::Available, 0, false },
+	//{ AnalyzerTag::Teredo, "Teredo",
+	//	Teredo_Analyzer::InstantiateAnalyzer,
+	//	Teredo_Analyzer::Available, 0, false },
 
 	{ AnalyzerTag::File, "FILE", File_Analyzer::InstantiateAnalyzer,
 		File_Analyzer::Available, 0, false },

@@ -149,3 +149,9 @@ signature dpd_ssl_client {
   payload /^(\x16\x03[\x00\x01\x02]..\x01...\x03[\x00\x01\x02]|...?\x01[\x00\x01\x02][\x02\x03]).*/
   tcp-state originator
 }
+
+#signature dpd_ayiya {
+#  ip-proto = udp
+#  payload /^..\x11\x29/
+#  enable "ayiya"
+#}

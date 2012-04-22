@@ -37,6 +37,7 @@
 @load base/protocols/http
 @load base/protocols/irc
 @load base/protocols/smtp
+@load base/protocols/socks
 @load base/protocols/ssh
 @load base/protocols/ssl
 @load base/protocols/syslog

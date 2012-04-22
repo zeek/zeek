@@ -36,6 +36,7 @@ namespace AnalyzerTag {
 		// Decapsulation Analyzers
 		//6to4, 
 		AYIYA,
+		SOCKS,
 		//Teredo,
 		
 		// Other

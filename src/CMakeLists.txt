@@ -208,6 +208,8 @@ binpac_target(netflow.pac
     netflow-protocol.pac netflow-analyzer.pac)
 binpac_target(smb.pac
     smb-protocol.pac smb-pipe.pac smb-mailslot.pac)
+binpac_target(socks.pac
+    socks-protocol.pac socks-analyzer.pac)
 binpac_target(ssl.pac
     ssl-defs.pac ssl-protocol.pac ssl-analyzer.pac)
 binpac_target(syslog.pac
@@ -379,6 +381,7 @@ set(bro_SRCS
     SmithWaterman.cc
     SMB.cc
     SMTP.cc
+    SOCKS.cc
     SSH.cc
     SSL-binpac.cc
     Scope.cc

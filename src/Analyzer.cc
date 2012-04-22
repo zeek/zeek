@@ -34,6 +34,7 @@
 #include "NFS.h"
 #include "Portmap.h"
 #include "POP3.h"
+#include "SOCKS.h"
 #include "SSH.h"
 #include "SSL-binpac.h"
 #include "Syslog-binpac.h"
@@ -134,6 +135,9 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 	{ AnalyzerTag::AYIYA, "AYIYA",
 		AYIYA_Analyzer::InstantiateAnalyzer,
 		AYIYA_Analyzer::Available, 0, false },
+	{ AnalyzerTag::SOCKS, "SOCKS",
+		SOCKS_Analyzer::InstantiateAnalyzer,
+		SOCKS_Analyzer::Available, 0, false },
 	//{ AnalyzerTag::Teredo, "Teredo",
 	//	Teredo_Analyzer::InstantiateAnalyzer,
 	//	Teredo_Analyzer::Available, 0, false },

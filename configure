@@ -24,6 +24,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --prefix=PREFIX        installation directory [/usr/local/bro]
     --scriptdir=PATH       root installation directory for Bro scripts
                            [PREFIX/share/bro]
+    --conf-files-dir=PATH  config files installation directory [PREFIX/etc]
 
   Optional Features:
     --enable-debug         compile in debugging mode
@@ -91,6 +92,7 @@ append_cache_entry CMAKE_INSTALL_PREFIX PATH   /usr/local/bro
 append_cache_entry BRO_ROOT_DIR         PATH   /usr/local/bro
 append_cache_entry PY_MOD_INSTALL_DIR   PATH   /usr/local/bro/lib/broctl
 append_cache_entry BRO_SCRIPT_INSTALL_PATH STRING /usr/local/bro/share/bro
+append_cache_entry BRO_ETC_INSTALL_DIR  PATH   /usr/local/bro/etc
 append_cache_entry ENABLE_DEBUG         BOOL   false
 append_cache_entry ENABLE_PERFTOOLS_DEBUG BOOL   false
 append_cache_entry BinPAC_SKIP_INSTALL  BOOL   true
@@ -126,10 +128,17 @@ while [ $# -ne 0 ]; do
             if [ "$user_set_scriptdir" != "true" ]; then
                 append_cache_entry BRO_SCRIPT_INSTALL_PATH STRING $optarg/share/bro
             fi
+            if [ "$user_set_conffilesdir" != "true" ]; then
+                append_cache_entry BRO_ETC_INSTALL_DIR PATH $optarg/etc
+            fi
             ;;
         --scriptdir=*)
             append_cache_entry BRO_SCRIPT_INSTALL_PATH STRING $optarg
             user_set_scriptdir="true"
+            ;;
+        --conf-files-dir=*)
+            append_cache_entry BRO_ETC_INSTALL_DIR PATH $optarg
+            user_set_conffilesdir="true"
             ;;
         --enable-debug)
             append_cache_entry ENABLE_DEBUG         BOOL   true

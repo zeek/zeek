@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef tunnelhandler_h
-#define tunnelhandler_h
+#ifndef TUNNELS_H
+#define TUNNELS_H
 
 #include "config.h"
 #include "NetVar.h"

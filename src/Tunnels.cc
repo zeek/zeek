@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "TunnelHandler.h"
+#include "Tunnels.h"
 
 RecordVal* EncapsulatingConn::GetRecordVal() const
 	{

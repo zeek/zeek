@@ -13,7 +13,7 @@
 #include "RuleMatcher.h"
 #include "AnalyzerTags.h"
 #include "IPAddr.h"
-#include "TunnelHandler.h"
+#include "Tunnels.h"
 
 class Connection;
 class ConnectionTimer;

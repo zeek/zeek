@@ -30,7 +30,7 @@
 #include "DPM.h"
 
 #include "PacketSort.h"
-#include "TunnelHandler.h"
+#include "Tunnels.h"
 
 // These represent NetBIOS services on ephemeral ports.  They're numbered
 // so that we can use a single int to hold either an actual TCP/UDP server

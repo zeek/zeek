@@ -186,6 +186,9 @@ endmacro(BINPAC_TARGET)
 
 binpac_target(binpac-lib.pac)
 binpac_target(binpac_bro-lib.pac)
+
+binpac_target(ayiya.pac
+    ayiya-protocol.pac ayiya-analyzer.pac)
 binpac_target(bittorrent.pac
     bittorrent-protocol.pac bittorrent-analyzer.pac)
 binpac_target(dce_rpc.pac
@@ -205,6 +208,8 @@ binpac_target(netflow.pac
     netflow-protocol.pac netflow-analyzer.pac)
 binpac_target(smb.pac
     smb-protocol.pac smb-pipe.pac smb-mailslot.pac)
+binpac_target(socks.pac
+    socks-protocol.pac socks-analyzer.pac)
 binpac_target(ssl.pac
     ssl-defs.pac ssl-protocol.pac ssl-analyzer.pac)
 binpac_target(syslog.pac
@@ -277,6 +282,7 @@ set(bro_SRCS
     Anon.cc
     ARP.cc
     Attr.cc
+    AYIYA.cc
     BackDoor.cc
     Base64.cc
     BitTorrent.cc
@@ -375,6 +381,7 @@ set(bro_SRCS
     SmithWaterman.cc
     SMB.cc
     SMTP.cc
+    SOCKS.cc
     SSH.cc
     SSL-binpac.cc
     Scope.cc

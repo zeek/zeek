@@ -170,16 +170,18 @@ enum ID %{
 
 
 module Tunnel;
-enum Tunneltype %{
+enum Type %{
 	NONE,
-	IP6_IN_IP,     
-	IP4_IN_IP,  
+	IP6_IN_IP4,
+	IP4_IN_IP4,
+	IP6_IN_IP6,
+	IP4_IN_IP6,
 	IP6_IN_UDP,
 	IP4_IN_UDP,
 	IP6_IN_AYIAY,
 	IP4_IN_AYIAY,
 %}
 
-type Parent: record;
+type EncapsulatingConn: record;
 
 module GLOBAL;

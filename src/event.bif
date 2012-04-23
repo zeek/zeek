@@ -141,6 +141,17 @@ event dns_mapping_altered%(dm: dns_mapping, old_addrs: addr_set, new_addrs: addr
 ##    event.
 event new_connection%(c: connection%);
 
+## Generated for a connection whose tunneling has changed.  This could
+## be from a previously seen connection now being encapsulated in a tunnel,
+## or from the outer encapsulation changing.  Note that the connection's
+## *tunnel* field is NOT automatically assigned to the new encapsulation value
+## internally after this event is raised.
+##
+## c: The connection whose tunnel/encapsulation changed.
+##
+## e: The new encapsulation.
+event tunnel_changed%(c: connection, e: encapsulating_conns%);
+
 ## Generated when reassembly starts for a TCP connection. The event is raised
 ## at the moment when Bro's TCP analyzer enables stream reassembly for a
 ## connection.

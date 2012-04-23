@@ -24,9 +24,8 @@
 ##! is stored as the ``tunnel_parent`` member of :bro:type:`connection`, 
 ##! which is of type :bro:type:`Tunnel::Parent`. 
 ##! 
-##! *Limitation:* The decapsulated packets are not fed through the 
-##! defragmenter again and decapsulation happens only on the primary
-##! path, i.e., it's not available for the secondary path. 
+##! *Limitation:* decapsulation happens only on the primary path, i.e.
+##! it's not available for the secondary path.
 
 @load base/protocols/conn
 

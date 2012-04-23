@@ -13,6 +13,7 @@
 #include "RuleMatcher.h"
 #include "AnalyzerTags.h"
 #include "IPAddr.h"
+#include "TunnelHandler.h"
 
 class Connection;
 class ConnectionTimer;
@@ -51,8 +52,11 @@ class Analyzer;
 
 class Connection : public BroObj {
 public:
-	Connection(NetSessions* s, HashKey* k, double t, const ConnID* id, TunnelParent *arg_tunnel_parent);
+	Connection(NetSessions* s, HashKey* k, double t, const ConnID* id,
+	           const Encapsulation& arg_encap);
 	virtual ~Connection();
+
+	void CheckEncapsulation(const Encapsulation& arg_encap);
 
 	// Invoked when connection is about to be removed.  Use Ref(this)
 	// inside Done to keep the connection object around (though it'll
@@ -276,7 +280,7 @@ protected:
 	double inactivity_timeout;
 	RecordVal* conn_val;
 	LoginConn* login_conn;	// either nil, or this
-	TunnelParent* tunnel_parent; // nil if not tunneled
+	Encapsulation encapsulation; // tunnels
 	int suppress_event;	// suppress certain events to once per conn.
 
 	unsigned int installed_status_timer:1;

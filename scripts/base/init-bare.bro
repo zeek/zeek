@@ -179,18 +179,26 @@ type AnalyzerID: count;
 
 module Tunnel;
 export {
-	## Records the identity of a the parent of a tunneled connection. 
-	type Parent: record {
-		## The 4-tuple of the tunnel "connection". In case of an IP-in-IP
+	## Records the identity of an encapsulating parent of a tunneled connection.
+	type EncapsulatingConn: record {
+		## The 4-tuple of the encapsulating "connection". In case of an IP-in-IP
 		## tunnel the ports will be set to 0. The direction (i.e., orig and
-		## resp) of the parent are set according to the tunneled connection
+		## resp) are set according to the first tunneled packet seen
 		## and not according to the side that established the tunnel. 
 		cid: conn_id;
 		## The type of tunnel.
-		tunnel_type: Tunneltype;
+		tunnel_type: Tunnel::Type;
 	} &log;
 } # end export
 module GLOBAL;
+
+## A type alias for a vector of encapsulating "connections", i.e for when
+## there are tunnels within tunnels.
+##
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
+type encapsulating_conns: vector of Tunnel::EncapsulatingConn;
 
 ## Statistics about an endpoint.
 ##
@@ -239,8 +247,11 @@ type connection: record {
 	## used to tag and locate information  associated with that connection.
 	uid: string;
 	## If the connection is tunneled, this field contains information about
-	## the encapsulating "connection".
-	tunnel_parent: Tunnel::Parent &optional;
+	## the encapsulating "connection(s)" with the outermost one starting
+	## at index zero.  It's also always the first such enapsulation seen
+	## for the connection unless the :bro:id:`tunnel_changed` event is handled
+	## and re-assigns this field to the new encapsulation.
+	tunnel: encapsulating_conns &optional;
 };
 
 ## Fields of a SYN packet.
@@ -2616,16 +2627,10 @@ const record_all_packets = F &redef;
 ## .. bro:see:: conn_stats
 const ignore_keep_alive_rexmit = F &redef;
 
-## Whether the analysis engine parses IP packets encapsulated in
-## UDP tunnels.
-##
-## .. bro:see:: tunnel_port
-const parse_udp_tunnels = F &redef;
-
 module Tunnel;
 export {
 	## Whether to decapsulate IP tunnels (IPinIP, 6in4, 6to4)
-	const decapsulate_ip = F &redef;
+	const decapsulate_ip = T &redef;
 
 	## Whether to decapsulate UDP tunnels (e.g., Teredo, IPv4 in UDP)
 	const decapsulate_udp = F &redef;
@@ -2640,6 +2645,9 @@ export {
 	## If udp_tunnel_allports is T :bro:id:`udp_tunnel_ports` is ignored and we
 	## check every UDP packet for tunnels. 
 	const udp_tunnel_allports = F &redef;
+
+	## The maximum depth of a tunnel to decapsulate until giving up.
+	const max_depth: count = 2 &redef;
 } # end export
 module GLOBAL;
 

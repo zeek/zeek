@@ -4,7 +4,6 @@
 
 const ignore_keep_alive_rexmit: bool;
 const skip_http_data: bool;
-const parse_udp_tunnels: bool;
 const use_conn_size_analyzer: bool;
 const report_gaps_for_partial: bool;
 
@@ -16,3 +15,4 @@ const Tunnel::decapsulate_ip: bool;
 const Tunnel::decapsulate_udp: bool;
 const Tunnel::udp_tunnel_ports: any;
 const Tunnel::udp_tunnel_allports: bool;
+const Tunnel::max_depth: count;

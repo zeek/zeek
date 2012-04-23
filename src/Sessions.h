@@ -14,6 +14,7 @@
 
 struct pcap_pkthdr;
 
+class Encapsulation;
 class Connection;
 class ConnID;
 class OSFingerprint;
@@ -25,9 +26,6 @@ declare(PDict,FragReassembler);
 class Discarder;
 class SteppingStoneManager;
 class PacketFilter;
-
-class TunnelHandler;
-class TunnelInfo;
 
 class PacketSortElement;
 
@@ -145,7 +143,7 @@ protected:
 	friend class TimerMgrExpireTimer;
 
 	Connection* NewConn(HashKey* k, double t, const ConnID* id,
-			const u_char* data, int proto, TunnelInfo *tunnel_info);
+			const u_char* data, int proto, const Encapsulation& encapsulation);
 
 	// Check whether the tag of the current packet is consistent with
 	// the given connection.  Returns:
@@ -178,7 +176,7 @@ protected:
 
 	void DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 			const IP_Hdr* ip_hdr, const u_char* const pkt,
-			int hdr_size);
+			int hdr_size, Encapsulation& encapsulation);
 
 	void NextPacketSecondary(double t, const struct pcap_pkthdr* hdr,
 			const u_char* const pkt, int hdr_size,
@@ -215,8 +213,6 @@ protected:
 	int dump_this_packet;	// if true, current packet should be recorded
 	int num_packets_processed;
 	PacketProfiler* pkt_profiler;
-
-	TunnelHandler *tunnel_handler;
 
 	// We may use independent timer managers for different sets of related
 	// activity.  The managers are identified by an unique tag.

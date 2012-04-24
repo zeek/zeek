@@ -522,7 +522,6 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		break;
 		}
 
-	case IPPROTO_IP:
 	case IPPROTO_IPV4:
 	case IPPROTO_IPV6:
 		{
@@ -674,7 +673,6 @@ bool NetSessions::CheckHeaderTrunc(int proto, uint32 len, uint32 caplen,
 	case IPPROTO_UDP:
 		min_hdr_len = sizeof(struct udphdr);
 		break;
-	case IPPROTO_IP:
 	case IPPROTO_IPV4:
 		min_hdr_len = sizeof(struct ip);
 		break;

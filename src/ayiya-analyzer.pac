@@ -20,6 +20,12 @@ flow AYIYA_Flow
 			return false;
 			}
 		
+		if ( ${pdu.op} != 1 )
+			{
+			// 1 is the "forward" command.
+			return false;
+			}
+		
 		IP_Hdr* inner_ip;
 		if ( ${pdu.next_header} == IPPROTO_IPV6 )
 			inner_ip = new IP_Hdr((const struct ip6_hdr*) ${pdu.packet}.data(), false, ${pdu.packet}.length());

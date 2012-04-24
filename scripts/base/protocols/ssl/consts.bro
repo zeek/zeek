@@ -77,7 +77,9 @@ export {
 		[12] = "srp",
 		[13] = "signature_algorithms",
 		[14] = "use_srtp",
+		[15] = "heartbeat",
 		[35] = "SessionTicket TLS",
+		[40] = "extended_random",
 		[13172] = "next_protocol_negotiation",
 		[65281] = "renegotiation_info"
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };

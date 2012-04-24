@@ -522,17 +522,9 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		break;
 		}
 
-	case IPPROTO_IP:
 	case IPPROTO_IPV4:
 	case IPPROTO_IPV6:
 		{
-		if ( ! BifConst::Tunnel::decapsulate_ip )
-			{
-			reporter->Weird(ip_hdr->SrcAddr(), ip_hdr->DstAddr(), "ip_tunnel");
-			Remove(f);
-			return;
-			}
-
 		if ( encapsulation.Depth() >= BifConst::Tunnel::max_depth )
 			{
 			reporter->Weird(ip_hdr->SrcAddr(), ip_hdr->DstAddr(), "tunnel_depth");
@@ -674,7 +666,6 @@ bool NetSessions::CheckHeaderTrunc(int proto, uint32 len, uint32 caplen,
 	case IPPROTO_UDP:
 		min_hdr_len = sizeof(struct udphdr);
 		break;
-	case IPPROTO_IP:
 	case IPPROTO_IPV4:
 		min_hdr_len = sizeof(struct ip);
 		break;

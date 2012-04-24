@@ -34,7 +34,6 @@ namespace AnalyzerTag {
 		HTTP_BINPAC, SSL, SYSLOG_BINPAC,
 
 		// Decapsulation Analyzers
-		//6to4, 
 		AYIYA,
 		SOCKS,
 		//Teredo,

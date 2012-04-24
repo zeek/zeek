@@ -2631,21 +2631,7 @@ module Tunnel;
 export {
 	## Whether to decapsulate IP tunnels (IPinIP, 6in4, 6to4)
 	const decapsulate_ip = T &redef;
-
-	## Whether to decapsulate UDP tunnels (e.g., Teredo, IPv4 in UDP)
-	const decapsulate_udp = F &redef;
-
-	## If decapsulating UDP: the set of ports for which to do so. 
-	## Can be overridden by :bro:id:`Tunnel::udp_tunnel_allports`
-	const udp_tunnel_ports: set[port] = { 
-		3544/udp,    # Teredo 
-		5072/udp,    # AYIAY
-	} &redef;
-
-	## If udp_tunnel_allports is T :bro:id:`udp_tunnel_ports` is ignored and we
-	## check every UDP packet for tunnels. 
-	const udp_tunnel_allports = F &redef;
-
+	
 	## The maximum depth of a tunnel to decapsulate until giving up.
 	const max_depth: count = 2 &redef;
 } # end export

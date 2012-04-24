@@ -131,6 +131,10 @@ public:
 		return tcp_conns.Length() + udp_conns.Length() +
 			icmp_conns.Length();
 		}
+		
+	void DoNextPacket(double t, const struct pcap_pkthdr* hdr,
+			const IP_Hdr* ip_hdr, const u_char* const pkt,
+			int hdr_size, Encapsulation& encapsulation);
 
 	unsigned int ConnectionMemoryUsage();
 	unsigned int ConnectionMemoryUsageConnVals();
@@ -173,10 +177,6 @@ protected:
 	void NextPacket(double t, const struct pcap_pkthdr* hdr,
 			const u_char* const pkt, int hdr_size,
 			PacketSortElement* pkt_elem);
-
-	void DoNextPacket(double t, const struct pcap_pkthdr* hdr,
-			const IP_Hdr* ip_hdr, const u_char* const pkt,
-			int hdr_size, Encapsulation& encapsulation);
 
 	void NextPacketSecondary(double t, const struct pcap_pkthdr* hdr,
 			const u_char* const pkt, int hdr_size,

@@ -245,7 +245,9 @@ public:
 	void SetTransport(TransportProto arg_proto)	{ proto = arg_proto; }
 
 	void SetUID(uint64 arg_uid)	 { uid = arg_uid; }
-
+	
+	Encapsulation* GetEncapsulation()	{ return &encapsulation; }
+	
 protected:
 
 	Connection()	{ persistent = 0; }

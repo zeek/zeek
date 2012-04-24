@@ -129,9 +129,6 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 		Syslog_Analyzer_binpac::InstantiateAnalyzer,
 		Syslog_Analyzer_binpac::Available, 0, false },
 
-	//{ AnalyzerTag::6to4, "6to4",
-	//	6to4_Analyzer::InstantiateAnalyzer,
-	//	6to4_Anylzer::Available, 0, false },
 	{ AnalyzerTag::AYIYA, "AYIYA",
 		AYIYA_Analyzer::InstantiateAnalyzer,
 		AYIYA_Analyzer::Available, 0, false },

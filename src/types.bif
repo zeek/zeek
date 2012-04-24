@@ -178,8 +178,7 @@ enum Type %{
 	IP4_IN_IP6,
 	IP6_IN_UDP,
 	IP4_IN_UDP,
-	IP6_IN_AYIAY,
-	IP4_IN_AYIAY,
+	AYIYA,
 %}
 
 type EncapsulatingConn: record;

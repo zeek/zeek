@@ -10,7 +10,7 @@ export {
 	
 	type Info: record {
 		ts:          time    &log;
-		uid:         string  &log;
+		uid:         string  &log &optional;
 		id:          conn_id &log;
 		action:      Action  &log;
 		tunnel_type: string  &log;

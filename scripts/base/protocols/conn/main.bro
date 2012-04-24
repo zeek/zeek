@@ -101,6 +101,9 @@ export {
 		resp_pkts:     count      &log &optional;
 		## Number IP level bytes the responder sent. See ``orig_pkts``.
 		resp_ip_bytes: count      &log &optional;
+		## If this connection was over a tunnel, indicate the 
+		## `uid` value for the parent connection or connections.
+		parents:        vector of string &log &optional;
 	};
 
 	## Event that can be handled to access the :bro:type:`Conn::Info`
@@ -190,6 +193,15 @@ function set_conn(c: connection, eoc: bool)
 	c$conn$ts=c$start_time;
 	c$conn$uid=c$uid;
 	c$conn$id=c$id;
+	if ( ! c$conn?$parents && c?$tunnel )
+		{
+		c$conn$parents = vector();
+		for ( i in c$tunnel )
+			{
+			# TODO: maybe we should be storing uid's in the $tunnel field?
+			#c$conn$parents[|c$conn$parents|] = lookup_connection(c$tunnel[i]$cid)$uid;
+			}
+		}
 	c$conn$proto=get_port_transport_proto(c$id$resp_p);
 	if( |Site::local_nets| > 0 )
 		c$conn$local_orig=Site::is_local_addr(c$id$orig_h);

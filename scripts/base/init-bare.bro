@@ -2629,10 +2629,8 @@ const ignore_keep_alive_rexmit = F &redef;
 
 module Tunnel;
 export {
-	## Whether to decapsulate IP tunnels (IPinIP, 6in4, 6to4)
-	const decapsulate_ip = T &redef;
-	
 	## The maximum depth of a tunnel to decapsulate until giving up.
+	## Setting this to zero will disable tunnel decapsulation.
 	const max_depth: count = 2 &redef;
 } # end export
 module GLOBAL;

@@ -16,7 +16,7 @@ public:
 		{ return new AYIYA_Analyzer(conn); }
 
 	static bool Available()
-		{ return BifConst::Tunnel::decapsulate_ip; }
+		{ return BifConst::Tunnel::max_depth > 0; }
 
 protected:
 	friend class AnalyzerTimer;

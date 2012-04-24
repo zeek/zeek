@@ -13,7 +13,7 @@ flow AYIYA_Flow
 		%{
 		Connection *c = connection()->bro_analyzer()->Conn();
 		
-		if ( c->GetEncapsulation()->Depth() >= BifConst::Tunnel::max_depth )
+		if ( c->GetEncapsulation().Depth() >= BifConst::Tunnel::max_depth )
 			{
 			reporter->Weird(c->OrigAddr(), c->RespAddr(), "tunnel_depth");
 			// TODO: this should stop this analyzer instance
@@ -42,10 +42,13 @@ flow AYIYA_Flow
 		// Not sure what to do with this timestamp.
 		//fake_hdr.ts = network_time();
 		
-		EncapsulatingConn ec(c->OrigAddr(), c->RespAddr(), BifEnum::Tunnel::AYIYA);
-		c->GetEncapsulation()->Add(ec);
+		Encapsulation encap(c->GetEncapsulation());
+		EncapsulatingConn ec(c->OrigAddr(), c->RespAddr(),
+		                     c->OrigPort(), c->RespPort(),
+		                     BifEnum::Tunnel::AYIYA);
+		encap.Add(ec);
 		
-		sessions->DoNextPacket(network_time(), &fake_hdr, inner_ip, ${pdu.packet}.data(), 0, *c->GetEncapsulation());
+		sessions->DoNextPacket(network_time(), &fake_hdr, inner_ip, ${pdu.packet}.data(), 0, encap);
 		
 		delete inner_ip;
 		return true;

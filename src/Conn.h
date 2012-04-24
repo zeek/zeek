@@ -246,7 +246,8 @@ public:
 
 	void SetUID(uint64 arg_uid)	 { uid = arg_uid; }
 	
-	Encapsulation* GetEncapsulation()	{ return &encapsulation; }
+	const Encapsulation& GetEncapsulation() const
+		{ return encapsulation; }
 	
 protected:
 

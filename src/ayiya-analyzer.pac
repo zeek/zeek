@@ -15,8 +15,7 @@ flow AYIYA_Flow
 		
 		if ( c->GetEncapsulation().Depth() >= BifConst::Tunnel::max_depth )
 			{
-			reporter->Weird(c->OrigAddr(), c->RespAddr(), "tunnel_depth");
-			// TODO: this should stop this analyzer instance
+			reporter->Weird(c, "tunnel_depth");
 			return false;
 			}
 		
@@ -29,13 +28,16 @@ flow AYIYA_Flow
 		IP_Hdr* inner_ip;
 		if ( ${pdu.next_header} == IPPROTO_IPV6 )
 			inner_ip = new IP_Hdr((const struct ip6_hdr*) ${pdu.packet}.data(), false, ${pdu.packet}.length());
-		else
+		else if ( ${pdu.next_header} == IPPROTO_IPV4 )
 			inner_ip = new IP_Hdr((const struct ip*) ${pdu.packet}.data(), false);
-		
-		if ( inner_ip != 0)
-			connection()->bro_analyzer()->ProtocolConfirmation();
 		else
-			connection()->bro_analyzer()->ProtocolViolation("ayiya_tunnel_non_ip");
+			{
+			reporter->Weird(c, "ayiya_tunnel_non_ip");
+			return false;
+			}
+		
+		if ( inner_ip != 0 )
+			connection()->bro_analyzer()->ProtocolConfirmation();
 		
 		struct pcap_pkthdr fake_hdr;
 		fake_hdr.caplen = fake_hdr.len = ${pdu.packet}.length();

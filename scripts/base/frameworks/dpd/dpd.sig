@@ -150,11 +150,11 @@ signature dpd_ssl_client {
   tcp-state originator
 }
 
-#signature dpd_ayiya {
-#  ip-proto = udp
-#  payload /^..\x11\x29/
-#  enable "ayiya"
-#}
+signature dpd_ayiya {
+  ip-proto = udp
+  payload /^..\x11\x29/
+  enable "ayiya"
+}
 
 signature dpd_socks_client {
 	ip-proto == tcp

@@ -10,7 +10,7 @@
 %token TOK_CONSTANT TOK_COPY TOK_COUNT TOK_COUNTER TOK_DEFAULT TOK_DELETE
 %token TOK_DOUBLE TOK_ELSE TOK_ENUM TOK_EVENT TOK_EXPORT TOK_FILE TOK_FOR
 %token TOK_FUNCTION TOK_GLOBAL TOK_ID TOK_IF TOK_INT
-%token TOK_INTERVAL TOK_LIST TOK_LOCAL TOK_MODULE TOK_MATCH
+%token TOK_INTERVAL TOK_LIST TOK_LOCAL TOK_MODULE
 %token TOK_NEXT TOK_OF TOK_PATTERN TOK_PATTERN_TEXT
 %token TOK_PORT TOK_PRINT TOK_RECORD TOK_REDEF
 %token TOK_REMOVE_FROM TOK_RETURN TOK_SCHEDULE TOK_SET
@@ -33,7 +33,7 @@
 
 %left ',' '|'
 %right '=' TOK_ADD_TO TOK_REMOVE_FROM
-%right '?' ':' TOK_USING
+%right '?' ':'
 %left TOK_OR
 %left TOK_AND
 %nonassoc '<' '>' TOK_LE TOK_GE TOK_EQ TOK_NE
@@ -502,12 +502,6 @@ expr:
 			{
 			set_location(@1, @4);
 			$$ = new VectorConstructorExpr($3);
-			}
-
-	|	TOK_MATCH expr TOK_USING expr
-			{
-			set_location(@1, @4);
-			$$ = new RecordMatchExpr($2, $4);
 			}
 
 	|	expr '(' opt_expr_list ')'

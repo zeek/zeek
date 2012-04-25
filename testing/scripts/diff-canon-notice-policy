@@ -1,0 +1,10 @@
+#! /usr/bin/awk -f
+#
+# A diff canonifier that removes the priorities in notice_policy.log.
+
+/^#/ && $2 == "notice_policy" { filter = 1; }
+
+filter == 1 && /^[^#]/        { sub("^[0-9]*", "X"); }
+
+{ print; }
+

@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <list>
 #include <utility>
+
 #include "BroString.h"
 
 typedef enum {
@@ -21,6 +22,8 @@ typedef enum {
 } desc_style;
 
 class BroFile;
+class IPAddr;
+class IPPrefix;
 
 class ODesc {
 public:
@@ -68,11 +71,14 @@ public:
 
 	void Add(const char* s, int do_indent=1);
 	void AddN(const char* s, int len)	{ AddBytes(s, len); }
+	void Add(const string& s)	{ AddBytes(s.data(), s.size()); }
 	void Add(int i);
 	void Add(uint32 u);
 	void Add(int64 i);
 	void Add(uint64 u);
 	void Add(double d);
+	void Add(const IPAddr& addr);
+	void Add(const IPPrefix& prefix);
 
 	// Add s as a counted string.
 	void AddCS(const char* s);

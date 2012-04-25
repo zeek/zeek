@@ -6,10 +6,9 @@
 #include "Stats.h"
 #include "Scope.h"
 #include "cq.h"
-#include "ConnCompressor.h"
 #include "DNS_Mgr.h"
 #include "Trigger.h"
-
+#include "threading/Manager.h"
 
 int killed_by_inactivity = 0;
 
@@ -129,19 +128,6 @@ void ProfileLogger::Log()
 		expensive ? sessions->ConnectionMemoryUsageConnVals() / 1024 : 0
 		));
 
-	const ConnCompressor::Sizes& cs = conn_compressor->Size();
-
-	file->Write(fmt("%.6f ConnCompressor: pending=%d pending_in_mem=%d full_conns=%d pending+real=%d mem=%dK avg=%.1f/%.1f\n",
-		network_time,
-		cs.pending_valid,
-		cs.pending_in_mem,
-		cs.connections,
-		cs.hash_table_size,
-		cs.memory / 1024,
-		cs.memory / double(cs.pending_valid),
-		cs.memory / double(cs.pending_in_mem)
-		));
-
 	SessionStats s;
 	sessions->GetStats(s);
 
@@ -215,6 +201,25 @@ void ProfileLogger::Log()
 			file->Write(fmt("%.06f         %s = %d\n", network_time,
 					timer_type_to_string((TimerType) i),
 					current_timers[i]));
+		}
+
+	file->Write(fmt("%0.6f Threads: current=%d\n", network_time, thread_mgr->NumThreads()));
+
+	const threading::Manager::msg_stats_list& thread_stats = thread_mgr->GetMsgThreadStats();
+	for ( threading::Manager::msg_stats_list::const_iterator i = thread_stats.begin();
+	      i != thread_stats.end(); ++i ) 
+		{
+		threading::MsgThread::Stats s = i->second;
+		file->Write(fmt("%0.6f   %-25s in=%" PRIu64 " out=%" PRIu64 " pending=%" PRIu64 "/%" PRIu64
+				" (#queue r/w: in=%" PRIu64 "/%" PRIu64 " out=%" PRIu64 "/%" PRIu64 ")"
+			        "\n",
+			    network_time,
+			    i->first.c_str(),
+			    s.sent_in, s.sent_out,
+			    s.pending_in, s.pending_out,
+			    s.queue_in_stats.num_reads, s.queue_in_stats.num_writes,
+			    s.queue_out_stats.num_reads, s.queue_out_stats.num_writes
+			    ));
 		}
 
 	// Script-level state.

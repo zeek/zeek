@@ -24,11 +24,12 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --prefix=PREFIX        installation directory [/usr/local/bro]
     --scriptdir=PATH       root installation directory for Bro scripts
                            [PREFIX/share/bro]
+    --conf-files-dir=PATH  config files installation directory [PREFIX/etc]
 
   Optional Features:
     --enable-debug         compile in debugging mode
-    --enable-brov6         enable IPv6 processing
-    --enable-perftools     use Google's perftools
+    --enable-mobile-ipv6   analyze mobile IPv6 features defined by RFC 6275
+    --enable-perftools-debug use Google's perftools for debugging
     --disable-broccoli     don't build or install the Broccoli library
     --disable-broctl       don't install Broctl
     --disable-auxtools     don't build or install auxilliary tools
@@ -86,20 +87,22 @@ append_cache_entry () {
 
 # set defaults
 builddir=build
+prefix=/usr/local/bro
 CMakeCacheEntries=""
-append_cache_entry CMAKE_INSTALL_PREFIX PATH   /usr/local/bro
-append_cache_entry BRO_ROOT_DIR         PATH   /usr/local/bro
-append_cache_entry PY_MOD_INSTALL_DIR   PATH   /usr/local/bro/lib/broctl
-append_cache_entry BRO_SCRIPT_INSTALL_PATH STRING /usr/local/bro/share/bro
+append_cache_entry CMAKE_INSTALL_PREFIX PATH   $prefix
+append_cache_entry BRO_ROOT_DIR         PATH   $prefix
+append_cache_entry PY_MOD_INSTALL_DIR   PATH   $prefix/lib/broctl
+append_cache_entry BRO_SCRIPT_INSTALL_PATH STRING $prefix/share/bro
+append_cache_entry BRO_ETC_INSTALL_DIR  PATH   $prefix/etc
 append_cache_entry ENABLE_DEBUG         BOOL   false
-append_cache_entry BROv6                BOOL   false
-append_cache_entry ENABLE_PERFTOOLS     BOOL   false
+append_cache_entry ENABLE_PERFTOOLS_DEBUG BOOL false
 append_cache_entry BinPAC_SKIP_INSTALL  BOOL   true
 append_cache_entry BUILD_SHARED_LIBS    BOOL   true
 append_cache_entry INSTALL_AUX_TOOLS    BOOL   true
 append_cache_entry INSTALL_BROCCOLI     BOOL   true
 append_cache_entry INSTALL_BROCTL       BOOL   true
 append_cache_entry CPACK_SOURCE_IGNORE_FILES STRING
+append_cache_entry ENABLE_MOBILE_IPV6   BOOL   false
 
 # parse arguments
 while [ $# -ne 0 ]; do
@@ -120,25 +123,27 @@ while [ $# -ne 0 ]; do
             CMakeGenerator="$optarg"
             ;;
         --prefix=*)
+            prefix=$optarg
             append_cache_entry CMAKE_INSTALL_PREFIX PATH   $optarg
             append_cache_entry BRO_ROOT_DIR         PATH   $optarg
             append_cache_entry PY_MOD_INSTALL_DIR   PATH   $optarg/lib/broctl
-            if [ "$user_set_scriptdir" != "true" ]; then
-                append_cache_entry BRO_SCRIPT_INSTALL_PATH STRING $optarg/share/bro
-            fi
             ;;
         --scriptdir=*)
             append_cache_entry BRO_SCRIPT_INSTALL_PATH STRING $optarg
             user_set_scriptdir="true"
             ;;
+        --conf-files-dir=*)
+            append_cache_entry BRO_ETC_INSTALL_DIR PATH $optarg
+            user_set_conffilesdir="true"
+            ;;
         --enable-debug)
             append_cache_entry ENABLE_DEBUG         BOOL   true
             ;;
-        --enable-brov6)
-            append_cache_entry BROv6                BOOL   true
+        --enable-mobile-ipv6)
+            append_cache_entry ENABLE_MOBILE_IPV6         BOOL   true
             ;;
-        --enable-perftools)
-            append_cache_entry ENABLE_PERFTOOLS     BOOL   true
+        --enable-perftools-debug)
+            append_cache_entry ENABLE_PERFTOOLS_DEBUG BOOL   true
             ;;
         --disable-broccoli)
             append_cache_entry INSTALL_BROCCOLI     BOOL   false
@@ -183,7 +188,6 @@ while [ $# -ne 0 ]; do
             append_cache_entry LibGeoIP_ROOT_DIR PATH $optarg
             ;;
         --with-perftools=*)
-            append_cache_entry ENABLE_PERFTOOLS     BOOL   true
             append_cache_entry GooglePerftools_ROOT_DIR PATH $optarg
             ;;
         --with-python=*)
@@ -231,6 +235,14 @@ while [ $# -ne 0 ]; do
     esac
     shift
 done
+
+if [ "$user_set_scriptdir" != "true" ]; then
+    append_cache_entry BRO_SCRIPT_INSTALL_PATH STRING $prefix/share/bro
+fi
+
+if [ "$user_set_conffilesdir" != "true" ]; then
+    append_cache_entry BRO_ETC_INSTALL_DIR PATH $prefix/etc
+fi
 
 if [ -d $builddir ]; then
     # If build directory exists, check if it has a CMake cache

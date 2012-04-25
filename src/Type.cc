@@ -1858,13 +1858,8 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 
 		if ( t1->IsSet() )
 			return new SetType(tl3, 0);
-		else if ( tg1 == TYPE_TABLE )
-			return new TableType(tl3, y3);
 		else
-			{
-			reporter->InternalError("bad tag in merge_types");
-			return 0;
-			}
+			return new TableType(tl3, y3);
 		}
 
 	case TYPE_FUNC:

@@ -18,6 +18,7 @@
 #include "ID.h"
 #include "Scope.h"
 #include "StateAccess.h"
+#include "IPAddr.h"
 
 class Val;
 class Func;
@@ -53,11 +54,11 @@ typedef union {
 	// Used for count, counter, port, subnet.
 	bro_uint_t uint_val;
 
-	// Used for addr, net
-	addr_type addr_val;
+	// Used for addr
+	IPAddr* addr_val;
 
 	// Used for subnet
-	subnet_type subnet_val;
+	IPPrefix* subnet_val;
 
 	// Used for double, time, interval.
 	double double_val;
@@ -226,10 +227,10 @@ public:
 	CONST_ACCESSOR(TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
 	CONST_ACCESSOR(TYPE_VECTOR, vector<Val*>*, vector_val, AsVector)
 
-	const subnet_type* AsSubNet() const
+	const IPPrefix& AsSubNet() const
 		{
 		CHECK_TAG(type->Tag(), TYPE_SUBNET, "Val::SubNet", type_name)
-		return &val.subnet_val;
+		return *val.subnet_val;
 		}
 
 	BroType* AsType() const
@@ -238,12 +239,11 @@ public:
 		return type;
 		}
 
-	// ... in network byte order
-	const addr_type AsAddr() const
+	const IPAddr& AsAddr() const
 		{
 		if ( type->Tag() != TYPE_ADDR )
 			BadTag("Val::AsAddr", type_name(type->Tag()));
-		return val.addr_val;
+		return *val.addr_val;
 		}
 
 #define ACCESSOR(tag, ctype, accessor, name) \
@@ -261,10 +261,17 @@ public:
 	ACCESSOR(TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
 	ACCESSOR(TYPE_VECTOR, vector<Val*>*, vector_val, AsVector)
 
-	subnet_type* AsSubNet()
+	const IPPrefix& AsSubNet()
 		{
 		CHECK_TAG(type->Tag(), TYPE_SUBNET, "Val::SubNet", type_name)
-		return &val.subnet_val;
+		return *val.subnet_val;
+		}
+
+	const IPAddr& AsAddr()
+		{
+		if ( type->Tag() != TYPE_ADDR )
+			BadTag("Val::AsAddr", type_name(type->Tag()));
+		return *val.addr_val;
 		}
 
 	// Gives fast access to the bits of something that is one of
@@ -282,6 +289,7 @@ public:
 	CONVERTER(TYPE_PATTERN, PatternVal*, AsPatternVal)
 	CONVERTER(TYPE_PORT, PortVal*, AsPortVal)
 	CONVERTER(TYPE_SUBNET, SubNetVal*, AsSubNetVal)
+	CONVERTER(TYPE_ADDR, AddrVal*, AsAddrVal)
 	CONVERTER(TYPE_TABLE, TableVal*, AsTableVal)
 	CONVERTER(TYPE_RECORD, RecordVal*, AsRecordVal)
 	CONVERTER(TYPE_LIST, ListVal*, AsListVal)
@@ -299,6 +307,7 @@ public:
 	CONST_CONVERTER(TYPE_PATTERN, PatternVal*, AsPatternVal)
 	CONST_CONVERTER(TYPE_PORT, PortVal*, AsPortVal)
 	CONST_CONVERTER(TYPE_SUBNET, SubNetVal*, AsSubNetVal)
+	CONST_CONVERTER(TYPE_ADDR, AddrVal*, AsAddrVal)
 	CONST_CONVERTER(TYPE_TABLE, TableVal*, AsTableVal)
 	CONST_CONVERTER(TYPE_RECORD, RecordVal*, AsRecordVal)
 	CONST_CONVERTER(TYPE_LIST, ListVal*, AsListVal)
@@ -500,13 +509,9 @@ protected:
 #define NUM_PORT_SPACES 4
 #define PORT_SPACE_MASK 0x30000
 
-#define TCP_PORT_MASK  0x10000
-#define UDP_PORT_MASK  0x20000
-#define ICMP_PORT_MASK 0x30000
-
-typedef enum {
-	TRANSPORT_UNKNOWN, TRANSPORT_TCP, TRANSPORT_UDP, TRANSPORT_ICMP,
-} TransportProto;
+#define TCP_PORT_MASK	0x10000
+#define UDP_PORT_MASK	0x20000
+#define ICMP_PORT_MASK	0x30000
 
 class PortVal : public Val {
 public:
@@ -553,8 +558,9 @@ public:
 	Val* SizeVal() const;
 
 	// Constructor for address already in network order.
-	AddrVal(uint32 addr);
-	AddrVal(const uint32* addr);
+	AddrVal(uint32 addr);          // IPv4.
+	AddrVal(const uint32 addr[4]); // IPv6.
+	AddrVal(const IPAddr& addr);
 
 	unsigned int MemoryAllocation() const;
 
@@ -564,9 +570,6 @@ protected:
 	AddrVal(TypeTag t) : Val(t)	{ }
 	AddrVal(BroType* t) : Val(t)	{ }
 
-	void Init(uint32 addr);
-	void Init(const uint32* addr);
-
 	DECLARE_SERIAL(AddrVal);
 };
 
@@ -574,29 +577,24 @@ class SubNetVal : public Val {
 public:
 	SubNetVal(const char* text);
 	SubNetVal(const char* text, int width);
-	SubNetVal(uint32 addr, int width);	// for address already massaged
-	SubNetVal(const uint32* addr, int width);	// ditto
+	SubNetVal(uint32 addr, int width); // IPv4.
+	SubNetVal(const uint32 addr[4], int width); // IPv6.
+	SubNetVal(const IPAddr& addr, int width);
+	~SubNetVal();
 
 	Val* SizeVal() const;
 
-	int Width() const	{ return val.subnet_val.width; }
-	addr_type Mask() const; // returns host byte order
+	const IPAddr& Prefix() const;
+	int Width() const;
+	IPAddr Mask() const;
 
-	bool Contains(const uint32 addr) const;
-	bool Contains(const uint32* addr) const;
+	bool Contains(const IPAddr& addr) const;
 
-	unsigned int MemoryAllocation() const
-		{
-		return Val::MemoryAllocation() + padded_sizeof(*this) - padded_sizeof(Val);
-		}
+	unsigned int MemoryAllocation() const;
 
 protected:
 	friend class Val;
 	SubNetVal()	{}
-
-	void Init(const char* text, int width);
-	void Init(uint32 addr, int width);
-	void Init(const uint32 *addr, int width);
 
 	void ValDescribe(ODesc* d) const;
 

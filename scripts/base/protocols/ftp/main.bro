@@ -24,7 +24,7 @@ export {
 	const default_capture_password = F &redef;
 	
 	## User IDs that can be considered "anonymous".
-	const guest_ids = { "anonymous", "ftp", "guest" } &redef;
+	const guest_ids = { "anonymous", "ftp", "ftpuser", "guest" } &redef;
 	
 	type Info: record {
 		## Time when the command was sent.
@@ -160,12 +160,21 @@ function ftp_message(s: Info)
 	# or it's a deliberately logged command.
 	if ( |s$tags| > 0 || (s?$cmdarg && s$cmdarg$cmd in logged_commands) )
 		{
-		if ( s?$password && to_lower(s$user) !in guest_ids )
+		if ( s?$password && 
+		     ! s$capture_password && 
+		     to_lower(s$user) !in guest_ids )
+			{
 			s$password = "<hidden>";
+			}
 		
 		local arg = s$cmdarg$arg;
 		if ( s$cmdarg$cmd in file_cmds )
-			arg = fmt("ftp://%s%s", s$id$resp_h, build_path_compressed(s$cwd, arg));
+			{
+			if ( is_v4_addr(s$id$resp_h) )
+				arg = fmt("ftp://%s%s", s$id$resp_h, build_path_compressed(s$cwd, arg));
+			else
+				arg = fmt("ftp://[%s]%s", s$id$resp_h, build_path_compressed(s$cwd, arg));
+			}
 		
 		s$ts=s$cmdarg$ts;
 		s$command=s$cmdarg$cmd;
@@ -270,7 +279,7 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &prior
 			{
 			c$ftp$passive=T;
 			
-			if ( code == 229 && data$h == 0.0.0.0 )
+			if ( code == 229 && data$h == [::] )
 				data$h = id$resp_h;
 			
 			ftp_data_expected[data$h, data$p] = c$ftp;

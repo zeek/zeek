@@ -5,7 +5,7 @@
 #include "Attr.h"
 #include "Expr.h"
 #include "Serializer.h"
-#include "LogMgr.h"
+#include "threading/SerialTypes.h"
 
 const char* attr_name(attr_tag t)
 	{
@@ -416,7 +416,7 @@ void Attributes::CheckAttr(Attr* a)
 		break;
 
 	case ATTR_LOG:
-		if ( ! LogVal::IsCompatibleType(type) )
+		if ( ! threading::Value::IsCompatibleType(type) )
 			Error("&log applied to a type that cannot be logged");
 		break;
 

@@ -1,0 +1,12 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	test
+#fields	t	id.orig_h	id.orig_p	id.resp_h	id.resp_p	status	country
+#types	time	addr	port	addr	port	string	string
+1331256472.375609	1.2.3.4	1234	2.3.4.5	80	success	unknown
+1331256472.375609	1.2.3.4	1234	2.3.4.5	80	failure	US
+1331256472.375609	1.2.3.4	1234	2.3.4.5	80	failure	UK
+1331256472.375609	1.2.3.4	1234	2.3.4.5	80	success	BR
+1331256472.375609	1.2.3.4	1234	2.3.4.5	80	failure	MX

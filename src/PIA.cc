@@ -196,20 +196,20 @@ void PIA_TCP::FirstPacket(bool is_orig, const IP_Hdr* ip)
 			ip4->ip_p = IPPROTO_TCP;
 
 			// Cast to const so that it doesn't delete it.
-			ip4_hdr = new IP_Hdr((const struct ip*) ip4);
+			ip4_hdr = new IP_Hdr(ip4, false);
 			}
 
 		if ( is_orig )
 			{
-			copy_addr(Conn()->OrigAddr(), &ip4->ip_src.s_addr);
-			copy_addr(Conn()->RespAddr(), &ip4->ip_dst.s_addr);
+			Conn()->OrigAddr().CopyIPv4(&ip4->ip_src);
+			Conn()->RespAddr().CopyIPv4(&ip4->ip_dst);
 			tcp4->th_sport = htons(Conn()->OrigPort());
 			tcp4->th_dport = htons(Conn()->RespPort());
 			}
 		else
 			{
-			copy_addr(Conn()->RespAddr(), &ip4->ip_src.s_addr);
-			copy_addr(Conn()->OrigAddr(), &ip4->ip_dst.s_addr);
+			Conn()->RespAddr().CopyIPv4(&ip4->ip_src);
+			Conn()->OrigAddr().CopyIPv4(&ip4->ip_dst);
 			tcp4->th_sport = htons(Conn()->RespPort());
 			tcp4->th_dport = htons(Conn()->OrigPort());
 			}

@@ -248,7 +248,7 @@ function install()
 	#local ts = current_time();
 	if ( ! precompile_pcap_filter(DefaultPcapFilter, current_filter) )
 		{
-		NOTICE([$note=Compile_Failure, 
+		NOTICE([$note=Compile_Failure,
 		        $msg=fmt("Compiling packet filter failed"),
 		        $sub=current_filter]);
 		Reporter::fatal(fmt("Bad pcap filter '%s'", current_filter));
@@ -263,7 +263,7 @@ function install()
 	local info: Info;
 	info$ts = network_time();
 	# If network_time() is 0.0 we're at init time so use the wall clock.
-	if ( info$ts == 0.0 ) 
+	if ( info$ts == 0.0 )
 		{
 		info$ts = current_time();
 		info$init = T;
@@ -274,7 +274,7 @@ function install()
 		{
 		# Installing the filter failed for some reason.
 		info$success = F;
-		NOTICE([$note=Install_Failure, 
+		NOTICE([$note=Install_Failure,
 		        $msg=fmt("Installing packet filter failed"),
 		        $sub=current_filter]);
 		}

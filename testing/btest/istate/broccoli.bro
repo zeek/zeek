@@ -1,4 +1,5 @@
-# @TEST-REQUIRES: grep -vq '#define BROv6' $BUILD/config.h
+# @TEST-GROUP: comm
+#
 # @TEST-REQUIRES: test -e $BUILD/aux/broccoli/src/libbroccoli.so || test -e $BUILD/aux/broccoli/src/libbroccoli.dylib
 #
 # @TEST-EXEC: btest-bg-run bro bro %INPUT $DIST/aux/broccoli/test/broping-record.bro

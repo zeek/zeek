@@ -3,6 +3,6 @@
 #empty_field	(empty)
 #unset_field	-
 #path	dns
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	trans_id	query	qclass	qclass_name	qtype	qtype_name	rcode	rcode_name	QR	AA	TC	RD	RA	Z	answers	TTLs	auth	addl
-#types	time	string	addr	port	addr	port	enum	count	string	count	string	count	string	count	string	bool	bool	bool	bool	bool	count	vector[string]	vector[interval]	table[string]	table[string]
-930613226.529070	UWkUyAuUGXf	212.180.42.100	25000	131.243.64.3	53	tcp	34798	-	-	-	-	-	0	NOERROR	F	F	F	F	T	0	4.3.2.1	31337.000000	-	-
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	trans_id	query	qclass	qclass_name	qtype	qtype_name	rcode	rcode_name	AA	TC	RD	RA	Z	answers	TTLs	auth	addl
+#types	time	string	addr	port	addr	port	enum	count	string	count	string	count	string	count	string	bool	bool	bool	bool	count	vector[string]	vector[interval]	table[string]	table[string]
+930613226.529070	UWkUyAuUGXf	212.180.42.100	25000	131.243.64.3	53	tcp	34798	-	-	-	-	-	0	NOERROR	F	F	F	T	0	4.3.2.1	31337.000000	-	-

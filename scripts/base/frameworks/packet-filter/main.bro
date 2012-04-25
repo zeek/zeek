@@ -55,6 +55,11 @@ export {
 	## dynamically built filter.
 	const unrestricted_filter = "" &redef;
 	
+	## Filter string which is unconditionally and'ed to the beginning of every
+	## dynamically built filter.  This is mostly used when a custom filter is being
+	## used but MPLS or VLAN tags are on the traffic.
+	const restricted_filter = "" &redef;
+	
 	## The maximum amount of time that you'd like to allow for filters to compile.
 	## If this time is exceeded, compensation measures may be taken by the framework
 	## to reduce the filter size.  This threshold being crossed also results in
@@ -69,7 +74,7 @@ export {
 	##
 	## filter: A BPF expression of traffic that should be excluded.
 	##
-	## Returns: A boolean value to indicate if the fitler was successfully
+	## Returns: A boolean value to indicate if the filter was successfully
 	##          installed or not.
 	global exclude: function(filter_id: string, filter: string): bool;
 	
@@ -90,7 +95,7 @@ export {
 	
 	## Call this function to build and install a new dynamically built
 	## packet filter.
-	global install: function();
+	global install: function(): bool;
 	
 	## A data structure to represent filter generating factories.
 	type FilterFactory: record {
@@ -121,6 +126,9 @@ redef capture_filters += { ["default"] = default_capture_filter };
 # install the filter.
 global currently_building = F;
 
+# Internal tracking for if the the filter being built has possibly been changed.
+global filter_changed = F;
+
 global filter_factories: set[FilterFactory] = {};
 
 redef enum PcapFilterID += {
@@ -139,7 +147,17 @@ function test_filter(filter: string): bool
 	return T;
 	}
 
-event bro_init() &priority=6
+# This tracks any changes for filtering mechanisms that play along nice 
+# and set filter_changed to T.
+event filter_change_tracking()
+	{
+	if ( filter_changed )
+		install();
+	
+	schedule 5min { filter_change_tracking() };
+	}
+
+event bro_init() &priority=5
 	{
 	Log::create_stream(PacketFilter::LOG, [$columns=Info]);
 	
@@ -155,8 +173,13 @@ event bro_init() &priority=6
 		if ( ! test_filter(restrict_filters[id]) )
 			Reporter::fatal(fmt("Invalid restrict filter named '%s' - '%s'", id, restrict_filters[id]));
 		}
+	}
 	
+event bro_init() &priority=-5
+	{
 	install();
+	
+	event filter_change_tracking();
 	}
 	
 function register_filter_factory(ff: FilterFactory)
@@ -233,26 +256,34 @@ function build(): string
 	
 	if ( unrestricted_filter != "" )
 		filter = combine_filters(unrestricted_filter, "or", filter);
+	if ( restricted_filter != "" )
+		filter = combine_filters(restricted_filter, "and", filter);
 	
 	currently_building = F;
 	return filter;
 	}
 
-function install()
+function install(): bool
 	{
 	if ( currently_building )
-		return;
+		return F;
 	
-	current_filter = build();
+	local tmp_filter = build();
 	
 	#local ts = current_time();
-	if ( ! precompile_pcap_filter(DefaultPcapFilter, current_filter) )
+	if ( ! precompile_pcap_filter(DefaultPcapFilter, tmp_filter) )
 		{
 		NOTICE([$note=Compile_Failure,
 		        $msg=fmt("Compiling packet filter failed"),
-		        $sub=current_filter]);
-		Reporter::fatal(fmt("Bad pcap filter '%s'", current_filter));
+		        $sub=tmp_filter]);
+		if ( network_time() == 0.0 )
+			Reporter::fatal(fmt("Bad pcap filter '%s'", tmp_filter));
+		else
+			Reporter::warning(fmt("Bad pcap filter '%s'", tmp_filter));
 		}
+	
+	# Set it to the current filter if it passed precompiling
+	current_filter = tmp_filter;
 	
 	#local diff = current_time()-ts;
 	#if ( diff > max_filter_compile_time )
@@ -278,8 +309,11 @@ function install()
 		        $msg=fmt("Installing packet filter failed"),
 		        $sub=current_filter]);
 		}
-		
 	
 	if ( reading_live_traffic() || reading_traces() )
 		Log::write(PacketFilter::LOG, info);
+
+	# Update the filter change tracking
+	filter_changed = F;
+	return T;
 	}

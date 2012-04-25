@@ -10,8 +10,10 @@ export {
 	const private_address_space: set[subnet] = {
 		10.0.0.0/8, 
 		192.168.0.0/16, 
+		172.16.0.0/12,  
+		100.64.0.0/10,  # RFC6598 Carrier Grade NAT
 		127.0.0.0/8, 
-		172.16.0.0/12
+		[fe80::]/16,
 	} &redef;
 
 	## Networks that are considered "local".

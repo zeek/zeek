@@ -24,8 +24,8 @@ distributed on `HP Labs' web site
 to use recent developments of both packages with Bro, which you can
 download from github like this::
 
-    git clone http://github.com/eric-anderson/Lintel
-    git clone http://github.com/eric-anderson/DataSeries
+    git clone http://github.com/dataseries/Lintel
+    git clone http://github.com/dataseries/DataSeries
 
 To then build and install the two into ``<prefix>``, do::
 
@@ -109,8 +109,13 @@ TODO
     Warning, while packing field not_valid_after of record 11, error was > 10%:
         (1346460000 / 1000000 = 1346.46, round() = 1346)
 
+    See Eric's mail.
+
 * For testing our script-level options:
 
     - Can we get the extentsize from a ``.ds`` file?
     - Can we get the compressio level from a ``.ds`` file?
 
+    See Eric's mail.
+
+* Do we have a leak?

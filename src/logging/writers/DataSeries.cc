@@ -329,13 +329,7 @@ bool DataSeries::DoInit(string path, int num_fields, const threading::Field* con
 	else
 		Warning(Fmt("%s is not a valid compression type. Valid types are: 'lzf', 'lzo', 'gz', 'bz2', 'none', 'any'. Defaulting to 'any'", ds_compression.c_str()));
 
-	const ExtentType& type = log_types.registerTypeR(schema);
-
-	// Note: This is a bit dicey as it depends on the implementation of
-	// registerTypeR(), but its what the DataSeries guys recommended
-	// given that we function we originally used has been deprecated.
-	log_type = &type;
-
+        log_type = log_types.registerTypePtr(schema);
 	log_series.setType(*log_type);
 
 	return OpenLog(path);

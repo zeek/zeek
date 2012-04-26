@@ -97,14 +97,14 @@ export {
 	## packet filter.
 	global install: function(): bool;
 	
-	## A data structure to represent filter generating factories.
-	type FilterFactory: record {
+	## A data structure to represent filter generating plugins.
+	type FilterPlugin: record {
 		## A function that is directly called when generating the complete filter.
 		func : function();
 	};
 	
-	## API function to register a new factory for dynamic restriction filters.
-	global register_filter_factory: function(ff: FilterFactory);
+	## API function to register a new pluginfor dynamic restriction filters.
+	global register_filter_plugin: function(fp: FilterPlugin);
 	
 	## Enables the old filtering approach of "only watch common ports for 
 	## analyzed protocols".
@@ -129,7 +129,7 @@ global currently_building = F;
 # Internal tracking for if the the filter being built has possibly been changed.
 global filter_changed = F;
 
-global filter_factories: set[FilterFactory] = {};
+global filter_plugins: set[FilterPlugin] = {};
 
 redef enum PcapFilterID += {
 	DefaultPcapFilter,
@@ -182,9 +182,9 @@ event bro_init() &priority=-5
 	event filter_change_tracking();
 	}
 	
-function register_filter_factory(ff: FilterFactory)
+function register_filter_plugin(fp: FilterPlugin)
 	{
-	add filter_factories[ff];
+	add filter_plugins[fp];
 	}
 
 event remove_dynamic_filter(filter_id: string)
@@ -245,10 +245,10 @@ function build(): string
 	for ( filt in dynamic_restrict_filters )
 		rfilter = combine_filters(rfilter, "and", string_cat("not (", dynamic_restrict_filters[filt], ")"));
 
-	# Generate all of the plugin factory based filters.
-	for ( factory in filter_factories )
+	# Generate all of the plugin based filters.
+	for ( plugin in filter_plugins )
 		{
-		factory$func();
+		plugin$func();
 		}
 	
 	# Finally, join them into one filter.

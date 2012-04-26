@@ -46,7 +46,7 @@ export {
 global shunted_conns: set[conn_id];
 global shunted_host_pairs: set[conn_id];
 
-function conn_shunt_filters()
+function shunt_filters()
 	{
 	# NOTE: this could wrongly match if a connection happens with the ports reversed.
 	local tcp_filter = "tcp and tcp[tcpflags] & (tcp-syn|tcp-fin|tcp-rst) == 0";
@@ -63,19 +63,18 @@ function conn_shunt_filters()
 		}
 	local conn_shunt_filter = combine_filters(tcp_filter, "and", udp_filter);
 	
+	local hp_shunt_filter = "";
 	for ( id in shunted_host_pairs )
-		{
-		local hp_filter = fmt("host %s and host %s", id$orig_h, id$resp_h);
-		
-		}
-
-	PacketFilter::exclude("conn_shunt_filters", conn_shunt_filter);
-	}
+		hp_shunt_filter = combine_filters(hp_shunt_filter, "and", fmt("host %s and host %s", id$orig_h, id$resp_h));
+	
+	local filter = combine_filters(conn_shunt_filter, "and", hp_shunt_filter);
+	PacketFilter::exclude("shunt_filters", filter);
+}
 
 event bro_init() &priority=5
 	{
-	register_filter_factory([
-		$func()={ return conn_shunt_filters(); }
+	register_filter_plugin([
+		$func()={ return shunt_filters(); }
 		]);
 	}
 
@@ -144,7 +143,7 @@ function shunt_conn(id: conn_id): bool
 		NOTICE([$note=Cannot_BPF_Shunt_Conn,
 		        $msg="IPv6 connections can't be shunted with BPF due to limitations in BPF",
 		        $sub="ipv6_conn", 
-		        $id=id, $identifier=string_cat(id)]);
+		        $id=id, $identifier=cat(id)]);
 		return F;
 		}
 	

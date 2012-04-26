@@ -1,7 +1,7 @@
 #include "AYIYA.h"
 
 AYIYA_Analyzer::AYIYA_Analyzer(Connection* conn)
-: Analyzer(AnalyzerTag::SYSLOG_BINPAC, conn)
+: Analyzer(AnalyzerTag::AYIYA, conn)
 	{
 	interp = new binpac::AYIYA::AYIYA_Conn(this);
 	did_session_done = 0;

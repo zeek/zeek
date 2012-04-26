@@ -1,3 +1,10 @@
+##! This script handles the tracking/logging of tunnels (e.g. Teredo,
+##! AYIYA, or IP-in-IP such as 6to4 where "IP" is either IPv4 or IPv6).
+##!
+##! For any connection that occurs over a tunnel, information about its
+##! its encapsulating tunnels is also found in the *tunnel* field of
+##! :bro:type:`connection`.
+
 module Tunnel;
 
 export {

@@ -150,7 +150,7 @@ event new_connection%(c: connection%);
 ## c: The connection whose tunnel/encapsulation changed.
 ##
 ## e: The new encapsulation.
-event tunnel_changed%(c: connection, e: encapsulating_conns%);
+event tunnel_changed%(c: connection, e: EncapsulatingConnVector%);
 
 ## Generated when reassembly starts for a TCP connection. The event is raised
 ## at the moment when Bro's TCP analyzer enables stream reassembly for a

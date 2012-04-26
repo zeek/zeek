@@ -23,7 +23,6 @@ class RuleHdrTest;
 class Specific_RE_Matcher;
 class TransportLayerAnalyzer;
 class RuleEndpointState;
-class TunnelParent;
 
 typedef enum {
 	NUL_IN_LINE,
@@ -56,7 +55,14 @@ public:
 	           const Encapsulation& arg_encap);
 	virtual ~Connection();
 
-	void CheckEncapsulation(const Encapsulation& arg_encap);
+	void CheckEncapsulation(const Encapsulation& arg_encap)
+		{
+		if ( encapsulation != arg_encap )
+			{
+			Event(tunnel_changed, 0, arg_encap.GetVectorVal());
+			encapsulation = arg_encap;
+			}
+		}
 
 	// Invoked when connection is about to be removed.  Use Ref(this)
 	// inside Done to keep the connection object around (though it'll
@@ -245,6 +251,8 @@ public:
 	void SetTransport(TransportProto arg_proto)	{ proto = arg_proto; }
 
 	void SetUID(uint64 arg_uid)	 { uid = arg_uid; }
+
+	uint64 GetUID() const { return uid; }
 	
 	const Encapsulation& GetEncapsulation() const
 		{ return encapsulation; }

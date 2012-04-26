@@ -172,13 +172,10 @@ enum ID %{
 module Tunnel;
 enum Type %{
 	NONE,
-	IP6_IN_IP4,
-	IP4_IN_IP4,
-	IP6_IN_IP6,
-	IP4_IN_IP6,
-	IP6_IN_UDP,
-	IP4_IN_UDP,
+	IP,
 	AYIYA,
+	TEREDO,
+	SOCKS,
 %}
 
 type EncapsulatingConn: record;

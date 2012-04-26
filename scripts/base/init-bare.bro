@@ -188,6 +188,9 @@ export {
 		cid: conn_id;
 		## The type of tunnel.
 		tunnel_type: Tunnel::Type;
+		## A globally unique identifier that, for non-IP-in-IP tunnels,
+		## cross-references the *uid* field of :bro:type:`connection`.
+		uid: string &optional;
 	} &log;
 } # end export
 module GLOBAL;
@@ -198,7 +201,7 @@ module GLOBAL;
 ## .. todo:: We need this type definition only for declaring builtin functions
 ##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
 ##    directly and then remove this alias.
-type encapsulating_conns: vector of Tunnel::EncapsulatingConn;
+type EncapsulatingConnVector: vector of Tunnel::EncapsulatingConn;
 
 ## Statistics about an endpoint.
 ##
@@ -251,7 +254,7 @@ type connection: record {
 	## at index zero.  It's also always the first such enapsulation seen
 	## for the connection unless the :bro:id:`tunnel_changed` event is handled
 	## and re-assigns this field to the new encapsulation.
-	tunnel: encapsulating_conns &optional;
+	tunnel: EncapsulatingConnVector &optional;
 };
 
 ## Fields of a SYN packet.

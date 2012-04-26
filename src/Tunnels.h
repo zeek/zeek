@@ -9,25 +9,27 @@
 #include "Val.h"
 #include <vector>
 
+class Connection;
+
 class EncapsulatingConn {
 public:
-	EncapsulatingConn()
-		: src_port(0), dst_port(0), type(BifEnum::Tunnel::NONE) {}
-
 	EncapsulatingConn(const IPAddr& s, const IPAddr& d,
 	                  BifEnum::Tunnel::Type t)
-		: src_addr(s), dst_addr(d), src_port(0), dst_port(0), type(t) {}
+		: src_addr(s), dst_addr(d), src_port(0), dst_port(0), type(t)
+		{
+		uid = calculate_unique_id();
+		}
 
-	EncapsulatingConn(const IPAddr& s, const IPAddr& d, uint16 sp, uint16 dp,
-	                  BifEnum::Tunnel::Type t)
-		: src_addr(s), dst_addr(d), src_port(sp), dst_port(dp), type(t) {}
+	EncapsulatingConn(Connection* c, BifEnum::Tunnel::Type t);
 
 	EncapsulatingConn(const EncapsulatingConn& other)
 		: src_addr(other.src_addr), dst_addr(other.dst_addr),
 		  src_port(other.src_port), dst_port(other.dst_port),
-		  type(other.type) {}
+		  type(other.type), uid(other.uid)
+		{}
 
-	~EncapsulatingConn() {}
+	~EncapsulatingConn()
+		{}
 
 	RecordVal* GetRecordVal() const;
 
@@ -35,7 +37,8 @@ public:
 	                       const EncapsulatingConn& ec2)
 		{
 		return ec1.type == ec2.type && ec1.src_addr == ec2.src_addr &&
-		       ec1.src_port == ec2.src_port && ec1.dst_port == ec2.dst_port;
+		       ec1.src_port == ec2.src_port && ec1.dst_port == ec2.dst_port &&
+		       ec1.uid == ec2.uid;
 		}
 
 	friend bool operator!=(const EncapsulatingConn& ec1,
@@ -49,11 +52,13 @@ public:
 	uint16 src_port;
 	uint16 dst_port;
 	BifEnum::Tunnel::Type type;
+	uint64 uid;
 };
 
 class Encapsulation {
 public:
-	Encapsulation() : conns(0) {}
+	Encapsulation() : conns(0)
+		{}
 
 	Encapsulation(const Encapsulation& other)
 		{

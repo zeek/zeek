@@ -11,7 +11,7 @@ export {
 
 event socks_request(c: connection, request_type: count, dstaddr: addr, dstname: string, p: port, user: string)
 	{
-	Tunnels::register(c, "SOCKS");
+	Tunnel::register([$cid=c$id, $tunnel_type=Tunnel::SOCKS, $uid=c$uid]);
 	}
 
 #

@@ -20,7 +20,7 @@ event new_connection(c: connection)
 		}
 	}
 
-event tunnel_changed(c: connection, e: encapsulating_conns)
+event tunnel_changed(c: connection, e: EncapsulatingConnVector)
 	{
 	print "tunnel_changed:";
 	print fmt("    conn_id: %s", c$id);

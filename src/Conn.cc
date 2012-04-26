@@ -13,7 +13,6 @@
 #include "Timer.h"
 #include "PIA.h"
 #include "binpac.h"
-#include "Tunnels.h"
 
 void ConnectionTimer::Init(Connection* arg_conn, timer_func arg_timer,
 				int arg_do_expire)
@@ -190,15 +189,6 @@ Connection::~Connection()
 	--current_connections;
 	if ( conn_timer_mgr )
 		--external_connections;
-	}
-
-void Connection::CheckEncapsulation(const Encapsulation& arg_encap)
-	{
-	if ( encapsulation != arg_encap )
-		{
-		Event(tunnel_changed, 0, arg_encap.GetVectorVal());
-		encapsulation = arg_encap;
-		}
 	}
 
 void Connection::Done()

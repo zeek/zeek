@@ -36,18 +36,14 @@ flow AYIYA_Flow
 			return false;
 			}
 		
-		if ( inner_ip != 0 )
-			connection()->bro_analyzer()->ProtocolConfirmation();
+		connection()->bro_analyzer()->ProtocolConfirmation();
 		
 		struct pcap_pkthdr fake_hdr;
 		fake_hdr.caplen = fake_hdr.len = ${pdu.packet}.length();
-		// Not sure what to do with this timestamp.
-		//fake_hdr.ts = network_time();
+		fake_hdr.ts.tv_sec = fake_hdr.ts.tv_usec = 0;
 		
 		Encapsulation encap(c->GetEncapsulation());
-		EncapsulatingConn ec(c->OrigAddr(), c->RespAddr(),
-		                     c->OrigPort(), c->RespPort(),
-		                     BifEnum::Tunnel::AYIYA);
+		EncapsulatingConn ec(c, BifEnum::Tunnel::AYIYA);
 		encap.Add(ec);
 		
 		sessions->DoNextPacket(network_time(), &fake_hdr, inner_ip, ${pdu.packet}.data(), 0, encap);

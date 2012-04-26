@@ -543,11 +543,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		fake_hdr.ts = hdr->ts;
 
 		EncapsulatingConn ec(ip_hdr->SrcAddr(), ip_hdr->DstAddr(),
-		  ip_hdr->IP4_Hdr() ?
-		    ( proto == IPPROTO_IPV6 ?
-		      BifEnum::Tunnel::IP6_IN_IP4 : BifEnum::Tunnel::IP4_IN_IP4 ) :
-		    ( proto == IPPROTO_IPV6 ?
-		      BifEnum::Tunnel::IP6_IN_IP6 : BifEnum::Tunnel::IP4_IN_IP6 ));
+		                     BifEnum::Tunnel::IP);
 		encapsulation.Add(ec);
 
 		DoNextPacket(t, &fake_hdr, inner_ip, data, 0, encapsulation);

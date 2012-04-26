@@ -102,8 +102,9 @@ export {
 		## Number IP level bytes the responder sent. See ``orig_pkts``.
 		resp_ip_bytes: count      &log &optional;
 		## If this connection was over a tunnel, indicate the 
-		## `uid` value for the parent connection or connections.
-		parents:        vector of string &log &optional;
+		## *uid* values for any encapsulating parent connections
+		## used over the lifetime of this inner connection.
+		parents:        set[string] &log;
 	};
 
 	## Event that can be handled to access the :bro:type:`Conn::Info`
@@ -193,15 +194,8 @@ function set_conn(c: connection, eoc: bool)
 	c$conn$ts=c$start_time;
 	c$conn$uid=c$uid;
 	c$conn$id=c$id;
-	if ( ! c$conn?$parents && c?$tunnel )
-		{
-		c$conn$parents = vector();
-		for ( i in c$tunnel )
-			{
-			# TODO: maybe we should be storing uid's in the $tunnel field?
-			#c$conn$parents[|c$conn$parents|] = lookup_connection(c$tunnel[i]$cid)$uid;
-			}
-		}
+	if ( c?$tunnel && |c$tunnel| > 0 )
+		add c$conn$parents[c$tunnel[|c$tunnel|-1]$uid];
 	c$conn$proto=get_port_transport_proto(c$id$resp_p);
 	if( |Site::local_nets| > 0 )
 		c$conn$local_orig=Site::is_local_addr(c$id$orig_h);
@@ -238,6 +232,14 @@ event content_gap(c: connection, is_orig: bool, seq: count, length: count) &prio
 	set_conn(c, F);
 	
 	c$conn$missed_bytes = c$conn$missed_bytes + length;
+	}
+
+event tunnel_changed(c: connection, e: EncapsulatingConnVector) &priority=5
+	{
+	set_conn(c, F);
+	if ( |e| > 0 )
+		add c$conn$parents[e[|e|-1]$uid];
+	c$tunnel = e;
 	}
 	
 event connection_state_remove(c: connection) &priority=5

@@ -13,7 +13,8 @@ export {
 		172.16.0.0/12,  
 		100.64.0.0/10,  # RFC6598 Carrier Grade NAT
 		127.0.0.0/8, 
-		[fe80::]/16,
+		[fe80::]/10,
+		[::1]/128,
 	} &redef;
 
 	## Networks that are considered "local".

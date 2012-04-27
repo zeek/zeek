@@ -425,6 +425,10 @@ type ServerHello(rec: SSLRecord) = record {
 	session_id : uint8[session_len];
 	cipher_suite : uint16[1];
 	compression_method : uint8;
+	# This weirdness is to deal with the possible existence or absence
+	# of the following fields.
+	ext_len: uint16[] &until($element == 0 || $element != 0);
+	extensions : SSLExtension(rec)[] &until($input.length() == 0);
 } &let {
 	state_changed : bool =
 		$context.connection.transition(STATE_CLIENT_HELLO_RCVD,

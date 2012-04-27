@@ -190,7 +190,7 @@ export {
 		tunnel_type: Tunnel::Type;
 		## A globally unique identifier that, for non-IP-in-IP tunnels,
 		## cross-references the *uid* field of :bro:type:`connection`.
-		uid: string &optional;
+		uid: string;
 	} &log;
 } # end export
 module GLOBAL;

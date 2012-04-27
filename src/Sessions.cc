@@ -542,9 +542,23 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		fake_hdr.caplen = fake_hdr.len = caplen;
 		fake_hdr.ts = hdr->ts;
 
-		EncapsulatingConn ec(ip_hdr->SrcAddr(), ip_hdr->DstAddr(),
-		                     BifEnum::Tunnel::IP);
-		encapsulation.Add(ec);
+		IPPair tunnel_idx;
+		if ( ip_hdr->SrcAddr() < ip_hdr->DstAddr() )
+			tunnel_idx = IPPair(ip_hdr->SrcAddr(), ip_hdr->DstAddr());
+		else
+			tunnel_idx = IPPair(ip_hdr->DstAddr(), ip_hdr->SrcAddr());
+
+		IPTunnelMap::const_iterator it = ip_tunnels.find(tunnel_idx);
+
+		if ( it == ip_tunnels.end() )
+			{
+			EncapsulatingConn ec(ip_hdr->SrcAddr(), ip_hdr->DstAddr(),
+			                     BifEnum::Tunnel::IP);
+			ip_tunnels[tunnel_idx] = ec;
+			encapsulation.Add(ec);
+			}
+		else
+			encapsulation.Add(it->second);
 
 		DoNextPacket(t, &fake_hdr, inner_ip, data, 0, encapsulation);
 

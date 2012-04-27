@@ -11,6 +11,8 @@
 #include "PacketFilter.h"
 #include "Stats.h"
 #include "NetVar.h"
+#include "Tunnels.h"
+#include <utility>
 
 struct pcap_pkthdr;
 
@@ -202,6 +204,9 @@ protected:
 	PDict(Connection) udp_conns;
 	PDict(Connection) icmp_conns;
 	PDict(FragReassembler) fragments;
+	typedef pair<IPAddr, IPAddr> IPPair;
+	typedef std::map<IPPair, EncapsulatingConn> IPTunnelMap;
+	IPTunnelMap ip_tunnels;
 
 	ARP_Analyzer* arp_analyzer;
 

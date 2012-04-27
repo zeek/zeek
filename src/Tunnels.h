@@ -13,6 +13,10 @@ class Connection;
 
 class EncapsulatingConn {
 public:
+	EncapsulatingConn()
+		: src_port(0), dst_port(0), type(BifEnum::Tunnel::NONE), uid(0)
+		{}
+
 	EncapsulatingConn(const IPAddr& s, const IPAddr& d,
 	                  BifEnum::Tunnel::Type t)
 		: src_addr(s), dst_addr(d), src_port(0), dst_port(0), type(t)
@@ -36,7 +40,13 @@ public:
 	friend bool operator==(const EncapsulatingConn& ec1,
 	                       const EncapsulatingConn& ec2)
 		{
-		return ec1.type == ec2.type && ec1.src_addr == ec2.src_addr &&
+		if ( ec1.type != ec2.type )
+			return false;
+		if ( ec1.type == BifEnum::Tunnel::IP )
+			return ec1.uid == ec2.uid &&
+			  ((ec1.src_addr == ec2.src_addr && ec1.dst_addr == ec2.dst_addr) ||
+			   (ec1.src_addr == ec2.dst_addr && ec1.dst_addr == ec2.src_addr));
+		return ec1.src_addr == ec2.src_addr && ec1.dst_addr == ec2.dst_addr &&
 		       ec1.src_port == ec2.src_port && ec1.dst_port == ec2.dst_port &&
 		       ec1.uid == ec2.uid;
 		}

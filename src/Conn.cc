@@ -13,6 +13,7 @@
 #include "Timer.h"
 #include "PIA.h"
 #include "binpac.h"
+#include "Tunnels.h"
 
 void ConnectionTimer::Init(Connection* arg_conn, timer_func arg_timer,
 				int arg_do_expire)

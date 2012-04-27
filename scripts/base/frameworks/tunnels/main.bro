@@ -27,7 +27,7 @@ export {
 		ts:          time         &log;
 		## The unique identifier for the tunnel, which may correspond
 		## to a :bro:type:`connection`'s *uid* field for non-IP-in-IP tunnels.
-		uid:         string       &log &optional;
+		uid:         string       &log;
 		## The tunnel "connection" 4-tuple of endpoint addresses/ports.
 		## For an IP tunnel, the ports will be 0.
 		id:          conn_id      &log;

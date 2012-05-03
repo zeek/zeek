@@ -1,4 +1,22 @@
 
+2.0-319 | 2012-05-03 13:24:44 -0700
+
+  * SSL bugfixes and cleanup. (Seth Hall)
+
+    - SSL related files and classes renamed to remove the "binpac" term.
+
+    - A small fix for DPD scripts to make the DPD log more helpful if
+      there are multiple continued failures.
+
+    - Fixed the SSL analyzer to make it stop doing repeated violation
+      messages for some handshake failures.
+
+    - Added a $issuer_subject to the SSL log.
+      
+    - Created a basic test for SSL.
+
+    - Fixed parsing of TLS server extensions. (Seth Hall)
+
 2.0-315 | 2012-05-03 11:44:17 -0700
 
   * Add two more TLS extension values that we see in live traffic.

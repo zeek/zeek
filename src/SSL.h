@@ -1,14 +1,13 @@
-#ifndef ssl_binpac_h
-#define ssl_binpac_h
+#ifndef ssl_h
+#define ssl_h
 
 #include "TCP.h"
-
 #include "ssl_pac.h"
 
-class SSL_Analyzer_binpac : public TCP_ApplicationAnalyzer {
+class SSL_Analyzer : public TCP_ApplicationAnalyzer {
 public:
-	SSL_Analyzer_binpac(Connection* conn);
-	virtual ~SSL_Analyzer_binpac();
+	SSL_Analyzer(Connection* conn);
+	virtual ~SSL_Analyzer();
 
 	// Overriden from Analyzer.
 	virtual void Done();
@@ -19,7 +18,7 @@ public:
 	virtual void EndpointEOF(TCP_Reassembler* endp);
 
 	static Analyzer* InstantiateAnalyzer(Connection* conn)
-		{ return new SSL_Analyzer_binpac(conn); }
+		{ return new SSL_Analyzer(conn); }
 
 	static bool Available()
 		{

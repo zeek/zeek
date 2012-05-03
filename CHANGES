@@ -1,4 +1,19 @@
 
+2.0-315 | 2012-05-03 11:44:17 -0700
+
+  * Add two more TLS extension values that we see in live traffic.
+    (Bernhard Amann)
+
+  * Fixed IPv6 link local unicast CIDR and added IPv6 loopback to
+    private address space. (Seth Hall)
+
+  * Fixed a problem where cluster workers were still processing
+    notices in some cases. (Seth Hall)
+
+  * Added a configure option to specify the 'etc' directory. Addresses
+    #801. (Daniel Thayer)
+
+
 2.0-306 | 2012-04-24 14:37:00 -0700
 
   * Add further TLS extension values "extended_random" and

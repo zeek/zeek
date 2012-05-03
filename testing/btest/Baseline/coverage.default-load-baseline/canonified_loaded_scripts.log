@@ -48,7 +48,11 @@ scripts/base/init-default.bro
   scripts/base/frameworks/signatures/__load__.bro
     scripts/base/frameworks/signatures/./main.bro
   scripts/base/frameworks/packet-filter/__load__.bro
+    scripts/base/frameworks/packet-filter/./utils.bro
     scripts/base/frameworks/packet-filter/./main.bro
+      scripts/base/frameworks/protocols/__load__.bro
+        scripts/base/frameworks/protocols/./main.bro
+    scripts/base/frameworks/packet-filter/./shunt.bro
     scripts/base/frameworks/packet-filter/./netstats.bro
   scripts/base/frameworks/software/__load__.bro
     scripts/base/frameworks/software/./main.bro

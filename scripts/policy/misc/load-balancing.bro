@@ -1,27 +1,39 @@
-##! This script implements an automated BPF based load balancing solution for Bro clusters.
-##! It is completely automated when multiple worker processes are configured for a single
-##! interface on a host.  One caveat is that in order for this script to work, your traffic 
-##! can't have any headers above the Ethernet header (vlan, mpls).
+##! This script implements the "Bro side" of several load balancing 
+##! approaches for Bro clusters.
 
 @load base/frameworks/cluster
 @load base/frameworks/packet-filter
 
-module PacketFilter;
+module LoadBalancing;
 
 export {
+	
+	type Method: enum {
+		## Apply BPF filters to each worker in a way that causes them to
+		## automatically flow balance traffic between them.
+		AUTO_BPF,
+		## Load balance traffic across the workers by making each one apply
+		## a restrict filter to only listen to a single MAC address.  This
+		## is a somewhat common deployment option for sites doing network
+		## based load balancing with MAC address rewriting and passing the 
+		## traffic to a single interface.  Multiple MAC addresses will show
+		## up on the same interface and need filtered to a single address.
+		#MAC_ADDR_BPF,
+	};
+	
+	## Defines the method of load balancing to use.
+	const method = AUTO_BPF &redef;
+	
+	# Configure the cluster framework to enable the load balancing filter configuration.
+	#global send_filter: event(for_node: string, filter: string);
+	#global confirm_filter_installation: event(success: bool);
+	
 	redef record Cluster::Node += {
 		## A BPF filter for load balancing traffic sniffed on a single interface
 		## across a number of processes.  In normal uses, this will be assigned 
 		## dynamically by the manager and installed by the workers.
 		lb_filter: string &optional;
 	};
-	
-	## Control if BPF based load balancing is enabled on cluster deployments.
-	const enable_BPF_load_balancing = F &redef;
-	
-	# Configure the cluster framework to enable the load balancing filter configuration.
-	#global send_filter: event(for_node: string, filter: string);
-	#global confirm_filter_installation: event(success: bool);
 }
 
 #redef Cluster::manager2worker_events += /LoadBalancing::send_filter/;
@@ -33,7 +45,7 @@ export {
 
 event bro_init() &priority=5
 	{
-	if ( ! enable_BPF_load_balancing )
+	if ( method != AUTO_BPF )
 		return;
 	
 	local worker_ip_interface: table[addr, string] of count = table();

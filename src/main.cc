@@ -1003,12 +1003,13 @@ int main(int argc, char** argv)
 		vl->append(new Val(i->include_level, TYPE_COUNT));
 		mgr.QueueEvent(bro_script_loaded, vl);
 		}
-
-	dpm->PostScriptInit();
-
+	
 	reporter->ReportViaEvents(true);
 
+	// Drain the event queue here to support the protocols framework configuring DPM
 	mgr.Drain();
+
+	dpm->PostScriptInit();
 
 	have_pending_timers = ! reading_traces && timer_mgr->Size() > 0;
 

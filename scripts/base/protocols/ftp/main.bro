@@ -95,9 +95,9 @@ redef record connection += {
 };
 
 global analyzers = { ANALYZER_FTP };
-redef Protocols::analyzer_map["FTP"] = analyzers;
+redef Protocols::analyzer_map += { ["FTP"] = analyzers };
 global ports = { 21/tcp };
-redef Protocols::common_ports["FTP"] = ports;
+redef Protocols::common_ports += { ["FTP"] = ports };
 
 # Establish the variable for tracking expected connections.
 global ftp_data_expected: table[addr, port] of Info &create_expire=5mins;

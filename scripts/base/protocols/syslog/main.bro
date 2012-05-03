@@ -26,9 +26,9 @@ export {
 }
 
 global analyzers = { ANALYZER_SYSLOG_BINPAC };
-redef Protocols::analyzer_map["SYSLOG"] = analyzers;
+redef Protocols::analyzer_map += { ["SYSLOG"] = analyzers };
 global ports = { 514/udp };
-redef Protocols::common_ports["SYSLOG"] = ports;
+redef Protocols::common_ports += { ["SYSLOG"] = ports };
 
 redef record connection += {
 	syslog: Info &optional;

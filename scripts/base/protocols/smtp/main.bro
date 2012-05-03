@@ -57,9 +57,6 @@ export {
 	const mail_path_capture = ALL_HOSTS &redef;
 		
 	global log_smtp: event(rec: Info);
-	
-	## Configure the default ports for SMTP analysis.
-	const ports = { 25/tcp, 587/tcp } &redef;
 }
 
 redef record connection += { 
@@ -68,8 +65,9 @@ redef record connection += {
 };
 
 global analyzers = { ANALYZER_SMTP };
-redef Protocols::analyzer_map["SMTP"] = analyzers;
-redef Protocols::common_ports["SMTP"] = ports;
+redef Protocols::analyzer_map += { ["SMTP"] = analyzers };
+const ports = { 25/tcp, 587/tcp } &redef;
+redef Protocols::common_ports += { ["SMTP"] = ports };
 
 event bro_init() &priority=5
 	{

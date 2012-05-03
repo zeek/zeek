@@ -110,9 +110,9 @@ redef record connection += {
 
 # Not attaching ANALYZER_DNS_UDP_BINPAC and ANALYZER_DNS_TCP_BINPAC right now.
 global analyzers = { ANALYZER_DNS };
-redef Protocols::analyzer_map["DNS"] = analyzers;
+redef Protocols::analyzer_map += { ["DNS"] = analyzers };
 global ports = { 53/udp, 53/tcp, 137/udp, 5353/udp, 5355/udp };
-redef Protocols::common_ports["DNS"] = ports;
+redef Protocols::common_ports += { ["DNS"] = ports };
 
 event bro_init() &priority=5
 	{

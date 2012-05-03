@@ -39,9 +39,9 @@ redef record connection += {
 };
 
 global analyzers = { ANALYZER_IRC };
-redef Protocols::analyzer_map["IRC"] = analyzers;
+redef Protocols::analyzer_map += { ["IRC"] = analyzers };
 global ports = { 6666/tcp, 6667/tcp, 6668/tcp, 6669/tcp, 7000/tcp };
-redef Protocols::common_ports["IRC"] = ports;
+redef Protocols::common_ports += { ["IRC"] = ports };
 
 event bro_init() &priority=5
 	{

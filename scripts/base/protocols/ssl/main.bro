@@ -73,10 +73,10 @@ event bro_init() &priority=5
 	}
 	
 global analyzers = { ANALYZER_SSL };
-redef Protocols::analyzer_map["SSL"] = analyzers;
+redef Protocols::analyzer_map += { ["SSL"] = analyzers };
 global ports = { 443/tcp, 563/tcp, 585/tcp, 614/tcp, 636/tcp,
                  989/tcp, 990/tcp, 992/tcp, 993/tcp, 995/tcp, 5223/tcp };
-redef Protocols::common_ports["SSL"] = ports;
+redef Protocols::common_ports += { ["SSL"] = ports };
 
 
 function set_session(c: connection)

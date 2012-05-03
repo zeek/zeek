@@ -1,9 +1,10 @@
 
-@load base/frameworks/packet-filter
+@load base/frameworks/packet-filter/utils
 
 module Protocols;
 
 export {
+	
 	const common_ports: table[string] of set[port] = {} &redef;
 
 	## Automatically creates a BPF filter for the specified protocol based
@@ -15,13 +16,27 @@ export {
 	## Returns: BPF filter string.
 	global protocol_to_bpf: function(protocol: string): string;
 	
+	## Create a BPF filter which matches all of the ports defined 
+	## by the various protocol analysis scripts as "common ports"
+	## for the protocol.
 	global to_bpf: function(): string;
 	
 	## Maps between human readable protocol identifiers (like "HTTP")
 	## and the internal Bro representation for an analyzer (like ANALYZER_HTTP).
 	## This is typically fully populated by the base protocol analyzer scripts.
-	const analyzer_map: table[string] of set[count] = {} &redef;
+	const analyzer_map: table[string] of set[AnalyzerTag] = {} &redef;
 }
+
+event bro_init() &priority=10
+	{
+	for ( proto in common_ports )
+		{
+		for ( p in common_ports[proto] )
+			dpd_analyzer_ports[p] = analyzer_map[proto];
+		for ( a in analyzer_map[proto] )
+			dpd_config[a] = [$ports=common_ports[proto]];
+		}
+	}
 
 function protocol_to_bpf(protocol: string): string
 	{
@@ -42,8 +57,3 @@ function to_bpf(): string
 		output = PacketFilter::combine_filters(output, "or", protocol_to_bpf(p));
 	return output;
 	}
-	
-	
-	
-	
-	

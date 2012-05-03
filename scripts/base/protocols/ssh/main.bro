@@ -75,9 +75,9 @@ export {
 }
 
 global analyzers = { ANALYZER_SSH };
-redef Protocols::analyzer_map["SSH"] = analyzers;
+redef Protocols::analyzer_map += { ["SSH"] = analyzers };
 global ports = { 22/tcp };
-redef Protocols::common_ports["SSH"] = ports;
+redef Protocols::common_ports += { ["SSH"] = ports };
 
 redef record connection += {
 	ssh: Info &optional;

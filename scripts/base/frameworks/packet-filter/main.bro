@@ -6,6 +6,7 @@
 
 @load base/frameworks/notice
 @load base/frameworks/protocols
+@load ./utils
 
 module PacketFilter;
 
@@ -15,10 +16,10 @@ export {
 
 	## Add notice types related to packet filter errors.
 	redef enum Notice::Type += {
-		## This notice is generated if a packet filter is unable to be compiled.
+		## This notice is generated if a packet filter cannot be compiled.
 		Compile_Failure,
-	
-		## This notice is generated if a packet filter is fails to install.
+		
+		## Generated if a packet filter is fails to install.
 		Install_Failure,
 		
 		## Generated when a notice takes too long to compile.
@@ -60,7 +61,7 @@ export {
 	## used but MPLS or VLAN tags are on the traffic.
 	const restricted_filter = "" &redef;
 	
-	## The maximum amount of time that you'd like to allow for filters to compile.
+	## The maximum amount of time that you'd like to allow for BPF filters to compile.
 	## If this time is exceeded, compensation measures may be taken by the framework
 	## to reduce the filter size.  This threshold being crossed also results in
 	## the :bro:enum:`PacketFilter::Too_Long_To_Compile_Filter` notice.
@@ -224,12 +225,16 @@ function build(): string
 	
 	currently_building = T;
 	
-	# Install the default capture filter.
-	local cfilter = "";
+	# Generate all of the plugin based filters.
+	for ( plugin in filter_plugins )
+		{
+		plugin$func();
+		}
 	
+	local cfilter = "";
 	if ( |capture_filters| == 0 && ! enable_auto_protocol_capture_filters )
 		cfilter = default_capture_filter;
-		
+	
 	for ( id in capture_filters )
 		cfilter = combine_filters(cfilter, "or", capture_filters[id]);
 	
@@ -244,12 +249,6 @@ function build(): string
 	# Apply the dynamic restriction filters.
 	for ( filt in dynamic_restrict_filters )
 		rfilter = combine_filters(rfilter, "and", string_cat("not (", dynamic_restrict_filters[filt], ")"));
-
-	# Generate all of the plugin based filters.
-	for ( plugin in filter_plugins )
-		{
-		plugin$func();
-		}
 	
 	# Finally, join them into one filter.
 	local filter = combine_filters(cfilter, "and", rfilter);
@@ -270,7 +269,7 @@ function install(): bool
 	
 	local tmp_filter = build();
 	
-	#local ts = current_time();
+	local ts = current_time();
 	if ( ! precompile_pcap_filter(DefaultPcapFilter, tmp_filter) )
 		{
 		NOTICE([$note=Compile_Failure,
@@ -281,14 +280,13 @@ function install(): bool
 		else
 			Reporter::warning(fmt("Bad pcap filter '%s'", tmp_filter));
 		}
+	local diff = current_time()-ts;
+	if ( diff > max_filter_compile_time )
+		NOTICE([$note=Too_Long_To_Compile_Filter,
+		        $msg=fmt("A BPF filter is taking longer than %0.6f seconds to compile", diff)]);
 	
 	# Set it to the current filter if it passed precompiling
 	current_filter = tmp_filter;
-	
-	#local diff = current_time()-ts;
-	#if ( diff > max_filter_compile_time )
-	#	NOTICE([$note=Too_Long_To_Compile_Filter,
-	#	        $msg=fmt("A BPF filter is taking longer than %0.6f seconds to compile", diff)]);
 	
 	# Do an audit log for the packet filter.
 	local info: Info;

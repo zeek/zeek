@@ -1,4 +1,6 @@
 @load base/frameworks/notice
+@load ./main
+@load ./utils
 
 module PacketFilter;
 
@@ -49,7 +51,7 @@ global shunted_host_pairs: set[conn_id];
 function shunt_filters()
 	{
 	# NOTE: this could wrongly match if a connection happens with the ports reversed.
-	local tcp_filter = "tcp and tcp[tcpflags] & (tcp-syn|tcp-fin|tcp-rst) == 0";
+	local tcp_filter = "";
 	local udp_filter = "";
 	for ( id in shunted_conns )
 		{
@@ -61,6 +63,8 @@ function shunt_filters()
 		else if ( prot == tcp )
 			tcp_filter = combine_filters(tcp_filter, "and", filt);
 		}
+	if ( tcp_filter != "" )
+		tcp_filter = combine_filters("tcp and tcp[tcpflags] & (tcp-syn|tcp-fin|tcp-rst) == 0", "and", tcp_filter);
 	local conn_shunt_filter = combine_filters(tcp_filter, "and", udp_filter);
 	
 	local hp_shunt_filter = "";
@@ -68,7 +72,8 @@ function shunt_filters()
 		hp_shunt_filter = combine_filters(hp_shunt_filter, "and", fmt("host %s and host %s", id$orig_h, id$resp_h));
 	
 	local filter = combine_filters(conn_shunt_filter, "and", hp_shunt_filter);
-	PacketFilter::exclude("shunt_filters", filter);
+	if ( filter != "" )
+		PacketFilter::exclude("shunt_filters", filter);
 }
 
 event bro_init() &priority=5

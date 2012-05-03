@@ -113,13 +113,9 @@ event bro_init() &priority=5
 
 
 global analyzers = { ANALYZER_HTTP, ANALYZER_HTTP_BINPAC };
-redef Protocols::analyzer_map["HTTP"] = analyzers;
+redef Protocols::analyzer_map += { ["HTTP"] = analyzers };
 global ports = { 80/tcp, 81/tcp, 631/tcp, 1080/tcp, 3138/tcp, 8000/tcp, 8080/tcp, 8888/tcp };
-redef Protocols::common_ports["HTTP"] = ports;
-
-#redef dpd_config += {
-#	[[ANALYZER_HTTP, ANALYZER_HTTP_BINPAC]] = [$ports = Protocols::common_ports["HTTP"]],
-#};
+redef Protocols::common_ports += { ["HTTP"] = ports };
 
 redef likely_server_ports += { 
 	80/tcp, 81/tcp, 631/tcp, 1080/tcp, 3138/tcp,

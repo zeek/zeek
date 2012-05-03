@@ -376,7 +376,7 @@ set(bro_SRCS
     SMB.cc
     SMTP.cc
     SSH.cc
-    SSL-binpac.cc
+    SSL.cc
     Scope.cc
     SerializationFormat.cc
     SerialObj.cc

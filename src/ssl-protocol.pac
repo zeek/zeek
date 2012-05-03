@@ -23,7 +23,6 @@ type uint24 = record {
 
 	string state_label(int state_nr);
 	double get_time_from_asn1(const ASN1_TIME * atime);
-	string handshake_type_label(int type);
 %}
 
 extern type to_int;
@@ -267,28 +266,6 @@ enum HandshakeType {
 	CERTIFICATE_URL     = 21, # RFC 3546
 	CERTIFICATE_STATUS  = 22, # RFC 3546
 };
-
-%code{
-	string handshake_type_label(int type)
-		{
-		switch ( type ) {
-		case HELLO_REQUEST: return string("HELLO_REQUEST");
-		case CLIENT_HELLO: return string("CLIENT_HELLO");
-		case SERVER_HELLO: return string("SERVER_HELLO");
-		case SESSION_TICKET: return string("SESSION_TICKET");
-		case CERTIFICATE: return string("CERTIFICATE");
-		case SERVER_KEY_EXCHANGE: return string("SERVER_KEY_EXCHANGE");
-		case CERTIFICATE_REQUEST: return string("CERTIFICATE_REQUEST");
-		case SERVER_HELLO_DONE: return string("SERVER_HELLO_DONE");
-		case CERTIFICATE_VERIFY: return string("CERTIFICATE_VERIFY");
-		case CLIENT_KEY_EXCHANGE: return string("CLIENT_KEY_EXCHANGE");
-		case FINISHED: return string("FINISHED");
-		case CERTIFICATE_URL: return string("CERTIFICATE_URL");
-		case CERTIFICATE_STATUS: return string("CERTIFICATE_STATUS");
-		default: return string(fmt("UNKNOWN (%d)", type));
-		}
-		}
-%}
 
 
 ######################################################################

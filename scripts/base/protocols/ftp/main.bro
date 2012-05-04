@@ -169,12 +169,7 @@ function ftp_message(s: Info)
 		
 		local arg = s$cmdarg$arg;
 		if ( s$cmdarg$cmd in file_cmds )
-			{
-			if ( is_v4_addr(s$id$resp_h) )
-				arg = fmt("ftp://%s%s", s$id$resp_h, build_path_compressed(s$cwd, arg));
-			else
-				arg = fmt("ftp://[%s]%s", s$id$resp_h, build_path_compressed(s$cwd, arg));
-			}
+			arg = fmt("ftp://%s%s", s$id$resp_h, build_path_compressed(s$cwd, arg));
 		
 		s$ts=s$cmdarg$ts;
 		s$command=s$cmdarg$cmd;

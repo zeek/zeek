@@ -1,5 +1,5 @@
 [orig_h=141.142.220.202, orig_p=5353/udp, resp_h=224.0.0.251, resp_p=5353/udp], UWkUyAuUGXf
-[orig_h=fe80::217:f2ff:fed7:cf65, orig_p=5353/udp, resp_h=ff02::fb, resp_p=5353/udp], arKYeMETxOg
+[orig_h=[fe80::217:f2ff:fed7:cf65], orig_p=5353/udp, resp_h=[ff02::fb], resp_p=5353/udp], arKYeMETxOg
 [orig_h=141.142.220.50, orig_p=5353/udp, resp_h=224.0.0.251, resp_p=5353/udp], k6kgXLOoSKl
 [orig_h=141.142.220.118, orig_p=35634/tcp, resp_h=208.80.152.2, resp_p=80/tcp], nQcgTWjvg4c
 [orig_h=141.142.220.118, orig_p=48649/tcp, resp_h=208.80.152.118, resp_p=80/tcp], j4u32Pc5bif
@@ -36,8 +36,8 @@
 [orig_h=141.142.220.235, orig_p=6705/tcp, resp_h=173.192.163.128, resp_p=80/tcp], 2cx26uAvUPl
 [orig_h=141.142.220.44, orig_p=5353/udp, resp_h=224.0.0.251, resp_p=5353/udp], BWaU4aSuwkc
 [orig_h=141.142.220.226, orig_p=137/udp, resp_h=141.142.220.255, resp_p=137/udp], 10XodEwRycf
-[orig_h=fe80::3074:17d5:2052:c324, orig_p=65373/udp, resp_h=ff02::1:3, resp_p=5355/udp], zno26fFZkrh
+[orig_h=[fe80::3074:17d5:2052:c324], orig_p=65373/udp, resp_h=[ff02::1:3], resp_p=5355/udp], zno26fFZkrh
 [orig_h=141.142.220.226, orig_p=55131/udp, resp_h=224.0.0.252, resp_p=5355/udp], v5rgkJBig5l
-[orig_h=fe80::3074:17d5:2052:c324, orig_p=54213/udp, resp_h=ff02::1:3, resp_p=5355/udp], eWZCH7OONC1
+[orig_h=[fe80::3074:17d5:2052:c324], orig_p=54213/udp, resp_h=[ff02::1:3], resp_p=5355/udp], eWZCH7OONC1
 [orig_h=141.142.220.226, orig_p=55671/udp, resp_h=224.0.0.252, resp_p=5355/udp], 0Pwk3ntf8O3
 [orig_h=141.142.220.238, orig_p=56641/udp, resp_h=141.142.220.255, resp_p=137/udp], 0HKorjr8Zp7

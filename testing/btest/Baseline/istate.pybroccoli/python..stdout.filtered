@@ -1,7 +1,7 @@
 ==== atomic a 1 ====
 -4L -4
 42 42
-1330035434.5180
+1336148094.5020
 60.0
 True True
 3.14
@@ -14,7 +14,7 @@ True True
 ==== atomic a 2 ====
 -10L -10
 2 2
-1330035434.5169
+1336148094.4970
 120.0
 False False
 1.5
@@ -27,7 +27,7 @@ False False
 ==== atomic b 2 ====
 -10L -10
 <broccoli.count instance at > 2
-<broccoli.time instance at > 1330035434.5169
+<broccoli.time instance at > 1336148094.4970
 <broccoli.interval instance at > 120.0
 False False
 1.5

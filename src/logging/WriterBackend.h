@@ -165,6 +165,14 @@ public:
 	  */
 	string Render(const threading::Value::subnet_t& subnet) const;
 
+	/** Helper method to render a double in Bro's standard precision.
+	  *
+	  * @param d The double.
+	  *
+	  * @return An ASCII representation of the double.
+	  */
+	string Render(double d) const;
+
 protected:
 	friend class FinishMessage;
 

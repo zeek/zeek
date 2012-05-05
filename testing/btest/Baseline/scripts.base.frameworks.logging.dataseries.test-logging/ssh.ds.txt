@@ -9,7 +9,7 @@
 </ExtentType>
 
 <ExtentType name="ssh" version="1.0" namespace="bro-ids.org">
-	<field type="double" name="t" pack_relative="t" pack_scale="1000000"/>
+	<field type="double" name="t" pack_relative="t" pack_scale="1000" pack_scale_warn="no"/>
 	<field type="variable32" name="id.orig_h" pack_unique="yes"/>
 	<field type="int64" name="id.orig_p" />
 	<field type="variable32" name="id.resp_h" pack_unique="yes"/>
@@ -27,8 +27,8 @@
 
 extent offset  ExtentType
 40             DataSeries: XmlType
-400            ssh
-604            DataSeries: ExtentIndex
+416            ssh
+624            DataSeries: ExtentIndex
 # Extent, type='ssh'
 t id.orig_h id.orig_p id.resp_h id.resp_p status country
 X.XXXe+09 1.2.3.4 1234 2.3.4.5 80 success unknown
@@ -39,5 +39,5 @@ X.XXXe+09 1.2.3.4 1234 2.3.4.5 80 failure MX
 # Extent, type='DataSeries: ExtentIndex'
 offset extenttype
 40 DataSeries: XmlType
-400 ssh
-604 DataSeries: ExtentIndex
+416 ssh
+624 DataSeries: ExtentIndex

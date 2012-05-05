@@ -102,20 +102,4 @@ TODO.
 TODO
 ====
 
-* I'm seeing lots of warning on stderr::
-
-    Warning, while packing field ts of record 1, error was > 10%:
-        (1334620000 / 1000000 = 1334.62, round() = 1335)
-    Warning, while packing field not_valid_after of record 11, error was > 10%:
-        (1346460000 / 1000000 = 1346.46, round() = 1346)
-
-    See Eric's mail.
-
-* For testing our script-level options:
-
-    - Can we get the extentsize from a ``.ds`` file?
-    - Can we get the compressio level from a ``.ds`` file?
-
-    See Eric's mail.
-
 * Do we have a leak?

@@ -9,7 +9,7 @@
 </ExtentType>
 
 <ExtentType name="http" version="1.0" namespace="bro-ids.org">
-	<field type="double" name="ts" pack_relative="ts" pack_scale="1000000"/>
+	<field type="double" name="ts" pack_relative="ts" pack_scale="1000" pack_scale_warn="no"/>
 	<field type="variable32" name="uid" pack_unique="yes"/>
 	<field type="variable32" name="id.orig_h" pack_unique="yes"/>
 	<field type="int64" name="id.orig_p" />
@@ -65,26 +65,26 @@
 
 extent offset  ExtentType
 40             DataSeries: XmlType
-768            http
-1156           DataSeries: ExtentIndex
+784            http
+1172           DataSeries: ExtentIndex
 # Extent, type='http'
 ts uid id.orig_h id.orig_p id.resp_h id.resp_p trans_depth method host uri referrer user_agent request_body_len response_body_len status_code status_msg info_code info_msg filename tags username password proxied mime_type md5 extraction_file
-1.3e+09 j4u32Pc5bif 141.142.220.118 48649 208.80.152.118 80 0      0 0 304 Not Modified 0         
-1.3e+09 c4Zw9TmAE05 141.142.220.118 49997 208.80.152.3 80 0      0 0 304 Not Modified 0         
-1.3e+09 EAr0uf4mhq 141.142.220.118 49996 208.80.152.3 80 0      0 0 304 Not Modified 0         
-1.3e+09 GvmoxJFXdTa 141.142.220.118 49998 208.80.152.3 80 0      0 0 304 Not Modified 0         
-1.3e+09 0Q4FH8sESw5 141.142.220.118 50000 208.80.152.3 80 0      0 0 304 Not Modified 0         
-1.3e+09 slFea8xwSmb 141.142.220.118 49999 208.80.152.3 80 0      0 0 304 Not Modified 0         
-1.3e+09 UfGkYA2HI2g 141.142.220.118 50001 208.80.152.3 80 0      0 0 304 Not Modified 0         
-1.3e+09 i2rO3KD1Syg 141.142.220.118 35642 208.80.152.2 80 0      0 0 304 Not Modified 0         
-1.3e+09 c4Zw9TmAE05 141.142.220.118 49997 208.80.152.3 80 0      0 0 304 Not Modified 0         
-1.3e+09 EAr0uf4mhq 141.142.220.118 49996 208.80.152.3 80 0      0 0 304 Not Modified 0         
-1.3e+09 GvmoxJFXdTa 141.142.220.118 49998 208.80.152.3 80 0      0 0 304 Not Modified 0         
-1.3e+09 0Q4FH8sESw5 141.142.220.118 50000 208.80.152.3 80 0      0 0 304 Not Modified 0         
-1.3e+09 slFea8xwSmb 141.142.220.118 49999 208.80.152.3 80 0      0 0 304 Not Modified 0         
-1.3e+09 UfGkYA2HI2g 141.142.220.118 50001 208.80.152.3 80 0      0 0 304 Not Modified 0         
+1.300475e+09 j4u32Pc5bif 141.142.220.118 48649 208.80.152.118 80 0      0 0 304 Not Modified 0         
+1.300475e+09 c4Zw9TmAE05 141.142.220.118 49997 208.80.152.3 80 0      0 0 304 Not Modified 0         
+1.300475e+09 EAr0uf4mhq 141.142.220.118 49996 208.80.152.3 80 0      0 0 304 Not Modified 0         
+1.300475e+09 GvmoxJFXdTa 141.142.220.118 49998 208.80.152.3 80 0      0 0 304 Not Modified 0         
+1.300475e+09 0Q4FH8sESw5 141.142.220.118 50000 208.80.152.3 80 0      0 0 304 Not Modified 0         
+1.300475e+09 slFea8xwSmb 141.142.220.118 49999 208.80.152.3 80 0      0 0 304 Not Modified 0         
+1.300475e+09 UfGkYA2HI2g 141.142.220.118 50001 208.80.152.3 80 0      0 0 304 Not Modified 0         
+1.300475e+09 i2rO3KD1Syg 141.142.220.118 35642 208.80.152.2 80 0      0 0 304 Not Modified 0         
+1.300475e+09 c4Zw9TmAE05 141.142.220.118 49997 208.80.152.3 80 0      0 0 304 Not Modified 0         
+1.300475e+09 EAr0uf4mhq 141.142.220.118 49996 208.80.152.3 80 0      0 0 304 Not Modified 0         
+1.300475e+09 GvmoxJFXdTa 141.142.220.118 49998 208.80.152.3 80 0      0 0 304 Not Modified 0         
+1.300475e+09 0Q4FH8sESw5 141.142.220.118 50000 208.80.152.3 80 0      0 0 304 Not Modified 0         
+1.300475e+09 slFea8xwSmb 141.142.220.118 49999 208.80.152.3 80 0      0 0 304 Not Modified 0         
+1.300475e+09 UfGkYA2HI2g 141.142.220.118 50001 208.80.152.3 80 0      0 0 304 Not Modified 0         
 # Extent, type='DataSeries: ExtentIndex'
 offset extenttype
 40 DataSeries: XmlType
-768 http
-1156 DataSeries: ExtentIndex
+784 http
+1172 DataSeries: ExtentIndex

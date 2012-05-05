@@ -267,4 +267,9 @@ string WriterBackend::Render(const threading::Value::subnet_t& subnet) const
 	return s;
 	}
 
-
+string WriterBackend::Render(double d) const
+	{
+	char buf[256];
+	modp_dtoa(d, buf, 6);
+	return buf;
+	}

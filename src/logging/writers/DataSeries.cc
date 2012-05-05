@@ -21,29 +21,31 @@ std::string DataSeries::LogValueToString(threading::Value *val)
 	if( ! val->present )
 		return "";
 
-	std::ostringstream ostr;
-
 	switch(val->type) {
 	case TYPE_BOOL:
 		return (val->val.int_val ? "true" : "false");
 
 	case TYPE_INT:
+		{
+		std::ostringstream ostr;
 		ostr << val->val.int_val;
 		return ostr.str();
+		}
 
 	case TYPE_COUNT:
 	case TYPE_COUNTER:
 	case TYPE_PORT:
+		{
+		std::ostringstream ostr;
 		ostr << val->val.uint_val;
 		return ostr.str();
+		}
 
 	case TYPE_SUBNET:
-		ostr << Render(val->val.subnet_val);
-		return ostr.str();
+		return Render(val->val.subnet_val);
 
 	case TYPE_ADDR:
-		ostr << Render(val->val.addr_val);
-		return ostr.str();
+		return Render(val->val.addr_val);
 
 	// Note: These two cases are relatively special.  We need to convert
 	// these values into their integer equivalents to maximize precision.
@@ -57,15 +59,16 @@ std::string DataSeries::LogValueToString(threading::Value *val)
 	case TYPE_TIME:
 	case TYPE_INTERVAL:
 		if ( ds_use_integer_for_time )
+			{
+			std::ostringstream ostr;
 			ostr << (unsigned long)(DataSeries::TIME_SCALE * val->val.double_val);
+			return ostr.str();
+			}
 		else
-			ostr << val->val.double_val;
-
-		return ostr.str();
+			return Render(val->val.double_val);
 
 	case TYPE_DOUBLE:
-		ostr << val->val.double_val;
-		return ostr.str();
+		return Render(val->val.double_val);
 
 	case TYPE_ENUM:
 	case TYPE_STRING:
@@ -190,10 +193,11 @@ std::string DataSeries::GetDSOptionsForType(const threading::Field *field)
 	case TYPE_TIME:
 	case TYPE_INTERVAL:
 		{
-		std::string s = "pack_relative=\"" + std::string(field->name) + "\"";
+		std::string s;
+		s += "pack_relative=\"" + std::string(field->name) + "\"";
 
 		if ( ! ds_use_integer_for_time )
-			s += " pack_scale=\"1000000\"";
+			s += " pack_scale=\"1000\" pack_scale_warn=\"no\"";
 		else
 			s += string(" units=\"") + TIME_UNIT() + "\" epoch=\"unix\"";
 
@@ -250,7 +254,7 @@ bool DataSeries::OpenLog(string path)
 		ds_extent_size = ROW_MAX;
 		}
 
-	log_output = new OutputModule(*log_file, log_series, *log_type, ds_extent_size);
+	log_output = new OutputModule(*log_file, log_series, log_type, ds_extent_size);
 
 	return true;
 	}
@@ -330,7 +334,7 @@ bool DataSeries::DoInit(string path, int num_fields, const threading::Field* con
 		Warning(Fmt("%s is not a valid compression type. Valid types are: 'lzf', 'lzo', 'gz', 'bz2', 'none', 'any'. Defaulting to 'any'", ds_compression.c_str()));
 
         log_type = log_types.registerTypePtr(schema);
-	log_series.setType(*log_type);
+	log_series.setType(log_type);
 
 	return OpenLog(path);
 	}

@@ -176,14 +176,9 @@ bool Ascii::DoWriteOne(ODesc* desc, Value* val, const Field* field)
 		desc->Add(Render(val->val.addr_val));
 		break;
 
+	case TYPE_DOUBLE:
 	case TYPE_TIME:
 	case TYPE_INTERVAL:
-		char buf[256];
-		modp_dtoa(val->val.double_val, buf, 6);
-		desc->Add(buf);
-		break;
-
-	case TYPE_DOUBLE:
 		desc->Add(val->val.double_val);
 		break;
 

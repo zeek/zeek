@@ -1,4 +1,27 @@
 
+2.0-323 | 2012-05-04 21:04:34 -0700
+
+  * Add SHA1 and SHA256 hashing BIFs. Addresses #542.
+
+  * Refactor all internal MD5 stuff to use OpenSSL's. (Jon Siwek)
+
+  * Changes to open-file caching limits and uncached file unserialization. (Jon Siwek)
+
+    - Unserializing files that were previously kicked out of the open-file
+      cache would cause them to be fopen'd with the original access
+      permissions which is usually 'w' and causes truncation.  They
+      are now opened in 'a' mode.  (addresses #780)
+
+    - Add 'max_files_in_cache' script option to manually set the maximum
+      amount of opened files to keep cached.  Mainly this just helped
+      to create a simple test case for the above change.
+
+    - Remove unused NO_HAVE_SETRLIMIT preprocessor switch.
+
+    - On systems that don't enforce a limit on number of files opened for
+      the process, raise default max size of open-file cache from
+      32 to 512.
+
 2.0-319 | 2012-05-03 13:24:44 -0700
 
   * SSL bugfixes and cleanup. (Seth Hall)

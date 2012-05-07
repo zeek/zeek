@@ -1,6 +1,7 @@
 ##! Utilities specific for HTTP processing.
 
 @load ./main
+@load base/utils/addrs
 
 module HTTP;
 
@@ -51,7 +52,7 @@ function extract_keys(data: string, kv_splitter: pattern): string_vec
 function build_url(rec: Info): string
 	{
 	local uri  = rec?$uri ? rec$uri : "/<missed_request>";
-	local host = rec?$host ? rec$host : fmt("%s", rec$id$resp_h);
+	local host = rec?$host ? rec$host : addr_to_uri(rec$id$resp_h);
 	if ( rec$id$resp_p != 80/tcp )
 		host = fmt("%s:%s", host, rec$id$resp_p);
 	return fmt("%s%s", host, uri);

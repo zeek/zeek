@@ -172,7 +172,7 @@ string IPAddr::AsString() const
 		if ( ! bro_inet_ntop(AF_INET6, in6.s6_addr, s, INET6_ADDRSTRLEN) )
 			return "<bad IPv6 address conversion";
 		else
-			return string("[") + s + "]";
+			return s;
 		}
 	}
 

@@ -16,7 +16,7 @@ am
 i,
 [orig_h=172.16.238.131, orig_p=37975/udp, resp_h=172.16.238.2, resp_p=53/udp],
 here,
-[orig_h=[fe80::20c:29ff:febd:6f01], orig_p=5353/udp, resp_h=[ff02::fb], resp_p=5353/udp],
+[orig_h=fe80::20c:29ff:febd:6f01, orig_p=5353/udp, resp_h=ff02::fb, resp_p=5353/udp],
 am
 }
 {
@@ -25,7 +25,7 @@ am
 i,
 [orig_h=172.16.238.131, orig_p=37975/udp, resp_h=172.16.238.2, resp_p=53/udp],
 here,
-[orig_h=[fe80::20c:29ff:febd:6f01], orig_p=5353/udp, resp_h=[ff02::fb], resp_p=5353/udp],
+[orig_h=fe80::20c:29ff:febd:6f01, orig_p=5353/udp, resp_h=ff02::fb, resp_p=5353/udp],
 am
 }
 {
@@ -34,7 +34,7 @@ am
 i,
 [orig_h=172.16.238.131, orig_p=37975/udp, resp_h=172.16.238.2, resp_p=53/udp],
 here,
-[orig_h=[fe80::20c:29ff:febd:6f01], orig_p=5353/udp, resp_h=[ff02::fb], resp_p=5353/udp],
+[orig_h=fe80::20c:29ff:febd:6f01, orig_p=5353/udp, resp_h=ff02::fb, resp_p=5353/udp],
 [orig_h=172.16.238.1, orig_p=5353/udp, resp_h=224.0.0.251, resp_p=5353/udp],
 am
 }
@@ -45,7 +45,7 @@ i,
 [orig_h=172.16.238.131, orig_p=37975/udp, resp_h=172.16.238.2, resp_p=53/udp],
 here,
 [orig_h=172.16.238.1, orig_p=49657/tcp, resp_h=172.16.238.131, resp_p=80/tcp],
-[orig_h=[fe80::20c:29ff:febd:6f01], orig_p=5353/udp, resp_h=[ff02::fb], resp_p=5353/udp],
+[orig_h=fe80::20c:29ff:febd:6f01, orig_p=5353/udp, resp_h=ff02::fb, resp_p=5353/udp],
 [orig_h=172.16.238.1, orig_p=5353/udp, resp_h=224.0.0.251, resp_p=5353/udp],
 am
 }
@@ -57,7 +57,7 @@ i,
 here,
 [orig_h=172.16.238.1, orig_p=49657/tcp, resp_h=172.16.238.131, resp_p=80/tcp],
 [orig_h=172.16.238.1, orig_p=49658/tcp, resp_h=172.16.238.131, resp_p=80/tcp],
-[orig_h=[fe80::20c:29ff:febd:6f01], orig_p=5353/udp, resp_h=[ff02::fb], resp_p=5353/udp],
+[orig_h=fe80::20c:29ff:febd:6f01, orig_p=5353/udp, resp_h=ff02::fb, resp_p=5353/udp],
 [orig_h=172.16.238.1, orig_p=5353/udp, resp_h=224.0.0.251, resp_p=5353/udp],
 am
 }
@@ -70,7 +70,7 @@ i,
 here,
 [orig_h=172.16.238.1, orig_p=49657/tcp, resp_h=172.16.238.131, resp_p=80/tcp],
 [orig_h=172.16.238.1, orig_p=49658/tcp, resp_h=172.16.238.131, resp_p=80/tcp],
-[orig_h=[fe80::20c:29ff:febd:6f01], orig_p=5353/udp, resp_h=[ff02::fb], resp_p=5353/udp],
+[orig_h=fe80::20c:29ff:febd:6f01, orig_p=5353/udp, resp_h=ff02::fb, resp_p=5353/udp],
 [orig_h=172.16.238.1, orig_p=5353/udp, resp_h=224.0.0.251, resp_p=5353/udp],
 am
 }
@@ -82,7 +82,7 @@ expired [orig_h=172.16.238.131, orig_p=37975/udp, resp_h=172.16.238.2, resp_p=53
 expired here
 expired [orig_h=172.16.238.1, orig_p=49657/tcp, resp_h=172.16.238.131, resp_p=80/tcp]
 expired [orig_h=172.16.238.1, orig_p=49658/tcp, resp_h=172.16.238.131, resp_p=80/tcp]
-expired [orig_h=[fe80::20c:29ff:febd:6f01], orig_p=5353/udp, resp_h=[ff02::fb], resp_p=5353/udp]
+expired [orig_h=fe80::20c:29ff:febd:6f01, orig_p=5353/udp, resp_h=ff02::fb, resp_p=5353/udp]
 expired [orig_h=172.16.238.1, orig_p=5353/udp, resp_h=224.0.0.251, resp_p=5353/udp]
 expired am
 {

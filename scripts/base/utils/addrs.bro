@@ -98,3 +98,18 @@ function find_ip_addresses(input: string): string_array
 		}
 	return output;
 	}
+
+## Returns the string representation of an IP address suitable for inclusion
+## in a URI.  For IPv4, this does no special formatting, but for IPv6, the
+## address is included in square brackets.
+##
+## a: the address to make suitable for URI inclusion.
+##
+## Returns: the string representation of *a* suitable for URI inclusion.
+function addr_to_uri(a: addr): string
+	{
+	if ( is_v4_addr(a) )
+		return fmt("%s", a);
+	else
+		return fmt("[%s]", a);
+	}

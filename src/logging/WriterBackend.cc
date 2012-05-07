@@ -261,7 +261,7 @@ string WriterBackend::Render(const threading::Value::addr_t& addr) const
 		if ( ! bro_inet_ntop(AF_INET6, &addr.in.in6, s, INET6_ADDRSTRLEN) )
 			return "<bad IPv6 address conversion>";
 		else
-			return string("[") + s + "]";
+			return s;
 		}
 	}
 

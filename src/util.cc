@@ -27,6 +27,8 @@
 #include <errno.h>
 #include <signal.h>
 #include <libgen.h>
+#include <openssl/md5.h>
+#include <openssl/sha.h>
 
 #ifdef HAVE_MALLINFO
 # include <malloc.h>
@@ -35,7 +37,6 @@
 #include "input.h"
 #include "util.h"
 #include "Obj.h"
-#include "md5.h"
 #include "Val.h"
 #include "NetVar.h"
 #include "Net.h"
@@ -546,24 +547,6 @@ bool is_dir(const char* path)
 	return S_ISDIR(st.st_mode);
 	}
 
-void hash_md5(size_t size, const unsigned char* bytes, unsigned char digest[16])
-	{
-	md5_state_s h;
-	md5_init(&h);
-	md5_append(&h, bytes, size);
-	md5_finish(&h, digest);
-	}
-
-const char* md5_digest_print(const unsigned char digest[16])
-	{
-	static char digest_print[256];
-
-	for ( int i = 0; i < 16; ++i )
-		snprintf(digest_print + i * 2, 3, "%02x", digest[i]);
-
-	return digest_print;
-	}
-
 int hmac_key_set = 0;
 uint8 shared_hmac_md5_key[16];
 
@@ -572,12 +555,12 @@ void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16])
 	if ( ! hmac_key_set )
 		reporter->InternalError("HMAC-MD5 invoked before the HMAC key is set");
 
-	hash_md5(size, bytes, digest);
+	MD5(bytes, size, digest);
 
 	for ( int i = 0; i < 16; ++i )
 		digest[i] ^= shared_hmac_md5_key[i];
 
-	hash_md5(16, digest, digest);
+	MD5(digest, 16, digest);
 	}
 
 static bool read_random_seeds(const char* read_file, uint32* seed,
@@ -724,7 +707,7 @@ void init_random_seed(uint32 seed, const char* read_file, const char* write_file
 
 	if ( ! hmac_key_set )
 		{
-		hash_md5(sizeof(buf), (u_char*) buf, shared_hmac_md5_key);
+		MD5((const u_char*) buf, sizeof(buf), shared_hmac_md5_key);
 		hmac_key_set = 1;
 		}
 

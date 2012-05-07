@@ -23,7 +23,6 @@ type uint24 = record {
 
 	string state_label(int state_nr);
 	double get_time_from_asn1(const ASN1_TIME * atime);
-	string handshake_type_label(int type);
 %}
 
 extern type to_int;
@@ -268,28 +267,6 @@ enum HandshakeType {
 	CERTIFICATE_STATUS  = 22, # RFC 3546
 };
 
-%code{
-	string handshake_type_label(int type)
-		{
-		switch ( type ) {
-		case HELLO_REQUEST: return string("HELLO_REQUEST");
-		case CLIENT_HELLO: return string("CLIENT_HELLO");
-		case SERVER_HELLO: return string("SERVER_HELLO");
-		case SESSION_TICKET: return string("SESSION_TICKET");
-		case CERTIFICATE: return string("CERTIFICATE");
-		case SERVER_KEY_EXCHANGE: return string("SERVER_KEY_EXCHANGE");
-		case CERTIFICATE_REQUEST: return string("CERTIFICATE_REQUEST");
-		case SERVER_HELLO_DONE: return string("SERVER_HELLO_DONE");
-		case CERTIFICATE_VERIFY: return string("CERTIFICATE_VERIFY");
-		case CLIENT_KEY_EXCHANGE: return string("CLIENT_KEY_EXCHANGE");
-		case FINISHED: return string("FINISHED");
-		case CERTIFICATE_URL: return string("CERTIFICATE_URL");
-		case CERTIFICATE_STATUS: return string("CERTIFICATE_STATUS");
-		default: return string(fmt("UNKNOWN (%d)", type));
-		}
-		}
-%}
-
 
 ######################################################################
 # V3 Change Cipher Spec Protocol (7.1.)
@@ -425,6 +402,10 @@ type ServerHello(rec: SSLRecord) = record {
 	session_id : uint8[session_len];
 	cipher_suite : uint16[1];
 	compression_method : uint8;
+	# This weirdness is to deal with the possible existence or absence
+	# of the following fields.
+	ext_len: uint16[] &until($element == 0 || $element != 0);
+	extensions : SSLExtension(rec)[] &until($input.length() == 0);
 } &let {
 	state_changed : bool =
 		$context.connection.transition(STATE_CLIENT_HELLO_RCVD,

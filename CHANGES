@@ -1,4 +1,60 @@
 
+2.0-323 | 2012-05-04 21:04:34 -0700
+
+  * Add SHA1 and SHA256 hashing BIFs. Addresses #542.
+
+  * Refactor all internal MD5 stuff to use OpenSSL's. (Jon Siwek)
+
+  * Changes to open-file caching limits and uncached file unserialization. (Jon Siwek)
+
+    - Unserializing files that were previously kicked out of the open-file
+      cache would cause them to be fopen'd with the original access
+      permissions which is usually 'w' and causes truncation.  They
+      are now opened in 'a' mode.  (addresses #780)
+
+    - Add 'max_files_in_cache' script option to manually set the maximum
+      amount of opened files to keep cached.  Mainly this just helped
+      to create a simple test case for the above change.
+
+    - Remove unused NO_HAVE_SETRLIMIT preprocessor switch.
+
+    - On systems that don't enforce a limit on number of files opened for
+      the process, raise default max size of open-file cache from
+      32 to 512.
+
+2.0-319 | 2012-05-03 13:24:44 -0700
+
+  * SSL bugfixes and cleanup. (Seth Hall)
+
+    - SSL related files and classes renamed to remove the "binpac" term.
+
+    - A small fix for DPD scripts to make the DPD log more helpful if
+      there are multiple continued failures.
+
+    - Fixed the SSL analyzer to make it stop doing repeated violation
+      messages for some handshake failures.
+
+    - Added a $issuer_subject to the SSL log.
+      
+    - Created a basic test for SSL.
+
+    - Fixed parsing of TLS server extensions. (Seth Hall)
+
+2.0-315 | 2012-05-03 11:44:17 -0700
+
+  * Add two more TLS extension values that we see in live traffic.
+    (Bernhard Amann)
+
+  * Fixed IPv6 link local unicast CIDR and added IPv6 loopback to
+    private address space. (Seth Hall)
+
+  * Fixed a problem where cluster workers were still processing
+    notices in some cases. (Seth Hall)
+
+  * Added a configure option to specify the 'etc' directory. Addresses
+    #801. (Daniel Thayer)
+
+
 2.0-306 | 2012-04-24 14:37:00 -0700
 
   * Add further TLS extension values "extended_random" and

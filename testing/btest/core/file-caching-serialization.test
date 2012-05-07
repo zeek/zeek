@@ -1,0 +1,49 @@
+# This checks that the interactions between open-file caching and
+# serialization works ok.  In the first case, all files can fit
+# in the cache, but get serialized before every write.  In the
+# second case, files are eventually forced out of the cache and
+# undergo serialization, which requires re-opening.
+
+# @TEST-EXEC: bro -b %INPUT "test_file_prefix=one"
+# @TEST-EXEC: btest-diff one0
+# @TEST-EXEC: btest-diff one1
+# @TEST-EXEC: btest-diff one2
+# @TEST-EXEC: bro -b %INPUT "test_file_prefix=two" "max_files_in_cache=2"
+# @TEST-EXEC: btest-diff two0
+# @TEST-EXEC: btest-diff two1
+# @TEST-EXEC: btest-diff two2
+
+const test_file_prefix = "" &redef;
+global file_table: table[string] of file;
+global iterations: vector of count = vector(0,1,2,3,4,5,6,7,8);
+
+function write_to_file(c: count)
+	{
+	local f: file;
+	# Take turns writing across three output files.
+	local filename = fmt("%s%s", test_file_prefix, c % 3 );
+
+	if ( filename in file_table )
+		f = file_table[filename];
+	else
+		{
+		f = open(filename);
+		file_table[filename] = f;
+		}
+
+	# This when block is a trick to get the frame cloned
+	# and thus serialize the local file value
+	when ( local s = fmt("write %d", c) )
+		print f, s;
+	}
+
+event file_opened(f: file)
+	{
+	print f, "opened";
+	}
+
+event bro_init()
+	{
+	for ( i in iterations )
+		write_to_file(iterations[i]);
+	}

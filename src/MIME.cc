@@ -4,6 +4,7 @@
 #include "MIME.h"
 #include "Event.h"
 #include "Reporter.h"
+#include "digest.h"
 
 // Here are a few things to do:
 //
@@ -1008,7 +1009,7 @@ void MIME_Mail::Done()
 	if ( compute_content_hash && mime_content_hash )
 		{
 		u_char* digest = new u_char[16];
-		md5_finish(&md5_hash, digest);
+		md5_final(&md5_hash, digest);
 
 		val_list* vl = new val_list;
 		vl->append(analyzer->BuildConnVal());
@@ -1096,7 +1097,7 @@ void MIME_Mail::SubmitData(int len, const char* buf)
 	if ( compute_content_hash )
 		{
 		content_hash_length += len;
-		md5_append(&md5_hash, (const u_char*) buf, len);
+		md5_update(&md5_hash, (const u_char*) buf, len);
 		}
 
 	if ( mime_entity_data || mime_all_data )

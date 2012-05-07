@@ -29,7 +29,6 @@
 
 #include <algorithm>
 
-#include "md5.h"
 #include "Base64.h"
 #include "Stmt.h"
 #include "Scope.h"

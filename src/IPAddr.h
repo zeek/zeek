@@ -188,11 +188,16 @@ public:
 	 * IPv4 to IPv6 address mapping to return a full 16 bytes.
 	 *
 	 * @param bytes The pointer to a memory location in which the
-	 * raw bytes of the address are to be copied in network byte-order.
+	 * raw bytes of the address are to be copied.
+	 *
+	 * @param order The byte-order in which the returned raw bytes are copied.
+	 * The default is network order.
 	 */
-	void CopyIPv6(uint32_t* bytes) const
+	void CopyIPv6(uint32_t* bytes, ByteOrder order = Network) const
 		{
 		memcpy(bytes, in6.s6_addr, sizeof(in6.s6_addr));
+		if ( order == Host )
+			for ( unsigned int i = 0; i < 4; ++i ) bytes[i] = ntohl(bytes[i]);
 		}
 
 	/**
@@ -279,6 +284,19 @@ public:
 	 * compressed hex.
 	 */
 	string AsString() const;
+
+	/**
+	 * Returns a string representation of the address suitable for inclusion
+	 * in an URI.  For IPv4 addresses, this is the same as AsString(), but
+	 * IPv6 addresses are encased in square brackets.
+	 */
+	string AsURIString() const
+		{
+		if ( GetFamily() == IPv4 )
+			return AsString();
+		else
+			return string("[") + AsString() + "]";
+		}
 
 	/**
 	 * Returns a host-order, plain hex string representation of the address.

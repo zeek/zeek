@@ -147,6 +147,7 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <netdb.h>
 #include <sys/wait.h>
 #include <netinet/in.h>
 #include <unistd.h>
@@ -195,7 +196,7 @@ extern "C" {
 
 // Gets incremented each time there's an incompatible change
 // to the communication internals.
-static const unsigned short PROTOCOL_VERSION = 0x07;
+static const unsigned short PROTOCOL_VERSION = 0x08;
 
 static const char MSG_NONE = 0x00;
 static const char MSG_VERSION = 0x01;
@@ -458,17 +459,6 @@ static inline char* fmt_uint32s(int nargs, va_list ap)
 	}
 #endif
 
-
-static inline const char* ip2a(uint32 ip)
-	{
-	static char buffer[32];
-	struct in_addr addr;
-
-	addr.s_addr = htonl(ip);
-
-	return bro_inet_ntop(AF_INET, &addr, buffer, 32);
-	}
-
 static pid_t child_pid = 0;
 
 // Return true if message type is sent by a peer (rather than the child
@@ -683,24 +673,20 @@ RemoteSerializer::PeerID RemoteSerializer::Connect(const IPAddr& ip,
 	if ( ! initialized )
 		reporter->InternalError("remote serializer not initialized");
 
-	if ( ip.GetFamily() == IPv6 )
-		Error("inter-Bro communication not supported over IPv6");
-
-	const uint32* bytes;
-	ip.GetBytes(&bytes);
-	uint32 ip4 = ntohl(*bytes);
-
 	if ( ! child_pid )
 		Fork();
 
-	Peer* p = AddPeer(ip4, port);
+	Peer* p = AddPeer(ip, port);
 	p->orig = true;
 
 	if ( our_class )
 		p->our_class = our_class;
 
-	if ( ! SendToChild(MSG_CONNECT_TO, p, 5, p->id,
-				ip4, port, uint32(retry), use_ssl) )
+	uint32 bytes[4];
+	ip.CopyIPv6(bytes, IPAddr::Host);
+
+	if ( ! SendToChild(MSG_CONNECT_TO, p, 8, p->id, bytes[0], bytes[1],
+	                   bytes[2], bytes[3], port, uint32(retry), use_ssl) )
 		{
 		RemovePeer(p);
 		return false;
@@ -1232,7 +1218,8 @@ bool RemoteSerializer::SendCapabilities(Peer* peer)
 	return caps ? SendToChild(MSG_CAPS, peer, 3, caps, 0, 0) : true;
 	}
 
-bool RemoteSerializer::Listen(const IPAddr& ip, uint16 port, bool expect_ssl)
+bool RemoteSerializer::Listen(const IPAddr& ip, uint16 port, bool expect_ssl,
+                              bool ipv6, double retry)
 	{
 	if ( ! using_communication )
 		return true;
@@ -1240,14 +1227,15 @@ bool RemoteSerializer::Listen(const IPAddr& ip, uint16 port, bool expect_ssl)
 	if ( ! initialized )
 		reporter->InternalError("remote serializer not initialized");
 
-	if ( ip.GetFamily() == IPv6 )
-		Error("inter-Bro communication not supported over IPv6");
+	if ( ! ipv6 && ip.GetFamily() == IPv6 &&
+	     ip != IPAddr("0.0.0.0") && ip != IPAddr("::") )
+		reporter->FatalError("Attempt to listen on address %s, but IPv6 communication disabled", ip.AsString().c_str());
 
-	const uint32* bytes;
-	ip.GetBytes(&bytes);
-	uint32 ip4 = ntohl(*bytes);
+	uint32 bytes[4];
+	ip.CopyIPv6(bytes, IPAddr::Host);
 
-	if ( ! SendToChild(MSG_LISTEN, 0, 3, ip4, port, expect_ssl) )
+	if ( ! SendToChild(MSG_LISTEN, 0, 8, bytes[0], bytes[1], bytes[2], bytes[3],
+	                   port, expect_ssl, ipv6, (uint32) retry) )
 		return false;
 
 	listening = true;
@@ -1784,7 +1772,7 @@ RecordVal* RemoteSerializer::MakePeerVal(Peer* peer)
 	RecordVal* v = new RecordVal(::peer);
 	v->Assign(0, new Val(uint32(peer->id), TYPE_COUNT));
 	// Sic! Network order for AddrVal, host order for PortVal.
-	v->Assign(1, new AddrVal(htonl(peer->ip)));
+	v->Assign(1, new AddrVal(peer->ip));
 	v->Assign(2, new PortVal(peer->port, TRANSPORT_TCP));
 	v->Assign(3, new Val(false, TYPE_BOOL));
 	v->Assign(4, new StringVal(""));	// set when received
@@ -1793,8 +1781,8 @@ RecordVal* RemoteSerializer::MakePeerVal(Peer* peer)
 	return v;
 	}
 
-RemoteSerializer::Peer* RemoteSerializer::AddPeer(uint32 ip, uint16 port,
-							PeerID id)
+RemoteSerializer::Peer* RemoteSerializer::AddPeer(const IPAddr& ip, uint16 port,
+                                                  PeerID id)
 	{
 	Peer* peer = new Peer;
 	peer->id = id != PEER_NONE ? id : id_counter++;
@@ -1960,8 +1948,8 @@ bool RemoteSerializer::ProcessConnected()
 	{
 	// IP and port follow.
 	uint32* args = (uint32*) current_args->data;
-	uint32 host = ntohl(args[0]);	// ### Fix: only works for IPv4
-	uint16 port = (uint16) ntohl(args[1]);
+	IPAddr host = IPAddr(IPv6, args, IPAddr::Network);
+	uint16 port = (uint16) ntohl(args[4]);
 
 	if ( ! current_peer )
 		{
@@ -2980,7 +2968,8 @@ void RemoteSerializer::Log(LogLevel level, const char* msg, Peer* peer,
 
 	if ( peer )
 		len += snprintf(buffer + len, sizeof(buffer) - len, "[#%d/%s:%d] ",
-		                int(peer->id), ip2a(peer->ip), peer->port);
+		                int(peer->id), peer->ip.AsURIString().c_str(),
+		                peer->port);
 
 	len += safe_snprintf(buffer + len, sizeof(buffer) - len, "%s", msg);
 
@@ -3266,8 +3255,10 @@ SocketComm::SocketComm()
 	terminating = false;
 	killing = false;
 
-	listen_fd_clear = -1;
-	listen_fd_ssl = -1;
+	listen_port = 0;
+	listen_ssl = false;
+	enable_ipv6 = false;
+	bind_retry_interval = 0;
 	listen_next_try = 0;
 
 	// We don't want to use the signal handlers of our parent.
@@ -3290,8 +3281,7 @@ SocketComm::~SocketComm()
 		delete peers[i]->io;
 
 	delete io;
-	close(listen_fd_clear);
-	close(listen_fd_ssl);
+	CloseListenFDs();
 	}
 
 static unsigned int first_rtime = 0;
@@ -3340,20 +3330,13 @@ void SocketComm::Run()
 			}
 
 		if ( listen_next_try && time(0) > listen_next_try  )
-			Listen(listen_if, listen_port, listen_ssl);
+			Listen();
 
-		if ( listen_fd_clear >= 0 )
+		for ( size_t i = 0; i < listen_fds.size(); ++i )
 			{
-			FD_SET(listen_fd_clear, &fd_read);
-			if ( listen_fd_clear > max_fd )
-				max_fd = listen_fd_clear;
-			}
-
-		if ( listen_fd_ssl >= 0 )
-			{
-			FD_SET(listen_fd_ssl, &fd_read);
-			if ( listen_fd_ssl > max_fd )
-				max_fd = listen_fd_ssl;
+			FD_SET(listen_fds[i], &fd_read);
+			if ( listen_fds[i] > max_fd )
+				max_fd = listen_fds[i];
 			}
 
 		if ( io->IsFillingUp() && ! shutting_conns_down )
@@ -3442,12 +3425,9 @@ void SocketComm::Run()
 				}
 			}
 
-		if ( listen_fd_clear >= 0 &&
-		     FD_ISSET(listen_fd_clear, &fd_read) )
-			AcceptConnection(listen_fd_clear);
-
-		if ( listen_fd_ssl >= 0 && FD_ISSET(listen_fd_ssl, &fd_read) )
-			AcceptConnection(listen_fd_ssl);
+		for ( size_t i = 0; i < listen_fds.size(); ++i )
+			if ( FD_ISSET(listen_fds[i], &fd_read) )
+				AcceptConnection(listen_fds[i]);
 
 		// Hack to display CPU usage of the child, triggered via
 		// SIGPROF.
@@ -3571,13 +3551,8 @@ bool SocketComm::DoParentMessage()
 
 	case MSG_LISTEN_STOP:
 		{
-		if ( listen_fd_ssl >= 0 )
-			close(listen_fd_ssl);
+		CloseListenFDs();
 
-		if ( listen_fd_clear >= 0 )
-			close(listen_fd_clear);
-
-		listen_fd_clear = listen_fd_ssl = -1;
 		Log("stopped listening");
 
 		return true;
@@ -3721,10 +3696,10 @@ bool SocketComm::ProcessConnectTo()
 
 	Peer* peer = new Peer;
 	peer->id = ntohl(args[0]);
-	peer->ip = ntohl(args[1]);
-	peer->port = ntohl(args[2]);
-	peer->retry = ntohl(args[3]);
-	peer->ssl = ntohl(args[4]);
+	peer->ip = IPAddr(IPv6, &args[1], IPAddr::Network);
+	peer->port = ntohl(args[5]);
+	peer->retry = ntohl(args[6]);
+	peer->ssl = ntohl(args[7]);
 
 	return Connect(peer);
 	}
@@ -3734,11 +3709,13 @@ bool SocketComm::ProcessListen()
 	assert(parent_args);
 	uint32* args = (uint32*) parent_args->data;
 
-	uint32 addr = ntohl(args[0]);
-	uint16 port = uint16(ntohl(args[1]));
-	uint32 ssl = ntohl(args[2]);
+	listen_if = IPAddr(IPv6, args, IPAddr::Network);
+	listen_port = uint16(ntohl(args[4]));
+	listen_ssl = ntohl(args[5]) != 0;
+	enable_ipv6 = ntohl(args[6]) != 0;
+	bind_retry_interval = ntohl(args[7]);
 
-	return Listen(addr, port, ssl);
+	return Listen();
 	}
 
 bool SocketComm::ProcessParentCompress()
@@ -3900,28 +3877,52 @@ bool SocketComm::ProcessPeerCompress(Peer* peer)
 
 bool SocketComm::Connect(Peer* peer)
 	{
-	struct sockaddr_in server;
+	int status;
+	addrinfo hints, *res, *res0;
+	bzero(&hints, sizeof(hints));
 
-	int sockfd = socket(PF_INET, SOCK_STREAM, 0);
-	if ( sockfd < 0 )
+	hints.ai_family = PF_UNSPEC;
+	hints.ai_protocol = IPPROTO_TCP;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_NUMERICHOST;
+
+	char port_str[16];
+	modp_uitoa10(peer->port, port_str);
+
+	// TODO: better to accept string arguments from the user to pass into
+	// getaddrinfo? This might make it easier to explicitly connect to
+	// non-global IPv6 addresses with a scope zone identifier (RFC 4007).
+	status = getaddrinfo(peer->ip.AsString().c_str(), port_str, &hints, &res0);
+	if ( status != 0 )
 		{
-		Error(fmt("can't create socket, %s", strerror(errno)));
+		Error(fmt("getaddrinfo error: %s", gai_strerror(status)));
 		return false;
 		}
 
-	bzero(&server, sizeof(server));
-	server.sin_family = AF_INET;
-	server.sin_port = htons(peer->port);
-	server.sin_addr.s_addr = htonl(peer->ip);
-
-	bool connected = true;
-
-	if ( connect(sockfd, (sockaddr*) &server, sizeof(server)) < 0 )
+	int sockfd = -1;
+	for ( res = res0; res; res = res->ai_next )
 		{
-		Error(fmt("connect failed: %s", strerror(errno)), peer);
-		close(sockfd);
-		connected = false;
+		sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+		if ( sockfd < 0 )
+			{
+			Error(fmt("can't create connect socket, %s", strerror(errno)));
+			continue;
+			}
+
+		if ( connect(sockfd, res->ai_addr, res->ai_addrlen) < 0 )
+			{
+			Error(fmt("connect failed: %s", strerror(errno)), peer);
+			close(sockfd);
+			sockfd = -1;
+			continue;
+			}
+
+		break;
 		}
+
+	freeaddrinfo(res0);
+
+	bool connected = sockfd != -1;
 
 	if ( ! (connected || peer->retry) )
 		{
@@ -3947,9 +3948,7 @@ bool SocketComm::Connect(Peer* peer)
 	if ( connected )
 		{
 		if ( peer->ssl )
-			{
 			peer->io = new ChunkedIOSSL(sockfd, false);
-			}
 		else
 			peer->io = new ChunkedIOFd(sockfd, "child->peer");
 
@@ -3964,7 +3963,12 @@ bool SocketComm::Connect(Peer* peer)
 	if ( connected )
 		{
 		Log("connected", peer);
-		if ( ! SendToParent(MSG_CONNECTED, peer, 2, peer->ip, peer->port) )
+
+		uint32 bytes[4];
+		peer->ip.CopyIPv6(bytes, IPAddr::Host);
+
+		if ( ! SendToParent(MSG_CONNECTED, peer, 5, bytes[0], bytes[1],
+		                    bytes[2], bytes[3], peer->port) )
 			return false;
 		}
 
@@ -4001,86 +4005,139 @@ bool SocketComm::CloseConnection(Peer* peer, bool reconnect)
 	return true;
 	}
 
-bool SocketComm::Listen(uint32 ip, uint16 port, bool expect_ssl)
+bool SocketComm::Listen()
 	{
-	int* listen_fd = expect_ssl ? &listen_fd_ssl : &listen_fd_clear;
+	int status, on = 1;
+	addrinfo hints, *res, *res0;
+	bzero(&hints, sizeof(hints));
 
-	if ( *listen_fd >= 0 )
-		close(*listen_fd);
-
-	struct sockaddr_in server;
-
-	*listen_fd = socket(PF_INET, SOCK_STREAM, 0);
-	if ( *listen_fd < 0 )
+	if ( enable_ipv6 )
 		{
-		Error(fmt("can't create listen socket, %s",
-				strerror(errno)));
+		if ( listen_if == IPAddr("0.0.0.0") || listen_if == IPAddr("::") )
+			hints.ai_family = PF_UNSPEC;
+		else
+			hints.ai_family = listen_if.GetFamily() == IPv4 ? PF_INET : PF_INET6;
+		}
+	else
+		hints.ai_family = PF_INET;
+
+	hints.ai_protocol = IPPROTO_TCP;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE | AI_ADDRCONFIG | AI_NUMERICHOST;
+
+	char port_str[16];
+	modp_uitoa10(listen_port, port_str);
+
+	const char* addr_str = 0;
+	if ( listen_if != IPAddr("0.0.0.0") && listen_if != IPAddr("::") )
+		addr_str = listen_if.AsString().c_str();
+
+	CloseListenFDs();
+
+	// TODO: better to accept string arguments from the user to pass into
+	// getaddrinfo?  This might make it easier to explicitly bind to a
+	// non-global IPv6 address with a scope zone identifier (RFC 4007).
+	if ( (status = getaddrinfo(addr_str, port_str, &hints, &res0)) != 0 )
+		{
+		Error(fmt("getaddrinfo error: %s", gai_strerror(status)));
 		return false;
 		}
 
-	// Set SO_REUSEADDR.
-	int turn_on = 1;
-	if ( setsockopt(*listen_fd, SOL_SOCKET, SO_REUSEADDR,
-			&turn_on, sizeof(turn_on)) < 0 )
+	for ( res = res0; res; res = res->ai_next )
 		{
-		Error(fmt("can't set SO_REUSEADDR, %s",
-				strerror(errno)));
-		return false;
-		}
-
-	bzero(&server, sizeof(server));
-	server.sin_family = AF_INET;
-	server.sin_port = htons(port);
-	server.sin_addr.s_addr = htonl(ip);
-
-	if ( bind(*listen_fd, (sockaddr*) &server, sizeof(server)) < 0 )
-		{
-		Error(fmt("can't bind to port %d, %s", port, strerror(errno)));
-		close(*listen_fd);
-		*listen_fd = -1;
-
-		if ( errno == EADDRINUSE )
+		if ( res->ai_family != AF_INET && res->ai_family != AF_INET6 )
 			{
-			listen_if = ip;
-			listen_port = port;
-			listen_ssl = expect_ssl;
-			// FIXME: Make this timeout configurable.
-			listen_next_try = time(0) + 30;
+			Error(fmt("can't create listen socket: unknown address family, %d",
+			          res->ai_family));
+			continue;
 			}
-		return false;
+
+		IPAddr a = res->ai_family == AF_INET ?
+				IPAddr(((sockaddr_in*)res->ai_addr)->sin_addr) :
+				IPAddr(((sockaddr_in6*)res->ai_addr)->sin6_addr);
+
+		int fd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+		if ( fd < 0 )
+			{
+			Error(fmt("can't create listen socket, %s", strerror(errno)));
+			continue;
+			}
+
+		if ( setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0 )
+			Error(fmt("can't set SO_REUSEADDR, %s", strerror(errno)));
+
+		// For IPv6 listening sockets, we don't want do dual binding to also
+		// get IPv4-mapped addresses because that's not as portable. e.g.
+		// many BSDs don't allow that.
+		if ( res->ai_family == AF_INET6 &&
+		     setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &on, sizeof(on)) < 0 )
+			Error(fmt("can't set IPV6_V6ONLY, %s", strerror(errno)));
+
+		if ( bind(fd, res->ai_addr, res->ai_addrlen) < 0 )
+			{
+			Error(fmt("can't bind to %s:%s, %s", a.AsURIString().c_str(),
+			          port_str, strerror(errno)));
+			close(fd);
+
+			if ( errno == EADDRINUSE )
+				{
+				// Abandon completely this attempt to set up listening sockets,
+				// try again later.
+				CloseListenFDs();
+				listen_next_try = time(0) + bind_retry_interval;
+				return false;
+				}
+			continue;
+			}
+
+		if ( listen(fd, 50) < 0 )
+			{
+			Error(fmt("can't listen on %s:%s, %s", a.AsURIString().c_str(),
+			          port_str, strerror(errno)));
+			close(fd);
+			continue;
+			}
+
+		listen_fds.push_back(fd);
+		Log(fmt("listening on %s:%s (%s)", a.AsURIString().c_str(), port_str,
+		        listen_ssl ? "ssl" : "clear"));
 		}
 
-	if ( listen(*listen_fd, 50) < 0 )
-		{
-		Error(fmt("can't listen, %s", strerror(errno)));
-		return false;
-		}
+	freeaddrinfo(res0);
 
 	listen_next_try = 0;
-	Log(fmt("listening on %s:%d (%s)",
-		ip2a(ip), port, expect_ssl ? "ssl" : "clear"));
-	return true;
+	return listen_fds.size() > 0;
 	}
 
 bool SocketComm::AcceptConnection(int fd)
 	{
-	sockaddr_in client;
+	sockaddr_storage client;
 	socklen_t len = sizeof(client);
 
 	int clientfd = accept(fd, (sockaddr*) &client, &len);
 	if ( clientfd < 0 )
 		{
-		Error(fmt("accept failed, %s %d",
-				strerror(errno), errno));
+		Error(fmt("accept failed, %s %d", strerror(errno), errno));
+		return false;
+		}
+
+	if ( client.ss_family != AF_INET && client.ss_family != AF_INET6 )
+		{
+		Error(fmt("accept fail, unknown address family %d", client.ss_family));
+		close(clientfd);
 		return false;
 		}
 
 	Peer* peer = new Peer;
 	peer->id = id_counter++;
-	peer->ip = ntohl(client.sin_addr.s_addr);
-	peer->port = ntohs(client.sin_port);
+	peer->ip = client.ss_family == AF_INET ?
+	           IPAddr(((sockaddr_in*)&client)->sin_addr) :
+	           IPAddr(((sockaddr_in6*)&client)->sin6_addr);
+	peer->port = client.ss_family == AF_INET ?
+	             ntohs(((sockaddr_in*)&client)->sin_port) :
+	             ntohs(((sockaddr_in6*)&client)->sin6_port);
 	peer->connected = true;
-	peer->ssl = (fd == listen_fd_ssl);
+	peer->ssl = listen_ssl;
 	peer->compressor = false;
 
 	if ( peer->ssl )
@@ -4090,8 +4147,7 @@ bool SocketComm::AcceptConnection(int fd)
 
 	if ( ! peer->io->Init() )
 		{
-		Error(fmt("can't init peer io: %s",
-				  peer->io->Error()), false);
+		Error(fmt("can't init peer io: %s", peer->io->Error()), false);
 		return false;
 		}
 
@@ -4099,7 +4155,11 @@ bool SocketComm::AcceptConnection(int fd)
 
 	Log(fmt("accepted %s connection", peer->ssl ? "SSL" : "clear"), peer);
 
-	if ( ! SendToParent(MSG_CONNECTED, peer, 2, peer->ip, peer->port) )
+	uint32 bytes[4];
+	peer->ip.CopyIPv6(bytes, IPAddr::Host);
+
+	if ( ! SendToParent(MSG_CONNECTED, peer, 5, bytes[0], bytes[1], bytes[2],
+	                    bytes[3], peer->port) )
 		return false;
 
 	return true;
@@ -4117,10 +4177,17 @@ const char* SocketComm::MakeLogString(const char* msg, Peer* peer)
 
 	if ( peer )
 		len = snprintf(buffer, BUFSIZE, "[#%d/%s:%d] ", int(peer->id),
-				ip2a(peer->ip), peer->port);
+		               peer->ip.AsURIString().c_str(), peer->port);
 
 	len += safe_snprintf(buffer + len, BUFSIZE - len, "%s", msg);
 	return buffer;
+	}
+
+void SocketComm::CloseListenFDs()
+	{
+	for ( size_t i = 0; i < listen_fds.size(); ++i )
+		close(listen_fds[i]);
+	listen_fds.clear();
 	}
 
 void SocketComm::Error(const char* msg, bool kill_me)
@@ -4165,7 +4232,7 @@ void SocketComm::Log(const char* msg, Peer* peer)
 
 void SocketComm::InternalError(const char* msg)
 	{
-	fprintf(stderr, "interal error in child: %s\n", msg);
+	fprintf(stderr, "internal error in child: %s\n", msg);
 	Kill();
 	}
 
@@ -4180,8 +4247,7 @@ void SocketComm::Kill()
 	LogProf();
 	Log("terminating");
 
-	close(listen_fd_clear);
-	close(listen_fd_ssl);
+	CloseListenFDs();
 
 	kill(getpid(), SIGTERM);
 

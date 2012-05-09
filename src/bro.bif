@@ -5402,12 +5402,17 @@ function set_compression_level%(p: event_peer, level: count%) : bool
 ##
 ## ssl: If true, Bro uses SSL to encrypt the session.
 ##
+## ipv6: If true, enable listening on IPv6 addresses.
+##
+## retry_interval: If address *ip* is found to be already in use, this is
+##                 the interval at which to automatically retry binding.
+##
 ## Returns: True on success.
 ##
 ## .. bro:see:: connect disconnect
-function listen%(ip: addr, p: port, ssl: bool %) : bool
+function listen%(ip: addr, p: port, ssl: bool, ipv6: bool, retry_interval: interval%) : bool
 	%{
-	return new Val(remote_serializer->Listen(ip->AsAddr(), p->Port(), ssl), TYPE_BOOL);
+	return new Val(remote_serializer->Listen(ip->AsAddr(), p->Port(), ssl, ipv6, retry_interval), TYPE_BOOL);
 	%}
 
 ## Checks whether the last raised event came from a remote peer.

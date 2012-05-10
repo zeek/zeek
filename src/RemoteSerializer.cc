@@ -4023,7 +4023,7 @@ bool SocketComm::Listen()
 
 	hints.ai_protocol = IPPROTO_TCP;
 	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags = AI_PASSIVE | AI_ADDRCONFIG | AI_NUMERICHOST;
+	hints.ai_flags = AI_PASSIVE | AI_NUMERICHOST;
 
 	char port_str[16];
 	modp_uitoa10(listen_port, port_str);

@@ -1,11 +1,11 @@
 # @TEST-GROUP: comm
 #
-# @TEST-REQUIRES: ifconfig | grep -q "inet6 ::1"
+# @TEST-REQUIRES: ifconfig | grep -q -E "inet6 ::1|inet6 addr: ::1"
 #
 # @TEST-EXEC: btest-bg-run recv bro -b ../recv.bro
 # @TEST-EXEC: btest-bg-run send bro -b ../send.bro
 # @TEST-EXEC: btest-bg-wait -k 20
-# 
+#
 # @TEST-EXEC: btest-diff recv/.stdout
 # @TEST-EXEC: btest-diff send/.stdout
 
@@ -46,6 +46,10 @@ event remote_connection_handshake_done(p: event_peer)
 	{
 	print fmt("handshake done with peer: %s", p$host);
 	event my_event("hello world");
+	}
+
+event remote_connection_closed(p: event_peer)
+	{
 	terminate();
 	}
 

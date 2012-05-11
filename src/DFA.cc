@@ -2,9 +2,10 @@
 
 #include "config.h"
 
+#include <openssl/md5.h>
+
 #include "EquivClass.h"
 #include "DFA.h"
-#include "md5.h"
 
 int dfa_state_cache_size = 10000;
 
@@ -312,8 +313,8 @@ DFA_State* DFA_State_Cache::Lookup(const NFA_state_list& nfas,
 	{
 	// We assume that state ID's don't exceed 10 digits, plus
 	// we allow one more character for the delimiter.
-	md5_byte_t id_tag[nfas.length() * 11 + 1];
-	md5_byte_t* p = id_tag;
+	u_char id_tag[nfas.length() * 11 + 1];
+	u_char* p = id_tag;
 
 	for ( int i = 0; i < nfas.length(); ++i )
 		{
@@ -335,12 +336,8 @@ DFA_State* DFA_State_Cache::Lookup(const NFA_state_list& nfas,
 
 	// We use the short MD5 instead of the full string for the
 	// HashKey because the data is copied into the key.
-	md5_state_t state;
-	md5_byte_t digest[16];
-
-	md5_init(&state);
-	md5_append(&state, id_tag, p - id_tag);
-	md5_finish(&state, digest);
+	u_char digest[16];
+	MD5(id_tag, p - id_tag, digest);
 
 	*hash = new HashKey(&digest, sizeof(digest));
 	CacheEntry* e = states.Lookup(*hash);

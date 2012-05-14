@@ -1,4 +1,4 @@
-# @TEST-GROUP: comm
+# @TEST-SERIALIZE: comm
 #
 # @TEST-EXEC: btest-bg-run receiver bro -b ../receiver.bro
 # @TEST-EXEC: btest-bg-run sender   bro -b ../sender.bro

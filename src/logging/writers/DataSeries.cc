@@ -194,12 +194,13 @@ std::string DataSeries::GetDSOptionsForType(const threading::Field *field)
 	case TYPE_INTERVAL:
 		{
 		std::string s;
-		s += "pack_relative=\"" + std::string(field->name) + "\"";
+		s += "pack_relative=\"" + std::string(field->name) + "\" ";
+		s += "print_format=\"%.6f\" ";
 
 		if ( ! ds_use_integer_for_time )
-			s += " pack_scale=\"1000\" pack_scale_warn=\"no\"";
+			s += "pack_scale=\"1000\" pack_scale_warn=\"no\"";
 		else
-			s += string(" units=\"") + TIME_UNIT() + "\" epoch=\"unix\"";
+			s += string("units=\"") + TIME_UNIT() + "\" epoch=\"unix\"";
 
 		return s;
 		}

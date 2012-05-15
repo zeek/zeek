@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "util.h"
+#include "bro_inet_ntop.h"
 #include "threading/SerialTypes.h"
 
 #include "WriterBackend.h"
@@ -237,7 +238,7 @@ string WriterBackend::Render(const threading::Value::addr_t& addr) const
 		{
 		char s[INET_ADDRSTRLEN];
 
-		if ( inet_ntop(AF_INET, &addr.in.in4, s, INET_ADDRSTRLEN) == NULL )
+		if ( ! bro_inet_ntop(AF_INET, &addr.in.in4, s, INET_ADDRSTRLEN) )
 			return "<bad IPv4 address conversion>";
 		else
 			return s;
@@ -246,7 +247,7 @@ string WriterBackend::Render(const threading::Value::addr_t& addr) const
 		{
 		char s[INET6_ADDRSTRLEN];
 
-		if ( inet_ntop(AF_INET6, &addr.in.in6, s, INET6_ADDRSTRLEN) == NULL )
+		if ( ! bro_inet_ntop(AF_INET6, &addr.in.in6, s, INET6_ADDRSTRLEN) )
 			return "<bad IPv6 address conversion>";
 		else
 			return s;

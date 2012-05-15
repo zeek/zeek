@@ -1,0 +1,9 @@
+# Truncated IP packet's should not be analyzed, and generate truncated_IP weird
+
+# @TEST-EXEC: bro -r $TRACES/trunc/ip4-trunc.pcap
+# @TEST-EXEC: mv weird.log output
+# @TEST-EXEC: bro -r $TRACES/trunc/ip6-trunc.pcap
+# @TEST-EXEC: cat weird.log >> output
+# @TEST-EXEC: bro -r $TRACES/trunc/ip6-ext-trunc.pcap
+# @TEST-EXEC: cat weird.log >> output
+# @TEST-EXEC: btest-diff output

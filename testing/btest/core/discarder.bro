@@ -1,7 +1,7 @@
 # @TEST-EXEC: bro -C -r $TRACES/wikipedia.trace discarder-ip.bro >output
 # @TEST-EXEC: bro -C -r $TRACES/wikipedia.trace discarder-tcp.bro >>output
 # @TEST-EXEC: bro -C -r $TRACES/wikipedia.trace discarder-udp.bro >>output
-# @TEST-EXEC: bro -C -r $TRACES/icmp-unreach.trace discarder-icmp.bro >>output
+# @TEST-EXEC: bro -C -r $TRACES/icmp/icmp-destunreach-udp.pcap discarder-icmp.bro >>output
 # @TEST-EXEC: btest-diff output
 
 @TEST-START-FILE discarder-ip.bro

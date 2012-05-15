@@ -34,7 +34,7 @@
 #include "Portmap.h"
 #include "POP3.h"
 #include "SSH.h"
-#include "SSL-binpac.h"
+#include "SSL.h"
 #include "Syslog-binpac.h"
 #include "ConnSizeAnalyzer.h"
 
@@ -49,18 +49,6 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 
 	{ AnalyzerTag::ICMP, "ICMP", ICMP_Analyzer::InstantiateAnalyzer,
 		ICMP_Analyzer::Available, 0, false },
-	{ AnalyzerTag::ICMP_TimeExceeded, "ICMP_TIMEEXCEEDED",
-		ICMP_TimeExceeded_Analyzer::InstantiateAnalyzer,
-		ICMP_TimeExceeded_Analyzer::Available, 0, false },
-	{ AnalyzerTag::ICMP_Unreachable, "ICMP_UNREACHABLE",
-		ICMP_Unreachable_Analyzer::InstantiateAnalyzer,
-		ICMP_Unreachable_Analyzer::Available, 0, false },
-	{ AnalyzerTag::ICMP_Echo, "ICMP_ECHO",
-		ICMP_Echo_Analyzer::InstantiateAnalyzer,
-		ICMP_Echo_Analyzer::Available, 0, false },
-	{ AnalyzerTag::ICMP_Redir, "ICMP_REDIR",
-		ICMP_Redir_Analyzer::InstantiateAnalyzer,
-		ICMP_Redir_Analyzer::Available, 0, false },
 
 	{ AnalyzerTag::TCP, "TCP", TCP_Analyzer::InstantiateAnalyzer,
 		TCP_Analyzer::Available, 0, false },
@@ -133,8 +121,8 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 		HTTP_Analyzer_binpac::InstantiateAnalyzer,
 		HTTP_Analyzer_binpac::Available, 0, false },
 	{ AnalyzerTag::SSL, "SSL",
-		SSL_Analyzer_binpac::InstantiateAnalyzer,
-		SSL_Analyzer_binpac::Available, 0, false },
+		SSL_Analyzer::InstantiateAnalyzer,
+		SSL_Analyzer::Available, 0, false },
 	{ AnalyzerTag::SYSLOG_BINPAC, "SYSLOG_BINPAC",
 		Syslog_Analyzer_binpac::InstantiateAnalyzer,
 		Syslog_Analyzer_binpac::Available, 0, false },

@@ -167,6 +167,7 @@ TableVal* preserve_orig_addr;
 TableVal* preserve_resp_addr;
 TableVal* preserve_other_addr;
 
+int max_files_in_cache;
 double log_rotate_interval;
 double log_max_size;
 RecordType* rotate_info;
@@ -257,6 +258,7 @@ void init_general_global_var()
 	state_dir = internal_val("state_dir")->AsStringVal();
 	state_write_delay = opt_internal_double("state_write_delay");
 
+	max_files_in_cache = opt_internal_int("max_files_in_cache");
 	log_rotate_interval = opt_internal_double("log_rotate_interval");
 	log_max_size = opt_internal_double("log_max_size");
 	rotate_info = internal_type("rotate_info")->AsRecordType();

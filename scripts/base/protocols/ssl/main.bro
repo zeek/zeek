@@ -24,6 +24,8 @@ export {
 		session_id:       string           &log &optional;
 		## Subject of the X.509 certificate offered by the server.
 		subject:          string           &log &optional;
+		## Subject of the signer of the X.509 certificate offered by the server.
+		issuer_subject:   string           &log &optional;
 		## NotValidBefore field value from the server certificate.
 		not_valid_before: time             &log &optional;
 		## NotValidAfter field value from the serve certificate.
@@ -146,6 +148,7 @@ event x509_certificate(c: connection, is_orig: bool, cert: X509, chain_idx: coun
 
 		# Also save other certificate information about the primary cert.
 		c$ssl$subject = cert$subject;
+		c$ssl$issuer_subject = cert$issuer;
 		c$ssl$not_valid_before = cert$not_valid_before;
 		c$ssl$not_valid_after = cert$not_valid_after;
 		}

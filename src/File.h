@@ -87,7 +87,13 @@ protected:
 
 	BroFile()	{ Init(); }
 	void Init();
-	bool Open(FILE* f = 0);	// if file is given, it's an open file to use
+
+	/**
+	 * If file is given, it's an open file to use already.
+	 * If file is not given and mode is, the filename will be opened with that
+	 * access mode.
+	 */
+	bool Open(FILE* f = 0, const char* mode = 0);
 
 	BroFile* Prev()	{ return prev; }
 	BroFile* Next()	{ return next; }

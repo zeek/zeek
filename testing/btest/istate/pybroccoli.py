@@ -1,4 +1,4 @@
-# @TEST-GROUP: comm
+# @TEST-SERIALIZE: comm
 #
 # @TEST-REQUIRES: test -e $BUILD/aux/broccoli/src/libbroccoli.so || test -e $BUILD/aux/broccoli/src/libbroccoli.dylib
 # @TEST-REQUIRES: test -e $BUILD/aux/broccoli/bindings/broccoli-python/_broccoli_intern.so

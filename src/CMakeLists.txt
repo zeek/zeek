@@ -247,7 +247,6 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
                    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
 
-set(dns_SRCS nb_dns.c)
 set_source_files_properties(nb_dns.c PROPERTIES COMPILE_FLAGS
                             -fno-strict-aliasing)
 
@@ -376,7 +375,7 @@ set(bro_SRCS
     SMB.cc
     SMTP.cc
     SSH.cc
-    SSL-binpac.cc
+    SSL.cc
     Scope.cc
     SerializationFormat.cc
     SerialObj.cc
@@ -403,7 +402,6 @@ set(bro_SRCS
     bsd-getopt-long.c
     bro_inet_ntop.c
     cq.c
-    md5.c
     patricia.c
     setsignal.c
     PacketDumper.cc
@@ -422,8 +420,8 @@ set(bro_SRCS
     logging/writers/DataSeries.cc
     logging/writers/None.cc
 
-    ${dns_SRCS}
-    ${openssl_SRCS}
+    nb_dns.c
+    digest.h
 )
 
 collect_headers(bro_HEADERS ${bro_SRCS})

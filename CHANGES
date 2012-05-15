@@ -1,4 +1,148 @@
 
+2.0-336 | 2012-05-14 17:15:44 -0700
+
+  * Don't print the various "weird" events to stderr. Address #805.
+    (Daniel Thayer)
+
+  * Generate icmp_error_message event for ICMPv6 error msgs.
+    Previously, icmp_sent was being generated, but icmp_error_message
+    contains more info.
+
+  * Improved documentation comments for icmp-related events. (Daniel
+    Thayer)
+
+2.0-330 | 2012-05-14 17:05:56 -0700
+
+  * Add `addr_to_uri` script-level function that adds brackets to an
+    address if it's IPv6 and will be included in a URI or when a
+    ":<port>" needs to be appended to it. (Jon Siwek)
+
+  * Also add a test case for content extraction. (Jon Siwek)
+
+  * Fix typos and improve INSTALL document. (Daniel Thayer)
+    
+  * Switching to new btest command TEST-SERIALIZE for communication
+    tests. (Robin Sommer)
+
+2.0-323 | 2012-05-04 21:04:34 -0700
+
+  * Add SHA1 and SHA256 hashing BIFs. Addresses #542.
+
+  * Refactor all internal MD5 stuff to use OpenSSL's. (Jon Siwek)
+
+  * Changes to open-file caching limits and uncached file unserialization. (Jon Siwek)
+
+    - Unserializing files that were previously kicked out of the open-file
+      cache would cause them to be fopen'd with the original access
+      permissions which is usually 'w' and causes truncation.  They
+      are now opened in 'a' mode.  (addresses #780)
+
+    - Add 'max_files_in_cache' script option to manually set the maximum
+      amount of opened files to keep cached.  Mainly this just helped
+      to create a simple test case for the above change.
+
+    - Remove unused NO_HAVE_SETRLIMIT preprocessor switch.
+
+    - On systems that don't enforce a limit on number of files opened for
+      the process, raise default max size of open-file cache from
+      32 to 512.
+
+2.0-319 | 2012-05-03 13:24:44 -0700
+
+  * SSL bugfixes and cleanup. (Seth Hall)
+
+    - SSL related files and classes renamed to remove the "binpac" term.
+
+    - A small fix for DPD scripts to make the DPD log more helpful if
+      there are multiple continued failures.
+
+    - Fixed the SSL analyzer to make it stop doing repeated violation
+      messages for some handshake failures.
+
+    - Added a $issuer_subject to the SSL log.
+      
+    - Created a basic test for SSL.
+
+    - Fixed parsing of TLS server extensions. (Seth Hall)
+
+2.0-315 | 2012-05-03 11:44:17 -0700
+
+  * Add two more TLS extension values that we see in live traffic.
+    (Bernhard Amann)
+
+  * Fixed IPv6 link local unicast CIDR and added IPv6 loopback to
+    private address space. (Seth Hall)
+
+  * Fixed a problem where cluster workers were still processing
+    notices in some cases. (Seth Hall)
+
+  * Added a configure option to specify the 'etc' directory. Addresses
+    #801. (Daniel Thayer)
+
+
+2.0-306 | 2012-04-24 14:37:00 -0700
+
+  * Add further TLS extension values "extended_random" and
+    "heartbeat". (Seth Hall)
+
+  * Fix problem with extracting FTP passwords and add "ftpuser" as
+    another anonymous username.  (Seth Hall, discovered by Patrik
+    Lundin).
+
+2.0-303 | 2012-04-19 10:01:06 -0700
+
+  * Changes related to ICMPv6 Neighbor Discovery messages. (Jon Siwek)
+    
+    - The 'icmp_conn' record now contains an 'hlim' field since hop limit
+      in the IP header is an interesting field for at least these ND
+      messages.
+
+    - Fixed and extended 'icmp_router_advertisement' event parameters.
+
+    - Changed 'icmp_neighbor_advertisement' event parameters to add
+      more of the known boolean flags.
+
+2.0-301 | 2012-04-17 17:58:55 -0700
+
+  * Bro now support ICMPv6. (Matti Mantere, Jon Siwek, Robin Sommer,
+	Daniel Thayer).
+
+	Overall, Bro now raises the following ICMP events for v4 and v6 as
+	appropiate:
+
+        event icmp_sent(c: connection, icmp: icmp_conn);
+        event icmp_echo_request(c: connection, icmp: icmp_conn, id: count, seq: count, payload: string);
+        event icmp_echo_reply(c: connection, icmp: icmp_conn, id: count, seq: count, payload: string);
+        event icmp_error_message(c: connection, icmp: icmp_conn, code: count, context: icmp_context);
+        event icmp_unreachable(c: connection, icmp: icmp_conn, code: count, context: icmp_context);
+        event icmp_packet_too_big(c: connection, icmp: icmp_conn, code: count, context: icmp_context);
+        event icmp_time_exceeded(c: connection, icmp: icmp_conn, code: count, context: icmp_context);
+        event icmp_parameter_problem(c: connection, icmp: icmp_conn, code: count, context: icmp_context);
+        event icmp_router_solicitation(c: connection, icmp: icmp_conn);
+        event icmp_router_advertisement(c: connection, icmp: icmp_conn, hop_limit: count, managed: bool, router_lifetime: count, reachable_time: interval, retrans_timer: interval);
+        event icmp_neighbor_solicitation(c: connection, icmp: icmp_conn, tgt:addr);
+        event icmp_neighbor_advertisement(c: connection, icmp: icmp_conn, tgt:addr);
+        event icmp_redirect(c: connection, icmp: icmp_conn, tgt: addr, dest: addr);
+
+    The `icmp_conn` record got a new boolean field 'v6' that indicates
+    whether the ICMP message is v4 or v6.
+
+    This change also includes further low-level work on existing IP
+	and ICMP code, including a reorganization of how ICMPv4 is
+	handled.
+
+2.0-281 | 2012-04-17 17:40:39 -0700
+
+  * Small updates for the bittorrent analyzer to support 64bit types
+    in binpac. (Seth Hall)
+
+  * Removed the attempt at bittorrent resynchronization. (Seth Hall)
+    
+2.0-276 | 2012-04-17 17:35:56 -0700
+
+  * Add more support for <netinet/ip6.h>'s that lack some structure
+    definitions. (Jon Siwek)
+
 2.0-273 | 2012-04-16 18:08:56 -0700
 
   * Removing QR flag from DNS log in response, which should not have

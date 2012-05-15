@@ -1,0 +1,22 @@
+USER anonymous
+PASS test
+SYST
+FEAT
+PWD
+EPSV
+LIST
+EPSV
+NLST
+TYPE I
+SIZE robots.txt
+EPSV
+RETR robots.txt
+MDTM robots.txt
+SIZE robots.txt
+EPRT |2|2001:470:1f11:81f:c999:d94:aa7c:2e3e|49189|
+RETR robots.txt
+MDTM robots.txt
+TYPE A
+EPRT |2|2001:470:1f11:81f:c999:d94:aa7c:2e3e|49190|
+LIST
+QUIT

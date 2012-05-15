@@ -1,4 +1,17 @@
 
+2.0-330 | 2012-05-14 17:05:56 -0700
+
+  * Add `addr_to_uri` script-level function that adds brackets to an
+    address if it's IPv6 and will be included in a URI or when a
+    ":<port>" needs to be appended to it. (Jon Siwek)
+
+  * Also add a test case for content extraction. (Jon Siwek)
+
+  * Fix typos and improve INSTALL document. (Daniel Thayer)
+    
+  * Switching to new btest command TEST-SERIALIZE for communication
+    tests. (Robin Sommer)
+
 2.0-323 | 2012-05-04 21:04:34 -0700
 
   * Add SHA1 and SHA256 hashing BIFs. Addresses #542.

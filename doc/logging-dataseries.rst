@@ -72,12 +72,15 @@ With that, Bro will now write all its output into DataSeries files
 tools, which its installation process will have installed into
 ``<prefix>/bin``. For example, to convert a file back into an ASCII
 representation::
-    # ds2txt conn .log
+    # ds2txt conn.log
     [... We skip a bunch of meta data here ...]
-    ts uid id.orig_h id.orig_p id.resp_h id.resp_p proto service duration orig_bytes resp_bytes conn_state local_orig missed_bytes history orig_pkts orig_ip_bytes resp_pkts res
-    1.3e+09 9CqElRsB9Q 141.142.220.202 5353 224.0.0.251 5353 udp dns 0 0 0 S0 F 0 D 1 73 0 0
-    1.3e+09 3bNPfUWuIhb fe80::217:f2ff:fed7:cf65 5353 ff02::fb 5353 udp  0 0 0 S0 F 0 D 1 199 0 0
-    1.3e+09 ZoDDN7YuYx3 141.142.220.50 5353 224.0.0.251 5353 udp  0 0 0 S0 F 0 D 1 179 0 0
+    ts uid id.orig_h id.orig_p id.resp_h id.resp_p proto service duration orig_bytes resp_bytes conn_state local_orig missed_bytes history orig_pkts orig_ip_bytes resp_pkts resp_ip_bytes
+    1300475167.096535 CRCC5OdDlXe 141.142.220.202 5353 224.0.0.251 5353 udp dns 0.000000 0 0 S0 F 0 D 1 73 0 0
+    1300475167.097012 o7XBsfvo3U1 fe80::217:f2ff:fed7:cf65 5353 ff02::fb 5353 udp  0.000000 0 0 S0 F 0 D 1 199 0 0
+    1300475167.099816 pXPi1kPMgxb 141.142.220.50 5353 224.0.0.251 5353 udp  0.000000 0 0 S0 F 0 D 1 179 0 0
+    1300475168.853899 R7sOc16woCj 141.142.220.118 43927 141.142.2.2 53 udp dns 0.000435 38 89 SF F 0 Dd 1 66 1 117
+    1300475168.854378 Z6dfHVmt0X7 141.142.220.118 37676 141.142.2.2 53 udp dns 0.000420 52 99 SF F 0 Dd 1 80 1 127
+    1300475168.854837 k6T92WxgNAh 141.142.220.118 40526 141.142.2.2 53 udp dns 0.000392 38 183 SF F 0 Dd 1 66 1 211
     [...]
 
 Note that is ASCII format is *not* equivalent to Bro's default format

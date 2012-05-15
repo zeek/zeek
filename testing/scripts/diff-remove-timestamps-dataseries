@@ -1,6 +1,0 @@
-#! /usr/bin/env bash
-#
-# Replace anything which looks like DataSeries timestamps (which is a double) with XXXs.
-
-sed 's/1\.[0-9]*e+09/X.XXXe+09/g'
-

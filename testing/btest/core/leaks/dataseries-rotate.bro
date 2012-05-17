@@ -1,8 +1,11 @@
 #
-#@TEST-EXEC: bro -b -r ${TRACES}/rotation.trace %INPUT | egrep "test|test2" | sort >out
-# @TEST-EXEC: for i in `ls test*.log | sort`; do printf '> %s\n' $i; cat $i; done | sort | uniq >>out
-# @TEST-EXEC: btest-diff out
-# @TEST-EXEC: btest-diff .stderr
+# @TEST-REQUIRES: has-writer DataSeries && which ds2txt
+# @TEST-REQUIRES: bro  --help 2>&1 | grep -q mem-leaks
+#
+# @TEST-GROUP: leaks
+# @TEST-GROUP: dataseries
+#
+# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local bro -m -b -r $TRACES/rotation.trace %INPUT Log::default_writer=Log::WRITER_DATASERIES
 
 module Test;
 
@@ -19,18 +22,11 @@ export {
 }
 
 redef Log::default_rotation_interval = 1hr;
-redef Log::default_rotation_postprocessor_cmd = "echo 1st";
-
-function custom_rotate(info: Log::RotationInfo) : bool
-{
-    print "custom rotate", info;
-    return T;
-}
+redef Log::default_rotation_postprocessor_cmd = "echo";
 
 event bro_init()
 {
 	Log::create_stream(Test::LOG, [$columns=Log]);
-	Log::add_filter(Test::LOG, [$name="2nd", $path="test2", $interv=30mins, $postprocessor=custom_rotate]);
 }
 
 event new_connection(c: connection)

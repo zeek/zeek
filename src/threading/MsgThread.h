@@ -171,6 +171,8 @@ public:
 protected:
 	friend class Manager;
 	friend class HeartbeatMessage;
+	friend class FinishMessage;
+	friend class FinishedMessage;
 
 	/**
 	 * Pops a message sent by the child from the child-to-main queue.
@@ -214,6 +216,12 @@ protected:
 	 * main thread.
 	 */
 	virtual bool DoHeartbeat(double network_time, double current_time);
+
+	/** Triggered for execution in the child thread just before shutting threads down.
+	 *  The child thread should finish its operations and then *must*
+	 *  call this class' implementation.
+	 */
+	virtual bool DoFinish();
 
 private:
 	/**
@@ -270,6 +278,8 @@ private:
 
 	uint64_t cnt_sent_in;	// Counts message sent to child.
 	uint64_t cnt_sent_out;	// Counts message sent by child.
+
+	bool finished;	// Set to true by Finished message.
 };
 
 /**

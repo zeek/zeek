@@ -1,4 +1,30 @@
 
+2.0-367 | 2012-05-17 12:42:30 -0700
+
+  * Adding support for binary output via DataSeries. See
+    logging-dataseries.rst for more information. (Gilbert Clark and
+    Robin Sommer)
+
+  * Adding target update-doc-sources to top-level Makefile that runs
+    genDocSourcesList.sh. (Robin Sommer)
+
+  * Moving trace for rotation test into traces directory. (Robin Sommer)
+
+  * Fixing a rotation race condition at termination. (Robin Sommer)
+
+  * Extending log post-processor call to include the name of the
+    writer. (Robin Sommer)
+
+  * In threads, an internal error now immediately aborts. Otherwise,
+    the error won't make it back to the main thread for a while and
+    subsequent code in the thread would still execute. (Robin Sommer)
+
+  * DataSeries cleanup. (Robin Sommer)
+
+  * Fixing threads' DoFinish() method. It wasn't called reliably. Now,
+    it's always called before the thread is destroyed (assuming
+    processing has went normally so far). (Robin Sommer)
+
 2.0-341 | 2012-05-17 09:54:30 -0700
 
   * Add a comment to explain the ICMPv6 error message types. (Daniel Thayer)

@@ -15,10 +15,9 @@
 
 extern int generate_documentation;
 
+// Note: This function must be thread-safe.
 const char* type_name(TypeTag t)
 	{
-	static char errbuf[512];
-
 	static const char* type_names[int(NUM_TYPES)] = {
 		"void",
 		"bool", "int", "count", "counter",
@@ -37,10 +36,7 @@ const char* type_name(TypeTag t)
 	};
 
 	if ( int(t) >= NUM_TYPES )
-		{
-		snprintf(errbuf, sizeof(errbuf), "%d: not a type tag", int(t));
-		return errbuf;
-		}
+		return "type_name(): not a type tag";
 
 	return type_names[int(t)];
 	}

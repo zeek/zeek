@@ -1,4 +1,35 @@
 
+2.0-341 | 2012-05-17 09:54:30 -0700
+
+  * Add a comment to explain the ICMPv6 error message types. (Daniel Thayer)
+
+  * Quieting external test output somehwat. (Robin Sommer)
+
+2.0-336 | 2012-05-14 17:15:44 -0700
+
+  * Don't print the various "weird" events to stderr. Address #805.
+    (Daniel Thayer)
+
+  * Generate icmp_error_message event for ICMPv6 error msgs.
+    Previously, icmp_sent was being generated, but icmp_error_message
+    contains more info.
+
+  * Improved documentation comments for icmp-related events. (Daniel
+    Thayer)
+
+2.0-330 | 2012-05-14 17:05:56 -0700
+
+  * Add `addr_to_uri` script-level function that adds brackets to an
+    address if it's IPv6 and will be included in a URI or when a
+    ":<port>" needs to be appended to it. (Jon Siwek)
+
+  * Also add a test case for content extraction. (Jon Siwek)
+
+  * Fix typos and improve INSTALL document. (Daniel Thayer)
+    
+  * Switching to new btest command TEST-SERIALIZE for communication
+    tests. (Robin Sommer)
+
 2.0-323 | 2012-05-04 21:04:34 -0700
 
   * Add SHA1 and SHA256 hashing BIFs. Addresses #542.

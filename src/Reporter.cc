@@ -149,7 +149,7 @@ void Reporter::WeirdHelper(EventHandlerPtr event, Val* conn_val, const char* add
 
 	va_list ap;
 	va_start(ap, fmt_name);
-	DoLog("weird", event, stderr, 0, vl, false, false, 0, fmt_name, ap);
+	DoLog("weird", event, 0, 0, vl, false, false, 0, fmt_name, ap);
 	va_end(ap);
 
 	delete vl;
@@ -163,7 +163,7 @@ void Reporter::WeirdFlowHelper(const IPAddr& orig, const IPAddr& resp, const cha
 
 	va_list ap;
 	va_start(ap, fmt_name);
-	DoLog("weird", flow_weird, stderr, 0, vl, false, false, 0, fmt_name, ap);
+	DoLog("weird", flow_weird, 0, 0, vl, false, false, 0, fmt_name, ap);
 	va_end(ap);
 
 	delete vl;
@@ -326,7 +326,8 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Conne
 		s += buffer;
 		s += "\n";
 
-		fprintf(out, "%s", s.c_str());
+		if ( out )
+			fprintf(out, "%s", s.c_str());
 
 		if ( addl )
 			{

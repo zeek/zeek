@@ -181,7 +181,13 @@ void ICMP_Analyzer::NextICMP6(double t, const struct icmp* icmpp, int len, int c
 		case MLD_LISTENER_REDUCTION:
 #endif
 		default:
-			ICMPEvent(icmp_sent, icmpp, len, 1, ip_hdr);
+			// Error messages (i.e., ICMPv6 type < 128) all have
+			// the same structure for their context, and are
+			// handled by the same function.
+			if ( icmpp->icmp_type < 128 )
+				Context6(t, icmpp, len, caplen, data, ip_hdr);
+			else
+				ICMPEvent(icmp_sent, icmpp, len, 1, ip_hdr);
 			break;
 		}
 	}
@@ -662,6 +668,10 @@ void ICMP_Analyzer::Context6(double t, const struct icmp* icmpp,
 
 		case ICMP6_PACKET_TOO_BIG:
 			f = icmp_packet_too_big;
+			break;
+
+		default:
+			f = icmp_error_message;
 			break;
 		}
 

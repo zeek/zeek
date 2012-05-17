@@ -62,7 +62,7 @@ Activating DataSeries
 
 The direct way to use DataSeries is to switch *all* log files over to
 the binary format. To do that, just add ``redef
-Log::default_writer=Log::WRITER_DATASERIES;`` to your ``local.bro`.
+Log::default_writer=Log::WRITER_DATASERIES;`` to your ``local.bro``.
 For testing, you can also just pass that on the command line::
 
     bro -r trace.pcap Log::default_writer=Log::WRITER_DATASERIES
@@ -72,7 +72,8 @@ With that, Bro will now write all its output into DataSeries files
 tools, which its installation process will have installed into
 ``<prefix>/bin``. For example, to convert a file back into an ASCII
 representation::
-    # ds2txt conn.log
+
+    $ ds2txt conn.log
     [... We skip a bunch of meta data here ...]
     ts uid id.orig_h id.orig_p id.resp_h id.resp_p proto service duration orig_bytes resp_bytes conn_state local_orig missed_bytes history orig_pkts orig_ip_bytes resp_pkts resp_ip_bytes
     1300475167.096535 CRCC5OdDlXe 141.142.220.202 5353 224.0.0.251 5353 udp dns 0.000000 0 0 S0 F 0 D 1 73 0 0
@@ -83,13 +84,22 @@ representation::
     1300475168.854837 k6T92WxgNAh 141.142.220.118 40526 141.142.2.2 53 udp dns 0.000392 38 183 SF F 0 Dd 1 66 1 211
     [...]
 
+(``--skip-all`` suppresses the meta data.)
+
 Note that is ASCII format is *not* equivalent to Bro's default format
 as DataSeries uses a different internal representation.
 
 You can also switch only individual files over to DataSeries by adding
 code like this to your ``local.bro``::
 
-    TODO
+.. code:: bro
+
+    event bro_init()
+        {
+        local f = Log::get_filter(Conn::LOG, "default"); # Get default filter for connection log.
+        f$writer = Log::WRITER_DATASERIES;               # Change writer type.
+        Log::add_filter(Conn::LOG, f);                   # Replace filter with adapted version.
+        }
 
 Bro's DataSeries writer comes with a few tuning options, see
 :doc:`scripts/base/frameworks/logging/writers/dataseries`.
@@ -100,9 +110,60 @@ Working with DataSeries
 Here are few examples of using DataSeries command line tools to work
 with the output files.
 
-TODO.
+* Printing CSV::
 
-TODO
-====
+    $ ds2txt --csv conn.log
+    ts,uid,id.orig_h,id.orig_p,id.resp_h,id.resp_p,proto,service,duration,orig_bytes,resp_bytes,conn_state,local_orig,missed_bytes,history,orig_pkts,orig_ip_bytes,resp_pkts,resp_ip_bytes
+    1258790493.773208,ZTtgbHvf4s3,192.168.1.104,137,192.168.1.255,137,udp,dns,3.748891,350,0,S0,F,0,D,7,546,0,0
+    1258790451.402091,pOY6Rw7lhUd,192.168.1.106,138,192.168.1.255,138,udp,,0.000000,0,0,S0,F,0,D,1,229,0,0
+    1258790493.787448,pn5IiEslca9,192.168.1.104,138,192.168.1.255,138,udp,,2.243339,348,0,S0,F,0,D,2,404,0,0
+    1258790615.268111,D9slyIu3hFj,192.168.1.106,137,192.168.1.255,137,udp,dns,3.764626,350,0,S0,F,0,D,7,546,0,0
+    [...]
 
-* Do we have a leak?
+  Add ``--separator=X`` to set a different separator.
+
+* Extracting a subset of columns::
+
+    $ ds2txt --select '*' ts,id.resp_h,id.resp_p --skip-all conn.log
+    1258790493.773208 192.168.1.255 137
+    1258790451.402091 192.168.1.255 138
+    1258790493.787448 192.168.1.255 138
+    1258790615.268111 192.168.1.255 137
+    1258790615.289842 192.168.1.255 138
+    [...]
+
+* Filtering rows::
+
+    $ ds2txt --where '*' 'duration > 5 && id.resp_p > 1024' --skip-all  conn.ds
+    1258790631.532888 V8mV5WLITu5 192.168.1.105 55890 239.255.255.250 1900 udp  15.004568 798 0 S0 F 0 D 6 966 0 0
+    1258792413.439596 tMcWVWQptvd 192.168.1.105 55890 239.255.255.250 1900 udp  15.004581 798 0 S0 F 0 D 6 966 0 0
+    1258794195.346127 cQwQMRdBrKa 192.168.1.105 55890 239.255.255.250 1900 udp  15.005071 798 0 S0 F 0 D 6 966 0 0
+    1258795977.253200 i8TEjhWd2W8 192.168.1.105 55890 239.255.255.250 1900 udp  15.004824 798 0 S0 F 0 D 6 966 0 0
+    1258797759.160217 MsLsBA8Ia49 192.168.1.105 55890 239.255.255.250 1900 udp  15.005078 798 0 S0 F 0 D 6 966 0 0
+    1258799541.068452 TsOxRWJRGwf 192.168.1.105 55890 239.255.255.250 1900 udp  15.004082 798 0 S0 F 0 D 6 966 0 0
+    [...]
+
+* Calculate some statistics:
+
+    Mean/stdev/min/max over a column::
+
+        $ dsstatgroupby '*' basic duration from conn.ds
+        # Begin DSStatGroupByModule
+        # processed 2159 rows, where clause eliminated 0 rows
+        # count(*), mean(duration), stddev, min, max
+        2159, 42.7938, 1858.34, 0, 86370
+        [...]
+
+    Quantiles of total connection volume::
+
+        > dsstatgroupby '*' quantile 'orig_bytes + resp_bytes' from conn.ds
+        [...]
+        2159 data points, mean 24616 +- 343295 [0,1.26615e+07]
+        quantiles about every 216 data points:
+        10%: 0, 124, 317, 348, 350, 350, 601, 798, 1469
+        tails: 90%: 1469, 95%: 7302, 99%: 242629, 99.5%: 1226262
+        [...]
+
+The ``man`` pages for these tool show further options, and their
+``-h`` option gives some more information (either can be a bit cryptic
+unfortunately though).

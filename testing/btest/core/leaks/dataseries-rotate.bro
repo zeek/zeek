@@ -5,7 +5,7 @@
 # @TEST-GROUP: leaks
 # @TEST-GROUP: dataseries
 #           
-# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local bro -m -b -r %DIR/../rotation.trace %INPUT Log::default_writer=Log::WRITER_DATASERIES
+# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local bro -m -b -r $TRACES/rotation.trace %INPUT Log::default_writer=Log::WRITER_DATASERIES
 
 module Test;
 

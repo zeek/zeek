@@ -1,5 +1,5 @@
 #
-# @TEST-EXEC: bro -b -r %DIR/rotation.trace %INPUT 2>&1 | grep "test" >out
+# @TEST-EXEC: bro -b -r ${TRACES}/rotation.trace %INPUT 2>&1 | grep "test" >out
 # @TEST-EXEC: for i in test.*.log; do printf '> %s\n' $i; cat $i; done >>out
 # @TEST-EXEC: btest-diff out
 

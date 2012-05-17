@@ -3,6 +3,7 @@
 # @TEST-REQUIRES: bro  --help 2>&1 | grep -q mem-leaks
 #        
 # @TEST-GROUP: leaks
+# @TEST-GROUP: dataseries
 #           
 # @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local bro -m -b -r %DIR/../rotation.trace %INPUT Log::default_writer=Log::WRITER_DATASERIES
 

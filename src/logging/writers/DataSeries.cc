@@ -61,7 +61,7 @@ std::string DataSeries::LogValueToString(threading::Value *val)
 		if ( ds_use_integer_for_time )
 			{
 			std::ostringstream ostr;
-			ostr << (unsigned long)(DataSeries::TIME_SCALE * val->val.double_val);
+			ostr << (uint64_t)(DataSeries::TIME_SCALE * val->val.double_val);
 			return ostr.str();
 			}
 		else

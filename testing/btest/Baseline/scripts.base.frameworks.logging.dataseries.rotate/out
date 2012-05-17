@@ -32,19 +32,10 @@ test.2011-03-07-12-00-05.ds test 11-03-07_12.00.05 11-03-07_12.59.55 1 dataserie
 <!-- id.resp_h : addr -->
 <!-- id.resp_p : port -->
 
-extent offset  ExtentType
-40             DataSeries: XmlType
-392            test
-508            DataSeries: ExtentIndex
 # Extent, type='test'
 t id.orig_h id.orig_p id.resp_h id.resp_p
 1299466805.000000 10.0.0.1 20 10.0.0.2 1024
 1299470395.000000 10.0.0.2 20 10.0.0.3 0
-# Extent, type='DataSeries: ExtentIndex'
-offset extenttype
-40 DataSeries: XmlType
-392 test
-508 DataSeries: ExtentIndex
 > test.2011-03-07-04-00-05.ds
 # Extent Types ...
 <ExtentType name="DataSeries: ExtentIndex">
@@ -69,19 +60,10 @@ offset extenttype
 <!-- id.resp_h : addr -->
 <!-- id.resp_p : port -->
 
-extent offset  ExtentType
-40             DataSeries: XmlType
-392            test
-516            DataSeries: ExtentIndex
 # Extent, type='test'
 t id.orig_h id.orig_p id.resp_h id.resp_p
 1299470405.000000 10.0.0.1 20 10.0.0.2 1025
 1299473995.000000 10.0.0.2 20 10.0.0.3 1
-# Extent, type='DataSeries: ExtentIndex'
-offset extenttype
-40 DataSeries: XmlType
-392 test
-516 DataSeries: ExtentIndex
 > test.2011-03-07-05-00-05.ds
 # Extent Types ...
 <ExtentType name="DataSeries: ExtentIndex">
@@ -106,19 +88,10 @@ offset extenttype
 <!-- id.resp_h : addr -->
 <!-- id.resp_p : port -->
 
-extent offset  ExtentType
-40             DataSeries: XmlType
-392            test
-516            DataSeries: ExtentIndex
 # Extent, type='test'
 t id.orig_h id.orig_p id.resp_h id.resp_p
 1299474005.000000 10.0.0.1 20 10.0.0.2 1026
 1299477595.000000 10.0.0.2 20 10.0.0.3 2
-# Extent, type='DataSeries: ExtentIndex'
-offset extenttype
-40 DataSeries: XmlType
-392 test
-516 DataSeries: ExtentIndex
 > test.2011-03-07-06-00-05.ds
 # Extent Types ...
 <ExtentType name="DataSeries: ExtentIndex">
@@ -143,19 +116,10 @@ offset extenttype
 <!-- id.resp_h : addr -->
 <!-- id.resp_p : port -->
 
-extent offset  ExtentType
-40             DataSeries: XmlType
-392            test
-516            DataSeries: ExtentIndex
 # Extent, type='test'
 t id.orig_h id.orig_p id.resp_h id.resp_p
 1299477605.000000 10.0.0.1 20 10.0.0.2 1027
 1299481195.000000 10.0.0.2 20 10.0.0.3 3
-# Extent, type='DataSeries: ExtentIndex'
-offset extenttype
-40 DataSeries: XmlType
-392 test
-516 DataSeries: ExtentIndex
 > test.2011-03-07-07-00-05.ds
 # Extent Types ...
 <ExtentType name="DataSeries: ExtentIndex">
@@ -180,19 +144,10 @@ offset extenttype
 <!-- id.resp_h : addr -->
 <!-- id.resp_p : port -->
 
-extent offset  ExtentType
-40             DataSeries: XmlType
-392            test
-512            DataSeries: ExtentIndex
 # Extent, type='test'
 t id.orig_h id.orig_p id.resp_h id.resp_p
 1299481205.000000 10.0.0.1 20 10.0.0.2 1028
 1299484795.000000 10.0.0.2 20 10.0.0.3 4
-# Extent, type='DataSeries: ExtentIndex'
-offset extenttype
-40 DataSeries: XmlType
-392 test
-512 DataSeries: ExtentIndex
 > test.2011-03-07-08-00-05.ds
 # Extent Types ...
 <ExtentType name="DataSeries: ExtentIndex">
@@ -217,19 +172,10 @@ offset extenttype
 <!-- id.resp_h : addr -->
 <!-- id.resp_p : port -->
 
-extent offset  ExtentType
-40             DataSeries: XmlType
-392            test
-516            DataSeries: ExtentIndex
 # Extent, type='test'
 t id.orig_h id.orig_p id.resp_h id.resp_p
 1299484805.000000 10.0.0.1 20 10.0.0.2 1029
 1299488395.000000 10.0.0.2 20 10.0.0.3 5
-# Extent, type='DataSeries: ExtentIndex'
-offset extenttype
-40 DataSeries: XmlType
-392 test
-516 DataSeries: ExtentIndex
 > test.2011-03-07-09-00-05.ds
 # Extent Types ...
 <ExtentType name="DataSeries: ExtentIndex">
@@ -254,19 +200,10 @@ offset extenttype
 <!-- id.resp_h : addr -->
 <!-- id.resp_p : port -->
 
-extent offset  ExtentType
-40             DataSeries: XmlType
-392            test
-516            DataSeries: ExtentIndex
 # Extent, type='test'
 t id.orig_h id.orig_p id.resp_h id.resp_p
 1299488405.000000 10.0.0.1 20 10.0.0.2 1030
 1299491995.000000 10.0.0.2 20 10.0.0.3 6
-# Extent, type='DataSeries: ExtentIndex'
-offset extenttype
-40 DataSeries: XmlType
-392 test
-516 DataSeries: ExtentIndex
 > test.2011-03-07-10-00-05.ds
 # Extent Types ...
 <ExtentType name="DataSeries: ExtentIndex">
@@ -291,19 +228,10 @@ offset extenttype
 <!-- id.resp_h : addr -->
 <!-- id.resp_p : port -->
 
-extent offset  ExtentType
-40             DataSeries: XmlType
-392            test
-516            DataSeries: ExtentIndex
 # Extent, type='test'
 t id.orig_h id.orig_p id.resp_h id.resp_p
 1299492005.000000 10.0.0.1 20 10.0.0.2 1031
 1299495595.000000 10.0.0.2 20 10.0.0.3 7
-# Extent, type='DataSeries: ExtentIndex'
-offset extenttype
-40 DataSeries: XmlType
-392 test
-516 DataSeries: ExtentIndex
 > test.2011-03-07-11-00-05.ds
 # Extent Types ...
 <ExtentType name="DataSeries: ExtentIndex">
@@ -328,19 +256,10 @@ offset extenttype
 <!-- id.resp_h : addr -->
 <!-- id.resp_p : port -->
 
-extent offset  ExtentType
-40             DataSeries: XmlType
-392            test
-516            DataSeries: ExtentIndex
 # Extent, type='test'
 t id.orig_h id.orig_p id.resp_h id.resp_p
 1299495605.000000 10.0.0.1 20 10.0.0.2 1032
 1299499195.000000 10.0.0.2 20 10.0.0.3 8
-# Extent, type='DataSeries: ExtentIndex'
-offset extenttype
-40 DataSeries: XmlType
-392 test
-516 DataSeries: ExtentIndex
 > test.2011-03-07-12-00-05.ds
 # Extent Types ...
 <ExtentType name="DataSeries: ExtentIndex">
@@ -365,16 +284,7 @@ offset extenttype
 <!-- id.resp_h : addr -->
 <!-- id.resp_p : port -->
 
-extent offset  ExtentType
-40             DataSeries: XmlType
-392            test
-516            DataSeries: ExtentIndex
 # Extent, type='test'
 t id.orig_h id.orig_p id.resp_h id.resp_p
 1299499205.000000 10.0.0.1 20 10.0.0.2 1033
 1299502795.000000 10.0.0.2 20 10.0.0.3 9
-# Extent, type='DataSeries: ExtentIndex'
-offset extenttype
-40 DataSeries: XmlType
-392 test
-516 DataSeries: ExtentIndex

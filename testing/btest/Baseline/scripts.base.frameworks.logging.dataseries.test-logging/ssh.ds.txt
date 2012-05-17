@@ -25,19 +25,10 @@
 <!-- status : string -->
 <!-- country : string -->
 
-extent offset  ExtentType
-40             DataSeries: XmlType
-436            ssh
-644            DataSeries: ExtentIndex
 # Extent, type='ssh'
 t id.orig_h id.orig_p id.resp_h id.resp_p status country
-1337058239.030366 1.2.3.4 1234 2.3.4.5 80 success unknown
-1337058239.030366 1.2.3.4 1234 2.3.4.5 80 failure US
-1337058239.030366 1.2.3.4 1234 2.3.4.5 80 failure UK
-1337058239.030366 1.2.3.4 1234 2.3.4.5 80 success BR
-1337058239.030366 1.2.3.4 1234 2.3.4.5 80 failure MX
-# Extent, type='DataSeries: ExtentIndex'
-offset extenttype
-40 DataSeries: XmlType
-436 ssh
-644 DataSeries: ExtentIndex
+1337216256.956476 1.2.3.4 1234 2.3.4.5 80 success unknown
+1337216256.956476 1.2.3.4 1234 2.3.4.5 80 failure US
+1337216256.956476 1.2.3.4 1234 2.3.4.5 80 failure UK
+1337216256.956476 1.2.3.4 1234 2.3.4.5 80 success BR
+1337216256.956476 1.2.3.4 1234 2.3.4.5 80 failure MX

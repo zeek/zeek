@@ -63,10 +63,6 @@
 <!-- md5 : string -->
 <!-- extraction_file : file -->
 
-extent offset  ExtentType
-40             DataSeries: XmlType
-804            http
-1252           DataSeries: ExtentIndex
 # Extent, type='http'
 ts uid id.orig_h id.orig_p id.resp_h id.resp_p trans_depth method host uri referrer user_agent request_body_len response_body_len status_code status_msg info_code info_msg filename tags username password proxied mime_type md5 extraction_file
 1300475168.843894 j4u32Pc5bif 141.142.220.118 48649 208.80.152.118 80 0      0 0 304 Not Modified 0         
@@ -83,8 +79,3 @@ ts uid id.orig_h id.orig_p id.resp_h id.resp_p trans_depth method host uri refer
 1300475169.074793 0Q4FH8sESw5 141.142.220.118 50000 208.80.152.3 80 0      0 0 304 Not Modified 0         
 1300475169.074938 slFea8xwSmb 141.142.220.118 49999 208.80.152.3 80 0      0 0 304 Not Modified 0         
 1300475169.075065 UfGkYA2HI2g 141.142.220.118 50001 208.80.152.3 80 0      0 0 304 Not Modified 0         
-# Extent, type='DataSeries: ExtentIndex'
-offset extenttype
-40 DataSeries: XmlType
-804 http
-1252 DataSeries: ExtentIndex

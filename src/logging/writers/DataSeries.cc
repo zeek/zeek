@@ -1,5 +1,9 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "config.h"
+
+#ifdef USE_DATASERIES
+
 #include <map>
 #include <string>
 #include <errno.h>
@@ -415,3 +419,5 @@ bool DataSeries::DoSetBuf(bool enabled)
 	// DataSeries is *always* buffered to some degree.  This option is ignored.
 	return true;
 }
+
+#endif /* USE_DATASERIES */

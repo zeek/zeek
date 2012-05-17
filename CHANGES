@@ -1,4 +1,12 @@
 
+2.0-372 | 2012-05-17 13:59:45 -0700
+
+  * Fix compile errors. (Jon Siwek)
+
+  * Linking in the DS docs. (Robin Sommer)
+
+  * Fix mobility checksums unit test. (Jon Siwek)
+
 2.0-367 | 2012-05-17 12:42:30 -0700
 
   * Adding support for binary output via DataSeries. See

@@ -11,6 +11,7 @@
 #include "File.h"
 
 #include <vector>
+#include <string>
 
 class IncrementalSendTimer;
 
@@ -34,7 +35,8 @@ public:
 	static const PeerID PEER_NONE = SOURCE_LOCAL;
 
 	// Connect to host (returns PEER_NONE on error).
-	PeerID Connect(const IPAddr& ip, uint16 port, const char* our_class, double retry, bool use_ssl);
+	PeerID Connect(const IPAddr& ip, const string& zone_id, uint16 port,
+	               const char* our_class, double retry, bool use_ssl);
 
 	// Close connection to host.
 	bool CloseConnection(PeerID peer);
@@ -63,7 +65,7 @@ public:
 
 	// Start to listen.
 	bool Listen(const IPAddr& ip, uint16 port, bool expect_ssl, bool ipv6,
-	            double retry);
+	            const string& zone_id, double retry);
 
 	// Stop it.
 	bool StopListening();
@@ -422,6 +424,7 @@ protected:
 		RemoteSerializer::PeerID id;
 		ChunkedIO* io;
 		IPAddr ip;
+		string zone_id;
 		uint16 port;
 		char state;
 		bool connected;
@@ -502,12 +505,13 @@ protected:
 
 	// If the port we're trying to bind to is already in use, we will retry
 	// it regularly.
-	IPAddr listen_if;
+	string listen_if;
+	string listen_zone_id;		// RFC 4007 IPv6 zone_id
 	uint16 listen_port;
-	bool listen_ssl;
-	bool enable_ipv6; // allow IPv6 listen sockets
-	uint32 bind_retry_interval;
-	time_t listen_next_try;
+	bool listen_ssl;            // use SSL for IO
+	bool enable_ipv6;           // allow IPv6 listen sockets
+	uint32 bind_retry_interval; // retry interval for already-in-use sockets
+	time_t listen_next_try;     // time at which to try another bind
 	bool shutting_conns_down;
 	bool terminating;
 	bool killing;

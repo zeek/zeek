@@ -173,6 +173,9 @@
 #include <sys/resource.h>
 
 #include <algorithm>
+#include <string>
+#include <sstream>
+#include <vector>
 
 #include "RemoteSerializer.h"
 #include "Func.h"
@@ -321,6 +324,16 @@ static const char* msgToStr(int msg)
 	default:
 		return "UNKNOWN_MSG";
 	}
+	}
+
+static vector<string> tokenize(const string& s, char delim)
+	{
+	vector<string> tokens;
+	stringstream ss(s);
+	string token;
+	while ( std::getline(ss, token, delim) )
+		tokens.push_back(token);
+	return tokens;
 	}
 
 // Start of every message between two processes. We do the low-level work
@@ -665,7 +678,8 @@ void RemoteSerializer::Fork()
 	}
 
 RemoteSerializer::PeerID RemoteSerializer::Connect(const IPAddr& ip,
-			uint16 port, const char* our_class, double retry, bool use_ssl)
+		const string& zone_id, uint16 port, const char* our_class, double retry,
+		bool use_ssl)
 	{
 	if ( ! using_communication )
 		return true;
@@ -682,11 +696,13 @@ RemoteSerializer::PeerID RemoteSerializer::Connect(const IPAddr& ip,
 	if ( our_class )
 		p->our_class = our_class;
 
-	uint32 bytes[4];
-	ip.CopyIPv6(bytes, IPAddr::Host);
+	const size_t BUFSIZE = 1024;
+	char* data = new char[BUFSIZE];
+	snprintf(data, BUFSIZE, "%"PRIu64",%s,%s,%"PRIu16",%"PRIu32",%d", p->id,
+	         ip.AsString().c_str(), zone_id.c_str(), port, uint32(retry),
+	         use_ssl);
 
-	if ( ! SendToChild(MSG_CONNECT_TO, p, 8, p->id, bytes[0], bytes[1],
-	                   bytes[2], bytes[3], port, uint32(retry), use_ssl) )
+	if ( ! SendToChild(MSG_CONNECT_TO, p, data) )
 		{
 		RemovePeer(p);
 		return false;
@@ -1219,7 +1235,7 @@ bool RemoteSerializer::SendCapabilities(Peer* peer)
 	}
 
 bool RemoteSerializer::Listen(const IPAddr& ip, uint16 port, bool expect_ssl,
-                              bool ipv6, double retry)
+                              bool ipv6, const string& zone_id, double retry)
 	{
 	if ( ! using_communication )
 		return true;
@@ -1229,13 +1245,16 @@ bool RemoteSerializer::Listen(const IPAddr& ip, uint16 port, bool expect_ssl,
 
 	if ( ! ipv6 && ip.GetFamily() == IPv6 &&
 	     ip != IPAddr("0.0.0.0") && ip != IPAddr("::") )
-		reporter->FatalError("Attempt to listen on address %s, but IPv6 communication disabled", ip.AsString().c_str());
+		reporter->FatalError("Attempt to listen on address %s, but IPv6 "
+		                     "communication disabled", ip.AsString().c_str());
 
-	uint32 bytes[4];
-	ip.CopyIPv6(bytes, IPAddr::Host);
+	const size_t BUFSIZE = 1024;
+	char* data = new char[BUFSIZE];
+	snprintf(data, BUFSIZE, "%s,%"PRIu16",%d,%d,%s,%"PRIu32,
+	         ip.AsString().c_str(), port, expect_ssl, ipv6, zone_id.c_str(),
+	         (uint32) retry);
 
-	if ( ! SendToChild(MSG_LISTEN, 0, 8, bytes[0], bytes[1], bytes[2], bytes[3],
-	                   port, expect_ssl, ipv6, (uint32) retry) )
+	if ( ! SendToChild(MSG_LISTEN, 0, data) )
 		return false;
 
 	listening = true;
@@ -1947,9 +1966,22 @@ bool RemoteSerializer::EnterPhaseRunning(Peer* peer)
 bool RemoteSerializer::ProcessConnected()
 	{
 	// IP and port follow.
-	uint32* args = (uint32*) current_args->data;
-	IPAddr host = IPAddr(IPv6, args, IPAddr::Network);
-	uint16 port = (uint16) ntohl(args[4]);
+	vector<string> args = tokenize(current_args->data, ',');
+
+	if ( args.size() != 2 )
+		{
+		InternalCommError("ProcessConnected() bad number of arguments");
+		return false;
+		}
+
+	IPAddr host = IPAddr(args[0]);
+	uint16 port;
+
+	if ( ! atoi_n(args[1].size(), args[1].c_str(), 0, 10, port) )
+		{
+		InternalCommError("ProcessConnected() bad peer port string");
+		return false;
+		}
 
 	if ( ! current_peer )
 		{
@@ -3692,14 +3724,43 @@ bool SocketComm::ForwardChunkToPeer()
 bool SocketComm::ProcessConnectTo()
 	{
 	assert(parent_args);
-	uint32* args = (uint32*) parent_args->data;
+	vector<string> args = tokenize(parent_args->data, ',');
+
+	if ( args.size() != 6 )
+		{
+		Error(fmt("ProcessConnectTo() bad number of arguments"));
+		return false;
+		}
 
 	Peer* peer = new Peer;
-	peer->id = ntohl(args[0]);
-	peer->ip = IPAddr(IPv6, &args[1], IPAddr::Network);
-	peer->port = ntohl(args[5]);
-	peer->retry = ntohl(args[6]);
-	peer->ssl = ntohl(args[7]);
+
+	if ( ! atoi_n(args[0].size(), args[0].c_str(), 0, 10, peer->id) )
+		{
+		Error(fmt("ProccessConnectTo() bad peer id string"));
+		delete peer;
+		return false;
+		}
+
+	peer->ip = IPAddr(args[1]);
+	peer->zone_id = args[2];
+
+	if ( ! atoi_n(args[3].size(), args[3].c_str(), 0, 10, peer->port) )
+		{
+		Error(fmt("ProcessConnectTo() bad peer port string"));
+		delete peer;
+		return false;
+		}
+
+	if ( ! atoi_n(args[4].size(), args[4].c_str(), 0, 10, peer->retry) )
+		{
+		Error(fmt("ProcessConnectTo() bad peer retry string"));
+		delete peer;
+		return false;
+		}
+
+	peer->ssl = false;
+	if ( args[5] != "0" )
+		peer->ssl = true;
 
 	return Connect(peer);
 	}
@@ -3707,13 +3768,37 @@ bool SocketComm::ProcessConnectTo()
 bool SocketComm::ProcessListen()
 	{
 	assert(parent_args);
-	uint32* args = (uint32*) parent_args->data;
+	vector<string> args = tokenize(parent_args->data, ',');
 
-	listen_if = IPAddr(IPv6, args, IPAddr::Network);
-	listen_port = uint16(ntohl(args[4]));
-	listen_ssl = ntohl(args[5]) != 0;
-	enable_ipv6 = ntohl(args[6]) != 0;
-	bind_retry_interval = ntohl(args[7]);
+	if ( args.size() != 6 )
+		{
+		Error(fmt("ProcessListen() bad number of arguments"));
+		return false;
+		}
+
+	listen_if = args[0];
+
+	if ( ! atoi_n(args[1].size(), args[1].c_str(), 0, 10, listen_port) )
+		{
+		Error(fmt("ProcessListen() bad peer port string"));
+		return false;
+		}
+
+	listen_ssl = false;
+	if ( args[2] != "0" )
+		listen_ssl = true;
+
+	enable_ipv6 = false;
+	if ( args[3] != "0" )
+		enable_ipv6 = true;
+
+	listen_zone_id = args[4];
+
+	if ( ! atoi_n(args[5].size(), args[5].c_str(), 0, 10, bind_retry_interval) )
+		{
+		Error(fmt("ProcessListen() bad peer port string"));
+		return false;
+		}
 
 	return Listen();
 	}
@@ -3889,10 +3974,11 @@ bool SocketComm::Connect(Peer* peer)
 	char port_str[16];
 	modp_uitoa10(peer->port, port_str);
 
-	// TODO: better to accept string arguments from the user to pass into
-	// getaddrinfo? This might make it easier to explicitly connect to
-	// non-global IPv6 addresses with a scope zone identifier (RFC 4007).
-	status = getaddrinfo(peer->ip.AsString().c_str(), port_str, &hints, &res0);
+	string gaihostname(peer->ip.AsString());
+	if ( peer->zone_id != "" )
+		gaihostname.append("%").append(peer->zone_id);
+
+	status = getaddrinfo(gaihostname.c_str(), port_str, &hints, &res0);
 	if ( status != 0 )
 		{
 		Error(fmt("getaddrinfo error: %s", gai_strerror(status)));
@@ -3964,11 +4050,12 @@ bool SocketComm::Connect(Peer* peer)
 		{
 		Log("connected", peer);
 
-		uint32 bytes[4];
-		peer->ip.CopyIPv6(bytes, IPAddr::Host);
+		const size_t BUFSIZE = 1024;
+		char* data = new char[BUFSIZE];
+		snprintf(data, BUFSIZE, "%s,%"PRIu32, peer->ip.AsString().c_str(),
+		         peer->port);
 
-		if ( ! SendToParent(MSG_CONNECTED, peer, 5, bytes[0], bytes[1],
-		                    bytes[2], bytes[3], peer->port) )
+		if ( ! SendToParent(MSG_CONNECTED, peer, data) )
 			return false;
 		}
 
@@ -4011,12 +4098,14 @@ bool SocketComm::Listen()
 	addrinfo hints, *res, *res0;
 	bzero(&hints, sizeof(hints));
 
+	IPAddr listen_ip(listen_if);
+
 	if ( enable_ipv6 )
 		{
-		if ( listen_if == IPAddr("0.0.0.0") || listen_if == IPAddr("::") )
+		if ( listen_ip == IPAddr("0.0.0.0") || listen_ip == IPAddr("::") )
 			hints.ai_family = PF_UNSPEC;
 		else
-			hints.ai_family = listen_if.GetFamily() == IPv4 ? PF_INET : PF_INET6;
+			hints.ai_family = listen_ip.GetFamily() == IPv4 ? PF_INET : PF_INET6;
 		}
 	else
 		hints.ai_family = PF_INET;
@@ -4028,15 +4117,15 @@ bool SocketComm::Listen()
 	char port_str[16];
 	modp_uitoa10(listen_port, port_str);
 
+	string scoped_addr(listen_if);
+	if ( listen_zone_id != "" )
+		scoped_addr.append("%").append(listen_zone_id);
 	const char* addr_str = 0;
-	if ( listen_if != IPAddr("0.0.0.0") && listen_if != IPAddr("::") )
-		addr_str = listen_if.AsString().c_str();
+	if ( listen_ip != IPAddr("0.0.0.0") && listen_ip != IPAddr("::") )
+		addr_str = scoped_addr.c_str();
 
 	CloseListenFDs();
 
-	// TODO: better to accept string arguments from the user to pass into
-	// getaddrinfo?  This might make it easier to explicitly bind to a
-	// non-global IPv6 address with a scope zone identifier (RFC 4007).
 	if ( (status = getaddrinfo(addr_str, port_str, &hints, &res0)) != 0 )
 		{
 		Error(fmt("getaddrinfo error: %s", gai_strerror(status)));
@@ -4055,6 +4144,10 @@ bool SocketComm::Listen()
 		IPAddr a = res->ai_family == AF_INET ?
 				IPAddr(((sockaddr_in*)res->ai_addr)->sin_addr) :
 				IPAddr(((sockaddr_in6*)res->ai_addr)->sin6_addr);
+
+		string l_addr_str(a.AsURIString());
+		if ( listen_zone_id != "")
+			l_addr_str.append("%").append(listen_zone_id);
 
 		int fd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
 		if ( fd < 0 )
@@ -4075,7 +4168,7 @@ bool SocketComm::Listen()
 
 		if ( bind(fd, res->ai_addr, res->ai_addrlen) < 0 )
 			{
-			Error(fmt("can't bind to %s:%s, %s", a.AsURIString().c_str(),
+			Error(fmt("can't bind to %s:%s, %s", l_addr_str.c_str(),
 			          port_str, strerror(errno)));
 			close(fd);
 
@@ -4092,14 +4185,14 @@ bool SocketComm::Listen()
 
 		if ( listen(fd, 50) < 0 )
 			{
-			Error(fmt("can't listen on %s:%s, %s", a.AsURIString().c_str(),
+			Error(fmt("can't listen on %s:%s, %s", l_addr_str.c_str(),
 			          port_str, strerror(errno)));
 			close(fd);
 			continue;
 			}
 
 		listen_fds.push_back(fd);
-		Log(fmt("listening on %s:%s (%s)", a.AsURIString().c_str(), port_str,
+		Log(fmt("listening on %s:%s (%s)", l_addr_str.c_str(), port_str,
 		        listen_ssl ? "ssl" : "clear"));
 		}
 
@@ -4155,11 +4248,12 @@ bool SocketComm::AcceptConnection(int fd)
 
 	Log(fmt("accepted %s connection", peer->ssl ? "SSL" : "clear"), peer);
 
-	uint32 bytes[4];
-	peer->ip.CopyIPv6(bytes, IPAddr::Host);
+	const size_t BUFSIZE = 1024;
+	char* data = new char[BUFSIZE];
+	snprintf(data, BUFSIZE, "%s,%"PRIu32, peer->ip.AsString().c_str(),
+	         peer->port);
 
-	if ( ! SendToParent(MSG_CONNECTED, peer, 5, bytes[0], bytes[1], bytes[2],
-	                    bytes[3], peer->port) )
+	if ( ! SendToParent(MSG_CONNECTED, peer, data) )
 		return false;
 
 	return true;
@@ -4176,8 +4270,13 @@ const char* SocketComm::MakeLogString(const char* msg, Peer* peer)
 	int len = 0;
 
 	if ( peer )
+		{
+		string scoped_addr(peer->ip.AsURIString());
+		if ( peer->zone_id != "" )
+			scoped_addr.append("%").append(peer->zone_id);
 		len = snprintf(buffer, BUFSIZE, "[#%d/%s:%d] ", int(peer->id),
-		               peer->ip.AsURIString().c_str(), peer->port);
+		               scoped_addr.c_str(), peer->port);
+		}
 
 	len += safe_snprintf(buffer + len, BUFSIZE - len, "%s", msg);
 	return buffer;

@@ -1,3 +1,24 @@
-1333988844.893456 weird: bad_MH_checksum
-1333995733.276730 weird: bad_TCP_checksum
-1333995701.656496 weird: bad_UDP_checksum
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	weird
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
+#types	time	string	addr	port	addr	port	string	string	bool	string
+1333988844.893456	-	-	-	-	-	bad_MH_checksum	-	F	bro
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	weird
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
+#types	time	string	addr	port	addr	port	string	string	bool	string
+1333640536.489921	UWkUyAuUGXf	2001:78:1:32::1	30000	2001:4f8:4:7:2e0:81ff:fe52:9a6b	80	bad_TCP_checksum	-	F	bro
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	weird
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
+#types	time	string	addr	port	addr	port	string	string	bool	string
+1333640468.146461	UWkUyAuUGXf	2001:78:1:32::1	30000	2001:4f8:4:7:2e0:81ff:fe52:9a6b	13000	bad_UDP_checksum	-	F	bro

@@ -107,6 +107,21 @@ if (GOOGLEPERFTOOLS_FOUND)
     endif ()
 endif ()
 
+set(USE_DATASERIES false)
+find_package(Lintel)
+find_package(DataSeries)
+find_package(LibXML2)
+
+if (LINTEL_FOUND AND DATASERIES_FOUND AND LIBXML2_FOUND)
+    set(USE_DATASERIES true)
+	include_directories(BEFORE ${Lintel_INCLUDE_DIR})
+	include_directories(BEFORE ${DataSeries_INCLUDE_DIR})
+	include_directories(BEFORE ${LibXML2_INCLUDE_DIR})
+	list(APPEND OPTLIBS ${Lintel_LIBRARIES})
+	list(APPEND OPTLIBS ${DataSeries_LIBRARIES})
+	list(APPEND OPTLIBS ${LibXML2_LIBRARIES})
+endif()
+
 if (ENABLE_PERFTOOLS_DEBUG)
     # Just a no op to prevent CMake from complaining about manually-specified
     # ENABLE_PERFTOOLS_DEBUG not being used if google perftools weren't found
@@ -198,6 +213,7 @@ message(
     "\nGeoIP:             ${USE_GEOIP}"
     "\nGoogle perftools:  ${USE_PERFTOOLS}"
     "\n       debugging:  ${USE_PERFTOOLS_DEBUG}"
+    "\nDataSeries:        ${USE_DATASERIES}"
     "\n"
     "\n================================================================\n"
 )

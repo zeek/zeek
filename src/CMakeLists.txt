@@ -417,6 +417,7 @@ set(bro_SRCS
     logging/WriterBackend.cc
     logging/WriterFrontend.cc
     logging/writers/Ascii.cc
+    logging/writers/DataSeries.cc
     logging/writers/None.cc
 
     nb_dns.c

@@ -223,17 +223,6 @@ bool WriterBackend::Flush()
 	return true;
 	}
 
-bool WriterBackend::Finish()
-	{
-	if ( ! DoFlush() )
-		{
-		DisableFrontend();
-		return false;
-		}
-
-	return true;
-	}
-
 bool WriterBackend::DoHeartbeat(double network_time, double current_time)
 	{
 	MsgThread::DoHeartbeat(network_time, current_time);
@@ -279,4 +268,9 @@ string WriterBackend::Render(const threading::Value::subnet_t& subnet) const
 	return s;
 	}
 
-
+string WriterBackend::Render(double d) const
+	{
+	char buf[256];
+	modp_dtoa(d, buf, 6);
+	return buf;
+	}

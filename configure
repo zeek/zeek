@@ -56,6 +56,8 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-ruby-lib=PATH   path to ruby library
     --with-ruby-inc=PATH   path to ruby headers
     --with-swig=PATH       path to SWIG executable
+    --with-dataseries=PATH path to DataSeries and Lintel libraries
+    --with-xml2=PATH       path to libxml2 installation (for DataSeries)
 
   Packaging Options (for developers):
     --binary-package       toggle special logic for binary packaging
@@ -212,6 +214,13 @@ while [ $# -ne 0 ]; do
             ;;
         --with-swig=*)
             append_cache_entry SWIG_EXECUTABLE      PATH    $optarg
+            ;;
+        --with-dataseries=*)
+            append_cache_entry DataSeries_ROOT_DIR PATH $optarg
+            append_cache_entry Lintel_ROOT_DIR PATH $optarg
+            ;;
+        --with-xml2=*)
+            append_cache_entry LibXML2_ROOT_DIR PATH $optarg
             ;;
         --binary-package)
             append_cache_entry BINARY_PACKAGING_MODE BOOL true

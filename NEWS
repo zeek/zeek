@@ -47,6 +47,13 @@ Bro 2.1
   joint set of events.  The `icmp_conn` record got a new boolean field
   'v6' that indicates whether the ICMP message is v4 or v6.
 
+- Log postprocessor scripts get an additional argument indicating the
+  type of the log writer in use (e.g., "ascii").
+
+- BroControl's make-archive-name scripts also receives the writer
+  type, but as it's 2nd(!) argument. If you're using a custom version
+  of that script, you need to adapt it. See the shipped version for
+  details.
 
 TODO: Extend.
 

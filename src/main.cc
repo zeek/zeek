@@ -203,6 +203,27 @@ void usage()
 	fprintf(stderr, "    $BRO_LOG_SUFFIX                | ASCII log file extension (.%s)\n", logging::writer::Ascii::LogExt().c_str());
 	fprintf(stderr, "    $BRO_PROFILER_FILE             | Output file for script execution statistics (not set)\n");
 
+	fprintf(stderr, "\n");
+	fprintf(stderr, "    Supported log formats: ");
+
+	bool first = true;
+	list<string> fmts = logging::Manager::SupportedFormats();
+
+	for ( list<string>::const_iterator i = fmts.begin(); i != fmts.end(); ++i )
+		{
+		if ( *i == "None" )
+			// Skip, it's uninteresting.
+			continue;
+
+		if ( ! first )
+			fprintf(stderr, ",");
+
+		fprintf(stderr, "%s", (*i).c_str());
+		first = false;
+		}
+
+	fprintf(stderr, "\n");
+
 	exit(1);
 	}
 

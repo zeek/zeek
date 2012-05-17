@@ -114,6 +114,9 @@
 /* Analyze Mobile IPv6 traffic */
 #cmakedefine ENABLE_MOBILE_IPV6
 
+/* Use the DataSeries writer. */
+#cmakedefine USE_DATASERIES
+
 /* Version number of package */
 #define VERSION "@VERSION@"
 

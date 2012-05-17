@@ -466,7 +466,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 
 		filter->fields = (threading::Field**)
 			realloc(filter->fields,
-				sizeof(Field) * ++filter->num_fields);
+				sizeof(threading::Field) * ++filter->num_fields);
 
 		if ( ! filter->fields )
 			{

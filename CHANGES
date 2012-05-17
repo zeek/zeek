@@ -1,4 +1,10 @@
 
+2.0-341 | 2012-05-17 09:54:30 -0700
+
+  * Add a comment to explain the ICMPv6 error message types. (Daniel Thayer)
+
+  * Quieting external test output somehwat. (Robin Sommer)
+
 2.0-336 | 2012-05-14 17:15:44 -0700
 
   * Don't print the various "weird" events to stderr. Address #805.

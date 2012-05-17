@@ -200,6 +200,7 @@ private:
 	WriterInfo* FindWriter(WriterFrontend* writer);
 
 	vector<Stream *> streams;	// Indexed by stream enum.
+	int rotations_pending;	// Number of rotations not yet finished.
 };
 
 }

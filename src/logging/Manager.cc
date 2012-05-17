@@ -7,6 +7,7 @@
 #include "../NetVar.h"
 #include "../Net.h"
 
+#include "threading/Manager.h"
 #include "threading/SerialTypes.h"
 
 #include "Manager.h"
@@ -124,6 +125,7 @@ Manager::Stream::~Stream()
 
 Manager::Manager()
 	{
+	rotations_pending = 0;
 	}
 
 Manager::~Manager()
@@ -1127,6 +1129,13 @@ bool Manager::Flush(EnumVal* id)
 
 void Manager::Terminate()
 	{
+	// Make sure we process all the pending rotations.
+	while ( rotations_pending )
+		{
+		thread_mgr->ForceProcessing(); // A blatant layering violation ...
+		usleep(1000);
+		}
+
 	for ( vector<Stream *>::iterator s = streams.begin(); s != streams.end(); ++s )
 		{
 		if ( ! *s )
@@ -1235,6 +1244,8 @@ void Manager::Rotate(WriterInfo* winfo)
 
 	// Trigger the rotation.
 	winfo->writer->Rotate(tmp, winfo->open_time, network_time, terminating);
+
+	++rotations_pending;
 	}
 
 bool Manager::FinishedRotation(WriterFrontend* writer, string new_name, string old_name,
@@ -1242,6 +1253,8 @@ bool Manager::FinishedRotation(WriterFrontend* writer, string new_name, string o
 	{
 	DBG_LOG(DBG_LOGGING, "Finished rotating %s at %.6f, new name %s",
 		writer->Path().c_str(), network_time, new_name.c_str());
+
+	--rotations_pending;
 
 	WriterInfo* winfo = FindWriter(writer);
 	if ( ! winfo )

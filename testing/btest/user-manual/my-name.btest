@@ -1,0 +1,3 @@
+@TEST-COPY-FILE: ${TRACES}/wikipedia.trace
+@TEST-EXEC: btest-rst-cmd echo doedelido
+@TEST-EXEC: btest-rst-cmd ls

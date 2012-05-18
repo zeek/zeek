@@ -10,6 +10,7 @@ Guides
 .. toctree::
    :maxdepth: 1
 
+   user-manual/index
    INSTALL
    quickstart
    upgrade

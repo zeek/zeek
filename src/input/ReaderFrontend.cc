@@ -35,14 +35,14 @@ public:
 	virtual bool Process() { return Object()->Update(); }
 };
 
-class FinishMessage : public threading::InputMessage<ReaderBackend>
+class CloseMessage : public threading::InputMessage<ReaderBackend>
 {
 public:
-	FinishMessage(ReaderBackend* backend)
-		: threading::InputMessage<ReaderBackend>("Finish", backend)
+	CloseMessage(ReaderBackend* backend)
+		: threading::InputMessage<ReaderBackend>("Close", backend)
 		 { }
 
-	virtual bool Process() { Object()->Finish(); return true; }
+	virtual bool Process() { Object()->Close(); return true; }
 };
 
 
@@ -83,7 +83,7 @@ void ReaderFrontend::Update() {
 	backend->SendIn(new UpdateMessage(backend));
 }
 
-void ReaderFrontend::Finish() {
+void ReaderFrontend::Close() {
 	if ( disabled ) 
 		return;
 	
@@ -92,7 +92,7 @@ void ReaderFrontend::Finish() {
 		return;
 	}
 
-	backend->SendIn(new FinishMessage(backend));
+	backend->SendIn(new CloseMessage(backend));
 }
 
 string ReaderFrontend::Name() const

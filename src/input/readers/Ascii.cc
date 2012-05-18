@@ -72,10 +72,10 @@ Ascii::Ascii(ReaderFrontend *frontend) : ReaderBackend(frontend)
 
 Ascii::~Ascii()
 {
-	DoFinish();
+	DoClose();
 }
 
-void Ascii::DoFinish()
+void Ascii::DoClose()
 {
 	if ( file != 0 ) {
 		file->close();

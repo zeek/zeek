@@ -68,7 +68,7 @@ public:
 	 * the corresponding message there.
 	 * This method must only be called from the main thread.
 	 */	
-	void Finish();
+	void Close();
 
 	/**
 	 * Disables the reader frontend. From now on, all method calls that

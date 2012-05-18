@@ -36,10 +36,10 @@ Benchmark::Benchmark(ReaderFrontend *frontend) : ReaderBackend(frontend)
 
 Benchmark::~Benchmark()
 {
-	DoFinish();
+	DoClose();
 }
 
-void Benchmark::DoFinish()
+void Benchmark::DoClose()
 {
 }
 

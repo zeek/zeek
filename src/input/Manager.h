@@ -82,7 +82,7 @@ protected:
 	friend class SendEventMessage;
 	friend class SendEntryMessage;
 	friend class EndCurrentSendMessage;
-	friend class ReaderFinishedMessage;
+	friend class ReaderClosedMessage;
 
 	// For readers to write to input stream in direct mode (reporting new/deleted values directly)
 	// Functions take ownership of threading::Value fields

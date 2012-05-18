@@ -21,7 +21,7 @@ protected:
 	
 	virtual bool DoInit(string path, int mode, int arg_num_fields, const threading::Field* const* fields);
 
-	virtual void DoFinish();
+	virtual void DoClose();
 
 	virtual bool DoUpdate();
 

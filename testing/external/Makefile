@@ -6,11 +6,11 @@ DIAG=diag.log
 
 all:
 	@rm -f $(DIAG)
-	@for repo in $(REPOS); do (cd $$repo && make ); done
+	@for repo in $(REPOS); do (cd $$repo && make -s ); done
 
 brief:
 	@rm -f $(DIAG)
-	@for repo in $(REPOS); do (cd $$repo && make brief ); done
+	@for repo in $(REPOS); do (cd $$repo && make -s brief ); done
 
 init:
 	git clone $(PUBLIC_REPO)

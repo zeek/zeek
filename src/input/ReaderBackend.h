@@ -68,7 +68,7 @@ public:
 	 *
 	 * @return False if an error occured.
 	 */
-	void Finish();
+	void Close();
 
 	/**
 	 * Force trigger an update of the input stream.
@@ -112,7 +112,7 @@ protected:
 	 * during shutdown, an implementation should also call Error() to indicate what
 	 * happened.
 	 */	
-	virtual void DoFinish() = 0;
+	virtual void DoClose() = 0;
 
 	/**
 	 * Reader-specific method implementing the forced update trigger

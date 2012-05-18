@@ -39,10 +39,10 @@ Raw::Raw(ReaderFrontend *frontend) : ReaderBackend(frontend)
 
 Raw::~Raw()
 {
-	DoFinish();
+	DoClose();
 }
 
-void Raw::DoFinish()
+void Raw::DoClose()
 {
 	if ( file != 0 ) {
 		Close();

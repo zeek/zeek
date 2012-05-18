@@ -100,10 +100,10 @@ public:
 private:
 };
 
-class ReaderFinishedMessage : public threading::OutputMessage<ReaderFrontend> {
+class ReaderClosedMessage : public threading::OutputMessage<ReaderFrontend> {
 public:
-	ReaderFinishedMessage(ReaderFrontend* reader)
-		: threading::OutputMessage<ReaderFrontend>("ReaderFinished", reader) {}
+	ReaderClosedMessage(ReaderFrontend* reader)
+		: threading::OutputMessage<ReaderFrontend>("ReaderClosed", reader) {}
 
 	virtual bool Process() {
 		return input_mgr->RemoveStreamContinuation(Object());
@@ -190,12 +190,12 @@ bool ReaderBackend::Init(string arg_source, int mode, const int arg_num_fields, 
 	return success;
 }
 
-void ReaderBackend::Finish() 
+void ReaderBackend::Close() 
 {
-	DoFinish();
+	DoClose();
 	disabled = true;
 	DisableFrontend();
-	SendOut(new ReaderFinishedMessage(frontend));
+	SendOut(new ReaderClosedMessage(frontend));
 
 	if ( fields != 0 ) {
 

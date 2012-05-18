@@ -170,6 +170,7 @@ extern double connection_status_update_interval;
 extern StringVal* state_dir;
 extern double state_write_delay;
 
+extern int max_files_in_cache;
 extern double log_rotate_interval;
 extern double log_max_size;
 extern RecordType* rotate_info;

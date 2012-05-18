@@ -332,7 +332,7 @@ function __default_rotation_postprocessor(info: RotationInfo) : bool
 function default_path_func(id: ID, path: string, rec: any) : string
 	{
 	local id_str = fmt("%s", id);
-	
+
 	local parts = split1(id_str, /::/);
 	if ( |parts| == 2 )
 		{
@@ -340,7 +340,7 @@ function default_path_func(id: ID, path: string, rec: any) : string
 		# or a filter path explicitly set by the user, so continue using it.
 		if ( path != "" )
 			return path;
-		
+
 		# Example: Notice::LOG -> "notice"
 		if ( parts[2] == "LOG" )
 			{
@@ -356,11 +356,11 @@ function default_path_func(id: ID, path: string, rec: any) : string
 				output = cat(output, sub_bytes(module_parts[4],1,1), "_", sub_bytes(module_parts[4], 2, |module_parts[4]|));
 			return to_lower(output);
 			}
-		
+
 		# Example: Notice::POLICY_LOG -> "notice_policy"
 		if ( /_LOG$/ in parts[2] )
 			parts[2] = sub(parts[2], /_LOG$/, "");
-		
+
 		return cat(to_lower(parts[1]),"_",to_lower(parts[2]));
 		}
 	else
@@ -376,13 +376,16 @@ function run_rotation_postprocessor_cmd(info: RotationInfo, npath: string) : boo
 	if ( pp_cmd == "" )
 		return T;
 
+	# Turn, e.g., Log::WRITER_ASCII into "ascii".
+	local writer = subst_string(to_lower(fmt("%s", info$writer)), "log::writer_", "");
+
 	# The date format is hard-coded here to provide a standardized
 	# script interface.
-	system(fmt("%s %s %s %s %s %d",
+	system(fmt("%s %s %s %s %s %d %s",
                pp_cmd, npath, info$path,
                strftime("%y-%m-%d_%H.%M.%S", info$open),
                strftime("%y-%m-%d_%H.%M.%S", info$close),
-               info$terminating));
+               info$terminating, writer));
 
 	return T;
 	}
@@ -407,7 +410,7 @@ function add_filter(id: ID, filter: Filter) : bool
 	# definition.
 	if ( ! filter?$path_func )
 		filter$path_func = default_path_func;
-	
+
 	filters[id, filter$name] = filter;
 	return __add_filter(id, filter);
 	}

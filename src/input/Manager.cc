@@ -641,7 +641,7 @@ bool Manager::RemoveStream(const string &name) {
 
 	i->removed = true;
 
-	i->reader->Finish();
+	i->reader->Close();
 
 #ifdef DEBUG
 		DBG_LOG(DBG_INPUT, "Successfully queued removal of stream %s",

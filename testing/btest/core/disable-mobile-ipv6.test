@@ -1,6 +1,6 @@
 # @TEST-REQUIRES: grep -q "#undef ENABLE_MOBILE_IPV6" $BUILD/config.h
-# @TEST-EXEC: bro -b -r $TRACES/mobile-ipv6/mip6_back.trace %INPUT >output 2>&1
-# @TEST-EXEC: btest-diff output
+# @TEST-EXEC: bro -r $TRACES/mobile-ipv6/mip6_back.trace %INPUT
+# @TEST-EXEC: btest-diff weird.log
 
 event mobile_ipv6_message(p: pkt_hdr)
 	{

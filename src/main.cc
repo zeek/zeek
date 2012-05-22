@@ -18,6 +18,8 @@ extern "C" {
 }
 #endif
 
+#include <openssl/md5.h>
+
 extern "C" void OPENSSL_add_all_algorithms_conf(void);
 
 #include "bsd-getopt-long.h"
@@ -200,6 +202,27 @@ void usage()
 	fprintf(stderr, "    $BRO_SEED_FILE                 | file to load seeds from (not set)\n");
 	fprintf(stderr, "    $BRO_LOG_SUFFIX                | ASCII log file extension (.%s)\n", logging::writer::Ascii::LogExt().c_str());
 	fprintf(stderr, "    $BRO_PROFILER_FILE             | Output file for script execution statistics (not set)\n");
+
+	fprintf(stderr, "\n");
+	fprintf(stderr, "    Supported log formats: ");
+
+	bool first = true;
+	list<string> fmts = logging::Manager::SupportedFormats();
+
+	for ( list<string>::const_iterator i = fmts.begin(); i != fmts.end(); ++i )
+		{
+		if ( *i == "None" )
+			// Skip, it's uninteresting.
+			continue;
+
+		if ( ! first )
+			fprintf(stderr, ",");
+
+		fprintf(stderr, "%s", (*i).c_str());
+		first = false;
+		}
+
+	fprintf(stderr, "\n");
 
 	exit(1);
 	}
@@ -570,8 +593,7 @@ int main(int argc, char** argv)
 			break;
 
 		case 'K':
-			hash_md5(strlen(optarg), (const u_char*) optarg,
-				 shared_hmac_md5_key);
+			MD5((const u_char*) optarg, strlen(optarg), shared_hmac_md5_key);
 			hmac_key_set = 1;
 			break;
 

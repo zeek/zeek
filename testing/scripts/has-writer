@@ -1,0 +1,6 @@
+#! /usr/bin/env bash
+#
+# Returns true if Bro has been compiled with support for writer type
+# $1. The type name must match what "bro --help" prints.
+
+bro --helper 2>&1 | grep -qi "Supported log formats:.*$1"

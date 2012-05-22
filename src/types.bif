@@ -162,6 +162,7 @@ enum Writer %{
 	WRITER_DEFAULT,
 	WRITER_NONE,
 	WRITER_ASCII,
+	WRITER_DATASERIES,
 %}
 
 enum ID %{

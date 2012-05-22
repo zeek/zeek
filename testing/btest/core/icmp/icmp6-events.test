@@ -88,9 +88,12 @@ event icmp_neighbor_solicitation(c: connection, icmp: icmp_conn, tgt: addr)
     print "  icmp_conn: " + fmt("%s", icmp);
     }
 
-event icmp_neighbor_advertisement(c: connection, icmp: icmp_conn, tgt:addr)
+event icmp_neighbor_advertisement(c: connection, icmp: icmp_conn, router: bool, solicited: bool, override: bool, tgt: addr)
     {
     print "icmp_neighbor_advertisement (tgt=" + fmt("%s", tgt) + ")";
+	print "    router=" + fmt("%s", router);
+	print "    solicited=" + fmt("%s", solicited);
+	print "    override=" + fmt("%s", override);
     print "  conn_id: " + fmt("%s", c$id);
     print "  icmp_conn: " + fmt("%s", icmp);
     }
@@ -102,9 +105,19 @@ event icmp_router_solicitation(c: connection, icmp: icmp_conn)
     print "  icmp_conn: " + fmt("%s", icmp);
     }
 
-event icmp_router_advertisement(c: connection, icmp: icmp_conn, hop_limit: count, managed: bool, router_lifetime: count, reachable_time: interval, retrans_timer: interval)
+event icmp_router_advertisement(c: connection, icmp: icmp_conn, cur_hop_limit: count, managed: bool, other: bool, home_agent: bool, pref: count, proxy: bool, rsv: count, router_lifetime: interval, reachable_time: interval, retrans_timer: interval)
     {
-    print "icmp_router_advertisement (hop_limit=" + fmt("%d", hop_limit) + ", managed=" + fmt("%s", managed) + ", rlifetime=" + fmt("%d", router_lifetime) + ", reachable=" + fmt("%f", reachable_time) + ", retrans=" + fmt("%f", retrans_timer) + ")";
+    print "icmp_router_advertisement";
+	print "    cur_hop_limit=" + fmt("%s", cur_hop_limit);
+	print "    managed=" + fmt("%s", managed);
+	print "    other=" + fmt("%s", other);
+	print "    home_agent=" + fmt("%s", home_agent);
+	print "    pref=" + fmt("%s", pref);
+	print "    proxy=" + fmt("%s", proxy);
+	print "    rsv=" + fmt("%s", rsv);
+	print "    router_lifetime=" + fmt("%s", router_lifetime);
+	print "    reachable_time=" + fmt("%s", reachable_time);
+	print "    retrans_timer=" + fmt("%s", retrans_timer);
     print "  conn_id: " + fmt("%s", c$id);
     print "  icmp_conn: " + fmt("%s", icmp);
     }

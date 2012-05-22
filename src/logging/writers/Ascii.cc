@@ -69,8 +69,7 @@ bool Ascii::WriteHeaderField(const string& key, const string& val)
 	return (fwrite(str.c_str(), str.length(), 1, file) == 1);
 	}
 
-bool Ascii::DoInit(string path, int num_fields,
-			    const Field* const * fields)
+bool Ascii::DoInit(string path, int num_fields, const Field* const * fields)
 	{
 	if ( output_to_stdout )
 		path = "/dev/stdout";
@@ -87,6 +86,9 @@ bool Ascii::DoInit(string path, int num_fields,
 
 	if ( include_header )
 		{
+		string names;
+		string types;
+
 		string str = string(header_prefix, header_prefix_len)
 			+ "separator " // Always use space as separator here.
 			+ get_escaped_string(string(separator, separator_len), false)
@@ -104,9 +106,6 @@ bool Ascii::DoInit(string path, int num_fields,
 		        WriteHeaderField("path", get_escaped_string(path, false))) )
 			goto write_error;
 
-		string names;
-		string types;
-
 		for ( int i = 0; i < num_fields; ++i )
 			{
 			if ( i > 0 )
@@ -115,15 +114,8 @@ bool Ascii::DoInit(string path, int num_fields,
 				types += string(separator, separator_len);
 				}
 
-			const Field* field = fields[i];
-			names += field->name;
-			types += type_name(field->type);
-			if ( (field->type == TYPE_TABLE) || (field->type == TYPE_VECTOR) )
-				{
-					types += "[";
-					types += type_name(field->subtype);
-					types += "]";
-				}
+			names += fields[i]->name;
+			types += fields[i]->TypeName();
 			}
 
 		if ( ! (WriteHeaderField("fields", names)
@@ -146,7 +138,7 @@ bool Ascii::DoFlush()
 
 bool Ascii::DoFinish()
 	{
-	return true;
+	return WriterBackend::DoFinish();
 	}
 
 bool Ascii::DoWriteOne(ODesc* desc, Value* val, const Field* field)
@@ -184,15 +176,19 @@ bool Ascii::DoWriteOne(ODesc* desc, Value* val, const Field* field)
 		desc->Add(Render(val->val.addr_val));
 		break;
 
-	case TYPE_TIME:
-	case TYPE_INTERVAL:
-		char buf[256];
-		modp_dtoa(val->val.double_val, buf, 6);
-		desc->Add(buf);
+	case TYPE_DOUBLE:
+		// Rendering via Add() truncates trailing 0s after the
+		// decimal point. The difference with TIME/INTERVAL is mainly
+		// to keep the log format consistent.
+		desc->Add(val->val.double_val);
 		break;
 
-	case TYPE_DOUBLE:
-		desc->Add(val->val.double_val);
+	case TYPE_INTERVAL:
+	case TYPE_TIME:
+		// Rendering via Render() keeps trailing 0s after the decimal
+		// point. The difference with DOUBLEis mainly to keep the log
+		// format consistent.
+		desc->Add(Render(val->val.double_val));
 		break;
 
 	case TYPE_ENUM:

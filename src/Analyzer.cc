@@ -36,7 +36,7 @@
 #include "POP3.h"
 #include "SOCKS.h"
 #include "SSH.h"
-#include "SSL-binpac.h"
+#include "SSL.h"
 #include "Syslog-binpac.h"
 #include "ConnSizeAnalyzer.h"
 
@@ -123,8 +123,8 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 		HTTP_Analyzer_binpac::InstantiateAnalyzer,
 		HTTP_Analyzer_binpac::Available, 0, false },
 	{ AnalyzerTag::SSL, "SSL",
-		SSL_Analyzer_binpac::InstantiateAnalyzer,
-		SSL_Analyzer_binpac::Available, 0, false },
+		SSL_Analyzer::InstantiateAnalyzer,
+		SSL_Analyzer::Available, 0, false },
 	{ AnalyzerTag::SYSLOG_BINPAC, "SYSLOG_BINPAC",
 		Syslog_Analyzer_binpac::InstantiateAnalyzer,
 		Syslog_Analyzer_binpac::Available, 0, false },

@@ -525,6 +525,12 @@ public:
 		{ return ip4 ? ((ntohs(ip4->ip_off) & 0x4000) != 0) : 0; }
 
 	/**
+	 * Returns value of an IPv6 header's flow label field or 0 if it's IPv4.
+	 */
+	uint32 FlowLabel() const
+		{ return ip4 ? 0 : (ntohl(ip6->ip6_flow) & 0x000fffff); }
+
+	/**
 	 * Returns number of IP headers in packet (includes IPv6 extension headers).
 	 */
 	size_t NumHeaders() const

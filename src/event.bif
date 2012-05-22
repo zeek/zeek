@@ -401,6 +401,20 @@ event connection_reused%(c: connection%);
 ##    new_connection new_connection_contents partial_connection
 event connection_status_update%(c: connection%);
 
+## Generated for a connection over IPv6 when one direction has changed
+## the flow label that it's using.
+##
+## c: The connection.
+##
+## is_orig: True if the event is raised for the originator side.
+##
+## old_label: The old flow label that the endpoint was using.
+##
+## new_label: The new flow label that the endpoint is using.
+##
+## .. bro:see:: connection_established new_connection
+event connection_flow_label_changed%(c: connection, is_orig: bool, old_label: count, new_label: count%);
+
 ## Generated at the end of reassembled TCP connections. The TCP reassembler
 ## raised the event once for each endpoint of a connection when it finished
 ## reassembling the corresponding side of the communication.

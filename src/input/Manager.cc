@@ -750,7 +750,7 @@ Val* Manager::RecordValToIndexVal(RecordVal *r) {
 	int num_fields = type->NumFields();
 
 	if ( num_fields == 1 && type->FieldDecl(0)->type->Tag() != TYPE_RECORD  ) {
-		idxval = r->Lookup(0);
+		idxval = r->LookupWithDefault(0);
 	} else {
 		ListVal *l = new ListVal(TYPE_ANY);
 		for ( int j = 0 ; j < num_fields; j++ ) {
@@ -902,6 +902,7 @@ int Manager::SendEntryTable(Stream* i, const Value* const *vals) {
 		
 		if ( result == false ) {
 			Unref(predidx);
+			Unref(valval);
 			if ( !updated ) {
 				// throw away. Hence - we quit. And remove the entry from the current dictionary...
 				// (but why should it be in there? assert this).
@@ -956,6 +957,9 @@ int Manager::SendEntryTable(Stream* i, const Value* const *vals) {
 		Ref(oldval); // otherwise it is no longer accessible after the assignment
 	filter->tab->Assign(idxval, k, valval);
 	Unref(idxval); // asssign does not consume idxval.
+	if ( predidx != 0 ) {
+		Unref(predidx);
+	}
 
 	filter->currDict->Insert(idxhash, ih);
 	delete idxhash;

@@ -101,12 +101,16 @@ bool Ascii::DoInit(string path, int arg_mode, int arg_num_fields, const Field* c
 	file = new ifstream(path.c_str());
 	if ( !file->is_open() ) {
 		Error(Fmt("Init: cannot open %s", fname.c_str()));
+		delete(file);
+		file = 0;
 		return false;
 	}
 	
 	if ( ReadHeader(false) == false ) {
 		Error(Fmt("Init: cannot open %s; headers are incorrect", fname.c_str()));
 		file->close();
+		delete(file);
+		file = 0;
 		return false;
 	}
 	

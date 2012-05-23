@@ -238,6 +238,10 @@ TableType* record_field_table;
 
 StringVal* cmd_line_bpf_filter;
 
+bool bro_conn_tune_enabled;
+bool bro_conn_autotune_enabled;
+double bro_conn_drop_percentage; 
+
 #include "const.bif.netvar_def"
 #include "types.bif.netvar_def"
 #include "event.bif.netvar_def"
@@ -526,4 +530,8 @@ void init_net_var()
 	id_table = internal_type("id_table")->AsTableType();
 	record_field = internal_type("record_field")->AsRecordType();
 	record_field_table = internal_type("record_field_table")->AsTableType();
+	bro_conn_tune_enabled = bool(internal_val("bro_conn_tune_enabled")->AsBool());
+	bro_conn_autotune_enabled = bool(internal_val("bro_conn_autotune_enabled")->AsBool());
+	bro_conn_drop_percentage = opt_internal_double("bro_conn_drop_percentage"); 
+
 	}

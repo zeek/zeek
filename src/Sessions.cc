@@ -40,6 +40,7 @@ enum NetBIOS_Service {
 };
 
 NetSessions* sessions;
+static BroObj placeholder;  // Just using this for an existence check.
 
 void TimerMgrExpireTimer::Dispatch(double t, int is_expire)
 	{
@@ -78,6 +79,7 @@ NetSessions::NetSessions()
 
 	Unref(t);
 
+	ignored_conns.SetDeleteFunc(NULL);
 	tcp_conns.SetDeleteFunc(bro_obj_delete_func);
 	udp_conns.SetDeleteFunc(bro_obj_delete_func);
 	fragments.SetDeleteFunc(bro_obj_delete_func);
@@ -599,12 +601,49 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 
 	// FIXME: The following is getting pretty complex. Need to split up
 	// into separate functions.
+	
+	/*
+	Check to see if this connection has been identified as a connection to ignore.
+	If so, immediately stop processing this packet.                        ~gclark
+	*/
+	if(bro_conn_tune_enabled)
+		{
+		if ( ignored_conns.Lookup(h) )
+			{
+			Remove(f);
+			delete h;
+			return;
+			}
+		}
+
 	conn = (Connection*) d->Lookup(h);
 	if ( ! conn )
 		{
-		conn = NewConn(h, t, &id, data, proto);
-		if ( conn )
-			d->Insert(h, conn);
+		if(bro_conn_tune_enabled)
+			{
+			long rnd = bro_random() % 10000;
+			if ( rnd < bro_conn_drop_percentage * 100)  // Support 2 decimal places on drop
+				{
+				ignored_conns.Insert(h, &placeholder);
+				return;
+				}
+			else
+				{
+				conn = NewConn(h, t, &id, data, proto);
+				if ( conn )
+					{
+					d->Insert(h, conn);
+					}
+				}
+			}
+		else
+			{
+			conn = NewConn(h, t, &id, data, proto);
+			if ( conn )
+				{
+				d->Insert(h, conn);
+				}
+			}
 		}
 	else
 		{
@@ -870,6 +909,16 @@ void NetSessions::Remove(Connection* c)
 		// longer in the dictionary.
 		c->ClearKey();
 
+		if(bro_conn_tune_enabled)
+			{
+			if ( ignored_conns.RemoveEntry(k) )
+				{
+				Unref(c);
+				delete k;
+				return;
+				}
+			}
+
 		switch ( c->ConnTransport() ) {
 		case TRANSPORT_TCP:
 			if ( ! tcp_conns.RemoveEntry(k) )
@@ -915,29 +964,37 @@ void NetSessions::Insert(Connection* c)
 
 	Connection* old = 0;
 
-	switch ( c->ConnTransport() ) {
-	// Remove first. Otherwise the dictioanry would still
-	// reference the old key for already existing connections.
+	if(bro_conn_tune_enabled)
+		{
+		old = (Connection*) ignored_conns.Remove(c->Key());
+		ignored_conns.Insert(c->Key(), c);
+		}
+	if(NULL == old)
+		{
+		switch ( c->ConnTransport() ) 
+			{
+			// Remove first. Otherwise the dictioanry would still
+			// reference the old key for already existing connections.
 
-	case TRANSPORT_TCP:
-		old = (Connection*) tcp_conns.Remove(c->Key());
-		tcp_conns.Insert(c->Key(), c);
-		break;
+			case TRANSPORT_TCP:
+				old = (Connection*) tcp_conns.Remove(c->Key());
+				tcp_conns.Insert(c->Key(), c);
+				break;
 
-	case TRANSPORT_UDP:
-		old = (Connection*) udp_conns.Remove(c->Key());
-		udp_conns.Insert(c->Key(), c);
-		break;
+			case TRANSPORT_UDP:
+				old = (Connection*) udp_conns.Remove(c->Key());
+				udp_conns.Insert(c->Key(), c);
+				break;
 
-	case TRANSPORT_ICMP:
-		old = (Connection*) icmp_conns.Remove(c->Key());
-		icmp_conns.Insert(c->Key(), c);
-		break;
+			case TRANSPORT_ICMP:
+				old = (Connection*) icmp_conns.Remove(c->Key());
+				icmp_conns.Insert(c->Key(), c);
+				break;
 
-	default:
-		reporter->InternalError("unknown connection type");
-	}
-
+			default:
+				reporter->InternalError("unknown connection type");
+			}
+		}
 	if ( old && old != c )
 		{
 		// Some clean-ups similar to those in Remove() (but invisible
@@ -1061,17 +1118,17 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 	Connection* conn = new Connection(this, k, t, id);
 	conn->SetTransport(tproto);
 	dpm->BuildInitialAnalyzerTree(tproto, conn, data);
-
+	
 	bool external = conn->IsExternal();
-
+	
 	if ( external )
 		conn->AppendAddl(fmt("tag=%s",
 					conn->GetTimerMgr()->GetTag().c_str()));
-
+	
 	if ( new_connection )
 		{
 		conn->Event(new_connection, 0);
-
+		
 		if ( external )
 			{
 			val_list* vl = new val_list(2);
@@ -1080,7 +1137,7 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 			conn->ConnectionEvent(connection_external, 0, vl);
 			}
 		}
-
+	
 	return conn;
 	}
 

@@ -15,10 +15,11 @@
 struct pcap_pkthdr;
 
 class Connection;
-class ConnID;
+struct ConnID;
 class OSFingerprint;
 class ConnCompressor;
 
+declare(PDict,BroObj);
 declare(PDict,Connection);
 declare(PDict,FragReassembler);
 
@@ -141,6 +142,19 @@ protected:
 	friend class ConnCompressor;
 	friend class TimerMgrExpireTimer;
 
+	/**
+	Generates a new connection from the given parameters.  Inserts connection into appropriate
+	lookup table (tcp_conns, udp_conns, or icmp_conns) *unless* bro connection tuning is enabled
+	and bro elects to ignore this connection.
+
+	@param k HashKey from which to generate the new connection.
+	@param t Connection timestamp
+	@param id Connection ID generated from packet information; actual construction is protocol-specific
+	@param data Packet data
+	@param proto Protocol type.  TCP, UDP, ICMP, etc.
+
+	@return A shiny new connection object, ready for use.
+	*/
 	Connection* NewConn(HashKey* k, double t, const ConnID* id,
 			const u_char* data, int proto);
 
@@ -197,9 +211,11 @@ protected:
 	                      const struct pcap_pkthdr* hdr, const u_char* pkt);
 
 	CompositeHash* ch;
+	
 	PDict(Connection) tcp_conns;
 	PDict(Connection) udp_conns;
 	PDict(Connection) icmp_conns;
+	PDict(BroObj) ignored_conns;
 	PDict(FragReassembler) fragments;
 
 	ARP_Analyzer* arp_analyzer;

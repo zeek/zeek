@@ -2626,6 +2626,15 @@ const parse_udp_tunnels = F &redef;
 ## Number of bytes per packet to capture from live interfaces.
 const snaplen = 8192 &redef;
 
+## Bro connection tuning option.  If this option is enabled, bro will drop
+## X% of new connections (where X is defined in bro_conn_drop_percentage
+const bro_conn_tune_enabled = F &redef;
+const bro_conn_drop_percentage = 0.0 &redef;
+
+## Experimental.  If this is enabled, bro will automatically tune
+## bro_conn_drop_percentage as it detects packet losss
+const bro_conn_autotune_enabled = F &redef;
+
 # Load the logging framework here because it uses fairly deep integration with
 # BiFs and script-land defined types.
 @load base/frameworks/logging

@@ -171,8 +171,11 @@ event new_connection_contents%(c: connection%);
 ##    new_connection new_connection_contents partial_connection
 event connection_attempt%(c: connection%);
 
-## Generated for an established TCP connection. The event is raised when the
-## initial 3-way TCP handshake has successfully finished for a connection.
+## Generated when a SYN-ACK packet is seen in response to SYN a packet during
+## a TCP handshake.  The final ACK of the handshake in response to SYN-ACK may
+## or may not occur later, one way to tell is to check the *history* field of
+## :bro:type:`connection` to see if the originator sent an ACK, indicated by
+## 'A' in the history string.
 ##
 ## c: The connection.
 ##
@@ -334,8 +337,6 @@ event connection_SYN_packet%(c: connection, pkt: SYN_packet%);
 ## its *orginator*.
 ##
 ## c: The connection.
-##
-## pkt: Information extracted from the SYN packet.
 ##
 ## .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
 ##    connection_established connection_external connection_finished

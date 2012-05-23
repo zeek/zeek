@@ -219,7 +219,7 @@ type connection: record {
         service: set[string];
 	addl: string;	##< Deprecated.
 	hot: count;	##< Deprecated.
-	history: string;	##< State history of TCP connections. See *history* in :bro:see:`Conn::Info`.
+	history: string;	##< State history of connections. See *history* in :bro:see:`Conn::Info`.
 	## A globally unique connection identifier. For each connection, Bro creates an ID
 	## that is very likely unique across independent Bro runs. These IDs can thus be
 	## used to tag and locate information  associated with that connection.

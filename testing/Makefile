@@ -6,10 +6,10 @@ all: make-verbose coverage
 brief: make-brief coverage
 
 make-verbose:
-	@for repo in $(DIRS); do (cd $$repo && make ); done
+	@for repo in $(DIRS); do (cd $$repo && make -s ); done
 
 make-brief:
-	@for repo in $(DIRS); do (cd $$repo && make brief ); done
+	@for repo in $(DIRS); do (cd $$repo && make -s brief ); done
 
 coverage:
 	@for repo in $(DIRS); do (cd $$repo && echo "Coverage for '$$repo' dir:" && make coverage); done

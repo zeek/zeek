@@ -14,3 +14,6 @@ md5_hash_update("b", "three");
 
 print md5_hash_finish("a");
 print md5_hash_finish("b");
+
+print md5_hmac("one");
+print md5_hmac("one", "two", "three");

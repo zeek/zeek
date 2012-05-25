@@ -178,9 +178,9 @@ type endpoint_stats: record {
 ##    use ``count``. That should be changed.
 type AnalyzerID: count;
 
-## Statistics about an endpoint.
+## Statistics about a :bro:type:`connection` endpoint.
 ##
-## todo::Where is this used?
+## .. bro:see:: connection
 type endpoint: record {
 	size: count;	##< Logical size of data sent (for TCP: derived from sequence numbers).
 	## Endpoint state. For TCP connection, one of the constants:
@@ -194,6 +194,9 @@ type endpoint: record {
 	## Number of IP-level bytes sent. Only set if :bro:id:`use_conn_size_analyzer` is
 	## true.
 	num_bytes_ip: count &optional;
+	## The current IPv6 flow label that the connection endpoint is using.
+	## Always 0 if the connection is over IPv4.
+	flow_label: count;
 };
 
 # A connection. This is Bro's basic connection type describing IP- and
@@ -219,7 +222,7 @@ type connection: record {
         service: set[string];
 	addl: string;	##< Deprecated.
 	hot: count;	##< Deprecated.
-	history: string;	##< State history of TCP connections. See *history* in :bro:see:`Conn::Info`.
+	history: string;	##< State history of connections. See *history* in :bro:see:`Conn::Info`.
 	## A globally unique connection identifier. For each connection, Bro creates an ID
 	## that is very likely unique across independent Bro runs. These IDs can thus be
 	## used to tag and locate information  associated with that connection.
@@ -967,7 +970,7 @@ const IPPROTO_MOBILITY = 135;		##< IPv6 mobility header.
 ## Values extracted from an IPv6 extension header's (e.g. hop-by-hop or
 ## destination option headers) option field.
 ##
-## .. bro:see:: ip6_hdr ip6_hdr_chain ip6_hopopts ip6_dstopts
+## .. bro:see:: ip6_hdr ip6_ext_hdr ip6_hopopts ip6_dstopts
 type ip6_option: record {
 	otype: count;	##< Option type.
 	len: count;		##< Option data length.
@@ -976,7 +979,7 @@ type ip6_option: record {
 
 ## Values extracted from an IPv6 Hop-by-Hop options extension header.
 ##
-## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_hdr_chain ip6_option
+## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_ext_hdr ip6_option
 type ip6_hopopts: record {
 	## Protocol number of the next header (RFC 1700 et seq., IANA assigned
 	## number), e.g. :bro:id:`IPPROTO_ICMP`.
@@ -989,7 +992,7 @@ type ip6_hopopts: record {
 
 ## Values extracted from an IPv6 Destination options extension header.
 ##
-## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_hdr_chain ip6_option
+## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_ext_hdr ip6_option
 type ip6_dstopts: record {
 	## Protocol number of the next header (RFC 1700 et seq., IANA assigned
 	## number), e.g. :bro:id:`IPPROTO_ICMP`.
@@ -1002,7 +1005,7 @@ type ip6_dstopts: record {
 
 ## Values extracted from an IPv6 Routing extension header.
 ##
-## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_hdr_chain
+## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_ext_hdr
 type ip6_routing: record {
 	## Protocol number of the next header (RFC 1700 et seq., IANA assigned
 	## number), e.g. :bro:id:`IPPROTO_ICMP`.
@@ -1019,7 +1022,7 @@ type ip6_routing: record {
 
 ## Values extracted from an IPv6 Fragment extension header.
 ##
-## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_hdr_chain
+## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_ext_hdr
 type ip6_fragment: record {
 	## Protocol number of the next header (RFC 1700 et seq., IANA assigned
 	## number), e.g. :bro:id:`IPPROTO_ICMP`.
@@ -1038,7 +1041,7 @@ type ip6_fragment: record {
 
 ## Values extracted from an IPv6 Authentication extension header.
 ##
-## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_hdr_chain
+## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_ext_hdr
 type ip6_ah: record {
 	## Protocol number of the next header (RFC 1700 et seq., IANA assigned
 	## number), e.g. :bro:id:`IPPROTO_ICMP`.
@@ -1057,7 +1060,7 @@ type ip6_ah: record {
 
 ## Values extracted from an IPv6 ESP extension header.
 ##
-## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_hdr_chain
+## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_ext_hdr
 type ip6_esp: record {
 	## Security Parameters Index.
 	spi: count;
@@ -1067,7 +1070,7 @@ type ip6_esp: record {
 
 ## Values extracted from an IPv6 Mobility Binding Refresh Request message.
 ##
-## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_hdr_chain ip6_mobility_msg
+## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_ext_hdr ip6_mobility_msg
 type ip6_mobility_brr: record {
 	## Reserved.
 	rsv: count;
@@ -1077,7 +1080,7 @@ type ip6_mobility_brr: record {
 
 ## Values extracted from an IPv6 Mobility Home Test Init message.
 ##
-## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_hdr_chain ip6_mobility_msg
+## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_ext_hdr ip6_mobility_msg
 type ip6_mobility_hoti: record {
 	## Reserved.
 	rsv: count;
@@ -1089,7 +1092,7 @@ type ip6_mobility_hoti: record {
 
 ## Values extracted from an IPv6 Mobility Care-of Test Init message.
 ##
-## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_hdr_chain ip6_mobility_msg
+## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_ext_hdr ip6_mobility_msg
 type ip6_mobility_coti: record {
 	## Reserved.
 	rsv: count;
@@ -1101,7 +1104,7 @@ type ip6_mobility_coti: record {
 
 ## Values extracted from an IPv6 Mobility Home Test message.
 ##
-## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_hdr_chain ip6_mobility_msg
+## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_ext_hdr ip6_mobility_msg
 type ip6_mobility_hot: record {
 	## Home Nonce Index.
 	nonce_idx: count;
@@ -1115,7 +1118,7 @@ type ip6_mobility_hot: record {
 
 ## Values extracted from an IPv6 Mobility Care-of Test message.
 ##
-## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_hdr_chain ip6_mobility_msg
+## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_ext_hdr ip6_mobility_msg
 type ip6_mobility_cot: record {
 	## Care-of Nonce Index.
 	nonce_idx: count;
@@ -1129,7 +1132,7 @@ type ip6_mobility_cot: record {
 
 ## Values extracted from an IPv6 Mobility Binding Update message.
 ##
-## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_hdr_chain ip6_mobility_msg
+## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_ext_hdr ip6_mobility_msg
 type ip6_mobility_bu: record {
 	## Sequence number.
 	seq: count;
@@ -1149,7 +1152,7 @@ type ip6_mobility_bu: record {
 
 ## Values extracted from an IPv6 Mobility Binding Acknowledgement message.
 ##
-## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_hdr_chain ip6_mobility_msg
+## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_ext_hdr ip6_mobility_msg
 type ip6_mobility_back: record {
 	## Status.
 	status: count;
@@ -1165,7 +1168,7 @@ type ip6_mobility_back: record {
 
 ## Values extracted from an IPv6 Mobility Binding Error message.
 ##
-## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_hdr_chain ip6_mobility_msg
+## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_ext_hdr ip6_mobility_msg
 type ip6_mobility_be: record {
 	## Status.
 	status: count;
@@ -1177,7 +1180,7 @@ type ip6_mobility_be: record {
 
 ## Values extracted from an IPv6 Mobility header's message data.
 ##
-## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_hdr_chain
+## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_ext_hdr
 type ip6_mobility_msg: record {
 	## The type of message from the header's MH Type field.
 	id: count;
@@ -1201,7 +1204,7 @@ type ip6_mobility_msg: record {
 
 ## Values extracted from an IPv6 Mobility header.
 ##
-## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_hdr_chain
+## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_ext_hdr
 type ip6_mobility_hdr: record {
 	## Protocol number of the next header (RFC 1700 et seq., IANA assigned
 	## number), e.g. :bro:id:`IPPROTO_ICMP`.
@@ -1244,7 +1247,7 @@ type ip6_ext_hdr: record {
 
 ## Values extracted from an IPv6 header.
 ##
-## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr_chain ip6_hopopts ip6_dstopts
+## .. bro:see:: pkt_hdr ip4_hdr ip6_ext_hdr ip6_hopopts ip6_dstopts
 ##    ip6_routing ip6_fragment ip6_ah ip6_esp
 type ip6_hdr: record {
 	class: count;					##< Traffic class.

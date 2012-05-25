@@ -2,6 +2,7 @@
 ##! and/or transfer events.
 
 @load base/frameworks/packet-filter
+@load base/utils/addrs
 
 module Communication;
 
@@ -10,7 +11,7 @@ export {
 	## The communication logging stream identifier.
 	redef enum Log::ID += { LOG };
 	
-	## Which interface to listen on (0.0.0.0 for any interface).
+	## Which interface to listen on (``0.0.0.0`` or ``[::]`` are wildcards).
 	const listen_interface = 0.0.0.0 &redef;
 	
 	## Which port to listen on.
@@ -18,6 +19,19 @@ export {
 	
 	## This defines if a listening socket should use SSL.
 	const listen_ssl = F &redef;
+
+	## Defines if a listening socket can bind to IPv6 addresses.
+	const listen_ipv6 = F &redef;
+
+	## If :bro:id:`Communication::listen_interface` is a non-global
+	## IPv6 address and requires a specific :rfc:`4007` ``zone_id``,
+	## it can be specified here.
+	const listen_ipv6_zone_id = "" &redef;
+
+	## Defines the interval at which to retry binding to
+	## :bro:id:`Communication::listen_interface` on
+	## :bro:id:`Communication::listen_port` if it's already in use.
+	const listen_retry = 30 secs &redef;
 
 	## Default compression level.  Compression level is 0-9, with 0 = no 
 	## compression.
@@ -51,6 +65,10 @@ export {
 	type Node: record {
 		## Remote address.
 		host: addr;
+
+		## If the *host* field is a non-global IPv6 address, this field
+		## can specify a particular :rfc:`4007` ``zone_id``.
+		zone_id: string &optional;
 		
 		## Port of the remote Bro communication endpoint if we are initiating
 		## the connection based on the :bro:id:`connect` field.
@@ -160,7 +178,7 @@ event remote_log(level: count, src: count, msg: string)
 # This is a core generated event.
 event remote_log_peer(p: event_peer, level: count, src: count, msg: string)
 	{
-	local rmsg = fmt("[#%d/%s:%d] %s", p$id, p$host, p$p, msg);
+	local rmsg = fmt("[#%d/%s:%d] %s", p$id, addr_to_uri(p$host), p$p, msg);
 	do_script_log_common(level, src, rmsg);
 	}
 
@@ -178,7 +196,8 @@ function connect_peer(peer: string)
 		p = node$p;
 
 	local class = node?$class ? node$class : "";
-	local id = connect(node$host, p, class, node$retry, node$ssl);
+	local zone_id = node?$zone_id ? node$zone_id : "";
+	local id = connect(node$host, zone_id, p, class, node$retry, node$ssl);
     
 	if ( id == PEER_ID_NONE )
 		Log::write(Communication::LOG, [$ts = network_time(), 

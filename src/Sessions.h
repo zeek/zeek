@@ -142,7 +142,7 @@ protected:
 	friend class TimerMgrExpireTimer;
 
 	Connection* NewConn(HashKey* k, double t, const ConnID* id,
-			const u_char* data, int proto);
+			const u_char* data, int proto, uint32 flow_label);
 
 	// Check whether the tag of the current packet is consistent with
 	// the given connection.  Returns:

@@ -77,6 +77,9 @@ export {
 		node_type:    NodeType;
 		## The IP address of the cluster node.
 		ip:           addr;
+		## If the *ip* field is a non-global IPv6 address, this field
+		## can specify a particular :rfc:`4007` ``zone_id``.
+		zone_id:      string      &default="";
 		## The port to which the this local node can connect when
 		## establishing communication.
 		p:            port;

@@ -10,8 +10,8 @@
 #include "Stats.h"
 #include "File.h"
 
-// All IP arguments are in host byte-order.
-// FIXME: Change this to network byte order
+#include <vector>
+#include <string>
 
 class IncrementalSendTimer;
 
@@ -35,7 +35,8 @@ public:
 	static const PeerID PEER_NONE = SOURCE_LOCAL;
 
 	// Connect to host (returns PEER_NONE on error).
-	PeerID Connect(const IPAddr& ip, uint16 port, const char* our_class, double retry, bool use_ssl);
+	PeerID Connect(const IPAddr& ip, const string& zone_id, uint16 port,
+	               const char* our_class, double retry, bool use_ssl);
 
 	// Close connection to host.
 	bool CloseConnection(PeerID peer);
@@ -63,7 +64,8 @@ public:
 	bool CompleteHandshake(PeerID peer);
 
 	// Start to listen.
-	bool Listen(const IPAddr& ip, uint16 port, bool expect_ssl);
+	bool Listen(const IPAddr& ip, uint16 port, bool expect_ssl, bool ipv6,
+	            const string& zone_id, double retry);
 
 	// Stop it.
 	bool StopListening();
@@ -179,9 +181,7 @@ protected:
 	struct Peer {
 		PeerID id; // Unique ID (non-zero) per peer.
 
-		// ### Fix: currently, we only work for IPv4.
-		// addr_type ip;
-		uint32 ip;
+		IPAddr ip;
 
 		uint16 port;
 		handler_list handlers;
@@ -277,7 +277,7 @@ protected:
 	bool ProcessLogWrite();
 	bool ProcessRequestLogs();
 
-	Peer* AddPeer(uint32 ip, uint16 port, PeerID id = PEER_NONE);
+	Peer* AddPeer(const IPAddr& ip, uint16 port, PeerID id = PEER_NONE);
 	Peer* LookupPeer(PeerID id, bool only_if_connected);
 	void RemovePeer(Peer* peer);
 	bool IsConnectedPeer(PeerID id);
@@ -412,7 +412,6 @@ protected:
 			{
 			id = 0;
 			io = 0;
-			ip = 0;
 			port = 0;
 			state = 0;
 			connected = false;
@@ -424,7 +423,8 @@ protected:
 
 		RemoteSerializer::PeerID id;
 		ChunkedIO* io;
-		uint32 ip;
+		IPAddr ip;
+		string zone_id;
 		uint16 port;
 		char state;
 		bool connected;
@@ -437,7 +437,7 @@ protected:
 		bool compressor;
 	};
 
-	bool Listen(uint32 ip, uint16 port, bool expect_ssl);
+	bool Listen();
 	bool AcceptConnection(int listen_fd);
 	bool Connect(Peer* peer);
 	bool CloseConnection(Peer* peer, bool reconnect);
@@ -482,6 +482,9 @@ protected:
 	bool ForwardChunkToPeer();
 	const char* MakeLogString(const char* msg, Peer *peer);
 
+	// Closes all file descriptors associated with listening sockets.
+	void CloseListenFDs();
+
 	// Peers we are communicating with:
 	declare(PList, Peer);
 	typedef PList(Peer) peer_list;
@@ -498,15 +501,17 @@ protected:
 	char parent_msgtype;
 	ChunkedIO::Chunk* parent_args;
 
-	int listen_fd_clear;
-	int listen_fd_ssl;
+	vector<int> listen_fds;
 
 	// If the port we're trying to bind to is already in use, we will retry
 	// it regularly.
-	uint32 listen_if;	// Fix: only supports IPv4
+	string listen_if;
+	string listen_zone_id;		// RFC 4007 IPv6 zone_id
 	uint16 listen_port;
-	bool listen_ssl;
-	time_t listen_next_try;
+	bool listen_ssl;            // use SSL for IO
+	bool enable_ipv6;           // allow IPv6 listen sockets
+	uint32 bind_retry_interval; // retry interval for already-in-use sockets
+	time_t listen_next_try;     // time at which to try another bind
 	bool shutting_conns_down;
 	bool terminating;
 	bool killing;

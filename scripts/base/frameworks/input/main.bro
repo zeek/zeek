@@ -24,9 +24,6 @@ export {
 		## Read mode to use for this stream
 		mode: Mode &default=default_mode;
 
-		## Automatically start the input stream after the first filter has been added
-		autostart: bool &default=T;
-
 		## Descriptive name. Used to remove a filter at a later time
 		name: string; 
 
@@ -67,9 +64,6 @@ export {
 
 		## Read mode to use for this stream
 		mode: Mode &default=default_mode;
-
-		## Automatically start the input stream after the first filter has been added
-		autostart: bool &default=T;
 
 		## Descriptive name. Used to remove a filter at a later time
 		name: string; 

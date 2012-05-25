@@ -287,7 +287,6 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 		}
 
 	EnumVal* reader = description->LookupWithDefault(rtype->FieldOffset("reader"))->AsEnumVal();
-	Val *autostart = description->LookupWithDefault(rtype->FieldOffset("autostart"));	
 
         ReaderFrontend* reader_obj = new ReaderFrontend(reader->InternalInt());
         assert(reader_obj);	

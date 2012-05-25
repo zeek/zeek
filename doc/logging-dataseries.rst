@@ -6,8 +6,8 @@ Binary Output with DataSeries
 .. rst-class:: opening
 
    Bro's default ASCII log format is not exactly the most efficient
-   way for storing large volumes of data. An an alternative, Bro comes
-   with experimental support for `DataSeries
+   way for storing and searching large volumes of data. An an
+   alternative, Bro comes with experimental support for `DataSeries
    <http://www.hpl.hp.com/techreports/2009/HPL-2009-323.html>`_
    output, an efficient binary format for recording structured bulk
    data. DataSeries is developed and maintained at HP Labs.
@@ -35,9 +35,12 @@ To build and install the two into ``<prefix>``, do::
 Please refer to the packages' documentation for more information about
 the installation process. In particular, there's more information on
 required and optional `dependencies for Lintel
-<https://raw.github.com/eric-anderson/Lintel/master/doc/dependencies.txt>`_
+<https://raw.github.com/dataseries/Lintel/master/doc/dependencies.txt>`_
 and `dependencies for DataSeries
-<https://raw.github.com/eric-anderson/DataSeries/master/doc/dependencies.txt>`_
+<https://raw.github.com/dataseries/DataSeries/master/doc/dependencies.txt>`_.
+For users on RedHat-style systems, you'll need the following::
+
+    yum install libxml2-devel boost-devel
 
 Compiling Bro with DataSeries Support
 -------------------------------------
@@ -166,3 +169,18 @@ with the output files.
 The ``man`` pages for these tool show further options, and their
 ``-h`` option gives some more information (either can be a bit cryptic
 unfortunately though).
+
+Deficiencies
+------------
+
+Due to limitations of the DataSeries format, one cannot inspect its
+files before they have been fully written. In other words, when using
+DataSeries, it's currently it's not possible to inspect the live log
+files inside the spool directory before they are rotated to their
+final location. It seems that this could be fixed with some effort,
+and we will work with DataSeries development team on that if the
+format gains traction among Bro users.
+
+Likewise, we're considering writing custom command line tools for
+interacting with DataSeries files, making that a bit more convenient
+than what the standard utilities provide.

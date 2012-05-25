@@ -602,7 +602,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 	conn = (Connection*) d->Lookup(h);
 	if ( ! conn )
 		{
-		conn = NewConn(h, t, &id, data, proto);
+		conn = NewConn(h, t, &id, data, proto, ip_hdr->FlowLabel());
 		if ( conn )
 			d->Insert(h, conn);
 		}
@@ -623,7 +623,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 				conn->Event(connection_reused, 0);
 
 			Remove(conn);
-			conn = NewConn(h, t, &id, data, proto);
+			conn = NewConn(h, t, &id, data, proto, ip_hdr->FlowLabel());
 			if ( conn )
 				d->Insert(h, conn);
 			}
@@ -643,6 +643,8 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 
 	int is_orig = (id.src_addr == conn->OrigAddr()) &&
 			(id.src_port == conn->OrigPort());
+
+	conn->CheckFlowLabel(is_orig, ip_hdr->FlowLabel());
 
 	Val* pkt_hdr_val = 0;
 
@@ -1002,7 +1004,7 @@ void NetSessions::GetStats(SessionStats& s) const
 	}
 
 Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
-					const u_char* data, int proto)
+					const u_char* data, int proto, uint32 flow_label)
 	{
 	// FIXME: This should be cleaned up a bit, it's too protocol-specific.
 	// But I'm not yet sure what the right abstraction for these things is.
@@ -1058,7 +1060,7 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 		id = &flip_id;
 		}
 
-	Connection* conn = new Connection(this, k, t, id);
+	Connection* conn = new Connection(this, k, t, id, flow_label);
 	conn->SetTransport(tproto);
 	dpm->BuildInitialAnalyzerTree(tproto, conn, data);
 

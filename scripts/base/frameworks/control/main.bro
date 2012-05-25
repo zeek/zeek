@@ -11,6 +11,10 @@ export {
 	## The port of the host that will be controlled.
 	const host_port = 0/tcp &redef;
 
+	## If :bro:id:`Control::host` is a non-global IPv6 address and
+	## requires a specific :rfc:`4007` ``zone_id``, it can be set here.
+	const zone_id = "" &redef;
+
 	## The command that is being done.  It's typically set on the
 	## command line.
 	const cmd = "" &redef;

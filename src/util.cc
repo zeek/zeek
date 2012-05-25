@@ -376,6 +376,8 @@ template<class T> int atoi_n(int len, const char* s, const char** end, int base,
 
 // Instantiate the ones we need.
 template int atoi_n<int>(int len, const char* s, const char** end, int base, int& result);
+template int atoi_n<uint16_t>(int len, const char* s, const char** end, int base, uint16_t& result);
+template int atoi_n<uint32_t>(int len, const char* s, const char** end, int base, uint32_t& result);
 template int atoi_n<int64_t>(int len, const char* s, const char** end, int base, int64_t& result);
 template int atoi_n<uint64_t>(int len, const char* s, const char** end, int base, uint64_t& result);
 

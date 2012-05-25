@@ -10,7 +10,7 @@ export {
 	## 'lzo'  -- LZO compression.   Very fast decompression times.
 	## 'gz'   -- GZIP compression.  Slower than LZF, but also produces smaller output.
 	## 'bz2'  -- BZIP2 compression. Slower than GZIP, but also produces smaller output.
-	const compression = "lzo" &redef;
+	const compression = "gz" &redef;
 
 	## The extent buffer size.
 	## Larger values here lead to better compression and more efficient writes, but

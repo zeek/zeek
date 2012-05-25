@@ -42,9 +42,6 @@ private:
 	// Options set from the script-level.
 	string separator;
 
-	// keep a copy of the headerline to determine field locations when filters change
-	string headerline;
-
 	int mode;
 	bool execute;
 	bool firstrun;

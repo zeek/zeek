@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 //
-// Class for managing input streams and filters
+// Class for managing input streams
 
 #ifndef INPUT_MANAGER_H
 #define INPUT_MANAGER_H
@@ -34,12 +34,7 @@ public:
 	~Manager();
     
 	/**
-	 * Creates a new input stream.
-	 * Add a filter to an input source, which will write the data from the data source into 
-	 * a Bro table.
-	 * Add a filter to an input source, which sends events for read input data.
-	 *
-	 * @param id  The enum value corresponding the input stream.
+	 * Creates a new input stream which will write the data from the data source into 
 	 *
 	 * @param description A record of script type \c Input:StreamDescription.
 	 *
@@ -47,6 +42,15 @@ public:
 	 * input.bif, which just forwards here.
 	 */	
     	bool CreateTableStream(RecordVal* description);
+
+	/**
+	 * Creates a new input stream which sends events for read input data.
+	 *
+	 * @param description A record of script type \c Input:StreamDescription.
+	 *
+	 * This method corresponds directly to the internal BiF defined in
+	 * input.bif, which just forwards here.
+	 */	
     	bool CreateEventStream(RecordVal* description);
 
 
@@ -104,11 +108,11 @@ protected:
 	// doing so creates a new thread!).	
 	ReaderBackend* CreateBackend(ReaderFrontend* frontend, bro_int_t type);	
 	
-	// Functions are called from the ReaderBackend to notify the manager, that a filter has been removed
+	// Functions are called from the ReaderBackend to notify the manager, that a stream has been removed
 	// or a stream has been closed.
-	// Used to prevent race conditions where data for a specific filter is still in the queue when the 
+	// Used to prevent race conditions where data for a specific stream is still in the queue when the 
 	// RemoveStream directive is executed by the main thread.
-	// This makes sure all data that has ben queued for a filter is still received.
+	// This makes sure all data that has ben queued for a stream is still received.
 	bool RemoveStreamContinuation(ReaderFrontend* reader);
 	
 private:
@@ -118,13 +122,13 @@ private:
 	
     	bool CreateStream(Stream*, RecordVal* description);
 
-	// SendEntry implementation for Tablefilter
+	// SendEntry implementation for Table stream
 	int SendEntryTable(Stream* i, const threading::Value* const *vals);	
 
-	// Put implementation for Tablefilter
+	// Put implementation for Table stream
 	int PutTable(Stream* i, const threading::Value* const *vals);	
 
-	// SendEntry and Put implementation for Eventfilter
+	// SendEntry and Put implementation for Event stream
 	int SendEventStreamEvent(Stream* i, EnumVal* type, const threading::Value* const *vals);
 
 	// Checks is a bro type can be used for data reading. The equivalend in threading cannot be used, because we have support different types 

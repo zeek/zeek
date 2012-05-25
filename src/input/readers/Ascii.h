@@ -74,7 +74,7 @@ private:
 
 	string unset_field;
 	
-	// keep a copy of the headerline to determine field locations when filters change
+	// keep a copy of the headerline to determine field locations when stream descriptions change
 	string headerline;
 
 	int mode;

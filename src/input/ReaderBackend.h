@@ -55,7 +55,8 @@ public:
 	 *
 	 * @param arg_num_fields number of fields contained in \a fields
 	 *
-	 * @param fields the types and names of the fields to be retrieved from the input source
+	 * @param fields the types and names of the fields to be retrieved 
+	 * from the input source
 	 *
 	 * @return False if an error occured.
 	 */
@@ -72,7 +73,8 @@ public:
 
 	/**
 	 * Force trigger an update of the input stream.
-	 * The action that will be taken depends on the current read mode and the individual input backend
+	 * The action that will be taken depends on the current read mode and the
+	 * individual input backend
 	 *
 	 * An backend can choose to ignore this.
 	 *
@@ -90,8 +92,8 @@ protected:
     	// Methods that have to be overwritten by the individual readers
 	
 	/**
-	 * Reader-specific intialization method. Note that data may only be read from the input source
-	 * after the Start function has been called.
+	 * Reader-specific intialization method. Note that data may only be 
+	 * read from the input source after the Start function has been called.
 	 *
 	 * A reader implementation must override this method. If it returns
 	 * false, it will be assumed that a fatal error has occured that
@@ -145,29 +147,32 @@ protected:
 	 */
 	void SendEvent(const string& name, const int num_vals, threading::Value* *vals);
 
-	// Content-sending-functions (simple mode). Including table-specific stuff that simply is not used if we have no table
+	// Content-sending-functions (simple mode). Including table-specific stuff that 
+	// simply is not used if we have no table
 	/**
-	 * Method allowing a reader to send a list of values read for a specific filter back to the manager.
+	 * Method allowing a reader to send a list of values read for a specific stream
+	 * back to the manager.
 	 *
-	 * If the filter points to a table, the values are inserted into the table; if it points to an event, the event is raised
+	 * If the stream is a table stream, the values are inserted into the table; 
+	 * if it is an event stream, the event is raised.
 	 *
-	 * @param val list of threading::Values expected by the filter
+	 * @param val list of threading::Values expected by the stream
 	 */
 	void Put(threading::Value* *val);
 
 	/**
 	 * Method allowing a reader to delete a specific value from a bro table.
 	 *
-	 * If the receiving filter is an event, only a removed event is raised
+	 * If the receiving stream is an event stream, only a removed event is raised
 	 *
-	 * @param val list of threading::Values expected by the filter
+	 * @param val list of threading::Values expected by the stream
 	 */
 	void Delete(threading::Value* *val);
 
 	/**
 	 * Method allowing a reader to clear a value from a bro table.
 	 *
-	 * If the receiving filter is an event, this is ignored.
+	 * If the receiving stream is an event stream, this is ignored.
 	 *
 	 */
 	void Clear();
@@ -176,19 +181,22 @@ protected:
 	
 
 	/**
-	 * Method allowing a reader to send a list of values read for a specific filter back to the manager.
+	 * Method allowing a reader to send a list of values read for a specific stream 
+	 * back to the manager.
 	 *
-	 * If the filter points to a table, the values are inserted into the table; if it points to an event, the event is raised.
+	 * If the stream is a table stream, the values are inserted into the table; 
+	 * if it is an event stream, the event is raised.
 	 *
-	 * @param val list of threading::Values expected by the filter
+	 * @param val list of threading::Values expected by the stream
 	 */
 	void SendEntry(threading::Value*  *vals);
 
 	/**
-	 * Method telling the manager, that the current list of entries sent by SendEntry is finished.
+	 * Method telling the manager, that the current list of entries sent by SendEntry 
+	 * is finished.
 	 * 
-	 * For table filters, all entries that were not updated since the last EndCurrentSend will be deleted, because they are no longer
-	 * present in the input source
+	 * For table streams, all entries that were not updated since the last EndCurrentSend 
+	 * will be deleted, because they are no longer present in the input source
 	 *
 	 */
 	void EndCurrentSend();

@@ -398,7 +398,7 @@ bool Ascii::DoUpdate()
 				if ( mode == STREAM ) 
 					{
 					file->clear(); // remove end of file evil bits
-					if ( !ReadHeader(true) )  // in case filters changed
+					if ( !ReadHeader(true) ) 
 						return false; // header reading failed
 
 					break;

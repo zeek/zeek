@@ -24,7 +24,7 @@ export {
 		## Read mode to use for this stream
 		mode: Mode &default=default_mode;
 
-		## Descriptive name. Used to remove a filter at a later time
+		## Descriptive name. Used to remove a stream at a later time
 		name: string; 
 
 		## Special definitions for tables
@@ -65,7 +65,7 @@ export {
 		## Read mode to use for this stream
 		mode: Mode &default=default_mode;
 
-		## Descriptive name. Used to remove a filter at a later time
+		## Descriptive name. Used to remove a stream at a later time
 		name: string; 
 
 		## Special definitions for events

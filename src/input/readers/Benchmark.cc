@@ -23,15 +23,14 @@ using threading::Field;
 
 Benchmark::Benchmark(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	{
-	multiplication_factor = double(BifConst::InputBenchmark::factor);	
-	autospread = double(BifConst::InputBenchmark::autospread);	
+	multiplication_factor = double(BifConst::InputBenchmark::factor);
+	autospread = double(BifConst::InputBenchmark::autospread);
 	spread = int(BifConst::InputBenchmark::spread);
 	add = int(BifConst::InputBenchmark::addfactor);
 	autospread_time = 0;
 	stopspreadat = int(BifConst::InputBenchmark::stopspreadat);
 	timedspread = double(BifConst::InputBenchmark::timedspread);
 	heart_beat_interval = double(BifConst::Threading::heart_beat_interval);
-
 	}
 
 Benchmark::~Benchmark()
@@ -46,15 +45,15 @@ void Benchmark::DoClose()
 bool Benchmark::DoInit(string path, int arg_mode, int arg_num_fields, const Field* const* arg_fields)
 	{
 	mode = arg_mode;
-	
+
 	num_fields = arg_num_fields;
 	fields = arg_fields;
 	num_lines = atoi(path.c_str());
-	
+
 	if ( autospread != 0.0 )
 		autospread_time = (int) ( (double) 1000000 / (autospread * (double) num_lines) );
 
-	if ( ( mode != MANUAL ) && (mode != REREAD) && ( mode != STREAM ) ) 
+	if ( (mode != MANUAL) && (mode != REREAD) && (mode != STREAM) )
 		{
 		Error(Fmt("Unsupported read mode %d for source %s", mode, path.c_str()));
 		return false;
@@ -66,7 +65,7 @@ bool Benchmark::DoInit(string path, int arg_mode, int arg_num_fields, const Fiel
 	return true;
 	}
 
-string Benchmark::RandomString(const int len) 
+string Benchmark::RandomString(const int len)
 	{
 	string s(len, ' ');
 
@@ -75,13 +74,13 @@ string Benchmark::RandomString(const int len)
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	"abcdefghijklmnopqrstuvwxyz";
 
-	for (int i = 0; i < len; ++i) 
-        	s[i] = values[rand() / (RAND_MAX / sizeof(values))];
+	for (int i = 0; i < len; ++i)
+		s[i] = values[rand() / (RAND_MAX / sizeof(values))];
 
 	return s;
 	}
 
-double Benchmark::CurrTime() 
+double Benchmark::CurrTime()
 	{
 	struct timeval tv;
 	assert ( gettimeofday(&tv, 0) >= 0 );
@@ -91,56 +90,57 @@ double Benchmark::CurrTime()
 
 
 // read the entire file and send appropriate thingies back to InputMgr
-bool Benchmark::DoUpdate() 
+bool Benchmark::DoUpdate()
 	{
-        int linestosend = num_lines * heart_beat_interval;
-	for ( int i = 0; i < linestosend; i++ ) 
+	int linestosend = num_lines * heart_beat_interval;
+	for ( int i = 0; i < linestosend; i++ )
 		{
 		Value** field = new Value*[num_fields];
-		for  (unsigned int j = 0; j < num_fields; j++ ) 
+		for  (unsigned int j = 0; j < num_fields; j++ )
 			field[j] = EntryToVal(fields[j]->type, fields[j]->subtype);
 
-		if ( mode == STREAM ) 
+		if ( mode == STREAM )
 			// do not do tracking, spread out elements over the second that we have...
 			Put(field);
-		else 
+		else
 			SendEntry(field);
-		
-		if ( stopspreadat == 0 || num_lines < stopspreadat ) 
+
+		if ( stopspreadat == 0 || num_lines < stopspreadat )
 			{
-			if ( spread != 0 ) 
+			if ( spread != 0 )
 				usleep(spread);
 
-			if ( autospread_time != 0 ) 
+			if ( autospread_time != 0 )
 				usleep( autospread_time );
 			}
 
-		if ( timedspread != 0.0 ) 
+		if ( timedspread != 0.0 )
 			{
 			double diff;
-			do 
+			do
 				diff = CurrTime() - heartbeatstarttime;
-			while ( diff/heart_beat_interval < i/(linestosend 
+			while ( diff/heart_beat_interval < i/(linestosend
 			        + (linestosend * timedspread) ) );
 			}
 
 	}
 
-	if ( mode != STREAM )  
+	if ( mode != STREAM )
 		EndCurrentSend();
 
 	return true;
 }
 
-threading::Value* Benchmark::EntryToVal(TypeTag type, TypeTag subtype) 
+threading::Value* Benchmark::EntryToVal(TypeTag type, TypeTag subtype)
 	{
 	Value* val = new Value(type, true);
 
 	// basically construct something random from the fields that we want.
-	
+
 	switch ( type ) {
 	case TYPE_ENUM:
 		assert(false); // no enums, please.
+
 	case TYPE_STRING:
 		val->val.string_val = new string(RandomString(10));
 		break;
@@ -172,14 +172,14 @@ threading::Value* Benchmark::EntryToVal(TypeTag type, TypeTag subtype)
 		val->val.port_val.proto = TRANSPORT_UNKNOWN;
 		break;
 
-	case TYPE_SUBNET: 
+	case TYPE_SUBNET:
 		{
 		val->val.subnet_val.prefix = StringToAddr("192.168.17.1");
 		val->val.subnet_val.length = 16;
 		}
 		break;
 
-	case TYPE_ADDR: 
+	case TYPE_ADDR:
 		val->val.addr_val = StringToAddr("192.168.17.1");
 		break;
 
@@ -195,26 +195,26 @@ threading::Value* Benchmark::EntryToVal(TypeTag type, TypeTag subtype)
 
 		Value** lvals = new Value* [length];
 
-		if ( type == TYPE_TABLE ) 
+		if ( type == TYPE_TABLE )
 			{
 			val->val.set_val.vals = lvals;
 			val->val.set_val.size = length;
-			} 
-		else if ( type == TYPE_VECTOR ) 
+			}
+		else if ( type == TYPE_VECTOR )
 			{
 			val->val.vector_val.vals = lvals;
 			val->val.vector_val.size = length;
-			} 
-		else 
+			}
+		else
 			assert(false);
 
 		if ( length == 0 )
 			break; //empty
 
-		for ( unsigned int pos = 0; pos < length; pos++ ) 
+		for ( unsigned int pos = 0; pos < length; pos++ )
 			{
 			Value* newval = EntryToVal(subtype, TYPE_ENUM);
-			if ( newval == 0 ) 
+			if ( newval == 0 )
 				{
 				Error("Error while reading set");
 				return 0;
@@ -229,7 +229,7 @@ threading::Value* Benchmark::EntryToVal(TypeTag type, TypeTag subtype)
 	default:
 		Error(Fmt("unsupported field format %d", type));
 		return 0;
-	}	
+	}
 
 	return val;
 
@@ -247,9 +247,10 @@ bool Benchmark::DoHeartbeat(double network_time, double current_time)
 		case MANUAL:
 			// yay, we do nothing :)
 			break;
+
 		case REREAD:
 		case STREAM:
-			if ( multiplication_factor != 1 || add != 0 ) 
+			if ( multiplication_factor != 1 || add != 0 )
 				{
 				// we have to document at what time we changed the factor to what value.
 				Value** v = new Value*[2];
@@ -261,10 +262,10 @@ bool Benchmark::DoHeartbeat(double network_time, double current_time)
 				SendEvent("lines_changed", 2, v);
 				}
 
-			if ( autospread != 0.0 ) 
+			if ( autospread != 0.0 )
 				// because executing this in every loop is apparently too expensive.
 				autospread_time = (int) ( (double) 1000000 / (autospread * (double) num_lines) );
-	
+
 			Update(); // call update and not DoUpdate, because update actually checks disabled.
 
 			SendEvent("HeartbeatDone", 0, 0);
@@ -275,4 +276,3 @@ bool Benchmark::DoHeartbeat(double network_time, double current_time)
 
 	return true;
 }
-

@@ -12,11 +12,15 @@ namespace input {
 class InitMessage : public threading::InputMessage<ReaderBackend>
 {
 public:
-	InitMessage(ReaderBackend* backend, const string source, const int mode, const int num_fields, const threading::Field* const* fields)
+	InitMessage(ReaderBackend* backend, const string source, const int mode,
+		    const int num_fields, const threading::Field* const* fields)
 		: threading::InputMessage<ReaderBackend>("Init", backend),
 		source(source), mode(mode), num_fields(num_fields), fields(fields) { }
 
-	virtual bool Process() { return Object()->Init(source, mode, num_fields, fields); }
+	virtual bool Process()
+		{
+		return Object()->Init(source, mode, num_fields, fields);
+		}
 
 private:
 	const string source;
@@ -46,7 +50,7 @@ public:
 };
 
 
-ReaderFrontend::ReaderFrontend(bro_int_t type) 
+ReaderFrontend::ReaderFrontend(bro_int_t type)
 	{
 	disabled = initialized = false;
 	ty_name = "<not set>";
@@ -56,12 +60,12 @@ ReaderFrontend::ReaderFrontend(bro_int_t type)
 	backend->Start();
 	}
 
-ReaderFrontend::~ReaderFrontend() 
+ReaderFrontend::~ReaderFrontend()
 	{
 	}
 
-void ReaderFrontend::Init(string arg_source, int mode, const int num_fields, 
-		          const threading::Field* const* fields) 
+void ReaderFrontend::Init(string arg_source, int mode, const int num_fields,
+		          const threading::Field* const* fields)
 	{
 	if ( disabled )
 		return;
@@ -73,14 +77,14 @@ void ReaderFrontend::Init(string arg_source, int mode, const int num_fields,
 	initialized = true;
 
 	backend->SendIn(new InitMessage(backend, arg_source, mode, num_fields, fields));
-	} 
+	}
 
-void ReaderFrontend::Update() 
+void ReaderFrontend::Update()
 	{
-	if ( disabled ) 
+	if ( disabled )
 		return;
 
-	if ( !initialized ) 
+	if ( ! initialized )
 		{
 		reporter->Error("Tried to call update on uninitialized reader");
 		return;
@@ -89,12 +93,12 @@ void ReaderFrontend::Update()
 	backend->SendIn(new UpdateMessage(backend));
 	}
 
-void ReaderFrontend::Close() 
+void ReaderFrontend::Close()
 	{
-	if ( disabled ) 
+	if ( disabled )
 		return;
-	
-	if ( !initialized ) 
+
+	if ( ! initialized )
 		{
 		reporter->Error("Tried to call finish on uninitialized reader");
 		return;

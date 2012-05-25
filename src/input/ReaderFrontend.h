@@ -29,14 +29,14 @@ public:
 	 * corresponding type.
 	 *
 	 * Frontends must only be instantiated by the main thread.
-	 */	
+	 */
 	ReaderFrontend(bro_int_t type);
 
 	/**
 	 * Destructor.
 	 *
 	 * Frontends must only be destroyed by the main thread.
-	 */	
+	 */
 	virtual ~ReaderFrontend();
 
 	/**
@@ -47,37 +47,39 @@ public:
 	 * sends a message back that will asynchronously call Disable().
 	 *
 	 * See ReaderBackend::Init() for arguments.
+	 *
 	 * This method must only be called from the main thread.
-	 */	
+	 */
 	void Init(string arg_source, int mode, const int arg_num_fields, const threading::Field* const* fields);
 
 	/**
-	 * Force an update of the current input source. Actual action depends on
-	 * the opening mode and on the input source.
+	 * Force an update of the current input source. Actual action depends
+	 * on the opening mode and on the input source.
 	 *
 	 * This method generates a message to the backend reader and triggers
 	 * the corresponding message there.
+	 *
 	 * This method must only be called from the main thread.
 	 */
 	void Update();
 
 	/**
-	 * Finalizes writing to this tream.
+	 * Finalizes reading from this stream.
 	 *
 	 * This method generates a message to the backend reader and triggers
-	 * the corresponding message there.
-	 * This method must only be called from the main thread.
-	 */	
+	 * the corresponding message there. This method must only be called
+	 * from the main thread.
+	 */
 	void Close();
 
 	/**
 	 * Disables the reader frontend. From now on, all method calls that
 	 * would normally send message over to the backend, turn into no-ops.
-	 * Note though that it does not stop the backend itself, use Finsh()
+	 * Note though that it does not stop the backend itself, use Finish()
 	 * to do that as well (this method is primarily for use as callback
 	 * when the backend wants to disable the frontend).
 	 *
-	 * Disabled frontend will eventually be discarded by the
+	 * Disabled frontends will eventually be discarded by the
 	 * input::Manager.
 	 *
 	 * This method must only be called from the main thread.
@@ -85,9 +87,10 @@ public:
 	void SetDisable()	{ disabled = true; }
 
 	/**
-	 * Returns true if the reader frontend has been disabled with SetDisable().
+	 * Returns true if the reader frontend has been disabled with
+	 * SetDisable().
 	 */
-	bool Disabled()	{ return disabled; }	
+	bool Disabled()	{ return disabled; }
 
 	/**
 	 * Returns a descriptive name for the reader, including the type of
@@ -101,18 +104,21 @@ protected:
 	friend class Manager;
 
 	/**
-	 * Returns the source as passed into the constructor
+	 * Returns the source as passed into the constructor.
 	 */
-	const string Source() const	{ return source; };	
+	const string& Source() const	{ return source; };
 
-	string ty_name;	// Name of the backend type. Set by the manager.
+	/**
+	 * Returns the name of the backend's type.
+	 */
+	const string& TypeName() const	{ return ty_name; }
 
 private:
-	ReaderBackend* backend;	// The backend we have instanatiated.	
+	ReaderBackend* backend;	// The backend we have instanatiated.
 	string source;
+	string ty_name;		// Backend type, set by manager.
 	bool disabled;		// True if disabled.
-	bool initialized;	// True if initialized.	
-
+	bool initialized;	// True if initialized.
 };
 
 }

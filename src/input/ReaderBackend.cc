@@ -15,7 +15,7 @@ public:
 		: threading::OutputMessage<ReaderFrontend>("Put", reader),
 		val(val) {}
 
-	virtual bool Process() 
+	virtual bool Process()
 		{
 		input_mgr->Put(Object(), val);
 		return true;
@@ -31,7 +31,7 @@ public:
 		: threading::OutputMessage<ReaderFrontend>("Delete", reader),
 		val(val) {}
 
-	virtual bool Process() 
+	virtual bool Process()
 		{
 		return input_mgr->Delete(Object(), val);
 		}
@@ -45,7 +45,7 @@ public:
 	ClearMessage(ReaderFrontend* reader)
 		: threading::OutputMessage<ReaderFrontend>("Clear", reader) {}
 
-	virtual bool Process() 
+	virtual bool Process()
 		{
 		input_mgr->Clear(Object());
 		return true;
@@ -60,14 +60,14 @@ public:
 		: threading::OutputMessage<ReaderFrontend>("SendEvent", reader),
 		name(name), num_vals(num_vals), val(val) {}
 
-	virtual bool Process() 
+	virtual bool Process()
 		{
 		bool success = input_mgr->SendEvent(name, num_vals, val);
 
-		if ( !success ) 
+		if ( ! success )
 			reporter->Error("SendEvent for event %s failed", name.c_str());
 
-		return true; // we do not want to die if sendEvent fails because the event did not return.
+		return true; // We do not want to die if sendEvent fails because the event did not return.
 		}
 
 private:
@@ -82,7 +82,7 @@ public:
 		: threading::OutputMessage<ReaderFrontend>("SendEntry", reader),
 		val(val) { }
 
-	virtual bool Process() 
+	virtual bool Process()
 		{
 		input_mgr->SendEntry(Object(), val);
 		return true;
@@ -97,7 +97,7 @@ public:
 	EndCurrentSendMessage(ReaderFrontend* reader)
 		: threading::OutputMessage<ReaderFrontend>("EndCurrentSend", reader) {}
 
-	virtual bool Process() 
+	virtual bool Process()
 		{
 		input_mgr->EndCurrentSend(Object());
 		return true;
@@ -111,7 +111,7 @@ public:
 	ReaderClosedMessage(ReaderFrontend* reader)
 		: threading::OutputMessage<ReaderFrontend>("ReaderClosed", reader) {}
 
-	virtual bool Process() 
+	virtual bool Process()
 		{
 		return input_mgr->RemoveStreamContinuation(Object());
 		}
@@ -127,49 +127,46 @@ public:
 		: threading::OutputMessage<ReaderFrontend>("Disable", writer)	{}
 
 	virtual bool Process()
-		{ 
-		Object()->SetDisable(); 
-		return true; 
+		{
+		Object()->SetDisable();
+		return true;
 		}
 };
 
 
 ReaderBackend::ReaderBackend(ReaderFrontend* arg_frontend) : MsgThread()
 	{
-	buf = 0;
-	buf_len = 1024;
 	disabled = true; // disabled will be set correcty in init.
-
 	frontend = arg_frontend;
 
 	SetName(frontend->Name());
 	}
 
-ReaderBackend::~ReaderBackend() 
-	{	
+ReaderBackend::~ReaderBackend()
+	{
 	}
 
-void ReaderBackend::Put(Value* *val) 
+void ReaderBackend::Put(Value* *val)
 	{
 	SendOut(new PutMessage(frontend, val));
 	}
 
-void ReaderBackend::Delete(Value* *val) 
+void ReaderBackend::Delete(Value* *val)
 	{
 	SendOut(new DeleteMessage(frontend, val));
 	}
 
-void ReaderBackend::Clear() 
+void ReaderBackend::Clear()
 	{
 	SendOut(new ClearMessage(frontend));
 	}
 
-void ReaderBackend::SendEvent(const string& name, const int num_vals, Value* *vals) 
+void ReaderBackend::SendEvent(const string& name, const int num_vals, Value* *vals)
 	{
 	SendOut(new SendEventMessage(frontend, name, num_vals, vals));
-	} 
+	}
 
-void ReaderBackend::EndCurrentSend() 
+void ReaderBackend::EndCurrentSend()
 	{
 	SendOut(new EndCurrentSendMessage(frontend));
 	}
@@ -179,19 +176,19 @@ void ReaderBackend::SendEntry(Value* *vals)
 	SendOut(new SendEntryMessage(frontend, vals));
 	}
 
-bool ReaderBackend::Init(string arg_source, int mode, const int arg_num_fields, 
-		         const threading::Field* const* arg_fields) 
+bool ReaderBackend::Init(string arg_source, int mode, const int arg_num_fields,
+		         const threading::Field* const* arg_fields)
 	{
 	source = arg_source;
 	SetName("InputReader/"+source);
 
 	num_fields = arg_num_fields;
-	fields = arg_fields;	
+	fields = arg_fields;
 
 	// disable if DoInit returns error.
 	int success = DoInit(arg_source, mode, arg_num_fields, arg_fields);
 
-	if ( !success ) 
+	if ( ! success )
 		{
 		Error("Init failed");
 		DisableFrontend();
@@ -202,30 +199,30 @@ bool ReaderBackend::Init(string arg_source, int mode, const int arg_num_fields,
 	return success;
 	}
 
-void ReaderBackend::Close() 
+void ReaderBackend::Close()
 	{
 	DoClose();
 	disabled = true;
 	DisableFrontend();
 	SendOut(new ReaderClosedMessage(frontend));
 
-	if ( fields != 0 ) 
+	if ( fields != 0 )
 		{
-		for ( unsigned int i = 0; i < num_fields; i++ ) 
+		for ( unsigned int i = 0; i < num_fields; i++ )
 			delete(fields[i]);
 
-		delete[] (fields);
+		delete [] (fields);
 		fields = 0;
 		}
 	}
 
-bool ReaderBackend::Update() 
+bool ReaderBackend::Update()
 	{
-	if ( disabled ) 
+	if ( disabled )
 		return false;
 
 	bool success = DoUpdate();
-	if ( !success ) 
+	if ( ! success )
 		DisableFrontend();
 
 	return success;
@@ -233,8 +230,9 @@ bool ReaderBackend::Update()
 
 void ReaderBackend::DisableFrontend()
 	{
-	disabled = true; 
-	// we also set disabled here, because there still may be other messages queued and we will dutifully ignore these from now
+	// We also set disabled here, because there still may be other
+	// messages queued and we will dutifully ignore these from now.
+	disabled = true;
 	SendOut(new DisableMessage(frontend));
 	}
 
@@ -244,9 +242,9 @@ bool ReaderBackend::DoHeartbeat(double network_time, double current_time)
 	return true;
 	}
 
-TransportProto ReaderBackend::StringToProto(const string &proto) 
+TransportProto ReaderBackend::StringToProto(const string &proto)
 	{
-	if ( proto == "unknown" ) 
+	if ( proto == "unknown" )
 		return TRANSPORT_UNKNOWN;
 	else if ( proto == "tcp" )
 		return TRANSPORT_TCP;
@@ -261,8 +259,8 @@ TransportProto ReaderBackend::StringToProto(const string &proto)
 	}
 
 
-// more or less verbose copy from IPAddr.cc -- which uses reporter
-Value::addr_t ReaderBackend::StringToAddr(const string &s) 
+// More or less verbose copy from IPAddr.cc -- which uses reporter.
+Value::addr_t ReaderBackend::StringToAddr(const string &s)
 	{
 	Value::addr_t val;
 
@@ -270,9 +268,9 @@ Value::addr_t ReaderBackend::StringToAddr(const string &s)
 		{
 		val.family = IPv4;
 
-		if ( inet_aton(s.c_str(), &(val.in.in4)) <= 0 ) 
+		if ( inet_aton(s.c_str(), &(val.in.in4)) <= 0 )
 			{
-			Error(Fmt("Bad addres: %s", s.c_str()));
+			Error(Fmt("Bad address: %s", s.c_str()));
 			memset(&val.in.in4.s_addr, 0, sizeof(val.in.in4.s_addr));
 			}
 
@@ -283,7 +281,7 @@ Value::addr_t ReaderBackend::StringToAddr(const string &s)
 		val.family = IPv6;
 		if ( inet_pton(AF_INET6, s.c_str(), val.in.in6.s6_addr) <=0 )
 			{
-			Error(Fmt("Bad IP address: %s", s.c_str()));
+			Error(Fmt("Bad address: %s", s.c_str()));
 			memset(val.in.in6.s6_addr, 0, sizeof(val.in.in6.s6_addr));
 			}
 		}

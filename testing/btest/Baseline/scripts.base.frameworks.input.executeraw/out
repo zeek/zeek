@@ -6,4 +6,4 @@ print outfile, s;
 close(outfile);
 }]
 Input::EVENT_NEW
-       8 ../input.log
+8 ../input.log

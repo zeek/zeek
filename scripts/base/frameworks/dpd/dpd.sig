@@ -156,6 +156,12 @@ signature dpd_ayiya {
   enable "ayiya"
 }
 
+signature dpd_teredo {
+  ip-proto = udp
+  payload /^(\x00\x00)|(\x00\x01)|([\x60-\x6f])/
+  enable "teredo"
+}
+
 signature dpd_socks_client {
 	ip-proto == tcp
 	# '32' is a rather arbitrary max length for the user name.

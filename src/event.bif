@@ -765,8 +765,9 @@ event udp_reply%(u: connection%);
 event udp_contents%(u: connection, is_orig: bool, contents: string%);
 
 ## Generated when a UDP session for a supported protocol has finished. Some of
-## Bro's application-layer UDP analyzers flag the end of a session by raising this
-## event. Currently, the analyzers for DNS, NTP, Netbios, and Syslog support this.
+## Bro's application-layer UDP analyzers flag the end of a session by raising
+## this event. Currently, the analyzers for DNS, NTP, Netbios, Syslog, AYIYA,
+## and Teredo support this.
 ##
 ## u: The connection record for the corresponding UDP flow.
 ##

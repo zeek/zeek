@@ -36,7 +36,7 @@ namespace AnalyzerTag {
 		// Decapsulation Analyzers
 		AYIYA,
 		SOCKS,
-		//Teredo,
+		Teredo,
 		
 		// Other
 		File, Backdoor, InterConn, SteppingStone, TCPStats,

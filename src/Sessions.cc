@@ -567,6 +567,19 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		return;
 		}
 
+	case IPPROTO_NONE:
+		{
+		if ( encapsulation.LastType() == BifEnum::Tunnel::TEREDO )
+			{
+			// TODO: raise bubble packet event
+			}
+		else
+			Weird("ipv6_no_next", hdr, pkt);
+
+		Remove(f);
+		return;
+		}
+
 	default:
 		Weird(fmt("unknown_protocol_%d", proto), hdr, pkt);
 		Remove(f);
@@ -681,6 +694,9 @@ bool NetSessions::CheckHeaderTrunc(int proto, uint32 len, uint32 caplen,
 		break;
 	case IPPROTO_IPV6:
 		min_hdr_len = sizeof(struct ip6_hdr);
+		break;
+	case IPPROTO_NONE:
+		min_hdr_len = 0;
 		break;
 	case IPPROTO_ICMP:
 	case IPPROTO_ICMPV6:

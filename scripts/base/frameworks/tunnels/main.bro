@@ -74,6 +74,14 @@ export {
 	global active: table[conn_id] of Info = table() &synchronized &read_expire=24hrs &expire_func=expire;
 }
 
+const ayiya_ports = { 5072/udp };
+redef dpd_config += { [ANALYZER_AYIYA] = [$ports = ayiya_ports] };
+
+const teredo_ports = { 3544/udp };
+redef dpd_config += { [ANALYZER_TEREDO] = [$ports = teredo_ports] };
+
+redef likely_server_ports += { ayiya_ports, teredo_ports };
+
 event bro_init() &priority=5
 	{
 	Log::create_stream(Tunnel::LOG, [$columns=Info]);

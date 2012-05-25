@@ -103,6 +103,11 @@ public:
 		return conns ? conns->size() : 0;
 		}
 
+	BifEnum::Tunnel::Type LastType() const
+		{
+		return conns ? (*conns)[conns->size()-1].type : BifEnum::Tunnel::NONE;
+		}
+
 	VectorVal* GetVectorVal() const
 		{
 		VectorVal* vv = new VectorVal(new VectorType(

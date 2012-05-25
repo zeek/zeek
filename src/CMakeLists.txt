@@ -397,6 +397,7 @@ set(bro_SRCS
     TCP_Endpoint.cc
     TCP_Reassembler.cc
     Telnet.cc
+    Teredo.cc
     Timer.cc
     Traverse.cc
     Trigger.cc

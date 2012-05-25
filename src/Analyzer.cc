@@ -38,6 +38,7 @@
 #include "SSH.h"
 #include "SSL.h"
 #include "Syslog-binpac.h"
+#include "Teredo.h"
 #include "ConnSizeAnalyzer.h"
 
 // Keep same order here as in AnalyzerTag definition!
@@ -135,9 +136,9 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 	{ AnalyzerTag::SOCKS, "SOCKS",
 		SOCKS_Analyzer::InstantiateAnalyzer,
 		SOCKS_Analyzer::Available, 0, false },
-	//{ AnalyzerTag::Teredo, "Teredo",
-	//	Teredo_Analyzer::InstantiateAnalyzer,
-	//	Teredo_Analyzer::Available, 0, false },
+	{ AnalyzerTag::Teredo, "TEREDO",
+		Teredo_Analyzer::InstantiateAnalyzer,
+		Teredo_Analyzer::Available, 0, false },
 
 	{ AnalyzerTag::File, "FILE", File_Analyzer::InstantiateAnalyzer,
 		File_Analyzer::Available, 0, false },

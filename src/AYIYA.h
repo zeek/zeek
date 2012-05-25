@@ -16,13 +16,12 @@ public:
 		{ return new AYIYA_Analyzer(conn); }
 
 	static bool Available()
+		// TODO: specific option to turn off AYIYA analysis
 		{ return BifConst::Tunnel::max_depth > 0; }
 
 protected:
 	friend class AnalyzerTimer;
 	void ExpireTimer(double t);
-
-	int did_session_done;
 
 	binpac::AYIYA::AYIYA_Conn* interp;
 };

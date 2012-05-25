@@ -5265,6 +5265,10 @@ function capture_state_updates%(filename: string%) : bool
 ##
 ## ip: The IP address of the remote peer.
 ##
+## zone_id: If *ip* is a non-global IPv6 address, a particular :rfc:`4007`
+##          ``zone_id`` can given here.  An empty string, ``""``, means
+##          not to add any ``zone_id``.
+##
 ## p: The port of the remote peer.
 ##
 ## our_class: If a non-empty string, then the remote (listening) peer checks it
@@ -5288,10 +5292,11 @@ function capture_state_updates%(filename: string%) : bool
 ##              set_compression_level
 ##              send_state
 ##              send_id
-function connect%(ip: addr, p: port, our_class: string, retry: interval, ssl: bool%) : count
+function connect%(ip: addr, zone_id: string, p: port, our_class: string, retry: interval, ssl: bool%) : count
 	%{
-	return new Val(uint32(remote_serializer->Connect(ip->AsAddr(), p->Port(),
-				our_class->CheckString(), retry, ssl)),
+	return new Val(uint32(remote_serializer->Connect(ip->AsAddr(),
+	               zone_id->CheckString(), p->Port(), our_class->CheckString(),
+	               retry, ssl)),
 			TYPE_COUNT);
 	%}
 
@@ -5402,12 +5407,21 @@ function set_compression_level%(p: event_peer, level: count%) : bool
 ##
 ## ssl: If true, Bro uses SSL to encrypt the session.
 ##
+## ipv6: If true, enable listening on IPv6 addresses.
+##
+## zone_id: If *ip* is a non-global IPv6 address, a particular :rfc:`4007`
+##          ``zone_id`` can given here.  An empty string, ``""``, means
+##          not to add any ``zone_id``.
+##
+## retry_interval: If address *ip* is found to be already in use, this is
+##                 the interval at which to automatically retry binding.
+##
 ## Returns: True on success.
 ##
 ## .. bro:see:: connect disconnect
-function listen%(ip: addr, p: port, ssl: bool %) : bool
+function listen%(ip: addr, p: port, ssl: bool, ipv6: bool, zone_id: string, retry_interval: interval%) : bool
 	%{
-	return new Val(remote_serializer->Listen(ip->AsAddr(), p->Port(), ssl), TYPE_BOOL);
+	return new Val(remote_serializer->Listen(ip->AsAddr(), p->Port(), ssl, ipv6, zone_id->CheckString(), retry_interval), TYPE_BOOL);
 	%}
 
 ## Checks whether the last raised event came from a remote peer.

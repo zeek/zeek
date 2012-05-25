@@ -1,69 +1,19 @@
-# @TEST-SERIALIZE: comm
+# @TEST-GROUP: comm
 #
-# @TEST-EXEC: btest-bg-run sender   bro -C -r $TRACES/web.trace --pseudo-realtime ../sender.bro
-# @TEST-EXEC: btest-bg-run receiver bro ../receiver.bro
+# @TEST-REQUIRES: test -e $BUILD/aux/broccoli/src/libbroccoli.so || test -e $BUILD/aux/broccoli/src/libbroccoli.dylib
+#
+# @TEST-EXEC: chmod 600 broccoli.conf
+# @TEST-EXEC: btest-bg-run bro bro $DIST/aux/broccoli/test/broccoli-v6addrs.bro "Communication::listen_ssl=T" "ssl_ca_certificate=../ca_cert.pem" "ssl_private_key=../bro.pem"
+# @TEST-EXEC: btest-bg-run broccoli BROCCOLI_CONFIG_FILE=../broccoli.conf $BUILD/aux/broccoli/test/broccoli-v6addrs
 # @TEST-EXEC: btest-bg-wait -k 20
-# 
-# @TEST-EXEC: btest-diff sender/http.log
-# @TEST-EXEC: btest-diff receiver/http.log
-# @TEST-EXEC: cmp sender/http.log receiver/http.log
-# 
-# @TEST-EXEC: bro -x sender/events.bst | sed 's/^Event \[[-0-9.]*\] //g' | grep '^http_' | grep -v http_stats | sed 's/(.*$//g'  >events.snd.log
-# @TEST-EXEC: bro -x receiver/events.bst | sed 's/^Event \[[-0-9.]*\] //g' | grep '^http_' | grep -v http_stats | sed 's/(.*$//g'  >events.rec.log
-# @TEST-EXEC: btest-diff events.rec.log
-# @TEST-EXEC: btest-diff events.snd.log
-# @TEST-EXEC: cmp events.rec.log events.snd.log
-# 
-# We don't compare the transmitted event paramerters anymore. With the dynamic
-# state in there since 1.6, they don't match reliably.
+# @TEST-EXEC: btest-diff bro/.stdout
+# @TEST-EXEC: btest-diff broccoli/.stdout
 
-@TEST-START-FILE sender.bro
-
-@load frameworks/communication/listen
-redef Communication::listen_ssl=T;
-
-event bro_init()
-    {
-    capture_events("events.bst");
-    }
-
-redef peer_description = "events-send";
-
-# Make sure the HTTP connection really gets out.
-# (We still miss one final connection event because we shutdown before
-# it gets propagated but that's ok.)
-redef tcp_close_delay = 0secs;
-
-redef ssl_ca_certificate = "../ca_cert.pem";
-redef ssl_private_key = "../bro.pem";
-redef ssl_passphrase = "my-password";
-                                                                                                                                    
-@TEST-END-FILE
-
-#############
-
-@TEST-START-FILE receiver.bro
-
-event bro_init()
-    {
-    capture_events("events.bst");
-    }
-
-redef peer_description = "events-rcv";
-
-redef Communication::nodes += {
-    ["foo"] = [$host = 127.0.0.1, $events = /http_.*|signature_match/, $connect=T, $ssl=T]
-};
-
-redef ssl_ca_certificate = "../ca_cert.pem";
-redef ssl_private_key = "../bro.pem";
-redef ssl_passphrase = "my-password";
-                                                                                                                                    
-event remote_connection_closed(p: event_peer)
-	{
-	terminate();
-	}
-
+@TEST-START-FILE broccoli.conf
+/broccoli/use_ssl      yes
+/broccoli/ca_cert      ../ca_cert.pem
+/broccoli/host_cert    ../bro.pem
+/broccoli/host_key     ../bro.pem
 @TEST-END-FILE
 
 @TEST-START-FILE bro.pem
@@ -116,4 +66,3 @@ UfMGAiyYIenHi8u0Sia8KrIfuCDc2dG3DYmfX7/faCEbtSx8KtNQFIs3aXr1zhsw
 3sX9fLS0gp/qHoPMuhbhlvTlMFSE/Mih3KDsZEGcifzI6ooLF0YP5A==
 -----END CERTIFICATE-----
 @TEST-END-FILE
-

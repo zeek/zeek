@@ -20,19 +20,23 @@ namespace threading {
  */
 struct Field {
 	string name;	//! Name of the field.
+	//! Needed by input framework. Port fields have two names (one for the
+	//! port, one for the type), and this specifies the secondary name.
+	string secondary_name;
 	TypeTag type;	//! Type of the field.
 	TypeTag subtype;	//! Inner type for sets.
+	bool optional;	//! True if field is optional.
 
 	/**
 	 * Constructor.
 	 */
-	Field() 	{ subtype = TYPE_VOID; }
+	Field() 	{ subtype = TYPE_VOID; optional = false; }
 
 	/**
 	 * Copy constructor.
 	 */
 	Field(const Field& other)
-		: name(other.name), type(other.type), subtype(other.subtype) {  }
+		: name(other.name), type(other.type), subtype(other.subtype), optional(other.optional) {  }
 
 	/**
 	 * Unserializes a field.

@@ -1,5 +1,6 @@
 
 #include "Manager.h"
+#include "NetVar.h"
 
 using namespace threading;
 
@@ -11,6 +12,9 @@ Manager::Manager()
 	next_beat = 0;
 	terminating = false;
 	idle = true;
+
+	heart_beat_interval = double(BifConst::Threading::heart_beat_interval);
+	DBG_LOG(DBG_THREADING, "Heart beat interval set to %f", heart_beat_interval);
 	}
 
 Manager::~Manager()
@@ -57,6 +61,12 @@ void Manager::KillThreads()
 
 void Manager::AddThread(BasicThread* thread)
 	{
+	if ( heart_beat_interval == 0 ) {
+		// Sometimes initialization does not seem to work from constructor.
+		heart_beat_interval = double(BifConst::Threading::heart_beat_interval);
+		DBG_LOG(DBG_THREADING, "Heart beat interval set to %f", heart_beat_interval);
+	}
+
 	DBG_LOG(DBG_THREADING, "Adding thread %s ...", thread->Name().c_str());
 	all_threads.push_back(thread);
 	idle = false;
@@ -81,6 +91,12 @@ double Manager::NextTimestamp(double* network_time)
 		// is due or not set yet), we want to check for more asap.
 		return timer_mgr->Time();
 
+	for ( msg_thread_list::iterator i = msg_threads.begin(); i != msg_threads.end(); i++ )
+		{
+			if ( (*i)->MightHaveOut() )
+				return timer_mgr->Time();
+		}
+
 	return -1.0;
 	}
 
@@ -91,7 +107,7 @@ void Manager::Process()
 	if ( network_time && (network_time > next_beat || ! next_beat) )
 		{
 		do_beat = true;
-		next_beat = ::network_time + HEART_BEAT_INTERVAL;
+		next_beat = ::network_time + heart_beat_interval;
 		}
 
 	did_process = false;

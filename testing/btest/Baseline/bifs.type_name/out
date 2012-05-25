@@ -1,0 +1,20 @@
+string
+count
+double
+bool
+time
+interval
+pattern
+enum
+port
+addr
+addr
+subnet
+subnet
+vector
+vector
+set[count]
+set[string]
+table[count] of string
+table[string] of count
+record { c:count; s:string; }

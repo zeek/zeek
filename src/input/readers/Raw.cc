@@ -178,6 +178,12 @@ bool Raw::DoInit(string path, int arg_mode, int arg_num_fields, const Field* con
 
 bool Raw::GetLine(string& str) 
 	{
+	if ( in->peek() == std::iostream::traits_type::eof() ) 
+		return false;
+
+	if ( in->eofbit == true || in->failbit == true ) 
+		return false;
+
 	while ( getline(*in, str, separator[0]) ) 
 		return true;
 
@@ -246,6 +252,10 @@ bool Raw::DoUpdate()
 		
 		Put(fields);
 		}
+
+#ifdef DEBUG
+	Debug(DBG_INPUT, "DoUpdate finished successfully");
+#endif
 
 	return true;
 	}

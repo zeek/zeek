@@ -1,5 +1,6 @@
 #
-# @TEST-EXEC: bro -b %INPUT >out
+# @TEST-EXEC: btest-bg-run bro bro -b %INPUT
+# @TEST-EXEC: btest-bg-wait -k 1
 # @TEST-EXEC: btest-diff out
 
 @TEST-START-FILE input.log
@@ -13,21 +14,24 @@ sdf
 3rw43wRRERLlL#RWERERERE.
 @TEST-END-FILE
 
+@load frameworks/communication/listen
 
-module A;
+global outfile: file;
 
 type Val: record {
 	s: string;
 };
 
 event line(description: Input::EventDescription, tpe: Input::Event, s: string) {
-	print description;
-	print tpe;
-	print s;
+	print outfile, description;
+	print outfile, tpe;
+	print outfile, s;
+	close(outfile);
 }
 
 event bro_init()
 {
-	Input::add_event([$source="wc input.log |", $reader=Input::READER_RAW, $name="input", $fields=Val, $ev=line]);
+	outfile = open ("../out");
+	Input::add_event([$source="wc -l ../input.log |", $reader=Input::READER_RAW, $name="input", $fields=Val, $ev=line]);
 	Input::remove("input");
 }

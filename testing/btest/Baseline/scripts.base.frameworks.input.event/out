@@ -1,4 +1,4 @@
-[source=input.log, reader=Input::READER_ASCII, mode=Input::MANUAL, autostart=T, name=input, fields=<no value description>, want_record=F, ev=line
+[source=input.log, reader=Input::READER_ASCII, mode=Input::MANUAL, name=input, fields=<no value description>, want_record=F, ev=line
 { 
 print A::description;
 print A::tpe;
@@ -8,7 +8,7 @@ print A::b;
 Input::EVENT_NEW
 1
 T
-[source=input.log, reader=Input::READER_ASCII, mode=Input::MANUAL, autostart=T, name=input, fields=<no value description>, want_record=F, ev=line
+[source=input.log, reader=Input::READER_ASCII, mode=Input::MANUAL, name=input, fields=<no value description>, want_record=F, ev=line
 { 
 print A::description;
 print A::tpe;
@@ -18,7 +18,7 @@ print A::b;
 Input::EVENT_NEW
 2
 T
-[source=input.log, reader=Input::READER_ASCII, mode=Input::MANUAL, autostart=T, name=input, fields=<no value description>, want_record=F, ev=line
+[source=input.log, reader=Input::READER_ASCII, mode=Input::MANUAL, name=input, fields=<no value description>, want_record=F, ev=line
 { 
 print A::description;
 print A::tpe;
@@ -28,7 +28,7 @@ print A::b;
 Input::EVENT_NEW
 3
 F
-[source=input.log, reader=Input::READER_ASCII, mode=Input::MANUAL, autostart=T, name=input, fields=<no value description>, want_record=F, ev=line
+[source=input.log, reader=Input::READER_ASCII, mode=Input::MANUAL, name=input, fields=<no value description>, want_record=F, ev=line
 { 
 print A::description;
 print A::tpe;
@@ -38,7 +38,7 @@ print A::b;
 Input::EVENT_NEW
 4
 F
-[source=input.log, reader=Input::READER_ASCII, mode=Input::MANUAL, autostart=T, name=input, fields=<no value description>, want_record=F, ev=line
+[source=input.log, reader=Input::READER_ASCII, mode=Input::MANUAL, name=input, fields=<no value description>, want_record=F, ev=line
 { 
 print A::description;
 print A::tpe;
@@ -48,7 +48,7 @@ print A::b;
 Input::EVENT_NEW
 5
 F
-[source=input.log, reader=Input::READER_ASCII, mode=Input::MANUAL, autostart=T, name=input, fields=<no value description>, want_record=F, ev=line
+[source=input.log, reader=Input::READER_ASCII, mode=Input::MANUAL, name=input, fields=<no value description>, want_record=F, ev=line
 { 
 print A::description;
 print A::tpe;
@@ -58,7 +58,7 @@ print A::b;
 Input::EVENT_NEW
 6
 F
-[source=input.log, reader=Input::READER_ASCII, mode=Input::MANUAL, autostart=T, name=input, fields=<no value description>, want_record=F, ev=line
+[source=input.log, reader=Input::READER_ASCII, mode=Input::MANUAL, name=input, fields=<no value description>, want_record=F, ev=line
 { 
 print A::description;
 print A::tpe;

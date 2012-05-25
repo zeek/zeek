@@ -1,4 +1,4 @@
-[source=tail -f ../input.log |, reader=Input::READER_RAW, mode=Input::STREAM, autostart=T, name=input, fields=<no value description>, want_record=F, ev=line
+[source=tail -f ../input.log |, reader=Input::READER_RAW, mode=Input::STREAM, name=input, fields=<no value description>, want_record=F, ev=line
 { 
 print A::outfile, A::description;
 print A::outfile, A::tpe;
@@ -14,7 +14,7 @@ Input::remove(input);
 }]
 Input::EVENT_NEW
 sdfkh:KH;fdkncv;ISEUp34:Fkdj;YVpIODhfDF
-[source=tail -f ../input.log |, reader=Input::READER_RAW, mode=Input::STREAM, autostart=T, name=input, fields=<no value description>, want_record=F, ev=line
+[source=tail -f ../input.log |, reader=Input::READER_RAW, mode=Input::STREAM, name=input, fields=<no value description>, want_record=F, ev=line
 { 
 print A::outfile, A::description;
 print A::outfile, A::tpe;
@@ -30,7 +30,7 @@ Input::remove(input);
 }]
 Input::EVENT_NEW
 DSF"DFKJ"SDFKLh304yrsdkfj@#(*U$34jfDJup3UF
-[source=tail -f ../input.log |, reader=Input::READER_RAW, mode=Input::STREAM, autostart=T, name=input, fields=<no value description>, want_record=F, ev=line
+[source=tail -f ../input.log |, reader=Input::READER_RAW, mode=Input::STREAM, name=input, fields=<no value description>, want_record=F, ev=line
 { 
 print A::outfile, A::description;
 print A::outfile, A::tpe;
@@ -46,7 +46,7 @@ Input::remove(input);
 }]
 Input::EVENT_NEW
 q3r3057fdf
-[source=tail -f ../input.log |, reader=Input::READER_RAW, mode=Input::STREAM, autostart=T, name=input, fields=<no value description>, want_record=F, ev=line
+[source=tail -f ../input.log |, reader=Input::READER_RAW, mode=Input::STREAM, name=input, fields=<no value description>, want_record=F, ev=line
 { 
 print A::outfile, A::description;
 print A::outfile, A::tpe;
@@ -62,7 +62,7 @@ Input::remove(input);
 }]
 Input::EVENT_NEW
 sdfs\d
-[source=tail -f ../input.log |, reader=Input::READER_RAW, mode=Input::STREAM, autostart=T, name=input, fields=<no value description>, want_record=F, ev=line
+[source=tail -f ../input.log |, reader=Input::READER_RAW, mode=Input::STREAM, name=input, fields=<no value description>, want_record=F, ev=line
 { 
 print A::outfile, A::description;
 print A::outfile, A::tpe;
@@ -78,7 +78,7 @@ Input::remove(input);
 }]
 Input::EVENT_NEW
 
-[source=tail -f ../input.log |, reader=Input::READER_RAW, mode=Input::STREAM, autostart=T, name=input, fields=<no value description>, want_record=F, ev=line
+[source=tail -f ../input.log |, reader=Input::READER_RAW, mode=Input::STREAM, name=input, fields=<no value description>, want_record=F, ev=line
 { 
 print A::outfile, A::description;
 print A::outfile, A::tpe;
@@ -94,7 +94,7 @@ Input::remove(input);
 }]
 Input::EVENT_NEW
 dfsdf
-[source=tail -f ../input.log |, reader=Input::READER_RAW, mode=Input::STREAM, autostart=T, name=input, fields=<no value description>, want_record=F, ev=line
+[source=tail -f ../input.log |, reader=Input::READER_RAW, mode=Input::STREAM, name=input, fields=<no value description>, want_record=F, ev=line
 { 
 print A::outfile, A::description;
 print A::outfile, A::tpe;
@@ -110,7 +110,7 @@ Input::remove(input);
 }]
 Input::EVENT_NEW
 sdf
-[source=tail -f ../input.log |, reader=Input::READER_RAW, mode=Input::STREAM, autostart=T, name=input, fields=<no value description>, want_record=F, ev=line
+[source=tail -f ../input.log |, reader=Input::READER_RAW, mode=Input::STREAM, name=input, fields=<no value description>, want_record=F, ev=line
 { 
 print A::outfile, A::description;
 print A::outfile, A::tpe;
@@ -126,7 +126,7 @@ Input::remove(input);
 }]
 Input::EVENT_NEW
 3rw43wRRERLlL#RWERERERE.
-[source=tail -f ../input.log |, reader=Input::READER_RAW, mode=Input::STREAM, autostart=T, name=input, fields=<no value description>, want_record=F, ev=line
+[source=tail -f ../input.log |, reader=Input::READER_RAW, mode=Input::STREAM, name=input, fields=<no value description>, want_record=F, ev=line
 { 
 print A::outfile, A::description;
 print A::outfile, A::tpe;

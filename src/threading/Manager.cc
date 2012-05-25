@@ -125,7 +125,7 @@ void Manager::Process()
 
 			if ( msg->Process() )
 				{
-				//if ( network_time ) // FIXME: ask robin again if he needs this. makes input interface not work in bro_init.
+				if ( network_time )
 					did_process = true;
 				}
 

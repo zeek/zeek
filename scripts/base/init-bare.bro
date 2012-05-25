@@ -178,9 +178,9 @@ type endpoint_stats: record {
 ##    use ``count``. That should be changed.
 type AnalyzerID: count;
 
-## Statistics about an endpoint.
+## Statistics about a :bro:type:`connection` endpoint.
 ##
-## todo::Where is this used?
+## .. bro:see:: connection
 type endpoint: record {
 	size: count;	##< Logical size of data sent (for TCP: derived from sequence numbers).
 	## Endpoint state. For TCP connection, one of the constants:
@@ -194,6 +194,9 @@ type endpoint: record {
 	## Number of IP-level bytes sent. Only set if :bro:id:`use_conn_size_analyzer` is
 	## true.
 	num_bytes_ip: count &optional;
+	## The current IPv6 flow label that the connection endpoint is using.
+	## Always 0 if the connection is over IPv4.
+	flow_label: count;
 };
 
 # A connection. This is Bro's basic connection type describing IP- and

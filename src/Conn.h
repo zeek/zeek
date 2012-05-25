@@ -50,7 +50,8 @@ class Analyzer;
 
 class Connection : public BroObj {
 public:
-	Connection(NetSessions* s, HashKey* k, double t, const ConnID* id);
+	Connection(NetSessions* s, HashKey* k, double t, const ConnID* id,
+	           uint32 flow);
 	virtual ~Connection();
 
 	// Invoked when connection is about to be removed.  Use Ref(this)
@@ -241,6 +242,8 @@ public:
 
 	void SetUID(uint64 arg_uid)	 { uid = arg_uid; }
 
+	void CheckFlowLabel(bool is_orig, uint32 flow_label);
+
 protected:
 
 	Connection()	{ persistent = 0; }
@@ -271,6 +274,7 @@ protected:
 	IPAddr resp_addr;
 	uint32 orig_port, resp_port;	// in network order
 	TransportProto proto;
+	uint32 orig_flow_label, resp_flow_label; // most recent IPv6 flow labels
 	double start_time, last_time;
 	double inactivity_timeout;
 	RecordVal* conn_val;
@@ -286,6 +290,7 @@ protected:
 	unsigned int record_packets:1, record_contents:1;
 	unsigned int persistent:1;
 	unsigned int record_current_packet:1, record_current_content:1;
+	unsigned int saw_first_orig_packet:1, saw_first_resp_packet:1;
 
 	// Count number of connections.
 	static unsigned int total_connections;

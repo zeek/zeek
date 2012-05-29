@@ -836,7 +836,6 @@ Val* Manager::ValueToIndexVal(int num_fields, const RecordType *type, const Valu
 		idxval = ValueToVal(vals[0], type->FieldType(0));
 		position = 1;
 		}
-
 	else
 		{
 		ListVal *l = new ListVal(TYPE_ANY);
@@ -1283,7 +1282,6 @@ int Manager::PutTable(Stream* i, const Value* const *vals)
 
 	else if ( stream->num_val_fields == 1 && stream->want_record == 0 )
 		valval = ValueToVal(vals[position], stream->rtype->FieldType(0));
-
 	else
 		valval = ValueToRecordVal(vals, stream->rtype, &position);
 
@@ -1376,6 +1374,8 @@ int Manager::PutTable(Stream* i, const Value* const *vals)
 
 	else // no predicates or other stuff
 		stream->tab->Assign(idxval, valval);
+
+	Unref(idxval); // not consumed by assign
 
 	return stream->num_idx_fields + stream->num_val_fields;
 	}

@@ -112,13 +112,14 @@ bool is_export = false; // true if in an export {} block
  * (obviously not reentrant).
  */
 extern Expr* g_curr_debug_expr;
+extern bool in_debug;
+extern const char* g_curr_debug_error;
 
 #define YYLTYPE yyltype
 
 Expr* bro_this = 0;
 int in_init = 0;
 int in_record = 0;
-bool in_debug = false;
 bool resolving_global_ID = false;
 bool defining_global_ID = false;
 
@@ -249,7 +250,6 @@ bro:
 		TOK_DEBUG { in_debug = true; } expr
 			{
 			g_curr_debug_expr = $3;
-			in_debug = false;
 			}
 	;
 
@@ -1684,6 +1684,9 @@ int yyerror(const char msg[])
 	if ( generate_documentation )
 		strcat(msgbuf, "\nDocumentation mode is enabled: "
 		       "remember to check syntax of ## style comments\n");
+
+	if ( in_debug )
+		g_curr_debug_error = copy_string(msg);
 
 	reporter->Error("%s", msgbuf);
 

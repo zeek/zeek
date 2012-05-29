@@ -64,14 +64,14 @@ global try: count;
 
 event line(description: Input::TableDescription, tpe: Input::Event, left: Idx, right: Val) {
 	print outfile, "============EVENT============";
-	print outfile, "Description";
-	print outfile, description;
-	print outfile, "Type";
-	print outfile, tpe;
-	print outfile, "Left";
-	print outfile, left;
-	print outfile, "Right";
-	print outfile, right;
+#	print outfile, "Description";
+#	print outfile, description;
+#	print outfile, "Type";
+#	print outfile, tpe;
+#	print outfile, "Left";
+#	print outfile, left;
+#	print outfile, "Right";
+#	print outfile, right;
 }
 
 event bro_init()
@@ -105,9 +105,12 @@ event Input::update_finished(name: string, source: string) {
 	print outfile, servers;
 	
 	try = try + 1;
-	if ( try == 5 ) {
+	if ( try == 3 ) {
 		print outfile, "done";
+		print outfile, servers;
 		close(outfile);
 		Input::remove("input");
+		Input::remove("input2");
+		terminate();
 	}
 }

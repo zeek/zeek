@@ -1123,6 +1123,7 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 			val = stream->tab->Lookup(idx);
 			assert(val != 0);
 			predidx = ListValToRecordVal(idx, stream->itype, &startpos);
+			Unref(idx);
 			ev = new EnumVal(BifEnum::Input::EVENT_REMOVED, BifType::Enum::Input::Event);
 			}
 
@@ -1594,7 +1595,7 @@ RecordVal* Manager::ListValToRecordVal(ListVal* list, RecordType *request_type, 
 			(*position)++;
 			}
 
-		rec->Assign(i, fieldVal);
+		rec->Assign(i, fieldVal->Ref());
 		}
 
 	return rec;

@@ -413,6 +413,8 @@ bool Ascii::DoUpdate()
 					break;
 					}
 				file->close();
+				delete(file);
+				file = 0;
 				}
 
 			file = new ifstream(fname.c_str());

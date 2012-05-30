@@ -74,7 +74,7 @@ public:
 	string source;
 	bool removed;
 
-	int mode;
+	ReaderMode mode;
 
 	StreamType stream_type; // to distinguish between event and table streams
 
@@ -299,7 +299,25 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 	Unref(sourceval);
 
 	EnumVal* mode = description->LookupWithDefault(rtype->FieldOffset("mode"))->AsEnumVal();
-	info->mode = mode->InternalInt();
+
+	switch ( mode->InternalInt() ) 
+		{
+		case 0:
+			info->mode = MODE_MANUAL;
+			break;
+
+		case 1:
+			info->mode = MODE_REREAD;
+			break;
+
+		case 2:
+			info->mode = MODE_STREAM;
+			break;
+
+		default:
+			reporter->InternalError("unknown reader mode");
+		}
+
 	Unref(mode);
 
 	info->reader = reader_obj;

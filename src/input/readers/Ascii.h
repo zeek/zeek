@@ -10,7 +10,7 @@
 
 namespace input { namespace reader {
 
-// Description for input field mapping
+// Description for input field mapping.
 struct FieldMapping {
 	string name;
 	TypeTag type;
@@ -27,6 +27,9 @@ struct FieldMapping {
 	FieldMapping subType();
 };
 
+/**
+ * Reader for structured ASCII files.
+ */
 class Ascii : public ReaderBackend {
 public:
 	Ascii(ReaderFrontend* frontend);
@@ -35,23 +38,18 @@ public:
 	static ReaderBackend* Instantiate(ReaderFrontend* frontend) { return new Ascii(frontend); }
 
 protected:
-	virtual bool DoInit(string path, int mode, int arg_num_fields, const threading::Field* const* fields);
+	virtual bool DoInit(string path, ReaderMode mode, int arg_num_fields, const threading::Field* const* fields);
 	virtual void DoClose();
 	virtual bool DoUpdate();
+	virtual bool DoHeartbeat(double network_time, double current_time);
 
 private:
-	virtual bool DoHeartbeat(double network_time, double current_time);
 
 	bool ReadHeader(bool useCached);
 	bool GetLine(string& str);
 	threading::Value* EntryToVal(string s, FieldMapping type);
 
-	unsigned int num_fields;
-	const threading::Field* const *fields; // raw mapping
-
 	ifstream* file;
-	string fname;
-	int mode;
 	time_t mtime;
 
 	// map columns in the file to columns to send back to the manager

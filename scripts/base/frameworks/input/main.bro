@@ -117,9 +117,6 @@ export {
 
 module Input;
 
-#global streams: table[string] of Filter;
-# ^ change to set containing the names
-
 function add_table(description: Input::TableDescription) : bool
 	{
 	return __create_table_stream(description);

@@ -9,10 +9,6 @@
 #include "../../threading/SerialTypes.h"
 #include "../fdstream.h"
 
-#define MANUAL 0
-#define REREAD 1
-#define STREAM 2
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -48,7 +44,7 @@ void Raw::DoClose()
 		}
 	}
 
-bool Raw::Open()
+bool Raw::OpenInput()
 	{
 	if ( execute )
 		{
@@ -72,13 +68,13 @@ bool Raw::Open()
 	// This is defined in input/fdstream.h
 	in = new boost::fdistream(fileno(file));
 
-	if ( execute && mode == STREAM )
+	if ( execute && Mode() == MODE_STREAM )
 		fcntl(fileno(file), F_SETFL, O_NONBLOCK);
 
 	return true;
 	}
 
-bool Raw::Close()
+bool Raw::CloseInput()
 	{
 	if ( file == NULL )
 		{
@@ -103,17 +99,13 @@ bool Raw::Close()
 	return true;
 	}
 
-bool Raw::DoInit(string path, int arg_mode, int arg_num_fields, const Field* const* arg_fields)
+bool Raw::DoInit(string path, ReaderMode mode, int num_fields, const Field* const* fields)
 	{
 	fname = path;
-	mode = arg_mode;
 	mtime = 0;
 	execute = false;
 	firstrun = true;
 	bool result;
-
-	num_fields = arg_num_fields;
-	fields = arg_fields;
 
 	if ( path.length() == 0 )
 		{
@@ -121,7 +113,7 @@ bool Raw::DoInit(string path, int arg_mode, int arg_num_fields, const Field* con
 		return false;
 		}
 
-	if ( arg_num_fields != 1 )
+	if ( num_fields != 1 )
 		{
 		Error("Filter for raw reader contains more than one field. "
 		      "Filters for the raw reader may only contain exactly one string field. "
@@ -142,7 +134,7 @@ bool Raw::DoInit(string path, int arg_mode, int arg_num_fields, const Field* con
 		execute = true;
 		fname = path.substr(0, fname.length() - 1);
 
-		if ( (mode != MANUAL) && (mode != STREAM) ) {
+		if ( (mode != MODE_MANUAL) && (mode != MODE_STREAM) ) {
 			Error(Fmt("Unsupported read mode %d for source %s in execution mode",
 				  mode, fname.c_str()));
 			return false;
@@ -152,13 +144,6 @@ bool Raw::DoInit(string path, int arg_mode, int arg_num_fields, const Field* con
 
 	} else {
 		execute = false;
-		if ( (mode != MANUAL) && (mode != REREAD) && (mode != STREAM) )
-			{
-			Error(Fmt("Unsupported read mode %d for source %s",
-				  mode, fname.c_str()));
-			return false;
-			}
-
 		result = Open();
 		}
 
@@ -198,8 +183,8 @@ bool Raw::DoUpdate()
 
 	else
 		{
-		switch ( mode ) {
-		case REREAD:
+		switch ( Mode() ) {
+		case MODE_REREAD:
 			{
 			// check if the file has changed
 			struct stat sb;
@@ -219,9 +204,9 @@ bool Raw::DoUpdate()
 			// fallthrough
 			}
 
-		case MANUAL:
-		case STREAM:
-			if ( mode == STREAM && file != NULL && in != NULL )
+		case MODE_MANUAL:
+		case MODE_STREAM:
+			if ( Mode() == MODE_STREAM && file != NULL && in != NULL )
 				{
 				//fpurge(file);
 				in->clear(); // remove end of file evil bits
@@ -242,7 +227,7 @@ bool Raw::DoUpdate()
 	string line;
 	while ( GetLine(line) )
 		{
-		assert (num_fields == 1);
+		assert (NumFields() == 1);
 
 		Value** fields = new Value*[1];
 
@@ -265,13 +250,13 @@ bool Raw::DoHeartbeat(double network_time, double current_time)
 	{
 	ReaderBackend::DoHeartbeat(network_time, current_time);
 
-	switch ( mode ) {
-		case MANUAL:
+	switch ( Mode() ) {
+		case MODE_MANUAL:
 			// yay, we do nothing :)
 			break;
 
-		case REREAD:
-		case STREAM:
+		case MODE_REREAD:
+		case MODE_STREAM:
 			Update();	// call update and not DoUpdate, because update
 					// checks disabled.
 			break;

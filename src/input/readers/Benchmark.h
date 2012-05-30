@@ -18,21 +18,16 @@ public:
 	static ReaderBackend* Instantiate(ReaderFrontend* frontend) { return new Benchmark(frontend); }
 
 protected:
-	virtual bool DoInit(string path, int mode, int arg_num_fields, const threading::Field* const* fields);
+	virtual bool DoInit(string path, ReaderMode mode, int arg_num_fields, const threading::Field* const* fields);
 	virtual void DoClose();
 	virtual bool DoUpdate();
-
-private:
 	virtual bool DoHeartbeat(double network_time, double current_time);
 
+private:
 	double CurrTime();
 	string RandomString(const int len);
 	threading::Value* EntryToVal(TypeTag Type, TypeTag subtype);
 
-	unsigned int num_fields;
-	const threading::Field* const * fields; // raw mapping
-
-	int mode;
 	int num_lines;
 	double multiplication_factor;
 	int spread;

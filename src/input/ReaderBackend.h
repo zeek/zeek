@@ -4,10 +4,31 @@
 #define INPUT_READERBACKEND_H
 
 #include "BroString.h"
-#include "../threading/SerialTypes.h"
+
+#include "threading/SerialTypes.h"
 #include "threading/MsgThread.h"
 
 namespace input {
+
+/**
+ * The modes a reader can be in. 
+ */
+enum ReaderMode {
+	/**
+	 * TODO Bernhard.
+	 */
+	MODE_MANUAL,
+
+	/**
+	 * TODO Bernhard.
+	 */
+	MODE_REREAD,
+
+	/**
+	 * TODO Bernhard.
+	 */
+	MODE_STREAM
+};
 
 class ReaderFrontend;
 
@@ -40,24 +61,20 @@ public:
 	/**
 	 * One-time initialization of the reader to define the input source.
 	 *
-	 * @param arg_source A string left to the interpretation of the
+	 * @param source A string left to the interpretation of the
 	 * reader implementation; it corresponds to the value configured on
 	 * the script-level for the input stream.
 	 *
-	 * @param fields An array of size \a num_fields with the input
-	 * fields. The method takes ownership of the array.
+	 * @param mode The opening mode for the input source.
 	 *
-	 * @param mode The opening mode for the input source as one of the
-	 * Input::Mode script constants.
-	 *
-	 * @param arg_num_fields Number of fields contained in \a fields.
+	 * @param num_fields Number of fields contained in \a fields.
 	 *
 	 * @param fields The types and names of the fields to be retrieved
 	 * from the input source.
 	 *
 	 * @return False if an error occured.
 	 */
-	bool Init(string arg_source, int mode, int arg_num_fields, const threading::Field* const* fields);
+	bool Init(string source, ReaderMode mode, int num_fields, const threading::Field* const* fields);
 
 	/**
 	 * Finishes reading from this input stream in a regular fashion. Must
@@ -98,8 +115,15 @@ protected:
 	 * prevents the reader from further operation; it will then be
 	 * disabled and eventually deleted. When returning false, an
 	 * implementation should also call Error() to indicate what happened.
+	 *
+	 * Arguments are the same as Init().
+	 *
+	 * Note that derived classes don't need to store the values passed in
+	 * here if other methods need them to; the \a ReaderBackend class
+	 * provides accessor methods to get them later, and they are passed
+	 * in here only for convinience.
 	 */
-	virtual bool DoInit(string arg_sources, int mode, int arg_num_fields, const threading::Field* const* fields) = 0;
+	virtual bool DoInit(string path, ReaderMode mode, int arg_num_fields, const threading::Field* const* fields) = 0;
 
 	/**
 	 * Reader-specific method implementing input finalization at
@@ -129,9 +153,24 @@ protected:
 	virtual bool DoUpdate() = 0;
 
 	/**
-	 * Returns the input source as passed into the constructor.
+	 * Returns the input source as passed into Init()/.
 	 */
 	const string Source() const	{ return source; }
+
+	/**
+	 * Returns the reader mode as passed into Init().
+	 */
+	const ReaderMode Mode() const	{ return mode; }
+
+	/**
+	 * Returns the number of log fields as passed into Init().
+	 */
+	unsigned int NumFields() const	{ return num_fields; }
+
+	/**
+	 * Returns the log fields as passed into Init().
+	 */
+	const threading::Field* const * Fields() const	{ return fields; }
 
 	/**
 	 * Method allowing a reader to send a specified Bro event. Vals must
@@ -145,8 +184,8 @@ protected:
 	 */
 	void SendEvent(const string& name, const int num_vals, threading::Value* *vals);
 
-	// Content-sending-functions (simple mode). Including table-specific
-	// stuff that simply is not used if we have no table.
+	// Content-sending-functions (simple mode). Include table-specific
+	// functionality that simply is not used if we have no table.
 
 	/**
 	 * Method allowing a reader to send a list of values read from a
@@ -155,9 +194,10 @@ protected:
 	 * If the stream is a table stream, the values are inserted into the
 	 * table; if it is an event stream, the event is raised.
 	 *
-	 * @param val list of threading::Values expected by the stream
+	 * @param val Array of threading::Values expected by the stream. The
+	 * array must have exactly NumEntries() elements.
 	 */
-	void Put(threading::Value* *val);
+	void Put(threading::Value** val);
 
 	/**
 	 * Method allowing a reader to delete a specific value from a Bro
@@ -166,9 +206,10 @@ protected:
 	 * If the receiving stream is an event stream, only a removed event
 	 * is raised.
 	 *
-	 * @param val list of threading::Values expected by the stream
+	 * @param val Array of threading::Values expected by the stream. The
+	 * array must have exactly NumEntries() elements.
 	 */
-	void Delete(threading::Value* *val);
+	void Delete(threading::Value** val);
 
 	/**
 	 * Method allowing a reader to clear a Bro table.
@@ -187,9 +228,10 @@ protected:
 	 * If the stream is a table stream, the values are inserted into the
 	 * table; if it is an event stream, the event is raised.
 	 *
-	 * @param val list of threading::Values expected by the stream
+	 * @param val Array of threading::Values expected by the stream. The
+	 * array must have exactly NumEntries() elements.
 	 */
-	void SendEntry(threading::Value*  *vals);
+	void SendEntry(threading::Value** vals);
 
 	/**
 	 * Method telling the manager, that the current list of entries sent
@@ -210,14 +252,16 @@ protected:
 	virtual bool DoHeartbeat(double network_time, double current_time);
 
 	/**
-	 * Utility function for Readers - convert a string into a TransportProto
+	 *  Convert a string into a TransportProto. This is just a utility
+	 *  function for Readers.
 	 *
 	 * @param proto the transport protocol
 	 */
 	TransportProto StringToProto(const string &proto);
 
 	/**
-	 * Utility function for Readers - convert a string into a Value::addr_t
+	 * Convert a string into a Value::addr_t.  This is just a utility
+	 * function for Readers.
 	 *
 	 * @param addr containing an ipv4 or ipv6 address
 	 */
@@ -229,11 +273,11 @@ private:
 	ReaderFrontend* frontend;
 
 	string source;
-
-    	bool disabled;
-
+	ReaderMode mode;
 	unsigned int num_fields;
 	const threading::Field* const * fields; // raw mapping
+
+	bool disabled;
 };
 
 }

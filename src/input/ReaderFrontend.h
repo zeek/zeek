@@ -6,6 +6,8 @@
 #include "../threading/MsgThread.h"
 #include "../threading/SerialTypes.h"
 
+#include "ReaderBackend.h"
+
 namespace input {
 
 class Manager;
@@ -50,7 +52,7 @@ public:
 	 *
 	 * This method must only be called from the main thread.
 	 */
-	void Init(string arg_source, int mode, const int arg_num_fields, const threading::Field* const* fields);
+	void Init(string arg_source, ReaderMode mode, const int arg_num_fields, const threading::Field* const* fields);
 
 	/**
 	 * Force an update of the current input source. Actual action depends

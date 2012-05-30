@@ -12,9 +12,6 @@ Manager::Manager()
 	next_beat = 0;
 	terminating = false;
 	idle = true;
-
-	heart_beat_interval = double(BifConst::Threading::heart_beat_interval);
-	DBG_LOG(DBG_THREADING, "Heart beat interval set to %f", heart_beat_interval);
 	}
 
 Manager::~Manager()
@@ -61,12 +58,6 @@ void Manager::KillThreads()
 
 void Manager::AddThread(BasicThread* thread)
 	{
-	if ( heart_beat_interval == 0 ) {
-		// Sometimes initialization does not seem to work from constructor.
-		heart_beat_interval = double(BifConst::Threading::heart_beat_interval);
-		DBG_LOG(DBG_THREADING, "Heart beat interval set to %f", heart_beat_interval);
-	}
-
 	DBG_LOG(DBG_THREADING, "Adding thread %s ...", thread->Name().c_str());
 	all_threads.push_back(thread);
 	idle = false;
@@ -107,7 +98,7 @@ void Manager::Process()
 	if ( network_time && (network_time > next_beat || ! next_beat) )
 		{
 		do_beat = true;
-		next_beat = ::network_time + heart_beat_interval;
+		next_beat = ::network_time + BifConst::Threading::heart_beat_interval;
 		}
 
 	did_process = false;

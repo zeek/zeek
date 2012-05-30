@@ -8,10 +8,6 @@
 
 #include "../../threading/SerialTypes.h"
 
-#define MANUAL 0
-#define REREAD 1
-#define STREAM 2
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -87,25 +83,14 @@ void Ascii::DoClose()
 		}
 	}
 
-bool Ascii::DoInit(string path, int arg_mode, int arg_num_fields, const Field* const* arg_fields)
+bool Ascii::DoInit(string path, ReaderMode mode, int num_fields, const Field* const* fields)
 	{
-	fname = path;
-	mode = arg_mode;
 	mtime = 0;
-
-	num_fields = arg_num_fields;
-	fields = arg_fields;
-
-	if ( (mode != MANUAL) && (mode != REREAD) && (mode != STREAM) )
-		{
-		Error(Fmt("Unsupported read mode %d for source %s", mode, path.c_str()));
-		return false;
-		}
 
 	file = new ifstream(path.c_str());
 	if ( ! file->is_open() )
 		{
-		Error(Fmt("Init: cannot open %s", fname.c_str()));
+		Error(Fmt("Init: cannot open %s", path.c_str()));
 		delete(file);
 		file = 0;
 		return false;
@@ -113,7 +98,7 @@ bool Ascii::DoInit(string path, int arg_mode, int arg_num_fields, const Field* c
 
 	if ( ReadHeader(false) == false )
 		{
-		Error(Fmt("Init: cannot open %s; headers are incorrect", fname.c_str()));
+		Error(Fmt("Init: cannot open %s; headers are incorrect", path.c_str()));
 		file->close();
 		delete(file);
 		file = 0;
@@ -162,9 +147,9 @@ bool Ascii::ReadHeader(bool useCached)
 	//printf("Updating fields from description %s\n", line.c_str());
 	columnMap.clear();
 
-	for ( unsigned int i = 0; i < num_fields; i++ )
+	for ( unsigned int i = 0; i < NumFields(); i++ )
 		{
-		const Field* field = fields[i];
+		const Field* field = Fields()[i];
 
 		map<string, uint32_t>::iterator fit = ifields.find(field->name);
 		if ( fit == ifields.end() )
@@ -179,7 +164,7 @@ bool Ascii::ReadHeader(bool useCached)
 				}
 
 			Error(Fmt("Did not find requested field %s in input data file %s.",
-				  field->name.c_str(), fname.c_str()));
+				  field->name.c_str(), Source().c_str()));
 			return false;
 			}
 
@@ -377,14 +362,14 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 // read the entire file and send appropriate thingies back to InputMgr
 bool Ascii::DoUpdate()
 	{
-	switch ( mode ) {
-		case REREAD:
+	switch ( Mode() ) {
+		case MODE_REREAD:
 			{
 			// check if the file has changed
 			struct stat sb;
-			if ( stat(fname.c_str(), &sb) == -1 )
+			if ( stat(Source().c_str(), &sb) == -1 )
 				{
-				Error(Fmt("Could not get stat for %s", fname.c_str()));
+				Error(Fmt("Could not get stat for %s", Source().c_str()));
 				return false;
 				}
 
@@ -397,14 +382,14 @@ bool Ascii::DoUpdate()
 			// fallthrough
 			}
 
-		case MANUAL:
-		case STREAM:
+		case MODE_MANUAL:
+		case MODE_STREAM:
 			{
 			// dirty, fix me. (well, apparently after trying seeking, etc
 			// - this is not that bad)
 			if ( file && file->is_open() )
 				{
-				if ( mode == STREAM )
+				if ( Mode() == MODE_STREAM )
 					{
 					file->clear(); // remove end of file evil bits
 					if ( !ReadHeader(true) )
@@ -415,10 +400,10 @@ bool Ascii::DoUpdate()
 				file->close();
 				}
 
-			file = new ifstream(fname.c_str());
+			file = new ifstream(Source().c_str());
 			if ( !file->is_open() )
 				{
-				Error(Fmt("cannot open %s", fname.c_str()));
+				Error(Fmt("cannot open %s", Source().c_str()));
 				return false;
 				}
 
@@ -455,7 +440,7 @@ bool Ascii::DoUpdate()
 
 		pos--; // for easy comparisons of max element.
 
-		Value** fields = new Value*[num_fields];
+		Value** fields = new Value*[NumFields()];
 
 		int fpos = 0;
 		for ( vector<FieldMapping>::iterator fit = columnMap.begin();
@@ -502,15 +487,15 @@ bool Ascii::DoUpdate()
 			}
 
 		//printf("fpos: %d, second.num_fields: %d\n", fpos, (*it).second.num_fields);
-		assert ( (unsigned int) fpos == num_fields );
+		assert ( (unsigned int) fpos == NumFields() );
 
-		if ( mode == STREAM )
+		if ( Mode() == MODE_STREAM )
 			Put(fields);
 		else
 			SendEntry(fields);
 		}
 
-	if ( mode != STREAM )
+	if ( Mode () != MODE_STREAM )
 		EndCurrentSend();
 
 	return true;
@@ -520,13 +505,13 @@ bool Ascii::DoHeartbeat(double network_time, double current_time)
 {
 	ReaderBackend::DoHeartbeat(network_time, current_time);
 
-	switch ( mode ) {
-		case MANUAL:
+	switch ( Mode() ) {
+		case MODE_MANUAL:
 			// yay, we do nothing :)
 			break;
 
-		case REREAD:
-		case STREAM:
+		case MODE_REREAD:
+		case MODE_STREAM:
 			Update(); // call update and not DoUpdate, because update
 				  // checks disabled.
 			break;

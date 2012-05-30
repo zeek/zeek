@@ -5,10 +5,6 @@
 
 #include "../../threading/SerialTypes.h"
 
-#define MANUAL 0
-#define REREAD 1
-#define STREAM 2
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -18,8 +14,6 @@
 using namespace input::reader;
 using threading::Value;
 using threading::Field;
-
-
 
 Benchmark::Benchmark(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	{
@@ -42,22 +36,12 @@ void Benchmark::DoClose()
 	{
 	}
 
-bool Benchmark::DoInit(string path, int arg_mode, int arg_num_fields, const Field* const* arg_fields)
+bool Benchmark::DoInit(string path, ReaderMode mode, int num_fields, const Field* const* fields)
 	{
-	mode = arg_mode;
-
-	num_fields = arg_num_fields;
-	fields = arg_fields;
 	num_lines = atoi(path.c_str());
 
 	if ( autospread != 0.0 )
 		autospread_time = (int) ( (double) 1000000 / (autospread * (double) num_lines) );
-
-	if ( (mode != MANUAL) && (mode != REREAD) && (mode != STREAM) )
-		{
-		Error(Fmt("Unsupported read mode %d for source %s", mode, path.c_str()));
-		return false;
-		}
 
 	heartbeatstarttime = CurrTime();
 	DoUpdate();
@@ -95,11 +79,11 @@ bool Benchmark::DoUpdate()
 	int linestosend = num_lines * heart_beat_interval;
 	for ( int i = 0; i < linestosend; i++ )
 		{
-		Value** field = new Value*[num_fields];
-		for  (unsigned int j = 0; j < num_fields; j++ )
-			field[j] = EntryToVal(fields[j]->type, fields[j]->subtype);
+		Value** field = new Value*[NumFields()];
+		for  (unsigned int j = 0; j < NumFields(); j++ )
+			field[j] = EntryToVal(Fields()[j]->type, Fields()[j]->subtype);
 
-		if ( mode == STREAM )
+		if ( Mode() == MODE_STREAM )
 			// do not do tracking, spread out elements over the second that we have...
 			Put(field);
 		else
@@ -125,7 +109,7 @@ bool Benchmark::DoUpdate()
 
 	}
 
-	if ( mode != STREAM )
+	if ( Mode() != MODE_STREAM )
 		EndCurrentSend();
 
 	return true;
@@ -243,13 +227,13 @@ bool Benchmark::DoHeartbeat(double network_time, double current_time)
 	num_lines += add;
 	heartbeatstarttime = CurrTime();
 
-	switch ( mode ) {
-		case MANUAL:
+	switch ( Mode() ) {
+		case MODE_MANUAL:
 			// yay, we do nothing :)
 			break;
 
-		case REREAD:
-		case STREAM:
+		case MODE_REREAD:
+		case MODE_STREAM:
 			if ( multiplication_factor != 1 || add != 0 )
 				{
 				// we have to document at what time we changed the factor to what value.
@@ -270,6 +254,7 @@ bool Benchmark::DoHeartbeat(double network_time, double current_time)
 
 			SendEvent("HeartbeatDone", 0, 0);
 			break;
+
 		default:
 			assert(false);
 	}

@@ -12,7 +12,7 @@ namespace input {
 class InitMessage : public threading::InputMessage<ReaderBackend>
 {
 public:
-	InitMessage(ReaderBackend* backend, const string source, const int mode,
+	InitMessage(ReaderBackend* backend, const string source, ReaderMode mode,
 		    const int num_fields, const threading::Field* const* fields)
 		: threading::InputMessage<ReaderBackend>("Init", backend),
 		source(source), mode(mode), num_fields(num_fields), fields(fields) { }
@@ -24,7 +24,7 @@ public:
 
 private:
 	const string source;
-	const int mode;
+	const ReaderMode mode;
 	const int num_fields;
        	const threading::Field* const* fields;
 };
@@ -64,7 +64,7 @@ ReaderFrontend::~ReaderFrontend()
 	{
 	}
 
-void ReaderFrontend::Init(string arg_source, int mode, const int num_fields,
+void ReaderFrontend::Init(string arg_source, ReaderMode mode, const int num_fields,
 		          const threading::Field* const* fields)
 	{
 	if ( disabled )

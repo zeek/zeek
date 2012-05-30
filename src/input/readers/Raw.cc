@@ -39,9 +39,7 @@ Raw::~Raw()
 void Raw::DoClose()
 	{
 	if ( file != 0 )
-		{
-		Close();
-		}
+		CloseInput();
 	}
 
 bool Raw::OpenInput()
@@ -140,11 +138,13 @@ bool Raw::DoInit(string path, ReaderMode mode, int num_fields, const Field* cons
 			return false;
 		}
 
-		result = Open();
+		result = OpenInput();
 
-	} else {
+		}
+	else
+		{
 		execute = false;
-		result = Open();
+		result = OpenInput();
 		}
 
 	if ( result == false )
@@ -213,8 +213,8 @@ bool Raw::DoUpdate()
 				break;
 				}
 
-			Close();
-			if ( ! Open() )
+			CloseInput();
+			if ( ! OpenInput() )
 				return false;
 
 			break;

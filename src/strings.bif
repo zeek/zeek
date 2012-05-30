@@ -175,7 +175,7 @@ function join_string_vec%(vec: string_vec, sep: string%): string
 		if ( i > 0 )
 			d.Add(sep->CheckString(), 0);
 
-		v->Lookup(i+1)->Describe(&d);
+		v->Lookup(i)->Describe(&d);
 		}
 
 	BroString* s = new BroString(1, d.TakeBytes(), d.Len());

@@ -397,11 +397,14 @@ bool Ascii::DoUpdate()
 
 					break;
 					}
+
 				file->close();
+				delete file;
+				file = 0;
 				}
 
 			file = new ifstream(Source().c_str());
-			if ( !file->is_open() )
+			if ( ! file->is_open() )
 				{
 				Error(Fmt("cannot open %s", Source().c_str()));
 				return false;

@@ -15,6 +15,8 @@ redef Log::enable_remote_logging = F;
 
 redef Log::default_rotation_interval = 1 hrs;
 
+redef Log::default_alarm_mail_interval = 24 hrs;
+
 ## Use the cluster's archive logging script.
 redef Log::default_rotation_postprocessor_cmd = "archive-log";
 

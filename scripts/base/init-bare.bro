@@ -1805,6 +1805,14 @@ export {
 	};
 } # end export
 
+module Threading;
+
+export {
+	## The heartbeat interval used by the threading framework.
+	## Changing this should usually not be neccessary and will break several tests.
+	const heartbeat_interval = 1.0 secs &redef;
+}
+
 module GLOBAL;
 
 ## An NTP message.
@@ -2632,3 +2640,6 @@ const snaplen = 8192 &redef;
 # Load the logging framework here because it uses fairly deep integration with
 # BiFs and script-land defined types.
 @load base/frameworks/logging
+
+@load base/frameworks/input
+

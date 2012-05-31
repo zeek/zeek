@@ -44,7 +44,7 @@ public:
 	void Terminate();
 
 	/**
-	 * Returns True if we are currently in Terminate() waiting for 
+	 * Returns True if we are currently in Terminate() waiting for
 	 * threads to exit.
 	 */
 	bool Terminating() const	{ return terminating; }
@@ -99,7 +99,7 @@ protected:
 	 * Registers a new message thread with the manager. This is
 	 * automatically called by the thread's constructor. This must be
 	 * called \a in \a addition to AddThread(BasicThread* thread). The
-	 * MsgThread constructor makes sure to do so. 
+	 * MsgThread constructor makes sure to do so.
 	 *
 	 * @param thread The thread.
 	 */
@@ -126,8 +126,6 @@ protected:
 	virtual const char* Tag()	{ return "threading::Manager"; }
 
 private:
-	static const int HEART_BEAT_INTERVAL = 1;
-
 	typedef std::list<BasicThread*> all_thread_list;
 	all_thread_list all_threads;
 

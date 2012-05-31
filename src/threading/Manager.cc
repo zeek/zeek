@@ -1,5 +1,6 @@
 
 #include "Manager.h"
+#include "NetVar.h"
 
 using namespace threading;
 
@@ -81,6 +82,12 @@ double Manager::NextTimestamp(double* network_time)
 		// is due or not set yet), we want to check for more asap.
 		return timer_mgr->Time();
 
+	for ( msg_thread_list::iterator i = msg_threads.begin(); i != msg_threads.end(); i++ )
+		{
+			if ( (*i)->MightHaveOut() )
+				return timer_mgr->Time();
+		}
+
 	return -1.0;
 	}
 
@@ -91,7 +98,7 @@ void Manager::Process()
 	if ( network_time && (network_time > next_beat || ! next_beat) )
 		{
 		do_beat = true;
-		next_beat = ::network_time + HEART_BEAT_INTERVAL;
+		next_beat = ::network_time + BifConst::Threading::heartbeat_interval;
 		}
 
 	did_process = false;

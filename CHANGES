@@ -1,4 +1,17 @@
 
+2.0-570 | 2012-05-30 19:08:18 -0700
+
+  * A new input framework enables scripts to read in external data
+    dynamically on the fly as Bro is processing network traffic.
+    (Bernhard Amann)
+
+    Currently, the framework supports reading ASCII input that's
+    structured similar as Bro's log files as well as raw blobs of
+    data. Other formats will come in the future.
+
+    See doc/input.rst for more information (this will be extended
+    further soon).
+
 2.0-395 | 2012-05-30 17:03:31 -0700
 
   * Remove unnecessary assert in ICMP analyzer which could lead to

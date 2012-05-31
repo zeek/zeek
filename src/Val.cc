@@ -948,6 +948,11 @@ SubNetVal::SubNetVal(const IPAddr& addr, int width) : Val(TYPE_SUBNET)
 	val.subnet_val = new IPPrefix(addr, width);
 	}
 
+SubNetVal::SubNetVal(const IPPrefix& prefix) : Val(TYPE_SUBNET)
+	{
+	val.subnet_val = new IPPrefix(prefix);
+	}
+
 SubNetVal::~SubNetVal()
 	{
 	delete val.subnet_val;

@@ -1,4 +1,8 @@
 
+2.0-571 | 2012-05-30 19:12:43 -0700
+
+  * Updating submodule(s).
+
 2.0-570 | 2012-05-30 19:08:18 -0700
 
   * A new input framework enables scripts to read in external data

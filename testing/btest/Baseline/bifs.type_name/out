@@ -1,5 +1,6 @@
 string
 count
+int
 double
 bool
 time
@@ -18,3 +19,8 @@ set[string]
 table[count] of string
 table[string] of count
 record { c:count; s:string; }
+function(aa:int; bb:int;) : bool
+function() : any
+function() : void
+file of string
+event()

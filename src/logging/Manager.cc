@@ -21,6 +21,12 @@
 #include "writers/DataSeries.h"
 #endif
 
+#define USE_SQLITE 1
+
+#ifdef USE_SQLITE
+#include "writers/SQLite.h"
+#endif
+
 using namespace logging;
 
 // Structure describing a log writer type.
@@ -37,6 +43,9 @@ WriterDefinition log_writers[] = {
 	{ BifEnum::Log::WRITER_ASCII, "Ascii", 0, writer::Ascii::Instantiate },
 #ifdef USE_DATASERIES
 	{ BifEnum::Log::WRITER_DATASERIES, "DataSeries", 0, writer::DataSeries::Instantiate },
+#endif
+#ifdef USE_SQLITE
+	{ BifEnum::Log::WRITER_SQLITE, "SQLite", 0, writer::SQLite::Instantiate },
 #endif
 
 	// End marker, don't touch.

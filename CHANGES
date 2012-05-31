@@ -1,4 +1,49 @@
 
+2.0-395 | 2012-05-30 17:03:31 -0700
+
+  * Remove unnecessary assert in ICMP analyzer which could lead to
+    aborts. Addresses #822.
+
+  * Improve script debugger backtrace and print commands. (Jon Siwek)
+    
+  * Switching default DS compression to gzip. (Robin Sommer)
+    
+  * Improve availability of IPv6 flow label in connection records.
+    This adds a "flow_label" field to the "endpoint" record type,
+    which is used for both the "orig" and "resp" fields of
+    "connection" records.  The new "connection_flow_label_changed"
+    event also allows tracking of changes in flow labels: it's raised
+    each time one direction of the connection starts using a different
+    label. (Jon Siwek)
+
+  * Add unit tests for Broccoli SSL and Broccoli IPv6 connectivity.
+    (Jon Siwek)
+
+  * Remove AI_ADDRCONFIG getaddrinfo hints flag for listening sockets.
+    (Jon Siwek)
+
+  * Undo unnecessary communication protocol version bump. (Jon Siwek)
+    
+  * Add support to Bro for connecting with peers over IPv6. (Jon Siwek)
+    
+    - Communication::listen_ipv6 needs to be redef'd to true in order
+      for IPv6 listening sockets to be opened.
+
+    - Added Communication::listen_retry option as an interval at which
+      to retry binding to socket addresses that were already in use.
+
+    - Added some explicit baselines to check in the istate.events and
+      istate.events-ssl tests -- the SSL test was incorrectly passing
+      because it compared two empty files.  (The files being empty
+      because "http/base" was given as an argument to Bro which it
+      couldn't handle because that script doesn't exist anymore).
+
+    - Support for communication over non-global IPv6 addresses. This
+      usually requires specifying an additional zone identifier (see
+      RFC 4007). The connect() and listen() BIFs have been changed to
+      accept this zone identifier as an argument.
+
+
 2.0-377 | 2012-05-24 16:46:06 -0700
 
   * Documentation fixes. (Jon Siwek and Daniel Thayer)

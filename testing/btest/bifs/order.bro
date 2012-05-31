@@ -2,17 +2,16 @@
 # @TEST-EXEC: bro %INPUT >out
 # @TEST-EXEC: btest-diff out
 
-function myfunc(a: count, b: count): bool
+function myfunc(aa: interval, bb: interval): bool
 	{
-	return a < b;
+	return aa < bb;
 	}
 
 event bro_init()
 	{
-	local a = vector( 5, 3, 8 );
+	local a = vector( 5, 2, 8, 3 );
+	print order(a);
 
-	print order(a, myfunc);
-	
-	print a;
-
+	local b = vector( 5hr, 1sec, 7min );
+	print order(b, myfunc);
 	}

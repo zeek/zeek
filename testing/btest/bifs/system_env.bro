@@ -1,6 +1,6 @@
 #
 # @TEST-EXEC: bro %INPUT
-# @TEST-EXEC: btest-diff out
+# @TEST-EXEC: btest-diff testfile
 
 event bro_init()
 	{
@@ -11,10 +11,12 @@ event bro_init()
 	if ( |myvar| != 0 )
 		exit(1);
 
-	local a = system_env("echo $TESTBRO > out", vars);
+	# check if command runs with the env. variable defined
+	local a = system_env("echo $TESTBRO > testfile", vars);
 	if ( a != 0 )
 		exit(1);
 
+	# make sure the env. variable is still not set
 	myvar = getenv("TESTBRO");
 	if ( |myvar| != 0 )
 		exit(1);

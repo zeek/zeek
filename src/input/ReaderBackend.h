@@ -15,17 +15,24 @@ namespace input {
  */
 enum ReaderMode {
 	/**
-	 * TODO Bernhard.
+	 * Manual refresh reader mode. The reader will read the file once,
+	 * and send all read data back to the manager. After that, no automatic
+	 * refresh should happen. Manual refreshes can be triggered from the
+	 * scripting layer using force_update.
 	 */
 	MODE_MANUAL,
 
 	/**
-	 * TODO Bernhard.
+	 * Automatic rereading mode. The reader should monitor the 
+	 * data source for changes continually. When the data source changes,
+	 * either the whole file has to be resent using the SendEntry/EndCurrentSend functions.
 	 */
 	MODE_REREAD,
 
 	/**
-	 * TODO Bernhard.
+	 * Streaming reading mode. The reader should monitor the data source
+	 * for new appended data. When new data is appended is has to be sent
+	 * using the Put api functions.
 	 */
 	MODE_STREAM
 };

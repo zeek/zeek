@@ -553,7 +553,8 @@ int dbg_cmd_print(DebugCmd cmd, const vector<string>& args)
 	for ( int i = 0; i < int(args.size()); ++i )
 		{
 		expr += args[i];
-		expr += " ";
+		if ( i < int(args.size()) - 1 )
+			expr += " ";
 		}
 
 	Val* val = dbg_eval_expr(expr.c_str());
@@ -566,8 +567,7 @@ int dbg_cmd_print(DebugCmd cmd, const vector<string>& args)
 		}
 	else
 		{
-		// ### Print something?
-		// debug_msg("<expression has no value>\n");
+		debug_msg("<expression has no value>\n");
 		}
 
 	return 1;

@@ -142,6 +142,7 @@ endmacro(GET_BIF_OUTPUT_FILES)
 set(BIF_SRCS
     bro.bif
     logging.bif
+    input.bif
     event.bif
     const.bif
     types.bif
@@ -428,6 +429,13 @@ set(bro_SRCS
     logging/writers/Ascii.cc
     logging/writers/DataSeries.cc
     logging/writers/None.cc
+
+    input/Manager.cc
+    input/ReaderBackend.cc
+    input/ReaderFrontend.cc
+    input/readers/Ascii.cc
+    input/readers/Raw.cc
+    input/readers/Benchmark.cc
 
     nb_dns.c
     digest.h

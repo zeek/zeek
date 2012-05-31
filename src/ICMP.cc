@@ -49,9 +49,7 @@ void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
 
 	const struct icmp* icmpp = (const struct icmp*) data;
 
-	assert(caplen >= len); // Should have been caught earlier already.
-
-	if ( ! ignore_checksums )
+	if ( ! ignore_checksums && caplen >= len )
 		{
 		int chksum = 0;
 

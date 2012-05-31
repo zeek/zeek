@@ -113,7 +113,7 @@ unsigned int Connection::external_connections = 0;
 IMPLEMENT_SERIAL(Connection, SER_CONNECTION);
 
 Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id,
-                       const Encapsulation& arg_encap)
+                       uint32 flow, const Encapsulation& arg_encap)
 	{
 	sessions = s;
 	key = k;
@@ -124,6 +124,10 @@ Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id,
 	orig_port = id->src_port;
 	resp_port = id->dst_port;
 	proto = TRANSPORT_UNKNOWN;
+	orig_flow_label = flow;
+	resp_flow_label = 0;
+	saw_first_orig_packet = 1;
+	saw_first_resp_packet = 0;
 
 	conn_val = 0;
 	login_conn = 0;
@@ -327,10 +331,12 @@ RecordVal* Connection::BuildConnVal()
 		RecordVal *orig_endp = new RecordVal(endpoint);
 		orig_endp->Assign(0, new Val(0, TYPE_COUNT));
 		orig_endp->Assign(1, new Val(0, TYPE_COUNT));
+		orig_endp->Assign(4, new Val(orig_flow_label, TYPE_COUNT));
 
 		RecordVal *resp_endp = new RecordVal(endpoint);
 		resp_endp->Assign(0, new Val(0, TYPE_COUNT));
 		resp_endp->Assign(1, new Val(0, TYPE_COUNT));
+		resp_endp->Assign(4, new Val(resp_flow_label, TYPE_COUNT));
 
 		conn_val->Assign(0, id_val);
 		conn_val->Assign(1, orig_endp);
@@ -681,6 +687,14 @@ void Connection::FlipRoles()
 	resp_port = orig_port;
 	orig_port = tmp_port;
 
+	bool tmp_bool = saw_first_resp_packet;
+	saw_first_resp_packet = saw_first_orig_packet;
+	saw_first_orig_packet = tmp_bool;
+
+	uint32 tmp_flow = resp_flow_label;
+	resp_flow_label = orig_flow_label;
+	orig_flow_label = tmp_flow;
+
 	Unref(conn_val);
 	conn_val = 0;
 
@@ -887,4 +901,36 @@ void Connection::SetRootAnalyzer(TransportLayerAnalyzer* analyzer, PIA* pia)
 	{
 	root_analyzer = analyzer;
 	primary_PIA = pia;
+	}
+
+void Connection::CheckFlowLabel(bool is_orig, uint32 flow_label)
+	{
+	uint32& my_flow_label = is_orig ? orig_flow_label : resp_flow_label;
+
+	if ( my_flow_label != flow_label )
+		{
+		if ( conn_val )
+			{
+			RecordVal *endp = conn_val->Lookup(is_orig ? 1 : 2)->AsRecordVal();
+			endp->Assign(4, new Val(flow_label, TYPE_COUNT));
+			}
+
+		if ( connection_flow_label_changed &&
+		     (is_orig ? saw_first_orig_packet : saw_first_resp_packet) )
+			{
+			val_list* vl = new val_list(4);
+			vl->append(BuildConnVal());
+			vl->append(new Val(is_orig, TYPE_BOOL));
+			vl->append(new Val(my_flow_label, TYPE_COUNT));
+			vl->append(new Val(flow_label, TYPE_COUNT));
+			ConnectionEvent(connection_flow_label_changed, 0, vl);
+			}
+
+		my_flow_label = flow_label;
+		}
+
+	if ( is_orig )
+		saw_first_orig_packet = 1;
+	else
+		saw_first_resp_packet = 1;
 	}

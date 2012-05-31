@@ -182,8 +182,11 @@ event new_connection_contents%(c: connection%);
 ##    new_connection new_connection_contents partial_connection
 event connection_attempt%(c: connection%);
 
-## Generated for an established TCP connection. The event is raised when the
-## initial 3-way TCP handshake has successfully finished for a connection.
+## Generated when a SYN-ACK packet is seen in response to SYN a packet during
+## a TCP handshake.  The final ACK of the handshake in response to SYN-ACK may
+## or may not occur later, one way to tell is to check the *history* field of
+## :bro:type:`connection` to see if the originator sent an ACK, indicated by
+## 'A' in the history string.
 ##
 ## c: The connection.
 ##
@@ -346,8 +349,6 @@ event connection_SYN_packet%(c: connection, pkt: SYN_packet%);
 ##
 ## c: The connection.
 ##
-## pkt: Information extracted from the SYN packet.
-##
 ## .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
 ##    connection_established connection_external connection_finished
 ##    connection_half_finished connection_partial_close connection_pending
@@ -411,6 +412,20 @@ event connection_reused%(c: connection%);
 ##    connection_state_remove  connection_timeout expected_connection_seen
 ##    new_connection new_connection_contents partial_connection
 event connection_status_update%(c: connection%);
+
+## Generated for a connection over IPv6 when one direction has changed
+## the flow label that it's using.
+##
+## c: The connection.
+##
+## is_orig: True if the event is raised for the originator side.
+##
+## old_label: The old flow label that the endpoint was using.
+##
+## new_label: The new flow label that the endpoint is using.
+##
+## .. bro:see:: connection_established new_connection
+event connection_flow_label_changed%(c: connection, is_orig: bool, old_label: count, new_label: count%);
 
 ## Generated at the end of reassembled TCP connections. The TCP reassembler
 ## raised the event once for each endpoint of a connection when it finished

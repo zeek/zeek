@@ -273,6 +273,13 @@ private:
 	 */
 	bool HasOut()	{ return queue_out.Ready(); }
 
+	/**
+	 * Returns true if there might be at least one message pending for
+	 * the main thread. This function may occasionally return a value not
+	 * indicating the actual state, but won't do so very often.
+	 */
+	bool MightHaveOut() { return queue_out.MaybeReady(); }
+
 	Queue<BasicInputMessage *> queue_in;
 	Queue<BasicOutputMessage *> queue_out;
 

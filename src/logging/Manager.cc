@@ -477,6 +477,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 		threading::Field* field = new threading::Field();
 		field->name = new_path;
 		field->type = t->Tag();
+		field->optional = rt->FieldDecl(i)->FindAttr(ATTR_OPTIONAL);
 
 		if ( field->type == TYPE_TABLE )
 			field->subtype = t->AsSetType()->Indices()->PureType()->Tag();

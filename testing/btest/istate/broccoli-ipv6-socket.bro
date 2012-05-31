@@ -1,4 +1,4 @@
-# @TEST-GROUP: comm
+# @TEST-SERIALIZE: comm
 #
 # @TEST-REQUIRES: test -e $BUILD/aux/broccoli/src/libbroccoli.so || test -e $BUILD/aux/broccoli/src/libbroccoli.dylib
 # @TEST-REQUIRES: ifconfig | grep -q -E "inet6 ::1|inet6 addr: ::1"

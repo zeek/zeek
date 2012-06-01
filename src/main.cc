@@ -838,6 +838,10 @@ int main(int argc, char** argv)
 		if ( *s )
 			rule_files.append(s);
 
+	// Append signature files defined in @load-sigs
+	for ( size_t i = 0; i < sig_files.size(); ++i )
+		rule_files.append(copy_string(sig_files[i].c_str()));
+
 	if ( rule_files.length() > 0 )
 		{
 		rule_matcher = new RuleMatcher(RE_level);

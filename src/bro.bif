@@ -1423,12 +1423,15 @@ bool indirect_int_sort_function(int a, int b)
 
 ## Sorts a vector in place. The second argument is a comparison function that
 ## takes two arguments: if the vector type is ``vector of T``, then the
-## comparison function must be ``function(a: T, b: T): bool``, which returns
-## ``a < b`` for some type-specific notion of the less-than operator.
+## comparison function must be ``function(a: T, b: T): int``, which returns
+## a value less than zero if ``a < b`` for some type-specific notion of the
+## less-than operator.  The comparison function is optional if the type
+## is an integral type (int, count, etc.).
 ##
 ## v: The vector instance to sort.
 ##
-## Returns: The original vector.
+## Returns: The vector, sorted from minimum to maximum value. If the vector
+##          could not be sorted, then the original vector is returned instead.
 ##
 ## .. bro:see:: order
 function sort%(v: any, ...%) : any

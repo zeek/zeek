@@ -26,11 +26,16 @@ event bro_init()
 	local m = 192.168.0.0/16;
 	local n = [fe80:1234::]/32;
 	local o = vector( 1, 2, 3);
-	local p: vector of string = vector( "bro", "test" );
+	local p: vector of table[count] of string = vector(
+			table( [1] = "test", [2] = "bro" ),
+			table( [1] = "another", [2] = "test" ) );
 	local q = set( 1, 2, 3);
-	local r = set( "this", "test");
+	local r: set[port, string] = set( [21/tcp, "ftp"], [23/tcp, "telnet"] );
 	local s: table[count] of string = { [1] = "test", [2] = "bro" };
-	local t: table[string] of count = { ["a"] = 5, ["b"] = 3 };
+	local t: table[string] of table[addr, port] of string = { 
+		["a"] = table( [192.168.0.2, 21/tcp] = "ftp", 
+				[192.168.0.3, 80/tcp] = "http" ),
+		["b"] = table( [192.168.0.2, 22/tcp] = "ssh" ) };
 	local u: myrecord = [ $c = 2, $s = "another test" ];
 	local v = function(aa: int, bb: int): bool { return aa < bb; };
 	local w = function(): any { };
@@ -51,8 +56,8 @@ event bro_init()
 	print type_name(l);
 	print type_name(m);
 	print type_name(n);
-	print type_name(o);
-	print type_name(p);
+	print type_name(o); # TODO: result is just "vector"
+	print type_name(p); # TODO: result is just "vector"
 	print type_name(q);
 	print type_name(r);
 	print type_name(s);
@@ -61,6 +66,6 @@ event bro_init()
 	print type_name(v);
 	print type_name(w);
 	print type_name(x);
-	print type_name(y);
+	print type_name(y); # TODO: result is "file of string"
 	print type_name(bro_init);
 	}

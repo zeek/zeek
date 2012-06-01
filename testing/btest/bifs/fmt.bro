@@ -6,16 +6,13 @@ type color: enum { Red, Blue };
 
 event bro_init()
 	{
-	local a = "foo";
-	local b = 3;
-	local c = T;
-	local d = Blue;
-	local e = vector( 1, 2, 3);
-	local f = set( 1, 2, 3);
-	local g: table[count] of string = { [1] = "test", [2] = "bro" };
-	local h = "this\0test";
+	local a = Blue;
+	local b = vector( 1, 2, 3);
+	local c = set( 1, 2, 3);
+	local d: table[count] of string = { [1] = "test", [2] = "bro" };
 
-	#print fmt(c, b, a);   # this should work, according to doc comments
+	# TODO: this should work, according to doc comments
+	#print fmt(T, 3, "foo");
 
 	# tests with only a format string (no additional args)
 	print fmt("test");
@@ -57,10 +54,10 @@ event bro_init()
 	print fmt("*%10s*", [fe80:1234::]/32);
 	print fmt("*%10s*", 3hr);
 	print fmt("*%10s*", /^foo|bar/);
+	print fmt("*%10s*", a);
+	print fmt("*%10s*", b);
+	print fmt("*%10s*", c);
 	print fmt("*%10s*", d);
-	print fmt("*%10s*", e);
-	print fmt("*%10s*", f);
-	print fmt("*%10s*", g);
 
 	# tests of various data types without field width
 	print fmt("%e", 3.1e+2);
@@ -71,8 +68,26 @@ event bro_init()
 	print fmt("%.3g", 3.1e+2);
 	print fmt("%.7g", 3.1e+2);
 
-	# these produce same result
-	print fmt("%As", h);
-	print fmt("%s", h);
+	# Tests comparing "%As" and "%s" (the string length is printed instead
+	# of the string itself because the print command does its own escaping)
+	local s0 = "\x00\x07";
+	local s1 = fmt("%As", s0); # expands \x00 to "\0"
+	local s2 = fmt("%s", s0);  # expands \x00 to "\0", and \x07 to "^G"
+	print |s0|;
+	print |s1|;
+	print |s2|;
 
+	s0 = "\x07\x1f";
+	s1 = fmt("%As", s0);
+	s2 = fmt("%s", s0);  # expands \x07 to "^G", and \x1f to "\x1f"
+	print |s0|;
+	print |s1|;
+	print |s2|;
+
+	s0 = "\x7f\xff";
+	s1 = fmt("%As", s0);
+	s2 = fmt("%s", s0);  # expands \x7f to "^?", and \xff to "\xff"
+	print |s0|;
+	print |s1|;
+	print |s2|;
 	}

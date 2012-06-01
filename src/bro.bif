@@ -1652,7 +1652,7 @@ function cat_sep%(sep: string, def: string, ...%): string
 ##
 ##    - ``.``: Precision of floating point specifiers ``[efg]`` (< 128)
 ##
-##    - ``A``: Escape NUL bytes, i.e., replace ``0`` with ``\0``
+##    - ``A``: Escape only NUL bytes (each one replaced with ``\0``) in a string
 ##
 ##    - ``[DTdxsefg]``: Format specifier
 ##
@@ -1664,7 +1664,8 @@ function cat_sep%(sep: string, def: string, ...%): string
 ##        - ``x``: Unsigned hexadecimal (using C-style ``%llx``);
 ##                 addresses/ports are converted to host-byte order
 ##
-##        - ``s``: Escaped string
+##        - ``s``: String (byte values less than 32 or greater than 126
+##                 will be escaped)
 ##
 ##        - ``[efg]``: Double
 ##

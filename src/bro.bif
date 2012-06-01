@@ -2670,7 +2670,7 @@ function to_port%(s: string%): port
 ##
 ## Returns: The IP address corresponding to *s*.
 ##
-## .. bro:see:: addr_to_ptr_name parse_dotted_addr
+## .. bro:see:: addr_to_ptr_name to_addr
 function ptr_name_to_addr%(s: string%): addr
 	%{
 	if ( s->Len() != 72 )
@@ -2734,27 +2734,12 @@ function ptr_name_to_addr%(s: string%): addr
 ##
 ## Returns: The reverse pointer representation of *a*.
 ##
-## .. bro:see:: ptr_name_to_addr parse_dotted_addr
+## .. bro:see:: ptr_name_to_addr to_addr
 function addr_to_ptr_name%(a: addr%): string
 	%{
 	return new StringVal(a->AsAddr().PtrName().c_str());
 	%}
 
-# Transforms n0.n1.n2.n3 -> addr.
-
-## Converts a decimal dotted IP address in a :bro:type:`string` to an
-## :bro:type:`addr` type.
-##
-## s: The IP address in the form ``n0.n1.n2.n3``.
-##
-## Returns: The IP address as type :bro:type:`addr`.
-##
-## .. bro:see:: addr_to_ptr_name parse_dotted_addr
-function parse_dotted_addr%(s: string%): addr
-	%{
-	IPAddr a(s->CheckString());
-	return new AddrVal(a);
-	%}
 
 %%{
 static Val* parse_port(const char* line)
@@ -5658,6 +5643,14 @@ function match_signatures%(c: connection, pattern_type: int, s: string,
 #                            Deprecated Functions
 #
 # ===========================================================================
+
+## Deprecated. Will be removed.
+function parse_dotted_addr%(s: string%): addr
+	%{
+	IPAddr a(s->CheckString());
+	return new AddrVal(a);
+	%}
+
 
 %%{
 #include "Anon.h"

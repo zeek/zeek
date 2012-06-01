@@ -466,17 +466,18 @@ function system%(str: string%): int
 ##
 ## str: The command to execute.
 ##
-## env: A :bro:type:`set` or :bro:type:`table` with the environment variables
-##      in the form of key-value pairs (where the value is optional).
+## env: A :bro:type:`table` with the environment variables in the form
+##      of key-value pairs. Each specified environment variable name
+##      will be automatically prepended with ``BRO_ARG_``.
 ##
 ## Returns: The return value from the OS ``system`` function.
 ##
 ## .. bro:see:: system str_shell_escape piped_exec
-function system_env%(str: string, env: any%): int
+function system_env%(str: string, env: table_string_of_string%): int
 	%{
 	if ( env->Type()->Tag() != TYPE_TABLE )
 		{
-		builtin_error("system_env() requires a table/set argument");
+		builtin_error("system_env() requires a table argument");
 		return new Val(-1, TYPE_INT);
 		}
 

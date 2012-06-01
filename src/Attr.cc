@@ -17,7 +17,8 @@ const char* attr_name(attr_tag t)
 		"&persistent", "&synchronized", "&postprocessor",
 		"&encrypt", "&match", "&disable_print_hook",
 		"&raw_output", "&mergeable", "&priority",
-		"&group", "&log", "&error_handler", "(&tracked)",
+		"&group", "&log", "&error_handler", "&type_column",
+		"(&tracked)",
 	};
 
 	return attr_names[int(t)];
@@ -419,6 +420,25 @@ void Attributes::CheckAttr(Attr* a)
 		if ( ! threading::Value::IsCompatibleType(type) )
 			Error("&log applied to a type that cannot be logged");
 		break;
+
+	case ATTR_TYPE_COLUMN:
+		{
+		if ( type->Tag() != TYPE_PORT )
+			{
+			Error("type_column tag only applicable to ports");
+			break;
+			}
+
+		BroType* atype = a->AttrExpr()->Type();
+
+		if ( atype->Tag() != TYPE_STRING ) {
+			Error("type column needs to have a string argument");
+			break;
+		}
+
+		break;
+		}
+
 
 	default:
 		BadTag("Attributes::CheckAttr", attr_name(a->Tag()));

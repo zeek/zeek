@@ -301,7 +301,7 @@ void MsgThread::Run()
 
 		if ( ! result )
 			{
-			string s = msg->Name() + " failed, terminating thread";
+			string s = msg->Name() + " failed, terminating thread (MsgThread)";
 			Error(s.c_str());
 			Stop();
 			break;

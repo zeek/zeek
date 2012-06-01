@@ -2,7 +2,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 %}
 
-%expect 87
+%expect 90
 
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ANY
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
@@ -24,6 +24,7 @@
 %token TOK_ATTR_PERSISTENT TOK_ATTR_SYNCHRONIZED
 %token TOK_ATTR_DISABLE_PRINT_HOOK TOK_ATTR_RAW_OUTPUT TOK_ATTR_MERGEABLE
 %token TOK_ATTR_PRIORITY TOK_ATTR_GROUP TOK_ATTR_LOG TOK_ATTR_ERROR_HANDLER
+%token TOK_ATTR_TYPE_COLUMN
 
 %token TOK_DEBUG
 
@@ -112,13 +113,14 @@ bool is_export = false; // true if in an export {} block
  * (obviously not reentrant).
  */
 extern Expr* g_curr_debug_expr;
+extern bool in_debug;
+extern const char* g_curr_debug_error;
 
 #define YYLTYPE yyltype
 
 Expr* bro_this = 0;
 int in_init = 0;
 int in_record = 0;
-bool in_debug = false;
 bool resolving_global_ID = false;
 bool defining_global_ID = false;
 
@@ -249,7 +251,6 @@ bro:
 		TOK_DEBUG { in_debug = true; } expr
 			{
 			g_curr_debug_expr = $3;
-			in_debug = false;
 			}
 	;
 
@@ -1306,6 +1307,8 @@ attr:
 			{ $$ = new Attr(ATTR_PRIORITY, $3); }
 	|	TOK_ATTR_GROUP '=' expr
 			{ $$ = new Attr(ATTR_GROUP, $3); }
+	|	TOK_ATTR_TYPE_COLUMN '=' expr
+			{ $$ = new Attr(ATTR_TYPE_COLUMN, $3); }
 	|	TOK_ATTR_LOG
 			{ $$ = new Attr(ATTR_LOG); }
 	|	TOK_ATTR_ERROR_HANDLER
@@ -1684,6 +1687,9 @@ int yyerror(const char msg[])
 	if ( generate_documentation )
 		strcat(msgbuf, "\nDocumentation mode is enabled: "
 		       "remember to check syntax of ## style comments\n");
+
+	if ( in_debug )
+		g_curr_debug_error = copy_string(msg);
 
 	reporter->Error("%s", msgbuf);
 

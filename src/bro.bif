@@ -1526,13 +1526,13 @@ function order%(v: any, ...%) : index_vec
 		}
 
 	if ( ! comp && ! IsIntegral(elt_type->Tag()) )
-		builtin_error("comparison function required for sort() with non-integral types");
+		builtin_error("comparison function required for order() with non-integral types");
 
 	vector<Val*>& vv = *v->AsVector();
 	int n = vv.size();
 
 	// Set up initial mapping of indices directly to corresponding
-	// elements.  We stay zero-based until after the sorting.
+	// elements.
 	vector<int> ind_vv(n);
 	index_map = new Val*[n];
 	int i;
@@ -1548,7 +1548,7 @@ function order%(v: any, ...%) : index_vec
 		if ( comp_type->YieldType()->Tag() != TYPE_INT ||
 		     ! comp_type->ArgTypes()->AllMatch(elt_type, 0) )
 			{
-			builtin_error("invalid comparison function in call to sort()");
+			builtin_error("invalid comparison function in call to order()");
 			return v;
 			}
 
@@ -1562,8 +1562,7 @@ function order%(v: any, ...%) : index_vec
 	delete [] index_map;
 	index_map = 0;
 
-	// Now spin through ind_vv to read out the rearrangement,
-	// adjusting indices as we do so.
+	// Now spin through ind_vv to read out the rearrangement.
 	for ( i = 0; i < n; ++i )
 		{
 		int ind = ind_vv[i];

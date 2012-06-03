@@ -17,6 +17,10 @@
 #include "writers/Ascii.h"
 #include "writers/None.h"
 
+#ifdef USE_ELASTICSEARCH
+#include "writers/ElasticSearch.h"
+#endif
+
 #ifdef USE_DATASERIES
 #include "writers/DataSeries.h"
 #endif
@@ -35,6 +39,11 @@ struct WriterDefinition {
 WriterDefinition log_writers[] = {
 	{ BifEnum::Log::WRITER_NONE,  "None", 0, writer::None::Instantiate },
 	{ BifEnum::Log::WRITER_ASCII, "Ascii", 0, writer::Ascii::Instantiate },
+
+#ifdef USE_ELASTICSEARCH
+	{ BifEnum::Log::WRITER_ASCII, "ElasticSearch", 0, writer::ElasticSearch::Instantiate },
+#endif
+
 #ifdef USE_DATASERIES
 	{ BifEnum::Log::WRITER_DATASERIES, "DataSeries", 0, writer::DataSeries::Instantiate },
 #endif

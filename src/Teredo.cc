@@ -13,7 +13,8 @@ bool TeredoEncapsulation::DoParse(const u_char* data, int& len,
 	{
 	if ( len < 2 )
 		{
-		reporter->Weird(conn, "truncated_Teredo");
+		Weird("truncated_Teredo");
+		return false;
 		}
 
 	uint16 tag = ntohs((*((const uint16*)data)));
@@ -27,7 +28,7 @@ bool TeredoEncapsulation::DoParse(const u_char* data, int& len,
 
 		if ( len < 8 )
 			{
-			reporter->Weird(conn, "truncated_Teredo_origin_indication");
+			Weird("truncated_Teredo_origin_indication");
 			return false;
 			}
 
@@ -46,7 +47,7 @@ bool TeredoEncapsulation::DoParse(const u_char* data, int& len,
 
 		if ( len < 4 )
 			{
-			reporter->Weird(conn, "truncated_Teredo_authentication");
+			Weird("truncated_Teredo_authentication");
 			return false;
 			}
 
@@ -56,7 +57,7 @@ bool TeredoEncapsulation::DoParse(const u_char* data, int& len,
 
 		if ( len < tot_len )
 			{
-			reporter->Weird(conn, "truncated_Teredo_authentication");
+			Weird("truncated_Teredo_authentication");
 			return false;
 			}
 
@@ -70,13 +71,13 @@ bool TeredoEncapsulation::DoParse(const u_char* data, int& len,
 		// IPv6
 		if ( len < 40 )
 			{
-			reporter->Weird(conn, "truncated_IPv6_in_Teredo");
+			Weird("truncated_IPv6_in_Teredo");
 			return false;
 			}
 
 		if ( len - 40 != ntohs(((const struct ip6_hdr*)data)->ip6_plen) )
 			{
-			reporter->Weird(conn, "Teredo_payload_len_mismatch");
+			Weird("Teredo_payload_len_mismatch");
 			return false;
 			}
 
@@ -92,24 +93,23 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 
-	const Encapsulation* e = Conn()->GetEncapsulation();
-
-	if ( e && e->Depth() >= BifConst::Tunnel::max_depth )
-		{
-		reporter->Weird(Conn(), "tunnel_depth");
-		return;
-		}
-
-	TeredoEncapsulation te(Conn());
+	TeredoEncapsulation te(this);
 
 	if ( ! te.Parse(data, len) )
 		{
-		ProtocolViolation("Invalid Teredo encapsulation", (const char*)data,
-		                  len);
+		ProtocolViolation("Bad Teredo encapsulation", (const char*)data, len);
 		return;
 		}
 
 	ProtocolConfirmation();
+
+	const Encapsulation* e = Conn()->GetEncapsulation();
+
+	if ( e && e->Depth() >= BifConst::Tunnel::max_depth )
+		{
+		Weird("tunnel_depth");
+		return;
+		}
 
 	// TODO: raise Teredo-specific events
 

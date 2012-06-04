@@ -24,6 +24,17 @@ public:
 		//TODO: specific option to turn off Teredo analysis?
 		{ return BifConst::Tunnel::max_depth > 0; }
 
+	/**
+	 * Emits a weird only if the analyzer has previously been able to
+	 * decapsulate a Teredo packet since otherwise the weirds could happen
+	 * frequently enough to be less than helpful.
+	 */
+	void Weird(const char* name) const
+		{
+		if ( ProtocolConfirmed() )
+			reporter->Weird(Conn(), name);
+		}
+
 protected:
 	friend class AnalyzerTimer;
 	void ExpireTimer(double t);
@@ -31,8 +42,8 @@ protected:
 
 class TeredoEncapsulation {
 public:
-	TeredoEncapsulation(Connection* c)
-		: inner_ip(0), origin_indication(0), auth(0), conn(c)
+	TeredoEncapsulation(const Teredo_Analyzer* ta)
+		: inner_ip(0), origin_indication(0), auth(0), analyzer(ta)
 		{}
 
 	/**
@@ -54,10 +65,13 @@ public:
 protected:
 	bool DoParse(const u_char* data, int& len, bool found_orig, bool found_au);
 
+	void Weird(const char* name) const
+		{ analyzer->Weird(name); }
+
 	const u_char* inner_ip;
 	const u_char* origin_indication;
 	const u_char* auth;
-	Connection* conn;
+	const Teredo_Analyzer* analyzer;
 };
 
 #endif

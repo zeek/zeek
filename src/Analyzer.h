@@ -215,6 +215,11 @@ public:
 	// analyzer, even if the method is called multiple times.
 	virtual void ProtocolConfirmation();
 
+	// Return whether the analyzer previously called ProtocolConfirmation()
+	// at least once before.
+	virtual bool ProtocolConfirmed() const
+		{ return protocol_confirmed; }
+
 	// Report that we found a significant protocol violation which might
 	// indicate that the analyzed data is in fact not the expected
 	// protocol.  The protocol_violation event is raised once per call to

@@ -194,6 +194,7 @@ Manager::TableStream::~TableStream()
 
 Manager::Manager()
 	{
+	update_finished = internal_handler("Input::update_finished");
 	}
 
 Manager::~Manager()
@@ -1199,11 +1200,7 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 #endif
 
 	// Send event that the current update is indeed finished.
-	EventHandler* handler = event_registry->Lookup("Input::update_finished");
-	if ( handler == 0 )
-		reporter->InternalError("Input::update_finished not found!");
-
-	SendEvent(handler, 2, new StringVal(i->name.c_str()), new StringVal(i->source.c_str()));
+	SendEvent(update_finished, 2, new StringVal(i->name.c_str()), new StringVal(i->source.c_str()));
 	}
 
 void Manager::Put(ReaderFrontend* reader, Value* *vals)

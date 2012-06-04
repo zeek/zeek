@@ -59,7 +59,7 @@ There is also a rudimentary web interface to ElasticSearch, available at:
 You can also switch only individual files over to ElasticSearch by adding
 code like this to your ``local.bro``::
 
-.. code:: bro
+.. code::bro
 
     event bro_init()
         {

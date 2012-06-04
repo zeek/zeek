@@ -78,6 +78,14 @@ public:
 			conns = 0;
 		}
 
+	Encapsulation(const Encapsulation* other)
+		{
+		if ( other && other->conns )
+			conns = new vector<EncapsulatingConn>(*(other->conns));
+		else
+			conns = 0;
+		}
+
 	Encapsulation& operator=(const Encapsulation& other)
 		{
 		if ( this == &other ) return *this;

@@ -92,7 +92,9 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 
-	if ( Conn()->GetEncapsulation().Depth() >= BifConst::Tunnel::max_depth )
+	const Encapsulation* e = Conn()->GetEncapsulation();
+
+	if ( e && e->Depth() >= BifConst::Tunnel::max_depth )
 		{
 		reporter->Weird(Conn(), "tunnel_depth");
 		return;
@@ -107,20 +109,15 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		return;
 		}
 
-	IP_Hdr inner_ip((const struct ip6_hdr*) te.InnerIP(), false, len);
-
 	ProtocolConfirmation();
 
 	// TODO: raise Teredo-specific events
 
-	struct pcap_pkthdr fake_hdr;
-	fake_hdr.caplen = fake_hdr.len = len;
-	fake_hdr.ts.tv_sec = fake_hdr.ts.tv_usec = 0;
-
-	Encapsulation encap(Conn()->GetEncapsulation());
+	Encapsulation* outer = new Encapsulation(e);
 	EncapsulatingConn ec(Conn(), BifEnum::Tunnel::TEREDO);
-	encap.Add(ec);
+	outer->Add(ec);
 
-	sessions->DoNextPacket(network_time, &fake_hdr, &inner_ip, te.InnerIP(), 0,
-	                       encap);
+	sessions->DoNextInnerPacket(network_time, 0, len, te.InnerIP(),
+	                            IPPROTO_IPV6, outer);
+	delete outer;
 	}

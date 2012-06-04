@@ -179,8 +179,6 @@ void NetSessions::NextPacket(double t, const struct pcap_pkthdr* hdr,
 	if ( record_all_packets )
 		DumpPacket(hdr, pkt);
 
-	Encapsulation encapsulation;
-
 	if ( pkt_elem && pkt_elem->IPHdr() )
 		// Fast path for "normal" IP packets if an IP_Hdr is
 		// already extracted when doing PacketSort. Otherwise
@@ -188,7 +186,7 @@ void NetSessions::NextPacket(double t, const struct pcap_pkthdr* hdr,
 		// difference here is that header extraction in
 		// PacketSort does not generate Weird events.
 
-		DoNextPacket(t, hdr, pkt_elem->IPHdr(), pkt, hdr_size, encapsulation);
+		DoNextPacket(t, hdr, pkt_elem->IPHdr(), pkt, hdr_size, 0);
 
 	else
 		{
@@ -213,7 +211,7 @@ void NetSessions::NextPacket(double t, const struct pcap_pkthdr* hdr,
 		if ( ip->ip_v == 4 )
 			{
 			IP_Hdr ip_hdr(ip, false);
-			DoNextPacket(t, hdr, &ip_hdr, pkt, hdr_size, encapsulation);
+			DoNextPacket(t, hdr, &ip_hdr, pkt, hdr_size, 0);
 			}
 
 		else if ( ip->ip_v == 6 )
@@ -225,7 +223,7 @@ void NetSessions::NextPacket(double t, const struct pcap_pkthdr* hdr,
 				}
 
 			IP_Hdr ip_hdr((const struct ip6_hdr*) (pkt + hdr_size), false, caplen);
-			DoNextPacket(t, hdr, &ip_hdr, pkt, hdr_size, encapsulation);
+			DoNextPacket(t, hdr, &ip_hdr, pkt, hdr_size, 0);
 			}
 
 		else if ( ARP_Analyzer::IsARP(pkt, hdr_size) )
@@ -347,7 +345,7 @@ int NetSessions::CheckConnectionTag(Connection* conn)
 
 void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 				const IP_Hdr* ip_hdr, const u_char* const pkt,
-				int hdr_size, Encapsulation& encapsulation)
+				int hdr_size, const Encapsulation* encapsulation)
 	{
 	uint32 caplen = hdr->caplen - hdr_size;
 	const struct ip* ip4 = ip_hdr->IP4_Hdr();
@@ -525,23 +523,19 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 	case IPPROTO_IPV4:
 	case IPPROTO_IPV6:
 		{
-		if ( encapsulation.Depth() >= BifConst::Tunnel::max_depth )
+		if ( encapsulation &&
+		     encapsulation->Depth() >= BifConst::Tunnel::max_depth )
 			{
 			reporter->Weird(ip_hdr->SrcAddr(), ip_hdr->DstAddr(), "tunnel_depth");
 			Remove(f);
 			return;
 			}
 
-		IP_Hdr* inner_ip;
-		if ( proto == IPPROTO_IPV6 )
-			inner_ip = new IP_Hdr((const struct ip6_hdr*) data, false, caplen);
-		else
-			inner_ip = new IP_Hdr((const struct ip*) data, false);
+		Encapsulation* outer = new Encapsulation(encapsulation);
 
-		struct pcap_pkthdr fake_hdr;
-		fake_hdr.caplen = fake_hdr.len = caplen;
-		fake_hdr.ts = hdr->ts;
-
+		// Look up to see if we've already seen this IP tunnel, identified
+		// by the pair of IP addresses, so that we can always associate the
+		// same UID with it.
 		IPPair tunnel_idx;
 		if ( ip_hdr->SrcAddr() < ip_hdr->DstAddr() )
 			tunnel_idx = IPPair(ip_hdr->SrcAddr(), ip_hdr->DstAddr());
@@ -555,21 +549,22 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 			EncapsulatingConn ec(ip_hdr->SrcAddr(), ip_hdr->DstAddr(),
 			                     BifEnum::Tunnel::IP);
 			ip_tunnels[tunnel_idx] = ec;
-			encapsulation.Add(ec);
+			outer->Add(ec);
 			}
 		else
-			encapsulation.Add(it->second);
+			outer->Add(it->second);
 
-		DoNextPacket(t, &fake_hdr, inner_ip, data, 0, encapsulation);
+		DoNextInnerPacket(t, hdr, caplen, data, proto, outer);
 
-		delete inner_ip;
+		delete outer;
 		Remove(f);
 		return;
 		}
 
 	case IPPROTO_NONE:
 		{
-		if ( encapsulation.LastType() == BifEnum::Tunnel::TEREDO )
+		if ( encapsulation &&
+		     encapsulation->LastType() == BifEnum::Tunnel::TEREDO )
 			{
 			// TODO: raise bubble packet event
 			}
@@ -678,6 +673,31 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 			DumpPacket(hdr, pkt, hdr_len);	// just save the header
 			}
 		}
+	}
+
+void NetSessions::DoNextInnerPacket(double t, const struct pcap_pkthdr* hdr,
+		int caplen,	const u_char* pkt, int proto,
+		const Encapsulation* outer_encap)
+	{
+	IP_Hdr* inner_ip = 0;
+
+	if ( proto == IPPROTO_IPV6 )
+		inner_ip = new IP_Hdr((const struct ip6_hdr*) pkt, false, caplen);
+	else if ( proto == IPPROTO_IPV4 )
+		inner_ip = new IP_Hdr((const struct ip*) pkt, false);
+	else
+		reporter->InternalError("Bad IP protocol version in DoNextInnerPacket");
+
+	struct pcap_pkthdr fake_hdr;
+	fake_hdr.caplen = fake_hdr.len = caplen;
+	if ( hdr )
+		fake_hdr.ts = hdr->ts;
+	else
+		fake_hdr.ts.tv_sec = fake_hdr.ts.tv_usec = 0;
+
+	DoNextPacket(t, &fake_hdr, inner_ip, pkt, 0, outer_encap);
+
+	delete inner_ip;
 	}
 
 bool NetSessions::CheckHeaderTrunc(int proto, uint32 len, uint32 caplen,
@@ -1013,7 +1033,7 @@ void NetSessions::GetStats(SessionStats& s) const
 
 Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 					const u_char* data, int proto, uint32 flow_label,
-					const Encapsulation& encapsulation)
+					const Encapsulation* encapsulation)
 	{
 	// FIXME: This should be cleaned up a bit, it's too protocol-specific.
 	// But I'm not yet sure what the right abstraction for these things is.

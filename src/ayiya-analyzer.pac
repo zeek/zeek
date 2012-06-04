@@ -12,8 +12,9 @@ flow AYIYA_Flow
 	function process_ayiya(pdu: PDU): bool
 		%{
 		Connection *c = connection()->bro_analyzer()->Conn();
+		const Encapsulation* e = c->GetEncapsulation();
 		
-		if ( c->GetEncapsulation().Depth() >= BifConst::Tunnel::max_depth )
+		if ( e && e->Depth() >= BifConst::Tunnel::max_depth )
 			{
 			reporter->Weird(c, "tunnel_depth");
 			return false;
@@ -25,12 +26,8 @@ flow AYIYA_Flow
 			return false;
 			}
 		
-		IP_Hdr* inner_ip;
-		if ( ${pdu.next_header} == IPPROTO_IPV6 )
-			inner_ip = new IP_Hdr((const struct ip6_hdr*) ${pdu.packet}.data(), false, ${pdu.packet}.length());
-		else if ( ${pdu.next_header} == IPPROTO_IPV4 )
-			inner_ip = new IP_Hdr((const struct ip*) ${pdu.packet}.data(), false);
-		else
+		if ( ${pdu.next_header} != IPPROTO_IPV6 &&
+		     ${pdu.next_header} != IPPROTO_IPV4 )
 			{
 			reporter->Weird(c, "ayiya_tunnel_non_ip");
 			return false;
@@ -38,17 +35,15 @@ flow AYIYA_Flow
 		
 		connection()->bro_analyzer()->ProtocolConfirmation();
 		
-		struct pcap_pkthdr fake_hdr;
-		fake_hdr.caplen = fake_hdr.len = ${pdu.packet}.length();
-		fake_hdr.ts.tv_sec = fake_hdr.ts.tv_usec = 0;
-		
-		Encapsulation encap(c->GetEncapsulation());
+		Encapsulation* outer = new Encapsulation(e);
 		EncapsulatingConn ec(c, BifEnum::Tunnel::AYIYA);
-		encap.Add(ec);
+		outer->Add(ec);
 		
-		sessions->DoNextPacket(network_time(), &fake_hdr, inner_ip, ${pdu.packet}.data(), 0, encap);
+		sessions->DoNextInnerPacket(network_time(), 0, ${pdu.packet}.length(),
+		                            ${pdu.packet}.data(), ${pdu.next_header},
+		                            outer);
 		
-		delete inner_ip;
+		delete outer;
 		return true;
 		%}
 

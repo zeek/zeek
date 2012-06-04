@@ -136,7 +136,10 @@ public:
 		
 	void DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 			const IP_Hdr* ip_hdr, const u_char* const pkt,
-			int hdr_size, Encapsulation& encapsulation);
+			int hdr_size, const Encapsulation* encapsulation);
+
+	void DoNextInnerPacket(double t, const struct pcap_pkthdr* hdr, int caplen,
+			const u_char* pkt, int proto, const Encapsulation* outer_encap);
 
 	unsigned int ConnectionMemoryUsage();
 	unsigned int ConnectionMemoryUsageConnVals();
@@ -150,7 +153,7 @@ protected:
 
 	Connection* NewConn(HashKey* k, double t, const ConnID* id,
 			const u_char* data, int proto, uint32 flow_lable,
-			const Encapsulation& encapsulation);
+			const Encapsulation* encapsulation);
 
 	// Check whether the tag of the current packet is consistent with
 	// the given connection.  Returns:

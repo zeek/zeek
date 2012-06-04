@@ -113,7 +113,7 @@ unsigned int Connection::external_connections = 0;
 IMPLEMENT_SERIAL(Connection, SER_CONNECTION);
 
 Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id,
-                       uint32 flow, const Encapsulation& arg_encap)
+                       uint32 flow, const Encapsulation* arg_encap)
 	{
 	sessions = s;
 	key = k;
@@ -161,7 +161,10 @@ Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id,
 
 	uid = 0; // Will set later.
 
-	encapsulation = arg_encap;
+	if ( arg_encap )
+		encapsulation = new Encapsulation(arg_encap);
+	else
+		encapsulation = 0;
 
 	if ( conn_timer_mgr )
 		{
@@ -190,10 +193,36 @@ Connection::~Connection()
 	delete key;
 	delete root_analyzer;
 	delete conn_timer_mgr;
+	delete encapsulation;
 
 	--current_connections;
 	if ( conn_timer_mgr )
 		--external_connections;
+	}
+
+void Connection::CheckEncapsulation(const Encapsulation* arg_encap)
+	{
+	if ( encapsulation && arg_encap )
+		{
+		if ( *encapsulation != *arg_encap )
+			{
+			Event(tunnel_changed, 0, arg_encap->GetVectorVal());
+			delete encapsulation;
+			encapsulation = new Encapsulation(arg_encap);
+			}
+		}
+	else if ( encapsulation )
+		{
+		Encapsulation empty;
+		Event(tunnel_changed, 0, empty.GetVectorVal());
+		delete encapsulation;
+		encapsulation = new Encapsulation(arg_encap);
+		}
+	else if ( arg_encap )
+		{
+		Event(tunnel_changed, 0, arg_encap->GetVectorVal());
+		encapsulation = new Encapsulation(arg_encap);
+		}
 	}
 
 void Connection::Done()
@@ -352,8 +381,8 @@ RecordVal* Connection::BuildConnVal()
 
 		char tmp[20];
 		conn_val->Assign(9, new StringVal(uitoa_n(uid, tmp, sizeof(tmp), 62)));
-		if ( encapsulation.Depth() > 0 )
-			conn_val->Assign(10, encapsulation.GetVectorVal());
+		if ( encapsulation && encapsulation->Depth() > 0 )
+			conn_val->Assign(10, encapsulation->GetVectorVal());
 		}
 
 	if ( root_analyzer )

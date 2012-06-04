@@ -122,6 +122,14 @@ if (LINTEL_FOUND AND DATASERIES_FOUND AND LIBXML2_FOUND)
 	list(APPEND OPTLIBS ${LibXML2_LIBRARIES})
 endif()
 
+set(USE_LIBCURL false)
+find_package(CURL)
+if (CURL_FOUND)
+  set(USE_LIBCURL true)
+  include_directories(BEFORE ${CURL_INCLUDE_DIR})
+  list(APPEND OPTLIBS ${CURL_LIBRARIES})
+endif()
+
 if (ENABLE_PERFTOOLS_DEBUG)
     # Just a no op to prevent CMake from complaining about manually-specified
     # ENABLE_PERFTOOLS_DEBUG not being used if google perftools weren't found
@@ -209,11 +217,13 @@ message(
     "\nBroccoli:          ${INSTALL_BROCCOLI}"
     "\nBroctl:            ${INSTALL_BROCTL}"
     "\nAux. Tools:        ${INSTALL_AUX_TOOLS}"
+    "\nElasticSearch:     ${INSTALL_ELASTICSEARCH}"
     "\n"
     "\nGeoIP:             ${USE_GEOIP}"
     "\nGoogle perftools:  ${USE_PERFTOOLS}"
     "\n       debugging:  ${USE_PERFTOOLS_DEBUG}"
     "\nDataSeries:        ${USE_DATASERIES}"
+    "\nlibCURL:           ${USE_LIBCURL}"
     "\n"
     "\n================================================================\n"
 )

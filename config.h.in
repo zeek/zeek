@@ -117,6 +117,9 @@
 /* Use the DataSeries writer. */
 #cmakedefine USE_DATASERIES
 
+/* Build the ElasticSearch writer. */
+#cmakedefine INSTALL_ELASTICSEARCH
+
 /* Version number of package */
 #define VERSION "@VERSION@"
 

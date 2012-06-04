@@ -5,6 +5,7 @@
 #ifndef LOGGING_WRITER_ELASTICSEARCH_H
 #define LOGGING_WRITER_ELASTICSEARCH_H
 
+#include <curl/curl.h>
 #include "../WriterBackend.h"
 
 namespace logging { namespace writer {
@@ -34,12 +35,20 @@ protected:
 
 private:
 	char* AddFieldToBuffer(threading::Value* val, const threading::Field* field);
-	char* FormatField(const char* field_name, const char* field_value);
+	char* FieldToString(threading::Value* val, const threading::Field* field);
 	bool BatchIndex();
 	
+	CURL* HTTPSetup();
+	bool HTTPReceive(void* ptr, int size, int nmemb, void* userdata);
+	bool HTTPSend();
+	
+	// Buffers, etc.
 	char* buffer;
 	int current_offset;
-	int counter;
+	uint64 counter;
+
+	CURL* curl_handle;
+	char* curl_result;
 
 	// From scripts
 	char* cluster_name;

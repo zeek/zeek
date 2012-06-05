@@ -138,8 +138,29 @@ public:
 			const IP_Hdr* ip_hdr, const u_char* const pkt,
 			int hdr_size, const Encapsulation* encapsulation);
 
-	void DoNextInnerPacket(double t, const struct pcap_pkthdr* hdr, int caplen,
-			const u_char* pkt, int proto, const Encapsulation* outer_encap);
+	/**
+	 * Wrapper that recurses on DoNextPacket for encapsulated IP packets, if
+	 * they appear to be valid based on whether \a pkt is long enough to be an
+	 * IP header and also that the payload length field of that header matches
+	 * matches the actual length of \a pkt given by \a caplen.
+	 *
+	 * @param t Network time.
+	 * @param hdr If the outer pcap header is available, this pointer can be set
+	 *        so that the fake pcap header passed to DoNextPacket will use
+	 *        the same timeval.  The caplen and len fields of the fake pcap
+	 *        header are always set to \a caplen.
+	 * @param caplen The length of \a pkt in bytes.
+	 * @param pkt The inner IP packet data.
+	 * @param proto Either IPPROTO_IPV6 or IPPROTO_IPV4 to indicate which IP
+	 *        protocol \a pkt corresponds to.
+	 * @param outer_encap The encapsulation information for the inner IP packet.
+	 * @return 0 If the inner IP packet was valid and passed to DoNextPacket,
+	 *         else -1 if the \a caplen was greater than the supposed IP
+	 *         packet's payload length field or 1 if \a caplen was less than
+	 *         the supposed IP packet's payload length.
+	 */
+	int DoNextInnerPacket(double t, const struct pcap_pkthdr* hdr, int caplen,
+			const u_char* const pkt, int proto, const Encapsulation* outer);
 
 	unsigned int ConnectionMemoryUsage();
 	unsigned int ConnectionMemoryUsageConnVals();

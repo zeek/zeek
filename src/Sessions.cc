@@ -554,7 +554,13 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		else
 			outer->Add(it->second);
 
-		DoNextInnerPacket(t, hdr, caplen, data, proto, outer);
+		int result = DoNextInnerPacket(t, hdr, caplen, data, proto, outer);
+		if ( result < 0 )
+			reporter->Weird(ip_hdr->SrcAddr(), ip_hdr->DstAddr(),
+			                "truncated_inner_IP");
+		else if ( result > 0 )
+			reporter->Weird(ip_hdr->SrcAddr(), ip_hdr->DstAddr(),
+			                "inner_IP_payload_mismatch");
 
 		delete outer;
 		Remove(f);
@@ -675,18 +681,32 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		}
 	}
 
-void NetSessions::DoNextInnerPacket(double t, const struct pcap_pkthdr* hdr,
-		int caplen,	const u_char* pkt, int proto,
-		const Encapsulation* outer_encap)
+int NetSessions::DoNextInnerPacket(double t, const struct pcap_pkthdr* hdr,
+		int caplen,	const u_char* const pkt, int proto,
+		const Encapsulation* outer)
 	{
 	IP_Hdr* inner_ip = 0;
 
 	if ( proto == IPPROTO_IPV6 )
+		{
+		if ( caplen < (int)sizeof(struct ip6_hdr) )
+			return -1;
 		inner_ip = new IP_Hdr((const struct ip6_hdr*) pkt, false, caplen);
+		}
 	else if ( proto == IPPROTO_IPV4 )
+		{
+		if ( caplen < (int)sizeof(struct ip) )
+			return -1;
 		inner_ip = new IP_Hdr((const struct ip*) pkt, false);
+		}
 	else
 		reporter->InternalError("Bad IP protocol version in DoNextInnerPacket");
+
+	if ( (uint32)caplen != inner_ip->TotalLen() )
+		{
+		delete inner_ip;
+		return (uint32)caplen < inner_ip->TotalLen() ? -1 : 1;
+		}
 
 	struct pcap_pkthdr fake_hdr;
 	fake_hdr.caplen = fake_hdr.len = caplen;
@@ -695,9 +715,10 @@ void NetSessions::DoNextInnerPacket(double t, const struct pcap_pkthdr* hdr,
 	else
 		fake_hdr.ts.tv_sec = fake_hdr.ts.tv_usec = 0;
 
-	DoNextPacket(t, &fake_hdr, inner_ip, pkt, 0, outer_encap);
+	DoNextPacket(t, &fake_hdr, inner_ip, pkt, 0, outer);
 
 	delete inner_ip;
+	return 0;
 	}
 
 bool NetSessions::CheckHeaderTrunc(int proto, uint32 len, uint32 caplen,

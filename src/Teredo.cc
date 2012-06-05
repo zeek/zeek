@@ -97,11 +97,9 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 
 	if ( ! te.Parse(data, len) )
 		{
-		ProtocolViolation("Bad Teredo encapsulation", (const char*)data, len);
+		ProtocolViolation("Bad Teredo encapsulation", (const char*) data, len);
 		return;
 		}
-
-	ProtocolConfirmation();
 
 	const Encapsulation* e = Conn()->GetEncapsulation();
 
@@ -117,7 +115,14 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 	EncapsulatingConn ec(Conn(), BifEnum::Tunnel::TEREDO);
 	outer->Add(ec);
 
-	sessions->DoNextInnerPacket(network_time, 0, len, te.InnerIP(),
-	                            IPPROTO_IPV6, outer);
+	int result = sessions->DoNextInnerPacket(network_time, 0, len, te.InnerIP(),
+	                                         IPPROTO_IPV6, outer);
+	if ( result == 0 )
+		ProtocolConfirmation();
+	else if ( result < 0 )
+		ProtocolViolation("Truncated Teredo", (const char*) data, len);
+	else
+		ProtocolViolation("Teredo payload length", (const char*) data, len);
+
 	delete outer;
 	}

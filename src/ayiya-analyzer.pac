@@ -32,19 +32,46 @@ flow AYIYA_Flow
 			reporter->Weird(c, "ayiya_tunnel_non_ip");
 			return false;
 			}
-		
-		connection()->bro_analyzer()->ProtocolConfirmation();
+
+		if ( ${pdu.packet}.length() < (int)sizeof(struct ip) )
+			{
+			connection()->bro_analyzer()->ProtocolViolation(
+			    "Truncated AYIYA", (const char*) ${pdu.packet}.data(),
+			    ${pdu.packet}.length());
+			return false;
+			}
+
+		const struct ip* ip = (const struct ip*) ${pdu.packet}.data();
+
+		if ( ( ${pdu.next_header} == IPPROTO_IPV6 && ip->ip_v != 6 ) ||
+		     ( ${pdu.next_header} == IPPROTO_IPV4 && ip->ip_v != 4) )
+			{
+			connection()->bro_analyzer()->ProtocolViolation(
+			    "AYIYA next header mismatch", (const char*)${pdu.packet}.data(),
+			     ${pdu.packet}.length());
+			return false;
+			}
 		
 		Encapsulation* outer = new Encapsulation(e);
 		EncapsulatingConn ec(c, BifEnum::Tunnel::AYIYA);
 		outer->Add(ec);
 		
-		sessions->DoNextInnerPacket(network_time(), 0, ${pdu.packet}.length(),
-		                            ${pdu.packet}.data(), ${pdu.next_header},
-		                            outer);
+		int result = sessions->DoNextInnerPacket(network_time(), 0,
+		                   ${pdu.packet}.length(), ${pdu.packet}.data(),
+		                   ${pdu.next_header}, outer);
+		if ( result == 0 )
+			connection()->bro_analyzer()->ProtocolConfirmation();
+		else if ( result < 0 )
+			connection()->bro_analyzer()->ProtocolViolation(
+			    "Truncated AYIYA", (const char*) ${pdu.packet}.data(),
+			    ${pdu.packet}.length());
+		else
+			connection()->bro_analyzer()->ProtocolViolation(
+			    "AYIYA payload length", (const char*) ${pdu.packet}.data(),
+			    ${pdu.packet}.length());
 		
 		delete outer;
-		return true;
+		return (result == 0) ? true : false;
 		%}
 
 	};

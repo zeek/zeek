@@ -51,14 +51,11 @@ flow AYIYA_Flow
 			     ${pdu.packet}.length());
 			return false;
 			}
-		
-		Encapsulation* outer = new Encapsulation(e);
-		EncapsulatingConn ec(c, BifEnum::Tunnel::AYIYA);
-		outer->Add(ec);
-		
-		int result = sessions->DoNextInnerPacket(network_time(), 0,
-		                   ${pdu.packet}.length(), ${pdu.packet}.data(),
-		                   ${pdu.next_header}, outer);
+
+		IP_Hdr* inner = 0;
+		int result = sessions->ParseIPPacket(${pdu.packet}.length(),
+		     ${pdu.packet}.data(), ${pdu.next_header}, inner);
+
 		if ( result == 0 )
 			connection()->bro_analyzer()->ProtocolConfirmation();
 		else if ( result < 0 )
@@ -69,7 +66,16 @@ flow AYIYA_Flow
 			connection()->bro_analyzer()->ProtocolViolation(
 			    "AYIYA payload length", (const char*) ${pdu.packet}.data(),
 			    ${pdu.packet}.length());
+
+		if ( result != 0 ) return false;
+
+		Encapsulation* outer = new Encapsulation(e);
+		EncapsulatingConn ec(c, BifEnum::Tunnel::AYIYA);
+		outer->Add(ec);
 		
+		sessions->DoNextInnerPacket(network_time(), 0, inner, outer);
+
+		delete inner;
 		delete outer;
 		return (result == 0) ? true : false;
 		%}

@@ -139,28 +139,37 @@ public:
 			int hdr_size, const Encapsulation* encapsulation);
 
 	/**
-	 * Wrapper that recurses on DoNextPacket for encapsulated IP packets, if
-	 * they appear to be valid based on whether \a pkt is long enough to be an
-	 * IP header and also that the payload length field of that header matches
-	 * matches the actual length of \a pkt given by \a caplen.
+	 * Wrapper that recurses on DoNextPacket for encapsulated IP packets.
 	 *
 	 * @param t Network time.
 	 * @param hdr If the outer pcap header is available, this pointer can be set
 	 *        so that the fake pcap header passed to DoNextPacket will use
 	 *        the same timeval.  The caplen and len fields of the fake pcap
-	 *        header are always set to \a caplen.
+	 *        header are always set to the TotalLength() of \a inner.
+	 * @param outer The encapsulation information for the inner IP packet.
+	 */
+	void DoNextInnerPacket(double t, const struct pcap_pkthdr* hdr,
+	                      const IP_Hdr* inner, const Encapsulation* outer);
+
+	/**
+	 * Returns a wrapper IP_Hdr object if \a pkt appears to be a valid IPv4
+	 * or IPv6 header based on whether it's long enough to contain such a header
+	 * and also that the payload length field of that header matches the actual
+	 * length of \a pkt given by \a caplen.
+	 *
 	 * @param caplen The length of \a pkt in bytes.
 	 * @param pkt The inner IP packet data.
 	 * @param proto Either IPPROTO_IPV6 or IPPROTO_IPV4 to indicate which IP
 	 *        protocol \a pkt corresponds to.
-	 * @param outer_encap The encapsulation information for the inner IP packet.
-	 * @return 0 If the inner IP packet was valid and passed to DoNextPacket,
-	 *         else -1 if the \a caplen was greater than the supposed IP
-	 *         packet's payload length field or 1 if \a caplen was less than
-	 *         the supposed IP packet's payload length.
+	 * @param inner The inner IP packet wrapper pointer to be allocated/assigned
+	 *        if \a pkt looks like a valid IP packet.
+	 * @return 0 If the inner IP packet appeared valid in which case the caller
+	 *         is responsible for deallocating \a inner, else -1 if \a caplen
+	 *         is greater than the supposed IP packet's payload length field or
+	 *         1 if \a caplen is less than the supposed packet's payload length.
 	 */
-	int DoNextInnerPacket(double t, const struct pcap_pkthdr* hdr, int caplen,
-			const u_char* const pkt, int proto, const Encapsulation* outer);
+	int ParseIPPacket(int caplen, const u_char* const pkt, int proto,
+	                  IP_Hdr*& inner);
 
 	unsigned int ConnectionMemoryUsage();
 	unsigned int ConnectionMemoryUsageConnVals();

@@ -538,6 +538,23 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 			return;
 			}
 
+		// Check for a valid inner packet first.
+		IP_Hdr* inner = 0;
+		int result = ParseIPPacket(caplen, data, proto, inner);
+
+		if ( result < 0 )
+			reporter->Weird(ip_hdr->SrcAddr(), ip_hdr->DstAddr(),
+			                "truncated_inner_IP");
+		else if ( result > 0 )
+			reporter->Weird(ip_hdr->SrcAddr(), ip_hdr->DstAddr(),
+			                "inner_IP_payload_mismatch");
+
+		if ( result != 0 )
+			{
+			Remove(f);
+			return;
+			}
+
 		Encapsulation* outer = new Encapsulation(encapsulation);
 
 		// Look up to see if we've already seen this IP tunnel, identified
@@ -561,14 +578,9 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		else
 			outer->Add(it->second);
 
-		int result = DoNextInnerPacket(t, hdr, caplen, data, proto, outer);
-		if ( result < 0 )
-			reporter->Weird(ip_hdr->SrcAddr(), ip_hdr->DstAddr(),
-			                "truncated_inner_IP");
-		else if ( result > 0 )
-			reporter->Weird(ip_hdr->SrcAddr(), ip_hdr->DstAddr(),
-			                "inner_IP_payload_mismatch");
+		DoNextInnerPacket(t, hdr, inner, outer);
 
+		delete inner;
 		delete outer;
 		Remove(f);
 		return;
@@ -576,12 +588,11 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 
 	case IPPROTO_NONE:
 		{
-		if ( encapsulation &&
-		     encapsulation->LastType() == BifEnum::Tunnel::TEREDO )
-			{
-			// TODO: raise bubble packet event
-			}
-		else
+		// If the packet is encapsulated in Teredo, then it was a bubble and
+		// the Teredo analyzer may have raised an event for that, else we're
+		// not sure the reason for the No Next header in the packet.
+		if ( ! ( encapsulation &&
+		     encapsulation->LastType() == BifEnum::Tunnel::TEREDO ) )
 			Weird("ipv6_no_next", hdr, pkt);
 
 		Remove(f);
@@ -688,43 +699,50 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		}
 	}
 
-int NetSessions::DoNextInnerPacket(double t, const struct pcap_pkthdr* hdr,
-		int caplen,	const u_char* const pkt, int proto,
-		const Encapsulation* outer)
+void NetSessions::DoNextInnerPacket(double t, const struct pcap_pkthdr* hdr,
+		const IP_Hdr* inner, const Encapsulation* outer)
 	{
-	IP_Hdr* inner_ip = 0;
-
-	if ( proto == IPPROTO_IPV6 )
-		{
-		if ( caplen < (int)sizeof(struct ip6_hdr) )
-			return -1;
-		inner_ip = new IP_Hdr((const struct ip6_hdr*) pkt, false, caplen);
-		}
-	else if ( proto == IPPROTO_IPV4 )
-		{
-		if ( caplen < (int)sizeof(struct ip) )
-			return -1;
-		inner_ip = new IP_Hdr((const struct ip*) pkt, false);
-		}
-	else
-		reporter->InternalError("Bad IP protocol version in DoNextInnerPacket");
-
-	if ( (uint32)caplen != inner_ip->TotalLen() )
-		{
-		delete inner_ip;
-		return (uint32)caplen < inner_ip->TotalLen() ? -1 : 1;
-		}
-
 	struct pcap_pkthdr fake_hdr;
-	fake_hdr.caplen = fake_hdr.len = caplen;
+	fake_hdr.caplen = fake_hdr.len = inner->TotalLen();
 	if ( hdr )
 		fake_hdr.ts = hdr->ts;
 	else
 		fake_hdr.ts.tv_sec = fake_hdr.ts.tv_usec = 0;
 
-	DoNextPacket(t, &fake_hdr, inner_ip, pkt, 0, outer);
+	const u_char* pkt = 0;
+	if ( inner->IP4_Hdr() )
+		pkt = (const u_char*) inner->IP4_Hdr();
+	else
+		pkt = (const u_char*) inner->IP6_Hdr();
 
-	delete inner_ip;
+	DoNextPacket(t, &fake_hdr, inner, pkt, 0, outer);
+	}
+
+int NetSessions::ParseIPPacket(int caplen, const u_char* const pkt, int proto,
+		IP_Hdr*& inner)
+	{
+	if ( proto == IPPROTO_IPV6 )
+		{
+		if ( caplen < (int)sizeof(struct ip6_hdr) )
+			return -1;
+		inner = new IP_Hdr((const struct ip6_hdr*) pkt, false, caplen);
+		}
+	else if ( proto == IPPROTO_IPV4 )
+		{
+		if ( caplen < (int)sizeof(struct ip) )
+			return -1;
+		inner = new IP_Hdr((const struct ip*) pkt, false);
+		}
+	else
+		reporter->InternalError("Bad IP protocol version in DoNextInnerPacket");
+
+	if ( (uint32)caplen != inner->TotalLen() )
+		{
+		delete inner;
+		inner = 0;
+		return (uint32)caplen < inner->TotalLen() ? -1 : 1;
+		}
+
 	return 0;
 	}
 

@@ -109,20 +109,26 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		return;
 		}
 
-	// TODO: raise Teredo-specific events
+	IP_Hdr* inner = 0;
+	int rslt = sessions->ParseIPPacket(len, te.InnerIP(), IPPROTO_IPV6, inner);
+
+	if ( rslt == 0 )
+		ProtocolConfirmation();
+	else if ( rslt < 0 )
+		ProtocolViolation("Truncated Teredo", (const char*) data, len);
+	else
+		ProtocolViolation("Teredo payload length", (const char*) data, len);
+
+	if ( rslt != 0 ) return;
+
+	// TODO: raise Teredo-specific events for bubbles, origin/authentication
 
 	Encapsulation* outer = new Encapsulation(e);
 	EncapsulatingConn ec(Conn(), BifEnum::Tunnel::TEREDO);
 	outer->Add(ec);
 
-	int result = sessions->DoNextInnerPacket(network_time, 0, len, te.InnerIP(),
-	                                         IPPROTO_IPV6, outer);
-	if ( result == 0 )
-		ProtocolConfirmation();
-	else if ( result < 0 )
-		ProtocolViolation("Truncated Teredo", (const char*) data, len);
-	else
-		ProtocolViolation("Teredo payload length", (const char*) data, len);
+	sessions->DoNextInnerPacket(network_time, 0, inner, outer);
 
+	delete inner;
 	delete outer;
 	}

@@ -12,5 +12,8 @@ const NFS3::return_data_max: count;
 const NFS3::return_data_first_only: bool;
 
 const Tunnel::max_depth: count;
+const Tunnel::enable_ip: bool;
+const Tunnel::enable_ayiya: bool;
+const Tunnel::enable_teredo: bool;
 
 const Threading::heartbeat_interval: interval;

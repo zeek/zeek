@@ -2650,8 +2650,17 @@ const ignore_keep_alive_rexmit = F &redef;
 module Tunnel;
 export {
 	## The maximum depth of a tunnel to decapsulate until giving up.
-	## Setting this to zero will disable tunnel decapsulation.
+	## Setting this to zero will disable all types of tunnel decapsulation.
 	const max_depth: count = 2 &redef;
+
+	## Toggle whether to do IPv{4,6}-in-IPv{4,6} decapsulation.
+	const enable_ip = T &redef;
+
+	## Toggle whether to do IPv{4,6}-in-AYIYA decapsulation.
+	const enable_ayiya = T &redef;
+
+	## Toggle whether to do IPv6-in-Teredo decapsulation.
+	const enable_teredo = T &redef;
 } # end export
 module GLOBAL;
 

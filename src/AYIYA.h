@@ -16,8 +16,8 @@ public:
 		{ return new AYIYA_Analyzer(conn); }
 
 	static bool Available()
-		// TODO: specific option to turn off AYIYA analysis
-		{ return BifConst::Tunnel::max_depth > 0; }
+		{ return BifConst::Tunnel::enable_ayiya &&
+		         BifConst::Tunnel::max_depth > 0; }
 
 protected:
 	friend class AnalyzerTimer;

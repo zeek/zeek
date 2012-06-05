@@ -21,8 +21,8 @@ public:
 		{ return new Teredo_Analyzer(conn); }
 
 	static bool Available()
-		//TODO: specific option to turn off Teredo analysis?
-		{ return BifConst::Tunnel::max_depth > 0; }
+		{ return BifConst::Tunnel::enable_teredo &&
+		         BifConst::Tunnel::max_depth > 0; }
 
 	/**
 	 * Emits a weird only if the analyzer has previously been able to

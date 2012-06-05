@@ -523,6 +523,13 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 	case IPPROTO_IPV4:
 	case IPPROTO_IPV6:
 		{
+		if ( ! BifConst::Tunnel::enable_ip )
+			{
+			reporter->Weird(ip_hdr->SrcAddr(), ip_hdr->DstAddr(), "IP_tunnel");
+			Remove(f);
+			return;
+			}
+
 		if ( encapsulation &&
 		     encapsulation->Depth() >= BifConst::Tunnel::max_depth )
 			{

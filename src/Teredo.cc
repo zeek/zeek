@@ -88,6 +88,51 @@ bool TeredoEncapsulation::DoParse(const u_char* data, int& len,
 	return false;
 	}
 
+RecordVal* TeredoEncapsulation::BuildVal(const IP_Hdr* inner) const
+	{
+	static RecordType* teredo_hdr_type = 0;
+	static RecordType* teredo_auth_type = 0;
+	static RecordType* teredo_origin_type = 0;
+
+	if ( ! teredo_hdr_type )
+		{
+		teredo_hdr_type = internal_type("teredo_hdr")->AsRecordType();
+		teredo_auth_type = internal_type("teredo_auth")->AsRecordType();
+		teredo_origin_type = internal_type("teredo_origin")->AsRecordType();
+		}
+
+	RecordVal* teredo_hdr = new RecordVal(teredo_hdr_type);
+
+	if ( auth )
+		{
+		RecordVal* teredo_auth = new RecordVal(teredo_auth_type);
+		uint8 id_len = *((uint8*)(auth + 2));
+		uint8 au_len = *((uint8*)(auth + 3));
+		uint64 nonce = ntohll(*((uint64*)(auth + 4 + id_len + au_len)));
+		uint8 conf = *((uint8*)(auth + 4 + id_len + au_len + 8));
+		teredo_auth->Assign(0, new StringVal(
+		    new BroString(auth + 4, id_len, 1)));
+		teredo_auth->Assign(1, new StringVal(
+		    new BroString(auth + 4 + id_len, au_len, 1)));
+		teredo_auth->Assign(2, new Val(nonce, TYPE_COUNT));
+		teredo_auth->Assign(3, new Val(conf, TYPE_COUNT));
+		teredo_hdr->Assign(0, teredo_auth);
+		}
+
+	if ( origin_indication )
+		{
+		RecordVal* teredo_origin = new RecordVal(teredo_origin_type);
+		uint16 port = ntohs(*((uint16*)(origin_indication + 2))) ^ 0xFFFF;
+		uint32 addr = ntohl(*((uint32*)(origin_indication + 4))) ^ 0xFFFFFFFF;
+		teredo_origin->Assign(0, new PortVal(port, TRANSPORT_UDP));
+		teredo_origin->Assign(1, new AddrVal(htonl(addr)));
+		teredo_hdr->Assign(1, teredo_origin);
+		}
+
+	teredo_hdr->Assign(2, inner->BuildPktHdrVal());
+	return teredo_hdr;
+	}
+
 void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
                                     int seq, const IP_Hdr* ip, int caplen)
 	{
@@ -121,7 +166,28 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 
 	if ( rslt != 0 ) return;
 
-	// TODO: raise Teredo-specific events for bubbles, origin/authentication
+	Val* teredo_hdr = 0;
+
+	if ( teredo_packet )
+		{
+		teredo_hdr = te.BuildVal(inner);
+		Conn()->Event(teredo_packet, 0, teredo_hdr);
+		}
+	if ( te.Authentication() && teredo_authentication )
+		{
+		teredo_hdr = teredo_hdr ? teredo_hdr->Ref() : te.BuildVal(inner);
+		Conn()->Event(teredo_authentication, 0, teredo_hdr);
+		}
+	if ( te.OriginIndication() && teredo_origin_indication )
+		{
+		teredo_hdr = teredo_hdr ? teredo_hdr->Ref() : te.BuildVal(inner);
+		Conn()->Event(teredo_origin_indication, 0, teredo_hdr);
+		}
+	if ( inner->NextProto() == IPPROTO_NONE && teredo_bubble )
+		{
+		teredo_hdr = teredo_hdr ? teredo_hdr->Ref() : te.BuildVal(inner);
+		Conn()->Event(teredo_bubble, 0, teredo_hdr);
+		}
 
 	Encapsulation* outer = new Encapsulation(e);
 	EncapsulatingConn ec(Conn(), BifEnum::Tunnel::TEREDO);

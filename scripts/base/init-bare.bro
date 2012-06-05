@@ -1347,6 +1347,42 @@ type pkt_hdr: record {
 	icmp: icmp_hdr &optional;		##< The ICMP header if an ICMP packet.
 };
 
+## A Teredo origin indication header.  See :rfc:`4380` for more information
+## about the Teredo protocol.
+##
+## .. bro:see:: teredo_bubble teredo_origin_indication teredo_authentication
+##    teredo_hdr
+type teredo_auth: record {
+	id:      string;  ##< Teredo client identifier.
+	value:   string;  ##< HMAC-SHA1 over shared secret key between client and
+	                  ##< server, nonce, confirmation byte, origin indication
+	                  ##< (if present), and the IPv6 packet.
+	nonce:   count;   ##< Nonce chosen by Teredo client to be repeated by
+	                  ##< Teredo server.
+	confirm: count;   ##< Confirmation byte to be set to 0 by Teredo client
+	                  ##< and non-zero by server if client needs new key.
+};
+
+## A Teredo authentication header.  See :rfc:`4380` for more information
+## about the Teredo protocol.
+##
+## .. bro:see:: teredo_bubble teredo_origin_indication teredo_authentication
+##    teredo_hdr
+type teredo_origin: record {
+	p: port; ##< Unobfuscated UDP port of Teredo client.
+	a: addr; ##< Unobfuscated IPv4 address of Teredo client.
+};
+
+## A Teredo packet header.  See :rfc:`4380` for more information about the
+## Teredo protocol.
+##
+## .. bro:see:: teredo_bubble teredo_origin_indication teredo_authentication
+type teredo_hdr: record {
+	auth:   teredo_auth &optional;   ##< Teredo authentication header.
+	origin: teredo_origin &optional; ##< Teredo origin indication header.
+	hdr:    pkt_hdr;                 ##< IPv6 and transport protocol headers.
+};
+
 ## Definition of "secondary filters". A secondary filter is a BPF filter given as
 ## index in this table. For each such filter, the corresponding event is raised for
 ## all matching packets.

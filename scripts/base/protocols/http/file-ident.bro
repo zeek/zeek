@@ -6,7 +6,8 @@
 @load ./utils
 
 # Add the magic number signatures to the core signature set.
-redef signature_files += "base/protocols/http/file-ident.sig";
+@load-sigs ./file-ident.sig
+
 # Ignore the signatures used to match files
 redef Signatures::ignored_ids += /^matchfile-/;
 

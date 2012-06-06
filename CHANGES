@@ -1,4 +1,11 @@
 
+2.0-598 | 2012-06-06 11:47:00 -0700
+
+  * Add @load-sigs directive for loading signature files (addresses
+    #551). This can be used to load signatures relative to the current
+    scripts (e.g., "@load-sigs ./foo.sig"). (Jon Siwek)
+
+
 2.0-596 | 2012-06-06 11:41:00 -0700
 
     * Fixes for some BiFs and their documentation. (Daniel Thayer)

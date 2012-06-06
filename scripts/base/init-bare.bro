@@ -615,7 +615,9 @@ function add_signature_file(sold: string, snew: string): string
 	}
 
 ## Signature files to read. Use ``redef signature_files  += "foo.sig"`` to
-## extend. Signature files will be searched relative to ``BROPATH``.
+## extend. Signature files added this way will be searched relative to
+## ``BROPATH``.  Using the ``@load-sigs`` directive instead is preferred
+## since that can search paths relative to the current script.
 global signature_files = "" &add_func = add_signature_file;
 
 ## ``p0f`` fingerprint file to use. Will be searched relative to ``BROPATH``.

@@ -115,7 +115,7 @@ char* ElasticSearch::FieldToString(Value* val, const Field* field)
 
   case TYPE_INTERVAL:
   case TYPE_TIME:	
-    sprintf(result, "%llu", (unsigned long long) (val->val.double_val * 1000)); return result;
+    sprintf(result, "%"PRIu64"", (uint64) (val->val.double_val * 1000)); return result;
   case TYPE_DOUBLE:
     sprintf(result, "%s", Render(val->val.double_val).c_str()); return result;
 

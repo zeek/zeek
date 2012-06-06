@@ -426,8 +426,7 @@ void MIME_Entity::ContHeader(int len, const char* data)
 		return;
 		}
 
-	int ws = MIME_count_leading_lws(len, data);
-	current_header_line->append(len - ws, data + ws);
+	current_header_line->append(len, data);
 	}
 
 void MIME_Entity::FinishHeader()

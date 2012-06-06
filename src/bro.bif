@@ -466,17 +466,18 @@ function system%(str: string%): int
 ##
 ## str: The command to execute.
 ##
-## env: A :bro:type:`set` or :bro:type:`table` with the environment variables
-##      in the form of key-value pairs (where the value is optional).
+## env: A :bro:type:`table` with the environment variables in the form
+##      of key-value pairs. Each specified environment variable name
+##      will be automatically prepended with ``BRO_ARG_``.
 ##
 ## Returns: The return value from the OS ``system`` function.
 ##
 ## .. bro:see:: system str_shell_escape piped_exec
-function system_env%(str: string, env: any%): int
+function system_env%(str: string, env: table_string_of_string%): int
 	%{
 	if ( env->Type()->Tag() != TYPE_TABLE )
 		{
-		builtin_error("system_env() requires a table/set argument");
+		builtin_error("system_env() requires a table argument");
 		return new Val(-1, TYPE_INT);
 		}
 
@@ -1422,12 +1423,15 @@ bool indirect_int_sort_function(int a, int b)
 
 ## Sorts a vector in place. The second argument is a comparison function that
 ## takes two arguments: if the vector type is ``vector of T``, then the
-## comparison function must be ``function(a: T, b: T): bool``, which returns
-## ``a < b`` for some type-specific notion of the less-than operator.
+## comparison function must be ``function(a: T, b: T): int``, which returns
+## a value less than zero if ``a < b`` for some type-specific notion of the
+## less-than operator.  The comparison function is optional if the type
+## is an integral type (int, count, etc.).
 ##
 ## v: The vector instance to sort.
 ##
-## Returns: The original vector.
+## Returns: The vector, sorted from minimum to maximum value. If the vector
+##          could not be sorted, then the original vector is returned instead.
 ##
 ## .. bro:see:: order
 function sort%(v: any, ...%) : any
@@ -1522,13 +1526,13 @@ function order%(v: any, ...%) : index_vec
 		}
 
 	if ( ! comp && ! IsIntegral(elt_type->Tag()) )
-		builtin_error("comparison function required for sort() with non-integral types");
+		builtin_error("comparison function required for order() with non-integral types");
 
 	vector<Val*>& vv = *v->AsVector();
 	int n = vv.size();
 
 	// Set up initial mapping of indices directly to corresponding
-	// elements.  We stay zero-based until after the sorting.
+	// elements.
 	vector<int> ind_vv(n);
 	index_map = new Val*[n];
 	int i;
@@ -1544,7 +1548,7 @@ function order%(v: any, ...%) : index_vec
 		if ( comp_type->YieldType()->Tag() != TYPE_INT ||
 		     ! comp_type->ArgTypes()->AllMatch(elt_type, 0) )
 			{
-			builtin_error("invalid comparison function in call to sort()");
+			builtin_error("invalid comparison function in call to order()");
 			return v;
 			}
 
@@ -1558,8 +1562,7 @@ function order%(v: any, ...%) : index_vec
 	delete [] index_map;
 	index_map = 0;
 
-	// Now spin through ind_vv to read out the rearrangement,
-	// adjusting indices as we do so.
+	// Now spin through ind_vv to read out the rearrangement.
 	for ( i = 0; i < n; ++i )
 		{
 		int ind = ind_vv[i];
@@ -1649,7 +1652,7 @@ function cat_sep%(sep: string, def: string, ...%): string
 ##
 ##    - ``.``: Precision of floating point specifiers ``[efg]`` (< 128)
 ##
-##    - ``A``: Escape NUL bytes, i.e., replace ``0`` with ``\0``
+##    - ``A``: Escape only NUL bytes (each one replaced with ``\0``) in a string
 ##
 ##    - ``[DTdxsefg]``: Format specifier
 ##
@@ -1661,15 +1664,14 @@ function cat_sep%(sep: string, def: string, ...%): string
 ##        - ``x``: Unsigned hexadecimal (using C-style ``%llx``);
 ##                 addresses/ports are converted to host-byte order
 ##
-##        - ``s``: Escaped string
+##        - ``s``: String (byte values less than 32 or greater than 126
+##                 will be escaped)
 ##
 ##        - ``[efg]``: Double
 ##
-## Returns: Given no arguments, :bro:id:`fmt` returns an empty string. Given a
-##          non-string first argument, :bro:id:`fmt` returns the concatenation
-##          of all its arguments, per :bro:id:`cat`. Finally, given the wrong
-##          number of additional arguments for the given format specifier,
-##          :bro:id:`fmt` generates a run-time error.
+## Returns: Returns the formatted string. Given no arguments, :bro:id:`fmt`. Given
+##          no format string or the wrong number of additional arguments for the 
+##          given format specifier, :bro:id:`fmt` generates a run-time error.
 ##
 ## .. bro:see:: cat cat_sep string_cat cat_string_array cat_string_array_n
 function fmt%(...%): string
@@ -1678,8 +1680,9 @@ function fmt%(...%): string
 		return new StringVal("");
 
 	Val* fmt_v = @ARG@[0];
-	if ( fmt_v->Type()->Tag() != TYPE_STRING )
-		return bro_cat(frame, @ARGS@);
+
+	// Type of fmt_v will be string here, check_built_in_call() in Func.cc
+	// checks that.
 
 	const char* fmt = fmt_v->AsString()->CheckString();
 	ODesc d;
@@ -1689,10 +1692,16 @@ function fmt%(...%): string
 		;
 
 	if ( n < @ARGC@ - 1 )
+		{
 		builtin_error("too many arguments for format", fmt_v);
+		return new StringVal("");
+		}
 
-	else if ( n >= @ARGC@ )
+	else if ( n >= @ARGC@ ) 
+		{
 		builtin_error("too few arguments for format", fmt_v);
+		return new StringVal("");
+		}
 
 	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
 	s->SetUseFreeToDelete(true);
@@ -2670,7 +2679,7 @@ function to_port%(s: string%): port
 ##
 ## Returns: The IP address corresponding to *s*.
 ##
-## .. bro:see:: addr_to_ptr_name parse_dotted_addr
+## .. bro:see:: addr_to_ptr_name to_addr
 function ptr_name_to_addr%(s: string%): addr
 	%{
 	if ( s->Len() != 72 )
@@ -2734,27 +2743,12 @@ function ptr_name_to_addr%(s: string%): addr
 ##
 ## Returns: The reverse pointer representation of *a*.
 ##
-## .. bro:see:: ptr_name_to_addr parse_dotted_addr
+## .. bro:see:: ptr_name_to_addr to_addr
 function addr_to_ptr_name%(a: addr%): string
 	%{
 	return new StringVal(a->AsAddr().PtrName().c_str());
 	%}
 
-# Transforms n0.n1.n2.n3 -> addr.
-
-## Converts a decimal dotted IP address in a :bro:type:`string` to an
-## :bro:type:`addr` type.
-##
-## s: The IP address in the form ``n0.n1.n2.n3``.
-##
-## Returns: The IP address as type :bro:type:`addr`.
-##
-## .. bro:see:: addr_to_ptr_name parse_dotted_addr
-function parse_dotted_addr%(s: string%): addr
-	%{
-	IPAddr a(s->CheckString());
-	return new AddrVal(a);
-	%}
 
 %%{
 static Val* parse_port(const char* line)
@@ -5658,6 +5652,14 @@ function match_signatures%(c: connection, pattern_type: int, s: string,
 #                            Deprecated Functions
 #
 # ===========================================================================
+
+## Deprecated. Will be removed.
+function parse_dotted_addr%(s: string%): addr
+	%{
+	IPAddr a(s->CheckString());
+	return new AddrVal(a);
+	%}
+
 
 %%{
 #include "Anon.h"

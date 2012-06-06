@@ -1,4 +1,10 @@
 
+2.0-596 | 2012-06-06 11:41:00 -0700
+
+    * Fixes for some BiFs and their documentation. (Daniel Thayer)
+
+    * Many new unit tests for BiFs. (Daniel Thayer)
+
 2.0-579 | 2012-06-06 11:04:46 -0700
 
   * Memory leak fixes for bad usages of VectorVal ctor. (Jon Siwek)

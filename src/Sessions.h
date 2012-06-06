@@ -11,7 +11,7 @@
 #include "PacketFilter.h"
 #include "Stats.h"
 #include "NetVar.h"
-#include "Tunnels.h"
+#include "TunnelEncapsulation.h"
 #include <utility>
 
 struct pcap_pkthdr;

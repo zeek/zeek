@@ -3,11 +3,11 @@
 #empty_field	(empty)
 #unset_field	-
 #path	tunnel
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	action	tunnel_type	user
-#types	time	string	addr	port	addr	port	enum	enum	string
-1210953052.202579	nQcgTWjvg4c	192.168.2.16	3797	65.55.158.80	3544	Tunnel::DISCOVER	Tunnel::TEREDO	-
-1210953052.324629	TEfuqmmG4bh	192.168.2.16	3797	65.55.158.81	3544	Tunnel::DISCOVER	Tunnel::TEREDO	-
-1210953061.292918	GSxOnSLghOa	192.168.2.16	3797	83.170.1.38	32900	Tunnel::DISCOVER	Tunnel::TEREDO	-
-1210953076.058333	nQcgTWjvg4c	192.168.2.16	3797	65.55.158.80	3544	Tunnel::CLOSE	Tunnel::TEREDO	-
-1210953076.058333	GSxOnSLghOa	192.168.2.16	3797	83.170.1.38	32900	Tunnel::CLOSE	Tunnel::TEREDO	-
-1210953076.058333	TEfuqmmG4bh	192.168.2.16	3797	65.55.158.81	3544	Tunnel::CLOSE	Tunnel::TEREDO	-
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	action	tunnel_type
+#types	time	string	addr	port	addr	port	enum	enum
+1210953052.202579	nQcgTWjvg4c	192.168.2.16	3797	65.55.158.80	3544	Tunnel::DISCOVER	Tunnel::TEREDO
+1210953052.324629	TEfuqmmG4bh	192.168.2.16	3797	65.55.158.81	3544	Tunnel::DISCOVER	Tunnel::TEREDO
+1210953061.292918	GSxOnSLghOa	192.168.2.16	3797	83.170.1.38	32900	Tunnel::DISCOVER	Tunnel::TEREDO
+1210953076.058333	nQcgTWjvg4c	192.168.2.16	3797	65.55.158.80	3544	Tunnel::CLOSE	Tunnel::TEREDO
+1210953076.058333	GSxOnSLghOa	192.168.2.16	3797	83.170.1.38	32900	Tunnel::CLOSE	Tunnel::TEREDO
+1210953076.058333	TEfuqmmG4bh	192.168.2.16	3797	65.55.158.81	3544	Tunnel::CLOSE	Tunnel::TEREDO

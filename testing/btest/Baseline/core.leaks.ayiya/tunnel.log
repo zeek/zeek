@@ -3,9 +3,9 @@
 #empty_field	(empty)
 #unset_field	-
 #path	tunnel
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	action	tunnel_type	user
-#types	time	string	addr	port	addr	port	enum	enum	string
-1257655293.629048	UWkUyAuUGXf	192.168.3.101	53796	216.14.98.22	5072	Tunnel::DISCOVER	Tunnel::AYIYA	-
-1257655296.585034	k6kgXLOoSKl	192.168.3.101	53859	216.14.98.22	5072	Tunnel::DISCOVER	Tunnel::AYIYA	-
-1257655317.464035	k6kgXLOoSKl	192.168.3.101	53859	216.14.98.22	5072	Tunnel::CLOSE	Tunnel::AYIYA	-
-1257655317.464035	UWkUyAuUGXf	192.168.3.101	53796	216.14.98.22	5072	Tunnel::CLOSE	Tunnel::AYIYA	-
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	action	tunnel_type
+#types	time	string	addr	port	addr	port	enum	enum
+1257655293.629048	UWkUyAuUGXf	192.168.3.101	53796	216.14.98.22	5072	Tunnel::DISCOVER	Tunnel::AYIYA
+1257655296.585034	k6kgXLOoSKl	192.168.3.101	53859	216.14.98.22	5072	Tunnel::DISCOVER	Tunnel::AYIYA
+1257655317.464035	k6kgXLOoSKl	192.168.3.101	53859	216.14.98.22	5072	Tunnel::CLOSE	Tunnel::AYIYA
+1257655317.464035	UWkUyAuUGXf	192.168.3.101	53796	216.14.98.22	5072	Tunnel::CLOSE	Tunnel::AYIYA

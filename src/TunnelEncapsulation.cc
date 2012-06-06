@@ -1,13 +1,13 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "Tunnels.h"
+#include "TunnelEncapsulation.h"
 #include "util.h"
 #include "Conn.h"
 
 EncapsulatingConn::EncapsulatingConn(Connection* c, BifEnum::Tunnel::Type t)
 		: src_addr(c->OrigAddr()), dst_addr(c->RespAddr()),
 		  src_port(c->OrigPort()), dst_port(c->RespPort()),
-		  type(t), uid(c->GetUID())
+		  proto(c->ConnTransport()), type(t), uid(c->GetUID())
 		{
 		if ( ! uid )
 			{
@@ -18,28 +18,13 @@ EncapsulatingConn::EncapsulatingConn(Connection* c, BifEnum::Tunnel::Type t)
 
 RecordVal* EncapsulatingConn::GetRecordVal() const
 	{
-	RecordVal *rv =
-			new RecordVal(BifType::Record::Tunnel::EncapsulatingConn);
-	TransportProto tproto;
-	switch ( type ) {
-	case BifEnum::Tunnel::AYIYA:
-	case BifEnum::Tunnel::TEREDO:
-		tproto = TRANSPORT_UDP;
-		break;
-	case BifEnum::Tunnel::SOCKS:
-		tproto = TRANSPORT_TCP;
-		break;
-	case BifEnum::Tunnel::IP:
-	default:
-		tproto = TRANSPORT_UNKNOWN;
-		break;
-	} // end switch
+	RecordVal *rv = new RecordVal(BifType::Record::Tunnel::EncapsulatingConn);
 
 	RecordVal* id_val = new RecordVal(conn_id);
 	id_val->Assign(0, new AddrVal(src_addr));
-	id_val->Assign(1, new PortVal(ntohs(src_port), tproto));
+	id_val->Assign(1, new PortVal(ntohs(src_port), proto));
 	id_val->Assign(2, new AddrVal(dst_addr));
-	id_val->Assign(3, new PortVal(ntohs(dst_port), tproto));
+	id_val->Assign(3, new PortVal(ntohs(dst_port), proto));
 	rv->Assign(0, id_val);
 	rv->Assign(1, new EnumVal(type, BifType::Enum::Tunnel::Type));
 	char tmp[20];

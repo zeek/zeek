@@ -30,7 +30,7 @@
 #include "DPM.h"
 
 #include "PacketSort.h"
-#include "Tunnels.h"
+#include "TunnelEncapsulation.h"
 
 // These represent NetBIOS services on ephemeral ports.  They're numbered
 // so that we can use a single int to hold either an actual TCP/UDP server
@@ -570,8 +570,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 
 		if ( it == ip_tunnels.end() )
 			{
-			EncapsulatingConn ec(ip_hdr->SrcAddr(), ip_hdr->DstAddr(),
-			                     BifEnum::Tunnel::IP);
+			EncapsulatingConn ec(ip_hdr->SrcAddr(), ip_hdr->DstAddr());
 			ip_tunnels[tunnel_idx] = ec;
 			outer->Add(ec);
 			}

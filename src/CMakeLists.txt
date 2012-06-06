@@ -402,7 +402,7 @@ set(bro_SRCS
     Timer.cc
     Traverse.cc
     Trigger.cc
-    Tunnels.cc
+    TunnelEncapsulation.cc
     Type.cc
     UDP.cc
     Val.cc

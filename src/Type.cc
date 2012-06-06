@@ -1467,6 +1467,16 @@ bool VectorType::DoUnserialize(UnserialInfo* info)
 	return yield_type != 0;
 	}
 
+void VectorType::Describe(ODesc* d) const
+	{
+	if ( d->IsReadable() )
+		d->AddSP("vector of");
+	else
+		d->Add(int(Tag()));
+
+	yield_type->Describe(d);
+	}
+
 BroType* base_type(TypeTag tag)
 	{
 	static BroType* base_types[NUM_TYPES];

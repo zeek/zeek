@@ -36,13 +36,12 @@ static inline RecordType* hdrType(RecordType*& type, const char* name)
 
 static VectorVal* BuildOptionsVal(const u_char* data, int len)
 	{
-	VectorVal* vv = new VectorVal(new VectorType(
-	        hdrType(ip6_option_type, "ip6_option")->Ref()));
+	VectorVal* vv = new VectorVal(internal_type("ip6_options")->AsVectorType());
 
 	while ( len > 0 )
 		{
 		const struct ip6_opt* opt = (const struct ip6_opt*) data;
-		RecordVal* rv = new RecordVal(ip6_option_type);
+		RecordVal* rv = new RecordVal(hdrType(ip6_option_type, "ip6_option"));
 		rv->Assign(0, new Val(opt->ip6o_type, TYPE_COUNT));
 
 		if ( opt->ip6o_type == 0 )
@@ -87,8 +86,8 @@ RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 		rv->Assign(5, new AddrVal(IPAddr(ip6->ip6_src)));
 		rv->Assign(6, new AddrVal(IPAddr(ip6->ip6_dst)));
 		if ( ! chain )
-			chain = new VectorVal(new VectorType(
-			        hdrType(ip6_ext_hdr_type, "ip6_ext_hdr")->Ref()));
+			chain = new VectorVal(
+			    internal_type("ip6_ext_hdr_chain")->AsVectorType());
 		rv->Assign(7, chain);
 		}
 		break;

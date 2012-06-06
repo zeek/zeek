@@ -1494,8 +1494,8 @@ function sort%(v: any, ...%) : any
 ## .. bro:see:: sort
 function order%(v: any, ...%) : index_vec
 	%{
-	VectorVal* result_v =
-		new VectorVal(new VectorType(base_type(TYPE_COUNT)));
+	VectorVal* result_v = new VectorVal(
+	    internal_type("index_vec")->AsVectorType());
 
 	if ( v->Type()->Tag() != TYPE_VECTOR )
 		{
@@ -2331,7 +2331,7 @@ function is_v6_addr%(a: addr%): bool
 ## Returns: The vector of addresses contained in the routing header data.
 function routing0_data_to_addrs%(s: string%): addr_vec
 	%{
-	VectorVal* rval = new VectorVal(new VectorType(base_type(TYPE_ADDR)));
+	VectorVal* rval = new VectorVal(internal_type("addr_vec")->AsVectorType());
 
 	int len = s->Len();
 	const u_char* bytes = s->Bytes();
@@ -2362,7 +2362,7 @@ function routing0_data_to_addrs%(s: string%): addr_vec
 ## .. bro:see:: counts_to_addr
 function addr_to_counts%(a: addr%): index_vec
 	%{
-	VectorVal* rval = new VectorVal(new VectorType(base_type(TYPE_COUNT)));
+	VectorVal* rval = new VectorVal(internal_type("index_vec")->AsVectorType());
 	const uint32* bytes;
 	int len = a->AsAddr().GetBytes(&bytes);
 

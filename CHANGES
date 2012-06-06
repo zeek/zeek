@@ -1,4 +1,23 @@
 
+2.0-579 | 2012-06-06 11:04:46 -0700
+
+  * Memory leak fixes for bad usages of VectorVal ctor. (Jon Siwek)
+
+  * Fixed a bug with the MIME analyzer not removing whitespace on
+    wrapped headers. (Seth Hall)
+
+  * Change Input::update_finished lookup to happen at init time. (Jon Siwek)
+
+  * Fix going through the internal_handler() function which will now
+    set the event as "used" (i.e. it's marked as being raised
+    somewhere). Addresses #823. (Jon Siwek)
+
+  * Fix format specifier on RemoteSerializer::Connect. This caused
+    32-bit systems to show a warning at compile-time, and fail when
+    connecting to peers. (Jon Siwek)
+
+  * Fixes for running tests in parallel. (Robin Sommer)
+
 2.0-571 | 2012-05-30 19:12:43 -0700
 
   * Updating submodule(s).

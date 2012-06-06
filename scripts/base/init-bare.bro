@@ -1264,6 +1264,9 @@ type ip6_ext_hdr: record {
 	mobility: ip6_mobility_hdr &optional;
 };
 
+## A type alias for a vector of IPv6 extension headers.
+type ip6_ext_hdr_chain: vector of ip6_ext_hdr;
+
 ## Values extracted from an IPv6 header.
 ##
 ## .. bro:see:: pkt_hdr ip4_hdr ip6_ext_hdr ip6_hopopts ip6_dstopts
@@ -1278,7 +1281,7 @@ type ip6_hdr: record {
 	hlim: count;					##< Hop limit.
 	src: addr;					##< Source address.
 	dst: addr;					##< Destination address.
-	exts: vector of ip6_ext_hdr;			##< Extension header chain.
+	exts: ip6_ext_hdr_chain;			##< Extension header chain.
 };
 
 ## Values extracted from an IPv4 header.

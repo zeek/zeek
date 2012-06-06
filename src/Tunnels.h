@@ -118,8 +118,8 @@ public:
 
 	VectorVal* GetVectorVal() const
 		{
-		VectorVal* vv = new VectorVal(new VectorType(
-		        BifType::Record::Tunnel::EncapsulatingConn->Ref()));
+		VectorVal* vv = new VectorVal(
+		    internal_type("EncapsulatingConnVector")->AsVectorType());
 		if ( conns )
 			for ( size_t i = 0; i < conns->size(); ++i )
 				vv->Assign(i, (*conns)[i].GetRecordVal(), 0);

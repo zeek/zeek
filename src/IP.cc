@@ -583,7 +583,8 @@ VectorVal* IPv6_Hdr_Chain::BuildVal() const
 		ip6_mob_type = internal_type("ip6_mobility_hdr")->AsRecordType();
 		}
 
-	VectorVal* rval = new VectorVal(new VectorType(ip6_ext_hdr_type->Ref()));
+	VectorVal* rval = new VectorVal(
+	    internal_type("ip6_ext_hdr_chain")->AsVectorType());
 
 	for ( size_t i = 1; i < chain.size(); ++i )
 		{

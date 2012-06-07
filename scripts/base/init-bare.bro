@@ -2705,6 +2705,14 @@ export {
 
 	## Toggle whether to do IPv6-in-Teredo decapsulation.
 	const enable_teredo = T &redef;
+
+	## With this option set, the Teredo analysis will first check to see if
+	## other protocol analyzers have confirmed that they think they're
+	## parsing the right protocol and only continue with Teredo tunnel
+	## decapsulation if nothing else has yet confirmed.  This can help
+	## reduce false positives of UDP traffic (e.g. DNS) that also happens
+	## to have a valid Teredo encapsulation.
+	const yielding_teredo_decapsulation = T &redef;
 } # end export
 module GLOBAL;
 

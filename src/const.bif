@@ -15,5 +15,6 @@ const Tunnel::max_depth: count;
 const Tunnel::enable_ip: bool;
 const Tunnel::enable_ayiya: bool;
 const Tunnel::enable_teredo: bool;
+const Tunnel::yielding_teredo_decapsulation: bool;
 
 const Threading::heartbeat_interval: interval;

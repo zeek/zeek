@@ -343,6 +343,10 @@ private:
 	for ( analyzer_list::iterator var = the_kids.begin(); \
 	      var != the_kids.end(); var++ )
 
+#define LOOP_OVER_GIVEN_CONST_CHILDREN(var, the_kids) \
+	for ( analyzer_list::const_iterator var = the_kids.begin(); \
+	      var != the_kids.end(); var++ )
+
 class SupportAnalyzer : public Analyzer {
 public:
 	SupportAnalyzer(AnalyzerTag::Tag tag, Connection* conn, bool arg_orig)

@@ -158,13 +158,37 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 	int rslt = sessions->ParseIPPacket(len, te.InnerIP(), IPPROTO_IPV6, inner);
 
 	if ( rslt == 0 )
-		ProtocolConfirmation();
+		{
+		if ( BifConst::Tunnel::yielding_teredo_decapsulation &&
+		     ! ProtocolConfirmed() )
+			{
+			// Only confirm the Teredo tunnel and start decapsulating packets
+			// when no other sibling analyzer thinks it's already parsing the
+			// right protocol.
+			bool sibling_has_confirmed = false;
+			if ( Parent() )
+				{
+				LOOP_OVER_GIVEN_CONST_CHILDREN(i, Parent()->GetChildren())
+					{
+					if ( (*i)->ProtocolConfirmed() )
+						sibling_has_confirmed = true;
+					}
+				}
+			if ( ! sibling_has_confirmed )
+				ProtocolConfirmation();
+			}
+		else
+			{
+			// Aggressively decapsulate anything with valid Teredo encapsulation
+			ProtocolConfirmation();
+			}
+		}
 	else if ( rslt < 0 )
 		ProtocolViolation("Truncated Teredo", (const char*) data, len);
 	else
 		ProtocolViolation("Teredo payload length", (const char*) data, len);
 
-	if ( rslt != 0 ) return;
+	if ( rslt != 0 || ! ProtocolConfirmed() ) return;
 
 	Val* teredo_hdr = 0;
 

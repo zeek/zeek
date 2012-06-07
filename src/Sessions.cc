@@ -353,7 +353,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 	uint32 len = ip_hdr->TotalLen();
 	if ( hdr->len < len + hdr_size )
 		{
-		Weird("truncated_IP", hdr, pkt);
+		Weird("truncated_IP", hdr, pkt, encapsulation);
 		return;
 		}
 
@@ -365,7 +365,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 	if ( ! ignore_checksums && ip4 &&
 	     ones_complement_checksum((void*) ip4, ip_hdr_len, 0) != 0xffff )
 		{
-		Weird("bad_IP_checksum", hdr, pkt);
+		Weird("bad_IP_checksum", hdr, pkt, encapsulation);
 		return;
 		}
 
@@ -380,7 +380,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 
 		if ( caplen < len )
 			{
-			Weird("incompletely_captured_fragment", ip_hdr);
+			Weird("incompletely_captured_fragment", ip_hdr, encapsulation);
 
 			// Don't try to reassemble, that's doomed.
 			// Discard all except the first fragment (which
@@ -432,7 +432,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 
 		if ( ! ignore_checksums && mobility_header_checksum(ip_hdr) != 0xffff )
 			{
-			Weird("bad_MH_checksum", hdr, pkt);
+			Weird("bad_MH_checksum", hdr, pkt, encapsulation);
 			Remove(f);
 			return;
 			}
@@ -445,7 +445,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 			}
 
 		if ( ip_hdr->NextProto() != IPPROTO_NONE )
-			Weird("mobility_piggyback", hdr, pkt);
+			Weird("mobility_piggyback", hdr, pkt, encapsulation);
 
 		Remove(f);
 		return;
@@ -454,7 +454,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 
 	int proto = ip_hdr->NextProto();
 
-	if ( CheckHeaderTrunc(proto, len, caplen, hdr, pkt) )
+	if ( CheckHeaderTrunc(proto, len, caplen, hdr, pkt, encapsulation) )
 		{
 		Remove(f);
 		return;
@@ -525,7 +525,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		{
 		if ( ! BifConst::Tunnel::enable_ip )
 			{
-			reporter->Weird(ip_hdr->SrcAddr(), ip_hdr->DstAddr(), "IP_tunnel");
+			Weird("IP_tunnel", ip_hdr, encapsulation);
 			Remove(f);
 			return;
 			}
@@ -533,7 +533,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		if ( encapsulation &&
 		     encapsulation->Depth() >= BifConst::Tunnel::max_depth )
 			{
-			reporter->Weird(ip_hdr->SrcAddr(), ip_hdr->DstAddr(), "tunnel_depth");
+			Weird("tunnel_depth", ip_hdr, encapsulation);
 			Remove(f);
 			return;
 			}
@@ -543,11 +543,9 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		int result = ParseIPPacket(caplen, data, proto, inner);
 
 		if ( result < 0 )
-			reporter->Weird(ip_hdr->SrcAddr(), ip_hdr->DstAddr(),
-			                "truncated_inner_IP");
+			Weird("truncated_inner_IP", ip_hdr, encapsulation);
 		else if ( result > 0 )
-			reporter->Weird(ip_hdr->SrcAddr(), ip_hdr->DstAddr(),
-			                "inner_IP_payload_mismatch");
+			Weird("inner_IP_payload_mismatch", ip_hdr, encapsulation);
 
 		if ( result != 0 )
 			{
@@ -599,7 +597,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		}
 
 	default:
-		Weird(fmt("unknown_protocol_%d", proto), hdr, pkt);
+		Weird(fmt("unknown_protocol_%d", proto), hdr, pkt, encapsulation);
 		Remove(f);
 		return;
 	}
@@ -746,7 +744,8 @@ int NetSessions::ParseIPPacket(int caplen, const u_char* const pkt, int proto,
 	}
 
 bool NetSessions::CheckHeaderTrunc(int proto, uint32 len, uint32 caplen,
-                                   const struct pcap_pkthdr* h, const u_char* p)
+                                   const struct pcap_pkthdr* h,
+                                   const u_char* p, const Encapsulation* encap)
 	{
 	uint32 min_hdr_len = 0;
 	switch ( proto ) {
@@ -775,13 +774,13 @@ bool NetSessions::CheckHeaderTrunc(int proto, uint32 len, uint32 caplen,
 
 	if ( len < min_hdr_len )
 		{
-		Weird("truncated_header", h, p);
+		Weird("truncated_header", h, p, encap);
 		return true;
 		}
 
 	if ( caplen < min_hdr_len )
 		{
-		Weird("internally_truncated_header", h, p);
+		Weird("internally_truncated_header", h, p, encap);
 		return true;
 		}
 
@@ -1298,18 +1297,26 @@ void NetSessions::Internal(const char* msg, const struct pcap_pkthdr* hdr,
 	reporter->InternalError("%s", msg);
 	}
 
-void NetSessions::Weird(const char* name,
-			const struct pcap_pkthdr* hdr, const u_char* pkt)
+void NetSessions::Weird(const char* name, const struct pcap_pkthdr* hdr,
+                        const u_char* pkt, const Encapsulation* encap)
 	{
 	if ( hdr )
 		dump_this_packet = 1;
 
-	reporter->Weird(name);
+	if ( encap && encap->LastType() != BifEnum::Tunnel::NONE )
+		reporter->Weird(fmt("%s_in_tunnel", name));
+	else
+		reporter->Weird(name);
 	}
 
-void NetSessions::Weird(const char* name, const IP_Hdr* ip)
+void NetSessions::Weird(const char* name, const IP_Hdr* ip,
+                        const Encapsulation* encap)
 	{
-	reporter->Weird(ip->SrcAddr(), ip->DstAddr(), name);
+	if ( encap && encap->LastType() != BifEnum::Tunnel::NONE )
+		reporter->Weird(ip->SrcAddr(), ip->DstAddr(),
+		                fmt("%s_in_tunnel", name));
+	else
+		reporter->Weird(ip->SrcAddr(), ip->DstAddr(), name);
 	}
 
 unsigned int NetSessions::ConnectionMemoryUsage()

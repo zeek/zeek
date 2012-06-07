@@ -108,9 +108,10 @@ public:
 
 	void GetStats(SessionStats& s) const;
 
-	void Weird(const char* name,
-		const struct pcap_pkthdr* hdr, const u_char* pkt);
-	void Weird(const char* name, const IP_Hdr* ip);
+	void Weird(const char* name, const struct pcap_pkthdr* hdr,
+	    const u_char* pkt, const Encapsulation* encap = 0);
+	void Weird(const char* name, const IP_Hdr* ip,
+	    const Encapsulation* encap = 0);
 
 	PacketFilter* GetPacketFilter()
 		{
@@ -231,7 +232,8 @@ protected:
 	// from lower-level headers or the length actually captured is less
 	// than that protocol's minimum header size.
 	bool CheckHeaderTrunc(int proto, uint32 len, uint32 caplen,
-	                      const struct pcap_pkthdr* hdr, const u_char* pkt);
+	                      const struct pcap_pkthdr* hdr, const u_char* pkt,
+	                      const Encapsulation* encap);
 
 	CompositeHash* ch;
 	PDict(Connection) tcp_conns;

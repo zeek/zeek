@@ -1,4 +1,11 @@
 
+2.0-602 | 2012-06-07 15:06:19 -0700
+
+  * Include header for usleep(), caused compile failure on Archlinux. (Jon Siwek)
+
+  * Revert "Fixed a bug with the MIME analyzer not removing whitespace
+    on wrapped headers." Needs discussion. (Robin Sommer)
+
 2.0-598 | 2012-06-06 11:47:00 -0700
 
   * Add @load-sigs directive for loading signature files (addresses

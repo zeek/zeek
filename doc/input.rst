@@ -2,9 +2,11 @@
 Loading Data into Bro with the Input Framework
 ==============================================
 
-Bro now features a flexible input frameworks that allows users 
-to import data into Bro. Data is either read into Bro tables or 
-converted to events which can then be handled by scripts.
+.. rst-class:: opening
+
+   Bro now features a flexible input frameworks that allows users 
+   to import data into Bro. Data is either read into Bro tables or 
+   converted to events which can then be handled by scripts.
    
 The input framework is  merged into the git master and we 
 will give a short summary on how to use it.
@@ -64,8 +66,9 @@ The two records are defined as:
                 reason: string;
         };
 
-Not ethat the record definition has to contain the same names as the fields
-line in the log file.
+ote that the names of the fields in the record definitions have to correspond to 
+the column names listed in the '#fields' line of the log file, in this case 'ip', 
+'timestamp', and 'reason'.
 
 The log file is read into the table with a simple call of the add_table function:
 
@@ -89,7 +92,10 @@ sends it back to the main Bro thread.
 
 Because of this, the data is not immediately accessible. Depending on the
 size of the data source it might take from a few milliseconds up to a few seconds
-until all data is present in the table.
+until all data is present in the table. Please note that this means that when Bro
+is running without an input source or on very short captured files, it might terminate
+before the data is present in the system (because Bro already handled all packets
+before the import thread finished).
 
 Subsequent calls to an input source are queued until the previous action has been
 completed. Because of this, it is, for example, possible to call ``add_table`` and
@@ -305,11 +311,6 @@ of reading them to a table using event streams.
 Event streams work very similarly to table streams that were already discussed in much
 detail. To read the blacklist of the previous example into an event stream, the following
 Bro code could be used:
-
-Event Streams are streams that generate an event for each line in of the input source.
-
-For example, a simple stream retrieving the fields ``i`` and ``b`` from an input Source
-could be defined as follows:
 
 .. code:: bro
 

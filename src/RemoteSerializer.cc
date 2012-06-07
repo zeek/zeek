@@ -700,7 +700,8 @@ RemoteSerializer::PeerID RemoteSerializer::Connect(const IPAddr& ip,
 
 	const size_t BUFSIZE = 1024;
 	char* data = new char[BUFSIZE];
-	snprintf(data, BUFSIZE, "%"PRIu64",%s,%s,%"PRIu16",%"PRIu32",%d", p->id,
+	snprintf(data, BUFSIZE,
+	         "%"PRI_PTR_COMPAT_UINT",%s,%s,%"PRIu16",%"PRIu32",%d", p->id,
 	         ip.AsString().c_str(), zone_id.c_str(), port, uint32(retry),
 	         use_ssl);
 

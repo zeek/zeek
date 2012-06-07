@@ -55,6 +55,11 @@ Bro 2.1
   of that script, you need to adapt it. See the shipped version for
   details.
 
+- Signature files can now be loaded via the new "@load-sigs"
+  directive. In contrast to the existing (and still supported)
+  signature_files constant, this can be used to load signatures
+  relative to the current script (e.g., "@load-sigs ./foo.sig").
+
 TODO: Extend.
 
 Bro 2.0

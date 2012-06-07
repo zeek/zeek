@@ -184,6 +184,8 @@ private:
 	enum StreamType { TABLE_STREAM, EVENT_STREAM };
 
 	map<ReaderFrontend*, Stream*> readers;
+
+	EventHandlerPtr update_finished;
 };
 
 

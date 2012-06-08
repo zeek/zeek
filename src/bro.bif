@@ -1494,6 +1494,8 @@ function sort%(v: any, ...%) : any
 ## v: The vector whose order to compute.
 ##
 ## Returns: A ``vector of count`` with the indices of the ordered elements.
+##          For example, the elements of *v* in order are (assuming ``o``
+##          is the vector returned by ``order``):  v[o[0]], v[o[1]], etc.
 ##
 ## .. bro:see:: sort
 function order%(v: any, ...%) : index_vec

@@ -1671,9 +1671,10 @@ function cat_sep%(sep: string, def: string, ...%): string
 ##
 ##        - ``[efg]``: Double
 ##
-## Returns: Returns the formatted string. Given no arguments, :bro:id:`fmt`. Given
-##          no format string or the wrong number of additional arguments for the 
-##          given format specifier, :bro:id:`fmt` generates a run-time error.
+## Returns: Returns the formatted string. Given no arguments, :bro:id:`fmt`
+##          returns an empty string. Given no format string or the wrong
+##          number of additional arguments for the given format specifier,
+##          :bro:id:`fmt` generates a run-time error.
 ##
 ## .. bro:see:: cat cat_sep string_cat cat_string_array cat_string_array_n
 function fmt%(...%): string
@@ -1717,8 +1718,9 @@ function fmt%(...%): string
 #
 # ===========================================================================
 
-## Chops off any decimal digits of the given double, i.e., computes the
-## "floor" of it. For example, ``floor(3.14)`` returns ``3.0``.
+## Computes the greatest integer less than the given :bro:type:`double` value.
+## For example, ``floor(3.14)`` returns ``3.0``, and ``floor(-3.14)``
+## returns ``-4.0``.
 ##
 ## d: The :bro:type:`double` to manipulate.
 ##
@@ -1897,8 +1899,9 @@ function reading_traces%(%): bool
 	return new Val(reading_traces, TYPE_BOOL);
 	%}
 
-## Returns statistics about the number of packets *(i)* received by Bro,
-## *(ii)* dropped, and *(iii)* seen on the link (not always available).
+## Returns packet capture statistics. Statistics include the number of
+## packets *(i)* received by Bro, *(ii)* dropped, and *(iii)* seen on the
+## link (not always available).
 ##
 ## Returns: A record of packet statistics.
 ##
@@ -1932,9 +1935,9 @@ function net_stats%(%): NetStats
 	return ns;
 	%}
 
-## Returns Bro process statistics, such as real/user/sys CPU time, memory
-## usage, page faults, number of TCP/UDP/ICMP connections, timers, and events
-## queued/dispatched.
+## Returns Bro process statistics. Statistics include real/user/sys CPU time,
+## memory usage, page faults, number of TCP/UDP/ICMP connections, timers,
+## and events queued/dispatched.
 ##
 ## Returns: A record with resource usage statistics.
 ##
@@ -2009,10 +2012,10 @@ function resource_usage%(%): bro_resources
 	return res;
 	%}
 
-## Returns statistics about the regular expression engine, such as the number
-## of distinct matchers, DFA states, DFA state transitions, memory usage of
-## DFA states, cache hits/misses, and average number of NFA states across all
-## matchers.
+## Returns statistics about the regular expression engine. Statistics include
+## the number of distinct matchers, DFA states, DFA state transitions, memory
+## usage of DFA states, cache hits/misses, and average number of NFA states
+## across all matchers.
 ##
 ## Returns: A record with matcher statistics.
 ##
@@ -2192,10 +2195,10 @@ function record_fields%(rec: any%): record_field_table
 	return fields;
 	%}
 
-## Enables detailed collections of statistics about CPU/memory usage,
-## connections, TCP states/reassembler, DNS lookups, timers, and script-level
-## state. The script variable :bro:id:`profiling_file` holds the name of the
-## file.
+## Enables detailed collection of profiling statistics. Statistics include
+## CPU/memory usage, connections, TCP states/reassembler, DNS lookups,
+## timers, and script-level state. The script variable :bro:id:`profiling_file`
+## holds the name of the file.
 ##
 ## .. bro:see:: net_stats
 ##              resource_usage
@@ -2619,7 +2622,7 @@ function count_to_v4_addr%(ip: count%): addr
 	return new AddrVal(htonl(uint32(ip)));
 	%}
 
-## Converts a :bro:type:`string` of bytes into an IP address. In particular,
+## Converts a :bro:type:`string` of bytes into an IPv4 address. In particular,
 ## this function interprets the first 4 bytes of the string as an IPv4 address
 ## in network order.
 ##
@@ -3018,8 +3021,8 @@ function decode_netbios_name_type%(name: string%): count
 	return new Val(return_val, TYPE_COUNT);
 	%}
 
-## Converts a string of bytes into its hexadecimal representation, e.g.,
-## ``"04"`` to ``"3034"``.
+## Converts a string of bytes into its hexadecimal representation.
+## For example, ``"04"`` would be converted to ``"3034"``.
 ##
 ## bytestring: The string of bytes.
 ##
@@ -3281,7 +3284,7 @@ function mask_addr%(a: addr, top_bits_to_keep: count%): subnet
 	return new SubNetVal(a->AsAddr(), top_bits_to_keep);
 	%}
 
-## Takes some top bits (e.g., subnet address) from one address and the other
+## Takes some top bits (such as a subnet address) from one address and the other
 ## bits (intra-subnet part) from a second address and merges them to get a new
 ## address. This is useful for anonymizing at subnet level while preserving
 ## serial scans.
@@ -3518,7 +3521,7 @@ function skip_http_entity_data%(c: connection, is_orig: bool%): any
 	return 0;
 	%}
 
-## Unescapes all characters in a URI, i.e., decodes every ``%xx`` group.
+## Unescapes all characters in a URI (decode every ``%xx`` group).
 ##
 ## URI: The URI to unescape.
 ##

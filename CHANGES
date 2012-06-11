@@ -1,4 +1,11 @@
 
+2.0-606 | 2012-06-11 15:55:56 -0700
+
+  * Fix summary lines for BIF documentation and corrected the
+    description of "fmt" and "floor" BIFs. (Daniel Thayer)
+
+  * Fix val_size BIF tests and improve docs. (Daniel Thayer)
+    
 2.0-602 | 2012-06-07 15:06:19 -0700
 
   * Include header for usleep(), caused compile failure on Archlinux. (Jon Siwek)

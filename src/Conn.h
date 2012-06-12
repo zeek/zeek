@@ -13,6 +13,7 @@
 #include "RuleMatcher.h"
 #include "AnalyzerTags.h"
 #include "IPAddr.h"
+#include "TunnelEncapsulation.h"
 
 class Connection;
 class ConnectionTimer;
@@ -51,8 +52,15 @@ class Analyzer;
 class Connection : public BroObj {
 public:
 	Connection(NetSessions* s, HashKey* k, double t, const ConnID* id,
-	           uint32 flow);
+	           uint32 flow, const Encapsulation* arg_encap);
 	virtual ~Connection();
+
+	// Invoked when an encapsulation is discovered. It records the
+	// encapsulation with the connection and raises a "tunnel_changed"
+	// event if it's different from the previous encapsulation (or the
+	// first encountered). encap can be null to indicate no
+	// encapsulation.
+	void CheckEncapsulation(const Encapsulation* encap);
 
 	// Invoked when connection is about to be removed.  Use Ref(this)
 	// inside Done to keep the connection object around (though it'll
@@ -242,6 +250,11 @@ public:
 
 	void SetUID(uint64 arg_uid)	 { uid = arg_uid; }
 
+	uint64 GetUID() const { return uid; }
+
+	const Encapsulation* GetEncapsulation() const
+		{ return encapsulation; }
+
 	void CheckFlowLabel(bool is_orig, uint32 flow_label);
 
 protected:
@@ -279,6 +292,7 @@ protected:
 	double inactivity_timeout;
 	RecordVal* conn_val;
 	LoginConn* login_conn;	// either nil, or this
+	const Encapsulation* encapsulation; // tunnels
 	int suppress_event;	// suppress certain events to once per conn.
 
 	unsigned int installed_status_timer:1;

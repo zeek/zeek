@@ -215,6 +215,13 @@ public:
 	// analyzer, even if the method is called multiple times.
 	virtual void ProtocolConfirmation();
 
+	// Return whether the analyzer previously called ProtocolConfirmation()
+	// at least once before.
+	//
+	// TODO-Jon: Why virtual?
+	virtual bool ProtocolConfirmed() const
+		{ return protocol_confirmed; }
+
 	// Report that we found a significant protocol violation which might
 	// indicate that the analyzed data is in fact not the expected
 	// protocol.  The protocol_violation event is raised once per call to
@@ -336,6 +343,10 @@ private:
 
 #define LOOP_OVER_GIVEN_CHILDREN(var, the_kids) \
 	for ( analyzer_list::iterator var = the_kids.begin(); \
+	      var != the_kids.end(); var++ )
+
+#define LOOP_OVER_GIVEN_CONST_CHILDREN(var, the_kids) \
+	for ( analyzer_list::const_iterator var = the_kids.begin(); \
 	      var != the_kids.end(); var++ )
 
 class SupportAnalyzer : public Analyzer {

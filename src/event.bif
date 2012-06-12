@@ -141,6 +141,18 @@ event dns_mapping_altered%(dm: dns_mapping, old_addrs: addr_set, new_addrs: addr
 ##    event.
 event new_connection%(c: connection%);
 
+## Generated for a connection whose tunneling has changed.  This could
+## be from a previously seen connection now being encapsulated in a tunnel,
+## or from the outer encapsulation changing.  Note that the connection's
+## *tunnel* field is NOT automatically assigned to the new encapsulation value
+## internally after this event is raised.
+## TODO-Jon: I'm not sure what the last sentence is supposed to tell me?
+##
+## c: The connection whose tunnel/encapsulation changed.
+##
+## e: The new encapsulation.
+event tunnel_changed%(c: connection, e: EncapsulatingConnVector%);
+
 ## Generated when reassembly starts for a TCP connection. The event is raised
 ## at the moment when Bro's TCP analyzer enables stream reassembly for a
 ## connection.
@@ -500,6 +512,61 @@ event esp_packet%(p: pkt_hdr%);
 ## .. bro:see:: new_packet tcp_packet ipv6_ext_headers
 event mobile_ipv6_message%(p: pkt_hdr%);
 
+## Genereated for any IPv6 packet encapsulated in a Teredo tunnel.
+## See :rfc:`4380` for more information about the Teredo protocol.
+##
+## outer: The Teredo tunnel connection.
+##
+## inner: The Teredo-encapsulated IPv6 packet header and transport header.
+##
+## .. bro:see:: teredo_authentication teredo_origin_indication teredo_bubble
+##
+## .. note:: Since this event may be raised on a per-packet basis, handling
+##    it may become particular expensive for real-time analysis.
+event teredo_packet%(outer: connection, inner: teredo_hdr%);
+
+## Genereated for IPv6 packets encapsulated in a Teredo tunnel that
+## use the Teredo authentication encapsulation method.
+## See :rfc:`4380` for more information about the Teredo protocol.
+##
+## outer: The Teredo tunnel connection.
+##
+## inner: The Teredo-encapsulated IPv6 packet header and transport header.
+##
+## .. bro:see:: teredo_packet teredo_origin_indication teredo_bubble
+##
+## .. note:: Since this event may be raised on a per-packet basis, handling
+##    it may become particular expensive for real-time analysis.
+event teredo_authentication%(outer: connection, inner: teredo_hdr%);
+
+## Genereated for IPv6 packets encapsulated in a Teredo tunnel that
+## use the Teredo origin indication encapsulation method.
+## See :rfc:`4380` for more information about the Teredo protocol.
+##
+## outer: The Teredo tunnel connection.
+##
+## inner: The Teredo-encapsulated IPv6 packet header and transport header.
+##
+## .. bro:see:: teredo_packet teredo_authentication teredo_bubble
+##
+## .. note:: Since this event may be raised on a per-packet basis, handling
+##    it may become particular expensive for real-time analysis.
+event teredo_origin_indication%(outer: connection, inner: teredo_hdr%);
+
+## Genereated for Teredo bubble packets.  That is, IPv6 packets encapsulated
+## in a Teredo tunnel that have a Next Header value of :bro:id:`IPPROTO_NONE`.
+## See :rfc:`4380` for more information about the Teredo protocol.
+##
+## outer: The Teredo tunnel connection.
+##
+## inner: The Teredo-encapsulated IPv6 packet header and transport header.
+##
+## .. bro:see:: teredo_packet teredo_authentication teredo_origin_indication
+##
+## .. note:: Since this event may be raised on a per-packet basis, handling
+##    it may become particular expensive for real-time analysis.
+event teredo_bubble%(outer: connection, inner: teredo_hdr%);
+
 ## Generated for every packet that has non-empty transport-layer payload. This is a
 ## very low-level and expensive event that should be avoided when at all possible.
 ## It's usually  infeasible to handle when processing even medium volumes of
@@ -769,8 +836,9 @@ event udp_reply%(u: connection%);
 event udp_contents%(u: connection, is_orig: bool, contents: string%);
 
 ## Generated when a UDP session for a supported protocol has finished. Some of
-## Bro's application-layer UDP analyzers flag the end of a session by raising this
-## event. Currently, the analyzers for DNS, NTP, Netbios, and Syslog support this.
+## Bro's application-layer UDP analyzers flag the end of a session by raising
+## this event. Currently, the analyzers for DNS, NTP, Netbios, Syslog, AYIYA,
+## and Teredo support this.
 ##
 ## u: The connection record for the corresponding UDP flow.
 ##
@@ -6026,6 +6094,26 @@ event syslog_message%(c: connection, facility: count, severity: count, msg: stri
 ## across packet boundaries, only the last chunk triggering the will be passed on
 ## to the event.
 event signature_match%(state: signature_state, msg: string, data: string%);
+
+## Generated when a SOCKS request is analyzed.
+##
+## c: The parent connection of the proxy.
+##
+## t: The type of the request.
+##
+## dstaddr: Address that the tunneled traffic should be sent to.
+##
+## dstname: DNS name of the host that the tunneled traffic should be sent to.
+##
+## p: The destination port for the proxied traffic.
+##
+## user: Username given for the SOCKS connection.
+event socks_request%(c: connection, request_type: count, dstaddr: addr, dstname: string, p: port, user: string%);
+
+## Generated when a SOCKS reply is analyzed.
+##
+##
+event socks_reply%(c: connection, granted: bool, dst: addr, p: port%);
 
 ## Generated when a protocol analyzer finds an identification of a software
 ## used on a system. This is a protocol-independent event that is fed by

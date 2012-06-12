@@ -11,9 +11,12 @@
 #include "PacketFilter.h"
 #include "Stats.h"
 #include "NetVar.h"
+#include "TunnelEncapsulation.h"
+#include <utility>
 
 struct pcap_pkthdr;
 
+class Encapsulation;
 class Connection;
 class ConnID;
 class OSFingerprint;
@@ -105,9 +108,10 @@ public:
 
 	void GetStats(SessionStats& s) const;
 
-	void Weird(const char* name,
-		const struct pcap_pkthdr* hdr, const u_char* pkt);
-	void Weird(const char* name, const IP_Hdr* ip);
+	void Weird(const char* name, const struct pcap_pkthdr* hdr,
+	    const u_char* pkt, const Encapsulation* encap = 0);
+	void Weird(const char* name, const IP_Hdr* ip,
+	    const Encapsulation* encap = 0);
 
 	PacketFilter* GetPacketFilter()
 		{
@@ -130,6 +134,43 @@ public:
 		return tcp_conns.Length() + udp_conns.Length() +
 			icmp_conns.Length();
 		}
+		
+	void DoNextPacket(double t, const struct pcap_pkthdr* hdr,
+			const IP_Hdr* ip_hdr, const u_char* const pkt,
+			int hdr_size, const Encapsulation* encapsulation);
+
+	/**
+	 * Wrapper that recurses on DoNextPacket for encapsulated IP packets.
+	 *
+	 * @param t Network time.
+	 * @param hdr If the outer pcap header is available, this pointer can be set
+	 *        so that the fake pcap header passed to DoNextPacket will use
+	 *        the same timeval.  The caplen and len fields of the fake pcap
+	 *        header are always set to the TotalLength() of \a inner.
+	 * @param outer The encapsulation information for the inner IP packet.
+	 */
+	void DoNextInnerPacket(double t, const struct pcap_pkthdr* hdr,
+	                      const IP_Hdr* inner, const Encapsulation* outer);
+
+	/**
+	 * Returns a wrapper IP_Hdr object if \a pkt appears to be a valid IPv4
+	 * or IPv6 header based on whether it's long enough to contain such a header
+	 * and also that the payload length field of that header matches the actual
+	 * length of \a pkt given by \a caplen.
+	 *
+	 * @param caplen The length of \a pkt in bytes.
+	 * @param pkt The inner IP packet data.
+	 * @param proto Either IPPROTO_IPV6 or IPPROTO_IPV4 to indicate which IP
+	 *        protocol \a pkt corresponds to.
+	 * @param inner The inner IP packet wrapper pointer to be allocated/assigned
+	 *        if \a pkt looks like a valid IP packet.
+	 * @return 0 If the inner IP packet appeared valid in which case the caller
+	 *         is responsible for deallocating \a inner, else -1 if \a caplen
+	 *         is greater than the supposed IP packet's payload length field or
+	 *         1 if \a caplen is less than the supposed packet's payload length.
+	 */
+	int ParseIPPacket(int caplen, const u_char* const pkt, int proto,
+	                  IP_Hdr*& inner);
 
 	unsigned int ConnectionMemoryUsage();
 	unsigned int ConnectionMemoryUsageConnVals();
@@ -142,7 +183,8 @@ protected:
 	friend class TimerMgrExpireTimer;
 
 	Connection* NewConn(HashKey* k, double t, const ConnID* id,
-			const u_char* data, int proto, uint32 flow_label);
+			const u_char* data, int proto, uint32 flow_lable,
+			const Encapsulation* encapsulation);
 
 	// Check whether the tag of the current packet is consistent with
 	// the given connection.  Returns:
@@ -173,10 +215,6 @@ protected:
 			const u_char* const pkt, int hdr_size,
 			PacketSortElement* pkt_elem);
 
-	void DoNextPacket(double t, const struct pcap_pkthdr* hdr,
-			const IP_Hdr* ip_hdr, const u_char* const pkt,
-			int hdr_size);
-
 	void NextPacketSecondary(double t, const struct pcap_pkthdr* hdr,
 			const u_char* const pkt, int hdr_size,
 			const PktSrc* src_ps);
@@ -194,13 +232,17 @@ protected:
 	// from lower-level headers or the length actually captured is less
 	// than that protocol's minimum header size.
 	bool CheckHeaderTrunc(int proto, uint32 len, uint32 caplen,
-	                      const struct pcap_pkthdr* hdr, const u_char* pkt);
+			      const struct pcap_pkthdr* hdr, const u_char* pkt,
+			      const Encapsulation* encap);
 
 	CompositeHash* ch;
 	PDict(Connection) tcp_conns;
 	PDict(Connection) udp_conns;
 	PDict(Connection) icmp_conns;
 	PDict(FragReassembler) fragments;
+	typedef pair<IPAddr, IPAddr> IPPair;
+	typedef std::map<IPPair, EncapsulatingConn> IPTunnelMap;
+	IPTunnelMap ip_tunnels;
 
 	ARP_Analyzer* arp_analyzer;
 

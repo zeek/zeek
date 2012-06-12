@@ -4,12 +4,17 @@
 
 const ignore_keep_alive_rexmit: bool;
 const skip_http_data: bool;
-const parse_udp_tunnels: bool;
 const use_conn_size_analyzer: bool;
 const report_gaps_for_partial: bool;
 
 const NFS3::return_data: bool;
 const NFS3::return_data_max: count;
 const NFS3::return_data_first_only: bool;
+
+const Tunnel::max_depth: count;
+const Tunnel::enable_ip: bool;
+const Tunnel::enable_ayiya: bool;
+const Tunnel::enable_teredo: bool;
+const Tunnel::yielding_teredo_decapsulation: bool;
 
 const Threading::heartbeat_interval: interval;

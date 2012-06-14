@@ -35,6 +35,7 @@ protected:
 
 private:
 	bool checkError(int code);
+	void ValToAscii(ODesc* desc, threading::Value* val);
 
 	int AddParams(threading::Value* val, int pos);
 	string GetTableType(int, int);
@@ -42,6 +43,9 @@ private:
 
 	sqlite3 *db;
 	sqlite3_stmt *st;
+
+	char* set_separator;
+	int set_separator_len;
 };
 
 }

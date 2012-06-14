@@ -22,8 +22,7 @@ function myfunc2(a: double, b: double): int
 
 event bro_init()
 	{
-	# TODO: these results don't make sense
-	
+
 	# Tests without supplying a comparison function
 
 	local a1 = vector( 5, 2, 8, 3 );

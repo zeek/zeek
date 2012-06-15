@@ -113,6 +113,7 @@ public:
 
 	virtual bool Process()
 		{
+		Object()->SetDisable();
 		return input_mgr->RemoveStreamContinuation(Object());
 		}
 
@@ -129,6 +130,12 @@ public:
 	virtual bool Process()
 		{
 		Object()->SetDisable();
+		// And - because we do not need disabled objects any more -
+		// there is no way to re-enable them, so simply delete them.
+		// This avoids the problem of having to periodically check if
+		// there are any disabled readers out there. As soon as a
+		// reader disables itself, it deletes itself.
+		input_mgr->RemoveStream(Object());
 		return true;
 		}
 };
@@ -203,8 +210,7 @@ bool ReaderBackend::Init(string arg_source, ReaderMode arg_mode, const int arg_n
 void ReaderBackend::Close()
 	{
 	DoClose();
-	disabled = true;
-	DisableFrontend();
+	disabled = true; // frontend disables itself when it gets the Close-message.
 	SendOut(new ReaderClosedMessage(frontend));
 
 	if ( fields != 0 )

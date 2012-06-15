@@ -689,16 +689,14 @@ bool Manager::IsCompatibleType(BroType* t, bool atomic_only)
 	}
 
 
-bool Manager::RemoveStream(const string &name)
+bool Manager::RemoveStream(Stream *i)
 	{
-	Stream *i = FindStream(name);
-
 	if ( i == 0 )
 		return false; // not found
 
 	if ( i->removed )
 		{
-		reporter->Error("Stream %s is already queued for removal. Ignoring remove.", name.c_str());
+		reporter->Error("Stream %s is already queued for removal. Ignoring remove.", i->name.c_str());
 		return false;
 		}
 
@@ -706,13 +704,23 @@ bool Manager::RemoveStream(const string &name)
 
 	i->reader->Close();
 
-#ifdef DEBUG
-		DBG_LOG(DBG_INPUT, "Successfully queued removal of stream %s",
-			name.c_str());
-#endif
+	DBG_LOG(DBG_INPUT, "Successfully queued removal of stream %s",
+		i->name.c_str());
 
 	return true;
 	}
+
+bool Manager::RemoveStream(ReaderFrontend* frontend) 
+	{
+	return RemoveStream(FindStream(frontend));
+	}
+
+
+bool Manager::RemoveStream(const string &name)
+	{
+	return RemoveStream(FindStream(name));
+	}
+
 
 bool Manager::RemoveStreamContinuation(ReaderFrontend* reader)
 	{

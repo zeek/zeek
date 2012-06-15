@@ -1,4 +1,16 @@
 
+2.0-622 | 2012-06-15 15:38:43 -0700
+
+  * Input framework updates. (Bernhard Amann)
+
+    - Disable streaming reads from executed commands. This lead to
+      hanging Bros because pclose apparently can wait for eternity if
+      things go wrong.  
+
+     - Automatically delete disabled input streams.
+       
+     - Documentation.
+
 2.0-614 | 2012-06-15 15:19:49 -0700
 
   * Remove an old, unused diff canonifier. (Jon Siwek)

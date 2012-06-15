@@ -6,9 +6,6 @@
 
 #include "threading/MsgThread.h"
 
-// FIXME: cleanup of disabled inputreaders is missing. we need this, because
-// stuff can e.g. fail in init and might never be removed afterwards.
-
 namespace input {
 
 class InitMessage : public threading::InputMessage<ReaderBackend>
@@ -106,6 +103,7 @@ void ReaderFrontend::Close()
 		return;
 		}
 
+	disabled = true;
 	backend->SendIn(new CloseMessage(backend));
 	}
 

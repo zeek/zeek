@@ -217,9 +217,7 @@ public:
 
 	// Return whether the analyzer previously called ProtocolConfirmation()
 	// at least once before.
-	//
-	// TODO-Jon: Why virtual?
-	virtual bool ProtocolConfirmed() const
+	bool ProtocolConfirmed() const
 		{ return protocol_confirmed; }
 
 	// Report that we found a significant protocol violation which might

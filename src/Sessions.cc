@@ -546,7 +546,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 			Weird("truncated_inner_IP", ip_hdr, encapsulation);
 
 		else if ( result > 0 )
-			Weird("inner_IP_payload_mismatch", ip_hdr, encapsulation);
+			Weird("inner_IP_payload_length_mismatch", ip_hdr, encapsulation);
 
 		if ( result != 0 )
 			{
@@ -706,7 +706,6 @@ void NetSessions::DoNextInnerPacket(double t, const struct pcap_pkthdr* hdr,
 	if ( hdr )
 		fake_hdr.ts = hdr->ts;
 	else
-		// TODO-Jon: use network_time?
 		fake_hdr.ts.tv_sec = fake_hdr.ts.tv_usec = 0;
 
 	const u_char* pkt = 0;

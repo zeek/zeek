@@ -114,9 +114,6 @@ protected:
 /**
  * Abstracts an arbitrary amount of nested tunneling.
  */
-
-// TODO-Jon: Rename EncapsulationChain or EncapsulationStack? I'd prefer to
-// have notion in there that this covers multiple levels of encapsulations.
 class Encapsulation {
 public:
 	Encapsulation() : conns(0)
@@ -130,11 +127,6 @@ public:
 			conns = 0;
 		}
 
-	// TODO-Jon: I don't like the ptr-version of the ctor. When reading
-	// the code using that, I can't tell what it does with the pointer
-	// (i.e., that it deep-copied the object). Can we use just the
-	// reference version above? That may mean more "if ( not null )" at
-	// the caller end though.
 	Encapsulation(const Encapsulation* other)
 		{
 		if ( other && other->conns )

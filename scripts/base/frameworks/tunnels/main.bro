@@ -18,8 +18,6 @@ export {
 		## A tunnel connection has closed.
 		CLOSE,
 		## No new connections over a tunnel happened in the past day.
-                ## TODO-Jon: Where is the "past day" coming from? Should be an
-                ## option.
 		EXPIRE,
 	};
 
@@ -72,7 +70,6 @@ export {
 
 	## Currently active tunnels.  That is, tunnels for which new, encapsulated
 	## connections have been seen in the last day.
-        ## TODO-Jon: Do we we need the &synchronized here?
 	global active: table[conn_id] of Info = table() &synchronized &read_expire=24hrs &expire_func=expire;
 }
 
@@ -132,12 +129,6 @@ event new_connection(c: connection) &priority=5
 
 event tunnel_changed(c: connection, e: EncapsulatingConnVector) &priority=5
 	{
-	## TODO-Jon: Not sure I understand this. Shouldn't c$tunnel already be
-        ## registered? And what if a layer goes way, does that need to be
-        ## removed here? Or is that done separately?
-        ## 
-        ## Also, conn/main.bro has a tunnel_changed handler at the same
-        ## priority that *sets* c$tunnel.  That's seems undefine behaviour. 
 	if ( c?$tunnel )
 		register_all(c$tunnel);
 

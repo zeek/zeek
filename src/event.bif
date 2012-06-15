@@ -146,7 +146,6 @@ event new_connection%(c: connection%);
 ## or from the outer encapsulation changing.  Note that the connection's
 ## *tunnel* field is NOT automatically assigned to the new encapsulation value
 ## internally after this event is raised.
-## TODO-Jon: I'm not sure what the last sentence is supposed to tell me?
 ##
 ## c: The connection whose tunnel/encapsulation changed.
 ##

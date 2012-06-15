@@ -414,12 +414,9 @@ set(bro_SRCS
     PacketDumper.cc
     strsep.c
     modp_numtoa.c
-<<<<<<< HEAD
+
     DNP3.cc
     MODBUS.cc
-    ${dns_SRCS}
-    ${openssl_SRCS}
-=======
 
     threading/BasicThread.cc
     threading/Manager.cc
@@ -442,7 +439,7 @@ set(bro_SRCS
 
     nb_dns.c
     digest.h
->>>>>>> master
+
 )
 
 collect_headers(bro_HEADERS ${bro_SRCS})

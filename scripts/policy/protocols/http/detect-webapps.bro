@@ -4,9 +4,10 @@
 @load base/frameworks/software
 @load base/protocols/http
 
+@load-sigs ./detect-webapps.sig
+
 module HTTP;
 
-redef signature_files += "protocols/http/detect-webapps.sig";
 # Ignore the signatures used to match webapps
 redef Signatures::ignored_ids += /^webapp-/;
 

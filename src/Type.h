@@ -564,6 +564,8 @@ public:
 	// gets using an empty "vector()" constructor.
 	bool IsUnspecifiedVector() const;
 
+	void Describe(ODesc* d) const;
+
 protected:
 	VectorType()	{ yield_type = 0; }
 

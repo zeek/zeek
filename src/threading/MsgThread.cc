@@ -4,6 +4,8 @@
 #include "MsgThread.h"
 #include "Manager.h"
 
+#include <unistd.h>
+
 using namespace threading;
 
 namespace threading  {

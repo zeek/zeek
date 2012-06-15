@@ -828,7 +828,13 @@ threading::Value* Manager::ValToLogVal(Val* val, BroType* ty)
 		const char* s =
 			val->Type()->AsEnumType()->Lookup(val->InternalInt());
 
-		lval->val.string_val = new string(s);
+		if ( s )
+			lval->val.string_val = new string(s);
+		else
+			{
+			val->Type()->Error("enum type does not contain value", val);
+			lval->val.string_val = new string();
+			}
 		break;
 		}
 

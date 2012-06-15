@@ -358,6 +358,22 @@ when	return TOK_WHEN;
 	(void) load_files(new_file);
 	}
 
+@load-sigs{WS}{FILE} {
+	const char* new_sig_file = skip_whitespace(yytext + 10);
+	const char* full_filename = 0;
+	FILE* f = search_for_file(new_sig_file, "sig", &full_filename, false, 0);
+
+	if ( f )
+		{
+		sig_files.push_back(full_filename);
+		fclose(f);
+		delete [] full_filename;
+		}
+	else
+		reporter->Error("failed to find file associated with @load-sigs %s",
+		                new_sig_file);
+	}
+
 @unload{WS}{FILE}	{
 	// Skip "@unload".
 	const char* new_file = skip_whitespace(yytext + 7);

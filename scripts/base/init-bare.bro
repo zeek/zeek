@@ -615,7 +615,9 @@ function add_signature_file(sold: string, snew: string): string
 	}
 
 ## Signature files to read. Use ``redef signature_files  += "foo.sig"`` to
-## extend. Signature files will be searched relative to ``BROPATH``.
+## extend. Signature files added this way will be searched relative to
+## ``BROPATH``.  Using the ``@load-sigs`` directive instead is preferred
+## since that can search paths relative to the current script.
 global signature_files = "" &add_func = add_signature_file;
 
 ## ``p0f`` fingerprint file to use. Will be searched relative to ``BROPATH``.
@@ -977,6 +979,9 @@ type ip6_option: record {
 	data: string;	##< Option data.
 };
 
+## A type alias for a vector of IPv6 options.
+type ip6_options: vector of ip6_option;
+
 ## Values extracted from an IPv6 Hop-by-Hop options extension header.
 ##
 ## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_ext_hdr ip6_option
@@ -987,7 +992,7 @@ type ip6_hopopts: record {
 	## Length of header in 8-octet units, excluding first unit.
 	len: count;
 	## The TLV encoded options;
-	options: vector of ip6_option;
+	options: ip6_options;
 };
 
 ## Values extracted from an IPv6 Destination options extension header.
@@ -1000,7 +1005,7 @@ type ip6_dstopts: record {
 	## Length of header in 8-octet units, excluding first unit.
 	len: count;
 	## The TLV encoded options;
-	options: vector of ip6_option;
+	options: ip6_options;
 };
 
 ## Values extracted from an IPv6 Routing extension header.
@@ -1245,6 +1250,9 @@ type ip6_ext_hdr: record {
 	mobility: ip6_mobility_hdr &optional;
 };
 
+## A type alias for a vector of IPv6 extension headers
+type ip6_ext_hdr_chain: vector of ip6_ext_hdr;
+
 ## Values extracted from an IPv6 header.
 ##
 ## .. bro:see:: pkt_hdr ip4_hdr ip6_ext_hdr ip6_hopopts ip6_dstopts
@@ -1259,7 +1267,7 @@ type ip6_hdr: record {
 	hlim: count;					##< Hop limit.
 	src: addr;					##< Source address.
 	dst: addr;					##< Destination address.
-	exts: vector of ip6_ext_hdr;			##< Extension header chain.
+	exts: ip6_ext_hdr_chain;			##< Extension header chain.
 };
 
 ## Values extracted from an IPv4 header.

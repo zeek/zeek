@@ -35,7 +35,6 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --disable-auxtools     don't build or install auxiliary tools
     --disable-python       don't try to build python bindings for broccoli
     --disable-ruby         don't try to build ruby bindings for broccoli
-    --enable-elasticsearch build the elasticsearch writer
 
   Required Packages in Non-Standard Locations:
     --with-openssl=PATH    path to OpenSSL install root
@@ -158,9 +157,6 @@ while [ $# -ne 0 ]; do
         --disable-auxtools)
             append_cache_entry INSTALL_AUX_TOOLS    BOOL   false
             ;;
-	--enable-elasticsearch)
-	    append_cache_entry INSTALL_ELASTICSEARCH BOOL true
-	    ;;
         --disable-python)
             append_cache_entry DISABLE_PYTHON_BINDINGS     BOOL   true
             ;;

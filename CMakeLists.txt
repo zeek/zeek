@@ -128,6 +128,7 @@ if (CURL_FOUND)
   set(USE_LIBCURL true)
   include_directories(BEFORE ${CURL_INCLUDE_DIR})
   list(APPEND OPTLIBS ${CURL_LIBRARIES})
+  set(INSTALL_ELASTICSEARCH true)
 endif()
 
 if (ENABLE_PERFTOOLS_DEBUG)

@@ -147,6 +147,7 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <netdb.h>
 #include <sys/wait.h>
 #include <netinet/in.h>
 #include <unistd.h>
@@ -172,6 +173,9 @@
 #include <sys/resource.h>
 
 #include <algorithm>
+#include <string>
+#include <sstream>
+#include <vector>
 
 #include "RemoteSerializer.h"
 #include "Func.h"
@@ -183,8 +187,11 @@
 #include "Sessions.h"
 #include "File.h"
 #include "Conn.h"
-#include "LogMgr.h"
 #include "Reporter.h"
+#include "threading/SerialTypes.h"
+#include "logging/Manager.h"
+#include "IPAddr.h"
+#include "bro_inet_ntop.h"
 
 extern "C" {
 #include "setsignal.h"
@@ -317,6 +324,18 @@ static const char* msgToStr(int msg)
 	default:
 		return "UNKNOWN_MSG";
 	}
+	}
+
+static vector<string> tokenize(const string& s, char delim)
+	{
+	vector<string> tokens;
+	stringstream ss(s);
+	string token;
+
+	while ( std::getline(ss, token, delim) )
+		tokens.push_back(token);
+
+	return tokens;
 	}
 
 // Start of every message between two processes. We do the low-level work
@@ -455,17 +474,6 @@ static inline char* fmt_uint32s(int nargs, va_list ap)
 	}
 #endif
 
-
-static inline const char* ip2a(uint32 ip)
-	{
-	static char buffer[32];
-	struct in_addr addr;
-
-	addr.s_addr = htonl(ip);
-
-	return inet_ntop(AF_INET, &addr, buffer, 32);
-	}
-
 static pid_t child_pid = 0;
 
 // Return true if message type is sent by a peer (rather than the child
@@ -530,6 +538,7 @@ RemoteSerializer::RemoteSerializer()
 	terminating = false;
 	in_sync = 0;
 	last_flush = 0;
+	received_logs = 0;
 	}
 
 RemoteSerializer::~RemoteSerializer()
@@ -670,8 +679,9 @@ void RemoteSerializer::Fork()
 		}
 	}
 
-RemoteSerializer::PeerID RemoteSerializer::Connect(addr_type ip, uint16 port,
-			const char* our_class, double retry, bool use_ssl)
+RemoteSerializer::PeerID RemoteSerializer::Connect(const IPAddr& ip,
+		const string& zone_id, uint16 port, const char* our_class, double retry,
+		bool use_ssl)
 	{
 	if ( ! using_communication )
 		return true;
@@ -679,28 +689,23 @@ RemoteSerializer::PeerID RemoteSerializer::Connect(addr_type ip, uint16 port,
 	if ( ! initialized )
 		reporter->InternalError("remote serializer not initialized");
 
-#ifdef BROv6
-	if ( ! is_v4_addr(ip) )
-		Error("inter-Bro communication not supported over IPv6");
-
-	uint32 ip4 = to_v4_addr(ip);
-#else
-	uint32 ip4 = ip;
-#endif
-
-	ip4 = ntohl(ip4);
-
 	if ( ! child_pid )
 		Fork();
 
-	Peer* p = AddPeer(ip4, port);
+	Peer* p = AddPeer(ip, port);
 	p->orig = true;
 
 	if ( our_class )
 		p->our_class = our_class;
 
-	if ( ! SendToChild(MSG_CONNECT_TO, p, 5, p->id,
-				ip4, port, uint32(retry), use_ssl) )
+	const size_t BUFSIZE = 1024;
+	char* data = new char[BUFSIZE];
+	snprintf(data, BUFSIZE,
+	         "%"PRI_PTR_COMPAT_UINT",%s,%s,%"PRIu16",%"PRIu32",%d", p->id,
+	         ip.AsString().c_str(), zone_id.c_str(), port, uint32(retry),
+	         use_ssl);
+
+	if ( ! SendToChild(MSG_CONNECT_TO, p, data) )
 		{
 		RemovePeer(p);
 		return false;
@@ -1232,7 +1237,8 @@ bool RemoteSerializer::SendCapabilities(Peer* peer)
 	return caps ? SendToChild(MSG_CAPS, peer, 3, caps, 0, 0) : true;
 	}
 
-bool RemoteSerializer::Listen(addr_type ip, uint16 port, bool expect_ssl)
+bool RemoteSerializer::Listen(const IPAddr& ip, uint16 port, bool expect_ssl,
+                              bool ipv6, const string& zone_id, double retry)
 	{
 	if ( ! using_communication )
 		return true;
@@ -1240,18 +1246,18 @@ bool RemoteSerializer::Listen(addr_type ip, uint16 port, bool expect_ssl)
 	if ( ! initialized )
 		reporter->InternalError("remote serializer not initialized");
 
-#ifdef BROv6
-	if ( ! is_v4_addr(ip) )
-		Error("inter-Bro communication not supported over IPv6");
+	if ( ! ipv6 && ip.GetFamily() == IPv6 &&
+	     ip != IPAddr("0.0.0.0") && ip != IPAddr("::") )
+		reporter->FatalError("Attempt to listen on address %s, but IPv6 "
+		                     "communication disabled", ip.AsString().c_str());
 
-	uint32 ip4 = to_v4_addr(ip);
-#else
-	uint32 ip4 = ip;
-#endif
+	const size_t BUFSIZE = 1024;
+	char* data = new char[BUFSIZE];
+	snprintf(data, BUFSIZE, "%s,%"PRIu16",%d,%d,%s,%"PRIu32,
+	         ip.AsString().c_str(), port, expect_ssl, ipv6, zone_id.c_str(),
+	         (uint32) retry);
 
-	ip4 = ntohl(ip4);
-
-	if ( ! SendToChild(MSG_LISTEN, 0, 3, ip4, port, expect_ssl) )
+	if ( ! SendToChild(MSG_LISTEN, 0, data) )
 		return false;
 
 	listening = true;
@@ -1358,6 +1364,14 @@ void RemoteSerializer::GetFds(int* read, int* write, int* except)
 double RemoteSerializer::NextTimestamp(double* local_network_time)
 	{
 	Poll(false);
+
+	if ( received_logs > 0 )
+		{
+		// If we processed logs last time, assume there's more.
+		idle = false;
+		received_logs = 0;
+		return timer_mgr->Time();
+		}
 
 	double et = events.length() ? events[0]->time : -1;
 	double pt = packets.length() ? packets[0]->time : -1;
@@ -1780,7 +1794,7 @@ RecordVal* RemoteSerializer::MakePeerVal(Peer* peer)
 	RecordVal* v = new RecordVal(::peer);
 	v->Assign(0, new Val(uint32(peer->id), TYPE_COUNT));
 	// Sic! Network order for AddrVal, host order for PortVal.
-	v->Assign(1, new AddrVal(htonl(peer->ip)));
+	v->Assign(1, new AddrVal(peer->ip));
 	v->Assign(2, new PortVal(peer->port, TRANSPORT_TCP));
 	v->Assign(3, new Val(false, TYPE_BOOL));
 	v->Assign(4, new StringVal(""));	// set when received
@@ -1789,8 +1803,8 @@ RecordVal* RemoteSerializer::MakePeerVal(Peer* peer)
 	return v;
 	}
 
-RemoteSerializer::Peer* RemoteSerializer::AddPeer(uint32 ip, uint16 port,
-							PeerID id)
+RemoteSerializer::Peer* RemoteSerializer::AddPeer(const IPAddr& ip, uint16 port,
+                                                  PeerID id)
 	{
 	Peer* peer = new Peer;
 	peer->id = id != PEER_NONE ? id : id_counter++;
@@ -1955,9 +1969,22 @@ bool RemoteSerializer::EnterPhaseRunning(Peer* peer)
 bool RemoteSerializer::ProcessConnected()
 	{
 	// IP and port follow.
-	uint32* args = (uint32*) current_args->data;
-	uint32 host = ntohl(args[0]);	// ### Fix: only works for IPv4
-	uint16 port = (uint16) ntohl(args[1]);
+	vector<string> args = tokenize(current_args->data, ',');
+
+	if ( args.size() != 2 )
+		{
+		InternalCommError("ProcessConnected() bad number of arguments");
+		return false;
+		}
+
+	IPAddr host = IPAddr(args[0]);
+	uint16 port;
+
+	if ( ! atoi_n(args[1].size(), args[1].c_str(), 0, 10, port) )
+		{
+		InternalCommError("ProcessConnected() bad peer port string");
+		return false;
+		}
 
 	if ( ! current_peer )
 		{
@@ -2476,7 +2503,7 @@ bool RemoteSerializer::ProcessRemotePrint()
 	return true;
 	}
 
-bool RemoteSerializer::SendLogCreateWriter(EnumVal* id, EnumVal* writer, string path, int num_fields, const LogField* const * fields)
+bool RemoteSerializer::SendLogCreateWriter(EnumVal* id, EnumVal* writer, string path, int num_fields, const threading::Field* const * fields)
 	{
 	loop_over_list(peers, i)
 		{
@@ -2486,7 +2513,7 @@ bool RemoteSerializer::SendLogCreateWriter(EnumVal* id, EnumVal* writer, string 
 	return true;
 	}
 
-bool RemoteSerializer::SendLogCreateWriter(PeerID peer_id, EnumVal* id, EnumVal* writer, string path, int num_fields, const LogField* const * fields)
+bool RemoteSerializer::SendLogCreateWriter(PeerID peer_id, EnumVal* id, EnumVal* writer, string path, int num_fields, const threading::Field* const * fields)
 	{
 	SetErrorDescr("logging");
 
@@ -2497,6 +2524,9 @@ bool RemoteSerializer::SendLogCreateWriter(PeerID peer_id, EnumVal* id, EnumVal*
 		return false;
 
 	if ( peer->phase != Peer::HANDSHAKE && peer->phase != Peer::RUNNING )
+		return false;
+
+	if ( ! peer->logs_requested )
 		return false;
 
 	BinarySerializationFormat fmt;
@@ -2540,7 +2570,7 @@ error:
 	return false;
 	}
 
-bool RemoteSerializer::SendLogWrite(EnumVal* id, EnumVal* writer, string path, int num_fields, const LogVal* const * vals)
+bool RemoteSerializer::SendLogWrite(EnumVal* id, EnumVal* writer, string path, int num_fields, const threading::Value* const * vals)
 	{
 	loop_over_list(peers, i)
 		{
@@ -2550,7 +2580,7 @@ bool RemoteSerializer::SendLogWrite(EnumVal* id, EnumVal* writer, string path, i
 	return true;
 	}
 
-bool RemoteSerializer::SendLogWrite(Peer* peer, EnumVal* id, EnumVal* writer, string path, int num_fields, const LogVal* const * vals)
+bool RemoteSerializer::SendLogWrite(Peer* peer, EnumVal* id, EnumVal* writer, string path, int num_fields, const threading::Value* const * vals)
 	{
 	if ( peer->phase != Peer::HANDSHAKE && peer->phase != Peer::RUNNING )
 		return false;
@@ -2558,7 +2588,9 @@ bool RemoteSerializer::SendLogWrite(Peer* peer, EnumVal* id, EnumVal* writer, st
 	if ( ! peer->logs_requested )
 		return false;
 
-	assert(peer->log_buffer);
+	if ( ! peer->log_buffer )
+		// Peer shutting down.
+		return false;
 
 	// Serialize the log record entry.
 
@@ -2593,7 +2625,10 @@ bool RemoteSerializer::SendLogWrite(Peer* peer, EnumVal* id, EnumVal* writer, st
 	if ( len > (LOG_BUFFER_SIZE - peer->log_buffer_used) || (network_time - last_flush > 1.0) )
 		{
 		if ( ! FlushLogBuffer(peer) )
+			{
+			delete [] data;
 			return false;
+			}
 		}
 
 	// If the data is actually larger than our complete buffer, just send it out.
@@ -2616,6 +2651,9 @@ error:
 
 bool RemoteSerializer::FlushLogBuffer(Peer* p)
 	{
+	if ( ! p->logs_requested )
+		return false;
+
 	last_flush = network_time;
 
 	if ( p->state == Peer::CLOSING )
@@ -2637,11 +2675,17 @@ bool RemoteSerializer::ProcessLogCreateWriter()
 	if ( current_peer->state == Peer::CLOSING )
 		return false;
 
+#ifdef USE_PERFTOOLS_DEBUG
+	// Don't track allocations here, they'll be released only after the
+	// main loop exists. And it's just a tiny amount anyway.
+	HeapLeakChecker::Disabler disabler;
+#endif
+
 	assert(current_args);
 
 	EnumVal* id_val = 0;
 	EnumVal* writer_val = 0;
-	LogField** fields = 0;
+	threading::Field** fields = 0;
 
 	BinarySerializationFormat fmt;
 	fmt.StartRead(current_args->data, current_args->len);
@@ -2658,11 +2702,11 @@ bool RemoteSerializer::ProcessLogCreateWriter()
 	if ( ! success )
 		goto error;
 
-	fields = new LogField* [num_fields];
+	fields = new threading::Field* [num_fields];
 
 	for ( int i = 0; i < num_fields; i++ )
 		{
-		fields[i] = new LogField;
+		fields[i] = new threading::Field;
 		if ( ! fields[i]->Read(&fmt) )
 			goto error;
 		}
@@ -2672,7 +2716,7 @@ bool RemoteSerializer::ProcessLogCreateWriter()
 	id_val = new EnumVal(id, BifType::Enum::Log::ID);
 	writer_val = new EnumVal(writer, BifType::Enum::Log::Writer);
 
-	if ( ! log_mgr->CreateWriter(id_val, writer_val, path, num_fields, fields) )
+	if ( ! log_mgr->CreateWriter(id_val, writer_val, path, num_fields, fields, true, false) )
 		goto error;
 
 	Unref(id_val);
@@ -2703,7 +2747,7 @@ bool RemoteSerializer::ProcessLogWrite()
 		// Unserialize one entry.
 		EnumVal* id_val = 0;
 		EnumVal* writer_val = 0;
-		LogVal** vals = 0;
+		threading::Value** vals = 0;
 
 		int id, writer;
 		string path;
@@ -2717,11 +2761,11 @@ bool RemoteSerializer::ProcessLogWrite()
 		if ( ! success )
 			goto error;
 
-		vals = new LogVal* [num_fields];
+		vals = new threading::Value* [num_fields];
 
 		for ( int i = 0; i < num_fields; i++ )
 			{
-			vals[i] = new LogVal;
+			vals[i] = new threading::Value;
 			if ( ! vals[i]->Read(&fmt) )
 				goto error;
 			}
@@ -2740,6 +2784,8 @@ bool RemoteSerializer::ProcessLogWrite()
 		}
 
 	fmt.EndRead();
+
+	++received_logs;
 
 	return true;
 
@@ -2850,7 +2896,7 @@ void RemoteSerializer::GotID(ID* id, Val* val)
 					(desc && *desc) ? desc : "not set"),
 			current_peer);
 
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 		// May still be cached, but we don't care.
 		heap_checker->IgnoreObject(id);
 #endif
@@ -2957,7 +3003,8 @@ void RemoteSerializer::Log(LogLevel level, const char* msg, Peer* peer,
 
 	if ( peer )
 		len += snprintf(buffer + len, sizeof(buffer) - len, "[#%d/%s:%d] ",
-		                int(peer->id), ip2a(peer->ip), peer->port);
+		                int(peer->id), peer->ip.AsURIString().c_str(),
+		                peer->port);
 
 	len += safe_snprintf(buffer + len, sizeof(buffer) - len, "%s", msg);
 
@@ -3243,8 +3290,10 @@ SocketComm::SocketComm()
 	terminating = false;
 	killing = false;
 
-	listen_fd_clear = -1;
-	listen_fd_ssl = -1;
+	listen_port = 0;
+	listen_ssl = false;
+	enable_ipv6 = false;
+	bind_retry_interval = 0;
 	listen_next_try = 0;
 
 	// We don't want to use the signal handlers of our parent.
@@ -3267,8 +3316,7 @@ SocketComm::~SocketComm()
 		delete peers[i]->io;
 
 	delete io;
-	close(listen_fd_clear);
-	close(listen_fd_ssl);
+	CloseListenFDs();
 	}
 
 static unsigned int first_rtime = 0;
@@ -3317,20 +3365,13 @@ void SocketComm::Run()
 			}
 
 		if ( listen_next_try && time(0) > listen_next_try  )
-			Listen(listen_if, listen_port, listen_ssl);
+			Listen();
 
-		if ( listen_fd_clear >= 0 )
+		for ( size_t i = 0; i < listen_fds.size(); ++i )
 			{
-			FD_SET(listen_fd_clear, &fd_read);
-			if ( listen_fd_clear > max_fd )
-				max_fd = listen_fd_clear;
-			}
-
-		if ( listen_fd_ssl >= 0 )
-			{
-			FD_SET(listen_fd_ssl, &fd_read);
-			if ( listen_fd_ssl > max_fd )
-				max_fd = listen_fd_ssl;
+			FD_SET(listen_fds[i], &fd_read);
+			if ( listen_fds[i] > max_fd )
+				max_fd = listen_fds[i];
 			}
 
 		if ( io->IsFillingUp() && ! shutting_conns_down )
@@ -3382,6 +3423,11 @@ void SocketComm::Run()
 		small_timeout.tv_usec =
 			io->CanWrite() || io->CanRead() ? 1 : 10;
 
+#if 0
+		if ( ! io->CanWrite() )
+			usleep(10);
+#endif
+
 		int a = select(max_fd + 1, &fd_read, &fd_write, &fd_except,
 				&small_timeout);
 
@@ -3414,12 +3460,9 @@ void SocketComm::Run()
 				}
 			}
 
-		if ( listen_fd_clear >= 0 &&
-		     FD_ISSET(listen_fd_clear, &fd_read) )
-			AcceptConnection(listen_fd_clear);
-
-		if ( listen_fd_ssl >= 0 && FD_ISSET(listen_fd_ssl, &fd_read) )
-			AcceptConnection(listen_fd_ssl);
+		for ( size_t i = 0; i < listen_fds.size(); ++i )
+			if ( FD_ISSET(listen_fds[i], &fd_read) )
+				AcceptConnection(listen_fds[i]);
 
 		// Hack to display CPU usage of the child, triggered via
 		// SIGPROF.
@@ -3543,13 +3586,8 @@ bool SocketComm::DoParentMessage()
 
 	case MSG_LISTEN_STOP:
 		{
-		if ( listen_fd_ssl >= 0 )
-			close(listen_fd_ssl);
+		CloseListenFDs();
 
-		if ( listen_fd_clear >= 0 )
-			close(listen_fd_clear);
-
-		listen_fd_clear = listen_fd_ssl = -1;
 		Log("stopped listening");
 
 		return true;
@@ -3689,14 +3727,43 @@ bool SocketComm::ForwardChunkToPeer()
 bool SocketComm::ProcessConnectTo()
 	{
 	assert(parent_args);
-	uint32* args = (uint32*) parent_args->data;
+	vector<string> args = tokenize(parent_args->data, ',');
+
+	if ( args.size() != 6 )
+		{
+		Error(fmt("ProcessConnectTo() bad number of arguments"));
+		return false;
+		}
 
 	Peer* peer = new Peer;
-	peer->id = ntohl(args[0]);
-	peer->ip = ntohl(args[1]);
-	peer->port = ntohl(args[2]);
-	peer->retry = ntohl(args[3]);
-	peer->ssl = ntohl(args[4]);
+
+	if ( ! atoi_n(args[0].size(), args[0].c_str(), 0, 10, peer->id) )
+		{
+		Error(fmt("ProccessConnectTo() bad peer id string"));
+		delete peer;
+		return false;
+		}
+
+	peer->ip = IPAddr(args[1]);
+	peer->zone_id = args[2];
+
+	if ( ! atoi_n(args[3].size(), args[3].c_str(), 0, 10, peer->port) )
+		{
+		Error(fmt("ProcessConnectTo() bad peer port string"));
+		delete peer;
+		return false;
+		}
+
+	if ( ! atoi_n(args[4].size(), args[4].c_str(), 0, 10, peer->retry) )
+		{
+		Error(fmt("ProcessConnectTo() bad peer retry string"));
+		delete peer;
+		return false;
+		}
+
+	peer->ssl = false;
+	if ( args[5] != "0" )
+		peer->ssl = true;
 
 	return Connect(peer);
 	}
@@ -3704,13 +3771,39 @@ bool SocketComm::ProcessConnectTo()
 bool SocketComm::ProcessListen()
 	{
 	assert(parent_args);
-	uint32* args = (uint32*) parent_args->data;
+	vector<string> args = tokenize(parent_args->data, ',');
 
-	uint32 addr = ntohl(args[0]);
-	uint16 port = uint16(ntohl(args[1]));
-	uint32 ssl = ntohl(args[2]);
+	if ( args.size() != 6 )
+		{
+		Error(fmt("ProcessListen() bad number of arguments"));
+		return false;
+		}
 
-	return Listen(addr, port, ssl);
+	listen_if = args[0];
+
+	if ( ! atoi_n(args[1].size(), args[1].c_str(), 0, 10, listen_port) )
+		{
+		Error(fmt("ProcessListen() bad peer port string"));
+		return false;
+		}
+
+	listen_ssl = false;
+	if ( args[2] != "0" )
+		listen_ssl = true;
+
+	enable_ipv6 = false;
+	if ( args[3] != "0" )
+		enable_ipv6 = true;
+
+	listen_zone_id = args[4];
+
+	if ( ! atoi_n(args[5].size(), args[5].c_str(), 0, 10, bind_retry_interval) )
+		{
+		Error(fmt("ProcessListen() bad peer port string"));
+		return false;
+		}
+
+	return Listen();
 	}
 
 bool SocketComm::ProcessParentCompress()
@@ -3872,28 +3965,53 @@ bool SocketComm::ProcessPeerCompress(Peer* peer)
 
 bool SocketComm::Connect(Peer* peer)
 	{
-	struct sockaddr_in server;
+	int status;
+	addrinfo hints, *res, *res0;
+	bzero(&hints, sizeof(hints));
 
-	int sockfd = socket(PF_INET, SOCK_STREAM, 0);
-	if ( sockfd < 0 )
+	hints.ai_family = PF_UNSPEC;
+	hints.ai_protocol = IPPROTO_TCP;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_NUMERICHOST;
+
+	char port_str[16];
+	modp_uitoa10(peer->port, port_str);
+
+	string gaihostname(peer->ip.AsString());
+	if ( peer->zone_id != "" )
+		gaihostname.append("%").append(peer->zone_id);
+
+	status = getaddrinfo(gaihostname.c_str(), port_str, &hints, &res0);
+	if ( status != 0 )
 		{
-		Error(fmt("can't create socket, %s", strerror(errno)));
+		Error(fmt("getaddrinfo error: %s", gai_strerror(status)));
 		return false;
 		}
 
-	bzero(&server, sizeof(server));
-	server.sin_family = AF_INET;
-	server.sin_port = htons(peer->port);
-	server.sin_addr.s_addr = htonl(peer->ip);
-
-	bool connected = true;
-
-	if ( connect(sockfd, (sockaddr*) &server, sizeof(server)) < 0 )
+	int sockfd = -1;
+	for ( res = res0; res; res = res->ai_next )
 		{
-		Error(fmt("connect failed: %s", strerror(errno)), peer);
-		close(sockfd);
-		connected = false;
+		sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+		if ( sockfd < 0 )
+			{
+			Error(fmt("can't create connect socket, %s", strerror(errno)));
+			continue;
+			}
+
+		if ( connect(sockfd, res->ai_addr, res->ai_addrlen) < 0 )
+			{
+			Error(fmt("connect failed: %s", strerror(errno)), peer);
+			close(sockfd);
+			sockfd = -1;
+			continue;
+			}
+
+		break;
 		}
+
+	freeaddrinfo(res0);
+
+	bool connected = sockfd != -1;
 
 	if ( ! (connected || peer->retry) )
 		{
@@ -3919,9 +4037,7 @@ bool SocketComm::Connect(Peer* peer)
 	if ( connected )
 		{
 		if ( peer->ssl )
-			{
 			peer->io = new ChunkedIOSSL(sockfd, false);
-			}
 		else
 			peer->io = new ChunkedIOFd(sockfd, "child->peer");
 
@@ -3936,7 +4052,13 @@ bool SocketComm::Connect(Peer* peer)
 	if ( connected )
 		{
 		Log("connected", peer);
-		if ( ! SendToParent(MSG_CONNECTED, peer, 2, peer->ip, peer->port) )
+
+		const size_t BUFSIZE = 1024;
+		char* data = new char[BUFSIZE];
+		snprintf(data, BUFSIZE, "%s,%"PRIu32, peer->ip.AsString().c_str(),
+		         peer->port);
+
+		if ( ! SendToParent(MSG_CONNECTED, peer, data) )
 			return false;
 		}
 
@@ -3973,86 +4095,148 @@ bool SocketComm::CloseConnection(Peer* peer, bool reconnect)
 	return true;
 	}
 
-bool SocketComm::Listen(uint32 ip, uint16 port, bool expect_ssl)
+bool SocketComm::Listen()
 	{
-	int* listen_fd = expect_ssl ? &listen_fd_ssl : &listen_fd_clear;
+	int status, on = 1;
+	addrinfo hints, *res, *res0;
+	bzero(&hints, sizeof(hints));
 
-	if ( *listen_fd >= 0 )
-		close(*listen_fd);
+	IPAddr listen_ip(listen_if);
 
-	struct sockaddr_in server;
-
-	*listen_fd = socket(PF_INET, SOCK_STREAM, 0);
-	if ( *listen_fd < 0 )
+	if ( enable_ipv6 )
 		{
-		Error(fmt("can't create listen socket, %s",
-				strerror(errno)));
+		if ( listen_ip == IPAddr("0.0.0.0") || listen_ip == IPAddr("::") )
+			hints.ai_family = PF_UNSPEC;
+		else
+			hints.ai_family = (listen_ip.GetFamily() == IPv4 ? PF_INET : PF_INET6);
+		}
+	else
+		hints.ai_family = PF_INET;
+
+	hints.ai_protocol = IPPROTO_TCP;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE | AI_NUMERICHOST;
+
+	char port_str[16];
+	modp_uitoa10(listen_port, port_str);
+
+	string scoped_addr(listen_if);
+	if ( listen_zone_id != "" )
+		scoped_addr.append("%").append(listen_zone_id);
+
+	const char* addr_str = 0;
+	if ( listen_ip != IPAddr("0.0.0.0") && listen_ip != IPAddr("::") )
+		addr_str = scoped_addr.c_str();
+
+	CloseListenFDs();
+
+	if ( (status = getaddrinfo(addr_str, port_str, &hints, &res0)) != 0 )
+		{
+		Error(fmt("getaddrinfo error: %s", gai_strerror(status)));
 		return false;
 		}
 
-	// Set SO_REUSEADDR.
-	int turn_on = 1;
-	if ( setsockopt(*listen_fd, SOL_SOCKET, SO_REUSEADDR,
-			&turn_on, sizeof(turn_on)) < 0 )
+	for ( res = res0; res; res = res->ai_next )
 		{
-		Error(fmt("can't set SO_REUSEADDR, %s",
-				strerror(errno)));
-		return false;
-		}
-
-	bzero(&server, sizeof(server));
-	server.sin_family = AF_INET;
-	server.sin_port = htons(port);
-	server.sin_addr.s_addr = htonl(ip);
-
-	if ( bind(*listen_fd, (sockaddr*) &server, sizeof(server)) < 0 )
-		{
-		Error(fmt("can't bind to port %d, %s", port, strerror(errno)));
-		close(*listen_fd);
-		*listen_fd = -1;
-
-		if ( errno == EADDRINUSE )
+		if ( res->ai_family != AF_INET && res->ai_family != AF_INET6 )
 			{
-			listen_if = ip;
-			listen_port = port;
-			listen_ssl = expect_ssl;
-			// FIXME: Make this timeout configurable.
-			listen_next_try = time(0) + 30;
+			Error(fmt("can't create listen socket: unknown address family, %d",
+			          res->ai_family));
+			continue;
 			}
-		return false;
+
+		IPAddr a = (res->ai_family == AF_INET) ?
+				IPAddr(((sockaddr_in*)res->ai_addr)->sin_addr) :
+				IPAddr(((sockaddr_in6*)res->ai_addr)->sin6_addr);
+
+		string l_addr_str(a.AsURIString());
+		if ( listen_zone_id != "")
+			l_addr_str.append("%").append(listen_zone_id);
+
+		int fd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+		if ( fd < 0 )
+			{
+			Error(fmt("can't create listen socket, %s", strerror(errno)));
+			continue;
+			}
+
+		if ( setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0 )
+			Error(fmt("can't set SO_REUSEADDR, %s", strerror(errno)));
+
+		// For IPv6 listening sockets, we don't want do dual binding to also
+		// get IPv4-mapped addresses because that's not as portable. e.g.
+		// many BSDs don't allow that.
+		if ( res->ai_family == AF_INET6 &&
+		     setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &on, sizeof(on)) < 0 )
+			Error(fmt("can't set IPV6_V6ONLY, %s", strerror(errno)));
+
+		if ( bind(fd, res->ai_addr, res->ai_addrlen) < 0 )
+			{
+			Error(fmt("can't bind to %s:%s, %s", l_addr_str.c_str(),
+			          port_str, strerror(errno)));
+			close(fd);
+
+			if ( errno == EADDRINUSE )
+				{
+				// Abandon completely this attempt to set up listening sockets,
+				// try again later.
+				CloseListenFDs();
+				listen_next_try = time(0) + bind_retry_interval;
+				return false;
+				}
+			continue;
+			}
+
+		if ( listen(fd, 50) < 0 )
+			{
+			Error(fmt("can't listen on %s:%s, %s", l_addr_str.c_str(),
+			          port_str, strerror(errno)));
+			close(fd);
+			continue;
+			}
+
+		listen_fds.push_back(fd);
+		Log(fmt("listening on %s:%s (%s)", l_addr_str.c_str(), port_str,
+		        listen_ssl ? "ssl" : "clear"));
 		}
 
-	if ( listen(*listen_fd, 50) < 0 )
-		{
-		Error(fmt("can't listen, %s", strerror(errno)));
-		return false;
-		}
+	freeaddrinfo(res0);
 
 	listen_next_try = 0;
-	Log(fmt("listening on %s:%d (%s)",
-		ip2a(ip), port, expect_ssl ? "ssl" : "clear"));
-	return true;
+	return listen_fds.size() > 0;
 	}
 
 bool SocketComm::AcceptConnection(int fd)
 	{
-	sockaddr_in client;
+	sockaddr_storage client;
 	socklen_t len = sizeof(client);
 
 	int clientfd = accept(fd, (sockaddr*) &client, &len);
 	if ( clientfd < 0 )
 		{
-		Error(fmt("accept failed, %s %d",
-				strerror(errno), errno));
+		Error(fmt("accept failed, %s %d", strerror(errno), errno));
+		return false;
+		}
+
+	if ( client.ss_family != AF_INET && client.ss_family != AF_INET6 )
+		{
+		Error(fmt("accept fail, unknown address family %d", client.ss_family));
+		close(clientfd);
 		return false;
 		}
 
 	Peer* peer = new Peer;
 	peer->id = id_counter++;
-	peer->ip = ntohl(client.sin_addr.s_addr);
-	peer->port = ntohs(client.sin_port);
+	peer->ip = client.ss_family == AF_INET ?
+	           IPAddr(((sockaddr_in*)&client)->sin_addr) :
+	           IPAddr(((sockaddr_in6*)&client)->sin6_addr);
+
+	peer->port = client.ss_family == AF_INET ?
+	             ntohs(((sockaddr_in*)&client)->sin_port) :
+	             ntohs(((sockaddr_in6*)&client)->sin6_port);
+
 	peer->connected = true;
-	peer->ssl = (fd == listen_fd_ssl);
+	peer->ssl = listen_ssl;
 	peer->compressor = false;
 
 	if ( peer->ssl )
@@ -4062,8 +4246,7 @@ bool SocketComm::AcceptConnection(int fd)
 
 	if ( ! peer->io->Init() )
 		{
-		Error(fmt("can't init peer io: %s",
-				  peer->io->Error()), false);
+		Error(fmt("can't init peer io: %s", peer->io->Error()), false);
 		return false;
 		}
 
@@ -4071,7 +4254,12 @@ bool SocketComm::AcceptConnection(int fd)
 
 	Log(fmt("accepted %s connection", peer->ssl ? "SSL" : "clear"), peer);
 
-	if ( ! SendToParent(MSG_CONNECTED, peer, 2, peer->ip, peer->port) )
+	const size_t BUFSIZE = 1024;
+	char* data = new char[BUFSIZE];
+	snprintf(data, BUFSIZE, "%s,%"PRIu32, peer->ip.AsString().c_str(),
+	         peer->port);
+
+	if ( ! SendToParent(MSG_CONNECTED, peer, data) )
 		return false;
 
 	return true;
@@ -4088,11 +4276,25 @@ const char* SocketComm::MakeLogString(const char* msg, Peer* peer)
 	int len = 0;
 
 	if ( peer )
+		{
+		string scoped_addr(peer->ip.AsURIString());
+		if ( peer->zone_id != "" )
+			scoped_addr.append("%").append(peer->zone_id);
+
 		len = snprintf(buffer, BUFSIZE, "[#%d/%s:%d] ", int(peer->id),
-				ip2a(peer->ip), peer->port);
+		               scoped_addr.c_str(), peer->port);
+		}
 
 	len += safe_snprintf(buffer + len, BUFSIZE - len, "%s", msg);
 	return buffer;
+	}
+
+void SocketComm::CloseListenFDs()
+	{
+	for ( size_t i = 0; i < listen_fds.size(); ++i )
+		close(listen_fds[i]);
+
+	listen_fds.clear();
 	}
 
 void SocketComm::Error(const char* msg, bool kill_me)
@@ -4137,7 +4339,7 @@ void SocketComm::Log(const char* msg, Peer* peer)
 
 void SocketComm::InternalError(const char* msg)
 	{
-	fprintf(stderr, "interal error in child: %s\n", msg);
+	fprintf(stderr, "internal error in child: %s\n", msg);
 	Kill();
 	}
 
@@ -4152,8 +4354,7 @@ void SocketComm::Kill()
 	LogProf();
 	Log("terminating");
 
-	close(listen_fd_clear);
-	close(listen_fd_ssl);
+	CloseListenFDs();
 
 	kill(getpid(), SIGTERM);
 

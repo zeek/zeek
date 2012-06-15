@@ -1,4 +1,5 @@
-Address 1.2.3.4: 16909060
+IPv4 Address 1.2.3.4: 32
+IPv6 Address ::1: 128
 Boolean T: 1
 Count 10: 10
 Double -1.23: 1.230000

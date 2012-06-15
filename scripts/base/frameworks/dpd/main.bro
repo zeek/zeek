@@ -3,8 +3,7 @@
 
 module DPD;
 
-## Add the DPD signatures to the signature framework.
-redef signature_files += "base/frameworks/dpd/dpd.sig";
+@load-sigs ./dpd.sig
 
 export {
 	## Add the DPD logging stream identifier.
@@ -105,5 +104,8 @@ event protocol_violation(c: connection, atype: count, aid: count,
 				reason: string) &priority=-5
 	{
 	if ( c?$dpd )
+		{
 		Log::write(DPD::LOG, c$dpd);
+		delete c$dpd;
+		}
 	}

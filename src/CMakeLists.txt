@@ -142,6 +142,7 @@ endmacro(GET_BIF_OUTPUT_FILES)
 set(BIF_SRCS
     bro.bif
     logging.bif
+    input.bif
     event.bif
     const.bif
     types.bif
@@ -219,6 +220,8 @@ binpac_target(dnp3.pac
 ########################################################################
 ## bro target
 
+find_package (Threads)
+
 # This macro stores associated headers for any C/C++ source files given
 # as arguments (past _var) as a list in the CMake variable named "_var".
 macro(COLLECT_HEADERS _var)
@@ -251,7 +254,6 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
                    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
 
-set(dns_SRCS nb_dns.c)
 set_source_files_properties(nb_dns.c PROPERTIES COMPILE_FLAGS
                             -fno-strict-aliasing)
 
@@ -294,7 +296,6 @@ set(bro_SRCS
     ChunkedIO.cc
     CompHash.cc
     Conn.cc
-    ConnCompressor.cc
     ConnSizeAnalyzer.cc
     ContentLine.cc
     DCE_RPC.cc
@@ -337,13 +338,11 @@ set(bro_SRCS
     IntSet.cc
     InterConn.cc
     IOSource.cc
+    IP.cc
+    IPAddr.cc
     IRC.cc
     List.cc
     Reporter.cc
-    LogMgr.cc
-    LogWriter.cc
-    LogWriterAscii.cc
-    LogWriterNone.cc
     Login.cc
     MIME.cc
     NCP.cc
@@ -383,7 +382,7 @@ set(bro_SRCS
     SMB.cc
     SMTP.cc
     SSH.cc
-    SSL-binpac.cc
+    SSL.cc
     Scope.cc
     SerializationFormat.cc
     SerialObj.cc
@@ -408,17 +407,42 @@ set(bro_SRCS
     XDR.cc
     ZIP.cc
     bsd-getopt-long.c
+    bro_inet_ntop.c
     cq.c
-    md5.c
     patricia.c
     setsignal.c
     PacketDumper.cc
     strsep.c
     modp_numtoa.c
+<<<<<<< HEAD
     DNP3.cc
     MODBUS.cc
     ${dns_SRCS}
     ${openssl_SRCS}
+=======
+
+    threading/BasicThread.cc
+    threading/Manager.cc
+    threading/MsgThread.cc
+    threading/SerialTypes.cc
+
+    logging/Manager.cc
+    logging/WriterBackend.cc
+    logging/WriterFrontend.cc
+    logging/writers/Ascii.cc
+    logging/writers/DataSeries.cc
+    logging/writers/None.cc
+
+    input/Manager.cc
+    input/ReaderBackend.cc
+    input/ReaderFrontend.cc
+    input/readers/Ascii.cc
+    input/readers/Raw.cc
+    input/readers/Benchmark.cc
+
+    nb_dns.c
+    digest.h
+>>>>>>> master
 )
 
 collect_headers(bro_HEADERS ${bro_SRCS})
@@ -429,7 +453,7 @@ add_definitions(-DBRO_BUILD_PATH="${CMAKE_CURRENT_BINARY_DIR}")
 
 add_executable(bro ${bro_SRCS} ${bro_HEADERS})
 
-target_link_libraries(bro ${brodeps})
+target_link_libraries(bro ${brodeps} ${CMAKE_THREAD_LIBS_INIT})
 
 install(TARGETS bro DESTINATION bin)
 install(FILES ${INSTALL_BIF_OUTPUTS} DESTINATION ${BRO_SCRIPT_INSTALL_PATH}/base)

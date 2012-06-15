@@ -50,23 +50,24 @@ void SSH_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 	//     SSH-<protocolmajor>.<protocolminor>-<version>\n
 	//
 	// We're interested in the "version" part here.
-	
+
 	if ( length < 4 || memcmp(line, "SSH-", 4) != 0 )
 		{
 		Weird("malformed_ssh_identification");
 		ProtocolViolation("malformed ssh identification", line, length);
 		return;
 		}
-	
+
 	int i;
 	for ( i = 4; i < length && line[i] != '-'; ++i )
 		;
-	
+
 	if ( TCP() )
 		{
 		if ( length >= i )
 			{
-			const uint32* dst;
+			IPAddr dst;
+
 			if ( is_orig )
 				dst = TCP()->Orig()->dst_addr;
 			else

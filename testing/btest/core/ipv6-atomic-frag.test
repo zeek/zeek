@@ -1,0 +1,8 @@
+# @TEST-EXEC: bro -r $TRACES/ipv6-http-atomic-frag.trace %INPUT >output
+# @TEST-EXEC: btest-diff output
+
+event new_connection(c: connection)
+	{
+	if ( c$id$resp_p == 80/tcp )
+		print c$id;
+	}

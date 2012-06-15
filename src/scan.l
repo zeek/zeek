@@ -228,6 +228,24 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 			++yylloc.last_line;
 			}
 
+	/* IPv6 literal constant patterns */
+"["({HEX}:){7}{HEX}"]" {
+	string s(yytext+1);
+	RET_CONST(new AddrVal(s.erase(s.size()-1)))
+}
+"["0x{HEX}({HEX}|:)*"::"({HEX}|:)*"]" {
+	string s(yytext+3);
+	RET_CONST(new AddrVal(s.erase(s.size()-1)))
+}
+"["({HEX}|:)*"::"({HEX}|:)*"]" {
+	string s(yytext+1);
+	RET_CONST(new AddrVal(s.erase(s.size()-1)))
+}
+"["({HEX}|:)*"::"({HEX}|:)*({D}"."){3}{D}"]" {
+	string s(yytext+1);
+	RET_CONST(new AddrVal(s.erase(s.size()-1)))
+}
+
 [!%*/+\-,:;<=>?()\[\]{}~$|]	return yytext[0];
 
 "--"	return TOK_DECR;
@@ -273,7 +291,6 @@ int	return TOK_INT;
 interval	return TOK_INTERVAL;
 list	return TOK_LIST;
 local	return TOK_LOCAL;
-match	return TOK_MATCH;
 module	return TOK_MODULE;
 next	return TOK_NEXT;
 of	return TOK_OF;
@@ -295,7 +312,6 @@ timeout	return TOK_TIMEOUT;
 timer	return TOK_TIMER;
 type	return TOK_TYPE;
 union	return TOK_UNION;
-using	return TOK_USING;
 vector	return TOK_VECTOR;
 when	return TOK_WHEN;
 
@@ -315,6 +331,7 @@ when	return TOK_WHEN;
 &optional	return TOK_ATTR_OPTIONAL;
 &persistent	return TOK_ATTR_PERSISTENT;
 &priority	return TOK_ATTR_PRIORITY;
+&type_column	return TOK_ATTR_TYPE_COLUMN;
 &read_expire	return TOK_ATTR_EXPIRE_READ;
 &redef		return TOK_ATTR_REDEF;
 &rotate_interval	return TOK_ATTR_ROTATE_INTERVAL;
@@ -339,6 +356,22 @@ when	return TOK_WHEN;
 			}
 		}
 	(void) load_files(new_file);
+	}
+
+@load-sigs{WS}{FILE} {
+	const char* new_sig_file = skip_whitespace(yytext + 10);
+	const char* full_filename = 0;
+	FILE* f = search_for_file(new_sig_file, "sig", &full_filename, false, 0);
+
+	if ( f )
+		{
+		sig_files.push_back(full_filename);
+		fclose(f);
+		delete [] full_filename;
+		}
+	else
+		reporter->Error("failed to find file associated with @load-sigs %s",
+		                new_sig_file);
 	}
 
 @unload{WS}{FILE}	{
@@ -449,11 +482,6 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 		}
 
 ({D}"."){3}{D}		RET_CONST(new AddrVal(yytext))
-
-({HEX}:){7}{HEX}	RET_CONST(new AddrVal(yytext))
-
-0x{HEX}({HEX}|:)*"::"({HEX}|:)*	RET_CONST(new AddrVal(yytext+2))
-(({D}|:)({HEX}|:)*)?"::"({HEX}|:)*	RET_CONST(new AddrVal(yytext))
 
 "0x"{HEX}+	RET_CONST(new Val(static_cast<bro_uint_t>(strtol(yytext, 0, 16)), TYPE_COUNT))
 

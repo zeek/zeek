@@ -17,35 +17,6 @@ enum ContentType {
 	UNKNOWN_OR_V2_ENCRYPTED = 400
 };
 
-%code{
-	string* record_type_label(int type)
-		{
-		switch ( type ) {
-		case CHANGE_CIPHER_SPEC:
-			return new string("CHANGE_CIPHER_SPEC");
-		case ALERT:
-			return new string("ALERT");
-		case HANDSHAKE:
-			return new string("HANDSHAKE");
-		case APPLICATION_DATA:
-			return new string("APPLICATION_DATA");
-		case V2_ERROR:
-			return new string("V2_ERROR");
-		case V2_CLIENT_HELLO:
-			return new string("V2_CLIENT_HELLO");
-		case V2_CLIENT_MASTER_KEY:
-			return new string("V2_CLIENT_MASTER_KEY");
-		case V2_SERVER_HELLO:
-			return new string("V2_SERVER_HELLO");
-		case UNKNOWN_OR_V2_ENCRYPTED:
-			return new string("UNKNOWN_OR_V2_ENCRYPTED");
-
-		default:
-			return new string(fmt("UNEXPECTED (%d)", type));
-		}
-		}
-%}
-
 enum SSLVersions {
 	UNKNOWN_VERSION	= 0x0000,
 	SSLv20		= 0x0002,

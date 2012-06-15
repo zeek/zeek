@@ -25,6 +25,7 @@
 	string orig_label(bool is_orig);
 	void free_X509(void *);
 	X509* d2i_X509_binpac(X509** px, const uint8** in, int len);
+	string handshake_type_label(int type);
 	%}
 
 %code{
@@ -46,6 +47,27 @@ string orig_label(bool is_orig)
 		return d2i_X509(px, (u_char**) in, len);
 #endif
 		}
+
+	string handshake_type_label(int type)
+		{
+		switch ( type ) {
+		case HELLO_REQUEST: return string("HELLO_REQUEST");
+		case CLIENT_HELLO: return string("CLIENT_HELLO");
+		case SERVER_HELLO: return string("SERVER_HELLO");
+		case SESSION_TICKET: return string("SESSION_TICKET");
+		case CERTIFICATE: return string("CERTIFICATE");
+		case SERVER_KEY_EXCHANGE: return string("SERVER_KEY_EXCHANGE");
+		case CERTIFICATE_REQUEST: return string("CERTIFICATE_REQUEST");
+		case SERVER_HELLO_DONE: return string("SERVER_HELLO_DONE");
+		case CERTIFICATE_VERIFY: return string("CERTIFICATE_VERIFY");
+		case CLIENT_KEY_EXCHANGE: return string("CLIENT_KEY_EXCHANGE");
+		case FINISHED: return string("FINISHED");
+		case CERTIFICATE_URL: return string("CERTIFICATE_URL");
+		case CERTIFICATE_STATUS: return string("CERTIFICATE_STATUS");
+		default: return string(fmt("UNKNOWN (%d)", type));
+		}
+		}
+
 %}
 
 
@@ -88,15 +110,15 @@ refine connection SSL_Conn += {
 		eof=0;
 	%}
 
-	%eof{
-		if ( ! eof &&
-		     state_ != STATE_CONN_ESTABLISHED &&
-		     state_ != STATE_TRACK_LOST &&
-		     state_ != STATE_INITIAL )
-			bro_analyzer()->ProtocolViolation(fmt("unexpected end of connection in state %s",
-				state_label(state_).c_str()));
-		++eof;
-	%}
+	#%eof{
+	#	if ( ! eof &&
+	#	     state_ != STATE_CONN_ESTABLISHED &&
+	#	     state_ != STATE_TRACK_LOST &&
+	#	     state_ != STATE_INITIAL )
+	#		bro_analyzer()->ProtocolViolation(fmt("unexpected end of connection in state %s",
+	#			state_label(state_).c_str()));
+	#	++eof;
+	#%}
 
 	%cleanup{
 	%}
@@ -133,11 +155,6 @@ refine connection SSL_Conn += {
 					cipher_suites16 : uint16[],
 					cipher_suites24 : uint24[]) : bool
 		%{
-		if ( state_ == STATE_TRACK_LOST )
-			bro_analyzer()->ProtocolViolation(fmt("unexpected client hello message from %s in state %s",
-				orig_label(${rec.is_orig}).c_str(),
-				state_label(old_state_).c_str()));
-
 		if ( ! version_ok(version) )
 			bro_analyzer()->ProtocolViolation(fmt("unsupported client SSL version 0x%04x", version));
 
@@ -175,11 +192,6 @@ refine connection SSL_Conn += {
 					cipher_suites24 : uint24[],
 					comp_method : uint8) : bool
 		%{
-		if ( state_ == STATE_TRACK_LOST )
-			bro_analyzer()->ProtocolViolation(fmt("unexpected server hello message from %s in state %s",
-				orig_label(${rec.is_orig}).c_str(),
-				state_label(old_state_).c_str()));
-
 		if ( ! version_ok(version) )
 			bro_analyzer()->ProtocolViolation(fmt("unsupported server SSL version 0x%04x", version));
 		else
@@ -205,7 +217,7 @@ refine connection SSL_Conn += {
 
 		return true;
 		%}
-		
+
 	function proc_session_ticket_handshake(rec: SessionTicketHandshake, is_orig: bool): bool
 		%{
 		if ( ssl_session_ticket_handshake )
@@ -229,11 +241,6 @@ refine connection SSL_Conn += {
 
 	function proc_certificate(rec: SSLRecord, certificates : bytestring[]) : bool
 		%{
-		if ( state_ == STATE_TRACK_LOST )
-			bro_analyzer()->ProtocolViolation(fmt("unexpected certificate message from %s in state %s",
-				orig_label(${rec.is_orig}).c_str(),
-				state_label(old_state_).c_str()));
-
 		if ( certificates->size() == 0 )
 			return true;
 
@@ -362,6 +369,7 @@ refine connection SSL_Conn += {
 				handshake_type_label(${hs.msg_type}).c_str(),
 				orig_label(is_orig).c_str(),
 				state_label(old_state_).c_str()));
+
 		return true;
 		%}
 

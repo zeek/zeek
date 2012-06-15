@@ -68,7 +68,7 @@ export {
 		missed_bytes: count           &log &default=0;
 
 		## Records the state history of connections as a string of letters.
-		## For TCP connections the meaning of those letters is:
+		## The meaning of those letters is:
 		##
 		## ======  ====================================================
 		## Letter  Meaning

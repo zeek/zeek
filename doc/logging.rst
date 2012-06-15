@@ -373,3 +373,13 @@ record, care must be given to when and how long data is stored.
 Normally data saved to the connection record will remain there for the
 duration of the connection and from a practical perspective it's not
 uncommon to need to delete that data before the end of the connection.
+
+Other Writers
+-------------
+
+Bro support the following output formats other than ASCII:
+
+.. toctree::
+   :maxdepth: 1
+
+   logging-dataseries

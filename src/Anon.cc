@@ -5,7 +5,6 @@
 
 #include "util.h"
 #include "net_util.h"
-#include "md5.h"
 #include "Anon.h"
 #include "Val.h"
 #include "NetVar.h"
@@ -153,7 +152,9 @@ void AnonymizeIPAddr_A50::init()
 
 int AnonymizeIPAddr_A50::PreservePrefix(ipaddr32_t input, int num_bits)
 	{
-	DEBUG_MSG("%s/%d\n", dotted_addr(input), num_bits);
+	DEBUG_MSG("%s/%d\n",
+			IPAddr(IPv4, &input, IPAddr::Network).AsString().c_str(),
+			num_bits);
 
 	if ( ! before_anonymization )
 		{

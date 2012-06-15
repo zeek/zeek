@@ -1,4 +1,5 @@
-# 
+# @TEST-SERIALIZE: comm
+#
 # @TEST-EXEC: btest-bg-run sender   bro -C -r $TRACES/web.trace --pseudo-realtime ../sender.bro
 # @TEST-EXEC: btest-bg-run receiver bro ../receiver.bro
 # @TEST-EXEC: btest-bg-wait -k 20
@@ -7,8 +8,10 @@
 # @TEST-EXEC: btest-diff receiver/http.log
 # @TEST-EXEC: cmp sender/http.log receiver/http.log
 # 
-# @TEST-EXEC: bro -x sender/events.bst http/base   | sed 's/^Event \[[-0-9.]*\] //g' | grep '^http_' | grep -v http_stats | sed 's/(.*$//g'  >events.snd.log
-# @TEST-EXEC: bro -x receiver/events.bst http/base | sed 's/^Event \[[-0-9.]*\] //g' | grep '^http_' | grep -v http_stats | sed 's/(.*$//g'  >events.rec.log
+# @TEST-EXEC: bro -x sender/events.bst | sed 's/^Event \[[-0-9.]*\] //g' | grep '^http_' | grep -v http_stats | sed 's/(.*$//g'  >events.snd.log
+# @TEST-EXEC: bro -x receiver/events.bst | sed 's/^Event \[[-0-9.]*\] //g' | grep '^http_' | grep -v http_stats | sed 's/(.*$//g'  >events.rec.log
+# @TEST-EXEC: btest-diff events.rec.log
+# @TEST-EXEC: btest-diff events.snd.log
 # @TEST-EXEC: cmp events.rec.log events.snd.log
 # 
 # We don't compare the transmitted event paramerters anymore. With the dynamic

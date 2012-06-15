@@ -1,0 +1,5 @@
+[h=192.168.0.2, p=257/tcp, valid=T]
+[h=192.168.0.2, p=257/tcp, valid=T]
+[h=fe80::12, p=1234/tcp, valid=T]
+[h=192.168.0.2, p=257/tcp, valid=T]
+[h=::, p=1234/tcp, valid=T]

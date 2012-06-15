@@ -15,10 +15,9 @@
 
 extern int generate_documentation;
 
+// Note: This function must be thread-safe.
 const char* type_name(TypeTag t)
 	{
-	static char errbuf[512];
-
 	static const char* type_names[int(NUM_TYPES)] = {
 		"void",
 		"bool", "int", "count", "counter",
@@ -37,10 +36,7 @@ const char* type_name(TypeTag t)
 	};
 
 	if ( int(t) >= NUM_TYPES )
-		{
-		snprintf(errbuf, sizeof(errbuf), "%d: not a type tag", int(t));
-		return errbuf;
-		}
+		return "type_name(): not a type tag";
 
 	return type_names[int(t)];
 	}
@@ -1471,6 +1467,16 @@ bool VectorType::DoUnserialize(UnserialInfo* info)
 	return yield_type != 0;
 	}
 
+void VectorType::Describe(ODesc* d) const
+	{
+	if ( d->IsReadable() )
+		d->AddSP("vector of");
+	else
+		d->Add(int(Tag()));
+
+	yield_type->Describe(d);
+	}
+
 BroType* base_type(TypeTag tag)
 	{
 	static BroType* base_types[NUM_TYPES];
@@ -1858,13 +1864,8 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 
 		if ( t1->IsSet() )
 			return new SetType(tl3, 0);
-		else if ( tg1 == TYPE_TABLE )
-			return new TableType(tl3, y3);
 		else
-			{
-			reporter->InternalError("bad tag in merge_types");
-			return 0;
-			}
+			return new TableType(tl3, y3);
 		}
 
 	case TYPE_FUNC:

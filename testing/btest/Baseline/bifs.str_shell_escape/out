@@ -1,0 +1,4 @@
+24
+echo ${TEST} > "my file"
+27
+echo \${TEST} > \"my file\"

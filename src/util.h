@@ -37,7 +37,7 @@
 
 #endif
 
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 #include <google/heap-checker.h>
 #include <google/heap-profiler.h>
 extern HeapLeakChecker* heap_checker;
@@ -136,15 +136,11 @@ extern bool ensure_dir(const char *dirname);
 bool is_dir(const char* path); 
 
 extern uint8 shared_hmac_md5_key[16];
-extern void hash_md5(size_t size, const unsigned char* bytes,
-			unsigned char digest[16]);
 
 extern int hmac_key_set;
 extern unsigned char shared_hmac_md5_key[16];
 extern void hmac_md5(size_t size, const unsigned char* bytes,
 			unsigned char digest[16]);
-
-extern const char* md5_digest_print(const unsigned char digest[16]);
 
 // Initializes RNGs for bro_random() and MD5 usage.  If seed is given, then
 // it is used (to provide determinism).  If load_file is given, the seeds

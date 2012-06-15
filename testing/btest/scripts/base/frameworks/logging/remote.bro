@@ -1,3 +1,4 @@
+# @TEST-SERIALIZE: comm
 #
 # @TEST-EXEC: btest-bg-run sender bro --pseudo-realtime %INPUT ../sender.bro
 # @TEST-EXEC: sleep 1

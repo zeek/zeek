@@ -39,8 +39,6 @@ export {
 		rcode:         count              &log &optional;
 		## A descriptive name for the response code value.
 		rcode_name:    string             &log &optional;
-		## Whether the message is a query (F) or response (T).
-		QR:            bool               &log &default=F;
 		## The Authoritative Answer bit for response messages specifies that
 		## the responding name server is an authority for the domain name
 		## in the question section.
@@ -261,10 +259,13 @@ event dns_TXT_reply(c: connection, msg: dns_msg, ans: dns_answer, str: string) &
 	event DNS::do_reply(c, msg, ans, str);
 	}
 
-event dns_AAAA_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr,
-                     astr: string) &priority=5
+event dns_AAAA_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr) &priority=5
 	{
-	# TODO: What should we do with astr?
+	event DNS::do_reply(c, msg, ans, fmt("%s", a));
+	}
+
+event dns_A6_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr) &priority=5
+	{
 	event DNS::do_reply(c, msg, ans, fmt("%s", a));
 	}
 

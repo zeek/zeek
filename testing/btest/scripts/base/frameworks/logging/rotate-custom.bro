@@ -1,5 +1,5 @@
 #
-# @TEST-EXEC: bro -b -r %DIR/rotation.trace %INPUT | egrep "test|test2" | sort >out
+#@TEST-EXEC: bro -b -r ${TRACES}/rotation.trace %INPUT | egrep "test|test2" | sort >out
 # @TEST-EXEC: for i in `ls test*.log | sort`; do printf '> %s\n' $i; cat $i; done | sort | uniq >>out
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff .stderr

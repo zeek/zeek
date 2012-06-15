@@ -13,52 +13,27 @@
 #include "MODBUS.h"
 #include "DNP3.h"
 
-ExpectedConn::ExpectedConn(const uint32* _orig, const uint32* _resp,
+ExpectedConn::ExpectedConn(const IPAddr& _orig, const IPAddr& _resp,
 				uint16 _resp_p, uint16 _proto)
 	{
-	if ( orig )
-		copy_addr(_orig, orig);
+	if ( _orig == IPAddr(string("0.0.0.0")) )
+		// don't use the IPv4 mapping, use the literal unspecified address
+		// to indicate a wildcard
+		orig = IPAddr(string("::"));
 	else
-		{
-		for ( int i = 0; i < NUM_ADDR_WORDS; ++i )
-			orig[i] = 0;
-		}
-
-	copy_addr(_resp, resp);
-
-	resp_p = _resp_p;
-	proto = _proto;
-	}
-
-ExpectedConn::ExpectedConn(uint32 _orig, uint32 _resp,
-				uint16 _resp_p, uint16 _proto)
-	{
-#ifdef BROv6
-	// Use the IPv4-within-IPv6 convention, as this is what's
-	// needed when we mix uint32's (like in this construction)
-	// with addr_type's (for example, when looking up expected
-	// connections).
-
-	orig[0] = orig[1] = orig[2] = 0;
-	resp[0] = resp[1] = resp[2] = 0;
-	orig[3] = _orig;
-	resp[3] = _resp;
-#else
-	orig[0] = _orig;
-	resp[0] = _resp;
-#endif
+		orig = _orig;
+	resp = _resp;
 	resp_p = _resp_p;
 	proto = _proto;
 	}
 
 ExpectedConn::ExpectedConn(const ExpectedConn& c)
 	{
-	copy_addr(c.orig, orig);
-	copy_addr(c.resp, resp);
+	orig = c.orig;
+	resp = c.resp;
 	resp_p = c.resp_p;
 	proto = c.proto;
 	}
-
 
 DPM::DPM()
 : expected_conns_queue(AssignedAnalyzer::compare)
@@ -101,7 +76,7 @@ void DPM::PostScriptInit()
 
 void DPM::AddConfig(const Analyzer::Config& cfg)
 	{
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 	HeapLeakChecker::Disabler disabler;
 #endif
 
@@ -160,23 +135,18 @@ AnalyzerTag::Tag DPM::GetExpected(int proto, const Connection* conn)
 	ExpectedConn c(conn->OrigAddr(), conn->RespAddr(),
 			ntohs(conn->RespPort()), proto);
 
-	// Can't use sizeof(c) due to potential alignment issues.
-	// FIXME: I guess this is still not portable ...
-	HashKey key(&c, sizeof(c.orig) + sizeof(c.resp) +
-				sizeof(c.resp_p) + sizeof(c.proto));
-
-	AssignedAnalyzer* a = expected_conns.Lookup(&key);
+	HashKey* key = BuildExpectedConnHashKey(c);
+	AssignedAnalyzer* a = expected_conns.Lookup(key);
+	delete key;
 
 	if ( ! a )
 		{
 		// Wildcard for originator.
-		for ( int i = 0; i < NUM_ADDR_WORDS; ++i )
-			c.orig[i] = 0;
+		c.orig = IPAddr(string("::"));
 
-		HashKey key(&c, sizeof(c.orig) + sizeof(c.resp) +
-				sizeof(c.resp_p) + sizeof(c.proto));
-
-		a = expected_conns.Lookup(&key);
+		HashKey* key = BuildExpectedConnHashKey(c);
+		a = expected_conns.Lookup(key);
+		delete key;
 		}
 
 	if ( ! a )
@@ -217,46 +187,8 @@ bool DPM::BuildInitialAnalyzerTree(TransportProto proto, Connection* conn,
 		break;
 
 	case TRANSPORT_ICMP: {
-		const struct icmp* icmpp = (const struct icmp *) data;
-		switch ( icmpp->icmp_type ) {
-
-		case ICMP_ECHO:
-		case ICMP_ECHOREPLY:
-			if ( ICMP_Echo_Analyzer::Available() )
-				{
-				root = icmp = new ICMP_Echo_Analyzer(conn);
-				DBG_DPD(conn, "activated ICMP Echo analyzer");
-				}
-			break;
-
-		case ICMP_REDIRECT:
-			if ( ICMP_Redir_Analyzer::Available() )
-				{
-				root = new ICMP_Redir_Analyzer(conn);
-				DBG_DPD(conn, "activated ICMP Redir analyzer");
-				}
-			break;
-
-		case ICMP_UNREACH:
-			if ( ICMP_Unreachable_Analyzer::Available() )
-				{
-				root = icmp = new ICMP_Unreachable_Analyzer(conn);
-				DBG_DPD(conn, "activated ICMP Unreachable analyzer");
-				}
-			break;
-
-		case ICMP_TIMXCEED:
-			if ( ICMP_TimeExceeded_Analyzer::Available() )
-				{
-				root = icmp = new ICMP_TimeExceeded_Analyzer(conn);
-				DBG_DPD(conn, "activated ICMP Time Exceeded analyzer");
-				}
-			break;
-		}
-
-		if ( ! root )
-			root = icmp = new ICMP_Analyzer(conn);
-
+		root = icmp = new ICMP_Analyzer(conn);
+		DBG_DPD(conn, "activated ICMP analyzer");
 		analyzed = true;
 		break;
 		}
@@ -420,7 +352,8 @@ bool DPM::BuildInitialAnalyzerTree(TransportProto proto, Connection* conn,
 	return true;
 	}
 
-void DPM::ExpectConnection(addr_type orig, addr_type resp, uint16 resp_p,
+void DPM::ExpectConnection(const IPAddr& orig, const IPAddr& resp,
+			uint16 resp_p,
 			TransportProto proto, AnalyzerTag::Tag analyzer,
 			double timeout, void* cookie)
 	{
@@ -432,11 +365,7 @@ void DPM::ExpectConnection(addr_type orig, addr_type resp, uint16 resp_p,
 			{
 			if ( ! a->deleted )
 				{
-				HashKey* key = new HashKey(&a->conn,
-							sizeof(a->conn.orig) +
-							sizeof(a->conn.resp) +
-							sizeof(a->conn.resp_p) +
-							sizeof(a->conn.proto));
+				HashKey* key = BuildExpectedConnHashKey(a->conn);
 				expected_conns.Remove(key);
 				delete key;
 				}
@@ -455,10 +384,9 @@ void DPM::ExpectConnection(addr_type orig, addr_type resp, uint16 resp_p,
 
 	ExpectedConn c(orig, resp, resp_p, proto);
 
-	HashKey key(&c, sizeof(c.orig) + sizeof(c.resp) +
-			sizeof(c.resp_p) + sizeof(c.proto));
+	HashKey* key = BuildExpectedConnHashKey(c);
 
-	AssignedAnalyzer* a = expected_conns.Lookup(&key);
+	AssignedAnalyzer* a = expected_conns.Lookup(key);
 
 	if ( a )
 		a->deleted = true;
@@ -470,8 +398,9 @@ void DPM::ExpectConnection(addr_type orig, addr_type resp, uint16 resp_p,
 	a->timeout = network_time + timeout;
 	a->deleted = false;
 
-	expected_conns.Insert(&key, a);
+	expected_conns.Insert(key, a);
 	expected_conns_queue.push(a);
+	delete key;
 	}
 
 void DPM::Done()
@@ -482,11 +411,7 @@ void DPM::Done()
 		AssignedAnalyzer* a = expected_conns_queue.top();
 		if ( ! a->deleted )
 			{
-			HashKey* key = new HashKey(&a->conn,
-					sizeof(a->conn.orig) +
-					sizeof(a->conn.resp) +
-					sizeof(a->conn.resp_p) +
-					sizeof(a->conn.proto));
+			HashKey* key = BuildExpectedConnHashKey(a->conn);
 			expected_conns.Remove(key);
 			delete key;
 			}

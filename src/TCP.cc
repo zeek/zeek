@@ -276,7 +276,7 @@ void TCP_Analyzer::ProcessSYN(const IP_Hdr* ip, const struct tcphdr* tp,
 				uint32 tcp_hdr_len, int& seq_len,
 				TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 				uint32 base_seq, uint32 ack_seq,
-				const uint32* orig_addr,
+				const IPAddr& orig_addr,
 				int is_orig, TCP_Flags flags)
 	{
 	int len = seq_len;
@@ -346,7 +346,7 @@ void TCP_Analyzer::ProcessSYN(const IP_Hdr* ip, const struct tcphdr* tp,
 	// is_orig will be removed once we can do SYN-ACK fingerprinting.
 	if ( OS_version_found && is_orig )
 		{
-		Val src_addr_val(orig_addr, TYPE_ADDR);
+		AddrVal src_addr_val(orig_addr);
 		if ( generate_OS_version_event->Size() == 0 ||
 		     generate_OS_version_event->Lookup(&src_addr_val) )
 			{
@@ -414,7 +414,7 @@ int TCP_Analyzer::ProcessFlags(double t,
 				uint32 tcp_hdr_len, int len, int& seq_len,
 				TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 				uint32 base_seq, uint32 ack_seq,
-				const uint32* orig_addr,
+				const IPAddr& orig_addr,
 				int is_orig, TCP_Flags flags)
 	{
 	if ( flags.SYN() )
@@ -989,8 +989,7 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	if ( ! orig->did_close || ! resp->did_close )
 		Conn()->SetLastTime(t);
 
-	const uint32* orig_addr = Conn()->OrigAddr();
-	const uint32* resp_addr = Conn()->RespAddr();
+	const IPAddr orig_addr = Conn()->OrigAddr();
 
 	uint32 tcp_hdr_len = data - (const u_char*) tp;
 
@@ -1204,7 +1203,7 @@ RecordVal* TCP_Analyzer::BuildOSVal(int is_orig, const IP_Hdr* ip,
 	if ( ip->HdrLen() > 20 )
 		quirks |= QUIRK_IPOPT;
 
-	if ( ip->IP_ID() == 0 )
+	if ( ip->ID() == 0 )
 		quirks |= QUIRK_ZEROID;
 
 	if ( tcp->th_seq == 0 )
@@ -1331,7 +1330,7 @@ RecordVal* TCP_Analyzer::BuildOSVal(int is_orig, const IP_Hdr* ip,
 			tstamp, quirks,
 			uint8(tcp->th_flags & (TH_ECE|TH_CWR)));
 
-	if ( sessions->CompareWithPreviousOSMatch(ip->SrcAddr4(), id) )
+	if ( sessions->CompareWithPreviousOSMatch(ip->SrcAddr(), id) )
 		{
 		RecordVal* os = new RecordVal(OS_version);
 
@@ -1943,11 +1942,11 @@ int TCPStats_Endpoint::DataSent(double /* t */, int seq, int len, int caplen,
 	{
 	if ( ++num_pkts == 1 )
 		{ // First packet.
-		last_id = ntohs(ip->ID4());
+		last_id = ip->ID();
 		return 0;
 		}
 
-	int id = ntohs(ip->ID4());
+	int id = ip->ID();
 
 	if ( id == last_id )
 		{

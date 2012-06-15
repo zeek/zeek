@@ -47,15 +47,6 @@ int tcp_max_initial_window;
 int tcp_max_above_hole_without_any_acks;
 int tcp_excessive_data_without_further_acks;
 
-int ssl_compare_cipherspecs;
-int ssl_analyze_certificates;
-int ssl_store_certificates;
-int ssl_verify_certificates;
-int ssl_store_key_material;
-int ssl_max_cipherspec_size;
-StringVal* ssl_store_cert_path;
-StringVal* x509_trusted_cert_path;
-TableType* cipher_suites_list;
 RecordType* x509_type;
 
 double non_analyzed_lifetime;
@@ -176,6 +167,7 @@ TableVal* preserve_orig_addr;
 TableVal* preserve_resp_addr;
 TableVal* preserve_other_addr;
 
+int max_files_in_cache;
 double log_rotate_interval;
 double log_max_size;
 RecordType* rotate_info;
@@ -191,8 +183,6 @@ int remote_check_sync_consistency;
 StringVal* ssl_ca_certificate;
 StringVal* ssl_private_key;
 StringVal* ssl_passphrase;
-
-StringVal* x509_crl_file;
 
 Val* profiling_file;
 double profiling_interval;
@@ -212,11 +202,6 @@ int packet_filter_default;
 int sig_max_group_size;
 
 int enable_syslog;
-
-int use_connection_compressor;
-int cc_handle_resets;
-int cc_handle_only_syns;
-int cc_instantiate_on_data;
 
 TableType* irc_join_list;
 RecordType* irc_join_info;
@@ -257,6 +242,7 @@ StringVal* cmd_line_bpf_filter;
 #include "types.bif.netvar_def"
 #include "event.bif.netvar_def"
 #include "logging.bif.netvar_def"
+#include "input.bif.netvar_def"
 #include "reporter.bif.netvar_def"
 
 void init_event_handlers()
@@ -273,6 +259,7 @@ void init_general_global_var()
 	state_dir = internal_val("state_dir")->AsStringVal();
 	state_write_delay = opt_internal_double("state_write_delay");
 
+	max_files_in_cache = opt_internal_int("max_files_in_cache");
 	log_rotate_interval = opt_internal_double("log_rotate_interval");
 	log_max_size = opt_internal_double("log_max_size");
 	rotate_info = internal_type("rotate_info")->AsRecordType();
@@ -317,6 +304,7 @@ void init_net_var()
 #include "const.bif.netvar_init"
 #include "types.bif.netvar_init"
 #include "logging.bif.netvar_init"
+#include "input.bif.netvar_init"
 #include "reporter.bif.netvar_init"
 
 	conn_id = internal_type("conn_id")->AsRecordType();
@@ -358,17 +346,7 @@ void init_net_var()
 	tcp_excessive_data_without_further_acks =
 		opt_internal_int("tcp_excessive_data_without_further_acks");
 
-	ssl_compare_cipherspecs  = opt_internal_int("ssl_compare_cipherspecs");
-	ssl_analyze_certificates = opt_internal_int("ssl_analyze_certificates");
-	ssl_store_certificates   = opt_internal_int("ssl_store_certificates");
-	ssl_verify_certificates  = opt_internal_int("ssl_verify_certificates");
-	ssl_store_key_material = opt_internal_int("ssl_store_key_material");
-	ssl_max_cipherspec_size  = opt_internal_int("ssl_max_cipherspec_size");
-
-	x509_trusted_cert_path = opt_internal_string("X509_trusted_cert_path");
-	ssl_store_cert_path = opt_internal_string("ssl_store_cert_path");
 	x509_type = internal_type("X509")->AsRecordType();
-	x509_crl_file = opt_internal_string("X509_crl_file");
 
 	non_analyzed_lifetime = opt_internal_double("non_analyzed_lifetime");
 	tcp_inactivity_timeout = opt_internal_double("tcp_inactivity_timeout");
@@ -524,12 +502,6 @@ void init_net_var()
 	load_sample_freq = opt_internal_int("load_sample_freq");
 
 	gap_report_freq = opt_internal_double("gap_report_freq");
-
-	use_connection_compressor =
-		opt_internal_int("use_connection_compressor");
-	cc_handle_resets = opt_internal_int("cc_handle_resets");
-	cc_handle_only_syns = opt_internal_int("cc_handle_only_syns");
-	cc_instantiate_on_data = opt_internal_int("cc_instantiate_on_data");
 
 	irc_join_info = internal_type("irc_join_info")->AsRecordType();
 	irc_join_list = internal_type("irc_join_list")->AsTableType();

@@ -74,9 +74,8 @@ void RotateTimer::Dispatch(double t, int is_expire)
 
 // The following could in principle be part of a "file manager" object.
 
-#define MAX_FILE_CACHE_SIZE 32
+#define MAX_FILE_CACHE_SIZE 512
 static int num_files_in_cache = 0;
-static int max_files_in_cache = 0;
 static BroFile* head = 0;
 static BroFile* tail = 0;
 
@@ -87,12 +86,9 @@ double BroFile::default_rotation_size = 0;
 // that we should use for the cache.
 static int maximize_num_fds()
 	{
-#ifdef NO_HAVE_SETRLIMIT
-	return MAX_FILE_CACHE_SIZE;
-#else
 	struct rlimit rl;
 	if ( getrlimit(RLIMIT_NOFILE, &rl) < 0 )
-		reporter->InternalError("maximize_num_fds(): getrlimit failed");
+		reporter->FatalError("maximize_num_fds(): getrlimit failed");
 
 	if ( rl.rlim_max == RLIM_INFINITY )
 		{
@@ -108,10 +104,9 @@ static int maximize_num_fds()
 	rl.rlim_cur = rl.rlim_max;
 
 	if ( setrlimit(RLIMIT_NOFILE, &rl) < 0 )
-		reporter->InternalError("maximize_num_fds(): setrlimit failed");
+		reporter->FatalError("maximize_num_fds(): setrlimit failed");
 
 	return rl.rlim_cur / 2;
-#endif
 	}
 
 
@@ -172,7 +167,7 @@ const char* BroFile::Name() const
 	return 0;
 	}
 
-bool BroFile::Open(FILE* file)
+bool BroFile::Open(FILE* file, const char* mode)
 	{
 	open_time = network_time ? network_time : current_time();
 
@@ -196,7 +191,12 @@ bool BroFile::Open(FILE* file)
 	InstallRotateTimer();
 
 	if ( ! f )
-		f = fopen(name, access);
+		{
+		if ( ! mode )
+			f = fopen(name, access);
+		else
+			f = fopen(name, mode);
+		}
 
 	SetBuf(buffered);
 
@@ -232,7 +232,7 @@ BroFile::~BroFile()
 	delete [] access;
 	delete [] cipher_buffer;
 
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 	heap_checker->UnIgnoreObject(this);
 #endif
 	}
@@ -255,7 +255,7 @@ void BroFile::Init()
 	cipher_ctx = 0;
 	cipher_buffer = 0;
 
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 	heap_checker->IgnoreObject(this);
 #endif
 	}
@@ -846,8 +846,8 @@ BroFile* BroFile::Unserialize(UnserialInfo* info)
 			}
 		}
 
-	// Otherwise, open.
-	if ( ! file->Open() )
+	// Otherwise, open, but don't clobber.
+	if ( ! file->Open(0, "a") )
 		{
 		info->s->Error(fmt("cannot open %s: %s",
 					file->name, strerror(errno)));

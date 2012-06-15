@@ -73,6 +73,9 @@ RuleHdrTest::RuleHdrTest(RuleHdrTest& h)
 			copied_set->ids = orig_set->ids;
 			loop_over_list(orig_set->patterns, l)
 				copied_set->patterns.append(copy_string(orig_set->patterns[l]));
+			delete copied_set;
+			// TODO: Why do we create copied_set only to then
+			// never use it?
 			}
 		}
 
@@ -188,7 +191,7 @@ void RuleMatcher::Delete(RuleHdrTest* node)
 
 bool RuleMatcher::ReadFiles(const name_list& files)
 	{
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 	HeapLeakChecker::Disabler disabler;
 #endif
 
@@ -1067,16 +1070,22 @@ static bool val_to_maskedval(Val* v, maskedvalue_list* append_to)
 			break;
 
 		case TYPE_SUBNET:
-#ifdef BROv6
 			{
-			uint32* n = v->AsSubNet()->net;
-			uint32* m = v->AsSubNetVal()->Mask();
+			const uint32* n;
+			uint32 m[4];
+			v->AsSubNet().Prefix().GetBytes(&n);
+			v->AsSubNetVal()->Mask().CopyIPv6(m);
+
+			for ( unsigned int i = 0; i < 4; ++i )
+				m[i] = ntohl(m[i]);
+
 			bool is_v4_mask = m[0] == 0xffffffff &&
 						m[1] == m[0] && m[2] == m[0];
 
-			if ( is_v4_addr(n) && is_v4_mask )
+			if ( v->AsSubNet().Prefix().GetFamily() == IPv4 &&
+			     is_v4_mask )
 				{
-				mval->val = ntohl(to_v4_addr(n));
+				mval->val = ntohl(*n);
 				mval->mask = m[3];
 				}
 
@@ -1087,10 +1096,6 @@ static bool val_to_maskedval(Val* v, maskedvalue_list* append_to)
 				mval->mask = 0;
 				}
 			}
-#else
-			mval->val = ntohl(v->AsSubNet()->net);
-			mval->mask = v->AsSubNetVal()->Mask();
-#endif
 			break;
 
 		default:
@@ -1114,7 +1119,12 @@ void id_to_maskedvallist(const char* id, maskedvalue_list* append_to)
 		val_list* vals = v->AsTableVal()->ConvertToPureList()->Vals();
 		loop_over_list(*vals, i )
 			if ( ! val_to_maskedval((*vals)[i], append_to) )
+			{
+				delete_vals(vals);
 				return;
+			}
+
+		delete_vals(vals);
 		}
 
 	else

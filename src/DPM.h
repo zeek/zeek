@@ -27,19 +27,13 @@
 // Map to assign expected connections to analyzers.
 class ExpectedConn {
 public:
-	// This form can be used for IPv6 as well as IPv4.
-	ExpectedConn(const uint32* _orig, const uint32* _resp,
+	ExpectedConn(const IPAddr& _orig, const IPAddr& _resp,
 			uint16 _resp_p, uint16 _proto);
-
-	// This form only works for expecting an IPv4 connection.  Note
-	// that we do the right thing whether we're built IPv4-only or
-	// BROv6.
-	ExpectedConn(uint32 _orig, uint32 _resp, uint16 _resp_p, uint16 _proto);
 
 	ExpectedConn(const ExpectedConn& c);
 
-	uint32 orig[NUM_ADDR_WORDS];
-	uint32 resp[NUM_ADDR_WORDS];
+	IPAddr orig;
+	IPAddr resp;
 	uint16 resp_p;
 	uint16 proto;
 };
@@ -90,7 +84,7 @@ public:
 	// Schedules a particular analyzer for an upcoming connection.
 	// 0 acts as a wildcard for orig.  (Cookie is currently unused.
 	// Eventually, we may pass it on to the analyzer).
-	void ExpectConnection(addr_type orig, addr_type resp, uint16 resp_p,
+	void ExpectConnection(const IPAddr& orig, const IPAddr& resp, uint16 resp_p,
 				TransportProto proto, AnalyzerTag::Tag analyzer,
 				double timeout, void* cookie);
 

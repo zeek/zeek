@@ -1,14 +1,627 @@
+
+2.0-608 | 2012-06-11 15:59:00 -0700
+
+  * Add more error handling code to logging of enum vals. Addresses
+    #829. (Jon Siwek)
+
+2.0-606 | 2012-06-11 15:55:56 -0700
+
+  * Fix summary lines for BIF documentation and corrected the
+    description of "fmt" and "floor" BIFs. (Daniel Thayer)
+
+  * Fix val_size BIF tests and improve docs. (Daniel Thayer)
+    
+2.0-602 | 2012-06-07 15:06:19 -0700
+
+  * Include header for usleep(), caused compile failure on Archlinux. (Jon Siwek)
+
+  * Revert "Fixed a bug with the MIME analyzer not removing whitespace
+    on wrapped headers." Needs discussion. (Robin Sommer)
+
+2.0-598 | 2012-06-06 11:47:00 -0700
+
+  * Add @load-sigs directive for loading signature files (addresses
+    #551). This can be used to load signatures relative to the current
+    scripts (e.g., "@load-sigs ./foo.sig"). (Jon Siwek)
+
+
+2.0-596 | 2012-06-06 11:41:00 -0700
+
+    * Fixes for some BiFs and their documentation. (Daniel Thayer)
+
+    * Many new unit tests for BiFs. (Daniel Thayer)
+
+2.0-579 | 2012-06-06 11:04:46 -0700
+
+  * Memory leak fixes for bad usages of VectorVal ctor. (Jon Siwek)
+
+  * Fixed a bug with the MIME analyzer not removing whitespace on
+    wrapped headers. (Seth Hall)
+
+  * Change Input::update_finished lookup to happen at init time. (Jon Siwek)
+
+  * Fix going through the internal_handler() function which will now
+    set the event as "used" (i.e. it's marked as being raised
+    somewhere). Addresses #823. (Jon Siwek)
+
+  * Fix format specifier on RemoteSerializer::Connect. This caused
+    32-bit systems to show a warning at compile-time, and fail when
+    connecting to peers. (Jon Siwek)
+
+  * Fixes for running tests in parallel. (Robin Sommer)
+
+2.0-571 | 2012-05-30 19:12:43 -0700
+
+  * Updating submodule(s).
+
+2.0-570 | 2012-05-30 19:08:18 -0700
+
+  * A new input framework enables scripts to read in external data
+    dynamically on the fly as Bro is processing network traffic.
+    (Bernhard Amann)
+
+    Currently, the framework supports reading ASCII input that's
+    structured similar as Bro's log files as well as raw blobs of
+    data. Other formats will come in the future.
+
+    See doc/input.rst for more information (this will be extended
+    further soon).
+
+2.0-395 | 2012-05-30 17:03:31 -0700
+
+  * Remove unnecessary assert in ICMP analyzer which could lead to
+    aborts. Addresses #822.
+
+  * Improve script debugger backtrace and print commands. (Jon Siwek)
+    
+  * Switching default DS compression to gzip. (Robin Sommer)
+    
+  * Improve availability of IPv6 flow label in connection records.
+    This adds a "flow_label" field to the "endpoint" record type,
+    which is used for both the "orig" and "resp" fields of
+    "connection" records.  The new "connection_flow_label_changed"
+    event also allows tracking of changes in flow labels: it's raised
+    each time one direction of the connection starts using a different
+    label. (Jon Siwek)
+
+  * Add unit tests for Broccoli SSL and Broccoli IPv6 connectivity.
+    (Jon Siwek)
+
+  * Remove AI_ADDRCONFIG getaddrinfo hints flag for listening sockets.
+    (Jon Siwek)
+
+  * Undo unnecessary communication protocol version bump. (Jon Siwek)
+    
+  * Add support to Bro for connecting with peers over IPv6. (Jon Siwek)
+    
+    - Communication::listen_ipv6 needs to be redef'd to true in order
+      for IPv6 listening sockets to be opened.
+
+    - Added Communication::listen_retry option as an interval at which
+      to retry binding to socket addresses that were already in use.
+
+    - Added some explicit baselines to check in the istate.events and
+      istate.events-ssl tests -- the SSL test was incorrectly passing
+      because it compared two empty files.  (The files being empty
+      because "http/base" was given as an argument to Bro which it
+      couldn't handle because that script doesn't exist anymore).
+
+    - Support for communication over non-global IPv6 addresses. This
+      usually requires specifying an additional zone identifier (see
+      RFC 4007). The connect() and listen() BIFs have been changed to
+      accept this zone identifier as an argument.
+
+
+2.0-377 | 2012-05-24 16:46:06 -0700
+
+  * Documentation fixes. (Jon Siwek and Daniel Thayer)
+
+2.0-372 | 2012-05-17 13:59:45 -0700
+
+  * Fix compile errors. (Jon Siwek)
+
+  * Linking in the DS docs. (Robin Sommer)
+
+  * Fix mobility checksums unit test. (Jon Siwek)
+
+2.0-367 | 2012-05-17 12:42:30 -0700
+
+  * Adding support for binary output via DataSeries. See
+    logging-dataseries.rst for more information. (Gilbert Clark and
+    Robin Sommer)
+
+  * Adding target update-doc-sources to top-level Makefile that runs
+    genDocSourcesList.sh. (Robin Sommer)
+
+  * Moving trace for rotation test into traces directory. (Robin Sommer)
+
+  * Fixing a rotation race condition at termination. (Robin Sommer)
+
+  * Extending log post-processor call to include the name of the
+    writer. (Robin Sommer)
+
+  * In threads, an internal error now immediately aborts. Otherwise,
+    the error won't make it back to the main thread for a while and
+    subsequent code in the thread would still execute. (Robin Sommer)
+
+  * DataSeries cleanup. (Robin Sommer)
+
+  * Fixing threads' DoFinish() method. It wasn't called reliably. Now,
+    it's always called before the thread is destroyed (assuming
+    processing has went normally so far). (Robin Sommer)
+
+2.0-341 | 2012-05-17 09:54:30 -0700
+
+  * Add a comment to explain the ICMPv6 error message types. (Daniel Thayer)
+
+  * Quieting external test output somehwat. (Robin Sommer)
+
+2.0-336 | 2012-05-14 17:15:44 -0700
+
+  * Don't print the various "weird" events to stderr. Address #805.
+    (Daniel Thayer)
+
+  * Generate icmp_error_message event for ICMPv6 error msgs.
+    Previously, icmp_sent was being generated, but icmp_error_message
+    contains more info.
+
+  * Improved documentation comments for icmp-related events. (Daniel
+    Thayer)
+
+2.0-330 | 2012-05-14 17:05:56 -0700
+
+  * Add `addr_to_uri` script-level function that adds brackets to an
+    address if it's IPv6 and will be included in a URI or when a
+    ":<port>" needs to be appended to it. (Jon Siwek)
+
+  * Also add a test case for content extraction. (Jon Siwek)
+
+  * Fix typos and improve INSTALL document. (Daniel Thayer)
+    
+  * Switching to new btest command TEST-SERIALIZE for communication
+    tests. (Robin Sommer)
+
+2.0-323 | 2012-05-04 21:04:34 -0700
+
+  * Add SHA1 and SHA256 hashing BIFs. Addresses #542.
+
+  * Refactor all internal MD5 stuff to use OpenSSL's. (Jon Siwek)
+
+  * Changes to open-file caching limits and uncached file unserialization. (Jon Siwek)
+
+    - Unserializing files that were previously kicked out of the open-file
+      cache would cause them to be fopen'd with the original access
+      permissions which is usually 'w' and causes truncation.  They
+      are now opened in 'a' mode.  (addresses #780)
+
+    - Add 'max_files_in_cache' script option to manually set the maximum
+      amount of opened files to keep cached.  Mainly this just helped
+      to create a simple test case for the above change.
+
+    - Remove unused NO_HAVE_SETRLIMIT preprocessor switch.
+
+    - On systems that don't enforce a limit on number of files opened for
+      the process, raise default max size of open-file cache from
+      32 to 512.
+
+2.0-319 | 2012-05-03 13:24:44 -0700
+
+  * SSL bugfixes and cleanup. (Seth Hall)
+
+    - SSL related files and classes renamed to remove the "binpac" term.
+
+    - A small fix for DPD scripts to make the DPD log more helpful if
+      there are multiple continued failures.
+
+    - Fixed the SSL analyzer to make it stop doing repeated violation
+      messages for some handshake failures.
+
+    - Added a $issuer_subject to the SSL log.
+      
+    - Created a basic test for SSL.
+
+    - Fixed parsing of TLS server extensions. (Seth Hall)
+
+2.0-315 | 2012-05-03 11:44:17 -0700
+
+  * Add two more TLS extension values that we see in live traffic.
+    (Bernhard Amann)
+
+  * Fixed IPv6 link local unicast CIDR and added IPv6 loopback to
+    private address space. (Seth Hall)
+
+  * Fixed a problem where cluster workers were still processing
+    notices in some cases. (Seth Hall)
+
+  * Added a configure option to specify the 'etc' directory. Addresses
+    #801. (Daniel Thayer)
+
+
+2.0-306 | 2012-04-24 14:37:00 -0700
+
+  * Add further TLS extension values "extended_random" and
+    "heartbeat". (Seth Hall)
+
+  * Fix problem with extracting FTP passwords and add "ftpuser" as
+    another anonymous username.  (Seth Hall, discovered by Patrik
+    Lundin).
+
+2.0-303 | 2012-04-19 10:01:06 -0700
+
+  * Changes related to ICMPv6 Neighbor Discovery messages. (Jon Siwek)
+    
+    - The 'icmp_conn' record now contains an 'hlim' field since hop limit
+      in the IP header is an interesting field for at least these ND
+      messages.
+
+    - Fixed and extended 'icmp_router_advertisement' event parameters.
+
+    - Changed 'icmp_neighbor_advertisement' event parameters to add
+      more of the known boolean flags.
+
+2.0-301 | 2012-04-17 17:58:55 -0700
+
+  * Bro now support ICMPv6. (Matti Mantere, Jon Siwek, Robin Sommer,
+	Daniel Thayer).
+
+	Overall, Bro now raises the following ICMP events for v4 and v6 as
+	appropiate:
+
+        event icmp_sent(c: connection, icmp: icmp_conn);
+        event icmp_echo_request(c: connection, icmp: icmp_conn, id: count, seq: count, payload: string);
+        event icmp_echo_reply(c: connection, icmp: icmp_conn, id: count, seq: count, payload: string);
+        event icmp_error_message(c: connection, icmp: icmp_conn, code: count, context: icmp_context);
+        event icmp_unreachable(c: connection, icmp: icmp_conn, code: count, context: icmp_context);
+        event icmp_packet_too_big(c: connection, icmp: icmp_conn, code: count, context: icmp_context);
+        event icmp_time_exceeded(c: connection, icmp: icmp_conn, code: count, context: icmp_context);
+        event icmp_parameter_problem(c: connection, icmp: icmp_conn, code: count, context: icmp_context);
+        event icmp_router_solicitation(c: connection, icmp: icmp_conn);
+        event icmp_router_advertisement(c: connection, icmp: icmp_conn, hop_limit: count, managed: bool, router_lifetime: count, reachable_time: interval, retrans_timer: interval);
+        event icmp_neighbor_solicitation(c: connection, icmp: icmp_conn, tgt:addr);
+        event icmp_neighbor_advertisement(c: connection, icmp: icmp_conn, tgt:addr);
+        event icmp_redirect(c: connection, icmp: icmp_conn, tgt: addr, dest: addr);
+
+    The `icmp_conn` record got a new boolean field 'v6' that indicates
+    whether the ICMP message is v4 or v6.
+
+    This change also includes further low-level work on existing IP
+	and ICMP code, including a reorganization of how ICMPv4 is
+	handled.
+
+2.0-281 | 2012-04-17 17:40:39 -0700
+
+  * Small updates for the bittorrent analyzer to support 64bit types
+    in binpac. (Seth Hall)
+
+  * Removed the attempt at bittorrent resynchronization. (Seth Hall)
+    
+2.0-276 | 2012-04-17 17:35:56 -0700
+
+  * Add more support for <netinet/ip6.h>'s that lack some structure
+    definitions. (Jon Siwek)
+
+2.0-273 | 2012-04-16 18:08:56 -0700
+
+  * Removing QR flag from DNS log in response, which should not have
+    been there in the first place. (Seth Hall)
+
+  * Sync up patricia.c/h with pysubnettree repo. (Daniel Thayer)
+    
+  * Adding missing leak groups to a couple tests. Also activating leak
+    checking for proxy in basic-cluster test. (Robin Sommer)
+
+2.0-267 | 2012-04-09 17:47:28 -0700
+
+  * Add support for mobile IPv6 Mobility Header (RFC 6275).  (Jon
+    Siwek)
+
+    - Enabled through a new --enable-mobile-ipv6 configure-time
+      option. If not enabled, the mobility header (routing type 2) and
+      Home Address Destination option are ignored.
+
+    - Accessible at script-layer through 'mobile_ipv6_message' event.
+      
+  * Refactor IP_Hdr routing header handling, add MobileIPv6 Home
+    Address handling. Packets that use the Home Address Destination
+    option use that option's address as the connection's originator.
+    (Jon Siwek)
+
+  * Revert TCP checksumming to cache common data, like it did before.
+    (Jon Siwek)
+
+  * Improve handling of IPv6 routing type 0 extension headers. (Jon
+    Siwek)
+    
+    - flow_weird event with name argument value of "routing0_hdr" is raised
+      for packets containing an IPv6 routing type 0 header because this
+      type of header is now deprecated according to RFC 5095.
+
+    - Packets with a routing type 0 header and non-zero segments left
+      now use the last address in that header in order to associate
+      with a connection/flow and for calculating TCP/UDP checksums.
+
+    - Added a set of IPv4/IPv6 TCP/UDP checksum unit tests (Jon Siwek)
+
+  * Fix table expiry for values assigned in bro_init() when reading
+    live. (Jon Siwek)
+
+2.0-257 | 2012-04-05 15:32:43 -0700
+
+  * Fix CMake from warning about unused ENABLE_PERFTOOLS_DEBUG
+    variable. (Jon Siwek)
+
+  * Fix handling of IPv6 atomic fragments. (Jon Siwek)
+    
+  * Fix that prevents Bro processes that do neither local logging nor
+    request remote logs from spawning threads. (Robin Sommer)
+
+  * Fixing perftools-debug support. (Robin Sommer)
+
+  * Reverting SocketComm change tuning I/O behaviour. (Robin Sommer)
+    
+  * Adding notice_policy.log canonification for external tests. (Robin Sommer)
+
+
+2.0-245 | 2012-04-04 17:25:20 -0700
+
+  * Internal restructuring of the logging framework: we now spawn
+    threads doing the I/O. From a user's perspective not much should
+    change, except that the OS may now show a bunch of Bro threads.
+    (Gilbert Clark and Robin Sommer).
+
+  * When building Bro, we now always link in tcmalloc if it's found at
+    configure time. If it's installed but not picked up,
+    --with-perftools may help. (Robin Sommer)
+
+  * Renaming the configure option --enable-perftools to
+    --enable-perftool-debug to indicate that the switch is only
+    relevant for debugging the heap. It's not needed to pick up
+    tcmalloc for better performance. (Robin Sommer)
+
+2.0-184 | 2012-03-28 15:11:11 -0700
+
+  * Improve handling of IPv6 Routing Type 0 headers.  (Jon Siwek)
+
+    - For RH0 headers with non-zero segments left, a
+      "routing0_segleft" flow_weird event is raised (with a
+      destination indicating the last address in the routing header),
+      and an "rh0_segleft" event can also be handled if the other
+      contents of the packet header are of interest. No further
+      analysis is done as the complexity required to correctly
+      identify destination endpoints of connections doesn't seem worth
+      it as RH0 has been deprecated by RFC 5095.
+
+    - For RH0 headers without any segments left, a "routing0_header"
+      flow_weird event is raised, but further analysis still occurs as
+      normal.
+
+2.0-182 | 2012-03-28 15:01:57 -0700
+
+  * Remove dead tcp_checksum function from net_util. (Jon Siwek)
+
+  * Change routing0_data_to_addrs BIF to return vector of addresses.
+    The order of addresses in type 0 routing headers is
+    interesting/important. (Jon Siwek)
+
+
+2.0-179 | 2012-03-23 17:43:31 -0700
+
+  * Remove the default "tcp or udp or icmp" filter. In default mode,
+    Bro would load the packet filter script framework which installs a
+    filter that allows all packets, but in bare mode (the -b option),
+    this old filter would not follow IPv6 protocol chains and thus
+    filter out packets with extension headers. (Jon Siwek)
+
+  * Update PacketFilter/Discarder code for IP version independence.
+    (Jon Siwek)
+
+  * Fix some IPv6 header related bugs. (Jon Siwek)
+    
+  * Add IPv6 fragment reassembly. (Jon Siwek)
+    
+  * Add handling for IPv6 extension header chains. Addresses #531.
+    (Jon Siwek)
+    
+    - The script-layer 'pkt_hdr' type is extended with a new 'ip6' field
+      representing the full IPv6 header chain.
+
+    - The 'new_packet' event is now raised for IPv6 packets. Addresses
+      #523.
+
+    - A new event called 'ipv6_ext_header' is raised for any IPv6
+      packet containing extension headers.
+
+    - A new event called 'esp_packet' is raised for any packets using
+      ESP ('new_packet' and 'ipv6_ext_header' events provide
+      connection info, but that info can't be provided here since the
+      upper-layer payload is encrypted).
+
+    - The 'unknown_protocol' weird is now raised more reliably when
+      Bro sees a transport protocol or IPv6 extension header it can't
+      handle. Addresses #522.
+
+  * Add unit tests for IPv6 fragment reassembly, ipv6_ext_headers and
+    esp_packet events. (Jon Siwek)
+
+  * Adapt FreeBSD's inet_ntop implementation for internal use. Now we
+    get consistent text representations of IPv6 addresses across
+    platforms. (Jon Siwek)
+
+  * Update documentation for new syntax of IPv6 literals. (Jon Siwek)
+    
+
+2.0-150 | 2012-03-13 16:16:22 -0700
+
+  * Changing the regular expression to allow Site::local_nets in
+    signatures. (Julien Sentier)
+
+  * Removing a line of dead code. Found by . Closes #786. (Julien
+    Sentier)
+
+2.0-146 | 2012-03-13 15:39:38 -0700
+
+  * Change IPv6 literal constant syntax to require encasing square
+    brackets. (Jon Siwek)
+
+2.0-145 | 2012-03-09 15:10:35 -0800
+
+  * Remove the match expression. 'match' and 'using' are no longer
+    keywords. Addressed #753. (Jon Siwek)
+
+2.0-143 | 2012-03-09 15:07:42 -0800
+
+  * Fix a BRO_PROFILER_FILE/mkstemp portability issue. Addresses #794.
+    (Jon Siwek)
+
+2.0-139 | 2012-03-02 09:33:04 -0800
+
+  * Changes to how script coverage integrates with test suites. (Jon Siwek)
+
+    - BRO_PROFILER_FILE now passes .X* templated filenames to mkstemp
+      for generating unique coverage state files.
+
+    - Rearranging Makefile targets.  The general rule is that if the
+      all/brief target fails out due to a test failure, then the dependent
+      coverage target won't run, but can still be invoked directly later.
+      (e.g. make brief || make coverage) 
+
+  * Standardized on the &default function for SSL constants. (Seth
+    Hall)
+
+  * Adding btest group "leaks" to leak tests. (Robin Sommer)
+    
+  * Adding btest group "comm" to communication tests for parallelizing
+    execution with new btest version. (Robin Sommer)
+
+  * Sorting all output for diffing in the external tests. (Robin
+    Sommer)
+
+  * Cleaned up dead code from the old SSL analyzers. Reported by
+    Julien Sentier. (Seth Hall)
+
+  * Update/add tests for broccoli IPv6 addr/subnet support. Addresses
+    #448. (Jon Siwek)
+
+  * Remove connection compressor. Addresses #559. (Jon Siwek)
+    
+  * Refactor IP_Hdr class ctors. Addresses #532. (Jon Siwek)
+    
+
+2.0-121 | 2012-02-24 16:34:17 -0800
+
+  * A number of smaller memory fixes and code cleanups. (Julien
+    Sentier)
+
+  * Add to_subnet bif. Fixes #782). (Jon Siwek)
+
+  * Fix IPAddr::Mask/ReverseMask not allowing argument of 0. (Jon
+    Siwek)
+
+  * Refactor IPAddr v4 initialization from string. Fixes #775. (Jon Siwek)
+
+  * Parse the dotted address string directly instead of canonicalizing
+    and passing to inet_pton. (Jon Siwek)
+
+
+2.0-108 | 2012-02-24 15:21:07 -0800
+
+  * Refactoring a number of usages of new IPAddr class. (Jon Siwek)
+
+  * Fixed a bug in remask_addr bif. (Jon Siwek)
+
+2.0-106 | 2012-02-24 15:02:20 -0800
+
+  * Raise minimum required CMake version to 2.6.3. (Jon Siwek)
+
+2.0-104 | 2012-02-24 14:59:12 -0800
+
+  * Add test case for FTP over IPv4. (Daniel Thayer)
+
+  * Fix IPv6 URLs in ftp.log. (Daniel Thayer)
+
+  * Add a test for FTP over IPv6 (Daniel Thayer)
+
+  * Fix parsing of FTP EPRT command and EPSV response. (Daniel Thayer)
+
+2.0-95 | 2012-02-22 05:27:34 -0800
+
+  * GeoIP installation documentation update. (Seth Hall)
+
+  * Decrease strictness of parsing IPv4 strings into addrs. Fixes #775. (Jon Siwek)
+
+  * Fix memory leak in DNS manager. Fixes #777. (Jon Siwek)
+    
+  * Fix IPAddr/IPPrefix serialization bugs. (Jon Siwek)
+    
+  * Fix compile error. (Jon Siwek)
+
+2.0-86 | 2012-02-17 15:41:06 -0800
+
+  * Changing ARP detection to always kick in even if no analyzer is
+    activated. (Robin Sommer)
+
+  * DNS name lookups performed by Bro now also query AAAA records.
+    DNS_Mgr handles combining the results of the A and AAAA queries
+    for a given hostname such that at the scripting layer, the name
+    resolution can yield a set with both IPv4 and IPv6 addresses. (Jon
+    Siwek)
+
+  * Add counts_to_addr and addr_to_counts conversion BIFs. (Jon Siwek)
+
+  * Change HashKey threshold for using H3 to 36 bytes. (Jon Siwek)
+
+  * Remove mention of --enable-brov6 in docs. (Daniel Thayer)
+
+  * Remove --enable-brov6 from configure usage text (Daniel Thayer)
+
+  * Add a test and baseline for addr_to_ptr_name BiF. (Daniel Thayer)
+
+  * Adding a test and baseline for ptr_name_to_addr BiF. (Seth Hall)
+
+  * Fix the ptr_name_to_addr BiF to work with IPv6 (Daniel Thayer)
+
+  * Fix a memory leak that perftools now complains about. (Jon Siwek)
+
+  * Remove --enable-brov6 flag, IPv6 now supported by default. (Jon Siwek)
+
+    Some script-layer changes of note:
+
+    - dns_AAAA_reply event signature changed: the string representation
+      of an IPv6 addr is easily derived from the addr value, it doesn't
+      need to be another parameter.  This event also now generated directly
+      by the DNS analyzer instead of being "faked" into a dns_A_reply event.
+
+    - Removed addr_to_count BIF.  It used to return the host-order
+      count representation of IPv4 addresses only.  To make it more
+      generic, we might later add a BIF to return a vector of counts
+      in order to support IPv6.
+
+    - Changed the result of enclosing addr variables in vertical pipes
+      (e.g. |my_addr|) to return the bit-width of the address type which
+      is 128 for IPv6 and 32 for IPv4.  It used to function the same
+      way as addr_to_count mentioned above.
+
+    - Remove bro_has_ipv6 BIF
+
+2.0-57 | 2012-02-10 00:02:35 -0800
+
+  * Fix typos in the documentation. (Daniel Thayer)
+
+  * Fix compiler warning about Brofiler ctor init list order. (Jon Siwek)
+
+  * Fix missing optional field access in webapp signature_match handler. (Jon Siwek)
+
 2.0-41 | 2012-02-03 04:10:53 -0500
 
- * Updates to the Software framework to simplify the API.
-  (Bernhard Amann)
+  * Updates to the Software framework to simplify the API. (Bernhard
+    Amann)
 
 2.0-40 | 2012-02-03 01:55:27 -0800
 
- * Fix typos in documentation. (Daniel Thayer)
-
- * Fix sorting of lines in Brofiler coverage.log. (Daniel Thayer)
-   
+  * Fix typos in documentation. (Daniel Thayer)
+    
+  * Fix sorting of lines in Brofiler coverage.log. (Daniel Thayer)
+    
 2.0-38 | 2012-01-31 11:50:53 -0800
 
   * Canonify sorting of lines in Brofiler coverage.log. (Daniel

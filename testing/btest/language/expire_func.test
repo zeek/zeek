@@ -1,0 +1,23 @@
+# @TEST-EXEC: bro -C -r $TRACES/var-services-std-ports.trace %INPUT >output
+# @TEST-EXEC: btest-diff output
+
+function inform_me(s: set[string], idx: string): interval
+    {
+    print fmt("expired %s", idx);
+    return 0secs;
+    }
+
+global s: set[string] &create_expire=1secs &expire_func=inform_me;
+
+event bro_init()
+    {
+    add s["i"];
+    add s["am"];
+    add s["here"];
+    }
+
+event new_connection(c: connection)
+    {
+    add s[fmt("%s", c$id)];
+    print s;
+    }

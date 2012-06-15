@@ -4,9 +4,10 @@
 @load base/frameworks/software
 @load base/protocols/http
 
+@load-sigs ./detect-webapps.sig
+
 module HTTP;
 
-redef signature_files += "protocols/http/detect-webapps.sig";
 # Ignore the signatures used to match webapps
 redef Signatures::ignored_ids += /^webapp-/;
 
@@ -28,7 +29,7 @@ event signature_match(state: signature_state, msg: string, data: string) &priori
 	
 	local c = state$conn;
 	local si = Software::Info;
-	si = [$unparsed_version=msg, $host=c$id$resp_h, $host_p=c$id$resp_p, $software_type=WEB_APPLICATION];
+	si = [$name=msg, $unparsed_version=msg, $host=c$id$resp_h, $host_p=c$id$resp_p, $software_type=WEB_APPLICATION];
 	si$url = build_url_http(c$http);
 	if ( c$id$resp_h in Software::tracked &&
 	     si$name in Software::tracked[c$id$resp_h] )

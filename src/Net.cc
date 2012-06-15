@@ -42,7 +42,6 @@ extern int select(int, fd_set *, fd_set *, fd_set *, struct timeval *);
 PList(PktSrc) pkt_srcs;
 
 // FIXME: We should really merge PktDumper and PacketDumper.
-// It's on my to-do [Robin].
 PktDumper* pkt_dumper = 0;
 
 int reading_live = 0;
@@ -70,6 +69,7 @@ PktSrc* current_pktsrc = 0;
 IOSource* current_iosrc;
 
 std::list<ScannedFile> files_scanned;
+std::vector<string> sig_files;
 
 RETSIGTYPE watchdog(int /* signo */)
 	{
@@ -143,7 +143,7 @@ RETSIGTYPE watchdog(int /* signo */)
 	return RETSIGVAL;
 	}
 
-void net_init(name_list& interfaces, name_list& readfiles, 
+void net_init(name_list& interfaces, name_list& readfiles,
 	      name_list& netflows, name_list& flowfiles,
 	        const char* writefile, const char* filter,
 			const char* secondary_filter, int do_watchdog)
@@ -248,12 +248,14 @@ void net_init(name_list& interfaces, name_list& readfiles,
 			FlowSocketSrc* fs = new FlowSocketSrc(netflows[i]);
 
 			if ( ! fs->IsOpen() )
+				{
 				reporter->Error("%s: problem with netflow socket %s - %s\n",
 					prog, netflows[i], fs->ErrorMsg());
-			else
-				{
-				io_sources.Register(fs);
+				delete fs;
 				}
+
+			else
+				io_sources.Register(fs);
 			}
 
 		}
@@ -454,6 +456,7 @@ void net_run()
 				// date on timers and events.
 				network_time = ct;
 				expire_timers();
+				usleep(1); // Just yield.
 				}
 			}
 
@@ -483,6 +486,8 @@ void net_run()
 			// since Bro timers are not high-precision anyway.)
 			if ( ! using_communication )
 				usleep(100000);
+			else
+				usleep(1000);
 
 			// Flawfinder says about usleep:
 			//

@@ -10,12 +10,15 @@
 #include "Stats.h"
 #include "File.h"
 
-// All IP arguments are in host byte-order.
-// FIXME: Change this to network byte order
+#include <vector>
+#include <string>
 
 class IncrementalSendTimer;
-class LogField;
-class LogVal;
+
+namespace threading {
+	class Field;
+	class Value;
+}
 
 // This class handles the communication done in Bro's main loop.
 class RemoteSerializer : public Serializer, public IOSource {
@@ -32,7 +35,8 @@ public:
 	static const PeerID PEER_NONE = SOURCE_LOCAL;
 
 	// Connect to host (returns PEER_NONE on error).
-	PeerID Connect(addr_type ip, uint16 port, const char* our_class, double retry, bool use_ssl);
+	PeerID Connect(const IPAddr& ip, const string& zone_id, uint16 port,
+	               const char* our_class, double retry, bool use_ssl);
 
 	// Close connection to host.
 	bool CloseConnection(PeerID peer);
@@ -60,7 +64,8 @@ public:
 	bool CompleteHandshake(PeerID peer);
 
 	// Start to listen.
-	bool Listen(addr_type ip, uint16 port, bool expect_ssl);
+	bool Listen(const IPAddr& ip, uint16 port, bool expect_ssl, bool ipv6,
+	            const string& zone_id, double retry);
 
 	// Stop it.
 	bool StopListening();
@@ -99,13 +104,13 @@ public:
 	bool SendPrintHookEvent(BroFile* f, const char* txt, size_t len);
 
 	// Send a request to create a writer on a remote side.
-	bool SendLogCreateWriter(PeerID peer, EnumVal* id, EnumVal* writer, string path, int num_fields, const LogField* const * fields);
+	bool SendLogCreateWriter(PeerID peer, EnumVal* id, EnumVal* writer, string path, int num_fields, const threading::Field* const * fields);
 
 	// Broadcasts a request to create a writer.
-	bool SendLogCreateWriter(EnumVal* id, EnumVal* writer, string path, int num_fields, const LogField* const * fields);
+	bool SendLogCreateWriter(EnumVal* id, EnumVal* writer, string path, int num_fields, const threading::Field* const * fields);
 
 	// Broadcast a log entry to everybody interested.
-	bool SendLogWrite(EnumVal* id, EnumVal* writer, string path, int num_fields, const LogVal* const * vals);
+	bool SendLogWrite(EnumVal* id, EnumVal* writer, string path, int num_fields, const threading::Value* const * vals);
 
 	// Synchronzizes time with all connected peers. Returns number of
 	// current sync-point, or -1 on error.
@@ -176,9 +181,7 @@ protected:
 	struct Peer {
 		PeerID id; // Unique ID (non-zero) per peer.
 
-		// ### Fix: currently, we only work for IPv4.
-		// addr_type ip;
-		uint32 ip;
+		IPAddr ip;
 
 		uint16 port;
 		handler_list handlers;
@@ -274,7 +277,7 @@ protected:
 	bool ProcessLogWrite();
 	bool ProcessRequestLogs();
 
-	Peer* AddPeer(uint32 ip, uint16 port, PeerID id = PEER_NONE);
+	Peer* AddPeer(const IPAddr& ip, uint16 port, PeerID id = PEER_NONE);
 	Peer* LookupPeer(PeerID id, bool only_if_connected);
 	void RemovePeer(Peer* peer);
 	bool IsConnectedPeer(PeerID id);
@@ -300,7 +303,7 @@ protected:
 	bool SendID(SerialInfo* info, Peer* peer, const ID& id);
 	bool SendCapabilities(Peer* peer);
 	bool SendPacket(SerialInfo* info, Peer* peer, const Packet& p);
-	bool SendLogWrite(Peer* peer, EnumVal* id, EnumVal* writer, string path, int num_fields, const LogVal* const * vals);
+	bool SendLogWrite(Peer* peer, EnumVal* id, EnumVal* writer, string path, int num_fields, const threading::Value* const * vals);
 
 	void UnregisterHandlers(Peer* peer);
 	void RaiseEvent(EventHandlerPtr event, Peer* peer, const char* arg = 0);
@@ -335,6 +338,7 @@ private:
 	int propagate_accesses;
 	bool ignore_accesses;
 	bool terminating;
+	int received_logs;
 	Peer* source_peer;
 	PeerID id_counter;	// Keeps track of assigned IDs.
 	uint32 current_sync_point;
@@ -408,7 +412,6 @@ protected:
 			{
 			id = 0;
 			io = 0;
-			ip = 0;
 			port = 0;
 			state = 0;
 			connected = false;
@@ -420,7 +423,8 @@ protected:
 
 		RemoteSerializer::PeerID id;
 		ChunkedIO* io;
-		uint32 ip;
+		IPAddr ip;
+		string zone_id;
 		uint16 port;
 		char state;
 		bool connected;
@@ -433,7 +437,7 @@ protected:
 		bool compressor;
 	};
 
-	bool Listen(uint32 ip, uint16 port, bool expect_ssl);
+	bool Listen();
 	bool AcceptConnection(int listen_fd);
 	bool Connect(Peer* peer);
 	bool CloseConnection(Peer* peer, bool reconnect);
@@ -478,6 +482,9 @@ protected:
 	bool ForwardChunkToPeer();
 	const char* MakeLogString(const char* msg, Peer *peer);
 
+	// Closes all file descriptors associated with listening sockets.
+	void CloseListenFDs();
+
 	// Peers we are communicating with:
 	declare(PList, Peer);
 	typedef PList(Peer) peer_list;
@@ -494,15 +501,17 @@ protected:
 	char parent_msgtype;
 	ChunkedIO::Chunk* parent_args;
 
-	int listen_fd_clear;
-	int listen_fd_ssl;
+	vector<int> listen_fds;
 
 	// If the port we're trying to bind to is already in use, we will retry
 	// it regularly.
-	uint32 listen_if;	// Fix: only supports IPv4
+	string listen_if;
+	string listen_zone_id;		// RFC 4007 IPv6 zone_id
 	uint16 listen_port;
-	bool listen_ssl;
-	time_t listen_next_try;
+	bool listen_ssl;            // use SSL for IO
+	bool enable_ipv6;           // allow IPv6 listen sockets
+	uint32 bind_retry_interval; // retry interval for already-in-use sockets
+	time_t listen_next_try;     // time at which to try another bind
 	bool shutting_conns_down;
 	bool terminating;
 	bool killing;

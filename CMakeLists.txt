@@ -1,5 +1,5 @@
 project(Bro C CXX)
-cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
+cmake_minimum_required(VERSION 2.6.3 FATAL_ERROR)
 include(cmake/CommonCMakeConfig.cmake)
 
 ########################################################################
@@ -89,13 +89,42 @@ if (LIBGEOIP_FOUND)
 endif ()
 
 set(USE_PERFTOOLS false)
-if (ENABLE_PERFTOOLS)
-    find_package(GooglePerftools)
-    if (GOOGLEPERFTOOLS_FOUND)
-        set(USE_PERFTOOLS true)
-        include_directories(BEFORE ${GooglePerftools_INCLUDE_DIR})
+set(USE_PERFTOOLS_DEBUG false)
+
+find_package(GooglePerftools)
+
+if (GOOGLEPERFTOOLS_FOUND)
+    include_directories(BEFORE ${GooglePerftools_INCLUDE_DIR})
+    set(USE_PERFTOOLS true)
+
+    if (ENABLE_PERFTOOLS_DEBUG)
+        # Enable heap debugging with perftools.
+        set(USE_PERFTOOLS_DEBUG true)
+        list(APPEND OPTLIBS ${GooglePerftools_LIBRARIES_DEBUG})
+    else ()
+        # Link in tcmalloc for better performance.
         list(APPEND OPTLIBS ${GooglePerftools_LIBRARIES})
     endif ()
+endif ()
+
+set(USE_DATASERIES false)
+find_package(Lintel)
+find_package(DataSeries)
+find_package(LibXML2)
+
+if (LINTEL_FOUND AND DATASERIES_FOUND AND LIBXML2_FOUND)
+    set(USE_DATASERIES true)
+	include_directories(BEFORE ${Lintel_INCLUDE_DIR})
+	include_directories(BEFORE ${DataSeries_INCLUDE_DIR})
+	include_directories(BEFORE ${LibXML2_INCLUDE_DIR})
+	list(APPEND OPTLIBS ${Lintel_LIBRARIES})
+	list(APPEND OPTLIBS ${DataSeries_LIBRARIES})
+	list(APPEND OPTLIBS ${LibXML2_LIBRARIES})
+endif()
+
+if (ENABLE_PERFTOOLS_DEBUG)
+    # Just a no op to prevent CMake from complaining about manually-specified
+    # ENABLE_PERFTOOLS_DEBUG not being used if google perftools weren't found
 endif ()
 
 set(brodeps
@@ -183,6 +212,8 @@ message(
     "\n"
     "\nGeoIP:             ${USE_GEOIP}"
     "\nGoogle perftools:  ${USE_PERFTOOLS}"
+    "\n       debugging:  ${USE_PERFTOOLS_DEBUG}"
+    "\nDataSeries:        ${USE_DATASERIES}"
     "\n"
     "\n================================================================\n"
 )

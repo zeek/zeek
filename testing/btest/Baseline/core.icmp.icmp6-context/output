@@ -1,0 +1,16 @@
+icmp_unreachable (code=0)
+  conn_id: [orig_h=fe80::dead, orig_p=1/icmp, resp_h=fe80::beef, resp_p=0/icmp]
+  icmp_conn: [orig_h=fe80::dead, resp_h=fe80::beef, itype=1, icode=0, len=0, hlim=64, v6=T]
+  icmp_context: [id=[orig_h=::, orig_p=0/unknown, resp_h=::, resp_p=0/unknown], len=0, proto=0, frag_offset=0, bad_hdr_len=T, bad_checksum=F, MF=F, DF=F]
+icmp_unreachable (code=0)
+  conn_id: [orig_h=fe80::dead, orig_p=1/icmp, resp_h=fe80::beef, resp_p=0/icmp]
+  icmp_conn: [orig_h=fe80::dead, resp_h=fe80::beef, itype=1, icode=0, len=40, hlim=64, v6=T]
+  icmp_context: [id=[orig_h=fe80::beef, orig_p=0/unknown, resp_h=fe80::dead, resp_p=0/unknown], len=48, proto=0, frag_offset=0, bad_hdr_len=T, bad_checksum=F, MF=F, DF=F]
+icmp_unreachable (code=0)
+  conn_id: [orig_h=fe80::dead, orig_p=1/icmp, resp_h=fe80::beef, resp_p=0/icmp]
+  icmp_conn: [orig_h=fe80::dead, resp_h=fe80::beef, itype=1, icode=0, len=60, hlim=64, v6=T]
+  icmp_context: [id=[orig_h=fe80::beef, orig_p=30000/udp, resp_h=fe80::dead, resp_p=13000/udp], len=60, proto=2, frag_offset=0, bad_hdr_len=F, bad_checksum=F, MF=F, DF=F]
+icmp_unreachable (code=0)
+  conn_id: [orig_h=fe80::dead, orig_p=1/icmp, resp_h=fe80::beef, resp_p=0/icmp]
+  icmp_conn: [orig_h=fe80::dead, resp_h=fe80::beef, itype=1, icode=0, len=48, hlim=64, v6=T]
+  icmp_context: [id=[orig_h=fe80::beef, orig_p=0/unknown, resp_h=fe80::dead, resp_p=0/unknown], len=48, proto=0, frag_offset=0, bad_hdr_len=T, bad_checksum=F, MF=F, DF=F]

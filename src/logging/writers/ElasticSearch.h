@@ -34,17 +34,15 @@ protected:
 	virtual bool DoFinish();
 
 private:
-	char* AddFieldToBuffer(threading::Value* val, const threading::Field* field);
-	char* FieldToString(threading::Value* val, const threading::Field* field);
-	bool BatchIndex();
+	bool AddFieldToBuffer(threading::Value* val, const threading::Field* field);
+	bool AddFieldValueToBuffer(threading::Value* val, const threading::Field* field);
 	
 	CURL* HTTPSetup();
 	bool HTTPReceive(void* ptr, int size, int nmemb, void* userdata);
 	bool HTTPSend();
 	
 	// Buffers, etc.
-	char* buffer;
-	int current_offset;
+	ODesc buffer;
 	uint64 counter;
 
 	CURL* curl_handle;
@@ -54,19 +52,7 @@ private:
 	char* cluster_name;
 	int cluster_name_len;
 
-	char* server_host;
-	int server_host_len;
-
-	uint64 server_port;
-
-	char* index_name;
-	int index_name_len;
-
-	char* type_prefix;
-	int type_prefix_len;
-	
 	uint64 batch_size;
-
 };
 
 }

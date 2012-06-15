@@ -6,7 +6,7 @@
 #include "TCP_Reassembler.h"
 
 //#define P_TEST
-#define DEBUG 1
+#define DEBUG 0
 #define COLLECT 0   ///used to collect binaries of DNP3 packets
 #define FILE_NAME "/home/hugo/experiment/dnp3/SampleBinary/hl_test.bin"
 
@@ -17,6 +17,7 @@ typedef struct ByteStream{
 
 StrByteStream gDnp3Data;
 int gTest = 1;
+bool mEncounterFirst = false;
 
 DNP3_Analyzer::DNP3_Analyzer(Connection* c)
 : TCP_ApplicationAnalyzer(AnalyzerTag::Dnp3, c)
@@ -55,7 +56,7 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	u_char* aTempResult = NULL;
 	int aTempFormerLen = 0;
 	FILE* file;
-	bool mEncounterFirst = false;
+	//bool mEncounterFirst = false;
 
 	//printf("test global %d\n", gTest++);
 ////used for performance experiment
@@ -198,12 +199,15 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 			printf("hl debug final reassembled data %d 0x%x \n", gDnp3Data.length, gDnp3Data.length );
 			#endif
 			gDnp3Data.mData[2] = (gDnp3Data.length -2) % 0x100;
-			gDnp3Data.mData[3] = ( (gDnp3Data.length -2) & 0xFF00) >> 8;	
+			gDnp3Data.mData[3] = ( (gDnp3Data.length -2) & 0xFF00) >> 8;
+			
+			#if DEBUG	
 			for(i = 0; i < (gDnp3Data.length); i++){
 				printf("%x ", gDnp3Data.mData[i]);
 				if( (i % 256) == 255 ) printf("\nNew packet\n");
 			}
 			printf("\n");
+			#endif
 			TCP_ApplicationAnalyzer::DeliverStream(gDnp3Data.length, gDnp3Data.mData, m_orig);
         		interp->NewData(m_orig, gDnp3Data.mData, (gDnp3Data.mData) + (gDnp3Data.length) );
 			free(gDnp3Data.mData);

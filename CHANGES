@@ -1,4 +1,9 @@
 
+2.0-623 | 2012-06-15 16:24:52 -0700
+
+  * Changing an error in the input framework to a warning. (Robin
+    Sommer)
+
 2.0-622 | 2012-06-15 15:38:43 -0700
 
   * Input framework updates. (Bernhard Amann)

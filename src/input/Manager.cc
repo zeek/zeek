@@ -696,8 +696,8 @@ bool Manager::RemoveStream(Stream *i)
 
 	if ( i->removed )
 		{
-		reporter->Error("Stream %s is already queued for removal. Ignoring remove.", i->name.c_str());
-		return false;
+		reporter->Warning("Stream %s is already queued for removal. Ignoring remove.", i->name.c_str());
+		return true;
 		}
 
 	i->removed = true;

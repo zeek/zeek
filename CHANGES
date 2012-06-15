@@ -1,4 +1,14 @@
 
+2.0-614 | 2012-06-15 15:19:49 -0700
+
+  * Remove an old, unused diff canonifier. (Jon Siwek)
+
+  * Improve an error message in ICMP analyzer. (Jon Siwek)
+    
+  * Fix a warning message when building docs. (Daniel Thayer)
+    
+  * Fix many errors in the event documentation. (Daniel Thayer)
+    
 2.0-608 | 2012-06-11 15:59:00 -0700
 
   * Add more error handling code to logging of enum vals. Addresses

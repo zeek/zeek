@@ -51,12 +51,12 @@ bool ElasticSearch::DoInit(string path, int num_fields, const Field* const * fie
 
 bool ElasticSearch::DoFlush()
 	{
-	//TODO: Send flush command to ElasticSearch
 	return true;
 	}
 
 bool ElasticSearch::DoFinish()
 	{
+	BatchIndex();
 	return WriterBackend::DoFinish();
 	}
 	
@@ -120,7 +120,7 @@ bool ElasticSearch::AddFieldValueToBuffer(Value* val, const Field* field)
 				{
 				char c = val->val.string_val->data()[i];
 				// HTML entity encode special characters.
-				if ( c < 32 || c > 126 || c == '\n' || c == '"' || c == '\'' || c == '\\' )
+				if ( c < 32 || c > 126 || c == '\n' || c == '"' || c == '\'' || c == '\\' || c == '&' )
 					{
 					buffer.AddRaw("&#", 2);
 					buffer.Add((uint8_t) c);

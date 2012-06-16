@@ -122,9 +122,13 @@ bool ElasticSearch::AddFieldValueToBuffer(Value* val, const Field* field)
 				// HTML entity encode special characters.
 				if ( c < 32 || c > 126 || c == '\n' || c == '"' || c == '\'' || c == '\\' || c == '&' )
 					{
-					buffer.AddRaw("&#", 2);
-					buffer.Add((uint8_t) c);
-					buffer.AddRaw(";", 1);
+					static const char hex_chars[] = "0123456789abcdef";
+					buffer.AddRaw("\\u00", 4);
+					buffer.AddRaw(&hex_chars[(c & 0xf0) >> 4], 1);
+					buffer.AddRaw(&hex_chars[c & 0x0f], 1);
+					//buffer.AddRaw("&#//", 2);
+					//buffer.Add((uint8_t) c);
+					//buffer.AddRaw(";", 1);
 					}
 				else
 					buffer.AddRaw(&c, 1);

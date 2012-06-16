@@ -236,7 +236,7 @@ bool ElasticSearch::DoHeartbeat(double network_time, double current_time)
 		BatchIndex();
 		}
 	
-	return true;
+	return WriterBackend::DoHeartbeat(network_time, current_time);
 	}
 
 

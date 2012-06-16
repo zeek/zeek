@@ -32,6 +32,7 @@ ElasticSearch::ElasticSearch(WriterFrontend* frontend) : WriterBackend(frontend)
 	
 	buffer.Clear();
 	counter = 0;
+	last_send = current_time();
 	
 	curl_handle = HTTPSetup();
 	curl_result = new char[1024];
@@ -58,12 +59,21 @@ bool ElasticSearch::DoFinish()
 	{
 	return WriterBackend::DoFinish();
 	}
+	
+bool ElasticSearch::BatchIndex()
+	{
+	HTTPSend();
+	buffer.Clear();
+	counter = 0;
+	last_send = current_time();
+	return true;
+	}
 
 bool ElasticSearch::AddFieldValueToBuffer(Value* val, const Field* field)
 	{
 	switch ( val->type ) 
 		{
-		// ElasticSearch defines bools as: 0 == false, everything else == true. So we treat it as an int.
+		// ES treats 0 as false and any other value as true so bool types go here.
 		case TYPE_BOOL:
 		case TYPE_INT:
 			buffer.Add(val->val.int_val);
@@ -197,11 +207,8 @@ bool ElasticSearch::DoWrite(int num_fields, const Field* const * fields,
 	
 	counter++;
 	if ( counter >= BifConst::LogElasticSearch::batch_size )
-		{
-		HTTPSend();
-		buffer.Clear();
-		counter = 0;
-		}
+		BatchIndex();
+	
 	return true;
 	}
 
@@ -216,6 +223,18 @@ bool ElasticSearch::DoSetBuf(bool enabled)
 	// Nothing to do.
 	return true;
 	}
+
+bool ElasticSearch::DoHeartbeat(double network_time, double current_time)
+	{
+	if ( last_send > 0 &&
+	     current_time-last_send > BifConst::LogElasticSearch::max_batch_interval )
+		{
+		BatchIndex();
+		}
+	
+	return true;
+	}
+
 
 // HTTP Functions start here.
 
@@ -251,7 +270,8 @@ bool ElasticSearch::HTTPReceive(void* ptr, int size, int nmemb, void* userdata)
 	return true;
 	}
 
-bool ElasticSearch::HTTPSend(){
+bool ElasticSearch::HTTPSend()
+	{
 	CURLcode return_code;
 	
 	curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, curl_result);
@@ -259,15 +279,16 @@ bool ElasticSearch::HTTPSend(){
 	curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDSIZE, buffer.Len());
 	
 	return_code = curl_easy_perform(curl_handle);
-	switch(return_code) {
-	case CURLE_COULDNT_CONNECT:
-	case CURLE_COULDNT_RESOLVE_HOST:
-	case CURLE_WRITE_ERROR:
-		return false;
-	
-	default:
-		return true;
+	switch ( return_code ) 
+		{
+		case CURLE_COULDNT_CONNECT:
+		case CURLE_COULDNT_RESOLVE_HOST:
+		case CURLE_WRITE_ERROR:
+			return false;
+		
+		default:
+			return true;
+		}
 	}
-}
 
 #endif

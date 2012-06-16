@@ -32,10 +32,12 @@ protected:
 			      double close, bool terminating);
 	virtual bool DoFlush();
 	virtual bool DoFinish();
+	virtual bool DoHeartbeat(double network_time, double current_time);
 
 private:
 	bool AddFieldToBuffer(threading::Value* val, const threading::Field* field);
 	bool AddFieldValueToBuffer(threading::Value* val, const threading::Field* field);
+	bool BatchIndex();
 	
 	CURL* HTTPSetup();
 	bool HTTPReceive(void* ptr, int size, int nmemb, void* userdata);
@@ -44,14 +46,15 @@ private:
 	// Buffers, etc.
 	ODesc buffer;
 	uint64 counter;
-
+	double last_send;
+	
 	CURL* curl_handle;
 	char* curl_result;
-
+	
 	// From scripts
 	char* cluster_name;
 	int cluster_name_len;
-
+	
 	uint64 batch_size;
 };
 

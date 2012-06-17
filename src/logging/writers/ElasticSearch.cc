@@ -186,31 +186,27 @@ bool ElasticSearch::DoWrite(int num_fields, const Field* const * fields,
 	{
 	// Our action line looks like:
 	//   {"index":{"_index":"$index_name","_type":"$type_prefix$path"}}\n
-	if ( counter == 0 )
-		{
-		buffer.AddRaw("{\"index\":{\"_index\":\"", 20);
-		buffer.AddN((const char*) BifConst::LogElasticSearch::index_name->Bytes(),
-		            BifConst::LogElasticSearch::index_name->Len());
-		buffer.AddRaw("\",\"_type\":\"", 11);
-		buffer.AddN((const char*) BifConst::LogElasticSearch::type_prefix->Bytes(),
-		            BifConst::LogElasticSearch::type_prefix->Len());
-		buffer.Add(Path());
-		buffer.AddRaw("\"}\n", 3);
-		}
+	buffer.AddRaw("{\"index\":{\"_index\":\"", 20);
+	buffer.AddN((const char*) BifConst::LogElasticSearch::index_name->Bytes(),
+	            BifConst::LogElasticSearch::index_name->Len());
+	buffer.AddRaw("\",\"_type\":\"", 11);
+	buffer.AddN((const char*) BifConst::LogElasticSearch::type_prefix->Bytes(),
+	            BifConst::LogElasticSearch::type_prefix->Len());
+	buffer.Add(Path());
+	buffer.AddRaw("\"}\n", 3);
 	
+	buffer.AddRaw("{", 1);
 	for ( int i = 0; i < num_fields; i++ )
 		{
-		if ( i == 0 )
-			buffer.AddRaw("{", 1);
-		else if ( buffer.Bytes()[buffer.Len()] != ',' && vals[i]->present )
+		if ( i > 0 && buffer.Bytes()[buffer.Len()] != ',' && vals[i]->present )
 			buffer.AddRaw(",", 1);
 		AddFieldToBuffer(vals[i], fields[i]);
 		}
-		
 	buffer.AddRaw("}\n", 2);
 	
 	counter++;
-	if ( counter >= BifConst::LogElasticSearch::batch_size )
+	if ( counter >= BifConst::LogElasticSearch::max_batch_size ||
+	     uint(buffer.Len()) >= BifConst::LogElasticSearch::max_byte_size )
 		BatchIndex();
 	
 	return true;
@@ -219,6 +215,7 @@ bool ElasticSearch::DoWrite(int num_fields, const Field* const * fields,
 bool ElasticSearch::DoRotate(string rotated_path, double open, double close, bool terminating)
 	{
 	//TODO: Determine what, if anything, needs to be done here.
+	
 	return true;
 	}
 

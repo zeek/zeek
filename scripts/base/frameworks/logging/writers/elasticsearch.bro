@@ -20,11 +20,15 @@ export {
 	## The batch size is the number of messages that will be queued up before 
 	## they are sent to be bulk indexed.
 	## Note: this is mainly a memory usage parameter.
-	const batch_size = 1000 &redef;
+	const max_batch_size = 1000 &redef;
 	
 	## The maximum amount of wall-clock time that is allowed to pass without
 	## finishing a bulk log send.  This represents the maximum delay you 
 	## would like to have with your logs before they show up in ElasticSearch.
 	const max_batch_interval = 1min &redef;
+	
+	## The maximum byte size for a buffered JSON string to send to the bulk
+	## insert API.
+	const max_byte_size = 1024 * 1024 &redef;
 }
 

@@ -91,5 +91,6 @@ const server_host: string;
 const server_port: count;
 const index_name: string;
 const type_prefix: string;
-const batch_size: count;
+const max_batch_size: count;
 const max_batch_interval: interval;
+const max_byte_size: count;

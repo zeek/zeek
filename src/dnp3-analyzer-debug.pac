@@ -46,6 +46,7 @@ flow Dnp3_Flow(is_orig: bool) {
 
 		return true;
 		%}
+	#function get_dnp3_application_request_header(app_control: const_bytestring, fc: const_bytestring): bool
 	function get_dnp3_application_request_header(app_control: uint8, fc: uint8): bool
                %{
                if ( ::dnp3_application_request_header )
@@ -665,7 +666,7 @@ flow Dnp3_Flow(is_orig: bool) {
                return true;
                %}
 
-#### for debug use or unknown data types used in "case"
+#### for debug use
 	function get_dnp3_debug_byte(debug: const_bytestring): bool
                %{
                if ( ::dnp3_debug_byte )
@@ -684,7 +685,15 @@ flow Dnp3_Flow(is_orig: bool) {
 refine typeattr Header_Block += &let {
         get_header: bool =  $context.flow.get_dnp3_header_block(start, len, ctrl, dest_addr, src_addr);
 };
-
+refine typeattr Data_Block += &let {
+        get_data: bool =  $context.flow.get_dnp3_data_block(data, crc );
+};
+#refine typeattr Dnp3_PDU += &let {
+#        get_pdu: bool =  $context.flow.get_dnp3_pdu(rest );
+#};
+#refine typeattr Dnp3_Test += &let {
+#        get_pdu: bool =  $context.flow.get_dnp3_pdu_test(rest );
+#};
 
 refine typeattr Dnp3_Application_Request_Header += &let {
        process_request: bool =  $context.flow.get_dnp3_application_request_header(application_control, function_code);

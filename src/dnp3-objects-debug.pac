@@ -39,8 +39,31 @@ type Prefix_Type(qualifier_field: uint8) = record {
   }
 &byteorder = littleendian 
 ;
-
 type Request_Data_Object(function_code: uint8, qualifier_field: uint8, object_type_field: uint16) = record {
+	#prefix: case ( qualifier_field & 0xf0 ) of {
+        #        0x00 -> none: empty &check(qualifier_field == 0x01 ||
+        #                                        qualifier_field == 0x02 ||
+        #                                        qualifier_field == 0x03 ||
+        #                                        qualifier_field == 0x04 ||
+        #                                        qualifier_field == 0x05 ||
+        #                                        qualifier_field == 0x06 ||
+        #                                        qualifier_field == 0x07 ||
+        #                                        qualifier_field == 0x08 ||
+        #                                        qualifier_field == 0x09 );
+        #        0x10 -> prefix8: uint8 &check(qualifier_field == 0x17 ||
+        #                                        qualifier_field == 0x18 ||
+        #                                        qualifier_field == 0x19 );
+        #        0x20 -> prefix16: uint16 &check(qualifier_field == 0x27 ||
+        #                                        qualifier_field == 0x28 ||
+        #                                        qualifier_field == 0x29 );
+        #        0x30 -> prefix32: uint32 &check(qualifier_field == 0x37 ||
+        #                                        qualifier_field == 0x38 ||
+        #                                        qualifier_field == 0x39 );
+        #        0x40 -> object_size8: uint8 &check(qualifier_field == 0x4B);
+        #        0x50 -> object_size16: uint16 &check(qualifier_field == 0x5B);
+        #        0x60 -> object_size32: uint32 &check(qualifier_field == 0x6B);
+	# 	default -> unknownprefix: empty;
+        #};
 	prefix: Prefix_Type(qualifier_field);
 	data: case (object_type_field) of {
 	# device attributes g0
@@ -357,6 +380,30 @@ type Request_Data_Object(function_code: uint8, qualifier_field: uint8, object_ty
 
 
 type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_type_field: uint16) = record {
+	#prefix: case (qualifier_field & 0xf0 ) of {
+	#	0x00 -> none: empty &check(qualifier_field == 0x01 ||
+	#					qualifier_field == 0x02 ||
+	#					qualifier_field == 0x03 ||
+	#					qualifier_field == 0x04 ||
+	#					qualifier_field == 0x05 ||	
+	#					qualifier_field == 0x06 ||
+	#					qualifier_field == 0x07 ||
+	#					qualifier_field == 0x08 ||
+	#					qualifier_field == 0x09 );
+	#	0x10 -> prefix8: uint8 &check(qualifier_field == 0x17 || 
+	#					qualifier_field == 0x18 ||
+	#					qualifier_field == 0x19 );
+	#	0x20 -> prefix16: uint16 &check(qualifier_field == 0x27 ||
+         #                                       qualifier_field == 0x28 ||
+          #                                      qualifier_field == 0x29 );
+	#	0x30 -> prefix32: uint32 &check(qualifier_field == 0x37 ||
+        #                                        qualifier_field == 0x38 ||
+        #                                        qualifier_field == 0x39 );
+	#	0x40 -> object_size8: uint8 &check(qualifier_field == 0x4B);
+	#	0x50 -> object_size16: uint16 &check(qualifier_field == 0x5B);
+	#	0x60 -> object_size32: uint32 &check(qualifier_field == 0x6B);
+	#	default -> unknownprefix: empty;
+	#};
 	prefix: Prefix_Type(qualifier_field);
 	data: case (object_type_field) of {
 	# device attributes g0
@@ -577,6 +624,7 @@ type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_t
 		0x4603 -> file_control_cmd: File_Control_Cmd &check(file_control_cmd.name_size == 0 && 
 							( file_control_cmd.op_mode == 0 || file_control_cmd.op_mode == 1 || 
 							  file_control_cmd.op_mode == 2 || file_control_cmd.op_mode == 3) );
+		#0x4604 -> file_control_cmd_status: File_Control_Cmd_Status_Wrap(function_code, prefix.prefix_value);
 		0x4604 -> file_control_cmd_status: File_Control_Cmd_Status(prefix.prefix_value);
 		0x4605 -> file_trans: File_Transport(prefix.prefix_value);
 		0x4606 -> file_trans_status: File_Transport_Status(prefix.prefix_value);	

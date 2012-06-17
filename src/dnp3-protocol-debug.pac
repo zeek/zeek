@@ -1,11 +1,34 @@
 # $Id:$
 #
-# This is Binpac codes for DNP3 analyzer by Hui Lin
+# This template code contributed by Kristin Stephens.
+
+#type START_TOKEN = 0x6405;
 
 type Dnp3_PDU(is_orig: bool) = case is_orig of {
         true    ->  request:  Dnp3_Request;
+        #true    ->  request:  Dnp3_Test;
         false   ->  response: Dnp3_Response;
+        #false   ->  response: Dnp3_Test;
 } &byteorder = bigendian;
+
+#type Dnp3_PDU = record {
+type Dnp3_Test = record {
+	#header: Header_Block;
+	#blocks: Data_Block[ (header.len - 5) / 16 ];
+	#fc: bytestring &length = 1;
+	#app_header: Dnp3_Application_Request_Header;
+	start: uint16 &check(start == 0x0564);
+	len: uint8;
+	ctrl: bytestring &length = 1;
+        dest_addr: uint16;
+        src_addr: uint16;
+	rest: bytestring &restofdata;
+#	rest: bytestring &length = len - 1;
+	
+} &byteorder = bigendian 
+  &length= (8 + len -5 - 1)
+ #  &length= ( len + 8 - 1)
+;
 
 type Header_Block = record {
 	start: uint16 &check(start == 0x0564);
@@ -13,10 +36,21 @@ type Header_Block = record {
 	ctrl: uint8;   #since this ctrl function code is not used here, I use it to store high 8-bit of len, if len > 255
 	dest_addr: uint16;
 	src_addr: uint16;
+#	crc: uint16; 
 }
   &byteorder = littleendian
   &length = 8 
 ;
+
+type Data_Block = record {
+	#data: uint8[16];  // don't know how to pass array between event.bif binpac and bro
+	#data1: uint32;
+	#data2: uint32;
+	#data3: uint32;
+	#data4: uint32;
+	data: bytestring &length = 16;
+	crc: uint16;
+} &length = 18;
 
 
 # related to dnp3 application layer data
@@ -24,8 +58,11 @@ type Header_Block = record {
 type Dnp3_Request = record {
 	addin_header: Header_Block;  ## added by Hui Lin in Bro code
 	app_header: Dnp3_Application_Request_Header;
+	#unknown: bytestring &restofdata;
+	#data: case ( bytestring_to_int( (app_header.application_control), 16) ) of {
 	data: case ( app_header.function_code ) of {
 		CONFIRM -> none_coonfirm: empty;
+		#READ -> objects: Request_Objects;
 		READ -> read_requests: Request_Objects(app_header.function_code)[];
 		WRITE -> write_requests: Request_Objects(app_header.function_code)[];
 		SELECT -> select_requests: Request_Objects(app_header.function_code)[];
@@ -64,6 +101,7 @@ type Dnp3_Request = record {
 } &byteorder = bigendian
   &length= 8 + addin_header.len + addin_header.ctrl*0x100 -5 - 1
   #&length= 8 + addin_header.len -5 - 1   # old version
+  #&length= 128  # for performance evaluation
 ;
 
 
@@ -81,6 +119,7 @@ type Dnp3_Response = record {
 		AUTHENTICATE_RESP -> auth_response: Response_Objects(app_header.function_code)[];
 		default -> unknown: Debug_Byte;
 	};
+	#whatisthefuck: Debug_Byte;
 } &byteorder = bigendian
   &length= 8 + addin_header.len + addin_header.ctrl*0x100 -5 - 1
   # &length = 8 + addin_header.len - 5 -1  # old version
@@ -88,7 +127,9 @@ type Dnp3_Response = record {
 
 type Dnp3_Application_Request_Header = record {
 	empty: bytestring &length = 0;
+	#application_control : bytestring &length = 1;
 	application_control : uint8;
+	#function_code       : bytestring &length = 1;
 	function_code       : uint8 ;
 } &length = 2 &check(whatisthehell);
 
@@ -96,8 +137,14 @@ type Dnp3_Application_Response_Header = record {
 	empty: bytestring &length = 0;
 	application_control  : uint8;
 	function_code        : uint8;
+	#internal_indications : Response_Internal_Indication;
 	internal_indications : uint16;
 } &length = 4;
+
+type Response_Internal_Indication = record {
+	first_octet: uint8;
+	second_octet: uint8;
+};
 
 type Request_Objects(function_code: uint8) = record {
 	object_header: Object_Header(function_code);
@@ -130,9 +177,12 @@ type Response_Objects(function_code: uint8) = record {
                 default -> ojbects: Response_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
         };
 
+#	objects: Data_Object(object_header.qualifier_field, object_header.object_type_field)[];
 };
 
 type Object_Header(function_code: uint8) = record {
+	#group: uint8;
+	#variation: uint8;
 	object_type_field: uint16 ;
 	qualifier_field: uint8 ;
 	range_field: case ( qualifier_field & 0x0f ) of {  # warning
@@ -154,7 +204,8 @@ type Object_Header(function_code: uint8) = record {
 		default -> dump_def: empty;
 	};
 }  
-      &let{	
+   # &byteorder = littleendian
+    &let{	
 	number_of_item: int = case (qualifier_field & 0x0f) of {
 		0 -> (range_field_0.stop_index - range_field_0.start_index + 1);
 		1 -> (range_field_1.stop_index - range_field_1.start_index + 1);
@@ -191,6 +242,10 @@ type Object_Header(function_code: uint8) = record {
 	};
 };
 
+#type Object_Type = record {
+#	object_group: uint8;
+#	object_variation: uint8;
+#};
 
 type Range_Field_0 = record {
 	start_index: uint8;
@@ -226,6 +281,11 @@ type Range_Field_5 = record {
         stop_addr: uint32;
 };
 
+
+#type Object_With_Header = record {
+#	object_header: Object_Header;
+
+#};
 
 enum function_codes_value {
 	CONFIRM = 0x00,

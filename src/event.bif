@@ -143,9 +143,11 @@ event new_connection%(c: connection%);
 
 ## Generated for a connection whose tunneling has changed.  This could
 ## be from a previously seen connection now being encapsulated in a tunnel,
-## or from the outer encapsulation changing.  Note that the connection's
-## *tunnel* field is NOT automatically assigned to the new encapsulation value
-## internally after this event is raised.
+## or from the outer encapsulation changing.  Note that connection *c*'s
+## *tunnel* field is NOT automatically/internally assigned to the new
+## encapsulation value of *e* after this event is raised.  If the desired
+## behavior is to track the latest tunnel encapsulation per-connection,
+## then a handler of this event should assign *e* to ``c$tunnel``.
 ##
 ## c: The connection whose tunnel/encapsulation changed.
 ##

@@ -17,7 +17,8 @@ export {
 		DISCOVER,
 		## A tunnel connection has closed.
 		CLOSE,
-		## No new connections over a tunnel happened in the past day.
+		## No new connections over a tunnel happened in the amount of
+		## time indicated by :bro:see:`Tunnel::expiration_interval`.
 		EXPIRE,
 	};
 
@@ -68,9 +69,14 @@ export {
 	## action: The specific reason for the tunnel ending.
 	global close: function(tunnel: Info, action: Action);
 
+	## The amount of time a tunnel is not used in establishment of new
+	## connections before it is considered inactive/expired.
+	const expiration_interval = 24hrs &redef;
+
 	## Currently active tunnels.  That is, tunnels for which new, encapsulated
-	## connections have been seen in the last day.
-	global active: table[conn_id] of Info = table() &synchronized &read_expire=24hrs &expire_func=expire;
+	## connections have been seen in the interval indicated by
+	## :bro:see:`Tunnel::expiration_interval`.
+	global active: table[conn_id] of Info = table() &synchronized &read_expire=expiration_interval &expire_func=expire;
 }
 
 const ayiya_ports = { 5072/udp };
@@ -129,9 +135,6 @@ event new_connection(c: connection) &priority=5
 
 event tunnel_changed(c: connection, e: EncapsulatingConnVector) &priority=5
 	{
-	if ( c?$tunnel )
-		register_all(c$tunnel);
-
 	register_all(e);
 	}
 

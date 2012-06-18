@@ -28,7 +28,7 @@
 	<field type="int64" name="orig_ip_bytes" />
 	<field type="int64" name="resp_pkts" />
 	<field type="int64" name="resp_ip_bytes" />
-	<field type="variable32" name="parents" pack_unique="yes"/>
+	<field type="variable32" name="tunnel_parents" pack_unique="yes"/>
 </ExtentType>
 <!-- ts : time -->
 <!-- uid : string -->
@@ -49,10 +49,10 @@
 <!-- orig_ip_bytes : count -->
 <!-- resp_pkts : count -->
 <!-- resp_ip_bytes : count -->
-<!-- parents : table[string] -->
+<!-- tunnel_parents : table[string] -->
 
 # Extent, type='conn'
-ts uid id.orig_h id.orig_p id.resp_h id.resp_p proto service duration orig_bytes resp_bytes conn_state local_orig missed_bytes history orig_pkts orig_ip_bytes resp_pkts resp_ip_bytes parents
+ts uid id.orig_h id.orig_p id.resp_h id.resp_p proto service duration orig_bytes resp_bytes conn_state local_orig missed_bytes history orig_pkts orig_ip_bytes resp_pkts resp_ip_bytes tunnel_parents
 1300475167096535 UWkUyAuUGXf 141.142.220.202 5353 224.0.0.251 5353 udp dns 0 0 0 S0 F 0 D 1 73 0 0 
 1300475167097012 arKYeMETxOg fe80::217:f2ff:fed7:cf65 5353 ff02::fb 5353 udp  0 0 0 S0 F 0 D 1 199 0 0 
 1300475167099816 k6kgXLOoSKl 141.142.220.50 5353 224.0.0.251 5353 udp  0 0 0 S0 F 0 D 1 179 0 0 

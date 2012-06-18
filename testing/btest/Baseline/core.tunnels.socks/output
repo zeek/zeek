@@ -1,8 +1,6 @@
 [id=[orig_h=127.0.0.1, orig_p=62270/tcp, resp_h=127.0.0.1, resp_p=1080/tcp], orig=[size=9, state=4, num_pkts=3, num_bytes_ip=177, flow_label=0], resp=[size=8, state=4, num_pkts=3, num_bytes_ip=168, flow_label=0], start_time=1208299429.265243, duration=0.002565, service={
 SOCKS
-}, addl=, hot=0, history=ShAaDd, uid=UWkUyAuUGXf, tunnel=[], dpd=<uninitialized>, conn=[ts=1208299429.265243, uid=UWkUyAuUGXf, id=[orig_h=127.0.0.1, orig_p=62270/tcp, resp_h=127.0.0.1, resp_p=1080/tcp], proto=tcp, service=<uninitialized>, duration=<uninitialized>, orig_bytes=<uninitialized>, resp_bytes=<uninitialized>, conn_state=<uninitialized>, local_orig=<uninitialized>, missed_bytes=0, history=<uninitialized>, orig_pkts=<uninitialized>, orig_ip_bytes=<uninitialized>, resp_pkts=<uninitialized>, resp_ip_bytes=<uninitialized>, parents={
-
-}], extract_orig=F, extract_resp=F, dns=<uninitialized>, dns_state=<uninitialized>, ftp=<uninitialized>, http=<uninitialized>, http_state=<uninitialized>, irc=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, ssh=<uninitialized>, ssl=<uninitialized>, syslog=<uninitialized>]
+}, addl=, hot=0, history=ShAaDd, uid=UWkUyAuUGXf, tunnel=<uninitialized>, dpd=<uninitialized>, conn=<uninitialized>, extract_orig=F, extract_resp=F, dns=<uninitialized>, dns_state=<uninitialized>, ftp=<uninitialized>, http=<uninitialized>, http_state=<uninitialized>, irc=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, ssh=<uninitialized>, ssl=<uninitialized>, syslog=<uninitialized>]
 ---
 1
 192.150.187.12

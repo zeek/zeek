@@ -17,7 +17,7 @@
 #include "writers/Ascii.h"
 #include "writers/None.h"
 
-#ifdef INSTALL_ELASTICSEARCH
+#ifdef USE_ELASTICSEARCH
 #include "writers/ElasticSearch.h"
 #endif
 
@@ -40,7 +40,7 @@ WriterDefinition log_writers[] = {
 	{ BifEnum::Log::WRITER_NONE,  "None", 0, writer::None::Instantiate },
 	{ BifEnum::Log::WRITER_ASCII, "Ascii", 0, writer::Ascii::Instantiate },
 
-#ifdef INSTALL_ELASTICSEARCH
+#ifdef USE_ELASTICSEARCH
 	{ BifEnum::Log::WRITER_ELASTICSEARCH, "ElasticSearch", 0, writer::ElasticSearch::Instantiate },
 #endif
 

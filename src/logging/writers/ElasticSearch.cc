@@ -2,7 +2,7 @@
 
 #include "config.h"
 
-#ifdef INSTALL_ELASTICSEARCH
+#ifdef USE_ELASTICSEARCH
 
 #include <string>
 #include <errno.h>
@@ -261,7 +261,7 @@ CURL* ElasticSearch::HTTPSetup()
 	
 	// HTTP 1.1 likes to use chunked encoded transfers, which aren't good for speed. The best (only?) way to disable that is to
 	// just use HTTP 1.0
-	curl_easy_setopt(handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_0);
+	//curl_easy_setopt(handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_0);
 	return handle;
 	}
 
@@ -275,8 +275,8 @@ bool ElasticSearch::HTTPSend()
 	{
 	CURLcode return_code;
 	
+	curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDSIZE_LARGE, buffer.Len());
 	curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDS, buffer.Bytes());
-	curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDSIZE, buffer.Len());
 	
 	return_code = curl_easy_perform(curl_handle);
 	switch ( return_code ) 

@@ -26,16 +26,15 @@ ElasticSearch with::
 Compiling Bro with ElasticSearch Support
 ----------------------------------------
 
-First, ensure that you have libcurl installed. Secondly, set the 
-``--enable-elasticsearch`` option::
+First, ensure that you have libcurl installed the run configure.::
 
-    # ./configure --enable-elasticsearch
+    # ./configure
     [...]
     ====================|  Bro Build Summary  |=====================
     [...]
-    ElasticSearch:     true
+    cURL:              true
     [...]
-    libCURL:           true
+    ElasticSearch:     true
     [...]
     ================================================================
 

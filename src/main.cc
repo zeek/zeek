@@ -12,6 +12,10 @@
 #include <getopt.h>
 #endif
 
+#ifdef USE_CURL
+#include <curl/curl.h>
+#endif
+
 #ifdef USE_IDMEF
 extern "C" {
 #include <libidmef/idmefxml.h>
@@ -716,6 +720,10 @@ int main(int argc, char** argv)
 	SSL_library_init();
 	SSL_load_error_strings();
 
+#ifdef USE_CURL
+	curl_global_init(CURL_GLOBAL_ALL);
+#endif
+
 	// FIXME: On systems that don't provide /dev/urandom, OpenSSL doesn't
 	// seed the PRNG. We should do this here (but at least Linux, FreeBSD
 	// and Solaris provide /dev/urandom).
@@ -1066,6 +1074,10 @@ int main(int argc, char** argv)
 		done_with_network();
 		net_delete();
 
+#ifdef USE_CURL
+		curl_global_cleanup();
+#endif
+		
 		terminate_bro();
 
 		// Close files after net_delete(), because net_delete()

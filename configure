@@ -98,7 +98,6 @@ append_cache_entry BRO_SCRIPT_INSTALL_PATH STRING $prefix/share/bro
 append_cache_entry BRO_ETC_INSTALL_DIR  PATH   $prefix/etc
 append_cache_entry ENABLE_DEBUG         BOOL   false
 append_cache_entry ENABLE_PERFTOOLS_DEBUG BOOL false
-append_cache_entry INSTALL_ELASTICSEARCH BOOL false
 append_cache_entry BinPAC_SKIP_INSTALL  BOOL   true
 append_cache_entry BUILD_SHARED_LIBS    BOOL   true
 append_cache_entry INSTALL_AUX_TOOLS    BOOL   true

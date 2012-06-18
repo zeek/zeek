@@ -367,7 +367,7 @@ int NetSessions::CheckConnectionTag(Connection* conn)
 
 void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 				const IP_Hdr* ip_hdr, const u_char* const pkt,
-				int hdr_size, const Encapsulation* encapsulation)
+				int hdr_size, const EncapsulationStack* encapsulation)
 	{
 	uint32 caplen = hdr->caplen - hdr_size;
 	const struct ip* ip4 = ip_hdr->IP4_Hdr();
@@ -576,8 +576,6 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 			return;
 			}
 
-		Encapsulation* outer = new Encapsulation(encapsulation);
-
 		// Look up to see if we've already seen this IP tunnel, identified
 		// by the pair of IP addresses, so that we can always associate the
 		// same UID with it.
@@ -594,18 +592,13 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 			EncapsulatingConn ec(ip_hdr->SrcAddr(), ip_hdr->DstAddr());
 			ip_tunnels[tunnel_idx] = TunnelActivity(ec, network_time);
 			timer_mgr->Add(new IPTunnelTimer(network_time, tunnel_idx));
-			outer->Add(ec);
 			}
 		else
-			{
 			it->second.second = network_time;
-			outer->Add(it->second.first);
-			}
 
-		DoNextInnerPacket(t, hdr, inner, outer);
+		DoNextInnerPacket(t, hdr, inner, encapsulation,
+		                  ip_tunnels[tunnel_idx].first);
 
-		delete inner;
-		delete outer;
 		Remove(f);
 		return;
 		}
@@ -724,7 +717,8 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 	}
 
 void NetSessions::DoNextInnerPacket(double t, const struct pcap_pkthdr* hdr,
-		const IP_Hdr* inner, const Encapsulation* outer)
+		const IP_Hdr* inner, const EncapsulationStack* prev,
+		const EncapsulatingConn& ec)
 	{
 	struct pcap_pkthdr fake_hdr;
 	fake_hdr.caplen = fake_hdr.len = inner->TotalLen();
@@ -732,7 +726,11 @@ void NetSessions::DoNextInnerPacket(double t, const struct pcap_pkthdr* hdr,
 	if ( hdr )
 		fake_hdr.ts = hdr->ts;
 	else
-		fake_hdr.ts.tv_sec = fake_hdr.ts.tv_usec = 0;
+		{
+		fake_hdr.ts.tv_sec = (time_t) network_time;
+		fake_hdr.ts.tv_usec = (suseconds_t)
+		    ((network_time - (double)fake_hdr.ts.tv_sec) * 1000000);
+		}
 
 	const u_char* pkt = 0;
 
@@ -741,7 +739,14 @@ void NetSessions::DoNextInnerPacket(double t, const struct pcap_pkthdr* hdr,
 	else
 		pkt = (const u_char*) inner->IP6_Hdr();
 
+	EncapsulationStack* outer = prev ?
+			new EncapsulationStack(*prev) : new EncapsulationStack();
+	outer->Add(ec);
+
 	DoNextPacket(t, &fake_hdr, inner, pkt, 0, outer);
+
+	delete inner;
+	delete outer;
 	}
 
 int NetSessions::ParseIPPacket(int caplen, const u_char* const pkt, int proto,
@@ -778,7 +783,7 @@ int NetSessions::ParseIPPacket(int caplen, const u_char* const pkt, int proto,
 
 bool NetSessions::CheckHeaderTrunc(int proto, uint32 len, uint32 caplen,
                                    const struct pcap_pkthdr* h,
-                                   const u_char* p, const Encapsulation* encap)
+                                   const u_char* p, const EncapsulationStack* encap)
 	{
 	uint32 min_hdr_len = 0;
 	switch ( proto ) {
@@ -1110,7 +1115,7 @@ void NetSessions::GetStats(SessionStats& s) const
 
 Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 					const u_char* data, int proto, uint32 flow_label,
-					const Encapsulation* encapsulation)
+					const EncapsulationStack* encapsulation)
 	{
 	// FIXME: This should be cleaned up a bit, it's too protocol-specific.
 	// But I'm not yet sure what the right abstraction for these things is.
@@ -1331,7 +1336,7 @@ void NetSessions::Internal(const char* msg, const struct pcap_pkthdr* hdr,
 	}
 
 void NetSessions::Weird(const char* name, const struct pcap_pkthdr* hdr,
-                        const u_char* pkt, const Encapsulation* encap)
+                        const u_char* pkt, const EncapsulationStack* encap)
 	{
 	if ( hdr )
 		dump_this_packet = 1;
@@ -1343,7 +1348,7 @@ void NetSessions::Weird(const char* name, const struct pcap_pkthdr* hdr,
 	}
 
 void NetSessions::Weird(const char* name, const IP_Hdr* ip,
-                        const Encapsulation* encap)
+                        const EncapsulationStack* encap)
 	{
 	if ( encap && encap->LastType() != BifEnum::Tunnel::NONE )
 		reporter->Weird(ip->SrcAddr(), ip->DstAddr(),

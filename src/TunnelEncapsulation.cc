@@ -34,7 +34,7 @@ RecordVal* EncapsulatingConn::GetRecordVal() const
 	return rv;
 	}
 
-bool operator==(const Encapsulation& e1, const Encapsulation& e2)
+bool operator==(const EncapsulationStack& e1, const EncapsulationStack& e2)
 	{
 	if ( ! e1.conns )
 		return e2.conns;

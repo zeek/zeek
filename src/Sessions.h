@@ -16,7 +16,7 @@
 
 struct pcap_pkthdr;
 
-class Encapsulation;
+class EncapsulationStack;
 class Connection;
 class ConnID;
 class OSFingerprint;
@@ -109,9 +109,9 @@ public:
 	void GetStats(SessionStats& s) const;
 
 	void Weird(const char* name, const struct pcap_pkthdr* hdr,
-	    const u_char* pkt, const Encapsulation* encap = 0);
+	    const u_char* pkt, const EncapsulationStack* encap = 0);
 	void Weird(const char* name, const IP_Hdr* ip,
-	    const Encapsulation* encap = 0);
+	    const EncapsulationStack* encap = 0);
 
 	PacketFilter* GetPacketFilter()
 		{
@@ -137,7 +137,7 @@ public:
 		
 	void DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 			const IP_Hdr* ip_hdr, const u_char* const pkt,
-			int hdr_size, const Encapsulation* encapsulation);
+			int hdr_size, const EncapsulationStack* encapsulation);
 
 	/**
 	 * Wrapper that recurses on DoNextPacket for encapsulated IP packets.
@@ -147,10 +147,15 @@ public:
 	 *        so that the fake pcap header passed to DoNextPacket will use
 	 *        the same timeval.  The caplen and len fields of the fake pcap
 	 *        header are always set to the TotalLength() of \a inner.
-	 * @param outer The encapsulation information for the inner IP packet.
+	 * @param inner Pointer to IP header wrapper of the inner packet, ownership
+	 *        of the pointer's memory is assumed by this function.
+	 * @param prev Any previous encapsulation stack of the caller, not including
+	 *        the most-recently found depth of encapsulation.
+	 * @param ec The most-recently found depth of encapsulation.
 	 */
 	void DoNextInnerPacket(double t, const struct pcap_pkthdr* hdr,
-	                      const IP_Hdr* inner, const Encapsulation* outer);
+	                      const IP_Hdr* inner, const EncapsulationStack* prev,
+	                      const EncapsulatingConn& ec);
 
 	/**
 	 * Returns a wrapper IP_Hdr object if \a pkt appears to be a valid IPv4
@@ -185,7 +190,7 @@ protected:
 
 	Connection* NewConn(HashKey* k, double t, const ConnID* id,
 			const u_char* data, int proto, uint32 flow_lable,
-			const Encapsulation* encapsulation);
+			const EncapsulationStack* encapsulation);
 
 	// Check whether the tag of the current packet is consistent with
 	// the given connection.  Returns:
@@ -234,7 +239,7 @@ protected:
 	// than that protocol's minimum header size.
 	bool CheckHeaderTrunc(int proto, uint32 len, uint32 caplen,
 			      const struct pcap_pkthdr* hdr, const u_char* pkt,
-			      const Encapsulation* encap);
+			      const EncapsulationStack* encap);
 
 	CompositeHash* ch;
 	PDict(Connection) tcp_conns;

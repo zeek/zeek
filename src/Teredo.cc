@@ -149,7 +149,7 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		return;
 		}
 
-	const Encapsulation* e = Conn()->GetEncapsulation();
+	const EncapsulationStack* e = Conn()->GetEncapsulation();
 
 	if ( e && e->Depth() >= BifConst::Tunnel::max_depth )
 		{
@@ -222,12 +222,7 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		Conn()->Event(teredo_bubble, 0, teredo_hdr);
 		}
 
-	Encapsulation* outer = new Encapsulation(e);
 	EncapsulatingConn ec(Conn(), BifEnum::Tunnel::TEREDO);
-	outer->Add(ec);
 
-	sessions->DoNextInnerPacket(network_time, 0, inner, outer);
-
-	delete inner;
-	delete outer;
+	sessions->DoNextInnerPacket(network_time, 0, inner, e, ec);
 	}

@@ -12,7 +12,7 @@ flow AYIYA_Flow
 	function process_ayiya(pdu: PDU): bool
 		%{
 		Connection *c = connection()->bro_analyzer()->Conn();
-		const Encapsulation* e = c->GetEncapsulation();
+		const EncapsulationStack* e = c->GetEncapsulation();
 
 		if ( e && e->Depth() >= BifConst::Tunnel::max_depth )
 			{
@@ -72,14 +72,10 @@ flow AYIYA_Flow
 		if ( result != 0 )
 			return false;
 
-		Encapsulation* outer = new Encapsulation(e);
 		EncapsulatingConn ec(c, BifEnum::Tunnel::AYIYA);
-		outer->Add(ec);
 
-		sessions->DoNextInnerPacket(network_time(), 0, inner, outer);
+		sessions->DoNextInnerPacket(network_time(), 0, inner, e, ec);
 
-		delete inner;
-		delete outer;
 		return (result == 0) ? true : false;
 		%}
 

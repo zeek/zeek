@@ -106,9 +106,19 @@ bool ElasticSearch::AddFieldValueToBuffer(Value* val, const Field* field)
 			break;
 		
 		case TYPE_TIME:
-			// ElasticSearch uses milliseconds for timestamps
-			buffer.Add((uint64_t) (val->val.double_val * 1000));
+			{
+			// ElasticSearch uses milliseconds for timestamps and json only
+			// supports signed ints (uints can be too large).
+			uint64_t ts = (uint64_t) (val->val.double_val * 1000);
+			if ( ts >= INT64_MAX )
+				{
+				Error(Fmt("time value too large: %" PRIu64, ts));
+				buffer.AddRaw("null", 4);
+				}
+			else
+				buffer.Add(ts);
 			break;
+			}
 		
 		case TYPE_ENUM:
 		case TYPE_STRING:
@@ -261,7 +271,7 @@ CURL* ElasticSearch::HTTPSetup()
 	
 	// HTTP 1.1 likes to use chunked encoded transfers, which aren't good for speed. The best (only?) way to disable that is to
 	// just use HTTP 1.0
-	//curl_easy_setopt(handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_0);
+	curl_easy_setopt(handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_0);
 	return handle;
 	}
 

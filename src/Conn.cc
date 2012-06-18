@@ -205,20 +205,26 @@ void Connection::CheckEncapsulation(const Encapsulation* arg_encap)
 	if ( encapsulation && arg_encap )
 		{
 		if ( *encapsulation != *arg_encap )
+			{
 			Event(tunnel_changed, 0, arg_encap->GetVectorVal());
+			delete encapsulation;
+			encapsulation = new Encapsulation(arg_encap);
+			}
 		}
 
 	else if ( encapsulation )
 		{
 		Encapsulation empty;
 		Event(tunnel_changed, 0, empty.GetVectorVal());
+		delete encapsulation;
+		encapsulation = new Encapsulation(arg_encap);
 		}
 
 	else if ( arg_encap )
+		{
 		Event(tunnel_changed, 0, arg_encap->GetVectorVal());
-
-	delete encapsulation;
-	encapsulation = new Encapsulation(arg_encap);
+		encapsulation = new Encapsulation(arg_encap);
+		}
 	}
 
 void Connection::Done()

@@ -60,6 +60,10 @@ Bro 2.1
   signature_files constant, this can be used to load signatures
   relative to the current script (e.g., "@load-sigs ./foo.sig").
 
+- The options "tunnel_port" and "parse_udp_tunnels" have been removed.
+  Bro now supports decapsulating tunnels directly for protocols it
+  understands.
+
 TODO: Extend.
 
 Bro 2.0

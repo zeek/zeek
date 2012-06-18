@@ -149,3 +149,46 @@ signature dpd_ssl_client {
   payload /^(\x16\x03[\x00\x01\x02]..\x01...\x03[\x00\x01\x02]|...?\x01[\x00\x01\x02][\x02\x03]).*/
   tcp-state originator
 }
+
+signature dpd_ayiya {
+  ip-proto = udp
+  payload /^..\x11\x29/
+  enable "ayiya"
+}
+
+signature dpd_teredo {
+  ip-proto = udp
+  payload /^(\x00\x00)|(\x00\x01)|([\x60-\x6f])/
+  enable "teredo"
+}
+
+signature dpd_socks_client {
+	ip-proto == tcp
+	# '32' is a rather arbitrary max length for the user name.
+	payload /^\x04[\x01\x02].{0,32}\x00/
+	tcp-state originator
+}
+
+signature dpd_socks_server {
+	ip-proto == tcp
+	requires-reverse-signature dpd_socks_client
+	payload /^\x00[\x5a\x5b\x5c\x5d]/
+	tcp-state responder
+	enable "socks"
+}
+
+signature dpd_socks_reverse_client {
+	ip-proto == tcp
+	# '32' is a rather arbitrary max length for the user name.
+	payload /^\x04[\x01\x02].{0,32}\x00/
+	tcp-state responder
+}
+
+signature dpd_socks_reverse_server {
+	ip-proto == tcp
+	requires-reverse-signature dpd_socks_client
+	payload /^\x00[\x5a\x5b\x5c\x5d]/
+	tcp-state originator
+	enable "socks"
+}
+

@@ -34,7 +34,6 @@ extern int tcp_SYN_ack_ok;
 extern int tcp_match_undelivered;
 
 extern int encap_hdr_size;
-extern int udp_tunnel_port;
 
 extern double frag_timeout;
 

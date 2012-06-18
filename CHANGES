@@ -1,4 +1,20 @@
 
+2.0-690 | 2012-06-18 16:01:33 -0700
+
+  * Support for decapsulating tunnels via the new tunnel framework in
+    base/frameworks/tunnels.
+
+    Bro currently supports Teredo, AYIYA, IP-in-IP (both IPv4 and
+    IPv6), and SOCKS. For all these, it logs the outher tunnel
+    connections in both conn.log and tunnel.log, and proceeds to
+    analyze the inner payload as if it were not tunneled, including
+    also logging it in conn.log (with a new tunnel_parents column
+    pointing back to the outer connection(s)). (Jon Siwek, Seth Hall,
+    Gregor Maier)
+
+  * The options "tunnel_port" and "parse_udp_tunnels" have been
+    removed. (Jon Siwek)
+
 2.0-623 | 2012-06-15 16:24:52 -0700
 
   * Changing an error in the input framework to a warning. (Robin

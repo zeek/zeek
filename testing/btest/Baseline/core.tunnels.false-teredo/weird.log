@@ -1,0 +1,19 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	weird
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
+#types	time	string	addr	port	addr	port	string	string	bool	string
+1258567191.405770	-	-	-	-	-	truncated_header_in_tunnel	-	F	bro
+1258567191.486869	UWkUyAuUGXf	192.168.1.105	57696	192.168.1.1	53	Teredo_payload_len_mismatch	-	F	bro
+1258578181.260420	-	-	-	-	-	truncated_header_in_tunnel	-	F	bro
+1258578181.516140	nQcgTWjvg4c	192.168.1.104	64838	192.168.1.1	53	Teredo_payload_len_mismatch	-	F	bro
+1258579063.557927	-	-	-	-	-	truncated_header_in_tunnel	-	F	bro
+1258579063.784919	j4u32Pc5bif	192.168.1.104	55778	192.168.1.1	53	Teredo_payload_len_mismatch	-	F	bro
+1258581768.568451	-	-	-	-	-	truncated_header_in_tunnel	-	F	bro
+1258581768.898165	TEfuqmmG4bh	192.168.1.104	50798	192.168.1.1	53	Teredo_payload_len_mismatch	-	F	bro
+1258584478.859853	-	-	-	-	-	truncated_header_in_tunnel	-	F	bro
+1258584478.989528	FrJExwHcSal	192.168.1.104	64963	192.168.1.1	53	Teredo_payload_len_mismatch	-	F	bro
+1258600683.934458	-	-	-	-	-	truncated_header_in_tunnel	-	F	bro
+1258600683.934672	5OKnoww6xl4	192.168.1.103	59838	192.168.1.1	53	Teredo_payload_len_mismatch	-	F	bro

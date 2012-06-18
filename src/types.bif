@@ -169,6 +169,17 @@ enum ID %{
 	Unknown,
 %}
 
+module Tunnel;
+enum Type %{
+	NONE,
+	IP,
+	AYIYA,
+	TEREDO,
+	SOCKS,
+%}
+
+type EncapsulatingConn: record;
+
 module Input;
 
 enum Reader %{

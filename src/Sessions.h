@@ -181,6 +181,7 @@ protected:
 	friend class RemoteSerializer;
 	friend class ConnCompressor;
 	friend class TimerMgrExpireTimer;
+	friend class IPTunnelTimer;
 
 	Connection* NewConn(HashKey* k, double t, const ConnID* id,
 			const u_char* data, int proto, uint32 flow_lable,
@@ -240,8 +241,10 @@ protected:
 	PDict(Connection) udp_conns;
 	PDict(Connection) icmp_conns;
 	PDict(FragReassembler) fragments;
+
 	typedef pair<IPAddr, IPAddr> IPPair;
-	typedef std::map<IPPair, EncapsulatingConn> IPTunnelMap;
+	typedef pair<EncapsulatingConn, double> TunnelActivity;
+	typedef std::map<IPPair, TunnelActivity> IPTunnelMap;
 	IPTunnelMap ip_tunnels;
 
 	ARP_Analyzer* arp_analyzer;
@@ -259,6 +262,21 @@ protected:
 	// activity.  The managers are identified by an unique tag.
 	typedef std::map<TimerMgr::Tag, TimerMgr*> TimerMgrMap;
 	TimerMgrMap timer_mgrs;
+};
+
+
+class IPTunnelTimer : public Timer {
+public:
+	IPTunnelTimer(double t, NetSessions::IPPair p)
+	: Timer(t + BifConst::Tunnel::ip_tunnel_timeout,
+			TIMER_IP_TUNNEL_INACTIVITY), tunnel_idx(p) {}
+
+	~IPTunnelTimer() {}
+
+	void Dispatch(double t, int is_expire);
+
+protected:
+	NetSessions::IPPair tunnel_idx;
 };
 
 // Manager for the currently active sessions.

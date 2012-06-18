@@ -68,6 +68,24 @@ void TimerMgrExpireTimer::Dispatch(double t, int is_expire)
 		}
 	}
 
+void IPTunnelTimer::Dispatch(double t, int is_expire)
+	{
+	NetSessions::IPTunnelMap::const_iterator it =
+			sessions->ip_tunnels.find(tunnel_idx);
+
+	if ( it == sessions->ip_tunnels.end() ) return;
+
+	double last_active = it->second.second;
+	double inactive_time = t > last_active ? t - last_active : 0;
+
+	if ( inactive_time >= BifConst::Tunnel::ip_tunnel_timeout )
+		// tunnel activity timed out, delete it from map
+		sessions->ip_tunnels.erase(tunnel_idx);
+	else if ( ! is_expire )
+		// tunnel activity didn't timeout, schedule another timer
+		timer_mgr->Add(new IPTunnelTimer(t, tunnel_idx));
+	}
+
 NetSessions::NetSessions()
 	{
 	TypeList* t = new TypeList();
@@ -569,16 +587,20 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 		else
 			tunnel_idx = IPPair(ip_hdr->DstAddr(), ip_hdr->SrcAddr());
 
-		IPTunnelMap::const_iterator it = ip_tunnels.find(tunnel_idx);
+		IPTunnelMap::iterator it = ip_tunnels.find(tunnel_idx);
 
 		if ( it == ip_tunnels.end() )
 			{
 			EncapsulatingConn ec(ip_hdr->SrcAddr(), ip_hdr->DstAddr());
-			ip_tunnels[tunnel_idx] = ec;
+			ip_tunnels[tunnel_idx] = TunnelActivity(ec, network_time);
+			timer_mgr->Add(new IPTunnelTimer(network_time, tunnel_idx));
 			outer->Add(ec);
 			}
 		else
-			outer->Add(it->second);
+			{
+			it->second.second = network_time;
+			outer->Add(it->second.first);
+			}
 
 		DoNextInnerPacket(t, hdr, inner, outer);
 

@@ -2717,6 +2717,9 @@ export {
 	## reduce false positives of UDP traffic (e.g. DNS) that also happens
 	## to have a valid Teredo encapsulation.
 	const yielding_teredo_decapsulation = T &redef;
+
+	## How often to cleanup internal state for inactive IP tunnels.
+	const ip_tunnel_timeout = 24hrs &redef;
 } # end export
 module GLOBAL;
 

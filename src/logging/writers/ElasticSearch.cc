@@ -6,6 +6,7 @@
 
 #include <string>
 #include <errno.h>
+#include <stdint.h>
 
 #include "util.h"
 #include "BroString.h"

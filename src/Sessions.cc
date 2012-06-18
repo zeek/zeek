@@ -158,6 +158,10 @@ void NetSessions::DispatchPacket(double t, const struct pcap_pkthdr* hdr,
 			ip_data = pkt + hdr_size + (ip_hdr->ip_hl << 2);
 		}
 
+	if ( encap_hdr_size > 0 && ip_data )
+		// Blanket encapsulation
+		hdr_size += encap_hdr_size;
+
 	if ( src_ps->FilterType() == TYPE_FILTER_NORMAL )
 		NextPacket(t, hdr, pkt, hdr_size, pkt_elem);
 	else

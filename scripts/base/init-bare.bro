@@ -915,6 +915,10 @@ const frag_timeout = 0.0 sec &redef;
 ##    to be potentially copied and buffered.
 const packet_sort_window = 0 usecs &redef;
 
+## If positive, indicates the encapsulation header size that should
+## be skipped. This applies to all packets.
+const encap_hdr_size = 0 &redef;
+
 ## Whether to use the ``ConnSize`` analyzer to count the number of packets and
 ## IP-level bytes transfered by each endpoint. If true, these values are returned
 ## in the connection's :bro:see:`endpoint`  record value.

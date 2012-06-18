@@ -30,6 +30,8 @@ int partial_connection_ok;
 int tcp_SYN_ack_ok;
 int tcp_match_undelivered;
 
+int encap_hdr_size;
+
 double frag_timeout;
 
 double tcp_SYN_timeout;
@@ -322,6 +324,8 @@ void init_net_var()
 	partial_connection_ok = opt_internal_int("partial_connection_ok");
 	tcp_SYN_ack_ok = opt_internal_int("tcp_SYN_ack_ok");
 	tcp_match_undelivered = opt_internal_int("tcp_match_undelivered");
+
+	encap_hdr_size = opt_internal_int("encap_hdr_size");
 
 	frag_timeout = opt_internal_double("frag_timeout");
 

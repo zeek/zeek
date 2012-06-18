@@ -33,6 +33,8 @@ extern int partial_connection_ok;
 extern int tcp_SYN_ack_ok;
 extern int tcp_match_undelivered;
 
+extern int encap_hdr_size;
+
 extern double frag_timeout;
 
 extern double tcp_SYN_timeout;

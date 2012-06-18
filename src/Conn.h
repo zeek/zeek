@@ -52,7 +52,7 @@ class Analyzer;
 class Connection : public BroObj {
 public:
 	Connection(NetSessions* s, HashKey* k, double t, const ConnID* id,
-	           uint32 flow, const Encapsulation* arg_encap);
+	           uint32 flow, const EncapsulationStack* arg_encap);
 	virtual ~Connection();
 
 	// Invoked when an encapsulation is discovered. It records the
@@ -60,7 +60,7 @@ public:
 	// event if it's different from the previous encapsulation (or the
 	// first encountered). encap can be null to indicate no
 	// encapsulation.
-	void CheckEncapsulation(const Encapsulation* encap);
+	void CheckEncapsulation(const EncapsulationStack* encap);
 
 	// Invoked when connection is about to be removed.  Use Ref(this)
 	// inside Done to keep the connection object around (though it'll
@@ -252,7 +252,7 @@ public:
 
 	uint64 GetUID() const { return uid; }
 
-	const Encapsulation* GetEncapsulation() const
+	const EncapsulationStack* GetEncapsulation() const
 		{ return encapsulation; }
 
 	void CheckFlowLabel(bool is_orig, uint32 flow_label);
@@ -292,7 +292,7 @@ protected:
 	double inactivity_timeout;
 	RecordVal* conn_val;
 	LoginConn* login_conn;	// either nil, or this
-	const Encapsulation* encapsulation; // tunnels
+	const EncapsulationStack* encapsulation; // tunnels
 	int suppress_event;	// suppress certain events to once per conn.
 
 	unsigned int installed_status_timer:1;

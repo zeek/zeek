@@ -104,7 +104,7 @@ export {
 		## If this connection was over a tunnel, indicate the 
 		## *uid* values for any encapsulating parent connections
 		## used over the lifetime of this inner connection.
-		parents:        set[string] &log;
+		tunnel_parents: set[string] &log;
 	};
 
 	## Event that can be handled to access the :bro:type:`Conn::Info`
@@ -195,7 +195,7 @@ function set_conn(c: connection, eoc: bool)
 	c$conn$uid=c$uid;
 	c$conn$id=c$id;
 	if ( c?$tunnel && |c$tunnel| > 0 )
-		add c$conn$parents[c$tunnel[|c$tunnel|-1]$uid];
+		add c$conn$tunnel_parents[c$tunnel[|c$tunnel|-1]$uid];
 	c$conn$proto=get_port_transport_proto(c$id$resp_p);
 	if( |Site::local_nets| > 0 )
 		c$conn$local_orig=Site::is_local_addr(c$id$orig_h);
@@ -238,7 +238,7 @@ event tunnel_changed(c: connection, e: EncapsulatingConnVector) &priority=5
 	{
 	set_conn(c, F);
 	if ( |e| > 0 )
-		add c$conn$parents[e[|e|-1]$uid];
+		add c$conn$tunnel_parents[e[|e|-1]$uid];
 	c$tunnel = e;
 	}
 	

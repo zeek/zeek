@@ -114,12 +114,12 @@ protected:
 /**
  * Abstracts an arbitrary amount of nested tunneling.
  */
-class Encapsulation {
+class EncapsulationStack {
 public:
-	Encapsulation() : conns(0)
+	EncapsulationStack() : conns(0)
 		{}
 
-	Encapsulation(const Encapsulation& other)
+	EncapsulationStack(const EncapsulationStack& other)
 		{
 		if ( other.conns )
 			conns = new vector<EncapsulatingConn>(*(other.conns));
@@ -127,15 +127,7 @@ public:
 			conns = 0;
 		}
 
-	Encapsulation(const Encapsulation* other)
-		{
-		if ( other && other->conns )
-			conns = new vector<EncapsulatingConn>(*(other->conns));
-		else
-			conns = 0;
-		}
-
-	Encapsulation& operator=(const Encapsulation& other)
+	EncapsulationStack& operator=(const EncapsulationStack& other)
 		{
 		if ( this == &other )
 			return *this;
@@ -150,10 +142,10 @@ public:
 		return *this;
 		}
 
-	~Encapsulation() { delete conns; }
+	~EncapsulationStack() { delete conns; }
 
 	/**
-	 * Add a new inner-most tunnel to the Encapsulation.
+	 * Add a new inner-most tunnel to the EncapsulationStack.
 	 *
 	 * @param c The new inner-most tunnel to append to the tunnel chain.
 	 */
@@ -200,9 +192,11 @@ public:
 		return vv;
 		}
 
-	friend bool operator==(const Encapsulation& e1, const Encapsulation& e2);
+	friend bool operator==(const EncapsulationStack& e1,
+	                       const EncapsulationStack& e2);
 
-	friend bool operator!=(const Encapsulation& e1, const Encapsulation& e2)
+	friend bool operator!=(const EncapsulationStack& e1,
+	                       const EncapsulationStack& e2)
 		{
 		return ! ( e1 == e2 );
 		}

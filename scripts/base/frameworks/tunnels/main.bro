@@ -76,7 +76,7 @@ export {
 	## Currently active tunnels.  That is, tunnels for which new, encapsulated
 	## connections have been seen in the interval indicated by
 	## :bro:see:`Tunnel::expiration_interval`.
-	global active: table[conn_id] of Info = table() &synchronized &read_expire=expiration_interval &expire_func=expire;
+	global active: table[conn_id] of Info = table() &read_expire=expiration_interval &expire_func=expire;
 }
 
 const ayiya_ports = { 5072/udp };

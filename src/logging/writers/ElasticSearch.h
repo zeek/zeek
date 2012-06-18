@@ -49,7 +49,6 @@ private:
 	double last_send;
 	
 	CURL* curl_handle;
-	char* curl_result;
 	
 	// From scripts
 	char* cluster_name;

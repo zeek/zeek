@@ -35,8 +35,7 @@ ElasticSearch::ElasticSearch(WriterFrontend* frontend) : WriterBackend(frontend)
 	last_send = current_time();
 	
 	curl_handle = HTTPSetup();
-	curl_result = new char[1024];
-	}
+}
 
 ElasticSearch::~ElasticSearch()
 	{
@@ -57,6 +56,7 @@ bool ElasticSearch::DoFlush()
 bool ElasticSearch::DoFinish()
 	{
 	BatchIndex();
+	curl_easy_cleanup(curl_handle);
 	return WriterBackend::DoFinish();
 	}
 	
@@ -101,10 +101,10 @@ bool ElasticSearch::AddFieldValueToBuffer(Value* val, const Field* field)
 			break;
 		
 		case TYPE_DOUBLE:
+		case TYPE_INTERVAL:
 			buffer.Add(val->val.double_val);
 			break;
 		
-		case TYPE_INTERVAL:
 		case TYPE_TIME:
 			// ElasticSearch uses milliseconds for timestamps
 			buffer.Add((uint64_t) (val->val.double_val * 1000));
@@ -275,7 +275,6 @@ bool ElasticSearch::HTTPSend()
 	{
 	CURLcode return_code;
 	
-	curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, curl_result);
 	curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDS, buffer.Bytes());
 	curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDSIZE, buffer.Len());
 	

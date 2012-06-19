@@ -3,13 +3,12 @@
 #ifndef LOGGING_WRITERFRONTEND_H
 #define LOGGING_WRITERFRONTEND_H
 
-#include "Manager.h"
-
+#include "Val.h"
 #include "threading/MsgThread.h"
 
-namespace logging  {
+#include "WriterBackend.h"
 
-class WriterBackend;
+namespace logging  {
 
 /**
  * Bridge class between the logging::Manager and backend writer threads. The
@@ -128,7 +127,7 @@ public:
 	 *
 	 * This method must only be called from the main thread.
 	 */
-	void Rotate(string rotated_path, double open, double close, bool terminating);
+	void Rotate(string rotated_path, const WriterBackend::RotateInfo& info, bool terminating);
 
 	/**
 	 * Finalizes writing to this tream.

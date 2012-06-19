@@ -24,8 +24,8 @@ protected:
 	virtual bool DoWrite(int num_fields, const threading::Field* const* fields,
 			     threading::Value** vals);
 	virtual bool DoSetBuf(bool enabled);
-	virtual bool DoRotate(string rotated_path, double open,
-			      double close, bool terminating);
+	virtual bool DoRotate(string rotated_path, const RotateInfo& info,
+			      bool terminating);
 	virtual bool DoFlush();
 	virtual bool DoFinish();
 

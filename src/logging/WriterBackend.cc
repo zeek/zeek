@@ -4,6 +4,7 @@
 #include "bro_inet_ntop.h"
 #include "threading/SerialTypes.h"
 
+#include "Manager.h"
 #include "WriterBackend.h"
 #include "WriterFrontend.h"
 
@@ -18,21 +19,20 @@ class RotationFinishedMessage : public threading::OutputMessage<WriterFrontend>
 {
 public:
         RotationFinishedMessage(WriterFrontend* writer, string new_name, string old_name,
-				double open, double close, bool terminating)
+				const WriterBackend::RotateInfo& info, bool terminating)
 		: threading::OutputMessage<WriterFrontend>("RotationFinished", writer),
-		new_name(new_name), old_name(old_name), open(open),
-		close(close), terminating(terminating)	{ }
+		new_name(new_name), old_name(old_name), info(info),
+		terminating(terminating)	{ }
 
 	virtual bool Process()
 		{
-		return log_mgr->FinishedRotation(Object(), new_name, old_name, open, close, terminating);
+		return log_mgr->FinishedRotation(Object(), new_name, old_name, info, terminating);
 		}
 
 private:
-        string new_name;
-        string old_name;
-        double open;
-        double close;
+	string new_name;
+	string old_name;
+	WriterBackend::RotateInfo info;
         bool terminating;
 };
 
@@ -97,9 +97,9 @@ void WriterBackend::DeleteVals(int num_writes, Value*** vals)
 	}
 
 bool WriterBackend::FinishedRotation(string new_name, string old_name,
-				     double open, double close, bool terminating)
+				     const RotateInfo& info, bool terminating)
 	{
-	SendOut(new RotationFinishedMessage(frontend, new_name, old_name, open, close, terminating));
+	SendOut(new RotationFinishedMessage(frontend, new_name, old_name, info, terminating));
 	return true;
 	}
 
@@ -200,10 +200,10 @@ bool WriterBackend::SetBuf(bool enabled)
 	return true;
 	}
 
-bool WriterBackend::Rotate(string rotated_path, double open,
-			   double close, bool terminating)
+bool WriterBackend::Rotate(string rotated_path, const RotateInfo& info,
+			   bool terminating)
 	{
-	if ( ! DoRotate(rotated_path, open, close, terminating) )
+	if ( ! DoRotate(rotated_path, info, terminating) )
 		{
 		DisableFrontend();
 		return false;

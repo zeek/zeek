@@ -317,7 +317,7 @@ bool Ascii::DoWrite(int num_fields, const Field* const * fields,
 	return true;
 	}
 
-bool Ascii::DoRotate(string rotated_path, double open, double close, bool terminating)
+bool Ascii::DoRotate(string rotated_path, const RotateInfo& info, bool terminating)
 	{
 	// Don't rotate special files or if there's not one currently open.
 	if ( ! file || IsSpecial(Path()) )
@@ -329,7 +329,7 @@ bool Ascii::DoRotate(string rotated_path, double open, double close, bool termin
 	string nname = rotated_path + "." + LogExt();
 	rename(fname.c_str(), nname.c_str());
 
-	if ( ! FinishedRotation(nname, fname, open, close, terminating) )
+	if ( ! FinishedRotation(nname, fname, info, terminating) )
 		{
 		Error(Fmt("error rotating %s to %s", fname.c_str(), nname.c_str()));
 		return false;

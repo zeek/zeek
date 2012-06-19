@@ -2,6 +2,7 @@
 #include "Net.h"
 #include "threading/SerialTypes.h"
 
+#include "Manager.h"
 #include "WriterFrontend.h"
 #include "WriterBackend.h"
 
@@ -30,20 +31,19 @@ private:
 class RotateMessage : public threading::InputMessage<WriterBackend>
 {
 public:
-	RotateMessage(WriterBackend* backend, WriterFrontend* frontend, const string rotated_path, const double open,
-		      const double close, const bool terminating)
+	RotateMessage(WriterBackend* backend, WriterFrontend* frontend, const string rotated_path,
+		      const WriterBackend::RotateInfo& info, const bool terminating)
 		: threading::InputMessage<WriterBackend>("Rotate", backend),
 		frontend(frontend),
-		rotated_path(rotated_path), open(open),
-		close(close), terminating(terminating) { }
+		rotated_path(rotated_path), info(info),
+		terminating(terminating) { }
 
-	virtual bool Process() { return Object()->Rotate(rotated_path, open, close, terminating); }
+	virtual bool Process() { return Object()->Rotate(rotated_path, info, terminating); }
 
 private:
 	WriterFrontend* frontend;
 	const string rotated_path;
-	const double open;
-	const double close;
+	WriterBackend::RotateInfo info;
 	const bool terminating;
 };
 
@@ -248,7 +248,7 @@ void WriterFrontend::Flush()
 		backend->SendIn(new FlushMessage(backend));
 	}
 
-void WriterFrontend::Rotate(string rotated_path, double open, double close, bool terminating)
+void WriterFrontend::Rotate(string rotated_path, const WriterBackend::RotateInfo& info, bool terminating)
 	{
 	if ( disabled )
 		return;
@@ -256,11 +256,11 @@ void WriterFrontend::Rotate(string rotated_path, double open, double close, bool
 	FlushWriteBuffer();
 
 	if ( backend )
-		backend->SendIn(new RotateMessage(backend, this, rotated_path, open, close, terminating));
+		backend->SendIn(new RotateMessage(backend, this, rotated_path, info, terminating));
 	else
 		// Still signal log manager that we're done, but signal that
 		// nothing happened by setting the writer to zeri.
-		log_mgr->FinishedRotation(0, "", rotated_path, open, close, terminating);
+		log_mgr->FinishedRotation(0, "", rotated_path, info, terminating);
 	}
 
 void WriterFrontend::Finish()

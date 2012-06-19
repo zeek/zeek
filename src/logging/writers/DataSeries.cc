@@ -395,7 +395,7 @@ bool DataSeries::DoWrite(int num_fields, const threading::Field* const * fields,
 	return true;
 }
 
-bool DataSeries::DoRotate(string rotated_path, double open, double close, bool terminating)
+bool DataSeries::DoRotate(string rotated_path, const RotateInfo& info, bool terminating)
 {
 	// Note that if DS files are rotated too often, the aggregate log
 	// size will be (much) larger.
@@ -405,7 +405,7 @@ bool DataSeries::DoRotate(string rotated_path, double open, double close, bool t
 	string nname = rotated_path + ".ds";
 	rename(dsname.c_str(), nname.c_str());
 
-	if ( ! FinishedRotation(nname, dsname, open, close, terminating) )
+	if ( ! FinishedRotation(nname, dsname, info, terminating) )
 		{
 		Error(Fmt("error rotating %s to %s", dsname.c_str(), nname.c_str()));
 		return false;

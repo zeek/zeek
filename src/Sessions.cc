@@ -574,6 +574,7 @@ void NetSessions::DoNextPacket(double t, const struct pcap_pkthdr* hdr,
 
 		if ( result != 0 )
 			{
+			delete inner;
 			Remove(f);
 			return;
 			}
@@ -774,11 +775,7 @@ int NetSessions::ParseIPPacket(int caplen, const u_char* const pkt, int proto,
 		reporter->InternalError("Bad IP protocol version in DoNextInnerPacket");
 
 	if ( (uint32)caplen != inner->TotalLen() )
-		{
-		delete inner;
-		inner = 0;
 		return (uint32)caplen < inner->TotalLen() ? -1 : 1;
-		}
 
 	return 0;
 	}

@@ -78,12 +78,9 @@ bool TeredoEncapsulation::DoParse(const u_char* data, int& len,
 			return false;
 			}
 
-		if ( len - 40 != ntohs(((const struct ip6_hdr*)data)->ip6_plen) )
-			{
-			Weird("Teredo_payload_len_mismatch");
-			return false;
-			}
-
+		// There's at least a possible IPv6 header, we'll decide what to do
+		// later if the payload length field doesn't match the actual length
+		// of the packet.
 		inner_ip = data;
 		return true;
 		}
@@ -160,7 +157,21 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 	IP_Hdr* inner = 0;
 	int rslt = sessions->ParseIPPacket(len, te.InnerIP(), IPPROTO_IPV6, inner);
 
-	if ( rslt == 0 )
+	if ( rslt > 0 )
+		{
+		if ( inner->NextProto() == IPPROTO_NONE && inner->PayloadLen() == 0 )
+			// Teredo bubbles having data after IPv6 header isn't strictly a
+			// violation, but a little weird.
+			Weird("Teredo_bubble_with_payload");
+		else
+			{
+			delete inner;
+			ProtocolViolation("Teredo payload length", (const char*) data, len);
+			return;
+			}
+		}
+
+	if ( rslt == 0 || rslt > 0 )
 		{
 		if ( BifConst::Tunnel::yielding_teredo_decapsulation &&
 		     ! ProtocolConfirmed() )
@@ -174,12 +185,20 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 				LOOP_OVER_GIVEN_CONST_CHILDREN(i, Parent()->GetChildren())
 					{
 					if ( (*i)->ProtocolConfirmed() )
+						{
 						sibling_has_confirmed = true;
+						break;
+						}
 					}
 				}
 
 			if ( ! sibling_has_confirmed )
 				ProtocolConfirmation();
+			else
+				{
+				delete inner;
+				return;
+				}
 			}
 		else
 			{
@@ -188,13 +207,12 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 			}
 		}
 
-	else if ( rslt < 0 )
-		ProtocolViolation("Truncated Teredo", (const char*) data, len);
-
 	else
-		ProtocolViolation("Teredo payload length", (const char*) data, len);
-
-	if ( rslt != 0 || ! ProtocolConfirmed() ) return;
+		{
+		delete inner;
+		ProtocolViolation("Truncated Teredo", (const char*) data, len);
+		return;
+		}
 
 	Val* teredo_hdr = 0;
 

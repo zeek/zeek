@@ -1,8 +1,9 @@
-# @TEST-EXEC: bro -r $TRACES/tunnels/false-teredo.pcap %INPUT >output
-# @TEST-EXEC: test ! -e weird.log
-# @TEST-EXEC: bro -r $TRACES/tunnels/false-teredo.pcap %INPUT Tunnel::yielding_teredo_decapsulation=F >output
+# @TEST-EXEC: bro -r $TRACES/tunnels/teredo_bubble_with_payload.pcap %INPUT >output
+# @TEST-EXEC: btest-diff output
+# @TEST-EXEC: btest-diff tunnel.log
+# @TEST-EXEC: btest-diff conn.log
+# @TEST-EXEC: btest-diff http.log
 # @TEST-EXEC: btest-diff weird.log
-# @TEST-EXEC: btest-diff dpd.log
 
 function print_teredo(name: string, outer: connection, inner: teredo_hdr)
 	{

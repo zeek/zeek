@@ -70,7 +70,10 @@ flow AYIYA_Flow
 			    ${pdu.packet}.length());
 
 		if ( result != 0 )
+			{
+			delete inner;
 			return false;
+			}
 
 		EncapsulatingConn ec(c, BifEnum::Tunnel::AYIYA);
 

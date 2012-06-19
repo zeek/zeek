@@ -168,11 +168,14 @@ public:
 	 * @param proto Either IPPROTO_IPV6 or IPPROTO_IPV4 to indicate which IP
 	 *        protocol \a pkt corresponds to.
 	 * @param inner The inner IP packet wrapper pointer to be allocated/assigned
-	 *        if \a pkt looks like a valid IP packet.
-	 * @return 0 If the inner IP packet appeared valid in which case the caller
-	 *         is responsible for deallocating \a inner, else -1 if \a caplen
+	 *        if \a pkt looks like a valid IP packet or at least long enough
+	 *        to hold an IP header.
+	 * @return 0 If the inner IP packet appeared valid, else -1 if \a caplen
 	 *         is greater than the supposed IP packet's payload length field or
 	 *         1 if \a caplen is less than the supposed packet's payload length.
+	 *         In the -1 case, \a inner may still be non-null if \a caplen was
+	 *         long enough to be an IP header, and \a inner is always non-null
+	 *         for other return values.
 	 */
 	int ParseIPPacket(int caplen, const u_char* const pkt, int proto,
 	                  IP_Hdr*& inner);

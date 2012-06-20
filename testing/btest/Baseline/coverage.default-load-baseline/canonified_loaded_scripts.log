@@ -95,6 +95,7 @@ scripts/base/init-default.bro
     scripts/base/protocols/smtp/./entities.bro
     scripts/base/protocols/smtp/./entities-excerpt.bro
   scripts/base/protocols/socks/__load__.bro
+    scripts/base/protocols/socks/./consts.bro
     scripts/base/protocols/socks/./main.bro
   scripts/base/protocols/ssh/__load__.bro
     scripts/base/protocols/ssh/./main.bro

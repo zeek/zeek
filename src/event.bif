@@ -6226,7 +6226,9 @@ event signature_match%(state: signature_state, msg: string, data: string%);
 ##
 ## c: The parent connection of the proxy.
 ##
-## t: The type of the request.
+## version: The version of SOCKS this message used.
+##
+## request_type: The type of the request.
 ##
 ## dstaddr: Address that the tunneled traffic should be sent to.
 ##
@@ -6234,13 +6236,23 @@ event signature_match%(state: signature_state, msg: string, data: string%);
 ##
 ## p: The destination port for the proxied traffic.
 ##
-## user: Username given for the SOCKS connection.
-event socks_request%(c: connection, request_type: count, dstaddr: addr, dstname: string, p: port, user: string%);
+## user: Username given for the SOCKS connection.  This is not yet implemented for SOCKSv5.
+event socks_request%(c: connection, version: count, request_type: count, dstaddr: addr, dstname: string, p: port, user: string%);
 
 ## Generated when a SOCKS reply is analyzed.
 ##
+## c: The parent connection of the proxy.
 ##
-event socks_reply%(c: connection, granted: bool, dst: addr, p: port%);
+## version: The version of SOCKS this message used.
+##
+## reply: The status reply from the server.
+##
+## dstaddr: The address that the server sent the traffic to.
+##
+## dstname: The name the server sent the traffic to.  Only applicable for SOCKSv5.
+##
+## p: The destination port for the proxied traffic.
+event socks_reply%(c: connection, version: count, reply: count, dstaddr: addr, dstname: string, p: port%);
 
 ## Generated when a protocol analyzer finds an identification of a software
 ## used on a system. This is a protocol-independent event that is fed by

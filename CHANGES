@@ -1,4 +1,28 @@
 
+2.0-698 | 2012-06-20 14:30:40 -0700
+
+  * Updates for the SOCKS analyzer (Seth Hall).
+
+    - A SOCKS log!
+
+    - Now supports SOCKSv5 in the analyzer and the DPD sigs.
+
+    - Added protocol violations.
+
+  * Updates to the tunnels framework. (Seth Hall)
+    
+    - Make the uid field optional since it's conceptually incorrect
+      for proxies being treated as tunnels to have it.
+
+    - Reordered two fields in the log.
+      
+    - Reduced the default tunnel expiration interface to something
+      more reasonable (1 hour). 
+
+  * Make Teredo bubble packet parsing more lenient. (Jon Siwek)
+
+  * Fix a crash in NetSessions::ParseIPPacket(). (Jon Siwek)
+
 2.0-690 | 2012-06-18 16:01:33 -0700
 
   * Support for decapsulating tunnels via the new tunnel framework in

@@ -4,8 +4,12 @@ type SOCKS_Version(is_orig: bool) = record {
 	msg:     case version of {
 		4       -> socks4_msg:     SOCKS4_Message(is_orig);
 		5       -> socks5_msg:     SOCKS5_Message(is_orig);
-		default -> socks_msg_fail: empty;
+		default -> socks_msg_fail: SOCKS_Version_Error(version);
 	};
+};
+
+type SOCKS_Version_Error(version: uint8) = record {
+	nothing: empty;
 };
 
 # SOCKS5 Implementation

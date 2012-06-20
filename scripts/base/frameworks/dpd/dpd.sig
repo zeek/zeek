@@ -194,14 +194,16 @@ signature dpd_socks4_reverse_server {
 
 signature dpd_socks5_client {
 	ip-proto == tcp
-	payload /^\x05/
+	# Watch for a few authentication methods to reduce false positives.
+	payload /^\x05.[\x00\x01\x02]/
 	tcp-state originator
 }
 
 signature dpd_socks5_server {
 	ip-proto == tcp
 	requires-reverse-signature dpd_socks5_client
-	payload /^\x05/
+	# Watch for a single authentication method to be chosen by the server.
+	payload /^\x05\x01[\x00\x01\x02]/
 	tcp-state responder
 	enable "socks"
 }

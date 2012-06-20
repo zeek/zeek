@@ -22,6 +22,7 @@ refine connection SOCKS_Conn += {
 
 	function socks4_request(request: SOCKS4_Request): bool
 		%{
+		
 		StringVal *dstname = 0;
 		if ( ${request.v4a} )
 			dstname = array_to_string(${request.name});
@@ -59,6 +60,12 @@ refine connection SOCKS_Conn += {
 
 	function socks5_request(request: SOCKS5_Request): bool
 		%{
+		if ( ${request.reserved} != 0 )
+			{
+			bro_analyzer()->ProtocolViolation(fmt("invalid value in reserved field: %d", ${request.reserved}));
+			return false;
+			}
+		
 		AddrVal *ip_addr = 0;
 		StringVal *domain_name = 0;
 		
@@ -76,6 +83,11 @@ refine connection SOCKS_Conn += {
 			
 			case 4:
 				ip_addr = new AddrVal(IPAddr(IPv6, (const uint32_t*) ${request.remote_name.ipv6}, IPAddr::Network));
+				break;
+			
+			default:
+				bro_analyzer()->ProtocolViolation(fmt("invalid SOCKSv5 addr type: %d", ${request.remote_name.addr_type}));
+				return false;
 				break;
 			}
 		
@@ -118,6 +130,11 @@ refine connection SOCKS_Conn += {
 			case 4:
 				ip_addr = new AddrVal(IPAddr(IPv6, (const uint32_t*) ${reply.bound.ipv6}, IPAddr::Network));
 				break;
+			
+			default:
+				bro_analyzer()->ProtocolViolation(fmt("invalid SOCKSv5 addr type: %d", ${reply.bound.addr_type}));
+				return false;
+				break;
 			}
 		
 		if ( ! ip_addr )
@@ -138,6 +155,17 @@ refine connection SOCKS_Conn += {
 		return true;
 		%}
 		
+	function version_error(version: uint8): bool
+		%{
+		bro_analyzer()->ProtocolViolation(fmt("unsupported/unknown SOCKS version %d", version));
+		return true;
+		%}
+	
+		
+};
+
+refine typeattr SOCKS_Version_Error += &let {
+	proc: bool = $context.connection.version_error(version);
 };
 
 refine typeattr SOCKS4_Request += &let {

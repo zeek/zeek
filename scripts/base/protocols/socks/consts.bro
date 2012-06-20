@@ -11,7 +11,6 @@ export {
 		[1] = "GSSAPI",
 		[2] = "Username/Password",
 		[3] = "Challenge-Handshake Authentication Protocol",
-		[4] = "Unassigned",
 		[5] = "Challenge-Response Authentication Method",
 		[6] = "Secure Sockets Layer",
 		[7] = "NDS Authentication",

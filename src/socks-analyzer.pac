@@ -22,9 +22,11 @@ refine connection SOCKS_Conn += {
 
 	function socks4_request(request: SOCKS4_Request): bool
 		%{
-		StringVal *dstname;
+		StringVal *dstname = 0;
 		if ( ${request.v4a} )
 			dstname = array_to_string(${request.name});
+		else
+			dstname = new StringVal("");
 		
 		BifEvent::generate_socks_request(bro_analyzer(),
 		                                 bro_analyzer()->Conn(),
@@ -77,6 +79,11 @@ refine connection SOCKS_Conn += {
 				break;
 			}
 		
+		if ( ! ip_addr )
+			ip_addr = new AddrVal(uint32(0));
+		if ( ! domain_name )
+			domain_name = new StringVal("");
+		
 		BifEvent::generate_socks_request(bro_analyzer(),
 		                                 bro_analyzer()->Conn(),
 		                                 5,
@@ -112,6 +119,11 @@ refine connection SOCKS_Conn += {
 				ip_addr = new AddrVal(IPAddr(IPv6, (const uint32_t*) ${reply.bound.ipv6}, IPAddr::Network));
 				break;
 			}
+		
+		if ( ! ip_addr )
+			ip_addr = new AddrVal(uint32(0));
+		if ( ! domain_name )
+			domain_name = new StringVal("");
 		
 		BifEvent::generate_socks_reply(bro_analyzer(),
 		                               bro_analyzer()->Conn(),

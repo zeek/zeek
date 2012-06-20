@@ -6,10 +6,11 @@
 #define dnp3_h
 
 #include "TCP.h"
+//#include "DNP3-TCP.h"
 #include "dnp3_pac.h"
 
 class DNP3_Analyzer : public TCP_ApplicationAnalyzer {
-
+//class DNP3_Analyzer : public DNP3TCP_Analyzer {
 public:
 	DNP3_Analyzer(Connection* conn);
 	virtual ~DNP3_Analyzer();

@@ -1,9 +1,0 @@
-#separator \x09
-#set_separator	,
-#empty_field	(empty)
-#unset_field	-
-#path	tunnel
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	action	tunnel_type
-#types	time	string	addr	port	addr	port	enum	enum
-1208299429.267808	UWkUyAuUGXf	127.0.0.1	62270	127.0.0.1	1080	Tunnel::DISCOVER	Tunnel::SOCKS
-1208299429.273401	UWkUyAuUGXf	127.0.0.1	62270	127.0.0.1	1080	Tunnel::CLOSE	Tunnel::SOCKS

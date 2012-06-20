@@ -1,8 +1,0 @@
-#separator \x09
-#set_separator	,
-#empty_field	(empty)
-#unset_field	-
-#path	http
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	trans_depth	method	host	uri	referrer	user_agent	request_body_len	response_body_len	status_code	status_msg	info_code	info_msg	filename	tags	username	password	proxied	mime_type	md5	extraction_file
-#types	time	string	addr	port	addr	port	count	string	string	string	string	string	count	count	count	string	count	string	string	table[enum]	string	string	table[string]	string	string	file
-1208299429.270361	UWkUyAuUGXf	127.0.0.1	62270	127.0.0.1	1080	1	GET	www.icir.org	/	-	curl/7.16.3 (powerpc-apple-darwin9.0) libcurl/7.16.3 OpenSSL/0.9.7l zlib/1.2.3	0	3677	200	OK	-	-	-	(empty)	-	-	-	text/html	-	-

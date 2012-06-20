@@ -28,17 +28,20 @@ export {
 		ts:          time         &log;
 		## The unique identifier for the tunnel, which may correspond
 		## to a :bro:type:`connection`'s *uid* field for non-IP-in-IP tunnels.
-		uid:         string       &log;
+		## This is optional because there could be numerous connections
+		## for payload proxies like SOCKS but we should treat it as a single
+		## tunnel.
+		uid:         string       &log &optional;
 		## The tunnel "connection" 4-tuple of endpoint addresses/ports.
 		## For an IP tunnel, the ports will be 0.
 		id:          conn_id      &log;
-		## The type of activity that occurred.
-		action:      Action       &log;
 		## The type of tunnel.
 		tunnel_type: Tunnel::Type &log;
+		## The type of activity that occurred.
+		action:      Action       &log;
 	};
 
-	## Logs all tunnels in an ecapsulation chain with action
+	## Logs all tunnels in an encapsulation chain with action
 	## :bro:see:`Tunnel::DISCOVER` that aren't already in the
 	## :bro:id:`Tunnel::active` table and adds them if not.
 	global register_all: function(ecv: EncapsulatingConnVector);
@@ -71,7 +74,7 @@ export {
 
 	## The amount of time a tunnel is not used in establishment of new
 	## connections before it is considered inactive/expired.
-	const expiration_interval = 24hrs &redef;
+	const expiration_interval = 1hrs &redef;
 
 	## Currently active tunnels.  That is, tunnels for which new, encapsulated
 	## connections have been seen in the interval indicated by
@@ -104,7 +107,8 @@ function register(ec: EncapsulatingConn)
 		{
 		local tunnel: Info;
 		tunnel$ts = network_time();
-		tunnel$uid = ec$uid;
+		if ( ec?$uid )
+			tunnel$uid = ec$uid;
 		tunnel$id = ec$cid;
 		tunnel$action = DISCOVER;
 		tunnel$tunnel_type = ec$tunnel_type;

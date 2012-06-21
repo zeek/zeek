@@ -3,6 +3,6 @@
 #empty_field	(empty)
 #unset_field	-
 #path	socks
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	user	status	req_h	req_name	req_p	bound_h	bound_name	bound_p
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	user	status	request.host	request.name	request_p	bound.host	bound.name	bound_p
 #types	time	string	addr	port	addr	port	count	string	string	addr	string	port	addr	string	port
 1340113261.914619	UWkUyAuUGXf	10.0.0.50	59580	85.194.84.197	1080	5	-	succeeded	-	www.google.com	443	0.0.0.0	-	443

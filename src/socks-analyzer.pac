@@ -22,19 +22,16 @@ refine connection SOCKS_Conn += {
 
 	function socks4_request(request: SOCKS4_Request): bool
 		%{
-
-		StringVal *dstname = 0;
+		RecordVal* sa = new RecordVal(socks_address);
+		sa->Assign(0, new AddrVal(htonl(${request.addr})));
 		if ( ${request.v4a} )
-			dstname = array_to_string(${request.name});
-		else
-			dstname = new StringVal("");
+			sa->Assign(1, array_to_string(${request.name}));
 
 		BifEvent::generate_socks_request(bro_analyzer(),
 		                                 bro_analyzer()->Conn(),
 		                                 4,
 		                                 ${request.command},
-		                                 new AddrVal(htonl(${request.addr})),
-		                                 dstname,
+		                                 sa,
 		                                 new PortVal(${request.port} | TCP_PORT_MASK),
 		                                 array_to_string(${request.user}));
 
@@ -45,12 +42,14 @@ refine connection SOCKS_Conn += {
 
 	function socks4_reply(reply: SOCKS4_Reply): bool
 		%{
+		RecordVal* sa = new RecordVal(socks_address);
+		sa->Assign(0, new AddrVal(htonl(${reply.addr})));
+
 		BifEvent::generate_socks_reply(bro_analyzer(),
 		                               bro_analyzer()->Conn(),
 		                               4,
 		                               ${reply.status},
-		                               new AddrVal(htonl(${reply.addr})),
-		                               new StringVal(""),
+		                               sa,
 		                               new PortVal(${reply.port} | TCP_PORT_MASK));
 
 		bro_analyzer()->ProtocolConfirmation();
@@ -66,23 +65,22 @@ refine connection SOCKS_Conn += {
 			return false;
 			}
 
-		AddrVal *ip_addr = 0;
-		StringVal *domain_name = 0;
+		RecordVal* sa = new RecordVal(socks_address);
 
 		// This is dumb and there must be a better way (checking for presence of a field)...
 		switch ( ${request.remote_name.addr_type} )
 			{
 			case 1:
-				ip_addr = new AddrVal(htonl(${request.remote_name.ipv4}));
+				sa->Assign(0, new AddrVal(htonl(${request.remote_name.ipv4})));
 				break;
 
 			case 3:
-				domain_name = new StringVal(${request.remote_name.domain_name.name}.length(),
-				                            (const char*) ${request.remote_name.domain_name.name}.data());
+				sa->Assign(1, new StringVal(${request.remote_name.domain_name.name}.length(),
+				                         (const char*) ${request.remote_name.domain_name.name}.data()));
 				break;
 
 			case 4:
-				ip_addr = new AddrVal(IPAddr(IPv6, (const uint32_t*) ${request.remote_name.ipv6}, IPAddr::Network));
+				sa->Assign(0, new AddrVal(IPAddr(IPv6, (const uint32_t*) ${request.remote_name.ipv6}, IPAddr::Network)));
 				break;
 
 			default:
@@ -91,18 +89,11 @@ refine connection SOCKS_Conn += {
 				break;
 			}
 
-		if ( ! ip_addr )
-			ip_addr = new AddrVal(uint32(0));
-
-		if ( ! domain_name )
-			domain_name = new StringVal("");
-
 		BifEvent::generate_socks_request(bro_analyzer(),
 		                                 bro_analyzer()->Conn(),
 		                                 5,
 		                                 ${request.command},
-		                                 ip_addr,
-		                                 domain_name,
+		                                 sa,
 		                                 new PortVal(${request.port} | TCP_PORT_MASK),
 		                                 new StringVal(""));
 
@@ -113,23 +104,22 @@ refine connection SOCKS_Conn += {
 
 	function socks5_reply(reply: SOCKS5_Reply): bool
 		%{
-		AddrVal *ip_addr = 0;
-		StringVal *domain_name = 0;
+		RecordVal* sa = new RecordVal(socks_address);
 
 		// This is dumb and there must be a better way (checking for presence of a field)...
 		switch ( ${reply.bound.addr_type} )
 			{
 			case 1:
-				ip_addr = new AddrVal(htonl(${reply.bound.ipv4}));
+				sa->Assign(0, new AddrVal(htonl(${reply.bound.ipv4})));
 				break;
 
 			case 3:
-				domain_name = new StringVal(${reply.bound.domain_name.name}.length(),
-				                            (const char*) ${reply.bound.domain_name.name}.data());
+				sa->Assign(1, new StringVal(${reply.bound.domain_name.name}.length(),
+				                         (const char*) ${reply.bound.domain_name.name}.data()));
 				break;
 
 			case 4:
-				ip_addr = new AddrVal(IPAddr(IPv6, (const uint32_t*) ${reply.bound.ipv6}, IPAddr::Network));
+				sa->Assign(0, new AddrVal(IPAddr(IPv6, (const uint32_t*) ${reply.bound.ipv6}, IPAddr::Network)));
 				break;
 
 			default:
@@ -138,18 +128,11 @@ refine connection SOCKS_Conn += {
 				break;
 			}
 
-		if ( ! ip_addr )
-			ip_addr = new AddrVal(uint32(0));
-
-		if ( ! domain_name )
-			domain_name = new StringVal("");
-
 		BifEvent::generate_socks_reply(bro_analyzer(),
 		                               bro_analyzer()->Conn(),
 		                               5,
 		                               ${reply.reply},
-		                               ip_addr,
-		                               domain_name,
+		                               sa,
 		                               new PortVal(${reply.port} | TCP_PORT_MASK));
 
 		bro_analyzer()->ProtocolConfirmation();

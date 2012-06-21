@@ -2402,6 +2402,17 @@ type bittorrent_benc_dir: table[string] of bittorrent_benc_value;
 ##    bt_tracker_response_not_ok
 type bt_tracker_headers: table[string] of string;
 
+module SOCKS;
+export {
+	## This record is for a SOCKS client or server to provide either a 
+	## name or an address to represent a desired or established connection.
+	type Address: record {
+		host: addr   &optional;
+		name: string &optional;
+	} &log;
+}
+module GLOBAL;
+
 @load base/event.bif
 
 ## BPF filter the user has set via the -f command line options. Empty if none.

@@ -1,4 +1,17 @@
 
+2.0-709 | 2012-06-21 10:14:24 -0700
+
+  * Fix exceptions thrown in event handlers preventing others from running. (Jon Siwek)
+
+  * Add another SOCKS command. (Seth Hall)
+
+  * Fixed some problems with the SOCKS analyzer and tests. (Seth Hall)
+
+  * Updating NEWS in preparation for beta. (Robin Sommer)
+
+  * Accepting different AF_INET6 values for loopback link headers.
+    (Robin Sommer)
+
 2.0-698 | 2012-06-20 14:30:40 -0700
 
   * Updates for the SOCKS analyzer (Seth Hall).

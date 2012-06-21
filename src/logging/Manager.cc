@@ -74,6 +74,7 @@ struct Manager::WriterInfo {
 	double interval;
 	Func* postprocessor;
 	WriterFrontend* writer;
+	WriterBackend::WriterInfo info;
 	};
 
 struct Manager::Stream {
@@ -764,8 +765,11 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 			for ( int j = 0; j < filter->num_fields; ++j )
 				arg_fields[j] = new threading::Field(*filter->fields[j]);
 
+			WriterBackend::WriterInfo info;
+			info.path = path;
+
 			writer = CreateWriter(stream->id, filter->writer,
-					      path, filter->num_fields,
+					      info, filter->num_fields,
 					      arg_fields, filter->local, filter->remote);
 
 			if ( ! writer )
@@ -953,7 +957,7 @@ threading::Value** Manager::RecordToFilterVals(Stream* stream, Filter* filter,
 	return vals;
 	}
 
-WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, string path,
+WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, const WriterBackend::WriterInfo& info,
 				int num_fields, const threading::Field* const*  fields, bool local, bool remote)
 	{
 	Stream* stream = FindStream(id);
@@ -963,7 +967,7 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, string path,
 		return false;
 
 	Stream::WriterMap::iterator w =
-		stream->writers.find(Stream::WriterPathPair(writer->AsEnum(), path));
+		stream->writers.find(Stream::WriterPathPair(writer->AsEnum(), info.path));
 
 	if ( w != stream->writers.end() )
 		// If we already have a writer for this. That's fine, we just
@@ -973,7 +977,7 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, string path,
 	WriterFrontend* writer_obj = new WriterFrontend(id, writer, local, remote);
 	assert(writer_obj);
 
-	writer_obj->Init(path, num_fields, fields);
+	writer_obj->Init(info, num_fields, fields);
 
 	WriterInfo* winfo = new WriterInfo;
 	winfo->type = writer->Ref()->AsEnumVal();
@@ -982,6 +986,7 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, string path,
 	winfo->rotation_timer = 0;
 	winfo->interval = 0;
 	winfo->postprocessor = 0;
+	winfo->info = info;
 
 	// Search for a corresponding filter for the writer/path pair and use its
 	// rotation settings.  If no matching filter is found, fall back on
@@ -993,7 +998,7 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, string path,
 		{
 		Filter* f = *it;
 		if ( f->writer->AsEnum() == writer->AsEnum() &&
-		     f->path == winfo->writer->Path() )
+		     f->path == winfo->writer->info.path )
 			{
 			found_filter_match = true;
 			winfo->interval = f->interval;
@@ -1012,7 +1017,7 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, string path,
 	InstallRotationTimer(winfo);
 
 	stream->writers.insert(
-		Stream::WriterMap::value_type(Stream::WriterPathPair(writer->AsEnum(), path),
+		Stream::WriterMap::value_type(Stream::WriterPathPair(writer->AsEnum(), info.path),
 		winfo));
 
 	return writer_obj;
@@ -1093,7 +1098,7 @@ void Manager::SendAllWritersTo(RemoteSerializer::PeerID peer)
 			EnumVal writer_val(i->first.first, BifType::Enum::Log::Writer);
 			remote_serializer->SendLogCreateWriter(peer, (*s)->id,
 							       &writer_val,
-							       i->first.second,
+							       i->second->info,
 							       writer->NumFields(),
 							       writer->Fields());
 			}
@@ -1246,7 +1251,7 @@ void Manager::Rotate(WriterInfo* winfo)
 	localtime_r(&teatime, &tm);
 	strftime(buf, sizeof(buf), date_fmt, &tm);
 
-	string tmp = string(fmt("%s-%s", winfo->writer->Path().c_str(), buf));
+	string tmp = string(fmt("%s-%s", winfo->writer->Info().path.c_str(), buf));
 
 	// Trigger the rotation.
 	winfo->writer->Rotate(tmp, winfo->open_time, network_time, terminating);
@@ -1274,7 +1279,7 @@ bool Manager::FinishedRotation(WriterFrontend* writer, string new_name, string o
 	RecordVal* info = new RecordVal(BifType::Record::Log::RotationInfo);
 	info->Assign(0, winfo->type->Ref());
 	info->Assign(1, new StringVal(new_name.c_str()));
-	info->Assign(2, new StringVal(winfo->writer->Path().c_str()));
+	info->Assign(2, new StringVal(winfo->writer->Info().path.c_str()));
 	info->Assign(3, new Val(open, TYPE_TIME));
 	info->Assign(4, new Val(close, TYPE_TIME));
 	info->Assign(5, new Val(terminating, TYPE_BOOL));

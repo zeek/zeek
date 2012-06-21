@@ -2,6 +2,7 @@
 #include "Net.h"
 #include "threading/SerialTypes.h"
 
+#include "Manager.h"
 #include "WriterFrontend.h"
 #include "WriterBackend.h"
 
@@ -15,14 +16,14 @@ namespace logging  {
 class InitMessage : public threading::InputMessage<WriterBackend>
 {
 public:
-	InitMessage(WriterBackend* backend, const string path, const int num_fields, const Field* const* fields)
+	InitMessage(WriterBackend* backend, const WriterBackend::WriterInfo& info, const int num_fields, const Field* const* fields)
 		: threading::InputMessage<WriterBackend>("Init", backend),
-		path(path), num_fields(num_fields), fields(fields) { }
+		info(info), num_fields(num_fields), fields(fields) { }
 
-	virtual bool Process() { return Object()->Init(path, num_fields, fields); }
+	virtual bool Process() { return Object()->Init(info, num_fields, fields); }
 
 private:
-	const string path;
+	WriterBackend::WriterInfo info;
 	const int num_fields;
 	const Field * const* fields;
 };
@@ -134,10 +135,10 @@ WriterFrontend::~WriterFrontend()
 
 string WriterFrontend::Name() const
 	{
-	if ( path.size() )
+	if ( info.path.size() )
 		return ty_name;
 
-	return ty_name + "/" + path;
+	return ty_name + "/" + info.path;
 	}
 
 void WriterFrontend::Stop()
@@ -149,7 +150,7 @@ void WriterFrontend::Stop()
 		backend->Stop();
 	}
 
-void WriterFrontend::Init(string arg_path, int arg_num_fields, const Field* const * arg_fields)
+void WriterFrontend::Init(const WriterBackend::WriterInfo& arg_info, int arg_num_fields, const Field* const * arg_fields)
 	{
 	if ( disabled )
 		return;
@@ -157,19 +158,19 @@ void WriterFrontend::Init(string arg_path, int arg_num_fields, const Field* cons
 	if ( initialized )
 		reporter->InternalError("writer initialize twice");
 
-	path = arg_path;
+	info = arg_info;
 	num_fields = arg_num_fields;
 	fields = arg_fields;
 
 	initialized = true;
 
 	if ( backend )
-		backend->SendIn(new InitMessage(backend, arg_path, arg_num_fields, arg_fields));
+		backend->SendIn(new InitMessage(backend, arg_info, arg_num_fields, arg_fields));
 
 	if ( remote )
 		remote_serializer->SendLogCreateWriter(stream,
 						       writer,
-						       arg_path,
+						       arg_info,
 						       arg_num_fields,
 						       arg_fields);
 
@@ -183,7 +184,7 @@ void WriterFrontend::Write(int num_fields, Value** vals)
 	if ( remote )
 		remote_serializer->SendLogWrite(stream,
 						writer,
-						path,
+						info.path,
 						num_fields,
 						vals);
 

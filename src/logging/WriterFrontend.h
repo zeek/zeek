@@ -3,13 +3,13 @@
 #ifndef LOGGING_WRITERFRONTEND_H
 #define LOGGING_WRITERFRONTEND_H
 
-#include "Manager.h"
+#include "WriterBackend.h"
 
 #include "threading/MsgThread.h"
 
 namespace logging  {
 
-class WriterBackend;
+class Manager;
 
 /**
  * Bridge class between the logging::Manager and backend writer threads. The
@@ -68,7 +68,7 @@ public:
 	 *
 	 * This method must only be called from the main thread.
 	 */
-	void Init(string path, int num_fields, const threading::Field* const*  fields);
+	void Init(const WriterBackend::WriterInfo& info, int num_fields, const threading::Field* const*  fields);
 
 	/**
 	 * Write out a record.
@@ -169,9 +169,9 @@ public:
 	bool Disabled()	{ return disabled; }
 
 	/**
-	 * Returns the log path as passed into the constructor.
+	 * Returns the additional writer information as passed into the constructor.
 	 */
-	const string Path() const	{ return path; }
+	const WriterBackend::WriterInfo& Info() const	{ return info; }
 
 	/**
 	 * Returns the number of log fields as passed into the constructor.
@@ -207,7 +207,7 @@ protected:
 	bool remote;	// True if loggin remotely.
 
 	string ty_name;	// Name of the backend type. Set by the manager.
-	string path;	// The log path.
+	WriterBackend::WriterInfo info;	// The writer information.
 	int num_fields;	// The number of log fields.
 	const threading::Field* const*  fields;	// The log fields.
 

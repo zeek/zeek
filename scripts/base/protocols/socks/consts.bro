@@ -2,8 +2,9 @@ module SOCKS;
 
 export {
 	type RequestType: enum {
-		CONNECTION = 1,
-		PORT       = 2,
+		CONNECTION    = 1,
+		PORT          = 2,
+		UDP_ASSOCIATE = 3,
 	};
 
 	const v5_authentication_methods: table[count] of string = {
@@ -36,5 +37,4 @@ export {
 		[7] = "Command not supported",
 		[8] = "Address type not supported",
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };
-
 }

@@ -51,6 +51,8 @@ extern int tcp_excessive_data_without_further_acks;
 
 extern RecordType* x509_type;
 
+extern RecordType* socks_address;
+
 extern double non_analyzed_lifetime;
 extern double tcp_inactivity_timeout;
 extern double udp_inactivity_timeout;

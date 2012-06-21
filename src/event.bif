@@ -6112,7 +6112,7 @@ event signature_match%(state: signature_state, msg: string, data: string%);
 ## p: The destination port for the proxied traffic.
 ##
 ## user: Username given for the SOCKS connection.  This is not yet implemented for SOCKSv5.
-event socks_request%(c: connection, version: count, request_type: count, dstaddr: addr, dstname: string, p: port, user: string%);
+event socks_request%(c: connection, version: count, request_type: count, sa: SOCKS::Address, p: port, user: string%);
 
 ## Generated when a SOCKS reply is analyzed.
 ##
@@ -6127,7 +6127,7 @@ event socks_request%(c: connection, version: count, request_type: count, dstaddr
 ## dstname: The name the server sent the traffic to.  Only applicable for SOCKSv5.
 ##
 ## p: The destination port for the proxied traffic.
-event socks_reply%(c: connection, version: count, reply: count, dstaddr: addr, dstname: string, p: port%);
+event socks_reply%(c: connection, version: count, reply: count, sa: SOCKS::Address, p: port%);
 
 ## Generated when a protocol analyzer finds an identification of a software
 ## used on a system. This is a protocol-independent event that is fed by

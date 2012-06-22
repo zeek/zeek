@@ -1082,18 +1082,8 @@ const char* log_file_name(const char* tag)
 	return fmt("%s.%s", tag, (env ? env : "log"));
 	}
 
-double calc_next_rotate(double interval, const char* rotate_base_time)
+double parse_rotate_base_time(const char* rotate_base_time)
 	{
-	double current = network_time;
-
-	// Calculate start of day.
-	time_t teatime = time_t(current);
-
-	struct tm t;
-	t = *localtime(&teatime);
-	t.tm_hour = t.tm_min = t.tm_sec = 0;
-	double startofday = mktime(&t);
-
 	double base = -1;
 
 	if ( rotate_base_time && rotate_base_time[0] != '\0' )
@@ -1104,6 +1094,19 @@ double calc_next_rotate(double interval, const char* rotate_base_time)
 		else
 			base = t.tm_min * 60 + t.tm_hour * 60 * 60;
 		}
+
+	return base;
+	}
+
+double calc_next_rotate(double current, double interval, double base)
+	{
+	// Calculate start of day.
+	time_t teatime = time_t(current);
+
+	struct tm t;
+	t = *localtime_r(&teatime, &t);
+	t.tm_hour = t.tm_min = t.tm_sec = 0;
+	double startofday = mktime(&t);
 
 	if ( base < 0 )
 		// No base time given. To get nice timestamps, we round

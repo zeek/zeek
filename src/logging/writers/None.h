@@ -19,7 +19,7 @@ public:
 
 protected:
 	virtual bool DoInit(const WriterInfo& info, int num_fields,
-			    const threading::Field* const * fields)	{ return true; }
+			    const threading::Field* const * fields);
 
 	virtual bool DoWrite(int num_fields, const threading::Field* const* fields,
 			     threading::Value** vals)	{ return true; }
@@ -27,7 +27,7 @@ protected:
 	virtual bool DoRotate(string rotated_path, double open,
 			      double close, bool terminating);
 	virtual bool DoFlush()	{ return true; }
-	virtual bool DoFinish()	{ return true; }
+	virtual bool DoFinish()	{ WriterBackend::DoFinish(); return true; }
 };
 
 }

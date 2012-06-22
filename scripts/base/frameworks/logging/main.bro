@@ -138,6 +138,10 @@ export {
 		## Callback function to trigger for rotated files. If not set, the
 		## default comes out of :bro:id:`Log::default_rotation_postprocessors`.
 		postprocessor: function(info: RotationInfo) : bool &optional;
+
+		## A key/value table that will be passed on the writer.
+                ## Interpretation of the values is left to the writer.
+                config: table[string] of string &default=table();
 	};
 
 	## Sentinel value for indicating that a filter was not found when looked up.
@@ -327,6 +331,8 @@ function __default_rotation_postprocessor(info: RotationInfo) : bool
 	{
 	if ( info$writer in default_rotation_postprocessors )
 		return default_rotation_postprocessors[info$writer](info);
+
+	return F;
 	}
 
 function default_path_func(id: ID, path: string, rec: any) : string

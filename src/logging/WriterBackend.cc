@@ -63,12 +63,48 @@ using namespace logging;
 
 bool WriterBackend::WriterInfo::Read(SerializationFormat* fmt)
 	{
-	return fmt->Read(&path, "path");
+	int size;
+
+	if ( ! (fmt->Read(&path, "path") &&
+		fmt->Read(&rotation_base, "rotation_base") &&
+		fmt->Read(&rotation_interval, "rotation_interval") &&
+		fmt->Read(&size, "config_size")) )
+		return false;
+
+	config.clear();
+
+	while ( size )
+		{
+		string value;
+		string key;
+
+		if ( ! (fmt->Read(&value, "config-value") && fmt->Read(&value, "config-key")) )
+			return false;
+
+		config.insert(std::make_pair(value, key));
+		}
+
+	return true;
 	}
+
 
 bool WriterBackend::WriterInfo::Write(SerializationFormat* fmt) const
 	{
-	return fmt->Write(path, "path");
+	int size = config.size();
+
+	if ( ! (fmt->Write(path, "path") &&
+		fmt->Write(rotation_base, "rotation_base") &&
+		fmt->Write(rotation_interval, "rotation_interval") &&
+		fmt->Write(size, "config_size")) )
+		return false;
+
+	for ( config_map::const_iterator i = config.begin(); i != config.end(); ++i ) 
+		{
+		if ( ! (fmt->Write(i->first, "config-value") && fmt->Write(i->second, "config-key")) )
+			return false;
+		}
+
+	return true;
 	}
 
 WriterBackend::WriterBackend(WriterFrontend* arg_frontend) : MsgThread()

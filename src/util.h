@@ -193,9 +193,22 @@ extern FILE* rotate_file(const char* name, RecordVal* rotate_info);
 // This mimics the script-level function with the same name.
 const char* log_file_name(const char* tag);
 
+// Parse a time string of the form "HH:MM" (as used for the rotation base
+// time) into a double representing the number of seconds. Returns -1 if the
+// string cannot be parsed. The function's result is intended to be used with
+// calc_next_rotate().
+//
+// This function is not thread-safe.
+double parse_rotate_base_time(const char* rotate_base_time);
+
 // Calculate the duration until the next time a file is to be rotated, based
-// on the given rotate_interval and rotate_base_time.
-double calc_next_rotate(double rotate_interval, const char* rotate_base_time);
+// on the given rotate_interval and rotate_base_time. 'current' the the
+// current time to be used as base, 'rotate_interval' the rotation interval,
+// and 'base' the value returned by parse_rotate_base_time(). For the latter,
+// if the function returned -1, that's fine, calc_next_rotate() handles that.
+//
+// This function is thread-safe.
+double calc_next_rotate(double current, double rotate_interval, double base);
 
 // Terminates processing gracefully, similar to pressing CTRL-C.
 void terminate_processing();

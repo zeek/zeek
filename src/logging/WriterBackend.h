@@ -48,12 +48,30 @@ public:
 	 */
 	struct WriterInfo
 		{
+		typedef std::map<string, string> config_map;
+
 		/**
 		 * A string left to the interpretation of the writer
 		 * implementation; it corresponds to the value configured on
 		 * the script-level for the logging filter.
 		 */
 		string path;
+
+		/**
+		 * The rotation interval as configured for this writer.
+		 */
+		double rotation_interval;
+
+		/**
+		 * The parsed value of log_rotate_base_time in seconds.
+		 */
+		double rotation_base;
+
+		/**
+		 * A map of key/value pairs corresponding to the relevant
+		 * filter's "config" table.
+		 */
+		std::map<string, string> config;
 
 		private:
 		friend class ::RemoteSerializer;

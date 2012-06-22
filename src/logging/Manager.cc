@@ -51,6 +51,7 @@ struct Manager::Filter {
 	string path;
 	Val* path_val;
 	EnumVal* writer;
+	TableVal* config;
 	bool local;
 	bool remote;
 	double interval;
@@ -519,6 +520,7 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 	Val* log_remote = fval->LookupWithDefault(rtype->FieldOffset("log_remote"));
 	Val* interv = fval->LookupWithDefault(rtype->FieldOffset("interv"));
 	Val* postprocessor = fval->LookupWithDefault(rtype->FieldOffset("postprocessor"));
+	Val* config = fval->LookupWithDefault(rtype->FieldOffset("config"));
 
 	Filter* filter = new Filter;
 	filter->name = name->AsString()->CheckString();
@@ -530,6 +532,7 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 	filter->remote = log_remote->AsBool();
 	filter->interval = interv->AsInterval();
 	filter->postprocessor = postprocessor ? postprocessor->AsFunc() : 0;
+	filter->config = config->Ref()->AsTableVal();
 
 	Unref(name);
 	Unref(pred);
@@ -538,6 +541,7 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 	Unref(log_remote);
 	Unref(interv);
 	Unref(postprocessor);
+	Unref(config);
 
 	// Build the list of fields that the filter wants included, including
 	// potentially rolling out fields.
@@ -768,6 +772,22 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 			WriterBackend::WriterInfo info;
 			info.path = path;
 
+			HashKey* k;
+			IterCookie* c = filter->config->AsTable()->InitForIteration();
+
+			TableEntryVal* v;
+			while ( (v = filter->config->AsTable()->NextEntry(k, c)) )
+				{
+				ListVal* index = filter->config->RecoverIndex(k);
+				string key = index->Index(0)->AsString()->CheckString();
+				string value = v->Value()->AsString()->CheckString();
+				info.config.insert(std::make_pair(key, value));
+				Unref(index);
+				delete k;
+				}
+
+			// CreateWriter() will set the other fields in info.
+
 			writer = CreateWriter(stream->id, filter->writer,
 					      info, filter->num_fields,
 					      arg_fields, filter->local, filter->remote);
@@ -777,7 +797,6 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 				Unref(columns);
 				return false;
 				}
-
 			}
 
 		// Alright, can do the write now.
@@ -977,8 +996,6 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, const Writer
 	WriterFrontend* writer_obj = new WriterFrontend(id, writer, local, remote);
 	assert(writer_obj);
 
-	writer_obj->Init(info, num_fields, fields);
-
 	WriterInfo* winfo = new WriterInfo;
 	winfo->type = writer->Ref()->AsEnumVal();
 	winfo->writer = writer_obj;
@@ -1019,6 +1036,16 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, const Writer
 	stream->writers.insert(
 		Stream::WriterMap::value_type(Stream::WriterPathPair(writer->AsEnum(), info.path),
 		winfo));
+
+	// Still need to set the WriterInfo's rotation parameters, which we
+	// computed above.
+	const char* base_time = log_rotate_base_time ?
+		log_rotate_base_time->AsString()->CheckString() : 0;
+
+	winfo->info.rotation_interval = winfo->interval;
+	winfo->info.rotation_base = parse_rotate_base_time(base_time);
+
+	writer_obj->Init(winfo->info, num_fields, fields);
 
 	return writer_obj;
 	}
@@ -1223,8 +1250,9 @@ void Manager::InstallRotationTimer(WriterInfo* winfo)
 			const char* base_time = log_rotate_base_time ?
 				log_rotate_base_time->AsString()->CheckString() : 0;
 
+			double base = parse_rotate_base_time(base_time);
 			double delta_t =
-				calc_next_rotate(rotation_interval, base_time);
+				calc_next_rotate(network_time, rotation_interval, base);
 
 			winfo->rotation_timer =
 				new RotationTimer(network_time + delta_t, winfo, true);

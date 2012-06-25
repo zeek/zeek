@@ -191,10 +191,10 @@ WriterBackend* Manager::CreateBackend(WriterFrontend* frontend, bro_int_t type)
 
 	assert(ld->factory);
 
+	frontend->ty_name = ld->name;
 	WriterBackend* backend = (*ld->factory)(frontend);
 	assert(backend);
 
-	frontend->ty_name = ld->name;
 	return backend;
 	}
 

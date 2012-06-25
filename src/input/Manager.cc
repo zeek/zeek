@@ -255,10 +255,10 @@ ReaderBackend* Manager::CreateBackend(ReaderFrontend* frontend, bro_int_t type)
 
 	assert(ir->factory);
 
+	frontend->ty_name = ir->name;
 	ReaderBackend* backend = (*ir->factory)(frontend);
 	assert(backend);
 
-	frontend->ty_name = ir->name;
 	return backend;
 	}
 

@@ -38,14 +38,14 @@ New Functionality
 - Bro now decapsulates tunnels via its new tunnel framework located in
   scripts/base/frameworks/tunnels. It currently supports Teredo,
   AYIYA, IP-in-IP (both IPv4 and IPv6), and SOCKS. For all these, it
-  logs the outher tunnel connections in both conn.log and tunnel.log,
+  logs the outer tunnel connections in both conn.log and tunnel.log,
   and then proceeds to analyze the inner payload as if it were not
   tunneled, including also logging that session in conn.log. For
   SOCKS, it generates a new socks.log in addition with more
   information.
 
 - Bro now features a flexible input framework that allows users to
-  integrate external information in real-time into Bro while it
+  integrate external information in real-time into Bro while it's
   processing network traffic. The most direct use-case at the moment
   is reading data from ASCII files into Bro tables, with updates
   picked up automatically when the file changes during runtime. See
@@ -57,7 +57,7 @@ New Functionality
 
 - Bro's default ASCII log format is not exactly the most efficient way
   for storing and searching large volumes of data. An an alternative,
-  Bro nows comes with experimental support for DataSeries output, an
+  Bro now comes with experimental support for DataSeries output, an
   efficient binary format for recording structured bulk data.
   DataSeries is developed and maintained at HP Labs. See
   doc/logging-dataseries for more information.
@@ -66,7 +66,7 @@ New Functionality
 Changed Functionality
 ~~~~~~~~~~~~~~~~~~~~~
 
-The following summarized the most important differences in existing
+The following summarizes the most important differences in existing
 functionality. Note that this list is not complete, see CHANGES for
 the full set.
 
@@ -100,7 +100,7 @@ the full set.
   a bunch of Bro threads.
 
 - We renamed the configure option --enable-perftools to
-  --enable-perftool-debug to indicate that the switch is only relevant
+  --enable-perftools-debug to indicate that the switch is only relevant
   for debugging the heap.
 
 - Bro's ICMP analyzer now handles both IPv4 and IPv6 messages with a
@@ -110,8 +110,8 @@ the full set.
 - Log postprocessor scripts get an additional argument indicating the
   type of the log writer in use (e.g., "ascii").
 
-- BroControl's make-archive-name scripts also receives the writer
-  type, but as it's 2nd(!) argument. If you're using a custom version
+- BroControl's make-archive-name script also receives the writer
+  type, but as its 2nd(!) argument. If you're using a custom version
   of that script, you need to adapt it. See the shipped version for
   details.
 

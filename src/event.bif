@@ -1054,9 +1054,11 @@ event icmp_parameter_problem%(c: connection, icmp: icmp_conn, code: count, conte
 ## icmp: Additional ICMP-specific information augmenting the standard connection
 ##       record *c*.
 ##
+## options: Any Neighbor Discovery options included with message (:rfc:`4861`).
+##
 ## .. bro:see:: icmp_router_advertisement
 ##    icmp_neighbor_solicitation icmp_neighbor_advertisement icmp_redirect
-event icmp_router_solicitation%(c: connection, icmp: icmp_conn%);
+event icmp_router_solicitation%(c: connection, icmp: icmp_conn, options: icmp6_nd_options%);
 
 ## Generated for ICMP *router advertisement* messages.
 ##
@@ -1090,9 +1092,11 @@ event icmp_router_solicitation%(c: connection, icmp: icmp_conn%);
 ##
 ## retrans_timer: How long a host should wait before retransmitting.
 ##
+## options: Any Neighbor Discovery options included with message (:rfc:`4861`).
+##
 ## .. bro:see:: icmp_router_solicitation
 ##    icmp_neighbor_solicitation icmp_neighbor_advertisement icmp_redirect
-event icmp_router_advertisement%(c: connection, icmp: icmp_conn, cur_hop_limit: count, managed: bool, other: bool, home_agent: bool, pref: count, proxy: bool, rsv: count, router_lifetime: interval, reachable_time: interval, retrans_timer: interval%);
+event icmp_router_advertisement%(c: connection, icmp: icmp_conn, cur_hop_limit: count, managed: bool, other: bool, home_agent: bool, pref: count, proxy: bool, rsv: count, router_lifetime: interval, reachable_time: interval, retrans_timer: interval, options: icmp6_nd_options%);
 
 ## Generated for ICMP *neighbor solicitation* messages.
 ##
@@ -1107,9 +1111,11 @@ event icmp_router_advertisement%(c: connection, icmp: icmp_conn, cur_hop_limit: 
 ##
 ## tgt: The IP address of the target of the solicitation.
 ##
+## options: Any Neighbor Discovery options included with message (:rfc:`4861`).
+##
 ## .. bro:see:: icmp_router_solicitation icmp_router_advertisement
 ##    icmp_neighbor_advertisement icmp_redirect
-event icmp_neighbor_solicitation%(c: connection, icmp: icmp_conn, tgt:addr%);
+event icmp_neighbor_solicitation%(c: connection, icmp: icmp_conn, tgt: addr, options: icmp6_nd_options%);
 
 ## Generated for ICMP *neighbor advertisement* messages.
 ##
@@ -1131,9 +1137,11 @@ event icmp_neighbor_solicitation%(c: connection, icmp: icmp_conn, tgt:addr%);
 ## tgt: the Target Address in the soliciting message or the address whose
 ##      link-layer address has changed for unsolicited adverts.
 ##
+## options: Any Neighbor Discovery options included with message (:rfc:`4861`).
+##
 ## .. bro:see:: icmp_router_solicitation icmp_router_advertisement
 ##    icmp_neighbor_solicitation icmp_redirect
-event icmp_neighbor_advertisement%(c: connection, icmp: icmp_conn, router: bool, solicited: bool, override: bool, tgt:addr%);
+event icmp_neighbor_advertisement%(c: connection, icmp: icmp_conn, router: bool, solicited: bool, override: bool, tgt: addr, options: icmp6_nd_options%);
 
 ## Generated for ICMP *redirect* messages.
 ##
@@ -1151,9 +1159,11 @@ event icmp_neighbor_advertisement%(c: connection, icmp: icmp_conn, router: bool,
 ##
 ## dest: The address of the destination which is redirected to the target.
 ##
+## options: Any Neighbor Discovery options included with message (:rfc:`4861`).
+##
 ## .. bro:see:: icmp_router_solicitation icmp_router_advertisement
 ##    icmp_neighbor_solicitation icmp_neighbor_advertisement
-event icmp_redirect%(c: connection, icmp: icmp_conn, tgt: addr, dest: addr%);
+event icmp_redirect%(c: connection, icmp: icmp_conn, tgt: addr, dest: addr, options: icmp6_nd_options%);
 
 ## Generated when a TCP connection terminated, passing on statistics about the
 ## two endpoints. This event is always generated when Bro flushes the internal

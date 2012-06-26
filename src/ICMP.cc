@@ -169,8 +169,10 @@ void ICMP_Analyzer::NextICMP6(double t, const struct icmp* icmpp, int len, int c
 			NeighborSolicit(t, icmpp, len, caplen, data, ip_hdr);
 			break;
 		case ND_ROUTER_SOLICIT:
+			RouterSolicit(t, icmpp, len, caplen, data, ip_hdr);
+			break;
 		case ICMP6_ROUTER_RENUMBERING:
-			Router(t, icmpp, len, caplen, data, ip_hdr);
+			ICMPEvent(icmp_sent, icmpp, len, 1, ip_hdr);
 			break;
 
 #if 0
@@ -515,10 +517,12 @@ void ICMP_Analyzer::RouterAdvert(double t, const struct icmp* icmpp, int len,
 			 int caplen, const u_char*& data, const IP_Hdr* ip_hdr)
 	{
 	EventHandlerPtr f = icmp_router_advertisement;
-	uint32 reachable, retrans;
+	uint32 reachable = 0, retrans = 0;
 
-	memcpy(&reachable, data, sizeof(reachable));
-	memcpy(&retrans, data + sizeof(reachable), sizeof(retrans));
+	if ( caplen >= (int)sizeof(reachable) )
+		memcpy(&reachable, data, sizeof(reachable));
+	if ( caplen >= (int)sizeof(reachable) + (int)sizeof(retrans) )
+		memcpy(&retrans, data + sizeof(reachable), sizeof(retrans));
 
 	val_list* vl = new val_list;
 	vl->append(BuildConnVal());
@@ -534,6 +538,9 @@ void ICMP_Analyzer::RouterAdvert(double t, const struct icmp* icmpp, int len,
 	vl->append(new IntervalVal((double)ntohl(reachable), Milliseconds));
 	vl->append(new IntervalVal((double)ntohl(retrans), Milliseconds));
 
+	int opt_offset = sizeof(reachable) + sizeof(retrans);
+	vl->append(BuildNDOptionsVal(caplen - opt_offset, data + opt_offset));
+
 	ConnectionEvent(f, vl);
 	}
 
@@ -542,9 +549,10 @@ void ICMP_Analyzer::NeighborAdvert(double t, const struct icmp* icmpp, int len,
 			 int caplen, const u_char*& data, const IP_Hdr* ip_hdr)
 	{
 	EventHandlerPtr f = icmp_neighbor_advertisement;
-	in6_addr tgtaddr;
+	IPAddr tgtaddr;
 
-	memcpy(&tgtaddr.s6_addr, data, sizeof(tgtaddr.s6_addr));
+	if ( caplen >= (int)sizeof(in6_addr) )
+		tgtaddr = IPAddr(*((const in6_addr*)data));
 
 	val_list* vl = new val_list;
 	vl->append(BuildConnVal());
@@ -552,7 +560,10 @@ void ICMP_Analyzer::NeighborAdvert(double t, const struct icmp* icmpp, int len,
 	vl->append(new Val(icmpp->icmp_num_addrs & 0x80, TYPE_BOOL)); // Router
 	vl->append(new Val(icmpp->icmp_num_addrs & 0x40, TYPE_BOOL)); // Solicited
 	vl->append(new Val(icmpp->icmp_num_addrs & 0x20, TYPE_BOOL)); // Override
-	vl->append(new AddrVal(IPAddr(tgtaddr)));
+	vl->append(new AddrVal(tgtaddr));
+
+	int opt_offset = sizeof(in6_addr);
+	vl->append(BuildNDOptionsVal(caplen - opt_offset, data + opt_offset));
 
 	ConnectionEvent(f, vl);
 	}
@@ -562,14 +573,18 @@ void ICMP_Analyzer::NeighborSolicit(double t, const struct icmp* icmpp, int len,
 			 int caplen, const u_char*& data, const IP_Hdr* ip_hdr)
 	{
 	EventHandlerPtr f = icmp_neighbor_solicitation;
-	in6_addr tgtaddr;
+	IPAddr tgtaddr;
 
-	memcpy(&tgtaddr.s6_addr, data, sizeof(tgtaddr.s6_addr));
+	if ( caplen >= (int)sizeof(in6_addr) )
+		tgtaddr = IPAddr(*((const in6_addr*)data));
 
 	val_list* vl = new val_list;
 	vl->append(BuildConnVal());
 	vl->append(BuildICMPVal(icmpp, len, 1, ip_hdr));
-	vl->append(new AddrVal(IPAddr(tgtaddr)));
+	vl->append(new AddrVal(tgtaddr));
+
+	int opt_offset = sizeof(in6_addr);
+	vl->append(BuildNDOptionsVal(caplen - opt_offset, data + opt_offset));
 
 	ConnectionEvent(f, vl);
 	}
@@ -579,40 +594,35 @@ void ICMP_Analyzer::Redirect(double t, const struct icmp* icmpp, int len,
 			 int caplen, const u_char*& data, const IP_Hdr* ip_hdr)
 	{
 	EventHandlerPtr f = icmp_redirect;
-	in6_addr tgtaddr, dstaddr;
+	IPAddr tgtaddr, dstaddr;
 
-	memcpy(&tgtaddr.s6_addr, data, sizeof(tgtaddr.s6_addr));
-	memcpy(&dstaddr.s6_addr, data + sizeof(tgtaddr.s6_addr), sizeof(dstaddr.s6_addr));
+	if ( caplen >= (int)sizeof(in6_addr) )
+		tgtaddr = IPAddr(*((const in6_addr*)data));
+	if ( caplen >= 2 * (int)sizeof(in6_addr) )
+		dstaddr = IPAddr(*((const in6_addr*)(data + sizeof(in6_addr))));
 
 	val_list* vl = new val_list;
 	vl->append(BuildConnVal());
 	vl->append(BuildICMPVal(icmpp, len, 1, ip_hdr));
-	vl->append(new AddrVal(IPAddr(tgtaddr)));
-	vl->append(new AddrVal(IPAddr(dstaddr)));
+	vl->append(new AddrVal(tgtaddr));
+	vl->append(new AddrVal(dstaddr));
+
+	int opt_offset = 2 * sizeof(in6_addr);
+	vl->append(BuildNDOptionsVal(caplen - opt_offset, data + opt_offset));
 
 	ConnectionEvent(f, vl);
 	}
 
 
-void ICMP_Analyzer::Router(double t, const struct icmp* icmpp, int len,
+void ICMP_Analyzer::RouterSolicit(double t, const struct icmp* icmpp, int len,
 			 int caplen, const u_char*& data, const IP_Hdr* ip_hdr)
 	{
-	EventHandlerPtr f = 0;
-
-	switch ( icmpp->icmp_type )
-		{
-		case ND_ROUTER_SOLICIT:
-			f = icmp_router_solicitation;
-			break;
-		case ICMP6_ROUTER_RENUMBERING:
-		default:
-			ICMPEvent(icmp_sent, icmpp, len, 1, ip_hdr);
-			return;
-		}
+	EventHandlerPtr f = icmp_router_solicitation;
 
 	val_list* vl = new val_list;
 	vl->append(BuildConnVal());
 	vl->append(BuildICMPVal(icmpp, len, 1, ip_hdr));
+	vl->append(BuildNDOptionsVal(caplen, data));
 
 	ConnectionEvent(f, vl);
 	}
@@ -683,6 +693,137 @@ void ICMP_Analyzer::Context6(double t, const struct icmp* icmpp,
 		vl->append(ExtractICMP6Context(caplen, data));
 		ConnectionEvent(f, vl);
 		}
+	}
+
+VectorVal* ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_char* data)
+	{
+	static RecordType* icmp6_nd_option_type = 0;
+	static RecordType* icmp6_nd_prefix_info_type = 0;
+	if ( ! icmp6_nd_option_type )
+		{
+		icmp6_nd_option_type = internal_type("icmp6_nd_option")->AsRecordType();
+		icmp6_nd_prefix_info_type =
+		        internal_type("icmp6_nd_prefix_info")->AsRecordType();
+		}
+
+	VectorVal* vv = new VectorVal(
+	        internal_type("icmp6_nd_options")->AsVectorType());
+
+	while ( caplen > 0 )
+		{
+		// Must have at least type & length to continue parsing options.
+		if ( caplen < 2 )
+			{
+			Weird("truncated_ICMPv6_ND_options");
+			break;
+			}
+
+		uint8 type = *((const uint8*)data);
+		uint8 length = *((const uint8*)(data + 1));
+
+		if ( length == 0 )
+			{
+			Weird("zero_length_ICMPv6_ND_option");
+			break;
+			}
+
+		RecordVal* rv = new RecordVal(icmp6_nd_option_type);
+		rv->Assign(0, new Val(type, TYPE_COUNT));
+		rv->Assign(1, new Val(length, TYPE_COUNT));
+
+		// adjust length to be in units of bytes, exclude type/length fields
+		length = length * 8 - 2;
+
+		data += 2;
+		caplen -= 2;
+
+		bool set_payload_field = false;
+		// Only parse out known options that are there in full.
+		switch ( type ) {
+		case 1:
+		case 2:
+			// Source/Target Link-layer Address option
+			{
+			if ( caplen >= length )
+				{
+				BroString* link_addr = new BroString(data, length, 0);
+				rv->Assign(2, new StringVal(link_addr));
+				}
+			else
+				set_payload_field = true;
+			}
+			break;
+
+		case 3:
+			// Prefix Information option
+			{
+			if ( caplen >= 30 )
+				{
+				RecordVal* info = new RecordVal(icmp6_nd_prefix_info_type);
+				uint8 prefix_len = *((const uint8*)(data));
+				bool L_flag = (*((const uint8*)(data + 1)) & 0x80) != 0;
+				bool A_flag = (*((const uint8*)(data + 1)) & 0x40) != 0;
+				uint32 valid_life = *((const uint32*)(data + 2));
+				uint32 prefer_life = *((const uint32*)(data + 6));
+				in6_addr prefix = *((const in6_addr*)(data + 14));
+				info->Assign(0, new Val(prefix_len, TYPE_COUNT));
+				info->Assign(1, new Val(L_flag, TYPE_BOOL));
+				info->Assign(2, new Val(A_flag, TYPE_BOOL));
+				info->Assign(3, new IntervalVal((double)ntohl(valid_life), Seconds));
+				info->Assign(4, new IntervalVal((double)ntohl(prefer_life), Seconds));
+				info->Assign(5, new AddrVal(IPAddr(prefix)));
+				rv->Assign(3, info);
+				}
+			else
+				set_payload_field = true;
+			}
+			break;
+
+		case 4:
+			// Redirected Header option
+			{
+			if ( caplen >= length )
+				{
+				const u_char* hdr = data + 6;
+				rv->Assign(4, ExtractICMP6Context(length - 6, hdr));
+				}
+			else
+				set_payload_field = true;
+			}
+			break;
+
+		case 5:
+			// MTU option
+			{
+			if ( caplen >= 6 )
+				rv->Assign(5, new Val(ntohl(*((const uint32*)(data + 2))),
+				                      TYPE_COUNT));
+			else
+				set_payload_field = true;
+			}
+			break;
+
+		default:
+			{
+			set_payload_field = true;
+			}
+			break;
+		}
+
+		if ( set_payload_field )
+			{
+			BroString* payload =
+			        new BroString(data, min((int)length, caplen), 0);
+			rv->Assign(6, new StringVal(payload));
+			}
+
+		data += length;
+		caplen -= length;
+
+		vv->Assign(vv->Size(), rv, 0);
+		}
+
+	return vv;
 	}
 
 int ICMP4_counterpart(int icmp_type, int icmp_code, bool& is_one_way)

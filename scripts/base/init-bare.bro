@@ -115,6 +115,61 @@ type icmp_context: record {
 	DF: bool;	##< True if the packets *don't fragment* flag is set.
 };
 
+## Values extracted from a Prefix Information option in an ICMPv6 neighbor
+## discovery message as specified by :rfc:`4861`.
+##
+## .. bro:see:: icmp6_nd_option
+type icmp6_nd_prefix_info: record {
+	## Number of leading bits of the *prefix* that are valid.
+	prefix_len: count;
+	## Flag indicating the prefix can be used for on-link determination.
+	L_flag: bool;
+	## Autonomous address-configuration flag.
+	A_flag: bool;
+	## Length of time in seconds that the prefix is valid for purpose of
+	## on-link determination (0xffffffff represents infinity).
+	valid_lifetime: interval;
+	## Length of time in seconds that the addresses generated from the prefix
+	## via stateless address autoconfiguration remain preferred
+	## (0xffffffff represents infinity).
+	preferred_lifetime: interval;
+	## An IP address or prefix of an IP address.  Use the *prefix_len* field
+	## to convert this into a :bro:type:`subnet`.
+	prefix: addr;
+};
+
+## Options extracted from ICMPv6 neighbor discovery messages as specified
+## by :rfc:`4861`.
+##
+## .. bro:see:: icmp_router_solicitation icmp_router_advertisement
+##    icmp_neighbor_advertisement icmp_neighbor_solicitation icmp_redirect
+##    icmp6_nd_options
+type icmp6_nd_option: record {
+	## 8-bit identifier of the type of option.
+	otype:        count;
+	## 8-bit integer representing the length of the option (including the type
+	## and length fields) in units of 8 octets.
+	len:          count;
+	## Source Link-Layer Address (Type 1) or Target Link-Layer Address (Type 2).
+	## Byte ordering of this is dependent on the actual link-layer.
+	link_address: string &optional;
+	## Prefix Information (Type 3).
+	prefix:       icmp6_nd_prefix_info &optional;
+	## Redirected header (Type 4).  This field contains the context of the
+	## original, redirected packet.
+	redirect:     icmp_context &optional;
+	## Recommended MTU for the link (Type 5).
+	mtu:          count &optional;
+	## The raw data of the option (everything after type & length fields),
+	## useful for unknown option types or when the full option payload is
+	## truncated in the captured packet.  In those cases, option fields
+	## won't be pre-extracted into the fields above.
+	payload:      string &optional;
+};
+
+## A type alias for a vector of ICMPv6 neighbor discovery message options.
+type icmp6_nd_options: vector of icmp6_nd_option;
+
 # A DNS mapping between IP address and hostname resolved by Bro's internal
 # resolver.
 #

@@ -28,7 +28,7 @@ New Functionality
   contain both IPv4 and IPv6 addresses. Support for the most common
   ICMPv6 message types has been added. Also, the FTP EPSV and EPRT
   commands are now handled properly. Internally, the way IP addresses
-  are stored internally has been improved, so Bro can handle both IPv4
+  are stored has been improved, so Bro can handle both IPv4
   and IPv6 by default without any special configuration.
 
   In addition to Bro itself, the other Bro components have also been

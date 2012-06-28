@@ -79,9 +79,12 @@ public:
 	 * @param fields The types and names of the fields to be retrieved
 	 * from the input source.
 	 *
+	 * @param config A string map containing additional configuration options
+	 * for the reader.
+	 *
 	 * @return False if an error occured.
 	 */
-	bool Init(string source, ReaderMode mode, int num_fields, const threading::Field* const* fields);
+	bool Init(string source, ReaderMode mode, int num_fields, const threading::Field* const* fields, std::map<string, string> config);
 
 	/**
 	 * Finishes reading from this input stream in a regular fashion. Must
@@ -130,7 +133,7 @@ protected:
 	 * provides accessor methods to get them later, and they are passed
 	 * in here only for convinience.
 	 */
-	virtual bool DoInit(string path, ReaderMode mode, int arg_num_fields, const threading::Field* const* fields) = 0;
+	virtual bool DoInit(string path, ReaderMode mode, int arg_num_fields, const threading::Field* const* fields, const std::map<string, string> config) = 0;
 
 	/**
 	 * Reader-specific method implementing input finalization at

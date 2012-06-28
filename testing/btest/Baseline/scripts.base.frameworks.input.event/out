@@ -4,6 +4,8 @@ print A::description;
 print A::tpe;
 print A::i;
 print A::b;
+}, config={
+
 }]
 Input::EVENT_NEW
 1
@@ -14,6 +16,8 @@ print A::description;
 print A::tpe;
 print A::i;
 print A::b;
+}, config={
+
 }]
 Input::EVENT_NEW
 2
@@ -24,6 +28,8 @@ print A::description;
 print A::tpe;
 print A::i;
 print A::b;
+}, config={
+
 }]
 Input::EVENT_NEW
 3
@@ -34,6 +40,8 @@ print A::description;
 print A::tpe;
 print A::i;
 print A::b;
+}, config={
+
 }]
 Input::EVENT_NEW
 4
@@ -44,6 +52,8 @@ print A::description;
 print A::tpe;
 print A::i;
 print A::b;
+}, config={
+
 }]
 Input::EVENT_NEW
 5
@@ -54,6 +64,8 @@ print A::description;
 print A::tpe;
 print A::i;
 print A::b;
+}, config={
+
 }]
 Input::EVENT_NEW
 6
@@ -64,6 +76,8 @@ print A::description;
 print A::tpe;
 print A::i;
 print A::b;
+}, config={
+
 }]
 Input::EVENT_NEW
 7

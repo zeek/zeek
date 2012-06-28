@@ -83,7 +83,7 @@ void Ascii::DoClose()
 		}
 	}
 
-bool Ascii::DoInit(string path, ReaderMode mode, int num_fields, const Field* const* fields)
+bool Ascii::DoInit(string path, ReaderMode mode, int num_fields, const Field* const* fields, const std::map<string, string> config)
 	{
 	mtime = 0;
 

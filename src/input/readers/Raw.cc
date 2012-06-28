@@ -100,7 +100,7 @@ bool Raw::CloseInput()
 	return true;
 	}
 
-bool Raw::DoInit(string path, ReaderMode mode, int num_fields, const Field* const* fields)
+bool Raw::DoInit(string path, ReaderMode mode, int num_fields, const Field* const* fields, const std::map<string, string> config)
 	{
 	fname = path;
 	mtime = 0;

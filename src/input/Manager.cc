@@ -80,6 +80,8 @@ public:
 
 	EnumVal* type;
 	ReaderFrontend* reader;
+	TableVal* config;	
+	std::map<string, string> configmap;
 
 	RecordVal* description;
 
@@ -102,6 +104,9 @@ Manager::Stream::~Stream()
 
 	if ( description )
 	        Unref(description);
+
+	if ( config ) 
+		Unref(config);
 
 	if ( reader )
 	        delete(reader);
@@ -300,6 +305,7 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 	Unref(sourceval);
 
 	EnumVal* mode = description->LookupWithDefault(rtype->FieldOffset("mode"))->AsEnumVal();
+	Val* config = description->LookupWithDefault(rtype->FieldOffset("config"));
 
 	switch ( mode->InternalInt() ) 
 		{
@@ -325,8 +331,27 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 	info->type = reader->AsEnumVal(); // ref'd by lookupwithdefault
 	info->name = name;
 	info->source = source;
+	info->config = config->AsTableVal(); // ref'd by LookupWithDefault
 	Ref(description);
-	info->description = description;
+	info->description = description;		
+
+		{
+		HashKey* k;
+		IterCookie* c = info->config->AsTable()->InitForIteration();
+
+		TableEntryVal* v;
+		while ( (v = info->config->AsTable()->NextEntry(k, c)) )
+			{
+			ListVal* index = info->config->RecoverIndex(k);
+			string key = index->Index(0)->AsString()->CheckString();
+			string value = v->Value()->AsString()->CheckString();
+			info->configmap.insert(std::make_pair(key, value));
+			Unref(index);
+			delete k;
+			}
+		
+		}
+
 
 	DBG_LOG(DBG_INPUT, "Successfully created new input stream %s",
 		name.c_str());
@@ -451,7 +476,8 @@ bool Manager::CreateEventStream(RecordVal* fval)
 	Unref(want_record); // ref'd by lookupwithdefault
 
 	assert(stream->reader);
-	stream->reader->Init(stream->source, stream->mode, stream->num_fields, logf );
+
+	stream->reader->Init(stream->source, stream->mode, stream->num_fields, logf, stream->configmap );
 
 	readers[stream->reader] = stream;
 
@@ -628,7 +654,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 
 
 	assert(stream->reader);
-	stream->reader->Init(stream->source, stream->mode, fieldsV.size(), fields );
+	stream->reader->Init(stream->source, stream->mode, fieldsV.size(), fields, stream->configmap );
 
 	readers[stream->reader] = stream;
 

@@ -36,7 +36,7 @@ void Benchmark::DoClose()
 	{
 	}
 
-bool Benchmark::DoInit(string path, ReaderMode mode, int num_fields, const Field* const* fields)
+bool Benchmark::DoInit(string path, ReaderMode mode, int num_fields, const Field* const* fields, const std::map<string, string> config)
 	{
 	num_lines = atoi(path.c_str());
 

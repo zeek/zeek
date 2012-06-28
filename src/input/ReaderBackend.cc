@@ -184,7 +184,7 @@ void ReaderBackend::SendEntry(Value* *vals)
 	}
 
 bool ReaderBackend::Init(string arg_source, ReaderMode arg_mode, const int arg_num_fields,
-		         const threading::Field* const* arg_fields)
+		         const threading::Field* const* arg_fields, const std::map<string, string> config)
 	{
 	source = arg_source;
 	mode = arg_mode;
@@ -194,7 +194,7 @@ bool ReaderBackend::Init(string arg_source, ReaderMode arg_mode, const int arg_n
 	SetName("InputReader/"+source);
 
 	// disable if DoInit returns error.
-	int success = DoInit(arg_source, mode, arg_num_fields, arg_fields);
+	int success = DoInit(arg_source, mode, arg_num_fields, arg_fields, config);
 
 	if ( ! success )
 		{

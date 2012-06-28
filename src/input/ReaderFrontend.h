@@ -52,7 +52,7 @@ public:
 	 *
 	 * This method must only be called from the main thread.
 	 */
-	void Init(string arg_source, ReaderMode mode, const int arg_num_fields, const threading::Field* const* fields);
+	void Init(string arg_source, ReaderMode mode, const int arg_num_fields, const threading::Field* const* fields, const std::map<string, string> config);
 
 	/**
 	 * Force an update of the current input source. Actual action depends

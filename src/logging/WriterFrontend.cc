@@ -15,16 +15,18 @@ namespace logging  {
 class InitMessage : public threading::InputMessage<WriterBackend>
 {
 public:
-	InitMessage(WriterBackend* backend, const string path, const int num_fields, const Field* const* fields)
+	InitMessage(WriterBackend* backend, const string path, const int num_fields, const Field* const* fields, string frontend_name)
 		: threading::InputMessage<WriterBackend>("Init", backend),
-		path(path), num_fields(num_fields), fields(fields) { }
+		path(path), num_fields(num_fields), fields(fields),
+		frontend_name(frontend_name) { }
 
-	virtual bool Process() { return Object()->Init(path, num_fields, fields); }
+	virtual bool Process() { return Object()->Init(path, num_fields, fields, frontend_name); }
 
 private:
 	const string path;
 	const int num_fields;
 	const Field * const* fields;
+	const string frontend_name;
 };
 
 class RotateMessage : public threading::InputMessage<WriterBackend>
@@ -164,7 +166,7 @@ void WriterFrontend::Init(string arg_path, int arg_num_fields, const Field* cons
 	initialized = true;
 
 	if ( backend )
-		backend->SendIn(new InitMessage(backend, arg_path, arg_num_fields, arg_fields));
+		backend->SendIn(new InitMessage(backend, arg_path, arg_num_fields, arg_fields, Name()));
 
 	if ( remote )
 		remote_serializer->SendLogCreateWriter(stream,

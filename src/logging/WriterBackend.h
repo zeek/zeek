@@ -53,9 +53,11 @@ public:
 	 * @param fields An array of size \a num_fields with the log fields.
 	 * The methods takes ownership of the array.
 	 *
+	 * @param frontend_name The name of the front-end writer implementation.
+	 *
 	 * @return False if an error occured.
 	 */
-	bool Init(string path, int num_fields, const threading::Field* const*  fields);
+	bool Init(string path, int num_fields, const threading::Field* const* fields, string frontend_name);
 
 	/**
 	 * Writes one log entry.

@@ -3,11 +3,13 @@
 print A::outfile, A::description;
 print A::outfile, A::tpe;
 print A::outfile, A::s;
-if (3 == A::try) 
+A::try = A::try + 1;
+if (8 == A::try) 
 { 
 print A::outfile, done;
 close(A::outfile);
 Input::remove(input);
+terminate();
 }
 
 }]
@@ -18,11 +20,13 @@ sdfkh:KH;fdkncv;ISEUp34:Fkdj;YVpIODhfDF
 print A::outfile, A::description;
 print A::outfile, A::tpe;
 print A::outfile, A::s;
-if (3 == A::try) 
+A::try = A::try + 1;
+if (8 == A::try) 
 { 
 print A::outfile, done;
 close(A::outfile);
 Input::remove(input);
+terminate();
 }
 
 }]
@@ -33,11 +37,13 @@ DSF"DFKJ"SDFKLh304yrsdkfj@#(*U$34jfDJup3UF
 print A::outfile, A::description;
 print A::outfile, A::tpe;
 print A::outfile, A::s;
-if (3 == A::try) 
+A::try = A::try + 1;
+if (8 == A::try) 
 { 
 print A::outfile, done;
 close(A::outfile);
 Input::remove(input);
+terminate();
 }
 
 }]
@@ -48,11 +54,13 @@ q3r3057fdf
 print A::outfile, A::description;
 print A::outfile, A::tpe;
 print A::outfile, A::s;
-if (3 == A::try) 
+A::try = A::try + 1;
+if (8 == A::try) 
 { 
 print A::outfile, done;
 close(A::outfile);
 Input::remove(input);
+terminate();
 }
 
 }]
@@ -63,11 +71,13 @@ sdfs\d
 print A::outfile, A::description;
 print A::outfile, A::tpe;
 print A::outfile, A::s;
-if (3 == A::try) 
+A::try = A::try + 1;
+if (8 == A::try) 
 { 
 print A::outfile, done;
 close(A::outfile);
 Input::remove(input);
+terminate();
 }
 
 }]
@@ -78,11 +88,13 @@ Input::EVENT_NEW
 print A::outfile, A::description;
 print A::outfile, A::tpe;
 print A::outfile, A::s;
-if (3 == A::try) 
+A::try = A::try + 1;
+if (8 == A::try) 
 { 
 print A::outfile, done;
 close(A::outfile);
 Input::remove(input);
+terminate();
 }
 
 }]
@@ -93,11 +105,13 @@ dfsdf
 print A::outfile, A::description;
 print A::outfile, A::tpe;
 print A::outfile, A::s;
-if (3 == A::try) 
+A::try = A::try + 1;
+if (8 == A::try) 
 { 
 print A::outfile, done;
 close(A::outfile);
 Input::remove(input);
+terminate();
 }
 
 }]
@@ -108,13 +122,16 @@ sdf
 print A::outfile, A::description;
 print A::outfile, A::tpe;
 print A::outfile, A::s;
-if (3 == A::try) 
+A::try = A::try + 1;
+if (8 == A::try) 
 { 
 print A::outfile, done;
 close(A::outfile);
 Input::remove(input);
+terminate();
 }
 
 }]
 Input::EVENT_NEW
 3rw43wRRERLlL#RWERERERE.
+done

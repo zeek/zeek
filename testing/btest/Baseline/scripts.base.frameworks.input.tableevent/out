@@ -1,4 +1,4 @@
-[source=input.log, reader=Input::READER_ASCII, mode=Input::MANUAL, name=input, destination={
+[source=../input.log, reader=Input::READER_ASCII, mode=Input::MANUAL, name=input, destination={
 [2] = T,
 [4] = F,
 [6] = F,
@@ -8,15 +8,22 @@
 [3] = F
 }, idx=<no value description>, val=<no value description>, want_record=F, ev=line
 { 
-print description;
-print tpe;
-print left;
-print right;
+print outfile, description;
+print outfile, tpe;
+print outfile, left;
+print outfile, right;
+try = try + 1;
+if (7 == try) 
+{ 
+close(outfile);
+terminate();
+}
+
 }, pred=<uninitialized>]
 Input::EVENT_NEW
 [i=1]
 T
-[source=input.log, reader=Input::READER_ASCII, mode=Input::MANUAL, name=input, destination={
+[source=../input.log, reader=Input::READER_ASCII, mode=Input::MANUAL, name=input, destination={
 [2] = T,
 [4] = F,
 [6] = F,
@@ -26,15 +33,22 @@ T
 [3] = F
 }, idx=<no value description>, val=<no value description>, want_record=F, ev=line
 { 
-print description;
-print tpe;
-print left;
-print right;
+print outfile, description;
+print outfile, tpe;
+print outfile, left;
+print outfile, right;
+try = try + 1;
+if (7 == try) 
+{ 
+close(outfile);
+terminate();
+}
+
 }, pred=<uninitialized>]
 Input::EVENT_NEW
 [i=2]
 T
-[source=input.log, reader=Input::READER_ASCII, mode=Input::MANUAL, name=input, destination={
+[source=../input.log, reader=Input::READER_ASCII, mode=Input::MANUAL, name=input, destination={
 [2] = T,
 [4] = F,
 [6] = F,
@@ -44,15 +58,22 @@ T
 [3] = F
 }, idx=<no value description>, val=<no value description>, want_record=F, ev=line
 { 
-print description;
-print tpe;
-print left;
-print right;
+print outfile, description;
+print outfile, tpe;
+print outfile, left;
+print outfile, right;
+try = try + 1;
+if (7 == try) 
+{ 
+close(outfile);
+terminate();
+}
+
 }, pred=<uninitialized>]
 Input::EVENT_NEW
 [i=3]
 F
-[source=input.log, reader=Input::READER_ASCII, mode=Input::MANUAL, name=input, destination={
+[source=../input.log, reader=Input::READER_ASCII, mode=Input::MANUAL, name=input, destination={
 [2] = T,
 [4] = F,
 [6] = F,
@@ -62,15 +83,22 @@ F
 [3] = F
 }, idx=<no value description>, val=<no value description>, want_record=F, ev=line
 { 
-print description;
-print tpe;
-print left;
-print right;
+print outfile, description;
+print outfile, tpe;
+print outfile, left;
+print outfile, right;
+try = try + 1;
+if (7 == try) 
+{ 
+close(outfile);
+terminate();
+}
+
 }, pred=<uninitialized>]
 Input::EVENT_NEW
 [i=4]
 F
-[source=input.log, reader=Input::READER_ASCII, mode=Input::MANUAL, name=input, destination={
+[source=../input.log, reader=Input::READER_ASCII, mode=Input::MANUAL, name=input, destination={
 [2] = T,
 [4] = F,
 [6] = F,
@@ -80,15 +108,22 @@ F
 [3] = F
 }, idx=<no value description>, val=<no value description>, want_record=F, ev=line
 { 
-print description;
-print tpe;
-print left;
-print right;
+print outfile, description;
+print outfile, tpe;
+print outfile, left;
+print outfile, right;
+try = try + 1;
+if (7 == try) 
+{ 
+close(outfile);
+terminate();
+}
+
 }, pred=<uninitialized>]
 Input::EVENT_NEW
 [i=5]
 F
-[source=input.log, reader=Input::READER_ASCII, mode=Input::MANUAL, name=input, destination={
+[source=../input.log, reader=Input::READER_ASCII, mode=Input::MANUAL, name=input, destination={
 [2] = T,
 [4] = F,
 [6] = F,
@@ -98,15 +133,22 @@ F
 [3] = F
 }, idx=<no value description>, val=<no value description>, want_record=F, ev=line
 { 
-print description;
-print tpe;
-print left;
-print right;
+print outfile, description;
+print outfile, tpe;
+print outfile, left;
+print outfile, right;
+try = try + 1;
+if (7 == try) 
+{ 
+close(outfile);
+terminate();
+}
+
 }, pred=<uninitialized>]
 Input::EVENT_NEW
 [i=6]
 F
-[source=input.log, reader=Input::READER_ASCII, mode=Input::MANUAL, name=input, destination={
+[source=../input.log, reader=Input::READER_ASCII, mode=Input::MANUAL, name=input, destination={
 [2] = T,
 [4] = F,
 [6] = F,
@@ -116,10 +158,17 @@ F
 [3] = F
 }, idx=<no value description>, val=<no value description>, want_record=F, ev=line
 { 
-print description;
-print tpe;
-print left;
-print right;
+print outfile, description;
+print outfile, tpe;
+print outfile, left;
+print outfile, right;
+try = try + 1;
+if (7 == try) 
+{ 
+close(outfile);
+terminate();
+}
+
 }, pred=<uninitialized>]
 Input::EVENT_NEW
 [i=7]

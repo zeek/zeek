@@ -59,7 +59,7 @@ string Benchmark::RandomString(const int len)
 	"abcdefghijklmnopqrstuvwxyz";
 
 	for (int i = 0; i < len; ++i)
-		s[i] = values[rand() / (RAND_MAX / sizeof(values))];
+		s[i] = values[random() / (RAND_MAX / sizeof(values))];
 
 	return s;
 	}
@@ -134,7 +134,7 @@ threading::Value* Benchmark::EntryToVal(TypeTag type, TypeTag subtype)
 		break;
 
 	case TYPE_INT:
-		val->val.int_val = rand();
+		val->val.int_val = random();
 		break;
 
 	case TYPE_TIME:
@@ -148,11 +148,11 @@ threading::Value* Benchmark::EntryToVal(TypeTag type, TypeTag subtype)
 
 	case TYPE_COUNT:
 	case TYPE_COUNTER:
-		val->val.uint_val = rand();
+		val->val.uint_val = random();
 		break;
 
 	case TYPE_PORT:
-		val->val.port_val.port = rand() / (RAND_MAX / 60000);
+		val->val.port_val.port = random() / (RAND_MAX / 60000);
 		val->val.port_val.proto = TRANSPORT_UNKNOWN;
 		break;
 
@@ -175,7 +175,7 @@ threading::Value* Benchmark::EntryToVal(TypeTag type, TypeTag subtype)
 		// Then - common stuff
 		{
 		// how many entries do we have...
-		unsigned int length = rand() / (RAND_MAX / 15);
+		unsigned int length = random() / (RAND_MAX / 15);
 
 		Value** lvals = new Value* [length];
 

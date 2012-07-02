@@ -137,7 +137,7 @@ WriterFrontend::~WriterFrontend()
 
 string WriterFrontend::Name() const
 	{
-	if ( info.path.size() )
+	if ( ! info.path.size() )
 		return ty_name;
 
 	return ty_name + "/" + info.path;

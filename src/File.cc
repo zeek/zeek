@@ -572,8 +572,9 @@ void BroFile::InstallRotateTimer()
 			const char* base_time = log_rotate_base_time ?
 				log_rotate_base_time->AsString()->CheckString() : 0;
 
+			double base = parse_rotate_base_time(base_time);
 			double delta_t =
-				calc_next_rotate(rotate_interval, base_time);
+				calc_next_rotate(network_time, rotate_interval, base);
 			rotate_timer = new RotateTimer(network_time + delta_t,
 							this, true);
 			}

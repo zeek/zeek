@@ -1,4 +1,32 @@
 
+2.0-726 | 2012-07-02 15:19:15 -0700
+
+  * Extending the log writer DoInit() API. (Robin Sommer)
+
+    We now pass in a Info struct that contains:
+
+        - the path name (as before)
+        - the rotation interval
+        - the log_rotate_base_time in seconds
+        - a table of key/value pairs with further configuration options.
+
+    To fill the table, log filters have a new field "config: table[string]
+    of strings". This gives a way to pass arbitrary values from
+    script-land to writers. Interpretation is left up to the writer.
+
+  * Split calc_next_rotate() into two functions, one of which is
+    thread-safe and can be used with the log_rotate_base_time value
+    from DoInit().
+
+  * Updates to the None writer. (Robin Sommer)
+
+        - It gets its own script writers/none.bro.
+
+        - New bool option LogNone::debug to enable debug output. It then
+          prints out all the values passed to DoInit().
+
+        - Fixed a bug that prevented Bro from terminating.
+
 2.0-723 | 2012-07-02 15:02:56 -0700
 
   * Extract ICMPv6 NDP options and include in ICMP events.  This adds

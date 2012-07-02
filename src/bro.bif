@@ -1700,7 +1700,7 @@ function fmt%(...%): string
 		return new StringVal("");
 		}
 
-	else if ( n >= @ARGC@ ) 
+	else if ( n >= @ARGC@ )
 		{
 		builtin_error("too few arguments for format", fmt_v);
 		return new StringVal("");
@@ -4814,7 +4814,9 @@ function calc_next_rotate%(i: interval%) : interval
 	%{
 	const char* base_time = log_rotate_base_time ?
 		log_rotate_base_time->AsString()->CheckString() : 0;
-	return new Val(calc_next_rotate(i, base_time), TYPE_INTERVAL);
+
+	double base = parse_rotate_base_time(base_time);
+	return new Val(calc_next_rotate(network_time, i, base), TYPE_INTERVAL);
 	%}
 
 ## Returns the size of a given file.

@@ -26,7 +26,7 @@ public:
 protected:
 	// Overidden from WriterBackend.
 
-	virtual bool DoInit(string path, int num_fields,
+	virtual bool DoInit(const WriterInfo& info, int num_fields,
 			    const threading::Field* const * fields);
 
 	virtual bool DoWrite(int num_fields, const threading::Field* const* fields,

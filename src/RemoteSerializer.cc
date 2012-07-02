@@ -2503,17 +2503,17 @@ bool RemoteSerializer::ProcessRemotePrint()
 	return true;
 	}
 
-bool RemoteSerializer::SendLogCreateWriter(EnumVal* id, EnumVal* writer, string path, int num_fields, const threading::Field* const * fields)
+bool RemoteSerializer::SendLogCreateWriter(EnumVal* id, EnumVal* writer, const logging::WriterBackend::WriterInfo& info, int num_fields, const threading::Field* const * fields)
 	{
 	loop_over_list(peers, i)
 		{
-		SendLogCreateWriter(peers[i]->id, id, writer, path, num_fields, fields);
+		SendLogCreateWriter(peers[i]->id, id, writer, info, num_fields, fields);
 		}
 
 	return true;
 	}
 
-bool RemoteSerializer::SendLogCreateWriter(PeerID peer_id, EnumVal* id, EnumVal* writer, string path, int num_fields, const threading::Field* const * fields)
+bool RemoteSerializer::SendLogCreateWriter(PeerID peer_id, EnumVal* id, EnumVal* writer, const logging::WriterBackend::WriterInfo& info, int num_fields, const threading::Field* const * fields)
 	{
 	SetErrorDescr("logging");
 
@@ -2535,8 +2535,8 @@ bool RemoteSerializer::SendLogCreateWriter(PeerID peer_id, EnumVal* id, EnumVal*
 
 	bool success = fmt.Write(id->AsEnum(), "id") &&
 		fmt.Write(writer->AsEnum(), "writer") &&
-		fmt.Write(path, "path") &&
-		fmt.Write(num_fields, "num_fields");
+		fmt.Write(num_fields, "num_fields") &&
+		info.Write(&fmt);
 
 	if ( ! success )
 		goto error;
@@ -2691,13 +2691,13 @@ bool RemoteSerializer::ProcessLogCreateWriter()
 	fmt.StartRead(current_args->data, current_args->len);
 
 	int id, writer;
-	string path;
 	int num_fields;
+	logging::WriterBackend::WriterInfo info;
 
 	bool success = fmt.Read(&id, "id") &&
 		fmt.Read(&writer, "writer") &&
-		fmt.Read(&path, "path") &&
-		fmt.Read(&num_fields, "num_fields");
+		fmt.Read(&num_fields, "num_fields") &&
+		info.Read(&fmt);
 
 	if ( ! success )
 		goto error;
@@ -2716,7 +2716,7 @@ bool RemoteSerializer::ProcessLogCreateWriter()
 	id_val = new EnumVal(id, BifType::Enum::Log::ID);
 	writer_val = new EnumVal(writer, BifType::Enum::Log::Writer);
 
-	if ( ! log_mgr->CreateWriter(id_val, writer_val, path, num_fields, fields, true, false) )
+	if ( ! log_mgr->CreateWriter(id_val, writer_val, info, num_fields, fields, true, false) )
 		goto error;
 
 	Unref(id_val);

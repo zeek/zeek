@@ -2,3 +2,4 @@
 @load ./postprocessors
 @load ./writers/ascii
 @load ./writers/dataseries
+@load ./writers/none

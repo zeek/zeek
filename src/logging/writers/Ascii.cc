@@ -69,8 +69,10 @@ bool Ascii::WriteHeaderField(const string& key, const string& val)
 	return (fwrite(str.c_str(), str.length(), 1, file) == 1);
 	}
 
-bool Ascii::DoInit(string path, int num_fields, const Field* const * fields)
+bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * fields)
 	{
+	string path = info.path;
+
 	if ( output_to_stdout )
 		path = "/dev/stdout";
 
@@ -290,7 +292,7 @@ bool Ascii::DoWrite(int num_fields, const Field* const * fields,
 			     Value** vals)
 	{
 	if ( ! file )
-		DoInit(Path(), NumFields(), Fields());
+		DoInit(Info(), NumFields(), Fields());
 
 	desc.Clear();
 
@@ -320,7 +322,7 @@ bool Ascii::DoWrite(int num_fields, const Field* const * fields,
 bool Ascii::DoRotate(string rotated_path, double open, double close, bool terminating)
 	{
 	// Don't rotate special files or if there's not one currently open.
-	if ( ! file || IsSpecial(Path()) )
+	if ( ! file || IsSpecial(Info().path) )
 		return true;
 
 	fclose(file);

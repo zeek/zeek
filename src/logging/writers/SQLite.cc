@@ -108,11 +108,21 @@ bool SQLite::checkError( int code )
 	return false;	
 	}
 
-bool SQLite::DoInit(string path, int num_fields,
+bool SQLite::DoInit(const WriterInfo& info, int num_fields,
 			    const Field* const * fields)
 	{
 
-	string fullpath = path+ ".sqlite";
+	string fullpath = info.path+ ".sqlite";
+	string dbname;
+
+	map<string, string>::const_iterator it = info.config.find("dbname");
+	if ( it == info.config.end() ) {
+		MsgThread::Info(Fmt("dbname configuration option not found. Defaulting to path %s", info.path.c_str()));
+		dbname = info.path;
+	} else {
+		dbname = it->second;
+	}
+
 
 	if ( checkError(sqlite3_open_v2(
 					fullpath.c_str(),
@@ -124,7 +134,7 @@ bool SQLite::DoInit(string path, int num_fields,
 					NULL)) )
 		return false;
 
-	string create = "CREATE TABLE IF NOT EXISTS "+path+" (\n"; // yes. using path here is stupid. open for better ideas.
+	string create = "CREATE TABLE IF NOT EXISTS "+dbname+" (\n"; // yes. using path here is stupid. open for better ideas.
 		//"id SERIAL UNIQUE NOT NULL"; // SQLite has rowids, we do not need a counter here.
 
 	for ( int i = 0; i < num_fields; ++i )
@@ -168,7 +178,7 @@ bool SQLite::DoInit(string path, int num_fields,
 		// create the prepared statement that will be re-used forever...
 
 		string insert = "VALUES (";
-		string names = "INSERT INTO "+path+" ( ";
+		string names = "INSERT INTO "+dbname+" ( ";
 	
 		for ( int i = 0; i < num_fields; i++ )
 			{

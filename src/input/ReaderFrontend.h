@@ -52,7 +52,7 @@ public:
 	 *
 	 * This method must only be called from the main thread.
 	 */
-	void Init(string arg_source, ReaderMode mode, const int arg_num_fields, const threading::Field* const* fields);
+	void Init(const ReaderBackend::ReaderInfo& info, ReaderMode mode, const int arg_num_fields, const threading::Field* const* fields);
 
 	/**
 	 * Force an update of the current input source. Actual action depends
@@ -102,13 +102,23 @@ public:
 	 */
 	string Name() const;
 
-protected:
-	friend class Manager;
+	/**
+	 * Returns the additional reader information into the constructor.
+	 */
+	const ReaderBackend::ReaderInfo& Info() const	{ return info; }
 
 	/**
-	 * Returns the source as passed into the constructor.
+	 * Returns the number of log fields as passed into the constructor.
 	 */
-	const string& Source() const	{ return source; };
+	int NumFields() const	{ return num_fields; }	
+
+	/**
+	 * Returns the log fields as passed into the constructor.
+	 */
+	const threading::Field* const * Fields() const	{ return fields; }	
+
+protected:
+	friend class Manager;
 
 	/**
 	 * Returns the name of the backend's type.
@@ -117,7 +127,9 @@ protected:
 
 private:
 	ReaderBackend* backend;	// The backend we have instanatiated.
-	string source;
+	ReaderBackend::ReaderInfo info;	// Meta information as passed to Init().
+	const threading::Field* const*  fields;	// The log fields.	
+	int num_fields;		// Information as passed to init();
 	string ty_name;		// Backend type, set by manager.
 	bool disabled;		// True if disabled.
 	bool initialized;	// True if initialized.

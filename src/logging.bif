@@ -86,3 +86,8 @@ module LogSQLite;
 
 const set_separator: string;
 
+# Options for the None writer.
+
+module LogNone;
+
+const debug: bool;

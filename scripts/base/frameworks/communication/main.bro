@@ -11,7 +11,8 @@ export {
 	## The communication logging stream identifier.
 	redef enum Log::ID += { LOG };
 	
-	## Which interface to listen on (``0.0.0.0`` or ``[::]`` are wildcards).
+	## Which interface to listen on. The addresses ``0.0.0.0`` and ``[::]``
+	## are wildcards.
 	const listen_interface = 0.0.0.0 &redef;
 	
 	## Which port to listen on.

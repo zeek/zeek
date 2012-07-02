@@ -9,13 +9,14 @@
 #include "../EventHandler.h"
 #include "../RemoteSerializer.h"
 
+#include "WriterBackend.h"
+
 class SerializationFormat;
 class RemoteSerializer;
 class RotationTimer;
 
 namespace logging {
 
-class WriterBackend;
 class WriterFrontend;
 class RotationFinishedMessage;
 
@@ -162,7 +163,7 @@ protected:
 	//// Function also used by the RemoteSerializer.
 
 	// Takes ownership of fields.
-	WriterFrontend* CreateWriter(EnumVal* id, EnumVal* writer, string path,
+	WriterFrontend* CreateWriter(EnumVal* id, EnumVal* writer, const WriterBackend::WriterInfo& info,
 				int num_fields, const threading::Field* const* fields,
 				bool local, bool remote);
 

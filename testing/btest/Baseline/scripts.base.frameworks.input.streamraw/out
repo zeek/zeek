@@ -10,6 +10,8 @@ close(A::outfile);
 Input::remove(input);
 }
 
+}, config={
+
 }]
 Input::EVENT_NEW
 sdfkh:KH;fdkncv;ISEUp34:Fkdj;YVpIODhfDF
@@ -24,6 +26,8 @@ print A::outfile, done;
 close(A::outfile);
 Input::remove(input);
 }
+
+}, config={
 
 }]
 Input::EVENT_NEW
@@ -40,6 +44,8 @@ close(A::outfile);
 Input::remove(input);
 }
 
+}, config={
+
 }]
 Input::EVENT_NEW
 q3r3057fdf
@@ -54,6 +60,8 @@ print A::outfile, done;
 close(A::outfile);
 Input::remove(input);
 }
+
+}, config={
 
 }]
 Input::EVENT_NEW
@@ -70,6 +78,8 @@ close(A::outfile);
 Input::remove(input);
 }
 
+}, config={
+
 }]
 Input::EVENT_NEW
 
@@ -84,6 +94,8 @@ print A::outfile, done;
 close(A::outfile);
 Input::remove(input);
 }
+
+}, config={
 
 }]
 Input::EVENT_NEW
@@ -100,6 +112,8 @@ close(A::outfile);
 Input::remove(input);
 }
 
+}, config={
+
 }]
 Input::EVENT_NEW
 sdf
@@ -114,6 +128,8 @@ print A::outfile, done;
 close(A::outfile);
 Input::remove(input);
 }
+
+}, config={
 
 }]
 Input::EVENT_NEW

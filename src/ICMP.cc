@@ -64,7 +64,8 @@ void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
 			break;
 
 		default:
-			reporter->InternalError("unexpected IP proto in ICMP analyzer");
+			reporter->InternalError("unexpected IP proto in ICMP analyzer: %d",
+			                        ip->NextProto());
 			break;
 		}
 

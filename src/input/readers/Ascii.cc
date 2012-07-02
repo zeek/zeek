@@ -83,14 +83,14 @@ void Ascii::DoClose()
 		}
 	}
 
-bool Ascii::DoInit(string path, ReaderMode mode, int num_fields, const Field* const* fields)
+bool Ascii::DoInit(const ReaderInfo& info, ReaderMode mode, int num_fields, const Field* const* fields)
 	{
 	mtime = 0;
 
-	file = new ifstream(path.c_str());
+	file = new ifstream(info.source.c_str());
 	if ( ! file->is_open() )
 		{
-		Error(Fmt("Init: cannot open %s", path.c_str()));
+		Error(Fmt("Init: cannot open %s", info.source.c_str()));
 		delete(file);
 		file = 0;
 		return false;
@@ -98,7 +98,7 @@ bool Ascii::DoInit(string path, ReaderMode mode, int num_fields, const Field* co
 
 	if ( ReadHeader(false) == false )
 		{
-		Error(Fmt("Init: cannot open %s; headers are incorrect", path.c_str()));
+		Error(Fmt("Init: cannot open %s; headers are incorrect", info.source.c_str()));
 		file->close();
 		delete(file);
 		file = 0;
@@ -147,7 +147,7 @@ bool Ascii::ReadHeader(bool useCached)
 	//printf("Updating fields from description %s\n", line.c_str());
 	columnMap.clear();
 
-	for ( unsigned int i = 0; i < NumFields(); i++ )
+	for ( int i = 0; i < NumFields(); i++ )
 		{
 		const Field* field = Fields()[i];
 
@@ -164,7 +164,7 @@ bool Ascii::ReadHeader(bool useCached)
 				}
 
 			Error(Fmt("Did not find requested field %s in input data file %s.",
-				  field->name.c_str(), Source().c_str()));
+				  field->name.c_str(), Info().source.c_str()));
 			return false;
 			}
 
@@ -367,9 +367,9 @@ bool Ascii::DoUpdate()
 			{
 			// check if the file has changed
 			struct stat sb;
-			if ( stat(Source().c_str(), &sb) == -1 )
+			if ( stat(Info().source.c_str(), &sb) == -1 )
 				{
-				Error(Fmt("Could not get stat for %s", Source().c_str()));
+				Error(Fmt("Could not get stat for %s", Info().source.c_str()));
 				return false;
 				}
 
@@ -403,10 +403,10 @@ bool Ascii::DoUpdate()
 				file = 0;
 				}
 
-			file = new ifstream(Source().c_str());
+			file = new ifstream(Info().source.c_str());
 			if ( ! file->is_open() )
 				{
-				Error(Fmt("cannot open %s", Source().c_str()));
+				Error(Fmt("cannot open %s", Info().source.c_str()));
 				return false;
 				}
 
@@ -490,7 +490,7 @@ bool Ascii::DoUpdate()
 			}
 
 		//printf("fpos: %d, second.num_fields: %d\n", fpos, (*it).second.num_fields);
-		assert ( (unsigned int) fpos == NumFields() );
+		assert ( fpos == NumFields() );
 
 		if ( Mode() == MODE_STREAM )
 			Put(fields);

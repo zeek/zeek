@@ -36,9 +36,9 @@ void Benchmark::DoClose()
 	{
 	}
 
-bool Benchmark::DoInit(string path, ReaderMode mode, int num_fields, const Field* const* fields)
+bool Benchmark::DoInit(const ReaderInfo& info, ReaderMode mode, int num_fields, const Field* const* fields)
 	{
-	num_lines = atoi(path.c_str());
+	num_lines = atoi(info.source.c_str());
 
 	if ( autospread != 0.0 )
 		autospread_time = (int) ( (double) 1000000 / (autospread * (double) num_lines) );
@@ -80,7 +80,7 @@ bool Benchmark::DoUpdate()
 	for ( int i = 0; i < linestosend; i++ )
 		{
 		Value** field = new Value*[NumFields()];
-		for  (unsigned int j = 0; j < NumFields(); j++ )
+		for  (int j = 0; j < NumFields(); j++ )
 			field[j] = EntryToVal(Fields()[j]->type, Fields()[j]->subtype);
 
 		if ( Mode() == MODE_STREAM )

@@ -79,6 +79,9 @@ bool Raw::CloseInput()
 		InternalError(Fmt("Trying to close closed file for stream %s", fname.c_str()));
 		return false;
 		}
+#ifdef DEBUG
+	Debug(DBG_INPUT, "Raw reader starting close");
+#endif
 
 	delete in;
 
@@ -90,18 +93,22 @@ bool Raw::CloseInput()
 	in = NULL;
 	file = NULL;
 
+#ifdef DEBUG
+	Debug(DBG_INPUT, "Raw reader finished close");
+#endif
+
 	return true;
 	}
 
-bool Raw::DoInit(string path, ReaderMode mode, int num_fields, const Field* const* fields)
+bool Raw::DoInit(const ReaderInfo& info, ReaderMode mode, int num_fields, const Field* const* fields)
 	{
-	fname = path;
+	fname = info.source;
 	mtime = 0;
 	execute = false;
 	firstrun = true;
 	bool result;
 
-	if ( path.length() == 0 )
+	if ( info.source.length() == 0 )
 		{
 		Error("No source path provided");
 		return false;
@@ -122,13 +129,13 @@ bool Raw::DoInit(string path, ReaderMode mode, int num_fields, const Field* cons
 		}
 
 	// do Initialization
-	char last = path[path.length()-1];
+	char last = info.source[info.source.length()-1];
 	if ( last == '|' )
 		{
 		execute = true;
-		fname = path.substr(0, fname.length() - 1);
+		fname = info.source.substr(0, fname.length() - 1);
 
-		if ( (mode != MODE_MANUAL) && (mode != MODE_STREAM) )
+		if ( (mode != MODE_MANUAL) )
 			{
 			Error(Fmt("Unsupported read mode %d for source %s in execution mode",
 				  mode, fname.c_str()));
@@ -254,8 +261,14 @@ bool Raw::DoHeartbeat(double network_time, double current_time)
 
 		case MODE_REREAD:
 		case MODE_STREAM:
+#ifdef DEBUG
+	Debug(DBG_INPUT, "Starting Heartbeat update");
+#endif
 			Update();	// call update and not DoUpdate, because update
 					// checks disabled.
+#ifdef DEBUG
+	Debug(DBG_INPUT, "Finished with heartbeat update");
+#endif
 			break;
 		default:
 			assert(false);

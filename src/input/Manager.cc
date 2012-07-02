@@ -71,7 +71,7 @@ declare(PDict, InputHash);
 class Manager::Stream {
 public:
 	string name;
-	string source;
+	ReaderBackend::ReaderInfo info;
 	bool removed;
 
 	ReaderMode mode;
@@ -80,6 +80,7 @@ public:
 
 	EnumVal* type;
 	ReaderFrontend* reader;
+	TableVal* config;	
 
 	RecordVal* description;
 
@@ -102,6 +103,9 @@ Manager::Stream::~Stream()
 
 	if ( description )
 	        Unref(description);
+
+	if ( config ) 
+		Unref(config);
 
 	if ( reader )
 	        delete(reader);
@@ -300,6 +304,7 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 	Unref(sourceval);
 
 	EnumVal* mode = description->LookupWithDefault(rtype->FieldOffset("mode"))->AsEnumVal();
+	Val* config = description->LookupWithDefault(rtype->FieldOffset("config"));
 
 	switch ( mode->InternalInt() ) 
 		{
@@ -324,9 +329,33 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 	info->reader = reader_obj;
 	info->type = reader->AsEnumVal(); // ref'd by lookupwithdefault
 	info->name = name;
-	info->source = source;
+	info->config = config->AsTableVal(); // ref'd by LookupWithDefault
+
+	ReaderBackend::ReaderInfo readerinfo;
+	readerinfo.source = source;
+
 	Ref(description);
-	info->description = description;
+	info->description = description;		
+
+		{
+		HashKey* k;
+		IterCookie* c = info->config->AsTable()->InitForIteration();
+
+		TableEntryVal* v;
+		while ( (v = info->config->AsTable()->NextEntry(k, c)) )
+			{
+			ListVal* index = info->config->RecoverIndex(k);
+			string key = index->Index(0)->AsString()->CheckString();
+			string value = v->Value()->AsString()->CheckString();
+			info->info.config.insert(std::make_pair(key, value));
+			Unref(index);
+			delete k;
+			}
+		
+		}
+
+	info->info = readerinfo;
+
 
 	DBG_LOG(DBG_INPUT, "Successfully created new input stream %s",
 		name.c_str());
@@ -451,7 +480,8 @@ bool Manager::CreateEventStream(RecordVal* fval)
 	Unref(want_record); // ref'd by lookupwithdefault
 
 	assert(stream->reader);
-	stream->reader->Init(stream->source, stream->mode, stream->num_fields, logf );
+
+	stream->reader->Init(stream->info, stream->mode, stream->num_fields, logf );
 
 	readers[stream->reader] = stream;
 
@@ -628,7 +658,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 
 
 	assert(stream->reader);
-	stream->reader->Init(stream->source, stream->mode, fieldsV.size(), fields );
+	stream->reader->Init(stream->info, stream->mode, fieldsV.size(), fields );
 
 	readers[stream->reader] = stream;
 
@@ -689,30 +719,38 @@ bool Manager::IsCompatibleType(BroType* t, bool atomic_only)
 	}
 
 
-bool Manager::RemoveStream(const string &name)
+bool Manager::RemoveStream(Stream *i)
 	{
-	Stream *i = FindStream(name);
-
 	if ( i == 0 )
 		return false; // not found
 
 	if ( i->removed )
 		{
-		reporter->Error("Stream %s is already queued for removal. Ignoring remove.", name.c_str());
-		return false;
+		reporter->Warning("Stream %s is already queued for removal. Ignoring remove.", i->name.c_str());
+		return true;
 		}
 
 	i->removed = true;
 
 	i->reader->Close();
 
-#ifdef DEBUG
-		DBG_LOG(DBG_INPUT, "Successfully queued removal of stream %s",
-			name.c_str());
-#endif
+	DBG_LOG(DBG_INPUT, "Successfully queued removal of stream %s",
+		i->name.c_str());
 
 	return true;
 	}
+
+bool Manager::RemoveStream(ReaderFrontend* frontend) 
+	{
+	return RemoveStream(FindStream(frontend));
+	}
+
+
+bool Manager::RemoveStream(const string &name)
+	{
+	return RemoveStream(FindStream(name));
+	}
+
 
 bool Manager::RemoveStreamContinuation(ReaderFrontend* reader)
 	{
@@ -1200,7 +1238,7 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 #endif
 
 	// Send event that the current update is indeed finished.
-	SendEvent(update_finished, 2, new StringVal(i->name.c_str()), new StringVal(i->source.c_str()));
+	SendEvent(update_finished, 2, new StringVal(i->name.c_str()), new StringVal(i->info.source.c_str()));
 	}
 
 void Manager::Put(ReaderFrontend* reader, Value* *vals)

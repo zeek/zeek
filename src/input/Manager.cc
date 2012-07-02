@@ -304,20 +304,18 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 	EnumVal* mode = description->LookupWithDefault(rtype->FieldOffset("mode"))->AsEnumVal();
 	Val* config = description->LookupWithDefault(rtype->FieldOffset("config"));
 	
-	ReaderBackend::ReaderInfo readerinfo;
-
 	switch ( mode->InternalInt() ) 
 		{
 		case 0:
-			readerinfo.mode = MODE_MANUAL;
+			info->info.mode = MODE_MANUAL;
 			break;
 
 		case 1:
-			readerinfo.mode = MODE_REREAD;
+			info->info.mode = MODE_REREAD;
 			break;
 
 		case 2:
-			readerinfo.mode = MODE_STREAM;
+			info->info.mode = MODE_STREAM;
 			break;
 
 		default:
@@ -331,7 +329,7 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 	info->name = name;
 	info->config = config->AsTableVal(); // ref'd by LookupWithDefault
 
-	readerinfo.source = source;
+	info->info.source = source;
 
 	Ref(description);
 	info->description = description;		
@@ -352,9 +350,6 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 			}
 		
 		}
-
-	info->info = readerinfo;
-
 
 	DBG_LOG(DBG_INPUT, "Successfully created new input stream %s",
 		name.c_str());

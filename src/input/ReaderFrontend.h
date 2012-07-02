@@ -52,7 +52,7 @@ public:
 	 *
 	 * This method must only be called from the main thread.
 	 */
-	void Init(const ReaderBackend::ReaderInfo& info, ReaderMode mode, const int arg_num_fields, const threading::Field* const* fields);
+	void Init(const ReaderBackend::ReaderInfo& info, const int arg_num_fields, const threading::Field* const* fields);
 
 	/**
 	 * Force an update of the current input source. Actual action depends

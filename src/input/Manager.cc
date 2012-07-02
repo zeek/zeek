@@ -74,8 +74,6 @@ public:
 	ReaderBackend::ReaderInfo info;
 	bool removed;
 
-	ReaderMode mode;
-
 	StreamType stream_type; // to distinguish between event and table streams
 
 	EnumVal* type;
@@ -305,19 +303,21 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 
 	EnumVal* mode = description->LookupWithDefault(rtype->FieldOffset("mode"))->AsEnumVal();
 	Val* config = description->LookupWithDefault(rtype->FieldOffset("config"));
+	
+	ReaderBackend::ReaderInfo readerinfo;
 
 	switch ( mode->InternalInt() ) 
 		{
 		case 0:
-			info->mode = MODE_MANUAL;
+			readerinfo.mode = MODE_MANUAL;
 			break;
 
 		case 1:
-			info->mode = MODE_REREAD;
+			readerinfo.mode = MODE_REREAD;
 			break;
 
 		case 2:
-			info->mode = MODE_STREAM;
+			readerinfo.mode = MODE_STREAM;
 			break;
 
 		default:
@@ -331,7 +331,6 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 	info->name = name;
 	info->config = config->AsTableVal(); // ref'd by LookupWithDefault
 
-	ReaderBackend::ReaderInfo readerinfo;
 	readerinfo.source = source;
 
 	Ref(description);
@@ -481,7 +480,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 
 	assert(stream->reader);
 
-	stream->reader->Init(stream->info, stream->mode, stream->num_fields, logf );
+	stream->reader->Init(stream->info, stream->num_fields, logf );
 
 	readers[stream->reader] = stream;
 
@@ -658,7 +657,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 
 
 	assert(stream->reader);
-	stream->reader->Init(stream->info, stream->mode, fieldsV.size(), fields );
+	stream->reader->Init(stream->info, fieldsV.size(), fields );
 
 	readers[stream->reader] = stream;
 

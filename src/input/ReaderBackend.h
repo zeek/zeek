@@ -7,8 +7,6 @@
 
 #include "threading/SerialTypes.h"
 #include "threading/MsgThread.h"
-class RemoteSerializer;
-
 
 namespace input {
 
@@ -87,6 +85,12 @@ public:
 		 */
 		config_map config;
 
+		/**
+		 * The opening mode for the input source.
+		 */
+		ReaderMode mode;
+/*
+ * I don't think the input framework needs remote serialization. If it doesn't, kill this. If it does add ReaderMode.
 		private:
 		friend class ::RemoteSerializer;
 
@@ -94,16 +98,14 @@ public:
 		// fields. They serialize/deserialize the struct.
 		bool Read(SerializationFormat* fmt);
 		bool Write(SerializationFormat* fmt) const;
+
+		*/
 		};
 	
 	/**
 	 * One-time initialization of the reader to define the input source.
 	 *
-	 * @param source A string left to the interpretation of the
-	 * reader implementation; it corresponds to the value configured on
-	 * the script-level for the input stream.
-	 *
-	 * @param mode The opening mode for the input source.
+	 * @param @param info Meta information for the writer. 
 	 *
 	 * @param num_fields Number of fields contained in \a fields.
 	 *
@@ -115,7 +117,7 @@ public:
 	 *
 	 * @return False if an error occured.
 	 */
-	bool Init(const ReaderInfo& info, ReaderMode mode, int num_fields, const threading::Field* const* fields);
+	bool Init(const ReaderInfo& info, int num_fields, const threading::Field* const* fields);
 
 	/**
 	 * Finishes reading from this input stream in a regular fashion. Must
@@ -180,7 +182,7 @@ protected:
 	 * provides accessor methods to get them later, and they are passed
 	 * in here only for convinience.
 	 */
-	virtual bool DoInit(const ReaderInfo& info, ReaderMode mode, int arg_num_fields, const threading::Field* const* fields) = 0;
+	virtual bool DoInit(const ReaderInfo& info, int arg_num_fields, const threading::Field* const* fields) = 0;
 
 	/**
 	 * Reader-specific method implementing input finalization at
@@ -208,11 +210,6 @@ protected:
 	 * implementation should also call Error to indicate what happened.
 	 */
 	virtual bool DoUpdate() = 0;
-
-	/**
-	 * Returns the reader mode as passed into Init().
-	 */
-	const ReaderMode Mode() const	{ return mode; }
 
 	/**
 	 * Method allowing a reader to send a specified Bro event. Vals must
@@ -315,7 +312,6 @@ private:
 	ReaderFrontend* frontend;
 
 	ReaderInfo info;
-	ReaderMode mode;
 	unsigned int num_fields;
 	const threading::Field* const * fields; // raw mapping
 

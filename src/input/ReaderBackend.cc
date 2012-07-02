@@ -142,6 +142,10 @@ public:
 
 using namespace logging;
 
+/*
+ * I don't think the input framework needs remote serialization. If it doesn't, kill this. If it does add ReaderMode.
+
+
 bool ReaderBackend::ReaderInfo::Read(SerializationFormat* fmt)
 	{
 	int size;
@@ -183,6 +187,8 @@ bool ReaderBackend::ReaderInfo::Write(SerializationFormat* fmt) const
 
 	return true;
 	}
+
+	*/
 
 ReaderBackend::ReaderBackend(ReaderFrontend* arg_frontend) : MsgThread()
 	{
@@ -226,18 +232,17 @@ void ReaderBackend::SendEntry(Value* *vals)
 	SendOut(new SendEntryMessage(frontend, vals));
 	}
 
-bool ReaderBackend::Init(const ReaderInfo& arg_info, ReaderMode arg_mode, const int arg_num_fields,
+bool ReaderBackend::Init(const ReaderInfo& arg_info, const int arg_num_fields,
 		         const threading::Field* const* arg_fields)
 	{
 	info = arg_info;
-	mode = arg_mode;
 	num_fields = arg_num_fields;
 	fields = arg_fields;
 
 	SetName("InputReader/"+info.source);
 
 	// disable if DoInit returns error.
-	int success = DoInit(arg_info, mode, arg_num_fields, arg_fields);
+	int success = DoInit(arg_info, arg_num_fields, arg_fields);
 
 	if ( ! success )
 		{

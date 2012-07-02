@@ -36,7 +36,7 @@ void Benchmark::DoClose()
 	{
 	}
 
-bool Benchmark::DoInit(const ReaderInfo& info, ReaderMode mode, int num_fields, const Field* const* fields)
+bool Benchmark::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fields)
 	{
 	num_lines = atoi(info.source.c_str());
 
@@ -83,7 +83,7 @@ bool Benchmark::DoUpdate()
 		for  (int j = 0; j < NumFields(); j++ )
 			field[j] = EntryToVal(Fields()[j]->type, Fields()[j]->subtype);
 
-		if ( Mode() == MODE_STREAM )
+		if ( Info().mode  == MODE_STREAM )
 			// do not do tracking, spread out elements over the second that we have...
 			Put(field);
 		else
@@ -109,7 +109,7 @@ bool Benchmark::DoUpdate()
 
 	}
 
-	if ( Mode() != MODE_STREAM )
+	if ( Info().mode  != MODE_STREAM )
 		EndCurrentSend();
 
 	return true;
@@ -227,7 +227,7 @@ bool Benchmark::DoHeartbeat(double network_time, double current_time)
 	num_lines += add;
 	heartbeatstarttime = CurrTime();
 
-	switch ( Mode() ) {
+	switch ( Info().mode  ) {
 		case MODE_MANUAL:
 			// yay, we do nothing :)
 			break;

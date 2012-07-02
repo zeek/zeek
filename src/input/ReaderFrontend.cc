@@ -11,19 +11,18 @@ namespace input {
 class InitMessage : public threading::InputMessage<ReaderBackend>
 {
 public:
-	InitMessage(ReaderBackend* backend, const ReaderBackend::ReaderInfo& info, ReaderMode mode,
+	InitMessage(ReaderBackend* backend, const ReaderBackend::ReaderInfo& info, 
 		    const int num_fields, const threading::Field* const* fields)
 		: threading::InputMessage<ReaderBackend>("Init", backend),
-		info(info), mode(mode), num_fields(num_fields), fields(fields) { }
+		info(info), num_fields(num_fields), fields(fields) { }
 
 	virtual bool Process()
 		{
-		return Object()->Init(info, mode, num_fields, fields);
+		return Object()->Init(info, num_fields, fields);
 		}
 
 private:
 	const ReaderBackend::ReaderInfo info;
-	const ReaderMode mode;
 	const int num_fields;
 	const threading::Field* const* fields;
 };
@@ -63,7 +62,7 @@ ReaderFrontend::~ReaderFrontend()
 	{
 	}
 
-void ReaderFrontend::Init(const ReaderBackend::ReaderInfo& arg_info, ReaderMode mode, const int arg_num_fields,
+void ReaderFrontend::Init(const ReaderBackend::ReaderInfo& arg_info, const int arg_num_fields,
 		          const threading::Field* const* arg_fields)
 	{
 	if ( disabled )
@@ -77,7 +76,7 @@ void ReaderFrontend::Init(const ReaderBackend::ReaderInfo& arg_info, ReaderMode 
 	fields = arg_fields;	
 	initialized = true;
 
-	backend->SendIn(new InitMessage(backend, info, mode, num_fields, fields));
+	backend->SendIn(new InitMessage(backend, info, num_fields, fields));
 	}
 
 void ReaderFrontend::Update()

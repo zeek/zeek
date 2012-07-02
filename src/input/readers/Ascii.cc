@@ -83,7 +83,7 @@ void Ascii::DoClose()
 		}
 	}
 
-bool Ascii::DoInit(const ReaderInfo& info, ReaderMode mode, int num_fields, const Field* const* fields)
+bool Ascii::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fields)
 	{
 	mtime = 0;
 
@@ -362,7 +362,7 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 // read the entire file and send appropriate thingies back to InputMgr
 bool Ascii::DoUpdate()
 	{
-	switch ( Mode() ) {
+	switch ( Info().mode ) {
 		case MODE_REREAD:
 			{
 			// check if the file has changed
@@ -389,7 +389,7 @@ bool Ascii::DoUpdate()
 			// - this is not that bad)
 			if ( file && file->is_open() )
 				{
-				if ( Mode() == MODE_STREAM )
+				if ( Info().mode == MODE_STREAM )
 					{
 					file->clear(); // remove end of file evil bits
 					if ( !ReadHeader(true) )
@@ -492,13 +492,13 @@ bool Ascii::DoUpdate()
 		//printf("fpos: %d, second.num_fields: %d\n", fpos, (*it).second.num_fields);
 		assert ( fpos == NumFields() );
 
-		if ( Mode() == MODE_STREAM )
+		if ( Info().mode  == MODE_STREAM )
 			Put(fields);
 		else
 			SendEntry(fields);
 		}
 
-	if ( Mode () != MODE_STREAM )
+	if ( Info().mode != MODE_STREAM )
 		EndCurrentSend();
 
 	return true;
@@ -508,7 +508,7 @@ bool Ascii::DoHeartbeat(double network_time, double current_time)
 {
 	ReaderBackend::DoHeartbeat(network_time, current_time);
 
-	switch ( Mode() ) {
+	switch ( Info().mode  ) {
 		case MODE_MANUAL:
 			// yay, we do nothing :)
 			break;

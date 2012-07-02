@@ -972,12 +972,12 @@ function sha256_hash_finish%(index: any%): string
 ##
 ## .. note::
 ##
-##      This function is a wrapper about the function ``rand`` provided by
-##      the OS.
+##      This function is a wrapper about the function ``random``
+##      provided by the OS.
 function rand%(max: count%): count
 	%{
 	int result;
-	result = bro_uint_t(double(max) * double(rand()) / (RAND_MAX + 1.0));
+	result = bro_uint_t(double(max) * double(bro_random()) / (RAND_MAX + 1.0));
 	return new Val(result, TYPE_COUNT);
 	%}
 
@@ -989,11 +989,11 @@ function rand%(max: count%): count
 ##
 ## .. note::
 ##
-##      This function is a wrapper about the function ``srand`` provided
-##      by the OS.
+##      This function is a wrapper about the function ``srandom``
+##      provided by the OS.
 function srand%(seed: count%): any
 	%{
-	srand(seed);
+	bro_srandom(seed);
 	return 0;
 	%}
 

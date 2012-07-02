@@ -26,6 +26,7 @@ private:
 	WriterBackend::WriterInfo info;
 	const int num_fields;
 	const Field * const* fields;
+	const string frontend_name;
 };
 
 class RotateMessage : public threading::InputMessage<WriterBackend>

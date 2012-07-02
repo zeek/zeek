@@ -91,6 +91,8 @@ public:
 	 * @param fields An array of size \a num_fields with the log fields.
 	 * The methods takes ownership of the array.
 	 *
+	 * @param frontend_name The name of the front-end writer implementation.
+	 *
 	 * @return False if an error occured.
 	 */
 	bool Init(const WriterInfo& info, int num_fields, const threading::Field* const* fields);

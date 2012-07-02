@@ -633,12 +633,20 @@ static bool write_random_seeds(const char* write_file, uint32 seed,
 static bool bro_rand_determistic = false;
 static unsigned int bro_rand_state = 0;
 
-static void bro_srand(unsigned int seed, bool deterministic)
+static void bro_srandom(unsigned int seed, bool deterministic)
 	{
 	bro_rand_state = seed;
 	bro_rand_determistic = deterministic;
 
-	srand(seed);
+	srandom(seed);
+	}
+
+void bro_srandom(unsigned int seed)
+	{
+	if ( bro_rand_determistic )
+		bro_rand_state = seed;
+	else
+		srandom(seed);
 	}
 
 void init_random_seed(uint32 seed, const char* read_file, const char* write_file)
@@ -705,7 +713,7 @@ void init_random_seed(uint32 seed, const char* read_file, const char* write_file
 			seeds_done = true;
 		}
 
-	bro_srand(seed, seeds_done);
+	bro_srandom(seed, seeds_done);
 
 	if ( ! hmac_key_set )
 		{

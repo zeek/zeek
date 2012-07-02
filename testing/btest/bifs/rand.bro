@@ -1,6 +1,10 @@
 #
-# @TEST-EXEC: bro %INPUT >out
+# @TEST-EXEC: bro -b %INPUT >out
+# @TEST-EXEC: bro -b %INPUT do_seed=F >out.2
 # @TEST-EXEC: btest-diff out
+# @TEST-EXEC: btest-diff out.2
+
+const do_seed = T &redef;
 
 event bro_init()
 	{
@@ -12,7 +16,8 @@ event bro_init()
 	print b;
 	print c;
 
-	srand(575);
+	if ( do_seed )
+		srand(575);
 
 	local d = rand(1000);
 	local e = rand(1000);

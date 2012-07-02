@@ -115,6 +115,11 @@ protected:
 	 */
 	const string& TypeName() const	{ return ty_name; }
 
+	/**
+	 * Sets the name of the backend's type.
+	 */
+	void SetTypeName(const string& name) const	{ ty_name = name; }
+
 private:
 	ReaderBackend* backend;	// The backend we have instanatiated.
 	string source;

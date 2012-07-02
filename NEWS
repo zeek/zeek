@@ -3,8 +3,9 @@ Release Notes
 =============
 
 This document summarizes the most important changes in the current Bro
-release. For a complete list of changes, see the ``CHANGES`` file.
-
+release. For a complete list of changes, see the ``CHANGES`` file
+(note that submodules, such as BroControl and Broccoli, come with
+their own CHANGES.)
 
 Bro 2.1 Beta
 ------------
@@ -61,6 +62,21 @@ New Functionality
   efficient binary format for recording structured bulk data.
   DataSeries is developed and maintained at HP Labs. See
   doc/logging-dataseries for more information.
+
+- BroControl now has built-in support for host-based load-balancing
+  when using either PF_RING, Myricom cards, or individual interfaces.
+  Instead of adding a separate worker entry in node.cfg for each Bro
+  worker process on each worker host, it is now possible to just
+  specify the number of worker processes on each host and BroControl
+  configures everything correctly (including any neccessary enviroment
+  variables for the balancers).
+
+  This change adds three new keywords to the node.cfg file (to be used
+  with worker entries): lb_procs (specifies number of workers on a
+  host), lb_method (specifies what type of load balancing to use:
+  pf_ring, myricom, or interfaces), and lb_interfaces (used only with
+  "lb_method=interfaces" to specify which interfaces to load-balance
+  on).
 
 
 Changed Functionality

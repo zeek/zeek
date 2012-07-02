@@ -993,12 +993,9 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, const Writer
 		// return it.
 		return w->second->writer;
 
-	WriterFrontend* writer_obj = new WriterFrontend(id, writer, local, remote);
-	assert(writer_obj);
-
 	WriterInfo* winfo = new WriterInfo;
 	winfo->type = writer->Ref()->AsEnumVal();
-	winfo->writer = writer_obj;
+	winfo->writer = 0;
 	winfo->open_time = network_time;
 	winfo->rotation_timer = 0;
 	winfo->interval = 0;
@@ -1015,7 +1012,7 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, const Writer
 		{
 		Filter* f = *it;
 		if ( f->writer->AsEnum() == writer->AsEnum() &&
-		     f->path == winfo->writer->info.path )
+		     f->path == info.path )
 			{
 			found_filter_match = true;
 			winfo->interval = f->interval;
@@ -1031,8 +1028,6 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, const Writer
 		winfo->interval = id->ID_Val()->AsInterval();
 		}
 
-	InstallRotationTimer(winfo);
-
 	stream->writers.insert(
 		Stream::WriterMap::value_type(Stream::WriterPathPair(writer->AsEnum(), info.path),
 		winfo));
@@ -1045,9 +1040,12 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, const Writer
 	winfo->info.rotation_interval = winfo->interval;
 	winfo->info.rotation_base = parse_rotate_base_time(base_time);
 
-	writer_obj->Init(winfo->info, num_fields, fields);
+	winfo->writer = new WriterFrontend(id, writer, local, remote);
+	winfo->writer->Init(winfo->info, num_fields, fields);
 
-	return writer_obj;
+	InstallRotationTimer(winfo);
+
+	return winfo->writer;
 	}
 
 void Manager::DeleteVals(int num_fields, threading::Value** vals)

@@ -19,7 +19,9 @@ close(outfile);
 terminate();
 }
 
-}, pred=<uninitialized>]
+}, pred=<uninitialized>, config={
+
+}]
 Input::EVENT_NEW
 [i=1]
 T
@@ -44,7 +46,9 @@ close(outfile);
 terminate();
 }
 
-}, pred=<uninitialized>]
+}, pred=<uninitialized>, config={
+
+}]
 Input::EVENT_NEW
 [i=2]
 T
@@ -69,7 +73,9 @@ close(outfile);
 terminate();
 }
 
-}, pred=<uninitialized>]
+}, pred=<uninitialized>, config={
+
+}]
 Input::EVENT_NEW
 [i=3]
 F
@@ -94,7 +100,9 @@ close(outfile);
 terminate();
 }
 
-}, pred=<uninitialized>]
+}, pred=<uninitialized>, config={
+
+}]
 Input::EVENT_NEW
 [i=4]
 F
@@ -119,7 +127,9 @@ close(outfile);
 terminate();
 }
 
-}, pred=<uninitialized>]
+}, pred=<uninitialized>, config={
+
+}]
 Input::EVENT_NEW
 [i=5]
 F
@@ -144,7 +154,9 @@ close(outfile);
 terminate();
 }
 
-}, pred=<uninitialized>]
+}, pred=<uninitialized>, config={
+
+}]
 Input::EVENT_NEW
 [i=6]
 F
@@ -169,7 +181,9 @@ close(outfile);
 terminate();
 }
 
-}, pred=<uninitialized>]
+}, pred=<uninitialized>, config={
+
+}]
 Input::EVENT_NEW
 [i=7]
 T

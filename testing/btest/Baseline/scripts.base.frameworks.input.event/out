@@ -11,6 +11,8 @@ close(outfile);
 terminate();
 }
 
+}, config={
+
 }]
 Input::EVENT_NEW
 1
@@ -27,6 +29,8 @@ if (7 == try)
 close(outfile);
 terminate();
 }
+
+}, config={
 
 }]
 Input::EVENT_NEW
@@ -45,6 +49,8 @@ close(outfile);
 terminate();
 }
 
+}, config={
+
 }]
 Input::EVENT_NEW
 3
@@ -61,6 +67,8 @@ if (7 == try)
 close(outfile);
 terminate();
 }
+
+}, config={
 
 }]
 Input::EVENT_NEW
@@ -79,6 +87,8 @@ close(outfile);
 terminate();
 }
 
+}, config={
+
 }]
 Input::EVENT_NEW
 5
@@ -96,6 +106,8 @@ close(outfile);
 terminate();
 }
 
+}, config={
+
 }]
 Input::EVENT_NEW
 6
@@ -112,6 +124,8 @@ if (7 == try)
 close(outfile);
 terminate();
 }
+
+}, config={
 
 }]
 Input::EVENT_NEW

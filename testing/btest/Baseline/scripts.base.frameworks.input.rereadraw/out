@@ -10,6 +10,8 @@ close(outfile);
 terminate();
 }
 
+}, config={
+
 }]
 Input::EVENT_NEW
 sdfkh:KH;fdkncv;ISEUp34:Fkdj;YVpIODhfDF
@@ -24,6 +26,8 @@ if (16 == try)
 close(outfile);
 terminate();
 }
+
+}, config={
 
 }]
 Input::EVENT_NEW
@@ -40,6 +44,8 @@ close(outfile);
 terminate();
 }
 
+}, config={
+
 }]
 Input::EVENT_NEW
 q3r3057fdf
@@ -54,6 +60,8 @@ if (16 == try)
 close(outfile);
 terminate();
 }
+
+}, config={
 
 }]
 Input::EVENT_NEW
@@ -70,6 +78,8 @@ close(outfile);
 terminate();
 }
 
+}, config={
+
 }]
 Input::EVENT_NEW
 
@@ -84,6 +94,8 @@ if (16 == try)
 close(outfile);
 terminate();
 }
+
+}, config={
 
 }]
 Input::EVENT_NEW
@@ -100,6 +112,8 @@ close(outfile);
 terminate();
 }
 
+}, config={
+
 }]
 Input::EVENT_NEW
 sdf
@@ -114,6 +128,8 @@ if (16 == try)
 close(outfile);
 terminate();
 }
+
+}, config={
 
 }]
 Input::EVENT_NEW
@@ -130,6 +146,8 @@ close(outfile);
 terminate();
 }
 
+}, config={
+
 }]
 Input::EVENT_NEW
 sdfkh:KH;fdkncv;ISEUp34:Fkdj;YVpIODhfDF
@@ -144,6 +162,8 @@ if (16 == try)
 close(outfile);
 terminate();
 }
+
+}, config={
 
 }]
 Input::EVENT_NEW
@@ -160,6 +180,8 @@ close(outfile);
 terminate();
 }
 
+}, config={
+
 }]
 Input::EVENT_NEW
 q3r3057fdf
@@ -174,6 +196,8 @@ if (16 == try)
 close(outfile);
 terminate();
 }
+
+}, config={
 
 }]
 Input::EVENT_NEW
@@ -190,6 +214,8 @@ close(outfile);
 terminate();
 }
 
+}, config={
+
 }]
 Input::EVENT_NEW
 
@@ -204,6 +230,8 @@ if (16 == try)
 close(outfile);
 terminate();
 }
+
+}, config={
 
 }]
 Input::EVENT_NEW
@@ -220,6 +248,8 @@ close(outfile);
 terminate();
 }
 
+}, config={
+
 }]
 Input::EVENT_NEW
 sdf
@@ -234,6 +264,8 @@ if (16 == try)
 close(outfile);
 terminate();
 }
+
+}, config={
 
 }]
 Input::EVENT_NEW

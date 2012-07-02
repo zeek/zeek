@@ -1,4 +1,13 @@
 
+2.0-733 | 2012-07-02 15:31:24 -0700
+
+  * Extending the input reader DoInit() API. (Bernhard Amann). It now
+    provides a Info struct similar to what we introduced for log
+    writers, including a corresponding "config" key/value table.
+
+  * Fix to make writer-info work when debugging is enabled. (Bernhard
+    Amann)
+
 2.0-726 | 2012-07-02 15:19:15 -0700
 
   * Extending the log writer DoInit() API. (Robin Sommer)

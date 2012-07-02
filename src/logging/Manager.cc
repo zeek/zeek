@@ -1261,14 +1261,14 @@ void Manager::InstallRotationTimer(WriterInfo* winfo)
 		timer_mgr->Add(winfo->rotation_timer);
 
 		DBG_LOG(DBG_LOGGING, "Scheduled rotation timer for %s to %.6f",
-			winfo->writer->Path().c_str(), winfo->rotation_timer->Time());
+			winfo->writer->Name().c_str(), winfo->rotation_timer->Time());
 		}
 	}
 
 void Manager::Rotate(WriterInfo* winfo)
 	{
 	DBG_LOG(DBG_LOGGING, "Rotating %s at %.6f",
-		winfo->writer->Path().c_str(), network_time);
+		winfo->writer->Name().c_str(), network_time);
 
 	// Build a temporary path for the writer to move the file to.
 	struct tm tm;
@@ -1297,7 +1297,7 @@ bool Manager::FinishedRotation(WriterFrontend* writer, string new_name, string o
 		return true;
 
 	DBG_LOG(DBG_LOGGING, "Finished rotating %s at %.6f, new name %s",
-		writer->Path().c_str(), network_time, new_name.c_str());
+		writer->Name().c_str(), network_time, new_name.c_str());
 
 	WriterInfo* winfo = FindWriter(writer);
 	if ( ! winfo )

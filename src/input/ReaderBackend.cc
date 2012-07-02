@@ -140,6 +140,7 @@ public:
 		}
 };
 
+using namespace logging;
 
 ReaderBackend::ReaderBackend(ReaderFrontend* arg_frontend) : MsgThread()
 	{
@@ -183,18 +184,17 @@ void ReaderBackend::SendEntry(Value* *vals)
 	SendOut(new SendEntryMessage(frontend, vals));
 	}
 
-bool ReaderBackend::Init(string arg_source, ReaderMode arg_mode, const int arg_num_fields,
+bool ReaderBackend::Init(const ReaderInfo& arg_info, const int arg_num_fields,
 		         const threading::Field* const* arg_fields)
 	{
-	source = arg_source;
-	mode = arg_mode;
+	info = arg_info;
 	num_fields = arg_num_fields;
 	fields = arg_fields;
 
-	SetName("InputReader/"+source);
+	SetName("InputReader/"+info.source);
 
 	// disable if DoInit returns error.
-	int success = DoInit(arg_source, mode, arg_num_fields, arg_fields);
+	int success = DoInit(arg_info, arg_num_fields, arg_fields);
 
 	if ( ! success )
 		{

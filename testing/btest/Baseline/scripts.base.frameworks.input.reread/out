@@ -46,6 +46,8 @@ print A::outfile, A::typ;
 print A::outfile, A::left;
 print A::outfile, A::right;
 return (T);
+}, config={
+
 }]
 Type
 Input::EVENT_NEW
@@ -139,6 +141,8 @@ print A::outfile, A::typ;
 print A::outfile, A::left;
 print A::outfile, A::right;
 return (T);
+}, config={
+
 }]
 Type
 Input::EVENT_NEW
@@ -244,6 +248,8 @@ print A::outfile, A::typ;
 print A::outfile, A::left;
 print A::outfile, A::right;
 return (T);
+}, config={
+
 }]
 Type
 Input::EVENT_CHANGED
@@ -469,6 +475,8 @@ print A::outfile, A::typ;
 print A::outfile, A::left;
 print A::outfile, A::right;
 return (T);
+}, config={
+
 }]
 Type
 Input::EVENT_NEW
@@ -592,6 +600,8 @@ print A::outfile, A::typ;
 print A::outfile, A::left;
 print A::outfile, A::right;
 return (T);
+}, config={
+
 }]
 Type
 Input::EVENT_NEW
@@ -715,6 +725,8 @@ print A::outfile, A::typ;
 print A::outfile, A::left;
 print A::outfile, A::right;
 return (T);
+}, config={
+
 }]
 Type
 Input::EVENT_NEW
@@ -838,6 +850,8 @@ print A::outfile, A::typ;
 print A::outfile, A::left;
 print A::outfile, A::right;
 return (T);
+}, config={
+
 }]
 Type
 Input::EVENT_NEW
@@ -961,6 +975,8 @@ print A::outfile, A::typ;
 print A::outfile, A::left;
 print A::outfile, A::right;
 return (T);
+}, config={
+
 }]
 Type
 Input::EVENT_NEW

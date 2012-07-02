@@ -140,9 +140,9 @@ export {
 		postprocessor: function(info: RotationInfo) : bool &optional;
 
 		## A key/value table that will be passed on to the writer.
-                ## Interpretation of the values is left to the writer, but
-                ## usually they will be used for configuration purposes.
-                config: table[string] of string &default=table();
+		## Interpretation of the values is left to the writer, but
+		## usually they will be used for configuration purposes.
+		config: table[string] of string &default=table();
 	};
 
 	## Sentinel value for indicating that a filter was not found when looked up.

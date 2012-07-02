@@ -12,6 +12,8 @@ Input::remove(input);
 terminate();
 }
 
+}, config={
+
 }]
 Input::EVENT_NEW
 sdfkh:KH;fdkncv;ISEUp34:Fkdj;YVpIODhfDF
@@ -28,6 +30,8 @@ close(A::outfile);
 Input::remove(input);
 terminate();
 }
+
+}, config={
 
 }]
 Input::EVENT_NEW
@@ -46,6 +50,8 @@ Input::remove(input);
 terminate();
 }
 
+}, config={
+
 }]
 Input::EVENT_NEW
 q3r3057fdf
@@ -62,6 +68,8 @@ close(A::outfile);
 Input::remove(input);
 terminate();
 }
+
+}, config={
 
 }]
 Input::EVENT_NEW
@@ -80,6 +88,8 @@ Input::remove(input);
 terminate();
 }
 
+}, config={
+
 }]
 Input::EVENT_NEW
 
@@ -96,6 +106,8 @@ close(A::outfile);
 Input::remove(input);
 terminate();
 }
+
+}, config={
 
 }]
 Input::EVENT_NEW
@@ -114,6 +126,8 @@ Input::remove(input);
 terminate();
 }
 
+}, config={
+
 }]
 Input::EVENT_NEW
 sdf
@@ -130,6 +144,8 @@ close(A::outfile);
 Input::remove(input);
 terminate();
 }
+
+}, config={
 
 }]
 Input::EVENT_NEW

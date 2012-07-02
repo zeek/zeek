@@ -21,7 +21,7 @@ public:
 		info(info), num_fields(num_fields), fields(fields),
 		frontend_name(frontend_name) { }
 
-	virtual bool Process() { return Object()->Init(info, num_fields, fields); }
+	virtual bool Process() { return Object()->Init(info, num_fields, fields, frontend_name); }
 
 private:
 	WriterBackend::WriterInfo info;

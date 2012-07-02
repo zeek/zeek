@@ -22,7 +22,7 @@ public:
 	static ReaderBackend* Instantiate(ReaderFrontend* frontend) { return new Raw(frontend); }
 
 protected:
-	virtual bool DoInit(string path, ReaderMode mode, int arg_num_fields, const threading::Field* const* fields, const std::map<string, string> config);
+	virtual bool DoInit(const ReaderInfo& info, ReaderMode mode, int arg_num_fields, const threading::Field* const* fields);
 	virtual void DoClose();
 	virtual bool DoUpdate();
 	virtual bool DoHeartbeat(double network_time, double current_time);

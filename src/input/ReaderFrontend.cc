@@ -11,22 +11,21 @@ namespace input {
 class InitMessage : public threading::InputMessage<ReaderBackend>
 {
 public:
-	InitMessage(ReaderBackend* backend, const string source, ReaderMode mode,
-		    const int num_fields, const threading::Field* const* fields, const std::map<string, string> config)
+	InitMessage(ReaderBackend* backend, const ReaderBackend::ReaderInfo& info, ReaderMode mode,
+		    const int num_fields, const threading::Field* const* fields)
 		: threading::InputMessage<ReaderBackend>("Init", backend),
-		source(source), mode(mode), num_fields(num_fields), fields(fields), config(config) { }
+		info(info), mode(mode), num_fields(num_fields), fields(fields) { }
 
 	virtual bool Process()
 		{
-		return Object()->Init(source, mode, num_fields, fields, config);
+		return Object()->Init(info, mode, num_fields, fields);
 		}
 
 private:
-	const string source;
+	const ReaderBackend::ReaderInfo info;
 	const ReaderMode mode;
 	const int num_fields;
 	const threading::Field* const* fields;
-	const std::map<string, string> config;
 };
 
 class UpdateMessage : public threading::InputMessage<ReaderBackend>
@@ -64,8 +63,8 @@ ReaderFrontend::~ReaderFrontend()
 	{
 	}
 
-void ReaderFrontend::Init(string arg_source, ReaderMode mode, const int num_fields,
-		          const threading::Field* const* fields, const std::map<string, string> config)
+void ReaderFrontend::Init(const ReaderBackend::ReaderInfo& arg_info, ReaderMode mode, const int arg_num_fields,
+		          const threading::Field* const* arg_fields)
 	{
 	if ( disabled )
 		return;
@@ -73,10 +72,12 @@ void ReaderFrontend::Init(string arg_source, ReaderMode mode, const int num_fiel
 	if ( initialized )
 		reporter->InternalError("reader initialize twice");
 
-	source = arg_source;
+	info = arg_info;
+	num_fields = arg_num_fields;
+	fields = arg_fields;	
 	initialized = true;
 
-	backend->SendIn(new InitMessage(backend, arg_source, mode, num_fields, fields, config));
+	backend->SendIn(new InitMessage(backend, info, mode, num_fields, fields));
 	}
 
 void ReaderFrontend::Update()
@@ -110,10 +111,10 @@ void ReaderFrontend::Close()
 
 string ReaderFrontend::Name() const
 	{
-	if ( source.size() )
+	if ( info.source.size() )
 		return ty_name;
 
-	return ty_name + "/" + source;
+	return ty_name + "/" + info.source;
 	}
 
 }

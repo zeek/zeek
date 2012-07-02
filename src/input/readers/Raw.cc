@@ -100,15 +100,15 @@ bool Raw::CloseInput()
 	return true;
 	}
 
-bool Raw::DoInit(string path, ReaderMode mode, int num_fields, const Field* const* fields, const std::map<string, string> config)
+bool Raw::DoInit(const ReaderInfo& info, ReaderMode mode, int num_fields, const Field* const* fields)
 	{
-	fname = path;
+	fname = info.source;
 	mtime = 0;
 	execute = false;
 	firstrun = true;
 	bool result;
 
-	if ( path.length() == 0 )
+	if ( info.source.length() == 0 )
 		{
 		Error("No source path provided");
 		return false;
@@ -129,11 +129,11 @@ bool Raw::DoInit(string path, ReaderMode mode, int num_fields, const Field* cons
 		}
 
 	// do Initialization
-	char last = path[path.length()-1];
+	char last = info.source[info.source.length()-1];
 	if ( last == '|' )
 		{
 		execute = true;
-		fname = path.substr(0, fname.length() - 1);
+		fname = info.source.substr(0, fname.length() - 1);
 
 		if ( (mode != MODE_MANUAL) )
 			{

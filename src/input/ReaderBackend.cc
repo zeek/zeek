@@ -140,6 +140,49 @@ public:
 		}
 };
 
+using namespace logging;
+
+bool ReaderBackend::ReaderInfo::Read(SerializationFormat* fmt)
+	{
+	int size;
+
+	if ( ! (fmt->Read(&source, "source") &&
+		fmt->Read(&size, "config_size")) )
+		return false;
+
+	config.clear();
+
+	while ( size )
+		{
+		string value;
+		string key;
+
+		if ( ! (fmt->Read(&value, "config-value") && fmt->Read(&value, "config-key")) )
+			return false;
+
+		config.insert(std::make_pair(value, key));
+		}
+
+	return true;
+	}
+
+
+bool ReaderBackend::ReaderInfo::Write(SerializationFormat* fmt) const
+	{
+	int size = config.size();
+
+	if ( ! (fmt->Write(source, "source") &&
+		fmt->Write(size, "config_size")) )
+		return false;
+
+	for ( config_map::const_iterator i = config.begin(); i != config.end(); ++i ) 
+		{
+		if ( ! (fmt->Write(i->first, "config-value") && fmt->Write(i->second, "config-key")) )
+			return false;
+		}
+
+	return true;
+	}
 
 ReaderBackend::ReaderBackend(ReaderFrontend* arg_frontend) : MsgThread()
 	{
@@ -183,18 +226,18 @@ void ReaderBackend::SendEntry(Value* *vals)
 	SendOut(new SendEntryMessage(frontend, vals));
 	}
 
-bool ReaderBackend::Init(string arg_source, ReaderMode arg_mode, const int arg_num_fields,
-		         const threading::Field* const* arg_fields, const std::map<string, string> config)
+bool ReaderBackend::Init(const ReaderInfo& arg_info, ReaderMode arg_mode, const int arg_num_fields,
+		         const threading::Field* const* arg_fields)
 	{
-	source = arg_source;
+	info = arg_info;
 	mode = arg_mode;
 	num_fields = arg_num_fields;
 	fields = arg_fields;
 
-	SetName("InputReader/"+source);
+	SetName("InputReader/"+info.source);
 
 	// disable if DoInit returns error.
-	int success = DoInit(arg_source, mode, arg_num_fields, arg_fields, config);
+	int success = DoInit(arg_info, mode, arg_num_fields, arg_fields);
 
 	if ( ! success )
 		{

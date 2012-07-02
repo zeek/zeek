@@ -1,3 +1,5 @@
+# (uses listen.bro just to ensure input sources are more reliably fully-read).
+# @TEST-SERIALIZE: comm
 #
 # @TEST-EXEC: cp input1.log input.log
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT 
@@ -5,7 +7,7 @@
 # @TEST-EXEC: cat input2.log >> input.log
 # @TEST-EXEC: sleep 3
 # @TEST-EXEC: cat input3.log >> input.log
-# @TEST-EXEC: btest-bg-wait -k 3
+# @TEST-EXEC: btest-bg-wait -k 5
 # @TEST-EXEC: btest-diff out
 
 @TEST-START-FILE input1.log
@@ -36,21 +38,25 @@ type Val: record {
 global try: count;
 global outfile: file;
 
-event line(description: Input::EventDescription, tpe: Input::Event, s: string) {
+event line(description: Input::EventDescription, tpe: Input::Event, s: string)
+	{
 	print outfile, description;
 	print outfile, tpe;
 	print outfile, s;
-	
-	if ( try == 3 ) {
+
+	try = try + 1;
+	if ( try == 8 )
+		{
 		print outfile, "done";
 		close(outfile);
 		Input::remove("input");
+		terminate();
+		}
 	}
-}
 
 event bro_init()
-{
-	outfile = open ("../out");
+	{
+	outfile = open("../out");
 	try = 0;
 	Input::add_event([$source="../input.log", $reader=Input::READER_RAW, $mode=Input::STREAM, $name="input", $fields=Val, $ev=line]);
-}
+	}

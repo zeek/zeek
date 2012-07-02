@@ -4208,32 +4208,38 @@ bool SocketComm::Listen()
 
 bool SocketComm::AcceptConnection(int fd)
 	{
-	sockaddr_storage client;
-	socklen_t len = sizeof(client);
+	union {
+		sockaddr_storage ss;
+		sockaddr_in s4;
+		sockaddr_in6 s6;
+	} client;
 
-	int clientfd = accept(fd, (sockaddr*) &client, &len);
+	socklen_t len = sizeof(client.ss);
+
+	int clientfd = accept(fd, (sockaddr*) &client.ss, &len);
 	if ( clientfd < 0 )
 		{
 		Error(fmt("accept failed, %s %d", strerror(errno), errno));
 		return false;
 		}
 
-	if ( client.ss_family != AF_INET && client.ss_family != AF_INET6 )
+	if ( client.ss.ss_family != AF_INET && client.ss.ss_family != AF_INET6 )
 		{
-		Error(fmt("accept fail, unknown address family %d", client.ss_family));
+		Error(fmt("accept fail, unknown address family %d",
+		          client.ss.ss_family));
 		close(clientfd);
 		return false;
 		}
 
 	Peer* peer = new Peer;
 	peer->id = id_counter++;
-	peer->ip = client.ss_family == AF_INET ?
-	           IPAddr(((sockaddr_in*)&client)->sin_addr) :
-	           IPAddr(((sockaddr_in6*)&client)->sin6_addr);
+	peer->ip = client.ss.ss_family == AF_INET ?
+	           IPAddr(client.s4.sin_addr) :
+	           IPAddr(client.s6.sin6_addr);
 
-	peer->port = client.ss_family == AF_INET ?
-	             ntohs(((sockaddr_in*)&client)->sin_port) :
-	             ntohs(((sockaddr_in6*)&client)->sin6_port);
+	peer->port = client.ss.ss_family == AF_INET ?
+	             ntohs(client.s4.sin_port) :
+	             ntohs(client.s6.sin6_port);
 
 	peer->connected = true;
 	peer->ssl = listen_ssl;

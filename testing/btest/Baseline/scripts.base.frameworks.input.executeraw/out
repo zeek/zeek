@@ -4,6 +4,7 @@ print outfile, description;
 print outfile, tpe;
 print outfile, s;
 close(outfile);
+terminate();
 }]
 Input::EVENT_NEW
 8 ../input.log

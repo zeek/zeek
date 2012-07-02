@@ -1,4 +1,31 @@
 
+2.0-719 | 2012-07-02 14:49:03 -0700
+
+  * Fix inconsistencies in random number generation. The
+    srand()/rand() interface was being intermixed with the
+    srandom()/random() one.  The later is now used throughout. (Jon
+    Siwek)
+
+  * Changed the srand() and rand() BIFs to work deterministically if
+    Bro was given a seed file. Addresses #825. (Jon Siwek)
+
+  * Updating input framework unit tests to make them more reliable and
+    execute quicker. (Jon Siwek)
+
+  * Fixed race condition in writer and reader initializations. (Jon
+    Siwek)
+
+  * Small tweak to make test complete quicker. (Jon Siwek)
+
+  * Drain events before terminating log/thread managers. (Jon Siwek)
+    
+  * Fix strict-aliasing warning in RemoteSerializer.cc. Addresses
+    #834. (Jon Siwek)
+
+  * Fix typos in event documentation. (Daniel Thayer)
+    
+  * Fix typos in NEWS for Bro 2.1 beta. (Daniel Thayer)
+
 2.0-709 | 2012-06-21 10:14:24 -0700
 
   * Fix exceptions thrown in event handlers preventing others from running. (Jon Siwek)

@@ -313,6 +313,8 @@ void terminate_bro()
 	if ( remote_serializer )
 		remote_serializer->LogStats();
 
+	mgr.Drain();
+
 	log_mgr->Terminate();
 	thread_mgr->Terminate();
 

@@ -159,6 +159,10 @@ extern bool have_random_seed();
 // predictable PRNG.
 long int bro_random();
 
+// Calls the system srandom() function with the given seed if not running
+// in deterministic mode, else it updates the state of the deterministic PRNG.
+void bro_srandom(unsigned int seed);
+
 extern uint64 rand64bit();
 
 // Each event source that may generate events gets an internally unique ID.

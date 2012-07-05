@@ -1,8 +1,8 @@
 
-2.0-746 | 2012-07-05 12:28:54 -0700
+2.1-beta | 2012-07-05 12:57:56 -0700
 
   * Fix typos in input framework doc. (Daniel Thayer)
-
+    
   * Fix typos in DataSeries documentation. (Daniel Thayer)
 
   * Bugfix making custom rotate functions work again. (Robin Sommer)

@@ -1,4 +1,17 @@
 
+2.0-746 | 2012-07-05 12:28:54 -0700
+
+  * Fix typos in input framework doc. (Daniel Thayer)
+
+  * Fix typos in DataSeries documentation. (Daniel Thayer)
+
+  * Bugfix making custom rotate functions work again. (Robin Sommer)
+    
+  * Tiny bugfix for returning writer name. (Robin Sommer)
+    
+  * Moving make target update-doc-sources from top-level Makefile to
+    btest Makefile. (Robin Sommer)
+
 2.0-733 | 2012-07-02 15:31:24 -0700
 
   * Extending the input reader DoInit() API. (Bernhard Amann). It now

@@ -377,7 +377,7 @@ uncommon to need to delete that data before the end of the connection.
 Other Writers
 -------------
 
-Bro support the following output formats other than ASCII:
+Bro supports the following output formats other than ASCII:
 
 .. toctree::
    :maxdepth: 1

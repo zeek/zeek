@@ -972,12 +972,12 @@ function sha256_hash_finish%(index: any%): string
 ##
 ## .. note::
 ##
-##      This function is a wrapper about the function ``rand`` provided by
-##      the OS.
+##      This function is a wrapper about the function ``random``
+##      provided by the OS.
 function rand%(max: count%): count
 	%{
 	int result;
-	result = bro_uint_t(double(max) * double(rand()) / (RAND_MAX + 1.0));
+	result = bro_uint_t(double(max) * double(bro_random()) / (RAND_MAX + 1.0));
 	return new Val(result, TYPE_COUNT);
 	%}
 
@@ -989,11 +989,11 @@ function rand%(max: count%): count
 ##
 ## .. note::
 ##
-##      This function is a wrapper about the function ``srand`` provided
-##      by the OS.
+##      This function is a wrapper about the function ``srandom``
+##      provided by the OS.
 function srand%(seed: count%): any
 	%{
-	srand(seed);
+	bro_srandom(seed);
 	return 0;
 	%}
 
@@ -1700,7 +1700,7 @@ function fmt%(...%): string
 		return new StringVal("");
 		}
 
-	else if ( n >= @ARGC@ ) 
+	else if ( n >= @ARGC@ )
 		{
 		builtin_error("too few arguments for format", fmt_v);
 		return new StringVal("");
@@ -4814,7 +4814,9 @@ function calc_next_rotate%(i: interval%) : interval
 	%{
 	const char* base_time = log_rotate_base_time ?
 		log_rotate_base_time->AsString()->CheckString() : 0;
-	return new Val(calc_next_rotate(i, base_time), TYPE_INTERVAL);
+
+	double base = parse_rotate_base_time(base_time);
+	return new Val(calc_next_rotate(network_time, i, base), TYPE_INTERVAL);
 	%}
 
 ## Returns the size of a given file.

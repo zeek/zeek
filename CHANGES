@@ -1,4 +1,173 @@
 
+2.1-beta | 2012-07-06 07:36:29 -0700
+
+  * Remove a non-portable test case. (Daniel Thayer)
+
+  * Fix typos in input framework doc. (Daniel Thayer)
+    
+  * Fix typos in DataSeries documentation. (Daniel Thayer)
+
+  * Bugfix making custom rotate functions work again. (Robin Sommer)
+    
+  * Tiny bugfix for returning writer name. (Robin Sommer)
+    
+  * Moving make target update-doc-sources from top-level Makefile to
+    btest Makefile. (Robin Sommer)
+
+2.0-733 | 2012-07-02 15:31:24 -0700
+
+  * Extending the input reader DoInit() API. (Bernhard Amann). It now
+    provides a Info struct similar to what we introduced for log
+    writers, including a corresponding "config" key/value table.
+
+  * Fix to make writer-info work when debugging is enabled. (Bernhard
+    Amann)
+
+2.0-726 | 2012-07-02 15:19:15 -0700
+
+  * Extending the log writer DoInit() API. (Robin Sommer)
+
+    We now pass in a Info struct that contains:
+
+        - the path name (as before)
+        - the rotation interval
+        - the log_rotate_base_time in seconds
+        - a table of key/value pairs with further configuration options.
+
+    To fill the table, log filters have a new field "config: table[string]
+    of strings". This gives a way to pass arbitrary values from
+    script-land to writers. Interpretation is left up to the writer.
+
+  * Split calc_next_rotate() into two functions, one of which is
+    thread-safe and can be used with the log_rotate_base_time value
+    from DoInit().
+
+  * Updates to the None writer. (Robin Sommer)
+
+        - It gets its own script writers/none.bro.
+
+        - New bool option LogNone::debug to enable debug output. It then
+          prints out all the values passed to DoInit().
+
+        - Fixed a bug that prevented Bro from terminating.
+
+2.0-723 | 2012-07-02 15:02:56 -0700
+
+  * Extract ICMPv6 NDP options and include in ICMP events.  This adds
+    a new parameter of type "icmp6_nd_options" to the ICMPv6 neighbor
+    discovery events. Addresses #833. (Jon Siwek)
+
+  * Set input frontend type before starting the thread. This means
+    that the thread type will be output correctly in the error
+    message. (Bernhard Amann)
+
+2.0-719 | 2012-07-02 14:49:03 -0700
+
+  * Fix inconsistencies in random number generation. The
+    srand()/rand() interface was being intermixed with the
+    srandom()/random() one.  The later is now used throughout. (Jon
+    Siwek)
+
+  * Changed the srand() and rand() BIFs to work deterministically if
+    Bro was given a seed file. Addresses #825. (Jon Siwek)
+
+  * Updating input framework unit tests to make them more reliable and
+    execute quicker. (Jon Siwek)
+
+  * Fixed race condition in writer and reader initializations. (Jon
+    Siwek)
+
+  * Small tweak to make test complete quicker. (Jon Siwek)
+
+  * Drain events before terminating log/thread managers. (Jon Siwek)
+    
+  * Fix strict-aliasing warning in RemoteSerializer.cc. Addresses
+    #834. (Jon Siwek)
+
+  * Fix typos in event documentation. (Daniel Thayer)
+    
+  * Fix typos in NEWS for Bro 2.1 beta. (Daniel Thayer)
+
+2.0-709 | 2012-06-21 10:14:24 -0700
+
+  * Fix exceptions thrown in event handlers preventing others from running. (Jon Siwek)
+
+  * Add another SOCKS command. (Seth Hall)
+
+  * Fixed some problems with the SOCKS analyzer and tests. (Seth Hall)
+
+  * Updating NEWS in preparation for beta. (Robin Sommer)
+
+  * Accepting different AF_INET6 values for loopback link headers.
+    (Robin Sommer)
+
+2.0-698 | 2012-06-20 14:30:40 -0700
+
+  * Updates for the SOCKS analyzer (Seth Hall).
+
+    - A SOCKS log!
+
+    - Now supports SOCKSv5 in the analyzer and the DPD sigs.
+
+    - Added protocol violations.
+
+  * Updates to the tunnels framework. (Seth Hall)
+    
+    - Make the uid field optional since it's conceptually incorrect
+      for proxies being treated as tunnels to have it.
+
+    - Reordered two fields in the log.
+      
+    - Reduced the default tunnel expiration interface to something
+      more reasonable (1 hour). 
+
+  * Make Teredo bubble packet parsing more lenient. (Jon Siwek)
+
+  * Fix a crash in NetSessions::ParseIPPacket(). (Jon Siwek)
+
+2.0-690 | 2012-06-18 16:01:33 -0700
+
+  * Support for decapsulating tunnels via the new tunnel framework in
+    base/frameworks/tunnels.
+
+    Bro currently supports Teredo, AYIYA, IP-in-IP (both IPv4 and
+    IPv6), and SOCKS. For all these, it logs the outher tunnel
+    connections in both conn.log and tunnel.log, and proceeds to
+    analyze the inner payload as if it were not tunneled, including
+    also logging it in conn.log (with a new tunnel_parents column
+    pointing back to the outer connection(s)). (Jon Siwek, Seth Hall,
+    Gregor Maier)
+
+  * The options "tunnel_port" and "parse_udp_tunnels" have been
+    removed. (Jon Siwek)
+
+2.0-623 | 2012-06-15 16:24:52 -0700
+
+  * Changing an error in the input framework to a warning. (Robin
+    Sommer)
+
+2.0-622 | 2012-06-15 15:38:43 -0700
+
+  * Input framework updates. (Bernhard Amann)
+
+    - Disable streaming reads from executed commands. This lead to
+      hanging Bros because pclose apparently can wait for eternity if
+      things go wrong.  
+
+     - Automatically delete disabled input streams.
+       
+     - Documentation.
+
+2.0-614 | 2012-06-15 15:19:49 -0700
+
+  * Remove an old, unused diff canonifier. (Jon Siwek)
+
+  * Improve an error message in ICMP analyzer. (Jon Siwek)
+    
+  * Fix a warning message when building docs. (Daniel Thayer)
+    
+  * Fix many errors in the event documentation. (Daniel Thayer)
+    
 2.0-608 | 2012-06-11 15:59:00 -0700
 
   * Add more error handling code to logging of enum vals. Addresses

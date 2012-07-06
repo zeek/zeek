@@ -5,7 +5,7 @@
 # @TEST-EXEC: btest-bg-wait -k 10
 #
 # Don't diff the receiver log just because port is always going to change
-# @TEST-EXEC: egrep -v 'pid|socket buffer size' sender/communication.log >send.log
+# @TEST-EXEC: egrep -v 'CPU|bytes|pid|socket buffer size' sender/communication.log >send.log
 # @TEST-EXEC: btest-diff send.log
 
 @TEST-START-FILE sender.bro
@@ -19,6 +19,10 @@ redef Communication::nodes += {
 event remote_connection_handshake_done(p: event_peer)
 	{
 	terminate_communication();
+	}
+
+event remote_connection_closed(p: event_peer)
+	{
 	terminate();
 	}
 
@@ -30,9 +34,8 @@ event remote_connection_handshake_done(p: event_peer)
 
 @load frameworks/communication/listen
 
-event remote_connection_handshake_done(p: event_peer)
+event remote_connection_closed(p: event_peer)
 	{
-	terminate_communication();
 	terminate();
 	}
 

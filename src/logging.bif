@@ -94,3 +94,9 @@ const type_prefix: string;
 const max_batch_size: count;
 const max_batch_interval: interval;
 const max_byte_size: count;
+
+# Options for the None writer.
+
+module LogNone;
+
+const debug: bool;

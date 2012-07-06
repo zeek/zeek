@@ -329,7 +329,17 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 				bodies[i].stmts->GetLocationInfo());
 
 		Unref(result);
-		result = bodies[i].stmts->Exec(f, flow);
+
+		try
+			{
+			result = bodies[i].stmts->Exec(f, flow);
+			}
+
+		catch ( InterpreterException& e )
+			{
+			// Already reported, but we continue exec'ing remaining bodies.
+			continue;
+			}
 
 		if ( f->HasDelayed() )
 			{

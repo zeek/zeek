@@ -171,6 +171,10 @@
 #ifndef HAVE_IPPROTO_IPV6
 #define IPPROTO_IPV6 41
 #endif
+#cmakedefine HAVE_IPPROTO_IPV4
+#ifndef HAVE_IPPROTO_IPV4
+#define IPPROTO_IPV4 4
+#endif
 #cmakedefine HAVE_IPPROTO_ROUTING
 #ifndef HAVE_IPPROTO_ROUTING
 #define IPPROTO_ROUTING 43

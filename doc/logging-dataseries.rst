@@ -21,7 +21,7 @@ To use DataSeries, its libraries must be available at compile-time,
 along with the supporting *Lintel* package. Generally, both are
 distributed on `HP Labs' web site
 <http://tesla.hpl.hp.com/opensource/>`_. Currently, however, you need
-to use recent developments versions for both packages, which you can
+to use recent development versions for both packages, which you can
 download from github like this::
 
     git clone http://github.com/dataseries/Lintel
@@ -76,7 +76,7 @@ tools, which its installation process installs into ``<prefix>/bin``.
 For example, to convert a file back into an ASCII representation::
 
     $ ds2txt conn.log
-    [... We skip a bunch of meta data here ...]
+    [... We skip a bunch of metadata here ...]
     ts uid id.orig_h id.orig_p id.resp_h id.resp_p proto service duration orig_bytes resp_bytes conn_state local_orig missed_bytes history orig_pkts orig_ip_bytes resp_pkts resp_ip_bytes
     1300475167.096535 CRCC5OdDlXe 141.142.220.202 5353 224.0.0.251 5353 udp dns 0.000000 0 0 S0 F 0 D 1 73 0 0
     1300475167.097012 o7XBsfvo3U1 fe80::217:f2ff:fed7:cf65 5353 ff02::fb 5353 udp  0.000000 0 0 S0 F 0 D 1 199 0 0
@@ -86,13 +86,13 @@ For example, to convert a file back into an ASCII representation::
     1300475168.854837 k6T92WxgNAh 141.142.220.118 40526 141.142.2.2 53 udp dns 0.000392 38 183 SF F 0 Dd 1 66 1 211
     [...]
 
-(``--skip-all`` suppresses the meta data.)
+(``--skip-all`` suppresses the metadata.)
 
 Note that the ASCII conversion is *not* equivalent to Bro's default
 output format.
 
 You can also switch only individual files over to DataSeries by adding
-code like this to your ``local.bro``::
+code like this to your ``local.bro``:
 
 .. code:: bro
 
@@ -109,7 +109,7 @@ Bro's DataSeries writer comes with a few tuning options, see
 Working with DataSeries
 =======================
 
-Here are few examples of using DataSeries command line tools to work
+Here are a few examples of using DataSeries command line tools to work
 with the output files.
 
 * Printing CSV::
@@ -147,7 +147,7 @@ with the output files.
 
 * Calculate some statistics:
 
-    Mean/stdev/min/max over a column::
+    Mean/stddev/min/max over a column::
 
         $ dsstatgroupby '*' basic duration from conn.ds
         # Begin DSStatGroupByModule
@@ -158,7 +158,7 @@ with the output files.
 
     Quantiles of total connection volume::
 
-        > dsstatgroupby '*' quantile 'orig_bytes + resp_bytes' from conn.ds
+        $ dsstatgroupby '*' quantile 'orig_bytes + resp_bytes' from conn.ds
         [...]
         2159 data points, mean 24616 +- 343295 [0,1.26615e+07]
         quantiles about every 216 data points:
@@ -166,7 +166,7 @@ with the output files.
         tails: 90%: 1469, 95%: 7302, 99%: 242629, 99.5%: 1226262
         [...]
 
-The ``man`` pages for these tool show further options, and their
+The ``man`` pages for these tools show further options, and their
 ``-h`` option gives some more information (either can be a bit cryptic
 unfortunately though).
 
@@ -175,7 +175,7 @@ Deficiencies
 
 Due to limitations of the DataSeries format, one cannot inspect its
 files before they have been fully written. In other words, when using
-DataSeries, it's currently it's not possible to inspect the live log
+DataSeries, it's currently not possible to inspect the live log
 files inside the spool directory before they are rotated to their
 final location. It seems that this could be fixed with some effort,
 and we will work with DataSeries development team on that if the

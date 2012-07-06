@@ -115,6 +115,61 @@ type icmp_context: record {
 	DF: bool;	##< True if the packets *don't fragment* flag is set.
 };
 
+## Values extracted from a Prefix Information option in an ICMPv6 neighbor
+## discovery message as specified by :rfc:`4861`.
+##
+## .. bro:see:: icmp6_nd_option
+type icmp6_nd_prefix_info: record {
+	## Number of leading bits of the *prefix* that are valid.
+	prefix_len: count;
+	## Flag indicating the prefix can be used for on-link determination.
+	L_flag: bool;
+	## Autonomous address-configuration flag.
+	A_flag: bool;
+	## Length of time in seconds that the prefix is valid for purpose of
+	## on-link determination (0xffffffff represents infinity).
+	valid_lifetime: interval;
+	## Length of time in seconds that the addresses generated from the prefix
+	## via stateless address autoconfiguration remain preferred
+	## (0xffffffff represents infinity).
+	preferred_lifetime: interval;
+	## An IP address or prefix of an IP address.  Use the *prefix_len* field
+	## to convert this into a :bro:type:`subnet`.
+	prefix: addr;
+};
+
+## Options extracted from ICMPv6 neighbor discovery messages as specified
+## by :rfc:`4861`.
+##
+## .. bro:see:: icmp_router_solicitation icmp_router_advertisement
+##    icmp_neighbor_advertisement icmp_neighbor_solicitation icmp_redirect
+##    icmp6_nd_options
+type icmp6_nd_option: record {
+	## 8-bit identifier of the type of option.
+	otype:        count;
+	## 8-bit integer representing the length of the option (including the type
+	## and length fields) in units of 8 octets.
+	len:          count;
+	## Source Link-Layer Address (Type 1) or Target Link-Layer Address (Type 2).
+	## Byte ordering of this is dependent on the actual link-layer.
+	link_address: string &optional;
+	## Prefix Information (Type 3).
+	prefix:       icmp6_nd_prefix_info &optional;
+	## Redirected header (Type 4).  This field contains the context of the
+	## original, redirected packet.
+	redirect:     icmp_context &optional;
+	## Recommended MTU for the link (Type 5).
+	mtu:          count &optional;
+	## The raw data of the option (everything after type & length fields),
+	## useful for unknown option types or when the full option payload is
+	## truncated in the captured packet.  In those cases, option fields
+	## won't be pre-extracted into the fields above.
+	payload:      string &optional;
+};
+
+## A type alias for a vector of ICMPv6 neighbor discovery message options.
+type icmp6_nd_options: vector of icmp6_nd_option;
+
 # A DNS mapping between IP address and hostname resolved by Bro's internal
 # resolver.
 #
@@ -178,6 +233,32 @@ type endpoint_stats: record {
 ##    use ``count``. That should be changed.
 type AnalyzerID: count;
 
+module Tunnel;
+export {
+	## Records the identity of an encapsulating parent of a tunneled connection.
+	type EncapsulatingConn: record {
+		## The 4-tuple of the encapsulating "connection". In case of an IP-in-IP
+		## tunnel the ports will be set to 0. The direction (i.e., orig and
+		## resp) are set according to the first tunneled packet seen
+		## and not according to the side that established the tunnel. 
+		cid: conn_id;
+		## The type of tunnel.
+		tunnel_type: Tunnel::Type;
+		## A globally unique identifier that, for non-IP-in-IP tunnels,
+		## cross-references the *uid* field of :bro:type:`connection`.
+		uid: string &optional;
+	} &log;
+} # end export
+module GLOBAL;
+
+## A type alias for a vector of encapsulating "connections", i.e for when
+## there are tunnels within tunnels.
+##
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
+type EncapsulatingConnVector: vector of Tunnel::EncapsulatingConn;
+
 ## Statistics about a :bro:type:`connection` endpoint.
 ##
 ## .. bro:see:: connection
@@ -199,10 +280,10 @@ type endpoint: record {
 	flow_label: count;
 };
 
-# A connection. This is Bro's basic connection type describing IP- and
-# transport-layer information about the conversation. Note that Bro uses a
-# liberal interpreation of "connection" and associates instances of this type
-# also with UDP and ICMP flows.
+## A connection. This is Bro's basic connection type describing IP- and
+## transport-layer information about the conversation. Note that Bro uses a
+## liberal interpreation of "connection" and associates instances of this type
+## also with UDP and ICMP flows.
 type connection: record {
 	id: conn_id;	##< The connection's identifying 4-tuple.
 	orig: endpoint;	##< Statistics about originator side.
@@ -227,6 +308,12 @@ type connection: record {
 	## that is very likely unique across independent Bro runs. These IDs can thus be
 	## used to tag and locate information  associated with that connection.
 	uid: string;
+	## If the connection is tunneled, this field contains information about
+	## the encapsulating "connection(s)" with the outermost one starting
+	## at index zero.  It's also always the first such enapsulation seen
+	## for the connection unless the :bro:id:`tunnel_changed` event is handled
+	## and re-assigns this field to the new encapsulation.
+	tunnel: EncapsulatingConnVector &optional;
 };
 
 ## Fields of a SYN packet.
@@ -884,17 +971,8 @@ const frag_timeout = 0.0 sec &redef;
 const packet_sort_window = 0 usecs &redef;
 
 ## If positive, indicates the encapsulation header size that should
-## be skipped. This either applies to all packets, or if
-## :bro:see:`tunnel_port` is set, only to packets on that port.
-##
-## .. :bro:see:: tunnel_port
+## be skipped. This applies to all packets.
 const encap_hdr_size = 0 &redef;
-
-## A UDP port that specifies which connections to apply :bro:see:`encap_hdr_size`
-## to.
-##
-## .. :bro:see:: encap_hdr_size
-const tunnel_port = 0/udp &redef;
 
 ## Whether to use the ``ConnSize`` analyzer to count the number of packets and
 ## IP-level bytes transfered by each endpoint. If true, these values are returned
@@ -1250,7 +1328,7 @@ type ip6_ext_hdr: record {
 	mobility: ip6_mobility_hdr &optional;
 };
 
-## A type alias for a vector of IPv6 extension headers
+## A type alias for a vector of IPv6 extension headers.
 type ip6_ext_hdr_chain: vector of ip6_ext_hdr;
 
 ## Values extracted from an IPv6 header.
@@ -1334,6 +1412,42 @@ type pkt_hdr: record {
 	tcp: tcp_hdr &optional;			##< The TCP header if a TCP packet.
 	udp: udp_hdr &optional;			##< The UDP header if a UDP packet.
 	icmp: icmp_hdr &optional;		##< The ICMP header if an ICMP packet.
+};
+
+## A Teredo origin indication header.  See :rfc:`4380` for more information
+## about the Teredo protocol.
+##
+## .. bro:see:: teredo_bubble teredo_origin_indication teredo_authentication
+##    teredo_hdr
+type teredo_auth: record {
+	id:      string;  ##< Teredo client identifier.
+	value:   string;  ##< HMAC-SHA1 over shared secret key between client and
+	                  ##< server, nonce, confirmation byte, origin indication
+	                  ##< (if present), and the IPv6 packet.
+	nonce:   count;   ##< Nonce chosen by Teredo client to be repeated by
+	                  ##< Teredo server.
+	confirm: count;   ##< Confirmation byte to be set to 0 by Teredo client
+	                  ##< and non-zero by server if client needs new key.
+};
+
+## A Teredo authentication header.  See :rfc:`4380` for more information
+## about the Teredo protocol.
+##
+## .. bro:see:: teredo_bubble teredo_origin_indication teredo_authentication
+##    teredo_hdr
+type teredo_origin: record {
+	p: port; ##< Unobfuscated UDP port of Teredo client.
+	a: addr; ##< Unobfuscated IPv4 address of Teredo client.
+};
+
+## A Teredo packet header.  See :rfc:`4380` for more information about the
+## Teredo protocol.
+##
+## .. bro:see:: teredo_bubble teredo_origin_indication teredo_authentication
+type teredo_hdr: record {
+	auth:   teredo_auth &optional;   ##< Teredo authentication header.
+	origin: teredo_origin &optional; ##< Teredo origin indication header.
+	hdr:    pkt_hdr;                 ##< IPv6 and transport protocol headers.
 };
 
 ## Definition of "secondary filters". A secondary filter is a BPF filter given as
@@ -2343,6 +2457,17 @@ type bittorrent_benc_dir: table[string] of bittorrent_benc_value;
 ##    bt_tracker_response_not_ok
 type bt_tracker_headers: table[string] of string;
 
+module SOCKS;
+export {
+	## This record is for a SOCKS client or server to provide either a 
+	## name or an address to represent a desired or established connection.
+	type Address: record {
+		host: addr   &optional;
+		name: string &optional;
+	} &log;
+}
+module GLOBAL;
+
 @load base/event.bif
 
 ## BPF filter the user has set via the -f command line options. Empty if none.
@@ -2636,11 +2761,33 @@ const record_all_packets = F &redef;
 ## .. bro:see:: conn_stats
 const ignore_keep_alive_rexmit = F &redef;
 
-## Whether the analysis engine parses IP packets encapsulated in
-## UDP tunnels.
-##
-## .. bro:see:: tunnel_port
-const parse_udp_tunnels = F &redef;
+module Tunnel;
+export {
+	## The maximum depth of a tunnel to decapsulate until giving up.
+	## Setting this to zero will disable all types of tunnel decapsulation.
+	const max_depth: count = 2 &redef;
+
+	## Toggle whether to do IPv{4,6}-in-IPv{4,6} decapsulation.
+	const enable_ip = T &redef;
+
+	## Toggle whether to do IPv{4,6}-in-AYIYA decapsulation.
+	const enable_ayiya = T &redef;
+
+	## Toggle whether to do IPv6-in-Teredo decapsulation.
+	const enable_teredo = T &redef;
+
+	## With this option set, the Teredo analysis will first check to see if
+	## other protocol analyzers have confirmed that they think they're
+	## parsing the right protocol and only continue with Teredo tunnel
+	## decapsulation if nothing else has yet confirmed.  This can help
+	## reduce false positives of UDP traffic (e.g. DNS) that also happens
+	## to have a valid Teredo encapsulation.
+	const yielding_teredo_decapsulation = T &redef;
+
+	## How often to cleanup internal state for inactive IP tunnels.
+	const ip_tunnel_timeout = 24hrs &redef;
+} # end export
+module GLOBAL;
 
 ## Number of bytes per packet to capture from live interfaces.
 const snaplen = 8192 &redef;

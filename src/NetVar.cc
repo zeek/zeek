@@ -31,7 +31,6 @@ int tcp_SYN_ack_ok;
 int tcp_match_undelivered;
 
 int encap_hdr_size;
-int udp_tunnel_port;
 
 double frag_timeout;
 
@@ -48,6 +47,8 @@ int tcp_max_above_hole_without_any_acks;
 int tcp_excessive_data_without_further_acks;
 
 RecordType* x509_type;
+
+RecordType* socks_address;
 
 double non_analyzed_lifetime;
 double tcp_inactivity_timeout;
@@ -328,8 +329,6 @@ void init_net_var()
 
 	encap_hdr_size = opt_internal_int("encap_hdr_size");
 
-	udp_tunnel_port = opt_internal_int("udp_tunnel_port") & ~UDP_PORT_MASK;
-
 	frag_timeout = opt_internal_double("frag_timeout");
 
 	tcp_SYN_timeout = opt_internal_double("tcp_SYN_timeout");
@@ -347,6 +346,8 @@ void init_net_var()
 		opt_internal_int("tcp_excessive_data_without_further_acks");
 
 	x509_type = internal_type("X509")->AsRecordType();
+	
+	socks_address = internal_type("SOCKS::Address")->AsRecordType();
 
 	non_analyzed_lifetime = opt_internal_double("non_analyzed_lifetime");
 	tcp_inactivity_timeout = opt_internal_double("tcp_inactivity_timeout");

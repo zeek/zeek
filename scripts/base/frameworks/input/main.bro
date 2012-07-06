@@ -53,6 +53,11 @@ export {
 		## really be executed. Parameters are the same as for the event. If true is
 		## returned, the update is performed. If false is returned, it is skipped.
 		pred: function(typ: Input::Event, left: any, right: any): bool &optional;
+
+		## A key/value table that will be passed on the reader.
+		## Interpretation of the values is left to the writer, but
+		## usually they will be used for configuration purposes.
+                config: table[string] of string &default=table();
 	};
 
 	## EventFilter description type used for the `event` method.
@@ -85,6 +90,10 @@ export {
 		## The event will receive an Input::Event enum as the first element, and the fields as the following arguments.
 		ev: any;
 
+		## A key/value table that will be passed on the reader.
+		## Interpretation of the values is left to the writer, but
+		## usually they will be used for configuration purposes.
+		config: table[string] of string &default=table();
 	};
 
 	## Create a new table input from a given source. Returns true on success.

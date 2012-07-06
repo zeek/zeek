@@ -263,7 +263,7 @@ bool DataSeries::OpenLog(string path)
 	return true;
 	}
 
-bool DataSeries::DoInit(string path, int num_fields, const threading::Field* const * fields)
+bool DataSeries::DoInit(const WriterInfo& info, int num_fields, const threading::Field* const * fields)
 	{
 	// We first construct an XML schema thing (and, if ds_dump_schema is
 	// set, dump it to path + ".ds.xml").  Assuming that goes well, we
@@ -298,11 +298,11 @@ bool DataSeries::DoInit(string path, int num_fields, const threading::Field* con
 		schema_list.push_back(val);
 		}
 
-	string schema = BuildDSSchemaFromFieldTypes(schema_list, path);
+	string schema = BuildDSSchemaFromFieldTypes(schema_list, info.path);
 
 	if( ds_dump_schema )
 		{
-		FILE* pFile = fopen ( string(path + ".ds.xml").c_str() , "wb" );
+		FILE* pFile = fopen ( string(info.path + ".ds.xml").c_str() , "wb" );
 
 		if( pFile )
 			{
@@ -340,7 +340,7 @@ bool DataSeries::DoInit(string path, int num_fields, const threading::Field* con
         log_type = log_types.registerTypePtr(schema);
 	log_series.setType(log_type);
 
-	return OpenLog(path);
+	return OpenLog(info.path);
 	}
 
 bool DataSeries::DoFlush()
@@ -401,7 +401,7 @@ bool DataSeries::DoRotate(string rotated_path, double open, double close, bool t
 	// size will be (much) larger.
 	CloseLog();
 
-	string dsname = Path() + ".ds";
+	string dsname = Info().path + ".ds";
 	string nname = rotated_path + ".ds";
 	rename(dsname.c_str(), nname.c_str());
 
@@ -411,7 +411,7 @@ bool DataSeries::DoRotate(string rotated_path, double open, double close, bool t
 		return false;
 		}
 
-	return OpenLog(Path());
+	return OpenLog(Info().path);
 }
 
 bool DataSeries::DoSetBuf(bool enabled)

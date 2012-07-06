@@ -1,5 +1,7 @@
 
-2.1-beta | 2012-07-05 13:00:35 -0700
+2.1-beta | 2012-07-06 07:36:29 -0700
+
+  * Remove a non-portable test case. (Daniel Thayer)
 
   * Fix typos in input framework doc. (Daniel Thayer)
     

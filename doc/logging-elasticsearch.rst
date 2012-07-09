@@ -78,7 +78,7 @@ Bro's ElasticSearch writer comes with a few configuration options::
 
 - server_port:  What port to send the data to. Default 9200.
 
-- index_name:   ElasticSearch indexes are like databases in a standard DB model. 
+- index_prefix:   ElasticSearch indexes are like databases in a standard DB model. 
   This is the name of the index to which to send the data. Default bro.
 
 - type_prefix:  ElasticSearch types are like tables in a standard DB model. This is a prefix that gets prepended to Bro log names. Example: type_prefix = "bro_" would create types "bro_dns", "bro_http", etc. Default: none.
@@ -92,5 +92,4 @@ Lots.
 
 - Perform multicast discovery for server.
 - Better error detection.
-- Dynamic index names.
 - Better defaults (don't index loaded-plugins, for instance).

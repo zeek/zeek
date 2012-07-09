@@ -22,8 +22,8 @@ public:
 protected:
 	// Overidden from WriterBackend.
 
-	virtual bool DoInit(string path, int num_fields,
-			    const threading::Field* const * fields);
+	virtual bool DoInit(const WriterInfo& info, int num_fields,
+			    const threading::Field* const* fields);
 
 	virtual bool DoWrite(int num_fields, const threading::Field* const* fields,
 			     threading::Value** vals);
@@ -35,24 +35,36 @@ protected:
 	virtual bool DoHeartbeat(double network_time, double current_time);
 
 private:
-	bool AddFieldToBuffer(threading::Value* val, const threading::Field* field);
-	bool AddFieldValueToBuffer(threading::Value* val, const threading::Field* field);
+	bool AddFieldToBuffer(ODesc *b, threading::Value* val, const threading::Field* field);
+	bool AddValueToBuffer(ODesc *b, threading::Value* val);
 	bool BatchIndex();
+	bool SendMappings();
+	bool UpdateIndex(double now, double rinterval, double rbase);
 	
 	CURL* HTTPSetup();
 	bool HTTPReceive(void* ptr, int size, int nmemb, void* userdata);
-	bool HTTPSend();
+	bool HTTPSend(CURL *handle);
 	
 	// Buffers, etc.
 	ODesc buffer;
 	uint64 counter;
 	double last_send;
+	string current_index;
+	string prev_index;
 	
 	CURL* curl_handle;
 	
 	// From scripts
 	char* cluster_name;
 	int cluster_name_len;
+	
+	string es_server;
+	string bulk_url;
+	
+	struct curl_slist *http_headers;
+	
+	string path;
+	string index_prefix;
 	
 	uint64 batch_size;
 };

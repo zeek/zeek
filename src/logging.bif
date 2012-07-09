@@ -89,7 +89,7 @@ module LogElasticSearch;
 const cluster_name: string;
 const server_host: string;
 const server_port: count;
-const index_name: string;
+const index_prefix: string;
 const type_prefix: string;
 const max_batch_size: count;
 const max_batch_interval: interval;

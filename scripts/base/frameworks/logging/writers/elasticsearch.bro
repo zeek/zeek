@@ -11,7 +11,7 @@ export {
 	const server_port = 9200 &redef;
 
 	## Name of the ES index
-	const index_name = "bro" &redef;
+	const index_prefix = "bro" &redef;
 
 	## The ES type prefix comes before the name of the related log.
 	## e.g. prefix = "bro_" would create types of bro_dns, bro_software, etc.

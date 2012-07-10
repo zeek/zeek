@@ -17,8 +17,8 @@
 class IncrementalSendTimer;
 
 namespace threading {
-	class Field;
-	class Value;
+	struct Field;
+	struct Value;
 }
 
 // This class handles the communication done in Bro's main loop.

@@ -18,7 +18,7 @@ struct pcap_pkthdr;
 
 class EncapsulationStack;
 class Connection;
-class ConnID;
+struct ConnID;
 class OSFingerprint;
 class ConnCompressor;
 

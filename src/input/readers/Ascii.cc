@@ -232,7 +232,7 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 			{
 			Error(Fmt("Field: %s Invalid value for boolean: %s",
 				  field.name.c_str(), s.c_str()));
-			return false;
+			return 0;
 			}
 		break;
 
@@ -262,7 +262,7 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 		if ( pos == s.npos )
 			{
 			Error(Fmt("Invalid value for subnet: %s", s.c_str()));
-			return false;
+			return 0;
 			}
 
 		int width = atoi(s.substr(pos+1).c_str());

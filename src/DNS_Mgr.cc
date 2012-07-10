@@ -693,7 +693,7 @@ Val* DNS_Mgr::BuildMappingVal(DNS_Mapping* dm)
 void DNS_Mgr::AddResult(DNS_Mgr_Request* dr, struct nb_dns_result* r)
 	{
 	struct hostent* h = (r && r->host_errno == 0) ? r->hostent : 0;
-	u_int32_t ttl = r->ttl;
+	u_int32_t ttl = (r && r->host_errno == 0) ? r->ttl : 0;
 
 	DNS_Mapping* new_dm;
 	DNS_Mapping* prev_dm;

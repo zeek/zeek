@@ -2,14 +2,14 @@
 #ifndef THREADING_SERIALIZATIONTYPES_H
 #define THREADING_SERIALIZATIONTYPES_H
 
-using namespace std;
-
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
 #include "Type.h"
 #include "net_util.h"
+
+using namespace std;
 
 class SerializationFormat;
 

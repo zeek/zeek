@@ -1,5 +1,13 @@
 
-2.1-beta | 2012-07-06 07:36:29 -0700
+2.0-755 | 2012-07-10 16:25:16 -0700
+
+  * Add sorting canonifier to rotate-custom unit test. Addresses #846.
+    (Jon Siwek)
+
+  * Fix many compiler warnings. (Daniel Thayer)
+
+  * Fix segfault when there's an error/timeout resolving DNS requests.
+    Addresses #846. (Jon Siwek)
 
   * Remove a non-portable test case. (Daniel Thayer)
 

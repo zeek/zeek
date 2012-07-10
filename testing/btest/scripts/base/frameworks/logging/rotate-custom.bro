@@ -2,7 +2,7 @@
 #@TEST-EXEC: bro -b -r ${TRACES}/rotation.trace %INPUT | egrep "test|test2" | sort >out
 # @TEST-EXEC: for i in `ls test*.log | sort`; do printf '> %s\n' $i; cat $i; done | sort | uniq >>out
 # @TEST-EXEC: btest-diff out
-# @TEST-EXEC: btest-diff .stderr
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff .stderr
 
 module Test;
 

@@ -992,7 +992,7 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, const Writer
 
 	if ( ! stream )
 		// Don't know this stream.
-		return false;
+		return 0;
 
 	Stream::WriterMap::iterator w =
 		stream->writers.find(Stream::WriterPathPair(writer->AsEnum(), info.path));

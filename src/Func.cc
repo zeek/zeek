@@ -100,7 +100,7 @@ Func* Func::Unserialize(UnserialInfo* info)
 		if ( ! (id->HasVal() && id->ID_Val()->Type()->Tag() == TYPE_FUNC) )
 			{
 			info->s->Error(fmt("ID %s is not a built-in", name));
-			return false;
+			return 0;
 			}
 
 		Unref(f);

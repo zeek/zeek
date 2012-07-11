@@ -18,9 +18,9 @@ struct pcap_pkthdr;
 
 class EncapsulationStack;
 class Connection;
-class ConnID;
 class OSFingerprint;
 class ConnCompressor;
+struct ConnID;
 
 declare(PDict,Connection);
 declare(PDict,FragReassembler);

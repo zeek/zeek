@@ -1,4 +1,8 @@
 
+2.0-757 | 2012-07-11 08:30:19 -0700
+
+  * Fixing memory leak. (Seth Hall)
+
 2.0-755 | 2012-07-10 16:25:16 -0700
 
   * Add sorting canonifier to rotate-custom unit test. Addresses #846.

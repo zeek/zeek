@@ -296,10 +296,10 @@ bool ElasticSearch::DoRotate(string rotated_path, double open, double close, boo
 		//HTTPSend(curl_handle);
 		}
 	
-	//if ( ! FinishedRotation(current_index, prev_index, open, close, terminating) )
-	//	{
-	//	Error(Fmt("error rotating %s to %s", prev_index.c_str(), current_index.c_str()));
-	//	}
+	if ( ! FinishedRotation(current_index, prev_index, open, close, terminating) )
+		{
+		Error(Fmt("error rotating %s to %s", prev_index.c_str(), current_index.c_str()));
+		}
 	
 	return true;
 	}

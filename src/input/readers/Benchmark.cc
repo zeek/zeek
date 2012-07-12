@@ -36,9 +36,9 @@ void Benchmark::DoClose()
 	{
 	}
 
-bool Benchmark::DoInit(string path, ReaderMode mode, int num_fields, const Field* const* fields)
+bool Benchmark::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fields)
 	{
-	num_lines = atoi(path.c_str());
+	num_lines = atoi(info.source.c_str());
 
 	if ( autospread != 0.0 )
 		autospread_time = (int) ( (double) 1000000 / (autospread * (double) num_lines) );
@@ -59,7 +59,7 @@ string Benchmark::RandomString(const int len)
 	"abcdefghijklmnopqrstuvwxyz";
 
 	for (int i = 0; i < len; ++i)
-		s[i] = values[rand() / (RAND_MAX / sizeof(values))];
+		s[i] = values[random() / (RAND_MAX / sizeof(values))];
 
 	return s;
 	}
@@ -80,10 +80,10 @@ bool Benchmark::DoUpdate()
 	for ( int i = 0; i < linestosend; i++ )
 		{
 		Value** field = new Value*[NumFields()];
-		for  (unsigned int j = 0; j < NumFields(); j++ )
+		for  (int j = 0; j < NumFields(); j++ )
 			field[j] = EntryToVal(Fields()[j]->type, Fields()[j]->subtype);
 
-		if ( Mode() == MODE_STREAM )
+		if ( Info().mode  == MODE_STREAM )
 			// do not do tracking, spread out elements over the second that we have...
 			Put(field);
 		else
@@ -109,7 +109,7 @@ bool Benchmark::DoUpdate()
 
 	}
 
-	if ( Mode() != MODE_STREAM )
+	if ( Info().mode != MODE_STREAM )
 		EndCurrentSend();
 
 	return true;
@@ -134,7 +134,7 @@ threading::Value* Benchmark::EntryToVal(TypeTag type, TypeTag subtype)
 		break;
 
 	case TYPE_INT:
-		val->val.int_val = rand();
+		val->val.int_val = random();
 		break;
 
 	case TYPE_TIME:
@@ -148,11 +148,11 @@ threading::Value* Benchmark::EntryToVal(TypeTag type, TypeTag subtype)
 
 	case TYPE_COUNT:
 	case TYPE_COUNTER:
-		val->val.uint_val = rand();
+		val->val.uint_val = random();
 		break;
 
 	case TYPE_PORT:
-		val->val.port_val.port = rand() / (RAND_MAX / 60000);
+		val->val.port_val.port = random() / (RAND_MAX / 60000);
 		val->val.port_val.proto = TRANSPORT_UNKNOWN;
 		break;
 
@@ -175,7 +175,7 @@ threading::Value* Benchmark::EntryToVal(TypeTag type, TypeTag subtype)
 		// Then - common stuff
 		{
 		// how many entries do we have...
-		unsigned int length = rand() / (RAND_MAX / 15);
+		unsigned int length = random() / (RAND_MAX / 15);
 
 		Value** lvals = new Value* [length];
 
@@ -227,7 +227,7 @@ bool Benchmark::DoHeartbeat(double network_time, double current_time)
 	num_lines += add;
 	heartbeatstarttime = CurrTime();
 
-	switch ( Mode() ) {
+	switch ( Info().mode ) {
 		case MODE_MANUAL:
 			// yay, we do nothing :)
 			break;

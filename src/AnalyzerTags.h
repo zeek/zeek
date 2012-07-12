@@ -33,10 +33,14 @@ namespace AnalyzerTag {
 		DHCP_BINPAC, DNS_TCP_BINPAC, DNS_UDP_BINPAC,
 		HTTP_BINPAC, SSL, SYSLOG_BINPAC,
 
+		// Decapsulation analyzers.
+		AYIYA,
+		SOCKS,
+		Teredo,
+
 		// Other
 		File, Backdoor, InterConn, SteppingStone, TCPStats,
 		ConnSize,
-
 
 		// Support-analyzers
 		Contents, ContentLine, NVT, Zip, Contents_DNS, Contents_NCP,

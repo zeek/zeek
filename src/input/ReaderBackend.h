@@ -11,21 +11,28 @@
 namespace input {
 
 /**
- * The modes a reader can be in. 
+ * The modes a reader can be in.
  */
 enum ReaderMode {
 	/**
-	 * TODO Bernhard.
+	 * Manual refresh reader mode. The reader will read the file once,
+	 * and send all read data back to the manager. After that, no automatic
+	 * refresh should happen. Manual refreshes can be triggered from the
+	 * scripting layer using force_update.
 	 */
 	MODE_MANUAL,
 
 	/**
-	 * TODO Bernhard.
+	 * Automatic rereading mode. The reader should monitor the
+	 * data source for changes continually. When the data source changes,
+	 * either the whole file has to be resent using the SendEntry/EndCurrentSend functions.
 	 */
 	MODE_REREAD,
 
 	/**
-	 * TODO Bernhard.
+	 * Streaming reading mode. The reader should monitor the data source
+	 * for new appended data. When new data is appended is has to be sent
+	 * using the Put api functions.
 	 */
 	MODE_STREAM
 };
@@ -59,22 +66,47 @@ public:
 	virtual ~ReaderBackend();
 
 	/**
+	 * A struct passing information to the reader at initialization time.
+	 */
+	struct ReaderInfo
+		{
+		typedef std::map<string, string> config_map;
+
+		/**
+		 * A string left to the interpretation of the reader
+		 * implementation; it corresponds to the value configured on
+		 * the script-level for the logging filter.
+		 */
+		string source;
+
+		/**
+		 * A map of key/value pairs corresponding to the relevant
+		 * filter's "config" table.
+		 */
+		config_map config;
+
+		/**
+		 * The opening mode for the input source.
+		 */
+		ReaderMode mode;
+		};
+
+	/**
 	 * One-time initialization of the reader to define the input source.
 	 *
-	 * @param source A string left to the interpretation of the
-	 * reader implementation; it corresponds to the value configured on
-	 * the script-level for the input stream.
-	 *
-	 * @param mode The opening mode for the input source.
+	 * @param @param info Meta information for the writer.
 	 *
 	 * @param num_fields Number of fields contained in \a fields.
 	 *
 	 * @param fields The types and names of the fields to be retrieved
 	 * from the input source.
 	 *
+	 * @param config A string map containing additional configuration options
+	 * for the reader.
+	 *
 	 * @return False if an error occured.
 	 */
-	bool Init(string source, ReaderMode mode, int num_fields, const threading::Field* const* fields);
+	bool Init(const ReaderInfo& info, int num_fields, const threading::Field* const* fields);
 
 	/**
 	 * Finishes reading from this input stream in a regular fashion. Must
@@ -102,6 +134,22 @@ public:
 	 */
 	void DisableFrontend();
 
+	/**
+	 * Returns the log fields as passed into the constructor.
+	 */
+	const threading::Field* const * Fields() const	{ return fields; }
+
+	/**
+	 * Returns the additional reader information into the constructor.
+	 */
+	const ReaderInfo& Info() const	{ return info; }
+
+	/**
+	 * Returns the number of log fields as passed into the constructor.
+	 */
+	int NumFields() const	{ return num_fields; }
+
+
 protected:
 	// Methods that have to be overwritten by the individual readers
 
@@ -123,7 +171,7 @@ protected:
 	 * provides accessor methods to get them later, and they are passed
 	 * in here only for convinience.
 	 */
-	virtual bool DoInit(string path, ReaderMode mode, int arg_num_fields, const threading::Field* const* fields) = 0;
+	virtual bool DoInit(const ReaderInfo& info, int arg_num_fields, const threading::Field* const* fields) = 0;
 
 	/**
 	 * Reader-specific method implementing input finalization at
@@ -151,26 +199,6 @@ protected:
 	 * implementation should also call Error to indicate what happened.
 	 */
 	virtual bool DoUpdate() = 0;
-
-	/**
-	 * Returns the input source as passed into Init()/.
-	 */
-	const string Source() const	{ return source; }
-
-	/**
-	 * Returns the reader mode as passed into Init().
-	 */
-	const ReaderMode Mode() const	{ return mode; }
-
-	/**
-	 * Returns the number of log fields as passed into Init().
-	 */
-	unsigned int NumFields() const	{ return num_fields; }
-
-	/**
-	 * Returns the log fields as passed into Init().
-	 */
-	const threading::Field* const * Fields() const	{ return fields; }
 
 	/**
 	 * Method allowing a reader to send a specified Bro event. Vals must
@@ -272,8 +300,7 @@ private:
 	// from this class, it's running in a different thread!
 	ReaderFrontend* frontend;
 
-	string source;
-	ReaderMode mode;
+	ReaderInfo info;
 	unsigned int num_fields;
 	const threading::Field* const * fields; // raw mapping
 

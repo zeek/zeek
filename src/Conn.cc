@@ -13,6 +13,7 @@
 #include "Timer.h"
 #include "PIA.h"
 #include "binpac.h"
+#include "TunnelEncapsulation.h"
 
 void ConnectionTimer::Init(Connection* arg_conn, timer_func arg_timer,
 				int arg_do_expire)
@@ -112,7 +113,7 @@ unsigned int Connection::external_connections = 0;
 IMPLEMENT_SERIAL(Connection, SER_CONNECTION);
 
 Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id,
-                       uint32 flow)
+                       uint32 flow, const EncapsulationStack* arg_encap)
 	{
 	sessions = s;
 	key = k;
@@ -160,6 +161,11 @@ Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id,
 
 	uid = 0; // Will set later.
 
+	if ( arg_encap )
+		encapsulation = new EncapsulationStack(*arg_encap);
+	else
+		encapsulation = 0;
+
 	if ( conn_timer_mgr )
 		{
 		++external_connections;
@@ -187,10 +193,38 @@ Connection::~Connection()
 	delete key;
 	delete root_analyzer;
 	delete conn_timer_mgr;
+	delete encapsulation;
 
 	--current_connections;
 	if ( conn_timer_mgr )
 		--external_connections;
+	}
+
+void Connection::CheckEncapsulation(const EncapsulationStack* arg_encap)
+	{
+	if ( encapsulation && arg_encap )
+		{
+		if ( *encapsulation != *arg_encap )
+			{
+			Event(tunnel_changed, 0, arg_encap->GetVectorVal());
+			delete encapsulation;
+			encapsulation = new EncapsulationStack(*arg_encap);
+			}
+		}
+
+	else if ( encapsulation )
+		{
+		EncapsulationStack empty;
+		Event(tunnel_changed, 0, empty.GetVectorVal());
+		delete encapsulation;
+		encapsulation = 0;
+		}
+
+	else if ( arg_encap )
+		{
+		Event(tunnel_changed, 0, arg_encap->GetVectorVal());
+		encapsulation = new EncapsulationStack(*arg_encap);
+		}
 	}
 
 void Connection::Done()
@@ -349,6 +383,9 @@ RecordVal* Connection::BuildConnVal()
 
 		char tmp[20];
 		conn_val->Assign(9, new StringVal(uitoa_n(uid, tmp, sizeof(tmp), 62)));
+
+		if ( encapsulation && encapsulation->Depth() > 0 )
+			conn_val->Assign(10, encapsulation->GetVectorVal());
 		}
 
 	if ( root_analyzer )

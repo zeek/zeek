@@ -910,7 +910,7 @@ Val* RecordType::FieldDefault(int field) const
 	const TypeDecl* td = FieldDecl(field);
 
 	if ( ! td->attrs )
-		return false;
+		return 0;
 
 	const Attr* def_attr = td->attrs->FindAttr(ATTR_DEFAULT);
 
@@ -1465,6 +1465,16 @@ bool VectorType::DoUnserialize(UnserialInfo* info)
 	DO_UNSERIALIZE(BroType);
 	yield_type = BroType::Unserialize(info);
 	return yield_type != 0;
+	}
+
+void VectorType::Describe(ODesc* d) const
+	{
+	if ( d->IsReadable() )
+		d->AddSP("vector of");
+	else
+		d->Add(int(Tag()));
+
+	yield_type->Describe(d);
 	}
 
 BroType* base_type(TypeTag tag)

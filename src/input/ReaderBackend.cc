@@ -113,6 +113,7 @@ public:
 
 	virtual bool Process()
 		{
+		Object()->SetDisable();
 		return input_mgr->RemoveStreamContinuation(Object());
 		}
 
@@ -129,10 +130,17 @@ public:
 	virtual bool Process()
 		{
 		Object()->SetDisable();
+		// And - because we do not need disabled objects any more -
+		// there is no way to re-enable them, so simply delete them.
+		// This avoids the problem of having to periodically check if
+		// there are any disabled readers out there. As soon as a
+		// reader disables itself, it deletes itself.
+		input_mgr->RemoveStream(Object());
 		return true;
 		}
 };
 
+using namespace logging;
 
 ReaderBackend::ReaderBackend(ReaderFrontend* arg_frontend) : MsgThread()
 	{
@@ -176,18 +184,17 @@ void ReaderBackend::SendEntry(Value* *vals)
 	SendOut(new SendEntryMessage(frontend, vals));
 	}
 
-bool ReaderBackend::Init(string arg_source, ReaderMode arg_mode, const int arg_num_fields,
+bool ReaderBackend::Init(const ReaderInfo& arg_info, const int arg_num_fields,
 		         const threading::Field* const* arg_fields)
 	{
-	source = arg_source;
-	mode = arg_mode;
+	info = arg_info;
 	num_fields = arg_num_fields;
 	fields = arg_fields;
 
-	SetName("InputReader/"+source);
+	SetName("InputReader/"+info.source);
 
 	// disable if DoInit returns error.
-	int success = DoInit(arg_source, mode, arg_num_fields, arg_fields);
+	int success = DoInit(arg_info, arg_num_fields, arg_fields);
 
 	if ( ! success )
 		{
@@ -203,8 +210,7 @@ bool ReaderBackend::Init(string arg_source, ReaderMode arg_mode, const int arg_n
 void ReaderBackend::Close()
 	{
 	DoClose();
-	disabled = true;
-	DisableFrontend();
+	disabled = true; // frontend disables itself when it gets the Close-message.
 	SendOut(new ReaderClosedMessage(frontend));
 
 	if ( fields != 0 )

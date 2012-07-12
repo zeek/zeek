@@ -4,6 +4,7 @@
 #include "PIA.h"
 #include "Event.h"
 
+#include "AYIYA.h"
 #include "BackDoor.h"
 #include "BitTorrent.h"
 #include "BitTorrentTracker.h"
@@ -33,9 +34,11 @@
 #include "NFS.h"
 #include "Portmap.h"
 #include "POP3.h"
+#include "SOCKS.h"
 #include "SSH.h"
 #include "SSL.h"
 #include "Syslog-binpac.h"
+#include "Teredo.h"
 #include "ConnSizeAnalyzer.h"
 
 // Keep same order here as in AnalyzerTag definition!
@@ -126,6 +129,16 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 	{ AnalyzerTag::SYSLOG_BINPAC, "SYSLOG_BINPAC",
 		Syslog_Analyzer_binpac::InstantiateAnalyzer,
 		Syslog_Analyzer_binpac::Available, 0, false },
+
+	{ AnalyzerTag::AYIYA, "AYIYA",
+		AYIYA_Analyzer::InstantiateAnalyzer,
+		AYIYA_Analyzer::Available, 0, false },
+	{ AnalyzerTag::SOCKS, "SOCKS",
+		SOCKS_Analyzer::InstantiateAnalyzer,
+		SOCKS_Analyzer::Available, 0, false },
+	{ AnalyzerTag::Teredo, "TEREDO",
+		Teredo_Analyzer::InstantiateAnalyzer,
+		Teredo_Analyzer::Available, 0, false },
 
 	{ AnalyzerTag::File, "FILE", File_Analyzer::InstantiateAnalyzer,
 		File_Analyzer::Available, 0, false },

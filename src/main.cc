@@ -313,6 +313,8 @@ void terminate_bro()
 	if ( remote_serializer )
 		remote_serializer->LogStats();
 
+	mgr.Drain();
+
 	log_mgr->Terminate();
 	thread_mgr->Terminate();
 
@@ -837,6 +839,10 @@ int main(int argc, char** argv)
 	while ( (s = strsep(&tmp, " \t")) )
 		if ( *s )
 			rule_files.append(s);
+
+	// Append signature files defined in @load-sigs
+	for ( size_t i = 0; i < sig_files.size(); ++i )
+		rule_files.append(copy_string(sig_files[i].c_str()));
 
 	if ( rule_files.length() > 0 )
 		{

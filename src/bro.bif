@@ -466,17 +466,18 @@ function system%(str: string%): int
 ##
 ## str: The command to execute.
 ##
-## env: A :bro:type:`set` or :bro:type:`table` with the environment variables
-##      in the form of key-value pairs (where the value is optional).
+## env: A :bro:type:`table` with the environment variables in the form
+##      of key-value pairs. Each specified environment variable name
+##      will be automatically prepended with ``BRO_ARG_``.
 ##
 ## Returns: The return value from the OS ``system`` function.
 ##
 ## .. bro:see:: system str_shell_escape piped_exec
-function system_env%(str: string, env: any%): int
+function system_env%(str: string, env: table_string_of_string%): int
 	%{
 	if ( env->Type()->Tag() != TYPE_TABLE )
 		{
-		builtin_error("system_env() requires a table/set argument");
+		builtin_error("system_env() requires a table argument");
 		return new Val(-1, TYPE_INT);
 		}
 
@@ -971,12 +972,12 @@ function sha256_hash_finish%(index: any%): string
 ##
 ## .. note::
 ##
-##      This function is a wrapper about the function ``rand`` provided by
-##      the OS.
+##      This function is a wrapper about the function ``random``
+##      provided by the OS.
 function rand%(max: count%): count
 	%{
 	int result;
-	result = bro_uint_t(double(max) * double(rand()) / (RAND_MAX + 1.0));
+	result = bro_uint_t(double(max) * double(bro_random()) / (RAND_MAX + 1.0));
 	return new Val(result, TYPE_COUNT);
 	%}
 
@@ -988,11 +989,11 @@ function rand%(max: count%): count
 ##
 ## .. note::
 ##
-##      This function is a wrapper about the function ``srand`` provided
-##      by the OS.
+##      This function is a wrapper about the function ``srandom``
+##      provided by the OS.
 function srand%(seed: count%): any
 	%{
-	srand(seed);
+	bro_srandom(seed);
 	return 0;
 	%}
 
@@ -1422,12 +1423,15 @@ bool indirect_int_sort_function(int a, int b)
 
 ## Sorts a vector in place. The second argument is a comparison function that
 ## takes two arguments: if the vector type is ``vector of T``, then the
-## comparison function must be ``function(a: T, b: T): bool``, which returns
-## ``a < b`` for some type-specific notion of the less-than operator.
+## comparison function must be ``function(a: T, b: T): int``, which returns
+## a value less than zero if ``a < b`` for some type-specific notion of the
+## less-than operator.  The comparison function is optional if the type
+## is an integral type (int, count, etc.).
 ##
 ## v: The vector instance to sort.
 ##
-## Returns: The original vector.
+## Returns: The vector, sorted from minimum to maximum value. If the vector
+##          could not be sorted, then the original vector is returned instead.
 ##
 ## .. bro:see:: order
 function sort%(v: any, ...%) : any
@@ -1490,12 +1494,14 @@ function sort%(v: any, ...%) : any
 ## v: The vector whose order to compute.
 ##
 ## Returns: A ``vector of count`` with the indices of the ordered elements.
+##          For example, the elements of *v* in order are (assuming ``o``
+##          is the vector returned by ``order``):  v[o[0]], v[o[1]], etc.
 ##
 ## .. bro:see:: sort
 function order%(v: any, ...%) : index_vec
 	%{
-	VectorVal* result_v =
-		new VectorVal(new VectorType(base_type(TYPE_COUNT)));
+	VectorVal* result_v = new VectorVal(
+	    internal_type("index_vec")->AsVectorType());
 
 	if ( v->Type()->Tag() != TYPE_VECTOR )
 		{
@@ -1522,13 +1528,13 @@ function order%(v: any, ...%) : index_vec
 		}
 
 	if ( ! comp && ! IsIntegral(elt_type->Tag()) )
-		builtin_error("comparison function required for sort() with non-integral types");
+		builtin_error("comparison function required for order() with non-integral types");
 
 	vector<Val*>& vv = *v->AsVector();
 	int n = vv.size();
 
 	// Set up initial mapping of indices directly to corresponding
-	// elements.  We stay zero-based until after the sorting.
+	// elements.
 	vector<int> ind_vv(n);
 	index_map = new Val*[n];
 	int i;
@@ -1544,7 +1550,7 @@ function order%(v: any, ...%) : index_vec
 		if ( comp_type->YieldType()->Tag() != TYPE_INT ||
 		     ! comp_type->ArgTypes()->AllMatch(elt_type, 0) )
 			{
-			builtin_error("invalid comparison function in call to sort()");
+			builtin_error("invalid comparison function in call to order()");
 			return v;
 			}
 
@@ -1558,8 +1564,7 @@ function order%(v: any, ...%) : index_vec
 	delete [] index_map;
 	index_map = 0;
 
-	// Now spin through ind_vv to read out the rearrangement,
-	// adjusting indices as we do so.
+	// Now spin through ind_vv to read out the rearrangement.
 	for ( i = 0; i < n; ++i )
 		{
 		int ind = ind_vv[i];
@@ -1649,7 +1654,7 @@ function cat_sep%(sep: string, def: string, ...%): string
 ##
 ##    - ``.``: Precision of floating point specifiers ``[efg]`` (< 128)
 ##
-##    - ``A``: Escape NUL bytes, i.e., replace ``0`` with ``\0``
+##    - ``A``: Escape only NUL bytes (each one replaced with ``\0``) in a string
 ##
 ##    - ``[DTdxsefg]``: Format specifier
 ##
@@ -1661,13 +1666,13 @@ function cat_sep%(sep: string, def: string, ...%): string
 ##        - ``x``: Unsigned hexadecimal (using C-style ``%llx``);
 ##                 addresses/ports are converted to host-byte order
 ##
-##        - ``s``: Escaped string
+##        - ``s``: String (byte values less than 32 or greater than 126
+##                 will be escaped)
 ##
 ##        - ``[efg]``: Double
 ##
-## Returns: Given no arguments, :bro:id:`fmt` returns an empty string. Given a
-##          non-string first argument, :bro:id:`fmt` returns the concatenation
-##          of all its arguments, per :bro:id:`cat`. Finally, given the wrong
+## Returns: Returns the formatted string. Given no arguments, :bro:id:`fmt`
+##          returns an empty string. Given no format string or the wrong
 ##          number of additional arguments for the given format specifier,
 ##          :bro:id:`fmt` generates a run-time error.
 ##
@@ -1678,8 +1683,9 @@ function fmt%(...%): string
 		return new StringVal("");
 
 	Val* fmt_v = @ARG@[0];
-	if ( fmt_v->Type()->Tag() != TYPE_STRING )
-		return bro_cat(frame, @ARGS@);
+
+	// Type of fmt_v will be string here, check_built_in_call() in Func.cc
+	// checks that.
 
 	const char* fmt = fmt_v->AsString()->CheckString();
 	ODesc d;
@@ -1689,10 +1695,16 @@ function fmt%(...%): string
 		;
 
 	if ( n < @ARGC@ - 1 )
+		{
 		builtin_error("too many arguments for format", fmt_v);
+		return new StringVal("");
+		}
 
 	else if ( n >= @ARGC@ )
+		{
 		builtin_error("too few arguments for format", fmt_v);
+		return new StringVal("");
+		}
 
 	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
 	s->SetUseFreeToDelete(true);
@@ -1706,8 +1718,9 @@ function fmt%(...%): string
 #
 # ===========================================================================
 
-## Chops off any decimal digits of the given double, i.e., computes the
-## "floor" of it. For example, ``floor(3.14)`` returns ``3.0``.
+## Computes the greatest integer less than the given :bro:type:`double` value.
+## For example, ``floor(3.14)`` returns ``3.0``, and ``floor(-3.14)``
+## returns ``-4.0``.
 ##
 ## d: The :bro:type:`double` to manipulate.
 ##
@@ -1886,8 +1899,9 @@ function reading_traces%(%): bool
 	return new Val(reading_traces, TYPE_BOOL);
 	%}
 
-## Returns statistics about the number of packets *(i)* received by Bro,
-## *(ii)* dropped, and *(iii)* seen on the link (not always available).
+## Returns packet capture statistics. Statistics include the number of
+## packets *(i)* received by Bro, *(ii)* dropped, and *(iii)* seen on the
+## link (not always available).
 ##
 ## Returns: A record of packet statistics.
 ##
@@ -1921,9 +1935,9 @@ function net_stats%(%): NetStats
 	return ns;
 	%}
 
-## Returns Bro process statistics, such as real/user/sys CPU time, memory
-## usage, page faults, number of TCP/UDP/ICMP connections, timers, and events
-## queued/dispatched.
+## Returns Bro process statistics. Statistics include real/user/sys CPU time,
+## memory usage, page faults, number of TCP/UDP/ICMP connections, timers,
+## and events queued/dispatched.
 ##
 ## Returns: A record with resource usage statistics.
 ##
@@ -1998,10 +2012,10 @@ function resource_usage%(%): bro_resources
 	return res;
 	%}
 
-## Returns statistics about the regular expression engine, such as the number
-## of distinct matchers, DFA states, DFA state transitions, memory usage of
-## DFA states, cache hits/misses, and average number of NFA states across all
-## matchers.
+## Returns statistics about the regular expression engine. Statistics include
+## the number of distinct matchers, DFA states, DFA state transitions, memory
+## usage of DFA states, cache hits/misses, and average number of NFA states
+## across all matchers.
 ##
 ## Returns: A record with matcher statistics.
 ##
@@ -2181,10 +2195,10 @@ function record_fields%(rec: any%): record_field_table
 	return fields;
 	%}
 
-## Enables detailed collections of statistics about CPU/memory usage,
-## connections, TCP states/reassembler, DNS lookups, timers, and script-level
-## state. The script variable :bro:id:`profiling_file` holds the name of the
-## file.
+## Enables detailed collection of profiling statistics. Statistics include
+## CPU/memory usage, connections, TCP states/reassembler, DNS lookups,
+## timers, and script-level state. The script variable :bro:id:`profiling_file`
+## holds the name of the file.
 ##
 ## .. bro:see:: net_stats
 ##              resource_usage
@@ -2331,7 +2345,7 @@ function is_v6_addr%(a: addr%): bool
 ## Returns: The vector of addresses contained in the routing header data.
 function routing0_data_to_addrs%(s: string%): addr_vec
 	%{
-	VectorVal* rval = new VectorVal(new VectorType(base_type(TYPE_ADDR)));
+	VectorVal* rval = new VectorVal(internal_type("addr_vec")->AsVectorType());
 
 	int len = s->Len();
 	const u_char* bytes = s->Bytes();
@@ -2362,7 +2376,7 @@ function routing0_data_to_addrs%(s: string%): addr_vec
 ## .. bro:see:: counts_to_addr
 function addr_to_counts%(a: addr%): index_vec
 	%{
-	VectorVal* rval = new VectorVal(new VectorType(base_type(TYPE_COUNT)));
+	VectorVal* rval = new VectorVal(internal_type("index_vec")->AsVectorType());
 	const uint32* bytes;
 	int len = a->AsAddr().GetBytes(&bytes);
 
@@ -2608,7 +2622,7 @@ function count_to_v4_addr%(ip: count%): addr
 	return new AddrVal(htonl(uint32(ip)));
 	%}
 
-## Converts a :bro:type:`string` of bytes into an IP address. In particular,
+## Converts a :bro:type:`string` of bytes into an IPv4 address. In particular,
 ## this function interprets the first 4 bytes of the string as an IPv4 address
 ## in network order.
 ##
@@ -2670,7 +2684,7 @@ function to_port%(s: string%): port
 ##
 ## Returns: The IP address corresponding to *s*.
 ##
-## .. bro:see:: addr_to_ptr_name parse_dotted_addr
+## .. bro:see:: addr_to_ptr_name to_addr
 function ptr_name_to_addr%(s: string%): addr
 	%{
 	if ( s->Len() != 72 )
@@ -2734,27 +2748,12 @@ function ptr_name_to_addr%(s: string%): addr
 ##
 ## Returns: The reverse pointer representation of *a*.
 ##
-## .. bro:see:: ptr_name_to_addr parse_dotted_addr
+## .. bro:see:: ptr_name_to_addr to_addr
 function addr_to_ptr_name%(a: addr%): string
 	%{
 	return new StringVal(a->AsAddr().PtrName().c_str());
 	%}
 
-# Transforms n0.n1.n2.n3 -> addr.
-
-## Converts a decimal dotted IP address in a :bro:type:`string` to an
-## :bro:type:`addr` type.
-##
-## s: The IP address in the form ``n0.n1.n2.n3``.
-##
-## Returns: The IP address as type :bro:type:`addr`.
-##
-## .. bro:see:: addr_to_ptr_name parse_dotted_addr
-function parse_dotted_addr%(s: string%): addr
-	%{
-	IPAddr a(s->CheckString());
-	return new AddrVal(a);
-	%}
 
 %%{
 static Val* parse_port(const char* line)
@@ -3022,8 +3021,8 @@ function decode_netbios_name_type%(name: string%): count
 	return new Val(return_val, TYPE_COUNT);
 	%}
 
-## Converts a string of bytes into its hexadecimal representation, e.g.,
-## ``"04"`` to ``"3034"``.
+## Converts a string of bytes into its hexadecimal representation.
+## For example, ``"04"`` would be converted to ``"3034"``.
 ##
 ## bytestring: The string of bytes.
 ##
@@ -3285,7 +3284,7 @@ function mask_addr%(a: addr, top_bits_to_keep: count%): subnet
 	return new SubNetVal(a->AsAddr(), top_bits_to_keep);
 	%}
 
-## Takes some top bits (e.g., subnet address) from one address and the other
+## Takes some top bits (such as a subnet address) from one address and the other
 ## bits (intra-subnet part) from a second address and merges them to get a new
 ## address. This is useful for anonymizing at subnet level while preserving
 ## serial scans.
@@ -3522,7 +3521,7 @@ function skip_http_entity_data%(c: connection, is_orig: bool%): any
 	return 0;
 	%}
 
-## Unescapes all characters in a URI, i.e., decodes every ``%xx`` group.
+## Unescapes all characters in a URI (decode every ``%xx`` group).
 ##
 ## URI: The URI to unescape.
 ##
@@ -4815,7 +4814,9 @@ function calc_next_rotate%(i: interval%) : interval
 	%{
 	const char* base_time = log_rotate_base_time ?
 		log_rotate_base_time->AsString()->CheckString() : 0;
-	return new Val(calc_next_rotate(i, base_time), TYPE_INTERVAL);
+
+	double base = parse_rotate_base_time(base_time);
+	return new Val(calc_next_rotate(network_time, i, base), TYPE_INTERVAL);
 	%}
 
 ## Returns the size of a given file.
@@ -5658,6 +5659,14 @@ function match_signatures%(c: connection, pattern_type: int, s: string,
 #                            Deprecated Functions
 #
 # ===========================================================================
+
+## Deprecated. Will be removed.
+function parse_dotted_addr%(s: string%): addr
+	%{
+	IPAddr a(s->CheckString());
+	return new AddrVal(a);
+	%}
+
 
 %%{
 #include "Anon.h"

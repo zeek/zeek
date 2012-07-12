@@ -100,7 +100,7 @@ Func* Func::Unserialize(UnserialInfo* info)
 		if ( ! (id->HasVal() && id->ID_Val()->Type()->Tag() == TYPE_FUNC) )
 			{
 			info->s->Error(fmt("ID %s is not a built-in", name));
-			return false;
+			return 0;
 			}
 
 		Unref(f);
@@ -329,7 +329,17 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 				bodies[i].stmts->GetLocationInfo());
 
 		Unref(result);
-		result = bodies[i].stmts->Exec(f, flow);
+
+		try
+			{
+			result = bodies[i].stmts->Exec(f, flow);
+			}
+
+		catch ( InterpreterException& e )
+			{
+			// Already reported, but we continue exec'ing remaining bodies.
+			continue;
+			}
 
 		if ( f->HasDelayed() )
 			{

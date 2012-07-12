@@ -1651,6 +1651,7 @@ int TableVal::RemoveFrom(Val* val) const
 	while ( (v = tbl->NextEntry(k, c)) )
 		{
 		Val* index = RecoverIndex(k);
+
 		Unref(index);
 		Unref(t->Delete(k));
 		delete k;

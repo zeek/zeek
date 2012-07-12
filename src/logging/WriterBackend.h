@@ -5,11 +5,13 @@
 #ifndef LOGGING_WRITERBACKEND_H
 #define LOGGING_WRITERBACKEND_H
 
-#include "Manager.h"
-
 #include "threading/MsgThread.h"
 
+class RemoteSerializer;
+
 namespace logging  {
+
+class WriterFrontend;
 
 /**
  * Base class for writer implementation. When the logging::Manager creates a
@@ -42,20 +44,58 @@ public:
 	virtual ~WriterBackend();
 
 	/**
+	 * A struct passing information to the writer at initialization time.
+	 */
+	struct WriterInfo
+		{
+		typedef std::map<string, string> config_map;
+
+		/**
+		 * A string left to the interpretation of the writer
+		 * implementation; it corresponds to the 'path' value configured
+		 * on the script-level for the logging filter.
+		 */
+		string path;
+
+		/**
+		 * The rotation interval as configured for this writer.
+		 */
+		double rotation_interval;
+
+		/**
+		 * The parsed value of log_rotate_base_time in seconds.
+		 */
+		double rotation_base;
+
+		/**
+		 * A map of key/value pairs corresponding to the relevant
+		 * filter's "config" table.
+		 */
+		std::map<string, string> config;
+
+		private:
+		friend class ::RemoteSerializer;
+
+		// Note, these need to be adapted when changing the struct's
+		// fields. They serialize/deserialize the struct.
+		bool Read(SerializationFormat* fmt);
+		bool Write(SerializationFormat* fmt) const;
+		};
+
+	/**
 	 * One-time initialization of the writer to define the logged fields.
 	 *
-	 * @param path A string left to the interpretation of the writer
-	 * implementation; it corresponds to the value configured on the
-	 * script-level for the logging filter.
-	 *
-	 * @param num_fields The number of log fields for the stream.
+	 * @param info Meta information for the writer.
+	 * @param num_fields
 	 *
 	 * @param fields An array of size \a num_fields with the log fields.
 	 * The methods takes ownership of the array.
 	 *
+	 * @param frontend_name The name of the front-end writer implementation.
+	 *
 	 * @return False if an error occured.
 	 */
-	bool Init(string path, int num_fields, const threading::Field* const*  fields);
+	bool Init(const WriterInfo& info, int num_fields, const threading::Field* const* fields, const string& frontend_name);
 
 	/**
 	 * Writes one log entry.
@@ -108,9 +148,9 @@ public:
 	void DisableFrontend();
 
 	/**
-	 * Returns the log path as passed into the constructor.
+	 * Returns the additional writer information passed into the constructor.
 	 */
-	const string Path() const	{ return path; }
+	const WriterInfo& Info() const	{ return info; }
 
 	/**
 	 * Returns the number of log fields as passed into the constructor.
@@ -185,7 +225,7 @@ protected:
 	 * disabled and eventually deleted. When returning false, an
 	 * implementation should also call Error() to indicate what happened.
 	 */
-	virtual bool DoInit(string path, int num_fields,
+	virtual bool DoInit(const WriterInfo& info, int num_fields,
 			    const threading::Field* const*  fields) = 0;
 
 	/**
@@ -299,7 +339,7 @@ private:
 	// this class, it's running in a different thread!
 	WriterFrontend* frontend;
 
-	string path;	// Log path.
+	WriterInfo info;	// Meta information as passed to Init().
 	int num_fields;	// Number of log fields.
 	const threading::Field* const*  fields;	// Log fields.
 	bool buffering;	// True if buffering is enabled.

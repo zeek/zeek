@@ -41,9 +41,6 @@ broxygen: configured
 broxygenclean: configured
 	$(MAKE) -C $(BUILD) $@
 
-update-doc-sources:
-	./doc/scripts/genDocSourcesList.sh ./doc/scripts/DocSourcesList.cmake
-
 dist:
 	@rm -rf $(VERSION_FULL) $(VERSION_FULL).tgz
 	@rm -rf $(VERSION_MIN) $(VERSION_MIN).tgz

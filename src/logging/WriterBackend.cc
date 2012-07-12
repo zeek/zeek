@@ -4,6 +4,7 @@
 #include "bro_inet_ntop.h"
 #include "threading/SerialTypes.h"
 
+#include "Manager.h"
 #include "WriterBackend.h"
 #include "WriterFrontend.h"
 
@@ -60,13 +61,60 @@ public:
 
 using namespace logging;
 
+bool WriterBackend::WriterInfo::Read(SerializationFormat* fmt)
+	{
+	int size;
+
+	if ( ! (fmt->Read(&path, "path") &&
+		fmt->Read(&rotation_base, "rotation_base") &&
+		fmt->Read(&rotation_interval, "rotation_interval") &&
+		fmt->Read(&size, "config_size")) )
+		return false;
+
+	config.clear();
+
+	while ( size )
+		{
+		string value;
+		string key;
+
+		if ( ! (fmt->Read(&value, "config-value") && fmt->Read(&value, "config-key")) )
+			return false;
+
+		config.insert(std::make_pair(value, key));
+		}
+
+	return true;
+	}
+
+
+bool WriterBackend::WriterInfo::Write(SerializationFormat* fmt) const
+	{
+	int size = config.size();
+
+	if ( ! (fmt->Write(path, "path") &&
+		fmt->Write(rotation_base, "rotation_base") &&
+		fmt->Write(rotation_interval, "rotation_interval") &&
+		fmt->Write(size, "config_size")) )
+		return false;
+
+	for ( config_map::const_iterator i = config.begin(); i != config.end(); ++i ) 
+		{
+		if ( ! (fmt->Write(i->first, "config-value") && fmt->Write(i->second, "config-key")) )
+			return false;
+		}
+
+	return true;
+	}
+
 WriterBackend::WriterBackend(WriterFrontend* arg_frontend) : MsgThread()
 	{
-	path = "<path not yet set>";
 	num_fields = 0;
 	fields = 0;
 	buffering = true;
 	frontend = arg_frontend;
+
+	info.path = "<path not yet set>";
 
 	SetName(frontend->Name());
 	}
@@ -108,17 +156,17 @@ void WriterBackend::DisableFrontend()
 	SendOut(new DisableMessage(frontend));
 	}
 
-bool WriterBackend::Init(string arg_path, int arg_num_fields, const Field* const*  arg_fields)
+bool WriterBackend::Init(const WriterInfo& arg_info, int arg_num_fields, const Field* const* arg_fields, const string& frontend_name)
 	{
-	path = arg_path;
+	info = arg_info;
 	num_fields = arg_num_fields;
 	fields = arg_fields;
 
-	string name = Fmt("%s/%s", path.c_str(), frontend->Name().c_str());
+	string name = Fmt("%s/%s", info.path.c_str(), frontend_name.c_str());
 
 	SetName(name);
 
-	if ( ! DoInit(arg_path, arg_num_fields, arg_fields) )
+	if ( ! DoInit(arg_info, arg_num_fields, arg_fields) )
 		{
 		DisableFrontend();
 		return false;

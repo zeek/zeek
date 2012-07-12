@@ -3,13 +3,90 @@ Release Notes
 =============
 
 This document summarizes the most important changes in the current Bro
-release. For a complete list of changes, see the ``CHANGES`` file.
+release. For a complete list of changes, see the ``CHANGES`` file
+(note that submodules, such as BroControl and Broccoli, come with
+their own CHANGES.)
+
+Bro 2.1 Beta
+------------
+
+New Functionality
+~~~~~~~~~~~~~~~~~
+
+- Bro now comes with extensive IPv6 support. Past versions offered
+  only basic IPv6 functionality that was rarely used in practice as it
+  had to be enabled explicitly. IPv6 support is now fully integrated
+  into all parts of Bro including protocol analysis and the scripting
+  language. It's on by default and no longer requires any special
+  configuration.
+
+  Some of the most significant enhancements include support for IPv6
+  fragment reassembly, support for following IPv6 extension header
+  chains, and support for tunnel decapsulation (6to4 and Teredo). The
+  DNS analyzer now handles AAAA records properly, and DNS lookups that
+  Bro itself performs now include AAAA queries, so that, for example,
+  the result returned by script-level lookups is a set that can
+  contain both IPv4 and IPv6 addresses. Support for the most common
+  ICMPv6 message types has been added. Also, the FTP EPSV and EPRT
+  commands are now handled properly. Internally, the way IP addresses
+  are stored has been improved, so Bro can handle both IPv4
+  and IPv6 by default without any special configuration.
+
+  In addition to Bro itself, the other Bro components have also been
+  made IPv6-aware by default. In particular, significant changes were
+  made to trace-summary, PySubnetTree, and Broccoli to support IPv6.
+
+- Bro now decapsulates tunnels via its new tunnel framework located in
+  scripts/base/frameworks/tunnels. It currently supports Teredo,
+  AYIYA, IP-in-IP (both IPv4 and IPv6), and SOCKS. For all these, it
+  logs the outer tunnel connections in both conn.log and tunnel.log,
+  and then proceeds to analyze the inner payload as if it were not
+  tunneled, including also logging that session in conn.log. For
+  SOCKS, it generates a new socks.log in addition with more
+  information.
+
+- Bro now features a flexible input framework that allows users to
+  integrate external information in real-time into Bro while it's
+  processing network traffic. The most direct use-case at the moment
+  is reading data from ASCII files into Bro tables, with updates
+  picked up automatically when the file changes during runtime. See
+  doc/input.rst for more information.
+
+  Internally, the input framework is structured around the notion of
+  "reader plugins" that make it easy to interface to different data
+  sources. We will add more in the future.
+
+- Bro's default ASCII log format is not exactly the most efficient way
+  for storing and searching large volumes of data. An an alternative,
+  Bro now comes with experimental support for DataSeries output, an
+  efficient binary format for recording structured bulk data.
+  DataSeries is developed and maintained at HP Labs. See
+  doc/logging-dataseries for more information.
+
+- BroControl now has built-in support for host-based load-balancing
+  when using either PF_RING, Myricom cards, or individual interfaces.
+  Instead of adding a separate worker entry in node.cfg for each Bro
+  worker process on each worker host, it is now possible to just
+  specify the number of worker processes on each host and BroControl
+  configures everything correctly (including any neccessary enviroment
+  variables for the balancers).
+
+  This change adds three new keywords to the node.cfg file (to be used
+  with worker entries): lb_procs (specifies number of workers on a
+  host), lb_method (specifies what type of load balancing to use:
+  pf_ring, myricom, or interfaces), and lb_interfaces (used only with
+  "lb_method=interfaces" to specify which interfaces to load-balance
+  on).
 
 
-Bro 2.1
--------
+Changed Functionality
+~~~~~~~~~~~~~~~~~~~~~
 
-- Dependencies:
+The following summarizes the most important differences in existing
+functionality. Note that this list is not complete, see CHANGES for
+the full set.
+
+- Changes in dependencies:
 
     * Bro now requires CMake >= 2.6.3.
 
@@ -17,8 +94,7 @@ Bro 2.1
       configure time. Doing so can significantly improve memory and
       CPU use.
 
-- Bro now supports IPv6 out of the box; the configure switch
-  --enable-brov6 is gone.
+- The configure switch --enable-brov6 is gone.
 
 - DNS name lookups performed by Bro now also query AAAA records. The
   results of the A and AAAA queries for a given hostname are combined
@@ -35,12 +111,12 @@ Bro 2.1
 - The syntax for IPv6 literals changed from "2607:f8b0:4009:802::1012"
   to "[2607:f8b0:4009:802::1012]".
 
-- Bro now spawn threads for doing its logging. From a user's
+- Bro now spawns threads for doing its logging. From a user's
   perspective not much should change, except that the OS may now show
   a bunch of Bro threads.
 
 - We renamed the configure option --enable-perftools to
-  --enable-perftool-debug to indicate that the switch is only relevant
+  --enable-perftools-debug to indicate that the switch is only relevant
   for debugging the heap.
 
 - Bro's ICMP analyzer now handles both IPv4 and IPv6 messages with a
@@ -50,12 +126,20 @@ Bro 2.1
 - Log postprocessor scripts get an additional argument indicating the
   type of the log writer in use (e.g., "ascii").
 
-- BroControl's make-archive-name scripts also receives the writer
-  type, but as it's 2nd(!) argument. If you're using a custom version
+- BroControl's make-archive-name script also receives the writer
+  type, but as its 2nd(!) argument. If you're using a custom version
   of that script, you need to adapt it. See the shipped version for
   details.
 
-TODO: Extend.
+- Signature files can now be loaded via the new "@load-sigs"
+  directive. In contrast to the existing (and still supported)
+  signature_files constant, this can be used to load signatures
+  relative to the current script (e.g., "@load-sigs ./foo.sig").
+
+- The options "tunnel_port" and "parse_udp_tunnels" have been removed.
+  Bro now supports decapsulating tunnels directly for protocols it
+  understands.
+
 
 Bro 2.0
 -------
@@ -88,7 +172,7 @@ final release are:
       ASCII logger now respects to add a suffix to the log files it
       creates.
 
-    * The ASCII logs now include further header information, and 
+    * The ASCII logs now include further header information, and
       fields set to an empty value are now logged as ``(empty)`` by
       default (instead of ``-``, which is already used for fields that
       are not set at all).

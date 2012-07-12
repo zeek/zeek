@@ -80,18 +80,22 @@ const char* BasicThread::Fmt(const char* format, ...)
 
 void BasicThread::Start()
 	{
+
 	if ( started )
 		return;
 
-	if ( pthread_mutex_init(&terminate, 0) != 0  )
-		reporter->FatalError("Cannot create terminate mutex for thread %s", name.c_str());
+	int err = pthread_mutex_init(&terminate, 0);
+	if ( err != 0  )
+		reporter->FatalError("Cannot create terminate mutex for thread %s: %s", name.c_str(), strerror(err));
 
 	// We use this like a binary semaphore and acquire it immediately.
-	if ( pthread_mutex_lock(&terminate) != 0 )
-		reporter->FatalError("Cannot aquire terminate mutex for thread %s", name.c_str());
+	err = pthread_mutex_lock(&terminate);
+	if ( err != 0 )
+		reporter->FatalError("Cannot aquire terminate mutex for thread %s: %s", name.c_str(), strerror(err));
 
-	if ( pthread_create(&pthread, 0, BasicThread::launcher, this) != 0 )
-		reporter->FatalError("Cannot create thread %s", name.c_str());
+	err = pthread_create(&pthread, 0, BasicThread::launcher, this);
+	if ( err != 0 )
+		reporter->FatalError("Cannot create thread %s:%s", name.c_str(), strerror(err));
 
 	DBG_LOG(DBG_THREADING, "Started thread %s", name.c_str());
 
@@ -112,8 +116,9 @@ void BasicThread::Stop()
 
 	// Signal that it's ok for the thread to exit now by unlocking the
 	// mutex.
-	if ( pthread_mutex_unlock(&terminate) != 0 )
-		reporter->FatalError("Failure flagging terminate condition for thread %s", name.c_str());
+	int err = pthread_mutex_unlock(&terminate);
+	if ( err != 0 )
+		reporter->FatalError("Failure flagging terminate condition for thread %s: %s", name.c_str(), strerror(err));
 
 	terminating = true;
 

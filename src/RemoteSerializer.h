@@ -9,6 +9,7 @@
 #include "IOSource.h"
 #include "Stats.h"
 #include "File.h"
+#include "logging/WriterBackend.h"
 
 #include <vector>
 #include <string>
@@ -16,8 +17,8 @@
 class IncrementalSendTimer;
 
 namespace threading {
-	class Field;
-	class Value;
+	struct Field;
+	struct Value;
 }
 
 // This class handles the communication done in Bro's main loop.
@@ -104,10 +105,10 @@ public:
 	bool SendPrintHookEvent(BroFile* f, const char* txt, size_t len);
 
 	// Send a request to create a writer on a remote side.
-	bool SendLogCreateWriter(PeerID peer, EnumVal* id, EnumVal* writer, string path, int num_fields, const threading::Field* const * fields);
+	bool SendLogCreateWriter(PeerID peer, EnumVal* id, EnumVal* writer, const logging::WriterBackend::WriterInfo& info, int num_fields, const threading::Field* const * fields);
 
 	// Broadcasts a request to create a writer.
-	bool SendLogCreateWriter(EnumVal* id, EnumVal* writer, string path, int num_fields, const threading::Field* const * fields);
+	bool SendLogCreateWriter(EnumVal* id, EnumVal* writer, const logging::WriterBackend::WriterInfo& info, int num_fields, const threading::Field* const * fields);
 
 	// Broadcast a log entry to everybody interested.
 	bool SendLogWrite(EnumVal* id, EnumVal* writer, string path, int num_fields, const threading::Value* const * vals);

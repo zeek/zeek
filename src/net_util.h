@@ -33,17 +33,17 @@ typedef enum { IPv4, IPv6 } IPFamily;
 #include <netinet/ip6.h>
 
 #ifndef HAVE_IP6_OPT
-struct ip6_opt {
+/*struct ip6_opt {
 	uint8  ip6o_type;
 	uint8  ip6o_len;
-};
+};*/
 #endif // HAVE_IP6_OPT
 
 #ifndef HAVE_IP6_EXT
-struct ip6_ext {
+/*struct ip6_ext {
 	uint8 ip6e_nxt;
 	uint8 ip6e_len;
-};
+};*/
 #endif // HAVE_IP6_EXT
 
 #else

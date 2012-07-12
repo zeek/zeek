@@ -6,6 +6,9 @@
 #include "BroList.h"
 #include "Obj.h"
 #include "Debug.h"
+#ifdef USE_DTRACE
+#include "ScriptProvider.h"
+#endif
 
 class Val;
 class ListExpr;

@@ -25,6 +25,26 @@ macro(REPLACE_YY_PREFIX_TARGET inFile outFile yylexPrefix yyPrefix)
 endmacro(REPLACE_YY_PREFIX_TARGET)
 
 ########################################################################
+## Create targets to generate relevant dtrace header files
+
+if(USE_DTRACE)
+# Enable script providers
+dtrace_target(ScriptProvider 
+              ScriptProvider.d 
+	      ${CMAKE_CURRENT_BINARY_DIR}/ScriptProvider.h)
+
+dtrace_target(CheckpointProvider 
+              CheckpointProvider.d 
+	      ${CMAKE_CURRENT_BINARY_DIR}/CheckpointProvider.h)
+set(dtrace_SRCS
+   ${DTRACE_ScriptProvider_INPUT}
+   ${DTRACE_ScriptProvider_OUTPUTS}
+   ${DTRACE_CheckpointProvider_INPUT}
+   ${DTRACE_CheckpointProvider_OUTPUTS}
+)
+endif()
+
+########################################################################
 ## Create targets to generate parser and scanner code
 
 set(BISON_FLAGS "--debug")
@@ -440,6 +460,12 @@ set(bro_SRCS
     nb_dns.c
     digest.h
 )
+
+if(USE_DTRACE)
+set(bro_SRCS
+	${dtrace_SRCS}
+	${bro_SRCS})
+endif()
 
 collect_headers(bro_HEADERS ${bro_SRCS})
 

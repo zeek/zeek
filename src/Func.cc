@@ -279,6 +279,9 @@ int BroFunc::IsPure() const
 
 Val* BroFunc::Call(val_list* args, Frame* parent) const
 	{
+#ifdef USE_DTRACE
+	BRO_SCRIPT_FUNCTION_ENTRY(id->Name());
+#endif
 #ifdef PROFILE_BRO_FUNCTIONS
 	DEBUG_MSG("Function: %s\n", id->Name());
 #endif
@@ -368,7 +371,9 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 
 	g_frame_stack.pop_back();
 	Unref(f);
-
+	#ifdef USE_DTRACE
+	BRO_SCRIPT_FUNCTION_RETURN(id->Name()); 
+	#endif
 	return result;
 	}
 
@@ -466,6 +471,9 @@ int BuiltinFunc::IsPure() const
 
 Val* BuiltinFunc::Call(val_list* args, Frame* parent) const
 	{
+#ifdef USE_DTRACE
+	BRO_SCRIPT_BUILTIN_ENTRY(Name());
+#endif
 #ifdef PROFILE_BRO_FUNCTIONS
 	DEBUG_MSG("Function: %s\n", Name());
 #endif
@@ -494,7 +502,9 @@ Val* BuiltinFunc::Call(val_list* args, Frame* parent) const
 
 		g_trace_state.LogTrace("\tFunction return: %s\n", d.Description());
 		}
-
+#ifdef USE_DTRACE
+	BRO_SCRIPT_BUILTIN_RETURN(Name());
+#endif
 	return result;
 	}
 

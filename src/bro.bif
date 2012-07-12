@@ -16,6 +16,14 @@
 #include "Reporter.h"
 #include "IPAddr.h"
 
+#include "config.h"
+
+#ifdef USE_DTRACE
+#include "CheckpointProvider.h"
+#else
+#error "Could not find DTRACE!"
+#endif
+
 using namespace std;
 
 RecordType* ftp_port;
@@ -5698,6 +5706,37 @@ function preserve_prefix%(a: addr, width: count%): any
 
 
 	return 0;
+	%}
+
+## Triggers a checkpoint dtrace probe;  can be used for incremental 
+## timing and other such things.
+## 
+## ci_1 --> custom information 1, ci_2 --> custom information 2 
+##
+## Returns true if dtrace is enabled and the probe was called, and false otherwise.
+function trace_checkpoint%(ci_1: int, ci_2: int%): bool
+	%{
+#ifdef USE_DTRACE
+		BRO_CHECKPOINT_FIRE(ci_1, ci_2);
+		return new Val(1, TYPE_BOOL);
+#else
+		return new Val(0, TYPE_BOOL);
+#endif
+	%}
+
+## Triggers a checkpoint dtrace call to clear; can be used to clear
+## incremental statistics.  Can also be used to check whether or not
+## dtrace is currently enabled.
+## 
+## Returns true if dtrace is enabled and the probe was called, and false otherwise.
+function trace_clear%(%): bool
+        %{
+#ifdef USE_DTRACE
+		BRO_CHECKPOINT_CLEAR();
+		return new Val(1, TYPE_BOOL);
+#else
+		return new Val(0, TYPE_BOOL);
+#endif
 	%}
 
 ## Preserves the prefix of a subnet in anonymization.

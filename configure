@@ -28,6 +28,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
 
   Optional Features:
     --enable-debug         compile in debugging mode
+    --enable-dtrace        compile in support for dtrace probes
     --enable-mobile-ipv6   analyze mobile IPv6 features defined by RFC 6275
     --enable-perftools-debug use Google's perftools for debugging
     --disable-broccoli     don't build or install the Broccoli library
@@ -98,6 +99,7 @@ append_cache_entry BRO_SCRIPT_INSTALL_PATH STRING $prefix/share/bro
 append_cache_entry BRO_ETC_INSTALL_DIR  PATH   $prefix/etc
 append_cache_entry ENABLE_DEBUG         BOOL   false
 append_cache_entry ENABLE_PERFTOOLS_DEBUG BOOL false
+append_cache_entry ENABLE_DTRACE        BOOL   false
 append_cache_entry BinPAC_SKIP_INSTALL  BOOL   true
 append_cache_entry BUILD_SHARED_LIBS    BOOL   true
 append_cache_entry INSTALL_AUX_TOOLS    BOOL   true
@@ -138,6 +140,12 @@ while [ $# -ne 0 ]; do
             append_cache_entry BRO_ETC_INSTALL_DIR PATH $optarg
             user_set_conffilesdir="true"
             ;;
+	--enable-dtrace)
+	    append_cache_entry ENABLE_DTRACE         BOOL   true
+	    ;;
+	--enable-expensive-probes)
+	    append_cache_entry ENABLE_DTRACE_ALL          BOOL   true
+	    ;;
         --enable-debug)
             append_cache_entry ENABLE_DEBUG         BOOL   true
             ;;

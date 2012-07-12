@@ -117,6 +117,9 @@
 /* Use the DataSeries writer. */
 #cmakedefine USE_DATASERIES
 
+/* Use DTrace */
+#cmakedefine USE_DTRACE
+
 /* Version number of package */
 #define VERSION "@VERSION@"
 

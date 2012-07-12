@@ -122,6 +122,13 @@ if (LINTEL_FOUND AND DATASERIES_FOUND AND LIBXML2_FOUND)
 	list(APPEND OPTLIBS ${LibXML2_LIBRARIES})
 endif()
 
+find_package(DTrace)
+set(USE_DTRACE false)
+if (DTRACE_VERSION AND ENABLE_DTRACE)
+	message("Enabling dtrace probes...")
+    	set(USE_DTRACE true)
+endif()
+
 if (ENABLE_PERFTOOLS_DEBUG)
     # Just a no op to prevent CMake from complaining about manually-specified
     # ENABLE_PERFTOOLS_DEBUG not being used if google perftools weren't found
@@ -214,6 +221,7 @@ message(
     "\nGoogle perftools:  ${USE_PERFTOOLS}"
     "\n       debugging:  ${USE_PERFTOOLS_DEBUG}"
     "\nDataSeries:        ${USE_DATASERIES}"
+    "\nDTrace:            ${USE_DTRACE}"
     "\n"
     "\n================================================================\n"
 )

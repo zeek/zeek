@@ -1,4 +1,11 @@
 
+2.0-761 | 2012-07-12 08:14:38 -0700
+
+  * Some small fixes to further reduce SOCKS false positive logs. (Seth Hall)
+
+  * Calls to pthread_mutex_unlock now log the reason for failures.
+    (Bernhard Amann)
+
 2.0-757 | 2012-07-11 08:30:19 -0700
 
   * Fixing memory leak. (Seth Hall)

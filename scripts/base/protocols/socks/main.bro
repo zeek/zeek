@@ -83,5 +83,8 @@ event socks_reply(c: connection, version: count, reply: count, sa: SOCKS::Addres
 
 event socks_reply(c: connection, version: count, reply: count, sa: SOCKS::Address, p: port) &priority=-5
 	{
-	Log::write(SOCKS::LOG, c$socks);
+	# This will handle the case where the analyzer failed in some way and was removed.  We probably 
+	# don't want to log these connections.
+	if ( "SOCKS" in c$service )
+		Log::write(SOCKS::LOG, c$socks);
 	}

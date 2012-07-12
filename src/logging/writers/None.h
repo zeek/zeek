@@ -26,8 +26,9 @@ protected:
 	virtual bool DoSetBuf(bool enabled)	{ return true; }
 	virtual bool DoRotate(string rotated_path, double open,
 			      double close, bool terminating);
-	virtual bool DoFlush()	{ return true; }
-	virtual bool DoFinish()	{ WriterBackend::DoFinish(); return true; }
+	virtual bool DoFlush(double network_time)	{ return true; }
+	virtual bool DoFinish(double network_time)	{ return true; }
+	virtual bool DoHeartbeat(double network_time, double current_time)	{ return true; }
 };
 
 }

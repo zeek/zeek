@@ -18,7 +18,7 @@ Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
 	file = 0;
 
 	output_to_stdout = BifConst::LogAscii::output_to_stdout;
-	include_header = BifConst::LogAscii::include_header;
+	include_meta = BifConst::LogAscii::include_meta;
 
 	separator_len = BifConst::LogAscii::separator->Len();
 	separator = new char[separator_len];
@@ -40,10 +40,10 @@ Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
 	memcpy(unset_field, BifConst::LogAscii::unset_field->Bytes(),
 	       unset_field_len);
 
-	header_prefix_len = BifConst::LogAscii::header_prefix->Len();
-	header_prefix = new char[header_prefix_len];
-	memcpy(header_prefix, BifConst::LogAscii::header_prefix->Bytes(),
-	       header_prefix_len);
+	meta_prefix_len = BifConst::LogAscii::meta_prefix->Len();
+	meta_prefix = new char[meta_prefix_len];
+	memcpy(meta_prefix, BifConst::LogAscii::meta_prefix->Bytes(),
+	       meta_prefix_len);
 
 	desc.EnableEscaping();
 	desc.AddEscapeSequence(separator, separator_len);
@@ -51,22 +51,37 @@ Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
 
 Ascii::~Ascii()
 	{
+	// Normally, the file will be closed here already via the Finish()
+	// message. But when we terminate abnormally, we may still have it
+	// open.
 	if ( file )
-		fclose(file);
+		CloseFile(0);
 
 	delete [] separator;
 	delete [] set_separator;
 	delete [] empty_field;
 	delete [] unset_field;
-	delete [] header_prefix;
+	delete [] meta_prefix;
 	}
 
 bool Ascii::WriteHeaderField(const string& key, const string& val)
 	{
-	string str = string(header_prefix, header_prefix_len) +
+	string str = string(meta_prefix, meta_prefix_len) +
 		key + string(separator, separator_len) + val + "\n";
 
 	return (fwrite(str.c_str(), str.length(), 1, file) == 1);
+	}
+
+void Ascii::CloseFile(double t)
+	{
+	if ( ! file )
+		return;
+
+	if ( include_meta )
+		WriteHeaderField("end", t ? Timestamp(t) : "<abnormal termination>");
+
+	fclose(file);
+	file = 0;
 	}
 
 bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * fields)
@@ -81,17 +96,17 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 	if ( ! (file = fopen(fname.c_str(), "w")) )
 		{
 		Error(Fmt("cannot open %s: %s", fname.c_str(),
-			  strerror(errno)));
+			  Strerror(errno)));
 
 		return false;
 		}
 
-	if ( include_header )
+	if ( include_meta )
 		{
 		string names;
 		string types;
 
-		string str = string(header_prefix, header_prefix_len)
+		string str = string(meta_prefix, meta_prefix_len)
 			+ "separator " // Always use space as separator here.
 			+ get_escaped_string(string(separator, separator_len), false)
 			+ "\n";
@@ -105,8 +120,9 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 		            string(empty_field, empty_field_len), false)) &&
 		        WriteHeaderField("unset_field", get_escaped_string(
 		            string(unset_field, unset_field_len), false)) &&
-		        WriteHeaderField("path", get_escaped_string(path, false))) )
-			goto write_error;
+		        WriteHeaderField("path", get_escaped_string(path, false)) &&
+			WriteHeaderField("start", Timestamp(info.network_time))) )
+		goto write_error;
 
 		for ( int i = 0; i < num_fields; ++i )
 			{
@@ -128,20 +144,22 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 	return true;
 
 write_error:
-	Error(Fmt("error writing to %s: %s", fname.c_str(), strerror(errno)));
+	Error(Fmt("error writing to %s: %s", fname.c_str(), Strerror(errno)));
 	return false;
 	}
 
-bool Ascii::DoFlush()
+bool Ascii::DoFlush(double network_time)
 	{
 	fflush(file);
 	return true;
 	}
 
-bool Ascii::DoFinish()
+bool Ascii::DoFinish(double network_time)
 	{
-	return WriterBackend::DoFinish();
+	CloseFile(network_time);
+	return true;
 	}
+
 
 bool Ascii::DoWriteOne(ODesc* desc, Value* val, const Field* field)
 	{
@@ -307,16 +325,33 @@ bool Ascii::DoWrite(int num_fields, const Field* const * fields,
 
 	desc.AddRaw("\n", 1);
 
-	if ( fwrite(desc.Bytes(), desc.Len(), 1, file) != 1 )
+	const char* bytes = (const char*)desc.Bytes();
+	int len = desc.Len();
+
+	// Make sure the line doesn't look like meta information.
+	if ( strncmp(bytes, meta_prefix, meta_prefix_len) == 0 )
 		{
-		Error(Fmt("error writing to %s: %s", fname.c_str(), strerror(errno)));
-		return false;
+		// It would so escape the first character.
+		char buf[16];
+		snprintf(buf, sizeof(buf), "\\x%02x", bytes[0]);
+		if ( fwrite(buf, strlen(buf), 1, file) != 1 )
+			goto write_error;
+
+		++bytes;
+		--len;
 		}
+
+	if ( fwrite(bytes, len, 1, file) != 1 )
+		goto write_error;
 
 	if ( IsBuf() )
 		fflush(file);
 
 	return true;
+
+write_error:
+	Error(Fmt("error writing to %s: %s", fname.c_str(), Strerror(errno)));
+	return false;
 	}
 
 bool Ascii::DoRotate(string rotated_path, double open, double close, bool terminating)
@@ -325,8 +360,7 @@ bool Ascii::DoRotate(string rotated_path, double open, double close, bool termin
 	if ( ! file || IsSpecial(Info().path) )
 		return true;
 
-	fclose(file);
-	file = 0;
+	CloseFile(close);
 
 	string nname = rotated_path + "." + LogExt();
 	rename(fname.c_str(), nname.c_str());
@@ -346,9 +380,28 @@ bool Ascii::DoSetBuf(bool enabled)
 	return true;
 	}
 
+bool Ascii::DoHeartbeat(double network_time, double current_time)
+	{
+	// Nothing to do.
+	return true;
+	}
+
 string Ascii::LogExt()
 	{
 	const char* ext = getenv("BRO_LOG_SUFFIX");
 	if ( ! ext ) ext = "log";
 	return ext;
 	}
+
+string Ascii::Timestamp(double t)
+	{
+	struct tm tm;
+	char buf[128];
+	const char* const date_fmt = "%Y-%m-%d-%H-%M-%S";
+	time_t teatime = time_t(t);
+
+	localtime_r(&teatime, &tm);
+	strftime(buf, sizeof(buf), date_fmt, &tm);
+	return buf;
+	}
+

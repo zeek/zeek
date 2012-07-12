@@ -68,6 +68,11 @@ public:
 		double rotation_base;
 
 		/**
+		 * The network time when the writer is created.
+		 */
+		double network_time;
+
+		/**
 		 * A map of key/value pairs corresponding to the relevant
 		 * filter's "config" table.
 		 */
@@ -129,9 +134,11 @@ public:
 	 * Flushes any currently buffered output, assuming the writer
 	 * supports that. (If not, it will be ignored).
 	 *
+	 * @param network_time The network time when the flush was triggered.
+	 *
 	 * @return False if an error occured.
 	 */
-	bool Flush();
+	bool Flush(double network_time);
 
 	/**
 	 * Triggers rotation, if the writer supports that. (If not, it will
@@ -213,6 +220,10 @@ public:
 	  */
 	string Render(double d) const;
 
+	// Overridden from MsgThread.
+	virtual bool OnHeartbeat(double network_time, double current_time);
+	virtual bool OnFinish(double network_time);
+
 protected:
 	friend class FinishMessage;
 
@@ -272,8 +283,10 @@ protected:
 	 * will then be disabled and eventually deleted. When returning
 	 * false, an implementation should also call Error() to indicate what
 	 * happened.
+	 *
+	 * @param network_time The network time when the flush was triggered.
 	 */
-	virtual bool DoFlush() = 0;
+	virtual bool DoFlush(double network_time) = 0;
 
 	/**
 	 * Writer-specific method implementing log rotation.  Most directly
@@ -314,20 +327,19 @@ protected:
 
 	/**
 	 * Writer-specific method called just before the threading system is
-	 * going to shutdown.
+	 * going to shutdown. It is assumed that once this messages returns,
+	 * the thread can be safely terminated.
 	 *
-	 * This method can be overridden but one must call
-	 * WriterBackend::DoFinish().
+	 * @param network_time The network time when the finish is triggered.
 	 */
-	virtual bool DoFinish() { return MsgThread::DoFinish(); }
-
+	virtual bool DoFinish(double network_time) = 0;
 	/**
 	 * Triggered by regular heartbeat messages from the main thread.
 	 *
-	 * This method can be overridden but one must call
-	 * WriterBackend::DoHeartbeat().
+	 * This method can be overridden. Default implementation does
+	 * nothing.
 	 */
-	virtual bool DoHeartbeat(double network_time, double current_time);
+	virtual bool DoHeartbeat(double network_time, double current_time) = 0;
 
 private:
 	/**

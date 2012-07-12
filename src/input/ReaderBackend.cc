@@ -207,7 +207,7 @@ bool ReaderBackend::Init(const ReaderInfo& arg_info, const int arg_num_fields,
 	return success;
 	}
 
-void ReaderBackend::Close()
+bool ReaderBackend::OnFinish(double network_time)
 	{
 	DoClose();
 	disabled = true; // frontend disables itself when it gets the Close-message.
@@ -221,6 +221,8 @@ void ReaderBackend::Close()
 		delete [] (fields);
 		fields = 0;
 		}
+
+	return true;
 	}
 
 bool ReaderBackend::Update()
@@ -243,10 +245,9 @@ void ReaderBackend::DisableFrontend()
 	SendOut(new DisableMessage(frontend));
 	}
 
-bool ReaderBackend::DoHeartbeat(double network_time, double current_time)
+bool ReaderBackend::OnHeartbeat(double network_time, double current_time)
 	{
-	MsgThread::DoHeartbeat(network_time, current_time);
-	return true;
+	return DoHeartbeat(network_time, current_time);
 	}
 
 TransportProto ReaderBackend::StringToProto(const string &proto)

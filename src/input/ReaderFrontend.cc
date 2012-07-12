@@ -37,17 +37,6 @@ public:
 	virtual bool Process() { return Object()->Update(); }
 };
 
-class CloseMessage : public threading::InputMessage<ReaderBackend>
-{
-public:
-	CloseMessage(ReaderBackend* backend)
-		: threading::InputMessage<ReaderBackend>("Close", backend)
-		 { }
-
-	virtual bool Process() { Object()->Close(); return true; }
-};
-
-
 ReaderFrontend::ReaderFrontend(bro_int_t type)
 	{
 	disabled = initialized = false;
@@ -91,21 +80,6 @@ void ReaderFrontend::Update()
 		}
 
 	backend->SendIn(new UpdateMessage(backend));
-	}
-
-void ReaderFrontend::Close()
-	{
-	if ( disabled )
-		return;
-
-	if ( ! initialized )
-		{
-		reporter->Error("Tried to call finish on uninitialized reader");
-		return;
-		}
-
-	disabled = true;
-	backend->SendIn(new CloseMessage(backend));
 	}
 
 string ReaderFrontend::Name() const

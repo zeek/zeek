@@ -222,7 +222,6 @@ threading::Value* Benchmark::EntryToVal(TypeTag type, TypeTag subtype)
 
 bool Benchmark::DoHeartbeat(double network_time, double current_time)
 {
-	ReaderBackend::DoHeartbeat(network_time, current_time);
 	num_lines = (int) ( (double) num_lines*multiplication_factor);
 	num_lines += add;
 	heartbeatstarttime = CurrTime();

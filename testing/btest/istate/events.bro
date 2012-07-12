@@ -1,12 +1,15 @@
 # @TEST-SERIALIZE: comm
 #
-# @TEST-EXEC: btest-bg-run sender   bro -C -r $TRACES/web.trace --pseudo-realtime ../sender.bro
-# @TEST-EXEC: btest-bg-run receiver bro ../receiver.bro
+# @TEST-EXEC: btest-bg-run sender   bro -Bthreading,logging,comm -C -r $TRACES/web.trace --pseudo-realtime ../sender.bro
+# @TEST-EXEC: btest-bg-run receiver bro -Bthreading,logging,comm  ../receiver.bro
 # @TEST-EXEC: btest-bg-wait -k 20
 # 
 # @TEST-EXEC: btest-diff sender/http.log
 # @TEST-EXEC: btest-diff receiver/http.log
-# @TEST-EXEC: cmp sender/http.log receiver/http.log
+# 
+# @TEST-EXEC: cat sender/http.log   $SCRIPTS/diff-remove-timestamps >sender.http.log
+# @TEST-EXEC: cat receiver/http.log $SCRIPTS/diff-remove-timestamps >receiver.http.log
+# @TEST-EXEC: cmp sender.http.log receiver.http.log
 # 
 # @TEST-EXEC: bro -x sender/events.bst | sed 's/^Event \[[-0-9.]*\] //g' | grep '^http_' | grep -v http_stats | sed 's/(.*$//g'  >events.snd.log
 # @TEST-EXEC: bro -x receiver/events.bst | sed 's/^Event \[[-0-9.]*\] //g' | grep '^http_' | grep -v http_stats | sed 's/(.*$//g'  >events.rec.log

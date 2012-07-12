@@ -96,6 +96,14 @@ public:
 	 */
 	const char* Fmt(const char* format, ...);
 
+	/**
+	 * A version of strerror() that the thread can safely use. This is
+	 * essentially a wrapper around strerror_r(). Note that it keeps a
+	 * single static buffer internally so the result remains valid only
+	 * until the next call.
+	 */
+	const char* Strerror(int err);
+
 protected:
 	friend class Manager;
 

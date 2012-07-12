@@ -16,9 +16,17 @@ namespace threading  {
 class FinishMessage : public InputMessage<MsgThread>
 {
 public:
-	FinishMessage(MsgThread* thread) : InputMessage<MsgThread>("Finish", thread)	{ }
+	FinishMessage(MsgThread* thread, double network_time) : InputMessage<MsgThread>("Finish", thread),
+		network_time(network_time) { }
 
-	virtual bool Process()	{ return Object()->DoFinish(); }
+	virtual bool Process()	{
+		bool result = Object()->OnFinish(network_time);
+		Object()->Finished();
+		return result;
+	}
+
+private:
+	double network_time;
 };
 
 // A dummy message that's only purpose is unblock the current read operation
@@ -39,7 +47,10 @@ public:
 		: InputMessage<MsgThread>("Heartbeat", thread)
 		{ network_time = arg_network_time; current_time = arg_current_time; }
 
-	virtual bool Process()	{ return Object()->DoHeartbeat(network_time, current_time); }
+	virtual bool Process()	{
+		Object()->HeartbeatInChild();
+		return Object()->OnHeartbeat(network_time, current_time);
+	}
 
 private:
 	double network_time;
@@ -146,8 +157,11 @@ MsgThread::MsgThread() : BasicThread()
 
 void MsgThread::OnStop()
 	{
+	if ( finished )
+		return;
+
 	// Signal thread to terminate and wait until it has acknowledged.
-	SendIn(new FinishMessage(this), true);
+	SendIn(new FinishMessage(this, network_time), true);
 
 	int cnt = 0;
 	while ( ! finished )
@@ -161,6 +175,8 @@ void MsgThread::OnStop()
 		usleep(1000);
 		}
 
+	Finished();
+
 	// One more message to make sure the current queue read operation unblocks.
 	SendIn(new UnblockMessage(this), true);
 	}
@@ -170,7 +186,7 @@ void MsgThread::Heartbeat()
 	SendIn(new HeartbeatMessage(this, network_time, current_time()));
 	}
 
-bool MsgThread::DoHeartbeat(double network_time, double current_time)
+void MsgThread::HeartbeatInChild()
 	{
 	string n = Name();
 
@@ -179,16 +195,13 @@ bool MsgThread::DoHeartbeat(double network_time, double current_time)
 		cnt_sent_out - queue_out.Size());
 
 	SetOSName(n.c_str());
-
-	return true;
 	}
 
-bool MsgThread::DoFinish()
+void MsgThread::Finished()
 	{
 	// This is thread-safe "enough", we're the only one ever writing
 	// there.
 	finished = true;
-	return true;
 	}
 
 void MsgThread::Info(const char* msg)

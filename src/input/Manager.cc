@@ -726,8 +726,6 @@ bool Manager::RemoveStream(Stream *i)
 
 	i->removed = true;
 
-	i->reader->Close();
-
 	DBG_LOG(DBG_INPUT, "Successfully queued removal of stream %s",
 		i->name.c_str());
 

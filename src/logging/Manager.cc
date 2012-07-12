@@ -771,6 +771,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 
 			WriterBackend::WriterInfo info;
 			info.path = path;
+			info.network_time = network_time;
 
 			HashKey* k;
 			IterCookie* c = filter->config->AsTable()->InitForIteration();
@@ -1156,7 +1157,7 @@ bool Manager::Flush(EnumVal* id)
 
 	for ( Stream::WriterMap::iterator i = stream->writers.begin();
 	      i != stream->writers.end(); i++ )
-		i->second->writer->Flush();
+		i->second->writer->Flush(network_time);
 
 	RemoveDisabledWriters(stream);
 

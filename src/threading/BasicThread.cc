@@ -78,24 +78,22 @@ const char* BasicThread::Fmt(const char* format, ...)
 	return buf;
 	}
 
+const char* BasicThread::Strerror(int err)
+	{
+	static char buf[128] = "<not set>";
+	strerror_r(err, buf, sizeof(buf));
+	return buf;
+	}
+
 void BasicThread::Start()
 	{
 
 	if ( started )
 		return;
 
-	int err = pthread_mutex_init(&terminate, 0);
-	if ( err != 0  )
-		reporter->FatalError("Cannot create terminate mutex for thread %s: %s", name.c_str(), strerror(err));
-
-	// We use this like a binary semaphore and acquire it immediately.
-	err = pthread_mutex_lock(&terminate);
+	int err = pthread_create(&pthread, 0, BasicThread::launcher, this);
 	if ( err != 0 )
-		reporter->FatalError("Cannot aquire terminate mutex for thread %s: %s", name.c_str(), strerror(err));
-
-	err = pthread_create(&pthread, 0, BasicThread::launcher, this);
-	if ( err != 0 )
-		reporter->FatalError("Cannot create thread %s:%s", name.c_str(), strerror(err));
+		reporter->FatalError("Cannot create thread %s:%s", name.c_str(), Strerror(err));
 
 	DBG_LOG(DBG_THREADING, "Started thread %s", name.c_str());
 
@@ -114,12 +112,6 @@ void BasicThread::Stop()
 
 	DBG_LOG(DBG_THREADING, "Signaling thread %s to terminate ...", name.c_str());
 
-	// Signal that it's ok for the thread to exit now by unlocking the
-	// mutex.
-	int err = pthread_mutex_unlock(&terminate);
-	if ( err != 0 )
-		reporter->FatalError("Failure flagging terminate condition for thread %s: %s", name.c_str(), strerror(err));
-
 	terminating = true;
 
 	OnStop();
@@ -130,15 +122,12 @@ void BasicThread::Join()
 	if ( ! started )
 		return;
 
-	if ( ! terminating )
-		Stop();
+	assert(terminating);
 
 	DBG_LOG(DBG_THREADING, "Joining thread %s ...", name.c_str());
 
 	if ( pthread_join(pthread, 0) != 0  )
 		reporter->FatalError("Failure joining thread %s", name.c_str());
-
-	pthread_mutex_destroy(&terminate);
 
 	DBG_LOG(DBG_THREADING, "Done with thread %s", name.c_str());
 
@@ -177,10 +166,6 @@ void* BasicThread::launcher(void *arg)
 
 	// Run thread's main function.
 	thread->Run();
-
-	// Wait until somebody actually wants us to terminate.
-	if ( pthread_mutex_lock(&thread->terminate) != 0 )
-		reporter->FatalError("Failure acquiring terminate mutex at end of thread %s", thread->Name().c_str());
 
 	return 0;
 	}

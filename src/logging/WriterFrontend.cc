@@ -81,19 +81,13 @@ private:
 class FlushMessage : public threading::InputMessage<WriterBackend>
 {
 public:
-	FlushMessage(WriterBackend* backend)
-		: threading::InputMessage<WriterBackend>("Flush", backend)	{}
+	FlushMessage(WriterBackend* backend, double network_time)
+		: threading::InputMessage<WriterBackend>("Flush", backend),
+		network_time(network_time) {}
 
-	virtual bool Process() { return Object()->Flush(); }
-};
-
-class FinishMessage : public threading::InputMessage<WriterBackend>
-{
-public:
-	FinishMessage(WriterBackend* backend)
-		: threading::InputMessage<WriterBackend>("Finish", backend)	{}
-
-	virtual bool Process() { return Object()->DoFinish(); }
+	virtual bool Process() { return Object()->Flush(network_time); }
+private:
+	double network_time;
 };
 
 }
@@ -240,7 +234,7 @@ void WriterFrontend::SetBuf(bool enabled)
 		FlushWriteBuffer();
 	}
 
-void WriterFrontend::Flush()
+void WriterFrontend::Flush(double network_time)
 	{
 	if ( disabled )
 		return;
@@ -248,7 +242,7 @@ void WriterFrontend::Flush()
 	FlushWriteBuffer();
 
 	if ( backend )
-		backend->SendIn(new FlushMessage(backend));
+		backend->SendIn(new FlushMessage(backend, network_time));
 	}
 
 void WriterFrontend::Rotate(string rotated_path, double open, double close, bool terminating)
@@ -264,17 +258,6 @@ void WriterFrontend::Rotate(string rotated_path, double open, double close, bool
 		// Still signal log manager that we're done, but signal that
 		// nothing happened by setting the writer to zeri.
 		log_mgr->FinishedRotation(0, "", rotated_path, open, close, terminating);
-	}
-
-void WriterFrontend::Finish()
-	{
-	if ( disabled )
-		return;
-
-	FlushWriteBuffer();
-
-	if ( backend )
-		backend->SendIn(new FinishMessage(backend));
 	}
 
 void WriterFrontend::DeleteVals(Value** vals)

@@ -140,6 +140,11 @@ the full set.
   Bro now supports decapsulating tunnels directly for protocols it
   understands.
 
+- ASCII logs now record the time when they were opened/closed at the
+  beginning and end of the file, respectively. The options
+  LogAscii::header_prefix and LogAscii::include_header have been
+  renamed to LogAscii::meta_prefix and LogAscii::include_meta,
+  respectively.
 
 Bro 2.0
 -------

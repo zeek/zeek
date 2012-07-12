@@ -311,7 +311,7 @@ bool DataSeries::DoInit(const WriterInfo& info, int num_fields, const threading:
 			}
 
 		else
-			Error(Fmt("cannot dump schema: %s", strerror(errno)));
+			Error(Fmt("cannot dump schema: %s", Strerror(errno)));
 		}
 
 	compress_type = Extent::compress_all;
@@ -343,7 +343,7 @@ bool DataSeries::DoInit(const WriterInfo& info, int num_fields, const threading:
 	return OpenLog(info.path);
 	}
 
-bool DataSeries::DoFlush()
+bool DataSeries::DoFlush(double network_time)
 {
 	// Flushing is handled by DataSeries automatically, so this function
 	// doesn't do anything.
@@ -366,11 +366,10 @@ void DataSeries::CloseLog()
 	log_file = 0;
 	}
 
-bool DataSeries::DoFinish()
+bool DataSeries::DoFinish(double network_time)
 {
 	CloseLog();
-
-	return WriterBackend::DoFinish();
+	return true;
 }
 
 bool DataSeries::DoWrite(int num_fields, const threading::Field* const * fields,
@@ -417,6 +416,11 @@ bool DataSeries::DoRotate(string rotated_path, double open, double close, bool t
 bool DataSeries::DoSetBuf(bool enabled)
 {
 	// DataSeries is *always* buffered to some degree.  This option is ignored.
+	return true;
+}
+
+bool DataSeries::DoHeartbeat(double network_time, double current_time)
+{
 	return true;
 }
 

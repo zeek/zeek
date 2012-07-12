@@ -114,8 +114,10 @@ public:
 	 * message back that will asynchronously call Disable().
 	 *
 	 * This method must only be called from the main thread.
+	 *
+	 * @param network_time The network time when the flush was triggered.
 	 */
-	void Flush();
+	void Flush(double network_time);
 
 	/**
 	 * Triggers log rotation.
@@ -138,8 +140,10 @@ public:
 	 * sends a message back that will asynchronously call Disable().
 	 *
 	 * This method must only be called from the main thread.
+	 *
+	 * @param network_time The network time when the finish was triggered.
 	 */
-	void Finish();
+	void Finish(double network_time);
 
 	/**
 	 * Explicitly triggers a transfer of all potentially buffered Write()

@@ -252,8 +252,6 @@ bool Raw::DoUpdate()
 
 bool Raw::DoHeartbeat(double network_time, double current_time)
 	{
-	ReaderBackend::DoHeartbeat(network_time, current_time);
-
 	switch ( Info().mode ) {
 		case MODE_MANUAL:
 			// yay, we do nothing :)

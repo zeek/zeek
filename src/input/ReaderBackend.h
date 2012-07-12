@@ -109,15 +109,6 @@ public:
 	bool Init(const ReaderInfo& info, int num_fields, const threading::Field* const* fields);
 
 	/**
-	 * Finishes reading from this input stream in a regular fashion. Must
-	 * not be called if an error has been indicated earlier. After
-	 * calling this, no further reading from the stream can be performed.
-	 *
-	 * @return False if an error occured.
-	 */
-	void Close();
-
-	/**
 	 * Force trigger an update of the input stream. The action that will
 	 * be taken depends on the current read mode and the individual input
 	 * backend.
@@ -149,6 +140,9 @@ public:
 	 */
 	int NumFields() const	{ return num_fields; }
 
+	// Overridden from MsgThread.
+	virtual bool OnHeartbeat(double network_time, double current_time);
+	virtual bool OnFinish(double network_time);
 
 protected:
 	// Methods that have to be overwritten by the individual readers
@@ -199,6 +193,11 @@ protected:
 	 * implementation should also call Error to indicate what happened.
 	 */
 	virtual bool DoUpdate() = 0;
+
+	/**
+	 * Triggered by regular heartbeat messages from the main thread.
+	 */
+	virtual bool DoHeartbeat(double network_time, double current_time) = 0;
 
 	/**
 	 * Method allowing a reader to send a specified Bro event. Vals must
@@ -270,14 +269,6 @@ protected:
 	 * present in the input source
 	 */
 	void EndCurrentSend();
-
-	/**
-	 * Triggered by regular heartbeat messages from the main thread.
-	 *
-	 * This method can be overridden but once must call
-	 * ReaderBackend::DoHeartbeat().
-	 */
-	virtual bool DoHeartbeat(double network_time, double current_time);
 
 	/**
 	 *  Convert a string into a TransportProto. This is just a utility

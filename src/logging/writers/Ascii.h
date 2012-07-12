@@ -26,13 +26,16 @@ protected:
 	virtual bool DoSetBuf(bool enabled);
 	virtual bool DoRotate(string rotated_path, double open,
 			      double close, bool terminating);
-	virtual bool DoFlush();
-	virtual bool DoFinish();
+	virtual bool DoFlush(double network_time);
+	virtual bool DoFinish(double network_time);
+	virtual bool DoHeartbeat(double network_time, double current_time);
 
 private:
 	bool IsSpecial(string path) 	{ return path.find("/dev/") == 0; }
 	bool DoWriteOne(ODesc* desc, threading::Value* val, const threading::Field* field);
 	bool WriteHeaderField(const string& key, const string& value);
+	void CloseFile(double t);
+	string Timestamp(double t);
 
 	FILE* file;
 	string fname;
@@ -40,7 +43,7 @@ private:
 
 	// Options set from the script-level.
 	bool output_to_stdout;
-	bool include_header;
+	bool include_meta;
 
 	char* separator;
 	int separator_len;
@@ -54,8 +57,8 @@ private:
 	char* unset_field;
 	int unset_field_len;
 
-	char* header_prefix;
-	int header_prefix_len;
+	char* meta_prefix;
+	int meta_prefix_len;
 };
 
 }

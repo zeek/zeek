@@ -18,7 +18,7 @@ namespace logging  {
 class RotationFinishedMessage : public threading::OutputMessage<WriterFrontend>
 {
 public:
-        RotationFinishedMessage(WriterFrontend* writer, string new_name, string old_name,
+	RotationFinishedMessage(WriterFrontend* writer, string new_name, string old_name,
 				double open, double close, bool terminating)
 		: threading::OutputMessage<WriterFrontend>("RotationFinished", writer),
 		new_name(new_name), old_name(old_name), open(open),
@@ -260,9 +260,9 @@ bool WriterBackend::Rotate(string rotated_path, double open,
 	return true;
 	}
 
-bool WriterBackend::Flush()
+bool WriterBackend::Flush(double network_time)
 	{
-	if ( ! DoFlush() )
+	if ( ! DoFlush(network_time) )
 		{
 		DisableFrontend();
 		return false;
@@ -271,13 +271,15 @@ bool WriterBackend::Flush()
 	return true;
 	}
 
-bool WriterBackend::DoHeartbeat(double network_time, double current_time)
+bool WriterBackend::OnFinish(double network_time)
 	{
-	MsgThread::DoHeartbeat(network_time, current_time);
+	return DoFinish(network_time);
+	}
 
+bool WriterBackend::OnHeartbeat(double network_time, double current_time)
+	{
 	SendOut(new FlushWriteBufferMessage(frontend));
-
-	return true;
+	return DoHeartbeat(network_time, current_time);
 	}
 
 string WriterBackend::Render(const threading::Value::addr_t& addr) const

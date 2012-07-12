@@ -175,6 +175,8 @@ void MsgThread::OnStop()
 		usleep(1000);
 		}
 
+	Finished();
+
 	// One more message to make sure the current queue read operation unblocks.
 	SendIn(new UnblockMessage(this), true);
 	}

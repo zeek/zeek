@@ -52,12 +52,6 @@ Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
 
 Ascii::~Ascii()
 	{
-	if ( ! ascii_done )
-		{
-		fprintf(stderr, "missing finish message\n");
-		abort();
-		}
-
 	// Normally, the file will be closed here already via the Finish()
 	// message. But when we terminate abnormally, we may still have it
 	// open.
@@ -170,6 +164,7 @@ bool Ascii::DoFinish(double network_time)
 		}
 
 	ascii_done = true;
+
 	CloseFile(network_time);
 	return true;
 	}

@@ -11,7 +11,7 @@ module Reporter;
 export {
 	## The reporter logging stream identifier.
 	redef enum Log::ID += { LOG };
-
+	
 	## An indicator of reporter message severity.
 	type Level: enum { 
 		## Informational, not needing specific attention.
@@ -36,24 +36,42 @@ export {
 		## Not all reporter messages will have locations in them though.
 		location: string &log &optional;
 	};
+	
+	## Send reporter error messages to STDERR by default.  The option to 
+	## turn it off is presented here in case Bro is being run by some 
+	## external harness and shouldn't output anything to the console.
+	const errors_to_stderr = T &redef;
+	
+	## Send reporter warning messages to STDERR by default.  The option to 
+	## turn it off is presented here in case Bro is being run by some 
+	## external harness and shouldn't output anything to the console.
+	const warnings_to_stderr = T &redef;
 }
+
+global stderr: file;
 
 event bro_init() &priority=5
 	{
 	Log::create_stream(Reporter::LOG, [$columns=Info]);
+	
+	if ( errors_to_stderr || warnings_to_stderr )
+		stderr = open("/dev/stderr");
 	}
 
-event reporter_info(t: time, msg: string, location: string)
+event reporter_info(t: time, msg: string, location: string) &priority=-5
 	{
 	Log::write(Reporter::LOG, [$ts=t, $level=INFO, $message=msg, $location=location]);
 	}
 	
-event reporter_warning(t: time, msg: string, location: string)
+event reporter_warning(t: time, msg: string, location: string) &priority=-5
 	{
 	Log::write(Reporter::LOG, [$ts=t, $level=WARNING, $message=msg, $location=location]);
 	}
 
-event reporter_error(t: time, msg: string, location: string)
+event reporter_error(t: time, msg: string, location: string) &priority=-5
 	{
+	if ( errors_to_stderr )
+		print stderr, fmt("ERROR: %s", msg);
+	
 	Log::write(Reporter::LOG, [$ts=t, $level=ERROR, $message=msg, $location=location]);
 	}

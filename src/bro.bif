@@ -3764,7 +3764,7 @@ static GeoIP* open_geoip_db(GeoIPDBTypes type)
 		geoip = GeoIP_open_type(type, GEOIP_MEMORY_CACHE);
 
 	if ( ! geoip )
-		reporter->Warning("Failed to open GeoIP database: %s",
+		reporter->Info("Failed to open GeoIP database: %s",
 		                  GeoIPDBFileName[type]);
 	return geoip;
 	}
@@ -3804,7 +3804,7 @@ function lookup_location%(a: addr%) : geo_location
 			if ( ! geoip )
 				builtin_error("Can't initialize GeoIP City/Country database");
 			else
-				reporter->Warning("Fell back to GeoIP Country database");
+				reporter->Info("Fell back to GeoIP Country database");
 			}
 		else
 			have_city_db = true;

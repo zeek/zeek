@@ -164,6 +164,13 @@ void* BasicThread::launcher(void *arg)
 	// process.
 	sigset_t mask_set;
 	sigfillset(&mask_set);
+	// Unblock the signals where according to POSIX the result is undefined if they are blocked
+	// in a thread and received by that thread. If those are not unblocked, threads will just
+	// hang when they crash without the user being notified.
+	sigdelset(&mask_set, SIGFPE);
+	sigdelset(&mask_set, SIGILL);
+	sigdelset(&mask_set, SIGSEGV);
+	sigdelset(&mask_set, SIGBUS);
 	int res = pthread_sigmask(SIG_BLOCK, &mask_set, 0);
 	assert(res == 0);  //
 

@@ -106,10 +106,10 @@ void BitTorrent_Analyzer::Undelivered(int seq, int len, bool orig)
 	//	}
 	}
 
-void BitTorrent_Analyzer::EndpointEOF(TCP_Reassembler* endp)
+void BitTorrent_Analyzer::EndpointEOF(bool is_orig)
 	{
-	TCP_ApplicationAnalyzer::EndpointEOF(endp);
-	interp->FlowEOF(endp->IsOrig());
+	TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
+	interp->FlowEOF(is_orig);
 	}
 
 void BitTorrent_Analyzer::DeliverWeird(const char* msg, bool orig)

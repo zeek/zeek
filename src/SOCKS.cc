@@ -31,10 +31,10 @@ void SOCKS_Analyzer::Done()
 	interp->FlowEOF(false);
 	}
 
-void SOCKS_Analyzer::EndpointEOF(TCP_Reassembler* endp)
+void SOCKS_Analyzer::EndpointEOF(bool is_orig)
 	{
-	TCP_ApplicationAnalyzer::EndpointEOF(endp);
-	interp->FlowEOF(endp->IsOrig());
+	TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
+	interp->FlowEOF(is_orig);
 	}
 
 void SOCKS_Analyzer::DeliverStream(int len, const u_char* data, bool orig)

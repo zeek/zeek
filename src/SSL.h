@@ -15,7 +15,7 @@ public:
 	virtual void Undelivered(int seq, int len, bool orig);
 
 	// Overriden from TCP_ApplicationAnalyzer.
-	virtual void EndpointEOF(TCP_Reassembler* endp);
+	virtual void EndpointEOF(bool is_orig);
 
 	static Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new SSL_Analyzer(conn); }

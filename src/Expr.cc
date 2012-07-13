@@ -1035,12 +1035,10 @@ Val* IncrExpr::Eval(Frame* f) const
 				{
 				Val* new_elt = DoSingleEval(f, elt);
 				v_vec->Assign(i, new_elt, this, OP_INCR);
-				Unref(new_elt); // was Ref()'d by Assign()
 				}
 			else
 				v_vec->Assign(i, 0, this, OP_INCR);
 			}
-		// FIXME: Is the next line needed?
 		op->Assign(f, v_vec, OP_INCR);
 		}
 
@@ -2400,11 +2398,6 @@ RefExpr::RefExpr(Expr* arg_op) : UnaryExpr(EXPR_REF, arg_op)
 Expr* RefExpr::MakeLvalue()
 	{
 	return this;
-	}
-
-Val* RefExpr::Eval(Val* v) const
-	{
-	return Fold(v);
 	}
 
 void RefExpr::Assign(Frame* f, Val* v, Opcode opcode)

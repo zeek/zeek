@@ -608,10 +608,6 @@ public:
 	void Assign(Frame* f, Val* v, Opcode op = OP_ASSIGN);
 	Expr* MakeLvalue();
 
-	// Only overridden to avoid special vector handling which doesn't apply
-	// for this class.
-	Val* Eval(Val* v) const;
-
 protected:
 	friend class Expr;
 	RefExpr()	{ }

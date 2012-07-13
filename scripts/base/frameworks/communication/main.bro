@@ -42,7 +42,7 @@ export {
 	type Info: record {
 		## The network time at which a communication event occurred.
 		ts:                  time   &log;
-		## The peer name (if any) for which a communication event is concerned.
+		## The peer name (if any) with which a communication event is concerned.
 		peer:                string &log &optional;
 		## Where the communication event message originated from, that is,
 		## either from the scripting layer or inside the Bro process.

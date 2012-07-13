@@ -17,7 +17,7 @@ export {
 	type Info: record {
 		## This is the time of the first packet.
 		ts:           time            &log;
-		## A unique identifier of a connection.
+		## A unique identifier of the connection.
 		uid:          string          &log;
 		## The connection's 4-tuple of endpoint addresses/ports.
 		id:           conn_id         &log;
@@ -61,7 +61,7 @@ export {
 		## be left empty at all times.
 		local_orig:   bool            &log &optional;
 		
-		## Indicates the number of bytes missed in content gaps which is
+		## Indicates the number of bytes missed in content gaps, which is
 		## representative of packet loss.  A value other than zero will 
 		## normally cause protocol analysis to fail but some analysis may 
 		## have been completed prior to the packet loss.
@@ -83,23 +83,24 @@ export {
 		## i       inconsistent packet (e.g. SYN+RST bits both set)
 		## ======  ====================================================
 		##
-		## If the letter is in upper case it means the event comes from the
-		## originator and lower case then means the responder.
-		## Also, there is compression. We only record one "d" in each direction,
-		## for instance. I.e., we just record that data went in that direction.
-		## This history is not meant to encode how much data that happened to
-		## be.
+		## If the event comes from the originator, the letter is in upper-case; if it comes
+		## from the responder, it's in lower-case. Multiple packets of the same type will
+		## only be noted once (e.g. we only record one "d" in each direction, regardless of 
+		## how many data packets were seen.)
 		history:      string          &log &optional;
-		## Number of packets the originator sent.
+		## Number of packets that the originator sent.
 		## Only set if :bro:id:`use_conn_size_analyzer` = T
 		orig_pkts:     count      &log &optional;
-		## Number IP level bytes the originator sent (as seen on the wire,
+		## Number of IP level bytes that the originator sent (as seen on the wire,
 		## taken from IP total_length header field).
 		## Only set if :bro:id:`use_conn_size_analyzer` = T
 		orig_ip_bytes: count      &log &optional;
-		## Number of packets the responder sent. See ``orig_pkts``.
+		## Number of packets that the responder sent.
+		## Only set if :bro:id:`use_conn_size_analyzer` = T
 		resp_pkts:     count      &log &optional;
-		## Number IP level bytes the responder sent. See ``orig_pkts``.
+		## Number og IP level bytes that the responder sent (as seen on the wire,
+		## taken from IP total_length header field).
+		## Only set if :bro:id:`use_conn_size_analyzer` = T
 		resp_ip_bytes: count      &log &optional;
 		## If this connection was over a tunnel, indicate the 
 		## *uid* values for any encapsulating parent connections

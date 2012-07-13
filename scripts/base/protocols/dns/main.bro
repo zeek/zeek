@@ -45,16 +45,16 @@ export {
 		AA:            bool               &log &default=F;
 		## The Truncation bit specifies that the message was truncated.
 		TC:            bool               &log &default=F;
-		## The Recursion Desired bit indicates to a name server to recursively
-		## purse the query.
+		## The Recursion Desired bit in a request message indicates that
+		## the client wants recursive service for this query.
 		RD:            bool               &log &default=F;
-		## The Recursion Available bit in a response message indicates if
+		## The Recursion Available bit in a response message indicates that
 		## the name server supports recursive queries.
 		RA:            bool               &log &default=F;
 		## A reserved field that is currently supposed to be zero in all
 		## queries and responses.
 		Z:             count              &log &default=0;
-		## The set of resource descriptions in answer of the query.
+		## The set of resource descriptions in the query answer.
 		answers:       vector of string   &log &optional;
 		## The caching intervals of the associated RRs described by the
 		## ``answers`` field.

@@ -125,7 +125,6 @@ endif()
 find_package(DTrace)
 set(USE_DTRACE false)
 if (DTRACE_VERSION AND ENABLE_DTRACE)
-	message("Enabling dtrace probes...")
     	set(USE_DTRACE true)
 endif()
 

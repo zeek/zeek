@@ -30,12 +30,11 @@ endmacro(REPLACE_YY_PREFIX_TARGET)
 if(USE_DTRACE)
 # Enable script providers
 dtrace_target(ScriptProvider 
-              ScriptProvider.d 
-	      ${CMAKE_CURRENT_BINARY_DIR}/ScriptProvider.h)
+              ${CMAKE_CURRENT_BINARY_DIR})
 
 dtrace_target(CheckpointProvider 
-              CheckpointProvider.d 
-	      ${CMAKE_CURRENT_BINARY_DIR}/CheckpointProvider.h)
+	      ${CMAKE_CURRENT_BINARY_DIR})
+
 set(dtrace_SRCS
    ${DTRACE_ScriptProvider_INPUT}
    ${DTRACE_ScriptProvider_OUTPUTS}
@@ -474,8 +473,8 @@ add_definitions(-DBRO_SCRIPT_SOURCE_PATH="${BRO_SCRIPT_SOURCE_PATH}")
 add_definitions(-DBRO_BUILD_PATH="${CMAKE_CURRENT_BINARY_DIR}")
 
 add_executable(bro ${bro_SRCS} ${bro_HEADERS})
-
 target_link_libraries(bro ${brodeps} ${CMAKE_THREAD_LIBS_INIT})
+
 
 install(TARGETS bro DESTINATION bin)
 install(FILES ${INSTALL_BIF_OUTPUTS} DESTINATION ${BRO_SCRIPT_INSTALL_PATH}/base)

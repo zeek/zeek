@@ -20,8 +20,6 @@
 
 #ifdef USE_DTRACE
 #include "CheckpointProvider.h"
-#else
-#error "Could not find DTRACE!"
 #endif
 
 using namespace std;

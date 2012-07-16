@@ -776,7 +776,7 @@ void add_input_file(const char* file)
 	if ( ! filename )
 		(void) load_files(file);
 	else
-		input_files.append(copy_string(file));
+		input_files.append((char*) file);
 	}
 
 void add_to_name_list(char* s, char delim, name_list& nl)

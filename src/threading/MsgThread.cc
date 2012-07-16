@@ -166,16 +166,14 @@ void MsgThread::OnStop()
 	int cnt = 0;
 	while ( ! finished )
 		{
-		if ( ++cnt > 1000 ) // Insurance against broken threads ...
+		if ( ++cnt % 2000 == 0 ) // Insurance against broken threads ...
 			{
-			reporter->Warning("thread %s didn't finish in time", Name().c_str());
-			break;
+			reporter->Warning("thread %s has not yet terminated ...", Name().c_str());
+			fprintf(stderr, "warning: thread %s has not yet terminated ...", Name().c_str());
 			}
 
 		usleep(1000);
 		}
-
-	Finished();
 
 	// One more message to make sure the current queue read operation unblocks.
 	SendIn(new UnblockMessage(this), true);

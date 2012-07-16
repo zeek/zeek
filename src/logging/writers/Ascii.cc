@@ -16,6 +16,7 @@ using threading::Field;
 Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
 	{
 	file = 0;
+	ascii_done = false;
 
 	output_to_stdout = BifConst::LogAscii::output_to_stdout;
 	include_meta = BifConst::LogAscii::include_meta;
@@ -51,6 +52,12 @@ Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
 
 Ascii::~Ascii()
 	{
+	if ( ! ascii_done )
+		{
+		fprintf(stderr, "missing finish message\n");
+		abort();
+		}
+
 	// Normally, the file will be closed here already via the Finish()
 	// message. But when we terminate abnormally, we may still have it
 	// open.
@@ -156,6 +163,13 @@ bool Ascii::DoFlush(double network_time)
 
 bool Ascii::DoFinish(double network_time)
 	{
+	if ( ascii_done )
+		{
+		fprintf(stderr, "duplicate finish message\n");
+		abort();
+		}
+
+	ascii_done = true;
 	CloseFile(network_time);
 	return true;
 	}

@@ -9,9 +9,11 @@ export {
 	redef enum Log::ID += { LOG };
 	
 	type Info: record {
-		## Timestamp of when the syslog message was seen.
+		## Timestamp when the syslog message was seen.
 		ts:        time            &log;
+		## Unique ID for the connection.
 		uid:       string          &log;
+		## The connection's 4-tuple of endpoint addresses/ports.
 		id:        conn_id         &log;
 		## Protocol over which the message was seen.
 		proto:     transport_proto &log;

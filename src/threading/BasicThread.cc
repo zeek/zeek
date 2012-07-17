@@ -86,12 +86,12 @@ void BasicThread::Start()
 
 	int err = pthread_mutex_init(&terminate, 0);
 	if ( err != 0  )
-		reporter->FatalError("Cannot create terminate mutex for thread %s:%s", name.c_str(), strerror(err));
+		reporter->FatalError("Cannot create terminate mutex for thread %s: %s", name.c_str(), strerror(err));
 
 	// We use this like a binary semaphore and acquire it immediately.
 	err = pthread_mutex_lock(&terminate);
 	if ( err != 0 )
-		reporter->FatalError("Cannot aquire terminate mutex for thread %s:%s", name.c_str(), strerror(err));
+		reporter->FatalError("Cannot aquire terminate mutex for thread %s: %s", name.c_str(), strerror(err));
 
 	err = pthread_create(&pthread, 0, BasicThread::launcher, this);
 	if ( err != 0 )
@@ -116,8 +116,9 @@ void BasicThread::Stop()
 
 	// Signal that it's ok for the thread to exit now by unlocking the
 	// mutex.
-	if ( pthread_mutex_unlock(&terminate) != 0 )
-		reporter->FatalError("Failure flagging terminate condition for thread %s", name.c_str());
+	int err = pthread_mutex_unlock(&terminate);
+	if ( err != 0 )
+		reporter->FatalError("Failure flagging terminate condition for thread %s: %s", name.c_str(), strerror(err));
 
 	terminating = true;
 
@@ -163,6 +164,14 @@ void* BasicThread::launcher(void *arg)
 	// process.
 	sigset_t mask_set;
 	sigfillset(&mask_set);
+
+	// Unblock the signals where according to POSIX the result is undefined if they are blocked
+	// in a thread and received by that thread. If those are not unblocked, threads will just
+	// hang when they crash without the user being notified.
+	sigdelset(&mask_set, SIGFPE);
+	sigdelset(&mask_set, SIGILL);
+	sigdelset(&mask_set, SIGSEGV);
+	sigdelset(&mask_set, SIGBUS);
 	int res = pthread_sigmask(SIG_BLOCK, &mask_set, 0);
 	assert(res == 0);  //
 

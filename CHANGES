@@ -1,4 +1,30 @@
 
+2.0-769 | 2012-07-13 16:17:33 -0700
+
+  * Fix some Info:Record field documentation. (Vlad Grigorescu)
+    
+  * Fix overrides of TCP_ApplicationAnalyzer::EndpointEOF. (Jon Siwek)
+
+  * Fix segfault when incrementing whole vector values. Also removed
+    RefExpr::Eval(Val*) method since it was never called. (Jon Siwek)
+
+  * Remove baselines for some leak-detecting unit tests. (Jon Siwek)
+    
+  * Unblock SIGFPE, SIGILL, SIGSEGV and SIGBUS for threads, so that
+    they now propagate to the main thread. Adresses #848. (Bernhard
+    Amann)
+
+2.0-761 | 2012-07-12 08:14:38 -0700
+
+  * Some small fixes to further reduce SOCKS false positive logs. (Seth Hall)
+
+  * Calls to pthread_mutex_unlock now log the reason for failures.
+    (Bernhard Amann)
+
+2.0-757 | 2012-07-11 08:30:19 -0700
+
+  * Fixing memory leak. (Seth Hall)
+
 2.0-755 | 2012-07-10 16:25:16 -0700
 
   * Add sorting canonifier to rotate-custom unit test. Addresses #846.

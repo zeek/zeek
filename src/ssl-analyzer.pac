@@ -305,12 +305,12 @@ refine connection SSL_Conn += {
 							//i2t_ASN1_OBJECT(&pBuffer, length, obj)
 							// printf("extension length: %d\n", length);
 							// -1 indicates an error.
-							if ( length < 0 )
-								continue;
-
-							StringVal* value = new StringVal(length, (char*)pBuffer);
-							BifEvent::generate_x509_extension(bro_analyzer(),
-										bro_analyzer()->Conn(), ${rec.is_orig}, value);
+							if ( length >= 0 )
+								{
+								StringVal* value = new StringVal(length, (char*)pBuffer);
+								BifEvent::generate_x509_extension(bro_analyzer(),
+											bro_analyzer()->Conn(), ${rec.is_orig}, value);
+								}
 							OPENSSL_free(pBuffer);
 							}
 						}

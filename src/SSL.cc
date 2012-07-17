@@ -23,10 +23,10 @@ void SSL_Analyzer::Done()
 	interp->FlowEOF(false);
 	}
 
-void SSL_Analyzer::EndpointEOF(TCP_Reassembler* endp)
+void SSL_Analyzer::EndpointEOF(bool is_orig)
 	{
-	TCP_ApplicationAnalyzer::EndpointEOF(endp);
-	interp->FlowEOF(endp->IsOrig());
+	TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
+	interp->FlowEOF(is_orig);
 	}
 
 void SSL_Analyzer::DeliverStream(int len, const u_char* data, bool orig)

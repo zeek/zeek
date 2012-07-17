@@ -28,7 +28,9 @@ export {
 	type Info: record {
 		## Time when the command was sent.
 		ts:               time        &log;
+		## Unique ID for the connection.
 		uid:              string      &log;
+		## The connection's 4-tuple of endpoint addresses/ports.
 		id:               conn_id     &log;
 		## User name for the current FTP session.
 		user:             string      &log &default="<unknown>";

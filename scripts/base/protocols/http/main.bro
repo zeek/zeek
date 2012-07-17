@@ -22,7 +22,9 @@ export {
 	type Info: record {
 		## Timestamp for when the request happened.
 		ts:                      time      &log;
+		## Unique ID for the connection.
 		uid:                     string    &log;
+		## The connection's 4-tuple of endpoint addresses/ports.
 		id:                      conn_id   &log;
 		## Represents the pipelined depth into the connection of this 
 		## request/response transaction.

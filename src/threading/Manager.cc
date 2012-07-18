@@ -83,6 +83,14 @@ double Manager::NextTimestamp(double* network_time)
 	return -1.0;
 	}
 
+void Manager::KillThreads()
+	{
+        DBG_LOG(DBG_THREADING, "Killing threads ...");
+	
+        for ( all_thread_list::iterator i = all_threads.begin(); i != all_threads.end(); i++ )
+                (*i)->Kill();
+        }
+
 void Manager::Process()
 	{
 	bool do_beat = false;

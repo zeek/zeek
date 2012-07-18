@@ -162,9 +162,7 @@ bool WriterBackend::Init(const WriterInfo& arg_info, int arg_num_fields, const F
 	num_fields = arg_num_fields;
 	fields = arg_fields;
 
-	string name = Fmt("%s/%s", info.path.c_str(), frontend_name.c_str());
-
-	SetName(name);
+	SetName(frontend->Name());
 
 	if ( ! DoInit(arg_info, arg_num_fields, arg_fields) )
 		{

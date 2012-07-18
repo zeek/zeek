@@ -125,7 +125,7 @@ void BasicThread::Join()
 
 	DBG_LOG(DBG_THREADING, "Joining thread %s ...", name.c_str());
 
-	if ( pthread_join(pthread, 0) != 0  )
+	if ( pthread && pthread_join(pthread, 0) != 0  )
 		reporter->FatalError("Failure joining thread %s", name.c_str());
 
 	DBG_LOG(DBG_THREADING, "Done with thread %s", name.c_str());
@@ -135,13 +135,13 @@ void BasicThread::Join()
 
 void BasicThread::Kill()
 	{
+	terminating = true;
+
 	if ( ! (started && pthread) )
 		return;
 
-	// I believe this is safe to call from a signal handler ... Not error
-	// checking so that killing doesn't bail out if we have already
-	// terminated.
-	pthread_kill(pthread, SIGKILL);
+	pthread = 0;
+	pthread_kill(pthread, SIGTERM);
 	}
 
 void* BasicThread::launcher(void *arg)

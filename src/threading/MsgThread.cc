@@ -156,6 +156,9 @@ MsgThread::MsgThread() : BasicThread()
 	thread_mgr->AddMsgThread(this);
 	}
 
+// Set by Bro's main signal handler.
+extern int signal_val;
+
 void MsgThread::OnStop()
 	{
 	if ( stopped )
@@ -164,13 +167,31 @@ void MsgThread::OnStop()
 	// Signal thread to terminate and wait until it has acknowledged.
 	SendIn(new FinishMessage(this, network_time), true);
 
+	int old_signal_val = signal_val;
+	signal_val = 0;
+
 	int cnt = 0;
+	bool aborted = 0;
+
 	while ( ! finished )
 		{
-		if ( ++cnt % 2000 == 0 ) // Insurance against broken threads ...
+                // Terminate if we get another kill signal.
+		if ( signal_val == SIGTERM || signal_val == SIGINT )
 			{
-			reporter->Warning("thread %s has not yet terminated ...", Name().c_str());
-			fprintf(stderr, "warning: thread %s has not yet terminated ...", Name().c_str());
+			// Abort all threads here so that we won't hang next
+			// on another one.
+                        fprintf(stderr, "received signal while waiting for thread %s, aborting all ...\n", Name().c_str());
+			thread_mgr->KillThreads();
+			aborted = true;
+			break;
+			}
+
+		if ( ++cnt % 10000 == 0 ) // Insurance against broken threads ...
+			{
+                        fprintf(stderr, "killing thread %s ...\n", Name().c_str());
+			Kill();
+			aborted = true;
+			break;
 			}
 
 		usleep(1000);
@@ -178,8 +199,11 @@ void MsgThread::OnStop()
 
 	Finished();
 
+	signal_val = old_signal_val;
+
 	// One more message to make sure the current queue read operation unblocks.
-	SendIn(new UnblockMessage(this), true);
+	if ( ! aborted )
+		SendIn(new UnblockMessage(this), true);
 	}
 
 void MsgThread::Heartbeat()

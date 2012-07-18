@@ -169,6 +169,7 @@ bool Ascii::DoFinish(double network_time)
 	ascii_done = true;
 
 	CloseFile(network_time);
+
 	return true;
 	}
 

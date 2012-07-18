@@ -263,11 +263,28 @@ bool ElasticSearch::UpdateIndex(double now, double rinterval, double rbase)
 		struct tm tm;
 		char buf[128];
 		time_t teatime = (time_t)interval_beginning;
-		gmtime_r(&teatime, &tm);
+		localtime_r(&teatime, &tm);
 		strftime(buf, sizeof(buf), "%Y%m%d%H%M", &tm);
 		
 		prev_index = current_index;
 		current_index = index_prefix + "-" + buf;
+
+		// Send some metadata about this index.
+		buffer.AddRaw("{\"index\":{\"_index\":\"@", 21);
+		buffer.Add(index_prefix);
+		buffer.AddRaw("-meta\",\"_type\":\"index\",\"_id\":\"", 30);
+		buffer.Add(current_index);
+		buffer.AddRaw("-", 1);
+		buffer.Add(Info().rotation_base);
+		buffer.AddRaw("-", 1);
+		buffer.Add(Info().rotation_interval);
+		buffer.AddRaw("\"}}\n{\"name\":\"", 13);
+		buffer.Add(current_index);
+		buffer.AddRaw("\",\"start\":", 10);
+		buffer.Add(interval_beginning);
+		buffer.AddRaw(",\"end\":", 7);
+		buffer.Add(interval_beginning+rinterval);
+		buffer.AddRaw("}\n", 2);
 		}
 	
 	//printf("%s - prev:%s current:%s\n", Info().path.c_str(), prev_index.c_str(), current_index.c_str());

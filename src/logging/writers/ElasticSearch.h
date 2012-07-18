@@ -65,6 +65,8 @@ private:
 	
 	string path;
 	string index_prefix;
+	uint64 transfer_timeout;
+	bool failing;
 	
 	uint64 batch_size;
 };

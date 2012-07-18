@@ -42,7 +42,10 @@ ElasticSearch::ElasticSearch(WriterFrontend* frontend) : WriterBackend(frontend)
 	current_index = string();
 	prev_index = string();
 	last_send = current_time();
+	failing = false;
 	
+	transfer_timeout = BifConst::LogElasticSearch::transfer_timeout * 1000;
+
 	curl_handle = HTTPSetup();
 }
 
@@ -77,12 +80,13 @@ bool ElasticSearch::BatchIndex()
 	curl_easy_setopt(curl_handle, CURLOPT_POST, 1);
 	curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDSIZE_LARGE, (curl_off_t)buffer.Len());
 	curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDS, buffer.Bytes());
-	HTTPSend(curl_handle);
-	
+	failing = ! HTTPSend(curl_handle);
+
+	// We are currently throwing the data out regardless of if the send failed.  Fire and forget!
 	buffer.Clear();
 	counter = 0;
 	last_send = current_time();
-	
+
 	return true;
 	}
 
@@ -347,6 +351,8 @@ bool ElasticSearch::HTTPSend(CURL *handle)
 	// HTTP 1.1 likes to use chunked encoded transfers, which aren't good for speed. 
 	// The best (only?) way to disable that is to just use HTTP 1.0
 	curl_easy_setopt(handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_0);
+
+	curl_easy_setopt(handle, CURLOPT_TIMEOUT_MS, transfer_timeout);
 	
 	CURLcode return_code = curl_easy_perform(handle);
 	
@@ -355,21 +361,35 @@ bool ElasticSearch::HTTPSend(CURL *handle)
 		case CURLE_COULDNT_CONNECT:
 		case CURLE_COULDNT_RESOLVE_HOST:
 		case CURLE_WRITE_ERROR:
-			return false;
+		case CURLE_RECV_ERROR:
+			{
+			if ( ! failing )
+				Error(Fmt("ElasticSearch server may not be accessible."));
+			}
+
+		case CURLE_OPERATION_TIMEDOUT:
+			{
+			if ( ! failing )
+				Warning(Fmt("HTTP operation with elasticsearch server timed out at %" PRIu64 " msecs.", transfer_timeout));
+			}
 		
 		case CURLE_OK:
 			{
 			uint http_code = 0;
 			curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE, &http_code);
-			if ( http_code != 200 )
-				Error(Fmt("Received a non-successful status code back from ElasticSearch server."));
-			
-			return true;
+			if ( http_code == 200 )
+				// Hopefully everything goes through here.
+				return true;
+			else if ( ! failing )
+				Error(Fmt("Received a non-successful status code back from ElasticSearch server, check the elasticsearch server log."));
 			}
 		
 		default:
-			return true;
+			{
+			}
 		}
+		// The "successful" return happens above
+		return false;
 	}
 
 #endif

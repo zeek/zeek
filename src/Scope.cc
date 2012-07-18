@@ -50,7 +50,7 @@ Scope::~Scope()
 
 ID* Scope::GenerateTemporary(const char* name)
 	{
-	return new ID(name, SCOPE_FUNCTION, false);
+	return new ID(copy_string(name), SCOPE_FUNCTION, false);
 	}
 
 id_list* Scope::GetInits()
@@ -166,15 +166,16 @@ ID* install_ID(const char* name, const char* module_name,
 	else
 		scope = SCOPE_FUNCTION;
 
-	string full_name = make_full_var_name(module_name, name);
+	string full_name_str = make_full_var_name(module_name, name);
+	char* full_name = copy_string(full_name_str.c_str());
 
-	ID* id = new ID(full_name.c_str(), scope, is_export);
+	ID* id = new ID(full_name, scope, is_export);
 	if ( SCOPE_FUNCTION != scope )
-		global_scope()->Insert(full_name.c_str(), id);
+		global_scope()->Insert(full_name, id);
 	else
 		{
 		id->SetOffset(top_scope->Length());
-		top_scope->Insert(full_name.c_str(), id);
+		top_scope->Insert(full_name, id);
 		}
 
 	return id;

@@ -5,7 +5,6 @@
 #include <pthread.h>
 #include <semaphore.h>
 
-#include "Queue.h"
 #include "util.h"
 
 using namespace std;
@@ -42,22 +41,25 @@ public:
 	 *
 	 * This method is safe to call from any thread.
 	 */
-	const string& Name() const { return name; }
+	const char* Name() const { return name; }
 
 	/**
 	* Sets a descriptive name for the thread. This should be a string
 	* that's useful in output presented to the user and uniquely
 	* identifies the thread.
 	*
-	* This method must be called only from the thread itself.
+	* This method must be called only from main thread at initialization
+	* time.
 	*/
-	void SetName(const string& name);
+	void SetName(const char* name);
 
 	/**
 	 * Set the name shown by the OS as the thread's description. Not
 	 * supported on all OSs.
+	 *
+	 * Must be called only from the child thread.
 	 */
-	void SetOSName(const string& name);
+	void SetOSName(const char* name);
 
 	/**
 	 * Starts the thread. Calling this methods will spawn a new OS thread
@@ -67,6 +69,18 @@ public:
 	 * Only Bro's main thread must call this method.
 	 */
 	void Start();
+
+	/**
+	 * Signals the thread to prepare for stopping. This must be called
+	 * before Stop() and allows the thread to trigger shutting down
+	 * without yet blocking for doing so.
+	 *
+	 * Calling this method has no effect if Start() hasn't been executed
+	 * yet.
+	 *
+	 * Only Bro's main thread must call this method.
+	 */
+	void PrepareStop();
 
 	/**
 	 * Signals the thread to stop. The method lets Terminating() now
@@ -87,6 +101,13 @@ public:
 	 * This method is safe to call from any thread.
 	 */
 	bool Terminating()  const { return terminating; }
+
+	/**
+	 * Returns true if Kill() has been called.
+	 *
+	 * This method is safe to call from any thread.
+	 */
+	bool Killed()  const { return killed; }
 
 	/**
 	 * A version of fmt() that the thread can safely use.
@@ -124,11 +145,23 @@ protected:
 	virtual void OnStart()	{}
 
 	/**
-	 * Executed with Stop(). This is a hook into stopping the thread. It
-	 * will be called from Bro's main thread after the thread has been
-	 * signaled to stop.
+	 * Executed with PrepareStop() (and before OnStop()). This is a hook
+	 * into preparing the thread for stopping. It will be called from
+	 * Bro's main thread before the thread has been signaled to stop.
+	 */
+	virtual void OnPrepareStop()	{}
+
+	/**
+	 * Executed with Stop() (and after OnPrepareStop()). This is a hook
+	 * into stopping the thread. It will be called from Bro's main thread
+	 * after the thread has been signaled to stop.
 	 */
 	virtual void OnStop()	{}
+
+	/**
+	 * Executed with Kill(). This is a hook into killing the thread.
+	 */
+	virtual void OnKill()	{}
 
 	/**
 	 * Destructor. This will be called by the manager.
@@ -153,14 +186,18 @@ protected:
 	 */
 	void Kill();
 
+	/** Called by child thread's launcher when it's done processing. */
+	void Done();
+
 private:
 	// pthread entry function.
 	static void* launcher(void *arg);
 
-	string name;
+	const char* name;
 	pthread_t pthread;
 	bool started; 		// Set to to true once running.
 	bool terminating;	// Set to to true to signal termination.
+	bool killed;	// Set to true once forcefully killed.
 
 	// Used as a semaphore to tell the pthread thread when it may
 	// terminate.

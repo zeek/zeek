@@ -228,6 +228,8 @@ protected:
 	 */
 	virtual void Run();
 	virtual void OnStop();
+	virtual void OnPrepareStop();
+	virtual void OnKill();
 
 private:
 	/**
@@ -293,7 +295,6 @@ private:
 	uint64_t cnt_sent_out;	// Counts message sent by child.
 
 	bool finished;	// Set to true by Finished message.
-	bool stopped;   // Set to true by OnStop().
 };
 
 /**
@@ -312,7 +313,7 @@ public:
 	 * what's passed into the constructor and used mainly for debugging
 	 * purposes.
 	 */
-	const string& Name() const { return name; }
+	const char* Name() const { return name; }
 
 	/**
 	 * Callback that must be overriden for processing a message.
@@ -326,10 +327,11 @@ protected:
 	 * @param arg_name A descriptive name for the type of message. Used
 	 * mainly for debugging purposes.
 	 */
-	Message(const string& arg_name)	{ name = arg_name; }
+	Message(const char* arg_name)
+		{ name = copy_string(arg_name); }
 
 private:
-	string name;
+	const char* name;
 };
 
 /**
@@ -344,7 +346,7 @@ protected:
 	 * @param name A descriptive name for the type of message. Used
 	 * mainly for debugging purposes.
 	 */
-	BasicInputMessage(const string& name) : Message(name)	{}
+	BasicInputMessage(const char* name) : Message(name)	{}
 };
 
 /**
@@ -359,7 +361,7 @@ protected:
 	 * @param name A descriptive name for the type of message. Used
 	 * mainly for debugging purposes.
 	 */
-	BasicOutputMessage(const string& name) : Message(name)	{}
+	BasicOutputMessage(const char* name) : Message(name)	{}
 };
 
 /**
@@ -384,7 +386,7 @@ protected:
 	 *
 	 * @param arg_object: An object to store with the message. 
 	 */
-	InputMessage(const string& name, O* arg_object) : BasicInputMessage(name)
+	InputMessage(const char* name, O* arg_object) : BasicInputMessage(name)
 		{ object = arg_object; }
 
 private:
@@ -413,7 +415,7 @@ protected:
 	 *
 	 * @param arg_object An object to store with the message. 
 	 */
-	OutputMessage(const string& name, O* arg_object) : BasicOutputMessage(name)
+	OutputMessage(const char* name, O* arg_object) : BasicOutputMessage(name)
 		{ object = arg_object; }
 
 private:

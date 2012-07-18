@@ -1,4 +1,3 @@
-
 #ifndef THREADING_QUEUE_H
 #define THREADING_QUEUE_H
 
@@ -6,10 +5,27 @@
 #include <queue>
 #include <deque>
 #include <stdint.h>
+#include <sys/time.h>
 
 #include "Reporter.h"
+#include "BasicThread.h"
 
 #undef Queue // Defined elsewhere unfortunately.
+
+#if 1
+// We don't have pthread spinlocks on DARWIN.
+# define PTHREAD_MUTEX_T      pthread_mutex_t
+# define PTHREAD_MUTEX_LOCK(x)    pthread_mutex_lock(x)
+# define PTHREAD_MUTEX_UNLOCK(x)  pthread_mutex_unlock(x)
+# define PTHREAD_MUTEX_INIT(x)    pthread_mutex_init(x, 0)
+# define PTHREAD_MUTEX_DESTROY(x) pthread_mutex_destroy(x)
+#else
+# define PTHREAD_MUTEX_T          pthrea_spinlock_T
+# define PTHREAD_MUTEX_LOCK(x)    pthrea_spin_lock(x)
+# define PTHREAD_MUTEX_UNLOCK(x)  pthrea_spin_unlock(x)
+# define PTHREAD_MUTEX_INIT(x)    pthrea_spin_init(x, PTHREAD_PROCESS_PRIVATE)
+# define PTHREAD_MUTEX_DESTROY(x) pthrea_spin_destroy(x)
+#endif
 
 namespace threading {
 
@@ -30,8 +46,12 @@ class Queue
 public:
 	/**
 	 * Constructor.
+	 *
+	 * reader, writer: The corresponding threads. This is for checking
+	 * whether they have terminated so that we can abort I/O opeations.
+	 * Can be left null for the main thread.
 	 */
-	Queue();
+	Queue(BasicThread* arg_reader, BasicThread* arg_writer);
 
 	/**
 	 * Destructor.
@@ -39,7 +59,9 @@ public:
 	~Queue();
 
 	/**
-	 * Retrieves one elment.
+	 * Retrieves one elment. This may block for a little while of no
+	 * input is available and eventually return with a null element if
+	 * nothing shows up.
 	 */
 	T Get();
 
@@ -59,6 +81,11 @@ public:
 	 * indicating the actual state, but won't do so very often.
 	 */
 	bool MaybeReady() { return ( ( read_ptr - write_ptr) != 0 ); }
+
+	/** Wake up the reader if it's currently blocked for input. This is
+	 primarily to give it a chance to check termination quickly.
+	**/
+	void WakeUp();
 
 	/**
 	 * Returns the number of queued items not yet retrieved.
@@ -82,45 +109,50 @@ public:
 	void GetStats(Stats* stats);
 
 private:
-	static const int NUM_QUEUES = 8;
+	static const int NUM_QUEUES = 15;
 
-	pthread_mutex_t mutex[NUM_QUEUES];	// Mutex protected shared accesses.
+	PTHREAD_MUTEX_T mutex[NUM_QUEUES];	// Mutex protected shared accesses.
 	pthread_cond_t has_data[NUM_QUEUES];	// Signals when data becomes available
 	std::queue<T> messages[NUM_QUEUES];	// Actually holds the queued messages
 
 	int read_ptr;	// Where the next operation will read from
 	int write_ptr;	// Where the next operation will write to
 
+	BasicThread* reader;
+	BasicThread* writer;
+
 	// Statistics.
 	uint64_t num_reads;
 	uint64_t num_writes;
 };
 
-inline static void safe_lock(pthread_mutex_t* mutex)
+inline static void safe_lock(PTHREAD_MUTEX_T* mutex)
 	{
-	if ( pthread_mutex_lock(mutex) != 0 )
+	if ( PTHREAD_MUTEX_LOCK(mutex) != 0 )
 		reporter->FatalErrorWithCore("cannot lock mutex");
 	}
 
-inline static void safe_unlock(pthread_mutex_t* mutex)
+inline static void safe_unlock(PTHREAD_MUTEX_T* mutex)
 	{
-	if ( pthread_mutex_unlock(mutex) != 0 )
+	if ( PTHREAD_MUTEX_UNLOCK(mutex) != 0 )
 		reporter->FatalErrorWithCore("cannot unlock mutex");
 	}
 
 template<typename T>
-inline Queue<T>::Queue()
+inline Queue<T>::Queue(BasicThread* arg_reader, BasicThread* arg_writer)
 	{
 	read_ptr = 0;
 	write_ptr = 0;
 	num_reads = num_writes = 0;
+	reader = arg_reader;
+	writer = arg_writer;
 
 	for( int i = 0; i < NUM_QUEUES; ++i )
 		{
-		if ( pthread_cond_init(&has_data[i], NULL) != 0 )
+		if ( pthread_cond_init(&has_data[i], 0) != 0 )
 			reporter->FatalError("cannot init queue condition variable");
 
-		if ( pthread_mutex_init(&mutex[i], NULL) != 0 )
+		if ( PTHREAD_MUTEX_INIT(&mutex[i]) != 0 )
 			reporter->FatalError("cannot init queue mutex");
 		}
 	}
@@ -131,19 +163,30 @@ inline Queue<T>::~Queue()
 	for( int i = 0; i < NUM_QUEUES; ++i )
 		{
 		pthread_cond_destroy(&has_data[i]);
-		pthread_mutex_destroy(&mutex[i]);
+		PTHREAD_MUTEX_DESTROY(&mutex[i]);
 		}
 	}
 
 template<typename T>
 inline T Queue<T>::Get()
 	{
+	if ( (reader && reader->Killed()) || (writer && writer->Killed()) )
+		return 0;
+
 	safe_lock(&mutex[read_ptr]);
 
 	int old_read_ptr = read_ptr;
 
 	if ( messages[read_ptr].empty() )
-		pthread_cond_wait(&has_data[read_ptr], &mutex[read_ptr]);
+		{
+		struct timespec ts;
+		ts.tv_sec = time(0) + 5;
+		ts.tv_nsec = 0;
+
+		pthread_cond_timedwait(&has_data[read_ptr], &mutex[read_ptr], &ts);
+		safe_unlock(&mutex[read_ptr]);
+		return 0;
+		}
 
 	T data = messages[read_ptr].front();
 	messages[read_ptr].pop();
@@ -220,6 +263,17 @@ inline void Queue<T>::GetStats(Stats* stats)
 
 	for ( int i = 0; i < NUM_QUEUES; i++ )
 		safe_unlock(&mutex[i]);
+	}
+
+template<typename T>
+inline void Queue<T>::WakeUp()
+	{
+	for ( int i = 0; i < NUM_QUEUES; i++ )
+		{
+		safe_lock(&mutex[i]);
+		pthread_cond_signal(&has_data[i]);
+		safe_unlock(&mutex[i]);
+		}
 	}
 
 }

@@ -11,8 +11,8 @@
 # @TEST-EXEC: cat receiver/http.log $SCRIPTS/diff-remove-timestamps >receiver.http.log
 # @TEST-EXEC: cmp sender.http.log receiver.http.log
 # 
-# @TEST-EXEC: bro -x sender/events.bst | sed 's/^Event \[[-0-9.]*\] //g' | grep '^http_' | grep -v http_stats | sed 's/(.*$//g'  >events.snd.log
-# @TEST-EXEC: bro -x receiver/events.bst | sed 's/^Event \[[-0-9.]*\] //g' | grep '^http_' | grep -v http_stats | sed 's/(.*$//g'  >events.rec.log
+# @TEST-EXEC: bro -x sender/events.bst | sed 's/^Event \[[-0-9.]*\] //g' | grep '^http_' | grep -v http_stats | sed 's/(.*$//g' | $SCRIPTS/diff-remove-timestamps >events.snd.log
+# @TEST-EXEC: bro -x receiver/events.bst | sed 's/^Event \[[-0-9.]*\] //g' | grep '^http_' | grep -v http_stats | sed 's/(.*$//g' | $SCRIPTS/diff-remove-timestamps  >events.rec.log
 # @TEST-EXEC: btest-diff events.rec.log
 # @TEST-EXEC: btest-diff events.snd.log
 # @TEST-EXEC: cmp events.rec.log events.snd.log

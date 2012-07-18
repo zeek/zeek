@@ -2692,12 +2692,12 @@ bool RemoteSerializer::ProcessLogCreateWriter()
 
 	int id, writer;
 	int num_fields;
-	logging::WriterBackend::WriterInfo info;
+	logging::WriterBackend::WriterInfo* info = new logging::WriterBackend::WriterInfo();
 
 	bool success = fmt.Read(&id, "id") &&
 		fmt.Read(&writer, "writer") &&
 		fmt.Read(&num_fields, "num_fields") &&
-		info.Read(&fmt);
+		info->Read(&fmt);
 
 	if ( ! success )
 		goto error;

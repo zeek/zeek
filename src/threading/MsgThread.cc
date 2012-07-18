@@ -29,16 +29,6 @@ private:
 	double network_time;
 };
 
-// A dummy message that's only purpose is unblock the current read operation
-// so that the child's Run() methods can check the termination status.
-class UnblockMessage : public InputMessage<MsgThread>
-{
-public:
-	UnblockMessage(MsgThread* thread) : InputMessage<MsgThread>("Unblock", thread)	{ }
-
-	virtual bool Process()	{ return true; }
-};
-
 /// Sends a heartbeat to the child thread.
 class HeartbeatMessage : public InputMessage<MsgThread>
 {
@@ -66,14 +56,16 @@ public:
 		INTERNAL_WARNING, INTERNAL_ERROR
 	};
 
-	ReporterMessage(Type arg_type, MsgThread* thread, const string& arg_msg)
+	ReporterMessage(Type arg_type, MsgThread* thread, const char* arg_msg)
 		: OutputMessage<MsgThread>("ReporterMessage", thread)
-		{ type = arg_type; msg = arg_msg; }
+		{ type = arg_type; msg = copy_string(arg_msg); }
+
+	~ReporterMessage() 	 { delete [] msg; }
 
 	virtual bool Process();
 
 private:
-	string msg;
+	const char* msg;
 	Type type;
 };
 
@@ -82,18 +74,19 @@ private:
 class DebugMessage : public OutputMessage<MsgThread>
 {
 public:
-	DebugMessage(DebugStream arg_stream, MsgThread* thread, const string& arg_msg)
+	DebugMessage(DebugStream arg_stream, MsgThread* thread, const char* arg_msg)
 		: OutputMessage<MsgThread>("DebugMessage", thread)
-		{ stream = arg_stream; msg = arg_msg; }
+		{ stream = arg_stream; msg = copy_string(arg_msg); }
+
+	virtual ~DebugMessage()	{ delete [] msg; }
 
 	virtual bool Process()
 		{
-		string s = Object()->Name() + ": " + msg;
-		debug_logger.Log(stream, "%s", s.c_str());
+		debug_logger.Log(stream, "%s: %s", Object()->Name(), msg);
 		return true;
 		}
 private:
-	string msg;
+	const char* msg;
 	DebugStream stream;
 };
 #endif
@@ -104,41 +97,39 @@ private:
 
 Message::~Message()
 	{
+	delete [] name;
 	}
 
 bool ReporterMessage::Process()
 	{
-	string s = Object()->Name() + ": " + msg;
-	const char* cmsg = s.c_str();
-
 	switch ( type ) {
 
 	case INFO:
-		reporter->Info("%s", cmsg);
+		reporter->Info("%s: %s", Object()->Name(), msg);
 		break;
 
 	case WARNING:
-		reporter->Warning("%s", cmsg);
+		reporter->Warning("%s: %s", Object()->Name(), msg);
 		break;
 
 	case ERROR:
-		reporter->Error("%s", cmsg);
+		reporter->Error("%s: %s", Object()->Name(), msg);
 		break;
 
 	case FATAL_ERROR:
-		reporter->FatalError("%s", cmsg);
+		reporter->FatalError("%s: %s", Object()->Name(), msg);
 		break;
 
 	case FATAL_ERROR_WITH_CORE:
-		reporter->FatalErrorWithCore("%s", cmsg);
+		reporter->FatalErrorWithCore("%s: %s", Object()->Name(), msg);
 		break;
 
 	case INTERNAL_WARNING:
-		reporter->InternalWarning("%s", cmsg);
+		reporter->InternalWarning("%s: %s", Object()->Name(), msg);
 		break;
 
 	case INTERNAL_ERROR :
-		reporter->InternalError("%s", cmsg);
+		reporter->InternalError("%s: %s", Object()->Name(), msg);
 		break;
 
 	default:
@@ -148,62 +139,78 @@ bool ReporterMessage::Process()
 	return true;
 	}
 
-MsgThread::MsgThread() : BasicThread()
+MsgThread::MsgThread() : BasicThread(), queue_in(this, 0), queue_out(0, this)
 	{
 	cnt_sent_in = cnt_sent_out = 0;
 	finished = false;
-	stopped = false;
 	thread_mgr->AddMsgThread(this);
 	}
 
 // Set by Bro's main signal handler.
 extern int signal_val;
 
-void MsgThread::OnStop()
+void MsgThread::OnPrepareStop()
 	{
-	if ( stopped )
+	if ( finished || Killed() )
 		return;
+
+	// XX fprintf(stderr, "Sending FINISH to thread %s  ...\n", Name());
 
 	// Signal thread to terminate and wait until it has acknowledged.
 	SendIn(new FinishMessage(this, network_time), true);
+	}
 
+void MsgThread::OnStop()
+	{
+	int signal_count = 0;
 	int old_signal_val = signal_val;
 	signal_val = 0;
 
 	int cnt = 0;
-	bool aborted = 0;
+	uint64_t last_size = 0;
+	uint64_t cur_size = 0;
 
-	while ( ! finished )
+	// XX fprintf(stderr, "WAITING for thread %s to stop ...\n", Name());
+
+	while ( ! (finished || Killed() ) )
 		{
                 // Terminate if we get another kill signal.
 		if ( signal_val == SIGTERM || signal_val == SIGINT )
 			{
-			// Abort all threads here so that we won't hang next
-			// on another one.
-                        fprintf(stderr, "received signal while waiting for thread %s, aborting all ...\n", Name().c_str());
-			thread_mgr->KillThreads();
-			aborted = true;
-			break;
+			++signal_count;
+
+			if ( signal_count == 1 )
+				{
+				// Abort all threads here so that we won't hang next
+				// on another one.
+				fprintf(stderr, "received signal while waiting for thread %s, aborting all ...\n", Name());
+				thread_mgr->KillThreads();
+				}
+			else
+				{
+				// More than one signal. Abort processing
+				// right away. on another one.
+				fprintf(stderr, "received another signal while waiting for thread %s, aborting processing\n", Name());
+				exit(1);
+				}
+
+			signal_val = 0;
 			}
 
-		if ( ++cnt % 10000 == 0 ) // Insurance against broken threads ...
-			{
-                        fprintf(stderr, "killing thread %s ...\n", Name().c_str());
-			Kill();
-			aborted = true;
-			break;
-			}
+		queue_in.WakeUp();
 
 		usleep(1000);
 		}
 
-	Finished();
-
 	signal_val = old_signal_val;
+	}
 
-	// One more message to make sure the current queue read operation unblocks.
-	if ( ! aborted )
-		SendIn(new UnblockMessage(this), true);
+void MsgThread::OnKill()
+	{
+	// Send a message to unblock the reader if its currently waiting for
+	// input. This is just an optimization to make it terminate more
+	// quickly, even without the message it will eventually time out.
+	queue_in.WakeUp();
 	}
 
 void MsgThread::Heartbeat()
@@ -213,9 +220,7 @@ void MsgThread::Heartbeat()
 
 void MsgThread::HeartbeatInChild()
 	{
-	string n = Name();
-
-	n = Fmt("bro: %s (%" PRIu64 "/%" PRIu64 ")", n.c_str(),
+	string n = Fmt("bro: %s (%" PRIu64 "/%" PRIu64 ")", Name(),
 		cnt_sent_in - queue_in.Size(),
 		cnt_sent_out - queue_out.Size());
 
@@ -283,7 +288,7 @@ void MsgThread::SendIn(BasicInputMessage* msg, bool force)
 		return;
 		}
 
-	DBG_LOG(DBG_THREADING, "Sending '%s' to %s ...", msg->Name().c_str(), Name().c_str());
+	DBG_LOG(DBG_THREADING, "Sending '%s' to %s ...", msg->Name(), Name());
 
 	queue_in.Put(msg);
 	++cnt_sent_in;
@@ -306,9 +311,10 @@ void MsgThread::SendOut(BasicOutputMessage* msg, bool force)
 BasicOutputMessage* MsgThread::RetrieveOut()
 	{
 	BasicOutputMessage* msg = queue_out.Get();
-	assert(msg);
+	if ( ! msg )
+		return 0;
 
-	DBG_LOG(DBG_THREADING, "Retrieved '%s' from %s",  msg->Name().c_str(), Name().c_str());
+	DBG_LOG(DBG_THREADING, "Retrieved '%s' from %s",  msg->Name(), Name());
 
 	return msg;
 	}
@@ -316,10 +322,12 @@ BasicOutputMessage* MsgThread::RetrieveOut()
 BasicInputMessage* MsgThread::RetrieveIn()
 	{
 	BasicInputMessage* msg = queue_in.Get();
-	assert(msg);
+
+	if ( ! msg )
+		return 0;
 
 #ifdef DEBUG
-	string s = Fmt("Retrieved '%s' in %s",  msg->Name().c_str(), Name().c_str());
+	string s = Fmt("Retrieved '%s' in %s",  msg->Name(), Name());
 	Debug(DBG_THREADING, s.c_str());
 #endif
 
@@ -328,15 +336,18 @@ BasicInputMessage* MsgThread::RetrieveIn()
 
 void MsgThread::Run()
 	{
-	while ( ! finished )
+	while ( ! (finished || Killed() ) )
 		{
 		BasicInputMessage* msg = RetrieveIn();
+
+		if ( ! msg )
+			continue;
 
 		bool result = msg->Process();
 
 		if ( ! result )
 			{
-			string s = msg->Name() + " failed, terminating thread (MsgThread)";
+			string s = Fmt("%s failed, terminating thread (MsgThread)", Name());
 			Error(s.c_str());
 			break;
 			}
@@ -344,7 +355,7 @@ void MsgThread::Run()
 		delete msg;
 		}
 
-    Finished();
+	Finished();
 	}
 
 void MsgThread::GetStats(Stats* stats)

@@ -12,18 +12,23 @@
 
 using namespace threading;
 
+static const int STD_FMT_BUF_LEN = 2048;
+
 uint64_t BasicThread::thread_counter = 0;
 
 BasicThread::BasicThread()
 	{
 	started = false;
 	terminating = false;
+	killed = false;
 	pthread = 0;
 
-	buf_len = 2048;
+	buf_len = STD_FMT_BUF_LEN;
 	buf = (char*) malloc(buf_len);
 
-	name = Fmt("thread-%d", ++thread_counter);
+	strerr_buffer = 0;
+
+	name = copy_string(fmt("thread-%" PRIu64, ++thread_counter));
 
 	thread_mgr->AddThread(this);
 	}
@@ -32,31 +37,41 @@ BasicThread::~BasicThread()
 	{
         if ( buf )
 		free(buf);
+
+	delete [] name;
+	delete [] strerr_buffer;
 	}
 
-void BasicThread::SetName(const string& arg_name)
+void BasicThread::SetName(const char* name)
 	{
-	// Slight race condition here with reader threads, but shouldn't matter.
-	name = arg_name;
+	delete [] name;
+	name = copy_string(name);
 	}
 
-void BasicThread::SetOSName(const string& name)
+void BasicThread::SetOSName(const char* name)
 	{
 #ifdef HAVE_LINUX
-	prctl(PR_SET_NAME, name.c_str(), 0, 0, 0);
+	prctl(PR_SET_NAME, name, 0, 0, 0);
 #endif
 
 #ifdef __APPLE__
-	pthread_setname_np(name.c_str());
+	pthread_setname_np(name);
 #endif
 
 #ifdef FREEBSD
-	pthread_set_name_np(pthread_self(), name, name.c_str());
+	pthread_set_name_np(pthread_self(), name, name);
 #endif
 	}
 
 const char* BasicThread::Fmt(const char* format, ...)
 	{
+	if ( buf_len > 10 * STD_FMT_BUF_LEN )
+		{
+		// Shrink back to normal.
+		buf = (char*) safe_realloc(buf, STD_FMT_BUF_LEN);
+		buf_len = STD_FMT_BUF_LEN;
+		}
+
 	va_list al;
 	va_start(al, format);
 	int n = safe_vsnprintf(buf, buf_len, format, al);
@@ -64,15 +79,13 @@ const char* BasicThread::Fmt(const char* format, ...)
 
 	if ( (unsigned int) n >= buf_len )
 		{ // Not enough room, grow the buffer.
-		int tmp_len = n + 32;
-		char* tmp = (char*) malloc(tmp_len);
+		buf_len = n + 32;
+		buf = (char*) safe_realloc(buf, buf_len);
 
 		// Is it portable to restart?
 		va_start(al, format);
-		n = safe_vsnprintf(tmp, tmp_len, format, al);
+		n = safe_vsnprintf(buf, buf_len, format, al);
 		va_end(al);
-
-		free(tmp);
 		}
 
 	return buf;
@@ -94,14 +107,14 @@ void BasicThread::Start()
 
 	int err = pthread_create(&pthread, 0, BasicThread::launcher, this);
 	if ( err != 0 )
-		reporter->FatalError("Cannot create thread %s:%s", name.c_str(), Strerror(err));
+		reporter->FatalError("Cannot create thread %s: %s", name, Strerror(err));
 
-	DBG_LOG(DBG_THREADING, "Started thread %s", name.c_str());
+	DBG_LOG(DBG_THREADING, "Started thread %s", name);
 
 	OnStart();
 	}
 
-void BasicThread::Stop()
+void BasicThread::PrepareStop()
 	{
 	if ( ! started )
 		return;
@@ -109,11 +122,28 @@ void BasicThread::Stop()
 	if ( terminating )
 		return;
 
-	DBG_LOG(DBG_THREADING, "Signaling thread %s to terminate ...", name.c_str());
+	DBG_LOG(DBG_THREADING, "Preparing thread %s to terminate ...", name);
 
-	terminating = true;
+	OnPrepareStop();
+	}
+
+void BasicThread::Stop()
+	{
+	// XX fprintf(stderr, "stop1 %s %d %d\n", name, started, terminating);
+
+	if ( ! started )
+		return;
+
+	if ( terminating )
+		return;
+
+	// XX fprintf(stderr, "stop2 %s\n", name);
+
+	DBG_LOG(DBG_THREADING, "Signaling thread %s to terminate ...", name);
 
 	OnStop();
+
+	terminating = true;
 	}
 
 void BasicThread::Join()
@@ -123,25 +153,33 @@ void BasicThread::Join()
 
 	assert(terminating);
 
-	DBG_LOG(DBG_THREADING, "Joining thread %s ...", name.c_str());
+	DBG_LOG(DBG_THREADING, "Joining thread %s ...", name);
 
 	if ( pthread && pthread_join(pthread, 0) != 0  )
-		reporter->FatalError("Failure joining thread %s", name.c_str());
+		reporter->FatalError("Failure joining thread %s", name);
 
-	DBG_LOG(DBG_THREADING, "Done with thread %s", name.c_str());
+	DBG_LOG(DBG_THREADING, "Joined with thread %s", name);
 
 	pthread = 0;
 	}
 
 void BasicThread::Kill()
 	{
+	// We don't *really* kill the thread here because that leads to race
+	// conditions. Instead we set a flag that parts of the the code need
+	// to check and get out of any loops they might be in.
 	terminating = true;
+	killed = true;
+	OnKill();
+	}
 
-	if ( ! (started && pthread) )
-		return;
+void BasicThread::Done()
+	{
+	// XX fprintf(stderr, "DONE from thread %s\n", name);
+	DBG_LOG(DBG_THREADING, "Thread %s has finished", name);
 
-	pthread = 0;
-	pthread_kill(pthread, SIGTERM);
+	terminating = true;
+	killed = true;
 	}
 
 void* BasicThread::launcher(void *arg)
@@ -161,11 +199,12 @@ void* BasicThread::launcher(void *arg)
 	sigdelset(&mask_set, SIGSEGV);
 	sigdelset(&mask_set, SIGBUS);
 	int res = pthread_sigmask(SIG_BLOCK, &mask_set, 0);
-	assert(res == 0);  //
+	assert(res == 0);
 
 	// Run thread's main function.
 	thread->Run();
 
+	thread->Done();
+
 	return 0;
 	}
-

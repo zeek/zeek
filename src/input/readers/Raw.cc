@@ -108,7 +108,7 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 	firstrun = true;
 	bool result;
 
-	if ( info.source.length() == 0 )
+	if ( ! info.source || strlen(info.source) == 0 )
 		{
 		Error("No source path provided");
 		return false;
@@ -129,11 +129,12 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 		}
 
 	// do Initialization
-	char last = info.source[info.source.length()-1];
+	string source = string(info.source);
+	char last = info.source[source.length() - 1];
 	if ( last == '|' )
 		{
 		execute = true;
-		fname = info.source.substr(0, fname.length() - 1);
+		fname = source.substr(0, fname.length() - 1);
 
 		if ( (info.mode != MODE_MANUAL) )
 			{
@@ -237,7 +238,8 @@ bool Raw::DoUpdate()
 
 		// filter has exactly one text field. convert to it.
 		Value* val = new Value(TYPE_STRING, true);
-		val->val.string_val = new string(line);
+		val->val.string_val.data = copy_string(line.c_str());
+		val->val.string_val.length = line.size();
 		fields[0] = val;
 
 		Put(fields);

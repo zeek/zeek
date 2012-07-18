@@ -52,6 +52,8 @@ Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
 
 Ascii::~Ascii()
 	{
+	//fprintf(stderr, "DTOR %p\n", this);
+
 	// Normally, the file will be closed here already via the Finish()
 	// message. But when we terminate abnormally, we may still have it open.
 	if ( fd )
@@ -78,7 +80,10 @@ void Ascii::CloseFile(double t)
 		return;
 
 	if ( include_meta )
-		WriteHeaderField("end", t ? Timestamp(t) : "<abnormal termination>");
+		{
+		string ts = t ? Timestamp(t) : string("<abnormal termination>");
+		WriteHeaderField("end", ts);
+		}
 
 	close(fd);
 	fd = 0;
@@ -118,6 +123,8 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 		if ( ! safe_write(fd, str.c_str(), str.length()) )
 			goto write_error;
 
+		string ts = Timestamp(info.network_time);
+
 		if ( ! (WriteHeaderField("set_separator", get_escaped_string(
 		            string(set_separator, set_separator_len), false)) &&
 		        WriteHeaderField("empty_field", get_escaped_string(
@@ -125,8 +132,8 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 		        WriteHeaderField("unset_field", get_escaped_string(
 		            string(unset_field, unset_field_len), false)) &&
 		        WriteHeaderField("path", get_escaped_string(path, false)) &&
-			WriteHeaderField("start", Timestamp(info.network_time))) )
-		goto write_error;
+		        WriteHeaderField("start", ts)) )
+			goto write_error;
 
 		for ( int i = 0; i < num_fields; ++i )
 			{
@@ -136,8 +143,8 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 				types += string(separator, separator_len);
 				}
 
-			names += fields[i]->name;
-			types += fields[i]->TypeName();
+			names += string(fields[i]->name);
+			types += fields[i]->TypeName().c_str();
 			}
 
 		if ( ! (WriteHeaderField("fields", names)
@@ -229,8 +236,8 @@ bool Ascii::DoWriteOne(ODesc* desc, Value* val, const Field* field)
 	case TYPE_FILE:
 	case TYPE_FUNC:
 		{
-		int size = val->val.string_val->size();
-		const char* data = val->val.string_val->data();
+		int size = val->val.string_val.length;
+		const char* data = val->val.string_val.data;
 
 		if ( ! size )
 			{
@@ -311,8 +318,7 @@ bool Ascii::DoWriteOne(ODesc* desc, Value* val, const Field* field)
 		}
 
 	default:
-		Error(Fmt("unsupported field format %d for %s", val->type,
-			  field->name.c_str()));
+		Error(Fmt("unsupported field format %d for %s", val->type, field->name));
 		return false;
 	}
 
@@ -366,7 +372,7 @@ write_error:
 	return false;
 	}
 
-bool Ascii::DoRotate(string rotated_path, double open, double close, bool terminating)
+bool Ascii::DoRotate(const char* rotated_path, double open, double close, bool terminating)
 	{
 	// Don't rotate special files or if there's not one currently open.
 	if ( ! fd || IsSpecial(Info().path) )
@@ -374,10 +380,10 @@ bool Ascii::DoRotate(string rotated_path, double open, double close, bool termin
 
 	CloseFile(close);
 
-	string nname = rotated_path + "." + LogExt();
+	string nname = string(rotated_path) + "." + LogExt();
 	rename(fname.c_str(), nname.c_str());
 
-	if ( ! FinishedRotation(nname, fname, open, close, terminating) )
+	if ( ! FinishedRotation(nname.c_str(), fname.c_str(), open, close, terminating) )
 		{
 		Error(Fmt("error rotating %s to %s", fname.c_str(), nname.c_str()));
 		return false;
@@ -401,19 +407,22 @@ bool Ascii::DoHeartbeat(double network_time, double current_time)
 string Ascii::LogExt()
 	{
 	const char* ext = getenv("BRO_LOG_SUFFIX");
-	if ( ! ext ) ext = "log";
+	if ( ! ext )
+		ext = "log";
+
 	return ext;
 	}
 
 string Ascii::Timestamp(double t)
 	{
-	struct tm tm;
-	char buf[128];
-	const char* const date_fmt = "%Y-%m-%d-%H-%M-%S";
 	time_t teatime = time_t(t);
 
-	localtime_r(&teatime, &tm);
-	strftime(buf, sizeof(buf), date_fmt, &tm);
+	struct tm tmbuf;
+	struct tm* tm = localtime_r(&teatime, &tmbuf);
+
+	char buf[128];
+	const char* const date_fmt = "%Y-%m-%d-%H-%M-%S";
+	strftime(buf, sizeof(buf), date_fmt, tm);
 	return buf;
 	}
 

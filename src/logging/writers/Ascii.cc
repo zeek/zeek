@@ -15,7 +15,7 @@ using threading::Field;
 
 Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
 	{
-	file = 0;
+	fd = 0;
 	ascii_done = false;
 
 	output_to_stdout = BifConst::LogAscii::output_to_stdout;
@@ -53,9 +53,8 @@ Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
 Ascii::~Ascii()
 	{
 	// Normally, the file will be closed here already via the Finish()
-	// message. But when we terminate abnormally, we may still have it
-	// open.
-	if ( file )
+	// message. But when we terminate abnormally, we may still have it open.
+	if ( fd )
 		CloseFile(0);
 
 	delete [] separator;
@@ -70,23 +69,25 @@ bool Ascii::WriteHeaderField(const string& key, const string& val)
 	string str = string(meta_prefix, meta_prefix_len) +
 		key + string(separator, separator_len) + val + "\n";
 
-	return (fwrite(str.c_str(), str.length(), 1, file) == 1);
+	return safe_write(fd, str.c_str(), str.length());
 	}
 
 void Ascii::CloseFile(double t)
 	{
-	if ( ! file )
+	if ( ! fd)
 		return;
 
 	if ( include_meta )
 		WriteHeaderField("end", t ? Timestamp(t) : "<abnormal termination>");
 
-	fclose(file);
-	file = 0;
+	close(fd);
+	fd = 0;
 	}
 
 bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * fields)
 	{
+    assert(! fd);
+
 	string path = info.path;
 
 	if ( output_to_stdout )
@@ -94,11 +95,13 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 
 	fname = IsSpecial(path) ? path : path + "." + LogExt();
 
-	if ( ! (file = fopen(fname.c_str(), "w")) )
+	fd = open(fname.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
+
+	if ( fd < 0 )
 		{
 		Error(Fmt("cannot open %s: %s", fname.c_str(),
 			  Strerror(errno)));
-
+		fd = 0;
 		return false;
 		}
 
@@ -112,7 +115,7 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 			+ get_escaped_string(string(separator, separator_len), false)
 			+ "\n";
 
-		if( fwrite(str.c_str(), str.length(), 1, file) != 1 )
+		if ( ! safe_write(fd, str.c_str(), str.length()) )
 			goto write_error;
 
 		if ( ! (WriteHeaderField("set_separator", get_escaped_string(
@@ -151,7 +154,7 @@ write_error:
 
 bool Ascii::DoFlush(double network_time)
 	{
-	fflush(file);
+	fsync(fd);
 	return true;
 	}
 
@@ -318,7 +321,7 @@ bool Ascii::DoWriteOne(ODesc* desc, Value* val, const Field* field)
 bool Ascii::DoWrite(int num_fields, const Field* const * fields,
 			     Value** vals)
 	{
-	if ( ! file )
+	if ( ! fd )
 		DoInit(Info(), NumFields(), Fields());
 
 	desc.Clear();
@@ -337,24 +340,23 @@ bool Ascii::DoWrite(int num_fields, const Field* const * fields,
 	const char* bytes = (const char*)desc.Bytes();
 	int len = desc.Len();
 
-	// Make sure the line doesn't look like meta information.
 	if ( strncmp(bytes, meta_prefix, meta_prefix_len) == 0 )
 		{
 		// It would so escape the first character.
 		char buf[16];
 		snprintf(buf, sizeof(buf), "\\x%02x", bytes[0]);
-		if ( fwrite(buf, strlen(buf), 1, file) != 1 )
+		if ( ! safe_write(fd, buf, strlen(buf)) )
 			goto write_error;
 
 		++bytes;
 		--len;
 		}
 
-	if ( fwrite(bytes, len, 1, file) != 1 )
+	if ( ! safe_write(fd, bytes, len) )
 		goto write_error;
 
-	if ( IsBuf() )
-		fflush(file);
+        if ( IsBuf() )
+		fsync(fd);
 
 	return true;
 
@@ -366,7 +368,7 @@ write_error:
 bool Ascii::DoRotate(string rotated_path, double open, double close, bool terminating)
 	{
 	// Don't rotate special files or if there's not one currently open.
-	if ( ! file || IsSpecial(Info().path) )
+	if ( ! fd || IsSpecial(Info().path) )
 		return true;
 
 	CloseFile(close);

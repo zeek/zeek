@@ -87,17 +87,16 @@ const char* BasicThread::Strerror(int err)
 
 void BasicThread::Start()
 	{
-
 	if ( started )
 		return;
+
+	started = true;
 
 	int err = pthread_create(&pthread, 0, BasicThread::launcher, this);
 	if ( err != 0 )
 		reporter->FatalError("Cannot create thread %s:%s", name.c_str(), Strerror(err));
 
 	DBG_LOG(DBG_THREADING, "Started thread %s", name.c_str());
-
-	started = true;
 
 	OnStart();
 	}

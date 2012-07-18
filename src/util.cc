@@ -1292,7 +1292,6 @@ uint64 calculate_unique_id(size_t pool)
 
 bool safe_write(int fd, const char* data, int len)
 	{
-    return true;
 	while ( len > 0 )
 		{
 		int n = write(fd, data, len);

@@ -37,7 +37,7 @@ private:
 	void CloseFile(double t);
 	string Timestamp(double t);
 
-	FILE* file;
+	int fd;
 	string fname;
 	ODesc desc;
 	bool ascii_done;

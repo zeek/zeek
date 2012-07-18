@@ -293,6 +293,7 @@ private:
 	uint64_t cnt_sent_out;	// Counts message sent by child.
 
 	bool finished;	// Set to true by Finished message.
+	bool stopped;   // Set to true by OnStop().
 };
 
 /**

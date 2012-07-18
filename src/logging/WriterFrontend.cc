@@ -141,9 +141,6 @@ void WriterFrontend::Stop()
 	{
 	FlushWriteBuffer();
 	SetDisable();
-
-	if ( backend )
-		backend->Stop();
 	}
 
 void WriterFrontend::Init(const WriterBackend::WriterInfo& arg_info, int arg_num_fields, const Field* const * arg_fields)

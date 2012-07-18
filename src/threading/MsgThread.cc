@@ -152,12 +152,13 @@ MsgThread::MsgThread() : BasicThread()
 	{
 	cnt_sent_in = cnt_sent_out = 0;
 	finished = false;
+	stopped = false;
 	thread_mgr->AddMsgThread(this);
 	}
 
 void MsgThread::OnStop()
 	{
-	if ( finished )
+	if ( stopped )
 		return;
 
 	// Signal thread to terminate and wait until it has acknowledged.
@@ -303,13 +304,8 @@ BasicInputMessage* MsgThread::RetrieveIn()
 
 void MsgThread::Run()
 	{
-	while ( true )
+	while ( ! finished )
 		{
-		// When requested to terminate, we only do so when
-		// all input has been processed.
-		if ( Terminating() && ! queue_in.Ready() )
-			break;
-
 		BasicInputMessage* msg = RetrieveIn();
 
 		bool result = msg->Process();
@@ -318,12 +314,13 @@ void MsgThread::Run()
 			{
 			string s = msg->Name() + " failed, terminating thread (MsgThread)";
 			Error(s.c_str());
-			Stop();
 			break;
 			}
 
 		delete msg;
 		}
+
+    Finished();
 	}
 
 void MsgThread::GetStats(Stats* stats)

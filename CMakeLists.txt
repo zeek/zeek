@@ -91,7 +91,9 @@ endif ()
 set(USE_PERFTOOLS false)
 set(USE_PERFTOOLS_DEBUG false)
 
-find_package(GooglePerftools)
+if (NOT DISABLE_PERFTOOLS)
+   find_package(GooglePerftools)
+endif ()
 
 if (GOOGLEPERFTOOLS_FOUND)
     include_directories(BEFORE ${GooglePerftools_INCLUDE_DIR})

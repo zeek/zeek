@@ -3,6 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
+#start	2012-07-20-01-49-33
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -108,3 +109,4 @@ scripts/base/init-default.bro
     scripts/base/protocols/syslog/./consts.bro
     scripts/base/protocols/syslog/./main.bro
 scripts/policy/misc/loaded-scripts.bro
+#end	2012-07-20-01-49-33

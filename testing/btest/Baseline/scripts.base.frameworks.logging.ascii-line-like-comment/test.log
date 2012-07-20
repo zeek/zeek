@@ -3,10 +3,10 @@
 #empty_field	(empty)
 #unset_field	-
 #path	test
-#start	2012-07-12-21-00-27
+#start	2012-07-20-01-49-22
 #fields	data	c
 #types	string	count
 Test1	42
 \x23Kaputt	42
 Test2	42
-#end	2012-07-12-21-00-27
+#end	2012-07-20-01-49-22

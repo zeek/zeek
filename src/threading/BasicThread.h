@@ -120,8 +120,8 @@ public:
 	/**
 	 * A version of strerror() that the thread can safely use. This is
 	 * essentially a wrapper around strerror_r(). Note that it keeps a
-	 * single static buffer internally so the result remains valid only
-	 * until the next call.
+	 * single buffer per thread internally so the result remains valid
+	 * only until the next call.
 	 */
 	const char* Strerror(int err);
 
@@ -206,6 +206,9 @@ private:
 	// For implementing Fmt().
 	char* buf;
 	unsigned int buf_len;
+
+	// For implementating Strerror().
+	char* strerr_buffer;
 
 	static uint64_t thread_counter;
 };

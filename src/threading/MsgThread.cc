@@ -5,6 +5,7 @@
 #include "Manager.h"
 
 #include <unistd.h>
+#include <signal.h>
 
 using namespace threading;
 

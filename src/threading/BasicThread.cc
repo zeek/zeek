@@ -93,9 +93,11 @@ const char* BasicThread::Fmt(const char* format, ...)
 
 const char* BasicThread::Strerror(int err)
 	{
-	static char buf[128] = "<not set>";
-	strerror_r(err, buf, sizeof(buf));
-	return buf;
+	if ( ! strerr_buffer )
+		strerr_buffer = new char[256];
+
+	strerror_r(err, strerr_buffer, 256);
+	return strerr_buffer;
 	}
 
 void BasicThread::Start()

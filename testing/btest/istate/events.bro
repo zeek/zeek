@@ -7,8 +7,8 @@
 # @TEST-EXEC: btest-diff sender/http.log
 # @TEST-EXEC: btest-diff receiver/http.log
 # 
-# @TEST-EXEC: cat sender/http.log   $SCRIPTS/diff-remove-timestamps >sender.http.log
-# @TEST-EXEC: cat receiver/http.log $SCRIPTS/diff-remove-timestamps >receiver.http.log
+# @TEST-EXEC: cat sender/http.log   | $SCRIPTS/diff-remove-timestamps >sender.http.log
+# @TEST-EXEC: cat receiver/http.log | $SCRIPTS/diff-remove-timestamps >receiver.http.log
 # @TEST-EXEC: cmp sender.http.log receiver.http.log
 # 
 # @TEST-EXEC: bro -x sender/events.bst | sed 's/^Event \[[-0-9.]*\] //g' | grep '^http_' | grep -v http_stats | sed 's/(.*$//g' | $SCRIPTS/diff-remove-timestamps >events.snd.log

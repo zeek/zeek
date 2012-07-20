@@ -3,4 +3,4 @@
 # Replace anything which looks like timestamps with XXXs (including the #start/end markers in logs).
 
 sed 's/[0-9]\{10\}\.[0-9]\{2,8\}/XXXXXXXXXX.XXXXXX/g' | \
-sed 's/^#\(start\|end\).20..-..-..-..-..-..$/#\1 XXXX-XX-XX-XX-XX-XX/g'
+sed 's/^#\(start\|end\).\(19\|20\)..-..-..-..-..-..$/#\1 XXXX-XX-XX-XX-XX-XX/g'

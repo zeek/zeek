@@ -114,8 +114,14 @@
 /* Analyze Mobile IPv6 traffic */
 #cmakedefine ENABLE_MOBILE_IPV6
 
+/* Use libCurl. */
+#cmakedefine USE_CURL
+
 /* Use the DataSeries writer. */
 #cmakedefine USE_DATASERIES
+
+/* Use the ElasticSearch writer. */
+#cmakedefine USE_ELASTICSEARCH
 
 /* Version number of package */
 #define VERSION "@VERSION@"

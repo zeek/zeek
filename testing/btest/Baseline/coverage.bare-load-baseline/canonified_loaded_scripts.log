@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#start	2012-07-20-01-49-31
+#start	2012-07-20-14-34-11
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -21,6 +21,7 @@ scripts/base/init-bare.bro
       scripts/base/frameworks/logging/./postprocessors/./sftp.bro
     scripts/base/frameworks/logging/./writers/ascii.bro
     scripts/base/frameworks/logging/./writers/dataseries.bro
+    scripts/base/frameworks/logging/./writers/elasticsearch.bro
     scripts/base/frameworks/logging/./writers/none.bro
   scripts/base/frameworks/input/__load__.bro
     scripts/base/frameworks/input/./main.bro
@@ -29,4 +30,4 @@ scripts/base/init-bare.bro
     scripts/base/frameworks/input/./readers/raw.bro
     scripts/base/frameworks/input/./readers/benchmark.bro
 scripts/policy/misc/loaded-scripts.bro
-#end	2012-07-20-01-49-31
+#end	2012-07-20-14-34-11

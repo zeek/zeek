@@ -13,7 +13,7 @@ typedef struct ByteStream{
 } StrByteStream;
 
 StrByteStream gDnp3Data;
-int gTest = 1;
+int gTest = 0;
 bool mEncounterFirst = false;
 
 DNP3_Analyzer::DNP3_Analyzer(Connection* c)
@@ -40,6 +40,7 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 
 	
 	int i;
+	int j = 0;
 	int dnp3_i = 0;  // index within the data block
 	int dnp3_length = 0;
 	u_char* tran_data = 0;  
@@ -52,6 +53,14 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	u_char* aTempResult = NULL;
 	int aTempFormerLen = 0;
 	FILE* file;
+
+//// DEbug
+	/*gTest++ ;
+	printf("Beginning %d ", gTest);
+	for (j = 0 ; j < len ; j++)
+		printf("%x  ", data[j]);
+	printf("\n");
+	*/
 
 //// if it is not serial protocol data ignore
 	if(data[0] != 0x05 || data[1] != 0x64)
@@ -81,12 +90,12 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	printf("\n\nhl debug: transport header: Fir %d, Fin %d, Seq, %x\n", aTranFir, aTranFin, aTranSeq);
 	#endif
 ///allocate memory space for the dnp3 only data
-	tran_data = (u_char*)malloc(len); // definitely not more than original data payload
+	/*tran_data = (u_char*)malloc(len); // definitely not more than original data payload
 	if(tran_data == NULL)
 	{
 		printf("error!! COuld not alloate memory");	
 		return;
-	}
+	}*/
 //// for debug use just print data payload
 	#if DEBUG
         printf("hl debug: len is %d, orig is %x ..", len, m_orig);
@@ -160,13 +169,14 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 			}
 		}
 		gDnp3Data.length = dnp3_i + aTempFormerLen;
-		//free(gDnp3Data.mData);
+		free(gDnp3Data.mData);
 		gDnp3Data.mData =  aTempResult;
 		if( aTranFin == 1){   // if this is the last segment
 			mEncounterFirst = false;
 			if(gDnp3Data.length >= 65536){ 
 				printf("ALERT  current dont supprt such long segments");
 				free(gDnp3Data.mData);
+				gDnp3Data.mData = NULL;
 				gDnp3Data.length = 0;
 				return;
 			}
@@ -186,6 +196,7 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 			TCP_ApplicationAnalyzer::DeliverStream(gDnp3Data.length, gDnp3Data.mData, m_orig);
         		interp->NewData(m_orig, gDnp3Data.mData, (gDnp3Data.mData) + (gDnp3Data.length) );
 			free(gDnp3Data.mData);
+			gDnp3Data.mData = NULL;
 			gDnp3Data.length = 0;
 		}
 		#if DEBUG
@@ -206,8 +217,16 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	
 
 // if fir and fin are all 1
+	///allocate memory space for the dnp3 only data
+        tran_data = (u_char*)malloc(len); // definitely not more than original data payload
+        if(tran_data == NULL)
+        {
+                printf("error!! COuld not alloate memory");     
+                return;
+        }
+
 	if(mEncounterFirst == true){
-		printf("ALERT  this should happen");
+		printf("ALERT  this should not happen\n");
 	}
 	dnp3_i = 0;
 	for(i = 0; i < 8; i++)
@@ -228,7 +247,7 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	tran_data[3] = 0;   // put ctrl as zero as the high-8bit 
 	dnp3_length = dnp3_i + 8;
 	#if DEBUG
-	printf("dnp3 app data: ");
+	printf("dnp3 app data %d %d: ", len, dnp3_length );
 	for(i = 0; i < (dnp3_i+8); i++)
 	{
 		printf("%x ", tran_data[i]);
@@ -243,6 +262,21 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	interp->NewData(m_orig, tran_data, tran_data + dnp3_length);
 //// free tran_data
 	free(tran_data);
+	
+///// this is for the abnormal traffic pattern such as a a first application packet is sent
+///     but no last segment is found
+	#if DEBUG
+	printf("reach here\n");
+        #endif	
+	
+	mEncounterFirst = false;
+	if(gDnp3Data.mData != NULL){
+		//printf("gDnp3Data address %llx \n", gDnp3Data.mData);
+		free(gDnp3Data.mData);
+		gDnp3Data.mData = NULL;
+		gDnp3Data.length = 0;	
+	}
+	//printf("ending %d \n ", gTest);
 	}
 
 void DNP3_Analyzer::Undelivered(int seq, int len, bool orig)

@@ -1112,9 +1112,9 @@ double calc_next_rotate(double current, double interval, double base)
 	time_t teatime = time_t(current);
 
 	struct tm t;
-	t = *gmtime_r(&teatime, &t);
+	t = *localtime_r(&teatime, &t);
 	t.tm_hour = t.tm_min = t.tm_sec = 0;
-	double startofday = timegm(&t);
+	double startofday = mktime(&t);
 
 	if ( base < 0 )
 		// No base time given. To get nice timestamps, we round

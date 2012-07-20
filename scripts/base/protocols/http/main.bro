@@ -114,7 +114,7 @@ event bro_init() &priority=5
 
 # DPD configuration.
 const ports = {
-	80/tcp, 81/tcp, 631/tcp, 1080/tcp, 3138/tcp,
+	80/tcp, 81/tcp, 631/tcp, 1080/tcp, 3128/tcp,
 	8000/tcp, 8080/tcp, 8888/tcp,
 };
 redef dpd_config += { 

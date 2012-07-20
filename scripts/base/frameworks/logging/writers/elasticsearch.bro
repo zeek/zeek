@@ -1,7 +1,16 @@
+##! Log writer for sending logs to an ElasticSearch server.
+##!
+##! Note: This module is in testing and is not yet considered stable!
+##!
+##! There is one known memory issue.  If your elasticsearch server is 
+##! running slowly and taking too long to return from bulk insert 
+##! requests, the message queue to the writer thread will continue 
+##! growing larger and larger giving the appearance of a memory leak.
+
 module LogElasticSearch;
 
 export {
-        ## Name of the ES cluster
+	## Name of the ES cluster
 	const cluster_name = "elasticsearch" &redef;
 
 	## ES Server
@@ -18,16 +27,16 @@ export {
 	const type_prefix = "" &redef;
 
 	## The time before an ElasticSearch transfer will timeout.
+	## This is not working!
 	const transfer_timeout = 2secs;
 
 	## The batch size is the number of messages that will be queued up before 
 	## they are sent to be bulk indexed.
-	## Note: this is mainly a memory usage parameter.
 	const max_batch_size = 1000 &redef;
 	
 	## The maximum amount of wall-clock time that is allowed to pass without
 	## finishing a bulk log send.  This represents the maximum delay you 
-	## would like to have with your logs before they show up in ElasticSearch.
+	## would like to have with your logs before they are sent to ElasticSearch.
 	const max_batch_interval = 1min &redef;
 	
 	## The maximum byte size for a buffered JSON string to send to the bulk

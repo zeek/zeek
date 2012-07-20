@@ -117,7 +117,6 @@ void DPM::AddConfig(const Analyzer::Config& cfg)
 				desc.SP();
 #endif
 				}
-			Unref(plist);
 			}
 		}
 

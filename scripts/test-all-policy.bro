@@ -60,5 +60,5 @@
 @load tuning/defaults/__load__.bro
 @load tuning/defaults/packet-fragments.bro
 @load tuning/defaults/warnings.bro
-@load tuning/logs-to-elasticsearch.bro
+# @load tuning/logs-to-elasticsearch.bro
 @load tuning/track-all-assets.bro

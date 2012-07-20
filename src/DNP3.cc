@@ -5,7 +5,7 @@
 #include "DNP3.h"
 #include "TCP_Reassembler.h"
 
-#define DEBUG 0
+#define DEBUG 1
 
 typedef struct ByteStream{
 	u_char* mData;

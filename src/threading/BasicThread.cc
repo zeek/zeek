@@ -42,24 +42,24 @@ BasicThread::~BasicThread()
 	delete [] strerr_buffer;
 	}
 
-void BasicThread::SetName(const char* name)
+void BasicThread::SetName(const char* arg_name)
 	{
 	delete [] name;
-	name = copy_string(name);
+	name = copy_string(arg_name);
 	}
 
-void BasicThread::SetOSName(const char* name)
+void BasicThread::SetOSName(const char* arg_name)
 	{
 #ifdef HAVE_LINUX
-	prctl(PR_SET_NAME, name, 0, 0, 0);
+	prctl(PR_SET_NAME, arg_name, 0, 0, 0);
 #endif
 
 #ifdef __APPLE__
-	pthread_setname_np(name);
+	pthread_setname_np(arg_name);
 #endif
 
 #ifdef FREEBSD
-	pthread_set_name_np(pthread_self(), name, name);
+	pthread_set_name_np(pthread_self(), arg_name, arg_name);
 #endif
 	}
 

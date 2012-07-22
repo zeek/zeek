@@ -2,4 +2,4 @@
 #
 # Default canonifier used with the tests in testing/btest/*.
 
-`dirname $0`/diff-remove-timestamps | grep -v XXX
+`dirname $0`/diff-remove-timestamps

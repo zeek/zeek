@@ -53,12 +53,11 @@ Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
 
 Ascii::~Ascii()
 	{
-	//fprintf(stderr, "DTOR %p\n", this);
-
-	// Normally, the file will be closed here already via the Finish()
-	// message. But when we terminate abnormally, we may still have it open.
-	if ( fd )
-		CloseFile(0);
+	if ( ! ascii_done )
+		{
+		fprintf(stderr, "internal error: finish missing\n");
+		abort();
+		}
 
 	delete [] separator;
 	delete [] set_separator;
@@ -77,7 +76,7 @@ bool Ascii::WriteHeaderField(const string& key, const string& val)
 
 void Ascii::CloseFile(double t)
 	{
-	if ( ! fd)
+	if ( ! fd )
 		return;
 
 	if ( include_meta )
@@ -170,7 +169,7 @@ bool Ascii::DoFinish(double network_time)
 	{
 	if ( ascii_done )
 		{
-		fprintf(stderr, "duplicate finish message\n");
+		fprintf(stderr, "internal error: duplicate finish\n");
 		abort();
 		}
 
@@ -353,6 +352,7 @@ bool Ascii::DoWrite(int num_fields, const Field* const * fields,
 		// It would so escape the first character.
 		char buf[16];
 		snprintf(buf, sizeof(buf), "\\x%02x", bytes[0]);
+
 		if ( ! safe_write(fd, buf, strlen(buf)) )
 			goto write_error;
 
@@ -416,14 +416,23 @@ string Ascii::LogExt()
 
 string Ascii::Timestamp(double t)
 	{
+#if 1
+	return "2012-01-01-00-00-00";
+#else
+    // Using the version below leads to occasional crashes at least on Mac OS.
+    // Not sure why, all the function should be thread-safe ...
+
 	time_t teatime = time_t(t);
 
 	struct tm tmbuf;
 	struct tm* tm = localtime_r(&teatime, &tmbuf);
 
-	char buf[128];
+        char tmp[128];
 	const char* const date_fmt = "%Y-%m-%d-%H-%M-%S";
-	strftime(buf, sizeof(buf), date_fmt, tm);
-	return buf;
+	strftime(tmp, sizeof(tmp), date_fmt, tm);
+
+	return tmp;
+#endif
 	}
+
 

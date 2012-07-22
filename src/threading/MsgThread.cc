@@ -155,8 +155,6 @@ void MsgThread::OnPrepareStop()
 	if ( finished || Killed() )
 		return;
 
-	// XX fprintf(stderr, "Sending FINISH to thread %s  ...\n", Name());
-
 	// Signal thread to terminate and wait until it has acknowledged.
 	SendIn(new FinishMessage(this, network_time), true);
 	}
@@ -356,7 +354,14 @@ void MsgThread::Run()
 		delete msg;
 		}
 
-	Finished();
+	// In case we haven't send the finish method yet, do it now. Reading
+	// global network_time here should be fine, it isn't changing
+	// anymore.
+	if ( ! finished )
+		{
+		OnFinish(network_time);
+		Finished();
+		}
 	}
 
 void MsgThread::GetStats(Stats* stats)

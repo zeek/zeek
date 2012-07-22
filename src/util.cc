@@ -1301,6 +1301,9 @@ bool safe_write(int fd, const char* data, int len)
 			if ( errno == EINTR )
 				continue;
 
+            fprintf(stderr, "safe_write error: %d\n", errno);
+            abort();
+
 			return false;
 			}
 

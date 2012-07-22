@@ -35,7 +35,7 @@ BasicThread::BasicThread()
 
 BasicThread::~BasicThread()
 	{
-        if ( buf )
+	if ( buf )
 		free(buf);
 
 	delete [] name;
@@ -50,6 +50,7 @@ void BasicThread::SetName(const char* arg_name)
 
 void BasicThread::SetOSName(const char* arg_name)
 	{
+
 #ifdef HAVE_LINUX
 	prctl(PR_SET_NAME, arg_name, 0, 0, 0);
 #endif
@@ -131,15 +132,11 @@ void BasicThread::PrepareStop()
 
 void BasicThread::Stop()
 	{
-	// XX fprintf(stderr, "stop1 %s %d %d\n", name, started, terminating);
-
 	if ( ! started )
 		return;
 
 	if ( terminating )
 		return;
-
-	// XX fprintf(stderr, "stop2 %s\n", name);
 
 	DBG_LOG(DBG_THREADING, "Signaling thread %s to terminate ...", name);
 
@@ -177,7 +174,6 @@ void BasicThread::Kill()
 
 void BasicThread::Done()
 	{
-	// XX fprintf(stderr, "DONE from thread %s\n", name);
 	DBG_LOG(DBG_THREADING, "Thread %s has finished", name);
 
 	terminating = true;

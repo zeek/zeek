@@ -197,10 +197,6 @@ protected:
 	 */
 	virtual void Heartbeat();
 
-	/** Flags that the child process has finished processing. Called from child.
-	 */
-	void Finished();
-
 	/** Internal heartbeat processing. Called from child.
 	 */
 	void HeartbeatInChild();
@@ -217,8 +213,7 @@ protected:
 	virtual bool OnHeartbeat(double network_time, double current_time) = 0;
 
 	/** Triggered for execution in the child thread just before shutting threads down.
-	 *  The child thread should finish its operations and then *must*
-	 *  call this class' implementation.
+	 *  The child thread should finish its operations.
 	 */
 	virtual bool OnFinish(double network_time) = 0;
 
@@ -287,6 +282,10 @@ private:
 	 * indicating the actual state, but won't do so very often.
 	 */
 	bool MightHaveOut() { return queue_out.MaybeReady(); }
+
+	/** Flags that the child process has finished processing. Called from child.
+	 */
+	void Finished();
 
 	Queue<BasicInputMessage *> queue_in;
 	Queue<BasicOutputMessage *> queue_out;

@@ -76,6 +76,7 @@ bool WriterBackend::WriterInfo::Read(SerializationFormat* fmt)
 	if ( ! (fmt->Read(&tmp_path, "path") &&
 		fmt->Read(&rotation_base, "rotation_base") &&
 		fmt->Read(&rotation_interval, "rotation_interval") &&
+		fmt->Read(&network_time, "network_time") &&
 		fmt->Read(&size, "config_size")) )
 		return false;
 
@@ -105,6 +106,7 @@ bool WriterBackend::WriterInfo::Write(SerializationFormat* fmt) const
 	if ( ! (fmt->Write(path, "path") &&
 		fmt->Write(rotation_base, "rotation_base") &&
 		fmt->Write(rotation_interval, "rotation_interval") &&
+		fmt->Write(network_time, "network_time") &&
 		fmt->Write(size, "config_size")) )
 		return false;
 

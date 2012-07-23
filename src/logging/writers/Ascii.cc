@@ -416,23 +416,16 @@ string Ascii::LogExt()
 
 string Ascii::Timestamp(double t)
 	{
-#if 1
-	return "2012-01-01-00-00-00";
-#else
-    // Using the version below leads to occasional crashes at least on Mac OS.
-    // Not sure why, all the function should be thread-safe ...
-
 	time_t teatime = time_t(t);
 
 	struct tm tmbuf;
 	struct tm* tm = localtime_r(&teatime, &tmbuf);
 
-        char tmp[128];
+	char tmp[128];
 	const char* const date_fmt = "%Y-%m-%d-%H-%M-%S";
 	strftime(tmp, sizeof(tmp), date_fmt, tm);
 
 	return tmp;
-#endif
 	}
 
 

@@ -1,4 +1,9 @@
 
+2.0-846 | 2012-07-23 16:36:37 -0700
+
+  * Fix WriterBackend::WriterInfo serialization, reenable ascii
+    start/end tags. (Jon Siwek)
+
 2.0-844 | 2012-07-23 16:20:59 -0700
 
   * Reworking parts of the internal threading/logging/input APIs for

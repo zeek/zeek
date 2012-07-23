@@ -438,6 +438,8 @@ bool Ascii::DoUpdate()
 			if ( ! getline(splitstream, s, separator[0]) )
 				break;
 
+			s = get_unescaped_string(s);
+
 			stringfields[pos] = s;
 			pos++;
 			}

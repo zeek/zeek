@@ -3,7 +3,9 @@
 #empty_field	(empty)
 #unset_field	-
 #path	testing
+#start	2012-07-20-01-49-22
 #fields	a.val1	a.val2	b
 #types	count	count	count
 -	-	6
 1	2	3
+#end	2012-07-20-01-49-22

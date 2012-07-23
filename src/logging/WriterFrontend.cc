@@ -16,35 +16,36 @@ namespace logging  {
 class InitMessage : public threading::InputMessage<WriterBackend>
 {
 public:
-	InitMessage(WriterBackend* backend, const WriterBackend::WriterInfo& info, const int num_fields, const Field* const* fields, const string& frontend_name)
+	InitMessage(WriterBackend* backend, const int num_fields, const Field* const* fields)
 		: threading::InputMessage<WriterBackend>("Init", backend),
-		info(info), num_fields(num_fields), fields(fields),
-		frontend_name(frontend_name) { }
+		num_fields(num_fields), fields(fields)
+			{}
 
-	virtual bool Process() { return Object()->Init(info, num_fields, fields, frontend_name); }
+
+	virtual bool Process() { return Object()->Init(num_fields, fields); }
 
 private:
-	WriterBackend::WriterInfo info;
 	const int num_fields;
 	const Field * const* fields;
-	const string frontend_name;
 };
 
 class RotateMessage : public threading::InputMessage<WriterBackend>
 {
 public:
-	RotateMessage(WriterBackend* backend, WriterFrontend* frontend, const string rotated_path, const double open,
+	RotateMessage(WriterBackend* backend, WriterFrontend* frontend, const char* rotated_path, const double open,
 		      const double close, const bool terminating)
 		: threading::InputMessage<WriterBackend>("Rotate", backend),
 		frontend(frontend),
-		rotated_path(rotated_path), open(open),
+		rotated_path(copy_string(rotated_path)), open(open),
 		close(close), terminating(terminating) { }
+
+	virtual ~RotateMessage()	{ delete [] rotated_path; }
 
 	virtual bool Process() { return Object()->Rotate(rotated_path, open, close, terminating); }
 
 private:
 	WriterFrontend* frontend;
-	const string rotated_path;
+	const char* rotated_path;
 	const double open;
 	const double close;
 	const bool terminating;
@@ -81,19 +82,13 @@ private:
 class FlushMessage : public threading::InputMessage<WriterBackend>
 {
 public:
-	FlushMessage(WriterBackend* backend)
-		: threading::InputMessage<WriterBackend>("Flush", backend)	{}
+	FlushMessage(WriterBackend* backend, double network_time)
+		: threading::InputMessage<WriterBackend>("Flush", backend),
+		network_time(network_time) {}
 
-	virtual bool Process() { return Object()->Flush(); }
-};
-
-class FinishMessage : public threading::InputMessage<WriterBackend>
-{
-public:
-	FinishMessage(WriterBackend* backend)
-		: threading::InputMessage<WriterBackend>("Finish", backend)	{}
-
-	virtual bool Process() { return Object()->DoFinish(); }
+	virtual bool Process() { return Object()->Flush(network_time); }
+private:
+	double network_time;
 };
 
 }
@@ -102,7 +97,7 @@ public:
 
 using namespace logging;
 
-WriterFrontend::WriterFrontend(EnumVal* arg_stream, EnumVal* arg_writer, bool arg_local, bool arg_remote)
+WriterFrontend::WriterFrontend(const WriterBackend::WriterInfo& arg_info, EnumVal* arg_stream, EnumVal* arg_writer, bool arg_local, bool arg_remote)
 	{
 	stream = arg_stream;
 	writer = arg_writer;
@@ -115,7 +110,10 @@ WriterFrontend::WriterFrontend(EnumVal* arg_stream, EnumVal* arg_writer, bool ar
 	remote = arg_remote;
 	write_buffer = 0;
 	write_buffer_pos = 0;
-	ty_name = "<not set>";
+	info = new WriterBackend::WriterInfo(arg_info);
+
+	const char* w = arg_writer->Type()->AsEnumType()->Lookup(arg_stream->InternalInt());
+	name = copy_string(fmt("%s/%s", arg_info.path, w));
 
 	if ( local )
 		{
@@ -133,26 +131,16 @@ WriterFrontend::~WriterFrontend()
 	{
 	Unref(stream);
 	Unref(writer);
-	}
-
-string WriterFrontend::Name() const
-	{
-	if ( ! info.path.size() )
-		return ty_name;
-
-	return ty_name + "/" + info.path;
+	delete info;
 	}
 
 void WriterFrontend::Stop()
 	{
 	FlushWriteBuffer();
 	SetDisable();
-
-	if ( backend )
-		backend->Stop();
 	}
 
-void WriterFrontend::Init(const WriterBackend::WriterInfo& arg_info, int arg_num_fields, const Field* const * arg_fields)
+void WriterFrontend::Init(int arg_num_fields, const Field* const * arg_fields)
 	{
 	if ( disabled )
 		return;
@@ -160,19 +148,18 @@ void WriterFrontend::Init(const WriterBackend::WriterInfo& arg_info, int arg_num
 	if ( initialized )
 		reporter->InternalError("writer initialize twice");
 
-	info = arg_info;
 	num_fields = arg_num_fields;
 	fields = arg_fields;
 
 	initialized = true;
 
 	if ( backend )
-		backend->SendIn(new InitMessage(backend, arg_info, arg_num_fields, arg_fields, Name()));
+		backend->SendIn(new InitMessage(backend, arg_num_fields, arg_fields));
 
 	if ( remote )
 		remote_serializer->SendLogCreateWriter(stream,
 						       writer,
-						       arg_info,
+						       *info,
 						       arg_num_fields,
 						       arg_fields);
 
@@ -186,7 +173,7 @@ void WriterFrontend::Write(int num_fields, Value** vals)
 	if ( remote )
 		remote_serializer->SendLogWrite(stream,
 						writer,
-						info.path,
+						info->path,
 						num_fields,
 						vals);
 
@@ -240,7 +227,7 @@ void WriterFrontend::SetBuf(bool enabled)
 		FlushWriteBuffer();
 	}
 
-void WriterFrontend::Flush()
+void WriterFrontend::Flush(double network_time)
 	{
 	if ( disabled )
 		return;
@@ -248,10 +235,10 @@ void WriterFrontend::Flush()
 	FlushWriteBuffer();
 
 	if ( backend )
-		backend->SendIn(new FlushMessage(backend));
+		backend->SendIn(new FlushMessage(backend, network_time));
 	}
 
-void WriterFrontend::Rotate(string rotated_path, double open, double close, bool terminating)
+void WriterFrontend::Rotate(const char* rotated_path, double open, double close, bool terminating)
 	{
 	if ( disabled )
 		return;
@@ -264,17 +251,6 @@ void WriterFrontend::Rotate(string rotated_path, double open, double close, bool
 		// Still signal log manager that we're done, but signal that
 		// nothing happened by setting the writer to zeri.
 		log_mgr->FinishedRotation(0, "", rotated_path, open, close, terminating);
-	}
-
-void WriterFrontend::Finish()
-	{
-	if ( disabled )
-		return;
-
-	FlushWriteBuffer();
-
-	if ( backend )
-		backend->SendIn(new FinishMessage(backend));
 	}
 
 void WriterFrontend::DeleteVals(Value** vals)

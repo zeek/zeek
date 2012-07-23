@@ -162,8 +162,8 @@ protected:
 
 	//// Function also used by the RemoteSerializer.
 
-	// Takes ownership of fields.
-	WriterFrontend* CreateWriter(EnumVal* id, EnumVal* writer, const WriterBackend::WriterInfo& info,
+	// Takes ownership of fields and info.
+	WriterFrontend* CreateWriter(EnumVal* id, EnumVal* writer, WriterBackend::WriterInfo* info,
 				int num_fields, const threading::Field* const* fields,
 				bool local, bool remote);
 
@@ -175,7 +175,7 @@ protected:
 	void SendAllWritersTo(RemoteSerializer::PeerID peer);
 
 	// Signals that a file has been rotated.
-	bool FinishedRotation(WriterFrontend* writer, string new_name, string old_name,
+	bool FinishedRotation(WriterFrontend* writer, const char* new_name, const char* old_name,
 			      double open, double close, bool terminating);
 
 	// Deletes the values as passed into Write().

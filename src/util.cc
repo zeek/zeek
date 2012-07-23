@@ -1290,6 +1290,30 @@ uint64 calculate_unique_id(size_t pool)
 	return HashKey::HashBytes(&(uid_pool[pool].key), sizeof(uid_pool[pool].key));
 	}
 
+bool safe_write(int fd, const char* data, int len)
+	{
+	while ( len > 0 )
+		{
+		int n = write(fd, data, len);
+
+		if ( n < 0 )
+			{
+			if ( errno == EINTR )
+				continue;
+
+			fprintf(stderr, "safe_write error: %d\n", errno);
+			abort();
+
+			return false;
+			}
+
+		data += n;
+		len -= n;
+		}
+
+	return true;
+	}
+
 void out_of_memory(const char* where)
 	{
 	reporter->FatalError("out of memory in %s.\n", where);

@@ -87,10 +87,10 @@ bool Ascii::DoInit(const ReaderInfo& info, int num_fields, const Field* const* f
 	{
 	mtime = 0;
 
-	file = new ifstream(info.source.c_str());
+	file = new ifstream(info.source);
 	if ( ! file->is_open() )
 		{
-		Error(Fmt("Init: cannot open %s", info.source.c_str()));
+		Error(Fmt("Init: cannot open %s", info.source));
 		delete(file);
 		file = 0;
 		return false;
@@ -98,7 +98,7 @@ bool Ascii::DoInit(const ReaderInfo& info, int num_fields, const Field* const* f
 
 	if ( ReadHeader(false) == false )
 		{
-		Error(Fmt("Init: cannot open %s; headers are incorrect", info.source.c_str()));
+		Error(Fmt("Init: cannot open %s; headers are incorrect", info.source));
 		file->close();
 		delete(file);
 		file = 0;
@@ -164,20 +164,20 @@ bool Ascii::ReadHeader(bool useCached)
 				}
 
 			Error(Fmt("Did not find requested field %s in input data file %s.",
-				  field->name.c_str(), Info().source.c_str()));
+				  field->name, Info().source));
 			return false;
 			}
 
 
 		FieldMapping f(field->name, field->type, field->subtype, ifields[field->name]);
 
-		if ( field->secondary_name != "" )
+		if ( field->secondary_name && strlen(field->secondary_name) != 0 )
 			{
 			map<string, uint32_t>::iterator fit2 = ifields.find(field->secondary_name);
 			if ( fit2 == ifields.end() )
 				{
 				Error(Fmt("Could not find requested port type field %s in input data file.",
-					  field->secondary_name.c_str()));
+					  field->secondary_name));
 				return false;
 				}
 
@@ -220,7 +220,8 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 	switch ( field.type ) {
 	case TYPE_ENUM:
 	case TYPE_STRING:
-		val->val.string_val = new string(s);
+		val->val.string_val.length = s.size();
+		val->val.string_val.data = copy_string(s.c_str());
 		break;
 
 	case TYPE_BOOL:
@@ -367,9 +368,9 @@ bool Ascii::DoUpdate()
 			{
 			// check if the file has changed
 			struct stat sb;
-			if ( stat(Info().source.c_str(), &sb) == -1 )
+			if ( stat(Info().source, &sb) == -1 )
 				{
-				Error(Fmt("Could not get stat for %s", Info().source.c_str()));
+				Error(Fmt("Could not get stat for %s", Info().source));
 				return false;
 				}
 
@@ -403,10 +404,10 @@ bool Ascii::DoUpdate()
 				file = 0;
 				}
 
-			file = new ifstream(Info().source.c_str());
+			file = new ifstream(Info().source);
 			if ( ! file->is_open() )
 				{
-				Error(Fmt("cannot open %s", Info().source.c_str()));
+				Error(Fmt("cannot open %s", Info().source));
 				return false;
 				}
 
@@ -506,8 +507,6 @@ bool Ascii::DoUpdate()
 
 bool Ascii::DoHeartbeat(double network_time, double current_time)
 {
-	ReaderBackend::DoHeartbeat(network_time, current_time);
-
 	switch ( Info().mode  ) {
 		case MODE_MANUAL:
 			// yay, we do nothing :)

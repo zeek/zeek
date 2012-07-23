@@ -13,6 +13,7 @@
 // Expose C99 functionality from inttypes.h, which would otherwise not be
 // available in C++.
 #define __STDC_FORMAT_MACROS
+#define __STDC_LIMIT_MACROS
 #include <inttypes.h>
 
 #if __STDC__
@@ -289,6 +290,11 @@ inline size_t pad_size(size_t size)
 
 #define padded_sizeof(x) (pad_size(sizeof(x)))
 
+// Like write() but handles interrupted system calls by restarting. Returns
+// true if the write was successful, otherwise sets errno. This function is
+// thread-safe as long as no two threads write to the same descriptor.
+extern bool safe_write(int fd, const char* data, int len);
+
 extern void out_of_memory(const char* where);
 
 inline void* safe_realloc(void* ptr, size_t size)
@@ -338,4 +344,5 @@ inline int safe_vsnprintf(char* str, size_t size, const char* format, va_list al
 // handed out by malloc.
 extern void get_memory_usage(unsigned int* total,
 			     unsigned int* malloced);
+
 #endif

@@ -162,11 +162,11 @@ function set_session(c: connection, msg: dns_msg, is_query: bool)
 
 	c$dns = c$dns_state$pending[msg$id];
 
-	c$dns$rcode = msg$rcode;
-	c$dns$rcode_name = base_errors[msg$rcode];
-
 	if ( ! is_query )
 		{
+		c$dns$rcode = msg$rcode;
+		c$dns$rcode_name = base_errors[msg$rcode];
+
 		if ( ! c$dns?$total_answers )
 			c$dns$total_answers = msg$num_answers;
 

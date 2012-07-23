@@ -48,14 +48,17 @@ public:
 	 */
 	struct WriterInfo
 		{
-		typedef std::map<string, string> config_map;
+		// Structure takes ownership of these strings.
+		typedef std::map<const char*, const char*> config_map;
 
 		/**
 		 * A string left to the interpretation of the writer
 		 * implementation; it corresponds to the 'path' value configured
 		 * on the script-level for the logging filter.
+		 *
+		 * Structure takes ownership of string.
 		 */
-		string path;
+		const char* path;
 
 		/**
 		 * The rotation interval as configured for this writer.
@@ -68,12 +71,46 @@ public:
 		double rotation_base;
 
 		/**
+		 * The network time when the writer is created.
+		 */
+		double network_time;
+
+		/**
 		 * A map of key/value pairs corresponding to the relevant
 		 * filter's "config" table.
 		 */
-		std::map<string, string> config;
+		config_map config;
+
+		WriterInfo()
+			{
+			path = 0;
+			}
+
+		WriterInfo(const WriterInfo& other)
+			{
+			path = other.path ? copy_string(other.path) : 0;
+			rotation_interval = other.rotation_interval;
+			rotation_base = other.rotation_base;
+			network_time = other.network_time;
+
+			for ( config_map::const_iterator i = other.config.begin(); i != other.config.end(); i++ )
+				config.insert(std::make_pair(copy_string(i->first), copy_string(i->second)));
+			}
+
+		~WriterInfo()
+			{
+			delete [] path;
+
+			for ( config_map::iterator i = config.begin(); i != config.end(); i++ )
+				{
+				delete [] i->first;
+				delete [] i->second;
+				}
+			}
 
 		private:
+		const WriterInfo& operator=(const WriterInfo& other); // Disable.
+
 		friend class ::RemoteSerializer;
 
 		// Note, these need to be adapted when changing the struct's
@@ -85,7 +122,6 @@ public:
 	/**
 	 * One-time initialization of the writer to define the logged fields.
 	 *
-	 * @param info Meta information for the writer.
 	 * @param num_fields
 	 *
 	 * @param fields An array of size \a num_fields with the log fields.
@@ -95,7 +131,7 @@ public:
 	 *
 	 * @return False if an error occured.
 	 */
-	bool Init(const WriterInfo& info, int num_fields, const threading::Field* const* fields, const string& frontend_name);
+	bool Init(int num_fields, const threading::Field* const* fields);
 
 	/**
 	 * Writes one log entry.
@@ -129,9 +165,11 @@ public:
 	 * Flushes any currently buffered output, assuming the writer
 	 * supports that. (If not, it will be ignored).
 	 *
+	 * @param network_time The network time when the flush was triggered.
+	 *
 	 * @return False if an error occured.
 	 */
-	bool Flush();
+	bool Flush(double network_time);
 
 	/**
 	 * Triggers rotation, if the writer supports that. (If not, it will
@@ -139,7 +177,7 @@ public:
 	 *
 	 * @return False if an error occured.
 	 */
-	bool Rotate(string rotated_path, double open, double close, bool terminating);
+	bool Rotate(const char* rotated_path, double open, double close, bool terminating);
 
 	/**
 	 * Disables the frontend that has instantiated this backend. Once
@@ -150,7 +188,7 @@ public:
 	/**
 	 * Returns the additional writer information passed into the constructor.
 	 */
-	const WriterInfo& Info() const	{ return info; }
+	const WriterInfo& Info() const	{ return *info; }
 
 	/**
 	 * Returns the number of log fields as passed into the constructor.
@@ -186,7 +224,7 @@ public:
 	 * @param terminating: True if the original rotation request occured
 	 * due to the main Bro process shutting down.
 	 */
-	bool FinishedRotation(string new_name, string old_name,
+	bool FinishedRotation(const char* new_name, const char* old_name,
 			      double open, double close, bool terminating);
 
 	/** Helper method to render an IP address as a string.
@@ -212,6 +250,10 @@ public:
 	  * @return An ASCII representation of the double.
 	  */
 	string Render(double d) const;
+
+	// Overridden from MsgThread.
+	virtual bool OnHeartbeat(double network_time, double current_time);
+	virtual bool OnFinish(double network_time);
 
 protected:
 	friend class FinishMessage;
@@ -272,8 +314,10 @@ protected:
 	 * will then be disabled and eventually deleted. When returning
 	 * false, an implementation should also call Error() to indicate what
 	 * happened.
+	 *
+	 * @param network_time The network time when the flush was triggered.
 	 */
-	virtual bool DoFlush() = 0;
+	virtual bool DoFlush(double network_time) = 0;
 
 	/**
 	 * Writer-specific method implementing log rotation.  Most directly
@@ -309,25 +353,24 @@ protected:
 	 * due the main Bro prcoess terminating (and not because we've
 	 * reached a regularly scheduled time for rotation).
 	 */
-	virtual bool DoRotate(string rotated_path, double open, double close,
+	virtual bool DoRotate(const char* rotated_path, double open, double close,
 			      bool terminating) = 0;
 
 	/**
 	 * Writer-specific method called just before the threading system is
-	 * going to shutdown.
+	 * going to shutdown. It is assumed that once this messages returns,
+	 * the thread can be safely terminated.
 	 *
-	 * This method can be overridden but one must call
-	 * WriterBackend::DoFinish().
+	 * @param network_time The network time when the finish is triggered.
 	 */
-	virtual bool DoFinish() { return MsgThread::DoFinish(); }
-
+	virtual bool DoFinish(double network_time) = 0;
 	/**
 	 * Triggered by regular heartbeat messages from the main thread.
 	 *
-	 * This method can be overridden but one must call
-	 * WriterBackend::DoHeartbeat().
+	 * This method can be overridden. Default implementation does
+	 * nothing.
 	 */
-	virtual bool DoHeartbeat(double network_time, double current_time);
+	virtual bool DoHeartbeat(double network_time, double current_time) = 0;
 
 private:
 	/**
@@ -339,7 +382,7 @@ private:
 	// this class, it's running in a different thread!
 	WriterFrontend* frontend;
 
-	WriterInfo info;	// Meta information as passed to Init().
+	const WriterInfo* info;	// Meta information.
 	int num_fields;	// Number of log fields.
 	const threading::Field* const*  fields;	// Log fields.
 	bool buffering;	// True if buffering is enabled.

@@ -22,5 +22,6 @@ enum SSLVersions {
 	SSLv20		= 0x0002,
 	SSLv30		= 0x0300,
 	TLSv10		= 0x0301,
-	TLSv11		= 0x0302
+	TLSv11		= 0x0302,
+	TLSv12		= 0x0303
 };

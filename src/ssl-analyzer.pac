@@ -93,6 +93,7 @@ function version_ok(vers : uint16) : bool
 	case SSLv30:
 	case TLSv10:
 	case TLSv11:
+	case TLSv12:
 		return true;
 
 	default:

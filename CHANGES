@@ -1,4 +1,33 @@
 
+2.0-844 | 2012-07-23 16:20:59 -0700
+
+  * Reworking parts of the internal threading/logging/input APIs for
+    thread-safety. (Robin Sommer)
+
+  * Bugfix for SSL version check. (Bernhard Amann)
+    
+  * Changing a HTTP DPD from port 3138 to 3128. Addresses #857. (Robin
+    Sommer)
+
+  * ElasticSearch logging writer. See logging-elasticsearch.rst for
+    more information. (Vlad Grigorescu and Seth Hall).
+
+  * Give configure a --disable-perftools option to disable Perftools
+    support even if found. (Robin Sommer)
+
+  * The ASCII log writer now includes "#start <timestamp>" and "#end
+    <timestamp> lines in the each file. (Robin Sommer)
+
+  * Renamed ASCII logger "header" options to "meta". (Robin Sommer)
+
+  * ASCII logs now escape '#' at the beginning of log lines. Addresses
+    #763. (Robin Sommer)
+
+  * Fix bug, where in dns.log rcode always was set to 0/NOERROR when
+    no reply package was seen. (Bernhard Amann)
+
+  * Updating to Mozilla's current certificate bundle. (Seth Hall)
+    
 2.0-769 | 2012-07-13 16:17:33 -0700
 
   * Fix some Info:Record field documentation. (Vlad Grigorescu)

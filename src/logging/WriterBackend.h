@@ -81,9 +81,9 @@ public:
 		 */
 		config_map config;
 
-		WriterInfo()
+		WriterInfo() : path(0), rotation_interval(0.0), rotation_base(0.0),
+		               network_time(0.0)
 			{
-			path = 0;
 			}
 
 		WriterInfo(const WriterInfo& other)

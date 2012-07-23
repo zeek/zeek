@@ -19,13 +19,31 @@ custom rotate, [writer=Log::WRITER_ASCII, fname=test2-11-03-07_11.59.55.log, pat
 custom rotate, [writer=Log::WRITER_ASCII, fname=test2-11-03-07_12.00.05.log, path=test2, open=1299499205.0, close=1299502795.0, terminating=F]
 custom rotate, [writer=Log::WRITER_ASCII, fname=test2-11-03-07_12.59.55.log, path=test2, open=1299502795.0, close=1299502795.0, terminating=T]
 #empty_field	(empty)
-#end	2012-01-01-00-00-00
+#end	2011-03-07-03-59-55
+#end	2011-03-07-04-00-05
+#end	2011-03-07-04-59-55
+#end	2011-03-07-05-00-05
+#end	2011-03-07-05-59-55
+#end	2011-03-07-06-00-05
+#end	2011-03-07-06-59-55
+#end	2011-03-07-07-00-05
+#end	2011-03-07-07-59-55
+#end	2011-03-07-08-00-05
+#end	2011-03-07-08-59-55
+#end	2011-03-07-09-00-05
+#end	2011-03-07-09-59-55
+#end	2011-03-07-10-00-05
+#end	2011-03-07-10-59-55
+#end	2011-03-07-11-00-05
+#end	2011-03-07-11-59-55
+#end	2011-03-07-12-00-05
+#end	2011-03-07-12-59-55
 #fields	t	id.orig_h	id.orig_p	id.resp_h	id.resp_p
 #path	test
 #path	test2
 #separator \x09
 #set_separator	,
-#start	2012-01-01-00-00-00
+#start	2011-03-07-03-00-05
 #types	time	addr	port	addr	port
 #unset_field	-
 1299466805.000000	10.0.0.1	20	10.0.0.2	1024

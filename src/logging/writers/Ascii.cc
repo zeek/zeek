@@ -101,7 +101,7 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 
 	fname = IsSpecial(path) ? path : path + "." + LogExt();
 
-	fd = open(fname.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
+	fd = open(fname.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 
 	if ( fd < 0 )
 		{

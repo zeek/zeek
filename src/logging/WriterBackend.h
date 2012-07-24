@@ -49,7 +49,7 @@ public:
 	struct WriterInfo
 		{
 		// Structure takes ownership of these strings.
-		typedef std::map<const char*, const char*> config_map;
+		typedef std::map<const char*, const char*, CompareString> config_map;
 
 		/**
 		 * A string left to the interpretation of the writer

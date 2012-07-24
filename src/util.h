@@ -135,7 +135,7 @@ extern const char* fmt_access_time(double time);
 extern bool ensure_dir(const char *dirname);
 
 // Returns true if path exists and is a directory.
-bool is_dir(const char* path); 
+bool is_dir(const char* path);
 
 extern uint8 shared_hmac_md5_key[16];
 
@@ -345,5 +345,16 @@ inline int safe_vsnprintf(char* str, size_t size, const char* format, va_list al
 // handed out by malloc.
 extern void get_memory_usage(unsigned int* total,
 			     unsigned int* malloced);
+
+// Class to be used as a third argument for STL maps to be able to use
+// char*'s as keys. Otherwise the pointer values will be compared instead of
+// the actual string values.
+struct CompareString
+	{
+	bool operator()(char const *a, char const *b) const
+		{
+		return std::strcmp(a, b) < 0;
+		}
+	};
 
 #endif

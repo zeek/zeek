@@ -342,14 +342,14 @@ void MsgThread::Run()
 
 		bool result = msg->Process();
 
+		delete msg;
+
 		if ( ! result )
 			{
 			string s = Fmt("%s failed, terminating thread (MsgThread)", Name());
 			Error(s.c_str());
 			break;
 			}
-
-		delete msg;
 		}
 
 	// In case we haven't send the finish method yet, do it now. Reading

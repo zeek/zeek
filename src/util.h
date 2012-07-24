@@ -345,4 +345,15 @@ inline int safe_vsnprintf(char* str, size_t size, const char* format, va_list al
 extern void get_memory_usage(unsigned int* total,
 			     unsigned int* malloced);
 
+// class to be used as a third argument for stl maps to be able to use
+// char*'s as keys. Otherwise the pointer values will be compared instead
+// of the actual string values.
+struct CompareString 
+	{
+	bool operator()(char const *a, char const *b) const
+		{
+		return std::strcmp(a, b) < 0;
+		}
+	};
+
 #endif

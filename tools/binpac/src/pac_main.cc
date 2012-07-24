@@ -161,6 +161,12 @@ int compile(const char* filename)
 		out_h.println("#include \"binpac.h\"");
 		out_h.println("");
 
+		out_cc.println("");
+		out_cc.println("#ifdef __clang__");
+		out_cc.println("#pragma clang diagnostic ignored \"-Wparentheses-equality\"");
+		out_cc.println("#endif");
+		out_cc.println("");
+
 		out_cc.println("#include \"%s.h\"\n", basename.c_str());
 
 		Decl::ProcessDecls(&out_h, &out_cc);

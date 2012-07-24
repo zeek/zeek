@@ -1,4 +1,8 @@
 
+2.0-849 | 2012-07-24 11:06:16 -0700
+
+  * Adding missing include needed on some systems. (Robin Sommer)
+    
 2.0-846 | 2012-07-23 16:36:37 -0700
 
   * Fix WriterBackend::WriterInfo serialization, reenable ascii

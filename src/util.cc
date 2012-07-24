@@ -50,13 +50,14 @@
  * @param str string to unescape
  * @return A str::string without escaped characters.
  */
-std::string get_unescaped_string(const std::string& str)
+std::string get_unescaped_string(const std::string& arg_str)
 	{
-	char* buf = new char [str.length() + 1]; // it will at most have the same length as str.
+	const char* str = arg_str.c_str();
+	char* buf = new char [arg_str.length() + 1]; // it will at most have the same length as str.
 	char* bufpos = buf;
 	size_t pos = 0;
 
-	while ( pos < str.length() )
+	while ( pos < arg_str.length() )
 		{
 		if ( str[pos] == '\\' && str[pos+1] == 'x' && 
 		     isxdigit(str[pos+2]) && isxdigit(str[pos+3]) ) 

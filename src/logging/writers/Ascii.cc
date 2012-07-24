@@ -3,6 +3,7 @@
 #include <string>
 #include <errno.h>
 #include <fcntl.h>
+#include <unistd.h>
 
 #include "NetVar.h"
 #include "threading/SerialTypes.h"

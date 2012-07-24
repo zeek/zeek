@@ -48,7 +48,7 @@ event line(description: Input::EventDescription, tpe: Input::Event, i: int, b: b
 event bro_init()
 	{
 	try = 0;
-    outfile = open("../out");
+	outfile = open("../out");
 	Input::add_event([$source="../input.log", $name="input", $fields=Val, $ev=line]);
 	Input::remove("input");
 	}

@@ -43,6 +43,44 @@
 #include "Reporter.h"
 
 /**
+ * Takes a string, unescapes all characters that are escaped as hex codes
+ * (\x##) and turns them into the equivalent ascii-codes. Returns a string
+ * containing no escaped values
+ *
+ * @param str string to unescape
+ * @return A str::string without escaped characters.
+ */
+std::string get_unescaped_string(const std::string& arg_str)
+	{
+	const char* str = arg_str.c_str();
+	char* buf = new char [arg_str.length() + 1]; // it will at most have the same length as str.
+	char* bufpos = buf;
+	size_t pos = 0;
+
+	while ( pos < arg_str.length() )
+		{
+		if ( str[pos] == '\\' && str[pos+1] == 'x' &&
+		     isxdigit(str[pos+2]) && isxdigit(str[pos+3]) )
+			{
+				*bufpos = (decode_hex(str[pos+2]) << 4) +
+					decode_hex(str[pos+3]);
+
+				pos += 4;
+				bufpos++;
+			}
+		else
+			*bufpos++ = str[pos++];
+		}
+
+	*bufpos = 0;
+	string outstring(buf, bufpos - buf);
+
+	delete [] buf;
+
+	return outstring;
+	}
+
+/**
  * Takes a string, escapes characters into equivalent hex codes (\x##), and
  * returns a string containing all escaped values.
  *
@@ -53,25 +91,25 @@
  * @return A std::string containing a list of escaped hex values of the form
  * \x## */
 std::string get_escaped_string(const std::string& str, bool escape_all)
-{
-    char tbuf[16];
-    string esc = "";
+	{
+	char tbuf[16];
+	string esc = "";
 
-    for ( size_t i = 0; i < str.length(); ++i )
-        {
-	char c = str[i];
-
-	if ( escape_all || isspace(c) || ! isascii(c) || ! isprint(c) )
+	for ( size_t i = 0; i < str.length(); ++i )
 		{
-		snprintf(tbuf, sizeof(tbuf), "\\x%02x", str[i]);
-		esc += tbuf;
-		}
-	else
-		esc += c;
-	}
+		char c = str[i];
 
-    return esc;
-}
+		if ( escape_all || isspace(c) || ! isascii(c) || ! isprint(c) )
+			{
+			snprintf(tbuf, sizeof(tbuf), "\\x%02x", str[i]);
+			esc += tbuf;
+			}
+		else
+			esc += c;
+		}
+
+	return esc;
+	}
 
 char* copy_string(const char* s)
 	{

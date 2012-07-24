@@ -1,4 +1,8 @@
 
+2.0-851 | 2012-07-24 15:04:14 -0700
+
+  * New built-in function to_double(s: string). (Scott Campbell)
+    
 2.0-849 | 2012-07-24 11:06:16 -0700
 
   * Adding missing include needed on some systems. (Robin Sommer)

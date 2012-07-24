@@ -2604,6 +2604,29 @@ function to_subnet%(sn: string%): subnet
 	return ret;
 	%}
 
+## Converts a :bro:type:`string` to a :bro:type:`double`.
+##
+## str: The :bro:type:`string` to convert.
+##
+## Returns: The :bro:type:`string` *str* as double, or 0 if *str* has
+##          an invalid format.
+##
+function to_double%(str: string%): double
+	%{
+	const char* s = str->CheckString();
+	char* end_s;
+	
+	double d = strtod(s, &end_s);
+	
+	if ( s[0] == '\0' || end_s[0] != '\0' )
+		{       
+		builtin_error("bad conversion to count", @ARG@[0]);
+		d = 0;
+		}     
+	
+	return new Val(d, TYPE_DOUBLE);
+	%}
+
 ## Converts a :bro:type:`count` to an :bro:type:`addr`.
 ##
 ## ip: The :bro:type:`count` to convert.

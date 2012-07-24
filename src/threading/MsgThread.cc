@@ -346,7 +346,6 @@ void MsgThread::Run()
 			{
 			string s = Fmt("%s failed, terminating thread (MsgThread)", Name());
 			Error(s.c_str());
-			Kill();
 			break;
 			}
 

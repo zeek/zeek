@@ -39,7 +39,7 @@ bool None::DoInit(const WriterInfo& info, int num_fields,
 		std::cout << std::endl;
 		}
 
-	return false;
+	return true;
 	}
 
 bool None::DoRotate(const char* rotated_path, double open, double close, bool terminating)

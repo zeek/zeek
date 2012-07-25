@@ -3,18 +3,19 @@
 #ifndef util_h
 #define util_h
 
+// Expose C99 functionality from inttypes.h, which would otherwise not be
+// available in C++.
+#define __STDC_FORMAT_MACROS
+#define __STDC_LIMIT_MACROS
+#include <inttypes.h>
+#include <stdint.h>
+
 #include <string>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
 #include "config.h"
-
-// Expose C99 functionality from inttypes.h, which would otherwise not be
-// available in C++.
-#define __STDC_FORMAT_MACROS
-#define __STDC_LIMIT_MACROS
-#include <inttypes.h>
 
 #if __STDC__
 #define myattribute __attribute__

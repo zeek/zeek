@@ -3,16 +3,17 @@
 // This is experimental code that is not yet ready for production usage.
 //
 
+
 #include "config.h"
 
 #ifdef USE_ELASTICSEARCH
 
+#include "util.h" // Needs to come first for stdint.h
+
 #include <string>
 #include <errno.h>
 
-#include "util.h"
 #include "BroString.h"
-
 #include "NetVar.h"
 #include "threading/SerialTypes.h"
 

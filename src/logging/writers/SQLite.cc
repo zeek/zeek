@@ -112,12 +112,13 @@ bool SQLite::DoInit(const WriterInfo& info, int num_fields,
 			    const Field* const * fields)
 	{
 
-	string fullpath = info.path+ ".sqlite";
+	string fullpath(info.path);
+	fullpath.append(".sqlite");
 	string dbname;
 
-	map<string, string>::const_iterator it = info.config.find("dbname");
+	map<const char*, const char*>::const_iterator it = info.config.find("dbname");
 	if ( it == info.config.end() ) {
-		MsgThread::Info(Fmt("dbname configuration option not found. Defaulting to path %s", info.path.c_str()));
+		MsgThread::Info(Fmt("dbname configuration option not found. Defaulting to path %s", info.path));
 		dbname = info.path;
 	} else {
 		dbname = it->second;
@@ -211,16 +212,6 @@ bool SQLite::DoInit(const WriterInfo& info, int num_fields,
 	return true;
 	}
 
-bool SQLite::DoFlush()
-	{
-	return true;
-	}
-
-bool SQLite::DoFinish()
-	{
-	return true;
-	}
-
 // Format String
 char* SQLite::FS(const char* format, ...) {
 	char * buf;
@@ -290,8 +281,8 @@ void SQLite::ValToAscii(ODesc* desc, Value* val)
 	case TYPE_FILE:
 	case TYPE_FUNC:
 		{
-		int size = val->val.string_val->size();
-		const char* data = val->val.string_val->data();
+		int size = val->val.string_val.length;
+		const char* data = val->val.string_val.data;
 
 		if ( size )
 			desc->AddN(data, size);
@@ -358,10 +349,10 @@ int SQLite::AddParams(Value* val, int pos)
 	case TYPE_FILE:
 	case TYPE_FUNC:
 		{
-		if ( ! val->val.string_val->size() || val->val.string_val->size() == 0 ) 
+		if ( ! val->val.string_val.length || val->val.string_val.length == 0 ) 
 			return sqlite3_bind_null(st, pos);
 
-		return sqlite3_bind_text(st, pos, val->val.string_val->data(), val->val.string_val->size(), SQLITE_TRANSIENT); // FIXME who deletes this
+		return sqlite3_bind_text(st, pos, val->val.string_val.data, val->val.string_val.length, SQLITE_TRANSIENT); // FIXME who deletes this
 		}
 
 	case TYPE_TABLE:
@@ -430,17 +421,6 @@ bool SQLite::DoWrite(int num_fields, const Field* const * fields, Value** vals)
 		return false;
 
 
-	return true;
-	}
-
-bool SQLite::DoRotate(string rotated_path, double open, double close, bool terminating)
-	{
-	return true;
-	}
-
-bool SQLite::DoSetBuf(bool enabled)
-	{
-	// Nothing to do.
 	return true;
 	}
 

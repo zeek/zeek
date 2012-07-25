@@ -27,11 +27,12 @@ protected:
 			    const threading::Field* const* fields);
 	virtual bool DoWrite(int num_fields, const threading::Field* const* fields,
 			     threading::Value** vals);
-	virtual bool DoSetBuf(bool enabled);
-	virtual bool DoRotate(string rotated_path, double open,
-			      double close, bool terminating);
-	virtual bool DoFlush();
-	virtual bool DoFinish();
+	virtual bool DoSetBuf(bool enabled) { return true; }
+	virtual bool DoRotate(const char* rotated_path, double open,
+			      double close, bool terminating) { return true; }
+	virtual bool DoFlush(double network_time)	{ return true; }
+	virtual bool DoFinish(double network_time)	{ return true; }
+	virtual bool DoHeartbeat(double network_time, double current_time)	{ return true; }
 
 private:
 	bool checkError(int code);

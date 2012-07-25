@@ -691,6 +691,7 @@ void init_random_seed(uint32 seed, const char* read_file, const char* write_file
 	{
 	static const int bufsiz = 16;
 	uint32 buf[bufsiz];
+	memset(buf, 0, sizeof(buf));
 	int pos = 0;	// accumulates entropy
 	bool seeds_done = false;
 

@@ -2620,7 +2620,7 @@ function to_double%(str: string%): double
 	
 	if ( s[0] == '\0' || end_s[0] != '\0' )
 		{       
-		builtin_error("bad conversion to count", @ARG@[0]);
+		builtin_error("bad conversion to double", @ARG@[0]);
 		d = 0;
 		}     
 	

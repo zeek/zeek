@@ -429,6 +429,7 @@ set(bro_SRCS
     logging/writers/Ascii.cc
     logging/writers/DataSeries.cc
     logging/writers/SQLite.cc
+    logging/writers/ElasticSearch.cc
     logging/writers/None.cc
 
     input/Manager.cc

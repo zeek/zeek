@@ -1,0 +1,23 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	reporter
+#start	2011-03-18-19-06-08
+#fields	ts	level	message	location
+#types	time	enum	string	string
+1300475168.843894	Reporter::WARNING	Skipping write to filter 'host-only' on path 'http' because filter 'default' has already instantiated the same writer type for that path	(empty)
+1300475168.975800	Reporter::WARNING	Skipping write to filter 'host-only' on path 'http' because filter 'default' has already instantiated the same writer type for that path	(empty)
+1300475168.976327	Reporter::WARNING	Skipping write to filter 'host-only' on path 'http' because filter 'default' has already instantiated the same writer type for that path	(empty)
+1300475168.979160	Reporter::WARNING	Skipping write to filter 'host-only' on path 'http' because filter 'default' has already instantiated the same writer type for that path	(empty)
+1300475169.012666	Reporter::WARNING	Skipping write to filter 'host-only' on path 'http' because filter 'default' has already instantiated the same writer type for that path	(empty)
+1300475169.012730	Reporter::WARNING	Skipping write to filter 'host-only' on path 'http' because filter 'default' has already instantiated the same writer type for that path	(empty)
+1300475169.014860	Reporter::WARNING	Skipping write to filter 'host-only' on path 'http' because filter 'default' has already instantiated the same writer type for that path	(empty)
+1300475169.022665	Reporter::WARNING	Skipping write to filter 'host-only' on path 'http' because filter 'default' has already instantiated the same writer type for that path	(empty)
+1300475169.036294	Reporter::WARNING	Skipping write to filter 'host-only' on path 'http' because filter 'default' has already instantiated the same writer type for that path	(empty)
+1300475169.036798	Reporter::WARNING	Skipping write to filter 'host-only' on path 'http' because filter 'default' has already instantiated the same writer type for that path	(empty)
+1300475169.039923	Reporter::WARNING	Skipping write to filter 'host-only' on path 'http' because filter 'default' has already instantiated the same writer type for that path	(empty)
+1300475169.074793	Reporter::WARNING	Skipping write to filter 'host-only' on path 'http' because filter 'default' has already instantiated the same writer type for that path	(empty)
+1300475169.074938	Reporter::WARNING	Skipping write to filter 'host-only' on path 'http' because filter 'default' has already instantiated the same writer type for that path	(empty)
+1300475169.075065	Reporter::WARNING	Skipping write to filter 'host-only' on path 'http' because filter 'default' has already instantiated the same writer type for that path	(empty)
+#end	2011-03-18-19-06-13

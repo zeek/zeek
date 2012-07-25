@@ -9,13 +9,15 @@ export {
 	redef enum Log::ID += { LOG };
 
 	type Info: record {
-		## Time when the SSL connection began.
+		## Time when the SSL connection was first detected.
 		ts:               time             &log;
-		uid:              string           &log;
+		## Unique ID for the connection.
+		uid:         string          &log;
+		## The connection's 4-tuple of endpoint addresses/ports.
 		id:               conn_id          &log;
-		## SSL/TLS version the server offered.
+		## SSL/TLS version that the server offered.
 		version:          string           &log &optional;
-		## SSL/TLS cipher suite the server chose.
+		## SSL/TLS cipher suite that the server chose.
 		cipher:           string           &log &optional;
 		## Value of the Server Name Indicator SSL/TLS extension.  It 
 		## indicates the server name that the client was requesting.

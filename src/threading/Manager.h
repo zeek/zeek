@@ -49,15 +49,6 @@ public:
 	 */
 	bool Terminating() const	{ return terminating; }
 
-	/**
-	 * Immediately kills all child threads. It does however not yet join
-	 * them, one still needs to call Terminate() for that.
-	 *
-	 * This method is safe to call from a signal handler, and can in fact
-	 * be called while Terminate() is already in progress.
-	 */
-	void KillThreads();
-
 	typedef std::list<std::pair<string, MsgThread::Stats> > msg_stats_list;
 
 	/**
@@ -114,6 +105,13 @@ protected:
 	 * Part of the IOSource interface.
 	 */
 	virtual double NextTimestamp(double* network_time);
+
+	/**
+	 * Kills all thread immediately. Note that this may cause race conditions
+	 * if a child thread currently holds a lock that might block somebody
+	 * else.
+	 */
+	virtual void KillThreads();
 
 	/**
 	 * Part of the IOSource interface.

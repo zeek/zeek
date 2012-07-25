@@ -55,7 +55,8 @@ export {
 		pred: function(typ: Input::Event, left: any, right: any): bool &optional;
 
 		## A key/value table that will be passed on the reader.
-                ## Interpretation of the values is left to the reader.
+		## Interpretation of the values is left to the writer, but
+		## usually they will be used for configuration purposes.
                 config: table[string] of string &default=table();
 	};
 
@@ -90,8 +91,9 @@ export {
 		ev: any;
 
 		## A key/value table that will be passed on the reader.
-                ## Interpretation of the values is left to the reader.
-                config: table[string] of string &default=table();
+		## Interpretation of the values is left to the writer, but
+		## usually they will be used for configuration purposes.
+		config: table[string] of string &default=table();
 	};
 
 	## Create a new table input from a given source. Returns true on success.

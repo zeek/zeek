@@ -18,7 +18,7 @@ public:
 	static ReaderBackend* Instantiate(ReaderFrontend* frontend) { return new Benchmark(frontend); }
 
 protected:
-	virtual bool DoInit(const ReaderInfo& info, ReaderMode mode, int arg_num_fields, const threading::Field* const* fields);
+	virtual bool DoInit(const ReaderInfo& info, int arg_num_fields, const threading::Field* const* fields);
 	virtual void DoClose();
 	virtual bool DoUpdate();
 	virtual bool DoHeartbeat(double network_time, double current_time);

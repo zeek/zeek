@@ -3,8 +3,9 @@ Release Notes
 =============
 
 This document summarizes the most important changes in the current Bro
-release. For a complete list of changes, see the ``CHANGES`` file.
-
+release. For a complete list of changes, see the ``CHANGES`` file
+(note that submodules, such as BroControl and Broccoli, come with
+their own CHANGES.)
 
 Bro 2.1 Beta
 ------------
@@ -38,14 +39,14 @@ New Functionality
 - Bro now decapsulates tunnels via its new tunnel framework located in
   scripts/base/frameworks/tunnels. It currently supports Teredo,
   AYIYA, IP-in-IP (both IPv4 and IPv6), and SOCKS. For all these, it
-  logs the outher tunnel connections in both conn.log and tunnel.log,
+  logs the outer tunnel connections in both conn.log and tunnel.log,
   and then proceeds to analyze the inner payload as if it were not
   tunneled, including also logging that session in conn.log. For
   SOCKS, it generates a new socks.log in addition with more
   information.
 
 - Bro now features a flexible input framework that allows users to
-  integrate external information in real-time into Bro while it
+  integrate external information in real-time into Bro while it's
   processing network traffic. The most direct use-case at the moment
   is reading data from ASCII files into Bro tables, with updates
   picked up automatically when the file changes during runtime. See
@@ -55,18 +56,44 @@ New Functionality
   "reader plugins" that make it easy to interface to different data
   sources. We will add more in the future.
 
+- BroControl now has built-in support for host-based load-balancing
+  when using either PF_RING, Myricom cards, or individual interfaces.
+  Instead of adding a separate worker entry in node.cfg for each Bro
+  worker process on each worker host, it is now possible to just
+  specify the number of worker processes on each host and BroControl
+  configures everything correctly (including any neccessary enviroment
+  variables for the balancers).
+
+  This change adds three new keywords to the node.cfg file (to be used
+  with worker entries): lb_procs (specifies number of workers on a
+  host), lb_method (specifies what type of load balancing to use:
+  pf_ring, myricom, or interfaces), and lb_interfaces (used only with
+  "lb_method=interfaces" to specify which interfaces to load-balance
+  on).
+
 - Bro's default ASCII log format is not exactly the most efficient way
-  for storing and searching large volumes of data. An an alternative,
-  Bro nows comes with experimental support for DataSeries output, an
-  efficient binary format for recording structured bulk data.
-  DataSeries is developed and maintained at HP Labs. See
-  doc/logging-dataseries for more information.
+  for storing and searching large volumes of data. An alternatives,
+  Bro now comes with experimental support for two alternative output
+  formats:
+
+    * DataSeries: an efficient binary format for recording structured
+      bulk data. DataSeries is developed and maintained at HP Labs.
+      See doc/logging-dataseries for more information.
+
+    * ElasticSearch: a distributed RESTful, storage engine and search
+      engine built on top of Apache Lucene. It scales very well, both
+      for distributed indexing and distributed searching.
+
+  Note that at this point, we consider Bro's support for these two
+  formats as prototypes for collecting experience with alternative
+  outputs. We do not yet recommend them for production (but welcome
+  feedback!)
 
 
 Changed Functionality
 ~~~~~~~~~~~~~~~~~~~~~
 
-The following summarized the most important differences in existing
+The following summarizes the most important differences in existing
 functionality. Note that this list is not complete, see CHANGES for
 the full set.
 
@@ -100,7 +127,7 @@ the full set.
   a bunch of Bro threads.
 
 - We renamed the configure option --enable-perftools to
-  --enable-perftool-debug to indicate that the switch is only relevant
+  --enable-perftools-debug to indicate that the switch is only relevant
   for debugging the heap.
 
 - Bro's ICMP analyzer now handles both IPv4 and IPv6 messages with a
@@ -110,8 +137,8 @@ the full set.
 - Log postprocessor scripts get an additional argument indicating the
   type of the log writer in use (e.g., "ascii").
 
-- BroControl's make-archive-name scripts also receives the writer
-  type, but as it's 2nd(!) argument. If you're using a custom version
+- BroControl's make-archive-name script also receives the writer
+  type, but as its 2nd(!) argument. If you're using a custom version
   of that script, you need to adapt it. See the shipped version for
   details.
 
@@ -124,6 +151,14 @@ the full set.
   Bro now supports decapsulating tunnels directly for protocols it
   understands.
 
+- ASCII logs now record the time when they were opened/closed at the
+  beginning and end of the file, respectively. The options
+  LogAscii::header_prefix and LogAscii::include_header have been
+  renamed to LogAscii::meta_prefix and LogAscii::include_meta,
+  respectively.
+
+- The ASCII writers "header_*" options have been renamed to "meta_*"
+  (because there's now also a footer).
 
 Bro 2.0
 -------

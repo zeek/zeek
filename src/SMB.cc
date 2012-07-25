@@ -368,7 +368,7 @@ int SMB_Session::ParseSetupAndx(int is_orig, binpac::SMB::SMB_header const& hdr,
 	// The binpac type depends on the negotiated server settings -
 	// possibly we can just pick the "right" format here, and use that?
 
-	if ( hdr.flags2() && 0x0800 )
+	if ( hdr.flags2() & 0x0800 )
 		{
 		binpac::SMB::SMB_setup_andx_ext msg(hdr.unicode());
 		msg.Parse(body.data(), body.data() + body.length());

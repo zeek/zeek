@@ -71,16 +71,14 @@ declare(PDict, InputHash);
 class Manager::Stream {
 public:
 	string name;
-	ReaderBackend::ReaderInfo info;
+	ReaderBackend::ReaderInfo* info;
 	bool removed;
-
-	ReaderMode mode;
 
 	StreamType stream_type; // to distinguish between event and table streams
 
 	EnumVal* type;
 	ReaderFrontend* reader;
-	TableVal* config;	
+	TableVal* config;
 
 	RecordVal* description;
 
@@ -104,7 +102,7 @@ Manager::Stream::~Stream()
 	if ( description )
 	        Unref(description);
 
-	if ( config ) 
+	if ( config )
 		Unref(config);
 
 	if ( reader )
@@ -262,7 +260,6 @@ ReaderBackend* Manager::CreateBackend(ReaderFrontend* frontend, bro_int_t type)
 	ReaderBackend* backend = (*ir->factory)(frontend);
 	assert(backend);
 
-	frontend->ty_name = ir->name;
 	return backend;
 	}
 
@@ -293,9 +290,6 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 
 	EnumVal* reader = description->LookupWithDefault(rtype->FieldOffset("reader"))->AsEnumVal();
 
-	ReaderFrontend* reader_obj = new ReaderFrontend(reader->InternalInt());
-	assert(reader_obj);
-
 	// get the source ...
 	Val* sourceval = description->LookupWithDefault(rtype->FieldOffset("source"));
 	assert ( sourceval != 0 );
@@ -303,21 +297,22 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 	string source((const char*) bsource->Bytes(), bsource->Len());
 	Unref(sourceval);
 
-	EnumVal* mode = description->LookupWithDefault(rtype->FieldOffset("mode"))->AsEnumVal();
-	Val* config = description->LookupWithDefault(rtype->FieldOffset("config"));
+	ReaderBackend::ReaderInfo* rinfo = new ReaderBackend::ReaderInfo();
+	rinfo->source = copy_string(source.c_str());
 
-	switch ( mode->InternalInt() ) 
+	EnumVal* mode = description->LookupWithDefault(rtype->FieldOffset("mode"))->AsEnumVal();
+	switch ( mode->InternalInt() )
 		{
 		case 0:
-			info->mode = MODE_MANUAL;
+			rinfo->mode = MODE_MANUAL;
 			break;
 
 		case 1:
-			info->mode = MODE_REREAD;
+			rinfo->mode = MODE_REREAD;
 			break;
 
 		case 2:
-			info->mode = MODE_STREAM;
+			rinfo->mode = MODE_STREAM;
 			break;
 
 		default:
@@ -326,16 +321,19 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 
 	Unref(mode);
 
+	Val* config = description->LookupWithDefault(rtype->FieldOffset("config"));
+
+	ReaderFrontend* reader_obj = new ReaderFrontend(*rinfo, reader);
+	assert(reader_obj);
+
 	info->reader = reader_obj;
 	info->type = reader->AsEnumVal(); // ref'd by lookupwithdefault
 	info->name = name;
 	info->config = config->AsTableVal(); // ref'd by LookupWithDefault
-
-	ReaderBackend::ReaderInfo readerinfo;
-	readerinfo.source = source;
+	info->info = rinfo;
 
 	Ref(description);
-	info->description = description;		
+	info->description = description;
 
 		{
 		HashKey* k;
@@ -347,15 +345,12 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 			ListVal* index = info->config->RecoverIndex(k);
 			string key = index->Index(0)->AsString()->CheckString();
 			string value = v->Value()->AsString()->CheckString();
-			info->info.config.insert(std::make_pair(key, value));
+			info->info->config.insert(std::make_pair(copy_string(key.c_str()), copy_string(value.c_str())));
 			Unref(index);
 			delete k;
 			}
-		
+
 		}
-
-	info->info = readerinfo;
-
 
 	DBG_LOG(DBG_INPUT, "Successfully created new input stream %s",
 		name.c_str());
@@ -481,7 +476,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 
 	assert(stream->reader);
 
-	stream->reader->Init(stream->info, stream->mode, stream->num_fields, logf );
+	stream->reader->Init(stream->num_fields, logf );
 
 	readers[stream->reader] = stream;
 
@@ -658,7 +653,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 
 
 	assert(stream->reader);
-	stream->reader->Init(stream->info, stream->mode, fieldsV.size(), fields );
+	stream->reader->Init(fieldsV.size(), fields );
 
 	readers[stream->reader] = stream;
 
@@ -732,15 +727,13 @@ bool Manager::RemoveStream(Stream *i)
 
 	i->removed = true;
 
-	i->reader->Close();
-
 	DBG_LOG(DBG_INPUT, "Successfully queued removal of stream %s",
 		i->name.c_str());
 
 	return true;
 	}
 
-bool Manager::RemoveStream(ReaderFrontend* frontend) 
+bool Manager::RemoveStream(ReaderFrontend* frontend)
 	{
 	return RemoveStream(FindStream(frontend));
 	}
@@ -799,17 +792,19 @@ bool Manager::UnrollRecordType(vector<Field*> *fields,
 
 		else
 			{
-			Field* field = new Field();
-			field->name = nameprepend + rec->FieldName(i);
-			field->type = rec->FieldType(i)->Tag();
+			string name = nameprepend + rec->FieldName(i);
+			const char* secondary = 0;
+			TypeTag ty = rec->FieldType(i)->Tag();
+			TypeTag st = TYPE_VOID;
+			bool optional = false;
 
-			if ( field->type == TYPE_TABLE )
-				field->subtype = rec->FieldType(i)->AsSetType()->Indices()->PureType()->Tag();
+			if ( ty == TYPE_TABLE )
+				st = rec->FieldType(i)->AsSetType()->Indices()->PureType()->Tag();
 
-			else if ( field->type == TYPE_VECTOR )
-				field->subtype = rec->FieldType(i)->AsVectorType()->YieldType()->Tag();
+			else if ( ty == TYPE_VECTOR )
+				st = rec->FieldType(i)->AsVectorType()->YieldType()->Tag();
 
-			else if ( field->type == TYPE_PORT &&
+			else if ( ty == TYPE_PORT &&
 				  rec->FieldDecl(i)->FindAttr(ATTR_TYPE_COLUMN) )
 				{
 				// we have an annotation for the second column
@@ -819,12 +814,13 @@ bool Manager::UnrollRecordType(vector<Field*> *fields,
 				assert(c);
 				assert(c->Type()->Tag() == TYPE_STRING);
 
-				field->secondary_name = c->AsStringVal()->AsString()->CheckString();
+				secondary = c->AsStringVal()->AsString()->CheckString();
 				}
 
 			if ( rec->FieldDecl(i)->FindAttr(ATTR_OPTIONAL ) )
-				field->optional = true;
+				optional = true;
 
+			Field* field = new Field(name.c_str(), secondary, ty, st, optional);
 			fields->push_back(field);
 			}
 		}
@@ -1238,7 +1234,7 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 #endif
 
 	// Send event that the current update is indeed finished.
-	SendEvent(update_finished, 2, new StringVal(i->name.c_str()), new StringVal(i->info.source.c_str()));
+	SendEvent(update_finished, 2, new StringVal(i->name.c_str()), new StringVal(i->info->source));
 	}
 
 void Manager::Put(ReaderFrontend* reader, Value* *vals)
@@ -1715,7 +1711,7 @@ int Manager::GetValueLength(const Value* val) {
 	case TYPE_STRING:
 	case TYPE_ENUM:
 		{
-		length += val->val.string_val->size();
+		length += val->val.string_val.length;
 		break;
 		}
 
@@ -1814,13 +1810,13 @@ int Manager::CopyValue(char *data, const int startpos, const Value* val)
 	case TYPE_STRING:
 	case TYPE_ENUM:
 		{
-		memcpy(data+startpos, val->val.string_val->c_str(), val->val.string_val->length());
-		return val->val.string_val->size();
+		memcpy(data+startpos, val->val.string_val.data, val->val.string_val.length);
+		return val->val.string_val.length;
 		}
 
 	case TYPE_ADDR:
 		{
-		int length;
+		int length = 0;
 		switch ( val->val.addr_val.family ) {
 		case IPv4:
 			length = sizeof(val->val.addr_val.in.in4);
@@ -1841,7 +1837,7 @@ int Manager::CopyValue(char *data, const int startpos, const Value* val)
 
 	case TYPE_SUBNET:
 		{
-		int length;
+		int length = 0;
 		switch ( val->val.subnet_val.prefix.family ) {
 		case IPv4:
 			length = sizeof(val->val.addr_val.in.in4);
@@ -1963,7 +1959,7 @@ Val* Manager::ValueToVal(const Value* val, BroType* request_type)
 
 	case TYPE_STRING:
 		{
-		BroString *s = new BroString(*(val->val.string_val));
+		BroString *s = new BroString((const u_char*)val->val.string_val.data, val->val.string_val.length, 0);
 		return new StringVal(s);
 		}
 
@@ -1972,7 +1968,7 @@ Val* Manager::ValueToVal(const Value* val, BroType* request_type)
 
 	case TYPE_ADDR:
 		{
-		IPAddr* addr;
+		IPAddr* addr = 0;
 		switch ( val->val.addr_val.family ) {
 		case IPv4:
 			addr = new IPAddr(val->val.addr_val.in.in4);
@@ -1993,7 +1989,7 @@ Val* Manager::ValueToVal(const Value* val, BroType* request_type)
 
 	case TYPE_SUBNET:
 		{
-		IPAddr* addr;
+		IPAddr* addr = 0;
 		switch ( val->val.subnet_val.prefix.family ) {
 		case IPv4:
 			addr = new IPAddr(val->val.subnet_val.prefix.in.in4);
@@ -2047,8 +2043,8 @@ Val* Manager::ValueToVal(const Value* val, BroType* request_type)
 	case TYPE_ENUM: {
 		// well, this is kind of stupid, because EnumType just mangles the module name and the var name together again...
 		// but well
-		string module = extract_module_name(val->val.string_val->c_str());
-		string var = extract_var_name(val->val.string_val->c_str());
+		string module = extract_module_name(val->val.string_val.data);
+		string var = extract_var_name(val->val.string_val.data);
 		bro_int_t index = request_type->AsEnumType()->Lookup(module, var.c_str());
 		if ( index == -1 )
 			reporter->InternalError("Value not found in enum mappimg. Module: %s, var: %s",

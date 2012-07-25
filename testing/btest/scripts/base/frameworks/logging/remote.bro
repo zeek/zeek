@@ -8,9 +8,11 @@
 # @TEST-EXEC: btest-diff sender/test.log
 # @TEST-EXEC: btest-diff sender/test.failure.log
 # @TEST-EXEC: btest-diff sender/test.success.log
-# @TEST-EXEC: cmp receiver/test.log sender/test.log
-# @TEST-EXEC: cmp receiver/test.failure.log sender/test.failure.log
-# @TEST-EXEC: cmp receiver/test.success.log sender/test.success.log
+# @TEST-EXEC: ( cd sender && for i in *.log; do cat $i | $SCRIPTS/diff-remove-timestamps >c.$i; done )
+# @TEST-EXEC: ( cd receiver && for i in *.log; do cat $i | $SCRIPTS/diff-remove-timestamps >c.$i; done )
+# @TEST-EXEC: cmp receiver/c.test.log sender/c.test.log
+# @TEST-EXEC: cmp receiver/c.test.failure.log sender/c.test.failure.log
+# @TEST-EXEC: cmp receiver/c.test.success.log sender/c.test.success.log
 
 # This is the common part loaded by both sender and receiver.
 module Test;

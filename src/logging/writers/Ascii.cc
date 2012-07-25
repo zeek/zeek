@@ -2,6 +2,8 @@
 
 #include <string>
 #include <errno.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #include "NetVar.h"
 #include "threading/SerialTypes.h"
@@ -15,10 +17,11 @@ using threading::Field;
 
 Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
 	{
-	file = 0;
+	fd = 0;
+	ascii_done = false;
 
 	output_to_stdout = BifConst::LogAscii::output_to_stdout;
-	include_header = BifConst::LogAscii::include_header;
+	include_meta = BifConst::LogAscii::include_meta;
 
 	separator_len = BifConst::LogAscii::separator->Len();
 	separator = new char[separator_len];
@@ -40,10 +43,10 @@ Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
 	memcpy(unset_field, BifConst::LogAscii::unset_field->Bytes(),
 	       unset_field_len);
 
-	header_prefix_len = BifConst::LogAscii::header_prefix->Len();
-	header_prefix = new char[header_prefix_len];
-	memcpy(header_prefix, BifConst::LogAscii::header_prefix->Bytes(),
-	       header_prefix_len);
+	meta_prefix_len = BifConst::LogAscii::meta_prefix->Len();
+	meta_prefix = new char[meta_prefix_len];
+	memcpy(meta_prefix, BifConst::LogAscii::meta_prefix->Bytes(),
+	       meta_prefix_len);
 
 	desc.EnableEscaping();
 	desc.AddEscapeSequence(separator, separator_len);
@@ -51,26 +54,46 @@ Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
 
 Ascii::~Ascii()
 	{
-	if ( file )
-		fclose(file);
+	if ( ! ascii_done )
+		{
+		fprintf(stderr, "internal error: finish missing\n");
+		abort();
+		}
 
 	delete [] separator;
 	delete [] set_separator;
 	delete [] empty_field;
 	delete [] unset_field;
-	delete [] header_prefix;
+	delete [] meta_prefix;
 	}
 
 bool Ascii::WriteHeaderField(const string& key, const string& val)
 	{
-	string str = string(header_prefix, header_prefix_len) +
+	string str = string(meta_prefix, meta_prefix_len) +
 		key + string(separator, separator_len) + val + "\n";
 
-	return (fwrite(str.c_str(), str.length(), 1, file) == 1);
+	return safe_write(fd, str.c_str(), str.length());
+	}
+
+void Ascii::CloseFile(double t)
+	{
+	if ( ! fd )
+		return;
+
+	if ( include_meta )
+		{
+		string ts = t ? Timestamp(t) : string("<abnormal termination>");
+		WriteHeaderField("end", ts);
+		}
+
+	close(fd);
+	fd = 0;
 	}
 
 bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * fields)
 	{
+    assert(! fd);
+
 	string path = info.path;
 
 	if ( output_to_stdout )
@@ -78,26 +101,30 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 
 	fname = IsSpecial(path) ? path : path + "." + LogExt();
 
-	if ( ! (file = fopen(fname.c_str(), "w")) )
+	fd = open(fname.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+
+	if ( fd < 0 )
 		{
 		Error(Fmt("cannot open %s: %s", fname.c_str(),
-			  strerror(errno)));
-
+			  Strerror(errno)));
+		fd = 0;
 		return false;
 		}
 
-	if ( include_header )
+	if ( include_meta )
 		{
 		string names;
 		string types;
 
-		string str = string(header_prefix, header_prefix_len)
+		string str = string(meta_prefix, meta_prefix_len)
 			+ "separator " // Always use space as separator here.
 			+ get_escaped_string(string(separator, separator_len), false)
 			+ "\n";
 
-		if( fwrite(str.c_str(), str.length(), 1, file) != 1 )
+		if ( ! safe_write(fd, str.c_str(), str.length()) )
 			goto write_error;
+
+		string ts = Timestamp(info.network_time);
 
 		if ( ! (WriteHeaderField("set_separator", get_escaped_string(
 		            string(set_separator, set_separator_len), false)) &&
@@ -105,7 +132,8 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 		            string(empty_field, empty_field_len), false)) &&
 		        WriteHeaderField("unset_field", get_escaped_string(
 		            string(unset_field, unset_field_len), false)) &&
-		        WriteHeaderField("path", get_escaped_string(path, false))) )
+		        WriteHeaderField("path", get_escaped_string(path, false)) &&
+		        WriteHeaderField("start", ts)) )
 			goto write_error;
 
 		for ( int i = 0; i < num_fields; ++i )
@@ -116,8 +144,8 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 				types += string(separator, separator_len);
 				}
 
-			names += fields[i]->name;
-			types += fields[i]->TypeName();
+			names += string(fields[i]->name);
+			types += fields[i]->TypeName().c_str();
 			}
 
 		if ( ! (WriteHeaderField("fields", names)
@@ -128,20 +156,31 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 	return true;
 
 write_error:
-	Error(Fmt("error writing to %s: %s", fname.c_str(), strerror(errno)));
+	Error(Fmt("error writing to %s: %s", fname.c_str(), Strerror(errno)));
 	return false;
 	}
 
-bool Ascii::DoFlush()
+bool Ascii::DoFlush(double network_time)
 	{
-	fflush(file);
+	fsync(fd);
 	return true;
 	}
 
-bool Ascii::DoFinish()
+bool Ascii::DoFinish(double network_time)
 	{
-	return WriterBackend::DoFinish();
+	if ( ascii_done )
+		{
+		fprintf(stderr, "internal error: duplicate finish\n");
+		abort();
+		}
+
+	ascii_done = true;
+
+	CloseFile(network_time);
+
+	return true;
 	}
+
 
 bool Ascii::DoWriteOne(ODesc* desc, Value* val, const Field* field)
 	{
@@ -198,8 +237,8 @@ bool Ascii::DoWriteOne(ODesc* desc, Value* val, const Field* field)
 	case TYPE_FILE:
 	case TYPE_FUNC:
 		{
-		int size = val->val.string_val->size();
-		const char* data = val->val.string_val->data();
+		int size = val->val.string_val.length;
+		const char* data = val->val.string_val.data;
 
 		if ( ! size )
 			{
@@ -280,8 +319,7 @@ bool Ascii::DoWriteOne(ODesc* desc, Value* val, const Field* field)
 		}
 
 	default:
-		Error(Fmt("unsupported field format %d for %s", val->type,
-			  field->name.c_str()));
+		Error(Fmt("unsupported field format %d for %s", val->type, field->name));
 		return false;
 	}
 
@@ -291,7 +329,7 @@ bool Ascii::DoWriteOne(ODesc* desc, Value* val, const Field* field)
 bool Ascii::DoWrite(int num_fields, const Field* const * fields,
 			     Value** vals)
 	{
-	if ( ! file )
+	if ( ! fd )
 		DoInit(Info(), NumFields(), Fields());
 
 	desc.Clear();
@@ -307,31 +345,47 @@ bool Ascii::DoWrite(int num_fields, const Field* const * fields,
 
 	desc.AddRaw("\n", 1);
 
-	if ( fwrite(desc.Bytes(), desc.Len(), 1, file) != 1 )
+	const char* bytes = (const char*)desc.Bytes();
+	int len = desc.Len();
+
+	if ( strncmp(bytes, meta_prefix, meta_prefix_len) == 0 )
 		{
-		Error(Fmt("error writing to %s: %s", fname.c_str(), strerror(errno)));
-		return false;
+		// It would so escape the first character.
+		char buf[16];
+		snprintf(buf, sizeof(buf), "\\x%02x", bytes[0]);
+
+		if ( ! safe_write(fd, buf, strlen(buf)) )
+			goto write_error;
+
+		++bytes;
+		--len;
 		}
 
-	if ( IsBuf() )
-		fflush(file);
+	if ( ! safe_write(fd, bytes, len) )
+		goto write_error;
+
+        if ( IsBuf() )
+		fsync(fd);
 
 	return true;
+
+write_error:
+	Error(Fmt("error writing to %s: %s", fname.c_str(), Strerror(errno)));
+	return false;
 	}
 
-bool Ascii::DoRotate(string rotated_path, double open, double close, bool terminating)
+bool Ascii::DoRotate(const char* rotated_path, double open, double close, bool terminating)
 	{
 	// Don't rotate special files or if there's not one currently open.
-	if ( ! file || IsSpecial(Info().path) )
+	if ( ! fd || IsSpecial(Info().path) )
 		return true;
 
-	fclose(file);
-	file = 0;
+	CloseFile(close);
 
-	string nname = rotated_path + "." + LogExt();
+	string nname = string(rotated_path) + "." + LogExt();
 	rename(fname.c_str(), nname.c_str());
 
-	if ( ! FinishedRotation(nname, fname, open, close, terminating) )
+	if ( ! FinishedRotation(nname.c_str(), fname.c_str(), open, close, terminating) )
 		{
 		Error(Fmt("error rotating %s to %s", fname.c_str(), nname.c_str()));
 		return false;
@@ -346,9 +400,33 @@ bool Ascii::DoSetBuf(bool enabled)
 	return true;
 	}
 
+bool Ascii::DoHeartbeat(double network_time, double current_time)
+	{
+	// Nothing to do.
+	return true;
+	}
+
 string Ascii::LogExt()
 	{
 	const char* ext = getenv("BRO_LOG_SUFFIX");
-	if ( ! ext ) ext = "log";
+	if ( ! ext )
+		ext = "log";
+
 	return ext;
 	}
+
+string Ascii::Timestamp(double t)
+	{
+	time_t teatime = time_t(t);
+
+	struct tm tmbuf;
+	struct tm* tm = localtime_r(&teatime, &tmbuf);
+
+	char tmp[128];
+	const char* const date_fmt = "%Y-%m-%d-%H-%M-%S";
+	strftime(tmp, sizeof(tmp), date_fmt, tm);
+
+	return tmp;
+	}
+
+

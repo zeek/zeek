@@ -18,11 +18,17 @@ namespace logging  {
 class RotationFinishedMessage : public threading::OutputMessage<WriterFrontend>
 {
 public:
-        RotationFinishedMessage(WriterFrontend* writer, string new_name, string old_name,
+	RotationFinishedMessage(WriterFrontend* writer, const char* new_name, const char* old_name,
 				double open, double close, bool terminating)
 		: threading::OutputMessage<WriterFrontend>("RotationFinished", writer),
-		new_name(new_name), old_name(old_name), open(open),
+		new_name(copy_string(new_name)), old_name(copy_string(old_name)), open(open),
 		close(close), terminating(terminating)	{ }
+
+	virtual ~RotationFinishedMessage()
+		{
+		delete [] new_name;
+		delete [] old_name;
+		}
 
 	virtual bool Process()
 		{
@@ -30,8 +36,8 @@ public:
 		}
 
 private:
-        string new_name;
-        string old_name;
+        const char* new_name;
+        const char* old_name;
         double open;
         double close;
         bool terminating;
@@ -65,11 +71,16 @@ bool WriterBackend::WriterInfo::Read(SerializationFormat* fmt)
 	{
 	int size;
 
-	if ( ! (fmt->Read(&path, "path") &&
+	string tmp_path;
+
+	if ( ! (fmt->Read(&tmp_path, "path") &&
 		fmt->Read(&rotation_base, "rotation_base") &&
 		fmt->Read(&rotation_interval, "rotation_interval") &&
+		fmt->Read(&network_time, "network_time") &&
 		fmt->Read(&size, "config_size")) )
 		return false;
+
+	path = copy_string(tmp_path.c_str());
 
 	config.clear();
 
@@ -81,7 +92,7 @@ bool WriterBackend::WriterInfo::Read(SerializationFormat* fmt)
 		if ( ! (fmt->Read(&value, "config-value") && fmt->Read(&value, "config-key")) )
 			return false;
 
-		config.insert(std::make_pair(value, key));
+		config.insert(std::make_pair(copy_string(value.c_str()), copy_string(key.c_str())));
 		}
 
 	return true;
@@ -95,10 +106,11 @@ bool WriterBackend::WriterInfo::Write(SerializationFormat* fmt) const
 	if ( ! (fmt->Write(path, "path") &&
 		fmt->Write(rotation_base, "rotation_base") &&
 		fmt->Write(rotation_interval, "rotation_interval") &&
+		fmt->Write(network_time, "network_time") &&
 		fmt->Write(size, "config_size")) )
 		return false;
 
-	for ( config_map::const_iterator i = config.begin(); i != config.end(); ++i ) 
+	for ( config_map::const_iterator i = config.begin(); i != config.end(); ++i )
 		{
 		if ( ! (fmt->Write(i->first, "config-value") && fmt->Write(i->second, "config-key")) )
 			return false;
@@ -113,8 +125,7 @@ WriterBackend::WriterBackend(WriterFrontend* arg_frontend) : MsgThread()
 	fields = 0;
 	buffering = true;
 	frontend = arg_frontend;
-
-	info.path = "<path not yet set>";
+	info = new WriterInfo(frontend->Info());
 
 	SetName(frontend->Name());
 	}
@@ -128,6 +139,8 @@ WriterBackend::~WriterBackend()
 
 		delete [] fields;
 		}
+
+	delete info;
 	}
 
 void WriterBackend::DeleteVals(int num_writes, Value*** vals)
@@ -144,7 +157,7 @@ void WriterBackend::DeleteVals(int num_writes, Value*** vals)
 	delete [] vals;
 	}
 
-bool WriterBackend::FinishedRotation(string new_name, string old_name,
+bool WriterBackend::FinishedRotation(const char* new_name, const char* old_name,
 				     double open, double close, bool terminating)
 	{
 	SendOut(new RotationFinishedMessage(frontend, new_name, old_name, open, close, terminating));
@@ -156,17 +169,12 @@ void WriterBackend::DisableFrontend()
 	SendOut(new DisableMessage(frontend));
 	}
 
-bool WriterBackend::Init(const WriterInfo& arg_info, int arg_num_fields, const Field* const*  arg_fields)
+bool WriterBackend::Init(int arg_num_fields, const Field* const* arg_fields)
 	{
-	info = arg_info;
 	num_fields = arg_num_fields;
 	fields = arg_fields;
 
-	string name = Fmt("%s/%s", info.path.c_str(), frontend->Name().c_str());
-
-	SetName(name);
-
-	if ( ! DoInit(arg_info, arg_num_fields, arg_fields) )
+	if ( ! DoInit(*info, arg_num_fields, arg_fields) )
 		{
 		DisableFrontend();
 		return false;
@@ -193,7 +201,6 @@ bool WriterBackend::Write(int arg_num_fields, int num_writes, Value*** vals)
 		return false;
 		}
 
-#ifdef DEBUG
 	// Double-check all the types match.
 	for ( int j = 0; j < num_writes; j++ )
 		{
@@ -201,17 +208,17 @@ bool WriterBackend::Write(int arg_num_fields, int num_writes, Value*** vals)
 			{
 			if ( vals[j][i]->type != fields[i]->type )
 				{
+#ifdef DEBUG
 				const char* msg = Fmt("Field type doesn't match in WriterBackend::Write() (%d vs. %d)",
 						      vals[j][i]->type, fields[i]->type);
 				Debug(DBG_LOGGING, msg);
-
+#endif
 				DisableFrontend();
 				DeleteVals(num_writes, vals);
 				return false;
 				}
 			}
 		}
-#endif
 
 	bool success = true;
 
@@ -248,7 +255,7 @@ bool WriterBackend::SetBuf(bool enabled)
 	return true;
 	}
 
-bool WriterBackend::Rotate(string rotated_path, double open,
+bool WriterBackend::Rotate(const char* rotated_path, double open,
 			   double close, bool terminating)
 	{
 	if ( ! DoRotate(rotated_path, open, close, terminating) )
@@ -260,9 +267,9 @@ bool WriterBackend::Rotate(string rotated_path, double open,
 	return true;
 	}
 
-bool WriterBackend::Flush()
+bool WriterBackend::Flush(double network_time)
 	{
-	if ( ! DoFlush() )
+	if ( ! DoFlush(network_time) )
 		{
 		DisableFrontend();
 		return false;
@@ -271,13 +278,15 @@ bool WriterBackend::Flush()
 	return true;
 	}
 
-bool WriterBackend::DoHeartbeat(double network_time, double current_time)
+bool WriterBackend::OnFinish(double network_time)
 	{
-	MsgThread::DoHeartbeat(network_time, current_time);
+	return DoFinish(network_time);
+	}
 
+bool WriterBackend::OnHeartbeat(double network_time, double current_time)
+	{
 	SendOut(new FlushWriteBufferMessage(frontend));
-
-	return true;
+	return DoHeartbeat(network_time, current_time);
 	}
 
 string WriterBackend::Render(const threading::Value::addr_t& addr) const

@@ -43,6 +43,44 @@
 #include "Reporter.h"
 
 /**
+ * Takes a string, unescapes all characters that are escaped as hex codes
+ * (\x##) and turns them into the equivalent ascii-codes. Returns a string
+ * containing no escaped values
+ *
+ * @param str string to unescape
+ * @return A str::string without escaped characters.
+ */
+std::string get_unescaped_string(const std::string& arg_str)
+	{
+	const char* str = arg_str.c_str();
+	char* buf = new char [arg_str.length() + 1]; // it will at most have the same length as str.
+	char* bufpos = buf;
+	size_t pos = 0;
+
+	while ( pos < arg_str.length() )
+		{
+		if ( str[pos] == '\\' && str[pos+1] == 'x' &&
+		     isxdigit(str[pos+2]) && isxdigit(str[pos+3]) )
+			{
+				*bufpos = (decode_hex(str[pos+2]) << 4) +
+					decode_hex(str[pos+3]);
+
+				pos += 4;
+				bufpos++;
+			}
+		else
+			*bufpos++ = str[pos++];
+		}
+
+	*bufpos = 0;
+	string outstring(buf, bufpos - buf);
+
+	delete [] buf;
+
+	return outstring;
+	}
+
+/**
  * Takes a string, escapes characters into equivalent hex codes (\x##), and
  * returns a string containing all escaped values.
  *
@@ -53,25 +91,25 @@
  * @return A std::string containing a list of escaped hex values of the form
  * \x## */
 std::string get_escaped_string(const std::string& str, bool escape_all)
-{
-    char tbuf[16];
-    string esc = "";
+	{
+	char tbuf[16];
+	string esc = "";
 
-    for ( size_t i = 0; i < str.length(); ++i )
-        {
-	char c = str[i];
-
-	if ( escape_all || isspace(c) || ! isascii(c) || ! isprint(c) )
+	for ( size_t i = 0; i < str.length(); ++i )
 		{
-		snprintf(tbuf, sizeof(tbuf), "\\x%02x", str[i]);
-		esc += tbuf;
-		}
-	else
-		esc += c;
-	}
+		char c = str[i];
 
-    return esc;
-}
+		if ( escape_all || isspace(c) || ! isascii(c) || ! isprint(c) )
+			{
+			snprintf(tbuf, sizeof(tbuf), "\\x%02x", str[i]);
+			esc += tbuf;
+			}
+		else
+			esc += c;
+		}
+
+	return esc;
+	}
 
 char* copy_string(const char* s)
 	{
@@ -633,18 +671,27 @@ static bool write_random_seeds(const char* write_file, uint32 seed,
 static bool bro_rand_determistic = false;
 static unsigned int bro_rand_state = 0;
 
-static void bro_srand(unsigned int seed, bool deterministic)
+static void bro_srandom(unsigned int seed, bool deterministic)
 	{
 	bro_rand_state = seed;
 	bro_rand_determistic = deterministic;
 
-	srand(seed);
+	srandom(seed);
+	}
+
+void bro_srandom(unsigned int seed)
+	{
+	if ( bro_rand_determistic )
+		bro_rand_state = seed;
+	else
+		srandom(seed);
 	}
 
 void init_random_seed(uint32 seed, const char* read_file, const char* write_file)
 	{
 	static const int bufsiz = 16;
 	uint32 buf[bufsiz];
+	memset(buf, 0, sizeof(buf));
 	int pos = 0;	// accumulates entropy
 	bool seeds_done = false;
 
@@ -705,7 +752,7 @@ void init_random_seed(uint32 seed, const char* read_file, const char* write_file
 			seeds_done = true;
 		}
 
-	bro_srand(seed, seeds_done);
+	bro_srandom(seed, seeds_done);
 
 	if ( ! hmac_key_set )
 		{
@@ -1280,6 +1327,30 @@ uint64 calculate_unique_id(size_t pool)
 
 	++uid_pool[pool].key.counter;
 	return HashKey::HashBytes(&(uid_pool[pool].key), sizeof(uid_pool[pool].key));
+	}
+
+bool safe_write(int fd, const char* data, int len)
+	{
+	while ( len > 0 )
+		{
+		int n = write(fd, data, len);
+
+		if ( n < 0 )
+			{
+			if ( errno == EINTR )
+				continue;
+
+			fprintf(stderr, "safe_write error: %d\n", errno);
+			abort();
+
+			return false;
+			}
+
+		data += n;
+		len -= n;
+		}
+
+	return true;
 	}
 
 void out_of_memory(const char* where)

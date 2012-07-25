@@ -83,14 +83,14 @@ void Ascii::DoClose()
 		}
 	}
 
-bool Ascii::DoInit(const ReaderInfo& info, ReaderMode mode, int num_fields, const Field* const* fields)
+bool Ascii::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fields)
 	{
 	mtime = 0;
 
-	file = new ifstream(info.source.c_str());
+	file = new ifstream(info.source);
 	if ( ! file->is_open() )
 		{
-		Error(Fmt("Init: cannot open %s", info.source.c_str()));
+		Error(Fmt("Init: cannot open %s", info.source));
 		delete(file);
 		file = 0;
 		return false;
@@ -98,7 +98,7 @@ bool Ascii::DoInit(const ReaderInfo& info, ReaderMode mode, int num_fields, cons
 
 	if ( ReadHeader(false) == false )
 		{
-		Error(Fmt("Init: cannot open %s; headers are incorrect", info.source.c_str()));
+		Error(Fmt("Init: cannot open %s; headers are incorrect", info.source));
 		file->close();
 		delete(file);
 		file = 0;
@@ -144,7 +144,7 @@ bool Ascii::ReadHeader(bool useCached)
 		pos++;
 		}
 
-	//printf("Updating fields from description %s\n", line.c_str());
+	// printf("Updating fields from description %s\n", line.c_str());
 	columnMap.clear();
 
 	for ( int i = 0; i < NumFields(); i++ )
@@ -164,20 +164,20 @@ bool Ascii::ReadHeader(bool useCached)
 				}
 
 			Error(Fmt("Did not find requested field %s in input data file %s.",
-				  field->name.c_str(), Info().source.c_str()));
+				  field->name, Info().source));
 			return false;
 			}
 
 
 		FieldMapping f(field->name, field->type, field->subtype, ifields[field->name]);
 
-		if ( field->secondary_name != "" )
+		if ( field->secondary_name && strlen(field->secondary_name) != 0 )
 			{
 			map<string, uint32_t>::iterator fit2 = ifields.find(field->secondary_name);
 			if ( fit2 == ifields.end() )
 				{
 				Error(Fmt("Could not find requested port type field %s in input data file.",
-					  field->secondary_name.c_str()));
+					  field->secondary_name));
 				return false;
 				}
 
@@ -199,7 +199,7 @@ bool Ascii::GetLine(string& str)
 		if ( str[0] != '#' )
 			return true;
 
-		if ( str.compare(0,8, "#fields\t") == 0 )
+		if ( ( str.length() > 8 ) && ( str.compare(0,7, "#fields") == 0 ) && ( str[7] == separator[0] ) )
 			{
 			str = str.substr(8);
 			return true;
@@ -220,7 +220,8 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 	switch ( field.type ) {
 	case TYPE_ENUM:
 	case TYPE_STRING:
-		val->val.string_val = new string(s);
+		val->val.string_val.length = s.size();
+		val->val.string_val.data = copy_string(s.c_str());
 		break;
 
 	case TYPE_BOOL:
@@ -232,7 +233,7 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 			{
 			Error(Fmt("Field: %s Invalid value for boolean: %s",
 				  field.name.c_str(), s.c_str()));
-			return false;
+			return 0;
 			}
 		break;
 
@@ -262,7 +263,7 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 		if ( pos == s.npos )
 			{
 			Error(Fmt("Invalid value for subnet: %s", s.c_str()));
-			return false;
+			return 0;
 			}
 
 		int width = atoi(s.substr(pos+1).c_str());
@@ -362,14 +363,14 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 // read the entire file and send appropriate thingies back to InputMgr
 bool Ascii::DoUpdate()
 	{
-	switch ( Mode() ) {
+	switch ( Info().mode ) {
 		case MODE_REREAD:
 			{
 			// check if the file has changed
 			struct stat sb;
-			if ( stat(Info().source.c_str(), &sb) == -1 )
+			if ( stat(Info().source, &sb) == -1 )
 				{
-				Error(Fmt("Could not get stat for %s", Info().source.c_str()));
+				Error(Fmt("Could not get stat for %s", Info().source));
 				return false;
 				}
 
@@ -389,7 +390,7 @@ bool Ascii::DoUpdate()
 			// - this is not that bad)
 			if ( file && file->is_open() )
 				{
-				if ( Mode() == MODE_STREAM )
+				if ( Info().mode == MODE_STREAM )
 					{
 					file->clear(); // remove end of file evil bits
 					if ( !ReadHeader(true) )
@@ -403,10 +404,10 @@ bool Ascii::DoUpdate()
 				file = 0;
 				}
 
-			file = new ifstream(Info().source.c_str());
+			file = new ifstream(Info().source);
 			if ( ! file->is_open() )
 				{
-				Error(Fmt("cannot open %s", Info().source.c_str()));
+				Error(Fmt("cannot open %s", Info().source));
 				return false;
 				}
 
@@ -436,6 +437,8 @@ bool Ascii::DoUpdate()
 			string s;
 			if ( ! getline(splitstream, s, separator[0]) )
 				break;
+
+			s = get_unescaped_string(s);
 
 			stringfields[pos] = s;
 			pos++;
@@ -492,13 +495,13 @@ bool Ascii::DoUpdate()
 		//printf("fpos: %d, second.num_fields: %d\n", fpos, (*it).second.num_fields);
 		assert ( fpos == NumFields() );
 
-		if ( Mode() == MODE_STREAM )
+		if ( Info().mode  == MODE_STREAM )
 			Put(fields);
 		else
 			SendEntry(fields);
 		}
 
-	if ( Mode () != MODE_STREAM )
+	if ( Info().mode != MODE_STREAM )
 		EndCurrentSend();
 
 	return true;
@@ -506,9 +509,7 @@ bool Ascii::DoUpdate()
 
 bool Ascii::DoHeartbeat(double network_time, double current_time)
 {
-	ReaderBackend::DoHeartbeat(network_time, current_time);
-
-	switch ( Mode() ) {
+	switch ( Info().mode  ) {
 		case MODE_MANUAL:
 			// yay, we do nothing :)
 			break;

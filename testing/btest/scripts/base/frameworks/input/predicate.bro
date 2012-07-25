@@ -1,5 +1,8 @@
+# (uses listen.bro just to ensure input sources are more reliably fully-read).
+# @TEST-SERIALIZE: comm
 #
-# @TEST-EXEC: bro -b %INPUT >out
+# @TEST-EXEC: btest-bg-run bro bro -b %INPUT
+# @TEST-EXEC: btest-bg-wait -k 5
 # @TEST-EXEC: btest-diff out
 
 @TEST-START-FILE input.log
@@ -16,6 +19,10 @@
 7	T
 @TEST-END-FILE
 
+@load frameworks/communication/listen
+
+global outfile: file;
+
 redef InputAscii::empty_field = "EMPTY";
 
 module A;
@@ -31,34 +38,31 @@ type Val: record {
 global servers: table[int] of Val = table();
 
 event bro_init()
-{
+	{
+	outfile = open("../out");
 	# first read in the old stuff into the table...
-	Input::add_table([$source="input.log", $name="input", $idx=Idx, $val=Val, $destination=servers, $want_record=F,
+	Input::add_table([$source="../input.log", $name="input", $idx=Idx, $val=Val, $destination=servers, $want_record=F,
 				$pred(typ: Input::Event, left: Idx, right: bool) = { return right; }
 				]);
 	Input::remove("input");
-}
+	}
 
-event Input::update_finished(name: string, source: string) {
-	if ( 1 in servers ) {
-		print "VALID";
+event Input::update_finished(name: string, source: string)
+	{
+	if ( 1 in servers )
+		print outfile, "VALID";
+	if ( 2 in servers )
+		print outfile, "VALID";
+	if ( !(3 in servers) )
+		print outfile, "VALID";
+	if ( !(4 in servers) )
+		print outfile, "VALID";
+	if ( !(5 in servers) )
+		print outfile, "VALID";
+	if ( !(6 in servers) )
+		print outfile, "VALID";
+	if ( 7 in servers )
+		print outfile, "VALID";
+	close(outfile);
+	terminate();
 	}
-	if ( 2 in servers ) {
-		print "VALID";
-	}
-	if ( !(3 in servers) ) {
-		print "VALID";
-	}
-	if ( !(4 in servers) ) {
-		print "VALID";
-	}
-	if ( !(5 in servers) ) {
-		print "VALID";
-	}
-	if ( !(6 in servers) ) {
-		print "VALID";
-	}
-	if ( 7 in servers ) {
-		print "VALID";
-	}
-}

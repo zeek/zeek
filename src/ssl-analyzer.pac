@@ -93,6 +93,7 @@ function version_ok(vers : uint16) : bool
 	case SSLv30:
 	case TLSv10:
 	case TLSv11:
+	case TLSv12:
 		return true;
 
 	default:
@@ -295,7 +296,7 @@ refine connection SSL_Conn += {
 					for ( int k = 0; k < num_ext; ++k )
 						{
 						unsigned char *pBuffer = 0;
-						uint length = 0;
+						int length = 0;
 
 						X509_EXTENSION* ex = X509_get_ext(pTemp, k);
 						if (ex)
@@ -303,14 +304,14 @@ refine connection SSL_Conn += {
 							ASN1_STRING *pString = X509_EXTENSION_get_data(ex);
 							length = ASN1_STRING_to_UTF8(&pBuffer, pString);
 							//i2t_ASN1_OBJECT(&pBuffer, length, obj)
-							// printf("extension length: %u\n", length);
+							// printf("extension length: %d\n", length);
 							// -1 indicates an error.
-							if ( length < 0 )
-								continue;
-
-							StringVal* value = new StringVal(length, (char*)pBuffer);
-							BifEvent::generate_x509_extension(bro_analyzer(),
-										bro_analyzer()->Conn(), ${rec.is_orig}, value);
+							if ( length >= 0 )
+								{
+								StringVal* value = new StringVal(length, (char*)pBuffer);
+								BifEvent::generate_x509_extension(bro_analyzer(),
+											bro_analyzer()->Conn(), ${rec.is_orig}, value);
+								}
 							OPENSSL_free(pBuffer);
 							}
 						}

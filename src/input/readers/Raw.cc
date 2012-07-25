@@ -66,7 +66,7 @@ bool Raw::OpenInput()
 	// This is defined in input/fdstream.h
 	in = new boost::fdistream(fileno(file));
 
-	if ( execute && Mode() == MODE_STREAM )
+	if ( execute && Info().mode == MODE_STREAM )
 		fcntl(fileno(file), F_SETFL, O_NONBLOCK);
 
 	return true;
@@ -100,7 +100,7 @@ bool Raw::CloseInput()
 	return true;
 	}
 
-bool Raw::DoInit(const ReaderInfo& info, ReaderMode mode, int num_fields, const Field* const* fields)
+bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fields)
 	{
 	fname = info.source;
 	mtime = 0;
@@ -108,7 +108,7 @@ bool Raw::DoInit(const ReaderInfo& info, ReaderMode mode, int num_fields, const 
 	firstrun = true;
 	bool result;
 
-	if ( info.source.length() == 0 )
+	if ( ! info.source || strlen(info.source) == 0 )
 		{
 		Error("No source path provided");
 		return false;
@@ -129,16 +129,17 @@ bool Raw::DoInit(const ReaderInfo& info, ReaderMode mode, int num_fields, const 
 		}
 
 	// do Initialization
-	char last = info.source[info.source.length()-1];
+	string source = string(info.source);
+	char last = info.source[source.length() - 1];
 	if ( last == '|' )
 		{
 		execute = true;
-		fname = info.source.substr(0, fname.length() - 1);
+		fname = source.substr(0, fname.length() - 1);
 
-		if ( (mode != MODE_MANUAL) )
+		if ( (info.mode != MODE_MANUAL) )
 			{
 			Error(Fmt("Unsupported read mode %d for source %s in execution mode",
-				  mode, fname.c_str()));
+				  info.mode, fname.c_str()));
 			return false;
 			}
 
@@ -187,7 +188,7 @@ bool Raw::DoUpdate()
 
 	else
 		{
-		switch ( Mode() ) {
+		switch ( Info().mode  ) {
 		case MODE_REREAD:
 			{
 			// check if the file has changed
@@ -210,7 +211,7 @@ bool Raw::DoUpdate()
 
 		case MODE_MANUAL:
 		case MODE_STREAM:
-			if ( Mode() == MODE_STREAM && file != NULL && in != NULL )
+			if ( Info().mode == MODE_STREAM && file != NULL && in != NULL )
 				{
 				//fpurge(file);
 				in->clear(); // remove end of file evil bits
@@ -237,7 +238,8 @@ bool Raw::DoUpdate()
 
 		// filter has exactly one text field. convert to it.
 		Value* val = new Value(TYPE_STRING, true);
-		val->val.string_val = new string(line);
+		val->val.string_val.data = copy_string(line.c_str());
+		val->val.string_val.length = line.size();
 		fields[0] = val;
 
 		Put(fields);
@@ -252,9 +254,7 @@ bool Raw::DoUpdate()
 
 bool Raw::DoHeartbeat(double network_time, double current_time)
 	{
-	ReaderBackend::DoHeartbeat(network_time, current_time);
-
-	switch ( Mode() ) {
+	switch ( Info().mode ) {
 		case MODE_MANUAL:
 			// yay, we do nothing :)
 			break;

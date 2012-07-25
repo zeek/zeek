@@ -7,8 +7,6 @@
 
 #include "threading/SerialTypes.h"
 #include "threading/MsgThread.h"
-class RemoteSerializer;
-
 
 namespace input {
 
@@ -36,7 +34,10 @@ enum ReaderMode {
 	 * for new appended data. When new data is appended is has to be sent
 	 * using the Put api functions.
 	 */
-	MODE_STREAM
+	MODE_STREAM,
+
+	/** Internal dummy mode for initialization. */
+	MODE_NONE
 };
 
 class ReaderFrontend;
@@ -72,14 +73,17 @@ public:
 	 */
 	struct ReaderInfo
 		{
-		typedef std::map<string, string> config_map;
+		// Structure takes ownership of the strings.
+		typedef std::map<const char*, const char*, CompareString> config_map;
 
 		/**
-		 * A string left to the interpretation of the reader 
+		 * A string left to the interpretation of the reader
 		 * implementation; it corresponds to the value configured on
 		 * the script-level for the logging filter.
+		 *
+		 * Structure takes ownership of the string.
 		 */
-		string source;
+		const char* source;
 
 		/**
 		 * A map of key/value pairs corresponding to the relevant
@@ -87,23 +91,45 @@ public:
 		 */
 		config_map config;
 
-		private:
-		friend class ::RemoteSerializer;
+		/**
+		 * The opening mode for the input source.
+		 */
+		ReaderMode mode;
 
-		// Note, these need to be adapted when changing the struct's
-		// fields. They serialize/deserialize the struct.
-		bool Read(SerializationFormat* fmt);
-		bool Write(SerializationFormat* fmt) const;
+		ReaderInfo()
+			{
+			source = 0;
+			mode = MODE_NONE;
+			}
+
+		ReaderInfo(const ReaderInfo& other)
+			{
+			source = other.source ? copy_string(other.source) : 0;
+			mode = other.mode;
+
+			for ( config_map::const_iterator i = other.config.begin(); i != other.config.end(); i++ )
+				config.insert(std::make_pair(copy_string(i->first), copy_string(i->second)));
+			}
+
+		~ReaderInfo()
+			{
+			delete [] source;
+
+			for ( config_map::iterator i = config.begin(); i != config.end(); i++ )
+				{
+				delete [] i->first;
+				delete [] i->second;
+				}
+			}
+
+		private:
+		const ReaderInfo& operator=(const ReaderInfo& other); // Disable.
 		};
-	
+
 	/**
 	 * One-time initialization of the reader to define the input source.
 	 *
-	 * @param source A string left to the interpretation of the
-	 * reader implementation; it corresponds to the value configured on
-	 * the script-level for the input stream.
-	 *
-	 * @param mode The opening mode for the input source.
+	 * @param @param info Meta information for the writer.
 	 *
 	 * @param num_fields Number of fields contained in \a fields.
 	 *
@@ -115,16 +141,7 @@ public:
 	 *
 	 * @return False if an error occured.
 	 */
-	bool Init(const ReaderInfo& info, ReaderMode mode, int num_fields, const threading::Field* const* fields);
-
-	/**
-	 * Finishes reading from this input stream in a regular fashion. Must
-	 * not be called if an error has been indicated earlier. After
-	 * calling this, no further reading from the stream can be performed.
-	 *
-	 * @return False if an error occured.
-	 */
-	void Close();
+	bool Init(int num_fields, const threading::Field* const* fields);
 
 	/**
 	 * Force trigger an update of the input stream. The action that will
@@ -151,13 +168,16 @@ public:
 	/**
 	 * Returns the additional reader information into the constructor.
 	 */
-	const ReaderInfo& Info() const	{ return info; }
+	const ReaderInfo& Info() const	{ return *info; }
 
 	/**
 	 * Returns the number of log fields as passed into the constructor.
 	 */
 	int NumFields() const	{ return num_fields; }
-	
+
+	// Overridden from MsgThread.
+	virtual bool OnHeartbeat(double network_time, double current_time);
+	virtual bool OnFinish(double network_time);
 
 protected:
 	// Methods that have to be overwritten by the individual readers
@@ -180,7 +200,7 @@ protected:
 	 * provides accessor methods to get them later, and they are passed
 	 * in here only for convinience.
 	 */
-	virtual bool DoInit(const ReaderInfo& info, ReaderMode mode, int arg_num_fields, const threading::Field* const* fields) = 0;
+	virtual bool DoInit(const ReaderInfo& info, int arg_num_fields, const threading::Field* const* fields) = 0;
 
 	/**
 	 * Reader-specific method implementing input finalization at
@@ -210,9 +230,9 @@ protected:
 	virtual bool DoUpdate() = 0;
 
 	/**
-	 * Returns the reader mode as passed into Init().
+	 * Triggered by regular heartbeat messages from the main thread.
 	 */
-	const ReaderMode Mode() const	{ return mode; }
+	virtual bool DoHeartbeat(double network_time, double current_time) = 0;
 
 	/**
 	 * Method allowing a reader to send a specified Bro event. Vals must
@@ -224,7 +244,7 @@ protected:
 	 *
 	 * @param vals the values to be given to the event
 	 */
-	void SendEvent(const string& name, const int num_vals, threading::Value* *vals);
+	void SendEvent(const char* name, const int num_vals, threading::Value* *vals);
 
 	// Content-sending-functions (simple mode). Include table-specific
 	// functionality that simply is not used if we have no table.
@@ -286,14 +306,6 @@ protected:
 	void EndCurrentSend();
 
 	/**
-	 * Triggered by regular heartbeat messages from the main thread.
-	 *
-	 * This method can be overridden but once must call
-	 * ReaderBackend::DoHeartbeat().
-	 */
-	virtual bool DoHeartbeat(double network_time, double current_time);
-
-	/**
 	 *  Convert a string into a TransportProto. This is just a utility
 	 *  function for Readers.
 	 *
@@ -314,8 +326,7 @@ private:
 	// from this class, it's running in a different thread!
 	ReaderFrontend* frontend;
 
-	ReaderInfo info;
-	ReaderMode mode;
+	ReaderInfo* info;
 	unsigned int num_fields;
 	const threading::Field* const * fields; // raw mapping
 

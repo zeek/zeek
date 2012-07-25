@@ -3,6 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	ssh
+#start	2012-07-20-01-49-20
 #fields	status	country
 #types	string	string
 success	unknown
@@ -10,3 +11,4 @@ failure	US
 failure	UK
 success	BR
 failure	MX
+#end	2012-07-20-01-49-20

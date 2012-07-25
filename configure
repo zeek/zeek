@@ -33,6 +33,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --disable-broccoli     don't build or install the Broccoli library
     --disable-broctl       don't install Broctl
     --disable-auxtools     don't build or install auxiliary tools
+    --disable-perftools    don't try to build with Google Perftools
     --disable-python       don't try to build python bindings for broccoli
     --disable-ruby         don't try to build ruby bindings for broccoli
 
@@ -105,6 +106,7 @@ append_cache_entry INSTALL_BROCCOLI     BOOL   true
 append_cache_entry INSTALL_BROCTL       BOOL   true
 append_cache_entry CPACK_SOURCE_IGNORE_FILES STRING
 append_cache_entry ENABLE_MOBILE_IPV6   BOOL   false
+append_cache_entry DISABLE_PERFTOOLS    BOOL   false
 
 # parse arguments
 while [ $# -ne 0 ]; do
@@ -155,6 +157,9 @@ while [ $# -ne 0 ]; do
             ;;
         --disable-auxtools)
             append_cache_entry INSTALL_AUX_TOOLS    BOOL   false
+            ;;
+        --disable-perftools)
+            append_cache_entry DISABLE_PERFTOOLS    BOOL   true
             ;;
         --disable-python)
             append_cache_entry DISABLE_PYTHON_BINDINGS     BOOL   true

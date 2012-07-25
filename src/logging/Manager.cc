@@ -6,6 +6,7 @@
 #include "../EventHandler.h"
 #include "../NetVar.h"
 #include "../Net.h"
+#include "../Type.h"
 
 #include "threading/Manager.h"
 #include "threading/SerialTypes.h"
@@ -16,6 +17,10 @@
 
 #include "writers/Ascii.h"
 #include "writers/None.h"
+
+#ifdef USE_ELASTICSEARCH
+#include "writers/ElasticSearch.h"
+#endif
 
 #ifdef USE_DATASERIES
 #include "writers/DataSeries.h"
@@ -41,6 +46,11 @@ struct WriterDefinition {
 WriterDefinition log_writers[] = {
 	{ BifEnum::Log::WRITER_NONE,  "None", 0, writer::None::Instantiate },
 	{ BifEnum::Log::WRITER_ASCII, "Ascii", 0, writer::Ascii::Instantiate },
+
+#ifdef USE_ELASTICSEARCH
+	{ BifEnum::Log::WRITER_ELASTICSEARCH, "ElasticSearch", 0, writer::ElasticSearch::Instantiate },
+#endif
+
 #ifdef USE_DATASERIES
 	{ BifEnum::Log::WRITER_DATASERIES, "DataSeries", 0, writer::DataSeries::Instantiate },
 #endif
@@ -84,7 +94,8 @@ struct Manager::WriterInfo {
 	double interval;
 	Func* postprocessor;
 	WriterFrontend* writer;
-	WriterBackend::WriterInfo info;
+	WriterBackend::WriterInfo* info;
+	string instantiating_filter;
 	};
 
 struct Manager::Stream {
@@ -127,6 +138,7 @@ Manager::Stream::~Stream()
 
 		Unref(winfo->type);
 		delete winfo->writer;
+		delete winfo->info;
 		delete winfo;
 		}
 
@@ -205,7 +217,6 @@ WriterBackend* Manager::CreateBackend(WriterFrontend* frontend, bro_int_t type)
 	WriterBackend* backend = (*ld->factory)(frontend);
 	assert(backend);
 
-	frontend->ty_name = ld->name;
 	return backend;
 	}
 
@@ -485,18 +496,17 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 			return false;
 			}
 
-		threading::Field* field = new threading::Field();
-		field->name = new_path;
-		field->type = t->Tag();
-		field->optional = rt->FieldDecl(i)->FindAttr(ATTR_OPTIONAL);
+		TypeTag st = TYPE_VOID;
 
-		if ( field->type == TYPE_TABLE )
-			field->subtype = t->AsSetType()->Indices()->PureType()->Tag();
+		if ( t->Tag() == TYPE_TABLE )
+			st = t->AsSetType()->Indices()->PureType()->Tag();
 
-		else if ( field->type == TYPE_VECTOR )
-			field->subtype = t->AsVectorType()->YieldType()->Tag();
+		else if ( t->Tag() == TYPE_VECTOR )
+			st = t->AsVectorType()->YieldType()->Tag();
 
-		filter->fields[filter->num_fields - 1] = field;
+		bool optional = rt->FieldDecl(i)->FindAttr(ATTR_OPTIONAL);
+
+		filter->fields[filter->num_fields - 1] = new threading::Field(new_path.c_str(), 0, t->Tag(), st, optional);
 		}
 
 	return true;
@@ -603,7 +613,7 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 		{
 		threading::Field* field = filter->fields[i];
 		DBG_LOG(DBG_LOGGING, "   field %10s: %s",
-			field->name.c_str(), type_name(field->type));
+			field->name, type_name(field->type));
 		}
 #endif
 
@@ -764,8 +774,18 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 		WriterFrontend* writer = 0;
 
 		if ( w != stream->writers.end() )
+			{
+			if ( w->second->instantiating_filter != filter->name )
+				{
+				reporter->Warning("Skipping write to filter '%s' on path '%s'"
+				  " because filter '%s' has already instantiated the same"
+				  " writer type for that path", filter->name.c_str(),
+				  filter->path.c_str(), w->second->instantiating_filter.c_str());
+				continue;
+				}
 			// We know this writer already.
 			writer = w->second->writer;
+			}
 
 		else
 			{
@@ -778,8 +798,9 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 			for ( int j = 0; j < filter->num_fields; ++j )
 				arg_fields[j] = new threading::Field(*filter->fields[j]);
 
-			WriterBackend::WriterInfo info;
-			info.path = path;
+			WriterBackend::WriterInfo* info = new WriterBackend::WriterInfo;
+			info->path = copy_string(path.c_str());
+			info->network_time = network_time;
 
 			HashKey* k;
 			IterCookie* c = filter->config->AsTable()->InitForIteration();
@@ -790,7 +811,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 				ListVal* index = filter->config->RecoverIndex(k);
 				string key = index->Index(0)->AsString()->CheckString();
 				string value = v->Value()->AsString()->CheckString();
-				info.config.insert(std::make_pair(key, value));
+				info->config.insert(std::make_pair(copy_string(key.c_str()), copy_string(value.c_str())));
 				Unref(index);
 				delete k;
 				}
@@ -799,7 +820,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 
 			writer = CreateWriter(stream->id, filter->writer,
 					      info, filter->num_fields,
-					      arg_fields, filter->local, filter->remote);
+					      arg_fields, filter->local, filter->remote, filter->name);
 
 			if ( ! writer )
 				{
@@ -852,11 +873,16 @@ threading::Value* Manager::ValToLogVal(Val* val, BroType* ty)
 			val->Type()->AsEnumType()->Lookup(val->InternalInt());
 
 		if ( s )
-			lval->val.string_val = new string(s);
+			{
+			lval->val.string_val.data = copy_string(s);
+			lval->val.string_val.length = strlen(s);
+			}
+
 		else
 			{
 			val->Type()->Error("enum type does not contain value", val);
-			lval->val.string_val = new string();
+			lval->val.string_val.data = copy_string("");
+			lval->val.string_val.length = 0;
 			}
 		break;
 		}
@@ -888,15 +914,20 @@ threading::Value* Manager::ValToLogVal(Val* val, BroType* ty)
 	case TYPE_STRING:
 		{
 		const BroString* s = val->AsString();
-		lval->val.string_val =
-			new string((const char*) s->Bytes(), s->Len());
+		char* buf = new char[s->Len()];
+		memcpy(buf, s->Bytes(), s->Len());
+
+		lval->val.string_val.data = buf;
+		lval->val.string_val.length = s->Len();
 		break;
 		}
 
 	case TYPE_FILE:
 		{
 		const BroFile* f = val->AsFile();
-		lval->val.string_val = new string(f->Name());
+		string s = f->Name();
+		lval->val.string_val.data = copy_string(s.c_str());
+		lval->val.string_val.length = s.size();
 		break;
 		}
 
@@ -905,7 +936,9 @@ threading::Value* Manager::ValToLogVal(Val* val, BroType* ty)
 		ODesc d;
 		const Func* f = val->AsFunc();
 		f->Describe(&d);
-		lval->val.string_val = new string(d.Description());
+		const char* s = d.Description();
+		lval->val.string_val.data = copy_string(s);
+		lval->val.string_val.length = strlen(s);
 		break;
 		}
 
@@ -985,34 +1018,33 @@ threading::Value** Manager::RecordToFilterVals(Stream* stream, Filter* filter,
 	return vals;
 	}
 
-WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, const WriterBackend::WriterInfo& info,
-				int num_fields, const threading::Field* const*  fields, bool local, bool remote)
+WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBackend::WriterInfo* info,
+				int num_fields, const threading::Field* const*  fields, bool local, bool remote,
+				const string& instantiating_filter)
 	{
 	Stream* stream = FindStream(id);
 
 	if ( ! stream )
 		// Don't know this stream.
-		return false;
+		return 0;
 
 	Stream::WriterMap::iterator w =
-		stream->writers.find(Stream::WriterPathPair(writer->AsEnum(), info.path));
+		stream->writers.find(Stream::WriterPathPair(writer->AsEnum(), info->path));
 
 	if ( w != stream->writers.end() )
 		// If we already have a writer for this. That's fine, we just
 		// return it.
 		return w->second->writer;
 
-	WriterFrontend* writer_obj = new WriterFrontend(id, writer, local, remote);
-	assert(writer_obj);
-
 	WriterInfo* winfo = new WriterInfo;
 	winfo->type = writer->Ref()->AsEnumVal();
-	winfo->writer = writer_obj;
+	winfo->writer = 0;
 	winfo->open_time = network_time;
 	winfo->rotation_timer = 0;
 	winfo->interval = 0;
 	winfo->postprocessor = 0;
 	winfo->info = info;
+	winfo->instantiating_filter = instantiating_filter;
 
 	// Search for a corresponding filter for the writer/path pair and use its
 	// rotation settings.  If no matching filter is found, fall back on
@@ -1024,7 +1056,7 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, const Writer
 		{
 		Filter* f = *it;
 		if ( f->writer->AsEnum() == writer->AsEnum() &&
-		     f->path == winfo->writer->info.path )
+		     f->path == info->path )
 			{
 			found_filter_match = true;
 			winfo->interval = f->interval;
@@ -1040,10 +1072,8 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, const Writer
 		winfo->interval = id->ID_Val()->AsInterval();
 		}
 
-	InstallRotationTimer(winfo);
-
 	stream->writers.insert(
-		Stream::WriterMap::value_type(Stream::WriterPathPair(writer->AsEnum(), info.path),
+		Stream::WriterMap::value_type(Stream::WriterPathPair(writer->AsEnum(), info->path),
 		winfo));
 
 	// Still need to set the WriterInfo's rotation parameters, which we
@@ -1051,12 +1081,15 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, const Writer
 	const char* base_time = log_rotate_base_time ?
 		log_rotate_base_time->AsString()->CheckString() : 0;
 
-	winfo->info.rotation_interval = winfo->interval;
-	winfo->info.rotation_base = parse_rotate_base_time(base_time);
+	winfo->info->rotation_interval = winfo->interval;
+	winfo->info->rotation_base = parse_rotate_base_time(base_time);
 
-	writer_obj->Init(winfo->info, num_fields, fields);
+	winfo->writer = new WriterFrontend(*winfo->info, id, writer, local, remote);
+	winfo->writer->Init(num_fields, fields);
 
-	return writer_obj;
+	InstallRotationTimer(winfo);
+
+	return winfo->writer;
 	}
 
 void Manager::DeleteVals(int num_fields, threading::Value** vals)
@@ -1134,7 +1167,7 @@ void Manager::SendAllWritersTo(RemoteSerializer::PeerID peer)
 			EnumVal writer_val(i->first.first, BifType::Enum::Log::Writer);
 			remote_serializer->SendLogCreateWriter(peer, (*s)->id,
 							       &writer_val,
-							       i->second->info,
+							       *i->second->info,
 							       writer->NumFields(),
 							       writer->Fields());
 			}
@@ -1167,7 +1200,7 @@ bool Manager::Flush(EnumVal* id)
 
 	for ( Stream::WriterMap::iterator i = stream->writers.begin();
 	      i != stream->writers.end(); i++ )
-		i->second->writer->Flush();
+		i->second->writer->Flush(network_time);
 
 	RemoveDisabledWriters(stream);
 
@@ -1270,14 +1303,14 @@ void Manager::InstallRotationTimer(WriterInfo* winfo)
 		timer_mgr->Add(winfo->rotation_timer);
 
 		DBG_LOG(DBG_LOGGING, "Scheduled rotation timer for %s to %.6f",
-			winfo->writer->Name().c_str(), winfo->rotation_timer->Time());
+			winfo->writer->Name(), winfo->rotation_timer->Time());
 		}
 	}
 
 void Manager::Rotate(WriterInfo* winfo)
 	{
 	DBG_LOG(DBG_LOGGING, "Rotating %s at %.6f",
-		winfo->writer->Name().c_str(), network_time);
+		winfo->writer->Name(), network_time);
 
 	// Build a temporary path for the writer to move the file to.
 	struct tm tm;
@@ -1288,15 +1321,14 @@ void Manager::Rotate(WriterInfo* winfo)
 	localtime_r(&teatime, &tm);
 	strftime(buf, sizeof(buf), date_fmt, &tm);
 
-	string tmp = string(fmt("%s-%s", winfo->writer->Info().path.c_str(), buf));
-
 	// Trigger the rotation.
+	const char* tmp = fmt("%s-%s", winfo->writer->Info().path, buf);
 	winfo->writer->Rotate(tmp, winfo->open_time, network_time, terminating);
 
 	++rotations_pending;
 	}
 
-bool Manager::FinishedRotation(WriterFrontend* writer, string new_name, string old_name,
+bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, const char* old_name,
 		      double open, double close, bool terminating)
 	{
 	--rotations_pending;
@@ -1306,7 +1338,7 @@ bool Manager::FinishedRotation(WriterFrontend* writer, string new_name, string o
 		return true;
 
 	DBG_LOG(DBG_LOGGING, "Finished rotating %s at %.6f, new name %s",
-		writer->Name().c_str(), network_time, new_name.c_str());
+		writer->Name(), network_time, new_name);
 
 	WriterInfo* winfo = FindWriter(writer);
 	if ( ! winfo )
@@ -1315,8 +1347,8 @@ bool Manager::FinishedRotation(WriterFrontend* writer, string new_name, string o
 	// Create the RotationInfo record.
 	RecordVal* info = new RecordVal(BifType::Record::Log::RotationInfo);
 	info->Assign(0, winfo->type->Ref());
-	info->Assign(1, new StringVal(new_name.c_str()));
-	info->Assign(2, new StringVal(winfo->writer->Info().path.c_str()));
+	info->Assign(1, new StringVal(new_name));
+	info->Assign(2, new StringVal(winfo->writer->Info().path));
 	info->Assign(3, new Val(open, TYPE_TIME));
 	info->Assign(4, new Val(close, TYPE_TIME));
 	info->Assign(5, new Val(terminating, TYPE_BOOL));

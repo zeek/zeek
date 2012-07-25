@@ -910,7 +910,7 @@ Val* RecordType::FieldDefault(int field) const
 	const TypeDecl* td = FieldDecl(field);
 
 	if ( ! td->attrs )
-		return false;
+		return 0;
 
 	const Attr* def_attr = td->attrs->FindAttr(ATTR_DEFAULT);
 

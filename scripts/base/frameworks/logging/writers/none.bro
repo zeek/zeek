@@ -3,8 +3,8 @@
 module LogNone;
 
 export {
-	## If true, output some debugging output that can be useful for unit
-        ##testing the logging framework.
+	## If true, output debugging output that can be useful for unit
+        ## testing the logging framework.
 	const debug = F &redef;
 }
 

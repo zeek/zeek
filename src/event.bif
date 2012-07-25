@@ -157,7 +157,7 @@ event new_connection%(c: connection%);
 ## e: The new encapsulation.
 event tunnel_changed%(c: connection, e: EncapsulatingConnVector%);
 
-## Generated when reassembly starts for a TCP connection. The event is raised
+## Generated when reassembly starts for a TCP connection. This event is raised
 ## at the moment when Bro's TCP analyzer enables stream reassembly for a
 ## connection.
 ##
@@ -522,7 +522,7 @@ event esp_packet%(p: pkt_hdr%);
 ## .. bro:see:: new_packet tcp_packet ipv6_ext_headers
 event mobile_ipv6_message%(p: pkt_hdr%);
 
-## Genereated for any IPv6 packet encapsulated in a Teredo tunnel.
+## Generated for any IPv6 packet encapsulated in a Teredo tunnel.
 ## See :rfc:`4380` for more information about the Teredo protocol.
 ##
 ## outer: The Teredo tunnel connection.
@@ -532,10 +532,10 @@ event mobile_ipv6_message%(p: pkt_hdr%);
 ## .. bro:see:: teredo_authentication teredo_origin_indication teredo_bubble
 ##
 ## .. note:: Since this event may be raised on a per-packet basis, handling
-##    it may become particular expensive for real-time analysis.
+##    it may become particularly expensive for real-time analysis.
 event teredo_packet%(outer: connection, inner: teredo_hdr%);
 
-## Genereated for IPv6 packets encapsulated in a Teredo tunnel that
+## Generated for IPv6 packets encapsulated in a Teredo tunnel that
 ## use the Teredo authentication encapsulation method.
 ## See :rfc:`4380` for more information about the Teredo protocol.
 ##
@@ -546,10 +546,10 @@ event teredo_packet%(outer: connection, inner: teredo_hdr%);
 ## .. bro:see:: teredo_packet teredo_origin_indication teredo_bubble
 ##
 ## .. note:: Since this event may be raised on a per-packet basis, handling
-##    it may become particular expensive for real-time analysis.
+##    it may become particularly expensive for real-time analysis.
 event teredo_authentication%(outer: connection, inner: teredo_hdr%);
 
-## Genereated for IPv6 packets encapsulated in a Teredo tunnel that
+## Generated for IPv6 packets encapsulated in a Teredo tunnel that
 ## use the Teredo origin indication encapsulation method.
 ## See :rfc:`4380` for more information about the Teredo protocol.
 ##
@@ -560,10 +560,10 @@ event teredo_authentication%(outer: connection, inner: teredo_hdr%);
 ## .. bro:see:: teredo_packet teredo_authentication teredo_bubble
 ##
 ## .. note:: Since this event may be raised on a per-packet basis, handling
-##    it may become particular expensive for real-time analysis.
+##    it may become particularly expensive for real-time analysis.
 event teredo_origin_indication%(outer: connection, inner: teredo_hdr%);
 
-## Genereated for Teredo bubble packets.  That is, IPv6 packets encapsulated
+## Generated for Teredo bubble packets.  That is, IPv6 packets encapsulated
 ## in a Teredo tunnel that have a Next Header value of :bro:id:`IPPROTO_NONE`.
 ## See :rfc:`4380` for more information about the Teredo protocol.
 ##
@@ -574,15 +574,15 @@ event teredo_origin_indication%(outer: connection, inner: teredo_hdr%);
 ## .. bro:see:: teredo_packet teredo_authentication teredo_origin_indication
 ##
 ## .. note:: Since this event may be raised on a per-packet basis, handling
-##    it may become particular expensive for real-time analysis.
+##    it may become particularly expensive for real-time analysis.
 event teredo_bubble%(outer: connection, inner: teredo_hdr%);
 
-## Generated for every packet that has non-empty transport-layer payload. This is a
-## very low-level and expensive event that should be avoided when at all possible.
-## It's usually  infeasible to handle when processing even medium volumes of
-## traffic in real-time. It's even worse than :bro:id:`new_packet`. That said, if
-## you work from a trace and want to do some packet-level analysis, it may come in
-## handy.
+## Generated for every packet that has a non-empty transport-layer payload.
+## This is a very low-level and expensive event that should be avoided when
+## at all possible.  It's usually infeasible to handle when processing even
+## medium volumes of traffic in real-time. It's even worse than
+## :bro:id:`new_packet`. That said, if you work from a trace and want to
+## do some packet-level analysis, it may come in handy.
 ##
 ## c: The connection the packet is part of.
 ##
@@ -1054,9 +1054,11 @@ event icmp_parameter_problem%(c: connection, icmp: icmp_conn, code: count, conte
 ## icmp: Additional ICMP-specific information augmenting the standard connection
 ##       record *c*.
 ##
+## options: Any Neighbor Discovery options included with message (:rfc:`4861`).
+##
 ## .. bro:see:: icmp_router_advertisement
 ##    icmp_neighbor_solicitation icmp_neighbor_advertisement icmp_redirect
-event icmp_router_solicitation%(c: connection, icmp: icmp_conn%);
+event icmp_router_solicitation%(c: connection, icmp: icmp_conn, options: icmp6_nd_options%);
 
 ## Generated for ICMP *router advertisement* messages.
 ##
@@ -1090,9 +1092,11 @@ event icmp_router_solicitation%(c: connection, icmp: icmp_conn%);
 ##
 ## retrans_timer: How long a host should wait before retransmitting.
 ##
+## options: Any Neighbor Discovery options included with message (:rfc:`4861`).
+##
 ## .. bro:see:: icmp_router_solicitation
 ##    icmp_neighbor_solicitation icmp_neighbor_advertisement icmp_redirect
-event icmp_router_advertisement%(c: connection, icmp: icmp_conn, cur_hop_limit: count, managed: bool, other: bool, home_agent: bool, pref: count, proxy: bool, rsv: count, router_lifetime: interval, reachable_time: interval, retrans_timer: interval%);
+event icmp_router_advertisement%(c: connection, icmp: icmp_conn, cur_hop_limit: count, managed: bool, other: bool, home_agent: bool, pref: count, proxy: bool, rsv: count, router_lifetime: interval, reachable_time: interval, retrans_timer: interval, options: icmp6_nd_options%);
 
 ## Generated for ICMP *neighbor solicitation* messages.
 ##
@@ -1107,9 +1111,11 @@ event icmp_router_advertisement%(c: connection, icmp: icmp_conn, cur_hop_limit: 
 ##
 ## tgt: The IP address of the target of the solicitation.
 ##
+## options: Any Neighbor Discovery options included with message (:rfc:`4861`).
+##
 ## .. bro:see:: icmp_router_solicitation icmp_router_advertisement
 ##    icmp_neighbor_advertisement icmp_redirect
-event icmp_neighbor_solicitation%(c: connection, icmp: icmp_conn, tgt:addr%);
+event icmp_neighbor_solicitation%(c: connection, icmp: icmp_conn, tgt: addr, options: icmp6_nd_options%);
 
 ## Generated for ICMP *neighbor advertisement* messages.
 ##
@@ -1131,9 +1137,11 @@ event icmp_neighbor_solicitation%(c: connection, icmp: icmp_conn, tgt:addr%);
 ## tgt: the Target Address in the soliciting message or the address whose
 ##      link-layer address has changed for unsolicited adverts.
 ##
+## options: Any Neighbor Discovery options included with message (:rfc:`4861`).
+##
 ## .. bro:see:: icmp_router_solicitation icmp_router_advertisement
 ##    icmp_neighbor_solicitation icmp_redirect
-event icmp_neighbor_advertisement%(c: connection, icmp: icmp_conn, router: bool, solicited: bool, override: bool, tgt:addr%);
+event icmp_neighbor_advertisement%(c: connection, icmp: icmp_conn, router: bool, solicited: bool, override: bool, tgt: addr, options: icmp6_nd_options%);
 
 ## Generated for ICMP *redirect* messages.
 ##
@@ -1151,9 +1159,11 @@ event icmp_neighbor_advertisement%(c: connection, icmp: icmp_conn, router: bool,
 ##
 ## dest: The address of the destination which is redirected to the target.
 ##
+## options: Any Neighbor Discovery options included with message (:rfc:`4861`).
+##
 ## .. bro:see:: icmp_router_solicitation icmp_router_advertisement
 ##    icmp_neighbor_solicitation icmp_neighbor_advertisement
-event icmp_redirect%(c: connection, icmp: icmp_conn, tgt: addr, dest: addr%);
+event icmp_redirect%(c: connection, icmp: icmp_conn, tgt: addr, dest: addr, options: icmp6_nd_options%);
 
 ## Generated when a TCP connection terminated, passing on statistics about the
 ## two endpoints. This event is always generated when Bro flushes the internal
@@ -6216,13 +6226,12 @@ event signature_match%(state: signature_state, msg: string, data: string%);
 ##
 ## request_type: The type of the request.
 ##
-## dstaddr: Address that the tunneled traffic should be sent to.
-##
-## dstname: DNS name of the host that the tunneled traffic should be sent to.
+## sa: Address that the tunneled traffic should be sent to.
 ##
 ## p: The destination port for the proxied traffic.
 ##
-## user: Username given for the SOCKS connection.  This is not yet implemented for SOCKSv5.
+## user: Username given for the SOCKS connection.  This is not yet implemented
+##       for SOCKSv5.
 event socks_request%(c: connection, version: count, request_type: count, sa: SOCKS::Address, p: port, user: string%);
 
 ## Generated when a SOCKS reply is analyzed.
@@ -6233,9 +6242,7 @@ event socks_request%(c: connection, version: count, request_type: count, sa: SOC
 ##
 ## reply: The status reply from the server.
 ##
-## dstaddr: The address that the server sent the traffic to.
-##
-## dstname: The name the server sent the traffic to.  Only applicable for SOCKSv5.
+## sa: The address that the server sent the traffic to.
 ##
 ## p: The destination port for the proxied traffic.
 event socks_reply%(c: connection, version: count, reply: count, sa: SOCKS::Address, p: port%);

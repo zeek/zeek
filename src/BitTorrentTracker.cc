@@ -215,9 +215,9 @@ void BitTorrentTracker_Analyzer::Undelivered(int seq, int len, bool orig)
 		stop_resp = true;
 	}
 
-void BitTorrentTracker_Analyzer::EndpointEOF(TCP_Reassembler* endp)
+void BitTorrentTracker_Analyzer::EndpointEOF(bool is_orig)
 	{
-	TCP_ApplicationAnalyzer::EndpointEOF(endp);
+	TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
 	}
 
 void BitTorrentTracker_Analyzer::InitBencParser(void)

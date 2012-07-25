@@ -91,7 +91,9 @@ endif ()
 set(USE_PERFTOOLS false)
 set(USE_PERFTOOLS_DEBUG false)
 
-find_package(GooglePerftools)
+if (NOT DISABLE_PERFTOOLS)
+   find_package(GooglePerftools)
+endif ()
 
 if (GOOGLEPERFTOOLS_FOUND)
     include_directories(BEFORE ${GooglePerftools_INCLUDE_DIR})
@@ -120,6 +122,17 @@ if (LINTEL_FOUND AND DATASERIES_FOUND AND LIBXML2_FOUND)
 	list(APPEND OPTLIBS ${Lintel_LIBRARIES})
 	list(APPEND OPTLIBS ${DataSeries_LIBRARIES})
 	list(APPEND OPTLIBS ${LibXML2_LIBRARIES})
+endif()
+
+set(USE_ELASTICSEARCH false)
+set(USE_CURL false)
+find_package(CURL)
+
+if (CURL_FOUND)
+  set(USE_ELASTICSEARCH true)
+  set(USE_CURL true)
+  include_directories(BEFORE ${CURL_INCLUDE_DIR})
+  list(APPEND OPTLIBS ${CURL_LIBRARIES})
 endif()
 
 if (ENABLE_PERFTOOLS_DEBUG)
@@ -213,7 +226,10 @@ message(
     "\nGeoIP:             ${USE_GEOIP}"
     "\nGoogle perftools:  ${USE_PERFTOOLS}"
     "\n       debugging:  ${USE_PERFTOOLS_DEBUG}"
+    "\ncURL:              ${USE_CURL}"
+    "\n"
     "\nDataSeries:        ${USE_DATASERIES}"
+    "\nElasticSearch:     ${USE_ELASTICSEARCH}"
     "\n"
     "\n================================================================\n"
 )

@@ -45,7 +45,7 @@ private:
 	bool UpdateIndex(double now, double rinterval, double rbase);
 
 	CURL* HTTPSetup();
-	bool HTTPReceive(void* ptr, int size, int nmemb, void* userdata);
+	size_t HTTPReceive(void* ptr, int size, int nmemb, void* userdata);
 	bool HTTPSend(CURL *handle);
 
 	// Buffers, etc.

@@ -86,6 +86,7 @@ struct Manager::WriterInfo {
 	Func* postprocessor;
 	WriterFrontend* writer;
 	WriterBackend::WriterInfo* info;
+	string instantiating_filter;
 	};
 
 struct Manager::Stream {
@@ -764,8 +765,18 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 		WriterFrontend* writer = 0;
 
 		if ( w != stream->writers.end() )
+			{
+			if ( w->second->instantiating_filter != filter->name )
+				{
+				reporter->Warning("Skipping write to filter '%s' on path '%s'"
+				  " because filter '%s' has already instantiated the same"
+				  " writer type for that path", filter->name.c_str(),
+				  filter->path.c_str(), w->second->instantiating_filter.c_str());
+				continue;
+				}
 			// We know this writer already.
 			writer = w->second->writer;
+			}
 
 		else
 			{
@@ -800,7 +811,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 
 			writer = CreateWriter(stream->id, filter->writer,
 					      info, filter->num_fields,
-					      arg_fields, filter->local, filter->remote);
+					      arg_fields, filter->local, filter->remote, filter->name);
 
 			if ( ! writer )
 				{
@@ -999,7 +1010,8 @@ threading::Value** Manager::RecordToFilterVals(Stream* stream, Filter* filter,
 	}
 
 WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBackend::WriterInfo* info,
-				int num_fields, const threading::Field* const*  fields, bool local, bool remote)
+				int num_fields, const threading::Field* const*  fields, bool local, bool remote,
+				const string& instantiating_filter)
 	{
 	Stream* stream = FindStream(id);
 
@@ -1023,6 +1035,7 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
 	winfo->interval = 0;
 	winfo->postprocessor = 0;
 	winfo->info = info;
+	winfo->instantiating_filter = instantiating_filter;
 
 	// Search for a corresponding filter for the writer/path pair and use its
 	// rotation settings.  If no matching filter is found, fall back on

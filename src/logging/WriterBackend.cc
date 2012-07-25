@@ -201,7 +201,6 @@ bool WriterBackend::Write(int arg_num_fields, int num_writes, Value*** vals)
 		return false;
 		}
 
-#ifdef DEBUG
 	// Double-check all the types match.
 	for ( int j = 0; j < num_writes; j++ )
 		{
@@ -209,17 +208,17 @@ bool WriterBackend::Write(int arg_num_fields, int num_writes, Value*** vals)
 			{
 			if ( vals[j][i]->type != fields[i]->type )
 				{
+#ifdef DEBUG
 				const char* msg = Fmt("Field type doesn't match in WriterBackend::Write() (%d vs. %d)",
 						      vals[j][i]->type, fields[i]->type);
 				Debug(DBG_LOGGING, msg);
-
+#endif
 				DisableFrontend();
 				DeleteVals(num_writes, vals);
 				return false;
 				}
 			}
 		}
-#endif
 
 	bool success = true;
 

@@ -1816,7 +1816,7 @@ int Manager::CopyValue(char *data, const int startpos, const Value* val)
 
 	case TYPE_ADDR:
 		{
-		int length;
+		int length = 0;
 		switch ( val->val.addr_val.family ) {
 		case IPv4:
 			length = sizeof(val->val.addr_val.in.in4);
@@ -1837,7 +1837,7 @@ int Manager::CopyValue(char *data, const int startpos, const Value* val)
 
 	case TYPE_SUBNET:
 		{
-		int length;
+		int length = 0;
 		switch ( val->val.subnet_val.prefix.family ) {
 		case IPv4:
 			length = sizeof(val->val.addr_val.in.in4);
@@ -1968,7 +1968,7 @@ Val* Manager::ValueToVal(const Value* val, BroType* request_type)
 
 	case TYPE_ADDR:
 		{
-		IPAddr* addr;
+		IPAddr* addr = 0;
 		switch ( val->val.addr_val.family ) {
 		case IPv4:
 			addr = new IPAddr(val->val.addr_val.in.in4);
@@ -1989,7 +1989,7 @@ Val* Manager::ValueToVal(const Value* val, BroType* request_type)
 
 	case TYPE_SUBNET:
 		{
-		IPAddr* addr;
+		IPAddr* addr = 0;
 		switch ( val->val.subnet_val.prefix.family ) {
 		case IPv4:
 			addr = new IPAddr(val->val.subnet_val.prefix.in.in4);

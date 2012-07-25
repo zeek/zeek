@@ -742,9 +742,10 @@ FileSerializer::~FileSerializer()
 		io->Flush();
 
 	delete [] file;
-	delete io;
 
-	if ( fd >= 0 )
+	if ( io )
+		delete io;  // destructor will call close() on fd
+	else if ( fd >= 0 )
 		close(fd);
 	}
 
@@ -808,7 +809,7 @@ void FileSerializer::CloseFile()
 	if ( io )
 		io->Flush();
 
-	if ( fd >= 0 )
+	if ( fd >= 0 && ! io ) // destructor of io calls close() on fd
 		close(fd);
 	fd = -1;
 

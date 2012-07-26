@@ -70,6 +70,16 @@ private:
 	Type type;
 };
 
+// A message from the the child to the main process, requesting suicide.
+class KillMeMessage : public OutputMessage<MsgThread>
+{
+public:
+	KillMeMessage(MsgThread* thread)
+		: OutputMessage<MsgThread>("ReporterMessage", thread) 	{}
+
+	virtual bool Process()	{ thread_mgr->KillThread(Object()); return true; }
+};
+
 #ifdef DEBUG
 // A debug message from the child to be passed on to the DebugLogger.
 class DebugMessage : public OutputMessage<MsgThread>
@@ -346,16 +356,20 @@ void MsgThread::Run()
 
 		if ( ! result )
 			{
-			string s = Fmt("%s failed, terminating thread (MsgThread)", Name());
-			Error(s.c_str());
-			break;
+			Error("terminating thread");
+
+			// This will eventually kill this thread, but only
+			// after all other outgoing messages (in particular
+			// error messages have been processed by then main
+			// thread).
+			SendOut(new KillMeMessage(this));
 			}
 		}
 
 	// In case we haven't send the finish method yet, do it now. Reading
 	// global network_time here should be fine, it isn't changing
 	// anymore.
-	if ( ! finished )
+	if ( ! finished && ! Killed() )
 		{
 		OnFinish(network_time);
 		Finished();

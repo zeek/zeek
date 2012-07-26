@@ -74,6 +74,16 @@ public:
 	 */
 	void ForceProcessing() { Process(); }
 
+	/**
+	 * Signals a specific threads to terminate immediately.
+	 */
+	void KillThread(BasicThread* thread);
+
+	/**
+	 * Signals all threads to terminate immediately.
+	 */
+	void KillThreads();
+
 protected:
 	friend class BasicThread;
 	friend class MsgThread;
@@ -105,13 +115,6 @@ protected:
 	 * Part of the IOSource interface.
 	 */
 	virtual double NextTimestamp(double* network_time);
-
-	/**
-	 * Kills all thread immediately. Note that this may cause race conditions
-	 * if a child thread currently holds a lock that might block somebody
-	 * else.
-	 */
-	virtual void KillThreads();
 
 	/**
 	 * Part of the IOSource interface.

@@ -758,22 +758,43 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 #endif
 			}
 
+		Stream::WriterPathPair wpp(filter->writer->AsEnum(), path);
+
 		// See if we already have a writer for this path.
-		Stream::WriterMap::iterator w =
-			stream->writers.find(Stream::WriterPathPair(filter->writer->AsEnum(), path));
+		Stream::WriterMap::iterator w = stream->writers.find(wpp);
+
+		if ( w != stream->writers.end() &&
+		     w->second->instantiating_filter != filter->name )
+			{
+			// Auto-correct path due to conflict with another filter over the
+			// same writer/path pair
+			string instantiator = w->second->instantiating_filter;
+			string new_path;
+			unsigned int i = 2;
+
+			do {
+				char num[32];
+				snprintf(num, sizeof(num), "-%u", i++);
+				new_path = path + num;
+				wpp.second = new_path;
+				w = stream->writers.find(wpp);
+			} while ( w != stream->writers.end());
+
+			Unref(filter->path_val);
+			filter->path_val = new StringVal(new_path.c_str());
+
+			reporter->Warning("Write using filter '%s' on path '%s' changed to"
+			  " use new path '%s' to avoid conflict with filter '%s'",
+			  filter->name.c_str(), path.c_str(), new_path.c_str(),
+			  instantiator.c_str());
+
+			path = filter->path = filter->path_val->AsString()->CheckString();
+			}
 
 		WriterFrontend* writer = 0;
 
 		if ( w != stream->writers.end() )
 			{
-			if ( w->second->instantiating_filter != filter->name )
-				{
-				reporter->Warning("Skipping write to filter '%s' on path '%s'"
-				  " because filter '%s' has already instantiated the same"
-				  " writer type for that path", filter->name.c_str(),
-				  filter->path.c_str(), w->second->instantiating_filter.c_str());
-				continue;
-				}
 			// We know this writer already.
 			writer = w->second->writer;
 			}

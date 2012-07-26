@@ -96,6 +96,12 @@ export {
 		## file name. Generally, filenames are expected to given
 		## without any extensions; writers will add appropiate
 		## extensions automatically.
+		##
+		## If this path is found to conflict with another filter's
+		## for the same writer type, it is automatically corrected
+		## by appending "-N", where N is the smallest integer greater
+		## or equal to 2 that allows the corrected path name to not
+		## conflict with another filter's.
 		path: string &optional;
 
 		## A function returning the output path for recording entries
@@ -115,7 +121,10 @@ export {
 		## rec: An instance of the streams's ``columns`` type with its
 		##      fields set to the values to be logged.
 		##
-		## Returns: The path to be used for the filter.
+		## Returns: The path to be used for the filter, which will be subject
+		##          to the same automatic correction rules as the *path*
+		##          field of :bro:type:`Log::Filter` in the case of conflicts
+		##          with other filters trying to use the same writer/path pair.
 		path_func: function(id: ID, path: string, rec: any): string &optional;
 
 		## Subset of column names to record. If not given, all

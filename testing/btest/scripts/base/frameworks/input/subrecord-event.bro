@@ -59,7 +59,7 @@ event line(description: Input::EventDescription, tpe: Input::Event, value: Val)
 	{
 	print outfile, value;
 	try = try + 1;
-	if ( try == 7 )
+	if ( try == 1 )
 		{
 		close(outfile);
 		terminate();
@@ -70,8 +70,6 @@ event bro_init()
 	{
 	try = 0;	
 	outfile = open("../out");
-	# first read in the old stuff into the table...
 	Input::add_event([$source="../input.log", $name="ssh", $fields=Val, $ev=line, $want_record=T]);
 	Input::remove("ssh");
-	print "Hi";
 	}

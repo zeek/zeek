@@ -1,4 +1,13 @@
 
+2.0-884 | 2012-07-26 14:33:21 -0700
+
+  * Add comprehensive error handling for close() calls. (Jon Siwek)
+    
+  * Add more test cases for input framework. (Bernhard Amann)
+
+  * Input framework: make error output for non-matching event types
+    much more verbose. (Bernhard Amann)
+
 2.0-877 | 2012-07-25 17:20:34 -0700
 
   * Fix double close() in FilerSerializer class. (Jon Siwek)

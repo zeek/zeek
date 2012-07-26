@@ -359,10 +359,10 @@ CURL* ElasticSearch::HTTPSetup()
 	return handle;
 	}
 
-bool ElasticSearch::HTTPReceive(void* ptr, int size, int nmemb, void* userdata)
+size_t ElasticSearch::HTTPReceive(void* ptr, int size, int nmemb, void* userdata)
 	{
 	//TODO: Do some verification on the result?
-	return true;
+	return size;
 	}
 
 bool ElasticSearch::HTTPSend(CURL *handle)

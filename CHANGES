@@ -1,4 +1,17 @@
 
+2.0-877 | 2012-07-25 17:20:34 -0700
+
+  * Fix double close() in FilerSerializer class. (Jon Siwek)
+    
+  * Fix build warnings. (Daniel Thayer)
+
+  * Fixes to ElasticSearch plugin to make libcurl handle http
+    responses correctly. (Seth Hall)
+
+  * Fixing FreeBSD compiler error. (Robin Sommer)
+    
+  * Silencing compiler warnings. (Robin Sommer)
+
 2.0-871 | 2012-07-25 13:08:00 -0700
 
   * Fix complaint from valgrind about uninitialized memory usage. (Jon

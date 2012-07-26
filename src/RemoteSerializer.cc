@@ -647,7 +647,7 @@ void RemoteSerializer::Fork()
 			exit(1); // FIXME: Better way to handle this?
 			}
 
-		close(pipe[1]);
+		safe_close(pipe[1]);
 
 		return;
 		}
@@ -664,12 +664,12 @@ void RemoteSerializer::Fork()
 			}
 
 		child.SetParentIO(io);
-		close(pipe[0]);
+		safe_close(pipe[0]);
 
 		// Close file descriptors.
-		close(0);
-		close(1);
-		close(2);
+		safe_close(0);
+		safe_close(1);
+		safe_close(2);
 
 		// Be nice.
 		setpriority(PRIO_PROCESS, 0, 5);
@@ -4001,7 +4001,7 @@ bool SocketComm::Connect(Peer* peer)
 		if ( connect(sockfd, res->ai_addr, res->ai_addrlen) < 0 )
 			{
 			Error(fmt("connect failed: %s", strerror(errno)), peer);
-			close(sockfd);
+			safe_close(sockfd);
 			sockfd = -1;
 			continue;
 			}
@@ -4174,16 +4174,18 @@ bool SocketComm::Listen()
 			{
 			Error(fmt("can't bind to %s:%s, %s", l_addr_str.c_str(),
 			          port_str, strerror(errno)));
-			close(fd);
 
 			if ( errno == EADDRINUSE )
 				{
 				// Abandon completely this attempt to set up listening sockets,
 				// try again later.
+				safe_close(fd);
 				CloseListenFDs();
 				listen_next_try = time(0) + bind_retry_interval;
 				return false;
 				}
+
+			safe_close(fd);
 			continue;
 			}
 
@@ -4191,7 +4193,7 @@ bool SocketComm::Listen()
 			{
 			Error(fmt("can't listen on %s:%s, %s", l_addr_str.c_str(),
 			          port_str, strerror(errno)));
-			close(fd);
+			safe_close(fd);
 			continue;
 			}
 
@@ -4227,7 +4229,7 @@ bool SocketComm::AcceptConnection(int fd)
 		{
 		Error(fmt("accept fail, unknown address family %d",
 		          client.ss.ss_family));
-		close(clientfd);
+		safe_close(clientfd);
 		return false;
 		}
 
@@ -4298,7 +4300,7 @@ const char* SocketComm::MakeLogString(const char* msg, Peer* peer)
 void SocketComm::CloseListenFDs()
 	{
 	for ( size_t i = 0; i < listen_fds.size(); ++i )
-		close(listen_fds[i]);
+		safe_close(listen_fds[i]);
 
 	listen_fds.clear();
 	}

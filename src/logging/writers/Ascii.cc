@@ -86,7 +86,7 @@ void Ascii::CloseFile(double t)
 		WriteHeaderField("end", ts);
 		}
 
-	close(fd);
+	safe_close(fd);
 	fd = 0;
 	}
 

@@ -443,7 +443,11 @@ bool Manager::CreateEventStream(RecordVal* fval)
 
 		if ( !same_type((*args)[2], fields ) )
 			{
-			reporter->Error("Incompatible type for event");
+			ODesc desc1;
+			ODesc desc2;
+			(*args)[2]->Describe(&desc1);
+			fields->Describe(&desc2);
+			reporter->Error("Incompatible type '%s':%s for event which needs type '%s':%s\n", type_name((*args)[2]->Tag()), desc1.Bytes(), type_name(fields->Tag()), desc2.Bytes());
 			return false;
 			}
 

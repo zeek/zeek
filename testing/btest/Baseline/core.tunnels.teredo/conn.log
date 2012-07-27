@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	conn
-#start	2008-05-16-15-50-57
+#open	2008-05-16-15-50-57
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents
 #types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	count	string	count	count	count	count	table[string]
 1210953047.736921	arKYeMETxOg	192.168.2.16	1576	75.126.130.163	80	tcp	-	0.000357	0	0	SHR	-	0	fA	1	40	1	40	(empty)
@@ -27,4 +27,4 @@
 1210953052.324629	FrJExwHcSal	fe80::8000:f227:bec8:61af	134	fe80::8000:ffff:ffff:fffd	133	icmp	-	-	-	-	OTH	-	0	-	1	88	0	0	TEfuqmmG4bh
 1210953060.829303	qCaWGmzFtM5	2001:0:4137:9e50:8000:f12a:b9c8:2815	128	2001:4860:0:2001::68	129	icmp	-	0.463615	4	4	OTH	-	0	-	1	52	1	52	GSxOnSLghOa,nQcgTWjvg4c
 1210953052.202579	j4u32Pc5bif	fe80::8000:ffff:ffff:fffd	133	ff02::2	134	icmp	-	-	-	-	OTH	-	0	-	1	64	0	0	nQcgTWjvg4c
-#end	2008-05-16-15-51-16
+#close	2008-05-16-15-51-16

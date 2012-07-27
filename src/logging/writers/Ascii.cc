@@ -81,10 +81,7 @@ void Ascii::CloseFile(double t)
 		return;
 
 	if ( include_meta )
-		{
-		string ts = t ? Timestamp(t) : string("<abnormal termination>");
-		WriteHeaderField("end", ts);
-		}
+		WriteHeaderField("close", Timestamp(0));
 
 	safe_close(fd);
 	fd = 0;
@@ -124,8 +121,6 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 		if ( ! safe_write(fd, str.c_str(), str.length()) )
 			goto write_error;
 
-		string ts = Timestamp(info.network_time);
-
 		if ( ! (WriteHeaderField("set_separator", get_escaped_string(
 		            string(set_separator, set_separator_len), false)) &&
 		        WriteHeaderField("empty_field", get_escaped_string(
@@ -133,7 +128,7 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 		        WriteHeaderField("unset_field", get_escaped_string(
 		            string(unset_field, unset_field_len), false)) &&
 		        WriteHeaderField("path", get_escaped_string(path, false)) &&
-		        WriteHeaderField("start", ts)) )
+		        WriteHeaderField("open", Timestamp(0))) )
 			goto write_error;
 
 		for ( int i = 0; i < num_fields; ++i )
@@ -418,6 +413,16 @@ string Ascii::LogExt()
 string Ascii::Timestamp(double t)
 	{
 	time_t teatime = time_t(t);
+
+	if ( ! teatime )
+		{
+		// Use wall clock.
+		struct timeval tv;
+		if ( gettimeofday(&tv, 0) < 0 )
+			Error("gettimeofday failed");
+		else
+			teatime = tv.tv_sec;
+		}
 
 	struct tm tmbuf;
 	struct tm* tm = localtime_r(&teatime, &tmbuf);

@@ -152,9 +152,9 @@ the full set.
   understands.
 
 - ASCII logs now record the time when they were opened/closed at the
-  beginning and end of the file, respectively. The options
-  LogAscii::header_prefix and LogAscii::include_header have been
-  renamed to LogAscii::meta_prefix and LogAscii::include_meta,
+  beginning and end of the file, respectively (wall clock). The
+  options LogAscii::header_prefix and LogAscii::include_header have
+  been renamed to LogAscii::meta_prefix and LogAscii::include_meta,
   respectively.
 
 - The ASCII writers "header_*" options have been renamed to "meta_*"

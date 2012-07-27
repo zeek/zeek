@@ -92,7 +92,7 @@ void Ascii::CloseFile(double t)
 
 bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * fields)
 	{
-    assert(! fd);
+	assert(! fd);
 
 	string path = info.path;
 

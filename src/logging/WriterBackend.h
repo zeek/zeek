@@ -182,6 +182,8 @@ public:
 	/**
 	 * Disables the frontend that has instantiated this backend. Once
 	 * disabled,the frontend will not send any further message over.
+	 *
+	 * TODO: Do we still need this method (and the corresponding message)?
 	 */
 	void DisableFrontend();
 

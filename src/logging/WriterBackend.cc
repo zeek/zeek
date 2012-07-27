@@ -174,6 +174,9 @@ bool WriterBackend::Init(int arg_num_fields, const Field* const* arg_fields)
 	num_fields = arg_num_fields;
 	fields = arg_fields;
 
+	if ( Failed() )
+		return true;
+
 	if ( ! DoInit(*info, arg_num_fields, arg_fields) )
 		{
 		DisableFrontend();
@@ -222,12 +225,15 @@ bool WriterBackend::Write(int arg_num_fields, int num_writes, Value*** vals)
 
 	bool success = true;
 
-	for ( int j = 0; j < num_writes; j++ )
+	if ( ! Failed() )
 		{
-		success = DoWrite(num_fields, fields, vals[j]);
+		for ( int j = 0; j < num_writes; j++ )
+			{
+			success = DoWrite(num_fields, fields, vals[j]);
 
-		if ( ! success )
-			break;
+			if ( ! success )
+				break;
+			}
 		}
 
 	DeleteVals(num_writes, vals);
@@ -244,6 +250,9 @@ bool WriterBackend::SetBuf(bool enabled)
 		// No change.
 		return true;
 
+	if ( Failed() )
+		return true;
+
 	buffering = enabled;
 
 	if ( ! DoSetBuf(enabled) )
@@ -258,6 +267,9 @@ bool WriterBackend::SetBuf(bool enabled)
 bool WriterBackend::Rotate(const char* rotated_path, double open,
 			   double close, bool terminating)
 	{
+	if ( Failed() )
+		return true;
+
 	if ( ! DoRotate(rotated_path, open, close, terminating) )
 		{
 		DisableFrontend();
@@ -269,6 +281,9 @@ bool WriterBackend::Rotate(const char* rotated_path, double open,
 
 bool WriterBackend::Flush(double network_time)
 	{
+	if ( Failed() )
+		return true;
+
 	if ( ! DoFlush(network_time) )
 		{
 		DisableFrontend();
@@ -280,11 +295,17 @@ bool WriterBackend::Flush(double network_time)
 
 bool WriterBackend::OnFinish(double network_time)
 	{
+	if ( Failed() )
+		return true;
+
 	return DoFinish(network_time);
 	}
 
 bool WriterBackend::OnHeartbeat(double network_time, double current_time)
 	{
+	if ( Failed() )
+		return true;
+
 	SendOut(new FlushWriteBufferMessage(frontend));
 	return DoHeartbeat(network_time, current_time);
 	}

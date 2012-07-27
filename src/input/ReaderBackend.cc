@@ -191,6 +191,9 @@ void ReaderBackend::SendEntry(Value* *vals)
 bool ReaderBackend::Init(const int arg_num_fields,
 		         const threading::Field* const* arg_fields)
 	{
+	if ( Failed() )
+		return true;
+
 	num_fields = arg_num_fields;
 	fields = arg_fields;
 
@@ -210,7 +213,9 @@ bool ReaderBackend::Init(const int arg_num_fields,
 
 bool ReaderBackend::OnFinish(double network_time)
 	{
-	DoClose();
+	if ( ! Failed() )
+		DoClose();
+
 	disabled = true; // frontend disables itself when it gets the Close-message.
 	SendOut(new ReaderClosedMessage(frontend));
 
@@ -231,6 +236,9 @@ bool ReaderBackend::Update()
 	if ( disabled )
 		return false;
 
+	if ( Failed() )
+		return true;
+
 	bool success = DoUpdate();
 	if ( ! success )
 		DisableFrontend();
@@ -248,6 +256,9 @@ void ReaderBackend::DisableFrontend()
 
 bool ReaderBackend::OnHeartbeat(double network_time, double current_time)
 	{
+	if ( Failed() )
+		return true;
+
 	return DoHeartbeat(network_time, current_time);
 	}
 

@@ -154,6 +154,7 @@ MsgThread::MsgThread() : BasicThread(), queue_in(this, 0), queue_out(0, this)
 	{
 	cnt_sent_in = cnt_sent_out = 0;
 	finished = false;
+	failed = false;
 	thread_mgr->AddMsgThread(this);
 	}
 
@@ -363,6 +364,7 @@ void MsgThread::Run()
 			// error messages have been processed by then main
 			// thread).
 			SendOut(new KillMeMessage(this));
+			failed = true;
 			}
 		}
 

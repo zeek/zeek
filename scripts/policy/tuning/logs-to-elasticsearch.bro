@@ -4,7 +4,7 @@ module LogElasticSearch;
 
 export {
 	## An elasticsearch specific rotation interval.
-	const rotation_interval = 24hr &redef;
+	const rotation_interval = 3hr &redef;
 
 	## Optionally ignore any :bro:type:`Log::ID` from being sent to
 	## ElasticSearch with this script.
@@ -17,29 +17,17 @@ export {
 	const send_logs: set[string] = set() &redef;
 }
 
-module Log;
-
 event bro_init() &priority=-5
 	{
-	local my_filters: table[ID, string] of Filter = table();
-
-	for ( [id, name] in filters )
+	for ( stream_id in Log::active_streams )
 		{
-		local filter = filters[id, name];
-		if ( fmt("%s", id) in LogElasticSearch::excluded_log_ids ||
-		     (|LogElasticSearch::send_logs| > 0 && fmt("%s", id) !in LogElasticSearch::send_logs) )
+		if ( fmt("%s", stream_id) in excluded_log_ids ||
+		     (|send_logs| > 0 && fmt("%s", stream_id) !in send_logs) )
 			next;
 
-		filter$name = cat(name, "-es");
-		filter$writer = Log::WRITER_ELASTICSEARCH;
-		filter$interv = LogElasticSearch::rotation_interval;
-		my_filters[id, name] = filter;
-		}
-
-	# This had to be done separately to avoid an ever growing filters list
-	# where the for loop would never end.
-	for ( [id, name] in my_filters )
-		{
-		Log::add_filter(id, filter);
+		local filter: Log::Filter = [$name = "default-es",
+		                             $writer = Log::WRITER_ELASTICSEARCH,
+		                             $interv = LogElasticSearch::rotation_interval];
+		Log::add_filter(stream_id, filter);
 		}
 	}

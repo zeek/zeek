@@ -16,7 +16,7 @@ redef InputAscii::unset_field = "-";
 #empty_field|(empty)
 #unset_field|-
 #path|ssh
-#start|2012-07-20-01-49-19
+#open|2012-07-20-01-49-19
 #fields|data|data2
 #types|string|string
 abc\x0a\xffdef|DATA2

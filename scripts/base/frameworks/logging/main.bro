@@ -348,16 +348,16 @@ function __default_rotation_postprocessor(info: RotationInfo) : bool
 
 function default_path_func(id: ID, path: string, rec: any) : string
 	{
+	# The suggested path value is a previous result of this function
+	# or a filter path explicitly set by the user, so continue using it.
+	if ( path != "" )
+		return path;
+
 	local id_str = fmt("%s", id);
 
 	local parts = split1(id_str, /::/);
 	if ( |parts| == 2 )
 		{
-		# The suggested path value is a previous result of this function
-		# or a filter path explicitly set by the user, so continue using it.
-		if ( path != "" )
-			return path;
-
 		# Example: Notice::LOG -> "notice"
 		if ( parts[2] == "LOG" )
 			{

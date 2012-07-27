@@ -407,6 +407,7 @@ bool DataSeries::DoRotate(const char* rotated_path, double open, double close, b
 
 	if ( ! FinishedRotation(nname.c_str(), dsname.c_str(), open, close, terminating) )
 		{
+		FailedRotation(rotated_path, open, close, terminating);
 		Error(Fmt("error rotating %s to %s", dsname.c_str(), nname.c_str()));
 		return false;
 		}

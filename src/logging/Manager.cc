@@ -1215,11 +1215,15 @@ bool Manager::Flush(EnumVal* id)
 void Manager::Terminate()
 	{
 	// Make sure we process all the pending rotations.
-	while ( rotations_pending )
+
+	while ( rotations_pending > 0 )
 		{
 		thread_mgr->ForceProcessing(); // A blatant layering violation ...
 		usleep(1000);
 		}
+
+	if ( rotations_pending < 0 )
+		reporter->InternalError("Negative pending log rotations: %d", rotations_pending);
 
 	for ( vector<Stream *>::iterator s = streams.begin(); s != streams.end(); ++s )
 		{
@@ -1384,3 +1388,11 @@ bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, con
 	return result;
 	}
 
+bool Manager::FailedRotation(WriterFrontend* writer, const char* filename,
+                             double open, double close, bool terminating)
+	{
+	--rotations_pending;
+	DBG_LOG(DBG_LOGGING, "Failed rotating writer '%s', file '%s' at %.6f,",
+	        writer->Name(), filename, network_time);
+	return true;
+	}

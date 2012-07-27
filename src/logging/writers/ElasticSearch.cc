@@ -323,6 +323,7 @@ bool ElasticSearch::DoRotate(const char* rotated_path, double open, double close
 
 	if ( ! FinishedRotation(current_index.c_str(), prev_index.c_str(), open, close, terminating) )
 		{
+		FailedRotation(rotated_path, open, close, terminating);
 		Error(Fmt("error rotating %s to %s", prev_index.c_str(), current_index.c_str()));
 		}
 

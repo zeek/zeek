@@ -229,6 +229,25 @@ public:
 	bool FinishedRotation(const char* new_name, const char* old_name,
 			      double open, double close, bool terminating);
 
+	/**
+	 * Signals that a file couldn't be rotated. This must be called by a
+	 * writer's implementation of DoRotate() in all cases where
+	 * FinishedRotation() was not called or failed.
+	 *
+	 * Most of the parameters should be passed through from DoRotate().
+	 *
+	 * @param filename The name of the file that was attempted to be rotated.
+	 *
+	 * @param open: The timestamp when the original file was opened.
+	 *
+	 * @param close: The timestamp when the origina file was closed.
+	 *
+	 * @param terminating: True if the original rotation request occured
+	 * due to the main Bro process shutting down.
+	 */
+	bool FailedRotation(const char* filename, double open, double close,
+	                    bool terminating);
+
 	/** Helper method to render an IP address as a string.
 	  *
 	  * @param addr The address.

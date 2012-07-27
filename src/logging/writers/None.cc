@@ -46,6 +46,7 @@ bool None::DoRotate(const char* rotated_path, double open, double close, bool te
 	{
 	if ( ! FinishedRotation("/dev/null", Info().path, open, close, terminating))
 		{
+		FailedRotation(rotated_path, open, close, terminating);
 		Error(Fmt("error rotating %s", Info().path));
 		return false;
 		}

@@ -378,7 +378,10 @@ bool Ascii::DoRotate(const char* rotated_path, double open, double close, bool t
 	{
 	// Don't rotate special files or if there's not one currently open.
 	if ( ! fd || IsSpecial(Info().path) )
+		{
+		FailedRotation(rotated_path, open, close, terminating);
 		return true;
+		}
 
 	CloseFile(close);
 
@@ -387,6 +390,7 @@ bool Ascii::DoRotate(const char* rotated_path, double open, double close, bool t
 
 	if ( ! FinishedRotation(nname.c_str(), fname.c_str(), open, close, terminating) )
 		{
+		FailedRotation(rotated_path, open, close, terminating);
 		Error(Fmt("error rotating %s to %s", fname.c_str(), nname.c_str()));
 		return false;
 		}

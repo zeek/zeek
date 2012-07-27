@@ -43,6 +43,32 @@ private:
         bool terminating;
 };
 
+class RotationFailedMessage : public threading::OutputMessage<WriterFrontend>
+{
+public:
+	RotationFailedMessage(WriterFrontend* writer, const char* filename,
+				double open, double close, bool terminating)
+		: threading::OutputMessage<WriterFrontend>("RotationFailed", writer),
+		filename(copy_string(filename)), open(open),
+		close(close), terminating(terminating)	{ }
+
+	virtual ~RotationFailedMessage()
+		{
+		delete [] filename;
+		}
+
+	virtual bool Process()
+		{
+		return log_mgr->FailedRotation(Object(), filename, open, close, terminating);
+		}
+
+private:
+        const char* filename;
+        double open;
+        double close;
+        bool terminating;
+};
+
 class FlushWriteBufferMessage : public threading::OutputMessage<WriterFrontend>
 {
 public:
@@ -161,6 +187,13 @@ bool WriterBackend::FinishedRotation(const char* new_name, const char* old_name,
 				     double open, double close, bool terminating)
 	{
 	SendOut(new RotationFinishedMessage(frontend, new_name, old_name, open, close, terminating));
+	return true;
+	}
+
+bool WriterBackend::FailedRotation(const char* filename, double open,
+                                   double close, bool terminating)
+	{
+	SendOut(new RotationFailedMessage(frontend, filename, open, close, terminating));
 	return true;
 	}
 

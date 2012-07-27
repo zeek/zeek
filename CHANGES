@@ -1,4 +1,15 @@
 
+2.0-902 | 2012-07-27 12:42:13 -0700
+
+  * New variable in logging framework Log::active_streams to indicate
+    Log:ID enums which are currently active. (Seth Hall)
+
+  * Reworked how the logs-to-elasticsearch scripts works to stop
+    abusing the logging framework. (Seth Hall)
+
+  * Fix input test for recent default change on fastpath. (Robin
+    Sommer)
+
 2.0-898 | 2012-07-27 12:22:03 -0700
 
   * Small (potential performance) improvement for logging framework. (Seth Hall)

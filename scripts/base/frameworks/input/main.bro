@@ -82,11 +82,11 @@ export {
 		## Record describing the fields to be retrieved from the source input.
 		fields: any;
 
-		## If want_record if false (default), the event receives each value in fields as a seperate argument.
-		## If it is set to true, the event receives all fields in a signle record value.
-		want_record: bool &default=F;
+		## If want_record if false, the event receives each value in fields as a separate argument.
+		## If it is set to true (default), the event receives all fields in a single record value.
+		want_record: bool &default=T;
 
-		## The event that is rised each time a new line is received from the reader.
+		## The event that is raised each time a new line is received from the reader.
 		## The event will receive an Input::Event enum as the first element, and the fields as the following arguments.
 		ev: any;
 

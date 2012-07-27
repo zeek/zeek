@@ -44,7 +44,7 @@ event bro_init()
 	{
 	try = 0;
 	outfile = open("../out");
-	Input::add_event([$source="../input.log", $reader=Input::READER_RAW, $mode=Input::REREAD, $name="input", $fields=Val, $ev=line]);
+	Input::add_event([$source="../input.log", $reader=Input::READER_RAW, $mode=Input::REREAD, $name="input", $fields=Val, $ev=line, $want_record=F]);
 	Input::force_update("input");
 	Input::remove("input");
 	}

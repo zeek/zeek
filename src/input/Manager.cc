@@ -1546,7 +1546,7 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 
 bool Manager::CallPred(Func* pred_func, const int numvals, ...)
 	{
-	bool result;
+	bool result = false;
 	val_list vl(numvals);
 
 	va_list lP;
@@ -1557,10 +1557,13 @@ bool Manager::CallPred(Func* pred_func, const int numvals, ...)
 	va_end(lP);
 
 	Val* v = pred_func->Call(&vl);
-	result = v->AsBool();
-	Unref(v);
+	if ( v )
+		{
+		result = v->AsBool();
+		Unref(v);
+		}
 
-	return(result);
+	return result;
 	}
 
 bool Manager::SendEvent(const string& name, const int num_vals, Value* *vals)

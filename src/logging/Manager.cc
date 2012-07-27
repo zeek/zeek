@@ -686,15 +686,12 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 
 			int result = 1;
 
-			try
+			Val* v = filter->pred->Call(&vl);
+			if ( v )
 				{
-				Val* v = filter->pred->Call(&vl);
 				result = v->AsBool();
 				Unref(v);
 				}
-
-			catch ( InterpreterException& e )
-				{ /* Already reported. */ }
 
 			if ( ! result )
 				continue;
@@ -726,15 +723,10 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 
 			Val* v = 0;
 
-			try
-				{
-				v = filter->path_func->Call(&vl);
-				}
+			v = filter->path_func->Call(&vl);
 
-			catch ( InterpreterException& e )
-				{
+			if ( ! v )
 				return false;
-				}
 
 			if ( ! v->Type()->Tag() == TYPE_STRING )
 				{
@@ -1382,15 +1374,12 @@ bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, con
 
 	int result = 0;
 
-	try
+	Val* v = func->Call(&vl);
+	if ( v )
 		{
-		Val* v = func->Call(&vl);
 		result = v->AsBool();
 		Unref(v);
 		}
-
-	catch ( InterpreterException& e )
-		{ /* Already reported. */ }
 
 	return result;
 	}

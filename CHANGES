@@ -1,4 +1,23 @@
 
+2.0-898 | 2012-07-27 12:22:03 -0700
+
+  * Small (potential performance) improvement for logging framework. (Seth Hall)
+
+  * Script-level rotation postprocessor fix. This fixes a problem with
+    writers that don't have a postprocessor. (Seth Hall)
+
+  * Update input framework documentation to reflect want_record
+    change. (Bernhard Amann)
+
+  * Fix crash when encountering an InterpreterException in a predicate
+    in logging or input Framework. (Bernhard Amann)
+
+  * Input framework: Make want_record=T the default for events
+    (Bernhard Amann)
+    
+  * Changing the start/end markers in logs to open/close now
+    reflecting wall clock. (Robin Sommer)
+
 2.0-891 | 2012-07-26 17:15:10 -0700
 
   * Reader/writer API: preventing plugins from receiving further

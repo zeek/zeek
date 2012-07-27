@@ -341,8 +341,9 @@ function __default_rotation_postprocessor(info: RotationInfo) : bool
 	{
 	if ( info$writer in default_rotation_postprocessors )
 		return default_rotation_postprocessors[info$writer](info);
-
-	return F;
+	else
+		# Return T by default so that postprocessor-less writers don't shutdown.
+		return T;
 	}
 
 function default_path_func(id: ID, path: string, rec: any) : string

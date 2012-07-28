@@ -19,6 +19,9 @@ export {
 
 event bro_init() &priority=-5
 	{
+	if ( server_host == "" )
+		return;
+	
 	for ( stream_id in Log::active_streams )
 		{
 		if ( fmt("%s", stream_id) in excluded_log_ids ||

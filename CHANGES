@@ -1,4 +1,13 @@
 
+2.0-905 | 2012-07-28 16:24:34 -0700
+
+  * Fix log manager hanging on waiting for pending file rotations,
+    plus writer API tweak for failed rotations. Addresses #860. (Jon
+    Siwek and Robin Sommer)
+
+  * Tweaking logs-to-elasticsearch.bro so that it doesn't do anything
+    if ES server is unset. (Robin Sommer)
+
 2.0-902 | 2012-07-27 12:42:13 -0700
 
   * New variable in logging framework Log::active_streams to indicate

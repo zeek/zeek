@@ -1338,13 +1338,18 @@ void Manager::Rotate(WriterInfo* winfo)
 	}
 
 bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, const char* old_name,
-		      double open, double close, bool terminating)
+		      double open, double close, bool success, bool terminating)
 	{
+	assert(writer);
+
 	--rotations_pending;
 
-	if ( ! writer )
-		// Writer didn't produce local output.
+	if ( ! success )
+		{
+		DBG_LOG(DBG_LOGGING, "Non-successful rotating writer '%s', file '%s' at %.6f,",
+			writer->Name(), filename, network_time);
 		return true;
+		}
 
 	DBG_LOG(DBG_LOGGING, "Finished rotating %s at %.6f, new name %s",
 		writer->Name(), network_time, new_name);
@@ -1386,13 +1391,4 @@ bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, con
 		}
 
 	return result;
-	}
-
-bool Manager::FailedRotation(WriterFrontend* writer, const char* filename,
-                             double open, double close, bool terminating)
-	{
-	--rotations_pending;
-	DBG_LOG(DBG_LOGGING, "Failed rotating writer '%s', file '%s' at %.6f,",
-	        writer->Name(), filename, network_time);
-	return true;
 	}

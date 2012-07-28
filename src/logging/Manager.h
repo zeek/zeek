@@ -177,13 +177,7 @@ protected:
 
 	// Signals that a file has been rotated.
 	bool FinishedRotation(WriterFrontend* writer, const char* new_name, const char* old_name,
-			      double open, double close, bool terminating);
-
-	// Signals that a file couldn't be rotated, either because the writer
-	// implementation decided there was nothing to do or because a real error
-	// occurred.  In the error case, a separate message for the reason is sent.
-	bool FailedRotation(WriterFrontend* writer, const char* filename,
-	                    double open, double close, bool terminating);
+			      double open, double close, bool success, bool terminating);
 
 	// Deletes the values as passed into Write().
 	void DeleteVals(int num_fields, threading::Value** vals);

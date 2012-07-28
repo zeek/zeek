@@ -210,10 +210,14 @@ public:
 	bool IsBuf()	{ return buffering; }
 
 	/**
-	 * Signals that a file has been rotated. This must be called by a
-	 * writer's implementation of DoRotate() once rotation has finished.
+	 * Signals that a file has been successfully rotated and any
+	 * potential post-processor can now run.
 	 *
 	 * Most of the parameters should be passed through from DoRotate().
+	 *
+	 * Note: Exactly one of the two FinishedRotation() methods must be
+	 * called by a writer's implementation of DoRotate() once rotation
+	 * has finished.
 	 *
 	 * @param new_name The filename of the rotated file.
 	 *
@@ -230,13 +234,18 @@ public:
 			      double open, double close, bool terminating);
 
 	/**
-	 * Signals that a file couldn't be rotated. This must be called by a
-	 * writer's implementation of DoRotate() in all cases where
-	 * FinishedRotation() was not called or failed.
+	 * Signals that a file rotation request has been processed, but no
+	 * further post-processing needs to be performed (either because
+	 * there was an error, or there was nothing to rotate to begin with
+	 * with this writer).
 	 *
-	 * Most of the parameters should be passed through from DoRotate().
+	 * Note: Exactly one of the two FinishedRotation() methods must be
+	 * called by a writer's implementation of DoRotate() once rotation
+	 * has finished.
 	 *
-	 * @param filename The name of the file that was attempted to be rotated.
+	 * @param new_name The filename of the rotated file.
+	 *
+	 * @param old_name The filename of the original file.
 	 *
 	 * @param open: The timestamp when the original file was opened.
 	 *
@@ -245,8 +254,7 @@ public:
 	 * @param terminating: True if the original rotation request occured
 	 * due to the main Bro process shutting down.
 	 */
-	bool FailedRotation(const char* filename, double open, double close,
-	                    bool terminating);
+	bool FinishedRotation();
 
 	/** Helper method to render an IP address as a string.
 	  *
@@ -344,8 +352,8 @@ protected:
 	 * Writer-specific method implementing log rotation.  Most directly
 	 * this only applies to writers writing into files, which should then
 	 * close the current file and open a new one.  However, a writer may
-	 * also trigger other apppropiate actions if semantics are similar. *
-	 * Once rotation has finished, the implementation must call
+	 * also trigger other apppropiate actions if semantics are similar.
+	 * Once rotation has finished, the implementation *must* call
 	 * FinishedRotation() to signal the log manager that potential
 	 * postprocessors can now run.
 	 *
@@ -407,6 +415,8 @@ private:
 	int num_fields;	// Number of log fields.
 	const threading::Field* const*  fields;	// Log fields.
 	bool buffering;	// True if buffering is enabled.
+
+	int rotation_counter; // Tracks FinishedRotation() calls.
 };
 
 

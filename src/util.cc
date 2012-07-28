@@ -113,6 +113,9 @@ std::string get_escaped_string(const std::string& str, bool escape_all)
 
 char* copy_string(const char* s)
 	{
+	if ( ! s )
+		return 0;
+
 	char* c = new char[strlen(s)+1];
 	strcpy(c, s);
 	return c;

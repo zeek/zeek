@@ -384,12 +384,16 @@ bool ElasticSearch::HTTPSend(CURL *handle)
 			{
 			if ( ! failing )
 				Error(Fmt("ElasticSearch server may not be accessible."));
+
+			break;
 			}
 
 		case CURLE_OPERATION_TIMEDOUT:
 			{
 			if ( ! failing )
 				Warning(Fmt("HTTP operation with elasticsearch server timed out at %" PRIu64 " msecs.", transfer_timeout));
+
+			break;
 			}
 
 		case CURLE_OK:
@@ -401,10 +405,13 @@ bool ElasticSearch::HTTPSend(CURL *handle)
 				return true;
 			else if ( ! failing )
 				Error(Fmt("Received a non-successful status code back from ElasticSearch server, check the elasticsearch server log."));
+
+			break;
 			}
 
 		default:
 			{
+			break;
 			}
 		}
 		// The "successful" return happens above

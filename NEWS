@@ -82,7 +82,8 @@ New Functionality
 
     * ElasticSearch: a distributed RESTful, storage engine and search
       engine built on top of Apache Lucene. It scales very well, both
-      for distributed indexing and distributed searching.
+      for distributed indexing and distributed searching. See
+      doc/logging-elasticsearch.rst for more information.
 
   Note that at this point, we consider Bro's support for these two
   formats as prototypes for collecting experience with alternative

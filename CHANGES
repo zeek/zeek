@@ -1,5 +1,5 @@
 
-2.0-909 | 2012-07-30 11:46:45 -0700
+2.1-beta | 2012-07-30 11:59:53 -0700
 
   * Improve log filter compatibility with remote logging. Addresses
     #842. (Jon Siwek)

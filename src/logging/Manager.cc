@@ -86,6 +86,7 @@ struct Manager::WriterInfo {
 	Func* postprocessor;
 	WriterFrontend* writer;
 	WriterBackend::WriterInfo* info;
+	bool from_remote;
 	string instantiating_filter;
 	};
 
@@ -238,6 +239,29 @@ Manager::WriterInfo* Manager::FindWriter(WriterFrontend* writer)
 		}
 
 	return 0;
+	}
+
+bool Manager::CompareFields(const Filter* filter, const WriterFrontend* writer)
+	{
+	if ( filter->num_fields != writer->NumFields() )
+		return false;
+
+	for ( int i = 0; i < filter->num_fields; ++ i)
+		if ( filter->fields[i]->type != writer->Fields()[i]->type )
+			return false;
+
+	return true;
+	}
+
+bool Manager::CheckFilterWriterConflict(const WriterInfo* winfo, const Filter* filter)
+	{
+	if ( winfo->from_remote )
+		// If the writer was instantiated as a result of remote logging, then
+		// a filter and writer are only compatible if field types match
+		return ! CompareFields(filter, winfo->writer);
+	else
+		// If the writer was instantiated locally, it is bound to one filter
+		return winfo->instantiating_filter != filter->name;
 	}
 
 void Manager::RemoveDisabledWriters(Stream* stream)
@@ -756,10 +780,9 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 		Stream::WriterMap::iterator w = stream->writers.find(wpp);
 
 		if ( w != stream->writers.end() &&
-		     w->second->instantiating_filter != filter->name )
+		     CheckFilterWriterConflict(w->second, filter) )
 			{
-			// Auto-correct path due to conflict with another filter over the
-			// same writer/path pair
+			// Auto-correct path due to conflict over the writer/path pairs.
 			string instantiator = w->second->instantiating_filter;
 			string new_path;
 			unsigned int i = 2;
@@ -771,7 +794,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 				wpp.second = new_path;
 				w = stream->writers.find(wpp);
 			} while ( w != stream->writers.end() &&
-				  w->second->instantiating_filter != filter->name );
+			          CheckFilterWriterConflict(w->second, filter) );
 
 			Unref(filter->path_val);
 			filter->path_val = new StringVal(new_path.c_str());
@@ -824,8 +847,8 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 			// CreateWriter() will set the other fields in info.
 
 			writer = CreateWriter(stream->id, filter->writer,
-					      info, filter->num_fields,
-					      arg_fields, filter->local, filter->remote, filter->name);
+					      info, filter->num_fields, arg_fields, filter->local,
+					      filter->remote, false, filter->name);
 
 			if ( ! writer )
 				{
@@ -1024,7 +1047,7 @@ threading::Value** Manager::RecordToFilterVals(Stream* stream, Filter* filter,
 	}
 
 WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBackend::WriterInfo* info,
-				int num_fields, const threading::Field* const*  fields, bool local, bool remote,
+				int num_fields, const threading::Field* const*  fields, bool local, bool remote, bool from_remote,
 				const string& instantiating_filter)
 	{
 	Stream* stream = FindStream(id);
@@ -1049,6 +1072,7 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
 	winfo->interval = 0;
 	winfo->postprocessor = 0;
 	winfo->info = info;
+	winfo->from_remote = from_remote;
 	winfo->instantiating_filter = instantiating_filter;
 
 	// Search for a corresponding filter for the writer/path pair and use its

@@ -2716,7 +2716,8 @@ bool RemoteSerializer::ProcessLogCreateWriter()
 	id_val = new EnumVal(id, BifType::Enum::Log::ID);
 	writer_val = new EnumVal(writer, BifType::Enum::Log::Writer);
 
-	if ( ! log_mgr->CreateWriter(id_val, writer_val, info, num_fields, fields, true, false) )
+	if ( ! log_mgr->CreateWriter(id_val, writer_val, info, num_fields, fields,
+	                             true, false, true) )
 		goto error;
 
 	Unref(id_val);

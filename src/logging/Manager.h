@@ -166,7 +166,7 @@ protected:
 	// Takes ownership of fields and info.
 	WriterFrontend* CreateWriter(EnumVal* id, EnumVal* writer, WriterBackend::WriterInfo* info,
 				int num_fields, const threading::Field* const* fields,
-				bool local, bool remote, const string& instantiating_filter="");
+				bool local, bool remote, bool from_remote, const string& instantiating_filter="");
 
 	// Takes ownership of values..
 	bool Write(EnumVal* id, EnumVal* writer, string path,
@@ -200,6 +200,8 @@ private:
 	void Rotate(WriterInfo* info);
 	Filter* FindFilter(EnumVal* id, StringVal* filter);
 	WriterInfo* FindWriter(WriterFrontend* writer);
+	bool CompareFields(const Filter* filter, const WriterFrontend* writer);
+	bool CheckFilterWriterConflict(const WriterInfo* winfo, const Filter* filter);
 
 	vector<Stream *> streams;	// Indexed by stream enum.
 	int rotations_pending;	// Number of rotations not yet finished.

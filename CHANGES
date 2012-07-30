@@ -1,4 +1,9 @@
 
+2.0-909 | 2012-07-30 11:46:45 -0700
+
+  * Improve log filter compatibility with remote logging. Addresses
+    #842. (Jon Siwek)
+
 2.0-907 | 2012-07-30 09:13:36 -0700
 
   * Add missing breaks to switch cases in

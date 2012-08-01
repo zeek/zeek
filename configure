@@ -1,7 +1,7 @@
 #!/bin/sh
 # Convenience wrapper for easily viewing/setting options that
 # the project's CMake scripts will recognize
-
+set -e
 command="$0 $*"
 
 # check for `cmake` command

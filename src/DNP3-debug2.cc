@@ -5,6 +5,8 @@
 #include "DNP3.h"
 #include "TCP_Reassembler.h"
 
+#define DEBUG 0
+
 typedef struct ByteStream{
 	u_char* mData;
 	int length;
@@ -42,8 +44,7 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	int dnp3_i = 0;  // index within the data block
 	int dnp3_length = 0;
 	u_char* tran_data = 0;  
-		// actually, only one transport segment is needed. 
-		// different transport segment is put into different TCP packets
+		// actually, only one transport segment is needed. different transport segment is put into different TCP packets
 	int aTranFir;   // fir field in the transport header
 	int aTranFin;   // fin field in the transport header
 	int aTranSeq;   // fir field in the transport header
@@ -52,6 +53,14 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	u_char* aTempResult = NULL;
 	int aTempFormerLen = 0;
 	FILE* file;
+
+//// DEbug
+	/*gTest++ ;
+	printf("Beginning %d ", gTest);
+	for (j = 0 ; j < len ; j++)
+		printf("%x  ", data[j]);
+	printf("\n");
+	*/
 
 //// if it is not serial protocol data ignore
 	if(data[0] != 0x05 || data[1] != 0x64)
@@ -77,9 +86,28 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
  	aTranFin = data[10] & 0x80;
 	aTranFin = aTranFin >> 7;
 	aTranSeq = data[10] & 0x3F;
-
-	///allocate memory space for the dnp3 only data
-	////parse function code. Temporarily ignore PRM bit
+	#if DEBUG
+	printf("\n\nhl debug: transport header: Fir %d, Fin %d, Seq, %x\n", aTranFir, aTranFin, aTranSeq);
+	#endif
+///allocate memory space for the dnp3 only data
+	/*tran_data = (u_char*)malloc(len); // definitely not more than original data payload
+	if(tran_data == NULL)
+	{
+		printf("error!! COuld not alloate memory");	
+		return;
+	}*/
+//// for debug use just print data payload
+	#if DEBUG
+        printf("hl debug: len is %d, orig is %x ..", len, m_orig);
+	dnp3_i = 0;
+        for(i = 0; i < len; i++)
+        {
+                printf("%x ", data[i]);
+		
+        }
+        printf("hl debug!\n");
+	#endif
+////parse function code. Temporarily ignore PRM bit
 	if( (control_field & 0x0F) != 0x03 && (control_field & 0x0F) != 0x04 )
 	{
 		return;
@@ -90,15 +118,13 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	dnp3_i = 0;
 	if( (aTranFir == 1) && (aTranFin == 0) ){
 		mEncounterFirst = true;
-		
-		if(len != 292) { 
-			reporter->Warning("The length of the TCP payload containing the first but not last transport segment should be exactly 292 bytes.");
-			return;
-		}
+		#if DEBUG
+		printf("hl debug  reassembled data");
+		#endif
+		if(len != 292) { printf("ALERT  length is not 292"); return;}
 	
-		gDnp3Data.mData = (u_char*)safe_malloc(len);
-		
-	
+		gDnp3Data.mData = (u_char*)malloc(len);
+		if(gDnp3Data.mData == NULL) { printf("ALERT  memory allocation error\n"); return;}
 		gDnp3Data.length = len;
 		for(i = 0; i < 8; i++){
 			gDnp3Data.mData[i]= data[i];  // keep the first 8 bytes
@@ -119,18 +145,17 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	dnp3_i = 0;
 	if( aTranFir == 0 ){
 		if(mEncounterFirst == false){
-			reporter->Warning("A first transport segment is missing before this transport segment.");
+			printf("ALERT  no first packet is found\n");
 			return; 
 		}
-	
+		#if DEBUG
+		printf("hl debug  reassembled data %x %x %d\n", gDnp3Data.mData[0], gDnp3Data.mData[1], gDnp3Data.length);
+		#endif
 		aTempFormerLen = gDnp3Data.length;
-		if( (aTranFin == 0) && (len != 292) ) { 
-			reporter->Warning("This is not a last transport segment, so the length of the TCP payload should be exactly 292 bytes.");
-			return;
-		}
-		
-		aTempResult = (u_char*)safe_malloc(len + aTempFormerLen);
-
+		if( (aTranFin == 0) && (len != 292) ) { printf("ALERT  length is not 292"); return;}
+		//if(m_orig == true) { printf("ALERT  usually request does not have multiple segments");}
+		aTempResult = (u_char*)malloc(len + aTempFormerLen);
+		if(aTempResult == NULL) { printf("ALERT  memory allocation error\n"); return;}
 		for(i = 0; i < aTempFormerLen; i++){
 			aTempResult[i] = gDnp3Data.mData[i];
 		}
@@ -149,23 +174,42 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		if( aTranFin == 1){   // if this is the last segment
 			mEncounterFirst = false;
 			if(gDnp3Data.length >= 65536){ 
-				reporter->Warning("Currently, we don't support DNP3 packet with length more than 65536 bytes.");
+				printf("ALERT  current dont supprt such long segments");
 				free(gDnp3Data.mData);
 				gDnp3Data.mData = NULL;
 				gDnp3Data.length = 0;
 				return;
 			}
-
+			#if DEBUG
+			printf("hl debug final reassembled data %d 0x%x \n", gDnp3Data.length, gDnp3Data.length );
+			#endif
 			gDnp3Data.mData[2] = (gDnp3Data.length -2) % 0x100;
 			gDnp3Data.mData[3] = ( (gDnp3Data.length -2) & 0xFF00) >> 8;
 			
+			#if DEBUG	
+			for(i = 0; i < (gDnp3Data.length); i++){
+				printf("%x ", gDnp3Data.mData[i]);
+				if( (i % 256) == 255 ) printf("\nNew packet\n");
+			}
+			printf("\n");
+			#endif
 			TCP_ApplicationAnalyzer::DeliverStream(gDnp3Data.length, gDnp3Data.mData, m_orig);
         		interp->NewData(m_orig, gDnp3Data.mData, (gDnp3Data.mData) + (gDnp3Data.length) );
 			free(gDnp3Data.mData);
 			gDnp3Data.mData = NULL;
 			gDnp3Data.length = 0;
 		}
-			
+		#if DEBUG
+		else{
+			printf("hl debug partially reassembled data %d 0x%x \n", gDnp3Data.length, gDnp3Data.length);
+			for(i = 0; i < (gDnp3Data.length); i++){
+				printf("%x ", gDnp3Data.mData[i]);
+				//if( (i % 256) == 255 ) printf("\nNew packet\n");
+			}
+			printf("\n");
+		}
+		#endif
+		
 		return;		
 	}
 // if fir 0 and fin is 1. the last segment
@@ -174,10 +218,15 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 
 // if fir and fin are all 1
 	///allocate memory space for the dnp3 only data
-        tran_data = (u_char*)safe_malloc(len); // definitely not more than original data payload
+        tran_data = (u_char*)malloc(len); // definitely not more than original data payload
+        if(tran_data == NULL)
+        {
+                printf("error!! COuld not alloate memory");     
+                return;
+        }
 
 	if(mEncounterFirst == true){
-		reporter->Warning("Before this packet, a first transport segment is found but the finish one is missing.");
+		printf("ALERT  this should not happen\n");
 	}
 	dnp3_i = 0;
 	for(i = 0; i < 8; i++)
@@ -197,7 +246,15 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	///let's print out
 	tran_data[3] = 0;   // put ctrl as zero as the high-8bit 
 	dnp3_length = dnp3_i + 8;
-	
+	#if DEBUG
+	printf("dnp3 app data %d %d: ", len, dnp3_length );
+	for(i = 0; i < (dnp3_i+8); i++)
+	{
+		printf("%x ", tran_data[i]);
+	}
+	printf("\n");
+	#endif
+
 
 	TCP_ApplicationAnalyzer::DeliverStream(dnp3_length, tran_data, m_orig);
 	////DNP3TCP_Analyzer::DeliverStream(len, data, orig);
@@ -208,15 +265,18 @@ void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	
 ///// this is for the abnormal traffic pattern such as a a first application packet is sent
 ///     but no last segment is found
-
+	#if DEBUG
+	printf("reach here\n");
+        #endif	
+	
 	mEncounterFirst = false;
 	if(gDnp3Data.mData != NULL){
-		
+		//printf("gDnp3Data address %llx \n", gDnp3Data.mData);
 		free(gDnp3Data.mData);
 		gDnp3Data.mData = NULL;
 		gDnp3Data.length = 0;	
 	}
-	
+	//printf("ending %d \n ", gTest);
 	}
 
 void DNP3_Analyzer::Undelivered(int seq, int len, bool orig)

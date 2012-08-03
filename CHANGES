@@ -1,4 +1,9 @@
 
+2.0-912 | 2012-08-03 10:44:46 -0700
+
+  * Fixing little typo with big impact. (Robin Sommer)
+
+
 2.1-beta | 2012-07-30 11:59:53 -0700
 
   * Improve log filter compatibility with remote logging. Addresses

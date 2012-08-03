@@ -359,7 +359,7 @@ bool Ascii::DoWrite(int num_fields, const Field* const * fields,
 	if ( ! safe_write(fd, bytes, len) )
 		goto write_error;
 
-        if ( IsBuf() )
+        if ( ! IsBuf() )
 		fsync(fd);
 
 	return true;

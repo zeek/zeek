@@ -1,8 +1,12 @@
 
-2.0-912 | 2012-08-03 10:44:46 -0700
+2.1-beta-3 | 2012-08-03 10:46:49 -0700
 
-  * Fixing little typo with big impact. (Robin Sommer)
+  * Merge branch 'master' of ssh://git.bro-ids.org/bro (Robin Sommer)
+    
+  * Fix configure script to exit with non-zero status on error (Jon
+    Siwek)
 
+  * Improve ASCII output performance. (Robin Sommer)
 
 2.1-beta | 2012-07-30 11:59:53 -0700
 

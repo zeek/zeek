@@ -1044,9 +1044,7 @@ int Manager::SendEntryTable(Stream* i, const Value* const *vals)
 
 			if ( ! updated )
 				{
-				// throw away. Hence - we quit. And remove the entry from the current dictionary...
-				// (but why should it be in there? assert this).
-				assert ( stream->currDict->RemoveEntry(idxhash) == 0 );
+				// just quit and delete everything we created.
 				delete idxhash;
 				delete h;
 				return stream->num_val_fields + stream->num_idx_fields;

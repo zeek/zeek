@@ -1,31 +1,19 @@
 ##! The intelligence framework provides a way to store and query IP addresses,
-##! strings (with a subtype), and numeric (with a subtype) data.  Metadata 
-##! also be associated with the intelligence like tags which are arbitrary
-##! strings, time values, and longer descriptive strings.
-
-# Example string subtypes:
-#   url
-#   email
-#   domain
-#   software
-#   user_name
-#   file_name
-#   file_md5
-#   x509_md5
-
-# Example tags: 
-#   infrastructure
-#   malicious
-#   sensitive
-#   canary
-#   friend
+##! and strings (with a subtype).  Metadata can
+##! also be associated with the intelligence like for making more informated
+##! decisions about matching and handling of intelligence.
+#
+# TODO: 
+#   Comments
+#   Better Intel::Item comparison (same_meta)
+#   Generate a notice when messed up data is discovered.
+#   Complete "net" support as an intelligence type.
 
 @load base/frameworks/notice
 
 module Intel;
 
 export {
-	## The intel logging stream identifier.
 	redef enum Log::ID += { LOG };
 	
 	redef enum Notice::Type += {
@@ -34,158 +22,171 @@ export {
 		Detection,
 	};
 	
-	## Record type used for logging information from the intelligence framework.
-	## Primarily for problems or oddities with inserting and querying data.  
-	## This is important since the content of the intelligence framework can 
-	## change quite dramatically during runtime and problems may be introduced 
-	## into the data.
+	type Classification: enum {
+		MALICIOUS,
+		INFRASTRUCTURE,
+		SENSITIVE,
+		FRIEND,
+		CANARY,
+		WHITELIST,
+	};
+
+	type SubType: enum {
+		URL,
+		EMAIL,
+		DOMAIN,
+		USER_NAME,
+		FILE_HASH, # (non hash type specific, md5, sha1, sha256)
+		CERT_HASH,
+		ASN,
+	};
+	
 	type Info: record {
-		## The current network time.
 		ts:      time   &log;
-		## Represents the severity of the message. 
 		## This value should be one of: "info", "warn", "error"
 		level:   string &log;
-		## The message.
 		message: string &log;
 	};
 	
-	## Record to represent metadata associated with a single piece of
-	## intelligence.
 	type MetaData: record {
-		## A description for the data.
+		source:      string;
+		class:       Classification;
 		desc:        string      &optional;
-		## A URL where more information may be found about the intelligence.
 		url:         string      &optional;
-		## The time at which the data was first declared to be intelligence.
-		first_seen:  time        &optional;
-		## When this data was most recent inserted into the framework.
-		latest_seen: time        &optional;
-		## Arbitrary text tags for the data.
-		tags:        set[string];
+		tags:        set[string] &optional;
 	};
 	
-	## Record to represent a singular piece of intelligence.
 	type Item: record {
-		## If the data is an IP address, this hold the address.
-		ip:          addr        &optional;
-		## If the data is textual, this holds the text.
-		str:         string      &optional;
-		## If the data is numeric, this holds the number.
-		num:         int         &optional;
-		## The subtype of the data for when either the $str or $num fields are
-		## given.  If one of those fields are given, this field must be present.
-		subtype:     string      &optional;
+		ip:          addr           &optional;
+		net:         subnet         &optional;
+
+		str:         string         &optional;
+		subtype:     SubType        &optional;
 		
-		## The next five fields are temporary until a better model for 
-		## attaching metadata to an intelligence item is created.
-		desc:        string      &optional;
-		url:         string      &optional;
-		first_seen:  time        &optional;
-		latest_seen: time        &optional;
-		tags:        set[string];
-		
-		## These single string tags are throw away until pybroccoli supports sets.
-		tag1: string &optional;
-		tag2: string &optional;
-		tag3: string &optional;
+		meta:        MetaData;
 	};
-	
-	## Record model used for constructing queries against the intelligence 
-	## framework.
-	type QueryItem: record {
-		## If an IP address is being queried for, this field should be given.
-		ip:        addr        &optional;
-		## If a string is being queried for, this field should be given.
-		str:       string      &optional;
-		## If numeric data is being queried for, this field should be given.
-		num:       int         &optional;
-		## If either a string or number is being queried for, this field should
-		## indicate the subtype of the data.
-		subtype:   string      &optional;
+
+	type Query: record {
+		ip:          addr           &optional;
+
+		str:         string         &optional;
+		subtype:     SubType        &optional;
 		
-		## A set of tags where if a single metadata record attached to an item
-		## has any one of the tags defined in this field, it will match.
-		or_tags:   set[string] &optional;
-		## A set of tags where a single metadata record attached to an item 
-		## must have all of the tags defined in this field.
-		and_tags:  set[string] &optional; 
+		class:       Classification &optional;
+
+		or_tags:     set[string]    &optional;
+		and_tags:    set[string]    &optional;
 		
 		## The predicate can be given when searching for a match.  It will
-		## be tested against every :bro:type:`Intel::MetaData` item associated
-		## with the data being matched on.  If it returns T a single time, the 
-		## matcher will consider that the item has matched.  This field can
-		## be used for constructing arbitrarily complex queries that may not
-		## be possible with the $or_tags or $and_tags fields.
-		pred:      function(meta: Intel::MetaData): bool &optional;
+		## be tested against every :bro:type:`MetaData` item associated with 
+		## the data being matched on.  If it returns T a single time, the 
+		## matcher will consider that the item has matched.
+		pred:        function(meta: Intel::Item): bool &optional;
 	};
 	
-	## Function to insert data into the intelligence framework.
-	## 
-	## item: The data item.
-	##
-	## Returns: T if the data was successfully inserted into the framework,
-	##          otherwise it returns F.
+	type Importer: enum {
+		NULL_IMPORTER
+	};
+
 	global insert: function(item: Item): bool;
-	
-	## A wrapper for the :bro:id:`Intel::insert` function.  This is primarily
-	## used as the external API for inserting data into the intelligence 
-	## using Broccoli.
 	global insert_event: event(item: Item);
-	
-	## Function for matching data within the intelligence framework.
-	global matcher: function(item: QueryItem): bool;
+	global delete_item: function(item: Item): bool;
+
+	global matcher: function(query: Query): bool;
+	global lookup: function(query: Query): set[Item];
+
+	global register_custom_matcher: function(subtype: SubType, 
+	                                         func: function(query: Query): bool);
+	global register_custom_lookup: function(subtype: SubType,
+	                                        func: function(query: Query): set[Item]);
+
+	global new_item: event(item: Item);
+	global updated_item: event(item: Item);
 }
 
-type MetaDataStore: table[count] of MetaData;
+## Store collections of :bro:type:`MetaData` records indexed by a source name.
+type IndexedItems: table[string, Classification] of MetaData;
 type DataStore: record {
-	ip_data:     table[addr] of MetaDataStore;
-	# The first string is the actual value and the second string is the subtype.
-	string_data: table[string, string] of MetaDataStore;
-	int_data:    table[int, string] of MetaDataStore;
+	ip_data:     table[addr] of IndexedItems;
+	string_data: table[string, SubType] of IndexedItems;
 };
 global data_store: DataStore;
 
-event bro_init()
+global custom_matchers: table[SubType] of set[function(query: Query): bool];
+global custom_lookup: table[SubType] of set[function(query: Query): set[Item]];
+
+event bro_init() &priority=5
 	{
 	Log::create_stream(Intel::LOG, [$columns=Info]);
 	}
 
+function register_custom_matcher(subtype: SubType, func: function(query: Query): bool)
+	{
+	if ( subtype !in custom_matchers )
+		custom_matchers[subtype] = set();
+	add custom_matchers[subtype][func];
+	}
+
+function register_custom_lookup(subtype: SubType, func: function(query: Query): set[Item])
+	{
+	if ( subtype !in custom_lookup )
+		custom_lookup[subtype] = set();
+	add custom_lookup[subtype][func];
+	}
+
+
+
+function same_meta(meta1: MetaData, meta2: MetaData): bool
+	{
+	# "any" type values can't be compared so this generic implementation doesn't work.
+	#local rf1 = record_fields(item1);
+	#local rf2 = record_fields(item2);
+	#for ( field in rf1 )
+	#	{
+	#	if ( ((rf1[field]?$value && rf1[field]?$value) &&
+	#	       rf1[field]$value != rf2[field]$value) ||
+	#	      ! (rf1[field]?$value && rf1[field]?$value) )
+	#		return F; 
+	#	}
+
+	if ( meta1$source == meta2$source &&
+	     meta1$class  == meta2$class &&
+	     ((!meta1?$desc && !meta2?$desc) || (meta1?$desc && meta2?$desc && meta1$desc == meta2$desc)) &&
+	     ((!meta1?$url && !meta2?$url) || (meta1?$url && meta2?$url && meta1$url == meta2$url)) &&
+	     ((!meta1?$tags && !meta2?$tags) || (meta1?$tags && meta2?$tags && |meta1$tags| == |meta2$tags|)) )
+		{
+		# TODO: match on all of the tag values
+		return T;
+		}
+
+	# The records must not be equivalent if we made it this far.
+	return F;
+	}
 
 function insert(item: Item): bool
 	{
 	local err_msg = "";
-	if ( (item?$str || item?$num) && ! item?$subtype )
-		err_msg = "You must provide a subtype to insert_sync or this item doesn't make sense.";
+	if ( item?$str && ! item?$subtype )
+		err_msg = "You must provide a subtype for strings or this item doesn't make sense.";
 	
 	if ( err_msg == "" )
 		{
 		# Create and fill out the meta data item.
-		local meta: MetaData;
-		if ( item?$first_seen )
-			meta$first_seen = item$first_seen;
-		if ( item?$latest_seen )
-			meta$latest_seen = item$latest_seen;
-		if ( item?$tags )
-			meta$tags = item$tags;
-		if ( item?$desc )
-			meta$desc = item$desc;
-		if ( item?$url )
-			meta$url = item$url;
-		
-		
-		# This is hopefully only temporary until pybroccoli supports sets.
-		if ( item?$tag1 )
-			add item$tags[item$tag1];
-		if ( item?$tag2 )
-			add item$tags[item$tag2];
-		if ( item?$tag3 )
-			add item$tags[item$tag3];
-		
+		local meta = item$meta;
+
 		if ( item?$ip )
 			{
 			if ( item$ip !in data_store$ip_data )
 				data_store$ip_data[item$ip] = table();
-			data_store$ip_data[item$ip][|data_store$ip_data[item$ip]|] = meta;
+			
+			if ( [meta$source, meta$class] !in data_store$ip_data[item$ip] )
+				event Intel::new_item(item);
+			else if ( ! same_meta(data_store$ip_data[item$ip][meta$source, meta$class], meta) )
+				event Intel::updated_item(item);
+			else 
+				return F;
+
+			data_store$ip_data[item$ip][meta$source, meta$class] = item$meta;
 			return T;
 			}
 		else if ( item?$str )
@@ -193,15 +194,14 @@ function insert(item: Item): bool
 			if ( [item$str, item$subtype] !in data_store$string_data )
 				data_store$string_data[item$str, item$subtype] = table();
 			
-			data_store$string_data[item$str, item$subtype][|data_store$string_data[item$str, item$subtype]|] = meta;
-			return T;
-			}
-		else if ( item?$num )
-			{
-			if ( [item$num, item$subtype] !in data_store$int_data )
-				data_store$int_data[item$num, item$subtype] = table();
+			if ( [meta$source, meta$class] !in data_store$string_data[item$str, item$subtype] )
+				event Intel::new_item(item);
+			else if ( ! same_meta(data_store$string_data[item$str, item$subtype][meta$source, meta$class], meta) )
+				event Intel::updated_item(item);
+			else 
+				return F;
 
-			data_store$int_data[item$num, item$subtype][|data_store$int_data[item$num, item$subtype]|] = meta;
+			data_store$string_data[item$str, item$subtype][meta$source, meta$class] = item$meta;
 			return T;
 			}
 		else
@@ -217,107 +217,161 @@ event insert_event(item: Item)
 	{
 	insert(item);
 	}
-	
-function match_item_with_metadata(item: QueryItem, meta: MetaData): bool
+
+function match_item_with_query(item: Item, query: Query): bool
 	{
-	if ( item?$and_tags )
+	if ( ! query?$and_tags && ! query?$or_tags && ! query?$pred )
+		return T;
+
+	if ( query?$and_tags )
 		{
 		local matched = T;
 		# Every tag given has to match in a single MetaData entry.
-		for ( tag in item$and_tags )
+		for ( tag in query$and_tags )
 			{
-			if ( tag !in meta$tags )
+			if ( item$meta?$tags && tag !in item$meta$tags )
 				matched = F;
 			}
 		if ( matched )
 			return T;
 		}
-	else if ( item?$or_tags )
+	else if ( query?$or_tags )
 		{
 		# For OR tags, only a single tag has to match.
-		for ( tag in item$or_tags )
+		for ( tag in query$or_tags )
 			{
-			if ( tag in meta$tags )
+			if ( item$meta?$tags && tag in item$meta$tags )
 				return T;
 			}
 		}
-	else if ( item?$pred )
-		return item$pred(meta);
+	else if ( query?$pred )
+		return query$pred(item);
 
 	# This indicates some sort of failure in the query
 	return F;
 	}
 	
-function matcher(item: QueryItem): bool
+function lookup(query: Query): set[Item]
+	{
+	local meta: MetaData;
+	local item: Item;
+	local return_data: set[Item] = set();
+
+	if ( query?$ip )
+		{
+		if ( query$ip in data_store$ip_data )
+			{
+			for ( [source, class] in data_store$ip_data[query$ip] )
+				{
+				meta = data_store$ip_data[query$ip][source, class];
+				item = [$ip=query$ip,$meta=meta];
+				if ( match_item_with_query(item, query) )
+					add return_data[item];
+				}
+			}
+		}
+	
+	else if ( query?$str )
+		{
+		if ( [query$str, query$subtype] in data_store$string_data )
+			{
+			for ( [source, class] in data_store$string_data[query$str, query$subtype] )
+				{
+				meta = data_store$string_data[query$str, query$subtype][source, class];
+				item = [$str=query$str,$subtype=query$subtype,$meta=meta];
+				if ( match_item_with_query(item, query) )
+					add return_data[item];
+				}
+			}
+
+		# Check if there are any custom subtype lookup functons and add the values to 
+		# the result set.
+		if ( query$subtype in custom_lookup )
+			{
+			for ( lookup_func in custom_lookup[query$subtype] )
+				{
+				# Iterating here because there is no way to merge sets generically.
+				for ( custom_lookup_item in lookup_func(query) )
+					add return_data[custom_lookup_item];
+				}
+			}
+		}
+	
+	return return_data;
+	}
+
+	
+function matcher(query: Query): bool
 	{
 	local err_msg = "";
-	if ( ! (item?$ip || item?$str || item?$num) )
-		err_msg = "You must supply one of the $ip, $str, or $num fields to search on";
-	else if ( (item?$or_tags || item?$and_tags) && item?$pred )
+	if ( (query?$or_tags || query?$and_tags) && query?$pred )
 		err_msg = "You can't match with both tags and a predicate.";
-	else if ( item?$or_tags && item?$and_tags )
+	else if ( query?$or_tags && query?$and_tags )
 		err_msg = "You can't match with both OR'd together tags and AND'd together tags";
-	else if ( (item?$str || item?$num) && ! item?$subtype )
-		err_msg = "You must provide a subtype to matcher or this item doesn't make sense.";
-	else if ( item?$str && item?$num )
-		err_msg = "You must only provide $str or $num, not both.";
+	else if ( query?$str && ! query?$subtype )
+		err_msg = "You must provide a subtype to matcher or this query doesn't make sense.";
 		
+	local item: Item;
 	local meta: MetaData;
 
 	if ( err_msg == "" )
 		{
-		if ( item?$ip )
+		if ( query?$ip )
 			{
-			if ( item$ip in data_store$ip_data )
+			if ( query$ip in data_store$ip_data )
 				{
-				if ( ! item?$and_tags && ! item?$or_tags && ! item?$pred )
+				if ( ! query?$and_tags && ! query?$or_tags && ! query?$pred )
 					return T;
-			
-				for ( i in data_store$ip_data[item$ip] )
+				
+				for ( [source, class] in data_store$ip_data[query$ip] )
 					{
-					meta = data_store$ip_data[item$ip][i];
-					if ( match_item_with_metadata(item, meta) )
+					meta = data_store$ip_data[query$ip][source, class];
+					item = [$ip=query$ip,$meta=meta];
+					if ( match_item_with_query(item, query) )
 						return T;
 					}
 				}
 			}
 		
-		else if ( item?$str )
+		else if ( query?$str )
 			{
-			if ( [item$str, item$subtype] in data_store$string_data )
+			if ( [query$str, query$subtype] in data_store$string_data )
 				{
-				if ( ! item?$and_tags && ! item?$or_tags && ! item?$pred )
+				if ( ! query?$and_tags && ! query?$or_tags && ! query?$pred )
 					return T;
 
-				for ( i in data_store$string_data[item$str, item$subtype] )
+				for ( [source, class] in data_store$string_data[query$str, query$subtype] )
 					{
-					meta = data_store$string_data[item$str, item$subtype][i];
-					if ( match_item_with_metadata(item, meta) )
+					meta = data_store$string_data[query$str, query$subtype][source, class];
+					item = [$str=query$str,$subtype=query$subtype,$meta=meta];
+					if ( match_item_with_query(item, query) )
+						return T;
+					}
+				}
+
+			# Check if there are any custom subtype matchers in case we haven't matched yet.
+			if ( query$subtype in custom_matchers )
+				{
+				for ( match_func in custom_matchers[query$subtype] )
+					{
+					if ( match_func(query) )
 						return T;
 					}
 				}
 			}
-		
-		else if ( item?$num )
-			{
-			if ( [item$num, item$subtype] in data_store$int_data )
-				{
-				if ( ! item?$and_tags && ! item?$or_tags && ! item?$pred )
-					return T;
 
-				for ( i in data_store$int_data[item$num, item$subtype] )
-					{
-					meta = data_store$int_data[item$num, item$subtype][i];
-					if ( match_item_with_metadata(item, meta) )
-						return T;
-					}
-				}
-			}
 		else
-			err_msg = "Failed to query intelligence data for some unknown reason.";
+			err_msg = "You must supply one of the $ip or $str fields to search on";
 		}
 		
 	if ( err_msg != "" )
 		Log::write(Intel::LOG, [$ts=network_time(), $level="error", $message=fmt(err_msg)]);
 	return F;
+	}
+
+module GLOBAL;
+
+function INTEL(item: Intel::Query): bool
+	{
+	return Intel::matcher(item);
 	}

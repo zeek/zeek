@@ -37,15 +37,15 @@ export {
 		location: string &log &optional;
 	};
 	
-	## Send reporter error messages to STDERR by default.  The option to 
+	## Tunable for sending reporter warning messages to STDERR.  The option to
+	## turn it off is presented here in case Bro is being run by some
+	## external harness and shouldn't output anything to the console.
+	const warnings_to_stderr = T &redef;
+
+	## Tunable for sending reporter error messages to STDERR.  The option to 
 	## turn it off is presented here in case Bro is being run by some 
 	## external harness and shouldn't output anything to the console.
 	const errors_to_stderr = T &redef;
-	
-	## Send reporter warning messages to STDERR by default.  The option to 
-	## turn it off is presented here in case Bro is being run by some 
-	## external harness and shouldn't output anything to the console.
-	const warnings_to_stderr = T &redef;
 }
 
 global stderr: file;
@@ -65,13 +65,26 @@ event reporter_info(t: time, msg: string, location: string) &priority=-5
 	
 event reporter_warning(t: time, msg: string, location: string) &priority=-5
 	{
+	if ( warnings_to_stderr )
+		{
+		if ( t > double_to_time(0.0) )
+			print stderr, fmt("WARNING: %.6f %s (%s)", t, msg, location);
+		else
+			print stderr, fmt("WARNING: %s (%s)", msg, location);
+		}
+	
 	Log::write(Reporter::LOG, [$ts=t, $level=WARNING, $message=msg, $location=location]);
 	}
 
 event reporter_error(t: time, msg: string, location: string) &priority=-5
 	{
 	if ( errors_to_stderr )
-		print stderr, fmt("ERROR: %s", msg);
+		{
+		if ( t > double_to_time(0.0) )
+			print stderr, fmt("ERROR: %.6f %s (%s)", t, msg, location);
+		else
+			print stderr, fmt("ERROR: %s (%s)", msg, location);
+		}
 	
 	Log::write(Reporter::LOG, [$ts=t, $level=ERROR, $message=msg, $location=location]);
 	}

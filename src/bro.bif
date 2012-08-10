@@ -1,5 +1,3 @@
-##! A collection of built-in functions that implement a variety of things
-##! such as general programming algorithms, string processing, math functions,
 ##! introspection, type conversion, file/directory manipulation, packet
 ##! filtering, inter-process communication and controlling protocol analyzer
 ##! behavior.
@@ -5859,4 +5857,209 @@ function generate_idmef%(src_ip: addr, src_port: port,
 	builtin_error("Bro was not configured for IDMEF support");
 	return new Val(0, TYPE_BOOL);
 #endif
+	%}
+
+
+## This is where my code starts...
+##Just a note about notation. I'm specifying everything with the prefix hll just
+## in case in the future, there's a better way to count cardinalities or something.
+## That way, code written that depends on the HyperLogLog algorithm will still be
+## working. Though, I'm fairly certain that anything that might be better won't
+## be significantly better.
+
+
+%%{
+#include "HyperLogLog.h"
+static map<BroString, CardinalityCounter*> hll_counters;
+%%}
+
+## Initializes the hash for the HyperLogLog cardinality counting algorithm.
+## It returns true if it was successful in creating a structure and false
+## if it wasn't.
+
+function hll_cardinality_init%(err: double,index: any%): bool
+	%{
+	BroString* s = convert_index_to_string(index);
+	int status = 0;
+
+	if ( hll_counters.count(*s) < 1 )
+		{
+		hll_counters[*s] = new CardinalityCounter(err);
+		status = 1;
+		}
+
+	delete s;
+	return new Val(status, TYPE_BOOL);
+	%}
+
+## Adds an element to the HyperLogLog data structure located at index.
+
+##elem->Type() to get the type of elem.
+
+function hll_cardinality_add%(elem: any, index: any%): bool
+	%{
+	BroString* s = convert_index_to_string(index);
+	int status = 0;
+	
+	CompositeHash* hll_hash = new CompositeHash(new TypeList(elem->Type()));
+	HashKey* key;
+	if(hll_counters.count(*s) > 0)
+		{
+		CardinalityCounter* h = hll_counters[*s];
+		key = hll_hash->ComputeHash(elem,1);
+		(*h).addElement(key->Hash());
+		status = 1;
+		}
+
+	delete s;
+	return new Val(status, TYPE_BOOL);
+	%}
+
+## The data structure at index1 will contain the combined count for the
+## elements measured by index1 and index2.
+## It returns true if it either cloned the value at index2 into index1
+## or if it merged the two data structures together.
+
+function hll_cardinality_merge_into%(index1: any, index2: any%): bool
+	%{
+	BroString* s1 = convert_index_to_string(index1);
+	BroString* s2 = convert_index_to_string(index2);
+	int status = 0;
+
+	if(hll_counters.count(*s1) < 1)
+		{
+		if(hll_counters.count(*s2) < 1)
+			{
+			status = 0;
+			}
+		else
+			{
+			uint64_t m = (*hll_counters[*s2]).getM();
+			double error = 1.04/sqrt(m);
+			CardinalityCounter* newInst = new CardinalityCounter(error);
+			int i = 0;
+			while((*newInst).getM() != m)
+				{
+				i += 1;
+				newInst = new CardinalityCounter(error/i);
+				}
+			hll_counters[*s1] = newInst;
+			(*newInst).merge(hll_counters[*s2]);
+			status = 1;
+			}
+		}
+	else
+		{
+		if(hll_counters.count(*s2) < 1)
+			{
+			status = 0;
+			}
+		else
+			{
+			if((*hll_counters[*s2]).getM() == (*hll_counters[*s1]).getM())
+				{
+				status = 1;
+				(*hll_counters[*s1]).merge(hll_counters[*s2]);
+				}
+			}
+		}
+
+	delete s1;
+	delete s2;
+	return new Val(status, TYPE_BOOL);
+
+	%}
+
+## Returns true if it destroyed something. False if it didn't.
+function hll_cardinality_destroy%(index: any%): bool
+	%{
+	BroString* s = convert_index_to_string(index);
+	int status = 0;
+
+	if(hll_counters.count(*s) > 0)
+		{
+		delete hll_counters[*s];
+		}
+
+	delete s;
+	return new Val(status, TYPE_BOOL);
+	%}
+
+## Returns the cardinality estimate. Returns -1.0 if there is nothing in that index.
+function hll_cardinality_estimate%(index: any%): double
+	%{
+	BroString* s = convert_index_to_string(index);
+	double estimate = -1.0;
+
+	if(hll_counters.count(*s) > 0)
+		{
+		estimate = (*hll_counters[*s]).size();
+		}
+
+	delete s;
+	return new Val(estimate, TYPE_DOUBLE);	
+	%}
+
+##I'm really not sure about the notation of this function...
+
+function hll_cardinality_keys%(%): bool
+	%{
+//	TableVal* a = new TableVal(string_set);
+//	map<BroString, CardinalityCounter*>::iterator it;
+
+//	for(it = hll_counters.begin() ; it != hll_counters.end(); it++)
+//		{
+//		a->Assign((*it).first);
+//		}
+//	return a;
+	return new Val(1, TYPE_BOOL);
+	%}
+
+## Stores the data structure at index2 into index1. Deletes the data structure at index1
+## if there was any. Returns True if the data structure at index1 was changed in any way.
+
+function hll_cardinality_clone%(index1: any, index2: any%): bool
+	%{
+	BroString* s1 = convert_index_to_string(index1);
+	BroString* s2 = convert_index_to_string(index2);
+	int status = 0;
+
+	if(hll_counters.count(*s2) < 1)
+		{
+		if(hll_counters.count(*s1) < 1)
+			{
+			status = 0;
+			}
+		else
+			{
+			delete hll_counters[*s1];
+			status = 1;
+			}
+		}
+	else
+		{
+			uint64_t m = (*hll_counters[*s2]).getM();
+			double error = 1.04/sqrt(m);
+			CardinalityCounter* newInst = new CardinalityCounter(error);
+			int i = 0;
+			while((*newInst).getM() != m)
+				{
+				i += 1;
+				newInst = new CardinalityCounter(error/i);
+				}
+			(*newInst).merge(hll_counters[*s2]);
+		if(hll_counters.count(*s1) < 1)
+			{
+			hll_counters[*s1] = newInst;
+			}
+		else
+			{
+			delete hll_counters[*s1];
+			hll_counters[*s1] = newInst;
+			}
+		status = 1;
+		}
+	delete s1;
+	delete s2;
+	return new Val(status, TYPE_BOOL);
 	%}

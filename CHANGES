@@ -1,4 +1,8 @@
 
+2.1-beta-9 | 2012-08-10 12:24:29 -0700
+
+  * Add more BIF tests. (Daniel Thayer)
+
 2.1-beta-6 | 2012-08-10 12:22:52 -0700
 
   * Fix bug in input framework with an edge case. (Bernhard Amann)

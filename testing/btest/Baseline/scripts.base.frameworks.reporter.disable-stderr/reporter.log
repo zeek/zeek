@@ -1,0 +1,8 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	reporter
+#fields	ts	level	message	location
+#types	time	enum	string	string
+0.000000	Reporter::ERROR	no such index (test[3])	/blah/testing/btest/.tmp/scripts.base.frameworks.reporter.disable-stderr/disable-stderr.bro, line 12

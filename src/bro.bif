@@ -5900,18 +5900,20 @@ function hll_cardinality_add%(elem: any, index: any%): bool
 	%{
 	BroString* s = convert_index_to_string(index);
 	int status = 0;
-	uint64_t a = 1230123;
+	uint64_t a = 123456;
 
 	CompositeHash* hll_hash = new CompositeHash(new TypeList(elem->Type()));
-	HashKey* key;
 	if(hll_counters.count(*s) > 0)
 		{
 		CardinalityCounter* h = hll_counters[*s];
-		key = hll_hash->ComputeHash(elem,1);
+		HashKey* key = hll_hash->ComputeHash(elem,1);
+		a = (key->Hash());
 		h->addElement(a);
 		status = 1;
+		delete key;
 		}
 
+	delete hll_hash;
 	delete s;
 	return new Val(status, TYPE_BOOL);
 	%}

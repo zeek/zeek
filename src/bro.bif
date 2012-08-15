@@ -5902,11 +5902,15 @@ function hll_cardinality_add%(elem: any, index: any%): bool
 	int status = 0;
 	uint64_t a = 123456;
 
-	CompositeHash* hll_hash = new CompositeHash(new TypeList(elem->Type()));
-	if(hll_counters.count(*s) > 0)
+	TypeList* tl = new TypeList(elem->Type());
+	tl->Append(elem->Type());
+	CompositeHash* hll_hash = new CompositeHash(tl);
+	Unref(tl);
+
+	if( hll_counters.count(*s) > 0 )
 		{
 		CardinalityCounter* h = hll_counters[*s];
-		HashKey* key = hll_hash->ComputeHash(elem,1);
+		HashKey* key = hll_hash->ComputeHash(elem, 1);
 		a = (key->Hash());
 		h->addElement(a);
 		status = 1;

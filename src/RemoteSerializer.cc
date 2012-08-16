@@ -2897,11 +2897,6 @@ void RemoteSerializer::GotID(ID* id, Val* val)
 					(desc && *desc) ? desc : "not set"),
 			current_peer);
 
-#ifdef USE_PERFTOOLS_DEBUG
-		// May still be cached, but we don't care.
-		heap_checker->IgnoreObject(id);
-#endif
-
 		Unref(id);
 		return;
 		}

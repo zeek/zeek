@@ -371,7 +371,11 @@ bool ElasticSearch::HTTPSend(CURL *handle)
 	// The best (only?) way to disable that is to just use HTTP 1.0
 	curl_easy_setopt(handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_0);
 
-	//curl_easy_setopt(handle, CURLOPT_TIMEOUT_MS, transfer_timeout);
+	// Some timeout options.  These will need more attention later.
+	curl_easy_setopt(handle, CURLOPT_NOSIGNAL, 1);
+	curl_easy_setopt(handle, CURLOPT_CONNECTTIMEOUT_MS, transfer_timeout);
+	curl_easy_setopt(handle, CURLOPT_TIMEOUT_MS, transfer_timeout*2);
+	curl_easy_setopt(handle, CURLOPT_DNS_CACHE_TIMEOUT, 60*60);
 
 	CURLcode return_code = curl_easy_perform(handle);
 

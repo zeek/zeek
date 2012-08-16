@@ -1,4 +1,20 @@
 
+2.1-beta-13 | 2012-08-10 12:28:04 -0700
+
+  * Reporter warnings and error now print to stderr by default. New
+	options Reporter::warnings_to_stderr and
+	Reporter::errors_to_stderr to disable. (Seth Hall)
+
+2.1-beta-9 | 2012-08-10 12:24:29 -0700
+
+  * Add more BIF tests. (Daniel Thayer)
+
+2.1-beta-6 | 2012-08-10 12:22:52 -0700
+
+  * Fix bug in input framework with an edge case. (Bernhard Amann)
+    
+  * Fix small bug in input framework test script. (Bernhard Amann)
+    
 2.1-beta-3 | 2012-08-03 10:46:49 -0700
 
   * Merge branch 'master' of ssh://git.bro-ids.org/bro (Robin Sommer)

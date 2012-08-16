@@ -8,13 +8,13 @@ export {
 
 	## Optionally ignore any :bro:type:`Log::ID` from being sent to
 	## ElasticSearch with this script.
-	const excluded_log_ids: set[string] = set("Communication::LOG") &redef;
+	const excluded_log_ids: set[Log::ID] &redef;
 
 	## If you want to explicitly only send certain :bro:type:`Log::ID` 
 	## streams, add them to this set.  If the set remains empty, all will 
 	## be sent.  The :bro:id:`LogElasticSearch::excluded_log_ids` option will remain in 
 	## effect as well.
-	const send_logs: set[string] = set() &redef;
+	const send_logs: set[Log::ID] &redef;
 }
 
 event bro_init() &priority=-5
@@ -24,8 +24,8 @@ event bro_init() &priority=-5
 	
 	for ( stream_id in Log::active_streams )
 		{
-		if ( fmt("%s", stream_id) in excluded_log_ids ||
-		     (|send_logs| > 0 && fmt("%s", stream_id) !in send_logs) )
+		if ( stream_id in excluded_log_ids ||
+		     (|send_logs| > 0 && stream_id !in send_logs) )
 			next;
 
 		local filter: Log::Filter = [$name = "default-es",

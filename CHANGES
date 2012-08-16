@@ -1,4 +1,9 @@
 
+2.1-beta-20 | 2012-08-16 11:43:31 -0700
+
+  * Fixed potential problems with ElasticSearch output plugin. (Seth
+    Hall)
+
 2.1-beta-13 | 2012-08-10 12:28:04 -0700
 
   * Reporter warnings and error now print to stderr by default. New

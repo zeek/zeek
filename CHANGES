@@ -1,4 +1,10 @@
 
+2.1-beta-21 | 2012-08-16 11:48:56 -0700
+
+  * Installing a handler for running out of memory in "new". Bro will
+    now print an error message in that case rather than abort with an
+    uncaught exception. (Robin Sommer)
+
 2.1-beta-20 | 2012-08-16 11:43:31 -0700
 
   * Fixed potential problems with ElasticSearch output plugin. (Seth

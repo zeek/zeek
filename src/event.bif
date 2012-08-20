@@ -6612,6 +6612,87 @@ event reporter_error%(t: time, msg: string, location: string%) &error_handler;
 ##        recursively for each ``@load``.
 event bro_script_loaded%(path: string, level: count%);
 
+################################################################################
+####  DINA TESTING    ##########################################################
+####  MODBUS EVENTS   ##########################################################
+################################################################################
+
+# Event that passes request header only
+event modbus_request%(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count%);
+
+# Event that passes response header only
+event modbus_response%(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count%);
+
+# Event that passes modbus request function code =3
+event modbus_read_multi_request%(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count,ref:count,wcount:count,len:count%);
+
+# Event that passes modbus request function code =4
+event modbus_read_input_request%(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count,ref:count,wcount:count,len:count%);
+
+# Event that passes modbus request function code =5
+event modbus_write_coil_request%(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count,ref:count,onOff:count,other:count%);
+
+# Event that passes modbus request function code =6
+event modbus_write_single_request%(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count,len:count,ref:count,value:count%);
+
+#Event that passes modbus request function code=16
+event modbus_write_multi_request%(c:connection,is_orig:bool,t:int_vec,tid:count,pid:count,uid:count,fc:count,ref:count,wCount:count,bCount:count,len:count%);
+
+
+#Event that passes modbus request function code=22
+event modbus_mask_write_request%(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count,ref:count,andMask:count,orMask:count%);
+
+
+#Event that passes modbus request function code=23
+event modbus_read_write_request%(c:connection,is_orig:bool,t:int_vec,tid:count,pid:count,uid:count,fc:count,refRead:count,wcRead:count,refWrite:count,wcWrite:count,bCount:count,len:count%);
+
+#Event that passes modbus request function code=7
+event modbus_read_except_request%(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count,len:count%);
+
+#Event that passes modbus response function code=3
+event modbus_read_multi_response%(c:connection,is_orig:bool,t:int_vec,tid:count,pid:count,uid:count,fc:count,bCount:count,len:count%);
+
+#Event that passes modbus response function code=4
+event modbus_read_input_response%(c:connection,is_orig:bool,t:int_vec,tid:count,pid:count,uid:count,fc:count,bCount:count,len:count%);
+
+# Event that passes modbus request function code =5
+event modbus_write_coil_response%(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count,ref:count,onOff:count,other:count%);
+
+#Event that passes modbus response function code=6
+event modbus_write_single_response%(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count,len:count,ref:count,value:count%);
+
+#Event that passes modbus response function code=16
+event modbus_write_multi_response%(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count,ref:count,wcount:count,len:count%);
+
+
+#Event that passes modbus response function code=22
+event modbus_mask_write_response%(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count,ref:count,andMask:count,orMask:count%);
+
+
+#Event that passes modbus response function code=23
+event modbus_read_write_response%(c:connection,is_orig:bool,t:int_vec,tid:count,pid:count,uid:count,fc:count,bCount:count,len:count%);
+
+#Event that passes modbus response function code=7
+event modbus_read_except_response%(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count,status:count,len:count%);
+
+#Event that parses modbus exception
+event modbus_exception%(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count,code:count%);
+
+
+##################################################################
+##################################################################
+## END OF MODBUS EVENTS  #########################################
+##################################################################
+
+
+
+
+
+
+
+
+
+
 ## Deprecated. Will be removed.
 event stp_create_endp%(c: connection, e: int, is_orig: bool%);
 

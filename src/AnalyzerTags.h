@@ -41,6 +41,10 @@ namespace AnalyzerTag {
 		// Other
 		File, Backdoor, InterConn, SteppingStone, TCPStats,
 		ConnSize,
+		
+		//ICS related
+                Modbus,
+
 
 		// Support-analyzers
 		Contents, ContentLine, NVT, Zip, Contents_DNS, Contents_NCP,

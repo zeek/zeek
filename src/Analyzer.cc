@@ -28,6 +28,7 @@
 #include "DCE_RPC.h"
 #include "Gnutella.h"
 #include "Ident.h"
+#include "Modbus.h"
 #include "NCP.h"
 #include "NetbiosSSN.h"
 #include "SMB.h"
@@ -157,6 +158,11 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 	{ AnalyzerTag::ConnSize, "CONNSIZE",
 		ConnSize_Analyzer::InstantiateAnalyzer,
 		ConnSize_Analyzer::Available, 0, false },
+
+	{ AnalyzerTag::Modbus, "MODBUS",
+               ModbusTCP_Analyzer::InstantiateAnalyzer,
+                ModbusTCP_Analyzer::Available, 0, false },
+
 
 	{ AnalyzerTag::Contents, "CONTENTS", 0, 0, 0, false },
 	{ AnalyzerTag::ContentLine, "CONTENTLINE", 0, 0, 0, false },

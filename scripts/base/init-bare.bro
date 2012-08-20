@@ -53,6 +53,16 @@ type string_vec: vector of string;
 ##    then remove this alias.
 type addr_vec: vector of addr;
 
+
+## A vector of int, used in Modbus function to pass data arrays
+# (byDina)
+type int_vec:vector of int;
+
+
+
+
+
+
 ## A table of strings indexed by strings.
 ##
 ## .. todo:: We need this type definition only for declaring builtin functions via

@@ -1,4 +1,8 @@
 
+2.1-beta-28 | 2012-08-21 08:32:42 -0700
+
+  * Linking ES docs into logging document. (Robin Sommer)
+
 2.1-beta-27 | 2012-08-20 20:06:20 -0700
 
   * Add the Stream record to Log:active_streams to make more dynamic

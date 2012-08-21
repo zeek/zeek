@@ -383,3 +383,4 @@ Bro supports the following output formats other than ASCII:
    :maxdepth: 1
 
    logging-dataseries
+   logging-elasticsearch

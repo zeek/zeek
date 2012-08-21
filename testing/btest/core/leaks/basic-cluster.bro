@@ -9,7 +9,7 @@
 # @TEST-EXEC: sleep 1
 # @TEST-EXEC: btest-bg-run worker-1  HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local BROPATH=$BROPATH:.. CLUSTER_NODE=worker-1  bro -m -r $TRACES/web.trace --pseudo-realtime %INPUT
 # @TEST-EXEC: btest-bg-run worker-2  HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local BROPATH=$BROPATH:.. CLUSTER_NODE=worker-2  bro -m -r $TRACES/web.trace --pseudo-realtime %INPUT
-# @TEST-EXEC: btest-bg-wait -k 30
+# @TEST-EXEC: btest-bg-wait 40
 # @TEST-EXEC: btest-diff manager-1/metrics.log
 
 @TEST-START-FILE cluster-layout.bro
@@ -40,3 +40,24 @@ event bro_init() &priority=5
 		Metrics::add_data(TEST_METRIC, [$host=7.2.1.5], 1);
 		}
 	}
+
+event remote_connection_closed(p: event_peer)
+	{
+	terminate();
+	}
+
+@if ( Cluster::local_node_type() == Cluster::MANAGER )
+
+global n = 0;
+
+event Metrics::log_metrics(rec: Metrics::Info)
+	{
+	n = n + 1;
+	if ( n == 3 )
+		{
+		terminate_communication();
+		terminate();
+		}
+	}
+
+@endif

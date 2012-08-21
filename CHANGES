@@ -1,4 +1,27 @@
 
+2.1-beta-27 | 2012-08-20 20:06:20 -0700
+
+  * Add the Stream record to Log:active_streams to make more dynamic
+    logging possible. (Seth Hall)
+
+  * Fix portability of printing to files returned by
+    open("/dev/stderr"). (Jon Siwek)
+
+  * Fix mime type diff canonifier to also skip mime_desc columns. (Jon
+    Siwek)
+
+  * Unit test tweaks/fixes. (Jon Siwek)
+
+    - Some baselines for tests in "leaks" group were outdated.
+
+    - Changed a few of the cluster/communication tests to terminate
+      more explicitly instead of relying on btest-bg-wait to kill
+      processes.  This makes the tests finish faster in the success case
+      and makes the reason for failing clearer in the that case.
+
+  * Fix memory leak of serialized IDs when compiled with
+    --enable-debug. (Jon Siwek)
+
 2.1-beta-21 | 2012-08-16 11:48:56 -0700
 
   * Installing a handler for running out of memory in "new". Bro will

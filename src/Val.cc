@@ -64,7 +64,7 @@ Val::~Val()
 
 	Unref(type);
 #ifdef DEBUG
-	Unref(bound_id);
+	delete [] bound_id;
 #endif
 	}
 

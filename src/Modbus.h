@@ -24,7 +24,13 @@ public:
 	// Put event names in this function
 	static bool Available()
 		{ return 
-		   modbus_read_multi_request
+		modbus_read_coils_request
+                || modbus_read_coils_response
+  		
+		|| modbus_read_input_discretes_request
+                || modbus_read_input_discretes_response		
+
+		|| modbus_read_multi_request
 		|| modbus_read_multi_response
 
 		|| modbus_read_input_request
@@ -36,15 +42,21 @@ public:
 		|| modbus_write_coil_request
 		|| modbus_write_coil_response
 
+
+		|| modbus_force_coils_request
+                || modbus_force_coils_response
+
 		|| modbus_write_multi_request
 		|| modbus_write_multi_response
 
 		|| modbus_mask_write_request
                 || modbus_mask_write_response
 
-
 		|| modbus_read_write_request
 		|| modbus_read_write_response
+
+		|| modbus_read_FIFO_request
+                || modbus_read_FIFO_response
 
 		|| modbus_read_except_request
 		|| modbus_read_except_response

@@ -6623,6 +6623,14 @@ event modbus_request%(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc
 # Event that passes response header only
 event modbus_response%(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count%);
 
+
+
+# Event that passes modbus request function code =1
+event modbus_read_coils_request%(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count,ref:count,bcount:count%);
+
+# Event that passes modbus request function code =2
+event modbus_read_input_discretes_request%(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count,ref:count,bcount:count%);
+
 # Event that passes modbus request function code =3
 event modbus_read_multi_request%(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count,ref:count,wcount:count,len:count%);
 
@@ -6635,6 +6643,9 @@ event modbus_write_coil_request%(c:connection,is_orig:bool,tid:count,pid:count,u
 # Event that passes modbus request function code =6
 event modbus_write_single_request%(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count,len:count,ref:count,value:count%);
 
+# Event that passes modbus request function code =15
+event modbus_force_coils_request%(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count,ref:count,bitCount:count,byteCount:count,coils:string%);
+
 #Event that passes modbus request function code=16
 event modbus_write_multi_request%(c:connection,is_orig:bool,t:int_vec,tid:count,pid:count,uid:count,fc:count,ref:count,wCount:count,bCount:count,len:count%);
 
@@ -6646,8 +6657,22 @@ event modbus_mask_write_request%(c:connection,is_orig:bool,tid:count,pid:count,u
 #Event that passes modbus request function code=23
 event modbus_read_write_request%(c:connection,is_orig:bool,t:int_vec,tid:count,pid:count,uid:count,fc:count,refRead:count,wcRead:count,refWrite:count,wcWrite:count,bCount:count,len:count%);
 
+#Event that passes modbus request function code=24
+event modbus_read_FIFO_request%(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count,ref:count%);
+
 #Event that passes modbus request function code=7
 event modbus_read_except_request%(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count,len:count%);
+
+
+
+
+#Event that passes modbus response function code=1
+event modbus_read_coils_response%(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count,bcount:count,bits:string%);
+
+
+#Event that passes modbus response function code=2
+event modbus_read_input_discretes_response%(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count,bcount:count,bits:string%);
+
 
 #Event that passes modbus response function code=3
 event modbus_read_multi_response%(c:connection,is_orig:bool,t:int_vec,tid:count,pid:count,uid:count,fc:count,bCount:count,len:count%);
@@ -6661,6 +6686,9 @@ event modbus_write_coil_response%(c:connection,is_orig:bool,tid:count,pid:count,
 #Event that passes modbus response function code=6
 event modbus_write_single_response%(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count,len:count,ref:count,value:count%);
 
+#Event that passes modbus response function code=15
+event modbus_force_coils_response%(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count,ref:count,bitCount:count%);
+
 #Event that passes modbus response function code=16
 event modbus_write_multi_response%(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count,ref:count,wcount:count,len:count%);
 
@@ -6671,6 +6699,14 @@ event modbus_mask_write_response%(c:connection,is_orig:bool,tid:count,pid:count,
 
 #Event that passes modbus response function code=23
 event modbus_read_write_response%(c:connection,is_orig:bool,t:int_vec,tid:count,pid:count,uid:count,fc:count,bCount:count,len:count%);
+
+
+#Event that passes modbus response function code=24
+event modbus_read_FIFO_response%(c:connection,is_orig:bool,t:int_vec,tid:count,pid:count,uid:count,fc:count,bcount:count%);
+
+
+
+
 
 #Event that passes modbus response function code=7
 event modbus_read_except_response%(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count,status:count,len:count%);

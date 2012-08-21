@@ -87,6 +87,156 @@ event modbus_response(c:connection,is_orig:bool,tid:count,pid: count,uid:count, 
 }
 
 
+#REQUEST FC=1
+event modbus_read_coils_request(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count, ref:count, bcount:count)
+        {
+
+                local f:file;
+                local m:file;
+                local ftime:string;
+                local src:string;
+                local dst:string;
+                local src_p:string;
+                local dst_p:string;
+
+                f=open_for_append (string_cat(path,"f1_new.log"));
+                m=open_for_append (string_cat(path,"fall_new.log"));
+                ftime=strftime("%F %T",network_time());
+
+                src= cat(c$id$orig_h);
+                dst=cat(c$id$resp_h);
+                src_p=cat(c$id$orig_p);
+                dst_p=cat(c$id$resp_p);
+
+                #according to the specification, this FC typically has 0xxxx offset in the memory map
+                #local prefix_ref:count;
+               #prefix_ref=ref+40000;
+
+
+                local text=string_cat(ftime,"\t",src,"\t",dst,"\t", src_p, "\t REQUEST \t",cat(tid), "\t",cat(pid),"\t", cat(uid),"\t", cat(fc),"\t", cat(ref), "\t", cat(bcount),"\n");
+
+                write_file(f,text);
+                write_file(m,text);
+
+                print fmt("flying");
+                close(f);
+                close(m);
+
+        }
+
+
+
+#RESPONSE FC=1
+event modbus_read_coils_response(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count, bcount:count,bits:string)
+        {
+
+                local f:file;
+                local m:file;
+                local ftime:string;
+                local src:string;
+                local dst:string;
+                local src_p:string;
+                local dst_p:string;
+
+                f=open_for_append (string_cat(path,"f1_new.log"));
+                m=open_for_append (string_cat(path,"fall_new.log"));
+                ftime=strftime("%F %T",network_time());
+
+                src= cat(c$id$orig_h);
+                dst=cat(c$id$resp_h);
+                src_p=cat(c$id$orig_p);
+                dst_p=cat(c$id$resp_p);
+
+                #according to the specification, this FC typically has 0xxxx offset in the memory map
+                #local prefix_ref:count;
+               #prefix_ref=ref+00000;
+
+
+                local text=string_cat(ftime,"\t",src,"\t",dst,"\t", src_p, "\t RESPONSE \t",cat(tid), "\t",cat(pid),"\t", cat(uid),"\t", cat(fc),"\t", cat(bcount),"\t",bits,"\n");
+
+                write_file(f,text);
+                write_file(m,text);
+
+                print fmt("flying");
+                close(f);
+                close(m);
+
+        }
+
+
+#REQUEST FC=2
+event modbus_read_input_discretes_request(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count, ref:count, bcount:count)
+        {
+                local f:file;
+                local m:file;
+                local ftime:string;
+                local src:string;
+                local dst:string;
+                local src_p:string;
+                local dst_p:string;
+
+                f=open_for_append (string_cat(path,"f2_new.log"));
+                m=open_for_append (string_cat(path,"fall_new.log"));
+                ftime=strftime("%F %T",network_time());
+
+                src= cat(c$id$orig_h);
+                dst=cat(c$id$resp_h);
+                src_p=cat(c$id$orig_p);
+                dst_p=cat(c$id$resp_p);
+
+                #according to the specification, this FC typically has 1xxxx offset in the memory map
+                local prefix_ref:count;
+                prefix_ref=ref+10000;
+
+
+                local text=string_cat(ftime,"\t",src,"\t",dst,"\t", src_p, "\t REQUEST \t",cat(tid), "\t",cat(pid),"\t", cat(uid),"\t", cat(fc),"\t", cat(prefix_ref), "\t", cat(bcount),"\n");
+
+                write_file(f,text);
+                write_file(m,text);
+
+                print fmt("flying");
+                close(f);
+                close(m);
+        }
+
+
+#RESPONSE FC=2
+event modbus_read_input_discretes_response(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count, bcount:count,bits:string)
+        {
+
+                local f:file;
+                local m:file;
+                local ftime:string;
+                local src:string;
+                local dst:string;
+                local src_p:string;
+                local dst_p:string;
+
+                f=open_for_append (string_cat(path,"f2_new.log"));
+                m=open_for_append (string_cat(path,"fall_new.log"));
+                ftime=strftime("%F %T",network_time());
+
+                src= cat(c$id$orig_h);
+                dst=cat(c$id$resp_h);
+                src_p=cat(c$id$orig_p);
+                dst_p=cat(c$id$resp_p);
+
+                #according to the specification, this FC typically has 1xxxx offset in the memory map
+                #local prefix_ref:count;
+                #prefix_ref=ref+10000;
+
+
+                local text=string_cat(ftime,"\t",src,"\t",dst,"\t", src_p, "\t RESPONSE \t",cat(tid), "\t",cat(pid),"\t", cat(uid),"\t", cat(fc),"\t",cat(bcount),"\t", bits,"\n");
+
+                write_file(f,text);
+                write_file(m,text);
+
+                print fmt("flying");
+                close(f);
+                close(m);
+        }
+
+
 
 
 
@@ -390,6 +540,77 @@ event modbus_write_single_response(c:connection,is_orig:bool,tid:count,pid:count
 
         }
 
+#REQUEST FC=15
+event modbus_force_coils_request(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count,ref:count,bitCount:count,byteCount:count,coils:string)
+        {
+
+                local h:file;
+                local m:file;
+                local ftime:string;
+                local src:string;
+                local dst:string;
+                local src_p:string;
+                local dst_p:string;
+
+                h=open_for_append (string_cat(path,"f15_new.log"));
+                m=open_for_append (string_cat(path,"fall_new.log"));
+                ftime=strftime("%F %T",network_time());
+                src= cat(c$id$orig_h);
+                dst=cat(c$id$resp_h);
+
+                src_p=cat(c$id$orig_p);
+                dst_p=cat(c$id$resp_p);
+
+                #according to the specification, this FC usually has 0xxxx offset in the memory map
+                #local prefix_ref:count;
+                #prefix_ref=ref+00000;
+
+                local text=string_cat(ftime,"\t",src,"\t",dst,"\t", src_p, "\t REQUEST \t",cat(tid), "\t",cat(pid),"\t", cat(uid),"\t", cat(fc),"\t",cat(ref), "\t",cat(bitCount),"\t",cat(byteCount),coils,"\n");
+
+                write_file(h,text);
+                write_file(m,text);
+
+                close(h);
+                close(m);
+
+        }
+
+
+
+#RESPONSE FC=15
+event modbus_force_coils_response(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count,ref:count,bitCount:count)
+        {
+
+                local h:file;
+                local m:file;
+                local ftime:string;
+                local src:string;
+                local dst:string;
+                local src_p:string;
+                local dst_p:string;
+
+                h=open_for_append (string_cat(path,"f15_new.log"));
+                m=open_for_append (string_cat(path,"fall_new.log"));
+                ftime=strftime("%F %T",network_time());
+                src= cat(c$id$orig_h);
+                dst=cat(c$id$resp_h);
+
+                src_p=cat(c$id$orig_p);
+                dst_p=cat(c$id$resp_p);
+
+                #according to the specification, this FC usually has 0xxxx offset in the memory map
+                #local prefix_ref:count;
+                #prefix_ref=ref+00000;
+
+                local text=string_cat(ftime,"\t",src,"\t",dst,"\t", src_p, "\t RESPONSE \t",cat(tid), "\t",cat(pid),"\t", cat(uid),"\t", cat(fc),"\t",cat(ref), "\t",cat(bitCount),"\n");
+
+                write_file(h,text);
+                write_file(m,text);
+
+                close(h);
+                close(m);
+
+        }
 
 
 
@@ -610,6 +831,80 @@ event modbus_read_write_request(c:connection,is_orig:bool,t:int_vec,tid:count,pi
                  close(n);
 		 close(m);
         }
+
+
+#REQUEST FC=24
+event modbus_read_FIFO_request(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count, ref:count)
+        {
+
+                local f:file;
+                local m:file;
+                local ftime:string;
+                local src:string;
+                local dst:string;
+                local src_p:string;
+                local dst_p:string;
+
+                f=open_for_append (string_cat(path,"f23_new.log"));
+                m=open_for_append (string_cat(path,"fall_new.log"));
+                ftime=strftime("%F %T",network_time());
+
+                src= cat(c$id$orig_h);
+                dst=cat(c$id$resp_h);
+                src_p=cat(c$id$orig_p);
+                dst_p=cat(c$id$resp_p);
+
+                #according to the specification, this FC typically has 4xxxx offset in the memory map
+                #local prefix_ref:count;
+               # prefix_ref=ref+40000;
+
+
+                local text=string_cat(ftime,"\t",src,"\t",dst,"\t", src_p, "\t REQUEST \t",cat(tid), "\t",cat(pid),"\t", cat(uid),"\t", cat(fc),"\t", cat(ref), "\t","\n");
+
+                write_file(f,text);
+                write_file(m,text);
+
+                print fmt("flying");
+                close(f);
+                close(m);
+
+        }
+
+
+#RESPONSE FC=24
+event modbus_read_FIFO_response(c:connection,is_orig:bool,t:int_vec,tid:count,pid:count,uid:count,fc:count,bcount:count)
+        {
+
+                local h:file;
+                local m:file;
+                local ftime:string;
+                local src:string;
+                local dst:string;
+                local src_p:string;
+                local dst_p:string;
+
+                h=open_for_append (string_cat(path,"f3_new.log"));
+                m=open_for_append (string_cat(path,"fall_new.log"));
+                ftime=strftime("%F %T",network_time());
+
+                src= cat(c$id$orig_h);
+                dst=cat(c$id$resp_h);
+                src_p=cat(c$id$orig_p);
+                dst_p=cat(c$id$resp_p);
+
+                local text=string_cat(ftime,"\t",src,"\t",dst,"\t", src_p, "\t RESPONSE \t",cat(tid), "\t",cat(pid),"\t", cat(uid),"\t", cat(fc),"\t",cat(bcount),"\t",cat(t),"\n");
+
+                write_file(h,text);
+                write_file(m,text);
+
+
+                close(h);
+                close(m);
+
+        }
+
+
+
 
 
 # REQUEST FC=7 (exception)

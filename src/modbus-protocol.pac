@@ -139,19 +139,19 @@ type ModbusTCP_RequestPDU = record {
 		READ_MULTIPLE_REGISTERS -> readMultipleRegisters: ReadMultipleRegistersRequest(header.len-2,header);
 		WRITE_MULTIPLE_REGISTERS -> writeMultipleRegisters: WriteMultipleRegistersRequest(header.len-2,header);
 		# Class 1
-		READ_COILS -> readCoils: ReadCoilsRequest(header.len-2);
-		READ_INPUT_DISCRETES -> readInputDiscretes: ReadInputDiscretesRequest(header.len-2);
+		READ_COILS -> readCoils: ReadCoilsRequest(header.len-2,header);
+		READ_INPUT_DISCRETES -> readInputDiscretes: ReadInputDiscretesRequest(header.len-2,header);
 		READ_INPUT_REGISTERS -> readInputRegisters: ReadInputRegistersRequest(header.len-2,header);
 		WRITE_COIL -> writeCoil: WriteCoilRequest(header.len-2,header);
 		WRITE_SINGLE_REGISTER -> writeSingleRegister: WriteSingleRegisterRequest(header.len-2,header);
 		READ_EXCEPTION_STATUS -> readExceptionStatus: ReadExceptionStatusRequest(header.len-2,header);
 		# Class 2
-		FORCE_MULTIPLE_COILS -> forceMultipleCoils: ForceMultipleCoilsRequest(header.len-2);
+		FORCE_MULTIPLE_COILS -> forceMultipleCoils: ForceMultipleCoilsRequest(header.len-2,header);
 		READ_GENERAL_REFERENCE -> readGeneralReference: ReadGeneralReferenceRequest(header.len-2);
 		WRITE_GENERAL_REFERENCE -> writeGeneralReference: WriteGeneralReferenceRequest(header.len-2);
 		MASK_WRITE_REGISTER -> maskWriteRegister: MaskWriteRegisterRequest(header.len-2,header);
 		READ_WRITE_REGISTERS -> readWriteRegisters: ReadWriteRegistersRequest(header.len-2,header);
-		READ_FIFO_QUEUE -> readFIFOQueue: ReadFIFOQueueRequest(header.len-2);
+		READ_FIFO_QUEUE -> readFIFOQueue: ReadFIFOQueueRequest(header.len-2,header);
 		# All the rest
 		default -> unknown: bytestring &restofdata;
 };	
@@ -181,22 +181,31 @@ type WriteMultipleRegistersRequest(len: uint16, header: ModbusTCP_TransportHeade
 	byteCount: uint8;
 	registers: uint16[wordCount] &length = byteCount;
 } &let {
-
-deliver: bool =$context.flow.deliver_WriteMultiRegReq(this,header.tid,header.pid,header.uid,header.fc,len);
+	deliver: bool =$context.flow.deliver_WriteMultiRegReq(this,header.tid,header.pid,header.uid,header.fc,len);
 };
 
 # Class 1 requests
 
-type ReadCoilsRequest(len: uint16) = record {
+
+#REQUEST FC=1
+type ReadCoilsRequest(len: uint16,header:ModbusTCP_TransportHeader) = record {
 	referenceNumber: uint16;
 	bitCount: uint16 &check(bitCount <= 2000);
-};
+} &let 
+{
+deliver: bool =$context.flow.deliver_ReadCoilsReq(header.tid,header.pid,header.uid,header.fc,referenceNumber,bitCount);
+	};
 
-type ReadInputDiscretesRequest(len: uint16) = record {
+
+#REQUEST FC=2
+type ReadInputDiscretesRequest(len: uint16,header:ModbusTCP_TransportHeader) = record {
 	referenceNumber: uint16;
 	bitCount: uint16 &check(bitCount <= 2000);
-};
-
+}
+&let
+{
+deliver: bool =$context.flow.deliver_ReadInputDiscReq(header.tid,header.pid,header.uid,header.fc,referenceNumber,bitCount);
+        };
 
 #REQUEST FC=4
 
@@ -242,11 +251,14 @@ deliver: bool =$context.flow.deliver_ReadExceptStatReq(header.tid,header.pid,hea
 };
 
 # Class 2 requests
-type ForceMultipleCoilsRequest(len: uint16) = record {
+type ForceMultipleCoilsRequest(len: uint16,header:ModbusTCP_TransportHeader) = record {
 	referenceNumber: uint16;
 	bitCount: uint16 &check(bitCount <= 800);
 	byteCount: uint8 &check(byteCount == (bitCount + 7)/8);
 	coils: bytestring &length = byteCount;
+}
+ &let {
+deliver: bool =$context.flow.deliver_ForceMultiCoilsReq(header.tid,header.pid,header.uid,header.fc,referenceNumber,bitCount,byteCount,coils);
 };
 
 type ReadGeneralReferenceRequest(len: uint16) = record {
@@ -287,8 +299,12 @@ type ReadWriteRegistersRequest(len: uint16,header: ModbusTCP_TransportHeader) = 
 	 deliver: bool =$context.flow.deliver_ReadWriteRegReq(this,header.tid,header.pid,header.uid,header.fc,len);
 };
 
-type ReadFIFOQueueRequest(len: uint16) = record {
+#REQUEST FC=24
+type ReadFIFOQueueRequest(len: uint16,header: ModbusTCP_TransportHeader) = record {
 	referenceNumber: uint16;
+}
+&let{
+        deliver: bool =$context.flow.deliver_ReadFIFOReq(header.tid,header.pid,header.uid,header.fc,referenceNumber);
 };
 
 #Responses
@@ -300,18 +316,18 @@ type ModbusTCP_ResponsePDU = record {
     	READ_MULTIPLE_REGISTERS -> readMultipleRegisters: ReadMultipleRegistersResponse(header.len-2, header);
         WRITE_MULTIPLE_REGISTERS -> writeMultipleRegisters: WriteMultipleRegistersResponse(header.len-2,header);
         # Class 1
-        READ_COILS -> readCoils: ReadCoilsResponse(header.len-2);
-        READ_INPUT_DISCRETES -> readInputDiscretes: ReadInputDiscretesResponse(header.len-2);
+        READ_COILS -> readCoils: ReadCoilsResponse(header.len-2,header);
+        READ_INPUT_DISCRETES -> readInputDiscretes: ReadInputDiscretesResponse(header.len-2,header);
         READ_INPUT_REGISTERS -> readInputRegisters: ReadInputRegistersResponse(header.len-2,header);
         WRITE_COIL -> writeCoil: WriteCoilResponse(header.len-2,header);
         WRITE_SINGLE_REGISTER -> writeSingleRegister: WriteSingleRegisterResponse(header.len-2,header);
         READ_EXCEPTION_STATUS -> readExceptionStatus: ReadExceptionStatusResponse(header.len-2,header);
-        FORCE_MULTIPLE_COILS -> forceMultipleCoils: ForceMultipleCoilsResponse(header.len-2);
+        FORCE_MULTIPLE_COILS -> forceMultipleCoils: ForceMultipleCoilsResponse(header.len-2,header);
         READ_GENERAL_REFERENCE -> readGeneralReference: ReadGeneralReferenceResponse(header.len-2);
         WRITE_GENERAL_REFERENCE -> writeGeneralReference: WriteGeneralReferenceResponse(header.len-2);
         MASK_WRITE_REGISTER -> maskWriteRegister: MaskWriteRegisterResponse(header.len-2,header);
         READ_WRITE_REGISTERS -> readWriteRegisters: ReadWriteRegistersResponse(header.len-2,header);
-        READ_FIFO_QUEUE -> readFIFOQueue: ReadFIFOQueueResponse(header.len-2);
+        READ_FIFO_QUEUE -> readFIFOQueue: ReadFIFOQueueResponse(header.len-2,header);
         # Exceptions
         READ_MULTIPLE_REGISTERS_EXCEPTION -> readMultipleRegistersException : Exception(header.len-2,header);
 		WRITE_MULTIPLE_REGISTERS_EXCEPTION -> writeMultipleRegistersException: Exception(header.len-2,header);
@@ -361,15 +377,26 @@ deliver: bool =$context.flow.deliver_WriteMultiRegRes(header.tid,header.pid,head
 
 # Class 1 responses
 
-type ReadCoilsResponse(len: uint16) = record {
+###RESPONSE FC=1
+type ReadCoilsResponse(len: uint16,header:ModbusTCP_TransportHeader) = record {
 	byteCount: uint8;
 	bits: bytestring &length = byteCount;
-};
+}&let{
+ deliver: bool =$context.flow.deliver_ReadCoilsRes(header.tid,header.pid,header.uid,header.fc,byteCount,bits);
+}
+;
 
-type ReadInputDiscretesResponse(len: uint16) = record {
+
+###RESPONSE FC=2
+type ReadInputDiscretesResponse(len: uint16,header:ModbusTCP_TransportHeader) = record {
 	byteCount: uint8;
 	bits: bytestring &length = byteCount;
-};
+}
+&let{
+ deliver: bool =$context.flow.deliver_ReadInputDiscRes(header.tid,header.pid,header.uid,header.fc,byteCount,bits);
+}
+
+;
 
 
 ###RESPONSE FC=4
@@ -412,10 +439,16 @@ deliver: bool =$context.flow.deliver_ReadExceptStatRes(header.tid,header.pid,hea
 
 # Class 2 responses
 
-type ForceMultipleCoilsResponse(len: uint16) = record {
+#RESPONSE FC=15
+type ForceMultipleCoilsResponse(len: uint16,header:ModbusTCP_TransportHeader) = record {
 	referenceNumber: uint16;
 	bitCount: uint16;
-};
+}
+ &let {
+
+deliver: bool =$context.flow.deliver_ForceMultiCoilsRes(header.tid,header.pid,header.uid,header.fc,referenceNumber,bitCount);
+}
+;
 
 type ReadGeneralReferenceResponse(len: uint16) = record {
 	byteCount: uint8;
@@ -451,11 +484,17 @@ type ReadWriteRegistersResponse(len: uint16,header:ModbusTCP_TransportHeader) = 
 
 
 
-
-type ReadFIFOQueueResponse(len: uint16) = record {
+###RESPONSE FC=24
+type ReadFIFOQueueResponse(len: uint16,header:ModbusTCP_TransportHeader) = record {
 	byteCount: uint16 &check(byteCount <= 64);
 	wordCount: uint16 &check(wordCount <= 31);
 	registerData: uint16[wordCount] &length = byteCount; 
-} &length = len;
+} &length = len,
+&let{
+ 	deliver: bool =$context.flow.deliver_ReadFIFORes(this,header.tid,header.pid,header.uid,header.fc);
+	}
+
+;
+
 
 #

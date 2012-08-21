@@ -35,6 +35,40 @@ function deliver_message(tid:uint16, pid:uint16, uid: uint8, fc: uint8, flag:int
 
 		%}
 
+
+#REQUEST FC=1
+function deliver_ReadCoilsReq(tid:uint16, pid:uint16, uid:uint8, fc:uint8, ref:uint16, bitCount:uint16): bool
+               %{
+
+                        if ( ::modbus_read_coils_request )
+                                {
+                                        BifEvent::generate_modbus_read_coils_request(
+                                        connection()->bro_analyzer(),
+                                        connection()->bro_analyzer()->Conn(),
+                                        is_orig(),tid,pid,uid,fc,ref,bitCount);
+                                }
+                        return true;
+
+                %}
+
+#REQUEST FC=2
+function deliver_ReadInputDiscReq(tid:uint16, pid:uint16, uid:uint8, fc:uint8, ref:uint16, bitCount:uint16): bool
+               %{
+
+                        if ( ::modbus_read_input_discretes_request )
+                                {
+                                        BifEvent::generate_modbus_read_input_discretes_request(
+                                        connection()->bro_analyzer(),
+                                        connection()->bro_analyzer()->Conn(),
+                                        is_orig(),tid,pid,uid,fc,ref,bitCount);
+                                }
+                        return true;
+
+                %}
+
+
+
+
 #REQUEST FC=3
 function deliver_ReadMultiRegReq(tid:uint16,pid:uint16,uid:uint8,fc:uint8, ref: uint16, wcount:uint16,flag:uint16,len:uint16): bool
                %{
@@ -105,6 +139,21 @@ function deliver_WriteSingleRegReq(tid:uint16,pid:uint16,uid:uint8,fc:uint8,len:
 
 
 
+#REQUEST FC=15
+function deliver_ForceMultiCoilsReq(tid:uint16,pid:uint16,uid:uint8,fc:uint8,ref:uint16,bitCount:uint16,byteCount:uint16,coils:bytestring): bool
+               
+		%{
+
+                        if ( ::modbus_force_coils_request )
+                                {
+                                        BifEvent::generate_modbus_force_coils_request(
+                                        connection()->bro_analyzer(),
+                                        connection()->bro_analyzer()->Conn(),
+                                        is_orig(),tid,pid,uid,fc,ref,bitCount,byteCount, new StringVal(coils.length(), (const char*) coils.data()));
+                                }
+                        return true;
+
+                %}
 
 #REQUEST FC=16
 function deliver_WriteMultiRegReq( writeMulti: WriteMultipleRegistersRequest, tid:uint16, pid:uint16, uid: uint8, fc: uint8,len:uint16): bool
@@ -178,6 +227,59 @@ function deliver_ReadWriteRegReq(doMulti: ReadWriteRegistersRequest, tid:uint16,
                 %}
 
 
+#REQUEST FC=24
+function deliver_ReadFIFOReq(tid:uint16,pid:uint16,uid:uint8,fc:uint8, ref: uint16): bool
+               %{
+
+                        if ( ::modbus_read_FIFO_request )
+                                {
+                                        BifEvent::generate_modbus_read_FIFO_request(
+                                        connection()->bro_analyzer(),
+                                        connection()->bro_analyzer()->Conn(),
+                                        is_orig(),tid,pid,uid,fc,ref);
+                                }
+                        return true;
+
+                %}
+
+
+
+
+#RESPONSE FC=1
+function deliver_ReadCoilsRes(tid:uint16,pid:uint16,uid:uint8,fc:uint8,bcount:uint8,bits:bytestring): bool
+               %{
+
+                        if ( ::modbus_read_coils_response )
+                                {
+                                        BifEvent::generate_modbus_read_coils_response(
+                                        connection()->bro_analyzer(),
+                                        connection()->bro_analyzer()->Conn(),
+                                        is_orig(),tid,pid,uid,fc,bcount, new StringVal(bits.length(), (const char*) bits.data()));
+;
+                                }
+                        return true;
+
+                %}
+
+
+#RESPONSE FC=2
+function deliver_ReadInputDiscRes(tid:uint16,pid:uint16,uid:uint8,fc:uint8,bcount:uint8,bits:bytestring): bool
+               %{
+
+                        if ( ::modbus_read_input_discretes_response )
+                                {
+                                        BifEvent::generate_modbus_read_input_discretes_response(
+                                        connection()->bro_analyzer(),
+                                        connection()->bro_analyzer()->Conn(),
+                                        is_orig(),tid,pid,uid,fc,bcount, new StringVal(bits.length(), (const char*) bits.data()));
+;
+                                }
+                        return true;
+
+                %}
+
+
+
 
 
 #RESPONSE FC=3
@@ -207,7 +309,7 @@ function deliver_ReadMultiRegRes( doMulti: ReadMultipleRegistersResponse, tid:ui
                 %}
 
 
-#RESPONSE fc=4
+#RESPONSE FC=4
 function deliver_ReadInputRegRes( doMulti: ReadInputRegistersResponse, tid:uint16, pid:uint16, uid: uint8, fc: uint16,len:uint16): bool
                %{
 
@@ -235,7 +337,7 @@ function deliver_ReadInputRegRes( doMulti: ReadInputRegistersResponse, tid:uint1
 
 
 
-#REQUEST fc=5
+#RESPONSE FC=5
 function deliver_WriteCoilRes(tid:uint16,pid:uint16,uid:uint8,fc:uint8, ref: uint16,onOff:uint8,other:uint8): bool
                %{
 
@@ -253,7 +355,7 @@ function deliver_WriteCoilRes(tid:uint16,pid:uint16,uid:uint8,fc:uint8, ref: uin
 
 
 
-#RESPONSE fc=6
+#RESPONSE FC=6
 function deliver_WriteSingleRegRes(tid:uint16,pid:uint16,uid:uint8,fc:uint8,len:uint16,ref:uint16,value:uint16): bool
                %{
 
@@ -269,7 +371,24 @@ function deliver_WriteSingleRegRes(tid:uint16,pid:uint16,uid:uint8,fc:uint8,len:
                 %}
 
 
-#RESPONSE fc=16
+#RESPONSE FC=15
+function deliver_ForceMultiCoilsRes(tid:uint16,pid:uint16,uid:uint8,fc:uint8,ref:uint16,bitCount:uint16): bool
+               %{
+
+                        if ( ::modbus_force_coils_response)
+                                {
+                                        BifEvent::generate_modbus_force_coils_response(
+                                        connection()->bro_analyzer(),
+                                        connection()->bro_analyzer()->Conn(),
+                                        is_orig(),tid,pid,uid,fc,ref,bitCount);
+                                }
+                        return true;
+
+                %}
+
+
+
+#RESPONSE FC=16
 function deliver_WriteMultiRegRes(tid:uint16,pid:uint16,uid:uint8,fc:uint8, ref: uint16, wcount:uint16,len:uint16): bool
                %{
 
@@ -286,7 +405,7 @@ function deliver_WriteMultiRegRes(tid:uint16,pid:uint16,uid:uint8,fc:uint8, ref:
 
 
 
-#REQUEST FC=22
+#RESPONSE FC=22
 function deliver_MaskWriteRegRes(tid:uint16,pid:uint16,uid:uint8,fc:uint8,ref:uint16,andMask:uint16,orMask:uint16): bool
                %{
 
@@ -327,6 +446,35 @@ function deliver_ReadWriteRegRes(doMulti: ReadWriteRegistersResponse, tid:uint16
                         return true;
 
                 %}
+
+
+#RESPONSE FC=24
+function deliver_ReadFIFORes( doMulti: ReadFIFOQueueResponse, tid:uint16, pid:uint16, uid: uint8, fc: uint16): bool
+               %{
+
+                        VectorVal * t=new VectorVal( new VectorType(base_type(TYPE_INT)));
+
+                        for (unsigned int i=0; i < (${doMulti.registerData})->size(); ++i)
+                                {
+
+                                        Val* r=new Val(((*doMulti->registerData())[i]),TYPE_INT);
+                                        t->Assign(i,r,0,OP_ASSIGN);
+                                }
+
+
+
+                        if ( ::modbus_read_FIFO_response )
+                                {
+
+                                        BifEvent::generate_modbus_read_FIFO_response(
+                                        connection()->bro_analyzer(),
+                                        connection()->bro_analyzer()->Conn(),
+                                        is_orig(),t,tid,pid,uid,fc,${doMulti.byteCount});
+                                }
+                        return true;
+                %}
+
+
 
 
 #EXCEPTION

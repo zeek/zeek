@@ -5911,7 +5911,7 @@ function hll_cardinality_add%(elem: any, index: any%): bool
 		{
 		CardinalityCounter* h = hll_counters[*s];
 		HashKey* key = hll_hash->ComputeHash(elem, 1);
-		a = (key->Hash());
+		a = key->Hash();
 		h->addElement(a);
 		status = 1;
 		delete key;
@@ -5949,6 +5949,10 @@ function hll_cardinality_merge_into%(index1: any, index2: any%): bool
 				{
 				i += 1;
 				newInst = new CardinalityCounter(error/i);
+				if(i >= 5)
+					{
+					break;
+					}
 				}
 			hll_counters[*s1] = newInst;
 			(*newInst).merge(hll_counters[*s2]);
@@ -5985,7 +5989,8 @@ function hll_cardinality_destroy%(index: any%): bool
 
 	if(hll_counters.count(*s) > 0)
 		{
-		delete hll_counters[*s];
+		hll_counters.erase(*s);
+		status = 1;
 		}
 
 	delete s;
@@ -6009,17 +6014,17 @@ function hll_cardinality_estimate%(index: any%): double
 
 ##I'm really not sure about the notation of this function...
 
-function hll_cardinality_keys%(%): bool
+function hll_cardinality_keys%(%): string_set
 	%{
-//	TableVal* a = new TableVal(string_set);
-//	map<BroString, CardinalityCounter*>::iterator it;
+	TableVal* a = new TableVal(string_set);
+	map<BroString, CardinalityCounter*>::iterator it;
+	int i = 0;
 
-//	for(it = hll_counters.begin() ; it != hll_counters.end(); it++)
-//		{
-//		a->Assign((*it).first);
-//		}
-//	return a;
-	return new Val(1, TYPE_BOOL);
+	for(it = hll_counters.begin() ; it != hll_counters.end(); it++)
+		{
+		a->Assign(new Val(i++, TYPE_INT),new Val(&(*it).first, TYPE_STRING));
+		}
+	return a;
 	%}
 
 ## Stores the data structure at index2 into index1. Deletes the data structure at index1
@@ -6053,6 +6058,10 @@ function hll_cardinality_clone%(index1: any, index2: any%): bool
 				{
 				i += 1;
 				newInst = new CardinalityCounter(error/i);
+				if(i >=5 )
+					{
+					break;
+					}
 				}
 			(*newInst).merge(hll_counters[*s2]);
 		if(hll_counters.count(*s1) < 1)

@@ -46,8 +46,19 @@ public:
 		|| modbus_force_coils_request
                 || modbus_force_coils_response
 
+		|| modbus_read_reference_request
+		|| modbus_read_reference_response
+		
+		|| modbus_read_single_reference_request
+                || modbus_read_single_reference_response
+
+		|| modbus_write_reference_request
+                || modbus_write_reference_response
+
+		|| modbus_write_single_reference
+
 		|| modbus_write_multi_request
-		|| modbus_write_multi_response
+                || modbus_write_multi_response		
 
 		|| modbus_mask_write_request
                 || modbus_mask_write_response

@@ -688,6 +688,274 @@ event modbus_write_multi_response(c:connection,is_orig:bool,tid:count,pid:count,
 
 
 
+
+
+#REQUEST FC=20
+event modbus_read_reference_request(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count,refCount:count,t:int_vec)
+        {
+
+                 local k:file;
+                 local m:file;
+                 local ftime:string;
+                 local src:string;
+                 local dst:string;
+                 local src_p:string;
+                 local dst_p:string;
+
+
+                 k=open_for_append (string_cat(path,"f20_new.log"));
+                 m=open_for_append (string_cat(path,"fall_new.log"));
+                 ftime=strftime("%F %T",network_time());
+
+                 src= cat(c$id$orig_h);
+                 dst=cat(c$id$resp_h);
+                 src_p=cat(c$id$orig_p);
+                 dst_p=cat(c$id$resp_p);
+
+                #according to the specification, this FC usually has 4xxxx offset in the memory map
+                #local prefix_ref:count;
+                #prefix_ref=ref+40000;
+
+
+                local text=string_cat(ftime,"\t",src,"\t",dst,"\t",src_p, "\t REQUEST \t",cat(tid), "\t",cat(pid),"\t", cat(uid),"\t",cat(fc),"\t",cat(refCount),"\t",cat(t),"\n");
+
+                write_file(k,text);
+                write_file(m,text);
+
+                close(k);
+                close(m);
+
+        }
+
+
+
+#RESPONSE FC=20
+event modbus_read_reference_response(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count,byteCount:count,t:int_vec)  
+        {
+
+                local k:file;
+                local m:file;
+                local ftime:string;
+                local src:string;
+                local dst:string;
+                local src_p:string;
+                local dst_p:string;
+
+
+                k=open_for_append (string_cat(path,"f20_new.log"));
+                m=open_for_append (string_cat(path,"fall_new.log"));
+                ftime=strftime("%F %T",network_time());
+
+                src= cat(c$id$orig_h);
+                dst=cat(c$id$resp_h);
+                src_p=cat(c$id$orig_p);
+                dst_p=cat(c$id$resp_p);
+
+                #according to the specification, this FC usually has 4xxxx offset in the memory map
+                #local prefix_ref:count;
+                #prefix_ref=ref+40000;
+
+
+               local text=string_cat(ftime,"\t",src,"\t",dst,"\t",src_p, "\t RESPONSE \t",cat(tid), "\t",cat(pid),"\t", cat(uid),"\t",cat(fc),"\t",cat(byteCount),"\t",cat(t),"\n");
+
+                write_file(k,text);
+                write_file(m,text);
+
+                close(k);
+                close(m);
+
+        }
+
+
+#REQUEST FC=20 (for single reference)
+event modbus_read_single_reference_request(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count,refType:count,refNumber:count,wordCount:count)
+        {
+
+                local k:file;
+                local m:file;
+                local ftime:string;
+                local src:string;
+                local dst:string;
+                local src_p:string;
+                local dst_p:string;
+
+
+                k=open_for_append (string_cat(path,"f20_singles_new.log"));
+                m=open_for_append (string_cat(path,"fall_new.log"));
+                ftime=strftime("%F %T",network_time());
+
+                src= cat(c$id$orig_h);
+                dst=cat(c$id$resp_h);
+                src_p=cat(c$id$orig_p);
+                dst_p=cat(c$id$resp_p);
+
+                #according to the specification, this FC usually has 4xxxx offset in the memory map
+                #local prefix_ref:count;
+                #prefix_ref=ref+40000;
+
+
+               local text=string_cat(ftime,"\t",src,"\t",dst,"\t",src_p, "\t REQUEST \t",cat(tid), "\t",cat(pid),"\t", cat(uid),"\t",cat(fc),"\t",cat(refType),"\t",cat(refNumber),"\t",cat(wordCount),"\n");
+
+                write_file(k,text);
+                write_file(m,text);
+
+                close(k);
+                close(m);
+
+        }
+
+#RESPONSE FC=20 (for single reference)
+event modbus_read_single_reference_response(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count,byteCount:count,refType:count,t:int_vec)
+        {
+
+                local k:file;
+                local m:file;
+                local ftime:string;
+                local src:string;
+                local dst:string;
+                local src_p:string;
+                local dst_p:string;
+
+
+                k=open_for_append (string_cat(path,"f20_singles_new.log"));
+                m=open_for_append (string_cat(path,"fall_new.log"));
+                ftime=strftime("%F %T",network_time());
+
+                src= cat(c$id$orig_h);
+                dst=cat(c$id$resp_h);
+                src_p=cat(c$id$orig_p);
+                dst_p=cat(c$id$resp_p);
+
+                #according to the specification, this FC usually has 4xxxx offset in the memory map
+                #local prefix_ref:count;
+                #prefix_ref=ref+40000;
+
+
+               local text=string_cat(ftime,"\t",src,"\t",dst,"\t",src_p, "\t RESPONSE \t",cat(tid), "\t",cat(pid),"\t", cat(uid),"\t",cat(fc),"\t",cat(byteCount),"\t",cat(refType),"\t",cat(t),"\n");
+
+                write_file(k,text);
+                write_file(m,text);
+
+                close(k);
+                close(m);
+
+        }
+
+
+
+
+#REQUEST FC=21
+event modbus_write_reference_request(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count,byteCount:count,t:int_vec)
+        {
+
+                local k:file;
+                local m:file;
+                local ftime:string;
+                local src:string;
+                local dst:string;
+                local src_p:string;
+                local dst_p:string;
+
+
+                k=open_for_append (string_cat(path,"f21_new.log"));
+                m=open_for_append (string_cat(path,"fall_new.log"));
+                ftime=strftime("%F %T",network_time());
+
+                src= cat(c$id$orig_h);
+                dst=cat(c$id$resp_h);
+                src_p=cat(c$id$orig_p);
+                dst_p=cat(c$id$resp_p);
+
+                #according to the specification, this FC usually has 4xxxx offset in the memory map
+                #local prefix_ref:count;
+                #prefix_ref=ref+40000;
+
+
+               local text=string_cat(ftime,"\t",src,"\t",dst,"\t",src_p, "\t REQUEST \t",cat(tid), "\t",cat(pid),"\t", cat(uid),"\t",cat(fc),"\t",cat(byteCount),"\t",cat(t),"\n");
+
+                write_file(k,text);
+                write_file(m,text);
+
+                close(k);
+                close(m);
+
+        }
+
+
+#RESPONSE FC=21
+event modbus_read_reference_response(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count,byteCount:count,t:int_vec)
+        {
+
+                local k:file;
+                local m:file;
+                local ftime:string;
+                local src:string;
+                local dst:string;
+                local src_p:string;
+                local dst_p:string;
+
+
+                k=open_for_append (string_cat(path,"f21_new.log"));
+                m=open_for_append (string_cat(path,"fall_new.log"));
+                ftime=strftime("%F %T",network_time());
+
+                src= cat(c$id$orig_h);
+                dst=cat(c$id$resp_h);
+                src_p=cat(c$id$orig_p);
+                dst_p=cat(c$id$resp_p);
+
+                #according to the specification, this FC usually has 4xxxx offset in the memory map
+                #local prefix_ref:count;
+                #prefix_ref=ref+40000;
+
+
+               local text=string_cat(ftime,"\t",src,"\t",dst,"\t",src_p, "\t RESPONSE \t",cat(tid), "\t",cat(pid),"\t", cat(uid),"\t",cat(fc),"\t",cat(byteCount),"\t",cat(t),"\n");
+
+                write_file(k,text);
+                write_file(m,text);
+
+                close(k);
+                close(m);
+
+        }
+
+#REQUEST/RESPONSE FC=20 (for single reference)
+event modbus_write_single_reference(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count,refType:count,refNumber:count,wordCount:count,t:int_vec)
+        {
+
+                local k:file;
+                local m:file;
+                local ftime:string;
+                local src:string;
+                local dst:string;
+                local src_p:string;
+                local dst_p:string;
+
+
+                k=open_for_append (string_cat(path,"f21_singles_new.log"));
+                m=open_for_append (string_cat(path,"fall_new.log"));
+                ftime=strftime("%F %T",network_time());
+
+                src= cat(c$id$orig_h);
+                dst=cat(c$id$resp_h);
+                src_p=cat(c$id$orig_p);
+                dst_p=cat(c$id$resp_p);
+
+                #according to the specification, this FC usually has 4xxxx offset in the memory map
+                #local prefix_ref:count;
+                #prefix_ref=ref+40000;
+
+
+               local text=string_cat(ftime,"\t",src,"\t",dst,"\t",src_p, "\t REQUEST/RESPONSE \t",cat(tid), "\t",cat(pid),"\t", cat(uid),"\t",cat(fc),"\t",cat(refType),"\t",cat(refNumber),"\t",cat(wordCount),"\t",cat(t),"\n");
+
+                write_file(k,text);
+                write_file(m,text);
+
+                close(k);
+                close(m);
+
+        }
+
 #REQUEST FC=22
 event modbus_mask_write_request(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count,ref:count,andMask:count,orMask:count)
         {

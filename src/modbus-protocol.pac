@@ -112,18 +112,41 @@ type ModbusTCP_TransportHeader = record {
 
 
 
-type Reference = record {
+type Reference (header:ModbusTCP_TransportHeader) = record {
 	refType: uint8;
 	refNumber: uint32;
 	wordCount: uint16;
+}
+&let {
+deliver: bool =$context.flow.deliver_ReadSingleReferenceReq(header.tid,header.pid,header.uid,header.fc,refType,refNumber,wordCount);
 };
 
-type ReferenceWithData = record {
+
+type ReferenceWithData (header:ModbusTCP_TransportHeader) = record {
 	refType: uint8;
 	refNumber: uint32;
 	wordCount: uint16;
 	registerValue: uint16[wordCount] &length = 2*wordCount; # TODO: check that the array length is calculated correctly
+}
+&let {
+deliver: bool =$context.flow.deliver_WriteSingleReference(header.tid,header.pid,header.uid,header.fc,refType,refNumber,wordCount,this);
+}
+
+;
+
+#Dina modified
+type ReferenceResponse(header:ModbusTCP_TransportHeader)=record{
+	byteCount:uint8;
+	refType:uint8;
+	registerValue:uint16[wordCount];
+}
+	&let  {
+		wordCount : uint8 = byteCount/2;
+
+		deliver: bool =$context.flow.deliver_ReadSingleReferenceRes(header.tid,header.pid,header.uid,header.fc,byteCount,refType,this);
+
 };
+
 
 type Exception(len: uint16,header:ModbusTCP_TransportHeader) = record {
 	code: uint8;
@@ -147,8 +170,8 @@ type ModbusTCP_RequestPDU = record {
 		READ_EXCEPTION_STATUS -> readExceptionStatus: ReadExceptionStatusRequest(header.len-2,header);
 		# Class 2
 		FORCE_MULTIPLE_COILS -> forceMultipleCoils: ForceMultipleCoilsRequest(header.len-2,header);
-		READ_GENERAL_REFERENCE -> readGeneralReference: ReadGeneralReferenceRequest(header.len-2);
-		WRITE_GENERAL_REFERENCE -> writeGeneralReference: WriteGeneralReferenceRequest(header.len-2);
+		READ_GENERAL_REFERENCE -> readGeneralreference: ReadGeneralReferenceRequest(header.len-2,header);
+		WRITE_GENERAL_REFERENCE -> writeGeneralReference: WriteGeneralReferenceRequest(header.len-2,header);
 		MASK_WRITE_REGISTER -> maskWriteRegister: MaskWriteRegisterRequest(header.len-2,header);
 		READ_WRITE_REGISTERS -> readWriteRegisters: ReadWriteRegistersRequest(header.len-2,header);
 		READ_FIFO_QUEUE -> readFIFOQueue: ReadFIFOQueueRequest(header.len-2,header);
@@ -251,6 +274,8 @@ deliver: bool =$context.flow.deliver_ReadExceptStatReq(header.tid,header.pid,hea
 };
 
 # Class 2 requests
+
+#REQUEST FC=15
 type ForceMultipleCoilsRequest(len: uint16,header:ModbusTCP_TransportHeader) = record {
 	referenceNumber: uint16;
 	bitCount: uint16 &check(bitCount <= 800);
@@ -261,20 +286,30 @@ type ForceMultipleCoilsRequest(len: uint16,header:ModbusTCP_TransportHeader) = r
 deliver: bool =$context.flow.deliver_ForceMultiCoilsReq(header.tid,header.pid,header.uid,header.fc,referenceNumber,bitCount,byteCount,coils);
 };
 
-type ReadGeneralReferenceRequest(len: uint16) = record {
+#REQUEST FC=20
+type ReadGeneralReferenceRequest(len: uint16,header:ModbusTCP_TransportHeader) = record {
 	byteCount: uint8;
-	references: Reference[referenceCount] &length = byteCount;
+	references: Reference(header)[referenceCount] &length = byteCount;
 } &let {
 	referenceCount: uint8 = byteCount/7;
+
+	deliver: bool =$context.flow.deliver_ReadReferenceReq(header.tid,header.pid,header.uid,header.fc,referenceCount,references);
+
 };
 
-type WriteGeneralReferenceRequest(len: uint16) = record {
+
+#REQUEST FC=21
+type WriteGeneralReferenceRequest(len: uint16,header:ModbusTCP_TransportHeader) = record {
 	byteCount: uint8;
-	references: ReferenceWithData[] &until($input.length() == 0) &length = byteCount;
-} &length = len;
+	references: ReferenceWithData(header)[] &until($input.length() == 0) &length = byteCount;
+} &length = len,
+  &let {
+        deliver: bool =$context.flow.deliver_WriteReferenceReq(header.tid,header.pid,header.uid,header.fc,byteCount,references);
+
+};
 
 
-#REQUEST FC=22
+#REQUESTeFC=22
 type MaskWriteRegisterRequest(len: uint16,header: ModbusTCP_TransportHeader) = record {
 	referenceNumber: uint16;
 	andMask: uint16;
@@ -323,8 +358,8 @@ type ModbusTCP_ResponsePDU = record {
         WRITE_SINGLE_REGISTER -> writeSingleRegister: WriteSingleRegisterResponse(header.len-2,header);
         READ_EXCEPTION_STATUS -> readExceptionStatus: ReadExceptionStatusResponse(header.len-2,header);
         FORCE_MULTIPLE_COILS -> forceMultipleCoils: ForceMultipleCoilsResponse(header.len-2,header);
-        READ_GENERAL_REFERENCE -> readGeneralReference: ReadGeneralReferenceResponse(header.len-2);
-        WRITE_GENERAL_REFERENCE -> writeGeneralReference: WriteGeneralReferenceResponse(header.len-2);
+        READ_GENERAL_REFERENCE -> readGeneralReference: ReadGeneralReferenceResponse(header.len-2,header);
+        WRITE_GENERAL_REFERENCE -> writeGeneralReference: WriteGeneralReferenceResponse(header.len-2,header);
         MASK_WRITE_REGISTER -> maskWriteRegister: MaskWriteRegisterResponse(header.len-2,header);
         READ_WRITE_REGISTERS -> readWriteRegisters: ReadWriteRegistersResponse(header.len-2,header);
         READ_FIFO_QUEUE -> readFIFOQueue: ReadFIFOQueueResponse(header.len-2,header);
@@ -450,18 +485,31 @@ deliver: bool =$context.flow.deliver_ForceMultiCoilsRes(header.tid,header.pid,he
 }
 ;
 
-type ReadGeneralReferenceResponse(len: uint16) = record {
+
+###RESPONSE FC=20
+type ReadGeneralReferenceResponse(len: uint16,header:ModbusTCP_TransportHeader) = record {
 	byteCount: uint8;
-	references: bytestring &length = byteCount;
-} &length = len;
+	#references: bytestring &length = byteCount;
+	#Dina modified
+	references:ReferenceResponse (header) [] &until($input.length()==0) &length=byteCount;
+} &length = len,
+&let{
+        deliver: bool =$context.flow.deliver_ReadReferenceRes(header.tid,header.pid,header.uid,header.fc,byteCount,references);
+};
 
-type WriteGeneralReferenceResponse(len: uint16) = record {
+###RESPONSE FC=21
+type WriteGeneralReferenceResponse(len: uint16,header:ModbusTCP_TransportHeader) = record {
 	byteCount: uint8;
-	references: ReferenceWithData[] &until($input.length() == 0) &length = byteCount;
-} &length = len;
+	references: ReferenceWithData(header)[] &until($input.length() == 0) &length = byteCount;
+} &length = len,
+&let {
+        deliver: bool =$context.flow.deliver_WriteReferenceRes(header.tid,header.pid,header.uid,header.fc,byteCount,references);
+
+};
 
 
-###RESPONSE FC=22
+
+###RESPOeSE FC=22
 type MaskWriteRegisterResponse(len: uint16,header:ModbusTCP_TransportHeader) = record {
 	referenceNumber: uint16;
 	andMask: uint16;

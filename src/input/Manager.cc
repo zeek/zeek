@@ -388,6 +388,8 @@ bool Manager::CreateEventStream(RecordVal* fval)
 
 	FuncType* etype = event->FType()->AsFuncType();
 
+	bool allow_file_func = false;
+
 	if ( ! etype->IsEvent() )
 		{
 		reporter->Error("stream event is a function, not an event");
@@ -453,6 +455,8 @@ bool Manager::CreateEventStream(RecordVal* fval)
 			return false;
 			}
 
+		allow_file_func = BifConst::Input::accept_unsupported_types;
+
 		}
 
 	else
@@ -461,7 +465,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 
 	vector<Field*> fieldsV; // vector, because UnrollRecordType needs it
 
-	bool status = !UnrollRecordType(&fieldsV, fields, "");
+	bool status = !UnrollRecordType(&fieldsV, fields, "", allow_file_func);
 
 	if ( status )
 		{
@@ -609,12 +613,12 @@ bool Manager::CreateTableStream(RecordVal* fval)
 
 	vector<Field*> fieldsV; // vector, because we don't know the length beforehands
 
-	bool status = !UnrollRecordType(&fieldsV, idx, "");
+	bool status = !UnrollRecordType(&fieldsV, idx, "", false);
 
 	int idxfields = fieldsV.size();
 
 	if ( val ) // if we are not a set
-		status = status || !UnrollRecordType(&fieldsV, val, "");
+		status = status || !UnrollRecordType(&fieldsV, val, "", BifConst::Input::accept_unsupported_types);
 
 	int valfields = fieldsV.size() - idxfields;
 
@@ -773,7 +777,7 @@ bool Manager::RemoveStreamContinuation(ReaderFrontend* reader)
 	}
 
 bool Manager::UnrollRecordType(vector<Field*> *fields,
-		const RecordType *rec, const string& nameprepend)
+		const RecordType *rec, const string& nameprepend, bool allow_file_func)
 	{
 
 	for ( int i = 0; i < rec->NumFields(); i++ )
@@ -781,6 +785,23 @@ bool Manager::UnrollRecordType(vector<Field*> *fields,
 
 		if ( ! IsCompatibleType(rec->FieldType(i)) )
 	       		{
+
+			// if the field is a file or a function type
+			// and it is optional, we accept it nevertheless.
+			// This allows importing logfiles containing this
+			// stuff that we actually cannot read :)
+			if ( allow_file_func ) 
+				{
+				if ( ( rec->FieldType(i)->Tag() == TYPE_FILE ||
+				       rec->FieldType(i)->Tag() == TYPE_FUNC ) &&
+				     rec->FieldDecl(i)->FindAttr(ATTR_OPTIONAL)
+				   ) 
+					{
+					reporter->Info("Encountered incompatible type \"%s\" in table definition for ReaderFrontend. Ignoring field.", type_name(rec->FieldType(i)->Tag()));
+					continue;
+					}
+				}
+
 			reporter->Error("Incompatible type \"%s\" in table definition for ReaderFrontend", type_name(rec->FieldType(i)->Tag()));
 			return false;
 			}
@@ -789,7 +810,7 @@ bool Manager::UnrollRecordType(vector<Field*> *fields,
 			{
 			string prep = nameprepend + rec->FieldName(i) + ".";
 
-			if ( !UnrollRecordType(fields, rec->FieldType(i)->AsRecordType(), prep) )
+			if ( !UnrollRecordType(fields, rec->FieldType(i)->AsRecordType(), prep, allow_file_func) )
 				{
 				return false;
 				}
@@ -1675,6 +1696,15 @@ RecordVal* Manager::ValueToRecordVal(const Value* const *vals,
 		Val* fieldVal = 0;
 		if ( request_type->FieldType(i)->Tag() == TYPE_RECORD )
 			fieldVal = ValueToRecordVal(vals, request_type->FieldType(i)->AsRecordType(), position);
+		else if ( request_type->FieldType(i)->Tag() == TYPE_FILE || 
+			  request_type->FieldType(i)->Tag() == TYPE_FUNC )
+			{
+			// If those two unsupported types are encountered here, they have
+			// been let through by the type checking.
+			// That means that they are optional & the user agreed to ignore
+			// them and has been warned by reporter.
+			// Hence -> assign null to the field, done.
+			}
 		else
 			{
 			fieldVal = ValueToVal(vals[*position], request_type->FieldType(i));

@@ -34,6 +34,10 @@ function Input::__force_update%(id: string%) : bool
 	return new Val(res, TYPE_BOOL);
 	%}
 
+# Options for the input framework
+
+const accept_unsupported_types: bool;
+
 # Options for Ascii Reader
 
 module InputAscii;

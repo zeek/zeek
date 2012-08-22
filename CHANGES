@@ -1,4 +1,9 @@
 
+2.1-beta-45 | 2012-08-22 16:11:10 -0700
+
+  * Add an option to the input framework that allows the user to chose
+    to not die upon encountering files/functions. (Bernhard Amann)
+
 2.1-beta-41 | 2012-08-22 16:05:21 -0700
 
   * Add test serialization to "leak" unit tests that use

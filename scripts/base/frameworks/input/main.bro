@@ -11,6 +11,13 @@ export {
 	## The default reader mode used. Defaults to `MANUAL`.
 	const default_mode = MANUAL &redef;
 
+	## Flag that controls if the input framework accepts records
+	## that contain types that are not supported (at the moment
+	## file and function). If true, the input framework will
+	## warn in these cases, but continue. If false, it will
+	## abort. Defaults to false (abort)
+	const accept_unsupported_types = F &redef;
+
 	## TableFilter description type used for the `table` method.
 	type TableDescription: record {
 		## Common definitions for tables and events

@@ -158,7 +158,7 @@ private:
 	// Check if a record is made up of compatible types and return a list
 	// of all fields that are in the record in order. Recursively unrolls
 	// records
-	bool UnrollRecordType(vector<threading::Field*> *fields, const RecordType *rec, const string& nameprepend);
+	bool UnrollRecordType(vector<threading::Field*> *fields, const RecordType *rec, const string& nameprepend, bool allow_file_func);
 
 	// Send events
 	void SendEvent(EventHandlerPtr ev, const int numvals, ...);

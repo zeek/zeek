@@ -1,4 +1,18 @@
 
+2.1-beta-41 | 2012-08-22 16:05:21 -0700
+
+  * Add test serialization to "leak" unit tests that use
+    communication. (Jon Siwek)
+
+  * Change to metrics/basic-cluster unit test for reliability. (Jon
+    Siwek)
+
+  * Fixed ack tracking which could overflow quickly in some
+    situations. (Seth Hall)
+
+  * Minor tweak to coverage.bare-mode-errors unit test to work with a
+    symlinked 'scripts' dir. (Jon Siwek)
+
 2.1-beta-35 | 2012-08-22 08:44:52 -0700
 
   * Add testcase for input framework reading sets (rather than

@@ -20,10 +20,10 @@ const bool DEBUG_tcp_connection_close = false;
 const bool DEBUG_tcp_match_undelivered = false;
 
 static double last_gap_report = 0.0;
-static uint32 last_ack_events = 0;
-static uint32 last_ack_bytes = 0;
-static uint32 last_gap_events = 0;
-static uint32 last_gap_bytes = 0;
+static uint64 last_ack_events = 0;
+static uint64 last_ack_bytes = 0;
+static uint64 last_gap_events = 0;
+static uint64 last_gap_bytes = 0;
 
 TCP_Reassembler::TCP_Reassembler(Analyzer* arg_dst_analyzer,
 				TCP_Analyzer* arg_tcp_analyzer,
@@ -513,10 +513,10 @@ void TCP_Reassembler::AckReceived(int seq)
 		if ( gap_report && gap_report_freq > 0.0 &&
 		     dt >= gap_report_freq )
 			{
-			int devents = tot_ack_events - last_ack_events;
-			int dbytes = tot_ack_bytes - last_ack_bytes;
-			int dgaps = tot_gap_events - last_gap_events;
-			int dgap_bytes = tot_gap_bytes - last_gap_bytes;
+			uint64 devents = tot_ack_events - last_ack_events;
+			uint64 dbytes = tot_ack_bytes - last_ack_bytes;
+			uint64 dgaps = tot_gap_events - last_gap_events;
+			uint64 dgap_bytes = tot_gap_bytes - last_gap_bytes;
 
 			RecordVal* r = new RecordVal(gap_info);
 			r->Assign(0, new Val(devents, TYPE_COUNT));

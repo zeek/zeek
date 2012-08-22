@@ -1,5 +1,6 @@
 # Needs perftools support.
 #
+# @TEST-SERIALIZE: comm
 # @TEST-GROUP: leaks
 #
 # @TEST-REQUIRES: bro  --help 2>&1 | grep -q mem-leaks

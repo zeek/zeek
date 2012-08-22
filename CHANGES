@@ -1,4 +1,9 @@
 
+2.1-beta-35 | 2012-08-22 08:44:52 -0700
+
+  * Add testcase for input framework reading sets (rather than
+    tables). (Bernhard Amann)
+
 2.1-beta-31 | 2012-08-21 15:46:05 -0700
 
   * Tweak to rotate-custom.bro unit test. (Jon Siwek)

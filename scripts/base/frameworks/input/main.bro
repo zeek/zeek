@@ -8,6 +8,7 @@ export {
 	## The default input reader used. Defaults to `READER_ASCII`.
 	const default_reader = READER_ASCII &redef;
 
+	## The default reader mode used. Defaults to `MANUAL`.
 	const default_mode = MANUAL &redef;
 
 	## TableFilter description type used for the `table` method.

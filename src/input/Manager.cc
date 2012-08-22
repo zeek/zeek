@@ -1704,6 +1704,9 @@ RecordVal* Manager::ValueToRecordVal(const Value* const *vals,
 			// That means that they are optional & the user agreed to ignore
 			// them and has been warned by reporter.
 			// Hence -> assign null to the field, done.
+			
+			// better check that it really is optional. you never know.
+			assert(request_type->FieldDecl(i)->FindAttr(ATTR_OPTIONAL));
 			}
 		else
 			{

@@ -1,4 +1,58 @@
 
+2.1-beta-28 | 2012-08-21 08:32:42 -0700
+
+  * Linking ES docs into logging document. (Robin Sommer)
+
+2.1-beta-27 | 2012-08-20 20:06:20 -0700
+
+  * Add the Stream record to Log:active_streams to make more dynamic
+    logging possible. (Seth Hall)
+
+  * Fix portability of printing to files returned by
+    open("/dev/stderr"). (Jon Siwek)
+
+  * Fix mime type diff canonifier to also skip mime_desc columns. (Jon
+    Siwek)
+
+  * Unit test tweaks/fixes. (Jon Siwek)
+
+    - Some baselines for tests in "leaks" group were outdated.
+
+    - Changed a few of the cluster/communication tests to terminate
+      more explicitly instead of relying on btest-bg-wait to kill
+      processes.  This makes the tests finish faster in the success case
+      and makes the reason for failing clearer in the that case.
+
+  * Fix memory leak of serialized IDs when compiled with
+    --enable-debug. (Jon Siwek)
+
+2.1-beta-21 | 2012-08-16 11:48:56 -0700
+
+  * Installing a handler for running out of memory in "new". Bro will
+    now print an error message in that case rather than abort with an
+    uncaught exception. (Robin Sommer)
+
+2.1-beta-20 | 2012-08-16 11:43:31 -0700
+
+  * Fixed potential problems with ElasticSearch output plugin. (Seth
+    Hall)
+
+2.1-beta-13 | 2012-08-10 12:28:04 -0700
+
+  * Reporter warnings and error now print to stderr by default. New
+	options Reporter::warnings_to_stderr and
+	Reporter::errors_to_stderr to disable. (Seth Hall)
+
+2.1-beta-9 | 2012-08-10 12:24:29 -0700
+
+  * Add more BIF tests. (Daniel Thayer)
+
+2.1-beta-6 | 2012-08-10 12:22:52 -0700
+
+  * Fix bug in input framework with an edge case. (Bernhard Amann)
+    
+  * Fix small bug in input framework test script. (Bernhard Amann)
+    
 2.1-beta-3 | 2012-08-03 10:46:49 -0700
 
   * Merge branch 'master' of ssh://git.bro-ids.org/bro (Robin Sommer)

@@ -243,8 +243,25 @@ bool DataSeries::OpenLog(string path)
 	log_file->writeExtentLibrary(log_types);
 
 	for( size_t i = 0; i < schema_list.size(); ++i )
-		extents.insert(std::make_pair(schema_list[i].field_name,
-					      GeneralField::create(log_series, schema_list[i].field_name)));
+		{
+		string fn = schema_list[i].field_name;
+		GeneralField* gf = 0;
+#ifdef USE_PERFTOOLS_DEBUG
+		{
+		// GeneralField isn't cleaning up some results of xml parsing, reported
+		// here: https://github.com/dataseries/DataSeries/issues/1
+		// Ignore for now to make leak tests pass.  There's confidence that
+		// we do clean up the GeneralField* since the ExtentSeries dtor for
+		// member log_series would trigger an assert if dynamically allocated
+		// fields aren't deleted beforehand.
+		HeapLeakChecker::Disabler disabler;
+#endif
+		gf = GeneralField::create(log_series, fn);
+#ifdef USE_PERFTOOLS_DEBUG
+		}
+#endif
+		extents.insert(std::make_pair(fn, gf));
+		}
 
 	if ( ds_extent_size < ROW_MIN )
 		{

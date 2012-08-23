@@ -1,3 +1,4 @@
+##! Watch for various SPAM blocklist URLs in SMTP error messages.  
 
 @load base/protocols/smtp
 
@@ -5,9 +6,11 @@ module SMTP;
 
 export {
 	redef enum Notice::Type += { 
-		## Indicates that the server sent a reply mentioning an SMTP block list.
+		## An SMTP server sent a reply mentioning an SMTP block list.
 		Blocklist_Error_Message,
-		## Indicates the client's address is seen in the block list error message.
+		## The originator's address is seen in the block list error message.
+		## This is useful to detect local hosts sending SPAM with a high
+		## positive rate.
 		Blocklist_Blocked_Host,
 	};
 
@@ -52,7 +55,8 @@ event smtp_reply(c: connection, is_orig: bool, code: count, cmd: string,
 				message = fmt("%s is on an SMTP block list", c$id$orig_h);
 				}
 			
-			NOTICE([$note=note, $conn=c, $msg=message, $sub=msg]);
+			NOTICE([$note=note, $conn=c, $msg=message, $sub=msg, 
+			        $identifier=cat(c$id$orig_h)]);
 			}
 		}
 	}

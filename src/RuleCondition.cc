@@ -126,6 +126,23 @@ RuleConditionEval::RuleConditionEval(const char* func)
 		rules_error("unknown identifier", func);
 		return;
 		}
+
+	if ( id->Type()->Tag() == TYPE_FUNC )
+		{
+		// validate argument quantity and type
+		FuncType* f = id->Type()->AsFuncType();
+
+		if ( f->YieldType()->Tag() != TYPE_BOOL )
+			rules_error("eval function type must yield a 'bool'", func);
+
+		TypeList tl;
+		tl.Append(internal_type("signature_state")->Ref());
+		tl.Append(base_type(TYPE_STRING));
+
+		if ( ! f->CheckArgs(tl.Types()) )
+			rules_error("eval function parameters must be a 'signature_state' "
+			            "and a 'string' type", func);
+		}
 	}
 
 bool RuleConditionEval::DoMatch(Rule* rule, RuleEndpointState* state,

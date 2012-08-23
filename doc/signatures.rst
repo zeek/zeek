@@ -229,20 +229,10 @@ matched. The following context conditions are defined:
     confirming the match. If false is returned, no signature match is
     going to be triggered. The function has to be of type ``function
     cond(state: signature_state, data: string): bool``. Here,
-    ``content`` may contain the most recent content chunk available at
+    ``data`` may contain the most recent content chunk available at
     the time the signature was matched. If no such chunk is available,
-    ``content`` will be the empty string. ``signature_state`` is
-    defined as follows:
-
-    .. code:: bro
-
-        type signature_state: record {
-            id: string;          # ID of the signature
-            conn: connection;    # Current connection
-            is_orig: bool;       # True if current endpoint is originator
-            payload_size: count; # Payload size of the first packet
-            };
-
+    ``data`` will be the empty string. See :bro:type:`signature_state`
+    for its definition.
 
 ``payload-size <cmp> <integer>``
     Compares the integer to the size of the payload of a packet. For

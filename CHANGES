@@ -1,4 +1,26 @@
 
+2.1-beta-54 | 2012-08-23 11:58:50 -0700
+
+  * Update documentation for builtin types. (Daniel Thayer)
+    
+    - Add missing description of interval "msec" unit.
+      
+    - Improved description of pattern by clarifying the issue of
+      operand order and difference between exact and embedded
+      matching.
+
+  * Documentation fixes for signature 'eval' conditions. (Jon Siwek)
+    
+  * Remove orphaned 1.5 unit tests. (Jon Siwek)
+
+  * Add type checking for signature 'eval' condition functions. (Jon
+    Siwek)
+    
+  * Adding an identifier to the SMTP blocklist notices for duplicate
+    suppression. (Seth Hall)
+
+     - Slight addition and revision to inline docs.
+    
 2.1-beta-45 | 2012-08-22 16:11:10 -0700
 
   * Add an option to the input framework that allows the user to chose

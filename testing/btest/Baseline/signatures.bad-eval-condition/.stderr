@@ -1,0 +1,2 @@
+error: Error in signature (./blah.sig:6): eval function parameters must be a 'signature_state' and a 'string' type (mark_conn)
+

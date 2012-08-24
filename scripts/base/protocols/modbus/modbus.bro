@@ -8,6 +8,7 @@ redef dpd_config+={[ANALYZER_MODBUS]=[$ports=modbus_ports]};
 
 
 global path:string="/home/dina/pcaps_all/logs/simulations/";
+#global path:string="./simulations/"
 
 # raise this (simple) event if you do not have the specific one bellow
 event modbus_request(c:connection,is_orig:bool,tid:count, pid:count,uid:count, fc:count)
@@ -109,8 +110,6 @@ event modbus_read_coils_request(c:connection,is_orig:bool,tid:count,pid:count,ui
                 dst_p=cat(c$id$resp_p);
 
                 #according to the specification, this FC typically has 0xxxx offset in the memory map
-                #local prefix_ref:count;
-               #prefix_ref=ref+40000;
 
 
                 local text=string_cat(ftime,"\t",src,"\t",dst,"\t", src_p, "\t REQUEST \t",cat(tid), "\t",cat(pid),"\t", cat(uid),"\t", cat(fc),"\t", cat(ref), "\t", cat(bcount),"\n");
@@ -148,8 +147,6 @@ event modbus_read_coils_response(c:connection,is_orig:bool,tid:count,pid:count,u
                 dst_p=cat(c$id$resp_p);
 
                 #according to the specification, this FC typically has 0xxxx offset in the memory map
-                #local prefix_ref:count;
-               #prefix_ref=ref+00000;
 
 
                 local text=string_cat(ftime,"\t",src,"\t",dst,"\t", src_p, "\t RESPONSE \t",cat(tid), "\t",cat(pid),"\t", cat(uid),"\t", cat(fc),"\t", cat(bcount),"\t",bits,"\n");
@@ -414,8 +411,6 @@ event modbus_write_coil_request(c:connection,is_orig:bool,tid:count,pid:count,ui
                 dst_p=cat(c$id$resp_p);
 	
 		#according to the specification, this FC typically has 0xxxx offset in the memory map
-		#local prefix_ref:count;
-                #prefix_ref=ref+40000;
 			
 		local text=string_cat(ftime,"\t",src,"\t",dst,"\t", src_p, "\t REQUEST \t",cat(tid), "\t",cat(pid),"\t", cat(uid),"\t", cat(fc),"\t",cat(ref), "\t",cat(onOff),"\t",cat(other),"\n");
 		
@@ -452,8 +447,7 @@ event modbus_write_coil_response(c:connection,is_orig:bool,tid:count,pid:count,u
                 dst_p=cat(c$id$resp_p);
 
                 #according to the specification, this FC typically has 0xxxx offset in the memory map
-                #local prefix_ref:count;
-                #prefix_ref=ref+00000;
+               
 
                 local text=string_cat(ftime,"\t",src,"\t",dst,"\t", src_p, "\t RESPONSE \t","\t",cat(tid), "\t",cat(pid),"\t", cat(uid),"\t", cat(fc),"\t",cat(ref), "\t",cat(onOff),"\t",cat(other),"\n");
 
@@ -562,8 +556,7 @@ event modbus_force_coils_request(c:connection,is_orig:bool,tid:count,pid:count,u
                 dst_p=cat(c$id$resp_p);
 
                 #according to the specification, this FC usually has 0xxxx offset in the memory map
-                #local prefix_ref:count;
-                #prefix_ref=ref+00000;
+                
 
                 local text=string_cat(ftime,"\t",src,"\t",dst,"\t", src_p, "\t REQUEST \t",cat(tid), "\t",cat(pid),"\t", cat(uid),"\t", cat(fc),"\t",cat(ref), "\t",cat(bitCount),"\t",cat(byteCount),coils,"\n");
 
@@ -599,8 +592,7 @@ event modbus_force_coils_response(c:connection,is_orig:bool,tid:count,pid:count,
                 dst_p=cat(c$id$resp_p);
 
                 #according to the specification, this FC usually has 0xxxx offset in the memory map
-                #local prefix_ref:count;
-                #prefix_ref=ref+00000;
+               
 
                 local text=string_cat(ftime,"\t",src,"\t",dst,"\t", src_p, "\t RESPONSE \t",cat(tid), "\t",cat(pid),"\t", cat(uid),"\t", cat(fc),"\t",cat(ref), "\t",cat(bitCount),"\n");
 
@@ -712,10 +704,6 @@ event modbus_read_reference_request(c:connection,is_orig:bool,tid:count,pid:coun
                  src_p=cat(c$id$orig_p);
                  dst_p=cat(c$id$resp_p);
 
-                #according to the specification, this FC usually has 4xxxx offset in the memory map
-                #local prefix_ref:count;
-                #prefix_ref=ref+40000;
-
 
                 local text=string_cat(ftime,"\t",src,"\t",dst,"\t",src_p, "\t REQUEST \t",cat(tid), "\t",cat(pid),"\t", cat(uid),"\t",cat(fc),"\t",cat(refCount),"\t",cat(t),"\n");
 
@@ -751,10 +739,6 @@ event modbus_read_reference_response(c:connection,is_orig:bool,tid:count,pid:cou
                 src_p=cat(c$id$orig_p);
                 dst_p=cat(c$id$resp_p);
 
-                #according to the specification, this FC usually has 4xxxx offset in the memory map
-                #local prefix_ref:count;
-                #prefix_ref=ref+40000;
-
 
                local text=string_cat(ftime,"\t",src,"\t",dst,"\t",src_p, "\t RESPONSE \t",cat(tid), "\t",cat(pid),"\t", cat(uid),"\t",cat(fc),"\t",cat(byteCount),"\t",cat(t),"\n");
 
@@ -789,10 +773,6 @@ event modbus_read_single_reference_request(c:connection,is_orig:bool,tid:count,p
                 src_p=cat(c$id$orig_p);
                 dst_p=cat(c$id$resp_p);
 
-                #according to the specification, this FC usually has 4xxxx offset in the memory map
-                #local prefix_ref:count;
-                #prefix_ref=ref+40000;
-
 
                local text=string_cat(ftime,"\t",src,"\t",dst,"\t",src_p, "\t REQUEST \t",cat(tid), "\t",cat(pid),"\t", cat(uid),"\t",cat(fc),"\t",cat(refType),"\t",cat(refNumber),"\t",cat(wordCount),"\n");
 
@@ -825,10 +805,6 @@ event modbus_read_single_reference_response(c:connection,is_orig:bool,tid:count,
                 dst=cat(c$id$resp_h);
                 src_p=cat(c$id$orig_p);
                 dst_p=cat(c$id$resp_p);
-
-                #according to the specification, this FC usually has 4xxxx offset in the memory map
-                #local prefix_ref:count;
-                #prefix_ref=ref+40000;
 
 
                local text=string_cat(ftime,"\t",src,"\t",dst,"\t",src_p, "\t RESPONSE \t",cat(tid), "\t",cat(pid),"\t", cat(uid),"\t",cat(fc),"\t",cat(byteCount),"\t",cat(refType),"\t",cat(t),"\n");
@@ -866,10 +842,6 @@ event modbus_write_reference_request(c:connection,is_orig:bool,tid:count,pid:cou
                 src_p=cat(c$id$orig_p);
                 dst_p=cat(c$id$resp_p);
 
-                #according to the specification, this FC usually has 4xxxx offset in the memory map
-                #local prefix_ref:count;
-                #prefix_ref=ref+40000;
-
 
                local text=string_cat(ftime,"\t",src,"\t",dst,"\t",src_p, "\t REQUEST \t",cat(tid), "\t",cat(pid),"\t", cat(uid),"\t",cat(fc),"\t",cat(byteCount),"\t",cat(t),"\n");
 
@@ -904,10 +876,6 @@ event modbus_read_reference_response(c:connection,is_orig:bool,tid:count,pid:cou
                 src_p=cat(c$id$orig_p);
                 dst_p=cat(c$id$resp_p);
 
-                #according to the specification, this FC usually has 4xxxx offset in the memory map
-                #local prefix_ref:count;
-                #prefix_ref=ref+40000;
-
 
                local text=string_cat(ftime,"\t",src,"\t",dst,"\t",src_p, "\t RESPONSE \t",cat(tid), "\t",cat(pid),"\t", cat(uid),"\t",cat(fc),"\t",cat(byteCount),"\t",cat(t),"\n");
 
@@ -919,7 +887,7 @@ event modbus_read_reference_response(c:connection,is_orig:bool,tid:count,pid:cou
 
         }
 
-#REQUEST/RESPONSE FC=20 (for single reference)
+#REQUEST/RESPONSE FC=21 (for single reference)
 event modbus_write_single_reference(c:connection,is_orig:bool,tid:count,pid:count,uid:count,fc:count,refType:count,refNumber:count,wordCount:count,t:int_vec)
         {
 
@@ -931,7 +899,6 @@ event modbus_write_single_reference(c:connection,is_orig:bool,tid:count,pid:coun
                 local src_p:string;
                 local dst_p:string;
 
-
                 k=open_for_append (string_cat(path,"f21_singles_new.log"));
                 m=open_for_append (string_cat(path,"fall_new.log"));
                 ftime=strftime("%F %T",network_time());
@@ -940,11 +907,6 @@ event modbus_write_single_reference(c:connection,is_orig:bool,tid:count,pid:coun
                 dst=cat(c$id$resp_h);
                 src_p=cat(c$id$orig_p);
                 dst_p=cat(c$id$resp_p);
-
-                #according to the specification, this FC usually has 4xxxx offset in the memory map
-                #local prefix_ref:count;
-                #prefix_ref=ref+40000;
-
 
                local text=string_cat(ftime,"\t",src,"\t",dst,"\t",src_p, "\t REQUEST/RESPONSE \t",cat(tid), "\t",cat(pid),"\t", cat(uid),"\t",cat(fc),"\t",cat(refType),"\t",cat(refNumber),"\t",cat(wordCount),"\t",cat(t),"\n");
 
@@ -979,10 +941,6 @@ event modbus_mask_write_request(c:connection,is_orig:bool,tid:count,pid:count,ui
                 src_p=cat(c$id$orig_p);
                 dst_p=cat(c$id$resp_p);
 
-                #according to the specification, this FC typically has 0xxxx offset in the memory map
-                #local prefix_ref:count;
-                #prefix_ref=ref+00000;
-
                 local text=string_cat(ftime,"\t",src,"\t",dst,"\t", src_p, "\t REQUEST \t",cat(tid), "\t",cat(pid),"\t", cat(uid),"\t", cat(fc),"\t",cat(ref), "\t",cat(andMask),"\t",cat(orMask),"\n");
 
                 write_file(h,text);
@@ -1014,10 +972,6 @@ event modbus_mask_write_response(c:connection,is_orig:bool,tid:count,pid:count,u
 
                 src_p=cat(c$id$orig_p);
                 dst_p=cat(c$id$resp_p);
-
-                #according to the specification, this FC typically has 0xxxx offset in the memory map
-                #local prefix_ref:count;
-                #prefix_ref=ref+00000;
 
                 local text=string_cat(ftime,"\t",src,"\t",dst,"\t", src_p, "\t RESPONSE \t",cat(tid), "\t",cat(pid),"\t", cat(uid),"\t", cat(fc),"\t",cat(ref), "\t",cat(andMask),"\t",cat(orMask),"\n");
 
@@ -1122,11 +1076,6 @@ event modbus_read_FIFO_request(c:connection,is_orig:bool,tid:count,pid:count,uid
                 src_p=cat(c$id$orig_p);
                 dst_p=cat(c$id$resp_p);
 
-                #according to the specification, this FC typically has 4xxxx offset in the memory map
-                #local prefix_ref:count;
-               # prefix_ref=ref+40000;
-
-
                 local text=string_cat(ftime,"\t",src,"\t",dst,"\t", src_p, "\t REQUEST \t",cat(tid), "\t",cat(pid),"\t", cat(uid),"\t", cat(fc),"\t", cat(ref), "\t","\n");
 
                 write_file(f,text);
@@ -1165,10 +1114,8 @@ event modbus_read_FIFO_response(c:connection,is_orig:bool,t:int_vec,tid:count,pi
                 write_file(h,text);
                 write_file(m,text);
 
-
                 close(h);
                 close(m);
-
         }
 
 

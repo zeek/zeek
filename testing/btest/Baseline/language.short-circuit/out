@@ -1,0 +1,4 @@
+&& operator (eval. both operands) (PASS)
+&& operator (eval. 1st operand) (PASS)
+|| operator (eval. 1st operand) (PASS)
+|| operator (eval. both operands) (PASS)

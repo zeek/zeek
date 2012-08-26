@@ -238,7 +238,7 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 		break;
 
 	case TYPE_INT:
-		val->val.int_val = atoi(s.c_str());
+		val->val.int_val = strtoll(s.c_str(), (char**) NULL, 10);
 		break;
 
 	case TYPE_DOUBLE:
@@ -249,7 +249,7 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 
 	case TYPE_COUNT:
 	case TYPE_COUNTER:
-		val->val.uint_val = atoi(s.c_str());
+		val->val.uint_val = strtoull(s.c_str(),(char**) NULL, 10);
 		break;
 
 	case TYPE_PORT:
@@ -344,7 +344,7 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 
 		if ( pos != length )
 			{
-			Error("Internal error while parsing set: did not find all elements");
+			Error(Fmt("Internal error while parsing set: did not find all elements: %s", s.c_str()));
 			return 0;
 			}
 

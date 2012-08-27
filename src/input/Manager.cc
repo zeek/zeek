@@ -1228,7 +1228,7 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 			Ref(predidx);
 			Ref(val);
 			Ref(ev);
-			SendEvent(stream->event, 3, ev, predidx, val);
+			SendEvent(stream->event, 4, stream->description->Ref(), ev, predidx, val);
 			}
 
 		if ( predidx )  // if we have a stream or an event...
@@ -1748,7 +1748,7 @@ int Manager::GetValueLength(const Value* val) {
 	case TYPE_STRING:
 	case TYPE_ENUM:
 		{
-		length += val->val.string_val.length;
+		length += val->val.string_val.length + 1;
 		break;
 		}
 
@@ -1848,7 +1848,10 @@ int Manager::CopyValue(char *data, const int startpos, const Value* val)
 	case TYPE_ENUM:
 		{
 		memcpy(data+startpos, val->val.string_val.data, val->val.string_val.length);
-		return val->val.string_val.length;
+		// Add a \0 to the end. To be able to hash zero-length
+		// strings and differentiate from !present.
+		memset(data + startpos + val->val.string_val.length, 0, 1);
+		return val->val.string_val.length + 1;
 		}
 
 	case TYPE_ADDR:
@@ -1939,13 +1942,15 @@ HashKey* Manager::HashValues(const int num_elements, const Value* const *vals)
 		const Value* val = vals[i];
 		if ( val->present )
 			length += GetValueLength(val);
+
+		// And in any case add 1 for the end-of-field-identifier.
+		length++;
 		}
 
-	if ( length == 0 )
-		{
-		reporter->Error("Input reader sent line where all elements are null values. Ignoring line");
+	assert ( length >= num_elements );
+
+	if ( length == num_elements )
 		return NULL;
-		}
 
 	int position = 0;
 	char *data = (char*) malloc(length);
@@ -1957,6 +1962,12 @@ HashKey* Manager::HashValues(const int num_elements, const Value* const *vals)
 		const Value* val = vals[i];
 		if ( val->present )
 			position += CopyValue(data, position, val);
+
+		memset(data + position, 1, 1); // Add end-of-field-marker. Does not really matter which value it is,
+		                               // it just has to be... something.
+
+		position++;
+
 		}
 
 	HashKey *key = new HashKey(data, length);

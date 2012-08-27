@@ -220,6 +220,7 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 	switch ( field.type ) {
 	case TYPE_ENUM:
 	case TYPE_STRING:
+		s = get_unescaped_string(s);
 		val->val.string_val.length = s.size();
 		val->val.string_val.data = copy_string(s.c_str());
 		break;
@@ -238,7 +239,7 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 		break;
 
 	case TYPE_INT:
-		val->val.int_val = atoi(s.c_str());
+		val->val.int_val = strtoll(s.c_str(), (char**) NULL, 10);
 		break;
 
 	case TYPE_DOUBLE:
@@ -249,7 +250,7 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 
 	case TYPE_COUNT:
 	case TYPE_COUNTER:
-		val->val.uint_val = atoi(s.c_str());
+		val->val.uint_val = strtoull(s.c_str(),(char**) NULL, 10);
 		break;
 
 	case TYPE_PORT:
@@ -259,6 +260,7 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 
 	case TYPE_SUBNET:
 		{
+		s = get_unescaped_string(s);
 		size_t pos = s.find("/");
 		if ( pos == s.npos )
 			{
@@ -275,6 +277,7 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 		}
 
 	case TYPE_ADDR:
+		s = get_unescaped_string(s);
 		val->val.addr_val = StringToAddr(s);
 		break;
 
@@ -288,7 +291,10 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 		// how many entries do we have...
 		unsigned int length = 1;
 		for ( unsigned int i = 0; i < s.size(); i++ )
-			if ( s[i] == ',' ) length++;
+			{
+			if ( s[i] == set_separator[0] )
+				length++;
+			}
 
 		unsigned int pos = 0;
 
@@ -342,9 +348,23 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 			pos++;
 			}
 
+		// Test if the string ends with a set_separator. If it does
+		// we have to push an zero-length val on top of it.
+		if ( *s.rbegin() == set_separator[0] )
+			{
+			lvals[pos] = EntryToVal("", field.subType());
+			if ( lvals[pos] == 0 )
+				{
+				Error("Error while trying to add empty set element");
+				return 0;
+				}
+
+			pos++;
+			}
+
 		if ( pos != length )
 			{
-			Error("Internal error while parsing set: did not find all elements");
+			Error(Fmt("Internal error while parsing set: did not find all elements: %s", s.c_str()));
 			return 0;
 			}
 
@@ -437,8 +457,6 @@ bool Ascii::DoUpdate()
 			string s;
 			if ( ! getline(splitstream, s, separator[0]) )
 				break;
-
-			s = get_unescaped_string(s);
 
 			stringfields[pos] = s;
 			pos++;

@@ -1,6 +1,23 @@
 
 2.1 | 2012-08-24 15:11:49 -0700
 
+  * Input framework fixes (Bernhard Amann), including:
+
+    - One of the change events got the wrong parameters.
+
+    - Escape commas in sets and vectors that were unescaped before
+      tokenization.
+
+    - Handling of zero-length-strings as last element in a set was
+      broken (sets ending with a ,).
+
+    - Hashing of lines just containing zero-length-strings was broken.
+
+    - Make set_separators different from , work for input framework.
+      
+    - Input framework was not handling counts and ints out of
+      32-bit-range correctly.
+
   * Update documentation for builtin types. (Daniel Thayer)
     
     - Add missing description of interval "msec" unit.
@@ -19,8 +36,6 @@
   * Adding an identifier to the SMTP blocklist notices for duplicate
     suppression. (Seth Hall)
 
-     - Slight addition and revision to inline docs.
-    
 2.1-beta-45 | 2012-08-22 16:11:10 -0700
 
   * Add an option to the input framework that allows the user to chose

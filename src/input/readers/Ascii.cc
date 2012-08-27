@@ -228,7 +228,7 @@ bool Ascii::CheckNumberError(const string & s, const char * end)
 	}
 
 	if ( endnotnull )
-		Error(Fmt("Number '%s' contained non-numeric trailing characters. Ignored trailing characters '%s'", s.c_str(), end));
+		Warning(Fmt("Number '%s' contained non-numeric trailing characters. Ignored trailing characters '%s'", s.c_str(), end));
 
 	if ( errno == EINVAL )
 		{
@@ -236,7 +236,10 @@ bool Ascii::CheckNumberError(const string & s, const char * end)
 		return true;
 		}
 	else if ( errno == ERANGE ) 
-		Error(Fmt("Number '%s' out of supported range. Number was truncated", s.c_str()));
+		{
+		Error(Fmt("Number '%s' out of supported range.", s.c_str()));
+		return true;
+		}
 
 	return false;
 	}
@@ -492,6 +495,7 @@ bool Ascii::DoUpdate()
 	while ( GetLine(line ) )
 		{
 		// split on tabs
+		bool error = false;
 		istringstream splitstream(line);
 
 		map<int, string> stringfields;
@@ -537,8 +541,9 @@ bool Ascii::DoUpdate()
 			Value* val = EntryToVal(stringfields[(*fit).position], *fit);
 			if ( val == 0 )
 				{
-				Error(Fmt("Could not convert line '%s' to Val. Aborting file read.", line.c_str()));
-				return false;
+				Error(Fmt("Could not convert line '%s' to Val. Ignoring line.", line.c_str()));
+				error = true;
+				break;
 				}
 
 			if ( (*fit).secondary_position != -1 )
@@ -554,6 +559,21 @@ bool Ascii::DoUpdate()
 
 			fpos++;
 			}
+
+
+		if ( error ) 
+			{
+			// encountered non-fatal error. ignoring line.
+			// first - delete all successfully read fields and the array structure.
+			
+			for ( int i = 0; i < fpos; i++ )
+				delete fields[fpos];
+
+			delete[] fields;
+			continue;
+			}
+
+
 
 		//printf("fpos: %d, second.num_fields: %d\n", fpos, (*it).second.num_fields);
 		assert ( fpos == NumFields() );

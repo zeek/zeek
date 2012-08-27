@@ -13,16 +13,9 @@
 #types	int	count
 12129223372036854775800	121218446744073709551612
 9223372036854775801TEXTHERE	1Justtext
+Justtext	1
 9223372036854775800	-18446744073709551612
 @TEST-END-FILE
-
-@TEST-START-FILE input2.log
-#separator \x09
-#fields	i	c
-#types	int	count
-Justtext	1
-@TEST-END-FILE
-
 
 @load frameworks/communication/listen
 
@@ -51,5 +44,5 @@ event bro_init()
 event Input::update_finished(name: string, source:string)
 	{
 	print outfile, servers;
-	Input::add_table([$source="../input2.log", $name="ssh2", $idx=Idx, $val=Val, $destination=servers]);
+	terminate();
 	}

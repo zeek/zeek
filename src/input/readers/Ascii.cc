@@ -220,6 +220,7 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 	switch ( field.type ) {
 	case TYPE_ENUM:
 	case TYPE_STRING:
+		s = get_unescaped_string(s);
 		val->val.string_val.length = s.size();
 		val->val.string_val.data = copy_string(s.c_str());
 		break;
@@ -259,6 +260,7 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 
 	case TYPE_SUBNET:
 		{
+		s = get_unescaped_string(s);
 		size_t pos = s.find("/");
 		if ( pos == s.npos )
 			{
@@ -275,6 +277,7 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 		}
 
 	case TYPE_ADDR:
+		s = get_unescaped_string(s);
 		val->val.addr_val = StringToAddr(s);
 		break;
 
@@ -338,6 +341,20 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 				}
 
 			lvals[pos] = newval;
+
+			pos++;
+			}
+
+		// test if the string ends with a set_separator... if it does we have to push an zero-lenght
+		// val on top of it.
+		if ( *s.rbegin() == set_separator[0] )
+			{
+			lvals[pos] = EntryToVal("", field.subType());
+			if ( lvals[pos] == 0 )
+				{
+				Error("Error while trying to add empty set element");
+				return 0;
+				}
 
 			pos++;
 			}
@@ -438,7 +455,6 @@ bool Ascii::DoUpdate()
 			if ( ! getline(splitstream, s, separator[0]) )
 				break;
 
-			s = get_unescaped_string(s);
 
 			stringfields[pos] = s;
 			pos++;

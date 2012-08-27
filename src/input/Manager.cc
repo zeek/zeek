@@ -1718,7 +1718,7 @@ int Manager::GetValueLength(const Value* val) {
 	case TYPE_STRING:
 	case TYPE_ENUM:
 		{
-		length += val->val.string_val.length;
+		length += val->val.string_val.length+1;
 		break;
 		}
 
@@ -1818,7 +1818,9 @@ int Manager::CopyValue(char *data, const int startpos, const Value* val)
 	case TYPE_ENUM:
 		{
 		memcpy(data+startpos, val->val.string_val.data, val->val.string_val.length);
-		return val->val.string_val.length;
+		// and add a \0 to the end. To be able to hash zero-length strings and differentiate from !present
+		memset(data+startpos+val->val.string_val.length, 0, 1); 		
+		return val->val.string_val.length+1;
 		}
 
 	case TYPE_ADDR:

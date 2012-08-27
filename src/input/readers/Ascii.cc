@@ -11,6 +11,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <errno.h>
 
 using namespace input::reader;
 using threading::Value;
@@ -209,6 +210,42 @@ bool Ascii::GetLine(string& str)
 	return false;
 	}
 
+bool Ascii::CheckNumberError(const string& s, const char * end)
+	{
+	// Do this check first, before executing s.c_str() or similar.
+	// otherwise the value to which *end is pointing at the moment might
+	// be gone ...
+	bool endnotnull =  (*end != '\0');
+
+	if ( s.length() == 0 )
+		{
+		Error("Got empty string for number field");
+		return true;
+		}
+
+	if ( end == s.c_str() ) {
+		Error(Fmt("String '%s' contained no parseable number", s.c_str()));
+		return true;
+	}
+
+	if ( endnotnull )
+		Warning(Fmt("Number '%s' contained non-numeric trailing characters. Ignored trailing characters '%s'", s.c_str(), end));
+
+	if ( errno == EINVAL )
+		{
+		Error(Fmt("String '%s' could not be converted to a number", s.c_str()));
+		return true;
+		}
+
+	else if ( errno == ERANGE )
+		{
+		Error(Fmt("Number '%s' out of supported range.", s.c_str()));
+		return true;
+		}
+
+	return false;
+	}
+
 
 Value* Ascii::EntryToVal(string s, FieldMapping field)
 	{
@@ -216,6 +253,8 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 		return new Value(field.type, false);
 
 	Value* val = new Value(field.type, true);
+	char* end = 0;
+	errno = 0;
 
 	switch ( field.type ) {
 	case TYPE_ENUM:
@@ -239,22 +278,31 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 		break;
 
 	case TYPE_INT:
-		val->val.int_val = strtoll(s.c_str(), (char**) NULL, 10);
+		val->val.int_val = strtoll(s.c_str(), &end, 10);
+		if ( CheckNumberError(s, end) )
+			return 0;
 		break;
 
 	case TYPE_DOUBLE:
 	case TYPE_TIME:
 	case TYPE_INTERVAL:
-		val->val.double_val = atof(s.c_str());
+		val->val.double_val = strtod(s.c_str(), &end);
+		if ( CheckNumberError(s, end) )
+			return 0;
 		break;
 
 	case TYPE_COUNT:
 	case TYPE_COUNTER:
-		val->val.uint_val = strtoull(s.c_str(),(char**) NULL, 10);
+		val->val.uint_val = strtoull(s.c_str(), &end, 10);
+		if ( CheckNumberError(s, end) )
+			return 0;
 		break;
 
 	case TYPE_PORT:
-		val->val.port_val.port = atoi(s.c_str());
+		val->val.port_val.port = strtoull(s.c_str(), &end, 10);
+		if ( CheckNumberError(s, end) )
+			return 0;
+
 		val->val.port_val.proto = TRANSPORT_UNKNOWN;
 		break;
 
@@ -268,7 +316,11 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 			return 0;
 			}
 
-		int width = atoi(s.substr(pos+1).c_str());
+		uint8_t width = (uint8_t) strtol(s.substr(pos+1).c_str(), &end, 10);
+
+		if ( CheckNumberError(s, end) )
+			return 0;
+
 		string addr = s.substr(0, pos);
 
 		val->val.subnet_val.prefix = StringToAddr(addr);
@@ -449,6 +501,7 @@ bool Ascii::DoUpdate()
 	while ( GetLine(line ) )
 		{
 		// split on tabs
+		bool error = false;
 		istringstream splitstream(line);
 
 		map<int, string> stringfields;
@@ -493,8 +546,9 @@ bool Ascii::DoUpdate()
 			Value* val = EntryToVal(stringfields[(*fit).position], *fit);
 			if ( val == 0 )
 				{
-				Error("Could not convert String value to Val");
-				return false;
+				Error(Fmt("Could not convert line '%s' to Val. Ignoring line.", line.c_str()));
+				error = true;
+				break;
 				}
 
 			if ( (*fit).secondary_position != -1 )
@@ -509,6 +563,19 @@ bool Ascii::DoUpdate()
 			fields[fpos] = val;
 
 			fpos++;
+			}
+
+		if ( error )
+			{
+			// Encountered non-fatal error, ignoring line. But
+			// first, delete all successfully read fields and the
+			// array structure.
+
+			for ( int i = 0; i < fpos; i++ )
+				delete fields[fpos];
+
+			delete [] fields;
+			continue;
 			}
 
 		//printf("fpos: %d, second.num_fields: %d\n", fpos, (*it).second.num_fields);

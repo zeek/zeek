@@ -1,7 +1,7 @@
 
 2.1 | 2012-08-24 15:11:49 -0700
 
-  * Input framework fixes (Bernhard Amann), including:
+  * Input framework fixes, including:  (Bernhard Amann)
 
     - One of the change events got the wrong parameters.
 
@@ -17,6 +17,9 @@
       
     - Input framework was not handling counts and ints out of
       32-bit-range correctly.
+
+    - Errors in single lines do not kill processing, but simply ignore
+      the line, log it, and continue.
 
   * Update documentation for builtin types. (Daniel Thayer)
     

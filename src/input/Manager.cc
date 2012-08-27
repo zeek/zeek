@@ -1911,11 +1911,16 @@ HashKey* Manager::HashValues(const int num_elements, const Value* const *vals)
 		const Value* val = vals[i];
 		if ( val->present )
 			length += GetValueLength(val);
-		}
 
-	if ( length == 0 )
+		// and in any case add 1 for the end-of-field-identifier
+		length++;
+		}
+	
+
+	assert ( length >= num_elements );
+
+	if ( length == num_elements )
 		{
-		reporter->Error("Input reader sent line where all elements are null values. Ignoring line");
 		return NULL;
 		}
 
@@ -1929,6 +1934,12 @@ HashKey* Manager::HashValues(const int num_elements, const Value* const *vals)
 		const Value* val = vals[i];
 		if ( val->present )
 			position += CopyValue(data, position, val);
+
+		memset(data+position, 1, 1); // add end-of-field-marker. does not really matter which value it is,
+					// it just has to be... something
+
+		position++;
+
 		}
 
 	HashKey *key = new HashKey(data, length);

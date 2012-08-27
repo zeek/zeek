@@ -4,14 +4,25 @@
 # @TEST-EXEC: btest-bg-run bro bro -b %INPUT
 # @TEST-EXEC: btest-bg-wait -k 5
 # @TEST-EXEC: btest-diff out
+# @TEST-EXEC: sed 1d .stderr > .stderrwithoutfirstline
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderrwithoutfirstline
 
 @TEST-START-FILE input.log
 #separator \x09
 #fields	i	c
 #types	int	count
-9223372036854775800	18446744073709551612
--9223372036854775800	18446744073709551612
+12129223372036854775800	121218446744073709551612
+9223372036854775801TEXTHERE	1Justtext
+9223372036854775800	-18446744073709551612
 @TEST-END-FILE
+
+@TEST-START-FILE input2.log
+#separator \x09
+#fields	i	c
+#types	int	count
+Justtext	1
+@TEST-END-FILE
+
 
 @load frameworks/communication/listen
 
@@ -40,6 +51,5 @@ event bro_init()
 event Input::update_finished(name: string, source:string)
 	{
 	print outfile, servers;
-	close(outfile);
-	terminate();
+	Input::add_table([$source="../input2.log", $name="ssh2", $idx=Idx, $val=Val, $destination=servers]);
 	}

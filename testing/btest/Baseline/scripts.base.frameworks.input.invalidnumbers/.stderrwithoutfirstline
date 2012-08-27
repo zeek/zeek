@@ -1,0 +1,8 @@
+error: ../input.log/Input::READER_ASCII: Number '12129223372036854775800' out of supported range. Number was truncated
+error: ../input.log/Input::READER_ASCII: Number '121218446744073709551612' out of supported range. Number was truncated
+error: ../input.log/Input::READER_ASCII: Number '9223372036854775801TEXTHERE' contained non-numeric trailing characters. Ignored trailing characters 'TEXTHERE'
+error: ../input.log/Input::READER_ASCII: Number '1Justtext' contained non-numeric trailing characters. Ignored trailing characters 'Justtext'
+error: ../input2.log/Input::READER_ASCII: String 'Justtext' contained no parseable number
+error: ../input2.log/Input::READER_ASCII: Could not convert line 'Justtext	1' to Val. Aborting file read.
+received termination signal
+>>>

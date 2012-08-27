@@ -213,6 +213,9 @@ bool Ascii::GetLine(string& str)
 bool Ascii::CheckNumberError(const string & s, const char * end)
 	{
 
+	bool endnotnull =  (*end != '\0'); // do this check first, before executing s.c_str() or similar.
+	// otherwise the value to which *end is pointing at the moment might be gone...
+
 	if ( s.length() == 0 )
 		{
 		Error("Got empty string for number field");
@@ -224,7 +227,7 @@ bool Ascii::CheckNumberError(const string & s, const char * end)
 		return true;
 	}
 
-	if ( *end != '\0' )
+	if ( endnotnull )
 		Error(Fmt("Number '%s' contained non-numeric trailing characters. Ignored trailing characters '%s'", s.c_str(), end));
 
 	if ( errno == EINVAL )
@@ -309,10 +312,11 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 			}
 
 		uint8_t width = (uint8_t) strtol(s.substr(pos+1).c_str(), &end, 10);
-		string addr = s.substr(0, pos);
-		
+
 		if ( CheckNumberError(s, end) ) 
 			return 0;
+
+		string addr = s.substr(0, pos);
 
 		val->val.subnet_val.prefix = StringToAddr(addr);
 		val->val.subnet_val.length = width;

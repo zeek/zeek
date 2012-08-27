@@ -288,7 +288,7 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 		// how many entries do we have...
 		unsigned int length = 1;
 		for ( unsigned int i = 0; i < s.size(); i++ )
-			if ( s[i] == ',' ) length++;
+			if ( s[i] == set_separator[0] ) length++;
 
 		unsigned int pos = 0;
 

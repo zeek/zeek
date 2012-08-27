@@ -345,9 +345,10 @@ Value* Ascii::EntryToVal(string s, FieldMapping field)
 			pos++;
 			}
 
-		// test if the string ends with a set_separator... if it does we have to push an zero-lenght
-		// val on top of it.
-		if ( *s.rbegin() == set_separator[0] )
+		// test if the string ends with a set_separator... or if the complete string is
+		// empty.
+		// In either of these cases we have to push an empty val on top of it.
+		if ( s.empty() ||  *s.rbegin() == set_separator[0] )
 			{
 			lvals[pos] = EntryToVal("", field.subType());
 			if ( lvals[pos] == 0 )

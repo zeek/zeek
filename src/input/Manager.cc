@@ -1210,7 +1210,7 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 			Ref(predidx);
 			Ref(val);
 			Ref(ev);
-			SendEvent(stream->event, 3, ev, predidx, val);
+			SendEvent(stream->event, 4, stream->description->Ref(), ev, predidx, val);
 			}
 
 		if ( predidx )  // if we have a stream or an event...

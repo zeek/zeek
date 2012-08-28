@@ -19,6 +19,7 @@
 #include "SMTP.h"
 #include "FTP.h"
 #include "FileAnalyzer.h"
+#include "DNP3.h"
 #include "DNS.h"
 #include "DNS-binpac.h"
 #include "DHCP-binpac.h"
@@ -129,6 +130,9 @@ const Analyzer::Config Analyzer::analyzer_configs[] = {
 	{ AnalyzerTag::SYSLOG_BINPAC, "SYSLOG_BINPAC",
 		Syslog_Analyzer_binpac::InstantiateAnalyzer,
 		Syslog_Analyzer_binpac::Available, 0, false },
+	{ AnalyzerTag::DNP3, "DNP3",
+                DNP3_Analyzer::InstantiateAnalyzer,
+                DNP3_Analyzer::Available, 0, false },
 
 	{ AnalyzerTag::AYIYA, "AYIYA",
 		AYIYA_Analyzer::InstantiateAnalyzer,

@@ -10,7 +10,6 @@
 #include "SteppingStone.h"
 #include "ConnSizeAnalyzer.h"
 
-
 ExpectedConn::ExpectedConn(const IPAddr& _orig, const IPAddr& _resp,
 				uint16 _resp_p, uint16 _proto)
 	{
@@ -308,6 +307,7 @@ bool DPM::BuildInitialAnalyzerTree(TransportProto proto, Connection* conn,
 		// Add ConnSize analyzer. Needs to see packets, not stream.
 		if ( ConnSize_Analyzer::Available() )
 			tcp->AddChildPacketAnalyzer(new ConnSize_Analyzer(conn));
+
 		}
 
 	else

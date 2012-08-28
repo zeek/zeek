@@ -215,6 +215,8 @@ binpac_target(ssl.pac
     ssl-defs.pac ssl-protocol.pac ssl-analyzer.pac)
 binpac_target(syslog.pac
     syslog-protocol.pac syslog-analyzer.pac)
+binpac_target(dnp3.pac
+    dnp3-protocol.pac dnp3-analyzer.pac dnp3-objects.pac)
 
 ########################################################################
 ## bro target
@@ -301,6 +303,7 @@ set(bro_SRCS
     DCE_RPC.cc
     DFA.cc
     DHCP-binpac.cc
+    DNP3.cc
     DNS.cc
     DNS-binpac.cc
     DNS_Mgr.cc

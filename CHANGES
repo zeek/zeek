@@ -1,6 +1,17 @@
 
-2.1-rc3 | 2012-08-24 15:11:49 -0700
+1.1 | 2012-08-28 16:29:30 -0700
 
+  * Remove automatic use of gperftools on non-Linux systems.
+    --enable-perftools must now explicity be supplied to ./configure
+    on non-Linux systems to link against the tcmalloc library.
+
+  * Fix uninitialized value for 'is_partial' in TCP analyzer. (Jon
+    Siwek)
+
+  * Parse 64-bit consts in Bro scripts correctly. (Bernhard Amann)
+    
+  * Output 64-bit counts correctly on 32-bit machines (Bernhard Amann)
+    
   * Input framework fixes, including:  (Bernhard Amann)
 
     - One of the change events got the wrong parameters.

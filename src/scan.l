@@ -439,7 +439,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 {D}		{
  		// TODO: check if we can use strtoull instead of atol,
 		// and similarly for {HEX}.
-		RET_CONST(new Val(static_cast<unsigned int>(atol(yytext)),
+		RET_CONST(new Val(static_cast<bro_uint_t>(strtoll(yytext, (char**) NULL, 10)),
 			  TYPE_COUNT))
 		}
 {FLOAT}		RET_CONST(new Val(atof(yytext), TYPE_DOUBLE))
@@ -483,7 +483,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 
 ({D}"."){3}{D}		RET_CONST(new AddrVal(yytext))
 
-"0x"{HEX}+	RET_CONST(new Val(static_cast<bro_uint_t>(strtol(yytext, 0, 16)), TYPE_COUNT))
+"0x"{HEX}+	RET_CONST(new Val(static_cast<bro_uint_t>(strtoull(yytext, 0, 16)), TYPE_COUNT))
 
 {H}("."{H})+		RET_CONST(dns_mgr->LookupHost(yytext))
 

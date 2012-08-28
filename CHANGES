@@ -1,5 +1,5 @@
 
-1.1 | 2012-08-28 16:29:30 -0700
+2.1 | 2012-08-28 16:46:42 -0700
 
   * Remove automatic use of gperftools on non-Linux systems.
     --enable-perftools must now explicity be supplied to ./configure

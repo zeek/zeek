@@ -19,10 +19,10 @@ event bro_init()
 	local i8: int = 0xC;
 	local i9: int = -0xC;
 	local i10: int = -12;
-	local i11: int = 4294967295;   # max. allowed value
-	local i12: int = -4294967295;  # min. allowed value
+	local i11: int = 9223372036854775807;   # max. allowed value
+	local i12: int = -9223372036854775808;  # min. allowed value
 	local i13: int = 0x7fffffffffffffff;   # max. allowed value
-	local i14: int = -0x7fffffffffffffff;  # min. allowed value
+	local i14: int = -0x8000000000000000;  # min. allowed value
 
 	test_case( "optional '+' sign", i1 == i2 );
 	test_case( "negative vs. positive", i1 != i3 );
@@ -45,13 +45,13 @@ event bro_init()
 	i2 -= 2;
 	test_case( "assignment operator", i2 == 5 );
 	local str1 = fmt("max int value = %d", i11);
-	test_case( str1, str1 == "max int value = 4294967295" );
+	test_case( str1, str1 == "max int value = 9223372036854775807" );
 	local str2 = fmt("min int value = %d", i12);
-	test_case( str2, str2 == "min int value = -4294967295" );
+	test_case( str2, str2 == "min int value = -9223372036854775808" );
 	local str3 = fmt("max int value = %d", i13);
 	test_case( str3, str3 == "max int value = 9223372036854775807" );
 	local str4 = fmt("min int value = %d", i14);
-	test_case( str4, str4 == "min int value = -9223372036854775807" );
+	test_case( str4, str4 == "min int value = -9223372036854775808" );
 
 	# type inference
 	local x = +3;

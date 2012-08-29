@@ -13,8 +13,8 @@ event bro_init()
 	local c2: count = 5;
 	local c3: count = 0xFF;
 	local c4: count = 255;
-	local c5: count = 4294967295;  # maximum allowed value
-	local c6: count = 0x7fffffffffffffff;  # maximum allowed value
+	local c5: count = 18446744073709551615;  # maximum allowed value
+	local c6: count = 0xffffffffffffffff;    # maximum allowed value
 	local c7: counter = 5;
 
 	test_case( "inequality operator", c1 != c2 );
@@ -35,9 +35,9 @@ event bro_init()
 	c2 -= 2;
 	test_case( "assignment operator", c2 == 6 );
 	local str1 = fmt("max count value = %d", c5);
-	test_case( str1, str1 == "max count value = 4294967295" );
+	test_case( str1, str1 == "max count value = 18446744073709551615" );
 	local str2 = fmt("max count value = %d", c6);
-	test_case( str2, str2 == "max count value = 9223372036854775807" );
+	test_case( str2, str2 == "max count value = 18446744073709551615" );
 
 	# type inference
 	local x = 1;

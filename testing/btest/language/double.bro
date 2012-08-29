@@ -27,7 +27,7 @@ event bro_init()
 	local d16: double = .03E2;
 	local d17: double = 3.0001;
 	local d18: double = -3.0001;
-	local d19: double = 1.7e308;  # almost maximum allowed value
+	local d19: double = 1.7976931348623157e308;  # maximum allowed value
 
 	test_case( "double representations", d1 == d2 );
 	test_case( "double representations", d1 == d3 );
@@ -55,8 +55,8 @@ event bro_init()
 	test_case( "relational operator", d17 >= d3 );
 	test_case( "relational operator", d17 > d3 );
 	test_case( "division operator", d3/2 == 1.5 );
-	local str1 = fmt("max double value = %.1e", d19);
-	test_case( str1, str1 == "max double value = 1.7e+308" );
+	local str1 = fmt("max double value = %.16e", d19);
+	test_case( str1, str1 == "max double value = 1.7976931348623157e+308" );
 
 	# type inference
 	local x = 7.0;

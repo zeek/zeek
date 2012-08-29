@@ -1,6 +1,9 @@
 
 2.1 | 2012-08-28 16:46:42 -0700
 
+  * Make bif.identify_magic robust against FreeBSD's libmagic config.
+    (Robin Sommer)
+
   * Remove automatic use of gperftools on non-Linux systems.
     --enable-perftools must now explicity be supplied to ./configure
     on non-Linux systems to link against the tcmalloc library.

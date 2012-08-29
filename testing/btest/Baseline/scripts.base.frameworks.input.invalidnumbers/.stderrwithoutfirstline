@@ -1,0 +1,8 @@
+error: ../input.log/Input::READER_ASCII: Number '12129223372036854775800' out of supported range.
+error: ../input.log/Input::READER_ASCII: Could not convert line '12129223372036854775800	121218446744073709551612' to Val. Ignoring line.
+warning: ../input.log/Input::READER_ASCII: Number '9223372036854775801TEXTHERE' contained non-numeric trailing characters. Ignored trailing characters 'TEXTHERE'
+warning: ../input.log/Input::READER_ASCII: Number '1Justtext' contained non-numeric trailing characters. Ignored trailing characters 'Justtext'
+error: ../input.log/Input::READER_ASCII: String 'Justtext' contained no parseable number
+error: ../input.log/Input::READER_ASCII: Could not convert line 'Justtext	1' to Val. Ignoring line.
+received termination signal
+>>>

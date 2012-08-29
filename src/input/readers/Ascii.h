@@ -48,6 +48,7 @@ private:
 	bool ReadHeader(bool useCached);
 	bool GetLine(string& str);
 	threading::Value* EntryToVal(string s, FieldMapping type);
+	bool CheckNumberError(const string& s, const char * end);
 
 	ifstream* file;
 	time_t mtime;

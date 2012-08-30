@@ -102,9 +102,14 @@ the full set.
 
     * Bro now requires CMake >= 2.6.3.
 
-    * Bro now links in tcmalloc (part of Google perftools) if found at
-      configure time. Doing so can significantly improve memory and
-      CPU use.
+    * On Linux, Bro now links in tcmalloc (part of Google perftools)
+      if found at configure time. Doing so can significantly improve
+      memory and CPU use.
+
+      On the other platforms, the new configure option
+      --enable-perftools can be used to enable linking to tcmalloc.
+      (Note that perftools's support for non-Linux platforms may be
+      less reliable).
 
 - The configure switch --enable-brov6 is gone.
 

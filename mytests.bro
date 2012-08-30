@@ -83,65 +83,44 @@ event bro_init()
 
 	print "This value should be around 13:";
 	print hll_cardinality_estimate("measurement1");
+
+	print "This value should be true:";
+	print hll_cardinality_merge_into("measurement3", "measurement2");
+
+	print "This value should be false:";
+	print hll_cardinality_merge_into("measurement4", "measurement6");
+
+	print "This value should be about 12:";
+	print hll_cardinality_estimate("measurement3");
+
+	print "This value should be false:";
+	print hll_cardinality_merge_into("measurement3", "measurement15");
+
+	print "This value should be about 12:";
+	print hll_cardinality_estimate("measurement3");
+
+	print "This value should be true:";
+	print hll_cardinality_merge_into("measurement2", "measurement1");
+
+	print "This value should be about 21:";
+	print hll_cardinality_estimate("measurement2");
+
+	print "This value should be about 13:";
+	print hll_cardinality_estimate("measurement1");
+
+	print "This value should be about 12:";
+	print hll_cardinality_estimate("measurement3");
+
+	local keys = hll_cardinality_keys();
+	for(key in keys)
+		{
+		print "The key is:";
+		print key;
+		print "The value is:";
+		print hll_cardinality_estimate(key);
+		}
 	}
 
-### The data structure at index1 will contain the combined count for the
-## elements measured by index1 and index2.
-## It returns true if it either cloned the value at index2 into index1
-## or if it merged the two data structures together.
-
-#function hll_cardinality_merge_into%(index1: any, index2: any%): bool
-#	%{
-#	BroString* s1 = convert_index_to_string(index1);
-#	BroString* s2 = convert_index_to_string(index2);
-#	int status = 0;
-#
-#	if(hll_counters.count(*s1) < 1)
-#		{
-#		if(hll_counters.count(*s2) < 1)
-#			{
-#			status = 0;
-#			}
-#		else
-#			{
-#			uint64_t m = (*hll_counters[*s2]).getM();
-#			double error = 1.04/sqrt(m);
-#			CardinalityCounter* newInst = new CardinalityCounter(error);
-#			int i = 0;
-#			while((*newInst).getM() != m)
-#				{
-#				i += 1;
-#				newInst = new CardinalityCounter(error/i);
-#				}
-#			hll_counters[*s1] = newInst;
-#			(*newInst).merge(hll_counters[*s2]);
-#			status = 1;
-#			}
-#		}
-#	else
-#		{
-#		if(hll_counters.count(*s2) < 1)
-#			{
-#			status = 0;
-#			}
-#		else
-#			{
-#			if((*hll_counters[*s2]).getM() == (*hll_counters[*s1]).getM())
-#				{
-#				status = 1;
-##				(*hll_counters[*s1]).merge(hll_counters[*s2]);
-##				}
-#			}
-#		}
-#
-#	delete s1;
-#	delete s2;
-#	return new Val(status, TYPE_BOOL);
-#
-#	%}
-
-##I'm really not sure about the notation of this function...
-#
 #function hll_cardinality_keys%(%): bool
 #	%{
 #//	TableVal* a = new TableVal(string_set);
@@ -153,54 +132,3 @@ event bro_init()
 #//		}
 #//	return a;
 #	return new Val(1, TYPE_BOOL);
-#	%}
-
-## Stores the data structure at index2 into index1. Deletes the data structure at index1
-## if there was any. Returns True if the data structure at index1 was changed in any way.
-
-#function hll_cardinality_clone%(index1: any, index2: any%): bool
-#	%{
-#	BroString* s1 = convert_index_to_string(index1);
-#	BroString* s2 = convert_index_to_string(index2);
-#	int status = 0;
-#
-#	if(hll_counters.count(*s2) < 1)
-#		{
-#		if(hll_counters.count(*s1) < 1)
-##			{
-#			status = 0;
-#			}
-#		else
-#			{
-#			delete hll_counters[*s1];
-#			status = 1;
-#			}
-#		}
-#	else
-#		{
-#			uint64_t m = (*hll_counters[*s2]).getM();
-#			double error = 1.04/sqrt(m);
-#			CardinalityCounter* newInst = new CardinalityCounter(error);
-#			int i = 0;
-#			while((*newInst).getM() != m)
-#				{
-#				i += 1;
-#				newInst = new CardinalityCounter(error/i);
-#				}
-#			(*newInst).merge(hll_counters[*s2]);
-#		if(hll_counters.count(*s1) < 1)
-#			{
-#			#hll_counters[*s1] = newInst;
-#			}
-#		else
-#			{
-#			delete hll_counters[*s1];
-#			hll_counters[*s1] = newInst;
-#			}
-#		status = 1;
-#		}
-#	delete s1;
-#	delete s2;
-#	return new Val(status, TYPE_BOOL);
-#	%}}
-

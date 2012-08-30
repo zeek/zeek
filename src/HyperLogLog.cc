@@ -18,12 +18,32 @@ using namespace std;
     return answer;
   }
 
+  CardinalityCounter :: CardinalityCounter(uint64_t size){
+    m = size;
+    buckets = new uint8_t[m];
+
+    if(m == 16)
+      alpha_m = 0.673;
+    else if(m == 32)
+      alpha_m = 0.697;
+    else if(m == 64)
+      alpha_m = 0.709;
+    else
+      alpha_m = 0.7213/(1+1.079/m);
+
+    for(uint64_t i = 0; i < m; i++){
+      buckets[i] = 0;
+    }
+
+    V = m;
+ 
+  }
    
   CardinalityCounter :: CardinalityCounter(double error_margin){
     int b = optimalB(error_margin);
     m = (uint64_t) pow(2, b);
     buckets = new uint8_t[m];
-    
+
     if(m == 16)
       alpha_m = 0.673;
     else if(m == 32)

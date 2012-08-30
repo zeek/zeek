@@ -5942,18 +5942,7 @@ function hll_cardinality_merge_into%(index1: any, index2: any%): bool
 		else
 			{
 			uint64_t m = (*hll_counters[*s2]).getM();
-			double error = 1.04/sqrt(m);
-			CardinalityCounter* newInst = new CardinalityCounter(error);
-			int i = 0;
-			while((*newInst).getM() != m)
-				{
-				i += 1;
-				newInst = new CardinalityCounter(error/i);
-				if(i >= 5)
-					{
-					break;
-					}
-				}
+			CardinalityCounter* newInst = new CardinalityCounter(m);
 			hll_counters[*s1] = newInst;
 			(*newInst).merge(hll_counters[*s2]);
 			status = 1;
@@ -6022,7 +6011,8 @@ function hll_cardinality_keys%(%): string_set
 
 	for(it = hll_counters.begin() ; it != hll_counters.end(); it++)
 		{
-		a->Assign(new Val(i++, TYPE_INT),new Val(&(*it).first, TYPE_STRING));
+		BroString* s = (BroString*) &(it->first);
+		a->Assign(new StringVal(s), 0);
 		}
 	return a;
 	%}
@@ -6050,20 +6040,10 @@ function hll_cardinality_clone%(index1: any, index2: any%): bool
 		}
 	else
 		{
-			uint64_t m = (*hll_counters[*s2]).getM();
-			double error = 1.04/sqrt(m);
-			CardinalityCounter* newInst = new CardinalityCounter(error);
-			int i = 0;
-			while((*newInst).getM() != m)
-				{
-				i += 1;
-				newInst = new CardinalityCounter(error/i);
-				if(i >=5 )
-					{
-					break;
-					}
-				}
-			(*newInst).merge(hll_counters[*s2]);
+		uint64_t m = (*hll_counters[*s2]).getM();
+		CardinalityCounter* newInst = new CardinalityCounter(m);
+		int i = 0;
+		(*newInst).merge(hll_counters[*s2]);
 		if(hll_counters.count(*s1) < 1)
 			{
 			hll_counters[*s1] = newInst;

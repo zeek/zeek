@@ -54,6 +54,12 @@ class CardinalityCounter {
 
  public:
   /*
+   *  This will be used when cloning. The error margin will be 1.04/sqrt(m) with approximately 68%
+   *  probability.
+   */
+  CardinalityCounter(uint64_t size);
+
+  /*
    *  This will initialize the Cardinality counter.Based on the error_margin, the number of buckets 
    *  that need to be kept will be determined. Based on the max_size, the number of bits that will
    *  be used from the hash function will be determined.

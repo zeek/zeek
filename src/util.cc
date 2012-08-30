@@ -1383,7 +1383,13 @@ void safe_close(int fd)
 
 void out_of_memory(const char* where)
 	{
-	reporter->FatalError("out of memory in %s.\n", where);
+	fprintf(stderr, "out of memory in %s.\n", where);
+
+	if ( reporter )
+		// Guess that might fail here if memory is really tight ...
+		reporter->FatalError("out of memory in %s.\n", where);
+
+	abort();
 	}
 
 void get_memory_usage(unsigned int* total, unsigned int* malloced)

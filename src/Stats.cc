@@ -12,10 +12,10 @@
 
 int killed_by_inactivity = 0;
 
-uint32 tot_ack_events = 0;
-uint32 tot_ack_bytes = 0;
-uint32 tot_gap_events = 0;
-uint32 tot_gap_bytes = 0;
+uint64 tot_ack_events = 0;
+uint64 tot_ack_bytes = 0;
+uint64 tot_gap_events = 0;
+uint64 tot_gap_bytes = 0;
 
 
 class ProfileTimer : public Timer {

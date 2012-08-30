@@ -1,0 +1,155 @@
+============PREDICATE============
+Input::EVENT_NEW
+[i=1]
+[s=<uninitialized>, ss=TEST]
+============PREDICATE============
+Input::EVENT_NEW
+[i=2]
+[s=<uninitialized>, ss=<uninitialized>]
+============EVENT============
+Description
+[source=../input.log, reader=Input::READER_ASCII, mode=Input::REREAD, name=ssh, destination={
+[2] = [s=<uninitialized>, ss=<uninitialized>],
+[1] = [s=<uninitialized>, ss=TEST]
+}, idx=<no value description>, val=<no value description>, want_record=T, ev=line
+{ 
+print A::outfile, ============EVENT============;
+print A::outfile, Description;
+print A::outfile, A::description;
+print A::outfile, Type;
+print A::outfile, A::tpe;
+print A::outfile, Left;
+print A::outfile, A::left;
+print A::outfile, Right;
+print A::outfile, A::right;
+}, pred=anonymous-function
+{ 
+print A::outfile, ============PREDICATE============;
+print A::outfile, A::typ;
+print A::outfile, A::left;
+print A::outfile, A::right;
+return (T);
+}, config={
+
+}]
+Type
+Input::EVENT_NEW
+Left
+[i=1]
+Right
+[s=<uninitialized>, ss=TEST]
+============EVENT============
+Description
+[source=../input.log, reader=Input::READER_ASCII, mode=Input::REREAD, name=ssh, destination={
+[2] = [s=<uninitialized>, ss=<uninitialized>],
+[1] = [s=<uninitialized>, ss=TEST]
+}, idx=<no value description>, val=<no value description>, want_record=T, ev=line
+{ 
+print A::outfile, ============EVENT============;
+print A::outfile, Description;
+print A::outfile, A::description;
+print A::outfile, Type;
+print A::outfile, A::tpe;
+print A::outfile, Left;
+print A::outfile, A::left;
+print A::outfile, Right;
+print A::outfile, A::right;
+}, pred=anonymous-function
+{ 
+print A::outfile, ============PREDICATE============;
+print A::outfile, A::typ;
+print A::outfile, A::left;
+print A::outfile, A::right;
+return (T);
+}, config={
+
+}]
+Type
+Input::EVENT_NEW
+Left
+[i=2]
+Right
+[s=<uninitialized>, ss=<uninitialized>]
+==========SERVERS============
+{
+[2] = [s=<uninitialized>, ss=<uninitialized>],
+[1] = [s=<uninitialized>, ss=TEST]
+}
+============PREDICATE============
+Input::EVENT_CHANGED
+[i=1]
+[s=TEST, ss=<uninitialized>]
+============PREDICATE============
+Input::EVENT_CHANGED
+[i=2]
+[s=TEST, ss=TEST]
+============EVENT============
+Description
+[source=../input.log, reader=Input::READER_ASCII, mode=Input::REREAD, name=ssh, destination={
+[2] = [s=TEST, ss=TEST],
+[1] = [s=TEST, ss=<uninitialized>]
+}, idx=<no value description>, val=<no value description>, want_record=T, ev=line
+{ 
+print A::outfile, ============EVENT============;
+print A::outfile, Description;
+print A::outfile, A::description;
+print A::outfile, Type;
+print A::outfile, A::tpe;
+print A::outfile, Left;
+print A::outfile, A::left;
+print A::outfile, Right;
+print A::outfile, A::right;
+}, pred=anonymous-function
+{ 
+print A::outfile, ============PREDICATE============;
+print A::outfile, A::typ;
+print A::outfile, A::left;
+print A::outfile, A::right;
+return (T);
+}, config={
+
+}]
+Type
+Input::EVENT_CHANGED
+Left
+[i=1]
+Right
+[s=<uninitialized>, ss=TEST]
+============EVENT============
+Description
+[source=../input.log, reader=Input::READER_ASCII, mode=Input::REREAD, name=ssh, destination={
+[2] = [s=TEST, ss=TEST],
+[1] = [s=TEST, ss=<uninitialized>]
+}, idx=<no value description>, val=<no value description>, want_record=T, ev=line
+{ 
+print A::outfile, ============EVENT============;
+print A::outfile, Description;
+print A::outfile, A::description;
+print A::outfile, Type;
+print A::outfile, A::tpe;
+print A::outfile, Left;
+print A::outfile, A::left;
+print A::outfile, Right;
+print A::outfile, A::right;
+}, pred=anonymous-function
+{ 
+print A::outfile, ============PREDICATE============;
+print A::outfile, A::typ;
+print A::outfile, A::left;
+print A::outfile, A::right;
+return (T);
+}, config={
+
+}]
+Type
+Input::EVENT_CHANGED
+Left
+[i=2]
+Right
+[s=<uninitialized>, ss=<uninitialized>]
+==========SERVERS============
+{
+[2] = [s=TEST, ss=TEST],
+[1] = [s=TEST, ss=<uninitialized>]
+}
+done

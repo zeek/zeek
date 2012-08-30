@@ -55,8 +55,8 @@ The Bro scripting language supports the following built-in types.
 
     A temporal type representing a relative time.  An ``interval``
     constant can be written as a numeric constant followed by a time
-    unit where the time unit is one of ``usec``, ``sec``, ``min``,
-    ``hr``, or ``day`` which respectively represent microseconds,
+    unit where the time unit is one of ``usec``, ``msec``, ``sec``, ``min``,
+    ``hr``, or ``day`` which respectively represent microseconds, milliseconds,
     seconds, minutes, hours, and days.  Whitespace between the numeric
     constant and time unit is optional.  Appending the letter "s" to the
     time unit in order to pluralize it is also optional (to no semantic
@@ -95,14 +95,14 @@ The Bro scripting language supports the following built-in types.
     and embedded.
 
     In exact matching the ``==`` equality relational operator is used
-    with one :bro:type:`string` operand and one :bro:type:`pattern`
-    operand to check whether the full string exactly matches the
-    pattern.  In this case, the ``^`` beginning-of-line and ``$``
-    end-of-line anchors are redundant since pattern is implicitly
-    anchored to the beginning and end of the line to facilitate an exact
-    match.  For example::
+    with one :bro:type:`pattern` operand and one :bro:type:`string`
+    operand (order of operands does not matter) to check whether the full
+    string exactly matches the pattern.  In exact matching, the ``^``
+    beginning-of-line and ``$`` end-of-line anchors are redundant since
+    the pattern is implicitly anchored to the beginning and end of the
+    line to facilitate an exact match.  For example::
 
-        "foo" == /foo|bar/
+        /foo|bar/ == "foo"
 
     yields true, while::
 
@@ -110,9 +110,9 @@ The Bro scripting language supports the following built-in types.
 
     yields false.  The ``!=`` operator would yield the negation of ``==``.
 
-    In embedded matching the ``in`` operator is again used with one
-    :bro:type:`string` operand and one :bro:type:`pattern` operand
-    (which must be on the left-hand side), but tests whether the pattern
+    In embedded matching the ``in`` operator is used with one
+    :bro:type:`pattern` operand (which must be on the left-hand side) and
+    one :bro:type:`string` operand, but tests whether the pattern
     appears anywhere within the given string.  For example::
 
         /foo|bar/ in "foobar"

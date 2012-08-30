@@ -337,6 +337,8 @@ void terminate_bro()
 	delete log_mgr;
 	delete thread_mgr;
 	delete reporter;
+
+	reporter = 0;
 	}
 
 void termination_signal()
@@ -380,6 +382,8 @@ static void bro_new_handler()
 
 int main(int argc, char** argv)
 	{
+	std::set_new_handler(bro_new_handler);
+
 	brofiler.ReadStats();
 
 	bro_argc = argc;

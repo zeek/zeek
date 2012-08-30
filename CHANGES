@@ -1,4 +1,152 @@
 
+2.1 | 2012-08-28 16:46:42 -0700
+
+  * Make bif.identify_magic robust against FreeBSD's libmagic config.
+    (Robin Sommer)
+
+  * Remove automatic use of gperftools on non-Linux systems.
+    --enable-perftools must now explicity be supplied to ./configure
+    on non-Linux systems to link against the tcmalloc library.
+
+  * Fix uninitialized value for 'is_partial' in TCP analyzer. (Jon
+    Siwek)
+
+  * Parse 64-bit consts in Bro scripts correctly. (Bernhard Amann)
+    
+  * Output 64-bit counts correctly on 32-bit machines (Bernhard Amann)
+    
+  * Input framework fixes, including:  (Bernhard Amann)
+
+    - One of the change events got the wrong parameters.
+
+    - Escape commas in sets and vectors that were unescaped before
+      tokenization.
+
+    - Handling of zero-length-strings as last element in a set was
+      broken (sets ending with a ,).
+
+    - Hashing of lines just containing zero-length-strings was broken.
+
+    - Make set_separators different from , work for input framework.
+      
+    - Input framework was not handling counts and ints out of
+      32-bit-range correctly.
+
+    - Errors in single lines do not kill processing, but simply ignore
+      the line, log it, and continue.
+
+  * Update documentation for builtin types. (Daniel Thayer)
+    
+    - Add missing description of interval "msec" unit.
+      
+    - Improved description of pattern by clarifying the issue of
+      operand order and difference between exact and embedded
+      matching.
+
+  * Documentation fixes for signature 'eval' conditions. (Jon Siwek)
+    
+  * Remove orphaned 1.5 unit tests. (Jon Siwek)
+
+  * Add type checking for signature 'eval' condition functions. (Jon
+    Siwek)
+    
+  * Adding an identifier to the SMTP blocklist notices for duplicate
+    suppression. (Seth Hall)
+
+2.1-beta-45 | 2012-08-22 16:11:10 -0700
+
+  * Add an option to the input framework that allows the user to chose
+    to not die upon encountering files/functions. (Bernhard Amann)
+
+2.1-beta-41 | 2012-08-22 16:05:21 -0700
+
+  * Add test serialization to "leak" unit tests that use
+    communication. (Jon Siwek)
+
+  * Change to metrics/basic-cluster unit test for reliability. (Jon
+    Siwek)
+
+  * Fixed ack tracking which could overflow quickly in some
+    situations. (Seth Hall)
+
+  * Minor tweak to coverage.bare-mode-errors unit test to work with a
+    symlinked 'scripts' dir. (Jon Siwek)
+
+2.1-beta-35 | 2012-08-22 08:44:52 -0700
+
+  * Add testcase for input framework reading sets (rather than
+    tables). (Bernhard Amann)
+
+2.1-beta-31 | 2012-08-21 15:46:05 -0700
+
+  * Tweak to rotate-custom.bro unit test. (Jon Siwek)
+    
+  * Ignore small mem leak every rotation interval for dataseries logs.
+    (Jon Siwek)
+
+2.1-beta-28 | 2012-08-21 08:32:42 -0700
+
+  * Linking ES docs into logging document. (Robin Sommer)
+
+2.1-beta-27 | 2012-08-20 20:06:20 -0700
+
+  * Add the Stream record to Log:active_streams to make more dynamic
+    logging possible. (Seth Hall)
+
+  * Fix portability of printing to files returned by
+    open("/dev/stderr"). (Jon Siwek)
+
+  * Fix mime type diff canonifier to also skip mime_desc columns. (Jon
+    Siwek)
+
+  * Unit test tweaks/fixes. (Jon Siwek)
+
+    - Some baselines for tests in "leaks" group were outdated.
+
+    - Changed a few of the cluster/communication tests to terminate
+      more explicitly instead of relying on btest-bg-wait to kill
+      processes.  This makes the tests finish faster in the success case
+      and makes the reason for failing clearer in the that case.
+
+  * Fix memory leak of serialized IDs when compiled with
+    --enable-debug. (Jon Siwek)
+
+2.1-beta-21 | 2012-08-16 11:48:56 -0700
+
+  * Installing a handler for running out of memory in "new". Bro will
+    now print an error message in that case rather than abort with an
+    uncaught exception. (Robin Sommer)
+
+2.1-beta-20 | 2012-08-16 11:43:31 -0700
+
+  * Fixed potential problems with ElasticSearch output plugin. (Seth
+    Hall)
+
+2.1-beta-13 | 2012-08-10 12:28:04 -0700
+
+  * Reporter warnings and error now print to stderr by default. New
+	options Reporter::warnings_to_stderr and
+	Reporter::errors_to_stderr to disable. (Seth Hall)
+
+2.1-beta-9 | 2012-08-10 12:24:29 -0700
+
+  * Add more BIF tests. (Daniel Thayer)
+
+2.1-beta-6 | 2012-08-10 12:22:52 -0700
+
+  * Fix bug in input framework with an edge case. (Bernhard Amann)
+    
+  * Fix small bug in input framework test script. (Bernhard Amann)
+    
+2.1-beta-3 | 2012-08-03 10:46:49 -0700
+
+  * Merge branch 'master' of ssh://git.bro-ids.org/bro (Robin Sommer)
+    
+  * Fix configure script to exit with non-zero status on error (Jon
+    Siwek)
+
+  * Improve ASCII output performance. (Robin Sommer)
+
 2.1-beta | 2012-07-30 11:59:53 -0700
 
   * Improve log filter compatibility with remote logging. Addresses

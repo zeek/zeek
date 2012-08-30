@@ -46,6 +46,7 @@ TCP_Analyzer::TCP_Analyzer(Connection* conn)
 	finished = 0;
 	reassembling = 0;
 	first_packet_seen = 0;
+	is_partial = 0;
 
 	orig = new TCP_Endpoint(this, 1);
 	resp = new TCP_Endpoint(this, 0);

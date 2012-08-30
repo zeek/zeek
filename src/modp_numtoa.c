@@ -56,7 +56,7 @@ void modp_uitoa10(uint32_t value, char* str)
 void modp_litoa10(int64_t value, char* str)
 {
     char* wstr=str;
-    unsigned long uvalue = (value < 0) ? -value : value;
+    uint64_t uvalue = (value < 0) ? -value : value;
 
     // Conversion. Number is reversed.
     do *wstr++ = (char)(48 + (uvalue % 10)); while(uvalue /= 10);

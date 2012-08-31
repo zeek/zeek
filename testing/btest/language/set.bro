@@ -11,6 +11,7 @@ function test_case(msg: string, expect: bool)
 global s10: set[string] = { "curly", "braces" };
 global s11: set[port, string, bool] = { [10/udp, "curly", F],
 		[11/udp, "braces", T] };
+global s12 = { "more", "curly", "braces" };
 
 event bro_init()
 {
@@ -24,6 +25,11 @@ event bro_init()
 	local s7: set[port, string, bool];
 	local s8 = set( [8/tcp, "type inference", T] );
 
+	# Type inference test
+	test_case( "type inference", type_name(s4) == "set[string]" );
+	test_case( "type inference", type_name(s8) == "set[port,string,bool]" );
+	test_case( "type inference", type_name(s12) == "set[string]" );
+
 	# Test the size of each set
 	test_case( "cardinality", |s1| == 2 );
 	test_case( "cardinality", |s2| == 0 );
@@ -35,6 +41,7 @@ event bro_init()
 	test_case( "cardinality", |s8| == 1 );
 	test_case( "cardinality", |s10| == 2 );
 	test_case( "cardinality", |s11| == 2 );
+	test_case( "cardinality", |s12| == 3 );
 
 	# Test iterating over each set
 	local ct: count;
@@ -94,6 +101,10 @@ event bro_init()
 	test_case( "add element", |s10| == 3 );
 	test_case( "in operator", "global" in s10 );
 
+	add s12["more global"];
+	test_case( "add element", |s12| == 4 );
+	test_case( "in operator", "more global" in s12 );
+
 	# Test removing elements from each set
 	delete s1["test"];
 	delete s1["foobar"];  # element does not exist
@@ -117,5 +128,9 @@ event bro_init()
 	delete s10["braces"];
 	test_case( "remove element", |s10| == 2 );
 	test_case( "!in operator", "braces" !in s10 );
+
+	delete s12["curly"];
+	test_case( "remove element", |s12| == 3 );
+	test_case( "!in operator", "curly" !in s12 );
 }
 

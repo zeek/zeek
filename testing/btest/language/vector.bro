@@ -17,6 +17,10 @@ event bro_init()
 	local v3: vector of string;
 	local v4 = vector( "type inference" );
 
+	# Type inference test
+
+	test_case( "type inference", type_name(v4) == "vector of string" );
+
 	# Test the size of each vector
 
 	test_case( "cardinality", |v1| == 2 );

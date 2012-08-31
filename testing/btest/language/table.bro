@@ -6,6 +6,7 @@ function test_case(msg: string, expect: bool)
         print fmt("%s (%s)", msg, expect ? "PASS" : "FAIL");
         }
 
+global t11 = { [1] = "type", [2] = "inference", [3] = "test" };
 
 event bro_init()
 {
@@ -24,6 +25,11 @@ event bro_init()
 		[10/udp, "curly", F] = "first",
 		[11/udp, "braces", T] = "second" };
 
+	# Type inference test
+	test_case( "type inference", type_name(t4) == "table[count] of string" );
+	test_case( "type inference", type_name(t9) == "table[port,string,bool] of string" );
+	test_case( "type inference", type_name(t11) == "table[count] of string" );
+
 	# Test the size of each table
 	test_case( "cardinality", |t1| == 2 );
 	test_case( "cardinality", |t2| == 0 );
@@ -35,6 +41,7 @@ event bro_init()
 	test_case( "cardinality", |t8| == 0 );
 	test_case( "cardinality", |t9| == 1 );
 	test_case( "cardinality", |t10| == 2 );
+	test_case( "cardinality", |t11| == 3 );
 
 	# Test iterating over each table
 	local ct: count;

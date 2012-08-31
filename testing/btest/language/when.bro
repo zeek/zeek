@@ -4,7 +4,7 @@
 
 event bro_init()
 {
-	local h1: addr = 1.2.3.4;
+	local h1: addr = 127.0.0.1;
 
 	when ( local h1name = lookup_addr(h1) )
 		{ 

@@ -15,9 +15,9 @@ event bro_init()
 	local s4: string = "a\tb";    # tab
 	local s5: string = "a\nb";    # newline
 	local s6: string = "a\xffb";  # hex value
-	local s7: string = "a\x00b";  # hex value
-	local s8: string = "a\x0ab";  # hex value
-	local s9: string = "a\011b";  # octal value
+	local s7: string = "a\x00b";  # hex value (null character)
+	local s8: string = "a\x0ab";  # hex value (newline character)
+	local s9: string = "a\011b";  # octal value (tab character)
 	local s10: string = "a\"b";   # double quote
 	local s11: string = "a\\b";   # backslash
 	local s12: string = s2 + s3;  # string concatenation

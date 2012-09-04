@@ -9,51 +9,66 @@ function test_case(msg: string, expect: bool)
 
 event bro_init()
 {
-	local s1: string = "";        # empty string
-	local s2: string = "x";       # no escape sequences
-	local s3: string = "a\0b";    # null character
-	local s4: string = "a\tb";    # tab
-	local s5: string = "a\nb";    # newline
-	local s6: string = "a\xffb";  # hex value
-	local s7: string = "a\x00b";  # hex value (null character)
-	local s8: string = "a\x0ab";  # hex value (newline character)
-	local s9: string = "a\011b";  # octal value (tab character)
-	local s10: string = "a\"b";   # double quote
-	local s11: string = "a\\b";   # backslash
-	local s12: string = s2 + s3;  # string concatenation
-	local s13: string = "test";
-	local s14: string = "this is a very long string" +
+	local s1: string = "a\ty";    # tab
+	local s2: string = "a\nb";    # newline
+	local s3: string = "a\"b";    # double quote
+	local s4: string = "a\\b";    # backslash
+	local s5: string = "a\x9y";   # 1-digit hex value (tab character)
+	local s6: string = "a\x0ab";  # 2-digit hex value (newline character)
+	local s7: string = "a\x22b";  # 2-digit hex value (double quote)
+	local s8: string = "a\x00b";  # 2-digit hex value (null character)
+	local s9: string = "a\011y";  # 3-digit octal value (tab character)
+	local s10: string = "a\12b";  # 2-digit octal value (newline character)
+	local s11: string = "a\0b";   # 1-digit octal value (null character)
+
+	local s20: string = "";
+	local s21: string = "x";
+	local s22: string = s21 + s11;
+	local s23: string = "test";
+	local s24: string = "this is a very long string" +
 				"which continues on the next line" +
 				"the end";
-	local s15: string = "on";
+	local s25: string = "on";
+	local s26 = "x";
 
-	test_case( "empty string", |s1| == 0 );
-	test_case( "nonempty string", |s2| == 1 );
-	test_case( "string comparison", s2 > s3 );
-	test_case( "string comparison", s2 >= s3 );
-	test_case( "string comparison", s3 < s2 );
-	test_case( "string comparison", s3 <= s2 );
-	test_case( "null escape sequence", |s3| == 3 );
-	test_case( "tab escape sequence", |s4| == 3 );
-	test_case( "newline escape sequence", |s5| == 3 );
-	test_case( "hex escape sequence", |s6| == 3 );
-	test_case( "hex escape sequence", |s7| == 3 );
-	test_case( "hex escape sequence", |s8| == 3 );
-	test_case( "octal escape sequence", |s9| == 3 );
-	test_case( "quote escape sequence", |s10| == 3 );
-	test_case( "backslash escape sequence", |s11| == 3 );
-	test_case( "null escape sequence", s3 == s7 );
-	test_case( "newline escape sequence", s5 == s8 );
-	test_case( "tab escape sequence", s4 == s9 );
-	test_case( "string concatenation", |s12| == 4 );
-	s13 += s2;
-	test_case( "string concatenation", s13 == "testx" );
-	test_case( "long string initialization", |s14| == 65 );
-	test_case( "in operator", s15 in s14 );
-	test_case( "!in operator", s15 !in s13 );
+	# Type inference test
 
-	# type inference
-	local x = "x";
-	test_case( "type inference", x == s2 );
+	test_case( "type inference", type_name(s26) == "string" );
+
+	# Escape sequence tests
+
+	test_case( "tab escape sequence", |s1| == 3 );
+	test_case( "newline escape sequence", |s2| == 3 );
+	test_case( "double quote escape sequence", |s3| == 3 );
+	test_case( "backslash escape sequence", |s4| == 3 );
+	test_case( "1-digit hex escape sequence", |s5| == 3 );
+	test_case( "2-digit hex escape sequence", |s6| == 3 );
+	test_case( "2-digit hex escape sequence", |s7| == 3 );
+	test_case( "2-digit hex escape sequence", |s8| == 3 );
+	test_case( "3-digit octal escape sequence", |s9| == 3 );
+	test_case( "2-digit octal escape sequence", |s10| == 3 );
+	test_case( "1-digit octal escape sequence", |s11| == 3 );
+	test_case( "tab escape sequence", s1 == s5 );
+	test_case( "tab escape sequence", s5 == s9 );
+	test_case( "newline escape sequence", s2 == s6 );
+	test_case( "newline escape sequence", s6 == s10 );
+	test_case( "double quote escape sequence", s3 == s7 );
+	test_case( "null escape sequence", s8 == s11 );
+
+	# Operator tests
+
+	test_case( "empty string", |s20| == 0 );
+	test_case( "nonempty string", |s21| == 1 );
+	test_case( "string comparison", s21 > s11 );
+	test_case( "string comparison", s21 >= s11 );
+	test_case( "string comparison", s11 < s21 );
+	test_case( "string comparison", s11 <= s21 );
+	test_case( "string concatenation", |s22| == 4 );
+	s23 += s21;
+	test_case( "string concatenation", s23 == "testx" );
+	test_case( "multi-line string initialization", |s24| == 65 );
+	test_case( "in operator", s25 in s24 );
+	test_case( "!in operator", s25 !in s23 );
+
 }
 

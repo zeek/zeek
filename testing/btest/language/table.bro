@@ -6,7 +6,9 @@ function test_case(msg: string, expect: bool)
         print fmt("%s (%s)", msg, expect ? "PASS" : "FAIL");
         }
 
-global t11 = { [1] = "type", [2] = "inference", [3] = "test" };
+# Note: only global tables can be initialized with curly braces when the table
+# type is not explicitly specified
+global tg1 = { [1] = "type", [2] = "inference", [3] = "test" };
 
 event bro_init()
 {
@@ -25,12 +27,14 @@ event bro_init()
 		[10/udp, "curly", F] = "first",
 		[11/udp, "braces", T] = "second" };
 
-	# Type inference test
+	# Type inference tests
+
 	test_case( "type inference", type_name(t4) == "table[count] of string" );
 	test_case( "type inference", type_name(t9) == "table[port,string,bool] of string" );
-	test_case( "type inference", type_name(t11) == "table[count] of string" );
+	test_case( "type inference", type_name(tg1) == "table[count] of string" );
 
 	# Test the size of each table
+
 	test_case( "cardinality", |t1| == 2 );
 	test_case( "cardinality", |t2| == 0 );
 	test_case( "cardinality", |t3| == 0 );
@@ -41,9 +45,10 @@ event bro_init()
 	test_case( "cardinality", |t8| == 0 );
 	test_case( "cardinality", |t9| == 1 );
 	test_case( "cardinality", |t10| == 2 );
-	test_case( "cardinality", |t11| == 3 );
+	test_case( "cardinality", |tg1| == 3 );
 
 	# Test iterating over each table
+
 	local ct: count;
 	ct = 0;
 	for ( c in t1 )
@@ -84,7 +89,15 @@ event bro_init()
 	}
 	test_case( "iterate over table", ct == 0 );
 
-	# Test adding elements to each table
+	# Test overwriting elements in each table (Note: cannot overwrite
+	# elements in tables of multiple types)
+
+	t1[5] = "overwrite";
+	test_case( "overwrite element", |t1| == 2 && t1[5] == "overwrite" );
+ 
+	# Test adding elements to each table (Note: cannot add elements to
+	# tables of multiple types)
+
 	t1[1] = "added";
 	test_case( "add element", |t1| == 3 );
 	test_case( "in operator", 1 in t1 );
@@ -108,11 +121,11 @@ event bro_init()
 	test_case( "add element", |t5| == 3 );
 	test_case( "in operator", 10 in t5 );
 
-	# Note: cannot add elements to tables of multiple types
+	# Test removing elements from each table (Note: cannot remove elements
+	# from tables of multiple types)
 
-	# Test removing elements from each table
 	delete t1[0];
-	delete t1[17];  # element does not exist
+	delete t1[17];  # element does not exist (nothing happens)
 	test_case( "remove element", |t1| == 2 );
 	test_case( "!in operator", 0 !in t1 );
 
@@ -131,8 +144,6 @@ event bro_init()
 	delete t5[1];
 	test_case( "remove element", |t5| == 2 );
 	test_case( "!in operator", 1 !in t5 );
-
-	# Note: cannot remove elements from tables of multiple types
 
 }
 

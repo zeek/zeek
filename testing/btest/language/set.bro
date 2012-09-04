@@ -8,10 +8,10 @@ function test_case(msg: string, expect: bool)
 
 
 # Note: only global sets can be initialized with curly braces
-global s10: set[string] = { "curly", "braces" };
-global s11: set[port, string, bool] = { [10/udp, "curly", F],
+global sg1: set[string] = { "curly", "braces" };
+global sg2: set[port, string, bool] = { [10/udp, "curly", F],
 		[11/udp, "braces", T] };
-global s12 = { "more", "curly", "braces" };
+global sg3 = { "more", "curly", "braces" };
 
 event bro_init()
 {
@@ -25,12 +25,14 @@ event bro_init()
 	local s7: set[port, string, bool];
 	local s8 = set( [8/tcp, "type inference", T] );
 
-	# Type inference test
+	# Type inference tests
+
 	test_case( "type inference", type_name(s4) == "set[string]" );
 	test_case( "type inference", type_name(s8) == "set[port,string,bool]" );
-	test_case( "type inference", type_name(s12) == "set[string]" );
+	test_case( "type inference", type_name(sg3) == "set[string]" );
 
 	# Test the size of each set
+
 	test_case( "cardinality", |s1| == 2 );
 	test_case( "cardinality", |s2| == 0 );
 	test_case( "cardinality", |s3| == 0 );
@@ -39,11 +41,12 @@ event bro_init()
 	test_case( "cardinality", |s6| == 0 );
 	test_case( "cardinality", |s7| == 0 );
 	test_case( "cardinality", |s8| == 1 );
-	test_case( "cardinality", |s10| == 2 );
-	test_case( "cardinality", |s11| == 2 );
-	test_case( "cardinality", |s12| == 3 );
+	test_case( "cardinality", |sg1| == 2 );
+	test_case( "cardinality", |sg2| == 2 );
+	test_case( "cardinality", |sg3| == 3 );
 
 	# Test iterating over each set
+
 	local ct: count;
 	ct = 0;
 	for ( c in s1 )
@@ -69,14 +72,17 @@ event bro_init()
 	test_case( "iterate over set", ct == 2 );
 
 	ct = 0;
-	for ( [c1,c2,c3] in s11 )
+	for ( [c1,c2,c3] in sg2 )
 	{
 		++ct;
 	}
 	test_case( "iterate over set", ct == 2 );
 
-	# Test adding elements to each set
+	# Test adding elements to each set (Note: cannot add elements to sets
+	# of multiple types)
+
 	add s1["added"];
+	add s1["added"];  # element already exists (nothing happens)
 	test_case( "add element", |s1| == 3 );
 	test_case( "in operator", "added" in s1 );
 
@@ -95,19 +101,19 @@ event bro_init()
 	test_case( "add element", |s4| == 2 );
 	test_case( "in operator", "local" in s4 );
 
-	# Note: cannot add elements to sets of multiple types
+	add sg1["global"];
+	test_case( "add element", |sg1| == 3 );
+	test_case( "in operator", "global" in sg1 );
 
-	add s10["global"];
-	test_case( "add element", |s10| == 3 );
-	test_case( "in operator", "global" in s10 );
+	add sg3["more global"];
+	test_case( "add element", |sg3| == 4 );
+	test_case( "in operator", "more global" in sg3 );
 
-	add s12["more global"];
-	test_case( "add element", |s12| == 4 );
-	test_case( "in operator", "more global" in s12 );
+	# Test removing elements from each set (Note: cannot remove elements
+	# from sets of multiple types)
 
-	# Test removing elements from each set
 	delete s1["test"];
-	delete s1["foobar"];  # element does not exist
+	delete s1["foobar"];  # element does not exist (nothing happens)
 	test_case( "remove element", |s1| == 2 );
 	test_case( "!in operator", "test" !in s1 );
 
@@ -123,14 +129,12 @@ event bro_init()
 	test_case( "remove element", |s4| == 1 );
 	test_case( "!in operator", "type inference" !in s4 );
 
-	# Note: cannot remove elements from sets of multiple types
+	delete sg1["braces"];
+	test_case( "remove element", |sg1| == 2 );
+	test_case( "!in operator", "braces" !in sg1 );
 
-	delete s10["braces"];
-	test_case( "remove element", |s10| == 2 );
-	test_case( "!in operator", "braces" !in s10 );
-
-	delete s12["curly"];
-	test_case( "remove element", |s12| == 3 );
-	test_case( "!in operator", "curly" !in s12 );
+	delete sg3["curly"];
+	test_case( "remove element", |sg3| == 3 );
+	test_case( "!in operator", "curly" !in sg3 );
 }
 

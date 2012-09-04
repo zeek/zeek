@@ -8,7 +8,7 @@ function test_case(msg: string, expect: bool)
 
 
 # Note: only global vectors can be initialized with curly braces
-global v20: vector of string = { "curly", "braces" };
+global vg1: vector of string = { "curly", "braces" };
 
 event bro_init()
 {
@@ -28,10 +28,11 @@ event bro_init()
 	local v14 = v12 && v13;
 	local v15 = v12 || v13;
 
-	# Type inference test
+	# Type inference tests
 
 	test_case( "type inference", type_name(v4) == "vector of string" );
 	test_case( "type inference", type_name(v5) == "vector of count" );
+	test_case( "type inference", type_name(v12) == "vector of bool" );
 
 	# Test the size of each vector
 
@@ -50,7 +51,7 @@ event bro_init()
 	test_case( "cardinality", |v13| == 3 );
 	test_case( "cardinality", |v14| == 3 );
 	test_case( "cardinality", |v15| == 3 );
-	test_case( "cardinality", |v20| == 2 );
+	test_case( "cardinality", |vg1| == 2 );
 
 	# Test that vectors use zero-based indexing
 
@@ -78,7 +79,7 @@ event bro_init()
 	test_case( "iterate over vector", ct == 0 );
 
 	ct = 0;
-	for ( c in v20 )
+	for ( c in vg1 )
 	{
 		++ct;
 	}
@@ -109,9 +110,9 @@ event bro_init()
 	test_case( "add element", |v5| == 4 );
 	test_case( "access element", v5[3] == 77 );
 
-	v20[2] = "global";
-	test_case( "add element", |v20| == 3 );
-	test_case( "access element", v20[2] == "global" );
+	vg1[2] = "global";
+	test_case( "add element", |vg1| == 3 );
+	test_case( "access element", vg1[2] == "global" );
 
 	# Test overwriting elements of each vector
 
@@ -136,9 +137,9 @@ event bro_init()
 	test_case( "overwrite element", |v5| == 4 );
 	test_case( "access element", v5[0] == 0 );
 
-	v20[1] = "new5";
-	test_case( "overwrite element", |v20| == 3 );
-	test_case( "access element", v20[1] == "new5" );
+	vg1[1] = "new5";
+	test_case( "overwrite element", |vg1| == 3 );
+	test_case( "access element", vg1[1] == "new5" );
 
 	# Test increment/decrement operators
 

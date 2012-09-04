@@ -14,7 +14,8 @@ function approx_equal(x: double, y: double): bool
 
 event bro_init()
 {
-	# constants without space and no letter "s"
+	# Constants without space and no letter "s"
+
 	local in11: interval = 2usec;
 	local in12: interval = 2msec;
 	local in13: interval = 120sec;
@@ -23,7 +24,8 @@ event bro_init()
 	# TODO: this one causes bro to fail
 	#local in16: interval = 2.5day;
 
-	# constants with space and no letter "s"
+	# Constants with space and no letter "s"
+
 	local in21: interval = 2 usec;
 	local in22: interval = 2 msec;
 	local in23: interval = 120 sec;
@@ -31,17 +33,36 @@ event bro_init()
 	local in25: interval = -2 hr;
 	local in26: interval = 2.5 day;
 
-	# constants with space and letter "s"
+	# Constants with space and letter "s"
+
 	local in31: interval = 2 usecs;
 	local in32: interval = 2 msecs;
-	local in33: interval = 120 secs;
+	local in33: interval = 1.2e2 secs;
 	local in34: interval = 2 mins;
 	local in35: interval = -2 hrs;
 	local in36: interval = 2.5 days;
 
+	# Type inference
+
+	local in41 = 2 usec;
+	# TODO: this one causes bro to fail
+	#local in42 = 2.1usec;
+	local in43 = 3usecs;
+
+	# Type inference tests
+
+	test_case( "type inference", type_name(in41) == "interval" );
+	#test_case( "type inference", type_name(in42) == "interval" );
+	test_case( "type inference", type_name(in43) == "interval" );
+
+	# Test various constant representations
+
 	test_case( "optional space", in11 == in21 );
-	test_case( "different units with same numeric value", in11 != in12 );
 	test_case( "plural/singular interval are same", in11 == in31 );
+
+	# Operator tests
+
+	test_case( "different units with same numeric value", in11 != in12 );
 	test_case( "compare different time units", in13 == in34 );
 	test_case( "compare different time units", in13 <= in34 );
 	test_case( "compare different time units", in13 >= in34 );
@@ -62,16 +83,13 @@ event bro_init()
 	test_case( "division operator", in35/2 == -1hr );
 	test_case( "division operator", approx_equal(in32/in31, 1e3) );
 
+	# Test relative size of each interval unit
+
 	test_case( "relative size of units", approx_equal(1msec/1usec, 1000) );
 	test_case( "relative size of units", approx_equal(1sec/1msec, 1000) );
 	test_case( "relative size of units", approx_equal(1min/1sec, 60) );
 	test_case( "relative size of units", approx_equal(1hr/1min, 60) );
 	test_case( "relative size of units", approx_equal(1day/1hr, 24) );
 
-	# type inference
-	local x = 2 usec;
-	# TODO: this one causes bro to fail
-	#local y = 2.1usec;
-	local z = 3usecs;
 }
 

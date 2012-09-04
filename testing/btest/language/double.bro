@@ -28,6 +28,17 @@ event bro_init()
 	local d17: double = 3.0001;
 	local d18: double = -3.0001;
 	local d19: double = 1.7976931348623157e308;  # maximum allowed value
+	local d20 = 7.0;
+	local d21 = 7e0;
+	local d22 = 7e+1;
+
+	# Type inference tests
+
+	test_case( "type inference", type_name(d20) == "double" );
+	test_case( "type inference", type_name(d21) == "double" );
+	test_case( "type inference", type_name(d22) == "double" );
+
+	# Test various constant representations
 
 	test_case( "double representations", d1 == d2 );
 	test_case( "double representations", d1 == d3 );
@@ -44,6 +55,9 @@ event bro_init()
 	test_case( "double representations", d1 == d14 );
 	test_case( "double representations", d1 == d15 );
 	test_case( "double representations", d1 == d16 );
+
+	# Operator tests
+
 	test_case( "inequality operator", d18 != d17 );
 	test_case( "absolute value", |d18| == d17 );
 	d4 += 2;
@@ -55,12 +69,11 @@ event bro_init()
 	test_case( "relational operator", d17 >= d3 );
 	test_case( "relational operator", d17 > d3 );
 	test_case( "division operator", d3/2 == 1.5 );
+
+	# Max. value test
+
 	local str1 = fmt("max double value = %.16e", d19);
 	test_case( str1, str1 == "max double value = 1.7976931348623157e+308" );
 
-	# type inference
-	local x = 7.0;
-	local y = 7e0;
-	local z = 7e+1;
 }
 

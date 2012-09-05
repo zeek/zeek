@@ -1516,6 +1516,8 @@ RemoveFromExpr::RemoveFromExpr(Expr* arg_op1, Expr* arg_op2)
 
 	if ( BothArithmetic(bt1, bt2) )
 		PromoteType(max_type(bt1, bt2), is_vector(op1) || is_vector(op2));
+	else if ( BothInterval(bt1, bt2) )
+		SetType(base_type(bt1));
 	else
 		ExprError("requires two arithmetic operands");
 	}

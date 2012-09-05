@@ -871,11 +871,12 @@ Val* BinaryExpr::SubNetFold(Val* v1, Val* v2) const
 	{
 	const IPPrefix& n1 = v1->AsSubNet();
 	const IPPrefix& n2 = v2->AsSubNet();
+	bool result = ( n1 == n2 ) ? true : false;
 
-	if ( n1 == n2 )
-		return new Val(1, TYPE_BOOL);
-	else
-		return new Val(0, TYPE_BOOL);
+	if ( tag == EXPR_NE )
+		result = !result;
+
+	return new Val(result, TYPE_BOOL);
 	}
 
 void BinaryExpr::SwapOps()

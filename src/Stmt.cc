@@ -943,7 +943,10 @@ ForStmt::ForStmt(id_list* arg_loop_vars, Expr* loop_expr)
 		{
 		const type_list* indices = e->Type()->AsTableType()->IndexTypes();
 		if ( indices->length() != loop_vars->length() )
+			{
 			e->Error("wrong index size");
+			return;
+			}
 
 		for ( int i = 0; i < indices->length(); i++ )
 			{

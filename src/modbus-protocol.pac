@@ -179,7 +179,7 @@ type ReadCoilsRequest(len: uint16, header: ModbusTCP_TransportHeader) = record {
 	referenceNumber: uint16;
 	bitCount: uint16 &check(bitCount <= 2000);
 } &let {
-	deliver: bool =$context.flow.deliver_ReadCoilsReq(header.tid, header.pid, header.uid, header.fc, referenceNumber, bitCount);
+	deliver: bool =$context.flow.deliver_ReadCoilsReq(header.tid, header.pid, header.uid, header.fc, referenceNumber, bitCount, len);
 };
 
 # REQUEST FC=2
@@ -187,7 +187,7 @@ type ReadInputDiscretesRequest(len: uint16, header: ModbusTCP_TransportHeader) =
 	referenceNumber: uint16;
 	bitCount: uint16 &check(bitCount <= 2000);
 } &let {
-	deliver: bool =$context.flow.deliver_ReadInputDiscReq(header.tid, header.pid, header.uid, header.fc, referenceNumber, bitCount);
+	deliver: bool =$context.flow.deliver_ReadInputDiscReq(header.tid, header.pid, header.uid, header.fc, referenceNumber, bitCount,len);
 };
 
 # REQUEST FC=4
@@ -204,7 +204,7 @@ type WriteCoilRequest(len: uint16, header: ModbusTCP_TransportHeader) = record {
 	onOff: uint8 &check(onOff == 0x00 || onOff == 0xFF);
 	other: uint8 &check(other == 0x00);
 } &let {
-	deliver: bool =$context.flow.deliver_WriteCoilReq(header.tid, header.pid, header.uid, header.fc, referenceNumber, onOff, other);
+	deliver: bool =$context.flow.deliver_WriteCoilReq(header.tid, header.pid, header.uid, header.fc, referenceNumber, onOff, other,len);
 };
 
 # REQUEST FC=6
@@ -212,7 +212,7 @@ type WriteSingleRegisterRequest(len: uint16, header: ModbusTCP_TransportHeader) 
 	referenceNumber: uint16;
 	registerValue: uint16;
 } &let {
-	deliver: bool =$context.flow.deliver_WriteSingleRegReq(header.tid, header.pid, header.uid, header.fc, len, referenceNumber, registerValue);
+	deliver: bool =$context.flow.deliver_WriteSingleRegReq(header.tid, header.pid, header.uid, header.fc, referenceNumber, registerValue,len);
 };
 
 type ReadExceptionStatusRequest(len: uint16, header: ModbusTCP_TransportHeader) = record {
@@ -229,7 +229,7 @@ type ForceMultipleCoilsRequest(len: uint16, header: ModbusTCP_TransportHeader) =
 	byteCount: uint8 &check(byteCount == (bitCount + 7)/8);
 	coils: bytestring &length = byteCount;
 } &let {
-	deliver: bool =$context.flow.deliver_ForceMultiCoilsReq(header.tid, header.pid, header.uid, header.fc, referenceNumber, bitCount, byteCount, coils);
+	deliver: bool =$context.flow.deliver_ForceMultiCoilsReq(header.tid, header.pid, header.uid, header.fc, referenceNumber, bitCount, byteCount, coils,len);
 };
 
 # REQUEST FC=20
@@ -238,7 +238,7 @@ type ReadGeneralReferenceRequest(len: uint16, header: ModbusTCP_TransportHeader)
 	references: Reference(header)[referenceCount] &length = byteCount;
 } &let {
 	referenceCount: uint8 = byteCount/7;
-	deliver: bool =$context.flow.deliver_ReadReferenceReq(header.tid, header.pid, header.uid, header.fc, referenceCount, references);
+	deliver: bool =$context.flow.deliver_ReadReferenceReq(header.tid, header.pid, header.uid, header.fc, referenceCount, references,len);
 };
 
 # REQUEST FC=21
@@ -247,7 +247,7 @@ type WriteGeneralReferenceRequest(len: uint16, header: ModbusTCP_TransportHeader
 	references: ReferenceWithData(header)[] &until($input.length() == 0) &length = byteCount;
 } &length = len,
   &let {
-	deliver: bool =$context.flow.deliver_WriteReferenceReq(header.tid, header.pid, header.uid, header.fc, byteCount, references);
+	deliver: bool =$context.flow.deliver_WriteReferenceReq(header.tid, header.pid, header.uid, header.fc, byteCount, references,len);
 };
 
 # REQUESTeFC=22
@@ -256,7 +256,7 @@ type MaskWriteRegisterRequest(len: uint16, header: ModbusTCP_TransportHeader) = 
 	andMask: uint16;
 	orMask: uint16;
 } &let{
-	deliver: bool =$context.flow.deliver_MaskWriteRegReq(header.tid, header.pid, header.uid, header.fc, referenceNumber, andMask, orMask);
+	deliver: bool =$context.flow.deliver_MaskWriteRegReq(header.tid, header.pid, header.uid, header.fc, referenceNumber, andMask, orMask,len);
 };
 
 # REQUEST FC=23
@@ -277,7 +277,7 @@ type ReadWriteRegistersRequest(len: uint16, header: ModbusTCP_TransportHeader) =
 type ReadFIFOQueueRequest(len: uint16, header: ModbusTCP_TransportHeader) = record {
 	referenceNumber: uint16;
 } &let{
-	deliver: bool =$context.flow.deliver_ReadFIFOReq(header.tid, header.pid, header.uid, header.fc, referenceNumber);
+	deliver: bool =$context.flow.deliver_ReadFIFOReq(header.tid, header.pid, header.uid, header.fc, referenceNumber,len);
 };
 
 # Responses
@@ -356,7 +356,7 @@ type ReadCoilsResponse(len: uint16, header: ModbusTCP_TransportHeader) = record 
 	byteCount: uint8;
 	bits: bytestring &length = byteCount;
 } &let {
-	deliver: bool =$context.flow.deliver_ReadCoilsRes(header.tid, header.pid, header.uid, header.fc, byteCount, bits);
+	deliver: bool =$context.flow.deliver_ReadCoilsRes(header.tid, header.pid, header.uid, header.fc, byteCount, bits,len);
 };
 
 
@@ -365,7 +365,7 @@ type ReadInputDiscretesResponse(len: uint16, header: ModbusTCP_TransportHeader) 
 	byteCount: uint8;
 	bits: bytestring &length = byteCount;
 } &let {
-	deliver: bool =$context.flow.deliver_ReadInputDiscRes(header.tid, header.pid, header.uid, header.fc, byteCount, bits);
+	deliver: bool =$context.flow.deliver_ReadInputDiscRes(header.tid, header.pid, header.uid, header.fc, byteCount, bits,len);
 };
 
 # RESPONSE FC=4
@@ -383,7 +383,7 @@ type WriteCoilResponse(len: uint16, header: ModbusTCP_TransportHeader) = record 
 	onOff: uint8 &check(onOff == 0x00 || onOff == 0xFF);
 	other: uint8 &check(other == 0x00);
 } &let {
-	deliver: bool =$context.flow.deliver_WriteCoilRes(header.tid, header.pid, header.uid, header.fc, referenceNumber, onOff, other);
+	deliver: bool =$context.flow.deliver_WriteCoilRes(header.tid, header.pid, header.uid, header.fc, referenceNumber, onOff, other,len);
 };
 
 # RESPONSE FC=6
@@ -391,7 +391,7 @@ type WriteSingleRegisterResponse(len: uint16, header: ModbusTCP_TransportHeader)
 	referenceNumber: uint16;
 	registerValue: uint16;
 } &let {
-	deliver: bool =$context.flow.deliver_WriteSingleRegRes(header.tid, header.pid, header.uid, header.fc, len, referenceNumber, registerValue);
+	deliver: bool =$context.flow.deliver_WriteSingleRegRes(header.tid, header.pid, header.uid, header.fc, referenceNumber, registerValue, len);
 };
 
 type ReadExceptionStatusResponse(len: uint16, header: ModbusTCP_TransportHeader) = record {
@@ -407,7 +407,7 @@ type ForceMultipleCoilsResponse(len: uint16, header: ModbusTCP_TransportHeader) 
 	referenceNumber: uint16;
 	bitCount: uint16;
 } &let {
-	deliver: bool =$context.flow.deliver_ForceMultiCoilsRes(header.tid, header.pid, header.uid, header.fc, referenceNumber, bitCount);
+	deliver: bool =$context.flow.deliver_ForceMultiCoilsRes(header.tid, header.pid, header.uid, header.fc, referenceNumber, bitCount, len);
 };
 
 # RESPONSE FC=20
@@ -416,7 +416,7 @@ type ReadGeneralReferenceResponse(len: uint16, header: ModbusTCP_TransportHeader
 	references: ReferenceResponse (header) [] &until($input.length()==0) &length = byteCount;
 } &length = len,
   &let{
-	deliver: bool =$context.flow.deliver_ReadReferenceRes(header.tid, header.pid, header.uid, header.fc, byteCount, references);
+	deliver: bool =$context.flow.deliver_ReadReferenceRes(header.tid, header.pid, header.uid, header.fc, byteCount, references,len);
 };
 
 # RESPONSE FC=21
@@ -425,7 +425,7 @@ type WriteGeneralReferenceResponse(len: uint16, header: ModbusTCP_TransportHeade
 	references: ReferenceWithData(header)[] &until($input.length() == 0) &length = byteCount;
 } &length = len,
   &let {
-	deliver: bool =$context.flow.deliver_WriteReferenceRes(header.tid, header.pid, header.uid, header.fc, byteCount, references);
+	deliver: bool =$context.flow.deliver_WriteReferenceRes(header.tid, header.pid, header.uid, header.fc, byteCount, references,len);
 };
 
 # RESPONSE FC=22
@@ -434,7 +434,7 @@ type MaskWriteRegisterResponse(len: uint16, header: ModbusTCP_TransportHeader) =
 	andMask: uint16;
 	orMask: uint16;
 } &let{
-	deliver: bool =$context.flow.deliver_MaskWriteRegRes(header.tid, header.pid, header.uid, header.fc, referenceNumber, andMask, orMask);
+	deliver: bool =$context.flow.deliver_MaskWriteRegRes(header.tid, header.pid, header.uid, header.fc, referenceNumber, andMask, orMask,len);
 };
 
 # RESPONSE FC=23
@@ -454,5 +454,5 @@ type ReadFIFOQueueResponse(len: uint16, header: ModbusTCP_TransportHeader) = rec
 	registerData: uint16[wordCount] &length = byteCount;
 } &length = len,
   &let{
-	deliver: bool =$context.flow.deliver_ReadFIFORes(this, header.tid, header.pid, header.uid, header.fc);
+	deliver: bool =$context.flow.deliver_ReadFIFORes(this, header.tid, header.pid, header.uid, header.fc,len);
 };

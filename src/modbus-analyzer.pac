@@ -38,26 +38,26 @@ flow ModbusTCP_Flow(is_orig: bool)
 		%}
 
 	# REQUEST FC=1
-	function deliver_ReadCoilsReq(tid: uint16, pid: uint16, uid: uint8, fc: uint8, ref: uint16, bitCount: uint16): bool
+	function deliver_ReadCoilsReq(tid: uint16, pid: uint16, uid: uint8, fc: uint8, ref: uint16, bitCount: uint16, len:uint16): bool
 		%{
 		if ( ::modbus_read_coils_request )
 			{
 			BifEvent::generate_modbus_read_coils_request(connection()->bro_analyzer(),
 								     connection()->bro_analyzer()->Conn(),
-								     is_orig(), tid, pid, uid, fc, ref, bitCount);
+								     is_orig(), tid, pid, uid, fc, len, ref, bitCount);
 			}
 
 		return true;
 		%}
 
 	# REQUEST FC=2
-	function deliver_ReadInputDiscReq(tid: uint16, pid: uint16, uid: uint8, fc: uint8, ref: uint16, bitCount: uint16): bool
+	function deliver_ReadInputDiscReq(tid: uint16, pid: uint16, uid: uint8, fc: uint8, ref: uint16, bitCount: uint16,len:uint16): bool
 		%{
 		if ( ::modbus_read_input_discretes_request )
 			{
 			BifEvent::generate_modbus_read_input_discretes_request(connection()->bro_analyzer(),
 									       connection()->bro_analyzer()->Conn(),
-									       is_orig(), tid, pid, uid, fc, ref, bitCount);
+									       is_orig(), tid, pid, uid, fc,len, ref, bitCount);
 			}
 
 		return true;
@@ -70,7 +70,7 @@ flow ModbusTCP_Flow(is_orig: bool)
 			{
 			BifEvent::generate_modbus_read_multi_request(connection()->bro_analyzer(),
 								     connection()->bro_analyzer()->Conn(),
-								     is_orig(), tid, pid, uid, fc, ref, wcount, len);
+								     is_orig(), tid, pid, uid, fc, len, ref, wcount);
 			}
 
 		return true;
@@ -83,27 +83,27 @@ flow ModbusTCP_Flow(is_orig: bool)
 			{
 			BifEvent::generate_modbus_read_input_request(connection()->bro_analyzer(),
 								     connection()->bro_analyzer()->Conn(),
-								     is_orig(), tid, pid, uid, fc, ref, wcount, len);
+								     is_orig(), tid, pid, uid, fc, len, ref, wcount);
 			}
 
 		return true;
 		%}
 
 	# REQUEST FC=5
-	function deliver_WriteCoilReq(tid: uint16, pid: uint16, uid: uint8, fc: uint8, ref: uint16, onOff: uint8, other: uint8): bool
+	function deliver_WriteCoilReq(tid: uint16, pid: uint16, uid: uint8, fc: uint8, ref: uint16, onOff: uint8, other: uint8, len:uint16): bool
 		%{
 		if ( ::modbus_write_coil_request )
 			{
 			BifEvent::generate_modbus_write_coil_request(connection()->bro_analyzer(),
 								     connection()->bro_analyzer()->Conn(),
-								     is_orig(), tid, pid, uid, fc, ref, onOff, other);
+								     is_orig(), tid, pid, uid, fc, len, ref, onOff, other);
 			}
 
 		return true;
 		%}
 
 	# REQUEST FC=6
-	function deliver_WriteSingleRegReq(tid: uint16, pid: uint16, uid: uint8, fc: uint8, len: uint16, ref: uint16, value: uint16): bool
+	function deliver_WriteSingleRegReq(tid: uint16, pid: uint16, uid: uint8, fc: uint8, ref: uint16, value: uint16, len:uint16): bool
 		%{
 		if ( ::modbus_write_single_request )
 			{
@@ -116,13 +116,13 @@ flow ModbusTCP_Flow(is_orig: bool)
 		%}
 
 	# REQUEST FC=15
-	function deliver_ForceMultiCoilsReq(tid: uint16, pid: uint16, uid: uint8, fc: uint8, ref: uint16, bitCount: uint16, byteCount: uint16, coils: bytestring): bool
+	function deliver_ForceMultiCoilsReq(tid: uint16, pid: uint16, uid: uint8, fc: uint8, ref: uint16, bitCount: uint16, byteCount: uint16, coils: bytestring, len:uint16): bool
 		%{
 		if ( ::modbus_force_coils_request )
 			{
 			BifEvent::generate_modbus_force_coils_request(connection()->bro_analyzer(),
 								      connection()->bro_analyzer()->Conn(),
-								      is_orig(), tid, pid, uid, fc, ref, bitCount, byteCount, new StringVal(coils.length(), (const char*) coils.data()));
+								      is_orig(), tid, pid, uid, fc, len, ref, bitCount, byteCount, new StringVal(coils.length(), (const char*) coils.data()));
 			}
 
 		return true;
@@ -143,14 +143,14 @@ flow ModbusTCP_Flow(is_orig: bool)
 			{
 			BifEvent::generate_modbus_write_multi_request(connection()->bro_analyzer(),
 								      connection()->bro_analyzer()->Conn(),
-								      is_orig(), t, tid, pid, uid, fc, ${writeMulti.referenceNumber}, ${writeMulti.wordCount}, ${writeMulti.byteCount}, len);
+								      is_orig(), t, tid, pid, uid, fc, len, ${writeMulti.referenceNumber}, ${writeMulti.wordCount}, ${writeMulti.byteCount});
 			}
 
 		return true;
 		%}
 
 	# REQUEST FC=20
-	function deliver_ReadReferenceReq(tid: uint16, pid: uint16, uid: uint8, fc: uint8, refCount: uint8, reference:Reference[]): bool
+	function deliver_ReadReferenceReq(tid: uint16, pid: uint16, uid: uint8, fc: uint8, refCount: uint8, reference:Reference[], len:uint16): bool
 		%{
 		VectorVal *t = new VectorVal(new VectorType(base_type(TYPE_INT)));
 
@@ -170,7 +170,7 @@ flow ModbusTCP_Flow(is_orig: bool)
 			{
 			BifEvent::generate_modbus_read_reference_request(connection()->bro_analyzer(),
 									 connection()->bro_analyzer()->Conn(),
-									 is_orig(), tid, pid, uid, fc, refCount, t);
+									 is_orig(), tid, pid, uid, fc, len, refCount, t);
 			}
 
 		return true;
@@ -211,7 +211,7 @@ flow ModbusTCP_Flow(is_orig: bool)
 		%}
 
 	# REQUEST FC=21
-	function deliver_WriteReferenceReq(tid: uint16, pid: uint16, uid: uint8, fc: uint8, byteCount: uint8, reference:ReferenceWithData[]): bool
+	function deliver_WriteReferenceReq(tid: uint16, pid: uint16, uid: uint8, fc: uint8, byteCount: uint8, reference:ReferenceWithData[], len:uint16): bool
 		%{
 		VectorVal* t = new VectorVal(new VectorType(base_type(TYPE_INT)));
 
@@ -237,7 +237,7 @@ flow ModbusTCP_Flow(is_orig: bool)
 			{
 			BifEvent::generate_modbus_write_reference_request(connection()->bro_analyzer(),
 									  connection()->bro_analyzer()->Conn(),
-									  is_orig(), tid, pid, uid, fc, byteCount, t);
+									  is_orig(), tid, pid, uid, fc, len,  byteCount, t);
 			}
 
 		return true;
@@ -265,13 +265,13 @@ flow ModbusTCP_Flow(is_orig: bool)
 		%}
 
 	# REQUEST FC=22
-	function deliver_MaskWriteRegReq(tid: uint16, pid: uint16, uid: uint8, fc: uint8, ref: uint16, andMask: uint16, orMask: uint16): bool
+	function deliver_MaskWriteRegReq(tid: uint16, pid: uint16, uid: uint8, fc: uint8, ref: uint16, andMask: uint16, orMask: uint16, len:uint16): bool
 		%{
 		if ( ::modbus_mask_write_request )
 			{
 			BifEvent::generate_modbus_mask_write_request(connection()->bro_analyzer(),
 								     connection()->bro_analyzer()->Conn(),
-								     is_orig(), tid, pid, uid, fc, ref, andMask, orMask);
+								     is_orig(), tid, pid, uid, fc, len, ref, andMask, orMask);
 			}
 
 		return true;
@@ -292,46 +292,46 @@ flow ModbusTCP_Flow(is_orig: bool)
 			{
 			BifEvent::generate_modbus_read_write_request(connection()->bro_analyzer(),
 								     connection()->bro_analyzer()->Conn(),
-								     is_orig(), t, tid, pid, uid, fc, ${doMulti.referenceNumberRead}, ${doMulti.wordCountRead}, ${doMulti.referenceNumberWrite}, ${doMulti.wordCountWrite}, ${doMulti.byteCount}, len);
+								     is_orig(), t, tid, pid, uid, fc, len, ${doMulti.referenceNumberRead}, ${doMulti.wordCountRead}, ${doMulti.referenceNumberWrite}, ${doMulti.wordCountWrite}, ${doMulti.byteCount});
 			}
 
 		return true;
 		%}
 
 	# REQUEST FC=24
-	function deliver_ReadFIFOReq(tid: uint16, pid: uint16, uid: uint8, fc: uint8, ref: uint16): bool
+	function deliver_ReadFIFOReq(tid: uint16, pid: uint16, uid: uint8, fc: uint8, ref: uint16, len:uint16): bool
 		%{
 		if ( ::modbus_read_FIFO_request )
 			{
 			BifEvent::generate_modbus_read_FIFO_request(connection()->bro_analyzer(),
 								    connection()->bro_analyzer()->Conn(),
-								    is_orig(), tid, pid, uid, fc, ref);
+								    is_orig(), tid, pid, uid, fc, len, ref);
 			}
 
 		return true;
 		%}
 
 	# RESPONSE FC=1
-	function deliver_ReadCoilsRes(tid: uint16, pid: uint16, uid: uint8, fc: uint8, bcount: uint8, bits: bytestring): bool
+	function deliver_ReadCoilsRes(tid: uint16, pid: uint16, uid: uint8, fc: uint8, bCount: uint8, bits: bytestring, len:uint16): bool
 		%{
 		if ( ::modbus_read_coils_response )
 			{
 			BifEvent::generate_modbus_read_coils_response(connection()->bro_analyzer(),
 								      connection()->bro_analyzer()->Conn(),
-								      is_orig(), tid, pid, uid, fc, bcount, new StringVal(bits.length(), (const char*) bits.data()));
+								      is_orig(), tid, pid, uid, fc, len, bCount, new StringVal(bits.length(), (const char*) bits.data()));
 			}
 
 		return true;
 		%}
 
 	# RESPONSE FC=2
-	function deliver_ReadInputDiscRes(tid: uint16, pid: uint16, uid: uint8, fc: uint8, bcount: uint8, bits: bytestring): bool
+	function deliver_ReadInputDiscRes(tid: uint16, pid: uint16, uid: uint8, fc: uint8, bCount: uint8, bits: bytestring, len:uint16): bool
 		%{
 		if ( ::modbus_read_input_discretes_response )
 			{
 			BifEvent::generate_modbus_read_input_discretes_response(connection()->bro_analyzer(),
 										connection()->bro_analyzer()->Conn(),
-										is_orig(), tid, pid, uid, fc, bcount, new StringVal(bits.length(), (const char*) bits.data()));
+										is_orig(), tid, pid, uid, fc,len, bCount, new StringVal(bits.length(), (const char*) bits.data()));
 			}
 
 		return true;
@@ -352,7 +352,7 @@ flow ModbusTCP_Flow(is_orig: bool)
 			{
 			BifEvent::generate_modbus_read_multi_response(connection()->bro_analyzer(),
 								      connection()->bro_analyzer()->Conn(),
-								      is_orig(), t, tid, pid, uid, fc, ${doMulti.byteCount}, len);
+								      is_orig(), t, tid, pid, uid, fc, len, ${doMulti.byteCount});
 			}
 
 		return true;
@@ -373,27 +373,27 @@ flow ModbusTCP_Flow(is_orig: bool)
 			{
 			BifEvent::generate_modbus_read_input_response(connection()->bro_analyzer(),
 								      connection()->bro_analyzer()->Conn(),
-								      is_orig(), t, tid, pid, uid, fc, ${doMulti.byteCount}, len);
+								      is_orig(), t, tid, pid, uid, fc, len, ${doMulti.byteCount});
 			}
 
 		return true;
 		%}
 
 	# RESPONSE FC=5
-	function deliver_WriteCoilRes(tid: uint16, pid: uint16, uid: uint8, fc: uint8, ref: uint16, onOff: uint8, other: uint8): bool
+	function deliver_WriteCoilRes(tid: uint16, pid: uint16, uid: uint8, fc: uint8, ref: uint16, onOff: uint8, other: uint8,len:uint16): bool
 		%{
 		if ( ::modbus_write_coil_response )
 			{
 			BifEvent::generate_modbus_write_coil_response(connection()->bro_analyzer(),
 								      connection()->bro_analyzer()->Conn(),
-								      is_orig(), tid, pid, uid, fc, ref, onOff, other);
+								      is_orig(), tid, pid, uid, fc, len, ref, onOff, other);
 			}
 
 		return true;
 		%}
 
 	# RESPONSE FC=6
-	function deliver_WriteSingleRegRes(tid: uint16, pid: uint16, uid: uint8, fc: uint8, len: uint16, ref: uint16, value: uint16): bool
+	function deliver_WriteSingleRegRes(tid: uint16, pid: uint16, uid: uint8, fc: uint8, ref: uint16, value: uint16, len:uint16): bool
 		%{
 		if ( ::modbus_write_single_response)
 			{
@@ -407,13 +407,13 @@ flow ModbusTCP_Flow(is_orig: bool)
 
 
 	# RESPONSE FC=15
-	function deliver_ForceMultiCoilsRes(tid: uint16, pid: uint16, uid: uint8, fc: uint8, ref: uint16, bitCount: uint16): bool
+	function deliver_ForceMultiCoilsRes(tid: uint16, pid: uint16, uid: uint8, fc: uint8, ref: uint16, bitCount: uint16, len:uint16): bool
 		%{
 		if ( ::modbus_force_coils_response)
 			{
 			BifEvent::generate_modbus_force_coils_response(connection()->bro_analyzer(),
 								       connection()->bro_analyzer()->Conn(),
-								       is_orig(), tid, pid, uid, fc, ref, bitCount);
+								       is_orig(), tid, pid, uid, fc, len, ref, bitCount);
 			}
 
 		return true;
@@ -426,14 +426,14 @@ flow ModbusTCP_Flow(is_orig: bool)
 			{
 			BifEvent::generate_modbus_write_multi_response(connection()->bro_analyzer(),
 								       connection()->bro_analyzer()->Conn(),
-								       is_orig(), tid, pid, uid, fc, ref, wcount, len);
+								       is_orig(), tid, pid, uid, fc, len, ref, wcount);
 			}
 
 		return true;
 		%}
 
 	# RESPONSE FC=20
-	function deliver_ReadReferenceRes(tid: uint16, pid: uint16, uid: uint8, fc: uint8, byteCount: uint8, reference:ReferenceResponse[]): bool
+	function deliver_ReadReferenceRes(tid: uint16, pid: uint16, uid: uint8, fc: uint8, byteCount: uint8, reference:ReferenceResponse[], len:uint16): bool
 		%{
 		VectorVal* t = new VectorVal(new VectorType(base_type(TYPE_INT)));
 
@@ -456,13 +456,13 @@ flow ModbusTCP_Flow(is_orig: bool)
 			{
 			BifEvent::generate_modbus_read_reference_response(connection()->bro_analyzer(),
 									  connection()->bro_analyzer()->Conn(),
-									  is_orig(), tid, pid, uid, fc, byteCount, t);
+									  is_orig(), tid, pid, uid, fc, len, byteCount, t);
 			}
 		return true;
 		%}
 
 	# RESPONSE FC=21
-	function deliver_WriteReferenceRes(tid: uint16, pid: uint16, uid: uint8, fc: uint8, byteCount: uint8, reference:ReferenceWithData[]): bool
+	function deliver_WriteReferenceRes(tid: uint16, pid: uint16, uid: uint8, fc: uint8, byteCount: uint8, reference:ReferenceWithData[],len:uint16): bool
 		%{
 		VectorVal* t = new VectorVal(new VectorType(base_type(TYPE_INT)));
 
@@ -488,20 +488,20 @@ flow ModbusTCP_Flow(is_orig: bool)
 			{
 			BifEvent::generate_modbus_write_reference_response(connection()->bro_analyzer(),
 									   connection()->bro_analyzer()->Conn(),
-									   is_orig(), tid, pid, uid, fc, byteCount, t);
+									   is_orig(), tid, pid, uid, fc, len, byteCount, t);
 			}
 
 		return true;
 		%}
 
 	# RESPONSE FC=22
-	function deliver_MaskWriteRegRes(tid: uint16, pid: uint16, uid: uint8, fc: uint8, ref: uint16, andMask: uint16, orMask: uint16): bool
+	function deliver_MaskWriteRegRes(tid: uint16, pid: uint16, uid: uint8, fc: uint8, ref: uint16, andMask: uint16, orMask: uint16, len:uint16): bool
 		%{
 		if ( ::modbus_mask_write_response )
 			{
 			BifEvent::generate_modbus_mask_write_response(connection()->bro_analyzer(),
 								      connection()->bro_analyzer()->Conn(),
-								      is_orig(), tid, pid, uid, fc, ref, andMask, orMask);
+								      is_orig(), tid, pid, uid, fc, len, ref, andMask, orMask);
 			}
 		return true;
 		%}
@@ -521,14 +521,14 @@ flow ModbusTCP_Flow(is_orig: bool)
 			{
 			BifEvent::generate_modbus_read_write_response(connection()->bro_analyzer(),
 								      connection()->bro_analyzer()->Conn(),
-								      is_orig(), t, tid, pid, uid, fc, ${doMulti.byteCount}, len);
+								      is_orig(), t, tid, pid, uid, fc, len, ${doMulti.byteCount});
 			}
 
 		return true;
 		%}
 
 	# RESPONSE FC=24
-	function deliver_ReadFIFORes( doMulti: ReadFIFOQueueResponse, tid: uint16, pid: uint16, uid: uint8, fc: uint16): bool
+	function deliver_ReadFIFORes( doMulti: ReadFIFOQueueResponse, tid: uint16, pid: uint16, uid: uint8, fc: uint16, len:uint16): bool
 		%{
 		VectorVal* t = new VectorVal(new VectorType(base_type(TYPE_INT)));
 
@@ -542,7 +542,7 @@ flow ModbusTCP_Flow(is_orig: bool)
 			{
 			BifEvent::generate_modbus_read_FIFO_response(connection()->bro_analyzer(),
 								     connection()->bro_analyzer()->Conn(),
-								     is_orig(), t, tid, pid, uid, fc, ${doMulti.byteCount});
+								     is_orig(), t, tid, pid, uid, fc, len, ${doMulti.byteCount});
 			}
 
 		return true;

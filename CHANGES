@@ -1,4 +1,19 @@
 
+2.1-6 | 2012-09-06 23:23:14 -0700
+
+  * Fixed a bug where "a -= b" (both operands are intervals) was not
+    allowed in Bro scripts (although "a = a - b" is allowed). (Daniel
+    Thayer)
+
+  * Fixed a bug where the "!=" operator with subnet operands was
+    treated the same as the "==" operator. (Daniel Thayer)
+
+  * Add sleeps to configuration_update test for better reliability.
+    (Jon Siwek)
+
+  * Fix a segfault when iterating over a set when using malformed
+    index. (Daniel Thayer)
+
 2.1 | 2012-08-28 16:46:42 -0700
 
   * Make bif.identify_magic robust against FreeBSD's libmagic config.

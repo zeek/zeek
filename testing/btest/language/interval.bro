@@ -52,6 +52,7 @@ event bro_init()
 	# Type inference tests
 
 	test_case( "type inference", type_name(in41) == "interval" );
+	# TODO: uncomment when bug is fixed
 	#test_case( "type inference", type_name(in42) == "interval" );
 	test_case( "type inference", type_name(in43) == "interval" );
 
@@ -76,9 +77,8 @@ event bro_init()
 	test_case( "absolute value", |in36| == 2.5*86400 );
 	in34 += 2hr;
 	test_case( "assignment operator", in34 == 122min );
-	# TODO: this should work (subtraction works)
-	#in34 -= 2hr;
-	#test_case( "assignment operator", in34 == 2min );
+	in34 -= 2hr;
+	test_case( "assignment operator", in34 == 2min );
 	test_case( "multiplication operator", in33*2 == 4min );
 	test_case( "division operator", in35/2 == -1hr );
 	test_case( "division operator", approx_equal(in32/in31, 1e3) );

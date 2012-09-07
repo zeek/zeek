@@ -7,8 +7,6 @@ function test_case(msg: string, expect: bool)
         }
 
 
-# TODO: "subnet inequality" tests (i.e., tests with "!=") always fail 
-
 event bro_init()
 {
 	# IPv4 addr

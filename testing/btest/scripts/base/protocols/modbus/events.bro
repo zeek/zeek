@@ -56,11 +56,6 @@ event modbus_write_multi_request(c: connection, is_orig: bool, t: int_vec, tid: 
 	print "modbus_write_multi_request", is_orig, t, tid, pid, uid, fc, len, ref, wCount, bCount;
 }
 
-event modbus_read_reference_request(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count,len: count, refCount: count, t: int_vec)
-{
-	print "modbus_read_reference_request", is_orig, tid, pid, uid, fc, len, refCount, t;
-}
-
 event modbus_read_single_reference_request(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, refType: count, refNumber: count, wordCount: count)
 {
 	print "modbus_read_single_reference_request", is_orig, tid, pid, uid, fc, refType, refNumber, wordCount;
@@ -106,7 +101,7 @@ event modbus_read_input_discretes_response(c: connection, is_orig: bool, tid: co
 	print "modbus_read_input_discretes_response", is_orig, tid, pid, uid, fc, len, bCount, bits;
 }
 
-event modbus_read_multi_response(c: connection, is_orig: bool, t: int_vec, tid: count, pid: count, uid: count, fc: count, len:count,bCount: count)
+event modbus_read_multi_response (c: connection, is_orig: bool, t: int_vec, tid: count, pid: count, uid: count, fc: count, len:count, bCount: count)
 {
 	print "modbus_read_multi_response", is_orig, t, tid, pid, uid, fc, len, bCount;
 }
@@ -131,24 +126,14 @@ event modbus_force_coils_response(c: connection, is_orig: bool, tid: count, pid:
 	print "modbus_force_coils_response", is_orig, tid, pid, uid, fc, len, ref, bitCount;
 }
 
-event modbus_write_multi_response(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, len:count, ref: count, wcount: count)
+event modbus_write_multi_response (c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, len: count, ref: count, wCount: count)
 {
-	print "modbus_write_multi_response", is_orig, tid, pid, uid, fc, len, ref, wcount;
-}
-
-event modbus_read_reference_response(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, len:count, byteCount: count, t: int_vec)
-{
-	print "modbus_read_reference_response", is_orig, tid, pid, uid, fc, len, byteCount, t;
+	print "modbus_write_multi_response", is_orig, tid, pid, uid, fc, len, ref, wCount;
 }
 
 event modbus_read_single_reference_response(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, byteCount: count, refType: count, t: int_vec)
 {
 	print "modbus_read_single_reference_response", is_orig, tid, pid, uid, fc, byteCount, refType, t;
-}
-
-event modbus_write_reference_response(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, len:count, byteCount: count, t: int_vec)
-{
-	print "modbus_write_reference_response", is_orig, tid, pid, uid, fc, len, byteCount, t;
 }
 
 event modbus_mask_write_response(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, len:count, ref: count, andMask: count, orMask: count)

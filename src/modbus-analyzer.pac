@@ -149,33 +149,6 @@ flow ModbusTCP_Flow(is_orig: bool)
 		return true;
 		%}
 
-	# REQUEST FC=20
-	function deliver_ReadReferenceReq(tid: uint16, pid: uint16, uid: uint8, fc: uint8, refCount: uint8, reference:Reference[], len:uint16): bool
-		%{
-		VectorVal *t = new VectorVal(new VectorType(base_type(TYPE_INT)));
-
-		for ( unsigned int i = 0; i < (${reference}->size()); ++i )
-			{
-			Val* r = new Val((${reference[i].refType}), TYPE_INT);
-			t->Assign(i, r, 0, OP_ASSIGN);
-
-			Val* k = new Val((${reference[i].refNumber}), TYPE_INT);
-			t->Assign(i, k, 0, OP_ASSIGN);
-
-			Val* l = new Val((${reference[i].wordCount}), TYPE_INT);
-			t->Assign(i, l, 0, OP_ASSIGN);
-			}
-
-		if ( ::modbus_read_reference_request )
-			{
-			BifEvent::generate_modbus_read_reference_request(connection()->bro_analyzer(),
-									 connection()->bro_analyzer()->Conn(),
-									 is_orig(), tid, pid, uid, fc, len, refCount, t);
-			}
-
-		return true;
-		%}
-
 	# REQUEST FC=20 (to read single reference)
 	function deliver_ReadSingleReferenceReq(tid: uint16, pid: uint16, uid: uint8, fc: uint8, refType: uint8, refNumber: uint32, wordCount: uint16): bool
 		%{
@@ -205,39 +178,6 @@ flow ModbusTCP_Flow(is_orig: bool)
 			BifEvent::generate_modbus_read_single_reference_response(connection()->bro_analyzer(),
 										 connection()->bro_analyzer()->Conn(),
 										 is_orig(), tid, pid, uid, fc, byteCount, refType, t);
-			}
-
-		return true;
-		%}
-
-	# REQUEST FC=21
-	function deliver_WriteReferenceReq(tid: uint16, pid: uint16, uid: uint8, fc: uint8, byteCount: uint8, reference:ReferenceWithData[], len:uint16): bool
-		%{
-		VectorVal* t = new VectorVal(new VectorType(base_type(TYPE_INT)));
-
-		for ( unsigned int i = 0; i < (${reference}->size()); ++i )
-			{
-			Val* r = new Val((${reference[i].refType}), TYPE_INT);
-			t->Assign(i, r, 0, OP_ASSIGN);
-
-			Val* k = new Val((${reference[i].refNumber}), TYPE_INT);
-			t->Assign(i, k, 0, OP_ASSIGN);
-
-			Val* n = new Val((${reference[i].wordCount}), TYPE_INT);
-			t->Assign(i, n, 0, OP_ASSIGN);
-
-			for ( unsigned int j = 0; j < (${reference[i].registerValue}->size()); ++j )
-				{
-				k = new Val((${reference[i].registerValue[j]}), TYPE_INT);
-				t->Assign(i, k, 0, OP_ASSIGN);
-				}
-			}
-
-		if ( ::modbus_write_reference_request )
-			{
-			BifEvent::generate_modbus_write_reference_request(connection()->bro_analyzer(),
-									  connection()->bro_analyzer()->Conn(),
-									  is_orig(), tid, pid, uid, fc, len,  byteCount, t);
 			}
 
 		return true;
@@ -427,68 +367,6 @@ flow ModbusTCP_Flow(is_orig: bool)
 			BifEvent::generate_modbus_write_multi_response(connection()->bro_analyzer(),
 								       connection()->bro_analyzer()->Conn(),
 								       is_orig(), tid, pid, uid, fc, len, ref, wcount);
-			}
-
-		return true;
-		%}
-
-	# RESPONSE FC=20
-	function deliver_ReadReferenceRes(tid: uint16, pid: uint16, uid: uint8, fc: uint8, byteCount: uint8, reference:ReferenceResponse[], len:uint16): bool
-		%{
-		VectorVal* t = new VectorVal(new VectorType(base_type(TYPE_INT)));
-
-		for ( unsigned int i = 0; i < (${reference}->size()); ++i )
-			{
-			Val* r = new Val((${reference[i].byteCount}), TYPE_INT);
-			t->Assign(i, r, 0, OP_ASSIGN);
-
-			Val* k = new Val((${reference[i].refType}), TYPE_INT);
-			t->Assign(i, k, 0, OP_ASSIGN);
-
-			for ( unsigned int j = 0; j<(${reference[i].registerValue}->size());++j)
-				{
-				k = new Val((${reference[i].registerValue[j]}), TYPE_INT);
-				t->Assign(i, k, 0, OP_ASSIGN);
-				}
-			}
-
-		if ( ::modbus_read_reference_response )
-			{
-			BifEvent::generate_modbus_read_reference_response(connection()->bro_analyzer(),
-									  connection()->bro_analyzer()->Conn(),
-									  is_orig(), tid, pid, uid, fc, len, byteCount, t);
-			}
-		return true;
-		%}
-
-	# RESPONSE FC=21
-	function deliver_WriteReferenceRes(tid: uint16, pid: uint16, uid: uint8, fc: uint8, byteCount: uint8, reference:ReferenceWithData[],len:uint16): bool
-		%{
-		VectorVal* t = new VectorVal(new VectorType(base_type(TYPE_INT)));
-
-		for ( unsigned int i = 0; i < (${reference}->size()); ++i )
-			{
-			Val* r = new Val((${reference[i].refType}), TYPE_INT);
-			t->Assign(i, r, 0, OP_ASSIGN);
-
-			Val* k = new Val((${reference[i].refNumber}), TYPE_INT);
-			t->Assign(i, k, 0, OP_ASSIGN);
-
-			Val* n = new Val((${reference[i].wordCount}), TYPE_INT);
-			t->Assign(i, n, 0, OP_ASSIGN);
-
-			for ( unsigned int j = 0; j<(${reference[i].registerValue}->size());++j)
-				{
-				k = new Val((${reference[i].registerValue[j]}), TYPE_INT);
-				t->Assign(i, k, 0, OP_ASSIGN);
-				}
-			}
-
-		if ( ::modbus_write_reference_response )
-			{
-			BifEvent::generate_modbus_write_reference_response(connection()->bro_analyzer(),
-									   connection()->bro_analyzer()->Conn(),
-									   is_orig(), tid, pid, uid, fc, len, byteCount, t);
 			}
 
 		return true;

@@ -237,18 +237,14 @@ type ReadGeneralReferenceRequest(len: uint16, header: ModbusTCP_TransportHeader)
 	byteCount: uint8;
 	references: Reference(header)[referenceCount] &length = byteCount;
 } &let {
-	referenceCount: uint8 = byteCount/7;
-	deliver: bool =$context.flow.deliver_ReadReferenceReq(header.tid, header.pid, header.uid, header.fc, referenceCount, references,len);
-};
+    referenceCount: uint8 = byteCount/7;
+}
 
 # REQUEST FC=21
 type WriteGeneralReferenceRequest(len: uint16, header: ModbusTCP_TransportHeader) = record {
 	byteCount: uint8;
 	references: ReferenceWithData(header)[] &until($input.length() == 0) &length = byteCount;
-} &length = len,
-  &let {
-	deliver: bool =$context.flow.deliver_WriteReferenceReq(header.tid, header.pid, header.uid, header.fc, byteCount, references,len);
-};
+} &length = len;
 
 # REQUESTeFC=22
 type MaskWriteRegisterRequest(len: uint16, header: ModbusTCP_TransportHeader) = record {
@@ -414,19 +410,13 @@ type ForceMultipleCoilsResponse(len: uint16, header: ModbusTCP_TransportHeader) 
 type ReadGeneralReferenceResponse(len: uint16, header: ModbusTCP_TransportHeader) = record {
 	byteCount: uint8;
 	references: ReferenceResponse (header) [] &until($input.length()==0) &length = byteCount;
-} &length = len,
-  &let{
-	deliver: bool =$context.flow.deliver_ReadReferenceRes(header.tid, header.pid, header.uid, header.fc, byteCount, references,len);
-};
+} &length = len;
 
 # RESPONSE FC=21
 type WriteGeneralReferenceResponse(len: uint16, header: ModbusTCP_TransportHeader) = record {
 	byteCount: uint8;
 	references: ReferenceWithData(header)[] &until($input.length() == 0) &length = byteCount;
-} &length = len,
-  &let {
-	deliver: bool =$context.flow.deliver_WriteReferenceRes(header.tid, header.pid, header.uid, header.fc, byteCount, references,len);
-};
+} &length = len;
 
 # RESPONSE FC=22
 type MaskWriteRegisterResponse(len: uint16, header: ModbusTCP_TransportHeader) = record {

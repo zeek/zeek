@@ -5,7 +5,7 @@
 # @TEST-EXEC: btest-bg-run proxy-2   BROPATH=$BROPATH:.. CLUSTER_NODE=proxy-2 bro %INPUT
 # @TEST-EXEC: btest-bg-run worker-1  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-1 bro %INPUT
 # @TEST-EXEC: btest-bg-run worker-2  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-2 bro %INPUT
-# @TEST-EXEC: btest-bg-wait -k 10
+# @TEST-EXEC: btest-bg-wait 15
 # @TEST-EXEC: btest-diff manager-1/.stdout
 # @TEST-EXEC: btest-diff proxy-1/.stdout
 # @TEST-EXEC: btest-diff proxy-2/.stdout
@@ -22,7 +22,20 @@ redef Cluster::nodes = {
 };
 @TEST-END-FILE
 
+global peer_count = 0;
+
 event remote_connection_handshake_done(p: event_peer)
 	{
 	print "Connected to a peer";
+	if ( Cluster::node == "manager-1" )
+		{
+		peer_count = peer_count + 1;
+		if ( peer_count == 4 )
+			terminate_communication();
+		}
+	}
+
+event remote_connection_closed(p: event_peer)
+	{
+	terminate();
 	}

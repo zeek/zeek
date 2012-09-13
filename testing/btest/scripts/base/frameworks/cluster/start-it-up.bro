@@ -1,11 +1,13 @@
 # @TEST-SERIALIZE: comm
 #
 # @TEST-EXEC: btest-bg-run manager-1 BROPATH=$BROPATH:.. CLUSTER_NODE=manager-1 bro %INPUT
+# @TEST-EXEC: sleep 1
 # @TEST-EXEC: btest-bg-run proxy-1   BROPATH=$BROPATH:.. CLUSTER_NODE=proxy-1 bro %INPUT
 # @TEST-EXEC: btest-bg-run proxy-2   BROPATH=$BROPATH:.. CLUSTER_NODE=proxy-2 bro %INPUT
+# @TEST-EXEC: sleep 1
 # @TEST-EXEC: btest-bg-run worker-1  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-1 bro %INPUT
 # @TEST-EXEC: btest-bg-run worker-2  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-2 bro %INPUT
-# @TEST-EXEC: btest-bg-wait 15
+# @TEST-EXEC: btest-bg-wait 30
 # @TEST-EXEC: btest-diff manager-1/.stdout
 # @TEST-EXEC: btest-diff proxy-1/.stdout
 # @TEST-EXEC: btest-diff proxy-2/.stdout
@@ -22,16 +24,38 @@ redef Cluster::nodes = {
 };
 @TEST-END-FILE
 
+global fully_connected: event();
+
 global peer_count = 0;
+
+global fully_connected_nodes = 0;
+
+event fully_connected()
+	{
+	fully_connected_nodes = fully_connected_nodes + 1;
+	if ( Cluster::node == "manager-1" )
+		{
+		if ( peer_count == 4 && fully_connected_nodes == 4 )
+			terminate_communication();
+		}
+	}
+
+redef Cluster::worker2manager_events += /fully_connected/;
+redef Cluster::proxy2manager_events += /fully_connected/;
 
 event remote_connection_handshake_done(p: event_peer)
 	{
 	print "Connected to a peer";
+	peer_count = peer_count + 1;
 	if ( Cluster::node == "manager-1" )
 		{
-		peer_count = peer_count + 1;
-		if ( peer_count == 4 )
+		if ( peer_count == 4 && fully_connected_nodes == 4 )
 			terminate_communication();
+		}
+	else
+		{
+		if ( peer_count == 2 )
+			event fully_connected();
 		}
 	}
 

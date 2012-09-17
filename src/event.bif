@@ -6547,175 +6547,146 @@ event netflow_v5_header%(h: nf_v5_header%);
 ## .. bro:see:: netflow_v5_record
 event netflow_v5_record%(r: nf_v5_record%);
 
-## Event that passes request header only
+## Event for any function code whether or not it's supported.
 ##
 ## TODO-Dina: Document event.
-event modbus_request%(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count%);
-
-## Event that passes response header only
-##
-## TODO-Dina: Document event.
-event modbus_response%(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count%);
-
-## Event that passes modbus request function code =1
-##
-## TODO-Dina: Document event.
-event modbus_read_coils_request%(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, ref: count, bcount: count%);
-
-## Event that passes modbus request function code =2
-##
-## TODO-Dina: Document event.
-event modbus_read_input_discretes_request%(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, ref: count, bcount: count%);
-
-## Event that passes modbus request function code =3
-##
-## TODO-Dina: Document event.
-event modbus_read_multi_request%(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, ref: count, wcount: count, len: count%);
-
-## Event that passes modbus request function code =4
-##
-## TODO-Dina: Document event.
-event modbus_read_input_request%(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, ref: count, wcount: count, len: count%);
-
-## Event that passes modbus request function code =5
-##
-## TODO-Dina: Document event.
-event modbus_write_coil_request%(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, ref: count, onOff: count, other: count%);
-
-## Event that passes modbus request function code =6
-##
-## TODO-Dina: Document event.
-event modbus_write_single_request%(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, len: count, ref: count, value: count%);
-
-## Event that passes modbus request function code =15
-##
-## TODO-Dina: Document event.
-event modbus_force_coils_request%(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, ref: count, bitCount: count, byteCount: count, coils: string%);
-
-## Event that passes modbus request function code=16
-##
-## TODO-Dina: Document event.
-event modbus_write_multi_request%(c: connection, is_orig: bool, t: int_vec, tid: count, pid: count, uid: count, fc: count, ref: count, wCount: count, bCount: count, len: count%);
-
-## Event that passes modbus request function code=20
-##
-## TODO-Dina: Document event.
-event modbus_read_reference_request%(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, refCount: count, t: int_vec%);
-
-## Event that passes modbus request function code=20 for single reference
-##
-## TODO-Dina: Document event.
-event modbus_read_single_reference_request%(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, refType: count, refNumber: count, wordCount: count%);
-
-## Event that passes modbus request function code=21
-##
-## TODO-Dina: Document event.
-event modbus_write_reference_request%(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, byteCount: count, t: int_vec%);
-
-## Event that passes modbus request/response function code=21 for single reference
-##
-## TODO-Dina: Document event.
-event modbus_write_single_reference%(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, refType: count, refNumber: count, wordCount: count, t: int_vec%);
-
-## Event  that passes modbus request function code=22
-##
-## TODO-Dina: Document event.
-event modbus_mask_write_request%(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, ref: count, andMask: count, orMask: count%);
-
-## Event that passes modbus request function code=23
-##
-## TODO-Dina: Document event.
-event modbus_read_write_request%(c: connection, is_orig: bool, t: int_vec, tid: count, pid: count, uid: count, fc: count, refRead: count, wcRead: count, refWrite: count, wcWrite: count, bCount: count, len: count%);
-
-## Event that passes modbus request function code=24
-##
-## TODO-Dina: Document event.
-event modbus_read_FIFO_request%(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, ref: count%);
-
-## Event that passes modbus request function code=7
-##
-## TODO-Dina: Document event.
-event modbus_read_except_request%(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, len: count%);
-
-## Event that passes modbus response function code=1
-##
-## TODO-Dina: Document event.
-event modbus_read_coils_response%(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, bcount: count, bits: string%);
-
-## Event that passes modbus response function code=2
-##
-## TODO-Dina: Document event.
-event modbus_read_input_discretes_response%(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, bcount: count, bits: string%);
-
-## Event that passes modbus response function code=3
-##
-## TODO-Dina: Document event.
-event modbus_read_multi_response%(c: connection, is_orig: bool, t: int_vec, tid: count, pid: count, uid: count, fc: count, bCount: count, len: count%);
-
-## Event that passes modbus response function code=4
-##
-## TODO-Dina: Document event.
-event modbus_read_input_response%(c: connection, is_orig: bool, t: int_vec, tid: count, pid: count, uid: count, fc: count, bCount: count, len: count%);
-
-## Event that passes modbus request function code =5
-##
-## TODO-Dina: Document event.
-event modbus_write_coil_response%(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, ref: count, onOff: count, other: count%);
-
-## Event that passes modbus response function code=6
-##
-## TODO-Dina: Document event.
-event modbus_write_single_response%(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, len: count, ref: count, value: count%);
-
-## Event that passes modbus response function code=15
-##
-## TODO-Dina: Document event.
-event modbus_force_coils_response%(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, ref: count, bitCount: count%);
-
-## Event that passes modbus response function code=16
-##
-## TODO-Dina: Document event.
-event modbus_write_multi_response%(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, ref: count, wcount: count, len: count%);
-
-## Event that passes modbus response function code=20
-##
-## TODO-Dina: Document event.
-event modbus_read_reference_response%(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, byteCount: count, t: int_vec%);
-
-## Event that passes modbus response function code=20 for single reference
-##
-## TODO-Dina: Document event.
-event modbus_read_single_reference_response%(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, byteCount: count, refType: count, t: int_vec%);
-
-## Event that passes modbus response function code=21
-##
-## TODO-Dina: Document event.
-event modbus_write_reference_response%(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, byteCount: count, t: int_vec%);
-
-## Event that passes modbus response function code=22
-##
-## TODO-Dina: Document event.
-event modbus_mask_write_response%(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, ref: count, andMask: count, orMask: count%);
-
-## Event that passes modbus response function code=23
-##
-## TODO-Dina: Document event.
-event modbus_read_write_response%(c: connection, is_orig: bool, t: int_vec, tid: count, pid: count, uid: count, fc: count, bCount: count, len: count%);
-
-## Event that passes modbus response function code=24
-##
-## TODO-Dina: Document event.
-event modbus_read_FIFO_response%(c: connection, is_orig: bool, t: int_vec, tid: count, pid: count, uid: count, fc: count, bcount: count%);
-
-## Event that passes modbus response function code=7
-##
-## TODO-Dina: Document event.
-event modbus_read_except_response%(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, status: count, len: count%);
+event modbus_message%(c: connection, header: ModbusHeaders, is_orig: bool%);
 
 ## Event that parses modbus exception
 ##
 ## TODO-Dina: Document event.
-event modbus_exception%(c: connection, is_orig: bool, tid: count, pid: count, uid: count, fc: count, code: count%);
+event modbus_exception%(c: connection, header: ModbusHeaders, code: count%);
+
+## Event that passes modbus request function code=1
+##
+## TODO-Dina: Document event.
+event modbus_read_coils_request%(c: connection, header: ModbusHeaders, start_address: count, quantity: count%);
+
+## Event that passes modbus response function code=1
+##
+## TODO-Dina: Document event.
+event modbus_read_coils_response%(c: connection, header: ModbusHeaders, coils: ModbusCoils%);
+
+## Event that passes modbus request function code=2
+##
+## TODO-Dina: Document event.
+event modbus_read_discrete_inputs_request%(c: connection, header: ModbusHeaders, start_address: count, quantity: count%);
+
+## Event that passes modbus response function code=2
+##
+## TODO-Dina: Document event.
+event modbus_read_discrete_inputs_response%(c: connection, header: ModbusHeaders, coils: ModbusCoils%);
+
+## Event that passes modbus request function code=3
+##
+## TODO-Dina: Document event.
+event modbus_read_holding_registers_request%(c: connection, header: ModbusHeaders, start_address: count, quantity: count%);
+
+## Event that passes modbus response function code=3
+##
+## TODO-Dina: Document event.
+event modbus_read_holding_registers_response%(c: connection, header: ModbusHeaders, registers: ModbusRegisters%);
+
+## Event that passes modbus request function code =4
+##
+## TODO-Dina: Document event.
+event modbus_read_input_registers_request%(c: connection, header: ModbusHeaders, start_address: count, quantity: count%);
+
+## Event that passes modbus response function code=4
+##
+## TODO-Dina: Document event.
+event modbus_read_input_registers_response%(c: connection, header: ModbusHeaders, registers: ModbusRegisters%);
+
+## Event that passes modbus request function code=5
+##
+## TODO-Dina: Document event.
+event modbus_write_single_coil_request%(c: connection, header: ModbusHeaders, start_address: count, on_off: count, other: count%);
+
+## Event that passes modbus request function code=5
+##
+## TODO-Dina: Document event.
+event modbus_write_single_coil_response%(c: connection, header: ModbusHeaders, start_address: count, on_off: count, other: count%);
+
+## Event that passes modbus request function code=6
+##
+## TODO-Dina: Document event.
+event modbus_write_single_register_request%(c: connection, header: ModbusHeaders, start_address: count, value: count%);
+
+## Event that passes modbus response function code=6
+##
+## TODO-Dina: Document event.
+event modbus_write_single_register_response%(c: connection, header: ModbusHeaders, start_address: count, value: count%);
+
+
+## Event that passes modbus request function code=15
+##
+## TODO-Dina: Document event.
+event modbus_write_multiple_coils_request%(c: connection, header: ModbusHeaders, start_address: count, coils: ModbusCoils%);
+
+## Event that passes modbus response function code=15
+##
+## TODO-Dina: Document event.
+event modbus_write_multiple_coils_response%(c: connection, header: ModbusHeaders, start_address: count, quantity: count%);
+
+## Event that passes modbus request function code=16
+##
+## TODO-Dina: Document event.
+event modbus_write_multiple_registers_request%(c: connection, header: ModbusHeaders, start_address: count, registers: ModbusRegisters%);
+
+## Event that passes modbus response function code=16
+##
+## TODO-Dina: Document event.
+event modbus_write_multiple_registers_response%(c: connection, header: ModbusHeaders, start_address: count, quantity: count%);
+
+## Event that passes modbus request function code=20
+##
+## TODO-Dina: Document event.
+event modbus_read_file_record_request%(c: connection, header: ModbusHeaders%);
+
+## Event that passes modbus response function code=20
+##
+## TODO-Dina: Document event.
+event modbus_read_file_record_response%(c: connection, header: ModbusHeaders%);
+
+## Event that passes modbus request function code=21
+##
+## TODO-Dina: Document event.
+event modbus_write_file_record_request%(c: connection, header: ModbusHeaders%);
+
+## Event that passes modbus response function code=21
+##
+## TODO-Dina: Document event.
+event modbus_write_file_record_response%(c: connection, header: ModbusHeaders%);
+
+## Event  that passes modbus request function code=22
+##
+## TODO-Dina: Document event.
+event modbus_mask_write_register_request%(c: connection, header: ModbusHeaders, start_address: count, and_mask: count, or_mask: count%);
+
+## Event that passes modbus response function code=22
+##
+## TODO-Dina: Document event.
+event modbus_mask_write_register_response%(c: connection, header: ModbusHeaders, start_address: count, and_mask: count, or_mask: count%);
+
+## Event that passes modbus request function code=23
+##
+## TODO-Dina: Document event.
+event modbus_read_write_multiple_registers_request%(c: connection, header: ModbusHeaders, read_start_address: count, read_quantity: count, write_start_address: count, write_registers: ModbusRegisters%);
+
+## Event that passes modbus response function code=23
+##
+## TODO-Dina: Document event.
+event modbus_read_write_multiple_registers_response%(c: connection, header: ModbusHeaders, written_registers: ModbusRegisters%);
+
+## Event that passes modbus request function code=24
+##
+## TODO-Dina: Document event.
+event modbus_read_fifo_queue_request%(c: connection, header: ModbusHeaders, start_address: count%);
+
+## Event that passes modbus response function code=24
+##
+## TODO-Dina: Document event.
+event modbus_read_fifo_queue_response%(c: connection, header: ModbusHeaders, fifos: ModbusRegisters%);
 
 ## Raised for informational messages reported via Bro's reporter framework. Such
 ## messages may be generated internally by the event engine and also by other

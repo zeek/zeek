@@ -33,9 +33,9 @@ void ModbusTCP_Analyzer::Undelivered(int seq, int len, bool orig)
 	interp->NewGap(orig, len);
 	}
 
-void ModbusTCP_Analyzer::EndpointEOF(TCP_Reassembler* endp)
+void ModbusTCP_Analyzer::EndpointEOF(bool is_orig)
 	{
-	TCP_ApplicationAnalyzer::EndpointEOF(endp);
-	interp->FlowEOF(endp->IsOrig());
+	TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
+	interp->FlowEOF(is_orig);
 	}
 

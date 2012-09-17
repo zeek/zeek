@@ -7,581 +7,529 @@
 #                    http://www.simplymodbus.ca/faq.htm
 #
 
-flow ModbusTCP_Flow(is_orig: bool)
-{
-	flowunit = ModbusTCP_PDU(is_orig) withcontext (connection, this);
+%header{
+	VectorVal* bytestring_to_coils(bytestring coils, uint quantity);
+	RecordVal* HeaderToBro(ModbusTCP_TransportHeader *header);
+	%}
 
-	# Parse only headers for request and response.
-	function deliver_message(tid: uint16, pid: uint16, uid: uint8, fc: uint8, flag: int): bool
+%code{
+	VectorVal* bytestring_to_coils(bytestring coils, uint quantity)
+		{
+		VectorVal* modbus_coils = new VectorVal(BifType::Vector::ModbusCoils);
+
+		return modbus_coils;
+		}
+
+	RecordVal* HeaderToBro(ModbusTCP_TransportHeader *header)
+		{
+		RecordVal* modbus_header = new RecordVal(BifType::Record::ModbusHeaders);
+		modbus_header->Assign(0, new Val(header->tid(), TYPE_COUNT));
+		modbus_header->Assign(1, new Val(header->pid(), TYPE_COUNT));
+		modbus_header->Assign(2, new Val(header->uid(), TYPE_COUNT));
+		modbus_header->Assign(3, new Val(header->fc(), TYPE_COUNT));
+		return modbus_header;
+		} 
+
+	%}
+
+refine flow ModbusTCP_Flow += {
+
+	function deliver_message(header: ModbusTCP_TransportHeader): bool
 		%{
-		if ( flag == 1 )
+		if ( ::modbus_message )
 			{
-			if ( ::modbus_request )
-				{
-				BifEvent::generate_modbus_request(connection()->bro_analyzer(),
-								  connection()->bro_analyzer()->Conn(),
-								  is_orig(), tid, pid, uid, fc);
-				}
-			}
-
-		else if ( flag == 2 )
-			{
-			if ( ::modbus_response )
-				{
-				BifEvent::generate_modbus_response(connection()->bro_analyzer(),
-								   connection()->bro_analyzer()->Conn(),
-								   is_orig(), tid, pid, uid, fc);
-				}
-			}
-
-		return true;
-		%}
-
-	# REQUEST FC=1
-	function deliver_ReadCoilsReq(tid: uint16, pid: uint16, uid: uint8, fc: uint8, ref: uint16, bitCount: uint16): bool
-		%{
-		if ( ::modbus_read_coils_request )
-			{
-			BifEvent::generate_modbus_read_coils_request(connection()->bro_analyzer(),
-								     connection()->bro_analyzer()->Conn(),
-								     is_orig(), tid, pid, uid, fc, ref, bitCount);
-			}
-
-		return true;
-		%}
-
-	# REQUEST FC=2
-	function deliver_ReadInputDiscReq(tid: uint16, pid: uint16, uid: uint8, fc: uint8, ref: uint16, bitCount: uint16): bool
-		%{
-		if ( ::modbus_read_input_discretes_request )
-			{
-			BifEvent::generate_modbus_read_input_discretes_request(connection()->bro_analyzer(),
-									       connection()->bro_analyzer()->Conn(),
-									       is_orig(), tid, pid, uid, fc, ref, bitCount);
-			}
-
-		return true;
-		%}
-
-	# REQUEST FC=3
-	function deliver_ReadMultiRegReq(tid: uint16, pid: uint16, uid: uint8, fc: uint8, ref: uint16, wcount: uint16, flag: uint16, len: uint16): bool
-		%{
-		if ( ::modbus_read_multi_request )
-			{
-			BifEvent::generate_modbus_read_multi_request(connection()->bro_analyzer(),
-								     connection()->bro_analyzer()->Conn(),
-								     is_orig(), tid, pid, uid, fc, ref, wcount, len);
-			}
-
-		return true;
-		%}
-
-	# REQUEST FC=4
-	function deliver_ReadInputRegReq(tid: uint16, pid: uint16, uid: uint8, fc: uint8, ref: uint16, wcount: uint16, flag: uint16, len: uint16): bool
-		%{
-		if ( ::modbus_read_input_request )
-			{
-			BifEvent::generate_modbus_read_input_request(connection()->bro_analyzer(),
-								     connection()->bro_analyzer()->Conn(),
-								     is_orig(), tid, pid, uid, fc, ref, wcount, len);
-			}
-
-		return true;
-		%}
-
-	# REQUEST FC=5
-	function deliver_WriteCoilReq(tid: uint16, pid: uint16, uid: uint8, fc: uint8, ref: uint16, onOff: uint8, other: uint8): bool
-		%{
-		if ( ::modbus_write_coil_request )
-			{
-			BifEvent::generate_modbus_write_coil_request(connection()->bro_analyzer(),
-								     connection()->bro_analyzer()->Conn(),
-								     is_orig(), tid, pid, uid, fc, ref, onOff, other);
-			}
-
-		return true;
-		%}
-
-	# REQUEST FC=6
-	function deliver_WriteSingleRegReq(tid: uint16, pid: uint16, uid: uint8, fc: uint8, len: uint16, ref: uint16, value: uint16): bool
-		%{
-		if ( ::modbus_write_single_request )
-			{
-			BifEvent::generate_modbus_write_single_request(connection()->bro_analyzer(),
-								       connection()->bro_analyzer()->Conn(),
-								       is_orig(), tid, pid, uid, fc, len, ref, value);
-			}
-
-		return true;
-		%}
-
-	# REQUEST FC=15
-	function deliver_ForceMultiCoilsReq(tid: uint16, pid: uint16, uid: uint8, fc: uint8, ref: uint16, bitCount: uint16, byteCount: uint16, coils: bytestring): bool
-		%{
-		if ( ::modbus_force_coils_request )
-			{
-			BifEvent::generate_modbus_force_coils_request(connection()->bro_analyzer(),
-								      connection()->bro_analyzer()->Conn(),
-								      is_orig(), tid, pid, uid, fc, ref, bitCount, byteCount, new StringVal(coils.length(), (const char*) coils.data()));
-			}
-
-		return true;
-		%}
-
-	# REQUEST FC=16
-	function deliver_WriteMultiRegReq( writeMulti: WriteMultipleRegistersRequest, tid: uint16, pid: uint16, uid: uint8, fc: uint8, len: uint16): bool
-		%{
-		VectorVal * t = new VectorVal( new VectorType(base_type(TYPE_INT)));
-
-		for ( unsigned int i = 0; i < (${writeMulti.registers}->size()); ++i )
-			{
-			Val* r = new Val(((*writeMulti->registers())[i]), TYPE_INT);
-			t->Assign(i, r, 0, OP_ASSIGN);
-			}
-
-		if ( ::modbus_write_multi_request )
-			{
-			BifEvent::generate_modbus_write_multi_request(connection()->bro_analyzer(),
-								      connection()->bro_analyzer()->Conn(),
-								      is_orig(), t, tid, pid, uid, fc, ${writeMulti.referenceNumber}, ${writeMulti.wordCount}, ${writeMulti.byteCount}, len);
-			}
-
-		return true;
-		%}
-
-	# REQUEST FC=20
-	function deliver_ReadReferenceReq(tid: uint16, pid: uint16, uid: uint8, fc: uint8, refCount: uint8, reference:Reference[]): bool
-		%{
-		VectorVal *t = new VectorVal(new VectorType(base_type(TYPE_INT)));
-
-		for ( unsigned int i = 0; i < (${reference}->size()); ++i )
-			{
-			Val* r = new Val((${reference[i].refType}), TYPE_INT);
-			t->Assign(i, r, 0, OP_ASSIGN);
-
-			Val* k = new Val((${reference[i].refNumber}), TYPE_INT);
-			t->Assign(i, k, 0, OP_ASSIGN);
-
-			Val* l = new Val((${reference[i].wordCount}), TYPE_INT);
-			t->Assign(i, l, 0, OP_ASSIGN);
-			}
-
-		if ( ::modbus_read_reference_request )
-			{
-			BifEvent::generate_modbus_read_reference_request(connection()->bro_analyzer(),
-									 connection()->bro_analyzer()->Conn(),
-									 is_orig(), tid, pid, uid, fc, refCount, t);
-			}
-
-		return true;
-		%}
-
-	# REQUEST FC=20 (to read single reference)
-	function deliver_ReadSingleReferenceReq(tid: uint16, pid: uint16, uid: uint8, fc: uint8, refType: uint8, refNumber: uint32, wordCount: uint16): bool
-		%{
-		if ( ::modbus_read_single_reference_request)
-			{
-			BifEvent::generate_modbus_read_single_reference_request(connection()->bro_analyzer(),
-										connection()->bro_analyzer()->Conn(),
-										is_orig(), tid, pid, uid, fc, refType, refNumber, wordCount);
-			}
-
-		return true;
-		%}
-
-	# RESPONSE FC=20 (to read single reference)
-	function deliver_ReadSingleReferenceRes(tid: uint16, pid: uint16, uid: uint8, fc: uint8, byteCount: uint8, refType: uint8, ref:ReferenceResponse): bool
-		%{
-		VectorVal *t = new VectorVal(new VectorType(base_type(TYPE_INT)));
-
-		for ( unsigned int i = 0; i < (${ref.registerValue}->size()); ++i )
-			{
-			Val* r = new Val(((*ref->registerValue())[i]), TYPE_INT);
-			t->Assign(i, r, 0, OP_ASSIGN);
-			}
-
-		if ( ::modbus_read_single_reference_response )
-			{
-			BifEvent::generate_modbus_read_single_reference_response(connection()->bro_analyzer(),
-										 connection()->bro_analyzer()->Conn(),
-										 is_orig(), tid, pid, uid, fc, byteCount, refType, t);
-			}
-
-		return true;
-		%}
-
-	# REQUEST FC=21
-	function deliver_WriteReferenceReq(tid: uint16, pid: uint16, uid: uint8, fc: uint8, byteCount: uint8, reference:ReferenceWithData[]): bool
-		%{
-		VectorVal* t = new VectorVal(new VectorType(base_type(TYPE_INT)));
-
-		for ( unsigned int i = 0; i < (${reference}->size()); ++i )
-			{
-			Val* r = new Val((${reference[i].refType}), TYPE_INT);
-			t->Assign(i, r, 0, OP_ASSIGN);
-
-			Val* k = new Val((${reference[i].refNumber}), TYPE_INT);
-			t->Assign(i, k, 0, OP_ASSIGN);
-
-			Val* n = new Val((${reference[i].wordCount}), TYPE_INT);
-			t->Assign(i, n, 0, OP_ASSIGN);
-
-			for ( unsigned int j = 0; j < (${reference[i].registerValue}->size()); ++j )
-				{
-				k = new Val((${reference[i].registerValue[j]}), TYPE_INT);
-				t->Assign(i, k, 0, OP_ASSIGN);
-				}
-			}
-
-		if ( ::modbus_write_reference_request )
-			{
-			BifEvent::generate_modbus_write_reference_request(connection()->bro_analyzer(),
-									  connection()->bro_analyzer()->Conn(),
-									  is_orig(), tid, pid, uid, fc, byteCount, t);
-			}
-
-		return true;
-		%}
-
-	# RESPONSE FC=21 (to write single reference)
-	function deliver_WriteSingleReference(tid: uint16, pid: uint16, uid: uint8, fc: uint8, refType: uint8, refNumber: uint32, wordCount: uint16, ref:ReferenceWithData): bool
-		%{
-		VectorVal* t = new VectorVal(new VectorType(base_type(TYPE_INT)));
-
-		for ( unsigned int i = 0; i < (${ref.registerValue}->size()); ++i )
-			{
-			Val* r = new Val(((*ref->registerValue())[i]), TYPE_INT);
-			t->Assign(i, r, 0, OP_ASSIGN);
-			}
-
-		if ( ::modbus_write_single_reference)
-			{
-			BifEvent::generate_modbus_write_single_reference(connection()->bro_analyzer(),
-									 connection()->bro_analyzer()->Conn(),
-									 is_orig(), tid, pid, uid, fc, refType, refNumber, wordCount, t);
-			}
-
-		return true;
-		%}
-
-	# REQUEST FC=22
-	function deliver_MaskWriteRegReq(tid: uint16, pid: uint16, uid: uint8, fc: uint8, ref: uint16, andMask: uint16, orMask: uint16): bool
-		%{
-		if ( ::modbus_mask_write_request )
-			{
-			BifEvent::generate_modbus_mask_write_request(connection()->bro_analyzer(),
-								     connection()->bro_analyzer()->Conn(),
-								     is_orig(), tid, pid, uid, fc, ref, andMask, orMask);
-			}
-
-		return true;
-		%}
-
-	# REQUEST FC=23
-	function deliver_ReadWriteRegReq(doMulti: ReadWriteRegistersRequest, tid: uint16, pid: uint16, uid: uint8, fc: uint16, len: uint16): bool
-		%{
-		VectorVal* t = new VectorVal(new VectorType(base_type(TYPE_INT)));
-
-		for ( unsigned int i = 0; i < (${doMulti.registerValues})->size(); ++i )
-			{
-			Val* r = new Val(((*doMulti->registerValues())[i]), TYPE_INT);
-			t->Assign(i, r, 0, OP_ASSIGN);
-			}
-
-		if ( ::modbus_read_write_request )
-			{
-			BifEvent::generate_modbus_read_write_request(connection()->bro_analyzer(),
-								     connection()->bro_analyzer()->Conn(),
-								     is_orig(), t, tid, pid, uid, fc, ${doMulti.referenceNumberRead}, ${doMulti.wordCountRead}, ${doMulti.referenceNumberWrite}, ${doMulti.wordCountWrite}, ${doMulti.byteCount}, len);
-			}
-
-		return true;
-		%}
-
-	# REQUEST FC=24
-	function deliver_ReadFIFOReq(tid: uint16, pid: uint16, uid: uint8, fc: uint8, ref: uint16): bool
-		%{
-		if ( ::modbus_read_FIFO_request )
-			{
-			BifEvent::generate_modbus_read_FIFO_request(connection()->bro_analyzer(),
-								    connection()->bro_analyzer()->Conn(),
-								    is_orig(), tid, pid, uid, fc, ref);
-			}
-
-		return true;
-		%}
-
-	# RESPONSE FC=1
-	function deliver_ReadCoilsRes(tid: uint16, pid: uint16, uid: uint8, fc: uint8, bcount: uint8, bits: bytestring): bool
-		%{
-		if ( ::modbus_read_coils_response )
-			{
-			BifEvent::generate_modbus_read_coils_response(connection()->bro_analyzer(),
-								      connection()->bro_analyzer()->Conn(),
-								      is_orig(), tid, pid, uid, fc, bcount, new StringVal(bits.length(), (const char*) bits.data()));
-			}
-
-		return true;
-		%}
-
-	# RESPONSE FC=2
-	function deliver_ReadInputDiscRes(tid: uint16, pid: uint16, uid: uint8, fc: uint8, bcount: uint8, bits: bytestring): bool
-		%{
-		if ( ::modbus_read_input_discretes_response )
-			{
-			BifEvent::generate_modbus_read_input_discretes_response(connection()->bro_analyzer(),
-										connection()->bro_analyzer()->Conn(),
-										is_orig(), tid, pid, uid, fc, bcount, new StringVal(bits.length(), (const char*) bits.data()));
-			}
-
-		return true;
-		%}
-
-	# RESPONSE FC=3
-	function deliver_ReadMultiRegRes( doMulti: ReadMultipleRegistersResponse, tid: uint16, pid: uint16, uid: uint8, fc: uint16, len: uint16): bool
-		%{
-		VectorVal* t = new VectorVal(new VectorType(base_type(TYPE_INT)));
-
-		for ( unsigned int i = 0; i < (${doMulti.registers})->size(); ++i )
-			{
-			Val* r = new Val(((*doMulti->registers())[i]), TYPE_INT);
-			t->Assign(i, r, 0, OP_ASSIGN);
-			}
-
-		if ( ::modbus_read_multi_response )
-			{
-			BifEvent::generate_modbus_read_multi_response(connection()->bro_analyzer(),
-								      connection()->bro_analyzer()->Conn(),
-								      is_orig(), t, tid, pid, uid, fc, ${doMulti.byteCount}, len);
-			}
-
-		return true;
-		%}
-
-	# RESPONSE FC=4
-	function deliver_ReadInputRegRes( doMulti: ReadInputRegistersResponse, tid: uint16, pid: uint16, uid: uint8, fc: uint16, len: uint16): bool
-		%{
-		VectorVal* t = new VectorVal(new VectorType(base_type(TYPE_INT)));
-
-		for ( unsigned int i = 0; i < (${doMulti.registers})->size(); ++i )
-			{
-			Val* r = new Val(((*doMulti->registers())[i]), TYPE_INT);
-			t->Assign(i, r, 0, OP_ASSIGN);
-			}
-
-		if ( ::modbus_read_input_response )
-			{
-			BifEvent::generate_modbus_read_input_response(connection()->bro_analyzer(),
-								      connection()->bro_analyzer()->Conn(),
-								      is_orig(), t, tid, pid, uid, fc, ${doMulti.byteCount}, len);
-			}
-
-		return true;
-		%}
-
-	# RESPONSE FC=5
-	function deliver_WriteCoilRes(tid: uint16, pid: uint16, uid: uint8, fc: uint8, ref: uint16, onOff: uint8, other: uint8): bool
-		%{
-		if ( ::modbus_write_coil_response )
-			{
-			BifEvent::generate_modbus_write_coil_response(connection()->bro_analyzer(),
-								      connection()->bro_analyzer()->Conn(),
-								      is_orig(), tid, pid, uid, fc, ref, onOff, other);
-			}
-
-		return true;
-		%}
-
-	# RESPONSE FC=6
-	function deliver_WriteSingleRegRes(tid: uint16, pid: uint16, uid: uint8, fc: uint8, len: uint16, ref: uint16, value: uint16): bool
-		%{
-		if ( ::modbus_write_single_response)
-			{
-			BifEvent::generate_modbus_write_single_response(connection()->bro_analyzer(),
-									connection()->bro_analyzer()->Conn(),
-									is_orig(), tid, pid, uid, fc, len, ref, value);
-			}
-
-		return true;
-		%}
-
-
-	# RESPONSE FC=15
-	function deliver_ForceMultiCoilsRes(tid: uint16, pid: uint16, uid: uint8, fc: uint8, ref: uint16, bitCount: uint16): bool
-		%{
-		if ( ::modbus_force_coils_response)
-			{
-			BifEvent::generate_modbus_force_coils_response(connection()->bro_analyzer(),
-								       connection()->bro_analyzer()->Conn(),
-								       is_orig(), tid, pid, uid, fc, ref, bitCount);
-			}
-
-		return true;
-		%}
-
-	# RESPONSE FC=16
-	function deliver_WriteMultiRegRes(tid: uint16, pid: uint16, uid: uint8, fc: uint8, ref: uint16, wcount: uint16, len: uint16): bool
-		%{
-		if ( ::modbus_write_multi_response)
-			{
-			BifEvent::generate_modbus_write_multi_response(connection()->bro_analyzer(),
-								       connection()->bro_analyzer()->Conn(),
-								       is_orig(), tid, pid, uid, fc, ref, wcount, len);
-			}
-
-		return true;
-		%}
-
-	# RESPONSE FC=20
-	function deliver_ReadReferenceRes(tid: uint16, pid: uint16, uid: uint8, fc: uint8, byteCount: uint8, reference:ReferenceResponse[]): bool
-		%{
-		VectorVal* t = new VectorVal(new VectorType(base_type(TYPE_INT)));
-
-		for ( unsigned int i = 0; i < (${reference}->size()); ++i )
-			{
-			Val* r = new Val((${reference[i].byteCount}), TYPE_INT);
-			t->Assign(i, r, 0, OP_ASSIGN);
-
-			Val* k = new Val((${reference[i].refType}), TYPE_INT);
-			t->Assign(i, k, 0, OP_ASSIGN);
-
-			for ( unsigned int j = 0; j<(${reference[i].registerValue}->size());++j)
-				{
-				k = new Val((${reference[i].registerValue[j]}), TYPE_INT);
-				t->Assign(i, k, 0, OP_ASSIGN);
-				}
-			}
-
-		if ( ::modbus_read_reference_response )
-			{
-			BifEvent::generate_modbus_read_reference_response(connection()->bro_analyzer(),
-									  connection()->bro_analyzer()->Conn(),
-									  is_orig(), tid, pid, uid, fc, byteCount, t);
-			}
-		return true;
-		%}
-
-	# RESPONSE FC=21
-	function deliver_WriteReferenceRes(tid: uint16, pid: uint16, uid: uint8, fc: uint8, byteCount: uint8, reference:ReferenceWithData[]): bool
-		%{
-		VectorVal* t = new VectorVal(new VectorType(base_type(TYPE_INT)));
-
-		for ( unsigned int i = 0; i < (${reference}->size()); ++i )
-			{
-			Val* r = new Val((${reference[i].refType}), TYPE_INT);
-			t->Assign(i, r, 0, OP_ASSIGN);
-
-			Val* k = new Val((${reference[i].refNumber}), TYPE_INT);
-			t->Assign(i, k, 0, OP_ASSIGN);
-
-			Val* n = new Val((${reference[i].wordCount}), TYPE_INT);
-			t->Assign(i, n, 0, OP_ASSIGN);
-
-			for ( unsigned int j = 0; j<(${reference[i].registerValue}->size());++j)
-				{
-				k = new Val((${reference[i].registerValue[j]}), TYPE_INT);
-				t->Assign(i, k, 0, OP_ASSIGN);
-				}
-			}
-
-		if ( ::modbus_write_reference_response )
-			{
-			BifEvent::generate_modbus_write_reference_response(connection()->bro_analyzer(),
-									   connection()->bro_analyzer()->Conn(),
-									   is_orig(), tid, pid, uid, fc, byteCount, t);
-			}
-
-		return true;
-		%}
-
-	# RESPONSE FC=22
-	function deliver_MaskWriteRegRes(tid: uint16, pid: uint16, uid: uint8, fc: uint8, ref: uint16, andMask: uint16, orMask: uint16): bool
-		%{
-		if ( ::modbus_mask_write_response )
-			{
-			BifEvent::generate_modbus_mask_write_response(connection()->bro_analyzer(),
-								      connection()->bro_analyzer()->Conn(),
-								      is_orig(), tid, pid, uid, fc, ref, andMask, orMask);
-			}
-		return true;
-		%}
-
-	# RESPONSE FC=23
-	function deliver_ReadWriteRegRes(doMulti: ReadWriteRegistersResponse, tid: uint16, pid: uint16, uid: uint8, fc: uint16, len: uint16): bool
-		%{
-		VectorVal* t = new VectorVal(new VectorType(base_type(TYPE_INT)));
-
-		for ( unsigned int i = 0; i < (${doMulti.registerValues})->size(); ++i )
-			{
-			Val* r = new Val(((*doMulti->registerValues())[i]), TYPE_INT);
-			t->Assign(i, r, 0, OP_ASSIGN);
-			}
-
-		if ( ::modbus_read_write_response )
-			{
-			BifEvent::generate_modbus_read_write_response(connection()->bro_analyzer(),
-								      connection()->bro_analyzer()->Conn(),
-								      is_orig(), t, tid, pid, uid, fc, ${doMulti.byteCount}, len);
-			}
-
-		return true;
-		%}
-
-	# RESPONSE FC=24
-	function deliver_ReadFIFORes( doMulti: ReadFIFOQueueResponse, tid: uint16, pid: uint16, uid: uint8, fc: uint16): bool
-		%{
-		VectorVal* t = new VectorVal(new VectorType(base_type(TYPE_INT)));
-
-		for ( unsigned int i = 0; i < (${doMulti.registerData})->size(); ++i )
-			{
-			Val* r = new Val(((*doMulti->registerData())[i]), TYPE_INT);
-			t->Assign(i, r, 0, OP_ASSIGN);
-			}
-
-		if ( ::modbus_read_FIFO_response )
-			{
-			BifEvent::generate_modbus_read_FIFO_response(connection()->bro_analyzer(),
-								     connection()->bro_analyzer()->Conn(),
-								     is_orig(), t, tid, pid, uid, fc, ${doMulti.byteCount});
+			BifEvent::generate_modbus_message(connection()->bro_analyzer(),
+			                                  connection()->bro_analyzer()->Conn(),
+			                                  HeaderToBro(header),
+			                                  is_orig());
 			}
 
 		return true;
 		%}
 
 	# EXCEPTION
-	function deliver_Exception(tid: uint16, pid: uint16, uid: uint8, fc: uint8, code: uint8): bool
+	function deliver_Exception(header: ModbusTCP_TransportHeader, message: Exception): bool
 		%{
-		if ( ::modbus_exception)
+		if ( ::modbus_exception )
 			{
 			BifEvent::generate_modbus_exception(connection()->bro_analyzer(),
-							    connection()->bro_analyzer()->Conn(),
-							    is_orig(), tid, pid, uid, fc, code);
+			                                    connection()->bro_analyzer()->Conn(),
+			                                    HeaderToBro(header),
+			                                    ${message.code});
 			}
 
 		return true;
 		%}
 
-	# REQUEST FC=7
-	function deliver_ReadExceptStatReq(tid: uint16, pid: uint16, uid: uint8, fc: uint8, len: uint16): bool
+	# REQUEST FC=1
+	function deliver_ReadCoilsRequest(header: ModbusTCP_TransportHeader, message: ReadCoilsRequest): bool
 		%{
-		if ( ::modbus_read_except_request)
+		if ( ::modbus_read_coils_request )
 			{
-			BifEvent::generate_modbus_read_except_request(connection()->bro_analyzer(),
-								      connection()->bro_analyzer()->Conn(),
-								      is_orig(), tid, pid, uid, fc, len);
+			BifEvent::generate_modbus_read_coils_request(connection()->bro_analyzer(),
+			                                             connection()->bro_analyzer()->Conn(),
+			                                             HeaderToBro(header),
+			                                             ${message.start_address}, 
+			                                             ${message.quantity});
 			}
 
 		return true;
 		%}
 
-	# RESPONSE FC=7
-	function deliver_ReadExceptStatRes(tid: uint16, pid: uint16, uid: uint8, fc: uint8, status: uint8, len: uint16): bool
+	# RESPONSE FC=1
+	function deliver_ReadCoilsResponse(header: ModbusTCP_TransportHeader, message: ReadCoilsResponse): bool
 		%{
-		if ( ::modbus_read_except_response)
+		if ( ::modbus_read_coils_response )
 			{
-			BifEvent::generate_modbus_read_except_response(connection()->bro_analyzer(),
-								       connection()->bro_analyzer()->Conn(),
-								       is_orig(), tid, pid, uid, fc, status, len);
+			BifEvent::generate_modbus_read_coils_response(connection()->bro_analyzer(),
+			                                              connection()->bro_analyzer()->Conn(),
+			                                              HeaderToBro(header),
+			                                              bytestring_to_coils(${message.bits}, ${message.bits}.length()*8));
+			}
+		return true;
+		%}
+
+	# REQUEST FC=2
+	function deliver_ReadDiscreteInputsRequest(header: ModbusTCP_TransportHeader, message: ReadDiscreteInputsRequest): bool
+		%{
+		if ( ::modbus_read_discrete_inputs_request )
+			{
+			BifEvent::generate_modbus_read_discrete_inputs_request(connection()->bro_analyzer(),
+			                                                       connection()->bro_analyzer()->Conn(),
+			                                                       HeaderToBro(header),
+			                                                       ${message.start_address}, ${message.quantity});
+			}
+
+		return true;
+		%}
+
+	# RESPONSE FC=2
+	function deliver_ReadDiscreteInputsResponse(header: ModbusTCP_TransportHeader, message: ReadDiscreteInputsResponse): bool
+		%{
+		if ( ::modbus_read_discrete_inputs_response )
+			{
+			BifEvent::generate_modbus_read_discrete_inputs_response(connection()->bro_analyzer(),
+			                                                        connection()->bro_analyzer()->Conn(),
+			                                                        HeaderToBro(header),
+			                                                        bytestring_to_coils(${message.bits}, ${message.bits}.length()*8));
+			}
+
+		return true;
+		%}
+
+
+	# REQUEST FC=3
+	function deliver_ReadHoldingRegistersRequest(header: ModbusTCP_TransportHeader, message: ReadHoldingRegistersRequest): bool
+		%{
+		if ( ::modbus_read_holding_registers_request )
+			{
+			BifEvent::generate_modbus_read_holding_registers_request(connection()->bro_analyzer(),
+			                                                         connection()->bro_analyzer()->Conn(),
+			                                                         HeaderToBro(header),
+			                                                         ${message.start_address}, ${message.quantity});
+			}
+
+		return true;
+		%}
+
+	# RESPONSE FC=3
+	function deliver_ReadHoldingRegistersResponse(header: ModbusTCP_TransportHeader, message: ReadHoldingRegistersResponse): bool
+		%{
+		if ( ::modbus_read_holding_registers_response )
+			{
+			VectorVal* t = new VectorVal(BifType::Vector::ModbusRegisters);
+			for ( unsigned int i=0; i < ${message.registers}->size(); ++i )
+				{
+				Val* r = new Val(${message.registers[i]}, TYPE_COUNT);
+				t->Assign(i, r, 0, OP_ASSIGN);
+				}
+
+			BifEvent::generate_modbus_read_holding_registers_response(connection()->bro_analyzer(),
+			                                                          connection()->bro_analyzer()->Conn(),
+			                                                          HeaderToBro(header), 
+			                                                          t);
+			}
+
+		return true;
+		%}
+
+
+	# REQUEST FC=4
+	function deliver_ReadInputRegistersRequest(header: ModbusTCP_TransportHeader, message: ReadInputRegistersRequest): bool
+		%{
+		if ( ::modbus_read_input_registers_request )
+			{
+			BifEvent::generate_modbus_read_input_registers_request(connection()->bro_analyzer(),
+			                                                       connection()->bro_analyzer()->Conn(),
+			                                                       HeaderToBro(header),
+			                                                       ${message.start_address}, ${message.quantity});
+			}
+
+		return true;
+		%}
+
+	# RESPONSE FC=4
+	function deliver_ReadInputRegistersResponse(header: ModbusTCP_TransportHeader, message: ReadInputRegistersResponse): bool
+		%{
+		if ( ::modbus_read_input_registers_response )
+			{
+			VectorVal* t = new VectorVal(BifType::Vector::ModbusRegisters);
+			for ( unsigned int i=0; i < (${message.registers})->size(); ++i )
+				{
+				Val* r = new Val(${message.registers[i]}, TYPE_COUNT);
+				t->Assign(i, r, 0, OP_ASSIGN);
+				}
+
+			BifEvent::generate_modbus_read_input_registers_response(connection()->bro_analyzer(),
+			                                                        connection()->bro_analyzer()->Conn(),
+			                                                        HeaderToBro(header), t);
+			}
+
+		return true;
+		%}
+
+
+	# REQUEST FC=5
+	function deliver_WriteSingleCoilRequest(header: ModbusTCP_TransportHeader, message: WriteSingleCoilRequest): bool
+		%{
+		if ( ::modbus_write_single_coil_request )
+			{
+			BifEvent::generate_modbus_write_single_coil_request(connection()->bro_analyzer(),
+			                                                    connection()->bro_analyzer()->Conn(),
+			                                                    HeaderToBro(header),
+			                                                    ${message.start_address}, 
+			                                                    ${message.on_off}, ${message.other});
+			}
+
+		return true;
+		%}
+
+	# RESPONSE FC=5
+	function deliver_WriteSingleCoilResponse(header: ModbusTCP_TransportHeader, message: WriteSingleCoilResponse): bool
+		%{
+		if ( ::modbus_write_single_coil_response )
+			{
+			BifEvent::generate_modbus_write_single_coil_response(connection()->bro_analyzer(),
+			                                                     connection()->bro_analyzer()->Conn(),
+			                                                     HeaderToBro(header),
+			                                                     ${message.start_address}, 
+			                                                     ${message.on_off}, ${message.other});
+			}
+
+		return true;
+		%}
+
+
+	# REQUEST FC=6
+	function deliver_WriteSingleRegisterRequest(header: ModbusTCP_TransportHeader, message: WriteSingleRegisterRequest): bool
+		%{
+		if ( ::modbus_write_single_register_request )
+			{
+			BifEvent::generate_modbus_write_single_register_request(connection()->bro_analyzer(),
+			                                                        connection()->bro_analyzer()->Conn(),
+			                                                        HeaderToBro(header),
+			                                                        ${message.start_address}, ${message.value});
+			}
+
+		return true;
+		%}
+
+	# RESPONSE FC=6
+	function deliver_WriteSingleRegisterResponse(header: ModbusTCP_TransportHeader, message: WriteSingleRegisterResponse): bool
+		%{
+		if ( ::modbus_write_single_register_response )
+			{
+			BifEvent::generate_modbus_write_single_register_response(connection()->bro_analyzer(),
+			                                                         connection()->bro_analyzer()->Conn(),
+			                                                         HeaderToBro(header),
+			                                                         ${message.start_address}, ${message.value});
+			}
+
+		return true;
+		%}
+
+
+	# REQUEST FC=15
+	function deliver_WriteMultipleCoilsRequest(header: ModbusTCP_TransportHeader, message: WriteMultipleCoilsRequest): bool
+		%{
+		if ( ::modbus_write_multiple_coils_request )
+			{
+			BifEvent::generate_modbus_write_multiple_coils_request(connection()->bro_analyzer(),
+			                                                       connection()->bro_analyzer()->Conn(),
+			                                                       HeaderToBro(header),
+			                                                       ${message.start_address}, 
+			                                                       bytestring_to_coils(${message.coils}, ${message.quantity}));
+			}
+
+		return true;
+		%}
+
+	# RESPONSE FC=15
+	function deliver_WriteMultipleCoilsResponse(header: ModbusTCP_TransportHeader, message: WriteMultipleCoilsResponse): bool
+		%{
+		if ( ::modbus_write_multiple_coils_response )
+			{
+			BifEvent::generate_modbus_write_multiple_coils_response(connection()->bro_analyzer(),
+			                                                        connection()->bro_analyzer()->Conn(),
+			                                                        HeaderToBro(header),
+			                                                        ${message.start_address}, ${message.quantity});
+			}
+
+		return true;
+		%}
+
+
+	# REQUEST FC=16
+	function deliver_WriteMultipleRegistersRequest(header: ModbusTCP_TransportHeader, message: WriteMultipleRegistersRequest): bool
+		%{
+		if ( ::modbus_write_multiple_registers_request )
+			{
+			VectorVal * t = new VectorVal(BifType::Vector::ModbusRegisters);
+			for ( unsigned int i = 0; i < (${message.registers}->size()); ++i )
+				{
+				Val* r = new Val(${message.registers[i]}, TYPE_COUNT);
+				t->Assign(i, r, 0, OP_ASSIGN);
+				}
+
+				BifEvent::generate_modbus_write_multiple_registers_request(connection()->bro_analyzer(),
+				                                                           connection()->bro_analyzer()->Conn(),
+				                                                           HeaderToBro(header),
+				                                                           ${message.start_address}, t);
+			}
+
+		return true;
+		%}
+
+	# RESPONSE FC=16
+	function deliver_WriteMultipleRegistersResponse(header: ModbusTCP_TransportHeader, message: WriteMultipleRegistersResponse): bool
+		%{
+		if ( ::modbus_write_multiple_registers_response )
+			{
+			BifEvent::generate_modbus_write_multiple_registers_response(connection()->bro_analyzer(),
+			                                                            connection()->bro_analyzer()->Conn(),
+			                                                            HeaderToBro(header),
+			                                                            ${message.start_address}, ${message.quantity});
+			}
+
+		return true;
+		%}
+
+	# REQUEST FC=20
+	function deliver_ReadFileRecordRequest(header: ModbusTCP_TransportHeader, message: ReadFileRecordRequest): bool
+		%{
+		if ( ::modbus_read_file_record_request )
+			{
+			//TODO: this need to be a vector of some Reference Request record type
+			//VectorVal *t = new VectorVal(new VectorType(base_type(TYPE_COUNT)));
+			//for ( unsigned int i = 0; i < (${message.references}->size()); ++i )
+			//	{
+			//	Val* r = new Val((${message.references[i].ref_type}), TYPE_COUNT);
+			//	t->Assign(i, r, 0, OP_ASSIGN);
+			//
+			//	Val* k = new Val((${message.references[i].file_num}), TYPE_COUNT);
+			//	t->Assign(i, k, 0, OP_ASSIGN);
+			//
+			//	Val* l = new Val((${message.references[i].record_num}), TYPE_COUNT);
+			//	t->Assign(i, l, 0, OP_ASSIGN);
+			//	}
+
+			BifEvent::generate_modbus_read_file_record_request(connection()->bro_analyzer(),
+			                                                   connection()->bro_analyzer()->Conn(),
+			                                                   HeaderToBro(header));
+			}
+
+		return true;
+		%}
+
+	# RESPONSE FC=20
+	function deliver_ReadFileRecordResponse(header: ModbusTCP_TransportHeader, message: ReadFileRecordResponse): bool
+		%{
+		if ( ::modbus_read_file_record_response )
+			{
+			//VectorVal *t = new VectorVal(new VectorType(base_type(TYPE_COUNT)));
+			//for ( unsigned int i = 0; i < ${message.references}->size(); ++i )
+			//	{
+			//	//TODO: work the reference type in here somewhere
+			//	Val* r = new Val(${message.references[i].record_data}), TYPE_COUNT);
+			//	t->Assign(i, r, 0, OP_ASSIGN);
+			//	}
+
+			BifEvent::generate_modbus_read_file_record_response(connection()->bro_analyzer(),
+			                                                    connection()->bro_analyzer()->Conn(),
+			                                                    HeaderToBro(header));
+			}
+
+		return true;
+		%}
+
+	# REQUEST FC=21
+	function deliver_WriteFileRecordRequest(header: ModbusTCP_TransportHeader, message: WriteFileRecordRequest): bool
+		%{
+		if ( ::modbus_write_file_record_request )
+			{
+			//VectorVal* t = new VectorVal(new VectorType(base_type(TYPE_COUNT)));
+			//for ( unsigned int i = 0; i < (${message.references}->size()); ++i )
+			//	{
+			//	Val* r = new Val((${message.references[i].ref_type}), TYPE_COUNT);
+			//	t->Assign(i, r, 0, OP_ASSIGN);
+//
+			//	Val* k = new Val((${message.references[i].file_num}), TYPE_COUNT);
+			//	t->Assign(i, k, 0, OP_ASSIGN);
+//
+			//	Val* n = new Val((${message.references[i].record_num}), TYPE_COUNT);
+			//	t->Assign(i, n, 0, OP_ASSIGN);
+//
+			//	for ( unsigned int j = 0; j < (${message.references[i].register_value}->size()); ++j )
+			//		{
+			//		k = new Val((${message.references[i].register_value[j]}), TYPE_COUNT);
+			//		t->Assign(i, k, 0, OP_ASSIGN);
+			//		}
+			//	}
+
+			BifEvent::generate_modbus_write_file_record_request(connection()->bro_analyzer(),
+			                                                    connection()->bro_analyzer()->Conn(),
+			                                                    HeaderToBro(header));
+			}
+
+		return true;
+		%}
+
+
+	# RESPONSE FC=21
+	function deliver_WriteFileRecordResponse(header: ModbusTCP_TransportHeader, message: WriteFileRecordResponse): bool
+		%{
+		if ( ::modbus_write_file_record_response )
+			{
+			//VectorVal* t = new VectorVal(new VectorType(base_type(TYPE_COUNT)));
+			//for ( unsigned int i = 0; i < (${messages.references}->size()); ++i )
+			//	{
+			//	Val* r = new Val((${message.references[i].ref_type}), TYPE_COUNT);
+			//	t->Assign(i, r, 0, OP_ASSIGN);
+//
+			//	Val* f = new Val((${message.references[i].file_num}), TYPE_COUNT);
+			//	t->Assign(i, f, 0, OP_ASSIGN);
+//
+			//	Val* rn = new Val((${message.references[i].record_num}), TYPE_COUNT);
+			//	t->Assign(i, rn, 0, OP_ASSIGN);
+//
+			//	for ( unsigned int j = 0; j<(${message.references[i].register_value}->size()); ++j )
+			//		{
+			//		Val* k = new Val((${message.references[i].register_value[j]}), TYPE_COUNT);
+			//		t->Assign(i, k, 0, OP_ASSIGN);
+			//		}
+
+			BifEvent::generate_modbus_write_file_record_response(connection()->bro_analyzer(),
+			                                                     connection()->bro_analyzer()->Conn(),
+			                                                     HeaderToBro(header));
+			}
+
+		return true;
+		%}
+
+	# REQUEST FC=22
+	function deliver_MaskWriteRegisterRequest(header: ModbusTCP_TransportHeader, message: MaskWriteRegisterRequest): bool
+		%{
+		if ( ::modbus_mask_write_register_request )
+			{
+			BifEvent::generate_modbus_mask_write_register_request(connection()->bro_analyzer(),
+			                                                      connection()->bro_analyzer()->Conn(),
+			                                                      HeaderToBro(header),
+			                                                      ${message.start_address},
+			                                                      ${message.and_mask}, ${message.or_mask});
+			}
+
+		return true;
+		%}
+
+	# RESPONSE FC=22
+	function deliver_MaskWriteRegisterResponse(header: ModbusTCP_TransportHeader, message: MaskWriteRegisterResponse): bool
+		%{
+		if ( ::modbus_mask_write_register_response )
+			{
+			BifEvent::generate_modbus_mask_write_register_response(connection()->bro_analyzer(),
+			                                                       connection()->bro_analyzer()->Conn(),
+			                                                       HeaderToBro(header),
+			                                                       ${message.start_address},
+			                                                       ${message.and_mask}, ${message.or_mask});
+			}
+		
+		return true;
+		%}
+
+	# REQUEST FC=23
+	function deliver_ReadWriteMultipleRegistersRequest(header: ModbusTCP_TransportHeader, message: ReadWriteMultipleRegistersRequest): bool
+		%{
+		if ( ::modbus_read_write_multiple_registers_request )
+			{
+			VectorVal* t = new VectorVal(BifType::Vector::ModbusRegisters);
+			for ( unsigned int i = 0; i < ${message.write_register_values}->size(); ++i )
+				{
+				Val* r = new Val(${message.write_register_values[i]}, TYPE_COUNT);
+				t->Assign(i, r, 0, OP_ASSIGN);
+				}
+
+			BifEvent::generate_modbus_read_write_multiple_registers_request(connection()->bro_analyzer(),
+			                                                                connection()->bro_analyzer()->Conn(),
+			                                                                HeaderToBro(header),
+			                                                                ${message.read_start_address},
+			                                                                ${message.read_quantity}, 
+			                                                                ${message.write_start_address}, 
+			                                                                t);
+			}
+
+		return true;
+		%}
+
+	# RESPONSE FC=23
+	function deliver_ReadWriteMultipleRegistersResponse(header: ModbusTCP_TransportHeader, message: ReadWriteMultipleRegistersResponse): bool
+		%{
+		if ( ::modbus_read_write_multiple_registers_response )
+			{
+			VectorVal* t = new VectorVal(BifType::Vector::ModbusRegisters);
+			for ( unsigned int i = 0; i < ${message.registers}->size(); ++i )
+				{
+				Val* r = new Val(${message.registers[i]}, TYPE_COUNT);
+				t->Assign(i, r, 0, OP_ASSIGN);
+				}
+
+			BifEvent::generate_modbus_read_write_multiple_registers_response(connection()->bro_analyzer(),
+			                                                                 connection()->bro_analyzer()->Conn(),
+			                                                                 HeaderToBro(header), t);
+			}
+
+		return true;
+		%}
+
+	# REQUEST FC=24
+	function deliver_ReadFIFOQueueRequest(header: ModbusTCP_TransportHeader, message: ReadFIFOQueueRequest): bool
+		%{
+		if ( ::modbus_read_fifo_queue_request )
+			{
+			BifEvent::generate_modbus_read_fifo_queue_request(connection()->bro_analyzer(),
+			                                                  connection()->bro_analyzer()->Conn(),
+			                                                  HeaderToBro(header),
+			                                                  ${message.start_address});
+			}
+
+		return true;
+		%}
+
+
+	# RESPONSE FC=24
+	function deliver_ReadFIFOQueueResponse(header: ModbusTCP_TransportHeader, message: ReadFIFOQueueResponse): bool
+		%{
+		if ( ::modbus_read_fifo_queue_response )
+			{
+			VectorVal* t = new VectorVal(new VectorType(base_type(TYPE_COUNT)));
+			for ( unsigned int i = 0; i < (${message.register_data})->size(); ++i )
+				{
+				Val* r = new Val(${message.register_data[i]}, TYPE_COUNT);
+				t->Assign(i, r, 0, OP_ASSIGN);
+				}
+
+			BifEvent::generate_modbus_read_fifo_queue_response(connection()->bro_analyzer(),
+			                                                   connection()->bro_analyzer()->Conn(),
+			                                                   HeaderToBro(header), t);
 			}
 
 		return true;

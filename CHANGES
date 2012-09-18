@@ -1,4 +1,12 @@
 
+2.1-1 | 2012-09-24 11:20:26 -0700
+
+  * Fix construction of ip6_ah (Authentication Header) record values.
+    Authentication Headers with a Payload Len field set to zero would cause
+    a crash due to invalid memory allocation because the previous code
+    assumed Payload Len would always be great enough to contain all
+    mandatory fields of the header. (Jon Siwek)
+
 2.1 | 2012-08-28 16:46:42 -0700
 
   * Make bif.identify_magic robust against FreeBSD's libmagic config.

@@ -479,18 +479,18 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 		RET_CONST(new PortVal(p, TRANSPORT_UNKNOWN))
 		}
 
-({D}"."){3}{D}		RET_CONST(new AddrVal(yytext))
-
-"0x"{HEX}+	RET_CONST(new Val(static_cast<bro_uint_t>(strtoull(yytext, 0, 16)), TYPE_COUNT))
-
-{H}("."{H})+		RET_CONST(dns_mgr->LookupHost(yytext))
-
 {FLOAT}{OWS}day(s?)	RET_CONST(new IntervalVal(atof(yytext),Days))
 {FLOAT}{OWS}hr(s?)	RET_CONST(new IntervalVal(atof(yytext),Hours))
 {FLOAT}{OWS}min(s?)	RET_CONST(new IntervalVal(atof(yytext),Minutes))
 {FLOAT}{OWS}sec(s?)	RET_CONST(new IntervalVal(atof(yytext),Seconds))
 {FLOAT}{OWS}msec(s?)	RET_CONST(new IntervalVal(atof(yytext),Milliseconds))
 {FLOAT}{OWS}usec(s?)	RET_CONST(new IntervalVal(atof(yytext),Microseconds))
+
+({D}"."){3}{D}		RET_CONST(new AddrVal(yytext))
+
+"0x"{HEX}+	RET_CONST(new Val(static_cast<bro_uint_t>(strtoull(yytext, 0, 16)), TYPE_COUNT))
+
+{H}("."{H})+		RET_CONST(dns_mgr->LookupHost(yytext))
 
 \"([^\\\n\"]|{ESCSEQ})*\"	{
 	const char* text = yytext;

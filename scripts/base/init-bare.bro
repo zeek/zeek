@@ -1135,10 +1135,10 @@ type ip6_ah: record {
 	rsv: count;
 	## Security Parameter Index.
 	spi: count;
-	## Sequence number.
-	seq: count;
-	## Authentication data.
-	data: string;
+	## Sequence number, unset in the case that *len* field is zero.
+	seq: count &optional;
+	## Authentication data, unset in the case that *len* field is zero.
+	data: string &optional;
 };
 
 ## Values extracted from an IPv6 ESP extension header.

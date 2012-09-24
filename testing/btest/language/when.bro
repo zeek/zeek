@@ -1,6 +1,9 @@
-# @TEST-EXEC: bro %INPUT >out
+# @TEST-EXEC: btest-bg-run test1 bro %INPUT
+# @TEST-EXEC: btest-bg-wait 10
+# @TEST-EXEC: mv test1/.stdout out
 # @TEST-EXEC: btest-diff out
 
+@load frameworks/communication/listen
 
 event bro_init()
 {
@@ -9,6 +12,7 @@ event bro_init()
 	when ( local h1name = lookup_addr(h1) )
 		{ 
 		print "lookup successful";
+		terminate();
 		}
 	print "done";
 }

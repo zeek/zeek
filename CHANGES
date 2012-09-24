@@ -1,4 +1,34 @@
 
+2.1-26 | 2012-09-23 08:46:03 -0700
+
+  * Add an item to FAQ page about broctl options. (Daniel Thayer)
+    
+  * Add more language tests. We now have tests of all built-in Bro
+    data types (including different representations of constant
+    values, and max./min. values), keywords, and operators (including
+    special properties of certain operators, such as short-circuit
+    evaluation and associativity). (Daniel Thayer)
+
+  * Fix construction of ip6_ah (Authentication Header) record values.
+
+    Authentication Headers with a Payload Len field set to zero would
+    cause a crash due to invalid memory allocation because the
+    previous code assumed Payload Len would always be great enough to
+    contain all mandatory fields of the header. (Jon Siwek)
+
+  * Update compile/dependency docs for OS X. (Jon Siwek)
+
+  * Adjusting Mac binary packaging script. Setting CMAKE_PREFIX_PATH
+    helps link against standard system libs instead of ones that come
+    from other package manager (e.g. MacPorts). (Jon Siwek)
+
+  * Adjusting some unit tests that do cluster communication. (Jon Siwek)
+
+  * Small change to non-blocking DNS initialization. (Jon Siwek)
+    
+  * Reorder a few statements in scan.l to make 1.5msecs etc work.
+    Adresses #872. (Bernhard Amann)
+
 2.1-6 | 2012-09-06 23:23:14 -0700
 
   * Fixed a bug where "a -= b" (both operands are intervals) was not

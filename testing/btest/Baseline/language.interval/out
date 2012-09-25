@@ -1,5 +1,6 @@
 type inference (PASS)
 type inference (PASS)
+type inference (PASS)
 optional space (PASS)
 plural/singular interval are same (PASS)
 different units with same numeric value (PASS)

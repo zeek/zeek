@@ -21,8 +21,7 @@ event bro_init()
 	local in13: interval = 120sec;
 	local in14: interval = 2min;
 	local in15: interval = -2hr;
-	# TODO: this one causes bro to fail
-	#local in16: interval = 2.5day;
+	local in16: interval = 2.5day;
 
 	# Constants with space and no letter "s"
 
@@ -45,15 +44,13 @@ event bro_init()
 	# Type inference
 
 	local in41 = 2 usec;
-	# TODO: this one causes bro to fail
-	#local in42 = 2.1usec;
+	local in42 = 2.1usec;
 	local in43 = 3usecs;
 
 	# Type inference tests
 
 	test_case( "type inference", type_name(in41) == "interval" );
-	# TODO: uncomment when bug is fixed
-	#test_case( "type inference", type_name(in42) == "interval" );
+	test_case( "type inference", type_name(in42) == "interval" );
 	test_case( "type inference", type_name(in43) == "interval" );
 
 	# Test various constant representations

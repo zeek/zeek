@@ -437,7 +437,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 	}
 
 {D}		{
-		RET_CONST(new Val(static_cast<bro_uint_t>(strtoul(yytext, (char**) NULL, 10)),
+		RET_CONST(new Val(static_cast<bro_uint_t>(strtoull(yytext, (char**) NULL, 10)),
 			  TYPE_COUNT))
 		}
 {FLOAT}		RET_CONST(new Val(atof(yytext), TYPE_DOUBLE))

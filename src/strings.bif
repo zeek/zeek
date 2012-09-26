@@ -552,15 +552,6 @@ function split_n%(str: string, re: pattern,
 	return do_split(str, re, 0, incl_sep, max_num_sep);
 	%}
 
-## Deprecated. Will be removed.
-# Reason: the parameter ``other`` does nothing.
-function split_complete%(str: string,
-		re: pattern, other: string_set,
-		incl_sep: bool, max_num_sep: count%): string_array
-	%{
-	return do_split(str, re, other->AsTableVal(), incl_sep, max_num_sep);
-	%}
-
 ## Substitutes a given replacement string for the first occurrence of a pattern
 ## in a given string.
 ##

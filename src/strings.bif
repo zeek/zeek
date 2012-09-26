@@ -311,15 +311,9 @@ static int match_prefix(int s_len, const char* s, int t_len, const char* t)
 	return 1;
 	}
 
-Val* do_split(StringVal* str_val, RE_Matcher* re, TableVal* other_sep,
-		int incl_sep, int max_num_sep)
+Val* do_split(StringVal* str_val, RE_Matcher* re, int incl_sep, int max_num_sep)
 	{
 	TableVal* a = new TableVal(string_array);
-	ListVal* other_strings = 0;
-
-	if ( other_sep && other_sep->Size() > 0 )
-		other_strings = other_sep->ConvertToPureList();
-
 	const u_char* s = str_val->Bytes();
 	int n = str_val->Len();
 	const u_char* end_of_s = s + n;
@@ -372,9 +366,6 @@ Val* do_split(StringVal* str_val, RE_Matcher* re, TableVal* other_sep,
 		if ( s > end_of_s )
 			reporter->InternalError("RegMatch in split goes beyond the string");
 		}
-
-	if ( other_strings )
-		delete other_strings;
 
 	return a;
 	}
@@ -483,7 +474,7 @@ Val* do_sub(StringVal* str_val, RE_Matcher* re, StringVal* repl, int do_all)
 ##
 function split%(str: string, re: pattern%): string_array
 	%{
-	return do_split(str, re, 0, 0, 0);
+	return do_split(str, re, 0, 0);
 	%}
 
 ## Splits a string *once* into a two-element array of strings according to a
@@ -503,7 +494,7 @@ function split%(str: string, re: pattern%): string_array
 ## .. bro:see:: split split_all split_n str_split
 function split1%(str: string, re: pattern%): string_array
 	%{
-	return do_split(str, re, 0, 0, 1);
+	return do_split(str, re, 0, 1);
 	%}
 
 ## Splits a string into an array of strings according to a pattern. This
@@ -523,7 +514,7 @@ function split1%(str: string, re: pattern%): string_array
 ## .. bro:see:: split split1 split_n str_split
 function split_all%(str: string, re: pattern%): string_array
 	%{
-	return do_split(str, re, 0, 1, 0);
+	return do_split(str, re, 1, 0);
 	%}
 
 ## Splits a string a given number of times into an array of strings according
@@ -549,7 +540,7 @@ function split_all%(str: string, re: pattern%): string_array
 function split_n%(str: string, re: pattern,
 		incl_sep: bool, max_num_sep: count%): string_array
 	%{
-	return do_split(str, re, 0, incl_sep, max_num_sep);
+	return do_split(str, re, incl_sep, max_num_sep);
 	%}
 
 ## Substitutes a given replacement string for the first occurrence of a pattern

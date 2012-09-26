@@ -5,11 +5,9 @@ module Intel;
 export {
 	## Files that will be read off disk
 	const read_files: set[string] = {} &redef;
-
-	global entry: event(desc: Input::EventDescription, tpe: Input::Event, item: Intel::Item);
 }
 
-event Intel::entry(desc: Input::EventDescription, tpe: Input::Event, item: Intel::Item)
+event Intel::read_entry(desc: Input::EventDescription, tpe: Input::Event, item: Intel::Item)
 	{
 	Intel::insert(item);
 	}
@@ -23,6 +21,6 @@ event bro_init() &priority=5
 		                  $mode=Input::REREAD,
 		                  $name=cat("intel-", a_file),
 		                  $fields=Intel::Item,
-		                  $ev=Intel::entry]);
+		                  $ev=Intel::read_entry]);
 		}
 	}

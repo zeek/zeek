@@ -1,5 +1,6 @@
 @load ./main
 @load ./input
+@load ./indexing
 
 # The cluster framework must be loaded first.
 @load base/frameworks/cluster
@@ -9,3 +10,6 @@
 @endif
 
 @load ./plugins/dns_zones
+
+
+@load ./http-user-agents

@@ -514,9 +514,6 @@ void BroFile::SetAttrs(Attributes* arg_attrs)
 			InitEncrypt(log_encryption_key->AsString()->CheckString());
 		}
 
-	if ( attrs->FindAttr(ATTR_DISABLE_PRINT_HOOK) )
-		DisablePrintHook();
-
 	if ( attrs->FindAttr(ATTR_RAW_OUTPUT) )
 		EnableRawOutput();
 

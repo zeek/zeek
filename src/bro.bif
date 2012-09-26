@@ -4858,7 +4858,7 @@ function file_size%(f: string%) : double
 	%}
 
 ## Disables sending :bro:id:`print_hook` events to remote peers for a given
-## file. This function is equivalent to :bro:attr:`&disable_print_hook`. In a
+## file. In a
 ## distributed setup, communicating Bro instances generate the event
 ## :bro:id:`print_hook` for each print statement and send it to the remote
 ## side. When disabled for a particular file, these events will not be
@@ -4874,7 +4874,7 @@ function disable_print_hook%(f: file%): any
 	%}
 
 ## Prevents escaping of non-ASCII characters when writing to a file.
-## This function is equivalent to :bro:attr:`&disable_print_hook`.
+## This function is equivalent to :bro:attr:`&raw_output`.
 ##
 ## f: The file to disable raw output for.
 ##

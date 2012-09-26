@@ -306,7 +306,6 @@ string	return TOK_STRING;
 subnet	return TOK_SUBNET;
 switch	return TOK_SWITCH;
 table	return TOK_TABLE;
-this	return TOK_THIS;
 time	return TOK_TIME;
 timeout	return TOK_TIMEOUT;
 timer	return TOK_TIMER;

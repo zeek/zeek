@@ -14,7 +14,7 @@
 %token TOK_NEXT TOK_OF TOK_PATTERN TOK_PATTERN_TEXT
 %token TOK_PORT TOK_PRINT TOK_RECORD TOK_REDEF
 %token TOK_REMOVE_FROM TOK_RETURN TOK_SCHEDULE TOK_SET
-%token TOK_STRING TOK_SUBNET TOK_SWITCH TOK_TABLE TOK_THIS
+%token TOK_STRING TOK_SUBNET TOK_SWITCH TOK_TABLE
 %token TOK_TIME TOK_TIMEOUT TOK_TIMER TOK_TYPE TOK_UNION TOK_VECTOR TOK_WHEN
 
 %token TOK_ATTR_ADD_FUNC TOK_ATTR_ATTR TOK_ATTR_ENCRYPT TOK_ATTR_DEFAULT
@@ -118,7 +118,6 @@ extern const char* g_curr_debug_error;
 
 #define YYLTYPE yyltype
 
-Expr* bro_this = 0;
 int in_init = 0;
 int in_record = 0;
 bool resolving_global_ID = false;
@@ -582,12 +581,6 @@ expr:
 			set_location(@1);
 			$1->Compile();
 			$$ = new ConstExpr(new PatternVal($1));
-			}
-
-	|	TOK_THIS
-			{
-			set_location(@1);
-			$$ = bro_this->Ref();
 			}
 
 	|       '|' expr '|'

@@ -26,8 +26,9 @@ export {
 	## e.g. prefix = "bro\_" would create types of bro_dns, bro_software, etc.
 	const type_prefix = "" &redef;
 
-	## The time before an ElasticSearch transfer will timeout.
-	## This is not working!
+	## The time before an ElasticSearch transfer will timeout. Time
+    ## specifications less than seconds result in a timeout value of 0, which
+    ## means "no timeout."
 	const transfer_timeout = 2secs;
 
 	## The batch size is the number of messages that will be queued up before

@@ -5,22 +5,20 @@
 
 module Intel;
 
-export {
-	global cluster_new_item: event(item: Item);
-	global cluster_updated_item: event(item: Item);
-
-	redef record Item += {
-		## This field is solely used internally for cluster transparency with
-		## the intelligence framework to avoid storms of intelligence data 
-		## swirling forever.  It allows data to propagate only a single time.
-		first_dispatch: bool &default=T;
-	};
-}
-
 # If this process is not a manager process, we don't want the full metadata
 @if ( Cluster::local_node_type() != Cluster::MANAGER )
-redef store_metadata = F;
+redef have_full_data = F;
 @endif
+
+global cluster_new_item: event(item: Item);
+global cluster_updated_item: event(item: Item);
+
+redef record Item += {
+	## This field is solely used internally for cluster transparency with
+	## the intelligence framework to avoid storms of intelligence data 
+	## swirling forever.  It allows data to propagate only a single time.
+	first_dispatch: bool &default=T;
+};
 
 # Primary intelligence distribution comes from manager.
 redef Cluster::manager2worker_events += /Intel::cluster_(new|updated)_item/;
@@ -28,30 +26,31 @@ redef Cluster::manager2worker_events += /Intel::cluster_(new|updated)_item/;
 redef Cluster::worker2manager_events += /Intel::(match_in_.*_no_items|cluster_(new|updated)_item)/;
 
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
-event Intel::match_in_conn_no_items(c: connection, found: Found)
+event Intel::match_in_conn_no_items(c: connection, seen: Seen) &priority=5
 	{
-	local items = lookup(found);
-	event Intel::match_in_conn(c, found, items);
+	event Intel::match_in_conn(c, seen, Intel::get_items(seen));
 	}
 @endif
 
-event Intel::cluster_new_item(item: Intel::Item)
+event Intel::cluster_new_item(item: Intel::Item) &priority=5
 	{
-	# Ignore locally generated events.
+	# Ignore locally generated events to avoid event storms.
 	if ( is_remote_event() )
 		Intel::insert(item);
 	}
 
-event Intel::cluster_updated_item(item: Intel::Item)
+event Intel::cluster_updated_item(item: Intel::Item) &priority=5
 	{
-	# Ignore locally generated events.
+	# Ignore locally generated events to avoid event storms.
 	if ( is_remote_event() )
 		Intel::insert(item);
 	}
 
-event Intel::new_item(item: Intel::Item)
+event Intel::new_item(item: Intel::Item) &priority=5
 	{
-	# The cluster manager always rebroadcasts intelligence
+	# The cluster manager always rebroadcasts intelligence.
+	# Workers redistribute it if it was locally generated on 
+	# the worker.
 	if ( Cluster::local_node_type() == Cluster::MANAGER ||
 	     item$first_dispatch )
 		{
@@ -60,7 +59,7 @@ event Intel::new_item(item: Intel::Item)
 		}
 	}
 
-event Intel::updated_item(item: Intel::Item)
+event Intel::updated_item(item: Intel::Item) &priority=5
 	{
 	# If this is the first time this item has been dispatched or this
 	# is a manager, send it over the cluster.

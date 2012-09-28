@@ -18,7 +18,7 @@ export {
 	## String data needs to be further categoried since it could represent
 	## and number of types of data.
 	type StrType: enum {
-		## A complete URL.
+		## A complete URL without the prefix "http://".
 		URL,
 		## User-Agent string, typically HTTP or mail message body.
 		USER_AGENT,
@@ -59,7 +59,7 @@ export {
 	## Enum to represent where data came from when it was discovered.
 	type Where: enum {
 		## A catchall value to represent data of unknown provenance.
-		ANYWHERE,
+		IN_ANYWHERE,
 	};
 
 	type Seen: record {
@@ -104,6 +104,8 @@ export {
 	## intelligence framework.
 	global new_item: event(item: Item);
 	global updated_item: event(item: Item);
+
+	global log_intel: event(rec: Info);
 }
 
 # Event to represent a match happening in a connection.  On clusters there
@@ -128,7 +130,7 @@ global data_store: DataStore;
 
 event bro_init() &priority=5
 	{
-	Log::create_stream(LOG, [$columns=Info]);
+	Log::create_stream(LOG, [$columns=Info, $ev=log_intel]);
 	}
 
 function find(s: Seen): bool
@@ -191,7 +193,6 @@ function get_items(s: Seen): set[Item]
 
 	return return_data;
 	}
-
 
 #global total_seen=0;
 #event bro_done()

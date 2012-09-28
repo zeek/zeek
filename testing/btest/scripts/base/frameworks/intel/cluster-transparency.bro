@@ -5,6 +5,7 @@
 # @TEST-EXEC: btest-bg-run worker-2  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-2 bro %INPUT
 # @TEST-EXEC: btest-bg-wait -k 10
 # @TEST-EXEC: btest-diff manager-1/.stdout
+# @TEST-EXEC: btest-diff manager-1/intel.log
 # @TEST-EXEC: btest-diff worker-1/.stdout
 # @TEST-EXEC: btest-diff worker-2/.stdout
 
@@ -19,6 +20,8 @@ redef Cluster::nodes = {
 @load base/frameworks/control
 
 module Intel;
+
+redef Log::default_rotation_interval=0sec;
 
 event remote_connection_handshake_done(p: event_peer)
 	{
@@ -49,17 +52,24 @@ event Intel::cluster_new_item(item: Intel::Item)
 			Intel::insert([$host=4.3.2.1,$meta=[$source="worker-2"]]);
 		}
 
-	# We're forcing worker-2 to die first when it has three intelligence items
+	# We're forcing worker-2 to do a lookup when it has three intelligence items
 	# which were distributed over the cluster (data inserted locally is resent).
 	if ( Cluster::node == "worker-2" )
 		{
 		++worker2_data;
 		if ( worker2_data == 3 )
 			{
-			print "terminating!";
-			event Control::shutdown_request();
+			# Now that everything is inserted, see if we can match on the data inserted
+			# by worker-1.
+			print "Doing a lookup";
+			Intel::seen([$host=123.123.123.123, $where=Intel::IN_ANYWHERE]);
 			}
 		}
+	}
+
+event Intel::log_intel(rec: Intel::Info)
+	{
+	event Control::shutdown_request();
 	}
 
 event remote_connection_closed(p: event_peer)

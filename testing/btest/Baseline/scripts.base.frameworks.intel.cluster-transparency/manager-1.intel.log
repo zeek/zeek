@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	intel
+#open	2012-09-28-18-50-43
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	seen.host	seen.str	seen.str_type	seen.where
+#types	time	string	addr	port	addr	port	addr	string	enum	enum
+1348858243.346443	-	-	-	-	-	123.123.123.123	-	-	Intel::IN_ANYWHERE
+#close	2012-09-28-18-50-53

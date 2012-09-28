@@ -1,7 +1,3 @@
-1.2.3.4
-{
-b,
-c,
-a
-}
-foobar
+cluster_new_item: 1.2.3.4 from source manager (from peer: manager-1)
+cluster_new_item: 123.123.123.123 from source worker-1 (from peer: manager-1)
+cluster_new_item: 4.3.2.1 from source worker-2 (from peer: manager-1)

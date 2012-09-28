@@ -88,7 +88,7 @@ export {
 	};
 
 	## Intelligence data manipulation functions.
-	global insert:      function(item: Item);
+	global insert: function(item: Item);
 
 	## Function to declare discovery of a piece of data in order to check
 	## it against known intelligence for matches.
@@ -192,21 +192,16 @@ function get_items(s: Seen): set[Item]
 	return return_data;
 	}
 
-event Intel::match(s: Seen, items: set[Item])
-	{
-	local info: Info = [$ts=network_time(), $seen=s];
 
-	if ( s?$conn )
-		{
-		info$uid = s$conn$uid;
-		info$id  = s$conn$id;
-		}
-
-	Log::write(Intel::LOG, info);
-	}
+#global total_seen=0;
+#event bro_done()
+#	{
+#	print fmt("total seen: %d", total_seen);
+#	}
 
 function Intel::seen(s: Seen)
 	{
+	#++total_seen;
 	if ( find(s) )
 		{
 		if ( have_full_data )
@@ -233,6 +228,19 @@ function has_meta(check: MetaData, metas: set[MetaData]): bool
 
 	# The records must not be equivalent if we made it this far.
 	return F;
+	}
+
+event Intel::match(s: Seen, items: set[Item])
+	{
+	local info: Info = [$ts=network_time(), $seen=s];
+
+	if ( s?$conn )
+		{
+		info$uid = s$conn$uid;
+		info$id  = s$conn$id;
+		}
+
+	Log::write(Intel::LOG, info);
 	}
 
 function insert(item: Item)
@@ -270,6 +278,7 @@ function insert(item: Item)
 		metas = data_store$string_data[item$str, item$str_type];
 		}
 
+	local updated = F;
 	if ( have_full_data )
 		{
 		for ( m in metas )
@@ -284,17 +293,16 @@ function insert(item: Item)
 				else
 					{
 					# Same source, different metadata means updated item.
-					event Intel::updated_item(item);
-					break;
+					updated = T;
 					}
-				}
-			else
-				{
-				event Intel::new_item(item);
-				break;
 				}
 			}
 		add metas[item$meta];
 		}
+	
+	if ( updated )
+		event Intel::updated_item(item);
+	else
+		event Intel::new_item(item);
 	}
 	

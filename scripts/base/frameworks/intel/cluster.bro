@@ -28,7 +28,7 @@ redef Cluster::worker2manager_events += /^Intel::(cluster_.*|match_no_items)/;
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
 event Intel::match_no_items(s: Seen) &priority=5
 	{
-	event Intel::match(c, s, Intel::get_items(s));
+	event Intel::match(s, Intel::get_items(s));
 	}
 @endif
 

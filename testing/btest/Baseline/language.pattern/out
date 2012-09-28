@@ -1,0 +1,8 @@
+type inference (PASS)
+equality operator (PASS)
+equality operator (order of operands) (PASS)
+inequality operator (PASS)
+inequality operator (order of operands) (PASS)
+in operator (PASS)
+in operator (PASS)
+!in operator (PASS)

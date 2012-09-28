@@ -126,7 +126,7 @@ type DataStore: record {
 	net_data:    table[subnet] of set[MetaData];
 	string_data: table[string, StrType] of set[MetaData];
 };
-global data_store: DataStore;
+global data_store: DataStore &redef;
 
 event bro_init() &priority=5
 	{

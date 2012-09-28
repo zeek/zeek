@@ -2,6 +2,7 @@
 ##! toward distributing intelligence information across clusters.
 
 @load base/frameworks/cluster
+@load ./input
 
 module Intel;
 
@@ -25,10 +26,30 @@ redef Cluster::manager2worker_events += /^Intel::cluster_.*$/;
 # If a worker finds intelligence and adds it, it should share it back to the manager.
 redef Cluster::worker2manager_events += /^Intel::(cluster_.*|match_no_items)$/;
 
+@if ( Cluster::local_node_type() != Cluster::MANAGER )
+redef Intel::data_store &synchronized;
+@endif
+
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
 event Intel::match_no_items(s: Seen) &priority=5
 	{
 	event Intel::match(s, Intel::get_items(s));
+	}
+
+global initial_sync = F;
+event remote_connection_handshake_done(p: event_peer)
+	{
+	# Insert the data once something is connected.
+	# This should only push the data to a single host where the 
+	# normal Bro synchronization should take over.
+	if ( ! initial_sync )
+		{
+		initial_sync = T;
+		for ( net in data_store$net_data )
+			event Intel::cluster_new_item([$net=net, $meta=[$source=""]]);
+		for ( [str, str_type] in data_store$string_data )
+			event Intel::cluster_new_item([$str=str, $str_type=str_type, $meta=[$source=""]]);
+		}
 	}
 @endif
 

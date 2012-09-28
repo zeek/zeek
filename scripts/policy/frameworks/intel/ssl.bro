@@ -1,13 +1,5 @@
 @load base/frameworks/intel
-
-export {
-	redef enum Intel::Where += {
-		SSL::IN_SERVER_CERT,
-		SSL::IN_CLIENT_CERT,
-		SSL::IN_SERVER_NAME,
-	};
-}
-
+@load ./where-locations
 
 event x509_certificate(c: connection, is_orig: bool, cert: X509, chain_idx: count, chain_len: count, der_cert: string)
 	{

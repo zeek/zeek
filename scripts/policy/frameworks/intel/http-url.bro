@@ -1,10 +1,5 @@
 @load base/frameworks/intel
-
-export {
-	redef enum Intel::Where += {
-		HTTP::IN_URL,
-	};
-}
+@load ./where-locations
 
 event http_message_done(c: connection, is_orig: bool, stat: http_message_stat)
 	{

@@ -1,10 +1,5 @@
 @load base/frameworks/intel
-
-export {
-	redef enum Intel::Where += {
-		HTTP::IN_HOST_HEADER,
-	};
-}
+@load ./where-locations
 
 event http_header(c: connection, is_orig: bool, name: string, value: string)
 	{

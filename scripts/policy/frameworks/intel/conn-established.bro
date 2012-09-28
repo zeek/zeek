@@ -1,11 +1,5 @@
 @load base/frameworks/intel
-
-export {
-	redef enum Intel::Where += {
-		Conn::IN_ORIG,
-		Conn::IN_RESP,
-	};
-}
+@load ./where-locations
 
 event connection_established(c: connection)
 	{

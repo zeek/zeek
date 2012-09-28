@@ -21,14 +21,14 @@ redef record Item += {
 };
 
 # Primary intelligence distribution comes from manager.
-redef Cluster::manager2worker_events += /Intel::cluster_(new|updated)_item/;
+redef Cluster::manager2worker_events += /^Intel::cluster_.*/;
 # If a worker finds intelligence and adds it, it should share it back to the manager.
-redef Cluster::worker2manager_events += /Intel::(match_in_.*_no_items|cluster_(new|updated)_item)/;
+redef Cluster::worker2manager_events += /^Intel::(cluster_.*|match_no_items)/;
 
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
-event Intel::match_in_conn_no_items(c: connection, seen: Seen) &priority=5
+event Intel::match_no_items(s: Seen) &priority=5
 	{
-	event Intel::match_in_conn(c, seen, Intel::get_items(seen));
+	event Intel::match(c, s, Intel::get_items(s));
 	}
 @endif
 

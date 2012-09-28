@@ -11,8 +11,7 @@ export {
 	redef enum Log::ID += { LOG };
 	
 	redef enum Notice::Type += {
-		## This notice should be used in all detector scripts to indicate 
-		## an intelligence based detection.
+		## Notice type to indicate an intelligence hit.
 		Detection,
 	};
 	
@@ -64,29 +63,42 @@ export {
 	};
 
 	type Seen: record {
-		host:      addr          &optional;
-		str:       string        &optional;
-		str_type:  StrType       &optional;
+		host:      addr          &optional &log;
+		str:       string        &optional &log;
+		str_type:  StrType       &optional &log;
 
-		where:     Where;
+		where:     Where         &log;
+		
+		conn:      connection    &optional;
+	};
+
+	type Info: record {
+		ts:   time    &log;
+
+		uid:  string  &log &optional;
+		id:   conn_id &log &optional;
+
+		seen: Seen    &log;
 	};
 
 	type PolicyItem: record {
-		pred:   function(seen: Seen, item: Item): bool &optional;
+		pred:   function(s: Seen, item: Item): bool &optional;
 
 		log_it: bool &default=T;
 	};
 
 	## Intelligence data manipulation functions.
 	global insert:      function(item: Item);
-	global delete_item: function(item: Item): bool;
 
 	## Function to declare discovery of a piece of data in order to check
 	## it against known intelligence for matches.
-	global seen_in_conn:  function(c: connection, seen: Seen);
+	global seen: function(s: Seen);
 
 	## Intelligence policy variable for handling matches.
-	const policy: set[PolicyItem] = {} &redef;
+	const policy: set[PolicyItem] = {
+	#	[$pred(s: Seen) = { return T; },
+	#	 $action=Intel::ACTION_LOG]
+	} &redef;
 
 	## API Events that indicate when various things happen internally within the 
 	## intelligence framework.
@@ -94,34 +106,40 @@ export {
 	global updated_item: event(item: Item);
 }
 
-## Event to represent a match happening in a connection.  On clusters there
-## is no assurance as to where this event will be generated so don't 
-## assume that arbitrary global state beyond the given data
-## will be available.
-global match_in_conn: event(c: connection, seen: Seen, items: set[Item]);
+# Event to represent a match happening in a connection.  On clusters there
+# is no assurance as to where this event will be generated so don't 
+# assume that arbitrary global state beyond the given data
+# will be available.
+global match: event(s: Seen, items: set[Item]);
 
 # Internal handler for conn oriented matches with no metadata based on the have_full_data setting.
-global match_in_conn_no_items: event(c: connection, seen: Seen);
+global match_no_items: event(s: Seen);
 
-## Optionally store metadata.  This is used internally depending on
-## if this is a cluster deployment or not.
+# Optionally store metadata.  This is used internally depending on
+# if this is a cluster deployment or not.
 const have_full_data = T &redef;
 
+# The in memory data structure for holding intelligence.
 type DataStore: record {
 	net_data:    table[subnet] of set[MetaData];
 	string_data: table[string, StrType] of set[MetaData];
 };
 global data_store: DataStore;
 
-function find(seen: Seen): bool
+event bro_init() &priority=5
 	{
-	if ( seen?$host && 
-	     seen$host in data_store$net_data )
+	Log::create_stream(LOG, [$columns=Info]);
+	}
+
+function find(s: Seen): bool
+	{
+	if ( s?$host && 
+	     s$host in data_store$net_data )
 		{
 		return T;
 		}
-	else if ( seen?$str && seen?$str_type &&
-	          [seen$str, seen$str_type] in data_store$string_data )
+	else if ( s?$str && s?$str_type &&
+	          [s$str, s$str_type] in data_store$string_data )
 		{
 		return T;
 		}
@@ -131,7 +149,7 @@ function find(seen: Seen): bool
 		}
 	}
 
-function get_items(seen: Seen): set[Item]
+function get_items(s: Seen): set[Item]
 	{
 	local item: Item;
 	local return_data: set[Item] = set();
@@ -144,28 +162,28 @@ function get_items(seen: Seen): set[Item]
 		return return_data;
 		}
 
-	if ( seen?$host )
+	if ( s?$host )
 		{
 		# See if the host is known about and it has meta values
-		if ( seen$host in data_store$net_data )
+		if ( s$host in data_store$net_data )
 			{
-			for ( m in data_store$net_data[seen$host] )
+			for ( m in data_store$net_data[s$host] )
 				{
 				# TODO: the lookup should be finding all and not just most specific
 				#       and $host/$net should have the correct value.
-				item = [$host=seen$host, $meta=m];
+				item = [$host=s$host, $meta=m];
 				add return_data[item];
 				}
 			}
 		}
-	else if ( seen?$str && seen?$str_type )
+	else if ( s?$str && s?$str_type )
 		{
 		# See if the string is known about and it has meta values
-		if ( [seen$str, seen$str_type] in data_store$string_data )
+		if ( [s$str, s$str_type] in data_store$string_data )
 			{
-			for ( m in data_store$string_data[seen$str, seen$str_type] )
+			for ( m in data_store$string_data[s$str, s$str_type] )
 				{
-				item = [$str=seen$str, $str_type=seen$str_type, $meta=m];
+				item = [$str=s$str, $str_type=s$str_type, $meta=m];
 				add return_data[item];
 				}
 			}
@@ -174,18 +192,31 @@ function get_items(seen: Seen): set[Item]
 	return return_data;
 	}
 
-function Intel::seen_in_conn(c: connection, seen: Seen)
+event Intel::match(s: Seen, items: set[Item])
 	{
-	if ( find(seen) )
+	local info: Info = [$ts=network_time(), $seen=s];
+
+	if ( s?$conn )
+		{
+		info$uid = s$conn$uid;
+		info$id  = s$conn$id;
+		}
+
+	Log::write(Intel::LOG, info);
+	}
+
+function Intel::seen(s: Seen)
+	{
+	if ( find(s) )
 		{
 		if ( have_full_data )
 			{
-			local items = get_items(seen);
-			event Intel::match_in_conn(c, seen, items);
+			local items = get_items(s);
+			event Intel::match(s, items);
 			}
 		else
 			{
-			event Intel::match_in_conn_no_items(c, seen);
+			event Intel::match_no_items(s);
 			}
 		}
 	}

@@ -73,12 +73,13 @@ export {
 	};
 
 	type Info: record {
-		ts:   time    &log;
+		ts:   time           &log;
 
-		uid:  string  &log &optional;
-		id:   conn_id &log &optional;
+		uid:  string         &log &optional;
+		id:   conn_id        &log &optional;
 
-		seen: Seen    &log;
+		seen: Seen           &log;
+		sources: set[string] &log;
 	};
 
 	type PolicyItem: record {
@@ -233,13 +234,17 @@ function has_meta(check: MetaData, metas: set[MetaData]): bool
 
 event Intel::match(s: Seen, items: set[Item])
 	{
-	local info: Info = [$ts=network_time(), $seen=s];
+	local empty_set: set[string] = set();
+	local info: Info = [$ts=network_time(), $seen=s, $sources=empty_set];
 
 	if ( s?$conn )
 		{
 		info$uid = s$conn$uid;
 		info$id  = s$conn$id;
 		}
+
+	for ( item in items )
+		add info$sources[item$meta$source];
 
 	Log::write(Intel::LOG, info);
 	}

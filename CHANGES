@@ -1,4 +1,9 @@
 
+2.1-39 | 2012-09-29 14:09:16 -0700
+
+  * Reliability adjustments to istate tests with network
+    communication. (Jon Siwek)
+
 2.1-37 | 2012-09-25 14:21:37 -0700
 
   * Reenable some tests that previously would cause Bro to exit with

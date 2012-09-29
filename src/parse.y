@@ -2,7 +2,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 %}
 
-%expect 90
+%expect 87
 
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ANY
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
@@ -14,7 +14,7 @@
 %token TOK_NEXT TOK_OF TOK_PATTERN TOK_PATTERN_TEXT
 %token TOK_PORT TOK_PRINT TOK_RECORD TOK_REDEF
 %token TOK_REMOVE_FROM TOK_RETURN TOK_SCHEDULE TOK_SET
-%token TOK_STRING TOK_SUBNET TOK_SWITCH TOK_TABLE TOK_THIS
+%token TOK_STRING TOK_SUBNET TOK_SWITCH TOK_TABLE
 %token TOK_TIME TOK_TIMEOUT TOK_TIMER TOK_TYPE TOK_UNION TOK_VECTOR TOK_WHEN
 
 %token TOK_ATTR_ADD_FUNC TOK_ATTR_ATTR TOK_ATTR_ENCRYPT TOK_ATTR_DEFAULT
@@ -22,7 +22,7 @@
 %token TOK_ATTR_ROTATE_SIZE TOK_ATTR_DEL_FUNC TOK_ATTR_EXPIRE_FUNC
 %token TOK_ATTR_EXPIRE_CREATE TOK_ATTR_EXPIRE_READ TOK_ATTR_EXPIRE_WRITE
 %token TOK_ATTR_PERSISTENT TOK_ATTR_SYNCHRONIZED
-%token TOK_ATTR_DISABLE_PRINT_HOOK TOK_ATTR_RAW_OUTPUT TOK_ATTR_MERGEABLE
+%token TOK_ATTR_RAW_OUTPUT TOK_ATTR_MERGEABLE
 %token TOK_ATTR_PRIORITY TOK_ATTR_GROUP TOK_ATTR_LOG TOK_ATTR_ERROR_HANDLER
 %token TOK_ATTR_TYPE_COLUMN
 
@@ -118,7 +118,6 @@ extern const char* g_curr_debug_error;
 
 #define YYLTYPE yyltype
 
-Expr* bro_this = 0;
 int in_init = 0;
 int in_record = 0;
 bool resolving_global_ID = false;
@@ -582,12 +581,6 @@ expr:
 			set_location(@1);
 			$1->Compile();
 			$$ = new ConstExpr(new PatternVal($1));
-			}
-
-	|	TOK_THIS
-			{
-			set_location(@1);
-			$$ = bro_this->Ref();
 			}
 
 	|       '|' expr '|'
@@ -1297,8 +1290,6 @@ attr:
 			{ $$ = new Attr(ATTR_ENCRYPT); }
 	|	TOK_ATTR_ENCRYPT '=' expr
 			{ $$ = new Attr(ATTR_ENCRYPT, $3); }
-	|	TOK_ATTR_DISABLE_PRINT_HOOK
-			{ $$ = new Attr(ATTR_DISABLE_PRINT_HOOK); }
 	|	TOK_ATTR_RAW_OUTPUT
 			{ $$ = new Attr(ATTR_RAW_OUTPUT); }
 	|	TOK_ATTR_MERGEABLE

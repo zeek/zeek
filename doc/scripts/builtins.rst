@@ -600,10 +600,6 @@ scripting language supports the following built-in attributes.
 
 .. TODO: needs to be documented.
 
-.. bro:attr:: &disable_print_hook
-
-    Deprecated. Will be removed.
-
 .. bro:attr:: &raw_output
 
     Opens a file in raw mode, i.e., non-ASCII characters are not

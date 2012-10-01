@@ -1,0 +1,6 @@
+# @TEST-EXEC: bro -r $TRACES/globus-url-copy.trace %INPUT
+# @TEST-EXEC: btest-diff notice.log
+
+@load protocols/ftp/gridftp-data-detection
+
+redef GridFTP::size_threshold = 2;

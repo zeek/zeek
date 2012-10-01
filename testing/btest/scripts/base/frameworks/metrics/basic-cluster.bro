@@ -1,11 +1,11 @@
-# @TEST-GROUP: comm
+# @TEST-SERIALIZE: comm
 #
 # @TEST-EXEC: btest-bg-run manager-1 BROPATH=$BROPATH:.. CLUSTER_NODE=manager-1 bro %INPUT
 # @TEST-EXEC: btest-bg-run proxy-1   BROPATH=$BROPATH:.. CLUSTER_NODE=proxy-1 bro %INPUT
 # @TEST-EXEC: sleep 1
 # @TEST-EXEC: btest-bg-run worker-1  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-1 bro %INPUT
 # @TEST-EXEC: btest-bg-run worker-2  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-2 bro %INPUT
-# @TEST-EXEC: btest-bg-wait -k 10
+# @TEST-EXEC: btest-bg-wait 30
 # @TEST-EXEC: btest-diff manager-1/metrics.log
 
 @TEST-START-FILE cluster-layout.bro
@@ -24,11 +24,51 @@ event bro_init() &priority=5
 	Metrics::add_filter("test.metric", 
 		[$name="foo-bar",
 		 $break_interval=3secs]);
-		
-	if ( Cluster::local_node_type() == Cluster::WORKER )
+	}
+
+event remote_connection_closed(p: event_peer)
+	{
+	terminate();
+	}
+
+global ready_for_data: event();
+
+redef Cluster::manager2worker_events += /ready_for_data/;
+
+@if ( Cluster::local_node_type() == Cluster::WORKER )
+
+event ready_for_data()
+	{
+	Metrics::add_data(TEST_METRIC, [$host=1.2.3.4], 3);
+	Metrics::add_data(TEST_METRIC, [$host=6.5.4.3], 2);
+	Metrics::add_data(TEST_METRIC, [$host=7.2.1.5], 1);
+	}
+
+@endif
+
+@if ( Cluster::local_node_type() == Cluster::MANAGER )
+
+global n = 0;
+global peer_count = 0;
+
+event Metrics::log_metrics(rec: Metrics::Info)
+	{
+	n = n + 1;
+	if ( n == 3 )
 		{
-		Metrics::add_data("test.metric", [$host=1.2.3.4], 3);
-		Metrics::add_data("test.metric", [$host=6.5.4.3], 2);
-		Metrics::add_data("test.metric", [$host=7.2.1.5], 1);
+		terminate_communication();
+		terminate();
 		}
 	}
+
+event remote_connection_handshake_done(p: event_peer)
+	{
+	print p;
+	peer_count = peer_count + 1;
+	if ( peer_count == 3 )
+		{
+		event ready_for_data();
+		}
+	}
+
+@endif

@@ -46,6 +46,7 @@ TCP_Analyzer::TCP_Analyzer(Connection* conn)
 	finished = 0;
 	reassembling = 0;
 	first_packet_seen = 0;
+	is_partial = 0;
 
 	orig = new TCP_Endpoint(this, 1);
 	resp = new TCP_Endpoint(this, 0);
@@ -1203,7 +1204,7 @@ RecordVal* TCP_Analyzer::BuildOSVal(int is_orig, const IP_Hdr* ip,
 	if ( ip->HdrLen() > 20 )
 		quirks |= QUIRK_IPOPT;
 
-	if ( ip->IP_ID() == 0 )
+	if ( ip->ID() == 0 )
 		quirks |= QUIRK_ZEROID;
 
 	if ( tcp->th_seq == 0 )
@@ -1942,11 +1943,11 @@ int TCPStats_Endpoint::DataSent(double /* t */, int seq, int len, int caplen,
 	{
 	if ( ++num_pkts == 1 )
 		{ // First packet.
-		last_id = ntohs(ip->ID4());
+		last_id = ip->ID();
 		return 0;
 		}
 
-	int id = ntohs(ip->ID4());
+	int id = ip->ID();
 
 	if ( id == last_id )
 		{

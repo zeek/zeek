@@ -1,0 +1,73 @@
+icmp_unreachable (code=0)
+  conn_id: [orig_h=fe80::dead, orig_p=1/icmp, resp_h=fe80::beef, resp_p=0/icmp]
+  icmp_conn: [orig_h=fe80::dead, resp_h=fe80::beef, itype=1, icode=0, len=60, hlim=64, v6=T]
+  icmp_context: [id=[orig_h=fe80::beef, orig_p=30000/udp, resp_h=fe80::dead, resp_p=13000/udp], len=60, proto=2, frag_offset=0, bad_hdr_len=F, bad_checksum=F, MF=F, DF=F]
+icmp_packet_too_big (code=0)
+  conn_id: [orig_h=fe80::dead, orig_p=2/icmp, resp_h=fe80::beef, resp_p=0/icmp]
+  icmp_conn: [orig_h=fe80::dead, resp_h=fe80::beef, itype=2, icode=0, len=52, hlim=64, v6=T]
+  icmp_context: [id=[orig_h=fe80::beef, orig_p=30000/udp, resp_h=fe80::dead, resp_p=13000/udp], len=52, proto=2, frag_offset=0, bad_hdr_len=F, bad_checksum=F, MF=F, DF=F]
+icmp_time_exceeded (code=0)
+  conn_id: [orig_h=fe80::dead, orig_p=3/icmp, resp_h=fe80::beef, resp_p=0/icmp]
+  icmp_conn: [orig_h=fe80::dead, resp_h=fe80::beef, itype=3, icode=0, len=52, hlim=64, v6=T]
+  icmp_context: [id=[orig_h=fe80::beef, orig_p=30000/udp, resp_h=fe80::dead, resp_p=13000/udp], len=52, proto=2, frag_offset=0, bad_hdr_len=F, bad_checksum=F, MF=F, DF=F]
+icmp_parameter_problem (code=0)
+  conn_id: [orig_h=fe80::dead, orig_p=4/icmp, resp_h=fe80::beef, resp_p=0/icmp]
+  icmp_conn: [orig_h=fe80::dead, resp_h=fe80::beef, itype=4, icode=0, len=52, hlim=64, v6=T]
+  icmp_context: [id=[orig_h=fe80::beef, orig_p=30000/udp, resp_h=fe80::dead, resp_p=13000/udp], len=52, proto=2, frag_offset=0, bad_hdr_len=F, bad_checksum=F, MF=F, DF=F]
+icmp_echo_request (id=1, seq=3, payload=abcdefghijklmnopqrstuvwabcdefghi)
+  conn_id: [orig_h=2620:0:e00:400e:d1d:db37:beb:5aac, orig_p=128/icmp, resp_h=2001:4860:8006::63, resp_p=129/icmp]
+  icmp_conn: [orig_h=2620:0:e00:400e:d1d:db37:beb:5aac, resp_h=2001:4860:8006::63, itype=128, icode=0, len=32, hlim=128, v6=T]
+icmp_echo_reply (id=1, seq=3, payload=abcdefghijklmnopqrstuvwabcdefghi)
+  conn_id: [orig_h=2620:0:e00:400e:d1d:db37:beb:5aac, orig_p=128/icmp, resp_h=2001:4860:8006::63, resp_p=129/icmp]
+  icmp_conn: [orig_h=2620:0:e00:400e:d1d:db37:beb:5aac, resp_h=2001:4860:8006::63, itype=128, icode=0, len=32, hlim=128, v6=T]
+icmp_echo_request (id=1, seq=4, payload=abcdefghijklmnopqrstuvwabcdefghi)
+  conn_id: [orig_h=2620:0:e00:400e:d1d:db37:beb:5aac, orig_p=128/icmp, resp_h=2001:4860:8006::63, resp_p=129/icmp]
+  icmp_conn: [orig_h=2620:0:e00:400e:d1d:db37:beb:5aac, resp_h=2001:4860:8006::63, itype=128, icode=0, len=32, hlim=128, v6=T]
+icmp_echo_reply (id=1, seq=4, payload=abcdefghijklmnopqrstuvwabcdefghi)
+  conn_id: [orig_h=2620:0:e00:400e:d1d:db37:beb:5aac, orig_p=128/icmp, resp_h=2001:4860:8006::63, resp_p=129/icmp]
+  icmp_conn: [orig_h=2620:0:e00:400e:d1d:db37:beb:5aac, resp_h=2001:4860:8006::63, itype=128, icode=0, len=32, hlim=128, v6=T]
+icmp_echo_request (id=1, seq=5, payload=abcdefghijklmnopqrstuvwabcdefghi)
+  conn_id: [orig_h=2620:0:e00:400e:d1d:db37:beb:5aac, orig_p=128/icmp, resp_h=2001:4860:8006::63, resp_p=129/icmp]
+  icmp_conn: [orig_h=2620:0:e00:400e:d1d:db37:beb:5aac, resp_h=2001:4860:8006::63, itype=128, icode=0, len=32, hlim=128, v6=T]
+icmp_echo_reply (id=1, seq=5, payload=abcdefghijklmnopqrstuvwabcdefghi)
+  conn_id: [orig_h=2620:0:e00:400e:d1d:db37:beb:5aac, orig_p=128/icmp, resp_h=2001:4860:8006::63, resp_p=129/icmp]
+  icmp_conn: [orig_h=2620:0:e00:400e:d1d:db37:beb:5aac, resp_h=2001:4860:8006::63, itype=128, icode=0, len=32, hlim=128, v6=T]
+icmp_echo_request (id=1, seq=6, payload=abcdefghijklmnopqrstuvwabcdefghi)
+  conn_id: [orig_h=2620:0:e00:400e:d1d:db37:beb:5aac, orig_p=128/icmp, resp_h=2001:4860:8006::63, resp_p=129/icmp]
+  icmp_conn: [orig_h=2620:0:e00:400e:d1d:db37:beb:5aac, resp_h=2001:4860:8006::63, itype=128, icode=0, len=32, hlim=128, v6=T]
+icmp_echo_reply (id=1, seq=6, payload=abcdefghijklmnopqrstuvwabcdefghi)
+  conn_id: [orig_h=2620:0:e00:400e:d1d:db37:beb:5aac, orig_p=128/icmp, resp_h=2001:4860:8006::63, resp_p=129/icmp]
+  icmp_conn: [orig_h=2620:0:e00:400e:d1d:db37:beb:5aac, resp_h=2001:4860:8006::63, itype=128, icode=0, len=32, hlim=128, v6=T]
+icmp_redirect (tgt=fe80::cafe, dest=fe80::babe)
+  conn_id: [orig_h=fe80::dead, orig_p=137/icmp, resp_h=fe80::beef, resp_p=0/icmp]
+  icmp_conn: [orig_h=fe80::dead, resp_h=fe80::beef, itype=137, icode=0, len=32, hlim=255, v6=T]
+  options: []
+icmp_router_advertisement
+    cur_hop_limit=13
+    managed=T
+    other=F
+    home_agent=T
+    pref=3
+    proxy=F
+    rsv=0
+    router_lifetime=30.0 mins
+    reachable_time=3.0 secs 700.0 msecs
+    retrans_timer=1.0 sec 300.0 msecs
+  conn_id: [orig_h=fe80::dead, orig_p=134/icmp, resp_h=fe80::beef, resp_p=133/icmp]
+  icmp_conn: [orig_h=fe80::dead, resp_h=fe80::beef, itype=134, icode=0, len=8, hlim=255, v6=T]
+  options: []
+icmp_neighbor_advertisement (tgt=fe80::babe)
+    router=T
+    solicited=F
+    override=T
+  conn_id: [orig_h=fe80::dead, orig_p=136/icmp, resp_h=fe80::beef, resp_p=135/icmp]
+  icmp_conn: [orig_h=fe80::dead, resp_h=fe80::beef, itype=136, icode=0, len=16, hlim=255, v6=T]
+  options: []
+icmp_router_solicitation
+  conn_id: [orig_h=fe80::dead, orig_p=133/icmp, resp_h=fe80::beef, resp_p=134/icmp]
+  icmp_conn: [orig_h=fe80::dead, resp_h=fe80::beef, itype=133, icode=0, len=0, hlim=255, v6=T]
+  options: []
+icmp_neighbor_solicitation (tgt=fe80::babe)
+  conn_id: [orig_h=fe80::dead, orig_p=135/icmp, resp_h=fe80::beef, resp_p=136/icmp]
+  icmp_conn: [orig_h=fe80::dead, resp_h=fe80::beef, itype=135, icode=0, len=16, hlim=255, v6=T]
+  options: []

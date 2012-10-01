@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	ssl
+#open	2012-04-27-14-53-12
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	server_name	session_id	subject	issuer_subject	not_valid_before	not_valid_after	last_alert
+#types	time	string	addr	port	addr	port	string	string	string	string	string	string	time	time	string
+1335538392.319381	UWkUyAuUGXf	192.168.1.105	62045	74.125.224.79	443	TLSv10	TLS_ECDHE_RSA_WITH_RC4_128_SHA	ssl.gstatic.com	-	CN=*.gstatic.com,O=Google Inc,L=Mountain View,ST=California,C=US	CN=Google Internet Authority,O=Google Inc,C=US	1334102677.000000	1365639277.000000	-
+#close	2012-04-27-14-53-16

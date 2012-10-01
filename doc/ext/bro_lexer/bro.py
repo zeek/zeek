@@ -29,7 +29,7 @@ class BroLexer(RegexLexer):
              r'|vector)\b', Keyword.Type),
             (r'(T|F)\b', Keyword.Constant),
             (r'(&)((?:add|delete|expire)_func|attr|(create|read|write)_expire'
-             r'|default|disable_print_hook|raw_output|encrypt|group|log'
+             r'|default|raw_output|encrypt|group|log'
              r'|mergeable|optional|persistent|priority|redef'
              r'|rotate_(?:interval|size)|synchronized)\b', bygroups(Punctuation,
                  Keyword)),

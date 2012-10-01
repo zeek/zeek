@@ -14,7 +14,7 @@
 %token TOK_NEXT TOK_OF TOK_PATTERN TOK_PATTERN_TEXT
 %token TOK_PORT TOK_PRINT TOK_RECORD TOK_REDEF
 %token TOK_REMOVE_FROM TOK_RETURN TOK_SCHEDULE TOK_SET
-%token TOK_STRING TOK_SUBNET TOK_SWITCH TOK_TABLE TOK_THIS
+%token TOK_STRING TOK_SUBNET TOK_SWITCH TOK_TABLE
 %token TOK_TIME TOK_TIMEOUT TOK_TIMER TOK_TYPE TOK_UNION TOK_VECTOR TOK_WHEN
 
 %token TOK_ATTR_ADD_FUNC TOK_ATTR_ATTR TOK_ATTR_ENCRYPT TOK_ATTR_DEFAULT
@@ -22,8 +22,9 @@
 %token TOK_ATTR_ROTATE_SIZE TOK_ATTR_DEL_FUNC TOK_ATTR_EXPIRE_FUNC
 %token TOK_ATTR_EXPIRE_CREATE TOK_ATTR_EXPIRE_READ TOK_ATTR_EXPIRE_WRITE
 %token TOK_ATTR_PERSISTENT TOK_ATTR_SYNCHRONIZED
-%token TOK_ATTR_DISABLE_PRINT_HOOK TOK_ATTR_RAW_OUTPUT TOK_ATTR_MERGEABLE
+%token TOK_ATTR_RAW_OUTPUT TOK_ATTR_MERGEABLE
 %token TOK_ATTR_PRIORITY TOK_ATTR_GROUP TOK_ATTR_LOG TOK_ATTR_ERROR_HANDLER
+%token TOK_ATTR_TYPE_COLUMN
 
 %token TOK_DEBUG
 
@@ -112,13 +113,13 @@ bool is_export = false; // true if in an export {} block
  * (obviously not reentrant).
  */
 extern Expr* g_curr_debug_expr;
+extern bool in_debug;
+extern const char* g_curr_debug_error;
 
 #define YYLTYPE yyltype
 
-Expr* bro_this = 0;
 int in_init = 0;
 int in_record = 0;
-bool in_debug = false;
 bool resolving_global_ID = false;
 bool defining_global_ID = false;
 
@@ -249,7 +250,6 @@ bro:
 		TOK_DEBUG { in_debug = true; } expr
 			{
 			g_curr_debug_expr = $3;
-			in_debug = false;
 			}
 	;
 
@@ -581,12 +581,6 @@ expr:
 			set_location(@1);
 			$1->Compile();
 			$$ = new ConstExpr(new PatternVal($1));
-			}
-
-	|	TOK_THIS
-			{
-			set_location(@1);
-			$$ = bro_this->Ref();
 			}
 
 	|       '|' expr '|'
@@ -1296,8 +1290,6 @@ attr:
 			{ $$ = new Attr(ATTR_ENCRYPT); }
 	|	TOK_ATTR_ENCRYPT '=' expr
 			{ $$ = new Attr(ATTR_ENCRYPT, $3); }
-	|	TOK_ATTR_DISABLE_PRINT_HOOK
-			{ $$ = new Attr(ATTR_DISABLE_PRINT_HOOK); }
 	|	TOK_ATTR_RAW_OUTPUT
 			{ $$ = new Attr(ATTR_RAW_OUTPUT); }
 	|	TOK_ATTR_MERGEABLE
@@ -1306,6 +1298,8 @@ attr:
 			{ $$ = new Attr(ATTR_PRIORITY, $3); }
 	|	TOK_ATTR_GROUP '=' expr
 			{ $$ = new Attr(ATTR_GROUP, $3); }
+	|	TOK_ATTR_TYPE_COLUMN '=' expr
+			{ $$ = new Attr(ATTR_TYPE_COLUMN, $3); }
 	|	TOK_ATTR_LOG
 			{ $$ = new Attr(ATTR_LOG); }
 	|	TOK_ATTR_ERROR_HANDLER
@@ -1684,6 +1678,9 @@ int yyerror(const char msg[])
 	if ( generate_documentation )
 		strcat(msgbuf, "\nDocumentation mode is enabled: "
 		       "remember to check syntax of ## style comments\n");
+
+	if ( in_debug )
+		g_curr_debug_error = copy_string(msg);
 
 	reporter->Error("%s", msgbuf);
 

@@ -142,6 +142,7 @@ endmacro(GET_BIF_OUTPUT_FILES)
 set(BIF_SRCS
     bro.bif
     logging.bif
+    input.bif
     event.bif
     const.bif
     types.bif
@@ -186,6 +187,9 @@ endmacro(BINPAC_TARGET)
 
 binpac_target(binpac-lib.pac)
 binpac_target(binpac_bro-lib.pac)
+
+binpac_target(ayiya.pac
+    ayiya-protocol.pac ayiya-analyzer.pac)
 binpac_target(bittorrent.pac
     bittorrent-protocol.pac bittorrent-analyzer.pac)
 binpac_target(dce_rpc.pac
@@ -205,6 +209,8 @@ binpac_target(netflow.pac
     netflow-protocol.pac netflow-analyzer.pac)
 binpac_target(smb.pac
     smb-protocol.pac smb-pipe.pac smb-mailslot.pac)
+binpac_target(socks.pac
+    socks-protocol.pac socks-analyzer.pac)
 binpac_target(ssl.pac
     ssl-defs.pac ssl-protocol.pac ssl-analyzer.pac)
 binpac_target(syslog.pac
@@ -212,6 +218,8 @@ binpac_target(syslog.pac
 
 ########################################################################
 ## bro target
+
+find_package (Threads)
 
 # This macro stores associated headers for any C/C++ source files given
 # as arguments (past _var) as a list in the CMake variable named "_var".
@@ -245,7 +253,6 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
                    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
 
-set(dns_SRCS nb_dns.c)
 set_source_files_properties(nb_dns.c PROPERTIES COMPILE_FLAGS
                             -fno-strict-aliasing)
 
@@ -275,6 +282,7 @@ set(bro_SRCS
     Anon.cc
     ARP.cc
     Attr.cc
+    AYIYA.cc
     BackDoor.cc
     Base64.cc
     BitTorrent.cc
@@ -330,14 +338,11 @@ set(bro_SRCS
     IntSet.cc
     InterConn.cc
     IOSource.cc
+    IP.cc
     IPAddr.cc
     IRC.cc
     List.cc
     Reporter.cc
-    LogMgr.cc
-    LogWriter.cc
-    LogWriterAscii.cc
-    LogWriterNone.cc
     Login.cc
     MIME.cc
     NCP.cc
@@ -376,8 +381,9 @@ set(bro_SRCS
     SmithWaterman.cc
     SMB.cc
     SMTP.cc
+    SOCKS.cc
     SSH.cc
-    SSL-binpac.cc
+    SSL.cc
     Scope.cc
     SerializationFormat.cc
     SerialObj.cc
@@ -392,9 +398,11 @@ set(bro_SRCS
     TCP_Endpoint.cc
     TCP_Reassembler.cc
     Telnet.cc
+    Teredo.cc
     Timer.cc
     Traverse.cc
     Trigger.cc
+    TunnelEncapsulation.cc
     Type.cc
     UDP.cc
     Val.cc
@@ -402,15 +410,36 @@ set(bro_SRCS
     XDR.cc
     ZIP.cc
     bsd-getopt-long.c
+    bro_inet_ntop.c
     cq.c
-    md5.c
     patricia.c
     setsignal.c
     PacketDumper.cc
     strsep.c
     modp_numtoa.c
-    ${dns_SRCS}
-    ${openssl_SRCS}
+
+    threading/BasicThread.cc
+    threading/Manager.cc
+    threading/MsgThread.cc
+    threading/SerialTypes.cc
+
+    logging/Manager.cc
+    logging/WriterBackend.cc
+    logging/WriterFrontend.cc
+    logging/writers/Ascii.cc
+    logging/writers/DataSeries.cc
+    logging/writers/ElasticSearch.cc
+    logging/writers/None.cc
+
+    input/Manager.cc
+    input/ReaderBackend.cc
+    input/ReaderFrontend.cc
+    input/readers/Ascii.cc
+    input/readers/Raw.cc
+    input/readers/Benchmark.cc
+
+    nb_dns.c
+    digest.h
 )
 
 collect_headers(bro_HEADERS ${bro_SRCS})
@@ -421,7 +450,7 @@ add_definitions(-DBRO_BUILD_PATH="${CMAKE_CURRENT_BINARY_DIR}")
 
 add_executable(bro ${bro_SRCS} ${bro_HEADERS})
 
-target_link_libraries(bro ${brodeps})
+target_link_libraries(bro ${brodeps} ${CMAKE_THREAD_LIBS_INIT})
 
 install(TARGETS bro DESTINATION bin)
 install(FILES ${INSTALL_BIF_OUTPUTS} DESTINATION ${BRO_SCRIPT_INSTALL_PATH}/base)

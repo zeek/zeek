@@ -1,0 +1,15 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	dpd
+#open	2009-11-18-17-59-51
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	analyzer	failure_reason
+#types	time	string	addr	port	addr	port	enum	string	string
+1258567191.486869	UWkUyAuUGXf	192.168.1.105	57696	192.168.1.1	53	udp	TEREDO	Teredo payload length [c\x1d\x81\x80\x00\x01\x00\x02\x00\x02\x00\x00\x04amch\x0equestionmarket\x03com\x00\x00\x01\x00...]
+1258578181.516140	nQcgTWjvg4c	192.168.1.104	64838	192.168.1.1	53	udp	TEREDO	Teredo payload length [h\xfd\x81\x80\x00\x01\x00\x02\x00\x03\x00\x02\x08football\x02uk\x07reuters\x03com\x00\x00\x01\x00...]
+1258579063.784919	j4u32Pc5bif	192.168.1.104	55778	192.168.1.1	53	udp	TEREDO	Teredo payload length [j\x12\x81\x80\x00\x01\x00\x02\x00\x04\x00\x00\x08fastflip\x0agooglelabs\x03com\x00\x00\x01\x00...]
+1258581768.898165	TEfuqmmG4bh	192.168.1.104	50798	192.168.1.1	53	udp	TEREDO	Teredo payload length [o\xe3\x81\x80\x00\x01\x00\x02\x00\x04\x00\x04\x03www\x0fnashuatelegraph\x03com\x00\x00\x01\x00...]
+1258584478.989528	FrJExwHcSal	192.168.1.104	64963	192.168.1.1	53	udp	TEREDO	Teredo payload length [e\xbd\x81\x80\x00\x01\x00\x08\x00\x06\x00\x06\x08wellness\x05blogs\x04time\x03com\x00\x00\x01\x00...]
+1258600683.934672	5OKnoww6xl4	192.168.1.103	59838	192.168.1.1	53	udp	TEREDO	Teredo payload length [h\xf0\x81\x80\x00\x01\x00\x01\x00\x02\x00\x00\x06update\x0csanasecurity\x03com\x00\x00\x01\x00...]
+#close	2009-11-19-03-18-03

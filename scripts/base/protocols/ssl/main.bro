@@ -9,13 +9,15 @@ export {
 	redef enum Log::ID += { LOG };
 
 	type Info: record {
-		## Time when the SSL connection began.
+		## Time when the SSL connection was first detected.
 		ts:               time             &log;
-		uid:              string           &log;
+		## Unique ID for the connection.
+		uid:         string          &log;
+		## The connection's 4-tuple of endpoint addresses/ports.
 		id:               conn_id          &log;
-		## SSL/TLS version the server offered.
+		## SSL/TLS version that the server offered.
 		version:          string           &log &optional;
-		## SSL/TLS cipher suite the server chose.
+		## SSL/TLS cipher suite that the server chose.
 		cipher:           string           &log &optional;
 		## Value of the Server Name Indicator SSL/TLS extension.  It 
 		## indicates the server name that the client was requesting.
@@ -24,6 +26,8 @@ export {
 		session_id:       string           &log &optional;
 		## Subject of the X.509 certificate offered by the server.
 		subject:          string           &log &optional;
+		## Subject of the signer of the X.509 certificate offered by the server.
+		issuer_subject:   string           &log &optional;
 		## NotValidBefore field value from the server certificate.
 		not_valid_before: time             &log &optional;
 		## NotValidAfter field value from the serve certificate.
@@ -146,6 +150,7 @@ event x509_certificate(c: connection, is_orig: bool, cert: X509, chain_idx: coun
 
 		# Also save other certificate information about the primary cert.
 		c$ssl$subject = cert$subject;
+		c$ssl$issuer_subject = cert$issuer;
 		c$ssl$not_valid_before = cert$not_valid_before;
 		c$ssl$not_valid_after = cert$not_valid_after;
 		}

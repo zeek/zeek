@@ -1,0 +1,6 @@
+abc^J\xffdef
+DATA2
+abc|\xffdef
+DATA2
+abc\xff|def
+DATA2

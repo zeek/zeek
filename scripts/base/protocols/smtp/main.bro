@@ -8,33 +8,51 @@ export {
 	redef enum Log::ID += { LOG };
 
 	type Info: record {
+		## Time when the message was first seen.
 		ts:                time            &log;
+		## Unique ID for the connection.
 		uid:               string          &log;
+		## The connection's 4-tuple of endpoint addresses/ports.
 		id:                conn_id         &log;
-		## This is a number that indicates the number of messages deep into
-		## this connection where this particular message was transferred.
+		## A count to represent the depth of this message transaction in a single 
+		## connection where multiple messages were transferred.
 		trans_depth:       count           &log;
+		## Contents of the Helo header.
 		helo:              string          &log &optional;
+		## Contents of the From header.
 		mailfrom:          string          &log &optional;
+		## Contents of the Rcpt header.
 		rcptto:            set[string]     &log &optional;
+		## Contents of the Date header.
 		date:              string          &log &optional;
+		## Contents of the From header.
 		from:              string          &log &optional;
+		## Contents of the To header.
 		to:                set[string]     &log &optional;
+		## Contents of the ReplyTo header.
 		reply_to:          string          &log &optional;
+		## Contents of the MsgID header.
 		msg_id:            string          &log &optional;
+		## Contents of the In-Reply-To header.
 		in_reply_to:       string          &log &optional;
+		## Contents of the Subject header.
 		subject:           string          &log &optional;
+		## Contents of the X-Origininating-IP header.
 		x_originating_ip:  addr            &log &optional;
+		## Contents of the first Received header.
 		first_received:    string          &log &optional;
+		## Contents of the second Received header.
 		second_received:   string          &log &optional;
-		## The last message the server sent to the client.
+		## The last message that the server sent to the client.
 		last_reply:        string          &log &optional;
+		## The message transmission path, as extracted from the headers.
 		path:              vector of addr  &log &optional;
+		## Value of the User-Agent header from the client.
 		user_agent:        string          &log &optional;
 		
-		## Indicate if the "Received: from" headers should still be processed.
+		## Indicates if the "Received: from" headers should still be processed.
 		process_received_from: bool        &default=T;
-		## Indicates if client activity has been seen, but not yet logged
+		## Indicates if client activity has been seen, but not yet logged.
 		has_client_activity:  bool            &default=F;
 	};
 	

@@ -13,6 +13,7 @@
 #include "RuleMatcher.h"
 #include "AnalyzerTags.h"
 #include "IPAddr.h"
+#include "TunnelEncapsulation.h"
 
 class Connection;
 class ConnectionTimer;
@@ -50,8 +51,16 @@ class Analyzer;
 
 class Connection : public BroObj {
 public:
-	Connection(NetSessions* s, HashKey* k, double t, const ConnID* id);
+	Connection(NetSessions* s, HashKey* k, double t, const ConnID* id,
+	           uint32 flow, const EncapsulationStack* arg_encap);
 	virtual ~Connection();
+
+	// Invoked when an encapsulation is discovered. It records the
+	// encapsulation with the connection and raises a "tunnel_changed"
+	// event if it's different from the previous encapsulation (or the
+	// first encountered). encap can be null to indicate no
+	// encapsulation.
+	void CheckEncapsulation(const EncapsulationStack* encap);
 
 	// Invoked when connection is about to be removed.  Use Ref(this)
 	// inside Done to keep the connection object around (though it'll
@@ -241,6 +250,13 @@ public:
 
 	void SetUID(uint64 arg_uid)	 { uid = arg_uid; }
 
+	uint64 GetUID() const { return uid; }
+
+	const EncapsulationStack* GetEncapsulation() const
+		{ return encapsulation; }
+
+	void CheckFlowLabel(bool is_orig, uint32 flow_label);
+
 protected:
 
 	Connection()	{ persistent = 0; }
@@ -271,10 +287,12 @@ protected:
 	IPAddr resp_addr;
 	uint32 orig_port, resp_port;	// in network order
 	TransportProto proto;
+	uint32 orig_flow_label, resp_flow_label; // most recent IPv6 flow labels
 	double start_time, last_time;
 	double inactivity_timeout;
 	RecordVal* conn_val;
 	LoginConn* login_conn;	// either nil, or this
+	const EncapsulationStack* encapsulation; // tunnels
 	int suppress_event;	// suppress certain events to once per conn.
 
 	unsigned int installed_status_timer:1;
@@ -286,6 +304,7 @@ protected:
 	unsigned int record_packets:1, record_contents:1;
 	unsigned int persistent:1;
 	unsigned int record_current_packet:1, record_current_content:1;
+	unsigned int saw_first_orig_packet:1, saw_first_resp_packet:1;
 
 	// Count number of connections.
 	static unsigned int total_connections;

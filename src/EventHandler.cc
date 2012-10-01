@@ -96,7 +96,7 @@ EventHandler* EventHandler::Unserialize(UnserialInfo* info)
 	{
 	char* name;
 	if ( ! UNSERIALIZE_STR(&name, 0) )
-		return false;
+		return 0;
 
 	EventHandler* h = event_registry->Lookup(name);
 	if ( ! h )

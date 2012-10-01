@@ -4,6 +4,7 @@
 #define udp_h
 
 #include "Analyzer.h"
+#include <netinet/udp.h>
 
 typedef enum {
 	UDP_INACTIVE,	// no packet seen
@@ -30,6 +31,10 @@ protected:
 					int seq, const IP_Hdr* ip, int caplen);
 	virtual bool IsReuse(double t, const u_char* pkt);
 	virtual unsigned int MemoryAllocation() const;
+
+	// Returns true if the checksum is valid, false if not
+	static bool ValidateChecksum(const IP_Hdr* ip, const struct udphdr* up,
+	                             int len);
 
 	bro_int_t request_len, reply_len;
 

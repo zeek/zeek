@@ -1,0 +1,22 @@
+# Truncated IP packet's should not be analyzed, and generate truncated_IP weird
+
+# @TEST-EXEC: bro -r $TRACES/trunc/ip4-trunc.pcap
+# @TEST-EXEC: mv weird.log output
+# @TEST-EXEC: bro -r $TRACES/trunc/ip6-trunc.pcap
+# @TEST-EXEC: cat weird.log >> output
+# @TEST-EXEC: bro -r $TRACES/trunc/ip6-ext-trunc.pcap
+# @TEST-EXEC: cat weird.log >> output
+
+# If an ICMP packet's payload is truncated due to too small snaplen,
+# the checksum calculation is bypassed (and Bro doesn't crash, of course).
+
+# @TEST-EXEC: rm -f weird.log
+# @TEST-EXEC: bro -r $TRACES/trunc/icmp-payload-trunc.pcap
+# @TEST-EXEC: test ! -e weird.log
+
+# If an ICMP packet has the ICMP header truncated due to too small snaplen,
+# an internally_truncated_header weird gets generated.
+
+# @TEST-EXEC: bro -r $TRACES/trunc/icmp-header-trunc.pcap
+# @TEST-EXEC: cat weird.log >> output
+# @TEST-EXEC: btest-diff output

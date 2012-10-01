@@ -74,7 +74,7 @@ void DPM::PostScriptInit()
 
 void DPM::AddConfig(const Analyzer::Config& cfg)
 	{
-#ifdef USE_PERFTOOLS
+#ifdef USE_PERFTOOLS_DEBUG
 	HeapLeakChecker::Disabler disabler;
 #endif
 
@@ -185,46 +185,8 @@ bool DPM::BuildInitialAnalyzerTree(TransportProto proto, Connection* conn,
 		break;
 
 	case TRANSPORT_ICMP: {
-		const struct icmp* icmpp = (const struct icmp *) data;
-		switch ( icmpp->icmp_type ) {
-
-		case ICMP_ECHO:
-		case ICMP_ECHOREPLY:
-			if ( ICMP_Echo_Analyzer::Available() )
-				{
-				root = icmp = new ICMP_Echo_Analyzer(conn);
-				DBG_DPD(conn, "activated ICMP Echo analyzer");
-				}
-			break;
-
-		case ICMP_REDIRECT:
-			if ( ICMP_Redir_Analyzer::Available() )
-				{
-				root = new ICMP_Redir_Analyzer(conn);
-				DBG_DPD(conn, "activated ICMP Redir analyzer");
-				}
-			break;
-
-		case ICMP_UNREACH:
-			if ( ICMP_Unreachable_Analyzer::Available() )
-				{
-				root = icmp = new ICMP_Unreachable_Analyzer(conn);
-				DBG_DPD(conn, "activated ICMP Unreachable analyzer");
-				}
-			break;
-
-		case ICMP_TIMXCEED:
-			if ( ICMP_TimeExceeded_Analyzer::Available() )
-				{
-				root = icmp = new ICMP_TimeExceeded_Analyzer(conn);
-				DBG_DPD(conn, "activated ICMP Time Exceeded analyzer");
-				}
-			break;
-		}
-
-		if ( ! root )
-			root = icmp = new ICMP_Analyzer(conn);
-
+		root = icmp = new ICMP_Analyzer(conn);
+		DBG_DPD(conn, "activated ICMP analyzer");
 		analyzed = true;
 		break;
 		}

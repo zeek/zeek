@@ -20,6 +20,7 @@ const char* TimerNames[] = {
 	"IncrementalSendTimer",
 	"IncrementalWriteTimer",
 	"InterconnTimer",
+	"IPTunnelInactivityTimer",
 	"NetbiosExpireTimer",
 	"NetworkTimer",
 	"NTPExpireTimer",

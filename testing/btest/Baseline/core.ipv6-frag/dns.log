@@ -1,0 +1,11 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	dns
+#open	2012-03-07-01-37-58
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	trans_id	query	qclass	qclass_name	qtype	qtype_name	rcode	rcode_name	AA	TC	RD	RA	Z	answers	TTLs
+#types	time	string	addr	port	addr	port	enum	count	string	count	string	count	string	count	string	bool	bool	bool	bool	count	vector[string]	vector[interval]
+1331084278.438444	UWkUyAuUGXf	2001:470:1f11:81f:d138:5f55:6d4:1fe2	51850	2607:f740:b::f93	53	udp	3903	txtpadding_323.n1.netalyzr.icsi.berkeley.edu	1	C_INTERNET	16	TXT	0	NOERROR	T	F	T	F	0	This TXT record should be ignored	1.000000
+1331084293.592245	arKYeMETxOg	2001:470:1f11:81f:d138:5f55:6d4:1fe2	51851	2607:f740:b::f93	53	udp	40849	txtpadding_3230.n1.netalyzr.icsi.berkeley.edu	1	C_INTERNET	16	TXT	0	NOERROR	T	F	T	F	0	This TXT record should be ignored	1.000000
+#close	2012-03-07-01-38-18

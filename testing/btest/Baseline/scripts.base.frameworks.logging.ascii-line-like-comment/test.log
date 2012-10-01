@@ -1,0 +1,12 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	test
+#open	2012-07-20-01-49-22
+#fields	data	c
+#types	string	count
+Test1	42
+\x23Kaputt	42
+Test2	42
+#close	2012-07-20-01-49-22

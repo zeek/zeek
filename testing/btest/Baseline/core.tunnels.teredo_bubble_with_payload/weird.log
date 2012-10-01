@@ -1,0 +1,11 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	weird
+#open	2012-06-19-17-39-37
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
+#types	time	string	addr	port	addr	port	string	string	bool	string
+1340127577.346849	UWkUyAuUGXf	192.168.2.16	3797	65.55.158.80	3544	Teredo_bubble_with_payload	-	F	bro
+1340127577.349292	j4u32Pc5bif	192.168.2.16	3797	83.170.1.38	32900	Teredo_bubble_with_payload	-	F	bro
+#close	2012-06-19-17-39-37

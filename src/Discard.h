@@ -25,16 +25,7 @@ public:
 	int NextPacket(const IP_Hdr* ip, int len, int caplen);
 
 protected:
-	Val* BuildHeader(const struct ip* ip);
-	Val* BuildHeader(const struct tcphdr* tp, int tcp_len);
-	Val* BuildHeader(const struct udphdr* up);
-	Val* BuildHeader(const struct icmp* icmp);
 	Val* BuildData(const u_char* data, int hdrlen, int len, int caplen);
-
-	RecordType* ip_hdr;
-	RecordType* tcp_hdr;
-	RecordType* udp_hdr;
-	RecordType* icmp_hdr;
 
 	Func* check_ip;
 	Func* check_tcp;

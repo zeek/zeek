@@ -321,10 +321,10 @@ void DNS_Mapping::Init(struct hostent* h)
 		addrs = new IPAddr[num_addrs];
 		for ( int i = 0; i < num_addrs; ++i )
 			if ( h->h_addrtype == AF_INET )
-				addrs[i] = IPAddr(IPAddr::IPv4, (uint32*)h->h_addr_list[i],
+				addrs[i] = IPAddr(IPv4, (uint32*)h->h_addr_list[i],
 				                  IPAddr::Network);
 			else if ( h->h_addrtype == AF_INET6 )
-				addrs[i] = IPAddr(IPAddr::IPv6, (uint32*)h->h_addr_list[i],
+				addrs[i] = IPAddr(IPv6, (uint32*)h->h_addr_list[i],
 				                  IPAddr::Network);
 		}
 	else
@@ -693,7 +693,7 @@ Val* DNS_Mgr::BuildMappingVal(DNS_Mapping* dm)
 void DNS_Mgr::AddResult(DNS_Mgr_Request* dr, struct nb_dns_result* r)
 	{
 	struct hostent* h = (r && r->host_errno == 0) ? r->hostent : 0;
-	u_int32_t ttl = r->ttl;
+	u_int32_t ttl = (r && r->host_errno == 0) ? r->ttl : 0;
 
 	DNS_Mapping* new_dm;
 	DNS_Mapping* prev_dm;

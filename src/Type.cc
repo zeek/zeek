@@ -15,10 +15,9 @@
 
 extern int generate_documentation;
 
+// Note: This function must be thread-safe.
 const char* type_name(TypeTag t)
 	{
-	static char errbuf[512];
-
 	static const char* type_names[int(NUM_TYPES)] = {
 		"void",
 		"bool", "int", "count", "counter",
@@ -37,10 +36,7 @@ const char* type_name(TypeTag t)
 	};
 
 	if ( int(t) >= NUM_TYPES )
-		{
-		snprintf(errbuf, sizeof(errbuf), "%d: not a type tag", int(t));
-		return errbuf;
-		}
+		return "type_name(): not a type tag";
 
 	return type_names[int(t)];
 	}
@@ -914,7 +910,7 @@ Val* RecordType::FieldDefault(int field) const
 	const TypeDecl* td = FieldDecl(field);
 
 	if ( ! td->attrs )
-		return false;
+		return 0;
 
 	const Attr* def_attr = td->attrs->FindAttr(ATTR_DEFAULT);
 
@@ -1469,6 +1465,16 @@ bool VectorType::DoUnserialize(UnserialInfo* info)
 	DO_UNSERIALIZE(BroType);
 	yield_type = BroType::Unserialize(info);
 	return yield_type != 0;
+	}
+
+void VectorType::Describe(ODesc* d) const
+	{
+	if ( d->IsReadable() )
+		d->AddSP("vector of");
+	else
+		d->Add(int(Tag()));
+
+	yield_type->Describe(d);
 	}
 
 BroType* base_type(TypeTag tag)

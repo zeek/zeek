@@ -76,7 +76,7 @@ void ChunkedIO::DumpDebugData(const char* basefnname, bool want_reads)
 		ChunkedIOFd io(fd, "dump-file");
 		io.Write(*i);
 		io.Flush();
-		close(fd);
+		safe_close(fd);
 		}
 
 	l->clear();
@@ -127,7 +127,7 @@ ChunkedIOFd::~ChunkedIOFd()
 
 	delete [] read_buffer;
 	delete [] write_buffer;
-	close(fd);
+	safe_close(fd);
 
 	if ( partial )
 		{
@@ -686,7 +686,7 @@ ChunkedIOSSL::~ChunkedIOSSL()
 		ssl = 0;
 		}
 
-	close(socket);
+	safe_close(socket);
 	}
 
 

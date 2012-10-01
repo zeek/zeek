@@ -6,13 +6,13 @@
 
 %%{ // C segment
 #include <math.h>
-
 #include <vector>
 #include <algorithm>
 #include <cmath>
 #include <sys/stat.h>
 #include <cstdio>
 
+#include "digest.h"
 #include "Reporter.h"
 #include "IPAddr.h"
 
@@ -466,17 +466,18 @@ function system%(str: string%): int
 ##
 ## str: The command to execute.
 ##
-## env: A :bro:type:`set` or :bro:type:`table` with the environment variables
-##      in the form of key-value pairs (where the value is optional).
+## env: A :bro:type:`table` with the environment variables in the form
+##      of key-value pairs. Each specified environment variable name
+##      will be automatically prepended with ``BRO_ARG_``.
 ##
 ## Returns: The return value from the OS ``system`` function.
 ##
 ## .. bro:see:: system str_shell_escape piped_exec
-function system_env%(str: string, env: any%): int
+function system_env%(str: string, env: table_string_of_string%): int
 	%{
 	if ( env->Type()->Tag() != TYPE_TABLE )
 		{
-		builtin_error("system_env() requires a table/set argument");
+		builtin_error("system_env() requires a table argument");
 		return new Val(-1, TYPE_INT);
 		}
 
@@ -530,7 +531,7 @@ function piped_exec%(program: string, to_write: string%): bool
 %%{
 static void hash_md5_val(val_list& vlist, unsigned char digest[16])
 	{
-	md5_state_s h;
+	MD5_CTX h;
 
 	md5_init(&h);
 	loop_over_list(vlist, i)
@@ -539,16 +540,16 @@ static void hash_md5_val(val_list& vlist, unsigned char digest[16])
 		if ( v->Type()->Tag() == TYPE_STRING )
 			{
 			const BroString* str = v->AsString();
-			md5_append(&h, str->Bytes(), str->Len());
+			md5_update(&h, str->Bytes(), str->Len());
 			}
 		else
 			{
 			ODesc d(DESC_BINARY);
 			v->Describe(&d);
-			md5_append(&h, (const md5_byte_t *) d.Bytes(), d.Len());
+			md5_update(&h, (const u_char *) d.Bytes(), d.Len());
 			}
 		}
-	md5_finish(&h, digest);
+	md5_final(&h, digest);
 	}
 
 static void hmac_md5_val(val_list& vlist, unsigned char digest[16])
@@ -556,7 +557,53 @@ static void hmac_md5_val(val_list& vlist, unsigned char digest[16])
 	hash_md5_val(vlist, digest);
 	for ( int i = 0; i < 16; ++i )
 		digest[i] = digest[i] ^ shared_hmac_md5_key[i];
-	hash_md5(16, digest, digest);
+	MD5(digest, 16, digest);
+	}
+
+static void hash_sha1_val(val_list& vlist, unsigned char digest[20])
+	{
+	SHA_CTX h;
+
+	sha1_init(&h);
+	loop_over_list(vlist, i)
+		{
+		Val* v = vlist[i];
+		if ( v->Type()->Tag() == TYPE_STRING )
+			{
+			const BroString* str = v->AsString();
+			sha1_update(&h, str->Bytes(), str->Len());
+			}
+		else
+			{
+			ODesc d(DESC_BINARY);
+			v->Describe(&d);
+			sha1_update(&h, (const u_char *) d.Bytes(), d.Len());
+			}
+		}
+	sha1_final(&h, digest);
+	}
+
+static void hash_sha256_val(val_list& vlist, unsigned char digest[32])
+	{
+	SHA256_CTX h;
+
+	sha256_init(&h);
+	loop_over_list(vlist, i)
+		{
+		Val* v = vlist[i];
+		if ( v->Type()->Tag() == TYPE_STRING )
+			{
+			const BroString* str = v->AsString();
+			sha256_update(&h, str->Bytes(), str->Len());
+			}
+		else
+			{
+			ODesc d(DESC_BINARY);
+			v->Describe(&d);
+			sha256_update(&h, (const u_char *) d.Bytes(), d.Len());
+			}
+		}
+	sha256_final(&h, digest);
 	}
 %%}
 
@@ -565,6 +612,8 @@ static void hmac_md5_val(val_list& vlist, unsigned char digest[16])
 ## Returns: The MD5 hash value of the concatenated arguments.
 ##
 ## .. bro:see:: md5_hmac md5_hash_init md5_hash_update md5_hash_finish
+##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
+##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
 ##
 ## .. note::
 ##
@@ -578,6 +627,46 @@ function md5_hash%(...%): string
 	return new StringVal(md5_digest_print(digest));
 	%}
 
+## Computes the SHA1 hash value of the provided list of arguments.
+##
+## Returns: The SHA1 hash value of the concatenated arguments.
+##
+## .. bro:see:: md5_hash md5_hmac md5_hash_init md5_hash_update md5_hash_finish
+##    sha1_hash_init sha1_hash_update sha1_hash_finish
+##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
+##
+## .. note::
+##
+##      This function performs a one-shot computation of its arguments.
+##      For incremental hash computation, see :bro:id:`sha1_hash_init` and
+##      friends.
+function sha1_hash%(...%): string
+	%{
+	unsigned char digest[20];
+	hash_sha1_val(@ARG@, digest);
+	return new StringVal(sha1_digest_print(digest));
+	%}
+
+## Computes the SHA256 hash value of the provided list of arguments.
+##
+## Returns: The SHA256 hash value of the concatenated arguments.
+##
+## .. bro:see:: md5_hash md5_hmac md5_hash_init md5_hash_update md5_hash_finish
+##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
+##    sha256_hash_init sha256_hash_update sha256_hash_finish
+##
+## .. note::
+##
+##      This function performs a one-shot computation of its arguments.
+##      For incremental hash computation, see :bro:id:`sha256_hash_init` and
+##      friends.
+function sha256_hash%(...%): string
+	%{
+	unsigned char digest[32];
+	hash_sha256_val(@ARG@, digest);
+	return new StringVal(sha256_digest_print(digest));
+	%}
+
 ## Computes an HMAC-MD5 hash value of the provided list of arguments. The HMAC
 ## secret key is generated from available entropy when Bro starts up, or it can
 ## be specified for repeatability using the ``-K`` command line flag.
@@ -585,6 +674,8 @@ function md5_hash%(...%): string
 ## Returns: The HMAC-MD5 hash value of the concatenated arguments.
 ##
 ## .. bro:see:: md5_hash md5_hash_init md5_hash_update md5_hash_finish
+##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
+##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
 function md5_hmac%(...%): string
 	%{
 	unsigned char digest[16];
@@ -593,7 +684,9 @@ function md5_hmac%(...%): string
 	%}
 
 %%{
-static map<BroString, md5_state_s> md5_states;
+static map<BroString, MD5_CTX> md5_states;
+static map<BroString, SHA_CTX> sha1_states;
+static map<BroString, SHA256_CTX> sha256_states;
 
 BroString* convert_index_to_string(Val* index)
 	{
@@ -618,7 +711,9 @@ BroString* convert_index_to_string(Val* index)
 ##
 ## index: The unique identifier to associate with this hash computation.
 ##
-## .. bro:see:: md5_hash md5_hmac md5_hash_update md5_hash_finish
+## .. bro:see:: md5_hmac md5_hash md5_hash_update md5_hash_finish
+##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
+##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
 function md5_hash_init%(index: any%): bool
 	%{
 	BroString* s = convert_index_to_string(index);
@@ -626,9 +721,78 @@ function md5_hash_init%(index: any%): bool
 
 	if ( md5_states.count(*s) < 1 )
 		{
-		md5_state_s h;
+		MD5_CTX h;
 		md5_init(&h);
 		md5_states[*s] = h;
+		status = 1;
+		}
+
+	delete s;
+	return new Val(status, TYPE_BOOL);
+	%}
+
+## Initializes SHA1 state to enable incremental hash computation. After
+## initializing the SHA1 state with this function, you can feed data to
+## :bro:id:`sha1_hash_update` and finally need to call
+## :bro:id:`sha1_hash_finish` to finish the computation and get the final hash
+## value.
+##
+## For example, when computing incremental SHA1 values of transferred files in
+## multiple concurrent HTTP connections, one would call ``sha1_hash_init(c$id)``
+## once before invoking ``sha1_hash_update(c$id, some_more_data)`` in the
+## :bro:id:`http_entity_data` event handler. When all data has arrived, a call
+## to :bro:id:`sha1_hash_finish` returns the final hash value.
+##
+## index: The unique identifier to associate with this hash computation.
+##
+## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
+##    sha1_hash sha1_hash_update sha1_hash_finish
+##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
+function sha1_hash_init%(index: any%): bool
+	%{
+	BroString* s = convert_index_to_string(index);
+	int status = 0;
+
+	if ( sha1_states.count(*s) < 1 )
+		{
+		SHA_CTX h;
+		sha1_init(&h);
+		sha1_states[*s] = h;
+		status = 1;
+		}
+
+	delete s;
+	return new Val(status, TYPE_BOOL);
+	%}
+
+## Initializes SHA256 state to enable incremental hash computation. After
+## initializing the SHA256 state with this function, you can feed data to
+## :bro:id:`sha256_hash_update` and finally need to call
+## :bro:id:`sha256_hash_finish` to finish the computation and get the final hash
+## value.
+##
+## For example, when computing incremental SHA256 values of transferred files in
+## multiple concurrent HTTP connections, one would call
+## ``sha256_hash_init(c$id)`` once before invoking
+## ``sha256_hash_update(c$id, some_more_data)`` in the
+## :bro:id:`http_entity_data` event handler. When all data has arrived, a call
+## to :bro:id:`sha256_hash_finish` returns the final hash value.
+##
+## index: The unique identifier to associate with this hash computation.
+##
+## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
+##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
+##    sha256_hash sha256_hash_update sha256_hash_finish
+function sha256_hash_init%(index: any%): bool
+	%{
+	BroString* s = convert_index_to_string(index);
+	int status = 0;
+
+	if ( sha256_states.count(*s) < 1 )
+		{
+		SHA256_CTX h;
+		sha256_init(&h);
+		sha256_states[*s] = h;
 		status = 1;
 		}
 
@@ -644,7 +808,9 @@ function md5_hash_init%(index: any%): bool
 ##
 ## data: The data to add to the hash computation.
 ##
-## .. bro:see:: md5_hash md5_hmac md5_hash_init md5_hash_finish
+## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_finish
+##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
+##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
 function md5_hash_update%(index: any, data: string%): bool
 	%{
 	BroString* s = convert_index_to_string(index);
@@ -652,7 +818,59 @@ function md5_hash_update%(index: any, data: string%): bool
 
 	if ( md5_states.count(*s) > 0 )
 		{
-		md5_append(&md5_states[*s], data->Bytes(), data->Len());
+		md5_update(&md5_states[*s], data->Bytes(), data->Len());
+		status = 1;
+		}
+
+	delete s;
+	return new Val(status, TYPE_BOOL);
+	%}
+
+## Update the SHA1 value associated with a given index. It is required to
+## call :bro:id:`sha1_hash_init` once before calling this
+## function.
+##
+## index: The unique identifier to associate with this hash computation.
+##
+## data: The data to add to the hash computation.
+##
+## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
+##    sha1_hash sha1_hash_init sha1_hash_finish
+##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
+function sha1_hash_update%(index: any, data: string%): bool
+	%{
+	BroString* s = convert_index_to_string(index);
+	int status = 0;
+
+	if ( sha1_states.count(*s) > 0 )
+		{
+		sha1_update(&sha1_states[*s], data->Bytes(), data->Len());
+		status = 1;
+		}
+
+	delete s;
+	return new Val(status, TYPE_BOOL);
+	%}
+
+## Update the SHA256 value associated with a given index. It is required to
+## call :bro:id:`sha256_hash_init` once before calling this
+## function.
+##
+## index: The unique identifier to associate with this hash computation.
+##
+## data: The data to add to the hash computation.
+##
+## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
+##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
+##    sha256_hash sha256_hash_init sha256_hash_finish
+function sha256_hash_update%(index: any, data: string%): bool
+	%{
+	BroString* s = convert_index_to_string(index);
+	int status = 0;
+
+	if ( sha256_states.count(*s) > 0 )
+		{
+		sha256_update(&sha256_states[*s], data->Bytes(), data->Len());
 		status = 1;
 		}
 
@@ -666,7 +884,9 @@ function md5_hash_update%(index: any, data: string%): bool
 ##
 ## Returns: The hash value associated with the computation at *index*.
 ##
-## .. bro:see:: md5_hash md5_hmac md5_hash_init md5_hash_update
+## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update
+##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
+##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
 function md5_hash_finish%(index: any%): string
 	%{
 	BroString* s = convert_index_to_string(index);
@@ -675,7 +895,7 @@ function md5_hash_finish%(index: any%): string
 	if ( md5_states.count(*s) > 0 )
 		{
 		unsigned char digest[16];
-		md5_finish(&md5_states[*s], digest);
+		md5_final(&md5_states[*s], digest);
 		md5_states.erase(*s);
 		printable_digest = new StringVal(md5_digest_print(digest));
 		}
@@ -686,9 +906,65 @@ function md5_hash_finish%(index: any%): string
 	return printable_digest;
 	%}
 
+## Returns the final SHA1 digest of an incremental hash computation.
+##
+## index: The unique identifier of this hash computation.
+##
+## Returns: The hash value associated with the computation at *index*.
+##
+## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
+##    sha1_hash sha1_hash_init sha1_hash_update
+##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
+function sha1_hash_finish%(index: any%): string
+	%{
+	BroString* s = convert_index_to_string(index);
+	StringVal* printable_digest;
+
+	if ( sha1_states.count(*s) > 0 )
+		{
+		unsigned char digest[20];
+		sha1_final(&sha1_states[*s], digest);
+		sha1_states.erase(*s);
+		printable_digest = new StringVal(sha1_digest_print(digest));
+		}
+	else
+		printable_digest = new StringVal("");
+
+	delete s;
+	return printable_digest;
+	%}
+
+## Returns the final SHA256 digest of an incremental hash computation.
+##
+## index: The unique identifier of this hash computation.
+##
+## Returns: The hash value associated with the computation at *index*.
+##
+## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
+##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
+##    sha256_hash sha256_hash_init sha256_hash_update
+function sha256_hash_finish%(index: any%): string
+	%{
+	BroString* s = convert_index_to_string(index);
+	StringVal* printable_digest;
+
+	if ( sha256_states.count(*s) > 0 )
+		{
+		unsigned char digest[32];
+		sha256_final(&sha256_states[*s], digest);
+		sha256_states.erase(*s);
+		printable_digest = new StringVal(sha256_digest_print(digest));
+		}
+	else
+		printable_digest = new StringVal("");
+
+	delete s;
+	return printable_digest;
+	%}
+
 ## Generates a random number.
 ##
-## max: The maximum value the random number.
+## max: The maximum value of the random number.
 ##
 ## Returns: a random positive integer in the interval *[0, max)*.
 ##
@@ -696,12 +972,12 @@ function md5_hash_finish%(index: any%): string
 ##
 ## .. note::
 ##
-##      This function is a wrapper about the function ``rand`` provided by
-##      the OS.
+##      This function is a wrapper about the function ``random``
+##      provided by the OS.
 function rand%(max: count%): count
 	%{
 	int result;
-	result = bro_uint_t(double(max) * double(rand()) / (RAND_MAX + 1.0));
+	result = bro_uint_t(double(max) * double(bro_random()) / (RAND_MAX + 1.0));
 	return new Val(result, TYPE_COUNT);
 	%}
 
@@ -713,11 +989,11 @@ function rand%(max: count%): count
 ##
 ## .. note::
 ##
-##      This function is a wrapper about the function ``srand`` provided
-##      by the OS.
+##      This function is a wrapper about the function ``srandom``
+##      provided by the OS.
 function srand%(seed: count%): any
 	%{
-	srand(seed);
+	bro_srandom(seed);
 	return 0;
 	%}
 
@@ -745,7 +1021,7 @@ extern "C" {
 ## data: The data to find the MIME type for.
 ##
 ## return_mime: If true, the function returns a short MIME type string (e.g.,
-##              ``text/plain`` instead of a more elaborate textual description.
+##              ``text/plain`` instead of a more elaborate textual description).
 ##
 ## Returns: The MIME type of *data*.
 function identify_data%(data: string, return_mime: bool%): string
@@ -966,8 +1242,6 @@ function unique_id_from%(pool: int, prefix: string%) : string
 ## Removes all elements from a set or table.
 ##
 ## v: The set or table
-##
-## Returns: The cleared set/table or 0 if *v* is not a set/table type.
 function clear_table%(v: any%): any
 	%{
 	if ( v->Type()->Tag() == TYPE_TABLE )
@@ -1015,7 +1289,7 @@ function same_object%(o1: any, o2: any%): bool
 	return new Val(o1 == o2, TYPE_BOOL);
 	%}
 
-## Returns the number bytes that a value occupies in memory.
+## Returns the number of bytes that a value occupies in memory.
 ##
 ## v: The value
 ##
@@ -1031,7 +1305,7 @@ function val_size%(v: any%): count
 ##
 ## newsize: The new size of *aggr*.
 ##
-## Returns: The old size of *aggr* and 0 if *aggr* is not a :bro:type:`vector`.
+## Returns: The old size of *aggr*, or 0 if *aggr* is not a :bro:type:`vector`.
 function resize%(aggr: any, newsize: count%) : count
 	%{
 	if ( aggr->Type()->Tag() != TYPE_VECTOR )
@@ -1148,13 +1422,16 @@ bool indirect_int_sort_function(int a, int b)
 %%}
 
 ## Sorts a vector in place. The second argument is a comparison function that
-## takes two arguments: if the vector type is \verb|vector of T|, then the
-## comparison function must be ``function(a: T, b: T): bool``, which returns
-## ``a < b`` for some type-specific notion of the less-than operator.
+## takes two arguments: if the vector type is ``vector of T``, then the
+## comparison function must be ``function(a: T, b: T): int``, which returns
+## a value less than zero if ``a < b`` for some type-specific notion of the
+## less-than operator.  The comparison function is optional if the type
+## is an integral type (int, count, etc.).
 ##
 ## v: The vector instance to sort.
 ##
-## Returns: The original vector.
+## Returns: The vector, sorted from minimum to maximum value. If the vector
+##          could not be sorted, then the original vector is returned instead.
 ##
 ## .. bro:see:: order
 function sort%(v: any, ...%) : any
@@ -1217,12 +1494,14 @@ function sort%(v: any, ...%) : any
 ## v: The vector whose order to compute.
 ##
 ## Returns: A ``vector of count`` with the indices of the ordered elements.
+##          For example, the elements of *v* in order are (assuming ``o``
+##          is the vector returned by ``order``):  v[o[0]], v[o[1]], etc.
 ##
 ## .. bro:see:: sort
 function order%(v: any, ...%) : index_vec
 	%{
-	VectorVal* result_v =
-		new VectorVal(new VectorType(base_type(TYPE_COUNT)));
+	VectorVal* result_v = new VectorVal(
+	    internal_type("index_vec")->AsVectorType());
 
 	if ( v->Type()->Tag() != TYPE_VECTOR )
 		{
@@ -1249,13 +1528,13 @@ function order%(v: any, ...%) : index_vec
 		}
 
 	if ( ! comp && ! IsIntegral(elt_type->Tag()) )
-		builtin_error("comparison function required for sort() with non-integral types");
+		builtin_error("comparison function required for order() with non-integral types");
 
 	vector<Val*>& vv = *v->AsVector();
 	int n = vv.size();
 
 	// Set up initial mapping of indices directly to corresponding
-	// elements.  We stay zero-based until after the sorting.
+	// elements.
 	vector<int> ind_vv(n);
 	index_map = new Val*[n];
 	int i;
@@ -1271,7 +1550,7 @@ function order%(v: any, ...%) : index_vec
 		if ( comp_type->YieldType()->Tag() != TYPE_INT ||
 		     ! comp_type->ArgTypes()->AllMatch(elt_type, 0) )
 			{
-			builtin_error("invalid comparison function in call to sort()");
+			builtin_error("invalid comparison function in call to order()");
 			return v;
 			}
 
@@ -1285,8 +1564,7 @@ function order%(v: any, ...%) : index_vec
 	delete [] index_map;
 	index_map = 0;
 
-	// Now spin through ind_vv to read out the rearrangement,
-	// adjusting indices as we do so.
+	// Now spin through ind_vv to read out the rearrangement.
 	for ( i = 0; i < n; ++i )
 		{
 		int ind = ind_vv[i];
@@ -1324,7 +1602,7 @@ function cat%(...%): string
 ## given argument. If any of the variable arguments is an empty string it is
 ## replaced by a given default string instead.
 ##
-## sep: The separator to place betwen each argument.
+## sep: The separator to place between each argument.
 ##
 ## def: The default string to use when an argument is the empty string.
 ##
@@ -1376,25 +1654,25 @@ function cat_sep%(sep: string, def: string, ...%): string
 ##
 ##    - ``.``: Precision of floating point specifiers ``[efg]`` (< 128)
 ##
-##    - ``A``: Escape NUL bytes, i.e., replace ``0`` with ``\0``
+##    - ``A``: Escape only NUL bytes (each one replaced with ``\0``) in a string
 ##
 ##    - ``[DTdxsefg]``: Format specifier
 ##
 ##        - ``[DT]``: ISO timestamp with microsecond precision
 ##
-##        - ``d``: Signed/Unsigned integer (using C-style ``%lld|``/``%llu``
+##        - ``d``: Signed/Unsigned integer (using C-style ``%lld``/``%llu``
 ##                 for ``int``/``count``)
 ##
 ##        - ``x``: Unsigned hexadecimal (using C-style ``%llx``);
 ##                 addresses/ports are converted to host-byte order
 ##
-##        - ``s``: Escaped string
+##        - ``s``: String (byte values less than 32 or greater than 126
+##                 will be escaped)
 ##
 ##        - ``[efg]``: Double
 ##
-## Returns: Given no arguments, :bro:id:`fmt` returns an empty string. Given a
-##          non-string first argument, :bro:id:`fmt` returns the concatenation
-##          of all its arguments, per :bro:id:`cat`. Finally, given the wrong
+## Returns: Returns the formatted string. Given no arguments, :bro:id:`fmt`
+##          returns an empty string. Given no format string or the wrong
 ##          number of additional arguments for the given format specifier,
 ##          :bro:id:`fmt` generates a run-time error.
 ##
@@ -1405,8 +1683,9 @@ function fmt%(...%): string
 		return new StringVal("");
 
 	Val* fmt_v = @ARG@[0];
-	if ( fmt_v->Type()->Tag() != TYPE_STRING )
-		return bro_cat(frame, @ARGS@);
+
+	// Type of fmt_v will be string here, check_built_in_call() in Func.cc
+	// checks that.
 
 	const char* fmt = fmt_v->AsString()->CheckString();
 	ODesc d;
@@ -1416,10 +1695,16 @@ function fmt%(...%): string
 		;
 
 	if ( n < @ARGC@ - 1 )
+		{
 		builtin_error("too many arguments for format", fmt_v);
+		return new StringVal("");
+		}
 
 	else if ( n >= @ARGC@ )
+		{
 		builtin_error("too few arguments for format", fmt_v);
+		return new StringVal("");
+		}
 
 	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
 	s->SetUseFreeToDelete(true);
@@ -1433,8 +1718,9 @@ function fmt%(...%): string
 #
 # ===========================================================================
 
-## Chops off any decimal digits of the given double, i.e., computes the
-## "floor" of it. For example, ``floor(3.14)`` returns ``3.0``.
+## Computes the greatest integer less than the given :bro:type:`double` value.
+## For example, ``floor(3.14)`` returns ``3.0``, and ``floor(-3.14)``
+## returns ``-4.0``.
 ##
 ## d: The :bro:type:`double` to manipulate.
 ##
@@ -1507,7 +1793,7 @@ function log10%(d: double%): double
 # ===========================================================================
 
 ## Determines whether *c* has been received externally. For example,
-## Broccoli or the Time Machine can send packets to Bro via a mechanism that
+## Broccoli or the Time Machine can send packets to Bro via a mechanism that is
 ## one step lower than sending events. This function checks whether the packets
 ## of a connection stem from one of these external *packet sources*.
 ##
@@ -1521,7 +1807,7 @@ function is_external_connection%(c: connection%) : bool
 
 ## Returns the ID of the analyzer which raised the current event.
 ##
-## Returns: The ID of the analyzer which raised hte current event, or 0 if
+## Returns: The ID of the analyzer which raised the current event, or 0 if
 ##          none.
 function current_analyzer%(%) : count
 	%{
@@ -1613,8 +1899,9 @@ function reading_traces%(%): bool
 	return new Val(reading_traces, TYPE_BOOL);
 	%}
 
-## Returns statistics about the number of packets *(i)* received by Bro,
-## *(ii)* dropped, and *(iii)* seen on the link (not always available).
+## Returns packet capture statistics. Statistics include the number of
+## packets *(i)* received by Bro, *(ii)* dropped, and *(iii)* seen on the
+## link (not always available).
 ##
 ## Returns: A record of packet statistics.
 ##
@@ -1648,9 +1935,9 @@ function net_stats%(%): NetStats
 	return ns;
 	%}
 
-## Returns Bro process statistics, such as real/user/sys CPU time, memory
-## usage, page faults, number of TCP/UDP/ICMP connections, timers, and events
-## queued/dispatched.
+## Returns Bro process statistics. Statistics include real/user/sys CPU time,
+## memory usage, page faults, number of TCP/UDP/ICMP connections, timers,
+## and events queued/dispatched.
 ##
 ## Returns: A record with resource usage statistics.
 ##
@@ -1725,10 +2012,10 @@ function resource_usage%(%): bro_resources
 	return res;
 	%}
 
-## Returns statistics about the regular expression engine, such as the number
-## of distinct matchers, DFA states, DFA state transitions, memory usage of
-## DFA states, cache hits/misses, and average number of NFA states across all
-## matchers.
+## Returns statistics about the regular expression engine. Statistics include
+## the number of distinct matchers, DFA states, DFA state transitions, memory
+## usage of DFA states, cache hits/misses, and average number of NFA states
+## across all matchers.
 ##
 ## Returns: A record with matcher statistics.
 ##
@@ -1778,7 +2065,7 @@ function get_gap_summary%(%): gap_info
 	%}
 
 ## Generates a table of the size of all global variables. The table index is
-## the variable name and the value the variable size in bytes.
+## the variable name and the value is the variable size in bytes.
 ##
 ## Returns: A table that maps variable names to their sizes.
 ##
@@ -1863,7 +2150,7 @@ function lookup_ID%(id: string%) : any
 	return i->ID_Val()->Ref();
 	%}
 
-## Generates meta data about a record fields. The returned information
+## Generates metadata about a record's fields. The returned information
 ## includes the field name, whether it is logged, its value (if it has one),
 ## and its default value (if specified).
 ##
@@ -1908,10 +2195,10 @@ function record_fields%(rec: any%): record_field_table
 	return fields;
 	%}
 
-## Enables detailed collections of statistics about CPU/memory usage,
-## connections, TCP states/reassembler, DNS lookups, timers, and script-level
-## state. The script variable :bro:id:`profiling_file` holds the name of the
-## file.
+## Enables detailed collection of profiling statistics. Statistics include
+## CPU/memory usage, connections, TCP states/reassembler, DNS lookups,
+## timers, and script-level state. The script variable :bro:id:`profiling_file`
+## holds the name of the file.
 ##
 ## .. bro:see:: net_stats
 ##              resource_usage
@@ -1949,7 +2236,7 @@ function is_local_interface%(ip: addr%) : bool
 	if ( ent )
 		{
 		for ( unsigned int len = 0; ent->h_addr_list[len]; ++len )
-			addrs.push_back(IPAddr(IPAddr::IPv4, (uint32*)ent->h_addr_list[len],
+			addrs.push_back(IPAddr(IPv4, (uint32*)ent->h_addr_list[len],
 			                       IPAddr::Network));
 		}
 
@@ -1958,7 +2245,7 @@ function is_local_interface%(ip: addr%) : bool
 	if ( ent )
 		{
 		for ( unsigned int len = 0; ent->h_addr_list[len]; ++len )
-			addrs.push_back(IPAddr(IPAddr::IPv6, (uint32*)ent->h_addr_list[len],
+			addrs.push_back(IPAddr(IPv6, (uint32*)ent->h_addr_list[len],
 			                       IPAddr::Network));
 		}
 
@@ -1994,11 +2281,11 @@ function dump_rule_stats%(f: file%): bool
 	return new Val(1, TYPE_BOOL);
 	%}
 
-## Checks wheter Bro is terminating.
+## Checks if Bro is terminating.
 ##
 ## Returns: True if Bro is in the process of shutting down.
 ##
-## .. bro:see: terminate
+## .. bro:see:: terminate
 function bro_is_terminating%(%): bool
 	%{
 	return new Val(terminating, TYPE_BOOL);
@@ -2024,7 +2311,7 @@ function gethostname%(%) : string
 ## Returns: true if *a* is an IPv4 address, else false.
 function is_v4_addr%(a: addr%): bool
 	%{
-	if ( a->AsAddr().GetFamily() == IPAddr::IPv4 )
+	if ( a->AsAddr().GetFamily() == IPv4 )
 		return new Val(1, TYPE_BOOL);
 	else
 		return new Val(0, TYPE_BOOL);
@@ -2037,7 +2324,7 @@ function is_v4_addr%(a: addr%): bool
 ## Returns: true if *a* is an IPv6 address, else false.
 function is_v6_addr%(a: addr%): bool
 	%{
-	if ( a->AsAddr().GetFamily() == IPAddr::IPv6 )
+	if ( a->AsAddr().GetFamily() == IPv6 )
 		return new Val(1, TYPE_BOOL);
 	else
 		return new Val(0, TYPE_BOOL);
@@ -2049,7 +2336,37 @@ function is_v6_addr%(a: addr%): bool
 #
 # ===========================================================================
 
-## Converts a :bro:type:`addr` to a :bro:type:`index_vec`.
+## Converts the *data* field of :bro:type:`ip6_routing` records that have
+## *rtype* of 0 into a vector of addresses.
+##
+## s: The *data* field of an :bro:type:`ip6_routing` record that has
+##    an *rtype* of 0.
+##
+## Returns: The vector of addresses contained in the routing header data.
+function routing0_data_to_addrs%(s: string%): addr_vec
+	%{
+	VectorVal* rval = new VectorVal(internal_type("addr_vec")->AsVectorType());
+
+	int len = s->Len();
+	const u_char* bytes = s->Bytes();
+	bytes += 4; // go past 32-bit reserved field
+	len -= 4;
+
+	if ( ( len % 16 ) != 0 )
+		reporter->Warning("Bad ip6_routing data length: %d", s->Len());
+
+	while ( len > 0 )
+		{
+		IPAddr a(IPv6, (const uint32*) bytes, IPAddr::Network);
+		rval->Assign(rval->Size(), new AddrVal(a), 0);
+		bytes += 16;
+		len -= 16;
+		}
+
+	return rval;
+	%}
+
+## Converts an :bro:type:`addr` to an :bro:type:`index_vec`.
 ##
 ## a: The address to convert into a vector of counts.
 ##
@@ -2059,7 +2376,7 @@ function is_v6_addr%(a: addr%): bool
 ## .. bro:see:: counts_to_addr
 function addr_to_counts%(a: addr%): index_vec
 	%{
-	VectorVal* rval = new VectorVal(new VectorType(base_type(TYPE_COUNT)));
+	VectorVal* rval = new VectorVal(internal_type("index_vec")->AsVectorType());
 	const uint32* bytes;
 	int len = a->AsAddr().GetBytes(&bytes);
 
@@ -2069,7 +2386,7 @@ function addr_to_counts%(a: addr%): index_vec
 	return rval;
 	%}
 
-## Converts a :bro:type:`index_vec` to a :bro:type:`addr`.
+## Converts an :bro:type:`index_vec` to an :bro:type:`addr`.
 ##
 ## v: The vector containing host-order IP address representation,
 ##    one element for IPv4 addresses, four elements for IPv6 addresses.
@@ -2099,7 +2416,7 @@ function counts_to_addr%(v: index_vec%): addr
 		}
 	%}
 
-## Converts a :bro:type:`string` to a :bro:type:`int`.
+## Converts a :bro:type:`string` to an :bro:type:`int`.
 ##
 ## str: The :bro:type:`string` to convert.
 ##
@@ -2129,7 +2446,7 @@ function to_int%(str: string%): int
 ##
 ## n: The :bro:type:`int` to convert.
 ##
-## Returns: The :bro:type:`int` *n* as unsigned integer or 0 if *n* < 0.
+## Returns: The :bro:type:`int` *n* as unsigned integer, or 0 if *n* < 0.
 function int_to_count%(n: int%): count
 	%{
 	if ( n < 0 )
@@ -2144,7 +2461,7 @@ function int_to_count%(n: int%): count
 ##
 ## d: The :bro:type:`double` to convert.
 ##
-## Returns: The :bro:type:`double` *d* as unsigned integer or 0 if *d* < 0.0.
+## Returns: The :bro:type:`double` *d* as unsigned integer, or 0 if *d* < 0.0.
 ##
 ## .. bro:see:: double_to_time
 function double_to_count%(d: double%): count
@@ -2159,8 +2476,8 @@ function double_to_count%(d: double%): count
 ##
 ## str: The :bro:type:`string` to convert.
 ##
-## Returns: The :bro:type:`string` *str* as unsigned integer or if in invalid
-##          format.
+## Returns: The :bro:type:`string` *str* as unsigned integer, or 0 if *str* has
+##          an invalid format.
 ##
 ## .. bro:see:: to_addr to_int to_port to_subnet
 function to_count%(str: string%): count
@@ -2193,7 +2510,7 @@ function interval_to_double%(i: interval%): double
 
 ## Converts a :bro:type:`time` value to a :bro:type:`double`.
 ##
-## t: The :bro:type:`interval` to convert.
+## t: The :bro:type:`time` to convert.
 ##
 ## Returns: The :bro:type:`time` value *t* as :bro:type:`double`.
 ##
@@ -2203,11 +2520,11 @@ function time_to_double%(t: time%): double
 	return new Val(t, TYPE_DOUBLE);
 	%}
 
-## Converts a :bro:type:`time` value to a :bro:type:`double`.
+## Converts a :bro:type:`double` value to a :bro:type:`time`.
 ##
-## t: The :bro:type:`interval` to convert.
+## d: The :bro:type:`double` to convert.
 ##
-## Returns: The :bro:type:`time` value *t* as :bro:type:`double`.
+## Returns: The :bro:type:`double` value *d* as :bro:type:`time`.
 ##
 ## .. bro:see:: time_to_double double_to_count
 function double_to_time%(d: double%): time
@@ -2245,7 +2562,7 @@ function port_to_count%(p: port%): count
 ##
 ## proto: The transport protocol.
 ##
-## Returns: The :bro:type:`count` *c* as :bro:type:`port`.
+## Returns: The :bro:type:`count` *num* as :bro:type:`port`.
 ##
 ## .. bro:see:: port_to_count
 function count_to_port%(num: count, proto: transport_proto%): port
@@ -2257,7 +2574,7 @@ function count_to_port%(num: count, proto: transport_proto%): port
 ##
 ## ip: The :bro:type:`string` to convert.
 ##
-## Returns: The :bro:type:`string` *ip* as :bro:type:`addr` or the unspecified
+## Returns: The :bro:type:`string` *ip* as :bro:type:`addr`, or the unspecified
 ##          address ``::`` if the input string does not parse correctly.
 ##
 ## .. bro:see:: to_count to_int to_port count_to_v4_addr raw_bytes_to_v4_addr
@@ -2274,7 +2591,7 @@ function to_addr%(ip: string%): addr
 ##
 ## sn: The subnet to convert.
 ##
-## Returns: The *sn* string as a :bro:type:`subnet` or the unspecified subnet
+## Returns: The *sn* string as a :bro:type:`subnet`, or the unspecified subnet
 ##          ``::/0`` if the input string does not parse correctly.
 ##
 ## .. bro:see:: to_count to_int to_port count_to_v4_addr raw_bytes_to_v4_addr
@@ -2285,6 +2602,29 @@ function to_subnet%(sn: string%): subnet
 	Val* ret = new SubNetVal(s);
 	delete [] s;
 	return ret;
+	%}
+
+## Converts a :bro:type:`string` to a :bro:type:`double`.
+##
+## str: The :bro:type:`string` to convert.
+##
+## Returns: The :bro:type:`string` *str* as double, or 0 if *str* has
+##          an invalid format.
+##
+function to_double%(str: string%): double
+	%{
+	const char* s = str->CheckString();
+	char* end_s;
+	
+	double d = strtod(s, &end_s);
+	
+	if ( s[0] == '\0' || end_s[0] != '\0' )
+		{       
+		builtin_error("bad conversion to double", @ARG@[0]);
+		d = 0;
+		}     
+	
+	return new Val(d, TYPE_DOUBLE);
 	%}
 
 ## Converts a :bro:type:`count` to an :bro:type:`addr`.
@@ -2305,13 +2645,13 @@ function count_to_v4_addr%(ip: count%): addr
 	return new AddrVal(htonl(uint32(ip)));
 	%}
 
-## Converts a :bro:type:`string` of bytes into an IP address. In particular,
+## Converts a :bro:type:`string` of bytes into an IPv4 address. In particular,
 ## this function interprets the first 4 bytes of the string as an IPv4 address
 ## in network order.
 ##
 ## b: The raw bytes (:bro:type:`string`) to convert.
 ##
-## Returns: The byte :bro:type:`string` *ip* as :bro:type:`addr`.
+## Returns: The byte :bro:type:`string` *b* as :bro:type:`addr`.
 ##
 ## .. bro:see:: raw_bytes_to_v4_addr to_addr to_subnet
 function raw_bytes_to_v4_addr%(b: string%): addr
@@ -2330,7 +2670,7 @@ function raw_bytes_to_v4_addr%(b: string%): addr
 	return new AddrVal(htonl(a));
 	%}
 
-## Converts a :bro:type:`string` to an :bro:type:`port`.
+## Converts a :bro:type:`string` to a :bro:type:`port`.
 ##
 ## s: The :bro:type:`string` to convert.
 ##
@@ -2367,7 +2707,7 @@ function to_port%(s: string%): port
 ##
 ## Returns: The IP address corresponding to *s*.
 ##
-## .. bro:see:: addr_to_ptr_name parse_dotted_addr
+## .. bro:see:: addr_to_ptr_name to_addr
 function ptr_name_to_addr%(s: string%): addr
 	%{
 	if ( s->Len() != 72 )
@@ -2431,27 +2771,12 @@ function ptr_name_to_addr%(s: string%): addr
 ##
 ## Returns: The reverse pointer representation of *a*.
 ##
-## .. bro:see:: ptr_name_to_addr parse_dotted_addr
+## .. bro:see:: ptr_name_to_addr to_addr
 function addr_to_ptr_name%(a: addr%): string
 	%{
 	return new StringVal(a->AsAddr().PtrName().c_str());
 	%}
 
-# Transforms n0.n1.n2.n3 -> addr.
-
-## Converts a decimal dotted IP address in a :bro:type:`string` to an
-## :bro:type:`addr` type.
-##
-## s: The IP address in the form ``n0.n1.n2.n3``.
-##
-## Returns: The IP address as type :bro:type:`addr`.
-##
-## .. bro:see:: addr_to_ptr_name parse_dotted_addr
-function parse_dotted_addr%(s: string%): addr
-	%{
-	IPAddr a(s->CheckString());
-	return new AddrVal(a);
-	%}
 
 %%{
 static Val* parse_port(const char* line)
@@ -2580,7 +2905,7 @@ function parse_ftp_port%(s: string%): ftp_port
 	%}
 
 ## Converts a string representation of the FTP EPRT command to an ``ftp_port``.
-## (see `RFC 2428 <http://tools.ietf.org/html/rfc2428>`_).
+## See `RFC 2428 <http://tools.ietf.org/html/rfc2428>`_.
 ## The format is ``EPRT<space><d><net-prt><d><net-addr><d><tcp-port><d>``,
 ## where ``<d>`` is a delimiter in the ASCII range 33-126 (usually ``|``).
 ##
@@ -2671,7 +2996,7 @@ function fmt_ftp_port%(a: addr, p: port%): string
 
 ## Decode a NetBIOS name.  See http://support.microsoft.com/kb/194203.
 ##
-## name: The encoded NetBIOS name, e.g., ``"FEEIEFCAEOEFFEECEJEPFDCAEOEBENEF:``.
+## name: The encoded NetBIOS name, e.g., ``"FEEIEFCAEOEFFEECEJEPFDCAEOEBENEF"``.
 ##
 ## Returns: The decoded NetBIOS name, e.g., ``"THE NETBIOS NAME"``.
 ##
@@ -2704,7 +3029,7 @@ function decode_netbios_name%(name: string%): string
 	return new StringVal(i, result);
 	%}
 
-## Converts a NetBIOS name type to its corresonding numeric value.
+## Converts a NetBIOS name type to its corresponding numeric value.
 ## See http://support.microsoft.com/kb/163409.
 ##
 ## name: The NetBIOS name type.
@@ -2719,12 +3044,12 @@ function decode_netbios_name_type%(name: string%): count
 	return new Val(return_val, TYPE_COUNT);
 	%}
 
-## Converts a string of bytes into its hexadecimal representation, e.g.,
-## ``"04"`` to ``"3034"``.
+## Converts a string of bytes into its hexadecimal representation.
+## For example, ``"04"`` would be converted to ``"3034"``.
 ##
 ## bytestring: The string of bytes.
 ##
-## Returns: The hexadecimal reprsentation of *bytestring*.
+## Returns: The hexadecimal representation of *bytestring*.
 ##
 ## .. bro:see:: hexdump
 function bytestring_to_hexstr%(bytestring: string%): string
@@ -2764,7 +3089,7 @@ function decode_base64%(s: string%): string
 ## s: The Base64-encoded string.
 ##
 ## a: The custom alphabet. The empty string indicates the default alphabet. The
-##    lengh of *a* must bt 64. For example, a custom alphabet could be
+##    length of *a* must be 64. For example, a custom alphabet could be
 ##    ``"!#$%&/(),-.:;<>@[]^ `_{|}~abcdefghijklmnopqrstuvwxyz0123456789+?"``.
 ##
 ## Returns: The decoded version of *s*.
@@ -2833,7 +3158,7 @@ function uuid_to_string%(uuid: string%): string
 ##
 ## p2: The second pattern.
 ##
-## Returns: The compiled pattern of the concatentation of *p1* and *p2*.
+## Returns: The compiled pattern of the concatenation of *p1* and *p2*.
 ##
 ## .. bro:see:: convert_for_pattern string_to_pattern
 ##
@@ -2972,7 +3297,7 @@ function strftime%(fmt: string, d: time%) : string
 ## a: The address to mask.
 ##
 ## top_bits_to_keep: The number of top bits to keep in *a*; must be greater
-##                   than 0 and less than 33.
+##                   than 0 and less than 33 for IPv4, or 129 for IPv6.
 ##
 ## Returns: The address *a* masked down to *top_bits_to_keep* bits.
 ##
@@ -2982,7 +3307,7 @@ function mask_addr%(a: addr, top_bits_to_keep: count%): subnet
 	return new SubNetVal(a->AsAddr(), top_bits_to_keep);
 	%}
 
-## Takes some top bits (e.g., subnet address) from one address and the other
+## Takes some top bits (such as a subnet address) from one address and the other
 ## bits (intra-subnet part) from a second address and merges them to get a new
 ## address. This is useful for anonymizing at subnet level while preserving
 ## serial scans.
@@ -3036,7 +3361,7 @@ function is_udp_port%(p: port%): bool
 ##
 ## p: The :bro:type:`port` to check.
 ##
-## Returns: True iff *p* is a ICMP port.
+## Returns: True iff *p* is an ICMP port.
 ##
 ## .. bro:see:: is_tcp_port is_udp_port
 function is_icmp_port%(p: port%): bool
@@ -3078,7 +3403,7 @@ EnumVal* map_conn_type(TransportProto tp)
 ##
 ## cid: The connection identifier.
 ##
-## Returns: The transport protocol of the connection identified by *id*.
+## Returns: The transport protocol of the connection identified by *cid*.
 ##
 ## .. bro:see:: get_port_transport_proto
 ##              get_orig_seq get_resp_seq
@@ -3192,7 +3517,7 @@ const char* conn_id_string(Val* c)
 ##
 ## c: The HTTP connection.
 ##
-## is_orig: If true, the client data is skipped and the server data otherwise.
+## is_orig: If true, the client data is skipped, and the server data otherwise.
 ##
 ## .. bro:see:: skip_smtp_data
 function skip_http_entity_data%(c: connection, is_orig: bool%): any
@@ -3219,7 +3544,7 @@ function skip_http_entity_data%(c: connection, is_orig: bool%): any
 	return 0;
 	%}
 
-## Unescapes all characters in a URI, i.e., decodes every ``%xx`` group.
+## Unescapes all characters in a URI (decode every ``%xx`` group).
 ##
 ## URI: The URI to unescape.
 ##
@@ -3267,7 +3592,7 @@ function dump_current_packet%(file_name: string%) : bool
 
 ## Returns the currently processed PCAP packet.
 ##
-## Returns: The currently processed packet, which is as a record
+## Returns: The currently processed packet, which is a record
 ##          containing the timestamp, ``snaplen``, and packet data.
 ##
 ## .. bro:see:: dump_current_packet dump_packet send_current_packet
@@ -3425,7 +3750,7 @@ function lookup_addr%(host: addr%) : string
 ##
 ## host: The hostname to lookup.
 ##
-## Returns: A set of DNS A records associated with *host*.
+## Returns: A set of DNS A and AAAA records associated with *host*.
 ##
 ## .. bro:see:: lookup_addr
 function lookup_hostname%(host: string%) : addr_set
@@ -3462,7 +3787,7 @@ static GeoIP* open_geoip_db(GeoIPDBTypes type)
 		geoip = GeoIP_open_type(type, GEOIP_MEMORY_CACHE);
 
 	if ( ! geoip )
-		reporter->Warning("Failed to open GeoIP database: %s",
+		reporter->Info("Failed to open GeoIP database: %s",
 		                  GeoIPDBFileName[type]);
 	return geoip;
 	}
@@ -3502,7 +3827,7 @@ function lookup_location%(a: addr%) : geo_location
 			if ( ! geoip )
 				builtin_error("Can't initialize GeoIP City/Country database");
 			else
-				reporter->Warning("Fell back to GeoIP Country database");
+				reporter->Info("Fell back to GeoIP Country database");
 			}
 		else
 			have_city_db = true;
@@ -3522,7 +3847,7 @@ function lookup_location%(a: addr%) : geo_location
 		}
 
 #ifdef HAVE_GEOIP_COUNTRY_EDITION_V6
-	if ( geoip_v6 && a->AsAddr().GetFamily() == IPAddr::IPv6 )
+	if ( geoip_v6 && a->AsAddr().GetFamily() == IPv6 )
 		{
 		geoipv6_t ga;
 		a->AsAddr().CopyIPv6(&ga);
@@ -3534,7 +3859,7 @@ function lookup_location%(a: addr%) : geo_location
 	else
 #endif
 
-	if ( geoip && a->AsAddr().GetFamily() == IPAddr::IPv4 )
+	if ( geoip && a->AsAddr().GetFamily() == IPv4 )
 		{
 		const uint32* bytes;
 		a->AsAddr().GetBytes(&bytes);
@@ -3592,6 +3917,7 @@ function lookup_location%(a: addr%) : geo_location
 	%}
 
 ## Performs an AS lookup of an IP address.
+## Requires Bro to be built with ``libgeoip``.
 ##
 ## a: The IP address to lookup.
 ##
@@ -3617,7 +3943,7 @@ function lookup_asn%(a: addr%) : count
 		{
 // IPv6 support showed up in 1.4.5.
 #ifdef HAVE_GEOIP_COUNTRY_EDITION_V6
-		if ( a->AsAddr().GetFamily() == IPAddr::IPv6 )
+		if ( a->AsAddr().GetFamily() == IPv6 )
 			{
 			geoipv6_t ga;
 			a->AsAddr().CopyIPv6(&ga);
@@ -3626,7 +3952,7 @@ function lookup_asn%(a: addr%) : count
 		else
 #endif
 
-		if ( a->AsAddr().GetFamily() == IPAddr::IPv4 )
+		if ( a->AsAddr().GetFamily() == IPv4 )
 			{
 			const uint32* bytes;
 			a->AsAddr().GetBytes(&bytes);
@@ -3791,7 +4117,7 @@ function x509_err2str%(err_num: count%): string
 
 ## Converts UNIX file permissions given by a mode to an ASCII string.
 ##
-## mode: The permisssions, e.g., 644 or 755.
+## mode: The permissions (an octal number like 0644 converted to decimal).
 ##
 ## Returns: A string representation of *mode* in the format
 ##          ``rw[xsS]rw[xsS]rw[xtT]``.
@@ -3968,7 +4294,7 @@ function analyzer_name%(aid: count%) : string
 ##
 ## cid: The connection ID.
 ##
-## Returns: False if *id* does not point to an active connection and true
+## Returns: False if *cid* does not point to an active connection, and true
 ##          otherwise.
 ##
 ## .. note::
@@ -3990,10 +4316,10 @@ function skip_further_processing%(cid: conn_id%): bool
 ##
 ## cid: The connection identifier.
 ##
-## do_record: True to enable packet contens and false to disable for the
+## do_record: True to enable packet contents, and false to disable for the
 ##            connection identified by *cid*.
 ##
-## Returns: False if *id* does not point to an active connection and true
+## Returns: False if *cid* does not point to an active connection, and true
 ##          otherwise.
 ##
 ## .. bro:see:: skip_further_processing
@@ -4004,7 +4330,7 @@ function skip_further_processing%(cid: conn_id%): bool
 ##     connection, which is controlled separately by
 ##     :bro:id:`skip_further_processing`.
 ##
-## .. bro:see: get_contents_file set_contents_file
+## .. bro:see:: get_contents_file set_contents_file
 function set_record_packets%(cid: conn_id, do_record: bool%): bool
 	%{
 	Connection* c = sessions->FindConnection(cid);
@@ -4021,7 +4347,7 @@ function set_record_packets%(cid: conn_id, do_record: bool%): bool
 ## cid: The connection ID.
 ##
 ## direction: Controls what sides of the connection to record. The argument can
-##            take one the four values:
+##            take one of the four values:
 ##
 ##            - ``CONTENTS_NONE``: Stop recording the connection's content.
 ##            - ``CONTENTS_ORIG``: Record the data sent by the connection
@@ -4035,7 +4361,7 @@ function set_record_packets%(cid: conn_id, do_record: bool%): bool
 ##
 ## f: The file handle of the file to write the contents to.
 ##
-## Returns: Returns false if *id* does not point to an active connection and
+## Returns: Returns false if *cid* does not point to an active connection, and
 ##          true otherwise.
 ##
 ## .. note::
@@ -4046,7 +4372,7 @@ function set_record_packets%(cid: conn_id, do_record: bool%): bool
 ##     missing data; this can happen, e.g., due to an
 ##     :bro:id:`ack_above_hole` event.
 ##
-## .. bro:see: get_contents_file set_record_packets
+## .. bro:see:: get_contents_file set_record_packets
 function set_contents_file%(cid: conn_id, direction: count, f: file%): bool
 	%{
 	Connection* c = sessions->FindConnection(cid);
@@ -4061,15 +4387,15 @@ function set_contents_file%(cid: conn_id, direction: count, f: file%): bool
 ##
 ## cid: The connection ID.
 ##
-## direction: Controls what sides of the connection to record. SEe
+## direction: Controls what sides of the connection to record. See
 ##            :bro:id:`set_contents_file` for possible values.
 ##
-## Returns: The :bro:type:`file` handle for the contentents file of the
+## Returns: The :bro:type:`file` handle for the contents file of the
 ##          connection identified by *cid*. If the connection exists
-##          but no contents file for *direction*, the function generates a
-##          error and returns a file handle to ``stderr``.
+##          but there is no contents file for *direction*, then the function
+##          generates an error and returns a file handle to ``stderr``.
 ##
-## .. bro:see: set_contents_file set_record_packets
+## .. bro:see:: set_contents_file set_record_packets
 function get_contents_file%(cid: conn_id, direction: count%): file
 	%{
 	Connection* c = sessions->FindConnection(cid);
@@ -4120,7 +4446,7 @@ function set_inactivity_timeout%(cid: conn_id, t: interval%): interval
 ##
 ##              - ``LOGIN_STATE_AUTHENTICATE``: The connection is in its
 ##                initial authentication dialog.
-##              - ``OGIN_STATE_LOGGED_IN``: The analyzer believes the user has
+##              - ``LOGIN_STATE_LOGGED_IN``: The analyzer believes the user has
 ##                successfully authenticated.
 ##              - ``LOGIN_STATE_SKIP``: The analyzer has skipped any further
 ##                processing of the connection.
@@ -4128,7 +4454,7 @@ function set_inactivity_timeout%(cid: conn_id, t: interval%): interval
 ##                does not correctly know the state of the connection, and/or
 ##                the username associated with it.
 ##
-## .. bro:see: set_login_state
+## .. bro:see:: set_login_state
 function get_login_state%(cid: conn_id%): count
 	%{
 	Connection* c = sessions->FindConnection(cid);
@@ -4151,9 +4477,9 @@ function get_login_state%(cid: conn_id%): count
 ##            :bro:id:`get_login_state` for possible values.
 ##
 ## Returns: Returns false if *cid* is not an active connection
-##          or does not tagged as login analyzer, and true otherwise.
+##          or is not tagged as a login analyzer, and true otherwise.
 ##
-## .. bro:see: get_login_state
+## .. bro:see:: get_login_state
 function set_login_state%(cid: conn_id, new_state: count%): bool
 	%{
 	Connection* c = sessions->FindConnection(cid);
@@ -4285,9 +4611,9 @@ function disable_event_group%(group: string%) : any
 ##
 ## f: The path to the file.
 ##
-##  Returns: A :bro:type:`file` handle for subsequent operations.
+## Returns: A :bro:type:`file` handle for subsequent operations.
 ##
-## .. bro:see;: active_file open_for_append close write_file
+## .. bro:see:: active_file open_for_append close write_file
 ##              get_file_name set_buf flush_all mkdir enable_raw_output
 function open%(f: string%): file
 	%{
@@ -4304,9 +4630,9 @@ function open%(f: string%): file
 ##
 ## f: The path to the file.
 ##
-##  Returns: A :bro:type:`file` handle for subsequent operations.
+## Returns: A :bro:type:`file` handle for subsequent operations.
 ##
-## .. bro:see;: active_file open close write_file
+## .. bro:see:: active_file open close write_file
 ##              get_file_name set_buf flush_all mkdir enable_raw_output
 function open_for_append%(f: string%): file
 	%{
@@ -4314,13 +4640,12 @@ function open_for_append%(f: string%): file
 	%}
 
 ## Closes an open file and flushes any buffered content.
-## exists, this function appends to it (as opposed to :bro:id:`open`).
 ##
 ## f: A :bro:type:`file` handle to an open file.
 ##
-##  Returns: True on success.
+## Returns: True on success.
 ##
-## .. bro:see;: active_file open open_for_append write_file
+## .. bro:see:: active_file open open_for_append write_file
 ##              get_file_name set_buf flush_all mkdir enable_raw_output
 function close%(f: file%): bool
 	%{
@@ -4333,9 +4658,9 @@ function close%(f: file%): bool
 ##
 ## data: The data to write to *f*.
 ##
-##  Returns: True on success.
+## Returns: True on success.
 ##
-## .. bro:see;: active_file open open_for_append close
+## .. bro:see:: active_file open open_for_append close
 ##              get_file_name set_buf flush_all mkdir enable_raw_output
 function write_file%(f: file, data: string%): bool
 	%{
@@ -4351,11 +4676,11 @@ function write_file%(f: file, data: string%): bool
 ## f: A :bro:type:`file` handle to an open file.
 ##
 ## buffered: When true, *f* is fully buffered, i.e., bytes are saved in a
-##           buffered until the block size has been reached. When
+##           buffer until the block size has been reached. When
 ##           false, *f* is line buffered, i.e., bytes are saved up until a
 ##           newline occurs.
 ##
-## .. bro:see;: active_file open open_for_append close
+## .. bro:see:: active_file open open_for_append close
 ##              get_file_name write_file flush_all mkdir enable_raw_output
 function set_buf%(f: file, buffered: bool%): any
 	%{
@@ -4365,9 +4690,9 @@ function set_buf%(f: file, buffered: bool%): any
 
 ## Flushes all open files to disk.
 ##
-##  Returns: True on success.
+## Returns: True on success.
 ##
-## .. bro:see;: active_file open open_for_append close
+## .. bro:see:: active_file open open_for_append close
 ##              get_file_name write_file set_buf mkdir enable_raw_output
 function flush_all%(%): bool
 	%{
@@ -4378,10 +4703,10 @@ function flush_all%(%): bool
 ##
 ## f: The directory name.
 ##
-##  Returns: Returns true if the operation succeeds and false if the
+## Returns: Returns true if the operation succeeds, or false if the
 ##           creation fails or if *f* exists already.
 ##
-## .. bro:see;: active_file open_for_append close write_file
+## .. bro:see:: active_file open_for_append close write_file
 ##              get_file_name set_buf flush_all enable_raw_output
 function mkdir%(f: string%): bool
 	%{
@@ -4426,7 +4751,7 @@ function get_file_name%(f: file%): string
 ##
 ## f: An open file handle.
 ##
-## Returns: Rotations statistics which include the original file name, the name
+## Returns: Rotation statistics which include the original file name, the name
 ##          after the rotation, and the time when *f* was opened/closed.
 ##
 ## .. bro:see:: rotate_file_by_name calc_next_rotate
@@ -4450,7 +4775,7 @@ function rotate_file%(f: file%): rotate_info
 ##
 ## f: The name of the file to rotate
 ##
-## Returns: Rotations statistics which include the original file name, the name
+## Returns: Rotation statistics which include the original file name, the name
 ##          after the rotation, and the time when *f* was opened/closed.
 ##
 ## .. bro:see:: rotate_file calc_next_rotate
@@ -4512,7 +4837,9 @@ function calc_next_rotate%(i: interval%) : interval
 	%{
 	const char* base_time = log_rotate_base_time ?
 		log_rotate_base_time->AsString()->CheckString() : 0;
-	return new Val(calc_next_rotate(i, base_time), TYPE_INTERVAL);
+
+	double base = parse_rotate_base_time(base_time);
+	return new Val(calc_next_rotate(network_time, i, base), TYPE_INTERVAL);
 	%}
 
 ## Returns the size of a given file.
@@ -4531,7 +4858,7 @@ function file_size%(f: string%) : double
 	%}
 
 ## Disables sending :bro:id:`print_hook` events to remote peers for a given
-## file. This function is equivalent to :bro:attr:`&disable_print_hook`. In a
+## file. In a
 ## distributed setup, communicating Bro instances generate the event
 ## :bro:id:`print_hook` for each print statement and send it to the remote
 ## side. When disabled for a particular file, these events will not be
@@ -4546,8 +4873,8 @@ function disable_print_hook%(f: file%): any
 	return 0;
 	%}
 
-## Prevents escaping of non-ASCII character when writing to a file.
-## This function is equivalent to :bro:attr:`&disable_print_hook`.
+## Prevents escaping of non-ASCII characters when writing to a file.
+## This function is equivalent to :bro:attr:`&raw_output`.
 ##
 ## f: The file to disable raw output for.
 ##
@@ -4663,6 +4990,8 @@ function pcap_error%(%): string
 
 ## Installs a filter to drop packets from a given IP source address with
 ## a certain probability if none of a given set of TCP flags are set.
+## Note that for IPv6 packets with a Destination options header that has
+## the Home Address option, this filters out against that home address.
 ##
 ## ip: The IP address to drop.
 ##
@@ -4765,6 +5094,9 @@ function uninstall_src_net_filter%(snet: subnet%) : bool
 
 ## Installs a filter to drop packets destined to a given IP address with
 ## a certain probability if none of a given set of TCP flags are set.
+## Note that for IPv6 packets with a routing type header and non-zero
+## segments left, this filters out against the final destination of the
+## packet according to the routing extension header.
 ##
 ## ip: Drop packets to this IP address.
 ##
@@ -4903,9 +5235,9 @@ function checkpoint_state%(%) : bool
 	return new Val(persistence_serializer->WriteState(true), TYPE_BOOL);
 	%}
 
-## Reads persistent state from the \texttt{.state} directory and populates the
-## in-memory data structures accordingly. This function is the dual to
-## :bro:id:`checkpoint_state`.
+## Reads persistent state and populates the in-memory data structures
+## accordingly. Persistent state is read from the ``.state`` directory.
+## This function is the dual to :bro:id:`checkpoint_state`.
 ##
 ## Returns: True on success.
 ##
@@ -4957,16 +5289,20 @@ function capture_state_updates%(filename: string%) : bool
 ##
 ## ip: The IP address of the remote peer.
 ##
-## port: The port of the remote peer.
+## zone_id: If *ip* is a non-global IPv6 address, a particular :rfc:`4007`
+##          ``zone_id`` can given here.  An empty string, ``""``, means
+##          not to add any ``zone_id``.
 ##
-## our_class: If an non-empty string, the remote (listening) peer checks it
+## p: The port of the remote peer.
+##
+## our_class: If a non-empty string, then the remote (listening) peer checks it
 ##            against its class name in its peer table and terminates the
 ##            connection if they don't match.
 ##
 ## retry: If the connection fails, try to reconnect with the peer after this
 ##        time interval.
 ##
-## ssl: If true,  uses SSL to encrypt the session.
+## ssl: If true, use SSL to encrypt the session.
 ##
 ## Returns: A locally unique ID of the new peer.
 ##
@@ -4980,16 +5316,17 @@ function capture_state_updates%(filename: string%) : bool
 ##              set_compression_level
 ##              send_state
 ##              send_id
-function connect%(ip: addr, p: port, our_class: string, retry: interval, ssl: bool%) : count
+function connect%(ip: addr, zone_id: string, p: port, our_class: string, retry: interval, ssl: bool%) : count
 	%{
-	return new Val(uint32(remote_serializer->Connect(ip->AsAddr(), p->Port(),
-				our_class->CheckString(), retry, ssl)),
+	return new Val(uint32(remote_serializer->Connect(ip->AsAddr(),
+	               zone_id->CheckString(), p->Port(), our_class->CheckString(),
+	               retry, ssl)),
 			TYPE_COUNT);
 	%}
 
 ## Terminate the connection with a peer.
 ##
-## p: The peer ID return from :bro:id:`connect`.
+## p: The peer ID returned from :bro:id:`connect`.
 ##
 ## Returns: True on success.
 ##
@@ -5003,7 +5340,7 @@ function disconnect%(p: event_peer%) : bool
 ## Subscribes to all events from a remote peer whose names match a given
 ## pattern.
 ##
-## p: The peer ID return from :bro:id:`connect`.
+## p: The peer ID returned from :bro:id:`connect`.
 ##
 ## handlers: The pattern describing the events to request from peer *p*.
 ##
@@ -5021,7 +5358,7 @@ function request_remote_events%(p: event_peer, handlers: pattern%) : bool
 
 ## Requests synchronization of IDs with a remote peer.
 ##
-## p: The peer ID return from :bro:id:`connect`.
+## p: The peer ID returned from :bro:id:`connect`.
 ##
 ## auth: If true, the local instance considers its current state authoritative
 ##       and sends it to *p* right after the handshake.
@@ -5039,7 +5376,7 @@ function request_remote_sync%(p: event_peer, auth: bool%) : bool
 
 ## Requests logs from a remote peer.
 ##
-## p: The peer ID return from :bro:id:`connect`.
+## p: The peer ID returned from :bro:id:`connect`.
 ##
 ## Returns: True on success.
 ##
@@ -5051,9 +5388,11 @@ function request_remote_logs%(p: event_peer%) : bool
 	return new Val(remote_serializer->RequestLogs(id), TYPE_BOOL);
 	%}
 
-## Sets a boolean flag whether Bro accepts state from a remote peer.
+## Sets a boolean flag indicating whether Bro accepts state from a remote peer.
 ##
-## p: The peer ID return from :bro:id:`connect`.
+## p: The peer ID returned from :bro:id:`connect`.
+##
+## accept: True if Bro accepts state from peer *p*, or false otherwise.
 ##
 ## Returns: True on success.
 ##
@@ -5069,7 +5408,7 @@ function set_accept_state%(p: event_peer, accept: bool%) : bool
 
 ## Sets the compression level of the session with a remote peer.
 ##
-## p: The peer ID return from :bro:id:`connect`.
+## p: The peer ID returned from :bro:id:`connect`.
 ##
 ## level: Allowed values are in the range *[0, 9]*, where 0 is the default and
 ##        means no compression.
@@ -5084,20 +5423,29 @@ function set_compression_level%(p: event_peer, level: count%) : bool
 			TYPE_BOOL);
 	%}
 
-## Listens on address a given IP address and port for remote connections.
+## Listens on a given IP address and port for remote connections.
 ##
 ## ip: The IP address to bind to.
 ##
-## p: The TCP port to listen to.
+## p: The TCP port to listen on.
 ##
 ## ssl: If true, Bro uses SSL to encrypt the session.
+##
+## ipv6: If true, enable listening on IPv6 addresses.
+##
+## zone_id: If *ip* is a non-global IPv6 address, a particular :rfc:`4007`
+##          ``zone_id`` can given here.  An empty string, ``""``, means
+##          not to add any ``zone_id``.
+##
+## retry_interval: If address *ip* is found to be already in use, this is
+##                 the interval at which to automatically retry binding.
 ##
 ## Returns: True on success.
 ##
 ## .. bro:see:: connect disconnect
-function listen%(ip: addr, p: port, ssl: bool %) : bool
+function listen%(ip: addr, p: port, ssl: bool, ipv6: bool, zone_id: string, retry_interval: interval%) : bool
 	%{
-	return new Val(remote_serializer->Listen(ip->AsAddr(), p->Port(), ssl), TYPE_BOOL);
+	return new Val(remote_serializer->Listen(ip->AsAddr(), p->Port(), ssl, ipv6, zone_id->CheckString(), retry_interval), TYPE_BOOL);
 	%}
 
 ## Checks whether the last raised event came from a remote peer.
@@ -5110,7 +5458,7 @@ function is_remote_event%(%) : bool
 
 ## Sends all persistent state to a remote peer.
 ##
-## p: The peer ID return from :bro:id:`connect`.
+## p: The peer ID returned from :bro:id:`connect`.
 ##
 ## Returns: True on success.
 ##
@@ -5121,10 +5469,10 @@ function send_state%(p: event_peer%) : bool
 	return new Val(persistence_serializer->SendState(id, true), TYPE_BOOL);
 	%}
 
-## Sends a global identifier to a remote peer, which them might install it
+## Sends a global identifier to a remote peer, which then might install it
 ## locally.
 ##
-## p: The peer ID return from :bro:id:`connect`.
+## p: The peer ID returned from :bro:id:`connect`.
 ##
 ## id: The identifier to send.
 ##
@@ -5158,7 +5506,7 @@ function terminate_communication%(%) : bool
 ## Signals a remote peer that the local Bro instance finished the initial
 ## handshake.
 ##
-## p: The peer ID return from :bro:id:`connect`.
+## p: The peer ID returned from :bro:id:`connect`.
 ##
 ## Returns: True on success.
 function complete_handshake%(p: event_peer%) : bool
@@ -5171,7 +5519,7 @@ function complete_handshake%(p: event_peer%) : bool
 ## for :bro:id:`remote_pong`, this function can be used to measure latency
 ## between two peers.
 ##
-## p: The peer ID return from :bro:id:`connect`.
+## p: The peer ID returned from :bro:id:`connect`.
 ##
 ## seq: A sequence number (also included by :bro:id:`remote_pong`).
 ##
@@ -5186,7 +5534,7 @@ function send_ping%(p: event_peer, seq: count%) : bool
 
 ## Sends the currently processed packet to a remote peer.
 ##
-## p: The peer ID return from :bro:id:`connect`.
+## p: The peer ID returned from :bro:id:`connect`.
 ##
 ## Returns: True if sending the packet succeeds.
 ##
@@ -5212,7 +5560,7 @@ function send_current_packet%(p: event_peer%) : bool
 
 ## Returns the peer who generated the last event.
 ##
-## Returns: The ID of the peer who genereated the last event.
+## Returns: The ID of the peer who generated the last event.
 ##
 ## .. bro:see:: get_local_event_peer
 function get_event_peer%(%) : event_peer
@@ -5255,7 +5603,7 @@ function get_local_event_peer%(%) : event_peer
 
 ## Sends a capture filter to a remote peer.
 ##
-## p: The peer ID return from :bro:id:`connect`.
+## p: The peer ID returned from :bro:id:`connect`.
 ##
 ## s: The capture filter.
 ##
@@ -5272,7 +5620,7 @@ function send_capture_filter%(p: event_peer, s: string%) : bool
 ## distributed trace processing with communication enabled
 ## (*pseudo-realtime* mode).
 ##
-## .. bro:see: continue_processing suspend_state_updates resume_state_updates
+## .. bro:see:: continue_processing suspend_state_updates resume_state_updates
 function suspend_processing%(%) : any
 	%{
 	net_suspend_processing();
@@ -5281,7 +5629,7 @@ function suspend_processing%(%) : any
 
 ## Resumes Bro's packet processing.
 ##
-## .. bro:see: suspend_processing suspend_state_updates resume_state_updates
+## .. bro:see:: suspend_processing suspend_state_updates resume_state_updates
 function continue_processing%(%) : any
 	%{
 	net_continue_processing();
@@ -5290,7 +5638,7 @@ function continue_processing%(%) : any
 
 ## Stops propagating :bro:attr:`&synchronized` accesses.
 ##
-## .. bro:see: suspend_processing continue_processing resume_state_updates
+## .. bro:see:: suspend_processing continue_processing resume_state_updates
 function suspend_state_updates%(%) : any
 	%{
 	if ( remote_serializer )
@@ -5300,7 +5648,7 @@ function suspend_state_updates%(%) : any
 
 ## Resumes propagating :bro:attr:`&synchronized` accesses.
 ##
-## .. bro:see: suspend_processing continue_processing suspend_state_updates
+## .. bro:see:: suspend_processing continue_processing suspend_state_updates
 function resume_state_updates%(%) : any
 	%{
 	if ( remote_serializer )
@@ -5335,6 +5683,8 @@ function match_signatures%(c: connection, pattern_type: int, s: string,
 #
 # ===========================================================================
 
+
+
 %%{
 #include "Anon.h"
 %%}
@@ -5353,7 +5703,7 @@ function preserve_prefix%(a: addr, width: count%): any
 	AnonymizeIPAddr* ip_anon = ip_anonymizer[PREFIX_PRESERVING_A50];
 	if ( ip_anon )
 		{
-		if ( a->AsAddr().GetFamily() == IPAddr::IPv6 )
+		if ( a->AsAddr().GetFamily() == IPv6 )
 			builtin_error("preserve_prefix() not supported for IPv6 addresses");
 		else
 			{
@@ -5382,7 +5732,7 @@ function preserve_subnet%(a: subnet%): any
 	AnonymizeIPAddr* ip_anon = ip_anonymizer[PREFIX_PRESERVING_A50];
 	if ( ip_anon )
 		{
-		if ( a->AsSubNet().Prefix().GetFamily() == IPAddr::IPv6 )
+		if ( a->AsSubNet().Prefix().GetFamily() == IPv6 )
 			builtin_error("preserve_subnet() not supported for IPv6 addresses");
 		else
 			{
@@ -5418,7 +5768,7 @@ function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
 	if ( anon_class < 0 || anon_class >= NUM_ADDR_ANONYMIZATION_CLASSES )
 		builtin_error("anonymize_addr(): invalid ip addr anonymization class");
 
-	if ( a->AsAddr().GetFamily() == IPAddr::IPv6 )
+	if ( a->AsAddr().GetFamily() == IPv6 )
 		{
 		builtin_error("anonymize_addr() not supported for IPv6 addresses");
 		return 0;
@@ -5432,75 +5782,3 @@ function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
 		}
 	%}
 
-## Deprecated. Will be removed.
-function dump_config%(%) : bool
-	%{
-	return new Val(persistence_serializer->WriteConfig(true), TYPE_BOOL);
-	%}
-
-## Deprecated. Will be removed.
-function make_connection_persistent%(c: connection%) : any
-	%{
-	c->MakePersistent();
-	return 0;
-	%}
-
-%%{
-// Experimental code to add support for IDMEF XML output based on
-// notices.  For now, we're implementing it as a builtin you can call on an
-// notices record.
-
-#ifdef USE_IDMEF
-extern "C" {
-#include <libidmef/idmefxml.h>
-}
-#endif
-
-#include <sys/socket.h>
-
-char* port_to_string(PortVal* port)
-	{
-	char buf[256];	// to hold sprintf results on port numbers
-	snprintf(buf, sizeof(buf), "%u", port->Port());
-	return copy_string(buf);
-	}
-
-%%}
-
-## Deprecated. Will be removed.
-function generate_idmef%(src_ip: addr, src_port: port,
-				dst_ip: addr, dst_port: port%) : bool
-	%{
-#ifdef USE_IDMEF
-	xmlNodePtr message =
-		newIDMEF_Message(newAttribute("version","1.0"),
-			newAlert(newCreateTime(NULL),
-			newSource(
-				newNode(newAddress(
-					newAttribute("category","ipv4-addr"),
-					newSimpleElement("address",
-					copy_string(src_ip->AsAddr().AsString().c_str())),
-					NULL), NULL),
-				newService(
-					newSimpleElement("port",
-						port_to_string(src_port)),
-					NULL), NULL),
-			newTarget(
-				newNode(newAddress(
-					newAttribute("category","ipv4-addr"),
-					newSimpleElement("address",
-					copy_string(dst_ip->AsAddr().AsString().c_str())),
-					NULL), NULL),
-				newService(
-					newSimpleElement("port",
-						port_to_string(dst_port)),
-					NULL), NULL), NULL), NULL);
-
-	// if ( validateCurrentDoc() )
-	printCurrentMessage(stderr);
-	return new Val(1, TYPE_BOOL);
-#else
-	builtin_error("Bro was not configured for IDMEF support");
-	return new Val(0, TYPE_BOOL);
-#endif
-	%}

@@ -51,13 +51,18 @@ This script contains a default event handler that raises
 :bro:enum:`Signatures::Sensitive_Signature` :doc:`Notices <notice>`
 (as well as others; see the beginning of the script).
 
-As signatures are independent of Bro's policy scripts, they are put
-into their own file(s). There are two ways to specify which files
-contain signatures: By using the ``-s`` flag when you invoke Bro, or
-by extending the Bro variable :bro:id:`signature_files` using the ``+=``
-operator. If a signature file is given without a path, it is searched
-along the normal ``BROPATH``. The default extension of the file name
-is ``.sig``, and Bro appends that automatically when necessary.
+As signatures are independent of Bro's policy scripts, they are put into
+their own file(s). There are three ways to specify which files contain
+signatures: By using the ``-s`` flag when you invoke Bro, or by
+extending the Bro variable :bro:id:`signature_files` using the ``+=``
+operator, or by using the ``@load-sigs`` directive inside a Bro script.
+If a signature file is given without a full path, it is searched for
+along the normal ``BROPATH``.  Additionally, the ``@load-sigs``
+directive can be used to load signature files in a path relative to the
+Bro script in which it's placed, e.g. ``@load-sigs ./mysigs.sig`` will
+expect that signature file in the same directory as the Bro script. The
+default extension of the file name is ``.sig``, and Bro appends that
+automatically when necessary.
 
 Signature language
 ==================
@@ -224,20 +229,10 @@ matched. The following context conditions are defined:
     confirming the match. If false is returned, no signature match is
     going to be triggered. The function has to be of type ``function
     cond(state: signature_state, data: string): bool``. Here,
-    ``content`` may contain the most recent content chunk available at
+    ``data`` may contain the most recent content chunk available at
     the time the signature was matched. If no such chunk is available,
-    ``content`` will be the empty string. ``signature_state`` is
-    defined as follows:
-
-    .. code:: bro
-
-        type signature_state: record {
-            id: string;          # ID of the signature
-            conn: connection;    # Current connection
-            is_orig: bool;       # True if current endpoint is originator
-            payload_size: count; # Payload size of the first packet
-            };
-
+    ``data`` will be the empty string. See :bro:type:`signature_state`
+    for its definition.
 
 ``payload-size <cmp> <integer>``
     Compares the integer to the size of the payload of a packet. For

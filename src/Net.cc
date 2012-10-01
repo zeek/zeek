@@ -42,7 +42,6 @@ extern int select(int, fd_set *, fd_set *, fd_set *, struct timeval *);
 PList(PktSrc) pkt_srcs;
 
 // FIXME: We should really merge PktDumper and PacketDumper.
-// It's on my to-do [Robin].
 PktDumper* pkt_dumper = 0;
 
 int reading_live = 0;
@@ -70,6 +69,7 @@ PktSrc* current_pktsrc = 0;
 IOSource* current_iosrc;
 
 std::list<ScannedFile> files_scanned;
+std::vector<string> sig_files;
 
 RETSIGTYPE watchdog(int /* signo */)
 	{
@@ -456,6 +456,7 @@ void net_run()
 				// date on timers and events.
 				network_time = ct;
 				expire_timers();
+				usleep(1); // Just yield.
 				}
 			}
 
@@ -485,6 +486,8 @@ void net_run()
 			// since Bro timers are not high-precision anyway.)
 			if ( ! using_communication )
 				usleep(100000);
+			else
+				usleep(1000);
 
 			// Flawfinder says about usleep:
 			//

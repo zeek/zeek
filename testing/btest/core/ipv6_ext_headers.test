@@ -1,0 +1,22 @@
+# @TEST-EXEC: bro -b -r $TRACES/ipv6-hbh-routing0.trace %INPUT >output
+# @TEST-EXEC: btest-diff output
+
+# Just check that the event is raised correctly for a packet containing
+# extension headers.
+event ipv6_ext_headers(c: connection, p: pkt_hdr)
+	{
+	print p;
+	}
+
+# Also check the weird for routing type 0 extensions headers
+event flow_weird(name: string, src: addr, dst: addr)
+	{
+	print fmt("weird %s from %s to %s", name, src, dst);
+	}
+
+# And the connection for routing type 0 packets with non-zero segments left
+# should use the last address in that extension header.
+event new_connection(c: connection)
+	{
+	print c$id;
+	}

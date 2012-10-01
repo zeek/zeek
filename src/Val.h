@@ -347,13 +347,15 @@ public:
 #ifdef DEBUG
 	// For debugging, we keep a reference to the global ID to which a
 	// value has been bound *last*.
-	ID* GetID() const	{ return bound_id; }
+	ID* GetID() const
+		{
+		return bound_id ? global_scope()->Lookup(bound_id) : 0;
+		}
+
 	void SetID(ID* id)
 		{
-		if ( bound_id )
-			::Unref(bound_id);
-		bound_id = id;
-		::Ref(bound_id);
+		delete [] bound_id;
+		bound_id = id ? copy_string(id->Name()) : 0;
 		}
 #endif
 
@@ -401,8 +403,8 @@ protected:
 	RecordVal* attribs;
 
 #ifdef DEBUG
-	// For debugging, we keep the ID to which a Val is bound.
-	ID* bound_id;
+	// For debugging, we keep the name of the ID to which a Val is bound.
+	const char* bound_id;
 #endif
 
 };
@@ -509,13 +511,9 @@ protected:
 #define NUM_PORT_SPACES 4
 #define PORT_SPACE_MASK 0x30000
 
-#define TCP_PORT_MASK  0x10000
-#define UDP_PORT_MASK  0x20000
-#define ICMP_PORT_MASK 0x30000
-
-typedef enum {
-	TRANSPORT_UNKNOWN, TRANSPORT_TCP, TRANSPORT_UDP, TRANSPORT_ICMP,
-} TransportProto;
+#define TCP_PORT_MASK	0x10000
+#define UDP_PORT_MASK	0x20000
+#define ICMP_PORT_MASK	0x30000
 
 class PortVal : public Val {
 public:
@@ -584,12 +582,13 @@ public:
 	SubNetVal(uint32 addr, int width); // IPv4.
 	SubNetVal(const uint32 addr[4], int width); // IPv6.
 	SubNetVal(const IPAddr& addr, int width);
+	SubNetVal(const IPPrefix& prefix);
 	~SubNetVal();
 
 	Val* SizeVal() const;
 
-	const IPAddr& Prefix() const { return val.subnet_val->Prefix(); }
-	int Width() const	{ return val.subnet_val->Length(); }
+	const IPAddr& Prefix() const;
+	int Width() const;
 	IPAddr Mask() const;
 
 	bool Contains(const IPAddr& addr) const;
@@ -843,6 +842,9 @@ public:
 			timer = 0;
 		}
 
+	HashKey* ComputeHash(const Val* index) const
+		{ return table_hash->ComputeHash(index, 1); }
+
 protected:
 	friend class Val;
 	friend class StateAccess;
@@ -853,8 +855,6 @@ protected:
 	void CheckExpireAttr(attr_tag at);
 	int ExpandCompoundAndInit(val_list* vl, int k, Val* new_val);
 	int CheckAndAssign(Val* index, Val* new_val, Opcode op = OP_ASSIGN);
-	HashKey* ComputeHash(const Val* index) const
-		{ return table_hash->ComputeHash(index, 1); }
 
 	bool AddProperties(Properties arg_state);
 	bool RemoveProperties(Properties arg_state);

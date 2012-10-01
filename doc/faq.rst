@@ -46,7 +46,7 @@ directions:
 http://securityonion.blogspot.com/2011/10/when-is-full-packet-capture-not-full.html
 
 What does an error message like ``internal error: NB-DNS error`` mean?
----------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------
 
 That often means that DNS is not set up correctly on the system
 running Bro. Try verifying from the command line that DNS lookups
@@ -65,6 +65,15 @@ Generally, please note that we do not regularly test OpenBSD builds.
 We appreciate any patches that improve Bro's support for this
 platform.
 
+How do BroControl options affect Bro script variables?
+------------------------------------------------------
+
+Some (but not all) BroControl options override a corresponding Bro script variable.
+For example, setting the BroControl option "LogRotationInterval" will override
+the value of the Bro script variable "Log::default_rotation_interval".
+See the :doc:`BroControl Documentation <components/broctl/README>` to find out
+which BroControl options override Bro script variables, and for more discussion
+on site-specific customization.
 
 Usage
 =====

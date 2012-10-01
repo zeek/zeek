@@ -124,7 +124,7 @@ nb_dns_init(char *errstr)
 	nd->s = -1;
 
 	/* XXX should be able to init static hostent struct some other way */
-	(void)gethostbyname("localhost.");
+	(void)gethostbyname("localhost");
 
 	if ((_res.options & RES_INIT) == 0 && res_init() == -1) {
 		snprintf(errstr, NB_DNS_ERRSIZE, "res_init() failed");

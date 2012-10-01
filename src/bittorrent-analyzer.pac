@@ -10,25 +10,25 @@ flow BitTorrent_Flow(is_orig: bool) {
 
 	%member{
 		bool handshake_ok;
-		uint64 _next_message_offset;
+		//uint64 _next_message_offset;
 	%}
 
 	%init{
 		handshake_ok = false;
-		_next_message_offset = 0;
+		//_next_message_offset = 0;
 	%}
 
-	function next_message_offset(): uint64
-		%{
-		return &_next_message_offset;
-		%}
+	#function next_message_offset(): uint64
+	#	%{
+	#	return &_next_message_offset;
+	#	%}
 
-	function increment_next_message_offset(go: bool, len: uint32): bool
-		%{
-		if ( go )
-			_next_message_offset += len;
-		return true;
-		%}
+	#function increment_next_message_offset(go: bool, len: uint32): bool
+	#	%{
+	#	if ( go )
+	#		_next_message_offset += len;
+	#	return true;
+	#	%}
 
 	function is_handshake_delivered(): bool
 		%{

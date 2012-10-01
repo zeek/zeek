@@ -1,4 +1,4 @@
-# @TEST-GROUP: comm
+# @TEST-SERIALIZE: comm
 #
 # @TEST-EXEC: btest-bg-run controllee  BROPATH=$BROPATH:.. bro %INPUT only-for-controllee frameworks/control/controllee Communication::listen_port=65532/tcp 
 # @TEST-EXEC: btest-bg-run controller  BROPATH=$BROPATH:.. bro %INPUT frameworks/control/controller Control::host=127.0.0.1 Control::host_port=65532/tcp Control::cmd=id_value Control::arg=test_var
@@ -22,4 +22,5 @@ redef test_var = "This is the value from the controllee";
 event Control::id_value_response(id: string, val: string)
 	{
 	print fmt("Got an id_value_response(%s, %s) event", id, val);
+	terminate();
 	}

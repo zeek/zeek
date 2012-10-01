@@ -57,12 +57,14 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 		{
 		bool bad = false;
 
-		if ( ip->IP4_Hdr() && chksum &&
-		     udp_checksum(ip->IP4_Hdr(), up, len) != 0xffff )
-			bad = true;
+		if ( ip->IP4_Hdr() )
+			{
+			if ( chksum && ! ValidateChecksum(ip, up, len) )
+				bad = true;
+			}
 
-		if ( ip->IP6_Hdr() && /* checksum is not optional for IPv6 */
-		     udp6_checksum(ip->IP6_Hdr(), up, len) != 0xffff )
+		/* checksum is not optional for IPv6 */
+		else if ( ! ValidateChecksum(ip, up, len) )
 			bad = true;
 
 		if ( bad )
@@ -204,4 +206,24 @@ unsigned int UDP_Analyzer::MemoryAllocation() const
 	return Analyzer::MemoryAllocation() + padded_sizeof(*this) - 24;
 	}
 
+bool UDP_Analyzer::ValidateChecksum(const IP_Hdr* ip, const udphdr* up, int len)
+	{
+	uint32 sum;
 
+	if ( len % 2 == 1 )
+		// Add in pad byte.
+		sum = htons(((const u_char*) up)[len - 1] << 8);
+	else
+		sum = 0;
+
+	sum = ones_complement_checksum(ip->SrcAddr(), sum);
+	sum = ones_complement_checksum(ip->DstAddr(), sum);
+	// Note, for IPv6, strictly speaking the protocol and length fields are
+	// 32 bits rather than 16 bits.  But because the upper bits are all zero,
+	// we get the same checksum either way.
+	sum += htons(IPPROTO_UDP);
+	sum += htons((unsigned short) len);
+	sum = ones_complement_checksum((void*) up, len, sum);
+
+	return sum == 0xffff;
+	}

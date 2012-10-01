@@ -3,7 +3,9 @@
 #empty_field	(empty)
 #unset_field	-
 #path	ssh-new-default
+#open	2012-07-20-01-49-19
 #fields	t	id.orig_h	id.orig_p	id.resp_h	id.resp_p	status	country
 #types	time	addr	port	addr	port	string	string
-1324314313.140603	1.2.3.4	1234	2.3.4.5	80	success	unknown
-1324314313.140603	1.2.3.4	1234	2.3.4.5	80	failure	US
+1342748959.430282	1.2.3.4	1234	2.3.4.5	80	success	unknown
+1342748959.430282	1.2.3.4	1234	2.3.4.5	80	failure	US
+#close	2012-07-20-01-49-19

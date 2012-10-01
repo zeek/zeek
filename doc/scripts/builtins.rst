@@ -55,8 +55,8 @@ The Bro scripting language supports the following built-in types.
 
     A temporal type representing a relative time.  An ``interval``
     constant can be written as a numeric constant followed by a time
-    unit where the time unit is one of ``usec``, ``sec``, ``min``,
-    ``hr``, or ``day`` which respectively represent microseconds,
+    unit where the time unit is one of ``usec``, ``msec``, ``sec``, ``min``,
+    ``hr``, or ``day`` which respectively represent microseconds, milliseconds,
     seconds, minutes, hours, and days.  Whitespace between the numeric
     constant and time unit is optional.  Appending the letter "s" to the
     time unit in order to pluralize it is also optional (to no semantic
@@ -95,14 +95,14 @@ The Bro scripting language supports the following built-in types.
     and embedded.
 
     In exact matching the ``==`` equality relational operator is used
-    with one :bro:type:`string` operand and one :bro:type:`pattern`
-    operand to check whether the full string exactly matches the
-    pattern.  In this case, the ``^`` beginning-of-line and ``$``
-    end-of-line anchors are redundant since pattern is implicitly
-    anchored to the beginning and end of the line to facilitate an exact
-    match.  For example::
+    with one :bro:type:`pattern` operand and one :bro:type:`string`
+    operand (order of operands does not matter) to check whether the full
+    string exactly matches the pattern.  In exact matching, the ``^``
+    beginning-of-line and ``$`` end-of-line anchors are redundant since
+    the pattern is implicitly anchored to the beginning and end of the
+    line to facilitate an exact match.  For example::
 
-        "foo" == /foo|bar/
+        /foo|bar/ == "foo"
 
     yields true, while::
 
@@ -110,9 +110,9 @@ The Bro scripting language supports the following built-in types.
 
     yields false.  The ``!=`` operator would yield the negation of ``==``.
 
-    In embedded matching the ``in`` operator is again used with one
-    :bro:type:`string` operand and one :bro:type:`pattern` operand
-    (which must be on the left-hand side), but tests whether the pattern
+    In embedded matching the ``in`` operator is used with one
+    :bro:type:`pattern` operand (which must be on the left-hand side) and
+    one :bro:type:`string` operand, but tests whether the pattern
     appears anywhere within the given string.  For example::
 
         /foo|bar/ in "foobar"
@@ -162,7 +162,11 @@ The Bro scripting language supports the following built-in types.
     ``A1.A2.A3.A4``, where Ai all lie between 0 and 255.
 
     IPv6 address constants are written as colon-separated hexadecimal form
-    as described by :rfc:`2373`.
+    as described by :rfc:`2373`, but additionally encased in square brackets.
+    The mixed notation with embedded IPv4 addresses as dotted-quads in the
+    lower 32 bits is also allowed.
+    Some examples: ``[2001:db8::1]``, ``[::ffff:192.168.1.100]``, or
+    ``[aaaa:bbbb:cccc:dddd:eeee:ffff:1111:2222]``.
 
     Hostname constants can also be used, but since a hostname can
     correspond to multiple IP addresses, the type of such variable is a
@@ -196,7 +200,7 @@ The Bro scripting language supports the following built-in types.
     A type representing a block of IP addresses in CIDR notation.  A
     ``subnet`` constant is written as an :bro:type:`addr` followed by a
     slash (/) and then the network prefix size specified as a decimal
-    number.  For example, ``192.168.0.0/16``.
+    number.  For example, ``192.168.0.0/16`` or ``[fe80::]/64``.
 
 .. bro:type:: any
 
@@ -546,7 +550,12 @@ scripting language supports the following built-in attributes.
 
 .. bro:attr:: &expire_func
 
-    Called right before a container element expires.
+    Called right before a container element expires.  The function's
+    first parameter is of the same type of the container and the second
+    parameter the same type of the container's index.  The return
+    value is a :bro:type:`interval` indicating the amount of additional
+    time to wait before expiring the container element at the given
+    index (which will trigger another execution of this function).
 
 .. bro:attr:: &read_expire
 
@@ -590,10 +599,6 @@ scripting language supports the following built-in attributes.
 .. bro:attr:: &match
 
 .. TODO: needs to be documented.
-
-.. bro:attr:: &disable_print_hook
-
-    Deprecated. Will be removed.
 
 .. bro:attr:: &raw_output
 

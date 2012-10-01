@@ -10,6 +10,8 @@
 #include "BroString.h"
 #include "Hash.h"
 #include "util.h"
+#include "Type.h"
+#include "threading/SerialTypes.h"
 
 struct ConnID;
 class ExpectedConn;
@@ -25,7 +27,7 @@ public:
 	/**
 	 * Address family.
 	 */
-	enum Family { IPv4, IPv6 };
+	typedef IPFamily Family;
 
 	/**
 	 * Byte order.
@@ -45,7 +47,7 @@ public:
 	 *
 	 * @param in6 The IPv6 address.
 	 */
-	IPAddr(const in4_addr& in4)
+	explicit IPAddr(const in4_addr& in4)
 		{
 		memcpy(in6.s6_addr, v4_mapped_prefix, sizeof(v4_mapped_prefix));
 		memcpy(&in6.s6_addr[12], &in4.s_addr, sizeof(in4.s_addr));
@@ -56,7 +58,7 @@ public:
 	 *
 	 * @param in6 The IPv6 address.
 	 */
-	IPAddr(const in6_addr& arg_in6) : in6(arg_in6) { }
+	explicit IPAddr(const in6_addr& arg_in6) : in6(arg_in6) { }
 
 	/**
 	 * Constructs an address instance from a string representation.
@@ -186,11 +188,20 @@ public:
 	 * IPv4 to IPv6 address mapping to return a full 16 bytes.
 	 *
 	 * @param bytes The pointer to a memory location in which the
-	 * raw bytes of the address are to be copied in network byte-order.
+	 * raw bytes of the address are to be copied.
+	 *
+	 * @param order The byte-order in which the returned raw bytes are copied.
+	 * The default is network order.
 	 */
-	void CopyIPv6(uint32_t* bytes) const
+	void CopyIPv6(uint32_t* bytes, ByteOrder order = Network) const
 		{
 		memcpy(bytes, in6.s6_addr, sizeof(in6.s6_addr));
+
+		if ( order == Host )
+			{
+			for ( unsigned int i = 0; i < 4; ++i )
+				bytes[i] = ntohl(bytes[i]);
+			}
 		}
 
 	/**
@@ -279,6 +290,19 @@ public:
 	string AsString() const;
 
 	/**
+	 * Returns a string representation of the address suitable for inclusion
+	 * in an URI.  For IPv4 addresses, this is the same as AsString(), but
+	 * IPv6 addresses are encased in square brackets.
+	 */
+	string AsURIString() const
+		{
+		if ( GetFamily() == IPv4 )
+			return AsString();
+		else
+			return string("[") + AsString() + "]";
+		}
+
+	/**
 	 * Returns a host-order, plain hex string representation of the address.
 	 */
 	string AsHexString() const;
@@ -318,14 +342,19 @@ public:
 		return memcmp(&addr1.in6, &addr2.in6, sizeof(in6_addr)) < 0;
 		}
 
+	/** Converts the address into the type used internally by the
+	  * inter-thread communication.
+	  */
+	void ConvertToThreadingValue(threading::Value::addr_t* v) const;
+
 	friend HashKey* BuildConnIDHashKey(const ConnID& id);
 	friend HashKey* BuildExpectedConnHashKey(const ExpectedConn& c);
-
-	friend class IPPrefix;
 
 	unsigned int MemoryAllocation() const { return padded_sizeof(*this); }
 
 private:
+	friend class IPPrefix;
+
 	/**
 	 * Initializes an address instance from a string representation.
 	 *
@@ -382,6 +411,25 @@ inline bool IPAddr::IsLoopback() const
 			&& (in6.s6_addr[10] == 0) && (in6.s6_addr[11] == 0)
 			&& (in6.s6_addr[12] == 0) && (in6.s6_addr[13] == 0)
 			&& (in6.s6_addr[14] == 0) && (in6.s6_addr[15] == 1));
+	}
+
+inline void IPAddr::ConvertToThreadingValue(threading::Value::addr_t* v) const
+	{
+	v->family = GetFamily();
+
+	switch ( v->family ) {
+
+	case IPv4:
+		CopyIPv4(&v->in.in4);
+		return;
+
+	case IPv6:
+		CopyIPv6(&v->in.in6);
+		return;
+
+	// Can't be reached.
+	abort();
+	}
 	}
 
 /**
@@ -459,7 +507,7 @@ public:
 	 */
 	uint8_t Length() const
 		{
-		return prefix.GetFamily() == IPAddr::IPv4 ? length - 96 : length;
+		return prefix.GetFamily() == IPv4 ? length - 96 : length;
 		}
 
 	/**
@@ -514,6 +562,15 @@ public:
 		key.len = Length();
 
 		return new HashKey(&key, sizeof(key));
+		}
+
+	/** Converts the prefix into the type used internally by the
+	  * inter-thread communication.
+	  */
+	void ConvertToThreadingValue(threading::Value::subnet_t* v) const
+		{
+		v->length = length;
+		prefix.ConvertToThreadingValue(&v->prefix);
 		}
 
 	unsigned int MemoryAllocation() const { return padded_sizeof(*this); }

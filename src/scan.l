@@ -306,7 +306,6 @@ string	return TOK_STRING;
 subnet	return TOK_SUBNET;
 switch	return TOK_SWITCH;
 table	return TOK_TABLE;
-this	return TOK_THIS;
 time	return TOK_TIME;
 timeout	return TOK_TIMEOUT;
 timer	return TOK_TIMER;
@@ -320,7 +319,6 @@ when	return TOK_WHEN;
 &create_expire	return TOK_ATTR_EXPIRE_CREATE;
 &default	return TOK_ATTR_DEFAULT;
 &delete_func	return TOK_ATTR_DEL_FUNC;
-&disable_print_hook	return TOK_ATTR_DISABLE_PRINT_HOOK;
 &raw_output return TOK_ATTR_RAW_OUTPUT;
 &encrypt	return TOK_ATTR_ENCRYPT;
 &error_handler	return TOK_ATTR_ERROR_HANDLER;
@@ -331,6 +329,7 @@ when	return TOK_WHEN;
 &optional	return TOK_ATTR_OPTIONAL;
 &persistent	return TOK_ATTR_PERSISTENT;
 &priority	return TOK_ATTR_PRIORITY;
+&type_column	return TOK_ATTR_TYPE_COLUMN;
 &read_expire	return TOK_ATTR_EXPIRE_READ;
 &redef		return TOK_ATTR_REDEF;
 &rotate_interval	return TOK_ATTR_ROTATE_INTERVAL;
@@ -355,6 +354,22 @@ when	return TOK_WHEN;
 			}
 		}
 	(void) load_files(new_file);
+	}
+
+@load-sigs{WS}{FILE} {
+	const char* new_sig_file = skip_whitespace(yytext + 10);
+	const char* full_filename = 0;
+	FILE* f = search_for_file(new_sig_file, "sig", &full_filename, false, 0);
+
+	if ( f )
+		{
+		sig_files.push_back(full_filename);
+		fclose(f);
+		delete [] full_filename;
+		}
+	else
+		reporter->Error("failed to find file associated with @load-sigs %s",
+		                new_sig_file);
 	}
 
 @unload{WS}{FILE}	{
@@ -420,9 +435,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 	}
 
 {D}		{
- 		// TODO: check if we can use strtoull instead of atol,
-		// and similarly for {HEX}.
-		RET_CONST(new Val(static_cast<unsigned int>(atol(yytext)),
+		RET_CONST(new Val(static_cast<bro_uint_t>(strtoull(yytext, (char**) NULL, 10)),
 			  TYPE_COUNT))
 		}
 {FLOAT}		RET_CONST(new Val(atof(yytext), TYPE_DOUBLE))
@@ -464,18 +477,18 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 		RET_CONST(new PortVal(p, TRANSPORT_UNKNOWN))
 		}
 
-({D}"."){3}{D}		RET_CONST(new AddrVal(yytext))
-
-"0x"{HEX}+	RET_CONST(new Val(static_cast<bro_uint_t>(strtol(yytext, 0, 16)), TYPE_COUNT))
-
-{H}("."{H})+		RET_CONST(dns_mgr->LookupHost(yytext))
-
 {FLOAT}{OWS}day(s?)	RET_CONST(new IntervalVal(atof(yytext),Days))
 {FLOAT}{OWS}hr(s?)	RET_CONST(new IntervalVal(atof(yytext),Hours))
 {FLOAT}{OWS}min(s?)	RET_CONST(new IntervalVal(atof(yytext),Minutes))
 {FLOAT}{OWS}sec(s?)	RET_CONST(new IntervalVal(atof(yytext),Seconds))
 {FLOAT}{OWS}msec(s?)	RET_CONST(new IntervalVal(atof(yytext),Milliseconds))
 {FLOAT}{OWS}usec(s?)	RET_CONST(new IntervalVal(atof(yytext),Microseconds))
+
+({D}"."){3}{D}		RET_CONST(new AddrVal(yytext))
+
+"0x"{HEX}+	RET_CONST(new Val(static_cast<bro_uint_t>(strtoull(yytext, 0, 16)), TYPE_COUNT))
+
+{H}("."{H})+		RET_CONST(dns_mgr->LookupHost(yytext))
 
 \"([^\\\n\"]|{ESCSEQ})*\"	{
 	const char* text = yytext;

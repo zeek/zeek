@@ -21,8 +21,41 @@ void DNP3_Analyzer::Done()
 	interp->FlowEOF(false);
 	}
 
-// TODO-Hui: This method is very hard to follow. Please split up into a set
-// of separate methods.
+// Hui-Resolve: DNP3 was initially used over serial lines; it defined its own application layer, 
+// transport layer, and data link layer. This hierarchy cannot be mapped to the TCP/IP stack 
+// directly. As a result, all three DNP3 layers are packed together as a single application layer
+// payload over the TCP layer. So each DNP3 packet in the application layer may look like this
+// DNP3 Packet :  DNP3 Serial Link Layer : DNP3 Serial Transport Layer : DNP3 Serial Application Layer
+//
+// When DeliverStream is called, "data" contains DNP3 packets consisting of all original three layers. 
+// I use the binpac to write the parser of DNP3 Serial Application Layer instead of the whole application 
+// layer payload. The following list explains why I am doing this and other challenges with my resolutions:
+//
+// 1. A Single DNP3 fragment can be truncated into several DNP3 Serial Application Layer data included under 
+// different DNP3 link layer header. As a result, reassembly is needed in some situations to reassemble DNP3 Serial
+// Application Layer data to form the complete logical DNP3 fragment. (This is similar to TCP reassembly, but happened in the application layer).
+// I find it very challenging to do this reassembly in binpac scripts. So the codes before the calling of DeliverStream
+// is to actually (1) extract bytes stream of DNP3 Serial Application Layer from the whole application layer trunk and 
+// then deliver them to the binpac analyzer; (2) perform the aformentioned reassembly if necessary. 
+//
+// 2. The DNP3 Serial Application Layer does not include a length field which indicate the length of this layer.
+// This brings challenge to write the binpac scripts. What I am doing is in this DeliverStream function, I extract the
+// length field in the DNP3 Serial Link Layer and do some computations to get the length of DNP3 Serial Application Layer and 
+// hook the original DNP3 Serial Application Layer data with a additional layer (this is represented by the type of Header_Block) 
+// In this way, the DNP3 Serial Application Layer data can be represented properly with binpac script
+//
+// Graphically, the codes in this functions does:
+// DNP3 Packet :  DNP3 Serial Link Layer : DNP3 Serial Transport Layer : DNP3 Serial Application Layer
+//                                   ||                                    ||
+//                                   || (length field)                     || (original paylad byte stream)         
+//                                   \/                                    \/
+//                                  Hooked DNP3 Serial Application Layer Data  
+//                                                   ||
+//                                                   \/
+//                                              DNP3 Analyzer
+//
+
+ 
 void DNP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
 	// TODO-Hui: The parent's DeliverStream should normally be called

@@ -2007,7 +2007,7 @@ Val* Manager::ValueToVal(const Value* val, BroType* request_type)
 
 	case TYPE_STRING:
 		{
-		BroString *s = new BroString((const u_char*)val->val.string_val.data, val->val.string_val.length, 0);
+		BroString *s = new BroString((const u_char*)val->val.string_val.data, val->val.string_val.length, 1);
 		return new StringVal(s);
 		}
 

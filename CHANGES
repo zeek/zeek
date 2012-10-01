@@ -1,4 +1,10 @@
 
+2.1-2 | 2012-10-02 12:23:44 -0700
+
+  * Fix for the input framework: BroStrings were constructed without a
+    final \0, which made them unusable by basically all internal
+    functions (like to_count). (Bernhard Amann)
+
 2.1-1 | 2012-09-24 11:20:26 -0700
 
   * Fix construction of ip6_ah (Authentication Header) record values.

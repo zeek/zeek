@@ -12,6 +12,14 @@ Frequently Asked Questions
 Installation and Configuration
 ==============================
 
+What files will get overwritten when upgrading/installing a new Bro version?
+----------------------------------------------------------------------------
+
+Expect everything except things in ``$prefix/share/bro`` and
+``$prefix/etc`` to be overwritten, but backing up the entire ``$prefix``
+before upgrading is good practice (``$prefix`` indicating the root of
+where Bro was installed).
+
 How can I tune my operating system for best capture performance?
 ----------------------------------------------------------------
 

@@ -48,7 +48,7 @@ ElasticSearch::ElasticSearch(WriterFrontend* frontend) : WriterBackend(frontend)
 	last_send = current_time();
 	failing = false;
 
-	transfer_timeout = BifConst::LogElasticSearch::transfer_timeout * 1000;
+	transfer_timeout = static_cast<long>(BifConst::LogElasticSearch::transfer_timeout);
 
 	curl_handle = HTTPSetup();
 }
@@ -373,8 +373,8 @@ bool ElasticSearch::HTTPSend(CURL *handle)
 
 	// Some timeout options.  These will need more attention later.
 	curl_easy_setopt(handle, CURLOPT_NOSIGNAL, 1);
-	curl_easy_setopt(handle, CURLOPT_CONNECTTIMEOUT_MS, transfer_timeout);
-	curl_easy_setopt(handle, CURLOPT_TIMEOUT_MS, transfer_timeout*2);
+	curl_easy_setopt(handle, CURLOPT_CONNECTTIMEOUT, transfer_timeout);
+	curl_easy_setopt(handle, CURLOPT_TIMEOUT, transfer_timeout);
 	curl_easy_setopt(handle, CURLOPT_DNS_CACHE_TIMEOUT, 60*60);
 
 	CURLcode return_code = curl_easy_perform(handle);

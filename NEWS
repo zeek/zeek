@@ -28,8 +28,9 @@ Changed Functionality
           make_connection_persistent(), generate_idmef(),
           split_complete()
 
-- "this" is no longer a reserved keyword.
+- Removed a now unused argument from "do_split" helper function.
 
+- "this" is no longer a reserved keyword.
 
 Bro 2.1
 -------

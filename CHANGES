@@ -1,4 +1,15 @@
 
+2.1-50 | 2012-10-02 12:06:08 -0700
+
+  * Fix a typing issue that prevented the ElasticSearch timeout to
+    work. (Matthias Vallentin)
+
+  * Use second granularity for ElasticSearch timeouts. (Matthias
+    Vallentin)
+
+  * Fix compile issues with older versions of libcurl, which don't
+    offer *_MS timeout constants. (Matthias Vallentin)
+
 2.1-47 | 2012-10-02 11:59:29 -0700
 
   * Fix for the input framework: BroStrings were constructed without a

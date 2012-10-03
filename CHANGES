@@ -1,4 +1,11 @@
 
+2.1-53 | 2012-10-03 16:00:40 -0700
+
+  * Add new Tunnel::delay_teredo_confirmation option that indicates
+    that the Teredo analyzer should wait until it sees both sides of a
+    connection using a valid Teredo encapsulation before issuing a
+    protocol_confirmation. Default is on. Addresses #890. (Jon Siwek)
+
 2.1-50 | 2012-10-02 12:06:08 -0700
 
   * Fix a typing issue that prevented the ElasticSearch timeout to

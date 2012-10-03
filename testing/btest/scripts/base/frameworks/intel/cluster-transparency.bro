@@ -39,7 +39,7 @@ event Intel::cluster_new_item(item: Intel::Item)
 	if ( ! is_remote_event() )
 		return;
 
-	print fmt("cluster_new_item: %s from source %s (from peer: %s)", item$host, item$meta$source, get_event_peer()$descr);
+	print fmt("cluster_new_item: %s inserted by %s (from peer: %s)", item$host, item$meta$source, get_event_peer()$descr);
 
 	if ( ! sent_data )
 		{

@@ -1,36 +1,40 @@
-# @TEST-EXEC: bro %INPUT >out
-# @TEST-EXEC: btest-diff out
+# @TEST-SERIALIZE: comm
+
+# @TEST-EXEC: btest-bg-run broproc bro %INPUT
+# @TEST-EXEC: btest-bg-wait -k 5
+# @TEST-EXEC: btest-diff broproc/intel.log
 
 @TEST-START-FILE intel.dat
-#fields	ip	net	str	subtype	meta.source	meta.class	meta.desc	meta.url	meta.tags
-1.2.3.4	-	-	-	source1	Intel::MALICIOUS	this host is just plain baaad	http://some-data-distributor.com/1234	foo,bar
-1.2.3.4	-	-	-	source1	Intel::MALICIOUS	this host is just plain baaad	http://some-data-distributor.com/1234	foo,bar
--	-	e@mail.com	Intel::EMAIL	source1	Intel::MALICIOUS	Phishing email source	http://some-data-distributor.com/100000	-
+#fields	host	net	str	str_type	meta.source	meta.desc	meta.url
+1.2.3.4	-	-	-	source1	this host is just plain baaad	http://some-data-distributor.com/1234
+1.2.3.4	-	-	-	source1	this host is just plain baaad	http://some-data-distributor.com/1234
+-	-	e@mail.com	Intel::EMAIL	source1	Phishing email source	http://some-data-distributor.com/100000
 @TEST-END-FILE
 
 @load frameworks/communication/listen
 
-redef Intel::read_files += { "intel.dat" };
+redef Intel::read_files += { "../intel.dat" };
+redef enum Intel::Where += { SOMEWHERE };
 
-event do_it(allowed_loops: count)
+event do_it()
 	{
-	if ( Intel::matcher([$str="e@mail.com", $subtype=Intel::EMAIL, $class=Intel::MALICIOUS]) &&
-	     Intel::matcher([$ip=1.2.3.4, $class=Intel::MALICIOUS]) )
-		{
-		# Once the match happens a single time we print and shutdown.
-		print "Matched it!";
-		terminate_communication();
-		return;
-		}
-	
-	if ( allowed_loops > 0 )
-		schedule 100msecs { do_it(allowed_loops-1) };
-	else
-		terminate_communication();
+	Intel::seen([$str="e@mail.com",
+	             $str_type=Intel::EMAIL,
+	             $where=SOMEWHERE]);
+
+	Intel::seen([$host=1.2.3.4,
+	             $where=SOMEWHERE]);
 	}
 
-
-event bro_init()
+global log_lines = 0;
+event Intel::log_intel(rec: Intel::Info)
 	{
-	event do_it(20);
+	++log_lines;
+	if ( log_lines == 2 )
+		terminate();
+	}
+
+event bro_init() &priority=-10
+	{
+	schedule 1sec { do_it() };
 	}

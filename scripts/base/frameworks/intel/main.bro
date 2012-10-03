@@ -129,6 +129,16 @@ type DataStore: record {
 };
 global data_store: DataStore &redef;
 
+# The inmemory data structure for holding the barest matchable intelligence.
+# This is primarily for workers to do the initial quick matches and store
+# a minimal amount of data for the full match to happen on the manager.
+type MinDataStore: record {
+	net_data:    set[subnet];
+	string_data: set[string, StrType];
+};
+global min_data_store: MinDataStore &redef;
+
+
 event bro_init() &priority=5
 	{
 	Log::create_stream(LOG, [$columns=Info, $ev=log_intel]);
@@ -137,12 +147,14 @@ event bro_init() &priority=5
 function find(s: Seen): bool
 	{
 	if ( s?$host && 
-	     s$host in data_store$net_data )
+	     ((have_full_data && s$host in data_store$net_data) || 
+	      (s$host in min_data_store$net_data)))
 		{
 		return T;
 		}
 	else if ( s?$str && s?$str_type &&
-	          [s$str, s$str_type] in data_store$string_data )
+	          ((have_full_data && [s$str, s$str_type] in data_store$string_data) ||
+	           ([s$str, s$str_type] in min_data_store$string_data)))
 		{
 		return T;
 		}
@@ -232,7 +244,7 @@ function has_meta(check: MetaData, metas: set[MetaData]): bool
 	return F;
 	}
 
-event Intel::match(s: Seen, items: set[Item])
+event Intel::match(s: Seen, items: set[Item]) &priority=5
 	{
 	local empty_set: set[string] = set();
 	local info: Info = [$ts=network_time(), $seen=s, $sources=empty_set];
@@ -264,24 +276,39 @@ function insert(item: Item)
 	if ( item?$host )
 		{
 		local host = mask_addr(item$host, is_v4_addr(item$host) ? 32 : 128);
-		if ( host !in data_store$net_data )
-			data_store$net_data[host] = set();
-		
-		metas = data_store$net_data[host];
+		if ( have_full_data )
+			{
+			if ( host !in data_store$net_data )
+				data_store$net_data[host] = set();
+
+			metas = data_store$net_data[host];
+			}
+
+		add min_data_store$net_data[host];
 		}
 	else if ( item?$net )
 		{
-		if ( item$net !in data_store$net_data )
-			data_store$net_data[item$net] = set();
+		if ( have_full_data )
+			{
+			if ( item$net !in data_store$net_data )
+				data_store$net_data[item$net] = set();
 
-		metas = data_store$net_data[item$net];
+			metas = data_store$net_data[item$net];
+			}
+
+		add min_data_store$net_data[item$net];
 		}
 	else if ( item?$str )
 		{
-		if ( [item$str, item$str_type] !in data_store$string_data )
-			data_store$string_data[item$str, item$str_type] = set();
+		if ( have_full_data )
+			{
+			if ( [item$str, item$str_type] !in data_store$string_data )
+				data_store$string_data[item$str, item$str_type] = set();
 
-		metas = data_store$string_data[item$str, item$str_type];
+			metas = data_store$string_data[item$str, item$str_type];
+			}
+
+		add min_data_store$string_data[item$str, item$str_type];
 		}
 
 	local updated = F;

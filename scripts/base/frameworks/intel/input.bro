@@ -26,3 +26,4 @@ event bro_init() &priority=5
 		                  $ev=Intel::read_entry]);
 		}
 	}
+

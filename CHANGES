@@ -1,4 +1,8 @@
 
+2.1-56 | 2012-10-03 16:04:52 -0700
+
+  * Add general FAQ entry about upgrading Bro. (Jon Siwek)
+
 2.1-53 | 2012-10-03 16:00:40 -0700
 
   * Add new Tunnel::delay_teredo_confirmation option that indicates

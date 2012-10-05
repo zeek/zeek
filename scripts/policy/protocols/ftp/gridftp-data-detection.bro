@@ -10,11 +10,11 @@
 ##! benefit of saving CPU cycles that otherwise go to analyzing such
 ##! large (and hopefully benign) connections.
 
-module GridFTP;
-
 @load base/protocols/conn
 @load base/protocols/ssl
 @load base/frameworks/notice
+
+module GridFTP;
 
 export {
 	## Number of bytes transferred before guessing a connection is a 

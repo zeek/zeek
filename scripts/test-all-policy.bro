@@ -34,6 +34,7 @@
 @load protocols/dns/auth-addl.bro
 @load protocols/dns/detect-external-names.bro
 @load protocols/ftp/detect.bro
+@load protocols/ftp/gridftp-data-detection.bro
 @load protocols/ftp/software.bro
 @load protocols/http/detect-intel.bro
 @load protocols/http/detect-MHR.bro

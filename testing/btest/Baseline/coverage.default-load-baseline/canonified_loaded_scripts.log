@@ -85,6 +85,11 @@ scripts/base/init-default.bro
     scripts/base/protocols/ftp/./utils-commands.bro
     scripts/base/protocols/ftp/./main.bro
     scripts/base/protocols/ftp/./file-extract.bro
+    scripts/base/protocols/ftp/./gridftp.bro
+      scripts/base/protocols/ssl/__load__.bro
+        scripts/base/protocols/ssl/./consts.bro
+        scripts/base/protocols/ssl/./main.bro
+        scripts/base/protocols/ssl/./mozilla-ca-list.bro
   scripts/base/protocols/http/__load__.bro
     scripts/base/protocols/http/./main.bro
     scripts/base/protocols/http/./utils.bro
@@ -103,10 +108,6 @@ scripts/base/init-default.bro
     scripts/base/protocols/socks/./main.bro
   scripts/base/protocols/ssh/__load__.bro
     scripts/base/protocols/ssh/./main.bro
-  scripts/base/protocols/ssl/__load__.bro
-    scripts/base/protocols/ssl/./consts.bro
-    scripts/base/protocols/ssl/./main.bro
-    scripts/base/protocols/ssl/./mozilla-ca-list.bro
   scripts/base/protocols/syslog/__load__.bro
     scripts/base/protocols/syslog/./consts.bro
     scripts/base/protocols/syslog/./main.bro

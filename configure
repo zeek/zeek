@@ -38,6 +38,8 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --disable-perftools    don't try to build with Google Perftools
     --disable-python       don't try to build python bindings for broccoli
     --disable-ruby         don't try to build ruby bindings for broccoli
+    --disable-dataseries   don't use the optional DataSeries log writer
+    --disable-elasticsearch don't use the optional ElasticSearch log writer
 
   Required Packages in Non-Standard Locations:
     --with-openssl=PATH    path to OpenSSL install root
@@ -174,6 +176,12 @@ while [ $# -ne 0 ]; do
             ;;
         --disable-ruby)
             append_cache_entry DISABLE_RUBY_BINDINGS     BOOL   true
+            ;;
+        --disable-dataseries)
+            append_cache_entry DISABLE_DATASERIES     BOOL   true
+            ;;
+        --disable-elasticsearch)
+            append_cache_entry DISABLE_ELASTICSEARCH     BOOL   true
             ;;
         --with-openssl=*)
             append_cache_entry OpenSSL_ROOT_DIR PATH $optarg
